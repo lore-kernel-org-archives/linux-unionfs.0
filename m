@@ -1,309 +1,139 @@
-Return-Path: <SRS0=lbY/=AN=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=HCnm=AO=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.5 required=3.0 tests=HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BF48C433E0
-	for <linux-unionfs@archiver.kernel.org>; Thu,  2 Jul 2020 07:26:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE0C2C433DF
+	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Jul 2020 13:38:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 143F8206BE
-	for <linux-unionfs@archiver.kernel.org>; Thu,  2 Jul 2020 07:26:57 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="JybjjNcZ"
+	by mail.kernel.org (Postfix) with ESMTP id 99157206A1
+	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Jul 2020 13:38:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726442AbgGBH05 (ORCPT
+        id S1726276AbgGCNij (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 2 Jul 2020 03:26:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38296 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726362AbgGBH04 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 2 Jul 2020 03:26:56 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D853C08C5C1
-        for <linux-unionfs@vger.kernel.org>; Thu,  2 Jul 2020 00:26:56 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id a12so27844603ion.13
-        for <linux-unionfs@vger.kernel.org>; Thu, 02 Jul 2020 00:26:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=llKH2L04xDKIgCANvNigp6S67w0v8zYrsg+VkKkLqkg=;
-        b=JybjjNcZzaZfBkkqnzxFDpfNh5FRWPdpOec15jQ1szfs+PdphH1NqXScqzZtXukLtZ
-         TgePKyI6pTFiWaa0xBFhXTphCJfmlinXwlazwEPn/WwazQnAk1HhfUXgUtK91QSeLjAI
-         i1RwupZtFuwQQKpYzaIdEHuxM9AYx5D8jHMmdU/cVZ/jLtC7Ven42r+uI8dER9z5VLSL
-         6NC+N05dSGSYLMWvFNfpRm+XAMnRwHWDriHcOm4kGxV+Ua/bZ4pEl6QrPpaNTE1b946j
-         9MWVEezmltqJjGxWuISRkW5eqJgfS100TGnpgFRdcfnfv7fYB2FSvLuuhxFkV4HODJYm
-         Gq4g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=llKH2L04xDKIgCANvNigp6S67w0v8zYrsg+VkKkLqkg=;
-        b=J5ogWmRp7AD8nQ5GzpDLytQc/hTmlMX2ScnVn4kQ0m6fiqjHXUFqAnS8PmQ3KYuK+x
-         yMl+31oFWEU5n3xgBivwI+ki6C+KPgTqJVhXG7bJtFq5OJXywM6hSvXENWjiaLjTrxhv
-         bQRPBNYjq8sq7UwV1IzKVk+/PlhKlU0XvZainnDyAGfzcz7nSCmW5GHy/zf0v59H8tlg
-         PSMdQNI18HE4Ww7SSVJlaWgRuD/z3jQV01ahIL0Oap1uyOA8iGB1ShqxDfGxqKL53yOY
-         UX/5BgZdyoXs058Leu2WsFqE8JrDIAA8cQizo2GVuHK/8vpe45XpWCpbdIEpz6aV8ziS
-         kGtQ==
-X-Gm-Message-State: AOAM533TtdwwWCZx3ljDQWDpVEDnjOI/URc3pb+jfjtp6Qn/m9hC9tlu
-        wDD/DEdltsU+uKGuHp891H44mBmgJ5NaxZMy7CpNP1gw
-X-Google-Smtp-Source: ABdhPJytV328ciwtzLV8HxUOu/VPsOrqASs50H4hIwgrgapP+viSLkPN3U32TVw1TeZSGnhUbeISkQcEyKuNqKkXV/k=
-X-Received: by 2002:a05:6602:1225:: with SMTP id z5mr6179030iot.64.1593674815369;
- Thu, 02 Jul 2020 00:26:55 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200701215029.GF369085@redhat.com>
-In-Reply-To: <20200701215029.GF369085@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 2 Jul 2020 10:26:44 +0300
-Message-ID: <CAOQ4uxhLe3ptTcdsyGXRB=w3ub5_is3HcUY0z7OLgLPDg1Mk5w@mail.gmail.com>
-Subject: Re: [RFC PATCH v3] overlayfs: Provide mount options sync=off/fs to
- skip sync
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Fri, 3 Jul 2020 09:38:39 -0400
+Received: from mx2.suse.de ([195.135.220.15]:53344 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726022AbgGCNij (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 3 Jul 2020 09:38:39 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id CE505AEE4;
+        Fri,  3 Jul 2020 13:38:36 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 369EB1E12EB; Fri,  3 Jul 2020 15:38:36 +0200 (CEST)
+Date:   Fri, 3 Jul 2020 15:38:36 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Jan Kara <jack@suse.cz>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        Daniel J Walsh <dwalsh@redhat.com>,
-        Steven Whitehouse <swhiteho@redhat.com>,
-        Eric Sandeen <sandeen@redhat.com>, pmatilai@redhat.com
-Content-Type: text/plain; charset="UTF-8"
+        Matthew Bobrowski <mbobrowski@mbobrowski.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Mel Gorman <mgorman@techsingularity.net>
+Subject: Re: fsnotify pre-modify VFS hooks (Was: fanotify and LSM path hooks)
+Message-ID: <20200703133836.GB21364@quack2.suse.cz>
+References: <CAOQ4uxgn=YNj8cJuccx2KqxEVGZy1z3DBVYXrD=Mc7Dc=Je+-w@mail.gmail.com>
+ <20190416154513.GB13422@quack2.suse.cz>
+ <CAOQ4uxh66kAozqseiEokqM3wDJws7=cnY-aFXH_0515nvsi2-A@mail.gmail.com>
+ <20190417113012.GC26435@quack2.suse.cz>
+ <CAOQ4uxgsJ7NRtFbRYyBj_RW-trysOrUTKUnkYKYR5OMyq-+HXQ@mail.gmail.com>
+ <20200630092042.GL26507@quack2.suse.cz>
+ <CAOQ4uxjO6Y6js-txx+_tuCx50cDobQpGMHnBe6R5fBA09-4yDA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjO6Y6js-txx+_tuCx50cDobQpGMHnBe6R5fBA09-4yDA@mail.gmail.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jul 2, 2020 at 12:50 AM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> Container folks are complaining that dnf/yum issues too many sync while
-> installing packages and this slows down the image build. Build
-> requirement is such that they don't care if a node goes down while
-> build was still going on. In that case, they will simply throw away
-> unfinished layer and start new build. So they don't care about syncing
-> intermediate state to the disk and hence don't want to pay the price
-> associated with sync.
->
-> So they are asking for mount options where they can disable sync on overlay
-> mount point.
->
-> They primarily seem to have two use cases.
->
-> - For building images, they will mount overlay with nosync and then sync
->   upper layer after unmounting overlay and reuse upper as lower for next
->   layer.
->
-> - For running containers, they don't seem to care about syncing upper
->   layer because if node goes down, they will simply throw away upper
->   layer and create a fresh one.
->
-> So this patch provides two mount options "sync=off" and "sync=fs".
-> First option disables all forms of sync. Now it is caller's responsibility
-> to throw away upper if system crashes or shuts down and start fresh.
->
-> Option "sync=fs" disables all forms of sync except syncfs/umount/remount.
-> This is basically useful for image build where we want to persist upper
-> layer only after operation is complete and upper will be renamed and
-> reused as lower for next layer build.
->
-> With sync=off, I am seeing roughly 20% speed up in my VM where I am just
-> installing emacs in an image. Installation time drops from 31 seconds to
-> 25 seconds when nosync option is used. This is for the case of building on top
-> of an image where all packages are already cached. That way I take
-> out the network operations latency out of the measurement.
->
-> With sync=fs, I am seeing roughly 12% speed up.
->
-> Giuseppe is also looking to cut down on number of iops done on the
-> disk. He is complaining that often in cloud their VMs are throttled
-> if they cross the limit. This option can help them where they reduce
-> number of iops (by cutting down on frequent sync and writebacks).
->
-> Changes from v2:
-> - Added helper functions (Amir Goldstein)
-> - Used enums to keep sync state (Amir Goldstein)
+On Tue 30-06-20 17:28:10, Amir Goldstein wrote:
+> On Tue, Jun 30, 2020 at 12:20 PM Jan Kara <jack@suse.cz> wrote:
+> > the number of variants you have to introduce and then pass NULL in some
+> > places because you don't have the info available and then it's not
+> > immediately clear what semantics the event consumers can expect... That
+> > would be good to define and then verify in the code.
+> >
+> 
+> I am not sure I understand what you mean.
+> Did you mean that mnt_want_write_at() mnt_want_write_path() should be
+> actual functions instead of inline wrappers or something else?
 
-Thank you for doing that.
-Sorry, but I failed to mention the practical reasons for suggesting the
-enum config and you failed to read my mind :-/
-So I will explain my reasoning using more words (see below)
+Now looking at it, I find mnt_want_write_at2() the most confusing one. Also
+the distinction between mnt_want_write_at() and mnt_want_write_path() seems
+somewhat arbitrary at the first sight (how do you decide where to use
+what?) but there I guess I see where you are coming from...
 
->
-> Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > Also given you have the requirement "no fs locks on event generation", I'm
+> > not sure how reliable this can be. If you don't hold fs locks when
+> > generating event, cannot it happen that actually modified object is
+> > different from the reported one because we raced with some other fs
+> > operations? And can we prove that? So what exactly is the usecase and
+> > guarantees the event needs to provide?
+> 
+> That's a good question. Answer is not trivial.
+> The use case is "persistent change tracking snapshot".
+> "snapshot" because it tracks ALL changes since a point in time -
+> there is no concept of "consuming" events.
 
-Anyway, you may add:
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+So you want to answer question like: "Which paths changed since given point
+in time?" 100% reliably (no false negatives) in a powerfail safe manner? So
+effectively something like btrfs send-receive?
 
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index b429c80879ee..e7aea92733f5 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -5,6 +5,14 @@
->   * Copyright (C) 2016 Red Hat, Inc.
->   */
->
-> +enum ovl_sync_type {
-> +       __OVL_SYNC_OFF          = (1 << 0),
-> +       __OVL_SYNC_FS           = (1 << 1),
-> +};
-> +
-> +#define OVL_SYNC_OFF(type)     ((type) & __OVL_SYNC_OFF)
-> +#define OVL_SYNC_FS(type)      ((type) & __OVL_SYNC_FS)
-> +
+> It is important to note that this is complementary to real time fs events.
+> A user library may combine the two mechanisms to a stream of changes
+> (either recorded or live), but that is out of scope for this effort.
+> Also, userspace would likely create periodic snapshots, so that e.g.
+> current snapshot records changes, while previous snapshot recorded
+> changes are being scanned.
+> 
+> The concept is to record every dir fid *before* an immediate child or directory
+> metadata itself may change, so that after a crash, all recorded dir fids
+> may be scanned to search for possibly missed changes.
+> 
+> The dir fid is stable, so races are not an issue in that respect.
+> When name is recorded, change tracking never examines the object at that
+> name, it just records the fact that there has been a change at [dir fid;name].
+> This is mostly needed to track creates.
 
-My unspoken intention when I wrote either "enum" or "flags" is -
+You're right that by only tracking dir fids where something changed you've
+elliminated most of problems since once we lookup a path, the change is
+definitely going to happen in the dir we've looked up. If it really happens
+or on which inode in the dir is not determined yet but the dir fid is. I'm
+not yet 100% sure how you'll link the dir fids to actual paths on query or
+how the handling of leaf dir entries is going to work but it seems possible
+:)
 
-If you use bitwise flags, they reflect the ovl_should_xxx queries:
-__OVL_NOSYNC_FILE and __OVL_NOSYNC_FS
-#define OVL_SYNC_FILE(type)     (!((type) & __OVL_NOSYNC_FILE))
-#define OVL_SYNC_FS(type)      (!((type) & __OVL_NOSYNC_FS))
+> Other than that, races should be handled by the backend itself, so proof is
+> pending the completion of the backend POC, but in hand waving:
+> - All name changes in the filesystem call the backend before the change
+>   (because backend marks sb) and backend is responsible for locking
+> against races
+> - My current implementation uses overlayfs upper/index as the change
+>   track storage, which has the benefit that the test "is change recorded"
+>   is implemented by decode_fh and/or name lookup, so it is already very much
+>   optimized by inode and dentry cache and shouldn't need any locking for
+>   most  pre_modify calls
+> - It is also not a coincidence that overlayfs changes to upper fs do not
+>   trigger pre_modify hooks because that prevents the feedback loop.
+>   I wrote in commit message that "is consistent with the fact that overlayfs
+>   sets the FMODE_NONOTIFY flag on underlying open files" - that is needed
+>   because the path in underlying files is "fake" (open_with_fake_path()).
+> 
+> If any of this hand waving sounds terribly wrong please let me know.
+> Otherwise I will report back after POC is complete with a example backend.
 
+It sounds like it could work :).
 
-If you use enum (not bitwise), the distinct enum values reflect the
-mount option:
-OVL_SYNC_ON (=0), OVL_SYNC_OFF, OVL_SYNC_FS
+								Honza
 
-I am not commenting on this because of some sort of aesthetic taste.
-I am commenting on this because I think it would make parts of the
-patch simpler/clearer (see below).
-
-As far as I am concerned, for the three possible config values off/fs/on
-the distinct enum values are better.
-Of course, that is *my* opinion. You may disagree.
-
->  struct ovl_config {
->         char *lowerdir;
->         char *upperdir;
-> @@ -17,6 +25,7 @@ struct ovl_config {
->         bool nfs_export;
->         int xino;
->         bool metacopy;
-> +       enum ovl_sync_type sync;
->  };
->
->  struct ovl_sb {
-> @@ -90,6 +99,17 @@ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
->         return (struct ovl_fs *)sb->s_fs_info;
->  }
->
-> +static inline bool ovl_should_fsync(struct ovl_fs *ofs)
-> +{
-> +       return (!OVL_SYNC_OFF(ofs->config.sync) &&
-> +               ! OVL_SYNC_FS(ofs->config.sync));
-
-option #1 (bitwise):
-return OVL_SYNC_FILE(ofs->config.sync);
-
-option #2 (distinct):
-return ofs->config.sync == OVL_SYNC_ON;
-
-> +}
-> +
-> +static inline bool ovl_should_syncfs(struct ovl_fs *ofs)
-> +{
-> +       return !OVL_SYNC_OFF(ofs->config.sync);
-
-option #1 (bitwise):
-return OVL_SYNC_FS(ofs->config.sync);
-
-option #2 (distinct):
-return ofs->config.sync != OVL_SYNC_OFF;
-
-[...]
-
-> @@ -362,6 +364,10 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
->         if (ofs->config.metacopy != ovl_metacopy_def)
->                 seq_printf(m, ",metacopy=%s",
->                            ofs->config.metacopy ? "on" : "off");
-> +       if (OVL_SYNC_OFF(ofs->config.sync))
-> +               seq_puts(m, ",sync=off");
-> +       if (OVL_SYNC_FS(ofs->config.sync))
-> +               seq_puts(m, ",sync=fs");
-
-option #1 (bitwise):
-       if (!ofs->config.sync)
-               seq_puts(m, ",sync=off");
-      else if (!OVL_SYNC_FILE(ofs->config.sync))
-               seq_puts(m, ",sync=fs");
-
-option #2 (distinct):
-Would be better. See ovl_xino_str[].
-
-
-> @@ -411,6 +419,8 @@ enum {
->         OPT_XINO_AUTO,
->         OPT_METACOPY_ON,
->         OPT_METACOPY_OFF,
-> +       OPT_SYNC_OFF,
-> +       OPT_SYNC_FS,
->         OPT_ERR,
->  };
->
-> @@ -429,6 +439,8 @@ static const match_table_t ovl_tokens = {
->         {OPT_XINO_AUTO,                 "xino=auto"},
->         {OPT_METACOPY_ON,               "metacopy=on"},
->         {OPT_METACOPY_OFF,              "metacopy=off"},
-> +       {OPT_SYNC_OFF,                  "sync=off"},
-> +       {OPT_SYNC_FS,                   "sync=fs"},
->         {OPT_ERR,                       NULL}
->  };
->
-> @@ -573,6 +585,14 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                         metacopy_opt = true;
->                         break;
->
-> +               case OPT_SYNC_OFF:
-> +                       config->sync |= __OVL_SYNC_OFF;
-
-There is really no point in ORing with old config options here.
-
-option #1 (bitwise):
-                       config->sync = __OVL_NOSYNC_FILE | __OVL_NOSYNC_FS;
-
-option #2 (distinct):
-                       config->sync = OVL_SYNC_OFF;
-
-
-> +                       break;
-> +
-> +               case OPT_SYNC_FS:
-> +                       config->sync |= __OVL_SYNC_FS;
-> +                       break;
-> +
->                 default:
->                         pr_err("unrecognized mount option \"%s\" or missing value\n",
->                                         p);
-> @@ -588,6 +608,17 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                 config->workdir = NULL;
->         }
->
-> +       if (OVL_SYNC_OFF(config->sync) && OVL_SYNC_FS(config->sync)) {
-> +               pr_err("conflicting options: sync=off,sync=fs\n");
-> +               return -EINVAL;
-> +       }
-> +
-
-We are not warning user that metacopy=off conflicts with metacopy=on,
-we just let the last option overwrite previous ones.
-
-
-> +       if (!config->upperdir &&
-> +           (OVL_SYNC_OFF(config->sync) || OVL_SYNC_FS(config->sync))) {
-> +               pr_info("option sync=off/fs is meaningless in a non-upper mount, ignoring it.\n");
-> +               config->sync = 0;
-> +       }
-> +
-
-With either bitwise/distinct options this could be simplified:
-
-       if (!config->upperdir && config->sync)
-               pr_info("option "sync=off/fs" is meaningless in a
-non-upper mount, ignoring it.\n");
-               config->sync = 0;
-
-Thanks,
-Amir.
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
