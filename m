@@ -2,152 +2,193 @@ Return-Path: <SRS0=8cne=AR=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
-	DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.8 required=3.0 tests=DKIM_SIGNED,DKIM_VALID,
+	DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4CCFC433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Jul 2020 00:15:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 519F2C433DF
+	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Jul 2020 10:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B184220724
-	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Jul 2020 00:15:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2854920715
+	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Jul 2020 10:51:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=themaw.net header.i=@themaw.net header.b="xIl8DjEO";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="EnIXih/d"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XNrg7ths"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728251AbgGFAPe (ORCPT
+        id S1728530AbgGFKva (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 5 Jul 2020 20:15:34 -0400
-Received: from new4-smtp.messagingengine.com ([66.111.4.230]:45955 "EHLO
-        new4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727970AbgGFAPc (ORCPT
+        Mon, 6 Jul 2020 06:51:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50176 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728525AbgGFKva (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 5 Jul 2020 20:15:32 -0400
-Received: from compute2.internal (compute2.nyi.internal [10.202.2.42])
-        by mailnew.nyi.internal (Postfix) with ESMTP id 70398580332;
-        Sun,  5 Jul 2020 20:15:31 -0400 (EDT)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute2.internal (MEProxy); Sun, 05 Jul 2020 20:15:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=themaw.net; h=
-        message-id:subject:from:to:cc:date:in-reply-to:references
-        :content-type:mime-version:content-transfer-encoding; s=fm3; bh=
-        bTZL63OJhS2abfrP0xhwKic99+nFs7SLUUoeqTWqjVo=; b=xIl8DjEO73NZEXj7
-        w5rGkdxgkdS7WFhDJwZT3nJiuBWlSj7cyM73HdYj6F1c/q8pyDl2dtViIniOUjlF
-        G2r4QHveK7I9C0qkJmaNaMpNDsOVR5uWW8/8CFSxTBCcxIn8mkBE2+vxiF7eFUxl
-        Ki5U+zMgtkDCvq2U0xJJjwje/iy9cE2HRwYhYnrtR6sFeCTjWt5QLJjMj0S8rXK5
-        pgW+IpK05SB3vZJQm/cQXcsQHvMHn2illc1FnRjdGeWAe0FrPhJ51LfaXH4l0iXM
-        hGKhrKUUi2HZInPYrZ9TtNu7Ie9jcDcYNKdFb5MIZX7BpC4hQoU1/o5dGl3yOw0H
-        hmvgqw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:content-transfer-encoding:content-type
-        :date:from:in-reply-to:message-id:mime-version:references
-        :subject:to:x-me-proxy:x-me-proxy:x-me-sender:x-me-sender
-        :x-sasl-enc; s=fm3; bh=bTZL63OJhS2abfrP0xhwKic99+nFs7SLUUoeqTWqj
-        Vo=; b=EnIXih/dlbPjDgZDktFk7cJfQj5kg8Lb+zTiQ3RDG00ZyWjn01CHulfBT
-        /mKp7Ns0yq3Zt5vSXPByPz1EODZUuTE+0kFMKEhmRtAbXFzFMy2ph9n6t2hQ9eo9
-        i0ZxYhM4t2mdjSyK05K/REt04nrkmzHycBFJX5WS0Xhq0jMP9Q9UZJeDpaG0rDmv
-        likcMbQnvGapo7V8koB0MwsqdpsCUWWhBwnVeYzVi3Ps2/jApHZPW7HU6vXR2St4
-        9Gtt1zrk0rJxMi9ndYQvW8lH6yoYMGeWZqCDvDkl5BzxsX7WT7yAXUuCbX+G+C/M
-        CiGaSTmDDDh+qSN9lWT9QsXBbgY1A==
-X-ME-Sender: <xms:IW0CXwKVeu8lGbzOlq64_A5_uFFV9vNkIYm7mP0MSrimI9UB2WhDKw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeduiedruddvgdeftdcutefuodetggdotefrodftvf
-    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
-    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
-    fjughrpefkuffhvfffjghftggfggfgsehtjeertddtreejnecuhfhrohhmpefkrghnucfm
-    vghnthcuoehrrghvvghnsehthhgvmhgrfidrnhgvtheqnecuggftrfgrthhtvghrnhepfe
-    efteetvdeguddvveefveeftedtffduudehueeihfeuvefgveehffeludeggfejnecukfhp
-    peehkedrjedrvdeftddrvddttdenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmh
-    epmhgrihhlfhhrohhmpehrrghvvghnsehthhgvmhgrfidrnhgvth
-X-ME-Proxy: <xmx:IW0CXwJa33pPbyJKs5j5yJJp8AVsGxsC2lc_Vn_Nn0WgjWxj9WfMHw>
-    <xmx:IW0CXwt3L6lJEFZ-a435eMSG900UwVrgynIIndkpxdWRcto6-JaobA>
-    <xmx:IW0CX9b9MDt0t9FCouBcea7zpCeNwSyaB2nZBRofypQ8--PuHp992A>
-    <xmx:I20CX1CVjYZahSNs5yLT8Fa4eKR0D2nZXYQ0LYQaLxjYF-xToCoL_g>
-Received: from mickey.themaw.net (58-7-230-200.dyn.iinet.net.au [58.7.230.200])
-        by mail.messagingengine.com (Postfix) with ESMTPA id 7F2713280063;
-        Sun,  5 Jul 2020 20:15:24 -0400 (EDT)
-Message-ID: <c0488eb9932989a0d932ee5ec6d66429db18db4d.camel@themaw.net>
-Subject: Re: [PATCH 01/10] Documentation: filesystems: autofs-mount-control:
- drop doubled words
-From:   Ian Kent <raven@themaw.net>
-To:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
-Cc:     Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        autofs@vger.kernel.org, David Howells <dhowells@redhat.com>,
-        linux-cachefs@redhat.com, Joel Becker <jlbec@evilplan.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, Eric Biggers <ebiggers@kernel.org>,
-        "Theodore Y . Ts'o" <tytso@mit.edu>, linux-fscrypt@vger.kernel.org,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org
-Date:   Mon, 06 Jul 2020 08:15:21 +0800
-In-Reply-To: <20200703214325.31036-2-rdunlap@infradead.org>
-References: <20200703214325.31036-1-rdunlap@infradead.org>
-         <20200703214325.31036-2-rdunlap@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.34.4 (3.34.4-1.fc31) 
+        Mon, 6 Jul 2020 06:51:30 -0400
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E7BBC061794;
+        Mon,  6 Jul 2020 03:51:30 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id k23so38753921iom.10;
+        Mon, 06 Jul 2020 03:51:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=KjO+bcI8oqGmq0DyG8Hz97cKfR9WyJ+d4jRvopPSb/M=;
+        b=XNrg7thsKn3rHwu8zujkBPvFtp1VQfGUE63LsLV6HxL/juo6VT3v7LDNqQ2As/fyqW
+         NSFEPoqOongy46z5YP9j2/QqXlxKikdCH8N2KJaYMCwYOoUWviiWrhhnSswXh5HR2WlL
+         2bCCSL1mrNpibWNOKY+fb63/rlMP4vxNAQ1jD22k5Vh8yNhmJFPZrKK2d+3QpoiXVczC
+         jI0OhJTvykRE3hW+kPLIs9P+SvPWLwtYpsFwTHHxrwR7H/xp8KMxHPijzlNeKsisLJIV
+         ERPEwICHDnTe8SoOZgRtiF8pEt2S5NDwKAur5OkoFzeej4TjCv4lO38iGQOTOcU/u3Hz
+         Losg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=KjO+bcI8oqGmq0DyG8Hz97cKfR9WyJ+d4jRvopPSb/M=;
+        b=fy3eNPHqttVwmiC7iQujhhxG0c59A8CUN3c74yn8n8xKRTBM2Y5Yuq3oEDiM4Cv7/h
+         vD3C2UacIbks3aiU4IdBNWMMndE7TBpYe2FlcNEaC9d/yQG9RK2u8rlf/w5dKsO+MSSV
+         7MejD49iR15n5dEsBCgxb6hbdneC2S+c3Mz/PO9qeculFesj6TnipDfXsP0O6EsQ9RFQ
+         +3p7SSohCAXFOK3mqBc8vUS4xx4bCZc2Ciwk0KAFmsYqxN4QVHaaWkPjdv7NQqe4pAoP
+         HIOEZmZz1NxgUqZIZrClc9gwJ15ttAZdUshKTikSaB2aIniRSMnUuSziB6mFnPBdlvm3
+         gKMw==
+X-Gm-Message-State: AOAM530KU2FRwfPCSZlad0KlHRXW6YI7oK2VrvOLjWfiVjzILsOZp8hp
+        HELOFwn8AIVbJDkpfYz48FGv0KruwiJOSHtJN4I=
+X-Google-Smtp-Source: ABdhPJzIv9FRAbN++bw00Q4LqoqDja7FyHipQQU79EYWPnqtlolZfpIJT+FA15lutfLCyqpDRu7XLyYCAyI7qCqDPsI=
+X-Received: by 2002:a05:6638:1488:: with SMTP id j8mr24319237jak.123.1594032689650;
+ Mon, 06 Jul 2020 03:51:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+References: <CAOQ4uxgn=YNj8cJuccx2KqxEVGZy1z3DBVYXrD=Mc7Dc=Je+-w@mail.gmail.com>
+ <20190416154513.GB13422@quack2.suse.cz> <CAOQ4uxh66kAozqseiEokqM3wDJws7=cnY-aFXH_0515nvsi2-A@mail.gmail.com>
+ <20190417113012.GC26435@quack2.suse.cz> <CAOQ4uxgsJ7NRtFbRYyBj_RW-trysOrUTKUnkYKYR5OMyq-+HXQ@mail.gmail.com>
+ <20200630092042.GL26507@quack2.suse.cz> <CAOQ4uxjO6Y6js-txx+_tuCx50cDobQpGMHnBe6R5fBA09-4yDA@mail.gmail.com>
+ <20200703133836.GB21364@quack2.suse.cz>
+In-Reply-To: <20200703133836.GB21364@quack2.suse.cz>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 6 Jul 2020 13:51:18 +0300
+Message-ID: <CAOQ4uxj1YLwsWOQB9EobMsBi=M7Ob42bRZx4ChpJrJdCAZoWvg@mail.gmail.com>
+Subject: Re: fsnotify pre-modify VFS hooks (Was: fanotify and LSM path hooks)
+To:     Jan Kara <jack@suse.cz>
+Cc:     linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Matthew Bobrowski <mbobrowski@mbobrowski.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Mel Gorman <mgorman@techsingularity.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 2020-07-03 at 14:43 -0700, Randy Dunlap wrote:
-> Drop the doubled words "the" and "and".
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: linux-doc@vger.kernel.org
-> Cc: Ian Kent <raven@themaw.net>
+On Fri, Jul 3, 2020 at 4:38 PM Jan Kara <jack@suse.cz> wrote:
+>
+> On Tue 30-06-20 17:28:10, Amir Goldstein wrote:
+> > On Tue, Jun 30, 2020 at 12:20 PM Jan Kara <jack@suse.cz> wrote:
+> > > the number of variants you have to introduce and then pass NULL in some
+> > > places because you don't have the info available and then it's not
+> > > immediately clear what semantics the event consumers can expect... That
+> > > would be good to define and then verify in the code.
+> > >
+> >
+> > I am not sure I understand what you mean.
+> > Did you mean that mnt_want_write_at() mnt_want_write_path() should be
+> > actual functions instead of inline wrappers or something else?
+>
+> Now looking at it, I find mnt_want_write_at2() the most confusing one. Also
+> the distinction between mnt_want_write_at() and mnt_want_write_path() seems
+> somewhat arbitrary at the first sight (how do you decide where to use
+> what?) but there I guess I see where you are coming from...
 
-Acked-by: Ian Kent <raven@themaw.net>
+OK, I renamed the wrappers and documented them as follows:
 
-> Cc: autofs@vger.kernel.org
-> ---
->  Documentation/filesystems/autofs-mount-control.rst |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> --- linux-next-20200701.orig/Documentation/filesystems/autofs-mount-
-> control.rst
-> +++ linux-next-20200701/Documentation/filesystems/autofs-mount-
-> control.rst
-> @@ -391,7 +391,7 @@ variation uses the path and optionally i
->  set to an autofs mount type. The call returns 1 if this is a mount
-> point
->  and sets out.devid field to the device number of the mount and
-> out.magic
->  field to the relevant super block magic number (described below) or
-> 0 if
-> -it isn't a mountpoint. In both cases the the device number (as
-> returned
-> +it isn't a mountpoint. In both cases the device number (as returned
->  by new_encode_dev()) is returned in out.devid field.
->  
->  If supplied with a file descriptor we're looking for a specific
-> mount,
-> @@ -399,12 +399,12 @@ not necessarily at the top of the mounte
->  the descriptor corresponds to is considered a mountpoint if it is
-> itself
->  a mountpoint or contains a mount, such as a multi-mount without a
-> root
->  mount. In this case we return 1 if the descriptor corresponds to a
-> mount
-> -point and and also returns the super magic of the covering mount if
-> there
-> +point and also returns the super magic of the covering mount if
-> there
->  is one or 0 if it isn't a mountpoint.
->  
->  If a path is supplied (and the ioctlfd field is set to -1) then the
-> path
->  is looked up and is checked to see if it is the root of a mount. If
-> a
->  type is also given we are looking for a particular autofs mount and
-> if
-> -a match isn't found a fail is returned. If the the located path is
-> the
-> +a match isn't found a fail is returned. If the located path is the
->  root of a mount 1 is returned along with the super magic of the
-> mount
->  or 0 otherwise.
+ * mnt_want_write_path - get write access to a path's mount
+ * mnt_want_write_name - get write access to a path's mount before link/unlink
+ * mnt_want_write_rename - get write access to a path's mount before rename
 
+Pushed this to branch fsnotify_pre_modify.
+
+I can see why the use of mnt_want_write_at() and mnt_want_write_path() seems
+arbitrary. This is because in VFS code, @path argument can mean the path of the
+object or path of the parent, depending on the function.
+It is just by examining the code that you can figure that out, but in
+practice path
+means parent in link/unlink/rename functions.
+
+>
+> > > Also given you have the requirement "no fs locks on event generation", I'm
+> > > not sure how reliable this can be. If you don't hold fs locks when
+> > > generating event, cannot it happen that actually modified object is
+> > > different from the reported one because we raced with some other fs
+> > > operations? And can we prove that? So what exactly is the usecase and
+> > > guarantees the event needs to provide?
+> >
+> > That's a good question. Answer is not trivial.
+> > The use case is "persistent change tracking snapshot".
+> > "snapshot" because it tracks ALL changes since a point in time -
+> > there is no concept of "consuming" events.
+>
+> So you want to answer question like: "Which paths changed since given point
+> in time?" 100% reliably (no false negatives) in a power fail safe manner? So
+> effectively something like btrfs send-receive?
+>
+
+It's the same use case of btrfs send-receive (power fail safe
+incremental backup),
+but semantics are quite different.
+btrfs send-receive information contains the actual changes.
+Persistent change tracking only contains the information of where changes are
+possible. IOW, there is potentially much more comparing to do with the target.
+And of course, it is filesystem agnostic.
+
+Thanks,
+Amir.
+
+> > It is important to note that this is complementary to real time fs events.
+> > A user library may combine the two mechanisms to a stream of changes
+> > (either recorded or live), but that is out of scope for this effort.
+> > Also, userspace would likely create periodic snapshots, so that e.g.
+> > current snapshot records changes, while previous snapshot recorded
+> > changes are being scanned.
+> >
+> > The concept is to record every dir fid *before* an immediate child or directory
+> > metadata itself may change, so that after a crash, all recorded dir fids
+> > may be scanned to search for possibly missed changes.
+> >
+> > The dir fid is stable, so races are not an issue in that respect.
+> > When name is recorded, change tracking never examines the object at that
+> > name, it just records the fact that there has been a change at [dir fid;name].
+> > This is mostly needed to track creates.
+>
+> You're right that by only tracking dir fids where something changed you've
+> elliminated most of problems since once we lookup a path, the change is
+> definitely going to happen in the dir we've looked up. If it really happens
+> or on which inode in the dir is not determined yet but the dir fid is. I'm
+> not yet 100% sure how you'll link the dir fids to actual paths on query or
+> how the handling of leaf dir entries is going to work but it seems possible
+> :)
+>
+> > Other than that, races should be handled by the backend itself, so proof is
+> > pending the completion of the backend POC, but in hand waving:
+> > - All name changes in the filesystem call the backend before the change
+> >   (because backend marks sb) and backend is responsible for locking
+> > against races
+> > - My current implementation uses overlayfs upper/index as the change
+> >   track storage, which has the benefit that the test "is change recorded"
+> >   is implemented by decode_fh and/or name lookup, so it is already very much
+> >   optimized by inode and dentry cache and shouldn't need any locking for
+> >   most  pre_modify calls
+> > - It is also not a coincidence that overlayfs changes to upper fs do not
+> >   trigger pre_modify hooks because that prevents the feedback loop.
+> >   I wrote in commit message that "is consistent with the fact that overlayfs
+> >   sets the FMODE_NONOTIFY flag on underlying open files" - that is needed
+> >   because the path in underlying files is "fake" (open_with_fake_path()).
+> >
+> > If any of this hand waving sounds terribly wrong please let me know.
+> > Otherwise I will report back after POC is complete with a example backend.
+>
+> It sounds like it could work :).
+>
+>                                                                 Honza
+>
+> --
+> Jan Kara <jack@suse.com>
+> SUSE Labs, CR
