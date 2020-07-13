@@ -8,64 +8,64 @@ X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A4F6C433E5
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Jul 2020 10:57:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF2F7C433E2
+	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Jul 2020 10:57:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26EB320758
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Jul 2020 10:57:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E7C120758
+	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Jul 2020 10:57:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="P7KfOB5R"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KIFPG08t"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729447AbgGMK5r (ORCPT
+        id S1729303AbgGMK5p (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 13 Jul 2020 06:57:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51638 "EHLO
+        Mon, 13 Jul 2020 06:57:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51632 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727890AbgGMK5q (ORCPT
+        with ESMTP id S1727890AbgGMK5p (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Jul 2020 06:57:46 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 632A0C061755
-        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jul 2020 03:57:46 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id f7so15858331wrw.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jul 2020 03:57:46 -0700 (PDT)
+        Mon, 13 Jul 2020 06:57:45 -0400
+Received: from mail-wm1-x342.google.com (mail-wm1-x342.google.com [IPv6:2a00:1450:4864:20::342])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8C80C061755
+        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jul 2020 03:57:44 -0700 (PDT)
+Received: by mail-wm1-x342.google.com with SMTP id f139so12726392wmf.5
+        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jul 2020 03:57:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=OoJ+oXirKYTaYOCxXlqJbPrCOA8K7IQDhVr4KDzKRjY=;
-        b=P7KfOB5Rc5ildJzOLZ7ATlhrKwP1O2e9dMYbgO9OzuMXEI1DB6bS7cmQV01xOGtJ9j
-         GgnwJj7vb7xIC8S/RzTF6LhsgHeAixOv4InND7RSmcRp+uCN0+Vxe43Oo/k/V83NKJJ6
-         H570t1D0CugzPJc6Bt629Umo8l4qFEWZ9cZITHcJ5W6ii7DE4OFxesUXwszddg0wpp37
-         ne0KZZHBIQ7oNmMI1LB4haFVsMTrSz+mBjqSsy/+SEkf/QvVULNRenKcPXd5TCbSwR4M
-         Ep/9KAQSjYzL/nG258XUfKqeOX2+qKftzZ57H83cpfDRMOugFw2L9Oj+f4AkwuytyB5k
-         xfSQ==
+        bh=yUbE2NwYzMVyxRj09aByC/Q4aiut3QiVx/EgD6Po9t4=;
+        b=KIFPG08tCD3DD17x8mxPtu4jEoY9QeIayOJL4kKZSUJ6al8TqeFqJM4UGkLPhp3u5h
+         WyYg1aL87zfod+vKMwi2g+9tMvLLoS0eiepCC2jg4hvqRqtGBYsKpm9hgSJ80zxnTL+I
+         AZSCVkQmCPO2csBXaxTfQ0U6C+zVmxckh3FgdKGD0ntV+VUFunJYesxrXy/aK9OWG6WS
+         qNOJ6cJ9zw50pRHQ9Ar5Qw0i9prCwj18Y7j1+qz5gt+4M2VDRH5MjKsR+Cs5JIFAKREI
+         gKgkJsX5nmafSQKKUzFedfESon13dYSkCy33oEBvUI7DBeR0cwdBIs2BjGa6KH5GMLZg
+         Lr4w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references;
-        bh=OoJ+oXirKYTaYOCxXlqJbPrCOA8K7IQDhVr4KDzKRjY=;
-        b=B3AFHgnEbQdJgnokjWrSMyGr4xcndFPkQFNOIMrDfzZJJJk3wiu+jc3Y3vIapQo24m
-         TVMymtXR3JcBb1eySn54vFQj7+GwHi4jjnFvQfnUf8dutMcPnYXXV5M6LK8fjr+ccgJ7
-         eFZUPw3mVBD5RijO3UXwgivIxjmBcC1Nf0YqMbKrMVzb55o1CQg4S0j5FNnoJXsZTzhU
-         PLhP1GJP0njntiCklkuKLfQuDZ7kL5kPBOWtL7tY6CJM/p1mtLdOfzRFLusKV6LQNiQo
-         akIrI9DoO7oHe6xzamQrjgCnbFZ4K/5Dicipyr65PK/vtLfkXjem0y3P5arskkVB33Dl
-         mxgg==
-X-Gm-Message-State: AOAM533wVqxxia4xlJaW6Xn5NjDsAqf66IURq2v8APq6FzYkoFlcHB0L
-        Sas32BowxaSXAghPCwBaC31Totme
-X-Google-Smtp-Source: ABdhPJzOHF6iwQHCrnDTKxHZTmx41jQCZ5A8XINTSGysIroz0lyJBOMsnlyilfK719JrQK8+nMEcFg==
-X-Received: by 2002:a5d:6907:: with SMTP id t7mr79070452wru.329.1594637865154;
-        Mon, 13 Jul 2020 03:57:45 -0700 (PDT)
+        bh=yUbE2NwYzMVyxRj09aByC/Q4aiut3QiVx/EgD6Po9t4=;
+        b=flxZHBr0W749Wemhcq04Ul6doYGDslZBBAW5N/2EsEZh2Dh9rMlEdcb71HolmZE/G8
+         rMD4BV4KFFPd/wicpuhpMVrfv34zfgjAuyQIK3Z3djxbjFAbYJn/iX5K49t7pTbFdQr0
+         MNj2eVFZ6D0necqghm2bqJZoHw/qWWvXGP9p3Bv5BYWUdo8TqyjqS+KftAMqmrcYx2dk
+         FH8IESZ/Upjtt1acYeEx2IqHPzGoEspZZ1PSrwTslXxh+wu31iifeEnh3YS2RrvV/UhF
+         tsWq+lXCdXwsadha3UsQsQe75JkP6zP3M5RAzi7lv2wdP4mhZlYvmD7j2843690aY6hK
+         kycw==
+X-Gm-Message-State: AOAM532Qm/Jfs16XPRFSCZwxhQke+7RVHbQ6g1CQRknFhTKm7eAoMXCV
+        2N0YvWdqQX0kBE7ioHFLEz8=
+X-Google-Smtp-Source: ABdhPJxg9REmBLcz1OMTOOJzD6PQD+0lU2xvjtL5iswEAHHrJ56chjRKRbNnz7xsVgnwcF6YhyZqDg==
+X-Received: by 2002:a1c:f407:: with SMTP id z7mr18292905wma.8.1594637863437;
+        Mon, 13 Jul 2020 03:57:43 -0700 (PDT)
 Received: from localhost.localdomain ([141.226.183.23])
-        by smtp.gmail.com with ESMTPSA id r1sm23099330wrw.24.2020.07.13.03.57.43
+        by smtp.gmail.com with ESMTPSA id r1sm23099330wrw.24.2020.07.13.03.57.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 13 Jul 2020 03:57:44 -0700 (PDT)
+        Mon, 13 Jul 2020 03:57:42 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Vivek Goyal <vgoyal@redhat.com>, Josh England <jjengla@gmail.com>,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH RFC 2/2] ovl: invalidate dentry if lower was renamed
-Date:   Mon, 13 Jul 2020 13:57:32 +0300
-Message-Id: <20200713105732.2886-3-amir73il@gmail.com>
+Subject: [PATCH RFC 1/2] ovl: invalidate dentry with deleted real dir
+Date:   Mon, 13 Jul 2020 13:57:31 +0300
+Message-Id: <20200713105732.2886-2-amir73il@gmail.com>
 X-Mailer: git-send-email 2.17.1
 In-Reply-To: <20200713105732.2886-1-amir73il@gmail.com>
 References: <20200713105732.2886-1-amir73il@gmail.com>
@@ -74,134 +74,100 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Changes to lower layer while overlay in mounted result in undefined
-behavior.  Therefore, we can change the behavior to invalidate the
-overlay dentry on dcache lookup if one of the dentries in the lowerstack
-was renamed since the lowerstack was composed.
+Changes to underlying layers while overlay in mounted result in
+undefined behavior.  Therefore, we can change the behavior to
+invalidate the overlay dentry on dcache lookup if one of the
+underlying dentries was deleted since the dentry was composed.
 
-To be absolute certain that lower dentry was not renamed we would need to
-know the redirect path that lead to it, but that is not necessary.
-Instead, we just store the hash of the parent/name from when we composed
-the stack, which gives a good enough probablity to detect a lower rename
-and is much less complexity.
+Negative underlying dentries are not expected in overlay upper and
+lower dentries.  If they are found it is probably dcache lookup racing
+with an overlay unlink, before d_drop() was called on the overlay dentry.
+IS_DEADDIR directories may be caused by underlying rmdir, so invalidate
+overlay dentry on dcache lookup if we find those.
 
-We do not provide this protection for upper dentries, because that would
-require updating the hash on overlay initiated renames and that is harder
-to implement with lockless lookup.
+We preserve the legacy behaior of returning -ESTALE on invalid cache
+for lower dentries, but we relax this behavior for upper dentries
+that may be invalidated by a race with overlay unlink/rmdir.
 
 This doesn't make live changes to underlying layers valid, because
 invalid dentry stacks may still be referenced by open files, but it
-reduces the window for possible bugs caused by lower rename, because
-lookup cannot return those invalid dentry stacks.
+reduces the window for possible bugs caused by underlying delete,
+because lookup cannot return those invalid dentry stacks.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/export.c    |  1 +
- fs/overlayfs/namei.c     |  4 +++-
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/super.c     | 17 ++++++++++-------
- 4 files changed, 16 insertions(+), 8 deletions(-)
+ fs/overlayfs/super.c | 41 +++++++++++++++++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 10 deletions(-)
 
-diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index 0e696f72cf65..7221b6226e26 100644
---- a/fs/overlayfs/export.c
-+++ b/fs/overlayfs/export.c
-@@ -319,6 +319,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	if (lower) {
- 		oe->lowerstack->dentry = dget(lower);
- 		oe->lowerstack->layer = lowerpath->layer;
-+		oe->lowerstack->hash = lower->d_name.hash_len;
- 	}
- 	dentry->d_fsdata = oe;
- 	if (upper_alias)
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 3566282a9199..ae1c1216a038 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -375,7 +375,8 @@ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
- 	}
- 	**stackp = (struct ovl_path){
- 		.dentry = origin,
--		.layer = &ofs->layers[i]
-+		.layer = &ofs->layers[i],
-+		.hash = origin->d_name.hash_len,
- 	};
- 
- 	return 0;
-@@ -968,6 +969,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		} else {
- 			stack[ctr].dentry = this;
- 			stack[ctr].layer = lower.layer;
-+			stack[ctr].hash = this->d_name.hash_len;
- 			ctr++;
- 		}
- 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index b429c80879ee..557f1782f53b 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -42,6 +42,8 @@ struct ovl_layer {
- struct ovl_path {
- 	const struct ovl_layer *layer;
- 	struct dentry *dentry;
-+	/* Hash of the lower parent/name when we found it */
-+	u64 hash;
- };
- 
- /* private information held for overlayfs's superblock */
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f2c74387e05b..4b7cb2d98203 100644
+index 06ec3cb977e6..f2c74387e05b 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -119,13 +119,13 @@ static bool ovl_dentry_is_dead(struct dentry *d)
+@@ -113,21 +113,42 @@ static struct dentry *ovl_d_real(struct dentry *dentry,
+ 	return dentry;
  }
  
- static int ovl_revalidate_real(struct dentry *d, unsigned int flags, bool weak,
--			       bool is_upper)
-+			       bool is_upper, u64 hash)
+-static int ovl_revalidate_real(struct dentry *d, unsigned int flags, bool weak)
++static bool ovl_dentry_is_dead(struct dentry *d)
  {
- 	bool strict = !weak;
++	return unlikely(!d->d_inode || IS_DEADDIR(d->d_inode));
++}
++
++static int ovl_revalidate_real(struct dentry *d, unsigned int flags, bool weak,
++			       bool is_upper)
++{
++	bool strict = !weak;
  	int ret = 1;
  
--	/* Invalidate dentry if real was deleted since we found it */
--	if (ovl_dentry_is_dead(d)) {
-+	/* Invalidate dentry if real was deleted/renamed since we found it */
-+	if (ovl_dentry_is_dead(d) || (hash && hash != d->d_name.hash_len)) {
- 		ret = 0;
- 		/* Raced with overlay unlink/rmdir? */
- 		if (is_upper)
-@@ -156,17 +156,18 @@ static int ovl_dentry_revalidate_common(struct dentry *dentry,
- 					unsigned int flags, bool weak)
- {
- 	struct ovl_entry *oe = dentry->d_fsdata;
-+	struct ovl_path *lower = oe->lowerstack;
- 	struct dentry *upper;
- 	unsigned int i;
- 	int ret = 1;
+-	if (weak) {
++	/* Invalidate dentry if real was deleted since we found it */
++	if (ovl_dentry_is_dead(d)) {
++		ret = 0;
++		/* Raced with overlay unlink/rmdir? */
++		if (is_upper)
++			strict = false;
++	} else if (weak) {
+ 		if (d->d_flags & DCACHE_OP_WEAK_REVALIDATE)
+-			ret =  d->d_op->d_weak_revalidate(d, flags);
++			ret = d->d_op->d_weak_revalidate(d, flags);
+ 	} else if (d->d_flags & DCACHE_OP_REVALIDATE) {
+ 		ret = d->d_op->d_revalidate(d, flags);
+-		if (!ret) {
+-			if (!(flags & LOOKUP_RCU))
+-				d_invalidate(d);
+-			ret = -ESTALE;
+-		}
+ 	}
++
++	/*
++	 * Legacy overlayfs strict behavior is to return an error to user on
++	 * non-weak revalidate rather than retry the lookup, because underlying
++	 * layer changes are not expected. We may want to relax this in the
++	 * future either for upper only or also for lower.
++	 */
++	if (strict && !ret) {
++		if (!(flags & LOOKUP_RCU))
++			d_invalidate(d);
++		ret = -ESTALE;
++	}
++
+ 	return ret;
+ }
+ 
+@@ -141,11 +162,11 @@ static int ovl_dentry_revalidate_common(struct dentry *dentry,
  
  	upper = ovl_dentry_upper(dentry);
  	if (upper)
--		ret = ovl_revalidate_real(upper, flags, weak, true);
-+		ret = ovl_revalidate_real(upper, flags, weak, true, 0);
+-		ret = ovl_revalidate_real(upper, flags, weak);
++		ret = ovl_revalidate_real(upper, flags, weak, true);
  
--	for (i = 0; ret > 0 && i < oe->numlower; i++) {
--		ret = ovl_revalidate_real(oe->lowerstack[i].dentry, flags,
--					  weak, false);
-+	for (i = 0; ret > 0 && i < oe->numlower; i++, lower++) {
-+		ret = ovl_revalidate_real(lower->dentry, flags, weak, false,
-+					  lower->hash);
+ 	for (i = 0; ret > 0 && i < oe->numlower; i++) {
+ 		ret = ovl_revalidate_real(oe->lowerstack[i].dentry, flags,
+-					  weak);
++					  weak, false);
  	}
  	return ret;
  }
-@@ -1652,6 +1653,8 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
- 	for (i = 0; i < numlower; i++) {
- 		oe->lowerstack[i].dentry = dget(stack[i].dentry);
- 		oe->lowerstack[i].layer = &ofs->layers[i+1];
-+		/* layer root should not be invalidated by rename */
-+		oe->lowerstack->hash = 0;
- 	}
- 
- out:
 -- 
 2.17.1
 
