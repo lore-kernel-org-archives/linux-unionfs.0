@@ -2,118 +2,95 @@ Return-Path: <SRS0=Lx5L=AZ=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCA5CC433E2
-	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Jul 2020 18:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6295C433E0
+	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Jul 2020 18:33:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C056222838
-	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Jul 2020 18:18:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B42320890
+	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Jul 2020 18:33:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="NTYplmHf"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XDhcppGN"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728370AbgGNSSL (ORCPT
+        id S1726989AbgGNSdD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 14 Jul 2020 14:18:11 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:51042 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1727772AbgGNSSK (ORCPT
+        Tue, 14 Jul 2020 14:33:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36250 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726817AbgGNSdC (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Jul 2020 14:18:10 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594750689;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=CCtE2YoglMEGexO4/1q8MbbNrKGsfAXp2nyR/hterfk=;
-        b=NTYplmHf1IKlRkpCvHJFa/KTX+M1r95eC4zwhDB8eCjpjqDEN582nCPQpJ8w2n5DZccYju
-        9w2rNIILhhh4oVTnOnF9PStVY0eIbYDkQy91CKEMwM2iK2kLaTvls20X+2EC09ChlIV7Ju
-        eiQ3zwalca+kVavZ5LgilSzq6tREeIE=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-365-QYBPGkeDOo6m5H2WkNiG-g-1; Tue, 14 Jul 2020 14:18:05 -0400
-X-MC-Unique: QYBPGkeDOo6m5H2WkNiG-g-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id CFD76800C64;
-        Tue, 14 Jul 2020 18:18:04 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-115-205.rdu2.redhat.com [10.10.115.205])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id B456F7980F;
-        Tue, 14 Jul 2020 18:18:04 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 4333E2237D7; Tue, 14 Jul 2020 14:18:04 -0400 (EDT)
-Date:   Tue, 14 Jul 2020 14:18:04 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 1/3] ovl: force read-only sb on failure to create index
- dir
-Message-ID: <20200714181804.GF324688@redhat.com>
-References: <20200713141945.11719-1-amir73il@gmail.com>
- <20200713141945.11719-2-amir73il@gmail.com>
+        Tue, 14 Jul 2020 14:33:02 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF933C061755
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Jul 2020 11:33:02 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id f23so18368999iof.6
+        for <linux-unionfs@vger.kernel.org>; Tue, 14 Jul 2020 11:33:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=5ttQgdXTLXkvDKDbRyaraJcQSrB7H4ZDsSjwyKwACLE=;
+        b=XDhcppGNN5dFmE3dep91wDne+0WvcfTm1gOa9FeCb4Twdf5dzieJhInNnjRyIQPDPl
+         t6J4cyVErg4cDMfilP6cQVdFPiIi+3kNEnYH3Zw6ni/GDXGfaf+mjYWiaTw6nSoPVBii
+         fhvlWKHmqa/pU1six+v10xSSaZC/ZkYvYc+1j8vHy22f2RLmUUMY/XdOc+WfhYv+Pdo+
+         B5kzoKkrtv4Q5sbnM8nZgwvC0fdJRKhjtxrEx+RHk9olJCO/mDLv8wfrCFJwqHqcvHdr
+         G0wHYnT1dw8DvEddYbzOlJnWd0osGieIskRf8gWqoKyc8BBGDrd/bGg/+HwEkchqTF7F
+         Gn0A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5ttQgdXTLXkvDKDbRyaraJcQSrB7H4ZDsSjwyKwACLE=;
+        b=NbaZDe77aqWEy26bLCAH5GRBx4ztZ0vXMA7XPwY+KSbsrST/+cDJLXZafjNjDfr7dN
+         jmS9CAqwNyN3uL5lOODZ2k9LMAXMF39C17BxvsHBtavW8FlJW6ozK69VRNOlZjADvjqm
+         x+4vmHKbgnnciQSpLk0ZMfBozcSfZkhm9WR86dEzX5wnxDvGsYRcPenuUWsvtieFvs1F
+         lRNxMHdPqkaEP8XjIwvrv/dEyPLN84EfbEPVsqXy+hsYjU5cptu1NAuPK2Uyn3/48BJT
+         eOfK99oyBxAp+eMkPYyTUQzhUSCmd/FXh8I+Qfw3yVJ/MkxPDnfyJ2c340qINv/umtEC
+         ymmw==
+X-Gm-Message-State: AOAM531Y8zM3bj+721JAZOwfYSDFCrs0Y2jWv7uICRU+r54phuyf2cps
+        XnVB8SkIeD4anlTLRrnGZ0pBn9oVVIVKkOijgUI=
+X-Google-Smtp-Source: ABdhPJxOFA7CF3GnIbaCJ+SwC9xkK1/MM7ZxVM95Kb5QzES3oiWSutJ7UnRusx7wiCvvxsfIO4Ibn3cINBD/9+Kpx4U=
+X-Received: by 2002:a05:6602:58a:: with SMTP id v10mr6232382iox.203.1594751582187;
+ Tue, 14 Jul 2020 11:33:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20200713141945.11719-2-amir73il@gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+References: <20200713141945.11719-1-amir73il@gmail.com> <20200713141945.11719-2-amir73il@gmail.com>
+ <20200714181804.GF324688@redhat.com>
+In-Reply-To: <20200714181804.GF324688@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 14 Jul 2020 21:32:51 +0300
+Message-ID: <CAOQ4uxj_GMcWvSGSWkTQvKj2gPCP1=R9T-t=baDrH+V3Q1mPrQ@mail.gmail.com>
+Subject: Re: [PATCH 1/3] ovl: force read-only sb on failure to create index dir
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jul 13, 2020 at 05:19:43PM +0300, Amir Goldstein wrote:
-> With index feature enabled, on failure to create index dir, overlay
-> is being mounted read-only.  However, we do not forbid user to remount
-> overlay read-write.  Fix that by setting ofs->workdir to NULL, which
-> prevents remount read-write.
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+On Tue, Jul 14, 2020 at 9:18 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> On Mon, Jul 13, 2020 at 05:19:43PM +0300, Amir Goldstein wrote:
+> > With index feature enabled, on failure to create index dir, overlay
+> > is being mounted read-only.  However, we do not forbid user to remount
+> > overlay read-write.  Fix that by setting ofs->workdir to NULL, which
+> > prevents remount read-write.
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>
+> This patch does not apply for me. What branch you have generated it
+> against. I am using 5.8-rc4.
 
-This patch does not apply for me. What branch you have generated it
-against. I am using 5.8-rc4.
+It's from my ovl-fixes branch.
 
-Vivek
+Sorry I did not notice that it depends on a previous patch that Miklos
+just picked up:
 
-> ---
->  fs/overlayfs/super.c | 11 ++++++-----
->  1 file changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 4b7cb2d98203..41d7fe2b8129 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1374,12 +1374,13 @@ static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ofs,
->  		goto out;
->  	}
->  
-> +	/* index dir will act also as workdir */
-> +	iput(ofs->workdir_trap);
-> +	ofs->workdir_trap = NULL;
-> +	dput(ofs->workdir);
-> +	ofs->workdir = NULL;
->  	ofs->indexdir = ovl_workdir_create(ofs, OVL_INDEXDIR_NAME, true);
->  	if (ofs->indexdir) {
-> -		/* index dir will act also as workdir */
-> -		iput(ofs->workdir_trap);
-> -		ofs->workdir_trap = NULL;
-> -		dput(ofs->workdir);
->  		ofs->workdir = dget(ofs->indexdir);
->  
->  		err = ovl_setup_trap(sb, ofs->indexdir, &ofs->indexdir_trap,
-> @@ -1884,7 +1885,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	if (!ovl_upper_mnt(ofs))
->  		sb->s_flags |= SB_RDONLY;
->  
-> -	if (!(ovl_force_readonly(ofs)) && ofs->config.index) {
-> +	if (!ovl_force_readonly(ofs) && ofs->config.index) {
->  		err = ovl_get_indexdir(sb, ofs, oe, &upperpath);
->  		if (err)
->  			goto out_free_oe;
-> -- 
-> 2.17.1
-> 
+"ovl: fix oops in ovl_indexdir_cleanup() with nfs_export=on"
 
+Thanks,
+Amir.
