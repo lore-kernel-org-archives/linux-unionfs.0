@@ -2,129 +2,129 @@ Return-Path: <SRS0=S/v9=A2=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-13.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69175C433E1
-	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 13:06:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 908ABC433E6
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 13:38:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 439EB20657
-	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 13:06:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7222220658
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 13:38:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ci+kG1R9"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Bn5T8yew"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730868AbgGONGz (ORCPT
+        id S1731931AbgGONiS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 15 Jul 2020 09:06:55 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([205.139.110.120]:44693 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1729900AbgGONGy (ORCPT
+        Wed, 15 Jul 2020 09:38:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43458 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1731376AbgGONiR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Jul 2020 09:06:54 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1594818413;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=cYYNklSRyst0chBGlXKSwNH81G6x0gsz7iHRK5Sk6GA=;
-        b=ci+kG1R9kqyrdtPVOapD4qIuh9GEH6E2lbFtmCPmKtsopscmJojyvcmaq6wefU10A6ZpxC
-        1Tc4gwwsUhHb0khnSA9xvDAl9MjWQeLLgrntpxJX01L3onXNpWl0P6MgX4aG3VDuCP6Qc7
-        5PCbrkKBxzhNMjZRylIFYUWFSLIG69I=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-326-_q-oc1HYPtSA7AYsxTND2A-1; Wed, 15 Jul 2020 09:06:51 -0400
-X-MC-Unique: _q-oc1HYPtSA7AYsxTND2A-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DB9F018FF669;
-        Wed, 15 Jul 2020 13:06:49 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-113-0.rdu2.redhat.com [10.10.113.0])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 0584479501;
-        Wed, 15 Jul 2020 13:06:49 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 7C207220CD1; Wed, 15 Jul 2020 09:06:48 -0400 (EDT)
-Date:   Wed, 15 Jul 2020 09:06:48 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: [PATCH 0/3] Misc. redirect_dir=nofollow fixes
-Message-ID: <20200715130648.GA379396@redhat.com>
-References: <20200713141945.11719-1-amir73il@gmail.com>
- <20200714180705.GE324688@redhat.com>
- <CAOQ4uxh-fUKhiQOhRmZ5LT2sjtM3Wx5wo_wcKYtX+-DbYjXp0Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxh-fUKhiQOhRmZ5LT2sjtM3Wx5wo_wcKYtX+-DbYjXp0Q@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+        Wed, 15 Jul 2020 09:38:17 -0400
+Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBC3DC08C5C1
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 06:38:16 -0700 (PDT)
+Received: by mail-wr1-x442.google.com with SMTP id o11so2744056wrv.9
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 06:38:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id;
+        bh=4DUXyhcHa9rgH3Wd2u41FeGhKXa8aQYaWz+M4G+yJfk=;
+        b=Bn5T8yewsHQahzgvrnWnSxaqyAM/Dtcocw6sesLFKjkj7n37SUQXuio4hV0Bsv85JO
+         fsEA89k2g1tfvyyZAuYUUpaYfr7K2yhqgy15j5azLDydaLd5M1Ie/GkbIjk0k78ZH4R5
+         M+gOwcWWdqYT4ls8tXnIFL2rY57dtZDx8Po0aJvk/M/Uig9EkwZ7ZU1lO2aaiHOP1MM8
+         JJyDqsFn+dIHmhcE5SyQmSnGiYPnCxRkIYa9oNPyKdZ5j8XyM8F33uWB+ccYPLGw3688
+         Ys0SIyR5yDQxnH6WblT/to1a0N9npAZlacHMryouMmoEC0G3WjFY3Gd2pYYSxb+z7E7s
+         ekzw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id;
+        bh=4DUXyhcHa9rgH3Wd2u41FeGhKXa8aQYaWz+M4G+yJfk=;
+        b=cHIAEImaFlaIWngRu9jRsYZvMwUWawz9JzaYpernU7KERC4uT1iOh2CnI/GWRiBfKY
+         2GtXAu5vM6lAkX59dhHC2ToiqFcMcF0QwLK15h20ho9HwxkDX2mE2+oLYWQxX570isQA
+         UAoRpqXxh9OV4R0q8OP45wW7gp3kTyrkHOJAygsEaJY7qFrvq0E7Y19MJMTTvR9cpZWY
+         8EeA7T/nSuGke/FjnSn1JgiTDXzBi0K9GCDplQXEPe4vr9YES3Yn0QqFo1xMGqMzEenf
+         +I7DjzOFJhkPDyamciUxkX3Vl4UTlV8803qLSm9Mz8icFtA6SKR+0hyhXkh/NEjX7JP3
+         9ctw==
+X-Gm-Message-State: AOAM531Zib3/G87vgo3csIhzEfqZDEA2v5cw6ajXg9gB2akALDBn3o1l
+        BIczZJchuMDBJFID06c0E94=
+X-Google-Smtp-Source: ABdhPJxiB9K6L4N3Iw2Ltf/lkfiHdKKQsk95pYvAXhECee3aUkTTgA7EIbcEmuouTu4t8qm/sh2n6w==
+X-Received: by 2002:adf:e6cb:: with SMTP id y11mr11165462wrm.282.1594820295564;
+        Wed, 15 Jul 2020 06:38:15 -0700 (PDT)
+Received: from localhost.localdomain ([141.226.183.23])
+        by smtp.gmail.com with ESMTPSA id c194sm3431839wme.8.2020.07.15.06.38.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 15 Jul 2020 06:38:14 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org
+Subject: [PATCH] ovl: fix lookup of indexed hardlinks with metacopy
+Date:   Wed, 15 Jul 2020 16:38:08 +0300
+Message-Id: <20200715133808.7146-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jul 14, 2020 at 09:42:53PM +0300, Amir Goldstein wrote:
-> On Tue, Jul 14, 2020 at 9:07 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> >
-> > On Mon, Jul 13, 2020 at 05:19:42PM +0300, Amir Goldstein wrote:
-> > > Miklos, Vivek,
-> > >
-> > > Following discussion on following an unsafe non-dir origin [1]
-> > > and in a addition to a fix for the reported null uuid case [2] and to
-> > > Vivek's doc clarification [3], I am proposing to piggy back existing
-> > > config redirect_dir=nofollow to also not follow non-dir origin.
-> > >
-> > > Like in the case of non-dir origin, following redirects behavior was
-> > > added with no opt-out option in kernel v4.10.  Later security concerns
-> > > about following malformed redirects resulted in the redirect_dir=nofollow
-> > > config option.
-> >
-> > So what's the security issue you are seeing with malformed origin? If
-> 
-> TBH I never really understood the thread that led to redirect_dir=nofollow.
-> I don't think anyone has presented a proper use case that can be discussed,
+We recently moved setting inode flag OVL_UPPERDATA to ovl_lookup().
 
-IIUC, idea was that automated mounting can mount a handcrafted upper on
-usb hence allow access to directories on host which are otherwise
-inaccessible. 
+When looking up an overlay dentry, upperdentry may be found by index
+and not by name.  In that case, we fail to read the metacopy xattr
+and falsly set the OVL_UPPERDATA on the overlay inode.
 
-> so I just treat this config option as "paranoia" or "don't give me anything that
-> very old overlay did not give me".
-> Therefore I suggested piggybacking on it.
+This caused a regression in xfstest overlay/033 when run with
+OVERLAY_MOUNT_OPTIONS="-o metacopy=on".
 
-Even if it is paranoia, put more unrelated checks under this option does
-not make much sense to me. It will make things just more confusing.
+Fixes: 28166ab3c875 ("ovl: initialize OVL_UPPERDATA in ovl_lookup()")
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Anyway, redirect_dir=nofollow is a thing of past. Now if you want to
-not follow origin, then we first need to have a genuine explanation
-of why to do that (and not be driven by just paranoia).
+Miklos,
 
-> Of course if we do, we will need to document that.
+I just ran xfstests -g overlay/quick tests with metacopy enabled
+and one test failed.
 
-redirect_dir=nofollow resulting in origin not being followed is plain
-unintuitive to me. Why not introduce another option if not following
-origin is so important.
+Vivek,
 
-Thanks
-Vivek
+Do you by any chance run this sort of test regularly?
 
-> BTW, I have another patch that does not follow mismatched lower dir origin
-> with redirect_dir=nofollow, i.e.:
-> 
->  bool ovl_verify_lower(struct super_block *sb)
->  {
->         struct ovl_fs *ofs = sb->s_fs_info;
-> 
-> -       return ofs->config.nfs_export && ofs->config.index;
-> +       return ofs->config.nfs_export || !ofs->config.redirect_follow;
->  }
-> 
-> That makes even more sense for "paranoia" IMO.
-> 
-> Thanks,
-> Amir.
-> 
+You have asked about running unionmount tests with metacopy before.
+I just pushed a commit to my xfstests 'unionmount' branch:
+  7859f22b ovl: test unionmount tests with metacopy
+
+It allows you to run xfstests -g overlay/union with
+OVERLAY_MOUNT_OPTIONS="-o metacopy=on", to excercise all the unionmount
+test configurations I created with metacopy enabled.
+
+Maybe not so surprising that the sub-group overlay/union.nested tests
+fail with metacopy enabled. This is just a test setup bug and I pushed
+a fix commit to unionmount overlayfs-devel branch to fix it.
+
+Thanks,
+Amir.
+
+ fs/overlayfs/namei.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 3566282a9199..0c5a624600c1 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -1073,6 +1073,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			upperredirect = NULL;
+ 			goto out_free_oe;
+ 		}
++		err = ovl_check_metacopy_xattr(upperdentry);
++		if (err < 0)
++			goto out_free_oe;
++		uppermetacopy = err;
+ 	}
+ 
+ 	if (upperdentry || ctr) {
+-- 
+2.17.1
 
