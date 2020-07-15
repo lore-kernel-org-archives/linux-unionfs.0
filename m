@@ -6,74 +6,107 @@ X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
 	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9EE4C433E4
-	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 19:37:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D977CC433E1
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 19:40:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 952B320657
-	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 19:37:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7FAB20657
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Jul 2020 19:40:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="hazK3jua"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="RNlnXXbd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726786AbgGOThZ (ORCPT
+        id S1726715AbgGOTkX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 15 Jul 2020 15:37:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42586 "EHLO
+        Wed, 15 Jul 2020 15:40:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726479AbgGOThY (ORCPT
+        with ESMTP id S1726650AbgGOTkW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Jul 2020 15:37:24 -0400
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 668A7C061755
-        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 12:37:24 -0700 (PDT)
-Received: by mail-ed1-x542.google.com with SMTP id d16so2499557edz.12
-        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 12:37:24 -0700 (PDT)
+        Wed, 15 Jul 2020 15:40:22 -0400
+Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F600C061755
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 12:40:22 -0700 (PDT)
+Received: by mail-ej1-x641.google.com with SMTP id ga4so3404488ejb.11
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 12:40:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=PrT4uU0p/TSJ/j4uUUrNumDxtSAJ8ZGaRKNTuySfpA4=;
-        b=hazK3juaBKbG3a4QTYrmXwGmNSClEsNRPLXAxKOz4v6x58OSHqEJtin7YgTxADHK80
-         sEV0Q8pwMJawqQWXkyCMhgZ6hf7z3gStunqKpYhF+tk5+yUOozJmThSQG28vZHvsWzum
-         RS7KF2PJ6l27cPnjEyQM4bHlHU1AJBQm9euco=
+        bh=GX+yXZwsK5tEUbqkgmKrqDk62Ki+06Tuhxl0CkNwkVg=;
+        b=RNlnXXbdXSsoJhUjUn5D2WA0alj39VJcflVphdGKY1p21/0CUQrl21pdOPrtGL4ty9
+         tKYUT7tqGYLdJw154B0/F+IdA/6YnPQzlx0VLLc8+5QAAnZznhxYo/f/KOsGrhCaKQQY
+         bkLy7PUutmvMCHCxDHz+kjOs62i4YDFBLW8OQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=PrT4uU0p/TSJ/j4uUUrNumDxtSAJ8ZGaRKNTuySfpA4=;
-        b=bj/tg8Io3sd0USPf2jwtHxVvv7jlowavinztofGgMxNo26JH54NPwPRU88hj7DsNTo
-         VuvSzB8wKzxTYVCLjVFqr4NaAoLNyRx0kmekDAxuhdVVW4Ov1B+ygejZ9Olu8bekJgB7
-         Sv0JEb7tQNaBUStS7PCG4yFm+BgKChvbIWZtrI5Zwd1rOX4ldKrkRqhI3fmxCUtGk/Rv
-         bGHtO7QLj0qX+RDMY2Yx8kKakWfNt2fN4hooKjii3zmqrNI2ovdI4PIG+pbtfCopWfhy
-         k7NM+3GRQM16eLA1ZNlMAJcxY6GpMb1+pBDXfpq0yRpXPm6sdl+8HadjdYhcRRChy0ZC
-         oX1g==
-X-Gm-Message-State: AOAM532jnNRWF/IZ5ASJoCtHaqPvZtrf86HiVuesD65eR5J8J7gptcc8
-        rEi6pQVoIzGNxgb+o57MZ1Y/hAciS39YyLZ0lRa3hA==
-X-Google-Smtp-Source: ABdhPJx2KwBox+MrLaa1wCOW0HNz/A+Z78nQRU2A7Z7SP4b+AFfurpYlrkqh6FAxUBY/gGaMTscTbWZ9ftkJIJDNUvU=
-X-Received: by 2002:a05:6402:1bdd:: with SMTP id ch29mr1210101edb.134.1594841843152;
- Wed, 15 Jul 2020 12:37:23 -0700 (PDT)
+        bh=GX+yXZwsK5tEUbqkgmKrqDk62Ki+06Tuhxl0CkNwkVg=;
+        b=VBZ+jR5+Sei0UMCNWZa4VaEBjqZ29w7X7L2IL6MobVYy5J+qWEC4H0reWaOUUUYa55
+         S4x0eipXjOy1k4RuFArDHO/wM+FFCeNJDI4uH/lcSTroNlVVuA+QLMPSTm7TPBYLRLqn
+         AssHEjZ86fR/HYcjTkbU1zlDRiqfBcbx7xJNhSvXeKt1mYjqfDR9UgKSGgrInNjq8WOM
+         WYLw7KzdLW79J34otPuZbEdykwPyfxdeHh8xP2EjnD58m2TM1r+71YqGwa7NQVlVL0a0
+         YqIGbi0ViCchWFey74f0/yH9wN5TgKkpFG8cl5QMSvjswWLbi3WQncO1jQARXAIj7YZy
+         bzSQ==
+X-Gm-Message-State: AOAM530UN56D/U4YZdEBX9wk3D3LLLOgbLeRVHg9JDpY1qDx8ruD384v
+        EMoQQPYX5DfMQ8cYZ8TazqgTzO+Apk5vL3C+0b5dY9xqjII=
+X-Google-Smtp-Source: ABdhPJxA955Lgjhg2MohlnlNuJUdTdFUuYBptu5xMRwTau34YKZpYgRH/kRKruLP8NAYeBkatfKN4yas/y80eBGY9GY=
+X-Received: by 2002:a17:906:1c05:: with SMTP id k5mr517669ejg.320.1594842020993;
+ Wed, 15 Jul 2020 12:40:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200621143059.66313-1-her0gyugyu@gmail.com>
-In-Reply-To: <20200621143059.66313-1-her0gyugyu@gmail.com>
+References: <20200617065711.3784-1-amir73il@gmail.com>
+In-Reply-To: <20200617065711.3784-1-amir73il@gmail.com>
 From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 15 Jul 2020 21:37:12 +0200
-Message-ID: <CAJfpeguAwn72ZGE6JJbanRmiSiGjrtWAUPu4mFVc4gUAAnooqg@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: change ovl_copy_up_flags static
-To:     youngjun <her0gyugyu@gmail.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>
+Date:   Wed, 15 Jul 2020 21:40:09 +0200
+Message-ID: <CAJfpegu3AyjLby6a+WAm7M8_FrdOjE=0dKMhLdbDApn5gkvgGA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: relax WARN_ON() when decoding lower directory file handle
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Jun 21, 2020 at 4:33 PM youngjun <her0gyugyu@gmail.com> wrote:
+On Wed, Jun 17, 2020 at 8:57 AM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> "ovl_copy_up_flags" is used in copy_up.c.
-> so, change it static.
+> Decoding a lower directory file handle to overlay path with cold
+> inode/dentry cache may go as follows:
 >
-> Signed-off-by: youngjun <her0gyugyu@gmail.com>
+> 1. Decode real lower file handle to lower dir path
+> 2. Check if lower dir is indexed (was copied up)
+> 3. If indexed, get the upper dir path from index
+> 4. Lookup upper dir path in overlay
+> 5. If overlay path found, verify that overlay lower is the lower dir
+>    from step 1
+>
+> On failure to verify step 5 above, user will get an ESTALE error and
+> a WARN_ON will be printed.
+>
+> A mismatch in step 5 could be a result of lower directory that was renamed
+> while overlay was offline, after that lower directory has been copied
+> up and indexed.
+>
+> This is a scripted reproducer based on xfstest overlay/052:
+>
+>   # Create lower subdir
+>   create_dirs
+>   create_test_files $lower/lowertestdir/subdir
+>   mount_dirs
+>   # Copy up lower dir and encode lower subdir file handle
+>   touch $SCRATCH_MNT/lowertestdir
+>   test_file_handles $SCRATCH_MNT/lowertestdir/subdir -p -o $tmp.fhandle
+>   # Rename lower dir offline
+>   unmount_dirs
+>   mv $lower/lowertestdir $lower/lowertestdir.new/
+>   mount_dirs
+>   # Attempt to decode lower subdir file handle
+>   test_file_handles $SCRATCH_MNT -p -i $tmp.fhandle
+>
+> Since this WARN_ON() can be triggered by user we need to relax it.
+>
+> Fixes: 4b91c30a5a19 ("ovl: lookup connected ancestor of dir in inode...")
+> Cc: <stable@vger.kernel.org> # v4.16+
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-Thanks, applied.
+Applied, thanks.
 
 Miklos
