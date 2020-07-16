@@ -2,79 +2,134 @@ Return-Path: <SRS0=UrPG=A3=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 298CAC433E0
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 03:08:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A73AAC433E1
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 04:55:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D81EB20775
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 03:08:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8745120775
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 04:55:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=verizon.net header.i=@verizon.net header.b="InYcWB0Z"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RpMuI77G"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726776AbgGPDIv (ORCPT
+        id S1726071AbgGPEzt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 15 Jul 2020 23:08:51 -0400
-Received: from sonic311-25.consmr.mail.ne1.yahoo.com ([66.163.188.206]:42787
-        "EHLO sonic311-25.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726770AbgGPDIv (ORCPT
+        Thu, 16 Jul 2020 00:55:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43706 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725844AbgGPEzt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Jul 2020 23:08:51 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=verizon.net; s=a2048; t=1594868930; bh=TXUiqYtzv4AJri4hhLCwQW13pWvzIwM1ww57SxAY/k0=; h=From:To:Subject:Date:References:From:Subject; b=InYcWB0Zq54DrxvoJKVA7WaTKbgm9jOAOM8DyB9X8yjaLYypSv3jufVKzgqnRZGjwEcj84h1ihMXFeSMe7V9G7YTwBxvq0Y5M5RxycT1XLgXp6+R/yVs5Vqv9QsQW+o5RcFcnAOYmM7Fpk5wQi50SGbQwu/levV2JCeQe4n2qdqv2mTsFzVQ+JbOPwz22/kZFCiwQ7NVmAaXAVYj+rFLeK+8ijBVofrGOZOYQcDMhgJ80E7V+bK4AEf0sgBO5Np9H2REmliOWQF60PrnWCyUXmtAuHq7nCxGUl/pP0yt+i4Qv3D6zE26CfQPODjE839bI4NGTw4bfr/P3HTZl1o/yg==
-X-YMail-OSG: dEZpYiwVM1lWAp.YU5TkUVtHWY6PSvA65G2xDYNy0_IR8_pPuAbsxYJk.ke2z.q
- Uf4d4PG5zds_XtIwm8e4kPYCDWSxwGLgAktXSv8EtNGew04vGx_yfEcKXnsTpC_8YCI.S_Bcy081
- w5kIPcVSe4Hq2ieMDADclpW3vejEE7STMrzWUnjXsZB0W.v79.GZZ9Wp9PHF0zZGS5M.JFk0Ws4b
- g1p5iq8a8I061YCDUEUR7b4cBNv6JpWZ6ZWNewzAKZKCOAWrMW6pp42p0QL767IGhL11Zpytvigo
- UMNTDV2znS0lP0lsBL_070OQL_r7ZAPca5FYpAHle72NLSBEi.VYtzf35k9oITWnHRJTmQe_mG_I
- rpPKm_LiRlOA9n756XzXP6N2DAWWQtRBwqbP_c6lNFHpg6Q_hOtEA6UPvsWQJTdWMqbUNWBKC7jU
- 3MUci4K1wUUz9VOJgota1ygA3NFHVCsT9VATLecQlhQ8PPkTWKf0yDpZvZBP5dhDp69hb.i9iNpH
- e6D8uoE.xMWaFGh8gTyrxwbVEqE_nu2LfX3nDWJ5CIaUzxMD0tWWz.nrZt4_zpAatEhgo2ZtBMzI
- u51v00ct._FvQi0bjlJsIHSbNuju4N0v2yD8gi8.m3lPBuUliOrHBdigknqa1XP3qG5Guvty1rmK
- 9Y3gDw97wxPptXfo0dftIFz_pT4f45fb6v5UmUxHSpNrzrotmpi9Gq1UWopOvAG3lssLosJIcJCp
- KXZF6hEIhcwjnHR4HOe30ArZM1JE53i8FlQdizQufmsX9IgvQhOp._3N2n21.5qDamia4xY7LAme
- .kklBpLWWuHuDHltMVboufCUWwnYpUXGgg2vrT30EpMmxChfZnZAhjFyAQZcHsVZeJFIeugf4vif
- RVWFB_49R5FTgc1g9tG.uuqlG8XJWIX6m5QW94l1D55Xmi0fVE_izMLC4T2aWzzVhl2.MFDYrolJ
- OXaJQgBQ5Sgpbow7t.z8oH9IPVwfiq9BJkpQbmpwoYTlIibU3W8DNQHk8M3xqqZmKwVAcFoy5L9S
- Atq56nWFFGX38WL0CDojLxGUWS6ep67PhPa5EjE1V57FJTroHPt8jr8yjiL4rF8kh1exoOkhQAGl
- 2NLe_VwEJrplPwMPgYiA7GuowGRK2Fhpdqo.BW8x0KIsJM1lh7T2sx9iGeVqbghlR3bVSHwp9c_g
- DRwjcYIh16BQhPFTz_MOBVfzkwQ75Pgkicw6JPuoVhNkeXKXufyQDBZy2L9ESjxngFtKTzz3ONfv
- sis1cP02iOvDAo2u1syb.G87WD9eVdlV5i6dho3.oWTjgbnQsXrgOTJc4tFdwYCAJRojMeUCvPBD
- m4iO46ydrYFeoNlp1fYmvhcTCEbTap4fBc5VSTyX2t_d1aVyr7uuyooZTjUNB0hne.DQbhius9lr
- eMdpKBS4CJUhySlaue_eb4GM_O8ou
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic311.consmr.mail.ne1.yahoo.com with HTTP; Thu, 16 Jul 2020 03:08:50 +0000
-Received: by smtp425.mail.bf1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 437e0f3e5cfa4375a49b01b859a04fb8;
-          Thu, 16 Jul 2020 03:08:48 +0000 (UTC)
-From:   nerdopolis <bluescreen_avenger@verizon.net>
-To:     linux-unionfs@vger.kernel.org
-Subject: Incorrect Overlayfs documentation
-Date:   Wed, 15 Jul 2020 23:08:47 -0400
-Message-ID: <1750303.WlVpaa6DS8@nerdopolis>
+        Thu, 16 Jul 2020 00:55:49 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7454C061755
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 21:55:48 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id e64so4666005iof.12
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Jul 2020 21:55:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=e5/ELE3xv47mbcSERSSzVoYSx7o/EB8oEw0lq1Xgon0=;
+        b=RpMuI77GXKwprwUaT4v+CIz1MAmtx8aIgalUpeeQ703HyHSG33sdA+rQ3CUi8q3uNj
+         jd/l5P1+9DzrDMfR/SVqz6HgCkkj13DIHRyG66Fwg7wNF42XkIGOR8tpRlTZseoOBMuX
+         ozT31kJd62LDl/EBMtA2agc+wweyx9CY3HWSPGGh0E3zK7HDlikDOc4Yo/zpV5x/OnYS
+         kT4b1f0WDXmYgiCUzNo8poBRzrD8u1mTvV7BQzOljuv1bCrVxqCwDV2s9GAU9DhJYYkf
+         4xw0b0f5QCPXLzyX8Q+vs1o/Ojg1lgBNnodYQQxk7UeZmtW33HAGPE9NZ12jxX3LqTEH
+         Y3pA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=e5/ELE3xv47mbcSERSSzVoYSx7o/EB8oEw0lq1Xgon0=;
+        b=mH+Fv0F6VdUubblCSrkVmjegRBku53ATHUxU+PgXl4sZ/zlf5nBxp4CD39NnRQn4NF
+         48oFVqn11EJ2bmoLgQyiuYbxHrCtpjNk+wzEluhYKi8o4IPnO8B+/wFt2qSWHNOq8v3q
+         CW63TJRBwtAv01U0AgqGGvZ6ocyPpNx0YyanyGsP5+uPCuaJgsRL0/CYYbnXQnOXRCNH
+         NrKSdkBOk2RWLBSTKjFhlKHR9PfDL9iuNfvbWeIrk3zRGYm4Eit/LH27y/HOPg3UJFJL
+         mzgjmBgwH7E2fzBVZgD1LXNDt7ql7SRmAkfLoEjR8XQCjZqcoCERTVnGcJtYx4JfPzh1
+         47Mg==
+X-Gm-Message-State: AOAM530MFYirA0UAeyF3OlZpc9mmrSD9WVIY0dprIXmTlp6ck/qZKV4z
+        H7AhmMMars7CuxSwgjVTD6lorwlCpW+HBu8LGxZDcw==
+X-Google-Smtp-Source: ABdhPJwAkzZqeNTk4QptbOPtoYVw3ReMBnw5ATmLPYtNziguy+rhjoxtDb3dctvtWrp72dH4Kp7hbTakLGoc5LaReZI=
+X-Received: by 2002:a05:6638:61b:: with SMTP id g27mr3121617jar.123.1594875347908;
+ Wed, 15 Jul 2020 21:55:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-References: <1750303.WlVpaa6DS8.ref@nerdopolis>
-X-Mailer: WebService/1.1.16271 hermes_aol Apache-HttpAsyncClient/4.1.4 (Java/11.0.7)
+References: <20200618154353.369-1-amir73il@gmail.com>
+In-Reply-To: <20200618154353.369-1-amir73il@gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 16 Jul 2020 07:55:36 +0300
+Message-ID: <CAOQ4uxhPJeu4z1F8-H6+J7DjwG_oD=Dcbj37ofD=G91kS=f1oQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix unneeded call to ovl_change_flags()
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi
+On Thu, Jun 18, 2020 at 6:44 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> The check if user has changed the overlay file was wrong, causing unneeded
+> call to ovl_change_flags() including taking f_lock on every file access.
+>
+> Fixes: d989903058a8 ("ovl: do not generate duplicate fsnotify events...")
+> Cc: <stable@vger.kernel.org> # v4.19+
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/file.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 01820e654a21..0d940e29d62b 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -33,13 +33,16 @@ static char ovl_whatisit(struct inode *inode, struct inode *realinode)
+>                 return 'm';
+>  }
+>
+> +/* No atime modificaton nor notify on underlying */
+> +#define OVL_OPEN_FLAGS (O_NOATIME | FMODE_NONOTIFY)
+> +
+>  static struct file *ovl_open_realfile(const struct file *file,
+>                                       struct inode *realinode)
+>  {
+>         struct inode *inode = file_inode(file);
+>         struct file *realfile;
+>         const struct cred *old_cred;
+> -       int flags = file->f_flags | O_NOATIME | FMODE_NONOTIFY;
+> +       int flags = file->f_flags | OVL_OPEN_FLAGS;
+>         int acc_mode = ACC_MODE(flags);
+>         int err;
+>
+> @@ -72,8 +75,7 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
+>         struct inode *inode = file_inode(file);
+>         int err;
+>
+> -       /* No atime modificaton on underlying */
+> -       flags |= O_NOATIME | FMODE_NONOTIFY;
+> +       flags |= OVL_OPEN_FLAGS;
+>
+>         /* If some flag changed that cannot be changed then something's amiss */
+>         if (WARN_ON((file->f_flags ^ flags) & ~OVL_SETFL_MASK))
+> @@ -126,7 +128,7 @@ static int ovl_real_fdget_meta(const struct file *file, struct fd *real,
+>         }
+>
+>         /* Did the flags change since open? */
+> -       if (unlikely((file->f_flags ^ real->file->f_flags) & ~O_NOATIME))
+> +       if (unlikely((file->f_flags ^ real->file->f_flags) & ~OVL_OPEN_FLAGS))
+>                 return ovl_change_flags(real->file, file->f_flags);
+>
+>         return 0;
+> --
+> 2.17.1
+>
 
-A while back I opened up https://bugzilla.kernel.org/show_bug.cgi?id=195113 describing a documentation problem in
-https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt but for whatever reason, it hasn't been seen.
+Miklos,
 
+Was this patch left out intentionally?
 
-The problem is that it says "The lower filesystem can be any filesystem supported by Linux"
-however, this is not the case, as Linux supports vfat, and vfat doesn't work as a lower filesystem
-
-So there's no way to tell what filesystems are applicable for an overlay lowerfs, 
-and I don't think any existing userspace utilities can detect it.
-
-Could it be possible for the .txt file to be updated?
-
-Thanks
-
-
+Thanks,
+Amir.
