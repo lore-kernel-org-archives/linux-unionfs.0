@@ -2,238 +2,142 @@ Return-Path: <SRS0=UrPG=A3=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE54FC433E4
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 13:29:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5AD4C433E0
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 13:27:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A5D720760
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 13:29:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7F50220760
+	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jul 2020 13:27:49 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=gmx.net header.i=@gmx.net header.b="W6UGGjAZ"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="bMnjeHGO"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726537AbgGPN3p (ORCPT
+        id S1728119AbgGPN1t (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 16 Jul 2020 09:29:45 -0400
-Received: from mout.gmx.net ([212.227.15.15]:56639 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728087AbgGPN3n (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Jul 2020 09:29:43 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1594906181;
-        bh=WpRkEA2BRJYQBv1AJF3qEmtvTmDpUe7JXw0Tasz+zrA=;
-        h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=W6UGGjAZHT8fsM17D7PRHQdXm9Kww/9sqhAWsvuKKSNmdp0mQLIYOf+lqwXKwXo1t
-         jp9JdMS5VA16TqRdCBNyjSUK0uV9KQCjj+9oQNgrxYnJ2UIRpqUHSn5vr75IORMezj
-         l4yQzPJm6pUJJAa31shAlZlNxyIsYOrB0kQkq4bk=
-X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
-Received: from fgdesktop.localnet ([91.53.245.53]) by mail.gmx.com (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1MuUj2-1knTaZ0lne-00rUnl; Thu, 16
- Jul 2020 15:29:41 +0200
-From:   Fabian Godehardt <godi.beat@gmx.net>
+        Thu, 16 Jul 2020 09:27:49 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:27647 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728248AbgGPN1s (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 16 Jul 2020 09:27:48 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1594906067;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=2DpcnHmBCFXpU5RsivSoJZI/dcs6lw01BCUSAkRxywc=;
+        b=bMnjeHGOSXH6Guc9D7UjIpBz/iR6Qr5BQuBsjEVQpKBV1nSQzWOp4Ef1dUzBPNVNbjW5OU
+        vE6iVgJA5eHMUzBMTtZxy5a0F9157cUU9bYI1vupBRs+qC3YiZp4Bi1WI/HSHHbudqQO0h
+        8JNyU9VwdGcd300ghpO0EMHCnRyyekY=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-161-YSAGHjIaM8if5PjyZxOV8g-1; Thu, 16 Jul 2020 09:27:45 -0400
+X-MC-Unique: YSAGHjIaM8if5PjyZxOV8g-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 1C060107BEF6;
+        Thu, 16 Jul 2020 13:27:44 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-114-241.rdu2.redhat.com [10.10.114.241])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id F24BA17D04;
+        Thu, 16 Jul 2020 13:27:43 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 8D3BC225777; Thu, 16 Jul 2020 09:27:43 -0400 (EDT)
+Date:   Thu, 16 Jul 2020 09:27:43 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: overlayfs: issue with a replaced lower squashfs with export-table
-Date:   Thu, 16 Jul 2020 15:29:40 +0200
-Message-ID: <3033570.qcJlCFdnYr@fgdesktop>
-In-Reply-To: <CAOQ4uxjsfSvTEsy7ikRAco=qJbsAoFPUDr8AcbqFmOndVz-8NQ@mail.gmail.com>
-References: <32532923.JtPX5UtSzP@fgdesktop> <2480538.KX4unNvOOS@fgdesktop> <CAOQ4uxjsfSvTEsy7ikRAco=qJbsAoFPUDr8AcbqFmOndVz-8NQ@mail.gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Subject: Re: [PATCH 0/3] Misc. redirect_dir=nofollow fixes
+Message-ID: <20200716132743.GB422759@redhat.com>
+References: <20200713141945.11719-1-amir73il@gmail.com>
+ <20200714180705.GE324688@redhat.com>
+ <CAOQ4uxh-fUKhiQOhRmZ5LT2sjtM3Wx5wo_wcKYtX+-DbYjXp0Q@mail.gmail.com>
+ <20200715130648.GA379396@redhat.com>
+ <CAOQ4uxjV93TAUGLAL_1uAtm2+eJv7poj_mmO5K_-07TYjBh7vA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
-X-Provags-ID: V03:K1:e/FbIc3YWqjY/Ya6PKGMX5ZuDFIIVUeXx4bNeEqAq9GIUX4mFus
- 3rIo6UR43idAfqBpgClSOuNm+4ecRU12t4noqD2x4n/dA3sZkm0ZkfQAd6kdZPKi3pFXg5V
- 0Sy7PWinYht3c8V9n24cS+GAJ4WJ+wdy9ZM9zmBIBZjqavTX0WH1eNa++S8AbGMm7+TS712
- Q9g75TZYhVUyTZTLFUBew==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:uqOKlebe5ZI=:FvDHz0wytlqNBMEddXum7X
- 4n+idYpnYLcy+paiWrao80Mqjr8pZnihcBYxXZH67eNVCMvAX3DZ709q7WNhCPMZGPTK9EruA
- kFIY86savxNZKhPZmI5zO9z6yD2vtpZ8L4472cEvVaJv4VxNQwCVxQKb60XguqNcIKSzfkcwR
- UpEJY1ZpwUkSX5dXoLAt1ncz8j06H7GnMfBzziTIBNEM3DwkcvD9zc95liAR1HfQZb+R8F8qx
- It5gaD1Qbzahf5DkEC3m3k4WKTy1ElVFNej77mOj4hb3ATC7XaXpKRPlQ4jdnQ1GTu0yoGK4q
- I8aKfTj00epDGKGMFvMYZ2dHH0sHKnrqWwrgYZvmEXY0YITjKTf5+4EnCOyEyeWdQzZlmr4NJ
- Ublf2wL/aAoYHoQKcCsOTuqmVmsknHWXfbns6RVAuswFDNlSmXCHxkElibjxzg8Z6riZXEgWw
- p3Qtlbm6b2p59S4ru+CTqgJ3ZKA/NJBmAwYD5x56n88uNutln42fzjZ7Ts2yLJiZKsbOZOC/5
- 2eAdzZLrCMhyJj0+uptgurvA1SW2qTOusCWGx/dOQaEnSQb2qPFi9GaG7F61bh0GVICNsLofa
- jFo+uupivYm62saqoQ/+YWLu5NvpQ6JVlBPOrEvVfkIKST7+T1VcNYpRi7CbUilc2yPtqH3ON
- PC16BElLZ7Si4p0V9fpu2+BcMoTIvuz+v7gogWS4In7sABbHj65c8ku6bmjZXwZUUvr4XnWQD
- uTcIsj27Q0UWXLGZBiBIXb6S+1PiQJZsJHjg/8K9OBzNzKQxbQMBG9r/OHbRnafdLyS/FBHVd
- 4mUzZIN5eklaCTno7nz3iR3EtN+bmJqMuFo54aCv8W5GrpTGkrL1Nqy1ZGTS8GEmGLEpX8BCI
- jm+nsC9M2OvWRWECk2eY2Bgluyo6Hgaf5/CMNEmKb/wnVh+M3cN6A0t5nTrH6onLvB6TRtI9m
- cUm+eZ9gqLP3M3hMcJWPyFcFYSXDUc/jsdnG+AsfzoebQm0+BExOhLXhIIai10s27W+SJkmFe
- vEQ6e8SQ4b32HlDow22ibH1ax/ANC2N8dBnFFnkk62y52mUDHD7FDQNUiBgmpYnvEJWKBNo1+
- UMWo2MPI6h6cU7JQ8qXF/nA1NUvTZtjxiMEcsXIFlnIgMIf9Tn+CD1bLYZ9A+dzu0xLbq2AVh
- /lso/1eB/bYSMLtcqWsDza+adEXxWcKv4YQUrTaXtF+3+VOiAZ4m3dguQi1y91peNyUVbL3f6
- /rtmHZkcvfZ7jpMjslef8bnfC+sYye34aLeNBLw==
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjV93TAUGLAL_1uAtm2+eJv7poj_mmO5K_-07TYjBh7vA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Amir,
-
-Am Montag, 6. Juli 2020, 19:14:11 CEST schrieb Amir Goldstein:
-> On Mon, Jul 6, 2020 at 7:10 PM Fabian <godi.beat@gmx.net> wrote:
-> > Hi Amir,
+On Wed, Jul 15, 2020 at 04:56:45PM +0300, Amir Goldstein wrote:
+> > > TBH I never really understood the thread that led to redirect_dir=nofollow.
+> > > I don't think anyone has presented a proper use case that can be discussed,
 > >
-> > Am Montag, 6. Juli 2020, 17:33:54 CEST schrieb Amir Goldstein:
-> > > On Mon, Jul 6, 2020 at 6:14 PM Fabian <godi.beat@gmx.net> wrote:
-> > > > Hi Amir,
-> > > >
-> > > > thanks for your mail and the quick reply!
-> > > >
-> > > > Am Montag, 6. Juli 2020, 16:29:51 CEST schrieb Amir Goldstein:
-> > > > > > We are seeing problems using an read-writeable overlayfs (uppe=
-r)
-> > > > > > on a
-> > > > > > readonly squashfs (lower). The squashfs gets an update from ti=
-me
-> > > > > > to
-> > > > > > time
-> > > > > > while we keep the upper overlayfs.
-> > > > >
-> > > > > It gets updated while the overlay is offline (not mounted) corre=
-ct?
-> > > >
-> > > > Yes. We boot into a recovery system outside the rootfs and its
-> > > > overlayfs,
-> > > > replace the lower squashfs, and then reboot into the new system.
-> > > >
-> > > > > > On replaced files we then see -ESTALE ("overlayfs: failed to g=
-et
-> > > > > > inode
-> > > > > > (-116)") messages if the lower squashfs was created _without_
-> > > > > > using
-> > > > > > the
-> > > > > > "-no-exports" switch.
-> > > > > > The -ESTALE comes from ovl_get_inode() which in turn calls
-> > > > > > ovl_verify_inode() and returns on the line where the upperdent=
-ry
-> > > > > > inode
-> > > > > > gets compared
-> > > > > > ( if (upperdentry && ovl_inode_upper(inode) !=3D
-> > > > > > d_inode(upperdentry))
-> > > > > > ).
-> > > > > >
-> > > > > > A little debugging shows, that the upper files dentry name doe=
-s
-> > > > > > not
-> > > > > > fit to
-> > > > > > the dentry name of the new lower dentry as it seems to look fo=
-r
-> > > > > > the
-> > > > > > inode
-> > > > > > on the squashfs "export"-lookup-table which has changed as we
-> > > > > > replaced
-> > > > > > the lower fs.
-> > > > > >
-> > > > > > Building the lower squashfs with the "-no-exports"-mksquashfs
-> > > > > > option,
-> > > > > > so
-> > > > > > without the export-lookup-table, seems to work, but it might b=
-e no
-> > > > > > longer
-> > > > > > exportable using nfs (which is ok and we can keep with it).
-> > > > > >
-> > > > > > As we didn't find any other information regarding this behavio=
-ur
-> > > > > > or
-> > > > > > anyone
-> > > > > > who also had this problem before we just want to know if this =
-is
-> > > > > > the
-> > > > > > right way to use the rw overlayfs on a (replaceable) ro squash=
-fs
-> > > > > > filesystem.
-> > > > > >
-> > > > > > Is this a known issue? Is it really needed to disable the expo=
-rt
-> > > > > > feature
-> > > > > > when using overlayfs on a squashfs if we later need to replace
-> > > > > > squashfs
-> > > > > > during an update? Any hints we can have a look on if this shou=
-ld
-> > > > > > work
-> > > > > > and
-> > > > > > we might have done wrong during squashfs or overlayfs creation=
-?
-> > > > >
-> > > > > This sounds like an unintentional outcome of:
-> > > > > 9df085f3c9a2 ovl: relax requirement for non null uuid of lower f=
-s
-> > > > >
-> > > > > Which enabled nfs_export for overlay with lower squashfs.
-> > > > >
-> > > > > If you do not need to export overlayfs to NFS, then you can chec=
-k if
-> > > > > the
-> > > > > attached patch solves your problem.
-> > > >
-> > > > With the attached patch i'm now getting to a point where the overl=
-ayfs
-> > > > tries to handle the /run-directory (a symlink). There seems to be =
-a
-> > > > -ESTALE at ovl_check_origin_fh() after the for-loop where it check=
-s if
-> > > > origin was not found ( if (!origin) ). Maybe i should debug for mo=
-re
-> > > > details here? Please let me know.
-> > >
-> > > This is expected. Does it cause any problem?
-> > >
-> > > The patch marks the lower squashfs as "bad_uuid", because:
-> > >         if (!ofs->config.index && uuid_is_null(uuid))
-> > >
-> > >                 return false;
-> > >
-> > > ...
-> > >
-> > >         if (!ovl_lower_uuid_ok(ofs, &sb->s_uuid)) {
-> > >
-> > >                 bad_uuid =3D true;
-> > >
-> > > ...
-> > >
-> > >         ofs->fs[ofs->numfs].bad_uuid =3D bad_uuid;
-> > >
-> > > That's ofs->fs[1].bad_uuid =3D bad_uuid;
-> > >
-> > >
-> > > Then in ovl_lookup() =3D> ovl_check_origin() =3D> ovl_check_origin_f=
-h()
-> > >
-> > > will return ESALE because of:
-> > >                 if (ofs->layers[i].fsid &&
-> > >
-> > >                     ofs->layers[i].fs->bad_uuid)
-> > >
-> > >                         continue;
-> > >
-> > > And ovl_check_origin() will return 0 to ovl_lookup().
+> > IIUC, idea was that automated mounting can mount a handcrafted upper on
+> > usb hence allow access to directories on host which are otherwise
+> > inaccessible.
 > >
-> > I'm sorry. You are totaly right! RootFS now completely comes up - just
-> > missed the console start in our latest inittab - so thought something
-> > still hangs. The ESTALE was printed for me because i debugged the whol=
-e
-> > ESTALE positions in the overlayfs code while studying the first proble=
-m.
-> > Time to remove my debug code...
+> 
+> That is an *idea* described by hand waving.
+> That is not a threat I can seriously comment on.
+> How exactly is that USB auto mounted? where to?
+> How is that related to overlay?
+> 
+> > > so I just treat this config option as "paranoia" or "don't give me anything that
+> > > very old overlay did not give me".
+> > > Therefore I suggested piggybacking on it.
 > >
-> > We will now continue with update tests. If we see something else i wil=
-l
-> > let
-> > you know.
->
-> OK. please report back when done testing so I can add your tested-by
+> > Even if it is paranoia, put more unrelated checks under this option does
+> > not make much sense to me. It will make things just more confusing.
+> >
+> > Anyway, redirect_dir=nofollow is a thing of past. Now if you want to
+> > not follow origin, then we first need to have a genuine explanation
+> > of why to do that (and not be driven by just paranoia).
+> >
+> > > Of course if we do, we will need to document that.
+> >
+> > redirect_dir=nofollow resulting in origin not being followed is plain
+> > unintuitive to me. Why not introduce another option if not following
+> > origin is so important.
+> >
+> 
+> Because cluttering the user with more and more config options for
+> minor and mostly unimportant behaviors is not ideal either.
+> See what Kconfig help has to say about the config option:
+> 
+> config OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW
+>         bool "Overlayfs: follow redirects even if redirects are turned off"
+>         default y
+> 
+>        Disable this to get a possibly more secure configuration, but that
+>        might not be backward compatible with previous kernels.
+> 
+> That is a VERY generic description that fits not following origin very
+> well IMO, and not following unverified dir origin as well for that matter.
+> Nobody outside overlayfs developers knows what "redirects" means
+> anyway. To me, following non-dir origin sounds exactly the same
+> as following non-dir metacopy redirect or dir redirect. It's just the
+> implementation details that differ.
+> 
+> So my claim is that we *can* piggyback on it because I really
+> don't believe anybody is using this config out there for anything
+> other than "to be on the safe side".
 
-A lot of tests are done without any problems so far. From our point of vie=
-w
-the patch works very well.
+On one hand you are saying redirect=nofollow is paranoia, most people
+don't understand it and don't use it. And on top of that you want
+to add more to it. Adding more to something which nobody does not
+understand and uses, sounds like more trouble to me.
 
+Anyway, before we go further into this, what's the use case. Why
+do you want to provide option to disable following origin for non-dir?
 
-Thanks again!
-Fabian
+Thanks
+Vivek
 
+> 
+> But I do not make the calls here and it doesn't look like I managed
+> to convince you to take my side of the argument :-)
+> 
+> Thanks,
+> Amir.
+> 
 
