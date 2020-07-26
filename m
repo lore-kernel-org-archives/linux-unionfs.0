@@ -1,113 +1,220 @@
-Return-Path: <SRS0=N6zz=BC=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=prAY=BF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F5A3C433E5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Jul 2020 03:51:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10022C433E1
+	for <linux-unionfs@archiver.kernel.org>; Sun, 26 Jul 2020 15:16:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D85AF206F4
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Jul 2020 03:51:07 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=verizon.net header.i=@verizon.net header.b="I2EWsNS8"
+	by mail.kernel.org (Postfix) with ESMTP id EE6582065F
+	for <linux-unionfs@archiver.kernel.org>; Sun, 26 Jul 2020 15:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725843AbgGWDvH (ORCPT
+        id S1725989AbgGZPQl (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 22 Jul 2020 23:51:07 -0400
-Received: from sonic306-22.consmr.mail.ne1.yahoo.com ([66.163.189.84]:43280
-        "EHLO sonic306-22.consmr.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725774AbgGWDvH (ORCPT
+        Sun, 26 Jul 2020 11:16:41 -0400
+Received: from out20-51.mail.aliyun.com ([115.124.20.51]:56009 "EHLO
+        out20-51.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725978AbgGZPQl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 22 Jul 2020 23:51:07 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=verizon.net; s=a2048; t=1595476266; bh=KRCci0737pdhASY/kiGIUnU1Z3F+MX3oOCl5BiNdxLI=; h=From:To:Subject:Date:In-Reply-To:References:From:Subject; b=I2EWsNS8Mvk/ENjeRgcXPmwg1jkeAs1Zelb6Pq3UjQWNyKEFB6k/eVoA3bqn21BTrrsQR+BF6XP7nBB5+CJLJjnvG1AgdnBDx1j9NeXAduX3i9xwcZ1dfa9j4v9qscrx1klQfRwblUoliYfwuj05qvLqP7dksh8W6XkqoQjGq4cSbzD81uxMMSrHnXfbB4Mc2zJfl4PAjSkQA/pVAMxW1yDrICen0wNCRcT6NP3EUWLZJMG0eqUcGM/RmvEtISr8XtyhOjqDrlf7PcFDnnFKorrJaTCDDliD/yXZC/kevByv/uR6e3gIxYSsOSouEvuGQ8/ZIq66R38MO3AY++/nWQ==
-X-YMail-OSG: wjNphMsVM1nqLNEZ.2Mr.bVJLOjtg0eIUUBKDCvKP4R35rg5ecl2Tu2.Wnr.e21
- TXE56f8odaYrz13c.RM.aDVYNX1rYELM_63LSN7FiirMACbj7XKpo0rGruY5BjnIVkhis8bERHjj
- 5NJ1Uzn2_nbIGGb2mNluDDUOfeqTDBmeRmFGGdPDkzEs7DeuOEzTA3GExgNlxCAzPLmNGEeama7f
- cBEDQjh1NYPDFVaU9xdlDrK1xSBraChRqrqt5IbhgOUC6v92rm6Al9Wqlcq7lrm20L0oiTlcp3VL
- 8Wvw0rFkBoOfr2RD4_6kX45FJ3mrLRObQSgkWeWkwkdEpBQvAT.iM4ff4h6ka1FAzQG0O0Wr9Qbg
- NCCE0NOGw1J75WWMrbKdTs4HGDaAcfnT5UkIZXDN.uMrX3G6D7j9ixHOXH1KY1Mz0Rtxm9afpYvj
- Vi7jO3bgtzWX14ockUJno0FNMoqAgHTfCFXAUCk3Y8hFE8HzUfqAwrlrSKC2bctN6irlym9uqPO2
- nCUgTKXrsrnmNVLGF07Ekb9_GQnedVXYGyT1sLdR2Foi8NiAYA2hJiJN3lu3dzxf0jRS7cD7Exts
- NFrHFHmDxcZrmIaKvhwSH9r9v.DVomOLe8KF8Qmo4GT0VnJXYHMw1qLAVzAh2qn0D_DwYHhWsTjX
- L5XW2CvM5DC4vgD4uG8CYbss7A9.cois6mRdaOKAuZp1WD3QHlUI1P8SrZAN3Hkaem66_ttAfxpj
- .r4PqoTlRlo2OrE1hMTIh7AqT9GcT0Z4y5JYQEA31jw6NmOD6lHgbBTqUaa2TypsrkVH.QGFjzfe
- xw8E.LyTlHNB4yfqODTkXzokGTjbjrEfE9lBBeGpu8bdT9pn4h_4hVCphq1OQNOz3OQqFbAqI8VJ
- sOqPMx.opHzOYyYl4CFcHZcN2XZlrg9mb2FqRN2K_1is6_MmiHdpt0T8i4y3R0iN_el16BpZvldr
- QCrNQs71G29ConMhVXQmRi9YrY08hlXkJ4i0wGuNqtXjYtfDaWn9g8_woJFbXoSGS0NL.qhSWNzz
- 7_OL0Mywcml233ouhvZTteDuLkG5yvaPczT_.VUzWmS1.EsfCDvCHMkJCc0kUy73nkMtg73Xi7J9
- 9d.gHYkL1ZoWkmIUPKjXzU9rP9PjcDH_fNatkzXOes0g2p.izRB3PH3j2a6IAiakfxjPm2j0.MdX
- AEmULeKEmDk1T_wqeigimMraN0Bs0iX1_MLCxY3sWD7AlWSGGNliF2qwyibq5AWdGWJZKp.yMM4T
- QmzKHLQo4z_oSdZp1jJ0TsLU_i2F69IP8fUof4NsEv_jsr7kFxRcjDhSAGuKgp.SXAgxCZMIyZlU
- CHyKMIfYYN.rJHbG3iQqV79ZPX6kX8uYJX0WANDGUu96ppoSJdxpqsksUvcAPtv6RPpVguw--
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic306.consmr.mail.ne1.yahoo.com with HTTP; Thu, 23 Jul 2020 03:51:06 +0000
-Received: by smtp421.mail.bf1.yahoo.com (VZM Hermes SMTP Server) with ESMTPA ID 582f652b41e806ec4ae33a0b40dc2454;
-          Thu, 23 Jul 2020 03:51:01 +0000 (UTC)
-From:   nerdopolis <bluescreen_avenger@verizon.net>
-To:     linux-unionfs@vger.kernel.org
-Subject: Re: Incorrect Overlayfs documentation
-Date:   Wed, 22 Jul 2020 23:50:59 -0400
-Message-ID: <7866875.n4lXpxAzLT@nerdopolis>
-In-Reply-To: <CAOQ4uxgm8dHd2EQPgD_a7aKwFUQFKGZg9O7K_FsuJGuWH=P8pg@mail.gmail.com>
-References: <1750303.WlVpaa6DS8.ref@nerdopolis> <1750303.WlVpaa6DS8@nerdopolis> <CAOQ4uxgm8dHd2EQPgD_a7aKwFUQFKGZg9O7K_FsuJGuWH=P8pg@mail.gmail.com>
+        Sun, 26 Jul 2020 11:16:41 -0400
+X-Alimail-AntiSpam: AC=CONTINUE;BC=0.07436282|-1;CH=green;DM=|CONTINUE|false|;DS=CONTINUE|ham_system_inform|0.407085-0.00163315-0.591282;FP=0|0|0|0|0|-1|-1|-1;HT=e02c03308;MF=guan@eryu.me;NM=1;PH=DS;RN=6;RT=6;SR=0;TI=SMTPD_---.I7pjbMo_1595776592;
+Received: from localhost(mailfrom:guan@eryu.me fp:SMTPD_---.I7pjbMo_1595776592)
+          by smtp.aliyun-inc.com(10.147.43.230);
+          Sun, 26 Jul 2020 23:16:32 +0800
+Date:   Sun, 26 Jul 2020 23:16:32 +0800
+From:   Eryu Guan <guan@eryu.me>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Eryu Guan <guaneryu@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        fstests <fstests@vger.kernel.org>
+Subject: Re: [PATCH 0/3] Running unionmount testsuite from xfstests
+Message-ID: <20200726151632.GJ2557159@desktop>
+References: <20200531110156.6613-1-amir73il@gmail.com>
+ <20200719181116.GG2557159@desktop>
+ <CAOQ4uxjY7SqyVEG9vCtv=wB9BxDovpjwZGAQ7h5+VeiZPMKOeQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
-X-Mailer: WebService/1.1.16271 hermes_aol Apache-HttpAsyncClient/4.1.4 (Java/11.0.7)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjY7SqyVEG9vCtv=wB9BxDovpjwZGAQ7h5+VeiZPMKOeQ@mail.gmail.com>
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thursday, July 16, 2020 1:03:52 PM EDT Amir Goldstein wrote:
-> On Thu, Jul 16, 2020 at 6:09 AM nerdopolis
-> <bluescreen_avenger@verizon.net> wrote:
+On Sun, Jul 19, 2020 at 09:36:39PM +0300, Amir Goldstein wrote:
+> On Sun, Jul 19, 2020 at 9:11 PM Eryu Guan <guan@eryu.me> wrote:
 > >
-> > Hi
+> > Hi Amir,
 > >
-> > A while back I opened up https://bugzilla.kernel.org/show_bug.cgi?id=195113 describing a documentation problem in
-> > https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt but for whatever reason, it hasn't been seen.
+> > On Sun, May 31, 2020 at 02:01:53PM +0300, Amir Goldstein wrote:
+> > > Eryu,
+> > >
+> > > unionmount testsuite has a lot more test coverage than the overlay
+> > > xfstests, but it has a lot less exposure to testers.
+> > >
+> > > The various test setups that I have added to unionmount testsuite since
+> > > I took over the maintanace of the testsuite have even smaller exposure
+> > > to testers.
+> > >
+> > > These patches add overlay tests that are used as a harness to run
+> > > different setups of unionmount testsuite.  I have been using this method
+> > > for over two year for testing my overlayfs branches.
+> > >
+> > > What does it take to install unionmount testsuite?
+> > > As README.overlay says:
+> > >
+> > >   git clone https://github.com/amir73il/unionmount-testsuite.git
+> > >   ln -s $PWD/unionmount-testsuite <path-to-xfstests>/src/
 > >
-> >
-> > The problem is that it says "The lower filesystem can be any filesystem supported by Linux"
-> > however, this is not the case, as Linux supports vfat, and vfat doesn't work as a lower filesystem
-> >
-> > So there's no way to tell what filesystems are applicable for an overlay lowerfs,
-> > and I don't think any existing userspace utilities can detect it.
-> >
-> > Could it be possible for the .txt file to be updated?
+> > I'm really sorry for the long-long delay..
 > >
 > 
-> The way it works usually in this project is you can submit a patch to fix the
-> problem:
-> https://www.kernel.org/doc/html/v4.17/process/submitting-patches.html
+> No worries.
 > 
-> But if you don't want to go through that process, you can offer a text to
-> fix documentation.
+> > The test itself looks really good to me, my only concern is that
+> > the updates in unionmount repo are not visible to fstests, and may cause
+> > new failures, which are out of fstests' control. But I'm not sure if
+> > this really is a problem for people.
+> >
+> > I came up with two options anyway
+> > - add unionmount tests as a submodule of fstests
+> > - put unionmount tests in fstests
+> >
 > 
-> But I myself cannot offer anything better than:
-> "The lower filesystem can be one of many filesystem supported by Linux".
+> I suppose you mean git submodule?
+
+Exactly.
+
+But I think I'd merge it as-is, git submodule brings more maintain
+burden on both maintainers and users, especially users that usually
+don't care about overlay tests. Users that care about overlay tests
+should setup unionmount tests explicitly and know that's unionmount
+tests if there's any test failure.
+
+> IMO that's a fairly good option.
+> I suspect that some people would want to continue running
+> unionmount independently of xfstests and I have some development
+> branches, so it's convenient to keep the unionmount repo independent
+> of xfstests repo and use git submodule as the "pull request" method
+> between us, for keeping control of the flow of changes from my repo
+> in the hands of xfstests maintainer.
 > 
-> I don't think that we want to start listing the supported filesystems in
-> documentation.
-> 
-> FWIW the description of upper fs isn't uptodate either.
+> But as I wrote before, I am also fine with "handing over" the official
+> upstream of unionmount src to xfstests project and be the
+> "sub-maintainer" for that module, but I think there is going to be more
+> chatter with that option compared to the submodule option.
+> Another argument in favor of submodule, is that we can always
+> graduate unionmount in the future from submodule to built-in.
+
+Agreed, I think making unionmount tests a built-in would be good in the
+future.
+
+Thanks!
+
+Eryu
+
 > 
 > Thanks,
 > Amir.
 > 
-> 
-Hi.
-
-Yeah, that process might be cumbersome. I guess what you have is good.
-Maybe "A wide range of filesystems supported by Linux can be the lower
-filesystem, however, not all filesystems that are mountable by Linux have the
-features needed for OverlayFS to work"
-?
-
-Thanks
-
-
-
+> > I'd like to hear what people think about this patchset, any other
+> > comments & suggestions are welcomed!
+> >
+> > Thanks,
+> > Eryu
+> >
+> > >
+> > > Thanks,
+> > > Amir.
+> > >
+> > > Amir Goldstein (3):
+> > >   overlay: run unionmount testsuite test cases
+> > >   overlay: add unionmount tests with multi lower layers
+> > >   overlay: add unionmount tests with nested overlay
+> > >
+> > >  README.overlay        | 15 ++++++++++++
+> > >  common/config         |  2 ++
+> > >  common/overlay        | 54 +++++++++++++++++++++++++++++++++++++++++++
+> > >  tests/overlay/100     | 38 ++++++++++++++++++++++++++++++
+> > >  tests/overlay/100.out |  2 ++
+> > >  tests/overlay/101     | 39 +++++++++++++++++++++++++++++++
+> > >  tests/overlay/101.out |  2 ++
+> > >  tests/overlay/102     | 40 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/102.out |  2 ++
+> > >  tests/overlay/103     | 38 ++++++++++++++++++++++++++++++
+> > >  tests/overlay/103.out |  2 ++
+> > >  tests/overlay/104     | 39 +++++++++++++++++++++++++++++++
+> > >  tests/overlay/104.out |  2 ++
+> > >  tests/overlay/105     | 40 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/105.out |  2 ++
+> > >  tests/overlay/106     | 41 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/106.out |  2 ++
+> > >  tests/overlay/107     | 41 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/107.out |  2 ++
+> > >  tests/overlay/108     | 41 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/108.out |  2 ++
+> > >  tests/overlay/109     | 41 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/109.out |  2 ++
+> > >  tests/overlay/110     | 39 +++++++++++++++++++++++++++++++
+> > >  tests/overlay/110.out |  2 ++
+> > >  tests/overlay/111     | 40 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/111.out |  2 ++
+> > >  tests/overlay/112     | 40 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/112.out |  2 ++
+> > >  tests/overlay/113     | 41 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/113.out |  2 ++
+> > >  tests/overlay/114     | 39 +++++++++++++++++++++++++++++++
+> > >  tests/overlay/114.out |  2 ++
+> > >  tests/overlay/115     | 40 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/115.out |  2 ++
+> > >  tests/overlay/116     | 40 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/116.out |  2 ++
+> > >  tests/overlay/117     | 41 ++++++++++++++++++++++++++++++++
+> > >  tests/overlay/117.out |  2 ++
+> > >  tests/overlay/group   | 18 +++++++++++++++
+> > >  40 files changed, 843 insertions(+)
+> > >  create mode 100755 tests/overlay/100
+> > >  create mode 100644 tests/overlay/100.out
+> > >  create mode 100755 tests/overlay/101
+> > >  create mode 100644 tests/overlay/101.out
+> > >  create mode 100755 tests/overlay/102
+> > >  create mode 100644 tests/overlay/102.out
+> > >  create mode 100755 tests/overlay/103
+> > >  create mode 100644 tests/overlay/103.out
+> > >  create mode 100755 tests/overlay/104
+> > >  create mode 100644 tests/overlay/104.out
+> > >  create mode 100755 tests/overlay/105
+> > >  create mode 100644 tests/overlay/105.out
+> > >  create mode 100755 tests/overlay/106
+> > >  create mode 100644 tests/overlay/106.out
+> > >  create mode 100755 tests/overlay/107
+> > >  create mode 100644 tests/overlay/107.out
+> > >  create mode 100755 tests/overlay/108
+> > >  create mode 100644 tests/overlay/108.out
+> > >  create mode 100755 tests/overlay/109
+> > >  create mode 100644 tests/overlay/109.out
+> > >  create mode 100755 tests/overlay/110
+> > >  create mode 100644 tests/overlay/110.out
+> > >  create mode 100755 tests/overlay/111
+> > >  create mode 100644 tests/overlay/111.out
+> > >  create mode 100755 tests/overlay/112
+> > >  create mode 100644 tests/overlay/112.out
+> > >  create mode 100755 tests/overlay/113
+> > >  create mode 100644 tests/overlay/113.out
+> > >  create mode 100755 tests/overlay/114
+> > >  create mode 100644 tests/overlay/114.out
+> > >  create mode 100755 tests/overlay/115
+> > >  create mode 100644 tests/overlay/115.out
+> > >  create mode 100755 tests/overlay/116
+> > >  create mode 100644 tests/overlay/116.out
+> > >  create mode 100755 tests/overlay/117
+> > >  create mode 100644 tests/overlay/117.out
+> > >
+> > > --
+> > > 2.17.1
+> > >
