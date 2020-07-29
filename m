@@ -1,111 +1,131 @@
-Return-Path: <SRS0=prAY=BF=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=xMp+=BI=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E04BBC433E1
-	for <linux-unionfs@archiver.kernel.org>; Sun, 26 Jul 2020 17:11:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB048C433E0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 29 Jul 2020 05:51:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFCC420714
-	for <linux-unionfs@archiver.kernel.org>; Sun, 26 Jul 2020 17:11:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E015206D4
+	for <linux-unionfs@archiver.kernel.org>; Wed, 29 Jul 2020 05:51:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="pX+8sEn/"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IBGaqRRB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726427AbgGZRLJ (ORCPT
+        id S1726445AbgG2Fvs (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 26 Jul 2020 13:11:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38772 "EHLO
+        Wed, 29 Jul 2020 01:51:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726117AbgGZRLJ (ORCPT
+        with ESMTP id S1726367AbgG2Fvr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 26 Jul 2020 13:11:09 -0400
-Received: from mail-wm1-x341.google.com (mail-wm1-x341.google.com [IPv6:2a00:1450:4864:20::341])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF273C0619D2;
-        Sun, 26 Jul 2020 10:11:08 -0700 (PDT)
-Received: by mail-wm1-x341.google.com with SMTP id f18so12518443wml.3;
-        Sun, 26 Jul 2020 10:11:08 -0700 (PDT)
+        Wed, 29 Jul 2020 01:51:47 -0400
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3530C061794
+        for <linux-unionfs@vger.kernel.org>; Tue, 28 Jul 2020 22:51:47 -0700 (PDT)
+Received: by mail-io1-xd44.google.com with SMTP id v6so8056240iow.11
+        for <linux-unionfs@vger.kernel.org>; Tue, 28 Jul 2020 22:51:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=7K2A6e4kjdccKYC2DSixqcBQBkYbLUfuMeVBSI+i1II=;
-        b=pX+8sEn/A3awvUuAOiIEWfe9w8+TQt+NopCLSRI+rKJFsoHAPO1u1vIl4k/DbTo3z1
-         nsYKwaAeLpm06OO5O8FyM70ALeD/8kFeHXiu6kEAJoOqELozye+4K2AB/01+ozJjODMN
-         2WAbJJTLtB2wRVE9R9I2xrGeTjJDltE0UQth9SxKGwJ6SfmjCRwHXRX93qVwNhoNK2Pa
-         4pr7oUBqiyLIekKk9fyWhT9U0XpBVGwRUpCHlppHw+bJfRptU8dxoBJB/lnQzVhIDmp0
-         3iEuMMYDyxJi9k4dUX25l27KZmKZe3dHLLCfD2ZYvKDkayZjjmh4kaV8sJOmJ2xF8UED
-         Jd9Q==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=aGFrHmiFaG+4vJxCAa9nAFD+Ucgll0CQfR6hnOIOXZA=;
+        b=IBGaqRRBtxYlzzkQ60L0B/HLl0eQ5TLdqS+5Sm4u24OOI2qb9NVq8PrR05tyT8NsS/
+         SHtiP/ykOMe3G48tJ7Mcsz3V+pm9rqlHDRE2cEI+UNmQ3oFOUCF22KlF6diJRWhk5x0n
+         HXicI5U+oIFQcrmbhR5NZPhAJBWQLDCqbEIinVkwWTh0CD1J0IIE3Yk7OQ6gkjLA4aI1
+         +STgp6Q8a9QrKNmoCDhu1g0G4Cvd6U7TBBOqy4mkbJgGyoTQt5Q3BeiVkoMPgUgVC+h5
+         QRg8IwlZu7J2nt2mS6OTkh46KbH0vVYwWpKd7IqmRmezVCMI1J5fQouFc1ufItEmb+ez
+         ngPw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=7K2A6e4kjdccKYC2DSixqcBQBkYbLUfuMeVBSI+i1II=;
-        b=djqub5lmwtEVlt7HimqqwTPlW67yBQjo6rBMN8RDJTlTIEcdh098TBeUFX+SvHhR8Z
-         Hlude7YGM6bWMw3rTiCwd414TYmBG1YIEZLaUyBVz1fjbEy/6gcZzYALMkCmXDb7PceH
-         QtmTa2nFGGqhBh1PUh7YvSSvsswLpTzT7O7tDdvqzjhvs2O3S7veLvJ/pRQVzsWtdLcM
-         khZruXQ3vCIuy2lpeShV9drFOr1YwS3iMC5GUAs/z50hJ/R4ykBvhNkjSZQGiVbXGl+4
-         oaHMTAroszPMcPbhuFnCfhyBtsaeJlETLtC0LFjvUigUxJWWH5ArEyjdMXnhK+b3g0rp
-         rBGQ==
-X-Gm-Message-State: AOAM532uNgc2MgN0jTKjbjdjdGLXxpbyjMcorrp4K2BhT8+E3VjFmVJh
-        q0/5eVBfOgekKXzT0C41LaZvqiKR
-X-Google-Smtp-Source: ABdhPJxkj0kIxtnUh9MlyD7cbLGNT6sSNmnBLRQePMYdri7b1EvJenyu4yxo/mWFO62mUTuvEVyE6A==
-X-Received: by 2002:a1c:4d10:: with SMTP id o16mr4180687wmh.33.1595783467036;
-        Sun, 26 Jul 2020 10:11:07 -0700 (PDT)
-Received: from localhost.localdomain ([31.210.180.214])
-        by smtp.gmail.com with ESMTPSA id t141sm15367006wmt.26.2020.07.26.10.11.05
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 26 Jul 2020 10:11:06 -0700 (PDT)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=aGFrHmiFaG+4vJxCAa9nAFD+Ucgll0CQfR6hnOIOXZA=;
+        b=R4HUdik1BaH+EqDYJk7BQP7AHDXPEXAyCl5TVN6M8xyVWG5stTMwqOUO0APiB+o1x4
+         lpFb5tVjWNO9ufeWRZWpEgpl35FeniN9c/jyUvNUkTN4R47doCNdp8A6pJGS++cj837n
+         guf2yEif5DfuQUeo+1ocZzUdGCyt2sHzuybLEkDOz7iqaR74vteN8zW7JQtr5PSAdVcb
+         qZy5iX8NcVgvhF6w4AMFB/kEzGVF1PWF1rUzO3N+m9K8myDc7v36CDz82Nhg6rQzOtQs
+         1tN/iBZSDZAGuP5OXwzHCucIIDqRtQLs80VQpKS85lUFRyzfbUyl/tzC0Iax9iWVSf+A
+         tseA==
+X-Gm-Message-State: AOAM533bbbB96AOePQgEzgT5IpBWJhn0X///c6F8Bab5Xx1L2aiU64hG
+        5ePahOAu2cG5Ltx41pE7nOqRSAn97a+ddA9o93I=
+X-Google-Smtp-Source: ABdhPJwqY3U1nyow2ah5erfX+OVHzALXaRfvsJuCKH2x2gJ1VEPvzjE3EM5EipfennEqIbKXPGtW1k1qXq3f6D+4Wgc=
+X-Received: by 2002:a6b:ba03:: with SMTP id k3mr25568718iof.72.1596001905800;
+ Tue, 28 Jul 2020 22:51:45 -0700 (PDT)
+MIME-Version: 1.0
+References: <1750303.WlVpaa6DS8.ref@nerdopolis> <1750303.WlVpaa6DS8@nerdopolis>
+ <CAOQ4uxgm8dHd2EQPgD_a7aKwFUQFKGZg9O7K_FsuJGuWH=P8pg@mail.gmail.com> <7866875.n4lXpxAzLT@nerdopolis>
+In-Reply-To: <7866875.n4lXpxAzLT@nerdopolis>
 From:   Amir Goldstein <amir73il@gmail.com>
-To:     linux-unionfs@vger.kernel.org
-Cc:     fstests@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
-        Vivek Goyal <vgoyal@redhat.com>, Eryu Guan <guaneryu@gmail.com>
-Subject: [ANNOUNCE] unionmount-testsuite: master branch updated to 7e2a4db
-Date:   Sun, 26 Jul 2020 20:10:58 +0300
-Message-Id: <20200726171058.17331-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.17.1
+Date:   Wed, 29 Jul 2020 08:51:34 +0300
+Message-ID: <CAOQ4uxj3oPfbdCt1bLrSp91O_QD4cqPBxqc6ZVgS3kXXDnDBfg@mail.gmail.com>
+Subject: Re: Incorrect Overlayfs documentation
+To:     nerdopolis <bluescreen_avenger@verizon.net>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi All,
+On Thu, Jul 23, 2020 at 6:51 AM nerdopolis
+<bluescreen_avenger@verizon.net> wrote:
+>
+> On Thursday, July 16, 2020 1:03:52 PM EDT Amir Goldstein wrote:
+> > On Thu, Jul 16, 2020 at 6:09 AM nerdopolis
+> > <bluescreen_avenger@verizon.net> wrote:
+> > >
+> > > Hi
+> > >
+> > > A while back I opened up https://bugzilla.kernel.org/show_bug.cgi?id=195113 describing a documentation problem in
+> > > https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt but for whatever reason, it hasn't been seen.
+> > >
+> > >
+> > > The problem is that it says "The lower filesystem can be any filesystem supported by Linux"
+> > > however, this is not the case, as Linux supports vfat, and vfat doesn't work as a lower filesystem
+> > >
+> > > So there's no way to tell what filesystems are applicable for an overlay lowerfs,
+> > > and I don't think any existing userspace utilities can detect it.
+> > >
+> > > Could it be possible for the .txt file to be updated?
+> > >
+> >
+> > The way it works usually in this project is you can submit a patch to fix the
+> > problem:
+> > https://www.kernel.org/doc/html/v4.17/process/submitting-patches.html
+> >
+> > But if you don't want to go through that process, you can offer a text to
+> > fix documentation.
+> >
+> > But I myself cannot offer anything better than:
+> > "The lower filesystem can be one of many filesystem supported by Linux".
+> >
+> > I don't think that we want to start listing the supported filesystems in
+> > documentation.
+> >
+> > FWIW the description of upper fs isn't uptodate either.
+> >
+> > Thanks,
+> > Amir.
+> >
+> >
+> Hi.
+>
+> Yeah, that process might be cumbersome. I guess what you have is good.
+> Maybe "A wide range of filesystems supported by Linux can be the lower
+> filesystem, however, not all filesystems that are mountable by Linux have the
+> features needed for OverlayFS to work"
+> ?
+>
 
-The master branch on the unionmount-testsuite tree [1] has been updated.
+That sounds good to me.
 
-This update has only one small change:
-- Support metacopy with nested overlay configuration
-
-A more significant change to announce is a change outside this project -
-Thanks to Eryu for merging my patches to enable running unionmount tests
-from xfstests [2].
-
-unionmount-testsuite will now be maintained as a sort of a sub-module of
-xfstests, but it can still be run independently as before.
-
-For now, we agreed not to enforce any explicit dependency checks between
-the projects, so it is the responsibility of the tester to update to the
-latest version of unionmount-testsuite when running the xfstests harness.
-This decision may be revised in the future should testers complain.
-
-The purpose of this small update is to prepare for posting a patch to
-xfstests for running the unionmount test cases with metacopy enabled,
-per Vivek's request.
+CC the maintainer in case he wants to apply this documentation "patch"
+himself.
 
 Thanks,
 Amir.
-
-[1] https://github.com/amir73il/unionmount-testsuite
-[2] https://lore.kernel.org/fstests/5f1da17c.1c69fb81.10c70.3d58@mx.google.com/
-
-Amir Goldstein (1):
-  Support metacopy with nested overlay configuration
-
- mount_union.py | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
--- 
-2.17.1
-
