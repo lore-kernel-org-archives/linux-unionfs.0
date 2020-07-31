@@ -2,216 +2,219 @@ Return-Path: <SRS0=/0gG=BK=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 419B0C433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jul 2020 18:22:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8681C433DF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jul 2020 20:02:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23CA321744
-	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jul 2020 18:22:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A8ECB21744
+	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jul 2020 20:02:47 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="HI4sCic4"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lOp83j2K"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387724AbgGaSWF (ORCPT
+        id S1726150AbgGaUCr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 31 Jul 2020 14:22:05 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:41469 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S2387694AbgGaSWF (ORCPT
+        Fri, 31 Jul 2020 16:02:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45452 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725938AbgGaUCr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 31 Jul 2020 14:22:05 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1596219723;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bEwwzNCzGwAqvBD587lOaIF2a+xmIwmzTHpripvBqZE=;
-        b=HI4sCic4FgASdvZr/SMnu0fp03TahY6XgAfai5LNpUK5LOXwg1kroLw4VFe9ToM+OQpCfy
-        AcOFxUWfHiw+tdGHs9jbBysIIPjrrQ1cbvJ0xqEdodv2d+bQJ2Dt1mkEvmCZAcrxgOI7C7
-        8FoLJZMIH1QSK3wnyedyv0otw13Mxqg=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-229-m8UszkmLMGC2fclGRq-66A-1; Fri, 31 Jul 2020 14:21:59 -0400
-X-MC-Unique: m8UszkmLMGC2fclGRq-66A-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2C16518C63C9;
-        Fri, 31 Jul 2020 18:21:58 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-115-149.rdu2.redhat.com [10.10.115.149])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id F26545D992;
-        Fri, 31 Jul 2020 18:21:57 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 7EF20222F73; Fri, 31 Jul 2020 14:21:57 -0400 (EDT)
-Date:   Fri, 31 Jul 2020 14:21:57 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>
+        Fri, 31 Jul 2020 16:02:47 -0400
+Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0053CC061574
+        for <linux-unionfs@vger.kernel.org>; Fri, 31 Jul 2020 13:02:46 -0700 (PDT)
+Received: by mail-io1-xd43.google.com with SMTP id j8so20478575ioe.9
+        for <linux-unionfs@vger.kernel.org>; Fri, 31 Jul 2020 13:02:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=x568hr/rE4QsoiHrGGryqTVDJW3tcAo6mlsDZL/yL8w=;
+        b=lOp83j2KCUjMpvXlUKR3Dwv4ZgpJ7Ehca+javhmcfZBgory3d181QhWxpN4bRDt/uw
+         /n8R2hEOEO4k4+LyjekuvMgLthIB/8T8/aIubrP6wWPD2quylP6+FPGMqYZXQhxUQKyJ
+         iRTO1X3bejKbrNJ6FOBcaGbA7wcTacQmKMQCv/aCWlYJ7H5Uwm3DYKgEXqktL8Au25J6
+         2aRnFSrNhdcHk6MyxFaLvAKn1WGnb7nG8S7o3dHzNJuJOFgb0nJPqKOFduevJUBGjY1a
+         MKoUsDEwzXytgRVzfiWcfDCdOa7ngx2mnyunh+9M9INiqojY15PWSjk5IfsC7KSE5RAk
+         6s2w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=x568hr/rE4QsoiHrGGryqTVDJW3tcAo6mlsDZL/yL8w=;
+        b=N4dQRgMHBoidHynbrgPobH8ZQ2KHM+t2498CZWkdG895Ugte0lO4Qv2two7hl48iz9
+         QYx/eZIwU0sUexCTFTe7g5nchcbi0VfZVYonq052DMl18B+5FW/FUBYtryY5Ex52TFYW
+         87P4zJBzbttqxUcHw5XvPmp0JahjO0XJ1otXIcrZ63djc6R2ymTvqO1OZHGdVKs05m18
+         Xo1XRB0DR6VJhcXEvqdxOfGtjynBfZ7HqJ/E+HTSp1vz6VK8f8dT3Sk+2kAa0qyRInCe
+         9Sni2Kg/xtbSS51Mdsi5FkrmHEJgToHKJl4f2P+fiW8hoV2CM+/RxhwciBN7LDOGWzHz
+         QZ0w==
+X-Gm-Message-State: AOAM5322Qx0+b48YVf7TqAYW95BExjD7y5pDOQQdtnli0POaE958dQZu
+        gQjf5kldjiwcOv4jVEgOH9f4dEsfvy/yR4U6Np3Drw==
+X-Google-Smtp-Source: ABdhPJwle3BOveuolJVimdpneeDY7Z9trochNcpL6atPBzwDUXvil/klJEyUbj74ZDSEsi7Ebwc1zkZL+nOBqIp8/9w=
+X-Received: by 2002:a5e:980f:: with SMTP id s15mr5212361ioj.5.1596225766236;
+ Fri, 31 Jul 2020 13:02:46 -0700 (PDT)
+MIME-Version: 1.0
+References: <CAOQ4uxhi63LPKdmkEJjnTEgy0VaX0qXML2Uz_258_B2iZcqd3w@mail.gmail.com>
+ <20190709141302.GA19084@redhat.com> <CAOQ4uxjWc8WFRFS8GTpz8uE1AHrs6yGx2A3fZy-Sxfu7CCyKuw@mail.gmail.com>
+ <20200731131244.GA189839@redhat.com> <CAOQ4uxivJgHTf-K=AjTcWPbOWNhxY8NGAt=t1XVqwOY-h5J+rg@mail.gmail.com>
+ <20200731182157.GD189839@redhat.com>
+In-Reply-To: <20200731182157.GD189839@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 31 Jul 2020 23:02:35 +0300
+Message-ID: <CAOQ4uxg2pRHtVqwuGPMaddKa8DvyApc63q-gVA7Djzb3=1K_MQ@mail.gmail.com>
+Subject: Re: [RFC] Passing extra mount options to unionmount tests
+To:     Vivek Goyal <vgoyal@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: [RFC] Passing extra mount options to unionmount tests
-Message-ID: <20200731182157.GD189839@redhat.com>
-References: <CAOQ4uxhi63LPKdmkEJjnTEgy0VaX0qXML2Uz_258_B2iZcqd3w@mail.gmail.com>
- <20190709141302.GA19084@redhat.com>
- <CAOQ4uxjWc8WFRFS8GTpz8uE1AHrs6yGx2A3fZy-Sxfu7CCyKuw@mail.gmail.com>
- <20200731131244.GA189839@redhat.com>
- <CAOQ4uxivJgHTf-K=AjTcWPbOWNhxY8NGAt=t1XVqwOY-h5J+rg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxivJgHTf-K=AjTcWPbOWNhxY8NGAt=t1XVqwOY-h5J+rg@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jul 31, 2020 at 05:09:16PM +0300, Amir Goldstein wrote:
-> On Fri, Jul 31, 2020 at 4:13 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> >
-> > On Fri, Jul 31, 2020 at 03:35:40PM +0300, Amir Goldstein wrote:
+On Fri, Jul 31, 2020 at 9:22 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> On Fri, Jul 31, 2020 at 05:09:16PM +0300, Amir Goldstein wrote:
+> > On Fri, Jul 31, 2020 at 4:13 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > >
+> > > On Fri, Jul 31, 2020 at 03:35:40PM +0300, Amir Goldstein wrote:
+> > > > > >
+> > > > > > If anyone is running unionmount-testsuite on regular basis
+> > > > > > I would be happy to know which configurations are being tested,
+> > > > > > because the test matrix grew considerably since I took over the project -
+> > > > > > both Overlayfs config options and the testsuite config options.
 > > > > >
-> > > > > If anyone is running unionmount-testsuite on regular basis
-> > > > > I would be happy to know which configurations are being tested,
-> > > > > because the test matrix grew considerably since I took over the project -
-> > > > > both Overlayfs config options and the testsuite config options.
+> > > > > For me, I think I am most interested in configuration used by
+> > > > > container runtimes (docker/podman). Docker seems to turn off
+> > > > > redirects as of now. podman is turning on metacopy (hence redirect)
+> > > > > by default now to see how do things go.
+> > > > >
+> > > > > So for me (redirect=on/off and metacopy=on/off) are important
+> > > > > configurations as of now. Having said that, I think I should talk
+> > > > > to container folks and encourage them to use "index" and "xino"
+> > > > > as well to be more posix like fs.
+> > > > >
 > > > >
-> > > > For me, I think I am most interested in configuration used by
-> > > > container runtimes (docker/podman). Docker seems to turn off
-> > > > redirects as of now. podman is turning on metacopy (hence redirect)
-> > > > by default now to see how do things go.
+> > > > Hi Vivek,
 > > > >
-> > > > So for me (redirect=on/off and metacopy=on/off) are important
-> > > > configurations as of now. Having said that, I think I should talk
-> > > > to container folks and encourage them to use "index" and "xino"
-> > > > as well to be more posix like fs.
+> > > > I remember you asked me about configuring extra mount options
+> > > > for unionmount but couldn't find that conversation, so replying to this
+> > > > related old discussion with my thoughts on the subject.
 > > > >
+> > > > Now that unionmount supports the environment variables:
+> > > > UNIONMOUNT_{BASEDIR,LOWERDIR,MNTPOINT}
+> > > >
+> > > > And now that xfstests has helpers to convert xfstests env vars to
+> > > > UNIONMOUNT_* env vars, one might ask: why won't we support
+> > > > UNIONMOUNT_OPTIONS=$OVERLAY_MOUNT_OPTIONS
+> > > >
+> > > > So when you asked me a question along those lines, my answer was that
+> > > > unionmount performs different validations depending on the test options,
+> > > > so for example, the test option ./run --meta adds the mount option
+> > > > "metacopy=on", but it also performs different validation tests, such as
+> > > > upper file st_blocks == 0 after metadata change.
+> > > >
+> > > > Right, so I gave a reason for why supporting extra mount options is not
+> > > > straight forward, but that doesn't mean that it is not possible.
+> > > > unionmount test could very well parse the extra mount options passed
+> > > > in env var and translate them to test config options.
 > > >
-> > > Hi Vivek,
+> > > Hi Amir,
 > > >
-> > > I remember you asked me about configuring extra mount options
-> > > for unionmount but couldn't find that conversation, so replying to this
-> > > related old discussion with my thoughts on the subject.
+> > > I am not able to understand this point. Why an extra mount option
+> > > needs to be translated into a "test config" option. If I pass
+> > > "metacopy=on", that does not mean that I also want to run tests
+> > > which verify st_blocks == 0 on upper. It just means that whatever
+> > > tests I am running, are run with metacopy=on. All I want to make
+> > > sure that tests I am running are not broken if run with metacopy=on.
 > > >
-> > > Now that unionmount supports the environment variables:
-> > > UNIONMOUNT_{BASEDIR,LOWERDIR,MNTPOINT}
-> > >
-> > > And now that xfstests has helpers to convert xfstests env vars to
-> > > UNIONMOUNT_* env vars, one might ask: why won't we support
-> > > UNIONMOUNT_OPTIONS=$OVERLAY_MOUNT_OPTIONS
-> > >
-> > > So when you asked me a question along those lines, my answer was that
-> > > unionmount performs different validations depending on the test options,
-> > > so for example, the test option ./run --meta adds the mount option
-> > > "metacopy=on", but it also performs different validation tests, such as
-> > > upper file st_blocks == 0 after metadata change.
-> > >
-> > > Right, so I gave a reason for why supporting extra mount options is not
-> > > straight forward, but that doesn't mean that it is not possible.
-> > > unionmount test could very well parse the extra mount options passed
-> > > in env var and translate them to test config options.
 > >
-> > Hi Amir,
+> > I guess the confusion is what defines a "test".
 > >
-> > I am not able to understand this point. Why an extra mount option
-> > needs to be translated into a "test config" option. If I pass
-> > "metacopy=on", that does not mean that I also want to run tests
-> > which verify st_blocks == 0 on upper. It just means that whatever
-> > tests I am running, are run with metacopy=on. All I want to make
-> > sure that tests I am running are not broken if run with metacopy=on.
+> > A specific xfstests test script (e.g. overlay/060) defines:
+> > - requirements (run or skip)
+> > - setup and operations to execute
+> > - expectations
 > >
-> 
-> I guess the confusion is what defines a "test".
-> 
-> A specific xfstests test script (e.g. overlay/060) defines:
-> - requirements (run or skip)
-> - setup and operations to execute
-> - expectations
-> 
-> So when you pass extra mount options it might:
-> - cause test not to meet requirements and be skipped
-> - affect the setup/operations
-> - usually it does not change the expectations
-> 
-> But you can also define some global options like
-> USE_KMEMLEAK, TEST_XFS_REPAIR_REBUILD, TEST_XFS_SCRUB
-> which affect the validations that are run after each test
-> in *addition* to the specific expectations encoded in the test script.
-> 
-> A specific unionmount test (e.g. tests/rename-pop-dir.py) defines only:
-> - operations to execute
-> - expected return value
-> 
-> But the test engine performs extra validations after *each* operation
-> in addition to verifying the expected return value.
-> 
-> So when I write "verify st_blocks == 0 on upper", this is not an expectation
-> that is explicitly written in any specific test.
-> The test engine records the state of objects before and after each filesystem
-> operation is executed to know for each object if it is expected to be lower,
-> metacopy,upper and then it runs some validations after each operation
-> (like upper st_blocks) to verify that the actual state of the object matches the
-> expected state.
-> 
-> The test run option --xdev only is similar to the xfstests requirement
-> and it skips a few dir rename tests and changes expected return
-> value in others.
-> 
-> But the test run options --verify, --meta, --xino, --verify, are global test
-> options which determine what sort of validations are performed after
-> each and every operation in all the operations of all of the test cases.
-> 
-> Those checks are implemented in context.py functions:
-> check_dev_ino(), check_copy_up(), check_layer()
-> 
-> Is my explanation more clear now?
+> > So when you pass extra mount options it might:
+> > - cause test not to meet requirements and be skipped
+> > - affect the setup/operations
+> > - usually it does not change the expectations
+> >
+> > But you can also define some global options like
+> > USE_KMEMLEAK, TEST_XFS_REPAIR_REBUILD, TEST_XFS_SCRUB
+> > which affect the validations that are run after each test
+> > in *addition* to the specific expectations encoded in the test script.
+> >
+> > A specific unionmount test (e.g. tests/rename-pop-dir.py) defines only:
+> > - operations to execute
+> > - expected return value
+> >
+> > But the test engine performs extra validations after *each* operation
+> > in addition to verifying the expected return value.
+> >
+> > So when I write "verify st_blocks == 0 on upper", this is not an expectation
+> > that is explicitly written in any specific test.
+> > The test engine records the state of objects before and after each filesystem
+> > operation is executed to know for each object if it is expected to be lower,
+> > metacopy,upper and then it runs some validations after each operation
+> > (like upper st_blocks) to verify that the actual state of the object matches the
+> > expected state.
+> >
+> > The test run option --xdev only is similar to the xfstests requirement
+> > and it skips a few dir rename tests and changes expected return
+> > value in others.
+> >
+> > But the test run options --verify, --meta, --xino, --verify, are global test
+> > options which determine what sort of validations are performed after
+> > each and every operation in all the operations of all of the test cases.
+> >
+> > Those checks are implemented in context.py functions:
+> > check_dev_ino(), check_copy_up(), check_layer()
+> >
+> > Is my explanation more clear now?
+>
+> Hi Amir,
+>
+> Thanks for the explanation. I understand your perspective little
+> better now.
+>
+> But why do we have to enable these st_blocks checks after the test if
+> user asked to be mounted with "metacopy=on".
+>
+> IOW, if user wants to run these additional st_blocks checks, that
+> should be drive by explicit option "--meta" to _unionmount_testsuite_run.
+>
+> Enabling "--meta" implicitly probably does not hurt now given what
+> "--meta" is doing but some other option "--foo" might be doing much
+> more (including running additional tests) and mapping that becomes
+> very tricky and kind of unexpected.
+>
 
-Hi Amir,
+Maybe I wasn't accurate in my explanation.
 
-Thanks for the explanation. I understand your perspective little
-better now.
+--verify is the only option that *adds* verifications.
+I added it for backward compat because old kernels simply do not
+pass those verifications (like const st_ino etc).
+All the tests I added to xfstests use the --verify option because
+want to test the upstream kernel and we want maximum test coverage.
 
-But why do we have to enable these st_blocks checks after the test if
-user asked to be mounted with "metacopy=on". 
+--meta and --xino OTOH do not *add* verifications, they change the
+validations that --verify does in subtle ways.
 
-IOW, if user wants to run these additional st_blocks checks, that
-should be drive by explicit option "--meta" to _unionmount_testsuite_run.
+You will have to dive into the check_ functions for the details, they are
+not pretty, but for example without --meta st_blocks is checked to be
+positive after copy up of not empty file and with --meta it is checked to
+be zero (which is actually wrong because xattr takes 1 block in xfs,
+but let's not mix reality with theory for now).
 
-Enabling "--meta" implicitly probably does not hurt now given what
-"--meta" is doing but some other option "--foo" might be doing much
-more (including running additional tests) and mapping that becomes
-very tricky and kind of unexpected.
+Same goes for checks of st_dev and st_ino, they are always checked
+for but expectations are different depending on xino and index.
 
-So how about we keep it simple. That is we don't try to map mount
-options to associated arguments to unionmount testsuite. We probably
-just need to detect conflicts and then skip test? For example, if
-I run "_unionmount_testsuite_run --ov --meta" and also specifcy
-"metacopy=off", then its a conflict and probably need to either
-skip this test or error out and point towards the conflict etc.
+IOW, if we do not parse the mount options to understand them and
+just blindly set them, the verifications will likely fail.
 
-If I pass mount option "metacopy=on" I don't expect unionmount
-testsuite to suddenly start verifying that on upper layer st_blocks==0.
-That I will expect from a specific test or if I call
-"_unionmount_testsuite_run --ov --meta". This is not necessarily
-similar to generally xfs options you mentioned for additional
-verification, because unionmount testsuite options are generic
-and one can implement anything behind these options (and are not
-limited to additional verification only).
-
-I don't have too detailed understanding of design of both testsuites.
-So all my thoughts are from a pure user perspective. 
-
-Thanks
-Vivek
-
-> It is clear why unionmount needs to parse mount options in order
-> to set the expectations from validators?
-> 
-> If that is clear, please review my proposal to see if I missed anything.
-> 
-> Thanks,
-> Amir.
-> 
-
+Thanks,
+Amir.
