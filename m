@@ -1,131 +1,147 @@
-Return-Path: <SRS0=xMp+=BI=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=/0gG=BK=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB048C433E0
-	for <linux-unionfs@archiver.kernel.org>; Wed, 29 Jul 2020 05:51:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62E13C433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jul 2020 12:35:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E015206D4
-	for <linux-unionfs@archiver.kernel.org>; Wed, 29 Jul 2020 05:51:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3386521744
+	for <linux-unionfs@archiver.kernel.org>; Fri, 31 Jul 2020 12:35:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IBGaqRRB"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Fo6K9MKp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726445AbgG2Fvs (ORCPT
+        id S1733093AbgGaMfw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 29 Jul 2020 01:51:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36642 "EHLO
+        Fri, 31 Jul 2020 08:35:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726367AbgG2Fvr (ORCPT
+        with ESMTP id S1733077AbgGaMfw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 29 Jul 2020 01:51:47 -0400
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3530C061794
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Jul 2020 22:51:47 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id v6so8056240iow.11
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Jul 2020 22:51:47 -0700 (PDT)
+        Fri, 31 Jul 2020 08:35:52 -0400
+Received: from mail-il1-x12e.google.com (mail-il1-x12e.google.com [IPv6:2607:f8b0:4864:20::12e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4ADECC061574
+        for <linux-unionfs@vger.kernel.org>; Fri, 31 Jul 2020 05:35:52 -0700 (PDT)
+Received: by mail-il1-x12e.google.com with SMTP id r12so25166670ilh.4
+        for <linux-unionfs@vger.kernel.org>; Fri, 31 Jul 2020 05:35:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=aGFrHmiFaG+4vJxCAa9nAFD+Ucgll0CQfR6hnOIOXZA=;
-        b=IBGaqRRBtxYlzzkQ60L0B/HLl0eQ5TLdqS+5Sm4u24OOI2qb9NVq8PrR05tyT8NsS/
-         SHtiP/ykOMe3G48tJ7Mcsz3V+pm9rqlHDRE2cEI+UNmQ3oFOUCF22KlF6diJRWhk5x0n
-         HXicI5U+oIFQcrmbhR5NZPhAJBWQLDCqbEIinVkwWTh0CD1J0IIE3Yk7OQ6gkjLA4aI1
-         +STgp6Q8a9QrKNmoCDhu1g0G4Cvd6U7TBBOqy4mkbJgGyoTQt5Q3BeiVkoMPgUgVC+h5
-         QRg8IwlZu7J2nt2mS6OTkh46KbH0vVYwWpKd7IqmRmezVCMI1J5fQouFc1ufItEmb+ez
-         ngPw==
+        bh=lrzOYdSgDz3vNIfjovjmV1358YKA84RMjMQEVtRWz+A=;
+        b=Fo6K9MKpIH1+LZ3bmrX4o0TBe/LLQq6plRKgQySAJ6VzdVp2go763V3Dnda9kPT4Sj
+         cbnFoKf+nMDWjD0GuWhEysBHfRz8Bjhqcwn0M/xVGHg0AnSUxKsJzybPvpYxHV9eaTQi
+         XEtFUoqLTxOyK+UHjhFaEhgm2ZlK4BiyHvnFr8hI2ohzqAdI9Av6SgA786BS+YZk1VMu
+         4LqfZbObnZZxQWxeUi2H1EXaxYFw2Acpd2qbjESPFMhzqus2cwZgZmt+tbP01GU4SOdy
+         /zg3/GIKT1aLxCiDAnRcDnqAQ1aX4yFdVCcysFItQvEGsYZKMwSWZkZ4R9u7tIgiANwL
+         3WWg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=aGFrHmiFaG+4vJxCAa9nAFD+Ucgll0CQfR6hnOIOXZA=;
-        b=R4HUdik1BaH+EqDYJk7BQP7AHDXPEXAyCl5TVN6M8xyVWG5stTMwqOUO0APiB+o1x4
-         lpFb5tVjWNO9ufeWRZWpEgpl35FeniN9c/jyUvNUkTN4R47doCNdp8A6pJGS++cj837n
-         guf2yEif5DfuQUeo+1ocZzUdGCyt2sHzuybLEkDOz7iqaR74vteN8zW7JQtr5PSAdVcb
-         qZy5iX8NcVgvhF6w4AMFB/kEzGVF1PWF1rUzO3N+m9K8myDc7v36CDz82Nhg6rQzOtQs
-         1tN/iBZSDZAGuP5OXwzHCucIIDqRtQLs80VQpKS85lUFRyzfbUyl/tzC0Iax9iWVSf+A
-         tseA==
-X-Gm-Message-State: AOAM533bbbB96AOePQgEzgT5IpBWJhn0X///c6F8Bab5Xx1L2aiU64hG
-        5ePahOAu2cG5Ltx41pE7nOqRSAn97a+ddA9o93I=
-X-Google-Smtp-Source: ABdhPJwqY3U1nyow2ah5erfX+OVHzALXaRfvsJuCKH2x2gJ1VEPvzjE3EM5EipfennEqIbKXPGtW1k1qXq3f6D+4Wgc=
-X-Received: by 2002:a6b:ba03:: with SMTP id k3mr25568718iof.72.1596001905800;
- Tue, 28 Jul 2020 22:51:45 -0700 (PDT)
+        bh=lrzOYdSgDz3vNIfjovjmV1358YKA84RMjMQEVtRWz+A=;
+        b=e3n+caGt1eSiwr/9wtxEehvBdmNKXG0Q7sGcfuBw8qfj25cH3/VMErxJQ0T8ST6vHU
+         43BatSNrlIXJu99tuA8htvhLoWD4iUHfjomHZvNmX9TQwEL0Nqz3xA1kqoslELVwBoW0
+         P5/Hmeb6JpXtlKK0ECXc68BCEaoF/E2MpNgbrDgLbmc2uih8CYH/3LafVBZvmaS9V1dk
+         5FmG/2/Lh19Gg2KLcSexfC+cAMt3OkqGLjPLMivAk+txAYsL2j5VXWTs9+10L53vqSZT
+         I+CnhK9Ca19EzKvZ6HkdOx+ZkDGq5E/ET2DVePfpRWekpZGMI0TpqgwkS8tC45hcH3rt
+         DkJw==
+X-Gm-Message-State: AOAM530XlvEdtj5ztX9lOFxMNVfDmO8cQ/Yl1cUkSGFAN6+z3OV/ypGr
+        qTXIPoOWKxHrAEtjr1f9vvZq9sss+aR+15KTBeM=
+X-Google-Smtp-Source: ABdhPJzshAHwWryVCWA2jjJVW4wTaeHOaTeDO9MEcF9AzMVsHEPakNDpRlSDI0OVV30uueobJx5Aj/VqQF8QdpYnb1k=
+X-Received: by 2002:a92:da0e:: with SMTP id z14mr3429034ilm.275.1596198951534;
+ Fri, 31 Jul 2020 05:35:51 -0700 (PDT)
 MIME-Version: 1.0
-References: <1750303.WlVpaa6DS8.ref@nerdopolis> <1750303.WlVpaa6DS8@nerdopolis>
- <CAOQ4uxgm8dHd2EQPgD_a7aKwFUQFKGZg9O7K_FsuJGuWH=P8pg@mail.gmail.com> <7866875.n4lXpxAzLT@nerdopolis>
-In-Reply-To: <7866875.n4lXpxAzLT@nerdopolis>
+References: <CAOQ4uxhi63LPKdmkEJjnTEgy0VaX0qXML2Uz_258_B2iZcqd3w@mail.gmail.com>
+ <20190709141302.GA19084@redhat.com>
+In-Reply-To: <20190709141302.GA19084@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 29 Jul 2020 08:51:34 +0300
-Message-ID: <CAOQ4uxj3oPfbdCt1bLrSp91O_QD4cqPBxqc6ZVgS3kXXDnDBfg@mail.gmail.com>
-Subject: Re: Incorrect Overlayfs documentation
-To:     nerdopolis <bluescreen_avenger@verizon.net>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 31 Jul 2020 15:35:40 +0300
+Message-ID: <CAOQ4uxjWc8WFRFS8GTpz8uE1AHrs6yGx2A3fZy-Sxfu7CCyKuw@mail.gmail.com>
+Subject: [RFC] Passing extra mount options to unionmount tests
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jul 23, 2020 at 6:51 AM nerdopolis
-<bluescreen_avenger@verizon.net> wrote:
+> >
+> > If anyone is running unionmount-testsuite on regular basis
+> > I would be happy to know which configurations are being tested,
+> > because the test matrix grew considerably since I took over the project -
+> > both Overlayfs config options and the testsuite config options.
 >
-> On Thursday, July 16, 2020 1:03:52 PM EDT Amir Goldstein wrote:
-> > On Thu, Jul 16, 2020 at 6:09 AM nerdopolis
-> > <bluescreen_avenger@verizon.net> wrote:
-> > >
-> > > Hi
-> > >
-> > > A while back I opened up https://bugzilla.kernel.org/show_bug.cgi?id=195113 describing a documentation problem in
-> > > https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt but for whatever reason, it hasn't been seen.
-> > >
-> > >
-> > > The problem is that it says "The lower filesystem can be any filesystem supported by Linux"
-> > > however, this is not the case, as Linux supports vfat, and vfat doesn't work as a lower filesystem
-> > >
-> > > So there's no way to tell what filesystems are applicable for an overlay lowerfs,
-> > > and I don't think any existing userspace utilities can detect it.
-> > >
-> > > Could it be possible for the .txt file to be updated?
-> > >
-> >
-> > The way it works usually in this project is you can submit a patch to fix the
-> > problem:
-> > https://www.kernel.org/doc/html/v4.17/process/submitting-patches.html
-> >
-> > But if you don't want to go through that process, you can offer a text to
-> > fix documentation.
-> >
-> > But I myself cannot offer anything better than:
-> > "The lower filesystem can be one of many filesystem supported by Linux".
-> >
-> > I don't think that we want to start listing the supported filesystems in
-> > documentation.
-> >
-> > FWIW the description of upper fs isn't uptodate either.
-> >
-> > Thanks,
-> > Amir.
-> >
-> >
-> Hi.
+> For me, I think I am most interested in configuration used by
+> container runtimes (docker/podman). Docker seems to turn off
+> redirects as of now. podman is turning on metacopy (hence redirect)
+> by default now to see how do things go.
 >
-> Yeah, that process might be cumbersome. I guess what you have is good.
-> Maybe "A wide range of filesystems supported by Linux can be the lower
-> filesystem, however, not all filesystems that are mountable by Linux have the
-> features needed for OverlayFS to work"
-> ?
+> So for me (redirect=on/off and metacopy=on/off) are important
+> configurations as of now. Having said that, I think I should talk
+> to container folks and encourage them to use "index" and "xino"
+> as well to be more posix like fs.
 >
 
-That sounds good to me.
+Hi Vivek,
 
-CC the maintainer in case he wants to apply this documentation "patch"
-himself.
+I remember you asked me about configuring extra mount options
+for unionmount but couldn't find that conversation, so replying to this
+related old discussion with my thoughts on the subject.
+
+Now that unionmount supports the environment variables:
+UNIONMOUNT_{BASEDIR,LOWERDIR,MNTPOINT}
+
+And now that xfstests has helpers to convert xfstests env vars to
+UNIONMOUNT_* env vars, one might ask: why won't we support
+UNIONMOUNT_OPTIONS=$OVERLAY_MOUNT_OPTIONS
+
+So when you asked me a question along those lines, my answer was that
+unionmount performs different validations depending on the test options,
+so for example, the test option ./run --meta adds the mount option
+"metacopy=on", but it also performs different validation tests, such as
+upper file st_blocks == 0 after metadata change.
+
+Right, so I gave a reason for why supporting extra mount options is not
+straight forward, but that doesn't mean that it is not possible.
+unionmount test could very well parse the extra mount options passed
+in env var and translate them to test config options.  As a matter of fact,
+unionmount already parses the following overlay module parameters
+and translates the following values to test config options:
+
+1) redirect_dir does not exist => --xdev (expect EXDEV on dir rename)
+2) redirect_dir exists and no explicit --xdev => add redirect_dir=on
+3) index=N and --verify => add index=on and check st_ino validations
+4) metacopy=Y => check --meta validations (e.g. upper st_blocks)
+5) xino_auto=Y => add xino=on and check --xino validations (e.g. uniform st_dev)
+
+So apart from blindly adding the extra mount options to mount command,
+will also need to translate:
+
+6) redirect_dir=off => --xdev
+   (redirect_dir=on conflicts with --xdev)
+7) index=off => overrides index=on added by --verify
+   (st_ino validations should still pass on tests without multi layers)
+8) metacopy=on => --meta
+   (metacopy=off conflicts with --meta)
+9) xino=auto/on => --xino
+   (xino=off conflicts with --xino)
+
+At the moment, I have a patch to xfstests [1] that implements rule 8 in the
+xfstests _unionmount_testsuite_run helper, but I came to realize that would
+be wrong and that the correct way would be to implement conversion rules
+6-9 in unionmount itself and then blindly assign in xfstest helper:
+UNIONMOUNT_OPTIONS=$OVL_BASE_MOUNT_OPTIONS
+
+Does anyone spot any obvious flaws in this plan before I make those changes?
 
 Thanks,
 Amir.
+
+[1] https://github.com/amir73il/xfstests/commits/unionmount
