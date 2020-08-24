@@ -2,156 +2,89 @@ Return-Path: <SRS0=sCFp=CC=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15658C433DF
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 13:51:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7594DC433E1
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 13:53:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E3E8D206B5
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 13:51:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48E37206B5
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 13:53:31 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XNx3pySB"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="D/3i5RNk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726483AbgHXNvT (ORCPT
+        id S1726709AbgHXNxa (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Aug 2020 09:51:19 -0400
-Received: from us-smtp-delivery-1.mimecast.com ([207.211.31.120]:24610 "EHLO
-        us-smtp-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1725780AbgHXNvN (ORCPT
+        Mon, 24 Aug 2020 09:53:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56410 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726187AbgHXNx3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Aug 2020 09:51:13 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1598277072;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=v+fRo/iYHGFY+DZfkJHCWSJOnIfgwPTE7om4NVbm1d0=;
-        b=XNx3pySBWJaMMuJQaWtevyksxmIRVmQSY1G5KDc1BMOGLH3xnXURzYCwtkNEEXWQT886V3
-        xmyn2V6EgxqLNXz5VLWmDqELCOVTAZqTObxKTN5Gpxp476wTJkweqmzMa+UIXFHOMdKDR7
-        SOtotz3mv9/9ZSsqpS/RYjLuHvf7xpk=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-159-MP_S7gycNZaUEMgVHrTIvA-1; Mon, 24 Aug 2020 09:51:10 -0400
-X-MC-Unique: MP_S7gycNZaUEMgVHrTIvA-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0F2E218A2246;
-        Mon, 24 Aug 2020 13:51:09 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-115-156.rdu2.redhat.com [10.10.115.156])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id C01E42AABF;
-        Mon, 24 Aug 2020 13:51:08 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 4FA992256FC; Mon, 24 Aug 2020 09:51:08 -0400 (EDT)
-Date:   Mon, 24 Aug 2020 09:51:08 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Giuseppe Scrivano <gscrivan@redhat.com>,
-        Amir Goldstein <amir73il@gmail.com>,
+        Mon, 24 Aug 2020 09:53:29 -0400
+Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC82AC061573
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2020 06:53:28 -0700 (PDT)
+Received: by mail-ed1-x541.google.com with SMTP id bs17so8121314edb.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2020 06:53:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=E9DTWiQGHH9CACthYWT8TeVj3Uk6eRXuoxENqPnJ3lY=;
+        b=D/3i5RNkGDH/R8k+aPNpGtJrwbej/eTm9D7F3njN8AxNgsxP5hh/RjCefsgubqfoX8
+         Iv7Rasrw7RRXWJEUQRm+MeYoXKc++KrITqw/JbOFLEVdRka7L5/8owFoyQkEBmdjP2Fm
+         cK5vA0qAgtQ+aGZhlTM2zTCsyTbfbD3oeMEXI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=E9DTWiQGHH9CACthYWT8TeVj3Uk6eRXuoxENqPnJ3lY=;
+        b=f6rMAsJMb51/ak7hIW1ljsYHQVXFWeOvbwUnZjqHaqXjsVK+BJTRCQa/nv3Tyj5UKh
+         HPBE4u9KhS0YLlBrjVPyQbpiyHPZvHfZu4/1X/WvJnd+osgN/HkotQry6z1lIM5sMPwT
+         cqqrqVgZPV4VKaaMMdwFYpeDkxJ1Hlv/UT5b+lIa+RfPrmZBnkFstf8MqXrem0PY9Gge
+         McvKn5lmygtOdcV/pA2lzisgRRImbraZclzdtGd9hWKnRrqq0xR2WyPwAtpHNT7LpR41
+         RXXlD+KmHjUZAEo19RyMkSYIYk6ozRH9/676mnpkPEgPu88QdmUqjHi1s3Y8vyXIiNxz
+         rlmA==
+X-Gm-Message-State: AOAM532WRDy64yp9EE4bFlh9WgYncba5coxsXhYA+ecil72Kp6fcIj1o
+        fyM0i5HLNBhD05dDhuIMCSyR1uUt4CC1wK3T6U+EggtKRlw1LQ==
+X-Google-Smtp-Source: ABdhPJyTp+JTc/5XX0GjNOjSe6ZPEe7ED8JXipdofF3qmMA7gDQmXTG3Nn7s+c7sbtSthLH+KY4F9hwM5oNTSCImlUs=
+X-Received: by 2002:a05:6402:54c:: with SMTP id i12mr5361499edx.358.1598277207670;
+ Mon, 24 Aug 2020 06:53:27 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200722175024.GA608248@redhat.com> <87h7svyqsd.fsf@redhat.com>
+ <CAJfpegtA-16EFFoqhn25rVmXat5hhNUTAWOf+hJEs5L910oQzA@mail.gmail.com>
+ <CAOQ4uxj0SF1VRbMEvVm4a9TuUtdMYuZqFkZhkUyEGMagCWk5NA@mail.gmail.com> <20200824133948.GA963827@redhat.com>
+In-Reply-To: <20200824133948.GA963827@redhat.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Mon, 24 Aug 2020 15:53:16 +0200
+Message-ID: <CAJfpegvatXE=X-_anCyjVavH8nWcgrNwQpxch9WxVPf3Gk_5Eg@mail.gmail.com>
+Subject: Re: [PATCH v5] overlayfs: Provide a mount option "volatile" to skip sync
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Daniel J Walsh <dwalsh@redhat.com>,
         Steven Whitehouse <swhiteho@redhat.com>
-Subject: Re: [PATCH v5] overlayfs: Provide a mount option "volatile" to skip
- sync
-Message-ID: <20200824135108.GB963827@redhat.com>
-References: <20200722175024.GA608248@redhat.com>
- <87h7svyqsd.fsf@redhat.com>
- <CAJfpegtA-16EFFoqhn25rVmXat5hhNUTAWOf+hJEs5L910oQzA@mail.gmail.com>
- <CAOQ4uxj0SF1VRbMEvVm4a9TuUtdMYuZqFkZhkUyEGMagCWk5NA@mail.gmail.com>
- <87a6yknugp.fsf@redhat.com>
- <CAOQ4uxg4xmvsoKVBfGJ0SVCXfM6aeNji6c8FSCevxV-FYX3LtQ@mail.gmail.com>
- <874kosnqnn.fsf@redhat.com>
- <CAJfpegvaUz_M0jtibOk=a6Cx=U9JBnOcVSmF2xM9cyVmCz8CFg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJfpegvaUz_M0jtibOk=a6Cx=U9JBnOcVSmF2xM9cyVmCz8CFg@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Aug 24, 2020 at 03:20:20PM +0200, Miklos Szeredi wrote:
-> On Mon, Aug 24, 2020 at 3:02 PM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
-> >
-> > Amir Goldstein <amir73il@gmail.com> writes:
-> >
-> > > On Mon, Aug 24, 2020 at 2:39 PM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
-> > >>
-> > >> Hi Amir,
-> > >>
-> > >> Amir Goldstein <amir73il@gmail.com> writes:
-> > >>
-> > >> > On Mon, Aug 24, 2020 at 11:15 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > >> >>
-> > >> >> On Sat, Aug 22, 2020 at 11:27 AM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
-> > >> >> >
-> > >> >> > Vivek Goyal <vgoyal@redhat.com> writes:
-> > >> >> >
-> > >> >> > > Container folks are complaining that dnf/yum issues too many sync while
-> > >> >> > > installing packages and this slows down the image build. Build
-> > >> >> > > requirement is such that they don't care if a node goes down while
-> > >> >> > > build was still going on. In that case, they will simply throw away
-> > >> >> > > unfinished layer and start new build. So they don't care about syncing
-> > >> >> > > intermediate state to the disk and hence don't want to pay the price
-> > >> >> > > associated with sync.
-> > >> >> > >
-> > >> >>
-> > >> >> [...]
-> > >> >>
-> > >> >> > Ping.
-> > >> >> >
-> > >> >> > Is there anything holding this patch?
-> > >> >>
-> > >> >> Not sure what happened with protection against mounting a volatile
-> > >> >> overlay twice, I don't see that in the patch.
-> > >> >
-> > >> > Do you mean protection only for new kernels or old kernels as well?
-> > >> >
-> > >> > The latter can be achieved by using $workdir/volatile/ as upperdir
-> > >> > instead of $upperdir.
-> > >> > Or maybe even use $workdir/work/incompat/volatile/upper, so if older
-> > >> > kernel tries to re-use that $workdir, it will fail to mount rw with error:
-> > >> >
-> > >> >   overlayfs: cleanup of 'incompat/volatile' failed (-39)
-> > >> >
-> > >> > If we agree to that, then upperdir= should not be provided at all when
-> > >> > specifying "volatile".
-> > >>
-> > >> in this case, what does a program need to do to remount the overlay more
-> > >> than once?  Is it enough to just delete a file?
-> > >>
-> > >
-> > > Do you mean re-mount while forgetting all changes to previous "volatile"
-> > > mount?
-> >
-> > no, without forgetting them.
-> > The original idea was to have a way to disable any sync operation in the
-> > overlay file system and let the upper layers handle it.  IOW, mount
-> > volatile overlay+umount overlay+syncfs upper dir must still be
-> > considered safe.
-> > If we want to make it safer and disallow remounting the same
-> > workdir+upperdir by default when "volatile" is used, that is fine; but I
-> > think there should still be a way to say "I know what I am doing, just
-> > remount it".
-> 
-> Indeed.  "Volatile" doesn't mean you can't use the data, just that the
-> data may be lost completely in case of a crash (tmpfs analogue).
-> 
-> Maybe just stick
-> 
->   $(workdir)/work/incompat/volatile/donotremove
-> 
-> in there to prevent misuse.
+On Mon, Aug 24, 2020 at 3:39 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 
-So we ask users to remove "$(workdir)/work/incompat/volatile/donotremove"
-if they want to remount with with same upper/ and work/? (Presumably
-after syncing upper/).
+> /me is wondering why I don't get error with $workdir/work/dir1/volatile
+> but I do with $workdir/work/dir1/dir2/volatile. IOW, why in first
+> case removal of dir1 was successful despite the fact it is non-empty.
 
-Thanks
-Vivek
+It cares for the case when a directory full of whiteouts is echanged
+with RENAME_EXCHANGE to an empty opaque dir created under
+$workdir/work.
 
+Strictly speaking it wouldn't need to be able to remove directories
+under dir1, but it's just reusing the generic cleanup routine, so
+everything is cleaned up upto the second level.
+
+Thanks,
+Miklos
