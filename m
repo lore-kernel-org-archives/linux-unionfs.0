@@ -2,66 +2,70 @@ Return-Path: <SRS0=sCFp=CC=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00618C433E1
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 08:15:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B04AC433DF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 10:59:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73B6920738
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 08:15:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E30720738
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Aug 2020 10:59:56 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="H/AQPXxQ"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hXDBLp0x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726051AbgHXIPw (ORCPT
+        id S1726461AbgHXK7z (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Aug 2020 04:15:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58856 "EHLO
+        Mon, 24 Aug 2020 06:59:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725968AbgHXIPv (ORCPT
+        with ESMTP id S1725998AbgHXK7x (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Aug 2020 04:15:51 -0400
-Received: from mail-ed1-x541.google.com (mail-ed1-x541.google.com [IPv6:2a00:1450:4864:20::541])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCCAEC061573
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2020 01:15:50 -0700 (PDT)
-Received: by mail-ed1-x541.google.com with SMTP id bs17so7241409edb.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2020 01:15:50 -0700 (PDT)
+        Mon, 24 Aug 2020 06:59:53 -0400
+Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02D32C061573
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2020 03:59:53 -0700 (PDT)
+Received: by mail-io1-xd41.google.com with SMTP id w20so4809869iom.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Aug 2020 03:59:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=bzt8C1mQQkn06FAHdipYHMzDETbRp9oC3UW6u8Z15Hg=;
-        b=H/AQPXxQnA711s6Hh8cvpgcM6eKvigCaxBXwauMFpSBarMwgeQnNvgdfX/16z8QQUL
-         Awap75ZvD61G81wgg1Yhcs9AKuswj7FWDaE4I6+UUlnSpA6L9KDZiEaVFpO+3EVCZz1N
-         okMKd8V82iOemsIfDvFBQnFZRW3a6sg2hqWRU=
+        bh=B3QXPG4PSE3Mk8ZJNT620tiR24HHg5lPWIv0Q6JU6cA=;
+        b=hXDBLp0xZeaUlml8chOdN6XSQnCZvcdvGSZ4jV9FPXHCSA7WC/KEOhgZpbnsKpPNHK
+         EZiqpGMHyunxgcxeNLuoRiLpc7R148w1lHa9x15FXfPjfOVNo1agHTVWQsjIGamAmmSN
+         eQAzZZm9y9epUmHkqs3cJSVAemEctRTpgO//6O1RuiWULpKI6fHGwxysnJrG4ARkQ5K4
+         Dyec56xCee4FJaUsVNK0U91/Sx9QO0n2DeDPg8hnXy02S2d+cZOaBd0LsD4dQzcRe+wA
+         RaMC/ECXr03JjaW6EtCS7JlDPzan48SS0zXl3NRR3eMKTlukSu0jAfdnanpd9UtyeYMq
+         u3yQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=bzt8C1mQQkn06FAHdipYHMzDETbRp9oC3UW6u8Z15Hg=;
-        b=cEZPomwy0KUrZ9EaADUb7pzU6k8/oq8cbHdf8tRc1iqWVboR+pdugAhpL+RmOydqyh
-         evX/A3TMUMkumnuYCdBbOxMDFOKlH52eI7m9n+E6At6zLHpOavjgzhAVJg8FahOQPhde
-         gFaB1Ui6U5CDKC7sCnw4mbRLmPdRcxWWDSE5zUj4EAFMTK9eF+rkb3RQe/3Z+Q6Ymqt/
-         1p2fqC2t4Dtxm7Ygi8EEDfAfk2LJpB08MzmzoWS7QnQnZwNpLd2qbl1GHY1zhh+ek9+4
-         9ep5ICtVNEUg8ssLV7u3vb84H8KTnyCMMxHXRSke6xAwdodVLUVnDI9pcf7YHTNebnm7
-         ftoA==
-X-Gm-Message-State: AOAM533xtZhvQm/umqvSpi3mk2Qr8qIu+4DkTfxOctbWy0BzrqZRr84P
-        GHkzkWM9g2OIZeGRBWDRfpPWksQlLvTXVt+XxI/L5g==
-X-Google-Smtp-Source: ABdhPJwy5qHQt1HA4mUIc3MnPgbTe1i/KmvSL2Rlx3I+uFcKfrd7VbN8lQAI4cCUB7F7lDDJmX+YOPoXQdTyeo7eVwA=
-X-Received: by 2002:aa7:c915:: with SMTP id b21mr4386447edt.17.1598256949570;
- Mon, 24 Aug 2020 01:15:49 -0700 (PDT)
+        bh=B3QXPG4PSE3Mk8ZJNT620tiR24HHg5lPWIv0Q6JU6cA=;
+        b=mcNSX+1AINR1SY92Sc1tBhJfafPR/vRVO8aXBrwEzgcV0puZFGcpRYyvRYb6bIdIeG
+         dO2gAZUw91ovKDxt0hUL3LYnjtMq7yDcP5R8LGrc8K0gpRx8XHMwjgocbA3KNcJHWIAk
+         XDd+ugaN3VhE5x7rPl5IueOWJZ/0nMkDU1bu2RfV3h8BwQs5JOAMezqwv7Cw9HsCbGxN
+         vOldZynqy7tJFC9a1rHbzU51+ZSM9OwTp6h6BcKS5AmMYpgcb4KocToorWe/ZKWaFl88
+         0wMm/M+H3cV6dA/ivPkcMYdJPsLxa4F6cd7xi/TZRgt4TPnnS0n+mTSAhSfP6Ne98TGe
+         KRjA==
+X-Gm-Message-State: AOAM531Pn5Y0rMALhrCowcm/JaWqkaJ38HA/xRKOIVVZu4YGTR2SwhYG
+        yK55E/qmIcfK2hOjiDccvJh7QdoZTjx7snrXcyE=
+X-Google-Smtp-Source: ABdhPJzD7iMf912WZzkZlqjfChOQU6QX0vgMFREsghnqP9GP9R2UPyAmzhrTFac4vr1s1yO8jsXbB9JyalEPh26brF8=
+X-Received: by 2002:a05:6602:1405:: with SMTP id t5mr4297147iov.72.1598266792311;
+ Mon, 24 Aug 2020 03:59:52 -0700 (PDT)
 MIME-Version: 1.0
-References: <20200722175024.GA608248@redhat.com> <87h7svyqsd.fsf@redhat.com>
-In-Reply-To: <87h7svyqsd.fsf@redhat.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Mon, 24 Aug 2020 10:15:38 +0200
-Message-ID: <CAJfpegtA-16EFFoqhn25rVmXat5hhNUTAWOf+hJEs5L910oQzA@mail.gmail.com>
+References: <20200722175024.GA608248@redhat.com> <87h7svyqsd.fsf@redhat.com> <CAJfpegtA-16EFFoqhn25rVmXat5hhNUTAWOf+hJEs5L910oQzA@mail.gmail.com>
+In-Reply-To: <CAJfpegtA-16EFFoqhn25rVmXat5hhNUTAWOf+hJEs5L910oQzA@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 24 Aug 2020 13:59:41 +0300
+Message-ID: <CAOQ4uxj0SF1VRbMEvVm4a9TuUtdMYuZqFkZhkUyEGMagCWk5NA@mail.gmail.com>
 Subject: Re: [PATCH v5] overlayfs: Provide a mount option "volatile" to skip sync
-To:     Giuseppe Scrivano <gscrivan@redhat.com>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Giuseppe Scrivano <gscrivan@redhat.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
         Daniel J Walsh <dwalsh@redhat.com>,
         Steven Whitehouse <swhiteho@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
@@ -70,29 +74,41 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Aug 22, 2020 at 11:27 AM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
+On Mon, Aug 24, 2020 at 11:15 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> Vivek Goyal <vgoyal@redhat.com> writes:
->
-> > Container folks are complaining that dnf/yum issues too many sync while
-> > installing packages and this slows down the image build. Build
-> > requirement is such that they don't care if a node goes down while
-> > build was still going on. In that case, they will simply throw away
-> > unfinished layer and start new build. So they don't care about syncing
-> > intermediate state to the disk and hence don't want to pay the price
-> > associated with sync.
+> On Sat, Aug 22, 2020 at 11:27 AM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 > >
-
-[...]
-
-> Ping.
+> > Vivek Goyal <vgoyal@redhat.com> writes:
+> >
+> > > Container folks are complaining that dnf/yum issues too many sync while
+> > > installing packages and this slows down the image build. Build
+> > > requirement is such that they don't care if a node goes down while
+> > > build was still going on. In that case, they will simply throw away
+> > > unfinished layer and start new build. So they don't care about syncing
+> > > intermediate state to the disk and hence don't want to pay the price
+> > > associated with sync.
+> > >
 >
-> Is there anything holding this patch?
+> [...]
+>
+> > Ping.
+> >
+> > Is there anything holding this patch?
+>
+> Not sure what happened with protection against mounting a volatile
+> overlay twice, I don't see that in the patch.
 
-Not sure what happened with protection against mounting a volatile
-overlay twice, I don't see that in the patch.
+Do you mean protection only for new kernels or old kernels as well?
 
-With that added, I don't see anything else holding it back.
+The latter can be achieved by using $workdir/volatile/ as upperdir
+instead of $upperdir.
+Or maybe even use $workdir/work/incompat/volatile/upper, so if older
+kernel tries to re-use that $workdir, it will fail to mount rw with error:
+
+  overlayfs: cleanup of 'incompat/volatile' failed (-39)
+
+If we agree to that, then upperdir= should not be provided at all when
+specifying "volatile".
 
 Thanks,
-Miklos
+Amir.
