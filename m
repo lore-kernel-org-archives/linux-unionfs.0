@@ -2,164 +2,153 @@ Return-Path: <SRS0=uqCX=CD=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,LH_URI_DOM_IN_PATH,
-	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,RCVD_ILLEGAL_IP,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EE25C433DF
-	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Aug 2020 00:49:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1EA0C433E1
+	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Aug 2020 00:55:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E8A1206BE
-	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Aug 2020 00:49:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76E742087D
+	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Aug 2020 00:55:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=fb.com header.i=@fb.com header.b="rMZV70z5";
-	dkim=pass (1024-bit key) header.d=fb.onmicrosoft.com header.i=@fb.onmicrosoft.com header.b="kunirWA5"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Edf8W86x"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727872AbgHYAtU (ORCPT
+        id S1728403AbgHYAzK (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Aug 2020 20:49:20 -0400
-Received: from mx0a-00082601.pphosted.com ([67.231.145.42]:64664 "EHLO
-        mx0a-00082601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726090AbgHYAtT (ORCPT
+        Mon, 24 Aug 2020 20:55:10 -0400
+Received: from us-smtp-1.mimecast.com ([207.211.31.81]:29761 "EHLO
+        us-smtp-delivery-1.mimecast.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1728324AbgHYAzK (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Aug 2020 20:49:19 -0400
-Received: from pps.filterd (m0148461.ppops.net [127.0.0.1])
-        by mx0a-00082601.pphosted.com (8.16.0.42/8.16.0.42) with SMTP id 07P0mIR9023311;
-        Mon, 24 Aug 2020 17:48:51 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fb.com; h=subject : to : references
- : from : message-id : date : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=facebook;
- bh=6xDut9XV7YV1nMAotCx213KU/NDHlcDysnT1Iaefg8Y=;
- b=rMZV70z54+HqUte6Ht9YUuaTwHE48iaLehgCOArSuCitgrwvwYXnl2Fa24q7Jvl9ItKs
- WuKBnmmO0sScP93VMhL+wvtcXJePkwE2k7LeDxgARBUC+9F9sriNNZd2nyDP5WLsTFxE
- L/lQKNsO2XnhY3dPkeFxRP36LpxTpcQ6ONA= 
-Received: from mail.thefacebook.com ([163.114.132.120])
-        by mx0a-00082601.pphosted.com with ESMTP id 333kmmyya0-2
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128 verify=NOT);
-        Mon, 24 Aug 2020 17:48:51 -0700
-Received: from NAM04-BN3-obe.outbound.protection.outlook.com (100.104.98.9) by
- o365-in.thefacebook.com (100.104.94.199) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.1979.3; Mon, 24 Aug 2020 17:48:31 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=ImJkV+zY1VC7TY0EJJobxpkAdj7ff82urtdkPxHwYifXXZ3zqLNWZuH8N3rUbzsDDPU3U1U0GkKy7+qy6IZCZpTtdFN8n19R6ydV7eKMohbU6QwT+XCOn1SiHggqnna0G9Ucl9xVsOT/UWoffjixM4JgEoKeN3ntMAAmZIyHj0IyToKB4seezxB5piTjd4EzBYrmxYt9IrMMfPtmpB8k9OX8e6utSRkhxSxPkZ9QvHn/3sZ9Yl7LeuKKKo4YaqS6tCew889PVUyQ5c3d1Elnbj0fMhskBRFoVm6Fs4C6s9E9GAw5IFtKnJbQP/EAbLToWoJyZ6oVCHP9QNOjdsWHdA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6xDut9XV7YV1nMAotCx213KU/NDHlcDysnT1Iaefg8Y=;
- b=NSnQaX0MN3wfhR5LcRaMqT+UA6qaoa6QHD7yc9/qmXkB7ETACKkboy1yqSHxJXvgZpT/YpHRvP4fdUujx9/eiXmA8yjiXduqSHIpr9V+P1MfmScdrx+truZv53y8l3SC8UcODkq1g4f7/4SNe3pKLOEeSqroJJPovX6nBo7NsMHs+vR8BvzuBbgDwqRs422yz0CkhO/mD/cLOlQA8XuugRfW/1R5Ds+W/kXyPBeGut8taRyLJuGHQy76fUKk0kF9lyIr9A80am2tPbBJAwG69fYkZWjxzyYEXwJk+4I/AbOR7T/+0JE/8obPw9XYcyp1dFW8JClMNhp/QgPVlgiC4A==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=fb.com; dmarc=pass action=none header.from=fb.com; dkim=pass
- header.d=fb.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fb.onmicrosoft.com;
- s=selector2-fb-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=6xDut9XV7YV1nMAotCx213KU/NDHlcDysnT1Iaefg8Y=;
- b=kunirWA54TxVS7S7QXkePc3bQCNc0BPpsYQ71FhQMk1qrqmh0V3geNzk7KP/VAxTLjd06ge5URGp5qXjaC3pvCe9lQpe0+tPTC/jGVg2s3RfLWgAkSug74sIpqrMgxX2Bpc/l+uvNEVF60E6hMQmaXqOPcoye0Oi08hpyeVYLSU=
-Authentication-Results: googlegroups.com; dkim=none (message not signed)
- header.d=none;googlegroups.com; dmarc=none action=none header.from=fb.com;
-Received: from BYAPR15MB4088.namprd15.prod.outlook.com (2603:10b6:a02:c3::18)
- by BYAPR15MB2775.namprd15.prod.outlook.com (2603:10b6:a03:15a::12) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3305.24; Tue, 25 Aug
- 2020 00:48:30 +0000
-Received: from BYAPR15MB4088.namprd15.prod.outlook.com
- ([fe80::56b:2925:8762:2d80]) by BYAPR15MB4088.namprd15.prod.outlook.com
- ([fe80::56b:2925:8762:2d80%7]) with mapi id 15.20.3305.026; Tue, 25 Aug 2020
- 00:48:30 +0000
-Subject: Re: general protection fault in security_inode_getattr
-To:     syzbot <syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com>,
-        <andriin@fb.com>, <ast@kernel.org>, <bpf@vger.kernel.org>,
-        <daniel@iogearbox.net>, <jmorris@namei.org>,
-        <john.fastabend@gmail.com>, <kafai@fb.com>, <kpsingh@chromium.org>,
-        <linux-fsdevel@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-security-module@vger.kernel.org>,
-        <linux-unionfs@vger.kernel.org>, <miklos@szeredi.hu>,
-        <netdev@vger.kernel.org>, <omosnace@redhat.com>,
-        <serge@hallyn.com>, <songliubraving@fb.com>,
-        <syzkaller-bugs@googlegroups.com>
-References: <00000000000020e49105ada8d598@google.com>
-From:   Yonghong Song <yhs@fb.com>
-Message-ID: <516ee4af-0db1-9069-bb06-e89216ab49c8@fb.com>
-Date:   Mon, 24 Aug 2020 17:48:24 -0700
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:68.0)
- Gecko/20100101 Thunderbird/68.11.0
-In-Reply-To: <00000000000020e49105ada8d598@google.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: BL0PR05CA0003.namprd05.prod.outlook.com
- (2603:10b6:208:91::13) To BYAPR15MB4088.namprd15.prod.outlook.com
- (2603:10b6:a02:c3::18)
+        Mon, 24 Aug 2020 20:55:10 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1598316908;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oX3sHpya22yNvEuiJRweTBpLKQY9ToNqo7Bdyqy1v/g=;
+        b=Edf8W86xhuWVqGI1DQ+eIxeFSyrwK7tYzMe7/kwCITdW00DMDWE9gZr5Zm9qrMjW9qsjc+
+        H9J8zcqtTpk0KJcvG3YXgLHSuHOHweQj2vfwaGb2J+bitiQ1LBPPa0Vex5bx4WW4IMvTil
+        xoHKmzlQCdXRkRVFt8YGeDOhLWD38v0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-459-Bm1vICoIMRGQCgTynZJA9w-1; Mon, 24 Aug 2020 20:55:06 -0400
+X-MC-Unique: Bm1vICoIMRGQCgTynZJA9w-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 04C8881F015;
+        Tue, 25 Aug 2020 00:55:05 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-156.rdu2.redhat.com [10.10.115.156])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id ABA587C641;
+        Tue, 25 Aug 2020 00:55:04 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 2C1832256FC; Mon, 24 Aug 2020 20:55:04 -0400 (EDT)
+Date:   Mon, 24 Aug 2020 20:55:04 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Daniel J Walsh <dwalsh@redhat.com>,
+        Steven Whitehouse <swhiteho@redhat.com>
+Subject: Re: [PATCH v5] overlayfs: Provide a mount option "volatile" to skip
+ sync
+Message-ID: <20200825005504.GN963827@redhat.com>
+References: <CAJfpegtA-16EFFoqhn25rVmXat5hhNUTAWOf+hJEs5L910oQzA@mail.gmail.com>
+ <CAOQ4uxj0SF1VRbMEvVm4a9TuUtdMYuZqFkZhkUyEGMagCWk5NA@mail.gmail.com>
+ <87a6yknugp.fsf@redhat.com>
+ <CAOQ4uxg4xmvsoKVBfGJ0SVCXfM6aeNji6c8FSCevxV-FYX3LtQ@mail.gmail.com>
+ <874kosnqnn.fsf@redhat.com>
+ <CAJfpegvaUz_M0jtibOk=a6Cx=U9JBnOcVSmF2xM9cyVmCz8CFg@mail.gmail.com>
+ <20200824135108.GB963827@redhat.com>
+ <CAOQ4uxi9PoYzWxKF0c2a9zzxnrZMeB08Htomn1eHjYha-djLrA@mail.gmail.com>
+ <20200824210053.GL963827@redhat.com>
+ <CAOQ4uxhvi5wHhPKivrWzOJ8ygyETDVqc4h4MW6uYN=h1T2B+BA@mail.gmail.com>
 MIME-Version: 1.0
-X-MS-Exchange-MessageSentRepresentingType: 1
-Received: from 255.255.255.255 (255.255.255.255) by BL0PR05CA0003.namprd05.prod.outlook.com (2603:10b6:208:91::13) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3326.10 via Frontend Transport; Tue, 25 Aug 2020 00:48:26 +0000
-X-Originating-IP: [2620:10d:c091:480::1:75df]
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: b62a3b81-b2d7-4edd-20e9-08d8489095c2
-X-MS-TrafficTypeDiagnostic: BYAPR15MB2775:
-X-MS-Exchange-Transport-Forked: True
-X-Microsoft-Antispam-PRVS: <BYAPR15MB27755F4260C83BCDE3D05921D3570@BYAPR15MB2775.namprd15.prod.outlook.com>
-X-FB-Source: Internal
-X-MS-Oob-TLC-OOBClassifiers: OLM:58;
-X-MS-Exchange-SenderADCheck: 1
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 9rmRSjtikEwQY3aru6OwJ83jkeEyo453IqvoEa95uRYcsCKTrdhlgZi9CTpS8/mRnyHHnewiGUl52Iq5yMea6I/4MUCAUHfcLLZ1/eq0nOjTzcamNXDwuOfS7v9SEhG/IK3KQATacXMTOXaeIZHVOYTLm8Wz3S80iq5qiHIeB3QGqbsl/SttfHcQnwTkB1J4HZpO7u6HnMPZwI1035QIW2TOTLSTUnQRnQjn4lrqCCpkyaBRoeV1jqivqEreV+ENDXjPFrPDiQqmykFSFf6s6aZQJ+GkBzNazgD+CLZE2194q5sLpBX2wiKToNfxFbPRLlhWQ3+mWf2fk2yomispohzp/Y82jSJ1bM7a7Im65ctLi1u6OGsPJxVdCpjHWNMumN/EdCMTu80tPwgc3vpvGUtWeoUsrlfNmArWOuDsEYhCSoTUwA0cNhEBGAEEXgfLFGgln4GrExy6Ve7kZWVRtsxI1cbpgmVLtqmh9N5IL3+9o4PqYjknDuGwH2fSts2C
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BYAPR15MB4088.namprd15.prod.outlook.com;PTR:;CAT:NONE;SFS:(396003)(39860400002)(366004)(136003)(346002)(376002)(2616005)(7416002)(86362001)(66556008)(66946007)(66476007)(956004)(16576012)(6486002)(31696002)(83080400001)(5660300002)(966005)(478600001)(8936002)(8676002)(52116002)(53546011)(31686004)(2906002)(36756003)(316002)(186003)(921003)(99710200001)(43740500002);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData: iNXkBy8ktslwOEqk92Caj777xhqeSxZOqgSUmyj17B/oVIqCfqQomcPoBhuorUSKDcTXg7xwWyO3AaMZ+ruU0kj+x7DfXbqvZ6+lFMui5BUkFTNNU/+tR+zO7QJ29QiTC6ZcQ4Dq3G0fVnMh8JT6flGC3st77azY6Si/dhPdNphFQiZ281WAijrPavLIQwWFPMMO8yO1Kj96Qu6QclhmDvIL41vvbT85io92TnGJIZm65B6rFmbTEoxu3nVxN5ao52R/BxwUoIdca9W7NJ63s2rb+F3vIGKuptfYByX+DBnhMYN5jsnvbTMuGUOQEt7QkbRhDEArRyq2aIG/IBGHw5Gdd4hjCZlk472Zx7YwA0YK7N1rJeGSeW5fCmlrMyy7M87fGQ0COTc23JMOR4KFao0mUC2l8yCpppTyDPZcb+LNcFs4xWhdxvnDM7BI4hOkZXWfuwypJ/Bm03uwOE7/8j/kZZ3xTFuhcFyeR+WzK5C9E/QSeqG77q/Jkpeawv01USAwDY4c0i2Z2iK+FLBPAV7+Rp00OllZzIhWs22i4B7oh/HioaiBA73yOOKoE6CY3pxAksdw42RiGDXwyLNLnpV0w6NHAjrxms+mBfOznl2PC+BU6npBw4Npt2OF6yq7AVLReXPHzTBM59TkcQGrF9Wc8FDsx8sVQybXOEWN/nstFv1tnmfmHHkO4MZE60bc
-X-MS-Exchange-CrossTenant-Network-Message-Id: b62a3b81-b2d7-4edd-20e9-08d8489095c2
-X-MS-Exchange-CrossTenant-AuthSource: BYAPR15MB4088.namprd15.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 25 Aug 2020 00:48:30.0481
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 8ae927fe-1255-47a7-a2af-5f3a069daaa2
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 9zNy4Cdlu9+SPXzI++uI49f73bCMis3EVu9n2yEtvdzczkNn8FF3+S61EhPsc8tQ
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR15MB2775
-X-OriginatorOrg: fb.com
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.235,18.0.687
- definitions=2020-08-24_12:2020-08-24,2020-08-24 signatures=0
-X-Proofpoint-Spam-Details: rule=fb_default_notspam policy=fb_default score=0 mlxscore=0 adultscore=0
- bulkscore=0 lowpriorityscore=0 impostorscore=0 malwarescore=0
- mlxlogscore=623 phishscore=0 clxscore=1011 spamscore=0 suspectscore=0
- priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2006250000 definitions=main-2008250004
-X-FB-Internal: deliver
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhvi5wHhPKivrWzOJ8ygyETDVqc4h4MW6uYN=h1T2B+BA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Tue, Aug 25, 2020 at 12:51:55AM +0300, Amir Goldstein wrote:
+> > Ok, I am wondering why are we concerned about older kernels. I mean,
+> > if we introduce new features, we don't provide compatibility with
+> > older kernels. Say "metacopy", "redirect_dir". If you mount with
+> > older kernel, they will see something which you don't expect.
+> >
+> 
+> True. We missed the opportunity to do the work/incompat trick
+> with metacopy etc.
+> 
+> > So why "volatile" is different. We seem to be bending backward and
+> > using an unrelated behavior of overlay to provide this.
+> >
+> > Why not simply drop a file $workdir/volatile for volatile mounts
+> > and check for presence of this file when mounting?
+> >
+> 
+> That's an option.
+> But what's the problem with
+>   $workdir/work/incompat/volatile/dirty
+> compared to:
+>   $workdir/volatile
+> 
+> It's not more complicated to implement is it?
+> So we get some extra protection with little extra cost. No?
 
+Ok, I will look into it.
+> 
+> I don't feel strongly about it.
+> 
+> But I must say, according to Giuseppe's description of the use case:
+> "mount volatile overlay+umount overlay+syncfs upper dir..."
+> looks like what he is looking for is "volatile,sync=shutdown", is it not?
+> 
+> And if this is the case, I think it would be much preferred to implement
+> "volatile,sync=shutdown", over documenting how to make a "volatile"
+> overlay mountable from outside overlay. Don't you guys agree?
 
-On 8/24/20 5:32 PM, syzbot wrote:
-> syzbot has bisected this issue to:
-> 
-> commit 35697c12d7ffd31a56d3c9604066a166b75d0169
-> Author: Yonghong Song <yhs@fb.com>
-> Date:   Thu Jan 16 17:40:04 2020 +0000
-> 
->      selftests/bpf: Fix test_progs send_signal flakiness with nmi mode
+When it comes to requirements, to me it felt that Giuseppe seemed
+to have two requirements. For running containers, he did not care
+seem to care about syncing upper to disk at all. For building
+images he probably wanted to sync upper to disk.
 
-The above patch changed file:
-     tools/testing/selftests/bpf/prog_tests/send_signal.c
-It is unlikely it caused the issue.
+From overlayfs perspective, "volatile,sync=shutdown" seems like
+a nicer interface because overlay will take care of removing
+"dirty" file and until and unless crash happens, user does
+not have to step in and there is less confusion about syncing
+upper and removing dirty file etc.
+
+Last time Miklos seemed to prefer to implement just "volatile"
+for now and drop "sync=shutdown".
+
+https://lore.kernel.org/linux-unionfs/CAJfpegt2k=r6TRok57tKPcLyUhCBOcBAV7bgLSPrQYXsPoPkpQ@mail.gmail.com/
+
+I personally think that "volatile,sync=shutdown" is first good step
+because it is less error prone and overlayfs manages dirty file
+and it will provide lot of benefits in terms of not having to
+do very frequent sync.
+
+And if this does not prove to be enough for certain use cases,
+then one can extend this to also implement "volatile,sync=none".
+
+But frankly speaking, there has been so much of back and forth
+on this patch, that I am fine with any of the option which is
+acceptable to Miklos.
+
+Vivek
 
 > 
-> bisection log:  https://urldefense.proofpoint.com/v2/url?u=https-3A__syzkaller.appspot.com_x_bisect.txt-3Fx-3D13032139900000&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=Le6D_jfzkec28_qNhbUwMesaUeBGaKEG6RLN3ZCzE1s&e=
-> start commit:   d012a719 Linux 5.9-rc2
-> git tree:       upstream
-> final oops:     https://urldefense.proofpoint.com/v2/url?u=https-3A__syzkaller.appspot.com_x_report.txt-3Fx-3D10832139900000&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=VbLXb22TgxAtiPQTEq0t5r0WgNDiFwstWKnme0tWBLE&e=
-> console output: https://urldefense.proofpoint.com/v2/url?u=https-3A__syzkaller.appspot.com_x_log.txt-3Fx-3D17032139900000&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=yu72HnqjHzOTtJ5dyD7q0QW9sOwEO6pPHjeYTTutKdc&e=
-> kernel config:  https://urldefense.proofpoint.com/v2/url?u=https-3A__syzkaller.appspot.com_x_.config-3Fx-3D891ca5711a9f1650&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=6cylIRBZjHQmgkJQoofuLN2XSifb-13qrrj58PQpBYs&e=
-> dashboard link: https://urldefense.proofpoint.com/v2/url?u=https-3A__syzkaller.appspot.com_bug-3Fextid-3Df07cc9be8d1d226947ed&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=siCrm2aO-fzR3Nym_zaPQQnmxMlJo0bRj87zgm7o5mY&e=
-> syz repro:      https://urldefense.proofpoint.com/v2/url?u=https-3A__syzkaller.appspot.com_x_repro.syz-3Fx-3D104a650e900000&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=yNEvyRe2bO4AKgq2UuJc32katp4k4UGKwMUDEBlhM7E&e=
+> Doesn't matter, either way, the same protection will be used.
 > 
-> Reported-by: syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com
-> Fixes: 35697c12d7ff ("selftests/bpf: Fix test_progs send_signal flakiness with nmi mode")
+> Thanks,
+> Amir.
 > 
-> For information about bisection process see: https://urldefense.proofpoint.com/v2/url?u=https-3A__goo.gl_tpsmEJ-23bisection&d=DwIBaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=DA8e1B5r073vIqRrFz7MRA&m=854z77F3pbTpgGUCFUwM1OSEUj4NbiNIZsaad0Xg4qc&s=K4KdZK8rBgxDv4M9uwEndkCB4mCatTH-opwefN-0b-M&e=
-> 
+
