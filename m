@@ -1,267 +1,181 @@
-Return-Path: <SRS0=vlVb=CI=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=nzN1=CJ=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E4ADC433E2
-	for <linux-unionfs@archiver.kernel.org>; Sun, 30 Aug 2020 20:28:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97244C433E6
+	for <linux-unionfs@archiver.kernel.org>; Mon, 31 Aug 2020 05:23:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFBCF2083E
-	for <linux-unionfs@archiver.kernel.org>; Sun, 30 Aug 2020 20:28:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F33120707
+	for <linux-unionfs@archiver.kernel.org>; Mon, 31 Aug 2020 05:23:39 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mTuzuFsG"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dDlzYaNK"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726155AbgH3U2O (ORCPT
+        id S1725982AbgHaFXj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 30 Aug 2020 16:28:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47656 "EHLO
+        Mon, 31 Aug 2020 01:23:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726150AbgH3U2N (ORCPT
+        with ESMTP id S1725446AbgHaFXi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 30 Aug 2020 16:28:13 -0400
-Received: from mail-wr1-x442.google.com (mail-wr1-x442.google.com [IPv6:2a00:1450:4864:20::442])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75E93C061573
-        for <linux-unionfs@vger.kernel.org>; Sun, 30 Aug 2020 13:28:13 -0700 (PDT)
-Received: by mail-wr1-x442.google.com with SMTP id a17so3122002wrn.6
-        for <linux-unionfs@vger.kernel.org>; Sun, 30 Aug 2020 13:28:13 -0700 (PDT)
+        Mon, 31 Aug 2020 01:23:38 -0400
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 562D1C061573
+        for <linux-unionfs@vger.kernel.org>; Sun, 30 Aug 2020 22:23:36 -0700 (PDT)
+Received: by mail-io1-xd42.google.com with SMTP id h10so4636519ioq.6
+        for <linux-unionfs@vger.kernel.org>; Sun, 30 Aug 2020 22:23:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=xdtMUToMYSi4hdk7MGNof3ONvtfHudJbFmX3gN9/N8U=;
-        b=mTuzuFsGNoPfhp8laSyuVqOUibytKjDmo8DdYYRdszNonnWfKqSAM3sep2tAVSNbfI
-         yG8NtI/v+PSgpvPeEGnHJf0jiSZlpGiTkjxP4HOw/i9UxtcL/Th1IY0xaAkPOEWAITTK
-         ePadjiEIjVmtwh9s4loUwKgNbMyctAJJt1rNmYzrcEmUKMxypiw0ymSPn1yNvaT0yqF6
-         Qg0HAh4jaBUACAkZjEF2DK7WsfQpYZxWJ26fSAObK/JG6+Dx4eh/0AtFPhAVcvB0eu6o
-         WN79dsV+c2Ul/lysvV0ABgVxEhDIVR1z3Z8TOyYtE8o4VtcyPGAx9tyTGjLxmgGrb4wc
-         rqUw==
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=DUiyeZuGh0FeTd7qY+PTA2Pdv40Ar8a/KMVGNasTJbc=;
+        b=dDlzYaNK7HkdzbjgEICEY/JOBgtMfSszphB3nKB3AOJvfum+NRPfA4yeeU0zNUkJzT
+         HwYjr0sJVH3Srqq31uxjvVG8b599eF4HEfYr3L65tSFbqbmQBb/tiZCE34JBJI081mKV
+         k7t7o+C4DDrQCqCEhYYrk5zBPs+qL/jgeBgqfciRv4zJ55LWpqD2Olazm6CjyTPRjryX
+         +3/0I9cLKaroVU4z5J8n62GCHEUYkMCsbQCiXdLinurILXmJJqG18oMSN/qStC+t6Jym
+         H+5AA/dOXsaKi1p+ePNbf6LXV2b2thMdYYwPgmtx+hfZn5abMwYjU5SYFCM0LOCTah/J
+         KLHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=xdtMUToMYSi4hdk7MGNof3ONvtfHudJbFmX3gN9/N8U=;
-        b=aVD4soKwAwFVIW5f9tfKb1XcC7xz/xkmAugwsPnUM21Ug8kdGZnF2sekFre5gZfte8
-         +9ObtQ5ovKqIMzatvhT2DT5ZDoiddcuhRmXhI1TiSyZZpVS4dw1hAdeCf4awtXowH8g/
-         1fA7zCvGZJkibdzs0PGC2XrElXNusZsTiu21jqJ9a4efoRmA+MONps2HhfA4yfrFVI6y
-         tQbNxkVPiuJ2ZMEgDGR0SIdPZjokMyPWbg1RlRwPoNpSCZs/ui943O4OEc7FPY+b+rXV
-         BQ0MgYfKTuMvwO3f9ZKcKDwJmAocyss5N2HIu5L7fdISvsj1wu+erWXfzbvShFBmNBCm
-         ZxLQ==
-X-Gm-Message-State: AOAM531EDRyfi0S8l53yKiD5cvD9J8cHhPN2LhW/l2i2RTspsBfko088
-        c2Ba+11dCiaBqQn7iTNsfXc=
-X-Google-Smtp-Source: ABdhPJwPOQwnzxf0Ny8hRxSgHXGTFmHUoYaYEwzin9mV5/IIwgC7oHQEwxLgK+0cCAISZfrkYdoUVg==
-X-Received: by 2002:a5d:4c83:: with SMTP id z3mr8606217wrs.359.1598819290090;
-        Sun, 30 Aug 2020 13:28:10 -0700 (PDT)
-Received: from localhost.localdomain ([141.226.8.56])
-        by smtp.gmail.com with ESMTPSA id 71sm8887452wrm.23.2020.08.30.13.28.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 30 Aug 2020 13:28:09 -0700 (PDT)
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=DUiyeZuGh0FeTd7qY+PTA2Pdv40Ar8a/KMVGNasTJbc=;
+        b=OxiVR+fl1ega/sXQHN5/pmEnwQdqp6vIrkfYyu5Tyu7BK4460eZ/4zdIjHm/Y8S+00
+         cZfhqeHx+njdwQu5M3m2NwZBcgtMZB8F+0uDLRucrkE18kYxo1iZDyERUVVzG8id71GR
+         rh6S6/FrC6mhMJkR08AGFJodIUnmTzzb5cONAr459u0Afmbiydt7aMssPzFkevXYjD0v
+         RWM/nVpBwTrfLCd0/fhNBPiJlKCjsgS4S+mm2pOyg3oPXrVq1OUgwfmOlmuGJ7NZY8bX
+         pHADrrywBuMlBuiHYyt8ML//ER3ZaUNcLDxgrX6WcY4+IgmfrzG0HOU0Y/pmQDQA6C+X
+         9k0Q==
+X-Gm-Message-State: AOAM532SZ8AWdLwU5mOL7Tp9HlTeemBTHdfTeLZbVPZanJ3Iaw094/Ex
+        jI0gB6BvAwRrINT2YHPPMj6gJMylak1XzzAte9XE5C0x+YQ=
+X-Google-Smtp-Source: ABdhPJyhNBzq42PY2FPdO5/rbEZQyupOTVcaMEfK1GD3akdrkYVE67zNkhYcKeVoPAKR8XfAtYxOq127IAD7kYsjyNM=
+X-Received: by 2002:a6b:ec17:: with SMTP id c23mr21941ioh.186.1598851415533;
+ Sun, 30 Aug 2020 22:23:35 -0700 (PDT)
+MIME-Version: 1.0
+References: <20200827191843.GA1098241@redhat.com>
+In-Reply-To: <20200827191843.GA1098241@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 31 Aug 2020 08:23:24 +0300
+Message-ID: <CAOQ4uxjZmia9MFXoEj38JEJC9sQEA7rzhLeeP12Cd9LtD0_NHA@mail.gmail.com>
+Subject: Re: [PATCH v6] overlayfs: Provide a mount option "volatile" to skip sync
 To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH v2] ovl: check for incomapt features in work dir
-Date:   Sun, 30 Aug 2020 23:28:03 +0300
-Message-Id: <20200830202803.25028-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        Daniel J Walsh <dwalsh@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-An incompatible feature is marked by a non-empty directory nested
-2 levels deep under "work" dir, e.g.:
-workdir/work/incompat/volatile.
+On Thu, Aug 27, 2020 at 10:18 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
+> Container folks are complaining that dnf/yum issues too many sync while
+> installing packages and this slows down the image build. Build
+> requirement is such that they don't care if a node goes down while
+> build was still going on. In that case, they will simply throw away
+> unfinished layer and start new build. So they don't care about syncing
+> intermediate state to the disk and hence don't want to pay the price
+> associated with sync.
+>
+> So they are asking for mount options where they can disable sync on overlay
+> mount point.
+>
+> They primarily seem to have two use cases.
+>
+> - For building images, they will mount overlay with nosync and then sync
+>   upper layer after unmounting overlay and reuse upper as lower for next
+>   layer.
+>
+> - For running containers, they don't seem to care about syncing upper
+>   layer because if node goes down, they will simply throw away upper
+>   layer and create a fresh one.
+>
+> So this patch provides a mount option "volatile" which disables all forms
+> of sync. Now it is caller's responsibility to throw away upper if
+> system crashes or shuts down and start fresh.
+>
+> With "volatile", I am seeing roughly 20% speed up in my VM where I am just
+> installing emacs in an image. Installation time drops from 31 seconds to
+> 25 seconds when nosync option is used. This is for the case of building on top
+> of an image where all packages are already cached. That way I take
+> out the network operations latency out of the measurement.
+>
+> Giuseppe is also looking to cut down on number of iops done on the
+> disk. He is complaining that often in cloud their VMs are throttled
+> if they cross the limit. This option can help them where they reduce
+> number of iops (by cutting down on frequent sync and writebacks).
+>
+> Changes from v5:
+> - Added support to detect that previous overlay was mounted with
+>   "volatile" option and fail mount. (Miklos and Amir).
+>
+> Changes from v4:
+> - Dropped support for sync=fs (Miklos)
+> - Renamed "sync=off" to "volatile". (Miklos)
+>
+> Changes from v3:
+> - Used only enums and dropped bit flags (Amir Goldstein)
+> - Dropped error when conflicting sync options provided. (Amir Goldstein)
+>
+> Changes from v2:
+> - Added helper functions (Amir Goldstein)
+> - Used enums to keep sync state (Amir Goldstein)
+>
+> Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+???
 
-This commit checks for marked incompat features, warns about them
-and fails to mount the overlay, for example:
-  overlayfs: overlay with incompat feature 'volatile' cannot be mounted
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  Documentation/filesystems/overlayfs.rst |  17 ++++
+>  fs/overlayfs/copy_up.c                  |  12 ++-
+>  fs/overlayfs/file.c                     |  10 +-
+>  fs/overlayfs/ovl_entry.h                |   6 ++
+>  fs/overlayfs/readdir.c                  |   3 +
+>  fs/overlayfs/super.c                    | 128 +++++++++++++++++++++++-
+>  6 files changed, 168 insertions(+), 8 deletions(-)
+>
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+> index 8ea83a51c266..438add193166 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -563,6 +563,23 @@ This verification may cause significant overhead in some cases.
+>  Note: the mount options index=off,nfs_export=on are conflicting for a
+>  read-write mount and will result in an error.
+>
+> +Disable sync
+> +------------
+> +By default, overlay skips sync on files residing on a lower layer.  It
+> +is possible to skip sync operations for files on the upper layer as well
+> +with the "volatile" mount option.
+> +
+> +"volatile" mount option disables all forms of sync from overlay, including
+> +the one done at umount/remount. If system crashes or shuts down, user
+> +should throw away upper directory and start fresh.
+> +
+> +When overlay is mounted with "volatile" option, overlay creates an internal
+> +file "$workdir/work/incompat/volatile/dirty". During next mount, overlay
+> +checks for dirty file and refuses to mount if present. This is a strong
+> +indicator that user should throw away upper and work directories and
+> +create fresh one. In very limited cases where user knows system has not
+> +crashed and contents in upperdir are intact, one can remove "dirty" file and
+> +retry mount.
 
-Very old kernels (i.e. v3.18) will fail to remove a non-empty "work"
-dir and fail the mount.  Newer kernels will fail to remove a "work"
-dir with entries nested 3 levels and fall back to read-only mount.
+Just in case my comment about documentation wasn't clear:
 
-User mounting with old kernel will see a warning like these in dmesg:
-  overlayfs: cleanup of 'incompat/...' failed (-39)
-  overlayfs: cleanup of 'work/incompat' failed (-39)
-  overlayfs: cleanup of 'ovl-work/work' failed (-39)
-  overlayfs: failed to create directory /vdf/ovl-work/work (errno: 17);
-             mounting read-only
-
-These warnings should give the hint to the user that:
-1. mount failure is caused by backward incompatible features
-2. mount failure can be resolved by manually removing the "work" directory
-
-There is nothing preventing users on old kernels from manually removing
-workdir entirely or mounting overlay with a new workdir, so this is in
-no way a full proof backward compatibility enforcement, but only a best
-effort.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
-
-Vivek,
-
-Re-posting with minor cleanups.
-Also pushed to branch ovl-incompat.
++When overlay is mounted with "volatile" option, overlay creates an internal
++directory "$workdir/work/incompat/volatile". During next mount, overlay
++checks for this directory and refuses to mount if present. This is a strong
++indicator that user should throw away upper and work directories and
++create fresh one. In very limited cases where user knows system has not
++crashed and contents in upperdir are intact, one can remove the "volatile"
++directory and retry mount.
 
 Thanks,
 Amir.
-
-Changes since v1:
-- Move check for "incompat" name to ovl_workdir_cleanup_recurse()
-
-
- fs/overlayfs/readdir.c | 30 +++++++++++++++++++++++++-----
- fs/overlayfs/super.c   | 25 ++++++++++++++++++-------
- 2 files changed, 43 insertions(+), 12 deletions(-)
-
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 6918b98faeb6..683c6f27ab77 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -1051,7 +1051,9 @@ int ovl_check_d_type_supported(struct path *realpath)
- 	return rdd.d_type_supported;
- }
- 
--static void ovl_workdir_cleanup_recurse(struct path *path, int level)
-+#define OVL_INCOMPATDIR_NAME "incompat"
-+
-+static int ovl_workdir_cleanup_recurse(struct path *path, int level)
- {
- 	int err;
- 	struct inode *dir = path->dentry->d_inode;
-@@ -1065,6 +1067,15 @@ static void ovl_workdir_cleanup_recurse(struct path *path, int level)
- 		.root = &root,
- 		.is_lowest = false,
- 	};
-+	bool incompat = false;
-+
-+	/*
-+	 * The "work/incompat" directory is treated specially - if it is not
-+	 * empty, instead of printing a generic error and mounting read-only,
-+	 * we will error about incompat features and fail the mount.
-+	 */
-+	if (level == 2 && !strcmp(path->dentry->d_name.name, OVL_INCOMPATDIR_NAME))
-+		incompat = true;
- 
- 	err = ovl_dir_read(path, &rdd);
- 	if (err)
-@@ -1079,21 +1090,29 @@ static void ovl_workdir_cleanup_recurse(struct path *path, int level)
- 				continue;
- 			if (p->len == 2 && p->name[1] == '.')
- 				continue;
-+		} else if (incompat) {
-+			pr_warn("overlay with incompat feature '%.*s' cannot be mounted\n",
-+				p->len, p->name);
-+			err = -EEXIST;
-+			break;
- 		}
- 		dentry = lookup_one_len(p->name, path->dentry, p->len);
- 		if (IS_ERR(dentry))
- 			continue;
- 		if (dentry->d_inode)
--			ovl_workdir_cleanup(dir, path->mnt, dentry, level);
-+			err = ovl_workdir_cleanup(dir, path->mnt, dentry, level);
- 		dput(dentry);
-+		if (err)
-+			break;
- 	}
- 	inode_unlock(dir);
- out:
- 	ovl_cache_free(&list);
-+	return err;
- }
- 
- int ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
--			 struct dentry *dentry, int level)
-+			struct dentry *dentry, int level)
- {
- 	int err;
- 
-@@ -1106,9 +1125,10 @@ int ovl_workdir_cleanup(struct inode *dir, struct vfsmount *mnt,
- 		struct path path = { .mnt = mnt, .dentry = dentry };
- 
- 		inode_unlock(dir);
--		ovl_workdir_cleanup_recurse(&path, level + 1);
-+		err = ovl_workdir_cleanup_recurse(&path, level + 1);
- 		inode_lock_nested(dir, I_MUTEX_PARENT);
--		err = ovl_cleanup(dir, dentry);
-+		if (!err)
-+			err = ovl_cleanup(dir, dentry);
- 	}
- 
- 	return err;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 4b38141c2985..3cd47e4b2eae 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -705,8 +705,12 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
- 				goto out_unlock;
- 
- 			retried = true;
--			ovl_workdir_cleanup(dir, mnt, work, 0);
-+			err = ovl_workdir_cleanup(dir, mnt, work, 0);
- 			dput(work);
-+			if (err == -EEXIST) {
-+				work = ERR_PTR(err);
-+				goto out_unlock;
-+			}
- 			goto retry;
- 		}
- 
-@@ -1203,7 +1207,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
- 			    struct path *workpath)
- {
- 	struct vfsmount *mnt = ovl_upper_mnt(ofs);
--	struct dentry *temp;
-+	struct dentry *temp, *workdir;
- 	bool rename_whiteout;
- 	bool d_type;
- 	int fh_type;
-@@ -1213,10 +1217,13 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
- 	if (err)
- 		return err;
- 
--	ofs->workdir = ovl_workdir_create(ofs, OVL_WORKDIR_NAME, false);
--	if (!ofs->workdir)
-+	workdir = ovl_workdir_create(ofs, OVL_WORKDIR_NAME, false);
-+	err = PTR_ERR(workdir);
-+	if (IS_ERR_OR_NULL(workdir))
- 		goto out;
- 
-+	ofs->workdir = workdir;
-+
- 	err = ovl_setup_trap(sb, ofs->workdir, &ofs->workdir_trap, "workdir");
- 	if (err)
- 		goto out;
-@@ -1347,6 +1354,7 @@ static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ofs,
- 			    struct ovl_entry *oe, struct path *upperpath)
- {
- 	struct vfsmount *mnt = ovl_upper_mnt(ofs);
-+	struct dentry *indexdir;
- 	int err;
- 
- 	err = mnt_want_write(mnt);
-@@ -1366,9 +1374,12 @@ static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ofs,
- 	ofs->workdir_trap = NULL;
- 	dput(ofs->workdir);
- 	ofs->workdir = NULL;
--	ofs->indexdir = ovl_workdir_create(ofs, OVL_INDEXDIR_NAME, true);
--	if (ofs->indexdir) {
--		ofs->workdir = dget(ofs->indexdir);
-+	indexdir = ovl_workdir_create(ofs, OVL_INDEXDIR_NAME, true);
-+	if (IS_ERR(indexdir)) {
-+		err = PTR_ERR(indexdir);
-+	} else if (indexdir) {
-+		ofs->indexdir = indexdir;
-+		ofs->workdir = dget(indexdir);
- 
- 		err = ovl_setup_trap(sb, ofs->indexdir, &ofs->indexdir_trap,
- 				     "indexdir");
--- 
-2.17.1
-
