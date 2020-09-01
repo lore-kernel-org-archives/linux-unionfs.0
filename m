@@ -2,124 +2,330 @@ Return-Path: <SRS0=Ys2z=CK=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3AA7C433E6
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Sep 2020 10:19:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E96C433E7
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Sep 2020 13:22:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CA602071B
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Sep 2020 10:19:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6106920767
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Sep 2020 13:22:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="ciJLJzcg"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="N+t/mUcF"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726455AbgIAKTh (ORCPT
+        id S1728047AbgIANWI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 1 Sep 2020 06:19:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34416 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726419AbgIAKTh (ORCPT
+        Tue, 1 Sep 2020 09:22:08 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25321 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1728185AbgIANVx (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 1 Sep 2020 06:19:37 -0400
-Received: from mail-vk1-xa42.google.com (mail-vk1-xa42.google.com [IPv6:2607:f8b0:4864:20::a42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1784C061244
-        for <linux-unionfs@vger.kernel.org>; Tue,  1 Sep 2020 03:19:36 -0700 (PDT)
-Received: by mail-vk1-xa42.google.com with SMTP id t189so195792vka.10
-        for <linux-unionfs@vger.kernel.org>; Tue, 01 Sep 2020 03:19:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=JT3wo53xy5ETFMzmQGjPZuKUBwpFcCTEnCjtc2fqRso=;
-        b=ciJLJzcgWqEM3f+Rqz0D1+nrfNdtGCWZnxR2om0veRIG0F5h/nwK8a0xuo0mL+fZB1
-         QrJ9ZFLbcajzygDyKRlPsK/uGPJEIGqxfIYpqK2y5J6Dd3gv1k+NLOvPyrvv/IOU38ah
-         QjOzS1dZqoNsru/9RPm9+Z1V80yY8oQxMysns=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=JT3wo53xy5ETFMzmQGjPZuKUBwpFcCTEnCjtc2fqRso=;
-        b=sTlr6ycEFBTv/GBG0Y6i1Xq753LdQKZG48FhbJoOuvw+2j7LozY19M6xxu6NiAizuC
-         umLWTIWpCiO7Tw2dkQeDTfxKe/3PZd2FKkdmRwW3WXxGcz4ZB8bKrMAkqYPMlKPsl7bZ
-         ftLSqmTD8etbvyJpFAApYtQjihlV81JoKDCGrkArg83oF1ZNqHCldnEwkqOen0jorGJw
-         CEqOfHUVhfbdOAp1UJPi6Gv7ANrGr07ZkS4RhUEkduqeebsbqmClCvkWSrp/uUDxdsNx
-         JBqTlIu2hkGY+Vzny1xh09WMnPvHi577HFbcSjVxl9jr4RYfyCkEs5nnUg5uzAOhtlKS
-         j2hQ==
-X-Gm-Message-State: AOAM533xqbziINf+iy1Ga6T2ieSk8ofE6Ff5QhdOQQDUQwnYcQbzdJut
-        1K4q8/V/z1YIDpn5gVBeq6lM7pwEIhasgcuAEJ/2og==
-X-Google-Smtp-Source: ABdhPJyesOpzyOdKWyQKuSXL1D6WFnSe55b+i6onLvF5QdjpjEHdbRe7ZLaXT5LNb43GkiPJZEiUyCHxIbo7x/Nc8dQ=
-X-Received: by 2002:ac5:c8b9:: with SMTP id o25mr470146vkl.51.1598955575742;
- Tue, 01 Sep 2020 03:19:35 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200830202803.25028-1-amir73il@gmail.com> <CAJfpeguB+JeQN-trDY0qLiO4O2WaBfD2Ltxqc8T6-KV-_fwvCA@mail.gmail.com>
- <CAOQ4uxg91=1to3nCaT6pemb_EAbPw6vByOQ9SE6QvWsT6znKHA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxg91=1to3nCaT6pemb_EAbPw6vByOQ9SE6QvWsT6znKHA@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 1 Sep 2020 12:19:24 +0200
-Message-ID: <CAJfpegsW5jjG3Zv6BJpXqvrMSg68LskSYyFujVVcD28MO6SV6w@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: check for incomapt features in work dir
+        Tue, 1 Sep 2020 09:21:53 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1598966437; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=h1GaI5cHmVSLPc4PYPwkXvrpbllhqs85CDKlxKHYLk9w3Q09S6tRBBK29CEsVUROz7hxElnaAOWPa1LbVe0Qp1JHiyklBCm6eoHdnSjPSh3oyxg+s43K0mxcGdgjcqrayVo2S9LFiaRJOhuD0LDv6DTC2MbbdEPubipBP3Qwu+I=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1598966437; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=wToiWidiWhe/qLDwB1AOubaQrL3mJy07LXZxopmkgD4=; 
+        b=ix+NlftiTjAGQj3kiy9n/kvsFDCBsukkOilb9PXVJIORoXT4zoROhOEq21Cjz4p0DrFyDPhHC7edUpthhsJKOlLmowsM9w1rdv/3/FaK8g1dpgjs9B/cy/HxVIpYcnh9cEfY4XPm+NiQO+ic8cH4A3XpfsKIQrcYlqt3lXN4jYg=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1598966437;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Subject:To:Cc:References:From:Message-ID:Date:MIME-Version:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+        bh=wToiWidiWhe/qLDwB1AOubaQrL3mJy07LXZxopmkgD4=;
+        b=N+t/mUcFCHUmJrnsZhCbpfCn3257jV+wrF9/632yHw82VllHA0DcH8HJNG0KVVC4
+        FnftU1uYLmlf+AO7aorgcHdIybuMJQkVHjgejLCBxbQkzlW992Q7xDqv0GAAk/5luw3
+        jiSdPO1t1VaMZz3EXconlO3CnpHSkJoFjZmnFWqk=
+Received: from [10.0.0.2] (113.88.135.106 [113.88.135.106]) by mx.zoho.com.cn
+        with SMTPS id 1598966435281519.0621124327149; Tue, 1 Sep 2020 21:20:35 +0800 (CST)
+Subject: Re: [RFC PATCH 3/3] ovl: implement stacked mmap for shared map
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Linux MM <linux-mm@kvack.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Ritesh Harjani <riteshh@linux.ibm.com>
+References: <20200829095101.25350-1-cgxu519@mykernel.net>
+ <20200829095101.25350-4-cgxu519@mykernel.net>
+ <CAOQ4uxisdtoccDoQe_fYUA-jXTfy0yk=gNcMSrmbkCYaeOEPuQ@mail.gmail.com>
+ <e1e2c8f0-a3b8-0a3d-3093-6188b1a829f0@mykernel.net>
+ <CAOQ4uxgn5gKXdwjYjuUrt29uHi3cNVApTnODiW-kp-DkzKLVMw@mail.gmail.com>
+From:   cgxu <cgxu519@mykernel.net>
+Message-ID: <8c73f552-e0cf-eefb-c25a-1eb3af059423@mykernel.net>
+Date:   Tue, 1 Sep 2020 21:20:34 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.2.2
+MIME-Version: 1.0
+In-Reply-To: <CAOQ4uxgn5gKXdwjYjuUrt29uHi3cNVApTnODiW-kp-DkzKLVMw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ZohoCNMailClient: External
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Sep 1, 2020 at 11:44 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Tue, Sep 1, 2020 at 12:17 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Sun, Aug 30, 2020 at 10:28 PM Amir Goldstein <amir73il@gmail.com> wrote:
+On 8/31/20 11:51 PM, Amir Goldstein wrote:
+> On Mon, Aug 31, 2020 at 4:47 PM cgxu <cgxu519@mykernel.net> wrote:
+>>
+>> On 8/30/20 7:33 PM, Amir Goldstein wrote:
+>>> On Sat, Aug 29, 2020 at 12:51 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
+>>>>
+>>>> Implement stacked mmap for shared map to keep data
+>>>> consistency.
+>>>>
+>>>> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+>>>> ---
+>>>>    fs/overlayfs/file.c | 120 +++++++++++++++++++++++++++++++++++++++++---
+>>>>    1 file changed, 114 insertions(+), 6 deletions(-)
+>>>>
+>>>> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+>>>> index 14ab5344a918..db5ab200d984 100644
+>>>> --- a/fs/overlayfs/file.c
+>>>> +++ b/fs/overlayfs/file.c
+>>>> @@ -21,9 +21,17 @@ struct ovl_aio_req {
+>>>>           struct fd fd;
+>>>>    };
+>>>>
+>>>> +static vm_fault_t ovl_fault(struct vm_fault *vmf);
+>>>> +static vm_fault_t ovl_page_mkwrite(struct vm_fault *vmf);
+>>>> +
+>>>> +static const struct vm_operations_struct ovl_vm_ops = {
+>>>> +       .fault          = ovl_fault,
+>>>> +       .page_mkwrite   = ovl_page_mkwrite,
+>>>> +};
+>>>> +
+>>>
+>>> Interesting direction, not sure if this is workable.
+>>> I don't know enough about mm to say.
+>>>
+>>> But what about the rest of the operations?
+>>> Did you go over them and decide that overlay doesn't need to implement them?
+>>> I doubt it, but if you did, please document that.
+>>
+>> I did some check for rest of them, IIUC ->fault will be enough for this
+>> special case (shared read-only mmap with no upper), I will remove
+>> ->page_mkwrite in v2.
+> 
+> Ok I suppose you checked that ->map_pages is not relevant?
 
-> > > +        * The "work/incompat" directory is treated specially - if it is not
-> > > +        * empty, instead of printing a generic error and mounting read-only,
-> > > +        * we will error about incompat features and fail the mount.
-> > > +        */
-> > > +       if (level == 2 && !strcmp(path->dentry->d_name.name, OVL_INCOMPATDIR_NAME))
-> > > +               incompat = true;
-> >
-> > Should the test be specific to "work/incompat"?  AFAICS this will
-> > trigger under "index" as well...
->
-> When called from ovl_indexdir_cleanup(), path->dentry->d_name.name[0] == '#',
-> because cleanup starts at level 1 and ovl_workdir_cleanup_recurse() is called
-> with level 2.
 
-Okay.  I'll add a comment.
+->map_pages() does easy maps and fallback to ->fault if the offset is 
+not ready, so I think without ->map_pages() it still could work 
+properly, we can also implement it for acceleration.
 
-> >
-> > >
-> > >         err = ovl_dir_read(path, &rdd);
-> > >         if (err)
-> > > @@ -1079,21 +1090,29 @@ static void ovl_workdir_cleanup_recurse(struct path *path, int level)
-> > >                                 continue;
-> > >                         if (p->len == 2 && p->name[1] == '.')
-> > >                                 continue;
-> > > +               } else if (incompat) {
-> > > +                       pr_warn("overlay with incompat feature '%.*s' cannot be mounted\n",
-> > > +                               p->len, p->name);
-> > > +                       err = -EEXIST;
-> >
-> > EEXIST feels counterintuitive.  I'd rather opt for EINVAL.
->
-> I usually prefer to use EINVAL for illegal user input and this is a border line,
-> so I prefer errors that indicate the state of the object, like EEXIST
-> or ENOTEMPTY,
-> but because these errors are not expected on mount, I can live with EINVAL.
 
-Exactly.  The error should make sense in relation to a specific
-argument of the syscall.  The connection with EEXIST is too deeply
-embedded inside overlayfs implementation details.
+> 
+>>
+>> # I do not consider support ->huge_fault in current stage due to many fs
+>> cannot support DAX properly.
+>>
+>> BTW, do you know who should I add to CC list for further deep review of
+>> this code? fadevel-list?
+>>
+> 
+> fsdevel would be good, but I would wait for initial feedback from Miklos
+> before you post v2...
+> 
+>>
+>>
+>>>
+>>>>    struct ovl_file_entry {
+>>>>           struct file *realfile;
+>>>> -       void *vm_ops;
+>>>> +       const struct vm_operations_struct *vm_ops;
+>>>>    };
+>>>>
+>>>>    struct file *ovl_get_realfile(struct file *file)
+>>>> @@ -40,14 +48,15 @@ void ovl_set_realfile(struct file *file, struct file *realfile)
+>>>>           ofe->realfile = realfile;
+>>>>    }
+>>>>
+>>>> -void *ovl_get_real_vmops(struct file *file)
+>>>> +const struct vm_operations_struct *ovl_get_real_vmops(struct file *file)
+>>>>    {
+>>>>           struct ovl_file_entry *ofe = file->private_data;
+>>>>
+>>>>           return ofe->vm_ops;
+>>>>    }
+>>>>
+>>>> -void ovl_set_real_vmops(struct file *file, void *vm_ops)
+>>>> +void ovl_set_real_vmops(struct file *file,
+>>>> +                       const struct vm_operations_struct *vm_ops)
+>>>>    {
+>>>>           struct ovl_file_entry *ofe = file->private_data;
+>>>>
+>>>> @@ -493,11 +502,104 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+>>>>           return ret;
+>>>>    }
+>>>>
+>>>> +vm_fault_t ovl_fault(struct vm_fault *vmf)
+>>>> +{
+>>>> +       struct vm_area_struct *vma = vmf->vma;
+>>>> +       struct file *file = vma->vm_file;
+>>>> +       struct file *realfile;
+>>>> +       struct file *fpin, *tmp;
+>>>> +       struct inode *inode = file_inode(file);
+>>>> +       struct inode *realinode;
+>>>> +       const struct cred *old_cred;
+>>>> +       bool retry_allowed;
+>>>> +       vm_fault_t ret;
+>>>> +       int err = 0;
+>>>> +
+>>>> +       if (fault_flag_check(vmf, FAULT_FLAG_TRIED)) {
+>>>> +               realfile = ovl_get_realfile(file);
+>>>> +
+>>>> +               if (!ovl_has_upperdata(inode) ||
+>>>> +                   realfile->f_inode != ovl_inode_upper(inode) ||
+>>>> +                   !realfile->f_op->mmap)
+>>>> +                       return VM_FAULT_SIGBUS;
+>>>> +
+>>>> +               if (!ovl_get_real_vmops(file)) {
+>>>> +                       old_cred = ovl_override_creds(inode->i_sb);
+>>>> +                       err = call_mmap(realfile, vma);
+>>>> +                       revert_creds(old_cred);
+>>>> +
+>>>> +                       vma->vm_file = file;
+>>>> +                       if (err) {
+>>>> +                               vma->vm_ops = &ovl_vm_ops;
+>>>> +                               return VM_FAULT_SIGBUS;
+>>>> +                       }
+>>>> +                       ovl_set_real_vmops(file, vma->vm_ops);
+>>>> +                       vma->vm_ops = &ovl_vm_ops;
+>>>> +               }
+>>>> +
+>>>> +               retry_allowed = fault_flag_check(vmf, FAULT_FLAG_ALLOW_RETRY);
+>>>> +               if (retry_allowed)
+>>>> +                       vma->vm_flags &= ~FAULT_FLAG_ALLOW_RETRY;
+>>>> +               vma->vm_file = realfile;
+>>>> +               ret = ovl_get_real_vmops(file)->fault(vmf);
+>>>> +               vma->vm_file = file;
+>>>> +               if (retry_allowed)
+>>>> +                       vma->vm_flags |= FAULT_FLAG_ALLOW_RETRY;
+>>>> +               return ret;
+>>>> +
+>>>> +       } else {
+>>>> +               fpin = maybe_unlock_mmap_for_io(vmf, NULL);
+>>>> +               if (!fpin)
+>>>> +                       return VM_FAULT_SIGBUS;
+>>>> +
+>>>> +               ret = VM_FAULT_RETRY;
+>>>> +               if (!ovl_has_upperdata(inode)) {
+>>>> +                       err = ovl_copy_up_with_data(file->f_path.dentry);
+>>>> +                       if (err)
+>>>> +                               goto out;
+>>>> +               }
+>>>> +
+>>>> +               realinode = ovl_inode_realdata(inode);
+>>>> +               realfile = ovl_open_realfile(file, realinode);
+>>>> +               if (IS_ERR(realfile))
+>>>> +                       goto out;
+>>>> +
+>>>> +               tmp = ovl_get_realfile(file);
+>>>> +               ovl_set_realfile(file, realfile);
+>>>> +               fput(tmp);
+>>>> +
+>>>> +out:
+>>>> +               fput(fpin);
+>>>> +               return ret;
+>>>> +       }
+>>>> +}
+>>>
+>>>
+>>> Please add some documentation to explain the method used.
+>>> Do we need to retry if real_vmops are already set?
+>>>
+>>
+>> Good catch, actually retry is not needed in that case.
+>>
+>> Basically, we unlock(mmap_lock)->copy-up->open when
+>> detecting no upper inode then retry fault operation.
+>> However, we need to check fault retry flag carefully
+>> for avoiding endless retry.
+> 
+> That much I got, but the details of setting ->vm_file and vmops
+> look subtle, so better explain them.
+> 
 
-> Assuming that you agree with my response to ovl_indexdir_cleanup(), let
-> me know if you need me to post v3 or if you can change the choice of error
-> and s/pr_warn/pr_err on commit.
+I'll add some explanations in V2, but before that let me write some
+comments based on code logic below. If there is still something not 
+clear you can point out that again.
 
-I'll fix these up.
+
+
++	if (fault_flag_check(vmf, FAULT_FLAG_TRIED)) {
++		realfile = ovl_get_realfile(file);
++
++		if (!ovl_has_upperdata(inode) ||
++		    realfile->f_inode != ovl_inode_upper(inode) ||
++		    !realfile->f_op->mmap)
++			return VM_FAULT_SIGBUS;
+
+Above condition indicates (copy-up)/(open real-file) failed or
+(real-file does not support mmap), so we have to return SIGBUS.
+
+
+
++
++		if (!ovl_get_real_vmops(file)) {
++			old_cred = ovl_override_creds(inode->i_sb);
++			err = call_mmap(realfile, vma);
++			revert_creds(old_cred);
++
++			vma->vm_file = file;
++			if (err) {
++				vma->vm_ops = &ovl_vm_ops;
++				return VM_FAULT_SIGBUS;
++			}
++			ovl_set_real_vmops(file, vma->vm_ops);
++			vma->vm_ops = &ovl_vm_ops;
+
+
+call_mmap() will rewrite vma->vm_file and vma->vm_ops to upper layer's,
+so here recover to overlay's in order to jump into this ovl_fault()
+in other page-faults.
+
+
++		}
++
++		retry_allowed = fault_flag_check(vmf, FAULT_FLAG_ALLOW_RETRY);
++		if (retry_allowed)
++			vma->vm_flags &= ~FAULT_FLAG_ALLOW_RETRY;
+
+here, we disallow retry in real ->fault because retry will unlock 
+mmap_lock, touching vma after unlock is not safe behavior.
+
+
++		vma->vm_file = realfile;
++		ret = ovl_get_real_vmops(file)->fault(vmf);
+
+
+calling real fault handler.
+
+
++		vma->vm_file = file;
++		if (retry_allowed)
++			vma->vm_flags |= FAULT_FLAG_ALLOW_RETRY;
+
+
+recover vm_file and vm_ops to overlay's so that we can jump into
+ovl_fault in other page-faults.
+
+
++		return ret;
++
++	} else {
+
+
 
 Thanks,
-Miklos
+cgxu
+
+
+
