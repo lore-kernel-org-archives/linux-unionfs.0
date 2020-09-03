@@ -2,112 +2,99 @@ Return-Path: <SRS0=37bb=CM=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.9 required=3.0 tests=BAYES_00,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77C9DC433E2
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Sep 2020 08:51:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D53FDC433E7
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Sep 2020 09:00:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4E3252065F
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Sep 2020 08:51:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9EB4D206E7
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Sep 2020 09:00:37 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZdqqWOmY"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726292AbgICIvx (ORCPT
+        id S1726293AbgICJAh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Sep 2020 04:51:53 -0400
-Received: from relaygw3-21.mclink.it ([195.78.211.241]:57649 "EHLO
-        relaygw3-21.mclink.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726268AbgICIvw (ORCPT
+        Thu, 3 Sep 2020 05:00:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41802 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726268AbgICJAe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Sep 2020 04:51:52 -0400
-Received: from [172.24.30.45] (HELO cgp-esgout02-rm.mail.irds.it)
-  by relaygw3-21.mclink.it (CommuniGate Pro SMTP 6.0.6)
-  with ESMTPS id 174858579 for linux-unionfs@vger.kernel.org; Thu, 03 Sep 2020 10:51:50 +0200
-X-Envelope-From: <mc5686@mclink.it>
-Received: from [192.168.7.128] (host-82-53-147-214.retail.telecomitalia.it [82.53.147.214])
-        (Authenticated sender: mc5686)
-        by cgp-esgout02-rm.mail.irds.it (Postfix) with ESMTPA id 5C9B541B11;
-        Thu,  3 Sep 2020 10:51:43 +0200 (CEST)
+        Thu, 3 Sep 2020 05:00:34 -0400
+Received: from mail-il1-x132.google.com (mail-il1-x132.google.com [IPv6:2607:f8b0:4864:20::132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E23EC061244
+        for <linux-unionfs@vger.kernel.org>; Thu,  3 Sep 2020 02:00:33 -0700 (PDT)
+Received: by mail-il1-x132.google.com with SMTP id q6so1774840ild.12
+        for <linux-unionfs@vger.kernel.org>; Thu, 03 Sep 2020 02:00:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=FtCmIngnUqOHrNnGJIDvWVZ1cMmDVDeUCiN8+cTjkLw=;
+        b=ZdqqWOmYZvIMx9LzMGDjLVO4146lNrKFPjQfUdYqObxJIus5y3ecRsONpsDNogHUnx
+         Owe+kHCumU1Iki5y0++VdJsArnI16WEVYUzGHb6xvS3AJHahaPKgZbGtvTCFC5KcvxTq
+         fEaR0EPOpqV1Dli0fG/jnQQEY7u9dN3yIzKC4E6AUNIeSECk4GAREJNrXrJuvbfRi6sw
+         fhY3TrjIzSBxqWUfvfoBuSdE93U6kri73UT0+VHFrK2pReR+EBaxkof4g2DFGh64AR48
+         eL6FdWEx2y4IYOhWdX7SFhMq6NXh08NXF0vW3J9j0+g04SX7mw776RoVLs+c0eZHoJr3
+         GwMg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=FtCmIngnUqOHrNnGJIDvWVZ1cMmDVDeUCiN8+cTjkLw=;
+        b=ZBXXM1AnIog/mW/jJNvXzcf5XLzlqhVfaHwDkHeZPkgNLgX88SjTDX0U6AloyDDSDU
+         d7W2XYpqfZGjCUb4wnUOCz5bAI0sU5y4vETQPsbvznRWHMiTmPDVsg/7QP+MtEdHOlEH
+         qIvwZwoS/1Hl8EFULqdXWwUMrgLCk/q2xrrGtiewuQs+S5XIGXyiX4097ct2SvkY/PfH
+         zqhZ0A1LuM8JmfbKUuLPnoMZI52wwrMA11TDQGZKebX9YUd0DfIohUIyJ/8IsTK/UEc/
+         q0Pwr3YyEde4j+5OmAvdisUF59ROwyUR9u8JmABcA8sT0oEj1vM8pscpS0QIb7bA2luX
+         K+rw==
+X-Gm-Message-State: AOAM532L2f3Io7ClzGzZeE1m09TvbjV2ITesfLaNTA2nxRQngqpj7qBM
+        bAQmOWJGaIZGTL6SjwYpASd5KKCUKxLAmqAdsJk=
+X-Google-Smtp-Source: ABdhPJzAGJm8EOhE99VZBmvOwqGzBUfz4kwmgpkP/tWMcGU5I/rTCkfGZNe7ZTdZH/VZcIrs3yfGjPncimjO3Me99mQ=
+X-Received: by 2002:a05:6e02:c61:: with SMTP id f1mr2326761ilj.137.1599123632637;
+ Thu, 03 Sep 2020 02:00:32 -0700 (PDT)
+MIME-Version: 1.0
+References: <d5dc093b-71aa-8656-a4d3-c27c14015d79@mclink.it>
+ <CAOQ4uxgHL2H8RBXbovyFNn_GOC9YE2N6L+AZ6XO=qkA2hhLr=w@mail.gmail.com>
+ <2da4dd97-d7cb-ce1b-ada7-0152d65ce701@mclink.it> <CAOQ4uxjk78aWc4rXd3_4Kr_Hy74AF4Yzk8Dur9VyadeyS33MGg@mail.gmail.com>
+ <20200902132921.GA1263242@redhat.com> <7862cfc2-03e1-61b8-ae36-96ef5d28915e@mclink.it>
+ <20200902202048.GD1263242@redhat.com> <8a5fb512-e430-40c1-2266-e90625385e62@mclink.it>
+ <CAOQ4uxg9p2w-z9c+WzVjr5CO3xmf2gqK-VrhhUOcbA2uQJiseA@mail.gmail.com> <89bc9214-bb3c-49e9-16d1-c630b463c901@mclink.it>
+In-Reply-To: <89bc9214-bb3c-49e9-16d1-c630b463c901@mclink.it>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 3 Sep 2020 12:00:21 +0300
+Message-ID: <CAOQ4uxjQW8YcagfLn+8Eh4NuQ-45R5HYbLdmNpZL=q4_k_vT3w@mail.gmail.com>
 Subject: Re: Frequent errors with OverlayFS on root
-To:     Amir Goldstein <amir73il@gmail.com>
+To:     Mauro Condarelli <mc5686@mclink.it>
 Cc:     Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Mark Salyzyn <salyzyn@android.com>
-References: <d5dc093b-71aa-8656-a4d3-c27c14015d79@mclink.it>
- <CAOQ4uxgHL2H8RBXbovyFNn_GOC9YE2N6L+AZ6XO=qkA2hhLr=w@mail.gmail.com>
- <2da4dd97-d7cb-ce1b-ada7-0152d65ce701@mclink.it>
- <CAOQ4uxjk78aWc4rXd3_4Kr_Hy74AF4Yzk8Dur9VyadeyS33MGg@mail.gmail.com>
- <20200902132921.GA1263242@redhat.com>
- <7862cfc2-03e1-61b8-ae36-96ef5d28915e@mclink.it>
- <20200902202048.GD1263242@redhat.com>
- <8a5fb512-e430-40c1-2266-e90625385e62@mclink.it>
- <CAOQ4uxg9p2w-z9c+WzVjr5CO3xmf2gqK-VrhhUOcbA2uQJiseA@mail.gmail.com>
-From:   Mauro Condarelli <mc5686@mclink.it>
-Message-ID: <89bc9214-bb3c-49e9-16d1-c630b463c901@mclink.it>
-Date:   Thu, 3 Sep 2020 10:51:43 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
-MIME-Version: 1.0
-In-Reply-To: <CAOQ4uxg9p2w-z9c+WzVjr5CO3xmf2gqK-VrhhUOcbA2uQJiseA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
-X-Irideos-Libra-ESVA-Information: Please contact Irideos for more information
-X-Irideos-Libra-ESVA-ID: 5C9B541B11.A6C7B
-X-Irideos-Libra-ESVA: No virus found
-X-Irideos-Libra-ESVA-From: mc5686@mclink.it
-X-Irideos-Libra-ESVA-Watermark: 1599727904.64204@hy95jeYB4xooNZxqcde8UA
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-unionfs-owner@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Thanks Amir,
-comments inline below.
-
-On 9/3/20 10:30 AM, Amir Goldstein wrote:
->>> So basically squashfs image will be udpated. I am not sure how this
->>> will work for all the cases. What if application is updated and
->>> it decides to rename its config file from foo.txt to bar.txt. Now
->>> when application is launched, user defaults are lost anyway.
->> I'm in a somewhat middle position.
->>
->> Targets are embedded systems and it wouldn't make any sense
->> to implement a fully flexible update system (deb/rpm/ipkg/...);
->> I just have two "packages": system and application.
->>
->> I *am* the "rootfs (aka: system) image provider".
->>
-> FYI, I am not a stakeholder. Just chose the "defending" side, to counter
-> Vivek's opinion for the sake of the argument.
-I guessed that ;)
-
-> FYI2, overlayfs maintainer as well as Linux maintainer have always
-> followed the practice of not breaking existing user workloads, so the
-> status quo is playing to your side anyway.
-I'm *very* glad to hear this, but if there's any chance this will
-change in a foreseeable future I'd want to know it *now*,
-changing later would be a disaster (for me, of course).
-
-> I assume, although you did not mention this, that you maintan an
-> OpenWRT derivative.
-No, that's a fair guess, but I'm actually rolling out a full system
-based on Buildroot with current upstreamed u-boot/kernel/apps.
-
-> Just so you know, Android is another "system image provider" project
-> whose developers were talking about using overlayfs to provide
-> "debug mode", wherein developers can modify system files.
-> This is the use case for the proposed override_creds=off feature [1].
+> > Just so you know, Android is another "system image provider" project
+> > whose developers were talking about using overlayfs to provide
+> > "debug mode", wherein developers can modify system files.
+> > This is the use case for the proposed override_creds=off feature [1].
+> >
+> > I do not know if this mode was deployed on existing phones, but anyway,
+> > it is not enabled in production mode, so it limits very much the problem
+> > of conflict resolution.
+> I'm not sure about what You mean exactly, but I'll try to check it
+> if You so suggest.
 >
-> I do not know if this mode was deployed on existing phones, but anyway,
-> it is not enabled in production mode, so it limits very much the problem
-> of conflict resolution.
-I'm not sure about what You mean exactly, but I'll try to check it
-if You so suggest.
 
-> Thanks,
-> Amir.
->
-> [1] https://lore.kernel.org/linux-unionfs/20191104215253.141818-1-salyzyn@android.com/
-Regards
-Mauro
+There is nothing for you to check.
+Only informing you of another user that may be doing the same thing that
+you do and expects it to continue working.
+
+FWIW, if Android *are* using overlayfs like this they should encounter
+the same problem you encountered and the upstream fix will not solve it....
+
+Thanks,
+Amir.
