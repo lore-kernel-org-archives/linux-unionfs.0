@@ -2,119 +2,100 @@ Return-Path: <SRS0=ehig=C6=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+X-Spam-Status: No, score=-11.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E84A0C43464
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Sep 2020 07:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E4B1C43464
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Sep 2020 08:18:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B3BBB20809
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Sep 2020 07:50:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C92112076E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Sep 2020 08:18:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QNGfLFn+"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726338AbgIUHuG (ORCPT
+        id S1726475AbgIUISF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Sep 2020 03:50:06 -0400
-Received: from mail.cn.fujitsu.com ([183.91.158.132]:13599 "EHLO
-        heian.cn.fujitsu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1726211AbgIUHuD (ORCPT
+        Mon, 21 Sep 2020 04:18:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40180 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726413AbgIUISF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Sep 2020 03:50:03 -0400
-X-Greylist: delayed 594 seconds by postgrey-1.27 at vger.kernel.org; Mon, 21 Sep 2020 03:49:53 EDT
-X-IronPort-AV: E=Sophos;i="5.77,286,1596470400"; 
-   d="scan'208";a="99456458"
-Received: from unknown (HELO cn.fujitsu.com) ([10.167.33.5])
-  by heian.cn.fujitsu.com with ESMTP; 21 Sep 2020 15:39:58 +0800
-Received: from G08CNEXMBPEKD04.g08.fujitsu.local (unknown [10.167.33.201])
-        by cn.fujitsu.com (Postfix) with ESMTP id C4B0248990EC;
-        Mon, 21 Sep 2020 15:39:54 +0800 (CST)
-Received: from G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) by
- G08CNEXMBPEKD04.g08.fujitsu.local (10.167.33.201) with Microsoft SMTP Server
- (TLS) id 15.0.1497.2; Mon, 21 Sep 2020 15:39:55 +0800
-Received: from Fedora-31.g08.fujitsu.local (10.167.220.31) by
- G08CNEXCHPEKD06.g08.fujitsu.local (10.167.33.205) with Microsoft SMTP Server
- id 15.0.1497.2 via Frontend Transport; Mon, 21 Sep 2020 15:39:51 +0800
-From:   Xiao Yang <yangx.jy@cn.fujitsu.com>
-To:     <linux-unionfs@vger.kernel.org>
-CC:     <miklos@szeredi.hu>, <amir73il@gmail.com>,
-        <darrick.wong@oracle.com>, <hch@infradead.org>,
-        <fstests@vger.kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>
-Subject: [PATCH] ovl: Support FS_IOC_[SG]ETFLAGS and FS_IOC_FS[SG]ETXATTR ioctls on directories
-Date:   Mon, 21 Sep 2020 15:21:27 +0800
-Message-ID: <20200921072127.373125-1-yangx.jy@cn.fujitsu.com>
-X-Mailer: git-send-email 2.25.1
+        Mon, 21 Sep 2020 04:18:05 -0400
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51B68C061755;
+        Mon, 21 Sep 2020 01:18:05 -0700 (PDT)
+Received: by mail-il1-x142.google.com with SMTP id s88so12835584ilb.6;
+        Mon, 21 Sep 2020 01:18:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=13RFQrLQn1X3n8vFx/1eC2ToC/lcvEsZYR2SMtGurTg=;
+        b=QNGfLFn+qV6fUjQII3vL2USVzKJV03IGcVKCvWZa5gn6/02plNWhIpYb0D9EkpMs/t
+         J+VY9JbjQKonHL4xzaUVPoFymuiH5v+KmbVD7Pu6Z5pK7S8LB6F7rDgJ+/kCt40+/OTt
+         3Hnlk4YzM/KNWidTTNgp9j+ll0hbBuqe9jTl2Zks2laAR4HeRRZ4glzNam6oJf9aokp/
+         aQmKtONyRxL0HHJ5f7dTDK9mGslouBohFYs1BDUSZkdznKpbLCcB384BOrQXI6X0dBMx
+         ExP16KSDapfFdI1Ov28Z5REey4Mgsb+wKR+YScq6cs45GCqLnuzyVxIztwzQ9pkZjYod
+         aiMw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=13RFQrLQn1X3n8vFx/1eC2ToC/lcvEsZYR2SMtGurTg=;
+        b=gOjkt8BkcWHAdfhBVmgXE5VAeOXE2tzouu3ikFYVhI5a0vL0tPRHRLksS4vuGIGUHm
+         CWvqB4Vi9lWSIBmY3AL2p6yQi4BDWUwk6ET19V8Z1nDO9NZiVXORKRTfynXOvXSNgEq1
+         I/302FVRnBEay5Lgs1+s4fhRDftR/62wrQzj2v/hYvgeoK58jCOke2/C44cPrQb3/hto
+         ZEandaFNbK8Nv8TWhUcpm+oHGha0OoSxQo3t91Oin5nMbYcqQAGiNcC4UiGohPJTclAh
+         6CufAhHdvGxxnO8f/dj4M+L0RVQ8ncpM3jIfBOfExnAVhzgZp3qOibUqHVJKPgJCWIOP
+         imTA==
+X-Gm-Message-State: AOAM530rypNaHsg4EmcdJc90d9xeUek7NVz2AuceAVMz9HJnagAqVakW
+        spHfC2sIQLii+aMgaiG1o8SGc7ixddfim/1g6R7JC11dTfs=
+X-Google-Smtp-Source: ABdhPJz3EI8Hdi/E2cCbEbD/Kg5YbNkx1oBrhPrl2oyiCzKPY4u/af8KYdN3usIBhU6FlBb182jlSlmqgH1LyDb4Kqg=
+X-Received: by 2002:a92:d0c7:: with SMTP id y7mr3327262ila.250.1600676284682;
+ Mon, 21 Sep 2020 01:18:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-yoursite-MailScanner-ID: C4B0248990EC.AAE95
-X-yoursite-MailScanner: Found to be clean
-X-yoursite-MailScanner-From: yangx.jy@cn.fujitsu.com
+References: <20200921072127.373125-1-yangx.jy@cn.fujitsu.com>
+In-Reply-To: <20200921072127.373125-1-yangx.jy@cn.fujitsu.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 21 Sep 2020 11:17:54 +0300
+Message-ID: <CAOQ4uxitZDVjbvBnb95UHWD6CzaBeoJ8deqR6nbmgRRJ3P2=UA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: Support FS_IOC_[SG]ETFLAGS and FS_IOC_FS[SG]ETXATTR
+ ioctls on directories
+To:     Xiao Yang <yangx.jy@cn.fujitsu.com>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        "Darrick J. Wong" <darrick.wong@oracle.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        fstests <fstests@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Factor out ovl_ioctl() and ovl_compat_ioctl() and take use of them for
-directories.
+On Mon, Sep 21, 2020 at 10:41 AM Xiao Yang <yangx.jy@cn.fujitsu.com> wrote:
+>
+> Factor out ovl_ioctl() and ovl_compat_ioctl() and take use of them for
+> directories.
+>
+> Signed-off-by: Xiao Yang <yangx.jy@cn.fujitsu.com>
+> ---
 
-Signed-off-by: Xiao Yang <yangx.jy@cn.fujitsu.com>
----
- fs/overlayfs/file.c      | 5 ++---
- fs/overlayfs/overlayfs.h | 2 ++
- fs/overlayfs/readdir.c   | 2 ++
- 3 files changed, 6 insertions(+), 3 deletions(-)
+This change is buggy. I had already posted it and self NACKed myself [1].
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 0d940e29d62b..94ad7f9c9c76 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -640,7 +640,7 @@ static long ovl_ioctl_set_fsxflags(struct file *file, unsigned int cmd,
- 				   ovl_fsxflags_to_iflags(fa.fsx_xflags));
- }
- 
--static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long ret;
- 
-@@ -665,8 +665,7 @@ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	return ret;
- }
- 
--static long ovl_compat_ioctl(struct file *file, unsigned int cmd,
--			     unsigned long arg)
-+long ovl_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	switch (cmd) {
- 	case FS_IOC32_GETFLAGS:
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 29bc1ec699e7..bfb499314dcc 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -301,6 +301,8 @@ bool ovl_is_metacopy_dentry(struct dentry *dentry);
- char *ovl_get_redirect_xattr(struct dentry *dentry, int padding);
- ssize_t ovl_getxattr(struct dentry *dentry, char *name, char **value,
- 		     size_t padding);
-+long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
-+long ovl_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- 
- static inline bool ovl_is_impuredir(struct dentry *dentry)
- {
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 6918b98faeb6..cde909b6fe7d 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -945,6 +945,8 @@ const struct file_operations ovl_dir_operations = {
- 	.llseek		= ovl_dir_llseek,
- 	.fsync		= ovl_dir_fsync,
- 	.release	= ovl_dir_release,
-+	.unlocked_ioctl = ovl_ioctl,
-+	.compat_ioctl   = ovl_compat_ioctl,
- };
- 
- int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
--- 
-2.25.1
+You can find an hopefully non-buggy version of it on my ovl-shutdown [2] branch.
+
+As long as you are changing ovl_ioctl(), please also take the second
+commit on that
+branch to replace the open coded capability check with the
+vfs_ioc_setflags_prepare()
+generic helper.
+
+Thanks,
+Amir.
 
 
-
+[1] https://lore.kernel.org/linux-unionfs/CAOQ4uxhRgL2sMok7xsAZN6cZXSfoPxx=O8ADE=72+Ta3hGoLbw@mail.gmail.com/
+[2] https://github.com/amir73il/linux/commits/ovl-shutdown
