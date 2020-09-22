@@ -2,139 +2,127 @@ Return-Path: <SRS0=2bMn=C7=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5901AC2D0E2
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Sep 2020 12:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0860C2D0E2
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Sep 2020 12:18:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 113BD23A34
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Sep 2020 12:01:42 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="rsVGjE0t"
+	by mail.kernel.org (Postfix) with ESMTP id B43F220756
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Sep 2020 12:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726559AbgIVMBl (ORCPT
+        id S1726562AbgIVMSX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 22 Sep 2020 08:01:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43262 "EHLO
+        Tue, 22 Sep 2020 08:18:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726554AbgIVMBl (ORCPT
+        with ESMTP id S1726533AbgIVMSX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Sep 2020 08:01:41 -0400
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70102C061755;
-        Tue, 22 Sep 2020 05:01:41 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id j2so19185382ioj.7;
-        Tue, 22 Sep 2020 05:01:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=thN+8j8fzPRcGR/K/n7KMucCVe+4w8v81WWL2C+eee0=;
-        b=rsVGjE0tEzc5C/NTe5WIIU72p4hdYywYNOgni3vtzPRQVLbk+RW/if18Zhh1ZxPVCq
-         KHDE2+VSLf6g/3p7UM+TOI/zn9HAarDkIxArHAPgEG72GXXb8bH3VccJU/xsgBzNW+ho
-         iGn6dofDLi55L9/lwXZ2iCtwWCvdHyd9QNdnxkApXiNsZJCWCJqfYwg4jTzozlJjDuaj
-         8krGRhvd61FhCCygJ9Q2C7+8dE9gMUxRYLee9SfdGcjlBRYLCM8sjqaq7A81pWitEJQI
-         AvAu3xpMX+J00vusiA1NmFezjBzGx0Uzwpar8+b/MGPa0w6SAJsUlY96Bl1VxbKxk1Ol
-         m9yw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=thN+8j8fzPRcGR/K/n7KMucCVe+4w8v81WWL2C+eee0=;
-        b=VuI/f/HWJWpt9JzM6B1N73pVdZ59GTwBtX/x2cuElRSeiLIUk3fsO6i4PgEiTjnyF4
-         pw2KmXKpbwYunxBkd7UwtPo0t58BeXXUFfz4/jvecIRhdCU6CZmRVF7lXjzBF0mkio7S
-         ZXEl9qb7U2zNdkr/z423jykrrFmz/QYNxN7P95ezxqdzqYGSUCDoz0ByBlTdJ/857TFc
-         pUq958/Xnl974uu5tapjrbG4EVnEB/tDhmySmb109Y6tKJzq0Q+Aj295yUctbjoYhubC
-         5eF7IL8IaC/Dm+0zQrEMZ8P9NSWSdFWlZl69AMflu1lciAphj9ANUgg2SqXL7tZr/ZDm
-         I3gg==
-X-Gm-Message-State: AOAM533hixYiDrDYuLeufsKWM3rL3PBhOFfXZ6RPw2HBsR9cI2JmiSQl
-        aTepatHkhkYK94HzmIiFkwpYFgS96CUX4VJdxfQwFmY7KDg=
-X-Google-Smtp-Source: ABdhPJxwUIF+YBi31uZ7a6gaPPe6crkKq4vWE9W+i/9tHvfgdpesx7B2CaG/91tyK2pMIn+I7/k6wHyjVN88jzMlSKs=
-X-Received: by 2002:a05:6638:4:: with SMTP id z4mr3639214jao.123.1600776100669;
- Tue, 22 Sep 2020 05:01:40 -0700 (PDT)
+        Tue, 22 Sep 2020 08:18:23 -0400
+Received: from vulcan.kevinlocke.name (vulcan.kevinlocke.name [IPv6:2001:19f0:5:727:1e84:17da:7c52:5ab4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BFEFC061755
+        for <linux-unionfs@vger.kernel.org>; Tue, 22 Sep 2020 05:18:23 -0700 (PDT)
+Received: from kevinlocke.name (host-69-145-60-23.bln-mt.client.bresnan.net [69.145.60.23])
+        (Authenticated sender: kevin@kevinlocke.name)
+        by vulcan.kevinlocke.name (Postfix) with ESMTPSA id 772F81C6FF48;
+        Tue, 22 Sep 2020 12:18:20 +0000 (UTC)
+Received: by kevinlocke.name (Postfix, from userid 1000)
+        id 749931303754; Tue, 22 Sep 2020 06:18:18 -0600 (MDT)
+Date:   Tue, 22 Sep 2020 06:18:18 -0600
+From:   Kevin Locke <kevin@kevinlocke.name>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+        Vivek Goyal <vgoyal@redhat.com>
+Subject: Re: [PATCH v2] ovl: document lower modification caveats
+Message-ID: <20200922121818.GA133833@kevinlocke.name>
+Mail-Followup-To: Kevin Locke <kevin@kevinlocke.name>,
+        Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+        Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>
+References: <82b537e0ca5fa38b492413bd665c0198e6761015.1597944769.git.kevin@kevinlocke.name>
+ <fe78446e6565cda29cc2c87f3e3c1b2a16f5d5cc.1598149357.git.kevin@kevinlocke.name>
 MIME-Version: 1.0
-References: <20200921072127.373125-1-yangx.jy@cn.fujitsu.com>
- <CAOQ4uxitZDVjbvBnb95UHWD6CzaBeoJ8deqR6nbmgRRJ3P2=UA@mail.gmail.com>
- <5F686A74.4040002@cn.fujitsu.com> <CAOQ4uxhfUbFhecA9ShKUxyjS=LsMoyztXwWUJw-ZXm+Z0eJ6DQ@mail.gmail.com>
- <5F69B2A4.2050407@cn.fujitsu.com>
-In-Reply-To: <5F69B2A4.2050407@cn.fujitsu.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 22 Sep 2020 15:01:29 +0300
-Message-ID: <CAOQ4uxg-4xOSVxkLZrH_zrd9054z+SH_+YdcPnT3PVNYogJ3gw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Support FS_IOC_[SG]ETFLAGS and FS_IOC_FS[SG]ETXATTR
- ioctls on directories
-To:     Xiao Yang <yangx.jy@cn.fujitsu.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        "Darrick J. Wong" <darrick.wong@oracle.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        fstests <fstests@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <fe78446e6565cda29cc2c87f3e3c1b2a16f5d5cc.1598149357.git.kevin@kevinlocke.name>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Sep 22, 2020 at 11:15 AM Xiao Yang <yangx.jy@cn.fujitsu.com> wrote:
->
-> On 2020/9/21 17:09, Amir Goldstein wrote:
-> > On Mon, Sep 21, 2020 at 11:55 AM Xiao Yang<yangx.jy@cn.fujitsu.com>  wr=
-ote:
-> >> On 2020/9/21 16:17, Amir Goldstein wrote:
-> >>> On Mon, Sep 21, 2020 at 10:41 AM Xiao Yang<yangx.jy@cn.fujitsu.com>  =
- wrote:
-> >>>> Factor out ovl_ioctl() and ovl_compat_ioctl() and take use of them f=
-or
-> >>>> directories.
-> >>>>
-> >>>> Signed-off-by: Xiao Yang<yangx.jy@cn.fujitsu.com>
-> >>>> ---
-> >>> This change is buggy. I had already posted it and self NACKed myself =
-[1].
-> >>>
-> >>> You can find an hopefully non-buggy version of it on my ovl-shutdown =
-[2] branch.
-> >>>
-> >>> As long as you are changing ovl_ioctl(), please also take the second
-> >>> commit on that
-> >>> branch to replace the open coded capability check with the
-> >>> vfs_ioc_setflags_prepare()
-> >>> generic helper.
-> >> Hi Amir,
-> >>
-> >> Thanks a lot for your quick reply. :-)
-> >> I will try to read and understand the metioned patches on your
-> >> ovl-shutdown branch.
-> > Please also verify my claim in the patch commit message, that the
-> > the test result of xfstest generic/079 changes from "notrun" to "succes=
-s".
-> Hi Amir,
->
-> With your patches, I have confirmed that generic/079 actually changed fro=
-m
-> "notrun" to "success".  Besides, one minor issue:
-> Could we avoid the following compiler warning?
-> -------------------------------------------------
-> fs/overlayfs/readdir.c: In function =E2=80=98ovl_dir_real_file=E2=80=99:
-> fs/overlayfs/readdir.c:883:37: warning: passing argument 1 of
-> =E2=80=98ovl_dir_open_realfile=E2=80=99 discards =E2=80=98const=E2=80=99 =
-qualifier from pointer target
-> type [-Wdiscarded-qualifiers]
->    883 |    realfile =3D ovl_dir_open_realfile(file, &upperpath);
->        |                                     ^~~~
-> fs/overlayfs/readdir.c:842:56: note: expected =E2=80=98struct file *=E2=
-=80=99 but
-> argument is of type =E2=80=98const struct file *=E2=80=99
->    842 | static struct file *ovl_dir_open_realfile(struct file *file,
->        |                                           ~~~~~~~~~~~~~^~~~
-> -------------------------------------------------
->
+On Sat, 2020-08-22 at 20:22 -0600, Kevin Locke wrote:
+> Some overlayfs optional features are incompatible with offline changes
+> to the lower tree[1][2][3] and may result in -EXDEV[4], -EIO[5], or
+> other errors.  Such modification is not supported and the error behavior
+> is intentionally not specified.
+> 
+> Update the "Changes to underlying filesystems" section to note this
+> restriction.  Move the paragraph describing the offline behavior below
+> the online behavior so it is adjacent to the following 3 paragraphs
+> describing the NFS export offline modification behavior.
+> 
+> [1]: https://lore.kernel.org/linux-unionfs/20200708142353.GA103536@redhat.com/
+> [2]: https://lore.kernel.org/linux-unionfs/CAOQ4uxi23Zsmfb4rCed1n=On0NNA5KZD74jjjeyz+et32sk-gg@mail.gmail.com/
+> [3]: https://lore.kernel.org/linux-unionfs/20200817135651.GA637139@redhat.com/
+> [4]: https://lore.kernel.org/linux-unionfs/20200709153616.GE150543@redhat.com/
+> [5]: https://lore.kernel.org/linux-unionfs/20200812135529.GA122370@kevinolos/
+> 
+> Signed-off-by: Kevin Locke <kevin@kevinlocke.name>
+> ---
+> 
+> Changes since v1:
+> - Actually send to the maintainer this time.
+>   (Sorry Miklos Szeredi, not sure what I was thinking on v1!)
+> - Rebase onto overlayfs-next of
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
+> 
+> As mentioned with v1, I'm still open to collaborating on a combined
+> patch if there is still interest in including Vivek's changes to the
+> "Sharing and copying layers" section.
+> 
+> This patch does not mention nfs_export being incompatible with offline
+> changes to lower, since the following 3 paragraphs specify the behavior
+> (IIUC).  If the behavior of offline modification with nfs_export is
+> undefined, should these paragraphs be removed?
+> 
+> Thanks for considering (again),
+> Kevin
+> 
+>  Documentation/filesystems/overlayfs.rst | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+> index fcda5d6ba9ac..9b39374afdbd 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -467,14 +467,18 @@ summarized in the `Inode properties`_ table above.
+>  Changes to underlying filesystems
+>  ---------------------------------
+>  
+> -Offline changes, when the overlay is not mounted, are allowed to either
+> -the upper or the lower trees.
+> -
+>  Changes to the underlying filesystems while part of a mounted overlay
+>  filesystem are not allowed.  If the underlying filesystem is changed,
+>  the behavior of the overlay is undefined, though it will not result in
+>  a crash or deadlock.
+>  
+> +Offline changes, when the overlay is not mounted, are allowed to the
+> +upper tree.  Offline changes to the lower tree are only allowed if the
+> +"metadata only copy up", "inode index", and "redirect_dir" features
+> +have not been used.  If the lower tree is modified and any of these
+> +features has been used, the behavior of the overlay is undefined,
+> +though it will not result in a crash or deadlock.
+> +
+>  When the overlay NFS export feature is enabled, overlay filesystems
+>  behavior on offline changes of the underlying lower layer is different
+>  than the behavior when NFS export is disabled.
 
-Shouldn't be a problem to change ovl_dir_open_realfile()
-to take a const struct file * argument I think.
+Ping.
+
+I think users would benefit from documenting these restrictions, using
+the above patch Vivek's or another.  I'm still open to working out any
+issues over how best to do that.
 
 Thanks,
-Amir.
+Kevin
