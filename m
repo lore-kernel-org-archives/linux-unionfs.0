@@ -2,140 +2,147 @@ Return-Path: <SRS0=0kBH=DA=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32265C4727F
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Sep 2020 11:13:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32775C2D0A8
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Sep 2020 12:53:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9D422145D
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Sep 2020 11:12:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C5862137B
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Sep 2020 12:53:45 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="Al/0M9tp"
+	dkim=pass (1024-bit key) header.d=virtuozzo.com header.i=@virtuozzo.com header.b="L12sg0z0"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726332AbgIWLM7 (ORCPT
+        id S1726638AbgIWMxp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 23 Sep 2020 07:12:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59630 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726419AbgIWLM6 (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 23 Sep 2020 07:12:58 -0400
-Received: from mail-vk1-xa44.google.com (mail-vk1-xa44.google.com [IPv6:2607:f8b0:4864:20::a44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B628CC0613D1
-        for <linux-unionfs@vger.kernel.org>; Wed, 23 Sep 2020 04:12:58 -0700 (PDT)
-Received: by mail-vk1-xa44.google.com with SMTP id c63so5068533vkb.7
-        for <linux-unionfs@vger.kernel.org>; Wed, 23 Sep 2020 04:12:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=pUaYPz6V6mqKYkTBzYciA/Nd6dmCAIBjuZdXae6Bnuk=;
-        b=Al/0M9tpcK5GvaMgjw2rCMySpOStv0EXxyHLllD7Kro026/Ruaibl33KtQb1lEJFbv
-         xbdW0o66wYGYpTm1yGyWzwGwwpMZrVMz++MGfxciu/TanSiVL4NFrgud1Mv69j3EmBnf
-         EoJXNe5sCaSMVgSgNnUw6esMTuhK8gQgI1z44=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pUaYPz6V6mqKYkTBzYciA/Nd6dmCAIBjuZdXae6Bnuk=;
-        b=MwE5H3JRI8KzNc0xGqW7dz9/NAZ6WnNLkii83fgu2x3ASR4L/aOeEWwpS3sFvwaLHT
-         nML37a6GpOH09mFhc9BiOliSd/Mbddtoh16Z791TzrkKXdmL0kF6DewyfRjHvsDCSy+s
-         6D+Fe+TdaXP+E4GylQ1YfohluhM7j08DiueQ1w87sgAukWnpWlYhUDKF84aM0ZyVLOpe
-         JeJq84eHjCtCiXk+NkMi0txHo7E8UDDC0JKJWoOUXlzBfgtpfAZzU74lTTYUeh8LTQ5k
-         yoY4IPwPvVwMsWMPRvgaORsyQUNeiiUQncqlwbOKhY5+JvWUdi/8vIP2BVuSYTt/n5Sa
-         QREw==
-X-Gm-Message-State: AOAM531xcMszQMvYyKoQNH8+LvgqYX2b9q0LMSep99cTVS+14mg9xH/O
-        g1ShEmR3X7eGSi7uXnz9+0ogZvAw1kAMkd4/vxcvxg==
-X-Google-Smtp-Source: ABdhPJxwoBoaJUAj4plt+pdIU7wdSzuC0ZpgsoMtyEiUZb3FLtCyC2h4coD4m6h+xB/PogKudj7M6FJYYRHp3NZovvQ=
-X-Received: by 2002:a1f:368d:: with SMTP id d135mr6094526vka.23.1600859577612;
- Wed, 23 Sep 2020 04:12:57 -0700 (PDT)
-MIME-Version: 1.0
+        Wed, 23 Sep 2020 08:53:45 -0400
+Received: from mail-am6eur05on2090.outbound.protection.outlook.com ([40.107.22.90]:5089
+        "EHLO EUR05-AM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726130AbgIWMxp (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 23 Sep 2020 08:53:45 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Za9AyjWouFehPWx87iMa9vvzGxgnA1u9EWmLokTrgoop7vGkxaCoWb4P5su6pNHHVrwG/VYo4X0Q6HQzmalvkplQHs8q9V0pzB6vSCXx3ZWR31T1vsYjPgwrfs5A5AWDSM6pZ8ct1Bi+b7YFIhggskaSVuyJWcwCNBv5u3C6rEDVoTHKidBQy7vibRynrWdpByOsm14W7Av3H851fZgS6492O6lLrae5/osg6y2LtLwQ2+mgY1fzn7WzDRWYVGKIuwh5BgfCUBB3v720TJDKiYKnRedDAmysVHonkxkcnr7JvslTEdjcRUwKG4R9U7VDuhLmF6dvsFrhpqsl0sj9mg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=mECJz6l/hPVTi5uo1BrOuTzdwm7ipOj/xhKO3W4iGO0=;
+ b=B+XwtA6q/E8vjG4PKM9+EfP4nbdIwoYZj0hAlVwgqcGZItv57k6COSml/vHeAGnecnsdGvfGfM6aMe52dlg8p9kD/MNmkE60Wtqf1i15hZCyfeCE/qLQdSb28WuXc8t0EmTlXWMyrYPeHtX17ScKCh+B+rqOSY04KsJNmtkbha0X4gmkttQRiK463tD6AfTl4b64zVN3yhTE1/Ofduap01z8l+1WP4IrHaJRmCs3viWtTaKZnAtA7+oJWlhTJGpJmbv1Bw4z1ZWHeaePNU3nfY4qIqhc80ScBmDRW6egqQPR6sJ4yT7uq19CdpKCBSMdqJyiii2znPqqeMxPPnQ8dg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
+ header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=mECJz6l/hPVTi5uo1BrOuTzdwm7ipOj/xhKO3W4iGO0=;
+ b=L12sg0z0B08XleVMxgMNhF2w3Yc/olarjiCVNcOStVksSetTXAhmIF4HeBfV/EpTwNqdm5Xtehl/eUpRLu8Mg4XuaLGeG9jnM13N30vuR/qQ3DLyHO87CKa+cOoRb19d0p/tfbVnHOWHTAFbFGTMMFKJGZ25gtVRFrAa005QePQ=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=virtuozzo.com;
+Received: from AM6PR08MB4756.eurprd08.prod.outlook.com (2603:10a6:20b:cd::17)
+ by AM7PR08MB5415.eurprd08.prod.outlook.com (2603:10a6:20b:10d::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3391.15; Wed, 23 Sep
+ 2020 12:53:41 +0000
+Received: from AM6PR08MB4756.eurprd08.prod.outlook.com
+ ([fe80::71e0:46d9:2c06:2322]) by AM6PR08MB4756.eurprd08.prod.outlook.com
+ ([fe80::71e0:46d9:2c06:2322%7]) with mapi id 15.20.3391.027; Wed, 23 Sep 2020
+ 12:53:41 +0000
+Subject: Re: Copying overlayfs directories with index=on
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Vivek Goyal <vgoyal@redhat.com>
+Cc:     Pavel Tikhomirov <snorcht@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org
 References: <a8828676-210a-99e8-30d7-6076f334ed71@virtuozzo.com>
  <CAOQ4uxgZ08ePA5WFOYFoLZaq_-Kjr-haNzBN5Aj3MfF=f9pjdg@mail.gmail.com>
- <1bb71cbf-0a10-34c7-409d-914058e102f6@virtuozzo.com> <CAOQ4uxieqnKENV_kJYwfcnPjNdVuqH3BnKVx_zLz=N_PdAguNg@mail.gmail.com>
- <dc696835-bbb5-ed4e-8708-bc828d415a2b@virtuozzo.com> <CAOQ4uxg0XVEEzc+HyyC63WWZuA2AsRjJmbZBuNimtj=t+quVyg@mail.gmail.com>
- <20200922210445.GG57620@redhat.com> <CAOQ4uxg_FV8U833qVkgPaAWJ4MNcnGoy9Gci41bmak4_ROSc3g@mail.gmail.com>
- <CAJfpegvNZ6Z7uhuTdQ6quBaTOYNkAP8W_4yUY4L2JRAEKxEwOQ@mail.gmail.com> <CAOQ4uxgKr75J1YcuYAqRGC_C5H_mpCt01p5T9fHSuao_JnxcJA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgKr75J1YcuYAqRGC_C5H_mpCt01p5T9fHSuao_JnxcJA@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 23 Sep 2020 13:12:46 +0200
-Message-ID: <CAJfpegviT38gja+-pE+5DCG0y9n3GUv4wWG_r3XmSWW6me88Cw@mail.gmail.com>
-Subject: Re: virtiofs uuid and file handles
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Max Reitz <mreitz@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+ <1bb71cbf-0a10-34c7-409d-914058e102f6@virtuozzo.com>
+ <CAOQ4uxieqnKENV_kJYwfcnPjNdVuqH3BnKVx_zLz=N_PdAguNg@mail.gmail.com>
+ <dc696835-bbb5-ed4e-8708-bc828d415a2b@virtuozzo.com>
+ <CAOQ4uxg0XVEEzc+HyyC63WWZuA2AsRjJmbZBuNimtj=t+quVyg@mail.gmail.com>
+ <20200922212534.GH57620@redhat.com>
+ <CAOQ4uxjp6NpF_Q0QqUTzE5=YiKz9w6JbUVyROG+rNFcHPAThFg@mail.gmail.com>
+From:   Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Message-ID: <e928fcf0-45f2-f2a8-f8f1-1ad300eb6fde@virtuozzo.com>
+Date:   Wed, 23 Sep 2020 15:53:40 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.11.0
+In-Reply-To: <CAOQ4uxjp6NpF_Q0QqUTzE5=YiKz9w6JbUVyROG+rNFcHPAThFg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: AM0PR04CA0102.eurprd04.prod.outlook.com
+ (2603:10a6:208:be::43) To AM6PR08MB4756.eurprd08.prod.outlook.com
+ (2603:10a6:20b:cd::17)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.1.41] (95.179.127.150) by AM0PR04CA0102.eurprd04.prod.outlook.com (2603:10a6:208:be::43) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.22 via Frontend Transport; Wed, 23 Sep 2020 12:53:41 +0000
+X-Originating-IP: [95.179.127.150]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 6983530f-9fb4-4697-bc7e-08d85fbfb2c4
+X-MS-TrafficTypeDiagnostic: AM7PR08MB5415:
+X-Microsoft-Antispam-PRVS: <AM7PR08MB541512D6E8A8295AB49117E9B7380@AM7PR08MB5415.eurprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ThgJgaeZHrXe7asJl08B2qRJWKD32YPB9Xo1M/vUGVDg2/tBkz6dggvocmQlUQhhFVjaem7eZi8CRoW8wcB+pGUuueMNUqKhGgFFsC3NpAVRaH6plNoyt3VAy1C+o9AeNXf2MKNHltFxbcki/fedL1r+SjFlu5WEFQKTjjLV0/YWnSvNs5sIgbaMyLN39d5R04r8ixuWYHkz366hDVxFrQb9ElOlGVGHnvglF8ddTClkurK583aQsZqvwe/BwaxsD541s7trG8r+SnUQ7gPpns/atmmVt/l1GWWmT8rW//TEz+/0MCpXMcMmEv7nYzqbmhtLUCVT2xkLs4rExEBDWHBZfBNdu/rI43SLaQbQ9lb7tulaqmrtgnkL3NhS4KXWmnC1znt9lmOe1SxzmYsCI4FRqRgzpEdnvz0KtHbQTQ/KxfEqGZFRanwq8HU/uUWr5GdLUI8V9E4QE1NTCPQDS0RZQXFeBJmJKlIiafuiD+TcVBYd/pBa3bye9qO2w6Mg
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR08MB4756.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(39840400004)(366004)(136003)(376002)(346002)(8676002)(36756003)(316002)(478600001)(66946007)(66556008)(66476007)(8936002)(2906002)(2616005)(4326008)(956004)(31696002)(5660300002)(26005)(966005)(110136005)(31686004)(52116002)(54906003)(86362001)(6486002)(16526019)(53546011)(186003)(16576012)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: AonzWlzaiWJWmYPRwLJJYE7UVdpJ7MjaHcaXD8qm8IJVTz/NxqvCAlTO5qAWJ5d9Me11fL52ktU4q0Tu0090YTQRl9YG4e5IKJI2XdDWRShK4k6DH4RqfFeP39l2XhWcCnCwrPbGraKAVHcur8pPEiRdLVN/BWqgWq3rlxxngW/TSgJ3Jm+OOqnXKnozr3NCSwlIbuBmoIcFxThREIrThzJyO0FHMaqUvuaDLFH1GVng/moC/BZax3O/fOvncyn8VNE7prdPV+xwnfjh445vX4ovMDgVQtF0CFjOtUA8Vj5JHF2tnycIBDlm1n00dLImfSjDzh7GSf8s9yVvOshGPGldzxUJywVHhPCPatl9CodlyvKwZqgC9kMT8tfYabAyNb/P0eke/EGge6Ik3Yyqec+zeYNoTqnlyCZ83zvR3sXRjTCE5ES5cfkoNLaMwWppD4VqJIDQOFP3ktbWBCl9j6rAVvrW13H9qdKnOiMJyNqIZ1eNdlG9MYBpNb6WviIpAZ0ub7kyf93HOmFE6VrdumvD79e4ovjlR+NwtA/Zv2kt1eCTrieOmDFkTNWW6QZCAQyWj2c1NfzJtUei9Yxk9pGTB56fnpxYwstyyziqudZy8vaM5u64TfbEvcg5ZkUjR5RmazlRvB/WN4HY/V24og==
+X-OriginatorOrg: virtuozzo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 6983530f-9fb4-4697-bc7e-08d85fbfb2c4
+X-MS-Exchange-CrossTenant-AuthSource: AM6PR08MB4756.eurprd08.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Sep 2020 12:53:41.7923
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: L6mzV4SWTswRysB3yS1xqNwciUvDSbZqGZL6seVfP4GsrYNTIHNzAnGRUejRqRqO9RHZa/8ByUHPWYd73ugWSESg0AvrmbFvyJ3GV+XsCqY=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7PR08MB5415
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Sep 23, 2020 at 11:57 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Wed, Sep 23, 2020 at 10:44 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Wed, Sep 23, 2020 at 4:49 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > > I think that the proper was to implement reliable persistent file
-> > > handles in fuse/virtiofs would be to add ENCODE/DECODE to
-> > > FUSE protocol and allow the server to handle this.
-> >
-> > Max Reitz (Cc-d) is currently looking into this.
-> >
-> > One proposal was to add  LOOKUP_HANDLE operation that is similar to
-> > LOOKUP except it takes a {variable length handle, name} as input and
-> > returns a variable length handle *and* a u64 node_id that can be used
-> > normally for all other operations.
-> >
-> > The advantage of such a scheme for virtio-fs (and possibly other fuse
-> > based fs) would be that userspace need not keep a refcounted object
-> > around until the kernel sends a FORGET, but can prune its node ID
-> > based cache at any time.   If that happens and a request from the
-> > client (kernel) comes in with a stale node ID, the server will return
-> > -ESTALE and the client can ask for a new node ID with a special
-> > lookup_handle(fh, NULL).
-> >
-> > Disadvantages being:
-> >
-> >  - cost of generating a file handle on all lookups
->
-> I never ran into a local fs implementation where this was expensive.
->
-> >  - cost of storing file handle in kernel icache
-> >
-> > I don't think either of those are problematic in the virtiofs case.
-> > The cost of having to keep fds open while the client has them in its
-> > cache is much higher.
-> >
->
-> Sounds good.
-> I suppose flock() does need to keep the open fd on server.
+Hi, I've sent a patch which is trying to acheive what Amir had 
+suggested. Please take a look:
 
-Open files are a separate issue and do need an active object in the server.
+[PATCH] ovl: introduce new "index=nouuid" option for inodes index feature
 
-The issue this solves  is synchronizing "released" and "evicted"
-states of objects between  server and client.  I.e. when a file is
-closed (and no more open files exist referencing the same object) the
-dentry refcount goes to zero but it remains in the cache.   In this
-state the server could really evict it's own cached object, but can't
-because the client can gain an active reference at any time  via
-cached path lookup.
-
-One other solution would be for the server to send a notification
-(NOTIFY_EVICT) that would try to clean out the object from the server
-cache and respond with a FORGET if successful.   But I sort of like
-the file handle one better, since it solves multiple problems.
-
-Thanks,
-Miklos
-
->
-> Are there any other states for an open fd that must be preserved?
-
-
->
+On 9/23/20 5:10 AM, Amir Goldstein wrote:
+> On Wed, Sep 23, 2020 at 12:25 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+>>
+>> On Tue, Sep 22, 2020 at 02:15:55PM +0300, Amir Goldstein wrote:
+>>
+>> [..]
+>>>
+>>> No objection, but if I were you I wouldn't bother re-writing new ovl_fh.
+>>> If you know you don't care about matching uuid in the first place,
+>>> it is better to add a mount option to overlayfs 'index=nouuid' to relax the
+>>> uuid comparison check for ovl_fh.
+>>
+>> So is it possible that somebody uses "nouuid" and then a different file
+>> got same file handle (as stored in upper). I think that's one issue
+>> you were worried about while addressing squashfs fix. IIRC, Miklos had said
+>> with-in same filesystem it will not happen and across filesystems
+>> sb->uuid check will ensure this does not happen. IOW, "nouuid" will
+>> open the possibility of upper file handle matching a different file?
+>>
+> 
+> Well, to be accurate, I did write that when cloning a base lower fs (like with
+> dm-thinp) the problem reported with re-created lower squashfs still exists but
+> that it is a corner case [1].
+> 
+> But what I suggested is that index=nouuid will only be allowed for all layers
+> on the same fs, where this is not a problem.
+> 
 > Thanks,
 > Amir.
+> 
+> [1] https://lore.kernel.org/linux-unionfs/CAOQ4uxiq7hkaew4LoFZkf4R73iH_pU7OHOriycLCnnywtA0O0w@mail.gmail.com/
+> 
+
+-- 
+Best regards, Tikhomirov Pavel
+Software Developer, Virtuozzo.
