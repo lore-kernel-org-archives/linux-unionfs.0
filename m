@@ -2,185 +2,129 @@ Return-Path: <SRS0=188/=DB=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80DCBC4363D
-	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Sep 2020 14:33:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 836D4C2D0E2
+	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Sep 2020 16:38:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2F6262220D
-	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Sep 2020 14:33:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF9A123741
+	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Sep 2020 16:38:16 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lC4XLEk3"
+	dkim=pass (1024-bit key) header.d=virtuozzo.com header.i=@virtuozzo.com header.b="tL8n6vmI"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728217AbgIXOdv (ORCPT
+        id S1727816AbgIXQiQ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 24 Sep 2020 10:33:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58626 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728088AbgIXOdv (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 24 Sep 2020 10:33:51 -0400
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F475C0613CE;
-        Thu, 24 Sep 2020 07:33:51 -0700 (PDT)
-Received: by mail-io1-xd43.google.com with SMTP id y74so3460999iof.12;
-        Thu, 24 Sep 2020 07:33:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=PXWSZ+VrZm35k0O0ZxUenkT2cVVC+SUtKwC8n3lqlpQ=;
-        b=lC4XLEk3b/P7rF8cJyJNWEukkijBdZLAi8GVyZAibM3MbVMz2aIn6Nr4mhIXE7fwZn
-         2ThxZwhcnFA8FRgj/ecpgtCsuxjnF9f0kxevHPHV9At+Ul8F2N2kMui3qKP3bYu9t+S1
-         08hXYyUK5KMHTF6ndLdZxfYBa7jww2Pmuu5wuy8wD5yY23UEZNMshH5cUBsa08kzT/kD
-         Gn/9Di1l76Qa4iCbCFUDwap08iO6llbhmSzyffyU1YfI8gxTSnvBuupexH5/tGF8xtYK
-         o9eUdPVddRHWnAXI+HswxQh7/xB9kRDEB708aSHhOPlmoux1KweZ6dggLSOnNn6o6WfY
-         w/Rg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=PXWSZ+VrZm35k0O0ZxUenkT2cVVC+SUtKwC8n3lqlpQ=;
-        b=GkqDk+98mJJFT3uoeY7JvmfjGrooWm6dydafu6aTmp7057EV3jcqykzC6euHSw+tyQ
-         S/95hK6XI49rcTX+kWkyFyB8xMVFjAx2wDNPnQFjzU5MAaDjXfdNODMOfqFSS6x8Cjso
-         zbNb2vHeBP0inpXUPKx0HBg6Ypuj4txy+48YQDcNdyd3KFuiEc5muxzP3vb2s1o7PL/V
-         UBScNpRcQKRkpKe13h7JcETs9ZmZZybfBAWPaa75GjsWdN04gn1LLx5o6j0Asf+bQzAV
-         Zogkl8GXiWcyNIJMF7qnVi3yVbuOFXnLKMlX+rArT8t0xcbdJga4L8HhkdGZb08/aFB4
-         AGoQ==
-X-Gm-Message-State: AOAM533744nDCj8gyeole7MHtPcXPcYF2y8GsgBmqmc9l88ZiKAEqy1E
-        /FJCiuvReSoaJvPkmIidbOZfnh4Zl17mY3bDhxbGw6RZ
-X-Google-Smtp-Source: ABdhPJz7fwlGNfduKtuy9Wm5RIs9GAzBnywJSe+NLkui8+fhFm8NdD5cyDxHQeRzvNdSTjWuQNIZOVfGsJ8XVqOQ3Wk=
-X-Received: by 2002:a05:6602:2e81:: with SMTP id m1mr3485683iow.64.1600958030718;
- Thu, 24 Sep 2020 07:33:50 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200923152308.3389-1-ptikhomirov@virtuozzo.com>
- <20200923194713.GD88270@redhat.com> <CAOQ4uxjZ58bCNz7K6_2bk+O2ALEVFxoNPBXABKMC-+D9-oZ6=w@mail.gmail.com>
- <20200924131853.GA132653@redhat.com>
-In-Reply-To: <20200924131853.GA132653@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 24 Sep 2020 17:33:39 +0300
-Message-ID: <CAOQ4uxizU=0htHdu7JBBx6a4UB0Lj6HN3nf+mykinm+_1XLWGg@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: introduce new "index=nouuid" option for inodes
- index feature
-To:     Vivek Goyal <vgoyal@redhat.com>
+        Thu, 24 Sep 2020 12:38:16 -0400
+Received: from mail-eopbgr50101.outbound.protection.outlook.com ([40.107.5.101]:64359
+        "EHLO EUR03-VE1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726458AbgIXQiQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 24 Sep 2020 12:38:16 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=hCZtcj6sVzzOvkO74iAKUXgIF6GB8ouXCFRTTD6YFdM+RR93ANY+rtjmbW8pHH3jyDG+1vc3vBA4U7hWer4dDLKlvWIrV/snZPdlIkLOSA2tGsqHxbIJUyQgX0qYtGWmCL1lGrvIg9IdentqLZuGQgL7kGW3+kdeHnnFI0qUpZk2IlBuZrurKxyuzAeTKZyCtLgchfKUfzzVZzwZI0cdqfijr82CQLsJtTx7tNRlWBBTGacLkTOpx7NFlWKYVBD+pcBH41BEDhGM9JnNaJrKt8FVCudJYiwCZ3NB96gBUngPqIYEutLpnRO4Zk9VZMw0sUsiBs4Cs5ln4N9pOpfDow==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=j65g5N2xjjPc+P80xUOn25JpzaPzmbFRVZPh8vlif4M=;
+ b=ZlJ9cBMznMOKntCHiOeqE2vgI7B2V0qftajHS1KlY9LTVqNN7d1T1kHerIdmUp0y8uyG1oZA1Awu/6a3GzZN8iQvSqTP3fkPwlLuVIB5yF3Q3sUf/v/Zvzaov5qU6Yi9jTeZ0DelNXSBL63sL0aKJMPXCkyHucWE1eriqr5M+VIymLk5e1idmqvaL2PWiQozJ0ZNIkx2JfkvwPQYqmJxnVf4kvqFzEdD1rRXoK3SwAzYR69J66gB5/xnPwxm4iS7QHwK/y6peX3XsdKxaTBeWYkP8QjhHg2qa/CD7IzcB5EYr7mZkk8AcgmrIun+VkIpsCLOCrKjx2OKEkYgvNWN4w==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
+ header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=j65g5N2xjjPc+P80xUOn25JpzaPzmbFRVZPh8vlif4M=;
+ b=tL8n6vmIAlaIqhU4RGkzJ5kBAqYZC3bxUkVDGIgs/JPsifcJxBDnsG9ESuYHVlDbWomDUkkISpMVhGJ09yQmLcIB1UgnDLzQ0DiuGZvpmBb1g2dNZY3aTgR21Q8nxqilMR5TyzoCDVS1aUU5J3EXEcqximsS6J4yE25EoXiKHis=
+Authentication-Results: szeredi.hu; dkim=none (message not signed)
+ header.d=none;szeredi.hu; dmarc=none action=none header.from=virtuozzo.com;
+Received: from AM6PR08MB4756.eurprd08.prod.outlook.com (2603:10a6:20b:cd::17)
+ by AM7PR08MB5430.eurprd08.prod.outlook.com (2603:10a6:20b:106::22) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.20; Thu, 24 Sep
+ 2020 16:38:12 +0000
+Received: from AM6PR08MB4756.eurprd08.prod.outlook.com
+ ([fe80::71e0:46d9:2c06:2322]) by AM6PR08MB4756.eurprd08.prod.outlook.com
+ ([fe80::71e0:46d9:2c06:2322%7]) with mapi id 15.20.3391.027; Thu, 24 Sep 2020
+ 16:38:12 +0000
+From:   Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Amir Goldstein <amir73il@gmail.com>,
+        Vivek Goyal <vgoyal@redhat.com>, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v3 0/2] ovl introduce "uuid=off"
+Date:   Thu, 24 Sep 2020 19:37:53 +0300
+Message-Id: <20200924163755.7717-1-ptikhomirov@virtuozzo.com>
+X-Mailer: git-send-email 2.26.2
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: AM3PR07CA0084.eurprd07.prod.outlook.com
+ (2603:10a6:207:6::18) To AM6PR08MB4756.eurprd08.prod.outlook.com
+ (2603:10a6:20b:cd::17)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from localhost.localdomain (95.179.127.150) by AM3PR07CA0084.eurprd07.prod.outlook.com (2603:10a6:207:6::18) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3433.15 via Frontend Transport; Thu, 24 Sep 2020 16:38:11 +0000
+X-Mailer: git-send-email 2.26.2
+X-Originating-IP: [95.179.127.150]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 0bdb5d62-657b-4e23-7252-08d860a83a59
+X-MS-TrafficTypeDiagnostic: AM7PR08MB5430:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <AM7PR08MB5430A18DCBC6690982756A46B7390@AM7PR08MB5430.eurprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:2803;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: 43dE3Dhn67zyMJCEV1N9sQwrhJ4kixa84IKKi7qKcC9RqChauaRZuyW3UyPm11ua+4oD32zbAfdr10eQQkJYKJllUZbfxhcDJSdKtqvssvvmpBvT7sTRrdh7b4TBWkAaz5Yc9NhnsiO0Dzq2obkjYZosjoSMviF3BNwmjJlUeiNaTa3wwDJ9XlCGAir9IJ0im51jACayDAA+9XYE8crRtE2rV4OEKS7NjRCpgATD8aQ63KWoJEY4cUFmCGcCsyzVqwF8D4gruLanP0zer2LFJh6LL/Hh+slUNNp56lYnx1Abf1XayPUcwjFMk3lhIeUqhj6ecmGVorR48Y0YqOMtevNvCIv9xAX6wyN2SYJFRJRg0K+Unjk1XBiRAurX+Ppd
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR08MB4756.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(396003)(346002)(39840400004)(376002)(136003)(52116002)(316002)(478600001)(186003)(6506007)(1076003)(36756003)(4326008)(6512007)(86362001)(6916009)(2906002)(16526019)(66556008)(5660300002)(26005)(8936002)(69590400008)(6666004)(6486002)(83380400001)(956004)(66946007)(2616005)(54906003)(8676002)(66476007);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: KMrYcA62NKDDLVZRb/DhdtNpbX0irRN09BEU5Ua/iJBGYpOySzR5Oc1fD/H3kePJxMT6lWbYdJg38yZ331++98lX9F03PpcDezRxeMOa3uqBUP0uj0ZjTqKvmtCEQuoQOIWLjn0+U/LPGLPgXe+oCnGldmDsoZWy8XDMwNscQqD5qPzyKKfHD5uBsdVVXh6oZe6fP5icvutsFrKsjnGTZ9q/8P1pHL1rDCIHJrQiWZ24wWSGgNEVwp5jG1WqDcXBLPh6vTpJZGxQwGdEtW3o5n+/AbyOPyUt57EjGeTg4qEbzWek2U9I0f0F7Hqtwbi2+wuQSCZnOxTG8tUOj6x9rQFYq9ukFWS8n2iLg7pbsKM92nM/z6saaxh4UIiHcdaJO0Psd4SKeH+wSePe2RT5py+UufLMvOHdgfgOqZJ8Qg4POTn/5gQ3cTyUkm/otNdhSVdeGlhePdAMsBgOg3FuDWUxqly1ZRWb2qjwf5IMYuswfto/T9IIMVZFE2qahEugX2lPxjhBT9xXxXF688tf2x5xwUQjrYrRaPM9WiODOhGI2y9IBoQ7gIN7/Pthmrf+V+0c6+ggTFli2hjglDa75GUGroSq72/qcXWAnt609jR4Mucq9oNvUx/DOAEegbzRqe4PSO5JW/EkvwoMbdQNEQ==
+X-OriginatorOrg: virtuozzo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0bdb5d62-657b-4e23-7252-08d860a83a59
+X-MS-Exchange-CrossTenant-AuthSource: AM6PR08MB4756.eurprd08.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 24 Sep 2020 16:38:12.4386
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: uKnISxa3sW5z6ZFu935AHPTf/19AnFHx8+ufR3Uv2pswkBL8FzEe1ZhCGfY8onh8kp2Gt2TAoOhY3H5NoXQGEdekaA4bI8Vqh+jWuEIGnrg=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM7PR08MB5430
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 24, 2020 at 4:18 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Thu, Sep 24, 2020 at 05:44:22AM +0300, Amir Goldstein wrote:
-> > On Wed, Sep 23, 2020 at 10:47 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > >
-> > > On Wed, Sep 23, 2020 at 06:23:08PM +0300, Pavel Tikhomirov wrote:
-> > > > This relaxes uuid checks for overlay index feature. It is only possible
-> > > > in case there is only one filesystem for all the work/upper/lower
-> > > > directories and bare file handles from this backing filesystem are uniq.
-> > >
-> > > Hi Pavel,
-> > >
-> > > Wondering why upper/work has to be on same filesystem as lower for this to
-> > > work?
-> > >
-> >
-> > I reckon that's because I asked for this constraint, so I will answer.
-> >
-> > You are right that the important thing is that all lower layers are
-> > on the same fs, but because of
-> >   a888db310195 ovl: fix regression with re-formatted lower squashfs
->
-> Hi Amir,
->
-> So with "upper on same as lower fs" contstraint we are just making it
-> little harder so that people don't use recreated lower with existing
-> upper? Is that the intention behind this constraint.
->
-> On a side note, I have a question about above commit.
->
-> So this is basically the issue of upper stored file handle resolving to
-> a different file (in recreated lower). And we are considering this to
-> be a corner case. But the very fact a user was running into it, it
-> probably is not that hard to reproduce. So with the fix a888db310195,
-> we avoided the problem for simple configurations (no-index, no-metacopy,
-> and no xino). But if same user runs with index=on, with recreatd lower,
-> they can still run into similar issues?
->
-> >
-> > I preferred to keep the rules simpler.
-> >
-> > Pavel's use case is clone of disk and change of its UUID.
-> > This is a real use case and I don't think it is unique to Virtuozzo,
-> > so I wanted index=nouuid to address that use case only and
-> > I prefer that it is documented that way too.
->
-> Sure. I understand that. I am only harping on this to make sure
-> we tell people to not use this "recreated lower with existing upper".
-> In Pavel's use case, it is more of a cloned use case and not
-> re-created use case.
->
-> Otherwise people will re-create lower layers with regular filesystems and
-> use index=nouuid and then run into squashfs like issue one day.
->
-> Or we could document what Miklos had said. Using existing upper
-> with recreated lower will likely run into issues with advanced
-> overlay features like (index, metacopy, xino etc).
->
+This is a v3 of:
+ovl: introduce new "index=nouuid" option for inodes index feature
 
-I am perfectly fine with saying that
-and with allowing the special case of cloning disk with index=nouuid.
+Changes in v3: rebase to overlayfs-next, replace uuid with null in file
+handles, propagate ovl_fs to needed functions in a separate patch, add
+separate bool "uuid=on/off" option, fix numfs check fallback, add a note
+to docs.
 
-There was a "patch" floating around for improving the doc,
-I was assuming you will pick it up add your own proposed changes
-and make it into a proper patch.
+CC: Amir Goldstein <amir73il@gmail.com>
+CC: Vivek Goyal <vgoyal@redhat.com>
+CC: Miklos Szeredi <miklos@szeredi.hu>
+CC: linux-unionfs@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
+Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
 
-> >
-> > Ironically, one of the justifications for index=nouuid is virtiofs -
-> > because fuse is now allowed as upper (or as same fs),
-> > one can already use fuse passthough (or one could use fuse
-> > passthrough when nfs export works correctly) as a "uuid anonymizer"
-> > for any fs, so in practice, index=nouuid cannot do any more harm
-> > then one can already do when enabling index over virtiofs.
->
-> Interesing. Using virtiofs or a fuse passthrough filesystem on top
-> just to avoid uuid check will be lot of work.
->
-> But keeping upper/ on same fs as lower fs constraint does not help with this.
->
+Pavel Tikhomirov (2):
+  ovl: propagate ovl_fs to ovl_decode_real_fh and ovl_encode_real_fh
+  ovl: introduce new "uuid=off" option for inodes index feature
 
-No, it does not. I am only saying index=nouuid is "just" as bad
-as what people can already do with virtiofs. Not much worse.
+ Documentation/filesystems/overlayfs.rst |  6 ++++++
+ fs/overlayfs/Kconfig                    | 17 +++++++++++++++++
+ fs/overlayfs/copy_up.c                  | 25 ++++++++++++++-----------
+ fs/overlayfs/export.c                   | 10 ++++++----
+ fs/overlayfs/namei.c                    | 24 ++++++++++++++----------
+ fs/overlayfs/overlayfs.h                | 14 ++++++++------
+ fs/overlayfs/ovl_entry.h                |  1 +
+ fs/overlayfs/super.c                    | 25 +++++++++++++++++++++++++
+ fs/overlayfs/util.c                     |  3 ++-
+ 9 files changed, 93 insertions(+), 32 deletions(-)
 
-> >
-> > That is why I prefer the interpretation that index=nouuid means
-> > "use null uuid instead of s_uuid for ovl_fh" over the interpretation
-> > "relax comparison of uuid in ovl_fh".
->
-> So bottom line is that there are many ways where users can recreate
-> lower layers and run into issues.
->
-> - squashfs with index
-> - use a fuse passthrough filesystem
-> - use index=nouuid
->
-> So to me documenting that don't use existig upper with recreated lower
-> should help with all.
->
-> And putting a constraint of "lower and upper being on same fs" seems fine
-> for now but I am not sure it helps a lot. Anyway, I am fine with this
-> constratint. Just wanted to understand the rationale behind it.
->
+-- 
+2.26.2
 
-Only rational is - it is intended for cloned disk - don't make it easy
-to use this for
-anything else.
-
-Thanks,
-Amir.
