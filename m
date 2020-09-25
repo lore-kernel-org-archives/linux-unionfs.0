@@ -2,158 +2,95 @@ Return-Path: <SRS0=6QjP=DC=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-0.1 required=3.0 tests=BAYES_50,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B04C4363D
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Sep 2020 17:49:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3997C4727E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Sep 2020 22:10:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 54C64221EC
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Sep 2020 17:49:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 570C520759
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Sep 2020 22:10:17 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EHQc34dV"
+	dkim=pass (1024-bit key) header.d=imperialcapgroup.com header.i=@imperialcapgroup.com header.b="AO74prRB";
+	dkim=pass (1024-bit key) header.d=imperialcapgroup.com header.i=@imperialcapgroup.com header.b="AO74prRB"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729711AbgIYRtj (ORCPT
+        id S1726587AbgIYWKR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Sep 2020 13:49:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56788 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728353AbgIYRtj (ORCPT
+        Fri, 25 Sep 2020 18:10:17 -0400
+Received: from [46.166.185.98] ([46.166.185.98]:54984 "EHLO
+        host.imperialcapgroup.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1726037AbgIYWKR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Sep 2020 13:49:39 -0400
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA9B2C0613CE;
-        Fri, 25 Sep 2020 10:49:38 -0700 (PDT)
-Received: by mail-io1-xd41.google.com with SMTP id r25so3783054ioj.0;
-        Fri, 25 Sep 2020 10:49:38 -0700 (PDT)
+        Fri, 25 Sep 2020 18:10:17 -0400
+X-Greylist: delayed 17738 seconds by postgrey-1.27 at vger.kernel.org; Fri, 25 Sep 2020 18:10:15 EDT
+Received: from imperialcapgroup.com (unknown [185.236.203.204])
+        by host.imperialcapgroup.com (Postfix) with ESMTPA id E3D211237EA
+        for <linux-unionfs@vger.kernel.org>; Fri, 25 Sep 2020 05:13:31 +0200 (CEST)
+DKIM-Filter: OpenDKIM Filter v2.11.0 host.imperialcapgroup.com E3D211237EA
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=2Us4LjEbuSKpAUvGs1rVM1OWyulrtnSpOCw9dCioAks=;
-        b=EHQc34dV5WNeECq/FBm317/Y/cJbliBg/MZdEcsBzpogYnReCbNVz+P3SNFAp1oDAZ
-         3AsKXQOKYLu315ZVRJ9LAE0q/QsovUH+ud0ZFlWRPrkooW+BbsJ00xcNHiq4LA+A7cvE
-         HJ4igp7T7vOd9ttu3/lrb3rLrXac12odByrnaDA3ZEcLnHJsFbzy+wueMZny4SuQ211D
-         xtO1vsYFsonjoABS57oH1yUVNZvABWqmo004nDuWQQJJVPgiHgzMMs1Jc94WHYoEr0aO
-         WJotH5//a8hiY0moJEDddYkTzZI7Jy6cKM1jmXM2flfOQidfppZ0fgtSW5C5DNVOameK
-         3jJQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=2Us4LjEbuSKpAUvGs1rVM1OWyulrtnSpOCw9dCioAks=;
-        b=UrsnNtGevH2AehJ/1EMtMMeAei8RfhJH9HlWEUulzHQh6EyS3VSgY/vUGSdqdBKrdD
-         TOt3gn3ybFlgKgckeJq3/Q8K+U+/E4e4dqrzBDmwDV/+ZNxAtH5qFDqNCnoNyuhjxECF
-         WVFvjSSu8tVAnPSYswWsWjCe6STbljpd74Qt7wVWk4SYO/SzQOC6uzCgevhknJigF9uZ
-         mDRw0tl2yDYXAXILERTcBS40ZHtuZCBfXTAEacWYz71ku42n/TDNPJ82r5v+1SivVt+o
-         2dxnc4NHy6M9jc3UDbaxhE+8mCm+M8Rx+9WXftmxECLxYNF22Twn6DdOsAI9fmecF7j8
-         85RA==
-X-Gm-Message-State: AOAM532bpB93vwkMOMYguFyEkl8QcbpxYeFJxCWzP2MfxUgnDt+3Wdw6
-        S+T8k5U5enZN2nPNoFvQ558PbQVocFI1uN4YeDX1nbhinHA=
-X-Google-Smtp-Source: ABdhPJxmEosvtNHZ4tNHa2M5HHY8g8Mr46Or5U3B6wDLIl5SaDmvM0xheXzCtsPFeBbpyOqfm96qfKJyXDl68iHN1IM=
-X-Received: by 2002:a05:6638:2185:: with SMTP id s5mr198104jaj.120.1601056178034;
- Fri, 25 Sep 2020 10:49:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <20200921072127.373125-1-yangx.jy@cn.fujitsu.com>
- <CAOQ4uxitZDVjbvBnb95UHWD6CzaBeoJ8deqR6nbmgRRJ3P2=UA@mail.gmail.com>
- <5F686A74.4040002@cn.fujitsu.com> <CAOQ4uxhfUbFhecA9ShKUxyjS=LsMoyztXwWUJw-ZXm+Z0eJ6DQ@mail.gmail.com>
- <5F69B2A4.2050407@cn.fujitsu.com> <CAOQ4uxg-4xOSVxkLZrH_zrd9054z+SH_+YdcPnT3PVNYogJ3gw@mail.gmail.com>
- <5F6E08C8.8050305@cn.fujitsu.com>
-In-Reply-To: <5F6E08C8.8050305@cn.fujitsu.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 25 Sep 2020 20:49:26 +0300
-Message-ID: <CAOQ4uxh1-Sr2tYqY8iudFZdtvUrf3udAdU15kqWOPjD+7k2wzA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Support FS_IOC_[SG]ETFLAGS and FS_IOC_FS[SG]ETXATTR
- ioctls on directories
-To:     Xiao Yang <yangx.jy@cn.fujitsu.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        "Darrick J. Wong" <darrick.wong@oracle.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        fstests <fstests@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        d=imperialcapgroup.com; s=default; t=1601003613;
+        bh=6CXuz3tZVwV0sLbV3HksYvK1Xzbh6nLYCrrWqAmLkHM=;
+        h=Reply-To:From:To:Subject:Date:From;
+        b=AO74prRByD+oNLyi4q6a+wFVxIJU6Y5jfdk1Uua8v0OoaPzfV+IB41FPvyP1txOr2
+         lkAT/OTMTjcSSJvkIsRXnjYt6SV2wDN/Q7Xocx9IRX/V1jBgeLALtVMA4wNVEmikrb
+         TEUmfsOjR40fbDqs01W35U7oJVerXE3/NyZ5fjI8=
+DKIM-Filter: OpenDKIM Filter v2.11.0 host.imperialcapgroup.com E3D211237EA
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=imperialcapgroup.com; s=default; t=1601003613;
+        bh=6CXuz3tZVwV0sLbV3HksYvK1Xzbh6nLYCrrWqAmLkHM=;
+        h=Reply-To:From:To:Subject:Date:From;
+        b=AO74prRByD+oNLyi4q6a+wFVxIJU6Y5jfdk1Uua8v0OoaPzfV+IB41FPvyP1txOr2
+         lkAT/OTMTjcSSJvkIsRXnjYt6SV2wDN/Q7Xocx9IRX/V1jBgeLALtVMA4wNVEmikrb
+         TEUmfsOjR40fbDqs01W35U7oJVerXE3/NyZ5fjI8=
+Reply-To: laghoulli22@secsuremail.com
+From:   L A <laghoulli299@imperialcapgroup.com>
+To:     linux-unionfs@vger.kernel.org
+Subject: Co-Operation Required
+Date:   24 Sep 2020 20:13:33 -0700
+Message-ID: <20200924201333.483929AF421F1B48@imperialcapgroup.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="utf-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Sep 25, 2020 at 6:13 PM Xiao Yang <yangx.jy@cn.fujitsu.com> wrote:
->
-> On 2020/9/22 20:01, Amir Goldstein wrote:
-> > On Tue, Sep 22, 2020 at 11:15 AM Xiao Yang<yangx.jy@cn.fujitsu.com>  wr=
-ote:
-> >> On 2020/9/21 17:09, Amir Goldstein wrote:
-> >>> On Mon, Sep 21, 2020 at 11:55 AM Xiao Yang<yangx.jy@cn.fujitsu.com>  =
- wrote:
-> >>>> On 2020/9/21 16:17, Amir Goldstein wrote:
-> >>>>> On Mon, Sep 21, 2020 at 10:41 AM Xiao Yang<yangx.jy@cn.fujitsu.com>=
-    wrote:
-> >>>>>> Factor out ovl_ioctl() and ovl_compat_ioctl() and take use of them=
- for
-> >>>>>> directories.
-> >>>>>>
-> >>>>>> Signed-off-by: Xiao Yang<yangx.jy@cn.fujitsu.com>
-> >>>>>> ---
-> >>>>> This change is buggy. I had already posted it and self NACKed mysel=
-f [1].
-> >>>>>
-> >>>>> You can find an hopefully non-buggy version of it on my ovl-shutdow=
-n [2] branch.
-> >>>>>
-> >>>>> As long as you are changing ovl_ioctl(), please also take the secon=
-d
-> >>>>> commit on that
-> >>>>> branch to replace the open coded capability check with the
-> >>>>> vfs_ioc_setflags_prepare()
-> >>>>> generic helper.
-> >>>> Hi Amir,
-> >>>>
-> >>>> Thanks a lot for your quick reply. :-)
-> >>>> I will try to read and understand the metioned patches on your
-> >>>> ovl-shutdown branch.
-> >>> Please also verify my claim in the patch commit message, that the
-> >>> the test result of xfstest generic/079 changes from "notrun" to "succ=
-ess".
-> >> Hi Amir,
-> >>
-> >> With your patches, I have confirmed that generic/079 actually changed =
-from
-> >> "notrun" to "success".  Besides, one minor issue:
-> >> Could we avoid the following compiler warning?
-> >> -------------------------------------------------
-> >> fs/overlayfs/readdir.c: In function =E2=80=98ovl_dir_real_file=E2=80=
-=99:
-> >> fs/overlayfs/readdir.c:883:37: warning: passing argument 1 of
-> >> =E2=80=98ovl_dir_open_realfile=E2=80=99 discards =E2=80=98const=E2=80=
-=99 qualifier from pointer target
-> >> type [-Wdiscarded-qualifiers]
-> >>     883 |    realfile =3D ovl_dir_open_realfile(file,&upperpath);
-> >>         |                                     ^~~~
-> >> fs/overlayfs/readdir.c:842:56: note: expected =E2=80=98struct file *=
-=E2=80=99 but
-> >> argument is of type =E2=80=98const struct file *=E2=80=99
-> >>     842 | static struct file *ovl_dir_open_realfile(struct file *file,
-> >>         |                                           ~~~~~~~~~~~~~^~~~
-> >> -------------------------------------------------
-> >>
-> > Shouldn't be a problem to change ovl_dir_open_realfile()
-> > to take a const struct file * argument I think.
-> Hi Amir,
->
-> Other than the compiler warning I tested your patches on our
-> enviroment and didn't find any issue, so add:
-> Reviewed-by: Xiao Yang <yangx.jy@.cn.fujisu.com>
->
-> Thank you for sharing these patches again. :-)
+Hello there,
 
-Please post the fixed patches rebased on top of
-git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-ne=
-xt.
+I am Laghouili Abdellatif. I am contacting you because I have a=20
+proposal that I think may be interested in. I represent the=20
+interest of my brother in-law who was a minister in the Syrian=20
+Government. As you probably know, there is a lot of crisis going=20
+on currently in Syria and my brother in-law has fallen out with=20
+the ruling Junta and the president because of his foreign=20
+policies and the senseless war and killings that has been going=20
+on for a while. Everybody in Syria is fed up and want a change=20
+but the president is too powerfull and he simply kills anyone=20
+that tries to oppose him. My brother in-law belives that he is at=20
+risk and he is now very scared for the safety of his family=20
+especially his kids. In order to ensure that his family is taken=20
+care of and protected incase anything happens to him, he has=20
+asked me to help him find a foreign investor who can help him=20
+accommodate and invest 100 MUSD privately that he has secured in=20
+Europe. He wants these funds safely invested so that the future=20
+and safety of his family can be secured.
 
-Please leave my signed-off-by and add your own as well.
+I am contacting you with the hope that you will be interested in=20
+helping us. We need your help to accommodate the funds in the=20
+banking system in your country and also invest it in lucrative=20
+projects that will yeild good profits. We will handle all the=20
+logistics involved in the movement of the funds to you. The funds=20
+is already in Europe so you have nothing to worry about because=20
+this transaction will be executed in a legal way. My brother in-=20
+law has also promised to compensate you for your help. He wants=20
+this to be done discretely so I will be acting as his eyes and=20
+ears during the course of this transaction.
 
-Thanks,
-Amir.
+If this proposal interests you, please kindly respond so that I=20
+can give you more details.
+
+Regards,
+
+Laghouili.
