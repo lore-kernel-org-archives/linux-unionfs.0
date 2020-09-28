@@ -1,96 +1,115 @@
-Return-Path: <SRS0=6QjP=DC=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=ILYM=DF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-0.1 required=3.0 tests=BAYES_50,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.4 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3997C4727E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Sep 2020 22:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE7E7C2D0A8
+	for <linux-unionfs@archiver.kernel.org>; Mon, 28 Sep 2020 07:22:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 570C520759
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Sep 2020 22:10:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FFE62080A
+	for <linux-unionfs@archiver.kernel.org>; Mon, 28 Sep 2020 07:22:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=imperialcapgroup.com header.i=@imperialcapgroup.com header.b="AO74prRB";
-	dkim=pass (1024-bit key) header.d=imperialcapgroup.com header.i=@imperialcapgroup.com header.b="AO74prRB"
+	dkim=pass (1024-bit key) header.d=virtuozzo.com header.i=@virtuozzo.com header.b="rxmiIBRa"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726587AbgIYWKR (ORCPT
+        id S1726380AbgI1HW7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Sep 2020 18:10:17 -0400
-Received: from [46.166.185.98] ([46.166.185.98]:54984 "EHLO
-        host.imperialcapgroup.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1726037AbgIYWKR (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Sep 2020 18:10:17 -0400
-X-Greylist: delayed 17738 seconds by postgrey-1.27 at vger.kernel.org; Fri, 25 Sep 2020 18:10:15 EDT
-Received: from imperialcapgroup.com (unknown [185.236.203.204])
-        by host.imperialcapgroup.com (Postfix) with ESMTPA id E3D211237EA
-        for <linux-unionfs@vger.kernel.org>; Fri, 25 Sep 2020 05:13:31 +0200 (CEST)
-DKIM-Filter: OpenDKIM Filter v2.11.0 host.imperialcapgroup.com E3D211237EA
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=imperialcapgroup.com; s=default; t=1601003613;
-        bh=6CXuz3tZVwV0sLbV3HksYvK1Xzbh6nLYCrrWqAmLkHM=;
-        h=Reply-To:From:To:Subject:Date:From;
-        b=AO74prRByD+oNLyi4q6a+wFVxIJU6Y5jfdk1Uua8v0OoaPzfV+IB41FPvyP1txOr2
-         lkAT/OTMTjcSSJvkIsRXnjYt6SV2wDN/Q7Xocx9IRX/V1jBgeLALtVMA4wNVEmikrb
-         TEUmfsOjR40fbDqs01W35U7oJVerXE3/NyZ5fjI8=
-DKIM-Filter: OpenDKIM Filter v2.11.0 host.imperialcapgroup.com E3D211237EA
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=imperialcapgroup.com; s=default; t=1601003613;
-        bh=6CXuz3tZVwV0sLbV3HksYvK1Xzbh6nLYCrrWqAmLkHM=;
-        h=Reply-To:From:To:Subject:Date:From;
-        b=AO74prRByD+oNLyi4q6a+wFVxIJU6Y5jfdk1Uua8v0OoaPzfV+IB41FPvyP1txOr2
-         lkAT/OTMTjcSSJvkIsRXnjYt6SV2wDN/Q7Xocx9IRX/V1jBgeLALtVMA4wNVEmikrb
-         TEUmfsOjR40fbDqs01W35U7oJVerXE3/NyZ5fjI8=
-Reply-To: laghoulli22@secsuremail.com
-From:   L A <laghoulli299@imperialcapgroup.com>
-To:     linux-unionfs@vger.kernel.org
-Subject: Co-Operation Required
-Date:   24 Sep 2020 20:13:33 -0700
-Message-ID: <20200924201333.483929AF421F1B48@imperialcapgroup.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+        Mon, 28 Sep 2020 03:22:59 -0400
+Received: from mail-eopbgr80102.outbound.protection.outlook.com ([40.107.8.102]:35126
+        "EHLO EUR04-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1725290AbgI1HW6 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 28 Sep 2020 03:22:58 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=GbKCCpYvrpD93Kv9e3X4lpJQ88EqukwD+LW7JM1euMgmr6+54Q1V8oOuowEKomUDF+91kLkKh5Fhn25T2vvG2LRpumyw1ECvYOTbAgiDVx3M3FsfysQ20c51t1QBr0NjvfiyJ4oV9l5MnoJ98R4N3MZB8Yf1WXJGBw0nc2YjlLA5JizSRKdUvAS0KwfPh+M4Xw+Q6s9DnltB61tNUMXoO3xGjvCRqrJTYi86OKXuul/HDT2YpeUa7WDj9BcxejKFJUvjxtrK6W7PK7iXAi9ICDi6SBiMyhsbxNxrYcdsNiZuVCUl6aQ3vVVPoNB1QsD7Cfx2DH+njlZ9l7eOG/CaWA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6zv2/22aVeOxCq90tkdNdyKKPapk1rA02Rt6IXGZ1RM=;
+ b=Rn5mFJ+LmFUO+OMqK6qKPmUCndh93BIwutgNcOZEmvPxGEAD3Cji5+LI/HM5MAIMp0HESzzWHc4WYWof3TSIccMDxfvEZ3ROC2WVXuIolHS8y1gwGOkFDS35mf1VFcNejWAT431hWaCp/OgVN3FMWw6vVHLyYwTOZc+9EPTr2kLZ2UhGRpGHvAvVXGD1AxWiJ64gRKRh1Fh8wlY683qX1CMoGOXHOC62ktmnIoPzS967+a1bifIR9frBbDB6J7Ny38hQyfCaoen51s4OJ4Aw5PjsW/2fxLkP0APCBjl5WfRHPKM8Dt8A/6nPP7H6ExfRFoTYNfv0GRAtnez7ZSsWzA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
+ header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=6zv2/22aVeOxCq90tkdNdyKKPapk1rA02Rt6IXGZ1RM=;
+ b=rxmiIBRauTLJQXVo6Hn8sxZJp6nTaGthbNhjgHZ5FRo2Ez7kCYV/3m31mxoLciFb2uMjqCNIQHIdig63xAY4qgrfBQgNZOfe6lAp6bdarL38AI7rqBFmcC4XuwZyaIOXqMPFMiYbhwTfC21tRVOQBS0v6YSoSOIbjLB/uzmqEhQ=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none
+ header.from=virtuozzo.com;
+Received: from AM6PR08MB4756.eurprd08.prod.outlook.com (2603:10a6:20b:cd::17)
+ by AM6PR08MB3191.eurprd08.prod.outlook.com (2603:10a6:209:41::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.25; Mon, 28 Sep
+ 2020 07:22:55 +0000
+Received: from AM6PR08MB4756.eurprd08.prod.outlook.com
+ ([fe80::71e0:46d9:2c06:2322]) by AM6PR08MB4756.eurprd08.prod.outlook.com
+ ([fe80::71e0:46d9:2c06:2322%7]) with mapi id 15.20.3412.028; Mon, 28 Sep 2020
+ 07:22:55 +0000
+Subject: Re: [PATCH v4 2/2] ovl: introduce new "uuid=off" option for inodes
+ index feature
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+References: <20200925083507.13603-1-ptikhomirov@virtuozzo.com>
+ <20200925083507.13603-3-ptikhomirov@virtuozzo.com>
+ <CAOQ4uxgxw7hZysDPfkrE9=Rc8-iK3=3SMX+RQJqgaARFRb_rNA@mail.gmail.com>
+From:   Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Message-ID: <2d2d19c0-66cd-d823-f63e-92b6629ca3aa@virtuozzo.com>
+Date:   Mon, 28 Sep 2020 10:22:53 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.11.0
+In-Reply-To: <CAOQ4uxgxw7hZysDPfkrE9=Rc8-iK3=3SMX+RQJqgaARFRb_rNA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: AM0PR06CA0124.eurprd06.prod.outlook.com
+ (2603:10a6:208:ab::29) To AM6PR08MB4756.eurprd08.prod.outlook.com
+ (2603:10a6:20b:cd::17)
+MIME-Version: 1.0
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.1.192] (46.39.230.109) by AM0PR06CA0124.eurprd06.prod.outlook.com (2603:10a6:208:ab::29) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3412.22 via Frontend Transport; Mon, 28 Sep 2020 07:22:54 +0000
+X-Originating-IP: [46.39.230.109]
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 87d206c0-2b10-4b51-6b13-08d8637f5167
+X-MS-TrafficTypeDiagnostic: AM6PR08MB3191:
+X-Microsoft-Antispam-PRVS: <AM6PR08MB319135CD20102F1F05CCE95CB7350@AM6PR08MB3191.eurprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:3173;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: Gk3OFoISGl5UPK3u0ePDwUFSi7eNxe+LHQ69YW+IvrqTaTBFSCgul8ZAG7hsm0gAXeHfmNCvUEFfXLxKxyafOutUQ356UaI2dQf8jQ/JGTbdda1RkTKV57+glSGKqrwcAcwMtmLZDXf7mfaHZFOhmkB+531RoZizfX0czbz40MSgPRXI+BW2rWvg428gjA0tp4spAAPQEo1y/1RQAvjoimkyDcmmWuIgfNuyQyaAAjTVSHelr5fACVN7mnz8XxLHE0sYabJVwUMKcntjnvcas6CLkXNU9CebIoOIV1GSem14+cHP+PN7u3lSYv8XSDpI9zsK6rTyWm+UqkKcVmHTrpDgJ9WrZpD4sZulQibdHnhuewuccMRa7i5ZiWoY4ZfE0YC/h4GuSkHXaJmTJ4AddKNXMHRReqc6eN81g2+vy54=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:AM6PR08MB4756.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(136003)(396003)(376002)(39840400004)(346002)(31696002)(8676002)(8936002)(53546011)(186003)(31686004)(16526019)(52116002)(26005)(86362001)(6916009)(6486002)(4326008)(54906003)(558084003)(2906002)(36756003)(16576012)(316002)(66556008)(66476007)(66946007)(478600001)(2616005)(956004)(5660300002)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData: 7zYSbPSwKyS71S7FSJBTymSVRv6aQufVw/Z69yybl/Rzh5O/2DtFvAg4SNeTJTHHcp7WDALuW9SpNLMJU40r4wat/wTI/j6p4AwM1vSylxgpW8TTHTSKq+xE6IY1+NUZE6uX0uxTgtBXriCsm969A7cLWF1LojtC+kSM24ynAYsu1D2n3NUDmbcmTor1sRCPOB/M5ZlvGvCoTjup/RYEgvrFebLvnuTlThya09TdgGFtHZQS3yPJ8PzQmLsEQf84IIKy8W1vteYg+eSj/iIyLJjKvaNxT7LUeM5+MGpp2w3ZJKInImi4ZIvAE0ClmfZuE2aD2TKHyh1LyT5pYcBFEWXhYRTHaITjEbWBcr2lji/sBsJwmcQ1OTzLs+3GOOWYHM703Pwqg5lLmXlD19XSUiFS3kz2z7pV+02ymJgyQfpEf7ymzDqEs8nut58xhSEzdNIsEyddcp7fcSVPhtM/3QgE37Vutz/6+d16R5t5TBguGCjlE+b83RP6AYtao7hh3zWd/ZHUul8ZFyarftfWURy+0OmFaeJ+spX0eYb6OWJW6kWj909Z0flI4w5lt3XfJa9M7uCgAwJPPwfKBPAeLlt7KeJCyFQXRIanxfWlyk833Mg3KIAC4Q1IvoXWZbaOtKWuNoFQTQzoYZ+dRFQ6UQ==
+X-OriginatorOrg: virtuozzo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 87d206c0-2b10-4b51-6b13-08d8637f5167
+X-MS-Exchange-CrossTenant-AuthSource: AM6PR08MB4756.eurprd08.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 28 Sep 2020 07:22:55.3592
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: KFvU6VhkhT0krQFrO8vUhJ0sHo9W6fIq+4Uc2OTVtDWwMxAYzPIm2KgZNyIE2Wqb3xkjCzsMAsjfqr60/PUPZmoJlg8lkYtBq6c0g2n9w2c=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: AM6PR08MB3191
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello there,
+On 9/25/20 7:42 PM, Amir Goldstein wrote:
+> Apart from some typos, looks good to me.
 
-I am Laghouili Abdellatif. I am contacting you because I have a=20
-proposal that I think may be interested in. I represent the=20
-interest of my brother in-law who was a minister in the Syrian=20
-Government. As you probably know, there is a lot of crisis going=20
-on currently in Syria and my brother in-law has fallen out with=20
-the ruling Junta and the president because of his foreign=20
-policies and the senseless war and killings that has been going=20
-on for a while. Everybody in Syria is fed up and want a change=20
-but the president is too powerfull and he simply kills anyone=20
-that tries to oppose him. My brother in-law belives that he is at=20
-risk and he is now very scared for the safety of his family=20
-especially his kids. In order to ensure that his family is taken=20
-care of and protected incase anything happens to him, he has=20
-asked me to help him find a foreign investor who can help him=20
-accommodate and invest 100 MUSD privately that he has secured in=20
-Europe. He wants these funds safely invested so that the future=20
-and safety of his family can be secured.
+Amir, Thanks a lot for your review!
 
-I am contacting you with the hope that you will be interested in=20
-helping us. We need your help to accommodate the funds in the=20
-banking system in your country and also invest it in lucrative=20
-projects that will yeild good profits. We will handle all the=20
-logistics involved in the movement of the funds to you. The funds=20
-is already in Europe so you have nothing to worry about because=20
-this transaction will be executed in a legal way. My brother in-=20
-law has also promised to compensate you for your help. He wants=20
-this to be done discretely so I will be acting as his eyes and=20
-ears during the course of this transaction.
+ > you should wait for more feedback from others
 
-If this proposal interests you, please kindly respond so that I=20
-can give you more details.
+Sure, will wait.
 
-Regards,
-
-Laghouili.
+-- 
+Best regards, Tikhomirov Pavel
+Software Developer, Virtuozzo.
