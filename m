@@ -2,198 +2,273 @@ Return-Path: <SRS0=dnFs=DM=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1FACC47095
-	for <linux-unionfs@archiver.kernel.org>; Mon,  5 Oct 2020 07:57:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42837C4363A
+	for <linux-unionfs@archiver.kernel.org>; Mon,  5 Oct 2020 17:03:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BE762068D
-	for <linux-unionfs@archiver.kernel.org>; Mon,  5 Oct 2020 07:57:05 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TuZfi7Pn"
+	by mail.kernel.org (Postfix) with ESMTP id 0CE972078E
+	for <linux-unionfs@archiver.kernel.org>; Mon,  5 Oct 2020 17:03:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726035AbgJEH5C (ORCPT
+        id S1727429AbgJERDa (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 5 Oct 2020 03:57:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35006 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725881AbgJEH5C (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 5 Oct 2020 03:57:02 -0400
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB9E2C0613CE;
-        Mon,  5 Oct 2020 00:57:01 -0700 (PDT)
-Received: by mail-io1-xd44.google.com with SMTP id k6so8170214ior.2;
-        Mon, 05 Oct 2020 00:57:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=FkaOg5C7wxtrd5K3blsveQc5Sq/1b96++at3iaGcdcg=;
-        b=TuZfi7Pnlye0DyPBYyyf3PItLdz/GbJUaWGybnvWRIT8qX5lldHzeEZVctYd/y5MkQ
-         QxAqkyDz2QldG/TDSuZ0g18o5dEoMQg6kQqBBp2ORLiSWrQ4G6NahnhD2pmdDhWcy2VM
-         hOysdQO/11LevVx145yDA/rsHWt7Z/Al3sxO9imneED52gYbTQN0myvjDMt8j+f1v1NH
-         oBu1oWYiMS7rddF68/fDOVnMz2dtfFDle9skwarUtVttfjUL8Yvv9iLcUI4CSavRgGhd
-         qj8kwMkvhGE5MNnCW6UVBrADlWWkDcAeQek6GxiixgroXsOr6Lpi+gdVrj6jfRIMgH5K
-         xqcA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=FkaOg5C7wxtrd5K3blsveQc5Sq/1b96++at3iaGcdcg=;
-        b=NS2F/Yod/72vSCXwKdvs/wH09diuST1us5QH24hdSv731XWpBw4e01qrDoGEC8ROe+
-         i24X87P7D9ej1eZCTjuLmYS0HcPhjI9Oy3/MWLlAhTN8RrysU9n8WXrPo7nrCpM3K6Qd
-         Jv6dbQpXL2OiKdjkqn2OS2aqjuCYgijJji2IWs++DtUm+ORWgQUaU9S4yodm+ewI9oo4
-         2EfwN8y/V3aNymtHemGop10LZLaYH/Xc+aD/SvVbQVDP0nUk9qJzS+XWb4bNaIXzSLNS
-         3D2YtgaSmWaETlrqKEkTD8/7XSXU3dzT5WPg1R5hS+j36anrAOCKRiuHiOGW/dckChDV
-         XilQ==
-X-Gm-Message-State: AOAM533XCZGJmhSZXchG6BE7PfzYdd5akakSNBVFgdJHGB9IZtNObFdz
-        bD0c7Rf1EB2xY2s49AKInYe8U3EHTBq3Q498JK94TvncvDs=
-X-Google-Smtp-Source: ABdhPJzeAhtGTuu3XU0/aFmFTwmjTyTD97P8dVUNL+/m5fcgzBJaMDSamqYbIHMv8YOKGfogTx8KEQ6h9VekaEe8f7k=
-X-Received: by 2002:a05:6602:2f8a:: with SMTP id u10mr9848153iow.72.1601884621104;
- Mon, 05 Oct 2020 00:57:01 -0700 (PDT)
-MIME-Version: 1.0
-References: <20201004192401.9738-1-alexander.mikhalitsyn@virtuozzo.com>
-In-Reply-To: <20201004192401.9738-1-alexander.mikhalitsyn@virtuozzo.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 5 Oct 2020 10:56:50 +0300
-Message-ID: <CAOQ4uxjot9f=XZEchRuNopVyZtKGzp7R7j5i2GxO_OuxUE8KMg@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/1] overlayfs: C/R enhancments (RFC)
-To:     Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Mon, 5 Oct 2020 13:03:30 -0400
+Received: from relay.sw.ru ([185.231.240.75]:50324 "EHLO relay3.sw.ru"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1726320AbgJERDa (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 5 Oct 2020 13:03:30 -0400
+Received: from [172.16.25.93] (helo=amikhalitsyn-pc0.sw.ru)
+        by relay3.sw.ru with esmtp (Exim 4.94)
+        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
+        id 1kPTsk-0039Uv-Gp; Mon, 05 Oct 2020 20:02:38 +0300
+From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+To:     miklos@szeredi.hu
+Cc:     Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
+        Amir Goldstein <amir73il@gmail.com>,
         Andrei Vagin <avagin@gmail.com>,
         Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
         David Howells <dhowells@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [RFC PATCH] overlayfs: add OVL_IOC_GETINFOFD ioctl that opens ovlinfofd
+Date:   Mon,  5 Oct 2020 20:02:27 +0300
+Message-Id: <20201005170227.11340-1-alexander.mikhalitsyn@virtuozzo.com>
+X-Mailer: git-send-email 2.17.1
+In-Reply-To: <20201004192401.9738-1-alexander.mikhalitsyn@virtuozzo.com>
+References: <20201004192401.9738-1-alexander.mikhalitsyn@virtuozzo.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Oct 4, 2020 at 10:25 PM Alexander Mikhalitsyn
-<alexander.mikhalitsyn@virtuozzo.com> wrote:
->
-> Some time ago we discussed about the problem of Checkpoint-Restoring
-> overlayfs mounts [1]. Big thanks to Amir for review and suggestions.
->
-> Brief from previous discussion.
-> Problem statement: to checkpoint-restore overlayfs mounts we need
-> to save overlayfs mount state and save it into the image. Basically,
-> this state for us it's just mount options of overlayfs mount. But
-> here we have two problems:
->
-> I. during mounting overlayfs user may specify relative paths in upperdir,
-> workdir, lowerdir options
->
-> II. also user may unmount mount from which these paths was opened during mounting
->
-> This is real problems for us. My first patch was attempt to address both problems.
-> 1. I've added refcnt get for mounts from which overlayfs was mounted.
-> 2. I've changed overlayfs mountinfo show algorithm, so overlayfs started to *always*
-> show full paths for upperdir,workdir,lowerdirs.
-> 3. I've added mnt_id show-time only option which allows to determine from which mnt_id
-> we opened options paths.
->
-> Pros:
-> - we can determine full information about overlayfs mount
-> - we hold refcnt to mount, so, user may unmount source mounts only
-> with lazy flag
->
-> Cons:
-> - by adding refcnt get for mount I've changed possible overlayfs usecases
-> - by showing *full* paths we can more easily reache PAGE_SIZE limit of
-> mounts options in procfs
-> - by adding mnt_id show-only option I've added inconsistency between
-> mount-time options and show-time mount options
->
-> After very productive discussion with Amir and Pavel I've decided to write new
-> implementation. In new approach we decided *not* to take extra refcnts to mounts.
-> Also we decided to use exportfs fhandles instead of full paths. To determine
-> full path we plan to use the next algo:
-> 1. Export {s_dev; fhandle} from overlayfs for *all* sources
-> 2. User open_by_handle_at syscall to open all these fhandles (we need to
-> determine mount for each fhandle, looks like we can do this by s_dev by linear
-> search in /proc/<pid>/mountinfo)
-> 3. Then readlink /proc/<pid>/fd/<opened fd>
-> 4. Dump this full path+mnt_id
->
+Second variant of possible interface to get source-dirs fhandles from
+userspace. OVL_IOC_GETINFOFD ioctls opens special [ovlinfofd] descriptor
+which is really just seq_file. When read from this seq_file we will get
+something like this:
+===
+numlower: 2
+L fhandle-bytes:c fhandle-type:1 f_handle:9685a2160200000000000000
+L fhandle-bytes:c fhandle-type:1 f_handle:c74cd5c10300000000000000
+U fhandle-bytes:c fhandle-type:1 f_handle:e45842640400000000000000
+W fhandle-bytes:c fhandle-type:1 f_handle:d393374d0500000000000000
+===
 
-Hi Alex,
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: David Howells <dhowells@redhat.com>
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+---
+ fs/overlayfs/readdir.c | 171 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 171 insertions(+)
 
-The general concept looks good to me.
-I will not provide specific comment on the implementation (it looks
-fine) until the
-concept API is accepted by the maintainer.
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 12ee043d2b3a..60c3c47a6b3e 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -14,6 +14,9 @@
+ #include <linux/cred.h>
+ #include <linux/ratelimit.h>
+ #include <linux/exportfs.h>
++#include <linux/anon_inodes.h>
++#include <linux/seq_file.h>
++#include <linux/syscalls.h>
+ #include "overlayfs.h"
+ 
+ struct ovl_cache_entry {
+@@ -1067,11 +1070,175 @@ static long ovl_ioctl_get_work_fhandle(struct super_block *sb,
+ 	return __ovl_ioctl_get_fhandle(ofs->workbasedir, arg);
+ }
+ 
++static int ovlinfofd_release(struct inode *inode, struct file *file)
++{
++	printk("ovlinfofd_release\n");
++	return single_release(inode, file);
++}
++
++#ifdef CONFIG_PROC_FS
++static void ovlinfofd_show_fdinfo(struct seq_file *m, struct file *f)
++{
++	/* TODO */
++}
++#endif
++
++static const struct file_operations ovlinfofd_fops = {
++	.owner		= THIS_MODULE,
++#ifdef CONFIG_PROC_FS
++	.show_fdinfo	= ovlinfofd_show_fdinfo,
++#endif
++	.release	= ovlinfofd_release,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++};
++
++static long __ovl_ioctl_show_dentry_fhandle(struct seq_file *s,
++					    const char *prefix,
++					    struct dentry *origin)
++{
++	struct ovl_mnt_opt_fh *fh;
++	int ret = 0, i;
++
++	fh = __ovl_encode_mnt_opt_fh(origin);
++	if (IS_ERR(fh))
++		return PTR_ERR(fh);
++
++	seq_printf(s, "%s fhandle-bytes:%x fhandle-type:%x f_handle:",
++		   prefix, fh->fh.handle_bytes, fh->fh.handle_type);
++
++	for (i = 0; i < fh->fh.handle_bytes; i++)
++		seq_printf(s, "%02x", (int)fh->fh.f_handle[i]);
++
++	seq_putc(s, '\n');
++
++	kfree(fh);
++	return ret;
++}
++
++static long ovl_ioctl_show_lower_fhandle(struct seq_file *s,
++					 unsigned long arg)
++{
++	struct super_block *sb = s->private;
++	struct ovl_entry *oe = sb->s_root->d_fsdata;
++	struct dentry *origin;
++
++	if (arg >= oe->numlower)
++		return -EINVAL;
++
++	origin = oe->lowerstack[arg].dentry;
++
++	return __ovl_ioctl_show_dentry_fhandle(s, "L", origin);
++}
++
++static long ovl_ioctl_show_upper_fhandle(struct seq_file *s)
++{
++	struct super_block *sb = s->private;
++	struct ovl_fs *ofs = sb->s_fs_info;
++	struct dentry *origin;
++
++	if (!ofs->config.upperdir)
++		return -EINVAL;
++
++	origin = OVL_I(d_inode(sb->s_root))->__upperdentry;
++
++	return __ovl_ioctl_show_dentry_fhandle(s, "U", origin);
++}
++
++static long ovl_ioctl_show_work_fhandle(struct seq_file *s)
++{
++	struct super_block *sb = s->private;
++	struct ovl_fs *ofs = sb->s_fs_info;
++
++	if (!ofs->config.upperdir)
++		return -EINVAL;
++
++	return __ovl_ioctl_show_dentry_fhandle(s, "W", ofs->workbasedir);
++}
++
++static int ovlinfofd_show(struct seq_file *s, void *unused)
++{
++	struct super_block *sb = s->private;
++	struct ovl_entry *oe = sb->s_root->d_fsdata;
++	int i;
++
++	printk("ovlinfofd_show\n");
++
++	seq_printf(s, "numlower: %d\n", oe->numlower);
++
++	for (i = 0; i < oe->numlower; i++)
++		ovl_ioctl_show_lower_fhandle(s, i);
++	ovl_ioctl_show_upper_fhandle(s);
++	ovl_ioctl_show_work_fhandle(s);
++
++	return 0;
++}
++
++static long ovl_ioctl_get_info_fd(struct super_block *sb,
++				  unsigned long arg)
++{
++	struct ovl_fs *ofs = sb->s_fs_info;
++	struct ovl_entry *oe = sb->s_root->d_fsdata;
++	int err, ufd, flags = arg;
++	struct fd f;
++
++	if (flags & ~(O_CLOEXEC))
++		return -EINVAL;
++
++	/* FIXME Comment taken from signalfd.c. Need to think about this.
++	 * When we call this, the initialization must be complete, since
++	 * anon_inode_getfd() will install the fd.
++	 */
++	ufd = anon_inode_getfd("[ovlinfofd]", &ovlinfofd_fops, NULL,
++				O_RDONLY | (flags & (O_CLOEXEC)));
++	if (ufd < 0)
++		return ufd;
++
++	f = fdget(ufd);
++	if (!f.file) {
++		err = -EBADF;
++		goto err_close;
++	}
++
++	/*
++	 * It's good to have some good guess of seq_file buffer size
++	 * from start because if we will just use single_open() function
++	 * then we will make several seq_file overflows and .show callback
++	 * will be called several times. It's very bad for performance.
++	 *
++	 * Guess is very simple: we show fhandles as hex string. So,
++	 * all that we need is take MAX_HANDLE_SZ * 2 and multiply by
++	 * number of overlayfs mount source-dirs.
++	 */
++	err = single_open_size(f.file, ovlinfofd_show, sb,
++			       MAX_HANDLE_SZ * 2 *
++			       (oe->numlower + 2 * !!ofs->config.upperdir));
++	if (err)
++		goto err_fdput;
++
++	/*
++	 * We doing tricky things by combining anon_inode_getfd with seq_files,
++	 * so, it's better to check that all fine with fops after single_open_size
++	 * call.
++	 */
++	WARN_ON(f.file->f_op != &ovlinfofd_fops);
++	fdput(f);
++
++	return ufd;
++
++err_fdput:
++	fdput(f);
++err_close:
++	ksys_close(ufd);
++	return err;
++}
++
+ #define	OVL_IOC_GETLWRFHNDLSNUM			_IO('o', 1)
+ // DISCUSS: what if MAX_HANDLE_SZ will change?
+ #define	OVL_IOC_GETLWRFHNDL			_IOR('o', 2, struct ovl_mnt_opt_fh)
+ #define	OVL_IOC_GETUPPRFHNDL			_IOR('o', 3, struct ovl_mnt_opt_fh)
+ #define	OVL_IOC_GETWRKFHNDL			_IOR('o', 4, struct ovl_mnt_opt_fh)
++#define	OVL_IOC_GETINFOFD			_IO('o', 5)
+ 
+ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+@@ -1094,6 +1261,10 @@ static long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		ret = ovl_ioctl_get_work_fhandle(file_inode(file)->i_sb, arg);
+ 		break;
+ 
++	case OVL_IOC_GETINFOFD:
++		ret = ovl_ioctl_get_info_fd(file_inode(file)->i_sb, arg);
++		break;
++
+ 	default:
+ 		ret = -ENOTTY;
+ 	}
+-- 
+2.25.1
 
-The main thing I want to make sure is that if we add this interface it can
-serve other use cases as well.
-
-During my talk on LPC, I got a similar request from two developers for two
-different use cases. They wanted a safe method to iterate "changes
-since baseline"
-from either within the container or from the host.
-
-Your proposed API is a step in the direction for meeting their requirement.
-The major change is that ioctl (or whatever method) should expose the
-layers topology of a specific object, not only the overlay instance.
-
-For C/R you would query the layers topology of the overlay root dir.
-
-My comments of the specific methods below are not meant to
-object to the choice of ioctl, but they are meant to give the alternative
-a fair chance. I am kind of leaning towards ioctl myself.
-
-> But there is question. How to export this {s_dev; fhandle} from kernel to userspace?
-> - We decided not to use procfs.
-
-Why not?
-C/R already uses procfs to export fhandle for fanotify/inotify
-I kind of like the idea of having /sys/fs/overlay/instances etc.
-It could be useful to many things.
-
-> - Amir proposed solution - use xattrs. But after diving into it I've meet problem
-> where I can set this xattrs?
-> If I set this xattrs on overlayfs dentries then during rsync, or cp -p=xattr we will copy
-> this temporary information.
-
-No you won't.
-rsync, cp will only copy xattrs listed with listxattr.
-Several filesystems, such as cifs and nfs export "object properties"
-via private xattrs
-that are not listed in listxattr (e.g. CIFS_XATTR_CIFS_ACL).
-You are not limited in what you can do in the "trusted.overlay" namespace, for
-example "trusted.overlay.layers.0.fh"
-
-The advantage is that it is very easy to implement and requires
-less discussions about ABI, but I agree it does feel a bit like a hack.
-
-> - ioctls? (this patchset implements this approach)
-> - fsinfo subsystem (not merged yet) [2]
->
-> Problems with ioctls:
-> 1. We limited in output data size (16 KB AFAIK)
-> but MAX_HANDLE_SZ=128(bytes), OVL_MAX_STACK=500(num lowerdirs)
-> So, MAX_HANDLE_SZ*OVL_MAX_STACK = 64KB which is bigger than limit.
-> So, I've decided to give user one fhandle by one call. This is also
-> bad from the performance point of view.
-> 2. When using ioctls we need to have *fixed* size of input and output.
-> So, if MAX_HANDLE_SZ will change in the future our _IOR('o', 2, struct ovl_mnt_opt_fh)
-> will also change with struct ovl_mnt_opt_fh.
->
-
-The choice of API with fixed output size for a variable length info seems weird.
-
-I am tempted to suggest extending name_to_handle_at(), for example
-name_to_handle_at(ovl_root_fd, path, &fhandle, &layer_id, AT_LAYER)
-
-Where layer_id can be input/output arg.
-
-But I acknowledge this is going to be a much harder sell...
-
-Thanks,
-Amir.
