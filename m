@@ -2,311 +2,150 @@ Return-Path: <SRS0=iS70=DV=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D5CC433DF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Oct 2020 14:15:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A45B0C43457
+	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Oct 2020 16:15:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 229D222201
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Oct 2020 14:15:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 68FF3214D8
+	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Oct 2020 16:15:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388453AbgJNOPX (ORCPT
+        id S2387948AbgJNQPm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 14 Oct 2020 10:15:23 -0400
-Received: from relay.sw.ru ([185.231.240.75]:42450 "EHLO relay3.sw.ru"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1727023AbgJNOPX (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Oct 2020 10:15:23 -0400
-Received: from [172.16.25.93] (helo=amikhalitsyn-pc0.sw.ru)
-        by relay3.sw.ru with esmtp (Exim 4.94)
-        (envelope-from <alexander.mikhalitsyn@virtuozzo.com>)
-        id 1kShXi-004ONi-FS; Wed, 14 Oct 2020 17:14:14 +0300
-From:   Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
-To:     miklos@szeredi.hu
-Cc:     Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
-        David Howells <dhowells@redhat.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Andrei Vagin <avagin@gmail.com>,
-        Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [RFC PATCH] overlayfs: add fsinfo(FSINFO_ATTR_OVL_SOURCES) support
-Date:   Wed, 14 Oct 2020 17:14:16 +0300
-Message-Id: <20201014141416.25272-1-alexander.mikhalitsyn@virtuozzo.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20201004192401.9738-1-alexander.mikhalitsyn@virtuozzo.com>
-References: <20201004192401.9738-1-alexander.mikhalitsyn@virtuozzo.com>
+        Wed, 14 Oct 2020 12:15:42 -0400
+Received: from mx2.suse.de ([195.135.220.15]:58550 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2387838AbgJNQPm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 14 Oct 2020 12:15:42 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 5A159AC87;
+        Wed, 14 Oct 2020 16:15:40 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 1A61F1E1338; Wed, 14 Oct 2020 18:15:38 +0200 (CEST)
+Date:   Wed, 14 Oct 2020 18:15:38 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     miklos@szeredi.hu, amir73il@gmail.com, jack@suse.cz,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [RFC PATCH 1/5] fs: introduce notifier list for vfs inode
+Message-ID: <20201014161538.GA27613@quack2.suse.cz>
+References: <20201010142355.741645-1-cgxu519@mykernel.net>
+ <20201010142355.741645-2-cgxu519@mykernel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201010142355.741645-2-cgxu519@mykernel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-FSINFO_ATTR_OVL_SOURCES fsinfo attribute allows us
-to export fhandles for overlayfs source directories
-such as upperdir, workdir, lowerdirs.
+On Sat 10-10-20 22:23:51, Chengguang Xu wrote:
+> Currently there is no notification api for kernel about modification
+> of vfs inode, in some use cases like overlayfs, this kind of notification
+> will be very helpful to implement containerized syncfs functionality.
+> As the first attempt, we introduce marking inode dirty notification so that
+> overlay's inode could mark itself dirty as well and then only sync dirty
+> overlay inode while syncfs.
+> 
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 
-This patchs adds initial support of fsinfo into overlayfs.
-If community decide to take this way of C/R support
-in overlayfs then I have plan to implement FSINFO_ATTR_SUPPORTS
-and FSINFO_ATTR_FEATURES standard attributes handlers too.
+So I like how the patch set is elegant however growing struct inode for
+everybody by struct blocking_notifier_head (which is rwsem + pointer) is
+rather harsh just for this overlayfs functionality... Ideally this should
+induce no overhead on struct inode if the filesystem is not covered by
+overlayfs. So I'd rather place some external structure into the superblock
+that would get allocated on the first use that would track dirty notifications
+for each inode. I would not generalize the code for more possible
+notifications at this point.
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
----
- fs/overlayfs/Makefile       |   1 +
- fs/overlayfs/fsinfo.c       | 133 ++++++++++++++++++++++++++++++++++++
- fs/overlayfs/overlayfs.h    |   6 ++
- fs/overlayfs/super.c        |   3 +
- include/uapi/linux/fsinfo.h |  31 +++++++++
- 5 files changed, 174 insertions(+)
- create mode 100644 fs/overlayfs/fsinfo.c
+Also now that I'm thinking about it can there be multiple overlayfs inodes
+for one upper inode? If not, then the mechanism of dirtiness propagation
+could be much simpler - it seems we could be able to just lookup
+corresponding overlayfs inode based on upper inode and then mark it dirty
+(but this would need to be verified by people more familiar with
+overlayfs). So all we'd need to know for this is the superblock of the
+overlayfs that's covering given upper filesystem...
 
-diff --git a/fs/overlayfs/Makefile b/fs/overlayfs/Makefile
-index 9164c585eb2f..db555c0e4508 100644
---- a/fs/overlayfs/Makefile
-+++ b/fs/overlayfs/Makefile
-@@ -7,3 +7,4 @@ obj-$(CONFIG_OVERLAY_FS) += overlay.o
- 
- overlay-objs := super.o namei.o util.o inode.o file.o dir.o readdir.o \
- 		copy_up.o export.o
-+overlay-$(CONFIG_FSINFO)	+= fsinfo.o
-diff --git a/fs/overlayfs/fsinfo.c b/fs/overlayfs/fsinfo.c
-new file mode 100644
-index 000000000000..9857949dcce5
---- /dev/null
-+++ b/fs/overlayfs/fsinfo.c
-@@ -0,0 +1,133 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Filesystem information for overlayfs
-+ *
-+ * Copyright (C) 2020 Red Hat, Inc. All Rights Reserved.
-+ * Written by David Howells (dhowells@redhat.com)
-+ */
-+
-+#include <linux/mount.h>
-+#include <linux/fsinfo.h>
-+#include "overlayfs.h"
-+
-+static int __ovl_encode_mnt_opt_fh(struct fsinfo_ovl_source *p,
-+				   struct dentry *dentry)
-+{
-+	int fh_type, dwords;
-+	int buflen = MAX_HANDLE_SZ;
-+	int err;
-+
-+	/* we ask for a non connected handle */
-+	dwords = buflen >> 2;
-+	fh_type = exportfs_encode_fh(dentry, (void *)p->fh.f_handle, &dwords, 0);
-+	buflen = (dwords << 2);
-+
-+	err = -EIO;
-+	if (WARN_ON(fh_type < 0) ||
-+	    WARN_ON(buflen > MAX_HANDLE_SZ) ||
-+	    WARN_ON(fh_type == FILEID_INVALID))
-+		goto out_err;
-+
-+	p->fh.handle_type = fh_type;
-+	p->fh.handle_bytes = buflen;
-+
-+	/*
-+	 * Ideally, we want to have mnt_id+fhandle, but overlayfs not
-+	 * keep refcnts on layers mounts and we couldn't determine
-+	 * mnt_ids for layers. So, let's give s_dev to CRIU.
-+	 * It's better than nothing.
-+	 */
-+	p->s_dev = dentry->d_sb->s_dev;
-+
-+	return 0;
-+
-+out_err:
-+	return err;
-+}
-+
-+static int ovl_fsinfo_store_source(struct fsinfo_ovl_source *p,
-+				   enum fsinfo_ovl_source_type type,
-+				   struct dentry *dentry)
-+{
-+	__ovl_encode_mnt_opt_fh(p, dentry);
-+	p->type = type;
-+	return 0;
-+}
-+
-+static long ovl_ioctl_stor_lower_fhandle(struct fsinfo_ovl_source *p,
-+					 struct super_block *sb,
-+					 unsigned long arg)
-+{
-+	struct ovl_entry *oe = sb->s_root->d_fsdata;
-+	struct dentry *origin;
-+
-+	if (arg >= oe->numlower)
-+		return -EINVAL;
-+
-+	origin = oe->lowerstack[arg].dentry;
-+
-+	return ovl_fsinfo_store_source(p, FSINFO_OVL_LWR, origin);
-+}
-+
-+static long ovl_ioctl_stor_upper_fhandle(struct fsinfo_ovl_source *p,
-+					 struct super_block *sb)
-+{
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+	struct dentry *origin;
-+
-+	if (!ofs->config.upperdir)
-+		return -EINVAL;
-+
-+	origin = OVL_I(d_inode(sb->s_root))->__upperdentry;
-+
-+	return ovl_fsinfo_store_source(p, FSINFO_OVL_UPPR, origin);
-+}
-+
-+static long ovl_ioctl_stor_work_fhandle(struct fsinfo_ovl_source *p,
-+					struct super_block *sb)
-+{
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+
-+	if (!ofs->config.upperdir)
-+		return -EINVAL;
-+
-+	return ovl_fsinfo_store_source(p, FSINFO_OVL_WRK, ofs->workbasedir);
-+}
-+
-+static int ovl_fsinfo_sources(struct path *path, struct fsinfo_context *ctx)
-+{
-+	struct fsinfo_ovl_source *p = ctx->buffer;
-+	struct super_block *sb = path->dentry->d_sb;
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+	struct ovl_entry *oe = sb->s_root->d_fsdata;
-+	size_t nr_sources = (oe->numlower + 2 * !!ofs->config.upperdir);
-+	unsigned int i = 0, j;
-+	int ret = -ENODATA;
-+
-+	ret = nr_sources * sizeof(*p);
-+	if (ret <= ctx->buf_size) {
-+		if (ofs->config.upperdir) {
-+			ovl_ioctl_stor_upper_fhandle(&p[i++], sb);
-+			ovl_ioctl_stor_work_fhandle(&p[i++], sb);
-+		}
-+
-+		for (j = 0; j < oe->numlower; j++)
-+			ovl_ioctl_stor_lower_fhandle(&p[i++], sb, j);
-+	}
-+
-+	return ret;
-+}
-+
-+static const struct fsinfo_attribute ovl_fsinfo_attributes[] = {
-+	/* TODO: implement FSINFO_ATTR_SUPPORTS and FSINFO_ATTR_FEATURES */
-+	/*
-+	FSINFO_VSTRUCT	(FSINFO_ATTR_SUPPORTS,		ovl_fsinfo_supports),
-+	FSINFO_VSTRUCT	(FSINFO_ATTR_FEATURES,		ovl_fsinfo_features),
-+	*/
-+	FSINFO_LIST	(FSINFO_ATTR_OVL_SOURCES,	ovl_fsinfo_sources),
-+	{}
-+};
-+
-+int ovl_fsinfo(struct path *path, struct fsinfo_context *ctx)
-+{
-+	return fsinfo_get_attribute(path, ctx, ovl_fsinfo_attributes);
-+}
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 29bc1ec699e7..1c0ac23ecf8f 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -7,6 +7,7 @@
- #include <linux/kernel.h>
- #include <linux/uuid.h>
- #include <linux/fs.h>
-+#include <linux/xattr.h>
- #include "ovl_entry.h"
- 
- #undef pr_fmt
-@@ -492,3 +493,8 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
- 
- /* export.c */
- extern const struct export_operations ovl_export_operations;
-+
-+/* fsinfo.c */
-+#ifdef CONFIG_FSINFO
-+extern int ovl_fsinfo(struct path *path, struct fsinfo_context *ctx);
-+#endif
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 4b38141c2985..1a4cdbbd766f 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -392,6 +392,9 @@ static const struct super_operations ovl_super_operations = {
- 	.put_super	= ovl_put_super,
- 	.sync_fs	= ovl_sync_fs,
- 	.statfs		= ovl_statfs,
-+#ifdef CONFIG_FSINFO
-+	.fsinfo		= ovl_fsinfo,
-+#endif
- 	.show_options	= ovl_show_options,
- 	.remount_fs	= ovl_remount,
- };
-diff --git a/include/uapi/linux/fsinfo.h b/include/uapi/linux/fsinfo.h
-index dcd764771a7d..83c2511691e4 100644
---- a/include/uapi/linux/fsinfo.h
-+++ b/include/uapi/linux/fsinfo.h
-@@ -10,6 +10,8 @@
- #include <linux/types.h>
- #include <linux/socket.h>
- #include <linux/openat2.h>
-+#include <linux/fs.h>
-+#include <linux/exportfs.h>
- 
- /*
-  * The filesystem attributes that can be requested.  Note that some attributes
-@@ -44,6 +46,8 @@
- #define FSINFO_ATTR_AFS_SERVER_NAME	0x301	/* Name of the Nth server (string) */
- #define FSINFO_ATTR_AFS_SERVER_ADDRESSES 0x302	/* List of addresses of the Nth server */
- 
-+#define FSINFO_ATTR_OVL_SOURCES		0x400	/* List of overlayfs source dirs fhandles+sdev */
-+
- /*
-  * Optional fsinfo() parameter structure.
-  *
-@@ -341,4 +345,31 @@ struct fsinfo_error_state {
- 
- #define FSINFO_ATTR_ERROR_STATE__STRUCT struct fsinfo_error_state
- 
-+/*
-+ * Information struct for fsinfo(FSINFO_ATTR_FSINFO_ATTRIBUTE_INFO).
-+ *
-+ * This gives information about the overlayfs upperdir, workdir, lowerdir
-+ * superblock options (exported as fhandles).
-+ */
-+enum fsinfo_ovl_source_type {
-+	FSINFO_OVL_UPPR	= 0,	/* upperdir */
-+	FSINFO_OVL_WRK	= 1,	/* workdir */
-+	FSINFO_OVL_LWR	= 2,	/* lowerdir list item */
-+};
-+
-+/* DISCUSS: we can also export mnt_unique_id here which introduced by fsinfo patchset
-+ * and then use him to detect if source was unmounted in the time gap between the moment when
-+ * overlayfs was mounted and C/R process was started.
-+ * We can get mnt_unique_id also by using fsinfo(FSINFO_ATTR_MOUNT_ALL)
-+ */
-+struct fsinfo_ovl_source {
-+	enum fsinfo_ovl_source_type type;
-+	__u32 s_dev;
-+	struct file_handle fh;
-+	/* use f_handle field from struct file_handle */
-+	__u8 __fhdata[MAX_HANDLE_SZ];
-+};
-+
-+#define FSINFO_ATTR_OVL_SOURCES__STRUCT struct fsinfo_ovl_source
-+
- #endif /* _UAPI_LINUX_FSINFO_H */
+								Honza
+> ---
+>  fs/fs-writeback.c  | 4 ++++
+>  fs/inode.c         | 5 +++++
+>  include/linux/fs.h | 6 ++++++
+>  3 files changed, 15 insertions(+)
+> 
+> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
+> index 1492271..657cceb 100644
+> --- a/fs/fs-writeback.c
+> +++ b/fs/fs-writeback.c
+> @@ -2246,9 +2246,13 @@ void __mark_inode_dirty(struct inode *inode, int flags)
+>  {
+>  	struct super_block *sb = inode->i_sb;
+>  	int dirtytime;
+> +	int copy_flags = flags;
+>  
+>  	trace_writeback_mark_inode_dirty(inode, flags);
+>  
+> +	blocking_notifier_call_chain(
+> +		&inode->notifier_lists[MARK_INODE_DIRTY_NOTIFIER],
+> +		0, &copy_flags);
+>  	/*
+>  	 * Don't do this for I_DIRTY_PAGES - that doesn't actually
+>  	 * dirty the inode itself
+> diff --git a/fs/inode.c b/fs/inode.c
+> index 72c4c34..84e82db 100644
+> --- a/fs/inode.c
+> +++ b/fs/inode.c
+> @@ -388,12 +388,17 @@ void address_space_init_once(struct address_space *mapping)
+>   */
+>  void inode_init_once(struct inode *inode)
+>  {
+> +	int i;
+> +
+>  	memset(inode, 0, sizeof(*inode));
+>  	INIT_HLIST_NODE(&inode->i_hash);
+>  	INIT_LIST_HEAD(&inode->i_devices);
+>  	INIT_LIST_HEAD(&inode->i_io_list);
+>  	INIT_LIST_HEAD(&inode->i_wb_list);
+>  	INIT_LIST_HEAD(&inode->i_lru);
+> +	for (i = 0; i < INODE_MAX_NOTIFIER; i++)
+> +		BLOCKING_INIT_NOTIFIER_HEAD(
+> +			&inode->notifier_lists[MARK_INODE_DIRTY_NOTIFIER]);
+>  	__address_space_init_once(&inode->i_data);
+>  	i_size_ordered_init(inode);
+>  }
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 7519ae0..42f0750 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -607,6 +607,11 @@ static inline void mapping_allow_writable(struct address_space *mapping)
+>  
+>  struct fsnotify_mark_connector;
+>  
+> +enum {
+> +	MARK_INODE_DIRTY_NOTIFIER,
+> +	INODE_MAX_NOTIFIER,
+> +};
+> +
+>  /*
+>   * Keep mostly read-only and often accessed (especially for
+>   * the RCU path lookup and 'stat' data) fields at the beginning
+> @@ -723,6 +728,7 @@ struct inode {
+>  #endif
+>  
+>  	void			*i_private; /* fs or device private pointer */
+> +	struct	blocking_notifier_head notifier_lists[INODE_MAX_NOTIFIER];
+>  } __randomize_layout;
+>  
+>  struct timespec64 timestamp_truncate(struct timespec64 t, struct inode *inode);
+> -- 
+> 1.8.3.1
+> 
+> 
 -- 
-2.25.1
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
