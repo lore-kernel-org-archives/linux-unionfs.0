@@ -1,151 +1,123 @@
-Return-Path: <SRS0=iS70=DV=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=F315=DW=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A45B0C43457
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Oct 2020 16:15:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FA0CC433E7
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Oct 2020 03:03:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 68FF3214D8
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Oct 2020 16:15:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06DC422226
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Oct 2020 03:03:22 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="eq2iV2sU"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387948AbgJNQPm (ORCPT
+        id S1726361AbgJODDW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 14 Oct 2020 12:15:42 -0400
-Received: from mx2.suse.de ([195.135.220.15]:58550 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2387838AbgJNQPm (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Oct 2020 12:15:42 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 5A159AC87;
-        Wed, 14 Oct 2020 16:15:40 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 1A61F1E1338; Wed, 14 Oct 2020 18:15:38 +0200 (CEST)
-Date:   Wed, 14 Oct 2020 18:15:38 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     miklos@szeredi.hu, amir73il@gmail.com, jack@suse.cz,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [RFC PATCH 1/5] fs: introduce notifier list for vfs inode
-Message-ID: <20201014161538.GA27613@quack2.suse.cz>
+        Wed, 14 Oct 2020 23:03:22 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25306 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725919AbgJODDW (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 14 Oct 2020 23:03:22 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1602730987; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=O9N3vJ4fUIt/BxRzvsq1UhuTirFzSw0ghLg/wl0rDwGtOpX48MdQ90IrA4QULRpz0AVQh6kKhk8mAYYh5UH0Gk8Z/yVbK7sisP8qAU+shQwVQ9q3fxAGOr2cuMmftHsA4TgbdRSmi9+8CSUcvqaijWHm8U3Ohit5fnpMKYBtFqw=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1602730987; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=XeYZ5hQ7JrCmA0e4AIA2ftCMhhgRjrhn51uZdq4xpTE=; 
+        b=gjWkfMSwCO1+8IiNW2PO//d2N7pRiCrT7sjlLVqgg0W7Bctx8huzU3okL67GaIuOaQw4bFTz75gnX1MlWP15yj4LkaU09+sZIP6fRs047UXLzmqoCQWuJ5SED4PbZaijEtG0lt2vrYZNmQoOhi+F0RWN9hjVWsq9SRMyBhKh5rI=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1602730987;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=XeYZ5hQ7JrCmA0e4AIA2ftCMhhgRjrhn51uZdq4xpTE=;
+        b=eq2iV2sUa8BJ7or7BOgnhqZfOf04086WUv7kDzeMU/at4c8PRNBCx8Wr9F+KE+ST
+        JitG4tdh950SynxkrcBKZtwFsnh8Oa+hIfw2L/D9H3xkQTId2aw3YnSE1ndkkt/+GCm
+        JJJJScogxrC6Zg6E+kg7+ys3e4oMpaYCmhMqFvFM=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1602730985108545.0431323384952; Thu, 15 Oct 2020 11:03:05 +0800 (CST)
+Date:   Thu, 15 Oct 2020 11:03:05 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>
+Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "cgxu519" <cgxu519@mykernel.net>
+Message-ID: <1752a360692.e4f6555543384.3080516622688985279@mykernel.net>
+In-Reply-To: <20201014161538.GA27613@quack2.suse.cz>
 References: <20201010142355.741645-1-cgxu519@mykernel.net>
- <20201010142355.741645-2-cgxu519@mykernel.net>
+ <20201010142355.741645-2-cgxu519@mykernel.net> <20201014161538.GA27613@quack2.suse.cz>
+Subject: Re: [RFC PATCH 1/5] fs: introduce notifier list for vfs inode
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201010142355.741645-2-cgxu519@mykernel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat 10-10-20 22:23:51, Chengguang Xu wrote:
-> Currently there is no notification api for kernel about modification
-> of vfs inode, in some use cases like overlayfs, this kind of notification
-> will be very helpful to implement containerized syncfs functionality.
-> As the first attempt, we introduce marking inode dirty notification so that
-> overlay's inode could mark itself dirty as well and then only sync dirty
-> overlay inode while syncfs.
-> 
-> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-10-15 00:15:38 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Sat 10-10-20 22:23:51, Chengguang Xu wrote:
+ > > Currently there is no notification api for kernel about modification
+ > > of vfs inode, in some use cases like overlayfs, this kind of notificat=
+ion
+ > > will be very helpful to implement containerized syncfs functionality.
+ > > As the first attempt, we introduce marking inode dirty notification so=
+ that
+ > > overlay's inode could mark itself dirty as well and then only sync dir=
+ty
+ > > overlay inode while syncfs.
+ > >=20
+ > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ >=20
+ > So I like how the patch set is elegant however growing struct inode for
+ > everybody by struct blocking_notifier_head (which is rwsem + pointer) is
+ > rather harsh just for this overlayfs functionality... Ideally this shoul=
+d
+ > induce no overhead on struct inode if the filesystem is not covered by
+ > overlayfs. So I'd rather place some external structure into the superblo=
+ck
+ > that would get allocated on the first use that would track dirty notific=
+ations
+ > for each inode. I would not generalize the code for more possible
+ > notifications at this point.
+ >=20
+ > Also now that I'm thinking about it can there be multiple overlayfs inod=
+es
+ > for one upper inode? If not, then the mechanism of dirtiness propagation
 
-So I like how the patch set is elegant however growing struct inode for
-everybody by struct blocking_notifier_head (which is rwsem + pointer) is
-rather harsh just for this overlayfs functionality... Ideally this should
-induce no overhead on struct inode if the filesystem is not covered by
-overlayfs. So I'd rather place some external structure into the superblock
-that would get allocated on the first use that would track dirty notifications
-for each inode. I would not generalize the code for more possible
-notifications at this point.
+One upper inode only belongs to one overlayfs inode. However, in practice
+one upper fs may contains hundreds or even thousands of overlayfs instances=
+.
 
-Also now that I'm thinking about it can there be multiple overlayfs inodes
-for one upper inode? If not, then the mechanism of dirtiness propagation
-could be much simpler - it seems we could be able to just lookup
-corresponding overlayfs inode based on upper inode and then mark it dirty
-(but this would need to be verified by people more familiar with
-overlayfs). So all we'd need to know for this is the superblock of the
-overlayfs that's covering given upper filesystem...
+ > could be much simpler - it seems we could be able to just lookup
+ > corresponding overlayfs inode based on upper inode and then mark it dirt=
+y
+ > (but this would need to be verified by people more familiar with
+ > overlayfs). So all we'd need to know for this is the superblock of the
+ > overlayfs that's covering given upper filesystem...
+ >=20
 
-								Honza
-> ---
->  fs/fs-writeback.c  | 4 ++++
->  fs/inode.c         | 5 +++++
->  include/linux/fs.h | 6 ++++++
->  3 files changed, 15 insertions(+)
-> 
-> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
-> index 1492271..657cceb 100644
-> --- a/fs/fs-writeback.c
-> +++ b/fs/fs-writeback.c
-> @@ -2246,9 +2246,13 @@ void __mark_inode_dirty(struct inode *inode, int flags)
->  {
->  	struct super_block *sb = inode->i_sb;
->  	int dirtytime;
-> +	int copy_flags = flags;
->  
->  	trace_writeback_mark_inode_dirty(inode, flags);
->  
-> +	blocking_notifier_call_chain(
-> +		&inode->notifier_lists[MARK_INODE_DIRTY_NOTIFIER],
-> +		0, &copy_flags);
->  	/*
->  	 * Don't do this for I_DIRTY_PAGES - that doesn't actually
->  	 * dirty the inode itself
-> diff --git a/fs/inode.c b/fs/inode.c
-> index 72c4c34..84e82db 100644
-> --- a/fs/inode.c
-> +++ b/fs/inode.c
-> @@ -388,12 +388,17 @@ void address_space_init_once(struct address_space *mapping)
->   */
->  void inode_init_once(struct inode *inode)
->  {
-> +	int i;
-> +
->  	memset(inode, 0, sizeof(*inode));
->  	INIT_HLIST_NODE(&inode->i_hash);
->  	INIT_LIST_HEAD(&inode->i_devices);
->  	INIT_LIST_HEAD(&inode->i_io_list);
->  	INIT_LIST_HEAD(&inode->i_wb_list);
->  	INIT_LIST_HEAD(&inode->i_lru);
-> +	for (i = 0; i < INODE_MAX_NOTIFIER; i++)
-> +		BLOCKING_INIT_NOTIFIER_HEAD(
-> +			&inode->notifier_lists[MARK_INODE_DIRTY_NOTIFIER]);
->  	__address_space_init_once(&inode->i_data);
->  	i_size_ordered_init(inode);
->  }
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index 7519ae0..42f0750 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -607,6 +607,11 @@ static inline void mapping_allow_writable(struct address_space *mapping)
->  
->  struct fsnotify_mark_connector;
->  
-> +enum {
-> +	MARK_INODE_DIRTY_NOTIFIER,
-> +	INODE_MAX_NOTIFIER,
-> +};
-> +
->  /*
->   * Keep mostly read-only and often accessed (especially for
->   * the RCU path lookup and 'stat' data) fields at the beginning
-> @@ -723,6 +728,7 @@ struct inode {
->  #endif
->  
->  	void			*i_private; /* fs or device private pointer */
-> +	struct	blocking_notifier_head notifier_lists[INODE_MAX_NOTIFIER];
->  } __randomize_layout;
->  
->  struct timespec64 timestamp_truncate(struct timespec64 t, struct inode *inode);
-> -- 
-> 1.8.3.1
-> 
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+So the difficulty is how we get overlayfs inode efficiently from upper inod=
+e,
+it seems if we don't have additional info of upper inode to indicate which
+overlayfs it belongs to,  then the lookup of corresponding overlayfs inode
+will be quite expensive and probably impact write performance.=20
+
+Is that possible we extend inotify infrastructure slightly to notify both
+user space and kernel component?
+
+
+Thanks,
+Chengguang
