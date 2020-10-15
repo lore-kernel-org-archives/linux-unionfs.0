@@ -2,122 +2,54 @@ Return-Path: <SRS0=F315=DW=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FA0CC433E7
-	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Oct 2020 03:03:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B09BC433E7
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Oct 2020 03:25:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 06DC422226
-	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Oct 2020 03:03:22 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="eq2iV2sU"
+	by mail.kernel.org (Postfix) with ESMTP id C2B012222E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Oct 2020 03:25:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726361AbgJODDW (ORCPT
+        id S1728135AbgJODZO (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 14 Oct 2020 23:03:22 -0400
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25306 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725919AbgJODDW (ORCPT
+        Wed, 14 Oct 2020 23:25:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39086 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726474AbgJODZO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Oct 2020 23:03:22 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1602730987; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=O9N3vJ4fUIt/BxRzvsq1UhuTirFzSw0ghLg/wl0rDwGtOpX48MdQ90IrA4QULRpz0AVQh6kKhk8mAYYh5UH0Gk8Z/yVbK7sisP8qAU+shQwVQ9q3fxAGOr2cuMmftHsA4TgbdRSmi9+8CSUcvqaijWHm8U3Ohit5fnpMKYBtFqw=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1602730987; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=XeYZ5hQ7JrCmA0e4AIA2ftCMhhgRjrhn51uZdq4xpTE=; 
-        b=gjWkfMSwCO1+8IiNW2PO//d2N7pRiCrT7sjlLVqgg0W7Bctx8huzU3okL67GaIuOaQw4bFTz75gnX1MlWP15yj4LkaU09+sZIP6fRs047UXLzmqoCQWuJ5SED4PbZaijEtG0lt2vrYZNmQoOhi+F0RWN9hjVWsq9SRMyBhKh5rI=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1602730987;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=XeYZ5hQ7JrCmA0e4AIA2ftCMhhgRjrhn51uZdq4xpTE=;
-        b=eq2iV2sUa8BJ7or7BOgnhqZfOf04086WUv7kDzeMU/at4c8PRNBCx8Wr9F+KE+ST
-        JitG4tdh950SynxkrcBKZtwFsnh8Oa+hIfw2L/D9H3xkQTId2aw3YnSE1ndkkt/+GCm
-        JJJJScogxrC6Zg6E+kg7+ys3e4oMpaYCmhMqFvFM=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1602730985108545.0431323384952; Thu, 15 Oct 2020 11:03:05 +0800 (CST)
-Date:   Thu, 15 Oct 2020 11:03:05 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Jan Kara" <jack@suse.cz>
-Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-        "cgxu519" <cgxu519@mykernel.net>
-Message-ID: <1752a360692.e4f6555543384.3080516622688985279@mykernel.net>
-In-Reply-To: <20201014161538.GA27613@quack2.suse.cz>
-References: <20201010142355.741645-1-cgxu519@mykernel.net>
- <20201010142355.741645-2-cgxu519@mykernel.net> <20201014161538.GA27613@quack2.suse.cz>
+        Wed, 14 Oct 2020 23:25:14 -0400
+Received: from ZenIV.linux.org.uk (zeniv.linux.org.uk [IPv6:2002:c35c:fd02::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41274C061755;
+        Wed, 14 Oct 2020 20:25:14 -0700 (PDT)
+Received: from viro by ZenIV.linux.org.uk with local (Exim 4.92.3 #3 (Red Hat Linux))
+        id 1kStsz-000WW0-3v; Thu, 15 Oct 2020 03:25:01 +0000
+Date:   Thu, 15 Oct 2020 04:25:01 +0100
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     miklos@szeredi.hu, amir73il@gmail.com, jack@suse.cz,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Subject: Re: [RFC PATCH 1/5] fs: introduce notifier list for vfs inode
+Message-ID: <20201015032501.GO3576660@ZenIV.linux.org.uk>
+References: <20201010142355.741645-1-cgxu519@mykernel.net>
+ <20201010142355.741645-2-cgxu519@mykernel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201010142355.741645-2-cgxu519@mykernel.net>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-10-15 00:15:38 Jan Kara <=
-jack@suse.cz> =E6=92=B0=E5=86=99 ----
- > On Sat 10-10-20 22:23:51, Chengguang Xu wrote:
- > > Currently there is no notification api for kernel about modification
- > > of vfs inode, in some use cases like overlayfs, this kind of notificat=
-ion
- > > will be very helpful to implement containerized syncfs functionality.
- > > As the first attempt, we introduce marking inode dirty notification so=
- that
- > > overlay's inode could mark itself dirty as well and then only sync dir=
-ty
- > > overlay inode while syncfs.
- > >=20
- > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
- >=20
- > So I like how the patch set is elegant however growing struct inode for
- > everybody by struct blocking_notifier_head (which is rwsem + pointer) is
- > rather harsh just for this overlayfs functionality... Ideally this shoul=
-d
- > induce no overhead on struct inode if the filesystem is not covered by
- > overlayfs. So I'd rather place some external structure into the superblo=
-ck
- > that would get allocated on the first use that would track dirty notific=
-ations
- > for each inode. I would not generalize the code for more possible
- > notifications at this point.
- >=20
- > Also now that I'm thinking about it can there be multiple overlayfs inod=
-es
- > for one upper inode? If not, then the mechanism of dirtiness propagation
+On Sat, Oct 10, 2020 at 10:23:51PM +0800, Chengguang Xu wrote:
+> Currently there is no notification api for kernel about modification
+> of vfs inode, in some use cases like overlayfs, this kind of notification
+> will be very helpful to implement containerized syncfs functionality.
+> As the first attempt, we introduce marking inode dirty notification so that
+> overlay's inode could mark itself dirty as well and then only sync dirty
+> overlay inode while syncfs.
 
-One upper inode only belongs to one overlayfs inode. However, in practice
-one upper fs may contains hundreds or even thousands of overlayfs instances=
-.
-
- > could be much simpler - it seems we could be able to just lookup
- > corresponding overlayfs inode based on upper inode and then mark it dirt=
-y
- > (but this would need to be verified by people more familiar with
- > overlayfs). So all we'd need to know for this is the superblock of the
- > overlayfs that's covering given upper filesystem...
- >=20
-
-So the difficulty is how we get overlayfs inode efficiently from upper inod=
-e,
-it seems if we don't have additional info of upper inode to indicate which
-overlayfs it belongs to,  then the lookup of corresponding overlayfs inode
-will be quite expensive and probably impact write performance.=20
-
-Is that possible we extend inotify infrastructure slightly to notify both
-user space and kernel component?
-
-
-Thanks,
-Chengguang
+Who's responsible for removing the crap from notifier chain?  And how does
+that affect the lifetime of inode?
