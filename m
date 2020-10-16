@@ -2,400 +2,110 @@ Return-Path: <SRS0=VTpt=DX=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A995EC433DF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 07:43:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F653C433E7
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 09:22:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC531207F7
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 07:43:47 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="gPVm2lyT"
+	by mail.kernel.org (Postfix) with ESMTP id DC4AA206DD
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 09:22:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2404668AbgJPHnr (ORCPT
+        id S2395232AbgJPJWv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 16 Oct 2020 03:43:47 -0400
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25332 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2404574AbgJPHnr (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 16 Oct 2020 03:43:47 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1602834186; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=rUtc8ja7MUOqbclFK3k7rGLv/OVPwVh9tYjo7Aeq3soAbWNJAs/aV3uoxWCEdzBfUQJUNcKjXNWOW6+PXPKK4nHSUsrN7kLAL2m6h8pTQQbCHEeKhKN614XCxLVi07qiBFrSAnttTK9Trn9rUqM5Xcc8TYF2MUYAB8LgmnbHiXE=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1602834186; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=0TiOawj5z6ozBRpbSf/pBUiARNw9Qco7o6BnAvMDPR4=; 
-        b=TeaTVl9BuzXFLE+SOTAa04T5LU0LQSyXjcuYHxSTvuTn0SIjqqYkMXx3yEeI96mpO5sIrBPd0KYWrC5GEo6UFLDuoLoajHelX/W4Qoka65aPMKKPuMnD573oDnhOzs9hWLzEPJijLKlaXSAk+z2FSCZm0o1BTnJo1VU3ONpcsFE=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1602834186;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=0TiOawj5z6ozBRpbSf/pBUiARNw9Qco7o6BnAvMDPR4=;
-        b=gPVm2lyT077UMZgUis7i89UAVgO8J8qeAb6SkNJbH1ssKQp9bBQ12U9PdzJpOsco
-        TL3ZEUzutMvCq6ggwnc7rH6/QA04DW4I7UOD+rIdogHor1pQYWEu3frQXo9Cb4rR2gY
-        3ZXVdO0uNexuE/S+pq7/R3IQQ2I3E+0/s1x5tHAA=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1602834184462391.00614447527903; Fri, 16 Oct 2020 15:43:04 +0800 (CST)
-Date:   Fri, 16 Oct 2020 15:43:04 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Amir Goldstein" <amir73il@gmail.com>
-Cc:     "Jan Kara" <jack@suse.cz>, "miklos" <miklos@szeredi.hu>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-        "Al Viro" <viro@zeniv.linux.org.uk>
-Message-ID: <175305cb90b.11646f2f146354.1810975809173386959@mykernel.net>
-In-Reply-To: <CAOQ4uxgJ=soSgdWo20iNtm30hua8kL8Do3T_FH2uTehQWOGsTg@mail.gmail.com>
-References: <20201010142355.741645-1-cgxu519@mykernel.net> <20201010142355.741645-2-cgxu519@mykernel.net>
- <20201014161538.GA27613@quack2.suse.cz> <1752a360692.e4f6555543384.3080516622688985279@mykernel.net>
- <CAOQ4uxhOrPfJxhJ1g7eSSdO4=giFJabCCOvJL7dSo1R9VsZozA@mail.gmail.com>
- <1752c05cbe5.fd554a7a44272.2744418978249296745@mykernel.net>
- <CAOQ4uxhEA=ggONsJrUzGfHOGHob+81-UHk1Wo9ejj=CziAjtTQ@mail.gmail.com>
- <1752c652963.113ee3fbc44343.6282793280578516240@mykernel.net>
- <CAOQ4uxhujP_pzguq+FJ87Mx4GBNzEWQs-izuXK1qhWu3EmLpJA@mail.gmail.com> <1752f1f2c1a.c646418645575.6542807445910962686@mykernel.net> <CAOQ4uxgJ=soSgdWo20iNtm30hua8kL8Do3T_FH2uTehQWOGsTg@mail.gmail.com>
+        Fri, 16 Oct 2020 05:22:51 -0400
+Received: from mx2.suse.de ([195.135.220.15]:47932 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2395230AbgJPJWv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 16 Oct 2020 05:22:51 -0400
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 0F9E4AEA2;
+        Fri, 16 Oct 2020 09:22:49 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 71F2A1E133E; Fri, 16 Oct 2020 11:22:48 +0200 (CEST)
+Date:   Fri, 16 Oct 2020 11:22:48 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, amir73il <amir73il@gmail.com>,
+        jack <jack@suse.cz>, miklos <miklos@szeredi.hu>,
+        linux-unionfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Subject: Re: [RFC PATCH 1/5] fs: introduce notifier list for vfs inode
+Message-ID: <20201016092248.GK7037@quack2.suse.cz>
+References: <20201010142355.741645-1-cgxu519@mykernel.net>
+ <20201010142355.741645-2-cgxu519@mykernel.net>
+ <20201015032501.GO3576660@ZenIV.linux.org.uk>
+ <1752a5a7164.e9a05b8943438.8099134270028614634@mykernel.net>
+ <20201015045741.GP3576660@ZenIV.linux.org.uk>
+ <175303e1d27.105ba43f146287.2025735092350714226@mykernel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <175303e1d27.105ba43f146287.2025735092350714226@mykernel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2020-10-16 12:39:10 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > On Fri, Oct 16, 2020 at 4:56 AM Chengguang Xu <cgxu519@mykernel.net> wro=
-te:
- > >
- > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2020-10-16 00:02:42 Amir =
-Goldstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > >  > >  > When an inode is writably mapped via ovarlayfs, you can f=
-lag the
- > >  > >  > >  > overlay inode with "maybe-writably-mapped" and then remov=
-e
- > >  > >  > >  > it from the maybe dirty list when the underlying inode is=
- not dirty
- > >  > >  > >  > AND its i_writecount is 0 (checked on write_inode() and r=
-elease()).
- > >  > >  > >  >
- > >  > >  > >  > Actually, there is no reason to treat writably mapped ino=
-des and
- > >  > >  > >  > other dirty inodes differently - insert to suspect list o=
-n open for
- > >  > >  > >  > write, remove from suspect list on last release() or writ=
-e_inode()
- > >  > >  > >  > when inode is no longer dirty and writable.
- > >  > >
- > >  > > I have to say inserting to suspect list cannot prevent dropping,
- > >  > > thinking of the problem of previous approach that we write dirty =
-upper
- > >  > > inode with current->flags & PF_MEMALLOC while evicting clean over=
-lay inode.
- > >  > >
- > >  >
- > >  > Sorry, I don't understand what that means.
- > >
- > > This is the main problem of my previous patch set V10, evicting clean =
-inode
- > > expects no write behavior but in the case of dirty upper inode we have=
- to
- > > write out dirty data in this timing otherwise we will lose the connect=
-ion with upper inode.
- > >
- >=20
- > My thinking was that the suspect list holds a reference to the overlay i=
-node.
- > The question is can we always safely get rid of that reference and remov=
-e
- > from the suspect list when the inode is no longer "writable". Let's see.=
-..
- >=20
- > >
- > >  >
- > >  > >
- > >  > >  > >  >
- > >  > >  > >  > Did I miss anything?
- > >  > >  > >  >
- > >  > >  > >
- > >  > >  > > If we dirty overlay inode that means we have launched writeb=
-ack mechanism,
- > >  > >  > > so in this case, re-dirty overlay inode in time becomes impo=
-rtant.
- > >  > >  > >
- > >  > >  >
- > >  > >  > My idea was to use the first call to ovl_sync_fs() with 'wait'=
- false
- > >  > >  > to iterate the
- > >  > >  > maybe-dirty list and re-dirty overlay inodes whose upper is di=
-rty.
- > >  > >  >
- > >  > >
- > >  > > I'm curious how we prevent dropping of clean overlay inode with d=
-irty upper?
- > >  > > Hold another reference during iput_final operation? in the drop_i=
-node() or something
- > >  > > else?
- > >  >
- > >  > No, just return 0 from ovl_drop_inode() and iput_final() will not e=
-vict().
- > >
- > > It's not good,  it  only temporarily  skips eviction, the inode in lru=
- list
- > > will be evicted in some cases like drop cache or memory reclaim. etc.
- > >
- > > A solution for this is getting another reference in ->drop_inode so th=
-at
- > > the inode can escape from adding to lru list but this looks awkward an=
-d tricky.
- > >
- >=20
- > Right, that was nonsense. We need to rely on the reference held by the
- > suspect list.
- >=20
- > >  >
- > >  > >
- > >  > >
- > >  > >  > Then in the second call to __sync_filesystem, sync_inodes_sb()=
- will take
- > >  > >  > care of calling ovl_write_inode() for all the re-dirty inodes.
- > >  > >  >
- > >  > >  > In current code we sync ALL dirty upper fs inodes and we do no=
-t overlay
- > >  > >  > inodes with no reference in cache.
- > >  > >  >
- > >  > >  > The best code would sync only upper fs inodes dirtied by this =
-overlay
- > >  > >  > and will be able to evict overlay inodes whose upper inodes ar=
-e clean.
- > >  > >  >
- > >  > >  > The compromise code would sync only upper fs inodes dirtied by=
- this overlay,
- > >  > >  > and would not evict overlay inodes as long as upper inodes are=
- "open for write".
- > >  > >  > I think its a fine compromise considering the alternatives.
- > >  > >  >
- > >  > >  > Is this workable?
- > >  > >  >
- > >  > >
- > >  > > In your approach, the key point is how to prevent dropping overla=
-y inode that has
- > >  > > dirty upper and no reference but I don't understand well how to a=
-chieve it from
- > >  > > your descriptions.
- > >  > >
- > >  > >
- > >  >
- > >  > Very well, I will try to explain with code:
- > >  >
- > >  > int ovl_inode_is_open_for_write(struct inode *inode)
- > >  > {
- > >  >        struct inode *upper_inode =3D ovl_inode_upper(inode);
- > >  >
- > >  >        return upper_inode && inode_is_open_for_write(upper_inode);
- > >  > }
- > >  >
- > >  > void ovl_maybe_mark_inode_dirty(struct inode *inode)
- > >  > {
- > >  >        struct inode *upper_inode =3D ovl_inode_upper(inode);
- > >  >
- > >  >        if (upper_inode && upper_inode->i_state & I_DIRTY_ALL)
- > >  >                 mark_inode_dirty(inode);
- > >  > }
- > >  >
- > >  > int ovl_open(struct inode *inode, struct file *file)
- > >  > {
- > >  > ...
- > >  >        if (ovl_inode_is_open_for_write(file_inode(file)))
- > >  >                ovl_add_inode_to_suspect_list(inode);
- > >  >
- > >  >         file->private_data =3D realfile;
- > >  >
- > >  >         return 0;
- > >  > }
- > >  >
- > >  > int ovl_release(struct inode *inode, struct file *file)
- > >  > {
- > >  >        struct inode *inode =3D file_inode(file);
- > >  >
- > >  >        if (ovl_inode_is_open_for_write(inode)) {
- > >  >                ovl_maybe_mark_inode_dirty(inode);
- > >  >                ovl_remove_inode_from_suspect_list(inode);
- > >
- > > I think in some cases removing from suspect_list will cause losing
- > > the connection with upper inode that has writable mmap.
- > >
- >=20
- > First of all I had a bug here.
- > Need to check for !ovl_inode_is_open_for_write(inode) after fput().
- >=20
- > If the upper inode has a writable mmap, the upper inode would still
- > be "writable" (i_writecount held by the map realfile reference).
- >=20
- > So when closing the last overlay file reference while upper inode
- > writable maps still exist, the remaining issue is when to remove
- > the overlay inode from the suspect list and allow its eviction and
- > I did not mention that.
- >=20
- > I *think* that this condition should be safe in the regard that
- > after the condition is met, there is no way to dirty the upper inode
- > via overlayfs without going through ovl_open().
- > Obviously, the test should be done with some list lock held.
- >=20
- > bool ovl_may_remove_from_suspect_list(struct inode *inode)
- > {
- >         struct inode *upper_inode =3D ovl_inode_upper(inode);
- >=20
- >         if (upper_inode && upper_inode->i_state & I_DIRTY_ALL)
- >                 return false;
- >=20
- >         return !inode_is_open_for_write(upper_inode);
- > }
- >=20
- > Now remains the question of WHEN to check for removal
- > from the suspect list.
- >=20
- > The first place is in ovl_sync_fs() when iterating the suspect list,
- > inodes that meet the above criteria are "indefinitely clean" and
- > may be removed from the list at that timing.
- >=20
- > For eviction during memory pressure, overlay can register a
- > shrinker to do this garbage collection. Is shrinker being called
- > on drop_caches? I'm not sure. But we can also do periodic garbage
- > collection.
- >=20
- > In the end, it is not the common case and we just need the garbage
- > collection to mitigate DoS (or existing workload) that does many:
- > - open
- > - mmap(...PROT_WRITE, MAP_SHARED...)
- > - close
- > - munmap
- >=20
+On Fri 16-10-20 15:09:38, Chengguang Xu wrote:
+>  ---- 在 星期四, 2020-10-15 12:57:41 Al Viro <viro@zeniv.linux.org.uk> 撰写 ----
+>  > On Thu, Oct 15, 2020 at 11:42:51AM +0800, Chengguang Xu wrote:
+>  > >  ---- 在 星期四, 2020-10-15 11:25:01 Al Viro <viro@zeniv.linux.org.uk> 撰写 ----
+>  > >  > On Sat, Oct 10, 2020 at 10:23:51PM +0800, Chengguang Xu wrote:
+>  > >  > > Currently there is no notification api for kernel about modification
+>  > >  > > of vfs inode, in some use cases like overlayfs, this kind of notification
+>  > >  > > will be very helpful to implement containerized syncfs functionality.
+>  > >  > > As the first attempt, we introduce marking inode dirty notification so that
+>  > >  > > overlay's inode could mark itself dirty as well and then only sync dirty
+>  > >  > > overlay inode while syncfs.
+>  > >  > 
+>  > >  > Who's responsible for removing the crap from notifier chain?  And how does
+>  > >  > that affect the lifetime of inode?
+>  > >  
+>  > > In this case, overlayfs unregisters call back from the notifier chain of upper inode
+>  > > when evicting it's own  inode. It will not affect the lifetime of upper inode because
+>  > > overlayfs inode holds a reference of upper inode that means upper inode will not be
+>  > > evicted while overlayfs inode is still alive.
+>  > 
+>  > Let me see if I've got it right:
+>  >     * your chain contains 1 (for upper inodes) or 0 (everything else, i.e. the
+>  > vast majority of inodes) recepients
+>  >     * recepient pins the inode for as long as the recepient exists
+>  > 
+>  > That looks like a massive overkill, especially since all you are propagating is
+>  > dirtying the suckers.  All you really need is one bit in your inode + hash table
+>  > indexed by the address of struct inode (well, middle bits thereof, as usual).
+>  > With entries embedded into overlayfs-private part of overlayfs inode.  And callback
+>  > to be called stored in that entry...
+>  > 
+> 
+> Hi AI, Jack, Amir
+> 
+> Based on your feedback, I would to change the inode dirty notification
+> something like below, is it acceptable? 
+> 
+> 
+> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
+> index 1492271..48473d9 100644
+> --- a/fs/fs-writeback.c
+> +++ b/fs/fs-writeback.c
+> @@ -2249,6 +2249,14 @@ void __mark_inode_dirty(struct inode *inode, int flags)
+>  
+>         trace_writeback_mark_inode_dirty(inode, flags);
+>  
+> +       if (inode->state & I_OVL_INUSE) {
+> +               struct inode *ovl_inode;
+> +
+> +               ovl_inode = ilookup5(NULL, (unsigned long)inode, ovl_inode_test, inode);
 
-That right, as you mentioned above releasing timing is important and
-that also means in worst case, overlayfs hold too much memory resource
-until umount. Maybe more proactive shrinker like dedicated workqueue
-thread of overlayfs instead of global shrinker will be more helpful.
+I don't think this will work - superblock pointer is part of the hash value
+inode is hashed with so without proper sb pointer you won't find proper
+hash chain.
 
-
-
- >=20
- > >
- > >  >        }
- > >  >
- > >  >         fput(file->private_data);
- > >  >
- > >  >         return 0;
- > >  > }
- > >  >
- > >  > int ovl_drop_inode(struct inode *inode)
- > >  > {
- > >  >        struct inode *upper_inode =3D ovl_inode_upper(inode);
- > >  >
- > >  >        if (!upper_inode)
- > >  >                return 1;
- > >  >        if (upper_inode->i_state & I_DIRTY_ALL)
- > >  >                return 0;
- > >  >
- > >  >        return !inode_is_open_for_write(upper_inode);
- > >
- > > Is this condition just for writable mmap?
- > >
- >=20
- > No, it's for all inodes that may be written from overlayfs (or
- > from maps created by overalyfs), but as you wrote, this
- > test is not needed in drop_inode().
- >=20
- > >
- > >  > }
- > >  >
- > >  > static int ovl_sync_fs(struct super_block *sb, int wait)
- > >  > {
- > >  >         struct ovl_fs *ofs =3D sb->s_fs_info;
- > >  >         struct super_block *upper_sb;
- > >  >         int ret;
- > >  >
- > >  >         if (!ovl_upper_mnt(ofs))
- > >  >                 return 0;
- > >  >
- > >  >         /*
- > >  >          * Not called for sync(2) call or an emergency sync (SB_I_S=
-KIP_SYNC).
- > >  >          * All the super blocks will be iterated, including upper_s=
-b.
- > >  >          *
- > >  >          * If this is a syncfs(2) call, then we do need to call
- > >  >          * sync_filesystem() on upper_sb, but enough if we do it wh=
-en being
- > >  >          * called with wait =3D=3D 1.
- > >  >          */
- > >  >         if (!wait) {
- > >  >                 /* mark inodes on the suspect list dirty if thier
- > >  > upper inode is dirty */
- > >  >                 ovl_mark_suspect_list_inodes_dirty();
- > >  >                 return 0;
- > >  >         }
- > >  > ...
- > >  >
- > >
- > > Why 2 rounds?  it seems the simplest way is only syncing dirty upper i=
-node
- > > on wait=3D=3D1 just like my previous patch.
- > >
- >=20
- > We don't have to do it in 2 rounds, but as long as we have a suspect lis=
-t,
- > we can use it to start writeback on wait=3D=3D0 on all dirty upper inode=
-s from
- > our list just like the caller intended.
- >=20
- > Do we need overlay sbi and mark_inode_dirty() and ovl_write_inode() at a=
-ll?
- > I'm not sure. It feels like a good idea to use generic infrastructure as=
- much as
- > possible. You should know better than me to answer this question.
- >=20
-
-IMO, if we maintain a special list like suspect-list to organize target ove=
-rlay inodes,
-then we don't have to mark overlay inode dirty, marking overlay inode dirty=
- will
-bring unnecessary complexity in this case and I think there is no special b=
-enefit.
-
-So this approach may achieve containerized syncfs for overlayfs and I've su=
-bmitted
-patch set V12 follow this thinking but I think the complexity is still big =
-obstacle to
-merge to upstream from feedback of Miklos. The new approach I posted the ot=
-her day
-is really simple to understand compare to the previous solution, if we can =
-optimize
-dirtiness  notification part a bit more then I think it will be more accept=
-able.
-
-In the end, I need more feedback and  If you guys all think the previous so=
-lution  is the right way,=20
-then I can do more work based on our discussion above and post V13 later.
-
-
-Thanks,
-Chengguang
-
-
-
-
-
-
-
-
-=20
-
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
