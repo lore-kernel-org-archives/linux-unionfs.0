@@ -2,110 +2,119 @@ Return-Path: <SRS0=VTpt=DX=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F653C433E7
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 09:22:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4AC1C433DF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 15:49:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC4AA206DD
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 09:22:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3EAA2083B
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Oct 2020 15:49:35 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="fBI9dPgA"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2395232AbgJPJWv (ORCPT
+        id S2407025AbgJPPtf (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 16 Oct 2020 05:22:51 -0400
-Received: from mx2.suse.de ([195.135.220.15]:47932 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2395230AbgJPJWv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 16 Oct 2020 05:22:51 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 0F9E4AEA2;
-        Fri, 16 Oct 2020 09:22:49 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 71F2A1E133E; Fri, 16 Oct 2020 11:22:48 +0200 (CEST)
-Date:   Fri, 16 Oct 2020 11:22:48 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Al Viro <viro@zeniv.linux.org.uk>, amir73il <amir73il@gmail.com>,
-        jack <jack@suse.cz>, miklos <miklos@szeredi.hu>,
-        linux-unionfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Subject: Re: [RFC PATCH 1/5] fs: introduce notifier list for vfs inode
-Message-ID: <20201016092248.GK7037@quack2.suse.cz>
-References: <20201010142355.741645-1-cgxu519@mykernel.net>
- <20201010142355.741645-2-cgxu519@mykernel.net>
- <20201015032501.GO3576660@ZenIV.linux.org.uk>
- <1752a5a7164.e9a05b8943438.8099134270028614634@mykernel.net>
- <20201015045741.GP3576660@ZenIV.linux.org.uk>
- <175303e1d27.105ba43f146287.2025735092350714226@mykernel.net>
+        Fri, 16 Oct 2020 11:49:35 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17159 "EHLO
+        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2406687AbgJPPtf (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 16 Oct 2020 11:49:35 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1602863354; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=n8n+T9suWdA+MP6k+ouomSl0/y5nqRXlbajHZ4DYtBihhFJYiN+efSabqqicH2RTj/mg00h95VNx8FW6ZO/Ymoc7hJRG5nWzYY8ZaLAORYkbv5FFSbfWFHFLVgYLSVjzmoQglGvbULQAWsRjjMrY74TQCpKTSfduoWcyvyTctOw=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1602863354; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=WzcysgbH6jSlo6zzm50b5GIwTt5zoaIlP4opho722+4=; 
+        b=c5Kkqg4d24kf94TtL6VxL0Ob9Epelj94O3+degOmvkL2xRUp+UDCtskd3hRY9epnpfqPKh0Bem1HjcaIQA864Fv8rJJz+Nin2YfmhhAMURqyZHz+vXogAsD2nGnnDXLa+0yM7dWTe9Rxkz4BkMiejicf7+YQmBE0mU8OGrTR4/M=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1602863354;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=WzcysgbH6jSlo6zzm50b5GIwTt5zoaIlP4opho722+4=;
+        b=fBI9dPgAHrlFq+cq/Bb24EDHKc2mEheOKCa8vChKFZL8pKhSOOqp8MFvTXNnlI6F
+        xgvJF5rNf+zUGPLtDzkiaw2Fm46pPrlbmTPjRSEQghMqAkynLWbxHcMc8RvMymZpCIU
+        Z0gIMmKYL9uGPD/DN1YY+otpzsMNd+WCvd7cI3/4=
+Received: from localhost.localdomain (113.87.91.106 [113.87.91.106]) by mx.zoho.com.cn
+        with SMTPS id 1602863350971138.31672795862335; Fri, 16 Oct 2020 23:49:10 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, root <root@localhost.localdomain>
+Message-ID: <20201016154852.2958-1-cgxu519@mykernel.net>
+Subject: [PATCH] ovl: stacked file operation for mmap
+Date:   Fri, 16 Oct 2020 23:48:52 +0800
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <175303e1d27.105ba43f146287.2025735092350714226@mykernel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri 16-10-20 15:09:38, Chengguang Xu wrote:
->  ---- 在 星期四, 2020-10-15 12:57:41 Al Viro <viro@zeniv.linux.org.uk> 撰写 ----
->  > On Thu, Oct 15, 2020 at 11:42:51AM +0800, Chengguang Xu wrote:
->  > >  ---- 在 星期四, 2020-10-15 11:25:01 Al Viro <viro@zeniv.linux.org.uk> 撰写 ----
->  > >  > On Sat, Oct 10, 2020 at 10:23:51PM +0800, Chengguang Xu wrote:
->  > >  > > Currently there is no notification api for kernel about modification
->  > >  > > of vfs inode, in some use cases like overlayfs, this kind of notification
->  > >  > > will be very helpful to implement containerized syncfs functionality.
->  > >  > > As the first attempt, we introduce marking inode dirty notification so that
->  > >  > > overlay's inode could mark itself dirty as well and then only sync dirty
->  > >  > > overlay inode while syncfs.
->  > >  > 
->  > >  > Who's responsible for removing the crap from notifier chain?  And how does
->  > >  > that affect the lifetime of inode?
->  > >  
->  > > In this case, overlayfs unregisters call back from the notifier chain of upper inode
->  > > when evicting it's own  inode. It will not affect the lifetime of upper inode because
->  > > overlayfs inode holds a reference of upper inode that means upper inode will not be
->  > > evicted while overlayfs inode is still alive.
->  > 
->  > Let me see if I've got it right:
->  >     * your chain contains 1 (for upper inodes) or 0 (everything else, i.e. the
->  > vast majority of inodes) recepients
->  >     * recepient pins the inode for as long as the recepient exists
->  > 
->  > That looks like a massive overkill, especially since all you are propagating is
->  > dirtying the suckers.  All you really need is one bit in your inode + hash table
->  > indexed by the address of struct inode (well, middle bits thereof, as usual).
->  > With entries embedded into overlayfs-private part of overlayfs inode.  And callback
->  > to be called stored in that entry...
->  > 
-> 
-> Hi AI, Jack, Amir
-> 
-> Based on your feedback, I would to change the inode dirty notification
-> something like below, is it acceptable? 
-> 
-> 
-> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
-> index 1492271..48473d9 100644
-> --- a/fs/fs-writeback.c
-> +++ b/fs/fs-writeback.c
-> @@ -2249,6 +2249,14 @@ void __mark_inode_dirty(struct inode *inode, int flags)
->  
->         trace_writeback_mark_inode_dirty(inode, flags);
->  
-> +       if (inode->state & I_OVL_INUSE) {
-> +               struct inode *ovl_inode;
-> +
-> +               ovl_inode = ilookup5(NULL, (unsigned long)inode, ovl_inode_test, inode);
+From: root <root@localhost.localdomain>
 
-I don't think this will work - superblock pointer is part of the hash value
-inode is hashed with so without proper sb pointer you won't find proper
-hash chain.
+Currently only mmap does not behave as stacked file operation,
+although in practice there is less change to open a file in
+RDONLY mode and take long time to do mmap but the fix looks
+reasonable.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Signed-off-by: root <root@localhost.localdomain>
+---
+ fs/overlayfs/file.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 3582c3ae819c..f98b1c0c975b 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -461,6 +461,7 @@ static int ovl_mmap(struct file *file, struct vm_area_s=
+truct *vma)
+ {
+ =09struct file *realfile =3D file->private_data;
+ =09const struct cred *old_cred;
++=09struct fd real;
+ =09int ret;
+=20
+ =09if (!realfile->f_op->mmap)
+@@ -469,7 +470,11 @@ static int ovl_mmap(struct file *file, struct vm_area_=
+struct *vma)
+ =09if (WARN_ON(file !=3D vma->vm_file))
+ =09=09return -EIO;
+=20
+-=09vma->vm_file =3D get_file(realfile);
++=09ret =3D ovl_real_fdget(file, &real);
++=09if (ret)
++=09=09return ret;
++
++=09vma->vm_file =3D get_file(real.file);
+=20
+ =09old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
+ =09ret =3D call_mmap(vma->vm_file, vma);
+@@ -477,13 +482,14 @@ static int ovl_mmap(struct file *file, struct vm_area=
+_struct *vma)
+=20
+ =09if (ret) {
+ =09=09/* Drop reference count from new vm_file value */
+-=09=09fput(realfile);
++=09=09fput(real.file);
+ =09} else {
+ =09=09/* Drop reference count from previous vm_file value */
+ =09=09fput(file);
+ =09}
+=20
+ =09ovl_file_accessed(file);
++=09fdput(real);
+=20
+ =09return ret;
+ }
+--=20
+2.26.2
+
+
