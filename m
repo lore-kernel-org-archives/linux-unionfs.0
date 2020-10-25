@@ -1,134 +1,137 @@
-Return-Path: <SRS0=pzJs=D6=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=gNmu=EA=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E556DC388F9
-	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Oct 2020 00:31:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B27C4363A
+	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Oct 2020 03:42:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A8D424631
-	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Oct 2020 00:31:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 831DF207E8
+	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Oct 2020 03:42:27 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="U/ZEVNL1"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="fdXgDBR5"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S373807AbgJWAbn (ORCPT
+        id S1766960AbgJYDm1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 22 Oct 2020 20:31:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41722 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S373805AbgJWAbn (ORCPT
+        Sat, 24 Oct 2020 23:42:27 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17198 "EHLO
+        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1762999AbgJYDm0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Oct 2020 20:31:43 -0400
-Received: from mail-pg1-x543.google.com (mail-pg1-x543.google.com [IPv6:2607:f8b0:4864:20::543])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65635C0613CE;
-        Thu, 22 Oct 2020 17:31:43 -0700 (PDT)
-Received: by mail-pg1-x543.google.com with SMTP id s22so2083067pga.9;
-        Thu, 22 Oct 2020 17:31:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=jl/GA1h9CU0xR4BzXSMHyC4YeuYB4slWr13tjKW6DmM=;
-        b=U/ZEVNL13gYgTkT7AABf3svIH7VV/zY7Nqhjb7Egdat2uirNWAwjIbTqll7i0aRviZ
-         JmhmF1N5KHS9ZXrujQGdZpGo3sEDnNQv2ShUh1zeG1ast7T6aSPiI62DYin/sEnrafHH
-         d4nqNP1CU16kx64s2GZV+4Lcu2LPiGu+SbYhMma8xfbFjlUafaBg8wJRbjqbfEaOZ5x3
-         zbkazW7UzTttLNwnSICWXWLI7Csa1LLrP69jsGmqTK1RwJj+iT0XIQ6cjN9o3kqqwtoZ
-         60UwXQf94Mar0wX0Tc0votd0lGsTh8AoyQjrl1wqdZSrGe2cxvCuRgmvaWFgvvyNopqa
-         73yw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=jl/GA1h9CU0xR4BzXSMHyC4YeuYB4slWr13tjKW6DmM=;
-        b=dm3NJERsub1THtPqbTlmGHHFjvqR85581fwHkmHj0ZbOU7cY0pvXT39rCyX7sK8pLS
-         HcdAZtUWKEX3Y/vg3WIZHIpxxO5L8eMSbqozCaK6F7baI8h96QcG6aL7pFmjxmhfoi7Y
-         58SoxEoWno6Rj1smeMPFmjud/AEcr3Gt+fubuN+FvDnTl4LB2nFJ+4Iy10qx1MQH5AVB
-         /QRDklEeiKZBFCZVNkVX0ufQ40GfAoFbzjl10Vzlg+hM7rzQ6JTBuo6QMTRF/+ZDvK0Q
-         0U8wwmszpIVZMSI3d7vhuHULWr04bStGQTdWJgk0nJSTyqqz5nudgTfCfQUI2Ed3gcBb
-         9svA==
-X-Gm-Message-State: AOAM530AYmBirRup8UUZmTkE6dQtfXsJR6KTsBOpGodY1x76Q+U8c8FY
-        wVqGo6Agy9X0ewCkDwTe9Txd8tgcHPc=
-X-Google-Smtp-Source: ABdhPJz4ZzvODjaSJ5YgC74tbiHQ5wyPIMoW6AtiRlm0cmTAHf3l1xrSKVr4j+1/cBH2M/D45LSouw==
-X-Received: by 2002:a17:90a:5d17:: with SMTP id s23mr5109463pji.170.1603413102977;
-        Thu, 22 Oct 2020 17:31:42 -0700 (PDT)
-Received: from localhost ([209.132.188.80])
-        by smtp.gmail.com with ESMTPSA id w6sm3496679pgw.28.2020.10.22.17.31.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Oct 2020 17:31:42 -0700 (PDT)
-Date:   Fri, 23 Oct 2020 08:31:35 +0800
-From:   Murphy Zhou <jencce.kernel@gmail.com>
-To:     Eryu Guan <eguan@linux.alibaba.com>
-Cc:     Murphy Zhou <jencce.kernel@gmail.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        fstests <fstests@vger.kernel.org>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: [PATCH v2] overlay/073: test with nfs_export being off
-Message-ID: <20201023003135.w25522gphidf7gpn@xzhoux.usersys.redhat.com>
-References: <CAOQ4uxh+ppPMOSeAZU3sdwxwb_ixMHEpHLF9ZO_MTiedNJRgsw@mail.gmail.com>
- <20200911021813.o6vtueabupevfgab@xzhoux.usersys.redhat.com>
- <20201020024538.tl7xenmmguhcj6af@xzhoux.usersys.redhat.com>
- <20201020052229.GL80581@e18g06458.et15sqa>
+        Sat, 24 Oct 2020 23:42:26 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1603597313; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=DB2hJ2FUkR6NuYApKC8dsPNuM2GiMPPJy3aw/us/c1x3T9a82+g4bXbvRkfVdBX6PvNR6XVAkDzfHCw7A32+oqWWMfGdSM14y4g7dUYiD+STyFsPEi0ua7nvLcBORFNQug9Md081RnmgfG6OMUCqZ3V4Bzl80AQWv9C5Td280b4=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1603597313; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=nGXnYKrmS2iY+3f1RPRmJVtn3qKMacO4hCPw1V6UZoE=; 
+        b=ENGlqbFUrMD8sS6CrLcJYrbqmf4U9GNv/vH8BPX+lvyaPs7PvlHwca8hdoBcnZRolE/S5QoWe32YnK2X8rlg3SJW3zi9SA0UXOyXJWzswe6q2tL6VK+9/KF9FTRnTNmfEY/wBefZwA1MuMIyYcIPDWhoJJACxiYmDni1xlmckN0=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1603597313;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=nGXnYKrmS2iY+3f1RPRmJVtn3qKMacO4hCPw1V6UZoE=;
+        b=fdXgDBR5lQBKWOW/32HPCkx5jQ9nRQ3Hconb7I5rslwmRzqFeWwddcb6Hrzy3WvW
+        /MaBUNUg6y8UgDMD8LiLvD+1anHoZ/dSaqlSBINhreFBNgW+cqPJmI1gaUwXTmSmJUA
+        UbVHt4LEnlz0EUtfEwyT02Js93+hXh3wj34qDQu0=
+Received: from localhost.localdomain (113.88.132.7 [113.88.132.7]) by mx.zoho.com.cn
+        with SMTPS id 1603597311648950.8497892445405; Sun, 25 Oct 2020 11:41:51 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     miklos@szeredi.hu, amir73il@gmail.com, jack@suse.cz
+Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <20201025034117.4918-5-cgxu519@mykernel.net>
+Subject: [RFC PATCH v2 4/8] ovl: mark overlayfs' inode dirty on modification
+Date:   Sun, 25 Oct 2020 11:41:13 +0800
+X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201025034117.4918-1-cgxu519@mykernel.net>
+References: <20201025034117.4918-1-cgxu519@mykernel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201020052229.GL80581@e18g06458.et15sqa>
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 20, 2020 at 01:22:29PM +0800, Eryu Guan wrote:
-> On Tue, Oct 20, 2020 at 10:52:59AM +0800, Murphy Zhou wrote:
-> > Ping on this one.
-> 
-> Queued for next update.
-> 
-> Sorry, I thought I've applied it and pushed, but clearly I didn't.
-> Thanks for the reminder!
+Mark overlayfs' inode dirty on modification so that
+we can recognize target inodes during syncfs.
 
-No warries :)
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ fs/overlayfs/inode.c     |  1 +
+ fs/overlayfs/overlayfs.h |  4 ++++
+ fs/overlayfs/util.c      | 14 ++++++++++++++
+ 3 files changed, 19 insertions(+)
 
-> 
-> Thanks,
-> Eryu
-> 
-> > 
-> > On Fri, Sep 11, 2020 at 10:18:13AM +0800, Murphy Zhou wrote:
-> > > When nfs_export is enabled, the link count of upper dir
-> > > objects are more then the expected number in this testcase.
-> > > Because extra index entries are linked to upper inodes.
-> > > 
-> > > Signed-off-by: Murphy Zhou <jencce.kernel@gmail.com>
-> > > ---
-> > >  tests/overlay/073 | 4 +++-
-> > >  1 file changed, 3 insertions(+), 1 deletion(-)
-> > > 
-> > > diff --git a/tests/overlay/073 b/tests/overlay/073
-> > > index 37860c92..c5deccc6 100755
-> > > --- a/tests/overlay/073
-> > > +++ b/tests/overlay/073
-> > > @@ -99,7 +99,9 @@ run_test_case()
-> > >  {
-> > >  	_scratch_mkfs
-> > >  	make_lower_files ${1}
-> > > -	_scratch_mount -o "index=on"
-> > > +	# There will be extra hard links with nfs_export enabled which
-> > > +	# is expected. Turn it off explicitly to avoid the false alarm.
-> > > +	_scratch_mount -o "index=on,nfs_export=off"
-> > >  	make_whiteout_files
-> > >  	check_whiteout_files ${1} ${2}
-> > >  	_scratch_unmount
-> > > -- 
-> > > 2.20.1
-> > > 
-> > 
-> > -- 
-> > Murphy
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index f27fc5be34df..426f70ca5d5e 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -468,6 +468,7 @@ int ovl_update_time(struct inode *inode, struct timespe=
+c64 *ts, int flags)
+ =09=09if (upperpath.dentry) {
+ =09=09=09touch_atime(&upperpath);
+ =09=09=09inode->i_atime =3D d_inode(upperpath.dentry)->i_atime;
++=09=09=09ovl_mark_inode_dirty(inode);
+ =09=09}
+ =09}
+ =09return 0;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index f8880aa2ba0e..eaf1d5b05d8e 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -247,6 +247,7 @@ static inline bool ovl_open_flags_need_copy_up(int flag=
+s)
+ }
+=20
+ /* util.c */
++void ovl_mark_inode_dirty(struct inode *inode);
+ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+ struct dentry *ovl_workdir(struct dentry *dentry);
+@@ -472,6 +473,9 @@ static inline void ovl_copyattr(struct inode *from, str=
+uct inode *to)
+ =09to->i_mtime =3D from->i_mtime;
+ =09to->i_ctime =3D from->i_ctime;
+ =09i_size_write(to, i_size_read(from));
++
++=09if (ovl_inode_upper(to) && from->i_state & I_DIRTY_ALL)
++=09=09ovl_mark_inode_dirty(to);
+ }
+=20
+ static inline void ovl_copyflags(struct inode *from, struct inode *to)
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 23f475627d07..a6f59df744ae 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -950,3 +950,17 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struc=
+t dentry *dentry,
+ =09kfree(buf);
+ =09return ERR_PTR(res);
+ }
++
++/*
++ * We intentionally add I_DIRTY_SYNC flag regardless dirty flag
++ * of upper inode so that we have chance to invoke ->write_inode
++ * to re-dirty overlayfs' inode during writeback process.
++ */
++void ovl_mark_inode_dirty(struct inode *inode)
++{
++=09struct inode *upper =3D ovl_inode_upper(inode);
++=09unsigned long iflag =3D I_DIRTY_SYNC;
++
++=09iflag |=3D upper->i_state & I_DIRTY_ALL;
++=09__mark_inode_dirty(inode, iflag);
++}
+--=20
+2.26.2
 
--- 
-Murphy
+
