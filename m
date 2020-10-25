@@ -5,51 +5,51 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F41CC5DF9E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D68F8C388F7
 	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Oct 2020 03:42:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64ACE20A8B
+	by mail.kernel.org (Postfix) with ESMTP id 9A04E207E8
 	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Oct 2020 03:42:33 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="SVpGgyM2"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="KA22zK2S"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1766973AbgJYDma (ORCPT
+        id S1766977AbgJYDmd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 24 Oct 2020 23:42:30 -0400
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17199 "EHLO
+        Sat, 24 Oct 2020 23:42:33 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17127 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1762999AbgJYDma (ORCPT
+        by vger.kernel.org with ESMTP id S1766958AbgJYDmb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 24 Oct 2020 23:42:30 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1603597313; cv=none; 
+        Sat, 24 Oct 2020 23:42:31 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1603597311; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=OXNIMd6e44eQsDLxJ5RrF753isJteQQLy2C7tHD3npEbJMvfjgpjUhrsHwRh1MdOpi7UZ5gsma2L7Ej2rdqXHrRA0LB+sL6Yg2Q2MBa69NI2+i7yMMvdEPqB8aQTLndP9NdVrgKxl9+h4nGOtms7IP0hCNZQ2jzSLozjUNtlvpo=
+        b=P5FB1fGosSPBooNc5Z7gtdILnFBZuaoKzlgz9ERuwlZXyHjW51AtCp6eFTBxj0O/IEZ7AqM7Uigt8Pm2CdF9RK6McCv6HDmmUIRzhjXKFq13riNeToXPMiBvkJ+dm5B/8XqNZYwVBVT8eBXFeOt0JCYxOkAtuUqwGLQFms+1ids=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1603597313; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=qENuAASwi2X1PpN6zhOfZQmsRqffxawsli97zMDsaBw=; 
-        b=X8wgJjnpl/vqPBpUw1mGjdxefGJ/HnXXUW3x2p7wB1ZJRKNH+41FX0HMkpztnJeyDqTY1JlUIyQ44C28IWuQzSSL73GlacgdfuXo6rVHzKaM1V0pnDuvHGCUBB4I69EKDS/TTaupudYDsElutuBlx7bMbYLvzliS7W59+OLr4+o=
+        t=1603597311; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=NlKEQcKE+RNemWdOzA+NXWjXnwiavlahEmjugedQVBk=; 
+        b=HvoD7FRT2uE/R+I6zUodUReNKmPu/CtKQfytoW+0+Vmn90hlpF5Wtpr6KS4fR7ERj1Svt0k66MO7qSLQeAFKnks0rkBOsw8lQhXpkH6e+PR/2LM2EKNno9mjtK4Ht9FIioAAS7eW74lesei9XvryR1spl82NwB8KsgDiLxgOg+c=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1603597313;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1603597311;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=qENuAASwi2X1PpN6zhOfZQmsRqffxawsli97zMDsaBw=;
-        b=SVpGgyM2DqAK0A217fGIwG80M/r6vQ1gZYST9G2lAoGa+LvgA+G0hHM/WJcDCpdI
-        vSgGjVzkkv5pUSxjzHWWRMFGAx84HHJC/PlPSASD/r/TOqaIAaZj6rxzfz67JAtrRrE
-        F+jgUafLpZ5W3LUZmewkoh6ZGdnf2PGD2fzGMExM=
+        bh=NlKEQcKE+RNemWdOzA+NXWjXnwiavlahEmjugedQVBk=;
+        b=KA22zK2S82JYVtJhkR1DJ6StAdF74aMgG5qm8l5R/KgtxkzB5m5TQkIwVa3Vl8gd
+        fJEQJuk4hLPwoHUsSh66msUDrQc7gVy2CkV4nEUQjJdNFyquxPXkElvLkrnXx7vKFpu
+        JcTuz1P5HDcFxmtk83ChEWuiSoc3t5M+/5sSZpNk=
 Received: from localhost.localdomain (113.88.132.7 [113.88.132.7]) by mx.zoho.com.cn
-        with SMTPS id 1603597312402239.5387742402878; Sun, 25 Oct 2020 11:41:52 +0800 (CST)
+        with SMTPS id 1603597309263981.7178667108379; Sun, 25 Oct 2020 11:41:49 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, amir73il@gmail.com, jack@suse.cz
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20201025034117.4918-6-cgxu519@mykernel.net>
-Subject: [RFC PATCH v2 5/8] ovl: mark overlayfs' inode dirty on shared writable mmap
-Date:   Sun, 25 Oct 2020 11:41:14 +0800
+Message-ID: <20201025034117.4918-2-cgxu519@mykernel.net>
+Subject: [RFC PATCH v2 1/8] ovl: setup overlayfs' private bdi
+Date:   Sun, 25 Oct 2020 11:41:10 +0800
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201025034117.4918-1-cgxu519@mykernel.net>
 References: <20201025034117.4918-1-cgxu519@mykernel.net>
@@ -61,30 +61,30 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Overlayfs cannot be notified when mmapped area gets dirty,
-so we need to proactively mark inode dirty in ->mmap operation.
+Setup overlayfs' private bdi so that we can collect
+overlayfs' own dirty inodes.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/file.c | 4 ++++
+ fs/overlayfs/super.c | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index efccb7c1f9bc..cd6fcdfd81a9 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -486,6 +486,10 @@ static int ovl_mmap(struct file *file, struct vm_area_=
-struct *vma)
- =09=09/* Drop reference count from new vm_file value */
- =09=09fput(realfile);
- =09} else {
-+=09=09if (vma->vm_flags & (VM_SHARED|VM_MAYSHARE) &&
-+=09=09    vma->vm_flags & (VM_WRITE|VM_MAYWRITE))
-+=09=09=09ovl_mark_inode_dirty(file_inode(file));
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 290983bcfbb3..d1e546abce87 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1869,6 +1869,10 @@ static int ovl_fill_super(struct super_block *sb, vo=
+id *data, int silent)
+ =09if (!ofs)
+ =09=09goto out;
+=20
++=09err =3D super_setup_bdi(sb);
++=09if (err)
++=09=09goto out_err;
 +
- =09=09/* Drop reference count from previous vm_file value */
- =09=09fput(file);
- =09}
+ =09ofs->creator_cred =3D cred =3D prepare_creds();
+ =09if (!cred)
+ =09=09goto out_err;
 --=20
 2.26.2
 
