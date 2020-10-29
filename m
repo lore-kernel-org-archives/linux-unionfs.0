@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A106DC5DF9D
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:40:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DA07C388F7
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:42:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 521EA207DE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:40:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D38020790
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:42:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1733155AbgJ2AiJ (ORCPT
+        id S2388862AbgJ2AmO (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:38:09 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:60848 "EHLO
+        Wed, 28 Oct 2020 20:42:14 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:33585 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732009AbgJ2Afr (ORCPT
+        with ESMTP id S2388852AbgJ2Alu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:35:47 -0400
+        Wed, 28 Oct 2020 20:41:50 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvul-0008Ep-7S; Thu, 29 Oct 2020 00:35:39 +0000
+        id 1kXvuu-0008Ep-GW; Thu, 29 Oct 2020 00:35:48 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -64,9 +64,9 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
         selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 16/34] namei: handle idmapped mounts in may_*() helpers
-Date:   Thu, 29 Oct 2020 01:32:34 +0100
-Message-Id: <20201029003252.2128653-17-christian.brauner@ubuntu.com>
+Subject: [PATCH 21/34] open: handle idmapped mounts
+Date:   Thu, 29 Oct 2020 01:32:39 +0100
+Message-Id: <20201029003252.2128653-22-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,360 +76,154 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The may_follow_link(), may_linkat(), may_lookup(), may_open(), may_o_create(),
-may_create_in_sticky(), may_delete(), and may_create() helpers determine
-whether the caller is privileged enough to perform the associated operations.
-Let them handle idmapped mounts by mappings the inode and fsids according to
-the mount's user namespace. Afterwards the checks are identical to non-idmapped
-inodes. If the initial user namespace is passed all operations are a nop so
-non-idmapped mounts will not see a change in behavior and will also not see any
-performance impact.
-Since the may_*() helpers are not exposed to other parts of the kernel we can
-simply extend them with an additional argument in case they don't already have
-access to the mount's user namespace.
+For core file operations such as changing directories or chrooting, determining
+file access, changing mode or ownership the vfs will verify that the caller is
+privileged over the inode. Extend the various helpers to handle idmapped
+mounts. If the inode is accessed through an idmapped mount it is mapped
+according to the mount's user namespace. Afterwards the permissions checks are
+identical to non-idmapped mounts. When changing file ownership we need to map
+the mount from the mount's user namespace. If the initial user namespace is
+passed all mapping operations are a nop so non-idmapped mounts will not see a
+change in behavior and will also not see any performance impact.
 
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/namei.c | 106 +++++++++++++++++++++++++++++++----------------------
- 1 file changed, 63 insertions(+), 43 deletions(-)
+ fs/open.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 2635f6a57de5..76ee4d52bd5e 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -985,11 +985,14 @@ int sysctl_protected_regular __read_mostly;
-  */
- static inline int may_follow_link(struct nameidata *nd, const struct inode *inode)
+diff --git a/fs/open.c b/fs/open.c
+index efa462b6b9c7..ca113399010a 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -401,6 +401,7 @@ static const struct cred *access_override_creds(void)
+ 
+ static long do_faccessat(int dfd, const char __user *filename, int mode, int flags)
  {
 +	struct user_namespace *user_ns;
-+
- 	if (!sysctl_protected_symlinks)
- 		return 0;
- 
-+	user_ns = mnt_user_ns(nd->path.mnt);
- 	/* Allowed if owner and follower match. */
--	if (uid_eq(current_cred()->fsuid, inode->i_uid))
-+	if (uid_eq(current_cred()->fsuid, i_uid_into_mnt(user_ns, inode)))
- 		return 0;
- 
- 	/* Allowed if parent directory not sticky and world-writable. */
-@@ -1020,7 +1023,7 @@ static inline int may_follow_link(struct nameidata *nd, const struct inode *inod
-  *
-  * Otherwise returns true.
-  */
--static bool safe_hardlink_source(struct inode *inode)
-+static bool safe_hardlink_source(struct user_namespace *user_ns, struct inode *inode)
- {
- 	umode_t mode = inode->i_mode;
- 
-@@ -1037,7 +1040,7 @@ static bool safe_hardlink_source(struct inode *inode)
- 		return false;
- 
- 	/* Hardlinking to unreadable or unwritable sources is dangerous. */
--	if (inode_permission(inode, MAY_READ | MAY_WRITE))
-+	if (mapped_inode_permission(user_ns, inode, MAY_READ | MAY_WRITE))
- 		return false;
- 
- 	return true;
-@@ -1058,6 +1061,7 @@ static bool safe_hardlink_source(struct inode *inode)
- int may_linkat(struct path *link)
- {
- 	struct inode *inode = link->dentry->d_inode;
-+	struct user_namespace *user_ns;
- 
- 	/* Inode writeback is not safe when the uid or gid are invalid. */
- 	if (!uid_valid(inode->i_uid) || !gid_valid(inode->i_gid))
-@@ -1069,7 +1073,9 @@ int may_linkat(struct path *link)
- 	/* Source inode owner (or CAP_FOWNER) can hardlink all they like,
- 	 * otherwise, it must be a safe source.
- 	 */
--	if (safe_hardlink_source(inode) || inode_owner_or_capable(inode))
-+	user_ns = mnt_user_ns(link->mnt);
-+	if (safe_hardlink_source(user_ns, inode) ||
-+	    mapped_inode_owner_or_capable(user_ns, inode))
- 		return 0;
- 
- 	audit_log_path_denied(AUDIT_ANOM_LINK, "linkat");
-@@ -1097,14 +1103,17 @@ int may_linkat(struct path *link)
-  *
-  * Returns 0 if the open is allowed, -ve on error.
-  */
--static int may_create_in_sticky(umode_t dir_mode, kuid_t dir_uid,
--				struct inode * const inode)
-+static int may_create_in_sticky(struct nameidata *nd, struct inode *const inode)
- {
-+	struct user_namespace *user_ns;
-+	umode_t dir_mode = nd->dir_mode;
-+	kuid_t dir_uid = nd->dir_uid;
-+
-+	user_ns = mnt_user_ns(nd->path.mnt);
- 	if ((!sysctl_protected_fifos && S_ISFIFO(inode->i_mode)) ||
- 	    (!sysctl_protected_regular && S_ISREG(inode->i_mode)) ||
--	    likely(!(dir_mode & S_ISVTX)) ||
--	    uid_eq(inode->i_uid, dir_uid) ||
--	    uid_eq(current_fsuid(), inode->i_uid))
-+	    likely(!(dir_mode & S_ISVTX)) || uid_eq(inode->i_uid, dir_uid) ||
-+	    uid_eq(current_fsuid(), i_uid_into_mnt(user_ns, inode)))
- 		return 0;
- 
- 	if (likely(dir_mode & 0002) ||
-@@ -1596,14 +1605,16 @@ static struct dentry *lookup_slow(const struct qstr *name,
- 
- static inline int may_lookup(struct nameidata *nd)
- {
-+	struct user_namespace *user_ns = mnt_user_ns(nd->path.mnt);
-+
- 	if (nd->flags & LOOKUP_RCU) {
--		int err = inode_permission(nd->inode, MAY_EXEC|MAY_NOT_BLOCK);
-+		int err = mapped_inode_permission(user_ns, nd->inode, MAY_EXEC|MAY_NOT_BLOCK);
- 		if (err != -ECHILD)
- 			return err;
- 		if (unlazy_walk(nd))
- 			return -ECHILD;
- 	}
--	return inode_permission(nd->inode, MAY_EXEC);
-+	return mapped_inode_permission(user_ns, nd->inode, MAY_EXEC);
- }
- 
- static int reserve_stack(struct nameidata *nd, struct path *link, unsigned seq)
-@@ -2680,15 +2691,18 @@ int user_path_at_empty(int dfd, const char __user *name, unsigned flags,
- }
- EXPORT_SYMBOL(user_path_at_empty);
- 
--int __check_sticky(struct inode *dir, struct inode *inode)
-+static int do_check_sticky(struct user_namespace *user_ns, struct inode *dir, struct inode *inode)
- {
--	kuid_t fsuid = current_fsuid();
--
--	if (uid_eq(inode->i_uid, fsuid))
-+	if (uid_eq(i_uid_into_mnt(user_ns, inode), current_fsuid()))
- 		return 0;
--	if (uid_eq(dir->i_uid, fsuid))
-+	if (uid_eq(i_uid_into_mnt(user_ns, dir), current_fsuid()))
- 		return 0;
--	return !capable_wrt_inode_uidgid(inode, CAP_FOWNER);
-+	return !capable_wrt_mapped_inode_uidgid(user_ns, inode, CAP_FOWNER);
-+}
-+
-+int __check_sticky(struct inode *dir, struct inode *inode)
-+{
-+	return do_check_sticky(&init_user_ns, dir, inode);
- }
- EXPORT_SYMBOL(__check_sticky);
- 
-@@ -2712,7 +2726,7 @@ EXPORT_SYMBOL(__check_sticky);
-  * 11. We don't allow removal of NFS sillyrenamed files; it's handled by
-  *     nfs_async_unlink().
-  */
--static int may_delete(struct inode *dir, struct dentry *victim, bool isdir)
-+static int may_delete(struct user_namespace *user_ns, struct inode *dir, struct dentry *victim, bool isdir)
- {
- 	struct inode *inode = d_backing_inode(victim);
- 	int error;
-@@ -2729,13 +2743,13 @@ static int may_delete(struct inode *dir, struct dentry *victim, bool isdir)
- 
- 	audit_inode_child(dir, victim, AUDIT_TYPE_CHILD_DELETE);
- 
--	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
-+	error = mapped_inode_permission(user_ns, dir, MAY_WRITE | MAY_EXEC);
- 	if (error)
- 		return error;
- 	if (IS_APPEND(dir))
- 		return -EPERM;
- 
--	if (check_sticky(dir, inode) || IS_APPEND(inode) ||
-+	if (do_check_sticky(user_ns, dir, inode) || IS_APPEND(inode) ||
- 	    IS_IMMUTABLE(inode) || IS_SWAPFILE(inode) || HAS_UNMAPPED_ID(inode))
- 		return -EPERM;
- 	if (isdir) {
-@@ -2761,7 +2775,8 @@ static int may_delete(struct inode *dir, struct dentry *victim, bool isdir)
-  *  4. We should have write and exec permissions on dir
-  *  5. We can't do it if dir is immutable (done in permission())
-  */
--static inline int may_create(struct inode *dir, struct dentry *child)
-+static inline int may_create(struct user_namespace *user_ns, struct inode *dir,
-+			     struct dentry *child)
- {
- 	struct user_namespace *s_user_ns;
- 	audit_inode_child(dir, child, AUDIT_TYPE_CHILD_CREATE);
-@@ -2770,10 +2785,10 @@ static inline int may_create(struct inode *dir, struct dentry *child)
- 	if (IS_DEADDIR(dir))
- 		return -ENOENT;
- 	s_user_ns = dir->i_sb->s_user_ns;
--	if (!kuid_has_mapping(s_user_ns, current_fsuid()) ||
--	    !kgid_has_mapping(s_user_ns, current_fsgid()))
-+	if (!kuid_has_mapping(s_user_ns, fsuid_into_mnt(user_ns)) ||
-+	    !kgid_has_mapping(s_user_ns, fsgid_into_mnt(user_ns)))
- 		return -EOVERFLOW;
--	return inode_permission(dir, MAY_WRITE | MAY_EXEC);
-+	return mapped_inode_permission(user_ns, dir, MAY_WRITE | MAY_EXEC);
- }
- 
- /*
-@@ -2823,7 +2838,7 @@ EXPORT_SYMBOL(unlock_rename);
- int vfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
- 		bool want_excl)
- {
--	int error = may_create(dir, dentry);
-+	int error = may_create(&init_user_ns, dir, dentry);
- 	if (error)
- 		return error;
- 
-@@ -2846,7 +2861,7 @@ int vfs_mkobj(struct dentry *dentry, umode_t mode,
- 		void *arg)
- {
- 	struct inode *dir = dentry->d_parent->d_inode;
--	int error = may_create(dir, dentry);
-+	int error = may_create(&init_user_ns, dir, dentry);
- 	if (error)
- 		return error;
- 
-@@ -2870,6 +2885,7 @@ bool may_open_dev(const struct path *path)
- 
- static int may_open(const struct path *path, int acc_mode, int flag)
- {
-+	struct user_namespace *user_ns;
- 	struct dentry *dentry = path->dentry;
- 	struct inode *inode = dentry->d_inode;
- 	int error;
-@@ -2903,7 +2919,8 @@ static int may_open(const struct path *path, int acc_mode, int flag)
- 		break;
+ 	struct path path;
+ 	struct inode *inode;
+ 	int res;
+@@ -441,7 +442,8 @@ static long do_faccessat(int dfd, const char __user *filename, int mode, int fla
+ 			goto out_path_release;
  	}
  
--	error = inode_permission(inode, MAY_OPEN | acc_mode);
+-	res = inode_permission(inode, mode | MAY_ACCESS);
++	user_ns = mnt_user_ns(path.mnt);
++	res = mapped_inode_permission(user_ns, inode, mode | MAY_ACCESS);
+ 	/* SuS v2 requires we report a read only fs too */
+ 	if (res || !(mode & S_IWOTH) || special_file(inode->i_mode))
+ 		goto out_path_release;
+@@ -489,6 +491,7 @@ SYSCALL_DEFINE2(access, const char __user *, filename, int, mode)
+ 
+ SYSCALL_DEFINE1(chdir, const char __user *, filename)
+ {
++	struct user_namespace *user_ns;
+ 	struct path path;
+ 	int error;
+ 	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_DIRECTORY;
+@@ -497,7 +500,8 @@ SYSCALL_DEFINE1(chdir, const char __user *, filename)
+ 	if (error)
+ 		goto out;
+ 
+-	error = inode_permission(path.dentry->d_inode, MAY_EXEC | MAY_CHDIR);
++	user_ns = mnt_user_ns(path.mnt);
++	error = mapped_inode_permission(user_ns, path.dentry->d_inode, MAY_EXEC | MAY_CHDIR);
+ 	if (error)
+ 		goto dput_and_out;
+ 
+@@ -515,6 +519,7 @@ SYSCALL_DEFINE1(chdir, const char __user *, filename)
+ 
+ SYSCALL_DEFINE1(fchdir, unsigned int, fd)
+ {
++	struct user_namespace *user_ns;
+ 	struct fd f = fdget_raw(fd);
+ 	int error;
+ 
+@@ -526,7 +531,8 @@ SYSCALL_DEFINE1(fchdir, unsigned int, fd)
+ 	if (!d_can_lookup(f.file->f_path.dentry))
+ 		goto out_putf;
+ 
+-	error = inode_permission(file_inode(f.file), MAY_EXEC | MAY_CHDIR);
++	user_ns = mnt_user_ns(f.file->f_path.mnt);
++	error = mapped_inode_permission(user_ns, file_inode(f.file), MAY_EXEC | MAY_CHDIR);
+ 	if (!error)
+ 		set_fs_pwd(current->fs, &f.file->f_path);
+ out_putf:
+@@ -537,6 +543,7 @@ SYSCALL_DEFINE1(fchdir, unsigned int, fd)
+ 
+ SYSCALL_DEFINE1(chroot, const char __user *, filename)
+ {
++	struct user_namespace *user_ns;
+ 	struct path path;
+ 	int error;
+ 	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_DIRECTORY;
+@@ -545,7 +552,8 @@ SYSCALL_DEFINE1(chroot, const char __user *, filename)
+ 	if (error)
+ 		goto out;
+ 
+-	error = inode_permission(path.dentry->d_inode, MAY_EXEC | MAY_CHDIR);
++	user_ns = mnt_user_ns(path.mnt);
++	error = mapped_inode_permission(user_ns, path.dentry->d_inode, MAY_EXEC | MAY_CHDIR);
+ 	if (error)
+ 		goto dput_and_out;
+ 
+@@ -570,6 +578,7 @@ SYSCALL_DEFINE1(chroot, const char __user *, filename)
+ 
+ int chmod_common(const struct path *path, umode_t mode)
+ {
++	struct user_namespace *user_ns;
+ 	struct inode *inode = path->dentry->d_inode;
+ 	struct inode *delegated_inode = NULL;
+ 	struct iattr newattrs;
+@@ -585,7 +594,8 @@ int chmod_common(const struct path *path, umode_t mode)
+ 		goto out_unlock;
+ 	newattrs.ia_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
+ 	newattrs.ia_valid = ATTR_MODE | ATTR_CTIME;
+-	error = notify_change(path->dentry, &newattrs, &delegated_inode);
 +	user_ns = mnt_user_ns(path->mnt);
-+	error = mapped_inode_permission(user_ns, inode, MAY_OPEN | acc_mode);
- 	if (error)
- 		return error;
++	error = notify_mapped_change(user_ns, path->dentry, &newattrs, &delegated_inode);
+ out_unlock:
+ 	inode_unlock(inode);
+ 	if (delegated_inode) {
+@@ -646,6 +656,7 @@ SYSCALL_DEFINE2(chmod, const char __user *, filename, umode_t, mode)
  
-@@ -2918,7 +2935,7 @@ static int may_open(const struct path *path, int acc_mode, int flag)
- 	}
- 
- 	/* O_NOATIME can only be set by the owner or superuser */
--	if (flag & O_NOATIME && !inode_owner_or_capable(inode))
-+	if (flag & O_NOATIME && !mapped_inode_owner_or_capable(user_ns, inode))
- 		return -EPERM;
- 
- 	return 0;
-@@ -2955,17 +2972,19 @@ static inline int open_to_namei_flags(int flag)
- 
- static int may_o_create(const struct path *dir, struct dentry *dentry, umode_t mode)
+ int chown_common(const struct path *path, uid_t user, gid_t group)
  {
--	struct user_namespace *s_user_ns;
-+	struct user_namespace *s_user_ns, *user_ns;
- 	int error = security_path_mknod(dir, dentry, mode, 0);
- 	if (error)
- 		return error;
- 
-+	user_ns = mnt_user_ns(dir->mnt);
- 	s_user_ns = dir->dentry->d_sb->s_user_ns;
--	if (!kuid_has_mapping(s_user_ns, current_fsuid()) ||
--	    !kgid_has_mapping(s_user_ns, current_fsgid()))
-+	if (!kuid_has_mapping(s_user_ns, fsuid_into_mnt(user_ns)) ||
-+	    !kgid_has_mapping(s_user_ns, fsgid_into_mnt(user_ns)))
- 		return -EOVERFLOW;
- 
--	error = inode_permission(dir->dentry->d_inode, MAY_WRITE | MAY_EXEC);
-+	error = mapped_inode_permission(user_ns, dir->dentry->d_inode,
-+				    MAY_WRITE | MAY_EXEC);
- 	if (error)
- 		return error;
- 
-@@ -3258,7 +3277,7 @@ static int do_open(struct nameidata *nd,
- 			return -EEXIST;
- 		if (d_is_dir(nd->path.dentry))
- 			return -EISDIR;
--		error = may_create_in_sticky(nd->dir_mode, nd->dir_uid,
-+		error = may_create_in_sticky(nd,
- 					     d_backing_inode(nd->path.dentry));
- 		if (unlikely(error))
- 			return error;
-@@ -3560,7 +3579,7 @@ EXPORT_SYMBOL(user_path_create);
- int vfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev)
- {
- 	bool is_whiteout = S_ISCHR(mode) && dev == WHITEOUT_DEV;
--	int error = may_create(dir, dentry);
-+	int error = may_create(&init_user_ns, dir, dentry);
- 
- 	if (error)
- 		return error;
-@@ -3661,7 +3680,7 @@ SYSCALL_DEFINE3(mknod, const char __user *, filename, umode_t, mode, unsigned, d
- 
- int vfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
- {
--	int error = may_create(dir, dentry);
-+	int error = may_create(&init_user_ns, dir, dentry);
- 	unsigned max_links = dir->i_sb->s_max_links;
- 
- 	if (error)
-@@ -3722,7 +3741,7 @@ SYSCALL_DEFINE2(mkdir, const char __user *, pathname, umode_t, mode)
- 
- int vfs_rmdir(struct inode *dir, struct dentry *dentry)
- {
--	int error = may_delete(dir, dentry, 1);
-+	int error = may_delete(&init_user_ns, dir, dentry, 1);
- 
- 	if (error)
- 		return error;
-@@ -3844,7 +3863,7 @@ SYSCALL_DEFINE1(rmdir, const char __user *, pathname)
- int vfs_unlink(struct inode *dir, struct dentry *dentry, struct inode **delegated_inode)
- {
- 	struct inode *target = dentry->d_inode;
--	int error = may_delete(dir, dentry, 0);
-+	int error = may_delete(&init_user_ns, dir, dentry, 0);
- 
- 	if (error)
- 		return error;
-@@ -3976,7 +3995,7 @@ SYSCALL_DEFINE1(unlink, const char __user *, pathname)
- 
- int vfs_symlink(struct inode *dir, struct dentry *dentry, const char *oldname)
- {
--	int error = may_create(dir, dentry);
-+	int error = may_create(&init_user_ns, dir, dentry);
- 
- 	if (error)
- 		return error;
-@@ -4065,7 +4084,7 @@ int vfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *new_de
- 	if (!inode)
- 		return -ENOENT;
- 
--	error = may_create(dir, new_dentry);
-+	error = may_create(&init_user_ns, dir, new_dentry);
- 	if (error)
- 		return error;
- 
-@@ -4257,6 +4276,7 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 	       struct inode **delegated_inode, unsigned int flags)
- {
++	struct user_namespace *user_ns;
+ 	struct inode *inode = path->dentry->d_inode;
+ 	struct inode *delegated_inode = NULL;
  	int error;
-+	struct user_namespace *user_ns = &init_user_ns;
- 	bool is_dir = d_is_dir(old_dentry);
- 	struct inode *source = old_dentry->d_inode;
- 	struct inode *target = new_dentry->d_inode;
-@@ -4267,19 +4287,19 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 	if (source == target)
- 		return 0;
+@@ -656,6 +667,12 @@ int chown_common(const struct path *path, uid_t user, gid_t group)
+ 	uid = make_kuid(current_user_ns(), user);
+ 	gid = make_kgid(current_user_ns(), group);
  
--	error = may_delete(old_dir, old_dentry, is_dir);
-+	error = may_delete(user_ns, old_dir, old_dentry, is_dir);
- 	if (error)
- 		return error;
- 
- 	if (!target) {
--		error = may_create(new_dir, new_dentry);
-+		error = may_create(user_ns, new_dir, new_dentry);
- 	} else {
- 		new_is_dir = d_is_dir(new_dentry);
- 
- 		if (!(flags & RENAME_EXCHANGE))
--			error = may_delete(new_dir, new_dentry, is_dir);
-+			error = may_delete(user_ns, new_dir, new_dentry, is_dir);
- 		else
--			error = may_delete(new_dir, new_dentry, new_is_dir);
-+			error = may_delete(user_ns, new_dir, new_dentry, new_is_dir);
- 	}
- 	if (error)
- 		return error;
++	user_ns = mnt_user_ns(path->mnt);
++	if (mnt_idmapped(path->mnt)) {
++		uid = kuid_from_mnt(user_ns, uid);
++		gid = kgid_from_mnt(user_ns, gid);
++	}
++
+ retry_deleg:
+ 	newattrs.ia_valid =  ATTR_CTIME;
+ 	if (user != (uid_t) -1) {
+@@ -676,7 +693,7 @@ int chown_common(const struct path *path, uid_t user, gid_t group)
+ 	inode_lock(inode);
+ 	error = security_path_chown(path, uid, gid);
+ 	if (!error)
+-		error = notify_change(path->dentry, &newattrs, &delegated_inode);
++		error = notify_mapped_change(user_ns, path->dentry, &newattrs, &delegated_inode);
+ 	inode_unlock(inode);
+ 	if (delegated_inode) {
+ 		error = break_deleg_wait(&delegated_inode);
+@@ -1133,7 +1150,7 @@ struct file *filp_open(const char *filename, int flags, umode_t mode)
+ {
+ 	struct filename *name = getname_kernel(filename);
+ 	struct file *file = ERR_CAST(name);
+-	
++
+ 	if (!IS_ERR(name)) {
+ 		file = file_open_name(name, flags, mode);
+ 		putname(name);
 -- 
 2.29.0
 
