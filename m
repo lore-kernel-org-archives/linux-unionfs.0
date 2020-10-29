@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49600C61DD8
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8626DC56201
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A5D720790
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44DFD20724
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390524AbgJ2Axb (ORCPT
+        id S1731714AbgJ2Af2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:53:31 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:60647 "EHLO
+        Wed, 28 Oct 2020 20:35:28 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:60620 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730334AbgJ2Afc (ORCPT
+        with ESMTP id S1730340AbgJ2Af0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:35:32 -0400
+        Wed, 28 Oct 2020 20:35:26 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvuZ-0008Ep-AG; Thu, 29 Oct 2020 00:35:27 +0000
+        id 1kXvuL-0008Ep-Mt; Thu, 29 Oct 2020 00:35:13 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -64,9 +64,9 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
         selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 09/34] inode: add idmapped mount aware init and permission helpers
-Date:   Thu, 29 Oct 2020 01:32:27 +0100
-Message-Id: <20201029003252.2128653-10-christian.brauner@ubuntu.com>
+Subject: [PATCH 01/34] namespace: take lock_mount_hash() directly when changing flags
+Date:   Thu, 29 Oct 2020 01:32:19 +0100
+Message-Id: <20201029003252.2128653-2-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,152 +76,87 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The inode_owner_or_capable() helper determines whether the caller is the
-owner of the inode or is capable with respect to that inode. Add a new
-mapped_inode_owner_or_capable() helper to handle idmapped mounts. If the
-If the inode is accessed through an idmapped mount we first need to map
-it according to the mount's user namespace. Afterwards the checks are
-identical to non-idmapped mounts. If the initial user namespace is
-passed all operations are a nop so non-idmapped mounts will not see a
-change in behavior and will also not see any performance impact. It also
-means that the inode_owner_or_capable() helper can be implemented on top
-of mapped_inode_owner_or_capable() by passing in the initial user
-namespace.
+Changing mount options always ends up taking lock_mount_hash() but when
+MNT_READONLY is requested and neither the mount nor the superblock are
+not already MNT_READONLY we end up taking the lock, dropping it, and
+retaking it to change the other mount attributes. Instead of this,
+acquire the lock once when changing mount properties. This simplifies
+the locking in these codepath, makes them easier to reason about and
+avoids having to reacquire the lock right after dropping it.
 
-Similarly, we add a new mapped_inode_init_owner() helper which
-initializes a new inode on idmapped mounts by mapping the fsuid and
-fsgid of the caller from the mount's user namespace. If the initial user
-namespace is passed all operations are a nop so non-idmapped mounts will
-not see a change in behavior and will also not see any performance
-impact. It also means that the inode_init_owner() helper can be
-implemented on top of mapped_inode_init_owner() by passing in the
-initial user namespace.
-
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: linux-fsdevel@vger.kernel.org
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/inode.c         | 53 ++++++++++++++++++++++++++++++++++++----------
- include/linux/fs.h |  4 ++++
- 2 files changed, 46 insertions(+), 11 deletions(-)
+ fs/namespace.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/fs/inode.c b/fs/inode.c
-index 9d78c37b00b8..22de3cb3b1f4 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -2130,15 +2130,17 @@ void init_special_inode(struct inode *inode, umode_t mode, dev_t rdev)
- EXPORT_SYMBOL(init_special_inode);
- 
- /**
-- * inode_init_owner - Init uid,gid,mode for new inode according to posix standards
-+ * mapped_inode_init_owner - Init uid,gid,mode for new inode according to posix
-+ *                           standards on idmapped mounts
-  * @inode: New inode
-+ * @user_ns: User namespace the inode is accessed from
-  * @dir: Directory inode
-  * @mode: mode of the new inode
-  */
--void inode_init_owner(struct inode *inode, const struct inode *dir,
--			umode_t mode)
-+void mapped_inode_init_owner(struct inode *inode, struct user_namespace *user_ns,
-+			 const struct inode *dir, umode_t mode)
+diff --git a/fs/namespace.c b/fs/namespace.c
+index cebaa3e81794..20ee291a7af4 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -463,7 +463,6 @@ static int mnt_make_readonly(struct mount *mnt)
  {
--	inode->i_uid = current_fsuid();
-+	inode->i_uid = fsuid_into_mnt(user_ns);
- 	if (dir && dir->i_mode & S_ISGID) {
- 		inode->i_gid = dir->i_gid;
+ 	int ret = 0;
  
-@@ -2146,34 +2148,63 @@ void inode_init_owner(struct inode *inode, const struct inode *dir,
- 		if (S_ISDIR(mode))
- 			mode |= S_ISGID;
- 		else if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP) &&
--			 !in_group_p(inode->i_gid) &&
--			 !capable_wrt_inode_uidgid(dir, CAP_FSETID))
-+			 !in_group_p(i_gid_into_mnt(user_ns, inode)) &&
-+			 !capable_wrt_mapped_inode_uidgid(user_ns, dir, CAP_FSETID))
- 			mode &= ~S_ISGID;
- 	} else
--		inode->i_gid = current_fsgid();
-+		inode->i_gid = fsgid_into_mnt(user_ns);
- 	inode->i_mode = mode;
+-	lock_mount_hash();
+ 	mnt->mnt.mnt_flags |= MNT_WRITE_HOLD;
+ 	/*
+ 	 * After storing MNT_WRITE_HOLD, we'll read the counters. This store
+@@ -497,15 +496,12 @@ static int mnt_make_readonly(struct mount *mnt)
+ 	 */
+ 	smp_wmb();
+ 	mnt->mnt.mnt_flags &= ~MNT_WRITE_HOLD;
+-	unlock_mount_hash();
+ 	return ret;
  }
-+EXPORT_SYMBOL(mapped_inode_init_owner);
-+
-+/**
-+ * inode_init_owner - Init uid,gid,mode for new inode according to posix standards
-+ * @inode: New inode
-+ * @dir: Directory inode
-+ * @mode: mode of the new inode
-+ */
-+void inode_init_owner(struct inode *inode, const struct inode *dir,
-+			umode_t mode)
-+{
-+	return mapped_inode_init_owner(inode, &init_user_ns, dir, mode);
-+}
- EXPORT_SYMBOL(inode_init_owner);
  
- /**
-- * inode_owner_or_capable - check current task permissions to inode
-+ * mapped_inode_owner_or_capable - check current task permissions to inode on idmapped mounts
-+ * @user_ns: User namespace the inode is accessed from
-  * @inode: inode being checked
-  *
-  * Return true if current either has CAP_FOWNER in a namespace with the
-  * inode owner uid mapped, or owns the file.
-  */
--bool inode_owner_or_capable(const struct inode *inode)
-+bool mapped_inode_owner_or_capable(struct user_namespace *user_ns, const struct inode *inode)
+ static int __mnt_unmake_readonly(struct mount *mnt)
  {
-+	kuid_t i_uid;
- 	struct user_namespace *ns;
- 
--	if (uid_eq(current_fsuid(), inode->i_uid))
-+	i_uid = i_uid_into_mnt(user_ns, inode);
-+	if (uid_eq(current_fsuid(), i_uid))
- 		return true;
- 
- 	ns = current_user_ns();
--	if (kuid_has_mapping(ns, inode->i_uid) && ns_capable(ns, CAP_FOWNER))
-+	if (kuid_has_mapping(ns, i_uid) && ns_capable(ns, CAP_FOWNER))
- 		return true;
- 	return false;
+-	lock_mount_hash();
+ 	mnt->mnt.mnt_flags &= ~MNT_READONLY;
+-	unlock_mount_hash();
+ 	return 0;
  }
-+EXPORT_SYMBOL(mapped_inode_owner_or_capable);
-+
-+/**
-+ * inode_owner_or_capable - check current task permissions to inode
-+ * @inode: inode being checked
-+ *
-+ * Return true if current either has CAP_FOWNER in a namespace with the
-+ * inode owner uid mapped, or owns the file.
-+ */
-+bool inode_owner_or_capable(const struct inode *inode)
-+{
-+	return mapped_inode_owner_or_capable(&init_user_ns, inode);
-+}
- EXPORT_SYMBOL(inode_owner_or_capable);
  
- /*
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 750ca4b3d89f..f9e2d292b7b6 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1777,6 +1777,8 @@ static inline int sb_start_intwrite_trylock(struct super_block *sb)
- 
- 
- extern bool inode_owner_or_capable(const struct inode *inode);
-+extern bool mapped_inode_owner_or_capable(struct user_namespace *ns,
-+				      const struct inode *inode);
- 
- /*
-  * VFS helper functions..
-@@ -1820,6 +1822,8 @@ extern long compat_ptr_ioctl(struct file *file, unsigned int cmd,
+@@ -2517,11 +2513,9 @@ static int change_mount_ro_state(struct mount *mnt, unsigned int mnt_flags)
   */
- extern void inode_init_owner(struct inode *inode, const struct inode *dir,
- 			umode_t mode);
-+extern void mapped_inode_init_owner(struct inode *inode, struct user_namespace *user_ns,
-+			 const struct inode *dir, umode_t mode);
- extern bool may_open_dev(const struct path *path);
+ static void set_mount_attributes(struct mount *mnt, unsigned int mnt_flags)
+ {
+-	lock_mount_hash();
+ 	mnt_flags |= mnt->mnt.mnt_flags & ~MNT_USER_SETTABLE_MASK;
+ 	mnt->mnt.mnt_flags = mnt_flags;
+ 	touch_mnt_namespace(mnt->mnt_ns);
+-	unlock_mount_hash();
+ }
  
- /*
+ static void mnt_warn_timestamp_expiry(struct path *mountpoint, struct vfsmount *mnt)
+@@ -2567,9 +2561,11 @@ static int do_reconfigure_mnt(struct path *path, unsigned int mnt_flags)
+ 		return -EPERM;
+ 
+ 	down_write(&sb->s_umount);
++	lock_mount_hash();
+ 	ret = change_mount_ro_state(mnt, mnt_flags);
+ 	if (ret == 0)
+ 		set_mount_attributes(mnt, mnt_flags);
++	unlock_mount_hash();
+ 	up_write(&sb->s_umount);
+ 
+ 	mnt_warn_timestamp_expiry(path, &mnt->mnt);
+@@ -2610,8 +2606,11 @@ static int do_remount(struct path *path, int ms_flags, int sb_flags,
+ 		err = -EPERM;
+ 		if (ns_capable(sb->s_user_ns, CAP_SYS_ADMIN)) {
+ 			err = reconfigure_super(fc);
+-			if (!err)
++			if (!err) {
++				lock_mount_hash();
+ 				set_mount_attributes(mnt, mnt_flags);
++				unlock_mount_hash();
++			}
+ 		}
+ 		up_write(&sb->s_umount);
+ 	}
 -- 
 2.29.0
 
