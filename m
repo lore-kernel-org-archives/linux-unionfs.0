@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CA2C63697
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB788C6369E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2091C20809
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E3BF2076B
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388828AbgJ2Ajr (ORCPT
+        id S2388775AbgJ2Ait (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:39:47 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:33309 "EHLO
+        Wed, 28 Oct 2020 20:38:49 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:60886 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388697AbgJ2Ai7 (ORCPT
+        with ESMTP id S1732668AbgJ2Afr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:38:59 -0400
+        Wed, 28 Oct 2020 20:35:47 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvv6-0008Ep-K8; Thu, 29 Oct 2020 00:36:00 +0000
+        id 1kXvun-0008Ep-LI; Thu, 29 Oct 2020 00:35:41 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -64,9 +64,9 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
         selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 28/34] audit: handle idmapped mounts
-Date:   Thu, 29 Oct 2020 01:32:46 +0100
-Message-Id: <20201029003252.2128653-29-christian.brauner@ubuntu.com>
+Subject: [PATCH 17/34] namei: introduce struct renamedata
+Date:   Thu, 29 Oct 2020 01:32:35 +0100
+Message-Id: <20201029003252.2128653-18-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,255 +76,193 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Audit will sometimes log the inode's i_uid and i_gid. Enable audit to log the
-mapped inode when it is accessed from an idmapped mount.
+In order to handle idmapped mounts we will extend the vfs rename helper
+to take two new arguments in follow up patches. Since this operations already
+takes a bunch of arguments add a simple struct renamedata (based on struct
+nameidata) and make the current helper to use it before we extend it.
 
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/namei.c            | 14 +++++++-------
- include/linux/audit.h | 10 ++++++----
- ipc/mqueue.c          |  8 ++++----
- kernel/auditsc.c      | 26 ++++++++++++++------------
- 4 files changed, 31 insertions(+), 27 deletions(-)
+ fs/namei.c | 144 ++++++++++++++++++++++++++++++++---------------------
+ 1 file changed, 88 insertions(+), 56 deletions(-)
 
 diff --git a/fs/namei.c b/fs/namei.c
-index d6dbfab126d7..545ce391a12d 100644
+index 76ee4d52bd5e..781f11795a22 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -1006,7 +1006,7 @@ static inline int may_follow_link(struct nameidata *nd, const struct inode *inod
- 	if (nd->flags & LOOKUP_RCU)
- 		return -ECHILD;
- 
--	audit_inode(nd->name, nd->stack[0].link.dentry, 0);
-+	audit_inode(nd->name, user_ns, nd->stack[0].link.dentry, 0);
- 	audit_log_path_denied(AUDIT_ANOM_LINK, "follow_link");
- 	return -EACCES;
+@@ -4221,62 +4221,24 @@ SYSCALL_DEFINE2(link, const char __user *, oldname, const char __user *, newname
+ 	return do_linkat(AT_FDCWD, oldname, AT_FDCWD, newname, 0);
  }
-@@ -2413,7 +2413,7 @@ int filename_lookup(int dfd, struct filename *name, unsigned flags,
- 		retval = path_lookupat(&nd, flags | LOOKUP_REVAL, path);
  
- 	if (likely(!retval))
--		audit_inode(name, path->dentry,
-+		audit_inode(name, mnt_user_ns(path->mnt), path->dentry,
- 			    flags & LOOKUP_MOUNTPOINT ? AUDIT_INODE_NOEVAL : 0);
- 	restore_nameidata();
- 	putname(name);
-@@ -2455,7 +2455,7 @@ static struct filename *filename_parentat(int dfd, struct filename *name,
- 	if (likely(!retval)) {
- 		*last = nd.last;
- 		*type = nd.last_type;
--		audit_inode(name, parent->dentry, AUDIT_INODE_PARENT);
-+		audit_inode(name, mnt_user_ns(parent->mnt), parent->dentry, AUDIT_INODE_PARENT);
- 	} else {
- 		putname(name);
- 		name = ERR_PTR(retval);
-@@ -3239,7 +3239,7 @@ static const char *open_last_lookups(struct nameidata *nd,
- 			if (unlikely(error))
- 				return ERR_PTR(error);
- 		}
--		audit_inode(nd->name, dir, AUDIT_INODE_PARENT);
-+		audit_inode(nd->name, mnt_user_ns(nd->path.mnt), dir, AUDIT_INODE_PARENT);
- 		/* trailing slashes? */
- 		if (unlikely(nd->last.name[nd->last.len]))
- 			return ERR_PTR(-EISDIR);
-@@ -3305,7 +3305,7 @@ static int do_open(struct nameidata *nd,
- 			return error;
- 	}
- 	if (!(file->f_mode & FMODE_CREATED))
--		audit_inode(nd->name, nd->path.dentry, 0);
-+		audit_inode(nd->name, mnt_user_ns(nd->path.mnt), nd->path.dentry, 0);
- 	if (open_flag & O_CREAT) {
- 		if ((open_flag & O_EXCL) && !(file->f_mode & FMODE_CREATED))
- 			return -EEXIST;
-@@ -3414,7 +3414,7 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
- 		goto out2;
- 	dput(path.dentry);
- 	path.dentry = child;
--	audit_inode(nd->name, child, 0);
-+	audit_inode(nd->name, user_ns, child, 0);
- 	/* Don't check for other permissions, the inode was just created */
- 	error = may_open(&path, 0, op->open_flag);
+-/**
+- * vfs_rename - rename a filesystem object
+- * @old_dir:	parent of source
+- * @old_dentry:	source
+- * @new_dir:	parent of destination
+- * @new_dentry:	destination
+- * @delegated_inode: returns an inode needing a delegation break
+- * @flags:	rename flags
+- *
+- * The caller must hold multiple mutexes--see lock_rename()).
+- *
+- * If vfs_rename discovers a delegation in need of breaking at either
+- * the source or destination, it will return -EWOULDBLOCK and return a
+- * reference to the inode in delegated_inode.  The caller should then
+- * break the delegation and retry.  Because breaking a delegation may
+- * take a long time, the caller should drop all locks before doing
+- * so.
+- *
+- * Alternatively, a caller may pass NULL for delegated_inode.  This may
+- * be appropriate for callers that expect the underlying filesystem not
+- * to be NFS exported.
+- *
+- * The worst of all namespace operations - renaming directory. "Perverted"
+- * doesn't even start to describe it. Somebody in UCB had a heck of a trip...
+- * Problems:
+- *
+- *	a) we can get into loop creation.
+- *	b) race potential - two innocent renames can create a loop together.
+- *	   That's where 4.4 screws up. Current fix: serialization on
+- *	   sb->s_vfs_rename_mutex. We might be more accurate, but that's another
+- *	   story.
+- *	c) we have to lock _four_ objects - parents and victim (if it exists),
+- *	   and source (if it is not a directory).
+- *	   And that - after we got ->i_mutex on parents (until then we don't know
+- *	   whether the target exists).  Solution: try to be smart with locking
+- *	   order for inodes.  We rely on the fact that tree topology may change
+- *	   only under ->s_vfs_rename_mutex _and_ that parent of the object we
+- *	   move will be locked.  Thus we can rank directories by the tree
+- *	   (ancestors first) and rank all non-directories after them.
+- *	   That works since everybody except rename does "lock parent, lookup,
+- *	   lock child" and rename is under ->s_vfs_rename_mutex.
+- *	   HOWEVER, it relies on the assumption that any object with ->lookup()
+- *	   has no more than 1 dentry.  If "hybrid" objects will ever appear,
+- *	   we'd better make sure that there's no link(2) for them.
+- *	d) conversion from fhandle to dentry may come in the wrong moment - when
+- *	   we are removing the target. Solution: we will have to grab ->i_mutex
+- *	   in the fhandle_to_dentry code. [FIXME - current nfsfh.c relies on
+- *	   ->i_mutex on parents, which works but leads to some truly excessive
+- *	   locking].
+- */
+-int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+-	       struct inode *new_dir, struct dentry *new_dentry,
+-	       struct inode **delegated_inode, unsigned int flags)
++struct renamedata {
++	struct inode *old_dir;
++	struct dentry *old_dentry;
++	struct inode *new_dir;
++	struct dentry *new_dentry;
++	struct inode **delegated_inode;
++	unsigned int flags;
++} __randomize_layout;
++
++static int __vfs_rename(struct renamedata *rd)
+ {
+ 	int error;
+ 	struct user_namespace *user_ns = &init_user_ns;
++	struct inode *old_dir = rd->old_dir, *new_dir = rd->new_dir;
++	struct dentry *old_dentry = rd->old_dentry,
++		      *new_dentry = rd->new_dentry;
++	struct inode **delegated_inode = rd->delegated_inode;
++	unsigned int flags = rd->flags;
+ 	bool is_dir = d_is_dir(old_dentry);
+ 	struct inode *source = old_dentry->d_inode;
+ 	struct inode *target = new_dentry->d_inode;
+@@ -4395,11 +4357,76 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 
+ 	return error;
+ }
++
++/**
++ * vfs_rename - rename a filesystem object
++ * @old_dir:	parent of source
++ * @old_dentry:	source
++ * @new_dir:	parent of destination
++ * @new_dentry:	destination
++ * @delegated_inode: returns an inode needing a delegation break
++ * @flags:	rename flags
++ *
++ * The caller must hold multiple mutexes--see lock_rename()).
++ *
++ * If vfs_rename discovers a delegation in need of breaking at either
++ * the source or destination, it will return -EWOULDBLOCK and return a
++ * reference to the inode in delegated_inode.  The caller should then
++ * break the delegation and retry.  Because breaking a delegation may
++ * take a long time, the caller should drop all locks before doing
++ * so.
++ *
++ * Alternatively, a caller may pass NULL for delegated_inode.  This may
++ * be appropriate for callers that expect the underlying filesystem not
++ * to be NFS exported.
++ *
++ * The worst of all namespace operations - renaming directory. "Perverted"
++ * doesn't even start to describe it. Somebody in UCB had a heck of a trip...
++ * Problems:
++ *
++ *	a) we can get into loop creation.
++ *	b) race potential - two innocent renames can create a loop together.
++ *	   That's where 4.4 screws up. Current fix: serialization on
++ *	   sb->s_vfs_rename_mutex. We might be more accurate, but that's another
++ *	   story.
++ *	c) we have to lock _four_ objects - parents and victim (if it exists),
++ *	   and source (if it is not a directory).
++ *	   And that - after we got ->i_mutex on parents (until then we don't know
++ *	   whether the target exists).  Solution: try to be smart with locking
++ *	   order for inodes.  We rely on the fact that tree topology may change
++ *	   only under ->s_vfs_rename_mutex _and_ that parent of the object we
++ *	   move will be locked.  Thus we can rank directories by the tree
++ *	   (ancestors first) and rank all non-directories after them.
++ *	   That works since everybody except rename does "lock parent, lookup,
++ *	   lock child" and rename is under ->s_vfs_rename_mutex.
++ *	   HOWEVER, it relies on the assumption that any object with ->lookup()
++ *	   has no more than 1 dentry.  If "hybrid" objects will ever appear,
++ *	   we'd better make sure that there's no link(2) for them.
++ *	d) conversion from fhandle to dentry may come in the wrong moment - when
++ *	   we are removing the target. Solution: we will have to grab ->i_mutex
++ *	   in the fhandle_to_dentry code. [FIXME - current nfsfh.c relies on
++ *	   ->i_mutex on parents, which works but leads to some truly excessive
++ *	   locking].
++ */
++int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
++	       struct inode *new_dir, struct dentry *new_dentry,
++	       struct inode **delegated_inode, unsigned int flags)
++{
++	struct renamedata rd = {
++		.old_dir	 = old_dir,
++		.new_dir	 = new_dir,
++		.old_dentry	 = old_dentry,
++		.delegated_inode = delegated_inode,
++		.flags		 = flags,
++	};
++	return __vfs_rename(&rd);
++}
+ EXPORT_SYMBOL(vfs_rename);
+ 
+ static int do_renameat2(int olddfd, const char __user *oldname, int newdfd,
+ 			const char __user *newname, unsigned int flags)
+ {
++	struct renamedata rd;
+ 	struct dentry *old_dentry, *new_dentry;
+ 	struct dentry *trap;
+ 	struct path old_path, new_path;
+@@ -4505,9 +4532,14 @@ static int do_renameat2(int olddfd, const char __user *oldname, int newdfd,
+ 				     &new_path, new_dentry, flags);
  	if (error)
-@@ -3433,7 +3433,7 @@ static int do_o_path(struct nameidata *nd, unsigned flags, struct file *file)
- 	struct path path;
- 	int error = path_lookupat(nd, flags, &path);
- 	if (!error) {
--		audit_inode(nd->name, path.dentry, 0);
-+		audit_inode(nd->name, mnt_user_ns(path.mnt), path.dentry, 0);
- 		error = vfs_open(&path, file);
- 		path_put(&path);
- 	}
-diff --git a/include/linux/audit.h b/include/linux/audit.h
-index b3d859831a31..217d2b0c273e 100644
---- a/include/linux/audit.h
-+++ b/include/linux/audit.h
-@@ -293,8 +293,8 @@ extern void __audit_syscall_exit(int ret_success, long ret_value);
- extern struct filename *__audit_reusename(const __user char *uptr);
- extern void __audit_getname(struct filename *name);
- extern void __audit_getcwd(void);
--extern void __audit_inode(struct filename *name, const struct dentry *dentry,
--				unsigned int flags);
-+extern void __audit_inode(struct filename *name, struct user_namespace *user_ns,
-+			  const struct dentry *dentry, unsigned int flags);
- extern void __audit_file(const struct file *);
- extern void __audit_inode_child(struct inode *parent,
- 				const struct dentry *dentry,
-@@ -357,10 +357,11 @@ static inline void audit_getcwd(void)
- 		__audit_getcwd();
- }
- static inline void audit_inode(struct filename *name,
-+				struct user_namespace *user_ns,
- 				const struct dentry *dentry,
- 				unsigned int aflags) {
- 	if (unlikely(!audit_dummy_context()))
--		__audit_inode(name, dentry, aflags);
-+		__audit_inode(name, user_ns, dentry, aflags);
- }
- static inline void audit_file(struct file *file)
- {
-@@ -371,7 +372,7 @@ static inline void audit_inode_parent_hidden(struct filename *name,
- 						const struct dentry *dentry)
- {
- 	if (unlikely(!audit_dummy_context()))
--		__audit_inode(name, dentry,
-+		__audit_inode(name, &init_user_ns, dentry,
- 				AUDIT_INODE_PARENT | AUDIT_INODE_HIDDEN);
- }
- static inline void audit_inode_child(struct inode *parent,
-@@ -587,6 +588,7 @@ static inline void audit_getname(struct filename *name)
- static inline void audit_getcwd(void)
- { }
- static inline void audit_inode(struct filename *name,
-+				struct user_namespace *user_ns,
- 				const struct dentry *dentry,
- 				unsigned int aflags)
- { }
-diff --git a/ipc/mqueue.c b/ipc/mqueue.c
-index beff0cfcd1e8..08ade6410563 100644
---- a/ipc/mqueue.c
-+++ b/ipc/mqueue.c
-@@ -849,8 +849,8 @@ static void remove_notification(struct mqueue_inode_info *info)
- 	info->notify_user_ns = NULL;
- }
- 
--static int prepare_open(struct dentry *dentry, int oflag, int ro,
--			umode_t mode, struct filename *name,
-+static int prepare_open(struct user_namespace *user_ns, struct dentry *dentry,
-+			int oflag, int ro, umode_t mode, struct filename *name,
- 			struct mq_attr *attr)
- {
- 	static const int oflag2acc[O_ACCMODE] = { MAY_READ, MAY_WRITE,
-@@ -867,7 +867,7 @@ static int prepare_open(struct dentry *dentry, int oflag, int ro,
- 				  mqueue_create_attr, attr);
- 	}
- 	/* it already existed */
--	audit_inode(name, dentry, 0);
-+	audit_inode(name, user_ns, dentry, 0);
- 	if ((oflag & (O_CREAT|O_EXCL)) == (O_CREAT|O_EXCL))
- 		return -EEXIST;
- 	if ((oflag & O_ACCMODE) == (O_RDWR | O_WRONLY))
-@@ -903,7 +903,7 @@ static int do_mq_open(const char __user *u_name, int oflag, umode_t mode,
- 		goto out_putfd;
- 	}
- 	path.mnt = mntget(mnt);
--	error = prepare_open(path.dentry, oflag, ro, mode, name, attr);
-+	error = prepare_open(mnt_user_ns(path.mnt), path.dentry, oflag, ro, mode, name, attr);
- 	if (!error) {
- 		struct file *file = dentry_open(&path, oflag, current_cred());
- 		if (!IS_ERR(file))
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 9cdecdea61d9..0dc26fcf4742 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -1936,6 +1936,7 @@ void __audit_getname(struct filename *name)
- }
- 
- static inline int audit_copy_fcaps(struct audit_names *name,
-+				   struct user_namespace *user_ns,
- 				   const struct dentry *dentry)
- {
- 	struct cpu_vfs_cap_data caps;
-@@ -1944,7 +1945,7 @@ static inline int audit_copy_fcaps(struct audit_names *name,
- 	if (!dentry)
- 		return 0;
- 
--	rc = get_vfs_caps_from_disk(dentry, &caps);
-+	rc = get_mapped_vfs_caps_from_disk(user_ns, dentry, &caps);
- 	if (rc)
- 		return rc;
- 
-@@ -1960,21 +1961,22 @@ static inline int audit_copy_fcaps(struct audit_names *name,
- 
- /* Copy inode data into an audit_names. */
- static void audit_copy_inode(struct audit_names *name,
--			     const struct dentry *dentry,
--			     struct inode *inode, unsigned int flags)
-+			     struct user_namespace *user_ns,
-+			     const struct dentry *dentry, struct inode *inode,
-+			     unsigned int flags)
- {
- 	name->ino   = inode->i_ino;
- 	name->dev   = inode->i_sb->s_dev;
- 	name->mode  = inode->i_mode;
--	name->uid   = inode->i_uid;
--	name->gid   = inode->i_gid;
-+	name->uid   = i_uid_into_mnt(user_ns, inode);
-+	name->gid   = i_gid_into_mnt(user_ns, inode);
- 	name->rdev  = inode->i_rdev;
- 	security_inode_getsecid(inode, &name->osid);
- 	if (flags & AUDIT_INODE_NOEVAL) {
- 		name->fcap_ver = -1;
- 		return;
- 	}
--	audit_copy_fcaps(name, dentry);
-+	audit_copy_fcaps(name, user_ns, dentry);
- }
- 
- /**
-@@ -1983,8 +1985,8 @@ static void audit_copy_inode(struct audit_names *name,
-  * @dentry: dentry being audited
-  * @flags: attributes for this particular entry
-  */
--void __audit_inode(struct filename *name, const struct dentry *dentry,
--		   unsigned int flags)
-+void __audit_inode(struct filename *name, struct user_namespace *user_ns,
-+		   const struct dentry *dentry, unsigned int flags)
- {
- 	struct audit_context *context = audit_context();
- 	struct inode *inode = d_backing_inode(dentry);
-@@ -2078,12 +2080,12 @@ void __audit_inode(struct filename *name, const struct dentry *dentry,
- 		n->type = AUDIT_TYPE_NORMAL;
- 	}
- 	handle_path(dentry);
--	audit_copy_inode(n, dentry, inode, flags & AUDIT_INODE_NOEVAL);
-+	audit_copy_inode(n, user_ns, dentry, inode, flags & AUDIT_INODE_NOEVAL);
- }
- 
- void __audit_file(const struct file *file)
- {
--	__audit_inode(NULL, file->f_path.dentry, 0);
-+	__audit_inode(NULL, mnt_user_ns(file->f_path.mnt), file->f_path.dentry, 0);
- }
- 
- /**
-@@ -2175,7 +2177,7 @@ void __audit_inode_child(struct inode *parent,
- 		n = audit_alloc_name(context, AUDIT_TYPE_PARENT);
- 		if (!n)
- 			return;
--		audit_copy_inode(n, NULL, parent, 0);
-+		audit_copy_inode(n, &init_user_ns, NULL, parent, 0);
- 	}
- 
- 	if (!found_child) {
-@@ -2194,7 +2196,7 @@ void __audit_inode_child(struct inode *parent,
- 	}
- 
- 	if (inode)
--		audit_copy_inode(found_child, dentry, inode, 0);
-+		audit_copy_inode(found_child, &init_user_ns, dentry, inode, 0);
- 	else
- 		found_child->ino = AUDIT_INO_UNSET;
- }
+ 		goto exit5;
+-	error = vfs_rename(old_path.dentry->d_inode, old_dentry,
+-			   new_path.dentry->d_inode, new_dentry,
+-			   &delegated_inode, flags);
++
++	rd.old_dir	   = old_path.dentry->d_inode;
++	rd.old_dentry	   = old_dentry;
++	rd.new_dir	   = new_path.dentry->d_inode;
++	rd.new_dentry	   = new_dentry;
++	rd.delegated_inode = &delegated_inode;
++	rd.flags	   = flags;
++	error = __vfs_rename(&rd);
+ exit5:
+ 	dput(new_dentry);
+ exit4:
 -- 
 2.29.0
 
