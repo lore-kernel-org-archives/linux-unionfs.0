@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6CF2C55179
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:48:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BE3EC5DF9D
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F92620791
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:48:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06E2020724
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388918AbgJ2Aoh (ORCPT
+        id S1732064AbgJ2Afd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:44:37 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:60711 "EHLO
+        Wed, 28 Oct 2020 20:35:33 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:60627 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732129AbgJ2Afo (ORCPT
+        with ESMTP id S1729979AbgJ2Afb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:35:44 -0400
+        Wed, 28 Oct 2020 20:35:31 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvue-0008Ep-Dl; Thu, 29 Oct 2020 00:35:32 +0000
+        id 1kXvuS-0008Ep-DZ; Thu, 29 Oct 2020 00:35:20 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -62,11 +62,11 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
         linux-ext4@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
-        selinux@vger.kernel.org, Tycho Andersen <tycho@tycho.pizza>,
+        selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 12/34] xattr: handle idmapped mounts
-Date:   Thu, 29 Oct 2020 01:32:30 +0100
-Message-Id: <20201029003252.2128653-13-christian.brauner@ubuntu.com>
+Subject: [PATCH 05/34] fs: introduce MOUNT_ATTR_IDMAP
+Date:   Thu, 29 Oct 2020 01:32:23 +0100
+Message-Id: <20201029003252.2128653-6-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,643 +76,443 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Tycho Andersen <tycho@tycho.pizza>
+Introduce a new mount bind mount property to allow idmapping mounts. The
+MOUNT_ATTR_IDMAP flag can be set via the new mount_setattr() syscall
+together with a file descriptor referring to a user namespace.
 
-When interacting with extended attributes the vfs verifies that the
-caller is privileged over the inode with which the extended attribute is
-associated. Add helpers to handle extended attributes on idmapped
-mounts. If the inode is accessed through an idmapped mount we need to
-map it according to the mount's user namespace. Afterwards the checks
-are identical to non-idmapped mounts.
-This patch adds helpers to get, set, and remove extended attributes on
-idmapped mounts. The four helpers vfs_mapped_getxattr(),
-vfs_mapped_setxattr(), __vfs_mapped_removexattr(), and
-vfs_mapped_removexattr() are either used directly by the vfs (e.g.
-vfs_mapped_getxattr_alloc()) or by the filesystems targeted in this
-first interation.
+The user namespace referenced by the namespace file descriptor will be
+attached to the bind mount. All interactions with the filesystem going
+through that mount will be shifted according to the mapping specified in that
+user namespace.
 
-If the initial user namespace is passed all operations are a nop so
-non-idmapped mounts will not see a change in behavior and will also not
-see any performance impact. It also means that the non-idmapped-mount
-aware helpers can be implemented on top of their idmapped-mount aware
-counterparts by passing the initial user namespace.
+Using user namespaces to mark mounts means we can reuse all the existing
+infrastructure in the kernel that already exists to handle idmappings and can
+also use this for permission checking to allow unprivileged user to create
+idmapped mounts.
 
-Signed-off-by: Tycho Andersen <tycho@tycho.pizza>
+Idmapping a mount is decoupled from the caller's user and mount namespace.
+This means idmapped mounts can be created in the initial user namespace
+which is an important use-case for e.g. systemd-homed, portable usb-sticks
+between systems, and other use-cases that have been brought up. For example,
+assume a home directory where all files are owned by uid and gid 1000 and the
+home directory is brought to a new laptop where the user has id 12345. The
+system administrator can simply create a mount of this home directory with a
+mapping of 1000:12345:1 other mappings to indicate the ids should be kept.
+(With this it is e.g. also possible to create idmapped mounts on the host with
+ an identity mapping 1:1:100000 where the root user is not mapped. A user with
+ root access that e.g. has been pivot rooted into such a mount on the host will
+ be not be able to execute, read, write, or create files as root.)
+
+Given that idmapping a mount is decoupled from the caller's user namespace
+a sufficiently privileged process such as a container manager can set up a
+shifted mount for the container and the container can simply pivot root to
+it. There's no need for the container to do anything. The mount will appear
+correctly mapped independent of the user namespace the container uses. This
+means we don't need to mark a mount as idmappable.
+
+In order to create an idmapped mount the following conditions must be
+fulfilled. The caller must either be privileged in the user namespace of
+the superblock the mount belongs to or the mount must have already been
+shifted before and the caller must be privileged in the user namespace that
+this mount has been shifted to. The latter case means that shifted mounts
+can e.g. be created by unprivileged users provided that the underlying
+mount has already been idmapped to a user namespace they have privilege
+over.
+
+Once a mount has been idmapped it's idmapping cannot be changed. This is to
+keep things simple. Callers that want another idmapping can simply create
+another detached mount and idmap it.
+
+The new CONFIG_IDMAP_MOUNTS option that can be used to compile the
+kernel with idmapped mount support. It will default to off for quite
+some time. Let's not be over confident.
+
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: linux-fsdevel@vger.kernel.org
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/xattr.c            | 252 +++++++++++++++++++++++++++++-------------
- include/linux/xattr.h |  23 ++++
- 2 files changed, 196 insertions(+), 79 deletions(-)
+ fs/Kconfig                 |   6 ++
+ fs/internal.h              |   1 +
+ fs/namespace.c             | 157 ++++++++++++++++++++++++++++++++++++-
+ include/linux/fs.h         |   1 +
+ include/linux/mount.h      |  20 ++++-
+ include/uapi/linux/mount.h |   6 +-
+ 6 files changed, 186 insertions(+), 5 deletions(-)
 
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 96ff53b42251..cdda2baeb9f7 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -83,7 +83,8 @@ xattr_resolve_name(struct inode *inode, const char **name)
-  * because different namespaces have very different rules.
-  */
- static int
--xattr_permission(struct inode *inode, const char *name, int mask)
-+xattr_permission(struct user_namespace *user_ns, struct inode *inode,
-+		 const char *name, int mask)
- {
- 	/*
- 	 * We can never set or remove an extended attribute on a read-only
-@@ -127,11 +128,11 @@ xattr_permission(struct inode *inode, const char *name, int mask)
- 		if (!S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode))
- 			return (mask & MAY_WRITE) ? -EPERM : -ENODATA;
- 		if (S_ISDIR(inode->i_mode) && (inode->i_mode & S_ISVTX) &&
--		    (mask & MAY_WRITE) && !inode_owner_or_capable(inode))
-+		    (mask & MAY_WRITE) && !mapped_inode_owner_or_capable(user_ns, inode))
- 			return -EPERM;
- 	}
+diff --git a/fs/Kconfig b/fs/Kconfig
+index aa4c12282301..2d45ec3c7e04 100644
+--- a/fs/Kconfig
++++ b/fs/Kconfig
+@@ -15,6 +15,12 @@ config VALIDATE_FS_PARSER
+ 	  Enable this to perform validation of the parameter description for a
+ 	  filesystem when it is registered.
  
--	return inode_permission(inode, mask);
-+	return mapped_inode_permission(user_ns, inode, mask);
- }
- 
- /*
-@@ -161,9 +162,10 @@ xattr_supported_namespace(struct inode *inode, const char *prefix)
- }
- EXPORT_SYMBOL(xattr_supported_namespace);
- 
--int
--__vfs_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
--	       const void *value, size_t size, int flags)
-+static int
-+__vfs_mapped_setxattr(struct user_namespace *user_ns, struct dentry *dentry,
-+		  struct inode *inode, const char *name, const void *value,
-+		  size_t size, int flags)
- {
- 	const struct xattr_handler *handler;
- 
-@@ -174,7 +176,14 @@ __vfs_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
- 		return -EOPNOTSUPP;
- 	if (size == 0)
- 		value = "";  /* empty EA, do not remove */
--	return handler->set(handler, dentry, inode, name, value, size, flags);
-+	return xattr_handler_set(handler, user_ns, dentry, inode, name, value, size, flags);
-+}
++config IDMAP_MOUNTS
++	bool "Support id mappings per mount"
++	default n
++	help
++	  This allows the vfs to create idmappings per vfsmount.
 +
-+int
-+__vfs_setxattr(struct dentry *dentry, struct inode *inode, const char *name,
-+	       const void *value, size_t size, int flags)
-+{
-+	return __vfs_mapped_setxattr(&init_user_ns, dentry, inode, name, value, size, flags);
- }
- EXPORT_SYMBOL(__vfs_setxattr);
+ if BLOCK
  
-@@ -182,6 +191,7 @@ EXPORT_SYMBOL(__vfs_setxattr);
-  *  __vfs_setxattr_noperm - perform setxattr operation without performing
-  *  permission checks.
-  *
-+ *  @user_ns - user namespace of the mount
-  *  @dentry - object to perform setxattr on
-  *  @name - xattr name to set
-  *  @value - value to set @name to
-@@ -194,8 +204,10 @@ EXPORT_SYMBOL(__vfs_setxattr);
-  *  is executed. It also assumes that the caller will make the appropriate
-  *  permission checks.
-  */
--int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
--		const void *value, size_t size, int flags)
-+static int
-+__vfs_mapped_setxattr_noperm(struct user_namespace *user_ns,
-+			     struct dentry *dentry, const char *name,
-+			     const void *value, size_t size, int flags)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error = -EAGAIN;
-@@ -205,7 +217,7 @@ int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
- 	if (issec)
- 		inode->i_flags &= ~S_NOSEC;
- 	if (inode->i_opflags & IOP_XATTR) {
--		error = __vfs_setxattr(dentry, inode, name, value, size, flags);
-+		error = __vfs_mapped_setxattr(user_ns, dentry, inode, name, value, size, flags);
- 		if (!error) {
- 			fsnotify_xattr(dentry);
- 			security_inode_post_setxattr(dentry, name, value,
-@@ -231,27 +243,23 @@ int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
- 	return error;
- }
- 
--/**
-- * __vfs_setxattr_locked - set an extended attribute while holding the inode
-- * lock
-- *
-- *  @dentry: object to perform setxattr on
-- *  @name: xattr name to set
-- *  @value: value to set @name to
-- *  @size: size of @value
-- *  @flags: flags to pass into filesystem operations
-- *  @delegated_inode: on return, will contain an inode pointer that
-- *  a delegation was broken on, NULL if none.
-- */
--int
--__vfs_setxattr_locked(struct dentry *dentry, const char *name,
--		const void *value, size_t size, int flags,
--		struct inode **delegated_inode)
-+int __vfs_setxattr_noperm(struct dentry *dentry, const char *name,
-+		const void *value, size_t size, int flags)
-+{
-+	return __vfs_mapped_setxattr_noperm(&init_user_ns, dentry, name, value,
-+					    size, flags);
-+}
-+
-+static int
-+__vfs_mapped_setxattr_locked(struct user_namespace *user_ns,
-+			     struct dentry *dentry, const char *name,
-+			     const void *value, size_t size, int flags,
-+			     struct inode **delegated_inode)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
- 
--	error = xattr_permission(inode, name, MAY_WRITE);
-+	error = xattr_permission(user_ns, inode, name, MAY_WRITE);
- 	if (error)
- 		return error;
- 
-@@ -263,16 +271,37 @@ __vfs_setxattr_locked(struct dentry *dentry, const char *name,
- 	if (error)
- 		goto out;
- 
--	error = __vfs_setxattr_noperm(dentry, name, value, size, flags);
-+	error = __vfs_mapped_setxattr_noperm(user_ns, dentry, name, value, size, flags);
- 
- out:
- 	return error;
- }
-+
-+/**
-+ * __vfs_setxattr_locked - set an extended attribute while holding the inode
-+ * lock
-+ *
-+ *  @dentry: object to perform setxattr on
-+ *  @name: xattr name to set
-+ *  @value: value to set @name to
-+ *  @size: size of @value
-+ *  @flags: flags to pass into filesystem operations
-+ *  @delegated_inode: on return, will contain an inode pointer that
-+ *  a delegation was broken on, NULL if none.
-+ */
-+int
-+__vfs_setxattr_locked(struct dentry *dentry, const char *name,
-+		const void *value, size_t size, int flags,
-+		struct inode **delegated_inode)
-+{
-+	return __vfs_mapped_setxattr_locked(&init_user_ns, dentry, name, value,
-+					    size, flags, delegated_inode);
-+}
- EXPORT_SYMBOL_GPL(__vfs_setxattr_locked);
- 
- int
--vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
--		size_t size, int flags)
-+vfs_mapped_setxattr(struct user_namespace *user_ns, struct dentry *dentry,
-+		const char *name, const void *value, size_t size, int flags)
- {
- 	struct inode *inode = dentry->d_inode;
- 	struct inode *delegated_inode = NULL;
-@@ -280,8 +309,8 @@ vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
- 
- retry_deleg:
- 	inode_lock(inode);
--	error = __vfs_setxattr_locked(dentry, name, value, size, flags,
--	    &delegated_inode);
-+	error = __vfs_mapped_setxattr_locked(user_ns, dentry, name, value, size,
-+					     flags, &delegated_inode);
- 	inode_unlock(inode);
- 
- 	if (delegated_inode) {
-@@ -291,6 +320,14 @@ vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
- 	}
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(vfs_mapped_setxattr);
-+
-+int
-+vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
-+		size_t size, int flags)
-+{
-+	return vfs_mapped_setxattr(&init_user_ns, dentry, name, value, size, flags);
-+}
- EXPORT_SYMBOL_GPL(vfs_setxattr);
- 
- static ssize_t
-@@ -319,24 +356,17 @@ xattr_getsecurity(struct inode *inode, const char *name, void *value,
- 	return len;
- }
- 
--/*
-- * vfs_getxattr_alloc - allocate memory, if necessary, before calling getxattr
-- *
-- * Allocate memory, if not already allocated, or re-allocate correct size,
-- * before retrieving the extended attribute.
-- *
-- * Returns the result of alloc, if failed, or the getxattr operation.
-- */
- ssize_t
--vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
--		   size_t xattr_size, gfp_t flags)
-+vfs_mapped_getxattr_alloc(struct user_namespace *user_ns, struct dentry *dentry,
-+		      const char *name, char **xattr_value, size_t xattr_size,
-+		      gfp_t flags)
- {
- 	const struct xattr_handler *handler;
- 	struct inode *inode = dentry->d_inode;
- 	char *value = *xattr_value;
- 	int error;
- 
--	error = xattr_permission(inode, name, MAY_READ);
-+	error = xattr_permission(user_ns, inode, name, MAY_READ);
- 	if (error)
- 		return error;
- 
-@@ -361,6 +391,22 @@ vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
- 	return error;
- }
- 
-+/*
-+ * vfs_getxattr_alloc - allocate memory, if necessary, before calling getxattr
-+ *
-+ * Allocate memory, if not already allocated, or re-allocate correct size,
-+ * before retrieving the extended attribute.
-+ *
-+ * Returns the result of alloc, if failed, or the getxattr operation.
-+ */
-+ssize_t
-+vfs_getxattr_alloc(struct dentry *dentry, const char *name, char **xattr_value,
-+		   size_t xattr_size, gfp_t flags)
-+{
-+	return vfs_mapped_getxattr_alloc(&init_user_ns, dentry, name, xattr_value,
-+				     xattr_size, flags);
-+}
-+
- ssize_t
- __vfs_getxattr(struct dentry *dentry, struct inode *inode, const char *name,
- 	       void *value, size_t size)
-@@ -377,12 +423,13 @@ __vfs_getxattr(struct dentry *dentry, struct inode *inode, const char *name,
- EXPORT_SYMBOL(__vfs_getxattr);
- 
- ssize_t
--vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
-+vfs_mapped_getxattr(struct user_namespace *user_ns, struct dentry *dentry,
-+		const char *name, void *value, size_t size)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
- 
--	error = xattr_permission(inode, name, MAY_READ);
-+	error = xattr_permission(user_ns, inode, name, MAY_READ);
- 	if (error)
- 		return error;
- 
-@@ -405,6 +452,13 @@ vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
- nolsm:
- 	return __vfs_getxattr(dentry, inode, name, value, size);
- }
-+EXPORT_SYMBOL_GPL(vfs_mapped_getxattr);
-+
-+ssize_t
-+vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
-+{
-+	return vfs_mapped_getxattr(&init_user_ns, dentry, name, value, size);
-+}
- EXPORT_SYMBOL_GPL(vfs_getxattr);
- 
- ssize_t
-@@ -428,7 +482,7 @@ vfs_listxattr(struct dentry *dentry, char *list, size_t size)
- EXPORT_SYMBOL_GPL(vfs_listxattr);
- 
- int
--__vfs_removexattr(struct dentry *dentry, const char *name)
-+__vfs_mapped_removexattr(struct user_namespace *user_ns, struct dentry *dentry, const char *name)
- {
- 	struct inode *inode = d_inode(dentry);
- 	const struct xattr_handler *handler;
-@@ -438,27 +492,26 @@ __vfs_removexattr(struct dentry *dentry, const char *name)
- 		return PTR_ERR(handler);
- 	if (!handler->set)
- 		return -EOPNOTSUPP;
--	return handler->set(handler, dentry, inode, name, NULL, 0, XATTR_REPLACE);
-+	return xattr_handler_set(handler, user_ns, dentry, inode, name, NULL, 0, XATTR_REPLACE);
- }
--EXPORT_SYMBOL(__vfs_removexattr);
-+EXPORT_SYMBOL(__vfs_mapped_removexattr);
- 
--/**
-- * __vfs_removexattr_locked - set an extended attribute while holding the inode
-- * lock
-- *
-- *  @dentry: object to perform setxattr on
-- *  @name: name of xattr to remove
-- *  @delegated_inode: on return, will contain an inode pointer that
-- *  a delegation was broken on, NULL if none.
-- */
- int
--__vfs_removexattr_locked(struct dentry *dentry, const char *name,
--		struct inode **delegated_inode)
-+__vfs_removexattr(struct dentry *dentry, const char *name)
-+{
-+	return __vfs_mapped_removexattr(&init_user_ns, dentry, name);
-+}
-+EXPORT_SYMBOL(__vfs_removexattr);
-+
-+static int
-+__vfs_mapped_removexattr_locked(struct user_namespace *user_ns,
-+				struct dentry *dentry, const char *name,
-+				struct inode **delegated_inode)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
- 
--	error = xattr_permission(inode, name, MAY_WRITE);
-+	error = xattr_permission(user_ns, inode, name, MAY_WRITE);
- 	if (error)
- 		return error;
- 
-@@ -470,7 +523,7 @@ __vfs_removexattr_locked(struct dentry *dentry, const char *name,
- 	if (error)
- 		goto out;
- 
--	error = __vfs_removexattr(dentry, name);
-+	error = __vfs_mapped_removexattr(user_ns, dentry, name);
- 
- 	if (!error) {
- 		fsnotify_xattr(dentry);
-@@ -480,10 +533,27 @@ __vfs_removexattr_locked(struct dentry *dentry, const char *name,
- out:
- 	return error;
- }
-+
-+/**
-+ * __vfs_removexattr_locked - set an extended attribute while holding the inode
-+ * lock
-+ *
-+ *  @dentry: object to perform setxattr on
-+ *  @name: name of xattr to remove
-+ *  @delegated_inode: on return, will contain an inode pointer that
-+ *  a delegation was broken on, NULL if none.
-+ */
-+int
-+__vfs_removexattr_locked(struct dentry *dentry, const char *name,
-+			 struct inode **delegated_inode)
-+{
-+	return __vfs_mapped_removexattr_locked(&init_user_ns, dentry, name, delegated_inode);
-+}
- EXPORT_SYMBOL_GPL(__vfs_removexattr_locked);
- 
- int
--vfs_removexattr(struct dentry *dentry, const char *name)
-+vfs_mapped_removexattr(struct user_namespace *user_ns, struct dentry *dentry,
-+		       const char *name)
- {
- 	struct inode *inode = dentry->d_inode;
- 	struct inode *delegated_inode = NULL;
-@@ -491,7 +561,7 @@ vfs_removexattr(struct dentry *dentry, const char *name)
- 
- retry_deleg:
- 	inode_lock(inode);
--	error = __vfs_removexattr_locked(dentry, name, &delegated_inode);
-+	error = __vfs_mapped_removexattr_locked(user_ns, dentry, name, &delegated_inode);
- 	inode_unlock(inode);
- 
- 	if (delegated_inode) {
-@@ -502,14 +572,22 @@ vfs_removexattr(struct dentry *dentry, const char *name)
- 
- 	return error;
- }
-+EXPORT_SYMBOL_GPL(vfs_mapped_removexattr);
-+
-+int
-+vfs_removexattr(struct dentry *dentry, const char *name)
-+{
-+	return vfs_mapped_removexattr(&init_user_ns, dentry, name);
-+}
- EXPORT_SYMBOL_GPL(vfs_removexattr);
- 
- /*
-  * Extended attribute SET operations
-  */
- static long
--setxattr(struct dentry *d, const char __user *name, const void __user *value,
--	 size_t size, int flags)
-+setxattr(struct user_namespace *user_ns, struct dentry *d,
-+	 const char __user *name, const void __user *value, size_t size,
-+	 int flags)
- {
- 	int error;
- 	void *kvalue = NULL;
-@@ -536,16 +614,16 @@ setxattr(struct dentry *d, const char __user *name, const void __user *value,
- 		}
- 		if ((strcmp(kname, XATTR_NAME_POSIX_ACL_ACCESS) == 0) ||
- 		    (strcmp(kname, XATTR_NAME_POSIX_ACL_DEFAULT) == 0))
--			posix_acl_fix_xattr_from_user(&init_user_ns, kvalue, size);
-+			posix_acl_fix_xattr_from_user(user_ns, kvalue, size);
- 		else if (strcmp(kname, XATTR_NAME_CAPS) == 0) {
--			error = cap_convert_nscap(&init_user_ns, d, &kvalue, size);
-+			error = cap_convert_nscap(user_ns, d, &kvalue, size);
- 			if (error < 0)
- 				goto out;
- 			size = error;
- 		}
- 	}
- 
--	error = vfs_setxattr(d, kname, kvalue, size, flags);
-+	error = vfs_mapped_setxattr(user_ns, d, kname, kvalue, size, flags);
- out:
- 	kvfree(kvalue);
- 
-@@ -558,13 +636,17 @@ static int path_setxattr(const char __user *pathname,
- {
- 	struct path path;
- 	int error;
-+
- retry:
- 	error = user_path_at(AT_FDCWD, pathname, lookup_flags, &path);
- 	if (error)
- 		return error;
- 	error = mnt_want_write(path.mnt);
- 	if (!error) {
--		error = setxattr(path.dentry, name, value, size, flags);
-+		struct user_namespace *user_ns;
-+
-+		user_ns = mnt_user_ns(path.mnt);
-+		error = setxattr(user_ns, path.dentry, name, value, size, flags);
- 		mnt_drop_write(path.mnt);
- 	}
- 	path_put(&path);
-@@ -600,7 +682,11 @@ SYSCALL_DEFINE5(fsetxattr, int, fd, const char __user *, name,
- 	audit_file(f.file);
- 	error = mnt_want_write_file(f.file);
- 	if (!error) {
--		error = setxattr(f.file->f_path.dentry, name, value, size, flags);
-+		struct user_namespace *user_ns;
-+
-+		user_ns = mnt_user_ns(f.file->f_path.mnt);
-+		error = setxattr(user_ns, f.file->f_path.dentry, name, value,
-+				 size, flags);
- 		mnt_drop_write_file(f.file);
- 	}
- 	fdput(f);
-@@ -612,7 +698,7 @@ SYSCALL_DEFINE5(fsetxattr, int, fd, const char __user *, name,
-  */
- static ssize_t
- getxattr(struct dentry *d, const char __user *name, void __user *value,
--	 size_t size)
-+	 size_t size, struct user_namespace *user_ns)
- {
- 	ssize_t error;
- 	void *kvalue = NULL;
-@@ -632,11 +718,11 @@ getxattr(struct dentry *d, const char __user *name, void __user *value,
- 			return -ENOMEM;
- 	}
- 
--	error = vfs_getxattr(d, kname, kvalue, size);
-+	error = vfs_mapped_getxattr(user_ns, d, kname, kvalue, size);
- 	if (error > 0) {
- 		if ((strcmp(kname, XATTR_NAME_POSIX_ACL_ACCESS) == 0) ||
- 		    (strcmp(kname, XATTR_NAME_POSIX_ACL_DEFAULT) == 0))
--			posix_acl_fix_xattr_to_user(&init_user_ns, kvalue, error);
-+			posix_acl_fix_xattr_to_user(user_ns, kvalue, error);
- 		if (size && copy_to_user(value, kvalue, error))
- 			error = -EFAULT;
- 	} else if (error == -ERANGE && size >= XATTR_SIZE_MAX) {
-@@ -654,13 +740,15 @@ static ssize_t path_getxattr(const char __user *pathname,
- 			     const char __user *name, void __user *value,
- 			     size_t size, unsigned int lookup_flags)
- {
-+	struct user_namespace *user_ns;
- 	struct path path;
- 	ssize_t error;
- retry:
- 	error = user_path_at(AT_FDCWD, pathname, lookup_flags, &path);
- 	if (error)
- 		return error;
--	error = getxattr(path.dentry, name, value, size);
-+	user_ns = mnt_user_ns(path.mnt);
-+	error = getxattr(path.dentry, name, value, size, user_ns);
- 	path_put(&path);
- 	if (retry_estale(error, lookup_flags)) {
- 		lookup_flags |= LOOKUP_REVAL;
-@@ -684,13 +772,15 @@ SYSCALL_DEFINE4(lgetxattr, const char __user *, pathname,
- SYSCALL_DEFINE4(fgetxattr, int, fd, const char __user *, name,
- 		void __user *, value, size_t, size)
- {
-+	struct user_namespace *user_ns;
- 	struct fd f = fdget(fd);
- 	ssize_t error = -EBADF;
- 
- 	if (!f.file)
- 		return error;
- 	audit_file(f.file);
--	error = getxattr(f.file->f_path.dentry, name, value, size);
-+	user_ns = mnt_user_ns(f.file->f_path.mnt);
-+	error = getxattr(f.file->f_path.dentry, name, value, size, user_ns);
- 	fdput(f);
- 	return error;
- }
-@@ -774,7 +864,7 @@ SYSCALL_DEFINE3(flistxattr, int, fd, char __user *, list, size_t, size)
-  * Extended attribute REMOVE operations
-  */
- static long
--removexattr(struct dentry *d, const char __user *name)
-+removexattr(struct user_namespace *user_ns, struct dentry *d, const char __user *name)
- {
- 	int error;
- 	char kname[XATTR_NAME_MAX + 1];
-@@ -785,7 +875,7 @@ removexattr(struct dentry *d, const char __user *name)
- 	if (error < 0)
- 		return error;
- 
--	return vfs_removexattr(d, kname);
-+	return vfs_mapped_removexattr(user_ns, d, kname);
- }
- 
- static int path_removexattr(const char __user *pathname,
-@@ -799,7 +889,9 @@ static int path_removexattr(const char __user *pathname,
- 		return error;
- 	error = mnt_want_write(path.mnt);
- 	if (!error) {
--		error = removexattr(path.dentry, name);
-+		struct user_namespace *user_ns = mnt_user_ns(path.mnt);
-+
-+		error = removexattr(user_ns, path.dentry, name);
- 		mnt_drop_write(path.mnt);
- 	}
- 	path_put(&path);
-@@ -832,7 +924,9 @@ SYSCALL_DEFINE2(fremovexattr, int, fd, const char __user *, name)
- 	audit_file(f.file);
- 	error = mnt_want_write_file(f.file);
- 	if (!error) {
--		error = removexattr(f.file->f_path.dentry, name);
-+		struct user_namespace *user_ns = mnt_user_ns(f.file->f_path.mnt);
-+
-+		error = removexattr(user_ns, f.file->f_path.dentry, name);
- 		mnt_drop_write_file(f.file);
- 	}
- 	fdput(f);
-diff --git a/include/linux/xattr.h b/include/linux/xattr.h
-index 908441e74f51..b2eeecdf6669 100644
---- a/include/linux/xattr.h
-+++ b/include/linux/xattr.h
-@@ -16,6 +16,7 @@
- #include <linux/types.h>
- #include <linux/spinlock.h>
- #include <linux/mm.h>
-+#include <linux/user_namespace.h>
- #include <uapi/linux/xattr.h>
- 
- struct inode;
-@@ -45,6 +46,19 @@ struct xattr_handler {
- #endif
+ config FS_IOMAP
+diff --git a/fs/internal.h b/fs/internal.h
+index a5a6c470dc07..b6046b5186cd 100644
+--- a/fs/internal.h
++++ b/fs/internal.h
+@@ -88,6 +88,7 @@ struct mount_kattr {
+ 	unsigned int propagation;
+ 	unsigned int lookup_flags;
+ 	bool recurse;
++	struct user_namespace *userns;
  };
  
-+static inline int xattr_handler_set(const struct xattr_handler *handler,
-+			  struct user_namespace *user_ns, struct dentry *dentry,
-+			  struct inode *inode, const char *name,
-+			  const void *buffer, size_t size, int flags)
-+{
+ extern struct vfsmount *lookup_mnt(const struct path *);
+diff --git a/fs/namespace.c b/fs/namespace.c
+index e9c515b012a4..aef39fc74afa 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -25,6 +25,7 @@
+ #include <linux/proc_ns.h>
+ #include <linux/magic.h>
+ #include <linux/memblock.h>
++#include <linux/proc_fs.h>
+ #include <linux/task_work.h>
+ #include <linux/sched/task.h>
+ #include <uapi/linux/mount.h>
+@@ -210,6 +211,9 @@ static struct mount *alloc_vfsmnt(const char *name)
+ 		INIT_HLIST_NODE(&mnt->mnt_mp_list);
+ 		INIT_LIST_HEAD(&mnt->mnt_umounting);
+ 		INIT_HLIST_HEAD(&mnt->mnt_stuck_children);
 +#ifdef CONFIG_IDMAP_MOUNTS
-+	if (handler->set_mapped)
-+		return handler->set_mapped(handler, user_ns, dentry, inode,
-+					   name, buffer, size, flags);
++		mnt->mnt.mnt_user_ns = &init_user_ns;
 +#endif
-+	return handler->set(handler, dentry, inode, name, buffer, size, flags);
+ 	}
+ 	return mnt;
+ 
+@@ -555,6 +559,13 @@ int sb_prepare_remount_readonly(struct super_block *sb)
+ 
+ static void free_vfsmnt(struct mount *mnt)
+ {
++#ifdef CONFIG_IDMAP_MOUNTS
++	if ((mnt->mnt.mnt_flags & MNT_IDMAPPED) &&
++	    mnt_user_ns(&mnt->mnt) != &init_user_ns) {
++		put_user_ns(mnt->mnt.mnt_user_ns);
++		mnt->mnt.mnt_user_ns = NULL;
++	}
++#endif
+ 	kfree_const(mnt->mnt_devname);
+ #ifdef CONFIG_SMP
+ 	free_percpu(mnt->mnt_pcp);
+@@ -1063,6 +1074,11 @@ static struct mount *clone_mnt(struct mount *old, struct dentry *root,
+ 	mnt->mnt.mnt_flags &= ~(MNT_WRITE_HOLD|MNT_MARKED|MNT_INTERNAL);
+ 
+ 	atomic_inc(&sb->s_active);
++#ifdef CONFIG_IDMAP_MOUNTS
++	mnt->mnt.mnt_user_ns = old->mnt.mnt_user_ns;
++	if (mnt_user_ns(&old->mnt) != &init_user_ns)
++		mnt->mnt.mnt_user_ns = get_user_ns(mnt->mnt.mnt_user_ns);
++#endif
+ 	mnt->mnt.mnt_sb = sb;
+ 	mnt->mnt.mnt_root = dget(root);
+ 	mnt->mnt_mountpoint = mnt->mnt.mnt_root;
+@@ -3454,7 +3470,8 @@ static int build_attr_flags(unsigned int attr_flags, unsigned int *flags)
+ 			   MOUNT_ATTR_NODEV |
+ 			   MOUNT_ATTR_NOEXEC |
+ 			   MOUNT_ATTR__ATIME |
+-			   MOUNT_ATTR_NODIRATIME))
++			   MOUNT_ATTR_NODIRATIME |
++			   MOUNT_ATTR_IDMAP))
+ 		return -EINVAL;
+ 
+ 	if (attr_flags & MOUNT_ATTR_RDONLY)
+@@ -3467,6 +3484,8 @@ static int build_attr_flags(unsigned int attr_flags, unsigned int *flags)
+ 		aflags |= MNT_NOEXEC;
+ 	if (attr_flags & MOUNT_ATTR_NODIRATIME)
+ 		aflags |= MNT_NODIRATIME;
++	if (attr_flags & MOUNT_ATTR_IDMAP)
++		aflags |= MNT_IDMAPPED;
+ 
+ 	*flags = aflags;
+ 	return 0;
+@@ -3494,6 +3513,14 @@ SYSCALL_DEFINE3(fsmount, int, fs_fd, unsigned int, flags,
+ 	if ((flags & ~(FSMOUNT_CLOEXEC)) != 0)
+ 		return -EINVAL;
+ 
++	if (attr_flags & ~(MOUNT_ATTR_RDONLY |
++			   MOUNT_ATTR_NOSUID |
++			   MOUNT_ATTR_NODEV |
++			   MOUNT_ATTR_NOEXEC |
++			   MOUNT_ATTR__ATIME |
++			   MOUNT_ATTR_NODIRATIME))
++		return -EINVAL;
++
+ 	ret = build_attr_flags(attr_flags, &mnt_flags);
+ 	if (ret)
+ 		return ret;
+@@ -3836,6 +3863,7 @@ static int do_mount_setattr(struct path *path, struct mount_kattr *kattr)
+ 	 */
+ 	m = mnt;
+ 	do {
++		unsigned int old_flags;
+ 		last = m;
+ 
+ 		if (!can_change_locked_flags(m, all_raised)) {
+@@ -3843,11 +3871,61 @@ static int do_mount_setattr(struct path *path, struct mount_kattr *kattr)
+ 			break;
+ 		}
+ 
+-		if (rdonly_set && !(m->mnt.mnt_flags & MNT_READONLY)) {
++		old_flags = READ_ONCE(m->mnt.mnt_flags);
++		if (rdonly_set && !(old_flags & MNT_READONLY)) {
+ 			err = mnt_hold_writers(m);
+ 			if (err)
+ 				break;
+ 		}
++
++#ifdef CONFIG_IDMAP_MOUNTS
++		if (kattr->attr_set & MNT_IDMAPPED) {
++			struct user_namespace *user_ns;
++			struct vfsmount *vmnt;
++
++			/*
++			 * Once a mount has been idmapped we don't allow it to
++			 * change its mapping. It makes things simpler and
++			 * callers can just create a detached mount they can
++			 * idmap. So make sure that this mount is the root of
++			 * an anon namespace.
++			 */
++			if ((old_flags & MNT_IDMAPPED) && !is_anon_ns(m->mnt_ns)) {
++				err = -EPERM;
++				break;
++			}
++
++			/*
++			 * The underlying filesystem doesn't support idmapped
++			 * mounts yet.
++			 */
++			vmnt = &m->mnt;
++			if (!(vmnt->mnt_sb->s_type->fs_flags & FS_ALLOW_IDMAP)) {
++				err = -EINVAL;
++				break;
++			}
++
++			/* We're controlling the superblock. */
++			if (ns_capable(vmnt->mnt_sb->s_user_ns, CAP_SYS_ADMIN)) {
++				err = 0;
++				continue;
++			}
++
++			/*
++			 * The mount is already shifted to a user namespace
++			 * that we have control over. (We already verified that
++			 * this is the root of an anon namespace above.)
++			 */
++			user_ns = READ_ONCE(vmnt->mnt_user_ns);
++			if ((old_flags & MNT_IDMAPPED) && ns_capable(user_ns, CAP_SYS_ADMIN)) {
++				err = 0;
++				continue;
++			}
++
++			err = -EPERM;
++			break;
++		}
++#endif
+ 	} while (kattr->recurse && (m = next_mnt(m, mnt)));
+ 
+ 	m = mnt;
+@@ -3860,6 +3938,20 @@ static int do_mount_setattr(struct path *path, struct mount_kattr *kattr)
+ 			new_flags &= ~kattr->attr_clr;
+ 			/* Raise flags user wants us to set. */
+ 			new_flags |= kattr->attr_set;
++
++			/*
++			 * The MNT_IDMAPPED flag should be seen _after_ the
++			 * user_ns pointer in struct vfsmount is valid.
++			 */
++#ifdef CONFIG_IDMAP_MOUNTS
++			if (kattr->attr_set & MNT_IDMAPPED) {
++				struct user_namespace *user_ns = READ_ONCE(m->mnt.mnt_user_ns);
++				WRITE_ONCE(m->mnt.mnt_user_ns, get_user_ns(kattr->userns));
++				if (user_ns != &init_user_ns)
++					put_user_ns(user_ns);
++			}
++			smp_wmb();
++#endif
+ 			WRITE_ONCE(m->mnt.mnt_flags, new_flags);
+ 		}
+ 
+@@ -3893,12 +3985,20 @@ static int do_mount_setattr(struct path *path, struct mount_kattr *kattr)
+ 			cleanup_group_ids(mnt, NULL);
+ 	}
+ 
++#ifdef CONFIG_IDMAP_MOUNTS
++	if (kattr->attr_set & MNT_IDMAPPED) {
++		put_user_ns(kattr->userns);
++		kattr->userns = NULL;
++	}
++#endif
++
+ 	return err;
+ }
+ 
+ static int build_mount_kattr(const struct mount_attr *attr,
+ 			     struct mount_kattr *kattr, unsigned int flags)
+ {
++	int err = 0;
+ 	unsigned int lookup_flags = LOOKUP_AUTOMOUNT | LOOKUP_FOLLOW;
+ 
+ 	if (flags & AT_NO_AUTOMOUNT)
+@@ -3975,7 +4075,58 @@ static int build_mount_kattr(const struct mount_attr *attr,
+ 		}
+ 	}
+ 
+-	return 0;
++#ifndef CONFIG_IDMAP_MOUNTS
++	if ((attr->attr_set | attr->attr_clr) & MOUNT_ATTR_IDMAP)
++		return -EINVAL;
++#else
++	if ((attr->attr_set & MOUNT_ATTR_IDMAP) && (attr->userns > INT_MAX))
++		return -EINVAL;
++
++	/* TODO: Implement MNT_IDMAPPED clearing. */
++	if (attr->attr_clr & MNT_IDMAPPED)
++		return -EINVAL;
++
++	if (attr->attr_set & MOUNT_ATTR_IDMAP) {
++		struct ns_common *ns;
++		struct user_namespace *user_ns;
++		struct file *file;
++
++		file = fget(attr->userns);
++		if (!file)
++			return -EBADF;
++
++		if (!proc_ns_file(file)) {
++			err = -EINVAL;
++			goto out_fput;
++		}
++
++		ns = get_proc_ns(file_inode(file));
++		if (ns->ops->type != CLONE_NEWUSER) {
++			err = -EINVAL;
++			goto out_fput;
++		}
++		user_ns = container_of(ns, struct user_namespace, ns);
++
++		/*
++		 * The init_user_ns is used to indicate that a vfsmount is not
++		 * idmapped. This is simpler than just having to treat NULL as
++		 * unmapped. Users wanting to idmap a mount to init_user_ns can
++		 * just use a namespace with an identity mapping.
++		 */
++		if (user_ns == &init_user_ns) {
++			err = -EPERM;
++			goto out_fput;
++		}
++
++		kattr->userns = get_user_ns(user_ns);
++		err = 0;
++	out_fput:
++		fput(file);
++	}
++
++#endif /* CONFIG_IDMAP_MOUNTS */
++
++	return err;
+ }
+ 
+ SYSCALL_DEFINE5(mount_setattr, int, dfd, const char __user *, path, unsigned int, flags,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 0bd126418bb6..8314cd351673 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2217,6 +2217,7 @@ struct file_system_type {
+ #define FS_HAS_SUBTYPE		4
+ #define FS_USERNS_MOUNT		8	/* Can be mounted by userns root */
+ #define FS_DISALLOW_NOTIFY_PERM	16	/* Disable fanotify permission events */
++#define FS_ALLOW_IDMAP		32	/* FS has been updated to handle vfs idmappings. */
+ #define FS_THP_SUPPORT		8192	/* Remove once all fs converted */
+ #define FS_RENAME_DOES_D_MOVE	32768	/* FS will handle d_move() during rename() internally. */
+ 	int (*init_fs_context)(struct fs_context *);
+diff --git a/include/linux/mount.h b/include/linux/mount.h
+index aaf343b38671..d4ae170b2c03 100644
+--- a/include/linux/mount.h
++++ b/include/linux/mount.h
+@@ -31,6 +31,7 @@ struct fs_context;
+ #define MNT_RELATIME	0x20
+ #define MNT_READONLY	0x40	/* does the user want this to be r/o? */
+ #define MNT_NOSYMFOLLOW	0x80
++#define MNT_IDMAPPED	0x400
+ 
+ #define MNT_SHRINKABLE	0x100
+ #define MNT_WRITE_HOLD	0x200
+@@ -47,7 +48,7 @@ struct fs_context;
+ #define MNT_SHARED_MASK	(MNT_UNBINDABLE)
+ #define MNT_USER_SETTABLE_MASK  (MNT_NOSUID | MNT_NODEV | MNT_NOEXEC \
+ 				 | MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME \
+-				 | MNT_READONLY | MNT_NOSYMFOLLOW)
++				 | MNT_READONLY | MNT_NOSYMFOLLOW | MNT_IDMAPPED)
+ #define MNT_ATIME_MASK (MNT_NOATIME | MNT_NODIRATIME | MNT_RELATIME )
+ 
+ #define MNT_INTERNAL_FLAGS (MNT_SHARED | MNT_WRITE_HOLD | MNT_INTERNAL | \
+@@ -72,8 +73,25 @@ struct vfsmount {
+ 	struct dentry *mnt_root;	/* root of the mounted tree */
+ 	struct super_block *mnt_sb;	/* pointer to superblock */
+ 	int mnt_flags;
++#ifdef CONFIG_IDMAP_MOUNTS
++	struct user_namespace *mnt_user_ns;
++#endif
+ } __randomize_layout;
+ 
++static inline bool mnt_idmapped(const struct vfsmount *mnt)
++{
++	return READ_ONCE(mnt->mnt_flags) & MNT_IDMAPPED;
 +}
 +
- const char *xattr_full_name(const struct xattr_handler *, const char *);
++static inline struct user_namespace *mnt_user_ns(const struct vfsmount *mnt)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return READ_ONCE(mnt->mnt_user_ns);
++#else
++	return &init_user_ns;
++#endif
++}
++
+ struct file; /* forward dec */
+ struct path;
  
- struct xattr {
-@@ -55,18 +69,27 @@ struct xattr {
+diff --git a/include/uapi/linux/mount.h b/include/uapi/linux/mount.h
+index fb3ad26fdebf..672c58c619ed 100644
+--- a/include/uapi/linux/mount.h
++++ b/include/uapi/linux/mount.h
+@@ -117,6 +117,7 @@ enum fsconfig_command {
+ #define MOUNT_ATTR_NOATIME	0x00000010 /* - Do not update access times. */
+ #define MOUNT_ATTR_STRICTATIME	0x00000020 /* - Always perform atime updates */
+ #define MOUNT_ATTR_NODIRATIME	0x00000080 /* Do not update directory access times */
++#define MOUNT_ATTR_IDMAP	0x00100000 /* Idmap this mount to @userns in mount_attr. */
  
- ssize_t __vfs_getxattr(struct dentry *, struct inode *, const char *, void *, size_t);
- ssize_t vfs_getxattr(struct dentry *, const char *, void *, size_t);
-+ssize_t vfs_mapped_getxattr(struct user_namespace *user_ns, struct dentry *dentry,
-+			const char *name, void *value, size_t size);
- ssize_t vfs_listxattr(struct dentry *d, char *list, size_t size);
- int __vfs_setxattr(struct dentry *, struct inode *, const char *, const void *, size_t, int);
- int __vfs_setxattr_noperm(struct dentry *, const char *, const void *, size_t, int);
- int __vfs_setxattr_locked(struct dentry *, const char *, const void *, size_t, int, struct inode **);
-+int vfs_mapped_setxattr(struct user_namespace *, struct dentry *, const char *, const void *, size_t, int);
- int vfs_setxattr(struct dentry *, const char *, const void *, size_t, int);
- int __vfs_removexattr(struct dentry *, const char *);
-+int __vfs_mapped_removexattr(struct user_namespace *, struct dentry *, const char *);
- int __vfs_removexattr_locked(struct dentry *, const char *, struct inode **);
- int vfs_removexattr(struct dentry *, const char *);
-+int vfs_mapped_removexattr(struct user_namespace *user_ns, struct dentry *, const char *);
+ /*
+  * mount_setattr()
+@@ -125,6 +126,8 @@ struct mount_attr {
+ 	__u64 attr_set;
+ 	__u64 attr_clr;
+ 	__u64 propagation;
++	__u32 userns;
++	__u32 reserved[0];
+ };
  
- ssize_t generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size);
- ssize_t vfs_getxattr_alloc(struct dentry *dentry, const char *name,
- 			   char **xattr_value, size_t size, gfp_t flags);
-+ssize_t vfs_mapped_getxattr_alloc(struct user_namespace *user_ns,
-+			      struct dentry *dentry, const char *name,
-+			      char **xattr_value, size_t xattr_size,
-+			      gfp_t flags);
+ /* Change propagation through mount_setattr(). */
+@@ -138,6 +141,7 @@ enum propagation_type {
  
- int xattr_supported_namespace(struct inode *inode, const char *prefix);
+ /* List of all mount_attr versions. */
+ #define MOUNT_ATTR_SIZE_VER0	24 /* sizeof first published struct */
+-#define MOUNT_ATTR_SIZE_LATEST	MOUNT_ATTR_SIZE_VER0
++#define MOUNT_ATTR_SIZE_VER1	32 /* sizeof second published struct */
++#define MOUNT_ATTR_SIZE_LATEST	MOUNT_ATTR_SIZE_VER1
  
+ #endif /* _UAPI_LINUX_MOUNT_H */
 -- 
 2.29.0
 
