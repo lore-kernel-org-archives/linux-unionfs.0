@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0E5AC56202
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36BCCC55179
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA1B12080D
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:38:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D889F2076B
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388743AbgJ2Ahm (ORCPT
+        id S2387459AbgJ2Afr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:37:42 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:60953 "EHLO
+        Wed, 28 Oct 2020 20:35:47 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:60742 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387438AbgJ2Afv (ORCPT
+        with ESMTP id S1732201AbgJ2Afk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:35:51 -0400
+        Wed, 28 Oct 2020 20:35:40 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvup-0008Ep-Bf; Thu, 29 Oct 2020 00:35:43 +0000
+        id 1kXvug-0008Ep-5s; Thu, 29 Oct 2020 00:35:34 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -62,11 +62,11 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
         linux-ext4@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
-        selinux@vger.kernel.org,
+        selinux@vger.kernel.org, Tycho Andersen <tycho@tycho.pizza>,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 18/34] namei: prepare for idmapped mounts
-Date:   Thu, 29 Oct 2020 01:32:36 +0100
-Message-Id: <20201029003252.2128653-19-christian.brauner@ubuntu.com>
+Subject: [PATCH 13/34] selftests: add idmapped mounts xattr selftest
+Date:   Thu, 29 Oct 2020 01:32:31 +0100
+Message-Id: <20201029003252.2128653-14-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,616 +76,446 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The various vfs_*() helpers are called by filesystems or by the vfs itself to
-perform core operations create, link, mkdir, mknod, rename, rmdir, tmpfile and
-unlink. Add a set of helpers that handle idmapped mounts. If the inode is
-accessed through an idmapped mount it is mapped according to the mount's user
-namespace. Afterwards the checks and operations are identical to non-idmapped
-mounts. If the initial user namespace is passed all mapping operations are a
-nop so non-idmapped mounts will not see a change in behavior and will also not
-see any performance impact. It also means that the non-idmapped-mount aware
-helpers can be implemented on top of their idmapped-mount aware counterparts by
-passing the initial user namespace.
+From: Tycho Andersen <tycho@tycho.pizza>
 
+Add some tests for setting extended attributes on idmapped mounts.
+
+Signed-off-by: Tycho Andersen <tycho@tycho.pizza>
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/namei.c               | 229 +++++++++++++++++++++++++++------------
- fs/overlayfs/overlayfs.h |   2 +-
- include/linux/fs.h       |  32 +++++-
- 3 files changed, 192 insertions(+), 71 deletions(-)
+ .../testing/selftests/idmap_mounts/.gitignore |   1 +
+ tools/testing/selftests/idmap_mounts/Makefile |   8 +
+ tools/testing/selftests/idmap_mounts/config   |   1 +
+ tools/testing/selftests/idmap_mounts/xattr.c  | 389 ++++++++++++++++++
+ 4 files changed, 399 insertions(+)
+ create mode 100644 tools/testing/selftests/idmap_mounts/.gitignore
+ create mode 100644 tools/testing/selftests/idmap_mounts/Makefile
+ create mode 100644 tools/testing/selftests/idmap_mounts/config
+ create mode 100644 tools/testing/selftests/idmap_mounts/xattr.c
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 781f11795a22..a8a3de936cfc 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -2835,10 +2835,10 @@ void unlock_rename(struct dentry *p1, struct dentry *p2)
- }
- EXPORT_SYMBOL(unlock_rename);
- 
--int vfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
--		bool want_excl)
-+int vfs_mapped_create(struct user_namespace *user_ns, struct inode *dir,
-+		      struct dentry *dentry, umode_t mode, bool want_excl)
- {
--	int error = may_create(&init_user_ns, dir, dentry);
-+	int error = may_create(user_ns, dir, dentry);
- 	if (error)
- 		return error;
- 
-@@ -2854,6 +2854,13 @@ int vfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
- 		fsnotify_create(dir, dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_create);
+diff --git a/tools/testing/selftests/idmap_mounts/.gitignore b/tools/testing/selftests/idmap_mounts/.gitignore
+new file mode 100644
+index 000000000000..18c5e90522ad
+--- /dev/null
++++ b/tools/testing/selftests/idmap_mounts/.gitignore
+@@ -0,0 +1 @@
++xattr
+diff --git a/tools/testing/selftests/idmap_mounts/Makefile b/tools/testing/selftests/idmap_mounts/Makefile
+new file mode 100644
+index 000000000000..ce0549b09b2a
+--- /dev/null
++++ b/tools/testing/selftests/idmap_mounts/Makefile
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: GPL-2.0
++# Makefile for mount selftests.
++CFLAGS = -g -I../../../../usr/include/ -Wall -O2 -pthread
 +
-+int vfs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
-+		bool want_excl)
++TEST_GEN_FILES += xattr
++
++include ../lib.mk
++
+diff --git a/tools/testing/selftests/idmap_mounts/config b/tools/testing/selftests/idmap_mounts/config
+new file mode 100644
+index 000000000000..80730abc534b
+--- /dev/null
++++ b/tools/testing/selftests/idmap_mounts/config
+@@ -0,0 +1 @@
++CONFIG_IDMAP_MOUNTS=y
+diff --git a/tools/testing/selftests/idmap_mounts/xattr.c b/tools/testing/selftests/idmap_mounts/xattr.c
+new file mode 100644
+index 000000000000..a3d70294ce43
+--- /dev/null
++++ b/tools/testing/selftests/idmap_mounts/xattr.c
+@@ -0,0 +1,389 @@
++// SPDX-License-Identifier: GPL-2.0
++#define _GNU_SOURCE
++#include <fcntl.h>
++#include <sched.h>
++#include <sys/mount.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++#include <linux/limits.h>
++
++#include "../kselftest_harness.h"
++
++#ifndef __NR_mount_setattr
++	#if defined __alpha__
++		#define __NR_mount_setattr 551
++	#elif defined _MIPS_SIM
++		#if _MIPS_SIM == _MIPS_SIM_ABI32	/* o32 */
++			#define __NR_mount_setattr 4441
++		#endif
++		#if _MIPS_SIM == _MIPS_SIM_NABI32	/* n32 */
++			#define __NR_mount_setattr 6441
++		#endif
++		#if _MIPS_SIM == _MIPS_SIM_ABI64	/* n64 */
++			#define __NR_mount_setattr 5441
++		#endif
++	#elif defined __ia64__
++		#define __NR_mount_setattr (441 + 1024)
++	#else
++		#define __NR_mount_setattr 441
++	#endif
++
++#ifndef __NR_open_tree
++	#if defined __alpha__
++		#define __NR_open_tree 538
++	#elif defined _MIPS_SIM
++		#if _MIPS_SIM == _MIPS_SIM_ABI32	/* o32 */
++			#define __NR_open_tree 4428
++		#endif
++		#if _MIPS_SIM == _MIPS_SIM_NABI32	/* n32 */
++			#define __NR_open_tree 6428
++		#endif
++		#if _MIPS_SIM == _MIPS_SIM_ABI64	/* n64 */
++			#define __NR_open_tree 5428
++		#endif
++	#elif defined __ia64__
++		#define __NR_open_tree (428 + 1024)
++	#else
++		#define __NR_open_tree 428
++	#endif
++#endif
++
++#ifndef __NR_move_mount
++	#if defined __alpha__
++		#define __NR_move_mount 539
++	#elif defined _MIPS_SIM
++		#if _MIPS_SIM == _MIPS_SIM_ABI32	/* o32 */
++			#define __NR_move_mount 4429
++		#endif
++		#if _MIPS_SIM == _MIPS_SIM_NABI32	/* n32 */
++			#define __NR_move_mount 6429
++		#endif
++		#if _MIPS_SIM == _MIPS_SIM_ABI64	/* n64 */
++			#define __NR_move_mount 5429
++		#endif
++	#elif defined __ia64__
++		#define __NR_move_mount (428 + 1024)
++	#else
++		#define __NR_move_mount 429
++	#endif
++#endif
++
++
++struct mount_attr {
++	__u64 attr_set;
++	__u64 attr_clr;
++	__u64 propagation;
++	__u32 userns;
++};
++#endif
++
++#ifndef MOVE_MOUNT_F_EMPTY_PATH
++#define MOVE_MOUNT_F_EMPTY_PATH 0x00000004 /* Empty from path permitted */
++#endif
++
++#ifndef MOUNT_ATTR_SHIFT
++#define MOUNT_ATTR_SHIFT 0x00100000
++#endif
++
++#ifndef OPEN_TREE_CLONE
++#define OPEN_TREE_CLONE 1
++#endif
++
++#ifndef OPEN_TREE_CLOEXEC
++#define OPEN_TREE_CLOEXEC O_CLOEXEC
++#endif
++
++#ifndef AT_RECURSIVE
++#define AT_RECURSIVE 0x8000 /* Apply to the entire subtree */
++#endif
++
++static inline int sys_mount_setattr(int dfd, const char *path, unsigned int flags,
++				    struct mount_attr *attr, size_t size)
 +{
-+	return vfs_mapped_create(&init_user_ns, dir, dentry, mode, want_excl);
++	return syscall(__NR_mount_setattr, dfd, path, flags, attr, size);
 +}
- EXPORT_SYMBOL(vfs_create);
- 
- int vfs_mkobj(struct dentry *dentry, umode_t mode,
-@@ -3313,7 +3320,9 @@ static int do_open(struct nameidata *nd,
- 	return error;
- }
- 
--struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
-+struct dentry *vfs_mapped_tmpfile(struct user_namespace *user_ns,
-+				  struct dentry *dentry, umode_t mode,
-+				  int open_flag)
- {
- 	struct dentry *child = NULL;
- 	struct inode *dir = dentry->d_inode;
-@@ -3321,7 +3330,7 @@ struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
- 	int error;
- 
- 	/* we want directory to be writable */
--	error = inode_permission(dir, MAY_WRITE | MAY_EXEC);
-+	error = mapped_inode_permission(user_ns, dir, MAY_WRITE | MAY_EXEC);
- 	if (error)
- 		goto out_err;
- 	error = -EOPNOTSUPP;
-@@ -3350,12 +3359,19 @@ struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
- 	dput(child);
- 	return ERR_PTR(error);
- }
-+EXPORT_SYMBOL(vfs_mapped_tmpfile);
 +
-+struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode, int open_flag)
++static inline int sys_open_tree(int dfd, const char *filename, unsigned int flags)
 +{
-+	return vfs_mapped_tmpfile(&init_user_ns, dentry, mode, open_flag);
++	return syscall(__NR_open_tree, dfd, filename, flags);
 +}
- EXPORT_SYMBOL(vfs_tmpfile);
- 
- static int do_tmpfile(struct nameidata *nd, unsigned flags,
- 		const struct open_flags *op,
- 		struct file *file)
- {
-+	struct user_namespace *user_ns;
- 	struct dentry *child;
- 	struct path path;
- 	int error = path_lookupat(nd, flags | LOOKUP_DIRECTORY, &path);
-@@ -3364,7 +3380,8 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
- 	error = mnt_want_write(path.mnt);
- 	if (unlikely(error))
- 		goto out;
--	child = vfs_tmpfile(path.dentry, op->mode, op->open_flag);
-+	user_ns = mnt_user_ns(path.mnt);
-+	child = vfs_mapped_tmpfile(user_ns, path.dentry, op->mode, op->open_flag);
- 	error = PTR_ERR(child);
- 	if (IS_ERR(child))
- 		goto out2;
-@@ -3576,10 +3593,11 @@ inline struct dentry *user_path_create(int dfd, const char __user *pathname,
- }
- EXPORT_SYMBOL(user_path_create);
- 
--int vfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev)
-+int vfs_mapped_mknod(struct user_namespace *user_ns, struct inode *dir,
-+		     struct dentry *dentry, umode_t mode, dev_t dev)
- {
- 	bool is_whiteout = S_ISCHR(mode) && dev == WHITEOUT_DEV;
--	int error = may_create(&init_user_ns, dir, dentry);
-+	int error = may_create(user_ns, dir, dentry);
- 
- 	if (error)
- 		return error;
-@@ -3604,6 +3622,12 @@ int vfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev)
- 		fsnotify_create(dir, dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_mknod);
 +
-+int vfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode, dev_t dev)
++static inline int sys_move_mount(int from_dfd, const char *from_pathname, int to_dfd,
++				 const char *to_pathname, unsigned int flags)
 +{
-+	return vfs_mapped_mknod(&init_user_ns, dir, dentry, mode, dev);
++	return syscall(__NR_move_mount, from_dfd, from_pathname, to_dfd, to_pathname, flags);
 +}
- EXPORT_SYMBOL(vfs_mknod);
- 
- static int may_mknod(umode_t mode)
-@@ -3626,6 +3650,7 @@ static int may_mknod(umode_t mode)
- static long do_mknodat(int dfd, const char __user *filename, umode_t mode,
- 		unsigned int dev)
- {
-+	struct user_namespace *user_ns;
- 	struct dentry *dentry;
- 	struct path path;
- 	int error;
-@@ -3644,18 +3669,22 @@ static long do_mknodat(int dfd, const char __user *filename, umode_t mode,
- 	error = security_path_mknod(&path, dentry, mode, dev);
- 	if (error)
- 		goto out;
 +
-+	user_ns = mnt_user_ns(path.mnt);
- 	switch (mode & S_IFMT) {
- 		case 0: case S_IFREG:
--			error = vfs_create(path.dentry->d_inode,dentry,mode,true);
-+			error = vfs_mapped_create(user_ns, path.dentry->d_inode,
-+						  dentry, mode, true);
- 			if (!error)
- 				ima_post_path_mknod(dentry);
- 			break;
- 		case S_IFCHR: case S_IFBLK:
--			error = vfs_mknod(path.dentry->d_inode,dentry,mode,
--					new_decode_dev(dev));
-+			error = vfs_mapped_mknod(user_ns, path.dentry->d_inode,
-+						 dentry, mode, new_decode_dev(dev));
- 			break;
- 		case S_IFIFO: case S_IFSOCK:
--			error = vfs_mknod(path.dentry->d_inode,dentry,mode,0);
-+			error = vfs_mapped_mknod(user_ns, path.dentry->d_inode,
-+						 dentry, mode, 0);
- 			break;
- 	}
- out:
-@@ -3678,9 +3707,10 @@ SYSCALL_DEFINE3(mknod, const char __user *, filename, umode_t, mode, unsigned, d
- 	return do_mknodat(AT_FDCWD, filename, mode, dev);
- }
- 
--int vfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
-+int vfs_mapped_mkdir(struct user_namespace *user_ns, struct inode *dir,
-+		     struct dentry *dentry, umode_t mode)
- {
--	int error = may_create(&init_user_ns, dir, dentry);
-+	int error = may_create(user_ns, dir, dentry);
- 	unsigned max_links = dir->i_sb->s_max_links;
- 
- 	if (error)
-@@ -3702,6 +3732,12 @@ int vfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
- 		fsnotify_mkdir(dir, dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_mkdir);
 +
-+int vfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
++static ssize_t write_nointr(int fd, const void *buf, size_t count)
 +{
-+	return vfs_mapped_mkdir(&init_user_ns, dir, dentry, mode);
++	ssize_t ret;
++
++	do {
++		ret = write(fd, buf, count);
++	} while (ret < 0 && errno == EINTR);
++
++	return ret;
 +}
- EXPORT_SYMBOL(vfs_mkdir);
- 
- static long do_mkdirat(int dfd, const char __user *pathname, umode_t mode)
-@@ -3719,8 +3755,11 @@ static long do_mkdirat(int dfd, const char __user *pathname, umode_t mode)
- 	if (!IS_POSIXACL(path.dentry->d_inode))
- 		mode &= ~current_umask();
- 	error = security_path_mkdir(&path, dentry, mode);
--	if (!error)
--		error = vfs_mkdir(path.dentry->d_inode, dentry, mode);
-+	if (!error) {
-+		struct user_namespace *user_ns;
-+		user_ns = mnt_user_ns(path.mnt);
-+		error = vfs_mapped_mkdir(user_ns, path.dentry->d_inode, dentry, mode);
++
++static int write_file(const char *path, const void *buf, size_t count)
++{
++	int fd;
++	ssize_t ret;
++
++	fd = open(path, O_WRONLY | O_CLOEXEC | O_NOCTTY | O_NOFOLLOW);
++	if (fd < 0)
++		return -1;
++
++	ret = write_nointr(fd, buf, count);
++	close(fd);
++	if (ret < 0 || (size_t)ret != count)
++		return -1;
++
++	return 0;
++}
++
++static int map_ids(pid_t pid, unsigned long nsid, unsigned long hostid,
++		   unsigned long range)
++{
++	char map[100], procfile[256];
++
++	snprintf(procfile, sizeof(procfile), "/proc/%d/setgroups", pid);
++	if (write_file(procfile, "deny", sizeof("deny") - 1) &&
++	    errno != ENOENT)
++		return -1;
++
++	snprintf(procfile, sizeof(procfile), "/proc/%d/uid_map", pid);
++	snprintf(map, sizeof(map), "%lu %lu %lu", nsid, hostid, range);
++	if (write_file(procfile, map, strlen(map)))
++		return -1;
++
++
++	snprintf(procfile, sizeof(procfile), "/proc/%d/gid_map", pid);
++	snprintf(map, sizeof(map), "%lu %lu %lu", nsid, hostid, range);
++	if (write_file(procfile, map, strlen(map)))
++		return -1;
++
++	return 0;
++}
++
++#define __STACK_SIZE (8 * 1024 * 1024)
++static pid_t do_clone(int (*fn)(void *), void *arg, int flags)
++{
++	void *stack;
++
++	stack = malloc(__STACK_SIZE);
++	if (!stack)
++		return -ENOMEM;
++
++#ifdef __ia64__
++	return __clone2(fn, stack, __STACK_SIZE, flags | SIGCHLD, arg, NULL);
++#else
++	return clone(fn, stack + __STACK_SIZE, flags | SIGCHLD, arg, NULL);
++#endif
++}
++
++static int get_userns_fd_cb(void *data)
++{
++	return kill(getpid(), SIGSTOP);
++}
++
++static int get_userns_fd(unsigned long nsid, unsigned long hostid,
++			 unsigned long range)
++{
++	int ret;
++	pid_t pid;
++	char path[256];
++
++	pid = do_clone(get_userns_fd_cb, NULL, CLONE_NEWUSER | CLONE_NEWNS);
++	if (pid < 0)
++		return -errno;
++
++	ret = map_ids(pid, nsid, hostid, range);
++	if (ret < 0)
++		return ret;
++
++	snprintf(path, sizeof(path), "/proc/%d/ns/user", pid);
++	ret = open(path, O_RDONLY | O_CLOEXEC);
++	kill(pid, SIGKILL);
++	return ret;
++}
++
++struct run_as_data {
++	int userns;
++	int (*f)(void *data);
++	void *data;
++};
++
++static int run_in_cb(void *data)
++{
++	struct run_as_data *rad = data;
++
++	if (setns(rad->userns, CLONE_NEWUSER) < 0) {
++		perror("setns");
++		return 1;
 +	}
- 	done_path_create(&path, dentry);
- 	if (retry_estale(error, lookup_flags)) {
- 		lookup_flags |= LOOKUP_REVAL;
-@@ -3739,9 +3778,10 @@ SYSCALL_DEFINE2(mkdir, const char __user *, pathname, umode_t, mode)
- 	return do_mkdirat(AT_FDCWD, pathname, mode);
- }
- 
--int vfs_rmdir(struct inode *dir, struct dentry *dentry)
-+int vfs_mapped_rmdir(struct user_namespace *user_ns, struct inode *dir,
-+		     struct dentry *dentry)
- {
--	int error = may_delete(&init_user_ns, dir, dentry, 1);
-+	int error = may_delete(user_ns, dir, dentry, 1);
- 
- 	if (error)
- 		return error;
-@@ -3777,10 +3817,17 @@ int vfs_rmdir(struct inode *dir, struct dentry *dentry)
- 		d_delete(dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_rmdir);
 +
-+int vfs_rmdir(struct inode *dir, struct dentry *dentry)
-+{
-+	return vfs_mapped_rmdir(&init_user_ns, dir, dentry);
-+}
- EXPORT_SYMBOL(vfs_rmdir);
- 
- long do_rmdir(int dfd, struct filename *name)
- {
-+	struct user_namespace *user_ns;
- 	int error = 0;
- 	struct dentry *dentry;
- 	struct path path;
-@@ -3821,7 +3868,8 @@ long do_rmdir(int dfd, struct filename *name)
- 	error = security_path_rmdir(&path, dentry);
- 	if (error)
- 		goto exit3;
--	error = vfs_rmdir(path.dentry->d_inode, dentry);
-+	user_ns = mnt_user_ns(path.mnt);
-+	error = vfs_mapped_rmdir(user_ns, path.dentry->d_inode, dentry);
- exit3:
- 	dput(dentry);
- exit2:
-@@ -3842,28 +3890,11 @@ SYSCALL_DEFINE1(rmdir, const char __user *, pathname)
- 	return do_rmdir(AT_FDCWD, getname(pathname));
- }
- 
--/**
-- * vfs_unlink - unlink a filesystem object
-- * @dir:	parent directory
-- * @dentry:	victim
-- * @delegated_inode: returns victim inode, if the inode is delegated.
-- *
-- * The caller must hold dir->i_mutex.
-- *
-- * If vfs_unlink discovers a delegation, it will return -EWOULDBLOCK and
-- * return a reference to the inode in delegated_inode.  The caller
-- * should then break the delegation on that inode and retry.  Because
-- * breaking a delegation may take a long time, the caller should drop
-- * dir->i_mutex before doing so.
-- *
-- * Alternatively, a caller may pass NULL for delegated_inode.  This may
-- * be appropriate for callers that expect the underlying filesystem not
-- * to be NFS exported.
-- */
--int vfs_unlink(struct inode *dir, struct dentry *dentry, struct inode **delegated_inode)
-+int vfs_mapped_unlink(struct user_namespace *user_ns, struct inode *dir,
-+		      struct dentry *dentry, struct inode **delegated_inode)
- {
- 	struct inode *target = dentry->d_inode;
--	int error = may_delete(&init_user_ns, dir, dentry, 0);
-+	int error = may_delete(user_ns, dir, dentry, 0);
- 
- 	if (error)
- 		return error;
-@@ -3899,6 +3930,30 @@ int vfs_unlink(struct inode *dir, struct dentry *dentry, struct inode **delegate
- 
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_unlink);
-+
-+/**
-+ * vfs_unlink - unlink a filesystem object
-+ * @dir:	parent directory
-+ * @dentry:	victim
-+ * @delegated_inode: returns victim inode, if the inode is delegated.
-+ *
-+ * The caller must hold dir->i_mutex.
-+ *
-+ * If vfs_unlink discovers a delegation, it will return -EWOULDBLOCK and
-+ * return a reference to the inode in delegated_inode.  The caller
-+ * should then break the delegation on that inode and retry.  Because
-+ * breaking a delegation may take a long time, the caller should drop
-+ * dir->i_mutex before doing so.
-+ *
-+ * Alternatively, a caller may pass NULL for delegated_inode.  This may
-+ * be appropriate for callers that expect the underlying filesystem not
-+ * to be NFS exported.
-+ */
-+int vfs_unlink(struct inode *dir, struct dentry *dentry, struct inode **delegated_inode)
-+{
-+	return vfs_mapped_unlink(&init_user_ns, dir, dentry, delegated_inode);
-+}
- EXPORT_SYMBOL(vfs_unlink);
- 
- /*
-@@ -3934,6 +3989,8 @@ long do_unlinkat(int dfd, struct filename *name)
- 	dentry = __lookup_hash(&last, path.dentry, lookup_flags);
- 	error = PTR_ERR(dentry);
- 	if (!IS_ERR(dentry)) {
-+		struct user_namespace *user_ns;
-+
- 		/* Why not before? Because we want correct error value */
- 		if (last.name[last.len])
- 			goto slashes;
-@@ -3944,7 +4001,8 @@ long do_unlinkat(int dfd, struct filename *name)
- 		error = security_path_unlink(&path, dentry);
- 		if (error)
- 			goto exit2;
--		error = vfs_unlink(path.dentry->d_inode, dentry, &delegated_inode);
-+		user_ns = mnt_user_ns(path.mnt);
-+		error = vfs_mapped_unlink(user_ns, path.dentry->d_inode, dentry, &delegated_inode);
- exit2:
- 		dput(dentry);
- 	}
-@@ -3993,9 +4051,10 @@ SYSCALL_DEFINE1(unlink, const char __user *, pathname)
- 	return do_unlinkat(AT_FDCWD, getname(pathname));
- }
- 
--int vfs_symlink(struct inode *dir, struct dentry *dentry, const char *oldname)
-+int vfs_mapped_symlink(struct user_namespace *user_ns, struct inode *dir,
-+		       struct dentry *dentry, const char *oldname)
- {
--	int error = may_create(&init_user_ns, dir, dentry);
-+	int error = may_create(user_ns, dir, dentry);
- 
- 	if (error)
- 		return error;
-@@ -4012,6 +4071,12 @@ int vfs_symlink(struct inode *dir, struct dentry *dentry, const char *oldname)
- 		fsnotify_create(dir, dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_symlink);
-+
-+int vfs_symlink(struct inode *dir, struct dentry *dentry, const char *oldname)
-+{
-+	return vfs_mapped_symlink(&init_user_ns, dir, dentry, oldname);
-+}
- EXPORT_SYMBOL(vfs_symlink);
- 
- static long do_symlinkat(const char __user *oldname, int newdfd,
-@@ -4033,8 +4098,12 @@ static long do_symlinkat(const char __user *oldname, int newdfd,
- 		goto out_putname;
- 
- 	error = security_path_symlink(&path, dentry, from->name);
--	if (!error)
--		error = vfs_symlink(path.dentry->d_inode, dentry, from->name);
-+	if (!error) {
-+		struct user_namespace *user_ns;
-+		user_ns = mnt_user_ns(path.mnt);
-+		error = vfs_mapped_symlink(user_ns, path.dentry->d_inode,
-+					   dentry, from->name);
++	if (setuid(100010)) {
++		perror("setuid");
++		return 1;
 +	}
- 	done_path_create(&path, dentry);
- 	if (retry_estale(error, lookup_flags)) {
- 		lookup_flags |= LOOKUP_REVAL;
-@@ -4057,8 +4126,9 @@ SYSCALL_DEFINE2(symlink, const char __user *, oldname, const char __user *, newn
- }
- 
- /**
-- * vfs_link - create a new link
-+ * vfs_mapped_link - create a new link on an idmapped mount
-  * @old_dentry:	object to be linked
-+ * @user_ns:	the user namespace of the mount
-  * @dir:	new parent
-  * @new_dentry:	where to create the new link
-  * @delegated_inode: returns inode needing a delegation break
-@@ -4075,7 +4145,9 @@ SYSCALL_DEFINE2(symlink, const char __user *, oldname, const char __user *, newn
-  * be appropriate for callers that expect the underlying filesystem not
-  * to be NFS exported.
-  */
--int vfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *new_dentry, struct inode **delegated_inode)
-+int vfs_mapped_link(struct dentry *old_dentry, struct user_namespace *user_ns,
-+		    struct inode *dir, struct dentry *new_dentry,
-+		    struct inode **delegated_inode)
- {
- 	struct inode *inode = old_dentry->d_inode;
- 	unsigned max_links = dir->i_sb->s_max_links;
-@@ -4084,7 +4156,7 @@ int vfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *new_de
- 	if (!inode)
- 		return -ENOENT;
- 
--	error = may_create(&init_user_ns, dir, new_dentry);
-+	error = may_create(user_ns, dir, new_dentry);
- 	if (error)
- 		return error;
- 
-@@ -4134,6 +4206,33 @@ int vfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *new_de
- 		fsnotify_link(dir, inode, new_dentry);
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_link);
 +
-+/**
-+ * vfs_link - create a new link
-+ * @old_dentry:	object to be linked
-+ * @dir:	new parent
-+ * @new_dentry:	where to create the new link
-+ * @delegated_inode: returns inode needing a delegation break
-+ *
-+ * The caller must hold dir->i_mutex
-+ *
-+ * If vfs_link discovers a delegation on the to-be-linked file in need
-+ * of breaking, it will return -EWOULDBLOCK and return a reference to the
-+ * inode in delegated_inode.  The caller should then break the delegation
-+ * and retry.  Because breaking a delegation may take a long time, the
-+ * caller should drop the i_mutex before doing so.
-+ *
-+ * Alternatively, a caller may pass NULL for delegated_inode.  This may
-+ * be appropriate for callers that expect the underlying filesystem not
-+ * to be NFS exported.
-+ */
-+int vfs_link(struct dentry *old_dentry, struct inode *dir,
-+	     struct dentry *new_dentry, struct inode **delegated_inode)
-+{
-+	return vfs_mapped_link(old_dentry, &init_user_ns, dir, new_dentry,
-+			       delegated_inode);
++	if (setgid(100010)) {
++		perror("setgid");
++		return 1;
++	}
++
++	return rad->f(rad->data);
 +}
- EXPORT_SYMBOL(vfs_link);
- 
- /*
-@@ -4148,6 +4247,7 @@ EXPORT_SYMBOL(vfs_link);
- static int do_linkat(int olddfd, const char __user *oldname, int newdfd,
- 	      const char __user *newname, int flags)
- {
-+	struct user_namespace *user_ns;
- 	struct dentry *new_dentry;
- 	struct path old_path, new_path;
- 	struct inode *delegated_inode = NULL;
-@@ -4189,7 +4289,9 @@ static int do_linkat(int olddfd, const char __user *oldname, int newdfd,
- 	error = security_path_link(old_path.dentry, &new_path, new_dentry);
- 	if (error)
- 		goto out_dput;
--	error = vfs_link(old_path.dentry, new_path.dentry->d_inode, new_dentry, &delegated_inode);
-+	user_ns = mnt_user_ns(new_path.mnt);
-+	error = vfs_mapped_link(old_path.dentry, user_ns,
-+				new_path.dentry->d_inode, new_dentry, &delegated_inode);
- out_dput:
- 	done_path_create(&new_path, new_dentry);
- 	if (delegated_inode) {
-@@ -4221,19 +4323,9 @@ SYSCALL_DEFINE2(link, const char __user *, oldname, const char __user *, newname
- 	return do_linkat(AT_FDCWD, oldname, AT_FDCWD, newname, 0);
- }
- 
--struct renamedata {
--	struct inode *old_dir;
--	struct dentry *old_dentry;
--	struct inode *new_dir;
--	struct dentry *new_dentry;
--	struct inode **delegated_inode;
--	unsigned int flags;
--} __randomize_layout;
--
--static int __vfs_rename(struct renamedata *rd)
-+int vfs_mapped_rename(struct renamedata *rd)
- {
- 	int error;
--	struct user_namespace *user_ns = &init_user_ns;
- 	struct inode *old_dir = rd->old_dir, *new_dir = rd->new_dir;
- 	struct dentry *old_dentry = rd->old_dentry,
- 		      *new_dentry = rd->new_dentry;
-@@ -4249,19 +4341,19 @@ static int __vfs_rename(struct renamedata *rd)
- 	if (source == target)
- 		return 0;
- 
--	error = may_delete(user_ns, old_dir, old_dentry, is_dir);
-+	error = may_delete(rd->old_user_ns, old_dir, old_dentry, is_dir);
- 	if (error)
- 		return error;
- 
- 	if (!target) {
--		error = may_create(user_ns, new_dir, new_dentry);
-+		error = may_create(rd->new_user_ns, new_dir, new_dentry);
- 	} else {
- 		new_is_dir = d_is_dir(new_dentry);
- 
- 		if (!(flags & RENAME_EXCHANGE))
--			error = may_delete(user_ns, new_dir, new_dentry, is_dir);
-+			error = may_delete(rd->new_user_ns, new_dir, new_dentry, is_dir);
- 		else
--			error = may_delete(user_ns, new_dir, new_dentry, new_is_dir);
-+			error = may_delete(rd->new_user_ns, new_dir, new_dentry, new_is_dir);
- 	}
- 	if (error)
- 		return error;
-@@ -4275,12 +4367,12 @@ static int __vfs_rename(struct renamedata *rd)
- 	 */
- 	if (new_dir != old_dir) {
- 		if (is_dir) {
--			error = inode_permission(source, MAY_WRITE);
-+			error = mapped_inode_permission(rd->old_user_ns, source, MAY_WRITE);
- 			if (error)
- 				return error;
- 		}
- 		if ((flags & RENAME_EXCHANGE) && new_is_dir) {
--			error = inode_permission(target, MAY_WRITE);
-+			error = mapped_inode_permission(rd->new_user_ns, target, MAY_WRITE);
- 			if (error)
- 				return error;
- 		}
-@@ -4357,6 +4449,7 @@ static int __vfs_rename(struct renamedata *rd)
- 
- 	return error;
- }
-+EXPORT_SYMBOL(vfs_mapped_rename);
- 
- /**
-  * vfs_rename - rename a filesystem object
-@@ -4419,7 +4512,7 @@ int vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
- 		.delegated_inode = delegated_inode,
- 		.flags		 = flags,
- 	};
--	return __vfs_rename(&rd);
-+	return vfs_mapped_rename(&rd);
- }
- EXPORT_SYMBOL(vfs_rename);
- 
-@@ -4535,11 +4628,13 @@ static int do_renameat2(int olddfd, const char __user *oldname, int newdfd,
- 
- 	rd.old_dir	   = old_path.dentry->d_inode;
- 	rd.old_dentry	   = old_dentry;
-+	rd.old_user_ns	   = mnt_user_ns(old_path.mnt);
- 	rd.new_dir	   = new_path.dentry->d_inode;
- 	rd.new_dentry	   = new_dentry;
-+	rd.new_user_ns	   = mnt_user_ns(new_path.mnt);
- 	rd.delegated_inode = &delegated_inode;
- 	rd.flags	   = flags;
--	error = __vfs_rename(&rd);
-+	error = vfs_mapped_rename(&rd);
- exit5:
- 	dput(new_dentry);
- exit4:
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index f8880aa2ba0e..30ee48ddfaa2 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -224,7 +224,7 @@ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
- 
- static inline int ovl_do_whiteout(struct inode *dir, struct dentry *dentry)
- {
--	int err = vfs_whiteout(dir, dentry);
-+	int err = vfs_whiteout(&init_user_ns, dir, dentry);
- 	pr_debug("whiteout(%pd2) = %i\n", dentry, err);
- 	return err;
- }
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index e66852dee65d..f523b1db48c4 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1784,21 +1784,47 @@ extern bool mapped_inode_owner_or_capable(struct user_namespace *ns,
-  * VFS helper functions..
-  */
- extern int vfs_create(struct inode *, struct dentry *, umode_t, bool);
-+extern int vfs_mapped_create(struct user_namespace *, struct inode *, struct dentry *, umode_t, bool);
- extern int vfs_mkdir(struct inode *, struct dentry *, umode_t);
-+extern int vfs_mapped_mkdir(struct user_namespace *, struct inode *, struct dentry *, umode_t);
- extern int vfs_mknod(struct inode *, struct dentry *, umode_t, dev_t);
-+extern int vfs_mapped_mknod(struct user_namespace *, struct inode *, struct dentry *, umode_t, dev_t);
- extern int vfs_symlink(struct inode *, struct dentry *, const char *);
-+extern int vfs_mapped_symlink(struct user_namespace *, struct inode *, struct dentry *, const char *);
- extern int vfs_link(struct dentry *, struct inode *, struct dentry *, struct inode **);
-+extern int vfs_mapped_link(struct dentry *, struct user_namespace *, struct inode *,
-+		       struct dentry *, struct inode **);
- extern int vfs_rmdir(struct inode *, struct dentry *);
-+extern int vfs_mapped_rmdir(struct user_namespace *, struct inode *, struct dentry *);
- extern int vfs_unlink(struct inode *, struct dentry *, struct inode **);
--extern int vfs_rename(struct inode *, struct dentry *, struct inode *, struct dentry *, struct inode **, unsigned int);
-+extern int vfs_mapped_unlink(struct user_namespace *, struct inode *, struct dentry *, struct inode **);
 +
-+struct renamedata {
-+	struct user_namespace *old_user_ns;
-+	struct inode *old_dir;
-+	struct dentry *old_dentry;
-+	struct user_namespace *new_user_ns;
-+	struct inode *new_dir;
-+	struct dentry *new_dentry;
-+	struct inode **delegated_inode;
-+	unsigned int flags;
-+} __randomize_layout;
++static int wait_for_pid(pid_t pid)
++{
++	int status, ret;
 +
-+extern int vfs_rename(struct inode *, struct dentry *, struct inode *,
-+		      struct dentry *, struct inode **, unsigned int);
-+extern int vfs_mapped_rename(struct renamedata *);
- 
--static inline int vfs_whiteout(struct inode *dir, struct dentry *dentry)
-+static inline int vfs_whiteout(struct user_namespace *user_ns,
-+			       struct inode *dir, struct dentry *dentry)
- {
--	return vfs_mknod(dir, dentry, S_IFCHR | WHITEOUT_MODE, WHITEOUT_DEV);
-+	return vfs_mapped_mknod(user_ns, dir, dentry, S_IFCHR | WHITEOUT_MODE, WHITEOUT_DEV);
- }
- 
- extern struct dentry *vfs_tmpfile(struct dentry *dentry, umode_t mode,
- 				  int open_flag);
-+extern struct dentry *vfs_mapped_tmpfile(struct user_namespace *user_ns,
-+				     struct dentry *dentry, umode_t mode,
-+				     int open_flag);
- 
- int vfs_mkobj(struct dentry *, umode_t,
- 		int (*f)(struct dentry *, umode_t, void *),
++again:
++	ret = waitpid(pid, &status, 0);
++	if (ret == -1) {
++		if (errno == EINTR)
++			goto again;
++
++		return -1;
++	}
++
++	if (!WIFEXITED(status))
++		return -1;
++
++	return WEXITSTATUS(status);
++}
++
++static int run_in(int userns, int (*f)(void *), void *f_data)
++{
++	pid_t pid;
++	struct run_as_data data;
++
++	data.userns = userns;
++	data.f = f;
++	data.data = f_data;
++	pid = do_clone(run_in_cb, &data, 0);
++	if (pid < 0)
++		return -errno;
++
++	return wait_for_pid(pid);
++}
++
++FIXTURE(ext4_xattr) {};
++
++FIXTURE_SETUP(ext4_xattr)
++{
++	int fd;
++
++	fd = open("/tmp/idmap_mounts.ext4", O_CREAT | O_WRONLY, 0600);
++	ASSERT_GE(fd, 0);
++	ASSERT_EQ(ftruncate(fd, 640 * 1024), 0);
++	ASSERT_EQ(close(fd), 0);
++	ASSERT_EQ(system("mkfs.ext4 /tmp/idmap_mounts.ext4"), 0);
++	ASSERT_EQ(mkdir("/tmp/ext4", 0777), 0);
++	ASSERT_EQ(system("mount -o loop -t ext4 /tmp/idmap_mounts.ext4 /tmp/ext4"), 0);
++}
++
++FIXTURE_TEARDOWN(ext4_xattr)
++{
++	umount("/tmp/ext4/dest");
++	umount("/tmp/ext4");
++	rmdir("/tmp/ext4");
++	unlink("/tmp/idmap_mounts.ext4");
++}
++
++struct getacl_should_be_data {
++	char path[256];
++	uid_t uid;
++};
++
++static int getacl_should_be_uid(void *data)
++{
++	struct getacl_should_be_data *ssb = data;
++	char cmd[512];
++	int ret;
++
++	snprintf(cmd, sizeof(cmd), "getfacl %s | grep user:%u:rwx", ssb->path, ssb->uid);
++	ret = system(cmd);
++	if (ret < 0) {
++		perror("system");
++		return -1;
++	}
++	if (!WIFEXITED(ret))
++		return -1;
++	return WEXITSTATUS(ret);
++}
++
++static int ls_path(void *data)
++{
++	char cmd[PATH_MAX];
++	char *path = data;
++	int ret;
++
++	snprintf(cmd, sizeof(cmd), "ls %s", path);
++	ret = system(cmd);
++	if (ret < 0) {
++		perror("system");
++		return -1;
++	}
++	if (!WIFEXITED(ret))
++		return -1;
++	return WEXITSTATUS(ret);
++}
++
++TEST_F(ext4_xattr, setattr_didnt_work)
++{
++	int mount_fd, ret;
++	struct mount_attr attr = {};
++	struct getacl_should_be_data ssb;
++
++	ASSERT_EQ(mkdir("/tmp/ext4/source", 0777), 0);
++	ASSERT_EQ(mkdir("/tmp/ext4/dest", 0777), 0);
++
++	mount_fd = sys_open_tree(-EBADF, "/tmp/ext4/source",
++				 OPEN_TREE_CLONE | OPEN_TREE_CLOEXEC | AT_EMPTY_PATH);
++	ASSERT_GE(mount_fd, 0);
++
++	ASSERT_EQ(sys_move_mount(mount_fd, "", -EBADF, "/tmp/ext4/dest",
++				 MOVE_MOUNT_F_EMPTY_PATH), 0);
++
++	attr.attr_set = MOUNT_ATTR_SHIFT;
++	attr.userns = get_userns_fd(100010, 100020, 5);
++	ASSERT_GE(attr.userns, 0);
++	ret = sys_mount_setattr(mount_fd, "", AT_EMPTY_PATH | AT_RECURSIVE,
++				    &attr, sizeof(attr));
++	ASSERT_EQ(close(mount_fd), 0);
++	ASSERT_EQ(ret, 0);
++
++	ASSERT_EQ(mkdir("/tmp/ext4/source/foo", 0700), 0);
++	ASSERT_EQ(chown("/tmp/ext4/source/foo", 100010, 100010), 0);
++
++	ASSERT_EQ(system("setfacl -m u:100010:rwx /tmp/ext4/source/foo"), 0);
++	EXPECT_EQ(system("getfacl /tmp/ext4/source/foo | grep user:100010:rwx"), 0);
++	EXPECT_EQ(system("getfacl /tmp/ext4/dest/foo | grep user:100020:rwx"), 0);
++
++	snprintf(ssb.path, sizeof(ssb.path), "/tmp/ext4/source/foo");
++	ssb.uid = 4294967295;
++	EXPECT_EQ(run_in(attr.userns, getacl_should_be_uid, &ssb), 0);
++
++	snprintf(ssb.path, sizeof(ssb.path), "/tmp/ext4/dest/foo");
++	ssb.uid = 100010;
++	EXPECT_EQ(run_in(attr.userns, getacl_should_be_uid, &ssb), 0);
++
++	/*
++	 * now, dir is owned by someone else in the user namespace, but we can
++	 * still read it because of acls
++	 */
++	ASSERT_EQ(chown("/tmp/ext4/source/foo", 100012, 100012), 0);
++	EXPECT_EQ(run_in(attr.userns, ls_path, "/tmp/ext4/dest/foo"), 0);
++
++	/*
++	 * if we delete the acls, the ls should fail because it's 700.
++	 */
++	ASSERT_EQ(system("setfacl --remove-all /tmp/ext4/source/foo"), 0);
++	EXPECT_NE(run_in(attr.userns, ls_path, "/tmp/ext4/dest/foo"), 0);
++}
++
++TEST_HARNESS_MAIN
 -- 
 2.29.0
 
