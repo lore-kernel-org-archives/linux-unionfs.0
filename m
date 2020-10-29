@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 159AAC63697
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:42:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D7EEC5DF9E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:42:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCBC4206D9
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:42:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16CEC206D4
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388851AbgJ2AmW (ORCPT
+        id S1733176AbgJ2Afq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:42:22 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:33548 "EHLO
+        Wed, 28 Oct 2020 20:35:46 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:60665 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731243AbgJ2Ala (ORCPT
+        with ESMTP id S1731918AbgJ2Afh (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:41:30 -0400
+        Wed, 28 Oct 2020 20:35:37 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvv3-0008Ep-3C; Thu, 29 Oct 2020 00:35:57 +0000
+        id 1kXvua-0008Ep-Vy; Thu, 29 Oct 2020 00:35:29 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -64,9 +64,9 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
         selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 26/34] fs: add helpers for idmap mounts
-Date:   Thu, 29 Oct 2020 01:32:44 +0100
-Message-Id: <20201029003252.2128653-27-christian.brauner@ubuntu.com>
+Subject: [PATCH 10/34] attr: handle idmapped mounts
+Date:   Thu, 29 Oct 2020 01:32:28 +0100
+Message-Id: <20201029003252.2128653-11-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,295 +76,323 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-When the kernel is configured with CONFIG_IDMAP_MOUNTS additional inode methods
-are provided. A filesystem that is aware of idmapped mounts will receive the
-user namespace the mount has been marked with as an additional argument. This
-can be used for additional permission checking and also to enable filesystems
-to translate between uids and gids if they need to. We have implemented all
-relevant helpers in earlier patches.
+When file attributes are changed filesystems mostly rely on the
+setattr_prepare(), setattr_copy(), and notify_change() helpers for
+initialization and permission checking. Add the
+setattr_mapped_prepare(), setattr_mapped_copy(), and
+notify_mapped_change() helpers to handle idmapped mounts. If the inode
+is accessed through an idmapped mount we need to map it according to the
+mount's user namespace. Afterwards the checks are identical to
+non-idmapped mounts. If the initial user namespace is passed all
+operations are a nop so non-idmapped mounts will not see a change in
+behavior and will also not see any performance impact. It also means
+that the inode_owner_or_capable() helper can be implemented on top of
+mapped_inode_owner_or_capable() by passing in the initial user
+namespace. Helpers that perform checks on the ia_uid and ia_gid fields
+in struct iattr assume that ia_uid and ia_gid are intended values and so
+they won't be mapped according to the mount's user namespace. This is
+more transparent to the caller and further aligns the permission for
+notify_change() and notify_mapped_change().
 
-In this iteration I've decided to add a set of new inode methods instead of
-adapting the existing ones. This is mainly done to keep the noise-level as low
-as possible. But we're very happy to adapt the existing methods and all
-filesystems using it instead of adding dedicated new helpers. In any case we
-expect to be done to a single set of inode methods ones we've transitioned
-filesystems whether or not we add new methods or not.
+If the initial user namespace is passed all operations are a nop so
+non-idmapped mounts will not see a change in behavior and will also not
+see any performance impact. It also means that the
+setattr_prepare(), setattr_copy(), and notify_change() helpers can
+simply be implemented on top of setattr_mapped_prepare(),
+setattr_mapped_copy(), and notify_mapped_change() by passing in the
+initial user namespace.
 
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/attr.c          |   2 +-
- fs/namei.c         |  24 +++++----
- fs/posix_acl.c     |   4 +-
- include/linux/fs.h | 129 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 146 insertions(+), 13 deletions(-)
+ fs/attr.c          | 136 ++++++++++++++++++++++++++++++++++-----------
+ include/linux/fs.h |   6 ++
+ 2 files changed, 110 insertions(+), 32 deletions(-)
 
 diff --git a/fs/attr.c b/fs/attr.c
-index 4daf6ac6de6d..d13ef3f8eac0 100644
+index b4bbdbd4c8ca..f39c03ac85e0 100644
 --- a/fs/attr.c
 +++ b/fs/attr.c
-@@ -378,7 +378,7 @@ int notify_mapped_change(struct user_namespace *user_ns, struct dentry *dentry,
- 		return error;
+@@ -18,34 +18,39 @@
+ #include <linux/evm.h>
+ #include <linux/ima.h>
  
- 	if (inode->i_op->setattr)
--		error = inode->i_op->setattr(dentry, attr);
-+		error = iop_setattr(inode, user_ns, dentry, attr);
- 	else
- 		error = simple_setattr(dentry, attr);
- 
-diff --git a/fs/namei.c b/fs/namei.c
-index 76c9637eccb9..d6dbfab126d7 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -407,7 +407,7 @@ static inline int do_inode_permission(struct user_namespace *user_ns, struct ino
+-static bool chown_ok(const struct inode *inode, kuid_t uid)
++static bool chown_ok(struct user_namespace *user_ns,
++		     const struct inode *inode,
++		     kuid_t uid)
  {
- 	if (unlikely(!(inode->i_opflags & IOP_FASTPERM))) {
- 		if (likely(inode->i_op->permission))
--			return inode->i_op->permission(inode, mask);
-+			return iop_permission(inode, user_ns, inode, mask);
+-	if (uid_eq(current_fsuid(), inode->i_uid) &&
+-	    uid_eq(uid, inode->i_uid))
++	kuid_t kuid = i_uid_into_mnt(user_ns, inode);
++	if (uid_eq(current_fsuid(), kuid) && uid_eq(uid, kuid))
+ 		return true;
+-	if (capable_wrt_inode_uidgid(inode, CAP_CHOWN))
++	if (capable_wrt_mapped_inode_uidgid(user_ns, inode, CAP_CHOWN))
+ 		return true;
+-	if (uid_eq(inode->i_uid, INVALID_UID) &&
++	if (uid_eq(kuid, INVALID_UID) &&
+ 	    ns_capable(inode->i_sb->s_user_ns, CAP_CHOWN))
+ 		return true;
+ 	return false;
+ }
  
- 		/* This gets set once for the inode lifetime */
- 		spin_lock(&inode->i_lock);
-@@ -2872,7 +2872,7 @@ int vfs_mapped_create(struct user_namespace *user_ns, struct inode *dir,
- 	error = security_inode_create(dir, dentry, mode);
- 	if (error)
- 		return error;
--	error = dir->i_op->create(dir, dentry, mode, want_excl);
-+	error = iop_create(dir, user_ns, dir, dentry, mode, want_excl);
- 	if (!error)
- 		fsnotify_create(dir, dentry);
- 	return error;
-@@ -3175,14 +3175,18 @@ static struct dentry *lookup_open(struct nameidata *nd, struct file *file,
+-static bool chgrp_ok(const struct inode *inode, kgid_t gid)
++static bool chgrp_ok(struct user_namespace *user_ns,
++		     const struct inode *inode, kgid_t gid)
+ {
+-	if (uid_eq(current_fsuid(), inode->i_uid) &&
+-	    (in_group_p(gid) || gid_eq(gid, inode->i_gid)))
++	kgid_t kgid = i_gid_into_mnt(user_ns, inode);
++	if (uid_eq(current_fsuid(), i_uid_into_mnt(user_ns, inode)) &&
++	    (in_group_p(gid) || gid_eq(gid, kgid)))
+ 		return true;
+-	if (capable_wrt_inode_uidgid(inode, CAP_CHOWN))
++	if (capable_wrt_mapped_inode_uidgid(user_ns, inode, CAP_CHOWN))
+ 		return true;
+-	if (gid_eq(inode->i_gid, INVALID_GID) &&
++	if (gid_eq(kgid, INVALID_GID) &&
+ 	    ns_capable(inode->i_sb->s_user_ns, CAP_CHOWN))
+ 		return true;
+ 	return false;
+ }
  
- 	/* Negative dentry, just create the file */
- 	if (!dentry->d_inode && (open_flag & O_CREAT)) {
-+		struct user_namespace *user_ns;
+ /**
+- * setattr_prepare - check if attribute changes to a dentry are allowed
++ * setattr_mapped_prepare - check if attribute changes to a dentry are allowed
++ * @user_ns:	user namespace of the mount
+  * @dentry:	dentry to check
+  * @attr:	attributes to change
+  *
+@@ -58,7 +63,8 @@ static bool chgrp_ok(const struct inode *inode, kgid_t gid)
+  * Should be called as the first thing in ->setattr implementations,
+  * possibly after taking additional locks.
+  */
+-int setattr_prepare(struct dentry *dentry, struct iattr *attr)
++int setattr_mapped_prepare(struct user_namespace *user_ns,
++			   struct dentry *dentry, struct iattr *attr)
+ {
+ 	struct inode *inode = d_inode(dentry);
+ 	unsigned int ia_valid = attr->ia_valid;
+@@ -78,27 +84,27 @@ int setattr_prepare(struct dentry *dentry, struct iattr *attr)
+ 		goto kill_priv;
+ 
+ 	/* Make sure a caller can chown. */
+-	if ((ia_valid & ATTR_UID) && !chown_ok(inode, attr->ia_uid))
++	if ((ia_valid & ATTR_UID) && !chown_ok(user_ns, inode, attr->ia_uid))
+ 		return -EPERM;
+ 
+ 	/* Make sure caller can chgrp. */
+-	if ((ia_valid & ATTR_GID) && !chgrp_ok(inode, attr->ia_gid))
++	if ((ia_valid & ATTR_GID) && !chgrp_ok(user_ns, inode, attr->ia_gid))
+ 		return -EPERM;
+ 
+ 	/* Make sure a caller can chmod. */
+ 	if (ia_valid & ATTR_MODE) {
+-		if (!inode_owner_or_capable(inode))
++		if (!mapped_inode_owner_or_capable(user_ns, inode))
+ 			return -EPERM;
+ 		/* Also check the setgid bit! */
+-		if (!in_group_p((ia_valid & ATTR_GID) ? attr->ia_gid :
+-				inode->i_gid) &&
+-		    !capable_wrt_inode_uidgid(inode, CAP_FSETID))
++               if (!in_group_p((ia_valid & ATTR_GID) ? attr->ia_gid :
++                                i_gid_into_mnt(user_ns, inode)) &&
++                    !capable_wrt_inode_uidgid(inode, CAP_FSETID))
+ 			attr->ia_mode &= ~S_ISGID;
+ 	}
+ 
+ 	/* Check for setting the inode time. */
+ 	if (ia_valid & (ATTR_MTIME_SET | ATTR_ATIME_SET | ATTR_TIMES_SET)) {
+-		if (!inode_owner_or_capable(inode))
++		if (!mapped_inode_owner_or_capable(user_ns, inode))
+ 			return -EPERM;
+ 	}
+ 
+@@ -114,6 +120,12 @@ int setattr_prepare(struct dentry *dentry, struct iattr *attr)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(setattr_mapped_prepare);
 +
- 		file->f_mode |= FMODE_CREATED;
- 		audit_inode_child(dir_inode, dentry, AUDIT_TYPE_CHILD_CREATE);
- 		if (!dir_inode->i_op->create) {
- 			error = -EACCES;
- 			goto out_dput;
++int setattr_prepare(struct dentry *dentry, struct iattr *attr)
++{
++	return setattr_mapped_prepare(&init_user_ns, dentry, attr);
++}
+ EXPORT_SYMBOL(setattr_prepare);
+ 
+ /**
+@@ -161,21 +173,28 @@ int inode_newsize_ok(const struct inode *inode, loff_t offset)
+ EXPORT_SYMBOL(inode_newsize_ok);
+ 
+ /**
+- * setattr_copy - copy simple metadata updates into the generic inode
++ * setattr_mappedcopy - copy simple metadata updates into the generic inode on idmapped mounts
++ * @user_ns:	the user namespace the inode is accessed from
+  * @inode:	the inode to be updated
+  * @attr:	the new attributes
+  *
+- * setattr_copy must be called with i_mutex held.
++ * setattr_mapped_copy must be called with i_mutex held.
+  *
+- * setattr_copy updates the inode's metadata with that specified
+- * in attr. Noticeably missing is inode size update, which is more complex
++ * setattr_mapped_copy updates the inode's metadata with that specified
++ * in attr on idmapped mounts. If file ownership is changed setattr_mapped_copy
++ * doesn't map ia_uid and ia_gid. It will asssume the caller has already
++ * provided the intended values. Necessary permission checks to determine
++ * whether or not the S_ISGID property needs to be removed are performed with
++ * the correct idmapped mount permission helpers.
++ * Noticeably missing is inode size update, which is more complex
+  * as it requires pagecache updates.
+  *
+  * The inode is not marked as dirty after this operation. The rationale is
+  * that for "simple" filesystems, the struct inode is the inode storage.
+  * The caller is free to mark the inode dirty afterwards if needed.
+  */
+-void setattr_copy(struct inode *inode, const struct iattr *attr)
++void setattr_mapped_copy(struct user_namespace *user_ns, struct inode *inode,
++			 const struct iattr *attr)
+ {
+ 	unsigned int ia_valid = attr->ia_valid;
+ 
+@@ -191,36 +210,62 @@ void setattr_copy(struct inode *inode, const struct iattr *attr)
+ 		inode->i_ctime = attr->ia_ctime;
+ 	if (ia_valid & ATTR_MODE) {
+ 		umode_t mode = attr->ia_mode;
+-
+-		if (!in_group_p(inode->i_gid) &&
+-		    !capable_wrt_inode_uidgid(inode, CAP_FSETID))
++		kgid_t kgid = i_gid_into_mnt(user_ns, inode);
++		if (!in_group_p(kgid) &&
++		    !capable_wrt_mapped_inode_uidgid(user_ns, inode, CAP_FSETID))
+ 			mode &= ~S_ISGID;
+ 		inode->i_mode = mode;
+ 	}
+ }
++EXPORT_SYMBOL(setattr_mapped_copy);
++
++/**
++ * setattr_copy - copy simple metadata updates into the generic inode
++ * @inode:	the inode to be updated
++ * @attr:	the new attributes
++ *
++ * setattr_copy must be called with i_mutex held.
++ *
++ * setattr_copy updates the inode's metadata with that specified
++ * in attr. Noticeably missing is inode size update, which is more complex
++ * as it requires pagecache updates.
++ *
++ * The inode is not marked as dirty after this operation. The rationale is
++ * that for "simple" filesystems, the struct inode is the inode storage.
++ * The caller is free to mark the inode dirty afterwards if needed.
++ */
++void setattr_copy(struct inode *inode, const struct iattr *attr)
++{
++	return setattr_mapped_copy(&init_user_ns, inode, attr);
++}
+ EXPORT_SYMBOL(setattr_copy);
+ 
+ /**
+- * notify_change - modify attributes of a filesytem object
++ * notify_mapped_change - modify attributes of a filesytem object on idmapped mounts
++ * @user_ns:	the user namespace of the mount
+  * @dentry:	object affected
+  * @attr:	new attributes
+  * @delegated_inode: returns inode, if the inode is delegated
+  *
+  * The caller must hold the i_mutex on the affected object.
+  *
+- * If notify_change discovers a delegation in need of breaking,
++ * If notify_mapped_change discovers a delegation in need of breaking,
+  * it will return -EWOULDBLOCK and return a reference to the inode in
+  * delegated_inode.  The caller should then break the delegation and
+  * retry.  Because breaking a delegation may take a long time, the
+  * caller should drop the i_mutex before doing so.
+  *
++ * If file ownership is changed notify_mapped_change() doesn't map ia_uid and
++ * ia_gid. It will asssume the caller has already provided the intended values.
++ *
+  * Alternatively, a caller may pass NULL for delegated_inode.  This may
+  * be appropriate for callers that expect the underlying filesystem not
+  * to be NFS exported.  Also, passing NULL is fine for callers holding
+  * the file open for write, as there can be no conflicting delegation in
+  * that case.
+  */
+-int notify_change(struct dentry * dentry, struct iattr * attr, struct inode **delegated_inode)
++int notify_mapped_change(struct user_namespace *user_ns, struct dentry *dentry,
++			 struct iattr *attr, struct inode **delegated_inode)
+ {
+ 	struct inode *inode = dentry->d_inode;
+ 	umode_t mode = inode->i_mode;
+@@ -243,8 +288,8 @@ int notify_change(struct dentry * dentry, struct iattr * attr, struct inode **de
+ 		if (IS_IMMUTABLE(inode))
+ 			return -EPERM;
+ 
+-		if (!inode_owner_or_capable(inode)) {
+-			error = inode_permission(inode, MAY_WRITE);
++		if (!mapped_inode_owner_or_capable(user_ns, inode)) {
++			error = mapped_inode_permission(user_ns, inode, MAY_WRITE);
+ 			if (error)
+ 				return error;
  		}
--		error = dir_inode->i_op->create(dir_inode, dentry, mode,
--						open_flag & O_EXCL);
+@@ -345,4 +390,31 @@ int notify_change(struct dentry * dentry, struct iattr * attr, struct inode **de
+ 
+ 	return error;
+ }
++EXPORT_SYMBOL(notify_mapped_change);
 +
-+		user_ns = mnt_user_ns(nd->path.mnt);
-+		error = iop_create(dir_inode, user_ns, dir_inode, dentry, mode,
-+				   open_flag & O_EXCL);
- 		if (error)
- 			goto out_dput;
- 	}
-@@ -3363,7 +3367,7 @@ struct dentry *vfs_mapped_tmpfile(struct user_namespace *user_ns,
- 	child = d_alloc(dentry, &slash_name);
- 	if (unlikely(!child))
- 		goto out_err;
--	error = dir->i_op->tmpfile(dir, child, mode);
-+	error = iop_tmpfile(dir, user_ns, dir, child, mode);
- 	if (error)
- 		goto out_err;
- 	error = -ENOENT;
-@@ -3640,7 +3644,7 @@ int vfs_mapped_mknod(struct user_namespace *user_ns, struct inode *dir,
- 	if (error)
- 		return error;
- 
--	error = dir->i_op->mknod(dir, dentry, mode, dev);
-+	error = iop_mknod(dir, user_ns, dir, dentry, mode, dev);
- 	if (!error)
- 		fsnotify_create(dir, dentry);
- 	return error;
-@@ -3750,7 +3754,7 @@ int vfs_mapped_mkdir(struct user_namespace *user_ns, struct inode *dir,
- 	if (max_links && dir->i_nlink >= max_links)
- 		return -EMLINK;
- 
--	error = dir->i_op->mkdir(dir, dentry, mode);
-+	error = iop_mkdir(dir, user_ns, dir, dentry, mode);
- 	if (!error)
- 		fsnotify_mkdir(dir, dentry);
- 	return error;
-@@ -4089,7 +4093,7 @@ int vfs_mapped_symlink(struct user_namespace *user_ns, struct inode *dir,
- 	if (error)
- 		return error;
- 
--	error = dir->i_op->symlink(dir, dentry, oldname);
-+	error = iop_symlink(dir, user_ns, dir, dentry, oldname);
- 	if (!error)
- 		fsnotify_create(dir, dentry);
- 	return error;
-@@ -4435,8 +4439,8 @@ int vfs_mapped_rename(struct renamedata *rd)
- 		if (error)
- 			goto out;
- 	}
--	error = old_dir->i_op->rename(old_dir, old_dentry,
--				       new_dir, new_dentry, flags);
-+	error = iop_rename(old_dir, rd->new_user_ns, old_dir, old_dentry,
-+			   new_dir, new_dentry, flags);
- 	if (error)
- 		goto out;
- 
-diff --git a/fs/posix_acl.c b/fs/posix_acl.c
-index 665eb7921e1c..b8e204ac2caa 100644
---- a/fs/posix_acl.c
-+++ b/fs/posix_acl.c
-@@ -578,7 +578,7 @@ posix_mapped_acl_chmod(struct user_namespace *user_ns, struct inode *inode, umod
- 	ret = __posix_acl_chmod(&acl, GFP_KERNEL, mode);
- 	if (ret)
- 		return ret;
--	ret = inode->i_op->set_acl(inode, acl, ACL_TYPE_ACCESS);
-+	ret = iop_set_acl(inode, user_ns, inode, acl, ACL_TYPE_ACCESS);
- 	posix_acl_release(acl);
- 	return ret;
- }
-@@ -925,7 +925,7 @@ set_posix_mapped_acl(struct user_namespace *user_ns, struct inode *inode,
- 		if (ret)
- 			return ret;
- 	}
--	return inode->i_op->set_acl(inode, acl, type);
-+	return iop_set_acl(inode, user_ns, inode, acl, type);
- }
- 
- int
++/**
++ * notify_change - modify attributes of a filesytem object
++ * @dentry:	object affected
++ * @attr:	new attributes
++ * @delegated_inode: returns inode, if the inode is delegated
++ *
++ * The caller must hold the i_mutex on the affected object.
++ *
++ * If notify_change discovers a delegation in need of breaking,
++ * it will return -EWOULDBLOCK and return a reference to the inode in
++ * delegated_inode.  The caller should then break the delegation and
++ * retry.  Because breaking a delegation may take a long time, the
++ * caller should drop the i_mutex before doing so.
++ *
++ * Alternatively, a caller may pass NULL for delegated_inode.  This may
++ * be appropriate for callers that expect the underlying filesystem not
++ * to be NFS exported.  Also, passing NULL is fine for callers holding
++ * the file open for write, as there can be no conflicting delegation in
++ * that case.
++ */
++int notify_change(struct dentry *dentry, struct iattr *attr,
++		  struct inode **delegated_inode)
++{
++	return notify_mapped_change(&init_user_ns, dentry, attr, delegated_inode);
++}
+ EXPORT_SYMBOL(notify_change);
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index bfcfa3d7374f..cb01141d726a 100644
+index f9e2d292b7b6..f41d93b0e6d7 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -1978,8 +1978,137 @@ struct inode_operations {
- 			   umode_t create_mode);
- 	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
- 	int (*set_acl)(struct inode *, struct posix_acl *, int);
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	int (*permission_mapped) (struct user_namespace *, struct inode *, int);
-+	int (*create_mapped) (struct user_namespace *, struct inode *,
-+			      struct dentry *, umode_t, bool);
-+	int (*mknod_mapped) (struct user_namespace *, struct inode *,
-+			     struct dentry *, umode_t, dev_t);
-+	int (*mkdir_mapped) (struct user_namespace *, struct inode *,
-+			     struct dentry *, umode_t);
-+	int (*tmpfile_mapped) (struct user_namespace *, struct inode *,
-+			       struct dentry *, umode_t);
-+	int (*symlink_mapped) (struct user_namespace *, struct inode *,
-+			       struct dentry *, const char *);
-+	int (*rename_mapped) (struct user_namespace *, struct inode *,
-+			      struct dentry *, struct inode *, struct dentry *,
-+			      unsigned int);
-+	int (*setattr_mapped) (struct user_namespace *, struct dentry *,
-+			       struct iattr *);
-+	int (*set_acl_mapped)(struct user_namespace *, struct inode *,
-+			      struct posix_acl *, int);
-+#endif
- } ____cacheline_aligned;
+@@ -2823,6 +2823,8 @@ static inline int bmap(struct inode *inode,  sector_t *block)
+ #endif
  
-+static inline int iop_permission(struct inode *caller,
-+				 struct user_namespace *user_ns,
-+				 struct inode *inode, int mask)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->permission_mapped)
-+		return caller->i_op->permission_mapped(user_ns, inode, mask);
-+#endif
-+	return caller->i_op->permission(inode, mask);
-+}
-+
-+static inline int iop_create(struct inode *caller,
-+			     struct user_namespace *user_ns,
-+			     struct inode *inode, struct dentry *dentry,
-+			     umode_t mode, bool excl)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->create_mapped)
-+		return caller->i_op->create_mapped(user_ns, inode, dentry,
-+						    mode, excl);
-+#endif
-+	return caller->i_op->create(inode, dentry, mode, excl);
-+}
-+
-+static inline int iop_mknod(struct inode *caller,
-+			    struct user_namespace *user_ns, struct inode *inode,
-+			    struct dentry *dentry, umode_t mode, dev_t dev)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->mknod_mapped)
-+		return caller->i_op->mknod_mapped(user_ns, inode, dentry, mode, dev);
-+#endif
-+	return caller->i_op->mknod(inode, dentry, mode, dev);
-+}
-+
-+static inline int iop_mkdir(struct inode *caller,
-+			    struct user_namespace *user_ns, struct inode *inode,
-+			    struct dentry *dentry, umode_t mode)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->mkdir_mapped)
-+		return caller->i_op->mkdir_mapped(user_ns, inode, dentry, mode);
-+#endif
-+	return caller->i_op->mkdir(inode, dentry, mode);
-+}
-+
-+static inline int iop_tmpfile(struct inode *caller,
-+			      struct user_namespace *user_ns,
-+			      struct inode *inode, struct dentry *dentry,
-+			      umode_t mode)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->tmpfile_mapped)
-+		return caller->i_op->tmpfile_mapped(user_ns, inode, dentry, mode);
-+#endif
-+	return caller->i_op->tmpfile(inode, dentry, mode);
-+}
-+
-+static inline int iop_symlink(struct inode *caller,
-+			      struct user_namespace *user_ns,
-+			      struct inode *inode, struct dentry *dentry,
-+			      const char *name)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->symlink_mapped)
-+		return caller->i_op->symlink_mapped(user_ns, inode, dentry, name);
-+#endif
-+	return caller->i_op->symlink(inode, dentry, name);
-+}
-+
-+static inline int iop_rename(struct inode *caller,
-+			     struct user_namespace *user_ns,
-+			     struct inode *old_inode, struct dentry *old_dentry,
-+			     struct inode *new_inode, struct dentry *new_dentry,
-+			     unsigned int flags)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->rename_mapped)
-+		return caller->i_op->rename_mapped(user_ns, old_inode,
-+						   old_dentry, new_inode,
-+						   new_dentry, flags);
-+#endif
-+	return caller->i_op->rename(old_inode, old_dentry, new_inode,
-+				    new_dentry, flags);
-+}
-+
-+static inline int iop_setattr(struct inode *caller,
-+			      struct user_namespace *user_ns,
-+			      struct dentry *dentry, struct iattr *attr)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->setattr_mapped)
-+		return caller->i_op->setattr_mapped(user_ns, dentry, attr);
-+#endif
-+	return caller->i_op->setattr(dentry, attr);
-+}
-+
-+static inline int iop_set_acl(struct inode *caller,
-+			      struct user_namespace *user_ns,
-+			      struct inode *inode, struct posix_acl *acl,
-+			      int type)
-+{
-+#ifdef CONFIG_IDMAP_MOUNTS
-+	if (caller->i_op->set_acl_mapped)
-+		return caller->i_op->set_acl_mapped(user_ns, inode, acl, type);
-+#endif
-+	return caller->i_op->set_acl(inode, acl, type);
-+}
-+
- static inline ssize_t call_read_iter(struct file *file, struct kiocb *kio,
- 				     struct iov_iter *iter)
- {
+ extern int notify_change(struct dentry *, struct iattr *, struct inode **);
++extern int notify_mapped_change(struct user_namespace *, struct dentry *,
++			    struct iattr *, struct inode **);
+ extern int inode_permission(struct inode *, int);
+ extern int mapped_inode_permission(struct user_namespace *, struct inode *, int);
+ extern int generic_permission(struct inode *, int);
+@@ -3282,8 +3284,12 @@ extern int buffer_migrate_page_norefs(struct address_space *,
+ #endif
+ 
+ extern int setattr_prepare(struct dentry *, struct iattr *);
++extern int setattr_mapped_prepare(struct user_namespace *, struct dentry *,
++			      struct iattr *);
+ extern int inode_newsize_ok(const struct inode *, loff_t offset);
+ extern void setattr_copy(struct inode *inode, const struct iattr *attr);
++extern void setattr_mapped_copy(struct user_namespace *user_ns, struct inode *inode,
++			    const struct iattr *attr);
+ 
+ extern int file_update_time(struct file *file);
+ 
 -- 
 2.29.0
 
