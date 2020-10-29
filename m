@@ -7,25 +7,25 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AD0DC388F7
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57CA2C63697
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 172EF20790
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2091C20809
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:39:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732668AbgJ2Ait (ORCPT
+        id S2388828AbgJ2Ajr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:38:49 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:33242 "EHLO
+        Wed, 28 Oct 2020 20:39:47 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:33309 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388794AbgJ2Ahu (ORCPT
+        with ESMTP id S2388697AbgJ2Ai7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:37:50 -0400
+        Wed, 28 Oct 2020 20:38:59 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvus-0008Ep-Pk; Thu, 29 Oct 2020 00:35:46 +0000
+        id 1kXvv6-0008Ep-K8; Thu, 29 Oct 2020 00:36:00 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -64,9 +64,9 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
         selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 20/34] open: handle idmapped mounts in do_truncate()
-Date:   Thu, 29 Oct 2020 01:32:38 +0100
-Message-Id: <20201029003252.2128653-21-christian.brauner@ubuntu.com>
+Subject: [PATCH 28/34] audit: handle idmapped mounts
+Date:   Thu, 29 Oct 2020 01:32:46 +0100
+Message-Id: <20201029003252.2128653-29-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,201 +76,255 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-When truncating files the vfs will verify that the caller is privileged over
-the inode. Since the do_truncate() helper is only used in a few places in the
-vfs code extend it to handle idmapped mounts instead of adding a new helper.
-If the inode is accessed through an idmapped mount it is mapped according to
-the mount's user namespace. Afterwards the permissions checks are identical to
-non-idmapped mounts. If the initial user namespace is passed all mapping
-operations are a nop so non-idmapped mounts will not see a change in behavior
-and will also not see any performance impact.
+Audit will sometimes log the inode's i_uid and i_gid. Enable audit to log the
+mapped inode when it is accessed from an idmapped mount.
 
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/coredump.c      | 12 +++++++++---
- fs/inode.c         | 13 +++++++++----
- fs/namei.c         |  6 +++---
- fs/open.c          | 21 +++++++++++++--------
- include/linux/fs.h |  4 ++--
- 5 files changed, 36 insertions(+), 20 deletions(-)
+ fs/namei.c            | 14 +++++++-------
+ include/linux/audit.h | 10 ++++++----
+ ipc/mqueue.c          |  8 ++++----
+ kernel/auditsc.c      | 26 ++++++++++++++------------
+ 4 files changed, 31 insertions(+), 27 deletions(-)
 
-diff --git a/fs/coredump.c b/fs/coredump.c
-index 0cd9056d79cc..25beac7230ff 100644
---- a/fs/coredump.c
-+++ b/fs/coredump.c
-@@ -703,6 +703,7 @@ void do_coredump(const kernel_siginfo_t *siginfo)
- 			goto close_fail;
- 		}
- 	} else {
-+		struct user_namespace *user_ns;
- 		struct inode *inode;
- 		int open_flags = O_CREAT | O_RDWR | O_NOFOLLOW |
- 				 O_LARGEFILE | O_EXCL;
-@@ -786,7 +787,8 @@ void do_coredump(const kernel_siginfo_t *siginfo)
- 			goto close_fail;
- 		if (!(cprm.file->f_mode & FMODE_CAN_WRITE))
- 			goto close_fail;
--		if (do_truncate(cprm.file->f_path.dentry, 0, 0, cprm.file))
-+		user_ns = mnt_user_ns(cprm.file->f_path.mnt);
-+		if (do_truncate(user_ns, cprm.file->f_path.dentry, 0, 0, cprm.file))
- 			goto close_fail;
- 	}
- 
-@@ -931,8 +933,12 @@ void dump_truncate(struct coredump_params *cprm)
- 
- 	if (file->f_op->llseek && file->f_op->llseek != no_llseek) {
- 		offset = file->f_op->llseek(file, 0, SEEK_CUR);
--		if (i_size_read(file->f_mapping->host) < offset)
--			do_truncate(file->f_path.dentry, offset, 0, file);
-+		if (i_size_read(file->f_mapping->host) < offset) {
-+			struct user_namespace *user_ns;
-+
-+			user_ns = mnt_user_ns(file->f_path.mnt);
-+			do_truncate(user_ns, file->f_path.dentry, offset, 0, file);
-+		}
- 	}
- }
- EXPORT_SYMBOL(dump_truncate);
-diff --git a/fs/inode.c b/fs/inode.c
-index 22de3cb3b1f4..a9e2c8232e61 100644
---- a/fs/inode.c
-+++ b/fs/inode.c
-@@ -1904,7 +1904,8 @@ int dentry_needs_remove_privs(struct dentry *dentry)
- 	return mask;
- }
- 
--static int __remove_privs(struct dentry *dentry, int kill)
-+static int __remove_privs(struct user_namespace *user_ns, struct dentry *dentry,
-+			  int kill)
- {
- 	struct iattr newattrs;
- 
-@@ -1913,7 +1914,7 @@ static int __remove_privs(struct dentry *dentry, int kill)
- 	 * Note we call this on write, so notify_change will not
- 	 * encounter any conflicting delegations:
- 	 */
--	return notify_change(dentry, &newattrs, NULL);
-+	return notify_mapped_change(user_ns, dentry, &newattrs, NULL);
- }
- 
- /*
-@@ -1939,8 +1940,12 @@ int file_remove_privs(struct file *file)
- 	kill = dentry_needs_remove_privs(dentry);
- 	if (kill < 0)
- 		return kill;
--	if (kill)
--		error = __remove_privs(dentry, kill);
-+	if (kill) {
-+		struct user_namespace *user_ns;
-+
-+		user_ns = mnt_user_ns(file->f_path.mnt);
-+		error = __remove_privs(user_ns, dentry, kill);
-+	}
- 	if (!error)
- 		inode_has_no_xattr(inode);
- 
 diff --git a/fs/namei.c b/fs/namei.c
-index 7901ea09e80e..76c9637eccb9 100644
+index d6dbfab126d7..545ce391a12d 100644
 --- a/fs/namei.c
 +++ b/fs/namei.c
-@@ -2985,9 +2985,9 @@ static int handle_truncate(struct file *filp)
- 	if (!error)
- 		error = security_path_truncate(path);
- 	if (!error) {
--		error = do_truncate(path->dentry, 0,
--				    ATTR_MTIME|ATTR_CTIME|ATTR_OPEN,
--				    filp);
-+		error = do_truncate(mnt_user_ns(filp->f_path.mnt),
-+				    path->dentry, 0,
-+				    ATTR_MTIME | ATTR_CTIME | ATTR_OPEN, filp);
+@@ -1006,7 +1006,7 @@ static inline int may_follow_link(struct nameidata *nd, const struct inode *inod
+ 	if (nd->flags & LOOKUP_RCU)
+ 		return -ECHILD;
+ 
+-	audit_inode(nd->name, nd->stack[0].link.dentry, 0);
++	audit_inode(nd->name, user_ns, nd->stack[0].link.dentry, 0);
+ 	audit_log_path_denied(AUDIT_ANOM_LINK, "follow_link");
+ 	return -EACCES;
+ }
+@@ -2413,7 +2413,7 @@ int filename_lookup(int dfd, struct filename *name, unsigned flags,
+ 		retval = path_lookupat(&nd, flags | LOOKUP_REVAL, path);
+ 
+ 	if (likely(!retval))
+-		audit_inode(name, path->dentry,
++		audit_inode(name, mnt_user_ns(path->mnt), path->dentry,
+ 			    flags & LOOKUP_MOUNTPOINT ? AUDIT_INODE_NOEVAL : 0);
+ 	restore_nameidata();
+ 	putname(name);
+@@ -2455,7 +2455,7 @@ static struct filename *filename_parentat(int dfd, struct filename *name,
+ 	if (likely(!retval)) {
+ 		*last = nd.last;
+ 		*type = nd.last_type;
+-		audit_inode(name, parent->dentry, AUDIT_INODE_PARENT);
++		audit_inode(name, mnt_user_ns(parent->mnt), parent->dentry, AUDIT_INODE_PARENT);
+ 	} else {
+ 		putname(name);
+ 		name = ERR_PTR(retval);
+@@ -3239,7 +3239,7 @@ static const char *open_last_lookups(struct nameidata *nd,
+ 			if (unlikely(error))
+ 				return ERR_PTR(error);
+ 		}
+-		audit_inode(nd->name, dir, AUDIT_INODE_PARENT);
++		audit_inode(nd->name, mnt_user_ns(nd->path.mnt), dir, AUDIT_INODE_PARENT);
+ 		/* trailing slashes? */
+ 		if (unlikely(nd->last.name[nd->last.len]))
+ 			return ERR_PTR(-EISDIR);
+@@ -3305,7 +3305,7 @@ static int do_open(struct nameidata *nd,
+ 			return error;
  	}
- 	put_write_access(inode);
- 	return error;
-diff --git a/fs/open.c b/fs/open.c
-index 9af548fb841b..efa462b6b9c7 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -35,8 +35,8 @@
- 
- #include "internal.h"
- 
--int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
--	struct file *filp)
-+int do_truncate(struct user_namespace *user_ns, struct dentry *dentry,
-+		loff_t length, unsigned int time_attrs, struct file *filp)
+ 	if (!(file->f_mode & FMODE_CREATED))
+-		audit_inode(nd->name, nd->path.dentry, 0);
++		audit_inode(nd->name, mnt_user_ns(nd->path.mnt), nd->path.dentry, 0);
+ 	if (open_flag & O_CREAT) {
+ 		if ((open_flag & O_EXCL) && !(file->f_mode & FMODE_CREATED))
+ 			return -EEXIST;
+@@ -3414,7 +3414,7 @@ static int do_tmpfile(struct nameidata *nd, unsigned flags,
+ 		goto out2;
+ 	dput(path.dentry);
+ 	path.dentry = child;
+-	audit_inode(nd->name, child, 0);
++	audit_inode(nd->name, user_ns, child, 0);
+ 	/* Don't check for other permissions, the inode was just created */
+ 	error = may_open(&path, 0, op->open_flag);
+ 	if (error)
+@@ -3433,7 +3433,7 @@ static int do_o_path(struct nameidata *nd, unsigned flags, struct file *file)
+ 	struct path path;
+ 	int error = path_lookupat(nd, flags, &path);
+ 	if (!error) {
+-		audit_inode(nd->name, path.dentry, 0);
++		audit_inode(nd->name, mnt_user_ns(path.mnt), path.dentry, 0);
+ 		error = vfs_open(&path, file);
+ 		path_put(&path);
+ 	}
+diff --git a/include/linux/audit.h b/include/linux/audit.h
+index b3d859831a31..217d2b0c273e 100644
+--- a/include/linux/audit.h
++++ b/include/linux/audit.h
+@@ -293,8 +293,8 @@ extern void __audit_syscall_exit(int ret_success, long ret_value);
+ extern struct filename *__audit_reusename(const __user char *uptr);
+ extern void __audit_getname(struct filename *name);
+ extern void __audit_getcwd(void);
+-extern void __audit_inode(struct filename *name, const struct dentry *dentry,
+-				unsigned int flags);
++extern void __audit_inode(struct filename *name, struct user_namespace *user_ns,
++			  const struct dentry *dentry, unsigned int flags);
+ extern void __audit_file(const struct file *);
+ extern void __audit_inode_child(struct inode *parent,
+ 				const struct dentry *dentry,
+@@ -357,10 +357,11 @@ static inline void audit_getcwd(void)
+ 		__audit_getcwd();
+ }
+ static inline void audit_inode(struct filename *name,
++				struct user_namespace *user_ns,
+ 				const struct dentry *dentry,
+ 				unsigned int aflags) {
+ 	if (unlikely(!audit_dummy_context()))
+-		__audit_inode(name, dentry, aflags);
++		__audit_inode(name, user_ns, dentry, aflags);
+ }
+ static inline void audit_file(struct file *file)
  {
- 	int ret;
- 	struct iattr newattrs;
-@@ -61,13 +61,14 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
- 
- 	inode_lock(dentry->d_inode);
- 	/* Note any delegations or leases have already been broken: */
--	ret = notify_change(dentry, &newattrs, NULL);
-+	ret = notify_mapped_change(user_ns, dentry, &newattrs, NULL);
- 	inode_unlock(dentry->d_inode);
- 	return ret;
+@@ -371,7 +372,7 @@ static inline void audit_inode_parent_hidden(struct filename *name,
+ 						const struct dentry *dentry)
+ {
+ 	if (unlikely(!audit_dummy_context()))
+-		__audit_inode(name, dentry,
++		__audit_inode(name, &init_user_ns, dentry,
+ 				AUDIT_INODE_PARENT | AUDIT_INODE_HIDDEN);
+ }
+ static inline void audit_inode_child(struct inode *parent,
+@@ -587,6 +588,7 @@ static inline void audit_getname(struct filename *name)
+ static inline void audit_getcwd(void)
+ { }
+ static inline void audit_inode(struct filename *name,
++				struct user_namespace *user_ns,
+ 				const struct dentry *dentry,
+ 				unsigned int aflags)
+ { }
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index beff0cfcd1e8..08ade6410563 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -849,8 +849,8 @@ static void remove_notification(struct mqueue_inode_info *info)
+ 	info->notify_user_ns = NULL;
  }
  
- long vfs_truncate(const struct path *path, loff_t length)
+-static int prepare_open(struct dentry *dentry, int oflag, int ro,
+-			umode_t mode, struct filename *name,
++static int prepare_open(struct user_namespace *user_ns, struct dentry *dentry,
++			int oflag, int ro, umode_t mode, struct filename *name,
+ 			struct mq_attr *attr)
  {
-+	struct user_namespace *user_ns;
- 	struct inode *inode;
- 	long error;
+ 	static const int oflag2acc[O_ACCMODE] = { MAY_READ, MAY_WRITE,
+@@ -867,7 +867,7 @@ static int prepare_open(struct dentry *dentry, int oflag, int ro,
+ 				  mqueue_create_attr, attr);
+ 	}
+ 	/* it already existed */
+-	audit_inode(name, dentry, 0);
++	audit_inode(name, user_ns, dentry, 0);
+ 	if ((oflag & (O_CREAT|O_EXCL)) == (O_CREAT|O_EXCL))
+ 		return -EEXIST;
+ 	if ((oflag & O_ACCMODE) == (O_RDWR | O_WRONLY))
+@@ -903,7 +903,7 @@ static int do_mq_open(const char __user *u_name, int oflag, umode_t mode,
+ 		goto out_putfd;
+ 	}
+ 	path.mnt = mntget(mnt);
+-	error = prepare_open(path.dentry, oflag, ro, mode, name, attr);
++	error = prepare_open(mnt_user_ns(path.mnt), path.dentry, oflag, ro, mode, name, attr);
+ 	if (!error) {
+ 		struct file *file = dentry_open(&path, oflag, current_cred());
+ 		if (!IS_ERR(file))
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index 9cdecdea61d9..0dc26fcf4742 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -1936,6 +1936,7 @@ void __audit_getname(struct filename *name)
+ }
  
-@@ -83,7 +84,8 @@ long vfs_truncate(const struct path *path, loff_t length)
- 	if (error)
- 		goto out;
+ static inline int audit_copy_fcaps(struct audit_names *name,
++				   struct user_namespace *user_ns,
+ 				   const struct dentry *dentry)
+ {
+ 	struct cpu_vfs_cap_data caps;
+@@ -1944,7 +1945,7 @@ static inline int audit_copy_fcaps(struct audit_names *name,
+ 	if (!dentry)
+ 		return 0;
  
--	error = inode_permission(inode, MAY_WRITE);
-+	user_ns = mnt_user_ns(path->mnt);
-+	error = mapped_inode_permission(user_ns, inode, MAY_WRITE);
- 	if (error)
- 		goto mnt_drop_write_and_out;
+-	rc = get_vfs_caps_from_disk(dentry, &caps);
++	rc = get_mapped_vfs_caps_from_disk(user_ns, dentry, &caps);
+ 	if (rc)
+ 		return rc;
  
-@@ -107,7 +109,7 @@ long vfs_truncate(const struct path *path, loff_t length)
- 	if (!error)
- 		error = security_path_truncate(path);
- 	if (!error)
--		error = do_truncate(path->dentry, length, 0, NULL);
-+		error = do_truncate(user_ns, path->dentry, length, 0, NULL);
+@@ -1960,21 +1961,22 @@ static inline int audit_copy_fcaps(struct audit_names *name,
  
- put_write_and_out:
- 	put_write_access(inode);
-@@ -186,13 +188,16 @@ long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
- 	/* Check IS_APPEND on real upper inode */
- 	if (IS_APPEND(file_inode(f.file)))
- 		goto out_putf;
--
- 	sb_start_write(inode->i_sb);
- 	error = locks_verify_truncate(inode, f.file, length);
- 	if (!error)
- 		error = security_path_truncate(&f.file->f_path);
--	if (!error)
--		error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, f.file);
-+	if (!error) {
-+		struct user_namespace *user_ns;
-+
-+		user_ns = mnt_user_ns(f.file->f_path.mnt);
-+		error = do_truncate(user_ns, dentry, length, ATTR_MTIME | ATTR_CTIME, f.file);
-+	}
- 	sb_end_write(inode->i_sb);
- out_putf:
- 	fdput(f);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index f523b1db48c4..bfcfa3d7374f 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2610,8 +2610,8 @@ struct filename {
- static_assert(offsetof(struct filename, iname) % sizeof(long) == 0);
+ /* Copy inode data into an audit_names. */
+ static void audit_copy_inode(struct audit_names *name,
+-			     const struct dentry *dentry,
+-			     struct inode *inode, unsigned int flags)
++			     struct user_namespace *user_ns,
++			     const struct dentry *dentry, struct inode *inode,
++			     unsigned int flags)
+ {
+ 	name->ino   = inode->i_ino;
+ 	name->dev   = inode->i_sb->s_dev;
+ 	name->mode  = inode->i_mode;
+-	name->uid   = inode->i_uid;
+-	name->gid   = inode->i_gid;
++	name->uid   = i_uid_into_mnt(user_ns, inode);
++	name->gid   = i_gid_into_mnt(user_ns, inode);
+ 	name->rdev  = inode->i_rdev;
+ 	security_inode_getsecid(inode, &name->osid);
+ 	if (flags & AUDIT_INODE_NOEVAL) {
+ 		name->fcap_ver = -1;
+ 		return;
+ 	}
+-	audit_copy_fcaps(name, dentry);
++	audit_copy_fcaps(name, user_ns, dentry);
+ }
  
- extern long vfs_truncate(const struct path *, loff_t);
--extern int do_truncate(struct dentry *, loff_t start, unsigned int time_attrs,
--		       struct file *filp);
-+extern int do_truncate(struct user_namespace *, struct dentry *, loff_t start,
-+		       unsigned int time_attrs, struct file *filp);
- extern int vfs_fallocate(struct file *file, int mode, loff_t offset,
- 			loff_t len);
- extern long do_sys_open(int dfd, const char __user *filename, int flags,
+ /**
+@@ -1983,8 +1985,8 @@ static void audit_copy_inode(struct audit_names *name,
+  * @dentry: dentry being audited
+  * @flags: attributes for this particular entry
+  */
+-void __audit_inode(struct filename *name, const struct dentry *dentry,
+-		   unsigned int flags)
++void __audit_inode(struct filename *name, struct user_namespace *user_ns,
++		   const struct dentry *dentry, unsigned int flags)
+ {
+ 	struct audit_context *context = audit_context();
+ 	struct inode *inode = d_backing_inode(dentry);
+@@ -2078,12 +2080,12 @@ void __audit_inode(struct filename *name, const struct dentry *dentry,
+ 		n->type = AUDIT_TYPE_NORMAL;
+ 	}
+ 	handle_path(dentry);
+-	audit_copy_inode(n, dentry, inode, flags & AUDIT_INODE_NOEVAL);
++	audit_copy_inode(n, user_ns, dentry, inode, flags & AUDIT_INODE_NOEVAL);
+ }
+ 
+ void __audit_file(const struct file *file)
+ {
+-	__audit_inode(NULL, file->f_path.dentry, 0);
++	__audit_inode(NULL, mnt_user_ns(file->f_path.mnt), file->f_path.dentry, 0);
+ }
+ 
+ /**
+@@ -2175,7 +2177,7 @@ void __audit_inode_child(struct inode *parent,
+ 		n = audit_alloc_name(context, AUDIT_TYPE_PARENT);
+ 		if (!n)
+ 			return;
+-		audit_copy_inode(n, NULL, parent, 0);
++		audit_copy_inode(n, &init_user_ns, NULL, parent, 0);
+ 	}
+ 
+ 	if (!found_child) {
+@@ -2194,7 +2196,7 @@ void __audit_inode_child(struct inode *parent,
+ 	}
+ 
+ 	if (inode)
+-		audit_copy_inode(found_child, dentry, inode, 0);
++		audit_copy_inode(found_child, &init_user_ns, dentry, inode, 0);
+ 	else
+ 		found_child->ino = AUDIT_INO_UNSET;
+ }
 -- 
 2.29.0
 
