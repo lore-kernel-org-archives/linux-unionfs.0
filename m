@@ -4,28 +4,28 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8626DC56201
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94375C64E69
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44DFD20724
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5196520724
+	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Oct 2020 00:53:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731714AbgJ2Af2 (ORCPT
+        id S2390721AbgJ2Axh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 28 Oct 2020 20:35:28 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:60620 "EHLO
+        Wed, 28 Oct 2020 20:53:37 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:60626 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730340AbgJ2Af0 (ORCPT
+        with ESMTP id S1727944AbgJ2Af2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 28 Oct 2020 20:35:26 -0400
+        Wed, 28 Oct 2020 20:35:28 -0400
 Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein.fritz.box)
         by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.86_2)
         (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kXvuL-0008Ep-Mt; Thu, 29 Oct 2020 00:35:13 +0000
+        id 1kXvuU-0008Ep-1v; Thu, 29 Oct 2020 00:35:22 +0000
 From:   Christian Brauner <christian.brauner@ubuntu.com>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -64,9 +64,9 @@ Cc:     John Johansen <john.johansen@canonical.com>,
         linux-audit@redhat.com, linux-integrity@vger.kernel.org,
         selinux@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: [PATCH 01/34] namespace: take lock_mount_hash() directly when changing flags
-Date:   Thu, 29 Oct 2020 01:32:19 +0100
-Message-Id: <20201029003252.2128653-2-christian.brauner@ubuntu.com>
+Subject: [PATCH 06/34] fs: add id translation helpers
+Date:   Thu, 29 Oct 2020 01:32:24 +0100
+Message-Id: <20201029003252.2128653-7-christian.brauner@ubuntu.com>
 X-Mailer: git-send-email 2.29.0
 In-Reply-To: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
 References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
@@ -76,87 +76,114 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Changing mount options always ends up taking lock_mount_hash() but when
-MNT_READONLY is requested and neither the mount nor the superblock are
-not already MNT_READONLY we end up taking the lock, dropping it, and
-retaking it to change the other mount attributes. Instead of this,
-acquire the lock once when changing mount properties. This simplifies
-the locking in these codepath, makes them easier to reason about and
-avoids having to reacquire the lock right after dropping it.
+Add simple helpers to make it easy to map kuids into and from idmapped
+mounts. We provide simple wrappers that filesystems can use to
+e.g. initialize inodes similar to i_{uid,gid}_read() and
+i_{uid,gid}_write(). Accessing an inode through an idmapped mount will
+require the inode to be mapped according to the mount's user namespace.
+If the fsids are used to compare against inodes or to initialize inodes
+they are required to be shifted from the mount's user namespace. Passing
+the initial user namespace to these helpers makes them a nop and so any
+non-idmapped paths will not be impacted.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org
 Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- fs/namespace.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ include/linux/fs.h | 75 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
 
-diff --git a/fs/namespace.c b/fs/namespace.c
-index cebaa3e81794..20ee291a7af4 100644
---- a/fs/namespace.c
-+++ b/fs/namespace.c
-@@ -463,7 +463,6 @@ static int mnt_make_readonly(struct mount *mnt)
- {
- 	int ret = 0;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8314cd351673..8a891b80d0b4 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -39,6 +39,7 @@
+ #include <linux/fs_types.h>
+ #include <linux/build_bug.h>
+ #include <linux/stddef.h>
++#include <linux/cred.h>
  
--	lock_mount_hash();
- 	mnt->mnt.mnt_flags |= MNT_WRITE_HOLD;
- 	/*
- 	 * After storing MNT_WRITE_HOLD, we'll read the counters. This store
-@@ -497,15 +496,12 @@ static int mnt_make_readonly(struct mount *mnt)
- 	 */
- 	smp_wmb();
- 	mnt->mnt.mnt_flags &= ~MNT_WRITE_HOLD;
--	unlock_mount_hash();
- 	return ret;
+ #include <asm/byteorder.h>
+ #include <uapi/linux/fs.h>
+@@ -1574,6 +1575,80 @@ static inline void i_gid_write(struct inode *inode, gid_t gid)
+ 	inode->i_gid = make_kgid(inode->i_sb->s_user_ns, gid);
  }
  
- static int __mnt_unmake_readonly(struct mount *mnt)
- {
--	lock_mount_hash();
- 	mnt->mnt.mnt_flags &= ~MNT_READONLY;
--	unlock_mount_hash();
- 	return 0;
- }
++static inline kuid_t kuid_into_mnt(struct user_namespace *to, kuid_t kuid)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return make_kuid(to, __kuid_val(kuid));
++#else
++	return kuid;
++#endif
++}
++
++static inline kgid_t kgid_into_mnt(struct user_namespace *to, kgid_t kgid)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return make_kgid(to, __kgid_val(kgid));
++#else
++	return kgid;
++#endif
++}
++
++static inline kuid_t i_uid_into_mnt(struct user_namespace *to,
++				    const struct inode *inode)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return kuid_into_mnt(to, inode->i_uid);
++#else
++	return inode->i_uid;
++#endif
++}
++
++static inline kgid_t i_gid_into_mnt(struct user_namespace *to,
++				    const struct inode *inode)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return kgid_into_mnt(to, inode->i_gid);
++#else
++	return inode->i_gid;
++#endif
++}
++
++static inline kuid_t kuid_from_mnt(struct user_namespace *to, kuid_t kuid)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return KUIDT_INIT(from_kuid(to, kuid));
++#else
++	return kuid;
++#endif
++}
++
++static inline kgid_t kgid_from_mnt(struct user_namespace *to, kgid_t kgid)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return KGIDT_INIT(from_kgid(to, kgid));
++#else
++	return kgid;
++#endif
++}
++
++static inline kuid_t fsuid_into_mnt(struct user_namespace *to)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return kuid_from_mnt(to, current_fsuid());
++#else
++	return current_fsuid();
++#endif
++}
++
++static inline kgid_t fsgid_into_mnt(struct user_namespace *to)
++{
++#ifdef CONFIG_IDMAP_MOUNTS
++	return kgid_from_mnt(to, current_fsgid());
++#else
++	return current_fsgid();
++#endif
++}
++
+ extern struct timespec64 current_time(struct inode *inode);
  
-@@ -2517,11 +2513,9 @@ static int change_mount_ro_state(struct mount *mnt, unsigned int mnt_flags)
-  */
- static void set_mount_attributes(struct mount *mnt, unsigned int mnt_flags)
- {
--	lock_mount_hash();
- 	mnt_flags |= mnt->mnt.mnt_flags & ~MNT_USER_SETTABLE_MASK;
- 	mnt->mnt.mnt_flags = mnt_flags;
- 	touch_mnt_namespace(mnt->mnt_ns);
--	unlock_mount_hash();
- }
- 
- static void mnt_warn_timestamp_expiry(struct path *mountpoint, struct vfsmount *mnt)
-@@ -2567,9 +2561,11 @@ static int do_reconfigure_mnt(struct path *path, unsigned int mnt_flags)
- 		return -EPERM;
- 
- 	down_write(&sb->s_umount);
-+	lock_mount_hash();
- 	ret = change_mount_ro_state(mnt, mnt_flags);
- 	if (ret == 0)
- 		set_mount_attributes(mnt, mnt_flags);
-+	unlock_mount_hash();
- 	up_write(&sb->s_umount);
- 
- 	mnt_warn_timestamp_expiry(path, &mnt->mnt);
-@@ -2610,8 +2606,11 @@ static int do_remount(struct path *path, int ms_flags, int sb_flags,
- 		err = -EPERM;
- 		if (ns_capable(sb->s_user_ns, CAP_SYS_ADMIN)) {
- 			err = reconfigure_super(fc);
--			if (!err)
-+			if (!err) {
-+				lock_mount_hash();
- 				set_mount_attributes(mnt, mnt_flags);
-+				unlock_mount_hash();
-+			}
- 		}
- 		up_write(&sb->s_umount);
- 	}
+ /*
 -- 
 2.29.0
 
