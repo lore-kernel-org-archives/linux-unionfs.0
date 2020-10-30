@@ -2,133 +2,82 @@ Return-Path: <SRS0=w8z3=EF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41FCAC00A89
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 09:57:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3092BC4363A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 10:17:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1ED02072C
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 09:57:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 902B92071A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 10:17:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GRHC3d3u"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="eHjnw8Xx"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726236AbgJ3J5g (ORCPT
+        id S1725808AbgJ3KRL (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 30 Oct 2020 05:57:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48578 "EHLO
+        Fri, 30 Oct 2020 06:17:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51804 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726014AbgJ3J5f (ORCPT
+        with ESMTP id S1725801AbgJ3KRL (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Oct 2020 05:57:35 -0400
-Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7D9C0613CF;
-        Fri, 30 Oct 2020 02:57:35 -0700 (PDT)
-Received: by mail-il1-x143.google.com with SMTP id q1so5977144ilt.6;
-        Fri, 30 Oct 2020 02:57:35 -0700 (PDT)
+        Fri, 30 Oct 2020 06:17:11 -0400
+Received: from mail-ua1-x944.google.com (mail-ua1-x944.google.com [IPv6:2607:f8b0:4864:20::944])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DEF62C0613D7
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 03:17:10 -0700 (PDT)
+Received: by mail-ua1-x944.google.com with SMTP id t15so1577715ual.6
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 03:17:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
+        d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=/KHmwpEf5KO59HQ9FXioTrkHMQnSCZyA82voNpwNnxU=;
-        b=GRHC3d3uHyqgAX2bNvYF5h8/iEP8by/R6OwvXZSq+WCITM51vMsZn4GtwUmgPBcPTE
-         JIFj14HuPPgbTZQIawYp/WdHFcCfbmwDz6AQau0lHfSWxoyRMIQGFCa6mC/lT/vC48Fh
-         wYTYSi05HENiGIZrygUitWfPOvtbzSnv0hw2foQqpN3bXy/biCRwd2YEEEo1sCaotdD+
-         hA6wLP2AV/oTN011TL9T9aeU4s8MfJlR9YyL3VBEDUL1hZNcVpgED15piK/dbU9mR+9J
-         OBeYqC0iHVutFieBZGl23BYx95gCrsOrOmHBWMlmgoUyWbvcB9q8hEMkjqBqpL+HaXhc
-         2LDQ==
+        bh=KpcDuybzX/9LOwoW6LsWPbubvRIkCUTbl/p8yLeIKto=;
+        b=eHjnw8XxjCJfyypCBxZIxCOszUQPZG/toN2oTycB2uVkz3qTh2eS/QLz5sSpeIeegS
+         DvAVv+c5FjR+wiUj3WQkqdzUL1oJfUsfiufyzlE4cfPQlEZlVYYCw40IGwYDxr9Ljv8L
+         9hZMu8YMgyPuybCtOcdr9dG6pOZcifz2YRAjk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=/KHmwpEf5KO59HQ9FXioTrkHMQnSCZyA82voNpwNnxU=;
-        b=MPYeG5L3Q4s2ik9jeEeYMYcCvIkcSlUffhLZDzg3IhIpsmJdcbB1SBeSO2uNQxTqw6
-         AdR+Pk4NZ/jPEFHAubpei1Lk6cyB2FbMwEavNR7cKlLJGYlVYT2qatKXixSlEELIN6Fo
-         5+M32rGJFEEO1lDM7BRnoVF9UjdsBE+YJ4bPZjoiVmCIzsm2E7+W5+xQcTCTCgJT6das
-         VTNDavB6lE6NSKHKs7lVE/DlnCGwdZH+zc4d4GtIY5Hwn+jlMdt8xyZ7pggI+BXxJuR9
-         4t7SujPC3ui0ImpSRlo4Pm2azPK0Sgy/H6nCKSCZTTxmJtsRtcaxlkBZGeDLtqIhYk9K
-         zVuA==
-X-Gm-Message-State: AOAM531nz1pG6hSWVBeyE2EIT9gmzLLCNiMKVZaVDQGYk/mK0KiJ60Fm
-        o3TfoJSCwm+3Ot7l60Hd68aIzznNHz9v1XbmCBA=
-X-Google-Smtp-Source: ABdhPJxFlt//ACc/IV26fZ1qCGgWOIH/npCA4rcrvS/8aohcRHMILRDfiUHL83JStMqAq2lFcdcahBWGZNVdziI1h1E=
-X-Received: by 2002:a05:6e02:14c9:: with SMTP id o9mr1218968ilk.137.1604051855144;
- Fri, 30 Oct 2020 02:57:35 -0700 (PDT)
+        bh=KpcDuybzX/9LOwoW6LsWPbubvRIkCUTbl/p8yLeIKto=;
+        b=RvH8YrPRvnrG27rXks4Msp3p0+ulF+J6GpGJDkNJg+RA9LaCf+uUOAG0RjqqSrHZ8r
+         3dPq8LV4S24kIn1AYc8mLAIn+GWEk7CdJtuwMudnO+1qIVakMlNpNDzxdcOFB+3zy4t2
+         OVUd7IZCPDVidQgBaJbRJ/XMJBZuzFXijWnR01Mg37zoV3WdiFGJCvRRjkWBUYpszkBQ
+         zE5DKCk0GIX4R21klwpzBP7CsJJWZzpuBY6RBswu0Fzim+3fF79kEFL0c6/xbCvFnVTB
+         NvJ/XjzSa8oqEVrVNcIUFuAuDppLE3Rd9zMMjYTRRBb6aWHm+wKdHToAe7NF1spuyt2H
+         fBbg==
+X-Gm-Message-State: AOAM533/rrvoxd8+F/EGee0ZP1aZo2Uo19bFDLBM5qu8UsMPzgZUsx8w
+        gQNlqxQjo8psGDcpoOL6HW3McZXLI95P8z35ZCtIttjXOK0=
+X-Google-Smtp-Source: ABdhPJxCooV8jd/eY1shr343h3KYHhSZGko8up0EBGazq237Vv5St7ITkN3jATMEU3VUBDLZ2sG0lLtTFkZeREbqyzw=
+X-Received: by 2002:ab0:3312:: with SMTP id r18mr687931uao.13.1604053030105;
+ Fri, 30 Oct 2020 03:17:10 -0700 (PDT)
 MIME-Version: 1.0
-References: <20201029003252.2128653-1-christian.brauner@ubuntu.com> <20201029003252.2128653-34-christian.brauner@ubuntu.com>
-In-Reply-To: <20201029003252.2128653-34-christian.brauner@ubuntu.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 30 Oct 2020 11:57:24 +0200
-Message-ID: <CAOQ4uxjyNB2zE+GE8Wmwjq__C7e4mrWMrS8RDVOOQFLtezjTkg@mail.gmail.com>
-Subject: Re: [PATCH 33/34] overlayfs: handle idmapped merged mounts
-To:     Christian Brauner <christian.brauner@ubuntu.com>
-Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        John Johansen <john.johansen@canonical.com>,
-        James Morris <jmorris@namei.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Geoffrey Thomas <geofft@ldpreload.com>,
-        Mrunal Patel <mpatel@redhat.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Theodore Tso <tytso@mit.edu>, Alban Crequy <alban@kinvolk.io>,
-        Tycho Andersen <tycho@tycho.ws>,
-        David Howells <dhowells@redhat.com>,
-        James Bottomley <James.Bottomley@hansenpartnership.com>,
-        Jann Horn <jannh@google.com>,
-        Seth Forshee <seth.forshee@canonical.com>,
-        =?UTF-8?Q?St=C3=A9phane_Graber?= <stgraber@ubuntu.com>,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Lennart Poettering <lennart@poettering.net>,
-        "Eric W. Biederman" <ebiederm@xmission.com>, smbarber@chromium.org,
-        Phil Estes <estesp@gmail.com>, Serge Hallyn <serge@hallyn.com>,
-        Kees Cook <keescook@chromium.org>,
-        Todd Kjos <tkjos@google.com>, Jonathan Corbet <corbet@lwn.net>,
-        Linux Containers <containers@lists.linux-foundation.org>,
-        LSM List <linux-security-module@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        Ext4 <linux-ext4@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Linux Audit <linux-audit@redhat.com>,
-        linux-integrity <linux-integrity@vger.kernel.org>,
-        selinux@vger.kernel.org
+References: <20200624102011.4861-1-cgxu519@mykernel.net> <c9faf864-c515-2657-fa7c-6ba24a9ea89f@mykernel.net>
+In-Reply-To: <c9faf864-c515-2657-fa7c-6ba24a9ea89f@mykernel.net>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 30 Oct 2020 11:16:59 +0100
+Message-ID: <CAJfpegu+vGpB1r13HSiyhv1JPXjcf2ee+NYXzev2HeKwxew9MQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix incorrect extent info in metacopy case
+To:     cgxu <cgxu519@mykernel.net>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> -int ovl_permission(struct inode *inode, int mask)
-> +int ovl_permission_mapped(struct user_namespace *user_ns,
-> +                         struct inode *inode, int mask)
->  {
->         struct inode *upperinode = ovl_inode_upper(inode);
->         struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
-> -       struct user_namespace *user_ns;
-> +       struct user_namespace *real_user_ns;
->         const struct cred *old_cred;
->         int err;
+On Fri, Aug 14, 2020 at 11:23 AM cgxu <cgxu519@mykernel.net> wrote:
 >
-> @@ -302,15 +313,15 @@ int ovl_permission(struct inode *inode, int mask)
->         }
+> On 6/24/20 6:20 PM, Chengguang Xu wrote:
+> > In metacopy case, we should use ovl_inode_realdata() instead of
+> > ovl_inode_real() to get real inode which has data, so that
+> > we can get correct information of extentes in ->fiemap operation.
+> >
+> > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 >
->         if (upperinode)
-> -               user_ns = ovl_upper_mnt_user_ns(OVL_FS(inode->i_sb));
-> +               real_user_ns = ovl_upper_mnt_user_ns(OVL_FS(inode->i_sb));
->         else
-> -               user_ns = OVL_I(inode)->lower_user_ns;
-> +               real_user_ns = OVL_I(inode)->lower_user_ns;
+> ping
 
-These changes look strange in this patch. Better use real_user_ns in previous
-patch.
+Sorry, I missed this patch.  Applied now.
 
 Thanks,
-Amir.
+Miklos
