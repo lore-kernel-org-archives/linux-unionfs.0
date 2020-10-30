@@ -2,33 +2,70 @@ Return-Path: <SRS0=w8z3=EF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3887FC2D0A3
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 02:18:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41FCAC00A89
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 09:57:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D80582076B
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 02:18:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1ED02072C
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 09:57:36 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="GRHC3d3u"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725926AbgJ3CSJ (ORCPT
+        id S1726236AbgJ3J5g (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 29 Oct 2020 22:18:09 -0400
-Received: from mail.hallyn.com ([178.63.66.53]:38118 "EHLO mail.hallyn.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725781AbgJ3CSJ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Oct 2020 22:18:09 -0400
-Received: by mail.hallyn.com (Postfix, from userid 1001)
-        id 027D69B4; Thu, 29 Oct 2020 21:18:05 -0500 (CDT)
-Date:   Thu, 29 Oct 2020 21:18:05 -0500
-From:   "Serge E. Hallyn" <serge@hallyn.com>
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Aleksa Sarai <cyphar@cyphar.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Fri, 30 Oct 2020 05:57:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48578 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726014AbgJ3J5f (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 30 Oct 2020 05:57:35 -0400
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7D9C0613CF;
+        Fri, 30 Oct 2020 02:57:35 -0700 (PDT)
+Received: by mail-il1-x143.google.com with SMTP id q1so5977144ilt.6;
+        Fri, 30 Oct 2020 02:57:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=/KHmwpEf5KO59HQ9FXioTrkHMQnSCZyA82voNpwNnxU=;
+        b=GRHC3d3uHyqgAX2bNvYF5h8/iEP8by/R6OwvXZSq+WCITM51vMsZn4GtwUmgPBcPTE
+         JIFj14HuPPgbTZQIawYp/WdHFcCfbmwDz6AQau0lHfSWxoyRMIQGFCa6mC/lT/vC48Fh
+         wYTYSi05HENiGIZrygUitWfPOvtbzSnv0hw2foQqpN3bXy/biCRwd2YEEEo1sCaotdD+
+         hA6wLP2AV/oTN011TL9T9aeU4s8MfJlR9YyL3VBEDUL1hZNcVpgED15piK/dbU9mR+9J
+         OBeYqC0iHVutFieBZGl23BYx95gCrsOrOmHBWMlmgoUyWbvcB9q8hEMkjqBqpL+HaXhc
+         2LDQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=/KHmwpEf5KO59HQ9FXioTrkHMQnSCZyA82voNpwNnxU=;
+        b=MPYeG5L3Q4s2ik9jeEeYMYcCvIkcSlUffhLZDzg3IhIpsmJdcbB1SBeSO2uNQxTqw6
+         AdR+Pk4NZ/jPEFHAubpei1Lk6cyB2FbMwEavNR7cKlLJGYlVYT2qatKXixSlEELIN6Fo
+         5+M32rGJFEEO1lDM7BRnoVF9UjdsBE+YJ4bPZjoiVmCIzsm2E7+W5+xQcTCTCgJT6das
+         VTNDavB6lE6NSKHKs7lVE/DlnCGwdZH+zc4d4GtIY5Hwn+jlMdt8xyZ7pggI+BXxJuR9
+         4t7SujPC3ui0ImpSRlo4Pm2azPK0Sgy/H6nCKSCZTTxmJtsRtcaxlkBZGeDLtqIhYk9K
+         zVuA==
+X-Gm-Message-State: AOAM531nz1pG6hSWVBeyE2EIT9gmzLLCNiMKVZaVDQGYk/mK0KiJ60Fm
+        o3TfoJSCwm+3Ot7l60Hd68aIzznNHz9v1XbmCBA=
+X-Google-Smtp-Source: ABdhPJxFlt//ACc/IV26fZ1qCGgWOIH/npCA4rcrvS/8aohcRHMILRDfiUHL83JStMqAq2lFcdcahBWGZNVdziI1h1E=
+X-Received: by 2002:a05:6e02:14c9:: with SMTP id o9mr1218968ilk.137.1604051855144;
+ Fri, 30 Oct 2020 02:57:35 -0700 (PDT)
+MIME-Version: 1.0
+References: <20201029003252.2128653-1-christian.brauner@ubuntu.com> <20201029003252.2128653-34-christian.brauner@ubuntu.com>
+In-Reply-To: <20201029003252.2128653-34-christian.brauner@ubuntu.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 30 Oct 2020 11:57:24 +0200
+Message-ID: <CAOQ4uxjyNB2zE+GE8Wmwjq__C7e4mrWMrS8RDVOOQFLtezjTkg@mail.gmail.com>
+Subject: Re: [PATCH 33/34] overlayfs: handle idmapped merged mounts
+To:     Christian Brauner <christian.brauner@ubuntu.com>
+Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
-        linux-fsdevel@vger.kernel.org,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         John Johansen <john.johansen@canonical.com>,
         James Morris <jmorris@namei.org>,
         Mimi Zohar <zohar@linux.ibm.com>,
@@ -42,7 +79,6 @@ Cc:     Aleksa Sarai <cyphar@cyphar.com>,
         Mrunal Patel <mpatel@redhat.com>,
         Josh Triplett <josh@joshtriplett.org>,
         Andy Lutomirski <luto@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Theodore Tso <tytso@mit.edu>, Alban Crequy <alban@kinvolk.io>,
         Tycho Andersen <tycho@tycho.ws>,
@@ -50,106 +86,49 @@ Cc:     Aleksa Sarai <cyphar@cyphar.com>,
         James Bottomley <James.Bottomley@hansenpartnership.com>,
         Jann Horn <jannh@google.com>,
         Seth Forshee <seth.forshee@canonical.com>,
-        =?iso-8859-1?Q?St=E9phane?= Graber <stgraber@ubuntu.com>,
+        =?UTF-8?Q?St=C3=A9phane_Graber?= <stgraber@ubuntu.com>,
+        Aleksa Sarai <cyphar@cyphar.com>,
         Lennart Poettering <lennart@poettering.net>,
-        smbarber@chromium.org, Phil Estes <estesp@gmail.com>,
-        Serge Hallyn <serge@hallyn.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>, smbarber@chromium.org,
+        Phil Estes <estesp@gmail.com>, Serge Hallyn <serge@hallyn.com>,
         Kees Cook <keescook@chromium.org>,
         Todd Kjos <tkjos@google.com>, Jonathan Corbet <corbet@lwn.net>,
-        containers@lists.linux-foundation.org,
-        linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-audit@redhat.com, linux-integrity@vger.kernel.org,
+        Linux Containers <containers@lists.linux-foundation.org>,
+        LSM List <linux-security-module@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        Ext4 <linux-ext4@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Linux Audit <linux-audit@redhat.com>,
+        linux-integrity <linux-integrity@vger.kernel.org>,
         selinux@vger.kernel.org
-Subject: Re: [PATCH 00/34] fs: idmapped mounts
-Message-ID: <20201030021805.GA20489@mail.hallyn.com>
-References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
- <87pn51ghju.fsf@x220.int.ebiederm.org>
- <20201029155148.5odu4j2kt62ahcxq@yavin.dot.cyphar.com>
- <87361xdm4c.fsf@x220.int.ebiederm.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87361xdm4c.fsf@x220.int.ebiederm.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 29, 2020 at 11:37:23AM -0500, Eric W. Biederman wrote:
-> Aleksa Sarai <cyphar@cyphar.com> writes:
-> 
-> > On 2020-10-29, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >> Christian Brauner <christian.brauner@ubuntu.com> writes:
-> >> 
-> >> > Hey everyone,
-> >> >
-> >> > I vanished for a little while to focus on this work here so sorry for
-> >> > not being available by mail for a while.
-> >> >
-> >> > Since quite a long time we have issues with sharing mounts between
-> >> > multiple unprivileged containers with different id mappings, sharing a
-> >> > rootfs between multiple containers with different id mappings, and also
-> >> > sharing regular directories and filesystems between users with different
-> >> > uids and gids. The latter use-cases have become even more important with
-> >> > the availability and adoption of systemd-homed (cf. [1]) to implement
-> >> > portable home directories.
-> >> 
-> >> Can you walk us through the motivating use case?
-> >> 
-> >> As of this year's LPC I had the distinct impression that the primary use
-> >> case for such a feature was due to the RLIMIT_NPROC problem where two
-> >> containers with the same users still wanted different uid mappings to
-> >> the disk because the users were conflicting with each other because of
-> >> the per user rlimits.
-> >> 
-> >> Fixing rlimits is straight forward to implement, and easier to manage
-> >> for implementations and administrators.
-> >
-> > This is separate to the question of "isolated user namespaces" and
-> > managing different mappings between containers. This patchset is solving
-> > the same problem that shiftfs solved -- sharing a single directory tree
-> > between containers that have different ID mappings. rlimits (nor any of
-> > the other proposals we discussed at LPC) will help with this problem.
-> 
-> First and foremost: A uid shift on write to a filesystem is a security
-> bug waiting to happen.  This is especially in the context of facilities
-> like iouring, that play very agressive games with how process context
-> makes it to  system calls.
-> 
-> The only reason containers were not immediately exploitable when iouring
-> was introduced is because the mechanisms are built so that even if
-> something escapes containment the security properties still apply.
-> Changes to the uid when writing to the filesystem does not have that
-> property.  The tiniest slip in containment will be a security issue.
-> 
-> This is not even the least bit theoretical.  I have seem reports of how
-> shitfs+overlayfs created a situation where anyone could read
-> /etc/shadow.
-> 
-> If you are going to write using the same uid to disk from different
-> containers the question becomes why can't those containers configure
-> those users to use the same kuid?
+> -int ovl_permission(struct inode *inode, int mask)
+> +int ovl_permission_mapped(struct user_namespace *user_ns,
+> +                         struct inode *inode, int mask)
+>  {
+>         struct inode *upperinode = ovl_inode_upper(inode);
+>         struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
+> -       struct user_namespace *user_ns;
+> +       struct user_namespace *real_user_ns;
+>         const struct cred *old_cred;
+>         int err;
+>
+> @@ -302,15 +313,15 @@ int ovl_permission(struct inode *inode, int mask)
+>         }
+>
+>         if (upperinode)
+> -               user_ns = ovl_upper_mnt_user_ns(OVL_FS(inode->i_sb));
+> +               real_user_ns = ovl_upper_mnt_user_ns(OVL_FS(inode->i_sb));
+>         else
+> -               user_ns = OVL_I(inode)->lower_user_ns;
+> +               real_user_ns = OVL_I(inode)->lower_user_ns;
 
-Because if user 'myapp' in two otherwise isolated containers both have
-the same kuid, so that they can write to a shared directory, then root
-in container 1 has privilege over all files owned by 'myapp' in
-container 2.
+These changes look strange in this patch. Better use real_user_ns in previous
+patch.
 
-Whereas if they can each have distinct kuids, but when writing to the
-shared fs have a shared uid not otherwise belonging to either container,
-their rootfs's can remain completely off limits to each other.
-
-> What fixing rlimits does is it fixes one of the reasons that different
-> containers could not share the same kuid for users that want to write to
-> disk with the same uid.
-> 
-> 
-> I humbly suggest that it will be more secure, and easier to maintain for
-> both developers and users if we fix the reasons people want different
-> containers to have the same user running with different kuids.
-> 
-> If not what are the reasons we fundamentally need the same on-disk user
-> using multiple kuids in the kernel?
-> 
-> Eric
+Thanks,
+Amir.
