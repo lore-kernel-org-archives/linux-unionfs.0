@@ -2,121 +2,93 @@ Return-Path: <SRS0=w8z3=EF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1547BC4363A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 13:02:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1678C4363A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 13:17:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A11E1206FA
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 13:02:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39DB12075E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 13:17:00 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="c/0np4r5"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="ao9kqffH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726612AbgJ3NCh (ORCPT
+        id S1726078AbgJ3NQ7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 30 Oct 2020 09:02:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49272 "EHLO
+        Fri, 30 Oct 2020 09:16:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726566AbgJ3NCg (ORCPT
+        with ESMTP id S1725999AbgJ3NQ6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Oct 2020 09:02:36 -0400
-Received: from mail-vk1-xa30.google.com (mail-vk1-xa30.google.com [IPv6:2607:f8b0:4864:20::a30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7F65C0613D6
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 06:02:34 -0700 (PDT)
-Received: by mail-vk1-xa30.google.com with SMTP id i62so1430605vkb.7
-        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 06:02:34 -0700 (PDT)
+        Fri, 30 Oct 2020 09:16:58 -0400
+Received: from mail-vk1-xa42.google.com (mail-vk1-xa42.google.com [IPv6:2607:f8b0:4864:20::a42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27078C0613CF
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 06:16:58 -0700 (PDT)
+Received: by mail-vk1-xa42.google.com with SMTP id n189so1447428vkb.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 06:16:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=hfUp6uvT0mNo9qOvWz4kadVZif4hwG0EcrIPidc71AU=;
-        b=c/0np4r5fnnReVFjWkDWXo8hF0To3ovSOoxgoL/QWs9VxL86iqjKdadij03d378/T5
-         B7rjoCbR258EwTEX+UW+6QMPF65hDWZsco0RfSUG9stFDcsd6ZZkDH+4oFGIQiro7Wrf
-         /VUafL5CtS83KydlI6lpgD86QMrk86JITh21I=
+        bh=K9PQq7INF35OYV48DeGKYJyLgcV7A07mFkDwC/Z5Dlo=;
+        b=ao9kqffHlw/SG4Lje0AmpcP5kpC31ihU1PHVVsIKEAZJXiOWUprQXEc4GUmaJCf/uf
+         A8Yh/PLycDyqOovaj2RoLgec4e0qzQm5LVWIzF0BVcHErbKyogfFXOJPLAWc6taGcszr
+         7xKuHD32E7lhBRx46gA7SahEkCv0U6rLDT0yk=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=hfUp6uvT0mNo9qOvWz4kadVZif4hwG0EcrIPidc71AU=;
-        b=jD9NwCv5AY1aVRnshiytwpzqFOC9yBMpqRGGIcyYLmwFKY3mGUqdz6W8VutHHeTZ9C
-         TdKi5fzwDDnJMopTrPBLJXdK0v/CsmiRYD31qmVjzy6HnoSi/UBZQWL1Rc4oNJHmqIzK
-         lO8ynduSJAUeqSj8cZa0lGO0GG4ka7l+iKxT9DYvvgnGG/CR31i3LQvVHfwX2OG5vJPc
-         FgsxJbGMM5LrK4afQuEScl7w0Kx7EhUZeMfEQBc5H1PK7JpB/tfKBGpmJBtpV4ZRK5/z
-         TKpvkgJNElb3aWDnNovW4r7KlaLqsfHbob/jK1x/u5LEGnReOLRiIU5/u08iJwb52pRM
-         gnnQ==
-X-Gm-Message-State: AOAM530jQ7SOh6vqIoBLkc7f5lNcgsfjVUD1eQYtj/ze+y2J4MoGA39U
-        ziMRtY689KuDKrKNlYiNeacEbK4j62orMEKOeKjilQ==
-X-Google-Smtp-Source: ABdhPJxPa9+zamc48OrPbKG+5+YeIbGDLouPEl6taVV7SKI2yGqJZrMzqI/DHpB0Je2VEJI3rTxbB6w6g9+fXjI8Kns=
-X-Received: by 2002:a1f:23d0:: with SMTP id j199mr6640364vkj.11.1604062953264;
- Fri, 30 Oct 2020 06:02:33 -0700 (PDT)
+        bh=K9PQq7INF35OYV48DeGKYJyLgcV7A07mFkDwC/Z5Dlo=;
+        b=ds9mV7ad37t6kbFT0bo47tIV+NiuMYrCOxLjeDzD+QC/PEDV0wtHAkLxiKW3UUaXOQ
+         9F4HuL+y8pKR/0LsRYgudFpezLgrba9uGVKsWGyZSi1Q/JcOWqNNk7smJyeaglnWxgJf
+         6IG1DmKa5F1lX2SCJicbzaoe8zcaHGiC58dDrrs8aN3Ae/Jq5AvMEyoiyzXhSpQtPO+U
+         26EFjCrqyCEO+jTxAi+tbhG3VKsgER8QXb2fAJpCXzdDRqno4aGi/zwguBZ9oqi0i7qC
+         zBKVRjvzFSzI/f+vxV1HrsRdPNgf7YMTaLBm/0xUAd0YvV6b8wgiFq1AD3rTLkt4F2bv
+         kNYg==
+X-Gm-Message-State: AOAM530GpwY1Cv0klHCWWPtdnRzQNpzIZOOnNo3MwXL+bFIlEPeQB9JJ
+        A1rGwnkDqx1trgKtyVYgQwT9SforEWnCIgSAyC7OQw==
+X-Google-Smtp-Source: ABdhPJxSMjn1orzYmsXJScr+64oWgZ1O+ERwkWAJLxzPmESNYZi6opNInzBnY73JPBYtjdmOeKJWOcan5ux4tU6w7T8=
+X-Received: by 2002:a1f:23d0:: with SMTP id j199mr6737722vkj.11.1604063817240;
+ Fri, 30 Oct 2020 06:16:57 -0700 (PDT)
 MIME-Version: 1.0
-References: <0000000000008caae305ab9a5318@google.com> <000000000000a726a405ada4b6cf@google.com>
- <CAFqZXNvQcjp201ahjLBhYJJCuYqZrYLGDA-wE3hXiJpRNgbTKg@mail.gmail.com>
-In-Reply-To: <CAFqZXNvQcjp201ahjLBhYJJCuYqZrYLGDA-wE3hXiJpRNgbTKg@mail.gmail.com>
+References: <82b537e0ca5fa38b492413bd665c0198e6761015.1597944769.git.kevin@kevinlocke.name>
+ <fe78446e6565cda29cc2c87f3e3c1b2a16f5d5cc.1598149357.git.kevin@kevinlocke.name>
+In-Reply-To: <fe78446e6565cda29cc2c87f3e3c1b2a16f5d5cc.1598149357.git.kevin@kevinlocke.name>
 From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 30 Oct 2020 14:02:22 +0100
-Message-ID: <CAJfpegtzQB09ind8tkYzaiu6ODJvhMKj3myxVS75vbjTcOxU8g@mail.gmail.com>
-Subject: Re: general protection fault in security_inode_getattr
-To:     Ondrej Mosnacek <omosnace@redhat.com>
-Cc:     syzbot <syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com>,
-        andriin@fb.com, Alexei Starovoitov <ast@kernel.org>,
-        bpf <bpf@vger.kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        James Morris <jmorris@namei.org>, john.fastabend@gmail.com,
-        kafai@fb.com, KP Singh <kpsingh@chromium.org>,
-        Linux kernel mailing list <linux-kernel@vger.kernel.org>,
-        Linux Security Module list 
-        <linux-security-module@vger.kernel.org>,
-        network dev <netdev@vger.kernel.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        Song Liu <songliubraving@fb.com>,
-        syzkaller-bugs <syzkaller-bugs@googlegroups.com>, yhs@fb.com,
-        linux-fsdevel@vger.kernel.org,
-        overlayfs <linux-unionfs@vger.kernel.org>
+Date:   Fri, 30 Oct 2020 14:16:46 +0100
+Message-ID: <CAJfpegvakND7=_8eDdu9TAgXwYNN-vZi1pdY-gLzuF-Dn6C0_Q@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: document lower modification caveats
+To:     Kevin Locke <kevin@kevinlocke.name>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Vivek Goyal <vgoyal@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Aug 24, 2020 at 11:00 PM Ondrej Mosnacek <omosnace@redhat.com> wrote:
+On Sun, Aug 23, 2020 at 4:23 AM Kevin Locke <kevin@kevinlocke.name> wrote:
 >
-> On Mon, Aug 24, 2020 at 9:37 PM syzbot
-> <syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com> wrote:
-> > syzbot has found a reproducer for the following issue on:
+> Some overlayfs optional features are incompatible with offline changes
+> to the lower tree[1][2][3] and may result in -EXDEV[4], -EIO[5], or
+> other errors.  Such modification is not supported and the error behavior
+> is intentionally not specified.
 >
-> Looping in fsdevel and OverlayFS maintainers, as this seems to be
-> FS/OverlayFS related...
+> Update the "Changes to underlying filesystems" section to note this
+> restriction.  Move the paragraph describing the offline behavior below
+> the online behavior so it is adjacent to the following 3 paragraphs
+> describing the NFS export offline modification behavior.
+>
+> [1]: https://lore.kernel.org/linux-unionfs/20200708142353.GA103536@redhat.com/
+> [2]: https://lore.kernel.org/linux-unionfs/CAOQ4uxi23Zsmfb4rCed1n=On0NNA5KZD74jjjeyz+et32sk-gg@mail.gmail.com/
+> [3]: https://lore.kernel.org/linux-unionfs/20200817135651.GA637139@redhat.com/
+> [4]: https://lore.kernel.org/linux-unionfs/20200709153616.GE150543@redhat.com/
+> [5]: https://lore.kernel.org/linux-unionfs/20200812135529.GA122370@kevinolos/
+>
+> Signed-off-by: Kevin Locke <kevin@kevinlocke.name>
 
-Hmm, the oopsing code is always something like:
+Thanks, applied.
 
-All code
-========
-   0: 1b fe                sbb    %esi,%edi
-   2: 49 8d 5e 08          lea    0x8(%r14),%rbx
-   6: 48 89 d8              mov    %rbx,%rax
-   9: 48 c1 e8 03          shr    $0x3,%rax
-   d: 42 80 3c 38 00        cmpb   $0x0,(%rax,%r15,1)
-  12: 74 08                je     0x1c
-  14: 48 89 df              mov    %rbx,%rdi
-  17: e8 bc b4 5b fe        callq  0xfffffffffe5bb4d8
-  1c: 48 8b 1b              mov    (%rbx),%rbx
-  1f: 48 83 c3 68          add    $0x68,%rbx
-  23: 48 89 d8              mov    %rbx,%rax
-  26: 48 c1 e8 03          shr    $0x3,%rax
-  2a:* 42 80 3c 38 00        cmpb   $0x0,(%rax,%r15,1) <-- trapping instruction
-  2f: 74 08                je     0x39
-  31: 48 89 df              mov    %rbx,%rdi
-  34: e8 9f b4 5b fe        callq  0xfffffffffe5bb4d8
-  39: 48 8b 1b              mov    (%rbx),%rbx
-  3c: 48 83 c3 0c          add    $0xc,%rbx
-
-
-And that looks (to me) like the unrolled loop in call_int_hook().  I
-don't see how that could be related to overlayfs, though it's
-definitely interesting why it only triggers from
-overlay->vfs_getattr()->security_inode_getattr()...
-
-Thanks,
 Miklos
