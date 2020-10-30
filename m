@@ -2,164 +2,105 @@ Return-Path: <SRS0=w8z3=EF=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E76B2C00A89
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 12:02:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D3B1C4363A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 12:16:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9013B20704
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 12:02:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7856C206E9
+	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Oct 2020 12:16:04 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="Z6fgzpu8"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726433AbgJ3MCJ (ORCPT
+        id S1725975AbgJ3MQE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 30 Oct 2020 08:02:09 -0400
-Received: from youngberry.canonical.com ([91.189.89.112]:39709 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725808AbgJ3MCJ (ORCPT
+        Fri, 30 Oct 2020 08:16:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42032 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725834AbgJ3MQE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Oct 2020 08:02:09 -0400
-Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kYT6V-0006JV-Px; Fri, 30 Oct 2020 12:01:59 +0000
-Date:   Fri, 30 Oct 2020 13:01:57 +0100
-From:   Christian Brauner <christian.brauner@ubuntu.com>
-To:     Andy Lutomirski <luto@amacapital.net>
-Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        linux-fsdevel@vger.kernel.org,
-        John Johansen <john.johansen@canonical.com>,
-        James Morris <jmorris@namei.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Geoffrey Thomas <geofft@ldpreload.com>,
-        Mrunal Patel <mpatel@redhat.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Theodore Tso <tytso@mit.edu>, Alban Crequy <alban@kinvolk.io>,
-        Tycho Andersen <tycho@tycho.ws>,
-        David Howells <dhowells@redhat.com>,
-        James Bottomley <james.bottomley@hansenpartnership.com>,
-        Jann Horn <jannh@google.com>,
-        Seth Forshee <seth.forshee@canonical.com>,
-        =?utf-8?B?U3TDqXBoYW5l?= Graber <stgraber@ubuntu.com>,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Lennart Poettering <lennart@poettering.net>,
-        "Eric W. Biederman" <ebiederm@xmission.com>, smbarber@chromium.org,
-        Phil Estes <estesp@gmail.com>, Serge Hallyn <serge@hallyn.com>,
-        Kees Cook <keescook@chromium.org>,
-        Todd Kjos <tkjos@google.com>, Jonathan Corbet <corbet@lwn.net>,
-        containers@lists.linux-foundation.org,
-        linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-audit@redhat.com, linux-integrity@vger.kernel.org,
-        selinux@vger.kernel.org
-Subject: Re: [PATCH 00/34] fs: idmapped mounts
-Message-ID: <20201030120157.exz4rxmebruh7bgp@wittgenstein>
-References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
- <8E455D54-FED4-4D06-8CB7-FC6291C64259@amacapital.net>
+        Fri, 30 Oct 2020 08:16:04 -0400
+Received: from mail-vs1-xe44.google.com (mail-vs1-xe44.google.com [IPv6:2607:f8b0:4864:20::e44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6031C0613CF
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 05:05:51 -0700 (PDT)
+Received: by mail-vs1-xe44.google.com with SMTP id u16so2404861vsl.13
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Oct 2020 05:05:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=kEFI5IoaRNxIAf7DKw6N5BawBOQRfFBfmntEXGVcmCg=;
+        b=Z6fgzpu8RzTZXee0TpfWh15utmrC6AxRC+azYan5eqbBVtFLMVxkEbS0ZNXDgva33e
+         DPlRLchyaQE26hfIak4xtJVLHErOkZimpA2JBlcgx6aoIsff4+C86WHMm4vYrc5ZiWYf
+         QJ5hO39tZjmIzGWZUYYwhoGWnIRtaAxkcV8BY=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=kEFI5IoaRNxIAf7DKw6N5BawBOQRfFBfmntEXGVcmCg=;
+        b=N/yhL6d2j5+PVitGoNpDEzpM1Cel45lRV5oHP9B1jUWTJZPinFvPpnkW1iBEaJmfqe
+         NTR3EPoOskcg/1omU8FA0lbZ4fsE2N4t6orQ0x7kAhZt2PamKAjnMS4liFkW6PUIj14+
+         NQBSYGTS0Da0oC/fZUYxSNHD70XLo3nOHn7mFMIXA42IfmJ9+AnbwF+BtIly+u0M6Q59
+         Cda9uvYNn5SftooxZcW+q+6geEl06bEBKHl+Xes2UJHdm6DfSngGs7hczerrE4flqbrC
+         DBJSzKe4a8kfovwLY71GMIALyDzDhNViOXw67yKoQNB9TZTXQZed7+rS8wVzMvNc/iEM
+         cNbw==
+X-Gm-Message-State: AOAM531jmaIkxL47smbGTlo9zmTxGQ5eMNrUIosFTOJqSpNpcF2hm24b
+        oBU/jHUwbdZB0GCzwxclZljgR09ECaZt/8Xh5/s9Tg==
+X-Google-Smtp-Source: ABdhPJw8iFMm7LPaGk5nSpgMHZnPAB/oWPe6xLCHIzRUfia26c9ZRKqVOnMYdhjnF6XtEbKDOFBnN+Nc+Kl9LPEIrNw=
+X-Received: by 2002:a67:2b47:: with SMTP id r68mr4941252vsr.7.1604059551180;
+ Fri, 30 Oct 2020 05:05:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <8E455D54-FED4-4D06-8CB7-FC6291C64259@amacapital.net>
+References: <20200713141945.11719-1-amir73il@gmail.com> <20200713141945.11719-4-amir73il@gmail.com>
+In-Reply-To: <20200713141945.11719-4-amir73il@gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 30 Oct 2020 13:05:36 +0100
+Message-ID: <CAJfpegvhH+SUn-QModbU23sk3=NGYgxKSekh5B70JfK_=HbHfw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] ovl: do not follow non-dir origin with redirect_dir=nofollow
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 29, 2020 at 02:58:55PM -0700, Andy Lutomirski wrote:
-> 
-> 
-> > On Oct 28, 2020, at 5:35 PM, Christian Brauner <christian.brauner@ubuntu.com> wrote:
-> > 
-> > ﻿Hey everyone,
-> > 
-> > I vanished for a little while to focus on this work here so sorry for
-> > not being available by mail for a while.
-> > 
-> > Since quite a long time we have issues with sharing mounts between
-> > multiple unprivileged containers with different id mappings, sharing a
-> > rootfs between multiple containers with different id mappings, and also
-> > sharing regular directories and filesystems between users with different
-> > uids and gids. The latter use-cases have become even more important with
-> > the availability and adoption of systemd-homed (cf. [1]) to implement
-> > portable home directories.
-> > 
-> > The solutions we have tried and proposed so far include the introduction
-> > of fsid mappings, a tiny overlay based filesystem, and an approach to
-> > call override creds in the vfs. None of these solutions have covered all
-> > of the above use-cases.
-> > 
-> > The solution proposed here has it's origins in multiple discussions
-> > during Linux Plumbers 2017 during and after the end of the containers
-> > microconference.
-> > To the best of my knowledge this involved Aleksa, Stéphane, Eric, David,
-> > James, and myself. A variant of the solution proposed here has also been
-> > discussed, again to the best of my knowledge, after a Linux conference
-> > in St. Petersburg in Russia between Christoph, Tycho, and myself in 2017
-> > after Linux Plumbers.
-> > I've taken the time to finally implement a working version of this
-> > solution over the last weeks to the best of my abilities. Tycho has
-> > signed up for this sligthly crazy endeavour as well and he has helped
-> > with the conversion of the xattr codepaths.
-> > 
-> > The core idea is to make idmappings a property of struct vfsmount
-> > instead of tying it to a process being inside of a user namespace which
-> > has been the case for all other proposed approaches.
-> > It means that idmappings become a property of bind-mounts, i.e. each
-> > bind-mount can have a separate idmapping. This has the obvious advantage
-> > that idmapped mounts can be created inside of the initial user
-> > namespace, i.e. on the host itself instead of requiring the caller to be
-> > located inside of a user namespace. This enables such use-cases as e.g.
-> > making a usb stick available in multiple locations with different
-> > idmappings (see the vfat port that is part of this patch series).
-> > 
-> > The vfsmount struct gains a new struct user_namespace member. The
-> > idmapping of the user namespace becomes the idmapping of the mount. A
-> > caller that is either privileged with respect to the user namespace of
-> > the superblock of the underlying filesystem or a caller that is
-> > privileged with respect to the user namespace a mount has been idmapped
-> > with can create a new bind-mount and mark it with a user namespace.
-> 
-> So one way of thinking about this is that a user namespace that has an idmapped mount can, effectively, create or chown files with *any* on-disk uid or gid by doing it directly (if that uid exists in-namespace, which is likely for interesting ids like 0) or by creating a new userns with that id inside.
-> 
-> For a file system that is private to a container, this seems moderately safe, although this may depend on what exactly “private” means. We probably want a mechanism such that, if you are outside the namespace, a reference to a file with the namespace’s vfsmnt does not confer suid privilege.
-> 
-> Imagine the following attack: user creates a namespace with a root user and arranges to get an idmapped fs, e.g. by inserting an ext4 usb stick or using whatever container management tool does this.  Inside the namespace, the user creates a suid-root file.
-> 
-> Now, outside the namespace, the user has privilege over the namespace.  (I’m assuming there is some tool that will idmap things in a namespace owned by an unprivileged user, which seems likely.). So the user makes a new bind mount and if maps it to the init namespace. Game over.
-> 
-> So I think we need to have some control to mitigate this in a comprehensible way. A big hammer would be to require nosuid. A smaller hammer might be to say that you can’t create a new idmapped mount unless you have privilege over the userns that you want to use for the idmap and to say that a vfsmnt’s paths don’t do suid outside the idmap namespace.  We already do the latter for the vfsmnt’s mntns’s userns.
+On Mon, Jul 13, 2020 at 4:20 PM Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Following non-dir origin can result in some bugs when underlying layers
+> are edited offline.
 
-With this series, in order to create an idmapped mount the user must
-either be cap_sys_admin in the superblock of the underlying filesystem
-or if the mount is already idmapped and they want to create another
-idmapped mount from it they must have cap_sys_admin in the userns that
-the mount is currrently marked with. It is also not possible to change
-an idmapped mount once it has been idmapped, i.e. the user must create a
-new detached bind-mount first.
+Sorry, lost track.  What bugs this results in?
 
-> 
-> Hmm.  What happens if we require that an idmap userns equal the vfsmnt’s mntns’s userns?  Is that too limiting?
-> 
-> I hope that whatever solution gets used is straightforward enough to wrap one’s head around.
-> 
-> > When a file/inode is accessed through an idmapped mount the i_uid and
-> > i_gid of the inode will be remapped according to the user namespace the
-> > mount has been marked with. When a new object is created based on the
-> > fsuid and fsgid of the caller they will similarly be remapped according
-> > to the user namespace of the mount they care created from.
-> 
-> By “mapped according to”, I presume you mean that the on-disk uid/gid is the gid as seen in the user namespace in question.
+Thanks,
+Miklos
 
-If I understand you correctly, then yes.
+  To be on the safe side, do not follow non-dir
+> origin when not following redirects.  This will make overlay lookup
+> with "redirect_dir=nofollow" behave as pre kernel v4.12 lookup, before
+> the introduction of the origin xattr.
+>
+> Link: https://lore.kernel.org/linux-unionfs/CAJfpegv9h7ubuGy_6K4OCdZd3R7Z4HGmCDB2L7mO5bVoGd6MSA@mail.gmail.com/
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/namei.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index ae1c1216a038..31ee5a519736 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -861,7 +861,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                         err = -EREMOTE;
+>                         goto out;
+>                 }
+> -               if (upperdentry && !d.is_dir) {
+> +               if (upperdentry && !d.is_dir && ofs->config.redirect_follow) {
+>                         unsigned int origin_ctr = 0;
+>
+>                         /*
+> --
+> 2.17.1
+>
