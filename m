@@ -2,86 +2,114 @@ Return-Path: <SRS0=dIwb=EI=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A279C4742C
-	for <linux-unionfs@archiver.kernel.org>; Mon,  2 Nov 2020 13:34:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 952AEC00A89
+	for <linux-unionfs@archiver.kernel.org>; Mon,  2 Nov 2020 17:17:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1D96223BE
-	for <linux-unionfs@archiver.kernel.org>; Mon,  2 Nov 2020 13:34:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C400204EF
+	for <linux-unionfs@archiver.kernel.org>; Mon,  2 Nov 2020 17:17:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725949AbgKBNeh (ORCPT
+        id S1727221AbgKBRRo (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 2 Nov 2020 08:34:37 -0500
-Received: from youngberry.canonical.com ([91.189.89.112]:48989 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725616AbgKBNeg (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 2 Nov 2020 08:34:36 -0500
-Received: from ip5f5af0a0.dynamic.kabel-deutschland.de ([95.90.240.160] helo=wittgenstein)
-        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.86_2)
-        (envelope-from <christian.brauner@ubuntu.com>)
-        id 1kZZyh-00084X-8L; Mon, 02 Nov 2020 13:34:31 +0000
-Date:   Mon, 2 Nov 2020 14:34:28 +0100
-From:   Christian Brauner <christian.brauner@ubuntu.com>
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org,
-        John Johansen <john.johansen@canonical.com>,
-        James Morris <jmorris@namei.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Geoffrey Thomas <geofft@ldpreload.com>,
-        Mrunal Patel <mpatel@redhat.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Theodore Tso <tytso@mit.edu>, Alban Crequy <alban@kinvolk.io>,
-        Tycho Andersen <tycho@tycho.ws>,
-        David Howells <dhowells@redhat.com>,
-        James Bottomley <James.Bottomley@hansenpartnership.com>,
-        Jann Horn <jannh@google.com>,
-        Seth Forshee <seth.forshee@canonical.com>,
-        St??phane Graber <stgraber@ubuntu.com>,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Lennart Poettering <lennart@poettering.net>,
-        "Eric W. Biederman" <ebiederm@xmission.com>, smbarber@chromium.org,
-        Phil Estes <estesp@gmail.com>, Serge Hallyn <serge@hallyn.com>,
-        Kees Cook <keescook@chromium.org>,
-        Todd Kjos <tkjos@google.com>, Jonathan Corbet <corbet@lwn.net>,
-        containers@lists.linux-foundation.org,
-        linux-security-module@vger.kernel.org, linux-api@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-audit@redhat.com, linux-integrity@vger.kernel.org,
-        selinux@vger.kernel.org
-Subject: Re: [PATCH 03/34] fs: add mount_setattr()
-Message-ID: <20201102133428.73fsjpqjzqzqetlx@wittgenstein>
-References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
- <20201029003252.2128653-4-christian.brauner@ubuntu.com>
- <20201101144213.GB23378@infradead.org>
+        Mon, 2 Nov 2020 12:17:44 -0500
+Received: from mx2.suse.de ([195.135.220.15]:36778 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727484AbgKBRRn (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 2 Nov 2020 12:17:43 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 0AD00B2AF;
+        Mon,  2 Nov 2020 17:17:42 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 40B2A1E12FB; Mon,  2 Nov 2020 18:17:41 +0100 (CET)
+Date:   Mon, 2 Nov 2020 18:17:41 +0100
+From:   Jan Kara <jack@suse.cz>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     miklos@szeredi.hu, amir73il@gmail.com, jack@suse.cz,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [RFC PATCH v2 2/8] ovl: implement ->writepages operation
+Message-ID: <20201102171741.GE23988@quack2.suse.cz>
+References: <20201025034117.4918-1-cgxu519@mykernel.net>
+ <20201025034117.4918-3-cgxu519@mykernel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201101144213.GB23378@infradead.org>
+In-Reply-To: <20201025034117.4918-3-cgxu519@mykernel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Nov 01, 2020 at 02:42:13PM +0000, Christoph Hellwig wrote:
-> This has a bunch of crazy long lines.
-
-Ok, will stick to 80 lines instead of the accepted but more lax 100.
-
+On Sun 25-10-20 11:41:11, Chengguang Xu wrote:
+> Implement overlayfs' ->writepages operation so that
+> we can sync dirty data/metadata to upper filesystem.
 > 
-> Also some of the refatoring might be worth slpitting into prep patches.
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> ---
+>  fs/overlayfs/inode.c | 26 ++++++++++++++++++++++++++
+>  1 file changed, 26 insertions(+)
+> 
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index b584dca845ba..f27fc5be34df 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -11,6 +11,7 @@
+>  #include <linux/posix_acl.h>
+>  #include <linux/ratelimit.h>
+>  #include <linux/fiemap.h>
+> +#include <linux/writeback.h>
+>  #include "overlayfs.h"
+>  
+>  
+> @@ -516,7 +517,32 @@ static const struct inode_operations ovl_special_inode_operations = {
+>  	.update_time	= ovl_update_time,
+>  };
+>  
+> +static int ovl_writepages(struct address_space *mapping,
+> +			  struct writeback_control *wbc)
+> +{
+> +	struct inode *upper_inode = ovl_inode_upper(mapping->host);
+> +	struct ovl_fs *ofs =  mapping->host->i_sb->s_fs_info;
+> +	struct writeback_control tmp_wbc = *wbc;
+> +
+> +	if (!ovl_should_sync(ofs))
+> +		return 0;
+> +
+> +	/*
+> +	 * for sync(2) writeback, it has a separate external IO
+> +	 * completion path by checking PAGECACHE_TAG_WRITEBACK
+> +	 * in pagecache, we have to set for_sync to 0 in thie case,
+> +	 * let writeback waits completion after syncing individual
+> +	 * dirty inode, because we haven't implemented overlayfs'
+> +	 * own pagecache yet.
+> +	 */
+> +	if (wbc->for_sync && (wbc->sync_mode == WB_SYNC_ALL))
+> +		tmp_wbc.for_sync = 0;
 
-Ok, will try to do that.
+This looks really hacky as it closely depends on the internal details of
+writeback implementation. I'd be more open to say export wait_sb_inodes()
+for overlayfs use... Because that's what I gather you need in your
+overlayfs ->syncfs() implementation.
+
+								Honza
+
+> +
+> +	return sync_inode(upper_inode, &tmp_wbc);
+> +}
+> +
+>  static const struct address_space_operations ovl_aops = {
+> +	.writepages		= ovl_writepages,
+>  	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
+>  	.direct_IO		= noop_direct_IO,
+>  };
+> -- 
+> 2.26.2
+> 
+> 
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
