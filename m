@@ -1,222 +1,121 @@
-Return-Path: <SRS0=Aog3=EJ=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=uEZl=EK=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31348C55179
-	for <linux-unionfs@archiver.kernel.org>; Tue,  3 Nov 2020 14:10:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9820EC4741F
+	for <linux-unionfs@archiver.kernel.org>; Wed,  4 Nov 2020 11:55:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C095422226
-	for <linux-unionfs@archiver.kernel.org>; Tue,  3 Nov 2020 14:10:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 38E1E2072C
+	for <linux-unionfs@archiver.kernel.org>; Wed,  4 Nov 2020 11:55:41 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=kinvolk.io header.i=@kinvolk.io header.b="jNSrYWNM"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="UeW0OJMd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729295AbgKCOKx (ORCPT
+        id S1729658AbgKDLzU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 3 Nov 2020 09:10:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44288 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729561AbgKCOKt (ORCPT
+        Wed, 4 Nov 2020 06:55:20 -0500
+Received: from sender3-pp-o92.zoho.com.cn ([124.251.121.251]:25308 "EHLO
+        sender3-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729647AbgKDLyg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 3 Nov 2020 09:10:49 -0500
-Received: from mail-ed1-x542.google.com (mail-ed1-x542.google.com [IPv6:2a00:1450:4864:20::542])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C1A6C061A4A
-        for <linux-unionfs@vger.kernel.org>; Tue,  3 Nov 2020 06:10:48 -0800 (PST)
-Received: by mail-ed1-x542.google.com with SMTP id k9so18418079edo.5
-        for <linux-unionfs@vger.kernel.org>; Tue, 03 Nov 2020 06:10:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kinvolk.io; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=y8WQjpT9rqVrgeh99s8m7L7lW+jgLfIjyGz2M8+krP0=;
-        b=jNSrYWNMri4UzTfQTwvUoeI3d9PbxAntszBtbkOHWPbsmFNLXoekIJ8TcfDFJbJf7v
-         6+eYLKBEUBAXwADA9DJI10J7imuIzSuwLQhtXLJY1nc7fmB3dMavlYA1Xmy9wmU6aG0F
-         m9nefJssTHLgeDNMLEKBtF2hV/CbFCCq5QOzc=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=y8WQjpT9rqVrgeh99s8m7L7lW+jgLfIjyGz2M8+krP0=;
-        b=jogLaJKduvF+00PDLnr+13S4azMAWA3p7CkmFAhc2n1S/TJNTHWCBY7C3EJCU7eNmv
-         8yHbvCWKLs33dC10GEMkFggla5a00Q/GLjk562VPIOsNXNlwjuzZC2ZIsdP67Hx5KJ4m
-         fby3w02p0d6elQQe7RDSlytwSVKuq72lL2cGgpCGZ5ZEiesn25MV096qtrc3cyy85uMd
-         AZ7ea1XDkP1Og2DxFdFoolpbq3u8qV2yNfPMH1ZZN81Zmd2V0iJEwbIilIF9c1j6aOcR
-         7RtBiomxD2BF37kbp9VVK0vpn3eJryPufkWstACXOJop73AbxUcNSZojaPfXVILeXjc2
-         5RhQ==
-X-Gm-Message-State: AOAM530/VZstfhV9Wl33ybbjdnmDf2GcfpdS66WysBFPm/3PiGoZxZ3n
-        pJmydQ0meA4pG68vSI1u1Ot/LmH5DfKhIt0KtjJ8gA==
-X-Google-Smtp-Source: ABdhPJwp4QL8RwmQmcT2CoPcUplHSU9HiByLsXAEntwM01IPEN+3MiJMYkcJQ6Od81V70aDSuFwsTxILAnA/OMfjXrI=
-X-Received: by 2002:a05:6402:a57:: with SMTP id bt23mr10741907edb.62.1604412647178;
- Tue, 03 Nov 2020 06:10:47 -0800 (PST)
+        Wed, 4 Nov 2020 06:54:36 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1604490844; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=geXj8u/m7Ws6zbELpHVN95/G7vnpUUW/TLt//xuLM06R9QwOAO3d6J789fng2gBaum9KPfa47QZPqkrLofIOi9dEr9q2SGI8PH59rFHonc7CF9HcHSBmkgHR8n1F/+NsVMgRz87Zbrof1aLInZVGH0PYpfJQG+FVFue1RkT+7bM=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1604490844; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=HjbaZP/VD3k0TwNvh+V6Jl8V603qjIGXZ3A46Nl+JPQ=; 
+        b=qSb24Fj+dgYXOMz4xc6Q7KpCigCQPO9EWFPTyaq8DXlJYX3num7P77GoO7ZzQAKN0bO3LB7ZcZ0gdWvvSVfxWdHeHSKx2W/u6TtV5tpOwT1kqjQJYMAgellWO0AfMa0uRlikC43JSpeXNvzbMp53tqkOXoM01j6j8PwDGeXesYg=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604490844;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=HjbaZP/VD3k0TwNvh+V6Jl8V603qjIGXZ3A46Nl+JPQ=;
+        b=UeW0OJMd8zjV3QHJV37JRvwMVqTE8Yw8HFuMIml+MbUx2pr4IyQFCevwppNttXux
+        mzBf1J9Xo4fs/JwzpPOtObYBW/GItttsT7vmSeToGbQBZYYFTBhMqN8DCRFs2QmC5eL
+        7MPW0Fy2LN7W1lBKY3IqpdRVvIh5HX9x3YGL5SEE=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1604490843017826.2109278233713; Wed, 4 Nov 2020 19:54:03 +0800 (CST)
+Date:   Wed, 04 Nov 2020 19:54:03 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>
+Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "cgxu519" <cgxu519@mykernel.net>,
+        "charliecgxu" <charliecgxu@tencent.com>
+Message-ID: <175931b5387.1349cecf47061.3904278910555065520@mykernel.net>
+In-Reply-To: <20201102173052.GF23988@quack2.suse.cz>
+References: <20201025034117.4918-1-cgxu519@mykernel.net>
+ <20201025034117.4918-6-cgxu519@mykernel.net> <20201102173052.GF23988@quack2.suse.cz>
+Subject: Re: [RFC PATCH v2 5/8] ovl: mark overlayfs' inode dirty on shared
+ writable mmap
 MIME-Version: 1.0
-References: <20201029003252.2128653-1-christian.brauner@ubuntu.com>
- <87pn51ghju.fsf@x220.int.ebiederm.org> <20201029155148.5odu4j2kt62ahcxq@yavin.dot.cyphar.com>
- <87361xdm4c.fsf@x220.int.ebiederm.org>
-In-Reply-To: <87361xdm4c.fsf@x220.int.ebiederm.org>
-From:   Alban Crequy <alban@kinvolk.io>
-Date:   Tue, 3 Nov 2020 15:10:35 +0100
-Message-ID: <CADZs7q4abuN6n8HMrpe2R2kRBUDVPoYRNpezKk4cvXRk7CVHng@mail.gmail.com>
-Subject: Re: [PATCH 00/34] fs: idmapped mounts
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Aleksa Sarai <cyphar@cyphar.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        John Johansen <john.johansen@canonical.com>,
-        James Morris <jmorris@namei.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Geoffrey Thomas <geofft@ldpreload.com>,
-        Mrunal Patel <mpatel@redhat.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Theodore Tso <tytso@mit.edu>, Tycho Andersen <tycho@tycho.ws>,
-        David Howells <dhowells@redhat.com>,
-        James Bottomley <James.Bottomley@hansenpartnership.com>,
-        Jann Horn <jannh@google.com>,
-        Seth Forshee <seth.forshee@canonical.com>,
-        =?UTF-8?Q?St=C3=A9phane_Graber?= <stgraber@ubuntu.com>,
-        Lennart Poettering <lennart@poettering.net>,
-        smbarber@chromium.org, Phil Estes <estesp@gmail.com>,
-        Serge Hallyn <serge@hallyn.com>,
-        Kees Cook <keescook@chromium.org>,
-        Todd Kjos <tkjos@google.com>, Jonathan Corbet <corbet@lwn.net>,
-        Linux Containers <containers@lists.linux-foundation.org>,
-        LSM <linux-security-module@vger.kernel.org>,
-        linux-api@vger.kernel.org, linux-ext4@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-audit@redhat.com,
-        linux-integrity <linux-integrity@vger.kernel.org>,
-        selinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 29, 2020 at 5:37 PM Eric W. Biederman <ebiederm@xmission.com> w=
-rote:
->
-> Aleksa Sarai <cyphar@cyphar.com> writes:
->
-> > On 2020-10-29, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >> Christian Brauner <christian.brauner@ubuntu.com> writes:
-> >>
-> >> > Hey everyone,
-> >> >
-> >> > I vanished for a little while to focus on this work here so sorry fo=
-r
-> >> > not being available by mail for a while.
-> >> >
-> >> > Since quite a long time we have issues with sharing mounts between
-> >> > multiple unprivileged containers with different id mappings, sharing=
- a
-> >> > rootfs between multiple containers with different id mappings, and a=
-lso
-> >> > sharing regular directories and filesystems between users with diffe=
-rent
-> >> > uids and gids. The latter use-cases have become even more important =
-with
-> >> > the availability and adoption of systemd-homed (cf. [1]) to implemen=
-t
-> >> > portable home directories.
-> >>
-> >> Can you walk us through the motivating use case?
-> >>
-> >> As of this year's LPC I had the distinct impression that the primary u=
-se
-> >> case for such a feature was due to the RLIMIT_NPROC problem where two
-> >> containers with the same users still wanted different uid mappings to
-> >> the disk because the users were conflicting with each other because of
-> >> the per user rlimits.
-> >>
-> >> Fixing rlimits is straight forward to implement, and easier to manage
-> >> for implementations and administrators.
-> >
-> > This is separate to the question of "isolated user namespaces" and
-> > managing different mappings between containers. This patchset is solvin=
-g
-> > the same problem that shiftfs solved -- sharing a single directory tree
-> > between containers that have different ID mappings. rlimits (nor any of
-> > the other proposals we discussed at LPC) will help with this problem.
->
-> First and foremost: A uid shift on write to a filesystem is a security
-> bug waiting to happen.  This is especially in the context of facilities
-> like iouring, that play very agressive games with how process context
-> makes it to  system calls.
->
-> The only reason containers were not immediately exploitable when iouring
-> was introduced is because the mechanisms are built so that even if
-> something escapes containment the security properties still apply.
-> Changes to the uid when writing to the filesystem does not have that
-> property.  The tiniest slip in containment will be a security issue.
->
-> This is not even the least bit theoretical.  I have seem reports of how
-> shitfs+overlayfs created a situation where anyone could read
-> /etc/shadow.
->
-> If you are going to write using the same uid to disk from different
-> containers the question becomes why can't those containers configure
-> those users to use the same kuid?
->
-> What fixing rlimits does is it fixes one of the reasons that different
-> containers could not share the same kuid for users that want to write to
-> disk with the same uid.
->
->
-> I humbly suggest that it will be more secure, and easier to maintain for
-> both developers and users if we fix the reasons people want different
-> containers to have the same user running with different kuids.
->
-> If not what are the reasons we fundamentally need the same on-disk user
-> using multiple kuids in the kernel?
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2020-11-03 01:30:52 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Sun 25-10-20 11:41:14, Chengguang Xu wrote:
+ > > Overlayfs cannot be notified when mmapped area gets dirty,
+ > > so we need to proactively mark inode dirty in ->mmap operation.
+ > >=20
+ > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ > > ---
+ > >  fs/overlayfs/file.c | 4 ++++
+ > >  1 file changed, 4 insertions(+)
+ > >=20
+ > > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+ > > index efccb7c1f9bc..cd6fcdfd81a9 100644
+ > > --- a/fs/overlayfs/file.c
+ > > +++ b/fs/overlayfs/file.c
+ > > @@ -486,6 +486,10 @@ static int ovl_mmap(struct file *file, struct vm_=
+area_struct *vma)
+ > >          /* Drop reference count from new vm_file value */
+ > >          fput(realfile);
+ > >      } else {
+ > > +        if (vma->vm_flags & (VM_SHARED|VM_MAYSHARE) &&
+ > > +            vma->vm_flags & (VM_WRITE|VM_MAYWRITE))
+ > > +            ovl_mark_inode_dirty(file_inode(file));
+ > > +
+ >=20
+ > But does this work reliably? I mean once writeback runs, your inode (as
+ > well as upper inode) is cleaned. Then a page fault comes so file has dir=
+ty
+ > pages again and would need flushing but overlayfs inode stays clean? Am =
+I
+ > missing something?
+ >=20
 
-I would like to use this patch set in the context of Kubernetes. I
-described my two possible setups in
-https://www.spinics.net/lists/linux-containers/msg36537.html:
+Yeah, this is key point of this approach, in order to  fix the issue I expl=
+icitly set=20
+I_DIRTY_SYNC flag in ovl_mark_inode_dirty(), so what i mean is during write=
+back
+we will call into ->write_inode() by this flag(I_DIRTY_SYNC) and at that pl=
+ace
+we get chance to check mapping and re-dirty overlay's inode. The code logic
+like below in ovl_write_inode().
 
-1. Each Kubernetes pod has its own userns but with the same user id mapping
-2. Each Kubernetes pod has its own userns with non-overlapping user id
-mapping (providing additional isolation between pods)
+    if (mapping_writably_mapped(upper->i_mapping) ||
+         mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
+                 iflag |=3D I_DIRTY_PAGES;=20
 
-But even in the setup where all pods run with the same id mappings,
-this patch set is still useful to me for 2 reasons:
 
-1. To avoid the expensive recursive chown of the rootfs. We cannot
-necessarily extract the tarball directly with the right uids because
-we might use the same container image for privileged containers (with
-the host userns) and unprivileged containers (with a new userns), so
-we have at least 2 =E2=80=9Cmappings=E2=80=9D (taking more time and resulti=
-ng in more
-storage space). Although the =E2=80=9Cmetacopy=E2=80=9D mount option in ove=
-rlayfs
-helps to make the recursive chown faster, it can still take time with
-large container images with lots of files. I=E2=80=99d like to use this pat=
-ch
-set to set up the root fs in constant time.
 
-2. To manage large external volumes (NFS or other filesystems). Even
-if admins can decide to use the same kuid on all the nodes of the
-Kubernetes cluster, this is impractical for migration. People can have
-existing Kubernetes clusters (currently without using user namespaces)
-and large NFS volumes. If they want to switch to a new version of
-Kubernetes with the user namespace feature enabled, they would need to
-recursively chown all the files on the NFS shares. This could take
-time on large filesystems and realistically, we want to support
-rolling updates where some nodes use the previous version without user
-namespaces and new nodes are progressively migrated to the new userns
-with the new id mapping. If both sets of nodes use the same NFS share,
-that can=E2=80=99t work.
 
-Alban
+Thanks,
+Chengguang
