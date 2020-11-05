@@ -1,65 +1,59 @@
-Return-Path: <SRS0=uEZl=EK=vger.kernel.org=linux-unionfs-owner@kernel.org>
+Return-Path: <SRS0=HYNE=EL=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	PDS_TONAME_EQ_TOLOCAL_SHORT,SPF_HELO_NONE,SPF_PASS autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D87F4C4741F
-	for <linux-unionfs@archiver.kernel.org>; Wed,  4 Nov 2020 12:18:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 651C7C2D0A3
+	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Nov 2020 01:48:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 409E7208C7
-	for <linux-unionfs@archiver.kernel.org>; Wed,  4 Nov 2020 12:18:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C00CB206FB
+	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Nov 2020 01:48:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="T6IccPlJ"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="Zpv3lNuW"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729378AbgKDMSv (ORCPT
+        id S1730243AbgKEBss (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 4 Nov 2020 07:18:51 -0500
-Received: from sender3-pp-o92.zoho.com.cn ([124.251.121.251]:25373 "EHLO
+        Wed, 4 Nov 2020 20:48:48 -0500
+Received: from sender3-pp-o92.zoho.com.cn ([124.251.121.251]:25335 "EHLO
         sender3-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726344AbgKDMSv (ORCPT
+        by vger.kernel.org with ESMTP id S1730735AbgKEBss (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 4 Nov 2020 07:18:51 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1604492298; cv=none; 
+        Wed, 4 Nov 2020 20:48:48 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1604540924; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=WmQHoaXD8haA8YfaqkUSfzAFHobX5JUht++COkiW+J1ZiIWtGL4fxDfgRpnwzcHxCSHCPjfgCedEQE6U3CC49SMN9U/QAj3VHiJKgQ7Ue/Zq0zD/zYgdf9QhMo3tp92jpZ2wtWgf0L4avW/CTM3PkBHmHF1cLgPI1Yz0bPAMEjI=
+        b=oUFQdX6tMj3Bqi9WES0mO8GNMztYJ7tW4FU0h5ho+81y5VD91o1Tv8F626zyFGpA7Khavcim+pw1Cm5ESUO8lg5D5GyXBWOoU+LK8tCMrOP6lyoA9tW0hNgYLGbWMsLsT9H/6dCEUPQ6ZJYtuapn3wVOg1GgOWGkDWFCEp47Jnw=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1604492298; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=fOYcXvz8TBsP/EL22VTNi2cy2YXzZLHBmh57tXE0MuA=; 
-        b=RkUgsrCQtMCUWgiOtX7WIyCICS8bZz/4Nyb2MiO6Iz0X1+nCNHhusAmTHf/Y9efjpFzlBLvFGy2Tsmn3w5azj2A2SJow9+ZO7TqJUdSXwWotN76PYtOkmG2wRkX8yPNLL6yWVeiwInoyXzQSiFL5qhI6aG+aU1Hn0ifSN0nrGC0=
+        t=1604540924; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Reply-To:Subject:To; 
+        bh=B0oBgziSoXq+h+yLFYJMrbR9qoFhZ5sIyznLlQi0vW0=; 
+        b=OMVv7RGrbCFYEllRFcGgxPLGGAozfvwHzMFB2PSl3Z4IYfGsi8laezUE5fm+maYNlB6PdBU8eBzy+F2ySV74297yP4tRR9oiWNLj84c2wI+YcsuVBTSOkJiGl8MRTP/QJ30B8QKz/LkkR388gbENShpgp3yYJStnOJ7XdApjeiU=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604492298;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604540924;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=fOYcXvz8TBsP/EL22VTNi2cy2YXzZLHBmh57tXE0MuA=;
-        b=T6IccPlJ2ND077NZ2lqgzEjielHYLTchmlN3OuGfMVEBqIqtqgsCmt2JNZXVUhd+
-        vxrhkgsSmRdY9CPxL05YpE4geuOq+3LZi6UEpZnI0QpQoWTdrA02ySr2mHwoDaqnUcT
-        /9w4SAGp6QRwG0Kedk3l9Um4OvyLhjIQzOHM2jE0=
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=B0oBgziSoXq+h+yLFYJMrbR9qoFhZ5sIyznLlQi0vW0=;
+        b=Zpv3lNuW1FOOLvqOX4QFxnW96uiGflqQz6QtetF7n9wgifPJKfrMy7WLojrvk6yS
+        WzaQ8L5hoZJVvb4ZpAaDqqSOnAEzDw97hXDEwP5orN1s7f6AOHctD3Q1+/QlxlxJonc
+        tGFQdzXskkSxP2G/0D5vKxu60PqMiFuLV+N84WyA=
 Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1604492296653165.76731359124267; Wed, 4 Nov 2020 20:18:16 +0800 (CST)
-Date:   Wed, 04 Nov 2020 20:18:16 +0800
+        with SMTP id 1604540922151665.6650297799029; Thu, 5 Nov 2020 09:48:42 +0800 (CST)
+Date:   Thu, 05 Nov 2020 09:48:42 +0800
 From:   Chengguang Xu <cgxu519@mykernel.net>
 Reply-To: cgxu519@mykernel.net
-To:     "Jan Kara" <jack@suse.cz>
-Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-        "cgxu519" <cgxu519@mykernel.net>,
-        "charliecgxu" <charliecgxu@tencent.com>
-Message-ID: <175933181cc.ed06c3957114.1028981429730337490@mykernel.net>
-In-Reply-To: <20201102171741.GE23988@quack2.suse.cz>
-References: <20201025034117.4918-1-cgxu519@mykernel.net>
- <20201025034117.4918-3-cgxu519@mykernel.net> <20201102171741.GE23988@quack2.suse.cz>
-Subject: Re: [RFC PATCH v2 2/8] ovl: implement ->writepages operation
+To:     "linux-unionfs" <linux-unionfs@vger.kernel.org>
+Cc:     "cgxu519" <cgxu519@mykernel.net>
+Message-ID: <17596177926.d559c8b77834.5766617584799741474@mykernel.net>
+In-Reply-To: 
+Subject: a question about opening file
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Importance: Medium
 User-Agent: ZohoCN Mail
 X-Mailer: ZohoCN Mail
@@ -67,68 +61,14 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2020-11-03 01:17:41 Jan Kara <=
-jack@suse.cz> =E6=92=B0=E5=86=99 ----
- > On Sun 25-10-20 11:41:11, Chengguang Xu wrote:
- > > Implement overlayfs' ->writepages operation so that
- > > we can sync dirty data/metadata to upper filesystem.
- > >=20
- > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
- > > ---
- > >  fs/overlayfs/inode.c | 26 ++++++++++++++++++++++++++
- > >  1 file changed, 26 insertions(+)
- > >=20
- > > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
- > > index b584dca845ba..f27fc5be34df 100644
- > > --- a/fs/overlayfs/inode.c
- > > +++ b/fs/overlayfs/inode.c
- > > @@ -11,6 +11,7 @@
- > >  #include <linux/posix_acl.h>
- > >  #include <linux/ratelimit.h>
- > >  #include <linux/fiemap.h>
- > > +#include <linux/writeback.h>
- > >  #include "overlayfs.h"
- > > =20
- > > =20
- > > @@ -516,7 +517,32 @@ static const struct inode_operations ovl_special_=
-inode_operations =3D {
- > >      .update_time    =3D ovl_update_time,
- > >  };
- > > =20
- > > +static int ovl_writepages(struct address_space *mapping,
- > > +              struct writeback_control *wbc)
- > > +{
- > > +    struct inode *upper_inode =3D ovl_inode_upper(mapping->host);
- > > +    struct ovl_fs *ofs =3D  mapping->host->i_sb->s_fs_info;
- > > +    struct writeback_control tmp_wbc =3D *wbc;
- > > +
- > > +    if (!ovl_should_sync(ofs))
- > > +        return 0;
- > > +
- > > +    /*
- > > +     * for sync(2) writeback, it has a separate external IO
- > > +     * completion path by checking PAGECACHE_TAG_WRITEBACK
- > > +     * in pagecache, we have to set for_sync to 0 in thie case,
- > > +     * let writeback waits completion after syncing individual
- > > +     * dirty inode, because we haven't implemented overlayfs'
- > > +     * own pagecache yet.
- > > +     */
- > > +    if (wbc->for_sync && (wbc->sync_mode =3D=3D WB_SYNC_ALL))
- > > +        tmp_wbc.for_sync =3D 0;
- >=20
- > This looks really hacky as it closely depends on the internal details of
- > writeback implementation. I'd be more open to say export wait_sb_inodes(=
-)
- > for overlayfs use... Because that's what I gather you need in your
- > overlayfs ->syncfs() implementation.
- >=20
+Hello,
+ 
+I have a question about opening file of underlying filesystem in overlayfs,
 
-Does  that mean we gather synced overlay's inode into a new waiting list(ov=
-erlay's) and
-do the waiting behavior in overlay's ->syncfs() ?
+why we use overlayfs' path(vfsmount/dentry) struct for underlying fs' file  
+
+in ovl_open_realfile()?  Is it by design?
 
 
 Thanks,
 Chengguang
-
-
