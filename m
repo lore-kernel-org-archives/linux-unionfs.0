@@ -2,135 +2,118 @@ Return-Path: <SRS0=HYNE=EL=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C17B0C00A89
-	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Nov 2020 11:39:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A780C4742C
+	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Nov 2020 13:55:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14CD0206FB
-	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Nov 2020 11:39:53 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="NSeRHpaU"
+	by mail.kernel.org (Postfix) with ESMTP id CC88C20715
+	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Nov 2020 13:55:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729227AbgKELje (ORCPT
+        id S1730791AbgKENzJ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 5 Nov 2020 06:39:34 -0500
-Received: from sender3-pp-o92.zoho.com.cn ([124.251.121.251]:25365 "EHLO
-        sender3-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729992AbgKELjQ (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 5 Nov 2020 06:39:16 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1604576346; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=k+LSL713nuNcu8lfVuqEtx7AhiEho2Nl26vVP6tbjBEmp+zdBKEhvaaUZiKe6m0q87sDz1iDOqdNmx2CR19zc1p0HNWuwcoJFNYS9ky1Sd7iEYAIqAyZi+beuno6VfWvfSh3fTy/rzKS5J9r3luwpTKozm3XFhpumCwW0VavOxE=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1604576346; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=0daSOIYa+VQkZH72HwWnco1e6/c4qs9PUIBLANXRJkI=; 
-        b=F/4aLycju3SIq9dwi1eKMPM0WKvD1/QSG1hyWpQDdkGxU/ANbxzGNBnEW21u7hPr3pp4F+ArAIHY/CpQXk2tZf01pG1imBDadFRurLMPSmvy75EVh/5nzR3LhjaXyNpRHRXXAPBmNTw5yeq0FN+XqLJPbferaBMSWUQ6hbCfg3c=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604576346;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=0daSOIYa+VQkZH72HwWnco1e6/c4qs9PUIBLANXRJkI=;
-        b=NSeRHpaUVOq/ILdpOH0VVa/WKiA03NlmPEOQH3DF8yAkQ5qKwapx82tWHfvyGi2R
-        G3T3qqfMHPNI1CBmbUhmc9zDvadgUgrLVqszvpFOsxDpy8C/q5ZV4w1QWqcN8QX8+sU
-        Y7149zma64LDs4e/TjkKUwIzAhiPs9/75U8MPEZ4=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1604576345328456.20731976971786; Thu, 5 Nov 2020 19:39:05 +0800 (CST)
-Date:   Thu, 05 Nov 2020 19:39:05 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Miklos Szeredi" <miklos@szeredi.hu>
-Cc:     "Amir Goldstein" <amir73il@gmail.com>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>
-Message-ID: <1759833fcec.11bebc5a09074.619089384538905286@mykernel.net>
-In-Reply-To: <CAJfpegu-rqL4-jn9o0+OSj2x+hKS8mLB6GswhL17Ruhb3WuMKg@mail.gmail.com>
-References: <17596177926.d559c8b77834.5766617584799741474@mykernel.net>
- <CAOQ4uxgpmC_B_uWpnMXDrv9BOQ-rsMxyRTc+qC3dT72sqR8ndg@mail.gmail.com> <17597c5dc4e.fb084b178911.1848736071974456771@mykernel.net> <CAJfpegu-rqL4-jn9o0+OSj2x+hKS8mLB6GswhL17Ruhb3WuMKg@mail.gmail.com>
-Subject: Re: a question about opening file
+        Thu, 5 Nov 2020 08:55:09 -0500
+Received: from mx2.suse.de ([195.135.220.15]:40580 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726067AbgKENzI (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 5 Nov 2020 08:55:08 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id DDE1FAAF1;
+        Thu,  5 Nov 2020 13:55:06 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 39B271E130F; Thu,  5 Nov 2020 14:55:06 +0100 (CET)
+Date:   Thu, 5 Nov 2020 14:55:06 +0100
+From:   Jan Kara <jack@suse.cz>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Jan Kara <jack@suse.cz>, miklos <miklos@szeredi.hu>,
+        amir73il <amir73il@gmail.com>,
+        linux-unionfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        charliecgxu <charliecgxu@tencent.com>
+Subject: Re: [RFC PATCH v2 2/8] ovl: implement ->writepages operation
+Message-ID: <20201105135506.GF32718@quack2.suse.cz>
+References: <20201025034117.4918-1-cgxu519@mykernel.net>
+ <20201025034117.4918-3-cgxu519@mykernel.net>
+ <20201102171741.GE23988@quack2.suse.cz>
+ <175933181cc.ed06c3957114.1028981429730337490@mykernel.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <175933181cc.ed06c3957114.1028981429730337490@mykernel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-11-05 17:57:15 Miklos Sze=
-redi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
- > On Thu, Nov 5, 2020 at 10:38 AM Chengguang Xu <cgxu519@mykernel.net> wro=
-te:
- > >
- > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-11-05 16:07:26 Amir =
-Goldstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > On Thu, Nov 5, 2020 at 6:39 AM Chengguang Xu <cgxu519@mykernel.net>=
- wrote:
- > >  > >
- > >  > > Hello,
- > >  > >
- > >  > > I have a question about opening file of underlying filesystem in =
-overlayfs,
- > >  > >
- > >  > > why we use overlayfs' path(vfsmount/dentry) struct for underlying=
- fs' file
- > >  > >
- > >  > > in ovl_open_realfile()?  Is it by design?
- > >  >
- > >  > Sure. open_with_fake_path() is only used by overlayfs.
- > >  >
- > >  > IIRC, one of the reasons was to display the user expected path in
- > >  > /proc/<pid>/maps.
- > >  > There may have been other reasons.
- > >  >
- > >
- > > So if we do the mmap with overlayfs'  own page cache, then we don't ha=
-ve to
- > > use pseudo path for the reason above, right?
- > >
- > > Actually, the background is I'm trying to implement overlayfs' page ca=
-che for
- > > fixing mmap rorw issue. The reason why asking this is I need to open a=
- writeback
- > > file which is used for syncing dirty data from overlayfs' own page cac=
-he to upper inode.
- > > However, if I use the pseudo path just like current opening behavior, =
-the writeback
- > > file will hold a reference of vfsmount of overlayfs and it will cause =
-umount fail with -EBUSY.
- > > So I want to open a writeback file with correct underlying path struct=
- but not sure if
- > > there is any unexpected side effect. Any suggestion?
- >=20
- > Should be no issue with plain dentry_open() for that purpose.  In fact
- > it would be really good to get rid of all that d_real*() mess
- > completely, but that seems some ways off.
- >=20
- > Did you find the prototype we did with Amir a couple of years back?  I
- > can only find bits and pieces in my mailbox...
- >=20
+On Wed 04-11-20 20:18:16, Chengguang Xu wrote:
+>  ---- 在 星期二, 2020-11-03 01:17:41 Jan Kara <jack@suse.cz> 撰写 ----
+>  > On Sun 25-10-20 11:41:11, Chengguang Xu wrote:
+>  > > Implement overlayfs' ->writepages operation so that
+>  > > we can sync dirty data/metadata to upper filesystem.
+>  > > 
+>  > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+>  > > ---
+>  > >  fs/overlayfs/inode.c | 26 ++++++++++++++++++++++++++
+>  > >  1 file changed, 26 insertions(+)
+>  > > 
+>  > > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+>  > > index b584dca845ba..f27fc5be34df 100644
+>  > > --- a/fs/overlayfs/inode.c
+>  > > +++ b/fs/overlayfs/inode.c
+>  > > @@ -11,6 +11,7 @@
+>  > >  #include <linux/posix_acl.h>
+>  > >  #include <linux/ratelimit.h>
+>  > >  #include <linux/fiemap.h>
+>  > > +#include <linux/writeback.h>
+>  > >  #include "overlayfs.h"
+>  > >  
+>  > >  
+>  > > @@ -516,7 +517,32 @@ static const struct inode_operations ovl_special_inode_operations = {
+>  > >      .update_time    = ovl_update_time,
+>  > >  };
+>  > >  
+>  > > +static int ovl_writepages(struct address_space *mapping,
+>  > > +              struct writeback_control *wbc)
+>  > > +{
+>  > > +    struct inode *upper_inode = ovl_inode_upper(mapping->host);
+>  > > +    struct ovl_fs *ofs =  mapping->host->i_sb->s_fs_info;
+>  > > +    struct writeback_control tmp_wbc = *wbc;
+>  > > +
+>  > > +    if (!ovl_should_sync(ofs))
+>  > > +        return 0;
+>  > > +
+>  > > +    /*
+>  > > +     * for sync(2) writeback, it has a separate external IO
+>  > > +     * completion path by checking PAGECACHE_TAG_WRITEBACK
+>  > > +     * in pagecache, we have to set for_sync to 0 in thie case,
+>  > > +     * let writeback waits completion after syncing individual
+>  > > +     * dirty inode, because we haven't implemented overlayfs'
+>  > > +     * own pagecache yet.
+>  > > +     */
+>  > > +    if (wbc->for_sync && (wbc->sync_mode == WB_SYNC_ALL))
+>  > > +        tmp_wbc.for_sync = 0;
+>  > 
+>  > This looks really hacky as it closely depends on the internal details of
+>  > writeback implementation. I'd be more open to say export wait_sb_inodes()
+>  > for overlayfs use... Because that's what I gather you need in your
+>  > overlayfs ->syncfs() implementation.
+>  > 
+> 
+> Does  that mean we gather synced overlay's inode into a new waiting list(overlay's) and
+> do the waiting behavior in overlay's ->syncfs() ?
 
-I searched in overlayfs mail list but unfortunately didn't  get useful info=
-.
-Seems Amir has a git tree for aops prototype but I'm not sure if that is th=
-e
-prototype you mentioned.
+My idea was that you'd just use the standard writeback logic which ends up
+gathering upper_sb inodes in the upper_sb->s_inodes_wb and then wait for
+them in overlay's ->syncfs(). Maybe we'll end up waiting for more inodes
+than strictly necessary but it shouldn't be too bad I'd say...
 
-https://github.com/amir73il/linux/commits/ovl-aops-wip
+								Honza
 
-Hi Amir,
-
-Do you know the prototype that Miklos mentioned above? Is that the
-code in your ovl-aops-wip git tree?
-
-
-Thanks,
-Chengguang
-
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
