@@ -7,49 +7,49 @@ X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3847EC61DD8
-	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B516BC388F9
+	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA117206F9
-	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 225D8206F4
+	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:06 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="QYaPIrsV"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="R3RISgct"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728430AbgKHOEE (ORCPT
+        id S1727844AbgKHOEE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
         Sun, 8 Nov 2020 09:04:04 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17110 "EHLO
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17141 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727844AbgKHOED (ORCPT
+        by vger.kernel.org with ESMTP id S1728311AbgKHOED (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Sun, 8 Nov 2020 09:04:03 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1604844207; cv=none; 
+ARC-Seal: i=1; a=rsa-sha256; t=1604844209; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=jSyydPPDI06nqpbPUxBlX9SMyH3EHLzB6uoGQaJmgugonhbOY47jf2bg9RIf0L6DD24QeXcQygz+NPjrqVlpk5MTVCzvOxISjkGKsfJ9xiMYY1NuN93egMj9uYuhe4gfMMoFxbj2Zjsu6AIqB1u3ZeL6XUN3a7CH/HY1A+M5CKY=
+        b=hJKqz46bMoFQbA7P5d/3iEAagbKCvzYyKET5E1EfgDzw3Wj+UQbOz6JnKHvGNI5U485jWdiYiBd1Z9IMi9ecRN+k0n6l5esOI77axTroCeBX1I0ZZSenFXj0ycf0xnjf54GQg1SqgiZcXVvshzHL2cJSgsoGPSNYGTpQ1pgqlBo=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1604844207; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=Hs9NI+ahedQ8YyeMtVZWX4Uqq8hHYsmgHZ2u4WxWbuM=; 
-        b=ClZ4nlAxYcqppxC1bU5r8O35qwePv4VMM8Wov4VVaKzrlFgG72SiaZxnBmKim16G0qgULK/sLDktPUVYGkQln5vKA1Fc/m5AJ8Ye65Gd4glvEFGJfOHTqQ+FTUSCg4XN/SuEiUmHaesaAfq1unUtFqF9l3ETtAL9u6CExnOk0Q8=
+        t=1604844209; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=nE9/U4FdhP2QCkpJbWwcZagtZcr1H04OMCjjI97w8Tg=; 
+        b=YPZ/kKk+uVXNro0vMx/K45J750HJmU7m9xbo0Pv4F7sPRoMcvg1kWS8VWcThnzN8T+Z95leHotTTS+eY+I+mKoFe/gfZbIK3cHAM0WGpwhM/RAQ6RczfgSdNK916tA1TIqjtLT9bn0QFVHFl1NnV+B+vexJbbZmQvwJuql17clk=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604844207;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604844209;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=Hs9NI+ahedQ8YyeMtVZWX4Uqq8hHYsmgHZ2u4WxWbuM=;
-        b=QYaPIrsVQ0xd946iFhvwE7UGRRyP1rMwBzdEu9vklvUecgV5LhBeM0XsHtAULS9e
-        pS9yFFCh/lnzA1f3NxBJpT5g6vGWOlWBl0oHixYJLnOgKYjYlgQz0eQaaqkSyCA5kPn
-        r1V1q1bY33M1izl8he9ryW2spPpJUnwbDE0m+9GE=
+        bh=nE9/U4FdhP2QCkpJbWwcZagtZcr1H04OMCjjI97w8Tg=;
+        b=R3RISgcta+xHROvHE+2Q3AYNdXgnQKiQud5Ink6JfZ/d+PMS4wh6AE7EQNhjAGaV
+        fBY1NkGpIb12pihelhNZ5swQDvKy4So5R9jQPJJmak4PvcZwKCcqmK40hp8Ut1lUvAi
+        GpSaCNf1q6/scGMjQwebQQv13FvRSgiMLoiA1xCk=
 Received: from localhost.localdomain (113.116.49.189 [113.116.49.189]) by mx.zoho.com.cn
-        with SMTPS id 1604844206284238.6408227363977; Sun, 8 Nov 2020 22:03:26 +0800 (CST)
+        with SMTPS id 1604844208180826.6251706207471; Sun, 8 Nov 2020 22:03:28 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20201108140307.1385745-8-cgxu519@mykernel.net>
-Subject: [RFC PATCH v3 07/10] ovl: implement overlayfs' ->write_inode operation
-Date:   Sun,  8 Nov 2020 22:03:04 +0800
+Message-ID: <20201108140307.1385745-11-cgxu519@mykernel.net>
+Subject: [RFC PATCH v3 10/10] ovl: implement containerized syncfs for overlayfs
+Date:   Sun,  8 Nov 2020 22:03:07 +0800
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201108140307.1385745-1-cgxu519@mykernel.net>
 References: <20201108140307.1385745-1-cgxu519@mykernel.net>
@@ -61,64 +61,52 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Implement overlayfs' ->write_inode to sync dirty data
-and redirty overlayfs' inode if necessary.
+Now overlayfs can only sync dirty inode during
+syncfs, so remove unnecessary sync_filesystem()
+on upper file system.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/super.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ fs/overlayfs/super.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 694eff76eb09..0ddee18b0bab 100644
+index 9a535fc11221..9fc66563d749 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -391,6 +391,35 @@ static int ovl_remount(struct super_block *sb, int *fl=
-ags, char *data)
- =09return ret;
- }
+@@ -15,6 +15,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/posix_acl_xattr.h>
+ #include <linux/exportfs.h>
++#include <linux/blkdev.h>
+ #include "overlayfs.h"
 =20
-+static int ovl_write_inode(struct inode *inode,
-+=09=09=09   struct writeback_control *wbc)
-+{
-+=09struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
-+=09struct inode *upper =3D ovl_inode_upper(inode);
-+=09unsigned long iflag =3D 0;
-+=09int ret =3D 0;
-+
-+=09if (!upper)
-+=09=09return 0;
-+
-+=09if (!ovl_should_sync(ofs))
-+=09=09return 0;
-+
-+=09if (upper->i_sb->s_op->write_inode)
-+=09=09ret =3D upper->i_sb->s_op->write_inode(inode, wbc);
-+
-+=09iflag |=3D upper->i_state & I_DIRTY_ALL;
-+
-+=09if (mapping_writably_mapped(upper->i_mapping) ||
-+=09    mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
-+=09=09iflag |=3D I_DIRTY_PAGES;
-+
-+=09if (iflag)
-+=09=09ovl_mark_inode_dirty(inode);
-+
-+=09return ret;
-+}
-+
- static void ovl_evict_inode(struct inode *inode)
- {
- =09struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
-@@ -411,6 +440,7 @@ static const struct super_operations ovl_super_operatio=
-ns =3D {
- =09.destroy_inode=09=3D ovl_destroy_inode,
- =09.drop_inode=09=3D generic_delete_inode,
- =09.evict_inode=09=3D ovl_evict_inode,
-+=09.write_inode=09=3D ovl_write_inode,
- =09.put_super=09=3D ovl_put_super,
- =09.sync_fs=09=3D ovl_sync_fs,
- =09.statfs=09=09=3D ovl_statfs,
+ MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+@@ -301,8 +302,7 @@ static int ovl_sync_fs(struct super_block *sb, int wait=
+)
+ =09 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+ =09 * All the super blocks will be iterated, including upper_sb.
+ =09 *
+-=09 * If this is a syncfs(2) call, then we do need to call
+-=09 * sync_filesystem() on upper_sb, but enough if we do it when being
++=09 * If this is a syncfs(2) call, it will be enough we do it when being
+ =09 * called with wait =3D=3D 1.
+ =09 */
+ =09if (!wait)
+@@ -311,7 +311,11 @@ static int ovl_sync_fs(struct super_block *sb, int wai=
+t)
+ =09upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+=20
+ =09down_read(&upper_sb->s_umount);
+-=09ret =3D sync_filesystem(upper_sb);
++=09ovl_wait_wb_inodes(ofs);
++=09if (upper_sb->s_op->sync_fs)
++=09=09ret =3D upper_sb->s_op->sync_fs(upper_sb, wait);
++=09if (!ret)
++=09=09ret =3D sync_blockdev(upper_sb->s_bdev);
+ =09up_read(&upper_sb->s_umount);
+=20
+ =09return ret;
 --=20
 2.26.2
 
