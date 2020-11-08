@@ -5,51 +5,51 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AECFC56201
-	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A716BC4741F
+	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2D6F206F9
+	by mail.kernel.org (Postfix) with ESMTP id 1EF95206F4
 	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:03 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="DbDJWwoQ"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="gG+yV7gk"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728419AbgKHOED (ORCPT
+        id S1728389AbgKHOEB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 8 Nov 2020 09:04:03 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17108 "EHLO
+        Sun, 8 Nov 2020 09:04:01 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17144 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727949AbgKHOEC (ORCPT
+        by vger.kernel.org with ESMTP id S1728197AbgKHOEA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 8 Nov 2020 09:04:02 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1604844207; cv=none; 
+        Sun, 8 Nov 2020 09:04:00 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1604844203; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=mZEqx/zDvG0qVkObe2bk5Y4KJBaSChWrsMoAA7o7mae+dOqPpo/DnAcVOCzcITrI/xTMeUlpluxMioiaCt9mIeZC+K8r7YgDZukFtb/Hq+B8LUKMe8hJtlJh979sZW2THuswWAjHXwyejbotrQRevzcexWfpYoRHdpo2U1tXy84=
+        b=EFb7ie2eBft9DAACASh+Si67cfGqBMj6e4T3doS1SBJ+AYkyjeBOnkByrHaS8JtJ0/yTQMIfiOz3LFjkazme0eJuqzcdNNZKojCV46UoPQiQi0ft6yhRYbjcRXbKA/g0yeCXsw38HVvtloaWJlD7M75mWTnVR5LSXsZtjINg+bc=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1604844207; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=xaT5YckiSr6leqc619hQ04I9/4r/88vz4xBhhTiT864=; 
-        b=MaokpMJMSPeoMKwOYxDvhNOPPXN74W5/RpxRvacm1y9DVyMkt9tepzBOWcnDvZuimcawKFv2Fnxti5gf4byPyM8TejuVc4YIdiVFt35KAk6ZAw5QzIcz5Oxt13Z4A8Gr7NyU80T0b2CyIx1hZ7vM2Wo5jfb1l6rCdHZbNwVJ8rM=
+        t=1604844203; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=NlKEQcKE+RNemWdOzA+NXWjXnwiavlahEmjugedQVBk=; 
+        b=RVThziG2W7VqlXcEoJWa6gZoKWS5XjiPf57cCVzaNJ2bdynO8a/glDC1rbP5yU1/smBpaHXF7y1k9mS+8zcLyzj49GXWpMKa/TeLgwHoXQhtGD93TDVl2orsJDWK3Lo4p/L+Um6WYLi2VYYWAO0OHnLHlAfDecbfo+S5gWAU/FA=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604844207;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604844203;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=xaT5YckiSr6leqc619hQ04I9/4r/88vz4xBhhTiT864=;
-        b=DbDJWwoQ1iUZdYVbGGBFqIQURxcypr2B+7dlwWAs3q78Ie1q8QOcJ8slr2cMMOcD
-        XGub2VrFG6YfYWjQx4aOPT7T8RP0HmF4Z7VbIru4TWQMXe5JWtC2TLfUz7IcZV2W8HB
-        4zmS615xh6nwmNo4k8SY+LDa2TH4UB0//QMlz5TQ=
+        bh=NlKEQcKE+RNemWdOzA+NXWjXnwiavlahEmjugedQVBk=;
+        b=gG+yV7gkAiG26ts0p7CxofxCPTrgpVJ8T2aqttA6dZH42uUDA3GrMXV38X4/51Ly
+        wBcW56ZU6B9ohCFFcBvrh8Avgo5Yvcg78LPZZkYw0m7Oq3zwD9Mz4791/gHZNx+jx0Z
+        nY3aYQOHkTh0yV8wx2rzlyhehKplI6G2dhDHb+I4=
 Received: from localhost.localdomain (113.116.49.189 [113.116.49.189]) by mx.zoho.com.cn
-        with SMTPS id 1604844205015120.49605682451715; Sun, 8 Nov 2020 22:03:25 +0800 (CST)
+        with SMTPS id 1604844202208314.43846728206813; Sun, 8 Nov 2020 22:03:22 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20201108140307.1385745-6-cgxu519@mykernel.net>
-Subject: [RFC PATCH v3 05/10] ovl: mark overlayfs' inode dirty on modification
-Date:   Sun,  8 Nov 2020 22:03:02 +0800
+Message-ID: <20201108140307.1385745-2-cgxu519@mykernel.net>
+Subject: [RFC PATCH v3 01/10] ovl: setup overlayfs' private bdi
+Date:   Sun,  8 Nov 2020 22:02:58 +0800
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201108140307.1385745-1-cgxu519@mykernel.net>
 References: <20201108140307.1385745-1-cgxu519@mykernel.net>
@@ -61,76 +61,30 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Mark overlayfs' inode dirty on modification so that
-we can recognize target inodes during syncfs.
+Setup overlayfs' private bdi so that we can collect
+overlayfs' own dirty inodes.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/inode.c     |  1 +
- fs/overlayfs/overlayfs.h |  4 ++++
- fs/overlayfs/util.c      | 14 ++++++++++++++
- 3 files changed, 19 insertions(+)
+ fs/overlayfs/super.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 1f5cbbc60b28..faa5c345f0cf 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -468,6 +468,7 @@ int ovl_update_time(struct inode *inode, struct timespe=
-c64 *ts, int flags)
- =09=09if (upperpath.dentry) {
- =09=09=09touch_atime(&upperpath);
- =09=09=09inode->i_atime =3D d_inode(upperpath.dentry)->i_atime;
-+=09=09=09ovl_mark_inode_dirty(inode);
- =09=09}
- =09}
- =09return 0;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index f8880aa2ba0e..eaf1d5b05d8e 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -247,6 +247,7 @@ static inline bool ovl_open_flags_need_copy_up(int flag=
-s)
- }
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 290983bcfbb3..d1e546abce87 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1869,6 +1869,10 @@ static int ovl_fill_super(struct super_block *sb, vo=
+id *data, int silent)
+ =09if (!ofs)
+ =09=09goto out;
 =20
- /* util.c */
-+void ovl_mark_inode_dirty(struct inode *inode);
- int ovl_want_write(struct dentry *dentry);
- void ovl_drop_write(struct dentry *dentry);
- struct dentry *ovl_workdir(struct dentry *dentry);
-@@ -472,6 +473,9 @@ static inline void ovl_copyattr(struct inode *from, str=
-uct inode *to)
- =09to->i_mtime =3D from->i_mtime;
- =09to->i_ctime =3D from->i_ctime;
- =09i_size_write(to, i_size_read(from));
++=09err =3D super_setup_bdi(sb);
++=09if (err)
++=09=09goto out_err;
 +
-+=09if (ovl_inode_upper(to) && from->i_state & I_DIRTY_ALL)
-+=09=09ovl_mark_inode_dirty(to);
- }
-=20
- static inline void ovl_copyflags(struct inode *from, struct inode *to)
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 23f475627d07..a6f59df744ae 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -950,3 +950,17 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struc=
-t dentry *dentry,
- =09kfree(buf);
- =09return ERR_PTR(res);
- }
-+
-+/*
-+ * We intentionally add I_DIRTY_SYNC flag regardless dirty flag
-+ * of upper inode so that we have chance to invoke ->write_inode
-+ * to re-dirty overlayfs' inode during writeback process.
-+ */
-+void ovl_mark_inode_dirty(struct inode *inode)
-+{
-+=09struct inode *upper =3D ovl_inode_upper(inode);
-+=09unsigned long iflag =3D I_DIRTY_SYNC;
-+
-+=09iflag |=3D upper->i_state & I_DIRTY_ALL;
-+=09__mark_inode_dirty(inode, iflag);
-+}
+ =09ofs->creator_cred =3D cred =3D prepare_creds();
+ =09if (!cred)
+ =09=09goto out_err;
 --=20
 2.26.2
 
