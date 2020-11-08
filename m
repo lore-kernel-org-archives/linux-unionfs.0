@@ -5,51 +5,51 @@ X-Spam-Level:
 X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06838C55ABD
-	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:12 +0000 (UTC)
-Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1FC8206F9
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C48B8C388F9
 	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:11 +0000 (UTC)
+Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
+	by mail.kernel.org (Postfix) with ESMTP id 508E0221FA
+	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Nov 2020 14:04:10 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="K7cFuRDp"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="GOuvnHYX"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbgKHOEJ (ORCPT
+        id S1728500AbgKHOEI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 8 Nov 2020 09:04:09 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17109 "EHLO
+        Sun, 8 Nov 2020 09:04:08 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17142 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728307AbgKHOEH (ORCPT
+        by vger.kernel.org with ESMTP id S1728191AbgKHOEF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 8 Nov 2020 09:04:07 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1604844206; cv=none; 
+        Sun, 8 Nov 2020 09:04:05 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1604844208; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=J89cnRBdzFs0ke1NLlMh0SfJ0saZNsmGJ6d9nhrheW7ZetqD+Y3TX8r1hNMLheobb4eF/toUL0wcyksIoX8Df1ZdO36lawyq/uHS+MauIC2Mr0xdyFY8nZb/roqt0O8Uwh/BkwaOg2Yh5948Or//Wh45D/IH5VNnVZhWw1j3/kc=
+        b=DWXbuPQKndyoOo9VWXF0+CIVp6d9/xxihD/f7tL/uG/6uvMxt73b9IbhAP5ZGwek5xU+6oBYG9vXjTvjIkDrF00YxmCwkClU2m3f1TMZiOcHKWljo3N6/la12A6R24FXL+wrfLO5H242jdjzid2mXd2D/Lp5hqJbfbQafKIZNbg=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1604844206; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=+4OIy9gOCkiY1FUz5xPiYjM/P/B9KenL2bi1cR2ViTY=; 
-        b=pq6S2Prroh/lG7ggl1LXcdal5fb/lwD5WPB3rpldlh24YzRiXH9dcNj7RmoZ1J3v7sYdmUR8REoV9lo5512z6ZsOI43zA7Ra+oT2J09cAYBNtFApr2A4oNlYzuTRylaVcm4Xd6ymVaj0WlHdY+f3VhxBkkX2ghtWl7I5iiZ6oNo=
+        t=1604844208; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=KjtNuGCbko1IHimLoa0WxpHVk1G+1n/XuLBptbV9oIo=; 
+        b=B6vfkYeZu1H5bWU9EX9bWLukSaiH/ERxY95D9kcJKG07J1djIIm53ES9IiokLQcwxE2evroEi6CCGsY585BIoFO5EZf/+k18BLOy2PKwRom7TgkOccqpmUExZSr6AmrdkuJEwhb36aDjnmiV309SUj7WhGzD29xa881RU6XNktU=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604844206;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604844208;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=+4OIy9gOCkiY1FUz5xPiYjM/P/B9KenL2bi1cR2ViTY=;
-        b=K7cFuRDpC8Xe00nrj/68Dm+X5rMxX0FtE6rxT7zSVHelHkUupWCSEd+OSf2UDq+a
-        KDhQddXrv0AVj9UPMq4ZHD8jZIrppaAuyTLZMYHlXeEK8McHt3SXWDy3MSkl7cyeczB
-        eVEFj6ltUa1Zyhy1CUVjXXeFvRNHi0SifR40j2Ik=
+        bh=KjtNuGCbko1IHimLoa0WxpHVk1G+1n/XuLBptbV9oIo=;
+        b=GOuvnHYXY8eo6+H0lLRZRH07XlC4c+uDRQ/TSKzqbeZrMi1H+phhjiQkwCgPLqs3
+        96F6cNSuu7o+Z6imqi72c3W6M7hr9vZcQVQzr3IyXg4Ss1EEWteIAycQrj0pZ85CDU3
+        KZbHl9wRfCkw4HJ5iQ85buZ0I0zyl4Wtbb7/Hrnc=
 Received: from localhost.localdomain (113.116.49.189 [113.116.49.189]) by mx.zoho.com.cn
-        with SMTPS id 1604844205643289.42420789308403; Sun, 8 Nov 2020 22:03:25 +0800 (CST)
+        with SMTPS id 1604844207560846.3256977761386; Sun, 8 Nov 2020 22:03:27 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20201108140307.1385745-7-cgxu519@mykernel.net>
-Subject: [RFC PATCH v3 06/10] ovl: mark overlayfs' inode dirty on shared mmap
-Date:   Sun,  8 Nov 2020 22:03:03 +0800
+Message-ID: <20201108140307.1385745-10-cgxu519@mykernel.net>
+Subject: [RFC PATCH v3 09/10] ovl: introduce helper of syncfs writeback inode waiting
+Date:   Sun,  8 Nov 2020 22:03:06 +0800
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20201108140307.1385745-1-cgxu519@mykernel.net>
 References: <20201108140307.1385745-1-cgxu519@mykernel.net>
@@ -61,28 +61,55 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Overlayfs cannot be notified when mmapped area gets dirty,
-so we need to proactively mark inode dirty in ->mmap operation.
+Introduce a helper ovl_wait_wb_inodes() to wait until all
+target upper inodes finish writeback.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/file.c | 2 ++
- 1 file changed, 2 insertions(+)
+ fs/overlayfs/super.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index efccb7c1f9bc..662252047fff 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -486,6 +486,8 @@ static int ovl_mmap(struct file *file, struct vm_area_s=
-truct *vma)
- =09=09/* Drop reference count from new vm_file value */
- =09=09fput(realfile);
- =09} else {
-+=09=09if (vma->vm_flags & (VM_SHARED|VM_MAYSHARE))
-+=09=09=09ovl_mark_inode_dirty(file_inode(file));
- =09=09/* Drop reference count from previous vm_file value */
- =09=09fput(file);
- =09}
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index e5607a908d82..9a535fc11221 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -255,6 +255,36 @@ static void ovl_put_super(struct super_block *sb)
+ =09ovl_free_fs(ofs);
+ }
+=20
++void ovl_wait_wb_inodes(struct ovl_fs *ofs)
++{
++=09LIST_HEAD(tmp_list);
++=09struct ovl_inode *oi;
++=09struct inode *upper;
++
++=09spin_lock(&ofs->syncfs_wait_list_lock);
++=09list_splice_init(&ofs->syncfs_wait_list, &tmp_list);
++
++=09while (!list_empty(&tmp_list)) {
++=09=09oi =3D list_first_entry(&tmp_list, struct ovl_inode, wait_list);
++=09=09list_del_init(&oi->wait_list);
++=09=09ihold(&oi->vfs_inode);
++=09=09spin_unlock(&ofs->syncfs_wait_list_lock);
++
++=09=09upper =3D ovl_inode_upper(&oi->vfs_inode);
++=09=09if (!mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK)) {
++=09=09=09iput(&oi->vfs_inode);
++=09=09=09goto wait_next;
++=09=09}
++
++=09=09filemap_fdatawait_keep_errors(upper->i_mapping);
++=09=09iput(&oi->vfs_inode);
++=09=09cond_resched();
++wait_next:
++=09=09spin_lock(&ofs->syncfs_wait_list_lock);
++=09}
++=09spin_unlock(&ofs->syncfs_wait_list_lock);
++}
++
+ /* Sync real dirty inodes in upper filesystem (if it exists) */
+ static int ovl_sync_fs(struct super_block *sb, int wait)
+ {
 --=20
 2.26.2
 
