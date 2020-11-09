@@ -2,182 +2,143 @@ Return-Path: <SRS0=jezc=EP=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45ED3C2D0A3
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:07:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DE93C2D0A3
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:10:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E91492065D
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:07:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32BD02065D
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:10:58 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eMZ8v3Ja"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A6ut3DKD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729315AbgKIKHb (ORCPT
+        id S1727077AbgKIKK6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 9 Nov 2020 05:07:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50146 "EHLO
+        Mon, 9 Nov 2020 05:10:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729197AbgKIKHb (ORCPT
+        with ESMTP id S1726176AbgKIKK5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 9 Nov 2020 05:07:31 -0500
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC059C0613D4;
-        Mon,  9 Nov 2020 02:07:30 -0800 (PST)
-Received: by mail-io1-xd43.google.com with SMTP id u21so9148356iol.12;
-        Mon, 09 Nov 2020 02:07:30 -0800 (PST)
+        Mon, 9 Nov 2020 05:10:57 -0500
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABE4EC0613CF
+        for <linux-unionfs@vger.kernel.org>; Mon,  9 Nov 2020 02:10:57 -0800 (PST)
+Received: by mail-il1-x144.google.com with SMTP id x20so7751070ilj.8
+        for <linux-unionfs@vger.kernel.org>; Mon, 09 Nov 2020 02:10:57 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=Ym0oIMv33/iMuLrAJ/9zIGez9P0YX8+hd5KLokB0ljM=;
-        b=eMZ8v3JaFAr60niNqW5VMWhrMhYpFIi+6Z89T67ZVJ6OYWN4ZqdUDyVmkhlZcNBXT+
-         rJ01cRbU/61lH3yglNxms2olcbm2cL6zqkNKkyGE9vWg6QmhaZSHTWgP7F1sQ7Ona0os
-         xal070DHZQfzPXvTxXtMO+vD9SgfebXLnRlANfhek6zsuGoHpAyYlJOQ5HrYXPTnoyyW
-         QURut8M6L7ZZB3FHwfiZd3z83mhKrKrHWgzTZKO0MJlVqSWIHiT1EGn5tluN7J+pCXk1
-         Lx33yTClTKAPZBoNqK/BBThNOqGcek4h3KoULXUDwBRpSaNvD2mnwNRBcd7yJfC/6l4C
-         m5Kw==
+         :cc;
+        bh=KpssYMdPMbttvMzPJ9Oq5onAZV+3noxT7AIR8yvgNXg=;
+        b=A6ut3DKDsAJNt1CVeifJE25H60B3LpINziAHgucLbXb35//tsl6zHuPgmRZ1GGLyWV
+         /1rASHYQJWbzCg+kKvw8SMS95c9tAA5K2yWseIOteO2nd2rZHg2k/Q20uYkWo7Hqig6x
+         qIUuo1wk1eRyQYwaTYLl4bdoi/n2hdh+C9A2CIaJishELpRhVsi8j/kXIK1iLTfC6Fb2
+         lumfmXxpsdj7AcjViuXQVe6qzsnKlI2KaIEM/sGJFZ2Wg01pNY34GTeBx26HEUOafMjR
+         9DqRXHvdZ1MmlxWP1mShwZh2KQr1qPYq1yfiUvjOhoplSHz72aS5DxKof4twnL/yLehk
+         TOJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=Ym0oIMv33/iMuLrAJ/9zIGez9P0YX8+hd5KLokB0ljM=;
-        b=ZOYve20+4yKyn8qGY/t1vFQAvbf9TFl+OpXkjEfdJ3IE49nYzjRwq2BtVRBDeCeEg8
-         ZhN529XkyhtHahTPzoeoezLJAI3rpbT4j9m06/ecnSPIwFJ588oc7dmRhwqEWHJc6Dja
-         JFKMuayYT/DKf3WBJqvHb8CRBgwCWYr4NDlOa11vZlXpE4kFsIeL9Ja3XDEWLyeACu+m
-         aQIhYl/G6VK8s8488Wpt6kmNoK82bI/1k8he3jSfvJMoEBWbL2lR3uw2rjxOoJ3ZdCh5
-         H4oWGLZZ1d5vVZMRt+pASBZBv8bKakjKxTCyJ7JGXE7taK983A4nExpBb0sPZXc7RK2x
-         JXCg==
-X-Gm-Message-State: AOAM532xljM7E15eDacdNVMJOOIH53zTP5VMakOE6Rn6Rk2lP+lSMs3L
-        hqR14kwjIOhON5sPc+0YhMVdUSlRwdK9eq7Eots=
-X-Google-Smtp-Source: ABdhPJwhvA/k7LHodxyloYJ9hKXhU73nK/Jwpk8sz2Evr7giMt7pSIRN7vUPQOdn4VIJbfi1C7a/qLUYiEp8UFkq3yY=
-X-Received: by 2002:a05:6602:5de:: with SMTP id w30mr5726971iox.64.1604916450141;
- Mon, 09 Nov 2020 02:07:30 -0800 (PST)
+         :message-id:subject:to:cc;
+        bh=KpssYMdPMbttvMzPJ9Oq5onAZV+3noxT7AIR8yvgNXg=;
+        b=UJ5vAybwmI0EQ3xNExtXdf/lrylTLzMkPo3q+W+r/O2ItNSrUK7gtsAkKW1Rmao8w9
+         18743JQkOZ9ZE2303eiRo81aLIfIUy3fvQNhFbv5N/65J5ovoViYnInbOSipyTITqn5p
+         OcvrpUCTn+mKBLATA9IGDFlkOp4meiLHFk7DoQlmkk4hK/5skGpXxCSNC7YD5ZBllYWp
+         +h4xg0SV0I0f9aKVLDv22VsRMYR+YsKEXR6bNy4pQ3EBE52oPLY3N6oBdzfyKliAVZaA
+         RG5U5Z973PKbsW0LF415w80uarVZZ0KWQ25I/P69IGG1q/IHTFow/qTlSsFNQUWww9Zh
+         QgxA==
+X-Gm-Message-State: AOAM531UfyJ5w8hryeuY1U8zsvEuAXHVkYyPTnDP5v9yZqhRnPHBXcFR
+        eS6tUx+e8+AEaTtSf7hv5H3IcsSA+ebzw9s691g=
+X-Google-Smtp-Source: ABdhPJy5mZW8THKYHxAdX2F7lGQnCiryivoEtT2BZ3t6V4OucpJfNjHOPfgve3MVJtAkstiDTVInlYzx3nN5SaDy+Ds=
+X-Received: by 2002:a92:6403:: with SMTP id y3mr9415271ilb.72.1604916657067;
+ Mon, 09 Nov 2020 02:10:57 -0800 (PST)
 MIME-Version: 1.0
-References: <20201108140307.1385745-1-cgxu519@mykernel.net>
- <20201108140307.1385745-10-cgxu519@mykernel.net> <175ab1145ed.108462b5a912.9181293177019474923@mykernel.net>
- <CAOQ4uxhVQC_PDPaYvO9KTSJ6Vrnds-yHmsyt631TSkBq6kqQ5g@mail.gmail.com> <175ac242078.1287a39451704.7442694321257329129@mykernel.net>
-In-Reply-To: <175ac242078.1287a39451704.7442694321257329129@mykernel.net>
+References: <20200831181529.GA1193654@redhat.com> <CAMp4zn9dF-umZF-LP=f6qWekyupsXTB6B8CeH6km7=9oVYV+NA@mail.gmail.com>
+ <20201106190325.GB1445528@redhat.com> <87o8kamfuo.fsf@redhat.com>
+ <CAOQ4uxhyzw=fHokRuCDFwD7SUg14_i1W0HMp9AGD6UxC5t5+tQ@mail.gmail.com> <87k0uulxn6.fsf@redhat.com>
+In-Reply-To: <87k0uulxn6.fsf@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 9 Nov 2020 12:07:18 +0200
-Message-ID: <CAOQ4uxgfi26HDp6YWx3Tgc1tY_EMrfcW_hz5FMG8vXeHLdycBw@mail.gmail.com>
-Subject: Re: [RFC PATCH v3 09/10] ovl: introduce helper of syncfs writeback
- inode waiting
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     miklos <miklos@szeredi.hu>, jack <jack@suse.cz>,
-        linux-unionfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Date:   Mon, 9 Nov 2020 12:10:45 +0200
+Message-ID: <CAOQ4uxikP==nOGMgTr37OTzkwVgTOrGW49Xd5mDH11O5_OR+wA@mail.gmail.com>
+Subject: Re: [PATCH v7] overlayfs: Provide a mount option "volatile" to skip sync
+To:     Giuseppe Scrivano <gscrivan@redhat.com>
+Cc:     Vivek Goyal <vgoyal@redhat.com>, Sargun Dhillon <sargun@sargun.me>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Daniel J Walsh <dwalsh@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Nov 9, 2020 at 10:34 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
+On Mon, Nov 9, 2020 at 10:53 AM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
 >
->  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=80, 2020-11-09 15:07:18 Amir Gol=
-dstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
->  > On Mon, Nov 9, 2020 at 5:34 AM Chengguang Xu <cgxu519@mykernel.net> wr=
-ote:
->  > >
->  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E6=97=A5, 2020-11-08 22:03:06 Che=
-ngguang Xu <cgxu519@mykernel.net> =E6=92=B0=E5=86=99 ----
->  > >  > Introduce a helper ovl_wait_wb_inodes() to wait until all
->  > >  > target upper inodes finish writeback.
->  > >  >
->  > >  > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
->  > >  > ---
->  > >  >  fs/overlayfs/super.c | 30 ++++++++++++++++++++++++++++++
->  > >  >  1 file changed, 30 insertions(+)
->  > >  >
->  > >  > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->  > >  > index e5607a908d82..9a535fc11221 100644
->  > >  > --- a/fs/overlayfs/super.c
->  > >  > +++ b/fs/overlayfs/super.c
->  > >  > @@ -255,6 +255,36 @@ static void ovl_put_super(struct super_block=
- *sb)
->  > >  >      ovl_free_fs(ofs);
->  > >  >  }
->  > >  >
->  > >  > +void ovl_wait_wb_inodes(struct ovl_fs *ofs)
->  > >  > +{
->  > >  > +    LIST_HEAD(tmp_list);
->  > >  > +    struct ovl_inode *oi;
->  > >  > +    struct inode *upper;
->  > >  > +
->  > >  > +    spin_lock(&ofs->syncfs_wait_list_lock);
->  > >  > +    list_splice_init(&ofs->syncfs_wait_list, &tmp_list);
->  > >  > +
->  > >  > +    while (!list_empty(&tmp_list)) {
->  > >  > +        oi =3D list_first_entry(&tmp_list, struct ovl_inode, wai=
-t_list);
->  > >  > +        list_del_init(&oi->wait_list);
->  > >  > +        ihold(&oi->vfs_inode);
->  > >
->  > > Maybe I overlooked race condition with inode eviction, so still need=
- to introduce
->  > > OVL_EVICT_PENDING flag just like we did in old syncfs efficiency pat=
-ch series.
->  > >
->  >
->  > I am not sure why you added the ovl wait list.
->  >
->  > I think you misunderstood Jan's suggestion.
->  > I think what Jan meant is that ovl_sync_fs() should call
->  > wait_sb_inodes(upper_sb)
->  > to wait for writeback of ALL upper inodes after sync_filesystem()
->  > started writeback
->  > only on this ovl instance upper inodes.
->  >
+> > On Fri, Nov 6, 2020 at 9:43 PM Giuseppe Scrivano <gscrivan@redhat.com> wrote:
+> >>
+> >> Vivek Goyal <vgoyal@redhat.com> writes:
+> >>
+> >> > On Fri, Nov 06, 2020 at 09:58:39AM -0800, Sargun Dhillon wrote:
+> >> >
+> >> > [..]
+> >> >> There is some slightly confusing behaviour here [I realize this
+> >> >> behaviour is as intended]:
+> >> >>
+> >> >> (root) ~ # mount -t overlay -o
+> >> >> volatile,index=off,lowerdir=/root/lowerdir,upperdir=/root/upperdir,workdir=/root/workdir
+> >> >> none /mnt/foo
+> >> >> (root) ~ # umount /mnt/foo
+> >> >> (root) ~ # mount -t overlay -o
+> >> >> volatile,index=off,lowerdir=/root/lowerdir,upperdir=/root/upperdir,workdir=/root/workdir
+> >> >> none /mnt/foo
+> >> >> mount: /mnt/foo: wrong fs type, bad option, bad superblock on none,
+> >> >> missing codepage or helper program, or other error.
+> >> >>
+> >> >> From my understanding, the dirty flag should only be a problem if the
+> >> >> existing overlayfs is unmounted uncleanly. Docker does
+> >> >> this (mount, and re-mounts) during startup time because it writes some
+> >> >> files to the overlayfs. I think that we should harden
+> >> >> the volatile check slightly, and make it so that within the same boot,
+> >> >> it's not a problem, and having to have the user clear
+> >> >> the workdir every time is a pain. In addition, the semantics of the
+> >> >> volatile patch itself do not appear to be such that they
+> >> >> would break mounts during the same boot / mount of upperdir -- as
+> >> >> overlayfs does not defer any writes in itself, and it's
+> >> >> only that it's short-circuiting writes to the upperdir.
+> >> >
+> >> > umount does a sync normally and with "volatile" overlayfs skips that
+> >> > sync. So a successful unmount does not mean that file got synced
+> >> > to backing store. It is possible, after umount, system crashed
+> >> > and after reboot, user tried to mount upper which is corrupted
+> >> > now and overlay will not detect it.
+> >> >
+> >> > You seem to be asking for an alternate option where we disable
+> >> > fsync() but not syncfs. In that case sync on umount will still
+> >> > be done. And that means a successful umount should mean upper
+> >> > is fine and it could automatically remove incomapt dir upon
+> >> > umount.
+> >>
+> >> could this be handled in user space?  It should still be possible to do
+> >> the equivalent of:
+> >>
+> >> # sync -f /root/upperdir
+> >> # rm -rf /root/workdir/incompat/volatile
+> >>
+> >
+> > FWIW, the sync -f command above is
+> > 1. Not needed when re-mounting overlayfs as volatile
+> > 2. Not enough when re-mounting overlayfs as non-volatile
+> >
+> > In the latter case, a full sync (no -f) is required.
 >
->
-> Maybe you are right, the wait list is just for accuracy that can complete=
-ly
-> avoid interferes between ovl instances, otherwise we may need to face
-> waiting interferes  in high density environment.
->
->
->  > I am not sure if this is acceptable or not - it is certainly an improv=
-ement over
->  > current situation, but I have a feeling that on a large scale (many
->  > containers) it
->  > won't be enough.
->  >
->
-> The same as your thought.
->
->
->  > The idea was to keep it simple without over optimizing, since anyway
->  > you are going for the "correct" solution long term (ovl inode aops),
->  > so I wouldn't
->  > add the wait list.
->  >
->
-> Maybe, I think it depends on how to implement ovl page-cache, so at curre=
-nt
-> stage I have no idea for the wait list.
->
->
->  > As long as the upper inode is still dirty, we can keep the ovl inode i=
-n cache,
->  > so the worst outcome is that drop_caches needs to get called twice bef=
-ore the
->  > ovl inode can be evicted, no?
->  >
->
-> IIUC, since currently ovl does not have it's own page-cache, so there is =
-no affect to page-cache reclaim,
-> also  there is no ovl shrinker to reclaim slab because we drop ovl inode =
-directly after final iput.
-> So should we add a shrinker in this series?
+> Thanks for the clarification.  Why wouldn't a syncfs on the upper
+> directory be enough to ensure files are persisted and safe to reuse
+> after a crash?
 >
 
-Would that add a lot of complexity?
-Thinking out loud: maybe we follow Jan's suggestion and fix remaining
-performance with followup series?
+My bad. I always confuse sync -f as fsync().
 
-Thanks,
+Sorry for the noise,
 Amir.
