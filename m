@@ -2,173 +2,182 @@ Return-Path: <SRS0=jezc=EP=vger.kernel.org=linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A967AC56201
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:04:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45ED3C2D0A3
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:07:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1531520789
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:04:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E91492065D
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Nov 2020 10:07:32 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="CD1gltoU"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eMZ8v3Ja"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729315AbgKIKE2 (ORCPT
+        id S1729315AbgKIKHb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 9 Nov 2020 05:04:28 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25386 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729019AbgKIKE2 (ORCPT
+        Mon, 9 Nov 2020 05:07:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50146 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729197AbgKIKHb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 9 Nov 2020 05:04:28 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1604916223; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=VhBaVVmgp7JHKm3aFQjR8VCsZnavlwvzb20DDFabmmjQPsC/ZLWsrYCt3sW24A5TjrVWsUErnFCybDMczqiMZBSJKogW3rFzXf4otFKV8LgVeQGnJnX61ZHOiiedeesvzcvYk+Xw5R/Dj/9it5MfqKVwzKnYKQY2/H0hZtKR9BE=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1604916223; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=lV8thjv8gvGD34qGZdlhs9WIEOQpb9ocklJfphK9ixc=; 
-        b=nVynZ7DriCowrJ8Pukuv1MmJuYcfWk841SpWSsJmtRMhFfQS6IVbbasVIDpTI6JJpyAxXWAqcGvvGdQDHaXTnD4I3GU++BjPvQa9WaGsTJ1qA/OI7dvciWoD3cEhbIRQyLqCn8LRecYQ+bEa9iUz/w0VxgSs7iSFtDV1K9AuzMA=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1604916223;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=lV8thjv8gvGD34qGZdlhs9WIEOQpb9ocklJfphK9ixc=;
-        b=CD1gltoUO0d02MBVqntbTukz+1ck0Ujp+FxxFtOVeHq/oP7JGFbe0JZ+zwjjc/Em
-        bUUMXKFoLbfuerFFhHmrtpEsDhKkVoxicdJBQUltuf8HU+d9/N9rTiHZwWRBu853Rkz
-        YFQtKmr0shXqEn+MTjFLwjhsDBE/5FzLe3oa0zMQ=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1604916221507733.1931180941485; Mon, 9 Nov 2020 18:03:41 +0800 (CST)
-Date:   Mon, 09 Nov 2020 18:03:41 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Amir Goldstein" <amir73il@gmail.com>
-Cc:     "Miklos Szeredi" <miklos@szeredi.hu>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "Ritesh Harjani" <riteshh@linux.ibm.com>
-Message-ID: <175ac761640.13224921c2025.358415481223856052@mykernel.net>
-In-Reply-To: <CAOQ4uxiGy5iGqMczJqX70UGCP3CNyuqh3KiQWOG9TKj5Hqms-Q@mail.gmail.com>
-References: <17596177926.d559c8b77834.5766617584799741474@mykernel.net>
- <CAOQ4uxgpmC_B_uWpnMXDrv9BOQ-rsMxyRTc+qC3dT72sqR8ndg@mail.gmail.com>
- <17597c5dc4e.fb084b178911.1848736071974456771@mykernel.net>
- <CAJfpegu-rqL4-jn9o0+OSj2x+hKS8mLB6GswhL17Ruhb3WuMKg@mail.gmail.com> <1759833fcec.11bebc5a09074.619089384538905286@mykernel.net> <CAOQ4uxiGy5iGqMczJqX70UGCP3CNyuqh3KiQWOG9TKj5Hqms-Q@mail.gmail.com>
-Subject: Re: a question about opening file
+        Mon, 9 Nov 2020 05:07:31 -0500
+Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC059C0613D4;
+        Mon,  9 Nov 2020 02:07:30 -0800 (PST)
+Received: by mail-io1-xd43.google.com with SMTP id u21so9148356iol.12;
+        Mon, 09 Nov 2020 02:07:30 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=Ym0oIMv33/iMuLrAJ/9zIGez9P0YX8+hd5KLokB0ljM=;
+        b=eMZ8v3JaFAr60niNqW5VMWhrMhYpFIi+6Z89T67ZVJ6OYWN4ZqdUDyVmkhlZcNBXT+
+         rJ01cRbU/61lH3yglNxms2olcbm2cL6zqkNKkyGE9vWg6QmhaZSHTWgP7F1sQ7Ona0os
+         xal070DHZQfzPXvTxXtMO+vD9SgfebXLnRlANfhek6zsuGoHpAyYlJOQ5HrYXPTnoyyW
+         QURut8M6L7ZZB3FHwfiZd3z83mhKrKrHWgzTZKO0MJlVqSWIHiT1EGn5tluN7J+pCXk1
+         Lx33yTClTKAPZBoNqK/BBThNOqGcek4h3KoULXUDwBRpSaNvD2mnwNRBcd7yJfC/6l4C
+         m5Kw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=Ym0oIMv33/iMuLrAJ/9zIGez9P0YX8+hd5KLokB0ljM=;
+        b=ZOYve20+4yKyn8qGY/t1vFQAvbf9TFl+OpXkjEfdJ3IE49nYzjRwq2BtVRBDeCeEg8
+         ZhN529XkyhtHahTPzoeoezLJAI3rpbT4j9m06/ecnSPIwFJ588oc7dmRhwqEWHJc6Dja
+         JFKMuayYT/DKf3WBJqvHb8CRBgwCWYr4NDlOa11vZlXpE4kFsIeL9Ja3XDEWLyeACu+m
+         aQIhYl/G6VK8s8488Wpt6kmNoK82bI/1k8he3jSfvJMoEBWbL2lR3uw2rjxOoJ3ZdCh5
+         H4oWGLZZ1d5vVZMRt+pASBZBv8bKakjKxTCyJ7JGXE7taK983A4nExpBb0sPZXc7RK2x
+         JXCg==
+X-Gm-Message-State: AOAM532xljM7E15eDacdNVMJOOIH53zTP5VMakOE6Rn6Rk2lP+lSMs3L
+        hqR14kwjIOhON5sPc+0YhMVdUSlRwdK9eq7Eots=
+X-Google-Smtp-Source: ABdhPJwhvA/k7LHodxyloYJ9hKXhU73nK/Jwpk8sz2Evr7giMt7pSIRN7vUPQOdn4VIJbfi1C7a/qLUYiEp8UFkq3yY=
+X-Received: by 2002:a05:6602:5de:: with SMTP id w30mr5726971iox.64.1604916450141;
+ Mon, 09 Nov 2020 02:07:30 -0800 (PST)
 MIME-Version: 1.0
+References: <20201108140307.1385745-1-cgxu519@mykernel.net>
+ <20201108140307.1385745-10-cgxu519@mykernel.net> <175ab1145ed.108462b5a912.9181293177019474923@mykernel.net>
+ <CAOQ4uxhVQC_PDPaYvO9KTSJ6Vrnds-yHmsyt631TSkBq6kqQ5g@mail.gmail.com> <175ac242078.1287a39451704.7442694321257329129@mykernel.net>
+In-Reply-To: <175ac242078.1287a39451704.7442694321257329129@mykernel.net>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 9 Nov 2020 12:07:18 +0200
+Message-ID: <CAOQ4uxgfi26HDp6YWx3Tgc1tY_EMrfcW_hz5FMG8vXeHLdycBw@mail.gmail.com>
+Subject: Re: [RFC PATCH v3 09/10] ovl: introduce helper of syncfs writeback
+ inode waiting
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     miklos <miklos@szeredi.hu>, jack <jack@suse.cz>,
+        linux-unionfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-11-05 22:05:26 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > On Thu, Nov 5, 2020 at 1:39 PM Chengguang Xu <cgxu519@mykernel.net> wrot=
-e:
- > >
- > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-11-05 17:57:15 Miklo=
-s Szeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
- > >  > On Thu, Nov 5, 2020 at 10:38 AM Chengguang Xu <cgxu519@mykernel.net=
-> wrote:
- > >  > >
- > >  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2020-11-05 16:07:26 =
-Amir Goldstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > >  > >  > On Thu, Nov 5, 2020 at 6:39 AM Chengguang Xu <cgxu519@mykernel=
-.net> wrote:
- > >  > >  > >
- > >  > >  > > Hello,
- > >  > >  > >
- > >  > >  > > I have a question about opening file of underlying filesyste=
-m in overlayfs,
- > >  > >  > >
- > >  > >  > > why we use overlayfs' path(vfsmount/dentry) struct for under=
-lying fs' file
- > >  > >  > >
- > >  > >  > > in ovl_open_realfile()?  Is it by design?
- > >  > >  >
- > >  > >  > Sure. open_with_fake_path() is only used by overlayfs.
- > >  > >  >
- > >  > >  > IIRC, one of the reasons was to display the user expected path=
- in
- > >  > >  > /proc/<pid>/maps.
- > >  > >  > There may have been other reasons.
- > >  > >  >
- > >  > >
- > >  > > So if we do the mmap with overlayfs'  own page cache, then we don=
-'t have to
- > >  > > use pseudo path for the reason above, right?
- > >  > >
- > >  > > Actually, the background is I'm trying to implement overlayfs' pa=
-ge cache for
- > >  > > fixing mmap rorw issue. The reason why asking this is I need to o=
-pen a writeback
- > >  > > file which is used for syncing dirty data from overlayfs' own pag=
-e cache to upper inode.
- > >  > > However, if I use the pseudo path just like current opening behav=
-ior, the writeback
- > >  > > file will hold a reference of vfsmount of overlayfs and it will c=
-ause umount fail with -EBUSY.
- > >  > > So I want to open a writeback file with correct underlying path s=
-truct but not sure if
- > >  > > there is any unexpected side effect. Any suggestion?
- > >  >
- > >  > Should be no issue with plain dentry_open() for that purpose.  In f=
-act
- > >  > it would be really good to get rid of all that d_real*() mess
- > >  > completely, but that seems some ways off.
- > >  >
- > >  > Did you find the prototype we did with Amir a couple of years back?=
-  I
- > >  > can only find bits and pieces in my mailbox...
- > >  >
- > >
- > > I searched in overlayfs mail list but unfortunately didn't  get useful=
- info.
- > > Seems Amir has a git tree for aops prototype but I'm not sure if that =
-is the
- > > prototype you mentioned.
- > >
- > > https://github.com/amir73il/linux/commits/ovl-aops-wip
- > >
- > > Hi Amir,
- > >
- > > Do you know the prototype that Miklos mentioned above? Is that the
- > > code in your ovl-aops-wip git tree?
- > >
- >=20
- > Yes it is.
- > The discussion over that branch and remaining TODO is on this thread [1]=
-.
- >=20
- > CCing Ritesh who also expressed intention to start beating this
- > branch into shape.
- >=20
- > If you go over the code/emails and still feel lost, I think it is best t=
-o have
- > a video call.
- >=20
- > Thanks,
- > Amir.
- >=20
- > [1] https://lore.kernel.org/linux-unionfs/CAJfpegsyA4SjmtAEpkMoKsvgmW0Ci=
-EwWEAbU7v3yJztLKmC0Eg@mail.gmail.com/
- >=20
+On Mon, Nov 9, 2020 at 10:34 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
+>
+>  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=80, 2020-11-09 15:07:18 Amir Gol=
+dstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
+>  > On Mon, Nov 9, 2020 at 5:34 AM Chengguang Xu <cgxu519@mykernel.net> wr=
+ote:
+>  > >
+>  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E6=97=A5, 2020-11-08 22:03:06 Che=
+ngguang Xu <cgxu519@mykernel.net> =E6=92=B0=E5=86=99 ----
+>  > >  > Introduce a helper ovl_wait_wb_inodes() to wait until all
+>  > >  > target upper inodes finish writeback.
+>  > >  >
+>  > >  > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+>  > >  > ---
+>  > >  >  fs/overlayfs/super.c | 30 ++++++++++++++++++++++++++++++
+>  > >  >  1 file changed, 30 insertions(+)
+>  > >  >
+>  > >  > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>  > >  > index e5607a908d82..9a535fc11221 100644
+>  > >  > --- a/fs/overlayfs/super.c
+>  > >  > +++ b/fs/overlayfs/super.c
+>  > >  > @@ -255,6 +255,36 @@ static void ovl_put_super(struct super_block=
+ *sb)
+>  > >  >      ovl_free_fs(ofs);
+>  > >  >  }
+>  > >  >
+>  > >  > +void ovl_wait_wb_inodes(struct ovl_fs *ofs)
+>  > >  > +{
+>  > >  > +    LIST_HEAD(tmp_list);
+>  > >  > +    struct ovl_inode *oi;
+>  > >  > +    struct inode *upper;
+>  > >  > +
+>  > >  > +    spin_lock(&ofs->syncfs_wait_list_lock);
+>  > >  > +    list_splice_init(&ofs->syncfs_wait_list, &tmp_list);
+>  > >  > +
+>  > >  > +    while (!list_empty(&tmp_list)) {
+>  > >  > +        oi =3D list_first_entry(&tmp_list, struct ovl_inode, wai=
+t_list);
+>  > >  > +        list_del_init(&oi->wait_list);
+>  > >  > +        ihold(&oi->vfs_inode);
+>  > >
+>  > > Maybe I overlooked race condition with inode eviction, so still need=
+ to introduce
+>  > > OVL_EVICT_PENDING flag just like we did in old syncfs efficiency pat=
+ch series.
+>  > >
+>  >
+>  > I am not sure why you added the ovl wait list.
+>  >
+>  > I think you misunderstood Jan's suggestion.
+>  > I think what Jan meant is that ovl_sync_fs() should call
+>  > wait_sb_inodes(upper_sb)
+>  > to wait for writeback of ALL upper inodes after sync_filesystem()
+>  > started writeback
+>  > only on this ovl instance upper inodes.
+>  >
+>
+>
+> Maybe you are right, the wait list is just for accuracy that can complete=
+ly
+> avoid interferes between ovl instances, otherwise we may need to face
+> waiting interferes  in high density environment.
+>
+>
+>  > I am not sure if this is acceptable or not - it is certainly an improv=
+ement over
+>  > current situation, but I have a feeling that on a large scale (many
+>  > containers) it
+>  > won't be enough.
+>  >
+>
+> The same as your thought.
+>
+>
+>  > The idea was to keep it simple without over optimizing, since anyway
+>  > you are going for the "correct" solution long term (ovl inode aops),
+>  > so I wouldn't
+>  > add the wait list.
+>  >
+>
+> Maybe, I think it depends on how to implement ovl page-cache, so at curre=
+nt
+> stage I have no idea for the wait list.
+>
+>
+>  > As long as the upper inode is still dirty, we can keep the ovl inode i=
+n cache,
+>  > so the worst outcome is that drop_caches needs to get called twice bef=
+ore the
+>  > ovl inode can be evicted, no?
+>  >
+>
+> IIUC, since currently ovl does not have it's own page-cache, so there is =
+no affect to page-cache reclaim,
+> also  there is no ovl shrinker to reclaim slab because we drop ovl inode =
+directly after final iput.
+> So should we add a shrinker in this series?
+>
 
-Hi Amir,
-
-Thank you very much, it's very helpful, let me check the mail thread and th=
-e content in your branch.
+Would that add a lot of complexity?
+Thinking out loud: maybe we follow Jan's suggestion and fix remaining
+performance with followup series?
 
 Thanks,
-Chengguang
-
-
-
-
-
+Amir.
