@@ -2,163 +2,127 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89582C55ABD
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Nov 2020 15:12:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1899C5517A
+	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Nov 2020 16:18:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFCC720781
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Nov 2020 15:12:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A076206E3
+	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Nov 2020 16:18:48 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="Gio28/1/"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Iu5Zxz04"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731568AbgKJPMz (ORCPT
+        id S1730059AbgKJQSr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 10 Nov 2020 10:12:55 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25384 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1731450AbgKJPMz (ORCPT
+        Tue, 10 Nov 2020 11:18:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49576 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729359AbgKJQSr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Nov 2020 10:12:55 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1605021136; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=PCd8n3BhtypUfdMXLYROsIHlStU7SIYkym127tuRof830GVxcFtINnsO90GW5sXXIVBYus/S9KYAW1YqrJW2jreaMSR8m0iNoqAi9YvyCrx0KlVQA9qvsD8WP7xtZUpZogOm0wa2PT8hHs2hAr4Yej/V9OoAUfWwrerYTqizWGE=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1605021136; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=LJ6AsdiD74STNa1twe5St3ZMGrmg4LjQXeZILt1GPR8=; 
-        b=OC5azQ6sk9oYg8y4ytUvzsDfVqE7aRYFsGNU28PAg3kkVdwY9t9E7CKL2YK50LH7xjj+A9XCoO1mJ0OLLjRgmzG9QbyaUMHmVwm+S0Y730lm/g//flG6CBseZ7kUkkjSH844Zug6V+kW7cTh2qhumRcfQXha51LcvsQPBad37EQ=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1605021136;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=LJ6AsdiD74STNa1twe5St3ZMGrmg4LjQXeZILt1GPR8=;
-        b=Gio28/1/+6JfXhMbRK9ZCPgAf30wPSlHvkuKo48fROuZz7nuCy1zTlLJSQ1UL98b
-        rWzPaTduI4pCB1YT4iLLs1dy8dCbO7H0mZngalteiV4yjtuX8lcrUhyjIm5fNr3wpGH
-        uUYGI2rPDPuHkRN9cRboBQvUy6+Hwk3UOquVgYZg=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1605021134656930.2158116996183; Tue, 10 Nov 2020 23:12:14 +0800 (CST)
-Date:   Tue, 10 Nov 2020 23:12:14 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Jan Kara" <jack@suse.cz>
-Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>
-Message-ID: <175b2b6ef3d.11f9425843834.4407023737229017217@mykernel.net>
-In-Reply-To: <20201110134551.GA28132@quack2.suse.cz>
+        Tue, 10 Nov 2020 11:18:47 -0500
+Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71940C0613D1;
+        Tue, 10 Nov 2020 08:18:47 -0800 (PST)
+Received: by mail-il1-x141.google.com with SMTP id x7so12701974ili.5;
+        Tue, 10 Nov 2020 08:18:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=RUlP7T4EkRDeCbZhT86ipVfmSTNz6CRQ66gl9t5yhVk=;
+        b=Iu5Zxz04IcYz7Bx8uJlItucJtkRKTdWeBPRjQOt9bTMAqO5OjtP20wYohWLwLidAce
+         EHpRwOT5Ql1XJPX5DX5pWtVEA33DuPFP1ieDbE/reeLbD+2vZgo5WIDPkF1ioK05tslq
+         ncOe0tsTp5j7nQh6t1rzvdkVe/+V9YkQy5Z75nqL1HEn6Umf7udZFW6ANp3ZFDWfx+W/
+         a+YEKuWnDEBcAFNAN2j4y1YzYUaBs+/WFv3FuA8vyv5ZXTJkoCrkUo4DffJqofkWVWYp
+         9eUl/gHAIr/IeWx7gulfqJoxbHONAzX6JyG9T0OnwlWTZoQJmEUyQ4fk/RYBCOuNzc0A
+         qrcw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=RUlP7T4EkRDeCbZhT86ipVfmSTNz6CRQ66gl9t5yhVk=;
+        b=PByXhN6eZpHMa//HXG1gBl1Jv7gZD67/nQZVFFIbLJPgRLOBMH/gsOg21fkpTZqBVB
+         x15JuuW5/i5ITjz/2813dP93hpaDFhUeZdb8urbMeq4AEoav0MOB2p70DswfCaoXPvhw
+         RQLKgePf6ETPSxt23ZLlfNEiG4O7myK/1OqSjUloxi9vwK2zqP/nl8xQOnXM9AIQ/bQB
+         yi+3vr6ZT1UXOiGae1xSbBTwdyqyXmj3MHBKD5QeCiMLFcUg6TBWBf2DlMqPDOyo7HuR
+         Ja/M+r8fFQ31XVCuYAto9oBDMvC42pJP2TTDZMo0GQvAlz38g78rcSh22rsKYls7Yk8z
+         h9hQ==
+X-Gm-Message-State: AOAM5327wCBKco/f7zdav2G1m1gkf5652WS66kJQ0g1t3MqBq4KOhl0q
+        dJ39PHTiZ7Hb+1wxnqzUc//o/l6um92YLM1MPYw=
+X-Google-Smtp-Source: ABdhPJyerdL0gaHAoqy7U3+lytf7cvPEBJgAIvvvzRt90uzr9RLPg55qxmFIijSfExwghwBE35qz6B3tHOMUCAnvono=
+X-Received: by 2002:a92:6403:: with SMTP id y3mr14751503ilb.72.1605025126806;
+ Tue, 10 Nov 2020 08:18:46 -0800 (PST)
+MIME-Version: 1.0
 References: <20201108140307.1385745-1-cgxu519@mykernel.net>
  <20201108140307.1385745-8-cgxu519@mykernel.net> <20201110134551.GA28132@quack2.suse.cz>
-Subject: Re: [RFC PATCH v3 07/10] ovl: implement overlayfs' ->write_inode
- operation
-MIME-Version: 1.0
+In-Reply-To: <20201110134551.GA28132@quack2.suse.cz>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 10 Nov 2020 18:18:35 +0200
+Message-ID: <CAOQ4uxgacry9pYVJeS6832G=MZVBCbamFvJULGPjk1aSBJbLxQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v3 07/10] ovl: implement overlayfs' ->write_inode operation
+To:     Jan Kara <jack@suse.cz>
+Cc:     Chengguang Xu <cgxu519@mykernel.net>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2020-11-10 21:45:51 Jan Kara <=
-jack@suse.cz> =E6=92=B0=E5=86=99 ----
- > On Sun 08-11-20 22:03:04, Chengguang Xu wrote:
- > > +static int ovl_write_inode(struct inode *inode,
- > > +               struct writeback_control *wbc)
- > > +{
- > > +    struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
- > > +    struct inode *upper =3D ovl_inode_upper(inode);
- > > +    unsigned long iflag =3D 0;
- > > +    int ret =3D 0;
- > > +
- > > +    if (!upper)
- > > +        return 0;
- > > +
- > > +    if (!ovl_should_sync(ofs))
- > > +        return 0;
- > > +
- > > +    if (upper->i_sb->s_op->write_inode)
- > > +        ret =3D upper->i_sb->s_op->write_inode(inode, wbc);
- > > +
- > > +    iflag |=3D upper->i_state & I_DIRTY_ALL;
- > > +
- > > +    if (mapping_writably_mapped(upper->i_mapping) ||
- > > +        mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
- > > +        iflag |=3D I_DIRTY_PAGES;
- > > +
- > > +    if (iflag)
- > > +        ovl_mark_inode_dirty(inode);
- >=20
- > I think you didn't incorporate feedback we were speaking about in the la=
-st
- > version of the series. May comment in [1] still applies - you can miss
- > inodes dirtied through mmap when you decide to clean the inode here. So
- > IMHO you need something like:
- >=20
- >     if (inode_is_open_for_write(inode))
- >         ovl_mark_inode_dirty(inode);
- >=20
- > here to keep inode dirty while it is open for write (and not based on up=
-per
- > inode state which is unreliable).
+On Tue, Nov 10, 2020 at 3:45 PM Jan Kara <jack@suse.cz> wrote:
+>
+> On Sun 08-11-20 22:03:04, Chengguang Xu wrote:
+> > +static int ovl_write_inode(struct inode *inode,
+> > +                        struct writeback_control *wbc)
+> > +{
+> > +     struct ovl_fs *ofs = inode->i_sb->s_fs_info;
+> > +     struct inode *upper = ovl_inode_upper(inode);
+> > +     unsigned long iflag = 0;
+> > +     int ret = 0;
+> > +
+> > +     if (!upper)
+> > +             return 0;
+> > +
+> > +     if (!ovl_should_sync(ofs))
+> > +             return 0;
+> > +
+> > +     if (upper->i_sb->s_op->write_inode)
+> > +             ret = upper->i_sb->s_op->write_inode(inode, wbc);
+> > +
+> > +     iflag |= upper->i_state & I_DIRTY_ALL;
+> > +
+> > +     if (mapping_writably_mapped(upper->i_mapping) ||
+> > +         mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
+> > +             iflag |= I_DIRTY_PAGES;
+> > +
+> > +     if (iflag)
+> > +             ovl_mark_inode_dirty(inode);
+>
+> I think you didn't incorporate feedback we were speaking about in the last
+> version of the series. May comment in [1] still applies - you can miss
+> inodes dirtied through mmap when you decide to clean the inode here. So
+> IMHO you need something like:
+>
+>         if (inode_is_open_for_write(inode))
+>                 ovl_mark_inode_dirty(inode);
+>
+> here to keep inode dirty while it is open for write (and not based on upper
+> inode state which is unreliable).
+>
 
-Hi Jan,
+Just to be clear, as long as the ovl inode is open for write, the upper inode
+is also open for write via the realfile reference, but not the other
+way around -
+after open(); mmap(); close() of the overlay file, the ovl inode is not
+open for write, but the upper inode is, because ovl_mmap() maps the
+realfile and upper inode without taking any reference on the ovl file/inode.
 
-I not only checked upper inode state but also checked upper inode mmap(shar=
-ed) state
-using  mapping_writably_mapped(upper->i_mapping). Maybe it's better to move=
- i_state check
-after mmap check but isn't above checks enough for mmapped file?=20
-
-Below code is the definition of mmapping_writably_mapped(), I think it will=
- check shared mmap
-regardless write or read permission though the function name is quite confu=
-sable.
-
-static inline int mapping_writably_mapped(struct address_space *mapping)
-{
-=09return atomic_read(&mapping->i_mmap_writable) > 0;
-}
-
-
+Hence the check for mapping_writably_mapped(upper->i_mapping)
+above.
 
 Thanks,
-Chengguang
-
-
- >=20
- >                                 Honza
- >=20
- > [1] https://lore.kernel.org/linux-fsdevel/20201105140332.GG32718@quack2.=
-suse.cz/
- >=20
- > > +
- > > +    return ret;
- > > +}
- > > +
- > >  static void ovl_evict_inode(struct inode *inode)
- > >  {
- > >      struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
- > > @@ -411,6 +440,7 @@ static const struct super_operations ovl_super_ope=
-rations =3D {
- > >      .destroy_inode    =3D ovl_destroy_inode,
- > >      .drop_inode    =3D generic_delete_inode,
- > >      .evict_inode    =3D ovl_evict_inode,
- > > +    .write_inode    =3D ovl_write_inode,
- > >      .put_super    =3D ovl_put_super,
- > >      .sync_fs    =3D ovl_sync_fs,
- > >      .statfs        =3D ovl_statfs,
- > > --=20
- > > 2.26.2
- > >=20
- > >=20
- > --=20
- > Jan Kara <jack@suse.com>
- > SUSE Labs, CR
- >=20
+Amir.
