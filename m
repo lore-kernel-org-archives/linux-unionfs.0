@@ -2,104 +2,101 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.9 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE56DC388F9
-	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Nov 2020 10:54:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB44C388F9
+	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Nov 2020 13:21:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 865542067D
-	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Nov 2020 10:54:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E16D206CA
+	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Nov 2020 13:21:05 +0000 (UTC)
+Authentication-Results: mail.kernel.org;
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="WfoiIeBH"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725903AbgKKKyI (ORCPT
+        id S1726149AbgKKNVE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 11 Nov 2020 05:54:08 -0500
-Received: from mx2.suse.de ([195.135.220.15]:43246 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725895AbgKKKyH (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 11 Nov 2020 05:54:07 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id E6455ABDE;
-        Wed, 11 Nov 2020 10:54:05 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 7F4971E130B; Wed, 11 Nov 2020 11:54:05 +0100 (CET)
-Date:   Wed, 11 Nov 2020 11:54:05 +0100
-From:   Jan Kara <jack@suse.cz>
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Jan Kara <jack@suse.cz>, miklos <miklos@szeredi.hu>,
-        amir73il <amir73il@gmail.com>,
-        linux-unionfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Subject: Re: [RFC PATCH v3 07/10] ovl: implement overlayfs' ->write_inode
- operation
-Message-ID: <20201111105405.GB28132@quack2.suse.cz>
-References: <20201108140307.1385745-1-cgxu519@mykernel.net>
- <20201108140307.1385745-8-cgxu519@mykernel.net>
- <20201110134551.GA28132@quack2.suse.cz>
- <175b2b6ef3d.11f9425843834.4407023737229017217@mykernel.net>
+        Wed, 11 Nov 2020 08:21:04 -0500
+Received: from sender21-op-o12.zoho.com.cn ([118.126.63.243]:17148 "EHLO
+        sender21-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726101AbgKKNVE (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 11 Nov 2020 08:21:04 -0500
+X-Greylist: delayed 908 seconds by postgrey-1.27 at vger.kernel.org; Wed, 11 Nov 2020 08:21:02 EST
+ARC-Seal: i=1; a=rsa-sha256; t=1605099929; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=UgDYs3NvPCkNySRkbzGqu2P4aiMgyp4QyULKglvKH92dmV58qX1pbyQQffFFIrL706TvIRKO8Kdbsw3m19qHKlgwVvBN7KAR7lGxHfykxikb2yecQ/EfFLuLG3vbebJU6FcqqF6hyqWyJJUkjiIQszbPd9UPuHRIKQNk4RZKH9I=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1605099929; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=k41+sYNAP9Kyu2Asxnn1o/eCrqBP14fWhJ4edoO7Dig=; 
+        b=Y2B8r6gmgvnQi3oSKC0d94b+fDoGzt4dayMOhzBL5Ht1dj0RZRKJu1/AjLeDbx8PQKI94HzHiaTc6t4HteILq545dgmanwA5fK/t+/n3Y90ZFSQLFDBO1KXdcpOd87Dwl/PKccTSZDLyTIeq2i5jtWsYhoSXwHjWTyBiFTgY+Jc=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1605099929;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=k41+sYNAP9Kyu2Asxnn1o/eCrqBP14fWhJ4edoO7Dig=;
+        b=WfoiIeBHwO0xOYkta5JV3kiNxDwGC+dEwt4dNSYznT3MSEkYE1Kv3ZVOMrh6wG4W
+        wvAAmar6W9bXMKQXTx7EGpjIaSKd/XF4zYftpcXZ9iyP1QoCtdbQO8OeMie/P+qNVxu
+        geAAodWQrUtHlmrg3mbTkFnBtvDctxePYNyPeGjU=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1605099927873724.93340982176; Wed, 11 Nov 2020 21:05:27 +0800 (CST)
+Date:   Wed, 11 Nov 2020 21:05:27 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Chengguang Xu" <cgxu519@mykernel.net>
+Cc:     "miklos" <miklos@szeredi.hu>, "jack" <jack@suse.cz>,
+        "amir73il" <amir73il@gmail.com>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>
+Message-ID: <175b769393e.da9339695127.2777354745619336639@mykernel.net>
+In-Reply-To: <20201108140307.1385745-7-cgxu519@mykernel.net>
+References: <20201108140307.1385745-1-cgxu519@mykernel.net> <20201108140307.1385745-7-cgxu519@mykernel.net>
+Subject: =?UTF-8?Q?=E5=9B=9E=E5=A4=8D:[RFC_PATCH_v3_06/10]_ovl:_mark_o?=
+ =?UTF-8?Q?verlayfs'_inode_dirty_on_shared_mmap?=
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <175b2b6ef3d.11f9425843834.4407023737229017217@mykernel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue 10-11-20 23:12:14, Chengguang Xu wrote:
->  ---- 在 星期二, 2020-11-10 21:45:51 Jan Kara <jack@suse.cz> 撰写 ----
->  > On Sun 08-11-20 22:03:04, Chengguang Xu wrote:
->  > > +static int ovl_write_inode(struct inode *inode,
->  > > +               struct writeback_control *wbc)
->  > > +{
->  > > +    struct ovl_fs *ofs = inode->i_sb->s_fs_info;
->  > > +    struct inode *upper = ovl_inode_upper(inode);
->  > > +    unsigned long iflag = 0;
->  > > +    int ret = 0;
->  > > +
->  > > +    if (!upper)
->  > > +        return 0;
->  > > +
->  > > +    if (!ovl_should_sync(ofs))
->  > > +        return 0;
->  > > +
->  > > +    if (upper->i_sb->s_op->write_inode)
->  > > +        ret = upper->i_sb->s_op->write_inode(inode, wbc);
->  > > +
->  > > +    iflag |= upper->i_state & I_DIRTY_ALL;
->  > > +
->  > > +    if (mapping_writably_mapped(upper->i_mapping) ||
->  > > +        mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
->  > > +        iflag |= I_DIRTY_PAGES;
->  > > +
->  > > +    if (iflag)
->  > > +        ovl_mark_inode_dirty(inode);
->  > 
->  > I think you didn't incorporate feedback we were speaking about in the last
->  > version of the series. May comment in [1] still applies - you can miss
->  > inodes dirtied through mmap when you decide to clean the inode here. So
->  > IMHO you need something like:
->  > 
->  >     if (inode_is_open_for_write(inode))
->  >         ovl_mark_inode_dirty(inode);
->  > 
->  > here to keep inode dirty while it is open for write (and not based on upper
->  > inode state which is unreliable).
-> 
-> Hi Jan,
-> 
-> I not only checked upper inode state but also checked upper inode
-> mmap(shared) state using  mapping_writably_mapped(upper->i_mapping).
-> Maybe it's better to move i_state check after mmap check but isn't above
-> checks enough for mmapped file? 
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E6=97=A5, 2020-11-08 22:03:03 Chengguang=
+ Xu <cgxu519@mykernel.net> =E6=92=B0=E5=86=99 ----
+ > Overlayfs cannot be notified when mmapped area gets dirty,
+ > so we need to proactively mark inode dirty in ->mmap operation.
+ >=20
+ > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ > ---
+ >  fs/overlayfs/file.c | 2 ++
+ >  1 file changed, 2 insertions(+)
+ >=20
+ > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+ > index efccb7c1f9bc..662252047fff 100644
+ > --- a/fs/overlayfs/file.c
+ > +++ b/fs/overlayfs/file.c
+ > @@ -486,6 +486,8 @@ static int ovl_mmap(struct file *file, struct vm_are=
+a_struct *vma)
+ >          /* Drop reference count from new vm_file value */
+ >          fput(realfile);
+ >      } else {
+ > +        if (vma->vm_flags & (VM_SHARED|VM_MAYSHARE))
 
-Ah, sorry, I'm blind! I missed the mapping_writably_mapped() check. Thanks
-for explanation.
+Maybe it's better to mark dirty only having upper inode.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+
+ > +            ovl_mark_inode_dirty(file_inode(file));
+ >          /* Drop reference count from previous vm_file value */
+ >          fput(file);
+ >      }
+ > --=20
+ > 2.26.2
+ >=20
+ >=20
+ >=20
