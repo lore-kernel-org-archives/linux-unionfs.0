@@ -2,127 +2,58 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=0.6 required=3.0 tests=BAYES_50,DKIM_ADSP_CUSTOM_MED,
+	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,FREEMAIL_REPLYTO_END_DIGIT,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1899C5517A
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Nov 2020 16:18:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A6A2C4742C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Nov 2020 07:24:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A076206E3
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Nov 2020 16:18:48 +0000 (UTC)
-Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Iu5Zxz04"
+	by mail.kernel.org (Postfix) with ESMTP id 3325620870
+	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Nov 2020 07:24:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730059AbgKJQSr (ORCPT
+        id S1726669AbgKKHYm convert rfc822-to-8bit (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 10 Nov 2020 11:18:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49576 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729359AbgKJQSr (ORCPT
+        Wed, 11 Nov 2020 02:24:42 -0500
+Received: from sw73-70-41.adsl.seed.net.tw ([203.73.70.41]:45077 "EHLO
+        oa.trendtek.com.tw" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1726384AbgKKHYj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Nov 2020 11:18:47 -0500
-Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 71940C0613D1;
-        Tue, 10 Nov 2020 08:18:47 -0800 (PST)
-Received: by mail-il1-x141.google.com with SMTP id x7so12701974ili.5;
-        Tue, 10 Nov 2020 08:18:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=RUlP7T4EkRDeCbZhT86ipVfmSTNz6CRQ66gl9t5yhVk=;
-        b=Iu5Zxz04IcYz7Bx8uJlItucJtkRKTdWeBPRjQOt9bTMAqO5OjtP20wYohWLwLidAce
-         EHpRwOT5Ql1XJPX5DX5pWtVEA33DuPFP1ieDbE/reeLbD+2vZgo5WIDPkF1ioK05tslq
-         ncOe0tsTp5j7nQh6t1rzvdkVe/+V9YkQy5Z75nqL1HEn6Umf7udZFW6ANp3ZFDWfx+W/
-         a+YEKuWnDEBcAFNAN2j4y1YzYUaBs+/WFv3FuA8vyv5ZXTJkoCrkUo4DffJqofkWVWYp
-         9eUl/gHAIr/IeWx7gulfqJoxbHONAzX6JyG9T0OnwlWTZoQJmEUyQ4fk/RYBCOuNzc0A
-         qrcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=RUlP7T4EkRDeCbZhT86ipVfmSTNz6CRQ66gl9t5yhVk=;
-        b=PByXhN6eZpHMa//HXG1gBl1Jv7gZD67/nQZVFFIbLJPgRLOBMH/gsOg21fkpTZqBVB
-         x15JuuW5/i5ITjz/2813dP93hpaDFhUeZdb8urbMeq4AEoav0MOB2p70DswfCaoXPvhw
-         RQLKgePf6ETPSxt23ZLlfNEiG4O7myK/1OqSjUloxi9vwK2zqP/nl8xQOnXM9AIQ/bQB
-         yi+3vr6ZT1UXOiGae1xSbBTwdyqyXmj3MHBKD5QeCiMLFcUg6TBWBf2DlMqPDOyo7HuR
-         Ja/M+r8fFQ31XVCuYAto9oBDMvC42pJP2TTDZMo0GQvAlz38g78rcSh22rsKYls7Yk8z
-         h9hQ==
-X-Gm-Message-State: AOAM5327wCBKco/f7zdav2G1m1gkf5652WS66kJQ0g1t3MqBq4KOhl0q
-        dJ39PHTiZ7Hb+1wxnqzUc//o/l6um92YLM1MPYw=
-X-Google-Smtp-Source: ABdhPJyerdL0gaHAoqy7U3+lytf7cvPEBJgAIvvvzRt90uzr9RLPg55qxmFIijSfExwghwBE35qz6B3tHOMUCAnvono=
-X-Received: by 2002:a92:6403:: with SMTP id y3mr14751503ilb.72.1605025126806;
- Tue, 10 Nov 2020 08:18:46 -0800 (PST)
+        Wed, 11 Nov 2020 02:24:39 -0500
+X-Greylist: delayed 68750 seconds by postgrey-1.27 at vger.kernel.org; Wed, 11 Nov 2020 02:24:38 EST
+Received: from [156.96.44.214] ([156.96.44.214])
+        (authenticated bits=0)
+        by oa.trendtek.com.tw (8.13.8/8.13.1) with ESMTP id 0AB7O3cs024764
+        for <linux-unionfs@vger.kernel.org>; Wed, 11 Nov 2020 15:24:35 +0800
+Message-Id: <202011110724.0AB7O3cs024764@oa.trendtek.com.tw>
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-References: <20201108140307.1385745-1-cgxu519@mykernel.net>
- <20201108140307.1385745-8-cgxu519@mykernel.net> <20201110134551.GA28132@quack2.suse.cz>
-In-Reply-To: <20201110134551.GA28132@quack2.suse.cz>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 10 Nov 2020 18:18:35 +0200
-Message-ID: <CAOQ4uxgacry9pYVJeS6832G=MZVBCbamFvJULGPjk1aSBJbLxQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v3 07/10] ovl: implement overlayfs' ->write_inode operation
-To:     Jan Kara <jack@suse.cz>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Corporate and Personal Loan *
+To:     linux-unionfs@vger.kernel.org
+From:   "Investment  Corporate" <financialcapability6@gmail.com>
+Date:   Wed, 11 Nov 2020 00:31:47 -0800
+Reply-To: hmurrah39@gmail.com
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Nov 10, 2020 at 3:45 PM Jan Kara <jack@suse.cz> wrote:
->
-> On Sun 08-11-20 22:03:04, Chengguang Xu wrote:
-> > +static int ovl_write_inode(struct inode *inode,
-> > +                        struct writeback_control *wbc)
-> > +{
-> > +     struct ovl_fs *ofs = inode->i_sb->s_fs_info;
-> > +     struct inode *upper = ovl_inode_upper(inode);
-> > +     unsigned long iflag = 0;
-> > +     int ret = 0;
-> > +
-> > +     if (!upper)
-> > +             return 0;
-> > +
-> > +     if (!ovl_should_sync(ofs))
-> > +             return 0;
-> > +
-> > +     if (upper->i_sb->s_op->write_inode)
-> > +             ret = upper->i_sb->s_op->write_inode(inode, wbc);
-> > +
-> > +     iflag |= upper->i_state & I_DIRTY_ALL;
-> > +
-> > +     if (mapping_writably_mapped(upper->i_mapping) ||
-> > +         mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
-> > +             iflag |= I_DIRTY_PAGES;
-> > +
-> > +     if (iflag)
-> > +             ovl_mark_inode_dirty(inode);
->
-> I think you didn't incorporate feedback we were speaking about in the last
-> version of the series. May comment in [1] still applies - you can miss
-> inodes dirtied through mmap when you decide to clean the inode here. So
-> IMHO you need something like:
->
->         if (inode_is_open_for_write(inode))
->                 ovl_mark_inode_dirty(inode);
->
-> here to keep inode dirty while it is open for write (and not based on upper
-> inode state which is unreliable).
->
+Hello linux-unionfs@vger.kernel.org
 
-Just to be clear, as long as the ovl inode is open for write, the upper inode
-is also open for write via the realfile reference, but not the other
-way around -
-after open(); mmap(); close() of the overlay file, the ovl inode is not
-open for write, but the upper inode is, because ovl_mmap() maps the
-realfile and upper inode without taking any reference on the ovl file/inode.
 
-Hence the check for mapping_writably_mapped(upper->i_mapping)
-above.
+We are Base Investment Company offering Corporate and Personal Loan at 3% Interest Rate for a duration of 10Years.
 
-Thanks,
-Amir.
+
+We also pay 1% commission to brokers, who introduce project owners for finance or other opportunities.
+
+
+Please get back to me if you are interested for more
+
+details.
+
+
+Yours faithfully,
+
+Hashim Murrah
