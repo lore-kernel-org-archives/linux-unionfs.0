@@ -2,55 +2,57 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05ADDC55ABD
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Nov 2020 06:57:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 325B9C4742C
+	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Nov 2020 06:57:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BDDEC20B80
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Nov 2020 06:57:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDF2E206D9
+	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Nov 2020 06:57:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="VeUW74lJ"
+	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="gCORlk4J"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726279AbgKMG5G (ORCPT
+        id S1726133AbgKMG5M (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 13 Nov 2020 01:57:06 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17153 "EHLO
+        Fri, 13 Nov 2020 01:57:12 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17110 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726133AbgKMG5E (ORCPT
+        by vger.kernel.org with ESMTP id S1726083AbgKMG5M (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Nov 2020 01:57:04 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1605250595; cv=none; 
+        Fri, 13 Nov 2020 01:57:12 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1605250613; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=d8SVfRMlRvTv/gvVU0n0D5yum+27aMzwqAk6cgLKW3KBr5BzoYZK4KMxiABYblYkXXzSCgampD6BcAeIyGs7m+nkrR/tPXo3xKrs0JfH9F+Sa3KErVzWjL+2ZVEaYz1yAhy1PKZ8u+907fnlIPFXPA7dubSGaYQmhKCSG2bziYo=
+        b=OJGa2fcfyxjzbu6AIxkD0UAXvQRC6G45+olHvR+tMNLEmSDjd24uyEb8FsWo1vlQ7GAHOsnMRvfLwczMfsCfS86ZNitGu4a/rkRIV1vPiXtrKTWKWp9mncnxaxJuDxPEfOhxAWk6XnU1+QkL8Wml7fn+1e0s6f48i/nNnpBGU88=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1605250595; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=HxnW2o/ZiMA0JoKkrGmmcEKfxuMUeWTTJ+LdciOaLEA=; 
-        b=L7eQyCNHm70b5Ny+rOHHoXEWEHv4HCx7v0WrwoPdJKqzKOjGla2W8A6iuaH0fyJx6FvgHdCQKMbY0yDCPajIhUu7FVCQNoRmv0KHPchM3Kfcu13XNzKjkFT9jWTSUB98ii1MWWVHRxBZw7kKwHim3meo1q/zLd4SYskAIffan/Q=
+        t=1605250613; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=ZdSh8eREzPnVlAiCPIG4ZzRu+AUpP6611hYDLM3CBvA=; 
+        b=djoK7g0dGQs8rKmXsm4bxZt3XAWJCJs8dBug6owYooLrhaUFuNbdEtLQyIW0ncKGa+OonTD2rdvJMzab97c7o23JTRxl3LYYY94sbBArvdKxICbln3lNtPnmUvLScD4VJstij3LYLyB669ct/JQCsSutasY9P/JfwuryJwRQI8U=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1605250595;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1605250613;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=HxnW2o/ZiMA0JoKkrGmmcEKfxuMUeWTTJ+LdciOaLEA=;
-        b=VeUW74lJ57ZC3ln+7wf3I7Zn5WMf46MR5lnBjV7VAaljhR8o02HhOSx2b169/jrT
-        qGLtKPJyq8yvDsxaXvizQvTUlKKpSHOziU1OzCd6taPLfgVYPp05a8rZKsR+QVQIPVa
-        ek5ONwmj27X36YnysC62QKGlaquOfNoMRmRbryoQ=
+        h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=ZdSh8eREzPnVlAiCPIG4ZzRu+AUpP6611hYDLM3CBvA=;
+        b=gCORlk4JijJuB0JBxE24pZGE9itXVfRRXaigLnif8HnXmfeVm8oxuQ+Q1ljBEgxx
+        1kSUYROLpQddYLV+7Obr80NTeWOhpMpZWp5e6Hr78+4P9fyXItBWsZRIslOEJAwVSKB
+        p7NHr4vkr3Y32tYS5XcHRjGVEGteLlBIvE6gRXKM=
 Received: from localhost.localdomain (116.30.195.173 [116.30.195.173]) by mx.zoho.com.cn
-        with SMTPS id 1605250593882528.8161161598881; Fri, 13 Nov 2020 14:56:33 +0800 (CST)
+        with SMTPS id 1605250610633346.4087931492967; Fri, 13 Nov 2020 14:56:50 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20201113065555.147276-1-cgxu519@mykernel.net>
-Subject: [RFC PATCH v4 0/9] implement containerized syncfs for overlayfs
-Date:   Fri, 13 Nov 2020 14:55:46 +0800
+Message-ID: <20201113065555.147276-3-cgxu519@mykernel.net>
+Subject: [RFC PATCH v4 2/9] ovl: implement ->writepages operation
+Date:   Fri, 13 Nov 2020 14:55:48 +0800
 X-Mailer: git-send-email 2.26.2
+In-Reply-To: <20201113065555.147276-1-cgxu519@mykernel.net>
+References: <20201113065555.147276-1-cgxu519@mykernel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 X-ZohoCNMailClient: External
@@ -59,60 +61,48 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Current syncfs(2) syscall on overlayfs just calls sync_filesystem()
-on upper_sb to synchronize whole dirty inodes in upper filesystem
-regardless of the overlay ownership of the inode. In the use case of
-container, when multiple containers using the same underlying upper
-filesystem, it has some shortcomings as below.
+Implement overlayfs' ->writepages operation so that
+we can sync dirty data/metadata to upper filesystem.
 
-(1) Performance
-Synchronization is probably heavy because it actually syncs unnecessary
-inodes for target overlayfs.
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ fs/overlayfs/inode.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-(2) Interference
-Unplanned synchronization will probably impact IO performance of
-unrelated container processes on the other overlayfs.
-
-This series try to implement containerized syncfs for overlayfs so that
-only sync target dirty upper inodes which are belong to specific overlayfs
-instance. By doing this, it is able to reduce cost of synchronization and
-will not seriously impact IO performance of unrelated processes.
-
-v1->v2:
-- Mark overlayfs' inode dirty itself instead of adding notification
-  mechanism to vfs inode.
-
-v2->v3:
-- Introduce overlayfs' extra syncfs wait list to wait target upper inodes
-in ->sync_fs.
-
-v3->v4:
-- Using wait_sb_inodes() to wait syncing upper inodes.
-- Mark overlay inode dirty only when having upper inode and  VM_SHARED
-flag in ovl_mmap().
-- Check upper i_state after checking upper mmap state
-in ovl_write_inode.
-
-Chengguang Xu (9):
-  ovl: setup overlayfs' private bdi
-  ovl: implement ->writepages operation
-  ovl: implement overlayfs' ->evict_inode operation
-  ovl: mark overlayfs' inode dirty on modification
-  ovl: mark overlayfs' inode dirty on shared mmap
-  ovl: implement overlayfs' ->write_inode operation
-  ovl: cache dirty overlayfs' inode
-  fs: export wait_sb_inodes()
-  ovl: implement containerized syncfs for overlayfs
-
- fs/fs-writeback.c         |  3 +-
- fs/overlayfs/file.c       |  3 ++
- fs/overlayfs/inode.c      | 15 ++++++++++
- fs/overlayfs/overlayfs.h  |  4 +++
- fs/overlayfs/super.c      | 63 ++++++++++++++++++++++++++++++++++++---
- fs/overlayfs/util.c       | 14 +++++++++
- include/linux/writeback.h |  1 +
- 7 files changed, 98 insertions(+), 5 deletions(-)
-
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index b584dca845ba..8cfa75e86f56 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -11,6 +11,7 @@
+ #include <linux/posix_acl.h>
+ #include <linux/ratelimit.h>
+ #include <linux/fiemap.h>
++#include <linux/writeback.h>
+ #include "overlayfs.h"
+=20
+=20
+@@ -516,7 +517,20 @@ static const struct inode_operations ovl_special_inode=
+_operations =3D {
+ =09.update_time=09=3D ovl_update_time,
+ };
+=20
++static int ovl_writepages(struct address_space *mapping,
++=09=09=09  struct writeback_control *wbc)
++{
++=09struct inode *inode =3D mapping->host;
++=09struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
++=09struct inode *upper =3D ovl_inode_upper(inode);
++
++=09if (!ovl_should_sync(ofs))
++=09=09return 0;
++=09return sync_inode(upper, wbc);
++}
++
+ static const struct address_space_operations ovl_aops =3D {
++=09.writepages=09=09=3D ovl_writepages,
+ =09/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
+ =09.direct_IO=09=09=3D noop_direct_IO,
+ };
 --=20
 2.26.2
 
