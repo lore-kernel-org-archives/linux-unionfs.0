@@ -2,111 +2,127 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SIGNED_OFF_BY,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1E4C55ABD
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Nov 2020 06:57:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BA28C2D0E4
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Nov 2020 12:32:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23C2920B80
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Nov 2020 06:57:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D22F223BF
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Nov 2020 12:32:19 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=mykernel.net header.i=cgxu519@mykernel.net header.b="SLMS3bno"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bS3fUxrp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726343AbgKMG5c (ORCPT
+        id S1726727AbgKOMb7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 13 Nov 2020 01:57:32 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17194 "EHLO
-        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726301AbgKMG5b (ORCPT
+        Sun, 15 Nov 2020 07:31:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60022 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726301AbgKOMb6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Nov 2020 01:57:31 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1605250629; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=XxfuUQ2O6vD2Zbthi377ozGLKA6+svQR8Wp/5kNWihA75a9vY5JMbqlM3Z+0ufjNJH/g86Kbplao2jWEt2iLALRAss/9KqYELmr2pyLynMWHMwcmcHlV0hOAIOR7gRikRHQfUNRFpOGoVsM5m8WdDBTn2Ak1sUc+u+jQUduLT78=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1605250629; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=fvqzm+3URTfc4SNv5XnFr/jbDxgFHKTjuWBcOlIXqVs=; 
-        b=R3DRbasmzrGnV0g5pkwUb9zEehxcUy0wLCtGzDKnGVNv2bcUv+ySGJnZutLU8oCTnK87aHEKqkfsz7cQxl7SmH+ycTrzGKANM7hr7GzQf/JoFRIVz/d/BGAde6CZuPCsh+cXqj2AcILhlD6b9yk8wfy1hsP8hp2iZ9jCoDs+4VE=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1605250629;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=fvqzm+3URTfc4SNv5XnFr/jbDxgFHKTjuWBcOlIXqVs=;
-        b=SLMS3bnoENjizdCvCH5EoGwrboGl+PJnz0RWQsA51CBd6fiQZhlINSsLJ+fE8OX1
-        bepADgcqWmpyM1quWj0fY+BD9jVZw4bfgK3LvgA6TnNw/gLtNsSWmIVWExPCJIv4ekZ
-        2a8A2yC7tsQ8ctB6FWZP3jriD6CuVUEg5JvotEBU=
-Received: from localhost.localdomain (116.30.195.173 [116.30.195.173]) by mx.zoho.com.cn
-        with SMTPS id 1605250628208189.30840318851824; Fri, 13 Nov 2020 14:57:08 +0800 (CST)
-From:   Chengguang Xu <cgxu519@mykernel.net>
-To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
-Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20201113065555.147276-9-cgxu519@mykernel.net>
-Subject: [RFC PATCH v4 8/9] fs: export wait_sb_inodes()
-Date:   Fri, 13 Nov 2020 14:55:54 +0800
-X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201113065555.147276-1-cgxu519@mykernel.net>
-References: <20201113065555.147276-1-cgxu519@mykernel.net>
+        Sun, 15 Nov 2020 07:31:58 -0500
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72005C0613D1;
+        Sun, 15 Nov 2020 04:31:58 -0800 (PST)
+Received: by mail-io1-xd42.google.com with SMTP id n12so14465617ioc.2;
+        Sun, 15 Nov 2020 04:31:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=1qDI0bmxiNxNkq7U7tJeRtk0Ri4L2mKhFoKA+8ciLW8=;
+        b=bS3fUxrph1gqu5Tqe7uPZH4nAtVVS9v6TuWySbS2DpYpmV92jIUlSFZtNBqXHHqCjJ
+         Ev/kYwQuQNxkj2XdNbxHmyDy9Mp7K+XpJ7j8aJVyOFEyGgsjSYT4FYxxAZbMLYgDpOJh
+         A+NKSOjdNrWs2RzshGXgB4onRQg9J9KUrHWe7Fm90GdRHYydRzBmPuZiLiwajTB/Lgr9
+         myvNDwPaB5nvitc5L3X7bniz5fhE/QTMvT6VxCGpDob5Kw/wct7k00voEsxinnN8oVMH
+         V81AaxqR/GECMF5Tnzr42ET8GYWb6MVHgegRWCAXi9+SlXu5XHVUHfq8syWzXjRMBUKy
+         k7Kw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=1qDI0bmxiNxNkq7U7tJeRtk0Ri4L2mKhFoKA+8ciLW8=;
+        b=LqPQ8W0ZOjfZILP6ia3I2dKlDy/ajDGJia8o4We60yheXxBWF5wey7bgnHeQR/CqmK
+         nhCcC25zHr8OkRZBPaz5kWkLiSNOcUMzvZlHPhIVQLx1veOVPwWWXm/2Q2jK8D9B9rzN
+         dnezDNIXgnCjuSJu8tT+PJ2r/XjYz1CYUYEwOgA55xFHMKMLEqS9vqYA7cUqBYpmUnWG
+         QgUrfPjvYh+7K3mvldicXilRHCjFGs5B4tJGgNx6156vPR9COPGvsbENQ/aM/K4pMTOM
+         evue2PGy6otefQt9DJrx7RoAzSACO4KA3sjDFFarBAZpRgGfRy829NgmCZWCE8yL4LLR
+         p9bQ==
+X-Gm-Message-State: AOAM530uk0rBkgntPHtUevB+xwJEcf4L1ftPYVtf7+RdvWVOdbth/TLs
+        H5i8BwmkJyx+DJd7TF31PwhFu7fdvLmRgH2SnnTY9R40UQg=
+X-Google-Smtp-Source: ABdhPJwMtXpbBB+JrEnxxXogyFA26Fv5J9jLbWiDifyt5sXxMDS0gbVeHV8fz9VFCXEVJzq2b/qFXKjujkmZPbB7nYg=
+X-Received: by 2002:a5d:964a:: with SMTP id d10mr890846ios.5.1605443517686;
+ Sun, 15 Nov 2020 04:31:57 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-X-ZohoCNMailClient: External
-Content-Type: text/plain; charset=utf8
+References: <20201115103718.298186-1-christian.brauner@ubuntu.com> <20201115103718.298186-37-christian.brauner@ubuntu.com>
+In-Reply-To: <20201115103718.298186-37-christian.brauner@ubuntu.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sun, 15 Nov 2020 14:31:46 +0200
+Message-ID: <CAOQ4uxi3OpvT5P7jQyPqGGK9tnhk_fni10G6+a3KC=-60udkTQ@mail.gmail.com>
+Subject: Re: [PATCH v2 36/39] overlayfs: do not mount on top of idmapped mounts
+To:     Christian Brauner <christian.brauner@ubuntu.com>
+Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-In order to wait syncing upper inodes we need to call wait_sb_inodes()
-in overlayfs' ->sync_fs.
+On Sun, Nov 15, 2020 at 12:42 PM Christian Brauner
+<christian.brauner@ubuntu.com> wrote:
+>
+> Prevent overlayfs from being mounted on top of idmapped mounts until we
+> have ported it to handle this case and added proper testing for it.
+>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: David Howells <dhowells@redhat.com>
+> Cc: Al Viro <viro@zeniv.linux.org.uk>
+> Cc: linux-fsdevel@vger.kernel.org
+> Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+> ---
+> /* v2 */
+> patch introduced
+> ---
+>  fs/overlayfs/super.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 0d4f2baf6836..3cacc3d3fb65 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1708,6 +1708,12 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+>                 if (err)
+>                         goto out_err;
+>
+> +               if (mnt_idmapped(stack[i].mnt)) {
+> +                       err = -EINVAL;
+> +                       pr_err("idmapped lower layers are currently unsupported\n");
+> +                       goto out_err;
+> +               }
+> +
+>                 lower = strchr(lower, '\0') + 1;
+>         }
+>
+> @@ -1939,6 +1945,12 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>                 if (err)
+>                         goto out_err;
+>
+> +               if (mnt_idmapped(upperpath.mnt)) {
+> +                       err = -EINVAL;
+> +                       pr_err("idmapped lower layers are currently unsupported\n");
+> +                       goto out_err;
+> +               }
+> +
 
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
----
- fs/fs-writeback.c         | 3 ++-
- include/linux/writeback.h | 1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+Both checks should be replaced with one check in ovl_mount_dir_noesc()
+right next to ovl_dentry_weird() check and FWIW the error above about
+"lower layers" when referring to upperpath.mnt is confusing.
+"idmapped layers..." should be fine.
 
-diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
-index 149227160ff0..55dafdc72661 100644
---- a/fs/fs-writeback.c
-+++ b/fs/fs-writeback.c
-@@ -2365,7 +2365,7 @@ EXPORT_SYMBOL(__mark_inode_dirty);
-  * completed by the time we have gained the lock and waited for all IO tha=
-t is
-  * in progress regardless of the order callers are granted the lock.
-  */
--static void wait_sb_inodes(struct super_block *sb)
-+void wait_sb_inodes(struct super_block *sb)
- {
- =09LIST_HEAD(sync_list);
-=20
-@@ -2449,6 +2449,7 @@ static void wait_sb_inodes(struct super_block *sb)
- =09rcu_read_unlock();
- =09mutex_unlock(&sb->s_sync_lock);
- }
-+EXPORT_SYMBOL(wait_sb_inodes);
-=20
- static void __writeback_inodes_sb_nr(struct super_block *sb, unsigned long=
- nr,
- =09=09=09=09     enum wb_reason reason, bool skip_if_busy)
-diff --git a/include/linux/writeback.h b/include/linux/writeback.h
-index 8e5c5bb16e2d..53e826af33b6 100644
---- a/include/linux/writeback.h
-+++ b/include/linux/writeback.h
-@@ -198,6 +198,7 @@ void wakeup_flusher_threads_bdi(struct backing_dev_info=
- *bdi,
- =09=09=09=09enum wb_reason reason);
- void inode_wait_for_writeback(struct inode *inode);
- void inode_io_list_del(struct inode *inode);
-+void wait_sb_inodes(struct super_block *sb);
-=20
- /* writeback.h requires fs.h; it, too, is not included from here. */
- static inline void wait_on_inode(struct inode *inode)
---=20
-2.26.2
-
-
+Thanks,
+Amir.
