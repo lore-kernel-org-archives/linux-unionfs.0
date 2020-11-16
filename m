@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EA0CC63777
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 21:10:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52192C63777
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 21:26:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB9222225B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 21:10:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0839220DD4
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 21:26:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="XbmrcvTt"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="iqH4JZ8A"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726199AbgKPVJ7 (ORCPT
+        id S1727893AbgKPV0w (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 16 Nov 2020 16:09:59 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:26332 "EHLO
+        Mon, 16 Nov 2020 16:26:52 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:46791 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728877AbgKPVJ7 (ORCPT
+        by vger.kernel.org with ESMTP id S1728752AbgKPV0w (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Nov 2020 16:09:59 -0500
+        Mon, 16 Nov 2020 16:26:52 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1605560997;
+        s=mimecast20190719; t=1605562010;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=NGRXSv16MAi4QhjuwiyqRzkBSvMLZCr6IKlof1IafIk=;
-        b=XbmrcvTtgNyRs7OElRy/kBuqBLjU/XCSleZERI+vKN2ZXf8vNHxSNmJnOSnzjWDBUaN8nX
-        VMJQICF7zbWbcwLf96GywNsDX153aWsrmomnTcg5HcxtMtW2zeMYrO91C6X6m6lyuVhTID
-        jc3feiMGD/9aPYl8wskhWWzUzJhHu64=
+        bh=2r6L44Nl5+Pbu4wJO4MR1XauSUxoxlZbYCr6RB5qwBs=;
+        b=iqH4JZ8AyeIA7jQVbSOOkZBgt4r/HIplnDjtoN2jsecImv4G3HfrNV0goaLKzsqRkB2DeI
+        nDOVX8yuN3vqXBBPv9r5ZrkpiVb5+5tYoQdaPu4OdKwYARRkI4q3KgKPNeZxV+jTMYzOF2
+        Oj/9cYAYvHw1VVPyJCIz+oudL6eEmds=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-285-B61KbNt0OAeau98r86XQLg-1; Mon, 16 Nov 2020 16:09:53 -0500
-X-MC-Unique: B61KbNt0OAeau98r86XQLg-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+ us-mta-178-Lndy82dEPm6rMMbehlmgEA-1; Mon, 16 Nov 2020 16:26:46 -0500
+X-MC-Unique: Lndy82dEPm6rMMbehlmgEA-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7AB8556BE4;
-        Mon, 16 Nov 2020 21:09:51 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3FEEE802B7E;
+        Mon, 16 Nov 2020 21:26:45 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-114-201.rdu2.redhat.com [10.10.114.201])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id F0CEB60F96;
-        Mon, 16 Nov 2020 21:09:50 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D750A10013BD;
+        Mon, 16 Nov 2020 21:26:44 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 768D4220BCF; Mon, 16 Nov 2020 16:09:50 -0500 (EST)
-Date:   Mon, 16 Nov 2020 16:09:50 -0500
+        id 6A0F0220BCF; Mon, 16 Nov 2020 16:26:44 -0500 (EST)
+Date:   Mon, 16 Nov 2020 16:26:44 -0500
 From:   Vivek Goyal <vgoyal@redhat.com>
 To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Sargun Dhillon <sargun@sargun.me>,
@@ -60,7 +60,7 @@ Cc:     Sargun Dhillon <sargun@sargun.me>,
         Chengguang Xu <cgxu519@mykernel.net>
 Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
  directories when safe
-Message-ID: <20201116210950.GD9190@redhat.com>
+Message-ID: <20201116212644.GE9190@redhat.com>
 References: <20201116045758.21774-1-sargun@sargun.me>
  <20201116045758.21774-4-sargun@sargun.me>
  <20201116144240.GA9190@redhat.com>
@@ -71,7 +71,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <CAOQ4uxgTXHR3J6HueS_TO5La890bCfsWUeMXKgGnvUth26h29Q@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -150,32 +150,6 @@ On Mon, Nov 16, 2020 at 10:18:03PM +0200, Amir Goldstein wrote:
 > >
 > 
 > Did not understand the problem with userspace sync.
-
-Say volatile container A is using upper/ which is on xfs. Assume, container A
-does following.
-
-1. Container A writes some data/copies up some files.
-2. sync -f upper/
-3. Remove incompat dir.
-4. Remount overlay and restart container A.
-
-Now normally if some error happend in writeback on upper/, then "sync -f"
-should catch that and return an error. In that case container manager can
-throw away the container.
-
-What if another container B was doing same thing and issues ssues
-"sync -f upper/" and that sync reports errors. Now container A issues
-sync and IIUC, we will not see error on super block because it has
-already been seen by container B.
-
-And container A will assume that all data written by it safely made
-it to disk and it is safe to remove incompat/volatile/ dir. 
-
-If container manager keeps a file descriptor open to one of the files
-in upper/, and uses that for sync, then it will still catch the
-error because file->f_sb_err should be previous to error happened
-and we will get any error since then.
-
 > 
 > > >
 > > > I am less concerned about ways to allow re-mount of volatile
@@ -196,21 +170,6 @@ and we will get any error since then.
 > >
 > 
 > Right. the resulting data is undefined after error.
-
-So application will not come to know of error until and unless it does
-an fsync()? IOW, if I write to a file and read back same pages after
-a while, I might not get back what I had written. So application 
-should first write data, fsync it and upon successful fsync, consume
-back the data written?
-
-If yes, this is a problem for volatile containers. If somebody is
-using these to build images, there is a possibility that image
-is corrupted (because writeback error led to data loss). If yes,
-then safe way to generate image with volatile containers
-will be to first sync upper (or sync on umount somehow) and if
-no errors are reported, then it is safe to read back that data
-and pack into image.
-
 > 
 > > Why is it important to detect writeback error only during remount. What
 > > happens if container overlay instance is already mounted and writeback
@@ -228,10 +187,16 @@ and pack into image.
 > 
 > I think upper files data can "evaporate" even as the overlay is still mounted.
 
-How do we reliably consume that data back (if it can evaporate). That
-means, syncing whole fs (syncfs) is a requirement for volatile containers
-before data written is read back. Otherwise we don't know if we are
-reading back correct data or corrupted data.
+I think assumption of volatile containers was that data will remain
+valid as long as machine does not crash/shutdown. We missed the case
+of possibility of writeback errors during those discussions. 
+
+And if data can evaporate without anyway to know that somehthing
+is gone wrong, I don't know how that's useful for applications.
+
+Also, first we need to fix the case of writeback error handling
+for volatile containers while it is mounted before one tries to fix it
+for writeback error detection during remount, IMHO.
 
 Thanks
 Vivek
