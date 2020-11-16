@@ -2,414 +2,206 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SIGNED_OFF_BY,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C60CEC64E7C
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 17:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C637CC4742C
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 18:26:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 81F4722265
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 17:39:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E41A204EF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 18:26:20 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=sargun.me header.i=@sargun.me header.b="ZN4vrm1b"
+	dkim=pass (1024-bit key) header.d=sargun.me header.i=@sargun.me header.b="YwPpgI1M"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2387494AbgKPRii (ORCPT
+        id S1731692AbgKPS0A (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 16 Nov 2020 12:38:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46010 "EHLO
+        Mon, 16 Nov 2020 13:26:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2387596AbgKPRih (ORCPT
+        with ESMTP id S1729555AbgKPSZ7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Nov 2020 12:38:37 -0500
+        Mon, 16 Nov 2020 13:25:59 -0500
 Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F8DEC0613D1
-        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 09:38:37 -0800 (PST)
-Received: by mail-io1-xd43.google.com with SMTP id o11so18256526ioo.11
-        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 09:38:37 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 905EEC0613D1
+        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 10:25:59 -0800 (PST)
+Received: by mail-io1-xd43.google.com with SMTP id j23so2544527iog.6
+        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 10:25:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=sargun.me; s=google;
         h=date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to:user-agent;
-        bh=UFRIEcps9ffTa4CcIxjGcATNp7aDan0PdmErUPp+Wmo=;
-        b=ZN4vrm1b1A/uzZvmabpjMyzAtbqfqgBu1C8klIA6oeDvMWpC+KnANTIoG8HFYDrLkC
-         kciiZ7xV0sqx6pJDvKH8XcTCh2cYya2DgD4gTx5ne1PEcTuoqW7niixUQ9BgvlhJ0x9T
-         knLpd1NIYLX7m6ed1XqKat6ZFgHjZleO2U7us=
+        bh=Ybp2lGYsCpYLD2ZxzCT4S2lSwLIWcsy7OzzHyM/RGf8=;
+        b=YwPpgI1MksMZqyu/f1jaPnaFGitj4hRlOHr2mZBFAdD99QCLBKvSGQ9uJndruX6jXz
+         GpdfQUG21qqgSj1Q/SbrIUtPuofEGGZGUFdJj6m7F31areJhqxc6E9NLsqytEERWX3/a
+         KuTFiRjwCR4KTb1vQd1hJBY05qjONxQ+GIoV4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:date:from:to:cc:subject:message-id:references
          :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=UFRIEcps9ffTa4CcIxjGcATNp7aDan0PdmErUPp+Wmo=;
-        b=XjaC6kPp0HAgXjyAcvUCGEoR20CjE5f+lnWQifiLPFjZMy1kSQm71KrK8btgaeLWQp
-         O0cdXH2d1ElXtzRjB7MC1uyOCww6JcofpPMjjMMHykaNnmBNkidmd8RrRcpMlB5pSexu
-         BXxh39RE01iVgaBzpKzzD3VRpG+xz8gtf9bs/quUxHcmu6f7o8rv53Euj6O5LJ3DZg2A
-         R8Q5l4PBzi/Yic52iOq4J4d/h9SQeutcY3C5scWsYqCfjtFT4FoaOX6cCYWIpm/gYGeT
-         WEa9xX7SLxq/okPcGqQOccxoCu9CyTCZZ8H5jY4yEUjw/W2t/B8x19iteA1jKVYZqYkY
-         xgIw==
-X-Gm-Message-State: AOAM533klu6Glp3dBSgfps3fxZ67Ap8W4s3wNil+J6GIUP74YXI8IjmL
-        EJtJM/NG+tHmtAkkNLXeFhDAkQ==
-X-Google-Smtp-Source: ABdhPJxXX18B4iXXqQ6TLy6j9amKiLZpmPuZ1jYKA1+vYBV0fz9uEbmgMseOjdwIO2RqmgHL1GIEgA==
-X-Received: by 2002:a6b:6610:: with SMTP id a16mr8901069ioc.193.1605548316578;
-        Mon, 16 Nov 2020 09:38:36 -0800 (PST)
+        bh=Ybp2lGYsCpYLD2ZxzCT4S2lSwLIWcsy7OzzHyM/RGf8=;
+        b=WOsNiTosqNIoIlHVoGCfmFpkA/hN1aw3RUITbIOXGO6zFg+iJtUnT/nfyFhoS6PeWF
+         YFd+TrqS3dxBFlMSYbEAe8tHCfnhMulVx0CPqTxWKIFCjf5zbC7ddCXtxbYN8Kh8NyTt
+         /cvo1J5ZvsyVJfLfxeb1Frt9UbBGA0EieL2HfzK2uSLtdWYOtw4uMxnNUBQBUNwWnbF1
+         SBJYDS+KjvDew/8BwyIPcdKJpoNkD5uB7uW4TE2M1SUOBEkn0VpJVvnnDdR8ZmCDdgLg
+         HhawnGrAxGCKzefFwg/erJFLHRpAsm3hx12x8u2mErKSDwAy2APTO7XCsr/sgVcnZ8jV
+         3Wtw==
+X-Gm-Message-State: AOAM533rcZT/C9hWAD/PXHf4n8MIOM51TYrYUxXlnhweRXqv9FYl1VKf
+        WkSmONUXHucHLtOMjzr8YTYG1w==
+X-Google-Smtp-Source: ABdhPJyXZzoXN17Z3To3UgmHepzKhW3v0rEGzn+By/dU/EIEEeQPDWuQOy3oKEYo1F6HFM9QPEHNTQ==
+X-Received: by 2002:a05:6638:d0b:: with SMTP id q11mr742466jaj.16.1605551158808;
+        Mon, 16 Nov 2020 10:25:58 -0800 (PST)
 Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
-        by smtp.gmail.com with ESMTPSA id l4sm9863212ioj.41.2020.11.16.09.38.35
+        by smtp.gmail.com with ESMTPSA id n4sm10239102iox.6.2020.11.16.10.25.58
         (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 16 Nov 2020 09:38:35 -0800 (PST)
-Date:   Mon, 16 Nov 2020 17:38:34 +0000
+        Mon, 16 Nov 2020 10:25:58 -0800 (PST)
+Date:   Mon, 16 Nov 2020 18:25:56 +0000
 From:   Sargun Dhillon <sargun@sargun.me>
 To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
         Daniel J Walsh <dwalsh@redhat.com>,
         David Howells <dhowells@redhat.com>,
-        linux-fsdevel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Chengguang Xu <cgxu519@mykernel.net>
 Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
  directories when safe
-Message-ID: <20201116173833.GA18698@ircssh-2.c.rugged-nimbus-611.internal>
+Message-ID: <20201116182553.GB18698@ircssh-2.c.rugged-nimbus-611.internal>
 References: <20201116045758.21774-1-sargun@sargun.me>
  <20201116045758.21774-4-sargun@sargun.me>
  <20201116144240.GA9190@redhat.com>
+ <CAOQ4uxgMmxhT1fef9OtivDjxx7FYNpm7Y=o_C-zx5F+Do3kQSA@mail.gmail.com>
+ <20201116163615.GA17680@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201116144240.GA9190@redhat.com>
+In-Reply-To: <20201116163615.GA17680@redhat.com>
 User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Nov 16, 2020 at 09:42:40AM -0500, Vivek Goyal wrote:
-> On Sun, Nov 15, 2020 at 08:57:58PM -0800, Sargun Dhillon wrote:
-> > Overlayfs added the ability to setup mounts where all syncs could be
-> > short-circuted in (2a99ddacee43: ovl: provide a mount option "volatile").
+On Mon, Nov 16, 2020 at 11:36:15AM -0500, Vivek Goyal wrote:
+> On Mon, Nov 16, 2020 at 05:20:04PM +0200, Amir Goldstein wrote:
+> > On Mon, Nov 16, 2020 at 4:42 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > >
+> > > On Sun, Nov 15, 2020 at 08:57:58PM -0800, Sargun Dhillon wrote:
+> > > > Overlayfs added the ability to setup mounts where all syncs could be
+> > > > short-circuted in (2a99ddacee43: ovl: provide a mount option "volatile").
+> > > >
+> > > > A user might want to remount this fs, but we do not let the user because
+> > > > of the "incompat" detection feature. In the case of volatile, it is safe
+> > > > to do something like[1]:
+> > > >
+> > > > $ sync -f /root/upperdir
+> > > > $ rm -rf /root/workdir/incompat/volatile
+> > > >
+> > > > There are two ways to go about this. You can call sync on the underlying
+> > > > filesystem, check the error code, and delete the dirty file if everything
+> > > > is clean. If you're running lots of containers on the same filesystem, or
+> > > > you want to avoid all unnecessary I/O, this may be suboptimal.
+> > > >
+> > >
+> > > Hi Sargun,
+> > >
+> > > I had asked bunch of questions in previous mail thread to be more
+> > > clear on your requirements but never got any response. It would
+> > > have helped understanding your requirements better.
+> > >
+> > > How about following patch set which seems to sync only dirty inodes of
+> > > upper belonging to a particular overlayfs instance.
+> > >
+> > > https://lore.kernel.org/linux-unionfs/20201113065555.147276-1-cgxu519@mykernel.net/
+> > >
+> > > So if could implement a mount option which ignores fsync but upon
+> > > syncfs, only syncs dirty inodes of that overlayfs instance, it will
+> > > make sure we are not syncing whole of the upper fs. And we could
+> > > do this syncing on unmount of overlayfs and remove dirty file upon
+> > > successful sync.
+> > >
+> > > Looks like this will be much simpler method and should be able to
+> > > meet your requirements (As long as you are fine with syncing dirty
+> > > upper inodes of this overlay instance on unmount).
+> > >
 > > 
-> > A user might want to remount this fs, but we do not let the user because
-> > of the "incompat" detection feature. In the case of volatile, it is safe
-> > to do something like[1]:
+> > Do note that the latest patch set by Chengguang not only syncs dirty
+> > inodes of this overlay instance, but also waits for in-flight writeback on
+> > all the upper fs inodes and I think that with !ovl_should_sync(ofs)
+> > we will not re-dirty the ovl inodes and lose track of the list of dirty
+> > inodes - maybe that can be fixed.
 > > 
-> > $ sync -f /root/upperdir
-> > $ rm -rf /root/workdir/incompat/volatile
+> > Also, I am not sure anymore that we can safely remove the dirty file after
+> > sync dirty inodes sync_fs and umount. If someone did sync_fs before us
+> > and consumed the error, we may have a copied up file in upper whose
+> > data is not on disk, but when we sync_fs on unmount we won't get an
+> > error? not sure.
+> 
+> May be we can save errseq_t when mounting overlay and compare with
+> errseq_t stored in upper sb after unmount. That will tell us whether
+> error has happened since we mounted overlay. (Similar to what Sargun
+> is doing).
+> 
+> In fact, if this is a concern, we have this issue with user space
+> "sync <upper>" too? Other sync might fail and this one succeeds
+> and we will think upper is just fine. May be container tools can
+> keep a file/dir open at the time of mount and call syncfs using
+> that fd instead. (And that should catch errors since that fd
+> was opened, I am assuming).
+> 
 > > 
-> > There are two ways to go about this. You can call sync on the underlying
-> > filesystem, check the error code, and delete the dirty file if everything
-> > is clean. If you're running lots of containers on the same filesystem, or
-> > you want to avoid all unnecessary I/O, this may be suboptimal.
-> > 
+> > I am less concerned about ways to allow re-mount of volatile
+> > overlayfs than I am about turning volatile overlayfs into non-volatile.
 > 
-> Hi Sargun,
+> If we are not interested in converting volatile containers into
+> non-volatile, then whole point of these patch series is to detect
+> if any writeback error has happened or not. If writeback error has
+> happened, then we detect that at remount and possibly throw away
+> container.
 > 
-> I had asked bunch of questions in previous mail thread to be more
-> clear on your requirements but never got any response. It would
-> have helped understanding your requirements better.
+> What happens today if writeback error has happened. Is that page thrown
+> away from page cache and read back from disk? IOW, will user lose
+> the data it had written in page cache because writeback failed. I am
+> assuming we can't keep the dirty page around for very long otherwise
+> it has potential to fill up all the available ram with dirty pages which
+> can't be written back.
 > 
-Sorry, I didn't see your questions.
-
-
-> How about following patch set which seems to sync only dirty inodes of
-> upper belonging to a particular overlayfs instance.
+> Why is it important to detect writeback error only during remount. What
+> happens if container overlay instance is already mounted and writeback
+> error happens. We will not detct that, right?
 > 
-> https://lore.kernel.org/linux-unionfs/20201113065555.147276-1-cgxu519@mykernel.net/
-> 
-> So if could implement a mount option which ignores fsync but upon
-> syncfs, only syncs dirty inodes of that overlayfs instance, it will
-> make sure we are not syncing whole of the upper fs. And we could
-> do this syncing on unmount of overlayfs and remove dirty file upon
-> successful sync.
-> 
-Doing any kind of sync that involves a head-of-line blocking metadata flush,
-or even data flush causes significan problems on our systems. We at some 
-point did some analysis on systems in our fleet that did sync and noticed
-that it has a very suboptimal effect on system-wide performance because
-the sudden rush of IOPs caused our drives to stall.
-
-I didn't dig too much into it, but on XFS, even letting users do sync
-directly on their inodes could lead to trouble in terms of the spurious
-burst of IOPs generated. Even though our drives can sustain a large amount
-of I/O over time, a sudden burst causes our cloud provider to throttle them,
-which in turn can lead to slow I/O across the system, and depending on what's
-going on, this can turn into WQ stalls.
-
-> Looks like this will be much simpler method and should be able to
-> meet your requirements (As long as you are fine with syncing dirty
-> upper inodes of this overlay instance on unmount).
+> IOW, if capturing writeback error is important for volatile containers,
+> then capturing it only during remount time is not enough. Normally
+> fsync/syncfs should catch it and now we have skipped those, so in
+> the process we lost mechanism to detect writeback errrors for
+> volatile containers?
 > 
 > Thanks
 > Vivek
 > 
-> > Alternatively, you can blindly delete the dirty file, and "hope for the
-> > best".
-> > 
-> > This patch introduces transparent functionality to check if it is
-> > (relatively) safe to reuse the upperdir. It ensures that the filesystem
-> > hasn't been remounted, the system hasn't been rebooted, nor has the
-> > overlayfs code changed. It also checks the errseq on the superblock
-> > indicating if there have been any writeback errors since the previous
-> > mount. Currently, this information is not directly exposed to userspace, so
-> > the user cannot make decisions based on this. Instead we checkpoint
-> > this information to disk, and upon remount we see if any of it has
-> > changed. Since the structure is explicitly not meant to be used
-> > between different versions of the code, its stability does not
-> > matter so much.
-> 
-> > [1]: https://lore.kernel.org/linux-unionfs/CAOQ4uxhKr+j5jFyEC2gJX8E8M19mQ3CqdTYaPZOvDQ9c0qLEzw@mail.gmail.com/T/#m6abe713e4318202ad57f301bf28a414e1d824f9c
-> > 
-> > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
-> > Cc: linux-fsdevel@vger.kernel.org
-> > Cc: linux-unionfs@vger.kernel.org
-> > Cc: Miklos Szeredi <miklos@szeredi.hu>
-> > Cc: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  Documentation/filesystems/overlayfs.rst |  5 +-
-> >  fs/overlayfs/overlayfs.h                | 34 ++++++++++
-> >  fs/overlayfs/readdir.c                  | 86 +++++++++++++++++++++++--
-> >  fs/overlayfs/super.c                    | 22 ++++++-
-> >  4 files changed, 139 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-> > index 580ab9a0fe31..fa3faeeab727 100644
-> > --- a/Documentation/filesystems/overlayfs.rst
-> > +++ b/Documentation/filesystems/overlayfs.rst
-> > @@ -581,7 +581,10 @@ checks for this directory and refuses to mount if present. This is a strong
-> >  indicator that user should throw away upper and work directories and create
-> >  fresh one. In very limited cases where the user knows that the system has
-> >  not crashed and contents of upperdir are intact, The "volatile" directory
-> > -can be removed.
-> > +can be removed.  In certain cases it the filesystem can detect that the
-> > +upperdir can be reused safely, and it will not require the user to
-> > +manually delete the volatile directory.
-> > +
-> >  
-> >  Testsuite
-> >  ---------
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index 9eb911f243e1..980d2c930f7a 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -30,6 +30,11 @@ enum ovl_path_type {
-> >  #define OVL_XATTR_NLINK OVL_XATTR_PREFIX "nlink"
-> >  #define OVL_XATTR_UPPER OVL_XATTR_PREFIX "upper"
-> >  #define OVL_XATTR_METACOPY OVL_XATTR_PREFIX "metacopy"
-> > +#define OVL_XATTR_VOLATILE OVL_XATTR_PREFIX "volatile"
-> > +
-> > +#define OVL_INCOMPATDIR_NAME "incompat"
-> > +#define OVL_VOLATILEDIR_NAME "volatile"
-> > +#define OVL_VOLATILE_DIRTY_NAME "dirty"
-> >  
-> >  enum ovl_inode_flag {
-> >  	/* Pure upper dir that may contain non pure upper entries */
-> > @@ -54,6 +59,32 @@ enum {
-> >  	OVL_XINO_ON,
-> >  };
-> >  
-> > +/*
-> > + * This is copied into the volatile xattr, and the user does not interact with
-> > + * it. There is no stability requirement, as a reboot explicitly invalidates
-> > + * a volatile workdir. It is explicitly meant not to be a stable api.
-> > + *
-> > + * Although this structure isn't meant to be stable it is exposed to potentially
-> > + * unprivileged users. We don't do any kind of cryptographic operations with
-> > + * the structure, so it could be tampered with, or inspected. Don't put
-> > + * kernel memory pointers in it, or anything else that could cause problems,
-> > + * or information disclosure.
-> > + */
-> > +struct overlay_volatile_info {
-> > +	/*
-> > +	 * This uniquely identifies a boot, and is reset if overlayfs itself
-> > +	 * is reloaded. Therefore we check our current / known boot_id
-> > +	 * against this before looking at any other fields to validate:
-> > +	 * 1. Is this datastructure laid out in the way we expect? (Overlayfs
-> > +	 *    module, reboot, etc...)
-> > +	 * 2. Could something have changed (like the s_instance_id counter
-> > +	 *    resetting)
-> > +	 */
-> > +	uuid_t		overlay_boot_id;
-> > +	u64		s_instance_id;
-> > +	errseq_t	errseq; /* Just a u32 */
-> > +} __packed;
-> > +
-> >  /*
-> >   * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-> >   * where:
-> > @@ -501,3 +532,6 @@ int ovl_set_origin(struct dentry *dentry, struct dentry *lower,
-> >  
-> >  /* export.c */
-> >  extern const struct export_operations ovl_export_operations;
-> > +
-> > +/* super.c */
-> > +extern uuid_t overlay_boot_id;
-> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> > index f8cc15533afa..ee0d2b88a19c 100644
-> > --- a/fs/overlayfs/readdir.c
-> > +++ b/fs/overlayfs/readdir.c
-> > @@ -1054,7 +1054,84 @@ int ovl_check_d_type_supported(struct path *realpath)
-> >  	return rdd.d_type_supported;
-> >  }
-> >  
-> > -#define OVL_INCOMPATDIR_NAME "incompat"
-> > +static int ovl_check_incompat_volatile(struct ovl_cache_entry *p,
-> > +				       struct path *path)
-> > +{
-> > +	int err, ret = -EINVAL;
-> > +	struct overlay_volatile_info info;
-> > +	struct dentry *d_volatile, *d_dirty;
-> > +
-> > +	d_volatile = lookup_one_len(p->name, path->dentry, p->len);
-> > +	if (IS_ERR(d_volatile))
-> > +		return PTR_ERR(d_volatile);
-> > +
-> > +	inode_lock_nested(d_volatile->d_inode, I_MUTEX_PARENT);
-> > +	d_dirty = lookup_one_len(OVL_VOLATILE_DIRTY_NAME, d_volatile,
-> > +				 strlen(OVL_VOLATILE_DIRTY_NAME));
-> > +	if (IS_ERR(d_dirty)) {
-> > +		err = PTR_ERR(d_dirty);
-> > +		if (err != -ENOENT)
-> > +			ret = err;
-> > +		goto out_putvolatile;
-> > +	}
-> > +
-> > +	if (!d_dirty->d_inode)
-> > +		goto out_putdirty;
-> > +
-> > +	inode_lock_nested(d_dirty->d_inode, I_MUTEX_XATTR);
-> > +	err = ovl_do_getxattr(d_dirty, OVL_XATTR_VOLATILE, &info, sizeof(info));
-> > +	inode_unlock(d_dirty->d_inode);
-> > +	if (err != sizeof(info))
-> > +		goto out_putdirty;
-> > +
-> > +	if (!uuid_equal(&overlay_boot_id, &info.overlay_boot_id)) {
-> > +		pr_debug("boot id has changed (reboot or module reloaded)\n");
-> > +		goto out_putdirty;
-> > +	}
-> > +
-> > +	if (d_dirty->d_inode->i_sb->s_instance_id != info.s_instance_id) {
-> > +		pr_debug("workdir has been unmounted and remounted\n");
-> > +		goto out_putdirty;
-> > +	}
-> > +
-> > +	err = errseq_check(&d_dirty->d_inode->i_sb->s_wb_err, info.errseq);
-> > +	if (err) {
-> > +		pr_debug("workdir dir has experienced errors: %d\n", err);
-> > +		goto out_putdirty;
-> > +	}
-> > +
-> > +	/* Dirty file is okay, delete it. */
-> > +	ret = ovl_do_unlink(d_volatile->d_inode, d_dirty);
-> > +
-> > +out_putdirty:
-> > +	dput(d_dirty);
-> > +out_putvolatile:
-> > +	inode_unlock(d_volatile->d_inode);
-> > +	dput(d_volatile);
-> > +	return ret;
-> > +}
-> > +
-> > +/*
-> > + * check_incompat checks this specific incompat entry for incompatibility.
-> > + * If it is found to be incompatible -EINVAL will be returned.
-> > + *
-> > + * Any other -errno indicates an unknown error, and filesystem mounting
-> > + * should be aborted.
-> > + */
-> > +static int ovl_check_incompat(struct ovl_cache_entry *p, struct path *path)
-> > +{
-> > +	int err = -EINVAL;
-> > +
-> > +	if (!strcmp(p->name, OVL_VOLATILEDIR_NAME))
-> > +		err = ovl_check_incompat_volatile(p, path);
-> > +
-> > +	if (err == -EINVAL)
-> > +		pr_err("incompat feature '%s' cannot be mounted\n", p->name);
-> > +	else
-> > +		pr_debug("incompat '%s' handled: %d\n", p->name, err);
-> > +
-> > +	return err;
-> > +}
-> >  
-> >  static int ovl_workdir_cleanup_recurse(struct path *path, int level)
-> >  {
-> > @@ -1098,10 +1175,9 @@ static int ovl_workdir_cleanup_recurse(struct path *path, int level)
-> >  			if (p->len == 2 && p->name[1] == '.')
-> >  				continue;
-> >  		} else if (incompat) {
-> > -			pr_err("overlay with incompat feature '%s' cannot be mounted\n",
-> > -				p->name);
-> > -			err = -EINVAL;
-> > -			break;
-> > +			err = ovl_check_incompat(p, path);
-> > +			if (err)
-> > +				break;
-> >  		}
-> >  		dentry = lookup_one_len(p->name, path->dentry, p->len);
-> >  		if (IS_ERR(dentry))
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index 2ee0ba16cc7b..94980898009f 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -15,6 +15,7 @@
-> >  #include <linux/seq_file.h>
-> >  #include <linux/posix_acl_xattr.h>
-> >  #include <linux/exportfs.h>
-> > +#include <linux/uuid.h>
-> >  #include "overlayfs.h"
-> >  
-> >  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-> > @@ -23,6 +24,7 @@ MODULE_LICENSE("GPL");
-> >  
-> >  
-> >  struct ovl_dir_cache;
-> > +uuid_t overlay_boot_id;
-> >  
-> >  #define OVL_MAX_STACK 500
-> >  
-> > @@ -1246,20 +1248,35 @@ static struct dentry *ovl_lookup_or_create(struct dentry *parent,
-> >   */
-> >  static int ovl_create_volatile_dirty(struct ovl_fs *ofs)
-> >  {
-> > +	int err;
-> >  	unsigned int ctr;
-> >  	struct dentry *d = dget(ofs->workbasedir);
-> >  	static const char *const volatile_path[] = {
-> > -		OVL_WORKDIR_NAME, "incompat", "volatile", "dirty"
-> > +		OVL_WORKDIR_NAME,
-> > +		OVL_INCOMPATDIR_NAME,
-> > +		OVL_VOLATILEDIR_NAME,
-> > +		OVL_VOLATILE_DIRTY_NAME,
-> >  	};
-> >  	const char *const *name = volatile_path;
-> > +	struct overlay_volatile_info info = {};
-> >  
-> >  	for (ctr = ARRAY_SIZE(volatile_path); ctr; ctr--, name++) {
-> >  		d = ovl_lookup_or_create(d, *name, ctr > 1 ? S_IFDIR : S_IFREG);
-> >  		if (IS_ERR(d))
-> >  			return PTR_ERR(d);
-> >  	}
-> > +
-> > +	uuid_copy(&info.overlay_boot_id, &overlay_boot_id);
-> > +	info.s_instance_id = d->d_inode->i_sb->s_instance_id;
-> > +	info.errseq = errseq_sample(&d->d_inode->i_sb->s_wb_err);
-> > +
-> > +
-> > +	err = ovl_do_setxattr(d, OVL_XATTR_VOLATILE, &info, sizeof(info), 0);
-> > +	if (err == -EOPNOTSUPP)
-> > +		err = 0;
-> > +
-> >  	dput(d);
-> > -	return 0;
-> > +	return err;
-> >  }
-> >  
-> >  static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
-> > @@ -2045,6 +2062,7 @@ static int __init ovl_init(void)
-> >  {
-> >  	int err;
-> >  
-> > +	uuid_gen(&overlay_boot_id);
-> >  	ovl_inode_cachep = kmem_cache_create("ovl_inode",
-> >  					     sizeof(struct ovl_inode), 0,
-> >  					     (SLAB_RECLAIM_ACCOUNT|
-> > -- 
-> > 2.25.1
-> > 
-> 
+
+At least for my use case, any kind of syncing is generally bad unless
+it can be controlled, and:
+1. Generate a limited set of IOPs
+2. Not block metadata operatons
+----
+
+This is a challenge that is left up to the filesystem developers that hasn't 
+really been addressed yet. The closest we've seen is individual block devices 
+per upper dir using something like device mapper, and throttling at that level.
+
+I liken this to "eatmydata". I think it makes sense to force the user to go from 
+volatile -> volatile. I do think that adding the safety feature which explicitly 
+warns users that their system is a state where they may be experiencing data 
+loss (checking errseq_t) is useful. Although, we emit the error via dmesg today, 
+if we move over to the new mount API, we could emit the error from the fsfd, 
+either forcing the user to set another flag, "reallyvolatile" or deleting the 
+dirty bit on disk. I'm partial to the flag approach because it involves less
+API surface area.
+
+Partially because one of the overall use cases I want to be able to implement
+is LXC-style seccomp-fd based mount syscall interception, and the fewer
+things to juggle (and corner cases to handle), the better.
