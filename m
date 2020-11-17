@@ -2,119 +2,137 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26B8CC2D0E4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:42:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D4E1C63798
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 07:57:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BDD0E22447
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:42:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A4562083E
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 07:57:11 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YIt1jnPD"
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="vr6WiLEj"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726302AbgKQFlw (ORCPT
+        id S1726851AbgKQH43 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 17 Nov 2020 00:41:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45070 "EHLO
+        Tue, 17 Nov 2020 02:56:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37516 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726274AbgKQFlv (ORCPT
+        with ESMTP id S1726249AbgKQH43 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Nov 2020 00:41:51 -0500
-Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBF9FC0613CF;
-        Mon, 16 Nov 2020 21:41:51 -0800 (PST)
-Received: by mail-il1-x144.google.com with SMTP id y18so10240864ilp.13;
-        Mon, 16 Nov 2020 21:41:51 -0800 (PST)
+        Tue, 17 Nov 2020 02:56:29 -0500
+Received: from mail-qk1-x72b.google.com (mail-qk1-x72b.google.com [IPv6:2607:f8b0:4864:20::72b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8B46C0617A6
+        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 23:56:27 -0800 (PST)
+Received: by mail-qk1-x72b.google.com with SMTP id q5so19575205qkc.12
+        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 23:56:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4uP0R4NMek+c9p+edkiMYaC2lOlHd67i9h4rSBZ4QGE=;
-        b=YIt1jnPD4pcSqM6gNNrslEYZqoa3Wm8d4SYuvafhQWRR0bNNdIiBKkGFz3mLsZjiw3
-         XovPQMcH1m2EZ7Cs+Ifs6YPdroHxMzwxd6nicwF11L1rxHiUCB493IJvdJMUpvaRNg3L
-         8SOBy8NVKl1+teRICIP2SVo2B7+DXnZ5QwWE2TnEgcC8e4RYz+WMtXGuakpF/aH0AUKT
-         C4lumr3ipiz1trXE3IfBHbbU4UcLYqF5/JhIhwERAnhoZm9Dwya/H2GN40jYyBdjOIxq
-         sFjhQSc910VRZhYkcqG2vozEyh4S6oqbA5HAECeKOqkeQtOhJn3ZdeRSYKkY4ZYK0nU9
-         AcJQ==
+        d=google.com; s=20161025;
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=H3l9soqm+SREQlc2IEV9Idb1VORHh3SoM0Ng1Iin3Dc=;
+        b=vr6WiLEj6tAgdFqp8DIxItu5ALuLwg5H3eYuzD7j+uatZ4C4eKiUbT+iEZ9/EpFUWK
+         4TR9TKVUhgAMbbNw7dtsPQy8IgImKzjGAYDzXIzcR97WWfJ643GCQzKaPRRZYyQ4mKxp
+         8+oJCAhIYn0eKUFpUQakgVHsrmP42OW/15444w8IQDgBv0RJyi79iwYyHMG97SFYT/JT
+         ZWFdO527yh16ZkaRMhEcDJsYA4O7WzCiPlScZhc+PiN+UiphivffRfHeLpZ8V3rRKY4o
+         eEilw/r3h6MoPZatEz5gUwDVmtWfKnehx5CtjJkPwbPsHUeYibXKRx0pDo1bYyqvn0ti
+         Ym5w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4uP0R4NMek+c9p+edkiMYaC2lOlHd67i9h4rSBZ4QGE=;
-        b=jo6z2G/8RwGv2MIrrh2oMOqiQksXJNAin1/zPrXGzUtZnkk15XsHBJjtS8kaz2tcRs
-         hSGTUZd/1Q/8YCK226YWaZlI410VOXfzS7xMT4TzvI0BE71KMs9ptsODetvqKZ4H0HMW
-         WOs6Ds0ydq0l4sqDlCwFHWs8pA27HqX2ztwjLR+VA6wFXn0GhALdEepvlEyxXpTsPTJO
-         wjhpnGk3izAONv6rZEqDIun9buaY6LsadkXITxq5zbhvySTBGor6EwzzcKsOcfNpjZTH
-         BcGp8yQZ9qzCA21zYSwv1HiTMh9A9DraxfRjklw5LTKOiVmq+hYa6xfjrnaTX4JbBxMR
-         N0vA==
-X-Gm-Message-State: AOAM5332m661LrPpnaT9XPO2chYyMRy6Vb3LxEaLz1R8A3E8z5Gn2eNP
-        cu6wO4LcxI/KXVHpHFwOEqABD5ICmc71vak4/v4=
-X-Google-Smtp-Source: ABdhPJw1PmowWRS71CiSsLwz4ShaMDnkL1iLcri2fbmdXbqb9K34Ui9UH2LpgeTnv8pCeUoaXqMwdOltuo6tw/feqtg=
-X-Received: by 2002:a92:bac5:: with SMTP id t66mr11045762ill.250.1605591711122;
- Mon, 16 Nov 2020 21:41:51 -0800 (PST)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=H3l9soqm+SREQlc2IEV9Idb1VORHh3SoM0Ng1Iin3Dc=;
+        b=fEOjbyHzWeNOo2hSDA0a2N1bV9tWAiEMHVUe04W5rxu7FtXGE2EK/D9hzI8By1pQoO
+         nltCNgL7Z1oaNOJluVifVkFtltMh4GoJjCJTl6KHNkh+4AE+L0WijFh6+HePlcK2kaBi
+         PFtLnAsiYli7pwcO5SVKEfN9aaKRRQ3+NVJiKm27PxVH4zh1sGN9nG0ZMHo1kFWDO3w6
+         BjMlC7+RKHHE0NF/lf/LwWTNdyl4hlYQKVULB7iZhT7gH6/eNogiHXDEgf1aduyj6krs
+         3NTu1CWVBSxmRBDMBBJs46ZjsA+eM0aFGAUbojofIwoY0YGyPZIaO45O9N0thXFGXXWr
+         2L/w==
+X-Gm-Message-State: AOAM530Fnkaxd4OPHfP6sJX+kOy9PQQ8APb8PblLoFI6b3+7KF6wkts+
+        I6Ce/N+Us/FG6yvsLimBOynDzUFDdRWqfpZMo5aJ7Q==
+X-Google-Smtp-Source: ABdhPJwL37DcZAHwPAwGzv7dlhmnzGGHY07oktBGxXahSXeeXy9RHAITbjODhOe6w9v8GDK8fQ7Ue4Xm4a8RfzsD0aE=
+X-Received: by 2002:a37:9747:: with SMTP id z68mr17899362qkd.424.1605599786651;
+ Mon, 16 Nov 2020 23:56:26 -0800 (PST)
 MIME-Version: 1.0
-References: <20201116045758.21774-1-sargun@sargun.me> <20201116045758.21774-4-sargun@sargun.me>
- <20201116144240.GA9190@redhat.com> <CAOQ4uxgMmxhT1fef9OtivDjxx7FYNpm7Y=o_C-zx5F+Do3kQSA@mail.gmail.com>
- <20201116163615.GA17680@redhat.com> <CAOQ4uxgTXHR3J6HueS_TO5La890bCfsWUeMXKgGnvUth26h29Q@mail.gmail.com>
- <20201116212644.GE9190@redhat.com> <20201116221401.GA21744@ircssh-2.c.rugged-nimbus-611.internal>
-In-Reply-To: <20201116221401.GA21744@ircssh-2.c.rugged-nimbus-611.internal>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 17 Nov 2020 07:41:39 +0200
-Message-ID: <CAOQ4uxijv8JiJzZ+Sxt8iXfZVbZvDNzK1PJRLexMAHnVdJEg=g@mail.gmail.com>
-Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
- directories when safe
-To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
+From:   Dmitry Vyukov <dvyukov@google.com>
+Date:   Tue, 17 Nov 2020 08:56:15 +0100
+Message-ID: <CACT4Y+bUfavwMVv2SEMve5pabE_AwsDO0YsRBGZtYqX59a77vA@mail.gmail.com>
+Subject: suspicious capability check in ovl_ioctl_set_flags
+To:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        Daniel J Walsh <dwalsh@redhat.com>,
-        David Howells <dhowells@redhat.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Chengguang Xu <cgxu519@mykernel.net>
+        LKML <linux-kernel@vger.kernel.org>
+Cc:     Alexander Potapenko <glider@google.com>,
+        Merna Zakaria <mernazakaria@google.com>,
+        kasan-dev <kasan-dev@googlegroups.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > > I think upper files data can "evaporate" even as the overlay is still mounted.
-> >
-> > I think assumption of volatile containers was that data will remain
-> > valid as long as machine does not crash/shutdown. We missed the case
-> > of possibility of writeback errors during those discussions.
-> >
-> > And if data can evaporate without anyway to know that somehthing
-> > is gone wrong, I don't know how that's useful for applications.
-> >
-> > Also, first we need to fix the case of writeback error handling
-> > for volatile containers while it is mounted before one tries to fix it
-> > for writeback error detection during remount, IMHO.
-> >
-> > Thanks
-> > Vivek
-> >
->
-> I feel like this is an infamous Linux problem, and lots[1][2][3][4] has been said
-> on the topic, and there's not really a general purpose solution to it. I think that
-> most filesystems offer a choice of "continue" or "fail-stop" (readonly), and if
-> the upperdir lives on that filesystem, we will get the feedback from it.
->
-> I can respin my patch with just the "boot id" and superblock ID check if folks
-> are fine with that, and we can figure out how to resolve the writeback issues
-> later.
->
+Hi Miklos,
 
-On the contrary. Your code for error check is very valuable and more
-important than the remount feature.
+We've detected a suspicious double-fetch of user-space data in
+ovl_ioctl_set_flags using a prototype tool (see report below [1]).
 
-If you change ovl_should_sync() to check for error since mount and
-return error in that case, which all callers will check, then I think you
-fix the evaporating files issue and that needs to come first with
-stable kernel backport IMO.
+It points to ovl_ioctl_set_flags that does a capability check using
+flags, but then the real ioctl double-fetches flags and uses
+potentially different value:
 
-Thanks,
-Amir.
+static long ovl_ioctl_set_flags(struct file *file, unsigned int cmd,
+                unsigned long arg, unsigned int flags)
+{
+...
+    /* Check the capability before cred override */
+    oldflags = ovl_iflags_to_fsflags(READ_ONCE(inode->i_flags));
+    ret = vfs_ioc_setflags_prepare(inode, oldflags, flags);
+    if (ret)
+        goto unlock;
+...
+    ret = ovl_real_ioctl(file, cmd, arg);
+
+All fs impls call vfs_ioc_setflags_prepare again, so the capability is
+checked again.
+
+But I think this makes the vfs_ioc_setflags_prepare check in overlayfs
+pointless (?) and the "Check the capability before cred override"
+comment misleading, user can skip this check by presenting benign
+flags first and then overwriting them to non-benign flags. Or, if this
+check is still needed... it is wrong (?). The code would need to
+arrange for both ioctl's to operate on the same data then.
+Does it make any sense?
+Thanks
+
+[1] BUG: multi-read in __x64_sys_ioctl  between ovl_ioctl and ext4_ioctl
+======= First Address Range Stack =======
+ df_save_stack+0x33/0x70 lib/df-detection.c:208
+ add_address+0x2ac/0x352 lib/df-detection.c:47
+ ovl_ioctl_set_fsflags fs/overlayfs/file.c:607 [inline]
+ ovl_ioctl+0x7d/0x290 fs/overlayfs/file.c:654
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl fs/ioctl.c:739 [inline]
+ __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:739
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+======= Second Address Range Stack =======
+ df_save_stack+0x33/0x70 lib/df-detection.c:208
+ add_address+0x2ac/0x352 lib/df-detection.c:47
+ ext4_ioctl+0x13b1/0x27f0 fs/ext4/ioctl.c:833
+ vfs_ioctl+0x30/0x80 fs/ioctl.c:48
+ ovl_real_ioctl+0xed/0x100 fs/overlayfs/file.c:539
+ ovl_ioctl_set_flags+0x11d/0x180 fs/overlayfs/file.c:574
+ ovl_ioctl_set_fsflags fs/overlayfs/file.c:610 [inline]
+ ovl_ioctl+0x11e/0x290 fs/overlayfs/file.c:654
+ vfs_ioctl fs/ioctl.c:48 [inline]
+ __do_sys_ioctl fs/ioctl.c:753 [inline]
+ __se_sys_ioctl fs/ioctl.c:739 [inline]
+ __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:739
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+syscall number 16  System Call: __x64_sys_ioctl+0x0/0x140 fs/ioctl.c:800
+First 0000000020000000 len 4 Caller vfs_ioctl fs/ioctl.c:48 [inline]
+First 0000000020000000 len 4 Caller __do_sys_ioctl fs/ioctl.c:753 [inline]
+First 0000000020000000 len 4 Caller __se_sys_ioctl fs/ioctl.c:739 [inline]
+First 0000000020000000 len 4 Caller __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:739
+Second 0000000020000000 len 4 Caller vfs_ioctl+0x30/0x80 fs/ioctl.c:48
+==================================================================
