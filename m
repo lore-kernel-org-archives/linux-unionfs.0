@@ -2,151 +2,265 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A960C2D0E4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 08:58:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E7A2C64E69
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 14:49:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFF0F2463B
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 08:58:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14FD924198
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 14:49:23 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="OKvVi+Jx"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="jUAleHrv"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727028AbgKQI6d (ORCPT
+        id S1729281AbgKQOtK (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 17 Nov 2020 03:58:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47132 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725947AbgKQI6c (ORCPT
+        Tue, 17 Nov 2020 09:49:10 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:38521 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729225AbgKQOtH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Nov 2020 03:58:32 -0500
-Received: from mail-vk1-xa29.google.com (mail-vk1-xa29.google.com [IPv6:2607:f8b0:4864:20::a29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8905AC0613CF
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Nov 2020 00:58:30 -0800 (PST)
-Received: by mail-vk1-xa29.google.com with SMTP id m184so4351535vkb.9
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Nov 2020 00:58:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=SHJFy/YZF0XB4eGF/ZvX/fiRUi3iszemfHnSFZkXlNY=;
-        b=OKvVi+JxEmD2+psGAbyGXPeOLv8+JqivKOwIzQqu9FwRbF2CQ2PZwUdD5Tft7pB+lT
-         p0JxjayOKIw8H8BuU2JElK5cvAG8OV9oyoqSuVZ6I01ttV1k4shF2uDgH+MdO5OHYCCT
-         VV/YaOdH6/9NSMKdD9Hc4zyFFdynJbAh9Nqjg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=SHJFy/YZF0XB4eGF/ZvX/fiRUi3iszemfHnSFZkXlNY=;
-        b=QnfEng+czCsMwX4QSReKQvttT4GAiJpj/lUTC8gtPkZhgo12p8xd/LSCR0Yf1jdXBF
-         pHZiJiiXScxEZ2jcgIFDCkQfl6te4U3bQX2nPXtX9YgwelJxNG3e0cmKHptruP7Wt7b9
-         8DMC4FR/BoaFVSHqAIqs0ILAudR/gTX3gZfq20RBLSRU2nq2Y4W+CoLxHDFxLvQL6Vbv
-         cRaE7z4qPlacj8k/kFbRMND+C7vyyxSQURYiwBlxGYwRgPisaryK0liILuuwiuZcpwKU
-         /ijvv3sKOgDb4HuBEUJLO5VbebsMSahLQljYHFOWsBJYHKxKtgUUGMHT045idqoRwFYA
-         LYQQ==
-X-Gm-Message-State: AOAM530ruEsZXy3obOVRhADh8xfCueW1fHRDQfSR/fIVcGtUWb+zilpF
-        Xy3D8qsaSDFp85paFjGYgexLMfTNzTJRDBgNkb2eMw==
-X-Google-Smtp-Source: ABdhPJz7dVX7V4S5GX6p4Ws3QxlbSEWOxHA3mPIMcC/KgbBbY9HgY84i5+VQCIC021fFmrRGvEDpzrxSeQbjXOwwFD8=
-X-Received: by 2002:ac5:c96c:: with SMTP id t12mr10487686vkm.19.1605603509197;
- Tue, 17 Nov 2020 00:58:29 -0800 (PST)
+        Tue, 17 Nov 2020 09:49:07 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1605624545;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=gRqfuqrtQI+8LB/9wQxpEsLFf7NqychibEyLXRcsD8A=;
+        b=jUAleHrveJDGA0p2SA/sINfAz5EhrVF7JSggUHBqAzMNVpGKi8hJCQH8eSh6x9LRWRB8r5
+        uI3Z7hcstzbRc7rUo/cnoiULMGTBP1vZi9XQiX6kuZ2bDkUpCssGTiDo42L5EM7IInDTdO
+        YG05PVsZkcOUI1jPr7Q7wV+nWwBuo3M=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-592-8AuUk_XHPW6StemTp4ZYIw-1; Tue, 17 Nov 2020 09:49:00 -0500
+X-MC-Unique: 8AuUk_XHPW6StemTp4ZYIw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 41F4B8CAD81;
+        Tue, 17 Nov 2020 14:48:59 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-116-186.rdu2.redhat.com [10.10.116.186])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5CAA45B4BC;
+        Tue, 17 Nov 2020 14:48:58 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id B6FB7220BCF; Tue, 17 Nov 2020 09:48:57 -0500 (EST)
+Date:   Tue, 17 Nov 2020 09:48:57 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Sargun Dhillon <sargun@sargun.me>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        Daniel J Walsh <dwalsh@redhat.com>,
+        David Howells <dhowells@redhat.com>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Chengguang Xu <cgxu519@mykernel.net>
+Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
+ directories when safe
+Message-ID: <20201117144857.GA78221@redhat.com>
+References: <20201116045758.21774-1-sargun@sargun.me>
+ <20201116045758.21774-4-sargun@sargun.me>
+ <20201116144240.GA9190@redhat.com>
+ <CAOQ4uxgMmxhT1fef9OtivDjxx7FYNpm7Y=o_C-zx5F+Do3kQSA@mail.gmail.com>
+ <20201116163615.GA17680@redhat.com>
+ <CAOQ4uxgTXHR3J6HueS_TO5La890bCfsWUeMXKgGnvUth26h29Q@mail.gmail.com>
+ <20201116210950.GD9190@redhat.com>
+ <CAOQ4uxhkRauEM46nbhZuGdJmP8UGQpe+fw_FtXy+S4eaR4uxTA@mail.gmail.com>
 MIME-Version: 1.0
-References: <CACT4Y+bUfavwMVv2SEMve5pabE_AwsDO0YsRBGZtYqX59a77vA@mail.gmail.com>
-In-Reply-To: <CACT4Y+bUfavwMVv2SEMve5pabE_AwsDO0YsRBGZtYqX59a77vA@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 17 Nov 2020 09:58:18 +0100
-Message-ID: <CAJfpegvoiGb5R1Y2a+_rNgTXgfJD=kFrkXBn7zSZDHKxwe992Q@mail.gmail.com>
-Subject: Re: suspicious capability check in ovl_ioctl_set_flags
-To:     Dmitry Vyukov <dvyukov@google.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Alexander Potapenko <glider@google.com>,
-        Merna Zakaria <mernazakaria@google.com>,
-        kasan-dev <kasan-dev@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhkRauEM46nbhZuGdJmP8UGQpe+fw_FtXy+S4eaR4uxTA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Nov 17, 2020 at 8:56 AM Dmitry Vyukov <dvyukov@google.com> wrote:
->
-> Hi Miklos,
->
-> We've detected a suspicious double-fetch of user-space data in
-> ovl_ioctl_set_flags using a prototype tool (see report below [1]).
->
-> It points to ovl_ioctl_set_flags that does a capability check using
-> flags, but then the real ioctl double-fetches flags and uses
-> potentially different value:
->
-> static long ovl_ioctl_set_flags(struct file *file, unsigned int cmd,
->                 unsigned long arg, unsigned int flags)
-> {
-> ...
->     /* Check the capability before cred override */
->     oldflags = ovl_iflags_to_fsflags(READ_ONCE(inode->i_flags));
->     ret = vfs_ioc_setflags_prepare(inode, oldflags, flags);
->     if (ret)
->         goto unlock;
-> ...
->     ret = ovl_real_ioctl(file, cmd, arg);
->
-> All fs impls call vfs_ioc_setflags_prepare again, so the capability is
-> checked again.
->
-> But I think this makes the vfs_ioc_setflags_prepare check in overlayfs
-> pointless (?) and the "Check the capability before cred override"
-> comment misleading, user can skip this check by presenting benign
-> flags first and then overwriting them to non-benign flags. Or, if this
-> check is still needed... it is wrong (?). The code would need to
-> arrange for both ioctl's to operate on the same data then.
-> Does it make any sense?
+On Tue, Nov 17, 2020 at 07:33:26AM +0200, Amir Goldstein wrote:
+> On Mon, Nov 16, 2020 at 11:09 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > On Mon, Nov 16, 2020 at 10:18:03PM +0200, Amir Goldstein wrote:
+> > > On Mon, Nov 16, 2020 at 6:36 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > >
+> > > > On Mon, Nov 16, 2020 at 05:20:04PM +0200, Amir Goldstein wrote:
+> > > > > On Mon, Nov 16, 2020 at 4:42 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > > > >
+> > > > > > On Sun, Nov 15, 2020 at 08:57:58PM -0800, Sargun Dhillon wrote:
+> > > > > > > Overlayfs added the ability to setup mounts where all syncs could be
+> > > > > > > short-circuted in (2a99ddacee43: ovl: provide a mount option "volatile").
+> > > > > > >
+> > > > > > > A user might want to remount this fs, but we do not let the user because
+> > > > > > > of the "incompat" detection feature. In the case of volatile, it is safe
+> > > > > > > to do something like[1]:
+> > > > > > >
+> > > > > > > $ sync -f /root/upperdir
+> > > > > > > $ rm -rf /root/workdir/incompat/volatile
+> > > > > > >
+> > > > > > > There are two ways to go about this. You can call sync on the underlying
+> > > > > > > filesystem, check the error code, and delete the dirty file if everything
+> > > > > > > is clean. If you're running lots of containers on the same filesystem, or
+> > > > > > > you want to avoid all unnecessary I/O, this may be suboptimal.
+> > > > > > >
+> > > > > >
+> > > > > > Hi Sargun,
+> > > > > >
+> > > > > > I had asked bunch of questions in previous mail thread to be more
+> > > > > > clear on your requirements but never got any response. It would
+> > > > > > have helped understanding your requirements better.
+> > > > > >
+> > > > > > How about following patch set which seems to sync only dirty inodes of
+> > > > > > upper belonging to a particular overlayfs instance.
+> > > > > >
+> > > > > > https://lore.kernel.org/linux-unionfs/20201113065555.147276-1-cgxu519@mykernel.net/
+> > > > > >
+> > > > > > So if could implement a mount option which ignores fsync but upon
+> > > > > > syncfs, only syncs dirty inodes of that overlayfs instance, it will
+> > > > > > make sure we are not syncing whole of the upper fs. And we could
+> > > > > > do this syncing on unmount of overlayfs and remove dirty file upon
+> > > > > > successful sync.
+> > > > > >
+> > > > > > Looks like this will be much simpler method and should be able to
+> > > > > > meet your requirements (As long as you are fine with syncing dirty
+> > > > > > upper inodes of this overlay instance on unmount).
+> > > > > >
+> > > > >
+> > > > > Do note that the latest patch set by Chengguang not only syncs dirty
+> > > > > inodes of this overlay instance, but also waits for in-flight writeback on
+> > > > > all the upper fs inodes and I think that with !ovl_should_sync(ofs)
+> > > > > we will not re-dirty the ovl inodes and lose track of the list of dirty
+> > > > > inodes - maybe that can be fixed.
+> > > > >
+> > > > > Also, I am not sure anymore that we can safely remove the dirty file after
+> > > > > sync dirty inodes sync_fs and umount. If someone did sync_fs before us
+> > > > > and consumed the error, we may have a copied up file in upper whose
+> > > > > data is not on disk, but when we sync_fs on unmount we won't get an
+> > > > > error? not sure.
+> > > >
+> > > > May be we can save errseq_t when mounting overlay and compare with
+> > > > errseq_t stored in upper sb after unmount. That will tell us whether
+> > > > error has happened since we mounted overlay. (Similar to what Sargun
+> > > > is doing).
+> > > >
+> > >
+> > > I suppose so.
+> > >
+> > > > In fact, if this is a concern, we have this issue with user space
+> > > > "sync <upper>" too? Other sync might fail and this one succeeds
+> > > > and we will think upper is just fine. May be container tools can
+> > > > keep a file/dir open at the time of mount and call syncfs using
+> > > > that fd instead. (And that should catch errors since that fd
+> > > > was opened, I am assuming).
+> > > >
+> > >
+> > > Did not understand the problem with userspace sync.
+> >
+> > Say volatile container A is using upper/ which is on xfs. Assume, container A
+> > does following.
+> >
+> > 1. Container A writes some data/copies up some files.
+> > 2. sync -f upper/
+> > 3. Remove incompat dir.
+> > 4. Remount overlay and restart container A.
+> >
+> > Now normally if some error happend in writeback on upper/, then "sync -f"
+> > should catch that and return an error. In that case container manager can
+> > throw away the container.
+> >
+> > What if another container B was doing same thing and issues ssues
+> > "sync -f upper/" and that sync reports errors. Now container A issues
+> > sync and IIUC, we will not see error on super block because it has
+> > already been seen by container B.
+> >
+> > And container A will assume that all data written by it safely made
+> > it to disk and it is safe to remove incompat/volatile/ dir.
+> >
+> > If container manager keeps a file descriptor open to one of the files
+> > in upper/, and uses that for sync, then it will still catch the
+> > error because file->f_sb_err should be previous to error happened
+> > and we will get any error since then.
+> >
+> 
+> Yeh, we should probably record upper sb_err on mount either way,
+> On fsync in volatile, instead of noop we can check if upper fs had
+> writeback errors since volatile mount and return error instead of 0.
+> 
+> 
+> 
+> > >
+> > > > >
+> > > > > I am less concerned about ways to allow re-mount of volatile
+> > > > > overlayfs than I am about turning volatile overlayfs into non-volatile.
+> > > >
+> > > > If we are not interested in converting volatile containers into
+> > > > non-volatile, then whole point of these patch series is to detect
+> > > > if any writeback error has happened or not. If writeback error has
+> > > > happened, then we detect that at remount and possibly throw away
+> > > > container.
+> > > >
+> > > > What happens today if writeback error has happened. Is that page thrown
+> > > > away from page cache and read back from disk? IOW, will user lose
+> > > > the data it had written in page cache because writeback failed. I am
+> > > > assuming we can't keep the dirty page around for very long otherwise
+> > > > it has potential to fill up all the available ram with dirty pages which
+> > > > can't be written back.
+> > > >
+> > >
+> > > Right. the resulting data is undefined after error.
+> >
+> > So application will not come to know of error until and unless it does
+> > an fsync()? IOW, if I write to a file and read back same pages after
+> > a while, I might not get back what I had written. So application
+> > should first write data, fsync it and upon successful fsync, consume
+> > back the data written?
+> 
+> I think so. Think of ENOSPC and delayed disk space allocation
+> and COW blocks with btrfs clones.
+> Filesystems will do their best to reserve space in such cases
+> before actual blocks allocation, but it doesn't always work.
+> 
+> >
+> > If yes, this is a problem for volatile containers. If somebody is
+> > using these to build images, there is a possibility that image
+> > is corrupted (because writeback error led to data loss). If yes,
+> > then safe way to generate image with volatile containers
+> > will be to first sync upper (or sync on umount somehow) and if
+> > no errors are reported, then it is safe to read back that data
+> > and pack into image.
+> >
+> 
+> I guess if we change fsync and syncfs to do nothing but return
+> error if any writeback error happened since mount we will be ok?
 
-Yes, looks like an oversight.
+I guess that will not be sufficient. Because overlay fsync/syncfs can
+only retrun any error which has happened so far. It is still possible
+that error happens right after this fsync call and application still
+reads back old/corrupted data.
 
-The only way to fix this properly, AFAICS is to add i_op->setflags.
+So this proposal reduces the race window but does not completely
+eliminate it.
 
-Will look into this.
+We probably will have to sync upper/ and if there are no errors reported,
+then it should be ok to consume data back.
 
-Thanks,
-Miklos
+This leads back to same issue of doing fsync/sync which we are trying
+to avoid with volatile containers. So we have two options.
 
+A. Build volatile containers should sync upper and then pack upper/ into
+  an image. if final sync returns error, throw away the container and
+  rebuild image. This will avoid intermediate fsync calls but does not
+  eliminate final syncfs requirement on upper. Now one can either choose
+  to do syncfs on upper/ or implement a more optimized syncfs through
+  overlay so that selctives dirty inodes are synced instead.
 
+B. Alternatively, live dangerously and know that it is possible that
+  writeback error happens and you read back corrupted data. 
 
-> Thanks
->
-> [1] BUG: multi-read in __x64_sys_ioctl  between ovl_ioctl and ext4_ioctl
-> ======= First Address Range Stack =======
->  df_save_stack+0x33/0x70 lib/df-detection.c:208
->  add_address+0x2ac/0x352 lib/df-detection.c:47
->  ovl_ioctl_set_fsflags fs/overlayfs/file.c:607 [inline]
->  ovl_ioctl+0x7d/0x290 fs/overlayfs/file.c:654
->  vfs_ioctl fs/ioctl.c:48 [inline]
->  __do_sys_ioctl fs/ioctl.c:753 [inline]
->  __se_sys_ioctl fs/ioctl.c:739 [inline]
->  __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:739
->  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
->  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> ======= Second Address Range Stack =======
->  df_save_stack+0x33/0x70 lib/df-detection.c:208
->  add_address+0x2ac/0x352 lib/df-detection.c:47
->  ext4_ioctl+0x13b1/0x27f0 fs/ext4/ioctl.c:833
->  vfs_ioctl+0x30/0x80 fs/ioctl.c:48
->  ovl_real_ioctl+0xed/0x100 fs/overlayfs/file.c:539
->  ovl_ioctl_set_flags+0x11d/0x180 fs/overlayfs/file.c:574
->  ovl_ioctl_set_fsflags fs/overlayfs/file.c:610 [inline]
->  ovl_ioctl+0x11e/0x290 fs/overlayfs/file.c:654
->  vfs_ioctl fs/ioctl.c:48 [inline]
->  __do_sys_ioctl fs/ioctl.c:753 [inline]
->  __se_sys_ioctl fs/ioctl.c:739 [inline]
->  __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:739
->  do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
->  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-> syscall number 16  System Call: __x64_sys_ioctl+0x0/0x140 fs/ioctl.c:800
-> First 0000000020000000 len 4 Caller vfs_ioctl fs/ioctl.c:48 [inline]
-> First 0000000020000000 len 4 Caller __do_sys_ioctl fs/ioctl.c:753 [inline]
-> First 0000000020000000 len 4 Caller __se_sys_ioctl fs/ioctl.c:739 [inline]
-> First 0000000020000000 len 4 Caller __x64_sys_ioctl+0xfc/0x140 fs/ioctl.c:739
-> Second 0000000020000000 len 4 Caller vfs_ioctl+0x30/0x80 fs/ioctl.c:48
-> ==================================================================
+I personally will be willing to pay the cost of syncfs at the end and
+use option A instead of always wondering if image I generated is corrupted
+or not.
+
+Thanks
+Vivek
+
