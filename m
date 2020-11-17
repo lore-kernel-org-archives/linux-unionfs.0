@@ -7,67 +7,67 @@ X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CE4C2D0E4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:34:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26B8CC2D0E4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:42:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AEA4424198
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:33:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BDD0E22447
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:42:12 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jmPQW4yp"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YIt1jnPD"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726339AbgKQFdj (ORCPT
+        id S1726302AbgKQFlw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 17 Nov 2020 00:33:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43814 "EHLO
+        Tue, 17 Nov 2020 00:41:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726019AbgKQFdi (ORCPT
+        with ESMTP id S1726274AbgKQFlv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Nov 2020 00:33:38 -0500
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B996C0613CF;
-        Mon, 16 Nov 2020 21:33:38 -0800 (PST)
-Received: by mail-io1-xd44.google.com with SMTP id m13so19911219ioq.9;
-        Mon, 16 Nov 2020 21:33:38 -0800 (PST)
+        Tue, 17 Nov 2020 00:41:51 -0500
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBF9FC0613CF;
+        Mon, 16 Nov 2020 21:41:51 -0800 (PST)
+Received: by mail-il1-x144.google.com with SMTP id y18so10240864ilp.13;
+        Mon, 16 Nov 2020 21:41:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=BetriBQNj2aNFzDqX6Jj7L6aSvpB97k2W5ppiZhSeFY=;
-        b=jmPQW4ypj8cDV5AP+JpEXpdfTmTf/IDEHF4fpDErUuawzkGuQFpWkKkjayx0k8j/ke
-         rtoKT2SeodsSTJxy7joamFxguJteN5Vmw51P9oAPV7/fA6Yak+37+M65GiGlGLdLLCVD
-         ujoxWHx/nYS6Rr/EoqR2a6fH8cSiE6KWFaHvudkFQJfSkoTgKNjibMOqL+zIxzfcHS0z
-         nKO94ykmp2h7423hmHCSjrT3YfQJfP+WiVpjik0Q6QCznsrIGe2UluEpc4cAd1p6HMUX
-         qlTK140+yR+DpmVENgzgRjdZs3YY2OiVs/NgaJiNSB8Gpu5+TeCCcnBfEKVkmmLZMlgc
-         +Y8Q==
+        bh=4uP0R4NMek+c9p+edkiMYaC2lOlHd67i9h4rSBZ4QGE=;
+        b=YIt1jnPD4pcSqM6gNNrslEYZqoa3Wm8d4SYuvafhQWRR0bNNdIiBKkGFz3mLsZjiw3
+         XovPQMcH1m2EZ7Cs+Ifs6YPdroHxMzwxd6nicwF11L1rxHiUCB493IJvdJMUpvaRNg3L
+         8SOBy8NVKl1+teRICIP2SVo2B7+DXnZ5QwWE2TnEgcC8e4RYz+WMtXGuakpF/aH0AUKT
+         C4lumr3ipiz1trXE3IfBHbbU4UcLYqF5/JhIhwERAnhoZm9Dwya/H2GN40jYyBdjOIxq
+         sFjhQSc910VRZhYkcqG2vozEyh4S6oqbA5HAECeKOqkeQtOhJn3ZdeRSYKkY4ZYK0nU9
+         AcJQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=BetriBQNj2aNFzDqX6Jj7L6aSvpB97k2W5ppiZhSeFY=;
-        b=pShqfLOazJOvppEt8b6kr5jpIk5OEga3rVEPmT73Kbd3WuL+uV61tyryXmOR/ZcRmx
-         0+hUm7DQtZ2ndailLU10A2DPW0w0M0xajsEIhqodDxQnO4yWQCO6zL9eRZHCABWXeu6O
-         ltVHtH9uWpXd38WvFUsuiqH/MWItq+hJfhIc566MA0ZRZC4MuaJ+SCukyah+g8+D0SS2
-         jQEkDkXBfcr+CfCPYnaWQwdiu3u3WYZN8cMxJBCfUTS+p4EBE7wewIQ+vcrSFbFwLB6g
-         Cz67jkMNaaJ02VEAlHW2d8rCNcN9GSZW59M8YiWe921ofLM2NW9Q7kSrYjsw4a3kn7Lj
-         WV8w==
-X-Gm-Message-State: AOAM533DD2Kxt0Tr/rzbo6M4cXRJUMxBT+QLR6R7qYI4Da0+i8hI0jSm
-        1Kker51JX+ht5eQNeDE1Ijsjv+D0gqxG3MdHJr0=
-X-Google-Smtp-Source: ABdhPJzegrcwLmLV6DrLxV2vcf5VaLE2vhTuXpaHLVU5eikSFgPlp9SiWw0JgCkTU8Cle8HgPA7Qmt2sl6cLjumDLF0=
-X-Received: by 2002:a02:70ce:: with SMTP id f197mr2485740jac.120.1605591217710;
- Mon, 16 Nov 2020 21:33:37 -0800 (PST)
+        bh=4uP0R4NMek+c9p+edkiMYaC2lOlHd67i9h4rSBZ4QGE=;
+        b=jo6z2G/8RwGv2MIrrh2oMOqiQksXJNAin1/zPrXGzUtZnkk15XsHBJjtS8kaz2tcRs
+         hSGTUZd/1Q/8YCK226YWaZlI410VOXfzS7xMT4TzvI0BE71KMs9ptsODetvqKZ4H0HMW
+         WOs6Ds0ydq0l4sqDlCwFHWs8pA27HqX2ztwjLR+VA6wFXn0GhALdEepvlEyxXpTsPTJO
+         wjhpnGk3izAONv6rZEqDIun9buaY6LsadkXITxq5zbhvySTBGor6EwzzcKsOcfNpjZTH
+         BcGp8yQZ9qzCA21zYSwv1HiTMh9A9DraxfRjklw5LTKOiVmq+hYa6xfjrnaTX4JbBxMR
+         N0vA==
+X-Gm-Message-State: AOAM5332m661LrPpnaT9XPO2chYyMRy6Vb3LxEaLz1R8A3E8z5Gn2eNP
+        cu6wO4LcxI/KXVHpHFwOEqABD5ICmc71vak4/v4=
+X-Google-Smtp-Source: ABdhPJw1PmowWRS71CiSsLwz4ShaMDnkL1iLcri2fbmdXbqb9K34Ui9UH2LpgeTnv8pCeUoaXqMwdOltuo6tw/feqtg=
+X-Received: by 2002:a92:bac5:: with SMTP id t66mr11045762ill.250.1605591711122;
+ Mon, 16 Nov 2020 21:41:51 -0800 (PST)
 MIME-Version: 1.0
 References: <20201116045758.21774-1-sargun@sargun.me> <20201116045758.21774-4-sargun@sargun.me>
  <20201116144240.GA9190@redhat.com> <CAOQ4uxgMmxhT1fef9OtivDjxx7FYNpm7Y=o_C-zx5F+Do3kQSA@mail.gmail.com>
  <20201116163615.GA17680@redhat.com> <CAOQ4uxgTXHR3J6HueS_TO5La890bCfsWUeMXKgGnvUth26h29Q@mail.gmail.com>
- <20201116210950.GD9190@redhat.com>
-In-Reply-To: <20201116210950.GD9190@redhat.com>
+ <20201116212644.GE9190@redhat.com> <20201116221401.GA21744@ircssh-2.c.rugged-nimbus-611.internal>
+In-Reply-To: <20201116221401.GA21744@ircssh-2.c.rugged-nimbus-611.internal>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 17 Nov 2020 07:33:26 +0200
-Message-ID: <CAOQ4uxhkRauEM46nbhZuGdJmP8UGQpe+fw_FtXy+S4eaR4uxTA@mail.gmail.com>
+Date:   Tue, 17 Nov 2020 07:41:39 +0200
+Message-ID: <CAOQ4uxijv8JiJzZ+Sxt8iXfZVbZvDNzK1PJRLexMAHnVdJEg=g@mail.gmail.com>
 Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
  directories when safe
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Sargun Dhillon <sargun@sargun.me>,
+To:     Sargun Dhillon <sargun@sargun.me>
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
@@ -81,182 +81,40 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Nov 16, 2020 at 11:09 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Mon, Nov 16, 2020 at 10:18:03PM +0200, Amir Goldstein wrote:
-> > On Mon, Nov 16, 2020 at 6:36 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > >
-> > > On Mon, Nov 16, 2020 at 05:20:04PM +0200, Amir Goldstein wrote:
-> > > > On Mon, Nov 16, 2020 at 4:42 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > > >
-> > > > > On Sun, Nov 15, 2020 at 08:57:58PM -0800, Sargun Dhillon wrote:
-> > > > > > Overlayfs added the ability to setup mounts where all syncs could be
-> > > > > > short-circuted in (2a99ddacee43: ovl: provide a mount option "volatile").
-> > > > > >
-> > > > > > A user might want to remount this fs, but we do not let the user because
-> > > > > > of the "incompat" detection feature. In the case of volatile, it is safe
-> > > > > > to do something like[1]:
-> > > > > >
-> > > > > > $ sync -f /root/upperdir
-> > > > > > $ rm -rf /root/workdir/incompat/volatile
-> > > > > >
-> > > > > > There are two ways to go about this. You can call sync on the underlying
-> > > > > > filesystem, check the error code, and delete the dirty file if everything
-> > > > > > is clean. If you're running lots of containers on the same filesystem, or
-> > > > > > you want to avoid all unnecessary I/O, this may be suboptimal.
-> > > > > >
-> > > > >
-> > > > > Hi Sargun,
-> > > > >
-> > > > > I had asked bunch of questions in previous mail thread to be more
-> > > > > clear on your requirements but never got any response. It would
-> > > > > have helped understanding your requirements better.
-> > > > >
-> > > > > How about following patch set which seems to sync only dirty inodes of
-> > > > > upper belonging to a particular overlayfs instance.
-> > > > >
-> > > > > https://lore.kernel.org/linux-unionfs/20201113065555.147276-1-cgxu519@mykernel.net/
-> > > > >
-> > > > > So if could implement a mount option which ignores fsync but upon
-> > > > > syncfs, only syncs dirty inodes of that overlayfs instance, it will
-> > > > > make sure we are not syncing whole of the upper fs. And we could
-> > > > > do this syncing on unmount of overlayfs and remove dirty file upon
-> > > > > successful sync.
-> > > > >
-> > > > > Looks like this will be much simpler method and should be able to
-> > > > > meet your requirements (As long as you are fine with syncing dirty
-> > > > > upper inodes of this overlay instance on unmount).
-> > > > >
-> > > >
-> > > > Do note that the latest patch set by Chengguang not only syncs dirty
-> > > > inodes of this overlay instance, but also waits for in-flight writeback on
-> > > > all the upper fs inodes and I think that with !ovl_should_sync(ofs)
-> > > > we will not re-dirty the ovl inodes and lose track of the list of dirty
-> > > > inodes - maybe that can be fixed.
-> > > >
-> > > > Also, I am not sure anymore that we can safely remove the dirty file after
-> > > > sync dirty inodes sync_fs and umount. If someone did sync_fs before us
-> > > > and consumed the error, we may have a copied up file in upper whose
-> > > > data is not on disk, but when we sync_fs on unmount we won't get an
-> > > > error? not sure.
-> > >
-> > > May be we can save errseq_t when mounting overlay and compare with
-> > > errseq_t stored in upper sb after unmount. That will tell us whether
-> > > error has happened since we mounted overlay. (Similar to what Sargun
-> > > is doing).
-> > >
+> > > I think upper files data can "evaporate" even as the overlay is still mounted.
 > >
-> > I suppose so.
+> > I think assumption of volatile containers was that data will remain
+> > valid as long as machine does not crash/shutdown. We missed the case
+> > of possibility of writeback errors during those discussions.
 > >
-> > > In fact, if this is a concern, we have this issue with user space
-> > > "sync <upper>" too? Other sync might fail and this one succeeds
-> > > and we will think upper is just fine. May be container tools can
-> > > keep a file/dir open at the time of mount and call syncfs using
-> > > that fd instead. (And that should catch errors since that fd
-> > > was opened, I am assuming).
-> > >
+> > And if data can evaporate without anyway to know that somehthing
+> > is gone wrong, I don't know how that's useful for applications.
 > >
-> > Did not understand the problem with userspace sync.
+> > Also, first we need to fix the case of writeback error handling
+> > for volatile containers while it is mounted before one tries to fix it
+> > for writeback error detection during remount, IMHO.
+> >
+> > Thanks
+> > Vivek
+> >
 >
-> Say volatile container A is using upper/ which is on xfs. Assume, container A
-> does following.
+> I feel like this is an infamous Linux problem, and lots[1][2][3][4] has been said
+> on the topic, and there's not really a general purpose solution to it. I think that
+> most filesystems offer a choice of "continue" or "fail-stop" (readonly), and if
+> the upperdir lives on that filesystem, we will get the feedback from it.
 >
-> 1. Container A writes some data/copies up some files.
-> 2. sync -f upper/
-> 3. Remove incompat dir.
-> 4. Remount overlay and restart container A.
->
-> Now normally if some error happend in writeback on upper/, then "sync -f"
-> should catch that and return an error. In that case container manager can
-> throw away the container.
->
-> What if another container B was doing same thing and issues ssues
-> "sync -f upper/" and that sync reports errors. Now container A issues
-> sync and IIUC, we will not see error on super block because it has
-> already been seen by container B.
->
-> And container A will assume that all data written by it safely made
-> it to disk and it is safe to remove incompat/volatile/ dir.
->
-> If container manager keeps a file descriptor open to one of the files
-> in upper/, and uses that for sync, then it will still catch the
-> error because file->f_sb_err should be previous to error happened
-> and we will get any error since then.
+> I can respin my patch with just the "boot id" and superblock ID check if folks
+> are fine with that, and we can figure out how to resolve the writeback issues
+> later.
 >
 
-Yeh, we should probably record upper sb_err on mount either way,
-On fsync in volatile, instead of noop we can check if upper fs had
-writeback errors since volatile mount and return error instead of 0.
+On the contrary. Your code for error check is very valuable and more
+important than the remount feature.
 
+If you change ovl_should_sync() to check for error since mount and
+return error in that case, which all callers will check, then I think you
+fix the evaporating files issue and that needs to come first with
+stable kernel backport IMO.
 
-
-> >
-> > > >
-> > > > I am less concerned about ways to allow re-mount of volatile
-> > > > overlayfs than I am about turning volatile overlayfs into non-volatile.
-> > >
-> > > If we are not interested in converting volatile containers into
-> > > non-volatile, then whole point of these patch series is to detect
-> > > if any writeback error has happened or not. If writeback error has
-> > > happened, then we detect that at remount and possibly throw away
-> > > container.
-> > >
-> > > What happens today if writeback error has happened. Is that page thrown
-> > > away from page cache and read back from disk? IOW, will user lose
-> > > the data it had written in page cache because writeback failed. I am
-> > > assuming we can't keep the dirty page around for very long otherwise
-> > > it has potential to fill up all the available ram with dirty pages which
-> > > can't be written back.
-> > >
-> >
-> > Right. the resulting data is undefined after error.
->
-> So application will not come to know of error until and unless it does
-> an fsync()? IOW, if I write to a file and read back same pages after
-> a while, I might not get back what I had written. So application
-> should first write data, fsync it and upon successful fsync, consume
-> back the data written?
-
-I think so. Think of ENOSPC and delayed disk space allocation
-and COW blocks with btrfs clones.
-Filesystems will do their best to reserve space in such cases
-before actual blocks allocation, but it doesn't always work.
-
->
-> If yes, this is a problem for volatile containers. If somebody is
-> using these to build images, there is a possibility that image
-> is corrupted (because writeback error led to data loss). If yes,
-> then safe way to generate image with volatile containers
-> will be to first sync upper (or sync on umount somehow) and if
-> no errors are reported, then it is safe to read back that data
-> and pack into image.
->
-
-I guess if we change fsync and syncfs to do nothing but return
-error if any writeback error happened since mount we will be ok?
-
-> >
-> > > Why is it important to detect writeback error only during remount. What
-> > > happens if container overlay instance is already mounted and writeback
-> > > error happens. We will not detct that, right?
-> > >
-> > > IOW, if capturing writeback error is important for volatile containers,
-> > > then capturing it only during remount time is not enough. Normally
-> > > fsync/syncfs should catch it and now we have skipped those, so in
-> > > the process we lost mechanism to detect writeback errrors for
-> > > volatile containers?
-> > >
-> >
-> > Yes, you are right.
-> > It's an issue with volatile that we should probably document.
-> >
-> > I think upper files data can "evaporate" even as the overlay is still mounted.
->
-> How do we reliably consume that data back (if it can evaporate). That
-> means, syncing whole fs (syncfs) is a requirement for volatile containers
-> before data written is read back. Otherwise we don't know if we are
-> reading back correct data or corrupted data.
->
-> Thanks
-> Vivek
->
+Thanks,
+Amir.
