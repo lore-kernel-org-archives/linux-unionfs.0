@@ -2,64 +2,72 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22384C388F9
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 22:14:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25CE4C2D0E4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:34:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABEED2224B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Nov 2020 22:14:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEA4424198
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Nov 2020 05:33:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=sargun.me header.i=@sargun.me header.b="MW+a6QRS"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jmPQW4yp"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727363AbgKPWOF (ORCPT
+        id S1726339AbgKQFdj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 16 Nov 2020 17:14:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60984 "EHLO
+        Tue, 17 Nov 2020 00:33:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43814 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726657AbgKPWOE (ORCPT
+        with ESMTP id S1726019AbgKQFdi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Nov 2020 17:14:04 -0500
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C33D9C0613D2
-        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 14:14:04 -0800 (PST)
-Received: by mail-io1-xd42.google.com with SMTP id s24so19047285ioj.13
-        for <linux-unionfs@vger.kernel.org>; Mon, 16 Nov 2020 14:14:04 -0800 (PST)
+        Tue, 17 Nov 2020 00:33:38 -0500
+Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B996C0613CF;
+        Mon, 16 Nov 2020 21:33:38 -0800 (PST)
+Received: by mail-io1-xd44.google.com with SMTP id m13so19911219ioq.9;
+        Mon, 16 Nov 2020 21:33:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sargun.me; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=SDocsv9IRK9bJzDDsFxI39hoFGvAMxAs6AXW8u6t2qA=;
-        b=MW+a6QRS8cd3xOOOBei/ai0h76LVTQ94oHphlzW9z6SzbtNNBVW2i9ULC/ZberOSMK
-         VReZhsyYqOXC9Wk/Y1HLXohFyYM2zS/wNSCgKf//yAPEAtC7HT4v5uI8zNLsNy292CH/
-         /X4LMuW4DJXHf9tN4mrpjPdYWnuLJQQKb2BJc=
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=BetriBQNj2aNFzDqX6Jj7L6aSvpB97k2W5ppiZhSeFY=;
+        b=jmPQW4ypj8cDV5AP+JpEXpdfTmTf/IDEHF4fpDErUuawzkGuQFpWkKkjayx0k8j/ke
+         rtoKT2SeodsSTJxy7joamFxguJteN5Vmw51P9oAPV7/fA6Yak+37+M65GiGlGLdLLCVD
+         ujoxWHx/nYS6Rr/EoqR2a6fH8cSiE6KWFaHvudkFQJfSkoTgKNjibMOqL+zIxzfcHS0z
+         nKO94ykmp2h7423hmHCSjrT3YfQJfP+WiVpjik0Q6QCznsrIGe2UluEpc4cAd1p6HMUX
+         qlTK140+yR+DpmVENgzgRjdZs3YY2OiVs/NgaJiNSB8Gpu5+TeCCcnBfEKVkmmLZMlgc
+         +Y8Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=SDocsv9IRK9bJzDDsFxI39hoFGvAMxAs6AXW8u6t2qA=;
-        b=F5jNPkwAjUKxV+pStznEkum4OoW6kzqhx4s66XUn9vWRVwL1d5pPGKMHyDRvS+t2RG
-         hP/S2p7KUsaZ0ggfnxgzQG7snd9D5G2dHBAcOFPCEjQyBg/crp9NVInDUqNkxQbID0+e
-         tfBEgITUrw3hAJQ/Zasmc5WC79dZaVvOzOiQwdvZOiSbbtwRnPwD4xdn17Kz18j/HyWU
-         P5YFYthua9vcEDspwA5cZMdNR69tjy/0N6766n6b1RoNmrqEMCbPtEs53TWMr46O4FZW
-         iwdcj/cioDjPTRFSyTemJ1vcXDMFRysFLn3QthTuOGKMrIjiNpP6kPIBzMWtiF6Ejfl4
-         FZQA==
-X-Gm-Message-State: AOAM531Z5xfzvYhnF9yVQHq7lf6JrGfBTsuQNrP07HHKcvnHtZXln+TX
-        8g0VrWPwUv2+MkSHG7B7RR7B0g==
-X-Google-Smtp-Source: ABdhPJxRTvk8+yxQnW9rnt6MAFK5w9/qhG62SPGk1YmQ4v4+wYwW6Msc6eW75k0Jl1VMxi3q67lVhQ==
-X-Received: by 2002:a02:c64f:: with SMTP id k15mr1365895jan.75.1605564844038;
-        Mon, 16 Nov 2020 14:14:04 -0800 (PST)
-Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
-        by smtp.gmail.com with ESMTPSA id z1sm578597iln.6.2020.11.16.14.14.03
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 16 Nov 2020 14:14:03 -0800 (PST)
-Date:   Mon, 16 Nov 2020 22:14:02 +0000
-From:   Sargun Dhillon <sargun@sargun.me>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=BetriBQNj2aNFzDqX6Jj7L6aSvpB97k2W5ppiZhSeFY=;
+        b=pShqfLOazJOvppEt8b6kr5jpIk5OEga3rVEPmT73Kbd3WuL+uV61tyryXmOR/ZcRmx
+         0+hUm7DQtZ2ndailLU10A2DPW0w0M0xajsEIhqodDxQnO4yWQCO6zL9eRZHCABWXeu6O
+         ltVHtH9uWpXd38WvFUsuiqH/MWItq+hJfhIc566MA0ZRZC4MuaJ+SCukyah+g8+D0SS2
+         jQEkDkXBfcr+CfCPYnaWQwdiu3u3WYZN8cMxJBCfUTS+p4EBE7wewIQ+vcrSFbFwLB6g
+         Cz67jkMNaaJ02VEAlHW2d8rCNcN9GSZW59M8YiWe921ofLM2NW9Q7kSrYjsw4a3kn7Lj
+         WV8w==
+X-Gm-Message-State: AOAM533DD2Kxt0Tr/rzbo6M4cXRJUMxBT+QLR6R7qYI4Da0+i8hI0jSm
+        1Kker51JX+ht5eQNeDE1Ijsjv+D0gqxG3MdHJr0=
+X-Google-Smtp-Source: ABdhPJzegrcwLmLV6DrLxV2vcf5VaLE2vhTuXpaHLVU5eikSFgPlp9SiWw0JgCkTU8Cle8HgPA7Qmt2sl6cLjumDLF0=
+X-Received: by 2002:a02:70ce:: with SMTP id f197mr2485740jac.120.1605591217710;
+ Mon, 16 Nov 2020 21:33:37 -0800 (PST)
+MIME-Version: 1.0
+References: <20201116045758.21774-1-sargun@sargun.me> <20201116045758.21774-4-sargun@sargun.me>
+ <20201116144240.GA9190@redhat.com> <CAOQ4uxgMmxhT1fef9OtivDjxx7FYNpm7Y=o_C-zx5F+Do3kQSA@mail.gmail.com>
+ <20201116163615.GA17680@redhat.com> <CAOQ4uxgTXHR3J6HueS_TO5La890bCfsWUeMXKgGnvUth26h29Q@mail.gmail.com>
+ <20201116210950.GD9190@redhat.com>
+In-Reply-To: <20201116210950.GD9190@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 17 Nov 2020 07:33:26 +0200
+Message-ID: <CAOQ4uxhkRauEM46nbhZuGdJmP8UGQpe+fw_FtXy+S4eaR4uxTA@mail.gmail.com>
+Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
+ directories when safe
 To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
+Cc:     Sargun Dhillon <sargun@sargun.me>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
@@ -68,26 +76,13 @@ Cc:     Amir Goldstein <amir73il@gmail.com>,
         David Howells <dhowells@redhat.com>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         Chengguang Xu <cgxu519@mykernel.net>
-Subject: Re: [RFC PATCH 3/3] overlay: Add the ability to remount volatile
- directories when safe
-Message-ID: <20201116221401.GA21744@ircssh-2.c.rugged-nimbus-611.internal>
-References: <20201116045758.21774-1-sargun@sargun.me>
- <20201116045758.21774-4-sargun@sargun.me>
- <20201116144240.GA9190@redhat.com>
- <CAOQ4uxgMmxhT1fef9OtivDjxx7FYNpm7Y=o_C-zx5F+Do3kQSA@mail.gmail.com>
- <20201116163615.GA17680@redhat.com>
- <CAOQ4uxgTXHR3J6HueS_TO5La890bCfsWUeMXKgGnvUth26h29Q@mail.gmail.com>
- <20201116212644.GE9190@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201116212644.GE9190@redhat.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Nov 16, 2020 at 04:26:44PM -0500, Vivek Goyal wrote:
+On Mon, Nov 16, 2020 at 11:09 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+>
 > On Mon, Nov 16, 2020 at 10:18:03PM +0200, Amir Goldstein wrote:
 > > On Mon, Nov 16, 2020 at 6:36 PM Vivek Goyal <vgoyal@redhat.com> wrote:
 > > >
@@ -150,9 +145,9 @@ On Mon, Nov 16, 2020 at 04:26:44PM -0500, Vivek Goyal wrote:
 > > > error has happened since we mounted overlay. (Similar to what Sargun
 > > > is doing).
 > > >
-> > 
+> >
 > > I suppose so.
-> > 
+> >
 > > > In fact, if this is a concern, we have this issue with user space
 > > > "sync <upper>" too? Other sync might fail and this one succeeds
 > > > and we will think upper is just fine. May be container tools can
@@ -160,9 +155,42 @@ On Mon, Nov 16, 2020 at 04:26:44PM -0500, Vivek Goyal wrote:
 > > > that fd instead. (And that should catch errors since that fd
 > > > was opened, I am assuming).
 > > >
-> > 
+> >
 > > Did not understand the problem with userspace sync.
-> > 
+>
+> Say volatile container A is using upper/ which is on xfs. Assume, container A
+> does following.
+>
+> 1. Container A writes some data/copies up some files.
+> 2. sync -f upper/
+> 3. Remove incompat dir.
+> 4. Remount overlay and restart container A.
+>
+> Now normally if some error happend in writeback on upper/, then "sync -f"
+> should catch that and return an error. In that case container manager can
+> throw away the container.
+>
+> What if another container B was doing same thing and issues ssues
+> "sync -f upper/" and that sync reports errors. Now container A issues
+> sync and IIUC, we will not see error on super block because it has
+> already been seen by container B.
+>
+> And container A will assume that all data written by it safely made
+> it to disk and it is safe to remove incompat/volatile/ dir.
+>
+> If container manager keeps a file descriptor open to one of the files
+> in upper/, and uses that for sync, then it will still catch the
+> error because file->f_sb_err should be previous to error happened
+> and we will get any error since then.
+>
+
+Yeh, we should probably record upper sb_err on mount either way,
+On fsync in volatile, instead of noop we can check if upper fs had
+writeback errors since volatile mount and return error instead of 0.
+
+
+
+> >
 > > > >
 > > > > I am less concerned about ways to allow re-mount of volatile
 > > > > overlayfs than I am about turning volatile overlayfs into non-volatile.
@@ -180,9 +208,34 @@ On Mon, Nov 16, 2020 at 04:26:44PM -0500, Vivek Goyal wrote:
 > > > it has potential to fill up all the available ram with dirty pages which
 > > > can't be written back.
 > > >
-> > 
+> >
 > > Right. the resulting data is undefined after error.
-> > 
+>
+> So application will not come to know of error until and unless it does
+> an fsync()? IOW, if I write to a file and read back same pages after
+> a while, I might not get back what I had written. So application
+> should first write data, fsync it and upon successful fsync, consume
+> back the data written?
+
+I think so. Think of ENOSPC and delayed disk space allocation
+and COW blocks with btrfs clones.
+Filesystems will do their best to reserve space in such cases
+before actual blocks allocation, but it doesn't always work.
+
+>
+> If yes, this is a problem for volatile containers. If somebody is
+> using these to build images, there is a possibility that image
+> is corrupted (because writeback error led to data loss). If yes,
+> then safe way to generate image with volatile containers
+> will be to first sync upper (or sync on umount somehow) and if
+> no errors are reported, then it is safe to read back that data
+> and pack into image.
+>
+
+I guess if we change fsync and syncfs to do nothing but return
+error if any writeback error happened since mount we will be ok?
+
+> >
 > > > Why is it important to detect writeback error only during remount. What
 > > > happens if container overlay instance is already mounted and writeback
 > > > error happens. We will not detct that, right?
@@ -193,37 +246,17 @@ On Mon, Nov 16, 2020 at 04:26:44PM -0500, Vivek Goyal wrote:
 > > > the process we lost mechanism to detect writeback errrors for
 > > > volatile containers?
 > > >
-> > 
+> >
 > > Yes, you are right.
 > > It's an issue with volatile that we should probably document.
-> > 
+> >
 > > I think upper files data can "evaporate" even as the overlay is still mounted.
-> 
-> I think assumption of volatile containers was that data will remain
-> valid as long as machine does not crash/shutdown. We missed the case
-> of possibility of writeback errors during those discussions. 
-> 
-> And if data can evaporate without anyway to know that somehthing
-> is gone wrong, I don't know how that's useful for applications.
-> 
-> Also, first we need to fix the case of writeback error handling
-> for volatile containers while it is mounted before one tries to fix it
-> for writeback error detection during remount, IMHO.
-> 
+>
+> How do we reliably consume that data back (if it can evaporate). That
+> means, syncing whole fs (syncfs) is a requirement for volatile containers
+> before data written is read back. Otherwise we don't know if we are
+> reading back correct data or corrupted data.
+>
 > Thanks
 > Vivek
-> 
-
-I feel like this is an infamous Linux problem, and lots[1][2][3][4] has been said
-on the topic, and there's not really a general purpose solution to it. I think that
-most filesystems offer a choice of "continue" or "fail-stop" (readonly), and if
-the upperdir lives on that filesystem, we will get the feedback from it.
-
-I can respin my patch with just the "boot id" and superblock ID check if folks
-are fine with that, and we can figure out how to resolve the writeback issues
-later.
-
-[1]: https://lwn.net/Articles/752063/
-[2]: https://lwn.net/Articles/724307/
-[3]: https://www.usenix.org/system/files/atc20-rebello.pdf
-[4]: https://www.postgresql.org/message-id/flat/CAMsr%2BYHh%2B5Oq4xziwwoEfhoTZgr07vdGG%2Bhu%3D1adXx59aTeaoQ%40mail.gmail.com
+>
