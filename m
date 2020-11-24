@@ -2,321 +2,205 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50303C63697
-	for <linux-unionfs@archiver.kernel.org>; Mon, 23 Nov 2020 21:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DBC0C56201
+	for <linux-unionfs@archiver.kernel.org>; Tue, 24 Nov 2020 08:28:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DDC18206B5
-	for <linux-unionfs@archiver.kernel.org>; Mon, 23 Nov 2020 21:07:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8EDA420708
+	for <linux-unionfs@archiver.kernel.org>; Tue, 24 Nov 2020 08:28:40 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=dilger-ca.20150623.gappssmtp.com header.i=@dilger-ca.20150623.gappssmtp.com header.b="kKLMJMpT"
+	dkim=fail reason="key not found in DNS" (0-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="L+lurf/K"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729940AbgKWVGw (ORCPT
+        id S1730465AbgKXI2U (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 23 Nov 2020 16:06:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51326 "EHLO
+        Tue, 24 Nov 2020 03:28:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729939AbgKWVGw (ORCPT
+        with ESMTP id S1728890AbgKXI2T (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 23 Nov 2020 16:06:52 -0500
-Received: from mail-pf1-x441.google.com (mail-pf1-x441.google.com [IPv6:2607:f8b0:4864:20::441])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05C3EC061A4D
-        for <linux-unionfs@vger.kernel.org>; Mon, 23 Nov 2020 13:06:52 -0800 (PST)
-Received: by mail-pf1-x441.google.com with SMTP id t8so16130629pfg.8
-        for <linux-unionfs@vger.kernel.org>; Mon, 23 Nov 2020 13:06:51 -0800 (PST)
+        Tue, 24 Nov 2020 03:28:19 -0500
+Received: from mail-vs1-xe44.google.com (mail-vs1-xe44.google.com [IPv6:2607:f8b0:4864:20::e44])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D1A4C0613D6
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Nov 2020 00:28:19 -0800 (PST)
+Received: by mail-vs1-xe44.google.com with SMTP id m62so503517vsd.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 24 Nov 2020 00:28:19 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dilger-ca.20150623.gappssmtp.com; s=20150623;
-        h=from:message-id:mime-version:subject:date:in-reply-to:cc:to
-         :references;
-        bh=ZcuvjTRlUM5/ntYaIwe9PoVejRWeM7YD38S9VrCPI5U=;
-        b=kKLMJMpTZTsaP4gA9bZUQykwx3riBPXn+F3vVteCKIK5ka0wKq7HD2felNiz2letia
-         TZKDtdDBWVDWf+tAlSIr+AKVsBfKY5/1I5CeOd8uOq1w9D8tKU340/i0vl5AtZutX/e+
-         cSME5wGk0IZ0XuGw8LvFLD/LsrNMpVo5ybAYCd6SQXjRZYuuYF5BfNZGZO49d63j+x6T
-         1kufeeARyYgps2D7rGmSdsq9E4ww/ySF+tCriBW+whrpErBTXvGC+EsFw9V+5lT1oH4D
-         IdNRdcesQOnEr5cQ1q+TcuzzfojgULIGX+dxvRPhcFjb6NHDSsEG0k+t64OWZz9ouqvy
-         ZGUg==
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=ToEaxtUbw69LyRlwYIrQ/t78YuNKL4Iflv4hoOcV4MA=;
+        b=L+lurf/KDoDNOwGPT0NXZE1v3q+TvUKjwODsT2BCxel3dfOkwphdadtVuoXwOiuAqV
+         d+Us05REk1LiZDIurxcsh8oIaVit/65hsfpaSifi0JRhFn+9dPNWK5KIcLs6xANd9FOV
+         x7wSfH23rsIMS7Ojmwz+GGoi4EeCmoxNA+pIo=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:message-id:mime-version:subject:date
-         :in-reply-to:cc:to:references;
-        bh=ZcuvjTRlUM5/ntYaIwe9PoVejRWeM7YD38S9VrCPI5U=;
-        b=DRLPmI/ZUmS3/oEcS8rsPQRDGva60+HzTbxxntg/EOOGLTWQO358vvx++K9t+z/vHq
-         nMUKrnZMHm7Z1iODbgO3psCaA97BJBWu4bg5Rp4bNjy/E++3Imd2shhuWIe0Zul1zn1Z
-         HBSWyZgNx9bUilAaGDevi2BfZqQQ45njiTXkBFpHKfMCZK1n2CDo8ESvEeTk12+d3A9x
-         kNC/BjkfgOG7n9tn7AD9BYOEsJJaw7R54yGXLt+GQLxGXCBg+YvklX+pSeWQPb1eWBAz
-         2ApZqiFP65ijLmzqmWEblGarBfmNxXf4Yz2S+CljCUCPDFeNiQy0ZkpVabpWNisiZTyP
-         p5zw==
-X-Gm-Message-State: AOAM532XOMH9JVSZMzSP1i6mm3SfyEcS8hGtEE0HkCRr5y+Cp2uOXJ2R
-        nMm4Ju5cYR1wxQmX2a6WKcgX0g==
-X-Google-Smtp-Source: ABdhPJy1rQIQqY2fTOhVFScZx8cOvVUq8aaeQscLRryFN/RgGGlo3Ww9YnxLDO78cDkUyChc9+BaEQ==
-X-Received: by 2002:a65:6a46:: with SMTP id o6mr1126407pgu.36.1606165611330;
-        Mon, 23 Nov 2020 13:06:51 -0800 (PST)
-Received: from [192.168.10.160] (S01061cabc081bf83.cg.shawcable.net. [70.77.221.9])
-        by smtp.gmail.com with ESMTPSA id v186sm12250233pfb.152.2020.11.23.13.06.50
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 23 Nov 2020 13:06:50 -0800 (PST)
-From:   Andreas Dilger <adilger@dilger.ca>
-Message-Id: <8728CF2B-8460-43FC-BED1-A46ADB1E8838@dilger.ca>
-Content-Type: multipart/signed;
- boundary="Apple-Mail=_92D87735-E920-46DD-8699-448DBA1BE741";
- protocol="application/pgp-signature"; micalg=pgp-sha256
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=ToEaxtUbw69LyRlwYIrQ/t78YuNKL4Iflv4hoOcV4MA=;
+        b=j5jh21IgxiRfkk7TzWfFPTNB+DEP/la2JXLK25KhDnoqPtSDtInW0Ofu+Q2/Kd/mHP
+         9qSxWaXOcz2IICdU8sVemjSfeeKoZW7z02fz5Ji6AnjdEDvGqHNZ8ZqcSq5lco1J5KVA
+         VQ1N7yAxcKlm4smUhydRA/qdwhqzG55x0wRuWr8ho+DfQgkPoZm5E6pqZr6sgrVP4/B8
+         FLVKFjygCYcOXEsBY6pmif1cQSOZbh55c/fM4j3RGob0/Hi5Ughtxg0pc33aDoO0eHjA
+         ixFoEiK1nxO7eRYuILXOluhmeBPkMYfzUAUXZd0fY7/kUGtrDtk/WdE3buHOYMCr3NzN
+         5lIA==
+X-Gm-Message-State: AOAM531S8pUxlW5zzTWHp1uPNy/U0IiFKXt9l+F0SGJMDsDZzu5AU96y
+        v/oYa48dgh4pAiCSNWexaYA34mW7+7P3jp+VCWxEuw==
+X-Google-Smtp-Source: ABdhPJwqSML4Dbb0A/GAWrxziESe2yVTRusngtzXd6EphJ9wC6astmA7DFCY8bz9Q7HZnOoMrOcWagpQfD7C4oCP550=
+X-Received: by 2002:a05:6102:126c:: with SMTP id q12mr2925963vsg.9.1606206498638;
+ Tue, 24 Nov 2020 00:28:18 -0800 (PST)
+MIME-Version: 1.0
+References: <20201123141207.GC327006@miu.piliscsaba.redhat.com> <8728CF2B-8460-43FC-BED1-A46ADB1E8838@dilger.ca>
+In-Reply-To: <8728CF2B-8460-43FC-BED1-A46ADB1E8838@dilger.ca>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 24 Nov 2020 09:28:07 +0100
+Message-ID: <CAJfpeguc3uAoPzAv_cggZr4a-3cX_DV6ofQ4hjMxDnSfBDwYEw@mail.gmail.com>
 Subject: Re: [RFC PATCH] vfs: fs{set,get}attr iops
-Date:   Mon, 23 Nov 2020 14:06:47 -0700
-In-Reply-To: <20201123141207.GC327006@miu.piliscsaba.redhat.com>
+To:     Andreas Dilger <adilger@dilger.ca>
 Cc:     Al Viro <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@lst.de>,
         Dmitry Vyukov <dvyukov@google.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-To:     Miklos Szeredi <miklos@szeredi.hu>
-References: <20201123141207.GC327006@miu.piliscsaba.redhat.com>
-X-Mailer: Apple Mail (2.3273)
+        linux-fsdevel@vger.kernel.org,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Mon, Nov 23, 2020 at 10:06 PM Andreas Dilger <adilger@dilger.ca> wrote:
+>
+> On Nov 23, 2020, at 7:12 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > Dmitry found an issue with overlayfs's FS_IOC_SETFLAGS/FS_IOC_FSSETXATTR
+> > implementation:
+> >
+> >  https://lore.kernel.org/linux-unionfs/CACT4Y+bUfavwMVv2SEMve5pabE_AwsDO0YsRBGZtYqX59a77vA@mail.gmail.com/
+> >
+> > I think the only proper soltuion is to move these into inode operations, which
+> > should be a good cleanup as well.
+> >
+> > This is a first cut, the FS_IOC_SETFLAGS conversion is not complete, and only
+> > lightly tested on ext4 and xfs.
+> >
+> > There are minor changes in behavior, like the exact errno value in case of
+> > multiple error conditions.
+> >
+> > 34 files changed, 668 insertions(+), 1170 deletions(-)
+>
+>
+> Hi Miklos,
+> this looks like a good reduction in code duplication (-500 LOC is nice).
+>
+> One issues I have with this patch is that it spreads the use of "fsxattr"
+> asthe name for these inode flags further into the VFS.  That was inherited
+> from XFS because of the ioctl name, but is very confusing with "real"
+> extended attributes, also using get/setxattr names but totally differently.
+>
+> It would be better to use function/variable names with "xflags" and "iflags"
+> that are already used in several filesystems to separate this from xattrs.
 
---Apple-Mail=_92D87735-E920-46DD-8699-448DBA1BE741
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain;
-	charset=us-ascii
+Makes sense.
 
-On Nov 23, 2020, at 7:12 AM, Miklos Szeredi <miklos@szeredi.hu> wrote:
->=20
-> Dmitry found an issue with overlayfs's =
-FS_IOC_SETFLAGS/FS_IOC_FSSETXATTR
-> implementation:
->=20
->  =
-https://lore.kernel.org/linux-unionfs/CACT4Y+bUfavwMVv2SEMve5pabE_AwsDO0Ys=
-RBGZtYqX59a77vA@mail.gmail.com/
->=20
-> I think the only proper soltuion is to move these into inode =
-operations, which
-> should be a good cleanup as well.
->=20
-> This is a first cut, the FS_IOC_SETFLAGS conversion is not complete, =
-and only
-> lightly tested on ext4 and xfs.
->=20
-> There are minor changes in behavior, like the exact errno value in =
-case of
-> multiple error conditions.
->=20
-> 34 files changed, 668 insertions(+), 1170 deletions(-)
+>
+> It wouldn't be terrible to also rename the ioctl to FS_IOC_FSSETXFLAGS and
+> keep a #define for FS_IOC_FSSETXATTR for compatibility, but that is less
+> critical if that is now only used in one place in the code.
+>
+> Some more comments inline...
+>
+> > --- a/fs/ioctl.c
+> > +++ b/fs/ioctl.c
+> > +/*
+> > + * Generic function to check FS_IOC_FSSETXATTR/FS_IOC_SETFLAGS values and reject
+> > + * any invalid configurations.
+> > + *
+> > + * Note: must be called with inode lock held.
+> > + */
+> > +static int fssetxattr_prepare(struct inode *inode,
+> > +                           const struct kfsxattr *old_fa,
+> > +                           struct kfsxattr *fa)
+>
+> > +{
+> > +       /*
+> > +        * The IMMUTABLE and APPEND_ONLY flags can only be changed by
+> > +        * the relevant capability.
+> > +     */
+> > +     if ((fa->fsx_flags ^ old_fa->fsx_flags) & (FS_APPEND_FL | FS_IMMUTABLE_FL) &&
+> > +         !capable(CAP_LINUX_IMMUTABLE))
+> > +             return -EPERM;
+> > +
+> > +     if (fa->flags_valid)
+> > +             return fscrypt_prepare_setflags(inode, old_fa->fsx_flags, fa->fsx_flags);
+>
+> This doesn't seem right?  It means if iflags are set, the rest of the checks are
+> skipped *even if* there are no problems with the fscrypt flags?  That bypasses
+> the DAX and PROJINHERIT checks later in this function, but it is also possible to
+> set/clear those flags via FS_IOC_SETFLAGS, and is not very obvious for the code
+> flow.  I'd think this should be something more like:
 
+>
+>         if (IS_ENCRYPTED(inode) && fa->flags_valid) {
+>                 rc = fscrypt_prepare_setflags(...);
+>                 if (rc)
+>                         return rc;
+>         }
+>
+> and continue on to the rest of the checks, and maybe skip the xflags-specific
+> checks (EXTSIZE, EXTSZINHERIT, COWEXTSIZE) if xflags_valid is not set, though
+> they would just be no-ops in that case since the iflags interface will not
+> set those flags.
+>
+> Alternately, move the DAX and PROJINHERIT checks above "flags_valid", but add
+> a comment that the remaining checks are only for xflags-specific values.
 
-Hi Miklos,
-this looks like a good reduction in code duplication (-500 LOC is nice).
+Good point.   I wasn't actually looking at the code, just converting
+the old one to the new, and apparently the DAX and PROJINHERIT checks
+were missing for the FS_IOC_SETFLAGS case (see
+vfs_ioc_setflags_prepare).
 
-One issues I have with this patch is that it spreads the use of =
-"fsxattr"
-asthe name for these inode flags further into the VFS.  That was =
-inherited
-from XFS because of the ioctl name, but is very confusing with "real"
-extended attributes, also using get/setxattr names but totally =
-differently.
+> > +int vfs_fssetxattr(struct dentry *dentry, struct kfsxattr *fa)
+> > +{
+> > +     struct inode *inode = d_inode(dentry);
+> > +     struct kfsxattr old_fa;
+> > +     int err;
+> > +
+> > +     if (d_is_special(dentry))
+> > +             return -ENOTTY;
+> > +
+> > +     if (!inode->i_op->fssetxattr)
+> > +             return -ENOIOCTLCMD;
+> > +
+> > +     if (!inode_owner_or_capable(inode))
+> > +             return -EPERM;
+> > +
+> > +     inode_lock(inode);
+> > +     err = vfs_fsgetxattr(dentry, &old_fa);
+> > +     if (!err) {
+> > +             /* initialize missing bits from old_fa */
+> > +             if (fa->flags_valid) {
+> > +                     fa->fsx_xflags |= old_fa.fsx_xflags & ~FS_XFLAG_COMMON;
+> > +                     fa->fsx_extsize = old_fa.fsx_extsize;
+> > +                     fa->fsx_nextents = old_fa.fsx_nextents;
+> > +                     fa->fsx_projid = old_fa.fsx_projid;
+> > +                     fa->fsx_cowextsize = old_fa.fsx_cowextsize;
+> > +             } else {
+> > +                     fa->fsx_flags |= old_fa.fsx_flags & ~FS_COMMON_FL;
+> > +             }
+>
+> This extra call to vfs_fsgetxattr() is adding pure overhead for the case of
+> FS_IOC_GETFLAGS and is totally unnecessary.  If iflags_valid is set, then
+> none of these other fields should be accessed in the ->fssetxattr() method,
+> and they can check for iflags_valid vs. xflags_valid themselves to see which
+> ioctl is being called and only access fields which are valid.
 
-It would be better to use function/variable names with "xflags" and =
-"iflags"
-that are already used in several filesystems to separate this from =
-xattrs.
+The extra call is needed for fssetxattr_prepare() for the the checks
+anyway.   Filling in the other fields is a bonus that makes fs code
+simpler in some cases (e.g. xfs which mainly just looks at xflags).
 
-It wouldn't be terrible to also rename the ioctl to FS_IOC_FSSETXFLAGS =
-and
-keep a #define for FS_IOC_FSSETXATTR for compatibility, but that is less
-critical if that is now only used in one place in the code.
+Also ->fsgetxattr() is cheap for all filesystems (and this syscall
+shouldn't be performance sensitive anyway) so I don't see why we'd
+need to optimize this at all.
 
-Some more comments inline...
-
-> --- a/fs/ioctl.c
-> +++ b/fs/ioctl.c
-> +/*
-> + * Generic function to check FS_IOC_FSSETXATTR/FS_IOC_SETFLAGS values =
-and reject
-> + * any invalid configurations.
-> + *
-> + * Note: must be called with inode lock held.
-> + */
-> +static int fssetxattr_prepare(struct inode *inode,
-> +			      const struct kfsxattr *old_fa,
-> +			      struct kfsxattr *fa)
-
-> +{
-> +       /*
-> +        * The IMMUTABLE and APPEND_ONLY flags can only be changed by
-> +        * the relevant capability.
-> +	*/
-> +	if ((fa->fsx_flags ^ old_fa->fsx_flags) & (FS_APPEND_FL | =
-FS_IMMUTABLE_FL) &&
-> +	    !capable(CAP_LINUX_IMMUTABLE))
-> +		return -EPERM;
-> +
-> +	if (fa->flags_valid)
-> +		return fscrypt_prepare_setflags(inode, =
-old_fa->fsx_flags, fa->fsx_flags);
-
-This doesn't seem right?  It means if iflags are set, the rest of the =
-checks are
-skipped *even if* there are no problems with the fscrypt flags?  That =
-bypasses
-the DAX and PROJINHERIT checks later in this function, but it is also =
-possible to
-set/clear those flags via FS_IOC_SETFLAGS, and is not very obvious for =
-the code
-flow.  I'd think this should be something more like:
-
-	if (IS_ENCRYPTED(inode) && fa->flags_valid) {
-		rc =3D fscrypt_prepare_setflags(...);
-		if (rc)
-			return rc;
-	}
-
-and continue on to the rest of the checks, and maybe skip the =
-xflags-specific
-checks (EXTSIZE, EXTSZINHERIT, COWEXTSIZE) if xflags_valid is not set, =
-though
-they would just be no-ops in that case since the iflags interface will =
-not
-set those flags.
-
-Alternately, move the DAX and PROJINHERIT checks above "flags_valid", =
-but add
-a comment that the remaining checks are only for xflags-specific values.
-
-> +	/*
-> +	 * Project Quota ID state is only allowed to change from within =
-the init
-> +	 * namespace. Enforce that restriction only if we are trying to =
-change
-> +	 * the quota ID state. Everything else is allowed in user =
-namespaces.
-> +	 */
-> +	if (current_user_ns() !=3D &init_user_ns) {
-> +		if (old_fa->fsx_projid !=3D fa->fsx_projid)
-> +			return -EINVAL;
-> +		if ((old_fa->fsx_xflags ^ fa->fsx_xflags) &
-> +				FS_XFLAG_PROJINHERIT)
-> +			return -EINVAL;
-> +	}
-> +
-> +	/* Check extent size hints. */
-> +	if ((fa->fsx_xflags & FS_XFLAG_EXTSIZE) && =
-!S_ISREG(inode->i_mode))
-> +		return -EINVAL;
-> +
-> +	if ((fa->fsx_xflags & FS_XFLAG_EXTSZINHERIT) &&
-> +			!S_ISDIR(inode->i_mode))
-> +		return -EINVAL;
-> +
-> +	if ((fa->fsx_xflags & FS_XFLAG_COWEXTSIZE) &&
-> +	    !S_ISREG(inode->i_mode) && !S_ISDIR(inode->i_mode))
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * It is only valid to set the DAX flag on regular files and
-> +	 * directories on filesystems.
-> +	 */
-> +	if ((fa->fsx_xflags & FS_XFLAG_DAX) &&
-> +	    !(S_ISREG(inode->i_mode) || S_ISDIR(inode->i_mode)))
-> +		return -EINVAL;
-> +
-> +	/* Extent size hints of zero turn off the flags. */
-> +	if (fa->fsx_extsize =3D=3D 0)
-> +		fa->fsx_xflags &=3D ~(FS_XFLAG_EXTSIZE | =
-FS_XFLAG_EXTSZINHERIT);
-> +	if (fa->fsx_cowextsize =3D=3D 0)
-> +		fa->fsx_xflags &=3D ~FS_XFLAG_COWEXTSIZE;
-> +
-> +	return 0;
-> +}
-
-[snip]
-
-> +int vfs_fssetxattr(struct dentry *dentry, struct kfsxattr *fa)
-> +{
-> +	struct inode *inode =3D d_inode(dentry);
-> +	struct kfsxattr old_fa;
-> +	int err;
-> +
-> +	if (d_is_special(dentry))
-> +		return -ENOTTY;
-> +
-> +	if (!inode->i_op->fssetxattr)
-> +		return -ENOIOCTLCMD;
-> +
-> +	if (!inode_owner_or_capable(inode))
-> +		return -EPERM;
-> +
-> +	inode_lock(inode);
-> +	err =3D vfs_fsgetxattr(dentry, &old_fa);
-> +	if (!err) {
-> +		/* initialize missing bits from old_fa */
-> +		if (fa->flags_valid) {
-> +			fa->fsx_xflags |=3D old_fa.fsx_xflags & =
-~FS_XFLAG_COMMON;
-> +			fa->fsx_extsize =3D old_fa.fsx_extsize;
-> +			fa->fsx_nextents =3D old_fa.fsx_nextents;
-> +			fa->fsx_projid =3D old_fa.fsx_projid;
-> +			fa->fsx_cowextsize =3D old_fa.fsx_cowextsize;
-> +		} else {
-> +			fa->fsx_flags |=3D old_fa.fsx_flags & =
-~FS_COMMON_FL;
-> +		}
-
-This extra call to vfs_fsgetxattr() is adding pure overhead for the case =
-of
-FS_IOC_GETFLAGS and is totally unnecessary.  If iflags_valid is set, =
-then
-none of these other fields should be accessed in the ->fssetxattr() =
-method,
-and they can check for iflags_valid vs. xflags_valid themselves to see =
-which
-ioctl is being called and only access fields which are valid.
-
-> +		err =3D fssetxattr_prepare(inode, &old_fa, fa);
-> +		if (!err)
-> +			err =3D inode->i_op->fssetxattr(dentry, fa);
-> +	}
-> +	inode_unlock(inode);
-> +
-> +	return err;
-> +}
-> +EXPORT_SYMBOL(vfs_fssetxattr);
-
-Cheers, Andreas
-
-
-
-
-
-
---Apple-Mail=_92D87735-E920-46DD-8699-448DBA1BE741
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename=signature.asc
-Content-Type: application/pgp-signature;
-	name=signature.asc
-Content-Description: Message signed with OpenPGP
-
------BEGIN PGP SIGNATURE-----
-Comment: GPGTools - http://gpgtools.org
-
-iQIzBAEBCAAdFiEEDb73u6ZejP5ZMprvcqXauRfMH+AFAl+8JGcACgkQcqXauRfM
-H+DewQ//bEYJnBiOI58Ei4BiyCenJN9cTnhZz9URgbT6xoCS7k5Ocbk+E1yJDkHG
-IH02oqVlHznxkEUKLCmcl58ynxMYbVWqBhDzRfZCz7Dfy7r/ekTD35QPo2xvKfxC
-OopCdjcsdlc4ZhzQnIX8LqdJrTLelm5pZ+enWuLmxhaU5j0X8M1p8HiE/yQs+6Xd
-IJpeEcbXooOq+B5DOeGM5ZkulMmGVyeb2gWFlMM7NdP2ogCBL03NacE22oC+Inn0
-bEYZAlf7G6BSQTHXCqeN5/jjAP6iIzyisPLlUaljz7Ut/nKK7KMTIkUY4ftVWSL6
-5bfEomJpLuGY/GK9/xINuTX21hrr2h5GVSqf6AejWnX3ccDHlNkpB1XuYI8nqwLp
-ge9EmhvEU03do15FsVff4nR7unnH+QR/zudpNC5lOhlSJiawnb1YExyk2XglioZ3
-zxxRnDOSkd8nm7efs/380btQHEGu4mPTI9r3AkCbkVm9EjuuxbQ14nvlh5cWoAFc
-9H+QvYyNWkESJkCIbO7iL0A2KMoVA09SujCJdox3YpzcR5drz03q9Bth23K19rKK
-4HELm91VVzOTOqa33/zL8IculykBjAm6O7oD8kGqQjiQoDeHPKjO92bBurWdxfM7
-YUltkLSL+MaLJsqeVxJEAjdPpprE3++5bePwCGsqV7A5bAnjtyY=
-=grIF
------END PGP SIGNATURE-----
-
---Apple-Mail=_92D87735-E920-46DD-8699-448DBA1BE741--
+Thanks,
+Miklos
