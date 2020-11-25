@@ -2,134 +2,96 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD3D9C56202
-	for <linux-unionfs@archiver.kernel.org>; Wed, 25 Nov 2020 15:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 327B8C56202
+	for <linux-unionfs@archiver.kernel.org>; Wed, 25 Nov 2020 18:17:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58380205CB
-	for <linux-unionfs@archiver.kernel.org>; Wed, 25 Nov 2020 15:52:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4AB02075A
+	for <linux-unionfs@archiver.kernel.org>; Wed, 25 Nov 2020 18:17:28 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IesDUyiG"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RC51FE5C"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730929AbgKYPwP (ORCPT
+        id S1733061AbgKYSRN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 25 Nov 2020 10:52:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52618 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731840AbgKYPwO (ORCPT
+        Wed, 25 Nov 2020 13:17:13 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:40424 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1733059AbgKYSRN (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 25 Nov 2020 10:52:14 -0500
-Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9E3AC0613D4;
-        Wed, 25 Nov 2020 07:52:14 -0800 (PST)
-Received: by mail-il1-x144.google.com with SMTP id b8so2519553ila.13;
-        Wed, 25 Nov 2020 07:52:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ZiuOyRTDnGxkNKDi3LqaWIg9/ryrtd/8rLTKFpwvXO4=;
-        b=IesDUyiGY4msVm/mAJr9InhHvy9L/1ThEwro6HUd9Ie+vOE0aH4v3IdtgzAtlJWWJs
-         nTz8Wo2vuTbVWEVD3rc0TR42uw8e+RaN7y9l8KZEq5wWAUw5zotJ5mc/9jMzW3FtnU0w
-         keRwvS2eF13pAkXKA801K5VRidna2932JNbStPCHwhvcNLsZGpU+n1ytlbShK3wYYgKd
-         adC2cDTXuKIsH+ruxwUO1Ce9KyYcHeVr2QPVr3T30cJZ3ZQZQFva934Ll7+6W4iZbWTH
-         AmTlQrykwFQeXLC7auZuxSFYI4z5AFkzyhaQ3Be4pxEoXRRPqoFrS8WRfS+xkt6+shsy
-         7i8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZiuOyRTDnGxkNKDi3LqaWIg9/ryrtd/8rLTKFpwvXO4=;
-        b=tMnHDAhxdBBJucUjWja7G3++46vkPrLzPrYZKFCJCoEVln6ve/pyEaHiKN65ayEnk6
-         hjRZe/ZIVyBoR0OmBQ22YCx4tGl7TPpqukRhDS639WlgVGuv70csuxa2nOJ++yqHiqgg
-         Ewmdi4d0ryhqbU3H5MQgJgrSRbi3BQ5sMUXsiRNKNd+T/nGeeTINnidk0It1v3z0QRXr
-         R75QZJ+d0bqdsN0FRN6whPRfi8MxgcQ7dJs/RS9SsSgPUW9OreOjySBppdpYQmZas5eY
-         NUGNVns3SGnVwZnwQMeLai5S1jZGdrDK8vt2dXc5H5/R0v79NN2P/g6FmEAOx1bMbeO+
-         6/KQ==
-X-Gm-Message-State: AOAM531Hi+FMYuukwrVhlxKkZg3RPttt+eaNl4ECm1tMdg1T4zP6bgO5
-        My/2kIFVE9DQykIHVmT1NlMo5gwyAN1DO14GhK4=
-X-Google-Smtp-Source: ABdhPJxKs2Tv4YSW6vzK6SbD5qLPK93Gu3lEP9RW3v5hB3XqDFoGiKyzo6jQyoaEp8tZGIXM9J1K2vulYO98UQmPers=
-X-Received: by 2002:a92:6403:: with SMTP id y3mr3827782ilb.72.1606319534010;
- Wed, 25 Nov 2020 07:52:14 -0800 (PST)
-MIME-Version: 1.0
-References: <20201125104621.18838-1-sargun@sargun.me> <20201125104621.18838-4-sargun@sargun.me>
- <CAOQ4uxhr1iLkvt+LK868pK=AaZ5O6vniPf2t8=u1=Pb+0ELPAw@mail.gmail.com> <20201125153646.GC3095@redhat.com>
-In-Reply-To: <20201125153646.GC3095@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 25 Nov 2020 17:52:03 +0200
-Message-ID: <CAOQ4uxhJTi3cWjrxaC1TBreFjYAuJWzCuSxwbv2ZqnSQ7=L3=w@mail.gmail.com>
-Subject: Re: [PATCH v1 3/3] overlay: Add rudimentary checking of writeback
- errseq on volatile remount
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Sargun Dhillon <sargun@sargun.me>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
+        Wed, 25 Nov 2020 13:17:13 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1606328232;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=dEa9zY1JC2vSvxM6QWce76x1bj8BhcfNmh1K1toWIe0=;
+        b=RC51FE5CpFAZ+bbTZFGHoTEungjX49QADhMED7oP6VU+38542s2sbhvI4qzsCon0bil5/U
+        EFSa4j8XRygWQ+4tSj8r6TbiRgN4eQPjPFCQ8swiXfC2l5rQmej2lcN5Dno9j2B2KCVJbP
+        uanaY0+XZrV/56ZJQhz0YqP4YGmEKLo=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-92-zt45hPzPPFKNxhG0joqgBQ-1; Wed, 25 Nov 2020 13:17:08 -0500
+X-MC-Unique: zt45hPzPPFKNxhG0joqgBQ-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8C85887308A;
+        Wed, 25 Nov 2020 18:17:06 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-114-154.rdu2.redhat.com [10.10.114.154])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A3CB560854;
+        Wed, 25 Nov 2020 18:17:05 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 0E3D122054F; Wed, 25 Nov 2020 13:17:05 -0500 (EST)
+Date:   Wed, 25 Nov 2020 13:17:04 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Sargun Dhillon <sargun@sargun.me>
+Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
         Alexander Viro <viro@zeniv.linux.org.uk>,
+        Amir Goldstein <amir73il@gmail.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
         Daniel J Walsh <dwalsh@redhat.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH v1 2/3] overlay: Add the ability to remount volatile
+ directories when safe
+Message-ID: <20201125181704.GD3095@redhat.com>
+References: <20201125104621.18838-1-sargun@sargun.me>
+ <20201125104621.18838-3-sargun@sargun.me>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201125104621.18838-3-sargun@sargun.me>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Nov 25, 2020 at 5:36 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Wed, Nov 25, 2020 at 04:03:06PM +0200, Amir Goldstein wrote:
-> > On Wed, Nov 25, 2020 at 12:46 PM Sargun Dhillon <sargun@sargun.me> wrote:
-> > >
-> > > Volatile remounts validate the following at the moment:
-> > >  * Has the module been reloaded / the system rebooted
-> > >  * Has the workdir been remounted
-> > >
-> > > This adds a new check for errors detected via the superblock's
-> > > errseq_t. At mount time, the errseq_t is snapshotted to disk,
-> > > and upon remount it's re-verified. This allows for kernel-level
-> > > detection of errors without forcing userspace to perform a
-> > > sync and allows for the hidden detection of writeback errors.
-> > >
-> >
-> > Looks fine as long as you verify that the reuse is also volatile.
-> >
-> > Care to also add the alleged issues that Vivek pointed out with existing
-> > volatile mount to the documentation? (unless Vivek intends to do fix those)
->
-> I thought current writeback error issue with volatile mounts needs to
-> be fixed with shutting down filesystem. (And mere documentation is not
-> enough).
->
+On Wed, Nov 25, 2020 at 02:46:20AM -0800, Sargun Dhillon wrote:
 
-Documentation is the bare minimum.
-If someone implements the shutdown approach that would be best.
+[..]
+> @@ -1125,16 +1183,19 @@ static int ovl_workdir_cleanup_recurse(struct path *path, int level)
+>  			if (p->len == 2 && p->name[1] == '.')
+>  				continue;
+>  		} else if (incompat) {
+> -			pr_err("overlay with incompat feature '%s' cannot be mounted\n",
+> -				p->name);
+> -			err = -EINVAL;
+> -			break;
+> +			err = ovl_check_incompat(ofs, p, path);
+> +			if (err < 0)
+> +				break;
+> +			/* Skip cleaning this */
+> +			if (err == 1)
+> +				continue;
+>  		}
 
-> Amir, are you planning to improve your ovl-shutdown patches to detect
-> writeback errors for volatile mounts. Or you want somebody else to
-> look at it.
+Shouldn't we clean volatile/dirty on non-volatile mount. I did a 
+volatile mount followed by a non-volatile remount and I still
+see work/incompat/volatile/dirty and "trusted.overlay.volatile" xattr
+on "volatile" dir. I would expect that this will be all cleaned up
+as soon as that upper/work is used for non-volatile mount.
 
-I did not intend to work on this.
-Whoever wants to pick this up doesn't need to actually implement the
-shutdown ioctl, may implement only an "internal shutdown" on error.
 
->
-> W.r.t this patch set, I still think that first we should have patches
-> to shutdown filesystem on writeback errors (for volatile mount), and
-> then detecting writeback errors on remount makes more sense.
->
-
-I agree that would be very nice, but I can also understand the argument
-that volatile mount has an issue, which does not get any better or any
-worse as a result of Sargun's patches.
-
-If anything, they improve the situation:
-Currently, the user does have a way to know if any data was lost on a
-volatile mount.
-After a successful mount cycle, the user knows that no data was lost
-during the last volatile mount period.
-
-Thanks,
-Amir.
