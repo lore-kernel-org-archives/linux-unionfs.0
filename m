@@ -2,148 +2,183 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D647BC64E7D
-	for <linux-unionfs@archiver.kernel.org>; Wed, 25 Nov 2020 19:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 072E2C64E7B
+	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Nov 2020 09:21:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E0622063A
-	for <linux-unionfs@archiver.kernel.org>; Wed, 25 Nov 2020 19:37:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA119206D9
+	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Nov 2020 09:21:15 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZtHBfgqe"
+	dkim=pass (1024-bit key) header.d=sargun.me header.i=@sargun.me header.b="AF/93sZn"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729384AbgKYTha (ORCPT
+        id S1725985AbgK0JVH (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 25 Nov 2020 14:37:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59970 "EHLO
+        Fri, 27 Nov 2020 04:21:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727041AbgKYTh3 (ORCPT
+        with ESMTP id S1726014AbgK0JVH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 25 Nov 2020 14:37:29 -0500
-Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65045C0613D4;
-        Wed, 25 Nov 2020 11:37:19 -0800 (PST)
-Received: by mail-io1-xd43.google.com with SMTP id s10so3311326ioe.1;
-        Wed, 25 Nov 2020 11:37:19 -0800 (PST)
+        Fri, 27 Nov 2020 04:21:07 -0500
+Received: from mail-pg1-x544.google.com (mail-pg1-x544.google.com [IPv6:2607:f8b0:4864:20::544])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70BA3C0613D1
+        for <linux-unionfs@vger.kernel.org>; Fri, 27 Nov 2020 01:21:07 -0800 (PST)
+Received: by mail-pg1-x544.google.com with SMTP id m9so3886551pgb.4
+        for <linux-unionfs@vger.kernel.org>; Fri, 27 Nov 2020 01:21:07 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=kv0ywmjDrikfiXNda4p2YSL8CO62TgmzmONVIiK1GDE=;
-        b=ZtHBfgqeyVUq/3qwVShe4VJbF6/OmRFQ9IjzKMbc2GEfLkVygx0RgnpKrKsyakr9gx
-         W+eT8IE93nUY6qAzE68+za69fd8mMtGFnaQyNdT70Wbm9KlDF3Q61JCdsXTfMUz9FTnb
-         PKbrtncHW0Ep4QkO74s6mokIUG5R/CCKUn4hxMd6Kx5nMOpZzKoYTNGiNc14TWexPhUb
-         347/YEYxVrZFsgkKKEAEQENOrTDJBAiZLp73tBiLWXB8swYMjTwCEE8v0OdRqTVCtujP
-         kg40V42YxMeG45jOwS+Tx4urgBLzSuRntEkxoPz6HRjcaW3x20jGYNIccWd0MYHcG/7W
-         dYeQ==
+        d=sargun.me; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vlPx3D5OXHB3+bHYIYOC/2iLJYt2laDE8eD7s5RHs1A=;
+        b=AF/93sZng2Jpchw688suTMaOITMbGX2shVh+vKA4ZUXwvo98Mv3TqqtO0ZP5fxrPdz
+         dodDdIsrnZ6jlZTj31N4emPWoFqjIYW0/47hCrQkeO4R65ChCzucA5bs6nekcpyzhrkh
+         LkzPmr7FIyHy1NknUTUVp0WcMxPk0Y0m1o5ro=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=kv0ywmjDrikfiXNda4p2YSL8CO62TgmzmONVIiK1GDE=;
-        b=YWaCWhued9jWW8CoI/3iQAbtlD6b9KKEPFzWclHEdMYEDEfdN6JhnxME5uUiG07dRU
-         SNqmck/Lf9aNx5VD4/kUnKrH2nUK88mxZAuEGUKhfEK/MVwVTEZS1cQPvHwxSzaGUi+Z
-         6DT111TIV3LtriTDCEQPYmIZUwn0irqtoIjiyosMY9aaY/dER/YQRtThhVXygNyvoZ4E
-         iPP4z1zx1Ji39UYY46MpgpDRrLnL385c4uZasucuQcUpcg8WbnjOhszuK+vvo5RX0EVC
-         xDkxK4knCUJq0IYcbOaaJ5+Ezaa6LRsFgqOF0axXOLTBF/5ny7nd4ATeI9unbAsFlHQo
-         Gc7g==
-X-Gm-Message-State: AOAM531eQkV3cyZuxlvlpIsp/1vAgVRizHumb71qszJT6zpR123CjDXx
-        ZQJPSR9PCc7lbQrirUi0KqEbmCIQwtVf8+TKAlQy6OEM
-X-Google-Smtp-Source: ABdhPJw159Jp6wcopt9L+RL9T0MaafiPkYlPy0VpYrKy0jOwc8fMTkdKb2R4Dz6tv9NHP1YFy+k2SRJDF2Sp/59W6rs=
-X-Received: by 2002:a02:70ce:: with SMTP id f197mr4845114jac.120.1606333038733;
- Wed, 25 Nov 2020 11:37:18 -0800 (PST)
-MIME-Version: 1.0
-References: <20201125104621.18838-1-sargun@sargun.me> <20201125104621.18838-3-sargun@sargun.me>
- <20201125181704.GD3095@redhat.com> <CAMp4zn_jR28x4P21QaHJV8AzG90ZZO3=K+pDVwNovP1m3hf7pw@mail.gmail.com>
- <20201125184305.GE3095@redhat.com> <CAMp4zn-fRa9i=D1N4GTU3bB891vG0qkaALzOOh3mzokNme=YbA@mail.gmail.com>
- <20201125185232.GF3095@redhat.com>
-In-Reply-To: <20201125185232.GF3095@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 25 Nov 2020 21:37:07 +0200
-Message-ID: <CAOQ4uxj9HYv5XXOx=Z2JhQCZauUey7V_T5_AA+=Wn=+hWLOy1g@mail.gmail.com>
-Subject: Re: [PATCH v1 2/3] overlay: Add the ability to remount volatile
- directories when safe
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Sargun Dhillon <sargun@sargun.me>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vlPx3D5OXHB3+bHYIYOC/2iLJYt2laDE8eD7s5RHs1A=;
+        b=kNmOs/mViOuU0ZfQO/7LQx9C7jwjMwKM0Cu+OIWd9uvJoCsbM9gcNKMv1h1MD79a/w
+         ZcNv8y1bPxM0iGrHMcXKhDpOMAxf1AQArCseeCW1e2v5sSna0E68NgQ7x+xLFHHBrCvW
+         40aLl3XMTcwfsXBabOI0ywEr5yyptoiEZKDBD7FH/6JVZpPl70cbH0rgPtJ/rbIMjQiE
+         F7N6LURGOcGLLw2C5CLr+/0BrArqLotKPQB1KtVUiddR8QglIuo+w1smFHebrhYEzQn/
+         D8a6GaWc0lM4sfJ3NaJzDxB+vnLDScrROu6RjD8P9xx4ZgGG3HOIbMeQkB9wbfs1j6pq
+         mKrA==
+X-Gm-Message-State: AOAM531fWt+6OX8yxjsd7ia3Gdv/laX6NfcOQOSVTqVRZRAf1SQzrgLg
+        OWOgvVWgbefRsOvCu2w9fLo3lsANUYQaXw==
+X-Google-Smtp-Source: ABdhPJzb6MrII5EGaD2Ma7r6y4r5a7mmT/w1ly/jearBVl7o4Do185z1fw1HjYPQlowr/CvPvJmvsg==
+X-Received: by 2002:aa7:8c16:0:b029:196:33d2:721f with SMTP id c22-20020aa78c160000b029019633d2721fmr6227235pfd.70.1606468866312;
+        Fri, 27 Nov 2020 01:21:06 -0800 (PST)
+Received: from ubuntu.netflix.com (203.20.25.136.in-addr.arpa. [136.25.20.203])
+        by smtp.gmail.com with ESMTPSA id t9sm9938944pjq.46.2020.11.27.01.21.04
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 27 Nov 2020 01:21:05 -0800 (PST)
+From:   Sargun Dhillon <sargun@sargun.me>
+To:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
         Alexander Viro <viro@zeniv.linux.org.uk>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Sargun Dhillon <sargun@sargun.me>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
         Daniel J Walsh <dwalsh@redhat.com>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>
+Subject: [PATCH v2 0/4] Make overlayfs volatile mounts reusable
+Date:   Fri, 27 Nov 2020 01:20:54 -0800
+Message-Id: <20201127092058.15117-1-sargun@sargun.me>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Nov 25, 2020 at 8:52 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> On Wed, Nov 25, 2020 at 10:47:38AM -0800, Sargun Dhillon wrote:
-> > On Wed, Nov 25, 2020 at 10:43 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > >
-> > > On Wed, Nov 25, 2020 at 10:31:36AM -0800, Sargun Dhillon wrote:
-> > > > On Wed, Nov 25, 2020 at 10:17 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > > >
-> > > > > On Wed, Nov 25, 2020 at 02:46:20AM -0800, Sargun Dhillon wrote:
-> > > > >
-> > > > > [..]
-> > > > > > @@ -1125,16 +1183,19 @@ static int ovl_workdir_cleanup_recurse(struct path *path, int level)
-> > > > > >                       if (p->len == 2 && p->name[1] == '.')
-> > > > > >                               continue;
-> > > > > >               } else if (incompat) {
-> > > > > > -                     pr_err("overlay with incompat feature '%s' cannot be mounted\n",
-> > > > > > -                             p->name);
-> > > > > > -                     err = -EINVAL;
-> > > > > > -                     break;
-> > > > > > +                     err = ovl_check_incompat(ofs, p, path);
-> > > > > > +                     if (err < 0)
-> > > > > > +                             break;
-> > > > > > +                     /* Skip cleaning this */
-> > > > > > +                     if (err == 1)
-> > > > > > +                             continue;
-> > > > > >               }
-> > > > >
-> > > > > Shouldn't we clean volatile/dirty on non-volatile mount. I did a
-> > > > > volatile mount followed by a non-volatile remount and I still
-> > > > > see work/incompat/volatile/dirty and "trusted.overlay.volatile" xattr
-> > > > > on "volatile" dir. I would expect that this will be all cleaned up
-> > > > > as soon as that upper/work is used for non-volatile mount.
-> > > > >
-> > > > >
-> > > >
-> > > > Amir pointed out this is incorrect behaviour earlier.
-> > > > You should be able to go:
-> > > > non-volatile -> volatile
-> > > > volatile -> volatile
-> > > >
-> > > > But never
-> > > > volatile -> non-volatile, since our mechanism is not bulletproof.
-> > >
-> > > Ok, so one needs to manually remove volatile/dirty to be able to
-> > > go from volatile to non-volatile.
-> > >
-> > > I am wondering what does this change mean in terms of user visible
-> > > behavior. So far, if somebody tried a remount of volatile overlay, it
-> > > will fail. After this change, it will most likely succeed. I am
-> > > hoping nobody relies on remount failure of volatile mount and
-> > > complain that user visible behavior changed after kernel upgrade.
-> > >
-> > > Thanks
-> > > Vivek
-> > >
-> > If I respin this shortly, can we get it in rc6, or do we want to wait
-> > until 5.11?
->
-> I think that trying to squeeze it in this late in cycle is probably
-> not a good idea. If above is a valid concern, then this feature probably
-> needs to be an opt-in.
->
+This adds some documentation on how the current behaviour of overlayfs
+works, and adds some non-obvious caveats to the documentation. We may want
+to pick those up independently.
 
-Doesn't sound like a concern to me.
+The volatile option is great for "ephemeral" containers. Unfortunately,
+it doesn't capture all uses. There are two ways to use it safely right now:
 
-Thanks,
-Amir.
+1. Throw away the entire upperdir between mounts
+2. Manually syncfs between mounts
+
+For certain use-cases like serverless, or short-lived containers, it is
+advantageous to be able to stop the container (runtime) and start it up on
+demand / invocation of the function. Usually, there is some bootstrap
+process which involves downloading some artifacts, or putting secrets on
+disk, and then upon invocation of the function, you want to (re)start the
+container.
+
+If you have to syncfs every time you do this, it can lead to excess
+filesystem overhead for all of the other containers on the machine, and
+stall out every container who's upperdir is on the same underlying
+filesystem, unless your filesystem offers something like subvolumes,
+and if sync can be restricted to a subvolume.
+
+The kernel has information that it can use to determine whether or not this
+is safe -- primarily if the underlying FS has had writeback errors or not.
+Overlayfs doesn't delay writes, so the consistency of the upperdir is not
+contingent on the mount of overlayfs, but rather the mount of the
+underlying filesystem. It can also make sure the underlying filesystem
+wasn't remounted. Although, it was suggested that we use derive this
+information from the upperdir's inode[1], we can checkpoint this data on
+disk in an xattr.
+
+Specifically we checkpoint:
+  * Superblock "id": This is a new concept introduced in one of the patches
+    which keeps track of (re)mounts of filesystems, by having a per boot
+    monotonically increasing integer identifying the superblock. This is
+    safer than trying to obfuscate the pointer and putting it into an
+    xattr (due to leak risk, and address reuse), and during the course
+    of a boot, the u64 should not wrap.
+  * Overlay "boot id": This is a new UUID that is overlayfs specific,
+    as overlayfs is a module that's independent from the rest of the
+    system and can be (re)loaded independently -- thus it generates
+    a UUID at load time which can be used to uniquely identify it.
+  * upperdir / workdir errseq: A sample of the errseq_t on the workdir /
+    upperdir's superblock. Since the errseq_t is implemented as a u32
+    with errno + error counter, we can safely store it in a checkpoint.
+
+This has to be done in kernelspace because userspace does not have access
+to information such as superblock (re)mounts, the writeback errseq value,
+and whether the module has been (re)loaded. Although this mechanism only
+determines a subset of the error scenarios, it lays out the groundwork
+for adding more.
+
+In the future, we may want to make it so overlayfs shuts down on errors,
+or have some kind of other behaviour when errors are detected. If we want
+a per-file (on the upperdir) piece of metadata can be added indicating
+errseq_t for just that file, and we can check it on each close / open,
+and then allow the user to make an intelligent decision of how they want
+overlayfs to handle the error. This would allow for errors to be captured
+during normal operation as opposed to just between remounts.
+
+This also allows for:
+volatile -> volatile
+non-volatile -> volatile
+non-volatile -> non-volatile
+
+But, for now, prevents volatile -> non-volatile. Perhaps with the future
+patches around selective inode sync, and tracking errors on every
+interaction will make this possible.
+
+
+Changes since:
+V1 [2]:
+ * Add documentation commit about current short-comings of the current volatile
+   implementation.
+ * Do not allow volatile mounts to be mounted as non-volatile
+RFC [3]:
+ * Changed datastructure names
+ * No longer delete the volatile dir / dirty file
+ * Moved xattr to volatile directory
+ * Split errseq check
+
+[1]: https://lore.kernel.org/linux-unionfs/CAOQ4uxhadzC3-kh-igfxv3pAmC3ocDtAQTxByu4hrn8KtZuieQ@mail.gmail.com/
+[2]: https://lore.kernel.org/linux-unionfs/20201125104621.18838-1-sargun@sargun.me/T/#t
+[3]: https://lore.kernel.org/linux-unionfs/20201116045758.21774-1-sargun@sargun.me/T/#t
+
+Sargun Dhillon (4):
+  fs: Add s_instance_id field to superblock for unique identification
+  overlay: Document current outstanding shortcoming of volatile
+  overlay: Add the ability to remount volatile directories when safe
+  overlay: Add rudimentary checking of writeback errseq on volatile
+    remount
+
+ Documentation/filesystems/overlayfs.rst |  24 ++++--
+ fs/overlayfs/overlayfs.h                |  38 ++++++++-
+ fs/overlayfs/readdir.c                  | 104 +++++++++++++++++++++---
+ fs/overlayfs/super.c                    |  74 +++++++++++++----
+ fs/overlayfs/util.c                     |   2 +
+ fs/super.c                              |   3 +
+ include/linux/fs.h                      |   7 ++
+ 7 files changed, 213 insertions(+), 39 deletions(-)
+
+
+base-commit: be4df0cea08a8b59eb38d73de988b7ba8022df41
+-- 
+2.25.1
+
