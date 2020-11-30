@@ -7,46 +7,46 @@ X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED33C64E8A
-	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 18:44:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3C0EC71155
+	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 19:16:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2991B20725
-	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 18:44:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87129206ED
+	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 19:16:53 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ibQlIrEf"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="VVHd3EIg"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388250AbgK3So6 (ORCPT
+        id S2388020AbgK3TQp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 30 Nov 2020 13:44:58 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:27998 "EHLO
+        Mon, 30 Nov 2020 14:16:45 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:36748 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S2387718AbgK3So6 (ORCPT
+        by vger.kernel.org with ESMTP id S2388228AbgK3TQm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 30 Nov 2020 13:44:58 -0500
+        Mon, 30 Nov 2020 14:16:42 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1606761812;
+        s=mimecast20190719; t=1606763715;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=hkewaRffaH3MK/iLUl4Tk9n8lOvfBWoJswBpVn3Ldx0=;
-        b=ibQlIrEfnjdwq2roOCCtQvIA56SMOxt56hvarpJ87AWti0mBxIhAeAux2U/hI3Iu4lr3vQ
-        ohDWIya+iv6UN6VkCTk0XQQyd8cp/GSTMGxSe0IdT+BaXFhabcSYk/1uw8O0UQ+abuKxDk
-        /0k/m0g/tTBregyKaKAjWM6eUiB57CA=
+        bh=yG/N1QYbCe2Gv2DEXk2bQ+9lwnJX4uGO5t7uHFM1aMk=;
+        b=VVHd3EIg2hQoXsCmsz4TIKrPGHolDCapMPE+pmXkKZ5jJMU4s5UME8ppf6r5MRGC755SNG
+        3v7rKlDI4HXIIUoYInl18vktmZsS6OMA4XygTHv1wXAwtf3sHHihr1RjNr9HHGqSUZptmz
+        UYH3iO1uEP7InIIKPHXIXG/r5xzxVbY=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-310-OYBirpIKMo-Yuz5dOED4_A-1; Mon, 30 Nov 2020 13:43:30 -0500
-X-MC-Unique: OYBirpIKMo-Yuz5dOED4_A-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+ us-mta-584-jGTEpHE7OViaf8TStxy5kg-1; Mon, 30 Nov 2020 14:15:11 -0500
+X-MC-Unique: jGTEpHE7OViaf8TStxy5kg-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 70DEE1007466;
-        Mon, 30 Nov 2020 18:43:28 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D7B8E1842146;
+        Mon, 30 Nov 2020 19:15:09 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-116-55.rdu2.redhat.com [10.10.116.55])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 5EAA75C1A3;
-        Mon, 30 Nov 2020 18:43:27 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id AA4606086F;
+        Mon, 30 Nov 2020 19:15:09 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id DA7FA22054F; Mon, 30 Nov 2020 13:43:26 -0500 (EST)
-Date:   Mon, 30 Nov 2020 13:43:26 -0500
+        id 2CFDB22054F; Mon, 30 Nov 2020 14:15:09 -0500 (EST)
+Date:   Mon, 30 Nov 2020 14:15:09 -0500
 From:   Vivek Goyal <vgoyal@redhat.com>
 To:     Sargun Dhillon <sargun@sargun.me>
 Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
@@ -57,14 +57,14 @@ Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
         linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>
 Subject: Re: [PATCH v2 4/4] overlay: Add rudimentary checking of writeback
  errseq on volatile remount
-Message-ID: <20201130184326.GB14328@redhat.com>
+Message-ID: <20201130191509.GC14328@redhat.com>
 References: <20201127092058.15117-1-sargun@sargun.me>
  <20201127092058.15117-5-sargun@sargun.me>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 In-Reply-To: <20201127092058.15117-5-sargun@sargun.me>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -115,11 +115,41 @@ On Fri, Nov 27, 2020 at 01:20:58AM -0800, Sargun Dhillon wrote:
 > +	err = errseq_check(&volatiledir->d_sb->s_wb_err, info.errseq);
 > +	if (err) {
 > +		pr_debug("Workdir filesystem reports errors: %d\n", err);
+> +		return -EINVAL;
+> +	}
+> +
+>  	return 1;
+>  }
+>  
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index a8ee3ba4ebbd..2e473f8c75dd 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1248,6 +1248,7 @@ static int ovl_set_volatile_info(struct ovl_fs *ofs, struct dentry *volatiledir)
+>  	int err;
+>  	struct ovl_volatile_info info = {
+>  		.s_instance_id = volatiledir->d_sb->s_instance_id,
+> +		.errseq = errseq_sample(&volatiledir->d_sb->s_wb_err),
 
-It probably will make sense to make it pr_err() instead? Will be good
-to know if kernel logic detected errors.
+errse_sample() seems to return 0 if nobody has seen the error yet. That
+means on remount we will fail. It is a false failure from our perspective
+and we are not interested in knowing if somebody else has seen the
+failure or not. 
 
+Maybe we need a flag in errseq_sample() to get us current value
+irrespective of the fact whether anybody has seen the error or not?
+
+If we end up making this change, then we probably will have to somehow
+mask ERRSEQ_SEEN bit in errseq_check() comparison. Because if we
+sampled ->s_wb_err when nobody saw it and later by the remount time
+say ERRSEQ_SEEN is set, we don't want remount to fail.
 
 Thanks
 Vivek
+>  	};
+>  
+>  	uuid_copy(&info.ovl_boot_id, &ovl_boot_id);
+> -- 
+> 2.25.1
+> 
 
