@@ -2,117 +2,124 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86655C64E7B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 03:01:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED33C64E8A
+	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 18:44:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BE0520757
-	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 03:01:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2991B20725
+	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Nov 2020 18:44:59 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=fail reason="signature verification failed" (1024-bit key) header.d=sargun.me header.i=@sargun.me header.b="RGz1qIxS"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="ibQlIrEf"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726260AbgK3DBd (ORCPT
+        id S2388250AbgK3So6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 29 Nov 2020 22:01:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54364 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726085AbgK3DBd (ORCPT
+        Mon, 30 Nov 2020 13:44:58 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:27998 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387718AbgK3So6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 29 Nov 2020 22:01:33 -0500
-Received: from mail-pl1-x642.google.com (mail-pl1-x642.google.com [IPv6:2607:f8b0:4864:20::642])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 955E7C0613D2
-        for <linux-unionfs@vger.kernel.org>; Sun, 29 Nov 2020 19:00:47 -0800 (PST)
-Received: by mail-pl1-x642.google.com with SMTP id u2so5664425pls.10
-        for <linux-unionfs@vger.kernel.org>; Sun, 29 Nov 2020 19:00:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sargun.me; s=google;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=OgfC1dHk0OMu7PasvRzn5zPxdots61Yzs3kDI+H1neE=;
-        b=RGz1qIxSqf9AckWZOlg8m6CNJtYtvsm2kqdn4r/NXG0e2ukzoW7ApRob/LNKVAWYE7
-         fknw+sZcchNwytKhZTIHnNaQ0g37o6ExsB+qNQT+yLsZW3qTPiD6YSsavKOhc3rhU7XZ
-         TS4llcZWnfqP4nNnWkPdDDi0JsUc77XYy/e8w=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=OgfC1dHk0OMu7PasvRzn5zPxdots61Yzs3kDI+H1neE=;
-        b=F9aDawAF6cCR/dQ9efFR3nPf5PLzmh4qXt3CPui4VrYY42gHXrnSOr2Z6JEAMso1rz
-         X+jv9jeCVvHyVFzzHUk18ngiFY3Wz6WAbSLwV68EK04qRiJeay+NJK2cKgxHx8Nu+FhQ
-         GNwnzhIsx8o4TqyOrDg5m5mMVw9laD88XCsfmmezu14StZsmRuxPtODnfOlgtilxCbHC
-         lY42Yd6LWFYfqnBt4/Gi0gfqGpMMW2W/rqNVQzrpmai+JepZMImXdWX9q0LWJMUPGgzV
-         p0RPhvGNqp6S2k2oH1CswevI2Wt0nlA8bMhhNPQw7IeaAvSPQ13Z7mR3CranaFXxY/BQ
-         RUbQ==
-X-Gm-Message-State: AOAM531hi0+OG9ayIL2blMQmIywrq1KjiuvSCPU0j1IilPlxFb4nJkej
-        pgFVPc/EqAX66nXwqfmlc+vdNQ==
-X-Google-Smtp-Source: ABdhPJwStcytkvfmvSbg8gDNmJ/bTZcADr6Z1PeBWmpvWR5tpX4bwrfs42fnetwyY6onbticfV3Ukw==
-X-Received: by 2002:a17:902:ba8b:b029:d7:e6da:cd21 with SMTP id k11-20020a170902ba8bb02900d7e6dacd21mr16621058pls.38.1606705246731;
-        Sun, 29 Nov 2020 19:00:46 -0800 (PST)
-Received: from ubuntu.netflix.com (203.20.25.136.in-addr.arpa. [136.25.20.203])
-        by smtp.gmail.com with ESMTPSA id z17sm19651803pjn.46.2020.11.29.19.00.45
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 29 Nov 2020 19:00:46 -0800 (PST)
-From:   Sargun Dhillon <sargun@sargun.me>
-Cc:     Sargun Dhillon <sargun@sargun.me>, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH] overlay: Plumb through flush method
-Date:   Sun, 29 Nov 2020 19:00:39 -0800
-Message-Id: <20201130030039.596801-1-sargun@sargun.me>
-X-Mailer: git-send-email 2.25.1
+        Mon, 30 Nov 2020 13:44:58 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1606761812;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=hkewaRffaH3MK/iLUl4Tk9n8lOvfBWoJswBpVn3Ldx0=;
+        b=ibQlIrEfnjdwq2roOCCtQvIA56SMOxt56hvarpJ87AWti0mBxIhAeAux2U/hI3Iu4lr3vQ
+        ohDWIya+iv6UN6VkCTk0XQQyd8cp/GSTMGxSe0IdT+BaXFhabcSYk/1uw8O0UQ+abuKxDk
+        /0k/m0g/tTBregyKaKAjWM6eUiB57CA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-310-OYBirpIKMo-Yuz5dOED4_A-1; Mon, 30 Nov 2020 13:43:30 -0500
+X-MC-Unique: OYBirpIKMo-Yuz5dOED4_A-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 70DEE1007466;
+        Mon, 30 Nov 2020 18:43:28 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-116-55.rdu2.redhat.com [10.10.116.55])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5EAA75C1A3;
+        Mon, 30 Nov 2020 18:43:27 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id DA7FA22054F; Mon, 30 Nov 2020 13:43:26 -0500 (EST)
+Date:   Mon, 30 Nov 2020 13:43:26 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Sargun Dhillon <sargun@sargun.me>
+Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        Daniel J Walsh <dwalsh@redhat.com>,
+        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>
+Subject: Re: [PATCH v2 4/4] overlay: Add rudimentary checking of writeback
+ errseq on volatile remount
+Message-ID: <20201130184326.GB14328@redhat.com>
+References: <20201127092058.15117-1-sargun@sargun.me>
+ <20201127092058.15117-5-sargun@sargun.me>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-To:     unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201127092058.15117-5-sargun@sargun.me>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Filesystems can implement their own flush method that release
-resources, or manipulate caches. Currently if one of these
-filesystems is used with overlayfs, the flush method is not called.
+On Fri, Nov 27, 2020 at 01:20:58AM -0800, Sargun Dhillon wrote:
+> Volatile remounts validate the following at the moment:
+>  * Has the module been reloaded / the system rebooted
+>  * Has the workdir been remounted
+> 
+> This adds a new check for errors detected via the superblock's
+> errseq_t. At mount time, the errseq_t is snapshotted to disk,
+> and upon remount it's re-verified. This allows for kernel-level
+> detection of errors without forcing userspace to perform a
+> sync and allows for the hidden detection of writeback errors.
+> 
+> Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+> Cc: linux-fsdevel@vger.kernel.org
+> Cc: linux-unionfs@vger.kernel.org
+> Cc: Miklos Szeredi <miklos@szeredi.hu>
+> Cc: Amir Goldstein <amir73il@gmail.com>
+> Cc: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/overlayfs.h | 1 +
+>  fs/overlayfs/readdir.c   | 6 ++++++
+>  fs/overlayfs/super.c     | 1 +
+>  3 files changed, 8 insertions(+)
+> 
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index de694ee99d7c..e8a711953b64 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -85,6 +85,7 @@ struct ovl_volatile_info {
+>  	 */
+>  	uuid_t		ovl_boot_id;	/* Must stay first member */
+>  	u64		s_instance_id;
+> +	errseq_t	errseq;	/* Implemented as a u32 */
+>  } __packed;
+>  
+>  /*
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 7b66fbb20261..5795b28bb4cf 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -1117,6 +1117,12 @@ static int ovl_verify_volatile_info(struct ovl_fs *ofs,
+>  		return -EINVAL;
+>  	}
+>  
+> +	err = errseq_check(&volatiledir->d_sb->s_wb_err, info.errseq);
+> +	if (err) {
+> +		pr_debug("Workdir filesystem reports errors: %d\n", err);
 
-Signed-off-by: Sargun Dhillon <sargun@sargun.me>
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/file.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+It probably will make sense to make it pr_err() instead? Will be good
+to know if kernel logic detected errors.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index efccb7c1f9bc..802259f33c28 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -787,6 +787,16 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
- 			    remap_flags, op);
- }
- 
-+static int ovl_flush(struct file *file, fl_owner_t id)
-+{
-+	struct file *realfile = file->private_data;
-+
-+	if (realfile->f_op->flush)
-+		return realfile->f_op->flush(realfile, id);
-+
-+	return 0;
-+}
-+
- const struct file_operations ovl_file_operations = {
- 	.open		= ovl_open,
- 	.release	= ovl_release,
-@@ -798,6 +808,7 @@ const struct file_operations ovl_file_operations = {
- 	.fallocate	= ovl_fallocate,
- 	.fadvise	= ovl_fadvise,
- 	.unlocked_ioctl	= ovl_ioctl,
-+	.flush		= ovl_flush,
- #ifdef CONFIG_COMPAT
- 	.compat_ioctl	= ovl_compat_ioctl,
- #endif
--- 
-2.25.1
+
+Thanks
+Vivek
 
