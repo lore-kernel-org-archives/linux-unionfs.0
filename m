@@ -2,126 +2,178 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FAKE_REPLY_C,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 805FBC64E7B
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Dec 2020 11:30:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45A2DC64E7A
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Dec 2020 11:57:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0AC0C20705
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Dec 2020 11:30:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D14AE2080A
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Dec 2020 11:57:34 +0000 (UTC)
 Authentication-Results: mail.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bflk46O3"
+	dkim=pass (1024-bit key) header.d=sargun.me header.i=@sargun.me header.b="aYyYXHVd"
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729885AbgLALaO (ORCPT
+        id S2389958AbgLAL5N (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 1 Dec 2020 06:30:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45828 "EHLO
+        Tue, 1 Dec 2020 06:57:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729654AbgLALaM (ORCPT
+        with ESMTP id S2387433AbgLAL5N (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 1 Dec 2020 06:30:12 -0500
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9943C0613CF;
-        Tue,  1 Dec 2020 03:29:32 -0800 (PST)
-Received: by mail-io1-xd41.google.com with SMTP id z136so1230277iof.3;
-        Tue, 01 Dec 2020 03:29:32 -0800 (PST)
+        Tue, 1 Dec 2020 06:57:13 -0500
+Received: from mail-io1-xd43.google.com (mail-io1-xd43.google.com [IPv6:2607:f8b0:4864:20::d43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24E15C0613D2
+        for <linux-unionfs@vger.kernel.org>; Tue,  1 Dec 2020 03:56:33 -0800 (PST)
+Received: by mail-io1-xd43.google.com with SMTP id n14so1281434iom.10
+        for <linux-unionfs@vger.kernel.org>; Tue, 01 Dec 2020 03:56:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=h0FAKq+IIQm8W2FrWhxqoTDybYcuiTh1HtIoPAph5kY=;
-        b=bflk46O3dXcllU4nhRwv7/Jue+8DmW9EVwKFxWR99k5mXkqxKMEEYPBphLYYWw0Cvz
-         e+hiIkBUuztDHLrWvOUBSR5PoVbUVQQ8lpBYIrCTpXxzN8QLY7nqCkjLFLuP5EqpFymM
-         xa73uZvgh8WNtc8QzndfcCChhPxxGTgxLaGkJ+5GpqOekiiNllRGd3dYgbN/Uxe3KydD
-         hMi+k2RRRlhlt/PFMsB68pDvqsfalPVYryyFQBQYp4P2wD9N37na6GhRBgmYgKFSpkfU
-         nGdI2ShYIJcCUnk0VNJoNe8tw0DBN4fl71h6BzpTN/AokbVi6yLRnE3GwzIGohcMrRtk
-         wRpQ==
+        d=sargun.me; s=google;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
+         :in-reply-to:user-agent;
+        bh=z9ULpizLWDQiCJkdcf/66NmmJqFYGorqtuiF70FgIJg=;
+        b=aYyYXHVdvVyVPH6ufds7fBBjA5xxE+RIPU0UHwETETBon5X/AxBP3pfU7D6rgLWDxK
+         MCPFi3QrsNpvmCT6uMHXOLdMnjdYFbsFK9ztzGqhIRHo5nK6I+1wG60VvNxdgQQB+op+
+         wrAG/5RDYf5PphyPYR/ibeHZfeCSXNMaFIKGU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=h0FAKq+IIQm8W2FrWhxqoTDybYcuiTh1HtIoPAph5kY=;
-        b=TzQyUqaHRwGFkb8HPERQoRFAIXiSFIiGQqb8S+2ZZlzq0iM1S3RUjypeVOTvJLzeJO
-         +ml7DOgKbNLpQKDjnDoN69CKaubQ3PWqR2W5O9kAqkV4z61cYF1jCIeUko2tWIl0aSfD
-         L5bmNgHvHdLLRfK+u1ImoSvK4WtFqat/I/12uPWRAvJc+HJLvLyBhnVmd0X5LUO6aJuE
-         R4m9lF9SCdBTuKGZModAhropc3PkipTjaWB6DSSuNevY/J7n47mveks+jBDu86LTNwkk
-         tYVQmdNxMRg0kYaeB3MVrjETCZYjdFWeBbkpz+h7IAIcQ/xJC3Bwr7yV0+RpCd8T9bCT
-         pOlg==
-X-Gm-Message-State: AOAM530kp6O1ghLwQKEfNBzpVbDcoSVgTDPWjxKnbh2eobgbaumU6ZXi
-        lhEmGw8gV8sKuvSdLMwAHRuc66lp3I9zU6PsmBM=
-X-Google-Smtp-Source: ABdhPJwyjIBCMOOKWu0QFSN9gpKyfr16ncY6UqgwDwb4+Zu0lzdpvtkiIjXS8/UlnJ/VHtTegWgvHC93lBCEIEGkjJ4=
-X-Received: by 2002:a02:8c2:: with SMTP id 185mr2218799jac.120.1606822172093;
- Tue, 01 Dec 2020 03:29:32 -0800 (PST)
-MIME-Version: 1.0
-References: <20201127092058.15117-1-sargun@sargun.me> <20201127092058.15117-3-sargun@sargun.me>
- <CAOQ4uxgaLuLb+f6WCMvmKHNTELvcvN8C5_u=t5hhoGT8Op7QuQ@mail.gmail.com>
- <20201127221154.GA23383@ircssh-2.c.rugged-nimbus-611.internal>
- <1338a059d03db0e85cf3f3234fd33434a45606c6.camel@redhat.com>
- <20201128044530.GA28230@ircssh-2.c.rugged-nimbus-611.internal>
- <CAOQ4uxjT6FF03Sq3qXuqDcqJQnzQq2dD_XVbuj_Fb9A2Ag585w@mail.gmail.com>
- <20201128085227.GB28230@ircssh-2.c.rugged-nimbus-611.internal> <20201201110928.GA24837@ircssh-2.c.rugged-nimbus-611.internal>
-In-Reply-To: <20201201110928.GA24837@ircssh-2.c.rugged-nimbus-611.internal>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 1 Dec 2020 13:29:21 +0200
-Message-ID: <CAOQ4uxiVLY14=3zDwcRysw69=EN=2vVq5y8JP0Q72Cz95qJ6ng@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] overlay: Document current outstanding shortcoming
- of volatile
-To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     Jeff Layton <jlayton@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=z9ULpizLWDQiCJkdcf/66NmmJqFYGorqtuiF70FgIJg=;
+        b=IrhQGNRIFWpAsQ8ieRZkvVJ+VZHYTLVemjRu7zqPF6fdiQTUbrldpesOffGW7OWDkO
+         I7QxBqO4xY2TXtGedx36HCIofTAM5FVLCSqtK6V/pX7LYE140CBRTPvfQDygSVJoiH4Y
+         omkEbQuSMJtyX9PSJONnYRcgOcnNOLL67UV//p8kk6AgtPPzltDh+oH/WkDFpXfR2jw7
+         Qb0K9znkZyqyS70fjIVpq3uFax+zmvnMa0TLE8t9ArAz1ZOXKhS3cFf/HrtAvMSRL+iO
+         zmoqKq1p1Rb9c+Y9MIKWTlzT3fXyimAzB/Tpxp0a7XS/oQ36O2F2PzeLEvzA54ofDMYT
+         Ao/w==
+X-Gm-Message-State: AOAM532rOKfDK6czBnVdF9ABI7ot2EAPg08mx1fK06fj0yUqPKym0A9Q
+        hxAjB9zhbrfYckxp5i5ZaRIQ+g==
+X-Google-Smtp-Source: ABdhPJz0GL7O0XGhZu0j9b4iHEHojyC5oy0U6R1upsTmsVSxZyQ7aBqTOJ2GyvVcfx+OvymB9iiU2w==
+X-Received: by 2002:a02:2e54:: with SMTP id u20mr2267006jae.142.1606823792462;
+        Tue, 01 Dec 2020 03:56:32 -0800 (PST)
+Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
+        by smtp.gmail.com with ESMTPSA id x23sm697798ioh.28.2020.12.01.03.56.32
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Tue, 01 Dec 2020 03:56:32 -0800 (PST)
+Date:   Tue, 1 Dec 2020 11:56:30 +0000
+From:   Sargun Dhillon <sargun@sargun.me>
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
         Alexander Viro <viro@zeniv.linux.org.uk>,
+        Amir Goldstein <amir73il@gmail.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
         Daniel J Walsh <dwalsh@redhat.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>,
+        Jeff Layton <jlayton@redhat.com>
+Subject: Re: [PATCH v2 4/4] overlay: Add rudimentary checking of writeback
+ errseq on volatile remount
+Message-ID: <20201201115630.GC24837@ircssh-2.c.rugged-nimbus-611.internal>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201130193342.GD14328@redhat.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> syncfs seems to enforce the semantics laid out by VFS[1]. Specifically the
-> statement:
->   When there is an error during writeback, they expect that error to be reported
->   when a file sync request is made. After an error has been reported on one
->   request, subsequent requests on the same file descriptor should return 0, unless
->   further writeback errors have occurred since the previous file syncronization.
->
-> This is enforced by the errseq_check_and_advance logic. We can hack around this
-> logic by resetting the errset (setting the error on it) every time we get the
-> sync_fs callback, but that to me seems wrong. FWIW, implementing this behaviour
-> for fdatasync, and fsync is easier, because the error is bubbled up from the
-> filesystem to the VFS. I don't actually think this is a good idea because
-> it seems like this sync_fs behaviour is a bit...not neccessarily what all
-> filesystems expect. For example, btrfs_sync_fs returns an error if it
-> is unable to finish the current transaction. Nowhere in the btrfs code
-> does it set the errseq on the superblock if this fails.
->
-> I think we have a couple paths forward:
-> 1. Change the semantic of sync_fs so the error is always bubbled up if
->    it returns a non-zero value. If we do this, we have to decide whether
->    or not we would _also_ call errseq_check_and_advance on the SB,
->    or leave that to a subsequent call.
-> 2. Have overlayfs forcefully set an error on the superblock on every
->    callback to sync_fs. This seems ugly, but I wrote a little patch,
->    and it seems to solve the problem for all the fsync / fdatasync /
->    sync / syncfs variants without having to do plumbing in VFS.
-> 3. Choose a different set of semantics for how we want to handle
->    errors in volatile mounts.
->
+On Mon, Nov 30, 2020 at 02:33:42PM -0500, Vivek Goyal wrote:
+> On Fri, Nov 27, 2020 at 01:20:58AM -0800, Sargun Dhillon wrote:
+> > Volatile remounts validate the following at the moment:
+> >  * Has the module been reloaded / the system rebooted
+> >  * Has the workdir been remounted
+> > 
+> > This adds a new check for errors detected via the superblock's
+> > errseq_t. At mount time, the errseq_t is snapshotted to disk,
+> > and upon remount it's re-verified. This allows for kernel-level
+> > detection of errors without forcing userspace to perform a
+> > sync and allows for the hidden detection of writeback errors.
+> > 
+> > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+> > Cc: linux-fsdevel@vger.kernel.org
+> > Cc: linux-unionfs@vger.kernel.org
+> > Cc: Miklos Szeredi <miklos@szeredi.hu>
+> > Cc: Amir Goldstein <amir73il@gmail.com>
+> > Cc: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/overlayfs.h | 1 +
+> >  fs/overlayfs/readdir.c   | 6 ++++++
+> >  fs/overlayfs/super.c     | 1 +
+> >  3 files changed, 8 insertions(+)
+> > 
+> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> > index de694ee99d7c..e8a711953b64 100644
+> > --- a/fs/overlayfs/overlayfs.h
+> > +++ b/fs/overlayfs/overlayfs.h
+> > @@ -85,6 +85,7 @@ struct ovl_volatile_info {
+> >  	 */
+> >  	uuid_t		ovl_boot_id;	/* Must stay first member */
+> >  	u64		s_instance_id;
+> > +	errseq_t	errseq;	/* Implemented as a u32 */
+> >  } __packed;
+> >  
+> >  /*
+> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> > index 7b66fbb20261..5795b28bb4cf 100644
+> > --- a/fs/overlayfs/readdir.c
+> > +++ b/fs/overlayfs/readdir.c
+> > @@ -1117,6 +1117,12 @@ static int ovl_verify_volatile_info(struct ovl_fs *ofs,
+> >  		return -EINVAL;
+> >  	}
+> >  
+> > +	err = errseq_check(&volatiledir->d_sb->s_wb_err, info.errseq);
+> 
+> Might be a stupid question. Will ask anyway.
+> 
+> But what protects against wrapping of counter. IOW, Say we stored info.errseq
+> value as A. It is possible that bunch of errors occurred and at remount
+> time ->s_wb_err is back to A and we pass the check. (Despite the fact lots
+> of errors have occurred since we sampled).
+> 
+> Thanks
+> Vivek
+> 
 
-IMO it is best if you post your patch to fix volatile overlayfs, because
-it seems to me that the volatile overlayfs issue is worse than generic
-sync_fs issues and it's good if we had a small backportable patch
-even if a bit ugly.
++Jeff Layton <jlayton@redhat.com>
 
-Later you can pursue the sync_fs semantic fixes if you wish they
-do not contradict the fix in overlayfs, just are just a way to remove
-a hack.
+Nothing. The current errseq API works like this today where if you have 2^20
+(1048576) errors, and syncfs (or other calls that mark the errseq as seen), and
+the error that occured 1048575 times ago was the same error as you just last
+had, and the error on the upperdir has already been marked as seen, the error
+will be swallowed up silently.
 
-Thanks,
-Amir.
+This exists throughout all of VFS. I think we're potentially making this more
+likely by checkpointing to disk. The one aspect which is a little different about
+the usecase in the patch is that it relies on this mechanism to determine if
+an error has occured after the entire FS was constructed, so it's somewhat
+more consequential than the current issue in VFS which will just bubble up
+errors in a few files.
+
+On my system syncfs takes about 2 milliseconds, so you have a chance to
+experience this every ~30 minutes if the syscalls align in the right way. If
+we expanded the errseq_t to u64, we would potentially get a collision
+every 4503599627370496 calls, or assuming the 2 millisecond invariant
+holds, every 285 years. Now, we probably don't want to make errseq_t into
+a u64 because of performance reasons (not all systems have native u64
+cmpxchg), and the extra memory it'd take up.
+
+If we really want to avoid this case, I can think of one "simple" solution,
+which is something like laying out errseq_t as something like a errseq_t_src
+that's 64-bits, and all readers just look at the lower 32-bits. The longer
+errseq_t would exist on super_blocks, but files would still get the shorter one.
+To potentially avoid the performance penalty of atomic longs, we could also
+do something like this:
+
+typedef struct {
+    atomic_t overflow;
+    u32 errseq;
+} errseq_t_big;
+
+And in errseq_set, do:
+/* Wraps */
+if (new < old)
+        atomic_inc(&eseq->overflow);
+
+*shrug*
+I don't think that the above scenario is likely though.
