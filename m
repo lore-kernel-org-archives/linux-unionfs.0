@@ -2,88 +2,85 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D55DEC71155
-	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 18:24:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11FDCC8300F
+	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 18:50:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D0E322240
-	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 18:24:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B18362173E
+	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 18:50:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730907AbgLBSXn (ORCPT
+        id S1728222AbgLBSuW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 2 Dec 2020 13:23:43 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:53746 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1729000AbgLBSXm (ORCPT
+        Wed, 2 Dec 2020 13:50:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55166 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726283AbgLBSuU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 2 Dec 2020 13:23:42 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1606933335;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=XPEQG9ZMsupvlCOjfIXKVCM+10SfC6r3XKFkI7oXLFI=;
-        b=FwyR3JWC2hU/djMA/fYdEkeiIY+7YQqG34PPeJ6yJSrTCWR8XRYb2ytS51wqTCJ/n0O0sy
-        LzuzqiH6xx0cxbQDUQ9NCIgBsSE5+FvWMacx6JxUqqeXOBtCbjaPh4IC0iHBS26/R0OWus
-        3KfiLwI9skrSqwn91EfxBhhx7rcedvI=
-Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com
- [209.85.160.197]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-274-VaY2_MhwMca36xZ1v952jA-1; Wed, 02 Dec 2020 13:22:13 -0500
-X-MC-Unique: VaY2_MhwMca36xZ1v952jA-1
-Received: by mail-qt1-f197.google.com with SMTP id v9so2066535qtw.12
-        for <linux-unionfs@vger.kernel.org>; Wed, 02 Dec 2020 10:22:13 -0800 (PST)
+        Wed, 2 Dec 2020 13:50:20 -0500
+Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88ABBC0613D4
+        for <linux-unionfs@vger.kernel.org>; Wed,  2 Dec 2020 10:49:40 -0800 (PST)
+Received: by mail-il1-x142.google.com with SMTP id z10so2517202ilu.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 02 Dec 2020 10:49:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sargun.me; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to
+         :user-agent;
+        bh=UrmLYg1nm4UuLYbX3QQ5mMgswwZLDr8PnKvoX6zOcVI=;
+        b=P1aVJhSiK5qnaQYj96HlM8YOWMMNFjiyUNQMVLJ8AyUqgRe9BHTmWqUEuOLsXEqmT6
+         F/sGvj5xtPH36YxGikv8J3YAj9MEcKjfg3d4sjStEvK7edTXFcGljrXr1RMvGZjvcOnP
+         CvKNJwLmiHjuct1xBBtTay2hlig87cnu6dem0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=XPEQG9ZMsupvlCOjfIXKVCM+10SfC6r3XKFkI7oXLFI=;
-        b=IWGmUzu+NF5GgvXgKeX4QxrabNqUVOIu0Tx+Dvlr3wFCv74hQZPbuhHIAhYjrbn2cq
-         SBq8+IKqkX+TEF+GGPFbU1yX5hRWvzwL4Jz3dSBQb5OEw5HuQuoxdJaz6oEDKkS0gAtp
-         /LAcKsYK2M980GnkUZ42J0+5rnijrGCF1rkSujYPlXdN/jNaxW0RvWiORDQE4pYNubN0
-         w8COpuu3jqIMibbN7KNmYFPlAGhyKJ+3EbOvnqk9Hdt496zvLKVsc5ZNcaHu2PRNao/n
-         sOcWHGBP1CbDmZ+a7Ytwqr++G0s2lVpW2etUqrFw0Gc+DKVIwacKD4aW3w9lG/UoJaWL
-         n8xg==
-X-Gm-Message-State: AOAM530vYPoLUHumHEijFLAKsBMg+xytEiERLZwe2E8kwvAjJBm9RgQ2
-        UGAnQ5Uo+xnxlySV6MtS9hecW4nzHgq2m+Bo7d0MM0dZc7byxkIBMsSv94qla4YkA1iEiMJ9VHP
-        s579n5DX5uXKLFubarXz576qCRQ==
-X-Received: by 2002:ac8:5901:: with SMTP id 1mr3972349qty.350.1606933333034;
-        Wed, 02 Dec 2020 10:22:13 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxfoWOXx4dGEGMr9stBfgRmyfDDQPAeN1SMyYagYDQ3sVw/63gnmuR1XJ8CfaJE/fzMxriQfQ==
-X-Received: by 2002:ac8:5901:: with SMTP id 1mr3972335qty.350.1606933332758;
-        Wed, 02 Dec 2020 10:22:12 -0800 (PST)
-Received: from tleilax.poochiereds.net (68-20-15-154.lightspeed.rlghnc.sbcglobal.net. [68.20.15.154])
-        by smtp.gmail.com with ESMTPSA id p27sm2525516qkp.70.2020.12.02.10.22.10
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 02 Dec 2020 10:22:10 -0800 (PST)
-Message-ID: <59de2220a85e858a4c397969e2a0d03f1d653a6a.camel@redhat.com>
-Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error
- behaviour
-From:   Jeff Layton <jlayton@redhat.com>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to:user-agent;
+        bh=UrmLYg1nm4UuLYbX3QQ5mMgswwZLDr8PnKvoX6zOcVI=;
+        b=BzpJOgqOnxsYGdmH51QMiPM1Sseev+7QnvMvliDHC4Wkjoj4EP7qW9ws3sw5CtJTtF
+         mUx05IOzTrJhJNag7kYFhE7GD2vwy3em9uLp1QIDtCnJwDHvzrz3W9B3jzVR5ccRTORM
+         eJizVwuYJZdVhFfD52uahwM+LcwKhEe2FicFnowTarMY9z94P2+mvIOpk8GnxYi3DKoD
+         +CKxEYLArXRIQWBY/3T3/rSHZqP5sMtbqbiWyWXT+jI7EFkeeYwItacLM+QnTHV5FtqM
+         95awTQmF6uRJS2ErVmF5tO/B6+SCTnrRRlF2byybwP7cfYZOtF0l7Ap1s9Hc1i2ZCupp
+         s6Aw==
+X-Gm-Message-State: AOAM532AkLVp3SWat5s4o9MlvcvsBkOA8oi6r159lbUKH6TDMSSr5nDd
+        2i9iNtAoL1jd0bgEckOFfg123A==
+X-Google-Smtp-Source: ABdhPJyhfEHfnzelbjFRL3+xub/Gq3eyKDLJ/aCH9abKRhpxfAgOD2sn6dXJWUeWudLa+36tFXzV+g==
+X-Received: by 2002:a92:6e05:: with SMTP id j5mr3526223ilc.136.1606934979738;
+        Wed, 02 Dec 2020 10:49:39 -0800 (PST)
+Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
+        by smtp.gmail.com with ESMTPSA id l78sm1606601ild.30.2020.12.02.10.49.38
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 02 Dec 2020 10:49:39 -0800 (PST)
+Date:   Wed, 2 Dec 2020 18:49:37 +0000
+From:   Sargun Dhillon <sargun@sargun.me>
 To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Sargun Dhillon <sargun@sargun.me>,
+Cc:     Jeff Layton <jlayton@redhat.com>,
         Amir Goldstein <amir73il@gmail.com>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 02 Dec 2020 13:22:09 -0500
-In-Reply-To: <20201202172906.GE147783@redhat.com>
+Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error
+ behaviour
+Message-ID: <20201202184936.GA17139@ircssh-2.c.rugged-nimbus-611.internal>
 References: <20201202092720.41522-1-sargun@sargun.me>
-         <20201202150747.GB147783@redhat.com>
-         <f2fc7d688417a1da3d94e819afed6bab404da51f.camel@redhat.com>
-         <20201202172906.GE147783@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.1 (3.38.1-1.fc33) 
+ <20201202150747.GB147783@redhat.com>
+ <f2fc7d688417a1da3d94e819afed6bab404da51f.camel@redhat.com>
+ <20201202172906.GE147783@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201202172906.GE147783@redhat.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 2020-12-02 at 12:29 -0500, Vivek Goyal wrote:
+On Wed, Dec 02, 2020 at 12:29:06PM -0500, Vivek Goyal wrote:
 > On Wed, Dec 02, 2020 at 12:02:43PM -0500, Jeff Layton wrote:
 > 
 > [..]
@@ -92,9 +89,9 @@ On Wed, 2020-12-02 at 12:29 -0500, Vivek Goyal wrote:
 > > > > --- a/fs/overlayfs/super.c
 > > > > +++ b/fs/overlayfs/super.c
 > > > > @@ -261,11 +261,18 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
-> > > > Â 	struct super_block *upper_sb;
-> > > > Â 	int ret;
-> > > > Â 
+> > > > �	struct super_block *upper_sb;
+> > > > �	int ret;
+> > > > �
 > > > > 
 > > > > 
 > > > > 
@@ -117,31 +114,31 @@ On Wed, 2020-12-02 at 12:29 -0500, Vivek Goyal wrote:
 > > > > +
 > > > > +	if (!ret)
 > > > > +		return ret;
-> > > > Â 
+> > > > �
 > > > > 
 > > > > 
 > > > > 
 > > > > -	if (!ovl_should_sync(ofs))
 > > > > -		return 0;
-> > > > Â 	/*
-> > > > Â 	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
-> > > > Â 	 * All the super blocks will be iterated, including upper_sb.
+> > > > �	/*
+> > > > �	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+> > > > �	 * All the super blocks will be iterated, including upper_sb.
 > > > > @@ -1927,6 +1934,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
-> > > > Â 	sb->s_op = &ovl_super_operations;
-> > > > Â 
+> > > > �	sb->s_op = &ovl_super_operations;
+> > > > �
 > > > > 
 > > > > 
 > > > > 
-> > > > Â 	if (ofs->config.upperdir) {
+> > > > �	if (ofs->config.upperdir) {
 > > > > +		struct super_block *upper_mnt_sb;
 > > > > +
-> > > > Â 		if (!ofs->config.workdir) {
-> > > > Â 			pr_err("missing 'workdir'\n");
-> > > > Â 			goto out_err;
+> > > > �		if (!ofs->config.workdir) {
+> > > > �			pr_err("missing 'workdir'\n");
+> > > > �			goto out_err;
 > > > > @@ -1943,9 +1952,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
-> > > > Â 		if (!ofs->workdir)
-> > > > Â 			sb->s_flags |= SB_RDONLY;
-> > > > Â 
+> > > > �		if (!ofs->workdir)
+> > > > �			sb->s_flags |= SB_RDONLY;
+> > > > �
 > > > > 
 > > > > 
 > > > > 
@@ -171,6 +168,27 @@ On Wed, 2020-12-02 at 12:29 -0500, Vivek Goyal wrote:
 > > > How did you finally end up testing the error case. Want to simualate
 > > > error aritificially and test it.
 > > > 
+
+I used the blockdev error injection layer. It only works with ext2, because
+ext4 (and other filesystems) will error and go into readonly.
+
+dd if=/dev/zero of=/tmp/loop bs=1M count=100
+losetup /dev/loop8 /tmp/loop 
+mkfs.ext2 /dev/loop8
+mount -o errors=continue /dev/loop8 /mnt/loop/
+mkdir -p /mnt/loop/{upperdir,workdir}
+mount -t overlay -o volatile,index=off,lowerdir=/root/lowerdir,upperdir=/mnt/loop/upperdir,workdir=/mnt/loop/workdir none /mnt/foo/
+echo 1 > /sys/block/loop8/make-it-fail
+echo 100 > /sys/kernel/debug/fail_make_request/probability
+echo 1 > /sys/kernel/debug/fail_make_request/times
+dd if=/dev/zero of=/mnt/foo/zero bs=1M count=1
+sync
+
+I tried to get XFS tests working, but I was unable to get a simpler repro than 
+above. This is also easy enough to do with a simple kernel module. Maybe it'd be 
+neat to be able to inject in errseq increments via the fault injection API one 
+day? I have no idea what the VFS's approach here is.
+
 > > 
 > > If you don't want to see errors that occurred before you did the mount,
 > > then you probably can just resurrect and rename the original version of
@@ -206,21 +224,30 @@ On Wed, 2020-12-02 at 12:29 -0500, Vivek Goyal wrote:
 > errseq_sample_consume_unseen()
 > errseq_sample_current()
 > 
+> Thanks
+> Vivek
+> 
 
-errseq_sample_consume_unseen() sounds good, though maybe it should be
-"ignore_unseen"? IDK, naming this stuff is the hardest part.
+I think we can just replace the code in super.c with:
+ofs->upper_errseq = READ_ONCE(&upper_mnt_sb->s_wb_err);
 
-If you don't want to add a new helper, I think you'd probably also be
-able to do something like this in fill_super:
+And then add an errseq helper which checks:
+int errseq_check_ignore_seen(errseq_t *eseq, errseq_t since)
+{
+	errseq_t cur = READ_ONCE(*eseq);
 
-    errseq_sample()
-    errseq_check_and_advance()
+	if ((cur == since) || (cur == since | ERRSEQ_SEEN))
+		return 0;
 
+	return -(cur & MAX_ERRNO);
+}
 
-...and just ignore the error returned by the check and advance. At that
-point, the cursor should be caught up and any subsequent syncfs call
-should return 0 until you record another error. It's a little less
-efficient, but only slightly so.
--- 
-Jeff Layton <jlayton@redhat.com>
+--- 
 
+This extra (cur == since | ERRSEQ_SEEN) ignores the situation where cur has 
+"been seen". We do not want to do the cmpxchg I think because that would hide 
+the situation from the user where if they do a syncfs we hide the error from
+the user. 
+
+If the since had seen already set, but cur does not have seen set, it means
+we've wrapped.
