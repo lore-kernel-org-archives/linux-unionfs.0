@@ -2,108 +2,225 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59895C71156
-	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 17:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D55DEC71155
+	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 18:24:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A8402086A
-	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 17:43:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D0E322240
+	for <linux-unionfs@archiver.kernel.org>; Wed,  2 Dec 2020 18:24:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730916AbgLBRnZ (ORCPT
+        id S1730907AbgLBSXn (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 2 Dec 2020 12:43:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44672 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730914AbgLBRnZ (ORCPT
+        Wed, 2 Dec 2020 13:23:43 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:53746 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1729000AbgLBSXm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 2 Dec 2020 12:43:25 -0500
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6AC2C061A04;
-        Wed,  2 Dec 2020 09:42:10 -0800 (PST)
-Received: by mail-io1-xd42.google.com with SMTP id 81so1079930ioc.13;
-        Wed, 02 Dec 2020 09:42:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=SU2667MQNtAIEDDUA9sQyXfNq/LH/Dr/dctHqxLpERE=;
-        b=sgpyQzMIgWTsyfxgCY2mLTF757SetyFuKlcBRuQ/iwmBQP0Eu+a5mMkx+ekzkUxyTl
-         bJFVWJ73+EIEcopDc1n61uRUC2vWcIrNyLkFr7sJCqa8+iGP0hewVw6AEBxrT7jUJYtH
-         m7T/mJGeQnONBUxD4baolU62DMmvT4/pzdYnRuGos7FXiMmdGgsrAqxt27U75Zr2zvzN
-         Jl9ZUMr3bWMUGldk1jbu8GjKjbCH6e9Km60hntvfuioSZsIzN5Hs0VvfxYI6X+HVpHKI
-         2jRu6i2YSKjaBxg/cO7wvP5c6DBW5neoRZ8VsFTrE5Faq5ENdrciBk55YZCmalbzL303
-         7zQw==
+        Wed, 2 Dec 2020 13:23:42 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1606933335;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=XPEQG9ZMsupvlCOjfIXKVCM+10SfC6r3XKFkI7oXLFI=;
+        b=FwyR3JWC2hU/djMA/fYdEkeiIY+7YQqG34PPeJ6yJSrTCWR8XRYb2ytS51wqTCJ/n0O0sy
+        LzuzqiH6xx0cxbQDUQ9NCIgBsSE5+FvWMacx6JxUqqeXOBtCbjaPh4IC0iHBS26/R0OWus
+        3KfiLwI9skrSqwn91EfxBhhx7rcedvI=
+Received: from mail-qt1-f197.google.com (mail-qt1-f197.google.com
+ [209.85.160.197]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-274-VaY2_MhwMca36xZ1v952jA-1; Wed, 02 Dec 2020 13:22:13 -0500
+X-MC-Unique: VaY2_MhwMca36xZ1v952jA-1
+Received: by mail-qt1-f197.google.com with SMTP id v9so2066535qtw.12
+        for <linux-unionfs@vger.kernel.org>; Wed, 02 Dec 2020 10:22:13 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=SU2667MQNtAIEDDUA9sQyXfNq/LH/Dr/dctHqxLpERE=;
-        b=ory+hh2dHEwR6LSgd0KLYDhF9Xyb770NEImLswpxkqwEnTdeE0SwGfADH9cqsN3Ci3
-         g+BPEz9r4+BptcAjL7AaNoeYYmqEiMqKKDJNUKYnG8YbotLoGi3taqD3H/qeWquVh2ML
-         pgEtFHJqfG5ryQfqCDNboFALIri+tzLpDShnLm5ywRJXGig4GdW8bURWyrE/7eYjWmlc
-         wAyRFN7xIoIAKk/bCQLvtz3U05/N2jABb0rkltEmHONdzcAZb1AQ9iJCYCQGzluTheoU
-         9ojSKEJEMvldfYgnqY8gXNy1YObDhbp5yaV2U9/ofeqvnbZGqFHNTSiyH6D3yj4PQixF
-         kxVg==
-X-Gm-Message-State: AOAM530SlpYUPPd8+TpO6omdE9TiVR/+/YVVxzVVLN3E719pdsIynqkZ
-        kdcCGW3YzcyNE6C7+eNzBz4i2hwpvvkqbvZfBKg=
-X-Google-Smtp-Source: ABdhPJzgVccBZ3lm0HQ6lozVeGujXueHHWGocCl1fhlxOmyBX611+HaOw+S0c+MsTD93Rrj1P2FQnG04P6iZ/HZIRlI=
-X-Received: by 2002:a5d:964a:: with SMTP id d10mr2904208ios.5.1606930930065;
- Wed, 02 Dec 2020 09:42:10 -0800 (PST)
-MIME-Version: 1.0
-References: <20201202092720.41522-1-sargun@sargun.me> <20201202150747.GB147783@redhat.com>
-In-Reply-To: <20201202150747.GB147783@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 2 Dec 2020 19:41:59 +0200
-Message-ID: <CAOQ4uxh0CuGGYYjV+H2MpqN+nmbmogGuYt70sOnE2rX+iw36kQ@mail.gmail.com>
-Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error behaviour
+        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
+         :references:user-agent:mime-version:content-transfer-encoding;
+        bh=XPEQG9ZMsupvlCOjfIXKVCM+10SfC6r3XKFkI7oXLFI=;
+        b=IWGmUzu+NF5GgvXgKeX4QxrabNqUVOIu0Tx+Dvlr3wFCv74hQZPbuhHIAhYjrbn2cq
+         SBq8+IKqkX+TEF+GGPFbU1yX5hRWvzwL4Jz3dSBQb5OEw5HuQuoxdJaz6oEDKkS0gAtp
+         /LAcKsYK2M980GnkUZ42J0+5rnijrGCF1rkSujYPlXdN/jNaxW0RvWiORDQE4pYNubN0
+         w8COpuu3jqIMibbN7KNmYFPlAGhyKJ+3EbOvnqk9Hdt496zvLKVsc5ZNcaHu2PRNao/n
+         sOcWHGBP1CbDmZ+a7Ytwqr++G0s2lVpW2etUqrFw0Gc+DKVIwacKD4aW3w9lG/UoJaWL
+         n8xg==
+X-Gm-Message-State: AOAM530vYPoLUHumHEijFLAKsBMg+xytEiERLZwe2E8kwvAjJBm9RgQ2
+        UGAnQ5Uo+xnxlySV6MtS9hecW4nzHgq2m+Bo7d0MM0dZc7byxkIBMsSv94qla4YkA1iEiMJ9VHP
+        s579n5DX5uXKLFubarXz576qCRQ==
+X-Received: by 2002:ac8:5901:: with SMTP id 1mr3972349qty.350.1606933333034;
+        Wed, 02 Dec 2020 10:22:13 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJxfoWOXx4dGEGMr9stBfgRmyfDDQPAeN1SMyYagYDQ3sVw/63gnmuR1XJ8CfaJE/fzMxriQfQ==
+X-Received: by 2002:ac8:5901:: with SMTP id 1mr3972335qty.350.1606933332758;
+        Wed, 02 Dec 2020 10:22:12 -0800 (PST)
+Received: from tleilax.poochiereds.net (68-20-15-154.lightspeed.rlghnc.sbcglobal.net. [68.20.15.154])
+        by smtp.gmail.com with ESMTPSA id p27sm2525516qkp.70.2020.12.02.10.22.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 02 Dec 2020 10:22:10 -0800 (PST)
+Message-ID: <59de2220a85e858a4c397969e2a0d03f1d653a6a.camel@redhat.com>
+Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error
+ behaviour
+From:   Jeff Layton <jlayton@redhat.com>
 To:     Vivek Goyal <vgoyal@redhat.com>
 Cc:     Sargun Dhillon <sargun@sargun.me>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Jeff Layton <jlayton@redhat.com>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         Miklos Szeredi <miklos@szeredi.hu>
+Date:   Wed, 02 Dec 2020 13:22:09 -0500
+In-Reply-To: <20201202172906.GE147783@redhat.com>
+References: <20201202092720.41522-1-sargun@sargun.me>
+         <20201202150747.GB147783@redhat.com>
+         <f2fc7d688417a1da3d94e819afed6bab404da51f.camel@redhat.com>
+         <20201202172906.GE147783@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.38.1 (3.38.1-1.fc33) 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> I asked this question in last email as well. errseq_sample() will return
-> 0 if current error has not been seen yet. That means next time a sync
-> call comes for volatile mount, it will return an error. But that's
-> not what we want. When we mounted a volatile overlay, if there is an
-> existing error (seen/unseen), we don't care. We only care if there
-> is a new error after the volatile mount, right?
->
-> I guess we will need another helper similar to errseq_smaple() which
-> just returns existing value of errseq. And then we will have to
-> do something about errseq_check() to not return an error if "since"
-> and "eseq" differ only by "seen" bit.
->
-> Otherwise in current form, volatile mount will always return error
-> if upperdir has error and it has not been seen by anybody.
->
-> How did you finally end up testing the error case. Want to simualate
-> error aritificially and test it.
->
+On Wed, 2020-12-02 at 12:29 -0500, Vivek Goyal wrote:
+> On Wed, Dec 02, 2020 at 12:02:43PM -0500, Jeff Layton wrote:
+> 
+> [..]
+> > > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > > > index 290983bcfbb3..82a096a05bce 100644
+> > > > --- a/fs/overlayfs/super.c
+> > > > +++ b/fs/overlayfs/super.c
+> > > > @@ -261,11 +261,18 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+> > > > Â 	struct super_block *upper_sb;
+> > > > Â 	int ret;
+> > > > Â 
+> > > > 
+> > > > 
+> > > > 
+> > > > -	if (!ovl_upper_mnt(ofs))
+> > > > -		return 0;
+> > > > +	ret = ovl_check_sync(ofs);
+> > > > +	/*
+> > > > +	 * We have to always set the err, because the return value isn't
+> > > > +	 * checked, and instead VFS looks at the writeback errseq after
+> > > > +	 * this call.
+> > > > +	 */
+> > > > +	if (ret < 0)
+> > > > +		errseq_set(&sb->s_wb_err, ret);
+> > > 
+> > > I was wondering that why errseq_set() will result in returning error
+> > > all the time. Then realized that last syncfs() call must have set
+> > > ERRSEQ_SEEN flag and that will mean errseq_set() will increment
+> > > counter and that means this syncfs() will will return error too. Cool.
+> > > 
+> > > > +
+> > > > +	if (!ret)
+> > > > +		return ret;
+> > > > Â 
+> > > > 
+> > > > 
+> > > > 
+> > > > -	if (!ovl_should_sync(ofs))
+> > > > -		return 0;
+> > > > Â 	/*
+> > > > Â 	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+> > > > Â 	 * All the super blocks will be iterated, including upper_sb.
+> > > > @@ -1927,6 +1934,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> > > > Â 	sb->s_op = &ovl_super_operations;
+> > > > Â 
+> > > > 
+> > > > 
+> > > > 
+> > > > Â 	if (ofs->config.upperdir) {
+> > > > +		struct super_block *upper_mnt_sb;
+> > > > +
+> > > > Â 		if (!ofs->config.workdir) {
+> > > > Â 			pr_err("missing 'workdir'\n");
+> > > > Â 			goto out_err;
+> > > > @@ -1943,9 +1952,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> > > > Â 		if (!ofs->workdir)
+> > > > Â 			sb->s_flags |= SB_RDONLY;
+> > > > Â 
+> > > > 
+> > > > 
+> > > > 
+> > > > -		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+> > > > -		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+> > > > -
+> > > > +		upper_mnt_sb = ovl_upper_mnt(ofs)->mnt_sb;
+> > > > +		sb->s_stack_depth = upper_mnt_sb->s_stack_depth;
+> > > > +		sb->s_time_gran = upper_mnt_sb->s_time_gran;
+> > > > +		ofs->upper_errseq = errseq_sample(&upper_mnt_sb->s_wb_err);
+> > > 
+> > > I asked this question in last email as well. errseq_sample() will return
+> > > 0 if current error has not been seen yet. That means next time a sync
+> > > call comes for volatile mount, it will return an error. But that's
+> > > not what we want. When we mounted a volatile overlay, if there is an
+> > > existing error (seen/unseen), we don't care. We only care if there
+> > > is a new error after the volatile mount, right?
+> > > 
+> > > I guess we will need another helper similar to errseq_smaple() which
+> > > just returns existing value of errseq. And then we will have to
+> > > do something about errseq_check() to not return an error if "since"
+> > > and "eseq" differ only by "seen" bit.
+> > > 
+> > > Otherwise in current form, volatile mount will always return error
+> > > if upperdir has error and it has not been seen by anybody.
+> > > 
+> > > How did you finally end up testing the error case. Want to simualate
+> > > error aritificially and test it.
+> > > 
+> > 
+> > If you don't want to see errors that occurred before you did the mount,
+> > then you probably can just resurrect and rename the original version of
+> > errseq_sample. Something like this, but with a different name:
+> > 
+> > +errseq_t errseq_sample(errseq_t *eseq)
+> > +{
+> > +       errseq_t old = READ_ONCE(*eseq);
+> > +       errseq_t new = old;
+> > +
+> > +       /*
+> > +        * For the common case of no errors ever having been set, we can skip
+> > +        * marking the SEEN bit. Once an error has been set, the value will
+> > +        * never go back to zero.
+> > +        */
+> > +       if (old != 0) {
+> > +               new |= ERRSEQ_SEEN;
+> > +               if (old != new)
+> > +                       cmpxchg(eseq, old, new);
+> > +       }
+> > +       return new;
+> > +}
+> 
+> Yes, a helper like this should solve the issue at hand. We are not
+> interested in previous errors. This also sets the ERRSEQ_SEEN on 
+> sample and it will also solve the other issue when after sampling
+> if error gets seen, we don't want errseq_check() to return error.
+> 
+> Thinking of some possible names for new function.
+> 
+> errseq_sample_seen()
+> errseq_sample_set_seen()
+> errseq_sample_consume_unseen()
+> errseq_sample_current()
+> 
 
-Good spotting!
+errseq_sample_consume_unseen() sounds good, though maybe it should be
+"ignore_unseen"? IDK, naming this stuff is the hardest part.
 
-Besides the specialized test for sync error,
-I wonder if anybody ever tested "volatile" setup with xfstests or unionmount?
+If you don't want to add a new helper, I think you'd probably also be
+able to do something like this in fill_super:
 
-In xfsftest can set envvar OVERLAY_MOUNT_OPTIONS="-o volatile"
+    errseq_sample()
+    errseq_check_and_advance()
 
-In unionmount I have a branch [1] with support for envvar
-UNIONMOUNT_MNTOPTIONS.
 
-I did not merge this change to master because nobody (but me) tested
-it, so that would be a good opportunity (hint hint)
+...and just ignore the error returned by the check and advance. At that
+point, the cursor should be caught up and any subsequent syncfs call
+should return 0 until you record another error. It's a little less
+efficient, but only slightly so.
+-- 
+Jeff Layton <jlayton@redhat.com>
 
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/unionmount-testsuite/commits/envvars
