@@ -4,92 +4,78 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0D0DC63777
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 12:08:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3384C3526E
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 14:46:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49358208FE
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 12:08:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 493DF207CC
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 14:28:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726874AbgLCMH4 (ORCPT
+        id S1726237AbgLCO2q (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Dec 2020 07:07:56 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:51183 "EHLO
+        Thu, 3 Dec 2020 09:28:46 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:39992 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726360AbgLCMH4 (ORCPT
+        by vger.kernel.org with ESMTP id S1727242AbgLCO2p (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Dec 2020 07:07:56 -0500
+        Thu, 3 Dec 2020 09:28:45 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1606997188;
+        s=mimecast20190719; t=1607005637;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=JBHg9x9dpAxc5ikfPaU8yIpRW0tf+loqVitOjq5e/iw=;
-        b=ix0/6jAmcmG1QQ6/g+o9bddleH37IhwwQe1jBuXiRS4IwNgMd832jzYROkxXwi3qUmIJEv
-        9CQIrwRFVJpGf5sDXK2Qu47d/7szIYM10XJ+cdU+M0UWs2XigdcEJK8tjZQBzk7XgTwnnU
-        1P4xKISw9gWvYlDcbAM/cp71qUBm7cg=
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com
- [209.85.166.197]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-376-Ge1VuKEmMX2Qp7I7t_d-rg-1; Thu, 03 Dec 2020 07:06:26 -0500
-X-MC-Unique: Ge1VuKEmMX2Qp7I7t_d-rg-1
-Received: by mail-il1-f197.google.com with SMTP id r20so1402322ilh.23
-        for <linux-unionfs@vger.kernel.org>; Thu, 03 Dec 2020 04:06:26 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=JBHg9x9dpAxc5ikfPaU8yIpRW0tf+loqVitOjq5e/iw=;
-        b=TaErvlRSlZRivC9UYyOrb1QFpIhyZQqu+rb9NjrHQMgh5wNKACKzlvxRK5lCzxoj+l
-         oM3yP1ai0qoOoi8D/EKqKE1pQqlU3RuJUydJZdk4H776fiTI0Ci2eAvON+IstSWuixTB
-         KqyuyIXrJ+57H3soO/j8v8fPxshxE1Sxm1y3ph4kK451MruS9fj0coXh79Cf3/eSjs+R
-         32PJd9nHno7K03bMFswCqnZMyabvGEbTSUVI/6VTgijcGkwbOO6fa2yVG2478VaUct1Y
-         kU79kAHp0mv1xKKixvyiKugQVOAYYVG13nt5FS82iksRdbYesfaYxql6ym0xDj3spxgW
-         xWzA==
-X-Gm-Message-State: AOAM530b9FFE3Sld2664t32CewR9s3A7UQzfmaN5T75x5K9s+fDqq3Ay
-        lPpx7JtqmIPHMYJr8zqPKPKTRulGDlVkczA8dBLtkYEn00tPPbQqKd+vVws6gfkSXunJbWePiXi
-        bDF5AF8hGf/t0FQuPdlTlDvbSpA==
-X-Received: by 2002:a02:8482:: with SMTP id f2mr3028651jai.93.1606997185309;
-        Thu, 03 Dec 2020 04:06:25 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJwdWrZ1bklT/VGxQao6r9VRY8yfstlh4ZMAQq1KJy++eDAcKVMsI32AZ0bv974BElQeJ9KDyg==
-X-Received: by 2002:a02:8482:: with SMTP id f2mr3028629jai.93.1606997184871;
-        Thu, 03 Dec 2020 04:06:24 -0800 (PST)
-Received: from tleilax.poochiereds.net (68-20-15-154.lightspeed.rlghnc.sbcglobal.net. [68.20.15.154])
-        by smtp.gmail.com with ESMTPSA id y8sm785798iln.12.2020.12.03.04.06.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Dec 2020 04:06:24 -0800 (PST)
-Message-ID: <c3919a2264fcd6ab287b2ef26d5c51a64346f002.camel@redhat.com>
-Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error
- behaviour
-From:   Jeff Layton <jlayton@redhat.com>
+        bh=udK2O/HFvHgd0cEREmtZGW9qFysFDpl4dQOCE4nwLVs=;
+        b=V61TF6fmWSimP6srg76L3HkICtBLejDSygRa4ApX44QyTVfwEYpvFsiOK/64OagZJaaq0C
+        ybtqMIVT4lnVWrf11p0e+gv9fjtsUjZznyTK1ppvjw/9O8KM+Nx5K+c9o5XJv+QsKmjyQz
+        MM93drnoqGYsoNgpj36ZF4E6X+w0++A=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-532-1ylBebM9PaO04ah5HIdLsA-1; Thu, 03 Dec 2020 09:27:15 -0500
+X-MC-Unique: 1ylBebM9PaO04ah5HIdLsA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id B21B5805BE3;
+        Thu,  3 Dec 2020 14:27:13 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-116-21.rdu2.redhat.com [10.10.116.21])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 49FD660854;
+        Thu,  3 Dec 2020 14:27:13 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id B2E23220BCF; Thu,  3 Dec 2020 09:27:12 -0500 (EST)
+Date:   Thu, 3 Dec 2020 09:27:12 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
 To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
+Cc:     Jeff Layton <jlayton@redhat.com>,
         Amir Goldstein <amir73il@gmail.com>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 03 Dec 2020 07:06:23 -0500
-In-Reply-To: <20201203104225.GA30173@ircssh-2.c.rugged-nimbus-611.internal>
+Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error
+ behaviour
+Message-ID: <20201203142712.GA3266@redhat.com>
 References: <20201202092720.41522-1-sargun@sargun.me>
-         <20201202150747.GB147783@redhat.com>
-         <f2fc7d688417a1da3d94e819afed6bab404da51f.camel@redhat.com>
-         <20201202172906.GE147783@redhat.com>
-         <59de2220a85e858a4c397969e2a0d03f1d653a6a.camel@redhat.com>
-         <20201202185601.GF147783@redhat.com>
-         <0a3979479ffbf080fa1cd492923a7fa8984078b9.camel@redhat.com>
-         <20201202213434.GA4070@redhat.com>
-         <2e08895bf0650513d7d12e66965eec611f361be3.camel@redhat.com>
-         <20201203104225.GA30173@ircssh-2.c.rugged-nimbus-611.internal>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.1 (3.38.1-1.fc33) 
+ <20201202150747.GB147783@redhat.com>
+ <f2fc7d688417a1da3d94e819afed6bab404da51f.camel@redhat.com>
+ <20201202172906.GE147783@redhat.com>
+ <59de2220a85e858a4c397969e2a0d03f1d653a6a.camel@redhat.com>
+ <20201202185601.GF147783@redhat.com>
+ <0a3979479ffbf080fa1cd492923a7fa8984078b9.camel@redhat.com>
+ <20201202213434.GA4070@redhat.com>
+ <2e08895bf0650513d7d12e66965eec611f361be3.camel@redhat.com>
+ <20201203104225.GA30173@ircssh-2.c.rugged-nimbus-611.internal>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <20201203104225.GA30173@ircssh-2.c.rugged-nimbus-611.internal>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2020-12-03 at 10:42 +0000, Sargun Dhillon wrote:
+On Thu, Dec 03, 2020 at 10:42:26AM +0000, Sargun Dhillon wrote:
 > On Wed, Dec 02, 2020 at 04:52:33PM -0500, Jeff Layton wrote:
 > > On Wed, 2020-12-02 at 16:34 -0500, Vivek Goyal wrote:
 > > > On Wed, Dec 02, 2020 at 02:26:23PM -0500, Jeff Layton wrote:
@@ -159,8 +145,8 @@ On Thu, 2020-12-03 at 10:42 +0000, Sargun Dhillon wrote:
 > > > > > > If you don't want to add a new helper, I think you'd probably also be
 > > > > > > able to do something like this in fill_super:
 > > > > > > 
-> > > > > > Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â errseq_sample()
-> > > > > > Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â errseq_check_and_advance()
+> > > > > > Â Â Â Â errseq_sample()
+> > > > > > Â Â Â Â errseq_check_and_advance()
 > > > > > > 
 > > > > > > 
 > > > > > > ...and just ignore the error returned by the check and advance. At that
@@ -242,32 +228,26 @@ On Thu, 2020-12-03 at 10:42 +0000, Sargun Dhillon wrote:
 > 
 > 1. If the filesystem has an unseen error, pr_warn.
 > 2. If the filesystem has an unseen error, refuse to mount it until
->    the user clears the error (via syncfs?).
+>    the user clears the error (via syncfs?).
 > 3. Ignore the beginning state of the upperdir
 > 4. Increment the errseq_t.
 > 5. A combination of #1, and #2 and require the user to mount
->    -o reallyvolatile or smoe such.
+>    -o reallyvolatile or smoe such.
 > 
 > Now the downsides of each of these options:
 > 
 > 1. The user probably won't look at these errors. Especially,
->    if the application is a container runtime, and these are
->    happening on behalf of the application in an automated fashion.
+>    if the application is a container runtime, and these are
+>    happening on behalf of the application in an automated fashion.
 > 2. Forcing a syncfs on most filesystems is a massively costly
->    operation that we want to avoid with the volatile operation.
->    Also, go back to #1. Until we implement the new FS API, we
->    can't easily give meaningful warnings to users that they
->    can programatically act on (unless we use some special errno).
+>    operation that we want to avoid with the volatile operation.
+>    Also, go back to #1. Until we implement the new FS API, we
+>    can't easily give meaningful warnings to users that they
+>    can programatically act on (unless we use some special errno).
 > 3. This is a noop.
 > 4. We can hide errors from other users of the upperdir if they
->    rely on syncfs semantics rather than per-fd fsync semantics
->    to check if the filesystem is "clean".
-
-Not really. You'd only hide it from an application that didn't already
-have the file open when the error occurred. While we did need to allow
-someone see an error with fsync that occurred before the file was open,
-I don't see a compelling need to do that with syncfs.
-
+>    rely on syncfs semantics rather than per-fd fsync semantics
+>    to check if the filesystem is "clean".
 > 5. See the issues with #1 and #2.
 > 
 > I'm also curious as to how the patchset that allows for partial
@@ -289,27 +269,30 @@ I don't see a compelling need to do that with syncfs.
 > if there are 2**32+ errors without someone doing an fsync, or noticing, you 
 > might have other problems.
 > 
-
-You'd have to have 2**20 errors, and call syncfs on a different fd 2**20
-times, and just happen to call syncfs on original fd at exactly the time
-that you hit the 2**20'th iteration such that the counter was exactly
-the same as the one that you sampled before.
-
-Collisions are possible with this scheme, but they really should be
-exceedingly rare.
-
 > This has two (and a half) downsides:
 > 1. It is a potential performance concern to introduce an atomic here.
-> 2. It takes more space on the superblock.
-> 
-> 1 can be mitigated by using a percpu variable, but that makes #2 far worse.
-> 
-> Opinions?
-> 
-> [1]: https://lwn.net/Articles/837133/
-> 
-> 
 
--- 
-Jeff Layton <jlayton@redhat.com>
+Is updation of errseq_t performance sensitive path. Updation happens in
+error path and I would think that does not happen often. If that's the
+case, it should not be very performance sensitive path.
+
+I agree that warning on unseen error is probably not enough. Applications
+can't do much with that. To me it boils down to two options.
+
+A. Live with the idea of swallowing the unseen error on syncfs (if caller
+   did not keep an fd open).
+
+B. Extend errseq infrastcture in such a way so that we can detect new
+   error without marking error SEEN.
+
+It feels as if B is a safter choice but will be more work. With A, problem
+is that behavior will be different in difference scenarios and it will then
+become difficult to justify.
+
+- fsync and syncfs behavior will be different w.r.t UNSEEN error.
+- syncfs behavior will be different depending on if volatile overlay
+  mounts are being used on this filesystem or not.
+
+Thanks
+Vivek
 
