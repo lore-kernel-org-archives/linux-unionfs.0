@@ -2,120 +2,136 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74F9DC64E8A
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:17:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E36D6C83014
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:33:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2110920671
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:17:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A26C521527
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:33:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730106AbgLCKRW (ORCPT
+        id S2388458AbgLCKd1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Dec 2020 05:17:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56972 "EHLO
+        Thu, 3 Dec 2020 05:33:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59468 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728659AbgLCKRV (ORCPT
+        with ESMTP id S2388957AbgLCKd0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Dec 2020 05:17:21 -0500
-Received: from mail-ej1-x643.google.com (mail-ej1-x643.google.com [IPv6:2a00:1450:4864:20::643])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 218ADC061A4F
-        for <linux-unionfs@vger.kernel.org>; Thu,  3 Dec 2020 02:16:41 -0800 (PST)
-Received: by mail-ej1-x643.google.com with SMTP id f23so2659883ejk.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 03 Dec 2020 02:16:41 -0800 (PST)
+        Thu, 3 Dec 2020 05:33:26 -0500
+Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C90EC061A4E;
+        Thu,  3 Dec 2020 02:32:40 -0800 (PST)
+Received: by mail-il1-x141.google.com with SMTP id k8so1425955ilr.4;
+        Thu, 03 Dec 2020 02:32:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sargun.me; s=google;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=8Vd4Hb/TndV5DzmZy3SbrxOWhXctHLB4WnGdapRV8BU=;
-        b=Pn6etdlwD/T2EjXQWsXsw168LeDHPyreiwEV0TVtDviyZhULIiKfVCPeVs4CojpnNB
-         ijAXbZKsqwbVH9Lj1zhMWC9QDcvQ/2k/HQ6LvE/3dzorb1T4MAmAoLc0op+xPmABnZHx
-         9UzyszDdf1FoAxVxRzRaKxuMBw8DsGstxIytk=
+        bh=SYI2zoFscPNYwdqUfecEz5f5sOyCvl9o34HEnn5Rf3U=;
+        b=oIwv4QD3yJHW8TdAZWpaMLDQkb94MnldcdckScrBqq3cgjfpeU9a4ZmDPHJTWTc0ug
+         Vfj6L3TW/YUjaoXM70iehV91V3Gc+Si6bxvcJ6g3iJreIdhcD2EorvW9CK2woMJ/yOTl
+         cbETGZBA4hWITaSOdu+6u5IKHCsfDEXiXoRxcNyIJ3pWdMxAs9krD4Yr0nKEmSHoSAYH
+         HVblu6tp/ODkjxBYBn9bS0nPiNz+1Slh2p8o9YhivgXzp4MIkBU4cUiiRp3x4cdk+s77
+         88VNUA6TLx35F76P10LFTBLvcZsK3lr+jHNzTEYK4AlgJnwAVjPuqcKWLAl+vvugkRO7
+         Zhbg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=8Vd4Hb/TndV5DzmZy3SbrxOWhXctHLB4WnGdapRV8BU=;
-        b=XPcz0A+/gyz0tDiCYOHP6RaXfB7L9vQhGqKCnaoEtTu7WImDNN0BRVC/eZMtaOKRZ7
-         oq455EvTr/tcA5xhZqWR5+znB+9CI+3qY8uc6DkxV16Fa8UwBMg95zkLqan9nZiHDXyt
-         Pr55ymj0MLw+Syu+PnjpFiZAie96KvUVvexY+EuNgUHMClHvkCMa/yGXUNvW7vjJPpAq
-         fHpy5xn3x0lMVW+dAdDYE1ZTish28KNJtuLkuyL4cnuwtTtZ2Y6vs6RYsDlDzES/7E7K
-         uqGb1fqc7KVv5X1DhcihRbGacjo+l1pjrbNZr3MyGme+z1eAi6Q5fuDxo+MdCfKc6GA3
-         zXPw==
-X-Gm-Message-State: AOAM5322TO2PD+WAofto6pbF2lM0jNy7EbBGps7/CQWrD+CKmQV7IZA8
-        zWWVhrOvRKLbHPbT1ll158o4s5UG5JTjiqlnlgCloKZrunY=
-X-Google-Smtp-Source: ABdhPJxlNTG8XKj15t0YRYFTePX7CW/ReHMhjCpyO61mVK+2pSJ+gGXQlOWHHy/gyv15rkqqASSEX4Wjrn6oflPHZN8=
-X-Received: by 2002:a17:906:1450:: with SMTP id q16mr1871092ejc.524.1606990599597;
- Thu, 03 Dec 2020 02:16:39 -0800 (PST)
+        bh=SYI2zoFscPNYwdqUfecEz5f5sOyCvl9o34HEnn5Rf3U=;
+        b=UStLFOYoMrsNu49e1zuB5vsBFcT9dqklR+pq4B8879THjNy/8qUDZQVVOZZ30m2XCi
+         2tO1xzv9kAvrWA9rgIVN0wpntoIJCQry94bB4Wy+zUI/RMP/MUxEfzE7knUSCWsJz1nc
+         pY+R6mxi9W1/VKo/EP6pjyYUZ9nQxED3gMQ+9EFvVSCRe2o0uH0TmzAXOEBsI9newzQD
+         5dos/q9QXxAn9lC4RaUHycTtd+q1FJoYRppwfejj49Yygeu95xWQVSNIUYVROxUgyfd+
+         9m+dPaiJ5XgCeYSrwOxHvApTeUd36pwNKffIgKYDPMmwmiGN7OVHeSMyYnsxngJSE7EX
+         yOZw==
+X-Gm-Message-State: AOAM530UJPls1B/4fyvq/7fjYu+9Xk6ydTHHXp8Ib380/xF/ojRTsjkY
+        /qC2waSF6pumcJ0bnsXm5hc+20WwRJ487ZJR9tA4pUjk
+X-Google-Smtp-Source: ABdhPJyAdaiH1Sx9X1F/C3Zvd+PIkMNUCIgc1JeAi/+00tBLfkkYWAKtp91FibKYaChn81+Jae1UKQxJfSF+u01+W1U=
+X-Received: by 2002:a92:da82:: with SMTP id u2mr2379761iln.137.1606991559719;
+ Thu, 03 Dec 2020 02:32:39 -0800 (PST)
 MIME-Version: 1.0
-References: <20201130030039.596801-1-sargun@sargun.me>
-In-Reply-To: <20201130030039.596801-1-sargun@sargun.me>
-From:   Sargun Dhillon <sargun@sargun.me>
-Date:   Thu, 3 Dec 2020 02:16:03 -0800
-Message-ID: <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
+References: <20201130030039.596801-1-sargun@sargun.me> <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
+In-Reply-To: <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 3 Dec 2020 12:32:28 +0200
+Message-ID: <CAOQ4uxhU=eWAfTn8DJ7x4NZ2PO9Q9V7Ohpj9aTasXg3KcfFpMA@mail.gmail.com>
 Subject: Re: [PATCH] overlay: Plumb through flush method
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>
-Cc:     Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+To:     Sargun Dhillon <sargun@sargun.me>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Nov 29, 2020 at 7:00 PM Sargun Dhillon <sargun@sargun.me> wrote:
+On Thu, Dec 3, 2020 at 12:16 PM Sargun Dhillon <sargun@sargun.me> wrote:
 >
-> Filesystems can implement their own flush method that release
-> resources, or manipulate caches. Currently if one of these
-> filesystems is used with overlayfs, the flush method is not called.
+> On Sun, Nov 29, 2020 at 7:00 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> >
+> > Filesystems can implement their own flush method that release
+> > resources, or manipulate caches. Currently if one of these
+> > filesystems is used with overlayfs, the flush method is not called.
+> >
+> > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+> > Cc: linux-fsdevel@vger.kernel.org
+> > Cc: linux-unionfs@vger.kernel.org
+> > Cc: Miklos Szeredi <miklos@szeredi.hu>
+> > Cc: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  fs/overlayfs/file.c | 11 +++++++++++
+> >  1 file changed, 11 insertions(+)
+> >
+> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > index efccb7c1f9bc..802259f33c28 100644
+> > --- a/fs/overlayfs/file.c
+> > +++ b/fs/overlayfs/file.c
+> > @@ -787,6 +787,16 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
+> >                             remap_flags, op);
+> >  }
+> >
+> > +static int ovl_flush(struct file *file, fl_owner_t id)
+> > +{
+> > +       struct file *realfile = file->private_data;
+> > +
+> > +       if (realfile->f_op->flush)
+> > +               return realfile->f_op->flush(realfile, id);
+> > +
+> > +       return 0;
+> > +}
+> > +
+> >  const struct file_operations ovl_file_operations = {
+> >         .open           = ovl_open,
+> >         .release        = ovl_release,
+> > @@ -798,6 +808,7 @@ const struct file_operations ovl_file_operations = {
+> >         .fallocate      = ovl_fallocate,
+> >         .fadvise        = ovl_fadvise,
+> >         .unlocked_ioctl = ovl_ioctl,
+> > +       .flush          = ovl_flush,
+> >  #ifdef CONFIG_COMPAT
+> >         .compat_ioctl   = ovl_compat_ioctl,
+> >  #endif
+> > --
+> > 2.25.1
+> >
 >
-> Signed-off-by: Sargun Dhillon <sargun@sargun.me>
-> Cc: linux-fsdevel@vger.kernel.org
-> Cc: linux-unionfs@vger.kernel.org
-> Cc: Miklos Szeredi <miklos@szeredi.hu>
-> Cc: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/overlayfs/file.c | 11 +++++++++++
->  1 file changed, 11 insertions(+)
->
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index efccb7c1f9bc..802259f33c28 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -787,6 +787,16 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
->                             remap_flags, op);
->  }
->
-> +static int ovl_flush(struct file *file, fl_owner_t id)
-> +{
-> +       struct file *realfile = file->private_data;
-> +
-> +       if (realfile->f_op->flush)
-> +               return realfile->f_op->flush(realfile, id);
-> +
-> +       return 0;
-> +}
-> +
->  const struct file_operations ovl_file_operations = {
->         .open           = ovl_open,
->         .release        = ovl_release,
-> @@ -798,6 +808,7 @@ const struct file_operations ovl_file_operations = {
->         .fallocate      = ovl_fallocate,
->         .fadvise        = ovl_fadvise,
->         .unlocked_ioctl = ovl_ioctl,
-> +       .flush          = ovl_flush,
->  #ifdef CONFIG_COMPAT
->         .compat_ioctl   = ovl_compat_ioctl,
->  #endif
-> --
-> 2.25.1
->
+> Amir, Miklos,
+> Is this acceptable? I discovered this being a problem when we had the discussion
+> of whether the volatile fs should return an error on close on dirty files.
 
-Amir, Miklos,
-Is this acceptable? I discovered this being a problem when we had the discussion
-of whether the volatile fs should return an error on close on dirty files.
+Yes, looks ok.
+Maybe we want to check if the realfile is upper although
+maybe flush can release resources also on read only fs?
 
-It seems like it would be useful if anyone uses NFS, or CIFS as an upperdir.
+>
+> It seems like it would be useful if anyone uses NFS, or CIFS as an upperdir.
+
+They are not supported as upperdir. only FUSE is.
+
+Thanks,
+Amir.
