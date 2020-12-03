@@ -2,136 +2,110 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E36D6C83014
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:33:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9F46C64E8A
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:37:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A26C521527
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:33:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 865F12067B
+	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 10:37:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2388458AbgLCKd1 (ORCPT
+        id S2388725AbgLCKh3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Dec 2020 05:33:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59468 "EHLO
+        Thu, 3 Dec 2020 05:37:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388957AbgLCKd0 (ORCPT
+        with ESMTP id S2387840AbgLCKh2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Dec 2020 05:33:26 -0500
-Received: from mail-il1-x141.google.com (mail-il1-x141.google.com [IPv6:2607:f8b0:4864:20::141])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C90EC061A4E;
-        Thu,  3 Dec 2020 02:32:40 -0800 (PST)
-Received: by mail-il1-x141.google.com with SMTP id k8so1425955ilr.4;
-        Thu, 03 Dec 2020 02:32:40 -0800 (PST)
+        Thu, 3 Dec 2020 05:37:28 -0500
+Received: from mail-il1-x12a.google.com (mail-il1-x12a.google.com [IPv6:2607:f8b0:4864:20::12a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14C08C061A4D;
+        Thu,  3 Dec 2020 02:36:48 -0800 (PST)
+Received: by mail-il1-x12a.google.com with SMTP id r17so1414818ilo.11;
+        Thu, 03 Dec 2020 02:36:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=SYI2zoFscPNYwdqUfecEz5f5sOyCvl9o34HEnn5Rf3U=;
-        b=oIwv4QD3yJHW8TdAZWpaMLDQkb94MnldcdckScrBqq3cgjfpeU9a4ZmDPHJTWTc0ug
-         Vfj6L3TW/YUjaoXM70iehV91V3Gc+Si6bxvcJ6g3iJreIdhcD2EorvW9CK2woMJ/yOTl
-         cbETGZBA4hWITaSOdu+6u5IKHCsfDEXiXoRxcNyIJ3pWdMxAs9krD4Yr0nKEmSHoSAYH
-         HVblu6tp/ODkjxBYBn9bS0nPiNz+1Slh2p8o9YhivgXzp4MIkBU4cUiiRp3x4cdk+s77
-         88VNUA6TLx35F76P10LFTBLvcZsK3lr+jHNzTEYK4AlgJnwAVjPuqcKWLAl+vvugkRO7
-         Zhbg==
+        bh=72F4Oqs3uIZR2eL33HVP9YTx+wl1uEHEUtfPbPSzE8Y=;
+        b=Kxu2WnD2UkI206kxowyiCJvpo+Jl8+sTAnwqlgOO4tX5fM2VSMdv/ryA1M3Ilj+TJR
+         1L1ibLRFEQfh9JNuHmrFZwwWOIDigwvfmptm7jEltH0Nm4v4ecVE5oBID3c6HDqCBcGL
+         vFLDJu0PbOe3oRBZGE0DaVt2sD7iFSZ46r+0JsNv5eqhBbjbybX3DyAwRU3hJllzZOxF
+         Z7lQWsnPJgFyVXlqvaNHnjPQXEp+arO4oBP/xq40WkxAAfoAqhynQi4JdgFEJEmVHmUp
+         lnuhBLsI60mzNt0/gFohPdCfDFj4UG5GyXg1YK68GarIYnVKY/CAAaBn2q44Ua7mFq5X
+         AhGQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=SYI2zoFscPNYwdqUfecEz5f5sOyCvl9o34HEnn5Rf3U=;
-        b=UStLFOYoMrsNu49e1zuB5vsBFcT9dqklR+pq4B8879THjNy/8qUDZQVVOZZ30m2XCi
-         2tO1xzv9kAvrWA9rgIVN0wpntoIJCQry94bB4Wy+zUI/RMP/MUxEfzE7knUSCWsJz1nc
-         pY+R6mxi9W1/VKo/EP6pjyYUZ9nQxED3gMQ+9EFvVSCRe2o0uH0TmzAXOEBsI9newzQD
-         5dos/q9QXxAn9lC4RaUHycTtd+q1FJoYRppwfejj49Yygeu95xWQVSNIUYVROxUgyfd+
-         9m+dPaiJ5XgCeYSrwOxHvApTeUd36pwNKffIgKYDPMmwmiGN7OVHeSMyYnsxngJSE7EX
-         yOZw==
-X-Gm-Message-State: AOAM530UJPls1B/4fyvq/7fjYu+9Xk6ydTHHXp8Ib380/xF/ojRTsjkY
-        /qC2waSF6pumcJ0bnsXm5hc+20WwRJ487ZJR9tA4pUjk
-X-Google-Smtp-Source: ABdhPJyAdaiH1Sx9X1F/C3Zvd+PIkMNUCIgc1JeAi/+00tBLfkkYWAKtp91FibKYaChn81+Jae1UKQxJfSF+u01+W1U=
-X-Received: by 2002:a92:da82:: with SMTP id u2mr2379761iln.137.1606991559719;
- Thu, 03 Dec 2020 02:32:39 -0800 (PST)
+        bh=72F4Oqs3uIZR2eL33HVP9YTx+wl1uEHEUtfPbPSzE8Y=;
+        b=rRBY54m0Qt2/zoYJemVS83zZQmHHpMFblHH0OqddRGOBytbmzCsruWktRPLkQEPdcE
+         0xjVKPp4Qnu947Vk24oq+OQyJrUa8COk9aYLm8ViusMNsW76xunhwXemss77UtudjttM
+         a73+kpF3Kg2i/Ke/TbhibeLWCJIoqplirjC5mFVLUYseB1yLhOCueRZOPqoOupmKYozW
+         hFog76T53jfB3pPioWNY0qHu0T45EA3autP7qT3QDHYfmHHKUUyg0BjSRVJ7nWrxupdb
+         byYGq/7CIQWrG5TPUvvY0YpTADc20Y1eDk/x0E1QdIGLuHM1aH584r0Vy3bPzyFzm4I4
+         zMwA==
+X-Gm-Message-State: AOAM532m9TZL/JTh6jAeztp+0VgpMq3AVerQr+62m8MbIEdSopE67BPc
+        BpbKjvaxR1kfdHkettU9iGeB8GHwJwM3HAx9sVGrfoAtRGQ=
+X-Google-Smtp-Source: ABdhPJxldYFt8VB/Fb6j2OJaqocIup4wl0aecxSWvfz9Ylh3Q+3SfIpc+uclNn3wPkknk3HxH2nbdHsWLOIp5p56KbM=
+X-Received: by 2002:a05:6e02:14ce:: with SMTP id o14mr2463823ilk.9.1606991807424;
+ Thu, 03 Dec 2020 02:36:47 -0800 (PST)
 MIME-Version: 1.0
-References: <20201130030039.596801-1-sargun@sargun.me> <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
-In-Reply-To: <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
+References: <20201202092720.41522-1-sargun@sargun.me> <20201202150747.GB147783@redhat.com>
+ <f2fc7d688417a1da3d94e819afed6bab404da51f.camel@redhat.com>
+ <20201202172906.GE147783@redhat.com> <20201202184936.GA17139@ircssh-2.c.rugged-nimbus-611.internal>
+In-Reply-To: <20201202184936.GA17139@ircssh-2.c.rugged-nimbus-611.internal>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 3 Dec 2020 12:32:28 +0200
-Message-ID: <CAOQ4uxhU=eWAfTn8DJ7x4NZ2PO9Q9V7Ohpj9aTasXg3KcfFpMA@mail.gmail.com>
-Subject: Re: [PATCH] overlay: Plumb through flush method
+Date:   Thu, 3 Dec 2020 12:36:36 +0200
+Message-ID: <CAOQ4uxjVvh3b=V=saA96i4U2E=tZWBxH_JJL-HcrfTomSx-hFA@mail.gmail.com>
+Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error behaviour
 To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>
+Cc:     Vivek Goyal <vgoyal@redhat.com>, Jeff Layton <jlayton@redhat.com>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Dec 3, 2020 at 12:16 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> > > > How did you finally end up testing the error case. Want to simualate
+> > > > error aritificially and test it.
+> > > >
 >
-> On Sun, Nov 29, 2020 at 7:00 PM Sargun Dhillon <sargun@sargun.me> wrote:
-> >
-> > Filesystems can implement their own flush method that release
-> > resources, or manipulate caches. Currently if one of these
-> > filesystems is used with overlayfs, the flush method is not called.
-> >
-> > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
-> > Cc: linux-fsdevel@vger.kernel.org
-> > Cc: linux-unionfs@vger.kernel.org
-> > Cc: Miklos Szeredi <miklos@szeredi.hu>
-> > Cc: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  fs/overlayfs/file.c | 11 +++++++++++
-> >  1 file changed, 11 insertions(+)
-> >
-> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> > index efccb7c1f9bc..802259f33c28 100644
-> > --- a/fs/overlayfs/file.c
-> > +++ b/fs/overlayfs/file.c
-> > @@ -787,6 +787,16 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
-> >                             remap_flags, op);
-> >  }
-> >
-> > +static int ovl_flush(struct file *file, fl_owner_t id)
-> > +{
-> > +       struct file *realfile = file->private_data;
-> > +
-> > +       if (realfile->f_op->flush)
-> > +               return realfile->f_op->flush(realfile, id);
-> > +
-> > +       return 0;
-> > +}
-> > +
-> >  const struct file_operations ovl_file_operations = {
-> >         .open           = ovl_open,
-> >         .release        = ovl_release,
-> > @@ -798,6 +808,7 @@ const struct file_operations ovl_file_operations = {
-> >         .fallocate      = ovl_fallocate,
-> >         .fadvise        = ovl_fadvise,
-> >         .unlocked_ioctl = ovl_ioctl,
-> > +       .flush          = ovl_flush,
-> >  #ifdef CONFIG_COMPAT
-> >         .compat_ioctl   = ovl_compat_ioctl,
-> >  #endif
-> > --
-> > 2.25.1
-> >
+> I used the blockdev error injection layer. It only works with ext2, because
+> ext4 (and other filesystems) will error and go into readonly.
 >
-> Amir, Miklos,
-> Is this acceptable? I discovered this being a problem when we had the discussion
-> of whether the volatile fs should return an error on close on dirty files.
-
-Yes, looks ok.
-Maybe we want to check if the realfile is upper although
-maybe flush can release resources also on read only fs?
-
+> dd if=/dev/zero of=/tmp/loop bs=1M count=100
+> losetup /dev/loop8 /tmp/loop
+> mkfs.ext2 /dev/loop8
+> mount -o errors=continue /dev/loop8 /mnt/loop/
+> mkdir -p /mnt/loop/{upperdir,workdir}
+> mount -t overlay -o volatile,index=off,lowerdir=/root/lowerdir,upperdir=/mnt/loop/upperdir,workdir=/mnt/loop/workdir none /mnt/foo/
+> echo 1 > /sys/block/loop8/make-it-fail
+> echo 100 > /sys/kernel/debug/fail_make_request/probability
+> echo 1 > /sys/kernel/debug/fail_make_request/times
+> dd if=/dev/zero of=/mnt/foo/zero bs=1M count=1
+> sync
 >
-> It seems like it would be useful if anyone uses NFS, or CIFS as an upperdir.
+> I tried to get XFS tests working, but I was unable to get a simpler repro than
+> above. This is also easy enough to do with a simple kernel module. Maybe it'd be
+> neat to be able to inject in errseq increments via the fault injection API one
+> day? I have no idea what the VFS's approach here is.
+>
 
-They are not supported as upperdir. only FUSE is.
+Here you go. A simple xfstest:
+
+https://github.com/amir73il/xfstests/commits/ovl-volatile
+
+It passes with check -overlay on xfs/ext4 and it fails if you uncomment
+the -o volatile mount option
+
+Just move it to the tests/overlay/ tests and add syncfs (I wasn't sure
+about how to do that).
 
 Thanks,
 Amir.
