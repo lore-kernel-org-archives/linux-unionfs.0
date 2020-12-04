@@ -2,498 +2,224 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 054D5C433FE
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 23:38:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8B87C433FE
+	for <linux-unionfs@archiver.kernel.org>; Fri,  4 Dec 2020 06:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B9622223E
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Dec 2020 23:38:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 945BC22582
+	for <linux-unionfs@archiver.kernel.org>; Fri,  4 Dec 2020 06:46:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727272AbgLCXi0 (ORCPT
+        id S1725601AbgLDGqP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Dec 2020 18:38:26 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:46119 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726179AbgLCXi0 (ORCPT
+        Fri, 4 Dec 2020 01:46:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50418 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1725372AbgLDGqP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Dec 2020 18:38:26 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607038617;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=9RXlxY4ryr9uCbDG0Hiddecr5dTmJ6jZt7zGDf+W8Kk=;
-        b=i0BWT4wVfs2/He17miwuFhXPLN1I3VxBt1eUQV3VmNV5RNIAgtlrHwtGGuzcd+rm5SnLnd
-        v626Q2Muko+fDA1QQHzmuOMmXHZJjfcuO0e8VwGNjJvAkRSPOG6gPj1DtAnwze1m0jvoqI
-        kOKzDAnZ+bJnKHpRVL65VNDMwwjcdo0=
-Received: from mail-qv1-f71.google.com (mail-qv1-f71.google.com
- [209.85.219.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-555-jCg-Qr8VOZyK5HiwF2_N_w-1; Thu, 03 Dec 2020 18:36:56 -0500
-X-MC-Unique: jCg-Qr8VOZyK5HiwF2_N_w-1
-Received: by mail-qv1-f71.google.com with SMTP id t3so3063264qvp.13
-        for <linux-unionfs@vger.kernel.org>; Thu, 03 Dec 2020 15:36:56 -0800 (PST)
+        Fri, 4 Dec 2020 01:46:15 -0500
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F327AC061A51;
+        Thu,  3 Dec 2020 22:45:28 -0800 (PST)
+Received: by mail-io1-xd42.google.com with SMTP id n14so4699753iom.10;
+        Thu, 03 Dec 2020 22:45:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ji7lnODD86OvcD1GRe4ZTKTW6GNjOwZtQgzj2MJUj5Y=;
+        b=Xywy5lY0sw6zLewJ8SPDNBMYMRLQlehPbQhyCgwvXevAeo6l8yz0F4w4kNeocgEVfN
+         NiFgslqN2xxX4bcGQIH/Bl161QFnq8T9Bx6HCmBq5snZCMXY2TrBL9EzGdmeb+6Csy1v
+         KK487zppO+/WMn4yI9ncldbCzNURZEqMbMviU6TB7p8H1vH0pPYkJaYRz4AOZxHsquzP
+         n3InRm/k74U5weGUlFpMfMeOmknVJplk/rUrbDngzAqZN1H6oy/DpNexQ5j861dc94Pf
+         chbMxbOCyRf54wDcvlCm2CyafF6pIS1aHWfC2LOgk6c+YLNodLI3W0BxEgXeL82TmkFg
+         yH6g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:message-id:subject:from:to:cc:date:in-reply-to
-         :references:user-agent:mime-version:content-transfer-encoding;
-        bh=9RXlxY4ryr9uCbDG0Hiddecr5dTmJ6jZt7zGDf+W8Kk=;
-        b=lcJPjOT1eu3pl9pE431CLWQ8Een8R+MpzjYYmysHgfHT6GrzzRJ6ugS7xNNxndpwOC
-         oyaLYEXKxxLjNQyZuIHitj5MCZYUtqrxOkJQWVTph1M7dADASP1BwMdSmYutk9MBUUX7
-         o/Lvi95f3jeJ4v8keLlu4w9PXEPBT22RJYKbLJCsglAP1rPCE7wDj7N3fk5pFolqldWp
-         M82opakKR6nC6cMuml7nOZdPuui/Ffzh/0e+uEnqQYlqTo8dBWbGyFyuviK5qDbT3ZKt
-         PBS34pTD1SpeipwUGgoNpa+K5hF/nW23p9UXGBwqd1WZijVEKYxQ08UsYwAxF6jvUGOj
-         c90w==
-X-Gm-Message-State: AOAM531viq1/5XYFNCDynJodsJ9XmkokUIQ1EbL/+BGSun6R8qeSk/85
-        aslAlziIrIJezgdh/UvNHcmuwBHftZxXZnnJWSbECwyFYjvQs3oHOvK21VdkVtxfiL3pUILGGTz
-        3SVmQdlE5FomzjCDbkXqQdBUj2A==
-X-Received: by 2002:ad4:4743:: with SMTP id c3mr1877299qvx.62.1607038615399;
-        Thu, 03 Dec 2020 15:36:55 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJzBFQ7x1ux7s/w+i3TdtRT6yQmVvJ/1rCDCZxYunw7rVOfrqPmxYnP2iktc85CzrdQ9dMlULg==
-X-Received: by 2002:ad4:4743:: with SMTP id c3mr1877263qvx.62.1607038614979;
-        Thu, 03 Dec 2020 15:36:54 -0800 (PST)
-Received: from tleilax.poochiereds.net (68-20-15-154.lightspeed.rlghnc.sbcglobal.net. [68.20.15.154])
-        by smtp.gmail.com with ESMTPSA id c14sm2625618qtc.90.2020.12.03.15.36.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 03 Dec 2020 15:36:54 -0800 (PST)
-Message-ID: <742b7c180d4fe18ddbf28fea6505b08475c4aace.camel@redhat.com>
-Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error
- behaviour
-From:   Jeff Layton <jlayton@redhat.com>
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Sargun Dhillon <sargun@sargun.me>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ji7lnODD86OvcD1GRe4ZTKTW6GNjOwZtQgzj2MJUj5Y=;
+        b=tXNdVTdL1YqFgl+cT6ZrKr6SKZALH1aHqCVvKh/gQ34Tx128yD3WFfWddN1otK8q22
+         VM2xaof0d6uFjxikfofBcqX8T3sAw3D7t6HMODIFILlOvckgz0px2orhXKMvWUu5ACCd
+         coneHB3YhvV78VoeuX0DKU5m7RUeIauA//91TMWp4IJNsh5sttWNeKUuiYEHu/aXUsN7
+         hbS3r1XrkmVowYWKoOcV6TdGWLX/bF8eVJogZD7stJ0dkcrEE2KE2fAUlRT3awRGRymb
+         dGZmt3X5E/RnkvCkYCJBMb/miWmRWCU60KYiyxjDcXnMBeCGQjJc31gnjIQzrMlqrbYg
+         TZ/A==
+X-Gm-Message-State: AOAM532ZGqjwXgcNS51CrWwGpXAWeLZ7aYzdNMi8GjrX1jx7OoSxrLX2
+        KRpEFN2g17aTGiPVC219zfBMncIAgSpIzJK7ohQ5Z4vd
+X-Google-Smtp-Source: ABdhPJz0TmpZazTiLodDcK5J3SQTBxG5R/x9rowDVhVbo18nFcgok/i+8nQlLzanpBl2Tedb3yrm17jzTNiAYGWwtTs=
+X-Received: by 2002:a05:6602:1608:: with SMTP id x8mr4362983iow.72.1607064328278;
+ Thu, 03 Dec 2020 22:45:28 -0800 (PST)
+MIME-Version: 1.0
+References: <0a3979479ffbf080fa1cd492923a7fa8984078b9.camel@redhat.com>
+ <20201202213434.GA4070@redhat.com> <2e08895bf0650513d7d12e66965eec611f361be3.camel@redhat.com>
+ <20201203104225.GA30173@ircssh-2.c.rugged-nimbus-611.internal>
+ <20201203142712.GA3266@redhat.com> <93894cddefff0118d8b1f5f69816da519cb0a735.camel@redhat.com>
+ <CAMp4zn_Mn8khp43XvNbAPg5qzriRY6ozdB2enMOTYRLwcBf_Cw@mail.gmail.com>
+ <e5534c44661a503102cd23965a85291f0dec907a.camel@redhat.com>
+ <20201203204356.GF3266@redhat.com> <b38de55c91ecd7b1102c62cb36e81bb156748d1c.camel@redhat.com>
+ <20201203222457.GB12683@redhat.com> <742b7c180d4fe18ddbf28fea6505b08475c4aace.camel@redhat.com>
+In-Reply-To: <742b7c180d4fe18ddbf28fea6505b08475c4aace.camel@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 4 Dec 2020 08:45:16 +0200
+Message-ID: <CAOQ4uxgjrL3aCK+aO1Wrs7qaKWNmKnAWBQaDXO-hzCR4eBmdMg@mail.gmail.com>
+Subject: Re: [PATCH] overlay: Implement volatile-specific fsync error behaviour
+To:     Jeff Layton <jlayton@redhat.com>, Vivek Goyal <vgoyal@redhat.com>,
+        Sargun Dhillon <sargun@sargun.me>
+Cc:     Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Matthew Wilcox <willy@infradead.org>
-Date:   Thu, 03 Dec 2020 18:36:53 -0500
-In-Reply-To: <20201203222457.GB12683@redhat.com>
-References: <0a3979479ffbf080fa1cd492923a7fa8984078b9.camel@redhat.com>
-         <20201202213434.GA4070@redhat.com>
-         <2e08895bf0650513d7d12e66965eec611f361be3.camel@redhat.com>
-         <20201203104225.GA30173@ircssh-2.c.rugged-nimbus-611.internal>
-         <20201203142712.GA3266@redhat.com>
-         <93894cddefff0118d8b1f5f69816da519cb0a735.camel@redhat.com>
-         <CAMp4zn_Mn8khp43XvNbAPg5qzriRY6ozdB2enMOTYRLwcBf_Cw@mail.gmail.com>
-         <e5534c44661a503102cd23965a85291f0dec907a.camel@redhat.com>
-         <20201203204356.GF3266@redhat.com>
-         <b38de55c91ecd7b1102c62cb36e81bb156748d1c.camel@redhat.com>
-         <20201203222457.GB12683@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.1 (3.38.1-1.fc33) 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2020-12-03 at 17:24 -0500, Vivek Goyal wrote:
-> On Thu, Dec 03, 2020 at 04:36:45PM -0500, Jeff Layton wrote:
-> > On Thu, 2020-12-03 at 15:43 -0500, Vivek Goyal wrote:
-> > > On Thu, Dec 03, 2020 at 12:50:58PM -0500, Jeff Layton wrote:
-> > > > On Thu, 2020-12-03 at 09:08 -0800, Sargun Dhillon wrote:
-> > > > > On Thu, Dec 3, 2020 at 7:20 AM Jeff Layton <jlayton@redhat.com> wrote:
-> > > > > > 
-> > > > > > On Thu, 2020-12-03 at 09:27 -0500, Vivek Goyal wrote:
-> > > > > > > On Thu, Dec 03, 2020 at 10:42:26AM +0000, Sargun Dhillon wrote:
-> > > > > > > > On Wed, Dec 02, 2020 at 04:52:33PM -0500, Jeff Layton wrote:
-> > > > > > > > > On Wed, 2020-12-02 at 16:34 -0500, Vivek Goyal wrote:
-> > > > > > > > > > On Wed, Dec 02, 2020 at 02:26:23PM -0500, Jeff Layton wrote:
-> > > > > > > > > > [..]
-> > > > > > > > > > > > > > > > > +         upper_mnt_sb = ovl_upper_mnt(ofs)->mnt_sb;
-> > > > > > > > > > > > > > > > > +         sb->s_stack_depth = upper_mnt_sb->s_stack_depth;
-> > > > > > > > > > > > > > > > > +         sb->s_time_gran = upper_mnt_sb->s_time_gran;
-> > > > > > > > > > > > > > > > > +         ofs->upper_errseq = errseq_sample(&upper_mnt_sb->s_wb_err);
-> > > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > > I asked this question in last email as well. errseq_sample() will return
-> > > > > > > > > > > > > > > > 0 if current error has not been seen yet. That means next time a sync
-> > > > > > > > > > > > > > > > call comes for volatile mount, it will return an error. But that's
-> > > > > > > > > > > > > > > > not what we want. When we mounted a volatile overlay, if there is an
-> > > > > > > > > > > > > > > > existing error (seen/unseen), we don't care. We only care if there
-> > > > > > > > > > > > > > > > is a new error after the volatile mount, right?
-> > > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > > I guess we will need another helper similar to errseq_smaple() which
-> > > > > > > > > > > > > > > > just returns existing value of errseq. And then we will have to
-> > > > > > > > > > > > > > > > do something about errseq_check() to not return an error if "since"
-> > > > > > > > > > > > > > > > and "eseq" differ only by "seen" bit.
-> > > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > > Otherwise in current form, volatile mount will always return error
-> > > > > > > > > > > > > > > > if upperdir has error and it has not been seen by anybody.
-> > > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > > How did you finally end up testing the error case. Want to simualate
-> > > > > > > > > > > > > > > > error aritificially and test it.
-> > > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > If you don't want to see errors that occurred before you did the mount,
-> > > > > > > > > > > > > > > then you probably can just resurrect and rename the original version of
-> > > > > > > > > > > > > > > errseq_sample. Something like this, but with a different name:
-> > > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > > +errseq_t errseq_sample(errseq_t *eseq)
-> > > > > > > > > > > > > > > +{
-> > > > > > > > > > > > > > > +       errseq_t old = READ_ONCE(*eseq);
-> > > > > > > > > > > > > > > +       errseq_t new = old;
-> > > > > > > > > > > > > > > +
-> > > > > > > > > > > > > > > +       /*
-> > > > > > > > > > > > > > > +        * For the common case of no errors ever having been set, we can skip
-> > > > > > > > > > > > > > > +        * marking the SEEN bit. Once an error has been set, the value will
-> > > > > > > > > > > > > > > +        * never go back to zero.
-> > > > > > > > > > > > > > > +        */
-> > > > > > > > > > > > > > > +       if (old != 0) {
-> > > > > > > > > > > > > > > +               new |= ERRSEQ_SEEN;
-> > > > > > > > > > > > > > > +               if (old != new)
-> > > > > > > > > > > > > > > +                       cmpxchg(eseq, old, new);
-> > > > > > > > > > > > > > > +       }
-> > > > > > > > > > > > > > > +       return new;
-> > > > > > > > > > > > > > > +}
-> > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > Yes, a helper like this should solve the issue at hand. We are not
-> > > > > > > > > > > > > > interested in previous errors. This also sets the ERRSEQ_SEEN on
-> > > > > > > > > > > > > > sample and it will also solve the other issue when after sampling
-> > > > > > > > > > > > > > if error gets seen, we don't want errseq_check() to return error.
-> > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > Thinking of some possible names for new function.
-> > > > > > > > > > > > > > 
-> > > > > > > > > > > > > > errseq_sample_seen()
-> > > > > > > > > > > > > > errseq_sample_set_seen()
-> > > > > > > > > > > > > > errseq_sample_consume_unseen()
-> > > > > > > > > > > > > > errseq_sample_current()
-> > > > > > > > > > > > > > 
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > errseq_sample_consume_unseen() sounds good, though maybe it should be
-> > > > > > > > > > > > > "ignore_unseen"? IDK, naming this stuff is the hardest part.
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > If you don't want to add a new helper, I think you'd probably also be
-> > > > > > > > > > > > > able to do something like this in fill_super:
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â errseq_sample()
-> > > > > > > > > > > > > Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â Ãƒâ€šÃ‚Â errseq_check_and_advance()
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > 
-> > > > > > > > > > > > > ...and just ignore the error returned by the check and advance. At that
-> > > > > > > > > > > > > point, the cursor should be caught up and any subsequent syncfs call
-> > > > > > > > > > > > > should return 0 until you record another error. It's a little less
-> > > > > > > > > > > > > efficient, but only slightly so.
-> > > > > > > > > > > > 
-> > > > > > > > > > > > This seems even better.
-> > > > > > > > > > > > 
-> > > > > > > > > > > > Thinking little bit more. I am now concerned about setting ERRSEQ_SEEN on
-> > > > > > > > > > > > sample. In our case, that would mean that we consumed an unseen error but
-> > > > > > > > > > > > never reported it back to user space. And then somebody might complain.
-> > > > > > > > > > > > 
-> > > > > > > > > > > > This kind of reminds me posgresql's fsync issues where they did
-> > > > > > > > > > > > writes using one fd and another thread opened another fd and
-> > > > > > > > > > > > did sync and they expected any errors to be reported.
-> > > > > > > > > > > > 
-> > > > > > > > > > > 
-> > > > > > > > > > > > Similary what if an unseen error is present on superblock on upper
-> > > > > > > > > > > > and if we mount volatile overlay and mark the error SEEN, then
-> > > > > > > > > > > > if another process opens a file on upper and did syncfs(), it will
-> > > > > > > > > > > > complain that exisiting error was not reported to it.
-> > > > > > > > > > > > 
-> > > > > > > > > > > > Overlay use case seems to be that we just want to check if an error
-> > > > > > > > > > > > has happened on upper superblock since we sampled it and don't
-> > > > > > > > > > > > want to consume that error as such. Will it make sense to introduce
-> > > > > > > > > > > > two helpers for error sampling and error checking which mask the
-> > > > > > > > > > > > SEEN bit and don't do anything with it. For example, following compile
-> > > > > > > > > > > > tested only patch.
-> > > > > > > > > > > > 
-> > > > > > > > > > > > Now we will not touch SEEN bit at all. And even if SEEN gets set
-> > > > > > > > > > > > since we sampled, errseq_check_mask_seen() will not flag it as
-> > > > > > > > > > > > error.
-> > > > > > > > > > > > 
-> > > > > > > > > > > > Thanks
-> > > > > > > > > > > > Vivek
-> > > > > > > > > > > > 
-> > > > > > > > > > > 
-> > > > > > > > > > > Again, you're not really hiding this from anyone doing something _sane_.
-> > > > > > > > > > > You're only hiding an error from someone who opens the file after an
-> > > > > > > > > > > error occurs and expects to see an error.
-> > > > > > > > > > > 
-> > > > > > > > > > > That was the behavior for fsync before we switched to errseq_t, and we
-> > > > > > > > > > > had to change errseq_sample for applications that relied on that. syncfs
-> > > > > > > > > > > reporting these errors is pretty new however. I don't think we
-> > > > > > > > > > > necessarily need to make the same guarantees there.
-> > > > > > > > > > > 
-> > > > > > > > > > > The solution to all of these problems is to ensure that you open the
-> > > > > > > > > > > files early you're issuing syncfs on and keep them open. Then you'll
-> > > > > > > > > > > always see any subsequent errors.
-> > > > > > > > > > 
-> > > > > > > > > > Ok. I guess we will have to set SEEN bit during error_sample otherwise,
-> > > > > > > > > > we miss errors. I had missed this point.
-> > > > > > > > > > 
-> > > > > > > > > > So mounting a volatile overlay instance will become somewhat
-> > > > > > > > > > equivalent of as if somebody did a syncfs on upper, consumed
-> > > > > > > > > > error and did not do anything about it.
-> > > > > > > > > > 
-> > > > > > > > > > If a user cares about not losing such errors, they need to keep an
-> > > > > > > > > > fd open on upper.
-> > > > > > > > > > 
-> > > > > > > > > > /me hopes that this does not become an issue for somebody. Even
-> > > > > > > > > > if it does, one workaround can be don't do volatile overlay or
-> > > > > > > > > > don't share overlay upper with other conflicting workload.
-> > > > > > > > > > 
-> > > > > > > > > 
-> > > > > > > > > Yeah, there are limits to what we can do with 32 bits.
-> > > > > > > > > 
-> > > > > > > > > It's not pretty, but I guess you could pr_warn at mount time if you find
-> > > > > > > > > an unseen error. That would at least not completely drop it on the
-> > > > > > > > > floor.
-> > > > > > > > > 
-> > > > > > > > > --
-> > > > > > > > > Jeff Layton <jlayton@redhat.com>
-> > > > > > > > > 
-> > > > > > > > 
-> > > > > > > > If I may enumerate our choices to help my own understanding, and
-> > > > > > > > come up with a decent decision on how to proceed:
-> > > > > > > > 
-> > > > > > > > 1. If the filesystem has an unseen error, pr_warn.
-> > > > > > > > 2. If the filesystem has an unseen error, refuse to mount it until
-> > > > > > > >    the user clears the error (via syncfs?).
-> > > > > > > > 3. Ignore the beginning state of the upperdir
-> > > > > > > > 4. Increment the errseq_t.
-> > > > > > > > 5. A combination of #1, and #2 and require the user to mount
-> > > > > > > >    -o reallyvolatile or smoe such.
-> > > > > > > > 
-> > > > > > > > Now the downsides of each of these options:
-> > > > > > > > 
-> > > > > > > > 1. The user probably won't look at these errors. Especially,
-> > > > > > > >    if the application is a container runtime, and these are
-> > > > > > > >    happening on behalf of the application in an automated fashion.
-> > > > > > > > 2. Forcing a syncfs on most filesystems is a massively costly
-> > > > > > > >    operation that we want to avoid with the volatile operation.
-> > > > > > > >    Also, go back to #1. Until we implement the new FS API, we
-> > > > > > > >    can't easily give meaningful warnings to users that they
-> > > > > > > >    can programatically act on (unless we use some special errno).
-> > > > > > > > 3. This is a noop.
-> > > > > > > > 4. We can hide errors from other users of the upperdir if they
-> > > > > > > >    rely on syncfs semantics rather than per-fd fsync semantics
-> > > > > > > >    to check if the filesystem is "clean".
-> > > > > > > > 5. See the issues with #1 and #2.
-> > > > > > > > 
-> > > > > > > > I'm also curious as to how the patchset that allows for partial
-> > > > > > > > sync is going to deal with this problem [1].
-> > > > > > > > 
-> > > > > > > > There is one other proposal I have, which is we define errseq_t
-> > > > > > > > as two structures:
-> > > > > > > > -errseq_t errseq_set(errseq_t *eseq, int err);
-> > > > > > > > +/* For use on the publishing-side of errseq */
-> > > > > > > > +struct errseq_publisher {
-> > > > > > > > +        atomic_t        errors;
-> > > > > > > > +        errseq_t        errseq_t
-> > > > > > > > +};
-> > > > > > > > +
-> > > > > > > > +errseq_t errseq_set(struct errseq_publisher *eseq, int err);
-> > > > > > > > 
-> > > > > > > > And errseq_publisher is on the superblock, and errors is always incremented no
-> > > > > > > > matter what. We risk wrapping, but I think this falls into Jeff's "sane" test --
-> > > > > > > > if there are 2**32+ errors without someone doing an fsync, or noticing, you
-> > > > > > > > might have other problems.
-> > > > > > > > 
-> > > > > > > > This has two (and a half) downsides:
-> > > > > > > > 1. It is a potential performance concern to introduce an atomic here.
-> > > > > > > 
-> > > > > > > Is updation of errseq_t performance sensitive path. Updation happens in
-> > > > > > > error path and I would think that does not happen often. If that's the
-> > > > > > > case, it should not be very performance sensitive path.
-> > > > > > > 
-> > > > > > > I agree that warning on unseen error is probably not enough. Applications
-> > > > > > > can't do much with that. To me it boils down to two options.
-> > > > > > > 
-> > > > > > > A. Live with the idea of swallowing the unseen error on syncfs (if caller
-> > > > > > >    did not keep an fd open).
-> > > > > > > 
-> > > > > > > B. Extend errseq infrastcture in such a way so that we can detect new
-> > > > > > >    error without marking error SEEN.
-> > > > > > > 
-> > > > > > > It feels as if B is a safter choice but will be more work. With A, problem
-> > > > > > > is that behavior will be different in difference scenarios and it will then
-> > > > > > > become difficult to justify.
-> > > > > > > 
-> > > > > > > - fsync and syncfs behavior will be different w.r.t UNSEEN error.
-> > > > > > > - syncfs behavior will be different depending on if volatile overlay
-> > > > > > >   mounts are being used on this filesystem or not.
-> > > > > > > 
-> > > > > > 
-> > > > > > (cc'ing Willy since he helped a lot with this work)
-> > > > > > 
-> > > > > > The design for fsync is a bit odd, in that we had to preserve historical
-> > > > > > behavior. Note that we didn't get it right at first. Our original
-> > > > > > assumption was that applications wouldn't expect to see any writeback
-> > > > > > errors that occurred before they opened the file. That turned out to be
-> > > > > > wrong, and Willy fixed that by ensuring that unseen errors would be
-> > > > > > reported once to the next task to do an fsync [1].
-> > > > > > 
-> > > > > > I'm not sure how you could change the behavior to accomodate the desire
-> > > > > > for B. One idea: you could do away with the optimization that doesn't
-> > > > > > bump the counter and record a new error when no one has seen the
-> > > > > > previous one yet, and it's the same error. That would increase the
-> > > > > > chances of the counter wrapping around however.
-> > > > > > 
-> > > > > 
-> > > > > I personally like this approach. If the concerns of counter-wrap or performance
-> > > > > are well-founded, what do you think of adding the atomic which is
-> > > > > incremented only when the seen bit is unset, effectively giving publishers
-> > > > > 52 (32 + 20) bits of space to prevent wraparound? And subscribers can
-> > > > > optionally opt to have 52-bit values to check against?
-> > > > > 
-> > > > 
-> > > > That seems a bit hacky. I think if you're going to do that, then you
-> > > > might as well just build 64-bit errseq_t infrastructure and move to
-> > > > that. You could still just sample and test against the bottom 32 bits.
-> > > > 
-> > > > The problem there though is that growing struct address_space or struct
-> > > > file for this is somewhat unpalatable. It would be nice to keep all of
-> > > > this within 32 bits.
-> > > > 
-> > > > I think the best option is probably to just work to restructure the
-> > > > syncfs code so that overlayfs can override the logic in the syncfs
-> > > > syscall wrapper and return an error of its choosing to a syncfs()
-> > > > syscall.
-> > > > 
-> > > > It's a more radical change, but maybe we could add a new
-> > > > sb->s_op->syncfs operation, and turn the guts of the old syncfs syscall
-> > > > wrapper into a generic helper.
-> > > > 
-> > > > The naming is a little confusing with an existing sync_fs op, however,
-> > > > but maybe we could transition all of the old sync_fs ops to the new one
-> > > > and get rid of ->sync_fs. That's a more invasive set though, and you'd
-> > > > need to preserve the existing behavior everywhere.
-> > > > 
-> > > > Once you have that, you could just use the "realfile" in
-> > > > private_data for your syncfs op and everything should "just work".
-> > > 
-> > > This should work for regular overlayfs where calling syncfs() on
-> > > overlay will result in calling syncfs() on underlying filesystem 
-> > > and help propagating error back, IIUC.
-> > > 
-> > > But for this specific use case, of volatile mount, we want to find
-> > > out if underlying filesystem superblock had a writeback error since
-> > > we mounted overlay instance, without calling syncfs() on underlying
-> > > filesystem. And we don't want to consume existing error on underlying
-> > > super block fearing applications will complain.
-> > > 
-> > 
-> > Why? If you're not planning to do anything with the error then why check
-> > for it in the first place? Maybe I don't really understand what you're
-> > trying to do with this.
-> > 
-> 
-> Here is the background.
-> 
-> We introduced a new option "-o volatile" for overlayfs. What this option
-> does is that it disables all calls to sync/syncfs/fsync and returns
-> success.
-> 
-> https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html?highlight=overlayfs#volatile-mount
-> 
-> Now one problem with this we realized is that what happens if there is
-> a writeback error on upper filesystem. Previously fsync will catch
-> that error and return to user space. Now we are not doing any actual
-> sync for volatile mount, so we don't have a way to detect if any
-> writeback error happened on upper filesystem.
-> 
-> So it is possible that an application writes something to overlay
-> volatile mount and gets back corrupted/old data.
-> 
-> - App writes something.
-> - Writeback of that page fails
-> - app does fsync, which succeds without doing any sync.
-> - app reads back page and can get old data if page has been evicted out
->   of cache.
-> 
-> So we lost capability to return writeback errors to user space with
-> volatile mounts. So Amir/Sargun proposed that lets take snapshot
-> of upper ->s_wb_err when volatile overlay is being mounted. And
-> on every sync/fsync call check if any error has happened on upper
-> since volatile overlay has been mounted. If yes, return error to 
-> user space. 
-> 
-> In fact, Idea is that once an error has been detected, volatile
-> overlay should effectively return -EIO for all the operations. IOW,
-> one should now unmount it, throw away upper and restart again.
-> 
-> 
-> > If it turns out that you just want to see if it ever had an error, you
-> > can always use errseq_check with 0 as the "since" value and that will
-> > tell you without marking or advancing anything. It's not clear to me
-> > what the value of that is here though.
-> 
-> I think "since == 0" will not work. Say upper already has an error
-> (seen/unseen), then errseq_check() will always return error. We
-> don't want that. We don't care if upper has an seen/unseen error
-> at the time when we sample it. What we care about is that if
-> there is an error after we sampled, we can detect that and make
-> whole volatile mount bad.
-> 
-> > 
-> > > So key requirement here seems to be being able to detect error
-> > > on underlying superblock without consuming the unseen error.
-> > > 
-> > 
-> > I think for overlayfs what you really want to do is basically "proxy"
-> > fsync and syncfs calls to the upper layer. Then you should just be able
-> > to use the upper layer's "realfile" when doing fsync/syncfs. You won't
-> > need to sample anything at mount time that way as it should just happen
-> > naturally when you open files on overlayfs.
-> 
-> Which we already do, right? ovl_fsync()/ovl_sync() result in a
-> call on upper. This probably can be improve futher.
-> 
-> > 
-> > That does mean you may need to rework how the syncfs syscall dispatches
-> > to the filesystem, but that's not too difficult in principle.
-> 
-> I think we are looking at two overlay cases here. One is regular
-> overlayfs where syncfs() needs to be reworked to propagate errors
-> from upper/ to all the way to application. Right now VFS ignores
-> error returned from ->sync_fs. 
-> 
-> The other case we are trying to solve right now is volatile mount.
-> Where we will not actually call fsync/sync_filesystem() on upper
-> but still want to detect if any error happened since we mounted
-> this volatile mount. 
-> 
-> And that's why all this discussion of being able to detect an
-> error on super block without actually consuming the error. Once
-> we detect that some error has happened on upper since we mounted,
-> we can start returning errors for all I/O operations to user and
-> user is supposed to unmount and throw away upper dir and restart.
-> 
+> > Here is the background.
+> >
+> > We introduced a new option "-o volatile" for overlayfs. What this option
+> > does is that it disables all calls to sync/syncfs/fsync and returns
+> > success.
+> >
+> > https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html?highlight=overlayfs#volatile-mount
+> >
+> > Now one problem with this we realized is that what happens if there is
+> > a writeback error on upper filesystem. Previously fsync will catch
+> > that error and return to user space. Now we are not doing any actual
+> > sync for volatile mount, so we don't have a way to detect if any
+> > writeback error happened on upper filesystem.
+> >
+> > So it is possible that an application writes something to overlay
+> > volatile mount and gets back corrupted/old data.
+> >
+> > - App writes something.
+> > - Writeback of that page fails
+> > - app does fsync, which succeds without doing any sync.
+> > - app reads back page and can get old data if page has been evicted out
+> >   of cache.
+> >
+> > So we lost capability to return writeback errors to user space with
+> > volatile mounts. So Amir/Sargun proposed that lets take snapshot
+> > of upper ->s_wb_err when volatile overlay is being mounted. And
+> > on every sync/fsync call check if any error has happened on upper
+> > since volatile overlay has been mounted. If yes, return error to
+> > user space.
+> >
+> > In fact, Idea is that once an error has been detected, volatile
+> > overlay should effectively return -EIO for all the operations. IOW,
+> > one should now unmount it, throw away upper and restart again.
+> >
+> >
+> > > If it turns out that you just want to see if it ever had an error, you
+> > > can always use errseq_check with 0 as the "since" value and that will
+> > > tell you without marking or advancing anything. It's not clear to me
+> > > what the value of that is here though.
+> >
+> > I think "since == 0" will not work. Say upper already has an error
+> > (seen/unseen), then errseq_check() will always return error. We
+> > don't want that. We don't care if upper has an seen/unseen error
+> > at the time when we sample it. What we care about is that if
+> > there is an error after we sampled, we can detect that and make
+> > whole volatile mount bad.
+> >
+> > >
+> > > > So key requirement here seems to be being able to detect error
+> > > > on underlying superblock without consuming the unseen error.
+> > > >
+> > >
+> > > I think for overlayfs what you really want to do is basically "proxy"
+> > > fsync and syncfs calls to the upper layer. Then you should just be able
+> > > to use the upper layer's "realfile" when doing fsync/syncfs. You won't
+> > > need to sample anything at mount time that way as it should just happen
+> > > naturally when you open files on overlayfs.
+> >
+> > Which we already do, right? ovl_fsync()/ovl_sync() result in a
+> > call on upper. This probably can be improve futher.
+> >
+> > >
+> > > That does mean you may need to rework how the syncfs syscall dispatches
+> > > to the filesystem, but that's not too difficult in principle.
+> >
+> > I think we are looking at two overlay cases here. One is regular
+> > overlayfs where syncfs() needs to be reworked to propagate errors
+> > from upper/ to all the way to application. Right now VFS ignores
+> > error returned from ->sync_fs.
+> >
+> > The other case we are trying to solve right now is volatile mount.
+> > Where we will not actually call fsync/sync_filesystem() on upper
+> > but still want to detect if any error happened since we mounted
+> > this volatile mount.
+> >
+> > And that's why all this discussion of being able to detect an
+> > error on super block without actually consuming the error. Once
+> > we detect that some error has happened on upper since we mounted,
+> > we can start returning errors for all I/O operations to user and
+> > user is supposed to unmount and throw away upper dir and restart.
+> >
+>
+>
+> The problem here is that you want to be able to sample the thing in two
+> different ways such that you potentially get two different results
+> afterward:
+>
+> 1) the current syncfs/fsync case where we don't expect later openers to
+> be able to see the error after you take it.
+>
+> 2) the situation you want where you want to sample the errseq_t but
+> don't want to cloak an fsync on a subsequent open from seeing it
+>
+> That's fundamentally not going to work with the single SEEN flag we're
+> using now. I wonder if you could get you the semantics you want with 2
+> flags instead of 1. Basically, split the SEEN bit into two:
+>
+> 1) a bit to indicate that the counter doesn't need to be incremented the
+> next time an error is recorded (SKIP_INC)
+>
+> 2) a bit to indicate that the error has been reported in a way that was
+> returned to userland, such that later openers won't see it (SEEN)
+>
+> Then you could just add two different sorts of sampling functions. One
+> would set both bits when sampling (or advancing) and the other would
+> just set one of them.
+>
+> It's a bit more complicated than what we're doing now though and you'd
+> need to work through the logic of how the API would interact with both
+> flags.
+>
 
+This discussion is a very good exercise for my brain ;-)
+but I think we are really over complicating the requirements of volatile.
 
-The problem here is that you want to be able to sample the thing in two
-different ways such that you potentially get two different results
-afterward:
+My suggestion to sample sb error on mount was over-interpreted that
+we MUST disregard writeback errors that happened before the mount.
+I don't think this is a requirement. If anything, this is a non-requirement.
+Why? because what happens if someone unpacks the layers onto
+underlying fs (as docker most surely does) and then mounts the volatile
+overlay. The files data could have been lost in the time that passed between
+unpack of layer and overlay mount.
 
-1) the current syncfs/fsync case where we don't expect later openers to
-be able to see the error after you take it.
+Of course overlayfs can not be held responsible for the integrity of the
+layers it was handed, but why work so hard to deprive users of something
+that can benefit the integrity of their system?
 
-2) the situation you want where you want to sample the errseq_t but
-don't want to cloak an fsync on a subsequent open from seeing it
+So I think we may be prudent and say that if there is an unseen error we
+should fail the volatile mount (say ESTALE).
 
-That's fundamentally not going to work with the single SEEN flag we're
-using now. I wonder if you could get you the semantics you want with 2
-flags instead of 1. Basically, split the SEEN bit into two:
+This way userland has the fast path of mounting without syncfs in the
+common case and the fallback to slow path:
+- syncfs (consume the error)
+- unpack layers
+- volatile mount
 
-1) a bit to indicate that the counter doesn't need to be incremented the
-next time an error is recorded (SKIP_INC)
+Doesn't this make sense *and* make life simpler?
 
-2) a bit to indicate that the error has been reported in a way that was
-returned to userland, such that later openers won't see it (SEEN)
+1. On volatile mount sample sb_err and make sure no unseen error
+2. On fsync/syncfs verify no sb_err since mount
 
-Then you could just add two different sorts of sampling functions. One
-would set both bits when sampling (or advancing) and the other would
-just set one of them.
+Am I missing something?
 
-It's a bit more complicated than what we're doing now though and you'd
-need to work through the logic of how the API would interact with both
-flags.
-
--- 
-Jeff Layton <jlayton@redhat.com>
-
+Thanks,
+Amir.
