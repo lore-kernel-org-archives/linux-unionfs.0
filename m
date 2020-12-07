@@ -4,101 +4,130 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADFD6C2D0E4
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1B9C3526A
 	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Dec 2020 16:35:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82F01238E7
+	by mail.kernel.org (Postfix) with ESMTP id B5D41238E7
 	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Dec 2020 16:35:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727754AbgLGQfO (ORCPT
+        id S1726016AbgLGQfR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 7 Dec 2020 11:35:14 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:22167 "EHLO
+        Mon, 7 Dec 2020 11:35:17 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:24936 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1727700AbgLGQeg (ORCPT
+        by vger.kernel.org with ESMTP id S1727059AbgLGQee (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 Dec 2020 11:34:36 -0500
+        Mon, 7 Dec 2020 11:34:34 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1607358789;
+        s=mimecast20190719; t=1607358787;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=YovU3sr3PaW3+O202/CGPLg5GcG7AOB5YNKN3Gg/9CM=;
-        b=SELKqZWPL8dt0qmh7W9WAxh9+kvz3QVKabxzou6+nceanUenhQieJdvIV5BsbBJQ1PBGR2
-        EdEnayfAk0X4NcUq5Gx+VKSchRJD3AeeOeZEIYAPs8/6WK159ivWdHCiKhOhbuVIVJSGqj
-        MaycnwkR6WzgjUytxSl5HrT+iBBpnog=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-106-QDc9Nrq6PK-CP8L11r5kKw-1; Mon, 07 Dec 2020 11:33:04 -0500
-X-MC-Unique: QDc9Nrq6PK-CP8L11r5kKw-1
-Received: by mail-ed1-f72.google.com with SMTP id g25so3715949edu.4
-        for <linux-unionfs@vger.kernel.org>; Mon, 07 Dec 2020 08:33:04 -0800 (PST)
+         content-transfer-encoding:content-transfer-encoding;
+        bh=5e7kjkHucInmY6VdK0kaV1CkQzCu8JkZBTGnROzaxRs=;
+        b=gIgGEfoZdcnfrBgvIQmwHPWfXVOuBrLoOXfGq57mI3smHExftlxxsAWyADb2+qQjagqial
+        adbx4kezDxXCopBDuCfunX5zE9e/NbsbV/4d+JfyYxvgR+pQtR29TZbkVlyFcGBxVAVd0l
+        KlBHEIfBkGmVN2iAZSsS+IeeQfp31x0=
+Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
+ [209.85.208.71]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-525-l40YAxliN92Ru3K1sZwIgQ-1; Mon, 07 Dec 2020 11:33:00 -0500
+X-MC-Unique: l40YAxliN92Ru3K1sZwIgQ-1
+Received: by mail-ed1-f71.google.com with SMTP id cm4so2434298edb.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 07 Dec 2020 08:33:00 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=YovU3sr3PaW3+O202/CGPLg5GcG7AOB5YNKN3Gg/9CM=;
-        b=nJctsvfK1dYd9+gfwEWVx82vSd8dk7z4gIN7s667z+BatGkrvEVR1JiiKBlMoDfxfE
-         9PiWLByqWyJx503GM6DLs+UfCfExeTMs01wgKq9nNdLKmsEZ23FsoqHho/DCprEAgos/
-         lJK9ci2r93ceKbjEDhfRWMzXlTKbTEqXH59SQBF0qh6fxrh0DmLBW3XXII5UK7CEMcW+
-         6tVYBsaquXa5QTU0Armwb3ztLh6X76PbVB3+GLwy6GXGoO22+cXC4V0GY/9nGjozVuUY
-         jFYMyDlg8bTIKxsp8RN+WRkeoRbsx0LOn7NWWN1KMSqUFwdf8wIZU7FQfWpWh8Id8k54
-         ZJ6w==
-X-Gm-Message-State: AOAM531MeOT5EMPP0kbnzyJJKppNpEbyIcUsTQAlRgHe/RsPpivir20n
-        BfveTQMKqIzkBTi/+wUrMsDDFbgmQLG/4XrNENY5ek5nf5VERVElEqjKweNv4+A7K8ID7c2YWH5
-        9q562lPwociAzJ9IIDjDeg46byA==
-X-Received: by 2002:a17:906:fa12:: with SMTP id lo18mr20047773ejb.354.1607358783581;
-        Mon, 07 Dec 2020 08:33:03 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxRh6Xa+5iZaFkMzkShNmnm8HMI1mEJZ43C03cBXKlr6CObJxEgF3paS8CuYV44ij1yPUSsGQ==
-X-Received: by 2002:a17:906:fa12:: with SMTP id lo18mr20047758ejb.354.1607358783452;
-        Mon, 07 Dec 2020 08:33:03 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=5e7kjkHucInmY6VdK0kaV1CkQzCu8JkZBTGnROzaxRs=;
+        b=AvL1vjlNRLft0aqG67EkCgiWZ+xJ3ZJWkRxA2/WfvRiAzbOGMcKyYLVaegg/bTeFfU
+         5/PfPZ7TYBqvWvb9CbIKiEOHOxi4kHW7zCG3BA27NPpPRSomm29AP5fZ0zuToEIbH4wx
+         31TB8d/2X2pwa0HUItXco+jiETPGJkVFHvWWwq20SSfaa60b7zoAqTq/dj4pDAPHeuD+
+         JDfMm+7Gd6akofaiaTxYclTrhojH/y8LLfc88KR2c6Ygaw1W0JZjpilN/uUKI681uTWe
+         1Gxp3wCAipSOYH+0LE8zH12ImGU3vkwyupNGZqTnTvSMzI55B3uaDnbxuCB0y2kQY3mr
+         KaaA==
+X-Gm-Message-State: AOAM533ovTNHztcmo912SUIRWPK8rc/VDcta0cOu485qMPc9j+FwVMhB
+        2LJjf7XVkawgcU1S/GvfykZrHsfigTmT5z44cjspd+Q7sPlo4A8ZdtCGIF1ORvEP8xx1OXcCwmI
+        MF0C7X/LhgHTgA5CTN3wlvYYNxQ==
+X-Received: by 2002:a50:9991:: with SMTP id m17mr20534894edb.48.1607358779667;
+        Mon, 07 Dec 2020 08:32:59 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJxyiWs/rTwHaBsh/+l8c/SlsiYGPKleuSTJhMPZmdQ1Awha2DjwFfkQcPHng6uKbXr0raglUg==
+X-Received: by 2002:a50:9991:: with SMTP id m17mr20534881edb.48.1607358779439;
+        Mon, 07 Dec 2020 08:32:59 -0800 (PST)
 Received: from miu.piliscsaba.redhat.com (catv-86-101-169-67.catv.broadband.hu. [86.101.169.67])
-        by smtp.gmail.com with ESMTPSA id op5sm12801964ejb.43.2020.12.07.08.33.02
+        by smtp.gmail.com with ESMTPSA id op5sm12801964ejb.43.2020.12.07.08.32.57
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 07 Dec 2020 08:33:02 -0800 (PST)
+        Mon, 07 Dec 2020 08:32:58 -0800 (PST)
 From:   Miklos Szeredi <mszeredi@redhat.com>
 To:     "Eric W . Biederman" <ebiederm@xmission.com>
 Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v2 03/10] ovl: check privs before decoding file handle
-Date:   Mon,  7 Dec 2020 17:32:48 +0100
-Message-Id: <20201207163255.564116-4-mszeredi@redhat.com>
+        linux-security-module@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        John Johansen <john.johansen@canonical.com>,
+        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: [PATCH v2 00/10] allow unprivileged overlay mounts
+Date:   Mon,  7 Dec 2020 17:32:45 +0100
+Message-Id: <20201207163255.564116-1-mszeredi@redhat.com>
 X-Mailer: git-send-email 2.26.2
-In-Reply-To: <20201207163255.564116-1-mszeredi@redhat.com>
-References: <20201207163255.564116-1-mszeredi@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-CAP_DAC_READ_SEARCH is required by open_by_handle_at(2) so check it in
-ovl_decode_real_fh() as well to prevent privilege escalation for
-unprivileged overlay mounts.
+I've done some more work to verify that unprivileged mount of overlayfs is
+safe.
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/overlayfs/namei.c | 3 +++
- 1 file changed, 3 insertions(+)
+One thing I did is to basically audit all function calls made by overlayfs
+to see if it's normally called with any checks and whether overlayfs calls
+it with the same (permission and other) checks.
 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index a6162c4076db..82a55fdb1e7a 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -156,6 +156,9 @@ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
- 	struct dentry *real;
- 	int bytes;
- 
-+	if (!capable(CAP_DAC_READ_SEARCH))
-+		return NULL;
-+
- 	/*
- 	 * Make sure that the stored uuid matches the uuid of the lower
- 	 * layer where file handle will be decoded.
+Some of this work has already made it into 5.8 and this series contains
+more fixes.
+
+A general observation is that overlayfs does not call security_path_*()
+hooks on the underlying fs.  I don't see this as a problem, because a
+simple bind mount done inside a private mount namespace also defeats the
+path based security checks.  Maybe I'm missing something here, so I'm
+interested in comments from AppArmor and Tomoyo developers.
+
+Eric, do you have thought about what to look for with respect to
+unprivileged mount safety and whether you think this is ready for upstream?
+
+Git tree:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git#ovl-unpriv-v2
+
+Thanks,
+Miklos
+
+
+Miklos Szeredi (10):
+  vfs: move cap_convert_nscap() call into vfs_setxattr()
+  vfs: verify source area in vfs_dedupe_file_range_one()
+  ovl: check privs before decoding file handle
+  ovl: make ioctl() safe
+  ovl: simplify file splice
+  ovl: user xattr
+  ovl: do not fail when setting origin xattr
+  ovl: do not fail because of O_NOATIME
+  ovl: do not get metacopy for userxattr
+  ovl: unprivieged mounts
+
+ fs/overlayfs/copy_up.c     |   3 +-
+ fs/overlayfs/file.c        | 126 +++----------------------------------
+ fs/overlayfs/inode.c       |  10 ++-
+ fs/overlayfs/namei.c       |   3 +
+ fs/overlayfs/overlayfs.h   |   8 ++-
+ fs/overlayfs/ovl_entry.h   |   1 +
+ fs/overlayfs/super.c       |  56 +++++++++++++++--
+ fs/overlayfs/util.c        |  12 +++-
+ fs/remap_range.c           |  10 ++-
+ fs/xattr.c                 |  17 +++--
+ include/linux/capability.h |   2 +-
+ security/commoncap.c       |   3 +-
+ 12 files changed, 110 insertions(+), 141 deletions(-)
+
 -- 
 2.26.2
 
