@@ -8,59 +8,59 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EA5C19437
-	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 13:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04B92C4361B
+	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 13:50:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9C8823AA8
-	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 13:11:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7C8923AA9
+	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 13:50:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727610AbgLHNLr (ORCPT
+        id S1727716AbgLHNuX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 8 Dec 2020 08:11:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53702 "EHLO
+        Tue, 8 Dec 2020 08:50:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727273AbgLHNLr (ORCPT
+        with ESMTP id S1726738AbgLHNuX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 8 Dec 2020 08:11:47 -0500
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EDA9C0613D6;
-        Tue,  8 Dec 2020 05:11:07 -0800 (PST)
-Received: by mail-io1-xd42.google.com with SMTP id z5so16814874iob.11;
-        Tue, 08 Dec 2020 05:11:07 -0800 (PST)
+        Tue, 8 Dec 2020 08:50:23 -0500
+Received: from mail-il1-x143.google.com (mail-il1-x143.google.com [IPv6:2607:f8b0:4864:20::143])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 113EFC061749;
+        Tue,  8 Dec 2020 05:49:37 -0800 (PST)
+Received: by mail-il1-x143.google.com with SMTP id v3so15558022ilo.5;
+        Tue, 08 Dec 2020 05:49:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=A+2JK7WUi1s6OvUkjUgpQQ86loaPhMWjeKRerZE2QiM=;
-        b=q5DltdxEBuRdxEjSW5ui4bJdKE3KtX2fYObyDScm+OElPdw5yJEIK+uAhuvzJkINox
-         LpSrWXbhAkIK68WR6hPEEVx4Ha4bS1iVzUjlHQIKuLZIV0jiBjwJkHtzpsXpKsMEv1Gs
-         dTIAEnI/nN8hLNoO3TJBhe8wdw4QrR0RnEM1FZstbZnj+svgtwIr/biAa2IfKLuEP8Sl
-         dp2WHP44XfkmpwWR0Opq8hc0hBpYrWSFUJAZTMEzJKLeq8HUtx1H5Dwlao++1d07yMgl
-         3PqNrVHgRtRY6v+6GnV64PLjNPfjNQ+qQenhe3VHizgOKn9QFNZCbhDn9e4wgXXNra+/
-         DI+A==
+        bh=MQXYbDMPL3yLYU7/kBOYlmtMsBjUqShGbSk3HBKaf8g=;
+        b=qB1tZR3lpatG/0Zal3n5vfTlz2EOHV54ihJtai6PxbNg83npjonBDrtvWxoWqKEHMn
+         boRmt5oXMbD5LvNj4OeZIaYR+ST5n8gpvHjkcbEIXqJUaprLoWbQkHTTjPeAci8N94HW
+         loWBBpYEAkEob3/Cv/C1sDTjjxUvN4st0YeCB3Q7TQMzPQ2R19sISFXvvnF0zyV1kyGG
+         5w2kMfl/y3PE7p++iIOkxI/Zia39QDXZ+OQI8WiAlzXHgdbj92dbSCukLUIPqjMD5QM/
+         rvn5FhYjVTgU4PQvs1yECbhgurO+i+oCHAWjXh/zVWbgcNWS8WRzHjBnt5RoSNZ5bFhQ
+         nhvw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=A+2JK7WUi1s6OvUkjUgpQQ86loaPhMWjeKRerZE2QiM=;
-        b=cjbQTTAZ87mBJXgJ0bVp4xMNtdd4BKTG9KBJ902sLp9j8iKgB8VXFcn4hSg0LJnkYh
-         BAp4dHnV/nKO1NsOjK8oUeMDwRh0wMKPklPRHHPhHSJfKf7XbQcaGNekcxoA4ckvOKmh
-         KNNpJDRpq8bXO1r/v782ASKl3v4rvV7ainpZoaldfYI+AlSVyIV3dwKA2Q6RSM2/xCt2
-         X1SwEa2kpO8lP3KI8mwexWN2/Jyf4xHlkxYqm1xJbQmwhCOqfNsHMHLh0873cE+aKr9K
-         4+StK9siJPV+DEoNfPWUvRDpnUWH0gDb/DGZi1dxNOtenFpAjL+RJ26tEb0lFy1HEybB
-         4Z1g==
-X-Gm-Message-State: AOAM530eYmZtKivJg9hL5AvVHwqFeZ3TzCtFtwkyzRnb297r26+o67nQ
-        jJIjw/8O6NfhGtmoFqM1wPLk6YgJ21pJ6Y0DxzY=
-X-Google-Smtp-Source: ABdhPJygl+TeYwTKx30NJSjrFuvt69fAN+MMMPhzT5BfqHx3Lnj/QzLeUnUNOhTqK2JK1aDEIerl085xLQpJ3d4YPLU=
-X-Received: by 2002:a02:9f19:: with SMTP id z25mr23499554jal.30.1607433066622;
- Tue, 08 Dec 2020 05:11:06 -0800 (PST)
+        bh=MQXYbDMPL3yLYU7/kBOYlmtMsBjUqShGbSk3HBKaf8g=;
+        b=jI0ul73ONQ1eM/zORf7+g7lsPQAkLiR5j7TpcJkcQzO7iT6wUzpmzX5RRHY9GyrYGk
+         pYxzuH3Y2hZs/6+laaaAKVHfQu+se0VFgzGa/tKqvi83QHlafGlJLXYwfvjOShugFSel
+         L7+vqwA3oyelO8LmT4Rzbz4NquqrmfNoSdxAwQ0aDN1nsDiA6419u4GF981NoUsifXGd
+         k93boS5lvCjB30Ca/lmlLMGGwN7EwnxcRiE90whoiAYTKNF54DTdlLpLroKYGIa/+lAB
+         USl+iFkF7RUtXQEU8EpFiRnnnB94ENSsOBLcN3+uGyykcqHS/ZwJPrX9sps4IrvMbyTd
+         BwoA==
+X-Gm-Message-State: AOAM530DViDqOMsZgqiIKOuh2R9OYTYdztqt7+6+6s8jqW/ey24LgUTq
+        X1WT6fmuWmclGtmJ1a33H+BpylK/13FyybNnmTudX1Cx410=
+X-Google-Smtp-Source: ABdhPJzs16Xbq9yXw4nMJe03SEuYZzH2JW3YVHgNPO0ogZUhHvZ9E49JOk1KNqGKQdSDMeXaSAPZ0uvc65/dx2fdz1w=
+X-Received: by 2002:a05:6e02:14ce:: with SMTP id o14mr27386946ilk.9.1607435376411;
+ Tue, 08 Dec 2020 05:49:36 -0800 (PST)
 MIME-Version: 1.0
-References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-7-mszeredi@redhat.com>
-In-Reply-To: <20201207163255.564116-7-mszeredi@redhat.com>
+References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-4-mszeredi@redhat.com>
+In-Reply-To: <20201207163255.564116-4-mszeredi@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 8 Dec 2020 15:10:55 +0200
-Message-ID: <CAOQ4uxju9wLCq5mqPLgo0anD+n7DLnmHzJ=SymFTRc0c_uVY4Q@mail.gmail.com>
-Subject: Re: [PATCH v2 06/10] ovl: user xattr
+Date:   Tue, 8 Dec 2020 15:49:25 +0200
+Message-ID: <CAOQ4uxhti+COYB3GhfMcPFwpfBRYQvr98oCO9wwS029W5e0A5g@mail.gmail.com>
+Subject: Re: [PATCH v2 03/10] ovl: check privs before decoding file handle
 To:     Miklos Szeredi <mszeredi@redhat.com>
 Cc:     "Eric W . Biederman" <ebiederm@xmission.com>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
@@ -72,51 +72,34 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Dec 7, 2020 at 6:37 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
+On Mon, Dec 7, 2020 at 6:36 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
 >
-> Optionally allow using "user.overlay." namespace instead of
-> "trusted.overlay."
-
-There are several occurrences of "trusted.overlay" string in code and
-Documentation, which is fine. But maybe only adjust the comment for
-testing xattr support:
-
-         * Check if upper/work fs supports trusted.overlay.* xattr
-
->
-> This is necessary for overlayfs to be able to be mounted in an unprivileged
-> namepsace.
->
-> Make the option explicit, since it makes the filesystem format be
-> incompatible.
->
-> Disable redirect_dir and metacopy options, because these would allow
-> privilege escalation through direct manipulation of the
-> "user.overlay.redirect" or "user.overlay.metacopy" xattrs.
+> CAP_DAC_READ_SEARCH is required by open_by_handle_at(2) so check it in
+> ovl_decode_real_fh() as well to prevent privilege escalation for
+> unprivileged overlay mounts.
 >
 > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
-
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -582,9 +582,10 @@ bool ovl_check_dir_xattr(struct super_block *sb, struct dentry *dentry,
->  #define OVL_XATTR_METACOPY_POSTFIX     "metacopy"
+>  fs/overlayfs/namei.c | 3 +++
+>  1 file changed, 3 insertions(+)
 >
->  #define OVL_XATTR_TAB_ENTRY(x) \
-> -       [x] = OVL_XATTR_PREFIX x ## _POSTFIX
-> +       [x] = { [false] = OVL_XATTR_TRUSTED_PREFIX x ## _POSTFIX, \
-> +               [true] = OVL_XATTR_USER_PREFIX x ## _POSTFIX }
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index a6162c4076db..82a55fdb1e7a 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -156,6 +156,9 @@ struct dentry *ovl_decode_real_fh(struct ovl_fh *fh, struct vfsmount *mnt,
+>         struct dentry *real;
+>         int bytes;
 >
-> -const char *ovl_xattr_table[] = {
-> +const char *ovl_xattr_table[][2] = {
->         OVL_XATTR_TAB_ENTRY(OVL_XATTR_OPAQUE),
->         OVL_XATTR_TAB_ENTRY(OVL_XATTR_REDIRECT),
->         OVL_XATTR_TAB_ENTRY(OVL_XATTR_ORIGIN),
-> --
+> +       if (!capable(CAP_DAC_READ_SEARCH))
+> +               return NULL;
+> +
 
-Can you constify this 2D array? I don't even know the syntax for that...
+If the mounter is not capable in init ns, ovl_check_origin() and
+ovl_verify_index()
+will not function as expected and this will break index and nfs export features.
+So I think we need to also check capability in ovl_can_decode_fh(), to auto
+disable those features.
 
 Thanks,
 Amir.
