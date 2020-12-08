@@ -8,59 +8,59 @@ X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DFA1C4167B
-	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 11:30:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14EA5C19437
+	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 13:11:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25A1D23A31
-	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 11:30:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9C8823AA8
+	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Dec 2020 13:11:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728983AbgLHLaN (ORCPT
+        id S1727610AbgLHNLr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 8 Dec 2020 06:30:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38062 "EHLO
+        Tue, 8 Dec 2020 08:11:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53702 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726338AbgLHLaN (ORCPT
+        with ESMTP id S1727273AbgLHNLr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 8 Dec 2020 06:30:13 -0500
-Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D06FC0613D6;
-        Tue,  8 Dec 2020 03:29:33 -0800 (PST)
-Received: by mail-io1-xd41.google.com with SMTP id n14so16537737iom.10;
-        Tue, 08 Dec 2020 03:29:33 -0800 (PST)
+        Tue, 8 Dec 2020 08:11:47 -0500
+Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EDA9C0613D6;
+        Tue,  8 Dec 2020 05:11:07 -0800 (PST)
+Received: by mail-io1-xd42.google.com with SMTP id z5so16814874iob.11;
+        Tue, 08 Dec 2020 05:11:07 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=kCKE3v4StapcnBytvUH2x7YoiT2YJZyXA/vHPFP6zjg=;
-        b=EKydU3sDv4zhDZO0fVLxDyK+QsgTl8t92XN97u4ouLgmQnRb70RQ3OZ+9xI8thcrGE
-         WCh91CKZK8aE0MZSOryQDsAiiBfHWrBUxY6QUYoSVajAzLxQrmz8mKk7uKZLXeSCv+q5
-         nYsGHKvlycxJB6EcoYAviVKABFefQRLhuYGBiOIoMtecI6QVWtIYzWF0yLg8wiWuj7vI
-         smH2/1M7GfpABVD7JEv9vdQ2jrCUo3wzKRjHdw1G+W1VuvVAj/NI6vV8X3GJaJM93fBO
-         WU2aAqOce+TFmhJYyNRDzNRTBAi/BUyqR1Nzo1L2n+EAJb+KFd/B7Dcoy7CruJE8REA2
-         dtHA==
+        bh=A+2JK7WUi1s6OvUkjUgpQQ86loaPhMWjeKRerZE2QiM=;
+        b=q5DltdxEBuRdxEjSW5ui4bJdKE3KtX2fYObyDScm+OElPdw5yJEIK+uAhuvzJkINox
+         LpSrWXbhAkIK68WR6hPEEVx4Ha4bS1iVzUjlHQIKuLZIV0jiBjwJkHtzpsXpKsMEv1Gs
+         dTIAEnI/nN8hLNoO3TJBhe8wdw4QrR0RnEM1FZstbZnj+svgtwIr/biAa2IfKLuEP8Sl
+         dp2WHP44XfkmpwWR0Opq8hc0hBpYrWSFUJAZTMEzJKLeq8HUtx1H5Dwlao++1d07yMgl
+         3PqNrVHgRtRY6v+6GnV64PLjNPfjNQ+qQenhe3VHizgOKn9QFNZCbhDn9e4wgXXNra+/
+         DI+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=kCKE3v4StapcnBytvUH2x7YoiT2YJZyXA/vHPFP6zjg=;
-        b=GrVp1VbXRzg00sUhZ3Jf1GVXPk0fF8KsHmO28nIcH8eQdLNljLOGr+Y5kaxy4bjLFv
-         qxu5o/0U5dMQhCoPdSeTcMkYhbzbzcLutpj0cLOv9yKz3eLP3RfdAGWHDYyJV0SSTkZH
-         /0lavyQXmE7pX7DyOH+913yXAjAVskFSY7WmW+5GIS3Pui/VBS36Gs8EFG59fI4v5LwU
-         ZaDGTZ4NByl7IMEg2MQeOgKtfYwF5/h/Duz7DJnp1ywCiVaWYnRAmYCt4olqLLopYK3h
-         RzdA2G1+m2iNxoMeNaA9UtP7KFb6+H+eE3Guy2Iyzf44Z7vfHK61JsSoN2n9cWTJ7OOZ
-         0a8g==
-X-Gm-Message-State: AOAM531QP4hbafEEgErScJBK+wr77OXCkmjqG8Ik1Ddj1ZLCwGHChfnV
-        ENq7UoWSwiar0vhHDykBRHTiiumN67ciXfMMrxoz6ffsLK4=
-X-Google-Smtp-Source: ABdhPJyEbLGY9Bju7JNgzGZC3R/yh1i+ZBxhj2UnXXNS6zSznBtr75WyI1Cs/+ZOt4IyjwGK+8U5fpJjSoJXhnuZtnk=
-X-Received: by 2002:a02:b607:: with SMTP id h7mr26517600jam.120.1607426972817;
- Tue, 08 Dec 2020 03:29:32 -0800 (PST)
+        bh=A+2JK7WUi1s6OvUkjUgpQQ86loaPhMWjeKRerZE2QiM=;
+        b=cjbQTTAZ87mBJXgJ0bVp4xMNtdd4BKTG9KBJ902sLp9j8iKgB8VXFcn4hSg0LJnkYh
+         BAp4dHnV/nKO1NsOjK8oUeMDwRh0wMKPklPRHHPhHSJfKf7XbQcaGNekcxoA4ckvOKmh
+         KNNpJDRpq8bXO1r/v782ASKl3v4rvV7ainpZoaldfYI+AlSVyIV3dwKA2Q6RSM2/xCt2
+         X1SwEa2kpO8lP3KI8mwexWN2/Jyf4xHlkxYqm1xJbQmwhCOqfNsHMHLh0873cE+aKr9K
+         4+StK9siJPV+DEoNfPWUvRDpnUWH0gDb/DGZi1dxNOtenFpAjL+RJ26tEb0lFy1HEybB
+         4Z1g==
+X-Gm-Message-State: AOAM530eYmZtKivJg9hL5AvVHwqFeZ3TzCtFtwkyzRnb297r26+o67nQ
+        jJIjw/8O6NfhGtmoFqM1wPLk6YgJ21pJ6Y0DxzY=
+X-Google-Smtp-Source: ABdhPJygl+TeYwTKx30NJSjrFuvt69fAN+MMMPhzT5BfqHx3Lnj/QzLeUnUNOhTqK2JK1aDEIerl085xLQpJ3d4YPLU=
+X-Received: by 2002:a02:9f19:: with SMTP id z25mr23499554jal.30.1607433066622;
+ Tue, 08 Dec 2020 05:11:06 -0800 (PST)
 MIME-Version: 1.0
-References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-9-mszeredi@redhat.com>
-In-Reply-To: <20201207163255.564116-9-mszeredi@redhat.com>
+References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-7-mszeredi@redhat.com>
+In-Reply-To: <20201207163255.564116-7-mszeredi@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 8 Dec 2020 13:29:21 +0200
-Message-ID: <CAOQ4uxgy23chB-NQcXJ+P3hO0_M3iAkgi_wyhbpfT3wkaU+E7w@mail.gmail.com>
-Subject: Re: [PATCH v2 08/10] ovl: do not fail because of O_NOATIME
+Date:   Tue, 8 Dec 2020 15:10:55 +0200
+Message-ID: <CAOQ4uxju9wLCq5mqPLgo0anD+n7DLnmHzJ=SymFTRc0c_uVY4Q@mail.gmail.com>
+Subject: Re: [PATCH v2 06/10] ovl: user xattr
 To:     Miklos Szeredi <mszeredi@redhat.com>
 Cc:     "Eric W . Biederman" <ebiederm@xmission.com>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
@@ -74,40 +74,49 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 On Mon, Dec 7, 2020 at 6:37 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
 >
-> In case the file cannot be opened with O_NOATIME because of lack of
-> capabilities, then clear O_NOATIME instead of failing.
+> Optionally allow using "user.overlay." namespace instead of
+> "trusted.overlay."
+
+There are several occurrences of "trusted.overlay" string in code and
+Documentation, which is fine. But maybe only adjust the comment for
+testing xattr support:
+
+         * Check if upper/work fs supports trusted.overlay.* xattr
+
+>
+> This is necessary for overlayfs to be able to be mounted in an unprivileged
+> namepsace.
+>
+> Make the option explicit, since it makes the filesystem format be
+> incompatible.
+>
+> Disable redirect_dir and metacopy options, because these would allow
+> privilege escalation through direct manipulation of the
+> "user.overlay.redirect" or "user.overlay.metacopy" xattrs.
 >
 > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 > ---
->  fs/overlayfs/file.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -582,9 +582,10 @@ bool ovl_check_dir_xattr(struct super_block *sb, struct dentry *dentry,
+>  #define OVL_XATTR_METACOPY_POSTFIX     "metacopy"
 >
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index dc767034d37b..d6ac7ac66410 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -53,9 +53,10 @@ static struct file *ovl_open_realfile(const struct file *file,
->         err = inode_permission(realinode, MAY_OPEN | acc_mode);
->         if (err) {
->                 realfile = ERR_PTR(err);
-> -       } else if (!inode_owner_or_capable(realinode)) {
-> -               realfile = ERR_PTR(-EPERM);
->         } else {
-> +               if (!inode_owner_or_capable(realinode))
-> +                       flags &= ~O_NOATIME;
-> +
+>  #define OVL_XATTR_TAB_ENTRY(x) \
+> -       [x] = OVL_XATTR_PREFIX x ## _POSTFIX
+> +       [x] = { [false] = OVL_XATTR_TRUSTED_PREFIX x ## _POSTFIX, \
+> +               [true] = OVL_XATTR_USER_PREFIX x ## _POSTFIX }
+>
+> -const char *ovl_xattr_table[] = {
+> +const char *ovl_xattr_table[][2] = {
+>         OVL_XATTR_TAB_ENTRY(OVL_XATTR_OPAQUE),
+>         OVL_XATTR_TAB_ENTRY(OVL_XATTR_REDIRECT),
+>         OVL_XATTR_TAB_ENTRY(OVL_XATTR_ORIGIN),
+> --
 
-Isn't that going to break:
-
-        flags |= OVL_OPEN_FLAGS;
-
-        /* If some flag changed that cannot be changed then something's amiss */
-        if (WARN_ON((file->f_flags ^ flags) & ~OVL_SETFL_MASK))
-
-IOW setting a flag that is allowed to change will fail because of
-missing O_ATIME in file->f_flags.
-
-I guess we need test coverage for SETFL.
+Can you constify this 2D array? I don't even know the syntax for that...
 
 Thanks,
 Amir.
