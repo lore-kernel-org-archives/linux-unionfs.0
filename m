@@ -2,212 +2,93 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-1.9 required=3.0 tests=BAYES_50,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19D16C433FE
-	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 11:49:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A2C4C433FE
+	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 13:05:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CDFAF22C7E
-	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 11:49:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3120422C7D
+	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 13:05:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438466AbgLLLsu (ORCPT
+        id S2407427AbgLLNFb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 12 Dec 2020 06:48:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:38626 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S2438416AbgLLLsu (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 12 Dec 2020 06:48:50 -0500
-Message-ID: <9ee191a5aadbabfe3571748072337b4fd0359800.camel@kernel.org>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1607773689;
-        bh=31htvr81n75Zq7sOZci0YyM2LE18Gus6pGJOzZ3wjO8=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=CB/90MQWmWgCI91878UEQepx3xnX0byvzW2JkKxHDd1W4q1UojHkthfQHZkTkLSHT
-         5wJlG+2tv+5NphaSHG9cEx8x5yjgSn6v32BglcwJrIOsOai6cFpL0L1UMRrLfEwBzb
-         JsjGhalcSWKM9xyqER7G6fgErLWkBN06uUoyN9PIvFlpUyuE/VOP1vngzDqACmzCt0
-         cap0qi/7nQrWWneVQzi6qaKkZv76GKinstJx8O8T72nWj2eojT5y3ORtjTVb78BmJJ
-         HMXEWLx63Od045JM7rGG7uVIwDkg6RqcWP88/36m206M7c/ytnt1PYZLFPoWep/lHi
-         9VCX9FMsCfjKA==
-Subject: Re: [PATCH v2 0/3] Check errors on sync for volatile overlayfs
- mounts
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Sargun Dhillon <sargun@sargun.me>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>
-Date:   Sat, 12 Dec 2020 06:48:07 -0500
-In-Reply-To: <7779e2ed97080009d894f3442bfad31972494542.camel@kernel.org>
-References: <20201211235002.4195-1-sargun@sargun.me>
-         <7779e2ed97080009d894f3442bfad31972494542.camel@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.2 (3.38.2-1.fc33) 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Sat, 12 Dec 2020 08:05:31 -0500
+Received: from master.hostvps.net ([85.234.128.110]:47358 "EHLO
+        host.sysriacomms.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S2407423AbgLLNF3 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 12 Dec 2020 08:05:29 -0500
+X-Greylist: delayed 55916 seconds by postgrey-1.27 at vger.kernel.org; Sat, 12 Dec 2020 08:05:29 EST
+Received: from sysriacomms.com (ec2-3-129-59-77.us-east-2.compute.amazonaws.com [3.129.59.77])
+        by host.sysriacomms.com (Postfix) with ESMTPA id 0C152323CE5B
+        for <linux-unionfs@vger.kernel.org>; Fri, 11 Dec 2020 20:26:36 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 host.sysriacomms.com 0C152323CE5B
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sysriacomms.com;
+        s=default; t=1607718397;
+        bh=TyDrvEeEFdXlR/MshqaTYzQ7nnR7m/zs1uM19XkvmD0=;
+        h=Reply-To:From:To:Subject:Date:From;
+        b=WKoKjGQ2auivLWyuPdaOylHHJ8pEV+2BdEub6NinnjjW2RWDqT6XcLf7nUeohb2Wn
+         RPMcLTjMz94dSKTDCr10j2QMcmiyNEj4yYsiA8iGs9tpM/qRYCvmwz1UWoXL4o9Wa/
+         ZIAGB8noans8mZFkrg3cVT0ek/xu0UwznEcsXXIU=
+DKIM-Filter: OpenDKIM Filter v2.11.0 host.sysriacomms.com 0C152323CE5B
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=sysriacomms.com;
+        s=default; t=1607718397;
+        bh=TyDrvEeEFdXlR/MshqaTYzQ7nnR7m/zs1uM19XkvmD0=;
+        h=Reply-To:From:To:Subject:Date:From;
+        b=WKoKjGQ2auivLWyuPdaOylHHJ8pEV+2BdEub6NinnjjW2RWDqT6XcLf7nUeohb2Wn
+         RPMcLTjMz94dSKTDCr10j2QMcmiyNEj4yYsiA8iGs9tpM/qRYCvmwz1UWoXL4o9Wa/
+         ZIAGB8noans8mZFkrg3cVT0ek/xu0UwznEcsXXIU=
+Reply-To: moutraore02@syriservas.com
+From:   Moussa <moutraore02@sysriacomms.com>
+To:     linux-unionfs@vger.kernel.org
+Subject: Get Back To Me
+Date:   11 Dec 2020 20:26:49 +0000
+Message-ID: <20201211202649.98B569D9CFB61FA9@sysriacomms.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, 2020-12-12 at 06:21 -0500, Jeff Layton wrote:
-> On Fri, 2020-12-11 at 15:49 -0800, Sargun Dhillon wrote:
-> > The semantics of errseq and syncfs are such that it is impossible to track
-> > if any errors have occurred between the time the first error occurred, and
-> > the user checks for the error (calls syncfs, and subsequently
-> > errseq_check_and_advance.
-> > 
-> > Overlayfs has a volatile feature which short-circuits syncfs. This, in turn
-> > makes it so that the user can have silent data corruption and not know
-> > about it. The third patch in the series introduces behaviour that makes it
-> > so that we can track errors, and bubble up whether the user has put
-> > themselves in bad situation.
-> > 
-> > This required some gymanstics in errseq, and adding a wrapper around it
-> > called "errseq_counter" (errseq + counter). The data structure uses an
-> > atomic to track overflow errors. This approach, rather than moving to an
-> > atomic64 / u64 is so we can avoid bloating every person that subscribes to
-> > an errseq, and only add the subscriber behaviour to those who care (at the
-> > expense of space.
-> > 
-> > The datastructure is write-optimized, and rightfully so, as the users
-> > of the counter feature are just overlayfs, and it's called in fsync
-> > checking, which is a rather seldom operation, and not really on
-> > any hotpaths.
-> > 
-> > [1]: https://lore.kernel.org/linux-fsdevel/20201202092720.41522-1-sargun@sargun.me/
-> > 
-> > Sargun Dhillon (3):
-> >   errseq: Add errseq_counter to allow for all errors to be observed
-> >   errseq: Add mechanism to snapshot errseq_counter and check snapshot
-> >   overlay: Implement volatile-specific fsync error behaviour
-> > 
-> >  Documentation/filesystems/overlayfs.rst |   8 ++
-> >  fs/buffer.c                             |   2 +-
-> >  fs/overlayfs/file.c                     |   5 +-
-> >  fs/overlayfs/overlayfs.h                |   1 +
-> >  fs/overlayfs/ovl_entry.h                |   3 +
-> >  fs/overlayfs/readdir.c                  |   5 +-
-> >  fs/overlayfs/super.c                    |  26 +++--
-> >  fs/overlayfs/util.c                     |  28 +++++
-> >  fs/super.c                              |   1 +
-> >  fs/sync.c                               |   3 +-
-> >  include/linux/errseq.h                  |  18 ++++
-> >  include/linux/fs.h                      |   6 +-
-> >  include/linux/pagemap.h                 |   2 +-
-> >  lib/errseq.c                            | 129 ++++++++++++++++++++----
-> >  14 files changed, 202 insertions(+), 35 deletions(-)
-> > 
-> 
-> It would hel if you could more clearly lay out the semantics you're
-> looking for. If I understand correctly:
-> 
-> You basically want to be able to sample the sb->s_wb_err of the upper
-> layer at mount time and then always return an error if any new errors
-> were recorded since that point.
-> 
-> If that's correct, then I'm not sure I get need for all of this extra
-> counter machinery. Why not just sample it at mount time without
-> recording it as 0 if the seen flag isn't set. Then just do an
-> errseq_check against the upper superblock (without advancing) in the
-> overlayfs ->sync_fs routine and just errseq_set that error into the
-> overlayfs superblock? The syncfs syscall wrapper should then always
-> report the latest error.
-> 
-> Or (even better) rework all of the sync_fs/syncfs mess to be more sane,
-> so that overlayfs has more control over what errors get returned to
-> userland. ISTM that the main problem you have is that the
-> errseq_check_and_advance is done in the syscall wrapper, and that's
-> probably not appropriate for your use-case.
-> 
+Greeetings from Mali. I am sorry for contacting you like this but=20
+I do have a very urgent matter that I want to discuss with you.=20
+Before I proceed, I want you to keep an open mind while reading=20
+this proposal. My name is Moussa Traore, I am the Personal=20
+Assistant to Mr. Issa Saley Maiga who was the head of the civil=20
+aviation agency in Mali during the tenure of Ibrahim Boubacar=20
+Ke=C3=AFta, the former president of Mali. His tenure was overtaken by=20
+the military during a coup d'etat. I am sure you would have read=20
+about this in your country because it was covered by the=20
+international news agencies worldwide. 
 
-Something like this is what I was thinking (completely untested, of
-course and needs comments). Would this not give you what you want for
-volatile mount syncfs semantics?
+Anyway, my boss was also affected by the coup d'etat and he was=20
+arrested along with other high profile politicians. Also, all of=20
+his local assets (bother property and financial assets) were=20
+seized by the Government. Due to this situation, my boss belives=20
+that he is at risk and he is now very scared for the safety of=20
+his family especially his wife and kids. In order to ensure that=20
+his family is taken care of and protected incase anything happens=20
+to him, he has asked me to help him find a foreign investor who=20
+can help him accommodate and manage the finanical assets that he=20
+has in Europe. These assets was secured with the help of a proxy=20
+and it is currently held with an offshore financial bank so it is=20
+safe so secure. Also, the Government of his country do not know=20
+of this asset hence why they are unable to seize it as they have=20
+done his other assets.
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 1b5a2094df8e..b7ada3fd04fd 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -79,6 +79,7 @@ struct ovl_fs {
- 	atomic_long_t last_ino;
- 	/* Whiteout dentry cache */
- 	struct dentry *whiteout;
-+	errseq_t err;
- };
- 
- static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 290983bcfbb3..35780776360c 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -264,8 +264,12 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
- 	if (!ovl_upper_mnt(ofs))
- 		return 0;
- 
--	if (!ovl_should_sync(ofs))
--		return 0;
-+	if (!ovl_should_sync(ofs)) {
-+		ret = errseq_check(&upper_sb->s_wb_err, ofs->err);
-+		errseq_set(&sb->s_wb_err, ret);
-+		return ret;
-+	}
-+
- 	/*
- 	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
- 	 * All the super blocks will be iterated, including upper_sb.
-@@ -1945,7 +1949,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 
- 		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
- 		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
--
-+		ofs->err = errseq_sample(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
- 	}
- 	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
- 	err = PTR_ERR(oe);
-diff --git a/include/linux/errseq.h b/include/linux/errseq.h
-index fc2777770768..0d9ead687dc1 100644
---- a/include/linux/errseq.h
-+++ b/include/linux/errseq.h
-@@ -9,6 +9,7 @@ typedef u32	errseq_t;
- 
- errseq_t errseq_set(errseq_t *eseq, int err);
- errseq_t errseq_sample(errseq_t *eseq);
-+errseq_t errseq_sample_advance(errseq_t *eseq);
- int errseq_check(errseq_t *eseq, errseq_t since);
- int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
- #endif
-diff --git a/lib/errseq.c b/lib/errseq.c
-index 81f9e33aa7e7..27ab3000507f 100644
---- a/lib/errseq.c
-+++ b/lib/errseq.c
-@@ -130,6 +130,25 @@ errseq_t errseq_sample(errseq_t *eseq)
- }
- EXPORT_SYMBOL(errseq_sample);
- 
-+errseq_t errseq_sample_advance(errseq_t *eseq)
-+{
-+	errseq_t old = READ_ONCE(*eseq);
-+	errseq_t new = old;
-+
-+	/*
-+	 * For the common case of no errors ever having been set, we can skip
-+	 * marking the SEEN bit. Once an error has been set, the value will
-+	 * never go back to zero.
-+	 */
-+	if (old != 0) {
-+		new |= ERRSEQ_SEEN;
-+		if (old != new)
-+			cmpxchg(eseq, old, new);
-+	}
-+	return new;
-+}
-+EXPORT_SYMBOL(errseq_sample_advance);
-+
- /**
-  * errseq_check() - Has an error occurred since a particular sample point?
-  * @eseq: Pointer to errseq_t value to be checked.
+My proposal to you is for you to help us manage these funds, and=20
+invest it in lucrative projects in your country that will yeild=20
+good profits. You also do not have to worry about if this is safe=20
+or not because everything will be handled in a legal and=20
+transparent manner. You will also be handosmely rewarded for your=20
+help if you decide to work with us. If this proposal interests=20
+you, please kindly respond so that I can give you more details. I=20
+hope to hear from you soon.
 
+Regards,
 
+Moussa.
