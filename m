@@ -2,180 +2,124 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 565DFC19425
-	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 10:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6F8FC4361B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 11:22:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27A9020684
-	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 10:02:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9308620867
+	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Dec 2020 11:22:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2438469AbgLLJ6r (ORCPT
+        id S2437016AbgLLLWU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 12 Dec 2020 04:58:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42438 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2388329AbgLLJ6o (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 12 Dec 2020 04:58:44 -0500
-Received: from mail-io1-xd44.google.com (mail-io1-xd44.google.com [IPv6:2607:f8b0:4864:20::d44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDC57C0613CF;
-        Sat, 12 Dec 2020 01:58:03 -0800 (PST)
-Received: by mail-io1-xd44.google.com with SMTP id z5so12072161iob.11;
-        Sat, 12 Dec 2020 01:58:03 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=VfC8U3+9RgAipJV6RtcOXOTncWoLx+pvsz+FVUtT+WM=;
-        b=ru8KqwZkrp8biP002XsKcZ7D9aatn+KC/DegPBreXXE6ZS1KMc/Z2M2WmwW/rQAwED
-         ySiXaA+fHXKjtOEjXJFmS2KxBd+ec+Y70LX4Pk7z9M8MhCoAVz4j/WRJOSNINxfivoGy
-         GDqSbNVGtCAdz19ntqGL4YhucICczEsvnsIK1IohMq8G/GJvv7igdgtJbHYr5c2VYy50
-         OVHwhsUVdRTzwCd+58mvjJX/NG+vDKlZIGZkYZRHzLMx6CAQnUEtILIwzXg1Uq3RjVYE
-         qDu5NyFAlIQqGmdLaQeJVLB+LvzOD2Jaeq5oZt8QOdSM+BuYHHZiYGISF9bV2y0Udiqd
-         iKtA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=VfC8U3+9RgAipJV6RtcOXOTncWoLx+pvsz+FVUtT+WM=;
-        b=B+j3aapKDBcQwzc9Au/qebRV0Q+pO36JCQfq9iMz/+OAs5FTQFwpI1RQTCz7ZZmT3V
-         i759zfNoPOs4d1WBG1pkP2lsRbel+NORW37uDkyNDrKu+wE6qPvtpqU5/tt0PiYro39S
-         s/OTgMDBMOyDT1Z4x8bJpX16Z7pxYNqv67PJLuPjijQls1FBbhVrwQVFa6Mjycqqr+E0
-         jVl56+AvQuoEUk7o63/htXDvE7g7NhdaptFnoHVguofJTFtLLN9wyONcgc2ATGc0/pH7
-         aqDKPXDkl2sv64Q91P4S7rY48uocnNnyW5qZ8HOcWpgvNqdznucZHndDc4oCD7t3pAGZ
-         vF4g==
-X-Gm-Message-State: AOAM533T2u9A/ir2n+U6DrAmFOpAN6leUROQyzXEwE7OH7vj04Ip1C92
-        BuwKm2w5gbPdHtJQzJlqvT0JCqGLcoDjbg4XCQI=
-X-Google-Smtp-Source: ABdhPJzmJSTtlvPRlby9CqpfmwXRf7R6w5YTMgILXhIqKEo4qqH4jQyqzvvTqqn3shcnX3rL3DHEDwbVItsF8VIsmMw=
-X-Received: by 2002:a02:b607:: with SMTP id h7mr21485997jam.120.1607767083180;
- Sat, 12 Dec 2020 01:58:03 -0800 (PST)
-MIME-Version: 1.0
-References: <20201211235002.4195-1-sargun@sargun.me> <20201211235002.4195-3-sargun@sargun.me>
-In-Reply-To: <20201211235002.4195-3-sargun@sargun.me>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 12 Dec 2020 11:57:52 +0200
-Message-ID: <CAOQ4uxgj8LztnH3vD7M=Lp_FoNhoLwaD4CcWQR0T1pd=pe2kgA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] errseq: Add mechanism to snapshot errseq_counter
- and check snapshot
-To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Vivek Goyal <vgoyal@redhat.com>,
+        Sat, 12 Dec 2020 06:22:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57020 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726633AbgLLLWT (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 12 Dec 2020 06:22:19 -0500
+Message-ID: <7779e2ed97080009d894f3442bfad31972494542.camel@kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1607772098;
+        bh=yFDu5MswmjXa911Cysa//QkZDAZkwzJ9BXKpC+Qq2yg=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=dQaw7qNvEUzy+5fIkuhKb0tYnl1huEbAZsgUOdLuBIXddBT/RJDOYVO+W+zYz8+kS
+         5eiMbMH5yQ8Jffl6oGpoTvSaulH8rc7mvUqwgj1Pz0txhZaiz6Vg1W2Nqw0GTBc+fM
+         ixVcuI3ZzSIfk4xz1v86KDe4Gz3BojXHL5ibqMT3zLm1s2RqLYKe2Y1Bnxv+z3CikZ
+         mCUdebo+EH60pkMYsyHoZ3utmvuwgF8+k0t8n13YdKQpvrlhFkzMWVKvFf4+UXs4oE
+         MMV5luK1BXGjDFHqECzKCmi8QnN2CsvezBOQcsMG67UWUYc6udKpnd3Uiw5kgGjAXr
+         HxzY3swFnbjuA==
+Subject: Re: [PATCH v2 0/3] Check errors on sync for volatile overlayfs
+ mounts
+From:   Jeff Layton <jlayton@kernel.org>
+To:     Sargun Dhillon <sargun@sargun.me>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        Jeff Layton <jlayton@redhat.com>
+        Matthew Wilcox <willy@infradead.org>
+Date:   Sat, 12 Dec 2020 06:21:37 -0500
+In-Reply-To: <20201211235002.4195-1-sargun@sargun.me>
+References: <20201211235002.4195-1-sargun@sargun.me>
 Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.38.2 (3.38.2-1.fc33) 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Forgot to CC Jeff?
+On Fri, 2020-12-11 at 15:49 -0800, Sargun Dhillon wrote:
+> The semantics of errseq and syncfs are such that it is impossible to track
+> if any errors have occurred between the time the first error occurred, and
+> the user checks for the error (calls syncfs, and subsequently
+> errseq_check_and_advance.
+> 
+> Overlayfs has a volatile feature which short-circuits syncfs. This, in turn
+> makes it so that the user can have silent data corruption and not know
+> about it. The third patch in the series introduces behaviour that makes it
+> so that we can track errors, and bubble up whether the user has put
+> themselves in bad situation.
+> 
+> This required some gymanstics in errseq, and adding a wrapper around it
+> called "errseq_counter" (errseq + counter). The data structure uses an
+> atomic to track overflow errors. This approach, rather than moving to an
+> atomic64 / u64 is so we can avoid bloating every person that subscribes to
+> an errseq, and only add the subscriber behaviour to those who care (at the
+> expense of space.
+> 
+> The datastructure is write-optimized, and rightfully so, as the users
+> of the counter feature are just overlayfs, and it's called in fsync
+> checking, which is a rather seldom operation, and not really on
+> any hotpaths.
+> 
+> [1]: https://lore.kernel.org/linux-fsdevel/20201202092720.41522-1-sargun@sargun.me/
+> 
+> Sargun Dhillon (3):
+>   errseq: Add errseq_counter to allow for all errors to be observed
+>   errseq: Add mechanism to snapshot errseq_counter and check snapshot
+>   overlay: Implement volatile-specific fsync error behaviour
+> 
+>  Documentation/filesystems/overlayfs.rst |   8 ++
+>  fs/buffer.c                             |   2 +-
+>  fs/overlayfs/file.c                     |   5 +-
+>  fs/overlayfs/overlayfs.h                |   1 +
+>  fs/overlayfs/ovl_entry.h                |   3 +
+>  fs/overlayfs/readdir.c                  |   5 +-
+>  fs/overlayfs/super.c                    |  26 +++--
+>  fs/overlayfs/util.c                     |  28 +++++
+>  fs/super.c                              |   1 +
+>  fs/sync.c                               |   3 +-
+>  include/linux/errseq.h                  |  18 ++++
+>  include/linux/fs.h                      |   6 +-
+>  include/linux/pagemap.h                 |   2 +-
+>  lib/errseq.c                            | 129 ++++++++++++++++++++----
+>  14 files changed, 202 insertions(+), 35 deletions(-)
+> 
 
-On Sat, Dec 12, 2020 at 1:50 AM Sargun Dhillon <sargun@sargun.me> wrote:
->
-> This adds the function errseq_counter_sample to allow for "subscribers"
-> to take point-in-time snapshots of the errseq_counter, and store the
-> counter + errseq_t.
->
-> Signed-off-by: Sargun Dhillon <sargun@sargun.me>
-> ---
->  include/linux/errseq.h |  4 ++++
->  lib/errseq.c           | 51 ++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 55 insertions(+)
->
-> diff --git a/include/linux/errseq.h b/include/linux/errseq.h
-> index 35818c484290..8998df499a3b 100644
-> --- a/include/linux/errseq.h
-> +++ b/include/linux/errseq.h
-> @@ -25,4 +25,8 @@ errseq_t errseq_set(errseq_t *eseq, int err);
->  errseq_t errseq_sample(errseq_t *eseq);
->  int errseq_check(errseq_t *eseq, errseq_t since);
->  int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
-> +void errseq_counter_sample(errseq_t *dst_errseq, int *dst_errors,
-> +                          struct errseq_counter *counter);
-> +int errseq_counter_check(struct errseq_counter *counter, errseq_t errseq_since,
-> +                        int errors_since);
->  #endif
-> diff --git a/lib/errseq.c b/lib/errseq.c
-> index d555e7fc18d2..98fcfafa3d97 100644
-> --- a/lib/errseq.c
-> +++ b/lib/errseq.c
-> @@ -246,3 +246,54 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since)
->         return err;
->  }
->  EXPORT_SYMBOL(errseq_check_and_advance);
-> +
-> +/**
-> + * errseq_counter_sample() - Grab the current errseq_counter value
-> + * @dst_errseq: The errseq_t to copy to
-> + * @dst_errors: The destination overflow to copy to
-> + * @counter: The errseq_counter to copy from
-> + *
-> + * Grabs a point in time sample of the errseq_counter for latter comparison
-> + */
-> +void errseq_counter_sample(errseq_t *dst_errseq, int *dst_errors,
+It would hel if you could more clearly lay out the semantics you're
+looking for. If I understand correctly:
 
-Why 2 arguments and not struct errseq_counter *dst_counter?
+You basically want to be able to sample the sb->s_wb_err of the upper
+layer at mount time and then always return an error if any new errors
+were recorded since that point.
 
-> +                          struct errseq_counter *counter)
-> +{
-> +       errseq_t cur;
-> +
-> +       do {
-> +               cur = READ_ONCE(counter->errseq);
-> +               *dst_errors = atomic_read(&counter->errors);
-> +       } while (cur != READ_ONCE(counter->errseq));
+If that's correct, then I'm not sure I get need for all of this extra
+counter machinery. Why not just sample it at mount time without
+recording it as 0 if the seen flag isn't set. Then just do an
+errseq_check against the upper superblock (without advancing) in the
+overlayfs ->sync_fs routine and just errseq_set that error into the
+overlayfs superblock? The syncfs syscall wrapper should then always
+report the latest error.
 
-This loop seems odd. I think the return value should reflect the fact that
-the snapshot failed and let the caller decide if it wants to loop.
+Or (even better) rework all of the sync_fs/syncfs mess to be more sane,
+so that overlayfs has more control over what errors get returned to
+userland. ISTM that the main problem you have is that the
+errseq_check_and_advance is done in the syscall wrapper, and that's
+probably not appropriate for your use-case.
 
-And about the one and only introduced caller, I think the answer is that
-it shouldn't loop. If volatile overlayfs mount tries to sample the upper sb
-error counter and an unseen error exists, I argued before that I think
-mount should fail, so that the container orchestrator can decide what to do.
-Failure to take an errseq_counter sample means than an unseen error
-has been observed at least in the first or second check.
+-- 
+Jeff Layton <jlayton@kernel.org>
 
-> +
-> +       /* Clear the seen bit to make checking later easier */
-> +       *dst_errseq = cur & ~ERRSEQ_SEEN;
-> +}
-> +EXPORT_SYMBOL(errseq_counter_sample);
-> +
-> +/**
-> + * errseq_counter_check() - Has an error occurred since the sample
-> + * @counter: The errseq_counter from which to check.
-> + * @errseq_since: The errseq_t sampled with errseq_counter_sample to check
-> + * @errors_since: The errors sampled with errseq_counter_sample to check
-> + *
-> + * Returns: The latest error set in the errseq_t or 0 if there have been none.
-> + */
-> +int errseq_counter_check(struct errseq_counter *counter, errseq_t errseq_since,
-> +                        int errors_since)
-> +{
-> +       errseq_t cur_errseq;
-> +       int cur_errors;
-> +
-> +       cur_errors = atomic_read(&counter->errors);
-> +       /* To match the barrier in errseq_counter_set */
-> +       smp_rmb();
-> +
-> +       /* Clear / ignore the seen bit as we do at sample time */
-> +       cur_errseq = READ_ONCE(counter->errseq) & ~ERRSEQ_SEEN;
-> +
-> +       if (cur_errseq == errseq_since && errors_since == cur_errors)
-> +               return 0;
-> +
-> +       return -(cur_errseq & MAX_ERRNO);
-> +}
-
-
-Same here. Why not pass an errseq_counter_since argument?
-
-Thanks,
-Amir.
