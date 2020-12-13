@@ -2,201 +2,200 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 238B3C4361B
-	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Dec 2020 13:28:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1004FC433FE
+	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Dec 2020 19:42:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E98FC20575
-	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Dec 2020 13:28:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B924020754
+	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Dec 2020 19:42:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2406839AbgLMN2I (ORCPT
+        id S2392540AbgLMTmX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 13 Dec 2020 08:28:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53040 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726302AbgLMN16 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 13 Dec 2020 08:27:58 -0500
-From:   Jeff Layton <jlayton@kernel.org>
-Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Sargun Dhillon <sargun@sargun.me>
+        Sun, 13 Dec 2020 14:42:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41584 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726498AbgLMTmX (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 13 Dec 2020 14:42:23 -0500
+Received: from mail-io1-xd41.google.com (mail-io1-xd41.google.com [IPv6:2607:f8b0:4864:20::d41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F730C0613D3
+        for <linux-unionfs@vger.kernel.org>; Sun, 13 Dec 2020 11:41:37 -0800 (PST)
+Received: by mail-io1-xd41.google.com with SMTP id o6so1761736iob.10
+        for <linux-unionfs@vger.kernel.org>; Sun, 13 Dec 2020 11:41:37 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sargun.me; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=z07wSqApa7KdylWKlqCudVTxgQybZlnVnQ/+UKjlHAI=;
+        b=Uymjlp6SzK5fiZtpC6bJVPiDo13QK9CRAa4LHsnnxRnaZ7hhtztjZ8PMkEvaKl1fxS
+         u1xivkvdE4PV8MmTTuDtLg4nj3rlsHpMM3TgG6gHBsQwPl0ugB9P2od0gIWd4hpgeyDk
+         jcaU7ZMT0Sfiii6ZVI4G9aKJbXtoEV5a3r+Mw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=z07wSqApa7KdylWKlqCudVTxgQybZlnVnQ/+UKjlHAI=;
+        b=US2zYtLMRzzco3S5YgktreG0x+jeDBvWfl6uC83kgIlKtpgMiI4w6MUkv8NH3gh2ik
+         wYe3FiY/jf/vAzzNfkb8/DNKDjjX3LVG+stcgweuXl0esfNLZznWa7c3IWOs7yToKThr
+         1SGDkZNe9INy0CmFmdE6Afd/3YZzc0sVkIfqdHn45HgGJ23+UZS6p+6saJh0RcWxKFiy
+         j3jhZ6KGm1umE2fDshoYi0PFXsoLPdZI9XuIce7UUNijQYYccmzBDzbmsPcSZkFzts5N
+         stdA4P4IlUztzr4HGnO0ylXfe0ffoS13UYqvt4N4dAZTajOGEFPntburR6JYZz33fjjy
+         uRJQ==
+X-Gm-Message-State: AOAM533yTtosNrwNKr9cKxIKznSu7syfj/z5KjAt4sgJqdjTtOhipAq6
+        ov/Y5PoogBae3j/Q+Qy2s6Rpw8kpga4ylQ==
+X-Google-Smtp-Source: ABdhPJxwNSGDdYfgCvBbCqoEX7HGGzRxoojt7wxxWQrVjGgtddc47gzvN9IMWQPyOTpAdUuzN7QNDA==
+X-Received: by 2002:a05:6638:24c8:: with SMTP id y8mr28757450jat.63.1607888496615;
+        Sun, 13 Dec 2020 11:41:36 -0800 (PST)
+Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
+        by smtp.gmail.com with ESMTPSA id r11sm9697296ilg.39.2020.12.13.11.41.35
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Sun, 13 Dec 2020 11:41:35 -0800 (PST)
+Date:   Sun, 13 Dec 2020 19:41:34 +0000
+From:   Sargun Dhillon <sargun@sargun.me>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
         Matthew Wilcox <willy@infradead.org>,
-        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
-Subject: [RFC PATCH 1/2] errseq: split the SEEN flag into two new flags
-Date:   Sun, 13 Dec 2020 08:27:12 -0500
-Message-Id: <20201213132713.66864-2-jlayton@kernel.org>
-X-Mailer: git-send-email 2.29.2
-In-Reply-To: <20201213132713.66864-1-jlayton@kernel.org>
-References: <20201213132713.66864-1-jlayton@kernel.org>
+        Jeff Layton <jlayton@redhat.com>
+Subject: Re: [PATCH v2 2/3] errseq: Add mechanism to snapshot errseq_counter
+ and check snapshot
+Message-ID: <20201213194133.GA8562@ircssh-2.c.rugged-nimbus-611.internal>
+References: <20201211235002.4195-1-sargun@sargun.me>
+ <20201211235002.4195-3-sargun@sargun.me>
+ <CAOQ4uxgj8LztnH3vD7M=Lp_FoNhoLwaD4CcWQR0T1pd=pe2kgA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxgj8LztnH3vD7M=Lp_FoNhoLwaD4CcWQR0T1pd=pe2kgA@mail.gmail.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Overlayfs's volatile mounts want to be able to sample an error for
-their own purposes, without preventing a later opener from potentially
-seeing the error.
+On Sat, Dec 12, 2020 at 11:57:52AM +0200, Amir Goldstein wrote:
+> Forgot to CC Jeff?
+> 
+Oops.
+> On Sat, Dec 12, 2020 at 1:50 AM Sargun Dhillon <sargun@sargun.me> wrote:
+> >
+> > This adds the function errseq_counter_sample to allow for "subscribers"
+> > to take point-in-time snapshots of the errseq_counter, and store the
+> > counter + errseq_t.
+> >
+> > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+> > ---
+> >  include/linux/errseq.h |  4 ++++
+> >  lib/errseq.c           | 51 ++++++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 55 insertions(+)
+> >
+> > diff --git a/include/linux/errseq.h b/include/linux/errseq.h
+> > index 35818c484290..8998df499a3b 100644
+> > --- a/include/linux/errseq.h
+> > +++ b/include/linux/errseq.h
+> > @@ -25,4 +25,8 @@ errseq_t errseq_set(errseq_t *eseq, int err);
+> >  errseq_t errseq_sample(errseq_t *eseq);
+> >  int errseq_check(errseq_t *eseq, errseq_t since);
+> >  int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
+> > +void errseq_counter_sample(errseq_t *dst_errseq, int *dst_errors,
+> > +                          struct errseq_counter *counter);
+> > +int errseq_counter_check(struct errseq_counter *counter, errseq_t errseq_since,
+> > +                        int errors_since);
+> >  #endif
+> > diff --git a/lib/errseq.c b/lib/errseq.c
+> > index d555e7fc18d2..98fcfafa3d97 100644
+> > --- a/lib/errseq.c
+> > +++ b/lib/errseq.c
+> > @@ -246,3 +246,54 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since)
+> >         return err;
+> >  }
+> >  EXPORT_SYMBOL(errseq_check_and_advance);
+> > +
+> > +/**
+> > + * errseq_counter_sample() - Grab the current errseq_counter value
+> > + * @dst_errseq: The errseq_t to copy to
+> > + * @dst_errors: The destination overflow to copy to
+> > + * @counter: The errseq_counter to copy from
+> > + *
+> > + * Grabs a point in time sample of the errseq_counter for latter comparison
+> > + */
+> > +void errseq_counter_sample(errseq_t *dst_errseq, int *dst_errors,
+> 
+> Why 2 arguments and not struct errseq_counter *dst_counter?
+> 
 
-The original reason for the SEEN flag was to make it so that we didn't
-need to increment the counter if nothing had observed the latest value
-and the error was the same. Eventually, a regression was reported in
-the errseq_t conversion, and we fixed that by using the SEEN flag to
-also mean that the error had been reported to userland at least once
-somewhere.
+Mostly not to have to use atomic_* when setting this value and avoiding locking 
+another cacheline on the CPU. IIRC, atomic_t is always 4-byte aligned but int 
+doesn't have to be.
 
-Those are two different states, however. If we instead take a second
-flag bit from the counter, we can track these two things separately,
-and accomodate the overlayfs volatile mount use-case.
+> > +                          struct errseq_counter *counter)
+> > +{
+> > +       errseq_t cur;
+> > +
+> > +       do {
+> > +               cur = READ_ONCE(counter->errseq);
+> > +               *dst_errors = atomic_read(&counter->errors);
+> > +       } while (cur != READ_ONCE(counter->errseq));
+> 
+> This loop seems odd. I think the return value should reflect the fact that
+> the snapshot failed and let the caller decide if it wants to loop.
+> 
+> And about the one and only introduced caller, I think the answer is that
+> it shouldn't loop. If volatile overlayfs mount tries to sample the upper sb
+> error counter and an unseen error exists, I argued before that I think
+> mount should fail, so that the container orchestrator can decide what to do.
+> Failure to take an errseq_counter sample means than an unseen error
+> has been observed at least in the first or second check.
+> 
 
-Add a new MUSTINC flag that indicates that the counter must be
-incremented the next time an error is set, and rework the errseq
-functions to set and clear that flag whenever the SEEN bit is set or
-cleared.
+I guess. In the "good" case, there's the same computational cost, but the bad
+case (error occurs while we are snapshotting results in another spin.
 
-Test only for the MUSTINC bit when deciding whether to increment the
-counter and only for the SEEN bit when deciding what to return in
-errseq_sample.
+> > +
+> > +       /* Clear the seen bit to make checking later easier */
+> > +       *dst_errseq = cur & ~ERRSEQ_SEEN;
+> > +}
+> > +EXPORT_SYMBOL(errseq_counter_sample);
+> > +
+> > +/**
+> > + * errseq_counter_check() - Has an error occurred since the sample
+> > + * @counter: The errseq_counter from which to check.
+> > + * @errseq_since: The errseq_t sampled with errseq_counter_sample to check
+> > + * @errors_since: The errors sampled with errseq_counter_sample to check
+> > + *
+> > + * Returns: The latest error set in the errseq_t or 0 if there have been none.
+> > + */
+> > +int errseq_counter_check(struct errseq_counter *counter, errseq_t errseq_since,
+> > +                        int errors_since)
+> > +{
+> > +       errseq_t cur_errseq;
+> > +       int cur_errors;
+> > +
+> > +       cur_errors = atomic_read(&counter->errors);
+> > +       /* To match the barrier in errseq_counter_set */
+> > +       smp_rmb();
+> > +
+> > +       /* Clear / ignore the seen bit as we do at sample time */
+> > +       cur_errseq = READ_ONCE(counter->errseq) & ~ERRSEQ_SEEN;
+> > +
+> > +       if (cur_errseq == errseq_since && errors_since == cur_errors)
+> > +               return 0;
+> > +
+> > +       return -(cur_errseq & MAX_ERRNO);
+> > +}
+> 
+> 
+> Same here. Why not pass an errseq_counter_since argument?
+> 
+> Thanks,
+> Amir.
 
-Add a new errseq_peek function to allow for the overlayfs use-case.
-This just grabs the latest counter and sets the MUSTINC bit, leaving
-the SEEN bit untouched.
-
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
----
- include/linux/errseq.h |  2 ++
- lib/errseq.c           | 64 ++++++++++++++++++++++++++++++++++--------
- 2 files changed, 55 insertions(+), 11 deletions(-)
-
-diff --git a/include/linux/errseq.h b/include/linux/errseq.h
-index fc2777770768..6d4b9bc629ac 100644
---- a/include/linux/errseq.h
-+++ b/include/linux/errseq.h
-@@ -9,6 +9,8 @@ typedef u32	errseq_t;
- 
- errseq_t errseq_set(errseq_t *eseq, int err);
- errseq_t errseq_sample(errseq_t *eseq);
-+errseq_t errseq_peek(errseq_t *eseq);
-+errseq_t errseq_sample_advance(errseq_t *eseq);
- int errseq_check(errseq_t *eseq, errseq_t since);
- int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
- #endif
-diff --git a/lib/errseq.c b/lib/errseq.c
-index 81f9e33aa7e7..5cc830f0361b 100644
---- a/lib/errseq.c
-+++ b/lib/errseq.c
-@@ -38,8 +38,11 @@
- /* This bit is used as a flag to indicate whether the value has been seen */
- #define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
- 
-+/* This bit indicates that value must be incremented even when error is same */
-+#define ERRSEQ_MUSTINC		(1 << (ERRSEQ_SHIFT + 1))
-+
- /* The lowest bit of the counter */
--#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
-+#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 2))
- 
- /**
-  * errseq_set - set a errseq_t for later reporting
-@@ -77,11 +80,11 @@ errseq_t errseq_set(errseq_t *eseq, int err)
- 	for (;;) {
- 		errseq_t new;
- 
--		/* Clear out error bits and set new error */
--		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
-+		/* Clear out flag bits and set new error */
-+		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN|ERRSEQ_MUSTINC)) | -err;
- 
--		/* Only increment if someone has looked at it */
--		if (old & ERRSEQ_SEEN)
-+		/* Only increment if we have to */
-+		if (old & ERRSEQ_MUSTINC)
- 			new += ERRSEQ_CTR_INC;
- 
- 		/* If there would be no change, then call it done */
-@@ -122,14 +125,50 @@ EXPORT_SYMBOL(errseq_set);
- errseq_t errseq_sample(errseq_t *eseq)
- {
- 	errseq_t old = READ_ONCE(*eseq);
-+	errseq_t new = old;
- 
--	/* If nobody has seen this error yet, then we can be the first. */
--	if (!(old & ERRSEQ_SEEN))
--		old = 0;
--	return old;
-+	/*
-+	 * For the common case of no errors ever having been set, we can skip
-+	 * marking the SEEN|MUSTINC bits. Once an error has been set, the value
-+	 * will never go back to zero.
-+	 */
-+	if (old != 0) {
-+		new |= ERRSEQ_SEEN|ERRSEQ_MUSTINC;
-+		if (old != new)
-+			cmpxchg(eseq, old, new);
-+		if (!(old & ERRSEQ_SEEN))
-+			return 0;
-+	}
-+	return new;
- }
- EXPORT_SYMBOL(errseq_sample);
- 
-+/**
-+ * errseq_peek - Grab current errseq_t value, but don't mark it SEEN
-+ * @eseq: Pointer to errseq_t to be sampled.
-+ *
-+ * In some cases, we need to be able to sample the errseq_t, but we're not
-+ * in a situation where we can report the value to userland. Use this
-+ * function to do that. This ensures that later errors will be recorded,
-+ * and that any current errors are reported at least once.
-+ *
-+ * Context: Any context.
-+ * Return: The current errseq value.
-+ */
-+errseq_t errseq_peek(errseq_t *eseq)
-+{
-+	errseq_t old = READ_ONCE(*eseq);
-+	errseq_t new = old;
-+
-+	if (old != 0) {
-+		new |= ERRSEQ_MUSTINC;
-+		if (old != new)
-+			cmpxchg(eseq, old, new);
-+	}
-+	return new;
-+}
-+EXPORT_SYMBOL(errseq_peek);
-+
- /**
-  * errseq_check() - Has an error occurred since a particular sample point?
-  * @eseq: Pointer to errseq_t value to be checked.
-@@ -143,7 +182,10 @@ EXPORT_SYMBOL(errseq_sample);
-  */
- int errseq_check(errseq_t *eseq, errseq_t since)
- {
--	errseq_t cur = READ_ONCE(*eseq);
-+	errseq_t cur = READ_ONCE(*eseq) & ~(ERRSEQ_MUSTINC|ERRSEQ_SEEN);
-+
-+	/* Clear the flag bits for comparison */
-+	since &= ~(ERRSEQ_MUSTINC|ERRSEQ_SEEN);
- 
- 	if (likely(cur == since))
- 		return 0;
-@@ -195,7 +237,7 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since)
- 		 * can advance "since" and return an error based on what we
- 		 * have.
- 		 */
--		new = old | ERRSEQ_SEEN;
-+		new = old | ERRSEQ_SEEN | ERRSEQ_MUSTINC;
- 		if (new != old)
- 			cmpxchg(eseq, old, new);
- 		*since = new;
--- 
-2.29.2
+See above. I can change this, and I mulled over this decision a bunch, 
+unfortunately (micro)benchmarking was inconclusive as to whether this made a 
+difference or not.
 
