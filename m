@@ -2,139 +2,168 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB5A1C4361B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 14:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 557DFC4361B
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 21:40:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 966AF22C97
-	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 14:48:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16D22221FC
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 21:40:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2408271AbgLNOsC (ORCPT
+        id S2387737AbgLNVkP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 14 Dec 2020 09:48:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47814 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1731101AbgLNOrx (ORCPT
+        Mon, 14 Dec 2020 16:40:15 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:48823 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S2387514AbgLNVkP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 14 Dec 2020 09:47:53 -0500
-Received: from mail-io1-xd42.google.com (mail-io1-xd42.google.com [IPv6:2607:f8b0:4864:20::d42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C4ABC0613CF;
-        Mon, 14 Dec 2020 06:47:13 -0800 (PST)
-Received: by mail-io1-xd42.google.com with SMTP id i18so17083870ioa.1;
-        Mon, 14 Dec 2020 06:47:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=t7cynCFYbdf1gPvm9bpSof6fvbviPpKlg5br5sZOt4Q=;
-        b=h1OOPH0MU6BKrc+UxlfmIVrHGGygucAUJCvZgG7eo4wUkJGMhpxXpH2DqFMAMZJdy9
-         UCeAFKYfYjw7ESvqdJom0uaLZUPdL903HjOrprnFJYH9857kAtrOTwtvQIxNFmH9VYxI
-         79oASVPyA7SUN488m7ktMGyQHA+/43ev9S62V1dyS54a4FdE3XZ98xhxOD8wlVOUYE/F
-         DdPij0lDQTBy+/jnunLI/q06xQcKRa0xeltSez+KZDTHgEHVBfFuHjA43FSIo7RPAbrq
-         +LuYY1o3LvjzVl/V99SR57rx15OUqTZJ/4Tavtkxp9tJmovD/vIMxEUS6pdAXXfV1c3u
-         bU+A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=t7cynCFYbdf1gPvm9bpSof6fvbviPpKlg5br5sZOt4Q=;
-        b=uDmbL6vHavMSKtpbRyPs8Tut5yC70TpqC3SOwyYI+dQo00BQHVJB+9+uqC6P5UG4tg
-         dzTUnD5zMSPd0ifHGN1am3eqNlamDgziUsiaivQXZzMgOHIrvZ4/rodFECC7ZfQhQgdP
-         AXonOtnY7QzKveHxwyhKiZyMdhVAOBaA+FW7tB7lzHbuT+Tle8nhaPBPUC8QU9EjlJ2w
-         7JwI2Y3rKEjdHDpBP4WbMIOPSYwcePK+3pTvLwEkc7AEeoWtSep/v4Fl1+N9Cn1PJqMb
-         9L2ef3LfmRe56h1yCsON5+hKOzvlqCtyL90QxkErd/BFTx+m9/HWB8gv6llg2v1aUDtv
-         HtcA==
-X-Gm-Message-State: AOAM532KhthIr8BXD8SbhJoI6M3yX2GQIZ9UQzuLQj+jzkanw/AdPT14
-        rrtUfvRy1zloJowmHCQ+9u0E2MHsQ6O/7v4AmihEgEsU
-X-Google-Smtp-Source: ABdhPJzc1L8a2m+x9Cl1Y7Y3R5xvwiw+Dr9lE76WtoQNKu1mzfjfIQMsayg39oNPsADG4iO4bgqQk7DFykev3J+AVq8=
-X-Received: by 2002:a05:6602:1608:: with SMTP id x8mr32220716iow.72.1607957232695;
- Mon, 14 Dec 2020 06:47:12 -0800 (PST)
-MIME-Version: 1.0
-References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-5-mszeredi@redhat.com>
- <CAOQ4uxhv+33nVxNQmZtf-uzZN0gMXBaDoiJYm88cWwa1fRQTTg@mail.gmail.com>
- <CAJfpegsxku5D+08F6SUixQUfF6eDVm+o2pu6feLooq==ye0GDg@mail.gmail.com>
- <CAOQ4uxj6130FkTPQ0_83bBj2vJGaehdYk1dix6c8FgLStqN6qw@mail.gmail.com> <CAJfpegvS3pD89GTfFTsAnRwQ+Oxuo+r7mP0JY1usDC3n3tT48Q@mail.gmail.com>
-In-Reply-To: <CAJfpegvS3pD89GTfFTsAnRwQ+Oxuo+r7mP0JY1usDC3n3tT48Q@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 14 Dec 2020 16:47:01 +0200
-Message-ID: <CAOQ4uxh-L4dFsbkhHMCacMjLtPimF1OvJgd6uWJP9xYT3rufRA@mail.gmail.com>
-Subject: Re: [PATCH v2 04/10] ovl: make ioctl() safe
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Miklos Szeredi <mszeredi@redhat.com>,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Mon, 14 Dec 2020 16:40:15 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1607981929;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=WR+RyLQ7QZDrTrU3w6RGuPv+flEY6ZP3IN3AdHw7u8o=;
+        b=YaPRy5fqKBMUg68Uko3ChKxHWJA5DYaqGDr2XBeZRKA5ovMNIy0DdoCdq9qk1DTEoYsM5k
+        nNo/vFBl0PYOpBxFtoW8BBC0GwQ9obhzY3mo3eOhL9JQ/KJ/69YkIYIQLyMQfWdIm9a+zu
+        QwOUsGXvOMjHIPDZUhAZ0DzANc+jhb8=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-256-EgKEIIDfNkOxTyBCXwdYlQ-1; Mon, 14 Dec 2020 16:38:46 -0500
+X-MC-Unique: EgKEIIDfNkOxTyBCXwdYlQ-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 456C16D531;
+        Mon, 14 Dec 2020 21:38:45 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-114-168.rdu2.redhat.com [10.10.114.168])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5A3D718A9E;
+        Mon, 14 Dec 2020 21:38:44 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id E0784220BCF; Mon, 14 Dec 2020 16:38:43 -0500 (EST)
+Date:   Mon, 14 Dec 2020 16:38:43 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Sargun Dhillon <sargun@sargun.me>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        LSM List <linux-security-module@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>
-Content-Type: text/plain; charset="UTF-8"
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
+Subject: Re: [RFC PATCH 2/2] overlayfs: propagate errors from upper to
+ overlay sb in sync_fs
+Message-ID: <20201214213843.GA3453@redhat.com>
+References: <20201213132713.66864-1-jlayton@kernel.org>
+ <20201213132713.66864-3-jlayton@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201213132713.66864-3-jlayton@kernel.org>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Dec 14, 2020 at 3:24 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> On Mon, Dec 14, 2020 at 6:44 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > Perhaps, but there is a much bigger issue with this change IMO.
-> > Not because of dropping rule (b) of the permission model, but because
-> > of relaxing rule (a).
-> >
-> > Should overlayfs respect the conservative interpretation as it partly did
-> > until this commit, a lower file must not lose IMMUTABLE/APPEND_ONLY
-> > after copy up, but that is exactly what is going to happen if we first
-> > copy up and then fail permission check on setting the flags.
->
-> Yeah, it's a mess.   This will hopefully sort it out, as it will allow
-> easier copy up of flags:
->
-> https://lore.kernel.org/linux-fsdevel/20201123141207.GC327006@miu.piliscsaba.redhat.com/
->
-> In actual fact losing S_APPEND is not currently prevented by copy-up
-> triggered by anything other than FS_IOC_SETX*, and even that is prone
-> to races as indicated by the bug report that resulted in this patch.
->
-> Let's just fix the IMMUTABLE case:
->
->   - if the file is already copied up with data (since the overlay
-> ioctl implementation currently uses the realdata), then we're fine to
-> copy up
->
->   - if the file is not IMMUTABLE to start with, then also fine to copy
-> up; even if the op will fail after copy up we haven't done anything
-> that wouldn't be possible without this particular codepath
->
->   - if task has CAP_LINUX_IMMUTABLE (can add/remove immutable) then
-> it's also fine to copy up since we can be fairly sure that the actual
-> setflags will succeed as well.  If not, that can be a problem, but as
-> I've said copying up IMMUTABLE and other flags should really be done
-> by the copy up code, otherwise it won't work properly.
->
-> Something like this incremental should be good,  I think:
->
-> @@ -576,6 +576,15 @@ static long ovl_ioctl_set_flags(struct f
->
->   inode_lock(inode);
->
-> + /*
-> + * Prevent copy up if immutable and has no CAP_LINUX_IMMUTABLE
-> + * capability.
-> + */
-> + ret = -EPERM;
-> + if (!ovl_has_upperdata(inode) && IS_IMMUTABLE(inode) &&
-> +     !capable(CAP_LINUX_IMMUTABLE))
-> + goto unlock;
-> +
->   ret = ovl_maybe_copy_up(file_dentry(file), O_WRONLY);
->   if (ret)
->   goto unlock;
->
+On Sun, Dec 13, 2020 at 08:27:13AM -0500, Jeff Layton wrote:
+> Peek at the upper layer's errseq_t at mount time for volatile mounts,
+> and record it in the per-sb info. In sync_fs, check for an error since
+> the recorded point and set it in the overlayfs superblock if there was
+> one.
+> 
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> ---
 
-I guess that looks ok for a band aid.
+While we are solving problem for non-volatile overlay mount, I also
+started thinking, what about non-volatile overlay syncfs() writeback errors.
+Looks like these will not be reported to user space at all as of now
+(because we never update overlay_sb->s_wb_err ever).
 
-Thanks,
-Amir.
+A patch like this might fix it. (compile tested only).
+
+overlayfs: Report syncfs() errors to user space
+
+Currently, syncfs(), calls filesystem ->sync_fs() method but ignores the
+return code. But certain writeback errors can still be reported on 
+syncfs() by checking errors on super block.
+
+ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
+
+For the case of overlayfs, we never set overlayfs super block s_wb_err. That
+means sync() will never report writeback errors on overlayfs uppon syncfs().
+
+Fix this by updating overlay sb->sb_wb_err upon ->sync_fs() call. And that
+should mean that user space syncfs() call should see writeback errors.
+
+ovl_fsync() does not need anything special because if there are writeback
+errors underlying filesystem will report it through vfs_fsync_range() return
+code and user space will see it.
+
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+---
+ fs/overlayfs/ovl_entry.h |    1 +
+ fs/overlayfs/super.c     |   14 +++++++++++---
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+Index: redhat-linux/fs/overlayfs/super.c
+===================================================================
+--- redhat-linux.orig/fs/overlayfs/super.c	2020-12-14 15:33:43.934400880 -0500
++++ redhat-linux/fs/overlayfs/super.c	2020-12-14 16:15:07.127400880 -0500
+@@ -259,7 +259,7 @@ static int ovl_sync_fs(struct super_bloc
+ {
+ 	struct ovl_fs *ofs = sb->s_fs_info;
+ 	struct super_block *upper_sb;
+-	int ret;
++	int ret, ret2;
+ 
+ 	if (!ovl_upper_mnt(ofs))
+ 		return 0;
+@@ -283,7 +283,14 @@ static int ovl_sync_fs(struct super_bloc
+ 	ret = sync_filesystem(upper_sb);
+ 	up_read(&upper_sb->s_umount);
+ 
+-	return ret;
++	if (errseq_check(&upper_sb->s_wb_err, sb->s_wb_err)) {
++		/* Upper sb has errors since last time */
++		spin_lock(&ofs->errseq_lock);
++		ret2 = errseq_check_and_advance(&upper_sb->s_wb_err,
++						&sb->s_wb_err);
++		spin_unlock(&ofs->errseq_lock);
++	}
++	return ret ? ret : ret2;
+ }
+ 
+ /**
+@@ -1873,6 +1880,7 @@ static int ovl_fill_super(struct super_b
+ 	if (!cred)
+ 		goto out_err;
+ 
++	spin_lock_init(&ofs->errseq_lock);
+ 	/* Is there a reason anyone would want not to share whiteouts? */
+ 	ofs->share_whiteout = true;
+ 
+@@ -1945,7 +1953,7 @@ static int ovl_fill_super(struct super_b
+ 
+ 		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+ 		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+-
++		sb->s_wb_err = errseq_sample(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
+ 	}
+ 	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+ 	err = PTR_ERR(oe);
+Index: redhat-linux/fs/overlayfs/ovl_entry.h
+===================================================================
+--- redhat-linux.orig/fs/overlayfs/ovl_entry.h	2020-12-14 15:33:43.934400880 -0500
++++ redhat-linux/fs/overlayfs/ovl_entry.h	2020-12-14 15:34:13.509400880 -0500
+@@ -79,6 +79,7 @@ struct ovl_fs {
+ 	atomic_long_t last_ino;
+ 	/* Whiteout dentry cache */
+ 	struct dentry *whiteout;
++	spinlock_t errseq_lock;
+ };
+ 
+ static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+
