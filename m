@@ -2,82 +2,367 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BCD3C4361B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 23:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AAFAC2BBCA
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 23:33:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3F69322509
-	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 23:07:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E10222510
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 23:33:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2441153AbgLNXHQ (ORCPT
+        id S1726212AbgLNXdN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 14 Dec 2020 18:07:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41482 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2440571AbgLNXHP (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 14 Dec 2020 18:07:15 -0500
-Received: from mail-qk1-x734.google.com (mail-qk1-x734.google.com [IPv6:2607:f8b0:4864:20::734])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E004FC061793
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Dec 2020 15:06:34 -0800 (PST)
-Received: by mail-qk1-x734.google.com with SMTP id u5so4418853qkf.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Dec 2020 15:06:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:message-id:from:to:subject;
-        bh=5lwj2KnwQRaQSjZlfUliFwvsHqt11xuXe19pBc5o6q0=;
-        b=Jsk+PMYshBgKrgnU6yrR6b5L4w2ojNIhsctf4/MIoDqbJ9IgJlpoJ23w7UW28peprq
-         FWAoJWFd7iQdQwIDm4oeEtjBsY2ntXJaG3Nt1SmenSLPzk34SVG6AX8UISE4IQTM8Zmu
-         1Y2qJiw3qtSmSB2oqR5KGAZNdqTPgaEP2NTFOpuakbs5ANP0Cxgdo2tuuYo0e07oDso+
-         mitSxv/INf/pw/IdNf0oJi71gMmXTStFvnux4hyf3LumsIYqvhtcX8TxxFnNjqm3eru+
-         wuGy9Be8DCP51/V8SmoUXHNagLvGV4QkqauYV/qTujm2r9ZdJh3Nan6iBBEMjB7s+0fA
-         /55g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:message-id:from:to:subject;
-        bh=5lwj2KnwQRaQSjZlfUliFwvsHqt11xuXe19pBc5o6q0=;
-        b=CGRNO52+sGxQN5LqxCzV+6/8zqiqjkkT1qF/H9041507PIv8cXA92PeSuNKDIvw155
-         7nSqgiRN15b6tTnTyWpF+fBQvR/VWpHRdyD+Jz4VDH1kVYOV/CF/TffOWGH4C/cbrpc0
-         qvocOU0a2eQipbwpPNVca8TSEySjBsCPu5XBBrs5jjBb6yx735X+pglrpN15XznRXli+
-         DfTmBVAx8M2dQg+UzjhLYlafBJxwY5juNRq+oDLg5TY/ZJCERB5BZ4r3kbry8AsEZvYg
-         X9RWgPPeHviKqTc9O4+9BWarPWWmozWaYZyC0HfTf+OaGihG1iZeZg8txmIvhM069C3i
-         6c0g==
-X-Gm-Message-State: AOAM532wyOZdUcm1IGsbcTwHcuuBTICrahUPOZsqBJ8qwNuJN9U2VKVA
-        scJ3met+nvRnVgHzL5QAxFPLOWMFIbRaeQ==
-X-Google-Smtp-Source: ABdhPJzZ15MVEYfO8G5xI/IAoLf2Hg/UA4bC8by4GJqM/hC0vutDKCGv9/lkaR1C96ErWJSBJTemAA==
-X-Received: by 2002:ae9:e70c:: with SMTP id m12mr27126159qka.451.1607987194084;
-        Mon, 14 Dec 2020 15:06:34 -0800 (PST)
-Received: from aldarion (pool-74-97-22-49.prvdri.fios.verizon.net. [74.97.22.49])
-        by smtp.gmail.com with ESMTPSA id g10sm15706643qkb.8.2020.12.14.15.06.33
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 14 Dec 2020 15:06:33 -0800 (PST)
-Date:   Mon, 14 Dec 2020 18:06:28 -0500
-Message-Id: <2nv9d47zt7.fsf@aldarion.sourceruckus.org>
-From:   Michael D Labriola <michael.d.labriola@gmail.com>
-To:     linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
-Subject: failed open: No data available
+        Mon, 14 Dec 2020 18:33:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49240 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725765AbgLNXdH (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 14 Dec 2020 18:33:07 -0500
+Message-ID: <f6e50ab2f42480e81f039648429f176bf44347e4.camel@kernel.org>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1607988746;
+        bh=fp0qYtb/6AnauANNyKvHXR9l73JHsnFjHmaadNcGYag=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=rADNrLv7/FAABakaDDzYFUriri6rmHY3qblEbI+/OFWjQlTcPomur+qoWp13DhCiW
+         AT2R4fnQDPFBPsW2OoLB4N2fAOu39IfSkNfyNKiJsGjIjgNNWNHBVuslH1XNNlRSam
+         b8Icf2kQJIRPETN7VcCduA5FRywSkD+x+ZUjcZIESMHcoBrrSnZOHAjCCa0EkSyyac
+         l7Uo52a4sOd54SnPA92JCQaAyclpZ+hUi+GmCg+niuylOukzi74b6EZs9koLRg7b77
+         HX8WTVQZqMIGOOUcZAJuBZuAWOglqZMPfb0MCjfnw2vGlu9KKcPFEfmrpgAdENyRcN
+         /0Tl4Z3q7HNvA==
+Subject: Re: [RFC PATCH 1/2] errseq: split the SEEN flag into two new flags
+From:   Jeff Layton <jlayton@kernel.org>
+To:     NeilBrown <neilb@suse.de>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Sargun Dhillon <sargun@sargun.me>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
+Date:   Mon, 14 Dec 2020 18:32:24 -0500
+In-Reply-To: <87blewjber.fsf@notabene.neil.brown.name>
+References: <20201213132713.66864-1-jlayton@kernel.org>
+         <20201213132713.66864-2-jlayton@kernel.org>
+         <87ft49jn37.fsf@notabene.neil.brown.name>
+         <20201214133714.GA13412@tleilax.poochiereds.net>
+         <87blewjber.fsf@notabene.neil.brown.name>
+Content-Type: text/plain; charset="ISO-8859-15"
+User-Agent: Evolution 3.38.2 (3.38.2-1.fc33) 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-I'm sporatically getting "no data available" as a reason to fail to
-open files on an overlay mount.  Most obvious is during ln of backup
-file during apt install.  Only seems to happen on copy_up from lower
-layer.  Lower layer is squashfs (I've seen it happen with both the
-default zlib and also zstd compression), upper is EXT4.
+On Tue, 2020-12-15 at 09:00 +1100, NeilBrown wrote:
+> On Mon, Dec 14 2020, Jeffrey Layton wrote:
+> 
+> > On Mon, Dec 14, 2020 at 10:35:56AM +1100, NeilBrown wrote:
+> > > On Sun, Dec 13 2020, Jeff Layton wrote:
+> > > 
+> > > > Overlayfs's volatile mounts want to be able to sample an error for
+> > > > their own purposes, without preventing a later opener from potentially
+> > > > seeing the error.
+> > > > 
+> > > > The original reason for the SEEN flag was to make it so that we didn't
+> > > > need to increment the counter if nothing had observed the latest value
+> > > > and the error was the same. Eventually, a regression was reported in
+> > > > the errseq_t conversion, and we fixed that by using the SEEN flag to
+> > > > also mean that the error had been reported to userland at least once
+> > > > somewhere.
+> > > > 
+> > > > Those are two different states, however. If we instead take a second
+> > > > flag bit from the counter, we can track these two things separately,
+> > > > and accomodate the overlayfs volatile mount use-case.
+> > > > 
+> > > > Add a new MUSTINC flag that indicates that the counter must be
+> > > > incremented the next time an error is set, and rework the errseq
+> > > > functions to set and clear that flag whenever the SEEN bit is set or
+> > > > cleared.
+> > > > 
+> > > > Test only for the MUSTINC bit when deciding whether to increment the
+> > > > counter and only for the SEEN bit when deciding what to return in
+> > > > errseq_sample.
+> > > > 
+> > > > Add a new errseq_peek function to allow for the overlayfs use-case.
+> > > > This just grabs the latest counter and sets the MUSTINC bit, leaving
+> > > > the SEEN bit untouched.
+> > > > 
+> > > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> > > > ---
+> > > >  include/linux/errseq.h |  2 ++
+> > > >  lib/errseq.c           | 64 ++++++++++++++++++++++++++++++++++--------
+> > > >  2 files changed, 55 insertions(+), 11 deletions(-)
+> > > > 
+> > > > diff --git a/include/linux/errseq.h b/include/linux/errseq.h
+> > > > index fc2777770768..6d4b9bc629ac 100644
+> > > > --- a/include/linux/errseq.h
+> > > > +++ b/include/linux/errseq.h
+> > > > @@ -9,6 +9,8 @@ typedef u32	errseq_t;
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > >  errseq_t errseq_set(errseq_t *eseq, int err);
+> > > >  errseq_t errseq_sample(errseq_t *eseq);
+> > > > +errseq_t errseq_peek(errseq_t *eseq);
+> > > > +errseq_t errseq_sample_advance(errseq_t *eseq);
+> > > >  int errseq_check(errseq_t *eseq, errseq_t since);
+> > > >  int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
+> > > >  #endif
+> > > > diff --git a/lib/errseq.c b/lib/errseq.c
+> > > > index 81f9e33aa7e7..5cc830f0361b 100644
+> > > > --- a/lib/errseq.c
+> > > > +++ b/lib/errseq.c
+> > > > @@ -38,8 +38,11 @@
+> > > >  /* This bit is used as a flag to indicate whether the value has been seen */
+> > > >  #define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
+> > > 
+> > > Would this look nicer using the BIT() macro?
+> > > 
+> > >   #define ERRSEQ_SEEN		BIT(ERRSEQ_SHIFT)
+> > > 
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > > +/* This bit indicates that value must be incremented even when error is same */
+> > > > +#define ERRSEQ_MUSTINC		(1 << (ERRSEQ_SHIFT + 1))
+> > > 
+> > >  #define ERRSEQ_MUSTINC		BIT(ERRSEQ_SHIFT+1)
+> > > 
+> > > or if you don't like the BIT macro (not everyone does), then maybe
+> > > 
+> > >  #define ERR_SEQ_MUSTINC	(ERRSEQ_SEEN << 1 )
+> > > 
+> > > ??
+> > > 
+> > > > +
+> > > >  /* The lowest bit of the counter */
+> > > > -#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
+> > > > +#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 2))
+> > > 
+> > > Ditto.
+> > > 
+> > 
+> > Yes, I can make that change. The BIT macro is much easier to read.
+> > 
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > >  /**
+> > > >   * errseq_set - set a errseq_t for later reporting
+> > > > @@ -77,11 +80,11 @@ errseq_t errseq_set(errseq_t *eseq, int err)
+> > > >  	for (;;) {
+> > > >  		errseq_t new;
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > > -		/* Clear out error bits and set new error */
+> > > > -		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
+> > > > +		/* Clear out flag bits and set new error */
+> > > > +		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN|ERRSEQ_MUSTINC)) | -err;
+> > > 
+> > > This is starting to look clumsy (or maybe, this already looked clumsy,
+> > > but now that is hard to ignore).
+> > > 
+> > > 		new = (old & (ERRSEQ_CTR_INC - 1)) | -err
+> > > 
+> > 
+> > I think you mean:
+> > 
+> > 		new = (old & ~(ERRSEQ_CTR_INC - 1)) | -err;
+> > 
+> > Maybe I can add a new ERRSEQ_CTR_MASK value though which makes it more
+> > evident.
+> 
+> Sounds good.
+> 
+> > 
+> > > Also this assumes MAX_ERRNO is a mask, which it is .. today.
+> > > 
+> > > 	BUILD_BUG_ON(MAX_ERRNO & (MAX_ERRNO + 1));
+> > > ??
+> > > 
+> > 
+> > We already have this in errseq_set:
+> > 
+> >         BUILD_BUG_ON_NOT_POWER_OF_2(MAX_ERRNO + 1);
+> 
+> Oh good - I didn't see.
+> 
+> > 
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > > -		/* Only increment if someone has looked at it */
+> > > > -		if (old & ERRSEQ_SEEN)
+> > > > +		/* Only increment if we have to */
+> > > > +		if (old & ERRSEQ_MUSTINC)
+> > > >  			new += ERRSEQ_CTR_INC;
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > >  		/* If there would be no change, then call it done */
+> > > > @@ -122,14 +125,50 @@ EXPORT_SYMBOL(errseq_set);
+> > > >  errseq_t errseq_sample(errseq_t *eseq)
+> > > >  {
+> > > >  	errseq_t old = READ_ONCE(*eseq);
+> > > > +	errseq_t new = old;
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > > -	/* If nobody has seen this error yet, then we can be the first. */
+> > > > -	if (!(old & ERRSEQ_SEEN))
+> > > > -		old = 0;
+> > > > -	return old;
+> > > > +	/*
+> > > > +	 * For the common case of no errors ever having been set, we can skip
+> > > > +	 * marking the SEEN|MUSTINC bits. Once an error has been set, the value
+> > > > +	 * will never go back to zero.
+> > > > +	 */
+> > > > +	if (old != 0) {
+> > > > +		new |= ERRSEQ_SEEN|ERRSEQ_MUSTINC;
+> > > 
+> > > You lose me here.  Why is ERRSEQ_SEEN being set, where it wasn't before?
+> > > 
+> > > The ERRSEQ_SEEN flag not means precisely "The error has been reported to
+> > > userspace".
+> > > This operations isn't used to report errors - that is errseq_check().
+> > > 
+> > > I'm not saying the code it wrong - I really cannot tell.
+> > > I'm just saying that I cannot see why it might be right.
+> > > 
+> > 
+> > I think you're right. We should not be setting SEEN here, but we do
+> > need to set MUSTINC if it's not already set. I'll fix (and re-test).
+> 
+> Thanks.  Though it isn't clear to me why MUSTINC needs to be set there,
+> so if you could make that clear, it would help me.
+> 
+> Also, the two flags seem similar in how they are handled, only tracking
+> different states, but their names don't reflect that.
+> I imagine changing "SEEN" to "MUST_REPORT" or similar, so both flags are
+> "MUST_XXX".
+> Only I think we would then need to invert "SEEN" - as it currently means
+> "MUSTN'T_REPORT" .. approximately.
+> 
+> Or maybe we could replace MUST_INC by DID_INC, so it says what has been
+> done, rather than what must be done.
+> 
+> Or maybe not.  Certainly it would be useful to have a clear picture of
+> how the two flags are similar, and how they are different.
+> 
 
-I've only bumped into this problem recently with 5.9+ kernels.  I'm
-gonna go see if I can reproduce in some older kernels I still have
-installed.
 
-Anyone else reporting this?
+You need to set MUSTINC in errseq_peek to ensure that the next error
+that occurs will be recorded, via the counter being bumped. Otherwise
+that increment may be skipped (if no one else observed the last error).
+
+I sent a v2 set before I saw your mail. Hopefully it addresses some of
+your concerns.
+
+You're right that the flag naming is a bit awkward. I'm open to
+suggestions for names, but I'd probably like to keep the "sense" of the
+flags so that I don't need to sort out the logic again. It also works
+better with 0 being a special value that way.
+
+
+
+> Thanks,
+> NeilBrown
+> 
+> 
+> > 
+> > Thanks for the review!
+> > 
+> > > 
+> > > 
+> > > 
+> > > > +		if (old != new)
+> > > > +			cmpxchg(eseq, old, new);
+> > > > +		if (!(old & ERRSEQ_SEEN))
+> > > > +			return 0;
+> > > > +	}
+> > > > +	return new;
+> > > >  }
+> > > >  EXPORT_SYMBOL(errseq_sample);
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > +/**
+> > > > + * errseq_peek - Grab current errseq_t value, but don't mark it SEEN
+> > > > + * @eseq: Pointer to errseq_t to be sampled.
+> > > > + *
+> > > > + * In some cases, we need to be able to sample the errseq_t, but we're not
+> > > > + * in a situation where we can report the value to userland. Use this
+> > > > + * function to do that. This ensures that later errors will be recorded,
+> > > > + * and that any current errors are reported at least once.
+> > > > + *
+> > > > + * Context: Any context.
+> > > > + * Return: The current errseq value.
+> > > > + */
+> > > > +errseq_t errseq_peek(errseq_t *eseq)
+> > > > +{
+> > > > +	errseq_t old = READ_ONCE(*eseq);
+> > > > +	errseq_t new = old;
+> > > > +
+> > > > +	if (old != 0) {
+> > > > +		new |= ERRSEQ_MUSTINC;
+> > > > +		if (old != new)
+> > > > +			cmpxchg(eseq, old, new);
+> > > > +	}
+> > > > +	return new;
+> > > > +}
+> > > > +EXPORT_SYMBOL(errseq_peek);
+> > > > +
+> > > >  /**
+> > > >   * errseq_check() - Has an error occurred since a particular sample point?
+> > > >   * @eseq: Pointer to errseq_t value to be checked.
+> > > > @@ -143,7 +182,10 @@ EXPORT_SYMBOL(errseq_sample);
+> > > >   */
+> > > >  int errseq_check(errseq_t *eseq, errseq_t since)
+> > > >  {
+> > > > -	errseq_t cur = READ_ONCE(*eseq);
+> > > > +	errseq_t cur = READ_ONCE(*eseq) & ~(ERRSEQ_MUSTINC|ERRSEQ_SEEN);
+> > > > +
+> > > > +	/* Clear the flag bits for comparison */
+> > > > +	since &= ~(ERRSEQ_MUSTINC|ERRSEQ_SEEN);
+> > > >  
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > >  	if (likely(cur == since))
+> > > >  		return 0;
+> > > > @@ -195,7 +237,7 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since)
+> > > >  		 * can advance "since" and return an error based on what we
+> > > >  		 * have.
+> > > >  		 */
+> > > > -		new = old | ERRSEQ_SEEN;
+> > > > +		new = old | ERRSEQ_SEEN | ERRSEQ_MUSTINC;
+> > > >  		if (new != old)
+> > > >  			cmpxchg(eseq, old, new);
+> > > >  		*since = new;
+> > > > -- 
+> > > > 2.29.2
 
 -- 
-Michael D Labriola
-21 Rip Van Winkle Cir
-Warwick, RI 02886
-401-316-9844 (cell)
+Jeff Layton <jlayton@kernel.org>
+
