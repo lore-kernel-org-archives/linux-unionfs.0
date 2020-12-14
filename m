@@ -2,282 +2,91 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6C12C4361B
-	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Dec 2020 23:36:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A1DC4361B
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 05:14:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A841B207B2
-	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Dec 2020 23:36:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE3F922472
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 05:14:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1729616AbgLMXgr (ORCPT
+        id S1730259AbgLNFO0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 13 Dec 2020 18:36:47 -0500
-Received: from mx2.suse.de ([195.135.220.15]:48482 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1725497AbgLMXgr (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 13 Dec 2020 18:36:47 -0500
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id F2D36AC7F;
-        Sun, 13 Dec 2020 23:36:04 +0000 (UTC)
-From:   NeilBrown <neilb@suse.de>
-To:     Jeff Layton <jlayton@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Sargun Dhillon <sargun@sargun.me>
-Date:   Mon, 14 Dec 2020 10:35:56 +1100
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
-Subject: Re: [RFC PATCH 1/2] errseq: split the SEEN flag into two new flags
-In-Reply-To: <20201213132713.66864-2-jlayton@kernel.org>
-References: <20201213132713.66864-1-jlayton@kernel.org>
- <20201213132713.66864-2-jlayton@kernel.org>
-Message-ID: <87ft49jn37.fsf@notabene.neil.brown.name>
+        Mon, 14 Dec 2020 00:14:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44306 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726058AbgLNFOP (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 14 Dec 2020 00:14:15 -0500
+Received: from mail-il1-x144.google.com (mail-il1-x144.google.com [IPv6:2607:f8b0:4864:20::144])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E18E8C0613CF
+        for <linux-unionfs@vger.kernel.org>; Sun, 13 Dec 2020 21:13:34 -0800 (PST)
+Received: by mail-il1-x144.google.com with SMTP id q1so14705194ilt.6
+        for <linux-unionfs@vger.kernel.org>; Sun, 13 Dec 2020 21:13:34 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=TfHeg40vwwig3KDdlb4QGgSVbJXSbpdN74kDPF7YZCo=;
+        b=Siu6HkSG1wuyNdTcpbIC7e8SVAmdzTUud/IBnbBnVft/0r0yyAADr9P0PJAkZ9Tvb+
+         Mc1vAo3M8sY1Vv7OTiPK5RyRw9g7HAsskC/ikbqNj2rtKy1UMY99rlcqHksPHWYzNN72
+         JdyBOi50ZUYjGGqzhfqE5Si7NO/5/2IPdpRzG009hTEL/GRl2ryhsOrXoWhyTuyoeMPA
+         Bzi005vYlPNMLF8wXkRJeMNlynRoaO7QQhByF/XoUnfVZ185/N3X3/XGW+/lTnFfial7
+         +dW5/FDnxLUNE4uolgZw3r5BuwAcUAZCwC+O9+8Ft6+OUexMYim+a9VzgBwZdh1w3YEL
+         9EWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=TfHeg40vwwig3KDdlb4QGgSVbJXSbpdN74kDPF7YZCo=;
+        b=JddifFhMlkMOmmcaxXscch8LGI6ayGBZFR5VgCmLuI37bxmWFs3erJvRzP/v51tIWT
+         nMQWHLPktFKjkT8HDsnLVQ+1dXqbFfrJFw7Z/3jlOVf7e5+wXFkTU9gUu3vf8n7vEy6z
+         DZHAe0g9XP6DZzyfpsAw7srWKS+GXipKHDK2a27Mn//ZYjxgzvCYejjZnNZWz8/vAFJh
+         gFaSAutDwa4QiTNTrLkN1Qg/fVKB45tJI6hS1VZW6gj5R/a+QaWgoc6mUDH0RJP2jxy/
+         TqaVoRc98Begx5Y4GoE5bw8YNY/XgjKHKhHDJZzILPM/PdVF5YOvm/RBK91u3W4fGW5Q
+         kS6w==
+X-Gm-Message-State: AOAM531BRZgQiFvmBhjowoSf+uUOX8u8FSVRYS8kz/r1UUXNe0Sj3EJ/
+        Qw4t29xSbTzvcicSlm0kNePYdByixhfp6Hnry/XxObnu
+X-Google-Smtp-Source: ABdhPJzMzbZj3Wi+5S+8y3JFkmLaGc7/sb30bhrZfIISrRv0SZlq1aq7LEev2NAvAz8ACl7L3xv+nt4To8dUwThlPPo=
+X-Received: by 2002:a05:6e02:14ce:: with SMTP id o14mr33335870ilk.9.1607922814387;
+ Sun, 13 Dec 2020 21:13:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
+References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-7-mszeredi@redhat.com>
+ <CAOQ4uxju9wLCq5mqPLgo0anD+n7DLnmHzJ=SymFTRc0c_uVY4Q@mail.gmail.com> <CAJfpegvzU5y09jxpzq=SSKc67bp-03hpqkQa-m4CZk-p2bEcVw@mail.gmail.com>
+In-Reply-To: <CAJfpegvzU5y09jxpzq=SSKc67bp-03hpqkQa-m4CZk-p2bEcVw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 14 Dec 2020 07:13:23 +0200
+Message-ID: <CAOQ4uxhFkYiOwCH_UNPC7pO=YELeEkthOAa2WaoiGrys73nJxw@mail.gmail.com>
+Subject: Re: [PATCH v2 06/10] ovl: user xattr
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, Dec 13 2020, Jeff Layton wrote:
-
-> Overlayfs's volatile mounts want to be able to sample an error for
-> their own purposes, without preventing a later opener from potentially
-> seeing the error.
+On Fri, Dec 11, 2020 at 4:55 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
-> The original reason for the SEEN flag was to make it so that we didn't
-> need to increment the counter if nothing had observed the latest value
-> and the error was the same. Eventually, a regression was reported in
-> the errseq_t conversion, and we fixed that by using the SEEN flag to
-> also mean that the error had been reported to userland at least once
-> somewhere.
+> On Tue, Dec 8, 2020 at 2:14 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Mon, Dec 7, 2020 at 6:37 PM Miklos Szeredi <mszeredi@redhat.com> wrote:
+> > >
+> > > Optionally allow using "user.overlay." namespace instead of
+> > > "trusted.overlay."
+> >
+> > There are several occurrences of "trusted.overlay" string in code and
+> > Documentation, which is fine. But maybe only adjust the comment for
+> > testing xattr support:
+> >
+> >          * Check if upper/work fs supports trusted.overlay.* xattr
 >
-> Those are two different states, however. If we instead take a second
-> flag bit from the counter, we can track these two things separately,
-> and accomodate the overlayfs volatile mount use-case.
 >
-> Add a new MUSTINC flag that indicates that the counter must be
-> incremented the next time an error is set, and rework the errseq
-> functions to set and clear that flag whenever the SEEN bit is set or
-> cleared.
->
-> Test only for the MUSTINC bit when deciding whether to increment the
-> counter and only for the SEEN bit when deciding what to return in
-> errseq_sample.
->
-> Add a new errseq_peek function to allow for the overlayfs use-case.
-> This just grabs the latest counter and sets the MUSTINC bit, leaving
-> the SEEN bit untouched.
->
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> ---
->  include/linux/errseq.h |  2 ++
->  lib/errseq.c           | 64 ++++++++++++++++++++++++++++++++++--------
->  2 files changed, 55 insertions(+), 11 deletions(-)
->
-> diff --git a/include/linux/errseq.h b/include/linux/errseq.h
-> index fc2777770768..6d4b9bc629ac 100644
-> --- a/include/linux/errseq.h
-> +++ b/include/linux/errseq.h
-> @@ -9,6 +9,8 @@ typedef u32	errseq_t;
->=20=20
->  errseq_t errseq_set(errseq_t *eseq, int err);
->  errseq_t errseq_sample(errseq_t *eseq);
-> +errseq_t errseq_peek(errseq_t *eseq);
-> +errseq_t errseq_sample_advance(errseq_t *eseq);
->  int errseq_check(errseq_t *eseq, errseq_t since);
->  int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
->  #endif
-> diff --git a/lib/errseq.c b/lib/errseq.c
-> index 81f9e33aa7e7..5cc830f0361b 100644
-> --- a/lib/errseq.c
-> +++ b/lib/errseq.c
-> @@ -38,8 +38,11 @@
->  /* This bit is used as a flag to indicate whether the value has been see=
-n */
->  #define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
+> Updated documentation and comments.
 
-Would this look nicer using the BIT() macro?
-
-  #define ERRSEQ_SEEN		BIT(ERRSEQ_SHIFT)
-
->=20=20
-> +/* This bit indicates that value must be incremented even when error is =
-same */
-> +#define ERRSEQ_MUSTINC		(1 << (ERRSEQ_SHIFT + 1))
-
- #define ERRSEQ_MUSTINC		BIT(ERRSEQ_SHIFT+1)
-
-or if you don't like the BIT macro (not everyone does), then maybe
-
- #define ERR_SEQ_MUSTINC	(ERRSEQ_SEEN << 1 )
-
-??
-
-> +
->  /* The lowest bit of the counter */
-> -#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
-> +#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 2))
-
-Ditto.
-
->=20=20
->  /**
->   * errseq_set - set a errseq_t for later reporting
-> @@ -77,11 +80,11 @@ errseq_t errseq_set(errseq_t *eseq, int err)
->  	for (;;) {
->  		errseq_t new;
->=20=20
-> -		/* Clear out error bits and set new error */
-> -		new =3D (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
-> +		/* Clear out flag bits and set new error */
-> +		new =3D (old & ~(MAX_ERRNO|ERRSEQ_SEEN|ERRSEQ_MUSTINC)) | -err;
-
-This is starting to look clumsy (or maybe, this already looked clumsy,
-but now that is hard to ignore).
-
-		new =3D (old & (ERRSEQ_CTR_INC - 1)) | -err
-
-Also this assumes MAX_ERRNO is a mask, which it is .. today.
-
-	BUILD_BUG_ON(MAX_ERRNO & (MAX_ERRNO + 1));
-??
-
->=20=20
-> -		/* Only increment if someone has looked at it */
-> -		if (old & ERRSEQ_SEEN)
-> +		/* Only increment if we have to */
-> +		if (old & ERRSEQ_MUSTINC)
->  			new +=3D ERRSEQ_CTR_INC;
->=20=20
->  		/* If there would be no change, then call it done */
-> @@ -122,14 +125,50 @@ EXPORT_SYMBOL(errseq_set);
->  errseq_t errseq_sample(errseq_t *eseq)
->  {
->  	errseq_t old =3D READ_ONCE(*eseq);
-> +	errseq_t new =3D old;
->=20=20
-> -	/* If nobody has seen this error yet, then we can be the first. */
-> -	if (!(old & ERRSEQ_SEEN))
-> -		old =3D 0;
-> -	return old;
-> +	/*
-> +	 * For the common case of no errors ever having been set, we can skip
-> +	 * marking the SEEN|MUSTINC bits. Once an error has been set, the value
-> +	 * will never go back to zero.
-> +	 */
-> +	if (old !=3D 0) {
-> +		new |=3D ERRSEQ_SEEN|ERRSEQ_MUSTINC;
-
-You lose me here.  Why is ERRSEQ_SEEN being set, where it wasn't before?
-
-The ERRSEQ_SEEN flag not means precisely "The error has been reported to
-userspace".
-This operations isn't used to report errors - that is errseq_check().
-
-I'm not saying the code it wrong - I really cannot tell.
-I'm just saying that I cannot see why it might be right.
+I think you just missed this one comment above that I pointed out.
 
 Thanks,
-NeilBrown
-
-
-
-> +		if (old !=3D new)
-> +			cmpxchg(eseq, old, new);
-> +		if (!(old & ERRSEQ_SEEN))
-> +			return 0;
-> +	}
-> +	return new;
->  }
->  EXPORT_SYMBOL(errseq_sample);
->=20=20
-> +/**
-> + * errseq_peek - Grab current errseq_t value, but don't mark it SEEN
-> + * @eseq: Pointer to errseq_t to be sampled.
-> + *
-> + * In some cases, we need to be able to sample the errseq_t, but we're n=
-ot
-> + * in a situation where we can report the value to userland. Use this
-> + * function to do that. This ensures that later errors will be recorded,
-> + * and that any current errors are reported at least once.
-> + *
-> + * Context: Any context.
-> + * Return: The current errseq value.
-> + */
-> +errseq_t errseq_peek(errseq_t *eseq)
-> +{
-> +	errseq_t old =3D READ_ONCE(*eseq);
-> +	errseq_t new =3D old;
-> +
-> +	if (old !=3D 0) {
-> +		new |=3D ERRSEQ_MUSTINC;
-> +		if (old !=3D new)
-> +			cmpxchg(eseq, old, new);
-> +	}
-> +	return new;
-> +}
-> +EXPORT_SYMBOL(errseq_peek);
-> +
->  /**
->   * errseq_check() - Has an error occurred since a particular sample poin=
-t?
->   * @eseq: Pointer to errseq_t value to be checked.
-> @@ -143,7 +182,10 @@ EXPORT_SYMBOL(errseq_sample);
->   */
->  int errseq_check(errseq_t *eseq, errseq_t since)
->  {
-> -	errseq_t cur =3D READ_ONCE(*eseq);
-> +	errseq_t cur =3D READ_ONCE(*eseq) & ~(ERRSEQ_MUSTINC|ERRSEQ_SEEN);
-> +
-> +	/* Clear the flag bits for comparison */
-> +	since &=3D ~(ERRSEQ_MUSTINC|ERRSEQ_SEEN);
->=20=20
->  	if (likely(cur =3D=3D since))
->  		return 0;
-> @@ -195,7 +237,7 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t=
- *since)
->  		 * can advance "since" and return an error based on what we
->  		 * have.
->  		 */
-> -		new =3D old | ERRSEQ_SEEN;
-> +		new =3D old | ERRSEQ_SEEN | ERRSEQ_MUSTINC;
->  		if (new !=3D old)
->  			cmpxchg(eseq, old, new);
->  		*since =3D new;
-> --=20
-> 2.29.2
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQJCBAEBCAAsFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAl/WpV0OHG5laWxiQHN1
-c2UuZGUACgkQOeye3VZigbm0kxAAvo6dSY4yu42bPdQHDJ+GSIjJe+tYo1N09lSk
-55bMqzQg57mwW2Xe9HklF4p4aiC3E8TEc4fz0c6tkSGv8fZOkVvk55zEYAgr2yc3
-8So/dlW6Ltd8JMSM3HJYb2KVs16GwcyHa37Z1Fh01fxEOHBHEQ8/pMgXDQuQYV7v
-kNjjHqlRe0loKcBQNdX2pzk/cUyrinsMQkJrpWIJWF+Q8b7U5dtF7djaHJsEuA5U
-u5AeOnk+CSn4Ykg/U/nmOI929Rqoi5+0gjl7jWP+vlAyQa1WhuuqA001IKuwk1aG
-MfTB8YSdQTCNl3eUDUZTiOY5qbScF5EdQsZ8YFXLd8eLi7Jk6qNxBPOfb6ZWPqJd
-A8BINxIrZD1w9j6pqzkcNVfRG1KrC/zjJTCAGwuPuhJkZ6LzG+Ah0Cho08J38Bvi
-XRyJbwtykoeEuNVVtMRvTT9c2lZVND1zl8qjDxH+T9WVJ/xecgS4ZrTLzb+U5x8Z
-sV/VGytIGclsk7CaObisQd3ygG5p3v1+w0ZL9yQ+Wux8i1JRdqdDclsKOkhwHHTi
-xOvlNaLJBWJS3ovaAfzVhXb7wfWByv3VBof41xIJl4oVXSfz9D5Vg3Vjul3jX/QQ
-P1jmXDjYdZmS4rmWuuPmAGyFw+8PhY2B1fLNwKDVyOMV+RQ058m3rHOy8KfgCjho
-AMP22cc=
-=vzKJ
------END PGP SIGNATURE-----
---=-=-=--
+Amir.
