@@ -2,197 +2,113 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32F17C4361B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 22:13:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBD7C4361B
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 22:15:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E53372247F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 22:13:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6573E224F9
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Dec 2020 22:15:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2439299AbgLNWNU (ORCPT
+        id S2440168AbgLNWPS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 14 Dec 2020 17:13:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59986 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2408312AbgLNWFD (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 14 Dec 2020 17:05:03 -0500
-Received: from mail-il1-x142.google.com (mail-il1-x142.google.com [IPv6:2607:f8b0:4864:20::142])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CEB3C061793
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Dec 2020 14:04:17 -0800 (PST)
-Received: by mail-il1-x142.google.com with SMTP id p5so17303191ilm.12
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Dec 2020 14:04:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sargun.me; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to:user-agent;
-        bh=kJvd7quPasV3EFWoK28s3bS8fHz862MTxZIPJFPaDY4=;
-        b=CuLZNTzmpv3Ei/9s1/uRs3/QHXK6zgXwN2xW0wo/ISSbr8XyszFKIM2+sJVjmkV1hQ
-         IYr/dr2mjnYTqQeQW0nJkwJ5Q+8eorWhHqyp+n+8bvOPEK4EYDdlPAlcf4zj9JcSj62A
-         yXSiD/gug9JWF7FMhdKJVTvzWlEG75765Ly4k=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to:user-agent;
-        bh=kJvd7quPasV3EFWoK28s3bS8fHz862MTxZIPJFPaDY4=;
-        b=tc4p0hGIv0KxBimTWtonr3vd6sD8/BlcRaJaMw69PSxohmrAgxfoWu58i3yjB6nHXk
-         j577fBsHV1/UffZVKNEBzYroUyPb6SmpC/O0vOQZBdnyd572rUMq6x7xqdDDQhnv+QAF
-         1FV08GxtsEPeoWg0ks6pXwS61Kxg4Piv5ZTpOXAFd8HY+c26BROumelx2CFDYCE6ZiDv
-         yMtH9nN1f4F+A3RTdKu/a98lGGQ4PcCLe3b4+AvmEKcaQbY7eYW/fHqsczLNOEJED0XO
-         GYrzIwM8E7flzweVyVJVagow2NgNRBzN3pgnFvCJOCeGrac1IofCwCDPKWa6kMfYVUxy
-         6AFQ==
-X-Gm-Message-State: AOAM531L0/UlTGWAzZA9BtkfthCWHvQh++rAEAsI/iGbiZFbJYvEzM9P
-        5h1nr3EhDHKGoKtdJbt4hQRJdA==
-X-Google-Smtp-Source: ABdhPJwEZgLLRarVmnGGhUKekA6lyS3f/A6En/cCHianNt1hMitHCxc4fgGTARBahHfl6UnFbAgLRg==
-X-Received: by 2002:a92:9f59:: with SMTP id u86mr37409988ili.205.1607983456789;
-        Mon, 14 Dec 2020 14:04:16 -0800 (PST)
-Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
-        by smtp.gmail.com with ESMTPSA id s4sm10112385ioc.33.2020.12.14.14.04.15
-        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
-        Mon, 14 Dec 2020 14:04:16 -0800 (PST)
-Date:   Mon, 14 Dec 2020 22:04:14 +0000
-From:   Sargun Dhillon <sargun@sargun.me>
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Jeff Layton <jlayton@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
+        Mon, 14 Dec 2020 17:15:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59492 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S2408312AbgLNWPG (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 14 Dec 2020 17:15:06 -0500
+From:   Jeff Layton <jlayton@kernel.org>
+Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Sargun Dhillon <sargun@sargun.me>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Vivek Goyal <vgoyal@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
         Matthew Wilcox <willy@infradead.org>,
         NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
-Subject: Re: [RFC PATCH 2/2] overlayfs: propagate errors from upper to
- overlay sb in sync_fs
-Message-ID: <20201214220413.GA6508@ircssh-2.c.rugged-nimbus-611.internal>
-References: <20201213132713.66864-1-jlayton@kernel.org>
- <20201213132713.66864-3-jlayton@kernel.org>
- <20201214213843.GA3453@redhat.com>
+Subject: [RFC PATCH v2 2/2] overlayfs: propagate errors from upper to overlay sb in sync_fs
+Date:   Mon, 14 Dec 2020 17:14:21 -0500
+Message-Id: <20201214221421.1127423-3-jlayton@kernel.org>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20201214221421.1127423-1-jlayton@kernel.org>
+References: <20201214221421.1127423-1-jlayton@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201214213843.GA3453@redhat.com>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Dec 14, 2020 at 04:38:43PM -0500, Vivek Goyal wrote:
-> On Sun, Dec 13, 2020 at 08:27:13AM -0500, Jeff Layton wrote:
-> > Peek at the upper layer's errseq_t at mount time for volatile mounts,
-> > and record it in the per-sb info. In sync_fs, check for an error since
-> > the recorded point and set it in the overlayfs superblock if there was
-> > one.
-> > 
-> > Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> > ---
-> 
-> While we are solving problem for non-volatile overlay mount, I also
-> started thinking, what about non-volatile overlay syncfs() writeback errors.
-> Looks like these will not be reported to user space at all as of now
-> (because we never update overlay_sb->s_wb_err ever).
-> 
-> A patch like this might fix it. (compile tested only).
-> 
-> overlayfs: Report syncfs() errors to user space
-> 
-> Currently, syncfs(), calls filesystem ->sync_fs() method but ignores the
-> return code. But certain writeback errors can still be reported on 
-> syncfs() by checking errors on super block.
-> 
-> ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
-> 
-> For the case of overlayfs, we never set overlayfs super block s_wb_err. That
-> means sync() will never report writeback errors on overlayfs uppon syncfs().
-> 
-> Fix this by updating overlay sb->sb_wb_err upon ->sync_fs() call. And that
-> should mean that user space syncfs() call should see writeback errors.
-> 
-> ovl_fsync() does not need anything special because if there are writeback
-> errors underlying filesystem will report it through vfs_fsync_range() return
-> code and user space will see it.
-> 
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  fs/overlayfs/ovl_entry.h |    1 +
->  fs/overlayfs/super.c     |   14 +++++++++++---
->  2 files changed, 12 insertions(+), 3 deletions(-)
-> 
-> Index: redhat-linux/fs/overlayfs/super.c
-> ===================================================================
-> --- redhat-linux.orig/fs/overlayfs/super.c	2020-12-14 15:33:43.934400880 -0500
-> +++ redhat-linux/fs/overlayfs/super.c	2020-12-14 16:15:07.127400880 -0500
-> @@ -259,7 +259,7 @@ static int ovl_sync_fs(struct super_bloc
->  {
->  	struct ovl_fs *ofs = sb->s_fs_info;
->  	struct super_block *upper_sb;
-> -	int ret;
-> +	int ret, ret2;
->  
->  	if (!ovl_upper_mnt(ofs))
->  		return 0;
-> @@ -283,7 +283,14 @@ static int ovl_sync_fs(struct super_bloc
->  	ret = sync_filesystem(upper_sb);
->  	up_read(&upper_sb->s_umount);
->  
-> -	return ret;
-> +	if (errseq_check(&upper_sb->s_wb_err, sb->s_wb_err)) {
-> +		/* Upper sb has errors since last time */
-> +		spin_lock(&ofs->errseq_lock);
-> +		ret2 = errseq_check_and_advance(&upper_sb->s_wb_err,
-> +						&sb->s_wb_err);
-> +		spin_unlock(&ofs->errseq_lock);
-> +	}
-> +	return ret ? ret : ret2;
->  }
->  
->  /**
-> @@ -1873,6 +1880,7 @@ static int ovl_fill_super(struct super_b
->  	if (!cred)
->  		goto out_err;
->  
-> +	spin_lock_init(&ofs->errseq_lock);
->  	/* Is there a reason anyone would want not to share whiteouts? */
->  	ofs->share_whiteout = true;
->  
-> @@ -1945,7 +1953,7 @@ static int ovl_fill_super(struct super_b
->  
->  		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
->  		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
-> -
-> +		sb->s_wb_err = errseq_sample(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
->  	}
->  	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
->  	err = PTR_ERR(oe);
-> Index: redhat-linux/fs/overlayfs/ovl_entry.h
-> ===================================================================
-> --- redhat-linux.orig/fs/overlayfs/ovl_entry.h	2020-12-14 15:33:43.934400880 -0500
-> +++ redhat-linux/fs/overlayfs/ovl_entry.h	2020-12-14 15:34:13.509400880 -0500
-> @@ -79,6 +79,7 @@ struct ovl_fs {
->  	atomic_long_t last_ino;
->  	/* Whiteout dentry cache */
->  	struct dentry *whiteout;
-> +	spinlock_t errseq_lock;
->  };
->  
->  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
-> 
+Peek at the upper layer's errseq_t at mount time for volatile mounts,
+and record it in the per-sb info. In sync_fs, check for an error since
+the recorded point and set it in the overlayfs superblock if there was
+one.
 
-This was on my list of things to look at. I don't think we can / should use 
-errseq_check_and_advance because it will hide errors from userspace. I think we 
-need something like:
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+---
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     | 19 ++++++++++++++-----
+ 2 files changed, 15 insertions(+), 5 deletions(-)
 
-At startup, call errseq_peek and stash that value somewhere. This sets the 
-MUSTINC flag.
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 1b5a2094df8e..f4285da50525 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -79,6 +79,7 @@ struct ovl_fs {
+ 	atomic_long_t last_ino;
+ 	/* Whiteout dentry cache */
+ 	struct dentry *whiteout;
++	errseq_t errseq;
+ };
+ 
+ static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 290983bcfbb3..3f0cb91915ff 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -264,8 +264,16 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+ 	if (!ovl_upper_mnt(ofs))
+ 		return 0;
+ 
+-	if (!ovl_should_sync(ofs))
+-		return 0;
++	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
++
++	if (!ovl_should_sync(ofs)) {
++		/* Propagate errors from upper to overlayfs */
++		ret = errseq_check(&upper_sb->s_wb_err, ofs->errseq);
++		if (ret)
++			errseq_set(&sb->s_wb_err, ret);
++		return ret;
++	}
++
+ 	/*
+ 	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+ 	 * All the super blocks will be iterated, including upper_sb.
+@@ -277,8 +285,6 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+ 	if (!wait)
+ 		return 0;
+ 
+-	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
+-
+ 	down_read(&upper_sb->s_umount);
+ 	ret = sync_filesystem(upper_sb);
+ 	up_read(&upper_sb->s_umount);
+@@ -1945,8 +1951,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+ 		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+-
+ 	}
++
++	if (ofs->config.ovl_volatile)
++		ofs->errseq = errseq_peek(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
++
+ 	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+ 	err = PTR_ERR(oe);
+ 	if (IS_ERR(oe))
+-- 
+2.29.2
 
-At syncfs time: call errseq check, if it says there is an error, call 
-errseq_peek again, and store the error in our superblock. Take the error value 
-from the differenceb between the previous one and the new one, and copy it up to 
-the superblock.
-
-Either way, I think Jeff's work of making it so other kernel subsytems can 
-interact with errseq on a superblock bears fruit elsewhere. If the first patch 
-gets merged, I can put together the patches to do the standard error bubble
-up for normal syncfs, volatile syncfs, and volatile remount.
