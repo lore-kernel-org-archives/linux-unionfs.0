@@ -2,105 +2,181 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91C09C4361B
-	for <linux-unionfs@archiver.kernel.org>; Tue, 15 Dec 2020 16:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC82CC4361B
+	for <linux-unionfs@archiver.kernel.org>; Tue, 15 Dec 2020 16:32:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56CB322525
-	for <linux-unionfs@archiver.kernel.org>; Tue, 15 Dec 2020 16:32:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8951F22525
+	for <linux-unionfs@archiver.kernel.org>; Tue, 15 Dec 2020 16:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1731008AbgLOQcV (ORCPT
+        id S1730510AbgLOQct (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 15 Dec 2020 11:32:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33124 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1730895AbgLOQcT (ORCPT
+        Tue, 15 Dec 2020 11:32:49 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:54025 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1730716AbgLOQck (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 15 Dec 2020 11:32:19 -0500
-Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EA65C0617A7
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Dec 2020 08:31:39 -0800 (PST)
-Received: by mail-io1-xd2d.google.com with SMTP id 81so21035371ioc.13
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Dec 2020 08:31:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=pqcanqDeCUNvQ26osIGtvb1Td9H8neekpZItrVL/N/Q=;
-        b=sSjKrFZdXCDC9rmZY0Tc9oQQVGP0cBSo9niIsxRgk/ZwW6RRg92TEJcUpAXdAQTRzR
-         wN5KjqMt5RrsK1kXwqZWJcwV93DcZSp63Pns1SO+Ouk72PNTmBbEatORh9Cghxyf3+wH
-         zzEWxjjV0+5QxpLIhDqmXwDbEPUl4gx+ChNihUUASIFcIjo+aqPGeu6wu64deJwmyAHT
-         Q/x+NzY+0YSURl3USmYuMzS9+fuI5LwGq/9mxiQVkZg/1lqq4GdGDD8xYK5NuI4lG++n
-         lAytVDHI8JM9cAZNVLR2t+eI5VmmXdbvyjpEVab+dwzoMVYcZU9C8mHPEklvwuGNCfv3
-         lm0A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pqcanqDeCUNvQ26osIGtvb1Td9H8neekpZItrVL/N/Q=;
-        b=oAk/pJQb63L8LOh1CjD0P5BkRnAJd8twL5GTfQynhWWE6AXyE7Ihysyn6OyvkkWWoa
-         VnqkeM2HdeQlM8kWvOy7HI4uDz+XQ5PWwIXJCEOHfqIwuvfgu7M1pux1TMj48LsToxbf
-         lPMUpYTnd4akkBsNtvr739v+43NMY91cIsm2bmWPdOWzawy4Y0evJzzA5oUVHrpWWC3H
-         8CiPDxK7uv39Y+dTZ/MNE7c3ijQDRL7CJuQschUODDaqy4povpSvp5MgBUKdgl/U9jul
-         EraBBaA+T6vFLxW+ksXcaZ8kvSqv3DY+sNDWQJjbkVHCausvh+ZcZ7wX2Hhnie7kYQtu
-         JXXA==
-X-Gm-Message-State: AOAM531EoMZ/dcfUouEltGbYJspRElSjA1qDO9NaRkCEeDnmoeIzBLk/
-        ROwzSt3RQ15IhEslh7jJQ8aJf4UR9B8DFzKnIHA=
-X-Google-Smtp-Source: ABdhPJw0TYOd1mNYxJ7nwxB1L2PqSGLYL/bEtA2kZznR0hYd5TH4lHM2KP2DGZOrUlSgaHRWEUfrO/ATljfxiJ2u6v8=
-X-Received: by 2002:a5e:de08:: with SMTP id e8mr38722874iok.203.1608049898445;
- Tue, 15 Dec 2020 08:31:38 -0800 (PST)
+        Tue, 15 Dec 2020 11:32:40 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1608049869;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=udWFvzQvOxdj41oV5teTq8mWiC5+fQqsrITOoptPui8=;
+        b=NyeReEmPdx7bKSPBtL0MRrND2HmXXuTrG5tHBzrGix3+n9nrBMveWaMlRmv9TVK4/lP5oX
+        65+4A8lqSUrGg8acJ9PLzlcmNz4j33poeJd0k3KKl1lnifHM9ahM7xTReH1641N7DSW9oO
+        bNXC8zV7nJ3fsvahgS5qXv4rqsABKh8=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-205-h2wha-MmM4Cz1qNzeXwwSw-1; Tue, 15 Dec 2020 11:31:00 -0500
+X-MC-Unique: h2wha-MmM4Cz1qNzeXwwSw-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id DFF496D520;
+        Tue, 15 Dec 2020 16:30:58 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-117-245.rdu2.redhat.com [10.10.117.245])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 775CF60854;
+        Tue, 15 Dec 2020 16:30:58 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 1277D220BCF; Tue, 15 Dec 2020 11:30:58 -0500 (EST)
+Date:   Tue, 15 Dec 2020 11:30:58 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Sargun Dhillon <sargun@sargun.me>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
+Subject: Re: [RFC PATCH v2 2/2] overlayfs: propagate errors from upper to
+ overlay sb in sync_fs
+Message-ID: <20201215163058.GC63355@redhat.com>
+References: <20201214221421.1127423-1-jlayton@kernel.org>
+ <20201214221421.1127423-3-jlayton@kernel.org>
 MIME-Version: 1.0
-References: <2nv9d47zt7.fsf@aldarion.sourceruckus.org> <2n1rfrf5l0.fsf@aldarion.sourceruckus.org>
-In-Reply-To: <2n1rfrf5l0.fsf@aldarion.sourceruckus.org>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 15 Dec 2020 18:31:26 +0200
-Message-ID: <CAOQ4uxg4hmtGXg6dNghjfVpfiJFj6nauzqTgZucwSJAJq1Z3Eg@mail.gmail.com>
-Subject: Re: failed open: No data available
-To:     Michael D Labriola <michael.d.labriola@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201214221421.1127423-3-jlayton@kernel.org>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Dec 15, 2020 at 5:33 PM Michael D Labriola
-<michael.d.labriola@gmail.com> wrote:
->
-> On Mon, Dec 14, 2020 at 6:06 PM Michael D Labriola <michael.d.labriola@gmail.com> wrote:
-> >
-> > I'm sporatically getting "no data available" as a reason to fail to
-> > open files on an overlay mount.  Most obvious is during ln of backup
-> > file during apt install.  Only seems to happen on copy_up from lower
+On Mon, Dec 14, 2020 at 05:14:21PM -0500, Jeff Layton wrote:
+> Peek at the upper layer's errseq_t at mount time for volatile mounts,
+> and record it in the per-sb info. In sync_fs, check for an error since
+> the recorded point and set it in the overlayfs superblock if there was
+> one.
+> 
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> ---
+>  fs/overlayfs/ovl_entry.h |  1 +
+>  fs/overlayfs/super.c     | 19 ++++++++++++++-----
+>  2 files changed, 15 insertions(+), 5 deletions(-)
+> 
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index 1b5a2094df8e..f4285da50525 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -79,6 +79,7 @@ struct ovl_fs {
+>  	atomic_long_t last_ino;
+>  	/* Whiteout dentry cache */
+>  	struct dentry *whiteout;
+> +	errseq_t errseq;
+>  };
+>  
+>  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 290983bcfbb3..3f0cb91915ff 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -264,8 +264,16 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+>  	if (!ovl_upper_mnt(ofs))
+>  		return 0;
+>  
+> -	if (!ovl_should_sync(ofs))
+> -		return 0;
+> +	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
+> +
+> +	if (!ovl_should_sync(ofs)) {
+> +		/* Propagate errors from upper to overlayfs */
+> +		ret = errseq_check(&upper_sb->s_wb_err, ofs->errseq);
+> +		if (ret)
+> +			errseq_set(&sb->s_wb_err, ret);
+> +		return ret;
+> +	}
+> +
 
-How do you know that? Do you have some more tracing info?
+I have few concerns here. I think ovl_sync_fs() should not be different
+for volatile mounts and non-volatile mounts. IOW, if an overlayfs
+user calls syncfs(fd), then only difference with non-volatile mount
+is that we will not call sync_filesystem() on underlying filesystem. But
+if there is an existing writeback error then that should be reported
+to syncfs(fd) caller both in case of volatile and non-volatile mounts.
 
-> > layer.  Lower layer is squashfs (I've seen it happen with both the
-> > default zlib and also zstd compression), upper is EXT4.
-> >
-> > I've only bumped into this problem recently with 5.9+ kernels.  I'm
-> > gonna go see if I can reproduce in some older kernels I still have
-> > installed.
->
-> Rebooting into 5.4 made the problem go away and I can apt upgrade
-> w/out any problems.  Rebooting an affected virtual machine into 5.8
-> also fixed the problem, so it looks to be something introduced in 5.9.
+Additional requirement in case of non-volatile mount seems to be that
+as soon as we detect first error, we probably should mark whole file
+system bad and start returning error for overlay operations so that
+upper layer can be thrown away and process restarted.
 
-There are no overlayfs changes v5.8..v5.9 nor squashfs changes.
-Are you sure that your reproducer is reliable enough for the bisection?
-If it is, please try to bisect the offending commit because I have no idea
-where it may be.
+And final non-volatile mount requirement seems to that we want to detect
+writeback errors in non syncfs() paths, for ex. mount(). That's what
+Sargun is trying to do. Keep a snapshot of upper_sb errseq on disk
+and upon remount of volatile overlay make sure no writeback errors
+have happened since then. And that's where I think we should be using
+new errseq_peek() and errseq_check(&upper_sb->s_wb_err, ofs->errseq)
+infracture. That way we can detect error on upper without consuming
+it upon overlay remount.
 
->
-> I suppose I should try 5.10 and see if this problem has already been
-> fixed.
->
+IOW, IMHO, ovl_sync_fs(), should use same mechanism to report error to
+user space both for volatile and non-volatile mounts. And this new
+mechanism of peeking at error without consuming it should be used
+in other paths like remount and possibly other overlay operations(if need
+be). 
 
-Wouldn't hurt.
+But creating a special path in ovl_sync_fs() for volatile mounts
+only will create conflicts with error reporting for non-volatile
+mounts. And IMHO, these should be same.
 
-Thanks,
-Amir.
+Is there a good reason that why we should treat volatile and non-volatile
+mounts differently in ovl_sync_fs() from error detection and reporting
+point of view.
+
+Thanks
+Vivek
+
+>  	/*
+>  	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+>  	 * All the super blocks will be iterated, including upper_sb.
+> @@ -277,8 +285,6 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+>  	if (!wait)
+>  		return 0;
+>  
+> -	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
+> -
+>  	down_read(&upper_sb->s_umount);
+>  	ret = sync_filesystem(upper_sb);
+>  	up_read(&upper_sb->s_umount);
+> @@ -1945,8 +1951,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+>  
+>  		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+>  		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+> -
+>  	}
+> +
+> +	if (ofs->config.ovl_volatile)
+> +		ofs->errseq = errseq_peek(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
+> +
+>  	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+>  	err = PTR_ERR(oe);
+>  	if (IS_ERR(oe))
+> -- 
+> 2.29.2
+> 
+
