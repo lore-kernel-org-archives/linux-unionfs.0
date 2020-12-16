@@ -2,94 +2,162 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D20AEC2BBCD
-	for <linux-unionfs@archiver.kernel.org>; Wed, 16 Dec 2020 23:34:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB27C2D0E4
+	for <linux-unionfs@archiver.kernel.org>; Wed, 16 Dec 2020 23:34:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A31F423731
-	for <linux-unionfs@archiver.kernel.org>; Wed, 16 Dec 2020 23:34:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 521A923750
+	for <linux-unionfs@archiver.kernel.org>; Wed, 16 Dec 2020 23:34:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1730866AbgLPXd4 (ORCPT
+        id S1730895AbgLPXeB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 16 Dec 2020 18:33:56 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:51458 "EHLO
+        Wed, 16 Dec 2020 18:34:01 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:46037 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1730825AbgLPXdw (ORCPT
+        by vger.kernel.org with ESMTP id S1729970AbgLPXdw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Wed, 16 Dec 2020 18:33:52 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1608161545;
+        s=mimecast20190719; t=1608161546;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=Tx7WUdnCzwHoHDRuV9Dx8cPV2+Sd++6ZqVhcvibmd2o=;
-        b=YgttP7EaJYfuI5g8CqPUe9RqKmlg/rCq+LhG3xFTRafqWj0RJ2n4D1YuAeMCQ3EnyNsgTC
-        Lx3KPuyo+ZGO6XAT+vsnBeRea2mvHIa4otdrLRU/QeLAIG0x3Bl1SWf5Bicq30owJ5d1Lq
-        Q9P7Ar77USz5BfXnkONCys8vhaienuw=
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=uobPKuVZDbEZ19fX23VSvt5Q35SONPP7xECvb/u/H1s=;
+        b=clBWycvkp+3Ay7Ialk1Rc4Z0vRAgrjQF+lF0fWfjRy7tC1U5pHASYlF6ffQdQMVmKV6VcQ
+        mdIB6IoarFm8my6K1ISMilvyWsKm7hwQHCPvM2idTK+gMzMY7iwVWK5CeWJk6NHYe6KdBg
+        E9eIFxeb854wIQD2w8wi6/UuwI3XIwg=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-158-NafvrBe_MqeWI-U0-C1sXA-1; Wed, 16 Dec 2020 18:32:22 -0500
-X-MC-Unique: NafvrBe_MqeWI-U0-C1sXA-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+ us-mta-301-UVr1GdXPOXW3R1WbGPuZ0w-1; Wed, 16 Dec 2020 18:32:22 -0500
+X-MC-Unique: UVr1GdXPOXW3R1WbGPuZ0w-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 0B9F4107ACE3;
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 208FA800D53;
         Wed, 16 Dec 2020 23:32:20 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-112-114.rdu2.redhat.com [10.10.112.114])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DC3141754A;
+        by smtp.corp.redhat.com (Postfix) with ESMTP id F10E45D9C0;
         Wed, 16 Dec 2020 23:32:19 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 733C9220BCF; Wed, 16 Dec 2020 18:32:19 -0500 (EST)
+        id 77DF5223D98; Wed, 16 Dec 2020 18:32:19 -0500 (EST)
 From:   Vivek Goyal <vgoyal@redhat.com>
 To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-unionfs@vger.kernel.org
 Cc:     jlayton@kernel.org, vgoyal@redhat.com, amir73il@gmail.com,
         sargun@sargun.me, miklos@szeredi.hu, willy@infradead.org,
         jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk
-Subject: [RFC PATCH 0/3] vfs, overlayfs: Fix syncfs() to return error
-Date:   Wed, 16 Dec 2020 18:31:46 -0500
-Message-Id: <20201216233149.39025-1-vgoyal@redhat.com>
+Subject: [PATCH 1/3] vfs: add new f_op->syncfs vector
+Date:   Wed, 16 Dec 2020 18:31:47 -0500
+Message-Id: <20201216233149.39025-2-vgoyal@redhat.com>
+In-Reply-To: <20201216233149.39025-1-vgoyal@redhat.com>
+References: <20201216233149.39025-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi,
+Current implementation of __sync_filesystem() ignores the return code
+from ->sync_fs(). I am not sure why that's the case. There must have
+been some historical reason for this.
 
-This is V2 of patches which tries to fix syncfs() for overlayfs to
-return error code when sync_filesystem(upper_sb) returns error or
-there are writeback errors on upper_sb.
+Ignoring ->sync_fs() return code is problematic for overlayfs where
+it can return error if sync_filesystem() on upper super block failed.
+That error will simply be lost and sycnfs(overlay_fd), will get
+success (despite the fact it failed).
 
-I posted V1 of patch here.
+If we modify existing implementation, there is a concern that it will
+lead to user space visible behavior changes and break things. So
+instead implement a new file_operations->syncfs() call which will
+be called in syncfs() syscall path. Return code from this new
+call will be captured. And all the writeback error detection
+logic can go in there as well. Only filesystems which implement
+this call get affected by this change. Others continue to fallback
+to existing mechanism.
 
-https://lore.kernel.org/linux-fsdevel/20201216143802.GA10550@redhat.com/
+To be clear, I mean something like this (draft, untested) patch. You'd
+also need to add a new ->syncfs op for overlayfs, and that could just do
+a check_and_advance against the upper layer sb's errseq_t after calling
+sync_filesystem.
 
-This is just compile tested patch series. Trying to get early feedback
-to figure out what direction to move in to fix this issue. 
+Vivek, fixed couple of minor compile errors in original patch.
 
-Thanks
-Vivek
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+---
+ fs/sync.c          | 29 ++++++++++++++++++++---------
+ include/linux/fs.h |  1 +
+ 2 files changed, 21 insertions(+), 9 deletions(-)
 
-Vivek Goyal (3):
-  vfs: add new f_op->syncfs vector
-  overlayfs: Implement f_op->syncfs() call
-  overlayfs: Check writeback errors w.r.t upper in ->syncfs()
-
- fs/overlayfs/file.c      |  1 +
- fs/overlayfs/overlayfs.h |  3 +++
- fs/overlayfs/ovl_entry.h |  2 ++
- fs/overlayfs/readdir.c   |  1 +
- fs/overlayfs/super.c     | 41 +++++++++++++++++++++++++++++++++++++++-
- fs/sync.c                | 29 +++++++++++++++++++---------
- include/linux/fs.h       |  1 +
- 7 files changed, 68 insertions(+), 10 deletions(-)
-
+diff --git a/fs/sync.c b/fs/sync.c
+index 1373a610dc78..06caa9758d93 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -155,27 +155,38 @@ void emergency_sync(void)
+ 	}
+ }
+ 
++static int generic_syncfs(struct file *file)
++{
++	int ret, ret2;
++	struct super_block *sb = file->f_path.dentry->d_sb;
++
++	down_read(&sb->s_umount);
++	ret = sync_filesystem(sb);
++	up_read(&sb->s_umount);
++
++	ret2 = errseq_check_and_advance(&sb->s_wb_err, &file->f_sb_err);
++
++	return ret ? ret : ret2;
++}
++
+ /*
+  * sync a single super
+  */
+ SYSCALL_DEFINE1(syncfs, int, fd)
+ {
+ 	struct fd f = fdget(fd);
+-	struct super_block *sb;
+-	int ret, ret2;
++	int ret;
+ 
+ 	if (!f.file)
+ 		return -EBADF;
+-	sb = f.file->f_path.dentry->d_sb;
+-
+-	down_read(&sb->s_umount);
+-	ret = sync_filesystem(sb);
+-	up_read(&sb->s_umount);
+ 
+-	ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
++	if (f.file->f_op->syncfs)
++		ret = f.file->f_op->syncfs(f.file);
++	else
++		ret = generic_syncfs(f.file);
+ 
+ 	fdput(f);
+-	return ret ? ret : ret2;
++	return ret;
+ }
+ 
+ /**
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8667d0cdc71e..6710469b7e33 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1859,6 +1859,7 @@ struct file_operations {
+ 				   struct file *file_out, loff_t pos_out,
+ 				   loff_t len, unsigned int remap_flags);
+ 	int (*fadvise)(struct file *, loff_t, loff_t, int);
++	int (*syncfs)(struct file *);
+ } __randomize_layout;
+ 
+ struct inode_operations {
 -- 
 2.25.4
 
