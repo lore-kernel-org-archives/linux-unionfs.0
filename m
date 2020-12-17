@@ -2,141 +2,360 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C563DC2BB48
-	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E07C4361B
+	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 15:01:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E4412395A
-	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 14:20:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 132D8235E4
+	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 15:01:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727015AbgLQOU4 (ORCPT
+        id S1728118AbgLQPBU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 17 Dec 2020 09:20:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34784 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726601AbgLQOUz (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 17 Dec 2020 09:20:55 -0500
-Received: from mail-ej1-x641.google.com (mail-ej1-x641.google.com [IPv6:2a00:1450:4864:20::641])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA8AAC061794
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Dec 2020 06:20:29 -0800 (PST)
-Received: by mail-ej1-x641.google.com with SMTP id d17so38121928ejy.9
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Dec 2020 06:20:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=s2io9byrVSQg39u9kY1sFTMQIOzVrXTXCf/O9WPWFOA=;
-        b=RD62ChU+OJDF7UVtIVsJlfZGn25fGNj6obtVAVtbOfS2rSy0yE6P+pQA9jFQ/hMihx
-         AQFvzcRCMpzHb5H2uFgcBZkSOfB02SaM9rPWUt+ugNEML91QwzkZ440MrnUrlX1dtd6d
-         mACbQBbnpf5r+rUU5+ytGiLypwDX6Mliyj+TU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=s2io9byrVSQg39u9kY1sFTMQIOzVrXTXCf/O9WPWFOA=;
-        b=bhd64dI6+4rglJCUcCIOJPTu7WvWjLgQs+T1m6vTVFJ8En7Yj4EIqsUAf5rCBlysFy
-         sKANckNAnkuJA+wsEhSjoz5sOiBefpw6QmfBFuKJYdw8LPeoYdYPadIeEG3feq4FGKZe
-         BbfwvYFJwrXhRIlZxLSlJ/Wlq27WSyHwqGbAO8DH+wzKqflLNGh7G88u5+pX4kGFndAY
-         GLaBuSOECtQLLp2fyYYXvO65s5dsXHJWTEP4oxx4+Xpgd81QAQ+NUQjDvKr/8GKBdnMh
-         UzdJ6Ks5ufUjECelutj5irPeaGFJWy+Umx7b+vVHN5r15IdnjCfffksSkL4dCTKitSjq
-         Y3fg==
-X-Gm-Message-State: AOAM530MBiKkeLJWILQ4S1A5/Kkf3BxJgmk6v7Eov7m4vC7PT35GY4DS
-        R12jpykB727Xu8vNYUR2wvOcXw==
-X-Google-Smtp-Source: ABdhPJwYacqRq/f7MIh1/3pz0PfUQwyDeoMerwcxyS4emF6UV4Lid3Xf+1Hk5tGsH6lIIlmX0qnYXw==
-X-Received: by 2002:a17:906:9345:: with SMTP id p5mr24446195ejw.40.1608214828591;
-        Thu, 17 Dec 2020 06:20:28 -0800 (PST)
-Received: from miu.piliscsaba.redhat.com (catv-86-101-169-67.catv.broadband.hu. [86.101.169.67])
-        by smtp.gmail.com with ESMTPSA id n4sm24486697edt.46.2020.12.17.06.20.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 06:20:27 -0800 (PST)
-Date:   Thu, 17 Dec 2020 15:20:25 +0100
-From:   Miklos Szeredi <miklos@szeredi.hu>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-Subject: [GIT PULL] overlayfs update for 5.11
-Message-ID: <20201217142025.GB1236412@miu.piliscsaba.redhat.com>
+        Thu, 17 Dec 2020 10:01:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60526 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1727246AbgLQPBU (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 17 Dec 2020 10:01:20 -0500
+From:   Jeff Layton <jlayton@kernel.org>
+Authentication-Results: mail.kernel.org; dkim=permerror (bad message/signature format)
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Sargun Dhillon <sargun@sargun.me>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        Matthew Wilcox <willy@infradead.org>,
+        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
+Subject: [PATCH v3] errseq: split the ERRSEQ_SEEN flag into two new flags
+Date:   Thu, 17 Dec 2020 10:00:37 -0500
+Message-Id: <20201217150037.468787-1-jlayton@kernel.org>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+Overlayfs's volatile mounts want to be able to sample an error for their
+own purposes, without preventing a later opener from potentially seeing
+the error.
 
-Please pull from:
+The original reason for the ERRSEQ_SEEN flag was to make it so that we
+didn't need to increment the counter if nothing had observed the latest
+value and the error was the same. Eventually, a regression was reported
+in the errseq_t conversion, and we fixed that by using the ERRSEQ_SEEN
+flag to also mean that the error had been reported to userland at least
+once somewhere.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.11
+Those are two different states, however. If we instead take a second
+flag bit from the counter, we can track these two things separately, and
+accomodate the overlayfs volatile mount use-case.
 
- - Allow unprivileged mounting in a user namespace.
+Rename the ERRSEQ_SEEN flag to ERRSEQ_OBSERVED and use that to indicate
+that the counter must be incremented the next time an error is set.
+Also, add a new ERRSEQ_REPORTED flag that indicates whether the current
+error was returned to userland (and thus doesn't need to be reported on
+newly open file descriptions).
 
-   For quite some time the security model of overlayfs has been that
-   operations on underlying layers shall be performed with the privileges
-   of the mounting task.
+Test only for the OBSERVED bit when deciding whether to increment the
+counter and only for the REPORTED bit when deciding what to return in
+errseq_sample.
 
-   This way an unprvileged user cannot gain privileges by the act of
-   mounting an overlayfs instance.  A full audit of all function calls made
-   by the overlayfs code has been performed to see whether they conform to
-   this model, and this branch contains some fixes in this regard.
+Add a new errseq_peek function to allow for the overlayfs use-case.
+This just grabs the latest counter and sets the OBSERVED bit, leaving the
+REPORTED bit untouched.
 
- - Support running on copied filesystem images by optionally disabling UUID
-   verification.
+errseq_check_and_advance must now handle a single special case where
+it races against a "peek" of an as of yet unseen value. The do/while
+loop looks scary, but shouldn't loop more than once.
 
- - Bug fixes as well as documentation updates.
-
-I was hoping to get feedback from Eric Biederman on the unprivileged
-mounting feature, but even without that I feel quite good about enabling it
-at this point.  It's a trivial patch at the head of this branch, so
-skipping it now or reverting later would also be options.
-
-Thanks,
-Miklos
-
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
 ---
-Chengguang Xu (1):
-      ovl: fix incorrect extent info in metacopy case
+ Documentation/core-api/errseq.rst |  22 +++--
+ include/linux/errseq.h            |   1 +
+ lib/errseq.c                      | 139 ++++++++++++++++++++++--------
+ 3 files changed, 118 insertions(+), 44 deletions(-)
 
-Kevin Locke (2):
-      ovl: warn about orphan metacopy
-      ovl: document lower modification caveats
+v3: rename SEEN/MUSTINC flags to REPORTED/OBSERVED
 
-Miklos Szeredi (12):
-      ovl: doc clarification
-      ovl: expand warning in ovl_d_real()
-      vfs: move cap_convert_nscap() call into vfs_setxattr()
-      vfs: verify source area in vfs_dedupe_file_range_one()
-      ovl: check privs before decoding file handle
-      ovl: make ioctl() safe
-      ovl: simplify file splice
-      ovl: user xattr
-      ovl: do not fail when setting origin xattr
-      ovl: do not fail because of O_NOATIME
-      ovl: do not get metacopy for userxattr
-      ovl: unprivieged mounts
+Hopefully the new flag names will make this a bit more clear. We could
+also rename some of the functions if that helps too. We could consider
+moving from errseq_sample/_check_and_advance to
+errseq_observe/errseq_report?  I'm not sure that helps anything though.
 
-Pavel Tikhomirov (2):
-      ovl: propagate ovl_fs to ovl_decode_real_fh and ovl_encode_real_fh
-      ovl: introduce new "uuid=off" option for inodes index feature
+I know that Vivek and Sargun are working on syncfs() for overlayfs, so
+we probably don't want to merge this until that work is ready. I think
+the errseq_peek call will need to be part of their solution for volatile
+mounts, however, so I'm fine with merging this via the overlayfs tree,
+once that work is complete.
 
----
- Documentation/filesystems/overlayfs.rst |  36 ++++++--
- fs/overlayfs/copy_up.c                  |  28 ++++---
- fs/overlayfs/export.c                   |  10 ++-
- fs/overlayfs/file.c                     | 144 +++++---------------------------
- fs/overlayfs/inode.c                    |  14 +++-
- fs/overlayfs/namei.c                    |  28 ++++---
- fs/overlayfs/overlayfs.h                |  22 +++--
- fs/overlayfs/ovl_entry.h                |   2 +
- fs/overlayfs/super.c                    |  95 ++++++++++++++++++---
- fs/overlayfs/util.c                     |  18 +++-
- fs/remap_range.c                        |  10 ++-
- fs/xattr.c                              |  17 ++--
- include/linux/capability.h              |   2 +-
- security/commoncap.c                    |   3 +-
- 14 files changed, 233 insertions(+), 196 deletions(-)
+diff --git a/Documentation/core-api/errseq.rst b/Documentation/core-api/errseq.rst
+index ff332e272405..ce46ddcc1487 100644
+--- a/Documentation/core-api/errseq.rst
++++ b/Documentation/core-api/errseq.rst
+@@ -18,18 +18,22 @@ these functions can be called from any context.
+ Note that there is a risk of collisions if new errors are being recorded
+ frequently, since we have so few bits to use as a counter.
+ 
+-To mitigate this, the bit between the error value and counter is used as
+-a flag to tell whether the value has been sampled since a new value was
+-recorded.  That allows us to avoid bumping the counter if no one has
+-sampled it since the last time an error was recorded.
++To mitigate this, the bits between the error value and counter are used
++as flags to tell whether the value has been sampled since a new value
++was recorded, and whether the latest error has been seen by userland.
++That allows us to avoid bumping the counter if no one has sampled it
++since the last time an error was recorded, and also ensures that any
++recorded error will be seen at least once.
+ 
+ Thus we end up with a value that looks something like this:
+ 
+-+--------------------------------------+----+------------------------+
+-| 31..13                               | 12 | 11..0                  |
+-+--------------------------------------+----+------------------------+
+-| counter                              | SF | errno                  |
+-+--------------------------------------+----+------------------------+
+++---------------------------------+----+----+------------------------+
++| 31..14                          | 13 | 12 | 11..0                  |
+++---------------------------------+----+----+------------------------+
++| counter                         | OF | RF | errno                  |
+++---------------------------------+----+----+------------------------+
++OF = ERRSEQ_OBSERVED flag
++RF = ERRSEQ_REPORTED flag
+ 
+ The general idea is for "watchers" to sample an errseq_t value and keep
+ it as a running cursor.  That value can later be used to tell whether
+diff --git a/include/linux/errseq.h b/include/linux/errseq.h
+index fc2777770768..7e3634269c95 100644
+--- a/include/linux/errseq.h
++++ b/include/linux/errseq.h
+@@ -9,6 +9,7 @@ typedef u32	errseq_t;
+ 
+ errseq_t errseq_set(errseq_t *eseq, int err);
+ errseq_t errseq_sample(errseq_t *eseq);
++errseq_t errseq_peek(errseq_t *eseq);
+ int errseq_check(errseq_t *eseq, errseq_t since);
+ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
+ #endif
+diff --git a/lib/errseq.c b/lib/errseq.c
+index 81f9e33aa7e7..8fd6be134dcc 100644
+--- a/lib/errseq.c
++++ b/lib/errseq.c
+@@ -21,10 +21,14 @@
+  * Note that there is a risk of collisions if new errors are being recorded
+  * frequently, since we have so few bits to use as a counter.
+  *
+- * To mitigate this, one bit is used as a flag to tell whether the value has
+- * been sampled since a new value was recorded. That allows us to avoid bumping
+- * the counter if no one has sampled it since the last time an error was
+- * recorded.
++ * To mitigate this, one bit is used as a flag to tell whether the value has been
++ * observed in some fashion. That allows us to avoid bumping the counter if no
++ * one has sampled it since the last time an error was recorded.
++ *
++ * A second flag bit is used to indicate whether the latest error that has been
++ * recorded has been reported to userland. If the REPORTED bit is not set when the
++ * file is opened, then we ensure that the opener will see the error by setting
++ * its sample to 0.
+  *
+  * A new errseq_t should always be zeroed out.  A errseq_t value of all zeroes
+  * is the special (but common) case where there has never been an error. An all
+@@ -35,11 +39,33 @@
+ /* The low bits are designated for error code (max of MAX_ERRNO) */
+ #define ERRSEQ_SHIFT		ilog2(MAX_ERRNO + 1)
+ 
+-/* This bit is used as a flag to indicate whether the value has been seen */
+-#define ERRSEQ_SEEN		(1 << ERRSEQ_SHIFT)
++/* Flag to indicate whether the value will be or has been reported */
++#define ERRSEQ_REPORTED		BIT(ERRSEQ_SHIFT)
++
++/* Flag to ndicate that error must be recorded */
++#define ERRSEQ_OBSERVED		BIT(ERRSEQ_SHIFT + 1)
+ 
+ /* The lowest bit of the counter */
+-#define ERRSEQ_CTR_INC		(1 << (ERRSEQ_SHIFT + 1))
++#define ERRSEQ_CTR_INC		BIT(ERRSEQ_SHIFT + 2)
++
++/* Mask that just contains the counter bits */
++#define ERRSEQ_CTR_MASK		~(ERRSEQ_CTR_INC - 1)
++
++/* Mask that just contains flags */
++#define ERRSEQ_FLAG_MASK	(ERRSEQ_REPORTED|ERRSEQ_OBSERVED)
++
++/**
++ * errseq_same - return true if the errseq counters and values are the same
++ * @a: first errseq
++ * @b: second errseq
++ *
++ * Compare two errseqs and return true if they are the same, ignoring their
++ * flag bits.
++ */
++static inline bool errseq_same(errseq_t a, errseq_t b)
++{
++	return (a & ~ERRSEQ_FLAG_MASK) == (b & ~ERRSEQ_FLAG_MASK);
++}
+ 
+ /**
+  * errseq_set - set a errseq_t for later reporting
+@@ -53,7 +79,7 @@
+  *
+  * Return: The previous value, primarily for debugging purposes. The
+  * return value should not be used as a previously sampled value in later
+- * calls as it will not have the SEEN flag set.
++ * calls as it will not have the OBSERVED flag set.
+  */
+ errseq_t errseq_set(errseq_t *eseq, int err)
+ {
+@@ -77,11 +103,11 @@ errseq_t errseq_set(errseq_t *eseq, int err)
+ 	for (;;) {
+ 		errseq_t new;
+ 
+-		/* Clear out error bits and set new error */
+-		new = (old & ~(MAX_ERRNO|ERRSEQ_SEEN)) | -err;
++		/* Clear out flag bits and old errors, and set new error */
++		new = (old & ERRSEQ_CTR_MASK) | -err;
+ 
+-		/* Only increment if someone has looked at it */
+-		if (old & ERRSEQ_SEEN)
++		/* Only increment if we have to */
++		if (old & ERRSEQ_OBSERVED)
+ 			new += ERRSEQ_CTR_INC;
+ 
+ 		/* If there would be no change, then call it done */
+@@ -108,11 +134,38 @@ errseq_t errseq_set(errseq_t *eseq, int err)
+ EXPORT_SYMBOL(errseq_set);
+ 
+ /**
+- * errseq_sample() - Grab current errseq_t value.
++ * errseq_peek - Grab current errseq_t value
++ * @eseq: Pointer to errseq_t to be sampled.
++ *
++ * In some cases, we need to be able to sample the errseq_t, but we're not
++ * in a situation where we can report the value to userland. Use this
++ * function to do that. This ensures that later errors will be recorded,
++ * and that any current errors are reported at least once when it is
++ * next sampled.
++ *
++ * Context: Any context.
++ * Return: The current errseq value.
++ */
++errseq_t errseq_peek(errseq_t *eseq)
++{
++	errseq_t old = READ_ONCE(*eseq);
++	errseq_t new = old;
++
++	if (old != 0) {
++		new |= ERRSEQ_OBSERVED;
++		if (old != new)
++			cmpxchg(eseq, old, new);
++	}
++	return new;
++}
++EXPORT_SYMBOL(errseq_peek);
++
++/**
++ * errseq_sample() - Sample errseq_t value, and ensure that unseen errors are reported
+  * @eseq: Pointer to errseq_t to be sampled.
+  *
+  * This function allows callers to initialise their errseq_t variable.
+- * If the error has been "seen", new callers will not see an old error.
++ * If the latest error has been "seen", new callers will not see an old error.
+  * If there is an unseen error in @eseq, the caller of this function will
+  * see it the next time it checks for an error.
+  *
+@@ -121,12 +174,11 @@ EXPORT_SYMBOL(errseq_set);
+  */
+ errseq_t errseq_sample(errseq_t *eseq)
+ {
+-	errseq_t old = READ_ONCE(*eseq);
++	errseq_t new = errseq_peek(eseq);
+ 
+-	/* If nobody has seen this error yet, then we can be the first. */
+-	if (!(old & ERRSEQ_SEEN))
+-		old = 0;
+-	return old;
++	if (!(new & ERRSEQ_REPORTED))
++		return 0;
++	return new;
+ }
+ EXPORT_SYMBOL(errseq_sample);
+ 
+@@ -145,7 +197,7 @@ int errseq_check(errseq_t *eseq, errseq_t since)
+ {
+ 	errseq_t cur = READ_ONCE(*eseq);
+ 
+-	if (likely(cur == since))
++	if (errseq_same(cur, since))
+ 		return 0;
+ 	return -(cur & MAX_ERRNO);
+ }
+@@ -159,9 +211,9 @@ EXPORT_SYMBOL(errseq_check);
+  * Grab the eseq value, and see whether it matches the value that @since
+  * points to. If it does, then just return 0.
+  *
+- * If it doesn't, then the value has changed. Set the "seen" flag, and try to
+- * swap it into place as the new eseq value. Then, set that value as the new
+- * "since" value, and return whatever the error portion is set to.
++ * If it doesn't, then the value has changed. Set the REPORTED+OBSERVED flags, and
++ * try to swap it into place as the new eseq value. Then, set that value as
++ * the new "since" value, and return whatever the error portion is set to.
+  *
+  * Note that no locking is provided here for concurrent updates to the "since"
+  * value. The caller must provide that if necessary. Because of this, callers
+@@ -183,21 +235,38 @@ int errseq_check_and_advance(errseq_t *eseq, errseq_t *since)
+ 	 */
+ 	old = READ_ONCE(*eseq);
+ 	if (old != *since) {
++		int loops = 0;
++
+ 		/*
+-		 * Set the flag and try to swap it into place if it has
+-		 * changed.
++		 * Set the flag and try to swap it into place if it has changed.
++		 *
++		 * If the swap doesn't occur, then it has either been updated by a
++		 * writer who is setting a new error and/or bumping the counter, or
++		 * another reader who is setting flags.
+ 		 *
+-		 * We don't care about the outcome of the swap here. If the
+-		 * swap doesn't occur, then it has either been updated by a
+-		 * writer who is altering the value in some way (updating
+-		 * counter or resetting the error), or another reader who is
+-		 * just setting the "seen" flag. Either outcome is OK, and we
+-		 * can advance "since" and return an error based on what we
+-		 * have.
++		 * We only need to retry in one case -- if we raced with another
++		 * reader that is only setting the OBSERVED flag. We need the
++		 * current value to have the REPORTED bit set if the other fields
++		 * didn't change, or we might report the same error on newly opened
++		 * files.
+ 		 */
+-		new = old | ERRSEQ_SEEN;
+-		if (new != old)
+-			cmpxchg(eseq, old, new);
++		do {
++			if (unlikely(loops >= 2)) {
++				/*
++				 * This should never loop more than once, as any
++				 * change not involving the REPORTED bit would also
++				 * involve non-flag bits. WARN and just go with
++				 * what we have in that case.
++				 */
++				WARN_ON_ONCE(true);
++				break;
++			}
++			loops++;
++			new = old | ERRSEQ_REPORTED | ERRSEQ_OBSERVED;
++			if (new == old)
++				break;
++			old = cmpxchg(eseq, old, new);
++		} while (old == (new & ~ERRSEQ_REPORTED));
+ 		*since = new;
+ 		err = -(new & MAX_ERRNO);
+ 	}
+-- 
+2.29.2
+
