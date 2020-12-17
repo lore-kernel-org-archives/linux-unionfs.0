@@ -2,185 +2,64 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE66C4361B
-	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 20:09:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 773FFC3526C
+	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 20:22:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30EA7239ED
-	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 20:09:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4743623AFB
+	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Dec 2020 20:22:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728966AbgLQUJk (ORCPT
+        id S1730266AbgLQUWE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 17 Dec 2020 15:09:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60716 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728208AbgLQUJk (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 17 Dec 2020 15:09:40 -0500
-Received: from mail-qt1-x830.google.com (mail-qt1-x830.google.com [IPv6:2607:f8b0:4864:20::830])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 362FFC0617B0
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Dec 2020 12:09:00 -0800 (PST)
-Received: by mail-qt1-x830.google.com with SMTP id h19so21002893qtq.13
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Dec 2020 12:09:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=poochiereds-net.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=X1/L04rRK1r1xMrcrDJaqbKTKoWzz7Zr0eA57HFr5cM=;
-        b=jJL+yjx8YbWWUZPFTC1PKVtMou5mdkUyv3jdwAwVThCEh5AOh4Cbgi6f5FSWR8eC5r
-         DeNJK8ViUAxqKzKk8YLPluOphmh7uoBMJ66aq9uUVEBEEornFm9CE+0rnlaJ3oamgZJl
-         nVh/ZqPVQYTCzhZZCY1oA+S6ZYPEWrwKeo3DtvN6LHen37g+/EtuaWVIYxXZ46lDZ9xi
-         EC1IqzcSmM2CWdObOixhdQG6/b94ptd6Cix6bcnPeuV7gBAj2khupWVSK9HbiPHELRPr
-         syJw3Xx2AcdXUDEYV2T1v9Y3WQ/v2TIhVtL+OfJMtYFUtS098zNmfSOosUmQ/CFg+aub
-         +QtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=X1/L04rRK1r1xMrcrDJaqbKTKoWzz7Zr0eA57HFr5cM=;
-        b=kk2qtl+VNj0boH2bmux8I6Y73UowFU98aiAklqm8+IKycjgiGqbBNizL9EHCdUE4YB
-         2etabxZvAjne9x2l/+9Yoa8nU2xEFYkd9lgfLHvQooldI05f9Txn8gk6q2xLh2dxvE+S
-         GWIYYq22Uba8eQrulfjIcW3/amVYxZMruv4eYNpw8+vJWrc5hyBrUpenLFPWXtPA/eEX
-         3d3dMIL+BS9SzJ/xI3yWOZVTlbQ9q5NssG6hzAns0dPULwWWBNpbOLAyt/YmXAnefTVf
-         DPi7ljBq/VxCTLncSMlhzQqm41PR/mljR/nrboa/NpvblEHP/X7m77FTy8vT7UcDA/RK
-         ThAg==
-X-Gm-Message-State: AOAM533znRpw7SCLQBCnob0BoaUD+4dA9YDLwBn+ob4XCb+8dSG+0eUm
-        u3w575YDLIXUNSYXVD6ViDLT2Q==
-X-Google-Smtp-Source: ABdhPJxu4L/8qyzeODf5Urcw5HICzchlDzqWjrqdy5QmrUNwBvVSZIXxNC3Ri776/21NpBENaeGeog==
-X-Received: by 2002:ac8:4cc1:: with SMTP id l1mr505404qtv.128.1608235739180;
-        Thu, 17 Dec 2020 12:08:59 -0800 (PST)
-Received: from tleilax.poochiereds.net (68-20-15-154.lightspeed.rlghnc.sbcglobal.net. [68.20.15.154])
-        by smtp.gmail.com with ESMTPSA id p13sm2688454qtp.66.2020.12.17.12.08.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Dec 2020 12:08:58 -0800 (PST)
-Date:   Thu, 17 Dec 2020 15:08:56 -0500
-From:   Jeffrey Layton <jlayton@poochiereds.net>
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, jlayton@kernel.org,
-        amir73il@gmail.com, sargun@sargun.me, miklos@szeredi.hu,
-        willy@infradead.org, jack@suse.cz, neilb@suse.com,
-        viro@zeniv.linux.org.uk
-Subject: Re: [PATCH 3/3] overlayfs: Check writeback errors w.r.t upper in
- ->syncfs()
-Message-ID: <20201217200856.GA707519@tleilax.poochiereds.net>
-References: <20201216233149.39025-1-vgoyal@redhat.com>
- <20201216233149.39025-4-vgoyal@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20201216233149.39025-4-vgoyal@redhat.com>
+        Thu, 17 Dec 2020 15:22:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:32832 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1726548AbgLQUVw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 17 Dec 2020 15:21:52 -0500
+Subject: Re: [GIT PULL] overlayfs update for 5.11
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1608236472;
+        bh=ELcL03WZjKdIBTp0UxmelLMdUZBVqA8MOKAAnXbrTIk=;
+        h=From:In-Reply-To:References:Date:To:Cc:From;
+        b=ttlIcFE8YB4gfX8KtxX9WUnd6rmKj9nixbXfIK9tzDTlSn65SBMZYRuS2ODYP7a+i
+         iW+KoJpb7NfrhbDtPlGuyMi2fu6P0Mzra3g3emLhw0PmYSVx4ohd9uoXOxQts6Eud/
+         I5pcm/Ur8W3e6HBwK0RR0dODR0shaMwti9OPA28oAhvx9Rxhtub+vDBoV14htglqpp
+         BJLW82bbxydhNwqQRNYznhHgafm71+GoH/svQbJSwJsrmhlfjBX0BFe/Xj5iKmLzCZ
+         lPq3O2kQxq8X9f2lE0bzgljaxfLE039uysyOp2tKDldCkzYImxiDmYPlKU1Ia0u3Ao
+         cCvc0EEQC7SbA==
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20201217142025.GB1236412@miu.piliscsaba.redhat.com>
+References: <20201217142025.GB1236412@miu.piliscsaba.redhat.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20201217142025.GB1236412@miu.piliscsaba.redhat.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.11
+X-PR-Tracked-Commit-Id: 459c7c565ac36ba09ffbf24231147f408fde4203
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 92dbc9dedccb9759c7f9f2f0ae6242396376988f
+Message-Id: <160823647214.7820.4991320145990086247.pr-tracker-bot@kernel.org>
+Date:   Thu, 17 Dec 2020 20:21:12 +0000
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Dec 16, 2020 at 06:31:49PM -0500, Vivek Goyal wrote:
-> Check for writeback error on overlay super block w.r.t "struct file"
-> passed in ->syncfs().
-> 
-> As of now real error happens on upper sb. So this patch first propagates
-> error from upper sb to overlay sb and then checks error w.r.t struct
-> file passed in.
-> 
-> Jeff, I know you prefer that I should rather file upper file and check
-> error directly on on upper sb w.r.t this real upper file.  While I was
-> implementing that I thought what if file is on lower (and has not been
-> copied up yet). In that case shall we not check writeback errors and
-> return back to user space? That does not sound right though because,
-> we are not checking for writeback errors on this file. Rather we
-> are checking for any error on superblock. Upper might have an error
-> and we should report it to user even if file in question is a lower
-> file. And that's why I fell back to this approach. But I am open to
-> change it if there are issues in this method.
-> 
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  fs/overlayfs/ovl_entry.h |  2 ++
->  fs/overlayfs/super.c     | 15 ++++++++++++---
->  2 files changed, 14 insertions(+), 3 deletions(-)
-> 
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 1b5a2094df8e..a08fd719ee7b 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -79,6 +79,8 @@ struct ovl_fs {
->  	atomic_long_t last_ino;
->  	/* Whiteout dentry cache */
->  	struct dentry *whiteout;
-> +	/* Protects multiple sb->s_wb_err update from upper_sb . */
-> +	spinlock_t errseq_lock;
->  };
->  
->  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index b4d92e6fa5ce..e7bc4492205e 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -291,7 +291,7 @@ int ovl_syncfs(struct file *file)
->  	struct super_block *sb = file->f_path.dentry->d_sb;
->  	struct ovl_fs *ofs = sb->s_fs_info;
->  	struct super_block *upper_sb;
-> -	int ret;
-> +	int ret, ret2;
->  
->  	ret = 0;
->  	down_read(&sb->s_umount);
-> @@ -310,10 +310,18 @@ int ovl_syncfs(struct file *file)
->  	ret = sync_filesystem(upper_sb);
->  	up_read(&upper_sb->s_umount);
->  
-> +	/* Update overlay sb->s_wb_err */
-> +	if (errseq_check(&upper_sb->s_wb_err, sb->s_wb_err)) {
-> +		/* Upper sb has errors since last time */
-> +		spin_lock(&ofs->errseq_lock);
-> +		errseq_check_and_advance(&upper_sb->s_wb_err, &sb->s_wb_err);
-> +		spin_unlock(&ofs->errseq_lock);
-> +	}
+The pull request you sent on Thu, 17 Dec 2020 15:20:25 +0100:
 
-So, the problem here is that the resulting value in sb->s_wb_err is
-going to end up with the REPORTED flag set (using the naming in my
-latest set). So, a later opener of a file on sb->s_wb_err won't see it.
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-5.11
 
-For instance, suppose you call sync() on the box and does the above
-check and advance. Then, you open the file and call syncfs() and get
-back no error because REPORTED flag was set when you opened. That error
-will then be lost.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/92dbc9dedccb9759c7f9f2f0ae6242396376988f
 
->  
-> +	ret2 = errseq_check_and_advance(&sb->s_wb_err, &file->f_sb_err);
->  out:
->  	up_read(&sb->s_umount);
-> -	return ret;
-> +	return ret ? ret : ret2;
->  }
->  
->  /**
-> @@ -1903,6 +1911,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  	if (!cred)
->  		goto out_err;
->  
-> +	spin_lock_init(&ofs->errseq_lock);
->  	/* Is there a reason anyone would want not to share whiteouts? */
->  	ofs->share_whiteout = true;
->  
-> @@ -1975,7 +1984,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
->  
->  		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
->  		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
-> -
-> +		sb->s_wb_err = errseq_sample(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
+Thank you!
 
-This will mark the error on the upper_sb as REPORTED, and that's not
-really that's the case if you're just using it set s_wb_err in the
-overlay. You might want to use errseq_peek in this situation.
-
->  	}
->  	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
->  	err = PTR_ERR(oe);
-> -- 
-> 2.25.4
-> 
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
