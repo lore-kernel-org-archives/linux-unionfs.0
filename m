@@ -2,166 +2,296 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 266A8C3526B
-	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 16:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF694C2BBD5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 16:30:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F21A82071E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 16:19:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C539C23B78
+	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 16:30:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728191AbgLRQSz (ORCPT
+        id S1731561AbgLRQ34 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 18 Dec 2020 11:18:55 -0500
-Received: from out4436.biz.mail.alibaba.com ([47.88.44.36]:30501 "EHLO
-        out4436.biz.mail.alibaba.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726448AbgLRQSy (ORCPT
+        Fri, 18 Dec 2020 11:29:56 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:58819 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1731576AbgLRQ3y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 18 Dec 2020 11:18:54 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04400;MF=liangyan.peng@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0UJ0QG.S_1608308273;
-Received: from localhost(mailfrom:liangyan.peng@linux.alibaba.com fp:SMTPD_---0UJ0QG.S_1608308273)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Sat, 19 Dec 2020 00:18:01 +0800
-From:   Liangyan <liangyan.peng@linux.alibaba.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, joseph.qi@linux.alibaba.com,
-        liangyan.peng@linux.alibaba.com
-Subject: [PATCH] ovl: fix  dentry leak in ovl_get_redirect
-Date:   Sat, 19 Dec 2020 00:17:51 +0800
-Message-Id: <20201218161751.234759-1-liangyan.peng@linux.alibaba.com>
-X-Mailer: git-send-email 2.14.4.44.g2045bb6
+        Fri, 18 Dec 2020 11:29:54 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1608308907;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=tAKD8s3MkKWuWgYFWukGWEjfMKCZlP3iCMbR7PASLgc=;
+        b=SDkbPW6VkveeCx26LL/knM42+bgZ7UUgDsmCgkPxn+rxlXRS0t3p42KILxgncYQRcGdooB
+        h0eN4COIMtog7FO92m9UmY8M1QAgITTJlhOi5vXBXA3ZWfNTZeHG+C7LCjYGKu8FJpf8lt
+        d36WqFPT3ZIpM/izDzrZqN5NRs+LLeo=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-46-FXbb6kE6OFyoFZawZRRMpw-1; Fri, 18 Dec 2020 11:28:23 -0500
+X-MC-Unique: FXbb6kE6OFyoFZawZRRMpw-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8F65215722;
+        Fri, 18 Dec 2020 16:28:21 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-223.rdu2.redhat.com [10.10.115.223])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 62CA25C233;
+        Fri, 18 Dec 2020 16:28:20 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id C4946220BCF; Fri, 18 Dec 2020 11:28:19 -0500 (EST)
+Date:   Fri, 18 Dec 2020 11:28:19 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, amir73il@gmail.com,
+        sargun@sargun.me, miklos@szeredi.hu, willy@infradead.org,
+        jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk
+Subject: Re: [PATCH 3/3] overlayfs: Check writeback errors w.r.t upper in
+ ->syncfs()
+Message-ID: <20201218162819.GC3424@redhat.com>
+References: <20201216233149.39025-1-vgoyal@redhat.com>
+ <20201216233149.39025-4-vgoyal@redhat.com>
+ <20201217200856.GA707519@tleilax.poochiereds.net>
+ <20201218144418.GA3424@redhat.com>
+ <20201218150258.GA866424@tleilax.poochiereds.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201218150258.GA866424@tleilax.poochiereds.net>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-We need to lock d_parent->d_lock before dget_dlock, or this may
-have d_lockref updated parallelly like calltrace below which will
-cause dentry->d_lockref leak and risk a crash.
+On Fri, Dec 18, 2020 at 10:02:58AM -0500, Jeff Layton wrote:
+> On Fri, Dec 18, 2020 at 09:44:18AM -0500, Vivek Goyal wrote:
+> > On Thu, Dec 17, 2020 at 03:08:56PM -0500, Jeffrey Layton wrote:
+> > > On Wed, Dec 16, 2020 at 06:31:49PM -0500, Vivek Goyal wrote:
+> > > > Check for writeback error on overlay super block w.r.t "struct file"
+> > > > passed in ->syncfs().
+> > > > 
+> > > > As of now real error happens on upper sb. So this patch first propagates
+> > > > error from upper sb to overlay sb and then checks error w.r.t struct
+> > > > file passed in.
+> > > > 
+> > > > Jeff, I know you prefer that I should rather file upper file and check
+> > > > error directly on on upper sb w.r.t this real upper file.  While I was
+> > > > implementing that I thought what if file is on lower (and has not been
+> > > > copied up yet). In that case shall we not check writeback errors and
+> > > > return back to user space? That does not sound right though because,
+> > > > we are not checking for writeback errors on this file. Rather we
+> > > > are checking for any error on superblock. Upper might have an error
+> > > > and we should report it to user even if file in question is a lower
+> > > > file. And that's why I fell back to this approach. But I am open to
+> > > > change it if there are issues in this method.
+> > > > 
+> > > > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > > > ---
+> > > >  fs/overlayfs/ovl_entry.h |  2 ++
+> > > >  fs/overlayfs/super.c     | 15 ++++++++++++---
+> > > >  2 files changed, 14 insertions(+), 3 deletions(-)
+> > > > 
+> > > > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > > > index 1b5a2094df8e..a08fd719ee7b 100644
+> > > > --- a/fs/overlayfs/ovl_entry.h
+> > > > +++ b/fs/overlayfs/ovl_entry.h
+> > > > @@ -79,6 +79,8 @@ struct ovl_fs {
+> > > >  	atomic_long_t last_ino;
+> > > >  	/* Whiteout dentry cache */
+> > > >  	struct dentry *whiteout;
+> > > > +	/* Protects multiple sb->s_wb_err update from upper_sb . */
+> > > > +	spinlock_t errseq_lock;
+> > > >  };
+> > > >  
+> > > >  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+> > > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > > > index b4d92e6fa5ce..e7bc4492205e 100644
+> > > > --- a/fs/overlayfs/super.c
+> > > > +++ b/fs/overlayfs/super.c
+> > > > @@ -291,7 +291,7 @@ int ovl_syncfs(struct file *file)
+> > > >  	struct super_block *sb = file->f_path.dentry->d_sb;
+> > > >  	struct ovl_fs *ofs = sb->s_fs_info;
+> > > >  	struct super_block *upper_sb;
+> > > > -	int ret;
+> > > > +	int ret, ret2;
+> > > >  
+> > > >  	ret = 0;
+> > > >  	down_read(&sb->s_umount);
+> > > > @@ -310,10 +310,18 @@ int ovl_syncfs(struct file *file)
+> > > >  	ret = sync_filesystem(upper_sb);
+> > > >  	up_read(&upper_sb->s_umount);
+> > > >  
+> > > > +	/* Update overlay sb->s_wb_err */
+> > > > +	if (errseq_check(&upper_sb->s_wb_err, sb->s_wb_err)) {
+> > > > +		/* Upper sb has errors since last time */
+> > > > +		spin_lock(&ofs->errseq_lock);
+> > > > +		errseq_check_and_advance(&upper_sb->s_wb_err, &sb->s_wb_err);
+> > > > +		spin_unlock(&ofs->errseq_lock);
+> > > > +	}
+> > > 
+> > > So, the problem here is that the resulting value in sb->s_wb_err is
+> > > going to end up with the REPORTED flag set (using the naming in my
+> > > latest set). So, a later opener of a file on sb->s_wb_err won't see it.
+> > > 
+> > > For instance, suppose you call sync() on the box and does the above
+> > > check and advance. Then, you open the file and call syncfs() and get
+> > > back no error because REPORTED flag was set when you opened. That error
+> > > will then be lost.
+> > 
+> > Hi Jeff,
+> > 
+> > In this patch, I am doing this only in ->syncfs() path and not in
+> > ->sync_fs() path. IOW, errseq_check_and_advance() will take place
+> > only if there is a valid "struct file" passed in. That means there
+> > is a consumer of the error and that means it should be fine to
+> > set the sb->s_wb_err as SEEN/REPORTED, right?
+> > 
+> > If we end up plumbming "struct file" in existing ->sync_fs() routine,
+> > then I will call this only if a non NULL struct file has been 
+> > passed in. Otherwise skip this step. 
+> > 
+> > IOW, sync() call will not result in errseq_check_and_advance() instead
+> > a syncfs() call will. 
+> > 
+> 
+> It still seems odd and I'm not sure you won't end up with weird corner
+> cases due to the flag handling. If you're doing this in the new
+> f_op->syncfs, then why bother with sb->s_wb_err at all? You can just do
+> this, and avoid the overlayfs sb altogether:
+> 
+> if (errseq_check(&upper_sb->s_wb_err, file->f_sb_err)) {
+> 	/* Upper sb has errors since last time */
+> 	spin_lock(&file->f_lock);
+> 	errseq_check_and_advance(&upper_sb->s_wb_err, &file->f_sb_err);
+> 	spin_unlock(&file->f_lock);
+> }
+> 
+> That's simpler than trying to propagate the error between two
+> errseq_t's. You would need to sample the upper_sb->s_wb_err at
+> open time in the overlayfs ->open handler though, to make sure
+> you're tracking the right one.
 
-npm-20576 [028] .... 5705749.040094:
-[28] ovl_set_redirect+0x11c/0x310 //tmp = dget_dlock(d->d_parent);
-[28]?  ovl_set_redirect+0x5/0x310
-[28] ovl_rename+0x4db/0x790 [overlay]
-[28] vfs_rename+0x6e8/0x920
-[28] do_renameat2+0x4d6/0x560
-[28] __x64_sys_rename+0x1c/0x20
-[28] do_syscall_64+0x55/0x1a0
-[28] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+IIUC, you are suggesting that when and overlay file is opened (lower or
+upper), always install current upper_sb->s_wb_err in f->f_sb_err.
+IOW, overide following VFS operations.
 
-npm-20574 [036] .... 5705749.040094:
-[36] __d_lookup+0x107/0x140 //dentry->d_lockref.count++;
-[36] lookup_fast+0xe0/0x2d0
-[36] walk_component+0x48/0x350
-[36] link_path_walk+0x1bf/0x650
-[36]?  path_init+0x1f6/0x2f0
-[36] path_lookupat+0x82/0x210
-[36] filename_lookup+0xb8/0x1a0
-[36]?  __audit_getname+0xa2/0xb0
-[36]?  getname_flags+0xb9/0x1e0
-[36]?  vfs_statx+0x73/0xe0
-[36] vfs_statx+0x73/0xe0
-[36] __do_sys_statx+0x3b/0x80
-[36]?  syscall_trace_enter+0x1ae/0x2c0
-[36] do_syscall_64+0x55/0x1a0
-[36] entry_SYSCALL_64_
+f->f_sb_err = file_sample_sb_err(f);
 
-[   49.799059] PGD 800000061fed7067 P4D 800000061fed7067 PUD 61fec5067 PMD 0
-[   49.799689] Oops: 0002 [#1] SMP PTI
-[   49.800019] CPU: 2 PID: 2332 Comm: node Not tainted 4.19.24-7.20.al7.x86_64 #1
-[   49.800678] Hardware name: Alibaba Cloud Alibaba Cloud ECS, BIOS 8a46cfe 04/01/2014
-[   49.801380] RIP: 0010:_raw_spin_lock+0xc/0x20
-[   49.803470] RSP: 0018:ffffac6fc5417e98 EFLAGS: 00010246
-[   49.803949] RAX: 0000000000000000 RBX: ffff93b8da3446c0 RCX: 0000000a00000000
-[   49.804600] RDX: 0000000000000001 RSI: 000000000000000a RDI: 0000000000000088
-[   49.805252] RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff993cf040
-[   49.805898] R10: ffff93b92292e580 R11: ffffd27f188a4b80 R12: 0000000000000000
-[   49.806548] R13: 00000000ffffff9c R14: 00000000fffffffe R15: ffff93b8da3446c0
-[   49.807200] FS:  00007ffbedffb700(0000) GS:ffff93b927880000(0000) knlGS:0000000000000000
-[   49.807935] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   49.808461] CR2: 0000000000000088 CR3: 00000005e3f74006 CR4: 00000000003606a0
-[   49.809113] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   49.809758] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[   49.810410] Call Trace:
-[   49.810653]  d_delete+0x2c/0xb0
-[   49.810951]  vfs_rmdir+0xfd/0x120
-[   49.811264]  do_rmdir+0x14f/0x1a0
-[   49.811573]  do_syscall_64+0x5b/0x190
-[   49.811917]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-[   49.812385] RIP: 0033:0x7ffbf505ffd7
-[   49.814404] RSP: 002b:00007ffbedffada8 EFLAGS: 00000297 ORIG_RAX: 0000000000000054
-[   49.815098] RAX: ffffffffffffffda RBX: 00007ffbedffb640 RCX: 00007ffbf505ffd7
-[   49.815744] RDX: 0000000004449700 RSI: 0000000000000000 RDI: 0000000006c8cd50
-[   49.816394] RBP: 00007ffbedffaea0 R08: 0000000000000000 R09: 0000000000017d0b
-[   49.817038] R10: 0000000000000000 R11: 0000000000000297 R12: 0000000000000012
-[   49.817687] R13: 00000000072823d8 R14: 00007ffbedffb700 R15: 00000000072823d8
-[   49.818338] Modules linked in: pvpanic cirrusfb button qemu_fw_cfg atkbd libps2 i8042
-[   49.819052] CR2: 0000000000000088
-[   49.819368] ---[ end trace 4e652b8aa299aa2d ]---
-[   49.819796] RIP: 0010:_raw_spin_lock+0xc/0x20
-[   49.821880] RSP: 0018:ffffac6fc5417e98 EFLAGS: 00010246
-[   49.822363] RAX: 0000000000000000 RBX: ffff93b8da3446c0 RCX: 0000000a00000000
-[   49.823008] RDX: 0000000000000001 RSI: 000000000000000a RDI: 0000000000000088
-[   49.823658] RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff993cf040
-[   49.825404] R10: ffff93b92292e580 R11: ffffd27f188a4b80 R12: 0000000000000000
-[   49.827147] R13: 00000000ffffff9c R14: 00000000fffffffe R15: ffff93b8da3446c0
-[   49.828890] FS:  00007ffbedffb700(0000) GS:ffff93b927880000(0000) knlGS:0000000000000000
-[   49.830725] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   49.832359] CR2: 0000000000000088 CR3: 00000005e3f74006 CR4: 00000000003606a0
-[   49.834085] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   49.835792] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+In ovl_open() and ovl_dir_open() with something like.
 
-Fixes: a6c606551141 ("ovl: redirect on rename-dir")
-Signed-off-by: Liangyan <liangyan.peng@linux.alibaba.com>
-Suggested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
----
- fs/overlayfs/dir.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+f->f_sb_err = errseq_sample(upper_sb->s_wb_err); 
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 28a075b5f5b2..9831e7046038 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -973,6 +973,7 @@ static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
- 	for (d = dget(dentry); !IS_ROOT(d);) {
- 		const char *name;
- 		int thislen;
-+		struct dentry *parent = NULL;
- 
- 		spin_lock(&d->d_lock);
- 		name = ovl_dentry_get_redirect(d);
-@@ -992,7 +993,26 @@ static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
- 
- 		buflen -= thislen;
- 		memcpy(&buf[buflen], name, thislen);
-+		parent = d->d_parent;
-+		if (unlikely(!spin_trylock(&parent->d_lock))) {
-+			rcu_read_lock();
-+			spin_unlock(&d->d_lock);
-+again:
-+			parent = READ_ONCE(d->d_parent);
-+			spin_lock(&parent->d_lock);
-+			if (unlikely(parent != dentry->d_parent)) {
-+				spin_unlock(&parent->d_lock);
-+				goto again;
-+			}
-+			rcu_read_unlock();
-+			if (parent != d)
-+				spin_lock_nested(&d->d_lock, DENTRY_D_LOCK_NESTED);
-+			else
-+				parent = NULL;
-+		}
- 		tmp = dget_dlock(d->d_parent);
-+		if (parent)
-+			spin_unlock(&parent->d_lock);
- 		spin_unlock(&d->d_lock);
- 
- 		dput(d);
--- 
-2.14.4.44.g2045bb6
+And then ->sync_fs() or ->syncfs(), can check for new errors w.r.t upper
+sb?
+
+if (errseq_check(&upper_sb->s_wb_err, file->f_sb_err)) {
+	/* Upper sb has errors since last time */
+	spin_lock(&file->f_lock);
+	ret = errseq_check_and_advance(&upper_sb->s_wb_err, &file->f_sb_err);
+	spin_unlock(&file->f_lock);
+}
+
+I guess I can try this. But if we don't update ovl_sb->s_wb_err, then
+question remains that how to avoid errseq_check_and_advance() call
+in SYSCALL(sycnfs). That will do more bad things in this case.
+
+This will lead back to either creating new f_op->syncfs() where fs
+is responsible for writeback error checks (and not vfs). Or plumb
+"struct file" in exisitng ->sync_fs() and let filesystems do
+error checks (instead of VFS). This will be somewhat similar to your old
+proposal here.
+
+https://lore.kernel.org/linux-fsdevel/20180518123415.28181-1-jlayton@kernel.org/
+
+So advantage of updating ovl_sb->s_wb_err is that it reduces the
+churn needed in ->sync_fs() and moving errseq_check_and_advance()
+check out of vfs syncfs().
+
+> 
+> > > 
+> > > >  
+> > > > +	ret2 = errseq_check_and_advance(&sb->s_wb_err, &file->f_sb_err);
+> > > >  out:
+> > > >  	up_read(&sb->s_umount);
+> > > > -	return ret;
+> > > > +	return ret ? ret : ret2;
+> > > >  }
+> > > >  
+> > > >  /**
+> > > > @@ -1903,6 +1911,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> > > >  	if (!cred)
+> > > >  		goto out_err;
+> > > >  
+> > > > +	spin_lock_init(&ofs->errseq_lock);
+> > > >  	/* Is there a reason anyone would want not to share whiteouts? */
+> > > >  	ofs->share_whiteout = true;
+> > > >  
+> > > > @@ -1975,7 +1984,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> > > >  
+> > > >  		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+> > > >  		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+> > > > -
+> > > > +		sb->s_wb_err = errseq_sample(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
+> > > 
+> > > This will mark the error on the upper_sb as REPORTED, and that's not
+> > > really that's the case if you're just using it set s_wb_err in the
+> > > overlay. You might want to use errseq_peek in this situation.
+> > 
+> > For now I am still looking at existing code and not new code. Because
+> > I belive that new code does not change existing behavior instead
+> > provides additional functionality to allow sampling the error without
+> > marking it seen as well as provide helper to not force seeing an
+> > unseen error.
+> > 
+> > So current errseq_sample() does not mark error SEEN. And if it is
+> > an unseen error, we will get 0 and be forced to see the error next
+> > time.
+> > 
+> > One small issue with this is that say upper has unseen error. Now
+> > we mount overlay and save that value in sb->s_wb_err (unseen). Say
+> > a file is opened on upper and error is now seen on upper. But
+> > we still have unseen error cached in overlay and if overlay fd is
+> > now opened, f->f_sb_err will be 0 and it will be forced to see
+> > err on next syncfs().
+> > 
+> > IOW, despite the fact that overlay fd was opened after upper sb had
+> > been marked seen, it still will see error. I think it probably is
+> > not a big issue.
+> > 
+> 
+> Good point. I was thinking about the newer code that may mark it
+> OBSERVED when you sample at open time.
+> 
+> Still, I think working with the overlayfs sb->s_wb_err is just adding
+> complexity for little benefit.  Assuming that writeback errors can only
+> happen on the upper layer, you're better off avoiding it.
+
+If I want to avoid ovl_sb->s_wb_err updation, I will have to move
+ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
+check in individual filesystems. And it will still not be same. Because
+currently after ->sync_fs() call, __sync_blockdev() is called and
+then we check for writeback errors. That means, I will have to
+move __sync_blockdev() also inside ->sync_fs().
+
+Something like.
+
+fs_sync_fs()
+{
+	ret = do_fs_specific_sync_stuff();
+	ret2 = __sync_blockdev();
+	ret3 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
+	if (ret) {
+		return ret;
+	else
+		return ret2 ? ret2 : ret3;
+}
+
+Does not look pretty.
+
+Vivek
 
