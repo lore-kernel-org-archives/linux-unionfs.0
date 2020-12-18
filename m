@@ -2,142 +2,217 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72120C4361B
-	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 10:39:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79997C4361B
+	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 14:45:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40D9923A62
-	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 10:39:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CE3A23B1A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Dec 2020 14:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725897AbgLRKjk (ORCPT
+        id S1726570AbgLROpw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 18 Dec 2020 05:39:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52830 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725875AbgLRKjj (ORCPT
+        Fri, 18 Dec 2020 09:45:52 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:50411 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725932AbgLROpv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 18 Dec 2020 05:39:39 -0500
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5B68C061282
-        for <linux-unionfs@vger.kernel.org>; Fri, 18 Dec 2020 02:38:58 -0800 (PST)
-Received: by mail-ej1-x629.google.com with SMTP id 6so2514791ejz.5
-        for <linux-unionfs@vger.kernel.org>; Fri, 18 Dec 2020 02:38:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=rBYbGvFqZmBlkEy+MiMane5SSAMLwKtULGmRJA2FtKc=;
-        b=u+EZw2S4A90QPOyd/Hn+7HNA5OHSOZe7942l5fAi14FcYSAevlbwNP6V2GJ/Oz6jig
-         3kQtA+MsAEkkNS2GBfJ4T1QmRCP39TRS8bGLVw++Zv8QwRhIDuhMGoS5VIuVdHZx65kS
-         wSiq7zFC+PcRCCf6R4DWNM4gxXRKthIQjO6EnInkDv2/S6N9mTn9QLWqlUgKk2X4wcI+
-         5zQeBOHRv5G5Y4nHVpvN8YBKyXBrNm+7qbmUp/j1csTprQNYg8p+qjpfTpQlju+r2JC5
-         AxgS2au3QNT1gjTrbwM37O86aApHEKZ+clJdvVHg8hG4GiY9O8BfPjaaCKRh6+7nUlRg
-         sqtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=rBYbGvFqZmBlkEy+MiMane5SSAMLwKtULGmRJA2FtKc=;
-        b=QsUEat4DqrsPqBh11mVmxydsFd+zwK+jom4UwY7iwNKMqgyXIKRG8Pe7k3Kf8UhK8y
-         S3Fg5Ov+7RiJQjD0uHGM4srT38QmHtQUiekEq0ov3+ihDH9jsvwgl2dWp9UTjsNnjdSU
-         jiGhCUD+T1HpTu43LsrRtsrjZd/sEWA6p5s20m6AhU4rtdd5ieS4J2sPyWjAYwFJ+s1+
-         9Amu1ypkDa24yQTn/GEth88LtBicXfQuevbSiK2+wpqJwpB8k6T2EzHHwcCnCDlUOarC
-         5lSyITZ9eiz9ZMV1o0tfWUSYFP1Oyz3eIfpoM3YC79hqT+2R2ILIqtfSBLp5okKuxw4U
-         NGvQ==
-X-Gm-Message-State: AOAM532k5E436AaHYFv0Lp9pfHD18NEx3UmMwUYNQ1BRQYHElRHgse1P
-        nLDx9SJ/UKprrFexG22/hsr07ZmwyGQ=
-X-Google-Smtp-Source: ABdhPJwMc30LcY99OVGGvXyZlgsrijbigBcps1mRFwTQ/uyPUAuWxSROiDO1clwBRm058GNYUjmYCg==
-X-Received: by 2002:a17:906:4c85:: with SMTP id q5mr3287830eju.375.1608287937364;
-        Fri, 18 Dec 2020 02:38:57 -0800 (PST)
-Received: from localhost.localdomain ([31.210.181.203])
-        by smtp.gmail.com with ESMTPSA id d6sm5234891ejy.114.2020.12.18.02.38.56
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Dec 2020 02:38:56 -0800 (PST)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     linux-unionfs@vger.kernel.org
-Cc:     Miklos Szeredi <miklos@szeredi.hu>
-Subject: [ANNOUNCE] unionmount-testsuite: master branch updated to 95be14e
-Date:   Fri, 18 Dec 2020 12:38:54 +0200
-Message-Id: <20201218103854.10440-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Fri, 18 Dec 2020 09:45:51 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1608302664;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=CthNdoUY/FIFXJCBduT4k2Ir0PRGPQTHNOp+0Jn+7JM=;
+        b=iUBRr0wwn5WrnV21fjD6S+VIy/UnNgf+Kn6032G5xBV+mTBEsshB+HpuvEtoBRIXF+Fizv
+        SKkI8Is5ykMt2dpRMZG7Fhpa4qEqt7yLPM81lfgn4+m1FnShtsHJ7EEv9+0sFrj6uYcd5h
+        YtcTH8DEU9FZRbtsPd+N/ajbcM/WpH0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-169-pEZB78OdMT2Hg7zsV1RQcA-1; Fri, 18 Dec 2020 09:44:21 -0500
+X-MC-Unique: pEZB78OdMT2Hg7zsV1RQcA-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 43D98800688;
+        Fri, 18 Dec 2020 14:44:19 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-223.rdu2.redhat.com [10.10.115.223])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id B815B60CED;
+        Fri, 18 Dec 2020 14:44:18 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 3E856220BCF; Fri, 18 Dec 2020 09:44:18 -0500 (EST)
+Date:   Fri, 18 Dec 2020 09:44:18 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Jeffrey Layton <jlayton@poochiereds.net>
+Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, jlayton@kernel.org,
+        amir73il@gmail.com, sargun@sargun.me, miklos@szeredi.hu,
+        willy@infradead.org, jack@suse.cz, neilb@suse.com,
+        viro@zeniv.linux.org.uk
+Subject: Re: [PATCH 3/3] overlayfs: Check writeback errors w.r.t upper in
+ ->syncfs()
+Message-ID: <20201218144418.GA3424@redhat.com>
+References: <20201216233149.39025-1-vgoyal@redhat.com>
+ <20201216233149.39025-4-vgoyal@redhat.com>
+ <20201217200856.GA707519@tleilax.poochiereds.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201217200856.GA707519@tleilax.poochiereds.net>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi All,
+On Thu, Dec 17, 2020 at 03:08:56PM -0500, Jeffrey Layton wrote:
+> On Wed, Dec 16, 2020 at 06:31:49PM -0500, Vivek Goyal wrote:
+> > Check for writeback error on overlay super block w.r.t "struct file"
+> > passed in ->syncfs().
+> > 
+> > As of now real error happens on upper sb. So this patch first propagates
+> > error from upper sb to overlay sb and then checks error w.r.t struct
+> > file passed in.
+> > 
+> > Jeff, I know you prefer that I should rather file upper file and check
+> > error directly on on upper sb w.r.t this real upper file.  While I was
+> > implementing that I thought what if file is on lower (and has not been
+> > copied up yet). In that case shall we not check writeback errors and
+> > return back to user space? That does not sound right though because,
+> > we are not checking for writeback errors on this file. Rather we
+> > are checking for any error on superblock. Upper might have an error
+> > and we should report it to user even if file in question is a lower
+> > file. And that's why I fell back to this approach. But I am open to
+> > change it if there are issues in this method.
+> > 
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/overlayfs/ovl_entry.h |  2 ++
+> >  fs/overlayfs/super.c     | 15 ++++++++++++---
+> >  2 files changed, 14 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > index 1b5a2094df8e..a08fd719ee7b 100644
+> > --- a/fs/overlayfs/ovl_entry.h
+> > +++ b/fs/overlayfs/ovl_entry.h
+> > @@ -79,6 +79,8 @@ struct ovl_fs {
+> >  	atomic_long_t last_ino;
+> >  	/* Whiteout dentry cache */
+> >  	struct dentry *whiteout;
+> > +	/* Protects multiple sb->s_wb_err update from upper_sb . */
+> > +	spinlock_t errseq_lock;
+> >  };
+> >  
+> >  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index b4d92e6fa5ce..e7bc4492205e 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -291,7 +291,7 @@ int ovl_syncfs(struct file *file)
+> >  	struct super_block *sb = file->f_path.dentry->d_sb;
+> >  	struct ovl_fs *ofs = sb->s_fs_info;
+> >  	struct super_block *upper_sb;
+> > -	int ret;
+> > +	int ret, ret2;
+> >  
+> >  	ret = 0;
+> >  	down_read(&sb->s_umount);
+> > @@ -310,10 +310,18 @@ int ovl_syncfs(struct file *file)
+> >  	ret = sync_filesystem(upper_sb);
+> >  	up_read(&upper_sb->s_umount);
+> >  
+> > +	/* Update overlay sb->s_wb_err */
+> > +	if (errseq_check(&upper_sb->s_wb_err, sb->s_wb_err)) {
+> > +		/* Upper sb has errors since last time */
+> > +		spin_lock(&ofs->errseq_lock);
+> > +		errseq_check_and_advance(&upper_sb->s_wb_err, &sb->s_wb_err);
+> > +		spin_unlock(&ofs->errseq_lock);
+> > +	}
+> 
+> So, the problem here is that the resulting value in sb->s_wb_err is
+> going to end up with the REPORTED flag set (using the naming in my
+> latest set). So, a later opener of a file on sb->s_wb_err won't see it.
+> 
+> For instance, suppose you call sync() on the box and does the above
+> check and advance. Then, you open the file and call syncfs() and get
+> back no error because REPORTED flag was set when you opened. That error
+> will then be lost.
 
-The master branch on the unionmount-testsuite tree [1] has been updated.
+Hi Jeff,
 
-Changes in this update:
-- Support for user configurable mount option
-- Prepare to run tests with "userxattr" mount option
+In this patch, I am doing this only in ->syncfs() path and not in
+->sync_fs() path. IOW, errseq_check_and_advance() will take place
+only if there is a valid "struct file" passed in. That means there
+is a consumer of the error and that means it should be fine to
+set the sb->s_wb_err as SEEN/REPORTED, right?
 
-The previous update brought the ability for users to configure custom paths
-with a custom filesystem for the underlying layers.
-That ability was used to add xfstests wrappers for unionmount-testsuite.
+If we end up plumbming "struct file" in existing ->sync_fs() routine,
+then I will call this only if a non NULL struct file has been 
+passed in. Otherwise skip this step. 
 
-This update brings the ability for users to configure custom overlay mount
-options. This feature is also intended to be used by xfstests [2].
+IOW, sync() call will not result in errseq_check_and_advance() instead
+a syncfs() call will. 
 
-I used this ability to run tests with the new "userxattr" and "uuid=off"
-mount option:
+> 
+> >  
+> > +	ret2 = errseq_check_and_advance(&sb->s_wb_err, &file->f_sb_err);
+> >  out:
+> >  	up_read(&sb->s_umount);
+> > -	return ret;
+> > +	return ret ? ret : ret2;
+> >  }
+> >  
+> >  /**
+> > @@ -1903,6 +1911,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> >  	if (!cred)
+> >  		goto out_err;
+> >  
+> > +	spin_lock_init(&ofs->errseq_lock);
+> >  	/* Is there a reason anyone would want not to share whiteouts? */
+> >  	ofs->share_whiteout = true;
+> >  
+> > @@ -1975,7 +1984,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+> >  
+> >  		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+> >  		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+> > -
+> > +		sb->s_wb_err = errseq_sample(&ovl_upper_mnt(ofs)->mnt_sb->s_wb_err);
+> 
+> This will mark the error on the upper_sb as REPORTED, and that's not
+> really that's the case if you're just using it set s_wb_err in the
+> overlay. You might want to use errseq_peek in this situation.
 
-$ export UNIONMOUNT_MNTOPTIONS=userxattr
-$ ./run --ov --verify
-TEST rmdir.py:64: Remove populated directory
-- rmtree /mnt/a/dir106
-OSError: [Errno 5] Input/output error: '/mnt/a/dir106/pop'
+For now I am still looking at existing code and not new code. Because
+I belive that new code does not change existing behavior instead
+provides additional functionality to allow sampling the error without
+marking it seen as well as provide helper to not force seeing an
+unseen error.
 
-$ export UNIONMOUNT_BASEDIR=/vdf # (xfs filesystem)
-$ ./run --ov --verify
-TEST hard-link-sym.py:10: Hard link symlink
- ./run --link /vdf/m/a/direct_sym100 /vdf/m/a/no_foo100
-/vdf/m/a/no_foo100: inode number/layer changed on copy up...
+So current errseq_sample() does not mark error SEEN. And if it is
+an unseen error, we will get 0 and be forced to see the error next
+time.
 
-$ export UNIONMOUNT_MNTOPTIONS="uuid=off"
-$ ./run --ov --verify
+One small issue with this is that say upper has unseen error. Now
+we mount overlay and save that value in sb->s_wb_err (unseen). Say
+a file is opened on upper and error is now seen on upper. But
+we still have unseen error cached in overlay and if overlay fd is
+now opened, f->f_sb_err will be 0 and it will be forced to see
+err on next syncfs().
 
-and came to the following observations:
+IOW, despite the fact that overlay fd was opened after upper sb had
+been marked seen, it still will see error. I think it probably is
+not a big issue.
 
-1) rmdir test as well as other tests involving opaque dir are failing
-   on tmpfs, because tmpfs does not support user.* xattrs
-2) hard-link-sym test fails consistent inode number verification also
-   on xfs, because symlink does not support user.* xattrs
-3) All the other tests pass on xfs with the userxattr mount option
-4) No failures observed with uuid=off
+Vivek
 
-I did not try to run tests inside non init userns.
-This practice is left to the reader.
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/unionmount-testsuite
-[2] https://github.com/amir73il/xfstests/commits/unionmount
-
-The head of the master branch is commit:
-
-95be14e Allow user provided options with or without -o
-
-Amir Goldstein (3):
-  Add support for user defined mount options
-  Let "userxattr" mount option in UNIONMOUNT_MNTOPTIONS imply --xdev
-  Allow user provided options with or without -o
-
- mount_union.py   |  6 ++--
- remount_union.py |  4 +--
- run              | 90 ++++++++++++++++++++++++++++++------------------
- settings.py      | 15 +++++---
- tool_box.py      | 18 ++++++++++
- 5 files changed, 91 insertions(+), 42 deletions(-)
-
--- 
-2.25.1
+> 
+> >  	}
+> >  	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+> >  	err = PTR_ERR(oe);
+> > -- 
+> > 2.25.4
+> > 
+> 
 
