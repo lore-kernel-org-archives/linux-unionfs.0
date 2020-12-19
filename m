@@ -5,71 +5,66 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF19EC4361B
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:06:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5FD6C4361B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:17:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B43D923B6C
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:06:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7738023B7B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:17:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726436AbgLSKGN (ORCPT
+        id S1726439AbgLSKQx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 19 Dec 2020 05:06:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42302 "EHLO
+        Sat, 19 Dec 2020 05:16:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726433AbgLSKGM (ORCPT
+        with ESMTP id S1726436AbgLSKQw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 19 Dec 2020 05:06:12 -0500
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191AFC0617B0;
-        Sat, 19 Dec 2020 02:05:32 -0800 (PST)
-Received: by mail-ej1-x62e.google.com with SMTP id q22so6792013eja.2;
-        Sat, 19 Dec 2020 02:05:31 -0800 (PST)
+        Sat, 19 Dec 2020 05:16:52 -0500
+Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F9ECC0617B0
+        for <linux-unionfs@vger.kernel.org>; Sat, 19 Dec 2020 02:16:12 -0800 (PST)
+Received: by mail-ej1-x635.google.com with SMTP id j22so6758434eja.13
+        for <linux-unionfs@vger.kernel.org>; Sat, 19 Dec 2020 02:16:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=7W4RYxZj8lkWpWkE7UHIfL8SS0IH4o1LBa7PCi5M3wI=;
-        b=dhyBJMtvrKQNAWrETDplQ9mjvDaT0lh2/dFwdO2c0yU2efoRcGvwZwz3avH4WtFGC+
-         f28q7HEh/McQ/uRy7sCWOjFq29M+CPf0y7X+bk1MV74YMoA9c9Zy4HtweGrFAgK+oIoz
-         /J8POygW0Q/0TegHzFprmxfxKKXHx5eC7NbNWRvgyWUF/9BK7SZfOm9KNHELouT9K2rO
-         EBA7TD/lYPdWjTU+T7FU81vV+iODZ3YlFNXlhWPNEtjyn3geSy6V2D8ce/s5au8tZc8l
-         NEthhUaBKP6Jk0H3Mpbyx2vroIiDgUo8CKfZI0jmV8FsPsQ+eCf6PGGR7gHodeeGM8kk
-         4GOw==
+        bh=WYsqJHVZvZL3RfY5aJVFmwP6AnI1Pl2+6urVhS/3VYw=;
+        b=PpBp9s33PbkPaxJfDxmadtnCsnkEIiA7hNZyQqVqQnMRiWLA5hHsHkQ+81KJji3XA2
+         7lZBAwb1ck5GixoTmd59Z1m7o7oybv+ERt/hnZXNqcPCS950dqykk1v/RgdC9u1LsPLY
+         1Y9TR7BKNps9DaFLn31jZmbpmj1X9pVbyGNgbEmngT8Rz/9FD2dahkMuI7z26pvOUYCb
+         9oM7H30aRqEcVYJC0Rj6ya/OiDsf95KnK81B/88wBq9OHAO21WNfkv8eVjTyktiXxSl9
+         x2D2hEEA9GGJDW+06657a+tRTJUE2jDRYPUoVBSsl9azwzwNQWf5jhwmw8JFPsrSzE7r
+         IcEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=7W4RYxZj8lkWpWkE7UHIfL8SS0IH4o1LBa7PCi5M3wI=;
-        b=HZHA98jMvRTwrU25mwCKVkqnraZaErLTQzr2VDCf1xMQ57zfGjZppvO66tcCn3VM/l
-         8zTygnXBP4K6ZhqMMjPrMYjMb114YBjdW4cZv+h7jARQsBdCKAoUOvUgt8qZxWR5fjgJ
-         /1gCr1CfThMj4u2Uwz5xbxmbqZ4E50JBy5hcelZunxdrm7k9Elj+TvCAYcKglpLYt2iL
-         NOcg66tbLjUXhdTmi1exhGeDYch2U3S9DOlz7wXv4PTkAPOOES5s9uK8XVcOdq+V814P
-         0OBDCSPuc0r+jJPOcIdUShj10Yi9jCsiAU7Qvfh+FL7pvXCezfeBpzNVcYrC7bE/AkCX
-         GbeQ==
-X-Gm-Message-State: AOAM532FSSRQWBRr+VVd5CtP6X1h3UIdt4zcl3kgnk9DewpIQsUAGslW
-        GIB0JTWKP3ADDhSpQ8kli5A=
-X-Google-Smtp-Source: ABdhPJze5KIsjiEkOFsbxg5X9Tu9I1qLEYe8iHtQXSOXOjINhhuqqibupHdBQQGJWKLZ7qpz4ZRMxg==
-X-Received: by 2002:a17:906:f153:: with SMTP id gw19mr7918482ejb.272.1608372330717;
-        Sat, 19 Dec 2020 02:05:30 -0800 (PST)
+        bh=WYsqJHVZvZL3RfY5aJVFmwP6AnI1Pl2+6urVhS/3VYw=;
+        b=X77U95NTMEpgOr8cKoe9D14AkGtpR2KEFVUhG4mshQrO3sYdwpvtCgJ0ZFpheaj//B
+         nb537jAgO2FR/36/cprCvyCqkb1kz9DSrV6Z/EFEl1IJWH2VGVH6k1B/nBfGK+MyJPoY
+         cPH3C0ly8ZFVN4n9x/XcM+ussOnUP63cU9KaRmdjpjaRjBFAOqT6SS486oTgEEATwvt+
+         EUgfFIRBR3Mcyi/itmKPymktDnOq1R7e0ivzXhWhzJZYfpnkEAmYQCqoueQapMRItxr4
+         y4wL307dSDezPUNSrInCSSy2qQvPV9bd4O9R89yIw478Suq+mc5cJguFUfda1B1PdJTe
+         gJtw==
+X-Gm-Message-State: AOAM5328itnBQuUoWFaZp68wWkZx32zdcdvTSHqIZCiE0aVXBJ6ydlu5
+        dEGvfvdHALK5IQwhEjUGI/Z2jspUMqM=
+X-Google-Smtp-Source: ABdhPJwloubIu6cGTb4R5UJrWLH9HFZiCUziwqQpIT6YSjZiYqT/qBwrNUZ+EE9yx/rPBapjNsnY+g==
+X-Received: by 2002:a17:906:4f8d:: with SMTP id o13mr7978625eju.117.1608372970624;
+        Sat, 19 Dec 2020 02:16:10 -0800 (PST)
 Received: from localhost.localdomain ([31.210.181.203])
-        by smtp.gmail.com with ESMTPSA id a10sm6633651ejk.92.2020.12.19.02.05.28
+        by smtp.gmail.com with ESMTPSA id oq27sm6412778ejb.108.2020.12.19.02.16.09
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Dec 2020 02:05:30 -0800 (PST)
+        Sat, 19 Dec 2020 02:16:09 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Michael Labriola <michael.d.labriola@gmail.com>,
-        Jonathan Lebon <jlebon@redhat.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>, selinux@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        stable@vger.kernel.org
-Subject: [PATCH] selinux: fix inconsistency between inode_getxattr and inode_listsecurity
-Date:   Sat, 19 Dec 2020 12:05:27 +0200
-Message-Id: <20201219100527.16060-1-amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org,
+        Michael Labriola <michael.d.labriola@gmail.com>
+Subject: [PATCH] ovl: skip getxattr of security labels
+Date:   Sat, 19 Dec 2020 12:16:08 +0200
+Message-Id: <20201219101608.16535-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -91,34 +86,66 @@ files from squashfs when selinux is built-in but not initialized,
 because ovl_copy_xattr() iterates the lower inode xattrs by
 vfs_listxattr() and vfs_getxattr().
 
-Match the logic of inode_listsecurity to that of inode_getxattr and
-do not list the security.selinux xattr if selinux is not initialized.
+ovl_copy_xattr() skips copy up of security labels that are indentified by
+inode_copy_up_xattr LSM hooks, but it does that after vfs_getxattr().
+Since we are not going to copy them, skip vfs_getxattr() of the security
+labels.
 
 Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
 Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
 Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
-Fixes: c8e222616c7e ("selinux: allow reading labels before policy is loaded")
-Cc: stable@vger.kernel.org#v5.9+
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- security/selinux/hooks.c | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 6b1826fc3658..e132e082a5af 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -3406,6 +3406,10 @@ static int selinux_inode_setsecurity(struct inode *inode, const char *name,
- static int selinux_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size)
- {
- 	const int len = sizeof(XATTR_NAME_SELINUX);
+Miklos,
+
+This is a workaround for a v5.9 selinux related regression reported by
+Michael that caused copy up failure is a very specific configuration
+involving lower squashfs and built-in but disabled selinux.
+
+I've sent the bug fix to selinux list, so this patch is complementary.
+I removed the stable/Fixes tags, because this patch does not cleanly
+apply to v5.9 and is not the real bug fix.
+
+Thanks,
+Amir.
+
+ fs/overlayfs/copy_up.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index e5b616c93e11..0fed532efa68 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -84,6 +84,14 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
+ 
+ 		if (ovl_is_private_xattr(sb, name))
+ 			continue;
 +
-+	if (!selinux_initialized(&selinux_state))
-+		return 0;
-+
- 	if (buffer && len <= buffer_size)
- 		memcpy(buffer, XATTR_NAME_SELINUX, len);
- 	return len;
++		error = security_inode_copy_up_xattr(name);
++		if (error < 0 && error != -EOPNOTSUPP)
++			break;
++		if (error == 1) {
++			error = 0;
++			continue; /* Discard */
++		}
+ retry:
+ 		size = vfs_getxattr(old, name, value, value_size);
+ 		if (size == -ERANGE)
+@@ -107,13 +115,6 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
+ 			goto retry;
+ 		}
+ 
+-		error = security_inode_copy_up_xattr(name);
+-		if (error < 0 && error != -EOPNOTSUPP)
+-			break;
+-		if (error == 1) {
+-			error = 0;
+-			continue; /* Discard */
+-		}
+ 		error = vfs_setxattr(new, name, value, size, 0);
+ 		if (error) {
+ 			if (error != -EOPNOTSUPP || ovl_must_copy_xattr(name))
 -- 
 2.25.1
 
