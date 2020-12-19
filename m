@@ -2,273 +2,123 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3178C4361B
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 09:54:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF19EC4361B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:06:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB67123B08
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 09:54:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B43D923B6C
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:06:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726438AbgLSJxu (ORCPT
+        id S1726436AbgLSKGN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 19 Dec 2020 04:53:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40416 "EHLO
+        Sat, 19 Dec 2020 05:06:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726433AbgLSJxt (ORCPT
+        with ESMTP id S1726433AbgLSKGM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 19 Dec 2020 04:53:49 -0500
-Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51B87C0617B0;
-        Sat, 19 Dec 2020 01:53:09 -0800 (PST)
-Received: by mail-io1-xd2d.google.com with SMTP id m23so4449347ioy.2;
-        Sat, 19 Dec 2020 01:53:09 -0800 (PST)
+        Sat, 19 Dec 2020 05:06:12 -0500
+Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191AFC0617B0;
+        Sat, 19 Dec 2020 02:05:32 -0800 (PST)
+Received: by mail-ej1-x62e.google.com with SMTP id q22so6792013eja.2;
+        Sat, 19 Dec 2020 02:05:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=b/qaKT5xc3/m+Q+XHwEaRmlzw1rTdDEuIzgKTtPfCCM=;
-        b=aG+q8qjddKRPuf25l16NhHyKPP+EUg1t6uIS5v9YXBTLNluck42pERm9op6/Gd8xzS
-         vEy1R0tG3w86mhqnpb1yuVd6oZCa0NbELKXCSuHxiBXOQNUAGdmc9OkKaxTiMg+6rfG2
-         6oxjsFcvjQTxizI/ryLPA5GuWXBai40SUcNATlPJML/jCszD18ShKudy92Ri0wBIGfw8
-         D2gDbY3j3IWhmfjTz+4yToo3BGWpvqBdwNYPJkkiwW97JjDJG1FnXTFGWCR54AAhCq50
-         YEfbomrWu/v55QOLRE96jHfUBVEgDYs1bu6RU9CGVfw+VYB8MAj+eEnm7wSPSBce0qRb
-         AM3w==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7W4RYxZj8lkWpWkE7UHIfL8SS0IH4o1LBa7PCi5M3wI=;
+        b=dhyBJMtvrKQNAWrETDplQ9mjvDaT0lh2/dFwdO2c0yU2efoRcGvwZwz3avH4WtFGC+
+         f28q7HEh/McQ/uRy7sCWOjFq29M+CPf0y7X+bk1MV74YMoA9c9Zy4HtweGrFAgK+oIoz
+         /J8POygW0Q/0TegHzFprmxfxKKXHx5eC7NbNWRvgyWUF/9BK7SZfOm9KNHELouT9K2rO
+         EBA7TD/lYPdWjTU+T7FU81vV+iODZ3YlFNXlhWPNEtjyn3geSy6V2D8ce/s5au8tZc8l
+         NEthhUaBKP6Jk0H3Mpbyx2vroIiDgUo8CKfZI0jmV8FsPsQ+eCf6PGGR7gHodeeGM8kk
+         4GOw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=b/qaKT5xc3/m+Q+XHwEaRmlzw1rTdDEuIzgKTtPfCCM=;
-        b=DIsB/InCdo7JOfJdoRaDMr7+R39GBJWL2BaT2rWszXK3Tq4riSwtHW40CcS4S5ronC
-         nfccvGB48F2gNvjKy/FdIwJlPoIkWG93vpkAQx55EhfX2739DxlM7HdBbvV94X1UwewO
-         TQI6B6RgtfVPzFuVLjQa4ZN1SnXSZOskIYZT630hgttsWtQbbhKXVLZ1yHZOzGyMY1ur
-         7jidq6/N7toZYg3Y8QaCCKY+swmOMjsl+RvR/BZcQwkDhKttpoqI2wNvoEhneaghgc94
-         h1ksPERKX2PYKDieKbm5DHEiWxWXGNEyf/Sz/LOEzH1fXi1Vtg761tbfGlINJsVCD2bs
-         OjbA==
-X-Gm-Message-State: AOAM532l2ip3OhZfUMJ478oJy2O+PP8o6/rnsgkIxt7sxYqbE1rs5zRX
-        ndEhwXPe/yS08WwKrylI1r8zEY1hAXk3lFGLll+DWYHB
-X-Google-Smtp-Source: ABdhPJydDXu61seRuXH0jy+7b4p1AI1nPMFnaXunJ5mrVgaftDPdy1ITIDrv2ukRhzIGx7DSLxK0LdT34oMil+ZS6jU=
-X-Received: by 2002:a5e:de08:: with SMTP id e8mr7540707iok.203.1608371588550;
- Sat, 19 Dec 2020 01:53:08 -0800 (PST)
-MIME-Version: 1.0
-References: <2nv9d47zt7.fsf@aldarion.sourceruckus.org> <2n1rfrf5l0.fsf@aldarion.sourceruckus.org>
- <CAOQ4uxg4hmtGXg6dNghjfVpfiJFj6nauzqTgZucwSJAJq1Z3Eg@mail.gmail.com>
- <CAOQxz3wW8QF-+HFL1gcgH+nVvySN3fogop0v+KNcxpbzu9BkJA@mail.gmail.com>
- <CAOQ4uxgsFnkUqnXYyMNdZU=s_Wq18fdbr0ZhepNLMYh9MfPe9w@mail.gmail.com>
- <CAOQxz3wUvi_O7hzNrN8oTGfnFz-PiVr3Z6nG1ZXLFjpnH4q81g@mail.gmail.com>
- <CAOQxz3zGaKnJCUe7DuegOqbbPAvNj8hTFA6_LsGEPTMXwUpn6g@mail.gmail.com>
- <CAOQ4uxifSf-q1fXC_zxOpqR8GDX8sr2CWPsXrJ6e0YSrfB6v8Q@mail.gmail.com>
- <CAOQxz3xZWCdF=7AZ=N0ajcN8FVjzU2sS_SpxzwRFyHGvwc7dZA@mail.gmail.com>
- <CAOQ4uxjmUY+N6sBoD-d2MN4eehPCcWzBXTHkDqAcCVtkpbG2kw@mail.gmail.com>
- <CAOQxz3y8N6ny23iA1Fe0L4M1gR=FHP5xANZXquu4NSLoucorKw@mail.gmail.com>
- <CAOQ4uxg++DkgcO9K6wkSn0p6QvvkwK0nvxBzSpNE6RdaCH3aQg@mail.gmail.com>
- <CAOQxz3wbqnUxSL-Ks=7USUZU1+04Uvqi-FnTZFGRL9uqQvvNfA@mail.gmail.com>
- <CAOQxz3xNWoj5Az-0JAk1Ay3T_QyE1bso7pxC_7n=hV3B5PBK0w@mail.gmail.com>
- <CAOQ4uxjw5AroFpYBkGExiAfHir4OyABk023RQK_s6TPQ5aTJCw@mail.gmail.com> <CAOQxz3xz88=u8hb4UbbDcH55xLSmzrq+XUEeNqmaOkP_6DNCYg@mail.gmail.com>
-In-Reply-To: <CAOQxz3xz88=u8hb4UbbDcH55xLSmzrq+XUEeNqmaOkP_6DNCYg@mail.gmail.com>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=7W4RYxZj8lkWpWkE7UHIfL8SS0IH4o1LBa7PCi5M3wI=;
+        b=HZHA98jMvRTwrU25mwCKVkqnraZaErLTQzr2VDCf1xMQ57zfGjZppvO66tcCn3VM/l
+         8zTygnXBP4K6ZhqMMjPrMYjMb114YBjdW4cZv+h7jARQsBdCKAoUOvUgt8qZxWR5fjgJ
+         /1gCr1CfThMj4u2Uwz5xbxmbqZ4E50JBy5hcelZunxdrm7k9Elj+TvCAYcKglpLYt2iL
+         NOcg66tbLjUXhdTmi1exhGeDYch2U3S9DOlz7wXv4PTkAPOOES5s9uK8XVcOdq+V814P
+         0OBDCSPuc0r+jJPOcIdUShj10Yi9jCsiAU7Qvfh+FL7pvXCezfeBpzNVcYrC7bE/AkCX
+         GbeQ==
+X-Gm-Message-State: AOAM532FSSRQWBRr+VVd5CtP6X1h3UIdt4zcl3kgnk9DewpIQsUAGslW
+        GIB0JTWKP3ADDhSpQ8kli5A=
+X-Google-Smtp-Source: ABdhPJze5KIsjiEkOFsbxg5X9Tu9I1qLEYe8iHtQXSOXOjINhhuqqibupHdBQQGJWKLZ7qpz4ZRMxg==
+X-Received: by 2002:a17:906:f153:: with SMTP id gw19mr7918482ejb.272.1608372330717;
+        Sat, 19 Dec 2020 02:05:30 -0800 (PST)
+Received: from localhost.localdomain ([31.210.181.203])
+        by smtp.gmail.com with ESMTPSA id a10sm6633651ejk.92.2020.12.19.02.05.28
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 19 Dec 2020 02:05:30 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 19 Dec 2020 11:52:57 +0200
-Message-ID: <CAOQ4uxgbLZ4gz9SCWreFGLRcvAnbyh+mwgGMQg0eBcgD6+P9+w@mail.gmail.com>
-Subject: Re: failed open: No data available
-To:     Michael Labriola <michael.d.labriola@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        LSM List <linux-security-module@vger.kernel.org>,
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Michael Labriola <michael.d.labriola@gmail.com>,
         Jonathan Lebon <jlebon@redhat.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+        Stephen Smalley <stephen.smalley.work@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>, selinux@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        stable@vger.kernel.org
+Subject: [PATCH] selinux: fix inconsistency between inode_getxattr and inode_listsecurity
+Date:   Sat, 19 Dec 2020 12:05:27 +0200
+Message-Id: <20201219100527.16060-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Dec 18, 2020 at 10:47 PM Michael Labriola
-<michael.d.labriola@gmail.com> wrote:
->
-> On Fri, Dec 18, 2020 at 2:02 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > On Fri, Dec 18, 2020 at 1:47 AM Michael Labriola
-> > <michael.d.labriola@gmail.com> wrote:
-> > >
-> > > On Thu, Dec 17, 2020 at 4:56 PM Michael Labriola
-> > > <michael.d.labriola@gmail.com> wrote:
-> > > >
-> > > > On Thu, Dec 17, 2020 at 3:25 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > >
-> > > > > On Thu, Dec 17, 2020 at 9:46 PM Michael Labriola
-> > > > > <michael.d.labriola@gmail.com> wrote:
-> > > > > >
-> > > > > > On Thu, Dec 17, 2020 at 1:07 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > > > >
-> > > > > > > On Thu, Dec 17, 2020 at 6:22 PM Michael Labriola
-> > > > > > *snip*
-> > > > > > > > On Thu, Dec 17, 2020 at 7:00 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > > > > > Thanks, Amir.  I didn't have CONFIG_DYNAMIC_DEBUG enabled, so
-> > > > > > >
-> > > > > > > I honestly don't expect to find much in the existing overlay debug prints
-> > > > > > > but you never know..
-> > > > > > > I suspect you will have to add debug prints to find the problem.
-> > > > > >
-> > > > > > Ok, here goes.  I had to setup a new virtual machine that doesn't use
-> > > > > > overlayfs for its root filesystem because turning on dynamic debug
-> > > > > > gave way too much output for a nice controlled test.  It's exhibiting
-> > > > > > the same behavior as my previous tests (5.8 good, 5.9 bad).  The is
-> > > > > > with a freshly compiled 5.9.15 w/ CONFIG_OVERLAY_FS_XINO_AUTO turned
-> > > > > > off and CONFIG_DYNAMIC_DEBUG turned on.  Here's what we get:
-> > > > > >
-> > > > > >  echo "file fs/overlayfs/*  +p" > /sys/kernel/debug/dynamic_debug/control
-> > > > > >  mount borky2.sqsh t
-> > > > > >  mount -t tmpfs tmp tt
-> > > > > >  mkdir -p tt/upper/{upper,work}
-> > > > > >  mount -t overlay -o \
-> > > > > >     lowerdir=t,upperdir=tt/upper/upper,workdir=tt/upper/work blarg ttt
-> > > > > > [  164.505193] overlayfs: mkdir(work/work, 040000) = 0
-> > > > > > [  164.505204] overlayfs: tmpfile(work/work, 0100000) = 0
-> > > > > > [  164.505209] overlayfs: create(work/#3, 0100000) = 0
-> > > > > > [  164.505210] overlayfs: rename(work/#3, work/#4, 0x4)
-> > > > > > [  164.505216] overlayfs: unlink(work/#3) = 0
-> > > > > > [  164.505217] overlayfs: unlink(work/#4) = 0
-> > > > > > [  164.505221] overlayfs: setxattr(work/work,
-> > > > > > "trusted.overlay.opaque", "0", 1, 0x0) = 0
-> > > > > >
-> > > > > >  touch ttt/FOO
-> > > > > > touch: cannot touch 'ttt/FOO': No data available
-> > > > > > [  191.919498] overlayfs: setxattr(upper/upper,
-> > > > > > "trusted.overlay.impure", "y", 1, 0x0) = 0
-> > > > > > [  191.919523] overlayfs: tmpfile(work/work, 0100644) = 0
-> > > > > > [  191.919788] overlayfs: tmpfile(work/work, 0100644) = 0
-> > > > > >
-> > > > > > That give you any hints?  I'll start reading through the overlayfs
-> > > > > > code.  I've never actually looked at it, so I'll be planting printk
-> > > > > > calls at random.  ;-)
-> > > > >
-> > > > > We have seen that open("FOO", O_WRONLY) fails
-> > > > > We know that FOO is lower at that time so that brings us to
-> > > > >
-> > > > > ovl_open
-> > > > >   ovl_maybe_copy_up
-> > > > >     ovl_copy_up_flags
-> > > > >       ovl_copy_up_one
-> > > > >         ovl_do_copy_up
-> > > > >           ovl_set_impure
-> > > > > [  191.919498] overlayfs: setxattr(upper/upper,
-> > > > > "trusted.overlay.impure", "y", 1, 0x0) = 0
-> > > > >           ovl_copy_up_tmpfile
-> > > > >             ovl_do_tmpfile
-> > > > > [  191.919523] overlayfs: tmpfile(work/work, 0100644) = 0
-> > > > >             ovl_copy_up_inode
-> > > > > This must be were we fail and likely in:
-> > > > >               ovl_copy_xattr
-> > > > >                  vfs_getxattr
-> > > > > which can return -ENODATA, but it is not expected because the
-> > > > > xattrs returned by vfs_listxattr should exist...
-> > > > >
-> > > > > So first guess would be to add a debug print for xattr 'name'
-> > > > > and return value of vfs_getxattr().
-> > > >
-> > > > Ok, here we go.  I've added a bunch of printks all over the place.
-> > > > Here's what we've got.  Things are unchanged during mount.  Trying to
-> > > > touch FOO now gives me this:
-> > > >
-> > > > [  114.365444] ovl_open: start
-> > > > [  114.365450] ovl_maybe_copy_up: start
-> > > > [  114.365452] ovl_maybe_copy_up: need copy up
-> > > > [  114.365454] ovl_maybe_copy_up: ovl_want_write succeeded
-> > > > [  114.365459] ovl_copy_up_one: calling ovl_do_copy_up()
-> > > > [  114.365460] ovl_do_copy_up: start
-> > > > [  114.365462] ovl_do_copy_up: impure
-> > > > [  114.365464] ovl_set_impure: start
-> > > > [  114.365484] overlayfs: setxattr(upper/upper,
-> > > > "trusted.overlay.impure", "y", 1, 0x0) = 0
-> > > > [  114.365486] ovl_copy_up_tmpfile: start
-> > > > [  114.365507] overlayfs: tmpfile(work/work, 0100644) = 0
-> > > > [  114.365510] ovl_copy_up_inode: start
-> > > > [  114.365511] ovl_copy_up_inode: ISREG && !metacopy
-> > > > [  114.365625] ovl_copy_xattr: start
-> > > > [  114.365630] ovl_copy_xattr: vfs_listxattr() returned 17
-> > > > [  114.365632] ovl_copy_xattr: buf allocated good
-> > > > [  114.365634] ovl_copy_xattr: vfs_listxattr() returned 17
-> > > > [  114.365636] ovl_copy_xattr: slen=17
-> > > > [  114.365638] ovl_copy_xattr: name='security.selinux'
-> > >
-> > > SELinux?  now that's not suspicious at all...
-> > >
-> > > > [  114.365643] ovl_copy_xattr: vfs_getxattr returned size=-61
-> > > > [  114.365644] ovl_copy_xattr: cleaning up
-> > > > [  114.365647] ovl_copy_up_inode: ovl_copy_xattr error=-61
-> > > > [  114.365649] ovl_copy_up_one: error=-61
-> > > > [  114.365651] ovl_copy_up_one: calling ovl_copy_up_end()
-> > > > [  114.365653] ovl_copy_up_flags: ovl_copy_up_one error=-61
-> > > > [  114.365655] ovl_maybe_copy_up: ovl_copy_up_flags error=-61
-> > > > [  114.365658] ovl_open: ovl_maybe_copy_up error=-61
-> > > > [  114.365728] ovl_copy_up_one: calling ovl_do_copy_up()
-> > > > [  114.365730] ovl_do_copy_up: start
-> > > > [  114.365731] ovl_do_copy_up: impure
-> > > > [  114.365733] ovl_set_impure: start
-> > > > [  114.365735] ovl_copy_up_tmpfile: start
-> > > > [  114.365748] overlayfs: tmpfile(work/work, 0100644) = 0
-> > > > [  114.365750] ovl_copy_up_inode: start
-> > > > [  114.365752] ovl_copy_up_inode: ISREG && !metacopy
-> > > > [  114.365770] ovl_copy_xattr: start
-> > > > [  114.365773] ovl_copy_xattr: vfs_listxattr() returned 17
-> > > > [  114.365774] ovl_copy_xattr: buf allocated good
-> > > > [  114.365776] ovl_copy_xattr: vfs_listxattr() returned 17
-> > > > [  114.365778] ovl_copy_xattr: slen=17
-> > > > [  114.365780] ovl_copy_xattr: name='security.selinux'
-> > > > [  114.365784] ovl_copy_xattr: vfs_getxattr returned size=-61
-> > > > [  114.365785] ovl_copy_xattr: cleaning up
-> > > > [  114.365787] ovl_copy_up_inode: ovl_copy_xattr error=-61
-> > > > [  114.365789] ovl_copy_up_one: error=-61
-> > > > [  114.365790] ovl_copy_up_one: calling ovl_copy_up_end()
-> > > > [  114.365792] ovl_copy_up_flags: ovl_copy_up_one error=-61
-> > > >
-> > > *snip*
-> > >
-> > > So, the selinux stuff made me raise an eyebrow...  I've got selinux
-> > > enabled in my kernel so that it's there if I boot up a RHEL box with
-> > > this kernel.  But I'm using Ubuntu right now, and the rest of SELinux
-> > > is not installed/enabled.  There shouldn't be any selinux labels in
-> > > the files I slurped up into my squashfs image, so there shouldn't be
-> > > any in the squashfs, so of course that won't work.
-> > >
-> > > I tried compiling CONFIG_SELINUX=n and guess what, it works now.  So
-> > > that's at least a work-around for me.
-> > >
-> > > So, for whatever reason, between 5.8 and 5.9, having CONFIG_SELINUX=y
-> > > but no security labels on the filesystem became a problem?  Is this
-> > > something that needs to get fixed in overlayfs?  Or do you think it's
-> > > a deeper problem that needs fixing elsewhere?
-> > >
-> >
-> > It's both :)
-> >
-> > Attached two patches that should each fix the issue independently,
-> > but we need to apply both. I only tested that they build.
-> > Please verify that each applied individually solves the problem.
-> >
-> > The selinux- patch fixes an selinux regression introduced in kernel v5.9
-> > the regression is manifested in your test case but goes beyond overlayfs.
-> >
-> > The ovl- patch is a workaround for the selinux regression, but it is also
-> > a micro optimization that doesn't hurt, so worth applying it anyway.
->
-> Ok, as expected, both patches independently fix the problem for me on
-> my 5.9 kernel.
+When inode has no listxattr op of its own (e.g. squashfs) vfs_listxattr
+calls the LSM inode_listsecurity hooks to list the xattrs that LSMs will
+intercept in inode_getxattr hooks.
 
-Great. I'll add your Tested-by and post.
+When selinux LSM is installed but not initialized, it will list the
+security.selinux xattr in inode_listsecurity, but will not intercept it
+in inode_getxattr.  This results in -ENODATA for a getxattr call for an
+xattr returned by listxattr.
 
-> FYI, applying the ovl patch failed initially
-> because ovl_is_private_xattr() grew an extra argument in 5.10.
->
+This situation was manifested as overlayfs failure to copy up lower
+files from squashfs when selinux is built-in but not initialized,
+because ovl_copy_xattr() iterates the lower inode xattrs by
+vfs_listxattr() and vfs_getxattr().
 
-Good to know, I'll remove the cc:stable because the overlayfs patch
-is not really a regression fix. as I wrote it is just a nice to have
-micro optimization that doesn't need to be applied to v5.9.
+Match the logic of inode_listsecurity to that of inode_getxattr and
+do not list the security.selinux xattr if selinux is not initialized.
 
-> Woohoo!  Thanks, Amir!
+Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
+Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
+Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
+Fixes: c8e222616c7e ("selinux: allow reading labels before policy is loaded")
+Cc: stable@vger.kernel.org#v5.9+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ security/selinux/hooks.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Thank you for the report and help in nailing this strange regression!
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 6b1826fc3658..e132e082a5af 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -3406,6 +3406,10 @@ static int selinux_inode_setsecurity(struct inode *inode, const char *name,
+ static int selinux_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size)
+ {
+ 	const int len = sizeof(XATTR_NAME_SELINUX);
++
++	if (!selinux_initialized(&selinux_state))
++		return 0;
++
+ 	if (buffer && len <= buffer_size)
+ 		memcpy(buffer, XATTR_NAME_SELINUX, len);
+ 	return len;
+-- 
+2.25.1
 
-Amir.
