@@ -2,283 +2,273 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42E28C4361B
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 09:11:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3178C4361B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 09:54:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05D6523BE2
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 09:10:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB67123B08
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 09:54:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726398AbgLSJKo (ORCPT
+        id S1726438AbgLSJxu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 19 Dec 2020 04:10:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33836 "EHLO
+        Sat, 19 Dec 2020 04:53:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726395AbgLSJKn (ORCPT
+        with ESMTP id S1726433AbgLSJxt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 19 Dec 2020 04:10:43 -0500
-Received: from mail-il1-x130.google.com (mail-il1-x130.google.com [IPv6:2607:f8b0:4864:20::130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9845C0617B0;
-        Sat, 19 Dec 2020 01:10:02 -0800 (PST)
-Received: by mail-il1-x130.google.com with SMTP id q1so4449976ilt.6;
-        Sat, 19 Dec 2020 01:10:02 -0800 (PST)
+        Sat, 19 Dec 2020 04:53:49 -0500
+Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51B87C0617B0;
+        Sat, 19 Dec 2020 01:53:09 -0800 (PST)
+Received: by mail-io1-xd2d.google.com with SMTP id m23so4449347ioy.2;
+        Sat, 19 Dec 2020 01:53:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=K1wy7liFqMqVpv5JtwH/C3c5e9etpiGocBgOADyhFdM=;
-        b=RndZ13ih4vKSuofRFlb/OT7+crLM7UarHW7UTafoYVQDGg/mMvijJ3UQx0dDP4KFNo
-         Q6AAwBX9VKAJHEgkWcCKLCRWj+cN25Tav1mmxYxmdRuAZkduqgsPnSGVEBNgixQ9y+vC
-         jisec+st7N7DPYftpu/iS5IQlH88lkn+CERhOXxj9b9UGSt0FEQ2QpROrspXhPA0dAP1
-         +yQWOr3b9PeBCFLM2JrWzO4pakflvEP1+fyOTpJiCq5bDOUtv7lb0KK7XXaTYE6QMg1C
-         5R3NO+ZPBmD0d9+COoJLk+LIaqn/y7tXrD+5R33oHn9y2pX5jrY82K4t/ZlUfMyx6Vks
-         ihHA==
+        bh=b/qaKT5xc3/m+Q+XHwEaRmlzw1rTdDEuIzgKTtPfCCM=;
+        b=aG+q8qjddKRPuf25l16NhHyKPP+EUg1t6uIS5v9YXBTLNluck42pERm9op6/Gd8xzS
+         vEy1R0tG3w86mhqnpb1yuVd6oZCa0NbELKXCSuHxiBXOQNUAGdmc9OkKaxTiMg+6rfG2
+         6oxjsFcvjQTxizI/ryLPA5GuWXBai40SUcNATlPJML/jCszD18ShKudy92Ri0wBIGfw8
+         D2gDbY3j3IWhmfjTz+4yToo3BGWpvqBdwNYPJkkiwW97JjDJG1FnXTFGWCR54AAhCq50
+         YEfbomrWu/v55QOLRE96jHfUBVEgDYs1bu6RU9CGVfw+VYB8MAj+eEnm7wSPSBce0qRb
+         AM3w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=K1wy7liFqMqVpv5JtwH/C3c5e9etpiGocBgOADyhFdM=;
-        b=SuoFW6M+TlRPBXT0d9LnBUxlcWf6b5eYA/XjdTYx5ypISbytZ3HFKkvs9xJSqGN0tU
-         fkTQfNpIo7zLCbukfg2SWul+cdsc5Xipxuzz1x7m5FqLHJ+OiFk7yQkhu4TQ9JS4+rHM
-         MPsStj9Gh06RYSJfBNP4nMPo5RGbdlqzEgZ4fsk/J/ae/9zPoEvSDbwi7P2hJxjtr5+M
-         IuXA2/hgW/XwNCIk/5tYoqjoV5KOiOnLxZPUI5jcLWyz6KMtXdWBcNOTyIWyf6i8OuL2
-         rF4fmdMzQ3U9Ip6wW+jRZz28yNXjuY3bMns+Tjaboozlf68RJh+7BX28hvuyVBLGO5kC
-         cSSg==
-X-Gm-Message-State: AOAM532vtLwPZbB4o3ckQ7nX+/1haYrlQSDbR3oV8lgl5n0HYfTerg2u
-        RElGP/DR/i1Cq2kYTJRpwI8XcTeL9ymuxb3FC8M=
-X-Google-Smtp-Source: ABdhPJwwWbvnrzzQX1AlWcAafNjbUiwriB5icT7nHAJKwGV8XH45WLDoDpatq1Ir2rUDtiZHD1j9iDuo5M6s+gXoYJQ=
-X-Received: by 2002:a92:da82:: with SMTP id u2mr8268140iln.137.1608369001800;
- Sat, 19 Dec 2020 01:10:01 -0800 (PST)
+        bh=b/qaKT5xc3/m+Q+XHwEaRmlzw1rTdDEuIzgKTtPfCCM=;
+        b=DIsB/InCdo7JOfJdoRaDMr7+R39GBJWL2BaT2rWszXK3Tq4riSwtHW40CcS4S5ronC
+         nfccvGB48F2gNvjKy/FdIwJlPoIkWG93vpkAQx55EhfX2739DxlM7HdBbvV94X1UwewO
+         TQI6B6RgtfVPzFuVLjQa4ZN1SnXSZOskIYZT630hgttsWtQbbhKXVLZ1yHZOzGyMY1ur
+         7jidq6/N7toZYg3Y8QaCCKY+swmOMjsl+RvR/BZcQwkDhKttpoqI2wNvoEhneaghgc94
+         h1ksPERKX2PYKDieKbm5DHEiWxWXGNEyf/Sz/LOEzH1fXi1Vtg761tbfGlINJsVCD2bs
+         OjbA==
+X-Gm-Message-State: AOAM532l2ip3OhZfUMJ478oJy2O+PP8o6/rnsgkIxt7sxYqbE1rs5zRX
+        ndEhwXPe/yS08WwKrylI1r8zEY1hAXk3lFGLll+DWYHB
+X-Google-Smtp-Source: ABdhPJydDXu61seRuXH0jy+7b4p1AI1nPMFnaXunJ5mrVgaftDPdy1ITIDrv2ukRhzIGx7DSLxK0LdT34oMil+ZS6jU=
+X-Received: by 2002:a5e:de08:: with SMTP id e8mr7540707iok.203.1608371588550;
+ Sat, 19 Dec 2020 01:53:08 -0800 (PST)
 MIME-Version: 1.0
-References: <20201217150037.468787-1-jlayton@kernel.org> <20201217203523.GB28177@ircssh-2.c.rugged-nimbus-611.internal>
- <9e38d400ed1e6bf4a3909f69238e3e5001d908fb.camel@kernel.org>
- <20201218234427.GA17343@ircssh-2.c.rugged-nimbus-611.internal> <3e7c3521f8852ba662413042348a4a7894e42dc3.camel@kernel.org>
-In-Reply-To: <3e7c3521f8852ba662413042348a4a7894e42dc3.camel@kernel.org>
+References: <2nv9d47zt7.fsf@aldarion.sourceruckus.org> <2n1rfrf5l0.fsf@aldarion.sourceruckus.org>
+ <CAOQ4uxg4hmtGXg6dNghjfVpfiJFj6nauzqTgZucwSJAJq1Z3Eg@mail.gmail.com>
+ <CAOQxz3wW8QF-+HFL1gcgH+nVvySN3fogop0v+KNcxpbzu9BkJA@mail.gmail.com>
+ <CAOQ4uxgsFnkUqnXYyMNdZU=s_Wq18fdbr0ZhepNLMYh9MfPe9w@mail.gmail.com>
+ <CAOQxz3wUvi_O7hzNrN8oTGfnFz-PiVr3Z6nG1ZXLFjpnH4q81g@mail.gmail.com>
+ <CAOQxz3zGaKnJCUe7DuegOqbbPAvNj8hTFA6_LsGEPTMXwUpn6g@mail.gmail.com>
+ <CAOQ4uxifSf-q1fXC_zxOpqR8GDX8sr2CWPsXrJ6e0YSrfB6v8Q@mail.gmail.com>
+ <CAOQxz3xZWCdF=7AZ=N0ajcN8FVjzU2sS_SpxzwRFyHGvwc7dZA@mail.gmail.com>
+ <CAOQ4uxjmUY+N6sBoD-d2MN4eehPCcWzBXTHkDqAcCVtkpbG2kw@mail.gmail.com>
+ <CAOQxz3y8N6ny23iA1Fe0L4M1gR=FHP5xANZXquu4NSLoucorKw@mail.gmail.com>
+ <CAOQ4uxg++DkgcO9K6wkSn0p6QvvkwK0nvxBzSpNE6RdaCH3aQg@mail.gmail.com>
+ <CAOQxz3wbqnUxSL-Ks=7USUZU1+04Uvqi-FnTZFGRL9uqQvvNfA@mail.gmail.com>
+ <CAOQxz3xNWoj5Az-0JAk1Ay3T_QyE1bso7pxC_7n=hV3B5PBK0w@mail.gmail.com>
+ <CAOQ4uxjw5AroFpYBkGExiAfHir4OyABk023RQK_s6TPQ5aTJCw@mail.gmail.com> <CAOQxz3xz88=u8hb4UbbDcH55xLSmzrq+XUEeNqmaOkP_6DNCYg@mail.gmail.com>
+In-Reply-To: <CAOQxz3xz88=u8hb4UbbDcH55xLSmzrq+XUEeNqmaOkP_6DNCYg@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 19 Dec 2020 11:09:50 +0200
-Message-ID: <CAOQ4uxi4UTUNejxn-0MX4DJkZSCCjsWos0jVwS1_toPc5PpP+g@mail.gmail.com>
-Subject: Re: [PATCH v3] errseq: split the ERRSEQ_SEEN flag into two new flags
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     Sargun Dhillon <sargun@sargun.me>,
+Date:   Sat, 19 Dec 2020 11:52:57 +0200
+Message-ID: <CAOQ4uxgbLZ4gz9SCWreFGLRcvAnbyh+mwgGMQg0eBcgD6+P9+w@mail.gmail.com>
+Subject: Re: failed open: No data available
+To:     Michael Labriola <michael.d.labriola@gmail.com>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        Matthew Wilcox <willy@infradead.org>,
-        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
+        LSM List <linux-security-module@vger.kernel.org>,
+        Jonathan Lebon <jlebon@redhat.com>,
+        Stephen Smalley <stephen.smalley.work@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Dec 19, 2020 at 3:03 AM Jeff Layton <jlayton@kernel.org> wrote:
+On Fri, Dec 18, 2020 at 10:47 PM Michael Labriola
+<michael.d.labriola@gmail.com> wrote:
 >
-> On Fri, 2020-12-18 at 23:44 +0000, Sargun Dhillon wrote:
-> > On Thu, Dec 17, 2020 at 04:18:49PM -0500, Jeff Layton wrote:
-> > > On Thu, 2020-12-17 at 20:35 +0000, Sargun Dhillon wrote:
-> > > > On Thu, Dec 17, 2020 at 10:00:37AM -0500, Jeff Layton wrote:
-> > > > > Overlayfs's volatile mounts want to be able to sample an error for their
-> > > > > own purposes, without preventing a later opener from potentially seeing
-> > > > > the error.
-> > > > >
-> > > > > The original reason for the ERRSEQ_SEEN flag was to make it so that we
-> > > > > didn't need to increment the counter if nothing had observed the latest
-> > > > > value and the error was the same. Eventually, a regression was reported
-> > > > > in the errseq_t conversion, and we fixed that by using the ERRSEQ_SEEN
-> > > > > flag to also mean that the error had been reported to userland at least
-> > > > > once somewhere.
-> > > > >
-> > > > > Those are two different states, however. If we instead take a second
-> > > > > flag bit from the counter, we can track these two things separately, and
-> > > > > accomodate the overlayfs volatile mount use-case.
-> > > > >
-> > > > > Rename the ERRSEQ_SEEN flag to ERRSEQ_OBSERVED and use that to indicate
-> > > > > that the counter must be incremented the next time an error is set.
-> > > > > Also, add a new ERRSEQ_REPORTED flag that indicates whether the current
-> > > > > error was returned to userland (and thus doesn't need to be reported on
-> > > > > newly open file descriptions).
-> > > > >
-> > > > > Test only for the OBSERVED bit when deciding whether to increment the
-> > > > > counter and only for the REPORTED bit when deciding what to return in
-> > > > > errseq_sample.
-> > > > >
-> > > > > Add a new errseq_peek function to allow for the overlayfs use-case.
-> > > > > This just grabs the latest counter and sets the OBSERVED bit, leaving the
-> > > > > REPORTED bit untouched.
-> > > > >
-> > > > > errseq_check_and_advance must now handle a single special case where
-> > > > > it races against a "peek" of an as of yet unseen value. The do/while
-> > > > > loop looks scary, but shouldn't loop more than once.
-> > > > >
-> > > > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> > > > > ---
-> > > > >  Documentation/core-api/errseq.rst |  22 +++--
-> > > > >  include/linux/errseq.h            |   1 +
-> > > > >  lib/errseq.c                      | 139 ++++++++++++++++++++++--------
-> > > > >  3 files changed, 118 insertions(+), 44 deletions(-)
-> > > > >
-> > > > > v3: rename SEEN/MUSTINC flags to REPORTED/OBSERVED
-> > > > >
-> > > > > Hopefully the new flag names will make this a bit more clear. We could
-> > > > > also rename some of the functions if that helps too. We could consider
-> > > > > moving from errseq_sample/_check_and_advance to
-> > > > > errseq_observe/errseq_report?  I'm not sure that helps anything though.
-> > > > >
-> > > > > I know that Vivek and Sargun are working on syncfs() for overlayfs, so
-> > > > > we probably don't want to merge this until that work is ready. I think
-> > > >
-> > > > I disagree. I think that this work can land ahead of that, given that I think
-> > > > this is probably backportable to v5.10 without much risk, with the addition of
-> > > > your RFC v2 Overlay patch. I think the work proper long-term repair Vivek is
-> > > > embarking upon seems like it may be far more invasive.
-> > > >
-> > > > > the errseq_peek call will need to be part of their solution for volatile
-> > > > > mounts, however, so I'm fine with merging this via the overlayfs tree,
-> > > > > once that work is complete.
-> > > > >
-> > > > > diff --git a/Documentation/core-api/errseq.rst b/Documentation/core-api/errseq.rst
-> > > > > index ff332e272405..ce46ddcc1487 100644
-> > > > > --- a/Documentation/core-api/errseq.rst
-> > > > > +++ b/Documentation/core-api/errseq.rst
-> > > > > @@ -18,18 +18,22 @@ these functions can be called from any context.
-> > > > >  Note that there is a risk of collisions if new errors are being recorded
-> > > > >  frequently, since we have so few bits to use as a counter.
-> > > > >
-> > > > >
-> > > > >
-> > > > >
-> > > > > -To mitigate this, the bit between the error value and counter is used as
-> > > > > -a flag to tell whether the value has been sampled since a new value was
-> > > > > -recorded.  That allows us to avoid bumping the counter if no one has
-> > > > > -sampled it since the last time an error was recorded.
-> > > > > +To mitigate this, the bits between the error value and counter are used
-> > > > > +as flags to tell whether the value has been sampled since a new value
-> > > > > +was recorded, and whether the latest error has been seen by userland.
-> > > > > +That allows us to avoid bumping the counter if no one has sampled it
-> > > > > +since the last time an error was recorded, and also ensures that any
-> > > > > +recorded error will be seen at least once.
-> > > > >
-> > > > >
-> > > > >
-> > > > >
-> > > > >  Thus we end up with a value that looks something like this:
-> > > > >
-> > > > >
-> > > > >
-> > > > >
-> > > > > -+--------------------------------------+----+------------------------+
-> > > > > -| 31..13                               | 12 | 11..0                  |
-> > > > > -+--------------------------------------+----+------------------------+
-> > > > > -| counter                              | SF | errno                  |
-> > > > > -+--------------------------------------+----+------------------------+
-> > > > > ++---------------------------------+----+----+------------------------+
-> > > > > +| 31..14                          | 13 | 12 | 11..0                  |
-> > > > > ++---------------------------------+----+----+------------------------+
-> > > > > +| counter                         | OF | RF | errno                  |
-> > > > > ++---------------------------------+----+----+------------------------+
-> > > > > +OF = ERRSEQ_OBSERVED flag
-> > > > > +RF = ERRSEQ_REPORTED flag
-> > > > >
-> > > > >
-> > > > >
-> > > > >
-> > > > >  The general idea is for "watchers" to sample an errseq_t value and keep
-> > > > >  it as a running cursor.  That value can later be used to tell whether
-> > > > > diff --git a/include/linux/errseq.h b/include/linux/errseq.h
-> > > > > index fc2777770768..7e3634269c95 100644
-> > > > > --- a/include/linux/errseq.h
-> > > > > +++ b/include/linux/errseq.h
-> > > > > @@ -9,6 +9,7 @@ typedef u32     errseq_t;
-> > > > >
-> > > > >
-> > > > >
-> > > > >
-> > > > >  errseq_t errseq_set(errseq_t *eseq, int err);
-> > > > >  errseq_t errseq_sample(errseq_t *eseq);
-> > > > > +errseq_t errseq_peek(errseq_t *eseq);
-> > > > >  int errseq_check(errseq_t *eseq, errseq_t since);
-> > > > >  int errseq_check_and_advance(errseq_t *eseq, errseq_t *since);
-> > > > >  #endif
-> > > > > diff --git a/lib/errseq.c b/lib/errseq.c
-> > > > > index 81f9e33aa7e7..8fd6be134dcc 100644
-> > > > > --- a/lib/errseq.c
-> > > > > +++ b/lib/errseq.c
-> > > > > @@ -21,10 +21,14 @@
-> > > > >   * Note that there is a risk of collisions if new errors are being recorded
-> > > > >   * frequently, since we have so few bits to use as a counter.
-> > > > >   *
-> > > > > - * To mitigate this, one bit is used as a flag to tell whether the value has
-> > > > > - * been sampled since a new value was recorded. That allows us to avoid bumping
-> > > > > - * the counter if no one has sampled it since the last time an error was
-> > > > > - * recorded.
-> > > > > + * To mitigate this, one bit is used as a flag to tell whether the value has been
-> > > > > + * observed in some fashion. That allows us to avoid bumping the counter if no
-> > > > > + * one has sampled it since the last time an error was recorded.
-> > > > > + *
-> > > > > + * A second flag bit is used to indicate whether the latest error that has been
-> > > > > + * recorded has been reported to userland. If the REPORTED bit is not set when the
-> > > > > + * file is opened, then we ensure that the opener will see the error by setting
-> > > > > + * its sample to 0.
-> > > >
-> > > > Since there are only a few places that report to userland (as far as I can tell,
-> > > > a bit of usage in ceph), does it make sense to maintain this specific flag that
-> > > > indicates it's reported to userspace? Instead can userspace keep a snapshot
-> > > > of the last errseq it reported (say on the superblock), and use that to drive
-> > > > reports to userspace?
-> > > >
-> > > > It's a 32-bit sacrifice per SB though, but it means we can get rid of
-> > > > errseq_check_and_advance and potentially remove any need for locking and just
-> > > > rely on cmpxchg.
+> On Fri, Dec 18, 2020 at 2:02 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Fri, Dec 18, 2020 at 1:47 AM Michael Labriola
+> > <michael.d.labriola@gmail.com> wrote:
 > > >
-> > > I think it makes sense. You are essentially adding a new class of
-> > > "samplers" that use the error for their own purposes and won't be
-> > > reporting it to userland via normal channels (syncfs, etc.). A single
-> > > bit to indicate whether it has only been observed by such samplers is
-> > > not a huge sacrifice.
+> > > On Thu, Dec 17, 2020 at 4:56 PM Michael Labriola
+> > > <michael.d.labriola@gmail.com> wrote:
+> > > >
+> > > > On Thu, Dec 17, 2020 at 3:25 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > > > >
+> > > > > On Thu, Dec 17, 2020 at 9:46 PM Michael Labriola
+> > > > > <michael.d.labriola@gmail.com> wrote:
+> > > > > >
+> > > > > > On Thu, Dec 17, 2020 at 1:07 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > > > > > >
+> > > > > > > On Thu, Dec 17, 2020 at 6:22 PM Michael Labriola
+> > > > > > *snip*
+> > > > > > > > On Thu, Dec 17, 2020 at 7:00 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> > > > > > > > Thanks, Amir.  I didn't have CONFIG_DYNAMIC_DEBUG enabled, so
+> > > > > > >
+> > > > > > > I honestly don't expect to find much in the existing overlay debug prints
+> > > > > > > but you never know..
+> > > > > > > I suspect you will have to add debug prints to find the problem.
+> > > > > >
+> > > > > > Ok, here goes.  I had to setup a new virtual machine that doesn't use
+> > > > > > overlayfs for its root filesystem because turning on dynamic debug
+> > > > > > gave way too much output for a nice controlled test.  It's exhibiting
+> > > > > > the same behavior as my previous tests (5.8 good, 5.9 bad).  The is
+> > > > > > with a freshly compiled 5.9.15 w/ CONFIG_OVERLAY_FS_XINO_AUTO turned
+> > > > > > off and CONFIG_DYNAMIC_DEBUG turned on.  Here's what we get:
+> > > > > >
+> > > > > >  echo "file fs/overlayfs/*  +p" > /sys/kernel/debug/dynamic_debug/control
+> > > > > >  mount borky2.sqsh t
+> > > > > >  mount -t tmpfs tmp tt
+> > > > > >  mkdir -p tt/upper/{upper,work}
+> > > > > >  mount -t overlay -o \
+> > > > > >     lowerdir=t,upperdir=tt/upper/upper,workdir=tt/upper/work blarg ttt
+> > > > > > [  164.505193] overlayfs: mkdir(work/work, 040000) = 0
+> > > > > > [  164.505204] overlayfs: tmpfile(work/work, 0100000) = 0
+> > > > > > [  164.505209] overlayfs: create(work/#3, 0100000) = 0
+> > > > > > [  164.505210] overlayfs: rename(work/#3, work/#4, 0x4)
+> > > > > > [  164.505216] overlayfs: unlink(work/#3) = 0
+> > > > > > [  164.505217] overlayfs: unlink(work/#4) = 0
+> > > > > > [  164.505221] overlayfs: setxattr(work/work,
+> > > > > > "trusted.overlay.opaque", "0", 1, 0x0) = 0
+> > > > > >
+> > > > > >  touch ttt/FOO
+> > > > > > touch: cannot touch 'ttt/FOO': No data available
+> > > > > > [  191.919498] overlayfs: setxattr(upper/upper,
+> > > > > > "trusted.overlay.impure", "y", 1, 0x0) = 0
+> > > > > > [  191.919523] overlayfs: tmpfile(work/work, 0100644) = 0
+> > > > > > [  191.919788] overlayfs: tmpfile(work/work, 0100644) = 0
+> > > > > >
+> > > > > > That give you any hints?  I'll start reading through the overlayfs
+> > > > > > code.  I've never actually looked at it, so I'll be planting printk
+> > > > > > calls at random.  ;-)
+> > > > >
+> > > > > We have seen that open("FOO", O_WRONLY) fails
+> > > > > We know that FOO is lower at that time so that brings us to
+> > > > >
+> > > > > ovl_open
+> > > > >   ovl_maybe_copy_up
+> > > > >     ovl_copy_up_flags
+> > > > >       ovl_copy_up_one
+> > > > >         ovl_do_copy_up
+> > > > >           ovl_set_impure
+> > > > > [  191.919498] overlayfs: setxattr(upper/upper,
+> > > > > "trusted.overlay.impure", "y", 1, 0x0) = 0
+> > > > >           ovl_copy_up_tmpfile
+> > > > >             ovl_do_tmpfile
+> > > > > [  191.919523] overlayfs: tmpfile(work/work, 0100644) = 0
+> > > > >             ovl_copy_up_inode
+> > > > > This must be were we fail and likely in:
+> > > > >               ovl_copy_xattr
+> > > > >                  vfs_getxattr
+> > > > > which can return -ENODATA, but it is not expected because the
+> > > > > xattrs returned by vfs_listxattr should exist...
+> > > > >
+> > > > > So first guess would be to add a debug print for xattr 'name'
+> > > > > and return value of vfs_getxattr().
+> > > >
+> > > > Ok, here we go.  I've added a bunch of printks all over the place.
+> > > > Here's what we've got.  Things are unchanged during mount.  Trying to
+> > > > touch FOO now gives me this:
+> > > >
+> > > > [  114.365444] ovl_open: start
+> > > > [  114.365450] ovl_maybe_copy_up: start
+> > > > [  114.365452] ovl_maybe_copy_up: need copy up
+> > > > [  114.365454] ovl_maybe_copy_up: ovl_want_write succeeded
+> > > > [  114.365459] ovl_copy_up_one: calling ovl_do_copy_up()
+> > > > [  114.365460] ovl_do_copy_up: start
+> > > > [  114.365462] ovl_do_copy_up: impure
+> > > > [  114.365464] ovl_set_impure: start
+> > > > [  114.365484] overlayfs: setxattr(upper/upper,
+> > > > "trusted.overlay.impure", "y", 1, 0x0) = 0
+> > > > [  114.365486] ovl_copy_up_tmpfile: start
+> > > > [  114.365507] overlayfs: tmpfile(work/work, 0100644) = 0
+> > > > [  114.365510] ovl_copy_up_inode: start
+> > > > [  114.365511] ovl_copy_up_inode: ISREG && !metacopy
+> > > > [  114.365625] ovl_copy_xattr: start
+> > > > [  114.365630] ovl_copy_xattr: vfs_listxattr() returned 17
+> > > > [  114.365632] ovl_copy_xattr: buf allocated good
+> > > > [  114.365634] ovl_copy_xattr: vfs_listxattr() returned 17
+> > > > [  114.365636] ovl_copy_xattr: slen=17
+> > > > [  114.365638] ovl_copy_xattr: name='security.selinux'
 > > >
-> > > I worry too about race conditions when tracking this information across
-> > > multiple words. You'll either need to use some locking to manage that,
-> > > or get clever with memory barriers. Keeping everything in one word makes
-> > > things a lot simpler.
-> > > --
-> > > Jeff Layton <jlayton@kernel.org>
+> > > SELinux?  now that's not suspicious at all...
+> > >
+> > > > [  114.365643] ovl_copy_xattr: vfs_getxattr returned size=-61
+> > > > [  114.365644] ovl_copy_xattr: cleaning up
+> > > > [  114.365647] ovl_copy_up_inode: ovl_copy_xattr error=-61
+> > > > [  114.365649] ovl_copy_up_one: error=-61
+> > > > [  114.365651] ovl_copy_up_one: calling ovl_copy_up_end()
+> > > > [  114.365653] ovl_copy_up_flags: ovl_copy_up_one error=-61
+> > > > [  114.365655] ovl_maybe_copy_up: ovl_copy_up_flags error=-61
+> > > > [  114.365658] ovl_open: ovl_maybe_copy_up error=-61
+> > > > [  114.365728] ovl_copy_up_one: calling ovl_do_copy_up()
+> > > > [  114.365730] ovl_do_copy_up: start
+> > > > [  114.365731] ovl_do_copy_up: impure
+> > > > [  114.365733] ovl_set_impure: start
+> > > > [  114.365735] ovl_copy_up_tmpfile: start
+> > > > [  114.365748] overlayfs: tmpfile(work/work, 0100644) = 0
+> > > > [  114.365750] ovl_copy_up_inode: start
+> > > > [  114.365752] ovl_copy_up_inode: ISREG && !metacopy
+> > > > [  114.365770] ovl_copy_xattr: start
+> > > > [  114.365773] ovl_copy_xattr: vfs_listxattr() returned 17
+> > > > [  114.365774] ovl_copy_xattr: buf allocated good
+> > > > [  114.365776] ovl_copy_xattr: vfs_listxattr() returned 17
+> > > > [  114.365778] ovl_copy_xattr: slen=17
+> > > > [  114.365780] ovl_copy_xattr: name='security.selinux'
+> > > > [  114.365784] ovl_copy_xattr: vfs_getxattr returned size=-61
+> > > > [  114.365785] ovl_copy_xattr: cleaning up
+> > > > [  114.365787] ovl_copy_up_inode: ovl_copy_xattr error=-61
+> > > > [  114.365789] ovl_copy_up_one: error=-61
+> > > > [  114.365790] ovl_copy_up_one: calling ovl_copy_up_end()
+> > > > [  114.365792] ovl_copy_up_flags: ovl_copy_up_one error=-61
+> > > >
+> > > *snip*
+> > >
+> > > So, the selinux stuff made me raise an eyebrow...  I've got selinux
+> > > enabled in my kernel so that it's there if I boot up a RHEL box with
+> > > this kernel.  But I'm using Ubuntu right now, and the rest of SELinux
+> > > is not installed/enabled.  There shouldn't be any selinux labels in
+> > > the files I slurped up into my squashfs image, so there shouldn't be
+> > > any in the squashfs, so of course that won't work.
+> > >
+> > > I tried compiling CONFIG_SELINUX=n and guess what, it works now.  So
+> > > that's at least a work-around for me.
+> > >
+> > > So, for whatever reason, between 5.8 and 5.9, having CONFIG_SELINUX=y
+> > > but no security labels on the filesystem became a problem?  Is this
+> > > something that needs to get fixed in overlayfs?  Or do you think it's
+> > > a deeper problem that needs fixing elsewhere?
 > > >
 > >
-> > I'll wait for Amir or Miklos to chime in, but I'm happy with this, and it solves
-> > my problems.
+> > It's both :)
 > >
-> > Do you want to respin this patch with the overlayfs patch as well, so
-> > we can cherry-pick to stable, and then focus on how we want to deal
-> > with this problem in the future?
+> > Attached two patches that should each fix the issue independently,
+> > but we need to apply both. I only tested that they build.
+> > Please verify that each applied individually solves the problem.
+> >
+> > The selinux- patch fixes an selinux regression introduced in kernel v5.9
+> > the regression is manifested in your test case but goes beyond overlayfs.
+> >
+> > The ovl- patch is a workaround for the selinux regression, but it is also
+> > a micro optimization that doesn't hurt, so worth applying it anyway.
 >
-> Assuming no one sees issues with it and that this solves the problem of
-> writeback errors on volatile mounts, I'm fine with this going in via the
-> overlayfs tree, just ahead of the patch that adds the first caller of
-> errseq_peek.
+> Ok, as expected, both patches independently fix the problem for me on
+> my 5.9 kernel.
+
+Great. I'll add your Tested-by and post.
+
+> FYI, applying the ovl patch failed initially
+> because ovl_is_private_xattr() grew an extra argument in 5.10.
 >
 
-I like the ERRSEQ_OBSERVED/ERRSEQ_REPORTED abstraction.
-I agree with Jeff that ERRSEQ_SEEN wrongly multiplexies two
-completely different things.
+Good to know, I'll remove the cc:stable because the overlayfs patch
+is not really a regression fix. as I wrote it is just a nice to have
+micro optimization that doesn't need to be applied to v5.9.
 
-We've had to maintain backward compact to the syncfs() behavior
-expected by existing users, but I can also imagine that fsinfo() would
-want to check for sb error without consuming it, so errseq_peek()
-looks like the right direction to take.
+> Woohoo!  Thanks, Amir!
 
-> I think we're finding that the thornier problem is how to pass along
-> writeback errors on non-volatile mounts. That's probably going to
-> require some vfs-layer surgery, so it may be best to wait until the
-> shape of that is clear.
+Thank you for the report and help in nailing this strange regression!
 
-I have to say, following the thread of each of those problems is pretty
-challenging. Following both issues in several intewinding threads is a
-workout...
-
-Thanks,
 Amir.
