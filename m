@@ -8,63 +8,63 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5FD6C4361B
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:17:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BECBC4361B
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:48:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7738023B7B
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:17:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ED3B123BDE
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Dec 2020 10:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726439AbgLSKQx (ORCPT
+        id S1726483AbgLSKsN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 19 Dec 2020 05:16:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43926 "EHLO
+        Sat, 19 Dec 2020 05:48:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726436AbgLSKQw (ORCPT
+        with ESMTP id S1726439AbgLSKsM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 19 Dec 2020 05:16:52 -0500
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F9ECC0617B0
-        for <linux-unionfs@vger.kernel.org>; Sat, 19 Dec 2020 02:16:12 -0800 (PST)
-Received: by mail-ej1-x635.google.com with SMTP id j22so6758434eja.13
-        for <linux-unionfs@vger.kernel.org>; Sat, 19 Dec 2020 02:16:12 -0800 (PST)
+        Sat, 19 Dec 2020 05:48:12 -0500
+Received: from mail-ej1-x631.google.com (mail-ej1-x631.google.com [IPv6:2a00:1450:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28626C0617B0;
+        Sat, 19 Dec 2020 02:47:32 -0800 (PST)
+Received: by mail-ej1-x631.google.com with SMTP id g20so6901170ejb.1;
+        Sat, 19 Dec 2020 02:47:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=WYsqJHVZvZL3RfY5aJVFmwP6AnI1Pl2+6urVhS/3VYw=;
-        b=PpBp9s33PbkPaxJfDxmadtnCsnkEIiA7hNZyQqVqQnMRiWLA5hHsHkQ+81KJji3XA2
-         7lZBAwb1ck5GixoTmd59Z1m7o7oybv+ERt/hnZXNqcPCS950dqykk1v/RgdC9u1LsPLY
-         1Y9TR7BKNps9DaFLn31jZmbpmj1X9pVbyGNgbEmngT8Rz/9FD2dahkMuI7z26pvOUYCb
-         9oM7H30aRqEcVYJC0Rj6ya/OiDsf95KnK81B/88wBq9OHAO21WNfkv8eVjTyktiXxSl9
-         x2D2hEEA9GGJDW+06657a+tRTJUE2jDRYPUoVBSsl9azwzwNQWf5jhwmw8JFPsrSzE7r
-         IcEg==
+        bh=7RCxr2G8Gt9Tpg30dIx8aJnCI03LYya8f6xqrrEIwgQ=;
+        b=F8DkGaRUKepQE9SldCQtmUIyZt10j7iC++XoV+CQEwJgXYhAf0bQSJtyDVdqO2QyP/
+         mnqz0ACr94Ix4AoCVBl4mr4ehYg6k7fN4NUWqadydIivBgskcB5p2rzGbtfxeUNk+OI9
+         xeTt4LuVdZ7zyUnYpfiRcF32IV98WTupgte2+lJFhhX81RN1zde5VwNi5rcjdjD2+Q1C
+         FcVeJm0Pgkp5LTZxq0orWgIJz4JP+MN+9G+yaEznOGzsCsCYu7lHusC7UsdijLGAmqwc
+         qVP68hneUSrifuQ8eZPiMekt6fasthOAJ2fOeaeITu/EdIwnt0kX99inOgnBUq5JSj8h
+         JyjQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
          :content-transfer-encoding;
-        bh=WYsqJHVZvZL3RfY5aJVFmwP6AnI1Pl2+6urVhS/3VYw=;
-        b=X77U95NTMEpgOr8cKoe9D14AkGtpR2KEFVUhG4mshQrO3sYdwpvtCgJ0ZFpheaj//B
-         nb537jAgO2FR/36/cprCvyCqkb1kz9DSrV6Z/EFEl1IJWH2VGVH6k1B/nBfGK+MyJPoY
-         cPH3C0ly8ZFVN4n9x/XcM+ussOnUP63cU9KaRmdjpjaRjBFAOqT6SS486oTgEEATwvt+
-         EUgfFIRBR3Mcyi/itmKPymktDnOq1R7e0ivzXhWhzJZYfpnkEAmYQCqoueQapMRItxr4
-         y4wL307dSDezPUNSrInCSSy2qQvPV9bd4O9R89yIw478Suq+mc5cJguFUfda1B1PdJTe
-         gJtw==
-X-Gm-Message-State: AOAM5328itnBQuUoWFaZp68wWkZx32zdcdvTSHqIZCiE0aVXBJ6ydlu5
-        dEGvfvdHALK5IQwhEjUGI/Z2jspUMqM=
-X-Google-Smtp-Source: ABdhPJwloubIu6cGTb4R5UJrWLH9HFZiCUziwqQpIT6YSjZiYqT/qBwrNUZ+EE9yx/rPBapjNsnY+g==
-X-Received: by 2002:a17:906:4f8d:: with SMTP id o13mr7978625eju.117.1608372970624;
-        Sat, 19 Dec 2020 02:16:10 -0800 (PST)
+        bh=7RCxr2G8Gt9Tpg30dIx8aJnCI03LYya8f6xqrrEIwgQ=;
+        b=M3HA+KKvJxxG1JPDOQC9Gr4PcaGvG6ICXlF5sYZzsBo3AdvbwWneoQYOh4hABhR1X1
+         JhtuOkRbZO7Pn6IgxyRkAg1oxkAf+L44AAXmZs5ZZ8EsuaxbeMUit/Q0j0Hu5CNfgpY6
+         RWavH5rGS2DbIb5U4ru9IjlEpNnbKWyWgqTckpjcdIn1AF7ETuNj/N8SWWOsMuqlaujV
+         UOzZdLWOCfCGJQfAqv4X6dZxBbRYCHfZR1MMWM1mXMn0tI0B+8PwM8VjBpwLNxlrQXQ9
+         wryUw3dKNQLfXTPn1KXlAJ8pXjo9AaqTqOg+FI+9C3u8hQmXg3n5N09oYX3SzckkMaHq
+         0EaQ==
+X-Gm-Message-State: AOAM531Z7Ux+iaCPlnW4JRkeFdHhapoZV0Pt2dDtdG/59+kjjt9WlFbs
+        CxcVxTB7ZLKeaXxcRzTOYUc2m707dqI=
+X-Google-Smtp-Source: ABdhPJyIa0bmAlZ9wHn/1Zqt0Z+KoQd79s6iv0ZgPWhV2g/VRIH34lM2EkwBTaTrdN5rMwNq6rGxLQ==
+X-Received: by 2002:a17:906:2f8b:: with SMTP id w11mr2768976eji.246.1608374850937;
+        Sat, 19 Dec 2020 02:47:30 -0800 (PST)
 Received: from localhost.localdomain ([31.210.181.203])
-        by smtp.gmail.com with ESMTPSA id oq27sm6412778ejb.108.2020.12.19.02.16.09
+        by smtp.gmail.com with ESMTPSA id o10sm6598724eju.89.2020.12.19.02.47.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Dec 2020 02:16:09 -0800 (PST)
+        Sat, 19 Dec 2020 02:47:30 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org,
-        Michael Labriola <michael.d.labriola@gmail.com>
-Subject: [PATCH] ovl: skip getxattr of security labels
-Date:   Sat, 19 Dec 2020 12:16:08 +0200
-Message-Id: <20201219101608.16535-1-amir73il@gmail.com>
+To:     Eryu Guan <guaneryu@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+        fstests@vger.kernel.org
+Subject: [PATCH] overlay: run unionmount tests with custom overlay mount options
+Date:   Sat, 19 Dec 2020 12:47:27 +0200
+Message-Id: <20201219104727.18737-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -72,80 +72,68 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-When inode has no listxattr op of its own (e.g. squashfs) vfs_listxattr
-calls the LSM inode_listsecurity hooks to list the xattrs that LSMs will
-intercept in inode_getxattr hooks.
+Assign $OVERLAY_MOUNT_OPTIONS to UNIONMOUNT_MNTOPTIONS and require
+that unionmount supports UNIONMOUNT_MNTOPTIONS if OVERLAY_MOUNT_OPTIONS
+was provided.
 
-When selinux LSM is installed but not initialized, it will list the
-security.selinux xattr in inode_listsecurity, but will not intercept it
-in inode_getxattr.  This results in -ENODATA for a getxattr call for an
-xattr returned by listxattr.
+For example, when the mount option metacopy=on is set in
+$OVERLAY_MOUNT_OPTIONS, it enables the --meta test option and affects
+the test verifications after copy up.
 
-This situation was manifested as overlayfs failure to copy up lower
-files from squashfs when selinux is built-in but not initialized,
-because ovl_copy_xattr() iterates the lower inode xattrs by
-vfs_listxattr() and vfs_getxattr().
-
-ovl_copy_xattr() skips copy up of security labels that are indentified by
-inode_copy_up_xattr LSM hooks, but it does that after vfs_getxattr().
-Since we are not going to copy them, skip vfs_getxattr() of the security
-labels.
-
-Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
-Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
-Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
 
-Miklos,
+Eryu,
 
-This is a workaround for a v5.9 selinux related regression reported by
-Michael that caused copy up failure is a very specific configuration
-involving lower squashfs and built-in but disabled selinux.
+I've added support to configurable mount option to unionmount-testsuite.
+This change intergates xfstests configurable mount option to unionmount
+test wrappers.
 
-I've sent the bug fix to selinux list, so this patch is complementary.
-I removed the stable/Fixes tags, because this patch does not cleanly
-apply to v5.9 and is not the real bug fix.
+For users who do not have OVERLAY_MOUNT_OPTIONS defined, this change
+makes no difference.
+
+For users that have OVERLAY_MOUNT_OPTIONS defined, the overlay/union
+tests will be skipped after this change is applied and print:
+
+  overlay/100 -- newer version of unionmount testsuite required to \
+                 support OVERLAY_MOUNT_OPTIONS.
+
+Updating the unionmount src code to current master commit 95be14e
+("Allow user provided options with or without -o") will fix this and
+overlay/union tests will be run with the defined OVERLAY_MOUNT_OPTIONS.
 
 Thanks,
 Amir.
 
- fs/overlayfs/copy_up.c | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ common/overlay | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index e5b616c93e11..0fed532efa68 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -84,6 +84,14 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
- 
- 		if (ovl_is_private_xattr(sb, name))
- 			continue;
+diff --git a/common/overlay b/common/overlay
+index 5e6a7e0f..1ca37e29 100644
+--- a/common/overlay
++++ b/common/overlay
+@@ -376,6 +376,13 @@ _require_unionmount_testsuite()
+ 	local usage=`UNIONMOUNT_BASEDIR=_ "$UNIONMOUNT_TESTSUITE/run" 2>&1`
+ 	echo $usage | grep -wq "UNIONMOUNT_BASEDIR" || \
+ 		_notrun "newer version of unionmount testsuite required."
 +
-+		error = security_inode_copy_up_xattr(name);
-+		if (error < 0 && error != -EOPNOTSUPP)
-+			break;
-+		if (error == 1) {
-+			error = 0;
-+			continue; /* Discard */
-+		}
- retry:
- 		size = vfs_getxattr(old, name, value, value_size);
- 		if (size == -ERANGE)
-@@ -107,13 +115,6 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
- 			goto retry;
- 		}
++	[ -n "$OVERLAY_MOUNT_OPTIONS" ] || return
++	# If custom overlay mount options are used
++	# verify that UNIONMOUNT_MNTOPTIONS var is supported
++	local usage=`UNIONMOUNT_MNTOPTIONS=_ "$UNIONMOUNT_TESTSUITE/run" 2>&1`
++	echo $usage | grep -wq "UNIONMOUNT_MNTOPTIONS" || \
++		_notrun "newer version of unionmount testsuite required to support OVERLAY_MOUNT_OPTIONS."
+ }
  
--		error = security_inode_copy_up_xattr(name);
--		if (error < 0 && error != -EOPNOTSUPP)
--			break;
--		if (error == 1) {
--			error = 0;
--			continue; /* Discard */
--		}
- 		error = vfs_setxattr(new, name, value, size, 0);
- 		if (error) {
- 			if (error != -EOPNOTSUPP || ovl_must_copy_xattr(name))
+ _unionmount_testsuite_run()
+@@ -394,6 +401,7 @@ _unionmount_testsuite_run()
+ 		export UNIONMOUNT_LOWERDIR=$OVL_BASE_TEST_DIR/union
+ 	fi
+ 	export UNIONMOUNT_BASEDIR=$OVL_BASE_SCRATCH_MNT/union
++	export UNIONMOUNT_MNTOPTIONS="$OVERLAY_MOUNT_OPTIONS"
+ 
+ 	_scratch_mkfs
+ 	rm -rf $UNIONMOUNT_BASEDIR $UNIONMOUNT_LOWERDIR
 -- 
 2.25.1
 
