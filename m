@@ -2,135 +2,110 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73062C433DB
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 18:34:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F336C4332D
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 19:53:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BD8822D49
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 18:34:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D325222C9C
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 19:53:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725891AbgLUSeV (ORCPT
+        id S1726531AbgLUTwz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Dec 2020 13:34:21 -0500
-Received: from out30-56.freemail.mail.aliyun.com ([115.124.30.56]:48959 "EHLO
-        out30-56.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725785AbgLUSeU (ORCPT
+        Mon, 21 Dec 2020 14:52:55 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:38111 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726545AbgLUTwq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Dec 2020 13:34:20 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=liangyan.peng@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0UJNJstB_1608575609;
-Received: from localhost(mailfrom:liangyan.peng@linux.alibaba.com fp:SMTPD_---0UJNJstB_1608575609)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Tue, 22 Dec 2020 02:33:37 +0800
-From:   Liangyan <liangyan.peng@linux.alibaba.com>
-To:     Al Viro <viro@zeniv.linux.org.uk>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        joseph.qi@linux.alibaba.com, liangyan.peng@linux.alibaba.com
-Subject: [PATCH v3] ovl: fix  dentry leak in ovl_get_redirect
-Date:   Tue, 22 Dec 2020 02:33:27 +0800
-Message-Id: <20201221183327.134077-1-liangyan.peng@linux.alibaba.com>
-X-Mailer: git-send-email 2.14.4.44.g2045bb6
+        Mon, 21 Dec 2020 14:52:46 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1608580280;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=i+Wu06QQA8V7H5DaVe6ll9ITIbYelVgG1MNXlVmRWcw=;
+        b=MLsjyUQW18vxgNcolQMv24EuJ8gKU9DNjk813qR/otgRjZVJieUa0at5JcrX6ilgrk0L3Y
+        M4ItrihH/q2dDXULi+DGnzvAlso6j/SVV1JbkF+HDQ1dUqap9OShWDw9bdMiCIuevoPv6T
+        MSDRJS2wt7mnDAj1na8+ag+Of9embA0=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-181-GHupDSMONC-1jwPNcKH0XA-1; Mon, 21 Dec 2020 14:51:15 -0500
+X-MC-Unique: GHupDSMONC-1jwPNcKH0XA-1
+Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 556BF801817;
+        Mon, 21 Dec 2020 19:51:13 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-114-244.rdu2.redhat.com [10.10.114.244])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 9ED9619D9C;
+        Mon, 21 Dec 2020 19:51:11 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 30DA3223D99; Mon, 21 Dec 2020 14:51:11 -0500 (EST)
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Cc:     jlayton@kernel.org, vgoyal@redhat.com, amir73il@gmail.com,
+        sargun@sargun.me, miklos@szeredi.hu, willy@infradead.org,
+        jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk, hch@lst.de
+Subject: [PATCH 2/3] vfs: Add a super block operation to check for writeback errors
+Date:   Mon, 21 Dec 2020 14:50:54 -0500
+Message-Id: <20201221195055.35295-3-vgoyal@redhat.com>
+In-Reply-To: <20201221195055.35295-1-vgoyal@redhat.com>
+References: <20201221195055.35295-1-vgoyal@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-We need to lock d_parent->d_lock before dget_dlock, or this may
-have d_lockref updated parallelly like calltrace below which will
-cause dentry->d_lockref leak and risk a crash.
+Right now we check for errors on super block in syncfs().
 
-     CPU 0                                CPU 1
-ovl_set_redirect                       lookup_fast
-  ovl_get_redirect                       __d_lookup
-    dget_dlock
-      //no lock protection here            spin_lock(&dentry->d_lock)
-      dentry->d_lockref.count++            dentry->d_lockref.count++
+ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
 
-[   49.799059] PGD 800000061fed7067 P4D 800000061fed7067 PUD 61fec5067 PMD 0
-[   49.799689] Oops: 0002 [#1] SMP PTI
-[   49.800019] CPU: 2 PID: 2332 Comm: node Not tainted 4.19.24-7.20.al7.x86_64 #1
-[   49.800678] Hardware name: Alibaba Cloud Alibaba Cloud ECS, BIOS 8a46cfe 04/01/2014
-[   49.801380] RIP: 0010:_raw_spin_lock+0xc/0x20
-[   49.803470] RSP: 0018:ffffac6fc5417e98 EFLAGS: 00010246
-[   49.803949] RAX: 0000000000000000 RBX: ffff93b8da3446c0 RCX: 0000000a00000000
-[   49.804600] RDX: 0000000000000001 RSI: 000000000000000a RDI: 0000000000000088
-[   49.805252] RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff993cf040
-[   49.805898] R10: ffff93b92292e580 R11: ffffd27f188a4b80 R12: 0000000000000000
-[   49.806548] R13: 00000000ffffff9c R14: 00000000fffffffe R15: ffff93b8da3446c0
-[   49.807200] FS:  00007ffbedffb700(0000) GS:ffff93b927880000(0000) knlGS:0000000000000000
-[   49.807935] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   49.808461] CR2: 0000000000000088 CR3: 00000005e3f74006 CR4: 00000000003606a0
-[   49.809113] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   49.809758] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-[   49.810410] Call Trace:
-[   49.810653]  d_delete+0x2c/0xb0
-[   49.810951]  vfs_rmdir+0xfd/0x120
-[   49.811264]  do_rmdir+0x14f/0x1a0
-[   49.811573]  do_syscall_64+0x5b/0x190
-[   49.811917]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
-[   49.812385] RIP: 0033:0x7ffbf505ffd7
-[   49.814404] RSP: 002b:00007ffbedffada8 EFLAGS: 00000297 ORIG_RAX: 0000000000000054
-[   49.815098] RAX: ffffffffffffffda RBX: 00007ffbedffb640 RCX: 00007ffbf505ffd7
-[   49.815744] RDX: 0000000004449700 RSI: 0000000000000000 RDI: 0000000006c8cd50
-[   49.816394] RBP: 00007ffbedffaea0 R08: 0000000000000000 R09: 0000000000017d0b
-[   49.817038] R10: 0000000000000000 R11: 0000000000000297 R12: 0000000000000012
-[   49.817687] R13: 00000000072823d8 R14: 00007ffbedffb700 R15: 00000000072823d8
-[   49.818338] Modules linked in: pvpanic cirrusfb button qemu_fw_cfg atkbd libps2 i8042
-[   49.819052] CR2: 0000000000000088
-[   49.819368] ---[ end trace 4e652b8aa299aa2d ]---
-[   49.819796] RIP: 0010:_raw_spin_lock+0xc/0x20
-[   49.821880] RSP: 0018:ffffac6fc5417e98 EFLAGS: 00010246
-[   49.822363] RAX: 0000000000000000 RBX: ffff93b8da3446c0 RCX: 0000000a00000000
-[   49.823008] RDX: 0000000000000001 RSI: 000000000000000a RDI: 0000000000000088
-[   49.823658] RBP: 0000000000000000 R08: 0000000000000000 R09: ffffffff993cf040
-[   49.825404] R10: ffff93b92292e580 R11: ffffd27f188a4b80 R12: 0000000000000000
-[   49.827147] R13: 00000000ffffff9c R14: 00000000fffffffe R15: ffff93b8da3446c0
-[   49.828890] FS:  00007ffbedffb700(0000) GS:ffff93b927880000(0000) knlGS:0000000000000000
-[   49.830725] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   49.832359] CR2: 0000000000000088 CR3: 00000005e3f74006 CR4: 00000000003606a0
-[   49.834085] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   49.835792] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+overlayfs does not update sb->s_wb_err and it is tracked on upper filesystem.
+So provide a superblock operation to check errors so that filesystem
+can provide override generic method and provide its own method to
+check for writeback errors.
 
-Fixes: a6c606551141 ("ovl: redirect on rename-dir")
-Signed-off-by: Liangyan <liangyan.peng@linux.alibaba.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
 ---
- fs/overlayfs/dir.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/sync.c          | 5 ++++-
+ include/linux/fs.h | 1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 28a075b5f5b2..e9aa4a12ad82 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -973,6 +973,7 @@ static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
- 	for (d = dget(dentry); !IS_ROOT(d);) {
- 		const char *name;
- 		int thislen;
-+		struct dentry *parent = NULL;
+diff --git a/fs/sync.c b/fs/sync.c
+index b5fb83a734cd..57e43a16dfca 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -176,7 +176,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
+ 	ret = sync_filesystem(sb);
+ 	up_read(&sb->s_umount);
  
- 		spin_lock(&d->d_lock);
- 		name = ovl_dentry_get_redirect(d);
-@@ -992,11 +993,10 @@ static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
+-	ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
++	if (sb->s_op->errseq_check_advance)
++		ret2 = sb->s_op->errseq_check_advance(sb, f.file);
++	else
++		ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
  
- 		buflen -= thislen;
- 		memcpy(&buf[buflen], name, thislen);
--		tmp = dget_dlock(d->d_parent);
- 		spin_unlock(&d->d_lock);
--
-+		parent = dget_parent(d);
- 		dput(d);
--		d = tmp;
-+		d = parent;
+ 	fdput(f);
+ 	return ret ? ret : ret2;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 8667d0cdc71e..4297b6127adf 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1965,6 +1965,7 @@ struct super_operations {
+ 				  struct shrink_control *);
+ 	long (*free_cached_objects)(struct super_block *,
+ 				    struct shrink_control *);
++	int (*errseq_check_advance)(struct super_block *, struct file *);
+ };
  
- 		/* Absolute redirect: finished */
- 		if (buf[buflen] == '/')
+ /*
 -- 
-2.14.4.44.g2045bb6
+2.25.4
 
