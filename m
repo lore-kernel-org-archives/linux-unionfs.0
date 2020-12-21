@@ -2,110 +2,138 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F336C4332D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F7AC4332E
 	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 19:53:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D325222C9C
+	by mail.kernel.org (Postfix) with ESMTP id 06BB822CA1
 	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 19:53:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726531AbgLUTwz (ORCPT
+        id S1726517AbgLUTwz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
         Mon, 21 Dec 2020 14:52:55 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:38111 "EHLO
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:24653 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726545AbgLUTwq (ORCPT
+        by vger.kernel.org with ESMTP id S1726531AbgLUTwq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Mon, 21 Dec 2020 14:52:46 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
         s=mimecast20190719; t=1608580280;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=i+Wu06QQA8V7H5DaVe6ll9ITIbYelVgG1MNXlVmRWcw=;
-        b=MLsjyUQW18vxgNcolQMv24EuJ8gKU9DNjk813qR/otgRjZVJieUa0at5JcrX6ilgrk0L3Y
-        M4ItrihH/q2dDXULi+DGnzvAlso6j/SVV1JbkF+HDQ1dUqap9OShWDw9bdMiCIuevoPv6T
-        MSDRJS2wt7mnDAj1na8+ag+Of9embA0=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=wMleRDSwz6xsXeUbgRCfLYniffObUPtn4CN9Ykh/eBg=;
+        b=g/0XCNqSiZgG58DnoUYVZ/GBghvsdc6iOX5B28gqvNM6BBAokXpZH3AvkSmi6yHg1kEdlZ
+        zSD1Wkn8vNdiwRtV2GS7Ig6d1jmiMlaRWAAr7ZsL0CxPVeMdDzoD4JHODRAO+dDhDgQarV
+        193vDVm7jxelHKvsV2llhVqmCAuRKzk=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-181-GHupDSMONC-1jwPNcKH0XA-1; Mon, 21 Dec 2020 14:51:15 -0500
-X-MC-Unique: GHupDSMONC-1jwPNcKH0XA-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+ us-mta-431-xwgI0t3-P9OopSbByjSh5Q-1; Mon, 21 Dec 2020 14:51:15 -0500
+X-MC-Unique: xwgI0t3-P9OopSbByjSh5Q-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 556BF801817;
-        Mon, 21 Dec 2020 19:51:13 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 45062107ACE4;
+        Mon, 21 Dec 2020 19:51:12 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-114-244.rdu2.redhat.com [10.10.114.244])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 9ED9619D9C;
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 93B716F984;
         Mon, 21 Dec 2020 19:51:11 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 30DA3223D99; Mon, 21 Dec 2020 14:51:11 -0500 (EST)
+        id 2541E220BCF; Mon, 21 Dec 2020 14:51:11 -0500 (EST)
 From:   Vivek Goyal <vgoyal@redhat.com>
 To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-unionfs@vger.kernel.org
 Cc:     jlayton@kernel.org, vgoyal@redhat.com, amir73il@gmail.com,
         sargun@sargun.me, miklos@szeredi.hu, willy@infradead.org,
         jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk, hch@lst.de
-Subject: [PATCH 2/3] vfs: Add a super block operation to check for writeback errors
-Date:   Mon, 21 Dec 2020 14:50:54 -0500
-Message-Id: <20201221195055.35295-3-vgoyal@redhat.com>
-In-Reply-To: <20201221195055.35295-1-vgoyal@redhat.com>
-References: <20201221195055.35295-1-vgoyal@redhat.com>
+Subject: [RFC PATCH 0/3][v3] vfs, overlayfs: Fix syncfs() to return correct errors
+Date:   Mon, 21 Dec 2020 14:50:52 -0500
+Message-Id: <20201221195055.35295-1-vgoyal@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Right now we check for errors on super block in syncfs().
+Hi,
 
-ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
+This is v3 of patches which try to fix syncfs() error handling issues
+w.r.t overlayfs and other filesystems.
 
-overlayfs does not update sb->s_wb_err and it is tracked on upper filesystem.
-So provide a superblock operation to check errors so that filesystem
-can provide override generic method and provide its own method to
-check for writeback errors.
+Previous version of patches are here.
+v2: 
+https://lore.kernel.org/linux-fsdevel/20201216233149.39025-1-vgoyal@redhat.com/
+v1:
+https://lore.kernel.org/linux-fsdevel/20201216143802.GA10550@redhat.com/
 
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/sync.c          | 5 ++++-
- include/linux/fs.h | 1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+This series basically is trying to fix two problems.
 
-diff --git a/fs/sync.c b/fs/sync.c
-index b5fb83a734cd..57e43a16dfca 100644
---- a/fs/sync.c
-+++ b/fs/sync.c
-@@ -176,7 +176,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
- 	ret = sync_filesystem(sb);
- 	up_read(&sb->s_umount);
- 
--	ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
-+	if (sb->s_op->errseq_check_advance)
-+		ret2 = sb->s_op->errseq_check_advance(sb, f.file);
-+	else
-+		ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
- 
- 	fdput(f);
- 	return ret ? ret : ret2;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 8667d0cdc71e..4297b6127adf 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -1965,6 +1965,7 @@ struct super_operations {
- 				  struct shrink_control *);
- 	long (*free_cached_objects)(struct super_block *,
- 				    struct shrink_control *);
-+	int (*errseq_check_advance)(struct super_block *, struct file *);
- };
- 
- /*
+- First problem is that we ignore error code returned by ->sync_fs().
+  overlayfs file system can return error and there are other file
+  systems which can return error in certain cases. So to fix this issue,
+  first patch captures the return code from ->sync_fs and returns to
+  user space.
+
+- Second problem is that current syncfs(), writeback error detection
+  logic does not work for overlayfs. current logic relies on all
+  sb->s_wb_err being update when errors occur but that's not true for
+  overlayfs. Real errors happen on underlyig filessytem and overlayfs
+  has no clue about these. To fix this issue, it has been proposed
+  that for filesystems like overlayfs, this check should be moved into
+  filesystem and then filesystem can check for error w.r.t upper super
+  block.
+
+  There seem to be multiple ways of how this can be done.
+
+  A. Add a "struct file" argument to ->sync_fs() and modify all helpers.
+  B. Add a separate file operation say "f_op->syncfs()" and call that
+     in syncfs().
+  C. Add a separate super block operation to check and advance errors.
+
+Option A involves lot of changes all across the code. Also it is little
+problematic in the sense that for filesystems having a block device,
+looks like we want to check for errors after ___sync_blockdev() has
+returned. But ->sync_fs() is called before that. That means
+__sync_blockdev() will have to be pushed in side filesystem code as
+well. Jeff Layton gave something like this a try here.
+
+https://lore.kernel.org/linux-fsdevel/20180518123415.28181-1-jlayton@kernel.org/
+
+I posted patches for option B in V2. 
+
+https://lore.kernel.org/linux-fsdevel/20201216233149.39025-1-vgoyal@redhat.com/
+
+Now this is V3 of patches which implements option C. I think this is
+simplest in terms of implementation atleast.
+
+These patches are only compile tested. Will do more testing once I get
+a sense which option has a chance to fly.
+
+I think patch 1 should be applied irrespective of what option we end
+up choosing for fixing the writeback error issue.
+
+Thanks
+Vivek
+
+Vivek Goyal (3):
+  vfs: Do not ignore return code from s_op->sync_fs
+  vfs: Add a super block operation to check for writeback errors
+  overlayfs: Report writeback errors on upper
+
+ fs/overlayfs/file.c      |  1 +
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/readdir.c   |  1 +
+ fs/overlayfs/super.c     | 23 +++++++++++++++++++++++
+ fs/overlayfs/util.c      | 13 +++++++++++++
+ fs/sync.c                | 13 ++++++++++---
+ include/linux/fs.h       |  1 +
+ 7 files changed, 50 insertions(+), 3 deletions(-)
+
 -- 
 2.25.4
 
