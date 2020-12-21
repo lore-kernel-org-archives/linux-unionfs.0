@@ -2,234 +2,125 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+X-Spam-Status: No, score=-11.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23839C433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 15:16:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01D01C433E0
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 16:52:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D54F522C7B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 15:16:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCB1622525
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 16:52:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726030AbgLUPQL (ORCPT
+        id S1725897AbgLUQwM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Dec 2020 10:16:11 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:45979 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725898AbgLUPQL (ORCPT
+        Mon, 21 Dec 2020 11:52:12 -0500
+Received: from out30-45.freemail.mail.aliyun.com ([115.124.30.45]:36830 "EHLO
+        out30-45.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1725780AbgLUQwM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Dec 2020 10:16:11 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1608563683;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=fHZPyK5TS8GB/u7xWSyEj67OXjNbSfYTy52LBjFejFE=;
-        b=GRYkE+/KipMuBX22NdnDz5GBO1cAHM6zL7r5TroyKvhK10FK+gUxFhtK8LAk60il7JmaGW
-        h8Wii4pNfM3AB+h5DudoJAwez0wH7Mpq5stKMFQKX5M8a/L/D+SBniSOQ6GrFB+5ug6hue
-        U4iuL+5v5lHTMB+uT7XVTHOC4+vR0bg=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-424-q_cckAZjNlCvElC5aEyrpg-1; Mon, 21 Dec 2020 10:14:40 -0500
-X-MC-Unique: q_cckAZjNlCvElC5aEyrpg-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 3AB2B107ACE4;
-        Mon, 21 Dec 2020 15:14:39 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-114-244.rdu2.redhat.com [10.10.114.244])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8D8375D6D1;
-        Mon, 21 Dec 2020 15:14:38 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 08ECD220BCF; Mon, 21 Dec 2020 10:14:38 -0500 (EST)
-Date:   Mon, 21 Dec 2020 10:14:37 -0500
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     Matthew Wilcox <willy@infradead.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Sargun Dhillon <sargun@sargun.me>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
-        NeilBrown <neilb@suse.com>, Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v3] errseq: split the ERRSEQ_SEEN flag into two new flags
-Message-ID: <20201221151437.GB3122@redhat.com>
-References: <20201217150037.468787-1-jlayton@kernel.org>
- <20201219061331.GQ15600@casper.infradead.org>
- <f84f3259d838f132029576b531d81525abd4e1b8.camel@kernel.org>
+        Mon, 21 Dec 2020 11:52:12 -0500
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R381e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04420;MF=liangyan.peng@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0UJMguq4_1608569487;
+Received: from LiangyandeMacBook-Pro.local(mailfrom:liangyan.peng@linux.alibaba.com fp:SMTPD_---0UJMguq4_1608569487)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 22 Dec 2020 00:51:28 +0800
+Subject: Re: [PATCH v2] ovl: fix dentry leak in ovl_get_redirect
+To:     Al Viro <viro@zeniv.linux.org.uk>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20201220120927.115232-1-liangyan.peng@linux.alibaba.com>
+ <20201221062653.GO3579531@ZenIV.linux.org.uk>
+ <52a76e73-d46b-d0fd-a75a-76b4a86149b3@linux.alibaba.com>
+ <20201221121148.GP3579531@ZenIV.linux.org.uk>
+From:   Liangyan <liangyan.peng@linux.alibaba.com>
+Message-ID: <b7c5da61-6c17-fe19-957c-4c8b6d6e86fe@linux.alibaba.com>
+Date:   Tue, 22 Dec 2020 00:51:27 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:78.0)
+ Gecko/20100101 Thunderbird/78.5.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f84f3259d838f132029576b531d81525abd4e1b8.camel@kernel.org>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+In-Reply-To: <20201221121148.GP3579531@ZenIV.linux.org.uk>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Dec 19, 2020 at 07:53:12AM -0500, Jeff Layton wrote:
-> On Sat, 2020-12-19 at 06:13 +0000, Matthew Wilcox wrote:
-> > On Thu, Dec 17, 2020 at 10:00:37AM -0500, Jeff Layton wrote:
-> > > Overlayfs's volatile mounts want to be able to sample an error for their
-> > > own purposes, without preventing a later opener from potentially seeing
-> > > the error.
-> > 
-> > umm ... can't they just copy the errseq_t they're interested in, followed
-> > by calling errseq_check() later?
-> > 
+This is the race scenario based on call trace we captured which cause 
+the dentry leak.
+
+
+      CPU 0                                CPU 1
+ovl_set_redirect                       lookup_fast
+   ovl_get_redirect                       __d_lookup
+     dget_dlock
+       //no lock protection here            spin_lock(&dentry->d_lock)
+       dentry->d_lockref.count++            dentry->d_lockref.count++
+
+
+If we use dget_parent instead, we may have this race.
+
+
+      CPU 0                                    CPU 1
+ovl_set_redirect                           lookup_fast
+   ovl_get_redirect                           __d_lookup
+     dget_parent
+       raw_seqcount_begin(&dentry->d_seq)      spin_lock(&dentry->d_lock)
+       lockref_get_not_zero(&ret->d_lockref)   dentry->d_lockref.count++ 
+
+
+
+On 20/12/21 下午8:11, Al Viro wrote:
+> On Mon, Dec 21, 2020 at 07:14:44PM +0800, Joseph Qi wrote:
+>> Hi Viro,
+>>
+>> On 12/21/20 2:26 PM, Al Viro wrote:
+>>> On Sun, Dec 20, 2020 at 08:09:27PM +0800, Liangyan wrote:
+>>>
+>>>> +++ b/fs/overlayfs/dir.c
+>>>> @@ -973,6 +973,7 @@ static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
+>>>>   	for (d = dget(dentry); !IS_ROOT(d);) {
+>>>>   		const char *name;
+>>>>   		int thislen;
+>>>> +		struct dentry *parent = NULL;
+>>>>   
+>>>>   		spin_lock(&d->d_lock);
+>>>>   		name = ovl_dentry_get_redirect(d);
+>>>> @@ -992,7 +993,22 @@ static char *ovl_get_redirect(struct dentry *dentry, bool abs_redirect)
+>>>>   
+>>>>   		buflen -= thislen;
+>>>>   		memcpy(&buf[buflen], name, thislen);
+>>>> -		tmp = dget_dlock(d->d_parent);
+>>>> +		parent = d->d_parent;
+>>>> +		if (unlikely(!spin_trylock(&parent->d_lock))) {
+>>>> +			rcu_read_lock();
+>>>> +			spin_unlock(&d->d_lock);
+>>>> +again:
+>>>> +			parent = READ_ONCE(d->d_parent);
+>>>> +			spin_lock(&parent->d_lock);
+>>>> +			if (unlikely(parent != d->d_parent)) {
+>>>> +				spin_unlock(&parent->d_lock);
+>>>> +				goto again;
+>>>> +			}
+>>>> +			rcu_read_unlock();
+>>>> +			spin_lock_nested(&d->d_lock, DENTRY_D_LOCK_NESTED);
+>>>> +		}
+>>>> +		tmp = dget_dlock(parent);
+>>>> +		spin_unlock(&parent->d_lock);
+>>>>   		spin_unlock(&d->d_lock);
+>>>
+>>> Yecchhhh....  What's wrong with just doing
+>>> 		spin_unlock(&d->d_lock);
+>>> 		parent = dget_parent(d);
+>>> 		dput(d);
+>>> 		d = parent;
+>>> instead of that?
+>>>
+>>
+>> Now race happens on non-RCU path in lookup_fast(), I'm afraid d_seq can
+>> not close the race window.
 > 
-> They don't want the sampling for the volatile mount to prevent later
-> openers from seeing an error that hasn't yet been reported.
+> Explain, please.  What exactly are you observing?
 > 
-> If they copy the errseq_t (or just do an errseq_sample), and then follow
-> it with a errseq_check_and_advance then the SEEN bit will end up being
-> set and a later opener wouldn't see the error.
-> 
-> Aside from that though, I think this patch clarifies things a bit since
-> the SEEN flag currently means two different things:
-> 
-> 1/ do I need to increment the counter when recording another error?
-> 
-> 2/ do I need to report this error to new samplers (at open time)
-> 
-> That was ok before, since we those conditions were always changed
-> together, but with the overlayfs volatile mount use-case, it no longer
-> does.
-> 
-> > actually, isn't errseq_check() buggy in the face of multiple
-> > watchers?  consider this:
-> > 
-> > worker.es starts at 0
-> > t2.es = errseq_sample(&worker.es)
-> > errseq_set(&worker.es, -EIO)
-> > t1.es = errseq_sample(&worker.es)
-> > t2.err = errseq_check_and_advance(&es, t2.es)
-> > 	** this sets ERRSEQ_SEEN **
-> > t1.err = errseq_check(&worker.es, t1.es)
-> > 	** reports an error, even though the only change is that
-> > 	   ERRSEQ_SEEN moved **.
-> > 
-> > i think errseq_check() should be:
-> > 
-> > 	if (likely(cur | ERRSEQ_SEEN) == (since | ERRSEQ_SEEN))
-> > 		return 0;
-> > 
-> > i'm not yet convinced other changes are needed to errseq.  but i am
-> > having great trouble understanding exactly what overlayfs is trying to do.
-> 
-> I think you're right on errseq_check. I'll plan to do a patch to fix
-> that up as well.
-> 
-> I too am having a bit of trouble understanding all of the nuances here.
-> My current understanding is that it depends on the "volatility" of the
-> mount:
-> 
-> normal (non-volatile): they basically want to be able to track errors as
-> if the files were being opened on the upper layer. For this case I think
-> they should aim to just do all of the error checking against the upper
-> sb and ignore the overlayfs s_wb_err field. This does mean pushing the
-> errseq_check_and_advance down into the individual filesystems in some
-> fashion though.
-> 
-> volatile: they want to sample at mount time and always return an error
-> to syncfs if there has been another error since the original sample
-> point. This sampling should also not affect later openers on the upper
-> layer (or on other overlayfs mounts).
-
-I think syncfs() for both volatile and non-volatile mounts should
-probably be treated same way and existing erreseq API should be
-good enough for that.
-
-So say overlayfs installs file->f_sb_err at file open time. 
-
-ovl_file->f_sb_err = errseq_sample(&upper_sb->s_wb_err)
-
-And at syncfs() time either file system specific ->sync_fs routine
-or a separate ->sb_errseq_check() routine does following
-
-ret = errseq_check_and_advance(&upper_sb->s_wb_err, &ovl_file->f_sb_err);
-
-And syncfs() will return error to user space. 
-
-So both volatile and non-volatile mount see similar to me. There is
-one key difference.
-
-- non-volatile mount does not actually sync the file to disk. So it
-  it only return error if some other writeback error has been recorded
-  on upper_sb since file was opened.
-
-So what are the use cases for new errseq API? I think there are
-two.
-
-- Sargun has been trying to remount volatile mounts without every calling
-  syncfs on upper. And he wants to detect if there has been an error
-  since volatile mount was last mounted/unmounted. In this case he
-  wants to take a snapshot of current state of upper_sb->s_wb_err
-  and check this again at remount time to make sure there are not
-  any new errors since he took snapshot.
-
-  He does not want to consume the UNSEEN error in this process because
-  it can potentially lead to complaints from normal syncfs users
-  saying that sheer act of mounting an overlayfs consumed UNSEEN
-  error on upper sb. They would expect it to be consumed when one
-  of the callers does syncfs() either on upper->sb directly or
-  indirectly through overlay mount.
-
-  So IMHO, that's the core reason behind the new errseq API.
-
-- Once we have it, I think we can potentialy use it at other places
-  in overlayfs to check for errors. For example, at overlay read()
-  routines might want to check if there has been an error recorded
-  on upper since volatile overlay was mounted. If yes, fail read
-  with -EIO and fail the filesystem so all the future reads
-  return -EIO.
-
-  That's one thing different with volatile overlayfs. Typically
-  if applications write something to a file, they can do.
-
-  write(fd)
-  fsync(fd)
-  read(fd)
-
-  And this should make sure apps are protected against writeback
-  errors.
-
-  But with volatile mounts, we actually don't do any fsync(). So it
-  is possible that fysnc() returns success and when read() happens
-  we either read data we wrote or we read old data from disk (because
-  writeback failed and pagecache page was reclaimed).
-
-  To avoid this situation with volatile overlay mounts, we thought
-  that we will fail overlay volatile mount as soon as first writeback
-  error is detected.
-
-  Now syncfs() is just only one of the sample points. We should be able
-  to check for writeback errors in other paths like mount/read/write
-  etc and fail volatile fs. And in all these paths, we don't want
-  to mark error as SEEN otherwise user space might complain.
-
-  In summary, with volatile overlay use case, there is a need to
-  check for errors outside the syncfs() (mount/read/write/...). If
-  we check for errors in these paths we have two alternatives.
-
-  - Either mark unseen error on upper_sb as SEEN. And then user space
-    can complain that an unseen error was consumed without anybody
-    ever calling syncfs.
-
-  - Or we introduce new errseq API which allows checking for errors
-    without marking it SEEN. That way we can detect errors at the
-    same time unseen error will be reported to user space through
-    syncfs().
-
-And second option seems to be safer choice, that's why errseq_peek()
-patches.
-
-> I'm not 100% clear on whether I understand both use-cases correctly
-> though.
-
-I hope, above is a decent summary of various discussions we have had
-so far.
-
-Vivek
-
