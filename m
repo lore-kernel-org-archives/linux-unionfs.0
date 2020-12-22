@@ -2,203 +2,154 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A57EC433E6
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 19:53:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64BC8C433DB
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Dec 2020 01:24:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 20DAA22C9C
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Dec 2020 19:53:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1362522512
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Dec 2020 01:24:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726697AbgLUTw4 (ORCPT
+        id S1725924AbgLVBYB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Dec 2020 14:52:56 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:20763 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725854AbgLUTwo (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Dec 2020 14:52:44 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1608580277;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Aml02yYxR2r5UtIADXUcAHlj0J0r9Os28OjvX37LEzc=;
-        b=cNpxK+PaHrDPy3IR4seYoteix7gLhowCc4UJ2NstdeL9w83zj1HLwWzfptRfm2tXVRxyqn
-        RLu5j/wrsqjl1CDGEXF2FeUu1c+kmP/YLuO7FB3Gb6cQ4Qj+RdLX0Xc99qOJy6syZyF7N+
-        Nyv+JJW0JPnthQ7FYl18vecll4O1Bm4=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-53-W4cEpUsdOWGcgyq1OUTOcw-1; Mon, 21 Dec 2020 14:51:15 -0500
-X-MC-Unique: W4cEpUsdOWGcgyq1OUTOcw-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 58C61804002;
-        Mon, 21 Dec 2020 19:51:12 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-114-244.rdu2.redhat.com [10.10.114.244])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id AEABE5C5E1;
-        Mon, 21 Dec 2020 19:51:11 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 35680225FCD; Mon, 21 Dec 2020 14:51:11 -0500 (EST)
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
+        Mon, 21 Dec 2020 20:24:01 -0500
+Received: from mx2.suse.de ([195.135.220.15]:42076 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1725780AbgLVBYB (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 21 Dec 2020 20:24:01 -0500
+X-Virus-Scanned: by amavisd-new at test-mx.suse.de
+Received: from relay2.suse.de (unknown [195.135.221.27])
+        by mx2.suse.de (Postfix) with ESMTP id 3206AAC7B;
+        Tue, 22 Dec 2020 01:23:19 +0000 (UTC)
+From:   NeilBrown <neilb@suse.de>
+To:     Vivek Goyal <vgoyal@redhat.com>, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Date:   Tue, 22 Dec 2020 12:23:11 +1100
 Cc:     jlayton@kernel.org, vgoyal@redhat.com, amir73il@gmail.com,
         sargun@sargun.me, miklos@szeredi.hu, willy@infradead.org,
         jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk, hch@lst.de
-Subject: [PATCH 3/3] overlayfs: Report writeback errors on upper
-Date:   Mon, 21 Dec 2020 14:50:55 -0500
-Message-Id: <20201221195055.35295-4-vgoyal@redhat.com>
-In-Reply-To: <20201221195055.35295-1-vgoyal@redhat.com>
+Subject: Re: [PATCH 1/3] vfs: Do not ignore return code from s_op->sync_fs
+In-Reply-To: <20201221195055.35295-2-vgoyal@redhat.com>
 References: <20201221195055.35295-1-vgoyal@redhat.com>
+ <20201221195055.35295-2-vgoyal@redhat.com>
+Message-ID: <878s9qmy68.fsf@notabene.neil.brown.name>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Currently syncfs() and fsync() seem to be two interfaces which check and
-return writeback errors on superblock to user space. fsync() should
-work fine with overlayfs as it relies on underlying filesystem to
-do the check and return error. For example, if ext4 is on upper filesystem,
-then ext4_sync_file() calls file_check_and_advance_wb_err(file) on
-upper file and returns error. So overlayfs does not have to do anything
-special.
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-But with syncfs(), error check happens in vfs in syncfs() w.r.t
-overlay_sb->s_wb_err. Given overlayfs is stacked filesystem, it
-does not do actual writeback and all writeback errors are recorded
-on underlying filesystem. So sb->s_wb_err is never updated hence
-syncfs() does not work with overlay.
+On Mon, Dec 21 2020, Vivek Goyal wrote:
 
-Jeff suggested that instead of trying to propagate errors to overlay
-super block, why not simply check for errors against upper filesystem
-super block. I implemented this idea.
+> Current implementation of __sync_filesystem() ignores the
+> return code from ->sync_fs(). I am not sure why that's the case.
+>
+> Ignoring ->sync_fs() return code is problematic for overlayfs where
+> it can return error if sync_filesystem() on upper super block failed.
+> That error will simply be lost and sycnfs(overlay_fd), will get
+> success (despite the fact it failed).
+>
+> Al Viro noticed that there are other filesystems which can sometimes
+> return error in ->sync_fs() and these errors will be ignored too.
+>
+> fs/btrfs/super.c:2412:  .sync_fs        =3D btrfs_sync_fs,
+> fs/exfat/super.c:204:   .sync_fs        =3D exfat_sync_fs,
+> fs/ext4/super.c:1674:   .sync_fs        =3D ext4_sync_fs,
+> fs/f2fs/super.c:2480:   .sync_fs        =3D f2fs_sync_fs,
+> fs/gfs2/super.c:1600:   .sync_fs                =3D gfs2_sync_fs,
+> fs/hfsplus/super.c:368: .sync_fs        =3D hfsplus_sync_fs,
+> fs/nilfs2/super.c:689:  .sync_fs        =3D nilfs_sync_fs,
+> fs/ocfs2/super.c:139:   .sync_fs        =3D ocfs2_sync_fs,
+> fs/overlayfs/super.c:399:	.sync_fs        =3D ovl_sync_fs,
+> fs/ubifs/super.c:2052:  .sync_fs       =3D ubifs_sync_fs,
+>
+> Hence, this patch tries to fix it and capture error returned
+> by ->sync_fs() and return to caller. I am specifically interested
+> in syncfs() path and return error to user.
+>
+> I am assuming that we want to continue to call __sync_blockdev()
+> despite the fact that there have been errors reported from
+> ->sync_fs(). So this patch continues to call __sync_blockdev()
+> even if ->sync_fs() returns an error.
+>
+> Al noticed that there are few other callsites where ->sync_fs() error
+> code is being ignored.
+>
+> sync_fs_one_sb(): For this it seems desirable to ignore the return code.
+>
+> dquot_disable(): Jan Kara mentioned that ignoring return code here is fine
+> 		 because we don't want to fail dquot_disable() just beacuse
+> 		 caches might be incoherent.
+>
+> dquot_quota_sync(): Jan thinks that it might make some sense to capture
+> 		    return code here. But I am leaving it untouched for
+> 		   now. When somebody needs it, they can easily fix it.
+>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/sync.c | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/sync.c b/fs/sync.c
+> index 1373a610dc78..b5fb83a734cd 100644
+> --- a/fs/sync.c
+> +++ b/fs/sync.c
+> @@ -30,14 +30,18 @@
+>   */
+>  static int __sync_filesystem(struct super_block *sb, int wait)
+>  {
+> +	int ret, ret2;
+> +
+>  	if (wait)
+>  		sync_inodes_sb(sb);
+>  	else
+>  		writeback_inodes_sb(sb, WB_REASON_SYNC);
+>=20=20
+>  	if (sb->s_op->sync_fs)
+> -		sb->s_op->sync_fs(sb, wait);
+> -	return __sync_blockdev(sb->s_bdev, wait);
+> +		ret =3D sb->s_op->sync_fs(sb, wait);
+> +	ret2 =3D __sync_blockdev(sb->s_bdev, wait);
+> +
+> +	return ret ? ret : ret2;
 
-Overlay file has "since" value which needs to be initialized at open
-time. Overlay overrides VFS initialization and re-initializes
-f->f_sb_err w.r.t upper super block. Later when
-ovl_sb->errseq_check_advance() is called, f->f_sb_err is used as
-since value to figure out if any error on upper sb has happened since
-then.
+I'm surprised that the compiler didn't complain that 'ret' might be used
+uninitialized.
 
-Note, Right now this patch only deals with regular file and directories.
-Yet to deal with special files like device inodes, socket, fifo etc.
+NeilBrown
 
-Suggested-by: Jeff Layton <jlayton@kernel.org>
-Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
----
- fs/overlayfs/file.c      |  1 +
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/readdir.c   |  1 +
- fs/overlayfs/super.c     | 23 +++++++++++++++++++++++
- fs/overlayfs/util.c      | 13 +++++++++++++
- 5 files changed, 39 insertions(+)
+>  }
+>=20=20
+>  /*
+> --=20
+> 2.25.4
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index efccb7c1f9bc..7b58a44dcb71 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -163,6 +163,7 @@ static int ovl_open(struct inode *inode, struct file *file)
- 		return PTR_ERR(realfile);
- 
- 	file->private_data = realfile;
-+	ovl_init_file_errseq(file);
- 
- 	return 0;
- }
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index f8880aa2ba0e..47838abbfb3d 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -322,6 +322,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs *ofs, struct dentry *dentry);
- bool ovl_is_metacopy_dentry(struct dentry *dentry);
- char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
- 			     int padding);
-+void ovl_init_file_errseq(struct file *file);
- 
- static inline bool ovl_is_impuredir(struct super_block *sb,
- 				    struct dentry *dentry)
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 01620ebae1bd..0c48f1545483 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -960,6 +960,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 	od->is_real = ovl_dir_is_real(file->f_path.dentry);
- 	od->is_upper = OVL_TYPE_UPPER(type);
- 	file->private_data = od;
-+	ovl_init_file_errseq(file);
- 
- 	return 0;
- }
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 290983bcfbb3..d99867983722 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -390,6 +390,28 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
- 	return ret;
- }
- 
-+static int ovl_errseq_check_advance(struct super_block *sb, struct file *file)
-+{
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+	struct super_block *upper_sb;
-+	int ret;
-+
-+	if (!ovl_upper_mnt(ofs))
-+		return 0;
-+
-+	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
-+
-+	if (!errseq_check(&upper_sb->s_wb_err, file->f_sb_err))
-+		return 0;
-+
-+	/* Something changed, must use slow path */
-+	spin_lock(&file->f_lock);
-+	ret = errseq_check_and_advance(&upper_sb->s_wb_err, &file->f_sb_err);
-+	spin_unlock(&file->f_lock);
-+
-+	return ret;
-+}
-+
- static const struct super_operations ovl_super_operations = {
- 	.alloc_inode	= ovl_alloc_inode,
- 	.free_inode	= ovl_free_inode,
-@@ -400,6 +422,7 @@ static const struct super_operations ovl_super_operations = {
- 	.statfs		= ovl_statfs,
- 	.show_options	= ovl_show_options,
- 	.remount_fs	= ovl_remount,
-+	.errseq_check_advance	= ovl_errseq_check_advance,
- };
- 
- enum {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 23f475627d07..a1742847f3a8 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -950,3 +950,16 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
- 	kfree(buf);
- 	return ERR_PTR(res);
- }
-+
-+void ovl_init_file_errseq(struct file *file)
-+{
-+	struct super_block *sb = file_dentry(file)->d_sb;
-+	struct ovl_fs *ofs = sb->s_fs_info;
-+	struct super_block *upper_sb;
-+
-+	if (!ovl_upper_mnt(ofs))
-+		return;
-+
-+	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
-+	file->f_sb_err = errseq_sample(&upper_sb->s_wb_err);
-+}
--- 
-2.25.4
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iQJCBAEBCAAsFiEEG8Yp69OQ2HB7X0l6Oeye3VZigbkFAl/hSn8OHG5laWxiQHN1
+c2UuZGUACgkQOeye3VZigbnsaA//YWWMsKDY6jkZLXCd9xREfvs97olNMgHgIUde
+0YHq8em987RQMOrwYSbVo6vfZs+RkrfhxmubpHZ6fMBqrZCwiyLYAyJi3uRQrb6B
+50L7MbaCZq0SGq/wvvFTEVdNILo5wNPfPc5Huo1mlrv//TCTmYo/rBhBKT10/08z
+TifQq6eJhgnJHrOlI/9mc8ku/ODlQoXDAwY4XcEyyTcZ+ntbG4F1oV7v5NqZ45r3
+F4jIhUyNtfghAHwmmW+gnkKbVBKd2TiWoe1EaCpAXLtdJY6GLdbv02HDqbZfKcrw
+urhT1mj9YmIH3/y2TqFq6WSTfZYRu51Dn8oNoPKVcP+3SOq/t11FAjPRE4IfAKWQ
+bT9bEa142joXdTduNaWWmUos69Fk3JAv7UJfGhzS0pCOEIU4ai8TjeJ4R2njKeup
+pFngZPCwrAiZfaIwdH2rp9TJjr7gsvNkLmogYBT9ZzLMQmHuJdroYRMWyteLy2+/
+Ocrn2agVkNXPcHvlqHQ6IkFfj+zMGHOAxNX78+8+cyVYjO66zKIlF051RLJ+g1wh
+FnCyTai44liIE9nAieSskeMVEFLtNYDfQxPuHb4QHfYtFY6PzEI8LeehspoXJxio
++5BmBsDU+1DsGGicPZzPNrqg6JqX0Vw8ylHzWmBlXt26lZyNG9ts26UnAtEK/CoF
+joOeRJY=
+=+/BP
+-----END PGP SIGNATURE-----
+--=-=-=--
