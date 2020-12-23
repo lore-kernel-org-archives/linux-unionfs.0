@@ -2,116 +2,225 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3110C433E0
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Dec 2020 12:54:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52403C433E0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Dec 2020 18:21:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9ED5D22475
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Dec 2020 12:54:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21A5C22286
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Dec 2020 18:21:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727047AbgLWMy1 (ORCPT
+        id S1727377AbgLWSVR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 23 Dec 2020 07:54:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36306 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1728356AbgLWMy1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 23 Dec 2020 07:54:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EAC8E22475;
-        Wed, 23 Dec 2020 12:53:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1608728026;
-        bh=uPZNDtdrztbbNslQqwSCsY2Q8OQGkhzZMUMvfOws8Cs=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=FfrwdVZGXUJhycIVF3YTAMMF64sSuwIGy27yC70XQjMPnS6P6ODX4KsNOmhTfBZms
-         cdWzsjLOfRpsIa/K3kKAY4H5bZkZniP+3+1w6cWBUtIL2jJsHQRl3FXkI8E5AP52lk
-         02S3o9WA5C/d6GTnWlLAi2/QHhoI3mLpf3Dmi+MJNarqM5pCWzuqvIcmGhEPE/85py
-         W4pKRJegVTvZUa9GEdUZnPwVwNWvs/RPLCc+vjNR3k7zoN5LNJq408+FcOS4qyT8vs
-         +rIcMZpvnc+X4O/hUffSPfjkvTQQG+a80zq6A7zTiR3JH9NnhNi/QAcfYdmv3Mhpq6
-         GEs7+Q0DmZEdQ==
-Message-ID: <dbc580cf9346aca06a3383533a09a794ca68917c.camel@kernel.org>
-Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Vivek Goyal <vgoyal@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>
+        Wed, 23 Dec 2020 13:21:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42144 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727141AbgLWSVR (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 23 Dec 2020 13:21:17 -0500
+Received: from mail-io1-xd30.google.com (mail-io1-xd30.google.com [IPv6:2607:f8b0:4864:20::d30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 596B1C06179C
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Dec 2020 10:20:31 -0800 (PST)
+Received: by mail-io1-xd30.google.com with SMTP id y5so34818iow.5
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Dec 2020 10:20:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sargun.me; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=3Jwm6PFfbgH80SQwNj2he2wbJIKTrfdiS6RAFt5HJF8=;
+        b=zNR08C5AEwbFUPMAv79Z8zW8IY4EgUpgbmde2lvXatnVvmxdu4Lsh/zCfqux6ukJjT
+         ncSFIdoE2ocyCEC553ksY/XciQXyyx4nFP8SlpdwbYXiVzDyQA5SR4RdC4fRqjZmHAs+
+         5kmzp/KtvM05nA9GS5IJmIy3pMdyjPI3QIDLg=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=3Jwm6PFfbgH80SQwNj2he2wbJIKTrfdiS6RAFt5HJF8=;
+        b=OXHcuDQ7iX1oEyCADtB82xt3KJiCg/PnrkOn36eVdd7/Syk2mfl6X/7ZwUwMbeffnA
+         weUYDYElQa+DhrnZf4Kb4Jchv3EMUGaACUH7ghaQKdXT1JfJclf/nri30+ycs+Z70FWN
+         5+AcOwijLixbaT82Mk8EW+wMQi1m89Iy2p7t67GpIydsoSYsvQGNV9bFrnZKcR/6PVck
+         x20ML5dKimmrkzc8VaLRqE3mU3CFYvHwAD+I163i2OJZcAy6f7GUhG2JjDBbixJ14Qf+
+         vc6wu/J3stH3rv50q3ftGNj+66h9wxeC7gio1pfSF6k2De7cyGlzsF/gM+LvOsik58dC
+         W0bQ==
+X-Gm-Message-State: AOAM531KgYCHnpz3bu3ScmrOqt887SHNYAuIvqOEtwjkq5jeIe2NgEJA
+        EajwF1SGFoGjVnUL/FeWS3X4Dw==
+X-Google-Smtp-Source: ABdhPJxvkZ9EaTJCgSfLZQUK9l0ijPvawI39Bu8FnTgTYT50qUlruCDWpnpEnc07pSPGOYCfMy36HQ==
+X-Received: by 2002:a02:c9cc:: with SMTP id c12mr23915038jap.116.1608747629296;
+        Wed, 23 Dec 2020 10:20:29 -0800 (PST)
+Received: from ircssh-2.c.rugged-nimbus-611.internal (80.60.198.104.bc.googleusercontent.com. [104.198.60.80])
+        by smtp.gmail.com with ESMTPSA id y15sm17688530ili.65.2020.12.23.10.20.28
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Wed, 23 Dec 2020 10:20:28 -0800 (PST)
+Date:   Wed, 23 Dec 2020 18:20:27 +0000
+From:   Sargun Dhillon <sargun@sargun.me>
+To:     Vivek Goyal <vgoyal@redhat.com>
 Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, amir73il@gmail.com,
-        sargun@sargun.me, miklos@szeredi.hu, jack@suse.cz, neilb@suse.com,
-        viro@zeniv.linux.org.uk, hch@lst.de
-Date:   Wed, 23 Dec 2020 07:53:43 -0500
-In-Reply-To: <20201222175518.GD3248@redhat.com>
+        linux-unionfs@vger.kernel.org, jlayton@kernel.org,
+        amir73il@gmail.com, miklos@szeredi.hu, willy@infradead.org,
+        jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk, hch@lst.de
+Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
+Message-ID: <20201223182026.GA9935@ircssh-2.c.rugged-nimbus-611.internal>
 References: <20201221195055.35295-1-vgoyal@redhat.com>
-         <20201221195055.35295-4-vgoyal@redhat.com>
-         <20201222162027.GJ874@casper.infradead.org>
-         <20201222162925.GC3248@redhat.com>
-         <20201222174637.GK874@casper.infradead.org>
-         <20201222175518.GD3248@redhat.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-User-Agent: Evolution 3.38.2 (3.38.2-1.fc33) 
+ <20201221195055.35295-4-vgoyal@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20201221195055.35295-4-vgoyal@redhat.com>
+User-Agent: Mutt/1.9.4 (2018-02-28)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 2020-12-22 at 12:55 -0500, Vivek Goyal wrote:
-> On Tue, Dec 22, 2020 at 05:46:37PM +0000, Matthew Wilcox wrote:
-> > On Tue, Dec 22, 2020 at 11:29:25AM -0500, Vivek Goyal wrote:
-> > > On Tue, Dec 22, 2020 at 04:20:27PM +0000, Matthew Wilcox wrote:
-> > > > On Mon, Dec 21, 2020 at 02:50:55PM -0500, Vivek Goyal wrote:
-> > > > > +static int ovl_errseq_check_advance(struct super_block *sb, struct file *file)
-> > > > > +{
-> > > > > +	struct ovl_fs *ofs = sb->s_fs_info;
-> > > > > +	struct super_block *upper_sb;
-> > > > > +	int ret;
-> > > > > +
-> > > > > +	if (!ovl_upper_mnt(ofs))
-> > > > > +		return 0;
-> > > > > +
-> > > > > +	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
-> > > > > +
-> > > > > +	if (!errseq_check(&upper_sb->s_wb_err, file->f_sb_err))
-> > > > > +		return 0;
-> > > > > +
-> > > > > +	/* Something changed, must use slow path */
-> > > > > +	spin_lock(&file->f_lock);
-> > > > > +	ret = errseq_check_and_advance(&upper_sb->s_wb_err, &file->f_sb_err);
-> > > > > +	spin_unlock(&file->f_lock);
-> > > > 
-> > > > Why are you microoptimising syncfs()?  Are there really applications which
-> > > > call syncfs() in a massively parallel manner on the same file descriptor?
-> > > 
-> > > This is atleast theoritical race. I am not aware which application can
-> > > trigger this race. So to me it makes sense to fix the race.
-> > > 
-> > > Jeff Layton also posted a fix for syncfs().
-> > > 
-> > > https://lore.kernel.org/linux-fsdevel/20201219134804.20034-1-jlayton@kernel.org/
-> > > 
-> > > To me it makes sense to fix the race irrespective of the fact if somebody
-> > > hit it or not. People end up copying code in other parts of kernel and
-> > > and they will atleast copy race free code.
-> > 
-> > Let me try again.  "Why are you trying to avoid taking the spinlock?"
+On Mon, Dec 21, 2020 at 02:50:55PM -0500, Vivek Goyal wrote:
+> Currently syncfs() and fsync() seem to be two interfaces which check and
+> return writeback errors on superblock to user space. fsync() should
+> work fine with overlayfs as it relies on underlying filesystem to
+> do the check and return error. For example, if ext4 is on upper filesystem,
+> then ext4_sync_file() calls file_check_and_advance_wb_err(file) on
+> upper file and returns error. So overlayfs does not have to do anything
+> special.
 > 
-> Aha.., sorry, I misunderstood your question. I don't have a good answer.
-> I just copied the code from Jeff Layton's patch.
+> But with syncfs(), error check happens in vfs in syncfs() w.r.t
+> overlay_sb->s_wb_err. Given overlayfs is stacked filesystem, it
+> does not do actual writeback and all writeback errors are recorded
+> on underlying filesystem. So sb->s_wb_err is never updated hence
+> syncfs() does not work with overlay.
 > 
-> Agreed that cost of taking spin lock will not be significant until
-> syncfs() is called at high frequency. Having said that, most of the
-> time taking spin lock will not be needed, so avoiding it with
-> a simple call to errseq_check() sounds reasonable too.
+> Jeff suggested that instead of trying to propagate errors to overlay
+> super block, why not simply check for errors against upper filesystem
+> super block. I implemented this idea.
 > 
-> I don't have any strong opinions here. I am fine with any of the
-> implementation people like.
+> Overlay file has "since" value which needs to be initialized at open
+> time. Overlay overrides VFS initialization and re-initializes
+> f->f_sb_err w.r.t upper super block. Later when
+> ovl_sb->errseq_check_advance() is called, f->f_sb_err is used as
+> since value to figure out if any error on upper sb has happened since
+> then.
+> 
+> Note, Right now this patch only deals with regular file and directories.
+> Yet to deal with special files like device inodes, socket, fifo etc.
+> 
+> Suggested-by: Jeff Layton <jlayton@kernel.org>
+> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> ---
+>  fs/overlayfs/file.c      |  1 +
+>  fs/overlayfs/overlayfs.h |  1 +
+>  fs/overlayfs/readdir.c   |  1 +
+>  fs/overlayfs/super.c     | 23 +++++++++++++++++++++++
+>  fs/overlayfs/util.c      | 13 +++++++++++++
+>  5 files changed, 39 insertions(+)
+> 
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index efccb7c1f9bc..7b58a44dcb71 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -163,6 +163,7 @@ static int ovl_open(struct inode *inode, struct file *file)
+>  		return PTR_ERR(realfile);
+>  
+>  	file->private_data = realfile;
+> +	ovl_init_file_errseq(file);
+>  
+>  	return 0;
+>  }
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index f8880aa2ba0e..47838abbfb3d 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -322,6 +322,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs *ofs, struct dentry *dentry);
+>  bool ovl_is_metacopy_dentry(struct dentry *dentry);
+>  char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+>  			     int padding);
+> +void ovl_init_file_errseq(struct file *file);
+>  
+>  static inline bool ovl_is_impuredir(struct super_block *sb,
+>  				    struct dentry *dentry)
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 01620ebae1bd..0c48f1545483 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -960,6 +960,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
+>  	od->is_real = ovl_dir_is_real(file->f_path.dentry);
+>  	od->is_upper = OVL_TYPE_UPPER(type);
+>  	file->private_data = od;
+> +	ovl_init_file_errseq(file);
+>  
+>  	return 0;
+>  }
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 290983bcfbb3..d99867983722 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -390,6 +390,28 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
+>  	return ret;
+>  }
+>  
+> +static int ovl_errseq_check_advance(struct super_block *sb, struct file *file)
+> +{
+> +	struct ovl_fs *ofs = sb->s_fs_info;
+> +	struct super_block *upper_sb;
+> +	int ret;
+> +
+> +	if (!ovl_upper_mnt(ofs))
+> +		return 0;
+> +
+> +	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
+> +
+> +	if (!errseq_check(&upper_sb->s_wb_err, file->f_sb_err))
+> +		return 0;
+> +
+> +	/* Something changed, must use slow path */
+> +	spin_lock(&file->f_lock);
+> +	ret = errseq_check_and_advance(&upper_sb->s_wb_err, &file->f_sb_err);
+> +	spin_unlock(&file->f_lock);
+> +
+> +	return ret;
+> +}
+> +
+>  static const struct super_operations ovl_super_operations = {
+>  	.alloc_inode	= ovl_alloc_inode,
+>  	.free_inode	= ovl_free_inode,
+> @@ -400,6 +422,7 @@ static const struct super_operations ovl_super_operations = {
+>  	.statfs		= ovl_statfs,
+>  	.show_options	= ovl_show_options,
+>  	.remount_fs	= ovl_remount,
+> +	.errseq_check_advance	= ovl_errseq_check_advance,
+>  };
+>  
+>  enum {
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 23f475627d07..a1742847f3a8 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -950,3 +950,16 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+>  	kfree(buf);
+>  	return ERR_PTR(res);
+>  }
+> +
+> +void ovl_init_file_errseq(struct file *file)
+> +{
+> +	struct super_block *sb = file_dentry(file)->d_sb;
+> +	struct ovl_fs *ofs = sb->s_fs_info;
+> +	struct super_block *upper_sb;
+> +
+> +	if (!ovl_upper_mnt(ofs))
+> +		return;
+> +
+> +	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
+> +	file->f_sb_err = errseq_sample(&upper_sb->s_wb_err);
+> +}
+> -- 
+> 2.25.4
 > 
 
-It is a micro-optimization, but we'll almost always be able to avoid
-taking the lock altogether. Errors here should be very, very infrequent.
+I fail to see why this is neccessary if you incorporate error reporting into the 
+sync_fs callback. Why is this separate from that callback? If you pickup Jeff's
+patch that adds the 2nd flag to errseq for "observed", you should be able to
+stash the first errseq seen in the ovl_fs struct, and do the check-and-return
+in there instead instead of adding this new infrastructure.
 
-That said I don't have strong feelings on this either.
--- 
-Jeff Layton <jlayton@kernel.org>
-
+IMHO, if we're going to fix this, sync_fs should be replaced, and there should 
+be a generic_sync_fs wrapper which does the errseq, callback, and sync blockdev, 
+but then filesystems should be able to override it and do the requisite work.
