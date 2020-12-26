@@ -2,180 +2,114 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BD5BC433DB
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Dec 2020 06:51:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22DD8C433DB
+	for <linux-unionfs@archiver.kernel.org>; Sat, 26 Dec 2020 10:47:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C8C623136
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Dec 2020 06:51:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7C742084D
+	for <linux-unionfs@archiver.kernel.org>; Sat, 26 Dec 2020 10:47:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726265AbgLYGvR (ORCPT
+        id S1725997AbgLZKrm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Dec 2020 01:51:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38178 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1725779AbgLYGvR (ORCPT
+        Sat, 26 Dec 2020 05:47:42 -0500
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25392 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726008AbgLZKrm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Dec 2020 01:51:17 -0500
-Received: from mail-io1-xd29.google.com (mail-io1-xd29.google.com [IPv6:2607:f8b0:4864:20::d29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62D1DC061573;
-        Thu, 24 Dec 2020 22:50:37 -0800 (PST)
-Received: by mail-io1-xd29.google.com with SMTP id q137so3493852iod.9;
-        Thu, 24 Dec 2020 22:50:37 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=I41NoPE2PFeA6hnau+XUtVHcpXOt5PQjNu23pBB7t2U=;
-        b=DuPsaCLcoHgwNBZRe3f034K5cLHK4ORuMrnJdwlDWSl3W8qzIJb3EK2kcfQksI0WiZ
-         4xyX3QsxvpbzMuip410pA8t+NbmM2dGUd8Q+ceE9PIxPfhxmYAaWc/B+NhMHJv6fZmug
-         tBaH3GmpFAgnTPCbfLeTqync4w2gNLAZQIsblJVqaV5QEIwSSNRAXnnUeekhO6jwpjnN
-         nlm3c2ytAYFshGk4aenLMjfjHX8B+vz9sxCNHrVLCHbvK4tFDlCA/9BOEnkXJK+6W0BG
-         BDvh5DZ70rWGXLG5gdir67xHBcODjzXyBmVGVXJO0BNunYu6wq0aYLUMjqQuVTLzSe8U
-         2TeQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=I41NoPE2PFeA6hnau+XUtVHcpXOt5PQjNu23pBB7t2U=;
-        b=pX7koRfoNvHr1UJ12B1UdWggPjNZTMywV54m6ILzQ3N2IxKEXPbxfnwsATH4IMdjun
-         WARoOn2pp4oYDDEtouZTUdGPyRAMoEM0oJrH+f+z6L76wd7RPqrxZDVydNqfQS5Quy+w
-         FADhfFkAHRG/MsgMZMqTHVUMgJBkLNo2VZqs7DyszUXAiwWPIve+VzBgaEOl6Zb7Wv07
-         pGXLL5SwSXq2SY32PpcLsvgWjWT+CG24Gs7HaWz6rjeT6A+uY2ZNxPC+tQjlM5uyCnKY
-         9eHAM+4JJ9rlAfIxiwphAjUe+gRoO/90SoEi3DfKt8vPprRlUyQ8BUVxLYMoPdgbOI3e
-         JR0w==
-X-Gm-Message-State: AOAM533TUOIb4hvxjWaZW7qxE38+x0V6HNGjeRFZ5KX9IZC7wYOO3skH
-        8alOvHKBbIzchtlmTzV7ZkuDkg20nOA++xQV9Pc=
-X-Google-Smtp-Source: ABdhPJxW/7olVTwSLSxAeDUa9+MyGpck3OUpRCcWnhkXvdhNMekK8dnYLB8VUVELPkQvghbeq+v8sxS9ebPGitS3nHo=
-X-Received: by 2002:a02:a60a:: with SMTP id c10mr28503608jam.123.1608879036430;
- Thu, 24 Dec 2020 22:50:36 -0800 (PST)
-MIME-Version: 1.0
-References: <20201221195055.35295-1-vgoyal@redhat.com> <20201221195055.35295-4-vgoyal@redhat.com>
- <20201223182026.GA9935@ircssh-2.c.rugged-nimbus-611.internal>
- <20201223185044.GQ874@casper.infradead.org> <20201223192940.GA11012@ircssh-2.c.rugged-nimbus-611.internal>
- <20201223200746.GR874@casper.infradead.org> <20201223202140.GB11012@ircssh-2.c.rugged-nimbus-611.internal>
- <20201223204428.GS874@casper.infradead.org> <CAOQ4uxjAeGv8x2hBBzHz5PjSDq0Q+RN-ikgqEvAA+XE_U-U5Nw@mail.gmail.com>
- <20201224121352.GT874@casper.infradead.org>
-In-Reply-To: <20201224121352.GT874@casper.infradead.org>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 25 Dec 2020 08:50:25 +0200
-Message-ID: <CAOQ4uxj5YS9LSPoBZ3uakb6NeBG7g-Zeu+8Vt57tizEH6xu0cw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
-To:     Matthew Wilcox <willy@infradead.org>,
-        Sargun Dhillon <sargun@sargun.me>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
-        NeilBrown <neilb@suse.com>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@lst.de>,
-        Chengguang Xu <cgxu519@mykernel.net>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 26 Dec 2020 05:47:42 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1608979609; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=Q3E1/HQR+tSuSNY4wQs+RoQggCu8erGonSnVSaLpZ4anZDuDi5/OqmphRMvkpJXehBEESANs5C9yMJTw7VvJvCGRvdQXx6fOWBJfHM96xSRj8w9sH7gjiBBbTUsclY/7HEvJT8cr9gr7W8kHCTqxN4MSFOZA9M9g//8mIqrc4U8=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1608979609; h=Cc:Date:From:Message-ID:Subject:To; 
+        bh=SKxFvP/LMusx+kvRflAKLCrq2uNgVqAC6qqBL1XBA0o=; 
+        b=dxtuCsmTJhE+YyHhNKfMkCDnbYyLMgk6rVaArHMoL2eZKDsV7l5CvTlm7VXLx3EtCuELWOLd5lkEA1HHby+U9Ctj2RVrFtTKXHQbNHRUDq3wIjCPnYoXuzY93Yx6Eo9daV3MxMJewpfF4cS4Fqe51bM5oDtcLop8lA9xGaLsZIo=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1608979609;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Subject:Date:Message-Id;
+        bh=SKxFvP/LMusx+kvRflAKLCrq2uNgVqAC6qqBL1XBA0o=;
+        b=AGaouQK2tXMXu295n/0RO/EwBn1pfaBrMyTrQw5kTbxbepez7u1nXa+Bb03txy2a
+        8y6q+ZCvQljNfKxMXjtADcdy4oTo9wp2Dyu1S/YMq+HCBGyhmTUkK59lI6S5eVq5q7I
+        8zATH75OEDe+4D10C+Thex/tBFmQVaoB0F7lWTOw=
+Received: from localhost.localdomain (81.71.33.115 [81.71.33.115]) by mx.zoho.com.cn
+        with SMTPS id 1608979607479611.034899342346; Sat, 26 Dec 2020 18:46:47 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
+Subject: [RFC PATCH] ovl: keep some file attrubutions after copy-up
+Date:   Sat, 26 Dec 2020 18:46:18 +0800
+Message-Id: <20201226104618.239739-1-cgxu519@mykernel.net>
+X-Mailer: git-send-email 2.18.4
+X-ZohoCNMailClient: External
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Dec 24, 2020 at 2:13 PM Matthew Wilcox <willy@infradead.org> wrote:
->
-> On Thu, Dec 24, 2020 at 11:32:55AM +0200, Amir Goldstein wrote:
-> > In current master, syncfs() on any file by any container user will
-> > result in full syncfs() of the upperfs, which is very bad for container
-> > isolation. This has been partly fixed by Chengguang Xu [1] and I expect
-> > his work will be merged soon. Overlayfs still does not do the writeback
-> > and syncfs() in overlay still waits for all upper fs writeback to complete,
-> > but at least syncfs() in overlay only kicks writeback for upper fs files
-> > dirtied by this overlay.
-> >
-> > [1] https://lore.kernel.org/linux-unionfs/CAJfpegsbb4iTxW8ZyuRFVNc63zg7Ku7vzpSNuzHASYZH-d5wWA@mail.gmail.com/
-> >
-> > Sharing the same SEEN flag among thousands of containers is also
-> > far from ideal, because effectively this means that any given workload
-> > in any single container has very little chance of observing the SEEN flag.
->
-> Perhaps you misunderstand how errseq works.  If each container samples
-> the errseq at startup, then they will all see any error which occurs
-> during their lifespan
+Currently after copy-up, upper file will lose most of file
+attributions except copy-up triggered by setting fsflags.
+Because ioctl operation of underlying file systems does not
+expect calling from kernel component, it seems hard to
+copy fsflags during copy-up.
 
-Meant to say "...very little chance of NOT observing the SEEN flag",
-but We are not in disagreement.
-My argument against sharing the SEEN flag refers to Vivek's patch of
-stacked errseq_sample()/errseq_check_and_advance() which does NOT
-sample errseq at overlayfs mount time. That is why my next sentence is:
-"I do agree with Matthew that overlayfs should sample errseq...".
+Overlayfs keeps limited attributions(append-only, etc) in it's
+inode flags after successfully updating attributions. so ater
+copy-up, lsattr(1) does not show correct result but overlayfs
+can still prohibit ramdom write for those files which originally
+have append-only attribution. However, recently I found this
+protection can be easily broken in below operations.
 
-> (and possibly an error which occurred before they started up).
->
+1, Set append attribution to lower file.
+2, Mount overlayfs.
+3, Trigger copy-up by data append.
+4, Set noatime attributtion to the file.
+5, The file is random writable.
 
-Right. And this is where the discussion of splitting the SEEN flag started.
-Some of us want to treat overlayfs mount time as a true epoc for errseq.
-The new container didn't write any files yet, so it should not care about
-writeback errors from the past.
+This patch tries to keep some file attributions after copy-up
+so that overlayfs keeps compatible behavior with local filesystem
+as much as possible.
 
-I agree that it may not be very critical, but as I wrote before, I think we
-should do our best to try and isolate container workloads.
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ fs/overlayfs/file.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-> > To this end, I do agree with Matthew that overlayfs should sample errseq
-> > and the best patchset to implement it so far IMO is Jeff's patchset [2].
-> > This patch set was written to cater only "volatile" overlayfs mount, but
-> > there is no reason not to use the same mechanism for regular overlay
-> > mount. The only difference being that "volatile" overlay only checks for
-> > error since mount on syncfs() (because "volatile" overlay does NOT
-> > syncfs upper fs) and regular overlay checks and advances the overlay's
-> > errseq sample on syncfs (and does syncfs upper fs).
-> >
-> > Matthew, I hope that my explanation of the use case and Jeff's answer
-> > is sufficient to understand why the split of the SEEN flag is needed.
-> >
-> > [2] https://lore.kernel.org/linux-unionfs/20201213132713.66864-1-jlayton@kernel.org/
->
-> No, it still feels weird and wrong.
->
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index efccb7c1f9bc..e0eb055d00a6 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -655,12 +655,24 @@ static long ovl_ioctl_set_fsxflags(struct file *file, unsigned int cmd,
+ 
+ long ovl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
++	unsigned int imask = S_SYNC | S_APPEND | S_NOATIME;
++	unsigned int fsmask = FS_SYNC_FL | FS_APPEND_FL | FS_NOATIME_FL;
++	unsigned int flags, ovl_fsflags;
+ 	long ret;
+ 
+ 	switch (cmd) {
+ 	case FS_IOC_GETFLAGS:
+ 	case FS_IOC_FSGETXATTR:
+ 		ret = ovl_real_ioctl(file, cmd, arg);
++		if (!ret) {
++			if (get_user(flags, (int __user *) arg))
++				return -EFAULT;
++
++			ovl_fsflags = ovl_iflags_to_fsflags(file_inode(file)->i_flags & imask);
++			if ((flags & fsmask) != ovl_fsflags)
++				flags |= ovl_fsflags;
++			ret = put_user(flags, (int __user *)arg);
++		}
+ 		break;
+ 
+ 	case FS_IOC_SETFLAGS:
+-- 
+2.18.4
 
-All right. Considering your reservations, I think perhaps the split of the
-SEEN flag can wait for a later time after more discussions and maybe
-not as suitable for stable as we thought.
-
-I think that for stable, it would be sufficient to adapt Surgun's original
-syncfs for volatile mount patch [1] to cover the non-volatile case:
-on mout:
-- errseq_sample() upper fs
-- on volatile mount, errseq_check() upper fs and fail mount on un-SEEN error
-on syncfs:
-- errseq_check() for volatile mount
-- errseq_check_and_advance() for non-volatile mount
-- errseq_set() overlay sb on upper fs error
-
-Now errseq_set() is not only a hack around __sync_filesystem ignoring
-return value of ->sync_fs(). It is really needed for per-overlay SEEN
-error isolation in the non-volatile case.
-
-Unless I am missing something, I think we do not strictly need Vivek's
-1/3 patch [2] for stable, but not sure.
-
-Sargun,
-
-Do you agree with the above proposal?
-Will you make it into a patch?
-
-Vivek, Jefff,
-
-Do you agree that overlay syncfs observing writeback errors that predate
-overlay mount time is an issue that can be deferred (maybe forever)?
-
-BTW, in all the discussions we always assumed that stacked fsync() is correct
-WRT errseq, but in fact, fsync() can also observe an unseen error that predates
-overlay mount.
-In order to fix that, we will probably need to split the SEEN flag and some
-more errseq acrobatics, but again, not sure it is worth the effort.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-unionfs/20201202092720.41522-1-sargun@sargun.me/
-[2] https://lore.kernel.org/linux-unionfs/20201222151752.GA3248@redhat.com/
