@@ -2,178 +2,170 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C11EAC433E9
-	for <linux-unionfs@archiver.kernel.org>; Fri,  1 Jan 2021 17:37:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19D41C433DB
+	for <linux-unionfs@archiver.kernel.org>; Fri,  1 Jan 2021 20:16:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 73564221E9
-	for <linux-unionfs@archiver.kernel.org>; Fri,  1 Jan 2021 17:37:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEDEA221F2
+	for <linux-unionfs@archiver.kernel.org>; Fri,  1 Jan 2021 20:16:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727142AbhAARgv (ORCPT
+        id S1727230AbhAAUQD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 1 Jan 2021 12:36:51 -0500
-Received: from out03.mta.xmission.com ([166.70.13.233]:53634 "EHLO
-        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726798AbhAARgv (ORCPT
+        Fri, 1 Jan 2021 15:16:03 -0500
+Received: from relay-us1.mymailcheap.com ([51.81.35.219]:56522 "EHLO
+        relay-us1.mymailcheap.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727155AbhAAUQD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 1 Jan 2021 12:36:51 -0500
-Received: from in02.mta.xmission.com ([166.70.13.52])
-        by out03.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1kvOLQ-00EiGv-LC; Fri, 01 Jan 2021 10:36:08 -0700
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
-        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1kvOLP-0009RW-Il; Fri, 01 Jan 2021 10:36:08 -0700
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     Miklos Szeredi <mszeredi@redhat.com>
-Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kernel@vger.kernel.org, "Serge E. Hallyn" <serge@hallyn.com>
-References: <20201207163255.564116-1-mszeredi@redhat.com>
-        <20201207163255.564116-2-mszeredi@redhat.com>
-Date:   Fri, 01 Jan 2021 11:35:16 -0600
-In-Reply-To: <20201207163255.564116-2-mszeredi@redhat.com> (Miklos Szeredi's
-        message of "Mon, 7 Dec 2020 17:32:46 +0100")
-Message-ID: <87czyoimqz.fsf@x220.int.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        Fri, 1 Jan 2021 15:16:03 -0500
+Received: from relay5.mymailcheap.com (relay5.mymailcheap.com [159.100.248.207])
+        by relay-us1.mymailcheap.com (Postfix) with ESMTPS id 9FFE42015A
+        for <linux-unionfs@vger.kernel.org>; Fri,  1 Jan 2021 20:15:21 +0000 (UTC)
+Received: from relay4.mymailcheap.com (relay4.mymailcheap.com [137.74.199.117])
+        by relay5.mymailcheap.com (Postfix) with ESMTPS id A5D7F260EB;
+        Fri,  1 Jan 2021 20:14:27 +0000 (UTC)
+Received: from filter1.mymailcheap.com (filter1.mymailcheap.com [149.56.130.247])
+        by relay4.mymailcheap.com (Postfix) with ESMTPS id 675303F1CF;
+        Fri,  1 Jan 2021 21:12:52 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by filter1.mymailcheap.com (Postfix) with ESMTP id 9991D2A3E1;
+        Fri,  1 Jan 2021 15:12:51 -0500 (EST)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=mymailcheap.com;
+        s=default; t=1609531971;
+        bh=mup4tYDJ06aF1cMf8ZNg00/qBTcpyfhMXsMxbVvsLmQ=;
+        h=From:To:Cc:Subject:Date:From;
+        b=wATXthZJAkEDH6eFX/XRbbNPAAf/O+3FncTdnZDsMlaEVjxxDuSEcx78U5iuBh2cj
+         qRTQF/HOn5Y8iCIMojsFYKgdW83i3WZHQ1ycz6pF5pGLkkood2IrR1N7bIa1esJgBx
+         qAnAcGkQMCRrUr+ZU4Y1HaG60HIzjqZ1C5xfM/to=
+X-Virus-Scanned: Debian amavisd-new at filter1.mymailcheap.com
+Received: from filter1.mymailcheap.com ([127.0.0.1])
+        by localhost (filter1.mymailcheap.com [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id JGkaTNTsVahz; Fri,  1 Jan 2021 15:12:50 -0500 (EST)
+Received: from mail20.mymailcheap.com (mail20.mymailcheap.com [51.83.111.147])
+        (using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by filter1.mymailcheap.com (Postfix) with ESMTPS;
+        Fri,  1 Jan 2021 15:12:50 -0500 (EST)
+Received: from [148.251.23.173] (ml.mymailcheap.com [148.251.23.173])
+        by mail20.mymailcheap.com (Postfix) with ESMTP id C3F6B423F0;
+        Fri,  1 Jan 2021 20:12:48 +0000 (UTC)
+Authentication-Results: mail20.mymailcheap.com;
+        dkim=pass (1024-bit key; unprotected) header.d=aosc.io header.i=@aosc.io header.b="fb/Qkf8G";
+        dkim-atps=neutral
+AI-Spam-Status: Not processed
+Received: from ice-e5v2.lan (unknown [59.41.162.48])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail20.mymailcheap.com (Postfix) with ESMTPSA id CD82E422E7;
+        Fri,  1 Jan 2021 20:12:44 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=aosc.io; s=default;
+        t=1609531967; bh=mup4tYDJ06aF1cMf8ZNg00/qBTcpyfhMXsMxbVvsLmQ=;
+        h=From:To:Cc:Subject:Date:From;
+        b=fb/Qkf8GEbxBXwcXuwgZG2SbDyoBMFhlrqxtK2uniTcqeVZ+oXGFWOr4X6Hzbu0jY
+         fEgQ2sLAJjdKQtcx8QL4TugQGQ3GLUL3mn7hfOe6dOWanqiaILdh6UgK+lNg9HBtvG
+         Y5jNuZysmKgmPIBi6pQMVORDjUfpB81PjFC8pepQ=
+From:   Icenowy Zheng <icenowy@aosc.io>
+To:     Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Xiao Yang <yangx.jy@cn.fujitsu.com>
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Icenowy Zheng <icenowy@aosc.io>, stable@vger.kernel.org
+Subject: [PATCH] ovl: use a dedicated semaphore for dir upperfile caching
+Date:   Sat,  2 Jan 2021 04:12:30 +0800
+Message-Id: <20210101201230.768653-1-icenowy@aosc.io>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1kvOLP-0009RW-Il;;;mid=<87czyoimqz.fsf@x220.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX18iUeLdjvyBTCthc4PVnPTvYUkmUHyVYDw=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [PATCH v2 01/10] vfs: move cap_convert_nscap() call into vfs_setxattr()
-X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
-X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
+Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [4.90 / 20.00];
+         RCVD_VIA_SMTP_AUTH(0.00)[];
+         ARC_NA(0.00)[];
+         R_DKIM_ALLOW(0.00)[aosc.io:s=default];
+         RECEIVED_SPAMHAUS_PBL(0.00)[59.41.162.48:received];
+         FROM_HAS_DN(0.00)[];
+         TO_DN_SOME(0.00)[];
+         FREEMAIL_ENVRCPT(0.00)[gmail.com];
+         R_MISSING_CHARSET(2.50)[];
+         MIME_GOOD(-0.10)[text/plain];
+         TO_MATCH_ENVRCPT_ALL(0.00)[];
+         BROKEN_CONTENT_TYPE(1.50)[];
+         R_SPF_SOFTFAIL(0.00)[~all];
+         DMARC_NA(0.00)[aosc.io];
+         ML_SERVERS(-3.10)[148.251.23.173];
+         DKIM_TRACE(0.00)[aosc.io:+];
+         RCPT_COUNT_SEVEN(0.00)[7];
+         MID_CONTAINS_FROM(1.00)[];
+         FREEMAIL_TO(0.00)[szeredi.hu,gmail.com,cn.fujitsu.com];
+         RCVD_NO_TLS_LAST(0.10)[];
+         FROM_EQ_ENVFROM(0.00)[];
+         MIME_TRACE(0.00)[0:+];
+         ASN(0.00)[asn:24940, ipnet:148.251.0.0/16, country:DE];
+         RCVD_COUNT_TWO(0.00)[2];
+         HFILTER_HELO_BAREIP(3.00)[148.251.23.173,1]
+X-Rspamd-Queue-Id: C3F6B423F0
+X-Rspamd-Server: mail20.mymailcheap.com
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Miklos Szeredi <mszeredi@redhat.com> writes:
+The function ovl_dir_real_file() currently uses the semaphore of the
+inode to synchronize write to the upperfile cache field.
 
-> cap_convert_nscap() does permission checking as well as conversion of the
-> xattr value conditionally based on fs's user-ns.
->
-> This is needed by overlayfs and probably other layered fs (ecryptfs) and is
-> what vfs_foo() is supposed to do anyway.
+However, this function will get called by ovl_ioctl_set_flags(), which
+utilizes the inode semaphore too. In this case ovl_dir_real_file() will
+try to claim a lock that is owned by a function in its call stack, which
+won't get released before ovl_dir_real_file() returns.
 
-Well crap.
+Define a dedicated semaphore for the upperfile cache, so that the
+deadlock won't happen.
 
-I just noticed this and it turns out this change is wrong.
+Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR ioctls for directories")
+Cc: stable@vger.kernel.org # v5.10
+Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+---
+ fs/overlayfs/readdir.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-The problem is that it reads the rootid from the v3 fscap, using
-current_user_ns() and then writes it using the sb->s_user_ns.
-
-So any time the stacked filesystems sb->s_user_ns do not match or
-current_user_ns does not match sb->s_user_ns this could be a problem.
-
-In a stacked filesystem a second pass through vfs_setxattr will result
-in the rootid being translated a second time (with potentially the wrong
-namespaces).  I think because of the security checks a we won't write
-something we shouldn't be able to write to the filesystem.  Still we
-will be writing the wrong v3 fscap which can go quite badly.
-
-This doesn't look terribly difficult to fix.
-
-Probably convert this into a fs independent form using uids in
-init_user_ns at input and have cap_convert_nscap convert the v3 fscap
-into the filesystem dependent form.  With some way for stackable
-filesystems to just skip converting it from the filesystem independent
-format.
-
-Uids in xattrs that are expected to go directly to disk, but aren't
-always suitable for going directly to disk are tricky.
-
-Eric
-
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/xattr.c                 | 17 +++++++++++------
->  include/linux/capability.h |  2 +-
->  security/commoncap.c       |  3 +--
->  3 files changed, 13 insertions(+), 9 deletions(-)
->
-> diff --git a/fs/xattr.c b/fs/xattr.c
-> index cd7a563e8bcd..fd57153b1f61 100644
-> --- a/fs/xattr.c
-> +++ b/fs/xattr.c
-> @@ -276,8 +276,16 @@ vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
->  {
->  	struct inode *inode = dentry->d_inode;
->  	struct inode *delegated_inode = NULL;
-> +	const void  *orig_value = value;
->  	int error;
->  
-> +	if (size && strcmp(name, XATTR_NAME_CAPS) == 0) {
-> +		error = cap_convert_nscap(dentry, &value, size);
-> +		if (error < 0)
-> +			return error;
-> +		size = error;
-> +	}
-> +
->  retry_deleg:
->  	inode_lock(inode);
->  	error = __vfs_setxattr_locked(dentry, name, value, size, flags,
-> @@ -289,6 +297,9 @@ vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
->  		if (!error)
->  			goto retry_deleg;
->  	}
-> +	if (value != orig_value)
-> +		kfree(value);
-> +
->  	return error;
->  }
->  EXPORT_SYMBOL_GPL(vfs_setxattr);
-> @@ -537,12 +548,6 @@ setxattr(struct dentry *d, const char __user *name, const void __user *value,
->  		if ((strcmp(kname, XATTR_NAME_POSIX_ACL_ACCESS) == 0) ||
->  		    (strcmp(kname, XATTR_NAME_POSIX_ACL_DEFAULT) == 0))
->  			posix_acl_fix_xattr_from_user(kvalue, size);
-> -		else if (strcmp(kname, XATTR_NAME_CAPS) == 0) {
-> -			error = cap_convert_nscap(d, &kvalue, size);
-> -			if (error < 0)
-> -				goto out;
-> -			size = error;
-> -		}
->  	}
->  
->  	error = vfs_setxattr(d, kname, kvalue, size, flags);
-> diff --git a/include/linux/capability.h b/include/linux/capability.h
-> index 1e7fe311cabe..b2f698915c0f 100644
-> --- a/include/linux/capability.h
-> +++ b/include/linux/capability.h
-> @@ -270,6 +270,6 @@ static inline bool checkpoint_restore_ns_capable(struct user_namespace *ns)
->  /* audit system wants to get cap info from files as well */
->  extern int get_vfs_caps_from_disk(const struct dentry *dentry, struct cpu_vfs_cap_data *cpu_caps);
->  
-> -extern int cap_convert_nscap(struct dentry *dentry, void **ivalue, size_t size);
-> +extern int cap_convert_nscap(struct dentry *dentry, const void **ivalue, size_t size);
->  
->  #endif /* !_LINUX_CAPABILITY_H */
-> diff --git a/security/commoncap.c b/security/commoncap.c
-> index 59bf3c1674c8..bacc1111d871 100644
-> --- a/security/commoncap.c
-> +++ b/security/commoncap.c
-> @@ -473,7 +473,7 @@ static bool validheader(size_t size, const struct vfs_cap_data *cap)
->   *
->   * If all is ok, we return the new size, on error return < 0.
->   */
-> -int cap_convert_nscap(struct dentry *dentry, void **ivalue, size_t size)
-> +int cap_convert_nscap(struct dentry *dentry, const void **ivalue, size_t size)
->  {
->  	struct vfs_ns_cap_data *nscap;
->  	uid_t nsrootid;
-> @@ -516,7 +516,6 @@ int cap_convert_nscap(struct dentry *dentry, void **ivalue, size_t size)
->  	nscap->magic_etc = cpu_to_le32(nsmagic);
->  	memcpy(&nscap->data, &cap->data, sizeof(__le32) * 2 * VFS_CAP_U32);
->  
-> -	kvfree(*ivalue);
->  	*ivalue = nscap;
->  	return newsize;
->  }
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 01620ebae1bd..f10701aabb71 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -56,6 +56,7 @@ struct ovl_dir_file {
+ 	struct list_head *cursor;
+ 	struct file *realfile;
+ 	struct file *upperfile;
++	struct semaphore upperfile_sem;
+ };
+ 
+ static struct ovl_cache_entry *ovl_cache_entry_from_node(struct rb_node *n)
+@@ -883,7 +884,7 @@ struct file *ovl_dir_real_file(const struct file *file, bool want_upper)
+ 			ovl_path_upper(dentry, &upperpath);
+ 			realfile = ovl_dir_open_realfile(file, &upperpath);
+ 
+-			inode_lock(inode);
++			down(&od->upperfile_sem);
+ 			if (!od->upperfile) {
+ 				if (IS_ERR(realfile)) {
+ 					inode_unlock(inode);
+@@ -896,7 +897,7 @@ struct file *ovl_dir_real_file(const struct file *file, bool want_upper)
+ 					fput(realfile);
+ 				realfile = od->upperfile;
+ 			}
+-			inode_unlock(inode);
++			up(&od->upperfile_sem);
+ 		}
+ 	}
+ 
+@@ -959,6 +960,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
+ 	od->realfile = realfile;
+ 	od->is_real = ovl_dir_is_real(file->f_path.dentry);
+ 	od->is_upper = OVL_TYPE_UPPER(type);
++	sema_init(&od->upperfile_sem, 1);
+ 	file->private_data = od;
+ 
+ 	return 0;
+-- 
+2.28.0
