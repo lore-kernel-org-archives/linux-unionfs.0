@@ -2,96 +2,135 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CEDBC433E9
-	for <linux-unionfs@archiver.kernel.org>; Sat,  2 Jan 2021 13:26:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3881C433E0
+	for <linux-unionfs@archiver.kernel.org>; Sun,  3 Jan 2021 14:12:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DD43224D4
-	for <linux-unionfs@archiver.kernel.org>; Sat,  2 Jan 2021 13:26:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A11C22080D
+	for <linux-unionfs@archiver.kernel.org>; Sun,  3 Jan 2021 14:12:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726663AbhABN0b (ORCPT
+        id S1726525AbhACOLs (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 2 Jan 2021 08:26:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:37198 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1726636AbhABN03 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 2 Jan 2021 08:26:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DAABD224D4;
-        Sat,  2 Jan 2021 13:25:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1609593949;
-        bh=nQptyWsIb5DLXUAZK2xe+ITycsezO9g8NVJXR3oAkm4=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=V8EdnLsyWJKT9bxjUp5n2zEUvpNVcnHpEfJIqpZDfNqU45WzeiJl8WvVsEgET8JHK
-         /MVvoFy59bzktC95YX/+LAyH8bLYWXWeHkY7lH4U6P6SsonscRHCHaax+eg9iMUqD9
-         v1gIa20v6BIikhb4H69COOpMBsWH+Cui7dHtXXKfYCBpABidWvd8W1u6kX5Q9GBTNu
-         CXapbNzjaj3Tv8XDY3ZlBmLtolpfRL4btczqchZk7XxD10IrWH4XWjDzHkSh1UseNT
-         NTdvu/kgGU+iU9SxlWZcJlLdS5Z4rgFBEtVYnv0gwJY9wlQ0q1vrkR/FQDWCCdSnSn
-         RE9wGmXcJOF+A==
-Message-ID: <a8dc3066ec2dd2038af1375d7ecb2e72fe101e7b.camel@kernel.org>
-Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Matthew Wilcox <willy@infradead.org>,
-        Amir Goldstein <amir73il@gmail.com>
-Cc:     Sargun Dhillon <sargun@sargun.me>, Vivek Goyal <vgoyal@redhat.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
-        NeilBrown <neilb@suse.com>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@lst.de>,
-        Chengguang Xu <cgxu519@mykernel.net>
-Date:   Sat, 02 Jan 2021 08:25:46 -0500
-In-Reply-To: <20201228204837.GA28221@casper.infradead.org>
-References: <20201223200746.GR874@casper.infradead.org>
-         <20201223202140.GB11012@ircssh-2.c.rugged-nimbus-611.internal>
-         <20201223204428.GS874@casper.infradead.org>
-         <CAOQ4uxjAeGv8x2hBBzHz5PjSDq0Q+RN-ikgqEvAA+XE_U-U5Nw@mail.gmail.com>
-         <20201224121352.GT874@casper.infradead.org>
-         <CAOQ4uxj5YS9LSPoBZ3uakb6NeBG7g-Zeu+8Vt57tizEH6xu0cw@mail.gmail.com>
-         <1334bba9cefa81f80005f8416680afb29044379c.camel@kernel.org>
-         <20201228155618.GA6211@casper.infradead.org>
-         <5bc11eb2e02893e7976f89a888221c902c11a2b4.camel@kernel.org>
-         <CAOQ4uxhFz=Uervz6sMuz=RcFUWAxyLEhBrWnjQ+U0Jj_AaU59w@mail.gmail.com>
-         <20201228204837.GA28221@casper.infradead.org>
-Content-Type: text/plain; charset="ISO-8859-15"
-User-Agent: Evolution 3.38.2 (3.38.2-1.fc33) 
+        Sun, 3 Jan 2021 09:11:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32988 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726246AbhACOLr (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 3 Jan 2021 09:11:47 -0500
+Received: from mail-il1-x132.google.com (mail-il1-x132.google.com [IPv6:2607:f8b0:4864:20::132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47F39C061573;
+        Sun,  3 Jan 2021 06:11:07 -0800 (PST)
+Received: by mail-il1-x132.google.com with SMTP id e7so19231306ile.7;
+        Sun, 03 Jan 2021 06:11:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=SsNZGoLzdSXQyiIM63lxMbZN+jRAOh5izEIZB+klgno=;
+        b=gPMeLdqvvFCCbqJmtqgg/ggFc8rnNDCg0G8Et1H2P9nlP8xic8yl21ZRqfw1dg3w8V
+         +qJe5A+CAVLxbJ9pBB7WBaXWXXoohfY5AiAn5DVffNOekn2Oyp/iAFF/frt5uNRsrxYN
+         +4OWcVANKVsH7eQ2956o7mu+QtMzbYLzpL6B7/e8UvNdaDEAdRsLtWEq0mgvCZf0udoT
+         4HKc9qibtt4TeNCRu3d9WF6m2yhHDsto2lsYP6KIuRJPZtOrbE9sFFOmeEBwmqpg3c4i
+         AipKhNiPIH/rkyEIob9D5LOkLZOGKH5rTbTFM5aE3yJ58TcG3MnwTFH5MK7ACzmMABNg
+         3oSQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=SsNZGoLzdSXQyiIM63lxMbZN+jRAOh5izEIZB+klgno=;
+        b=KYgjuF3FNKfCBIv73daFXJ8bCZMvmOScIyOx/lOy482qwr/ghKKlgz6dUwdLQssMc/
+         rJdWK2DQuOTt0W4XHB5qttvflUG3DTRvJRrBMMAqahM8mbACd6i03U1ySl2SUlJbyXGG
+         rg513lXBoH3y8vQd9707iCYoKRkEpQa9RI6vLZWOuKi8fecDWA6qa7UoIoZPa3Hoe/YH
+         Ei+yVNXovnz7XcpJkgose/GfAKrLUOrdHGD/FbJFFpogm6N04DiwFLsi1ppZCjQl/fV0
+         4l084TZn4LxROtoFvSV65Q/ON6JWS5O3PfJqFhXDh9wWWVl5l97s9Qy2vGikUTWmp5UP
+         kOMw==
+X-Gm-Message-State: AOAM532sGpLriFUue+WOvMlsDK5t+a5073hjGZre/hbhLQhuM5SzoMs9
+        gebE9VCbwjgQKl6kFlDHuWIbUr6yUXiLlZaOFR2FLIv22XE=
+X-Google-Smtp-Source: ABdhPJw8YvhDG3S7Xh3RhCVPYKg4UEzcZQeWn5mfpUbTRyqouWRWKXZEBMPh/4FD45AqO9aJXU2wBIk4p+zAI8fnfY8=
+X-Received: by 2002:a92:6403:: with SMTP id y3mr65359341ilb.72.1609683066480;
+ Sun, 03 Jan 2021 06:11:06 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+References: <20210101201230.768653-1-icenowy@aosc.io>
+In-Reply-To: <20210101201230.768653-1-icenowy@aosc.io>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sun, 3 Jan 2021 16:10:55 +0200
+Message-ID: <CAOQ4uxgNWkzVphdB7cAkwdUXagM_NsCUYDRT1f-=X1rn1-KpUQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: use a dedicated semaphore for dir upperfile caching
+To:     Icenowy Zheng <icenowy@aosc.io>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Xiao Yang <yangx.jy@cn.fujitsu.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        stable <stable@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, 2020-12-28 at 20:48 +0000, Matthew Wilcox wrote:
-> On Mon, Dec 28, 2020 at 09:37:37PM +0200, Amir Goldstein wrote:
-> > Having said that, I never objected to the SEEN flag split.
-> 
-> I STRONGLY object to the SEEN flag split.  I think it is completely
-> unnecessary and nobody's shown me a use-case that changes my mind.
+On Fri, Jan 1, 2021 at 10:12 PM Icenowy Zheng <icenowy@aosc.io> wrote:
+>
+> The function ovl_dir_real_file() currently uses the semaphore of the
+> inode to synchronize write to the upperfile cache field.
+>
+> However, this function will get called by ovl_ioctl_set_flags(), which
+> utilizes the inode semaphore too. In this case ovl_dir_real_file() will
+> try to claim a lock that is owned by a function in its call stack, which
+> won't get released before ovl_dir_real_file() returns.
 
-I think the flag split makes better sense conceptually, though the
-existing callers don't really have a need for it. I have a use-case in
-mind that doesn't really involve overlayfs:
+oops. I wondered why I didn't see any warnings on this from lockdep.
+Ah! because the xfstest that exercises ovl_ioctl_set_flags() on directory,
+generic/079, starts with an already upper dir.
 
-We still have a lot of internal callers that ultimately call
-filemap_check_errors() to check and clear the mapping's AS_EIO/AS_ENOSPC
-flags.
+And the xfstest that checks chattr+i on lower/upper files, overlay/040,
+does not check chattr on dirs (ioctl on overlay dirs wasn't supported at
+the time the test was written).
 
-Splitting the SEEN flag in two could allow those callers to instead
-sample the errseq_t using errseq_peek for their own purposes, without
-clearing the REPORTED flag. That means that the existing semantics for
-seeing errors on newly opened files could be preserved while allowing
-internal callers to use errseq_t-based error handling.
+Would you be able to create a variant of test overlay/040 that also tests
+chattr +i on lower/upper dirs to test your patch and confirm that the test
+fails on master with the appropriate Kconfig debug options.
 
-That said, I don't have any patches to do this right now. It's a fairly
-significant project to convert all of the existing callers of
-filemap_check_errors() to such a scheme wholesale. It could be done
-piecemeal though, and we could start discouraging new callers of
-filemap_check_errors and the like.
+>
+> Define a dedicated semaphore for the upperfile cache, so that the
+> deadlock won't happen.
+>
+> Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR ioctls for directories")
+> Cc: stable@vger.kernel.org # v5.10
+> Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+> ---
+>  fs/overlayfs/readdir.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 01620ebae1bd..f10701aabb71 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -56,6 +56,7 @@ struct ovl_dir_file {
+>         struct list_head *cursor;
+>         struct file *realfile;
+>         struct file *upperfile;
+> +       struct semaphore upperfile_sem;
 
--- 
-Jeff Layton <jlayton@kernel.org>
+mutex please
 
+>  };
+>
+>  static struct ovl_cache_entry *ovl_cache_entry_from_node(struct rb_node *n)
+> @@ -883,7 +884,7 @@ struct file *ovl_dir_real_file(const struct file *file, bool want_upper)
+>                         ovl_path_upper(dentry, &upperpath);
+>                         realfile = ovl_dir_open_realfile(file, &upperpath);
+>
+> -                       inode_lock(inode);
+> +                       down(&od->upperfile_sem);
+>                         if (!od->upperfile) {
+>                                 if (IS_ERR(realfile)) {
+>                                         inode_unlock(inode);
+
+You missed this unlock
+
+Thanks,
+Amir.
