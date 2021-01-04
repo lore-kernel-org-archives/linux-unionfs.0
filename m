@@ -2,249 +2,250 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D048BC433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 20:02:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52807C433DB
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 22:46:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FF6B21919
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 20:02:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2910B2251F
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 22:46:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726396AbhADUCQ (ORCPT
+        id S1726525AbhADWqV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Jan 2021 15:02:16 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:44053 "EHLO
+        Mon, 4 Jan 2021 17:46:21 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:54726 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726168AbhADUCQ (ORCPT
+        by vger.kernel.org with ESMTP id S1726124AbhADWqV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Jan 2021 15:02:16 -0500
+        Mon, 4 Jan 2021 17:46:21 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1609790449;
+        s=mimecast20190719; t=1609800293;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=qouK5nWfYEyie46q+dkJgtJ0jRBuiXBKgmztVRhl43A=;
-        b=dMEGlxH+qSWV8Ic/MrgWTn5umWHDVnMf5wI9A6SuvLqui4ssrpr5PryUaqriZ7X6DF6XED
-        h0hZavjShG/Gw2/KLMJTO8amNJ3J9NFDxWqRV0p4cFcniOakXcU24tUP2tKedDNUdLOq5q
-        11ec3stTL5mnmUK+Cp1sCkCcJWspquA=
+        bh=/DWUYY4paJGpoEUp4OUeGMhlHKwV3cu6CkyK0l0C8TE=;
+        b=ftDSle3M2I933hKVO1zrAupYPJnxeBf0xk6aDABhy9C1//ifiNrF9cqSh6nXRgWZBI62F6
+        OK9pY//BLPgLYVSD2uNOtUvoVE0vAzsl9iBJ9X2c8EgxjPZlT0G4B15OXhp45ZapQxZwHc
+        NwaL7O84rg4qU9NO+hGlwgqwB4xaIDs=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-421-TLzugGxvNuuh3otGhZ7bSw-1; Mon, 04 Jan 2021 15:00:45 -0500
-X-MC-Unique: TLzugGxvNuuh3otGhZ7bSw-1
-Received: from smtp.corp.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+ us-mta-416-pWvSCnITP3WxgW-snT8KDQ-1; Mon, 04 Jan 2021 17:44:51 -0500
+X-MC-Unique: pWvSCnITP3WxgW-snT8KDQ-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BB971107ACF5;
-        Mon,  4 Jan 2021 20:00:42 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id A7D6610054FF;
+        Mon,  4 Jan 2021 22:44:48 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-115-2.rdu2.redhat.com [10.10.115.2])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 7A715272A8;
-        Mon,  4 Jan 2021 20:00:42 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E792710023B2;
+        Mon,  4 Jan 2021 22:44:47 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id EC137220BCF; Mon,  4 Jan 2021 15:00:36 -0500 (EST)
-Date:   Mon, 4 Jan 2021 15:00:36 -0500
+        id 7246C220BCF; Mon,  4 Jan 2021 17:44:47 -0500 (EST)
+Date:   Mon, 4 Jan 2021 17:44:47 -0500
 From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, jlayton@kernel.org,
-        amir73il@gmail.com, miklos@szeredi.hu, willy@infradead.org,
-        jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk, hch@lst.de
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Matthew Wilcox <willy@infradead.org>,
+        Sargun Dhillon <sargun@sargun.me>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Jeff Layton <jlayton@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
+        NeilBrown <neilb@suse.com>, Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@lst.de>,
+        Chengguang Xu <cgxu519@mykernel.net>
 Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
-Message-ID: <20210104200036.GF63879@redhat.com>
-References: <20201221195055.35295-1-vgoyal@redhat.com>
- <20201221195055.35295-4-vgoyal@redhat.com>
- <20201223182026.GA9935@ircssh-2.c.rugged-nimbus-611.internal>
+Message-ID: <20210104224447.GG63879@redhat.com>
+References: <20201223185044.GQ874@casper.infradead.org>
+ <20201223192940.GA11012@ircssh-2.c.rugged-nimbus-611.internal>
+ <20201223200746.GR874@casper.infradead.org>
+ <20201223202140.GB11012@ircssh-2.c.rugged-nimbus-611.internal>
+ <20201223204428.GS874@casper.infradead.org>
+ <CAOQ4uxjAeGv8x2hBBzHz5PjSDq0Q+RN-ikgqEvAA+XE_U-U5Nw@mail.gmail.com>
+ <20210104151424.GA63879@redhat.com>
+ <CAOQ4uxgiC5Wm+QqD+vbmzkFvEqG6yvKYe_4sR7ZUVfu-=Ys9oQ@mail.gmail.com>
+ <20210104154015.GA73873@redhat.com>
+ <CAOQ4uxhYXeUt2iggM3oubdgr91QPNhUg2PdN128gRvR3rQoy1Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20201223182026.GA9935@ircssh-2.c.rugged-nimbus-611.internal>
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.23
+In-Reply-To: <CAOQ4uxhYXeUt2iggM3oubdgr91QPNhUg2PdN128gRvR3rQoy1Q@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Dec 23, 2020 at 06:20:27PM +0000, Sargun Dhillon wrote:
-> On Mon, Dec 21, 2020 at 02:50:55PM -0500, Vivek Goyal wrote:
-> > Currently syncfs() and fsync() seem to be two interfaces which check and
-> > return writeback errors on superblock to user space. fsync() should
-> > work fine with overlayfs as it relies on underlying filesystem to
-> > do the check and return error. For example, if ext4 is on upper filesystem,
-> > then ext4_sync_file() calls file_check_and_advance_wb_err(file) on
-> > upper file and returns error. So overlayfs does not have to do anything
-> > special.
-> > 
-> > But with syncfs(), error check happens in vfs in syncfs() w.r.t
-> > overlay_sb->s_wb_err. Given overlayfs is stacked filesystem, it
-> > does not do actual writeback and all writeback errors are recorded
-> > on underlying filesystem. So sb->s_wb_err is never updated hence
-> > syncfs() does not work with overlay.
-> > 
-> > Jeff suggested that instead of trying to propagate errors to overlay
-> > super block, why not simply check for errors against upper filesystem
-> > super block. I implemented this idea.
-> > 
-> > Overlay file has "since" value which needs to be initialized at open
-> > time. Overlay overrides VFS initialization and re-initializes
-> > f->f_sb_err w.r.t upper super block. Later when
-> > ovl_sb->errseq_check_advance() is called, f->f_sb_err is used as
-> > since value to figure out if any error on upper sb has happened since
-> > then.
-> > 
-> > Note, Right now this patch only deals with regular file and directories.
-> > Yet to deal with special files like device inodes, socket, fifo etc.
-> > 
-> > Suggested-by: Jeff Layton <jlayton@kernel.org>
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  fs/overlayfs/file.c      |  1 +
-> >  fs/overlayfs/overlayfs.h |  1 +
-> >  fs/overlayfs/readdir.c   |  1 +
-> >  fs/overlayfs/super.c     | 23 +++++++++++++++++++++++
-> >  fs/overlayfs/util.c      | 13 +++++++++++++
-> >  5 files changed, 39 insertions(+)
-> > 
-> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> > index efccb7c1f9bc..7b58a44dcb71 100644
-> > --- a/fs/overlayfs/file.c
-> > +++ b/fs/overlayfs/file.c
-> > @@ -163,6 +163,7 @@ static int ovl_open(struct inode *inode, struct file *file)
-> >  		return PTR_ERR(realfile);
-> >  
-> >  	file->private_data = realfile;
-> > +	ovl_init_file_errseq(file);
-> >  
-> >  	return 0;
-> >  }
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index f8880aa2ba0e..47838abbfb3d 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -322,6 +322,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs *ofs, struct dentry *dentry);
-> >  bool ovl_is_metacopy_dentry(struct dentry *dentry);
-> >  char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
-> >  			     int padding);
-> > +void ovl_init_file_errseq(struct file *file);
-> >  
-> >  static inline bool ovl_is_impuredir(struct super_block *sb,
-> >  				    struct dentry *dentry)
-> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> > index 01620ebae1bd..0c48f1545483 100644
-> > --- a/fs/overlayfs/readdir.c
-> > +++ b/fs/overlayfs/readdir.c
-> > @@ -960,6 +960,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
-> >  	od->is_real = ovl_dir_is_real(file->f_path.dentry);
-> >  	od->is_upper = OVL_TYPE_UPPER(type);
-> >  	file->private_data = od;
-> > +	ovl_init_file_errseq(file);
-> >  
-> >  	return 0;
-> >  }
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index 290983bcfbb3..d99867983722 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -390,6 +390,28 @@ static int ovl_remount(struct super_block *sb, int *flags, char *data)
-> >  	return ret;
-> >  }
-> >  
-> > +static int ovl_errseq_check_advance(struct super_block *sb, struct file *file)
-> > +{
-> > +	struct ovl_fs *ofs = sb->s_fs_info;
-> > +	struct super_block *upper_sb;
-> > +	int ret;
-> > +
-> > +	if (!ovl_upper_mnt(ofs))
-> > +		return 0;
-> > +
-> > +	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
-> > +
-> > +	if (!errseq_check(&upper_sb->s_wb_err, file->f_sb_err))
-> > +		return 0;
-> > +
-> > +	/* Something changed, must use slow path */
-> > +	spin_lock(&file->f_lock);
-> > +	ret = errseq_check_and_advance(&upper_sb->s_wb_err, &file->f_sb_err);
-> > +	spin_unlock(&file->f_lock);
-> > +
-> > +	return ret;
-> > +}
-> > +
-> >  static const struct super_operations ovl_super_operations = {
-> >  	.alloc_inode	= ovl_alloc_inode,
-> >  	.free_inode	= ovl_free_inode,
-> > @@ -400,6 +422,7 @@ static const struct super_operations ovl_super_operations = {
-> >  	.statfs		= ovl_statfs,
-> >  	.show_options	= ovl_show_options,
-> >  	.remount_fs	= ovl_remount,
-> > +	.errseq_check_advance	= ovl_errseq_check_advance,
-> >  };
-> >  
-> >  enum {
-> > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > index 23f475627d07..a1742847f3a8 100644
-> > --- a/fs/overlayfs/util.c
-> > +++ b/fs/overlayfs/util.c
-> > @@ -950,3 +950,16 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
-> >  	kfree(buf);
-> >  	return ERR_PTR(res);
-> >  }
-> > +
-> > +void ovl_init_file_errseq(struct file *file)
-> > +{
-> > +	struct super_block *sb = file_dentry(file)->d_sb;
-> > +	struct ovl_fs *ofs = sb->s_fs_info;
-> > +	struct super_block *upper_sb;
-> > +
-> > +	if (!ovl_upper_mnt(ofs))
-> > +		return;
-> > +
-> > +	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
-> > +	file->f_sb_err = errseq_sample(&upper_sb->s_wb_err);
-> > +}
-> > -- 
-> > 2.25.4
-> > 
+On Mon, Jan 04, 2021 at 11:42:51PM +0200, Amir Goldstein wrote:
+> On Mon, Jan 4, 2021 at 5:40 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > On Mon, Jan 04, 2021 at 05:22:07PM +0200, Amir Goldstein wrote:
+> > > > > Since Jeff's patch is minimal, I think that it should be the fix applied
+> > > > > first and proposed for stable (with adaptations for non-volatile overlay).
+> > > >
+> > > > Does stable fix has to be same as mainline fix. IOW, I think atleast in
+> > > > mainline we should first fix it the right way and then think how to fix
+> > > > it for stable. If fixes taken in mainline are not realistic for stable,
+> > > > can we push a different small fix just for stable?
+> > >
+> > > We can do a lot of things.
+> > > But if we are able to create a series with minimal (and most critical) fixes
+> > > followed by other fixes, it would be easier for everyone involved.
+> >
+> > I am not sure this is really critical. writeback error reporting for
+> > overlayfs are broken since the beginning for regular mounts. There is no
+> > notion of these errors being reported to user space. If that did not
+> > create a major issue, then why suddenly volatile mounts make it
+> > a critical issue.
+> >
 > 
-> I fail to see why this is neccessary if you incorporate error reporting into the 
-> sync_fs callback. Why is this separate from that callback?
+> Volatile mounts didn't make this a critical issue.
+> But this discussion made us notice a mildly serious issue.
+> It is not surprising to me that users did not report this issue.
+> Do you know what it takes for a user to notice that writeback had failed,
+> but an application did fsync and error did not get reported?
+> Filesystem durability guaranties are hard to prove especially with so
+> many subsystem layers and with fsync that does return an error correctly.
+> I once found a durability bug in fsync of xfs that existed for 12 years.
+> That fact does not at all make it any less critical.
+> 
+> > To me we should fix the issue properly which is easy to maintain
+> > down the line and then worry about doing a stable fix if need be.
+> >
+> > >
+> > > >
+> > > > IOW, because we have to push a fix in stable, should not determine
+> > > > what should be problem solution for mainline, IMHO.
+> > > >
+> > >
+> > > I find in this case there is a correlation between the simplest fix and the
+> > > most relevant fix for stable.
+> > >
+> > > > The porblem I have with Jeff's fix is that its only works for volatile
+> > > > mounts. While I prefer a solution where syncfs() is fixed both for
+> > > > volatile as well as non-volatile mount and then there is less confusion.
+> > > >
+> > >
+> > > I proposed a variation on Jeff's patch that covers both cases.
+> > > Sargun is going to work on it.
+> >
+> > What's the problem with my patches which fixes syncfs() error reporting
+> > for overlayfs both for volatile and non-volatile mount?
+> >
+> 
+> - mount 1000 overlays
+> - 1 writeback error recorded in upper sb
+> - syncfs (new fd) inside each of the 1000 containers
+> 
+> With your patch 3/3 only one syncfs will report an error for
+> both volatile and non-volatile cases. Right?
 
-- Writeback error should be checked after __sync_blockdev() has been 
-  called. And that's called by VFS and not in ->sync_fs. This can be
-  changed by moving __sync_blockdev() insde ->sync_fs() for all
-  filesystems which need it. And that's what Jeff had done in the
-  past. That attempt did not make it upstream.
-
-  https://lore.kernel.org/linux-fsdevel/20180518123415.28181-1-jlayton@kernel.org/ 
-
-  Given this triggered changes all over the place, I started looking for
-  alternatives. And thought adding a super operation to check for errors 
-  solves the problem and keeps the changes to minimum.
-
-> If you pickup Jeff's
-> patch that adds the 2nd flag to errseq for "observed", you should be able to
-> stash the first errseq seen in the ovl_fs struct, and do the check-and-return
-> in there instead instead of adding this new infrastructure.
-
-Why to stash errseq in ovl_fs struct when we can directly compare it
-with upper sb? "since" value is in "struct file" and current errseq
-value is in upper_sb. Atleast to solve this problem it should not
-be mandatory to stash errseq value in ovl_fs.
+Right. If you don't have an old fd open in each container, then only
+one container will see the error. If you want to see error in each
+container, then one fd needs to be kept opened in each container
+before error hapens and call syncfs() on that fd, and then each
+container should see the error.
 
 > 
-> IMHO, if we're going to fix this, sync_fs should be replaced, and there should 
-> be a generic_sync_fs wrapper which does the errseq, callback, and sync blockdev, 
-> but then filesystems should be able to override it and do the requisite work.
+> What I would rather see is:
+> - Non-volatile: first syncfs in every container gets an error (nice to have)
 
-Not exactly sure what you mean. But I guess you are falling back to the
-idea of moving some of the vfs functionality of calling __sync_blockdev()
-into filesystem ->sync_fs handler. That leads back to patches Jeff
-Layton had posted in the past and is much more invasive change.
+I am not sure why are we making this behavior per container. This should
+be no different from current semantics we have for syncfs() on regular
+filesystem. And that will provide what you are looking for. If you
+want single error to be reported in all ovleray mounts, then make
+sure you have one fd open in each mount after mount, then call syncfs()
+on that fd.
 
-I am not against that approach but so far I have not seen any strong
-interest from other in favor of that approach instead. So I find
-this approach simpler and much less intrusive.
+Not sure why overlayfs behavior/semantics should be any differnt
+than what regular filessytems like ext4/xfs are offering. Once we
+get page cache sharing sorted out with xfs reflink, then people
+will not even need overlayfs and be able to launch containers
+just using xfs reflink and share base image. In that case also
+they will need to keep an fd open per container they want to
+see an error in.
 
+So my patches exactly provide that. syncfs() behavior is same with
+overlayfs as application gets it on other filesystems. And to me
+its important to keep behavior same.
+
+> - Volatile: every syncfs and every fsync in every container gets an error
+>   (important IMO)
+
+For volatile mounts, I agree that we need to fail overlayfs instance
+as soon as first error is detected since mount. And this applies to
+not only syncfs()/fsync() but to read/write and other operations too.
+
+For that we will need additional patches which are floating around
+to keep errseq sample in overlay and check for errors in all
+paths syncfs/fsync/read/write/.... and fail fs. But these patches
+build on top of my patches. My patches don't solve this problem of
+failing overlay mount for the volatile mount case.
+
+> 
+> This is why I prefer to sample upper sb error on mount and propagate
+> new errors to overlayfs sb (Jeff's patch).
+
+Ok, I think this is one of the key points of the whole discussion. What
+mechanism should be used to propagate writeback errors through overlayfs.
+
+A. Propagate errors from upper sb to overlay sb.
+B. Leave overlay sb alone and use upper sb for error checks.
+
+We don't have good model to propagate errors between super blocks,
+so Jeff preferred not to do error propagation between super blocks
+for regular mounts.
+
+https://lore.kernel.org/linux-fsdevel/bff90dfee3a3392d67a4f3516ab28989e87fa25f.camel@kernel.org/
+
+If we are not defining new semantics for syncfs() for overlayfs, then
+I can't see what's the advantage of coming up with new mechanism to
+propagate errors to overlay sb. Approach B should work just fine and
+provide the syncfs() semantics we want for overlayfs (Same semantics
+as other filesystems).
+
+Having said that, I am open to the idea of propagating errors if that
+makes implementation better. Its just an implementation detail to
+me and user visible behavior should remain same.
+
+> 
+> I am very much in favor of your patch 1/3 and I am not against the concept
+> of patches 2-3/3. Just think that ovl_errseq_check_advance() is not the
+> implementation that gives the most desirable result.
+
+I think this is the key point of contention. You seem to expecting
+a different syncfs() behavior only for overlayfs and tying it to 
+the notion of container. And I am wondering why it should be any
+different from any other filesystem. And those who want to see
+upper_sb error in each mounted overlay instance, they should keep
+one fd open in overlay after mount.
+
+So lets sort that out this syncfs() behavior part first before we
+get to implementation details.
+
+Thanks
 Vivek
+
+> 
+> If people do accept my point of view that proxying the stacked error check
+> is preferred over "passthrough" to upper sb error check, then as a by-product,
+> the new ->check_error() method is not going to make much of a difference for
+> overlayfs. Maybe it can be used to fine tune some corner cases.
+> I am not sure.
+> If we do agree on the propagate error concept then IMO all other use
+> cases for not consuming the unseen error from upper fs are nice-to-have.
+> 
+> Before we continue to debate on the implementation, let's first try
+> to agree on the desired behavior, what is a must vs. what is nice to have.
+> Without consensus on this, it will be quite hard to converge.
+> 
+> Another thing, to help everyone, I think it is best that any patch on ovl_syncfs
+> "solutions" will include detailed description of the use cases it solves and
+> the use cases that it leaves unsolved.
+> 
+> Thanks,
+> Amir.
+> 
 
