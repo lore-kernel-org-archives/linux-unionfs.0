@@ -2,150 +2,132 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74D44C433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 17:01:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2377C433DB
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 19:43:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E047224DE
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 17:01:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 673FA21919
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 19:43:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728023AbhADRAy (ORCPT
+        id S1726396AbhADTn0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Jan 2021 12:00:54 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:47281 "EHLO
+        Mon, 4 Jan 2021 14:43:26 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:30671 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728019AbhADRAy (ORCPT
+        by vger.kernel.org with ESMTP id S1726026AbhADTn0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Jan 2021 12:00:54 -0500
+        Mon, 4 Jan 2021 14:43:26 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1609779567;
+        s=mimecast20190719; t=1609789319;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=hnWpyzaa+3BkwI6qgtfvvLYUKPIP+O6CaC4kfzPWIhM=;
-        b=DYMMuuib4T1YLOlCQRuQ5biy4OaK0f5apYG91KqrwaqC+eRHReFFrPDOchihKlH5FdBITm
-        DvnCyu7VRbBmO1KbYHARRSnSn16ONW2XQITLo6zTSxm7lVF4aoCVCH2psxNAagiLe9vlpI
-        byrBat5Hyc+C9eKnetEMlFOxpKO0rYw=
+        bh=DFTJFha9FhyF/9pADUAkOyw1Behx7NK51FU77ZYVlXE=;
+        b=Fk4XV4rLaES+PJMzYQCDAAvxZzl09E6KLGizPUR3YaEHyCk6V09mZL+8itV6h53DtPvuWw
+        dlpi7tFxKeNDtgKgLfnb+vnp7tyCPRCIhSOeF2QFLdbdYN4uFWSmGDU9OTjPq11gsWpRMX
+        fUX9x5EdSWvXKfBMzZH1wkILuZDac5A=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-187-q12-ymt6PU6WSViBwJWOCw-1; Mon, 04 Jan 2021 11:59:25 -0500
-X-MC-Unique: q12-ymt6PU6WSViBwJWOCw-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+ us-mta-540-q9QmwUIhOxaGnByj1D9pVA-1; Mon, 04 Jan 2021 14:41:58 -0500
+X-MC-Unique: q9QmwUIhOxaGnByj1D9pVA-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 2F017100C605;
-        Mon,  4 Jan 2021 16:59:22 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4F4B510054FF;
+        Mon,  4 Jan 2021 19:41:56 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-115-2.rdu2.redhat.com [10.10.115.2])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id AA67C60BE5;
-        Mon,  4 Jan 2021 16:59:21 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id E59755D765;
+        Mon,  4 Jan 2021 19:41:55 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 43460220BCF; Mon,  4 Jan 2021 11:59:21 -0500 (EST)
-Date:   Mon, 4 Jan 2021 11:59:21 -0500
+        id 6EAA9220BCF; Mon,  4 Jan 2021 14:41:55 -0500 (EST)
+Date:   Mon, 4 Jan 2021 14:41:55 -0500
 From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     Jeff Layton <jlayton@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Sargun Dhillon <sargun@sargun.me>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
-        NeilBrown <neilb@suse.com>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@lst.de>,
-        Chengguang Xu <cgxu519@mykernel.net>
-Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
-Message-ID: <20210104165921.GB73873@redhat.com>
-References: <20201223185044.GQ874@casper.infradead.org>
- <20201223192940.GA11012@ircssh-2.c.rugged-nimbus-611.internal>
- <20201223200746.GR874@casper.infradead.org>
- <20201223202140.GB11012@ircssh-2.c.rugged-nimbus-611.internal>
- <20201223204428.GS874@casper.infradead.org>
- <CAOQ4uxjAeGv8x2hBBzHz5PjSDq0Q+RN-ikgqEvAA+XE_U-U5Nw@mail.gmail.com>
- <20201224121352.GT874@casper.infradead.org>
- <CAOQ4uxj5YS9LSPoBZ3uakb6NeBG7g-Zeu+8Vt57tizEH6xu0cw@mail.gmail.com>
- <1334bba9cefa81f80005f8416680afb29044379c.camel@kernel.org>
- <20201228155618.GA6211@casper.infradead.org>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, amir73il@gmail.com,
+        sargun@sargun.me, miklos@szeredi.hu, willy@infradead.org,
+        jack@suse.cz, neilb@suse.com, viro@zeniv.linux.org.uk, hch@lst.de
+Subject: Re: [PATCH 2/3] vfs: Add a super block operation to check for
+ writeback errors
+Message-ID: <20210104194155.GE63879@redhat.com>
+References: <20201221195055.35295-1-vgoyal@redhat.com>
+ <20201221195055.35295-3-vgoyal@redhat.com>
+ <3b488048b666f22108e7660eb32e10860a75784a.camel@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20201228155618.GA6211@casper.infradead.org>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3b488048b666f22108e7660eb32e10860a75784a.camel@kernel.org>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Dec 28, 2020 at 03:56:18PM +0000, Matthew Wilcox wrote:
-> On Mon, Dec 28, 2020 at 08:25:50AM -0500, Jeff Layton wrote:
-> > To be clear, the main thing you'll lose with the method above is the
-> > ability to see an unseen error on a newly opened fd, if there was an
-> > overlayfs mount using the same upper sb before your open occurred.
+On Wed, Dec 23, 2020 at 07:48:52AM -0500, Jeff Layton wrote:
+> On Mon, 2020-12-21 at 14:50 -0500, Vivek Goyal wrote:
+> > Right now we check for errors on super block in syncfs().
 > > 
-> > IOW, consider two overlayfs mounts using the same upper layer sb:
+> > ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
 > > 
-> > ovlfs1				ovlfs2
-> > ----------------------------------------------------------------------
-> > mount
-> > open fd1
-> > write to fd1
-> > <writeback fails>
-> > 				mount (upper errseq_t SEEN flag marked)
-> > open fd2
-> > syncfs(fd2)
-> > syncfs(fd1)
+> > overlayfs does not update sb->s_wb_err and it is tracked on upper filesystem.
+> > So provide a superblock operation to check errors so that filesystem
+> > can provide override generic method and provide its own method to
+> > check for writeback errors.
 > > 
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  fs/sync.c          | 5 ++++-
+> >  include/linux/fs.h | 1 +
+> >  2 files changed, 5 insertions(+), 1 deletion(-)
 > > 
-> > On a "normal" (non-overlay) fs, you'd get an error back on both syncfs
-> > calls. The first one has a sample from before the error occurred, and
-> > the second one has a sample of 0, due to the fact that the error was
-> > unseen at open time.
+> > diff --git a/fs/sync.c b/fs/sync.c
+> > index b5fb83a734cd..57e43a16dfca 100644
+> > --- a/fs/sync.c
+> > +++ b/fs/sync.c
+> > @@ -176,7 +176,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
+> >  	ret = sync_filesystem(sb);
+> >  	up_read(&sb->s_umount);
+> >  
 > > 
-> > On overlayfs, with the intervening mount of ovlfs2, syncfs(fd1) will
-> > return an error and syncfs(fd2) will not. If we split the SEEN flag into
-> > two, then we can ensure that they both still get an error in this
-> > situation.
+> > -	ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
+> > +	if (sb->s_op->errseq_check_advance)
+> > +		ret2 = sb->s_op->errseq_check_advance(sb, f.file);
+> > +	else
+> > +		ret2 = errseq_check_and_advance(&sb->s_wb_err, &f.file->f_sb_err);
+> >  
+> > 
+> >  	fdput(f);
+> >  	return ret ? ret : ret2;
+> > diff --git a/include/linux/fs.h b/include/linux/fs.h
+> > index 8667d0cdc71e..4297b6127adf 100644
+> > --- a/include/linux/fs.h
+> > +++ b/include/linux/fs.h
+> > @@ -1965,6 +1965,7 @@ struct super_operations {
+> >  				  struct shrink_control *);
+> >  	long (*free_cached_objects)(struct super_block *,
+> >  				    struct shrink_control *);
+> > +	int (*errseq_check_advance)(struct super_block *, struct file *);
+> >  };
+> >  
+> > 
+> >  /*
 > 
-> But do we need to?  If the inode has been evicted we also lose the errno.
+> Also, the other super_operations generally don't take a superblock
+> pointer when you pass in a different fs object pointer. This should
+> probably just take a struct file * and then the operation can chase
+> pointers to the superblock from there.
 
-That's for the case of fsync(), right? For the case of syncfs() we will
-not lose error as its stored in super_block.
-
-Even for the case of fsync(), inode can be evicted only if no other
-fd is opened for the file. So in above example, fd1 is opened so
-inode can't be evicted, that means we will see error on syncfs(fd2)
-and not lose it.
-
-So if we start consuming upper fs on overlay mount(), it will be a
-change of behavior for applications using same upper fs. So far
-overlay mount() does not consume unseen error and even if an fd
-is opened after the error, application will see error on super
-block. If we consume error on mount(), we change behavior.
-
-I am not saying that's necessarily bad, I am just trying to point
-out that its a user space visible behavior change and worried
-if somebody starts calling it a regression.
-
-Anyway, I looks like two problems got mixed into same thread. One
-problem we need to solve is that syncfs() on overlayfs should
-report back writeback errors (as well as other errors) to applications.
-And that's what this patch series is solving.
-
-And then second issue is detecting writeback errors over remount
-for volatile mounts. And that's where this question comes whether
-we should split seen flag or we should simply consume error on
-mount. So this can be further discussed when patches for this
-changes are posted again.
-
-For now, I will focus on trying to fix first issue and post patches
-for that again after more testing.
+Ok, I will drop super_block * argument and just pass in "struct file *".
 
 Vivek
 
-
-> The guarantee we provide is that a fd that was open before the error
-> occurred will see the error.  An fd that's opened after the error occurred
-> may or may not see the error.
+>  
+> -- 
+> Jeff Layton <jlayton@kernel.org>
+> 
 
