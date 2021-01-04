@@ -2,183 +2,202 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21538C433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 07:32:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 052D9C433DB
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 08:36:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DF3492228A
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 07:32:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4FA220784
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 08:36:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727357AbhADHcH (ORCPT
+        id S1726303AbhADIgN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Jan 2021 02:32:07 -0500
-Received: from relay-us1.mymailcheap.com ([51.81.35.219]:33680 "EHLO
-        relay-us1.mymailcheap.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1727156AbhADHcG (ORCPT
+        Mon, 4 Jan 2021 03:36:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32886 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726019AbhADIgN (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Jan 2021 02:32:06 -0500
-Received: from relay5.mymailcheap.com (relay5.mymailcheap.com [159.100.248.207])
-        by relay-us1.mymailcheap.com (Postfix) with ESMTPS id 4116720E62
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Jan 2021 07:31:25 +0000 (UTC)
-Received: from relay3.mymailcheap.com (relay3.mymailcheap.com [217.182.119.155])
-        by relay5.mymailcheap.com (Postfix) with ESMTPS id 127D2260EC;
-        Mon,  4 Jan 2021 07:30:31 +0000 (UTC)
-Received: from filter2.mymailcheap.com (filter2.mymailcheap.com [91.134.140.82])
-        by relay3.mymailcheap.com (Postfix) with ESMTPS id EFBA83F15F;
-        Mon,  4 Jan 2021 08:28:55 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by filter2.mymailcheap.com (Postfix) with ESMTP id B6B702A7E5;
-        Mon,  4 Jan 2021 08:28:55 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=mymailcheap.com;
-        s=default; t=1609745335;
-        bh=ubj56mHRi69L846UzsE9e5xddidrKAo6HI48wtk8xJs=;
-        h=From:To:Cc:Subject:Date:From;
-        b=jyaTz//wcctD90WKXit3aBiUODYu96r27d540jeX1HUmpQOTQjCeDgF4k1Av+zhCI
-         9k+W3oVB4Lz/x425zj0thC8zWGlXGTQTyE/B/+B8+ikFZP7wLizGQSS+hkIwA3hY/d
-         0BOHTQvtQ+aCJNU5qhZ1rGE9w4aiedSpDry/1up0=
-X-Virus-Scanned: Debian amavisd-new at filter2.mymailcheap.com
-Received: from filter2.mymailcheap.com ([127.0.0.1])
-        by localhost (filter2.mymailcheap.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id sM-Mxk4EuI0s; Mon,  4 Jan 2021 08:28:54 +0100 (CET)
-Received: from mail20.mymailcheap.com (mail20.mymailcheap.com [51.83.111.147])
-        (using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by filter2.mymailcheap.com (Postfix) with ESMTPS;
-        Mon,  4 Jan 2021 08:28:54 +0100 (CET)
-Received: from [148.251.23.173] (ml.mymailcheap.com [148.251.23.173])
-        by mail20.mymailcheap.com (Postfix) with ESMTP id 2AA9741F21;
-        Mon,  4 Jan 2021 07:28:54 +0000 (UTC)
-Authentication-Results: mail20.mymailcheap.com;
-        dkim=pass (1024-bit key; unprotected) header.d=aosc.io header.i=@aosc.io header.b="ICXe2nhY";
-        dkim-atps=neutral
-AI-Spam-Status: Not processed
-Received: from ice-e5v2.lan (unknown [59.41.162.25])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail20.mymailcheap.com (Postfix) with ESMTPSA id 7C4EA41F21;
-        Mon,  4 Jan 2021 07:28:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=aosc.io; s=default;
-        t=1609745329; bh=ubj56mHRi69L846UzsE9e5xddidrKAo6HI48wtk8xJs=;
-        h=From:To:Cc:Subject:Date:From;
-        b=ICXe2nhYYD7zHjKNPlF3IqYCf/MjCDqhw4rN92ix/6FN0uZTr8Ee/ME4uPj3hOS9z
-         tURv7cqv9pO/oHtDjUmBF4n2fNXu6rWr2ouNaaqABugQyvMPjLYxmYORzAuujwZ6IY
-         WiQJfjMfNSflrWd1f8Oa/BGPbjwu+rbPEUL008/o=
-From:   Icenowy Zheng <icenowy@aosc.io>
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Xiao Yang <yangx.jy@cn.fujitsu.com>
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Icenowy Zheng <icenowy@aosc.io>, stable@vger.kernel.org
-Subject: [PATCH v2] ovl: use a dedicated semaphore for dir upperfile caching
-Date:   Mon,  4 Jan 2021 15:28:35 +0800
-Message-Id: <20210104072835.147843-1-icenowy@aosc.io>
-X-Mailer: git-send-email 2.28.0
+        Mon, 4 Jan 2021 03:36:13 -0500
+Received: from mail-io1-xd2d.google.com (mail-io1-xd2d.google.com [IPv6:2607:f8b0:4864:20::d2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75EB1C061574;
+        Mon,  4 Jan 2021 00:35:32 -0800 (PST)
+Received: by mail-io1-xd2d.google.com with SMTP id m23so24353887ioy.2;
+        Mon, 04 Jan 2021 00:35:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=Swxt5GP34KImzcldIcSZSeux0tNoxofo5H5/a1gDAO4=;
+        b=BeyAJtQJMePVN/9bcTvnjqKwoy28eZLR3TXqGDKAWp6WyorU6A4DCW73y7akWIyxrD
+         5K05CPV/dhgypAxjqn8PTnlVE3Zav5JX5zmcjydElJUPmwR8V4nlEETxoX7e0Mmkuxxj
+         jJOJaz+APqROS4WwO7UdPEMHKu2JILz6sm2Kga4yP8X7D3jyJagHIvmp3dTf1M/5aULQ
+         mvjZm5oQbET9NknhLtVIKF8ANPUp6CWaehrAGUMJpT/LiMVjS1SIy35inhM5+RCtnBbq
+         Q5Oy/D2imaO16g33rgTWc0ZYIJ8b/cgVAjUBg9lpZx0QiW5VpOHxtwE2pLS0RQ0EHkmA
+         5Jsw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=Swxt5GP34KImzcldIcSZSeux0tNoxofo5H5/a1gDAO4=;
+        b=gNB9twp8S++wLJO1Icj7U3Lnj56TGVwwUHFheb5RYXVJeopjH3ec0DWDdyiA9pI96w
+         JN19kYpK6UusSgBTfG22+httKiBKg57qV53sZTfhUOsujTTe61ilCR3ZwxE5qm57YNG/
+         dXAXcvaEG0dV5E0Vo6OU48zfGAMLQHbstUCDT+llFj7JdesHOELitzgV9BvvtEzgML55
+         iJOVi8ykuZavPFNdNWBzNyYBmf8kPbdxc7wlwDelQScKa/F5n9YqLYZS8t3vgIn0xhax
+         KsJKoheDGyRobfYnWxLNGArEVKlydhcITWd/euU9PXQkFWIuY++8XwDBGGl3pX/IQXuH
+         N1ng==
+X-Gm-Message-State: AOAM5318kCFpjXdDq3GeNp9Tad99wiOa+kAhdy0lvc0TEuM5n1FdHf0F
+        dcybgSrNVWeQdVLn0qgKVURiWdGUy6MaPkaBYPg=
+X-Google-Smtp-Source: ABdhPJzfgC8nk4qrOtTkN54zA862MLh0zgHNHT9avOWn6bXOwAi/r6qmEDMrTpbljAm5RzdWyasMjRRsQNuQ/5x18SU=
+X-Received: by 2002:a02:9f19:: with SMTP id z25mr60666082jal.30.1609749331741;
+ Mon, 04 Jan 2021 00:35:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [4.90 / 20.00];
-         ARC_NA(0.00)[];
-         RCVD_VIA_SMTP_AUTH(0.00)[];
-         R_DKIM_ALLOW(0.00)[aosc.io:s=default];
-         RECEIVED_SPAMHAUS_PBL(0.00)[59.41.162.25:received];
-         FROM_HAS_DN(0.00)[];
-         TO_DN_SOME(0.00)[];
-         FREEMAIL_ENVRCPT(0.00)[gmail.com];
-         R_MISSING_CHARSET(2.50)[];
-         MIME_GOOD(-0.10)[text/plain];
-         TO_MATCH_ENVRCPT_ALL(0.00)[];
-         BROKEN_CONTENT_TYPE(1.50)[];
-         R_SPF_SOFTFAIL(0.00)[~all:c];
-         DMARC_NA(0.00)[aosc.io];
-         ML_SERVERS(-3.10)[148.251.23.173];
-         DKIM_TRACE(0.00)[aosc.io:+];
-         RCPT_COUNT_SEVEN(0.00)[7];
-         MID_CONTAINS_FROM(1.00)[];
-         FREEMAIL_TO(0.00)[szeredi.hu,gmail.com,cn.fujitsu.com];
-         RCVD_NO_TLS_LAST(0.10)[];
-         FROM_EQ_ENVFROM(0.00)[];
-         MIME_TRACE(0.00)[0:+];
-         ASN(0.00)[asn:24940, ipnet:148.251.0.0/16, country:DE];
-         RCVD_COUNT_TWO(0.00)[2];
-         HFILTER_HELO_BAREIP(3.00)[148.251.23.173,1]
-X-Rspamd-Queue-Id: 2AA9741F21
-X-Rspamd-Server: mail20.mymailcheap.com
+References: <20210101201230.768653-1-icenowy@aosc.io> <CAOQ4uxgNWkzVphdB7cAkwdUXagM_NsCUYDRT1f-=X1rn1-KpUQ@mail.gmail.com>
+ <a77b2beb832d64f9f019c4505e91c7ffcbbfb61b.camel@aosc.io>
+In-Reply-To: <a77b2beb832d64f9f019c4505e91c7ffcbbfb61b.camel@aosc.io>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 4 Jan 2021 10:35:20 +0200
+Message-ID: <CAOQ4uxifcZTeZ15jz0PqTs-tQnDDuijV_3QjQ28EayBX-=rtdA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: use a dedicated semaphore for dir upperfile caching
+To:     Icenowy Zheng <icenowy@aosc.io>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Xiao Yang <yangx.jy@cn.fujitsu.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        stable <stable@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The function ovl_dir_real_file() currently uses the semaphore of the
-inode to synchronize write to the upperfile cache field.
+On Mon, Jan 4, 2021 at 9:28 AM Icenowy Zheng <icenowy@aosc.io> wrote:
+>
+> =E5=9C=A8 2021-01-03=E6=98=9F=E6=9C=9F=E6=97=A5=E7=9A=84 16:10 +0200=EF=
+=BC=8CAmir Goldstein=E5=86=99=E9=81=93=EF=BC=9A
+> > On Fri, Jan 1, 2021 at 10:12 PM Icenowy Zheng <icenowy@aosc.io>
+> > wrote:
+> > >
+> > > The function ovl_dir_real_file() currently uses the semaphore of
+> > > the
+> > > inode to synchronize write to the upperfile cache field.
+> > >
+> > > However, this function will get called by ovl_ioctl_set_flags(),
+> > > which
+> > > utilizes the inode semaphore too. In this case ovl_dir_real_file()
+> > > will
+> > > try to claim a lock that is owned by a function in its call stack,
+> > > which
+> > > won't get released before ovl_dir_real_file() returns.
+> >
+> > oops. I wondered why I didn't see any warnings on this from lockdep.
+> > Ah! because the xfstest that exercises ovl_ioctl_set_flags() on
+> > directory,
+> > generic/079, starts with an already upper dir.
+> >
+> > And the xfstest that checks chattr+i on lower/upper files,
+> > overlay/040,
+> > does not check chattr on dirs (ioctl on overlay dirs wasn't supported
+> > at
+> > the time the test was written).
+> >
+> > Would you be able to create a variant of test overlay/040 that also
+> > tests
+> > chattr +i on lower/upper dirs to test your patch and confirm that the
+> > test
+> > fails on master with the appropriate Kconfig debug options.
+>
+> https://gist.github.com/Icenowy/c7d8decb6812d6e5064d143c57281ad3
+>
+> Here's a test that would break on master (I used linux-next/master for
+> test).
 
-However, this function will get called by ovl_ioctl_set_flags(), which
-utilizes the inode semaphore too. In this case ovl_dir_real_file() will
-try to claim a lock that is owned by a function in its call stack, which
-won't get released before ovl_dir_real_file() returns.
+Thanks.
+I am working on another test to improve overlay/030 that may also
+cover this bug, so maybe no need for both tests. I'll let you know when
+I'm done.
+If you like, I can post your test for you with your Signed-of-by if I think
+it is also needed.
 
-Define a dedicated semaphore for the upperfile cache, so that the
-deadlock won't happen.
+>
+> [  246.521880] INFO: task chattr:715 blocked for more than 122 seconds.
+> [  246.525659]       Not tainted 5.11.0-rc1-next-20210104+ #20
+> [  246.528498] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+> disables this message.
+> [  246.535076] task:chattr          state:D stack:13736 pid:  715 ppid:
+> 529 flags:0x00000000
+> [  246.538923] Call Trace:
+> [  246.540241]  __schedule+0x2a9/0x820
+> [  246.541986]  schedule+0x56/0xc0
+> [  246.543616]  rwsem_down_write_slowpath+0x375/0x630
+> [  246.545565]  ovl_dir_real_file+0xc1/0x120
+> [  246.547512]  ovl_real_fdget+0x35/0x80
+> [  246.549303]  ovl_real_ioctl+0x26/0x90
+> [  246.551050]  ? mnt_drop_write+0x2c/0x70
+> [  246.553068]  ovl_ioctl_set_flags+0x93/0x110
+> [  246.555407]  __x64_sys_ioctl+0x7e/0xb0
+> [  246.557175]  do_syscall_64+0x33/0x40
+> [  246.558869]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+> [  246.561057] RIP: 0033:0x7fe4a3830b67
+> [  246.565799] RSP: 002b:00007ffe7ad504f8 EFLAGS: 00000246 ORIG_RAX:
+> 0000000000000010
+> [  246.569438] RAX: ffffffffffffffda RBX: 0000000000000001 RCX:
+> 00007fe4a3830b67
+> [  246.572061] RDX: 00007ffe7ad5050c RSI: 0000000040086602 RDI:
+> 0000000000000003
+> [  246.575509] RBP: 0000000000000003 R08: 0000000000000001 R09:
+> 0000000000000000
+> [  246.578932] R10: 0000000000000000 R11: 0000000000000246 R12:
+> 0000000000000010
+> [  246.581014] R13: 00007ffe7ad50810 R14: 0000000000000002 R15:
+> 0000000000000001
+> [  246.582818]
+> [  246.582818] Showing all locks held in the system:
+> [  246.584741] 1 lock held by khungtaskd/18:
+> [  246.586085]  #0: ffffffff9e951540 (rcu_read_lock){....}-{1:2}, at:
+> debug_show_all_locks+0x15/0x100
+> [  246.589775] 3 locks held by chattr/715:
+> [  246.591364]  #0: ffff96a74b92c450 (sb_writers#11){....}-{0:0}, at:
+> ovl_ioctl_set_flags+0x2f/0x110
+> [  246.597182]  #1: ffff96a7489c3500
+> (&ovl_i_mutex_dir_key[depth]){....}-{3:3}, at:
+> ovl_ioctl_set_flags+0x54/0x110
+> [  246.601325]  #2: ffff96a7489c3500
+> (&ovl_i_mutex_dir_key[depth]){....}-{3:3}, at:
+> ovl_dir_real_file+0xc1/0x120
+>
+> >
+> > >
+> > > Define a dedicated semaphore for the upperfile cache, so that the
+> > > deadlock won't happen.
+> > >
+> > > Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR
+> > > ioctls for directories")
+> > > Cc: stable@vger.kernel.org # v5.10
+> > > Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+> > > ---
+> > >  fs/overlayfs/readdir.c | 6 ++++--
+> > >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> > > index 01620ebae1bd..f10701aabb71 100644
+> > > --- a/fs/overlayfs/readdir.c
+> > > +++ b/fs/overlayfs/readdir.c
+> > > @@ -56,6 +56,7 @@ struct ovl_dir_file {
+> > >         struct list_head *cursor;
+> > >         struct file *realfile;
+> > >         struct file *upperfile;
+> > > +       struct semaphore upperfile_sem;
+> >
+> > mutex please
+> >
 
-Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR ioctls for directories")
-Cc: stable@vger.kernel.org # v5.10
-Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
----
- fs/overlayfs/readdir.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+You missed this comment.
+semaphore is discouraged as a locking primitive.
+Please use struct mutex.
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 01620ebae1bd..fa1844ff8db4 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -56,6 +56,7 @@ struct ovl_dir_file {
- 	struct list_head *cursor;
- 	struct file *realfile;
- 	struct file *upperfile;
-+	struct semaphore upperfile_sem;
- };
- 
- static struct ovl_cache_entry *ovl_cache_entry_from_node(struct rb_node *n)
-@@ -874,8 +875,6 @@ struct file *ovl_dir_real_file(const struct file *file, bool want_upper)
- 	 * Need to check if we started out being a lower dir, but got copied up
- 	 */
- 	if (!od->is_upper) {
--		struct inode *inode = file_inode(file);
--
- 		realfile = READ_ONCE(od->upperfile);
- 		if (!realfile) {
- 			struct path upperpath;
-@@ -883,10 +882,10 @@ struct file *ovl_dir_real_file(const struct file *file, bool want_upper)
- 			ovl_path_upper(dentry, &upperpath);
- 			realfile = ovl_dir_open_realfile(file, &upperpath);
- 
--			inode_lock(inode);
-+			down(&od->upperfile_sem);
- 			if (!od->upperfile) {
- 				if (IS_ERR(realfile)) {
--					inode_unlock(inode);
-+					up(&od->upperfile_sem);
- 					return realfile;
- 				}
- 				smp_store_release(&od->upperfile, realfile);
-@@ -896,7 +895,7 @@ struct file *ovl_dir_real_file(const struct file *file, bool want_upper)
- 					fput(realfile);
- 				realfile = od->upperfile;
- 			}
--			inode_unlock(inode);
-+			up(&od->upperfile_sem);
- 		}
- 	}
- 
-@@ -959,6 +958,7 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 	od->realfile = realfile;
- 	od->is_real = ovl_dir_is_real(file->f_path.dentry);
- 	od->is_upper = OVL_TYPE_UPPER(type);
-+	sema_init(&od->upperfile_sem, 1);
- 	file->private_data = od;
- 
- 	return 0;
--- 
-2.28.0
+Thanks,
+Amir.
