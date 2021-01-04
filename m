@@ -2,136 +2,246 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F3D8C433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 09:41:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B10EC43381
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 15:16:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 374A020643
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 09:41:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71DC4207BC
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 15:16:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725616AbhADJlT (ORCPT
+        id S1727047AbhADPQE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Jan 2021 04:41:19 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:49065 "EHLO
+        Mon, 4 Jan 2021 10:16:04 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:45690 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1725830AbhADJlT (ORCPT
+        by vger.kernel.org with ESMTP id S1727032AbhADPQD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Jan 2021 04:41:19 -0500
+        Mon, 4 Jan 2021 10:16:03 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1609753192;
+        s=mimecast20190719; t=1609773277;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=XVjW4HSk1hVwXdQeczGzcQ5veMflMC10yNN5cPRpH0g=;
-        b=ddVqIUxERq3rjSz+H4vfOOJYEE+rRattP2ZlNTd2LgSpwmnk6vc4R2UXiW1uv5rwx+R82T
-        /i7OOFTq0/McghGZbRUuJZgmqfPYgDovjKdBsAvszFQ1+3ZoSFLvgr/fKFzwFB5jaECBHm
-        hPAIOrJUqr4DR2XXK/jbYqV9fIVTong=
-Received: from mail-lf1-f71.google.com (mail-lf1-f71.google.com
- [209.85.167.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-133-gwa7mifvNeG1K3q77QZ5tQ-1; Mon, 04 Jan 2021 04:39:50 -0500
-X-MC-Unique: gwa7mifvNeG1K3q77QZ5tQ-1
-Received: by mail-lf1-f71.google.com with SMTP id 202so16640325lfk.5
-        for <linux-unionfs@vger.kernel.org>; Mon, 04 Jan 2021 01:39:50 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=XVjW4HSk1hVwXdQeczGzcQ5veMflMC10yNN5cPRpH0g=;
-        b=Vfofcnk2RWwzcrfG5wJNNpOpOPFyxqpO92oxiR+Om+yzagOn8kgQGjmr3SGc0vn2hR
-         OGGioOXjjKj+YG/9rBZAj+TTg4PR3DdPrpFZ+Lk27+DrhdoNKVzadoj7jJAthqSD2t4p
-         ZcTuNuEEorUtztDeNyfDbCfjOkRyseaLFP6pypCRkBzIS+rMIqm6/ZtEaxCzicGPUN10
-         jSolr52AqLKn8bCmYfIX8ce358eZXGS1KJFb25el3AHbLOQ4UCqeZgOzxYMGfdp41WIp
-         yyquM94uamYhkQ3Yi+KslJMV0noEW+ZOoEEUn4vkBGXsgp1Sku878vduC1gwFMG3S9yX
-         /kpw==
-X-Gm-Message-State: AOAM532NNAa75t+MjUfuBpo/6sP8DIx3NC3QBvP3n35uQLHxRbGxOV1u
-        OpnFm3a6LZzavZ4Iofp+IWv94QYYNI57r0iCSXSzkBGJNE2E1IsxS3agPn+yNWjbHW8q7hmuP64
-        0E3h0UACdw/o7LRwUC4bnNjd/nheIOupbjldY3rxYhA==
-X-Received: by 2002:a05:6512:2f7:: with SMTP id m23mr23333198lfq.517.1609753189237;
-        Mon, 04 Jan 2021 01:39:49 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJwVqGu3rr3EuajkBL+S5l4IUuczgGkXJjRybffxYfPraoTA1d3B/A9pl2Fm+WEHVQQLsOX3YZNPWFKZp/FM7VY=
-X-Received: by 2002:a05:6512:2f7:: with SMTP id m23mr23333186lfq.517.1609753188974;
- Mon, 04 Jan 2021 01:39:48 -0800 (PST)
-MIME-Version: 1.0
-References: <20201219100527.16060-1-amir73il@gmail.com>
-In-Reply-To: <20201219100527.16060-1-amir73il@gmail.com>
-From:   Ondrej Mosnacek <omosnace@redhat.com>
-Date:   Mon, 4 Jan 2021 10:39:32 +0100
-Message-ID: <CAFqZXNtcX54bv2xeQ26_i-=9OkdiJQQzPOveY=aaujOWJjGWLA@mail.gmail.com>
-Subject: Re: [PATCH] selinux: fix inconsistency between inode_getxattr and inode_listsecurity
+        bh=YJPThqtFDgmgtyz6ou+H0RV68QeyqTC/g/rtEO/kauE=;
+        b=PJgKiNOigLEg/dz5rDtR14q4QSAxoIuWMDNL2qHGjUYZoZyBirbIc7pLVlZmrS22Uxcpar
+        TeQU7schROe7ztPFnBuPBIfJk3JRqzbaIDBLR0CAikZbwmmGuo5YFCfRLQeFRFL7Khrtn6
+        j2HYMN4ndGEPdrJcoUBZMtYwl/0UbzM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-149-gHrnaWdNPySuz2vPbPpomw-1; Mon, 04 Jan 2021 10:14:33 -0500
+X-MC-Unique: gHrnaWdNPySuz2vPbPpomw-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5590E802B4C;
+        Mon,  4 Jan 2021 15:14:31 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-2.rdu2.redhat.com [10.10.115.2])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id F03501001281;
+        Mon,  4 Jan 2021 15:14:29 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 7146E220BCF; Mon,  4 Jan 2021 10:14:24 -0500 (EST)
+Date:   Mon, 4 Jan 2021 10:14:24 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Paul Moore <paul@paul-moore.com>,
-        Michael Labriola <michael.d.labriola@gmail.com>,
-        Jonathan Lebon <jlebon@redhat.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        SElinux list <selinux@vger.kernel.org>,
-        Linux Security Module list 
-        <linux-security-module@vger.kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        Linux Stable maillist <stable@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Matthew Wilcox <willy@infradead.org>,
+        Sargun Dhillon <sargun@sargun.me>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Jeff Layton <jlayton@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
+        NeilBrown <neilb@suse.com>, Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@lst.de>,
+        Chengguang Xu <cgxu519@mykernel.net>
+Subject: Re: [PATCH 3/3] overlayfs: Report writeback errors on upper
+Message-ID: <20210104151424.GA63879@redhat.com>
+References: <20201221195055.35295-1-vgoyal@redhat.com>
+ <20201221195055.35295-4-vgoyal@redhat.com>
+ <20201223182026.GA9935@ircssh-2.c.rugged-nimbus-611.internal>
+ <20201223185044.GQ874@casper.infradead.org>
+ <20201223192940.GA11012@ircssh-2.c.rugged-nimbus-611.internal>
+ <20201223200746.GR874@casper.infradead.org>
+ <20201223202140.GB11012@ircssh-2.c.rugged-nimbus-611.internal>
+ <20201223204428.GS874@casper.infradead.org>
+ <CAOQ4uxjAeGv8x2hBBzHz5PjSDq0Q+RN-ikgqEvAA+XE_U-U5Nw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjAeGv8x2hBBzHz5PjSDq0Q+RN-ikgqEvAA+XE_U-U5Nw@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Dec 19, 2020 at 11:07 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> When inode has no listxattr op of its own (e.g. squashfs) vfs_listxattr
-> calls the LSM inode_listsecurity hooks to list the xattrs that LSMs will
-> intercept in inode_getxattr hooks.
->
-> When selinux LSM is installed but not initialized, it will list the
-> security.selinux xattr in inode_listsecurity, but will not intercept it
-> in inode_getxattr.  This results in -ENODATA for a getxattr call for an
-> xattr returned by listxattr.
->
-> This situation was manifested as overlayfs failure to copy up lower
-> files from squashfs when selinux is built-in but not initialized,
-> because ovl_copy_xattr() iterates the lower inode xattrs by
-> vfs_listxattr() and vfs_getxattr().
->
-> Match the logic of inode_listsecurity to that of inode_getxattr and
-> do not list the security.selinux xattr if selinux is not initialized.
->
-> Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
-> Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
-> Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
-> Fixes: c8e222616c7e ("selinux: allow reading labels before policy is loaded")
-> Cc: stable@vger.kernel.org#v5.9+
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  security/selinux/hooks.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-> index 6b1826fc3658..e132e082a5af 100644
-> --- a/security/selinux/hooks.c
-> +++ b/security/selinux/hooks.c
-> @@ -3406,6 +3406,10 @@ static int selinux_inode_setsecurity(struct inode *inode, const char *name,
->  static int selinux_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size)
->  {
->         const int len = sizeof(XATTR_NAME_SELINUX);
-> +
-> +       if (!selinux_initialized(&selinux_state))
-> +               return 0;
-> +
->         if (buffer && len <= buffer_size)
->                 memcpy(buffer, XATTR_NAME_SELINUX, len);
->         return len;
-> --
-> 2.25.1
+On Thu, Dec 24, 2020 at 11:32:55AM +0200, Amir Goldstein wrote:
+> On Wed, Dec 23, 2020 at 10:44 PM Matthew Wilcox <willy@infradead.org> wrote:
+> >
+> > On Wed, Dec 23, 2020 at 08:21:41PM +0000, Sargun Dhillon wrote:
+> > > On Wed, Dec 23, 2020 at 08:07:46PM +0000, Matthew Wilcox wrote:
+> > > > On Wed, Dec 23, 2020 at 07:29:41PM +0000, Sargun Dhillon wrote:
+> > > > > On Wed, Dec 23, 2020 at 06:50:44PM +0000, Matthew Wilcox wrote:
+> > > > > > On Wed, Dec 23, 2020 at 06:20:27PM +0000, Sargun Dhillon wrote:
+> > > > > > > I fail to see why this is neccessary if you incorporate error reporting into the
+> > > > > > > sync_fs callback. Why is this separate from that callback? If you pickup Jeff's
+> > > > > > > patch that adds the 2nd flag to errseq for "observed", you should be able to
+> > > > > > > stash the first errseq seen in the ovl_fs struct, and do the check-and-return
+> > > > > > > in there instead instead of adding this new infrastructure.
+> > > > > >
+> > > > > > You still haven't explained why you want to add the "observed" flag.
+> > > > >
+> > > > >
+> > > > > In the overlayfs model, many users may be using the same filesystem (super block)
+> > > > > for their upperdir. Let's say you have something like this:
+> > > > >
+> > > > > /workdir [Mounted FS]
+> > > > > /workdir/upperdir1 [overlayfs upperdir]
+> > > > > /workdir/upperdir2 [overlayfs upperdir]
+> > > > > /workdir/userscratchspace
+> > > > >
+> > > > > The user needs to be able to do something like:
+> > > > > sync -f ${overlayfs1}/file
+> > > > >
+> > > > > which in turn will call sync on the the underlying filesystem (the one mounted
+> > > > > on /workdir), and can check if the errseq has changed since the overlayfs was
+> > > > > mounted, and use that to return an error to the user.
+> > > >
+> > > > OK, but I don't see why the current scheme doesn't work for this.  If
+> > > > (each instance of) overlayfs samples the errseq at mount time and then
+> > > > check_and_advances it at sync time, it will see any error that has occurred
+> > > > since the mount happened (and possibly also an error which occurred before
+> > > > the mount happened, but hadn't been reported to anybody before).
+> > > >
+> > >
+> > > If there is an outstanding error at mount time, and the SEEN flag is unset,
+> > > subsequent errors will not increment the counter, until the user calls sync on
+> > > the upperdir's filesystem. If overlayfs calls check_and_advance on the upperdir's
+> > > super block at any point, it will then set the seen block, and if the user calls
+> > > syncfs on the upperdir, it will not return that there is an outstanding error,
+> > > since overlayfs just cleared it.
+> >
+> > Your concern is this case:
+> >
+> > fs is mounted on /workdir
+> > /workdir/A is written to and then closed.
+> > writeback happens and -EIO happens, but there's nobody around to care.
+> > /workdir/upperdir1 becomes part of an overlayfs mount
+> > overlayfs samples the error
+> > a user writes to /workdir/B, another -EIO occurs, but nothing happens
+> > someone calls syncfs on /workdir/upperdir/A, gets the EIO.
+> > a user opens /workdir/B and calls syncfs, but sees no error
+> >
+> > do i have that right?  or is it something else?
+> 
+> IMO it is something else. Others may disagree.
+> IMO the level of interference between users accessing overlay and users
+> accessing upper fs directly is not well defined and it can stay this way.
+> 
+> Concurrent access to  /workdir/upperdir/A via overlay and underlying fs
+> is explicitly warranted against in Documentation/filesystems/overlayfs.rst#
+> Changes to underlying filesystems:
+> "Changes to the underlying filesystems while part of a mounted overlay
+> filesystem are not allowed.  If the underlying filesystem is changed,
+> the behavior of the overlay is undefined, though it will not result in
+> a crash or deadlock."
 
-Looked at the logic in vfs_listxattr() and this looks reasonable.
+I think people use same underlying filesystem both as upper for multiple
+overlayfs mounts as well as root filesystem. For example, when you
+run podman (or docker), they all share same filesystem for all containers
+as well as other non-containered apps use same filesystem.
 
-Reviewed-by: Ondrej Mosnacek <omosnace@redhat.com>
+IIUC, what we meant to say is that lowerdir/workdir/upperdir being
+used for overlayfs mount should be left untouched. Right?
 
-Thank you for the patch!
+What I am trying to say is that while discussing this problem and
+solution, we should assume that both a regular application might
+be using same upper fs as being used by overlayfs. It seems to
+be a very common operating model.
 
--- 
-Ondrej Mosnacek
-Software Engineer, Platform Security - SELinux kernel
-Red Hat, Inc.
+> 
+> The question is whether syncfs(open(/workdir/B)) is considered
+> "Changes to the underlying filesystems". Regardless of the answer,
+> this is not an interesting case IMO.
+> 
+> The real issue is with interference between overlays that share the
+> same upper fs, because this is by far and large the common use case
+> that is creating real problems for a lot of container users.
+> 
+> Workloads running inside containers (with overlayfs storage driver)
+> will never be as isolated as workloads running inside VMs, but it
+> doesn't mean we cannot try to improve.
+> 
+> In current master, syncfs() on any file by any container user will
+> result in full syncfs() of the upperfs, which is very bad for container
+> isolation. This has been partly fixed by Chengguang Xu [1] and I expect
+> his work will be merged soon. Overlayfs still does not do the writeback
+> and syncfs() in overlay still waits for all upper fs writeback to complete,
+> but at least syncfs() in overlay only kicks writeback for upper fs files
+> dirtied by this overlay.
+> 
+> [1] https://lore.kernel.org/linux-unionfs/CAJfpegsbb4iTxW8ZyuRFVNc63zg7Ku7vzpSNuzHASYZH-d5wWA@mail.gmail.com/
+> 
+> Sharing the same SEEN flag among thousands of containers is also
+> far from ideal, because effectively this means that any given workload
+> in any single container has very little chance of observing the SEEN flag.
+> 
+> To this end, I do agree with Matthew that overlayfs should sample errseq
+> and the best patchset to implement it so far IMO is Jeff's patchset [2].
+> This patch set was written to cater only "volatile" overlayfs mount, but
+> there is no reason not to use the same mechanism for regular overlay
+> mount. The only difference being that "volatile" overlay only checks for
+> error since mount on syncfs() (because "volatile" overlay does NOT
+> syncfs upper fs) and regular overlay checks and advances the overlay's
+> errseq sample on syncfs (and does syncfs upper fs).
+> 
+> Matthew, I hope that my explanation of the use case and Jeff's answer
+> is sufficient to understand why the split of the SEEN flag is needed.
+> 
+> [2] https://lore.kernel.org/linux-unionfs/20201213132713.66864-1-jlayton@kernel.org/
+> 
+> w.r.t Vivek's patchset (this one), I do not object to it at all, but it fixes
+> a problem that Jeff's patch had already solved with an ugly hack:
+> 
+>   /* Propagate errors from upper to overlayfs */
+>   ret = errseq_check(&upper_sb->s_wb_err, ofs->err_mark);
+>   errseq_set(&sb->s_wb_err, ret);
+> 
+> Since Jeff's patch is minimal, I think that it should be the fix applied
+> first and proposed for stable (with adaptations for non-volatile overlay).
+
+Does stable fix has to be same as mainline fix. IOW, I think atleast in
+mainline we should first fix it the right way and then think how to fix
+it for stable. If fixes taken in mainline are not realistic for stable,
+can we push a different small fix just for stable?
+
+IOW, because we have to push a fix in stable, should not determine
+what should be problem solution for mainline, IMHO.
+
+The porblem I have with Jeff's fix is that its only works for volatile
+mounts. While I prefer a solution where syncfs() is fixed both for
+volatile as well as non-volatile mount and then there is less confusion.
+
+Thanks
+Vivek
+
+> 
+> I guess that Vivek's patch 1/3 from this series [3] is also needed to
+> complement the work that should go to stable.
+> 
+> Vivek, Sargun,
+> 
+> Do you understand my proposal?
+> Do you agree with it as a way forward to address the various syncfs
+> issues for volatile/non-volatile that both of you were trying to address?
+> 
+> Sargun, I know this all discussion has forked from your volatile re-use
+> patch set, but let's not confuse fsdevel forks more than we have to.
+> The way forward for volatile re-use from this proposal is straight forward.
+> 
+> Thanks,
+> Amir.
+> 
 
