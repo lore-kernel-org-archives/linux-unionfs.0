@@ -1,134 +1,242 @@
 Return-Path: <linux-unionfs-owner@kernel.org>
-X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
-	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35660C433E9
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 06:57:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5272C432C3
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 07:31:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14D8621D79
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 06:57:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77F672087E
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Jan 2021 07:31:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726924AbhADG4x (ORCPT
+        id S1727996AbhADHbk (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Jan 2021 01:56:53 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25313 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1728050AbhADG4w (ORCPT
+        Mon, 4 Jan 2021 02:31:40 -0500
+Received: from relay-us1.mymailcheap.com ([51.81.35.219]:33678 "EHLO
+        relay-us1.mymailcheap.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1726982AbhADHbj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Jan 2021 01:56:52 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1609743325; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=P+Q/YiefMdil8Dckbpfpvmyou7VioMVPuatsZAAxo0sIi4+dZiUUvoByh7WQOKJlzE1IIRUTO+aKvM1irihH+5reBTWORL0aOPw+ASDoTjydvrdQ5RvJf0fcMeaT3QTaiNQz8qSW19a7moUP9Aex5bZ8Ev0g6kJL34G8+oWOO1U=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1609743325; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=l9QaRr1wUC4676MqLnM2embVQckM4BrmJHSPMqUeC9Y=; 
-        b=NQmYRsQ+/ShJSld/D2zgthG+r4knDGy6+Pld4lbiJzIXzv4VxCN9tCqwhGFQlk7GsENrtNQoPe05yYUL3hBM3z1tPo+NTfCjrFl8uvoUhE788XvmW7n9VvjZu1TiXDshuGgj3VHKHWgwPD3v23UF7+tYIrPHLaqVogrX528G9j8=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1609743325;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=l9QaRr1wUC4676MqLnM2embVQckM4BrmJHSPMqUeC9Y=;
-        b=Rgrx3ZUsl6zMYsywL+vSv38pVNCLkP38kBgfodVjGQfN7Ik3wUcdihIXypN+rrSj
-        DPjfnzQUY0T7SudvHUHFSQS2t9E3gox4OnSuVEV/FQicClaGE8V/4CJm+14oqQsebK2
-        deot4K7Mf0U+IezVAhHzkK+8PYnp6W93GGRsTWSI=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1609743322436895.3931952908997; Mon, 4 Jan 2021 14:55:22 +0800 (CST)
-Date:   Mon, 04 Jan 2021 14:55:22 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Amir Goldstein" <amir73il@gmail.com>,
-        "Miklos Szeredi" <miklos@szeredi.hu>
-Cc:     "overlayfs" <linux-unionfs@vger.kernel.org>,
-        "Vivek Goyal" <vgoyal@redhat.com>
-Message-ID: <176cc2dcd40.107ad48cf41153.6757897875754439646@mykernel.net>
-In-Reply-To: <CAOQ4uxhn1q4ZcW+GgNxLwcSwhQxrQJibPhX8xO2YsbS1et6YiQ@mail.gmail.com>
-References: <20201226104618.239739-1-cgxu519@mykernel.net> <CAOQ4uxhn1q4ZcW+GgNxLwcSwhQxrQJibPhX8xO2YsbS1et6YiQ@mail.gmail.com>
-Subject: Re: [RFC PATCH] ovl: keep some file attrubutions after copy-up
-MIME-Version: 1.0
+        Mon, 4 Jan 2021 02:31:39 -0500
+Received: from relay5.mymailcheap.com (relay5.mymailcheap.com [159.100.248.207])
+        by relay-us1.mymailcheap.com (Postfix) with ESMTPS id 06BC220055
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Jan 2021 07:30:58 +0000 (UTC)
+Received: from relay4.mymailcheap.com (relay4.mymailcheap.com [137.74.80.154])
+        by relay5.mymailcheap.com (Postfix) with ESMTPS id 487E2260EB;
+        Mon,  4 Jan 2021 07:30:04 +0000 (UTC)
+Received: from filter2.mymailcheap.com (filter2.mymailcheap.com [91.134.140.82])
+        by relay4.mymailcheap.com (Postfix) with ESMTPS id DD71C3F1CF;
+        Mon,  4 Jan 2021 08:28:28 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+        by filter2.mymailcheap.com (Postfix) with ESMTP id AC3792A7E5;
+        Mon,  4 Jan 2021 08:28:28 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=mymailcheap.com;
+        s=default; t=1609745308;
+        bh=fjnZkoVTTU0sciv5VPvHtJlIseKPWNwKRM7jiM31Sc8=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=PNFE4Ao5pDhVlC5yauD2tXQalK4Jnqovb+520bEHreSQtImry2kDcQmv87B2pHING
+         ut1noO6yhquJA6W5odOBVk1oUbxp4bzl/XdC7hM6Wrg51S8DBP2FL8hVXEw5gJ+B3t
+         F76QyD2+riKGUIUniWqHQB8zUzMuJEvXmcawW5HU=
+X-Virus-Scanned: Debian amavisd-new at filter2.mymailcheap.com
+Received: from filter2.mymailcheap.com ([127.0.0.1])
+        by localhost (filter2.mymailcheap.com [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id 248A5mayeMeK; Mon,  4 Jan 2021 08:28:27 +0100 (CET)
+Received: from mail20.mymailcheap.com (mail20.mymailcheap.com [51.83.111.147])
+        (using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by filter2.mymailcheap.com (Postfix) with ESMTPS;
+        Mon,  4 Jan 2021 08:28:27 +0100 (CET)
+Received: from [213.133.102.83] (ml.mymailcheap.com [213.133.102.83])
+        by mail20.mymailcheap.com (Postfix) with ESMTP id A9F4F41F21;
+        Mon,  4 Jan 2021 07:28:25 +0000 (UTC)
+Authentication-Results: mail20.mymailcheap.com;
+        dkim=pass (1024-bit key; unprotected) header.d=aosc.io header.i=@aosc.io header.b="hA4RwVr+";
+        dkim-atps=neutral
+AI-Spam-Status: Not processed
+Received: from ICE-E5V2.lan (unknown [59.41.162.25])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail20.mymailcheap.com (Postfix) with ESMTPSA id 25C6041F21;
+        Mon,  4 Jan 2021 07:28:16 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=aosc.io; s=default;
+        t=1609745299; bh=fjnZkoVTTU0sciv5VPvHtJlIseKPWNwKRM7jiM31Sc8=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=hA4RwVr+3RnYQfmb1U0QtTJJbQue5JHkytRUS8NkFeOBbK3yZYGF7J+iUm//UOBTA
+         FJ9+p1w9rJAh00VwgbSwUBGbfLAvx+1OYqFYhMMlBiiDaWxmCpVYVU3Ceb235EDrcw
+         FFtahrrANP94o83vM08EcDpxlmC+ceJaUed3j3fU=
+Message-ID: <a77b2beb832d64f9f019c4505e91c7ffcbbfb61b.camel@aosc.io>
+Subject: Re: [PATCH] ovl: use a dedicated semaphore for dir upperfile caching
+From:   Icenowy Zheng <icenowy@aosc.io>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Xiao Yang <yangx.jy@cn.fujitsu.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        stable <stable@vger.kernel.org>
+Date:   Mon, 04 Jan 2021 15:28:12 +0800
+In-Reply-To: <CAOQ4uxgNWkzVphdB7cAkwdUXagM_NsCUYDRT1f-=X1rn1-KpUQ@mail.gmail.com>
+References: <20210101201230.768653-1-icenowy@aosc.io>
+         <CAOQ4uxgNWkzVphdB7cAkwdUXagM_NsCUYDRT1f-=X1rn1-KpUQ@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
+User-Agent: Evolution 3.38.2 
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Spamd-Result: default: False [-0.10 / 10.00];
+         RCVD_VIA_SMTP_AUTH(0.00)[];
+         ARC_NA(0.00)[];
+         R_DKIM_ALLOW(0.00)[aosc.io:s=default];
+         RECEIVED_SPAMHAUS_PBL(0.00)[59.41.162.25:received];
+         FROM_HAS_DN(0.00)[];
+         FREEMAIL_ENVRCPT(0.00)[gmail.com];
+         TO_MATCH_ENVRCPT_ALL(0.00)[];
+         MIME_GOOD(-0.10)[text/plain];
+         DMARC_NA(0.00)[aosc.io];
+         R_SPF_SOFTFAIL(0.00)[~all];
+         RCPT_COUNT_FIVE(0.00)[6];
+         ML_SERVERS(-3.10)[213.133.102.83];
+         TO_DN_ALL(0.00)[];
+         DKIM_TRACE(0.00)[aosc.io:+];
+         FREEMAIL_TO(0.00)[gmail.com];
+         RCVD_NO_TLS_LAST(0.10)[];
+         FROM_EQ_ENVFROM(0.00)[];
+         MIME_TRACE(0.00)[0:+];
+         ASN(0.00)[asn:24940, ipnet:213.133.96.0/19, country:DE];
+         RCVD_COUNT_TWO(0.00)[2];
+         MID_RHS_MATCH_FROM(0.00)[];
+         HFILTER_HELO_BAREIP(3.00)[213.133.102.83,1]
+X-Rspamd-Queue-Id: A9F4F41F21
+X-Rspamd-Server: mail20.mymailcheap.com
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=80, 2021-01-04 13:04:56 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > On Sat, Dec 26, 2020 at 12:48 PM Chengguang Xu <cgxu519@mykernel.net> wr=
-ote:
- > >
- > > Currently after copy-up, upper file will lose most of file
- > > attributions except copy-up triggered by setting fsflags.
- > > Because ioctl operation of underlying file systems does not
- > > expect calling from kernel component, it seems hard to
- > > copy fsflags during copy-up.
- > >
- > > Overlayfs keeps limited attributions(append-only, etc) in it's
- > > inode flags after successfully updating attributions. so ater
- > > copy-up, lsattr(1) does not show correct result but overlayfs
- > > can still prohibit ramdom write for those files which originally
- > > have append-only attribution. However, recently I found this
- > > protection can be easily broken in below operations.
- > >
- > > 1, Set append attribution to lower file.
- > > 2, Mount overlayfs.
- > > 3, Trigger copy-up by data append.
- > > 4, Set noatime attributtion to the file.
- > > 5, The file is random writable.
- > >
- > > This patch tries to keep some file attributions after copy-up
- > > so that overlayfs keeps compatible behavior with local filesystem
- > > as much as possible.
- > >
- >=20
- > This approach seems quite wrong.
- > For one thing, mount cycle overlay or drop caches will result in loss
- > of append only flag after copy-up, so this is not a security fix.
- >=20
+在 2021-01-03星期日的 16:10 +0200，Amir Goldstein写道：
+> On Fri, Jan 1, 2021 at 10:12 PM Icenowy Zheng <icenowy@aosc.io>
+> wrote:
+> > 
+> > The function ovl_dir_real_file() currently uses the semaphore of
+> > the
+> > inode to synchronize write to the upperfile cache field.
+> > 
+> > However, this function will get called by ovl_ioctl_set_flags(),
+> > which
+> > utilizes the inode semaphore too. In this case ovl_dir_real_file()
+> > will
+> > try to claim a lock that is owned by a function in its call stack,
+> > which
+> > won't get released before ovl_dir_real_file() returns.
+> 
+> oops. I wondered why I didn't see any warnings on this from lockdep.
+> Ah! because the xfstest that exercises ovl_ioctl_set_flags() on
+> directory,
+> generic/079, starts with an already upper dir.
+> 
+> And the xfstest that checks chattr+i on lower/upper files,
+> overlay/040,
+> does not check chattr on dirs (ioctl on overlay dirs wasn't supported
+> at
+> the time the test was written).
+> 
+> Would you be able to create a variant of test overlay/040 that also
+> tests
+> chattr +i on lower/upper dirs to test your patch and confirm that the
+> test
+> fails on master with the appropriate Kconfig debug options.
 
-You are right, I overlooked the case of dropping cache.
+https://gist.github.com/Icenowy/c7d8decb6812d6e5064d143c57281ad3
 
- > Second, Miklos has already proposed a much more profound change
- > to address this and similar issues [1] and he has already made some
- > changes to ioctl handler to master doesn't have ovl_iflags_to_fsflags().
- >=20
- > [1] https://lore.kernel.org/linux-fsdevel/20201123141207.GC327006@miu.pi=
-liscsaba.redhat.com/
- >=20
- > One more thing.
- > It seems like ovl_copyflags() in ovl_inode_init() would have been better
- > to copy from ovl_inode_realdata() inode instead of ovl_inode_real().
- > This way, copy up still loses the append-only flag, but metacopy up
- > does not. So at least for the common use case of containers that
- > chown -R won't cause losing all the file flags.
+Here's a test that would break on master (I used linux-next/master for
+test).
 
-IIUC, the flags will still keep in overlayfs' inode after copy up until=20
-the inode cleaned by dropping cache. So I think your suggestion will be
-helpful for the case of meta-copyup & dropping cache.
+[  246.521880] INFO: task chattr:715 blocked for more than 122 seconds.
+[  246.525659]       Not tainted 5.11.0-rc1-next-20210104+ #20
+[  246.528498] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  246.535076] task:chattr          state:D stack:13736 pid:  715 ppid:
+529 flags:0x00000000
+[  246.538923] Call Trace:
+[  246.540241]  __schedule+0x2a9/0x820
+[  246.541986]  schedule+0x56/0xc0
+[  246.543616]  rwsem_down_write_slowpath+0x375/0x630
+[  246.545565]  ovl_dir_real_file+0xc1/0x120
+[  246.547512]  ovl_real_fdget+0x35/0x80
+[  246.549303]  ovl_real_ioctl+0x26/0x90
+[  246.551050]  ? mnt_drop_write+0x2c/0x70
+[  246.553068]  ovl_ioctl_set_flags+0x93/0x110
+[  246.555407]  __x64_sys_ioctl+0x7e/0xb0
+[  246.557175]  do_syscall_64+0x33/0x40
+[  246.558869]  entry_SYSCALL_64_after_hwframe+0x44/0xa9
+[  246.561057] RIP: 0033:0x7fe4a3830b67
+[  246.565799] RSP: 002b:00007ffe7ad504f8 EFLAGS: 00000246 ORIG_RAX:
+0000000000000010
+[  246.569438] RAX: ffffffffffffffda RBX: 0000000000000001 RCX:
+00007fe4a3830b67
+[  246.572061] RDX: 00007ffe7ad5050c RSI: 0000000040086602 RDI:
+0000000000000003
+[  246.575509] RBP: 0000000000000003 R08: 0000000000000001 R09:
+0000000000000000
+[  246.578932] R10: 0000000000000000 R11: 0000000000000246 R12:
+0000000000000010
+[  246.581014] R13: 00007ffe7ad50810 R14: 0000000000000002 R15:
+0000000000000001
+[  246.582818] 
+[  246.582818] Showing all locks held in the system:
+[  246.584741] 1 lock held by khungtaskd/18:
+[  246.586085]  #0: ffffffff9e951540 (rcu_read_lock){....}-{1:2}, at:
+debug_show_all_locks+0x15/0x100
+[  246.589775] 3 locks held by chattr/715:
+[  246.591364]  #0: ffff96a74b92c450 (sb_writers#11){....}-{0:0}, at:
+ovl_ioctl_set_flags+0x2f/0x110
+[  246.597182]  #1: ffff96a7489c3500
+(&ovl_i_mutex_dir_key[depth]){....}-{3:3}, at:
+ovl_ioctl_set_flags+0x54/0x110
+[  246.601325]  #2: ffff96a7489c3500
+(&ovl_i_mutex_dir_key[depth]){....}-{3:3}, at:
+ovl_dir_real_file+0xc1/0x120
 
-Hi Miklos
+> 
+> > 
+> > Define a dedicated semaphore for the upperfile cache, so that the
+> > deadlock won't happen.
+> > 
+> > Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR
+> > ioctls for directories")
+> > Cc: stable@vger.kernel.org # v5.10
+> > Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+> > ---
+> >  fs/overlayfs/readdir.c | 6 ++++--
+> >  1 file changed, 4 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> > index 01620ebae1bd..f10701aabb71 100644
+> > --- a/fs/overlayfs/readdir.c
+> > +++ b/fs/overlayfs/readdir.c
+> > @@ -56,6 +56,7 @@ struct ovl_dir_file {
+> >         struct list_head *cursor;
+> >         struct file *realfile;
+> >         struct file *upperfile;
+> > +       struct semaphore upperfile_sem;
+> 
+> mutex please
+> 
+> >  };
+> > 
+> >  static struct ovl_cache_entry *ovl_cache_entry_from_node(struct
+> > rb_node *n)
+> > @@ -883,7 +884,7 @@ struct file *ovl_dir_real_file(const struct
+> > file *file, bool want_upper)
+> >                         ovl_path_upper(dentry, &upperpath);
+> >                         realfile = ovl_dir_open_realfile(file,
+> > &upperpath);
+> > 
+> > -                       inode_lock(inode);
+> > +                       down(&od->upperfile_sem);
+> >                         if (!od->upperfile) {
+> >                                 if (IS_ERR(realfile)) {
+> >                                         inode_unlock(inode);
+> 
+> You missed this unlock
 
-Is it worth to change like above?
+Thanks, will send v2 now.
 
-
- >=20
- > ovl_ioctl_set_flags() triggers data copy up, so that will break the link
- > to lower flags anyway.
-
-I think though ovl_ioctl_set_flags() triggers data copy up but the flags
-will be set correctly to upper file, because chattr(1) will get the flags
-first and set the whole flags(include original flags) to upper file.
-
-Thanks,
-Chengguang
+> 
+> Thanks,
+> Amir.
 
