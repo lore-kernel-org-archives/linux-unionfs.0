@@ -2,132 +2,122 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1D5BC433DB
-	for <linux-unionfs@archiver.kernel.org>; Tue,  5 Jan 2021 01:47:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86F74C433E0
+	for <linux-unionfs@archiver.kernel.org>; Tue,  5 Jan 2021 06:48:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ACFE4207A9
-	for <linux-unionfs@archiver.kernel.org>; Tue,  5 Jan 2021 01:47:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37EB022482
+	for <linux-unionfs@archiver.kernel.org>; Tue,  5 Jan 2021 06:48:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726656AbhAEBrW (ORCPT
+        id S1726097AbhAEGsd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Jan 2021 20:47:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51636 "EHLO
+        Tue, 5 Jan 2021 01:48:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41522 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726829AbhAEBrV (ORCPT
+        with ESMTP id S1725290AbhAEGsd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Jan 2021 20:47:21 -0500
-Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17D88C061794
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Jan 2021 17:46:41 -0800 (PST)
-Received: by mail-ej1-x62a.google.com with SMTP id lt17so39290777ejb.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 04 Jan 2021 17:46:40 -0800 (PST)
+        Tue, 5 Jan 2021 01:48:33 -0500
+Received: from mail-il1-x12d.google.com (mail-il1-x12d.google.com [IPv6:2607:f8b0:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16A34C061793;
+        Mon,  4 Jan 2021 22:47:53 -0800 (PST)
+Received: by mail-il1-x12d.google.com with SMTP id w17so27625888ilj.8;
+        Mon, 04 Jan 2021 22:47:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
+        d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=0hrL5P+/Wig9xYysoWEcy4T3JLi4US3r4Bv0ZgQacj8=;
-        b=QGvNoQsWStPPb6xdOkIN/piMqURakstCS2Mna2aXi8B3BGYb6giQsz1ColpHtxZUER
-         mynXiG2MJZbId/8jzmsSH8YuN6tj9h1eb/vUE7CxYcX5fVIsiTQZh3tSiKNeN7gB0+Ks
-         AmZahrZ0BixGDjz5D25t+RLbtMGYDUBXNGJp/jGZgHjQypZFT3+shjDR03oPJ7Dza85O
-         Wu5TAFPKhfQT3HH9v/6lpHcdRX3vUKeb0GCO+pCjzbhNOrt4gE0coUW7ku2IVuy4RLEK
-         3FHlM++UwjIzCHnIUhdhdhJf2D7ln2eKDTTVua5RsKy4eSHt+WJ7QuRoonH8hq815mzj
-         R2wA==
+        bh=WEIUrnV7kwpRZdk2n4ViOS8PBMynqQODHepR4XVRnjk=;
+        b=cPtGkacRM9TDsxMA69xv6SLX5aOxuxGEIUHQAJVGf7GagmC2jPQrT5B37Ammol18iN
+         HwhGtLcp2If7zovIDMUIKPWphP80vQLCXTW9F4sT7aWSml+M2OSp9fbV70OsjzdS4Jnl
+         AbvXYfpEfmMEqePbuKlsuOydIaftuyD8/Lvjif/rNXuAeBB1f0uOSL231+zvvU+GV4Bk
+         WTvwHAaKlLW5TLVrieAEBxiTHFXomTITNs3bK4re0GyXLY2qZJ47/WK5NP+YODofOnTW
+         r7zzcnfdtRPg7tttz2w1uLJShrCyJuxCdFirf4pPG9mVaJT10ojS0QEWDlLwBHWKIbwX
+         qXvA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=0hrL5P+/Wig9xYysoWEcy4T3JLi4US3r4Bv0ZgQacj8=;
-        b=lTSefy5Ajg/Z7PpA90VHqw7KRApKzF8oAq0XEk+9Pw4V54vxTmiXlJL8j3oMJcgIWv
-         WIfZpwOLhAxQzZCIbT7LdtxUnvv08H4iQayUEHDRdCE46ON7Bybv12eFdZGzn7Fd2z9F
-         DaM/DVbRsK/yshOknPFIaRf1DObXnLti096qGNpo7D3jj9ZIx5SUmJP797GjrPufco/V
-         xfGZfe0Re6Bauix8U3jppYWv8hc2UHdctcmmj1pG5vVDuCuv78gze62ZbkeTMsefNtin
-         uRLHPlBP0FFl/2ndRTUxIBU1Abzz+Sd6pj8z3NmwIde+bQf+eE9rEE4BTwF6NwPHcJ+C
-         QcaQ==
-X-Gm-Message-State: AOAM530xCFbny93P5BSpC0yRVXJqnvGsZqOFBLrPwlrscCzS/ehBD431
-        3iKWLHDl0SOZotfdEUb6DH5QveFhsPkbnotTR84E
-X-Google-Smtp-Source: ABdhPJy2T7Ko01GO47eJ4gxrh0L10Y7nFSvwcvSBg6cA5ykWeWQFAX7CLMZ0Bjj1qsdAsZpVixMHl7CWXW/BWodNnB0=
-X-Received: by 2002:a17:906:3712:: with SMTP id d18mr70964123ejc.178.1609811199726;
- Mon, 04 Jan 2021 17:46:39 -0800 (PST)
+        bh=WEIUrnV7kwpRZdk2n4ViOS8PBMynqQODHepR4XVRnjk=;
+        b=JL8oSI2cCc3wgcqcy+zWrgtd1xHrRluYpdoB3rx5f368SUiZZy+xaUPPTqsXaaCNRc
+         lZgXvfKDKni6z431ujEmZ9oJGAqVaLXDcNYrw5qcT0C9fcs4wYhMunV4HFSN3TvaG4vv
+         GKQLoUmLTt9pP5lYrvPt6lh1ywOzdKdPjAYC7Av6qwHNnCp0NtXk3c8vix8xN82+SKLw
+         ejRS2g6IPJT4SuxB7ORIgY0bL1F1BWCqz90akaqcJnUMUzMqhs6L2cdcPSfYWnyIPpYZ
+         1ztXtG+qRicyM4HrzHQ3lSpbiHUrzv6B/1XUQqOlTlh8kU7ewRH0GULEvz3obsvxy4Xa
+         0Zqw==
+X-Gm-Message-State: AOAM532pCyGpF2IJeKW7t2RWS4vJctjX0UgRGKD9AdVBfwkgYehktt4s
+        tjN7lnYtAnjHYBF4fOjMP8MpqUNb8/LI3KYk6G9V9EiDFgI=
+X-Google-Smtp-Source: ABdhPJwKiwaQfeoCWzR0lPATVutk08oY9xuYHYL6tMf6GYLD46UDJggODg6tov1r5nlami5e3qeJemwtr7l7heUD0ko=
+X-Received: by 2002:a92:6403:: with SMTP id y3mr72656126ilb.72.1609829272565;
+ Mon, 04 Jan 2021 22:47:52 -0800 (PST)
 MIME-Version: 1.0
-References: <20201219100527.16060-1-amir73il@gmail.com> <CAFqZXNtcX54bv2xeQ26_i-=9OkdiJQQzPOveY=aaujOWJjGWLA@mail.gmail.com>
-In-Reply-To: <CAFqZXNtcX54bv2xeQ26_i-=9OkdiJQQzPOveY=aaujOWJjGWLA@mail.gmail.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 4 Jan 2021 20:46:28 -0500
-Message-ID: <CAHC9VhQfh7BH_brRZqk9OgC+93qXz=M07MZ5NVeLQ==5YQS2Kg@mail.gmail.com>
-Subject: Re: [PATCH] selinux: fix inconsistency between inode_getxattr and inode_listsecurity
-To:     Ondrej Mosnacek <omosnace@redhat.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Michael Labriola <michael.d.labriola@gmail.com>,
-        Jonathan Lebon <jlebon@redhat.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        SElinux list <selinux@vger.kernel.org>,
-        Linux Security Module list 
-        <linux-security-module@vger.kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        Linux Stable maillist <stable@vger.kernel.org>
+References: <20210105003611.194511-1-icenowy@aosc.io>
+In-Reply-To: <20210105003611.194511-1-icenowy@aosc.io>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 5 Jan 2021 08:47:41 +0200
+Message-ID: <CAOQ4uxiFoQhrMbs91ZUNXqbJUXb5XRBgRrcq1rmChLKQGKg5xg@mail.gmail.com>
+Subject: Re: [PATCH v3] ovl: use a dedicated semaphore for dir upperfile caching
+To:     Icenowy Zheng <icenowy@aosc.io>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Xiao Yang <yangx.jy@cn.fujitsu.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        stable <stable@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jan 4, 2021 at 4:39 AM Ondrej Mosnacek <omosnace@redhat.com> wrote:
-> On Sat, Dec 19, 2020 at 11:07 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> > When inode has no listxattr op of its own (e.g. squashfs) vfs_listxattr
-> > calls the LSM inode_listsecurity hooks to list the xattrs that LSMs will
-> > intercept in inode_getxattr hooks.
-> >
-> > When selinux LSM is installed but not initialized, it will list the
-> > security.selinux xattr in inode_listsecurity, but will not intercept it
-> > in inode_getxattr.  This results in -ENODATA for a getxattr call for an
-> > xattr returned by listxattr.
-> >
-> > This situation was manifested as overlayfs failure to copy up lower
-> > files from squashfs when selinux is built-in but not initialized,
-> > because ovl_copy_xattr() iterates the lower inode xattrs by
-> > vfs_listxattr() and vfs_getxattr().
-> >
-> > Match the logic of inode_listsecurity to that of inode_getxattr and
-> > do not list the security.selinux xattr if selinux is not initialized.
-> >
-> > Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
-> > Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
-> > Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
-> > Fixes: c8e222616c7e ("selinux: allow reading labels before policy is loaded")
-> > Cc: stable@vger.kernel.org#v5.9+
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  security/selinux/hooks.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> >
-> > diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-> > index 6b1826fc3658..e132e082a5af 100644
-> > --- a/security/selinux/hooks.c
-> > +++ b/security/selinux/hooks.c
-> > @@ -3406,6 +3406,10 @@ static int selinux_inode_setsecurity(struct inode *inode, const char *name,
-> >  static int selinux_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size)
-> >  {
-> >         const int len = sizeof(XATTR_NAME_SELINUX);
-> > +
-> > +       if (!selinux_initialized(&selinux_state))
-> > +               return 0;
-> > +
-> >         if (buffer && len <= buffer_size)
-> >                 memcpy(buffer, XATTR_NAME_SELINUX, len);
-> >         return len;
-> > --
-> > 2.25.1
+On Tue, Jan 5, 2021 at 2:36 AM Icenowy Zheng <icenowy@aosc.io> wrote:
 >
-> Looked at the logic in vfs_listxattr() and this looks reasonable.
+> The function ovl_dir_real_file() currently uses the semaphore of the
+> inode to synchronize write to the upperfile cache field.
 
-Agreed, this looks good to me too; I'll merge it into selinux/next.
-Thanks everyone!
+Although the inode lock is a rw_sem it is referred to as the "inode lock"
+and you also left semaphore in the commit subject.
+No need to re-post. This can be fixed on commit.
 
--- 
-paul moore
-www.paul-moore.com
+>
+> However, this function will get called by ovl_ioctl_set_flags(), which
+> utilizes the inode semaphore too. In this case ovl_dir_real_file() will
+> try to claim a lock that is owned by a function in its call stack, which
+> won't get released before ovl_dir_real_file() returns.
+>
+> Define a dedicated semaphore for the upperfile cache, so that the
+> deadlock won't happen.
+>
+> Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR ioctls for directories")
+> Cc: stable@vger.kernel.org # v5.10
+> Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
+> ---
+> Changes in v2:
+> - Fixed missing replacement in error handling path.
+> Changes in v3:
+> - Use mutex instead of semaphore.
+>
+>  fs/overlayfs/readdir.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> index 01620ebae1bd..3980f9982f34 100644
+> --- a/fs/overlayfs/readdir.c
+> +++ b/fs/overlayfs/readdir.c
+> @@ -56,6 +56,7 @@ struct ovl_dir_file {
+>         struct list_head *cursor;
+>         struct file *realfile;
+>         struct file *upperfile;
+> +       struct mutex upperfile_mutex;
+
+That's a very specific name.
+This mutex protects members of struct ovl_dir_file, which could evolve
+into struct ovl_file one day (because no reason to cache only dir upper file),
+so I would go with a more generic name, but let's leave it to Miklos to decide.
+
+He could have a different idea altogether for fixing this bug.
+
+Thanks,
+Amir.
