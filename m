@@ -2,191 +2,314 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2744C433E6
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Jan 2021 14:59:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A3F4C433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Jan 2021 00:11:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8C93225AC
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Jan 2021 14:59:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCD0F2368A
+	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Jan 2021 00:11:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726326AbhAGO7M (ORCPT
+        id S1728954AbhAHALT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Jan 2021 09:59:12 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:56364 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1726338AbhAGO7L (ORCPT
+        Thu, 7 Jan 2021 19:11:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34626 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1728698AbhAHALT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Jan 2021 09:59:11 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1610031465;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=c5VRFgXzQJ18TxiRsL/3LBkOTLH+uHfHXz0nxqBUw4U=;
-        b=QYMojucKjgVhqBLU93MtCbtcbjkeXOR3DXgg5eYz5Wfr2SevMWxLiwYnu4oD2bl4hUjlJB
-        ZpBV2t9jNm6zGkVXqcGPUfChEW1SQDP5Tbbmd2lJhTrqlTeXaxgS41x9H8IvORpZ/POlYr
-        grkc3cpvRre4NoheiAXUIQgKfFgNyAg=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-68-GuJ3wKGCNKGzqBwf6HLFhQ-1; Thu, 07 Jan 2021 09:57:41 -0500
-X-MC-Unique: GuJ3wKGCNKGzqBwf6HLFhQ-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 77CD3801A9E;
-        Thu,  7 Jan 2021 14:57:39 +0000 (UTC)
-Received: from horse.redhat.com (ovpn-116-86.rdu2.redhat.com [10.10.116.86])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id D03366062F;
-        Thu,  7 Jan 2021 14:57:38 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 57D6122054F; Thu,  7 Jan 2021 09:57:38 -0500 (EST)
-Date:   Thu, 7 Jan 2021 09:57:38 -0500
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>
+        Thu, 7 Jan 2021 19:11:19 -0500
+Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F229C0612B2
+        for <linux-unionfs@vger.kernel.org>; Thu,  7 Jan 2021 16:10:49 -0800 (PST)
+Received: by mail-pl1-x62a.google.com with SMTP id s15so4724325plr.9
+        for <linux-unionfs@vger.kernel.org>; Thu, 07 Jan 2021 16:10:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sargun.me; s=google;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VemmJRt3P01EfOt/Xs0GaR4+0L00UbeVA9HwVzMYZ2U=;
+        b=N/0AO3Hkrsmpg9he747deZ1NWCfNdSA1YWaiR0ENE5CA73yXFEltWofju2t9HFV2bI
+         cylfx8yyKZlsBCjVPftfOFI+UniGkF7xF6Wd+Vf3JoxE1G0RKIsQbDFI0jI9YhVPg041
+         WInPhrfeRtXmeSUOXj8hkBTsUDg4pNozyRCF8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=VemmJRt3P01EfOt/Xs0GaR4+0L00UbeVA9HwVzMYZ2U=;
+        b=ijqXoSRMOgL4GZvXct8NeVdESUtUNc9YC2Uyw3op2GV8M4LS6EALdOU4fEvJRo/njh
+         Tv0xTcZmgjfPQvjgwCMOjUKRdcNVYj36zXlhMsbUBkHiC40ghO69m8ZVpDbWggKqOq7R
+         Qop8zDQraKKE3aw0scuvjO0bb9j9Bg7BOBskmETkoYf7ZAmrRXbgPTgfbn/BhZ21inRl
+         djy7PfUr9jy33fZaci0G5PiZ9jNpF+oMxiugml/8zdHiED0NpFq+ZsebW32wumRjsk5m
+         R6TzlPUHGF2MfoGRjAQ8DXvMyi0OTLxED+VUkvM9dSL09oWIEMSjlJcbQkj2AQApYI96
+         7Mwg==
+X-Gm-Message-State: AOAM531/xZUGPyW1k1Z1Whdx10QfCcYwNJFW4eq50BoDgGhqjTnmc/61
+        n4ZQJUcmBMEjl4xJa4xprahRdn5XqS1hE1VtYD0=
+X-Google-Smtp-Source: ABdhPJyMPWJF4SraNB6fF/bnP0KeLcBT4pvkQjkBwm/3jtD55YsYbV6MhAsCtQMmWf8PoQzaEfEsSA==
+X-Received: by 2002:a17:902:a3ca:b029:da:df3c:91c8 with SMTP id q10-20020a170902a3cab02900dadf3c91c8mr1222725plb.41.1610064648453;
+        Thu, 07 Jan 2021 16:10:48 -0800 (PST)
+Received: from ubuntu.netflix.com (203.20.25.136.in-addr.arpa. [136.25.20.203])
+        by smtp.gmail.com with ESMTPSA id k11sm7083997pgt.83.2021.01.07.16.10.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 Jan 2021 16:10:47 -0800 (PST)
+From:   Sargun Dhillon <sargun@sargun.me>
+To:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        Amir Goldstein <amir73il@gmail.com>
 Cc:     Sargun Dhillon <sargun@sargun.me>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
         Daniel J Walsh <dwalsh@redhat.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        David Howells <dhowells@redhat.com>,
+        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>,
         Chengguang Xu <cgxu519@mykernel.net>,
         Christoph Hellwig <hch@lst.de>, NeilBrown <neilb@suse.com>,
-        Jan Kara <jack@suse.cz>, Jeff Layton <jlayton@redhat.com>,
+        Jan Kara <jack@suse.cz>, stable@vger.kernel.org,
+        Jeff Layton <jlayton@redhat.com>,
         Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH v3] overlay: Implement volatile-specific fsync error
- behaviour
-Message-ID: <20210107145738.GB3439@redhat.com>
-References: <20210106083546.4392-1-sargun@sargun.me>
- <20210106194658.GA3290@redhat.com>
- <CAOQ4uxgR_gybovg6t4+=MbeMXS6jm5ov1ULDGZgzg7yCxETsDw@mail.gmail.com>
- <20210107134456.GA3439@redhat.com>
- <CAOQ4uxjdPkO1OEOFBdgS1ps0GzBrN1jCF5zFkAoLeCJEtkALwg@mail.gmail.com>
+Subject: [PATCH v4] overlay: Implement volatile-specific fsync error behaviour
+Date:   Thu,  7 Jan 2021 16:10:43 -0800
+Message-Id: <20210108001043.12683-1-sargun@sargun.me>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjdPkO1OEOFBdgS1ps0GzBrN1jCF5zFkAoLeCJEtkALwg@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jan 07, 2021 at 04:44:19PM +0200, Amir Goldstein wrote:
-> On Thu, Jan 7, 2021 at 3:45 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> >
-> > On Thu, Jan 07, 2021 at 09:02:00AM +0200, Amir Goldstein wrote:
-> > > On Wed, Jan 6, 2021 at 9:47 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > >
-> > > > On Wed, Jan 06, 2021 at 12:35:46AM -0800, Sargun Dhillon wrote:
-> > > > > Overlayfs's volatile option allows the user to bypass all forced sync calls
-> > > > > to the upperdir filesystem. This comes at the cost of safety. We can never
-> > > > > ensure that the user's data is intact, but we can make a best effort to
-> > > > > expose whether or not the data is likely to be in a bad state.
-> > > > >
-> > > > > The best way to handle this in the time being is that if an overlayfs's
-> > > > > upperdir experiences an error after a volatile mount occurs, that error
-> > > > > will be returned on fsync, fdatasync, sync, and syncfs. This is
-> > > > > contradictory to the traditional behaviour of VFS which fails the call
-> > > > > once, and only raises an error if a subsequent fsync error has occurred,
-> > > > > and been raised by the filesystem.
-> > > > >
-> > > > > One awkward aspect of the patch is that we have to manually set the
-> > > > > superblock's errseq_t after the sync_fs callback as opposed to just
-> > > > > returning an error from syncfs. This is because the call chain looks
-> > > > > something like this:
-> > > > >
-> > > > > sys_syncfs ->
-> > > > >       sync_filesystem ->
-> > > > >               __sync_filesystem ->
-> > > > >                       /* The return value is ignored here
-> > > > >                       sb->s_op->sync_fs(sb)
-> > > > >                       _sync_blockdev
-> > > > >               /* Where the VFS fetches the error to raise to userspace */
-> > > > >               errseq_check_and_advance
-> > > > >
-> > > > > Because of this we call errseq_set every time the sync_fs callback occurs.
-> > > >
-> > > > Why not start capturing return code of ->sync_fs and then return error
-> > > > from ovl->sync_fs. And then you don't have to do errseq_set(ovl_sb).
-> > > >
-> > > > I already posted a patch to capture retrun code from ->sync_fs.
-> > > >
-> > > > https://lore.kernel.org/linux-fsdevel/20201221195055.35295-2-vgoyal@redhat.com/
-> > > >
-> > > >
-> > >
-> > > Vivek,
-> > >
-> > > IMO the more important question is "Why not?".
-> > >
-> > > Your patches will undoubtedly get to mainline in the near future and they do
-> > > make the errseq_set(ovl_sb) in this patch a bit redundant,
-> >
-> > I thought my patch of capturing ->sync_fs is really simple (just few
-> > lines), so backportability should not be an issue. That's why I
-> > asked for it.
-> >
-> 
-> Apologies. I thought you meant your entire patch set.
-> I do agree to that. In fact, I think I suggested it myself at one
-> point or another.
-> 
-> > > but I really see no
-> > > harm in it. It is very simple for you to remove this line in your patch.
-> > > I do see the big benefit of an independent patch that is easy to apply to fix
-> > > a fresh v5.10 feature.
-> > >
-> > > I think it is easy for people to dismiss the importance of "syncfs on volatile"
-> > > which sounds like a contradiction, but it is not.
-> > > The fact that the current behavior is documented doesn't make it right either.
-> > > It just makes our review wrong.
-> > > The durability guarantee (that volatile does not provide) is very different
-> > > from the "reliability" guarantee that it CAN provide.
-> > > We do not want to have to explain to people that "volatile" provided different
-> > > guarantees depending on the kernel they are running.
-> > > Fixing syncfs/fsync of volatile is much more important IMO than erroring
-> > > on other fs ops post writeback error, because other fs ops are equally
-> > > unreliable on any filesystem in case application did not do fsync.
-> > >
-> > > Ignoring the factor of "backporting cost" when there is no engineering
-> > > justification to do so is just ignoring the pain of others.
-> > > Do you have an engineering argument for objecting this patch is
-> > > applied before your fixes to syncfs vfs API?
-> >
-> > Carrying ->sync_fs return code patch is definitely not a blocker. It
-> > is just nice to have. Anyway, I you don't want to carry that ->sync_fs
-> > return patch in stable, I am fine with this patch. I will follow up
-> > on that fix separately.
-> >
-> 
-> Please collaborate with Sargun.
-> I think it is best if one of you will post those two patches in the same
-> series. I think you had a few minor comments to address, so many
-> send the final patch version to Sargun to he can test the two patches
-> together and post them?
+Overlayfs's volatile option allows the user to bypass all forced sync calls
+to the upperdir filesystem. This comes at the cost of safety. We can never
+ensure that the user's data is intact, but we can make a best effort to
+expose whether or not the data is likely to be in a bad state.
 
-Hi Amir,
+The best way to handle this in the time being is that if an overlayfs's
+upperdir experiences an error after a volatile mount occurs, that error
+will be returned on fsync, fdatasync, sync, and syncfs. This is
+contradictory to the traditional behaviour of VFS which fails the call
+once, and only raises an error if a subsequent fsync error has occurred,
+and been raised by the filesystem.
 
-I was thinking more about that patch. That patch will start returning
-error on syncfs() in cases where it did not return errors in the past and 
-somebody might complain. So it probably is safer to carry that patch
-in mainline first and once it gets good testing, push it to stable later.
+One awkward aspect of the patch is that we have to manually set the
+superblock's errseq_t after the sync_fs callback as opposed to just
+returning an error from syncfs. This is because the call chain looks
+something like this:
 
-So for now, I am fine with this patch as it is. Will follow on ->sync_fs
-error capture patch separately. And once that is upstream, I can post
-another overlay patch to remove errseq_set().
+sys_syncfs ->
+	sync_filesystem ->
+		__sync_filesystem ->
+			/* The return value is ignored here
+			sb->s_op->sync_fs(sb)
+			_sync_blockdev
+		/* Where the VFS fetches the error to raise to userspace */
+		errseq_check_and_advance
 
-> 
-> Sorry for the confusion.
-> Too many "the syncfs patch" to juggle.
+Because of this we call errseq_set every time the sync_fs callback occurs.
+Due to the nature of this seen / unseen dichotomy, if the upperdir is an
+inconsistent state at the initial mount time, overlayfs will refuse to
+mount, as overlayfs cannot get a snapshot of the upperdir's errseq that
+will increment on error until the user calls syncfs.
 
-No worries. I agree, too many mail threads on this topic.
+Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Fixes: c86243b090bc ("ovl: provide a mount option "volatile"")
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
+Cc: stable@vger.kernel.org
+Cc: Jeff Layton <jlayton@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+---
+ Documentation/filesystems/overlayfs.rst |  8 ++++++
+ fs/overlayfs/file.c                     |  5 ++--
+ fs/overlayfs/overlayfs.h                |  1 +
+ fs/overlayfs/ovl_entry.h                |  2 ++
+ fs/overlayfs/readdir.c                  |  5 ++--
+ fs/overlayfs/super.c                    | 34 ++++++++++++++++++++-----
+ fs/overlayfs/util.c                     | 27 ++++++++++++++++++++
+ 7 files changed, 71 insertions(+), 11 deletions(-)
 
-Thanks
-Vivek
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index 580ab9a0fe31..137afeb3f581 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -575,6 +575,14 @@ without significant effort.
+ The advantage of mounting with the "volatile" option is that all forms of
+ sync calls to the upper filesystem are omitted.
+ 
++In order to avoid a giving a false sense of safety, the syncfs (and fsync)
++semantics of volatile mounts are slightly different than that of the rest of
++VFS.  If any writeback error occurs on the upperdir's filesystem after a
++volatile mount takes place, all sync functions will return an error.  Once this
++condition is reached, the filesystem will not recover, and every subsequent sync
++call will return an error, even if the upperdir has not experience a new error
++since the last sync call.
++
+ When overlay is mounted with "volatile" option, the directory
+ "$workdir/work/incompat/volatile" is created.  During next mount, overlay
+ checks for this directory and refuses to mount if present. This is a strong
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index a1f72ac053e5..5c5c3972ebd0 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -445,8 +445,9 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ 	const struct cred *old_cred;
+ 	int ret;
+ 
+-	if (!ovl_should_sync(OVL_FS(file_inode(file)->i_sb)))
+-		return 0;
++	ret = ovl_sync_status(OVL_FS(file_inode(file)->i_sb));
++	if (ret <= 0)
++		return ret;
+ 
+ 	ret = ovl_real_fdget_meta(file, &real, !datasync);
+ 	if (ret)
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index f8880aa2ba0e..9f7af98ae200 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -322,6 +322,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs *ofs, struct dentry *dentry);
+ bool ovl_is_metacopy_dentry(struct dentry *dentry);
+ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+ 			     int padding);
++int ovl_sync_status(struct ovl_fs *ofs);
+ 
+ static inline bool ovl_is_impuredir(struct super_block *sb,
+ 				    struct dentry *dentry)
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 1b5a2094df8e..b208eba5d0b6 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -79,6 +79,8 @@ struct ovl_fs {
+ 	atomic_long_t last_ino;
+ 	/* Whiteout dentry cache */
+ 	struct dentry *whiteout;
++	/* r/o snapshot of upperdir sb's only taken on volatile mounts */
++	errseq_t errseq;
+ };
+ 
+ static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 01620ebae1bd..a273ef901e57 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -909,8 +909,9 @@ static int ovl_dir_fsync(struct file *file, loff_t start, loff_t end,
+ 	struct file *realfile;
+ 	int err;
+ 
+-	if (!ovl_should_sync(OVL_FS(file->f_path.dentry->d_sb)))
+-		return 0;
++	err = ovl_sync_status(OVL_FS(file->f_path.dentry->d_sb));
++	if (err <= 0)
++		return err;
+ 
+ 	realfile = ovl_dir_real_file(file, true);
+ 	err = PTR_ERR_OR_ZERO(realfile);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 290983bcfbb3..d23177a53c95 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -261,11 +261,20 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+ 	struct super_block *upper_sb;
+ 	int ret;
+ 
+-	if (!ovl_upper_mnt(ofs))
+-		return 0;
++	ret = ovl_sync_status(ofs);
++	/*
++	 * We have to always set the err, because the return value isn't
++	 * checked in syncfs, and instead indirectly return an error via
++	 * the sb's writeback errseq, which VFS inspects after this call.
++	 */
++	if (ret < 0) {
++		errseq_set(&sb->s_wb_err, -EIO);
++		return -EIO;
++	}
++
++	if (!ret)
++		return ret;
+ 
+-	if (!ovl_should_sync(ofs))
+-		return 0;
+ 	/*
+ 	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+ 	 * All the super blocks will be iterated, including upper_sb.
+@@ -1927,6 +1936,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_op = &ovl_super_operations;
+ 
+ 	if (ofs->config.upperdir) {
++		struct super_block *upper_sb;
++
+ 		if (!ofs->config.workdir) {
+ 			pr_err("missing 'workdir'\n");
+ 			goto out_err;
+@@ -1936,6 +1947,16 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (err)
+ 			goto out_err;
+ 
++		upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
++		if (!ovl_should_sync(ofs)) {
++			ofs->errseq = errseq_sample(&upper_sb->s_wb_err);
++			if (errseq_check(&upper_sb->s_wb_err, ofs->errseq)) {
++				err = -EIO;
++				pr_err("Cannot mount volatile when upperdir has an unseen error. Sync upperdir fs to clear state.\n");
++				goto out_err;
++			}
++		}
++
+ 		err = ovl_get_workdir(sb, ofs, &upperpath);
+ 		if (err)
+ 			goto out_err;
+@@ -1943,9 +1964,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		if (!ofs->workdir)
+ 			sb->s_flags |= SB_RDONLY;
+ 
+-		sb->s_stack_depth = ovl_upper_mnt(ofs)->mnt_sb->s_stack_depth;
+-		sb->s_time_gran = ovl_upper_mnt(ofs)->mnt_sb->s_time_gran;
+-
++		sb->s_stack_depth = upper_sb->s_stack_depth;
++		sb->s_time_gran = upper_sb->s_time_gran;
+ 	}
+ 	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+ 	err = PTR_ERR(oe);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 23f475627d07..6e7b8c882045 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -950,3 +950,30 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+ 	kfree(buf);
+ 	return ERR_PTR(res);
+ }
++
++/*
++ * ovl_sync_status() - Check fs sync status for volatile mounts
++ *
++ * Returns 1 if this is not a volatile mount and a real sync is required.
++ *
++ * Returns 0 if syncing can be skipped because mount is volatile, and no errors
++ * have occurred on the upperdir since the mount.
++ *
++ * Returns -errno if it is a volatile mount, and the error that occurred since
++ * the last mount. If the error code changes, it'll return the latest error
++ * code.
++ */
++
++int ovl_sync_status(struct ovl_fs *ofs)
++{
++	struct vfsmount *mnt;
++
++	if (ovl_should_sync(ofs))
++		return 1;
++
++	mnt = ovl_upper_mnt(ofs);
++	if (!mnt)
++		return 0;
++
++	return errseq_check(&mnt->mnt_sb->s_wb_err, ofs->errseq);
++}
+-- 
+2.25.1
 
