@@ -2,78 +2,138 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52055C433DB
-	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jan 2021 10:05:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 742FAC433DB
+	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jan 2021 18:39:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 161312310B
-	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jan 2021 10:05:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F8B922C7B
+	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jan 2021 18:39:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2390750AbhALKFj (ORCPT
+        id S2403889AbhALSio (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 12 Jan 2021 05:05:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36524 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2390434AbhALKFj (ORCPT
+        Tue, 12 Jan 2021 13:38:44 -0500
+Received: from out02.mta.xmission.com ([166.70.13.232]:60528 "EHLO
+        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S2392028AbhALSio (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Jan 2021 05:05:39 -0500
-Received: from mail-vk1-xa2d.google.com (mail-vk1-xa2d.google.com [IPv6:2607:f8b0:4864:20::a2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2730C061794
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Jan 2021 02:04:58 -0800 (PST)
-Received: by mail-vk1-xa2d.google.com with SMTP id v3so481383vkb.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Jan 2021 02:04:58 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=rS4sdXVHr4l3vGRPMuRvaL1eabkA37lCE2nh9ri+8DA=;
-        b=f6Llr2Ei6o9IxbS05Jb89UXoWPqSI2kibVhcgOSycNIT9BHPBbZWtGxXn+WN4i5WCB
-         AJOaz8a1xnVBZLXTssdcpIgtFblHkyYiljyiuxZ638ZbcdCEUWce4loVsjZ0tXWMhxu6
-         AmEclYLBi87TEBoqp95L0D4aYhWwzlVJWZkj8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=rS4sdXVHr4l3vGRPMuRvaL1eabkA37lCE2nh9ri+8DA=;
-        b=BC/s6qAbwEq7ptBOB9fqmh5h1IhJMN0xlwiI8QqUXZXs1X88daIPB4LaCuwCfYlmq/
-         bcyHSoMW1W3CEEhFJGzT9XmFrQHS+nsxd1PCBHRGewNv4ZCQFUt/zP07hpfy9r96iN+8
-         foHG94+MAP1BWLQo3fuDZ/br5lh4+bSP3jYIG+en7LHClq6tbhaWCm1k46wUI1t+sZ/S
-         txy9TRDoGXJ/9gwC8J6M84wAGTCOgIPBUrRzZq8tBWz6m5n4Af9do6XGx5+BLTF7Q6Mm
-         qXKhxNGX9ZQY+6Pu2E2RE7vIi3GRUM7Dy3LfGM75p+VCpJbInl3t7hzie+ORNWxco40Q
-         7nNA==
-X-Gm-Message-State: AOAM532tduVzh+7q91FJuzhwTSMFTRGP9oI7R6LIdx/uOrmzn1ol23nl
-        jSzt4pSTwk4uxh3dlhKKOcIF/MjUxWELv4N88+uXAw==
-X-Google-Smtp-Source: ABdhPJztDdZxYIknYtDyA4L4qWH3qQH8eT1tvdwztKucGwlw6fqzlmexa8qFWsTe/ripf7WrljQs6a1FAY+W8sF9/m0=
-X-Received: by 2002:ac5:c284:: with SMTP id h4mr3303695vkk.14.1610445897639;
- Tue, 12 Jan 2021 02:04:57 -0800 (PST)
-MIME-Version: 1.0
-References: <20201207163255.564116-1-mszeredi@redhat.com> <20201207163255.564116-2-mszeredi@redhat.com>
- <87czyoimqz.fsf@x220.int.ebiederm.org> <20210111134916.GC1236412@miu.piliscsaba.redhat.com>
- <874kjnm2p2.fsf@x220.int.ebiederm.org> <CAJfpegtKMwTZwENX7hrVGUVRWgNTf4Tr_bRxYrPpPAH_D2fH-Q@mail.gmail.com>
-In-Reply-To: <CAJfpegtKMwTZwENX7hrVGUVRWgNTf4Tr_bRxYrPpPAH_D2fH-Q@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 12 Jan 2021 11:04:46 +0100
-Message-ID: <CAJfpegutxHPuEnUxapcwcwiEiND8Swdi7CSOMaU06qV9=uUdXA@mail.gmail.com>
-Subject: Re: [PATCH v2 01/10] vfs: move cap_convert_nscap() call into vfs_setxattr()
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
+        Tue, 12 Jan 2021 13:38:44 -0500
+Received: from in02.mta.xmission.com ([166.70.13.52])
+        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1kzOYL-004nlM-OM; Tue, 12 Jan 2021 11:38:01 -0700
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1kzOYK-005CSt-IX; Tue, 12 Jan 2021 11:38:01 -0700
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Miklos Szeredi <mszeredi@redhat.com>,
         linux-fsdevel@vger.kernel.org,
         overlayfs <linux-unionfs@vger.kernel.org>,
         LSM <linux-security-module@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, "Serge E. Hallyn" <serge@hallyn.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-kernel@vger.kernel.org, "Serge E. Hallyn" <serge@hallyn.com>,
+        <linux-api@vger.kernel.org>
+References: <20201207163255.564116-1-mszeredi@redhat.com>
+        <20201207163255.564116-2-mszeredi@redhat.com>
+        <87czyoimqz.fsf@x220.int.ebiederm.org>
+        <20210111134916.GC1236412@miu.piliscsaba.redhat.com>
+        <874kjnm2p2.fsf@x220.int.ebiederm.org>
+        <CAJfpegtKMwTZwENX7hrVGUVRWgNTf4Tr_bRxYrPpPAH_D2fH-Q@mail.gmail.com>
+Date:   Tue, 12 Jan 2021 12:36:58 -0600
+In-Reply-To: <CAJfpegtKMwTZwENX7hrVGUVRWgNTf4Tr_bRxYrPpPAH_D2fH-Q@mail.gmail.com>
+        (Miklos Szeredi's message of "Tue, 12 Jan 2021 10:43:05 +0100")
+Message-ID: <87bldugfxx.fsf@x220.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain
+X-XM-SPF: eid=1kzOYK-005CSt-IX;;;mid=<87bldugfxx.fsf@x220.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX198By4slrZJIYiPN3b1y747982LQZfcFyE=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH v2 01/10] vfs: move cap_convert_nscap() call into vfs_setxattr()
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jan 12, 2021 at 10:43 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+Miklos Szeredi <miklos@szeredi.hu> writes:
 
+> On Tue, Jan 12, 2021 at 1:15 AM Eric W. Biederman <ebiederm@xmission.com> wrote:
+>>
+>> Miklos Szeredi <miklos@szeredi.hu> writes:
+>>
+>> > On Fri, Jan 01, 2021 at 11:35:16AM -0600, Eric W. Biederman wrote:
+>
+>> > For one: a v2 fscap is supposed to be equivalent to a v3 fscap with a rootid of
+>> > zero, right?
+>>
+>> Yes.  This assumes that everything is translated into the uids of the
+>> target filesystem.
+>>
+>> > If so, why does cap_inode_getsecurity() treat them differently (v2 fscap
+>> > succeeding unconditionally while v3 one being either converted to v2, rejected
+>> > or left as v3 depending on current_user_ns())?
+>>
+>> As I understand it v2 fscaps have always succeeded unconditionally.  The
+>> only case I can see for a v2 fscap might not succeed when read is if the
+>> filesystem is outside of the initial user namespace.
+>
+> Looking again, it's rather confusing.  cap_inode_getsecurity()
+> currently handles the following cases:
+>
+> v1: -> fails with -EINVAL
+>
+> v2: -> returns unconverted xattr
+>
+> v3:
+>  a) rootid is mapped in the current namespace to non-zero:
+>      -> convert rootid
+>
+>  b) rootid owns the current or ancerstor namespace:
+>      -> convert to v2
+>
+>  c) rootid is not mapped and is not owner:
+>      -> return -EOPNOTSUPP -> falls back to unconverted v3
+>
+> So lets take the example, where a tmpfs is created in a private user
+> namespace and one file has a v2 cap and the other an equivalent v3 cap
+> with a zero rootid.  This is the result when looking at it from
+>
+> 1) the namespace of the fs:
+> ---------------------------------------
+> t = cap_dac_override+eip
+> tt = cap_dac_override+eip
+>
+> 2) the initial namespace:
+> ---------------------------------------
+> t = cap_dac_override+eip
+> tt = cap_dac_override+eip [rootid=1000]
+>
+> 3) an unrelated namespace:
+> ---------------------------------------
+> t = cap_dac_override+eip
+> tt = cap_dac_override+eip
+>
+> Note: in this last case getxattr will actually return a v3 cap with
+> zero rootid for "tt" which getcap does not display due to being zero.
+> I could do a setup with a nested namespaces that better demonstrate
+> the confusing nature of this, but I think this also proves the point.
+
+Yes.  There is real confusion on the reading case when the namespaces
+do not match.
+
+> At this point userspace simply cannot determine whether the returned
+> cap is in any way valid or not.
+>
 > The following semantics would make a ton more sense, since getting a
 > v2 would indicate that rootid is unknown:
->
+
 > - if cap is v2 convert to v3 with zero rootid
 > - after this, check if rootid needs to be translated, if not return v3
 > - if yes, try to translate to current ns, if succeeds return translated v3
@@ -81,11 +141,105 @@ On Tue, Jan 12, 2021 at 10:43 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
 >
 > Hmm?
 
-Actually, it would make even more sense to simply skip unconvertible
-caps and return -ENODATA.  In fact that's what I thought would happen
-until I looked at the -EOPNOTSUPP fallback code in vfs_getxattr().
+So there is the basic question do we want to read the raw bytes on disk
+or do we want to return something meaningful to the reader.  As the
+existing tools use the xattr interface to set/clear fscaps returning
+data to user space rather than raw bytes seems the perfered interface.
 
-Serge, do you remember what was the reason for the unconverted fallback?
+My ideal semantics would be:
 
-Thanks,
-Miklos
+- If current_user_ns() == sb->s_user_ns return the raw data.
+
+  I don't know how to implement this first scenario while permitting
+  stacked filesystems.
+  
+- Calculate the cpu_vfs_cap_data as get_vfs_caps_from_disk does.
+  That gives the meaning of the xattr.
+
+- If "from_kuid(current_userns(), krootid) == 0" return a v2 cap.
+
+- If "rootid_owns_currentns()" return a v2 cap.
+
+- Else return an error.  Probably a permission error.
+
+  The fscap simply can not make sense to the user if the rootid does not
+  map.  Return a v2 cap would imply that the caps are present on the
+  executable (in the current context) which they are not.
+
+
+>> > Anyway, here's a patch that I think fixes getxattr() layering for
+>> > security.capability.  Does basically what you suggested.  Slight change of
+>> > semantics vs. v1 caps, not sure if that is still needed, getxattr()/setxattr()
+>> > hasn't worked for these since the introduction of v3 in 4.14.
+>> > Untested.
+>>
+>> Taking a look.  The goal of change how these operate is to make it so
+>> that layered filesystems can just pass through the data if they don't
+>> want to change anything (even with the user namespaces of the
+>> filesystems in question are different).
+>>
+>> Feedback on the code below:
+>> - cap_get should be in inode_operations like get_acl and set_acl.
+>
+> So it's not clear to me why xattr ops are per-sb and acl ops are per-inode.
+
+I don't know why either.  What I do see is everything except
+inode->i_sb->s_xattr (the list of xattr handlers) is in
+inode_operations.
+
+Especially permission.  So just for consistency I would keep everything
+in the inode_operations.
+
+>> - cap_get should return a cpu_vfs_cap_data.
+>>
+>>   Which means that only make_kuid is needed when reading the cap from
+>>   disk.
+>
+> It also means translating the cap bits back and forth between disk and
+> cpu endian.  Not a big deal, but...
+
+For the very rare case of userspace reading and writing them.
+
+For the common case of actually using them it should be optimal, and
+it allows for non-standard implementations.  Anything where someone gets
+clever we want the bits to be in cpu format to make mistakes harder.
+
+>>   Which means that except for the rootid_owns_currentns check (which
+>>   needs to happen elsewhere) default_cap_get should be today's
+>>   get_vfs_cap_from_disk.
+>
+> That's true.   So what's the deal with v1 caps?  Support was silently
+> dropped for getxattr/setxattr but remained in get_vfs_caps_from_disk()
+> (I guess to not break legacy disk images), but maybe it's time to
+> deprecate v1 caps completely?
+
+I really don't remember.  When I look I see they appear to be a subset
+of v2 caps.  I would have to look to see if they bits might have a
+different meaning.
+
+>> - With the introduction of cap_get I believe commoncap should stop
+>>   implementing the security_inode_getsecurity hook, and rather have
+>>   getxattr observe is the file capability xatter and call the new
+>>   vfs_cap_get then translate to a v2 or v3 cap as appropriate when
+>>   returning the cap to userspace.
+>
+> Confused.  vfs_cap_get() is the one the layered filesystem will
+> recurse with, so it must not translate the cap.   The one to do that
+> would be __vfs_getxattr(), right?
+
+So there are two layers that I am worrying about.
+
+The layer dealing with fscaps knowing they are fscaps.  That is
+vfs_cap_get and friends.
+
+Then there is the layer dealing with xattrs which should also handle
+fscaps.  So that the xattr layer stacks properly I believe we need to
+completely bypass vfs_getxattr and friends and at the edge of userspace
+before there is any possibility of interception call vfs_cap_get and
+translate the result to a form userspace can consume.
+
+With xattrs and caps we are in part of the kernel that hasn't seen a lot
+of attention and so is not the best factored.  So I am proposing we fix
+up the abstractions to make it easier to implement stacked fscap support.
+
+Eric
