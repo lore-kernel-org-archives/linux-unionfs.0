@@ -8,53 +8,53 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 991E2C433E0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BA1BAC433DB
 	for <linux-unionfs@archiver.kernel.org>; Sat, 16 Jan 2021 17:07:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58BC022A83
+	by mail.kernel.org (Postfix) with ESMTP id 89B6922A99
 	for <linux-unionfs@archiver.kernel.org>; Sat, 16 Jan 2021 17:07:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727901AbhAPRGv (ORCPT
+        id S1726785AbhAPRHH (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 16 Jan 2021 12:06:51 -0500
-Received: from mail-ed1-f48.google.com ([209.85.208.48]:35688 "EHLO
-        mail-ed1-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726751AbhAPRGt (ORCPT
+        Sat, 16 Jan 2021 12:07:07 -0500
+Received: from mail-ej1-f52.google.com ([209.85.218.52]:42968 "EHLO
+        mail-ej1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1727898AbhAPRGu (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 16 Jan 2021 12:06:49 -0500
-Received: by mail-ed1-f48.google.com with SMTP id u19so13045906edx.2;
-        Sat, 16 Jan 2021 09:06:31 -0800 (PST)
+        Sat, 16 Jan 2021 12:06:50 -0500
+Received: by mail-ej1-f52.google.com with SMTP id r12so6420815ejb.9;
+        Sat, 16 Jan 2021 09:06:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=QHFxbDhsnQzHQlBD/5Lv++BjjSF2/FwwLkaS9AAgVE0=;
-        b=qMhGwpj6g5fSCmYrC3IQmlYsOqbFDcIg1nzlFSWEEguSP1+dh+5HQ+xuscifj0nHuY
-         7floZUe48heX3txjcwdcVyJWmP01tMwB0DDA7qnG5NAH7ZqkSxeIK2Mm1ZRB7gLqHqyE
-         BpmTbxtM68y2+B6f9UK3w/lq2057x23pNr+DvmFqlRcAT9zn8qjMFCRyugfpoSYIqETc
-         AUh0IQdxbmUH6wD9JiT9VHFbNPfSmsaDrrdHIqKbfWqj3BBQVKFppQGj0fXtO18zssyM
-         Z/1RpiXetx0MC1fesNgFuPdyLkuGBfPekywKZ0HqVn8lBJq4VD1FvmMQzWT6Jix43noO
-         /Erw==
+        bh=f1/Piw45BGbvrGj/usOEnL03jLiIpZV3qUgR6D6ISU4=;
+        b=PT7/sdoOVEcUwjMhV6ajiRNgPe/lCst2tYkK6pkUhea0W8aH+mITsxze3Zw3yzRvAF
+         ONKnHmAf+3ykHqTzEUnlmsAGuivE10MsG2Q5FL5/ACwnZ6y9a8qZAMtxaYsuizxJcayF
+         tGZr/2wCtp++aDxYEW9vRzjv+dTmpbTJvpGaYK4JKg0TeEKzxG9MyXU3UiD78EMUB/Ad
+         msCnQx3rUJHG9XZEdVoDKOVad86WU1v0l11mfJzw/ElP8fN4yDHStIFxs0Jvf8UOjU+L
+         LakOvIfXJISahQweLZLX9VOTCHg0bzpORsFOSw4JC9uxfEd0T8tE91iN0z5PliogG+WA
+         foSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=QHFxbDhsnQzHQlBD/5Lv++BjjSF2/FwwLkaS9AAgVE0=;
-        b=pAhZMkp5ZhRN2kQvBcniKZAr8wNQbeFTHtP8FWa0kMUu+mfvzT9Zhg2I4jZH7wEDuv
-         r9PMOiF6T3Z2DnuvexERK1vbyr65Pfmo1z8PAK+cvx4OPudbC65hk+H/yRpVf0kANSLL
-         rqQ/F+ChB/WoU3M1oZKTGvSSSzYywGtAev0Nn7bfPWQrzCBJpsdN5mPMlEH9XmWjw+PR
-         6pyylAvUJ5pJG6XzaK5wzMU//daLziicC1pUBPA05VYZbCFwd2d2k1CKTk71lAM2pnNs
-         MW5xRYOVyKZpKVayEJde9ryrJQmns7HVOexG9qpyfGPgKW1zN+SdzGkaRo8Bbeokhy84
-         IuPg==
-X-Gm-Message-State: AOAM532AMIQxo963pY0950Byn1x7WcZ/9Bt5y2F3aTgKuqzIhbUFQ6mx
-        7GzKkh4cy85w9n3PnvD/sHU5V1v8gAg=
-X-Google-Smtp-Source: ABdhPJzUJ/5G/cNwUqRoAWysskvGblpL/ipitKchnbDmhvyj9vShih8KP6+2wrKjBr6Oaj5jxQtWCg==
-X-Received: by 2002:a50:fb97:: with SMTP id e23mr14116891edq.208.1610816189674;
-        Sat, 16 Jan 2021 08:56:29 -0800 (PST)
+        bh=f1/Piw45BGbvrGj/usOEnL03jLiIpZV3qUgR6D6ISU4=;
+        b=YQDxRzG30HoQGqBuKNsVOO6zNJMZ1Tl/ZhPSsfaO5m+qs4Yg67UxzSE5TxIWbX8Ju4
+         c45oGnlhAeel9Ty0RVjgMGuU1WWYl9Mjss7qAAQ8rJdVTTmPEBktxxV8wx90rY16W6CS
+         3rL0fzKyU8giOcexT9ltnMh1V92IPqjw8HJjIJwfaiF3/1G7mHDpxrjixaTkAU/ew0gw
+         jYxnb3DPCkZltlvStXByzIkpjJGUoLHC/NiaEeXZIg7gFjth4xZK5cfiAxGs/VntDCDY
+         Fr4I+49RHzoh0MmItFue2IoKqhOREZdTfKRAqdXcG0PMyQu3T4ZP6DP3sWTQ3Iudxxa9
+         cVNg==
+X-Gm-Message-State: AOAM531bKTn53i++lFh2WLcYX2ITv9OaTNNNMviL8NDup+tY11NN7pUz
+        54LOCz7Ojcym+fVNA/wwXArOXfkHmVo=
+X-Google-Smtp-Source: ABdhPJx3cdhgtX9ufv3PK4FCWEFG4ia55xeGf1EThJ+Bgi+gZ1wqoe0OOMgI6CkKnGai3TpJ5rtHPg==
+X-Received: by 2002:a17:906:660b:: with SMTP id b11mr13584345ejp.458.1610816188073;
+        Sat, 16 Jan 2021 08:56:28 -0800 (PST)
 Received: from localhost.localdomain ([31.210.181.203])
-        by smtp.gmail.com with ESMTPSA id zn8sm7061063ejb.39.2021.01.16.08.56.28
+        by smtp.gmail.com with ESMTPSA id zn8sm7061063ejb.39.2021.01.16.08.56.26
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 16 Jan 2021 08:56:29 -0800 (PST)
+        Sat, 16 Jan 2021 08:56:27 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Eryu Guan <guaneryu@gmail.com>
 Cc:     Icenowy Zheng <icenowy@aosc.io>,
@@ -62,9 +62,9 @@ Cc:     Icenowy Zheng <icenowy@aosc.io>,
         Xiao Yang <yangx.jy@cn.fujitsu.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
-Subject: [PATCH 4/4] overlay: Test lost immutable/append-only flags on copy-up
-Date:   Sat, 16 Jan 2021 18:56:19 +0200
-Message-Id: <20210116165619.494265-5-amir73il@gmail.com>
+Subject: [PATCH 3/4] src/t_immutable: Allow setting flags on existing files
+Date:   Sat, 16 Jan 2021 18:56:18 +0200
+Message-Id: <20210116165619.494265-4-amir73il@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210116165619.494265-1-amir73il@gmail.com>
 References: <20210116165619.494265-1-amir73il@gmail.com>
@@ -74,163 +74,132 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Chengguang Xu reported [1] that append-only flag is lost on copy-up.
-I had noticed that for directories, immutable flag can also be lost on
-copy up (when parent is copied up). That's an old overlayfs bug.
+For overlayfs tests we need to be able to setflags on existing
+(lower) files.
 
-Overlayfs added the ability to set inode flags (e.g. chattr +i) in
-kernel 5.10 by commit 61536bed2149 ("ovl: support [S|G]ETFLAGS and
-FS[S|G]ETXATTR ioctls for directories").
-Icenowy Zheng reported [2] a regression in that commit that causes
-a deadlock when setting inode flags on lower dir.
+t_immutable -C test_dir
 
-There is a commented line in the test that triggers this deadlock,
-but it has been left commented out until a fix is merged upstream.
+Creates the test area and sets flags, but it also allows setting flags
+on an existing test area.
 
-[1] https://lore.kernel.org/linux-unionfs/20201226104618.239739-1-cgxu519@mykernel.net/
-[2] https://lore.kernel.org/linux-unionfs/20210101201230.768653-1-icenowy@aosc.io/
+t_immutable -R test_dir
+
+Removes the flags from existing test area, but does not remove the files
+in the test area.
+
+To setup a test area with file without flags, need to run the -C and -R
+commands.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- tests/overlay/075     | 97 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/075.out | 11 +++++
- tests/overlay/group   |  1 +
- 3 files changed, 109 insertions(+)
- create mode 100755 tests/overlay/075
- create mode 100644 tests/overlay/075.out
+ src/t_immutable.c | 30 ++++++++++++++++++++++++------
+ 1 file changed, 24 insertions(+), 6 deletions(-)
 
-diff --git a/tests/overlay/075 b/tests/overlay/075
-new file mode 100755
-index 00000000..bcdc8d4e
---- /dev/null
-+++ b/tests/overlay/075
-@@ -0,0 +1,97 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2021 CTERA Networks. All Rights Reserved.
-+#
-+# FS QA Test No. 075
-+#
-+# Run the t_immutable test program for immutable/append-only files
-+# and directories that exist in overlayfs lower layer.
-+#
-+# This test is similar and was derived from generic/079, but instead
-+# of creating new files which are created in upper layer, prepare
-+# the test area in lower layer before running the t_immutable test on
-+# the overlayfs mount.
-+#
-+seq=`basename $0`
-+seqres=$RESULT_DIR/$seq
-+echo "QA output created by $seq"
+diff --git a/src/t_immutable.c b/src/t_immutable.c
+index b6a76af0..a2e6796d 100644
+--- a/src/t_immutable.c
++++ b/src/t_immutable.c
+@@ -1898,6 +1898,8 @@ static int check_test_area(const char *dir)
+      return 0;
+ }
+ 
++static int allow_existing;
 +
-+here=`pwd`
-+timmutable=$here/src/t_immutable
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+tmp=/tmp/$$
-+status=1	# failure is the default!
-+trap "_cleanup; exit \$status" 0 1 2 3 15
+ static int create_dir(char **ppath, const char *fmt, const char *dir)
+ {
+      const char *path;
+@@ -1908,6 +1910,9 @@ static int create_dir(char **ppath, const char *fmt, const char *dir)
+      }
+      path = *ppath;
+      if (stat(path, &st) == 0) {
++	  if (allow_existing && S_ISDIR(st.st_mode)) {
++	       return 0;
++	  }
+ 	  fprintf(stderr, "%s: Test area directory %s must not exist for test area creation.\n",
+ 		  __progname, path);
+ 	  return 1;
+@@ -1921,6 +1926,7 @@ static int create_dir(char **ppath, const char *fmt, const char *dir)
+ 
+ static int create_file(char **ppath, const char *fmt, const char *dir)
+ {
++     int flags = O_WRONLY|O_CREAT | (allow_existing ? 0 : O_EXCL);
+      const char *path;
+      int fd;
+ 
+@@ -1928,7 +1934,7 @@ static int create_file(char **ppath, const char *fmt, const char *dir)
+ 	  return -1;
+      }
+      path = *ppath;
+-     if ((fd = open(path, O_WRONLY|O_CREAT|O_EXCL, 0666)) == -1) {
++     if ((fd = open(path, flags, 0666)) == -1) {
+ 	  fprintf(stderr, "%s: error creating file %s: %s\n", __progname, path, strerror(errno));
+           return -1;
+      }
+@@ -1937,13 +1943,15 @@ static int create_file(char **ppath, const char *fmt, const char *dir)
+ 
+ static int create_xattrs(int fd)
+ {
+-     if (fsetxattr(fd, "trusted.test", "readonly", strlen("readonly"), XATTR_CREATE) != 0) {
++     int flags = allow_existing ? 0 : XATTR_CREATE;
 +
-+_cleanup()
-+{
-+	# -r will fail to remove test dirs, because we added subdirs
-+	# we just need to remove the flags so use -R
-+	$timmutable -R $upperdir/testdir &> /dev/null
-+	$timmutable -R $lowerdir/testdir &> /dev/null
-+	rm -f $tmp.*
-+}
++     if (fsetxattr(fd, "trusted.test", "readonly", strlen("readonly"), flags) != 0) {
+ 	  if (errno != EOPNOTSUPP) {
+ 	       perror("setxattr");
+ 	       return 1;
+ 	  }
+      }
+-     if (fsetxattr(fd, "user.test", "readonly", strlen("readonly"), XATTR_CREATE) != 0) {
++     if (fsetxattr(fd, "user.test", "readonly", strlen("readonly"), flags) != 0) {
+ 	  if (errno != EOPNOTSUPP) {
+ 	       perror("setxattr");
+ 	       return 1;
+@@ -2214,6 +2222,10 @@ static int remove_test_area(const char *dir)
+ 	  return 1;
+      }
+ 
++     if (allow_existing) {
++	     return 0;
++     }
 +
-+# get standard environment, filters and checks
-+. ./common/rc
-+. ./common/filter
-+
-+_supported_fs overlay
-+
-+_require_chattr iaA
-+_require_test_program "t_immutable"
-+_require_scratch
-+
-+_scratch_mkfs
-+
-+# Preparing test area files in lower dir and check chattr support of base fs
-+mkdir -p $lowerdir
-+mkdir -p $upperdir
-+$timmutable -C $lowerdir/testdir >$tmp.out 2>&1
-+if grep -q -e 'Operation not supported' -e "Inappropriate ioctl" $tmp.out; then
-+	_notrun "Setting immutable/append flag not supported"
-+fi
-+# Remove the immutable/append-only flags and create subdirs
-+$timmutable -R $lowerdir/testdir >$tmp.out 2>&1
-+for dir in $lowerdir/testdir/*.d; do
-+	mkdir $dir/subdir
-+done
-+# Restore the immutable/append-only flags
-+$timmutable -C $lowerdir/testdir >$tmp.out 2>&1
-+
-+_scratch_mount
-+
-+# Test immutability of files in overlay
-+echo "Before directories copy up"
-+$timmutable $SCRATCH_MNT/testdir 2>&1
-+
-+# Trigger copy-up of immutable/append-only dirs by touching their subdirs
-+# inode flags are not copied-up, so immutable/append-only flags are lost
-+for dir in $SCRATCH_MNT/testdir/*.d; do
-+	# chattr on dir fails (not supported) on kernel < 5.10.
-+	# chattr on lower dir will deadlock on kernel 5.10 with commit 61536bed2149
-+	# ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR ioctls for directories"),
-+	# so this line is commented out until a fix is merged
-+	# $CHATTR_PROG +A $dir/subdir > /dev/null 2>&1
-+	touch $dir/subdir
-+done
-+
-+# Trigger copy-up of append-only files by touching them
-+# inode flags are not copied-up, so append-only flags are lost
-+# touch on the immutable files is expected to fail, so immutable
-+# flags will not be lost
-+for file in $SCRATCH_MNT/testdir/*.f; do
-+	touch $file > /dev/null 2>&1
-+done
-+
-+# immutable/append-only flags still exist on the overlay in-core inode
-+# After mount cycle, flags are forever lost
-+_scratch_cycle_mount
-+
-+# Test immutability of files in overlay after directories copy-up
-+echo "After directories copy up"
-+$timmutable $SCRATCH_MNT/testdir 2>&1
-+
-+status=$?
-+exit
-diff --git a/tests/overlay/075.out b/tests/overlay/075.out
-new file mode 100644
-index 00000000..ab39c6b8
---- /dev/null
-+++ b/tests/overlay/075.out
-@@ -0,0 +1,11 @@
-+QA output created by 075
-+Before directories copy up
-+testing immutable...PASS.
-+testing append-only...PASS.
-+testing immutable as non-root...PASS.
-+testing append-only as non-root...PASS.
-+After directories copy up
-+testing immutable...PASS.
-+testing append-only...PASS.
-+testing immutable as non-root...PASS.
-+testing append-only as non-root...PASS.
-diff --git a/tests/overlay/group b/tests/overlay/group
-index 047ea046..cfc75bb1 100644
---- a/tests/overlay/group
-+++ b/tests/overlay/group
-@@ -77,6 +77,7 @@
- 072 auto quick copyup hardlink
- 073 auto quick whiteout
- 074 auto quick exportfs dangerous
-+075 auto quick perms
- 100 auto quick union samefs
- 101 auto quick union nonsamefs
- 102 auto quick union nonsamefs xino
+      pid = fork();
+      if (!pid) {
+ 	  execl("/bin/rm", "rm", "-rf", dir, NULL);
+@@ -2236,7 +2248,7 @@ int main(int argc, char **argv)
+ /* this arg parsing is gross, but who cares, its a test program */
+ 
+      if (argc < 2) {
+-	  fprintf(stderr, "usage: t_immutable [-C|-c|-r] test_area_dir\n");
++	  fprintf(stderr, "usage: t_immutable [-C|-c|-R|-r] test_area_dir\n");
+ 	  return 1;
+      }
+ 
+@@ -2246,18 +2258,24 @@ int main(int argc, char **argv)
+ 	  /* Prepare test area without running tests */
+ 	  create = 1;
+ 	  runtest = 0;
++	  /* With existing test area, only setflags */
++	  allow_existing = 1;
+      } else if (!strcmp(argv[1], "-r")) {
+ 	  remove = 1;
++     } else if (!strcmp(argv[1], "-R")) {
++	  /* Cleanup flags on test area but leave the files */
++	  remove = 1;
++	  allow_existing = 1;
+      }
+ 
+      if (argc != 2 + (create | remove)) {
+-	  fprintf(stderr, "usage: t_immutable [-C|-c|-r] test_area_dir\n");
++	  fprintf(stderr, "usage: t_immutable [-C|-c|-R|-r] test_area_dir\n");
+ 	  return 1;
+      }
+ 
+      if (create) {
+ 	  ret = create_test_area(argv[argc-1]);
+-	  if (ret || !runtest) {
++	  if (ret || allow_existing) {
+                return ret;
+ 	  }
+      } else if (remove) {
 -- 
 2.25.1
 
