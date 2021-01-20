@@ -2,112 +2,146 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 574FAC4360C
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 15:13:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F6F1C433DB
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 15:28:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 14337233EF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 15:13:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC1FA23358
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 15:28:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1732461AbhATPMv (ORCPT
+        id S1729172AbhATP1t (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 20 Jan 2021 10:12:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33528 "EHLO
+        Wed, 20 Jan 2021 10:27:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2389953AbhATPKD (ORCPT
+        with ESMTP id S1727111AbhATP1O (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 20 Jan 2021 10:10:03 -0500
-Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B459BC061794
-        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 07:09:06 -0800 (PST)
-Received: by mail-vs1-xe33.google.com with SMTP id j17so7620259vso.9
-        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 07:09:06 -0800 (PST)
+        Wed, 20 Jan 2021 10:27:14 -0500
+Received: from mail-ua1-x931.google.com (mail-ua1-x931.google.com [IPv6:2607:f8b0:4864:20::931])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA17DC0613ED
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 07:24:51 -0800 (PST)
+Received: by mail-ua1-x931.google.com with SMTP id t43so7969742uad.7
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 07:24:51 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=J62/J/XAou8PPpMjptVAh595wK8zuN47tW6YivACb7g=;
-        b=OfRbWIubxlxgLCcsHqbz9LwPT3gkD3ESK6NBQ7MWo1wulug7Z1X4vpjlbY/d8VIdUC
-         lYz8M3B14Nn4CpafRYpyhqkorfXnKAfp2XPodHkgA9hS1y84zHJ7rV9pX+++85eK22M9
-         bKTchAZJ+wB5smg9s0G+HEy2TlfTt42QDOocY=
+        bh=d9AhbQndRfZbf8+inSjYiPzYEQG5Tzotcb5GyJPqrsQ=;
+        b=a1IJRpLPFEAaL/36w5k+jDqO0JMDyVXka/swD+xJTRD1vSGoLJXBTPELwSMNS8S5/R
+         mjzyWgFHubPlIrTDmjrYGDNw3BWd18MI4YUSADxq1B2cP15skdKodsSP5rIBN16W9sfI
+         j/l/Qja3RuLJ2PbJO5XyhqLyDPZam005oDtyM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=J62/J/XAou8PPpMjptVAh595wK8zuN47tW6YivACb7g=;
-        b=fPIpcbb8fteZ1L+0q3GpKKpd+R9lpC7NDrHXgpb8CMyL6wMQNGTOxGVdptQLLLOw4h
-         pN+AAde2rTbXd42rtq6KzSzqmDAH1tHDvj0Y23UPyRJIJK/7LJIYbKimkSGgEgZm7MvK
-         OCsYtDFfr7IlzCPE9S5zW7HsUuhJwK4ahESVqa0gSI9DFc645sjvOmZLL966QHhRNkMs
-         h9R7sF+bD1qOjOYH+edHjYtB8sVQIEHT/ogyRgb73vQ05IPPMJViZmLxU+4Vb66raIqj
-         ACXFkH4yocuPjeXRVZHDaNXyJneUklTjIPQ9BOEdwS33O7kv27lMv+s6FMYs6amTblpu
-         ZsPQ==
-X-Gm-Message-State: AOAM530A6Qvl5rYqSmh+7++vQZ4FPEd7Dy2bt9caYQfVwFaAIQoX2/Qu
-        dd2c717f+kuu15VnE1KlEq25Tk/xafF+42YiaGpvgg==
-X-Google-Smtp-Source: ABdhPJyL8DZfH4426aeReArAsYtr4ShME3vG0GcZmg75V2ocaT9ah7XkNI+SEMx/OLns92YbF0aFV3Pp+yJszLUIlO0=
-X-Received: by 2002:a67:f991:: with SMTP id b17mr6900762vsq.0.1611155345960;
- Wed, 20 Jan 2021 07:09:05 -0800 (PST)
+        bh=d9AhbQndRfZbf8+inSjYiPzYEQG5Tzotcb5GyJPqrsQ=;
+        b=e3CzZaEQAqABD9fiwpVmp4juWXfe+d+lgCDXgFXk9ub78G/w+WUh2mmmcGg+vktuyV
+         Z0VNeJXh5swyqxUb3Xq6fUPc9IdeRmGfO1i9IGLPjvovDQdxFTDCe6aT9bf5w/J5uQVn
+         IQvyQM42PIknEOc62AshFzjk1dig2JqfHs521QZbr7rpCf3tsLjl4tcQziOsm9Ek+UTo
+         6/ljsEmIrdra/JwbV6IcCEQY4TGPAqNG78p6IXs8eObL4Vpz9dzItci4UlA5aU8eWa3e
+         9inEe5VJHUKgM0HPGIiB86Ik4kFLs+36oegBLRZYHkx0mMl7qe/smnMMbC2lfyjM4jyn
+         Tj/g==
+X-Gm-Message-State: AOAM533W2qpys1yY3MAUTCnpilIaf1ELld8Cgj3m7vsHtlR7w9FpkUie
+        7XjBWZ1uBD3MNwsHnZPSAaTPTYNvoaAfMWjnf6SbMQ==
+X-Google-Smtp-Source: ABdhPJz+0N8vxcgUurzvtB8gMxTtpNBmZYEUEOt2+mIekPODulMfmcGS4IQcK2LX/IujOoEuAzvanPDS7TzolF9GHdo=
+X-Received: by 2002:ab0:7296:: with SMTP id w22mr6591371uao.13.1611156290980;
+ Wed, 20 Jan 2021 07:24:50 -0800 (PST)
 MIME-Version: 1.0
-References: <20210108001043.12683-1-sargun@sargun.me>
-In-Reply-To: <20210108001043.12683-1-sargun@sargun.me>
+References: <20201130030039.596801-1-sargun@sargun.me> <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
+ <CAOQ4uxhU=eWAfTn8DJ7x4NZ2PO9Q9V7Ohpj9aTasXg3KcfFpMA@mail.gmail.com> <CAMp4zn9sdpk1A1hYpDjS_774UscYZ1sztCsLdfshs=pXEYf0NQ@mail.gmail.com>
+In-Reply-To: <CAMp4zn9sdpk1A1hYpDjS_774UscYZ1sztCsLdfshs=pXEYf0NQ@mail.gmail.com>
 From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 20 Jan 2021 16:08:55 +0100
-Message-ID: <CAJfpegvm0o=rF7SJHQgkWZ-MdDkjLrnTcUunQiq8L9GT6==q1A@mail.gmail.com>
-Subject: Re: [PATCH v4] overlay: Implement volatile-specific fsync error behaviour
+Date:   Wed, 20 Jan 2021 16:24:40 +0100
+Message-ID: <CAJfpeguLFoLD8BYuNAAwV+F0583aujNBqto3QnFjeV+z4LszDA@mail.gmail.com>
+Subject: Re: [PATCH] overlay: Plumb through flush method
 To:     Sargun Dhillon <sargun@sargun.me>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        Daniel J Walsh <dwalsh@redhat.com>,
-        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        Christoph Hellwig <hch@lst.de>, NeilBrown <neilb@suse.com>,
-        Jan Kara <jack@suse.cz>, stable <stable@vger.kernel.org>,
-        Jeff Layton <jlayton@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jan 8, 2021 at 1:10 AM Sargun Dhillon <sargun@sargun.me> wrote:
+On Thu, Dec 3, 2020 at 7:32 PM Sargun Dhillon <sargun@sargun.me> wrote:
 >
-> Overlayfs's volatile option allows the user to bypass all forced sync calls
-> to the upperdir filesystem. This comes at the cost of safety. We can never
-> ensure that the user's data is intact, but we can make a best effort to
-> expose whether or not the data is likely to be in a bad state.
+> On Thu, Dec 3, 2020 at 2:32 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Thu, Dec 3, 2020 at 12:16 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> > >
+> > > On Sun, Nov 29, 2020 at 7:00 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> > > >
+> > > > Filesystems can implement their own flush method that release
+> > > > resources, or manipulate caches. Currently if one of these
+> > > > filesystems is used with overlayfs, the flush method is not called.
+> > > >
+> > > > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+> > > > Cc: linux-fsdevel@vger.kernel.org
+> > > > Cc: linux-unionfs@vger.kernel.org
+> > > > Cc: Miklos Szeredi <miklos@szeredi.hu>
+> > > > Cc: Amir Goldstein <amir73il@gmail.com>
+> > > > ---
+> > > >  fs/overlayfs/file.c | 11 +++++++++++
+> > > >  1 file changed, 11 insertions(+)
+> > > >
+> > > > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > > > index efccb7c1f9bc..802259f33c28 100644
+> > > > --- a/fs/overlayfs/file.c
+> > > > +++ b/fs/overlayfs/file.c
+> > > > @@ -787,6 +787,16 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
+> > > >                             remap_flags, op);
+> > > >  }
+> > > >
+> > > > +static int ovl_flush(struct file *file, fl_owner_t id)
+> > > > +{
+> > > > +       struct file *realfile = file->private_data;
+> > > > +
+> > > > +       if (realfile->f_op->flush)
+> > > > +               return realfile->f_op->flush(realfile, id);
+> > > > +
+> > > > +       return 0;
+> > > > +}
+> > > > +
+> > > >  const struct file_operations ovl_file_operations = {
+> > > >         .open           = ovl_open,
+> > > >         .release        = ovl_release,
+> > > > @@ -798,6 +808,7 @@ const struct file_operations ovl_file_operations = {
+> > > >         .fallocate      = ovl_fallocate,
+> > > >         .fadvise        = ovl_fadvise,
+> > > >         .unlocked_ioctl = ovl_ioctl,
+> > > > +       .flush          = ovl_flush,
+> > > >  #ifdef CONFIG_COMPAT
+> > > >         .compat_ioctl   = ovl_compat_ioctl,
+> > > >  #endif
+> > > > --
+> > > > 2.25.1
+> > > >
+> > >
+> > > Amir, Miklos,
+> > > Is this acceptable? I discovered this being a problem when we had the discussion
+> > > of whether the volatile fs should return an error on close on dirty files.
+> >
+> > Yes, looks ok.
+> > Maybe we want to check if the realfile is upper although
+> > maybe flush can release resources also on read only fs?
+> >
+> > >
+> > > It seems like it would be useful if anyone uses NFS, or CIFS as an upperdir.
+> >
+> > They are not supported as upperdir. only FUSE is.
+> >
+> > Thanks,
+> > Amir.
 >
-> The best way to handle this in the time being is that if an overlayfs's
-> upperdir experiences an error after a volatile mount occurs, that error
-> will be returned on fsync, fdatasync, sync, and syncfs. This is
-> contradictory to the traditional behaviour of VFS which fails the call
-> once, and only raises an error if a subsequent fsync error has occurred,
-> and been raised by the filesystem.
->
-> One awkward aspect of the patch is that we have to manually set the
-> superblock's errseq_t after the sync_fs callback as opposed to just
-> returning an error from syncfs. This is because the call chain looks
-> something like this:
->
-> sys_syncfs ->
->         sync_filesystem ->
->                 __sync_filesystem ->
->                         /* The return value is ignored here
->                         sb->s_op->sync_fs(sb)
->                         _sync_blockdev
->                 /* Where the VFS fetches the error to raise to userspace */
->                 errseq_check_and_advance
->
-> Because of this we call errseq_set every time the sync_fs callback occurs.
-> Due to the nature of this seen / unseen dichotomy, if the upperdir is an
-> inconsistent state at the initial mount time, overlayfs will refuse to
-> mount, as overlayfs cannot get a snapshot of the upperdir's errseq that
-> will increment on error until the user calls syncfs.
+> VFS does it on read-only files / mounts, so we should probably do the
+> same thing.
 
-Thanks, this makes sense.  Queued for v4.11.
+Right, but it should handle files copied up after the oipen (i.e. call
+ovl_real_fdget() to get the real file).
 
+Thanks,
 Miklos
