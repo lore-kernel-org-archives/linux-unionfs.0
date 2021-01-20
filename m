@@ -2,155 +2,112 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E583CC433E9
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 13:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 574FAC4360C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 15:13:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA53C2336E
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 13:46:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14337233EF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 15:13:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1725831AbhATMxz (ORCPT
+        id S1732461AbhATPMv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 20 Jan 2021 07:53:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54224 "EHLO
+        Wed, 20 Jan 2021 10:12:51 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1732248AbhATMYe (ORCPT
+        with ESMTP id S2389953AbhATPKD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 20 Jan 2021 07:24:34 -0500
-Received: from mail-io1-xd2c.google.com (mail-io1-xd2c.google.com [IPv6:2607:f8b0:4864:20::d2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33215C0613C1
-        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 04:23:51 -0800 (PST)
-Received: by mail-io1-xd2c.google.com with SMTP id d13so43202056ioy.4
-        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 04:23:51 -0800 (PST)
+        Wed, 20 Jan 2021 10:10:03 -0500
+Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B459BC061794
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 07:09:06 -0800 (PST)
+Received: by mail-vs1-xe33.google.com with SMTP id j17so7620259vso.9
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Jan 2021 07:09:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
+        d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=NKoG32EOII2QZJNq7jiKbGDO9wsaDHSyQD+YWVyUtzI=;
-        b=I7eyKgfpMkIyTEe3Pm4zTHFZzinoIzXg+HJeObVLMvd4ovx6eA43oYwWyA7Bz3NLS1
-         rFoQfYKtsp2/hPtD9MyiWr8TPAlMDPFw3CaPjhTSSflZ8MpOMs81RcjimqfPcWhIxQgM
-         3A/JltZJVe6wjrCxHPh7Z054FZ74jbPzBe2qLvWrgjlV+6avXK5WXXfMv0I2twPrQ/vA
-         xFd5I6K+8l66UaiRgpYdlCegrF3YllcriXfcbpJaoTBEKZnMLi0CLQkKY4ClywMAIWZF
-         UsVCUTQui1noHNTVNWFbCAUlaqfzdOcx+9ya8ffWvfhq3hVlppBpR2WR6vayEUCcgzWa
-         RdNg==
+        bh=J62/J/XAou8PPpMjptVAh595wK8zuN47tW6YivACb7g=;
+        b=OfRbWIubxlxgLCcsHqbz9LwPT3gkD3ESK6NBQ7MWo1wulug7Z1X4vpjlbY/d8VIdUC
+         lYz8M3B14Nn4CpafRYpyhqkorfXnKAfp2XPodHkgA9hS1y84zHJ7rV9pX+++85eK22M9
+         bKTchAZJ+wB5smg9s0G+HEy2TlfTt42QDOocY=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=NKoG32EOII2QZJNq7jiKbGDO9wsaDHSyQD+YWVyUtzI=;
-        b=bNYnWCtvw2Z0SYKv3bP7b+bi0R7w92cPv/y55533Tn2/vWYwntf6t2yUiGy4wwjyEo
-         VJdmTB/awPxfDTenCCDkS7GDo7lS8kQiWbFHovtIrmWzQ86Xjb6eH6tkv3cMlbabw1oa
-         AjEj1fiIYNO31hzfXxvR9AdT1Xwz6i7Drgm3Py17XH8lfXTYWQymSzxN9p0Yx/Zwi7A+
-         MUKixlSgcbaQi9Kfh1wz2LC5NsIm9GuxJ8d7Xce1Im19CsfJ2QL2sikAI3/BISZTUd5w
-         tNYUdQhyS1FTWjds8i/Rp29vKcuM0bQ0jJLjyxwXmtPK4yHUh3MOisXJtr67ni0cdUuy
-         YnkA==
-X-Gm-Message-State: AOAM533nq8hjjopZI5h+697TynkYEQ+cw7c+XugyLagWSJhaab6sgHlI
-        VnKewHNnCaRVrHAIwZ2qXuih8Hq2BP/gXcE2UdkaYitG
-X-Google-Smtp-Source: ABdhPJyITheP8ZwwZ/Xm7KVjK1iNjLB2Tu8KRmVCiWam7tNvek80WwWCzG+nRNE4ruQW15Isvnf+6Xz43BeA809x42A=
-X-Received: by 2002:a92:5b8e:: with SMTP id c14mr7729872ilg.275.1611145430530;
- Wed, 20 Jan 2021 04:23:50 -0800 (PST)
+        bh=J62/J/XAou8PPpMjptVAh595wK8zuN47tW6YivACb7g=;
+        b=fPIpcbb8fteZ1L+0q3GpKKpd+R9lpC7NDrHXgpb8CMyL6wMQNGTOxGVdptQLLLOw4h
+         pN+AAde2rTbXd42rtq6KzSzqmDAH1tHDvj0Y23UPyRJIJK/7LJIYbKimkSGgEgZm7MvK
+         OCsYtDFfr7IlzCPE9S5zW7HsUuhJwK4ahESVqa0gSI9DFc645sjvOmZLL966QHhRNkMs
+         h9R7sF+bD1qOjOYH+edHjYtB8sVQIEHT/ogyRgb73vQ05IPPMJViZmLxU+4Vb66raIqj
+         ACXFkH4yocuPjeXRVZHDaNXyJneUklTjIPQ9BOEdwS33O7kv27lMv+s6FMYs6amTblpu
+         ZsPQ==
+X-Gm-Message-State: AOAM530A6Qvl5rYqSmh+7++vQZ4FPEd7Dy2bt9caYQfVwFaAIQoX2/Qu
+        dd2c717f+kuu15VnE1KlEq25Tk/xafF+42YiaGpvgg==
+X-Google-Smtp-Source: ABdhPJyL8DZfH4426aeReArAsYtr4ShME3vG0GcZmg75V2ocaT9ah7XkNI+SEMx/OLns92YbF0aFV3Pp+yJszLUIlO0=
+X-Received: by 2002:a67:f991:: with SMTP id b17mr6900762vsq.0.1611155345960;
+ Wed, 20 Jan 2021 07:09:05 -0800 (PST)
 MIME-Version: 1.0
-References: <20201219101608.16535-1-amir73il@gmail.com>
-In-Reply-To: <20201219101608.16535-1-amir73il@gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 20 Jan 2021 14:23:39 +0200
-Message-ID: <CAOQ4uxja8VcqykPxwjoZGXfLCnu7wDKLCy1Nt9CO5NLNfG442A@mail.gmail.com>
-Subject: Re: [PATCH] ovl: skip getxattr of security labels
-To:     Miklos Szeredi <miklos@szeredi.hu>
+References: <20210108001043.12683-1-sargun@sargun.me>
+In-Reply-To: <20210108001043.12683-1-sargun@sargun.me>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Wed, 20 Jan 2021 16:08:55 +0100
+Message-ID: <CAJfpegvm0o=rF7SJHQgkWZ-MdDkjLrnTcUunQiq8L9GT6==q1A@mail.gmail.com>
+Subject: Re: [PATCH v4] overlay: Implement volatile-specific fsync error behaviour
+To:     Sargun Dhillon <sargun@sargun.me>
 Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Michael Labriola <michael.d.labriola@gmail.com>
+        Amir Goldstein <amir73il@gmail.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        Daniel J Walsh <dwalsh@redhat.com>,
+        linux-fsdevel@vger.kernel.org, David Howells <dhowells@redhat.com>,
+        Chengguang Xu <cgxu519@mykernel.net>,
+        Christoph Hellwig <hch@lst.de>, NeilBrown <neilb@suse.com>,
+        Jan Kara <jack@suse.cz>, stable <stable@vger.kernel.org>,
+        Jeff Layton <jlayton@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Dec 19, 2020 at 12:16 PM Amir Goldstein <amir73il@gmail.com> wrote:
+On Fri, Jan 8, 2021 at 1:10 AM Sargun Dhillon <sargun@sargun.me> wrote:
 >
-> When inode has no listxattr op of its own (e.g. squashfs) vfs_listxattr
-> calls the LSM inode_listsecurity hooks to list the xattrs that LSMs will
-> intercept in inode_getxattr hooks.
+> Overlayfs's volatile option allows the user to bypass all forced sync calls
+> to the upperdir filesystem. This comes at the cost of safety. We can never
+> ensure that the user's data is intact, but we can make a best effort to
+> expose whether or not the data is likely to be in a bad state.
 >
-> When selinux LSM is installed but not initialized, it will list the
-> security.selinux xattr in inode_listsecurity, but will not intercept it
-> in inode_getxattr.  This results in -ENODATA for a getxattr call for an
-> xattr returned by listxattr.
+> The best way to handle this in the time being is that if an overlayfs's
+> upperdir experiences an error after a volatile mount occurs, that error
+> will be returned on fsync, fdatasync, sync, and syncfs. This is
+> contradictory to the traditional behaviour of VFS which fails the call
+> once, and only raises an error if a subsequent fsync error has occurred,
+> and been raised by the filesystem.
 >
-> This situation was manifested as overlayfs failure to copy up lower
-> files from squashfs when selinux is built-in but not initialized,
-> because ovl_copy_xattr() iterates the lower inode xattrs by
-> vfs_listxattr() and vfs_getxattr().
+> One awkward aspect of the patch is that we have to manually set the
+> superblock's errseq_t after the sync_fs callback as opposed to just
+> returning an error from syncfs. This is because the call chain looks
+> something like this:
 >
-> ovl_copy_xattr() skips copy up of security labels that are indentified by
-> inode_copy_up_xattr LSM hooks, but it does that after vfs_getxattr().
-> Since we are not going to copy them, skip vfs_getxattr() of the security
-> labels.
+> sys_syncfs ->
+>         sync_filesystem ->
+>                 __sync_filesystem ->
+>                         /* The return value is ignored here
+>                         sb->s_op->sync_fs(sb)
+>                         _sync_blockdev
+>                 /* Where the VFS fetches the error to raise to userspace */
+>                 errseq_check_and_advance
 >
-> Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
-> Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
-> Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
-> Miklos,
->
-> This is a workaround for a v5.9 selinux related regression reported by
-> Michael that caused copy up failure is a very specific configuration
-> involving lower squashfs and built-in but disabled selinux.
->
-> I've sent the bug fix to selinux list, so this patch is complementary.
-> I removed the stable/Fixes tags, because this patch does not cleanly
-> apply to v5.9 and is not the real bug fix.
->
+> Because of this we call errseq_set every time the sync_fs callback occurs.
+> Due to the nature of this seen / unseen dichotomy, if the upperdir is an
+> inconsistent state at the initial mount time, overlayfs will refuse to
+> mount, as overlayfs cannot get a snapshot of the upperdir's errseq that
+> will increment on error until the user calls syncfs.
 
-Ping.
+Thanks, this makes sense.  Queued for v4.11.
 
-FWIW, the selinux bug fix should already be in next.
-
-Thanks,
-Amir.
-
->
->  fs/overlayfs/copy_up.c | 15 ++++++++-------
->  1 file changed, 8 insertions(+), 7 deletions(-)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index e5b616c93e11..0fed532efa68 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -84,6 +84,14 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
->
->                 if (ovl_is_private_xattr(sb, name))
->                         continue;
-> +
-> +               error = security_inode_copy_up_xattr(name);
-> +               if (error < 0 && error != -EOPNOTSUPP)
-> +                       break;
-> +               if (error == 1) {
-> +                       error = 0;
-> +                       continue; /* Discard */
-> +               }
->  retry:
->                 size = vfs_getxattr(old, name, value, value_size);
->                 if (size == -ERANGE)
-> @@ -107,13 +115,6 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
->                         goto retry;
->                 }
->
-> -               error = security_inode_copy_up_xattr(name);
-> -               if (error < 0 && error != -EOPNOTSUPP)
-> -                       break;
-> -               if (error == 1) {
-> -                       error = 0;
-> -                       continue; /* Discard */
-> -               }
->                 error = vfs_setxattr(new, name, value, size, 0);
->                 if (error) {
->                         if (error != -EOPNOTSUPP || ovl_must_copy_xattr(name))
-> --
-> 2.25.1
->
+Miklos
