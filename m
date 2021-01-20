@@ -2,200 +2,117 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDDFAC433E6
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 01:43:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A434C433DB
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 07:41:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC8662245C
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 01:43:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D63FD2313A
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Jan 2021 07:41:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727427AbhATBg4 (ORCPT
+        id S1726635AbhATHlD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 Jan 2021 20:36:56 -0500
-Received: from out02.mta.xmission.com ([166.70.13.232]:36010 "EHLO
-        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728956AbhATBgs (ORCPT
+        Wed, 20 Jan 2021 02:41:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49850 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1729571AbhATHkb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 Jan 2021 20:36:48 -0500
-Received: from in02.mta.xmission.com ([166.70.13.52])
-        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1l22Pf-000s1Q-M7; Tue, 19 Jan 2021 18:35:59 -0700
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
-        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1l22Pe-00Aw4B-Ln; Tue, 19 Jan 2021 18:35:59 -0700
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     Miklos Szeredi <mszeredi@redhat.com>
-Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kernel@vger.kernel.org, "Serge E . Hallyn" <serge@hallyn.com>
-References: <20210119162204.2081137-1-mszeredi@redhat.com>
-        <20210119162204.2081137-3-mszeredi@redhat.com>
-Date:   Tue, 19 Jan 2021 19:34:49 -0600
-In-Reply-To: <20210119162204.2081137-3-mszeredi@redhat.com> (Miklos Szeredi's
-        message of "Tue, 19 Jan 2021 17:22:04 +0100")
-Message-ID: <8735yw8k7a.fsf@x220.int.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        Wed, 20 Jan 2021 02:40:31 -0500
+Received: from mail-vk1-xa30.google.com (mail-vk1-xa30.google.com [IPv6:2607:f8b0:4864:20::a30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 348FCC0613D3
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 Jan 2021 23:39:51 -0800 (PST)
+Received: by mail-vk1-xa30.google.com with SMTP id l187so5445235vki.6
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 Jan 2021 23:39:51 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=aUaAld+7PlVuBg6y2NQxllJPdU7rN5fhUZHbRArJm2Y=;
+        b=ahvlTktyt5QECQ7ao3XTiHPAajLjWlC1X23RksKxj9quUyIyi6ILEaGj+Zez2VgIEk
+         FxQFC+jSl1dmJmwQSp8sO/qEnB5YwxKwK5rAJQL7HsFgpP3rkvOEM6/pDSzuVwyo1f1y
+         N27jXlR6oEBpfbksqHzmNNRDHk2ZprG03G5b0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=aUaAld+7PlVuBg6y2NQxllJPdU7rN5fhUZHbRArJm2Y=;
+        b=IFqBh4hvzmlJLAreoCY+bEshvIkFnRRg2jJZFkDcC+vkUJ3TtBz7t8bczYUR7V6808
+         HUX4szBDsr0dOqOtxUjOGOQvfdOMusIpe++Kzm1VvyOGTpREMXU8oygVcMDEcKmNSgGp
+         ZhjmXBbBNEj7im/kmj4ovFF9s7IhdA0QGjLvij+KltnSB1VvIJtsMcNYb0Tx1P9tO6QX
+         /gagStgkdZdXjaMBA9xuXx6seHremGAxnQ6Qy/gRLtgIP8o7JbMu2orR+irBNmNx6yyd
+         sKIJd9u/z8xkOkqRWfO7ndWA1ySvH8OaZjsZVjD9W3cHcv6DLc93dE1FUGlFSTFr4+x+
+         KUtw==
+X-Gm-Message-State: AOAM532M4SdmA7HT5oQ/gRwk8DqJu9xDxPSTE7zp95XV7Apy2qgK5Dsf
+        o0K8B2TQ1Kq0b6Lg6COJns4zFhkCC0SzOPL6Ko/E0A==
+X-Google-Smtp-Source: ABdhPJxShMDCebz+BhaZwQUtaF/FMwTNyrAirvhIZqreLahBtuMVI+fIoCzbuAkc9Jh3F6ZuZLnKT+5lMhMhECOWtS8=
+X-Received: by 2002:a1f:410c:: with SMTP id o12mr5750549vka.19.1611128390259;
+ Tue, 19 Jan 2021 23:39:50 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1l22Pe-00Aw4B-Ln;;;mid=<8735yw8k7a.fsf@x220.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX19ENBj119UF+ufFlQellSdzGmdBO3hQ/RE=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [PATCH 2/2] security.capability: fix conversions on getxattr
-X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
-X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
+References: <20210119162204.2081137-1-mszeredi@redhat.com> <87y2go8wg9.fsf@x220.int.ebiederm.org>
+In-Reply-To: <87y2go8wg9.fsf@x220.int.ebiederm.org>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Wed, 20 Jan 2021 08:39:39 +0100
+Message-ID: <CAJfpegvY1ckAfR0c-RtzeBSaR8_dM2CV1MD_xJr=A6+MkSXi9A@mail.gmail.com>
+Subject: Re: [PATCH 0/2] capability conversion fixes
+To:     "Eric W. Biederman" <ebiederm@xmission.com>
+Cc:     Miklos Szeredi <mszeredi@redhat.com>,
+        linux-fsdevel@vger.kernel.org,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        LSM <linux-security-module@vger.kernel.org>,
+        linux-kernel@vger.kernel.org,
+        "Serge E . Hallyn" <serge@hallyn.com>,
+        Tyler Hicks <code@tyhicks.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Miklos Szeredi <mszeredi@redhat.com> writes:
-
-> If a capability is stored on disk in v2 format cap_inode_getsecurity() will
-> currently return in v2 format unconditionally.
+On Tue, Jan 19, 2021 at 10:15 PM Eric W. Biederman
+<ebiederm@xmission.com> wrote:
 >
-> This is wrong: v2 cap should be equivalent to a v3 cap with zero rootid,
-> and so the same conversions performed on it.
+> Miklos Szeredi <mszeredi@redhat.com> writes:
 >
-> If the rootid cannot be mapped v3 is returned unconverted.  Fix this so
-> that both v2 and v3 return -EOVERFLOW if the rootid (or the owner of the fs
-> user namespace in case of v2) cannot be mapped in the current user
-> namespace.
-
-This looks like a good cleanup.
-
-I do wonder how well this works with stacking.  In particular
-ovl_xattr_set appears to call vfs_getxattr without overriding the creds.
-What the purpose of that is I haven't quite figured out.  It looks like
-it is just a probe to see if an xattr is present so maybe it is ok.
-
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-
+> > It turns out overlayfs is actually okay wrt. mutliple conversions, because
+> > it uses the right context for lower operations.  I.e. before calling
+> > vfs_{set,get}xattr() on underlying fs, it overrides creds with that of the
+> > mounter, so the current user ns will now match that of
+> > overlay_sb->s_user_ns, meaning that the caps will be converted to just the
+> > right format for the next layer
+> >
+> > OTOH ecryptfs, which is the only other one affected by commit 7c03e2cda4a5
+> > ("vfs: move cap_convert_nscap() call into vfs_setxattr()") needs to be
+> > fixed up, since it doesn't do the cap override thing that overlayfs does.
+> >
+> > I don't have an ecryptfs setup, so untested, but it's a fairly trivial
+> > change.
+> >
+> > My other observation was that cap_inode_getsecurity() messes up conversion
+> > of caps in more than one case.  This is independent of the overlayfs user
+> > ns enablement but affects it as well.
+> >
+> > Maybe we can revisit the infrastructure improvements we discussed, but I
+> > think these fixes are more appropriate for the current cycle.
 >
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  security/commoncap.c | 67 ++++++++++++++++++++++++++++----------------
->  1 file changed, 43 insertions(+), 24 deletions(-)
+> I mostly agree.  Fixing the bugs in a back-portable way is important.
 >
-> diff --git a/security/commoncap.c b/security/commoncap.c
-> index bacc1111d871..c9d99f8f4c82 100644
-> --- a/security/commoncap.c
-> +++ b/security/commoncap.c
-> @@ -371,10 +371,11 @@ int cap_inode_getsecurity(struct inode *inode, const char *name, void **buffer,
->  {
->  	int size, ret;
->  	kuid_t kroot;
-> +	__le32 nsmagic, magic;
->  	uid_t root, mappedroot;
->  	char *tmpbuf = NULL;
->  	struct vfs_cap_data *cap;
-> -	struct vfs_ns_cap_data *nscap;
-> +	struct vfs_ns_cap_data *nscap = NULL;
->  	struct dentry *dentry;
->  	struct user_namespace *fs_ns;
->  
-> @@ -396,46 +397,61 @@ int cap_inode_getsecurity(struct inode *inode, const char *name, void **buffer,
->  	fs_ns = inode->i_sb->s_user_ns;
->  	cap = (struct vfs_cap_data *) tmpbuf;
->  	if (is_v2header((size_t) ret, cap)) {
-> -		/* If this is sizeof(vfs_cap_data) then we're ok with the
-> -		 * on-disk value, so return that.  */
-> -		if (alloc)
-> -			*buffer = tmpbuf;
-> -		else
-> -			kfree(tmpbuf);
-> -		return ret;
-> -	} else if (!is_v3header((size_t) ret, cap)) {
-> -		kfree(tmpbuf);
-> -		return -EINVAL;
-> +		root = 0;
-> +	} else if (is_v3header((size_t) ret, cap)) {
-> +		nscap = (struct vfs_ns_cap_data *) tmpbuf;
-> +		root = le32_to_cpu(nscap->rootid);
-> +	} else {
-> +		size = -EINVAL;
-> +		goto out_free;
->  	}
->  
-> -	nscap = (struct vfs_ns_cap_data *) tmpbuf;
-> -	root = le32_to_cpu(nscap->rootid);
->  	kroot = make_kuid(fs_ns, root);
->  
->  	/* If the root kuid maps to a valid uid in current ns, then return
->  	 * this as a nscap. */
->  	mappedroot = from_kuid(current_user_ns(), kroot);
->  	if (mappedroot != (uid_t)-1 && mappedroot != (uid_t)0) {
-> +		size = sizeof(struct vfs_ns_cap_data);
->  		if (alloc) {
-> -			*buffer = tmpbuf;
-> +			if (!nscap) {
-> +				/* v2 -> v3 conversion */
-> +				nscap = kzalloc(size, GFP_ATOMIC);
-> +				if (!nscap) {
-> +					size = -ENOMEM;
-> +					goto out_free;
-> +				}
-> +				nsmagic = VFS_CAP_REVISION_3;
-> +				magic = le32_to_cpu(cap->magic_etc);
-> +				if (magic & VFS_CAP_FLAGS_EFFECTIVE)
-> +					nsmagic |= VFS_CAP_FLAGS_EFFECTIVE;
-> +				memcpy(&nscap->data, &cap->data, sizeof(__le32) * 2 * VFS_CAP_U32);
-> +				nscap->magic_etc = cpu_to_le32(nsmagic);
-> +			} else {
-> +				/* use allocated v3 buffer */
-> +				tmpbuf = NULL;
-> +			}
->  			nscap->rootid = cpu_to_le32(mappedroot);
-> -		} else
-> -			kfree(tmpbuf);
-> -		return size;
-> +			*buffer = nscap;
-> +		}
-> +		goto out_free;
->  	}
->  
->  	if (!rootid_owns_currentns(kroot)) {
-> -		kfree(tmpbuf);
-> -		return -EOPNOTSUPP;
-> +		size = -EOVERFLOW;
-> +		goto out_free;
->  	}
->  
->  	/* This comes from a parent namespace.  Return as a v2 capability */
->  	size = sizeof(struct vfs_cap_data);
->  	if (alloc) {
-> -		*buffer = kmalloc(size, GFP_ATOMIC);
-> -		if (*buffer) {
-> -			struct vfs_cap_data *cap = *buffer;
-> -			__le32 nsmagic, magic;
-> +		if (nscap) {
-> +			/* v3 -> v2 conversion */
-> +			cap = kzalloc(size, GFP_ATOMIC);
-> +			if (!cap) {
-> +				size = -ENOMEM;
-> +				goto out_free;
-> +			}
->  			magic = VFS_CAP_REVISION_2;
->  			nsmagic = le32_to_cpu(nscap->magic_etc);
->  			if (nsmagic & VFS_CAP_FLAGS_EFFECTIVE)
-> @@ -443,9 +459,12 @@ int cap_inode_getsecurity(struct inode *inode, const char *name, void **buffer,
->  			memcpy(&cap->data, &nscap->data, sizeof(__le32) * 2 * VFS_CAP_U32);
->  			cap->magic_etc = cpu_to_le32(magic);
->  		} else {
-> -			size = -ENOMEM;
-> +			/* use unconverted v2 */
-> +			tmpbuf = NULL;
->  		}
-> +		*buffer = cap;
->  	}
-> +out_free:
->  	kfree(tmpbuf);
->  	return size;
->  }
+> However we need to sort out the infrastructure, and implementation.
+>
+> As far as I can tell it is only the fact that overlayfs does not support
+> the new mount api aka fs_context that allows this fix to work and be
+> correct.
+>
+> I believe the new mount api would allow specifying a different userns
+> thatn curent_user_ns for the overlay filesystem and that would break
+> this.
+
+This is a valid concern.   I'll add a WARN_ON() to make sure that
+whenever this changes it doesn't go unnoticed.
+
+Fixing it would also be easy:  just update creds->user_ns field to
+that of sb->s_user_ns in ovl_fill_super().   For now I'll go with the
+WARNING though, since this cannot be tested.
+
+Thanks,
+Miklos
