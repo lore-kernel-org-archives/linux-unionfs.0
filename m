@@ -2,217 +2,66 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30CDCC433DB
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Jan 2021 05:21:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E039FC433E0
+	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Jan 2021 06:00:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDFA323381
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Jan 2021 05:21:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9995722D50
+	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Jan 2021 06:00:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1726000AbhAVFVI (ORCPT
+        id S1726396AbhAVGAj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 22 Jan 2021 00:21:08 -0500
-Received: from relay-us1.mymailcheap.com ([51.81.35.219]:47668 "EHLO
-        relay-us1.mymailcheap.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1726157AbhAVFVF (ORCPT
+        Fri, 22 Jan 2021 01:00:39 -0500
+Received: from out4436.biz.mail.alibaba.com ([47.88.44.36]:32577 "EHLO
+        out4436.biz.mail.alibaba.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1726248AbhAVGAg (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 22 Jan 2021 00:21:05 -0500
-Received: from relay5.mymailcheap.com (relay5.mymailcheap.com [159.100.248.207])
-        by relay-us1.mymailcheap.com (Postfix) with ESMTPS id 9244E20028
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 Jan 2021 05:20:23 +0000 (UTC)
-Received: from relay2.mymailcheap.com (relay2.mymailcheap.com [217.182.66.162])
-        by relay5.mymailcheap.com (Postfix) with ESMTPS id 206B3260EB;
-        Fri, 22 Jan 2021 05:19:21 +0000 (UTC)
-Received: from filter2.mymailcheap.com (filter2.mymailcheap.com [91.134.140.82])
-        by relay2.mymailcheap.com (Postfix) with ESMTPS id B88173EDEC;
-        Fri, 22 Jan 2021 06:17:41 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by filter2.mymailcheap.com (Postfix) with ESMTP id 9734F2A510;
-        Fri, 22 Jan 2021 06:17:41 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=mymailcheap.com;
-        s=default; t=1611292661;
-        bh=rRKgtiGTcCFkbIJgrA1D99gu1b5jfXEZujQLTKBD3PE=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=EYUXsbM0bPtjn7+8s94shScNCkCP69cMbZ+yQ/D47a7QQ+/B2WeKOx3oNpd60gUv3
-         OaCRGodkn77XcaUK9lCZAU17ifTr+2Tde55Kk1YZhGrsWa3sOwZLJRzHtUV6tyWCt/
-         ZbZe871J7xGT2wlHnkxP0PbMMGXs8rhRGMSUQ+bw=
-X-Virus-Scanned: Debian amavisd-new at filter2.mymailcheap.com
-Received: from filter2.mymailcheap.com ([127.0.0.1])
-        by localhost (filter2.mymailcheap.com [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id SwL9I7S9yZWJ; Fri, 22 Jan 2021 06:17:40 +0100 (CET)
-Received: from mail20.mymailcheap.com (mail20.mymailcheap.com [51.83.111.147])
-        (using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by filter2.mymailcheap.com (Postfix) with ESMTPS;
-        Fri, 22 Jan 2021 06:17:40 +0100 (CET)
-Received: from [148.251.23.173] (ml.mymailcheap.com [148.251.23.173])
-        by mail20.mymailcheap.com (Postfix) with ESMTP id 7C228400CF;
-        Fri, 22 Jan 2021 05:17:39 +0000 (UTC)
-Authentication-Results: mail20.mymailcheap.com;
-        dkim=pass (1024-bit key; unprotected) header.d=aosc.io header.i=@aosc.io header.b="p/bz1Dk7";
-        dkim-atps=neutral
-AI-Spam-Status: Not processed
-Received: from [192.168.1.216] (unknown [59.41.162.145])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail20.mymailcheap.com (Postfix) with ESMTPSA id 235814100C;
-        Fri, 22 Jan 2021 05:17:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=aosc.io; s=default;
-        t=1611292652; bh=rRKgtiGTcCFkbIJgrA1D99gu1b5jfXEZujQLTKBD3PE=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=p/bz1Dk7J7IGtNouIiXf6SqfZ+e/rsjnqGGosyeVcHOhtzOAO8PGIX9AUw++DbP0t
-         Cvwa9jL5Sl1/ywTn+A6xrBKsHrkyxFkZ10K4jOrHcAsiYkyrWiYoPea+tdcb10pN3w
-         XwdEhgNMGgwPz9oDiX7ZkyhIsbs15rF3jFA59aFk=
-Message-ID: <5ce1a5ceba591d6df3e04b8aa71af9d25fac63ea.camel@aosc.io>
-Subject: Re: [PATCH v3] ovl: use a dedicated semaphore for dir upperfile
- caching
-From:   Icenowy Zheng <icenowy@aosc.io>
+        Fri, 22 Jan 2021 01:00:36 -0500
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04357;MF=joseph.qi@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0UMUmrC5_1611295184;
+Received: from B-D1K7ML85-0059.local(mailfrom:joseph.qi@linux.alibaba.com fp:SMTPD_---0UMUmrC5_1611295184)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Fri, 22 Jan 2021 13:59:44 +0800
+Subject: Re: [PATCH v4] ovl: fix dentry leak in ovl_get_redirect
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Xiao Yang <yangx.jy@cn.fujitsu.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        stable <stable@vger.kernel.org>
-Date:   Fri, 22 Jan 2021 13:17:07 +0800
-In-Reply-To: <CAJfpegsVnpV38j4ShOG0m9xh8Fy=P2kmZ_hwyfiaAzmM3tVaOg@mail.gmail.com>
-References: <20210105003611.194511-1-icenowy@aosc.io>
-         <CAOQ4uxiFoQhrMbs91ZUNXqbJUXb5XRBgRrcq1rmChLKQGKg5xg@mail.gmail.com>
-         <20210120102045.GD1236412@miu.piliscsaba.redhat.com>
-         <83bb613212ee81648e5bf7c0f9cd3219e0046f80.camel@aosc.io>
-         <CAJfpegsVnpV38j4ShOG0m9xh8Fy=P2kmZ_hwyfiaAzmM3tVaOg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.38.2 
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Liangyan <liangyan.peng@linux.alibaba.com>
+References: <20201222030626.181165-1-liangyan.peng@linux.alibaba.com>
+ <20201222032633.GS3579531@ZenIV.linux.org.uk>
+From:   Joseph Qi <joseph.qi@linux.alibaba.com>
+Message-ID: <c9ca7e00-acfa-3718-8e0d-fc3b9df28f69@linux.alibaba.com>
+Date:   Fri, 22 Jan 2021 13:59:44 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.6.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Spamd-Result: default: False [-0.10 / 10.00];
-         RCVD_VIA_SMTP_AUTH(0.00)[];
-         ARC_NA(0.00)[];
-         R_DKIM_ALLOW(0.00)[aosc.io:s=default];
-         HFILTER_HELO_BAREIP(3.00)[148.251.23.173,1];
-         FROM_HAS_DN(0.00)[];
-         FREEMAIL_ENVRCPT(0.00)[gmail.com];
-         TO_MATCH_ENVRCPT_ALL(0.00)[];
-         MIME_GOOD(-0.10)[text/plain];
-         DMARC_NA(0.00)[aosc.io];
-         R_SPF_SOFTFAIL(0.00)[~all];
-         RCPT_COUNT_FIVE(0.00)[6];
-         RECEIVED_SPAMHAUS_PBL(0.00)[59.41.162.145:received];
-         ML_SERVERS(-3.10)[148.251.23.173];
-         TO_DN_ALL(0.00)[];
-         DKIM_TRACE(0.00)[aosc.io:+];
-         RCVD_NO_TLS_LAST(0.10)[];
-         FROM_EQ_ENVFROM(0.00)[];
-         MIME_TRACE(0.00)[0:+];
-         ASN(0.00)[asn:24940, ipnet:148.251.0.0/16, country:DE];
-         FREEMAIL_CC(0.00)[gmail.com,cn.fujitsu.com,vger.kernel.org];
-         MID_RHS_MATCH_FROM(0.00)[];
-         RCVD_COUNT_TWO(0.00)[2]
-X-Rspamd-Queue-Id: 7C228400CF
-X-Rspamd-Server: mail20.mymailcheap.com
+In-Reply-To: <20201222032633.GS3579531@ZenIV.linux.org.uk>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-在 2021-01-21星期四的 09:07 +0100，Miklos Szeredi写道：
-> On Thu, Jan 21, 2021 at 4:43 AM Icenowy Zheng <icenowy@aosc.io>
-> wrote:
-> > 
-> > 在 2021-01-20星期三的 11:20 +0100，Miklos Szeredi写道：
-> > > On Tue, Jan 05, 2021 at 08:47:41AM +0200, Amir Goldstein wrote:
-> > > > On Tue, Jan 5, 2021 at 2:36 AM Icenowy Zheng <icenowy@aosc.io>
-> > > > wrote:
-> > > > > 
-> > > > > The function ovl_dir_real_file() currently uses the semaphore
-> > > > > of
-> > > > > the
-> > > > > inode to synchronize write to the upperfile cache field.
-> > > > 
-> > > > Although the inode lock is a rw_sem it is referred to as the
-> > > > "inode
-> > > > lock"
-> > > > and you also left semaphore in the commit subject.
-> > > > No need to re-post. This can be fixed on commit.
-> > > > 
-> > > > > 
-> > > > > However, this function will get called by
-> > > > > ovl_ioctl_set_flags(),
-> > > > > which
-> > > > > utilizes the inode semaphore too. In this case
-> > > > > ovl_dir_real_file() will
-> > > > > try to claim a lock that is owned by a function in its call
-> > > > > stack, which
-> > > > > won't get released before ovl_dir_real_file() returns.
-> > > > > 
-> > > > > Define a dedicated semaphore for the upperfile cache, so that
-> > > > > the
-> > > > > deadlock won't happen.
-> > > > > 
-> > > > > Fixes: 61536bed2149 ("ovl: support [S|G]ETFLAGS and
-> > > > > FS[S|G]ETXATTR ioctls for directories")
-> > > > > Cc: stable@vger.kernel.org # v5.10
-> > > > > Signed-off-by: Icenowy Zheng <icenowy@aosc.io>
-> > > > > ---
-> > > > > Changes in v2:
-> > > > > - Fixed missing replacement in error handling path.
-> > > > > Changes in v3:
-> > > > > - Use mutex instead of semaphore.
-> > > > > 
-> > > > >  fs/overlayfs/readdir.c | 10 +++++-----
-> > > > >  1 file changed, 5 insertions(+), 5 deletions(-)
-> > > > > 
-> > > > > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> > > > > index 01620ebae1bd..3980f9982f34 100644
-> > > > > --- a/fs/overlayfs/readdir.c
-> > > > > +++ b/fs/overlayfs/readdir.c
-> > > > > @@ -56,6 +56,7 @@ struct ovl_dir_file {
-> > > > >         struct list_head *cursor;
-> > > > >         struct file *realfile;
-> > > > >         struct file *upperfile;
-> > > > > +       struct mutex upperfile_mutex;
-> > > > 
-> > > > That's a very specific name.
-> > > > This mutex protects members of struct ovl_dir_file, which could
-> > > > evolve
-> > > > into struct ovl_file one day (because no reason to cache only
-> > > > dir
-> > > > upper file),
-> > > > so I would go with a more generic name, but let's leave it to
-> > > > Miklos to decide.
-> > > > 
-> > > > He could have a different idea altogether for fixing this bug.
-> > > 
-> > > How about this (untested) patch?
-> > > 
-> > > It's a cleanup as well as a fix, but maybe we should separate the
-> > > cleanup from
-> > > the fix...
-> > 
-> > If you are going to post this, feel free to add
-> > 
-> > Tested-by: Icenowy Zheng <icenowy@aosc.io>
-> 
-> Okay, thanks.
-> 
-> > (And if you remove the IS_ERR(realfile) part, the tested-by tag
-> > still
-> > applies.)
-> 
-> Dropping the IS_ERR(realfile) here would mean having to add the same
-> check before relevant fput() calls, which would make it more complex
-> not less.
-> 
-> Or did you mean something else?
+Hi Miklos,
 
-I mean "seperate the cleanup from the fix".
+Any comments on this patch?
 
-This is only for when you do the seperation.
+Thanks,
+Joseph
 
+On 12/22/20 11:26 AM, Al Viro wrote:
+> On Tue, Dec 22, 2020 at 11:06:26AM +0800, Liangyan wrote:
 > 
-> Thanks,
-> Miklos
-
+>> Cc: <stable@vger.kernel.org>
+>> Fixes: a6c606551141 ("ovl: redirect on rename-dir")
+>> Signed-off-by: Liangyan <liangyan.peng@linux.alibaba.com>
+>> Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+>> Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+> 
+> Fine by me...  I can put it through vfs.git#fixes, but IMO
+> that would be better off in overlayfs tree.
+> 
