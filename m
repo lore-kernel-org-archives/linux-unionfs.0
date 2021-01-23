@@ -2,138 +2,178 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4F85C43381
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Jan 2021 18:38:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 505D3C433E0
+	for <linux-unionfs@archiver.kernel.org>; Sat, 23 Jan 2021 12:55:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97EDB2376F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Jan 2021 18:38:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0250B22C7C
+	for <linux-unionfs@archiver.kernel.org>; Sat, 23 Jan 2021 12:55:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1728122AbhAVShp (ORCPT
+        id S1725290AbhAWMzJ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 22 Jan 2021 13:37:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47994 "EHLO
+        Sat, 23 Jan 2021 07:55:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1729379AbhAVScZ (ORCPT
+        with ESMTP id S1725287AbhAWMzI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 22 Jan 2021 13:32:25 -0500
-Received: from mail-oo1-xc2a.google.com (mail-oo1-xc2a.google.com [IPv6:2607:f8b0:4864:20::c2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78B02C061793
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 Jan 2021 10:31:44 -0800 (PST)
-Received: by mail-oo1-xc2a.google.com with SMTP id q6so1634094ooo.8
-        for <linux-unionfs@vger.kernel.org>; Fri, 22 Jan 2021 10:31:44 -0800 (PST)
+        Sat, 23 Jan 2021 07:55:08 -0500
+Received: from mail-io1-xd2b.google.com (mail-io1-xd2b.google.com [IPv6:2607:f8b0:4864:20::d2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1C91C06174A;
+        Sat, 23 Jan 2021 04:54:27 -0800 (PST)
+Received: by mail-io1-xd2b.google.com with SMTP id h11so16859054ioh.11;
+        Sat, 23 Jan 2021 04:54:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=tyhicks-com.20150623.gappssmtp.com; s=20150623;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=6Ab9R3Beg3K2SiC0qANgEYUJGr8eAMXRzKvwtlr3avY=;
-        b=nasFTn+Wbf6+mLFLGP8W5Ujy6BYP5L2cegwclttCFnekEXAOkDDrvQu9YItuVGUqYZ
-         KHew29S8kFItmdEKeX795fWRGhMVHexN8B+hmtTwKNd1mopSb58bSd3I9ZqxjBoNXSm/
-         xYfxCLQpYYbd6kAnIKn9JBg4Pa3xpH/h5cjEW25nlNW62cfvCFaxWtz2X7fUkiKVL30c
-         3aj3OmGZk1i/CBH0WT4fQlOsj13gCXgLRNy3s8yrXgm5XwcXd0PPn7ji/TlF8hfVpCYB
-         k4bSiEC6DoNK0a0PtWTOCv5AgjGzFRHvM2E17zUau5K2Wem2O1Dw7Et+vzouOWJesWvT
-         /OvA==
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=vFLJjQ6GqDf6idhlAi7eZoIx97QCRlqrFdGfzJJ1rlI=;
+        b=d4CXAsK3TvxYJlbIcevCNHu7IncLMYzngiUYcUXsK05J5OX96uHRlBJ1A01TVAaI37
+         KBKIu6cqZ4xwU2bf0SB0n7Rywn72a0mpRGAQTcecM89BFWPMP9ZONZj6MguRXDSEeqNj
+         ZXFSN035Exc35JzeVJbEVwK094uyaRh6BapOMIvxscm9bGrPBFJr+spIgsd9A0cdpsCj
+         T5qWKF4gJrFEbDj4nsGb5K8GlrERjp+RFlkPaEMD3wqme5+O5B7wZGeeFpEUzmZm+utV
+         IdatRNqpESnsLPxPZkawPFme6J0kAAOxKZDUkES2xZ1VMH9cTOFbd7KQv6IilJq1gL2w
+         ppaA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=6Ab9R3Beg3K2SiC0qANgEYUJGr8eAMXRzKvwtlr3avY=;
-        b=mk00qXyvfW+W2Dixau8UKY/iQHIJtkmGXRd1YGNcBNP2gRGs0ouZqG9cqolvUApGAv
-         LenREZwf3MhfT8BfdShn2s6IrR64UJfDTRgdljjeRmkOWlcDpFNzi+pRaIWS8M9fv851
-         p+a2Yi2w3puMBcszhGQA70S3aNBfMogQWsrhL/bVEcg2sAbQYAhA+sGyWd+Pt2QQvEwK
-         4cHEP8Vz4GWxXy+DEL9mxN+zE2Z4LHf1i68K3Bu3qIXHDmBxtY4FBSU5iVtOzjZZuYsP
-         ttxJL/nxGJt/hlPdU7CxSPcETAv7H1CZ2MWoIOrt39XOweNJ/8+CBZ5co7fLJyMPmFsk
-         tkRw==
-X-Gm-Message-State: AOAM530AAuF0lIgwbMWfy/gHYisdcvkUk6YMqSpYARCrcggfg58IjfIB
-        gMs9ktTdY6iob5+tcgRZdGXsAA==
-X-Google-Smtp-Source: ABdhPJz0jtCdpEjEMrPjsrQ4MNKqxVFzLEirJ6qP9Bb8ZCzO4bpHVBR4tHp1tIKbz9Klj8hQkCd1XA==
-X-Received: by 2002:a4a:6c45:: with SMTP id u5mr4749495oof.61.1611340303740;
-        Fri, 22 Jan 2021 10:31:43 -0800 (PST)
-Received: from sequoia (162-237-133-238.lightspeed.rcsntx.sbcglobal.net. [162.237.133.238])
-        by smtp.gmail.com with ESMTPSA id x9sm1825985ota.23.2021.01.22.10.31.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 22 Jan 2021 10:31:43 -0800 (PST)
-Date:   Fri, 22 Jan 2021 12:31:41 -0600
-From:   Tyler Hicks <code@tyhicks.com>
-To:     Miklos Szeredi <mszeredi@redhat.com>
-Cc:     "Eric W . Biederman" <ebiederm@xmission.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kernel@vger.kernel.org, "Serge E . Hallyn" <serge@hallyn.com>
-Subject: Re: [PATCH 1/2] ecryptfs: fix uid translation for setxattr on
- security.capability
-Message-ID: <20210122183141.GB81247@sequoia>
-References: <20210119162204.2081137-1-mszeredi@redhat.com>
- <20210119162204.2081137-2-mszeredi@redhat.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=vFLJjQ6GqDf6idhlAi7eZoIx97QCRlqrFdGfzJJ1rlI=;
+        b=g4dd5rDpOkz4YaCLAJUupjlnrX6D0fe3czgtCHUp+Ye9IjTfVFvEnSLnrTY4ifWa7H
+         xn1DdP/01Otm5FXuBQ2bxVwKPjvqRbNJoc6kfLng/8NaZht1p0eD/d8pyVBZD5d995TD
+         wDO49FOLaHl8sn7LromVkq0yCqXNwMW7+qZ4gDF7rAJiyq3Qf0HIoggKVdr/bqO3gzol
+         lt/08zohCRQIgpwsGwuI0wmBe9xEiee+4ct7rCP8me0cj1gMpv/iXmSiOWvWbUu9JYfY
+         HscNkLrgfH7nXDQ/OA2p7TmULnWKy9AmKpK+8IMBuIHcfKiUWCuk/DvDb9yeGj+B532E
+         oJ8g==
+X-Gm-Message-State: AOAM5337LWMbYGxRIcd7hgO7FJF/3W98H1CgA/Tpiq1bIgHpCxbBnogI
+        IjsywPv5BPtcXnFQwtJWv2gJ6ZPFzzlfvuwNFS6yuZICqoo=
+X-Google-Smtp-Source: ABdhPJyF0PNGZ5r9X5aqDEIxp+y5yAC+gKMzkLKLPeF951kWCaM6ULxT2iKCgI6cCObRKCk9ec4QF7X3FnRTOMRbZRQ=
+X-Received: by 2002:a05:6e02:eb0:: with SMTP id u16mr388035ilj.250.1611406467216;
+ Sat, 23 Jan 2021 04:54:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210119162204.2081137-2-mszeredi@redhat.com>
+References: <20201130030039.596801-1-sargun@sargun.me> <CAMp4zn-c6gOPTPBqqkPoQi3NVeZ0yW-WfVPFzpDiazj8PeUgBw@mail.gmail.com>
+ <CAOQ4uxhU=eWAfTn8DJ7x4NZ2PO9Q9V7Ohpj9aTasXg3KcfFpMA@mail.gmail.com>
+ <CAMp4zn9sdpk1A1hYpDjS_774UscYZ1sztCsLdfshs=pXEYf0NQ@mail.gmail.com> <CAJfpeguLFoLD8BYuNAAwV+F0583aujNBqto3QnFjeV+z4LszDA@mail.gmail.com>
+In-Reply-To: <CAJfpeguLFoLD8BYuNAAwV+F0583aujNBqto3QnFjeV+z4LszDA@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 23 Jan 2021 14:54:16 +0200
+Message-ID: <CAOQ4uxg=H46mVHeXFN-Sjd85TKRFawe0ZDqossg_Hn8BULWHkw@mail.gmail.com>
+Subject: Re: [PATCH] overlay: Plumb through flush method
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Sargun Dhillon <sargun@sargun.me>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 2021-01-19 17:22:03, Miklos Szeredi wrote:
-> Prior to commit 7c03e2cda4a5 ("vfs: move cap_convert_nscap() call into
-> vfs_setxattr()") the translation of nscap->rootid did not take stacked
-> filesystems (overlayfs and ecryptfs) into account.
-> 
-> That patch fixed the overlay case, but made the ecryptfs case worse.
+On Wed, Jan 20, 2021 at 5:24 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Thu, Dec 3, 2020 at 7:32 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> >
+> > On Thu, Dec 3, 2020 at 2:32 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > On Thu, Dec 3, 2020 at 12:16 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> > > >
+> > > > On Sun, Nov 29, 2020 at 7:00 PM Sargun Dhillon <sargun@sargun.me> wrote:
+> > > > >
+> > > > > Filesystems can implement their own flush method that release
+> > > > > resources, or manipulate caches. Currently if one of these
+> > > > > filesystems is used with overlayfs, the flush method is not called.
+> > > > >
+> > > > > Signed-off-by: Sargun Dhillon <sargun@sargun.me>
+> > > > > Cc: linux-fsdevel@vger.kernel.org
+> > > > > Cc: linux-unionfs@vger.kernel.org
+> > > > > Cc: Miklos Szeredi <miklos@szeredi.hu>
+> > > > > Cc: Amir Goldstein <amir73il@gmail.com>
+> > > > > ---
+> > > > >  fs/overlayfs/file.c | 11 +++++++++++
+> > > > >  1 file changed, 11 insertions(+)
+> > > > >
+> > > > > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > > > > index efccb7c1f9bc..802259f33c28 100644
+> > > > > --- a/fs/overlayfs/file.c
+> > > > > +++ b/fs/overlayfs/file.c
+> > > > > @@ -787,6 +787,16 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
+> > > > >                             remap_flags, op);
+> > > > >  }
+> > > > >
+> > > > > +static int ovl_flush(struct file *file, fl_owner_t id)
+> > > > > +{
+> > > > > +       struct file *realfile = file->private_data;
+> > > > > +
+> > > > > +       if (realfile->f_op->flush)
+> > > > > +               return realfile->f_op->flush(realfile, id);
+> > > > > +
+> > > > > +       return 0;
+> > > > > +}
+> > > > > +
+> > > > >  const struct file_operations ovl_file_operations = {
+> > > > >         .open           = ovl_open,
+> > > > >         .release        = ovl_release,
+> > > > > @@ -798,6 +808,7 @@ const struct file_operations ovl_file_operations = {
+> > > > >         .fallocate      = ovl_fallocate,
+> > > > >         .fadvise        = ovl_fadvise,
+> > > > >         .unlocked_ioctl = ovl_ioctl,
+> > > > > +       .flush          = ovl_flush,
+> > > > >  #ifdef CONFIG_COMPAT
+> > > > >         .compat_ioctl   = ovl_compat_ioctl,
+> > > > >  #endif
+> > > > > --
+> > > > > 2.25.1
+> > > > >
+> > > >
+> > > > Amir, Miklos,
+> > > > Is this acceptable? I discovered this being a problem when we had the discussion
+> > > > of whether the volatile fs should return an error on close on dirty files.
+> > >
+> > > Yes, looks ok.
+> > > Maybe we want to check if the realfile is upper although
+> > > maybe flush can release resources also on read only fs?
+> > >
+> > > >
+> > > > It seems like it would be useful if anyone uses NFS, or CIFS as an upperdir.
+> > >
+> > > They are not supported as upperdir. only FUSE is.
+> > >
+> > > Thanks,
+> > > Amir.
+> >
+> > VFS does it on read-only files / mounts, so we should probably do the
+> > same thing.
+>
+> Right, but it should handle files copied up after the oipen (i.e. call
+> ovl_real_fdget() to get the real file).
+>
 
-Thanks for sending a fix!
+Applied patch is missing fdput() xfstests fail.
+Following tested fix.
 
-I know that you don't have an eCryptfs setup to test with but I'm at a
-loss about how to test this from the userns/fscaps side of things. Do
-you have a sequence of unshare/setcap/getcap commands that I can run on
-a file inside of an eCryptfs mount to verify that the bug exists after
-7c03e2cda4a5 and then again to verify that this patch fixes the bug?
+Thanks,
+Amir.
 
-Tyler
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -693,12 +693,17 @@ static int ovl_flush(struct file *file, fl_owner_t id)
+        int err;
 
-> 
-> Restore old the behavior for ecryptfs that existed before the overlayfs
-> fix.  This does not fix ecryptfs's handling of complex user namespace
-> setups, but it does make sure existing setups don't regress.
-> 
-> Reported-by: Eric W. Biederman <ebiederm@xmission.com>
-> Cc: Tyler Hicks <code@tyhicks.com>
-> Fixes: 7c03e2cda4a5 ("vfs: move cap_convert_nscap() call into vfs_setxattr()")
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/ecryptfs/inode.c | 10 +++++++---
->  1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-> index e23752d9a79f..58d0f7187997 100644
-> --- a/fs/ecryptfs/inode.c
-> +++ b/fs/ecryptfs/inode.c
-> @@ -1016,15 +1016,19 @@ ecryptfs_setxattr(struct dentry *dentry, struct inode *inode,
->  {
->  	int rc;
->  	struct dentry *lower_dentry;
-> +	struct inode *lower_inode;
->  
->  	lower_dentry = ecryptfs_dentry_to_lower(dentry);
-> -	if (!(d_inode(lower_dentry)->i_opflags & IOP_XATTR)) {
-> +	lower_inode = d_inode(lower_dentry);
-> +	if (!(lower_inode->i_opflags & IOP_XATTR)) {
->  		rc = -EOPNOTSUPP;
->  		goto out;
->  	}
-> -	rc = vfs_setxattr(lower_dentry, name, value, size, flags);
-> +	inode_lock(lower_inode);
-> +	rc = __vfs_setxattr_locked(lower_dentry, name, value, size, flags, NULL);
-> +	inode_unlock(lower_inode);
->  	if (!rc && inode)
-> -		fsstack_copy_attr_all(inode, d_inode(lower_dentry));
-> +		fsstack_copy_attr_all(inode, lower_inode);
->  out:
->  	return rc;
->  }
-> -- 
-> 2.26.2
-> 
+        err = ovl_real_fdget(file, &real);
+-       if (!err && real.file->f_op->flush) {
++       if (err)
++               return err;
++
++       if (real.file->f_op->flush) {
+                old_cred = ovl_override_creds(file_inode(file)->i_sb);
+                err = real.file->f_op->flush(real.file, id);
+                revert_creds(old_cred);
+        }
+
++       fdput(real);
++
+        return err;
+ }
