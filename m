@@ -2,256 +2,170 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1728C433E9
-	for <linux-unionfs@archiver.kernel.org>; Tue, 26 Jan 2021 19:19:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A339C433E0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 27 Jan 2021 04:56:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 58BE722B2C
-	for <linux-unionfs@archiver.kernel.org>; Tue, 26 Jan 2021 19:19:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 37A74205CA
+	for <linux-unionfs@archiver.kernel.org>; Wed, 27 Jan 2021 04:56:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1727902AbhAZFuj (ORCPT
+        id S238654AbhA0E41 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 26 Jan 2021 00:50:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59154 "EHLO
+        Tue, 26 Jan 2021 23:56:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1728816AbhAYNZF (ORCPT
+        with ESMTP id S1731765AbhAZFTB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 25 Jan 2021 08:25:05 -0500
-Received: from mail-io1-xd33.google.com (mail-io1-xd33.google.com [IPv6:2607:f8b0:4864:20::d33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 649BEC06174A;
-        Mon, 25 Jan 2021 05:24:19 -0800 (PST)
-Received: by mail-io1-xd33.google.com with SMTP id d13so26415254ioy.4;
-        Mon, 25 Jan 2021 05:24:19 -0800 (PST)
+        Tue, 26 Jan 2021 00:19:01 -0500
+Received: from mail-io1-xd29.google.com (mail-io1-xd29.google.com [IPv6:2607:f8b0:4864:20::d29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAA3CC061788
+        for <linux-unionfs@vger.kernel.org>; Mon, 25 Jan 2021 21:18:41 -0800 (PST)
+Received: by mail-io1-xd29.google.com with SMTP id u17so31447028iow.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 25 Jan 2021 21:18:41 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=IF2DD1ZxWyHOIZtsZXXfUNNTSD9rCA0LLoYW+nSXou8=;
-        b=GRFOyzZqBwr6lGCZFb5qN71Wgu8SV7v1JoeF3t13VLl7rsRjurRSv48EY7imASATsy
-         nFuNQcgnei1G4DeUwHi2PFPJHI2zIaV/M9XO6+sEYHgrDbcMeYELD5BCt5u9BcybFhjN
-         9o9WAWW7P8o/qVShxOhcc/ZKjTpj7j4QDmY5DuRB8JPO9tgKMhOhsQ213kq6KXrmg1lq
-         hytK4yAJX84bRft+SaInwmsZasGORbY3KlUBjQcGOWEDWAe7sVqymIt6oD7+uSEi3vbz
-         1opGMv1lpDVpxxC0/jGq2vcAV6hYDvnjGMTuQ9HP45czKud86gpO/OsXVJFpQoBm+m4M
-         Y1ow==
+        bh=ohYv/1DCriRoslae5qul3GB6tTLFOCExUM5bB7qowgA=;
+        b=Jl/eD5UKnZIZvJPZPQdrlHC2tjgcf/Lu3a50o2OOjd/5kF+Jt+STVN3u9f4Ml59H3Y
+         YNbcGW5x2sfQTNHNvw/E7+8W1mo7qh5FwlX3czuCf3K6Q1YTIQtw5TAMp75Ku1nA939D
+         8tnMvoqlREAGQVGETnI06Zr6wPMweEOvg8YZUdc2DYs27TBNwkYMArdKjWBJOU7zXuuO
+         SbTzVWakB0isvzlZ6K9zVqSTCSka62PhV7jH+o9774p3kvMiC8P8d/Vr2bHuUX4e/drQ
+         TkH1LkogEmOXYHDAqiUSPYXJKAMjIZJCYQ98H/IQ0hMQRJLIPtjiZ0QqjozafPg4EYPh
+         SfTA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=IF2DD1ZxWyHOIZtsZXXfUNNTSD9rCA0LLoYW+nSXou8=;
-        b=WzVBeYehCbEbQ08onDrnk82fHVuWMpMPk75xHz1B/1dEXiswQ0BxkSTEUQz4YjQUxV
-         NYokLCFhVMr6x7WwvYqMSJJWEt82vzLO1MVwTcTp0lqIyNYOAGZpnZWdDj1ZHKoQyIV8
-         owT9yc5xFfWu2aFSw3p3m60NHeLaac2gBqv+Yt6s/gtwb0H4NTaJOuysMka2D9xLRlej
-         7nZ0cmNN/Jmjgc4ssyL3q9TU7bkI16VhY/J5Z5zEpn6pTZ3/CHhLds9EOLT/paEOa1eA
-         za/mf8RR/tIHaASMB4V/37yvSzzyApDwkvuWkVo2PCZCsiq6GFakCPuubjxmjbcsA2X9
-         2ptQ==
-X-Gm-Message-State: AOAM532HWOPs9wkWndVI0BEO8VFWfho2kMd5QKNuZ6wNLTabaJz4Ok7j
-        qbmn4C+D/rUm+ldPio6KBAC5IkpWTtvjL0ToErwYtVI1PJY=
-X-Google-Smtp-Source: ABdhPJwOfMyl1Q8n+N6ixGy4kiID8nwHepdiYAHsKiCMM+8kl8B33E2epbpvhDoDDTMSG/s1ih0QW8y90be7RjT+AtA=
-X-Received: by 2002:a5e:dc04:: with SMTP id b4mr339135iok.203.1611581058686;
- Mon, 25 Jan 2021 05:24:18 -0800 (PST)
+        bh=ohYv/1DCriRoslae5qul3GB6tTLFOCExUM5bB7qowgA=;
+        b=GwZTvNDVxHie5N1qv7iAlytcLM4oJ7jHsmykh1y3dbHUBveJdLFUyecl5g91j9+smy
+         RxqDv5hT6pkFZMXxCYo/9ptIYkByasrGypnzBTbEoIr/0NDKkFCZrHznkPtEXilxQWJj
+         lnIVkzwmy7j+JRoD+lUHkVR63fhUzpsyxDRmwfPh10MAndQfJNwmk99JHTO13yD53OYX
+         S/H0yPvEY82ewGEE4ovxNTH4/j+OAe2VyPifsnGjmH08puypoawZbzi8ZUIzt1lZTqvq
+         /K8AsMtD52waRw5LOPcL3AoHjxm4C7LPNA2MqHq/xHflpo/CEQcQVVyHNHkz1Y6h2byf
+         /S0Q==
+X-Gm-Message-State: AOAM531U2jGPa5Fv/rNs3RD6/p0MI8IpgHOI9gvdVP4xFGAa1ZyFbCuj
+        6+T1qX1W9yT5jZ+qqrCFFA5pcZt4dWjGSjBahThDZjlVsjU=
+X-Google-Smtp-Source: ABdhPJy7a2wUna5sskK068WnAetU6iM+Rwx4WNHPMapqfHVjW6ehkKHfQnavtrHjtpXNGSGYbXRUErYk7VGXPzfMDQw=
+X-Received: by 2002:a92:d3c7:: with SMTP id c7mr3245764ilh.137.1611638321125;
+ Mon, 25 Jan 2021 21:18:41 -0800 (PST)
 MIME-Version: 1.0
-References: <20210116165619.494265-1-amir73il@gmail.com> <20210116165619.494265-5-amir73il@gmail.com>
-In-Reply-To: <20210116165619.494265-5-amir73il@gmail.com>
+References: <20210125194848.GA12389@ircssh-2.c.rugged-nimbus-611.internal>
+In-Reply-To: <20210125194848.GA12389@ircssh-2.c.rugged-nimbus-611.internal>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 25 Jan 2021 15:24:07 +0200
-Message-ID: <CAOQ4uxiXUN7LkzNLZto6iK2YuDdxp7PGoQMGCm89p1kNWUf=YA@mail.gmail.com>
-Subject: Re: [PATCH 4/4] overlay: Test lost immutable/append-only flags on copy-up
-To:     Eryu Guan <guaneryu@gmail.com>
-Cc:     Icenowy Zheng <icenowy@aosc.io>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        Xiao Yang <yangx.jy@cn.fujitsu.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        fstests <fstests@vger.kernel.org>
+Date:   Tue, 26 Jan 2021 07:18:29 +0200
+Message-ID: <CAOQ4uxiX4Q=i1ig_P9gvBgryazLEGfdpULbwGR+C2hjKi74Jog@mail.gmail.com>
+Subject: Re: Lazy Loading Layers (Userfaultfd for filesystems?)
+To:     Sargun Dhillon <sargun@sargun.me>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Alessio Balsini <balsini@android.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Jan 16, 2021 at 6:56 PM Amir Goldstein <amir73il@gmail.com> wrote:
+On Mon, Jan 25, 2021 at 9:54 PM Sargun Dhillon <sargun@sargun.me> wrote:
 >
-> Chengguang Xu reported [1] that append-only flag is lost on copy-up.
-> I had noticed that for directories, immutable flag can also be lost on
-> copy up (when parent is copied up). That's an old overlayfs bug.
+> One of the projects I'm playing with for containers is lazy-loading of layers.
+> We've found that less than 10% of the files on a layer actually get used, which
+> is an unfortunate waste. It also means in some cases downloading ~100s of MB, or
+> ~1s of GB of files before starting a container workload. This is unfortunate.
 >
-> Overlayfs added the ability to set inode flags (e.g. chattr +i) in
-> kernel 5.10 by commit 61536bed2149 ("ovl: support [S|G]ETFLAGS and
-> FS[S|G]ETXATTR ioctls for directories").
-> Icenowy Zheng reported [2] a regression in that commit that causes
-> a deadlock when setting inode flags on lower dir.
+> It would be nice if there was a way to start a container workload, and have
+> it so that if it tries to access and unpopulated (not yet downloaded) part
+> of the filesystem block while trying to be accessed. This is trivial to do
+> if the "lowest" layer is FUSE, where one can just stall in userspace on
+> loads. Unfortunately, AFAIK, there's not a good way to swap out the FUSE
+> filesystem with the "real" filesystem once it's done fully populating,
+> and you have to pay for the full FUSE cost on each read / write.
+
+Unless you used FUSE_PASSTHROUGH:
+
+https://lore.kernel.org/linux-fsdevel/20210125153057.3623715-1-balsini@android.com/
+
+Only in current v12 patchset, a passthrough capable FUSE is declared
+non-stackable by setting s_max_depth = FILESYSTEM_MAX_STACK_DEPTH.
+This wasn't done deliberately in order to deny stacking of overlay of top
+of passthrough capable fuse, but in order to deny stacking passthrough fuse on
+top of each other.
+
+I mentioned in one of the reviews that this limitation could become
+a problem if someone where to do exactly what you are trying to do.
+It should not be a problem to relax this limitation, it just did not feel fair
+to demand that for initial version of passthrough fuse, before there was an
+actual use case. I am sure you will be able to lift that limitation if it stands
+in your way.
+
+
 >
-> There is a commented line in the test that triggers this deadlock,
-> but it has been left commented out until a fix is merged upstream.
+> I've tossed around:
+> 1. Mutable lowerdirs and having something like this:
+>
+> layer0 --> Writeable space
+> layer1 --> Real XFS filesystem
+> layer2 --> FUSE FS
+>
+> and if there is a "miss" on layer 1, it will then look it up on
+> layer 2 while layer 1 is being populated. Then the FUSE FS can block.
+
+Interesting.
+How would you verify that mutating the lowerdir doesn't result in
+"undefined behavior"?
+It would be nice if for some images, you could fetch a "metacopy" image from
+some "meta" image repository, to use as layer1. It that a possibility
+for your use case?
+At least if the only mutation allowed on layer1 was a data copy up, it would
+be pretty easy to show that overlayfs behavior will be well defined.
+When FUSE knows that data in Real fs file has been populated, it can remove the
+metacopy xattr and invalidate the fuse dentry, causing ovl dentry
+invalidate and then
+re-lookup will constructs the ovl dentry without the FUSE layer.
+
+> This is neat, but it requires the FUSE FS to always be up, and incurs
+> a userspace bounce on every miss.
 >
 
-Re-iterate in correct thread:
+You may be able to shutdown the FUSE fs eventually. At the end of the
+population process, issue a "layer shutdown" ioctl to overlayfs, that will
+mark the layer as shutdown. ovl_revalidate() will invalidate any ovl dentry
+with a shut down layer in its lower stack and ovl_lookup()/ovl_path_next()
+will skip lower stack dentries in shut down layers.
 
-The fix for above is in overlayfs-next:
+When there are no more open files from fuse and no more ovl dentries
+with fuse layer in their lower stack, the fuse layer mnt refcount should
+drop to 2(?) and it should be possible to carefully release the root ovl
+dentry lower stack entry and finally the layer itself.
+A refcount on the layer will probably be to correct pattern to use.
 
-* 147ec02b8705 - ovl: avoid deadlock on directory ioctl
+> It also means things like metadata only copies don't work.
+>
 
-But I wouldn't uncomment that line in the test just yet.
+Why?
+I can see there are some feature limitation due to FUSE having no UUID,
+but this should be solvable too.
 
-To be clear, this test does not pass in master and there is no clear
-estimation on when the reported issues will be fixed.
+> Does anyone have a suggestion of a mechanism to handle this? I've looked into
+> swapping out layers on the fly, and what it would take to add a mechanism like
+> userfaultfd to overlayfs, but I was wondering if anything like this was already
+> built, or if someone has thought it through more than me.
+>
 
-Miklos,
+I've seen many projects that try to do similar things but not using overlayfs:
+Android Incremental FS, ExtFUSE, libprojfs.
 
-Do you plan to followup on your VFS implementation for the
-{s,g}etxflags methods?
+If I were to tackle this task, I would choose to enhance FUSE_PASSTHROUGH
+to be able to passthrough for more than just read/write, to the point
+that it could
+eventually satisfy the requirements of all those projects above,
+something that I
+have discussed with Alessio in the past.
+
+When that happens, you might as well call passthrough FUSE "Userfaultfd for
+filesystems" if you wish ;-)
 
 Thanks,
 Amir.
-
-> [1] https://lore.kernel.org/linux-unionfs/20201226104618.239739-1-cgxu519@mykernel.net/
-> [2] https://lore.kernel.org/linux-unionfs/20210101201230.768653-1-icenowy@aosc.io/
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  tests/overlay/075     | 97 +++++++++++++++++++++++++++++++++++++++++++
->  tests/overlay/075.out | 11 +++++
->  tests/overlay/group   |  1 +
->  3 files changed, 109 insertions(+)
->  create mode 100755 tests/overlay/075
->  create mode 100644 tests/overlay/075.out
->
-> diff --git a/tests/overlay/075 b/tests/overlay/075
-> new file mode 100755
-> index 00000000..bcdc8d4e
-> --- /dev/null
-> +++ b/tests/overlay/075
-> @@ -0,0 +1,97 @@
-> +#! /bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (C) 2021 CTERA Networks. All Rights Reserved.
-> +#
-> +# FS QA Test No. 075
-> +#
-> +# Run the t_immutable test program for immutable/append-only files
-> +# and directories that exist in overlayfs lower layer.
-> +#
-> +# This test is similar and was derived from generic/079, but instead
-> +# of creating new files which are created in upper layer, prepare
-> +# the test area in lower layer before running the t_immutable test on
-> +# the overlayfs mount.
-> +#
-> +seq=`basename $0`
-> +seqres=$RESULT_DIR/$seq
-> +echo "QA output created by $seq"
-> +
-> +here=`pwd`
-> +timmutable=$here/src/t_immutable
-> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-> +upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-> +tmp=/tmp/$$
-> +status=1       # failure is the default!
-> +trap "_cleanup; exit \$status" 0 1 2 3 15
-> +
-> +_cleanup()
-> +{
-> +       # -r will fail to remove test dirs, because we added subdirs
-> +       # we just need to remove the flags so use -R
-> +       $timmutable -R $upperdir/testdir &> /dev/null
-> +       $timmutable -R $lowerdir/testdir &> /dev/null
-> +       rm -f $tmp.*
-> +}
-> +
-> +# get standard environment, filters and checks
-> +. ./common/rc
-> +. ./common/filter
-> +
-> +_supported_fs overlay
-> +
-> +_require_chattr iaA
-> +_require_test_program "t_immutable"
-> +_require_scratch
-> +
-> +_scratch_mkfs
-> +
-> +# Preparing test area files in lower dir and check chattr support of base fs
-> +mkdir -p $lowerdir
-> +mkdir -p $upperdir
-> +$timmutable -C $lowerdir/testdir >$tmp.out 2>&1
-> +if grep -q -e 'Operation not supported' -e "Inappropriate ioctl" $tmp.out; then
-> +       _notrun "Setting immutable/append flag not supported"
-> +fi
-> +# Remove the immutable/append-only flags and create subdirs
-> +$timmutable -R $lowerdir/testdir >$tmp.out 2>&1
-> +for dir in $lowerdir/testdir/*.d; do
-> +       mkdir $dir/subdir
-> +done
-> +# Restore the immutable/append-only flags
-> +$timmutable -C $lowerdir/testdir >$tmp.out 2>&1
-> +
-> +_scratch_mount
-> +
-> +# Test immutability of files in overlay
-> +echo "Before directories copy up"
-> +$timmutable $SCRATCH_MNT/testdir 2>&1
-> +
-> +# Trigger copy-up of immutable/append-only dirs by touching their subdirs
-> +# inode flags are not copied-up, so immutable/append-only flags are lost
-> +for dir in $SCRATCH_MNT/testdir/*.d; do
-> +       # chattr on dir fails (not supported) on kernel < 5.10.
-> +       # chattr on lower dir will deadlock on kernel 5.10 with commit 61536bed2149
-> +       # ("ovl: support [S|G]ETFLAGS and FS[S|G]ETXATTR ioctls for directories"),
-> +       # so this line is commented out until a fix is merged
-> +       # $CHATTR_PROG +A $dir/subdir > /dev/null 2>&1
-> +       touch $dir/subdir
-> +done
-> +
-> +# Trigger copy-up of append-only files by touching them
-> +# inode flags are not copied-up, so append-only flags are lost
-> +# touch on the immutable files is expected to fail, so immutable
-> +# flags will not be lost
-> +for file in $SCRATCH_MNT/testdir/*.f; do
-> +       touch $file > /dev/null 2>&1
-> +done
-> +
-> +# immutable/append-only flags still exist on the overlay in-core inode
-> +# After mount cycle, flags are forever lost
-> +_scratch_cycle_mount
-> +
-> +# Test immutability of files in overlay after directories copy-up
-> +echo "After directories copy up"
-> +$timmutable $SCRATCH_MNT/testdir 2>&1
-> +
-> +status=$?
-> +exit
-> diff --git a/tests/overlay/075.out b/tests/overlay/075.out
-> new file mode 100644
-> index 00000000..ab39c6b8
-> --- /dev/null
-> +++ b/tests/overlay/075.out
-> @@ -0,0 +1,11 @@
-> +QA output created by 075
-> +Before directories copy up
-> +testing immutable...PASS.
-> +testing append-only...PASS.
-> +testing immutable as non-root...PASS.
-> +testing append-only as non-root...PASS.
-> +After directories copy up
-> +testing immutable...PASS.
-> +testing append-only...PASS.
-> +testing immutable as non-root...PASS.
-> +testing append-only as non-root...PASS.
-> diff --git a/tests/overlay/group b/tests/overlay/group
-> index 047ea046..cfc75bb1 100644
-> --- a/tests/overlay/group
-> +++ b/tests/overlay/group
-> @@ -77,6 +77,7 @@
->  072 auto quick copyup hardlink
->  073 auto quick whiteout
->  074 auto quick exportfs dangerous
-> +075 auto quick perms
->  100 auto quick union samefs
->  101 auto quick union nonsamefs
->  102 auto quick union nonsamefs xino
-> --
-> 2.25.1
->
