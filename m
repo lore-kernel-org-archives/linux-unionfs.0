@@ -2,99 +2,160 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B617C433DB
-	for <linux-unionfs@archiver.kernel.org>; Sat, 30 Jan 2021 10:09:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEA3C433DB
+	for <linux-unionfs@archiver.kernel.org>; Sun, 31 Jan 2021 20:29:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E0FE60233
-	for <linux-unionfs@archiver.kernel.org>; Sat, 30 Jan 2021 10:09:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F68D64D9E
+	for <linux-unionfs@archiver.kernel.org>; Sun, 31 Jan 2021 20:29:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231701AbhA3KJe (ORCPT
+        id S230298AbhAaU3J (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 30 Jan 2021 05:09:34 -0500
-Received: from mail.hallyn.com ([178.63.66.53]:45820 "EHLO mail.hallyn.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231765AbhA3CJD (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 29 Jan 2021 21:09:03 -0500
-Received: by mail.hallyn.com (Postfix, from userid 1001)
-        id D174C9AC; Fri, 29 Jan 2021 20:06:52 -0600 (CST)
-Date:   Fri, 29 Jan 2021 20:06:52 -0600
-From:   "Serge E. Hallyn" <serge@hallyn.com>
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     "Serge E. Hallyn" <serge@hallyn.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
+        Sun, 31 Jan 2021 15:29:09 -0500
+Received: from out02.mta.xmission.com ([166.70.13.232]:44520 "EHLO
+        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231420AbhAaU1c (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sun, 31 Jan 2021 15:27:32 -0500
+Received: from in02.mta.xmission.com ([166.70.13.52])
+        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1l6HGT-009MEC-Oc; Sun, 31 Jan 2021 11:16:01 -0700
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1l6HGS-007la5-Nm; Sun, 31 Jan 2021 11:16:01 -0700
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     "Serge E. Hallyn" <serge@hallyn.com>
+Cc:     Miklos Szeredi <mszeredi@redhat.com>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Christian Brauner <christian.brauner@ubuntu.com>
-Subject: Re: [PATCH 2/2] security.capability: fix conversions on getxattr
-Message-ID: <20210130020652.GB7163@mail.hallyn.com>
 References: <20210119162204.2081137-1-mszeredi@redhat.com>
- <20210119162204.2081137-3-mszeredi@redhat.com>
- <8735yw8k7a.fsf@x220.int.ebiederm.org>
- <20210128165852.GA20974@mail.hallyn.com>
- <87o8h8x1a6.fsf@x220.int.ebiederm.org>
- <20210129154839.GC1130@mail.hallyn.com>
- <87im7fuzdq.fsf@x220.int.ebiederm.org>
+        <20210119162204.2081137-3-mszeredi@redhat.com>
+        <8735yw8k7a.fsf@x220.int.ebiederm.org>
+        <20210128165852.GA20974@mail.hallyn.com>
+        <87o8h8x1a6.fsf@x220.int.ebiederm.org>
+        <20210129154839.GC1130@mail.hallyn.com>
+        <87im7fuzdq.fsf@x220.int.ebiederm.org>
+        <20210130020652.GB7163@mail.hallyn.com>
+Date:   Sun, 31 Jan 2021 12:14:39 -0600
+In-Reply-To: <20210130020652.GB7163@mail.hallyn.com> (Serge E. Hallyn's
+        message of "Fri, 29 Jan 2021 20:06:52 -0600")
+Message-ID: <87h7mxotww.fsf@x220.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87im7fuzdq.fsf@x220.int.ebiederm.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
+Content-Type: text/plain
+X-XM-SPF: eid=1l6HGS-007la5-Nm;;;mid=<87h7mxotww.fsf@x220.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1+rdqZ6i33bsph+88xrIBEvUyfFA5QciIc=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH 2/2] security.capability: fix conversions on getxattr
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jan 29, 2021 at 04:55:29PM -0600, Eric W. Biederman wrote:
-> "Serge E. Hallyn" <serge@hallyn.com> writes:
-> 
-> > On Thu, Jan 28, 2021 at 02:19:13PM -0600, Eric W. Biederman wrote:
-> >> "Serge E. Hallyn" <serge@hallyn.com> writes:
-> >> 
-> >> > On Tue, Jan 19, 2021 at 07:34:49PM -0600, Eric W. Biederman wrote:
-> >> >> Miklos Szeredi <mszeredi@redhat.com> writes:
-> >> >> 
-> >> >> > If a capability is stored on disk in v2 format cap_inode_getsecurity() will
-> >> >> > currently return in v2 format unconditionally.
-> >> >> >
-> >> >> > This is wrong: v2 cap should be equivalent to a v3 cap with zero rootid,
-> >> >> > and so the same conversions performed on it.
-> >> >> >
-> >> >> > If the rootid cannot be mapped v3 is returned unconverted.  Fix this so
-> >> >> > that both v2 and v3 return -EOVERFLOW if the rootid (or the owner of the fs
-> >> >> > user namespace in case of v2) cannot be mapped in the current user
-> >> >> > namespace.
-> >> >> 
-> >> >> This looks like a good cleanup.
-> >> >
-> >> > Sorry, I'm not following.  Why is this a good cleanup?  Why should
-> >> > the xattr be shown as faked v3 in this case?
-> >> 
-> >> If the reader is in &init_user_ns.  If the filesystem was mounted in a
-> >> user namespace.   Then the reader looses the information that the
-> >
-> > Can you be more precise about "filesystem was mounted in a user namespace"?
-> > Is this a FUSE thing, the fs is marked as being mounted in a non-init userns?
-> > If that's a possible case, then yes that must be represented as v3.  Using
-> > is_v2header() may be the simpler way to check for that, but the more accurate
-> > check would be "is it v2 header and mounted by init_user_ns".
-> 
-> I think the filesystems current relevant are fuse,overlayfs,ramfs,tmpfs.
-> 
-> > Basically yes, in as many cases as possible we want to just give a v2
-> > cap because more userspace knows what to do with that, but a non-init-userns
-> > mounted fs which provides a v2 fscap should have it represented as v3 cap
-> > with rootid being the kuid that owns the userns.
-> 
-> That is the case we that is being fixed in the patch.
-> 
-> > Or am I still thinking wrongly?  Wouldn't be entirely surprised :)
-> 
-> No you got it.
+"Serge E. Hallyn" <serge@hallyn.com> writes:
 
-So then can we make faking a v3 gated on whether
-    sb->s_user_ns != &init_user_ns ?
+> On Fri, Jan 29, 2021 at 04:55:29PM -0600, Eric W. Biederman wrote:
+>> "Serge E. Hallyn" <serge@hallyn.com> writes:
+>> 
+>> > On Thu, Jan 28, 2021 at 02:19:13PM -0600, Eric W. Biederman wrote:
+>> >> "Serge E. Hallyn" <serge@hallyn.com> writes:
+>> >> 
+>> >> > On Tue, Jan 19, 2021 at 07:34:49PM -0600, Eric W. Biederman wrote:
+>> >> >> Miklos Szeredi <mszeredi@redhat.com> writes:
+>> >> >> 
+>> >> >> > If a capability is stored on disk in v2 format cap_inode_getsecurity() will
+>> >> >> > currently return in v2 format unconditionally.
+>> >> >> >
+>> >> >> > This is wrong: v2 cap should be equivalent to a v3 cap with zero rootid,
+>> >> >> > and so the same conversions performed on it.
+>> >> >> >
+>> >> >> > If the rootid cannot be mapped v3 is returned unconverted.  Fix this so
+>> >> >> > that both v2 and v3 return -EOVERFLOW if the rootid (or the owner of the fs
+>> >> >> > user namespace in case of v2) cannot be mapped in the current user
+>> >> >> > namespace.
+>> >> >> 
+>> >> >> This looks like a good cleanup.
+>> >> >
+>> >> > Sorry, I'm not following.  Why is this a good cleanup?  Why should
+>> >> > the xattr be shown as faked v3 in this case?
+>> >> 
+>> >> If the reader is in &init_user_ns.  If the filesystem was mounted in a
+>> >> user namespace.   Then the reader looses the information that the
+>> >
+>> > Can you be more precise about "filesystem was mounted in a user namespace"?
+>> > Is this a FUSE thing, the fs is marked as being mounted in a non-init userns?
+>> > If that's a possible case, then yes that must be represented as v3.  Using
+>> > is_v2header() may be the simpler way to check for that, but the more accurate
+>> > check would be "is it v2 header and mounted by init_user_ns".
+>> 
+>> I think the filesystems current relevant are fuse,overlayfs,ramfs,tmpfs.
+>> 
+>> > Basically yes, in as many cases as possible we want to just give a v2
+>> > cap because more userspace knows what to do with that, but a non-init-userns
+>> > mounted fs which provides a v2 fscap should have it represented as v3 cap
+>> > with rootid being the kuid that owns the userns.
+>> 
+>> That is the case we that is being fixed in the patch.
+>> 
+>> > Or am I still thinking wrongly?  Wouldn't be entirely surprised :)
+>> 
+>> No you got it.
+>
+> So then can we make faking a v3 gated on whether
+>     sb->s_user_ns != &init_user_ns ?
+
+Sort of.
+
+What Miklos's patch implements is always treating a v2 cap xattr on disk
+as v3 internally.
+
+>  	if (is_v2header((size_t) ret, cap)) {
+>  		root = 0;
+>  	} else if (is_v3header((size_t) ret, cap)) {
+>  		nscap = (struct vfs_ns_cap_data *) tmpbuf;
+>  		root = le32_to_cpu(nscap->rootid);
+>  	} else {
+>  		size = -EINVAL;
+>  		goto out_free;
+>  	}
+
+Then v3 is returned if:
+>  	/* If the root kuid maps to a valid uid in current ns, then return
+>  	 * this as a nscap. */
+>  	mappedroot = from_kuid(current_user_ns(), kroot);
+>  	if (mappedroot != (uid_t)-1 && mappedroot != (uid_t)0) {
+
+After that we verify that the fs capability can be seen by the caller
+as a v2 cap xattr with:
+
+> >  	if (!rootid_owns_currentns(kroot)) {
+> > 		size = -EOVERFLOW;
+> > 		goto out_free;
+
+Anything that passes that test and does not encounter a memory
+allocation error is returned as a v2.
+
+...
+
+Which in practice does mean that if sb->s_user_ns != &init_user_ns, 
+then mappedroot != 0, and is returned as a v3.
+
+The rest of the logic takes care of all of the other crazy silly
+combinations.  Like a user namespace that identity maps uid 0,
+and then mounts a filesystem.
+
+Eric
+
+
 
