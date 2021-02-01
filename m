@@ -2,160 +2,140 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CEA3C433DB
-	for <linux-unionfs@archiver.kernel.org>; Sun, 31 Jan 2021 20:29:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDC1C433E6
+	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Feb 2021 09:07:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F68D64D9E
-	for <linux-unionfs@archiver.kernel.org>; Sun, 31 Jan 2021 20:29:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 143A464E06
+	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Feb 2021 09:07:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230298AbhAaU3J (ORCPT
+        id S232749AbhBAJHE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 31 Jan 2021 15:29:09 -0500
-Received: from out02.mta.xmission.com ([166.70.13.232]:44520 "EHLO
-        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231420AbhAaU1c (ORCPT
+        Mon, 1 Feb 2021 04:07:04 -0500
+Received: from mail-il1-f200.google.com ([209.85.166.200]:50230 "EHLO
+        mail-il1-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232704AbhBAJGy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 31 Jan 2021 15:27:32 -0500
-Received: from in02.mta.xmission.com ([166.70.13.52])
-        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1l6HGT-009MEC-Oc; Sun, 31 Jan 2021 11:16:01 -0700
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=x220.xmission.com)
-        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1l6HGS-007la5-Nm; Sun, 31 Jan 2021 11:16:01 -0700
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     "Serge E. Hallyn" <serge@hallyn.com>
-Cc:     Miklos Szeredi <mszeredi@redhat.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Christian Brauner <christian.brauner@ubuntu.com>
-References: <20210119162204.2081137-1-mszeredi@redhat.com>
-        <20210119162204.2081137-3-mszeredi@redhat.com>
-        <8735yw8k7a.fsf@x220.int.ebiederm.org>
-        <20210128165852.GA20974@mail.hallyn.com>
-        <87o8h8x1a6.fsf@x220.int.ebiederm.org>
-        <20210129154839.GC1130@mail.hallyn.com>
-        <87im7fuzdq.fsf@x220.int.ebiederm.org>
-        <20210130020652.GB7163@mail.hallyn.com>
-Date:   Sun, 31 Jan 2021 12:14:39 -0600
-In-Reply-To: <20210130020652.GB7163@mail.hallyn.com> (Serge E. Hallyn's
-        message of "Fri, 29 Jan 2021 20:06:52 -0600")
-Message-ID: <87h7mxotww.fsf@x220.int.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        Mon, 1 Feb 2021 04:06:54 -0500
+Received: by mail-il1-f200.google.com with SMTP id x11so13140007ill.17
+        for <linux-unionfs@vger.kernel.org>; Mon, 01 Feb 2021 01:06:38 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=mbfU0loJSrsGm4ob8JlYJmfpgYS4yHJcq/AGDfiyY6g=;
+        b=DQJgjRzvAU/5vMhDn/fwU2j4nH2mz1CtVde8w5eqM6uZ9EUPnt3ly3+VtuAU2WRXac
+         gjdE2uUXGqkSOW+23MSrGKpV4Q0NkVzH166TRS33cs8KQKSA/dATUrcH/RfaOzAknTQX
+         tnJa12xKF7Iuz/GyhzJfQL9yZN7klZ3EvJvt3P0eOIqs6ipy+u+jcaK4tQ9RbvaKL0gj
+         PU6+Qo/D9lo6Jo3ZkJZjwb4SqkvNgZO63YNg9sh3/ro5rSCPRM8mTXuo+Nixztp4x8xb
+         ozpbPJMnDZ1Hys56amlSgECeHNz1rHNEH14tn0XNQzAgjtO1uzLiZAVoyiYhaiLA4b8l
+         Uwvw==
+X-Gm-Message-State: AOAM533z61cQAdJ9F04CrXiz+meco/9MJD+6s6YRpq8bTaehAB4W24c0
+        OmTw9yw8+tdlit+wpNAis0NaqbTgIOWqQ9Yk0D2jl0Y+38zJ
+X-Google-Smtp-Source: ABdhPJyZ9vfniUDe8bHzVizHJCik6zSNQLvIKY6KhJaOyfD3DwJ2PxLvJor/uw8vv88zUHcZUdggt+togxCASb4Bk3rCWYCEVKGz
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1l6HGS-007la5-Nm;;;mid=<87h7mxotww.fsf@x220.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX1+rdqZ6i33bsph+88xrIBEvUyfFA5QciIc=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [PATCH 2/2] security.capability: fix conversions on getxattr
-X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
-X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
+X-Received: by 2002:a92:a010:: with SMTP id e16mr12074820ili.62.1612170373006;
+ Mon, 01 Feb 2021 01:06:13 -0800 (PST)
+Date:   Mon, 01 Feb 2021 01:06:12 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000006689ee05ba42aa3d@google.com>
+Subject: WARNING: suspicious RCU usage in kernfs_iop_permission
+From:   syzbot <syzbot+0e507d08417ca2d565bf@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, mszeredi@redhat.com,
+        syzkaller-bugs@googlegroups.com, tj@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-"Serge E. Hallyn" <serge@hallyn.com> writes:
+Hello,
 
-> On Fri, Jan 29, 2021 at 04:55:29PM -0600, Eric W. Biederman wrote:
->> "Serge E. Hallyn" <serge@hallyn.com> writes:
->> 
->> > On Thu, Jan 28, 2021 at 02:19:13PM -0600, Eric W. Biederman wrote:
->> >> "Serge E. Hallyn" <serge@hallyn.com> writes:
->> >> 
->> >> > On Tue, Jan 19, 2021 at 07:34:49PM -0600, Eric W. Biederman wrote:
->> >> >> Miklos Szeredi <mszeredi@redhat.com> writes:
->> >> >> 
->> >> >> > If a capability is stored on disk in v2 format cap_inode_getsecurity() will
->> >> >> > currently return in v2 format unconditionally.
->> >> >> >
->> >> >> > This is wrong: v2 cap should be equivalent to a v3 cap with zero rootid,
->> >> >> > and so the same conversions performed on it.
->> >> >> >
->> >> >> > If the rootid cannot be mapped v3 is returned unconverted.  Fix this so
->> >> >> > that both v2 and v3 return -EOVERFLOW if the rootid (or the owner of the fs
->> >> >> > user namespace in case of v2) cannot be mapped in the current user
->> >> >> > namespace.
->> >> >> 
->> >> >> This looks like a good cleanup.
->> >> >
->> >> > Sorry, I'm not following.  Why is this a good cleanup?  Why should
->> >> > the xattr be shown as faked v3 in this case?
->> >> 
->> >> If the reader is in &init_user_ns.  If the filesystem was mounted in a
->> >> user namespace.   Then the reader looses the information that the
->> >
->> > Can you be more precise about "filesystem was mounted in a user namespace"?
->> > Is this a FUSE thing, the fs is marked as being mounted in a non-init userns?
->> > If that's a possible case, then yes that must be represented as v3.  Using
->> > is_v2header() may be the simpler way to check for that, but the more accurate
->> > check would be "is it v2 header and mounted by init_user_ns".
->> 
->> I think the filesystems current relevant are fuse,overlayfs,ramfs,tmpfs.
->> 
->> > Basically yes, in as many cases as possible we want to just give a v2
->> > cap because more userspace knows what to do with that, but a non-init-userns
->> > mounted fs which provides a v2 fscap should have it represented as v3 cap
->> > with rootid being the kuid that owns the userns.
->> 
->> That is the case we that is being fixed in the patch.
->> 
->> > Or am I still thinking wrongly?  Wouldn't be entirely surprised :)
->> 
->> No you got it.
->
-> So then can we make faking a v3 gated on whether
->     sb->s_user_ns != &init_user_ns ?
+syzbot found the following issue on:
 
-Sort of.
+HEAD commit:    6642d600 Merge tag '5.11-rc5-smb3' of git://git.samba.org/..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=171405bf500000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=9408d1770a50819c
+dashboard link: https://syzkaller.appspot.com/bug?extid=0e507d08417ca2d565bf
+compiler:       clang version 11.0.1
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=13b8a330d00000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=16f3628cd00000
 
-What Miklos's patch implements is always treating a v2 cap xattr on disk
-as v3 internally.
+The issue was bisected to:
 
->  	if (is_v2header((size_t) ret, cap)) {
->  		root = 0;
->  	} else if (is_v3header((size_t) ret, cap)) {
->  		nscap = (struct vfs_ns_cap_data *) tmpbuf;
->  		root = le32_to_cpu(nscap->rootid);
->  	} else {
->  		size = -EINVAL;
->  		goto out_free;
->  	}
+commit 89bdfaf93d9157499c3a0d61f489df66f2dead7f
+Author: Miklos Szeredi <mszeredi@redhat.com>
+Date:   Mon Dec 14 14:26:14 2020 +0000
 
-Then v3 is returned if:
->  	/* If the root kuid maps to a valid uid in current ns, then return
->  	 * this as a nscap. */
->  	mappedroot = from_kuid(current_user_ns(), kroot);
->  	if (mappedroot != (uid_t)-1 && mappedroot != (uid_t)0) {
+    ovl: make ioctl() safe
 
-After that we verify that the fs capability can be seen by the caller
-as a v2 cap xattr with:
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=11b85fb4d00000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=13b85fb4d00000
+console output: https://syzkaller.appspot.com/x/log.txt?x=15b85fb4d00000
 
-> >  	if (!rootid_owns_currentns(kroot)) {
-> > 		size = -EOVERFLOW;
-> > 		goto out_free;
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+0e507d08417ca2d565bf@syzkaller.appspotmail.com
+Fixes: 89bdfaf93d91 ("ovl: make ioctl() safe")
 
-Anything that passes that test and does not encounter a memory
-allocation error is returned as a v2.
+=============================
+WARNING: suspicious RCU usage
+5.11.0-rc5-syzkaller #0 Not tainted
+-----------------------------
+kernel/sched/core.c:7932 Illegal context switch in RCU-sched read-side critical section!
 
-...
-
-Which in practice does mean that if sb->s_user_ns != &init_user_ns, 
-then mappedroot != 0, and is returned as a v3.
-
-The rest of the logic takes care of all of the other crazy silly
-combinations.  Like a user namespace that identity maps uid 0,
-and then mounts a filesystem.
-
-Eric
+other info that might help us debug this:
 
 
+rcu_scheduler_active = 2, debug_locks = 0
+no locks held by systemd/1.
 
+stack backtrace:
+CPU: 0 PID: 1 Comm: systemd Not tainted 5.11.0-rc5-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x137/0x1be lib/dump_stack.c:120
+ ___might_sleep+0xb4/0x530 kernel/sched/core.c:7932
+ __mutex_lock_common+0x4e/0x2f00 kernel/locking/mutex.c:935
+ __mutex_lock kernel/locking/mutex.c:1103 [inline]
+ mutex_lock_nested+0x1a/0x20 kernel/locking/mutex.c:1118
+ kernfs_iop_permission+0x66/0x2f0 fs/kernfs/inode.c:284
+ do_inode_permission fs/namei.c:398 [inline]
+ inode_permission+0x234/0x4a0 fs/namei.c:463
+ may_lookup fs/namei.c:1575 [inline]
+ link_path_walk+0x226/0xc10 fs/namei.c:2128
+ path_openat+0x1f5/0x37a0 fs/namei.c:3367
+ do_filp_open+0x191/0x3a0 fs/namei.c:3398
+ do_sys_openat2+0xba/0x380 fs/open.c:1172
+ do_sys_open fs/open.c:1188 [inline]
+ __do_sys_open fs/open.c:1196 [inline]
+ __se_sys_open fs/open.c:1192 [inline]
+ __x64_sys_open+0x1af/0x1e0 fs/open.c:1192
+ do_syscall_64+0x2d/0x70 arch/x86/entry/common.c:46
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+RIP: 0033:0x7fdaf5f1370d
+Code: 30 2c 00 00 75 10 b8 02 00 00 00 0f 05 48 3d 01 f0 ff ff 73 31 c3 48 83 ec 08 e8 fe 9d 01 00 48 89 04 24 b8 02 00 00 00 0f 05 <48> 8b 3c 24 48 89 c2 e8 47 9e 01 00 48 89 d0 48 83 c4 08 48 3d 01
+RSP: 002b:00007ffedccb56f0 EFLAGS: 00000293 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 000055b998e80590 RCX: 00007fdaf5f1370d
+RDX: 00000000000001b6 RSI: 0000000000080000 RDI: 00007ffedccb57d0
+RBP: 0000000000000008 R08: 0000000000000008 R09: 0000000000000001
+R10: 0000000000080000 R11: 0000000000000293 R12: 00007fdaf764d7b4
+R13: 0000000000000001 R14: 000055b998d5ad60 R15: 00007ffedccb57d0
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
