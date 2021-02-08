@@ -7,43 +7,43 @@ X-Spam-Status: No, score=-19.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57740C4332B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75B68C43331
 	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Feb 2021 18:08:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 27DBB64D92
+	by mail.kernel.org (Postfix) with ESMTP id 49F1564E28
 	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Feb 2021 18:08:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235303AbhBHSHj (ORCPT
+        id S235318AbhBHSHs (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 8 Feb 2021 13:07:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47388 "EHLO mail.kernel.org"
+        Mon, 8 Feb 2021 13:07:48 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49236 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235228AbhBHSEQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Feb 2021 13:04:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 799F364EF3;
-        Mon,  8 Feb 2021 17:59:54 +0000 (UTC)
+        id S235400AbhBHSFd (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 8 Feb 2021 13:05:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DC7BE64EF7;
+        Mon,  8 Feb 2021 18:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612807195;
-        bh=82V6pzNq/S1w+iyakByiKtS8meuKu8fCrYmXn56ytuY=;
+        s=k20201202; t=1612807203;
+        bh=QkB5lHRWO5R1Y6A2oZiR2JHKe5zRWyF3Rwwp+qVBTbQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=hmlrItLM2xKcM+UKXVGb2lZRSo07l7iO88K4LRRL1q5weka7WOZimNQ6q38b+TY9U
-         SuvscnCkHsox9gp1AS45Pp4/Hel6gfKGH8xJPcKLEv2ek4ZqUVtFf/7xDLIQhmUu0C
-         O5onpxHDPiffhLKiH18j5/5Nn0X0qRkax8LPOgkIxglbJ/jTIv5vJASjrAwQrOBeRH
-         mTh+4cyVIUdUNfEqvGM4cAowlWqqQOut1WaXlRApTrLHjXdt/D9Xmnjfmd7hyO2Cqd
-         FB4VubppfMHITb5NJ03Ky1GQf9fh0kc/8LYw1fiVr3NXsE1YhGsJR84JL0J1hzzcyL
-         qrY3CTWN4Iltg==
+        b=jN7Sci2bW3+rOlYlaF1//E4R//wnUNlSbBsaqD2AKyfqMSzrciE8w95zYoPiqiUAN
+         b4nDPbzdj5f/HL+a4IQ5to12PvoTQdUSlr+JOb8awPVsdtNdUa7IRQvtTHio5U3+6y
+         t/nUkrRsg4FqIXNx41OxqjEwuFWfo3ehEV2xXOCfMYDghlg+3GBSJ1HU0Ac2/0B9pf
+         4+cYqV7v2LET/sHgHvJsrdstcP2AwGBskTOSxIrUgUPkp4qkMg4L7YuWycboUPiQUw
+         B1oyrnhsTKgGcgejXpVaFqUfyB2vPUd1vWYRFal94ynfy5J+MwkcsxlOQhqM/Oqog+
+         6b+0sK4/VyR4w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Amir Goldstein <amir73il@gmail.com>,
         Michael Labriola <michael.d.labriola@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 6/9] ovl: skip getxattr of security labels
-Date:   Mon,  8 Feb 2021 12:59:43 -0500
-Message-Id: <20210208175946.2092374-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 2/4] ovl: skip getxattr of security labels
+Date:   Mon,  8 Feb 2021 12:59:58 -0500
+Message-Id: <20210208180000.2092497-2-sashal@kernel.org>
 X-Mailer: git-send-email 2.27.0
-In-Reply-To: <20210208175946.2092374-1-sashal@kernel.org>
-References: <20210208175946.2092374-1-sashal@kernel.org>
+In-Reply-To: <20210208180000.2092497-1-sashal@kernel.org>
+References: <20210208180000.2092497-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -86,10 +86,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 8 insertions(+), 7 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b97fc1df62128..f3ed80e2966c3 100644
+index 299dbf59f28f8..3a583aa1fafeb 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -95,6 +95,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+@@ -92,6 +92,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
  
  		if (ovl_is_private_xattr(name))
  			continue;
@@ -104,7 +104,7 @@ index b97fc1df62128..f3ed80e2966c3 100644
  retry:
  		size = vfs_getxattr(old, name, value, value_size);
  		if (size == -ERANGE)
-@@ -118,13 +126,6 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+@@ -115,13 +123,6 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
  			goto retry;
  		}
  
