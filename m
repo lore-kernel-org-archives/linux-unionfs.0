@@ -4,42 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.6 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54BDFC433E0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Feb 2021 18:05:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7555DC433E6
+	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Feb 2021 18:05:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1395264EB4
-	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Feb 2021 18:05:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4800A64E54
+	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Feb 2021 18:05:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234002AbhBHSFY (ORCPT
+        id S235399AbhBHSFc (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 8 Feb 2021 13:05:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46560 "EHLO mail.kernel.org"
+        Mon, 8 Feb 2021 13:05:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235196AbhBHSCk (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Feb 2021 13:02:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C208F64E8A;
-        Mon,  8 Feb 2021 17:59:06 +0000 (UTC)
+        id S234608AbhBHSDA (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 8 Feb 2021 13:03:00 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4547464E54;
+        Mon,  8 Feb 2021 17:59:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1612807147;
-        bh=/WPAYCPcBpyTcmkwy/aSFnnUajeeQC5eHR35ZVtn90Q=;
+        s=k20201202; t=1612807150;
+        bh=ap1IUf3l3kOGAnjvPyfn/TaxqnlnIUVbMCDPOcRniQA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=frlLhK41E6dFtjWSw8hfspmBUK0Y0HisX4vOh721rwdWu8LO7oZ2+X/x7My3dU8Aa
-         4NhfHROfad46gNhbQrFBFAKw5FA7/R6FFD0h3O4jVBV8lY4vRw4ziw4YlESMnS6kV9
-         G9jFswNCTaETtbic7BquXqgNAIM/WEPKQCz5UyPIfgyzl+8AxOp5LIPUDIUFbRHvON
-         GbrSsIRpnedtmYcxO9K9CgzJTiKs+h7a09MsKHy/o8CjeeRMe96kt8ChjiL6yF/Ne0
-         veApCPCFhgfwpbe+8iqUwrRVPHGvUODvev2teJk7Lk3vD2Qf4Q+bQLMge3mW8HhYux
-         RX+09IgZ22dVw==
+        b=p1j9u+6irsV+hfWzzhTla2Wwq5vHmnJzT3gA2ZDIYdnRhOA3WkR86NmNEqDT+ZQWJ
+         6WDI5iDLYaeVMrPTUSDejrlO2s7l6Bb6uiAqfHEtsYPogEsozhGjE32O3NohMbqWL3
+         TqCqKwlK7btQ4SMIbOR9h3OAZm4KYHqb4MEucyA9qiDB6YcsqQgOXnRmfoj4ppX0xz
+         vv24NhHuCuv+DaA05cjRF9ZQvXI2e2VKxoUyRBqiHJmhjb7gnsGhGFi7+8CVOAPiDL
+         W5IF0EsRPpt+u3KWLFFIJNh8tX0mHgWmD5EBQPguPAuWuurfje0NyWpxVu/QszBae6
+         eKW8DO/7qIYig==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Miklos Szeredi <mszeredi@redhat.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Michael Labriola <michael.d.labriola@gmail.com>,
+        Miklos Szeredi <mszeredi@redhat.com>,
         Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 06/19] ovl: perform vfs_getxattr() with mounter creds
-Date:   Mon,  8 Feb 2021 12:58:45 -0500
-Message-Id: <20210208175858.2092008-6-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 08/19] ovl: skip getxattr of security labels
+Date:   Mon,  8 Feb 2021 12:58:47 -0500
+Message-Id: <20210208175858.2092008-8-sashal@kernel.org>
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210208175858.2092008-1-sashal@kernel.org>
 References: <20210208175858.2092008-1-sashal@kernel.org>
@@ -51,38 +52,72 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Miklos Szeredi <mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
 
-[ Upstream commit 554677b97257b0b69378bd74e521edb7e94769ff ]
+[ Upstream commit 03fedf93593c82538b18476d8c4f0e8f8435ea70 ]
 
-The vfs_getxattr() in ovl_xattr_set() is used to check whether an xattr
-exist on a lower layer file that is to be removed.  If the xattr does not
-exist, then no need to copy up the file.
+When inode has no listxattr op of its own (e.g. squashfs) vfs_listxattr
+calls the LSM inode_listsecurity hooks to list the xattrs that LSMs will
+intercept in inode_getxattr hooks.
 
-This call of vfs_getxattr() wasn't wrapped in credential override, and this
-is probably okay.  But for consitency wrap this instance as well.
+When selinux LSM is installed but not initialized, it will list the
+security.selinux xattr in inode_listsecurity, but will not intercept it
+in inode_getxattr.  This results in -ENODATA for a getxattr call for an
+xattr returned by listxattr.
 
-Reported-by: "Eric W. Biederman" <ebiederm@xmission.com>
+This situation was manifested as overlayfs failure to copy up lower
+files from squashfs when selinux is built-in but not initialized,
+because ovl_copy_xattr() iterates the lower inode xattrs by
+vfs_listxattr() and vfs_getxattr().
+
+ovl_copy_xattr() skips copy up of security labels that are indentified by
+inode_copy_up_xattr LSM hooks, but it does that after vfs_getxattr().
+Since we are not going to copy them, skip vfs_getxattr() of the security
+labels.
+
+Reported-by: Michael Labriola <michael.d.labriola@gmail.com>
+Tested-by: Michael Labriola <michael.d.labriola@gmail.com>
+Link: https://lore.kernel.org/linux-unionfs/2nv9d47zt7.fsf@aldarion.sourceruckus.org/
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/overlayfs/inode.c | 2 ++
- 1 file changed, 2 insertions(+)
+ fs/overlayfs/copy_up.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index bb980721502dd..56b55397a7a00 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -337,7 +337,9 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
- 		goto out;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index ec5eca5a96f41..7b758d623b5bd 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -76,6 +76,14 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
  
- 	if (!value && !upperdentry) {
-+		old_cred = ovl_override_creds(dentry->d_sb);
- 		err = vfs_getxattr(realdentry, name, NULL, 0);
-+		revert_creds(old_cred);
- 		if (err < 0)
- 			goto out_drop_write;
- 	}
+ 		if (ovl_is_private_xattr(name))
+ 			continue;
++
++		error = security_inode_copy_up_xattr(name);
++		if (error < 0 && error != -EOPNOTSUPP)
++			break;
++		if (error == 1) {
++			error = 0;
++			continue; /* Discard */
++		}
+ retry:
+ 		size = vfs_getxattr(old, name, value, value_size);
+ 		if (size == -ERANGE)
+@@ -99,13 +107,6 @@ int ovl_copy_xattr(struct dentry *old, struct dentry *new)
+ 			goto retry;
+ 		}
+ 
+-		error = security_inode_copy_up_xattr(name);
+-		if (error < 0 && error != -EOPNOTSUPP)
+-			break;
+-		if (error == 1) {
+-			error = 0;
+-			continue; /* Discard */
+-		}
+ 		error = vfs_setxattr(new, name, value, size, 0);
+ 		if (error)
+ 			break;
 -- 
 2.27.0
 
