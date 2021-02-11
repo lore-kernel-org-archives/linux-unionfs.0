@@ -2,65 +2,51 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33E8EC433E6
-	for <linux-unionfs@archiver.kernel.org>; Wed, 10 Feb 2021 23:52:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BA6BC433E0
+	for <linux-unionfs@archiver.kernel.org>; Thu, 11 Feb 2021 14:06:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0643864E0D
-	for <linux-unionfs@archiver.kernel.org>; Wed, 10 Feb 2021 23:52:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1799D64D9C
+	for <linux-unionfs@archiver.kernel.org>; Thu, 11 Feb 2021 14:06:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234160AbhBJXwC (ORCPT
+        id S232096AbhBKOF2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 10 Feb 2021 18:52:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49984 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234133AbhBJXvu (ORCPT
+        Thu, 11 Feb 2021 09:05:28 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:31975 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229793AbhBKODX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 10 Feb 2021 18:51:50 -0500
-Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7E46C06174A
-        for <linux-unionfs@vger.kernel.org>; Wed, 10 Feb 2021 15:51:09 -0800 (PST)
-Received: by mail-ej1-x636.google.com with SMTP id f14so7219174ejc.8
-        for <linux-unionfs@vger.kernel.org>; Wed, 10 Feb 2021 15:51:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=1M0KC3p1meyDQrYPzDqxypfZ2M1GwZFs8VgujKNOBPw=;
-        b=UIZslfjRO/9DuoX7z8lTy1KL6HjZR0/5cZp7deUc8QMR5nfUEzG0dNExmyqkCF4f6y
-         WLuSVQFYypxlJksG9emU4luaA9tYyJoc4XeLGX9vvp0DsPHPWlRAX08NmSH3Em3Npnzi
-         i6iNNUSZb3Y+yXgHisVAAwJbuv/ojTbhWwRvsEwwHpBhA0zUx6WxjzQq0/7TJKZSE3AX
-         5cDtGCSGgyeevLu7cFf9ClQ+7YMuvrqDjLA48QSG9YsoX308kU025vSB2l3zBylA/QGJ
-         1rOrBJcb8cq9EkaHm8TzfDTNpHuTzvxKHvX//Us6R88Zkjh/sGRis+1qMIzrTukYe3p+
-         Wgdw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=1M0KC3p1meyDQrYPzDqxypfZ2M1GwZFs8VgujKNOBPw=;
-        b=iTjHB4iOX56knIIwVEC5wNUJxGFqdiuQVj501K8kDr7i220ZMdIeSQHTY9Tk3qG2gs
-         sr66bNwNkRnhDcXDmJ91ZThkqtiEam9EpFEF3M+/+DzivaD4xR0jF1Ia5W98LdSBCJMu
-         GNyapGKwjm55ITqf2mdskvuyECQtkIWuMgYBCB/FGlWPmHxSW4lqZ3AAxgIEkjp2VoD/
-         Q1+UAQNT5fpFKR2e1M4cYx/13u3xIYqOj5npBTyFK0UG6VDUPVmHk/cK2x5z2zAZU5nV
-         BZkQOqyzJ3ZMiK9x/tfDYsWmK1MQ/LA7HtCK7WBgWxE9THvQOdNehqCa+wimvCoh2mho
-         WHIQ==
-X-Gm-Message-State: AOAM533aeB8HT7le4RqD6HmOShEB6K3P6hQZS4ku57U1ar1hxMefBaoj
-        mS2iFNPVjB5bMUVp9rFIKAdqHVo4CFKyUK+t2BLD
-X-Google-Smtp-Source: ABdhPJxbvum50dPhfmLT6PkFvr4im9qOS4UUgVDGP9cifAfcGFXDb/3Tanc5Hf/SztMBKxtZQyI0XsTmkWCqIuEM5Jk=
-X-Received: by 2002:a17:906:8519:: with SMTP id i25mr5590393ejx.106.1613001068566;
- Wed, 10 Feb 2021 15:51:08 -0800 (PST)
-MIME-Version: 1.0
-References: <20210209200233.GF3171@redhat.com>
-In-Reply-To: <20210209200233.GF3171@redhat.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 10 Feb 2021 18:50:57 -0500
-Message-ID: <CAHC9VhQYE3ga53AiK2r-568_=2U0BJe+L4g9U_J0dLinzJqXYA@mail.gmail.com>
-Subject: Re: [PATCH] selinux: Allow context mounts for unpriviliged overlayfs
-To:     Vivek Goyal <vgoyal@redhat.com>
+        Thu, 11 Feb 2021 09:03:23 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1613052113;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ZU4zs3buWNPkY1UoxzzlBxJ+iVyS/9lraiVW85TYk94=;
+        b=HTT1ewSGBEKwc11eYw8ixft/My9Jh5GAMzczVB6S91J0rypDVxs+ohqM7i8hV8Jkqj+3dV
+        yAYlzfJj8AA5TBdxGDb7XIsa26/zVEyX+UTDGnrUqQ1g3B+xuzNLu0LilSRi/N8gcBT0fK
+        B5Y7ZmfZsQV/rxD74kQn6qL5nERdRRg=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-193-uD2uc4EcPKeRpHWm7ghjmg-1; Thu, 11 Feb 2021 09:01:51 -0500
+X-MC-Unique: uD2uc4EcPKeRpHWm7ghjmg-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 75C7D107ACC7;
+        Thu, 11 Feb 2021 14:01:49 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-229.rdu2.redhat.com [10.10.115.229])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id D4BAE72FAF;
+        Thu, 11 Feb 2021 14:01:47 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 40F14220BCF; Thu, 11 Feb 2021 09:01:47 -0500 (EST)
+Date:   Thu, 11 Feb 2021 09:01:47 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Paul Moore <paul@paul-moore.com>
 Cc:     selinux@vger.kernel.org, linux-unionfs@vger.kernel.org,
         Stephen Smalley <stephen.smalley.work@gmail.com>,
         Eric Paris <eparis@parisplace.org>,
@@ -69,41 +55,57 @@ Cc:     selinux@vger.kernel.org, linux-unionfs@vger.kernel.org,
         Ondrej Mosnacek <omosnace@redhat.com>,
         Amir Goldstein <amir73il@gmail.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH] selinux: Allow context mounts for unpriviliged overlayfs
+Message-ID: <20210211140147.GA5014@redhat.com>
+References: <20210209200233.GF3171@redhat.com>
+ <CAHC9VhQYE3ga53AiK2r-568_=2U0BJe+L4g9U_J0dLinzJqXYA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHC9VhQYE3ga53AiK2r-568_=2U0BJe+L4g9U_J0dLinzJqXYA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Feb 9, 2021 at 3:02 PM Vivek Goyal <vgoyal@redhat.com> wrote:
->
-> Now overlayfs allow unpriviliged mounts. That is root inside a non-init
-> user namespace can mount overlayfs. This was added in 5.10 kernel.
->
-> Giuseppe tried to mount overlayfs with option "context" and it failed
-> with error -EACCESS.
->
-> $ su test
-> $ unshare -rm
-> $ mkdir -p lower upper work merged
-> $ mount -t overlay -o lowerdir=lower,workdir=work,upperdir=upper,userxattr,context='system_u:object_r:container_file_t:s0' none merged
->
-> This fails with -EACCESS. It works if option "-o context" is not specified.
->
-> Little debugging showed that selinux_set_mnt_opts() returns -EACCESS.
->
-> So this patch adds "overlay" to the list, where it is fine to specific
-> context from non init_user_ns.
->
-> Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
-> Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> ---
->  security/selinux/hooks.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+On Wed, Feb 10, 2021 at 06:50:57PM -0500, Paul Moore wrote:
+> On Tue, Feb 9, 2021 at 3:02 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > Now overlayfs allow unpriviliged mounts. That is root inside a non-init
+> > user namespace can mount overlayfs. This was added in 5.10 kernel.
 
-This seems reasonable, but since we are at -rc7 this week it will need
-to wait until after the upcoming merge window.  It's too late in the
-cycle for new features.
+Actually this is being added in 5.11 kernel (and not 5.10 kernel).
 
--- 
-paul moore
-www.paul-moore.com
+Paul, can you please fix this while committing. If you want me to
+report, let me know.
+
+> >
+> > Giuseppe tried to mount overlayfs with option "context" and it failed
+> > with error -EACCESS.
+> >
+> > $ su test
+> > $ unshare -rm
+> > $ mkdir -p lower upper work merged
+> > $ mount -t overlay -o lowerdir=lower,workdir=work,upperdir=upper,userxattr,context='system_u:object_r:container_file_t:s0' none merged
+> >
+> > This fails with -EACCESS. It works if option "-o context" is not specified.
+> >
+> > Little debugging showed that selinux_set_mnt_opts() returns -EACCESS.
+> >
+> > So this patch adds "overlay" to the list, where it is fine to specific
+> > context from non init_user_ns.
+> >
+> > Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
+> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
+> > ---
+> >  security/selinux/hooks.c |    3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> This seems reasonable, but since we are at -rc7 this week it will need
+> to wait until after the upcoming merge window.  It's too late in the
+> cycle for new features.
+
+I am fine with this going in 5.12 kernel. Thanks Paul.
+
+Vivek
+
