@@ -1,131 +1,78 @@
 Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Level: *
+X-Spam-Status: No, score=1.0 required=3.0 tests=BAYES_50,DKIMWL_BL,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1492BC433DB
-	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Feb 2021 17:00:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C1EC433DB
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Feb 2021 19:26:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B967E600CC
-	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Feb 2021 17:00:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DC69964DB1
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Feb 2021 19:26:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230437AbhBVRAT (ORCPT
+        id S233201AbhBVT0o (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 22 Feb 2021 12:00:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34870 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230472AbhBVRAL (ORCPT
+        Mon, 22 Feb 2021 14:26:44 -0500
+Received: from 85-234-135-248.static.as29550.net ([85.234.135.248]:46262 "EHLO
+        host.flippiebekerwealth.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233054AbhBVTYX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Feb 2021 12:00:11 -0500
-Received: from mail-pf1-x42a.google.com (mail-pf1-x42a.google.com [IPv6:2607:f8b0:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43331C06174A
-        for <linux-unionfs@vger.kernel.org>; Mon, 22 Feb 2021 08:59:31 -0800 (PST)
-Received: by mail-pf1-x42a.google.com with SMTP id j24so4020780pfi.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 22 Feb 2021 08:59:31 -0800 (PST)
+        Mon, 22 Feb 2021 14:24:23 -0500
+Received: from flippiebekerwealth.com (ec2-3-101-41-44.us-west-1.compute.amazonaws.com [3.101.41.44])
+        by host.flippiebekerwealth.com (Postfix) with ESMTPA id 7AE8B183114
+        for <linux-unionfs@vger.kernel.org>; Mon, 22 Feb 2021 11:40:29 +0000 (GMT)
+DKIM-Filter: OpenDKIM Filter v2.11.0 host.flippiebekerwealth.com 7AE8B183114
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id;
-        bh=u/155y2UCvkwRP7CWYeLRHtzoX/7jQ/YDPTN5BgU3OA=;
-        b=ovNoiCMt4R1ZYhUPfrcBERC3NdogdNmqjA6BZEV3n8ZiPw+LVK4dOTwW5WT2Hy9Nx4
-         9hB4/CaOEKYBrFoX2KJbYeP/WZVqDz6U7xEhWb1VSTXwp08hAHf7I/n2ex4kdEkqyOVA
-         2XrcLPrYIF7UKWqqLnhgcnlIwSWCdhCWXIYHwpboESNgZhi+yfn7Y5TWAZARW8kMRtLJ
-         R6216zUb49fHStufOveVpmPzJHVwP06d9laGrVxmpRxCuQEUw2HySVVMGhZSx2DGDkqo
-         GDTPNq5TKlqH6atm0e2Iw50XdPnqaJ3rleZlpFlEjXBV9xHqgI4c5oHcRJpM691svnxZ
-         /GNQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id;
-        bh=u/155y2UCvkwRP7CWYeLRHtzoX/7jQ/YDPTN5BgU3OA=;
-        b=Vj3BvC1VBy7zXewcNwhNhywNHvWDNtShbP0fdR3JtOMLibpG3tYx81HTw/5RgT9Z0A
-         5r+Lb1aGj5FwU0nToINLK5lrDtDh1PY+vYBtRqAfw7L0gJFMopwGmwIzvCsZ/RVtvadr
-         7TAyhXUiYro1vlia0paB1OBGu8d+2uHpM9RoIzftCGY5nBpIx0hoIq/WlyYLbZrkmbsc
-         eS1Iue6T3I4Kx2LTSjQCWFBRsc2yn5iKRwf2ljyFu3z0aDeEeG3IUNctqRJevm/+hJ0j
-         3L7z3r3xmyC9rymUY4e0Cus29+eT786+pKCLe4M3V6DsSJHb53pQ5lqW/lZo/VBLDa+7
-         Nk5w==
-X-Gm-Message-State: AOAM530xy79EdtF7roEr2EdH4YFXTkwVi05zYxulxPkYB4zyeKm01+gS
-        zJnQzuzkKtxuIE1GvwOaaOG63AzvvQE=
-X-Google-Smtp-Source: ABdhPJzHmBiioXhWb6Tse4kOBlbme+ttfsrizBfY++4SPo5BLzv/M1MNcsfbauAmLxtJwSf/3gbiUA==
-X-Received: by 2002:a63:4d41:: with SMTP id n1mr20936072pgl.147.1614013170862;
-        Mon, 22 Feb 2021 08:59:30 -0800 (PST)
-Received: from ubuntu.localdomain ([220.116.27.194])
-        by smtp.gmail.com with ESMTPSA id k6sm19500147pgk.36.2021.02.22.08.59.29
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Feb 2021 08:59:30 -0800 (PST)
-From:   youngjun <her0gyugyu@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org, youngjun <her0gyugyu@gmail.com>
-Subject: [PATCH] ovl: remove ovl_map_dev_ino return value
-Date:   Mon, 22 Feb 2021 08:59:21 -0800
-Message-Id: <20210222165921.15138-1-her0gyugyu@gmail.com>
-X-Mailer: git-send-email 2.17.1
+        d=flippiebekerwealth.com; s=default; t=1613994030;
+        bh=bx6DI0FN7gnGOLqxCBrAT5uR7A3FnXfRv6l+o8DO0RI=;
+        h=Reply-To:From:To:Subject:Date:From;
+        b=loW6JRf/vTdaWXLQu1OLeOLhsYNAqnYoDpOHeJHOdtD51ZpLFP1bc10JMAW9hrUtB
+         UpxdpTD//ttglorNMo0wbJzMDhCRGNWgMeCOKtbtc3zqsPxiekZcGHKN6vDK8AC65+
+         gTH1m2KsfUNjyV8KOPy3WW2fh5n4qYrqLCd+tjaU=
+DKIM-Filter: OpenDKIM Filter v2.11.0 host.flippiebekerwealth.com 7AE8B183114
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=flippiebekerwealth.com; s=default; t=1613994029;
+        bh=bx6DI0FN7gnGOLqxCBrAT5uR7A3FnXfRv6l+o8DO0RI=;
+        h=Reply-To:From:To:Subject:Date:From;
+        b=Z6+MsrbMsJyiBxKklYNvwJgHAF4aV3lGaJaKrpbiG/E2V5n90QAiY/9xe+AhbG/JR
+         6qeyRMW1DIezQqrNAfgn+rs4Ju/HHf6FdqvJYs/SPbj+lpQv2Y5AZnhUXgATLo/Ypf
+         dn69BcblzMvX1op7wJd6IhBz056POh0KWvNojUUM=
+Reply-To: deanjohns201@flippiebeckerwealth.com
+From:   Dean <deanjohns201@flippiebekerwealth.com>
+To:     linux-unionfs@vger.kernel.org
+Subject: New Projects
+Date:   22 Feb 2021 19:40:27 +0800
+Message-ID: <20210222194027.33ED85036AE1254D@flippiebekerwealth.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-ovl_map_dev_ino always return success.
-remove unnecessary return value.
+Hello there,
 
-Signed-off-by: youngjun <her0gyugyu@gmail.com>
----
- fs/overlayfs/inode.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+I hope this message finds you in good spirits especially during=20
+this challenging time of coronavirus pandemic. I hope you and=20
+your family are well and keeping safe. Anyway, I am Dean=20
+Johnston, a broker working with Flippiebecker Wealth. I got your=20
+contact (along with few other contacts) through an online=20
+business directory and I thought I should contact you to see if=20
+you are interested in this opportunity. I am contacting you=20
+because one of my high profile clients is interested in investing=20
+abroad and has asked me to look for individuals and companies=20
+with interesting business ideas and projects that he can invest=20
+in. He wants to invest a substantial amount of asset abroad.
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index cf41bcb664bc..2ccd5e659589 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -94,7 +94,7 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
- 	return err;
- }
- 
--static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
-+static void ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- {
- 	bool samefs = ovl_same_fs(dentry->d_sb);
- 	unsigned int xinobits = ovl_xino_bits(dentry->d_sb);
-@@ -107,7 +107,7 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 		 * which is friendly to du -x.
- 		 */
- 		stat->dev = dentry->d_sb->s_dev;
--		return 0;
-+		return;
- 	} else if (xinobits) {
- 		/*
- 		 * All inode numbers of underlying fs should not be using the
-@@ -121,7 +121,7 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 		if (likely(!(stat->ino >> xinoshift))) {
- 			stat->ino |= ((u64)fsid) << (xinoshift + 1);
- 			stat->dev = dentry->d_sb->s_dev;
--			return 0;
-+			return;
- 		} else if (ovl_xino_warn(dentry->d_sb)) {
- 			pr_warn_ratelimited("inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
- 					    dentry, stat->ino, xinobits);
-@@ -150,8 +150,6 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 		 */
- 		stat->dev = OVL_FS(dentry->d_sb)->fs[fsid].pseudo_dev;
- 	}
--
--	return 0;
- }
- 
- int ovl_getattr(const struct path *path, struct kstat *stat,
-@@ -250,9 +248,7 @@ int ovl_getattr(const struct path *path, struct kstat *stat,
- 		}
- 	}
- 
--	err = ovl_map_dev_ino(dentry, stat, fsid);
--	if (err)
--		goto out;
-+	ovl_map_dev_ino(dentry, stat, fsid);
- 
- 	/*
- 	 * It's probably not worth it to count subdirs to get the
--- 
-2.17.1
+Please kindly respond back to this email if you are interested in=20
+this opportunity. Once I receive your response, I will give you=20
+more details and we can plan a strategy that will be beneficial=20
+to all parties.
 
+Best regards
+
+D Johnston
+Flippiebecker Wealth
