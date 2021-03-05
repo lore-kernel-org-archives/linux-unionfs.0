@@ -2,114 +2,118 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E1CAC433DB
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Mar 2021 02:10:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE3FFC433E6
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Mar 2021 13:49:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1AF3A6500F
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Mar 2021 02:10:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C74B65016
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 Mar 2021 13:49:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229512AbhCECKI (ORCPT
+        id S229608AbhCENso (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 4 Mar 2021 21:10:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45348 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbhCECKI (ORCPT
+        Fri, 5 Mar 2021 08:48:44 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17117 "EHLO
+        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229723AbhCENsd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 Mar 2021 21:10:08 -0500
-Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06DF2C061756
-        for <linux-unionfs@vger.kernel.org>; Thu,  4 Mar 2021 18:10:06 -0800 (PST)
-Received: by mail-ed1-x533.google.com with SMTP id d13so517331edp.4
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Mar 2021 18:10:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=O9ReJcy8RlfrDC/fAF+2CwFahTTparPVhDqzUGMBrqE=;
-        b=woUbkBjqxCS2IzG7iYf9ZxU8YwMf3pJO3aanguwN3a9ejhULoWEEOvedgeoMmHRpcB
-         CpQzvoHNNVNY87HzO0gGKcpMCjp4M8uu5mMdOWxgia7GfLsIbD8ES+Z+e3KauORxPdOK
-         tlebWgMEU78s2xbRwVrz2Nj/0VnNV7/j1+3xgsUuaA8Cp3kWX0x+zx//hB3IKKcrleOG
-         A4uNsMamZ+CPRpSooYpTI+Ce17zHiTrsImBHPR3oD8XjSzu42+tZ1c+B1WvAtc3dYg16
-         9MCq6l7p86q7RtEMYjjK8fDmSTdUo6uF+jifM/wooLUjKcs+bS4MI9Ah9al7vOhMrO2s
-         kjAg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=O9ReJcy8RlfrDC/fAF+2CwFahTTparPVhDqzUGMBrqE=;
-        b=dHz9QRkyZU+h7X8gmqVpJvYUVMOSb/j6TLiDKazxoH/AgVWV3feaEcBOJcQYbvFG+/
-         rrf/MaJ2jvbLUVYSK7Kv7E5Uo9YA+tqDGLgPfT77qQG8xEF+1e2gBNpzOaWPoPqO4lX2
-         t3Xxtw5MCSBXy+OtPdEOP/FcwyUkhCV4tVxgVhg5VnS7DwwD8A1LnkwL8gyvxvBTXKi/
-         kPUB/ZNnsaiucDC/rkD0iSSXWUDpyoSTj4qaUNH3WtWrMl/6TXo1gtJinyQg/CgbCQb9
-         B08Q/OYzD2w3LRSiWOJcO8nkxWEJqXZqXP8PTE7fzUKKT1ADV10E8Khm3VXsrWS7BK5x
-         9Kmw==
-X-Gm-Message-State: AOAM533wbcdX6hjI6RV8D8OHDa3NuM7Icoh3GIAD4u78hbXEmzI7H7l3
-        F3I6yM5jy0IwVdbR9szstLmKkDm/n/lyZVHR14cihqhSWVlw
-X-Google-Smtp-Source: ABdhPJwU/jYv/w94e0kLCOV17GeQZelv+fX7z5DY6QQvma7jKikZr0KQ9k1MEZKv+mWLLb81+E/rWaCcJnm1odjFkpU=
-X-Received: by 2002:a05:6402:1cc1:: with SMTP id ds1mr3615411edb.135.1614910205565;
- Thu, 04 Mar 2021 18:10:05 -0800 (PST)
+        Fri, 5 Mar 2021 08:48:33 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1614952084; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=lsL2+dVl6uuOKunmDKJkoe2kM8RQzb6oEXP7k0LlOChgPuXC5xHH2egZEtuMqWI0u7nG9PpGX4AULSYwPKKGxvhhBMVbIS6in+t3BYDJGSQDPj41xrchTf/455RXXzAXx2p6rhPBnM2nME5Ocg4/w0wGsUSHMIlLmOQcdtkotKc=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1614952084; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=tUAwFnHcryHuwIOnmIRDvgf0nRig+8L4gWdWZLEmXRI=; 
+        b=JRtcZqNy4uPCzPj4ezrdSx1GfmM9UyDjip4GmIDXebmfFqqieAXzQm1dcPBcTF0LeoHb+CRGRP+TMeoYlsO1mZWaTAKphLXdhJXMUeYZ4bxQCfUXWaddHYovxUQP4XY2Y2CgBh2eHGQUTIM9gHf2kMEPOyLgD300zsZxLrxmErA=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1614952084;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=tUAwFnHcryHuwIOnmIRDvgf0nRig+8L4gWdWZLEmXRI=;
+        b=LfDTp4I5SKHnXF2XG8jxRJrk0FL7n/SD7beWCswzpcWynTtTCxz9l3iiJMN2JyQq
+        CfoEaL+H4MC0XvQXuj1mYGvPUWUGnrSx0PxP1u1TDgAIluVC+YWVNKkANxxIpsfk3tI
+        hb6ngrTxTcwKt8DpjjnD3A21ruvxkqug7+K6OHgA=
+Received: from localhost.localdomain (159.75.42.226 [159.75.42.226]) by mx.zoho.com.cn
+        with SMTPS id 1614952082737392.6320680650516; Fri, 5 Mar 2021 21:48:02 +0800 (CST)
+From:   Chengguang Xu <cgxu519@mykernel.net>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org,
+        Chengguang Xu <cgxu519@mykernel.net>,
+        Amir Goldstein <amir73il@gmail.com>
+Message-ID: <20210305134737.1259372-1-cgxu519@mykernel.net>
+Subject: [PATCH v2] ovl: fix error code for ovl_fill_super()
+Date:   Fri,  5 Mar 2021 21:47:37 +0800
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-References: <20210211180303.GE5014@redhat.com> <CAHC9VhRM6MiF1m2aFpLJKb3CFWXcXEX_SY=EnkLaq7U_X2UTZw@mail.gmail.com>
-In-Reply-To: <CAHC9VhRM6MiF1m2aFpLJKb3CFWXcXEX_SY=EnkLaq7U_X2UTZw@mail.gmail.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 4 Mar 2021 21:09:54 -0500
-Message-ID: <CAHC9VhSrcMS7BxZ9R=RUb-5DkWxT_6ELpcm1-1XwszkzVmwrgQ@mail.gmail.com>
-Subject: Re: [PATCH][v2] selinux: Allow context mounts for unpriviliged overlayfs
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     selinux@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Daniel J Walsh <dwalsh@redhat.com>,
-        Ondrej Mosnacek <omosnace@redhat.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Giuseppe Scrivano <gscrivan@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
+Content-Type: text/plain; charset=utf8
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Feb 11, 2021 at 4:24 PM Paul Moore <paul@paul-moore.com> wrote:
-> On Thu, Feb 11, 2021 at 1:03 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> >
-> > Now overlayfs allow unpriviliged mounts. That is root inside a non-init
-> > user namespace can mount overlayfs. This is being added in 5.11 kernel.
-> >
-> > Giuseppe tried to mount overlayfs with option "context" and it failed
-> > with error -EACCESS.
-> >
-> > $ su test
-> > $ unshare -rm
-> > $ mkdir -p lower upper work merged
-> > $ mount -t overlay -o lowerdir=lower,workdir=work,upperdir=upper,userxattr,context='system_u:object_r:container_file_t:s0' none merged
-> >
-> > This fails with -EACCESS. It works if option "-o context" is not specified.
-> >
-> > Little debugging showed that selinux_set_mnt_opts() returns -EACCESS.
-> >
-> > So this patch adds "overlay" to the list, where it is fine to specific
-> > context from non init_user_ns.
-> >
-> > v2: Fixed commit message to reflect that unpriveleged overlayfs mount is
-> >     being added in 5.11 and not in 5.10 kernel.
-> >
-> > Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
-> > Signed-off-by: Vivek Goyal <vgoyal@redhat.com>
-> > ---
-> >  security/selinux/hooks.c |    3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> Thanks Vivek, once the merge window closes I'll merge this into
-> selinux/next and send a note to this thread.
+Fix some incorrect error codes for ovl_fill_super() and
+change to set error code in a consistent way.
 
-I just merged this into my local selinux/next and will be pushing it
-to kernel.org later tonight.  Thanks!
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ fs/overlayfs/super.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
--- 
-paul moore
-www.paul-moore.com
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index fdd72f1a9c5e..458cf471c25b 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1980,6 +1980,7 @@ static int ovl_fill_super(struct super_block *sb, voi=
+d *data, int silent)
+ =09if (!splitlower)
+ =09=09goto out_err;
+=20
++=09err =3D -EINVAL;
+ =09numlower =3D ovl_split_lowerdirs(splitlower);
+ =09if (numlower > OVL_MAX_STACK) {
+ =09=09pr_err("too many lower directories, limit is %d\n",
+@@ -1987,6 +1988,7 @@ static int ovl_fill_super(struct super_block *sb, voi=
+d *data, int silent)
+ =09=09goto out_err;
+ =09}
+=20
++=09err =3D -ENOMEM;
+ =09layers =3D kcalloc(numlower + 1, sizeof(struct ovl_layer), GFP_KERNEL);
+ =09if (!layers)
+ =09=09goto out_err;
+@@ -2013,6 +2015,7 @@ static int ovl_fill_super(struct super_block *sb, voi=
+d *data, int silent)
+ =09if (ofs->config.upperdir) {
+ =09=09struct super_block *upper_sb;
+=20
++=09=09err =3D -EINVAL;
+ =09=09if (!ofs->config.workdir) {
+ =09=09=09pr_err("missing 'workdir'\n");
+ =09=09=09goto out_err;
+@@ -2022,11 +2025,11 @@ static int ovl_fill_super(struct super_block *sb, v=
+oid *data, int silent)
+ =09=09if (err)
+ =09=09=09goto out_err;
+=20
++=09=09err =3D -EIO;
+ =09=09upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+ =09=09if (!ovl_should_sync(ofs)) {
+ =09=09=09ofs->errseq =3D errseq_sample(&upper_sb->s_wb_err);
+ =09=09=09if (errseq_check(&upper_sb->s_wb_err, ofs->errseq)) {
+-=09=09=09=09err =3D -EIO;
+ =09=09=09=09pr_err("Cannot mount volatile when upperdir has an unseen erro=
+r. Sync upperdir fs to clear state.\n");
+ =09=09=09=09goto out_err;
+ =09=09=09}
+--=20
+2.27.0
+
+
