@@ -2,69 +2,94 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C67CC433E0
-	for <linux-unionfs@archiver.kernel.org>; Tue,  9 Mar 2021 17:44:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3246C433DB
+	for <linux-unionfs@archiver.kernel.org>; Tue,  9 Mar 2021 18:46:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E78A765238
-	for <linux-unionfs@archiver.kernel.org>; Tue,  9 Mar 2021 17:44:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B77716522A
+	for <linux-unionfs@archiver.kernel.org>; Tue,  9 Mar 2021 18:46:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230173AbhCIRnz (ORCPT
+        id S229948AbhCISqS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 9 Mar 2021 12:43:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44510 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231162AbhCIRnd (ORCPT
+        Tue, 9 Mar 2021 13:46:18 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([63.128.21.124]:28923 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229904AbhCISpw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 9 Mar 2021 12:43:33 -0500
-X-Greylist: delayed 94791 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 09 Mar 2021 09:43:32 PST
-Received: from vulcan.kevinlocke.name (vulcan.kevinlocke.name [IPv6:2001:19f0:5:727:1e84:17da:7c52:5ab4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9303C06174A
-        for <linux-unionfs@vger.kernel.org>; Tue,  9 Mar 2021 09:43:32 -0800 (PST)
-Received: from kevinolos.kevinlocke.name (2600-6c67-5000-3d1b-7fc1-9b6c-62fb-b24f.res6.spectrum.com [IPv6:2600:6c67:5000:3d1b:7fc1:9b6c:62fb:b24f])
-        (Authenticated sender: kevin@kevinlocke.name)
-        by vulcan.kevinlocke.name (Postfix) with ESMTPSA id 2E94D2109988;
-        Tue,  9 Mar 2021 17:43:31 +0000 (UTC)
-Received: by kevinolos.kevinlocke.name (Postfix, from userid 1000)
-        id 4123813001B9; Tue,  9 Mar 2021 10:43:28 -0700 (MST)
-Date:   Tue, 9 Mar 2021 10:43:28 -0700
-From:   Kevin Locke <kevin@kevinlocke.name>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH] ovl: add xino to "changes to underlying fs" docs
-Message-ID: <YEezwCuvq51i+bIs@kevinlocke.name>
-Mail-Followup-To: Kevin Locke <kevin@kevinlocke.name>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Vivek Goyal <vgoyal@redhat.com>
-References: <CAOQ4uxj4zNHU49Q6JeUrw4dvgRBumzhtvGXpuG4WDEi5G7uyxw@mail.gmail.com>
- <b36a429d7c563730c28d763d4d57a6fc30508a4f.1615216996.git.kevin@kevinlocke.name>
- <CAOQ4uxhGSbEPPwZswXHq+k1YF=+ntDfukxnfGsJ3+RaGjgNDnQ@mail.gmail.com>
- <YEa4Jd0VE6w4T7/v@kevinlocke.name>
- <CAOQ4uxjBb_whXA5eNqkwDNj2VSS-F+0uACF7tpqFTrM8fYETQg@mail.gmail.com>
+        Tue, 9 Mar 2021 13:45:52 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1615315551;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=DXzYQho/NfxIsdih9PUU7rn8wEluvEQbR3vAwVIzXmI=;
+        b=OCYkfmVVkSeOygk88Bx1wv9lPCck3l28PI/gTRsHzAcevoxeH74yy1R+LnvOXT2TeghFZ3
+        6WvKVSim8qNt8IOEobnlYsDKgEfOupGgUYnNynP1kFvAE6aomz6SlRYNvzld04KXb2bB7F
+        pQ6ZsVWLkTN72Kj16DvevzX66+/qbgA=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-278--1ho_Ct_MfGQF20uwI8rgg-1; Tue, 09 Mar 2021 13:45:49 -0500
+X-MC-Unique: -1ho_Ct_MfGQF20uwI8rgg-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E9B0A800D62;
+        Tue,  9 Mar 2021 18:45:48 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-126.rdu2.redhat.com [10.10.115.126])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id CAC335D9DB;
+        Tue,  9 Mar 2021 18:45:48 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 60E4B22054F; Tue,  9 Mar 2021 13:45:48 -0500 (EST)
+Date:   Tue, 9 Mar 2021 13:45:48 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Giuseppe Scrivano <gscrivan@redhat.com>
+Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu
+Subject: Re: [PATCH] overlay: show "userxattr" in the mount data
+Message-ID: <20210309184548.GH77194@redhat.com>
+References: <20210304164515.3735726-1-gscrivan@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjBb_whXA5eNqkwDNj2VSS-F+0uACF7tpqFTrM8fYETQg@mail.gmail.com>
+In-Reply-To: <20210304164515.3735726-1-gscrivan@redhat.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 2021-03-09 at 09:24 +0200, Amir Goldstein wrote:
-> We should leave "redirect_dir" in the documented list and add "xino"
-> just like the patch you posted.
-> But I guess if I am going to post a patch to change the xino behavior,
-> it would be better to include your change in my patch for context.
+On Thu, Mar 04, 2021 at 05:45:15PM +0100, Giuseppe Scrivano wrote:
+> Signed-off-by: Giuseppe Scrivano <gscrivan@redhat.com>
 
-Many thanks for the detailed explanations!  My apologies for misreading
-(and reading too much into) your previous post.  That sounds good to me.
-The "xino" docs addition in the patch you posted looks great!
+Minor nit: I am not sure if subject only patch is allowed. I would expect
+           couple of lines in patch description too.
 
-Thanks again,
-Kevin
+Otherwise looks good to me.
+
+Reviewed-by: Vivek Goyal <vgoyal@redhat.com>
+
+Vivek
+
+> ---
+>  fs/overlayfs/super.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index fdd72f1a9c5e..d16120d63240 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -380,6 +380,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+>  			   ofs->config.metacopy ? "on" : "off");
+>  	if (ofs->config.ovl_volatile)
+>  		seq_puts(m, ",volatile");
+> +	if (ofs->config.userxattr)
+> +		seq_puts(m, ",userxattr");
+>  	return 0;
+>  }
+>  
+> -- 
+> 2.29.2
+> 
+
