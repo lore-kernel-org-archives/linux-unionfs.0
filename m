@@ -2,120 +2,139 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E03A8C433E6
-	for <linux-unionfs@archiver.kernel.org>; Sat, 13 Mar 2021 03:36:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CBAECC433DB
+	for <linux-unionfs@archiver.kernel.org>; Sat, 13 Mar 2021 03:38:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AD51564F2B
-	for <linux-unionfs@archiver.kernel.org>; Sat, 13 Mar 2021 03:36:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 98DCA64F47
+	for <linux-unionfs@archiver.kernel.org>; Sat, 13 Mar 2021 03:38:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232628AbhCMDcz (ORCPT
+        id S233217AbhCMDiW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 12 Mar 2021 22:32:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58504 "EHLO
+        Fri, 12 Mar 2021 22:38:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231392AbhCMDcp (ORCPT
+        with ESMTP id S233208AbhCMDiI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 12 Mar 2021 22:32:45 -0500
-Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 407A3C061574;
-        Fri, 12 Mar 2021 19:32:45 -0800 (PST)
-Received: by mail-qv1-xf35.google.com with SMTP id t5so5286896qvs.5;
-        Fri, 12 Mar 2021 19:32:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=uYcgGXRL3DFzHYcd5pyVfkjaOUVSDlvIj5tHuFRY6Cw=;
-        b=e1bHxIhS9TY0sIDCbT4d9UOkI+HB8IM0R0ra7D1m/4Ive1Lw5E/wB17WHvnVXSl9mY
-         oz6RLEnlYCccJOQaPRP715PNqv2fl7bKC6fvxuBwMz/d6mPEHL12Kq8UshtxZ1gXIJYO
-         v1tF2guoBtY5v7SbRJgGVl7rmAxoy/rBQqz8DxGjuwrotD5+29/xjl9ygZvxuKVY9Vgc
-         4STReO92DtVX770JihLNi3O7xl+vZXTyvhbEqVJeRj6Hxpkl/W+Lo7SI+p3TnzLGVKXS
-         8S1+JdDSqK5huhVkijl6knxj9PPduq6rSt0H6AJ3HHvSv6q7uhfvhKMwiPqK6Bq9PvGr
-         0zWQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=uYcgGXRL3DFzHYcd5pyVfkjaOUVSDlvIj5tHuFRY6Cw=;
-        b=SCJL0X49UtNHx7Tfvpm8TNipLd1/6M2BnN2lP6F45bY5iUrnYmazFE11sohk+suC4P
-         9GJy4qBeFqvEx5gLNqoF4/Xbc60li02piovwkq/viXr179wKPiMFzp8C6VJebSUICDW5
-         vgYE37LA3Ye0+DMINiG/HBkivzPt+gFC8MZjyQqfutKNynv6/AL4mfBlw7bCObGxlH3k
-         /61Gl6DqyWDNf2DhZEdpj9xN1MpJop5EUbH7spFKzUkbyWDjbU3Cbako0Z5OOybXTiUb
-         8mAmtOl4H0v3NlRNlA2UlgbzUWh/rNeE9sQqityNIaJECcqXDkztuyM9t6pyAzb6qmV3
-         LH1A==
-X-Gm-Message-State: AOAM532gPm7EzBSL8BssA4Z7PqGXr3B5EnEOEBQOr/yVKQWNTtQ3dfd1
-        8+kiWPocWpqrU0tVApG3z4K8iXssexP0Oo/f
-X-Google-Smtp-Source: ABdhPJz+Bysj1+7bP2KL8nOJaSiN2S4llcMl1rbwXAyJFTIR9u5zO/j0s2N1lzd1m0JIpJpUxwx8SQ==
-X-Received: by 2002:a05:6214:15d1:: with SMTP id p17mr1261475qvz.28.1615606364376;
-        Fri, 12 Mar 2021 19:32:44 -0800 (PST)
-Received: from localhost.localdomain ([37.19.198.104])
-        by smtp.gmail.com with ESMTPSA id v7sm5877668qkv.86.2021.03.12.19.32.41
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 12 Mar 2021 19:32:43 -0800 (PST)
-From:   Bhaskar Chowdhury <unixbhaskar@gmail.com>
-To:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc:     rdunlap@infradead.org, Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Subject: [PATCH] fs: overlayfs: Trivial typo fixes in the file inode.c
-Date:   Sat, 13 Mar 2021 09:00:23 +0530
-Message-Id: <20210313033023.28411-1-unixbhaskar@gmail.com>
-X-Mailer: git-send-email 2.26.2
+        Fri, 12 Mar 2021 22:38:08 -0500
+Received: from merlin.infradead.org (merlin.infradead.org [IPv6:2001:8b0:10b:1234::107])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C00BC061574;
+        Fri, 12 Mar 2021 19:38:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=merlin.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
+        Reply-To:Cc:Content-ID:Content-Description;
+        bh=5bxRXwU9Lww+kI4ncSJbUw275heo/O/4MARQE1zH7iw=; b=E3WuZCSuFT4PkgiKsHeowCvcPR
+        3ByVzMi0Gdh8wud8fEeFZPItThFTMgGGLz6FxYLzs4aaPG6Mb2sqlmqL9Ov23DHJYHVoRQ4mLH5oZ
+        mw8ZDksT1kMMkHbncLUN55zrvxAxxUz3jOxRLUExcC66xq92Ie0sWQb0scxL5L8LmS3Gzp65Rs4P4
+        a9Cu6pcqrDPYRN5N9qa1Vp64bFdPgiLXlDYmMM9MPwmF5OfNWmLN8yJ4PdxdukCmFU4ZmVzkZQDuG
+        JnvuS16dLGzydxKcMRJ8nySryJ0p/Ho4cU0uTC3h5d5Ef66MKAt9la+U+bexd24GgNSn/pLrQ3OM2
+        mYnAKV2w==;
+Received: from [2601:1c0:6280:3f0::9757]
+        by merlin.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
+        id 1lKv6L-0017Jl-Vh; Sat, 13 Mar 2021 03:38:06 +0000
+Subject: Re: [PATCH] fs: overlayfs: Trivial typo fixes in the file inode.c
+To:     Bhaskar Chowdhury <unixbhaskar@gmail.com>, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20210313033023.28411-1-unixbhaskar@gmail.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <7c1ecd2f-1fb6-2e6c-b37d-8ffa013e59db@infradead.org>
+Date:   Fri, 12 Mar 2021 19:38:03 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.8.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210313033023.28411-1-unixbhaskar@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On 3/12/21 7:30 PM, Bhaskar Chowdhury wrote:
+> 
+> s/peresistent/persistent/
+> s/xatts/xattrs/  ---> this is a filesystem attribute, so, it spell like this.
+> s/annotaion/annotation/
+> 
+> 
+> Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
 
-s/peresistent/persistent/
-s/xatts/xattrs/  ---> this is a filesystem attribute, so, it spell like this.
-s/annotaion/annotation/
+In the future, please drop "fs: " in the Subject:. Compare:
+
+$ git log --oneline fs/overlayfs/
+d46b7cd68336 ovl: plumb through flush method
+335d3fc57941 ovl: implement volatile-specific fsync error behaviour
+03fedf93593c ovl: skip getxattr of security labels
+e04527fefba6 ovl: fix dentry leak in ovl_get_redirect
+b854cc659dcb ovl: avoid deadlock on directory ioctl
+554677b97257 ovl: perform vfs_getxattr() with mounter creds
+9efb069de4ba ovl: add warning on user_ns mismatch
+029a52ada6a7 overlayfs: do not mount on top of idmapped mounts
+549c7297717c fs: make helpers idmap mount aware
+6521f8917082 namei: prepare for idmapped mounts
+9fe61450972d namei: introduce struct renamedata
+c7c7a1a18af4 xattr: handle idmapped mounts
+e65ce2a50cf6 acl: handle idmapped mounts
+2f221d6f7b88 attr: handle idmapped mounts
+21cb47be6fb9 inode: make init and permission helpers idmapped mount aware
+47291baa8ddf namei: make permission helpers idmapped mount aware
+0558c1bf5a08 capability: handle idmapped mounts
+459c7c565ac3 ovl: unprivieged mounts
+87b2c60c6127 ovl: do not get metacopy for userxattr
+b6650dab404c ovl: do not fail because of O_NOATIME
+6939f977c54a ovl: do not fail when setting origin xattr
+2d2f2d7322ff ovl: user xattr
+82a763e61e2b ovl: simplify file splice
+89bdfaf93d91 ovl: make ioctl() safe
+c846af050f94 ovl: check privs before decoding file handle
 
 
-Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
----
- Note: The second change has nothing to do with dictionary words.
+> ---
+>  Note: The second change has nothing to do with dictionary words.
+> 
+>  fs/overlayfs/inode.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index d739e14c6814..e5588fc90a7d 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -114,7 +114,7 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
+>  		 * high xinobits, so we use high xinobits to partition the
+>  		 * overlay st_ino address space. The high bits holds the fsid
+>  		 * (upper fsid is 0). The lowest xinobit is reserved for mapping
+> -		 * the non-peresistent inode numbers range in case of overflow.
+> +		 * the non-persistent inode numbers range in case of overflow.
+>  		 * This way all overlay inode numbers are unique and use the
+>  		 * overlay st_dev.
+>  		 */
+> @@ -403,7 +403,7 @@ static bool ovl_can_list(struct super_block *sb, const char *s)
+>  	if (ovl_is_private_xattr(sb, s))
+>  		return false;
+> 
+> -	/* List all non-trusted xatts */
+> +	/* List all non-trusted xattrs */
+>  	if (strncmp(s, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN) != 0)
+>  		return true;
+> 
+> @@ -533,7 +533,7 @@ static const struct address_space_operations ovl_aops = {
+>   * stackable i_mutex locks according to stack level of the super
+>   * block instance. An overlayfs instance can never be in stack
+>   * depth 0 (there is always a real fs below it).  An overlayfs
+> - * inode lock will use the lockdep annotaion ovl_i_mutex_key[depth].
+> + * inode lock will use the lockdep annotation ovl_i_mutex_key[depth].
+>   *
+>   * For example, here is a snip from /proc/lockdep_chains after
+>   * dir_iterate of nested overlayfs:
+> --
 
- fs/overlayfs/inode.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index d739e14c6814..e5588fc90a7d 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -114,7 +114,7 @@ static int ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 		 * high xinobits, so we use high xinobits to partition the
- 		 * overlay st_ino address space. The high bits holds the fsid
- 		 * (upper fsid is 0). The lowest xinobit is reserved for mapping
--		 * the non-peresistent inode numbers range in case of overflow.
-+		 * the non-persistent inode numbers range in case of overflow.
- 		 * This way all overlay inode numbers are unique and use the
- 		 * overlay st_dev.
- 		 */
-@@ -403,7 +403,7 @@ static bool ovl_can_list(struct super_block *sb, const char *s)
- 	if (ovl_is_private_xattr(sb, s))
- 		return false;
 
--	/* List all non-trusted xatts */
-+	/* List all non-trusted xattrs */
- 	if (strncmp(s, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN) != 0)
- 		return true;
-
-@@ -533,7 +533,7 @@ static const struct address_space_operations ovl_aops = {
-  * stackable i_mutex locks according to stack level of the super
-  * block instance. An overlayfs instance can never be in stack
-  * depth 0 (there is always a real fs below it).  An overlayfs
-- * inode lock will use the lockdep annotaion ovl_i_mutex_key[depth].
-+ * inode lock will use the lockdep annotation ovl_i_mutex_key[depth].
-  *
-  * For example, here is a snip from /proc/lockdep_chains after
-  * dir_iterate of nested overlayfs:
---
-2.26.2
-
+-- 
+~Randy
