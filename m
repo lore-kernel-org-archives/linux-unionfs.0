@@ -2,132 +2,126 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DFD2C433C1
-	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Mar 2021 12:19:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C866C433E5
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Mar 2021 12:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4705C6198B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Mar 2021 12:19:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 339F16199F
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Mar 2021 12:26:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229941AbhCVMSg (ORCPT
+        id S230159AbhCVM0g (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 22 Mar 2021 08:18:36 -0400
-Received: from userp2120.oracle.com ([156.151.31.85]:53334 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230293AbhCVMSN (ORCPT
+        Mon, 22 Mar 2021 08:26:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50694 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230064AbhCVMZ4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 22 Mar 2021 08:18:13 -0400
-Received: from pps.filterd (userp2120.oracle.com [127.0.0.1])
-        by userp2120.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 12MCAi6X154876;
-        Mon, 22 Mar 2021 12:18:12 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : mime-version : content-type; s=corp-2020-01-29;
- bh=VFlpEp3qOnm9ZPSR+E6nHnLXpAI5qv7w6U7UWMP7WGM=;
- b=BojyRXAMgml1MbNjV4qE0a8EMoKL3llW0UGlaKUYZk5HVQmkz8ykIHnyWUcmNMT4WKVx
- 5+1C1y6M6HYDyLn/cQjAQlMbJDz6Joyn+NdEwlFIAXOssFbH2DrounIZlB4IZxkKL5ll
- 7qVKnLoR7QYhlf9JLwBjlVQj7wl1cOwkAVx2hZaqYKPfOBsYR3tgGXAI+YX7TiszuttG
- emEigffoRlPqPFewSpU15TLrnEIuEs5yosSHDOUP4eBTKyZ09rdZUtotx5i6hG84l7Zm
- U+Ynql5jOO7cBZAUha7ERTKII7GKeN5tTJWAHJnZNOGhqLBXdiHHuTuwpJJidHZwqheE qQ== 
-Received: from aserp3030.oracle.com (aserp3030.oracle.com [141.146.126.71])
-        by userp2120.oracle.com with ESMTP id 37d9pmu85j-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 22 Mar 2021 12:18:11 +0000
-Received: from pps.filterd (aserp3030.oracle.com [127.0.0.1])
-        by aserp3030.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 12MCB3KG194801;
-        Mon, 22 Mar 2021 12:18:10 GMT
-Received: from aserv0121.oracle.com (aserv0121.oracle.com [141.146.126.235])
-        by aserp3030.oracle.com with ESMTP id 37dtmn53md-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 22 Mar 2021 12:18:10 +0000
-Received: from abhmp0019.oracle.com (abhmp0019.oracle.com [141.146.116.25])
-        by aserv0121.oracle.com (8.14.4/8.13.8) with ESMTP id 12MCI90t001220;
-        Mon, 22 Mar 2021 12:18:09 GMT
-Received: from mwanda (/10.175.191.120)
-        by default (Oracle Beehive Gateway v4.0)
-        with ESMTP ; Mon, 22 Mar 2021 05:18:09 -0700
-Date:   Mon, 22 Mar 2021 15:18:04 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     amir73il@gmail.com
-Cc:     linux-unionfs@vger.kernel.org
-Subject: [bug report] ovl: copy up of disconnected dentries
-Message-ID: <YFiK/GhGReGqh52w@mwanda>
+        Mon, 22 Mar 2021 08:25:56 -0400
+Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04096C061756
+        for <linux-unionfs@vger.kernel.org>; Mon, 22 Mar 2021 05:25:55 -0700 (PDT)
+Received: by mail-io1-xd31.google.com with SMTP id b10so13660248iot.4
+        for <linux-unionfs@vger.kernel.org>; Mon, 22 Mar 2021 05:25:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=SQ96Aj6wqJSTlu+KOYifmwJ+p96uZzgdGaOGzb0D6gA=;
+        b=khs0k1q5e9BVWnZhLi1awAPOTvs4+0ANr/S5atTb+C2NhhsLR/MTiP+7T4u73CToI1
+         ASxMyyQQF5uJIL3vz7khP0x4vxkx8YnOUfmXFHrviT/quE7Pddy0O26ASXabzY7NWxoW
+         J4H8L5JbAMJvICyta8XJl5H1hO+7DKh6y+d2FJ99GdKNuvhJ9MW/LwvHavJox4IyeFkL
+         7YySmb65e9ViFRGaGxdsO6Dg7TM652zXtBwWc2mT6HXnAdQBxt3u3BZWyS3ATW62yGA3
+         vh+PgK23/lWPljQRoqraBX0qoh64X2djzzOvgJ6DxnRaSxSUTfdHG8yv0R2rPKJhrKUD
+         5Zhw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=SQ96Aj6wqJSTlu+KOYifmwJ+p96uZzgdGaOGzb0D6gA=;
+        b=CSxz0leFbh9SvyTvSuu7tWO3+9wJ7jZQdAMUg3jLB/ql2B+HjWLWqIJ2Egq0avRfHx
+         NbrO+zOFNWCc9h0U0D7Vaac/MvnkffyC511c8VCMoU2E6EhotDlzD0v3rL4isUxKz10v
+         gBPrSsen7B6zDmXpSf2UutdrpBgGEzytyzgTLuq24a2X2jN4VKumR+zlbl4wId38rUh5
+         /nFnHSUttPZ55JMECetx0WkIMLuAwpeqUtu5Ukyl3r7vsapfGG4OOmqVTkplWaQXC23v
+         b3zjBU2z78U1cGJpJrd6j4FbsIC9JpeFzEKRZT3ItpjRVMxWlJpSjfNUzucf4NUU2Iw5
+         vdOA==
+X-Gm-Message-State: AOAM531HCzFKeqOuHyjFSyz/1fIs3Slge123PeTAvu7OysNgXYFatAMw
+        z6kwYJk1IdlL6fzJqCArzXcZKyyIDtpAikuHJgG8pBVYo8Q=
+X-Google-Smtp-Source: ABdhPJw7hbS0FqYage6+x4DBEp7ResVErbxrETKTVZxQ/dd+WYRGCxBYEa4KgxiTr8mOrv1vZ963npRs3j6PwsVvSIw=
+X-Received: by 2002:a02:a796:: with SMTP id e22mr10925912jaj.93.1616415955475;
+ Mon, 22 Mar 2021 05:25:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-X-Proofpoint-IMR: 1
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9930 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 phishscore=0
- bulkscore=0 suspectscore=0 malwarescore=0 mlxlogscore=709 spamscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2103220090
-X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=9930 signatures=668683
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 lowpriorityscore=0 phishscore=0
- mlxlogscore=649 priorityscore=1501 impostorscore=0 bulkscore=0 spamscore=0
- adultscore=0 clxscore=1011 malwarescore=0 mlxscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2009150000
- definitions=main-2103220090
+References: <YFiK/GhGReGqh52w@mwanda>
+In-Reply-To: <YFiK/GhGReGqh52w@mwanda>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 22 Mar 2021 14:25:44 +0200
+Message-ID: <CAOQ4uxjNVHGReF5_TXBXHdVb0asJ4RQH_CT6Gy7r1J8MWEe1yg@mail.gmail.com>
+Subject: Re: [bug report] ovl: copy up of disconnected dentries
+To:     Dan Carpenter <dan.carpenter@oracle.com>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello Amir Goldstein,
+On Mon, Mar 22, 2021 at 2:18 PM Dan Carpenter <dan.carpenter@oracle.com> wrote:
+>
+> Hello Amir Goldstein,
+>
+> The patch aa3ff3c152ff: "ovl: copy up of disconnected dentries" from
+> Oct 15, 2017, leads to the following static checker warning:
 
-The patch aa3ff3c152ff: "ovl: copy up of disconnected dentries" from
-Oct 15, 2017, leads to the following static checker warning:
+Heh! that's fashionably late :)
 
-	fs/overlayfs/copy_up.c:972 ovl_copy_up_flags()
-	warn: 'old_cred' not released on lines: 944.
+>
+>         fs/overlayfs/copy_up.c:972 ovl_copy_up_flags()
+>         warn: 'old_cred' not released on lines: 944.
+>
+> fs/overlayfs/copy_up.c
+>    932  static int ovl_copy_up_flags(struct dentry *dentry, int flags)
+>    933  {
+>    934          int err = 0;
+>    935          const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
+>    936          bool disconnected = (dentry->d_flags & DCACHE_DISCONNECTED);
+>    937
+>    938          /*
+>    939           * With NFS export, copy up can get called for a disconnected non-dir.
+>    940           * In this case, we will copy up lower inode to index dir without
+>    941           * linking it to upper dir.
+>    942           */
+>    943          if (WARN_ON(disconnected && d_is_dir(dentry)))
+>    944                  return -EIO;
+>
+> Should this call revert_creds(old_cred); before returning?
 
-fs/overlayfs/copy_up.c
-   932  static int ovl_copy_up_flags(struct dentry *dentry, int flags)
-   933  {
-   934          int err = 0;
-   935          const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
-   936          bool disconnected = (dentry->d_flags & DCACHE_DISCONNECTED);
-   937  
-   938          /*
-   939           * With NFS export, copy up can get called for a disconnected non-dir.
-   940           * In this case, we will copy up lower inode to index dir without
-   941           * linking it to upper dir.
-   942           */
-   943          if (WARN_ON(disconnected && d_is_dir(dentry)))
-   944                  return -EIO;
+Yes. Here's a simple fix, care to post it?
 
-Should this call revert_creds(old_cred); before returning?
+Thanks,
+Amir.
 
-   945  
-   946          while (!err) {
-   947                  struct dentry *next;
-   948                  struct dentry *parent = NULL;
-   949  
-   950                  if (ovl_already_copied_up(dentry, flags))
-   951                          break;
-   952  
-   953                  next = dget(dentry);
-   954                  /* find the topmost dentry not yet copied up */
-   955                  for (; !disconnected;) {
-   956                          parent = dget_parent(next);
-   957  
-   958                          if (ovl_dentry_upper(parent))
-   959                                  break;
-   960  
-   961                          dput(next);
-   962                          next = parent;
-   963                  }
-   964  
-   965                  err = ovl_copy_up_one(parent, next, flags);
-   966  
-   967                  dput(parent);
-   968                  dput(next);
-   969          }
-   970          revert_creds(old_cred);
-   971  
-   972          return err;
-   973  }
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 0b2891c6c71e..2846b943e80c 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -932,7 +932,7 @@ static int ovl_copy_up_one(struct dentry *parent,
+struct dentry *dentry,
+ static int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ {
+        int err = 0;
+-       const struct cred *old_cred = ovl_override_creds(dentry->d_sb);
++       const struct cred *old_cred;
+        bool disconnected = (dentry->d_flags & DCACHE_DISCONNECTED);
 
-regards,
-dan carpenter
+        /*
+@@ -943,6 +943,7 @@ static int ovl_copy_up_flags(struct dentry
+*dentry, int flags)
+        if (WARN_ON(disconnected && d_is_dir(dentry)))
+                return -EIO;
+
++       old_cred = ovl_override_creds(dentry->d_sb);
+        while (!err) {
+                struct dentry *next;
+                struct dentry *parent = NULL;
