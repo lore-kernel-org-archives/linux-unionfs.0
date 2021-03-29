@@ -2,86 +2,126 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05AECC433C1
-	for <linux-unionfs@archiver.kernel.org>; Mon, 29 Mar 2021 15:14:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0250C433C1
+	for <linux-unionfs@archiver.kernel.org>; Mon, 29 Mar 2021 16:54:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C2DE861968
-	for <linux-unionfs@archiver.kernel.org>; Mon, 29 Mar 2021 15:14:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 908BD61927
+	for <linux-unionfs@archiver.kernel.org>; Mon, 29 Mar 2021 16:54:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229674AbhC2POZ (ORCPT
+        id S229630AbhC2Qy1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 29 Mar 2021 11:14:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55082 "EHLO
+        Mon, 29 Mar 2021 12:54:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230475AbhC2POF (ORCPT
+        with ESMTP id S229479AbhC2Qxy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 29 Mar 2021 11:14:05 -0400
-Received: from mail-vs1-xe2b.google.com (mail-vs1-xe2b.google.com [IPv6:2607:f8b0:4864:20::e2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12887C061574
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 Mar 2021 08:14:05 -0700 (PDT)
-Received: by mail-vs1-xe2b.google.com with SMTP id e72so6542067vsc.6
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 Mar 2021 08:14:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=6yWwYA0+c+p1sd5KYrppMXihZeldXinxBy5MytvAfKE=;
-        b=e0a1995kTZ15sSerCZhVQtGSIqVwodS+dqH5mFgSCZTjzAlQkqzgqwYOddm5rvutrx
-         1faBYDmra0f05fqhYFIr0CqglLDSppZ5+c26AyVei/e6xXj48abf5cMHhcZv0OREKsPw
-         POB8NcwDHq5VPY4NgZ16UxEZEfFJckY8glMi4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=6yWwYA0+c+p1sd5KYrppMXihZeldXinxBy5MytvAfKE=;
-        b=t7yiSFBBVbimAqD2lLjXja3IdxTSZYLAiiulEljLbjwOQn2gmc6+x0MWKW4Ym4LJ7d
-         ttkDqnOIrzz+QfOMP8UxqBnVwrB0qfV3lH3AcFKSM2RimRnGt/E5HAkbTYifEC3awqTT
-         jCh1XFOFvWIxX37O4qtVBsIh/OEc1rxMK92WtWGFnKhjipLXtkATvdv7ewrdJ1WzQMNd
-         hBr2UoSxZ+x0MJypRCv6dLipu39JpeDwrB11tWNGgGEZ77QndK5Un366BKkLbtu0KKWD
-         Pfyk7E1+mrCFlm+80IapnI0Do8zZSkAFlL3RdI22KdEFHxyeIZLTCNOuRElq6FgR3NBr
-         jpHg==
-X-Gm-Message-State: AOAM530eLNRsZnsYsxl2tc2LP293Is7Z86DtD0Ra74XnSyO48xhLm8Ml
-        NSYwdyXkRHyKqT5c3Mi3YeJPWN/B3mAOSUKWVvJc030SKTg6og==
-X-Google-Smtp-Source: ABdhPJwt1oYOanNYrAYvbyLjmBVt4ltFq6sLFfhjeEojIgdC5AMcQY5reqjDa1Q7H8Lyvwhsx8Mo4xiA9upW0/HODtc=
-X-Received: by 2002:a67:e056:: with SMTP id n22mr7529126vsl.0.1617030843439;
- Mon, 29 Mar 2021 08:14:03 -0700 (PDT)
+        Mon, 29 Mar 2021 12:53:54 -0400
+X-Greylist: delayed 315 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 29 Mar 2021 09:53:53 PDT
+Received: from smtp-8fa8.mail.infomaniak.ch (smtp-8fa8.mail.infomaniak.ch [IPv6:2001:1600:4:17::8fa8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78426C061574
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 Mar 2021 09:53:53 -0700 (PDT)
+Received: from smtp-2-0000.mail.infomaniak.ch (unknown [10.5.36.107])
+        by smtp-3-3000.mail.infomaniak.ch (Postfix) with ESMTPS id 4F8JS42VlrzMpnYQ;
+        Mon, 29 Mar 2021 18:48:36 +0200 (CEST)
+Received: from localhost (unknown [23.97.221.149])
+        by smtp-2-0000.mail.infomaniak.ch (Postfix) with ESMTPA id 4F8JS36lhyzlppyy;
+        Mon, 29 Mar 2021 18:48:35 +0200 (CEST)
+From:   =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+        Vivek Goyal <vgoyal@redhat.com>, stable@vger.kernel.org,
+        syzbot <syzkaller@googlegroups.com>,
+        =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@linux.microsoft.com>
+Subject: [PATCH v1] ovl: Fix leaked dentry
+Date:   Mon, 29 Mar 2021 18:49:07 +0200
+Message-Id: <20210329164907.2133175-1-mic@digikod.net>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-References: <20210308111717.2027030-1-cgxu519@mykernel.net>
-In-Reply-To: <20210308111717.2027030-1-cgxu519@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Mon, 29 Mar 2021 17:13:52 +0200
-Message-ID: <CAJfpeguFdafs65aOgDrJnAh6Tg8bnwP3gP5sUhfsRka5Azctbg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: copy-up optimization for truncate
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Mar 8, 2021 at 12:17 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
->
-> Currently copy-up will copy whole lower file to upper
-> regardless of the data range which is needed for further
-> operation. This patch avoids unnecessary copy when truncate
-> size is smaller than the file size.
+From: Mickaël Salaün <mic@linux.microsoft.com>
 
-This doesn't look right.   If copy up succeeds, resulting in a
-truncated file, then we should return success there and then.   Doing
-the truncate again and failing (unlikely, but I wouldn't think it
-impossible) wouldn't be nice.
+Since commit 6815f479ca90 ("ovl: use only uppermetacopy state in
+ovl_lookup()"), overlayfs doesn't put temporary dentry when there is a
+metacopy error, which leads to dentry leaks when shutting down the
+related superblock:
 
-But need to be careful, because we could possibly have other attribute
-change requests besides ATTR_SIZE, in which case optimizing the
-truncate away and returning success wouldn't be correct.
+  overlayfs: refusing to follow metacopy origin for (/file0)
+  ...
+  BUG: Dentry (____ptrval____){i=3f33,n=file3}  still in use (1) [unmount of overlay overlay]
+  ...
+  WARNING: CPU: 1 PID: 432 at umount_check.cold+0x107/0x14d
+  CPU: 1 PID: 432 Comm: unmount-overlay Not tainted 5.12.0-rc5 #1
+  ...
+  RIP: 0010:umount_check.cold+0x107/0x14d
+  ...
+  Call Trace:
+   d_walk+0x28c/0x950
+   ? dentry_lru_isolate+0x2b0/0x2b0
+   ? __kasan_slab_free+0x12/0x20
+   do_one_tree+0x33/0x60
+   shrink_dcache_for_umount+0x78/0x1d0
+   generic_shutdown_super+0x70/0x440
+   kill_anon_super+0x3e/0x70
+   deactivate_locked_super+0xc4/0x160
+   deactivate_super+0xfa/0x140
+   cleanup_mnt+0x22e/0x370
+   __cleanup_mnt+0x1a/0x30
+   task_work_run+0x139/0x210
+   do_exit+0xb0c/0x2820
+   ? __kasan_check_read+0x1d/0x30
+   ? find_held_lock+0x35/0x160
+   ? lock_release+0x1b6/0x660
+   ? mm_update_next_owner+0xa20/0xa20
+   ? reacquire_held_locks+0x3f0/0x3f0
+   ? __sanitizer_cov_trace_const_cmp4+0x22/0x30
+   do_group_exit+0x135/0x380
+   __do_sys_exit_group.isra.0+0x20/0x20
+   __x64_sys_exit_group+0x3c/0x50
+   do_syscall_64+0x45/0x70
+   entry_SYSCALL_64_after_hwframe+0x44/0xae
+  ...
+  VFS: Busy inodes after unmount of overlay. Self-destruct in 5 seconds.  Have a nice day...
 
-Minor issue: this patch doesn't optimize the truncate to zero case.
-That's not a bug, but I'm curious if that is an oversight or
-deliberate.
+This fix has been tested with a syzkaller reproducer.
 
-Thanks,
-Miklos
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: <stable@vger.kernel.org> # v5.7+
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Fixes: 6815f479ca90 ("ovl: use only uppermetacopy state in ovl_lookup()")
+Signed-off-by: Mickaël Salaün <mic@linux.microsoft.com>
+Link: https://lore.kernel.org/r/20210329164907.2133175-1-mic@digikod.net
+---
+ fs/overlayfs/namei.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 3fe05fb5d145..424c594afd79 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -921,6 +921,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		if ((uppermetacopy || d.metacopy) && !ofs->config.metacopy) {
+ 			err = -EPERM;
+ 			pr_warn_ratelimited("refusing to follow metacopy origin for (%pd2)\n", dentry);
++			dput(this);
+ 			goto out_put;
+ 		}
+ 
+
+base-commit: a5e13c6df0e41702d2b2c77c8ad41677ebb065b3
+-- 
+2.30.2
+
