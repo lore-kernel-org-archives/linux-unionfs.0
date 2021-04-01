@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB538C43603
-	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Apr 2021 17:56:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD788C433B4
+	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Apr 2021 18:04:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCE7C61130
-	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Apr 2021 17:56:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 917A061001
+	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Apr 2021 18:04:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236482AbhDAR4F (ORCPT
+        id S237476AbhDASEB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 1 Apr 2021 13:56:05 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:55887 "EHLO
+        Thu, 1 Apr 2021 14:04:01 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:35717 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S237200AbhDARvB (ORCPT
+        by vger.kernel.org with ESMTP id S237521AbhDASAR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Apr 2021 13:51:01 -0400
+        Thu, 1 Apr 2021 14:00:17 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1617299461;
+        s=mimecast20190719; t=1617300016;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=GXWPtffsDMR9QZWl6Ce2ebcQcVpDYm8f+5vNo4wn+Z8=;
-        b=caVGPMXDmYWuYM5hSrjUji+pXrwlKnH4igvZkHl+5eIrK9ssMsj+vKzljhC57Rw98JwsFQ
-        d28XfwRcJUs7Cxyvnl2ijoFJp3Q7r/5Ul0T0gUUY3Y9MCOXILSHwN9j3lsEaQaoSl2EM4P
-        unug7Ssq+iN4p9eqODI5jExC+FwJhzA=
+        bh=DZ5o8xyhoYGjZMwbZbuoSG15PY6aGXxwCTwzusxwEpc=;
+        b=QGxIDx0wO+uOYhYaGHD1ebbtraUSs30PE3EzB+JeubT4+AxrqqiTzBvRuBhsLupMlbuxHm
+        oUHVJhZX71h+dKDyno7Ot2/FI+EYbdXRixh6mU4QbocMk9HvWIkwBTadJy77WL19bUPjea
+        2fu4PIQRC1j/uyXpmQKZM42PGxIU5Zw=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-184-QwU6G8GQPR-20xv5hW3C5w-1; Thu, 01 Apr 2021 12:50:28 -0400
-X-MC-Unique: QwU6G8GQPR-20xv5hW3C5w-1
-Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+ us-mta-61-YVQssqzYNSmnqpfwZ9mZUA-1; Thu, 01 Apr 2021 11:58:19 -0400
+X-MC-Unique: YVQssqzYNSmnqpfwZ9mZUA-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 7070187A826;
-        Thu,  1 Apr 2021 16:50:27 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5909C1966324;
+        Thu,  1 Apr 2021 15:58:15 +0000 (UTC)
 Received: from horse.redhat.com (ovpn-113-97.rdu2.redhat.com [10.10.113.97])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id C30F85D6D1;
-        Thu,  1 Apr 2021 16:50:25 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 4687B5DDAD;
+        Thu,  1 Apr 2021 15:58:14 +0000 (UTC)
 Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 683EA22054F; Thu,  1 Apr 2021 12:50:24 -0400 (EDT)
-Date:   Thu, 1 Apr 2021 12:50:24 -0400
+        id D9BD222054F; Thu,  1 Apr 2021 11:58:13 -0400 (EDT)
+Date:   Thu, 1 Apr 2021 11:58:13 -0400
 From:   Vivek Goyal <vgoyal@redhat.com>
 To:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org,
@@ -54,14 +54,14 @@ Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org,
         syzbot <syzkaller@googlegroups.com>,
         =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@linux.microsoft.com>
 Subject: Re: [PATCH v1] ovl: Fix leaked dentry
-Message-ID: <20210401165024.GB801967@redhat.com>
+Message-ID: <20210401155813.GA801967@redhat.com>
 References: <20210329164907.2133175-1-mic@digikod.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 In-Reply-To: <20210329164907.2133175-1-mic@digikod.net>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -74,6 +74,25 @@ On Mon, Mar 29, 2021 at 06:49:07PM +0200, Mickaël Salaün wrote:
 > metacopy error, which leads to dentry leaks when shutting down the
 > related superblock:
 > 
+
+Hi,
+
+Thanks for finding and fixing this bug. Patch looks correct to me. We
+need to drop that reference to this.
+
+I am not able to trigger this warning on umount of overlayfs. I copied
+up a file with metacopy enabled and then remounted overlay again with
+metacopy disabled. That does hit this code and I see the warning.
+
+refusing to follow metacopy origin for (/foo.txt)
+
+This should have lead to leak of dentry pointed by "this".
+
+But after that I unmounted, overlay and that succeeds. Is there any
+additional step to be done to trigger this VFS warning.
+
+Vivek
+
 >   overlayfs: refusing to follow metacopy origin for (/file0)
 >   ...
 >   BUG: Dentry (____ptrval____){i=3f33,n=file3}  still in use (1) [unmount of overlay overlay]
@@ -113,16 +132,6 @@ On Mon, Mar 29, 2021 at 06:49:07PM +0200, Mickaël Salaün wrote:
 > 
 > This fix has been tested with a syzkaller reproducer.
 > 
-
-Looks good to me. I realized that dentry leak will happen on underlying
-filesystem so unmount of underlying filesystem will give this warning. I
-created nested overlayfs configuration and could reproduce this error
-and tested that this patch fixes it.
-
-Reviewed-by: Vivek Goyal <vgoyal@redhat.com>
-
-Vivek
-
 > Cc: Amir Goldstein <amir73il@gmail.com>
 > Cc: Miklos Szeredi <miklos@szeredi.hu>
 > Cc: Vivek Goyal <vgoyal@redhat.com>
