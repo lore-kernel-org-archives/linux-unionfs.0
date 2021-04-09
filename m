@@ -2,116 +2,96 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45888C43460
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Apr 2021 13:51:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C25D2C433B4
+	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Apr 2021 22:03:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E9FE61108
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Apr 2021 13:51:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AF13610A8
+	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Apr 2021 22:03:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231756AbhDINvw (ORCPT
+        id S234654AbhDIWEK (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 9 Apr 2021 09:51:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48412 "EHLO
+        Fri, 9 Apr 2021 18:04:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232642AbhDINvv (ORCPT
+        with ESMTP id S234878AbhDIWEJ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 9 Apr 2021 09:51:51 -0400
-Received: from mail-vs1-xe2b.google.com (mail-vs1-xe2b.google.com [IPv6:2607:f8b0:4864:20::e2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86740C061761
-        for <linux-unionfs@vger.kernel.org>; Fri,  9 Apr 2021 06:51:37 -0700 (PDT)
-Received: by mail-vs1-xe2b.google.com with SMTP id b20so2632751vsr.11
-        for <linux-unionfs@vger.kernel.org>; Fri, 09 Apr 2021 06:51:37 -0700 (PDT)
+        Fri, 9 Apr 2021 18:04:09 -0400
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17A12C061762
+        for <linux-unionfs@vger.kernel.org>; Fri,  9 Apr 2021 15:03:56 -0700 (PDT)
+Received: by mail-wm1-x330.google.com with SMTP id 5-20020a05600c0245b029011a8273f85eso3701409wmj.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 09 Apr 2021 15:03:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=17gAB4/Xt1EcJ6duLXHgiCVFdSPwnzL/vuA8S86w0nY=;
-        b=nMoosH4hAMExjqx73VwI6ccfuBMeqOOlug3s2ahPExh1d7czDmhVMSGWoyRJFWu9yw
-         w/D4H+GN/48/WgLwgaPwAlgprTRjNFcMkcd8bBKhjsaI1iGtkngb6asqgGovqTvTUnp/
-         gqwtCIkQ4jdzVftGhpNvjKHSEKyD8HpnHf89Y=
+        d=colorremedies-com.20150623.gappssmtp.com; s=20150623;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=8iWFxQZZQAc5jdnFXiN7O6miYrRYiTmSboleYIBqyb0=;
+        b=KRTYwLOwqNPV5ICYqCr7Z4C6zkilAb3DkfeT4fc1RXaWQQfHddVYoShuDZW74a1boe
+         QFegFywJA3IIuGJ8RCiB31q9MhOrNW8EizakNXd5N+oEqbJFT4C5GSjbh4XKeB1HSsPY
+         dhgOSbGmT5Wi9f+k0+MV/DnlJDba05SepIU8E5Ma86tm5OEDyEoWQ1i9MuG96v0GYAam
+         OP8oTJzBJuFe1GsJ262Y/vzzZVN2lVBwyrz2k/hDh8k9oNj9IKzP6qiV6aMECl5uD1zM
+         F5XjI/Pou8+3OQUnCcWbccSTqsNj0Msekc+AeH1TUWJPpBziNqJ7Jh93FCbcct6ORbJT
+         bEBQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=17gAB4/Xt1EcJ6duLXHgiCVFdSPwnzL/vuA8S86w0nY=;
-        b=RVOEwX+rSvqhFpx1vmv253MjpJpyEJ98SCstdKDLd+nZZyjyffq4OwakFAXm02he8W
-         rft0QOnbsDar0TzO24EYSOxfpwNaOW7u8n4l7mSafJwElRgYhtAeCVh4fH5RizIXaR1q
-         /hxEJ4vDBrJYKqfqdRYo5MYq2rwmATw2n4/Kkna5m7NAiTNpdvp6RSC5F4t6cMLTkvF7
-         L5KlGe/iDnG1cRrvJ3m3hZvjyLvmTihngpjpNWluIsImFfUvX9Pw4l6EQ5oyqKUD5Bpp
-         QadXMo+zHjza6q3Q5QoO8vsF739hL63xTbxxjKF15ChmuIzx2IyUiYYiScQqQGJ9jZwd
-         0NMA==
-X-Gm-Message-State: AOAM53020bBOh/0W69/w5kNOSR4k4Qm8TZflN2fD1eXDb2GgIk6t5jgR
-        kUQpqzyi6Goeig+05U3WdgSIGYcct9fXKXOpnA3itw==
-X-Google-Smtp-Source: ABdhPJxhsn0VhTmPepqwZIxdPE/jJRKz40lPlfAjtAlHk6AKV+A1Dipj6Ahx1cPdaWfVBS0oSfKjHovl4UqmJo8jOQ4=
-X-Received: by 2002:a67:e056:: with SMTP id n22mr11332309vsl.0.1617976296786;
- Fri, 09 Apr 2021 06:51:36 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=8iWFxQZZQAc5jdnFXiN7O6miYrRYiTmSboleYIBqyb0=;
+        b=rRaaHUmwr3V9H0wPkvCZ1Bd1KhGhAtHZ0OFHUh0RWaILKDCvkqOljOVKkFJsn37Rgi
+         mQbVgpu6OQbkuG0M79pqgtRoiWrxBqEHANBxM4KFW71+skQpZo8yo92KVZXrPY2tOW+H
+         uTWuS2HajuHufTzaDvbReJiLwQq/FmbN6MmZEw9gbaqooEyThB/3YcYptawJ33V8GUfh
+         xCCipGkCojHWFEpmkkjAI2kYWG8cPPHrS+aTWzWmRT0J+hZiTaJrlFYF2HZvkyp0K/NL
+         bmVc6Ko+q7reK813HKkWNLWskxOe8SohpXRZTU6Kr30YBcE3LwXmSQk9hqMSBcfJx+ZU
+         bvpw==
+X-Gm-Message-State: AOAM530KOUQhdjtSL9bp1oeBVYr/WRkqThlfDCzVMR7KJrHn3oaa7DZI
+        KJ9cMgYCW4ykAMqvPGVHqOMRDkUiHdnYZVTYYl5g7g==
+X-Google-Smtp-Source: ABdhPJyLtoTnN6scH+aZGRuiF5QTcbFXfRvCvrmYXhTb3AFaRssYjwMR2SEuc/oue0lzU/e/IB2JlTKwx1EWu74iKqI=
+X-Received: by 2002:a7b:c30e:: with SMTP id k14mr15674612wmj.128.1618005834837;
+ Fri, 09 Apr 2021 15:03:54 -0700 (PDT)
 MIME-Version: 1.0
-References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-10-cgxu519@mykernel.net>
-In-Reply-To: <20201113065555.147276-10-cgxu519@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 9 Apr 2021 15:51:26 +0200
-Message-ID: <CAJfpegsoDL7maNtU7P=OwFy_XPgcyiBOGFzaKRbGnhfwz-HyYw@mail.gmail.com>
-Subject: Re: [RFC PATCH v4 9/9] ovl: implement containerized syncfs for overlayfs
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org
+From:   Chris Murphy <lists@colorremedies.com>
+Date:   Fri, 9 Apr 2021 16:03:38 -0600
+Message-ID: <CAJCQCtTp0aXBssEr4ZXGX=DS_+RyGghmoANCKDdxG59QWu8LVA@mail.gmail.com>
+Subject: btrfs+overlayfs: upper fs does not support xattr, falling back to
+ index=off and metacopy=off.
+To:     Btrfs BTRFS <linux-btrfs@vger.kernel.org>,
+        linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Nov 13, 2020 at 7:57 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
->
-> Now overlayfs can only sync dirty inode during syncfs,
-> so remove unnecessary sync_filesystem() on upper file
-> system.
->
-> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
-> ---
->  fs/overlayfs/super.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 982b3954b47c..58507f1cd583 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -15,6 +15,8 @@
->  #include <linux/seq_file.h>
->  #include <linux/posix_acl_xattr.h>
->  #include <linux/exportfs.h>
-> +#include <linux/blkdev.h>
-> +#include <linux/writeback.h>
->  #include "overlayfs.h"
->
->  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-> @@ -270,8 +272,7 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->          * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
->          * All the super blocks will be iterated, including upper_sb.
->          *
-> -        * If this is a syncfs(2) call, then we do need to call
-> -        * sync_filesystem() on upper_sb, but enough if we do it when being
-> +        * if this is a syncfs(2) call, it will be enough we do it when being
->          * called with wait == 1.
->          */
->         if (!wait)
-> @@ -280,7 +281,11 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->         upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
->
->         down_read(&upper_sb->s_umount);
-> -       ret = sync_filesystem(upper_sb);
-> +       wait_sb_inodes(upper_sb);
-> +       if (upper_sb->s_op->sync_fs)
-> +               ret = upper_sb->s_op->sync_fs(upper_sb, wait);
-> +       if (!ret)
-> +               ret = sync_blockdev(upper_sb->s_bdev);
+Hi,
 
-Should this instead be __sync_blockdev(..., wait)?
+The primary problem is Bolt (Thunderbolt 3) tests that are
+experiencing a regression when run in a container using overlayfs,
+failing at:
+
+Bail out! ERROR:../tests/test-common.c:1413:test_io_dir_is_empty:
+'empty' should be FALSE
+
+https://gitlab.freedesktop.org/bolt/bolt/-/issues/171#note_872119
+
+I can reproduce this with 5.12.0-0.rc6.184.fc35.x86_64+debug and at
+approximately the same time I see one, sometimes more, kernel
+messages:
+
+[ 6295.379283] overlayfs: upper fs does not support xattr, falling
+back to index=off and metacopy=off.
+
+But I don't know if that kernel message relates to the bolt test failure.
+
+If I run the test outside of a container, it doesn't fail. If I run
+the test in a podman container using the btrfs driver instead of the
+overlay driver, it doesn't fail. So it seems like this is an overlayfs
+bug, but could be some kind of overlayfs+btrfs interaction.
+
+Could this be related and just not yet merged?
+https://lore.kernel.org/linux-unionfs/20210309162654.243184-1-amir73il@gmail.com/
 
 Thanks,
-Miklos
+
+-- 
+Chris Murphy
