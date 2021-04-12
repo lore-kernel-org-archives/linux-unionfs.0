@@ -7,52 +7,52 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC7DCC433B4
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Apr 2021 11:58:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B5E8C433B4
+	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Apr 2021 12:24:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6C7C6128B
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Apr 2021 11:58:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2475161278
+	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Apr 2021 12:24:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240800AbhDLL7D (ORCPT
+        id S240888AbhDLMYz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Apr 2021 07:59:03 -0400
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25397 "EHLO
+        Mon, 12 Apr 2021 08:24:55 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25325 "EHLO
         sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S240799AbhDLL7C (ORCPT
+        by vger.kernel.org with ESMTP id S240245AbhDLMYt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Apr 2021 07:59:02 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1618228709; cv=none; 
+        Mon, 12 Apr 2021 08:24:49 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1618230246; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=NeVO8RE97+uH4SRVa14O9S85j+pAHvnzVmcav28p87L7JLc9RmvRD0Oo2OjBI9EdQyS0tWw2zKZJHNqn7EkhickTIJvczITjlFk84I2EqrDymcDBpNNKv+0eHmMYnYMyt7CYTKt3gGwh9KUlGLKVHJAktQAbipaf8tELj1nREHM=
+        b=bEvDju2VmmhyxA0MQHI3ieq9imj1Lv/YeBjbYNc2fbD2CZ5NLfO2PQNh/BhxcYktVBwPqxVa14v/T8RJ2nwYCK/rTPDCwv96gmKsdi9uKxkFPjmb+e1BvnDRDLmv7sBkb2eycGSNKH+0u5QgKQy3BGHKEggudgMzl7jRh13XUCQ=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1618228709; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=UieouIKzy+BRhUkKMx5cdz9s+Qay2qvgcb0KUghHOco=; 
-        b=oGSkdcL0RK3s1LekDiIhC+4KlBkRw7NQcfeOvnxx+Rw3MIulKUK1kkinA7hOeXTMMBYUmBfH7VtzwdQFmH0urPDRuE7NZENEs41umaQ5geGufaRm3Mt+Mkyq+cJGiQ2abTYrawz0iE2hsAXM53aQ2D4LGhsDPRs1Qe9WNqOIcDE=
+        t=1618230246; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=jyoRTl11XnFlwSLYSvB+ALJyQNLOu0fvqy3RRrlj+cI=; 
+        b=GuJe24rvJcofVNTiLmibx7cqeoaR1J3R6ItXPvoO3BPSw86arDYuP7ZhxmRC8CWMGdlvKVuGKSklP4r6hqtBFv+deOadlDJhj0V25xlKhNr/QPmemRFBkSTMysScrxxaV/wC7zIJAG4jQ1QCL3EOdWxY3EN+RBejXGyZR043Z7U=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1618228709;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1618230246;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=UieouIKzy+BRhUkKMx5cdz9s+Qay2qvgcb0KUghHOco=;
-        b=WYGm2hWqgwxznzD+C4Ml+jmb0rOSPcRTOhwPGGtFqY/s9P68efuE1/0dZO+jYpKo
-        GICHHATwLrtATws3ljfDSOMctxvbor6elTq9lvubEwyrtlMvPo8/+7EPWAL2/xIYYgJ
-        S/y0tVAFH8nb5p9MYOR6pBvAYnsByArcTcFHMT20=
+        bh=jyoRTl11XnFlwSLYSvB+ALJyQNLOu0fvqy3RRrlj+cI=;
+        b=Zv5i308hSijNDqMK1TPhqGfuhftm/zlAUQggezo7aFYaeMjFqMIvOH1GtzuD6XNR
+        bVIN1D/UgEs3sUOAWStAmcS4rioBoEUROEkMLtRpPGD3l9/VxIOjKMoXOZOd1Rqa3iB
+        vu+j0zjBJ4Zkr+3dy06/g7Cv1vfnPq18JB9cwwS8=
 Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1618228707804809.3274984503647; Mon, 12 Apr 2021 19:58:27 +0800 (CST)
-Date:   Mon, 12 Apr 2021 19:58:27 +0800
+        with SMTP id 161823024420153.377930275199105; Mon, 12 Apr 2021 20:24:04 +0800 (CST)
+Date:   Mon, 12 Apr 2021 20:24:04 +0800
 From:   Chengguang Xu <cgxu519@mykernel.net>
 Reply-To: cgxu519@mykernel.net
 To:     "Miklos Szeredi" <miklos@szeredi.hu>
 Cc:     "Jan Kara" <jack@suse.cz>, "Amir Goldstein" <amir73il@gmail.com>,
         "overlayfs" <linux-unionfs@vger.kernel.org>,
         "linux-fsdevel" <linux-fsdevel@vger.kernel.org>
-Message-ID: <178c5f281d9.dde5cb9920853.3545294445882801731@mykernel.net>
-In-Reply-To: <CAJfpegtyUXcyiUG=YH1Hi06qwuYdtDL_kArQxN9mJUj7JJWZ0w@mail.gmail.com>
-References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-5-cgxu519@mykernel.net> <CAJfpegtyUXcyiUG=YH1Hi06qwuYdtDL_kArQxN9mJUj7JJWZ0w@mail.gmail.com>
-Subject: Re: [RFC PATCH v4 4/9] ovl: mark overlayfs' inode dirty on
- modification
+Message-ID: <178c609f366.d091ec3b20881.6800515353355931740@mykernel.net>
+In-Reply-To: <CAJfpegsoDL7maNtU7P=OwFy_XPgcyiBOGFzaKRbGnhfwz-HyYw@mail.gmail.com>
+References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-10-cgxu519@mykernel.net> <CAJfpegsoDL7maNtU7P=OwFy_XPgcyiBOGFzaKRbGnhfwz-HyYw@mail.gmail.com>
+Subject: Re: [RFC PATCH v4 9/9] ovl: implement containerized syncfs for
+ overlayfs
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -63,99 +63,72 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
----- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-04-09 21:45:28 Miklos Szer=
-edi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-04-09 21:51:26 Miklos Sze=
+redi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
  > On Fri, Nov 13, 2020 at 7:57 AM Chengguang Xu <cgxu519@mykernel.net> wro=
 te:
  > >
- > > Mark overlayfs' inode dirty on modification so that
- > > we can recognize target inodes during syncfs.
+ > > Now overlayfs can only sync dirty inode during syncfs,
+ > > so remove unnecessary sync_filesystem() on upper file
+ > > system.
  > >
  > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
  > > ---
- > >  fs/overlayfs/inode.c     |  1 +
- > >  fs/overlayfs/overlayfs.h |  4 ++++
- > >  fs/overlayfs/util.c      | 14 ++++++++++++++
- > >  3 files changed, 19 insertions(+)
+ > >  fs/overlayfs/super.c | 11 ++++++++---
+ > >  1 file changed, 8 insertions(+), 3 deletions(-)
  > >
- > > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
- > > index 8cfa75e86f56..342693657ab0 100644
- > > --- a/fs/overlayfs/inode.c
- > > +++ b/fs/overlayfs/inode.c
- > > @@ -468,6 +468,7 @@ int ovl_update_time(struct inode *inode, struct ti=
-mespec64 *ts, int flags)
- > >                 if (upperpath.dentry) {
- > >                         touch_atime(&upperpath);
- > >                         inode->i_atime =3D d_inode(upperpath.dentry)->=
-i_atime;
- > > +                       ovl_mark_inode_dirty(inode);
- > >                 }
- > >         }
- > >         return 0;
- > > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
- > > index f8880aa2ba0e..eaf1d5b05d8e 100644
- > > --- a/fs/overlayfs/overlayfs.h
- > > +++ b/fs/overlayfs/overlayfs.h
- > > @@ -247,6 +247,7 @@ static inline bool ovl_open_flags_need_copy_up(int=
- flags)
- > >  }
+ > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+ > > index 982b3954b47c..58507f1cd583 100644
+ > > --- a/fs/overlayfs/super.c
+ > > +++ b/fs/overlayfs/super.c
+ > > @@ -15,6 +15,8 @@
+ > >  #include <linux/seq_file.h>
+ > >  #include <linux/posix_acl_xattr.h>
+ > >  #include <linux/exportfs.h>
+ > > +#include <linux/blkdev.h>
+ > > +#include <linux/writeback.h>
+ > >  #include "overlayfs.h"
  > >
- > >  /* util.c */
- > > +void ovl_mark_inode_dirty(struct inode *inode);
- > >  int ovl_want_write(struct dentry *dentry);
- > >  void ovl_drop_write(struct dentry *dentry);
- > >  struct dentry *ovl_workdir(struct dentry *dentry);
- > > @@ -472,6 +473,9 @@ static inline void ovl_copyattr(struct inode *from=
-, struct inode *to)
- > >         to->i_mtime =3D from->i_mtime;
- > >         to->i_ctime =3D from->i_ctime;
- > >         i_size_write(to, i_size_read(from));
- > > +
- > > +       if (ovl_inode_upper(to) && from->i_state & I_DIRTY_ALL)
- > > +               ovl_mark_inode_dirty(to);
- > >  }
+ > >  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
+ > > @@ -270,8 +272,7 @@ static int ovl_sync_fs(struct super_block *sb, int=
+ wait)
+ > >          * Not called for sync(2) call or an emergency sync (SB_I_SKIP=
+_SYNC).
+ > >          * All the super blocks will be iterated, including upper_sb.
+ > >          *
+ > > -        * If this is a syncfs(2) call, then we do need to call
+ > > -        * sync_filesystem() on upper_sb, but enough if we do it when =
+being
+ > > +        * if this is a syncfs(2) call, it will be enough we do it whe=
+n being
+ > >          * called with wait =3D=3D 1.
+ > >          */
+ > >         if (!wait)
+ > > @@ -280,7 +281,11 @@ static int ovl_sync_fs(struct super_block *sb, in=
+t wait)
+ > >         upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+ > >
+ > >         down_read(&upper_sb->s_umount);
+ > > -       ret =3D sync_filesystem(upper_sb);
+ > > +       wait_sb_inodes(upper_sb);
+ > > +       if (upper_sb->s_op->sync_fs)
+ > > +               ret =3D upper_sb->s_op->sync_fs(upper_sb, wait);
+ > > +       if (!ret)
+ > > +               ret =3D sync_blockdev(upper_sb->s_bdev);
  >=20
- > Okay, ovl_copyattr() certainly seems a good place to copy dirtyness as w=
-ell.
- >=20
- > What I'm fearing is that it does not cover all the places where
- > underlying inode can be dirtied.  This really needs an audit of all
- > filesystem modifying operations.
+ > Should this instead be __sync_blockdev(..., wait)?
 =20
-You are right. Let me fix it in next version.
+I don't remember why we skipped the case of (wait =3D=3D 0) here, just gues=
+s it's not worth
+to export internal function __sync_blockdev() to modules, do you prefer to =
+call __sync_blockdev()
+and handle both nowait and wait cases?
+
 
 Thanks,
 Chengguang
 
 
- > >
- > >  static inline void ovl_copyflags(struct inode *from, struct inode *to=
-)
- > > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
- > > index 23f475627d07..a6f59df744ae 100644
- > > --- a/fs/overlayfs/util.c
- > > +++ b/fs/overlayfs/util.c
- > > @@ -950,3 +950,17 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, =
-struct dentry *dentry,
- > >         kfree(buf);
- > >         return ERR_PTR(res);
- > >  }
- > > +
- > > +/*
- > > + * We intentionally add I_DIRTY_SYNC flag regardless dirty flag
- > > + * of upper inode so that we have chance to invoke ->write_inode
- > > + * to re-dirty overlayfs' inode during writeback process.
- > > + */
- > > +void ovl_mark_inode_dirty(struct inode *inode)
- > > +{
- > > +       struct inode *upper =3D ovl_inode_upper(inode);
- > > +       unsigned long iflag =3D I_DIRTY_SYNC;
- > > +
- > > +       iflag |=3D upper->i_state & I_DIRTY_ALL;
- > > +       __mark_inode_dirty(inode, iflag);
- > > +}
- > > --
- > > 2.26.2
- > >
- > >
- >=20
+
+
+
