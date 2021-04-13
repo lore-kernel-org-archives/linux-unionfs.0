@@ -2,129 +2,97 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD10C433B4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 13 Apr 2021 03:26:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87DA5C433B4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 13 Apr 2021 08:43:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B4BC9613AD
-	for <linux-unionfs@archiver.kernel.org>; Tue, 13 Apr 2021 03:26:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 69D9C613AE
+	for <linux-unionfs@archiver.kernel.org>; Tue, 13 Apr 2021 08:43:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242822AbhDMD02 (ORCPT
+        id S242957AbhDMIoA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Apr 2021 23:26:28 -0400
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25311 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S239428AbhDMD02 (ORCPT
+        Tue, 13 Apr 2021 04:44:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39306 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229996AbhDMIn7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Apr 2021 23:26:28 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1618284363; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=kvHfpeqkpJwWrVeYWPa04E2AVI3VFNxfYc2ytxZ6VODJ+iD5mXJC57dX3u/stASzgX/vFGRqMfIOMX3xfs3wK5vf/sYvKoC3/bjF2toKCQyDla6xKDWRHbrePFH4PAEjzI/LIBg0DLUEHqirrF1z3j03cydS7T3b87Gz5sezRlI=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1618284363; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=wZ0HjyC48sVr6I9JlTN8ye/fLpZBqycHxNuA1O7RNqA=; 
-        b=eRdEBkqJfb2UXD2ZS1EkqeVAOqBKd/JkISdYkYXFhYa5JoE0WAqshqDlqzSBA1W9/4N0wnDO71TaqD1y4HHNh4Ty9b3lan5K8wxRPY+aMbarvneF6jGewTyb4ecVGyvX9g7BKxjh7d6cOEDgoDIN07GTslDJvX01v0wMh41wcnI=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1618284363;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=wZ0HjyC48sVr6I9JlTN8ye/fLpZBqycHxNuA1O7RNqA=;
-        b=CD3+AwyNGFkC/zux7MnfqM7RX9cUkJlDDaZ+xhzsoBOmBFwf1ewhYzf5FM53d/D2
-        pAqtqvNOTaChdw2RKztRYE0rqRp/l+mfBd19v84/CX1gQ/+hTv1GJixeVTv/unInRIv
-        mZ2VdZ3Q/qEaRyNNvk3cCzcpB/mXIqe4/OiVWUoI=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1618284361913189.4814741120705; Tue, 13 Apr 2021 11:26:01 +0800 (CST)
-Date:   Tue, 13 Apr 2021 11:26:01 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Miklos Szeredi" <miklos@szeredi.hu>
-Cc:     "linux-unionfs" <linux-unionfs@vger.kernel.org>
-Message-ID: <178c943b8b6.cd81e26521858.1415503984601701317@mykernel.net>
-In-Reply-To: <CAJfpegvbrz3=nL2ETb+nY9G2cBTu4sC_sAhdxnVdHCN7Y1JFfg@mail.gmail.com>
-References: <20210408112042.2586996-1-cgxu519@mykernel.net>
- <178b13dbf0a.c5d5924718458.7870418673694557579@mykernel.net>
- <CAJfpegt5vVAtik=SXL26G0Tjh8yzZ6DvD6wLtfbXTinqpkxVeg@mail.gmail.com> <178b1482b24.108404c2418483.4334767487912126386@mykernel.net> <CAJfpegvbrz3=nL2ETb+nY9G2cBTu4sC_sAhdxnVdHCN7Y1JFfg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: check VM_DENYWRITE mappings in copy-up
+        Tue, 13 Apr 2021 04:43:59 -0400
+Received: from mail-ua1-x929.google.com (mail-ua1-x929.google.com [IPv6:2607:f8b0:4864:20::929])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B67ACC061574
+        for <linux-unionfs@vger.kernel.org>; Tue, 13 Apr 2021 01:43:38 -0700 (PDT)
+Received: by mail-ua1-x929.google.com with SMTP id q18so5069166uas.11
+        for <linux-unionfs@vger.kernel.org>; Tue, 13 Apr 2021 01:43:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=CJTfxw+7T+FVtf/ZtoDIPSgRwAfJ87Xex1gXOvrotkg=;
+        b=KPTes4bLsDcgFD2oHlgu+gfedwOnhP/gsDS/PcoU5t7cE8/zPxqpf7pmG2PCWiAosD
+         UPs+6nVeZnJWAZtrphx8oAtjP/UeMJ7+QS1Arun3o+sFaFce8Q4G8YMEq9qvFnATaWmr
+         cBEZb9zhn1FDM2dbKOiz5gimWqISrkY7SOQDE=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=CJTfxw+7T+FVtf/ZtoDIPSgRwAfJ87Xex1gXOvrotkg=;
+        b=jXBtC4HUTJvslH63XYpV5BoQDAEv9W2uiCTGywLUONN51W4eYFWkjdxukIYGqgCz4E
+         WcfOv+Mtwrwsq9GRNbYpnKVp0kfeNKlbQiVBiPAs9GpWN30QVuZYcaCkOVH8gIXsIsdZ
+         SERz0/B5nofcees4UGucnCn8cB0F2JPXWM7kIKf09JKbaQ8iNL383xU4rt02RquNF34i
+         ZgChzvon3FEHeIbAjkVBo8DR17T+NNeRK/AwSOiS79F2QkFZ9XH/UP6K/nTKZkJ2vyt7
+         Uifo9q/4ACvaROM38fVb8xe5Qlg/HNfu8XMa0pxoKBaBaEoiMcrvj26rHPycD3/yymfX
+         5joA==
+X-Gm-Message-State: AOAM5335NOqprZtSPxS8ONsh8ehyadK7XBVHoyROWOGqrQugOOBCr1qh
+        E2Wg2se0EaqCilu61PdMnspxSW6fqSKrQzHf5xJ+fg==
+X-Google-Smtp-Source: ABdhPJxf/jIC/3VGIYg9aumcXX/Hfbj7+H0VyKvsphMSy5GaTiEb+ozMw2EVHFtGRzrysJV/3wpSrOnSVlq2XCpzuzQ=
+X-Received: by 2002:ab0:596f:: with SMTP id o44mr22269909uad.8.1618303417875;
+ Tue, 13 Apr 2021 01:43:37 -0700 (PDT)
 MIME-Version: 1.0
+References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-8-cgxu519@mykernel.net>
+ <CAJfpegtpD5012YQsmFEbkj__x52N4QrV0jSi=7iZtREqVf3tcA@mail.gmail.com> <178c901d7ad.fdc7d65c21509.6849935952336944935@mykernel.net>
+In-Reply-To: <178c901d7ad.fdc7d65c21509.6849935952336944935@mykernel.net>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 13 Apr 2021 10:43:27 +0200
+Message-ID: <CAJfpegvM86YEzvFCdHm4a0h3_yNeqfS94c5hArQj7=fgaBARmA@mail.gmail.com>
+Subject: Re: [RFC PATCH v4 7/9] ovl: cache dirty overlayfs' inode
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-04-08 23:03:39 Miklos Sze=
-redi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
- > On Thu, Apr 8, 2021 at 1:40 PM Chengguang Xu <cgxu519@mykernel.net> wrot=
-e:
- > >
- > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-04-08 19:29:55 Miklo=
-s Szeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
- > >  > On Thu, Apr 8, 2021 at 1:28 PM Chengguang Xu <cgxu519@mykernel.net>=
- wrote:
- > >  > >
- > >  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-04-08 19:20:42 =
-Chengguang Xu <cgxu519@mykernel.net> =E6=92=B0=E5=86=99 ----
- > >  > >  > In overlayfs copy-up, if open flag has O_TRUNC then upper
- > >  > >  > file will truncate to zero size, in this case we should check
- > >  > >  > VM_DENYWRITE mappings to keep compatibility with other filesys=
-tems.
- > >  >
- > >  > Can you provide a test case for the bug that this is fixing?
- > >  >
- > >
- > > Execute binary file(keep running until open) in overlayfs which only h=
-as lower && open the binary file with flag O_RDWR|O_TRUNC
- > >
- > > Expected result: open fail with -ETXTBSY
- > >
- > > Actual result: open success
- >=20
- > Worse,  it's possible to get a "Bus error" with just execute and write
- > on an overlayfs file, which i_writecount is supposed to protect.
- >=20
- > The reason is that the put_write_access() call in __vma_link_file()
- > assumes an already negative writecount, but because of the vm_file
- > shuffle in ovl_mmap() that's not guaranteed.   There's even a comment
- > about exactly this situation in mmap():
- >=20
- > /* ->mmap() can change vma->vm_file, but must guarantee that
- > * vma_link() below can deny write-access if VM_DENYWRITE is set
- > * and map writably if VM_SHARED is set. This usually means the
- > * new file must not have been exposed to user-space, yet.
- > */
- >=20
- > The attached patch fixes this, but not your original bug.
- >=20
- > That could be addressed by checking the writecount on *both* lower and
- > upper for open for write/truncate.  Note: this could be checked before
- > copy-up, but that's not reliable alone, because the copy up could
- > happen due to meta-data update, for example, and then the
- > open/truncate wouldn't trigger the writecount check.
- >=20
- > Something like the second attached patch?
- >=20
+On Tue, Apr 13, 2021 at 4:14 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
+>
+>  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-04-09 21:50:35 Miklos S=
+zeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
+>  > On Fri, Nov 13, 2020 at 7:57 AM Chengguang Xu <cgxu519@mykernel.net> w=
+rote:
+>  > >
+>  > > Now drop overlayfs' inode will sync dirty data,
+>  > > so we change to only drop clean inode.
+>  >
+>  > I don't understand what happens here.  Please add more explanation.
+>
+> In iput_final(), clean overlayfs inode will directly drop as the same as =
+before,
+> dirty overlayfs inode will keep in the cache to wait writeback to sync di=
+rty data
+> and then add to lru list to wait reclaim.
+>
+> The purpose of doing this is to keep compatible behavior with original on=
+e,
+> because without this series, dropping overlayfs inode will not trigger sy=
+ncing
+> underlying dirty inode.
 
-Yeah, I noticed that too just after posted my previous patch.
-However, rethink these two cases, in practice we share lower layers
-in most use cases especially in container use case. So if we check
-VM_DENYWRITE of lower file strictly, it may cause interferes between
-container instances. Maybe only checking upper file will be better
-option?
+I get it now.  Can you please update the patch header with this description=
+?
 
 Thanks,
-Chengguang
-
-
-
-
-
+Miklos
