@@ -2,138 +2,87 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBC85C43461
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Apr 2021 14:22:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3D9DC433B4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 13 Apr 2021 02:14:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD82A61353
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Apr 2021 14:22:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AEB2261370
+	for <linux-unionfs@archiver.kernel.org>; Tue, 13 Apr 2021 02:14:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241906AbhDLOWz (ORCPT
+        id S240540AbhDMCOj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Apr 2021 10:22:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53476 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241296AbhDLOWz (ORCPT
+        Mon, 12 Apr 2021 22:14:39 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25304 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S239254AbhDMCOj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Apr 2021 10:22:55 -0400
-Received: from mail-vs1-xe34.google.com (mail-vs1-xe34.google.com [IPv6:2607:f8b0:4864:20::e34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28C01C06174A
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Apr 2021 07:22:37 -0700 (PDT)
-Received: by mail-vs1-xe34.google.com with SMTP id x14so2016880vsc.5
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Apr 2021 07:22:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=MmDshLKsaE48dL8n2Lv7busYCP/JRDXfgccRaZ4aSQQ=;
-        b=Ao7BPS+MPKptCfhony66jDGT9euXcPmNkLm7uNy02KX/Z3homldZUUlyRsDSzsl3ck
-         bxuf1syZlt1c/bD4zUQnrat+Tc3KLbL4/d5KGR4r8y6mYchNSRh92GMUS5QSL1tTldKP
-         ZJwzO7ide7exNjgUjsNEjI8tKvmkL+VXHe/X8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=MmDshLKsaE48dL8n2Lv7busYCP/JRDXfgccRaZ4aSQQ=;
-        b=LLcjG2DvbxYalkrTksvQ7hrh1q1bPFrJFMkUrflzx7g4IIpJOztCDWKmgdflm2xWOt
-         mV7XxP4O6tPxBx8ln/uqVFtv0wDyinpQ1YLVwqKabnbpT+sToNieJixDJcSDG6IQWA/P
-         ogENbE7UPPSqTGBdCwyDYN6Atmnf+yXE6lEqiowEICcECwNK0L/gqJlYD/SCpfynmluh
-         RT6kKJMXSSq0TCoehWxMaOizxD068ggz5i+2cXLFppTTRp6rG3L0+PYnho0G7gD7itQF
-         MI1dxbo5ifdkF0qOp1B2VYbqEwD8i4axFKn8oPthBq+9FA2a/gWTSup+AfcAwEJp5sfe
-         Aeew==
-X-Gm-Message-State: AOAM531l5PUsld8htB+wpIF8aqJZMYVpk0+hptKxDjVwnzPo63OWxmzV
-        BWDe/MwTXSOLEHveFbibuM4oiMcpyn4yCKCWI04DGg==
-X-Google-Smtp-Source: ABdhPJz2enjHwFAax8upkX0FyivRhIpYizN3FYM/otYY3J8/8ZYriu5E6MTIlMyyDDOWw/kImEP2BZd6rzHgKVnUBUg=
-X-Received: by 2002:a67:f487:: with SMTP id o7mr20374917vsn.7.1618237356422;
- Mon, 12 Apr 2021 07:22:36 -0700 (PDT)
+        Mon, 12 Apr 2021 22:14:39 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1618280047; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=T4MaCSudNEtndU8u98W1zkmY6SPQiGwHtzV8gpCUO7oEgwrOn41LAAASvnQoorPJjO405H5G2Eezi3cen3+KF5Tb5XsUE5sVVeyWLKmk+4vM+8Ht1OlbyCb/HnbB7ETegB3IYPk+VbkiSPRgkavdrmatfpkZk4HNkUgYZprBnlI=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1618280047; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=QfEE3GeQ2y8jkajBXmU9OhellyZGKOuAfHuTC8ZUNd0=; 
+        b=Sjn+x9kM3fJ82C9V+1dA/t2ZOc4q7yP23ApoZbMmjFDMZxdSnBPhhRXRqFYka3RevplTEcselluOmNxx682MvSS8bg9xeWM9R8n1f+GJSlIoUQTmIx+HIPkoTxB10dFA+Cxm0BgCBfyOJ/m/3K5n6kJp7xm4Dtp3xS6fl6JukoA=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1618280047;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=QfEE3GeQ2y8jkajBXmU9OhellyZGKOuAfHuTC8ZUNd0=;
+        b=ZMPIyw3rYvRGao8v9OmNpnTWrgjoWmfDyDcP8j7IfUVodwZKhRK1juAzNaEMLtPN
+        3blKsudY632CfWZQVtsy/mHKP2ZcD0eWzUyq5PhoPmDJTgbEuv9m+Zg/Vn6OzrvvYeI
+        TYKTzZk+tTsNj3aVYsrA78djZV5PoLCI7saeEvnI=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1618280044464418.17248206147053; Tue, 13 Apr 2021 10:14:04 +0800 (CST)
+Date:   Tue, 13 Apr 2021 10:14:04 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Miklos Szeredi" <miklos@szeredi.hu>
+Cc:     "Jan Kara" <jack@suse.cz>, "Amir Goldstein" <amir73il@gmail.com>,
+        "overlayfs" <linux-unionfs@vger.kernel.org>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>
+Message-ID: <178c901d7ad.fdc7d65c21509.6849935952336944935@mykernel.net>
+In-Reply-To: <CAJfpegtpD5012YQsmFEbkj__x52N4QrV0jSi=7iZtREqVf3tcA@mail.gmail.com>
+References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-8-cgxu519@mykernel.net> <CAJfpegtpD5012YQsmFEbkj__x52N4QrV0jSi=7iZtREqVf3tcA@mail.gmail.com>
+Subject: Re: [RFC PATCH v4 7/9] ovl: cache dirty overlayfs' inode
 MIME-Version: 1.0
-References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-10-cgxu519@mykernel.net>
- <CAJfpegsoDL7maNtU7P=OwFy_XPgcyiBOGFzaKRbGnhfwz-HyYw@mail.gmail.com> <178c609f366.d091ec3b20881.6800515353355931740@mykernel.net>
-In-Reply-To: <178c609f366.d091ec3b20881.6800515353355931740@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Mon, 12 Apr 2021 16:22:24 +0200
-Message-ID: <CAJfpegvWNWiuvMAW2gmeu39An-xmc5xv6BSMPXujQ7R8UsEtJA@mail.gmail.com>
-Subject: Re: [RFC PATCH v4 9/9] ovl: implement containerized syncfs for overlayfs
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Apr 12, 2021 at 2:24 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
->
->  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-04-09 21:51:26 Miklos S=
-zeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
->  > On Fri, Nov 13, 2020 at 7:57 AM Chengguang Xu <cgxu519@mykernel.net> w=
-rote:
->  > >
->  > > Now overlayfs can only sync dirty inode during syncfs,
->  > > so remove unnecessary sync_filesystem() on upper file
->  > > system.
->  > >
->  > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
->  > > ---
->  > >  fs/overlayfs/super.c | 11 ++++++++---
->  > >  1 file changed, 8 insertions(+), 3 deletions(-)
->  > >
->  > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->  > > index 982b3954b47c..58507f1cd583 100644
->  > > --- a/fs/overlayfs/super.c
->  > > +++ b/fs/overlayfs/super.c
->  > > @@ -15,6 +15,8 @@
->  > >  #include <linux/seq_file.h>
->  > >  #include <linux/posix_acl_xattr.h>
->  > >  #include <linux/exportfs.h>
->  > > +#include <linux/blkdev.h>
->  > > +#include <linux/writeback.h>
->  > >  #include "overlayfs.h"
->  > >
->  > >  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
->  > > @@ -270,8 +272,7 @@ static int ovl_sync_fs(struct super_block *sb, i=
-nt wait)
->  > >          * Not called for sync(2) call or an emergency sync (SB_I_SK=
-IP_SYNC).
->  > >          * All the super blocks will be iterated, including upper_sb=
-.
->  > >          *
->  > > -        * If this is a syncfs(2) call, then we do need to call
->  > > -        * sync_filesystem() on upper_sb, but enough if we do it whe=
-n being
->  > > +        * if this is a syncfs(2) call, it will be enough we do it w=
-hen being
->  > >          * called with wait =3D=3D 1.
->  > >          */
->  > >         if (!wait)
->  > > @@ -280,7 +281,11 @@ static int ovl_sync_fs(struct super_block *sb, =
-int wait)
->  > >         upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
->  > >
->  > >         down_read(&upper_sb->s_umount);
->  > > -       ret =3D sync_filesystem(upper_sb);
->  > > +       wait_sb_inodes(upper_sb);
->  > > +       if (upper_sb->s_op->sync_fs)
->  > > +               ret =3D upper_sb->s_op->sync_fs(upper_sb, wait);
->  > > +       if (!ret)
->  > > +               ret =3D sync_blockdev(upper_sb->s_bdev);
->  >
->  > Should this instead be __sync_blockdev(..., wait)?
->
-> I don't remember why we skipped the case of (wait =3D=3D 0) here, just gu=
-ess it's not worth
-> to export internal function __sync_blockdev() to modules, do you prefer t=
-o call __sync_blockdev()
-> and handle both nowait and wait cases?
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-04-09 21:50:35 Miklos Sze=
+redi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
+ > On Fri, Nov 13, 2020 at 7:57 AM Chengguang Xu <cgxu519@mykernel.net> wro=
+te:
+ > >
+ > > Now drop overlayfs' inode will sync dirty data,
+ > > so we change to only drop clean inode.
+ >=20
+ > I don't understand what happens here.  Please add more explanation.
 
-Possibly it would make most sense to export the "->sync_fs() +
-__sync_blockdev()" part of __sync_filesystem() as a separate helper.
+In iput_final(), clean overlayfs inode will directly drop as the same as be=
+fore,
+dirty overlayfs inode will keep in the cache to wait writeback to sync dirt=
+y data
+and then add to lru list to wait reclaim.
+
+The purpose of doing this is to keep compatible behavior with original one,
+because without this series, dropping overlayfs inode will not trigger sync=
+ing
+underlying dirty inode.
+
 
 Thanks,
-Miklos
+Chengguang
