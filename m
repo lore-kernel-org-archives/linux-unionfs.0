@@ -2,128 +2,131 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0843C4360C
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Apr 2021 06:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64460C433B4
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Apr 2021 17:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E231D60FD8
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Apr 2021 06:14:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 43FEC6109D
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Apr 2021 17:09:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349112AbhDNGOo (ORCPT
+        id S233587AbhDORKA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 14 Apr 2021 02:14:44 -0400
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25393 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1349138AbhDNGOn (ORCPT
+        Thu, 15 Apr 2021 13:10:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45738 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233074AbhDORJ6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Apr 2021 02:14:43 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1618380849; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=JNeQotS4kkgZHnPV0JMvW0VxaH1lbgOkIF6EaT/Rlo2/K8E/pGZ+YwthWzwKtbpHcr5PcqWzacyJJlnWzOwjrZk3mh3Yzxugrbjl6lFufur+QzP2+fYugVTw2XZf23cZxe4WtgdIAdHDii/LJ8Nw3jJ02+z0pw+FXloNl2vKx0s=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1618380849; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=j0653ywqZAdpT6wQ/eknGI1RW2Keq7fohCtg0SJIZpY=; 
-        b=PwwoYW97RfaxoMv5dnguj+uNlE3aNxcBv37O4JvvrFsYbDrwJCdhxLmDnHCes071K2+ey1Nyftfd34fPIvXiFvXw/RiUfFUc2QIFyfydzB4+kU9k/pCrWC2lDnT/yQ4GzkqNhbsvx5wdOl5oCwKnLjKERlFMNT1Ta2fvYekP7Zg=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net> header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1618380849;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=j0653ywqZAdpT6wQ/eknGI1RW2Keq7fohCtg0SJIZpY=;
-        b=f3ttytDS8bq1mTXcwGdHv1NcGHrtCrFappktK1ZFvQY3olTlkV9oUYjEnTHv+4ZC
-        1C7x9juTy1G3yspP9LGly6Y+PDPKS1ryRM6Paiu6EC6RL+qwSYuAG//3efR1lcSjAfg
-        8nxUE43OHiotzgCxDb/NB5ozxhenzS71vhPNE2P4=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1618380846192877.8642334081887; Wed, 14 Apr 2021 14:14:06 +0800 (CST)
-Date:   Wed, 14 Apr 2021 14:14:06 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Miklos Szeredi" <miklos@szeredi.hu>
-Cc:     "Jan Kara" <jack@suse.cz>, "Amir Goldstein" <amir73il@gmail.com>,
-        "overlayfs" <linux-unionfs@vger.kernel.org>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>
-Message-ID: <178cf03f46d.10b2d86c733121.8697562232310027680@mykernel.net>
-In-Reply-To: <CAJfpegt6BUvEL2NtfMkYJfC_NBuLxKhV3U7-h4azhoM+ttxZAA@mail.gmail.com>
-References: <20201113065555.147276-1-cgxu519@mykernel.net> <20201113065555.147276-7-cgxu519@mykernel.net> <CAJfpegt6BUvEL2NtfMkYJfC_NBuLxKhV3U7-h4azhoM+ttxZAA@mail.gmail.com>
-Subject: Re: [RFC PATCH v4 6/9] ovl: implement overlayfs' ->write_inode
- operation
+        Thu, 15 Apr 2021 13:09:58 -0400
+Received: from mail-io1-xd29.google.com (mail-io1-xd29.google.com [IPv6:2607:f8b0:4864:20::d29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3BF2C061574
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 Apr 2021 10:09:35 -0700 (PDT)
+Received: by mail-io1-xd29.google.com with SMTP id d5so15514021iof.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 Apr 2021 10:09:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=12eq7+NJYwQarAv9pEFi9qfkOce8f7aSAYU1muwi6Tw=;
+        b=nkasqoJZjY3FITtbZT06wVcF+b3iOkAMXwdLM1Xdwqs8cCSJ0WnfxN9037lKs3zx3B
+         9Pg6V7j0OUuSdO/0O6eGGq6U4LwDYG7cls3MtGLtfL1ckxdP9MlQS1++hm3EI+NYTS8z
+         jiobaVn40SNaO4Ef5s/S9eLi/nc3uiwjvDPvmmwdaWb2lzUbKFE1dRuoQNsa3JH12ANI
+         G89W6Y1ZzOFxG9zbZ+74j9OfBrvfoW48ctXFPUvUWdQRRkXGMGAQ3skOON0LLykCDlxK
+         LeWjQzFqY6PcWdqbW5Etwyjt5ZNh9TY3s3xkxyUy8b+4A8Ot3K4ZiWUKmG9jqxsuMenB
+         tK5w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=12eq7+NJYwQarAv9pEFi9qfkOce8f7aSAYU1muwi6Tw=;
+        b=AQn+13NqS9TUsSX0E62z3nbHdVMf+mAkAXE2tRtrVj+paWHbOhx0rXpXV63ALdu/S9
+         0BuN6g/pcD3MhRK9zNGyxISlXycRFzvxBEu2YmzecSxCzBYjofKXr40BwkE68k0XnNd6
+         d4bPjMAY+VbhtA7LgrXft64K07wEq8bT311NtXkMKhjdH7eq3BYKLFhvGfWLuIjLCmP4
+         7rV+R0Bx9TGGtbpo02y0Mm0NzE1KOS9Cz/ZxK/FQjsJ4RMZhJl32FzecbjPlRHJihiV7
+         wutmSZDy5oJPvedAzBirr0nOxpe4WRaU9ySNelztr8YjpF41iItBrOyDYjxTpI9yt5gN
+         NW+Q==
+X-Gm-Message-State: AOAM530BpgBxxuMiPcBqQfE1pXt/JScjulETP3T9ZmeVB1l6FIYn1nM1
+        2Ouzzs58hPu4i+Q9PGy/4iD5kmwpvXfPAjIx6K8=
+X-Google-Smtp-Source: ABdhPJy6bjRzu+GfWU89bvaWsITNENKE0q5sP1jkTgPbFdWimulQR0+5dhE+JjGeQu9LRTlEageL5uuTaiyT9k7Yj/E=
+X-Received: by 2002:a02:7a53:: with SMTP id z19mr279560jad.120.1618506575121;
+ Thu, 15 Apr 2021 10:09:35 -0700 (PDT)
 MIME-Version: 1.0
+References: <6312af55.47e2.178d53227d0.Coremail.ouyangxuan10@163.com>
+In-Reply-To: <6312af55.47e2.178d53227d0.Coremail.ouyangxuan10@163.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 15 Apr 2021 20:09:23 +0300
+Message-ID: <CAOQ4uxgPq9E9xxwU2CDyHy-_yCZZeymg+3n+-6AqkGGE1YtwvQ@mail.gmail.com>
+Subject: Re: [kernel]:overlayfs: invalid origin (root/bmcweb_persistent_data.json,
+ ftype=8000, origin ftype=4000)
+To:     www <ouyangxuan10@163.com>
+Cc:     Kevin Locke <kevin@kevinlocke.name>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        kernelnewbies@kernelnewbies.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
----- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-04-09 21:49:07 Miklos Szer=
-edi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
- > On Fri, Nov 13, 2020 at 7:57 AM Chengguang Xu <cgxu519@mykernel.net> wro=
-te:
- > >
- > > Implement overlayfs' ->write_inode to sync dirty data
- > > and redirty overlayfs' inode if necessary.
- > >
- > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
- > > ---
- > >  fs/overlayfs/super.c | 30 ++++++++++++++++++++++++++++++
- > >  1 file changed, 30 insertions(+)
- > >
- > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
- > > index 883172ac8a12..82e001b97f38 100644
- > > --- a/fs/overlayfs/super.c
- > > +++ b/fs/overlayfs/super.c
- > > @@ -390,6 +390,35 @@ static int ovl_remount(struct super_block *sb, in=
-t *flags, char *data)
- > >         return ret;
- > >  }
- > >
- > > +static int ovl_write_inode(struct inode *inode,
- > > +                          struct writeback_control *wbc)
- > > +{
- > > +       struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
- > > +       struct inode *upper =3D ovl_inode_upper(inode);
- > > +       unsigned long iflag =3D 0;
- > > +       int ret =3D 0;
- > > +
- > > +       if (!upper)
- > > +               return 0;
- > > +
- > > +       if (!ovl_should_sync(ofs))
- > > +               return 0;
- > > +
- > > +       if (upper->i_sb->s_op->write_inode)
- > > +               ret =3D upper->i_sb->s_op->write_inode(inode, wbc);
- > > +
- > > +       if (mapping_writably_mapped(upper->i_mapping) ||
- > > +           mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
- > > +               iflag |=3D I_DIRTY_PAGES;
- > > +
- > > +       iflag |=3D upper->i_state & I_DIRTY_ALL;
- >=20
- > How is I_DIRTY_SYNC added/removed from the overlay inode?
- >=20
+On Thu, Apr 15, 2021 at 2:03 PM www <ouyangxuan10@163.com> wrote:
+>
+> Dear Amir, kevin, miklos,
+>
+> An open source project uses overlay filesystem and systemd. when the system first time boot, there is an error in the file system:
+> kernel: overlayfs: invalid origin (root/bmcweb_persistent_data.json, ftype=8000, origin ftype=4000)
+>
+> What's the reason for this? Can you give some help and suggestions to solve this problem?
+>
+> The details are as follows:
+> 1. linux kernel version:
+> root@N/A:~# uname -a Linux N/A 5.1.5-yocto-s-dirty-1605363 #1 Tue Apr 13 01:13:48 UTC 2021 armv6l GNU/Linux
+>
+> 2. mount command
+> mount -t overlay -o lowerdir=$rodir,upperdir=$upper,workdir=$work cow /root
+> (rodir=run/initramfs/ro, upper=run/initramfs/rw/cow, work=rwdir=run/initramfs/rw/work)
+>
+> 3. mountinfo
+> root@N/A:~# cat /proc/self/mountinfo
+> 13 21 0:6 / /dev rw,relatime shared:8 - devtmpfs dev rw,size=220800k,nr_inodes=55200,mode=755
+> 14 21 0:13 / /sys rw,relatime shared:3 - sysfs sys rw
+> 15 21 0:4 / /proc rw,relatime shared:2 - proc proc rw
+> 16 21 0:14 / /run rw,nosuid,nodev shared:11 - tmpfs tmpfs rw,mode=755
+> 17 16 7:0 / /run/initramfs/ro ro,relatime shared:12 - squashfs /dev/loop0 ro
+> 18 16 31:5 / /run/initramfs/rw rw,relatime shared:13 - jffs2 /dev/mtdblock5 rw
+> 21 0 0:15 / / rw,relatime shared:1 - overlay cow rw,lowerdir=run/initramfs/ro,upperdir=run/initramfs/rw/cow,workdir=run/initramfs/rw/work
+> 22 13 0:17 / /dev/shm rw,nosuid,nodev shared:9 - tmpfs tmpfs rw
+> 23 13 0:18 / /dev/pts rw,relatime shared:10 - devpts devpts rw,gid=5,mode=620,ptmxmode=000
+> 24 14 0:19 / /sys/fs/cgroup ro,nosuid,nodev,noexec shared:4 - tmpfs tmpfs ro,mode=755
+> 25 24 0:20 / /sys/fs/cgroup/unified rw,nosuid,nodev,noexec,relatime shared:5 - cgroup2 cgroup2 rw,nsdelegate
+> 26 24 0:21 / /sys/fs/cgroup/systemd rw,nosuid,nodev,noexec,relatime shared:6 - cgroup cgroup rw,xattr,name=systemd
+> 27 14 0:22 / /sys/fs/bpf rw,nosuid,nodev,noexec,relatime shared:7 - bpf bpf rw,mode=700
+> 28 14 0:7 / /sys/kernel/debug rw,nosuid,nodev,noexec,relatime shared:14 - debugfs debugfs rw
+> 29 14 0:12 / /sys/kernel/config rw,nosuid,nodev,noexec,relatime shared:15 - configfs configfs rw
+> 30 21 0:23 / /tmp rw,nosuid,nodev shared:16 - tmpfs tmpfs rw
+> 31 21 0:24 / /var/volatile rw,relatime shared:17 - tmpfs tmpfs rw
+>
+> 4. xino_auto
+>
+> 5. file in ro is correct
+> 6. file in rw is correct
+> 7. but the file in overlayfs is  incorrect
+>
+> What's the reason for this?
 
-generally, I_DIRTY_SYNC is added to overlay inode when the operation dirtie=
-s
-upper inode, I'll check all those places and call ovl_mark_inode_dirty() to=
- do it.
-After writeback if upper inode becomes clean status, we will remove I_DIRTY=
-_SYNC
-from overlay inode.
+I suppose lower squashfs was recreated and mounted with an existing
+upper dir that already contains upper files with origin references to the
+old squashfs lower fs.
 
-One exception is mmaped file, it will always keep I_DIRTY_SYNC until to be =
-evicted.
+> Can you give some help and suggestions to solve this problem?
+
+Cherry-pick this fix to your kernel:
+a888db310195 ovl: fix regression with re-formatted lower squashfs
+
+OR as a workaround, build the lower squashfs with the "-no-exports"
+mksquashfs option.
 
 Thanks,
-Chengguang
-
-
-
+Amir.
