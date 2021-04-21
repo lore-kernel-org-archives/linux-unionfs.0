@@ -2,123 +2,110 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1A43C433B4
-	for <linux-unionfs@archiver.kernel.org>; Wed, 21 Apr 2021 12:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62D65C433ED
+	for <linux-unionfs@archiver.kernel.org>; Wed, 21 Apr 2021 13:23:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC7CF61001
-	for <linux-unionfs@archiver.kernel.org>; Wed, 21 Apr 2021 12:15:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F04B61449
+	for <linux-unionfs@archiver.kernel.org>; Wed, 21 Apr 2021 13:23:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238110AbhDUMPs (ORCPT
+        id S242260AbhDUNXl (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 21 Apr 2021 08:15:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55704 "EHLO
+        Wed, 21 Apr 2021 09:23:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237991AbhDUMPr (ORCPT
+        with ESMTP id S242371AbhDUNW2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Apr 2021 08:15:47 -0400
-Received: from mail-vs1-xe2c.google.com (mail-vs1-xe2c.google.com [IPv6:2607:f8b0:4864:20::e2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A856AC06174A
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Apr 2021 05:15:13 -0700 (PDT)
-Received: by mail-vs1-xe2c.google.com with SMTP id h19so2446929vsa.10
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Apr 2021 05:15:13 -0700 (PDT)
+        Wed, 21 Apr 2021 09:22:28 -0400
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3C8DC061369;
+        Wed, 21 Apr 2021 06:20:15 -0700 (PDT)
+Received: by mail-ed1-x531.google.com with SMTP id j12so24299892edy.3;
+        Wed, 21 Apr 2021 06:20:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=Jjuj60NefN9MYrzAmLyfxeAMOu/07rIE9lxbN4jUnuw=;
-        b=EznyFXcdX5LSJvFA98EbwV2utnPmaOFCjpf06Vn4wPlaFM6QVfcOhTrZUYGoAfjamH
-         rEjP5akqsJrlMV/iZhqkqV97SUNgDYk+u2lFa9fOhWEKWW/HD3RsO9DQD3WEMhYOQphn
-         PEVRVbeT9R3PEcy89Aisi2dUXQcFFctJ6gNIg=
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=bV2+iaLvlgLHnb19R4rIgUB8ivM93pPvuTJSfa7AbgI=;
+        b=rlTaaspvH5ESqX5Dez3Dr9A313tLebI5kAtlZ98klePruheU5m62tFcekoRd8KKvxF
+         pOGL3lJa3LG0JadS5qxWN7ZDak2MJGNybVsmlQ2lQuns4CiWUzAAVEaIopwQsDZU8DfY
+         0bSaMK9lavqsqu9OsQOmye8Gityd2ImMIGtAqeO8TESQ3FWnVAqGpCl2YURd40CAnkVa
+         rjOZTzFzlZUa0bKWp/kFAdwVp4w2OM2GSnC7JdizxlAz4F98kW3ihkU2vf2H89SLb+iG
+         uQGn0QSBC+R+WAFg7MfZpKhM9NC/MrD0jsqlb+lXRk8aDh9x229qIf0wAdRevunZTlq+
+         rrWA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=Jjuj60NefN9MYrzAmLyfxeAMOu/07rIE9lxbN4jUnuw=;
-        b=QLNjicxGaGPfUf/vhGUjxD9kO74oE1YxoE9Qm/EoKFVqqEu2oKPG3+z8uXA8IYelQd
-         WECrc+vmUXxqCjJwCQNqPDR0bI8BDKSuo8W61hWAThT6qIMl/gV/iUGlpP0KQqwLlwOC
-         2QI6mBzCOj/Hwo8yy7eO6MorZ3Sb8716nWAVfacuBr/+OBqVmUwEiHjSxrM1OJrK6zRE
-         4AwGUAl5CeQoaXtXnlgw5uJXUSW/FBCoePJdpKfpN+kqbLWZlINEfqzZFVXCAR7KcHoc
-         LNL+x4FA4u4TuBYU5t55yuQvAY/iJrww6XlljKzisL0APlK9MuaKH0qu8b7HDTciyeg1
-         LyAA==
-X-Gm-Message-State: AOAM532iIVM3JWyoGAyQOjIAcMctb1tTW3PhX4HWded2Oljq2RLUUCu5
-        LuH3F+AqBu1uAVZRfvkA5LahfFyBozXYfQYodYzYRg==
-X-Google-Smtp-Source: ABdhPJwDpZ+9/p4oOKGuJtxoHWfiTOiV8D2U8zSRCGRIwDE4WG6nG/Su1txwC+4FnLSu0YhAuDHRt8A99HMlouZ53DY=
-X-Received: by 2002:a67:6647:: with SMTP id a68mr24506544vsc.21.1619007312890;
- Wed, 21 Apr 2021 05:15:12 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=bV2+iaLvlgLHnb19R4rIgUB8ivM93pPvuTJSfa7AbgI=;
+        b=D9bUQ2l3UgO7tm1DZlfR3qlOWkm8xj7dXXGtEtqz0IEE1l/5Ec83n0ab311aVTe26u
+         ViEv2SgpxpwwV0LPmt8nPCm9COy2vt3xMNbXN5ASD2m6MaPHyItbecFFY/Q56EK0xmgh
+         QTrgv8eMyb6p32Soj9kQKrDASNqEEB02Ucd3ttphR/n2/rFf7H2AXCSEts6tL47Y22bZ
+         khUx8pnFBlqSp2rdUR3xvuJI/BH4tyO5AmCh3aJLo6un6GBEwvaRuLeUXAo6aPgTcSnx
+         icMQpnAJMU+4hcXHl0omaOVFSt0EqYZWhue4bWaYN2flPB+YzN6xLP4EwstluH7J2+yb
+         GmKQ==
+X-Gm-Message-State: AOAM530D5tmS5TEsUNDbWEjd1YNJguPslKNiSgRN7+UOzM0Zxqhg5SSR
+        6hQL1IofglxNEsy6O2KzqBuiCsyXHuA=
+X-Google-Smtp-Source: ABdhPJySPVd6U0P9NUSv/L7Jn+1Vhfvq2VSBMPTWo7It//ZrkXlXzknjxJRQeMu/dUU8gywj8dxpHQ==
+X-Received: by 2002:a05:6402:51cd:: with SMTP id r13mr38568119edd.116.1619011214441;
+        Wed, 21 Apr 2021 06:20:14 -0700 (PDT)
+Received: from abel.fritz.box ([2a02:908:1252:fb60:6d51:959c:b29c:d1fe])
+        by smtp.gmail.com with ESMTPSA id k9sm3504463edv.69.2021.04.21.06.20.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 21 Apr 2021 06:20:13 -0700 (PDT)
+From:   "=?UTF-8?q?Christian=20K=C3=B6nig?=" 
+        <ckoenig.leichtzumerken@gmail.com>
+X-Google-Original-From: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, dri-devel@lists.freedesktop.org
+Cc:     jaharkes@cs.cmu.edu, coda@cs.cmu.edu, miklos@szeredi.hu,
+        akpm@linux-foundation.org, jgg@ziepe.ca
+Subject: [PATCH 1/2] coda: fix reference counting in coda_file_mmap error path
+Date:   Wed, 21 Apr 2021 15:20:11 +0200
+Message-Id: <20210421132012.82354-1-christian.koenig@amd.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20210420020738.201670-1-cgxu519@mykernel.net> <CAJfpegvfGAynZ1kz287eJHVRc6+81FzUwSq_V9E36qXCB7WtYQ@mail.gmail.com>
- <481e8c92-3084-f0bc-56ec-86099abfdc55@amd.com> <CAJfpegvMcitbZ=APBE7Eu4te1LR+thwH=iYrWMvqn80mFFvmLQ@mail.gmail.com>
- <0a34847c-2db0-4901-2206-7df1f348e32e@amd.com>
-In-Reply-To: <0a34847c-2db0-4901-2206-7df1f348e32e@amd.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 21 Apr 2021 14:15:01 +0200
-Message-ID: <CAJfpeguEUMz4M85mu-M6JO-z+4VJftD1Y5m0wVV5W2so_EQj6Q@mail.gmail.com>
-Subject: Re: [PATCH] ovl: restore vma->vm_file to old file
-To:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Apr 21, 2021 at 1:25 PM Christian K=C3=B6nig
-<christian.koenig@amd.com> wrote:
->
-> Am 21.04.21 um 13:14 schrieb Miklos Szeredi:
-> > On Wed, Apr 21, 2021 at 1:03 PM Christian K=C3=B6nig
-> > <christian.koenig@amd.com> wrote:
-> >> Am 21.04.21 um 11:47 schrieb Miklos Szeredi:
-> >> [SNIP]
-> >> Can you give wider context? In other words why did the patch broke the
-> >> reference counting in overlayfs?
-> > In the error case overlayfs would put the reference on realfile (which
-> > is vma->vm_file at that point) and mmap_region() would put the
-> > reference to the original file (which was vma->vm_file before being
-> > overridden).
-> >
-> > After your commit mmap_region() puts the ref on the override vm_file,
-> > but not on the original file.
->
-> Ah, of course. Double checking the mmap callback implementation of
-> overlayfs that is rather obvious.
->
-> >>> Changing refcounting rules in core kernel is no easy matter, a full
-> >>> audit of ->mmap instances (>200) should have been done beforehand.
-> >> Which is pretty much what was done, see the follow up commit:
-> >>
-> >> commit 295992fb815e791d14b18ef7cdbbaf1a76211a31 (able/vma_file)
-> >> Author: Christian K=C3=B6nig <christian.koenig@amd.com>
-> >> Date:   Mon Sep 14 15:09:33 2020 +0200
-> >>
-> >>       mm: introduce vma_set_file function v5
-> >>
-> >>       Add the new vma_set_file() function to allow changing
-> >>       vma->vm_file with the necessary refcount dance.
-> >>
-> >> It just looks like I missed the case in overlayfs while doing this.
-> > Yes.  And apparently a number of other cases where vm_file is assigned.=
-..
->
-> Yeah, I wasn't aware that filesystems do that as well and only
-> concentrated on the drivers.
->
-> Just did a "grep -R 'vm_file[[:space:]]*=3D' on the full kernel source an=
-d
-> it only showed one more case in fs/coda/file.c.
->
-> Do you see any other occurrences I potentially missed?
+mmap_region() now calls fput() on the vma->vm_file.
 
-No, the others seem to be okay.
+So we need to drop the extra reference on the coda file instead of the
+host file.
 
-Thanks,
-Miklos
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Fixes: 1527f926fd04 ("mm: mmap: fix fput in error path v2")
+CC: stable@vger.kernel.org # 5.11+
+---
+ fs/coda/file.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/fs/coda/file.c b/fs/coda/file.c
+index 128d63df5bfb..ef5ca22bfb3e 100644
+--- a/fs/coda/file.c
++++ b/fs/coda/file.c
+@@ -175,10 +175,10 @@ coda_file_mmap(struct file *coda_file, struct vm_area_struct *vma)
+ 	ret = call_mmap(vma->vm_file, vma);
+ 
+ 	if (ret) {
+-		/* if call_mmap fails, our caller will put coda_file so we
+-		 * should drop the reference to the host_file that we got.
++		/* if call_mmap fails, our caller will put host_file so we
++		 * should drop the reference to the coda_file that we got.
+ 		 */
+-		fput(host_file);
++		fput(coda_file);
+ 		kfree(cvm_ops);
+ 	} else {
+ 		/* here we add redirects for the open/close vm_operations */
+-- 
+2.25.1
+
