@@ -2,261 +2,148 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E08ECC433B4
-	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 09:03:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A436EC43460
+	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 12:40:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6DF261452
-	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 09:03:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6F29A613FB
+	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 12:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230365AbhDVJEH (ORCPT
+        id S236853AbhDVMkh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 22 Apr 2021 05:04:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49168 "EHLO
+        Thu, 22 Apr 2021 08:40:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40584 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229938AbhDVJEC (ORCPT
+        with ESMTP id S237399AbhDVMkT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Apr 2021 05:04:02 -0400
-Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F9C3C06138B
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Apr 2021 02:03:27 -0700 (PDT)
-Received: by mail-vs1-xe33.google.com with SMTP id r18so16625922vso.12
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Apr 2021 02:03:27 -0700 (PDT)
+        Thu, 22 Apr 2021 08:40:19 -0400
+Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7002EC061342;
+        Thu, 22 Apr 2021 05:39:44 -0700 (PDT)
+Received: by mail-ed1-x534.google.com with SMTP id h8so13116266edb.2;
+        Thu, 22 Apr 2021 05:39:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jkOIvdxq5FpHGptZhXhCv3A+fIf8KDwGus1f56zSjAo=;
-        b=aFZLDkWH4F2K6FRu5HB2i7UIRTLZ0gkGrGtHfyUt7228PJ+dlq12bN2GhdAwE0fucU
-         Z1blO//QhtpdjT3L97gqp3waWG+HrBA/iCOocXcdGEbI6kHNeHc+zmykPZl+LhQbvGjo
-         hxK18brtShk8VicDVZE/EsyXHVDo2Kdik2RXA=
+        d=gmail.com; s=20161025;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=/XBYAjJLx1qVHA3b0najgPrFujghsrg3OuSpsfyHHP4=;
+        b=ub6UevUX5WIjnc5xfmQaq6vLdQiQM/jYy6A76PwpHy8hflFs+jpEW34SwnK5IPGjEl
+         GT6Zxqdo5wVr3wdBkbIqyUqOwXW0tbBkz/usFLV4dWHp70M2MK9drZAaZhCQp2jmNZso
+         UKHhTJQ4ikTKayOMK58FXliLx9GjvX4MNsesAVYsZDoXkSR3Co2pSvrD6kaoo616v5CI
+         dX0rNxvf0SC6eKZMk+XncgG1k+e5mTwF2sWuD+VXlWxEvVyscxOYdQLoRK7IhZz7cxik
+         VzsBt8wLVezeNkwXAErl276mdIh0mxxSJSFIoXnC0sVmHJFwy6mjEkhpYLmxxL2Ua4Ig
+         JMqw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jkOIvdxq5FpHGptZhXhCv3A+fIf8KDwGus1f56zSjAo=;
-        b=ZLfxnu5nJIhgQri+Q4Ow802HNUysctiCE/5f8kkkBTqouGRCvsIi17j8HoZJVhoMyN
-         Vprb0J17/Bdkg42zVwvgRztJT/GvKS35x0qx1IuIvWW90uQkkn6qwWlHNJr9inGAfsRA
-         IDU/PNL1dnU6ocGwqp3/nR8BmoqeTEEhZ5h2liRdlHM3Co1RsSdPAXi1QcuwJ0hOUsul
-         ayhe1Y3AAeRkmagoEMin7NxFHOA2WBYuXto6XywiIN7dbh9TemvmG8RZOXp6POvUY4n8
-         faTVblWEJC5s6o6mz8z9B/14qtez/gdymldOggKiwgvL4XkZi40RMYbZa+GPAXsGYybi
-         qlEA==
-X-Gm-Message-State: AOAM530W9lMczoiiR0EaOyNWDB/VRVASFiUkix/bhnDrdlYG3/XGjhv/
-        SrpRDKrB0uaslZxVO3Ww1hYaXgXQpIf9htqmv0qCFg==
-X-Google-Smtp-Source: ABdhPJx2hoyiPNujGpck3t+xLYt+bZFhALFQCuDC3DQpdO8AVJOpmi7M8sesjQGMikbR49vd7sC/vVqMM/xxGTc2QYk=
-X-Received: by 2002:a67:b005:: with SMTP id z5mr1559221vse.47.1619082206128;
- Thu, 22 Apr 2021 02:03:26 -0700 (PDT)
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=/XBYAjJLx1qVHA3b0najgPrFujghsrg3OuSpsfyHHP4=;
+        b=FHvSE/ErNKWVYQcp31ywHx9Z5qyCWyEo8XlYZiKOawnpUGfdwlFhVh+gcAox3QioPc
+         5XfC6i87ksvYVZdjCAGowlGGJlNHZKRR0hqdsry8+G+yKUCJa9osahJN4S1eJVrjWcLU
+         RSJbqArG4X5yhxFzBWwyldOvzc619a0e45nsmaFj7NaFQRMmv9NkplAcQzUKK34q2tPa
+         bIsX8xIaSpjdZ9GI/3GfRhOMj3ljNlEAOvoLq7WVEmk5ZJjFlXAuh9zy1KkBW4NhEbK6
+         0XNDxYMoSGuA0TgDWXyYSfhTy0Uo4Z/3WECeDpGM3uu6cLs3C4lABA26+OQgQFHg3/xS
+         aEnw==
+X-Gm-Message-State: AOAM531nLI8kJ71RFxK+ZZLw/wso8tSwB+/Ty1ViCqSiQIvC814mfbTU
+        1xGAQOTXKyDHGh7RLln064w=
+X-Google-Smtp-Source: ABdhPJy0h2vBDFNtlTtJgHLJi2WJNAffXH4MoyYF2CIWypEpyOry+ISfMoFLwQeXV2HEScdFraYybQ==
+X-Received: by 2002:aa7:db9a:: with SMTP id u26mr3546514edt.292.1619095183258;
+        Thu, 22 Apr 2021 05:39:43 -0700 (PDT)
+Received: from ?IPv6:2a02:908:1252:fb60:2fbd:d2a4:da7e:4526? ([2a02:908:1252:fb60:2fbd:d2a4:da7e:4526])
+        by smtp.gmail.com with ESMTPSA id bw26sm1757735ejb.119.2021.04.22.05.39.42
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 22 Apr 2021 05:39:42 -0700 (PDT)
+Subject: Re: [PATCH 1/2] coda: fix reference counting in coda_file_mmap error
+ path
+To:     Jan Harkes <jaharkes@cs.cmu.edu>, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc:     coda@cs.cmu.edu, miklos@szeredi.hu, akpm@linux-foundation.org,
+        jgg@ziepe.ca
+References: <20210421132012.82354-1-christian.koenig@amd.com>
+ <91292A4A-5F97-4FF8-ABAD-42392A0756B5@cs.cmu.edu>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+Message-ID: <f603f59b-ec52-7ad7-475a-fcf95902e145@gmail.com>
+Date:   Thu, 22 Apr 2021 14:39:41 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-References: <20210421092317.68716-1-amir73il@gmail.com> <CAOQ4uxhh305WPZ-puLONej2TLQTe54-FUtrsgp2R8ohdDcNP0A@mail.gmail.com>
- <CAJfpegtoTJRnNQnttVw54pndEqrpzfxttp=NCQ_2za859fWMqA@mail.gmail.com> <CAOQ4uxgZemF+wYzorW8s2+4=1dRds3EKkKBs=bybdhrTC-QMJg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgZemF+wYzorW8s2+4=1dRds3EKkKBs=bybdhrTC-QMJg@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 22 Apr 2021 11:03:15 +0200
-Message-ID: <CAJfpeguOFM=CKtxH537BhGjMufNK6aVTUfV_opn81vw1m8iaZw@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Test overlayfs readdir cache
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        fstests <fstests@vger.kernel.org>, Eryu Guan <guaneryu@gmail.com>
-Content-Type: multipart/mixed; boundary="000000000000c2f54905c08bf388"
+In-Reply-To: <91292A4A-5F97-4FF8-ABAD-42392A0756B5@cs.cmu.edu>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
---000000000000c2f54905c08bf388
-Content-Type: text/plain; charset="UTF-8"
+Hi Jan,
 
-On Thu, Apr 22, 2021 at 10:47 AM Amir Goldstein <amir73il@gmail.com> wrote:
+Am 22.04.21 um 14:27 schrieb Jan Harkes:
+> Looks good to me.
 >
-> On Thu, Apr 22, 2021 at 10:53 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Thu, Apr 22, 2021 at 8:18 AM Amir Goldstein <amir73il@gmail.com> wrote:
-> > >
-> > > On Wed, Apr 21, 2021 at 12:23 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> > > >
-> > > > Eryu,
-> > > >
-> > > > This extends the generic t_dir_offset2 test to verify
-> > > > some more test cases and adds a new generic test which
-> > > > passes on overlayfs (and other fs) on upstream kernel.
-> > > >
-> > > > The overlayfs specific test fails on upstream kernel
-> > > > and the fix commit is currently in linux-next.
-> > > > As usual, you may want to wait with merging until the fix
-> > > > commit hits upstream.
-> > > >
-> > > > Miklos,
-> > > >
-> > > > I had noticed in the test full logs that readdir of
-> > > > a merged dir behaves strangely - when seeking backwards
-> > > > to offsets > 0, readdir returns unlinked entries in results.
-> > > > The test does not fail on that behavior because the test
-> > > > only asserts that this is not allowed after seek to offset 0.
-> > > >
-> > > > Knowing the implementation of overlayfs readdir cache this is
-> > > > not surprising to me, but I wonder if this behavior is POSIX
-> > > > compliant, and if not, whether we should document it and/or
-> > > > add a failing test for it.
-> > > >
-> > >
-> > > I think the outcome could be worse.
-> > > If a copied up entry is unlinked after populating the dir cache
-> > > but before ovl_cache_update_ino() then ovl_cache_update_ino()
-> > > and subsequently the getdents call will fail with ENOENT.
-> > >
-> > > This test is not smart enough to cover this case (if it really exists).
-> > > I think we need to relax the case of negative lookup result in
-> > > ovl_cache_update_ino() and just set p->whiteout without and
-> > > continue with no error.
-> > >
-> > > This can solve several test cases.
-> > > In principle, we can "semi-reset" the merge dir cache if the dir was
-> > > modified after every seek, not just seek to 0.
-> > > By "semi-reset" I mean use the list, but force ovl_cache_update_ino()
-> > > to all upper entries, similar to ovl_dir_read_impure().
-> > >
-> > > OR.. we can just do that unconditionally in ovl_iterate().
-> > > The ovl dentry cache for the children will be populated after the first
-> > > ovl_iterate() anyway, so maybe the penalty is not so bad?
-> >
-> > POSIX does allow stale readdir data (not just in case of non-zero seek):
-> >
-> > "If a file is removed from or added to the directory after the most
-> > recent call to opendir() or rewinddir(), whether a subsequent call to
-> > readdir() returns an entry for that file is unspecified."
-> >
-> > If you think about the way readdir(3) is implemented by the libc, this
-> > is inevitable.
+> I'm also maintaining an out of tree coda module build that people sometimes use, which has workarounds for differences between the various kernel versions.
 >
-> I see. In that case, I would defer merging this test as it assumes too much
-> about readdir behavior (even though applications may expect this behavior).
+> Do you have a reference to the corresponding mmap_region change? If it is merged already I'll probably be able to find it. Is this mmap_region change expected to be backported to any lts kernels?
 
-FWIW, I started writing a readdir stress/validator similar to
-fsx-linux but for directories.
+That is the following upstream commit in Linus tree:
 
-It's unfinished and  has performance problem as the directory grows
-due to linear searches.
+commit 1527f926fd04490f648c42f42b45218a04754f87
+Author: Christian König <christian.koenig@amd.com>
+Date:   Fri Oct 9 15:08:55 2020 +0200
 
-Putting it out in case someone wants to continue working on it, or
-just take some ideas.
+     mm: mmap: fix fput in error path v2
+
+But I don't think we should backport that.
+
+And sorry for the noise. We had so many places which expected different 
+behavior that I didn't noticed that two occasions in the fs code 
+actually rely on the current behavior.
+
+For your out of tree module you could make the code version independent 
+by setting the vma back to the original file in case of an error. That 
+should work with both behaviors in mmap_region.
 
 Thanks,
-Miklos
+Christian.
 
---000000000000c2f54905c08bf388
-Content-Type: text/x-csrc; charset="US-ASCII"; name="readdir-stress.c"
-Content-Disposition: attachment; filename="readdir-stress.c"
-Content-Transfer-Encoding: base64
-Content-ID: <f_knsnp71v0>
-X-Attachment-Id: f_knsnp71v0
+>
+> Jan
+>
+> On April 21, 2021 9:20:11 AM EDT, "Christian König" <ckoenig.leichtzumerken@gmail.com> wrote:
+>> mmap_region() now calls fput() on the vma->vm_file.
+>>
+>> So we need to drop the extra reference on the coda file instead of the
+>> host file.
+>>
+>> Signed-off-by: Christian König <christian.koenig@amd.com>
+>> Fixes: 1527f926fd04 ("mm: mmap: fix fput in error path v2")
+>> CC: stable@vger.kernel.org # 5.11+
+>> ---
+>> fs/coda/file.c | 6 +++---
+>> 1 file changed, 3 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/fs/coda/file.c b/fs/coda/file.c
+>> index 128d63df5bfb..ef5ca22bfb3e 100644
+>> --- a/fs/coda/file.c
+>> +++ b/fs/coda/file.c
+>> @@ -175,10 +175,10 @@ coda_file_mmap(struct file *coda_file, struct
+>> vm_area_struct *vma)
+>> 	ret = call_mmap(vma->vm_file, vma);
+>>
+>> 	if (ret) {
+>> -		/* if call_mmap fails, our caller will put coda_file so we
+>> -		 * should drop the reference to the host_file that we got.
+>> +		/* if call_mmap fails, our caller will put host_file so we
+>> +		 * should drop the reference to the coda_file that we got.
+>> 		 */
+>> -		fput(host_file);
+>> +		fput(coda_file);
+>> 		kfree(cvm_ops);
+>> 	} else {
+>> 		/* here we add redirects for the open/close vm_operations */
 
-LyoKICogQ29weXJpZ2h0IChDKSAyMDIxIE1pa2xvcyBTemVyZWRpIDxtaWtsb3NAc3plcmVkaS5o
-dT4KICoKICogVGhpcyBwcm9ncmFtIGNhbiBiZSBkaXN0cmlidXRlZCB1bmRlciB0aGUgdGVybXMg
-b2YgdGhlIEdOVSBHUEx2Mi4KICovCgojaW5jbHVkZSA8c3RkaW8uaD4KI2luY2x1ZGUgPHVuaXN0
-ZC5oPgojaW5jbHVkZSA8c3RkaW50Lmg+CiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUgPGZj
-bnRsLmg+CiNpbmNsdWRlIDxkaXJlbnQuaD4KI2luY2x1ZGUgPHN0cmluZy5oPgojaW5jbHVkZSA8
-ZXJyLmg+CiNpbmNsdWRlIDxzeXMvc3RhdC5oPgojaW5jbHVkZSA8c3lzL3N5c2NhbGwuaD4KCnN0
-cnVjdCBsaW51eF9kaXJlbnQ2NCB7Cgl1aW50NjRfdAlkX2lubzsKCWludDY0X3QJCWRfb2ZmOwoJ
-dW5zaWduZWQgc2hvcnQJZF9yZWNsZW47Cgl1bnNpZ25lZCBjaGFyCWRfdHlwZTsKCWNoYXIJCWRf
-bmFtZVswXTsKfTsKCnN0cnVjdCBlbnRyeSB7CgljaGFyICpuYW1lOwoJdW5zaWduZWQgY2hhciB0
-eXBlOwoJaW5vX3QgaW5vOwoJaW50IGFkZF92ZXI7CglpbnQgZGVsX3ZlcjsKfTsKCnN0cnVjdCBs
-aXN0X2VudHJ5IHsKCWNoYXIgKm5hbWU7Cgl1aW50NjRfdCBpbm87CglpbnQ2NF90IG9mZjsKCXVu
-c2lnbmVkIGNoYXIgdHlwZTsKCWludCB2ZXJzaW9uOwoKCXN0cnVjdCBsaXN0X2VudHJ5ICpuZXh0
-Owp9OwoKc3RydWN0IGRpciB7CglpbnQgZmQ7CglvZmZfdCBwb3M7CglpbnQgdmVyc2lvbjsKCXN0
-cnVjdCBsaXN0X2VudHJ5ICpsaXN0Owp9OwoKc3RhdGljIHN0cnVjdCBkaXIgZ2xvYmFsX2RpcjsK
-CnN0YXRpYyBpbnQgdmVyc2lvbiA9IDE7CnN0YXRpYyB1bnNpZ25lZCBpbnQgbnVtID0gMDsKc3Rh
-dGljIHVuc2lnbmVkIGludCBudW1fYWN0aXZlID0gMDsKc3RhdGljIHN0cnVjdCBlbnRyeSAqYXJy
-YXkgPSBOVUxMOwoKc3RhdGljIHZvaWQgKm9vbSh2b2lkICpwdHIpCnsKCWlmICghcHRyKQoJCWVy
-cngoMSwgIm91dCBvZiBtZW1vcnkiKTsKCXJldHVybiBwdHI7Cn0KCnN0YXRpYyB2b2lkIGFkZF9l
-bnRyeShjaGFyICpuYW1lLCB1bnNpZ25lZCBjaGFyIHR5cGUpCnsKCXN0cnVjdCBzdGF0IHN0OwoJ
-aW50IHJlczsKCglyZXMgPSBsc3RhdChuYW1lLCAmc3QpOwoJaWYgKHJlcyA9PSAtMSkKCQllcnIo
-MSwgImZhaWxlZCB0byBzdGF0IDwlcz4iLCBuYW1lKTsKCglhcnJheSA9IG9vbShyZWFsbG9jKGFy
-cmF5LCAobnVtICsgMSkgKiBzaXplb2YoKmFycmF5KSkpOwoKCWFycmF5W251bV0ubmFtZSA9IG9v
-bShzdHJkdXAobmFtZSkpOwoKCWFycmF5W251bV0udHlwZSA9IHR5cGU7CglhcnJheVtudW1dLmlu
-byA9IHN0LnN0X2lubzsKCXZlcnNpb24rKzsKCWFycmF5W251bV0uYWRkX3ZlciA9IHZlcnNpb247
-CglhcnJheVtudW1dLmRlbF92ZXIgPSAwOwoJbnVtKys7CgludW1fYWN0aXZlKys7Cn0KCnN0YXRp
-YyBpbnQgY3JlYXRlX2VudHJ5KHZvaWQpCnsKCXVuc2lnbmVkIGNoYXIgdHlwZTsKCXVuc2lnbmVk
-IGludCBuYW1lbGVuOwoJdW5zaWduZWQgaW50IGk7CgljaGFyIG5hbWVbMjU2XTsKCW1vZGVfdCBt
-b2RlOwoJaW50IHJlczsKCgl0eXBlID0gKHJhbmRvbSgpICUgNykgKiAyOwoJaWYgKCF0eXBlKQoJ
-CXR5cGUgPSAxOwoKCWlmICh0eXBlID09IERUX0NIUiB8fCB0eXBlID09IERUX0JMSykKCQl0eXBl
-ID0gRFRfUkVHOwoKCW1vZGUgPSB0eXBlIDw8IDEyIHwgMDY2NjsKCnJldHJ5OgoJbmFtZWxlbiA9
-IChyYW5kb20oKSAlIDEwKSA/IChyYW5kb20oKSAlIDMyICsgMSkgOiAocmFuZG9tKCkgJSAyMjIg
-KyAzMyk7Ci8vCW5hbWVsZW4gPSByYW5kb20oKSAlIDMwICsgMTsKCglmb3IgKGkgPSAwOyBpIDwg
-bmFtZWxlbjsgaSsrKSB7CgkJdW5zaWduZWQgY2hhciBjOwoKCQljID0gcmFuZG9tKCkgJSA5NCAr
-IDMyOwoJCWlmIChjID49ICcvJykKCQkJYysrOwoJCW5hbWVbaV0gPSBjOwoJfQoJbmFtZVtuYW1l
-bGVuXSA9ICdcMCc7CgoJaWYgKHN0cmNtcChuYW1lLCAiLiIpID09IDAgfHwgc3RyY21wKG5hbWUs
-ICIuLiIpID09IDApCgkJZ290byByZXRyeTsKCglmb3IgKGkgPSAwOyBpIDwgbnVtOyBpKyspIHsK
-CQlpZiAoc3RyY21wKG5hbWUsIGFycmF5W2ldLm5hbWUpID09IDApCgkJCWdvdG8gcmV0cnk7Cgl9
-CgoJaWYgKFNfSVNESVIobW9kZSkpCgkJcmVzID0gbWtkaXIobmFtZSwgMDc3Nyk7CgllbHNlIGlm
-IChTX0lTTE5LKG1vZGUpKQoJCXJlcyA9IHN5bWxpbmsoInRhcmdldCIsIG5hbWUpOwoJZWxzZQoJ
-CXJlcyA9IG1rbm9kKG5hbWUsIG1vZGUsIDEpOwoKCWlmIChyZXMgPT0gLTEpCgkJZXJyKDEsICJm
-YWlsZWQgdG8gY3JlYXRlIFwiJXNcIiwgbW9kZSAwJW8iLCBuYW1lLCBtb2RlKTsKCglhZGRfZW50
-cnkobmFtZSwgdHlwZSk7CgoJcmV0dXJuIDA7Cn0KCnN0YXRpYyBpbnQgcmVtb3ZlX2VudHJ5KHZv
-aWQpCnsKCXVuc2lnbmVkIGludCBpOwoJc3RydWN0IGVudHJ5ICp4OwoJaW50IHJlczsKCglpZiAo
-IW51bV9hY3RpdmUpCgkJcmV0dXJuIDA7CnJldHJ5OgoJaSA9IHJhbmRvbSgpICUgbnVtOwoJeCA9
-ICZhcnJheVtpXTsKCWlmICh4LT5kZWxfdmVyKQoJCWdvdG8gcmV0cnk7CgoJaWYgKHgtPnR5cGUg
-PT0gRFRfRElSKQoJCXJlcyA9IHJtZGlyKHgtPm5hbWUpOwoJZWxzZQoJCXJlcyA9IHVubGluayh4
-LT5uYW1lKTsKCWlmIChyZXMgPT0gLTEpCgkJZXJyKDEsICJmYWlsZWQgdG8gcmVtb3ZlIFwiJXNc
-IiIsIHgtPm5hbWUpOwoKCXZlcnNpb24rKzsKCXgtPmRlbF92ZXIgPSB2ZXJzaW9uOwoJbnVtX2Fj
-dGl2ZS0tOwoKCXJldHVybiAwOwp9CgpzdGF0aWMgdm9pZCBhZGRfbGlzdF9lbnRyeShzdHJ1Y3Qg
-ZGlyICpkaXIsIHN0cnVjdCBsaXN0X2VudHJ5ICplbnQpCnsKCXN0cnVjdCBsaXN0X2VudHJ5ICoq
-cHA7CgoJZm9yIChwcCA9ICZkaXItPmxpc3Q7ICpwcCAhPSBOVUxMOyBwcCA9ICYoKnBwKS0+bmV4
-dCkgewoJCXN0cnVjdCBsaXN0X2VudHJ5ICpwID0gKnBwOwoKCQlpZiAoZW50LT5vZmYgPT0gcC0+
-b2ZmKQoJCQllcnJ4KDEsICJ0d28gZW50cmllcyBoYXZlIHRoZSBzYW1lIG9mZnNldDogJWxpIiwK
-CQkJCWVudC0+b2ZmKTsKCQlpZiAoc3RyY21wKGVudC0+bmFtZSwgcC0+bmFtZSkgPT0gMCkKCQkJ
-ZXJyeCgxLCAidHdvIGVudHJpZXMgaGF2ZSB0aGUgc2FtZSBuYW1lIik7Cgl9CgkqcHAgPSBlbnQ7
-Cn0KCnN0YXRpYyB2b2lkIGNoZWNrX2VudHJ5KHN0cnVjdCBkaXIgKmRpciwgc3RydWN0IGxpc3Rf
-ZW50cnkgKmVudCkKewoJdW5zaWduZWQgaW50IGk7CgoJaWYgKHN0cmNtcChlbnQtPm5hbWUsICIu
-IikgPT0gMCB8fCBzdHJjbXAoZW50LT5uYW1lLCAiLi4iKSA9PSAwKQoJCXJldHVybjsKCglmb3Ig
-KGkgPSAwOyBpIDwgbnVtOyBpKyspIHsKCQlzdHJ1Y3QgZW50cnkgKnggPSAmYXJyYXlbaV07CgoJ
-CWlmIChzdHJjbXAoZW50LT5uYW1lLCB4LT5uYW1lKSA9PSAwICYmCgkJICAgICgheC0+ZGVsX3Zl
-ciB8fCB4LT5kZWxfdmVyID4gZGlyLT52ZXJzaW9uKSkgewoJCQlyZXR1cm47CgkJfQoJfQoJZXJy
-eCgxLCAidW5rbm93biBlbnRyeSByZXR1cm5lZCBieSBnZXRkZW50czY0KCkgXCIlc1wiIiwgZW50
-LT5uYW1lKTsKfQoKc3RhdGljIHZvaWQgY2hlY2tfY29tcGxldGUoc3RydWN0IGRpciAqZGlyKQp7
-Cgl1bnNpZ25lZCBpbnQgaTsKCglmb3IgKGkgPSAwOyBpIDwgbnVtOyBpKyspIHsKCQlzdHJ1Y3Qg
-ZW50cnkgKnggPSAmYXJyYXlbaV07CgoJCWlmICh4LT5hZGRfdmVyIDw9IGRpci0+dmVyc2lvbiAm
-JiAheC0+ZGVsX3ZlcikgewoJCQlzdHJ1Y3QgbGlzdF9lbnRyeSAqcDsKCgkJCWZvciAocCA9IGRp
-ci0+bGlzdDsgcDsgcCA9IHAtPm5leHQpIHsKCQkJCWlmIChzdHJjbXAoeC0+bmFtZSwgcC0+bmFt
-ZSkgPT0gMCkKCQkJCQlicmVhazsKCQkJfQoJCQlpZiAoIXApIHsKCQkJCWVycngoMSwgIlwiJXNc
-IiBub3QgZm91bmQgaW4gY29tcGxldGUgbGlzdGluZyIsCgkJCQkgICAgIHgtPm5hbWUpOwoJCQl9
-CgkJfQoJfQp9CgpzdGF0aWMgaW50IHJlYWRfZGlyKHN0cnVjdCBkaXIgKmRpcikKewoJY2hhciBi
-dWZbNjU1MzZdOwoJdW5zaWduZWQgaW50IHNpemUgPSByYW5kb20oKSAlIChzaXplb2YoYnVmKSAt
-IDUxMikgKyA1MTI7CglpbnQgcmVzOwoJaW50IG5yZWFkOwoJc3RydWN0IGxpbnV4X2RpcmVudDY0
-ICpkOwoJc3RydWN0IGxpc3RfZW50cnkgKmVudDsKCWludCBicG9zOwoJaW50IHZlcnNpb24gPSB2
-ZXJzaW9uOwoKCXJlcyA9IHN5c2NhbGwoU1lTX2dldGRlbnRzNjQsIGRpci0+ZmQsIGJ1Ziwgc2l6
-ZSk7CglpZiAocmVzID09IC0xKQoJCWVycigxLCAiZ2V0ZGVudHM2NCglaSwgJXAsICV1KSIsIGRp
-ci0+ZmQsIGJ1Ziwgc2l6ZSk7CglucmVhZCA9IHJlczsKCglpZiAobnJlYWQgPT0gMCkgewoJCWNo
-ZWNrX2NvbXBsZXRlKGRpcik7CgkJcmV0dXJuIDA7Cgl9CgoJZm9yIChicG9zID0gMDsgYnBvcyA8
-IG5yZWFkOyApIHsKCQlkID0gKHN0cnVjdCBsaW51eF9kaXJlbnQ2NCAqKSAoYnVmICsgYnBvcyk7
-CgoJCWVudCA9IG9vbShjYWxsb2MoMSwgc2l6ZW9mKCplbnQpKSk7CgkJZW50LT5uYW1lID0gb29t
-KHN0cmR1cChkLT5kX25hbWUpKTsKCQllbnQtPmlubyA9IGQtPmRfaW5vOwoJCWVudC0+dHlwZSA9
-IGQtPmRfdHlwZTsKCQllbnQtPm9mZiA9IGRpci0+cG9zOwoJCWVudC0+dmVyc2lvbiA9IHZlcnNp
-b247CgkJZGlyLT5wb3MgPSBkLT5kX29mZjsKCgkJY2hlY2tfZW50cnkoZGlyLCBlbnQpOwoKCQlh
-ZGRfbGlzdF9lbnRyeShkaXIsIGVudCk7CgoJCWJwb3MgKz0gZC0+ZF9yZWNsZW47Cgl9CglpZiAo
-YnBvcyAhPSBucmVhZCkKCQllcnJ4KDEsICJpbnZhbGlkIHJlYWRkaXIgbGVuZ3RoIik7CgoJcmV0
-dXJuIDA7Cn0KCnN0YXRpYyBpbnQgc2Vla19kaXIoc3RydWN0IGRpciAqZGlyKQp7CglvZmZfdCBy
-ZXM7CglzdHJ1Y3QgbGlzdF9lbnRyeSAqcCwgKm5leHQ7CgoJZGlyLT52ZXJzaW9uID0gdmVyc2lv
-bjsKCglyZXMgPSBsc2VlayhkaXItPmZkLCAwLCBTRUVLX1NFVCk7CglpZiAocmVzID09IChvZmZf
-dCkgLTEpCgkJZXJyKDEsICJyZXdpbmQiKTsKCglmb3IgKHAgPSBkaXItPmxpc3Q7IHA7IHAgPSBu
-ZXh0KSB7CgkJbmV4dCA9IHAtPm5leHQ7CgkJZnJlZShwLT5uYW1lKTsKCQlmcmVlKHApOwoJfQoJ
-ZGlyLT5saXN0ID0gTlVMTDsKCWRpci0+cG9zID0gMDsKCglyZXR1cm4gMDsKfQoKc3RhdGljIGlu
-dCBvbmUodm9pZCkKewoJc3dpdGNoIChyYW5kb20oKSAlIDEwKSB7CgljYXNlIDA6CgljYXNlIDE6
-CgkJcmV0dXJuIGNyZWF0ZV9lbnRyeSgpOwoJY2FzZSAyOgoJCXJldHVybiByZW1vdmVfZW50cnko
-KTsKCWNhc2UgMzoKCWNhc2UgNDoKCWNhc2UgNToKCWNhc2UgNjoKCWNhc2UgNzoKCWNhc2UgODoK
-CQlyZXR1cm4gcmVhZF9kaXIoJmdsb2JhbF9kaXIpOwoJY2FzZSA5OgoJCXJldHVybiBzZWVrX2Rp
-cigmZ2xvYmFsX2Rpcik7Cgl9CgllcnJ4KDEsICJ1bnJlYWNoYWJsZSIpOwp9CgpzdGF0aWMgaW50
-IHJ1bih1bnNpZ25lZCBpbnQgaXRlcnMpCnsKCXVuc2lnbmVkIGludCBpOwoJaW50IHJlcyA9IDA7
-CgoJc3JhbmRvbSgxKTsKCglnbG9iYWxfZGlyLnZlcnNpb24gPSB2ZXJzaW9uOwoJZ2xvYmFsX2Rp
-ci5mZCA9IG9wZW4oIi4iLCBPX1JET05MWSB8IE9fRElSRUNUT1JZKTsKCWlmIChnbG9iYWxfZGly
-LmZkID09IC0xKQoJCWVycigxLCAiZmFpbGVkIHRvIG9wZW4gXCIuXCIiKTsKCglmb3IgKGkgPSAw
-OyBpIDwgaXRlcnM7IGkrKykgewoJCWlmIChpICUgMTAwID09IDEpCgkJCXByaW50ZigiWyVpXSB0
-b3RhbCBlbnRyaWVzOiAldSBhY3RpdmUgZW50cmllczogJXVcbiIsCgkJCSAgICAgICBpLCBudW0s
-IG51bV9hY3RpdmUpOwoJCXJlcyA9IG9uZSgpOwoJCWlmIChyZXMpCgkJCWJyZWFrOwoJfQoKCWNs
-b3NlKGdsb2JhbF9kaXIuZmQpOwoKCXJldHVybiByZXM7Cn0KCmludCBtYWluKGludCBhcmdjLCBj
-aGFyICphcmd2W10pCnsKCWNoYXIgKnRlc3RkaXIgPSBhcmd2WzFdOwoJaW50IHJlczsKCglpZiAo
-YXJnYyA8IDIpCgkJZXJyeCgxLCAidXNhZ2U6ICVzIHRlc3RfZGlyZWN0b3J5IiwgYXJndlswXSk7
-CgoJcmVzID0gY2hkaXIodGVzdGRpcik7CglpZiAocmVzID09IC0xKQoJCWVycigxLCAiY2hkaXIo
-JXMpIiwgdGVzdGRpcik7CgoKCXJldHVybiBydW4oMTAwMDAwMCk7Cn0K
---000000000000c2f54905c08bf388--
