@@ -2,131 +2,130 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABA6AC43460
-	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 07:53:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A62DC433ED
+	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 08:11:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 845796145C
-	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 07:53:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E7BE6144A
+	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Apr 2021 08:11:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235160AbhDVHx7 (ORCPT
+        id S235345AbhDVIMP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 22 Apr 2021 03:53:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33372 "EHLO
+        Thu, 22 Apr 2021 04:12:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235156AbhDVHx6 (ORCPT
+        with ESMTP id S235331AbhDVIMO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Apr 2021 03:53:58 -0400
-Received: from mail-vk1-xa2f.google.com (mail-vk1-xa2f.google.com [IPv6:2607:f8b0:4864:20::a2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BC93C06138B
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Apr 2021 00:53:22 -0700 (PDT)
-Received: by mail-vk1-xa2f.google.com with SMTP id h130so4373226vkh.11
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Apr 2021 00:53:21 -0700 (PDT)
+        Thu, 22 Apr 2021 04:12:14 -0400
+Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 772A3C06174A
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Apr 2021 01:11:39 -0700 (PDT)
+Received: by mail-wm1-x32b.google.com with SMTP id z6so5781274wmg.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Apr 2021 01:11:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=f3L6OFLFVKmSBwUD5MZIeckeBluD+yaeY0hIVTa96o4=;
-        b=FShTQqsOWV+L7QsQLW+wve3/xiQ5YVx0WCBJxz9jHSj+ZUK6uYKlC8lZXB3qtGJqD7
-         z2u+CGKUeKClPYzKFOg9hgKczHGN14ZNBETaznJlf9aZjnBVx2WymvvAh5Mefl4HWSDT
-         ZxC5SMxcr9GJFJuV9hn2iMok1QxC4LlKPYM6o=
+        d=ffwll.ch; s=google;
+        h=date:from:to:cc:subject:message-id:mail-followup-to:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=YzUSYaOgN9hxojeW0mU7pzbBG2m7ss1xHFD86VpZnFw=;
+        b=SQBU2KUkg8eg+N+tMN7haZLLtl7EyaXi5aA3ujHphx/jCYBCM14EfIxYNwUyfBHKb4
+         snU8IimoDnaoZJp5mAhiDqj430JufITSFQ4+HLTMZ3NXHi3TPOIkxL3m6gWEwikhLUrz
+         t3K6p6XAEM+uZ19sV6Ln7bgwAmV/FiGMvgtls=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=f3L6OFLFVKmSBwUD5MZIeckeBluD+yaeY0hIVTa96o4=;
-        b=BgHJbyHL/aPj9k3UVosiDGwygW39h5wfKE5f4URXLBSDC7i9cN7otYtKzPFRmfmMfR
-         OVdES65iLeGhNCzEyke5OIgY8V3cCilYTVjnlEOIpGMXWb8ZkDTYr6E14CEwFIQEYxDr
-         vcyAbWpBViCY1URe3FtZeLDCfS85Q+haqvkZAkWsAhrPYdEJcOqZnhIYBFE0ynas6/iR
-         kQYezrVesFk7rjnFCPIDN3mkWSYlPByTZdePCeFdeItt2DcjwlOJlIbWGZH2XwtNNuNk
-         nzpMQKzP+0yby1JVzPWIxWKGawE43E3RDtVDvq0xLvVP2UpkCmw2NzsOHHOlFJwAw11A
-         22PA==
-X-Gm-Message-State: AOAM530XFlhAH6xC+Nz0lInsA0JrkhwlqhiXtJMo37Miz7s/GeAQlnyS
-        9ooX7ZIzHPV5n3SJ3Jy+8WhwhUBQlrGVpAecF6J0MA==
-X-Google-Smtp-Source: ABdhPJzKuU3DSytjKjNvR7vWTl2gVbBxnWaI5urjwTPTuJe0j985K2xEBgQQZtAlxyox/2CD48Q3bcarvYpExGLow8w=
-X-Received: by 2002:ac5:cb50:: with SMTP id s16mr1320490vkl.14.1619077999544;
- Thu, 22 Apr 2021 00:53:19 -0700 (PDT)
+        h=x-gm-message-state:date:from:to:cc:subject:message-id
+         :mail-followup-to:references:mime-version:content-disposition
+         :content-transfer-encoding:in-reply-to;
+        bh=YzUSYaOgN9hxojeW0mU7pzbBG2m7ss1xHFD86VpZnFw=;
+        b=byjN34gvvaYCKRvTuTX2W9XS7LHidAosQvKLh6Ogtwkv0eccXBP+3ai6tkG9NJYnUC
+         wa9pw9KqbMrIeV9A3eZKnn+NuOz4rjbXd5rUaX+2mYoHRtWy3im+4/ElQdcPAlUX7IBS
+         3MtrReNTsniIytfYftQVXgIXftj4FxnQaEPf2qDpBqojbVOqD44uztlcl2Rew1iH6TVO
+         Dem29LvEUq9Ww98Z3qgB4rpF8aavuoJ2pVUfxKzT+fzb2ubgl73W5S3QMHnJEXYDonep
+         yAt4KjV9Sk50ZFdYXT0WPC22y/JqS4swEc9WD9VtBI711EU2DZsP9E7HxGDRyqyofpxd
+         13rA==
+X-Gm-Message-State: AOAM531AEn/6pRgAy/qEcEUNUnEwgMmht9wDqHKfNJevyJ0VxwU4ofOu
+        O8/8ede+dZLS/eC2LuYEWTx6kA==
+X-Google-Smtp-Source: ABdhPJzQpl8oyp8JKOUGIeroE+P/ggioIzwSyjJLJwYdLC/3EQSRErDjzwQT8eDoqpZqalDMXfPETw==
+X-Received: by 2002:a1c:1dd0:: with SMTP id d199mr2436011wmd.54.1619079098208;
+        Thu, 22 Apr 2021 01:11:38 -0700 (PDT)
+Received: from phenom.ffwll.local ([2a02:168:57f4:0:efd0:b9e5:5ae6:c2fa])
+        by smtp.gmail.com with ESMTPSA id l20sm2249188wmg.33.2021.04.22.01.11.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 22 Apr 2021 01:11:37 -0700 (PDT)
+Date:   Thu, 22 Apr 2021 10:11:35 +0200
+From:   Daniel Vetter <daniel@ffwll.ch>
+To:     Christian =?iso-8859-1?Q?K=F6nig?= 
+        <ckoenig.leichtzumerken@gmail.com>
+Cc:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, dri-devel@lists.freedesktop.org,
+        jgg@ziepe.ca, jaharkes@cs.cmu.edu, akpm@linux-foundation.org,
+        miklos@szeredi.hu, coda@cs.cmu.edu
+Subject: Re: [PATCH 1/2] coda: fix reference counting in coda_file_mmap error
+ path
+Message-ID: <YIEvt01bQkKhxDSJ@phenom.ffwll.local>
+Mail-Followup-To: Christian =?iso-8859-1?Q?K=F6nig?= <ckoenig.leichtzumerken@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, dri-devel@lists.freedesktop.org,
+        jgg@ziepe.ca, jaharkes@cs.cmu.edu, akpm@linux-foundation.org,
+        miklos@szeredi.hu, coda@cs.cmu.edu
+References: <20210421132012.82354-1-christian.koenig@amd.com>
 MIME-Version: 1.0
-References: <20210421092317.68716-1-amir73il@gmail.com> <CAOQ4uxhh305WPZ-puLONej2TLQTe54-FUtrsgp2R8ohdDcNP0A@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhh305WPZ-puLONej2TLQTe54-FUtrsgp2R8ohdDcNP0A@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 22 Apr 2021 09:53:08 +0200
-Message-ID: <CAJfpegtoTJRnNQnttVw54pndEqrpzfxttp=NCQ_2za859fWMqA@mail.gmail.com>
-Subject: Re: [PATCH 0/2] Test overlayfs readdir cache
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        fstests <fstests@vger.kernel.org>, Eryu Guan <guaneryu@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20210421132012.82354-1-christian.koenig@amd.com>
+X-Operating-System: Linux phenom 5.7.0-1-amd64 
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 22, 2021 at 8:18 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Wed, Apr 21, 2021 at 12:23 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > Eryu,
-> >
-> > This extends the generic t_dir_offset2 test to verify
-> > some more test cases and adds a new generic test which
-> > passes on overlayfs (and other fs) on upstream kernel.
-> >
-> > The overlayfs specific test fails on upstream kernel
-> > and the fix commit is currently in linux-next.
-> > As usual, you may want to wait with merging until the fix
-> > commit hits upstream.
-> >
-> > Miklos,
-> >
-> > I had noticed in the test full logs that readdir of
-> > a merged dir behaves strangely - when seeking backwards
-> > to offsets > 0, readdir returns unlinked entries in results.
-> > The test does not fail on that behavior because the test
-> > only asserts that this is not allowed after seek to offset 0.
-> >
-> > Knowing the implementation of overlayfs readdir cache this is
-> > not surprising to me, but I wonder if this behavior is POSIX
-> > compliant, and if not, whether we should document it and/or
-> > add a failing test for it.
-> >
->
-> I think the outcome could be worse.
-> If a copied up entry is unlinked after populating the dir cache
-> but before ovl_cache_update_ino() then ovl_cache_update_ino()
-> and subsequently the getdents call will fail with ENOENT.
->
-> This test is not smart enough to cover this case (if it really exists).
-> I think we need to relax the case of negative lookup result in
-> ovl_cache_update_ino() and just set p->whiteout without and
-> continue with no error.
->
-> This can solve several test cases.
-> In principle, we can "semi-reset" the merge dir cache if the dir was
-> modified after every seek, not just seek to 0.
-> By "semi-reset" I mean use the list, but force ovl_cache_update_ino()
-> to all upper entries, similar to ovl_dir_read_impure().
->
-> OR.. we can just do that unconditionally in ovl_iterate().
-> The ovl dentry cache for the children will be populated after the first
-> ovl_iterate() anyway, so maybe the penalty is not so bad?
+On Wed, Apr 21, 2021 at 03:20:11PM +0200, Christian König wrote:
+> mmap_region() now calls fput() on the vma->vm_file.
+> 
+> So we need to drop the extra reference on the coda file instead of the
+> host file.
+> 
+> Signed-off-by: Christian König <christian.koenig@amd.com>
+> Fixes: 1527f926fd04 ("mm: mmap: fix fput in error path v2")
+> CC: stable@vger.kernel.org # 5.11+
 
-POSIX does allow stale readdir data (not just in case of non-zero seek):
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-"If a file is removed from or added to the directory after the most
-recent call to opendir() or rewinddir(), whether a subsequent call to
-readdir() returns an entry for that file is unspecified."
+> ---
+>  fs/coda/file.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/fs/coda/file.c b/fs/coda/file.c
+> index 128d63df5bfb..ef5ca22bfb3e 100644
+> --- a/fs/coda/file.c
+> +++ b/fs/coda/file.c
+> @@ -175,10 +175,10 @@ coda_file_mmap(struct file *coda_file, struct vm_area_struct *vma)
+>  	ret = call_mmap(vma->vm_file, vma);
+>  
+>  	if (ret) {
+> -		/* if call_mmap fails, our caller will put coda_file so we
+> -		 * should drop the reference to the host_file that we got.
+> +		/* if call_mmap fails, our caller will put host_file so we
+> +		 * should drop the reference to the coda_file that we got.
+>  		 */
+> -		fput(host_file);
+> +		fput(coda_file);
+>  		kfree(cvm_ops);
+>  	} else {
+>  		/* here we add redirects for the open/close vm_operations */
+> -- 
+> 2.25.1
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
-If you think about the way readdir(3) is implemented by the libc, this
-is inevitable.
-
-Returning ENOENT from readdir(3) is obviously a bug.
-
-The merge case being not super high performance is perfectly okay.
-The only thing I've worried about in that case is unbound memory use,
-but apparently that hasn't been an issue in practice.
-
-Thanks,
-Miklos
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
