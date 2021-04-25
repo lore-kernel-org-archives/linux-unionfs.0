@@ -8,63 +8,63 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1250C433B4
-	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Apr 2021 07:14:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CBC6C43460
+	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Apr 2021 07:14:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B482B613C2
-	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Apr 2021 07:14:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F3BED61288
+	for <linux-unionfs@archiver.kernel.org>; Sun, 25 Apr 2021 07:14:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbhDYHPd (ORCPT
+        id S230203AbhDYHPe (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 25 Apr 2021 03:15:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33048 "EHLO
+        Sun, 25 Apr 2021 03:15:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229825AbhDYHPd (ORCPT
+        with ESMTP id S229825AbhDYHPe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 25 Apr 2021 03:15:33 -0400
-Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58E23C061574;
-        Sun, 25 Apr 2021 00:14:52 -0700 (PDT)
-Received: by mail-wm1-x32e.google.com with SMTP id f195-20020a1c1fcc0000b029012eb88126d7so3374927wmf.3;
-        Sun, 25 Apr 2021 00:14:52 -0700 (PDT)
+        Sun, 25 Apr 2021 03:15:34 -0400
+Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CABE4C061756;
+        Sun, 25 Apr 2021 00:14:53 -0700 (PDT)
+Received: by mail-wr1-x429.google.com with SMTP id e5so23903334wrg.7;
+        Sun, 25 Apr 2021 00:14:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=FIlIiRJSjRiunFMuHCtAG6p9TvlZTNyPYb6XoxHnjlA=;
-        b=R+plW7xFxDzBBuf8BB7sPlx17x6/EKFMCoc5EtmZHwTIqLl7t4cx3tm9IC8keTMFI1
-         Tf1znqfnVwmS14Ta6UkeI1fc8ZaCIdzAIxXM/uAQIWleCJp9ZArGS9UmOrzMmrppxpvm
-         gEdaVmMvlEMzlNzZqhqkP4PHQtQEy6rH9fBoQEel+6BEn+lHSVdVjsrWSdE8hJZWu+Qf
-         rutm4lUW7Mg0tPp/yccJCYR2C3Pp2z28NHCaj8J6IwvRFEZ4TAeJnVlNLJMETpJYkpUg
-         rUKhQ9oVgVUAaIM/9VICzR8E5Vxy55ZQLdrMaz8CWOHK4GtjLg45J6DynJ5V9bse/Bgv
-         j/tA==
+        bh=S2iJdrFUBFYZMKDHDAlnw9LDDh8hRAveUSxMiqeVjXQ=;
+        b=WORP8m33oIiU7UYyKj7+iwGS9TMNqqkbN45xyef1LNyt+dR6A65Y5zXufdlQea6VQ3
+         jCrMpnmNVgzfT4m8Tl0my3/+ahMm1H1X5KRT7z2o5ZCF30JhCAB+ouDq2jqpuMMHqqpN
+         dHok1HkWtQkRkVd7TnUEfwt8aCQkYWTlxdOnul7bvH/8kGNaJsPTh8UYv7guZbrv47Mp
+         TKUPrL/suHQQMwPqFBb5IuPrtNK+qJNj1nDqCLzZ8XdaUQ72DGVnWYQaC1W1CwXtanVG
+         OmmftHCluroMJiQ+Jc9Ojc724MN47/hwgO/w6+EYhXtAAP/6ZNywYldpL9jCQt1XiVTk
+         kSdg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=FIlIiRJSjRiunFMuHCtAG6p9TvlZTNyPYb6XoxHnjlA=;
-        b=DMoeqh+5c/mbxj+84XHX7S/q4ijErCjLi/Hb9IPm6tfyqt5A6cTnQM3ny2xRkM6qiN
-         FVi6u+3HLMZtAlPrE0Z/x0CdFpYwPsFNveRSAABoz0EHF+7qN/LV6CLpAmKtE8aHjQTw
-         qhJtzRdYFxN3JXewBNXOn1is9ws2fsnCainNfgl0m/lTOrBhXTgwzy2w4/A7tbmi0Zhk
-         ZbcynxlKlB8x3bgdgF6kGHiFNnSCniQkb3K3arwnXafrPFoixLkzJqWfmFiHFtwqJk1i
-         rFjaY/YE8M20L5m+xU/RKgbFwSUa0gVD7u2YY6ExXL+zVayeJyHVxjHHBVY/wUUFwObl
-         z2+w==
-X-Gm-Message-State: AOAM533RrzVoormp6yIB/kSw3LYm3Pgc/Ges0PXSYTZPfotpkP07wJB0
-        EW/9HyJmbNowZfFS3P6pd8Q=
-X-Google-Smtp-Source: ABdhPJzgeu0uyEZ4/Gv8piZpW/A9Sn7zHDyGIGGXcDVXUCkQYLP8Tzw9vtEUJ2/K1EyxcLhcm1vkxw==
-X-Received: by 2002:a1c:64c4:: with SMTP id y187mr14203210wmb.162.1619334891092;
-        Sun, 25 Apr 2021 00:14:51 -0700 (PDT)
+        bh=S2iJdrFUBFYZMKDHDAlnw9LDDh8hRAveUSxMiqeVjXQ=;
+        b=ZqtK4ar1aDZlmXXj6vaVL3vCDPUzh3HXA2FNIGc+mxZUjIfear1BQqGkjONO8/Lca6
+         tHeXWvdxQsBok5hu/copn6xnmAy69HiEUQKyPQqdIdnQyxEQl+qimyMkBQVgR4R0t4KF
+         H+hpZGbA1pEgsvvqwVBU/TCOUqfpo9QmvdmTmBfk/qG/JaZ356wtTlctsRr+EwjoFOSq
+         7dOGWyyTQNi/QPviHOlct8yRddJF+Hk8HSm+PKe/JxMuK9xOJOqmCrQH5bOsnTXV9HFU
+         twWoTZEdp2dtXAdzZ51/5ZXuWlpH/ippwuCsaVJjMe11DOTUr3UebSTZSPqg9HUgv6hL
+         7Zqw==
+X-Gm-Message-State: AOAM5320TLSkBbG8Xic2/47tL3UYtVlgUoD2nCvli1hHT5orLCyYt02F
+        5oQB9b0STdG5p+Nj0hC/7vo=
+X-Google-Smtp-Source: ABdhPJxzvZPSkbFmULhqQ50YcWT/9AqHz15M9XpKK5ROhd5TpZwja+rSQfraJFfIy5FSwypfpQAFhQ==
+X-Received: by 2002:adf:a119:: with SMTP id o25mr15104991wro.36.1619334892544;
+        Sun, 25 Apr 2021 00:14:52 -0700 (PDT)
 Received: from localhost.localdomain ([82.114.44.37])
-        by smtp.gmail.com with ESMTPSA id x189sm15885626wmg.17.2021.04.25.00.14.50
+        by smtp.gmail.com with ESMTPSA id x189sm15885626wmg.17.2021.04.25.00.14.51
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 25 Apr 2021 00:14:50 -0700 (PDT)
+        Sun, 25 Apr 2021 00:14:51 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Eryu Guan <guaneryu@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
         fstests@vger.kernel.org
-Subject: [PATCH v2 3/5] src/t_dir_offset2: Add option to create or unlink file
-Date:   Sun, 25 Apr 2021 10:14:43 +0300
-Message-Id: <20210425071445.29547-4-amir73il@gmail.com>
+Subject: [PATCH v2 4/5] generic: Test readdir of modified directrory
+Date:   Sun, 25 Apr 2021 10:14:44 +0300
+Message-Id: <20210425071445.29547-5-amir73il@gmail.com>
 X-Mailer: git-send-email 2.31.1
 In-Reply-To: <20210425071445.29547-1-amir73il@gmail.com>
 References: <20210425071445.29547-1-amir73il@gmail.com>
@@ -74,107 +74,103 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Will be used to test missing/stale entries after modifications to
-an open dirfd.
+Check that directory modifications to an open dir fd are observed
+by a new open fd.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- src/t_dir_offset2.c | 56 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 53 insertions(+), 3 deletions(-)
+ tests/generic/700     | 62 +++++++++++++++++++++++++++++++++++++++++++
+ tests/generic/700.out |  2 ++
+ tests/generic/group   |  1 +
+ 3 files changed, 65 insertions(+)
+ create mode 100755 tests/generic/700
+ create mode 100644 tests/generic/700.out
 
-diff --git a/src/t_dir_offset2.c b/src/t_dir_offset2.c
-index 7af24519..75b41c1a 100644
---- a/src/t_dir_offset2.c
-+++ b/src/t_dir_offset2.c
-@@ -34,13 +34,13 @@ static uint64_t d_ino_history[HISTORY_LEN];
- 
- void usage()
- {
--	fprintf(stderr, "usage: t_dir_offset2: <dir> [[bufsize] <filename> [-v]]\n");
-+	fprintf(stderr, "usage: t_dir_offset2: <dir> [[bufsize] [-|+]<filename> [-v]]\n");
- 	exit(EXIT_FAILURE);
- }
- 
- int main(int argc, char *argv[])
- {
--	int fd;
-+	int fd, fd2 = -1;
- 	char buf[BUF_SIZE];
- 	int nread, bufsize = BUF_SIZE;
- 	struct linux_dirent64 *d;
-@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
- 	int retval = EXIT_SUCCESS;
- 	const char *filename = NULL;
- 	int exists = 0, found = 0;
--	int verbose = 0;
-+	int modify = 0, verbose = 0;
- 
- 	if (argc > 2) {
- 		bufsize = atoi(argv[2]);
-@@ -60,6 +60,13 @@ int main(int argc, char *argv[])
- 
- 		if (argc > 3) {
- 			filename = argv[3];
-+			/* +<filename> creates, -<filename> removes */
-+			if (filename[0] == '+')
-+				modify = 1;
-+			else if (filename[0] == '-')
-+				modify = -1;
-+			if (modify)
-+				filename++;
- 			if (argc > 4 && !strcmp(argv[4], "-v"))
- 				verbose = 1;
- 		}
-@@ -89,6 +96,49 @@ int main(int argc, char *argv[])
- 			exit(EXIT_FAILURE);
- 		}
- 
-+		if (modify && fd2 < 0 && total == 0) {
-+			printf("getdents at offset 0 returned %d bytes\n", nread);
+diff --git a/tests/generic/700 b/tests/generic/700
+new file mode 100755
+index 00000000..3ece88d4
+--- /dev/null
++++ b/tests/generic/700
+@@ -0,0 +1,62 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2021 CTERA Networks. All Rights Reserved.
++#
++# Check that directory modifications to an open dir are observed
++# by a new open fd
++#
++seq=`basename $0`
++seqres=$RESULT_DIR/$seq
++echo "QA output created by $seq"
 +
-+			/* create/unlink entry after first getdents */
-+			if (modify > 0) {
-+				if (openat(fd, filename, O_CREAT, 0600) < 0) {
-+					perror("openat");
-+					exit(EXIT_FAILURE);
-+				}
-+				exists = 1;
-+				printf("created entry %s\n", filename);
-+			} else if (modify < 0) {
-+				if (unlinkat(fd, filename, 0) < 0) {
-+					perror("unlinkat");
-+					exit(EXIT_FAILURE);
-+				}
-+				exists = 0;
-+				printf("unlinked entry %s\n", filename);
-+			}
++here=`pwd`
++tmp=/tmp/$$
++status=1	# failure is the default!
 +
-+			/*
-+			 * Old fd may not return new entry and may return stale
-+			 * entries which is allowed.  Keep old fd open and open
-+			 * a new fd to check for stale or missing entries later.
-+			 */
-+			fd2 = open(argv[1], O_RDONLY | O_DIRECTORY);
-+			if (fd2 < 0) {
-+				perror("open fd2");
-+				exit(EXIT_FAILURE);
-+			}
-+		}
++_cleanup()
++{
++	cd /
++	rm -f $tmp.*
++}
++trap "_cleanup; exit \$status" 0 1 2 3 15
 +
-+		if (nread == 0) {
-+			if (fd2 < 0 || fd == fd2)
-+				break;
++# get standard environment, filters and checks
++. ./common/rc
++. ./common/filter
 +
-+			/* Re-iterate with new fd leaving old fd open */
-+			fd = fd2;
-+			total = 0;
-+			found = 0;
-+			continue;
-+		}
++# real QA test starts here
++_supported_fs generic
++_require_test
 +
- 		if (nread == 0)
- 			break;
- 
++rm -f $seqres.full
++
++testdir=$TEST_DIR/test-$seq
++rm -rf $testdir
++mkdir $testdir
++
++# Use small getdents bufsize to fit less than 10 entries
++# stuct linux_dirent64 is 20 bytes not including d_name
++bufsize=200
++
++# Check readdir content of an empty dir changes when adding a new file
++echo -e "\nCreate file 0 in an open dir:" >> $seqres.full
++$here/src/t_dir_offset2 $testdir $bufsize "+0" 2>&1 >> $seqres.full || \
++	echo "Missing created file in open dir (see $seqres.full for details)"
++
++# Create enough files to be returned in multiple gendents() calls.
++# At least one of the files that we delete will not be listed in the
++# first call, so we may encounter stale entries in following calls.
++for n in {1..100}; do
++    touch $testdir/$n
++done
++
++# Check readdir content changes after removing files
++for n in {1..10}; do
++	echo -e "\nRemove file ${n}0 in an open dir:" >> $seqres.full
++	$here/src/t_dir_offset2 $testdir $bufsize "-${n}0" 2>&1 >> $seqres.full || \
++		echo "Found unlinked files in open dir (see $seqres.full for details)"
++done
++
++# success, all done
++echo "Silence is golden"
++status=0
+diff --git a/tests/generic/700.out b/tests/generic/700.out
+new file mode 100644
+index 00000000..f9acaa71
+--- /dev/null
++++ b/tests/generic/700.out
+@@ -0,0 +1,2 @@
++QA output created by 700
++Silence is golden
+diff --git a/tests/generic/group b/tests/generic/group
+index ab00cc04..bac5aa48 100644
+--- a/tests/generic/group
++++ b/tests/generic/group
+@@ -634,3 +634,4 @@
+ 629 auto quick rw copy_range
+ 630 auto quick rw dedupe clone
+ 631 auto rw overlay rename
++700 auto quick dir
 -- 
 2.31.1
 
