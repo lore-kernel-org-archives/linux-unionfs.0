@@ -2,170 +2,134 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BF24C433B4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 May 2021 13:41:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AECBC433B4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 May 2021 14:43:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A52161074
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 May 2021 13:41:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A1626135C
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 May 2021 14:43:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232165AbhERNnN (ORCPT
+        id S235105AbhEROoi (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 May 2021 09:43:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44170 "EHLO
+        Tue, 18 May 2021 10:44:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58510 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231986AbhERNnL (ORCPT
+        with ESMTP id S235547AbhEROoi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 May 2021 09:43:11 -0400
-Received: from mail-vs1-xe30.google.com (mail-vs1-xe30.google.com [IPv6:2607:f8b0:4864:20::e30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC61DC061756
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 May 2021 06:41:53 -0700 (PDT)
-Received: by mail-vs1-xe30.google.com with SMTP id f15so3624090vsq.12
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 May 2021 06:41:53 -0700 (PDT)
+        Tue, 18 May 2021 10:44:38 -0400
+Received: from mail-ua1-x92d.google.com (mail-ua1-x92d.google.com [IPv6:2607:f8b0:4864:20::92d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 05320C061756
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 May 2021 07:43:19 -0700 (PDT)
+Received: by mail-ua1-x92d.google.com with SMTP id p17so1761547uaw.4
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 May 2021 07:43:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=EkLNktB71PhIj4e15hzhD8YOUYAMXKa3EfPD4Z2mdCE=;
-        b=mR6wtPfIt2bQoLzjyvhav/mhG7j5BsvoX0PxqmzDEtKKyPc62z52ENLosOt5RkaWjr
-         U7HzeYjMY2brL++Rj5aSV6OokT6/5gkNvItU9Ibsw0187CsoeOb92bCmmgpJg+f0V/fx
-         U1HHF6JNYCfU/6NrUXujPvowWk9rVvmfSu6vM=
+        bh=/NJS4BT8nKKIEzjadjztzmkHWrSH/ly6k2XtFbYYqtY=;
+        b=ot0shic8SKoxbOBysgZfoTlIK7zf5cofWrytZCBs8KNPRXouMieUDdph30n4Mk66Yr
+         f2ihwTpLMMxBk59OgnhUpTXXgiv4R0FdVX7mYDQMvDvxdOjpKiWVY1hxzkNuVoO46RcY
+         7n86YLuOac4Gsp+FnEMpy/QslUc0goo7UpJns=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=EkLNktB71PhIj4e15hzhD8YOUYAMXKa3EfPD4Z2mdCE=;
-        b=SSQZ2T3C7xgJ64BQTDtS+nnXecYGIaAWTVX59xzdeEqdIr+t0ohSiZjfRrLvUM7rFn
-         Qeiwj+hF1rvwbkW/J7gqdyrQW/SiJs6sslwLg8F8ts6Q38nC7BNFqt1shlYY+dR4VG0C
-         qbexyK+rgv5DCbMe+TG3QCv5rPJP0FvdEcp8gtXcdvxUpxgO+ogIpChJP/srsdaquQ69
-         goGQXms8fAbzyNDtZ89Sxegmxr+CP3SP3ZD7ylM8FgPFrJDxBq2utvjn3AGN+TdIj5Jw
-         Z5f1xWnsBcTxHAevV0mEmvkRYCmVsPI+WRTeE50RbvzSkbxCpXhHhrO4IPbci2V5wq3o
-         E8IQ==
-X-Gm-Message-State: AOAM533YN/EZygRK3L+5OaWxE9WZtsYKYOEA8Q5Pab0vkSZb+qkLTNRe
-        P6cyAdC8a472b6x58evCgndyjhsQb5B3uiRNISQSqw==
-X-Google-Smtp-Source: ABdhPJz3cy8xrWjLFvmeBfVl6rEl8A22sNYMzDdPlVgDcvBzf6rEbJxQdByUc4S15JF5ThOtBS5KHPPQoDWhqwPAWTw=
-X-Received: by 2002:a67:ebd2:: with SMTP id y18mr6544819vso.7.1621345312932;
- Tue, 18 May 2021 06:41:52 -0700 (PDT)
+        bh=/NJS4BT8nKKIEzjadjztzmkHWrSH/ly6k2XtFbYYqtY=;
+        b=sckezwnGA88wjppBtOlcH6zEauacVYnr626SmriLJd8PJliDgNKbxgkrs8K+3nDVIH
+         M38mIlfO+rwuVr2hJHcjBpVAk6IAIKeA2xISQPNRrUPfdP61OY5niKxkIt0dmJ2JphwR
+         9n2uos2cLShkzaBqf3/6ADjw4K4uybgqLJjJyyRvP36Z+EV5y6rA1dtkQdSFnebJKTeo
+         ZntGqNn6bUHKXxIil+VqrRYlqquJ4rm2S4mye5cUiGnTCfnYHyBMD+o1zER6ndJ3ZqZn
+         YFVCFO4gHPp3qPuiBQ+i4mm73hKTw0Kexbl7EL/ylr3cdGeNIBYG1VIzGERkNtqhhYeu
+         F9TA==
+X-Gm-Message-State: AOAM5310k6zfOQF3x13q/zCnqwW1ZIuZNSme4VlrR0OJYYolOAgra56c
+        /JnfT8yJq5qW0tfV6Bx9UAZDJwXhsYOSxeFkgcMKOw==
+X-Google-Smtp-Source: ABdhPJxRpelP85C/V/PHHmqJWlYMcnftRkoxLwLCTQlms4Th/kPTXFGsttYFYFHW+einymu6Ua5sDiR4a+Wy7b1YGbQ=
+X-Received: by 2002:ab0:2690:: with SMTP id t16mr6751886uao.9.1621348998165;
+ Tue, 18 May 2021 07:43:18 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210518122138.22914-1-yaohaidong369@gmail.com>
-In-Reply-To: <20210518122138.22914-1-yaohaidong369@gmail.com>
+References: <CAOQ4uxguanxEis-82vLr7OKbxsLvk86M0Ehz2nN1dAq8brOxtw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxguanxEis-82vLr7OKbxsLvk86M0Ehz2nN1dAq8brOxtw@mail.gmail.com>
 From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 18 May 2021 15:41:41 +0200
-Message-ID: <CAJfpeguv0uMN4zc8OUkYEJ995KAhtBcAwVo4v0nTa-hMoMLbBA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: useing ovl_revert_creds() instead of revert_creds(),
-To:     Haidong Yao <yaohaidong369@gmail.com>
-Cc:     Orson Zhai <orsonzhai@gmail.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Chunyan Zhang <Chunyan.Zhang@unisoc.com>,
-        Orson Zhai <Orson.Zhai@unisoc.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <kafai@fb.com>,
-        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, network dev <netdev@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>, stable <stable@vger.kernel.org>,
-        Haidong Yao <haidong.yao@unisoc.com>
+Date:   Tue, 18 May 2021 16:43:06 +0200
+Message-ID: <CAJfpeguCwxXRM4XgQWHyPxUbbvUh-M6ei-tYa5Y0P56MJMW7OA@mail.gmail.com>
+Subject: Re: fsnotify events for overlayfs real file
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Jan Kara <jack@suse.cz>,
+        Christian Brauner <christian.brauner@ubuntu.com>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 18 May 2021 at 14:21, Haidong Yao <yaohaidong369@gmail.com> wrote:
+On Mon, 10 May 2021 at 18:32, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> From: Haidong Yao <haidong.yao@unisoc.com>
->
-> After execution adb remout,happened crash.
->
-> Fixes: 292f902a40c1 ("ovl: check permission to open real file")
->
-> This fixes the warning below.
->
-> [  241.778266]c2 [T31619] Unable to handle kernel NULL pointer dereference at virtual address 0000000000000004
-> [  241.796757]c2 [T31619] Mem abort info:
-> [  241.800475]c2 [T31619]   ESR = 0x96000005
-> [  241.804457]c2 [T31619]   EC = 0x25: DABT (current EL), IL = 32 bits
-> [  241.810686]c2 [T31619]   SET = 0, FnV = 0
-> [  241.814666]c2 [T31619]   EA = 0, S1PTW = 0
-> [  241.818733]c2 [T31619] Data abort info:
-> [  241.822542]c2 [T31619]   ISV = 0, ISS = 0x00000005
-> [  241.827302]c2 [T31619]   CM = 0, WnR = 0
-> [  241.831198]c2 [T31619] user pgtable: 4k pages, 39-bit VAs, pgdp=000000017709f000
-> [  241.838552]c2 [T31619] [0000000000000004] pgd=0000000000000000, pud=0000000000000000
-> [  241.846255]c2 [T31619] Internal error: Oops: 96000005 [#1] PREEMPT SMP
-> [  241.852746]c2 [T31619] sprd-sysdump: dump_die_cb save pregs_die_g ok .
-> [  242.021424]c2 [T31619] CPU: 2 PID: 31619 Comm: ylog.opentcpdum Tainted: G S      WC O      5.4.114-g23ed6b182f28-ab19500 #2
-> [  242.032496]c2 [T31619] Hardware name: Spreadtrum UMS512-1H10 SoC (DT)
-> [  242.038901]c2 [T31619] pstate: 20400085 (nzCv daIf +PAN -UAO)
-> [  242.044620]c2 [T31619] pc : bpf_get_current_uid_gid+0x1c/0x34
-> [  242.050331]c2 [T31619] lr : bpf_prog_4f08a086bc7e64fb_tracepoint_sche+0x5a0/0x2000
-> [  242.057852]c2 [T31619] sp : ffffffc018fab4e0
-> [  242.062093]c2 [T31619] x29: ffffffc018fab4e0 x28: 0000000005de0e82
-> [  242.068323]c2 [T31619] x27: ffffffc01008ee04 x26: 0000000000000000
-> [  242.074554]c2 [T31619] x25: ffffffc018fab640 x24: ffffffc000000000
-> [  242.080785]c2 [T31619] x23: ffffffc0121cf868 x22: 000000383e0d5d53
-> [  242.087015]c2 [T31619] x21: 0000000000000005 x20: 0000000000000007
-> [  242.093246]c2 [T31619] x19: fffffffebf93cac0 x18: ffffffc016d7d0a0
-> [  242.099477]c2 [T31619] x17: 0000007f477affdc x16: 0000000000002c26
-> [  242.105707]c2 [T31619] x15: 000000000000007f x14: 000000000000007f
-> [  242.111938]c2 [T31619] x13: 000000000001af6a x12: 0000000026762762
-> [  242.118169]c2 [T31619] x11: 001a39dd8df5aa00 x10: ffffffc010093398
-> [  242.124400]c2 [T31619] x9 : ffffffc0121bd018 x8 : 0000000000000000
-> [  242.130630]c2 [T31619] x7 : ffffff80c45c0110 x6 : ffffffc0123b9dc6
-> [  242.136862]c2 [T31619] x5 : ffffffc012399000 x4 : 0000000000000004
-> [  242.143093]c2 [T31619] x3 : ffffff80f3412d00 x2 : ffffff80d5395a00
-> [  242.149322]c2 [T31619] x1 : ffffffc018fab628 x0 : ffffff80c45c0110
-> [  242.155554]c2 [T31619] Call trace:
-> [  242.158931]c2 [T31619]  bpf_get_current_uid_gid+0x1c/0x34
-> [  242.164295]c2 [T31619]  bpf_prog_4f08a086bc7e64fb_tracepoint_sche+0x5a0/0x2000
-> [  242.171480]c2 [T31619]  trace_call_bpf+0x1b0/0x3d4
-> [  242.176240]c2 [T31619]  perf_trace_sched_switch+0x1a8/0x204
-> [  242.181779]c2 [T31619]  __schedule+0x828/0x9ac
-> [  242.186190]c2 [T31619]  preempt_schedule_common+0x17c/0x2bc
-> [  242.191730]c2 [T31619]  vprintk_emit+0x738/0x7c8
-> [  242.196316]c2 [T31619]  vprintk_func+0x238/0x274
-> [  242.200901]c2 [T31619]  printk+0x64/0x90
-> [  242.204799]c2 [T31619]  die_kernel_fault+0x4c/0x80
-> [  242.209556]c2 [T31619]  __do_kernel_fault+0x24c/0x268
-> [  242.214574]c2 [T31619]  do_page_fault+0xa4/0x744
-> [  242.219160]c2 [T31619]  do_translation_fault+0x60/0x80
-> [  242.224267]c2 [T31619]  do_mem_abort+0x68/0xfc
-> [  242.228681]c2 [T31619]  el1_da+0x1c/0xc0
-> [  242.232576]c2 [T31619]  cap_vm_enough_memory+0x20/0x84
-> [  242.237681]c2 [T31619]  insert_vm_struct+0xf4/0x3cc
-> [  242.242527]c2 [T31619]  bprm_mm_init+0x188/0x2ac
-> [  242.247113]c2 [T31619]  __do_execve_file+0x3f8/0x904
-> [  242.252045]c2 [T31619]  __arm64_sys_execve+0x50/0x64
-> [  242.256979]c2 [T31619]  el0_svc_common+0xc0/0x22c
-> [  242.261652]c2 [T31619]  el0_svc_handler+0x2c/0x3c
-> [  242.266323]c2 [T31619]  el0_svc+0x8/0xc
-> [  242.270137]c2 [T31619] Code: d503201f d5384108 b40000c8 f943a508 (f8404100)
-> [  242.277143]c2 [T31619] ---[ end trace d2bf18208d1aac17 ]---
->
-> Signed-off-by: Haidong Yao <haidong.yao@unisoc.com>
-> ---
->  fs/overlayfs/file.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 4d53d3b7e5fe..d9bc658f22ee 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -60,7 +60,7 @@ static struct file *ovl_open_realfile(const struct file *file,
->                 realfile = open_with_fake_path(&file->f_path, flags, realinode,
->                                                current_cred());
->         }
-> -       revert_creds(old_cred);
-> +       ovl_revert_creds(inode->i_sb, old_cred);
 
-Upstream kernel doesn't have ovl_revert_creds().
+> > I see, right. I agree that is unfortunate especially for stuff like audit
+> > or fanotify permission events so we should fix that.
+> >
+>
+> Miklos,
+>
+> Do you recall what is the reason for using FMODE_NONOTIFY
+> for realfile?
+
+Commit d989903058a8 ("ovl: do not generate duplicate fsnotify events
+for "fake" path").
+
+> I can see that events won't be generated anyway for watchers of
+> underlying file, because fsnotify_file() looks at the "fake" path
+> (i.e. the overlay file path).
+>
+> I recently looked at a similar issue w.r.t file_remove_privs() when
+> I was looking at passing mnt context to notify_change() [1].
+>
+> My thinking was that we can change d_real() to provide the real path:
+>
+> static inline struct path d_real_path(struct path *path,
+>                                     const struct inode *inode)
+> {
+>         struct realpath = {};
+>         if (!unlikely(dentry->d_flags & DCACHE_OP_REAL))
+>                return *path;
+>         dentry->d_op->d_real(path->dentry, inode, &realpath);
+>         return realpath;
+> }
+>
+> static inline struct dentry *d_real(struct dentry *dentry,
+>                                     const struct inode *inode)
+> {
+>         struct realpath = {};
+>         if (!unlikely(dentry->d_flags & DCACHE_OP_REAL))
+>                return dentry;
+>         dentry->d_op->d_real(path->dentry, inode, &realpath);
+>         return realpath.dentry;
+> }
+>
+>
+> Another option, instead of getting the realpath, just detect the
+> mismatch of file_inode(file) != d_inode(path->dentry) in
+> fanotify_file() and pass FSNOTIFY_EVENT_DENTRY data type
+> with d_real() dentry to backend instead of FSNOTIFY_EVENT_PATH.
+>
+> For inotify it should be enough and for fanotify it is enough for
+> FAN_REPORT_FID and legacy fanotify can report FAN_NOFD,
+> so at least permission events listeners can identify the situation and
+> be able to block access to unknown paths.
+>
+> Am I overcomplicating this?
+>
+> Any magic solution that I am missing?
+
+Agree, dentry events should still happen.
+
+Path events: what happens if you bind mount, then detach (lazy
+umount)?   Isn't that exactly the same as what overlayfs does on the
+underlying mounts?
 
 Thanks,
 Miklos
