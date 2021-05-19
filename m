@@ -2,171 +2,200 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 461AFC433ED
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 May 2021 17:56:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29115C433ED
+	for <linux-unionfs@archiver.kernel.org>; Wed, 19 May 2021 03:29:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F7C7601FE
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 May 2021 17:56:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06D7D611BD
+	for <linux-unionfs@archiver.kernel.org>; Wed, 19 May 2021 03:29:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243745AbhERR56 (ORCPT
+        id S1352986AbhESDav (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 May 2021 13:57:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46162 "EHLO
+        Tue, 18 May 2021 23:30:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240327AbhERR56 (ORCPT
+        with ESMTP id S1352963AbhESDau (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 May 2021 13:57:58 -0400
-Received: from mail-io1-xd34.google.com (mail-io1-xd34.google.com [IPv6:2607:f8b0:4864:20::d34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A630AC061573;
-        Tue, 18 May 2021 10:56:39 -0700 (PDT)
-Received: by mail-io1-xd34.google.com with SMTP id a11so10348496ioo.0;
-        Tue, 18 May 2021 10:56:39 -0700 (PDT)
+        Tue, 18 May 2021 23:30:50 -0400
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60BABC06175F;
+        Tue, 18 May 2021 20:29:31 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id l4so17759177ejc.10;
+        Tue, 18 May 2021 20:29:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=gT2v9I2WQYvTjy8a5X1kwGlF67qYdtQh8WHqFN4nOuc=;
-        b=jSTX4dVZhfS12GYVU/ZStl7sa8zMSKgE5XRMnJQ8eRHpslmcqQg4hQeFoY6MIF0ASa
-         /x+6ICtQJHm7Q7r1ItxkKf33b46HVppnffyll7PlSZChhmjpran0Jib2JPWy0TZ2ZDSn
-         UzqEI3BJvr7dk9q1aIT9Q8wILGdz33TUbpRj4PnWdIafLEl+1hvJS9GrjtbkvVLRC58Y
-         M7d/IbBCokzcokXl2XXJahIT2fEwPQqspWXt/QtNYcpT8J6GfQ7RIS636OBc62SeutsS
-         PjBfSTcEi5atZTmlyq4nAj2jYlXSsBFPqKI0LtOnCYnc4v9hlB5+LMsdbRw5wQ1jACi3
-         CwJw==
+         :cc:content-transfer-encoding;
+        bh=ZvlPefQN0yrfZ55iNqClp88b7UVJ+3OTIyTBMaAIH3Y=;
+        b=pW1mWjzhDuUnAahFQgoKJuf3pr+cBAlxSFPJaLi5SwYWFBlZYmnw5ZRX0KdeZEvfPl
+         GZ8E30UdXUIBeKQJp2+824Anv/XJILmikrqM4kXaxvZSjPU2NvknLsBnV9MHRmUKQYrr
+         bram6l5qh+N/iuhv+GDe7DZt+YnVN2S+yGXrGiyj/eri5AhuWHNo6LOfl0jiUUOCZwwi
+         ZCQYJUm31kaTRDrxQLh/j7q/2reP9RvKLMkw9d/obuYO5/61eRuKgMoST7Xd2LNKKqi2
+         c7Xk70hrQeQsJYRWljtTlmJoCJSavt3HV+nNkzPbGbD04cHJvFVJdbDD6D8NP59JStie
+         DUmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=gT2v9I2WQYvTjy8a5X1kwGlF67qYdtQh8WHqFN4nOuc=;
-        b=ZeMZ5YFrtrAAcG5BgSjVR2oIGTFE1IuHEx6trzXJk1KyR/GlJxcRyQIRsa4h2Y3/Cx
-         0UHbr82f1lBSVMqdlXy+It0rcykTV81JStK8M8seT6Sg/cDtDa+GIruiEgrtiU20NxA4
-         gYaWn9JqqwtwrUU4dD6xuYRmWpN19VK8vcbKGkuQvfFkbvgKkTElp6JNVO5rJX3JwAUD
-         a8yDC3f+/l8Fob7T6JWTqr+iMBPoQ/0uuDXePPWs/LCbc0/cxPouj/bN46FoFfCQIgBN
-         Sl6E+UK7ITpmEU7UrJ9UGez8BB/EAID6vEcQLt95dkmiU7xeY9+HUgk1yZJK3j4QYF9x
-         ++Cw==
-X-Gm-Message-State: AOAM530+GkvW6BRDWiXurcv/BbuOeLVUFyAD7TTaqq85G/8HOdZNv6Ur
-        FCa1TFP1rA2CBDw4VjLjmPg/Wkr8db4kSm+DkTg=
-X-Google-Smtp-Source: ABdhPJzauNqKCZdhExFIqnEfvGz7nCc3cvSYLyUoB4NOnDVmcLCw9uN4EPnEkByDs/3nadvK/82uV1falg17nUheWHU=
-X-Received: by 2002:a05:6638:3445:: with SMTP id q5mr7155155jav.120.1621360599076;
- Tue, 18 May 2021 10:56:39 -0700 (PDT)
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=ZvlPefQN0yrfZ55iNqClp88b7UVJ+3OTIyTBMaAIH3Y=;
+        b=RLMpR+nI5Ea1+XmWkaunROsKmceHbx1NgdMFNOTLz5kNWyMAGUAN4XU1WEc6DjAaHq
+         5wjcOBN/Sr3k7hczzvdLPExTt8nyNYpPBTFo9P8jmI0Iea+IOGQbXrNA+GPvevbWnqUX
+         aspfbNvIndwcws0SpqfcKpWPBmZUWSa9srGdFYfbRUK2hLN4QaiiatpVedq7Fb1nwYvZ
+         3qfl8Kc72Z0/yLskvyQwFwBkQNwoPG/8qYJmdiBcko41+yS04pKTsLp7LMiNsnq4I3lZ
+         thXmpWGdPX1diw5QULbkMgGgV2+YmRWL7L+gGAJghUTzJmqX7/q27WJ5iTHLa6uhfnQS
+         JHpw==
+X-Gm-Message-State: AOAM531taLKtYhmfDuUTc5z2iO8aJG+SyY354ZBmg9B8i+Gmq4ATPl4J
+        9aGahWWAR7wO2q3Gb73QmIRYph8EopMMipGg7I0=
+X-Google-Smtp-Source: ABdhPJyn6I89lNaYbiIXZ/dE8CcCLBwNiLzDV2EOmfh9ioayDvL/hMje2eKoMduojn/UOlfnIIJ2BTm9KeTojv8wTRk=
+X-Received: by 2002:a17:906:4f1a:: with SMTP id t26mr9934900eju.280.1621394970042;
+ Tue, 18 May 2021 20:29:30 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAOQ4uxguanxEis-82vLr7OKbxsLvk86M0Ehz2nN1dAq8brOxtw@mail.gmail.com>
- <CAJfpeguCwxXRM4XgQWHyPxUbbvUh-M6ei-tYa5Y0P56MJMW7OA@mail.gmail.com>
-In-Reply-To: <CAJfpeguCwxXRM4XgQWHyPxUbbvUh-M6ei-tYa5Y0P56MJMW7OA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 18 May 2021 20:56:27 +0300
-Message-ID: <CAOQ4uxhsxmzWp+YMRBA3xFDzJ1ov--n=f+VAnBsJZ_4DyHoYXw@mail.gmail.com>
-Subject: Re: fsnotify events for overlayfs real file
+References: <20210518122138.22914-1-yaohaidong369@gmail.com> <CAJfpeguv0uMN4zc8OUkYEJ995KAhtBcAwVo4v0nTa-hMoMLbBA@mail.gmail.com>
+In-Reply-To: <CAJfpeguv0uMN4zc8OUkYEJ995KAhtBcAwVo4v0nTa-hMoMLbBA@mail.gmail.com>
+From:   Yao Haidong <yaohaidong369@gmail.com>
+Date:   Wed, 19 May 2021 11:29:16 +0800
+Message-ID: <CA+kUaCcaZCb4+zqQthsUvEApG4xFdGsSZ_vQ_1s=G49JHQQh9w@mail.gmail.com>
+Subject: Re: [PATCH] ovl: useing ovl_revert_creds() instead of revert_creds(),
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Jan Kara <jack@suse.cz>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>
+Cc:     Orson Zhai <orsonzhai@gmail.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Chunyan Zhang <Chunyan.Zhang@unisoc.com>,
+        Orson Zhai <Orson.Zhai@unisoc.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        network dev <netdev@vger.kernel.org>,
+        bpf <bpf@vger.kernel.org>, stable <stable@vger.kernel.org>,
+        Haidong Yao <haidong.yao@unisoc.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 18, 2021 at 5:43 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+Hi Miklos:
+
+Sorry,
+Sometimes=EF=BC=8Cold_cred is NULL.
+Do you think this is a problem?
+Can I add ovl_revert_creds()? or You have a better way?
+
+Miklos Szeredi <miklos@szeredi.hu> =E4=BA=8E2021=E5=B9=B45=E6=9C=8818=E6=97=
+=A5=E5=91=A8=E4=BA=8C =E4=B8=8B=E5=8D=889:41=E5=86=99=E9=81=93=EF=BC=9A
 >
-> On Mon, 10 May 2021 at 18:32, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, 18 May 2021 at 14:21, Haidong Yao <yaohaidong369@gmail.com> wrote=
+:
 > >
+> > From: Haidong Yao <haidong.yao@unisoc.com>
+> >
+> > After execution adb remout,happened crash.
+> >
+> > Fixes: 292f902a40c1 ("ovl: check permission to open real file")
+> >
+> > This fixes the warning below.
+> >
+> > [  241.778266]c2 [T31619] Unable to handle kernel NULL pointer derefere=
+nce at virtual address 0000000000000004
+> > [  241.796757]c2 [T31619] Mem abort info:
+> > [  241.800475]c2 [T31619]   ESR =3D 0x96000005
+> > [  241.804457]c2 [T31619]   EC =3D 0x25: DABT (current EL), IL =3D 32 b=
+its
+> > [  241.810686]c2 [T31619]   SET =3D 0, FnV =3D 0
+> > [  241.814666]c2 [T31619]   EA =3D 0, S1PTW =3D 0
+> > [  241.818733]c2 [T31619] Data abort info:
+> > [  241.822542]c2 [T31619]   ISV =3D 0, ISS =3D 0x00000005
+> > [  241.827302]c2 [T31619]   CM =3D 0, WnR =3D 0
+> > [  241.831198]c2 [T31619] user pgtable: 4k pages, 39-bit VAs, pgdp=3D00=
+0000017709f000
+> > [  241.838552]c2 [T31619] [0000000000000004] pgd=3D0000000000000000, pu=
+d=3D0000000000000000
+> > [  241.846255]c2 [T31619] Internal error: Oops: 96000005 [#1] PREEMPT S=
+MP
+> > [  241.852746]c2 [T31619] sprd-sysdump: dump_die_cb save pregs_die_g ok=
+ .
+> > [  242.021424]c2 [T31619] CPU: 2 PID: 31619 Comm: ylog.opentcpdum Taint=
+ed: G S      WC O      5.4.114-g23ed6b182f28-ab19500 #2
+> > [  242.032496]c2 [T31619] Hardware name: Spreadtrum UMS512-1H10 SoC (DT=
+)
+> > [  242.038901]c2 [T31619] pstate: 20400085 (nzCv daIf +PAN -UAO)
+> > [  242.044620]c2 [T31619] pc : bpf_get_current_uid_gid+0x1c/0x34
+> > [  242.050331]c2 [T31619] lr : bpf_prog_4f08a086bc7e64fb_tracepoint_sch=
+e+0x5a0/0x2000
+> > [  242.057852]c2 [T31619] sp : ffffffc018fab4e0
+> > [  242.062093]c2 [T31619] x29: ffffffc018fab4e0 x28: 0000000005de0e82
+> > [  242.068323]c2 [T31619] x27: ffffffc01008ee04 x26: 0000000000000000
+> > [  242.074554]c2 [T31619] x25: ffffffc018fab640 x24: ffffffc000000000
+> > [  242.080785]c2 [T31619] x23: ffffffc0121cf868 x22: 000000383e0d5d53
+> > [  242.087015]c2 [T31619] x21: 0000000000000005 x20: 0000000000000007
+> > [  242.093246]c2 [T31619] x19: fffffffebf93cac0 x18: ffffffc016d7d0a0
+> > [  242.099477]c2 [T31619] x17: 0000007f477affdc x16: 0000000000002c26
+> > [  242.105707]c2 [T31619] x15: 000000000000007f x14: 000000000000007f
+> > [  242.111938]c2 [T31619] x13: 000000000001af6a x12: 0000000026762762
+> > [  242.118169]c2 [T31619] x11: 001a39dd8df5aa00 x10: ffffffc010093398
+> > [  242.124400]c2 [T31619] x9 : ffffffc0121bd018 x8 : 0000000000000000
+> > [  242.130630]c2 [T31619] x7 : ffffff80c45c0110 x6 : ffffffc0123b9dc6
+> > [  242.136862]c2 [T31619] x5 : ffffffc012399000 x4 : 0000000000000004
+> > [  242.143093]c2 [T31619] x3 : ffffff80f3412d00 x2 : ffffff80d5395a00
+> > [  242.149322]c2 [T31619] x1 : ffffffc018fab628 x0 : ffffff80c45c0110
+> > [  242.155554]c2 [T31619] Call trace:
+> > [  242.158931]c2 [T31619]  bpf_get_current_uid_gid+0x1c/0x34
+> > [  242.164295]c2 [T31619]  bpf_prog_4f08a086bc7e64fb_tracepoint_sche+0x=
+5a0/0x2000
+> > [  242.171480]c2 [T31619]  trace_call_bpf+0x1b0/0x3d4
+> > [  242.176240]c2 [T31619]  perf_trace_sched_switch+0x1a8/0x204
+> > [  242.181779]c2 [T31619]  __schedule+0x828/0x9ac
+> > [  242.186190]c2 [T31619]  preempt_schedule_common+0x17c/0x2bc
+> > [  242.191730]c2 [T31619]  vprintk_emit+0x738/0x7c8
+> > [  242.196316]c2 [T31619]  vprintk_func+0x238/0x274
+> > [  242.200901]c2 [T31619]  printk+0x64/0x90
+> > [  242.204799]c2 [T31619]  die_kernel_fault+0x4c/0x80
+> > [  242.209556]c2 [T31619]  __do_kernel_fault+0x24c/0x268
+> > [  242.214574]c2 [T31619]  do_page_fault+0xa4/0x744
+> > [  242.219160]c2 [T31619]  do_translation_fault+0x60/0x80
+> > [  242.224267]c2 [T31619]  do_mem_abort+0x68/0xfc
+> > [  242.228681]c2 [T31619]  el1_da+0x1c/0xc0
+> > [  242.232576]c2 [T31619]  cap_vm_enough_memory+0x20/0x84
+> > [  242.237681]c2 [T31619]  insert_vm_struct+0xf4/0x3cc
+> > [  242.242527]c2 [T31619]  bprm_mm_init+0x188/0x2ac
+> > [  242.247113]c2 [T31619]  __do_execve_file+0x3f8/0x904
+> > [  242.252045]c2 [T31619]  __arm64_sys_execve+0x50/0x64
+> > [  242.256979]c2 [T31619]  el0_svc_common+0xc0/0x22c
+> > [  242.261652]c2 [T31619]  el0_svc_handler+0x2c/0x3c
+> > [  242.266323]c2 [T31619]  el0_svc+0x8/0xc
+> > [  242.270137]c2 [T31619] Code: d503201f d5384108 b40000c8 f943a508 (f8=
+404100)
+> > [  242.277143]c2 [T31619] ---[ end trace d2bf18208d1aac17 ]---
+> >
+> > Signed-off-by: Haidong Yao <haidong.yao@unisoc.com>
+> > ---
+> >  fs/overlayfs/file.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > index 4d53d3b7e5fe..d9bc658f22ee 100644
+> > --- a/fs/overlayfs/file.c
+> > +++ b/fs/overlayfs/file.c
+> > @@ -60,7 +60,7 @@ static struct file *ovl_open_realfile(const struct fi=
+le *file,
+> >                 realfile =3D open_with_fake_path(&file->f_path, flags, =
+realinode,
+> >                                                current_cred());
+> >         }
+> > -       revert_creds(old_cred);
+> > +       ovl_revert_creds(inode->i_sb, old_cred);
 >
-> > > I see, right. I agree that is unfortunate especially for stuff like audit
-> > > or fanotify permission events so we should fix that.
-> > >
-> >
-> > Miklos,
-> >
-> > Do you recall what is the reason for using FMODE_NONOTIFY
-> > for realfile?
+> Upstream kernel doesn't have ovl_revert_creds().
 >
-> Commit d989903058a8 ("ovl: do not generate duplicate fsnotify events
-> for "fake" path").
->
-> > I can see that events won't be generated anyway for watchers of
-> > underlying file, because fsnotify_file() looks at the "fake" path
-> > (i.e. the overlay file path).
-> >
-> > I recently looked at a similar issue w.r.t file_remove_privs() when
-> > I was looking at passing mnt context to notify_change() [1].
-> >
-> > My thinking was that we can change d_real() to provide the real path:
-> >
-> > static inline struct path d_real_path(struct path *path,
-> >                                     const struct inode *inode)
-> > {
-> >         struct realpath = {};
-> >         if (!unlikely(dentry->d_flags & DCACHE_OP_REAL))
-> >                return *path;
-> >         dentry->d_op->d_real(path->dentry, inode, &realpath);
-> >         return realpath;
-> > }
-> >
-> > static inline struct dentry *d_real(struct dentry *dentry,
-> >                                     const struct inode *inode)
-> > {
-> >         struct realpath = {};
-> >         if (!unlikely(dentry->d_flags & DCACHE_OP_REAL))
-> >                return dentry;
-> >         dentry->d_op->d_real(path->dentry, inode, &realpath);
-> >         return realpath.dentry;
-> > }
-> >
-> >
-> > Another option, instead of getting the realpath, just detect the
-> > mismatch of file_inode(file) != d_inode(path->dentry) in
-> > fanotify_file() and pass FSNOTIFY_EVENT_DENTRY data type
-> > with d_real() dentry to backend instead of FSNOTIFY_EVENT_PATH.
-> >
-> > For inotify it should be enough and for fanotify it is enough for
-> > FAN_REPORT_FID and legacy fanotify can report FAN_NOFD,
-> > so at least permission events listeners can identify the situation and
-> > be able to block access to unknown paths.
-> >
-> > Am I overcomplicating this?
-> >
-> > Any magic solution that I am missing?
->
-> Agree, dentry events should still happen.
-
-Alas, the more critical issue is with fanotify permission events
-which are path events.
-
->
-> Path events: what happens if you bind mount, then detach (lazy
-> umount)?   Isn't that exactly the same as what overlayfs does on the
-> underlying mounts?
->
-
-No, it isn't.
-
-In the detached mount case, the fanotify listener will get an open fd
-from fanotify_user.c::create_fd() using dentry_open() on the detached
-path. When the listener will read proc/self/fd/<fd> symlink, it will see
-the path from the fs root.
-
-Assuming that marks were set on a group of files or directories
-with FAN_OPEN_PERM in the event mask, the path from fs root provides
-enough information to understand what is going on and in any case the
-fd can be used to read metadata or content from the file before making the
-permission decision.
-
-Is there a reason for the fake path besides the displayed path in
-/proc/self/maps?
-
-Does it make sense to keep one realfile with fake path for mmaped
-files along side a realfile with private/detached path used for all the
-other operations?
-
-While at it, we can also cache both upper and lower realfiles in case
-file was copied up after open.
-
-Better ideas?
-
-Thanks,
-Amir.
+> Thanks,
+> Miklos
