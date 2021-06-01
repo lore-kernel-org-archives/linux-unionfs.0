@@ -2,130 +2,211 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6B83C47080
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Jun 2021 09:08:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E93AAC47080
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Jun 2021 14:49:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 921CE61364
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Jun 2021 09:08:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C92FA61378
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Jun 2021 14:49:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233193AbhFAJJy (ORCPT
+        id S234074AbhFAOvJ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 1 Jun 2021 05:09:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38538 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233360AbhFAJJw (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 1 Jun 2021 05:09:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 69F73610C9;
-        Tue,  1 Jun 2021 09:08:10 +0000 (UTC)
-Date:   Tue, 1 Jun 2021 11:08:07 +0200
-From:   Christian Brauner <christian.brauner@ubuntu.com>
+        Tue, 1 Jun 2021 10:51:09 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:24846 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233797AbhFAOvI (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Tue, 1 Jun 2021 10:51:08 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1622558965;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=XHVwFjE9EzHlAoKDHIhZ/cN4fpw36nakAmhnAU7TLrw=;
+        b=Z3DxT7Alex4NFS1L0p3HPaNh+lBMnBjOx7uxzZgzlpd9hikpx2YG26QRO1l5WnVNfpeznK
+        7qgsU7t3cLCFm4qAvEcGUT8nLs0pjPk/MkfwFf0axAtSXdyibOGgKA6tretDdqZTpYg9Vx
+        damqrE4oY/qKVk/W5Du7ccgyVmyPTyc=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-408--yWoyI9KPiGk3vZpMfzsog-1; Tue, 01 Jun 2021 10:49:24 -0400
+X-MC-Unique: -yWoyI9KPiGk3vZpMfzsog-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 21D3B107464B;
+        Tue,  1 Jun 2021 14:49:10 +0000 (UTC)
+Received: from horse.redhat.com (ovpn-115-84.rdu2.redhat.com [10.10.115.84])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id DCDC460C0F;
+        Tue,  1 Jun 2021 14:49:09 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 667FF22054F; Tue,  1 Jun 2021 10:49:09 -0400 (EDT)
+Date:   Tue, 1 Jun 2021 10:49:09 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        Marko Rauhamaa <marko.rauhamaa@f-secure.com>
-Subject: Re: fsnotify events for overlayfs real file
-Message-ID: <20210601090807.cxcltwyjsmux3c7p@wittgenstein>
-References: <CAOQ4uxguanxEis-82vLr7OKbxsLvk86M0Ehz2nN1dAq8brOxtw@mail.gmail.com>
- <CAJfpeguCwxXRM4XgQWHyPxUbbvUh-M6ei-tYa5Y0P56MJMW7OA@mail.gmail.com>
- <CAOQ4uxhsxmzWp+YMRBA3xFDzJ1ov--n=f+VAnBsJZ_4DyHoYXw@mail.gmail.com>
- <CAJfpegsqqwMgtDKESNVXvtYU=fsu2pZ_nE8UdXQSLudKqK8Xmw@mail.gmail.com>
- <CAOQ4uxiYZfQSZN4avfnNmQv1OxB5+Q=9wr-eSRXK+QkostC66w@mail.gmail.com>
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Max Reitz <mreitz@redhat.com>
+Subject: Re: virtiofs uuid and file handles
+Message-ID: <20210601144909.GC24846@redhat.com>
+References: <dc696835-bbb5-ed4e-8708-bc828d415a2b@virtuozzo.com>
+ <CAOQ4uxg0XVEEzc+HyyC63WWZuA2AsRjJmbZBuNimtj=t+quVyg@mail.gmail.com>
+ <20200922210445.GG57620@redhat.com>
+ <CAOQ4uxg_FV8U833qVkgPaAWJ4MNcnGoy9Gci41bmak4_ROSc3g@mail.gmail.com>
+ <CAJfpegvNZ6Z7uhuTdQ6quBaTOYNkAP8W_4yUY4L2JRAEKxEwOQ@mail.gmail.com>
+ <CAOQ4uxgKr75J1YcuYAqRGC_C5H_mpCt01p5T9fHSuao_JnxcJA@mail.gmail.com>
+ <CAJfpegviT38gja+-pE+5DCG0y9n3GUv4wWG_r3XmSWW6me88Cw@mail.gmail.com>
+ <CAOQ4uxjNcWCfKLvdq2=TM5fE5RaBf+XvnsP6v_Q6u3b1_mxazw@mail.gmail.com>
+ <CAJfpeguOLLV94Bzs7_JNOdZZ+6p-tcP7b1PXrQY4qWPxXKosnA@mail.gmail.com>
+ <CAOQ4uxiJRii2FQrX51ZDmw_kGWTNvL21J7=Ow_z6Th_O-aruDA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiYZfQSZN4avfnNmQv1OxB5+Q=9wr-eSRXK+QkostC66w@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiJRii2FQrX51ZDmw_kGWTNvL21J7=Ow_z6Th_O-aruDA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, May 31, 2021 at 09:26:35PM +0300, Amir Goldstein wrote:
-> On Mon, May 31, 2021 at 6:18 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Mon, May 31, 2021 at 09:12:59PM +0300, Amir Goldstein wrote:
+> On Mon, May 31, 2021 at 5:11 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 > >
-> > On Tue, 18 May 2021 at 19:56, Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Sat, 29 May 2021 at 18:05, Amir Goldstein <amir73il@gmail.com> wrote:
 > > >
-> > > On Tue, May 18, 2021 at 5:43 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > > On Wed, Sep 23, 2020 at 2:12 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 > > > >
-> > > > On Mon, 10 May 2021 at 18:32, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > > > > My thinking was that we can change d_real() to provide the real path:
+> > > > On Wed, Sep 23, 2020 at 11:57 AM Amir Goldstein <amir73il@gmail.com> wrote:
 > > > > >
-> > > > > static inline struct path d_real_path(struct path *path,
-> > > > >                                     const struct inode *inode)
-> > > > > {
-> > > > >         struct realpath = {};
-> > > > >         if (!unlikely(dentry->d_flags & DCACHE_OP_REAL))
-> > > > >                return *path;
-> > > > >         dentry->d_op->d_real(path->dentry, inode, &realpath);
-> > > > >         return realpath;
-> > > > > }
-> >
-> > Real paths are internal, we can't pass them (as fd in permission
-> > events) to userspace.
-> >
-> > > > >
-> > > > >
-> > > > > Another option, instead of getting the realpath, just detect the
-> > > > > mismatch of file_inode(file) != d_inode(path->dentry) in
-> > > > > fanotify_file() and pass FSNOTIFY_EVENT_DENTRY data type
-> > > > > with d_real() dentry to backend instead of FSNOTIFY_EVENT_PATH.
-> > > > >
-> > > > > For inotify it should be enough and for fanotify it is enough for
-> > > > > FAN_REPORT_FID and legacy fanotify can report FAN_NOFD,
-> > > > > so at least permission events listeners can identify the situation and
-> > > > > be able to block access to unknown paths.
-> >
-> > That sounds like a good short term solution.
-> >
-> 
-> It may be a fine academic solution, but I don't think it solves any real
-> world problem.
-> I am not aware of any security oriented solutions that use permission
-> events on inode or directory (let alone sb).
-> 
-> The security oriented users of fanotify are anti-virus on-access
-> protection engines and those are using mount marks anyway
-> (dynamically adding them as far as I know).
-> [cc Marko who may be able to shed some light]
-> 
-> For those products, creating a bind mount inside a new mount ns
-> may actually escape the on-access policy or the new mount will
-> also be marked I am not sure. I suppose cloning mount ns may be
-> prohibited by another LSM or something(?).
-
-Yes, this can be restricted in multiple ways. Three spring to mind right
-away:
-- procfs: write a really low number to /proc/sys/user/max_mnt_namespaces
-- seccomp: prevent the clone3() syscall, prevent the legacy clone()
-  syscall with CLONE_NEWNS, prevent unshare(CLONE_NEWNS)
-- use LSM
-
-> 
-> >
+> > > > > On Wed, Sep 23, 2020 at 10:44 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > > > > >
+> > > > > > On Wed, Sep 23, 2020 at 4:49 AM Amir Goldstein <amir73il@gmail.com> wrote:
+> > > > > >
+> > > > > > > I think that the proper was to implement reliable persistent file
+> > > > > > > handles in fuse/virtiofs would be to add ENCODE/DECODE to
+> > > > > > > FUSE protocol and allow the server to handle this.
+> > > > > >
+> > > > > > Max Reitz (Cc-d) is currently looking into this.
+> > > > > >
+> > > > > > One proposal was to add  LOOKUP_HANDLE operation that is similar to
+> > > > > > LOOKUP except it takes a {variable length handle, name} as input and
+> > > > > > returns a variable length handle *and* a u64 node_id that can be used
+> > > > > > normally for all other operations.
+> > > > > >
 > > >
-> > > Is there a reason for the fake path besides the displayed path in
-> > > /proc/self/maps?
-> >
-> > I'm not aware of any.
-> >
+> > > Miklos, Max,
 > > >
-> > > Does it make sense to keep one realfile with fake path for mmaped
-> > > files along side a realfile with private/detached path used for all the
-> > > other operations?
+> > > Any updates on LOOKUP_HANDLE work?
+> > >
+> > > > > > The advantage of such a scheme for virtio-fs (and possibly other fuse
+> > > > > > based fs) would be that userspace need not keep a refcounted object
+> > > > > > around until the kernel sends a FORGET, but can prune its node ID
+> > > > > > based cache at any time.   If that happens and a request from the
+> > > > > > client (kernel) comes in with a stale node ID, the server will return
+> > > > > > -ESTALE and the client can ask for a new node ID with a special
+> > > > > > lookup_handle(fh, NULL).
+> > > > > >
+> > > > > > Disadvantages being:
+> > > > > >
+> > > > > >  - cost of generating a file handle on all lookups
+> > > > >
+> > > > > I never ran into a local fs implementation where this was expensive.
+> > > > >
+> > > > > >  - cost of storing file handle in kernel icache
+> > > > > >
+> > > > > > I don't think either of those are problematic in the virtiofs case.
+> > > > > > The cost of having to keep fds open while the client has them in its
+> > > > > > cache is much higher.
+> > > > > >
+> > > > >
+> > > > > Sounds good.
+> > > > > I suppose flock() does need to keep the open fd on server.
+> > > >
+> > > > Open files are a separate issue and do need an active object in the server.
+> > > >
+> > > > The issue this solves  is synchronizing "released" and "evicted"
+> > > > states of objects between  server and client.  I.e. when a file is
+> > > > closed (and no more open files exist referencing the same object) the
+> > > > dentry refcount goes to zero but it remains in the cache.   In this
+> > > > state the server could really evict it's own cached object, but can't
+> > > > because the client can gain an active reference at any time  via
+> > > > cached path lookup.
+> > > >
+> > > > One other solution would be for the server to send a notification
+> > > > (NOTIFY_EVICT) that would try to clean out the object from the server
+> > > > cache and respond with a FORGET if successful.   But I sort of like
+> > > > the file handle one better, since it solves multiple problems.
+> > > >
+> > >
+> > > Even with LOOKUP_HANDLE, I am struggling to understand how we
+> > > intend to invalidate all fuse dentries referring to ino X in case the server
+> > > replies with reused ino X with a different generation that the one stored
+> > > in fuse inode cache.
+> > >
+> > > This is an issue that I encountered when running the passthrough_hp test,
+> > > on my filesystem. In tst_readdir_big() for example, underlying files are being
+> > > unlinked and new files created reusing the old inode numbers.
+> > >
+> > > This creates a situation where server gets a lookup request
+> > > for file B that uses the reused inode number X, while old file A is
+> > > still in fuse dentry cache using the older generation of real inode
+> > > number X which is still in fuse inode cache.
+> > >
+> > > Now the server knows that the real inode has been rused, because
+> > > the server caches the old generation value, but it cannot reply to
+> > > the lookup request before the old fuse inode has been invalidated.
+> > > IIUC, fuse_lowlevel_notify_inval_inode() is not enough(?).
+> > > We would also need to change fuse_dentry_revalidate() to
+> > > detect the case of reused/invalidated inode.
+> > >
+> > > The straightforward way I can think of is to store inode generation
+> > > in fuse_dentry. It won't even grow the size of the struct.
+> > >
+> > > Am I over complicating this?
 > >
-> > This should work, but it would add more open files,
-> 
-> True, but only for the mmaped files.
-> 
-> > so needs some good justifications.
+> > In this scheme the generation number is already embedded in the file
+> > handle.  If LOOKUP_HANDLE returns a nodeid that can be found in the
+> > icache, but which doesn't match the new file handle, then the old
+> > inode will be marked bad and a new one allocated.
 > >
+> > Does that answer your worries?  Or am I missing something?
 > 
-> I'm afraid I don't have one yet..
-> Let's see what the AV vendors have to say.
+> It affirms my understanding of the future implementation, but
+> does not help my implementation without protocol changes.
+> I thought I could get away without LOOKUP_HANDLE for
+> underlying fs that is able to resolve by ino, but seems that I still have an
+> unhandled corner case, so will need to add some kernel patch.
+> Unless there is already a way to signal from server to make the
+> inode bad in a synchronous manner (I did not find any) before
+> replying to LOOKUP with a new generation of the same ino.
 > 
-> Thanks,
-> Amir.
+> Any idea about the timeline for LOOKUP_HANDLE?
+> I may be able to pick this up myself if there is no one actively
+> working on it or plans for anyone to make this happen.
+
+AFAIK, right now max is not actively looking into LOOKUP_HANDLE.
+
+To solve the issue of virtiofs server having too many fds open, he
+is now planning to store corresonding file handle in server and use
+that to open fd later.
+
+But this does not help with persistent file handle issue for fuse
+client.
+
+BTW, one concern with file handles coming from guest kernel was that
+how to trust those handles. Guest can create anything and use
+file server to open the files on same filesystem (but not shared
+with guest). 
+
+I am assuming same concern should be there with non-virtiofs use
+cases. Regular fuse client must be sending a file handle and
+file server is running with CAP_DAC_READ_SEARCH. How will it make
+sure that client is not able to access files not exported through
+shared directory but are present on same filesystem.
+
+Thanks
+Vivek
+
