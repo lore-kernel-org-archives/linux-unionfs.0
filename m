@@ -8,62 +8,62 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E093EC49361
-	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Jun 2021 15:22:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B97EC48BE5
+	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Jun 2021 15:22:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C1D3461159
-	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Jun 2021 15:22:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 36FA061159
+	for <linux-unionfs@archiver.kernel.org>; Thu, 17 Jun 2021 15:22:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233280AbhFQPZA (ORCPT
+        id S233272AbhFQPZB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 17 Jun 2021 11:25:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48484 "EHLO
+        Thu, 17 Jun 2021 11:25:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233288AbhFQPY6 (ORCPT
+        with ESMTP id S233295AbhFQPY7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 17 Jun 2021 11:24:58 -0400
-Received: from mail-wm1-x334.google.com (mail-wm1-x334.google.com [IPv6:2a00:1450:4864:20::334])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CB5AC061767
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Jun 2021 08:22:49 -0700 (PDT)
-Received: by mail-wm1-x334.google.com with SMTP id t11-20020a1cc30b0000b02901cec841b6a0so4426096wmf.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 17 Jun 2021 08:22:49 -0700 (PDT)
+        Thu, 17 Jun 2021 11:24:59 -0400
+Received: from mail-wm1-x331.google.com (mail-wm1-x331.google.com [IPv6:2a00:1450:4864:20::331])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC569C06175F
+        for <linux-unionfs@vger.kernel.org>; Thu, 17 Jun 2021 08:22:51 -0700 (PDT)
+Received: by mail-wm1-x331.google.com with SMTP id u5-20020a7bc0450000b02901480e40338bso5079184wmc.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 17 Jun 2021 08:22:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=N7yRz5fBvz0QjFHM/i+cV9QhWjVXY4W7zJhUSwe5b+Q=;
-        b=F4N5fsrpTDHA2wToqr8KqRh4dKh7EVTqj3klgBTjAwYZTF7bsfMFhZsaF3EyV87fM4
-         FcbMHUMesn9M37Im2kZgAC1XV51H8ZfpWyRk3IHfWF6GHzw+x4g8fWRa9WpzlXxQUxPe
-         pn79MzekiL3ATpQaZwzbwyHZ2rltTxEZQhxHGgyTGPVXX0Nyqbt8d6KCSsRf5V6j4ErF
-         j7MdBxnjjDMx/MeZ+XJUfTP+P7h0rvpLT+PF7l4XRcinsxSTH9HENZdSzm8+8XSHIpLp
-         q/gYo+CcIsIuCZXIyNCYeGcPr7bX774k37CIMEs9idmQ810FFqVwYQmWEo6lDGj609Nw
-         DfGw==
+        bh=GjC+VOsN9lvHv20zClgz5MnDwqP5+Nkfd2EwWmDTKLE=;
+        b=JWQHDMXbkktvtpB4ol8RBbMt2jXy0EgCTi6Z9UM4/bJK5spQN99xoaKOYmGujxW43G
+         xrEmWIj+6ZUMrPUXPki2Uq7hXArh+H8Onf/fqCmfmNpeDg52pdD/VS6sc9IL77yFAp3d
+         y9sFKx7fwr2hp3bUpmKMCyW0qFLpgxpgrHn60gjm7rL4oafn/ei/6+eNpLZpKQPe4BfE
+         P12ps8AzrQG5UHkK7+D51TrJbWzPYh0Bm9gr+eoFWaolWVRGbQOR+OP5y5ZBWmEuTfE1
+         WSMYOPh7co0TbzUpbnPpV0pPoT6SpyYQfXidOJBsL67E0peGgGarE/3nDaN6Tioxz/Lt
+         npcA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=N7yRz5fBvz0QjFHM/i+cV9QhWjVXY4W7zJhUSwe5b+Q=;
-        b=kErb8MObzYdW2G2U5uoXkYBkibaXoG+cxcQ3T8cMkeahSVP35zdl8SEsnjAg4yirea
-         wgIWBF/OZtVmWjLYPJYuaXHXoaBmR4axtHPHyo7IuMgej5dkuBflsw7xrjtWsuyICBy6
-         XUOdNUr8wPuq8ur68vktiawDbhOvUNGZ1Sb/p8Z8LWOZOn5FJDZgbNx6EdevMXNTryKn
-         QBSWv+RIqp3cRDcUpgckDMp57i0Jnh3i2O7tf38Jexj6MdUL9QQBJwml2Y2L1wLDxyuE
-         SuxhfCSV0+4WPrHjP+HpN2lOuj0a4ArbtwO+siOkulmevTIhyGyoKo5vs40GAiO6/mVL
-         kEDQ==
-X-Gm-Message-State: AOAM533Nd5l0nGYuN+k/eSFGlj2hnbxxEwiRAqyWBYshNkO0Ahb4sCrB
-        hXujQn+tPF6OyzG4VLecL6+5R0g4Mo0=
-X-Google-Smtp-Source: ABdhPJzKhgJNACGu1sZV0ltRlRNG71QEefYClxwh9ShxvnDQZ0LOs3RdVxjIrcQ0UPLGXJRT3I61ow==
-X-Received: by 2002:a7b:c3da:: with SMTP id t26mr5685813wmj.63.1623943368012;
-        Thu, 17 Jun 2021 08:22:48 -0700 (PDT)
+        bh=GjC+VOsN9lvHv20zClgz5MnDwqP5+Nkfd2EwWmDTKLE=;
+        b=NpZ00p5J4zifThMiwsr7IPYWgu5eRW1Zpelu9x2mMIJw7VojC7sXnEnrYBoouvDuhI
+         syV2Mfz5rc1cNPixtXwWseQEuSTPBcWePlwxHPt6TTb9G5WLdLtfSR9xbb4HFqWdylwn
+         ECyeqIVpNGBNsDxikTsKm1r1iumDu/SSOwdImY41ucmwu7LjExYSyf+r2Ti1fkLM+yws
+         BPDhnOsd5OD5jV+EHGNtRzcZB5ucuSGTKswRrd6eso5wT2XEbAwF+Z6Z6/GheT9EW41N
+         cuW9Ms4cA7LKbaBA9LKNiTd6w+dF/hc0zNgZpPkbdVPFQ2fk5AI0BsjlUNs2p5ntD7EP
+         z9Zw==
+X-Gm-Message-State: AOAM530Je3cB2Sb8IBENw1TNeArSae4uoxQEL3+64/knwzLeEnTIzxcn
+        Kxpy64GVL85Lcts0i7Rxlzk=
+X-Google-Smtp-Source: ABdhPJx8ORPSqvrNl+At/q3aJegkyVdKdbyB9a55ESPDSXkWGMA3jLdf5cX1z3qTAAXkCeQa8kKZkg==
+X-Received: by 2002:a1c:4c07:: with SMTP id z7mr5661960wmf.90.1623943369308;
+        Thu, 17 Jun 2021 08:22:49 -0700 (PDT)
 Received: from localhost.localdomain ([141.226.242.176])
-        by smtp.gmail.com with ESMTPSA id o7sm5835910wro.76.2021.06.17.08.22.47
+        by smtp.gmail.com with ESMTPSA id o7sm5835910wro.76.2021.06.17.08.22.48
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Jun 2021 08:22:47 -0700 (PDT)
+        Thu, 17 Jun 2021 08:22:48 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Chengguang Xu <cgxu519@mykernel.net>, linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 1/3] ovl: pass ovl_fs to ovl_check_setxattr()
-Date:   Thu, 17 Jun 2021 18:22:39 +0300
-Message-Id: <20210617152241.987010-2-amir73il@gmail.com>
+Subject: [PATCH v2 2/3] ovl: copy up sync/noatime fileattr flags
+Date:   Thu, 17 Jun 2021 18:22:40 +0300
+Message-Id: <20210617152241.987010-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20210617152241.987010-1-amir73il@gmail.com>
 References: <20210617152241.987010-1-amir73il@gmail.com>
@@ -73,163 +73,239 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Instead of passing the overlay dentry.
+When a lower file has sync/noatime fileattr flags, the behavior of
+overlayfs post copy up is inconsistent.
+
+Immediattely after copy up, ovl inode still has the S_SYNC/S_NOATIME
+inode flags copied from lower inode, so vfs code still treats the ovl
+inode as sync/noatime.  After ovl inode evict or mount cycle,
+the ovl inode does not have these inode flags anymore.
+
+To fix this inconsitency, try to copy the fileattr flags on copy up
+if the upper fs supports the fileattr_set() method.
+
+This gives consistent behavior post copy up regardless of inode eviction
+from cache.
+
+We cannot copy up the immutable/append-only inode flags in a similar
+manner, because immutable/append-only inodes cannot be linked and because
+overlayfs will not be able to set overlay.* xattr on the upper inodes.
+
+Those flags will be addressed by a followup patch.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   | 10 +++++-----
- fs/overlayfs/dir.c       |  6 ++++--
- fs/overlayfs/namei.c     |  2 +-
- fs/overlayfs/overlayfs.h |  6 +++---
- fs/overlayfs/util.c      |  7 +++----
- 5 files changed, 16 insertions(+), 15 deletions(-)
+ fs/overlayfs/copy_up.c   | 49 ++++++++++++++++++++++++++++++++++------
+ fs/overlayfs/inode.c     | 36 ++++++++++++++++++-----------
+ fs/overlayfs/overlayfs.h | 14 +++++++++++-
+ 3 files changed, 78 insertions(+), 21 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 2846b943e80c..3fa68a5cc16e 100644
+index 3fa68a5cc16e..e1d91cdf4c3f 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -331,8 +331,8 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
- 	return ERR_PTR(err);
+@@ -8,6 +8,7 @@
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+ #include <linux/file.h>
++#include <linux/fileattr.h>
+ #include <linux/splice.h>
+ #include <linux/xattr.h>
+ #include <linux/security.h>
+@@ -130,6 +131,31 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
+ 	return error;
  }
  
--int ovl_set_origin(struct ovl_fs *ofs, struct dentry *dentry,
--		   struct dentry *lower, struct dentry *upper)
-+int ovl_set_origin(struct ovl_fs *ofs, struct dentry *lower,
-+		   struct dentry *upper)
++static int ovl_copy_xflags(struct path *old, struct path *new)
++{
++	struct fileattr oldfa = { .flags_valid = true };
++	struct fileattr newfa = { .flags_valid = true };
++	int err;
++
++	err = ovl_real_fileattr(old, &oldfa, false);
++	if (err)
++		return err;
++
++	err = ovl_real_fileattr(new, &newfa, false);
++	if (err)
++		return err;
++
++	BUILD_BUG_ON(OVL_COPY_FS_FLAGS_MASK & ~FS_COMMON_FL);
++	newfa.flags &= ~OVL_COPY_FS_FLAGS_MASK;
++	newfa.flags |= (oldfa.flags & OVL_COPY_FS_FLAGS_MASK);
++
++	BUILD_BUG_ON(OVL_COPY_FSX_FLAGS_MASK & ~FS_XFLAG_COMMON);
++	newfa.fsx_xflags &= ~OVL_COPY_FSX_FLAGS_MASK;
++	newfa.fsx_xflags |= (oldfa.fsx_xflags & OVL_COPY_FSX_FLAGS_MASK);
++
++	return ovl_real_fileattr(new, &newfa, true);
++}
++
+ static int ovl_copy_up_data(struct ovl_fs *ofs, struct path *old,
+ 			    struct path *new, loff_t len)
  {
- 	const struct ovl_fh *fh = NULL;
+@@ -493,20 +519,21 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ {
+ 	struct ovl_fs *ofs = OVL_FS(c->dentry->d_sb);
++	struct inode *inode = d_inode(c->dentry);
++	struct path upperpath, datapath;
  	int err;
-@@ -351,7 +351,7 @@ int ovl_set_origin(struct ovl_fs *ofs, struct dentry *dentry,
+ 
++	ovl_path_upper(c->dentry, &upperpath);
++	if (WARN_ON(upperpath.dentry != NULL))
++		return -EIO;
++
++	upperpath.dentry = temp;
++
  	/*
- 	 * Do not fail when upper doesn't support xattrs.
+ 	 * Copy up data first and then xattrs. Writing data after
+ 	 * xattrs will remove security.capability xattr automatically.
  	 */
--	err = ovl_check_setxattr(dentry, upper, OVL_XATTR_ORIGIN, fh->buf,
-+	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh->buf,
- 				 fh ? fh->fb.len : 0, 0);
- 	kfree(fh);
- 
-@@ -526,13 +526,13 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	 * hard link.
- 	 */
- 	if (c->origin) {
--		err = ovl_set_origin(ofs, c->dentry, c->lowerpath.dentry, temp);
-+		err = ovl_set_origin(ofs, c->lowerpath.dentry, temp);
- 		if (err)
- 			return err;
- 	}
- 
- 	if (c->metacopy) {
--		err = ovl_check_setxattr(c->dentry, temp, OVL_XATTR_METACOPY,
-+		err = ovl_check_setxattr(ofs, temp, OVL_XATTR_METACOPY,
- 					 NULL, 0, -EOPNOTSUPP);
- 		if (err)
- 			return err;
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 03a22954fe61..9154222883e6 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -233,9 +233,10 @@ struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr)
- static int ovl_set_opaque_xerr(struct dentry *dentry, struct dentry *upper,
- 			       int xerr)
- {
-+	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	int err;
- 
--	err = ovl_check_setxattr(dentry, upper, OVL_XATTR_OPAQUE, "y", 1, xerr);
-+	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_OPAQUE, "y", 1, xerr);
- 	if (!err)
- 		ovl_dentry_set_opaque(dentry);
- 
-@@ -1045,6 +1046,7 @@ static bool ovl_need_absolute_redirect(struct dentry *dentry, bool samedir)
- static int ovl_set_redirect(struct dentry *dentry, bool samedir)
- {
- 	int err;
-+	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	const char *redirect = ovl_dentry_get_redirect(dentry);
- 	bool absolute_redirect = ovl_need_absolute_redirect(dentry, samedir);
- 
-@@ -1055,7 +1057,7 @@ static int ovl_set_redirect(struct dentry *dentry, bool samedir)
- 	if (IS_ERR(redirect))
- 		return PTR_ERR(redirect);
- 
--	err = ovl_check_setxattr(dentry, ovl_dentry_upper(dentry),
-+	err = ovl_check_setxattr(ofs, ovl_dentry_upper(dentry),
- 				 OVL_XATTR_REDIRECT,
- 				 redirect, strlen(redirect), -EXDEV);
- 	if (!err) {
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 210cd6f66e28..da063b18b419 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -811,7 +811,7 @@ static int ovl_fix_origin(struct ovl_fs *ofs, struct dentry *dentry,
+ 	if (S_ISREG(c->stat.mode) && !c->metacopy) {
+-		struct path upperpath, datapath;
+-
+-		ovl_path_upper(c->dentry, &upperpath);
+-		if (WARN_ON(upperpath.dentry != NULL))
+-			return -EIO;
+-		upperpath.dentry = temp;
+-
+ 		ovl_path_lowerdata(c->dentry, &datapath);
+ 		err = ovl_copy_up_data(ofs, &datapath, &upperpath,
+ 				       c->stat.size);
+@@ -518,6 +545,14 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
  	if (err)
  		return err;
  
--	err = ovl_set_origin(ofs, dentry, lower, upper);
-+	err = ovl_set_origin(ofs, lower, upper);
- 	if (!err)
- 		err = ovl_set_impure(dentry->d_parent, upper->d_parent);
++	if (inode->i_flags & OVL_COPY_I_FLAGS_MASK) {
++		/*
++		 * Copy the fileattr inode flags that are the source of already
++		 * copied i_flags (best effort).
++		 */
++		ovl_copy_xflags(&c->lowerpath, &upperpath);
++	}
++
+ 	/*
+ 	 * Store identifier of lower inode in upper inode xattr to
+ 	 * allow lookup of the copy up origin inode.
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 5e828a1c98a8..aec353a2dc80 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -503,16 +503,14 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+  * Introducing security_inode_fileattr_get/set() hooks would solve this issue
+  * properly.
+  */
+-static int ovl_security_fileattr(struct dentry *dentry, struct fileattr *fa,
++static int ovl_security_fileattr(struct path *realpath, struct fileattr *fa,
+ 				 bool set)
+ {
+-	struct path realpath;
+ 	struct file *file;
+ 	unsigned int cmd;
+ 	int err;
  
+-	ovl_path_real(dentry, &realpath);
+-	file = dentry_open(&realpath, O_RDONLY, current_cred());
++	file = dentry_open(realpath, O_RDONLY, current_cred());
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
+ 
+@@ -527,11 +525,25 @@ static int ovl_security_fileattr(struct dentry *dentry, struct fileattr *fa,
+ 	return err;
+ }
+ 
++int ovl_real_fileattr(struct path *realpath, struct fileattr *fa, bool set)
++{
++	int err;
++
++	err = ovl_security_fileattr(realpath, fa, set);
++	if (err)
++		return err;
++
++	if (set)
++		return vfs_fileattr_set(&init_user_ns, realpath->dentry, fa);
++	else
++		return vfs_fileattr_get(realpath->dentry, fa);
++}
++
+ int ovl_fileattr_set(struct user_namespace *mnt_userns,
+ 		     struct dentry *dentry, struct fileattr *fa)
+ {
+ 	struct inode *inode = d_inode(dentry);
+-	struct dentry *upperdentry;
++	struct path upperpath;
+ 	const struct cred *old_cred;
+ 	int err;
+ 
+@@ -541,12 +553,10 @@ int ovl_fileattr_set(struct user_namespace *mnt_userns,
+ 
+ 	err = ovl_copy_up(dentry);
+ 	if (!err) {
+-		upperdentry = ovl_dentry_upper(dentry);
++		ovl_path_real(dentry, &upperpath);
+ 
+ 		old_cred = ovl_override_creds(inode->i_sb);
+-		err = ovl_security_fileattr(dentry, fa, true);
+-		if (!err)
+-			err = vfs_fileattr_set(&init_user_ns, upperdentry, fa);
++		err = ovl_real_fileattr(&upperpath, fa, true);
+ 		revert_creds(old_cred);
+ 		ovl_copyflags(ovl_inode_real(inode), inode);
+ 	}
+@@ -558,14 +568,14 @@ int ovl_fileattr_set(struct user_namespace *mnt_userns,
+ int ovl_fileattr_get(struct dentry *dentry, struct fileattr *fa)
+ {
+ 	struct inode *inode = d_inode(dentry);
+-	struct dentry *realdentry = ovl_dentry_real(dentry);
++	struct path realpath;
+ 	const struct cred *old_cred;
+ 	int err;
+ 
++	ovl_path_real(dentry, &realpath);
++
+ 	old_cred = ovl_override_creds(inode->i_sb);
+-	err = ovl_security_fileattr(dentry, fa, false);
+-	if (!err)
+-		err = vfs_fileattr_get(realdentry, fa);
++	err = ovl_real_fileattr(&realpath, fa, false);
+ 	revert_creds(old_cred);
+ 
+ 	return err;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 29d71f253db4..6e3a1bea1c9a 100644
+index 6e3a1bea1c9a..1e964e4e45d4 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -332,7 +332,7 @@ bool ovl_already_copied_up(struct dentry *dentry, int flags);
- bool ovl_check_origin_xattr(struct ovl_fs *ofs, struct dentry *dentry);
- bool ovl_check_dir_xattr(struct super_block *sb, struct dentry *dentry,
- 			 enum ovl_xattr ox);
--int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-+int ovl_check_setxattr(struct ovl_fs *ofs, struct dentry *upperdentry,
- 		       enum ovl_xattr ox, const void *value, size_t size,
- 		       int xerr);
- int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry);
-@@ -573,8 +573,8 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
- int ovl_set_attr(struct dentry *upper, struct kstat *stat);
- struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
- 				  bool is_upper);
--int ovl_set_origin(struct ovl_fs *ofs, struct dentry *dentry,
--		   struct dentry *lower, struct dentry *upper);
-+int ovl_set_origin(struct ovl_fs *ofs, struct dentry *lower,
-+		   struct dentry *upper);
+@@ -530,9 +530,20 @@ static inline void ovl_copyattr(struct inode *from, struct inode *to)
+ 	i_size_write(to, i_size_read(from));
+ }
  
- /* export.c */
- extern const struct export_operations ovl_export_operations;
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index b9d03627f364..81b8f135445a 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -600,12 +600,11 @@ const char *const ovl_xattr_table[][2] = {
- 	OVL_XATTR_TAB_ENTRY(OVL_XATTR_METACOPY),
- };
- 
--int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
-+int ovl_check_setxattr(struct ovl_fs *ofs, struct dentry *upperdentry,
- 		       enum ovl_xattr ox, const void *value, size_t size,
- 		       int xerr)
++/* vfs inode flags copied from real to ovl inode */
++#define OVL_COPY_I_FLAGS_MASK	(S_SYNC | S_NOATIME | S_APPEND | S_IMMUTABLE)
++
++/*
++ * fileattr flags copied from lower to upper inode on copy up.
++ * We cannot copy immutable/append-only flags, because that would prevevnt
++ * linking temp inode to upper dir.
++ */
++#define OVL_COPY_FS_FLAGS_MASK	(FS_SYNC_FL | FS_NOATIME_FL)
++#define OVL_COPY_FSX_FLAGS_MASK	(FS_XFLAG_SYNC | FS_XFLAG_NOATIME)
++
+ static inline void ovl_copyflags(struct inode *from, struct inode *to)
  {
- 	int err;
--	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+-	unsigned int mask = S_SYNC | S_IMMUTABLE | S_APPEND | S_NOATIME;
++	unsigned int mask = OVL_COPY_I_FLAGS_MASK;
  
- 	if (ofs->noxattr)
- 		return xerr;
-@@ -623,6 +622,7 @@ int ovl_check_setxattr(struct dentry *dentry, struct dentry *upperdentry,
- 
- int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
- {
-+	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	int err;
- 
- 	if (ovl_test_flag(OVL_IMPURE, d_inode(dentry)))
-@@ -632,8 +632,7 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
- 	 * Do not fail when upper doesn't support xattrs.
- 	 * Upper inodes won't have origin nor redirect xattr anyway.
- 	 */
--	err = ovl_check_setxattr(dentry, upperdentry, OVL_XATTR_IMPURE,
--				 "y", 1, 0);
-+	err = ovl_check_setxattr(ofs, upperdentry, OVL_XATTR_IMPURE, "y", 1, 0);
- 	if (!err)
- 		ovl_set_flag(OVL_IMPURE, d_inode(dentry));
- 
+ 	inode_set_flags(to, from->i_flags & mask, mask);
+ }
+@@ -560,6 +571,7 @@ struct dentry *ovl_create_temp(struct dentry *workdir, struct ovl_cattr *attr);
+ extern const struct file_operations ovl_file_operations;
+ int __init ovl_aio_request_cache_init(void);
+ void ovl_aio_request_cache_destroy(void);
++int ovl_real_fileattr(struct path *realpath, struct fileattr *fa, bool set);
+ int ovl_fileattr_get(struct dentry *dentry, struct fileattr *fa);
+ int ovl_fileattr_set(struct user_namespace *mnt_userns,
+ 		     struct dentry *dentry, struct fileattr *fa);
 -- 
 2.32.0
 
