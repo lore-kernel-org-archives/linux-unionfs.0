@@ -2,201 +2,116 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4243CC48BDF
-	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Jun 2021 15:54:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83232C2B9F4
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Jun 2021 09:26:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25F7B611CD
-	for <linux-unionfs@archiver.kernel.org>; Fri, 18 Jun 2021 15:54:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5BD1B608FC
+	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Jun 2021 09:26:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235618AbhFRP4q (ORCPT
+        id S230318AbhFSJ2h (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 18 Jun 2021 11:56:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36434 "EHLO
+        Sat, 19 Jun 2021 05:28:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233880AbhFRP4p (ORCPT
+        with ESMTP id S230107AbhFSJ2g (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 18 Jun 2021 11:56:45 -0400
-Received: from mail-il1-x135.google.com (mail-il1-x135.google.com [IPv6:2607:f8b0:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F775C061574
-        for <linux-unionfs@vger.kernel.org>; Fri, 18 Jun 2021 08:54:36 -0700 (PDT)
-Received: by mail-il1-x135.google.com with SMTP id x12so8820977ill.4
-        for <linux-unionfs@vger.kernel.org>; Fri, 18 Jun 2021 08:54:36 -0700 (PDT)
+        Sat, 19 Jun 2021 05:28:36 -0400
+Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5850C061574
+        for <linux-unionfs@vger.kernel.org>; Sat, 19 Jun 2021 02:26:23 -0700 (PDT)
+Received: by mail-wr1-x430.google.com with SMTP id m18so13552251wrv.2
+        for <linux-unionfs@vger.kernel.org>; Sat, 19 Jun 2021 02:26:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=4CNOYKipnnJE/g/wWXgG15FFiKmS2uUgf7FSKMVOjr4=;
-        b=ozvqHo6UoLcLInq6lSFo3RrycNkPtwK/2JQj0WPG3MZeU0cBHuGW9/ancWcF5nzHkQ
-         t7YZBHYbcI3Xv+d6x2AO4qLil/wvig2sWzCSTpo4guAYsoIbd2b7NvSNMpLbJ/mUG6Z4
-         L+6UofcD9onDy/LvfNsSFVh0cSHyV8/vYXDlU9tLz68I9XF3szZ1Qs5c0SPndbgEYoCE
-         KMFqStOyfT/2UcE15U/DFewk47MN4VfwF0yo8xmtI+/Bb1nzH2WrA1VnhdZZVuBaNml7
-         hh2OTQGGVFWUphfCt91N4xEZvazIYD/mWUNtg0u+CSadf7PbAQ/NV6ukeEmKOiTKEaGX
-         hXOw==
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lLrSRhugB61+0CyX02SwYcu4Rpe5V6pO+sc6tYdkvxo=;
+        b=Yd3+JIseejlOQQMWqHFnm/R8bwWna2pCO4/2cVpQyoSbPy7DgsZGKp4b16pAgHmd7K
+         yoCrm/X74tqKBcCAkRWRwW+dEfaMrkmezl6as9vET7rcPBErssuxi6naG1FAaWeGDqwh
+         we+32fHqL0IyOvVyEAF3Mj9t5aG5Few4lvk8IdkzzHNTlE82D/Q+fUMimN/Fy/2cou1v
+         ATUFT665Ecgpb+p+76ar8QcRAy7yWo4Y1O29gUEb/3oRRYUHX6fRYCl4IkMtICxJcmkh
+         aroF5xC1+8wOhMzV2grBXMZpGPZ5mY1mdlCbwwMf4NS9B8BOAPyq3BKcqFYJSjg2/kmu
+         kqEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=4CNOYKipnnJE/g/wWXgG15FFiKmS2uUgf7FSKMVOjr4=;
-        b=pGnr6eUo5aY9DrHOkLVa34lC1Uyt8BW0vep7Wd82Z/4cDSwHErTrISBw58QXTEL7jW
-         EgMP7oSyLYgcaxFQfGirMhen5t3tzjygOdZL/QQDQ+EIJBzJlydXvQqeOxDsNIgu/XmK
-         dv+yaqqWJxyQwBREx7euDz/TH2yvC+JDqMT5Mn6AhnISovPoC5rr5CNYE1kRnoRClRJv
-         X6HMvWc0W0ni0mjBuIyHi7M89Wb++ObZn0/AcqNVy5RgiWOdJpWRdVVE8nMkX4rHDF8Y
-         CY0Bqut2pObb1kzXdAm9ewNmdTdMTpITDLwZHvbwrAP+w5AIt8rIclrlxlSR+uVUjbpF
-         Gg2A==
-X-Gm-Message-State: AOAM533oRnFSe3FXMddWxp/BzUV8zkm6DF8h+JeB68MU0YTMlZoHl7GK
-        B/gMnRnBSCYhLsFuQgu09uskev89UeIwZMgsba1FosW/a2k=
-X-Google-Smtp-Source: ABdhPJxeIKlQIGALx06+P3Zx6/rt3ANx9Cgfnyniwt0Ctb0x05k66e+e3/lMWU234w/JsLH85diItwhmhJJluOtAsUw=
-X-Received: by 2002:a92:874b:: with SMTP id d11mr7557931ilm.137.1624031675614;
- Fri, 18 Jun 2021 08:54:35 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210617152241.987010-1-amir73il@gmail.com> <20210617152241.987010-4-amir73il@gmail.com>
- <CAJfpegv9e1oTyu+9Z-TyZQmNG0NrJhokXd8UbaRNft3_bwBEjQ@mail.gmail.com>
-In-Reply-To: <CAJfpegv9e1oTyu+9Z-TyZQmNG0NrJhokXd8UbaRNft3_bwBEjQ@mail.gmail.com>
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=lLrSRhugB61+0CyX02SwYcu4Rpe5V6pO+sc6tYdkvxo=;
+        b=bM5jK2T/R7jAP+DxE6hJzP8q0xohCbgpfp5g+PeW4Yg0v6KVjz4K90PLRw37Cfra0f
+         cbh5EaosAFLTtwsuVO96F0u0WoLx/s68kAPSpw8x6dy+oD8+w/faacxwvdU+KQx8kv5e
+         8KEEhX92EvUpJ6TO4HNtF5alodDqFIthPuPIGFSjqCadHZVh5uVux6mlw02hI21c73o+
+         9Oofc1Axnx4q59c1JljEwM5IJPN29bYvwSf9jcGaVU1AJkOar2kk6TZ40Fz1OpjxglUb
+         FMX/Mb+/KL4gVbj9jboNAsj30JHrxYfbzQhgW2VFylUd7EUhK3zGUp8Fy/Olz9PnuYQ9
+         WhsA==
+X-Gm-Message-State: AOAM530arANsfLHJclJMHXEiHCXwR1jc2u2XncPlsd++3SkGmK67480I
+        XhZ26WOr2UN71DPfIF6Set0G0MdQSqk=
+X-Google-Smtp-Source: ABdhPJxMztlNCUIbFCQIuPpUmdKg8QIoIRqnxlWMAOhnTb8SQ9sbIUfVwk34KMDnXTJWHeMR2mIM4g==
+X-Received: by 2002:a5d:6945:: with SMTP id r5mr17091080wrw.249.1624094782264;
+        Sat, 19 Jun 2021 02:26:22 -0700 (PDT)
+Received: from localhost.localdomain ([141.226.245.169])
+        by smtp.gmail.com with ESMTPSA id 2sm10904445wrz.87.2021.06.19.02.26.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 19 Jun 2021 02:26:21 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 18 Jun 2021 18:54:24 +0300
-Message-ID: <CAOQ4uxgdWwrOa79BRzZ1PS6SxmLtywQCAr3+WLRZPx38aHHyQw@mail.gmail.com>
-Subject: Re: [PATCH v2 3/3] ovl: consistent behavior for immutable/append-only inodes
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Chengguang Xu <cgxu519@mykernel.net>, linux-unionfs@vger.kernel.org
+Subject: [PATCH v3 0/4] Overlayfs fileattr related fixes
+Date:   Sat, 19 Jun 2021 12:26:15 +0300
+Message-Id: <20210619092619.1107608-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.32.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 18, 2021 at 4:57 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> On Thu, 17 Jun 2021 at 17:22, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > Instead, if any of the fileattr flags of interest exist on the lower
-> > inode, we store them in overlay.xflags xattr on the upper inode and we
-> > we read the flags from xattr on lookup and on fileattr_get().
->
-> Calling this xflags, especially near fileattr code, makes it easy to
-> confuse with fsx_xflags.   Can we find a more distinctive name?
->
+Miklos,
 
-Indeed. I'll change to overlay.protected as suggested in the v1
-patch discussion.
-
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index aec353a2dc80..d66e51b9c347 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -162,7 +162,8 @@ int ovl_getattr(struct user_namespace *mnt_userns, const struct path *path,
-> >         enum ovl_path_type type;
-> >         struct path realpath;
-> >         const struct cred *old_cred;
-> > -       bool is_dir = S_ISDIR(dentry->d_inode->i_mode);
-> > +       struct inode *inode = d_inode(dentry);
-> > +       bool is_dir = S_ISDIR(inode->i_mode);
-> >         int fsid = 0;
-> >         int err;
-> >         bool metacopy_blocks = false;
-> > @@ -175,6 +176,10 @@ int ovl_getattr(struct user_namespace *mnt_userns, const struct path *path,
-> >         if (err)
-> >                 goto out;
-> >
-> > +       /* Report immutable/append-only STATX flags */
-> > +       if (ovl_test_flag(OVL_XFLAGS, inode))
-> > +               ovl_fill_xflags(inode, stat, NULL);
-> > +
->
-> Filesystems are doing these transformations: (already down one from
-> before fileattr)
->
-> internal flags -> statx->attributes
-> internal flags -> inode->i_flags
-> internal flags <-> fa->flags or fa->fsx_xflags
->
-> To further improve this situation the statx filling could be moved to
-> generic code based on i_flags.  I'm not asking you to convert all
-> filesystems (though that would be nice), but adding the helpers and
-> using them here would be a good first step.
->
-
-I am afraid that the only flags this would be relevant to are (a) and (i),
-so not sure it is worth the generic helper, but I will look into it.
-
-> > @@ -639,6 +642,174 @@ int ovl_set_impure(struct dentry *dentry, struct dentry *upperdentry)
-> >         return err;
-> >  }
-> >
-> > +
-> > +/*
-> > + * Overlayfs stores immutable/append-only attributes in overlay.xflags xattr.
-> > + * If upper inode does have those fileattr flags set (i.e. from old kernel),
-> > + * overlayfs does not clear them on fileattr_get(), but it will clear them on
-> > + * fileattr_set().
-> > + */
-> > +#define OVL_XFLAG(c, x) \
-> > +       { c, S_ ## x, FS_ ## x ## _FL, FS_XFLAG_ ## x, STATX_ATTR_ ## x }
-> > +
-> > +struct ovl_xflag {
-> > +       char code;
-> > +       u32 i_flag;
-> > +       u32 fs_flag;
-> > +       u32 fsx_flag;
-> > +       u64 statx_attr;
-> > +} const ovl_xflags[] = {
-> > +       OVL_XFLAG('a', APPEND),
-> > +       OVL_XFLAG('i', IMMUTABLE),
-> > +};
->
-> This would be really nice for a dozen flags, but for two...
->
-> My guess is that many lines of code could be saved by un-generalizing this.
->
-
-Perhaps. I'll try.
-
-> > +/* Set inode flags and xflags xattr from fileattr */
-> > +int ovl_set_xflags(struct inode *inode, struct dentry *upper,
-> > +                  struct fileattr *fa)
-> > +{
-> > +       struct ovl_fs *ofs = OVL_FS(inode->i_sb);
-> > +       char buf[OVL_XFLAGS_NUM];
-> > +       int len, err = 0;
-> > +
-> > +       BUILD_BUG_ON(OVL_XFLAGS_NUM >= OVL_XFLAGS_MAX);
-> > +       len = ovl_xflags_to_buf(inode, buf, OVL_XFLAGS_NUM, fa);
-> > +
-> > +       /*
-> > +        * Do not fail when upper doesn't support xattrs, but also do not
-> > +        * mask out the xattr xflags from real fileattr to continue
-> > +        * supporting fileattr_set() on fs without xattr support.
-> > +        * Remove xattr if it exist and all flags are cleared.
-> > +        */
->
-> Does this matter in practice?   I.e. is there any filesystem with
-> immutable/append attribute but not xattr that could be an upper layer?
-
-I did not find any, but did not want to take the risk, because maybe
-there is a fs that does not support trusted.xattr but does support fileattr -
-I did not check that. And the fallback seemed pretty safe to me.
-I am also fine with failing fileattr_set() in that case.
-
->
-> If yes, then this could end up as a copy-up regression (failure to
-> copy up files having immutable/append).
-
-No, because ovl_copy_xflags() always masks those flags on copy up:
-
-        BUILD_BUG_ON(OVL_COPY_FS_FLAGS_MASK & ~FS_COMMON_FL);
-        newfa.flags &= ~OVL_COPY_FS_FLAGS_MASK;
-        newfa.flags |= (oldfa.flags & OVL_COPY_FS_FLAGS_MASK);
-
-        BUILD_BUG_ON(OVL_COPY_FSX_FLAGS_MASK & ~FS_XFLAG_COMMON);
-        newfa.fsx_xflags &= ~OVL_COPY_FSX_FLAGS_MASK;
-        newfa.fsx_xflags |= (oldfa.fsx_xflags & OVL_COPY_FSX_FLAGS_MASK);
-
-The comment above about not clearing the immutable flag is referring
-specifically to fileattr_set().
+Following patch set addresses your comments to v2.
+It passed all the old and new xfstests [3].
 
 Thanks,
 Amir.
+
+Changes since v2 [2]:
+- Rename overlay.xflags => overlay.protected
+- Generic vfs helper for filling statx flags
+- Un-generalize flag conversion helpers
+- Do not be forgiving with noxattr upper fs
+
+Changes since v1 [1]:
+- Store (i),(a) flags in xattr text format
+- Copy up (A),(S) flags to upper fileattr
+- Fixes the problems with setting ovl dirs and hardlinks immutable
+
+[1] https://lore.kernel.org/linux-unionfs/CAJfpeguMQca-+vTdzoDdDWNJraWyqMa3vYRFDWPMk_R6-L7Obw@mail.gmail.com/
+[2] https://lore.kernel.org/linux-unionfs/CAOQ4uxgdWwrOa79BRzZ1PS6SxmLtywQCAr3+WLRZPx38aHHyQw@mail.gmail.com/
+[3] https://github.com/amir73il/xfstests/commits/ovl-xflags
+
+Amir Goldstein (4):
+  fs: add generic helper for filling statx attribute flags
+  ovl: pass ovl_fs to ovl_check_setxattr()
+  ovl: copy up sync/noatime fileattr flags
+  ovl: consistent behavior for immutable/append-only inodes
+
+ fs/orangefs/inode.c      |   7 +--
+ fs/overlayfs/copy_up.c   |  72 +++++++++++++++++++----
+ fs/overlayfs/dir.c       |   6 +-
+ fs/overlayfs/inode.c     |  74 +++++++++++++++++++-----
+ fs/overlayfs/namei.c     |   2 +-
+ fs/overlayfs/overlayfs.h |  44 ++++++++++++--
+ fs/overlayfs/util.c      | 122 +++++++++++++++++++++++++++++++++++++--
+ fs/stat.c                |  18 ++++++
+ include/linux/fs.h       |   1 +
+ include/linux/stat.h     |   4 ++
+ 10 files changed, 307 insertions(+), 43 deletions(-)
+
+-- 
+2.32.0
+
