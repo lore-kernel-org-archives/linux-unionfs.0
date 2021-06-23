@@ -2,56 +2,61 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46969C2B9F4
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Jun 2021 16:30:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C93FC48BE5
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Jun 2021 06:06:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2CD1F61027
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Jun 2021 16:30:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F4FA61186
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Jun 2021 06:06:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbhFVQcp (ORCPT
+        id S229892AbhFWGI4 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 22 Jun 2021 12:32:45 -0400
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17284 "EHLO
-        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229826AbhFVQco (ORCPT
+        Wed, 23 Jun 2021 02:08:56 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25376 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229665AbhFWGIz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Jun 2021 12:32:44 -0400
-X-Greylist: delayed 909 seconds by postgrey-1.27 at vger.kernel.org; Tue, 22 Jun 2021 12:32:43 EDT
-ARC-Seal: i=1; a=rsa-sha256; t=1624378517; cv=none; 
+        Wed, 23 Jun 2021 02:08:55 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1624428374; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=T0eO6Yt7upYbO64AOwiWcaQpHeMM8q+jjur2gvMRRSprP9DSICqsaqym1QK+wXRpx2HCfTqdIItFB88IMPuOGhyLqk18PkXLYlkHt9qUTy6YO9RIgYbZOznvDa6GUWIt/8PgEQW5OPgdmNscICZEexO9PhZSmaDliqEctG0+xK8=
+        b=FvwY4Amtbar2mVeWBKKfsiNg34jD7iLLLk+xu8nU9h+gSb1FlePD+poygQxs+zkOquxWfa3PF020TJn9uIdR2Eg1nGnEdd4J6qrh8C+d2RtJ17o3MkfM/dXqvDfAMOZUzulSN80ZJ/BfqG5z/p/8pv8mripcxfwLxueTlwQI1Eg=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1624378517; h=Content-Type:Content-Transfer-Encoding:Date:From:MIME-Version:Message-ID:Reply-To:Subject:To; 
-        bh=SQaF6tlpq5w8mTMwzTARaEvMKVjyaCfq7IIu5V4jnuQ=; 
-        b=U3gXW8CmX0P9awP5a9oq82pkVzYG6tO4smwVLC5kLJGwfbMvNN6fDj76SQh27DlOZkt8jXJhr0ORAWyNuNN59IdLt2mBF/S5ubyGQTCVTr8yO35mehjyebwZJD3B2AC/ABcFppqe3DifXfV+5Gb4ekNEN2lliN7FltztDQgUMXg=
+        t=1624428374; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=LmqJlpoAuCfKzT2jfsIzXSh49imf5u7A6jt8fvymJag=; 
+        b=an6OibPcmLXkoVHvoZ6M/y6b15xxwlmUBrkzNoTAJy4+xdnrKBEhGET8tmD2LRrFeb6D7MDVgi8iaq10yv8NdiLkncJys/tSjLKtms6cpAqBM8iHbKLPBjVw2sDttP+c1gE8u6vSXST+RnWAVws7zLU0e5QZfhWJ7VeridE3mug=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1624378517;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1624428374;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Message-ID:In-Reply-To:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=SQaF6tlpq5w8mTMwzTARaEvMKVjyaCfq7IIu5V4jnuQ=;
-        b=E8fRBi4noPv576rFoAA61mKyevsfBZDYEVEmkIITFjcjQ2lcdCpPvogTtwhP76/y
-        bhaakz4HOKqpE9i7JBeS7rnPD2uGy1RcvmvLmdIXuAdw64AbXGG0e+/boZNPaJrv5U+
-        CBdUifVBBdxWXMP8Xy47lbiRM7CsiacRavoxi0Yw=
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=LmqJlpoAuCfKzT2jfsIzXSh49imf5u7A6jt8fvymJag=;
+        b=ZpNtt9lSKyrpbV47zI4soCxHIP7ioF4V1vPuuIAhSyU/IB3hX6QWNV1zCa/bYTiS
+        p5/lfOSDp2zodxMRSyE4W493/x4pew+CAvXnZcSIQy8hUS9EHh4qP4LYsgR3t9UqULA
+        n0UBUsr9+GJ6+UfRZNmJXAw4DenwXEhZsN6j35us=
 Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1624378514356732.0285783630529; Wed, 23 Jun 2021 00:15:14 +0800 (CST)
-Date:   Wed, 23 Jun 2021 00:15:14 +0800
+        with SMTP id 1624428373723219.8140028881793; Wed, 23 Jun 2021 14:06:13 +0800 (CST)
+Date:   Wed, 23 Jun 2021 14:06:13 +0800
 From:   Chengguang Xu <cgxu519@mykernel.net>
 Reply-To: cgxu519@mykernel.net
-To:     "linux-unionfs" <linux-unionfs@vger.kernel.org>
-Message-ID: <17a34811bb1.ca67d1a36094.7925246580859918166@mykernel.net>
-In-Reply-To: 
-Subject: Mount failure caused by colon/comma characters in the path of
- lower/upper dirs
+To:     "Miklos Szeredi" <miklos@szeredi.hu>
+Cc:     "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "linux-mm" <linux-mm@kvack.org>,
+        =?UTF-8?Q?=22Christian_K=C3=B6nig=22?= 
+        <ckoenig.leichtzumerken@gmail.com>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>
+Message-ID: <17a3779e6d8.10898dfd28835.4753809433352490949@mykernel.net>
+In-Reply-To: <YNHXzBgzRrZu1MrD@miu.piliscsaba.redhat.com>
+References: <YNHXzBgzRrZu1MrD@miu.piliscsaba.redhat.com>
+Subject: =?UTF-8?Q?=E5=9B=9E=E5=A4=8D:[PATCH]_ovl:_fix_mmap_denywrite?=
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
 Importance: Medium
 User-Agent: ZohoCN Mail
 X-Mailer: ZohoCN Mail
@@ -59,14 +64,71 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2021-06-22 20:30:04 Miklos Sze=
+redi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
+ > Overlayfs did not honor positive i_writecount on realfile for VM_DENYWRI=
+TE
+ > mappings.  Similarly negative i_mmap_writable counts were ignored for
+ > VM_SHARED mappings.
+ >=20
+ > Fix by making vma_set_file() switch the temporary counts obtained and
+ > released by mmap_region().
+ >=20
+ > Reported-by: Chengguang Xu <cgxu519@mykernel.net>
+ > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+ > ---
+ >  fs/overlayfs/file.c |    4 +++-
+ >  include/linux/mm.h  |    1 +
+ >  mm/mmap.c           |    2 +-
+ >  mm/util.c           |   38 +++++++++++++++++++++++++++++++++++++-
+ >  4 files changed, 42 insertions(+), 3 deletions(-)
+ >=20
+ > --- a/fs/overlayfs/file.c
+ > +++ b/fs/overlayfs/file.c
+ > @@ -430,7 +430,9 @@ static int ovl_mmap(struct file *file, s
+ >      if (WARN_ON(file !=3D vma->vm_file))
+ >          return -EIO;
+ > =20
+ > -    vma_set_file(vma, realfile);
+ > +    ret =3D vma_set_file_checkwrite(vma, realfile);
+ > +    if (ret)
+ > +        return ret;
 
-Today I got a mount failure report from a docker developer about special characters in overlayfs lower/upper path.
-The root cause is quite straightforward  because overlayfs uses colon/comma as seperator of lowerdir layers and module options.
-However, Colon/Comma characters are valid for directory name on linux so some people(especially container users) hope overlayfs
-could correctly recognize and handle those directories.
+I'm afraid that it may affect other overlayfs instances which share lower l=
+ayers(no upper),
+so could we just check those permissions for upper layer?
 
-Strengthen option parsing seems a right solution for fixing the issue, what do think for this?
+
+
+ > =20
+ >      old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
+ >      ret =3D call_mmap(vma->vm_file, vma);
+ > --- a/include/linux/mm.h
+ > +++ b/include/linux/mm.h
+ > @@ -2751,6 +2751,7 @@ static inline void vma_set_page_prot(str
+ >  #endif
+ > =20
+ >  void vma_set_file(struct vm_area_struct *vma, struct file *file);
+ > +int vma_set_file_checkwrite(struct vm_area_struct *vma, struct file *fi=
+le);
+ > =20
+ >  #ifdef CONFIG_NUMA_BALANCING
+ >  unsigned long change_prot_numa(struct vm_area_struct *vma,
+ > --- a/mm/mmap.c
+ > +++ b/mm/mmap.c
+ > @@ -1809,6 +1809,7 @@ unsigned long mmap_region(struct file *f
+ >           */
+ >          vma->vm_file =3D get_file(file);
+ >          error =3D call_mmap(file, vma);
+ > +        file =3D vma->vm_file;
+
+
+I'm not sure the behavior of changing vma_file is always safe for vma mergi=
+ng case.
+In vma merging case, before go to tag 'unmap_writable' the reference of vma=
+->vm_file will be released by fput().
+For overlayfs, it probably safe because overlayfs file will get another ref=
+erence for lower/upper file.
 
 
 
@@ -75,3 +137,71 @@ Chengguang Xu
 
 
 
+
+ >          if (error)
+ >              goto unmap_and_free_vma;
+ > =20
+ > @@ -1870,7 +1871,6 @@ unsigned long mmap_region(struct file *f
+ >          if (vm_flags & VM_DENYWRITE)
+ >              allow_write_access(file);
+ >      }
+ > -    file =3D vma->vm_file;
+ >  out:
+ >      perf_event_mmap(vma);
+ > =20
+ > --- a/mm/util.c
+ > +++ b/mm/util.c
+ > @@ -314,12 +314,48 @@ int vma_is_stack_for_current(struct vm_a
+ >  /*
+ >   * Change backing file, only valid to use during initial VMA setup.
+ >   */
+ > -void vma_set_file(struct vm_area_struct *vma, struct file *file)
+ > +int vma_set_file_checkwrite(struct vm_area_struct *vma, struct file *fi=
+le)
+ >  {
+ > +    vm_flags_t vm_flags =3D vma->vm_flags;
+ > +    int err =3D 0;
+ > +
+ >      /* Changing an anonymous vma with this is illegal */
+ >      get_file(file);
+ > +
+ > +    /* Get temporary denial counts on replacement */
+ > +    if (vm_flags & VM_DENYWRITE) {
+ > +        err =3D deny_write_access(file);
+ > +        if (err)
+ > +            goto out_put;
+ > +    }
+ > +    if (vm_flags & VM_SHARED) {
+ > +        err =3D mapping_map_writable(file->f_mapping);
+ > +        if (err)
+ > +            goto out_allow;
+ > +    }
+ > +
+ >      swap(vma->vm_file, file);
+ > +
+ > +    /* Undo temporary denial counts on replaced */
+ > +    if (vm_flags & VM_SHARED)
+ > +        mapping_unmap_writable(file->f_mapping);
+ > +out_allow:
+ > +    if (vm_flags & VM_DENYWRITE)
+ > +        allow_write_access(file);
+ > +out_put:
+ >      fput(file);
+ > +    return err;
+ > +}
+ > +EXPORT_SYMBOL(vma_set_file_checkwrite);
+ > +
+ > +/*
+ > + * Change backing file, only valid to use during initial VMA setup.
+ > + */
+ > +void vma_set_file(struct vm_area_struct *vma, struct file *file)
+ > +{
+ > +    int err =3D vma_set_file_checkwrite(vma, file);
+ > +
+ > +    WARN_ON_ONCE(err);
+ >  }
+ >  EXPORT_SYMBOL(vma_set_file);
+ > =20
+ >=20
+ >=20
+ >=20
