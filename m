@@ -2,206 +2,162 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C93FC48BE5
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Jun 2021 06:06:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84D82C4743C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Jun 2021 11:41:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F4FA61186
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Jun 2021 06:06:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66CAE61076
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Jun 2021 11:41:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229892AbhFWGI4 (ORCPT
+        id S230135AbhFWLn0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 23 Jun 2021 02:08:56 -0400
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25376 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229665AbhFWGIz (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 23 Jun 2021 02:08:55 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1624428374; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=FvwY4Amtbar2mVeWBKKfsiNg34jD7iLLLk+xu8nU9h+gSb1FlePD+poygQxs+zkOquxWfa3PF020TJn9uIdR2Eg1nGnEdd4J6qrh8C+d2RtJ17o3MkfM/dXqvDfAMOZUzulSN80ZJ/BfqG5z/p/8pv8mripcxfwLxueTlwQI1Eg=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1624428374; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=LmqJlpoAuCfKzT2jfsIzXSh49imf5u7A6jt8fvymJag=; 
-        b=an6OibPcmLXkoVHvoZ6M/y6b15xxwlmUBrkzNoTAJy4+xdnrKBEhGET8tmD2LRrFeb6D7MDVgi8iaq10yv8NdiLkncJys/tSjLKtms6cpAqBM8iHbKLPBjVw2sDttP+c1gE8u6vSXST+RnWAVws7zLU0e5QZfhWJ7VeridE3mug=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1624428374;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=LmqJlpoAuCfKzT2jfsIzXSh49imf5u7A6jt8fvymJag=;
-        b=ZpNtt9lSKyrpbV47zI4soCxHIP7ioF4V1vPuuIAhSyU/IB3hX6QWNV1zCa/bYTiS
-        p5/lfOSDp2zodxMRSyE4W493/x4pew+CAvXnZcSIQy8hUS9EHh4qP4LYsgR3t9UqULA
-        n0UBUsr9+GJ6+UfRZNmJXAw4DenwXEhZsN6j35us=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1624428373723219.8140028881793; Wed, 23 Jun 2021 14:06:13 +0800 (CST)
-Date:   Wed, 23 Jun 2021 14:06:13 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Miklos Szeredi" <miklos@szeredi.hu>
-Cc:     "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-        "linux-mm" <linux-mm@kvack.org>,
-        =?UTF-8?Q?=22Christian_K=C3=B6nig=22?= 
-        <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs" <linux-unionfs@vger.kernel.org>
-Message-ID: <17a3779e6d8.10898dfd28835.4753809433352490949@mykernel.net>
-In-Reply-To: <YNHXzBgzRrZu1MrD@miu.piliscsaba.redhat.com>
+        Wed, 23 Jun 2021 07:43:26 -0400
+Received: from mail-dm6nam11on2082.outbound.protection.outlook.com ([40.107.223.82]:61889
+        "EHLO NAM11-DM6-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S230130AbhFWLnZ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Wed, 23 Jun 2021 07:43:25 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=i0itow/8r8Eba0ujPJENTT44EQFcTxbP7G9cXBlIMRKPBO/pTLhQlt5yPjgaHj6kCXHYg0TeCnvbHF/Ci9PIgZmrBTkShuqzA0ba8WdfHLiKojDNg3uHafxcdhNNy9MYMKlG38P/8Mgm3DXBzbSi+DXZDNIn5BATvfYu1ZLzdWY0cBYy9JzqN4t0NSMCClzw4x/DE77hfUtq7N4FhKscLxyrFeNty+coVJta2M9wSin8d5UIBfYlV92R31CTAdfxnmz0hQh9o10MtiXP577r0EDcdLoGTmqBau2jTSNIMQ8Ijcsi5cELWZP0LHX24471zkRwwF7cJv8pKq00FTXaDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/1pZ2YuA+Ta53NVvfdXz+XFAXJSIZLJz/4IeerGkP/Y=;
+ b=m6qwY3awabyOEqCtKAxV3K/xneS1WGrhR8ryUzXdBiqskE8QqTaN1S9ivVR+gXN4ANdWElberctklWk1FkevuPXwGEEL4oH+EdRX2P+9U0EBJa2yPhUU/fpzqpKVOmHEeFmDeEmfkS0tGfPaPtj1wyAEqWj8zHqzKj/JFE7jzTUZRgUL/halkDsDf4Y5nSiT+pBllXRdQns2ZCQff3zVC2LVbTg5z2aAQ5+bF0AG7LENZLbGgu5/a9YWVbNrU4iKZ0rkF+Ef0+6toSolXyDJCFqqYCj7uaOlL8OlhDvyYqr/lqBLJGl121k1YV/179b0FG/iJ1McpASt0RkjOeOL3Q==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/1pZ2YuA+Ta53NVvfdXz+XFAXJSIZLJz/4IeerGkP/Y=;
+ b=PwIkvBYQOGyfU5e/kaESbtNw7RoMqclsWbbDP1hwNtZlxbN9oXQENfJ0mqq8GMaxXnavavIddYDREXvkRMTSmcCqnL3nDy2RMQHrAEy6/WUvahznTY0P0G4JDjZeG2TUdCpU76qidnuO5p4RGKsaS5w/bnyVBj3avrPXb/Haw1k=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none header.from=amd.com;
+Received: from MN2PR12MB3775.namprd12.prod.outlook.com (2603:10b6:208:159::19)
+ by MN2PR12MB4520.namprd12.prod.outlook.com (2603:10b6:208:26f::15) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.18; Wed, 23 Jun
+ 2021 11:41:06 +0000
+Received: from MN2PR12MB3775.namprd12.prod.outlook.com
+ ([fe80::6c9e:1e08:7617:f756]) by MN2PR12MB3775.namprd12.prod.outlook.com
+ ([fe80::6c9e:1e08:7617:f756%5]) with mapi id 15.20.4242.024; Wed, 23 Jun 2021
+ 11:41:06 +0000
+Subject: Re: [PATCH] ovl: fix mmap denywrite
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-fsdevel@vger.kernel.org, linux-mm <linux-mm@kvack.org>,
+        Chengguang Xu <cgxu519@mykernel.net>,
+        overlayfs <linux-unionfs@vger.kernel.org>
 References: <YNHXzBgzRrZu1MrD@miu.piliscsaba.redhat.com>
-Subject: =?UTF-8?Q?=E5=9B=9E=E5=A4=8D:[PATCH]_ovl:_fix_mmap_denywrite?=
+ <d73a5789-d233-940a-dc19-558b890f9b21@amd.com>
+ <CAJfpegvTa9wnvCBP-vHumnDQ6f3XWb5vD6Fnpjbrj1V5N8QRig@mail.gmail.com>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <8d9ac67c-8e97-3f53-95b8-548a8bec6358@amd.com>
+Date:   Wed, 23 Jun 2021 13:41:02 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
+In-Reply-To: <CAJfpegvTa9wnvCBP-vHumnDQ6f3XWb5vD6Fnpjbrj1V5N8QRig@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-Originating-IP: [2a02:908:1252:fb60:69e4:a619:aa86:4e9c]
+X-ClientProxiedBy: PR3P191CA0056.EURP191.PROD.OUTLOOK.COM
+ (2603:10a6:102:55::31) To MN2PR12MB3775.namprd12.prod.outlook.com
+ (2603:10b6:208:159::19)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [IPv6:2a02:908:1252:fb60:69e4:a619:aa86:4e9c] (2a02:908:1252:fb60:69e4:a619:aa86:4e9c) by PR3P191CA0056.EURP191.PROD.OUTLOOK.COM (2603:10a6:102:55::31) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4242.19 via Frontend Transport; Wed, 23 Jun 2021 11:41:05 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: cd2aae41-1914-43b2-33a3-08d9363bc9ba
+X-MS-TrafficTypeDiagnostic: MN2PR12MB4520:
+X-Microsoft-Antispam-PRVS: <MN2PR12MB45202AC01B5A17CA7C3FDD1783089@MN2PR12MB4520.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-MS-Exchange-SenderADCheck: 1
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: FQnynUSDlTIRWWYpMeDvWBmBl0MjD6jrqujcbAGUEOQZEg3UyAH9Q/cD/ZhZXFmFEHst49Qq+M+Oq0/DujplqfeTboDgyMeOhGiv/0LuxXYu4KmHglnCvtu+bIRVwOhEwMCiz/fUeoo6v/czj892v3FrHVrSAMyjzQIBvOtswCah42XsLW78AGlUgz2Fj1mhXweJ3/xSKPMWOqfNbhLcd17fy7f7csNSsnUcPEmsC+qKhvWkBdJFS/RmypyJ8V6uHMlbv9b0zvVNrdBbtlvzOu8fqCcrjBE84/uERFmNtazpGtHTF5p4xGM02va+lduBNwQSjMnGPXIzK1NMrBuPJMImlr1siYSHeL0f/yLz+NazYwNL2gGC5YIX/G16YXnZbuLyZEXMWtdRD7p3sMbva0fDlIR10ZvmNV0BDBDUHUh/7E939weLIXApT1LGUgWITVdaQ9NyW07e5jT7mdV7p7bHPvQO8S1aY5I2P0mAtqbSVvZITssDkkBIPs/kJIUAEs1LtAePR0P1Xs40aG5BvwUnbEsbRZzMsbgwnZSLyYoJdePV4E7Mza6y+uwR0aXbJmQzPNWcwG0ZPZJfDxKiFMywHTDT3krEzDPXwzAQM+g76d86miDmczQZ3e1ZhbQ0mIVl3EXpl8VW2Pzi+EcEQse+uPeVdC7iv6a+/sy2DMyoU9Uy3Yoj2E54gV5nhq5y
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB3775.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(16526019)(66574015)(31686004)(186003)(86362001)(8676002)(38100700002)(6486002)(36756003)(8936002)(4326008)(5660300002)(66946007)(66556008)(66476007)(6666004)(54906003)(498600001)(31696002)(2906002)(2616005)(6916009)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?RS9aV3Vxc25zbDMzYjlVM0FyRDY1VDQyRldCVEplTWVucFVPYVdmK3NyNFp5?=
+ =?utf-8?B?cFRuVUcxVHoxSEdZSzMxbWI1aVluenp5WklnY2t5blZoNHNVbXRQRzZxRlBZ?=
+ =?utf-8?B?YUNTc1p1L0Nsa0dzZHJ6VDFVN1o5eWw5N0pNc2pHWXhQV2xVTDc2akt1ZWN5?=
+ =?utf-8?B?dU1Wd29JaTQ3d2V6REpDZzlZbk41VkxIcUg0eVRoWHdZY1UxM0ZPSUd2Kzcx?=
+ =?utf-8?B?MU85ckMwN2daWUdEcTRqWVphVm1HcGhlTXRnTEJKS28waGpuZnF5cFBnS1hV?=
+ =?utf-8?B?ZXEzYS9YbkFBaUhKdWxYb3VOTzkrZVJLZmlXQW8yRHlmc3oyNTJOTmYxY3Qv?=
+ =?utf-8?B?SkMyRllHYWlmOVN4UjZkeGVzNHlCVXVUcnRkVlFkL0ErSkRKQkxZeEJSTUpv?=
+ =?utf-8?B?enlzcGREZWpBd0RjR1FoTE41Mml5S2dESmZ5MVpTOGxmVG42aEp1SzBKazlY?=
+ =?utf-8?B?ejdHWnRWT1MwcHIxWjdEbTZGaExEckllK0FiQXVSZzNvNnlSRlRFeHBnNzlV?=
+ =?utf-8?B?Z2VBNlJXS3NLTktyMytMbTRNVGRiczNmSEtIMnpkMlk1TlUzY1B6d1VaVWt3?=
+ =?utf-8?B?YmdxUHEzdzNIYTJ1SjR5a0NoMkNDdm41ZndFUS9teWovejd2MkNYQ2taeldY?=
+ =?utf-8?B?bXRGWWFocGkzdTV4RFI0VkVZWTltalN6QTRGN1k4c1QrWnpnNC8rVTVKVXFl?=
+ =?utf-8?B?VUttNE1PcGxGaW1XSGFDY0d0TnlidndHU0VTaUp0Ui9sbDN1ckJKT0dNTTRs?=
+ =?utf-8?B?UXVPYjZjSTRMcncvMTJtdVVHMTBqVW1ycjNhbzFjQ3lHSitlaFVqUE81MUwy?=
+ =?utf-8?B?ekJRNVdmLzdydUFLdUpQcUlDRlYxUHcxQjVZYmxyMVpsY0g5SmJNN2pkMlZh?=
+ =?utf-8?B?WmZrdkZUMzAyeUlFNTQvRFcyeWlCNlRCajdGczFtVGhlVXpPUFQvSTlFL3A5?=
+ =?utf-8?B?SXA0Skw3amMzd2dHMUFuMGpiaXR5YWw2Mm9Bd2ZxNS9XR1QvOGdOMUhkWlN4?=
+ =?utf-8?B?MnRxbWsyWG9PWjJxOUJ3b1dZUFY5RFd6RzNhTjB1OERpcVFLTzdJd1IrWWVn?=
+ =?utf-8?B?NmZFWTEyKzQzWUZDNVl2L0kvWCtuRDhyYTVCZ2FzMFY2TW9qcEw2Qnh5Nm5R?=
+ =?utf-8?B?SDRFOWZwbGgzaTh2V1dmdkhIQUMyWlIxVFRNbkhtZDRyc09wK0dOMGtsRzdj?=
+ =?utf-8?B?cWhPckZJUkIya0JBVkNHVDlaV3o4WjMvelhrN0Nad281c29ONHlZUnNIM2FL?=
+ =?utf-8?B?VjFYWEJ5QTlFMDd1Y0ZlNWR5aEk0WkNqR0hyeHQxU0c5RnpybENYK0NzRHB2?=
+ =?utf-8?B?RDY0aEgxM2pONGlGRFpPR0xhcDRVNU9zV0g5YmRKbUR2UlJyaWw3bzBjWFMv?=
+ =?utf-8?B?UXh3VEp4Y1hKa0ZEaEtuNU00Z0JpWktOTHl2ZG5yZGhEZEdPdG1JUWJFa09o?=
+ =?utf-8?B?dlVTOG8rT3NlbGNSTjEvTzVnaUppQXNQQ2RCUWdObkRKOE1vaXE5S2NsOFhH?=
+ =?utf-8?B?R0xDVnQxelNscVFzc0pPMUpOcWRSVjZzRmR2K0U2ZTdNM0lOYW9GdENuVWNL?=
+ =?utf-8?B?WHVNQnJ2Vk1oRjE3My92bHhZV0NzQmh6ZGQ4a0tJaG5WazNua3E4OTVmM2ZP?=
+ =?utf-8?B?ODJIZS9BTmttNGNNbDVtTHBFaDVRVUNmRGd2aTNhSlA3aUxod1d2cXIrY3Nt?=
+ =?utf-8?B?bXk1Rm5mTVpGQ0VCc0xNOFd1T0xCaEVkQ1h3THJ1QlZZRlFrNnFVQjRpSlha?=
+ =?utf-8?B?ek91S0o2K2wzdEhkYlppQ1NQNUZWV0ttcGMxcGJVaXh2aXRra2hxRUI2blFL?=
+ =?utf-8?B?ZTJ5SHUzZnZiRDRoQWJ4b1cycEl3QUJSeHVmQ2tLdnM5MElQQkdvQXEzOEg5?=
+ =?utf-8?Q?heTIzN/yJRrg+?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: cd2aae41-1914-43b2-33a3-08d9363bc9ba
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB3775.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Jun 2021 11:41:06.7218
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: HgXta29uSQ7NOKx4ngFoaM4pjnx1WvDHDXTEEXgL+PblL3tPY/faDTShacHNDUID
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4520
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2021-06-22 20:30:04 Miklos Sze=
-redi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
- > Overlayfs did not honor positive i_writecount on realfile for VM_DENYWRI=
-TE
- > mappings.  Similarly negative i_mmap_writable counts were ignored for
- > VM_SHARED mappings.
- >=20
- > Fix by making vma_set_file() switch the temporary counts obtained and
- > released by mmap_region().
- >=20
- > Reported-by: Chengguang Xu <cgxu519@mykernel.net>
- > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
- > ---
- >  fs/overlayfs/file.c |    4 +++-
- >  include/linux/mm.h  |    1 +
- >  mm/mmap.c           |    2 +-
- >  mm/util.c           |   38 +++++++++++++++++++++++++++++++++++++-
- >  4 files changed, 42 insertions(+), 3 deletions(-)
- >=20
- > --- a/fs/overlayfs/file.c
- > +++ b/fs/overlayfs/file.c
- > @@ -430,7 +430,9 @@ static int ovl_mmap(struct file *file, s
- >      if (WARN_ON(file !=3D vma->vm_file))
- >          return -EIO;
- > =20
- > -    vma_set_file(vma, realfile);
- > +    ret =3D vma_set_file_checkwrite(vma, realfile);
- > +    if (ret)
- > +        return ret;
-
-I'm afraid that it may affect other overlayfs instances which share lower l=
-ayers(no upper),
-so could we just check those permissions for upper layer?
 
 
+Am 22.06.21 um 17:10 schrieb Miklos Szeredi:
+> On Tue, 22 Jun 2021 at 14:43, Christian König <christian.koenig@amd.com> wrote:
+>> Am 22.06.21 um 14:30 schrieb Miklos Szeredi:
+>>> Overlayfs did not honor positive i_writecount on realfile for VM_DENYWRITE
+>>> mappings.  Similarly negative i_mmap_writable counts were ignored for
+>>> VM_SHARED mappings.
+>>>
+>>> Fix by making vma_set_file() switch the temporary counts obtained and
+>>> released by mmap_region().
+>> Mhm, I don't fully understand the background but that looks like
+>> something specific to overlayfs to me.
+>>
+>> So why are you changing the common helper?
+> Need to hold the temporary counts until the final ones are obtained in
+> vma_link(), which is out of overlayfs' scope.
 
- > =20
- >      old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
- >      ret =3D call_mmap(vma->vm_file, vma);
- > --- a/include/linux/mm.h
- > +++ b/include/linux/mm.h
- > @@ -2751,6 +2751,7 @@ static inline void vma_set_page_prot(str
- >  #endif
- > =20
- >  void vma_set_file(struct vm_area_struct *vma, struct file *file);
- > +int vma_set_file_checkwrite(struct vm_area_struct *vma, struct file *fi=
-le);
- > =20
- >  #ifdef CONFIG_NUMA_BALANCING
- >  unsigned long change_prot_numa(struct vm_area_struct *vma,
- > --- a/mm/mmap.c
- > +++ b/mm/mmap.c
- > @@ -1809,6 +1809,7 @@ unsigned long mmap_region(struct file *f
- >           */
- >          vma->vm_file =3D get_file(file);
- >          error =3D call_mmap(file, vma);
- > +        file =3D vma->vm_file;
+Ah! So basically we need to move the denial counts which mmap_region() 
+added to the original file to the new one as well. That's indeed a 
+rather good point.
 
+Can you rather change the vma_set_file() function to return the error 
+and add a __must_check?
 
-I'm not sure the behavior of changing vma_file is always safe for vma mergi=
-ng case.
-In vma merging case, before go to tag 'unmap_writable' the reference of vma=
-->vm_file will be released by fput().
-For overlayfs, it probably safe because overlayfs file will get another ref=
-erence for lower/upper file.
-
-
+I can take care fixing the users in DMA-buf and DRM subsystem.
 
 Thanks,
-Chengguang Xu
+Christian.
 
+>
+> Thanks,
+> Miklos
 
-
-
- >          if (error)
- >              goto unmap_and_free_vma;
- > =20
- > @@ -1870,7 +1871,6 @@ unsigned long mmap_region(struct file *f
- >          if (vm_flags & VM_DENYWRITE)
- >              allow_write_access(file);
- >      }
- > -    file =3D vma->vm_file;
- >  out:
- >      perf_event_mmap(vma);
- > =20
- > --- a/mm/util.c
- > +++ b/mm/util.c
- > @@ -314,12 +314,48 @@ int vma_is_stack_for_current(struct vm_a
- >  /*
- >   * Change backing file, only valid to use during initial VMA setup.
- >   */
- > -void vma_set_file(struct vm_area_struct *vma, struct file *file)
- > +int vma_set_file_checkwrite(struct vm_area_struct *vma, struct file *fi=
-le)
- >  {
- > +    vm_flags_t vm_flags =3D vma->vm_flags;
- > +    int err =3D 0;
- > +
- >      /* Changing an anonymous vma with this is illegal */
- >      get_file(file);
- > +
- > +    /* Get temporary denial counts on replacement */
- > +    if (vm_flags & VM_DENYWRITE) {
- > +        err =3D deny_write_access(file);
- > +        if (err)
- > +            goto out_put;
- > +    }
- > +    if (vm_flags & VM_SHARED) {
- > +        err =3D mapping_map_writable(file->f_mapping);
- > +        if (err)
- > +            goto out_allow;
- > +    }
- > +
- >      swap(vma->vm_file, file);
- > +
- > +    /* Undo temporary denial counts on replaced */
- > +    if (vm_flags & VM_SHARED)
- > +        mapping_unmap_writable(file->f_mapping);
- > +out_allow:
- > +    if (vm_flags & VM_DENYWRITE)
- > +        allow_write_access(file);
- > +out_put:
- >      fput(file);
- > +    return err;
- > +}
- > +EXPORT_SYMBOL(vma_set_file_checkwrite);
- > +
- > +/*
- > + * Change backing file, only valid to use during initial VMA setup.
- > + */
- > +void vma_set_file(struct vm_area_struct *vma, struct file *file)
- > +{
- > +    int err =3D vma_set_file_checkwrite(vma, file);
- > +
- > +    WARN_ON_ONCE(err);
- >  }
- >  EXPORT_SYMBOL(vma_set_file);
- > =20
- >=20
- >=20
- >=20
