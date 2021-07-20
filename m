@@ -2,195 +2,110 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_NONE
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBCA8C636C8
-	for <linux-unionfs@archiver.kernel.org>; Tue, 20 Jul 2021 07:20:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4166C07E95
+	for <linux-unionfs@archiver.kernel.org>; Tue, 20 Jul 2021 14:54:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A95F861164
-	for <linux-unionfs@archiver.kernel.org>; Tue, 20 Jul 2021 07:20:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B6A80610A0
+	for <linux-unionfs@archiver.kernel.org>; Tue, 20 Jul 2021 14:54:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233945AbhGTGji (ORCPT
+        id S238525AbhGTONp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 20 Jul 2021 02:39:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57722 "EHLO
+        Tue, 20 Jul 2021 10:13:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43996 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229761AbhGTGi1 (ORCPT
+        with ESMTP id S236361AbhGTNys (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 20 Jul 2021 02:38:27 -0400
-Received: from mail-io1-xd29.google.com (mail-io1-xd29.google.com [IPv6:2607:f8b0:4864:20::d29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C16FC061766
-        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jul 2021 00:18:57 -0700 (PDT)
-Received: by mail-io1-xd29.google.com with SMTP id z9so22865983iob.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jul 2021 00:18:57 -0700 (PDT)
+        Tue, 20 Jul 2021 09:54:48 -0400
+Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A5C8C061574
+        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jul 2021 07:35:26 -0700 (PDT)
+Received: by mail-ua1-x92b.google.com with SMTP id c20so8128204uar.12
+        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jul 2021 07:35:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
+        d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=WKsm4ExhmVdVLkqUQkRRypXOZYiqBSMKNfwW8cLyVd0=;
-        b=drlZs/Mlpncxpq68VDrU9c7HSCs4WdrkXyQ3eBllm77GKQOm1xMLTkGUq1EFcLfejd
-         BLzH3byq01v6Qq1Gd7h099ciGUTkXaONAI0BjvmyMLC8/7yvW3NzoyearajgaZGAKXIf
-         GWHt8fktDIDmFEjhTadyqzO4YcZIjMzaR6w0U3EVklNAMOqFGZ7E8mNi4HZTYSV4UgAL
-         RWdntLOGVJEEfx/WYgXW1SjuGn99Bo7XXp5XE46g4Zpl9BOpQ/7FgSFko08dxetVyIzX
-         eX3DrIw3v5EqpIqFOPE++QRveefgw+gB+fPd7c7I3oR4UCLdaDtDcTicef56Mj8f6l80
-         1qRA==
+        bh=mnB7vkp8a7Zu6EKvXc/ncjg6TcgbDNqTGQf6jJDZLho=;
+        b=QatZRPIL7X5k/ynRU2lbwp8e3NdhZEXor43m6kWww4kaz6NhF3Ib9mGsGTZmuJPg6O
+         jmiHnkReZQ2QOCrXMPbDRnZu/+8anJSXuTy7LsKRgUepVlT2Bz1xsqnzo7HkGNmLRLSk
+         ak91IgSqZlRHk5kgkblkh8jSA0JKmI+BtGx5E=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=WKsm4ExhmVdVLkqUQkRRypXOZYiqBSMKNfwW8cLyVd0=;
-        b=gFPaQiKG/zYUW353/jHyZdklJ59C1Hqs5UgWsnlcVUOYo37EFnXLAaobwnNSK/DLmj
-         WjWXQtXjALK3WlPbOzDVu07puvbkPp8qxn+jZYWBixH8SII3YJcY/7zSOkLjH89LdxOa
-         6yTRuHEsa1eeClhKlMvtD1Gb6zwVHPReAHrwmYvTIuSP3i2TSf9NPXQVkwbU/NCH8cyE
-         Y3hHd205gvO/JbK8kdUtYsSL4ROif0UOuS9qCiUVc5kZOiBXJBQ7KEWIKosidSv+L87O
-         tH2K7tH6HAah7lOOLynt0MkOAvqz1/S1LZR1VfJxdvz2JkUKD+AhaBYzGnnopJQzAMeN
-         xX/w==
-X-Gm-Message-State: AOAM533MngAB9J24oRADaNQi7aO5/3r0ttB242cFa5Qmhe446a2rVswq
-        45GxzCuYlvuQDP1zCjzgMSkZ8j421km6iC4IXGU=
-X-Google-Smtp-Source: ABdhPJyPF4VKFi6yhAbvWxCst0NZFm0BWj3RV/13Da9E73xfJu1uOH8bvyesnDjvRXY6DDENE9IFNUWhdLOxD4JeEMo=
-X-Received: by 2002:a05:6602:3304:: with SMTP id b4mr21628261ioz.186.1626765537030;
- Tue, 20 Jul 2021 00:18:57 -0700 (PDT)
+        bh=mnB7vkp8a7Zu6EKvXc/ncjg6TcgbDNqTGQf6jJDZLho=;
+        b=cAZA3g/aoyHr8qh1JbvQIt9XHsIK7SkaPTrNtS+bbeZrr5O53eFB5RL8ZuiRK13W8e
+         vc7gs6HldFCf2TAbJNmWOzl9xPTTlLQcgy5zmhdFM3m3fKwHsNt5t45kONnX9sQUtwMq
+         woJIGE//wckl5Ggn2cZifIDGQHBgHnplrh5YG22UNcY/zXTMdK98SMvCgZ7f9PbdvHQ0
+         ffHRSNNGpJc0FhoZJQKt/Iv2PN94G1YSmPYpJXrCt9frJ2f99ecDJ4JAW21ZqH7XlDqM
+         SRfus335E8Iwl/VREk0x4g5AacYKsh1AhtSn15smhtfHmN/SxvNlPhqwm1Ewlz+mymr3
+         UGCg==
+X-Gm-Message-State: AOAM530VDyloFN6RcHrICBO9JQEf4vY72xM/SLL0aGw37ehDZ3CwvNyg
+        4rqjBsW0NOa/FgelnDEY8NVv0/voNaj1p48kthd88rYIkD8WbA==
+X-Google-Smtp-Source: ABdhPJyFc9ArCFIyfxUfO0+DeecX1t4827noLqhqSsCDNQWPblxwBjkhVF6StZ70rZCT7HEEiaV7Tb9qOz39vcLKoWM=
+X-Received: by 2002:ab0:5e92:: with SMTP id y18mr1353625uag.9.1626791725364;
+ Tue, 20 Jul 2021 07:35:25 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210426152021.1145298-1-amir73il@gmail.com> <CAOQ4uxg3CJGstSGsihibXvUtivOhRimnQKqrh=5mSqZa1hA8fQ@mail.gmail.com>
- <CAJfpegtZq=EPuoU_wxr4yEJtime4vW6oPFBnX5whrXS3ZSA6oQ@mail.gmail.com>
- <CAOQ4uxjeHfEy-NHQ3s8gX6Rge9xUkJhfGWGNBFSRj6t4mhAUMQ@mail.gmail.com>
- <CAJfpeguiqGfx150nQ3Y9mMgAreNdrg0Ha-wO-sRzMtk8eXVz7Q@mail.gmail.com> <CAJfpegvMV7Grpzk7A=_Bp9bupg1S22VYoG3XcqL9bstfVwkXgw@mail.gmail.com>
-In-Reply-To: <CAJfpegvMV7Grpzk7A=_Bp9bupg1S22VYoG3XcqL9bstfVwkXgw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 20 Jul 2021 10:18:46 +0300
-Message-ID: <CAOQ4uxhLyBntfWZYA-Q=Xu6Zzu6VfyxWks5sCZcwZCR1FHv2TQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: skip stale entries in merge dir cache iteration
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        Eryu Guan <guaneryu@gmail.com>
+References: <20210424140316.485444-1-cgxu519@mykernel.net>
+In-Reply-To: <20210424140316.485444-1-cgxu519@mykernel.net>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 20 Jul 2021 16:35:14 +0200
+Message-ID: <CAJfpegsT3PaVggkcx+OdoxOCR2hWYeLs1rTr_p3nNMimnknCug@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/2] ovl: skip checking lower file's write permisson
+ on truncate
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jul 20, 2021 at 7:22 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+On Sat, 24 Apr 2021 at 16:04, Chengguang Xu <cgxu519@mykernel.net> wrote:
 >
-> On Tue, 20 Jul 2021 at 06:19, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Mon, 19 Jul 2021 at 18:43, Amir Goldstein <amir73il@gmail.com> wrote:
-> > >
-> > > On Mon, Jul 19, 2021 at 6:24 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > > >
-> > > > On Fri, 4 Jun 2021 at 12:43, Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > >
-> > > > > On Mon, Apr 26, 2021 at 6:20 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > > >
-> > > > > > On the first getdents call, ovl_iterate() populates the readdir cache
-> > > > > > with a list of entries, but for upper entries with origin lower inode,
-> > > > > > p->ino remains zero.
-> > > > > >
-> > > > > > Following getdents calls traverse the readdir cache list and call
-> > > > > > ovl_cache_update_ino() for entries with zero p->ino to lookup the entry
-> > > > > > in the overlay and return d_ino that is consistent with st_ino.
-> > > > > >
-> > > > > > If the upper file was unlinked between the first getdents call and the
-> > > > > > getdents call that lists the file entry, ovl_cache_update_ino() will not
-> > > > > > find the entry and fall back to setting d_ino to the upper real st_ino,
-> > > > > > which is inconsistent with how this object was presented to users.
-> > > > > >
-> > > > > > Instead of listing a stale entry with inconsistent d_ino, simply skip
-> > > > > > the stale entry, which is better for users.
-> > > > > >
-> > > > >
-> > > > > Miklos,
-> > > > >
-> > > > > I forgot to follow up on this patch.
-> > > > > Upstream xfstest overlay/077 is failing without this patch.
-> > > >
-> > > > Can't reproduce (on ext4/xfs and "-oxino=on").
-> > > >
-> > > > Is there some trick?
-> > >
-> > > Not sure. overlay/077 fails for me on v5.14.0-rc2 on ext4/xfs.
-> > >
-> > >      QA output created by 077
-> > >     +entry m100 has inconsistent d_ino (234 != 232)
-> > >     +entry f100 has inconsistent d_ino (335 != 16777542)
-> > >      Silence is golden
-> > >
-> > > Maybe you need to build src/t_dir_offset2?
-> >
-> > root@kvm:/opt/xfstests-dev# git log -1 --pretty=%h
-> > 10f6b231
-> > root@kvm:/opt/xfstests-dev# cat local.config
-> > export TEST_DEV=/dev/vdb1
-> > export TEST_DIR=/test
-> > export SCRATCH_DEV=/dev/vdb2
-> > export SCRATCH_MNT=/scratch
-> > export FSTYP=ext4
-> > export OVERLAY_MOUNT_OPTIONS="-o xino=on"
-> > root@kvm:/opt/xfstests-dev# make src/t_dir_offset2
-> > make: 'src/t_dir_offset2' is up to date.
-> > root@kvm:/opt/xfstests-dev# ./check -overlay overlay/077
-> > FSTYP         -- overlay
-> > PLATFORM      -- Linux/x86_64 kvm 5.14.0-rc2 #276 SMP Tue Jul 20
-> > 05:54:44 CEST 2021
-> > MKFS_OPTIONS  -- /scratch
-> > MOUNT_OPTIONS -- -o xino=on /scratch /scratch/ovl-mnt
-> >
-> > overlay/077 1s ...  1s
-> > Ran: overlay/077
-> > Passed all 1 tests
-> >
-> > root@kvm:/opt/xfstests-dev# cat results/overlay/077.full
-> >
-> > Create file in pure upper dir:
-> > getdents at offset 0 returned 192 bytes
-> > created entry p0
-> > entry p0 found as expected
-> >
-> > Remove file in pure upper dir:
-> > getdents at offset 0 returned 192 bytes
-> > unlinked entry p100
-> > entry p100 not found as expected
-> >
-> > Create file in impure upper dir:
-> > getdents at offset 0 returned 192 bytes
-> > created entry o0
-> > entry o0 found as expected
-> >
-> > Remove file in impure upper dir:
-> > getdents at offset 0 returned 192 bytes
-> > unlinked entry o100
-> > entry o100 not found as expected
-> >
-> > Create file in merge dir:
-> > getdents at offset 0 returned 192 bytes
-> > created entry m0
-> > entry m0 found as expected
-> >
-> > Remove file in merge dir:
-> > getdents at offset 0 returned 192 bytes
-> > unlinked entry m100
-> > entry m100 not found as expected
-> >
-> > Create file in former merge dir:
-> > getdents at offset 0 returned 192 bytes
-> > created entry f0
-> > entry f0 found as expected
-> >
-> > Remove file in former merge dir:
-> > getdents at offset 0 returned 192 bytes
-> > unlinked entry f100
-> > entry f100 not found as expected
-> >
-> > Ideas for further debugging why this test isn't failing for v4.12-rc2?
->
+> Lower files may be shared in overlayfs so strictly checking write
+> perssmion on lower file will cause interferes between different
+> overlayfs instances.
 
-It's not you, it's me ;-)
+How so?
 
-The failure was lost during cleanup of t_dir_offset2 patches
-for submission and it is I who was running an older version
-of t_dir_offset2. Let me figure this out and get back to you
-with a working test.
+i_writecount on lower inode is not modified by overlayfs (at least not
+in this codepath).  Which means that there should be no interference
+between overlayfs instances sharing a lower directory tree.
 
 Thanks,
-Amir.
+Miklos
+
+
+
+>
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> ---
+>  fs/overlayfs/inode.c | 6 ------
+>  1 file changed, 6 deletions(-)
+>
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index 28c71978eb2e..17d1add0af1a 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -31,12 +31,6 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+>                 goto out;
+>
+>         if (attr->ia_valid & ATTR_SIZE) {
+> -               struct inode *realinode = d_inode(ovl_dentry_real(dentry));
+> -
+> -               err = -ETXTBSY;
+> -               if (atomic_read(&realinode->i_writecount) < 0)
+> -                       goto out_drop_write;
+> -
+>                 /* Truncate should trigger data copy up as well */
+>                 full_copy_up = true;
+>         }
+> --
+> 2.27.0
+>
+>
