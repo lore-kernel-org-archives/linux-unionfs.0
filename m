@@ -2,202 +2,226 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B383AC4338F
-	for <linux-unionfs@archiver.kernel.org>; Sat, 24 Jul 2021 07:36:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3208CC4338F
+	for <linux-unionfs@archiver.kernel.org>; Sat, 24 Jul 2021 19:07:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 87BF660720
-	for <linux-unionfs@archiver.kernel.org>; Sat, 24 Jul 2021 07:36:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B3536069E
+	for <linux-unionfs@archiver.kernel.org>; Sat, 24 Jul 2021 19:07:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234382AbhGXGzr (ORCPT
+        id S229664AbhGXS0t (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 24 Jul 2021 02:55:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38432 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234287AbhGXGzr (ORCPT
+        Sat, 24 Jul 2021 14:26:49 -0400
+Received: from mail-il1-f199.google.com ([209.85.166.199]:53119 "EHLO
+        mail-il1-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229616AbhGXS0t (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 24 Jul 2021 02:55:47 -0400
-Received: from mail-io1-xd29.google.com (mail-io1-xd29.google.com [IPv6:2607:f8b0:4864:20::d29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9483AC061575;
-        Sat, 24 Jul 2021 00:36:18 -0700 (PDT)
-Received: by mail-io1-xd29.google.com with SMTP id j21so5248786ioo.6;
-        Sat, 24 Jul 2021 00:36:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=hxof7NWhRTN6RxBAzvdBd/VZVFmS77YjkfQAkOZin+c=;
-        b=ErhKil24dTxaHLxEYUyIdguwf7HqrEFZ8NdTUrz15hWbzV5epVuZEqebuaR7GhOLfk
-         fA/7s02k1d9O8GByKIteqPuyV4vTr8Kqn0mHRslWgQgDRip45cK2nsEHDuRbXJrtK1TZ
-         Zrm1P9D13IvyTvOPFIqiWSJGwLLpenSocsyxo+cezJUB69EXTCmgHzZWygEbi1GLgZYS
-         bdedMt73BaDGFSVp5Y+bUko/UE+jv08VvYOZMqduVgoR/Ko2dIH7M9OSdOyLco1bpDTq
-         IvLVYk1G4KhlURnjk4lFbSmdck6aBsABrKpR/48PfojlGIT749nZAUk3SkbNJvGsPKEk
-         mrIw==
+        Sat, 24 Jul 2021 14:26:49 -0400
+Received: by mail-il1-f199.google.com with SMTP id c2-20020a056e020cc2b02901edc50cdfdcso2672213ilj.19
+        for <linux-unionfs@vger.kernel.org>; Sat, 24 Jul 2021 12:07:21 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=hxof7NWhRTN6RxBAzvdBd/VZVFmS77YjkfQAkOZin+c=;
-        b=ApGLCxEutV6BQgiq2y8u1RksE3PCioD/2b5iVqZ8FkZKhNaz56Ggngu1ytBLlYMvD0
-         g+hKa/QdyyPeub7AsnX8Dvrk9DunmsY9+PwMN/1jNVrPOsU25aHsP9rILyTh/4Dvyl9j
-         xCW/A6xWN9zZJpfQAjjDZIMDgA7dVy+4Cytsu13kbjnuRXi9zf53nqHF8wlr5RpEWrta
-         xPkkjoNLC8Rj3aC+pQpgg3y9Qxy+HJTicQumxsZWP2T4Vb5tGw27IVRaSTQQfZAsbKRP
-         DjENFU4ghQ61f6Q4hkNIoykk/a77Ku7XBJIi9+zR0mj/iF+R5MZ+DXqXdXYYUlb1U6B/
-         m7iw==
-X-Gm-Message-State: AOAM533kcKI1fsYeCkEguwWcYpC/QWsI/ckyqDefMdSJUbt46hTIOCf8
-        Vk6pqUiPzx0Sn5dJKS+Aby1Lgl20yqF4BjVStI8=
-X-Google-Smtp-Source: ABdhPJyapu/TNWx3CU+Ka6ZA4pTPfIkL60nya/pR6MA9SkE1j1f+iQx/mOoplEXB9BvAHiOHWNjcVXT/UlxHsTtKljY=
-X-Received: by 2002:a05:6602:3304:: with SMTP id b4mr6800288ioz.186.1627112177921;
- Sat, 24 Jul 2021 00:36:17 -0700 (PDT)
+        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
+        bh=Nhx8s0EBlKvOlq6K8KW7JBccMJs52n0P8yNkQwHXeXI=;
+        b=eTXgbAF/f7tii5hW3XyMoXCRBpn3WsFs5PRAYnj3m1d86W2ImtVEiqugALCWi/7jyv
+         EZ2UbvhFjBHJBMem7INCW1/6RFF3TIQeLPpm+8lsVKBvAfuSvT0Y5iUG+4BDgaOZB3Mw
+         r8roiXcpWdkC1jZ1/xcTgEjmRV3WNLupQJIJtYR+7IOrTOHRKLnypqq9KB2YOaeXYRiI
+         JLK3ENycnGrpaufB3X7M7mCnAohDoB+9uOLufSnI0IN8osf4UYtRjI8W7sH2MO9xG4J9
+         M6dhfknPkjDlzZUbjT6Ko/fC+GOa2vGceRmdv+NmcwT1m7ANCrnF0Yb6NHWQS3G15G8A
+         sbbg==
+X-Gm-Message-State: AOAM533MB719OZw5Wtnkrr+E1uwQYHh8V5qM9d1Fh8TS2NAnVgsZV66K
+        V/tv4gO1Dbp52xnmNESAwYjjAbabqOCspZpXHfAYyPWN8A9v
+X-Google-Smtp-Source: ABdhPJyEsgUrO2v+LMpJrxE3We3Er4ntaUcuM/wqaYH69fBBYu8tBclY5KMicZjgAV1JpxqTAbIWOfvVVDyZE1Moud5K40Grw3QC
 MIME-Version: 1.0
-References: <737687ee-3449-aa3d-ee29-bd75ca0a18a9@canonical.com>
-In-Reply-To: <737687ee-3449-aa3d-ee29-bd75ca0a18a9@canonical.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 24 Jul 2021 10:36:05 +0300
-Message-ID: <CAOQ4uxgbqyyhQ+78j0L+GxkEJ8rOW43X9ann_kMs1098WkNe8Q@mail.gmail.com>
-Subject: Re: ovl: uninitialized pointer read in ovl_lookup_real_one
-To:     Colin Ian King <colin.king@canonical.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+X-Received: by 2002:a02:a999:: with SMTP id q25mr9663122jam.16.1627153640927;
+ Sat, 24 Jul 2021 12:07:20 -0700 (PDT)
+Date:   Sat, 24 Jul 2021 12:07:20 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000c3366805c7e33a92@google.com>
+Subject: [syzbot] possible deadlock in pipe_lock (5)
+From:   syzbot <syzbot+579885d1a9a833336209@syzkaller.appspotmail.com>
+To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        mszeredi@redhat.com, syzkaller-bugs@googlegroups.com,
+        viro@zeniv.linux.org.uk
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Jul 24, 2021 at 1:26 AM Colin Ian King <colin.king@canonical.com> wrote:
->
-> Hi,
->
-> Static analysis with Coverity has detected an uninitialized pointer read
-> in function ovl_lookup_real_one in fs/overlayfs/export.c
->
-> The issue was introduced with the following commit:
->
-> commit 3985b70a3e3f58109dc6ae347eafe6e8610be41e
-> Author: Amir Goldstein <amir73il@gmail.com>
-> Date:   Thu Dec 28 18:36:16 2017 +0200
->
->     ovl: decode connected upper dir file handles
->
-> The analysis is as follows:
->
-> 365static struct dentry *ovl_lookup_real_one(struct dentry *connected,
-> 366                                          struct dentry *real,
-> 367                                          const struct ovl_layer *layer)
-> 368{
-> 369        struct inode *dir = d_inode(connected);
-> 370        struct dentry *this, *parent = NULL;
->
->    1. var_decl: Declaring variable name without initializer.
->
-> 371        struct name_snapshot name;
-> 372        int err;
-> 373
-> 374        /*
-> 375         * Lookup child overlay dentry by real name. The dir mutex
-> protects us
-> 376         * from racing with overlay rename. If the overlay dentry
-> that is above
-> 377         * real has already been moved to a parent that is not under the
-> 378         * connected overlay dir, we return -ECHILD and restart the
-> lookup of
-> 379         * connected real path from the top.
-> 380         */
-> 381        inode_lock_nested(dir, I_MUTEX_PARENT);
-> 382        err = -ECHILD;
-> 383        parent = dget_parent(real);
->
->    2. Condition ovl_dentry_real_at(connected, layer->idx) != parent,
-> taking true branch.
->
-> 384        if (ovl_dentry_real_at(connected, layer->idx) != parent)
->
->    3. Jumping to label fail.
->
-> 385                goto fail;
-> 386
-> 387        /*
-> 388         * We also need to take a snapshot of real dentry name to
-> protect us
-> 389         * from racing with underlying layer rename. In this case, we
-> don't
-> 390         * care about returning ESTALE, only from dereferencing a
-> free name
-> 391         * pointer because we hold no lock on the real dentry.
-> 392         */
-> 393        take_dentry_name_snapshot(&name, real);
-> 394        this = lookup_one_len(name.name.name, connected, name.name.len);
-> 395        err = PTR_ERR(this);
-> 396        if (IS_ERR(this)) {
-> 397                goto fail;
-> 398        } else if (!this || !this->d_inode) {
-> 399                dput(this);
-> 400                err = -ENOENT;
-> 401                goto fail;
-> 402        } else if (ovl_dentry_real_at(this, layer->idx) != real) {
-> 403                dput(this);
-> 404                err = -ESTALE;
-> 405                goto fail;
-> 406        }
-> 407
-> 408out:
->
->    Uninitialized pointer read
->    6. uninit_use_in_call: Using uninitialized value name.name.name when
-> calling release_dentry_name_snapshot.
->
-> 409        release_dentry_name_snapshot(&name);
-> 410        dput(parent);
-> 411        inode_unlock(dir);
-> 412        return this;
-> 413
-> 414fail:
->
->    4. Condition ___ratelimit(&_rs, <anonymous>), taking false branch
-> .
-> 415        pr_warn_ratelimited("failed to lookup one by real (%pd2,
-> layer=%d, connected=%pd2, err=%i)\n",
-> 416                            real, layer->idx, connected, err);
-> 417        this = ERR_PTR(err);
->
->    5. Jumping to label out.
->
-> 418        goto out;
-> 419}
->
-> The error exit path on line 395 ends up with an uninitialized structure
-> name being passed to function release_dentry_name_snapshot() on line 409
-> and this accesses the pointer name.name.name, see /fs/dcache.c as follows:
->
-> 303void release_dentry_name_snapshot(struct name_snapshot *name)
-> 304{
->
->    1. read_value: Reading value name->name.name.
->    2. Condition !!(name->name.name != name->inline_name), taking true
-> branch.
->
-> 305        if (unlikely(name->name.name != name->inline_name)) {
-> 306                struct external_name *p;
->
->    3. Condition 0 /* !!(!__builtin_types_compatible_p() &&
-> !__builtin_types_compatible_p()) */, taking false branch.
->
->
-> I suspect name should be initialized in line 371, e.g. name = { } and a
-> null name check should be performed on line 409 before calling
-> release_dentry_name_snapshot, but this seems a bit message as a fix.
->
+Hello,
 
-Thanks for the report.
-A simpler fix is to move take_dentry_name_snapshot() to top of the
-function before goto fail.
+syzbot found the following issue on:
 
-Thanks,
-Amir.
+HEAD commit:    8cae8cd89f05 seq_file: disallow extremely large seq buffer..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=1083e8cc300000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=7273c75708b55890
+dashboard link: https://syzkaller.appspot.com/bug?extid=579885d1a9a833336209
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=163905f2300000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=165bd0ea300000
 
-> Colin
+The issue was bisected to:
+
+commit 82a763e61e2b601309d696d4fa514c77d64ee1be
+Author: Miklos Szeredi <mszeredi@redhat.com>
+Date:   Mon Dec 14 14:26:14 2020 +0000
+
+    ovl: simplify file splice
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=13440c82300000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=10c40c82300000
+console output: https://syzkaller.appspot.com/x/log.txt?x=17440c82300000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+579885d1a9a833336209@syzkaller.appspotmail.com
+Fixes: 82a763e61e2b ("ovl: simplify file splice")
+
+======================================================
+WARNING: possible circular locking dependency detected
+5.14.0-rc2-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor005/9173 is trying to acquire lock:
+ffff888027e98468 (&pipe->mutex/1){+.+.}-{3:3}, at: pipe_lock_nested fs/pipe.c:66 [inline]
+ffff888027e98468 (&pipe->mutex/1){+.+.}-{3:3}, at: pipe_lock+0x5a/0x70 fs/pipe.c:74
+
+but task is already holding lock:
+ffff888147cfc460 (sb_writers#5){.+.+}-{0:0}, at: __do_splice+0x134/0x250 fs/splice.c:1144
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (sb_writers#5){.+.+}-{0:0}:
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1763 [inline]
+       sb_start_write include/linux/fs.h:1833 [inline]
+       file_start_write include/linux/fs.h:3040 [inline]
+       ovl_write_iter+0x1015/0x17f0 fs/overlayfs/file.c:357
+       call_write_iter include/linux/fs.h:2114 [inline]
+       do_iter_readv_writev+0x46f/0x740 fs/read_write.c:740
+       do_iter_write+0x188/0x670 fs/read_write.c:866
+       vfs_iter_write+0x70/0xa0 fs/read_write.c:907
+       iter_file_splice_write+0x723/0xc70 fs/splice.c:689
+       do_splice_from fs/splice.c:767 [inline]
+       do_splice+0xb7e/0x1960 fs/splice.c:1079
+       __do_splice+0x134/0x250 fs/splice.c:1144
+       __do_sys_splice fs/splice.c:1350 [inline]
+       __se_sys_splice fs/splice.c:1332 [inline]
+       __x64_sys_splice+0x198/0x250 fs/splice.c:1332
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #1 (&ovl_i_mutex_key[depth]){+.+.}-{3:3}:
+       down_write+0x92/0x150 kernel/locking/rwsem.c:1406
+       inode_lock include/linux/fs.h:774 [inline]
+       ovl_write_iter+0x17d/0x17f0 fs/overlayfs/file.c:341
+       call_write_iter include/linux/fs.h:2114 [inline]
+       do_iter_readv_writev+0x46f/0x740 fs/read_write.c:740
+       do_iter_write+0x188/0x670 fs/read_write.c:866
+       vfs_iter_write+0x70/0xa0 fs/read_write.c:907
+       iter_file_splice_write+0x723/0xc70 fs/splice.c:689
+       do_splice_from fs/splice.c:767 [inline]
+       do_splice+0xb7e/0x1960 fs/splice.c:1079
+       __do_splice+0x134/0x250 fs/splice.c:1144
+       __do_sys_splice fs/splice.c:1350 [inline]
+       __se_sys_splice fs/splice.c:1332 [inline]
+       __x64_sys_splice+0x198/0x250 fs/splice.c:1332
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+-> #0 (&pipe->mutex/1){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3051 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+       validate_chain kernel/locking/lockdep.c:3789 [inline]
+       __lock_acquire+0x2a07/0x54a0 kernel/locking/lockdep.c:5015
+       lock_acquire kernel/locking/lockdep.c:5625 [inline]
+       lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+       __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+       __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+       pipe_lock_nested fs/pipe.c:66 [inline]
+       pipe_lock+0x5a/0x70 fs/pipe.c:74
+       iter_file_splice_write+0x183/0xc70 fs/splice.c:635
+       do_splice_from fs/splice.c:767 [inline]
+       do_splice+0xb7e/0x1960 fs/splice.c:1079
+       __do_splice+0x134/0x250 fs/splice.c:1144
+       __do_sys_splice fs/splice.c:1350 [inline]
+       __se_sys_splice fs/splice.c:1332 [inline]
+       __x64_sys_splice+0x198/0x250 fs/splice.c:1332
+       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+       do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+       entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+other info that might help us debug this:
+
+Chain exists of:
+  &pipe->mutex/1 --> &ovl_i_mutex_key[depth] --> sb_writers#5
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(sb_writers#5);
+                               lock(&ovl_i_mutex_key[depth]);
+                               lock(sb_writers#5);
+  lock(&pipe->mutex/1);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor005/9173:
+ #0: ffff888147cfc460 (sb_writers#5){.+.+}-{0:0}, at: __do_splice+0x134/0x250 fs/splice.c:1144
+
+stack backtrace:
+CPU: 0 PID: 9173 Comm: syz-executor005 Not tainted 5.14.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xcd/0x134 lib/dump_stack.c:105
+ check_noncircular+0x25f/0x2e0 kernel/locking/lockdep.c:2131
+ check_prev_add kernel/locking/lockdep.c:3051 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3174 [inline]
+ validate_chain kernel/locking/lockdep.c:3789 [inline]
+ __lock_acquire+0x2a07/0x54a0 kernel/locking/lockdep.c:5015
+ lock_acquire kernel/locking/lockdep.c:5625 [inline]
+ lock_acquire+0x1ab/0x510 kernel/locking/lockdep.c:5590
+ __mutex_lock_common kernel/locking/mutex.c:959 [inline]
+ __mutex_lock+0x12a/0x10a0 kernel/locking/mutex.c:1104
+ pipe_lock_nested fs/pipe.c:66 [inline]
+ pipe_lock+0x5a/0x70 fs/pipe.c:74
+ iter_file_splice_write+0x183/0xc70 fs/splice.c:635
+ do_splice_from fs/splice.c:767 [inline]
+ do_splice+0xb7e/0x1960 fs/splice.c:1079
+ __do_splice+0x134/0x250 fs/splice.c:1144
+ __do_sys_splice fs/splice.c:1350 [inline]
+ __se_sys_splice fs/splice.c:1332 [inline]
+ __x64_sys_splice+0x198/0x250 fs/splice.c:1332
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x446219
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 41 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f1d5746e2e8 EFLAGS: 00000246 ORIG_RAX: 0000000000000113
+RAX: ffffffffffffffda RBX: 00000000004cb4e0 RCX: 0000000000446219
+RDX: 0000000000000006 RSI: 0000000000000000 RDI: 0000000000000004
+RBP: 000000000049b06c R08: 000000000004ffdc R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 3d72696472657070
+R13: 0079616c7265766f R14: 69662f7375622f2e R15: 00000000004cb4e8
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
