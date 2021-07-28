@@ -2,160 +2,100 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9499C4338F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 26 Jul 2021 03:13:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 471F1C4338F
+	for <linux-unionfs@archiver.kernel.org>; Wed, 28 Jul 2021 05:28:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7A72060698
-	for <linux-unionfs@archiver.kernel.org>; Mon, 26 Jul 2021 03:13:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20B4160F6D
+	for <linux-unionfs@archiver.kernel.org>; Wed, 28 Jul 2021 05:28:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231205AbhGZCcf (ORCPT
+        id S233700AbhG1F2Y (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 25 Jul 2021 22:32:35 -0400
-Received: from out30-130.freemail.mail.aliyun.com ([115.124.30.130]:52721 "EHLO
-        out30-130.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230272AbhGZCce (ORCPT
+        Wed, 28 Jul 2021 01:28:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55190 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229752AbhG1F2Y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 25 Jul 2021 22:32:34 -0400
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R151e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=eguan@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0UgvrbTc_1627269182;
-Received: from localhost(mailfrom:eguan@linux.alibaba.com fp:SMTPD_---0UgvrbTc_1627269182)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 26 Jul 2021 11:13:02 +0800
-Date:   Mon, 26 Jul 2021 11:13:02 +0800
-From:   Eryu Guan <eguan@linux.alibaba.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Eryu Guan <guan@eryu.me>, Eryu Guan <guaneryu@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        fstests <fstests@vger.kernel.org>
-Subject: Re: [PATCH] overlay: add test for copy up of lower file attributes
-Message-ID: <20210726031302.GL60846@e18g06458.et15sqa>
-References: <20210722164634.394499-1-amir73il@gmail.com>
- <YP2Q+xTjGICXfOwl@desktop>
- <CAOQ4uxihqmRPms8Cedam7wT5dPAMFYA96DrFBJwUfLh+J9MJLg@mail.gmail.com>
+        Wed, 28 Jul 2021 01:28:24 -0400
+Received: from mail-il1-x12e.google.com (mail-il1-x12e.google.com [IPv6:2607:f8b0:4864:20::12e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 414C4C061757
+        for <linux-unionfs@vger.kernel.org>; Tue, 27 Jul 2021 22:28:22 -0700 (PDT)
+Received: by mail-il1-x12e.google.com with SMTP id c3so1559886ilh.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 27 Jul 2021 22:28:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=Ya0vA1hsfwNC+XZkumjcuDjGDvgai5my/lXUR/b79jQ=;
+        b=S69TrydzoxKXJPxtK1dR5FvFyXtveI95LrmondfGHIO6G8uHf+Oc0O7qjnSglNVhcN
+         l9/Qod44Uz8K3j0r7NlS5OvD264JitWlI1KiwVuVaT8mgq66h1WEsO7Jyy8Ua8HZwHV5
+         plPjyGfGY9xjQxZ7NxpeMsegzCT9TkWzwq85k72WUKVrxD1MI+2VP6e8VRszXmy/MGjR
+         5NfCkTIOqhyZc7l0COKZWghv4Z0A6r4fpbJXt+c68wjQhCEWARkDEuZKovX9B7R8tcVI
+         bx/LIX434tHL46VsCKi1G+o2jhTwydZVmBD+sQ6wsPFbiVXGG4jNjDZoAnpjsk571Ba/
+         2Cqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=Ya0vA1hsfwNC+XZkumjcuDjGDvgai5my/lXUR/b79jQ=;
+        b=Tf16JnLH77MVXA2YqCXQrJNQHvKrkPJSdevALd5069RXhym5QtUcjkGEqxuJ+H+ip6
+         jpKJWPFsB0KcKqWEK2RFLJsuXPBN65lUXn6h3XCnFZq/k4eWeF6D7xASkeannqwxTheI
+         fJZ7m24ne9ZXpUp3C8GKs5WFR+ZuiazlWJRVASb0tzts0QZSaSc+SSxseSkPpHjQzV5m
+         IMRjfDlSvps/CTiwW3FFGRhb7yMZwLx2MGkV/IlZNtjys1uwPJYjQEpGA3pjNM2+u2Dz
+         x0Vj0GeGSJQFf3yU40/Pr3T+dUUEm3YRC3j2rkgFDRktsu9QXUwTZdQ02YqR5twXPvyr
+         uoLg==
+X-Gm-Message-State: AOAM530kWzFqanaqV/WkhmRKLT15QtkibumW0T4jCsfGeU+KotFRyHSN
+        ug0AggifpWh4vnu5DOUg5TY8qAnTyq+DkdNrBQw=
+X-Google-Smtp-Source: ABdhPJwLP6KuPzTB7w8c0kLU0ZnUYtmOu2RaeXeXC8fYTRtulnyTZw7X+kf61mfdhDSauj7pymwI5vI6fdYeaorVmhM=
+X-Received: by 2002:a05:6e02:1c02:: with SMTP id l2mr19436593ilh.9.1627450101526;
+ Tue, 27 Jul 2021 22:28:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxihqmRPms8Cedam7wT5dPAMFYA96DrFBJwUfLh+J9MJLg@mail.gmail.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
+References: <4a261352.642.17aeab04218.Coremail.ouyangxuan10@163.com>
+In-Reply-To: <4a261352.642.17aeab04218.Coremail.ouyangxuan10@163.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 28 Jul 2021 08:28:09 +0300
+Message-ID: <CAOQ4uxgQ=oH9Z5Y=kWZ8-0XWCNg=vnWYOyF8QwTH=DP5PkYM5Q@mail.gmail.com>
+Subject: Re: [overlayfs]: Overlayfs questions
+To:     www <ouyangxuan10@163.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Kevin Locke <kevin@kevinlocke.name>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Jul 25, 2021 at 09:21:03PM +0300, Amir Goldstein wrote:
-> On Sun, Jul 25, 2021 at 7:27 PM Eryu Guan <guan@eryu.me> wrote:
-> >
-> > On Thu, Jul 22, 2021 at 07:46:34PM +0300, Amir Goldstein wrote:
-> > > Overlayfs copies up a subset of lower file attributes since kernel
-> > > commits:
-> > > 173ff5c9ec37 ("ovl: consistent behavior for immutable/append-only inodes")
-> > > 2e3f6e87c2b0 ("ovl: copy up sync/noatime fileattr flags")
-> > >
-> > > This test verifies this functionality works correctly and that it
-> > > survives power failure and/or mount cycle.
-> > >
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> >
-> > Looks good to me overall, just one minor question below.
-> >
-> > > ---
-> > >
-> > > Eryu,
-> > >
-> > > This test is failing on master and passes on overlayfs-next.
-> > >
-> > > Thanks,
-> > > Amir.
-> > >
-> > >  tests/overlay/078     | 145 ++++++++++++++++++++++++++++++++++++++++++
-> > >  tests/overlay/078.out |   2 +
-> > >  2 files changed, 147 insertions(+)
-> > >  create mode 100755 tests/overlay/078
-> > >  create mode 100644 tests/overlay/078.out
-> > >
-> > > diff --git a/tests/overlay/078 b/tests/overlay/078
-> > > new file mode 100755
-> > > index 00000000..b43449d1
-> > > --- /dev/null
-> > > +++ b/tests/overlay/078
-> > > @@ -0,0 +1,145 @@
-> > > +#! /bin/bash
-> > > +# SPDX-License-Identifier: GPL-2.0
-> > > +# Copyright (c) 2018 Huawei.  All Rights Reserved.
-> > > +# Copyright (C) 2021 CTERA Networks. All Rights Reserved.
-> > > +#
-> > > +# FS QA Test 078
-> > > +#
-> > > +# Test copy up of lower file attributes.
-> > > +#
-> > > +# Overlayfs copies up a subset of lower file attributes since kernel commits:
-> > > +# 173ff5c9ec37 ("ovl: consistent behavior for immutable/append-only inodes")
-> > > +# 2e3f6e87c2b0 ("ovl: copy up sync/noatime fileattr flags")
-> > > +#
-> > > +# This test is similar and was derived from generic/507, but instead
-> > > +# of creating new files which are created in upper layer, prepare
-> > > +# the file with attributes in lower layer and verify that attributes
-> > > +# are not lost during copy up, (optional) shutdown and mount cycle.
-> > > +#
-> > > +. ./common/preamble
-> > > +_begin_fstest auto quick perms shutdown
-> >
-> > I noticed that generic/507 has the same groups defined, but I'm
-> > wondering if 'perms' is right group, 'attr' seems a better fit to me.
-> 
-> The term "attr" is now very much overloaded in filesystems.
-> It may refer to info of stat() (i.e. getattr())
-> it my refer to xattr and it may refer to lsattr/chattr,
-> which is referred to as fileattr in latest vfs API.
-> 
-> In fstests, most of the tests in the 'attr' group include
-> ./common/attr which refers to ACL xattrs in particular...
-> so it is not a good fit IMO.
-> 
-> The group 'perm' is already used for overlayfs tests that deal with
-> immutable files and generic tests that deal with immutable files
-> don't really have a common group AFAICT.
+On Wed, Jul 28, 2021 at 4:18 AM www <ouyangxuan10@163.com> wrote:
+>
+> Dear Miklos Szeredi , Amir Goldstein and Kevin,
+>
+> I would like to ask some question in overlayfs=EF=BC=9A
+> 1.  in overlayfs, where is the code for obtaining directory or file attri=
+butes?
+>
+> 2. Where is the code that combines lowerdir and Upper Dir into a visual p=
+art?
+>
+> thanks=EF=BC=8C
+> Byron
+>
 
-Makes sense to me. Then I'll take 'perm' for now.
+Those are very broad questions.
 
-> 
-> I have no objection for creating a new group for this
-> purpose but that would involve marking all related tests and worse...
-> ...finding a name for that group ;-)
+In a very narrow sense the answers are
+1. ovl_getattr()
+2. ovl_iterate() and ovl_lookup()
 
-Yeah, naming is always a problem :)
+This is the most up to date documentation:
+https://www.kernel.org/doc/Documentation/filesystems/overlayfs.rst
 
-> 
-> > And we could add 'copyup' group as well.
-> >
-> 
-> Sure.
-> 
-> > > +
-> > > +# Override the default cleanup function.
-> > > +_cleanup()
-> > > +{
-> > > +     cd /
-> > > +     $CHATTR_PROG -ai $lowertestfile &> /dev/null
-> > > +     rm -f $tmp.*
-> > > +}
-> > > +
-> > > +# Import common functions.
-> > > +. ./common/filter
-> > > +
-> > > +# real QA test starts here
-> > > +_supported_fs generic
-> >
-> > s/generic/overlay/
-> 
-> Oops. I assume you would be fix this typo on commit.
-
-Sure, I'll pick it up in next week's update and fix supported fs and add
-copyup group.
+For anything beyond that, you'll need to read the code:
+https://elixir.bootlin.com/linux/latest/source/fs/overlayfs
 
 Thanks,
-Eryu
+Amir.
