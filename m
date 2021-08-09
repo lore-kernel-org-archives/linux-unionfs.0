@@ -2,135 +2,98 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00E98C4338F
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 09:21:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26537C4338F
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 17:00:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D182D60C51
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 09:21:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 004D160F8F
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 17:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234264AbhHIJWJ (ORCPT
+        id S233408AbhHIRAj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 9 Aug 2021 05:22:09 -0400
-Received: from szxga08-in.huawei.com ([45.249.212.255]:13253 "EHLO
-        szxga08-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234255AbhHIJWJ (ORCPT
+        Mon, 9 Aug 2021 13:00:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51716 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233075AbhHIRAj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 9 Aug 2021 05:22:09 -0400
-Received: from dggemv711-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4GjrDv0Dsvz1CTwS;
-        Mon,  9 Aug 2021 17:21:35 +0800 (CST)
-Received: from dggema761-chm.china.huawei.com (10.1.198.203) by
- dggemv711-chm.china.huawei.com (10.1.198.66) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2176.2; Mon, 9 Aug 2021 17:21:47 +0800
-Received: from [10.174.178.46] (10.174.178.46) by
- dggema761-chm.china.huawei.com (10.1.198.203) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2176.2; Mon, 9 Aug 2021 17:21:46 +0800
-Subject: Re: [QUESTION] Why overlayfs cannot mounted as nfs_export and
- metacopy?
-To:     Amir Goldstein <amir73il@gmail.com>
-CC:     Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Vivek Goyal <vgoyal@redhat.com>
-References: <ec78de1b-4edb-1eea-5c0d-79e65f139d79@huawei.com>
- <CAOQ4uxiO7zt7sywNqyd-WwCVds9-NqRAixham9yVeN7F+JhXoA@mail.gmail.com>
- <CAOQ4uxhAGSPKx6xsa5w_Wn9sax8LQQ=dPhB7Dtn1XDwghNpgvg@mail.gmail.com>
-From:   Zhihao Cheng <chengzhihao1@huawei.com>
-Message-ID: <daca5479-a0fc-10e6-865c-2b1d691905c6@huawei.com>
-Date:   Mon, 9 Aug 2021 17:21:46 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:68.0) Gecko/20100101
- Thunderbird/68.5.0
+        Mon, 9 Aug 2021 13:00:39 -0400
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E002EC061798
+        for <linux-unionfs@vger.kernel.org>; Mon,  9 Aug 2021 10:00:18 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id u3so30221910ejz.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 09 Aug 2021 10:00:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
+        bh=ml8YWeKENdHttM1M37Ea6CjN02UFHxweJafrawItaBc=;
+        b=ln5imeQ87VkBFUlqtYVfWXqdJetMsvLgTtfMiqAEN8nh1jVvxqWZkV7Fpa8UaVvCUU
+         Zrm60uxKIc1jrGXyA6Vsjw5DzOqVR3FkcD2YdlRU/EdJa6Q/BB7IIQax8Kok+0cPG44o
+         kGpmStxWa91MVQx4aePEhkdLsRjSmA32pumZw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition;
+        bh=ml8YWeKENdHttM1M37Ea6CjN02UFHxweJafrawItaBc=;
+        b=YYJn36+KIwnjEzDLJ8Tbi/RuDWCbUM2gmcvroZK/b6M/e3/jgBEpSq7FWO7bhYHBo7
+         uL1BWlGjLWje0c7ZnYlwa4XIEi1+FnMpND2pe2oMRfDWgDPPgglTFK2VXHgJLoRyMvX6
+         V+4/lZ4r7MM8O3BDiug3A5dZfOFssNL4VzwFLgTJHb4DxKdJwvjGRfN1QjpPOzV6yVb2
+         0vEV/MOhF9Js2KnBQxwF4GTjz8g9bQlOSuDsVrnEVJQR0EVIoqemRDsG4fNaXRsPpQIV
+         E5zRRdMn+YRwiWeABf60JvanwUCZv5daP+JaeZ4Gn3gcaRRqQPe1wskgb+BkCjIjIfDd
+         sQ/Q==
+X-Gm-Message-State: AOAM530AIMDrWTpnDNZNEAs98GwBKJr55+kh7dIazq3+hreu73bPPfum
+        q5MlwTLvSBodQgAaqifgzagLNA==
+X-Google-Smtp-Source: ABdhPJzZ8H3OPD8jmRICfWorFIzvInFqHIYHkom1mfksGHpupWKEL6M6eINvJBub13WD3yVvcgdzjA==
+X-Received: by 2002:a17:906:4808:: with SMTP id w8mr4857408ejq.56.1628528417320;
+        Mon, 09 Aug 2021 10:00:17 -0700 (PDT)
+Received: from miu.piliscsaba.redhat.com (catv-86-101-169-16.catv.broadband.hu. [86.101.169.16])
+        by smtp.gmail.com with ESMTPSA id q14sm8465317edr.0.2021.08.09.10.00.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 09 Aug 2021 10:00:16 -0700 (PDT)
+Date:   Mon, 9 Aug 2021 19:00:10 +0200
+From:   Miklos Szeredi <miklos@szeredi.hu>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs fixes for 5.14-rc6
+Message-ID: <YRFfGk5lHL0W27oU@miu.piliscsaba.redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOQ4uxhAGSPKx6xsa5w_Wn9sax8LQQ=dPhB7Dtn1XDwghNpgvg@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.178.46]
-X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
- dggema761-chm.china.huawei.com (10.1.198.203)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-在 2021/8/8 0:37, Amir Goldstein 写道:
-> I remembered some more details...
->
-> I think the main complication discussed w.r.t decoding a metacopy
-> inode was for the case where ovl_inode_lowerdata() differs from
-> ovl_inode_lower().
->
-> If we had a weaker variant of metacopy (e.g. metacopy=upper) that
-> only allows creating and following metacopy inodes in the upper layer,
-> it would have been simpler to implement ovl_obtain_alias().
->
-> Specifically, when ofs->numlayer == 2 (single lower layer), there can
-> be no valid metacopy inodes in the lower layer, so that configuration
-> should also be rather easy to support.
->
-> Basically, for ovl_obtain_alias():
-> - 'lowerpath' must not have metadata xattr
-> - 'upper_alias' must not have metadata xattr
-> - If 'index' has metacopy xattr, OVL_UPPERDATA flag
->    should not be set on ovl inode
->
-> But there are bigger complications w.r.t disconnected dentry.
-> Overlayfs knows how to decode, work with and copy up
-> disconnected dentries (parent is unknown), but in ovl_link(old, ...),
+Hi Linus,
 
-Can we get a disconnected non-dir dentry in normal process, or how to 
-produce a disconnected dentry?
+Please pull from:
 
-If I understand correctly, metacopy only inode will be processed in 
-ovl_lower_fh_to_d():
+  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.14-rc6
 
-706         /* First lookup overlay inode in inode cache by origin fh */
-707         err = ovl_check_origin_fh(ofs, fh, false, NULL, &stack);
-708         if (err)
-709                 return ERR_PTR(err);
-710
-711         if (!d_is_dir(origin.dentry) ||
-712             !(origin.dentry->d_flags & DCACHE_DISCONNECTED)) {
-713                 inode = ovl_lookup_inode(sb, origin.dentry, false);
-714                 err = PTR_ERR(inode);
-715                 if (IS_ERR(inode))
-716                         goto out_err;
-717                 if (inode) {
-718                         dentry = 
-d_find_any_alias(inode);                        // A NULL dentry found 
-here? How did it happen?
-719 iput(inode);
-720                         if (dentry)
-721                                 goto out;
-722 }
-723         }
+Fix several bugs in overlayfs.
 
-[...]
+Thanks,
+Miklos
 
-762         /* Get a connected non-upper dir or disconnected non-dir */
-763         dentry = ovl_get_dentry(sb, NULL, &origin, index);      // 
-Get disconnected non-dir.
+---
+Amir Goldstein (1):
+      ovl: skip stale entries in merge dir cache iteration
 
-> 'old' dentry must not be a disconnected metacopy dentry when
-> calling ovl_set_link_redirect() => ... ovl_get_redirect(), so we will
-> also need to:
-> - On copy up of a disconnected lower, do not use metacopy
-> - Copy up data before ovl_link() when nfs_export is enabled
-> - In ovl_obtain_alias(), if 'index' has redirect:
-> -- Verify that it is an absolute path that it is resolved to the
-> 'lowerpath's inode
-> -- oip.redirect needs to be passed to ovl_get_inode()
-> -- ovl_verify_inode() needs to verify that oip.redirect matches
->     redirect that is found on existing ovl inode
->
-> And probably other things that I am forgetting...
->
-> Thanks,
-> Amir.
-> .
+Miklos Szeredi (4):
+      ovl: fix mmap denywrite
+      ovl: fix deadlock in splice write
+      ovl: fix uninitialized pointer read in ovl_lookup_real_one()
+      ovl: prevent private clone if bind mount is not allowed
 
-
+---
+ fs/namespace.c         | 42 +++++++++++++++++++++++++++--------------
+ fs/overlayfs/export.c  |  2 +-
+ fs/overlayfs/file.c    | 51 ++++++++++++++++++++++++++++++++++++++++++++++++--
+ fs/overlayfs/readdir.c |  5 +++++
+ include/linux/mm.h     |  2 +-
+ mm/mmap.c              |  2 +-
+ mm/util.c              | 27 +++++++++++++++++++++++++-
+ 7 files changed, 111 insertions(+), 20 deletions(-)
