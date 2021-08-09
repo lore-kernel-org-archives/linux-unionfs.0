@@ -2,98 +2,102 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26537C4338F
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 17:00:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E1B3C4320A
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 19:56:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 004D160F8F
-	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 17:00:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58F346101D
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Aug 2021 19:56:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233408AbhHIRAj (ORCPT
+        id S229516AbhHIT5K (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 9 Aug 2021 13:00:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51716 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233075AbhHIRAj (ORCPT
+        Mon, 9 Aug 2021 15:57:10 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:36738 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233546AbhHIT5K (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 9 Aug 2021 13:00:39 -0400
-Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E002EC061798
-        for <linux-unionfs@vger.kernel.org>; Mon,  9 Aug 2021 10:00:18 -0700 (PDT)
-Received: by mail-ej1-x62c.google.com with SMTP id u3so30221910ejz.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 09 Aug 2021 10:00:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=ml8YWeKENdHttM1M37Ea6CjN02UFHxweJafrawItaBc=;
-        b=ln5imeQ87VkBFUlqtYVfWXqdJetMsvLgTtfMiqAEN8nh1jVvxqWZkV7Fpa8UaVvCUU
-         Zrm60uxKIc1jrGXyA6Vsjw5DzOqVR3FkcD2YdlRU/EdJa6Q/BB7IIQax8Kok+0cPG44o
-         kGpmStxWa91MVQx4aePEhkdLsRjSmA32pumZw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=ml8YWeKENdHttM1M37Ea6CjN02UFHxweJafrawItaBc=;
-        b=YYJn36+KIwnjEzDLJ8Tbi/RuDWCbUM2gmcvroZK/b6M/e3/jgBEpSq7FWO7bhYHBo7
-         uL1BWlGjLWje0c7ZnYlwa4XIEi1+FnMpND2pe2oMRfDWgDPPgglTFK2VXHgJLoRyMvX6
-         V+4/lZ4r7MM8O3BDiug3A5dZfOFssNL4VzwFLgTJHb4DxKdJwvjGRfN1QjpPOzV6yVb2
-         0vEV/MOhF9Js2KnBQxwF4GTjz8g9bQlOSuDsVrnEVJQR0EVIoqemRDsG4fNaXRsPpQIV
-         E5zRRdMn+YRwiWeABf60JvanwUCZv5daP+JaeZ4Gn3gcaRRqQPe1wskgb+BkCjIjIfDd
-         sQ/Q==
-X-Gm-Message-State: AOAM530AIMDrWTpnDNZNEAs98GwBKJr55+kh7dIazq3+hreu73bPPfum
-        q5MlwTLvSBodQgAaqifgzagLNA==
-X-Google-Smtp-Source: ABdhPJzZ8H3OPD8jmRICfWorFIzvInFqHIYHkom1mfksGHpupWKEL6M6eINvJBub13WD3yVvcgdzjA==
-X-Received: by 2002:a17:906:4808:: with SMTP id w8mr4857408ejq.56.1628528417320;
-        Mon, 09 Aug 2021 10:00:17 -0700 (PDT)
-Received: from miu.piliscsaba.redhat.com (catv-86-101-169-16.catv.broadband.hu. [86.101.169.16])
-        by smtp.gmail.com with ESMTPSA id q14sm8465317edr.0.2021.08.09.10.00.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 09 Aug 2021 10:00:16 -0700 (PDT)
-Date:   Mon, 9 Aug 2021 19:00:10 +0200
-From:   Miklos Szeredi <miklos@szeredi.hu>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs fixes for 5.14-rc6
-Message-ID: <YRFfGk5lHL0W27oU@miu.piliscsaba.redhat.com>
+        Mon, 9 Aug 2021 15:57:10 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1628539009;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=AwvrxlzQhyUHyIFTZNnLnBfHFOFKtCqG67vX2dUCkoQ=;
+        b=YXUS6VkxcJRi8HWd1l3etHlpQXCVop4FbWykw4VEznDwYoE5+HeLHH/ixNkzgNdHphdXJF
+        uwtB+Qnz627n+/m1p6qTZ/GzZw2mhPcqjo0N+EH8Wr31aj553g1qyFMgwSwOHWX/L09PHA
+        g06DWT5eB/VjqB1eiycFmd0u2pYBAWc=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-54-bIUz3rgoMEqd64HSi4WOPg-1; Mon, 09 Aug 2021 15:56:45 -0400
+X-MC-Unique: bIUz3rgoMEqd64HSi4WOPg-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 82832101C8A0;
+        Mon,  9 Aug 2021 19:56:44 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.22.10.79])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 424FB19CBA;
+        Mon,  9 Aug 2021 19:56:43 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id D5303220261; Mon,  9 Aug 2021 15:56:42 -0400 (EDT)
+Date:   Mon, 9 Aug 2021 15:56:42 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Zhihao Cheng <chengzhihao1@huawei.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Subject: Re: [QUESTION] Why overlayfs cannot mounted as nfs_export and
+ metacopy?
+Message-ID: <YRGIevRDg6hrdYQl@redhat.com>
+References: <ec78de1b-4edb-1eea-5c0d-79e65f139d79@huawei.com>
+ <CAOQ4uxiO7zt7sywNqyd-WwCVds9-NqRAixham9yVeN7F+JhXoA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiO7zt7sywNqyd-WwCVds9-NqRAixham9yVeN7F+JhXoA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Sat, Aug 07, 2021 at 02:05:15PM +0300, Amir Goldstein wrote:
+> On Sat, Aug 7, 2021 at 1:17 PM Zhihao Cheng <chengzhihao1@huawei.com> wrote:
+> >
+> > Hi, all.
+> >
+> > As title said. I wonder to know the reason for overlayfs mount failure
+> > with '-o nfs_export=on,metacopy=on'.
+> >
+> > I modified kernel to enable these two options 'on',  it looks like that
+> > overlayfs can still work fine under nfs_v4.
+> >
+> > Besides, I can get no more information about the reason from source
+> > code, maybe I missed something.
+> >
+> 
+> It's because ovl_obtain_alias() (decoding a disconnected non-dir file handle)
+> does not know how to construct a metacopy overlayfs inode.
+> 
+> Maybe Vivek will be able to point you to the discussion that lead to making
+> the features mutually exclusive.
 
-Please pull from:
+I think I had not implemented metacopy with nfs export because it seemed
+non-trivial and I did not need nfs export feature support with metacopy.
+So I decided to narrow down the problem space and not support nfs
+export and metacopy together.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.14-rc6
+It will be good if somebody can dive deeper and make it work (if it
+is possible to make it work).
 
-Fix several bugs in overlayfs.
+Vivek
+> 
+> I don't remember any other reason.
+> 
+> Thanks,
+> Amir.
+> 
 
-Thanks,
-Miklos
-
----
-Amir Goldstein (1):
-      ovl: skip stale entries in merge dir cache iteration
-
-Miklos Szeredi (4):
-      ovl: fix mmap denywrite
-      ovl: fix deadlock in splice write
-      ovl: fix uninitialized pointer read in ovl_lookup_real_one()
-      ovl: prevent private clone if bind mount is not allowed
-
----
- fs/namespace.c         | 42 +++++++++++++++++++++++++++--------------
- fs/overlayfs/export.c  |  2 +-
- fs/overlayfs/file.c    | 51 ++++++++++++++++++++++++++++++++++++++++++++++++--
- fs/overlayfs/readdir.c |  5 +++++
- include/linux/mm.h     |  2 +-
- mm/mmap.c              |  2 +-
- mm/util.c              | 27 +++++++++++++++++++++++++-
- 7 files changed, 111 insertions(+), 20 deletions(-)
