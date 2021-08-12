@@ -4,76 +4,73 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B9BC4338F
-	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Aug 2021 19:24:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED568C4320A
+	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Aug 2021 19:38:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63C0F61038
-	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Aug 2021 19:24:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEE4460FBF
+	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Aug 2021 19:38:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233300AbhHLTYd (ORCPT
+        id S232468AbhHLTjA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 12 Aug 2021 15:24:33 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:38308 "EHLO
+        Thu, 12 Aug 2021 15:39:00 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:40838 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231331AbhHLTYc (ORCPT
+        by vger.kernel.org with ESMTP id S233300AbhHLTjA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 12 Aug 2021 15:24:32 -0400
+        Thu, 12 Aug 2021 15:39:00 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1628796246;
+        s=mimecast20190719; t=1628797113;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=8N86vzBdNfGIw1497CO2pBCfWWqdNZr9GKs8Sj+sQpI=;
-        b=LIpTaVRmcRILJgdF0PAQaWjGXprX7N0Ib8w/me6HXxfiG5JqvllOzvBf3KB22UwKtmcoth
-        0Hc1VCIb9yaOba/LX/p1yvhQWH9xaGC1LHn5+dk6NbqGQ4yZC4fuAMl+v3mGSS1BAGjOlg
-        a5fGl4gM6ydAsVcsvsxOHr9yoLeyRiE=
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
- [209.85.221.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-410-byICGm-DPQqvatDSZvCYZg-1; Thu, 12 Aug 2021 15:24:05 -0400
-X-MC-Unique: byICGm-DPQqvatDSZvCYZg-1
-Received: by mail-wr1-f71.google.com with SMTP id v18-20020adfe2920000b029013bbfb19640so2144371wri.17
-        for <linux-unionfs@vger.kernel.org>; Thu, 12 Aug 2021 12:24:04 -0700 (PDT)
+        bh=tGJibS4yiaglb2J5rU+JWBqNKg1kdcrr0OdS+mMkHrI=;
+        b=YsZPejHEDNuP59u5DgBvk4kho1KqLMikTMva8fQFqGcUB5Zv/X5np47jKoEAhQC2o1/3fw
+        XN1GGdkS/lNaYiTeY0hEC4I1CJpgS5MlUQCo/bXS7Tot3QgIFzp+/Wbu7B36XlIjkIkYI3
+        7taUgRmjsZlLW+RzVkCA0VgaR/0r4K4=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-174-yLJ41AEsMhCb6UruHmHI2g-1; Thu, 12 Aug 2021 15:38:32 -0400
+X-MC-Unique: yLJ41AEsMhCb6UruHmHI2g-1
+Received: by mail-wm1-f70.google.com with SMTP id g70-20020a1c20490000b02902e6753bf473so3762483wmg.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Aug 2021 12:38:32 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:organization
+        h=x-gm-message-state:to:cc:references:from:organization:subject
          :message-id:date:user-agent:mime-version:in-reply-to
          :content-language:content-transfer-encoding;
-        bh=8N86vzBdNfGIw1497CO2pBCfWWqdNZr9GKs8Sj+sQpI=;
-        b=k0ELd64LixW3HATYqE/90fOs8xfRd6zFQIhW+wcz2yqIt/hhGK8/Ef3xz8BGLqXKRL
-         w6uotqpIqwuv254G+f1A6quZsiv5W7UOjHmtdX4Q/kDc7ehOmk+67Zi2HHOEZoKMH7Fd
-         C6Fox/2hTyPKeIs4SRyXe2xykHYO3NUsxYm4zpdNshmOEMtqiOUFrwrFbYN2c823p5lL
-         dtfc/qI8/fTp5EHjh5VrMStfj2e1VQLvO4uwyqLIAtmtU5GLXhCSoAQwHmvVTN8v20aD
-         SWMMsVM040HJvn14o/TrRP/I9b6xI0cWQKnmnrz7+VvHfns/OYVDHSiDhrqiXzdG8aXH
-         J/qw==
-X-Gm-Message-State: AOAM531Y7HD83qvaWPauwZCRpk1oxForA+avJ3db173RQdU40QERZxnP
-        3WwQJD0e7THX6bvEP7EHMyDt1jv7L9N5KfqWPrtaV74NybT3nCveAJhCLqOwxiie8xDb+Fi8k4y
-        5FJX2RSUab4sdDEuM4mvMnoKqqw==
-X-Received: by 2002:a05:600c:1552:: with SMTP id f18mr160504wmg.40.1628796243840;
-        Thu, 12 Aug 2021 12:24:03 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyoi73TjuPhfXBY9qVs1gNFHq5iS0Cg54p1SYixusgscxJCJ6YZqkOPk8ytKcP9LVXjwJLvRw==
-X-Received: by 2002:a05:600c:1552:: with SMTP id f18mr160487wmg.40.1628796243648;
-        Thu, 12 Aug 2021 12:24:03 -0700 (PDT)
+        bh=tGJibS4yiaglb2J5rU+JWBqNKg1kdcrr0OdS+mMkHrI=;
+        b=MVsWUy8KEdJLvClc+FsXRUPsbFnUMQeBj/xlBaMWJFcGDoSTZw53LWqskb4ky7czjL
+         b79cyvCFp/Sjv4c+V5SYOtL+SOFkbJpAsdTlbbWWbNprL1YCzdIdbfX1ao4iIRBIaAAm
+         Ha43QZUeybPJ97tEgG3W8aYWfJV31I+vcvQTW9yUEcUk92WKtkPFjua+2YKVMzV+UOQb
+         iw6pROKmdlwWPNDAO48fmTYsMRv0ROTYqk0j7yrq+bB96jVr9pgnfaBo8C/tcgpsMY+9
+         x8MZa/+Pd1wrYsX/nK/GWmxJcvjE75qO6SwEWUMnoANCgSfqCLs9+nvWJOL0r37G1PKd
+         kzUQ==
+X-Gm-Message-State: AOAM532K+69ZEBKkEULGU5eCHOaqwkcuE7pbG2UaK25NVQo6BpR4yuvW
+        xYSSUpbjJGv9k21g+rWKt+dX7WA+9q02+VVWNm2F7Phh49iLMAzsN1g473tFN1yYVHn4H/P8M3E
+        XQsqKDEaC31FpZ9FEZGD1E5OFyA==
+X-Received: by 2002:a5d:45c2:: with SMTP id b2mr5697488wrs.188.1628797111136;
+        Thu, 12 Aug 2021 12:38:31 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJw2yA9S5GLR5aZS72Vs7D04/GT/ipvgAFBAJrXhJd9/Q2ngghrrOQ4av0TFSdLK0A6HDNvrvg==
+X-Received: by 2002:a5d:45c2:: with SMTP id b2mr5697441wrs.188.1628797110959;
+        Thu, 12 Aug 2021 12:38:30 -0700 (PDT)
 Received: from [192.168.3.132] (p4ff23d8b.dip0.t-ipconnect.de. [79.242.61.139])
-        by smtp.gmail.com with ESMTPSA id m10sm3080907wro.63.2021.08.12.12.24.01
+        by smtp.gmail.com with ESMTPSA id i9sm4899610wre.36.2021.08.12.12.38.26
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 12 Aug 2021 12:24:02 -0700 (PDT)
-Subject: Re: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-To:     Linus Torvalds <torvalds@linux-foundation.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Andy Lutomirski <luto@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Thu, 12 Aug 2021 12:38:29 -0700 (PDT)
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         "H. Peter Anvin" <hpa@zytor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
         Alexey Dobriyan <adobriyan@gmail.com>,
         Steven Rostedt <rostedt@goodmis.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Peter Zijlstra <peterz@infradead.org>,
         Arnaldo Carvalho de Melo <acme@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
         Alexander Shishkin <alexander.shishkin@linux.intel.com>,
@@ -84,6 +81,7 @@ Cc:     Andy Lutomirski <luto@kernel.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         Kees Cook <keescook@chromium.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
         Greg Ungerer <gerg@linux-m68k.org>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
         Mike Rapoport <rppt@kernel.org>,
@@ -120,50 +118,109 @@ Cc:     Andy Lutomirski <luto@kernel.org>,
         the arch/x86 maintainers <x86@kernel.org>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         Linux-MM <linux-mm@kvack.org>
-References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
- <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
- <87lf56bllc.fsf@disp2133>
- <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
+References: <20210812084348.6521-1-david@redhat.com>
+ <20210812084348.6521-4-david@redhat.com>
+ <CAHk-=wjWgFbEaE9T0smQu8WKkhrcNZZrghBUQ9441OdMsDg1-w@mail.gmail.com>
 From:   David Hildenbrand <david@redhat.com>
 Organization: Red Hat
-Message-ID: <0ab1a811-4040-2657-7b48-b39ada300749@redhat.com>
-Date:   Thu, 12 Aug 2021 21:24:00 +0200
+Subject: Re: [PATCH v1 3/7] kernel/fork: always deny write access to current
+ MM exe_file
+Message-ID: <15628c8a-9c71-5611-2edf-07087ad662b7@redhat.com>
+Date:   Thu, 12 Aug 2021 21:38:26 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.11.0
 MIME-Version: 1.0
-In-Reply-To: <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
+In-Reply-To: <CAHk-=wjWgFbEaE9T0smQu8WKkhrcNZZrghBUQ9441OdMsDg1-w@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 12.08.21 20:10, Linus Torvalds wrote:
-> On Thu, Aug 12, 2021 at 7:48 AM Eric W. Biederman <ebiederm@xmission.com> wrote:
+On 12.08.21 18:51, Linus Torvalds wrote:
+> On Wed, Aug 11, 2021 at 10:45 PM David Hildenbrand <david@redhat.com> wrote:
 >>
->> Given that MAP_PRIVATE for shared libraries is our strategy for handling
->> writes to shared libraries perhaps we just need to use MAP_POPULATE or a
->> new related flag (perhaps MAP_PRIVATE_NOW)
+>>          /* No ordering required: file already has been exposed. */
+>> -       RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
+>> +       exe_file = get_mm_exe_file(oldmm);
+>> +       RCU_INIT_POINTER(mm->exe_file, exe_file);
+>> +       if (exe_file)
+>> +               deny_write_access(exe_file);
 > 
-> No. That would be horrible for the usual bloated GUI libraries. It
-> might help some (dynamic page faults are not cheap either), but it
-> would hurt a lot.
+> Can we make a helper function for this, since it's done in two different places?
 
-Right, we most certainly don't want to waste system ram / swap space, 
-memory for page tables, and degrade performance just because some 
-corner-case nasty user space could harm itself.
+Sure, no compelling reason not to (except finding a suitable name, but 
+I'll think about that tomorrow).
 
 > 
-> This is definitely a "if you overwrite a system library while it's
-> being used, you get to keep both pieces" situation.
+>> -       if (new_exe_file)
+>> +       if (new_exe_file) {
+>>                  get_file(new_exe_file);
+>> +               /*
+>> +                * exec code is required to deny_write_access() successfully,
+>> +                * so this cannot fail
+>> +                */
+>> +               deny_write_access(new_exe_file);
+>> +       }
+>>          rcu_assign_pointer(mm->exe_file, new_exe_file);
+> 
+> And the above looks positively wrong. The comment is also nonsensical,
+> in that it basically says "we thought this cannot fail, so we'll just
+> rely on it".
 
-Right, play stupid games, win stupid prices. I agree that if there would 
-be an efficient way to detect+handle such overwrites gracefully, it 
-would be great to have the kernel support that. ETXTBUSY as implemented 
-with this series (but also before this series) is really only a 
-minimalistic approach to help detect some issues regarding the main 
-executable.
+Well, it documents the expectation towards the caller, but in a 
+suboptimal way, I agree.
+
+> 
+> If it truly cannot fail, then the comment should give the reason, not
+> the "we depend on this not failing".
+
+Right, "We depend on the caller already have done a deny_write_access() 
+successfully first such that this call cannot fail." combined with
+
+if (deny_write_access(new_exe_file))
+	pr_warn("Unexpected failure of deny_write_access() in %s",
+                  __func__);
+
+suggestions welcome.
+
+> 
+> And honestly, I don't see why it couldn't fail. And if it *does* fail,
+> we cannot then RCU-assign the exe_file pointer with this, because
+> you'll get a counter imbalance when you do the allow_write_access()
+> later.
+
+Anyone calling set_mm_exe_file() (-> begin_new_exec()) is expected to 
+successfully triggered a deny_write_access() upfront such that we won't 
+fail at that point.
+
+Further, on the dup_mmap() path we are sure the previous oldmm exe_file 
+properly saw a successful deny_write_access() already, because that's 
+now guaranteed for any exe_file.
+
+> 
+> Anyway, do_open_execat() does do deny_write_access() with proper error
+> checking. I think that is the existing reference that you depend on -
+> so that it doesn't fail. So the comment could possibly say that the
+> only caller has done this, but can we not just use the reference
+> deny_write_access() directly, and not do a new one here?
+
+I think that might over-complicate the exec code where we would see a 
+allow_write_access() on error paths, but not on success paths. This here 
+looks cleaner to me, agreeing that the comment and the error check has 
+to be improved.
+
+We handle all allow_write_access()/deny_write_access() regarding 
+exe_file completely in kernel/fork.c, which is IMHO quite nice.
+
+> 
+> IOW, maybe there's an extraneous 'allow_write_access()' somewhere that
+> should be dropped when we do the whole binprm dance in execve()?
+
+fs/exec.c: free_bprm() and exec_binprm() to be precise.
+
+Thanks!
 
 -- 
 Thanks,
