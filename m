@@ -2,38 +2,51 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A450C4320A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Aug 2021 09:05:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01A6DC4338F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Aug 2021 20:51:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 293FB61103
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Aug 2021 09:05:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6C0760F00
+	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Aug 2021 20:51:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239951AbhHMJGS convert rfc822-to-8bit (ORCPT
+        id S234708AbhHMUwF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 13 Aug 2021 05:06:18 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:25422 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S239943AbhHMJGR (ORCPT
+        Fri, 13 Aug 2021 16:52:05 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:59283 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S234657AbhHMUwE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Aug 2021 05:06:17 -0400
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-193-osqxqi2TPd6TNQ-lyh6w7Q-1; Fri, 13 Aug 2021 10:05:49 +0100
-X-MC-Unique: osqxqi2TPd6TNQ-lyh6w7Q-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.23; Fri, 13 Aug 2021 10:05:44 +0100
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.023; Fri, 13 Aug 2021 10:05:44 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     "'Eric W. Biederman'" <ebiederm@xmission.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-CC:     Andy Lutomirski <luto@kernel.org>,
+        Fri, 13 Aug 2021 16:52:04 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1628887897;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=m2X6nzOXxo3H0EdqupppVKuVb2Pe4/bVUTDNmqoeLdE=;
+        b=W8LIVHwvIaZOwMMIqMzpnh9nR+BugJJiua54Z7qqEJQFzZodEQbRqQwgWMTNrE8CPc12h7
+        VLWqY8ui7zx20vH4OTAQKN6Rk/W9VfLPf/CYwnoR3SuC4OEFFlHuaJYUFU971aSDruhosK
+        rBlN0X/IHz8GswXR6rmRnY9JYsWEMe4=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-183-Y3LCxE_EOcGvjoJz3lSDhA-1; Fri, 13 Aug 2021 16:51:35 -0400
+X-MC-Unique: Y3LCxE_EOcGvjoJz3lSDhA-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.15])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id E9ADC1008060;
+        Fri, 13 Aug 2021 20:51:33 +0000 (UTC)
+Received: from oldenburg.str.redhat.com (unknown [10.39.194.2])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 795DB1BCF0;
+        Fri, 13 Aug 2021 20:51:11 +0000 (UTC)
+From:   Florian Weimer <fweimer@redhat.com>
+To:     ebiederm@xmission.com (Eric W. Biederman)
+Cc:     David Laight <David.Laight@ACULAB.COM>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Andy Lutomirski <luto@kernel.org>,
         David Hildenbrand <david@redhat.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
@@ -84,70 +97,64 @@ CC:     Andy Lutomirski <luto@kernel.org>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        =?iso-8859-1?Q?Christian_K=F6nig?= 
+        Christian =?utf-8?Q?K=C3=B6nig?= 
         <ckoenig.leichtzumerken@gmail.com>,
         "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
         "the arch/x86 maintainers" <x86@kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>
-Subject: RE: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-Thread-Topic: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-Thread-Index: AQHXj6qO2FP1eIrarUmjR9CxLZPkE6txIhrA
-Date:   Fri, 13 Aug 2021 09:05:43 +0000
-Message-ID: <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+        <linux-fsdevel@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>,
+        "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Subject: Re: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
 References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
         <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
         <87lf56bllc.fsf@disp2133>
         <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
- <87eeay8pqx.fsf@disp2133>
-In-Reply-To: <87eeay8pqx.fsf@disp2133>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        <87eeay8pqx.fsf@disp2133>
+        <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+        <87h7ft2j68.fsf@disp2133>
+Date:   Fri, 13 Aug 2021 22:51:09 +0200
+In-Reply-To: <87h7ft2j68.fsf@disp2133> (Eric W. Biederman's message of "Fri,
+        13 Aug 2021 15:17:51 -0500")
+Message-ID: <871r6xdq6a.fsf@oldenburg.str.redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.2 (gnu/linux)
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.15
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Eric W. Biederman
-> Sent: 12 August 2021 19:47
-...
-> So today the best advice I can give to userspace is to mark their
-> executables and shared libraries as read-only and immutable.  Otherwise
-> a change to the executable file can change what is mapped into memory.
-> MAP_PRIVATE does not help.
+* Eric W. Biederman:
 
-While 'immutable' might be ok for files installed by distributions
-it would be a PITA in development.
+> Florian Weimer, would it be possible to get glibc's ld.so implementation to use
+> MAP_SHARED?  Just so people reading the code know what to expect of the
+> kernel?  As far as I can tell there is not a practical difference
+> between a read-only MAP_PRIVATE and a read-only MAP_SHARED.
 
-ETXTBUSY is a useful reminder that the file you are copying from
-machine A to machine B (etc) is still running and probably ought
-to be killed/stopped before you get confused.
+Some applications use mprotect to change page protections behind glibc's
+back.  Using MAP_SHARED would break fork pretty badly.
 
-I've never really understood why it doesn't stop shared libraries
-being overwritten - but they do tend to be updated less often.
+Most of the hard-to-diagnose crashes seem to come from global data or
+relocations because they are wiped by truncation.  And we certainly
+can't use MAP_SHARED for those.  Code often seems to come back unchanged
+after the truncation because the overwritten file hasn't actually
+changed.  File attributes don't help because the copying is an
+adminstrative action in the context of the application (maybe the result
+of some automation).
 
-Overwriting an in-use shared library could be really confusing.
-It is likely that all the code is actually in memory.
-So everything carries on running as normal.
-Until the kernel gets under memory pressure and discards a page.
-Then a page from the new version is faulted in and random
-programs start getting SEGVs.
-This could be days after the borked update.
+I think avoiding the crashes isn't the right approach.  What I'd like to
+see is better diagnostics.  Writing mtime and ctime to the core file
+might help.  Or adding a flag to the core file and /proc/PID/smaps that
+indicates if the file has been truncated across the mapping since the
+mapping was created.
 
-	David
+A bit less conservative and even more obvious to diagnose would be a new
+flag for the mapping (perhaps set via madvise) that causes any future
+access to the mapping to fault with SIGBUS and a special si_code value
+after the file has been truncated across the mapping.  I think we would
+set that in the glibc dynamic loader.  It would make the crashes much
+less weird.
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+Thanks,
+Florian
 
