@@ -2,27 +2,27 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4DF4C4338F
-	for <linux-unionfs@archiver.kernel.org>; Sat, 14 Aug 2021 02:00:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 678C9C4338F
+	for <linux-unionfs@archiver.kernel.org>; Sat, 14 Aug 2021 02:05:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C68156103A
-	for <linux-unionfs@archiver.kernel.org>; Sat, 14 Aug 2021 02:00:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E8B860FC3
+	for <linux-unionfs@archiver.kernel.org>; Sat, 14 Aug 2021 02:05:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236560AbhHNCAz (ORCPT
+        id S236284AbhHNCF6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 13 Aug 2021 22:00:55 -0400
-Received: from zeniv-ca.linux.org.uk ([142.44.231.140]:54794 "EHLO
+        Fri, 13 Aug 2021 22:05:58 -0400
+Received: from zeniv-ca.linux.org.uk ([142.44.231.140]:54920 "EHLO
         zeniv-ca.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236264AbhHNCAz (ORCPT
+        with ESMTP id S232651AbhHNCF5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Aug 2021 22:00:55 -0400
+        Fri, 13 Aug 2021 22:05:57 -0400
 Received: from viro by zeniv-ca.linux.org.uk with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mEivT-00BTTv-HW; Sat, 14 Aug 2021 01:57:31 +0000
-Date:   Sat, 14 Aug 2021 01:57:31 +0000
+        id 1mEj0c-00BTXs-As; Sat, 14 Aug 2021 02:02:50 +0000
+Date:   Sat, 14 Aug 2021 02:02:50 +0000
 From:   Al Viro <viro@zeniv.linux.org.uk>
 To:     Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     Andy Lutomirski <luto@kernel.org>,
@@ -87,9 +87,8 @@ Cc:     Andy Lutomirski <luto@kernel.org>,
         Florian Weimer <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
 Subject: Re: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-Message-ID: <YRcjCwfHvUZhcKf3@zeniv-ca.linux.org.uk>
-References: <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
- <87lf56bllc.fsf@disp2133>
+Message-ID: <YRckSj32tCO3nPYI@zeniv-ca.linux.org.uk>
+References: <87lf56bllc.fsf@disp2133>
  <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
  <87eeay8pqx.fsf@disp2133>
  <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
@@ -98,28 +97,35 @@ References: <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
  <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
  <CAHk-=wiJ0u33h2CXAO4b271Diik=z4jRt64=Gt6YV2jV4ef27g@mail.gmail.com>
  <CAHk-=wgi2+OSk2_uYwhL56NGzN8t2To8hm+c0BdBEbuBuzhg6g@mail.gmail.com>
+ <YRcjCwfHvUZhcKf3@zeniv-ca.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHk-=wgi2+OSk2_uYwhL56NGzN8t2To8hm+c0BdBEbuBuzhg6g@mail.gmail.com>
+In-Reply-To: <YRcjCwfHvUZhcKf3@zeniv-ca.linux.org.uk>
 Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Aug 13, 2021 at 02:58:57PM -1000, Linus Torvalds wrote:
-> On Fri, Aug 13, 2021 at 2:54 PM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> >
-> > And nobody really complained when we weakened it, so maybe removing it
-> > entirely might be acceptable.
+On Sat, Aug 14, 2021 at 01:57:31AM +0000, Al Viro wrote:
+> On Fri, Aug 13, 2021 at 02:58:57PM -1000, Linus Torvalds wrote:
+> > On Fri, Aug 13, 2021 at 2:54 PM Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> > >
+> > > And nobody really complained when we weakened it, so maybe removing it
+> > > entirely might be acceptable.
+> > 
+> > I guess we could just try it and see... Worst comes to worst, we'll
+> > have to put it back, but at least we'd know what crazy thing still
+> > wants it..
 > 
-> I guess we could just try it and see... Worst comes to worst, we'll
-> have to put it back, but at least we'd know what crazy thing still
-> wants it..
+> Umm...  I'll need to go back and look through the thread, but I'm
+> fairly sure that there used to be suckers that did replacement of
+> binary that way (try to write, count on exclusion with execve while
+> it's being written to) instead of using rename.  Install scripts
+> of weird crap and stuff like that...
 
-Umm...  I'll need to go back and look through the thread, but I'm
-fairly sure that there used to be suckers that did replacement of
-binary that way (try to write, count on exclusion with execve while
-it's being written to) instead of using rename.  Install scripts
-of weird crap and stuff like that...
+... and before anyone goes off - I certainly agree that using that
+behaviour is not a good idea and had never been one.  All I'm saying
+is that there at least used to be very random (and rarely exercised)
+bits of userland relying upon that behaviour.
