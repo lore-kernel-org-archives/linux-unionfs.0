@@ -5,44 +5,44 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
 	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 126EAC4338F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:50:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF736C432BE
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:50:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EC4FD60F55
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:50:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0F3A60F55
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:50:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231534AbhHPTuk (ORCPT
+        id S231637AbhHPTvF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 16 Aug 2021 15:50:40 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:40741 "EHLO
+        Mon, 16 Aug 2021 15:51:05 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:52372 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231477AbhHPTui (ORCPT
+        by vger.kernel.org with ESMTP id S231465AbhHPTvB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Aug 2021 15:50:38 -0400
+        Mon, 16 Aug 2021 15:51:01 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1629143406;
+        s=mimecast20190719; t=1629143429;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=OaQssic/mSdAfbGEFpAxDDR1LNO8rKXcgan69fY/97k=;
-        b=PoNYDpvCIS09HALrADqXk9rRQYC9228/o3kus6Uqgklo04mbNUeRvCcqiOdEQqCkSK8+BA
-        0WaWO0AkAAO/XvDneIdKk8ltaV0vzB0RpRME+OAA3Lbzo/QmQ5kAV3k8xIs8DlHoY71wKb
-        Mvv3zXy8sGtOQcGyf6JR8OrwcKJ360k=
+        bh=kP9Ruk7HoVFrsIOE9R+legB98IpgGisc7R6rrwUCgRc=;
+        b=BxS2l1xoZJkfXf++NN1BPXocAs8WWW9TYQjqTu4+klrBObTXkHsf1qPFtpwWRfT8rPpCXW
+        vojrpE4JzMiSDmsXD3Og4PgUix1u2obBtAfstluVcZGInkJYKTRefpga/ES5iStPx7eCg9
+        ugu8D3tGZiV51LH/J8s27ZVwhMVJYwQ=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-591-J3jO7BELMNqN2SqR5wWAGg-1; Mon, 16 Aug 2021 15:50:02 -0400
-X-MC-Unique: J3jO7BELMNqN2SqR5wWAGg-1
+ us-mta-172-byf9RmFkMvK7EIPVligpZQ-1; Mon, 16 Aug 2021 15:50:26 -0400
+X-MC-Unique: byf9RmFkMvK7EIPVligpZQ-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id BD801190A7A1;
-        Mon, 16 Aug 2021 19:50:00 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 59C7D871803;
+        Mon, 16 Aug 2021 19:50:25 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.192.85])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 1536118017;
-        Mon, 16 Aug 2021 19:49:40 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 264AE5C1D5;
+        Mon, 16 Aug 2021 19:50:00 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     David Hildenbrand <david@redhat.com>,
@@ -100,9 +100,9 @@ Cc:     David Hildenbrand <david@redhat.com>,
         David Laight <David.Laight@ACULAB.COM>,
         linux-unionfs@vger.kernel.org, linux-api@vger.kernel.org,
         x86@kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH v2 2/7] kernel/fork: factor out replacing the current MM exe_file
-Date:   Mon, 16 Aug 2021 21:48:35 +0200
-Message-Id: <20210816194840.42769-3-david@redhat.com>
+Subject: [PATCH v2 3/7] kernel/fork: always deny write access to current MM exe_file
+Date:   Mon, 16 Aug 2021 21:48:36 +0200
+Message-Id: <20210816194840.42769-4-david@redhat.com>
 In-Reply-To: <20210816194840.42769-1-david@redhat.com>
 References: <20210816194840.42769-1-david@redhat.com>
 MIME-Version: 1.0
@@ -112,149 +112,166 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Let's factor the main logic out into replace_mm_exe_file(), such that
-all mm->exe_file logic is contained in kernel/fork.c.
+We want to remove VM_DENYWRITE only currently only used when mapping the
+executable during exec. During exec, we already deny_write_access() the
+executable, however, after exec completes the VMAs mapped
+with VM_DENYWRITE effectively keeps write access denied via
+deny_write_access().
 
-While at it, perform some simple cleanups that are possible now that
-we're simplifying the individual functions.
+Let's deny write access when setting or replacing the MM exe_file. With
+this change, we can remove VM_DENYWRITE for mapping executables.
 
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Make set_mm_exe_file() return an error in case deny_write_access()
+fails; note that this should never happen, because exec code does a
+deny_write_access() early and keeps write access denied when calling
+set_mm_exe_file. However, it makes the code easier to read and makes
+set_mm_exe_file() and replace_mm_exe_file() look more similar.
+
+This represents a minor user space visible change:
+sys_prctl(PR_SET_MM_MAP/EXE_FILE) can now fail if the file is already
+opened writable. Also, after sys_prctl(PR_SET_MM_MAP/EXE_FILE) the file
+cannot be opened writable. Note that we can already fail with -EACCES if
+the file doesn't have execute permissions.
+
 Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- include/linux/mm.h |  1 +
- kernel/fork.c      | 44 +++++++++++++++++++++++++++++++++++++++++---
- kernel/sys.c       | 33 +--------------------------------
- 3 files changed, 43 insertions(+), 35 deletions(-)
+ fs/exec.c          |  4 +++-
+ include/linux/mm.h |  2 +-
+ kernel/fork.c      | 50 ++++++++++++++++++++++++++++++++++++++++------
+ 3 files changed, 48 insertions(+), 8 deletions(-)
 
+diff --git a/fs/exec.c b/fs/exec.c
+index 38f63451b928..9294049f5487 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1270,7 +1270,9 @@ int begin_new_exec(struct linux_binprm * bprm)
+ 	 * not visibile until then. This also enables the update
+ 	 * to be lockless.
+ 	 */
+-	set_mm_exe_file(bprm->mm, bprm->file);
++	retval = set_mm_exe_file(bprm->mm, bprm->file);
++	if (retval)
++		goto out;
+ 
+ 	/* If the binary is not readable then enforce mm->dumpable=0 */
+ 	would_dump(bprm, bprm->file);
 diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 7ca22e6e694a..48c6fa9ab792 100644
+index 48c6fa9ab792..56b1cd41db61 100644
 --- a/include/linux/mm.h
 +++ b/include/linux/mm.h
-@@ -2581,6 +2581,7 @@ extern int mm_take_all_locks(struct mm_struct *mm);
+@@ -2580,7 +2580,7 @@ static inline int check_data_rlimit(unsigned long rlim,
+ extern int mm_take_all_locks(struct mm_struct *mm);
  extern void mm_drop_all_locks(struct mm_struct *mm);
  
- extern void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
-+extern int replace_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
+-extern void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
++extern int set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
+ extern int replace_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
  extern struct file *get_mm_exe_file(struct mm_struct *mm);
  extern struct file *get_task_exe_file(struct task_struct *task);
- 
 diff --git a/kernel/fork.c b/kernel/fork.c
-index bc94b2cc5995..eedce5c77041 100644
+index eedce5c77041..543541764865 100644
 --- a/kernel/fork.c
 +++ b/kernel/fork.c
-@@ -1148,9 +1148,7 @@ void mmput_async(struct mm_struct *mm)
-  *
-  * Main users are mmput() and sys_execve(). Callers prevent concurrent
-  * invocations: in mmput() nobody alive left, in execve task is single
-- * threaded. sys_prctl(PR_SET_MM_MAP/EXE_FILE) also needs to set the
-- * mm->exe_file, but does so without using set_mm_exe_file() in order
-- * to avoid the need for any locks.
-+ * threaded.
-  */
- void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
- {
-@@ -1170,6 +1168,46 @@ void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
- 		fput(old_exe_file);
+@@ -470,6 +470,20 @@ void free_task(struct task_struct *tsk)
  }
+ EXPORT_SYMBOL(free_task);
  
-+/**
-+ * replace_mm_exe_file - replace a reference to the mm's executable file
-+ *
-+ * This changes mm's executable file (shown as symlink /proc/[pid]/exe),
-+ * dealing with concurrent invocation and without grabbing the mmap lock in
-+ * write mode.
-+ *
-+ * Main user is sys_prctl(PR_SET_MM_MAP/EXE_FILE).
-+ */
-+int replace_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
++static void dup_mm_exe_file(struct mm_struct *mm, struct mm_struct *oldmm)
 +{
-+	struct vm_area_struct *vma;
-+	struct file *old_exe_file;
-+	int ret = 0;
++	struct file *exe_file;
 +
-+	/* Forbid mm->exe_file change if old file still mapped. */
-+	old_exe_file = get_mm_exe_file(mm);
-+	if (old_exe_file) {
-+		mmap_read_lock(mm);
-+		for (vma = mm->mmap; vma && !ret; vma = vma->vm_next) {
-+			if (!vma->vm_file)
-+				continue;
-+			if (path_equal(&vma->vm_file->f_path,
-+				       &old_exe_file->f_path))
-+				ret = -EBUSY;
-+		}
-+		mmap_read_unlock(mm);
-+		fput(old_exe_file);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/* set the new file, lockless */
-+	get_file(new_exe_file);
-+	old_exe_file = xchg(&mm->exe_file, new_exe_file);
-+	if (old_exe_file)
-+		fput(old_exe_file);
-+	return 0;
++	exe_file = get_mm_exe_file(oldmm);
++	RCU_INIT_POINTER(mm->exe_file, exe_file);
++	/*
++	 * We depend on the oldmm having properly denied write access to the
++	 * exe_file already.
++	 */
++	if (exe_file && deny_write_access(exe_file))
++		pr_warn_once("deny_write_access() failed in %s\n", __func__);
 +}
 +
- /**
-  * get_mm_exe_file - acquire a reference to the mm's executable file
-  *
-diff --git a/kernel/sys.c b/kernel/sys.c
-index ef1a78f5d71c..30c12e54585a 100644
---- a/kernel/sys.c
-+++ b/kernel/sys.c
-@@ -1846,7 +1846,6 @@ SYSCALL_DEFINE1(umask, int, mask)
- static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ #ifdef CONFIG_MMU
+ static __latent_entropy int dup_mmap(struct mm_struct *mm,
+ 					struct mm_struct *oldmm)
+@@ -493,7 +507,7 @@ static __latent_entropy int dup_mmap(struct mm_struct *mm,
+ 	mmap_write_lock_nested(mm, SINGLE_DEPTH_NESTING);
+ 
+ 	/* No ordering required: file already has been exposed. */
+-	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
++	dup_mm_exe_file(mm, oldmm);
+ 
+ 	mm->total_vm = oldmm->total_vm;
+ 	mm->data_vm = oldmm->data_vm;
+@@ -639,7 +653,7 @@ static inline void mm_free_pgd(struct mm_struct *mm)
+ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
  {
- 	struct fd exe;
--	struct file *old_exe, *exe_file;
- 	struct inode *inode;
- 	int err;
+ 	mmap_write_lock(oldmm);
+-	RCU_INIT_POINTER(mm->exe_file, get_mm_exe_file(oldmm));
++	dup_mm_exe_file(mm, oldmm);
+ 	mmap_write_unlock(oldmm);
+ 	return 0;
+ }
+@@ -1149,8 +1163,10 @@ void mmput_async(struct mm_struct *mm)
+  * Main users are mmput() and sys_execve(). Callers prevent concurrent
+  * invocations: in mmput() nobody alive left, in execve task is single
+  * threaded.
++ *
++ * Can only fail if new_exe_file != NULL.
+  */
+-void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
++int set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
+ {
+ 	struct file *old_exe_file;
  
-@@ -1869,40 +1868,10 @@ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
- 	if (err)
- 		goto exit;
+@@ -1161,11 +1177,21 @@ void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
+ 	 */
+ 	old_exe_file = rcu_dereference_raw(mm->exe_file);
  
--	/*
--	 * Forbid mm->exe_file change if old file still mapped.
--	 */
--	exe_file = get_mm_exe_file(mm);
--	err = -EBUSY;
--	if (exe_file) {
--		struct vm_area_struct *vma;
--
--		mmap_read_lock(mm);
--		for (vma = mm->mmap; vma; vma = vma->vm_next) {
--			if (!vma->vm_file)
--				continue;
--			if (path_equal(&vma->vm_file->f_path,
--				       &exe_file->f_path))
--				goto exit_err;
--		}
--
--		mmap_read_unlock(mm);
--		fput(exe_file);
--	}
--
--	err = 0;
--	/* set the new file, lockless */
--	get_file(exe.file);
--	old_exe = xchg(&mm->exe_file, exe.file);
--	if (old_exe)
--		fput(old_exe);
-+	err = replace_mm_exe_file(mm, exe.file);
- exit:
- 	fdput(exe);
- 	return err;
--exit_err:
--	mmap_read_unlock(mm);
--	fput(exe_file);
--	goto exit;
+-	if (new_exe_file)
++	if (new_exe_file) {
++		/*
++		 * We expect the caller (i.e., sys_execve) to already denied
++		 * write access, so this is unlikely to fail.
++		 */
++		if (unlikely(deny_write_access(new_exe_file)))
++			return -EACCES;
+ 		get_file(new_exe_file);
++	}
+ 	rcu_assign_pointer(mm->exe_file, new_exe_file);
+-	if (old_exe_file)
++	if (old_exe_file) {
++		allow_write_access(old_exe_file);
+ 		fput(old_exe_file);
++	}
++	return 0;
  }
  
- /*
+ /**
+@@ -1201,10 +1227,22 @@ int replace_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
+ 	}
+ 
+ 	/* set the new file, lockless */
++	ret = deny_write_access(new_exe_file);
++	if (ret)
++		return -EACCES;
+ 	get_file(new_exe_file);
++
+ 	old_exe_file = xchg(&mm->exe_file, new_exe_file);
+-	if (old_exe_file)
++	if (old_exe_file) {
++		/*
++		 * Don't race with dup_mmap() getting the file and disallowing
++		 * write access while someone might open the file writable.
++		 */
++		mmap_read_lock(mm);
++		allow_write_access(old_exe_file);
+ 		fput(old_exe_file);
++		mmap_read_unlock(mm);
++	}
+ 	return 0;
+ }
+ 
 -- 
 2.31.1
 
