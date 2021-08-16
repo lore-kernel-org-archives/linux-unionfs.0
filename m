@@ -2,155 +2,277 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B5FC4320A
-	for <linux-unionfs@archiver.kernel.org>; Sat, 14 Aug 2021 19:52:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E83E1C4338F
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 18:27:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23BFA60EE0
-	for <linux-unionfs@archiver.kernel.org>; Sat, 14 Aug 2021 19:52:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE05360F22
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 18:27:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232021AbhHNTwl (ORCPT
+        id S229966AbhHPS1i (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 14 Aug 2021 15:52:41 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:35314 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232468AbhHNTwj (ORCPT
+        Mon, 16 Aug 2021 14:27:38 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:53655 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230253AbhHPS1i (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 14 Aug 2021 15:52:39 -0400
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-41-zR9RdrimPfW8ySEk10pv2Q-1; Sat, 14 Aug 2021 20:52:05 +0100
-X-MC-Unique: zR9RdrimPfW8ySEk10pv2Q-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.23; Sat, 14 Aug 2021 20:52:02 +0100
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.023; Sat, 14 Aug 2021 20:52:02 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Linus Torvalds' <torvalds@linux-foundation.org>,
-        Andy Lutomirski <luto@kernel.org>
-CC:     "Eric W. Biederman" <ebiederm@xmission.com>,
-        David Hildenbrand <david@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        "Steven Rostedt" <rostedt@goodmis.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        "Mark Rutland" <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        "Namhyung Kim" <namhyung@kernel.org>,
-        Petr Mladek <pmladek@suse.com>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Kees Cook <keescook@chromium.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        "Mike Rapoport" <rppt@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        "Vincenzo Frascino" <vincenzo.frascino@arm.com>,
-        Chinwen Chang <chinwen.chang@mediatek.com>,
-        Michel Lespinasse <walken@google.com>,
-        "Catalin Marinas" <catalin.marinas@arm.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Huang Ying <ying.huang@intel.com>,
-        Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
-        Kevin Brodsky <Kevin.Brodsky@arm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        "Shawn Anastasio" <shawn@anastas.io>,
-        Steven Price <steven.price@arm.com>,
-        "Nicholas Piggin" <npiggin@gmail.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
-        Peter Xu <peterx@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Marco Elver <elver@google.com>,
-        Daniel Jordan <daniel.m.jordan@oracle.com>,
-        "Nicolas Viennot" <Nicolas.Viennot@twosigma.com>,
-        Thomas Cedeno <thomascedeno@google.com>,
-        Collin Fijalkovich <cfijalkovich@google.com>,
-        Michal Hocko <mhocko@suse.com>,
+        Mon, 16 Aug 2021 14:27:38 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1629138426;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=EFUTeukq2ZQLzm5M7w03EUWXsLDccTzt+t/+zpXfjgc=;
+        b=IsMdJuod+LYQfpPIh+xXqOrsJrsgswcez805BYio4vsD163LhIsnBBe6O6kqSn+7oo7Flz
+        CK/4nPp6rvfizfpXRcJthDA2m1UEhsQz5ktRRTEKy/cMewpp4nqpVfzhbKvHDjQiaLhBRa
+        Xp+A+KDpecLb0n6klpAIb5XxtFKQuzM=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-184-mbtU-8-FPGqteJ4mcuZBEw-1; Mon, 16 Aug 2021 14:27:04 -0400
+X-MC-Unique: mbtU-8-FPGqteJ4mcuZBEw-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 8685D760C0;
+        Mon, 16 Aug 2021 18:27:03 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.22.17.133])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 37DCE620DE;
+        Mon, 16 Aug 2021 18:27:03 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id C40292237F5; Mon, 16 Aug 2021 14:27:02 -0400 (EDT)
+Date:   Mon, 16 Aug 2021 14:27:02 -0400
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Zhihao Cheng <chengzhihao1@huawei.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= 
-        <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        "Florian Weimer" <fweimer@redhat.com>,
-        Michael Kerrisk <mtk.manpages@gmail.com>
-Subject: RE: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-Thread-Topic: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-Thread-Index: AQHXj6qO2FP1eIrarUmjR9CxLZPkE6txIhrAgAEMnaiAATj0kA==
-Date:   Sat, 14 Aug 2021 19:52:02 +0000
-Message-ID: <bff636739a5141b0a9ee0c8da734b707@AcuMS.aculab.com>
-References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
- <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
- <87lf56bllc.fsf@disp2133>
- <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
- <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
- <87h7ft2j68.fsf@disp2133>
- <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
- <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
- <CAHk-=wiJ0u33h2CXAO4b271Diik=z4jRt64=Gt6YV2jV4ef27g@mail.gmail.com>
-In-Reply-To: <CAHk-=wiJ0u33h2CXAO4b271Diik=z4jRt64=Gt6YV2jV4ef27g@mail.gmail.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Daniel J Walsh <dwalsh@redhat.com>,
+        Nalin Dahyabhai <nalin@redhat.com>
+Subject: Re: [QUESTION] Why overlayfs cannot mounted as nfs_export and
+ metacopy?
+Message-ID: <YRqt9u/P8VhOZCmL@redhat.com>
+References: <ec78de1b-4edb-1eea-5c0d-79e65f139d79@huawei.com>
+ <CAOQ4uxiO7zt7sywNqyd-WwCVds9-NqRAixham9yVeN7F+JhXoA@mail.gmail.com>
+ <CAOQ4uxhAGSPKx6xsa5w_Wn9sax8LQQ=dPhB7Dtn1XDwghNpgvg@mail.gmail.com>
+ <YRGfmx+xXVvERhhx@redhat.com>
+ <CAOQ4uxhih4z=0xtuN4X11DY1xdhzsaQRDrtwuWFP2bejc41dWA@mail.gmail.com>
+ <YRLYJ4uXLNR7NSmi@redhat.com>
+ <CAOQ4uxiQwzxhg4oTxREG8ucTY+zG_zDd3isKnZcCAHoL-3TJhg@mail.gmail.com>
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiQwzxhg4oTxREG8ucTY+zG_zDd3isKnZcCAHoL-3TJhg@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-RnJvbTogTGludXMgVG9ydmFsZHMNCj4gU2VudDogMTQgQXVndXN0IDIwMjEgMDE6NTUNCj4gDQo+
-IE9uIEZyaSwgQXVnIDEzLCAyMDIxIGF0IDI6NDkgUE0gQW5keSBMdXRvbWlyc2tpIDxsdXRvQGtl
-cm5lbC5vcmc+IHdyb3RlOg0KPiA+DQo+ID4gSeKAmWxsIGJpdGUuICBIb3cgYWJvdXQgd2UgYXR0
-YWNrIHRoaXMgaW4gdGhlIG9wcG9zaXRlIGRpcmVjdGlvbjogcmVtb3ZlIHRoZSBkZW55IHdyaXRl
-IG1lY2hhbmlzbQ0KPiBlbnRpcmVseS4NCj4gDQo+IEkgdGhpbmsgdGhhdCB3b3VsZCBiZSBvaywg
-ZXhjZXB0IEkgY2FuIHNlZSBzb21lYm9keSByZWx5aW5nIG9uIGl0Lg0KPiANCj4gSXQncyBicm9r
-ZW4sIGl0J3Mgc3R1cGlkLCBidXQgd2UndmUgZG9uZSB0aGF0IEVUWFRCVVNZIGZvciBhIF9sb29u
-Z18gdGltZS4NCg0KSSB0aGluayBFVFhUQlVTWSBwcmVkYXRlcyBMaW51eCBpdHNlbGYuDQpCdXQg
-SSBjYW4ndCByZW1lbWJlciB3aGV0aGVyIHRoZSBlbGYgdmVyc2lvbnMgb2Ygc3Vub3Mgb3Igc3Zy
-NA0KaW1wbGVtZW50ZWQgaXQgZm9yIHNoYXJlZCBsaWJyYXJpZXMuDQpJIGRvbid0IHJlbWVtYmVy
-IGhpdHRpbmcgaXQsIHNvIHRoZXkgbWF5IG5vdCBoYXZlLg0KDQpJJ20gYWN0dWFsbHkgc3VycHJp
-c2VkIGl0IGlhIGFuIG1tYXAoKSBmbGFnIHJhdGhlciB0aGFuIGFuIG9wZW4oKSBvbmUuDQpCZWlu
-ZyBhYmxlIHRvIG9wZW4gYSBmaWxlIGFuZCBndWFyYW50ZWUgaXQgY2FuJ3QgYmUgY2hhbmdlZCBz
-ZWVtcyBhIHNhbmUgaWRlYS4NCkFuZCBub3QganVzdCBmb3IgcHJvZ3JhbXMvbGlicmFyaWVzLg0K
-DQpCeSB0aGUgc291bmQgb2YgaXQgJ2ltbXV0YWJsZScgaXMgbm8gdXNlLg0KWW91IG5lZWQgdG8g
-YmUgYWJsZSB0byB1bmxpbmsgdGhlIGZpbGUgLSBvdGhlcndpc2UgeW91IGdldCBpbnRvIHRoZQ0K
-d2luZG93J3MgZmlhc2NvIG9mIG5vdCBiZWluZyBhYmxlIHRvIHVwZGF0ZSB3aXRob3V0IDE3IHJl
-Ym9vdHMuDQoNCkZXSVcgTUFQX0NPUFkgd291bGQgb25seSBuZWVkIHRvIHRha2Ugb25lIGNvcHkg
-b2YgdGhlIHBhZ2UgLSBhbGwgdGhlDQp1c2VycyBjb3VsZCBzaGFyZSB0aGUgc2FtZSBwYWdlIChi
-YWNrZWQgYnkgYSBzaW5nbGUgcGFnZSBvZiBzd2FwKS4NCk5vdCB0aGF0IEknbSBzdWdnZXN0aW5n
-IGl0IGlzIGEgZ29vZCBpZGVhIGF0IGFsbC4NCg0KSSBkbyB3b25kZXIgYWJvdXQgL3Byb2Mvc2Vs
-Zi9leGUgdGhvdWdoLg0KSXQgZ2F2ZSB0aGUgTmV0QlNEIExpbnV4IGVtdWxhdGlvbiBhIHRlcnJp
-YmxlIHByb2JsZW0uDQpCZWluZyBhYmxlIHRvIG9wZW4gdGhlIGlub2RlIG9mIHRoZSBwcm9ncmFt
-IGlzIGZpbmUuDQpUaGUgcHJvYmxlbSBpcyB0aGUgd2hhdCByZWFkbGluaygpIHJldHVybnMgLSBp
-dCBpcyBiYXNpY2FsbHkgc3RhbGUuDQpJZiBhIHByb2dyYW0gb3BlbiB0aGUgbGluayBjb250ZW50
-cyBpdCBjb3VsZCBnZXQgYW55dGhpbmcgYXQgYWxsLg0KDQoJRGF2aWQNCg0KLQ0KUmVnaXN0ZXJl
-ZCBBZGRyZXNzIExha2VzaWRlLCBCcmFtbGV5IFJvYWQsIE1vdW50IEZhcm0sIE1pbHRvbiBLZXlu
-ZXMsIE1LMSAxUFQsIFVLDQpSZWdpc3RyYXRpb24gTm86IDEzOTczODYgKFdhbGVzKQ0K
+On Wed, Aug 11, 2021 at 09:51:09AM +0300, Amir Goldstein wrote:
+> On Tue, Aug 10, 2021 at 10:49 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> >
+> > On Tue, Aug 10, 2021 at 07:17:23AM +0300, Amir Goldstein wrote:
+> > > On Tue, Aug 10, 2021 at 12:35 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > >
+> > > > On Sat, Aug 07, 2021 at 07:37:00PM +0300, Amir Goldstein wrote:
+> > > > > On Sat, Aug 7, 2021 at 2:05 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > > > > >
+> > > > > > On Sat, Aug 7, 2021 at 1:17 PM Zhihao Cheng <chengzhihao1@huawei.com> wrote:
+> > > > > > >
+> > > > > > > Hi, all.
+> > > > > > >
+> > > > > > > As title said. I wonder to know the reason for overlayfs mount failure
+> > > > > > > with '-o nfs_export=on,metacopy=on'.
+> > > > > > >
+> > > > > > > I modified kernel to enable these two options 'on',  it looks like that
+> > > > > > > overlayfs can still work fine under nfs_v4.
+> > > > > > >
+> > > > > > > Besides, I can get no more information about the reason from source
+> > > > > > > code, maybe I missed something.
+> > > > > > >
+> > > > > >
+> > > > > > It's because ovl_obtain_alias() (decoding a disconnected non-dir file handle)
+> > > > > > does not know how to construct a metacopy overlayfs inode.
+> > > > > >
+> > > > > > Maybe Vivek will be able to point you to the discussion that lead to making
+> > > > > > the features mutually exclusive.
+> > > > > >
+> > > > > > I don't remember any other reason.
+> > > > > >
+> > > > >
+> > > > > I remembered some more details...
+> > > > >
+> > > > > I think the main complication discussed w.r.t decoding a metacopy
+> > > > > inode was for the case where ovl_inode_lowerdata() differs from
+> > > > > ovl_inode_lower().
+> > > > >
+> > > > > If we had a weaker variant of metacopy (e.g. metacopy=upper) that
+> > > > > only allows creating and following metacopy inodes in the upper layer,
+> > > > > it would have been simpler to implement ovl_obtain_alias().
+> > > > >
+> > > > > Specifically, when ofs->numlayer == 2 (single lower layer), there can
+> > > > > be no valid metacopy inodes in the lower layer, so that configuration
+> > > > > should also be rather easy to support.
+> > > >
+> > > > Hi Amir,
+> > > >
+> > > > /me does not understand well the notion of disconnected dentries and
+> > > >  how nfs export stuff works. So please bear with my stupid questions.
+> > >
+> > > No stupid questions ;-)
+> > >
+> > > Without getting into the hairy details of nfs export there are a few basic
+> > > things to consider:
+> > > - A file handle does not encode the path, only an inode identifier
+> > > - A non-directory inode may have multiple paths (hardlinks)
+> > > - Most filesystems do not store path information in inode on-disk for
+> > >   non-directory inode (the ".." entry stores the path for a directory)
+> > > - When filesystem is asked to decode a file handle and does not find the
+> > >   inode in question in inode cache nor a dentry in dcache, the only resort
+> > >   is to instantiate a "disconnected" dentry with unknown path
+> > > - Later "normal" lookup() by path that resolves to the same inode, does not
+> > >   make that "disconnected" dentry connected. Istead, lookup() instantiates
+> > >   another connected dentry "alias" to the same inode
+> > >
+> > > All this has some implications when enabling nfs_export for overlayfs:
+> > > 1. ovl_obtain_dentry() needs to be able to cope with a disconnected
+> > >     'real' dentry
+> > > 2. Since ovl_obtain_dentry() cannot assume to know the path of the
+> > >     'real' dentry, it needs to know how to instantiate a disconnected
+> > >     overlayfs dentry
+> > > 3. Other overlayfs code needs to be able to cope with a disconnected
+> > >     overlayfs dentry (for example, copy up only to index)
+> >
+> > Hi Amir,
+> >
+> > Thanks for giving a summary. It helps a lot.
+> >
+> > >
+> > > >
+> > > > I am wondering why a lower inode can't be metacopy inode. For the
+> > > > normal lookup case, we can lookup in all lower layers and figure out
+> > > > which is actual data inode and which inodes are metacopy inodes.
+> > > >
+> > > > For the case of disconnected dentry, we probably can't do lookup. So
+> > > > are calling underlying filesystem to decode. (Using origin?). If yes,
+> > > > will intermediate lower not have origin xattr which we can use
+> > > > to follow the complete lower chain and reconstruct all real lower
+> > > > dentries and use lower data dentry and latest lower meatacopy dentry
+> > > > (in the same way we do as for lookup).
+> > >
+> > > We can do that. I did not say we cannot.
+> > > I just said it would be simpler if we can avoid this complication
+> > > and I listed the guidelines for the "simple" implementation.
+> > >
+> > > But beyond the complexity, what is the benefit?
+> > > I was under the impression that container manager do not know how
+> > > to build images with metacopy, so what are the chances of actually
+> > > seeing metacopy in middle layers in the wild?
+> >
+> > Sure, we don't put metacopy inodes into portable images. But I thougt
+> > this could be part of a lower directory on same system. For example,
+> > docker devicemapper driver used to take an image and explode that
+> > on a thin volume. Then it will take a snaphost, modify some files
+> > and prefix that intermediate state with "-init". And then containers
+> > will use this "-init" as base for container rootfs and take snapshot
+> > of this.
+> >
+> > I am not sure if container managers are doing this for overlayfs
+> > or not on same system. But I will not be surprised if somebody
+> > decides to do that. That's is change some metadata in image
+> > (which triggers metacopy) and then use upper layer as lower layer
+> > for container rootfs.
+> >
+> > [ CC Dan Walsh and Nalin Dahyabhai ]
+> >
+> > Dan, Nalin, I think now metacopy feature is being used in podman and
+> > container/storage. Do we ever create lower layers in such a way that
+> > metacopy inodes can be present in lower layers?
+> >
+> > >
+> > > IOW, if we implemented metacopy=upper (only allow metacopy in
+> > > upper layer), would it be sufficient for the use cases that need to enable
+> > > nfs_export?
+> >
+> > IMHO, it will be good if we don't add one more variation to metacopy
+> > option. Even if container managers will find it hard to ensure that
+> > there are no metacopy inodes in any of the lower layers. And will
+> > find it difficult to use this option.
+> >
+> > IIRC, while adding metacopy option, you had mentioned that it is possible
+> > that intermediate layers have metacopy inodes. So I changed implementation
+> > to take care of it. :-) And now you are the one suggesting not allowing
+> > metacopy inodes in lower layers with nfs_export. :-)
+> >
+> 
+> Maybe. It wouldn't be the first time ;-)
+> IIRC the idea to lookup metacopy by path+redirect was Miklos' not mine.
+> I was thinking in terms of following by origin back then.
+
+Yes. I think we had lot of discussion on this. You wanted to use origin.
+And I preferred not to use it primarily because I wanted to make use
+of metacopy even without index enabled also because did not want 
+to depend on lower layers supporting nfs_export. So lookup approach
+seemed simpler and using origin did not seem necessary.
+
+> 
+> The eventual code in ovl_lookup() follows upper by origin and all layers
+> by path+redirect and only checks for agreement of origin and redirect from
+> upper layer.
+> 
+> Implementing "follow metacopy in middle layers by origin" in ovl_obtain_alias()
+> is possible and even not too complicated, but it would be inconsistent
+> with ovl_lookup() and if somebody mangaled with lower layers (i.e. rename
+> lower file), decode file handle can result in a different inode than the encoded
+> one.
+> 
+> In that case we have several options:
+> 1. Whatever - documentation already claims that modifying lower layer
+>     after using index/metacopy results in undefined behavior
+> 2. Fortify ovl_lookup() - also follow origin from middle layers and check
+>     for agreement with follow by path+redirect
+
+The idea of fortifying that lower we found matches origin sounds
+reasonable to me. I thought that's what verify_lower was doing. But may
+be in limited cases.
+
+We probably will have to again make it opt-in so that we don't break
+some existing use cases (not opting in for origin created so many
+issues on squashfs that I have lost track of all the issues and fixes :-))
+
+> 
+> > If given a choice, I would prefer that we support metacopy inodes
+> > in lower layers as well with nfs_export and not create a new option
+> > metacopy=upper.
+> >
+> 
+> Certainly. I agree with that POV. We just need to understand the
+> consequences.
+> 
+> I personally have no problem with the "Whatever" option above.
+> And the "Fortify" option isn't that complex either.
+> 
+> I just thought that if Zhihao Cheng wanted to start with minimal
+> testable implementation, that limiting nfs_export+metacopy to a single
+> lower layer, may be an easier start.
+> 
+> Overlayfs nfs_export is quite likely being used in OpenWrt and IIUC,
+> OpenWrt uses a single (squashfs) lower layer.
+> 
+> Therefore, enabling metacopy for the single lower layer case may be
+> valuable to some actual users and not only as a stepping stone before a
+> complete solution.
+
+I agree that metacopy=upper as it is will be useful to some people
+in some configurations. Do you really want to support two options.
+More options lead to more confusion for users and more configurations can
+be harder to support. So if it was me, I would rather target just making
+metacopy=on/off work with nfs_export. Given I am not doing the actual
+work, I can have only so much say.. :-)
+
+Thanks
+Vivek
 
