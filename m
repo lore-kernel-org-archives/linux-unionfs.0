@@ -2,46 +2,47 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CF9AC4338F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:49:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 887D6C4338F
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:49:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 294F260F41
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:49:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C77160F4B
+	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:49:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230148AbhHPTtk (ORCPT
+        id S231143AbhHPTuP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 16 Aug 2021 15:49:40 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:42890 "EHLO
+        Mon, 16 Aug 2021 15:50:15 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:35228 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229802AbhHPTtj (ORCPT
+        by vger.kernel.org with ESMTP id S230148AbhHPTuP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Aug 2021 15:49:39 -0400
+        Mon, 16 Aug 2021 15:50:15 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1629143347;
+        s=mimecast20190719; t=1629143382;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=celAbCKZabJZZFRZffcKhJ6LMDssZFIlnWwC0cSAxUw=;
-        b=FvA+n/9wDzYmGFmiFFB1W2PzcYjjOp1Zw3PYzwDaN3Z0B6BQonO5+HrAYfyb6fV1WINiI+
-        56H43ZIzxKQgQ9GRmDKVNMfa6MJ2zQ7Irq1pJYLc3p5ZkeUDwFPnafn2ZohHTk04ZHWYqF
-        GHFJK5bgmgKcIEv9IC90Q1unnOBI0xo=
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=xeZs2Vbi3LPUYE5L2DmMtSeAlr7D2lLP2ZjOK1a2vac=;
+        b=HcAhnYyP4FbrhXC7An5Q97M9jPie4Get/ygnVW6+OHVecje+5IgNKkKRC9gX+dyt7UJs3b
+        pkcGHZ4rWhqMjOxhov2WhcDVkRp6HnoTPWhaseVu8tsptEuJR+/ySso0Cy40ll/jyoeuIW
+        dOQq+lxm/ghyhq3jt/K7o2+WsIBzr40=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-468-xgYfjmJTOHO8yHlRfEeJNw-1; Mon, 16 Aug 2021 15:49:06 -0400
-X-MC-Unique: xgYfjmJTOHO8yHlRfEeJNw-1
+ us-mta-542-jFjNC1f-ORu85GVvshofLw-1; Mon, 16 Aug 2021 15:49:41 -0400
+X-MC-Unique: jFjNC1f-ORu85GVvshofLw-1
 Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4E4DD1082924;
-        Mon, 16 Aug 2021 19:49:05 +0000 (UTC)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id AC71C871807;
+        Mon, 16 Aug 2021 19:49:40 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.192.85])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 5F0865C1D5;
-        Mon, 16 Aug 2021 19:48:41 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 874FF18017;
+        Mon, 16 Aug 2021 19:49:05 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     David Hildenbrand <david@redhat.com>,
@@ -99,165 +100,81 @@ Cc:     David Hildenbrand <david@redhat.com>,
         David Laight <David.Laight@ACULAB.COM>,
         linux-unionfs@vger.kernel.org, linux-api@vger.kernel.org,
         x86@kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH v2 0/7] Remove in-tree usage of MAP_DENYWRITE
-Date:   Mon, 16 Aug 2021 21:48:33 +0200
-Message-Id: <20210816194840.42769-1-david@redhat.com>
+Subject: [PATCH v2 1/7] binfmt: don't use MAP_DENYWRITE when loading shared libraries via uselib()
+Date:   Mon, 16 Aug 2021 21:48:34 +0200
+Message-Id: <20210816194840.42769-2-david@redhat.com>
+In-Reply-To: <20210816194840.42769-1-david@redhat.com>
+References: <20210816194840.42769-1-david@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This series removes all in-tree usage of MAP_DENYWRITE from the kernel
-and removes VM_DENYWRITE. We stopped supporting MAP_DENYWRITE for
-user space applications a while ago because of the chance for DoS.
-The last renaming user is binfmt binary loading during exec and
-legacy library loading via uselib().
+uselib() is the legacy systemcall for loading shared libraries.
+Nowadays, applications use dlopen() to load shared libraries, completely
+implemented in user space via mmap().
 
-With this change, MAP_DENYWRITE is effectively ignored throughout the
-kernel. Although the net change is small (well, we actually add code and
-comments), I think the cleanup in mmap() is quite nice.
+For example, glibc uses MAP_COPY to mmap shared libraries. While this
+maps to MAP_PRIVATE | MAP_DENYWRITE on Linux, Linux ignores any
+MAP_DENYWRITE specification from user space in mmap.
 
-There are some (minor) user-visible changes with this series:
-1. We no longer deny write access to shared libaries loaded via legacy
-   uselib(); this behavior matches modern user space e.g., via dlopen().
-2. We no longer deny write access to the elf interpreter after exec
-   completed, treating it just like shared libraries (which it often is).
-3. We always deny write access to the file linked via /proc/pid/exe:
-   sys_prctl(PR_SET_MM_MAP/EXE_FILE) will fail if write access to the file
-   cannot be denied, and write access to the file will remain denied
-   until the link is effectivel gone (exec, termination,
-   sys_prctl(PR_SET_MM_MAP/EXE_FILE)) -- just as if exec'ing the file.
+With this change, all remaining in-tree users of MAP_DENYWRITE use it
+to map an executable. We will be able to open shared libraries loaded
+via uselib() writable, just as we already can via dlopen() from user
+space.
 
-There is a related problem [2] with overlayfs, that should at least partly
-be tackled by this series. I don't quite understand the interaction of
-overlayfs and deny_write_access()/allow_write_access() at exec time:
+This is one step into the direction of removing MAP_DENYWRITE from the
+kernel. This can be considered a minor user space visible change.
 
-If we end up denying write access to the wrong file and not to the
-realfile, that would be fundamentally broken. We would have to reroute
-our deny_write_access()/ allow_write_access() calls for the exec file to
-the realfile -- but I leave figuring out the details to overlayfs guys, as
-that would be a related but different issue.
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+---
+ arch/x86/ia32/ia32_aout.c | 2 +-
+ fs/binfmt_aout.c          | 2 +-
+ fs/binfmt_elf.c           | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-There was a lengthy discussion in [3] whether to remove deny_write_access()
-completely; however, if we decide to go that way, it would ideally be done
-on top, because it could be that some applications even rely on the current
-behavior.
-
-v1 -> v2:
-- "kernel/fork: factor out replacing the current MM exe_file"
--- Call the function "replace_mm_exe_file()" instead
--- Add some doc, similar to set_mm_exe_file()
--- Update patch subject/description
-- "kernel/fork: always deny write access to current MM exe_file"
--- Introduce dup_mm_exe_file()
--- Make set_mm_exe_file() return an error to make the code easier to
-   grasp.
--- Improve comments
-- Added ACKs
-- Mention "sys_prctl(PR_SET_MM_MAP/EXE_FILE)" everywhere instead of
-  only "sys_prctl(PR_SET_MM_EXE_FILE)".
-
-RFC -> v1:
-- "binfmt: remove in-tree usage of MAP_DENYWRITE"
--- Add a note that this should fix part of a problem with overlayfs
-
-[1] https://lore.kernel.org/r/20210423131640.20080-1-david@redhat.com/
-[2] https://lore.kernel.org/r/YNHXzBgzRrZu1MrD@miu.piliscsaba.redhat.com/
-[3] https://lkml.kernel.org/r/20210812084348.6521-1-david@redhat.com
-
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Ungerer <gerg@linux-m68k.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Kevin Brodsky <Kevin.Brodsky@arm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Shawn Anastasio <shawn@anastas.io>
-Cc: Steven Price <steven.price@arm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Gabriel Krisman Bertazi <krisman@collabora.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
-Cc: Nicolas Viennot <Nicolas.Viennot@twosigma.com>
-Cc: Thomas Cedeno <thomascedeno@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Chengguang Xu <cgxu519@mykernel.net>
-Cc: "Christian König" <ckoenig.leichtzumerken@gmail.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: linux-unionfs@vger.kernel.org
-Cc: linux-api@vger.kernel.org
-Cc: x86@kernel.org
-Cc: linux-fsdevel@vger.kernel.org
-Cc: linux-mm@kvack.org
-
-David Hildenbrand (7):
-  binfmt: don't use MAP_DENYWRITE when loading shared libraries via
-    uselib()
-  kernel/fork: factor out replacing the current MM exe_file
-  kernel/fork: always deny write access to current MM exe_file
-  binfmt: remove in-tree usage of MAP_DENYWRITE
-  mm: remove VM_DENYWRITE
-  mm: ignore MAP_DENYWRITE in ksys_mmap_pgoff()
-  fs: update documentation of get_write_access() and friends
-
- arch/x86/ia32/ia32_aout.c      |  8 ++-
- fs/binfmt_aout.c               |  7 ++-
- fs/binfmt_elf.c                |  6 +--
- fs/binfmt_elf_fdpic.c          |  2 +-
- fs/exec.c                      |  4 +-
- fs/proc/task_mmu.c             |  1 -
- include/linux/fs.h             | 19 ++++---
- include/linux/mm.h             |  4 +-
- include/linux/mman.h           |  4 +-
- include/trace/events/mmflags.h |  1 -
- kernel/events/core.c           |  2 -
- kernel/fork.c                  | 95 ++++++++++++++++++++++++++++++----
- kernel/sys.c                   | 33 +-----------
- lib/test_printf.c              |  5 +-
- mm/mmap.c                      | 29 ++---------
- mm/nommu.c                     |  2 -
- 16 files changed, 119 insertions(+), 103 deletions(-)
-
-
-base-commit: 7c60610d476766e128cc4284bb6349732cbd6606
+diff --git a/arch/x86/ia32/ia32_aout.c b/arch/x86/ia32/ia32_aout.c
+index 5e5b9fc2747f..321d7b22ad2d 100644
+--- a/arch/x86/ia32/ia32_aout.c
++++ b/arch/x86/ia32/ia32_aout.c
+@@ -293,7 +293,7 @@ static int load_aout_library(struct file *file)
+ 	/* Now use mmap to map the library into memory. */
+ 	error = vm_mmap(file, start_addr, ex.a_text + ex.a_data,
+ 			PROT_READ | PROT_WRITE | PROT_EXEC,
+-			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE | MAP_32BIT,
++			MAP_FIXED | MAP_PRIVATE | MAP_32BIT,
+ 			N_TXTOFF(ex));
+ 	retval = error;
+ 	if (error != start_addr)
+diff --git a/fs/binfmt_aout.c b/fs/binfmt_aout.c
+index 145917f734fe..d29de971d3f3 100644
+--- a/fs/binfmt_aout.c
++++ b/fs/binfmt_aout.c
+@@ -309,7 +309,7 @@ static int load_aout_library(struct file *file)
+ 	/* Now use mmap to map the library into memory. */
+ 	error = vm_mmap(file, start_addr, ex.a_text + ex.a_data,
+ 			PROT_READ | PROT_WRITE | PROT_EXEC,
+-			MAP_FIXED | MAP_PRIVATE | MAP_DENYWRITE,
++			MAP_FIXED | MAP_PRIVATE;
+ 			N_TXTOFF(ex));
+ 	retval = error;
+ 	if (error != start_addr)
+diff --git a/fs/binfmt_elf.c b/fs/binfmt_elf.c
+index 439ed81e755a..6d2c79533631 100644
+--- a/fs/binfmt_elf.c
++++ b/fs/binfmt_elf.c
+@@ -1384,7 +1384,7 @@ static int load_elf_library(struct file *file)
+ 			(eppnt->p_filesz +
+ 			 ELF_PAGEOFFSET(eppnt->p_vaddr)),
+ 			PROT_READ | PROT_WRITE | PROT_EXEC,
+-			MAP_FIXED_NOREPLACE | MAP_PRIVATE | MAP_DENYWRITE,
++			MAP_FIXED_NOREPLACE | MAP_PRIVATE,
+ 			(eppnt->p_offset -
+ 			 ELF_PAGEOFFSET(eppnt->p_vaddr)));
+ 	if (error != ELF_PAGESTART(eppnt->p_vaddr))
 -- 
 2.31.1
 
