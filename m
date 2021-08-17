@@ -2,157 +2,92 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A1FEC4338F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:51:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8286DC43214
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Aug 2021 00:36:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FEF960F55
-	for <linux-unionfs@archiver.kernel.org>; Mon, 16 Aug 2021 19:51:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CA4261073
+	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Aug 2021 00:36:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231247AbhHPTwV (ORCPT
+        id S236050AbhHQAgc (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 16 Aug 2021 15:52:21 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:20971 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231143AbhHPTwU (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 16 Aug 2021 15:52:20 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1629143508;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=HXTa/VyECSSTBgPq2TU+rmvN898vFz2Xyhub0w4Arrg=;
-        b=TLdn1ubOR90fCWlq7e1ufGFlNDTDlw9McZHAx5j8Q/tXIriMXbRiSkMZyz0TZzLL6gnnvm
-        71554zyeuIm3x+qJ3s8UsywAza7i538HwR2JuKvPNgKIGoF0ssOQlmEizSUHsfz4IzSyWd
-        EgOzOfqLjYEUPlmtVerJ38g2YU2e/jE=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-409-PwTvF9prMuyqvP7LVfHsqw-1; Mon, 16 Aug 2021 15:51:47 -0400
-X-MC-Unique: PwTvF9prMuyqvP7LVfHsqw-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 178EB107ACF5;
-        Mon, 16 Aug 2021 19:51:46 +0000 (UTC)
-Received: from t480s.redhat.com (unknown [10.39.192.85])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 6FFAE5C1D5;
-        Mon, 16 Aug 2021 19:51:26 +0000 (UTC)
-From:   David Hildenbrand <david@redhat.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     David Hildenbrand <david@redhat.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Petr Mladek <pmladek@suse.com>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Kees Cook <keescook@chromium.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Mike Rapoport <rppt@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Vincenzo Frascino <vincenzo.frascino@arm.com>,
-        Chinwen Chang <chinwen.chang@mediatek.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Huang Ying <ying.huang@intel.com>,
-        Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
-        Kevin Brodsky <Kevin.Brodsky@arm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Shawn Anastasio <shawn@anastas.io>,
-        Steven Price <steven.price@arm.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
-        Peter Xu <peterx@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Marco Elver <elver@google.com>,
-        Daniel Jordan <daniel.m.jordan@oracle.com>,
-        Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
-        Thomas Cedeno <thomascedeno@google.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= 
-        <ckoenig.leichtzumerken@gmail.com>,
-        Florian Weimer <fweimer@redhat.com>,
-        David Laight <David.Laight@ACULAB.COM>,
-        linux-unionfs@vger.kernel.org, linux-api@vger.kernel.org,
-        x86@kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org
-Subject: [PATCH v2 7/7] fs: update documentation of get_write_access() and friends
-Date:   Mon, 16 Aug 2021 21:48:40 +0200
-Message-Id: <20210816194840.42769-8-david@redhat.com>
-In-Reply-To: <20210816194840.42769-1-david@redhat.com>
-References: <20210816194840.42769-1-david@redhat.com>
+        Mon, 16 Aug 2021 20:36:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35414 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S236051AbhHQAgY (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Mon, 16 Aug 2021 20:36:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DBEAE60FC3;
+        Tue, 17 Aug 2021 00:35:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1629160552;
+        bh=EG8oCqNCpJ9I9kaz9k9fICEPwDby1FZHFnk/nQTYB7I=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=f+93b0oiiBM0fR+YzyLZ/gUQO7NS9jgUK98b8w2nuHnhe9GYcWbY66B27/4iAtqoN
+         O9kxXTly0Uf7Cs1AMG7w4lKAM8VBcS0xNJ+PpSKMIoaSFNsm+iVFYyNIDyeHefCxsG
+         F6Nfi39so0gt/G7lRIR4huzLaoK1kentHP5v/LbMArSPgX5z0p34CJcTZ3X1wcptWh
+         5OpavjCAmnPOWkSzgxrkKtMYKy4ZutuBokqhsNMqIT73VTtHcq6I2X2cqrcXgm5E++
+         BFWAhpupwYt58lAJlLlUP8WdPbDzR+E5v/5+iUwqToIWqo3oymTjd3Gz1IUGX8SGHL
+         ySBeAuT9lppoA==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Miklos Szeredi <mszeredi@redhat.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.13 11/12] ovl: fix uninitialized pointer read in ovl_lookup_real_one()
+Date:   Mon, 16 Aug 2021 20:35:35 -0400
+Message-Id: <20210817003536.83063-11-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210817003536.83063-1-sashal@kernel.org>
+References: <20210817003536.83063-1-sashal@kernel.org>
 MIME-Version: 1.0
+X-stable: review
+X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-As VM_DENYWRITE does no longer exists, let's spring-clean the
-documentation of get_write_access() and friends.
+From: Miklos Szeredi <mszeredi@redhat.com>
 
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
+[ Upstream commit 580c610429b3994e8db24418927747cf28443cde ]
+
+One error path can result in release_dentry_name_snapshot() being called
+before "name" was initialized by take_dentry_name_snapshot().
+
+Fix by moving the release_dentry_name_snapshot() to immediately after the
+only use.
+
+Reported-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- include/linux/fs.h | 19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ fs/overlayfs/export.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 640574294216..e0dc3e96ed72 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3055,15 +3055,20 @@ static inline void file_end_write(struct file *file)
- }
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 41ebf52f1bbc..ebde05c9cf62 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -392,6 +392,7 @@ static struct dentry *ovl_lookup_real_one(struct dentry *connected,
+ 	 */
+ 	take_dentry_name_snapshot(&name, real);
+ 	this = lookup_one_len(name.name.name, connected, name.name.len);
++	release_dentry_name_snapshot(&name);
+ 	err = PTR_ERR(this);
+ 	if (IS_ERR(this)) {
+ 		goto fail;
+@@ -406,7 +407,6 @@ static struct dentry *ovl_lookup_real_one(struct dentry *connected,
+ 	}
  
- /*
-+ * This is used for regular files where some users -- especially the
-+ * currently executed binary in a process, previously handled via
-+ * VM_DENYWRITE -- cannot handle concurrent write (and maybe mmap
-+ * read-write shared) accesses.
-+ *
-  * get_write_access() gets write permission for a file.
-  * put_write_access() releases this write permission.
-- * This is used for regular files.
-- * We cannot support write (and maybe mmap read-write shared) accesses and
-- * MAP_DENYWRITE mmappings simultaneously. The i_writecount field of an inode
-- * can have the following values:
-- * 0: no writers, no VM_DENYWRITE mappings
-- * < 0: (-i_writecount) vm_area_structs with VM_DENYWRITE set exist
-- * > 0: (i_writecount) users are writing to the file.
-+ * deny_write_access() denies write access to a file.
-+ * allow_write_access() re-enables write access to a file.
-+ *
-+ * The i_writecount field of an inode can have the following values:
-+ * 0: no write access, no denied write access
-+ * < 0: (-i_writecount) users that denied write access to the file.
-+ * > 0: (i_writecount) users that have write access to the file.
-  *
-  * Normally we operate on that counter with atomic_{inc,dec} and it's safe
-  * except for the cases where we don't hold i_writecount yet. Then we need to
+ out:
+-	release_dentry_name_snapshot(&name);
+ 	dput(parent);
+ 	inode_unlock(dir);
+ 	return this;
 -- 
-2.31.1
+2.30.2
 
