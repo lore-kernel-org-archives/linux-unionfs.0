@@ -2,142 +2,195 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+X-Spam-Status: No, score=-19.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B38C4338F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9CC5C432BE
 	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 13:34:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6116860F4C
+	by mail.kernel.org (Postfix) with ESMTP id BBBE260F4C
 	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 13:34:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237716AbhHRNeo (ORCPT
+        id S237534AbhHRNep (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 18 Aug 2021 09:34:44 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34832 "EHLO
+        Wed, 18 Aug 2021 09:34:45 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:34426 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S237534AbhHRNem (ORCPT
+        by vger.kernel.org with ESMTP id S237705AbhHRNen (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Aug 2021 09:34:42 -0400
+        Wed, 18 Aug 2021 09:34:43 -0400
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1629293647;
+        s=mimecast20190719; t=1629293648;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=9atu5PWpeWQekmjZpl8cMY0yO4zwVLTKAR4uiWOjOtw=;
-        b=S5tOJG9vW8rPVAPpLjZj8bz995YpuMkZ/UcMvVb9d9DzyqqR5C4OfBgf8RXlquDE95cqOn
-        fUEZofueTleWMSBc7wC0rdiZan6iTYvkzxT46HrnRyGsEFT0r2bPujJEzHcGpxgRrAqGo9
-        ih2Y0W4LYzn72vNqrhVkYfHcS0Vhr2I=
-Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
- [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-423-T7wYy2_JNsqG_H39viBYSw-1; Wed, 18 Aug 2021 09:34:04 -0400
-X-MC-Unique: T7wYy2_JNsqG_H39viBYSw-1
-Received: by mail-ed1-f72.google.com with SMTP id u4-20020a50eac40000b02903bddc52675eso1052521edp.4
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 06:34:04 -0700 (PDT)
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=sdI0zO0U4tESozCIhpT5qJCrx4O9+KHKjI6mFEcj2rg=;
+        b=XBOZgGBWlHAtcHHtReimf/kzvMtItMuoy8EvYFzo8+ydZbEZOMXnUQZpN30L2zUY0KmDZ2
+        jQRzqs4yrMUpeRSjKFDiEftRYzQr7RNRqopVqRe4HAngHQvAIxHG6SojrUhBl8ZhdP8+DK
+        exF0tCuXuRXeX4ANXqsNJ4tCeSc2nQY=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-124-5R2U0rixO7yClmFrqt5QOg-1; Wed, 18 Aug 2021 09:34:07 -0400
+X-MC-Unique: 5R2U0rixO7yClmFrqt5QOg-1
+Received: by mail-ej1-f69.google.com with SMTP id q19-20020a1709064cd3b02904c5f93c0124so864460ejt.14
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 06:34:06 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=9atu5PWpeWQekmjZpl8cMY0yO4zwVLTKAR4uiWOjOtw=;
-        b=qnsXxhBiX6cY0Xif9vVSkj6WQM0ddLT/Ov7p2NqW+UV7pDspI29BfFoP5qdPDWNgeP
-         tZHYVk61AxTjEE2HfpJN9gOAlJuEJD6smvhyV9SW+xrdKkpTz4bLNYH7zl6N9bCJs03q
-         n7axo5ljy7K9dkMtwYJHuxcxOtgLqxdKu0KQ3/TyLIpKoPC2cLiR/+F+DYFzJVDisQse
-         aO8lnUT7tI4hlCh6EzHe/5zbQXiPr2mQQBwQ2EeHQKFmGdz8vi7dcmf5/mUuG+9prG2u
-         NjHC3IT3dH8C/ZGqL4Vsp7I7QHG7ci5hkOYShS6yP061HArVaNXWUPBk0rLyldEx7e9v
-         dYmw==
-X-Gm-Message-State: AOAM532PbXg1DhOS//gdcKcSeCTaRFHEVvlu65vkjLsOQXsulzKCpS2N
-        debnO3+V3HvJhkRm3jOngyLYL7xPY/57LHwxK1gw5hlLUiP/F1PHDkNa77SdQELbMbcaQt7am/S
-        9q9Zbq0mtcw7psIND9aGkOrX0MQ==
-X-Received: by 2002:aa7:d319:: with SMTP id p25mr10394134edq.197.1629293643216;
-        Wed, 18 Aug 2021 06:34:03 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyRQYRpxw2Qhgc/ZAxOVdRSo4vUAvMeMIWE5ubx7bGW0c4xOeoVYQTT6WJ6FOemMkD1YFUpUQ==
-X-Received: by 2002:aa7:d319:: with SMTP id p25mr10394085edq.197.1629293642713;
-        Wed, 18 Aug 2021 06:34:02 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=sdI0zO0U4tESozCIhpT5qJCrx4O9+KHKjI6mFEcj2rg=;
+        b=ogmpfE4K5f+rmdCUu2ZJimjbPwJRUoTa0kJ4Z/zWO2imquN1aPkS1t6txOlmMh5eM/
+         KVR7XhXtyWTHvdiGkt3dVrg9oylO/yZqRXF26F1+5AxeZUrpV7Dwyd2DkSBTvqNVFgSH
+         ir3qxWWrjC2u9CAjN3oaxLNH62ZFz0+Cu2K2VP22SH4Yr5A0is41JWYAH/hIAJ43FKGy
+         dJi4DYMzaP4OdT9fGYXVo3LbiSlfNp10LpRdT+JlvZDs9HcifKXrOCorOJD7KNjL0leL
+         z9q6pEdOqIi96Tffv9jX2BKtZTFS22Lvwt88fplA48Z3PwvZV5iW6pbN4erT+mSzRwpA
+         bHUw==
+X-Gm-Message-State: AOAM532sw9xYStPEd1Iqu4ucdY2YGj3X9asVfeCZwLwfezYkzsaVUZpa
+        T7atAwaQANBCLjlUconSUhk9e3E9DdWc7bc9nAKXE+roQOqChCXe6bwo3g4enkP91qCWslyB/P/
+        dlhpUkAHw6B5a5uSicT6xDLtU2Q==
+X-Received: by 2002:a17:906:85d0:: with SMTP id i16mr9993255ejy.552.1629293645977;
+        Wed, 18 Aug 2021 06:34:05 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwOL3cCbGxWnE+tgrrzO5dzEtwXXaw2YaTmo1Qg/eVh4C6krWPbBo+gKKyyvsYpFmAPIJ7sjw==
+X-Received: by 2002:a17:906:85d0:: with SMTP id i16mr9993227ejy.552.1629293645756;
+        Wed, 18 Aug 2021 06:34:05 -0700 (PDT)
 Received: from miu.piliscsaba.redhat.com (catv-86-101-169-16.catv.broadband.hu. [86.101.169.16])
-        by smtp.gmail.com with ESMTPSA id kg18sm2090922ejc.9.2021.08.18.06.34.01
+        by smtp.gmail.com with ESMTPSA id kg18sm2090922ejc.9.2021.08.18.06.34.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 18 Aug 2021 06:34:02 -0700 (PDT)
+        Wed, 18 Aug 2021 06:34:05 -0700 (PDT)
 From:   Miklos Szeredi <mszeredi@redhat.com>
 To:     Al Viro <viro@zeniv.linux.org.uk>,
         Linus Torvalds <torvalds@linux-foundation.org>
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-kernel@vger.kernel.org,
-        Andreas Gruenbacher <agruenba@redhat.com>
-Subject: [PATCH v2 0/2] allow overlayfs to do RCU lookups
-Date:   Wed, 18 Aug 2021 15:33:58 +0200
-Message-Id: <20210818133400.830078-1-mszeredi@redhat.com>
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        garyhuang <zjh.20052005@163.com>
+Subject: [PATCH v2 2/2] ovl: enable RCU'd ->get_acl()
+Date:   Wed, 18 Aug 2021 15:34:00 +0200
+Message-Id: <20210818133400.830078-3-mszeredi@redhat.com>
 X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210818133400.830078-1-mszeredi@redhat.com>
+References: <20210818133400.830078-1-mszeredi@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-I'd really like to fix this in some form, but not getting any response
-[1][2][3].
+Overlayfs does not cache ACL's (to avoid double caching).  Instead it just
+calls the underlying filesystem's i_op->get_acl(), which will return the
+cached value, if possible.
 
-Al, Linus, can you please comment?
+In rcu path walk, however, get_cached_acl_rcu() is employed to get the
+value from the cache, which will fail on overlayfs resulting in dropping
+out of rcu walk mode.  This can result in a big performance hit in certain
+situations.
 
-I'm happy to take this through the overlayfs tree, just need an ACK for the
-VFS API change.
+Fix by calling ->get_acl() with LOOKUP_RCU flag in case of ACL_DONT_CACHE
+(which indicates pass-through)
 
-Thanks,
-Miklos
-
-[1] https://lore.kernel.org/linux-fsdevel/20210323160629.228597-1-mszeredi@redhat.com/
-[2] https://lore.kernel.org/linux-fsdevel/CAJfpegv4ttfCZY0DPm+SSc85eL5m3jqhdOS_avu1+WMZhdg7iA@mail.gmail.com/
-[3] https://lore.kernel.org/linux-fsdevel/20210810120807.456788-1-mszeredi@redhat.com/
-
-v2: just a minor fix for the CONFIG_FS_POSIX_ACL=n case.
+Reported-by: garyhuang <zjh.20052005@163.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
-Miklos Szeredi (2):
-  vfs: add flags argument to ->get_acl() callback
-  ovl: enable RCU'd ->get_acl()
+ fs/overlayfs/inode.c      | 7 ++++---
+ fs/posix_acl.c            | 8 +++++++-
+ include/linux/fs.h        | 5 +++++
+ include/linux/posix_acl.h | 3 ++-
+ 4 files changed, 18 insertions(+), 5 deletions(-)
 
- Documentation/filesystems/locking.rst |  2 +-
- Documentation/filesystems/vfs.rst     |  2 +-
- fs/9p/acl.c                           |  5 ++++-
- fs/9p/acl.h                           |  2 +-
- fs/bad_inode.c                        |  2 +-
- fs/btrfs/acl.c                        |  5 ++++-
- fs/btrfs/ctree.h                      |  2 +-
- fs/ceph/acl.c                         |  5 ++++-
- fs/ceph/super.h                       |  2 +-
- fs/erofs/xattr.c                      |  5 ++++-
- fs/erofs/xattr.h                      |  2 +-
- fs/ext2/acl.c                         |  5 ++++-
- fs/ext2/acl.h                         |  2 +-
- fs/ext4/acl.c                         |  5 ++++-
- fs/ext4/acl.h                         |  2 +-
- fs/f2fs/acl.c                         |  5 ++++-
- fs/f2fs/acl.h                         |  2 +-
- fs/fuse/acl.c                         |  5 ++++-
- fs/fuse/fuse_i.h                      |  2 +-
- fs/gfs2/acl.c                         |  5 ++++-
- fs/gfs2/acl.h                         |  2 +-
- fs/jffs2/acl.c                        |  5 ++++-
- fs/jffs2/acl.h                        |  2 +-
- fs/jfs/acl.c                          |  5 ++++-
- fs/jfs/jfs_acl.h                      |  2 +-
- fs/nfs/nfs3_fs.h                      |  2 +-
- fs/nfs/nfs3acl.c                      |  5 ++++-
- fs/ocfs2/acl.c                        |  5 ++++-
- fs/ocfs2/acl.h                        |  2 +-
- fs/orangefs/acl.c                     |  5 ++++-
- fs/orangefs/orangefs-kernel.h         |  2 +-
- fs/overlayfs/inode.c                  |  6 +++++-
- fs/overlayfs/overlayfs.h              |  2 +-
- fs/posix_acl.c                        | 10 ++++++++--
- fs/reiserfs/acl.h                     |  2 +-
- fs/reiserfs/xattr_acl.c               |  5 ++++-
- fs/xfs/xfs_acl.c                      |  5 ++++-
- fs/xfs/xfs_acl.h                      |  4 ++--
- include/linux/fs.h                    |  7 ++++++-
- include/linux/posix_acl.h             |  3 ++-
- 40 files changed, 106 insertions(+), 42 deletions(-)
-
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 727154a1d3ce..6a55231b262a 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -13,6 +13,7 @@
+ #include <linux/fiemap.h>
+ #include <linux/fileattr.h>
+ #include <linux/security.h>
++#include <linux/namei.h>
+ #include "overlayfs.h"
+ 
+ 
+@@ -454,12 +455,12 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type, int flags)
+ 	const struct cred *old_cred;
+ 	struct posix_acl *acl;
+ 
+-	if (flags)
+-		return ERR_PTR(-EINVAL);
+-
+ 	if (!IS_ENABLED(CONFIG_FS_POSIX_ACL) || !IS_POSIXACL(realinode))
+ 		return NULL;
+ 
++	if (flags & LOOKUP_RCU)
++		return get_cached_acl_rcu(realinode, type);
++
+ 	old_cred = ovl_override_creds(inode->i_sb);
+ 	acl = get_acl(realinode, type);
+ 	revert_creds(old_cred);
+diff --git a/fs/posix_acl.c b/fs/posix_acl.c
+index 6b7f793e2b6f..4d1c6c266cf0 100644
+--- a/fs/posix_acl.c
++++ b/fs/posix_acl.c
+@@ -22,6 +22,7 @@
+ #include <linux/xattr.h>
+ #include <linux/export.h>
+ #include <linux/user_namespace.h>
++#include <linux/namei.h>
+ 
+ static struct posix_acl **acl_by_type(struct inode *inode, int type)
+ {
+@@ -56,7 +57,12 @@ EXPORT_SYMBOL(get_cached_acl);
+ 
+ struct posix_acl *get_cached_acl_rcu(struct inode *inode, int type)
+ {
+-	return rcu_dereference(*acl_by_type(inode, type));
++	struct posix_acl *acl = rcu_dereference(*acl_by_type(inode, type));
++
++	if (acl == ACL_DONT_CACHE)
++		acl = inode->i_op->get_acl(inode, type, LOOKUP_RCU);
++
++	return acl;
+ }
+ EXPORT_SYMBOL(get_cached_acl_rcu);
+ 
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 1c56d4fc4efe..20b7db2d0a85 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -581,6 +581,11 @@ static inline void mapping_allow_writable(struct address_space *mapping)
+ 
+ struct posix_acl;
+ #define ACL_NOT_CACHED ((void *)(-1))
++/*
++ * ACL_DONT_CACHE is for stacked filesystems, that rely on underlying fs to
++ * cache the ACL.  This also means that ->get_acl() can be called in RCU mode
++ * with the LOOKUP_RCU flag.
++ */
+ #define ACL_DONT_CACHE ((void *)(-3))
+ 
+ static inline struct posix_acl *
+diff --git a/include/linux/posix_acl.h b/include/linux/posix_acl.h
+index 307094ebb88c..b65c877d92b8 100644
+--- a/include/linux/posix_acl.h
++++ b/include/linux/posix_acl.h
+@@ -72,6 +72,8 @@ extern struct posix_acl *get_posix_acl(struct inode *, int);
+ extern int set_posix_acl(struct user_namespace *, struct inode *, int,
+ 			 struct posix_acl *);
+ 
++struct posix_acl *get_cached_acl_rcu(struct inode *inode, int type);
++
+ #ifdef CONFIG_FS_POSIX_ACL
+ int posix_acl_chmod(struct user_namespace *, struct inode *, umode_t);
+ extern int posix_acl_create(struct inode *, umode_t *, struct posix_acl **,
+@@ -84,7 +86,6 @@ extern int simple_set_acl(struct user_namespace *, struct inode *,
+ extern int simple_acl_create(struct inode *, struct inode *);
+ 
+ struct posix_acl *get_cached_acl(struct inode *inode, int type);
+-struct posix_acl *get_cached_acl_rcu(struct inode *inode, int type);
+ void set_cached_acl(struct inode *inode, int type, struct posix_acl *acl);
+ void forget_cached_acl(struct inode *inode, int type);
+ void forget_all_cached_acls(struct inode *inode);
 -- 
 2.31.1
 
