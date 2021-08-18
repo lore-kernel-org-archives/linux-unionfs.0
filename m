@@ -2,150 +2,142 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-14.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3F36C4338F
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 09:37:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78B38C4338F
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 13:34:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CABA960EBC
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 09:37:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6116860F4C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 13:34:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232959AbhHRJhn (ORCPT
+        id S237716AbhHRNeo (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 18 Aug 2021 05:37:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37596 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233302AbhHRJfr (ORCPT
+        Wed, 18 Aug 2021 09:34:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:34832 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S237534AbhHRNem (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Aug 2021 05:35:47 -0400
-Received: from mail-lf1-x12e.google.com (mail-lf1-x12e.google.com [IPv6:2a00:1450:4864:20::12e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC76CC061764
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 02:35:03 -0700 (PDT)
-Received: by mail-lf1-x12e.google.com with SMTP id t9so3311261lfc.6
-        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 02:35:03 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kinvolk.io; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=oiHvib23/P491CLaRgXvFmChy35OD4Cm4iT1dt+Oh64=;
-        b=ZEXrzZn8yIRrwRBAbkQqjyDUM1Y1ntGz22UCVGWj4pa8ds9y1rSNm13RRW2Zbu1ewG
-         rBn6QqJmL0FXQmDfsvP4crAiRZoezMZEvTCPpEdS1lWr+KIwFbDoQFfLqsbyi+aIyMn3
-         2cpqNcKCR2xP4oZ+5okAnYjRgAPhb7/oHmHRo=
+        Wed, 18 Aug 2021 09:34:42 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1629293647;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=9atu5PWpeWQekmjZpl8cMY0yO4zwVLTKAR4uiWOjOtw=;
+        b=S5tOJG9vW8rPVAPpLjZj8bz995YpuMkZ/UcMvVb9d9DzyqqR5C4OfBgf8RXlquDE95cqOn
+        fUEZofueTleWMSBc7wC0rdiZan6iTYvkzxT46HrnRyGsEFT0r2bPujJEzHcGpxgRrAqGo9
+        ih2Y0W4LYzn72vNqrhVkYfHcS0Vhr2I=
+Received: from mail-ed1-f72.google.com (mail-ed1-f72.google.com
+ [209.85.208.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-423-T7wYy2_JNsqG_H39viBYSw-1; Wed, 18 Aug 2021 09:34:04 -0400
+X-MC-Unique: T7wYy2_JNsqG_H39viBYSw-1
+Received: by mail-ed1-f72.google.com with SMTP id u4-20020a50eac40000b02903bddc52675eso1052521edp.4
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 06:34:04 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=oiHvib23/P491CLaRgXvFmChy35OD4Cm4iT1dt+Oh64=;
-        b=Q4hcd9elMn9IFbihFmDlk1Q6WeCQSuwgLcvTONiblwI4myyVTYOpR7cK3lcWpBdiDR
-         OocY628rIiFhnlpNJ6oZ+A9na6UUIKM+tnMKGVbvZXsz5ETdZq5h41VvJqzeFsgL8evH
-         UC8ZpgzS3YMXZTd/E3lkFrnyN8hzn6EQMY7k/CHTaBZCevJjlfTUwCw7cyt/8azuRdMu
-         vcyRKYL+N4mILaufDkvNw0ZfaGRHSjoiEu8NPMpTKMIvLJvOf+Z4WR/Am+J8UD6xz4xo
-         8CGiGDyzeD3d8V13InIpBgKfu1b53yyzzPpiFmVj0a32j+j/lkU8UHCttkGQkGckiA+M
-         EMIw==
-X-Gm-Message-State: AOAM530/MOXDazh8nPN68TclJqLV1+6C+PAKbSnbEKE+25Smn4PzQ9zX
-        uMepTH5DIarWNpdBiWiHpA5WlY9uGWh77mxjhuZVrA==
-X-Google-Smtp-Source: ABdhPJwoXvjX95NQrkUEtTh9/QSK0DDOWwz14GzEQTgLURMiW93dA3wt3YYyRzKwajrJJxceQBuTcuJDyIYDiI2xWhI=
-X-Received: by 2002:a05:6512:952:: with SMTP id u18mr3991386lft.288.1629279302276;
- Wed, 18 Aug 2021 02:35:02 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=9atu5PWpeWQekmjZpl8cMY0yO4zwVLTKAR4uiWOjOtw=;
+        b=qnsXxhBiX6cY0Xif9vVSkj6WQM0ddLT/Ov7p2NqW+UV7pDspI29BfFoP5qdPDWNgeP
+         tZHYVk61AxTjEE2HfpJN9gOAlJuEJD6smvhyV9SW+xrdKkpTz4bLNYH7zl6N9bCJs03q
+         n7axo5ljy7K9dkMtwYJHuxcxOtgLqxdKu0KQ3/TyLIpKoPC2cLiR/+F+DYFzJVDisQse
+         aO8lnUT7tI4hlCh6EzHe/5zbQXiPr2mQQBwQ2EeHQKFmGdz8vi7dcmf5/mUuG+9prG2u
+         NjHC3IT3dH8C/ZGqL4Vsp7I7QHG7ci5hkOYShS6yP061HArVaNXWUPBk0rLyldEx7e9v
+         dYmw==
+X-Gm-Message-State: AOAM532PbXg1DhOS//gdcKcSeCTaRFHEVvlu65vkjLsOQXsulzKCpS2N
+        debnO3+V3HvJhkRm3jOngyLYL7xPY/57LHwxK1gw5hlLUiP/F1PHDkNa77SdQELbMbcaQt7am/S
+        9q9Zbq0mtcw7psIND9aGkOrX0MQ==
+X-Received: by 2002:aa7:d319:: with SMTP id p25mr10394134edq.197.1629293643216;
+        Wed, 18 Aug 2021 06:34:03 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJyRQYRpxw2Qhgc/ZAxOVdRSo4vUAvMeMIWE5ubx7bGW0c4xOeoVYQTT6WJ6FOemMkD1YFUpUQ==
+X-Received: by 2002:aa7:d319:: with SMTP id p25mr10394085edq.197.1629293642713;
+        Wed, 18 Aug 2021 06:34:02 -0700 (PDT)
+Received: from miu.piliscsaba.redhat.com (catv-86-101-169-16.catv.broadband.hu. [86.101.169.16])
+        by smtp.gmail.com with ESMTPSA id kg18sm2090922ejc.9.2021.08.18.06.34.01
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 18 Aug 2021 06:34:02 -0700 (PDT)
+From:   Miklos Szeredi <mszeredi@redhat.com>
+To:     Al Viro <viro@zeniv.linux.org.uk>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Andreas Gruenbacher <agruenba@redhat.com>
+Subject: [PATCH v2 0/2] allow overlayfs to do RCU lookups
+Date:   Wed, 18 Aug 2021 15:33:58 +0200
+Message-Id: <20210818133400.830078-1-mszeredi@redhat.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
- <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com> <87lf56bllc.fsf@disp2133>
- <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
- <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
- <87h7ft2j68.fsf@disp2133> <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
- <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com> <YRcyqbpVqwwq3P6n@casper.infradead.org>
- <87k0kkxbjn.fsf_-_@disp2133>
-In-Reply-To: <87k0kkxbjn.fsf_-_@disp2133>
-From:   Rodrigo Campos <rodrigo@kinvolk.io>
-Date:   Wed, 18 Aug 2021 11:34:26 +0200
-Message-ID: <CACaBj2ZgrA2JeeGenXxEf5ha6OYaFrj2=iuVXnQxC=kZLZpjng@mail.gmail.com>
-Subject: Re: Removing Mandatory Locks
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Matthew Wilcox <willy@infradead.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        David Laight <David.Laight@aculab.com>,
-        David Hildenbrand <david@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Petr Mladek <pmladek@suse.com>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Kees Cook <keescook@chromium.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Mike Rapoport <rppt@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Vincenzo Frascino <vincenzo.frascino@arm.com>,
-        Chinwen Chang <chinwen.chang@mediatek.com>,
-        Michel Lespinasse <walken@google.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
-        Kevin Brodsky <Kevin.Brodsky@arm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Shawn Anastasio <shawn@anastas.io>,
-        Steven Price <steven.price@arm.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
-        Peter Xu <peterx@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Marco Elver <elver@google.com>,
-        Daniel Jordan <daniel.m.jordan@oracle.com>,
-        Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
-        Thomas Cedeno <thomascedeno@google.com>,
-        Collin Fijalkovich <cfijalkovich@google.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        =?UTF-8?Q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        Florian Weimer <fweimer@redhat.com>,
-        Michael Kerrisk <mtk.manpages@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Aug 17, 2021 at 6:49 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Matthew Wilcox <willy@infradead.org> writes:
->
-> > On Fri, Aug 13, 2021 at 05:49:19PM -0700, Andy Lutomirski wrote:
-> >> [0] we have mandatory locks, too. Sigh.
-> >
-> > I'd love to remove that.  Perhaps we could try persuading more of the
-> > distros to disable the CONFIG option first.
->
-> Yes.  The support is disabled in RHEL8.
+I'd really like to fix this in some form, but not getting any response
+[1][2][3].
 
-If it helps, it seems to be enabled on the just released debian stable:
-    $ grep CONFIG_MANDATORY_FILE_LOCKING /boot/config-5.10.0-8-amd64
-    CONFIG_MANDATORY_FILE_LOCKING=y
+Al, Linus, can you please comment?
 
-Also the new 5.13 kernel in experimental has it too:
-    $ grep CONFIG_MANDATORY_FILE_LOCKING /boot/config-5.13.0-trunk-amd64
-    CONFIG_MANDATORY_FILE_LOCKING=y
+I'm happy to take this through the overlayfs tree, just need an ACK for the
+VFS API change.
+
+Thanks,
+Miklos
+
+[1] https://lore.kernel.org/linux-fsdevel/20210323160629.228597-1-mszeredi@redhat.com/
+[2] https://lore.kernel.org/linux-fsdevel/CAJfpegv4ttfCZY0DPm+SSc85eL5m3jqhdOS_avu1+WMZhdg7iA@mail.gmail.com/
+[3] https://lore.kernel.org/linux-fsdevel/20210810120807.456788-1-mszeredi@redhat.com/
+
+v2: just a minor fix for the CONFIG_FS_POSIX_ACL=n case.
+---
+Miklos Szeredi (2):
+  vfs: add flags argument to ->get_acl() callback
+  ovl: enable RCU'd ->get_acl()
+
+ Documentation/filesystems/locking.rst |  2 +-
+ Documentation/filesystems/vfs.rst     |  2 +-
+ fs/9p/acl.c                           |  5 ++++-
+ fs/9p/acl.h                           |  2 +-
+ fs/bad_inode.c                        |  2 +-
+ fs/btrfs/acl.c                        |  5 ++++-
+ fs/btrfs/ctree.h                      |  2 +-
+ fs/ceph/acl.c                         |  5 ++++-
+ fs/ceph/super.h                       |  2 +-
+ fs/erofs/xattr.c                      |  5 ++++-
+ fs/erofs/xattr.h                      |  2 +-
+ fs/ext2/acl.c                         |  5 ++++-
+ fs/ext2/acl.h                         |  2 +-
+ fs/ext4/acl.c                         |  5 ++++-
+ fs/ext4/acl.h                         |  2 +-
+ fs/f2fs/acl.c                         |  5 ++++-
+ fs/f2fs/acl.h                         |  2 +-
+ fs/fuse/acl.c                         |  5 ++++-
+ fs/fuse/fuse_i.h                      |  2 +-
+ fs/gfs2/acl.c                         |  5 ++++-
+ fs/gfs2/acl.h                         |  2 +-
+ fs/jffs2/acl.c                        |  5 ++++-
+ fs/jffs2/acl.h                        |  2 +-
+ fs/jfs/acl.c                          |  5 ++++-
+ fs/jfs/jfs_acl.h                      |  2 +-
+ fs/nfs/nfs3_fs.h                      |  2 +-
+ fs/nfs/nfs3acl.c                      |  5 ++++-
+ fs/ocfs2/acl.c                        |  5 ++++-
+ fs/ocfs2/acl.h                        |  2 +-
+ fs/orangefs/acl.c                     |  5 ++++-
+ fs/orangefs/orangefs-kernel.h         |  2 +-
+ fs/overlayfs/inode.c                  |  6 +++++-
+ fs/overlayfs/overlayfs.h              |  2 +-
+ fs/posix_acl.c                        | 10 ++++++++--
+ fs/reiserfs/acl.h                     |  2 +-
+ fs/reiserfs/xattr_acl.c               |  5 ++++-
+ fs/xfs/xfs_acl.c                      |  5 ++++-
+ fs/xfs/xfs_acl.h                      |  4 ++--
+ include/linux/fs.h                    |  7 ++++++-
+ include/linux/posix_acl.h             |  3 ++-
+ 40 files changed, 106 insertions(+), 42 deletions(-)
+
+-- 
+2.31.1
+
