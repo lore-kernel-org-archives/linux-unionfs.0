@@ -2,143 +2,159 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56942C432BE
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 15:42:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 471AEC4338F
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 18:34:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3CD1960EFF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 15:42:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2CB27610D2
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Aug 2021 18:34:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239193AbhHRPm4 (ORCPT
+        id S231838AbhHRSfZ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 18 Aug 2021 11:42:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39376 "EHLO
+        Wed, 18 Aug 2021 14:35:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230360AbhHRPmy (ORCPT
+        with ESMTP id S229468AbhHRSfY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Aug 2021 11:42:54 -0400
-Received: from fieldses.org (fieldses.org [IPv6:2600:3c00:e000:2f7::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2095C061764;
-        Wed, 18 Aug 2021 08:42:19 -0700 (PDT)
-Received: by fieldses.org (Postfix, from userid 2815)
-        id 839857C78; Wed, 18 Aug 2021 11:42:17 -0400 (EDT)
-DKIM-Filter: OpenDKIM Filter v2.11.0 fieldses.org 839857C78
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fieldses.org;
-        s=default; t=1629301337;
-        bh=FC/u5PHU9ytrdzLe82ecXUKTKca95aRfgvSHOdfIXFI=;
-        h=Date:To:Cc:Subject:References:In-Reply-To:From:From;
-        b=IoOG1oC+EZ/ID0s+DoSOxYoI1E9Tu+nwDKzBTCpDP7QVUB+APnj3BhbpYTcklzF+V
-         cJBa9or753k6Le4EKbbv5VxjwUJjjWE6p3alhBll+UZTrJxa7eUtdrtUsIsXnI25Wg
-         eIt/1B5dUXgfEFVIgoXy37fTL/OHhwDk6bfyZPRg=
-Date:   Wed, 18 Aug 2021 11:42:17 -0400
-To:     Andy Lutomirski <luto@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        David Laight <David.Laight@aculab.com>,
-        David Hildenbrand <david@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Petr Mladek <pmladek@suse.com>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Kees Cook <keescook@chromium.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Mike Rapoport <rppt@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Vincenzo Frascino <vincenzo.frascino@arm.com>,
-        Chinwen Chang <chinwen.chang@mediatek.com>,
-        Michel Lespinasse <walken@google.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Huang Ying <ying.huang@intel.com>,
-        Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
-        Kevin Brodsky <Kevin.Brodsky@arm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Shawn Anastasio <shawn@anastas.io>,
-        Steven Price <steven.price@arm.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
-        Peter Xu <peterx@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Marco Elver <elver@google.com>,
-        Daniel Jordan <daniel.m.jordan@oracle.com>,
-        Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
-        Thomas Cedeno <thomascedeno@google.com>,
-        Collin Fijalkovich <cfijalkovich@google.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Chengguang Xu <cgxu519@mykernel.net>,
-        Christian =?utf-8?B?S8O2bmln?= <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        Florian Weimer <fweimer@redhat.com>,
-        Michael Kerrisk <mtk.manpages@gmail.com>
-Subject: Re: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-Message-ID: <20210818154217.GB24115@fieldses.org>
-References: <20210812084348.6521-1-david@redhat.com>
- <87o8a2d0wf.fsf@disp2133>
- <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
- <87lf56bllc.fsf@disp2133>
- <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
- <87eeay8pqx.fsf@disp2133>
- <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
- <87h7ft2j68.fsf@disp2133>
- <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
- <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
+        Wed, 18 Aug 2021 14:35:24 -0400
+Received: from mail-lj1-x232.google.com (mail-lj1-x232.google.com [IPv6:2a00:1450:4864:20::232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF47AC061764
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 11:34:49 -0700 (PDT)
+Received: by mail-lj1-x232.google.com with SMTP id x7so6746776ljn.10
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 11:34:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=9FPUr4CdEhH6rDlKsFJKVG6weGYB4goKDrrriPqlf4c=;
+        b=UsJzOywq2ROkYLqA5CcdCp3s5r6bZjUJracBOkcBXm8YR8CmgShinAl0dyjPNTwbbT
+         pLDb2UCOiSdPY/cvSTX1YknA8EFSxroQjJnPWKbt2h+fImZ4nOwlqkbqm72M2M6EuU9i
+         yzeg9mXqlr6a1MUg4Os42/IodELJ+RDIOnnH8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=9FPUr4CdEhH6rDlKsFJKVG6weGYB4goKDrrriPqlf4c=;
+        b=QoMIERCdKgpHPt1u2giC9GKF3DGs6fHrsXuYmdClrZ1pmkfA52Au8y0/onh9nbcz0e
+         kxpNZhyFVlcNMkTe/uk5ot+V69cgwz6FPRXmVL2iFTq5sXYJPEMSQD/cuPZHh+v7W43k
+         +MWoVBZLJQnLnyG5Tu1ZSvIfkA5p3anuqm7xrsmGQbP0D0nQW91mn7QKCdn6A++YZ4wq
+         eDmnVj5HKRMmJA84wRhlWZ+kyO3OGoyET/C1fiV8r9USxQJApc7HyDLzucs9SEyU+3Es
+         Cbjsl3HYP409BQGVzXhU/gN2n5O8I9ibW7AyQENSqSLrGtmeT+MwbfSgsNyPW/C6DT4u
+         iD/A==
+X-Gm-Message-State: AOAM530CwRGWlywPy7XHjBoXJ0UxwsbQSrsRjLT0nGJ74b1dmFoca6F/
+        9KeOPfwnFLdFvZd2R2NGJy6mRFO5GTyMRP6X
+X-Google-Smtp-Source: ABdhPJz2lCNPeTGvGQbKXTlFxq6XlvSFfdCWk810KcIi5KNn/bTreAfrBgEcoZUozwVnb5fjalsw6A==
+X-Received: by 2002:a2e:bd09:: with SMTP id n9mr9193938ljq.76.1629311688028;
+        Wed, 18 Aug 2021 11:34:48 -0700 (PDT)
+Received: from mail-lj1-f179.google.com (mail-lj1-f179.google.com. [209.85.208.179])
+        by smtp.gmail.com with ESMTPSA id a22sm41245lfl.259.2021.08.18.11.34.47
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 18 Aug 2021 11:34:47 -0700 (PDT)
+Received: by mail-lj1-f179.google.com with SMTP id i28so6803664ljm.7
+        for <linux-unionfs@vger.kernel.org>; Wed, 18 Aug 2021 11:34:47 -0700 (PDT)
+X-Received: by 2002:a2e:944c:: with SMTP id o12mr8897833ljh.411.1629311686896;
+ Wed, 18 Aug 2021 11:34:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
-User-Agent: Mutt/1.5.21 (2010-09-15)
-From:   bfields@fieldses.org (J. Bruce Fields)
+References: <20210818133400.830078-1-mszeredi@redhat.com> <20210818133400.830078-3-mszeredi@redhat.com>
+In-Reply-To: <20210818133400.830078-3-mszeredi@redhat.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Wed, 18 Aug 2021 11:34:31 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wga+3G+mR-UyQ=pwqN2iS04k-O61bssvzyVk+vkdZkd1Q@mail.gmail.com>
+Message-ID: <CAHk-=wga+3G+mR-UyQ=pwqN2iS04k-O61bssvzyVk+vkdZkd1Q@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] ovl: enable RCU'd ->get_acl()
+To:     Miklos Szeredi <mszeredi@redhat.com>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        garyhuang <zjh.20052005@163.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Aug 13, 2021 at 05:49:19PM -0700, Andy Lutomirski wrote:
-> I’ll bite.  How about we attack this in the opposite direction: remove
-> the deny write mechanism entirely.
+On Wed, Aug 18, 2021 at 6:34 AM Miklos Szeredi <mszeredi@redhat.com> wrote:
+>
+>  struct posix_acl *get_cached_acl_rcu(struct inode *inode, int type)
+>  {
+> -       return rcu_dereference(*acl_by_type(inode, type));
+> +       struct posix_acl *acl = rcu_dereference(*acl_by_type(inode, type));
+> +
+> +       if (acl == ACL_DONT_CACHE)
+> +               acl = inode->i_op->get_acl(inode, type, LOOKUP_RCU);
+> +
+> +       return acl;
+>  }
 
-For what it's worth, Windows has open flags that allow denying read or
-write opens.  They also made their way into the NFSv4 protocol, but
-knfsd enforces them only against other NFSv4 clients.  Last I checked,
-Samba attempted to emulate them using flock (and there's a comment to
-that effect on the flock syscall in fs/locks.c).  I don't know what Wine
-does.
+What? No.
 
-Pavel Shilovsky posted flags adding O_DENY* flags years ago:
+You just made get_cached_acl_rcu() return ERR_PTR(-EINVAL) for most filesystems.
 
-	https://lwn.net/Articles/581005/
+So now you've changed the behavior of get_cached_acl_rcu() ENTIRELY.
 
-I keep thinking I should look back at those some day but will probably
-never get to it.
+It used to return either
+ (a) the ACL
+ (b) NULL
+ (c) ACL_DONT_CACHE/ACL_NOT_CACHED
 
-I've no idea how Windows applications use them, though I'm told it's
-common.
+but now you've changed that (c) case to "ACL_NOT_CACHED or random error value".
 
---b.
+You can't just mix these kinds of entirely different return values like that.
+
+So no, this is not at all acceptable.
+
+I would suggest:
+
+ (a) make the first patch actually test explicitly for LOOKUP_RCU, so
+that it's clear to the filesystems what is going on.
+
+     So instead of that pattern of
+
+        if (flags)
+                return ERR_PTR(-EINVAL);
+
+     I'd suggest using
+
+        if (flags & LOOKUP_RCU)
+                return ERR_PTR(-ECHILD);
+
+   so that it actually matches what lookup does for the "I can't do
+this under RCU", and so that any reader of the code understands what
+"flags" is all about.
+
+And then
+
+ (b) make the get_cached_acl_rcu() case handle errors _properly_
+instead of mixing the special ACL cache markers with error returns.
+
+     So instead of
+
+        if (acl == ACL_DONT_CACHE)
+                acl = inode->i_op->get_acl(inode, type, LOOKUP_RCU);
+
+     maybe something more along the lines of
+
+        if (acl == ACL_DONT_CACHE) {
+                struct posix_acl *lookup_acl;
+                lookup_acl = inode->i_op->get_acl(inode, type, LOOKUP_RCU);
+                if (!IS_ERR(lookup_acl))
+                        acl = lookup_acl;
+        }
+
+     or whatever.
+
+I disagree with Al that a "bool" would be better. I think LOOKUP_RCU
+is good documentation, and consistent with lookup, but it really needs
+to be *consistent*.  Thus that
+
+        if (flags & LOOKUP_RCU)
+                return ERR_PTR(-ECHILD);
+
+pattern, not some "test underscibed flags, return -EINVAL" pattern
+that looks entirely nonsensical.
+
+               Linus
