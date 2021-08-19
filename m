@@ -6,37 +6,38 @@ X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
 	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FDD3C4338F
-	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 18:39:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F146AC4320A
+	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 19:18:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCACB61042
-	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 18:39:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CC80E610CF
+	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 19:18:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229907AbhHSSkT (ORCPT
+        id S231741AbhHSTS6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 19 Aug 2021 14:40:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60220 "EHLO mail.kernel.org"
+        Thu, 19 Aug 2021 15:18:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229451AbhHSSkT (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 19 Aug 2021 14:40:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E89B6610A0;
-        Thu, 19 Aug 2021 18:39:37 +0000 (UTC)
+        id S229465AbhHSTS5 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 19 Aug 2021 15:18:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D15E6056B;
+        Thu, 19 Aug 2021 19:18:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629398382;
-        bh=jHO3uuuSNNb+D5SxjZMugPbA3W7D6YrNvZkgLiJJxD0=;
+        s=k20201202; t=1629400701;
+        bh=RucYjuroxGmQst2JfSDCLfzdBGUla3ujUHowg41WDyE=;
         h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=UgRYoPsod6sraSn+DDJ/LiWLR7N5pGbb/T5ZxmvN2JicMBNa6rXd3tiLzqVsW1kBt
-         PdOEHZlwkMqB12V1XvoQq/h9hMg9cKo/sZ8Ym9GYeNBPyGq3wxF2D2UTVf87+DUCrL
-         uIzMHxE/uUlOPPjAjjJvfOuH3+A7T1gelycJiVjD6SEfuFoe48UZE+4tL1YOQm7hyM
-         iwcjrOTBwFAE+nDAHD2JxiA7dfTEecbeCJh4/s1FJjzZuAWDXI/JC1a0z1nH2yDuTW
-         PXOYGqMfbNKogGp4RJjeNMAp17ZwzzflYuKIkTdBrn8HWNmDNTr5+nbJ4bI0aB5N8o
-         SyAj+clyqyilg==
-Message-ID: <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
+        b=CohXTWkzJotiOQmeVmG65jGjNWkRibbytLNpU+bQ91W5vlKqoCp6Mv0QgrfeF+v3X
+         NIkEPiyLxbPyEiIbUjDIfAix7Z8AfRFOp8FzHRzPJ/1ks56kn/ez5YUSaywrIBqu9p
+         ibMFdjvbtfTbgHOOUkf8HON9BkXYFIFjsMXK+3sZln2yD305IUV8ayXQvdW0ViyGV+
+         Knn+U1QyVeDn8xMkbwR6EjWAXOCgI7eoh0WzwAMQzcf6pArOA3bxk5w3kF/2JMsmRW
+         YT/ZZ7iNU1vf/9dmA3tdJzQDyvTdlJiqL+NzekA5CcHK+iopv5wIMajwfE1r7sRcfb
+         MCupGyEyaqTTQ==
+Message-ID: <8ba92aa3e97bfc3df89cd64fffcbc91b640530f1.camel@kernel.org>
 Subject: Re: Removing Mandatory Locks
 From:   Jeff Layton <jlayton@kernel.org>
-To:     "Eric W. Biederman" <ebiederm@xmission.com>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     Andy Lutomirski <luto@kernel.org>,
+To:     Rodrigo Campos <rodrigo@kinvolk.io>,
+        "Eric W. Biederman" <ebiederm@xmission.com>
+Cc:     Matthew Wilcox <willy@infradead.org>,
+        Andy Lutomirski <luto@kernel.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         David Laight <David.Laight@aculab.com>,
         David Hildenbrand <david@redhat.com>,
@@ -97,8 +98,8 @@ Cc:     Andy Lutomirski <luto@kernel.org>,
         Linux-MM <linux-mm@kvack.org>,
         Florian Weimer <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
-Date:   Thu, 19 Aug 2021 14:39:36 -0400
-In-Reply-To: <87k0kkxbjn.fsf_-_@disp2133>
+Date:   Thu, 19 Aug 2021 15:18:15 -0400
+In-Reply-To: <CACaBj2ZgrA2JeeGenXxEf5ha6OYaFrj2=iuVXnQxC=kZLZpjng@mail.gmail.com>
 References: <20210812084348.6521-1-david@redhat.com>
          <87o8a2d0wf.fsf@disp2133>
          <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
@@ -110,6 +111,7 @@ References: <20210812084348.6521-1-david@redhat.com>
          <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
          <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
          <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133>
+         <CACaBj2ZgrA2JeeGenXxEf5ha6OYaFrj2=iuVXnQxC=kZLZpjng@mail.gmail.com>
 Content-Type: text/plain; charset="ISO-8859-15"
 User-Agent: Evolution 3.40.3 (3.40.3-1.fc34) 
 MIME-Version: 1.0
@@ -118,35 +120,32 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 2021-08-17 at 11:48 -0500, Eric W. Biederman wrote:
-> Matthew Wilcox <willy@infradead.org> writes:
-> 
-> > On Fri, Aug 13, 2021 at 05:49:19PM -0700, Andy Lutomirski wrote:
-> > > [0] we have mandatory locks, too. Sigh.
+On Wed, 2021-08-18 at 11:34 +0200, Rodrigo Campos wrote:
+> On Tue, Aug 17, 2021 at 6:49 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
 > > 
-> > I'd love to remove that.  Perhaps we could try persuading more of the
-> > distros to disable the CONFIG option first.
+> > Matthew Wilcox <willy@infradead.org> writes:
+> > 
+> > > On Fri, Aug 13, 2021 at 05:49:19PM -0700, Andy Lutomirski wrote:
+> > > > [0] we have mandatory locks, too. Sigh.
+> > > 
+> > > I'd love to remove that.  Perhaps we could try persuading more of the
+> > > distros to disable the CONFIG option first.
+> > 
+> > Yes.  The support is disabled in RHEL8.
 > 
-> Yes.  The support is disabled in RHEL8.
+> If it helps, it seems to be enabled on the just released debian stable:
+>     $ grep CONFIG_MANDATORY_FILE_LOCKING /boot/config-5.10.0-8-amd64
+>     CONFIG_MANDATORY_FILE_LOCKING=y
 > 
-> Does anyone know the appropriate people to talk to encourage other
-> distro's to encourage them to disable the CONFIG_MANDATORY_FILE_LOCKING?
-> 
-> Either that or we can wait until the code bit-rots, but distro's
-> disabling and removing a feature on their own is the more responsible
-> path.
-> 
-> Given how many hoops need to be jumped through to use mandatory file
-> locking once it is enabled, and the fact it has never worked in
-> containers makes me suspect there are no more users.
-> 
+> Also the new 5.13 kernel in experimental has it too:
+>     $ grep CONFIG_MANDATORY_FILE_LOCKING /boot/config-5.13.0-trunk-amd64
+>     CONFIG_MANDATORY_FILE_LOCKING=y
 
-I'm all for ripping it out too. It's an insane interface anyway.
+A pity. It would have been nice if they had turned it off a while ago. I
+guess I should have done more outreach at the time. Sigh...
 
-I've not heard a single complaint about this being turned off in
-fedora/rhel or any other distro that has this disabled.
-
-Cheers,
+In any case, I'm still inclined toward just ripping it out at this
+point. It's hard to believe that anyone really uses it.
 -- 
 Jeff Layton <jlayton@kernel.org>
 
