@@ -2,39 +2,80 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91D11C432BE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 21:43:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C5AC4320A
+	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 22:33:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 777256108F
-	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 21:43:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BEE7B6109E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 22:33:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232769AbhHSVnz (ORCPT
+        id S236175AbhHSWdh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 19 Aug 2021 17:43:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57308 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229497AbhHSVny (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 19 Aug 2021 17:43:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B86860EB5;
-        Thu, 19 Aug 2021 21:43:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629409397;
-        bh=Qis+W6zkQTZYe1xg6ZIKtAmEgvOKVtPfN5JHB97wMwQ=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=YTUn0yw6nUpw51PPvGczp49OOM+H1/c0m9xuwthLJuMkJqgdjYyHhxg8yOVhLoMhp
-         VQ+kOA2nK3nhlvsSZkMrnAmapLGmZO5D9b5U+9pjr0wEXPLMr89NHRfDOeTICElwOR
-         UDLw9ONtcKXd+UOZ+28FEdQmSXsWLjD6eQtInZHGtle5q5vbJScMkDjxRegKOnVTsA
-         DzTXn6ZIpdre07HZcF0GF/Cg/1+MxL9XJ4erYKgPyBE7EJV0zvxUGYBus1fbx8iV+b
-         29BaTatgVsRYZK0KFkT7pKy3feYPjYRPQBD3IfHS/hePE0iNlBCAfro/UuzVtKP44L
-         vA+TnCI/ui3iA==
-Message-ID: <639d90212662cf5cdf80c71bbfec95907c70114a.camel@kernel.org>
+        Thu, 19 Aug 2021 18:33:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43146 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235854AbhHSWdh (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 19 Aug 2021 18:33:37 -0400
+Received: from mail-ej1-x631.google.com (mail-ej1-x631.google.com [IPv6:2a00:1450:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6547BC061575
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Aug 2021 15:33:00 -0700 (PDT)
+Received: by mail-ej1-x631.google.com with SMTP id e21so83627ejz.12
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Aug 2021 15:33:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=d7xFbb+3EvqQGpxyml4JHHWLdIJirfcFBHOQItDEp7E=;
+        b=WJcRZ5ECnMTu5Q30pfx/0sVzarr1xcPILRNADM84n9O0Z5vxSCIEUyI67jzVtA2erg
+         2u4KECFy2YAYP9QfFCE1KRjE+0ldOJD2qybITXQz3MnjYBy7U8BGR/S3O2zpZU3ODREn
+         vt5dXowvmoFxXKfn8qNFotVfe953q+8cvuBsw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=d7xFbb+3EvqQGpxyml4JHHWLdIJirfcFBHOQItDEp7E=;
+        b=oxiU0RFbb9+WlEfiRWoOvMDo87UeR/bhlbJDwpJ4yQYrk5BKbwyI2bQjeKccsRPS21
+         5mhq805VieY/HgTs2C2TD45dlcf8b6oGvlAikBeNp+x7s82LYPliyyd/jjB7T5Vv+XsO
+         dA9Xuaqe+cQcwMxCEEVETCGQwGcJaxCV9wTtcV52Zr4pZyp3jZg6pOTvEOjytWMgHNiQ
+         xqIwif/AWzWnOGAtuDdkd7SqIuQ5VvhpAvkoQxQtsHEhKc2pNq4Q1y55ZPhWcscVw7xl
+         o86xkYF94awIwsnFgvexqM17UNaBU23uhUsxPoi0nTTn+ZCbF8kQwQBthDlM0rY4iD5O
+         KlOA==
+X-Gm-Message-State: AOAM532YIifRrSpVfhvNfYLei2pfigErpLiErgi3mm1atZc/wnxbl3wy
+        zMhHk2zOd2bH0XVuJgYGfJwuDZJ4fBqt5AV7B2o=
+X-Google-Smtp-Source: ABdhPJwFsef6QT5x59Azsu9VhWfsei1BpOAz4xh0faXNIrZVY/dSKkDYxm3nkmWVKUfuWCt9TG2K3Q==
+X-Received: by 2002:a17:907:101a:: with SMTP id ox26mr18131457ejb.282.1629412379023;
+        Thu, 19 Aug 2021 15:32:59 -0700 (PDT)
+Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com. [209.85.208.53])
+        by smtp.gmail.com with ESMTPSA id q6sm1844381ejm.106.2021.08.19.15.32.58
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 19 Aug 2021 15:32:58 -0700 (PDT)
+Received: by mail-ed1-f53.google.com with SMTP id d6so11081119edt.7
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Aug 2021 15:32:58 -0700 (PDT)
+X-Received: by 2002:a2e:557:: with SMTP id 84mr13704523ljf.507.1629412367774;
+ Thu, 19 Aug 2021 15:32:47 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
+ <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com> <87lf56bllc.fsf@disp2133>
+ <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
+ <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+ <87h7ft2j68.fsf@disp2133> <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
+ <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com> <YRcyqbpVqwwq3P6n@casper.infradead.org>
+ <87k0kkxbjn.fsf_-_@disp2133> <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
+ <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
+ <a1385746582a675c410aca4eb4947320faec4821.camel@kernel.org>
+ <CAHk-=wgD-SNxB=2iCurEoP=RjrciRgLtXZ7R_DejK+mXF2etfg@mail.gmail.com> <639d90212662cf5cdf80c71bbfec95907c70114a.camel@kernel.org>
+In-Reply-To: <639d90212662cf5cdf80c71bbfec95907c70114a.camel@kernel.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 19 Aug 2021 15:32:31 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgHbYmUZvFkthGJ6zZx+ofTiiTRxPai5mPkmbtE=6JbaQ@mail.gmail.com>
+Message-ID: <CAHk-=wgHbYmUZvFkthGJ6zZx+ofTiiTRxPai5mPkmbtE=6JbaQ@mail.gmail.com>
 Subject: Re: Removing Mandatory Locks
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
+To:     Jeff Layton <jlayton@kernel.org>
 Cc:     "Eric W. Biederman" <ebiederm@xmission.com>,
         Matthew Wilcox <willy@infradead.org>,
         Andy Lutomirski <luto@kernel.org>,
@@ -88,82 +129,35 @@ Cc:     "Eric W. Biederman" <ebiederm@xmission.com>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        Christian =?ISO-8859-1?Q?K=F6nig?= 
-        <ckoenig.leichtzumerken@gmail.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
         "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
         "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
         Linux-MM <linux-mm@kvack.org>,
         Florian Weimer <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
-Date:   Thu, 19 Aug 2021 17:43:12 -0400
-In-Reply-To: <CAHk-=wgD-SNxB=2iCurEoP=RjrciRgLtXZ7R_DejK+mXF2etfg@mail.gmail.com>
-References: <20210812084348.6521-1-david@redhat.com>
-         <87o8a2d0wf.fsf@disp2133>
-         <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
-         <87lf56bllc.fsf@disp2133>
-         <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
-         <87eeay8pqx.fsf@disp2133>
-         <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
-         <87h7ft2j68.fsf@disp2133>
-         <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
-         <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
-         <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133>
-         <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
-         <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
-         <a1385746582a675c410aca4eb4947320faec4821.camel@kernel.org>
-         <CAHk-=wgD-SNxB=2iCurEoP=RjrciRgLtXZ7R_DejK+mXF2etfg@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-User-Agent: Evolution 3.40.3 (3.40.3-1.fc34) 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2021-08-19 at 13:31 -0700, Linus Torvalds wrote:
-> On Thu, Aug 19, 2021 at 1:18 PM Jeff Layton <jlayton@kernel.org> wrote:
-> > 
-> > Now that I think about it a little more, I actually did get one
-> > complaint a few years ago:
-> > 
-> > Someone had upgraded from an earlier distro that supported the -o mand
-> > mount option to a later one that had disabled it, and they had an (old)
-> > fstab entry that specified it.
-> 
-> Hmm. We might be able to turn the "return -EINVAL" into just a warning.
-> 
-> Yes, yes, currently if you turn off CONFIG_MANDATORY_FILE_LOCKING, we
-> already do that
-> 
->         VFS: "mand" mount option not supported
-> 
-> warning print, but then we fail the mount.
-> 
-> If CONFIG_MANDATORY_FILE_LOCKING goes away entirely, it might make
-> sense to turn that warning into something bigger, but then let the
-> mount continue - since now that "mand" flag would be purely a legacy
-> thing.
-> 
-> And yes, if we do that, we'd want the warning to be a big ugly thing,
-> just to make people very aware of it happening. Right now it's a
-> one-liner that is easy to miss, and the "oh, the mount failed" is the
-> thing that hopefully informs people about the fact that they need to
-> enable CONFIG_MANDATORY_FILE_LOCKING.
-> 
-> The logic being that if you can no longer enable mandatory locking in
-> the kernel, the current hard failure seems overly aggressive (and
-> might cause boot failures and inability to fix/report things when it
-> possibly keeps you from using the system at all).
-> 
+On Thu, Aug 19, 2021 at 2:43 PM Jeff Layton <jlayton@kernel.org> wrote:
+>
+> What sort of big, ugly warning did you have in mind?
 
-What sort of big, ugly warning did you have in mind?
+I originally thought WARN_ON_ONCE() just to get the distro automatic
+error handling involved, but it would probably be a big problem for
+the people who end up having panic-on-warn or something.
 
-I'm fine with that general approach though and will plan to roll that
-change into the patch I'm testing.
+So probably just a "make it a big box" thing that stands out, kind of
+what lockdep etc does with
 
-Thanks,
--- 
-Jeff Layton <jlayton@kernel.org>
+        pr_warn("======...====\n");
 
+around the messages..
+
+I don't know if distros have some pattern we could use that would end
+up being something that gets reported to the user?
+
+              Linus
