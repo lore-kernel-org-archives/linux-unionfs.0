@@ -2,43 +2,80 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F146AC4320A
-	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 19:18:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FEB1C4338F
+	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 19:21:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC80E610CF
-	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 19:18:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFC0A60F39
+	for <linux-unionfs@archiver.kernel.org>; Thu, 19 Aug 2021 19:21:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231741AbhHSTS6 (ORCPT
+        id S234529AbhHSTWZ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 19 Aug 2021 15:18:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55934 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229465AbhHSTS5 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 19 Aug 2021 15:18:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D15E6056B;
-        Thu, 19 Aug 2021 19:18:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1629400701;
-        bh=RucYjuroxGmQst2JfSDCLfzdBGUla3ujUHowg41WDyE=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=CohXTWkzJotiOQmeVmG65jGjNWkRibbytLNpU+bQ91W5vlKqoCp6Mv0QgrfeF+v3X
-         NIkEPiyLxbPyEiIbUjDIfAix7Z8AfRFOp8FzHRzPJ/1ks56kn/ez5YUSaywrIBqu9p
-         ibMFdjvbtfTbgHOOUkf8HON9BkXYFIFjsMXK+3sZln2yD305IUV8ayXQvdW0ViyGV+
-         Knn+U1QyVeDn8xMkbwR6EjWAXOCgI7eoh0WzwAMQzcf6pArOA3bxk5w3kF/2JMsmRW
-         YT/ZZ7iNU1vf/9dmA3tdJzQDyvTdlJiqL+NzekA5CcHK+iopv5wIMajwfE1r7sRcfb
-         MCupGyEyaqTTQ==
-Message-ID: <8ba92aa3e97bfc3df89cd64fffcbc91b640530f1.camel@kernel.org>
+        Thu, 19 Aug 2021 15:22:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55646 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233662AbhHSTWZ (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 19 Aug 2021 15:22:25 -0400
+Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 994E7C061575
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Aug 2021 12:21:48 -0700 (PDT)
+Received: by mail-ej1-x62b.google.com with SMTP id gr13so15034136ejb.6
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Aug 2021 12:21:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=3vr2D0SIS0akc317M8AmB5tdttHbmb/GSWHt0r9JCvY=;
+        b=Fi8Vc+JQZqNTkTyv3PJfMFM6Rl3+unfpZvxu37FIdnrCAKsddyUIQiihvHMsIlXmmG
+         jNbLyQr3wk60i2yKJAYhtkAeCvXwf1kN2XLuYSaEIndqSsXppyqYoBHCIJS+KCfm+Uht
+         PTLXKfh+AnNuqTz97gUxnmE0uYiHymupjQB9U=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=3vr2D0SIS0akc317M8AmB5tdttHbmb/GSWHt0r9JCvY=;
+        b=SbF3QhNGQirmEr0Bi4LC7e/c5BK/sSZbQxLYanMJfT3LletHCzGt6Yywl5AyKjmD2Q
+         shsstDN9i1nASbwuSOwWlRTnx53jMLs6ITtyra3qOCpwEctX7Bo0VF0WwwYSmYMa/mGX
+         1lvz/0YDjr/h6eO4HigzvYPDvISXnarRX1MGsOYcud7BsntwuGHkgToN+2jIN4XG04VZ
+         MvaIHnlNS8ZS3ky7ykn7o383YSg6jhUxWG2MX7xLYpgxmAmfh02y+HKmHa2FYA1Orcc2
+         8fNdVOK0sMOlqjjMXBClhH+J+SteJIrbc9YYPRwgJZuMoMFQ0p22v5byrs5yjSn/VpUm
+         bVQA==
+X-Gm-Message-State: AOAM533kBvpK+OFGLeqnLbb7YuFsMNh8Tu4mDjNyvqGCmrOUSZGSfIc0
+        jDKFVltuZ1BBNjTAJyqNLp3IX1TETTdB3jGjHz0=
+X-Google-Smtp-Source: ABdhPJy6q/pdHETMXjSBHiZ+ef7fqtp5YJ+tL2vMISUHqGSRkccGZJdURAlbvpcFqT2vRdoIbwVE8Q==
+X-Received: by 2002:a17:906:bc81:: with SMTP id lv1mr17193395ejb.393.1629400907094;
+        Thu, 19 Aug 2021 12:21:47 -0700 (PDT)
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com. [209.85.218.54])
+        by smtp.gmail.com with ESMTPSA id g9sm1674866ejo.60.2021.08.19.12.21.46
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 19 Aug 2021 12:21:46 -0700 (PDT)
+Received: by mail-ej1-f54.google.com with SMTP id bq25so14963072ejb.11
+        for <linux-unionfs@vger.kernel.org>; Thu, 19 Aug 2021 12:21:46 -0700 (PDT)
+X-Received: by 2002:a19:4f1a:: with SMTP id d26mr11307760lfb.377.1629400524676;
+ Thu, 19 Aug 2021 12:15:24 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
+ <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com> <87lf56bllc.fsf@disp2133>
+ <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
+ <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+ <87h7ft2j68.fsf@disp2133> <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
+ <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com> <YRcyqbpVqwwq3P6n@casper.infradead.org>
+ <87k0kkxbjn.fsf_-_@disp2133> <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
+In-Reply-To: <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 19 Aug 2021 12:15:08 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
+Message-ID: <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
 Subject: Re: Removing Mandatory Locks
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Rodrigo Campos <rodrigo@kinvolk.io>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Matthew Wilcox <willy@infradead.org>,
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     "Eric W. Biederman" <ebiederm@xmission.com>,
+        Matthew Wilcox <willy@infradead.org>,
         Andy Lutomirski <luto@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
         David Laight <David.Laight@aculab.com>,
         David Hildenbrand <david@redhat.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -89,63 +126,35 @@ Cc:     Matthew Wilcox <willy@infradead.org>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        Christian =?ISO-8859-1?Q?K=F6nig?= 
-        <ckoenig.leichtzumerken@gmail.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <ckoenig.leichtzumerken@gmail.com>,
         "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
         "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
         Linux-MM <linux-mm@kvack.org>,
         Florian Weimer <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
-Date:   Thu, 19 Aug 2021 15:18:15 -0400
-In-Reply-To: <CACaBj2ZgrA2JeeGenXxEf5ha6OYaFrj2=iuVXnQxC=kZLZpjng@mail.gmail.com>
-References: <20210812084348.6521-1-david@redhat.com>
-         <87o8a2d0wf.fsf@disp2133>
-         <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
-         <87lf56bllc.fsf@disp2133>
-         <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
-         <87eeay8pqx.fsf@disp2133>
-         <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
-         <87h7ft2j68.fsf@disp2133>
-         <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
-         <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
-         <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133>
-         <CACaBj2ZgrA2JeeGenXxEf5ha6OYaFrj2=iuVXnQxC=kZLZpjng@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-User-Agent: Evolution 3.40.3 (3.40.3-1.fc34) 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 2021-08-18 at 11:34 +0200, Rodrigo Campos wrote:
-> On Tue, Aug 17, 2021 at 6:49 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
-> > 
-> > Matthew Wilcox <willy@infradead.org> writes:
-> > 
-> > > On Fri, Aug 13, 2021 at 05:49:19PM -0700, Andy Lutomirski wrote:
-> > > > [0] we have mandatory locks, too. Sigh.
-> > > 
-> > > I'd love to remove that.  Perhaps we could try persuading more of the
-> > > distros to disable the CONFIG option first.
-> > 
-> > Yes.  The support is disabled in RHEL8.
-> 
-> If it helps, it seems to be enabled on the just released debian stable:
->     $ grep CONFIG_MANDATORY_FILE_LOCKING /boot/config-5.10.0-8-amd64
->     CONFIG_MANDATORY_FILE_LOCKING=y
-> 
-> Also the new 5.13 kernel in experimental has it too:
->     $ grep CONFIG_MANDATORY_FILE_LOCKING /boot/config-5.13.0-trunk-amd64
->     CONFIG_MANDATORY_FILE_LOCKING=y
+On Thu, Aug 19, 2021 at 11:39 AM Jeff Layton <jlayton@kernel.org> wrote:
+>
+> I'm all for ripping it out too. It's an insane interface anyway.
+>
+> I've not heard a single complaint about this being turned off in
+> fedora/rhel or any other distro that has this disabled.
 
-A pity. It would have been nice if they had turned it off a while ago. I
-guess I should have done more outreach at the time. Sigh...
+I'd love to remove it, we could absolutely test it. The fact that
+several major distros have it disabled makes me think it's fine.
 
-In any case, I'm still inclined toward just ripping it out at this
-point. It's hard to believe that anyone really uses it.
--- 
-Jeff Layton <jlayton@kernel.org>
+But as always, it would be good to check Android.
 
+The desktop distros tend to have the same tools and programs, so if
+Fedora and RHEL haven't needed it for years, then it's likely stale in
+Debian too (despite being enabled).
+
+But Android tends to be very different. Does anybody know?
+
+            Linus
