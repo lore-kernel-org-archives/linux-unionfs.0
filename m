@@ -2,155 +2,223 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57717C4338F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 08:30:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D8D2C4338F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 08:46:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39BA96113B
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 08:30:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28D1C610F9
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 08:46:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231841AbhHTIbV (ORCPT
+        id S231963AbhHTIr3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 20 Aug 2021 04:31:21 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.85.151]:50018 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230490AbhHTIbV (ORCPT
+        Fri, 20 Aug 2021 04:47:29 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:60970 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230418AbhHTIr2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 20 Aug 2021 04:31:21 -0400
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-274-2Q2jLTjjOQuEz4g5fh9Tsg-1; Fri, 20 Aug 2021 09:30:42 +0100
-X-MC-Unique: 2Q2jLTjjOQuEz4g5fh9Tsg-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.23; Fri, 20 Aug 2021 09:30:39 +0100
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.023; Fri, 20 Aug 2021 09:30:39 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Linus Torvalds' <torvalds@linux-foundation.org>,
-        Jeff Layton <jlayton@kernel.org>
-CC:     "Eric W. Biederman" <ebiederm@xmission.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Fri, 20 Aug 2021 04:47:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1629449210;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=2HhD3HCRTFvEVqk5yap83SXC5Y82U0v5dcvw39zc4Z4=;
+        b=YLxiu0lCFQYyMP91p9KefzStodfvkg5GDrKgEpQMfpjqVf982M+l6Y7dVmmHQ3PfKe0vrU
+        hcYdpLr1tP3YKcelZZi/w4wizftrP3KiK8LRCCJhCY0jUgacFrqJIPChccDGGaPRWXmcJX
+        cRTtoocizyOEvC9lg8+JH8EdbD0IqjQ=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-486-DhQxoJ9WNCegNRd6ZSGSuQ-1; Fri, 20 Aug 2021 04:46:49 -0400
+X-MC-Unique: DhQxoJ9WNCegNRd6ZSGSuQ-1
+Received: by mail-wm1-f72.google.com with SMTP id r4-20020a1c4404000000b002e728beb9fbso328135wma.9
+        for <linux-unionfs@vger.kernel.org>; Fri, 20 Aug 2021 01:46:49 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:to:cc:references:from:organization:subject
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=2HhD3HCRTFvEVqk5yap83SXC5Y82U0v5dcvw39zc4Z4=;
+        b=Irc0o4WIF7lvM2sP0559zbcXJ1i+Y51acAmtmAprJ9pjtReDhpnTgAndQFyxgSIme0
+         inwScFrQopAYAApC4I7PVRJRdvbXFkkogDDEnmmvCimaaA1e51dJHhoTr0Z9/hPpOpLC
+         z1E1Jy+FyjUAJrP4IuzWcDY0cMfKcAimDdHIyEdrAYhrB8cYq/0/erG2pRL0WfZ/ACEl
+         G1cq8FYP7Uicwmiuzy6N9TqriElG/SQQsk41mrqTDY3uxfcTEcnLVsoasgLUMSy0+ofE
+         KWPM97aOZtxLFQfJlyQotLtvjBfb1/RgibpMhjZcpPQYsq3SL5Vjx56RqUOmYF0/ZHkW
+         C5Sw==
+X-Gm-Message-State: AOAM532K3AuW916uEys8klgixWNsQqYXhhil8wzBwBFFR318W67shg/3
+        QPgcyb/kw1J/NZYLJq6QbTGJMT9wX1/mG4nAG3QAX2nBBqpy07aOE3KRjSxpvzrndx5T13+jyyh
+        KG33OS/snhed/fU+hURJ+0VdTcA==
+X-Received: by 2002:a1c:3b09:: with SMTP id i9mr2685706wma.62.1629449208316;
+        Fri, 20 Aug 2021 01:46:48 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJytHgubr94As8EiptaA6/T3rm3zShRCHuT1SQpKBWMx/QJTseDVs/BhmrdZPds05dmrZoxc2A==
+X-Received: by 2002:a1c:3b09:: with SMTP id i9mr2685692wma.62.1629449208132;
+        Fri, 20 Aug 2021 01:46:48 -0700 (PDT)
+Received: from ?IPv6:2003:d8:2f0a:7f00:fad7:3bc9:69d:31f? (p200300d82f0a7f00fad73bc9069d031f.dip0.t-ipconnect.de. [2003:d8:2f0a:7f00:fad7:3bc9:69d:31f])
+        by smtp.gmail.com with ESMTPSA id l9sm5187699wrt.95.2021.08.20.01.46.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 20 Aug 2021 01:46:47 -0700 (PDT)
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         "H. Peter Anvin" <hpa@zytor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
         Alexey Dobriyan <adobriyan@gmail.com>,
-        "Steven Rostedt" <rostedt@goodmis.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Peter Zijlstra <peterz@infradead.org>,
         Arnaldo Carvalho de Melo <acme@kernel.org>,
-        "Mark Rutland" <mark.rutland@arm.com>,
+        Mark Rutland <mark.rutland@arm.com>,
         Alexander Shishkin <alexander.shishkin@linux.intel.com>,
         Jiri Olsa <jolsa@redhat.com>,
-        "Namhyung Kim" <namhyung@kernel.org>,
+        Namhyung Kim <namhyung@kernel.org>,
         Petr Mladek <pmladek@suse.com>,
-        "Sergey Senozhatsky" <sergey.senozhatsky@gmail.com>,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         Kees Cook <keescook@chromium.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
         Greg Ungerer <gerg@linux-m68k.org>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
-        "Mike Rapoport" <rppt@kernel.org>,
+        Mike Rapoport <rppt@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>,
-        "Vincenzo Frascino" <vincenzo.frascino@arm.com>,
+        Vincenzo Frascino <vincenzo.frascino@arm.com>,
         Chinwen Chang <chinwen.chang@mediatek.com>,
-        Michel Lespinasse <walken@google.com>,
-        "Catalin Marinas" <catalin.marinas@arm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
         Huang Ying <ying.huang@intel.com>,
-        "Jann Horn" <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
+        Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
         Kevin Brodsky <Kevin.Brodsky@arm.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        "Shawn Anastasio" <shawn@anastas.io>,
+        Shawn Anastasio <shawn@anastas.io>,
         Steven Price <steven.price@arm.com>,
-        "Nicholas Piggin" <npiggin@gmail.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
         Christian Brauner <christian.brauner@ubuntu.com>,
         Jens Axboe <axboe@kernel.dk>,
-        "Gabriel Krisman Bertazi" <krisman@collabora.com>,
+        Gabriel Krisman Bertazi <krisman@collabora.com>,
         Peter Xu <peterx@redhat.com>,
-        "Suren Baghdasaryan" <surenb@google.com>,
+        Suren Baghdasaryan <surenb@google.com>,
         Shakeel Butt <shakeelb@google.com>,
-        "Marco Elver" <elver@google.com>,
+        Marco Elver <elver@google.com>,
         Daniel Jordan <daniel.m.jordan@oracle.com>,
         Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
         Thomas Cedeno <thomascedeno@google.com>,
-        Collin Fijalkovich <cfijalkovich@google.com>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= 
-        <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>,
+        Florian Weimer <fweimer@redhat.com>,
+        David Laight <David.Laight@aculab.com>,
+        linux-unionfs@vger.kernel.org,
         Linux API <linux-api@vger.kernel.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        "Florian Weimer" <fweimer@redhat.com>,
-        Michael Kerrisk <mtk.manpages@gmail.com>
-Subject: RE: Removing Mandatory Locks
-Thread-Topic: Removing Mandatory Locks
-Thread-Index: AQHXlUolKQrpfCPkWUimXalbi9gnr6t8D3Ag
-Date:   Fri, 20 Aug 2021 08:30:39 +0000
-Message-ID: <ec075ee5764f4c7f9dd630090fb01f70@AcuMS.aculab.com>
-References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
- <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
- <87lf56bllc.fsf@disp2133>
- <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
- <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
- <87h7ft2j68.fsf@disp2133>
- <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
- <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
- <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133>
- <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
- <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
- <a1385746582a675c410aca4eb4947320faec4821.camel@kernel.org>
- <CAHk-=wgD-SNxB=2iCurEoP=RjrciRgLtXZ7R_DejK+mXF2etfg@mail.gmail.com>
- <639d90212662cf5cdf80c71bbfec95907c70114a.camel@kernel.org>
- <CAHk-=wgHbYmUZvFkthGJ6zZx+ofTiiTRxPai5mPkmbtE=6JbaQ@mail.gmail.com>
-In-Reply-To: <CAHk-=wgHbYmUZvFkthGJ6zZx+ofTiiTRxPai5mPkmbtE=6JbaQ@mail.gmail.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        the arch/x86 maintainers <x86@kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>
+References: <20210816194840.42769-1-david@redhat.com>
+ <20210816194840.42769-3-david@redhat.com>
+ <CAHk-=wgsLtJ7=+NGGSEbTw9XBh7qyf4Py9-jBdajGnPTxU1hZg@mail.gmail.com>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+Subject: Re: [PATCH v2 2/7] kernel/fork: factor out replacing the current MM
+ exe_file
+Message-ID: <d90a7dfd-11c8-c4e1-1c59-91aad5a7f08e@redhat.com>
+Date:   Fri, 20 Aug 2021 10:46:45 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
+In-Reply-To: <CAHk-=wgsLtJ7=+NGGSEbTw9XBh7qyf4Py9-jBdajGnPTxU1hZg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-RnJvbTogTGludXMgVG9ydmFsZHMNCj4gU2VudDogMTkgQXVndXN0IDIwMjEgMjM6MzMNCj4gDQo+
-IE9uIFRodSwgQXVnIDE5LCAyMDIxIGF0IDI6NDMgUE0gSmVmZiBMYXl0b24gPGpsYXl0b25Aa2Vy
-bmVsLm9yZz4gd3JvdGU6DQo+ID4NCj4gPiBXaGF0IHNvcnQgb2YgYmlnLCB1Z2x5IHdhcm5pbmcg
-ZGlkIHlvdSBoYXZlIGluIG1pbmQ/DQo+IA0KPiBJIG9yaWdpbmFsbHkgdGhvdWdodCBXQVJOX09O
-X09OQ0UoKSBqdXN0IHRvIGdldCB0aGUgZGlzdHJvIGF1dG9tYXRpYw0KPiBlcnJvciBoYW5kbGlu
-ZyBpbnZvbHZlZCwgYnV0IGl0IHdvdWxkIHByb2JhYmx5IGJlIGEgYmlnIHByb2JsZW0gZm9yDQo+
-IHRoZSBwZW9wbGUgd2hvIGVuZCB1cCBoYXZpbmcgcGFuaWMtb24td2FybiBvciBzb21ldGhpbmcu
-DQoNCkV2ZW4gcGFuaWMtb24tb29wcyBpcyBhIFBJVEEuDQpUb29rIHVzIHdlZWtzIHRvIHJlYWxp
-c2UgdGhhdCBhIGN1c3RvbWVyIHN5c3RlbSB0aGF0IHdhcyByYW5kb21seQ0KcmVib290aW5nIHdh
-cyAnanVzdCcgaGF2aW5nIGEgYm9yaW5nIE5VTEwgcG9pbnRlciBhY2Nlc3MuDQogDQo+IFNvIHBy
-b2JhYmx5IGp1c3QgYSAibWFrZSBpdCBhIGJpZyBib3giIHRoaW5nIHRoYXQgc3RhbmRzIG91dCwg
-a2luZCBvZg0KPiB3aGF0IGxvY2tkZXAgZXRjIGRvZXMgd2l0aA0KPiANCj4gICAgICAgICBwcl93
-YXJuKCI9PT09PT0uLi49PT09XG4iKTsNCj4gDQo+IGFyb3VuZCB0aGUgbWVzc2FnZXMuLg0KPiAN
-Cj4gSSBkb24ndCBrbm93IGlmIGRpc3Ryb3MgaGF2ZSBzb21lIHBhdHRlcm4gd2UgY291bGQgdXNl
-IHRoYXQgd291bGQgZW5kDQo+IHVwIGJlaW5nIHNvbWV0aGluZyB0aGF0IGdldHMgcmVwb3J0ZWQg
-dG8gdGhlIHVzZXI/DQoNCldpbGwgdXNlcnMgZXZlbiBzZWUgaXQ/DQpBIGxvdCBvZiByZWNlbnQg
-ZGlzdHJvIGluc3RhbGxzIHRyeSB2ZXJ5IGhhcmQgdG8gaGlkZSBhbGwgdGhlIGtlcm5lbA0KbWVz
-c2FnZXMuDQpPVE9IIEkgZ3Vlc3MgJy1vIG1hbmQnIGlzIHVubGlrZWx5IHRvIGJlIHNldCBvbiBh
-bnkgb2YgdGhvc2Ugc3lzdGVtcy4NCg0KCURhdmlkDQoNCi0NClJlZ2lzdGVyZWQgQWRkcmVzcyBM
-YWtlc2lkZSwgQnJhbWxleSBSb2FkLCBNb3VudCBGYXJtLCBNaWx0b24gS2V5bmVzLCBNSzEgMVBU
-LCBVSw0KUmVnaXN0cmF0aW9uIE5vOiAxMzk3Mzg2IChXYWxlcykNCg==
+On 19.08.21 22:51, Linus Torvalds wrote:
+> So I like this series.
+> 
+> However, logically, I think this part in replace_mm_exe_file() no
+> longer makes sense:
+> 
+> On Mon, Aug 16, 2021 at 12:50 PM David Hildenbrand <david@redhat.com> wrote:
+>>
+>> +       /* Forbid mm->exe_file change if old file still mapped. */
+>> +       old_exe_file = get_mm_exe_file(mm);
+>> +       if (old_exe_file) {
+>> +               mmap_read_lock(mm);
+>> +               for (vma = mm->mmap; vma && !ret; vma = vma->vm_next) {
+>> +                       if (!vma->vm_file)
+>> +                               continue;
+>> +                       if (path_equal(&vma->vm_file->f_path,
+>> +                                      &old_exe_file->f_path))
+>> +                               ret = -EBUSY;
+>> +               }
+>> +               mmap_read_unlock(mm);
+>> +               fput(old_exe_file);
+>> +               if (ret)
+>> +                       return ret;
+>> +       }
+> 
+> and should just be removed.
+> 
+> NOTE! I think it makes sense within the context of this patch (where
+> you just move code around), but that it should then be removed in the
+> next patch that does that "always deny write access to current MM
+> exe_file" thing.
+> 
+> I just quoted it in the context of this patch, since the next patch
+> doesn't actually show this code any more.
+> 
+> In the *old* model - where the ETXTBUSY was about the mmap() of the
+> file - the above tests make sense.
+> 
+> But in the new model, walking the mappings just doesn't seem to be a
+> sensible operation any more. The mappings simply aren't what ETXTBUSY
+> is about in the new world order, and so doing that mapping walk seems
+> nonsensical.
+> 
+> Hmm?
+
+I think this is somewhat another kind of "stop user space trying
+to do stupid things" thingy, not necessarily glued to ETXTBUSY:
+don't allow replacing exe_file if that very file is still mapped
+and consequently eventually still in use by the application.
+
+I don't think it necessarily has many things to do with ETXTBUSY:
+we only check if there is a VMA mapping that file, not that it's
+a VM_DENYWRITE mapping.
+
+That code originates from
+
+commit 4229fb1dc6843c49a14bb098719f8a696cdc44f8
+Author: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Date:   Wed Jul 11 14:02:11 2012 -0700
+
+     c/r: prctl: less paranoid prctl_set_mm_exe_file()
+
+     "no other files mapped" requirement from my previous patch (c/r: prctl:
+     update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal) is too
+     paranoid, it forbids operation even if there mapped one shared-anon vma.
+     
+     Let's check that current mm->exe_file already unmapped, in this case
+     exe_file symlink already outdated and its changing is reasonable.
+
+
+The statement "exe_file symlink already outdated and its
+changing is reasonable" somewhat makes sense.
+
+
+Long story short, I think this check somehow makes a bit of sense, but
+we wouldn't lose too much if we drop it -- just another sanity check.
+
+Your call :)
+
+-- 
+Thanks,
+
+David / dhildenb
 
