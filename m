@@ -2,45 +2,46 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 889FBC4320E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 13:43:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98419C4338F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 14:36:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F04761130
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 13:43:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83AEB610FF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 14:36:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240784AbhHTNnz (ORCPT
+        id S231706AbhHTOhK (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 20 Aug 2021 09:43:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57286 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229829AbhHTNnv (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 20 Aug 2021 09:43:51 -0400
-Received: from oasis.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 1D120610FF;
-        Fri, 20 Aug 2021 13:43:08 +0000 (UTC)
-Date:   Fri, 20 Aug 2021 09:43:01 -0400
-From:   Steven Rostedt <rostedt@goodmis.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Jeff Layton <jlayton@kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        David Laight <David.Laight@aculab.com>,
-        David Hildenbrand <david@redhat.com>,
+        Fri, 20 Aug 2021 10:37:10 -0400
+Received: from out01.mta.xmission.com ([166.70.13.231]:44284 "EHLO
+        out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240820AbhHTOhJ (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 20 Aug 2021 10:37:09 -0400
+Received: from in02.mta.xmission.com ([166.70.13.52]:51336)
+        by out01.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1mH5d9-0030Xa-2U; Fri, 20 Aug 2021 08:36:23 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95]:50936 helo=email.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1mH5d7-00E1Uf-NO; Fri, 20 Aug 2021 08:36:22 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     David Hildenbrand <david@redhat.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         "H. Peter Anvin" <hpa@zytor.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
         Alexey Dobriyan <adobriyan@gmail.com>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Peter Zijlstra <peterz@infradead.org>,
         Arnaldo Carvalho de Melo <acme@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
         Alexander Shishkin <alexander.shishkin@linux.intel.com>,
@@ -57,8 +58,8 @@ Cc:     Jeff Layton <jlayton@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>,
         Vincenzo Frascino <vincenzo.frascino@arm.com>,
         Chinwen Chang <chinwen.chang@mediatek.com>,
-        Michel Lespinasse <walken@google.com>,
         Catalin Marinas <catalin.marinas@arm.com>,
+        "Matthew Wilcox \(Oracle\)" <willy@infradead.org>,
         Huang Ying <ying.huang@intel.com>,
         Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
         Kevin Brodsky <Kevin.Brodsky@arm.com>,
@@ -76,83 +77,131 @@ Cc:     Jeff Layton <jlayton@kernel.org>,
         Daniel Jordan <daniel.m.jordan@oracle.com>,
         Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
         Thomas Cedeno <thomascedeno@google.com>,
-        Collin Fijalkovich <cfijalkovich@google.com>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        Christian =?UTF-8?B?S8O2bmln?= <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "<linux-fsdevel@vger.kernel.org>" <linux-fsdevel@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
+        Christian =?utf-8?Q?K=C3=B6nig?= 
+        <ckoenig.leichtzumerken@gmail.com>,
         Florian Weimer <fweimer@redhat.com>,
-        Michael Kerrisk <mtk.manpages@gmail.com>
-Subject: Re: Removing Mandatory Locks
-Message-ID: <20210820094301.62421e21@oasis.local.home>
-In-Reply-To: <CAHk-=wgHbYmUZvFkthGJ6zZx+ofTiiTRxPai5mPkmbtE=6JbaQ@mail.gmail.com>
-References: <20210812084348.6521-1-david@redhat.com>
-        <87o8a2d0wf.fsf@disp2133>
-        <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
-        <87lf56bllc.fsf@disp2133>
-        <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
-        <87eeay8pqx.fsf@disp2133>
-        <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
-        <87h7ft2j68.fsf@disp2133>
-        <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
-        <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
-        <YRcyqbpVqwwq3P6n@casper.infradead.org>
-        <87k0kkxbjn.fsf_-_@disp2133>
-        <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
-        <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
-        <a1385746582a675c410aca4eb4947320faec4821.camel@kernel.org>
-        <CAHk-=wgD-SNxB=2iCurEoP=RjrciRgLtXZ7R_DejK+mXF2etfg@mail.gmail.com>
-        <639d90212662cf5cdf80c71bbfec95907c70114a.camel@kernel.org>
-        <CAHk-=wgHbYmUZvFkthGJ6zZx+ofTiiTRxPai5mPkmbtE=6JbaQ@mail.gmail.com>
-X-Mailer: Claws Mail 3.18.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+        David Laight <David.Laight@aculab.com>,
+        linux-unionfs@vger.kernel.org,
+        Linux API <linux-api@vger.kernel.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>
+References: <20210816194840.42769-1-david@redhat.com>
+        <20210816194840.42769-3-david@redhat.com>
+        <CAHk-=wgsLtJ7=+NGGSEbTw9XBh7qyf4Py9-jBdajGnPTxU1hZg@mail.gmail.com>
+        <d90a7dfd-11c8-c4e1-1c59-91aad5a7f08e@redhat.com>
+Date:   Fri, 20 Aug 2021 09:36:12 -0500
+In-Reply-To: <d90a7dfd-11c8-c4e1-1c59-91aad5a7f08e@redhat.com> (David
+        Hildenbrand's message of "Fri, 20 Aug 2021 10:46:45 +0200")
+Message-ID: <87o89srxnn.fsf@disp2133>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-XM-SPF: eid=1mH5d7-00E1Uf-NO;;;mid=<87o89srxnn.fsf@disp2133>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1/R8bcNDwnS1a7/MlpKHI9VJFt1fxhrUow=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH v2 2/7] kernel/fork: factor out replacing the current MM exe_file
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 19 Aug 2021 15:32:31 -0700
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+David Hildenbrand <david@redhat.com> writes:
 
-> I originally thought WARN_ON_ONCE() just to get the distro automatic
-> error handling involved, but it would probably be a big problem for
-> the people who end up having panic-on-warn or something.
-> 
-> So probably just a "make it a big box" thing that stands out, kind of
-> what lockdep etc does with
-> 
->         pr_warn("======...====\n");
-> 
-> around the messages..
-> 
-> I don't know if distros have some pattern we could use that would end
-> up being something that gets reported to the user?
+> On 19.08.21 22:51, Linus Torvalds wrote:
+>> So I like this series.
+>>
+>> However, logically, I think this part in replace_mm_exe_file() no
+>> longer makes sense:
+>>
+>> On Mon, Aug 16, 2021 at 12:50 PM David Hildenbrand <david@redhat.com> wrote:
+>>>
+>>> +       /* Forbid mm->exe_file change if old file still mapped. */
+>>> +       old_exe_file = get_mm_exe_file(mm);
+>>> +       if (old_exe_file) {
+>>> +               mmap_read_lock(mm);
+>>> +               for (vma = mm->mmap; vma && !ret; vma = vma->vm_next) {
+>>> +                       if (!vma->vm_file)
+>>> +                               continue;
+>>> +                       if (path_equal(&vma->vm_file->f_path,
+>>> +                                      &old_exe_file->f_path))
+>>> +                               ret = -EBUSY;
+>>> +               }
+>>> +               mmap_read_unlock(mm);
+>>> +               fput(old_exe_file);
+>>> +               if (ret)
+>>> +                       return ret;
+>>> +       }
+>>
+>> and should just be removed.
+>>
+>> NOTE! I think it makes sense within the context of this patch (where
+>> you just move code around), but that it should then be removed in the
+>> next patch that does that "always deny write access to current MM
+>> exe_file" thing.
+>>
+>> I just quoted it in the context of this patch, since the next patch
+>> doesn't actually show this code any more.
+>>
+>> In the *old* model - where the ETXTBUSY was about the mmap() of the
+>> file - the above tests make sense.
+>>
+>> But in the new model, walking the mappings just doesn't seem to be a
+>> sensible operation any more. The mappings simply aren't what ETXTBUSY
+>> is about in the new world order, and so doing that mapping walk seems
+>> nonsensical.
+>>
+>> Hmm?
+>
+> I think this is somewhat another kind of "stop user space trying
+> to do stupid things" thingy, not necessarily glued to ETXTBUSY:
+> don't allow replacing exe_file if that very file is still mapped
+> and consequently eventually still in use by the application.
+>
+> I don't think it necessarily has many things to do with ETXTBUSY:
+> we only check if there is a VMA mapping that file, not that it's
+> a VM_DENYWRITE mapping.
+>
+> That code originates from
+>
+> commit 4229fb1dc6843c49a14bb098719f8a696cdc44f8
+> Author: Konstantin Khlebnikov <khlebnikov@openvz.org>
+> Date:   Wed Jul 11 14:02:11 2012 -0700
+>
+>     c/r: prctl: less paranoid prctl_set_mm_exe_file()
+>
+>     "no other files mapped" requirement from my previous patch (c/r: prctl:
+>     update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal) is too
+>     paranoid, it forbids operation even if there mapped one shared-anon vma.
+>       Let's check that current mm->exe_file already unmapped, in this case
+>     exe_file symlink already outdated and its changing is reasonable.
+>
+>
+> The statement "exe_file symlink already outdated and its
+> changing is reasonable" somewhat makes sense.
+>
+>
+> Long story short, I think this check somehow makes a bit of sense, but
+> we wouldn't lose too much if we drop it -- just another sanity check.
+>
+> Your call :)
 
-People have started using my trace-printk notice message, that seems to
-be big enough to get noticed.
+There has been quite a bit of conversation of the years about how bad is
+it to allow changing /proc/self/exe as some userspace depends on it.
 
+I think this check is there to keep from changing /proc/self/exe
+arbitrarily.
 
- **********************************************************
- **   NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE   **
- **                                                      **
- ** trace_printk() being used. Allocating extra memory.  **
- **                                                      **
- ** This means that this is a DEBUG kernel and it is     **
- ** unsafe for production use.                           **
- **                                                      **
- ** If you see this message and you are not debugging    **
- ** the kernel, report this immediately to your vendor!  **
- **                                                      **
- **   NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE   **
- **********************************************************
+Maybe it is all completely silly and we should not care about the code
+that thinks /proc/self/exe is a reliable measure of anything, but short
+of that I think we should either keep the code or put in some careful
+thought as to which restrictions make sense when changing
+/proc/self/exe.
 
-There's been some talk about making that a more "generic" warning
-message too.
+Eric
 
--- Steve
