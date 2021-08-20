@@ -2,62 +2,46 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 594D9C4320A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 16:30:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E44C4338F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 19:48:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3E44C6113D
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 16:30:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D727261029
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 19:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229619AbhHTQbM (ORCPT
+        id S230301AbhHTTt2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 20 Aug 2021 12:31:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35476 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229772AbhHTQbL (ORCPT
-        <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 20 Aug 2021 12:31:11 -0400
-Received: from mail-pg1-x529.google.com (mail-pg1-x529.google.com [IPv6:2607:f8b0:4864:20::529])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD5D6C06175F
-        for <linux-unionfs@vger.kernel.org>; Fri, 20 Aug 2021 09:30:33 -0700 (PDT)
-Received: by mail-pg1-x529.google.com with SMTP id n18so9690001pgm.12
-        for <linux-unionfs@vger.kernel.org>; Fri, 20 Aug 2021 09:30:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=hx/7x/JErQYdtBSrXWm/zLl3le+VQc9WWGW/gattMeA=;
-        b=AHhWe/b1QJudaK4piB/jpm81AVtQQUsE+FQy6FY3gPQsXxurQppN29+lwRB1w87Hk9
-         s5LnDo+Sqxo/2pCK/R5LdbAN1tgOMvgop4IKUrmYIGWWy9GZBoPvfMqYDTrPjGlW+5pa
-         Zl5yoXP7YgbsHkiiQ3CQ7BLFzXLsUcMFh1zuU=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=hx/7x/JErQYdtBSrXWm/zLl3le+VQc9WWGW/gattMeA=;
-        b=s2vkLiyzHLr8ARyqvYMpAwKZkcWGqo27v0a8Zm8bxSViyyilYF8LHeQ9v1ViXHMJ5B
-         TkPnQB071NTg6J1O+0C/0P/IRFotTbwWkeoD0LEKfsnsLUGdH+izyIyXiHGPP7fvvDgE
-         r5DYH+pJgJJN/vQmKwhMTsMz64+dS8Kzv9W85DLIBndenqk3oOLL8p9BoBPlthAdWBG9
-         oaF+VkWU52tFDTezaod2zTP5KAGD0oMA+faCzw0kHyNf4G0U4Y+s2OnU64DGuK3Aew2q
-         y5UH/Pwsn/gCa6MvyVHfSOlq6Yis4ylCNbFPN4bGVwB0pk49u5ZcNjpjrJ1krDEM4GsW
-         viAQ==
-X-Gm-Message-State: AOAM533AXK/hSYEPjxPM1lK63whlX45BSj3niQx4XcIdQjby4bGYYPCa
-        gvcs4BQAHqybk3nE5qdoDApgbw==
-X-Google-Smtp-Source: ABdhPJwaxnuALu+UM0AoVLj6IiQMA+NoS7/1nkP1/GdVgN0I1V5xyMU8srw+/7RYQUxQMtn9M0uIlg==
-X-Received: by 2002:a65:608f:: with SMTP id t15mr19281560pgu.452.1629477033146;
-        Fri, 20 Aug 2021 09:30:33 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id b7sm7023269pfl.195.2021.08.20.09.30.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 20 Aug 2021 09:30:32 -0700 (PDT)
-Date:   Fri, 20 Aug 2021 09:30:31 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Jeff Layton <jlayton@kernel.org>,
+        Fri, 20 Aug 2021 15:49:28 -0400
+Received: from terminus.zytor.com ([198.137.202.136]:55879 "EHLO
+        mail.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229771AbhHTTt1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 20 Aug 2021 15:49:27 -0400
+X-Greylist: delayed 1672 seconds by postgrey-1.27 at vger.kernel.org; Fri, 20 Aug 2021 15:49:27 EDT
+Received: from [IPv6:::1] ([IPv6:2601:646:8600:3c71:6111:82d6:dfad:778c])
+        (authenticated bits=0)
+        by mail.zytor.com (8.16.1/8.15.2) with ESMTPSA id 17KJHuYd937846
+        (version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NO);
+        Fri, 20 Aug 2021 12:17:56 -0700
+DKIM-Filter: OpenDKIM Filter v2.11.0 mail.zytor.com 17KJHuYd937846
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zytor.com;
+        s=2021073001; t=1629487085;
+        bh=Swjddd6h78nIFLV61ZIUR3LeMVGCy8t3nFizFuvLjOo=;
+        h=Date:From:To:CC:Subject:In-Reply-To:References:From;
+        b=KscL6G2l89RQDkEtrhzSWjkvZrFHDi+mzgdzo/IbbPwLq6hNBd/OSU8dL1PWFV2XB
+         wW+VbG4+sezrIAFCFB8T+pmg6Yfqoj7N7eBkkAi2dUC3C8vdIwop4fIXcbDs3wMfpG
+         f0B3USGu38WtkjiXeVwFomXyjKRnp5IO2zD5dCWSTRgpWS1BQ7x4EK1amPlOfx2g2R
+         39Seo/9NcBLHhjPLJQzAbvNgCgsmAdvLK7fdWXaH+KOi+8B2NwpUmMMK6zBO0r0g1q
+         3H9W2Tx23mLp1AzBXvSadlivUk+lpgzSKZM/SmBCIRGLfdCFgs6awRKUKsF4ER/6mk
+         MZM0sEf8tTcrw==
+Date:   Fri, 20 Aug 2021 12:17:49 -0700
+From:   "H. Peter Anvin" <hpa@zytor.com>
+To:     Kees Cook <keescook@chromium.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+CC:     Jeff Layton <jlayton@kernel.org>,
         "Eric W. Biederman" <ebiederm@xmission.com>,
         Matthew Wilcox <willy@infradead.org>,
         Andy Lutomirski <luto@kernel.org>,
@@ -67,7 +51,6 @@ Cc:     Jeff Layton <jlayton@kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "H. Peter Anvin" <hpa@zytor.com>,
         Al Viro <viro@zeniv.linux.org.uk>,
         Alexey Dobriyan <adobriyan@gmail.com>,
         Steven Rostedt <rostedt@goodmis.org>,
@@ -110,7 +93,7 @@ Cc:     Jeff Layton <jlayton@kernel.org>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        Christian =?iso-8859-1?Q?K=F6nig?= 
+        =?ISO-8859-1?Q?Christian_K=F6nig?= 
         <ckoenig.leichtzumerken@gmail.com>,
         "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
@@ -120,48 +103,50 @@ Cc:     Jeff Layton <jlayton@kernel.org>,
         Florian Weimer <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
 Subject: Re: Removing Mandatory Locks
-Message-ID: <202108200905.BE8AF7C@keescook>
-References: <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
- <87eeay8pqx.fsf@disp2133>
- <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
- <87h7ft2j68.fsf@disp2133>
- <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
- <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
- <YRcyqbpVqwwq3P6n@casper.infradead.org>
- <87k0kkxbjn.fsf_-_@disp2133>
- <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
- <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
+User-Agent: K-9 Mail for Android
+In-Reply-To: <202108200905.BE8AF7C@keescook>
+References: <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com> <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com> <87h7ft2j68.fsf@disp2133> <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com> <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com> <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133> <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org> <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com> <202108200905.BE8AF7C@keescook>
+Message-ID: <D2325492-F4DD-4E7A-B4F1-0E595FF2469A@zytor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Aug 19, 2021 at 12:15:08PM -0700, Linus Torvalds wrote:
-> On Thu, Aug 19, 2021 at 11:39 AM Jeff Layton <jlayton@kernel.org> wrote:
-> >
-> > I'm all for ripping it out too. It's an insane interface anyway.
-> >
-> > I've not heard a single complaint about this being turned off in
-> > fedora/rhel or any other distro that has this disabled.
-> 
-> I'd love to remove it, we could absolutely test it. The fact that
-> several major distros have it disabled makes me think it's fine.
+I thought the main user was Samba and/or otherwise providing file service f=
+or M$ systems?
 
-FWIW, it is now disabled in Ubuntu too:
+On August 20, 2021 9:30:31 AM PDT, Kees Cook <keescook@chromium=2Eorg> wro=
+te:
+>On Thu, Aug 19, 2021 at 12:15:08PM -0700, Linus Torvalds wrote:
+>> On Thu, Aug 19, 2021 at 11:39 AM Jeff Layton <jlayton@kernel=2Eorg> wro=
+te:
+>> >
+>> > I'm all for ripping it out too=2E It's an insane interface anyway=2E
+>> >
+>> > I've not heard a single complaint about this being turned off in
+>> > fedora/rhel or any other distro that has this disabled=2E
+>>=20
+>> I'd love to remove it, we could absolutely test it=2E The fact that
+>> several major distros have it disabled makes me think it's fine=2E
+>
+>FWIW, it is now disabled in Ubuntu too:
+>
+>https://git=2Elaunchpad=2Enet/~ubuntu-kernel/ubuntu/+source/linux/+git/im=
+pish/commit/?h=3Dmaster-next&id=3Df3aac5e47789cbeb3177a14d3d2a06575249e14b
+>
+>> But as always, it would be good to check Android=2E
+>
+>It looks like it's enabled (checking the Pixel 4 kernel image), but it's
+>not specifically mentioned in any of the build configs that are used to
+>construct the image, so I think this is just catching the "default y"=2E =
+I
+>expect it'd be fine to turn this off=2E
+>
+>I will ask around to see if it's actually used=2E
+>
 
-https://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/impish/commit/?h=master-next&id=f3aac5e47789cbeb3177a14d3d2a06575249e14b
-
-> But as always, it would be good to check Android.
-
-It looks like it's enabled (checking the Pixel 4 kernel image), but it's
-not specifically mentioned in any of the build configs that are used to
-construct the image, so I think this is just catching the "default y". I
-expect it'd be fine to turn this off.
-
-I will ask around to see if it's actually used.
-
--- 
-Kees Cook
+--=20
+Sent from my Android device with K-9 Mail=2E Please excuse my brevity=2E
