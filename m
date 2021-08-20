@@ -2,47 +2,42 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E44C4338F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 19:48:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC1A6C4338F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 21:29:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D727261029
-	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 19:48:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8B3061130
+	for <linux-unionfs@archiver.kernel.org>; Fri, 20 Aug 2021 21:29:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230301AbhHTTt2 (ORCPT
+        id S240695AbhHTVaP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 20 Aug 2021 15:49:28 -0400
-Received: from terminus.zytor.com ([198.137.202.136]:55879 "EHLO
-        mail.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229771AbhHTTt1 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 20 Aug 2021 15:49:27 -0400
-X-Greylist: delayed 1672 seconds by postgrey-1.27 at vger.kernel.org; Fri, 20 Aug 2021 15:49:27 EDT
-Received: from [IPv6:::1] ([IPv6:2601:646:8600:3c71:6111:82d6:dfad:778c])
-        (authenticated bits=0)
-        by mail.zytor.com (8.16.1/8.15.2) with ESMTPSA id 17KJHuYd937846
-        (version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NO);
-        Fri, 20 Aug 2021 12:17:56 -0700
-DKIM-Filter: OpenDKIM Filter v2.11.0 mail.zytor.com 17KJHuYd937846
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zytor.com;
-        s=2021073001; t=1629487085;
-        bh=Swjddd6h78nIFLV61ZIUR3LeMVGCy8t3nFizFuvLjOo=;
-        h=Date:From:To:CC:Subject:In-Reply-To:References:From;
-        b=KscL6G2l89RQDkEtrhzSWjkvZrFHDi+mzgdzo/IbbPwLq6hNBd/OSU8dL1PWFV2XB
-         wW+VbG4+sezrIAFCFB8T+pmg6Yfqoj7N7eBkkAi2dUC3C8vdIwop4fIXcbDs3wMfpG
-         f0B3USGu38WtkjiXeVwFomXyjKRnp5IO2zD5dCWSTRgpWS1BQ7x4EK1amPlOfx2g2R
-         39Seo/9NcBLHhjPLJQzAbvNgCgsmAdvLK7fdWXaH+KOi+8B2NwpUmMMK6zBO0r0g1q
-         3H9W2Tx23mLp1AzBXvSadlivUk+lpgzSKZM/SmBCIRGLfdCFgs6awRKUKsF4ER/6mk
-         MZM0sEf8tTcrw==
-Date:   Fri, 20 Aug 2021 12:17:49 -0700
-From:   "H. Peter Anvin" <hpa@zytor.com>
-To:     Kees Cook <keescook@chromium.org>,
+        Fri, 20 Aug 2021 17:30:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59602 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231761AbhHTVaO (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Fri, 20 Aug 2021 17:30:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3DDF461102;
+        Fri, 20 Aug 2021 21:29:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1629494976;
+        bh=CSpxkRr0njJFwn1bNyK1M/lOW65Uuk1c0JklPI8xo7w=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=paHJbV4aD+5TZGOJ6zZf6GRISmKjaaMLmZ5WgIftKEepMQlOUns10X8IPDExdOOjN
+         M/+2s9X8hIT0bzVhH2fJEWiuiA3DReUbBZJoMKhaDOClD3nTHIWlYB3Z64nnt3IhjL
+         Qhyaur14Ly1nMotZUaNZOApgaDumSL5frA7f9XxVB79HQOiVXHYr7NQQccH4YDlqrf
+         pCmUTnDPPVkixLdijZ31QqSe4oSUdYj8fOH7Z0pokJ7Kbt2XwdSi/ylF1dTttV1iS0
+         eVX16h4vU8/pa8yUqM7lcwkLKoy6p1J7oOXmydwT/haVOnxxqpZGiI5kpbF4jOXCLq
+         SEYYNJYbWsn5w==
+Message-ID: <8a6737f9fa2dd3b8b9d851064cd28ca57e489a77.camel@kernel.org>
+Subject: Re: Removing Mandatory Locks
+From:   Jeff Layton <jlayton@kernel.org>
+To:     "H. Peter Anvin" <hpa@zytor.com>,
+        Kees Cook <keescook@chromium.org>,
         Linus Torvalds <torvalds@linux-foundation.org>
-CC:     Jeff Layton <jlayton@kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
+Cc:     "Eric W. Biederman" <ebiederm@xmission.com>,
         Matthew Wilcox <willy@infradead.org>,
         Andy Lutomirski <luto@kernel.org>,
         David Laight <David.Laight@aculab.com>,
@@ -93,7 +88,7 @@ CC:     Jeff Layton <jlayton@kernel.org>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        =?ISO-8859-1?Q?Christian_K=F6nig?= 
+        Christian =?ISO-8859-1?Q?K=F6nig?= 
         <ckoenig.leichtzumerken@gmail.com>,
         "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
@@ -102,51 +97,66 @@ CC:     Jeff Layton <jlayton@kernel.org>,
         Linux-MM <linux-mm@kvack.org>,
         Florian Weimer <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
-Subject: Re: Removing Mandatory Locks
-User-Agent: K-9 Mail for Android
-In-Reply-To: <202108200905.BE8AF7C@keescook>
-References: <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com> <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com> <87h7ft2j68.fsf@disp2133> <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com> <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com> <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133> <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org> <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com> <202108200905.BE8AF7C@keescook>
-Message-ID: <D2325492-F4DD-4E7A-B4F1-0E595FF2469A@zytor.com>
+Date:   Fri, 20 Aug 2021 17:29:30 -0400
+In-Reply-To: <D2325492-F4DD-4E7A-B4F1-0E595FF2469A@zytor.com>
+References: <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
+         <87eeay8pqx.fsf@disp2133>
+         <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+         <87h7ft2j68.fsf@disp2133>
+         <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
+         <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
+         <YRcyqbpVqwwq3P6n@casper.infradead.org> <87k0kkxbjn.fsf_-_@disp2133>
+         <0c2af732e4e9f74c9d20b09fc4b6cbae40351085.camel@kernel.org>
+         <CAHk-=wgewmbABDC3_ZNn11C+sm4Uz0L9HZ5Kvx0Joho4vsV4DQ@mail.gmail.com>
+         <202108200905.BE8AF7C@keescook>
+         <D2325492-F4DD-4E7A-B4F1-0E595FF2469A@zytor.com>
+Content-Type: text/plain; charset="ISO-8859-15"
+User-Agent: Evolution 3.40.4 (3.40.4-1.fc34) 
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-I thought the main user was Samba and/or otherwise providing file service f=
-or M$ systems?
+No, Windows has deny-mode locking at open time, but the kernel's
+mandatory locks are enforced during read/write (which is why they are
+such a pain). Samba will not miss these at all.
 
-On August 20, 2021 9:30:31 AM PDT, Kees Cook <keescook@chromium=2Eorg> wro=
-te:
->On Thu, Aug 19, 2021 at 12:15:08PM -0700, Linus Torvalds wrote:
->> On Thu, Aug 19, 2021 at 11:39 AM Jeff Layton <jlayton@kernel=2Eorg> wro=
-te:
->> >
->> > I'm all for ripping it out too=2E It's an insane interface anyway=2E
->> >
->> > I've not heard a single complaint about this being turned off in
->> > fedora/rhel or any other distro that has this disabled=2E
->>=20
->> I'd love to remove it, we could absolutely test it=2E The fact that
->> several major distros have it disabled makes me think it's fine=2E
->
->FWIW, it is now disabled in Ubuntu too:
->
->https://git=2Elaunchpad=2Enet/~ubuntu-kernel/ubuntu/+source/linux/+git/im=
-pish/commit/?h=3Dmaster-next&id=3Df3aac5e47789cbeb3177a14d3d2a06575249e14b
->
->> But as always, it would be good to check Android=2E
->
->It looks like it's enabled (checking the Pixel 4 kernel image), but it's
->not specifically mentioned in any of the build configs that are used to
->construct the image, so I think this is just catching the "default y"=2E =
-I
->expect it'd be fine to turn this off=2E
->
->I will ask around to see if it's actually used=2E
->
+If we want something to provide windows-like semantics, we'd probably
+want to start with something like Pavel Shilovsky's O_DENY_* patches.
 
---=20
-Sent from my Android device with K-9 Mail=2E Please excuse my brevity=2E
+-- Jeff
+
+On Fri, 2021-08-20 at 12:17 -0700, H. Peter Anvin wrote:
+> I thought the main user was Samba and/or otherwise providing file service for M$ systems?
+> 
+> On August 20, 2021 9:30:31 AM PDT, Kees Cook <keescook@chromium.org> wrote:
+> > On Thu, Aug 19, 2021 at 12:15:08PM -0700, Linus Torvalds wrote:
+> > > On Thu, Aug 19, 2021 at 11:39 AM Jeff Layton <jlayton@kernel.org> wrote:
+> > > > 
+> > > > I'm all for ripping it out too. It's an insane interface anyway.
+> > > > 
+> > > > I've not heard a single complaint about this being turned off in
+> > > > fedora/rhel or any other distro that has this disabled.
+> > > 
+> > > I'd love to remove it, we could absolutely test it. The fact that
+> > > several major distros have it disabled makes me think it's fine.
+> > 
+> > FWIW, it is now disabled in Ubuntu too:
+> > 
+> > https://git.launchpad.net/~ubuntu-kernel/ubuntu/+source/linux/+git/impish/commit/?h=master-next&id=f3aac5e47789cbeb3177a14d3d2a06575249e14b
+> > 
+> > > But as always, it would be good to check Android.
+> > 
+> > It looks like it's enabled (checking the Pixel 4 kernel image), but it's
+> > not specifically mentioned in any of the build configs that are used to
+> > construct the image, so I think this is just catching the "default y". I
+> > expect it'd be fine to turn this off.
+> > 
+> > I will ask around to see if it's actually used.
+> > 
+> 
+
+-- 
+Jeff Layton <jlayton@kernel.org>
+
