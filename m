@@ -2,39 +2,39 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49688C432BE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 26 Aug 2021 22:14:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFAFBC432BE
+	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Aug 2021 08:22:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E4EA60FF2
-	for <linux-unionfs@archiver.kernel.org>; Thu, 26 Aug 2021 22:14:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF79860F58
+	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Aug 2021 08:22:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243710AbhHZWPZ convert rfc822-to-8bit (ORCPT
+        id S244577AbhH0IXC (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 26 Aug 2021 18:15:25 -0400
-Received: from out02.mta.xmission.com ([166.70.13.232]:34684 "EHLO
-        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243665AbhHZWPY (ORCPT
+        Fri, 27 Aug 2021 04:23:02 -0400
+Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:55141 "EHLO
+        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S244524AbhH0IXC (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 26 Aug 2021 18:15:24 -0400
-Received: from in01.mta.xmission.com ([166.70.13.51]:43756)
-        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1mJNdh-00EQKs-GD; Thu, 26 Aug 2021 16:14:25 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95]:36634 helo=email.xmission.com)
-        by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1mJNdf-00HV1Y-UD; Thu, 26 Aug 2021 16:14:25 -0600
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     David Hildenbrand <david@redhat.com>
-Cc:     Andy Lutomirski <luto@kernel.org>,
+        Fri, 27 Aug 2021 04:23:02 -0400
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
+ TLS) by relay.mimecast.com with ESMTP id uk-mta-9-YAcLez3-PIu1MFGqx63a2w-1;
+ Fri, 27 Aug 2021 09:22:11 +0100
+X-MC-Unique: YAcLez3-PIu1MFGqx63a2w-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.23; Fri, 27 Aug 2021 09:22:07 +0100
+Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
+ AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
+ 15.00.1497.023; Fri, 27 Aug 2021 09:22:07 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     "'Eric W. Biederman'" <ebiederm@xmission.com>,
+        David Hildenbrand <david@redhat.com>
+CC:     Andy Lutomirski <luto@kernel.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
-        David Laight <David.Laight@aculab.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -42,41 +42,41 @@ Cc:     Andy Lutomirski <luto@kernel.org>,
         "H. Peter Anvin" <hpa@zytor.com>,
         Al Viro <viro@zeniv.linux.org.uk>,
         Alexey Dobriyan <adobriyan@gmail.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        "Peter Zijlstra \(Intel\)" <peterz@infradead.org>,
+        "Steven Rostedt" <rostedt@goodmis.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
         Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
+        "Mark Rutland" <mark.rutland@arm.com>,
         Alexander Shishkin <alexander.shishkin@linux.intel.com>,
         Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
+        "Namhyung Kim" <namhyung@kernel.org>,
         Petr Mladek <pmladek@suse.com>,
-        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        "Sergey Senozhatsky" <sergey.senozhatsky@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Rasmus Villemoes <linux@rasmusvillemoes.dk>,
         Kees Cook <keescook@chromium.org>,
         Greg Ungerer <gerg@linux-m68k.org>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
-        Mike Rapoport <rppt@kernel.org>,
+        "Mike Rapoport" <rppt@kernel.org>,
         Vlastimil Babka <vbabka@suse.cz>,
-        Vincenzo Frascino <vincenzo.frascino@arm.com>,
+        "Vincenzo Frascino" <vincenzo.frascino@arm.com>,
         Chinwen Chang <chinwen.chang@mediatek.com>,
         Michel Lespinasse <walken@google.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        "Matthew Wilcox \(Oracle\)" <willy@infradead.org>,
+        "Catalin Marinas" <catalin.marinas@arm.com>,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
         Huang Ying <ying.huang@intel.com>,
         Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
         Kevin Brodsky <Kevin.Brodsky@arm.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        Shawn Anastasio <shawn@anastas.io>,
+        "Shawn Anastasio" <shawn@anastas.io>,
         Steven Price <steven.price@arm.com>,
-        Nicholas Piggin <npiggin@gmail.com>,
+        "Nicholas Piggin" <npiggin@gmail.com>,
         Christian Brauner <christian.brauner@ubuntu.com>,
         Jens Axboe <axboe@kernel.dk>,
-        Gabriel Krisman Bertazi <krisman@collabora.com>,
+        "Gabriel Krisman Bertazi" <krisman@collabora.com>,
         Peter Xu <peterx@redhat.com>,
-        Suren Baghdasaryan <surenb@google.com>,
+        "Suren Baghdasaryan" <surenb@google.com>,
         Shakeel Butt <shakeelb@google.com>,
-        Marco Elver <elver@google.com>,
+        "Marco Elver" <elver@google.com>,
         Daniel Jordan <daniel.m.jordan@oracle.com>,
         Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
         Thomas Cedeno <thomascedeno@google.com>,
@@ -84,112 +84,71 @@ Cc:     Andy Lutomirski <luto@kernel.org>,
         Michal Hocko <mhocko@suse.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Chengguang Xu <cgxu519@mykernel.net>,
-        Christian =?utf-8?Q?K=C3=B6nig?= 
+        =?utf-8?B?Q2hyaXN0aWFuIEvDtm5pZw==?= 
         <ckoenig.leichtzumerken@gmail.com>,
-        "linux-unionfs\@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        linux-fsdevel@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
-        Florian Weimer <fweimer@redhat.com>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+        Linux-MM <linux-mm@kvack.org>,
+        "Florian Weimer" <fweimer@redhat.com>,
         Michael Kerrisk <mtk.manpages@gmail.com>
+Subject: RE: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
+Thread-Topic: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
+Thread-Index: AQHXmsfEnhLiH4wkgUCh4gMa99+VE6uHAcKg
+Date:   Fri, 27 Aug 2021 08:22:07 +0000
+Message-ID: <04e61e79ebad4a5d872d0a2b5be4c23d@AcuMS.aculab.com>
 References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
         <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
         <87lf56bllc.fsf@disp2133>
         <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
-        <87eeay8pqx.fsf@disp2133>
-        <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+        <87eeay8pqx.fsf@disp2133>       <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
         <87h7ft2j68.fsf@disp2133>
         <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
         <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
         <CAHk-=wiJ0u33h2CXAO4b271Diik=z4jRt64=Gt6YV2jV4ef27g@mail.gmail.com>
         <b60e9bd1-7232-472d-9c9c-1d6593e9e85e@www.fastmail.com>
-        <0ed69079-9e13-a0f4-776c-1f24faa9daec@redhat.com>
-Date:   Thu, 26 Aug 2021 17:13:52 -0500
-In-Reply-To: <0ed69079-9e13-a0f4-776c-1f24faa9daec@redhat.com> (David
-        Hildenbrand's message of "Thu, 26 Aug 2021 23:47:07 +0200")
-Message-ID: <87mtp3g8gv.fsf@disp2133>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        <0ed69079-9e13-a0f4-776c-1f24faa9daec@redhat.com> <87mtp3g8gv.fsf@disp2133>
+In-Reply-To: <87mtp3g8gv.fsf@disp2133>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-X-XM-SPF: eid=1mJNdf-00HV1Y-UD;;;mid=<87mtp3g8gv.fsf@disp2133>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX18m5lfQvtNAYQfGYREq2VBtg2jfskLzpXA=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
-X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
-X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
+Authentication-Results: relay.mimecast.com;
+        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-David Hildenbrand <david@redhat.com> writes:
-
-> On 26.08.21 19:48, Andy Lutomirski wrote:
->> On Fri, Aug 13, 2021, at 5:54 PM, Linus Torvalds wrote:
->>> On Fri, Aug 13, 2021 at 2:49 PM Andy Lutomirski <luto@kernel.org> wrote:
->>>>
->>>> I’ll bite.  How about we attack this in the opposite direction: remove the deny write mechanism entirely.
->>>
->>> I think that would be ok, except I can see somebody relying on it.
->>>
->>> It's broken, it's stupid, but we've done that ETXTBUSY for a _loong_ time.
->>
->> Someone off-list just pointed something out to me, and I think we should push harder to remove ETXTBSY.  Specifically, we've all been focused on open() failing with ETXTBSY, and it's easy to make fun of anyone opening a running program for write when they should be unlinking and replacing it.
->>
->> Alas, Linux's implementation of deny_write_access() is correct^Wabsurd, and deny_write_access() *also* returns ETXTBSY if the file is open for write.  So, in a multithreaded program, one thread does:
->>
->> fd = open("some exefile", O_RDWR | O_CREAT | O_CLOEXEC);
->> write(fd, some stuff);
->>
->> <--- problem is here
->>
->> close(fd);
->> execve("some exefile");
->>
->> Another thread does:
->>
->> fork();
->> execve("something else");
->>
->> In between fork and execve, there's another copy of the open file description, and i_writecount is held, and the execve() fails.  Whoops.  See, for example:
->>
->> https://github.com/golang/go/issues/22315
->>
->> I propose we get rid of deny_write_access() completely to solve this.
->>
->> Getting rid of i_writecount itself seems a bit harder, since a handful of filesystems use it for clever reasons.
->>
->> (OFD locks seem like they might have the same problem.  Maybe we should have a clone() flag to unshare the file table and close close-on-exec things?)
->>
->
-> It's not like this issue is new (^2017) or relevant in practice. So no
-> need to hurry IMHO. One step at a time: it might make perfect sense to
-> remove ETXTBSY, but we have to be careful to not break other user
-> space that actually cares about the current behavior in practice.
-
-It is an old enough issue that I agree there is no need to hurry.
-
-I also ran into this issue not too long ago when I refactored the
-usermode_driver code.  My challenge was not being in userspace
-the delayed fput was not happening in my kernel thread.  Which meant
-that writing the file, then closing the file, then execing the file
-consistently reported -ETXTBSY.
-
-The kernel code wound up doing:
-	/* Flush delayed fput so exec can open the file read-only */
-	flush_delayed_fput();
-	task_work_run();
-
-As I read the code the delay for userspace file descriptors is
-always done with task_work_add, so userspace should not hit
-that kind of silliness, and should be able to actually close
-the file descriptor before the exec.
-
-
-On the flip side, I don't know how anything can depend upon getting an
--ETXTBSY.  So I don't think there is any real risk of breaking userspace
-if we remove it.
-
-Eric
+RnJvbTogRXJpYyBXLiBCaWVkZXJtYW4NCj4gU2VudDogMjYgQXVndXN0IDIwMjEgMjM6MTQNCi4u
+Lg0KPiBJIGFsc28gcmFuIGludG8gdGhpcyBpc3N1ZSBub3QgdG9vIGxvbmcgYWdvIHdoZW4gSSBy
+ZWZhY3RvcmVkIHRoZQ0KPiB1c2VybW9kZV9kcml2ZXIgY29kZS4gIE15IGNoYWxsZW5nZSB3YXMg
+bm90IGJlaW5nIGluIHVzZXJzcGFjZQ0KPiB0aGUgZGVsYXllZCBmcHV0IHdhcyBub3QgaGFwcGVu
+aW5nIGluIG15IGtlcm5lbCB0aHJlYWQuICBXaGljaCBtZWFudA0KPiB0aGF0IHdyaXRpbmcgdGhl
+IGZpbGUsIHRoZW4gY2xvc2luZyB0aGUgZmlsZSwgdGhlbiBleGVjaW5nIHRoZSBmaWxlDQo+IGNv
+bnNpc3RlbnRseSByZXBvcnRlZCAtRVRYVEJTWS4NCj4gDQo+IFRoZSBrZXJuZWwgY29kZSB3b3Vu
+ZCB1cCBkb2luZzoNCj4gCS8qIEZsdXNoIGRlbGF5ZWQgZnB1dCBzbyBleGVjIGNhbiBvcGVuIHRo
+ZSBmaWxlIHJlYWQtb25seSAqLw0KPiAJZmx1c2hfZGVsYXllZF9mcHV0KCk7DQo+IAl0YXNrX3dv
+cmtfcnVuKCk7DQo+IA0KPiBBcyBJIHJlYWQgdGhlIGNvZGUgdGhlIGRlbGF5IGZvciB1c2Vyc3Bh
+Y2UgZmlsZSBkZXNjcmlwdG9ycyBpcw0KPiBhbHdheXMgZG9uZSB3aXRoIHRhc2tfd29ya19hZGQs
+IHNvIHVzZXJzcGFjZSBzaG91bGQgbm90IGhpdA0KPiB0aGF0IGtpbmQgb2Ygc2lsbGluZXNzLCBh
+bmQgc2hvdWxkIGJlIGFibGUgdG8gYWN0dWFsbHkgY2xvc2UNCj4gdGhlIGZpbGUgZGVzY3JpcHRv
+ciBiZWZvcmUgdGhlIGV4ZWMuDQoNCklmIHRhc2tfd29ya19hZGQgZW5kcyB1cCBhZGRpbmcgaXQg
+dG8gYSB0YXNrIHRoYXQgaXMgYWxyZWFkeQ0KcnVubmluZyBvbiBhIGRpZmZlcmVudCBjcHUsIGFu
+ZCB0aGF0IGNwdSB0YWtlcyBhIGhhcmR3YXJlDQppbnRlcnJ1cHQgdGhhdCB0YWtlcyBzb21lIHRp
+bWUgYW5kL29yIHNjaGVkdWxlcyB0aGUgc29mdGludA0KY29kZSB0byBydW4gaW1tZWRpYXRlbHkg
+dGhlIGhhcmR3YXJlIGludGVycnVwdCBjb21wbGV0ZXMNCnRoZW4gaXQgbWF5IHdlbGwgYmUgcG9z
+c2libGUgZm9yIHVzZXJzcGFjZSB0byBoYXZlICdpc3N1ZXMnLg0KDQpBbnkgZmxhZ3MgYXNzb2Np
+YXRlZCB3aXRoIE9fREVOWV9XUklURSB3b3VsZCBuZWVkIHRvIGJlIGNsZWFyZWQNCnN5bmNocm9u
+b3VzbHkgaW4gdGhlIGNsb3NlKCkgcmF0aGVyIHRoZW4gaW4gYW55IGRlbGF5ZWQgZnB1dCgpLg0K
+DQoJRGF2aWQNCg0KLQ0KUmVnaXN0ZXJlZCBBZGRyZXNzIExha2VzaWRlLCBCcmFtbGV5IFJvYWQs
+IE1vdW50IEZhcm0sIE1pbHRvbiBLZXluZXMsIE1LMSAxUFQsIFVLDQpSZWdpc3RyYXRpb24gTm86
+IDEzOTczODYgKFdhbGVzKQ0K
 
