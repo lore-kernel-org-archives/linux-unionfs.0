@@ -2,122 +2,229 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,FROM_LOCAL_HEX,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24B48C4320A
-	for <linux-unionfs@archiver.kernel.org>; Tue, 31 Aug 2021 10:36:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4427C4320A
+	for <linux-unionfs@archiver.kernel.org>; Wed,  1 Sep 2021 08:28:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A43B601FD
-	for <linux-unionfs@archiver.kernel.org>; Tue, 31 Aug 2021 10:36:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9103461058
+	for <linux-unionfs@archiver.kernel.org>; Wed,  1 Sep 2021 08:28:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233660AbhHaKhe (ORCPT
+        id S243253AbhIAI3G (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 31 Aug 2021 06:37:34 -0400
-Received: from mail-io1-f69.google.com ([209.85.166.69]:53175 "EHLO
-        mail-io1-f69.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241027AbhHaKhS (ORCPT
+        Wed, 1 Sep 2021 04:29:06 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:53728 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S243240AbhIAI3C (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 31 Aug 2021 06:37:18 -0400
-Received: by mail-io1-f69.google.com with SMTP id e18-20020a6b7312000000b005be766a70dbso5379332ioh.19
-        for <linux-unionfs@vger.kernel.org>; Tue, 31 Aug 2021 03:36:24 -0700 (PDT)
+        Wed, 1 Sep 2021 04:29:02 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1630484885;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=urXf/lsujl5mpSnmr3xeWIt4stnv1XjbfuMO6ZCP2KA=;
+        b=iNZiwmasCBpWQOw/JrKv5P12Rl9xVv9+MuSK6TxEvhVWBvYrL9lDMnIVxT/IH2E05tCMH6
+        qVwfPCwF6IUuK9s29vIQL9N5K+v4ZwviQ7YB8QKAk2XQ9qgKKJgfXCe0cgsoSEvOroc3ME
+        ENykzBBD5GWnht+JYPTEnl07CpsYfpM=
+Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
+ [209.85.221.70]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-43-4HaBftlOP2S3DmN6AdxJOA-1; Wed, 01 Sep 2021 04:28:04 -0400
+X-MC-Unique: 4HaBftlOP2S3DmN6AdxJOA-1
+Received: by mail-wr1-f70.google.com with SMTP id n18-20020adfe792000000b00156ae576abdso524541wrm.9
+        for <linux-unionfs@vger.kernel.org>; Wed, 01 Sep 2021 01:28:04 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:date:message-id:subject:from:to;
-        bh=1QsrxMTQ85qZOPqgnRl/vLMVjUOqzpDzRxErTUbVndE=;
-        b=mQJW8jMcAjKBIXlFgKow2yxGSG5xEzo4L1iJ/wg25hkxSyy20MBJArPXjN/St5xyMj
-         /Y8HCTUWHMLlG9myfmcQqZsE4qXoqearsm4th7yERFkKvBFeIdANRhIBf0Y27mSJH1xM
-         Uz7wPFgFkrkuWcf6uskdg2YLbuaCx/F9FaRdxjOechHzf2qb9lwyO+o9TmJkdOtZnkuk
-         9vQNyORsMLAf2eoVfSt4/ke36LhdTE8anP+acX5jMH7RpIH2OcPgIhwyIj3IPA7WVTl6
-         d1LVoahXZ67fvcJoTz0EKQvhOOdFjEf/cbRs+lALXPfruMAx3orTSm+Mkgz7SqvQeHuj
-         hyHg==
-X-Gm-Message-State: AOAM530L1ptV1vcACDCLKHQH/goVvTGnoMj4jWSCZpyUdqtvWUMM8cs7
-        OGPZNl7zveTCtOazg45Ci+Q89hduMp0WCN/Y4oU1v6Pk7z5z
-X-Google-Smtp-Source: ABdhPJzbikzxCi3j3s/DdEUZZlOmQ8cmpMjUunOwvxjOD+pBSs/2+9AvOwnVXIiSADNLNmIkw0VI0fOQuUEDtKUgcHhNzoHmS8Ua
+        h=x-gm-message-state:subject:to:cc:references:from:organization
+         :message-id:date:user-agent:mime-version:in-reply-to
+         :content-language:content-transfer-encoding;
+        bh=urXf/lsujl5mpSnmr3xeWIt4stnv1XjbfuMO6ZCP2KA=;
+        b=JQqDsF8/MtZvnxGQVge1V5mlt9AZcNsztP12KAbSaoU8jfNgHcLiyLzXqk9ogdI6au
+         rrt+LxgNm7xK71Slhrq2G2WUd3R1Pav6H1mHcJG3ls48g09dhDmj6PgRcnpTiy4b3ONg
+         Z2fXbUs0O12lk8cirJX0ldbQ84Xj80ByCMtbWNibgz2oIIYIYcBgA62HOK4roPfoGxW4
+         K+uq3fN403E1v56N9EyEVh6zRD2J+dt/6HTYpqPTAcgTrUxx3ZqEidCvrpV8gelp9kGW
+         IjpXUJZnamB+ObRuUzoViueccyWO84voFUEOhKRyx+7keZLaq+lbOLO3DtJnJPCNdKDQ
+         NvNA==
+X-Gm-Message-State: AOAM533nzC3pMj0QlGeNZ3b1r37johZqyfGDPJ8U3VD9KZPygRWfgUpr
+        Z/WFCkxsAjy2ftqxZ9mmYVIf2LKNsYvCvY8Yf5aclI1n9HNF9IO7LtJ4B5gGoKPK2etQ9AIImDu
+        E+9skgz8dgaQXaxl6+tCrv3KySA==
+X-Received: by 2002:a5d:63d2:: with SMTP id c18mr36140397wrw.240.1630484883092;
+        Wed, 01 Sep 2021 01:28:03 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJwlbF4D3fGzYRuLDlt/6l/uQWEWI7qpyhqVbwr1jujGUThxUVQleu8elgEn7R9xymi0rU9RmA==
+X-Received: by 2002:a5d:63d2:: with SMTP id c18mr36140350wrw.240.1630484882874;
+        Wed, 01 Sep 2021 01:28:02 -0700 (PDT)
+Received: from [192.168.3.132] (p4ff23f71.dip0.t-ipconnect.de. [79.242.63.113])
+        by smtp.gmail.com with ESMTPSA id n3sm5121111wmi.0.2021.09.01.01.28.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 01 Sep 2021 01:28:02 -0700 (PDT)
+Subject: Re: [PATCH v1 0/7] Remove in-tree usage of MAP_DENYWRITE
+To:     "Eric W. Biederman" <ebiederm@xmission.com>
+Cc:     Andy Lutomirski <luto@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        David Laight <David.Laight@aculab.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Arnaldo Carvalho de Melo <acme@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        Petr Mladek <pmladek@suse.com>,
+        Sergey Senozhatsky <sergey.senozhatsky@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Kees Cook <keescook@chromium.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Mike Rapoport <rppt@kernel.org>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Vincenzo Frascino <vincenzo.frascino@arm.com>,
+        Chinwen Chang <chinwen.chang@mediatek.com>,
+        Michel Lespinasse <walken@google.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+        Huang Ying <ying.huang@intel.com>,
+        Jann Horn <jannh@google.com>, Feng Tang <feng.tang@intel.com>,
+        Kevin Brodsky <Kevin.Brodsky@arm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Shawn Anastasio <shawn@anastas.io>,
+        Steven Price <steven.price@arm.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christian Brauner <christian.brauner@ubuntu.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Gabriel Krisman Bertazi <krisman@collabora.com>,
+        Peter Xu <peterx@redhat.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Shakeel Butt <shakeelb@google.com>,
+        Marco Elver <elver@google.com>,
+        Daniel Jordan <daniel.m.jordan@oracle.com>,
+        Nicolas Viennot <Nicolas.Viennot@twosigma.com>,
+        Thomas Cedeno <thomascedeno@google.com>,
+        Collin Fijalkovich <cfijalkovich@google.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Chengguang Xu <cgxu519@mykernel.net>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>,
+        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        linux-fsdevel@vger.kernel.org, Linux-MM <linux-mm@kvack.org>,
+        Florian Weimer <fweimer@redhat.com>,
+        Michael Kerrisk <mtk.manpages@gmail.com>
+References: <20210812084348.6521-1-david@redhat.com> <87o8a2d0wf.fsf@disp2133>
+ <60db2e61-6b00-44fa-b718-e4361fcc238c@www.fastmail.com>
+ <87lf56bllc.fsf@disp2133>
+ <CAHk-=wgru1UAm3kAKSOdnbewPXQMOxYkq9PnAsRadAC6pXCCMQ@mail.gmail.com>
+ <87eeay8pqx.fsf@disp2133> <5b0d7c1e73ca43ef9ce6665fec6c4d7e@AcuMS.aculab.com>
+ <87h7ft2j68.fsf@disp2133>
+ <CAHk-=whmXTiGUzVrTP=mOPQrg-XOi3R-45hC4dQOqW4JmZdFUQ@mail.gmail.com>
+ <b629cda1-becd-4725-b16c-13208ff478d3@www.fastmail.com>
+ <CAHk-=wiJ0u33h2CXAO4b271Diik=z4jRt64=Gt6YV2jV4ef27g@mail.gmail.com>
+ <b60e9bd1-7232-472d-9c9c-1d6593e9e85e@www.fastmail.com>
+ <0ed69079-9e13-a0f4-776c-1f24faa9daec@redhat.com> <87mtp3g8gv.fsf@disp2133>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+Message-ID: <a6dbc5b3-b12e-36b4-0aef-f319264d6e8f@redhat.com>
+Date:   Wed, 1 Sep 2021 10:28:00 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:160f:: with SMTP id t15mr20626525ilu.60.1630406183867;
- Tue, 31 Aug 2021 03:36:23 -0700 (PDT)
-Date:   Tue, 31 Aug 2021 03:36:23 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000006dd93205cad885e5@google.com>
-Subject: [syzbot] WARNING in ovl_create_real
-From:   syzbot <syzbot+75eab84fd0af9e8bf66b@syzkaller.appspotmail.com>
-To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <87mtp3g8gv.fsf@disp2133>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On 27.08.21 00:13, Eric W. Biederman wrote:
+> David Hildenbrand <david@redhat.com> writes:
+> 
+>> On 26.08.21 19:48, Andy Lutomirski wrote:
+>>> On Fri, Aug 13, 2021, at 5:54 PM, Linus Torvalds wrote:
+>>>> On Fri, Aug 13, 2021 at 2:49 PM Andy Lutomirski <luto@kernel.org> wrote:
+>>>>>
+>>>>> I’ll bite.  How about we attack this in the opposite direction: remove the deny write mechanism entirely.
+>>>>
+>>>> I think that would be ok, except I can see somebody relying on it.
+>>>>
+>>>> It's broken, it's stupid, but we've done that ETXTBUSY for a _loong_ time.
+>>>
+>>> Someone off-list just pointed something out to me, and I think we should push harder to remove ETXTBSY.  Specifically, we've all been focused on open() failing with ETXTBSY, and it's easy to make fun of anyone opening a running program for write when they should be unlinking and replacing it.
+>>>
+>>> Alas, Linux's implementation of deny_write_access() is correct^Wabsurd, and deny_write_access() *also* returns ETXTBSY if the file is open for write.  So, in a multithreaded program, one thread does:
+>>>
+>>> fd = open("some exefile", O_RDWR | O_CREAT | O_CLOEXEC);
+>>> write(fd, some stuff);
+>>>
+>>> <--- problem is here
+>>>
+>>> close(fd);
+>>> execve("some exefile");
+>>>
+>>> Another thread does:
+>>>
+>>> fork();
+>>> execve("something else");
+>>>
+>>> In between fork and execve, there's another copy of the open file description, and i_writecount is held, and the execve() fails.  Whoops.  See, for example:
+>>>
+>>> https://github.com/golang/go/issues/22315
+>>>
+>>> I propose we get rid of deny_write_access() completely to solve this.
+>>>
+>>> Getting rid of i_writecount itself seems a bit harder, since a handful of filesystems use it for clever reasons.
+>>>
+>>> (OFD locks seem like they might have the same problem.  Maybe we should have a clone() flag to unshare the file table and close close-on-exec things?)
+>>>
+>>
+>> It's not like this issue is new (^2017) or relevant in practice. So no
+>> need to hurry IMHO. One step at a time: it might make perfect sense to
+>> remove ETXTBSY, but we have to be careful to not break other user
+>> space that actually cares about the current behavior in practice.
+> 
+> It is an old enough issue that I agree there is no need to hurry.
+> 
+> I also ran into this issue not too long ago when I refactored the
+> usermode_driver code.  My challenge was not being in userspace
+> the delayed fput was not happening in my kernel thread.  Which meant
+> that writing the file, then closing the file, then execing the file
+> consistently reported -ETXTBSY.
+> 
+> The kernel code wound up doing:
+> 	/* Flush delayed fput so exec can open the file read-only */
+> 	flush_delayed_fput();
+> 	task_work_run();
+> 
+> As I read the code the delay for userspace file descriptors is
+> always done with task_work_add, so userspace should not hit
+> that kind of silliness, and should be able to actually close
+> the file descriptor before the exec.
+> 
+> 
+> On the flip side, I don't know how anything can depend upon getting an
+> -ETXTBSY.  So I don't think there is any real risk of breaking userspace
+> if we remove it.
 
-syzbot found the following issue on:
+At least in LTP, we have two test cases testing exactly that behavior:
 
-HEAD commit:    4ccc9e2db7ac Add linux-next specific files for 20210729
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=13891f5c300000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=75a5bed89b5c0fd2
-dashboard link: https://syzkaller.appspot.com/bug?extid=75eab84fd0af9e8bf66b
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.1
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1085e076300000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14247a56300000
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+75eab84fd0af9e8bf66b@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-WARNING: CPU: 1 PID: 6576 at fs/overlayfs/dir.c:212 ovl_create_real+0x272/0x520 fs/overlayfs/dir.c:212
-Modules linked in:
-CPU: 1 PID: 6576 Comm: syz-executor088 Not tainted 5.14.0-rc3-next-20210729-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
-RIP: 0010:ovl_create_real+0x272/0x520 fs/overlayfs/dir.c:212
-Code: 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 80 02 00 00 49 83 7c 24 68 00 0f 85 7a fe ff ff e8 de b6 c3 fe <0f> 0b 4c 89 e5 49 c7 c4 fb ff ff ff e9 57 fe ff ff 66 81 eb 00 10
-RSP: 0018:ffffc90002bef958 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000004000 RCX: 0000000000000000
-RDX: ffff88807b10b900 RSI: ffffffff82b20102 RDI: ffff88806f971208
-RBP: ffff88806f9711a0 R08: 0000000000000000 R09: 0000000000000000
-R10: ffffffff82b2018b R11: 0000000000000000 R12: ffff88806f9711a0
-R13: 0000000000004000 R14: ffff8880715c8a20 R15: ffff8880715c8b00
-FS:  00007fe7eef6d700(0000) GS:ffff8880b9c00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f49bbacf000 CR3: 000000001eea6000 CR4: 00000000001506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- ovl_workdir_create+0x3a9/0x5b0 fs/overlayfs/super.c:790
- ovl_make_workdir fs/overlayfs/super.c:1364 [inline]
- ovl_get_workdir fs/overlayfs/super.c:1511 [inline]
- ovl_fill_super+0x199a/0x5fb0 fs/overlayfs/super.c:2067
- mount_nodev+0x60/0x110 fs/super.c:1414
- legacy_get_tree+0x105/0x220 fs/fs_context.c:610
- vfs_get_tree+0x89/0x2f0 fs/super.c:1498
- do_new_mount fs/namespace.c:2978 [inline]
- path_mount+0x132a/0x1fa0 fs/namespace.c:3308
- do_mount fs/namespace.c:3321 [inline]
- __do_sys_mount fs/namespace.c:3529 [inline]
- __se_sys_mount fs/namespace.c:3506 [inline]
- __x64_sys_mount+0x27f/0x300 fs/namespace.c:3506
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-RIP: 0033:0x4458d9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 11 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fe7eef6d2f8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00000000004ca400 RCX: 00000000004458d9
-RDX: 00000000200000c0 RSI: 0000000020000000 RDI: 000000000040000d
-RBP: 000000000049a074 R08: 0000000020000100 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0030656c69662f2e
-R13: 0079616c7265766f R14: 003270756f726763 R15: 00000000004ca408
+testcases/kernel/syscalls/creat/creat07.c
+testcases/kernel/syscalls/execve/execve04.c
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+-- 
+Thanks,
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+David / dhildenb
+
