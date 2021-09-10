@@ -4,46 +4,46 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2445C4167E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Sep 2021 00:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E98DFC4321E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Sep 2021 00:44:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFA9161205
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Sep 2021 00:44:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D22CA61186
+	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Sep 2021 00:44:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231464AbhIJAp5 (ORCPT
+        id S231975AbhIJAqA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Sep 2021 20:45:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46624 "EHLO mail.kernel.org"
+        Thu, 9 Sep 2021 20:46:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233626AbhIJAU3 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Sep 2021 20:20:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C0F46023D;
-        Fri, 10 Sep 2021 00:19:18 +0000 (UTC)
+        id S234387AbhIJAXQ (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
+        Thu, 9 Sep 2021 20:23:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDDE960FC0;
+        Fri, 10 Sep 2021 00:22:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631233159;
-        bh=E4c3HQ78lDsQLlQX3N/Djo6I8196nom3UukxgmiwP3Y=;
+        s=k20201202; t=1631233326;
+        bh=6DvBScFx4vP3kesSnhRnFcB0+Ya19xx+IsfFPVT/zUE=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Cd+BQc925qGXZ3NeN9ZtZJzTxLrcOKqzuQ+gAliR4Uu/n0l6qd1e5TmCgRvmpm5ps
-         1+hHTYD7zS4TziOf2TI93awuhcOSJSxtLycYjBGS8zzkKq82R46RsSni/bMvZG05JX
-         yQsv9lpBWXBdSPFV8RLvm8Dv1uXsdmNJhvYd334ZfRQK/T7bBkaZV1GiO0wz6cwt5H
-         iO0hdML+Y+gRYtAqLLtAzsbj9z4j0UuLfZww69y1ddUcFIuafKk0ySz31dC+9u4ie1
-         603AAxLJROGegFKa+suhRPl8UIt0BSADFkjFhD2s0FmqsckcdpMeSQgYqq89uH0038
-         G4K6TLiG8nnmw==
+        b=e5X7AmbDnT2dEABoHiaSisUW+eYPIcF1gFXjOMUZPHaVJEKhw89tvZp+CbsimIfZP
+         288mi1eMf8Rl6Rmc8vOMokA1TRmzy3Bh5Csf0ysUf/TNGjjAmauCOy3i64oHycsHRD
+         KpNYUzKhHPaB/RWPS2bfMrweSxRI3fUSLkfrRg+vGQu+L6Ci/bwU6rbUJPQGJf+5Mr
+         da0HR0xgyD5JOzFGAsUtBIA+iIwAVTej0xo4qixIr+lLwkNExCCbIZj6iG8Arhf+qX
+         FxHymfSoi+KV9lJNZcVs6OUwRfN5cO9zOjQaLjUGM5fuVIKTf+gBq0fGktW34WYG0r
+         NVhybj4e6Lq8g==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Chengguang Xu <cgxu519@mykernel.net>,
         Miklos Szeredi <mszeredi@redhat.com>,
-        Sasha Levin <sashal@kernel.org>, linux-unionfs@vger.kernel.org,
-        linux-doc@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.13 41/88] ovl: skip checking lower file's i_writecount on truncate
-Date:   Thu,  9 Sep 2021 20:17:33 -0400
-Message-Id: <20210910001820.174272-41-sashal@kernel.org>
+        Sasha Levin <sashal@kernel.org>, linux-doc@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 17/37] ovl: skip checking lower file's i_writecount on truncate
+Date:   Thu,  9 Sep 2021 20:21:22 -0400
+Message-Id: <20210910002143.175731-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210910001820.174272-1-sashal@kernel.org>
-References: <20210910001820.174272-1-sashal@kernel.org>
+In-Reply-To: <20210910002143.175731-1-sashal@kernel.org>
+References: <20210910002143.175731-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -79,15 +79,15 @@ Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- Documentation/filesystems/overlayfs.rst | 3 +++
+ Documentation/filesystems/overlayfs.txt | 3 +++
  fs/overlayfs/inode.c                    | 6 ------
  2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 455ca86eb4fc..7da6c30ed596 100644
---- a/Documentation/filesystems/overlayfs.rst
-+++ b/Documentation/filesystems/overlayfs.rst
-@@ -427,6 +427,9 @@ b) If a file residing on a lower layer is opened for read-only and then
+diff --git a/Documentation/filesystems/overlayfs.txt b/Documentation/filesystems/overlayfs.txt
+index 845d689e0fd7..69ffd8ebf3a8 100644
+--- a/Documentation/filesystems/overlayfs.txt
++++ b/Documentation/filesystems/overlayfs.txt
+@@ -348,6 +348,9 @@ b) If a file residing on a lower layer is opened for read-only and then
  memory mapped with MAP_SHARED, then subsequent changes to the file are not
  reflected in the memory mapping.
  
@@ -98,10 +98,10 @@ index 455ca86eb4fc..7da6c30ed596 100644
  compliant filesystem:
  
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index b288843e6b42..6566294c5fd6 100644
+index 56b55397a7a0..0486fc925002 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -33,12 +33,6 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+@@ -29,12 +29,6 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
  		goto out;
  
  	if (attr->ia_valid & ATTR_SIZE) {
