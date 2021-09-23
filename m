@@ -7,48 +7,47 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48598C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 952D4C433F5
 	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3364D6115A
+	by mail.kernel.org (Postfix) with ESMTP id 823046115A
 	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241259AbhIWNZf (ORCPT
+        id S241249AbhIWNZf (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
         Thu, 23 Sep 2021 09:25:35 -0400
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17268 "EHLO
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17223 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241249AbhIWNZe (ORCPT
+        by vger.kernel.org with ESMTP id S241262AbhIWNZf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Sep 2021 09:25:34 -0400
-X-Greylist: delayed 908 seconds by postgrey-1.27 at vger.kernel.org; Thu, 23 Sep 2021 09:25:34 EDT
-ARC-Seal: i=1; a=rsa-sha256; t=1632402519; cv=none; 
+        Thu, 23 Sep 2021 09:25:35 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1632402521; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=USt4P00lNZZPNFMSumV/GycrF2tO2fKY8/ClpqdludyrNoFvkUovVomhVmsX6bWSky95dzqEl/+q51Pp7wQjN98Kee5UnyA1eq5IOpQvyi8bmQP1fb9rOh0nsBjJcsMibjXgWgOoH8lRprGv4y/0+XzBvjBz6lqHIdEhla0L6sI=
+        b=LtT4AHvjKfjxM7qfFR64EaDXeRwB+/cGDrDpPbwsQpxOy9zU9S/34b9tcckTWtPRC99AFBxe4FcaVqr1Uj/UN3hKhKg1h8vL6QxnRLBoNpV0P2g63VPQspXv2qjNvZW21/WRc0M3YzJIgEErJ2ElGnTzX/Mpa3IsiMjtrSGEC7Q=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1632402519; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=YcxkPiJx6Ikxp0ynHw1Dz+L3wBzcP9EXpk2Zzl1PCl4=; 
-        b=eIgoR/BVZrZMhGaM2ewLhBaQsrwvTn7bThx3r/0azeLUM3tHIqwEDxYLWoYKQE2aKsP75NhsAG46RgGKnkSn0U4YeNzKUhnfRX6VamXWtV8lYLr8fWWEu59WHe4x2vu1620w7Nl4f4N5G55uoK/wJYzAzYbCn/S91QNvcFWb8P4=
+        t=1632402521; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=XsUohhYVPknp/XYAaV7893wjUc9cOlm8DY/Vt5qPhmQ=; 
+        b=FZdUAfgRvEjoF5w4JyAviHQETBr1ci/Y8SnblybEi/0LWK5d3aFFN9xTY586aGoFtbmw6OyHq3a5zpS5nMzls52AY6lw9HEHZTbZHiIZw+pT8q69FGam1LPJ+XkUkb4CMOMKsi/5IQZftPqGOkd6WDwfCsVisLm9Wt8I6VOeRAU=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1632402519;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1632402521;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=YcxkPiJx6Ikxp0ynHw1Dz+L3wBzcP9EXpk2Zzl1PCl4=;
-        b=OAeo3R/bEBj3E+lbzVDff2g72aNLcqL3jxZRwYe4TiR9NCtnj55RAKPCJgb/cEQ1
-        eShD7V7ouJPRFkSmStmbkZSFTq8dsE914Zk9hHVNsVRYIE4ijYEnQGc5qF7bCmsnwLG
-        LsO4yHkMEskGjCW2LJjm/Nt1kBEWO77fJmP0lPzU=
+        bh=XsUohhYVPknp/XYAaV7893wjUc9cOlm8DY/Vt5qPhmQ=;
+        b=J1CY3iOba+GXjdL6LsJYfjWo0tJEIuJUg9Pz9U+pHROXjA9a2Rsu2AQ+m9g4SrqV
+        WizDKlrtcKcL5qhJovXGJI74s5Nh41Fl0UU8EKQS5yeuiqnrgwgmhTAZv8FN+HdRh/P
+        UDcIVxHoK3jjQtUiQfOr7zd9ChTCWPJCdjjSz7NE=
 Received: from localhost.localdomain (81.71.33.115 [81.71.33.115]) by mx.zoho.com.cn
-        with SMTPS id 1632402518088813.5030221103862; Thu, 23 Sep 2021 21:08:38 +0800 (CST)
+        with SMTPS id 1632402520332669.3406501896101; Thu, 23 Sep 2021 21:08:40 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-kernel@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20210923130814.140814-4-cgxu519@mykernel.net>
-Subject: [RFC PATCH v5 03/10] ovl: implement overlayfs' ->evict_inode operation
-Date:   Thu, 23 Sep 2021 21:08:07 +0800
+Message-ID: <20210923130814.140814-7-cgxu519@mykernel.net>
+Subject: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode operation
+Date:   Thu, 23 Sep 2021 21:08:10 +0800
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210923130814.140814-1-cgxu519@mykernel.net>
 References: <20210923130814.140814-1-cgxu519@mykernel.net>
@@ -60,27 +59,49 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Implement overlayfs' ->evict_inode operation,
-so that we can clear dirty flags of overlayfs inode.
+Implement overlayfs' ->write_inode to sync dirty data
+and redirty overlayfs' inode if necessary.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/super.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/overlayfs/super.c | 30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 51886ba6130a..2ab77adf7256 100644
+index 2ab77adf7256..cddae3ca2fa5 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -406,11 +406,18 @@ static int ovl_remount(struct super_block *sb, int *f=
-lags, char *data)
- =09return ret;
+@@ -412,12 +412,42 @@ static void ovl_evict_inode(struct inode *inode)
+ =09clear_inode(inode);
  }
 =20
-+static void ovl_evict_inode(struct inode *inode)
++static int ovl_write_inode(struct inode *inode,
++=09=09=09   struct writeback_control *wbc)
 +{
-+=09inode->i_state &=3D ~I_DIRTY_ALL;
-+=09clear_inode(inode);
++=09struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
++=09struct inode *upper =3D ovl_inode_upper(inode);
++=09unsigned long iflag =3D 0;
++=09int ret =3D 0;
++
++=09if (!upper)
++=09=09return 0;
++
++=09if (!ovl_should_sync(ofs))
++=09=09return 0;
++
++=09if (upper->i_sb->s_op->write_inode)
++=09=09ret =3D upper->i_sb->s_op->write_inode(inode, wbc);
++
++=09if (mapping_writably_mapped(upper->i_mapping) ||
++=09    mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
++=09=09iflag |=3D I_DIRTY_PAGES;
++
++=09iflag |=3D upper->i_state & I_DIRTY_ALL;
++
++=09if (iflag)
++=09=09ovl_mark_inode_dirty(inode);
++
++=09return ret;
 +}
 +
  static const struct super_operations ovl_super_operations =3D {
@@ -88,7 +109,8 @@ lags, char *data)
  =09.free_inode=09=3D ovl_free_inode,
  =09.destroy_inode=09=3D ovl_destroy_inode,
  =09.drop_inode=09=3D generic_delete_inode,
-+=09.evict_inode=09=3D ovl_evict_inode,
+ =09.evict_inode=09=3D ovl_evict_inode,
++=09.write_inode=09=3D ovl_write_inode,
  =09.put_super=09=3D ovl_put_super,
  =09.sync_fs=09=3D ovl_sync_fs,
  =09.statfs=09=09=3D ovl_statfs,
