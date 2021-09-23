@@ -7,27 +7,27 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C655C4332F
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C12AC43217
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E7646115A
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B6C36115A
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241280AbhIWNZ6 (ORCPT
+        id S241356AbhIWNZ7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Sep 2021 09:25:58 -0400
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17229 "EHLO
+        Thu, 23 Sep 2021 09:25:59 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17274 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241377AbhIWNZv (ORCPT
+        by vger.kernel.org with ESMTP id S241380AbhIWNZv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Thu, 23 Sep 2021 09:25:51 -0400
 ARC-Seal: i=1; a=rsa-sha256; t=1632402523; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=f2h811w2svJQ4VmTGeEPdH8ik/s9xSbE+Y2NhLHm4skAElJ4FYA4xm5dEZGFMAi1TGnQJewLXfnkxfoHMNJGI3jNPYuLd4vA0vip+HcqcY+zwSgNfsMa1ORU7ggfUWGi3pDN72aPTjEogAu7+kShz6Zh98ewPabDJhBOXBqL4xc=
+        b=qH3ngKsxfDBir5NbpElwAqfEGQ6iHB041TE9vOS2w3gnqi1XONO2MMlLMRdbKRgbRfWsfFNtxgxtGDqp1YrzCkkx/VWeEV07mKNhKk70pFWgq+2gXh/Lrzkm5sshuksLpUeEDxuZGJMk6BcTA8DMN6od7bPBmOKnq2+6KZXIhxA=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
         t=1632402523; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=oG9u6AuZGZnG2KRRqhJabX8iiojey6H8VgFRc9r8zZI=; 
-        b=VkcPKRSjcPvbDFAsHX4SaX3tRDA349fSUPEhiU7yZblCVudkVNhNPAh8EjSEhhquivpvlX/Y2+ep4mRONhMq5NdadZqjKW0IrEbQ9WE1ncQejOM9iLp0VN/EcTaYok3dknMfKuY1V952v6eneT6XYeQERXol7ZFqmkrrvyDNUhQ=
+        bh=SJerK8hn3kKJX7a0C29xFImquFtm+fSY+XjyQ7ULrjs=; 
+        b=VcF6xUTRV2Z0fmfyEphbwYgIYz52AXlEBzlBP2RZnHlA80o+1qaQGwFnBRFfhzhWhNTJlgqzFxmyxOQdzghh2n6q/r4ey5kfzb5ojsuCQcY1DOi7klQrQ9RS5ythmJOSV0FoyZ0T7A4hgRzWHsbOSDUwFXFZtlaXyzkv1gaVwjs=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
@@ -35,19 +35,19 @@ ARC-Authentication-Results: i=1; mx.zoho.com.cn;
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1632402523;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=oG9u6AuZGZnG2KRRqhJabX8iiojey6H8VgFRc9r8zZI=;
-        b=XJQM+4b0CJp8iL2K71cfogKzVBIQgvz8ktaI3l4hTq+Fyn3vaxMs2Vo46b6Ap2Di
-        78la47q64qXuBX4hgyzGubgPeER3oS7CfGs3fPVN3BhSN+j/VOtQeUBJaqdqXFZLaJS
-        Tft2OQcHcIoZ55Cvjh/9z2MNFtN00A1UW+hZ7vXA=
+        bh=SJerK8hn3kKJX7a0C29xFImquFtm+fSY+XjyQ7ULrjs=;
+        b=MwQ5U9dtYqlgPS1baurzUMI0iLzWurkQBJwILxnogau7MtDCArgzgsLxI7yYtGZ8
+        +3z1v/Hgd3Y/Amfd7+2O70S07JhSlnNvafHGF8sIx1+5XCE+x51+1xPs0BhDPhCxFyL
+        v3FFzjVsYlDCHSXvNKqKc6uElBrpB8MG+PVj29QU=
 Received: from localhost.localdomain (81.71.33.115 [81.71.33.115]) by mx.zoho.com.cn
-        with SMTPS id 1632402522914922.0766031758626; Thu, 23 Sep 2021 21:08:42 +0800 (CST)
+        with SMTPS id 1632402521611230.03974667116563; Thu, 23 Sep 2021 21:08:41 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-kernel@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20210923130814.140814-11-cgxu519@mykernel.net>
-Subject: [RFC PATCH v5 10/10] ovl: implement containerized syncfs for overlayfs
-Date:   Thu, 23 Sep 2021 21:08:14 +0800
+Message-ID: <20210923130814.140814-9-cgxu519@mykernel.net>
+Subject: [RFC PATCH v5 08/10] fs: export wait_sb_inodes()
+Date:   Thu, 23 Sep 2021 21:08:12 +0800
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20210923130814.140814-1-cgxu519@mykernel.net>
 References: <20210923130814.140814-1-cgxu519@mykernel.net>
@@ -59,51 +59,51 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Now overlayfs can sync proper dirty inodes during syncfs,
-so remove unnecessary sync_filesystem() on upper file
-system.
+In order to wait syncing upper inodes we need to
+call wait_sb_inodes() in overlayfs' ->sync_fs.
 
 Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
 ---
- fs/overlayfs/super.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ fs/fs-writeback.c         | 3 ++-
+ include/linux/writeback.h | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index bf4000eb9be8..ef998ada6cb9 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -15,6 +15,7 @@
- #include <linux/seq_file.h>
- #include <linux/posix_acl_xattr.h>
- #include <linux/exportfs.h>
-+#include <linux/writeback.h>
- #include "overlayfs.h"
+diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
+index 81ec192ce067..0438c911241e 100644
+--- a/fs/fs-writeback.c
++++ b/fs/fs-writeback.c
+@@ -2505,7 +2505,7 @@ EXPORT_SYMBOL(__mark_inode_dirty);
+  * completed by the time we have gained the lock and waited for all IO tha=
+t is
+  * in progress regardless of the order callers are granted the lock.
+  */
+-static void wait_sb_inodes(struct super_block *sb)
++void wait_sb_inodes(struct super_block *sb)
+ {
+ =09LIST_HEAD(sync_list);
 =20
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-@@ -281,18 +282,15 @@ static int ovl_sync_fs(struct super_block *sb, int wa=
-it)
- =09/*
- =09 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
- =09 * All the super blocks will be iterated, including upper_sb.
--=09 *
--=09 * If this is a syncfs(2) call, then we do need to call
--=09 * sync_filesystem() on upper_sb, but enough if we do it when being
--=09 * called with wait =3D=3D 1.
- =09 */
--=09if (!wait)
--=09=09return 0;
+@@ -2589,6 +2589,7 @@ static void wait_sb_inodes(struct super_block *sb)
+ =09rcu_read_unlock();
+ =09mutex_unlock(&sb->s_sync_lock);
+ }
++EXPORT_SYMBOL(wait_sb_inodes);
 =20
- =09upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+ static void __writeback_inodes_sb_nr(struct super_block *sb, unsigned long=
+ nr,
+ =09=09=09=09     enum wb_reason reason, bool skip_if_busy)
+diff --git a/include/linux/writeback.h b/include/linux/writeback.h
+index d1f65adf6a26..d7aacd0434cf 100644
+--- a/include/linux/writeback.h
++++ b/include/linux/writeback.h
+@@ -198,6 +198,7 @@ void wakeup_flusher_threads_bdi(struct backing_dev_info=
+ *bdi,
+ =09=09=09=09enum wb_reason reason);
+ void inode_wait_for_writeback(struct inode *inode);
+ void inode_io_list_del(struct inode *inode);
++void wait_sb_inodes(struct super_block *sb);
 =20
- =09down_read(&upper_sb->s_umount);
--=09ret =3D sync_filesystem(upper_sb);
-+=09if (wait)
-+=09=09wait_sb_inodes(upper_sb);
-+
-+=09ret =3D sync_fs_and_blockdev(upper_sb, wait);
- =09up_read(&upper_sb->s_umount);
-=20
- =09return ret;
+ /* writeback.h requires fs.h; it, too, is not included from here. */
+ static inline void wait_on_inode(struct inode *inode)
 --=20
 2.27.0
 
