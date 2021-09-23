@@ -2,53 +2,55 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20795C433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C79DEC43217
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EB7461164
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B29CE6115A
+	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Sep 2021 13:24:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241276AbhIWNZo (ORCPT
+        id S241386AbhIWNZv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Sep 2021 09:25:44 -0400
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17271 "EHLO
+        Thu, 23 Sep 2021 09:25:51 -0400
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17228 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241289AbhIWNZi (ORCPT
+        by vger.kernel.org with ESMTP id S241360AbhIWNZp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Sep 2021 09:25:38 -0400
-ARC-Seal: i=1; a=rsa-sha256; t=1632402517; cv=none; 
+        Thu, 23 Sep 2021 09:25:45 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1632402519; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=QEEITetxp1KdUF3UTM/ee3rbezGxhy9H2yMiiG3wK54nC60d0c9BUiC5KeVkHlVWwxtj3AosbPHN04aysB/ACB2fF3fdYBzdwPOjGWaoaOvcUAhgh3tAmXjwOpm5Ih4huR9vtY6bfY76H+EXIzH9641O7wy6a31YI1KHS1X4+zM=
+        b=VWzAN0jCnhLrGy3jC0Mm6+b57VyrtubCVelrCQzI/wQYYxLtp2F5NU7qy7lI0lwEB/vG4P6sFbZjETH8pxEpavBORH+jhjb4BM9YIFkU5wIpGAsRxM+IVSy10nbRz9bH4Jj87dBvps6K/QsNZxR1GwsUL49aQcbXDMVfB39ecq8=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1632402517; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=nzuO9db+SWL+uI8mD5Cj6/bYdT9zgt12KRFdhPHa4C8=; 
-        b=fuEBgFrQ/O1i6S5zx7Vpo5/spDqL0YNjTQLwFIl4EtDeR65qrdZX0rMEu1mhkhSR0acB47AGtXo3K3vYZeHnZYC4I6k2aourj1Q4pAFl4X4OyV0+TJImSAnRuADCLGagolh39tv7fE1xgYPKQaQriZRDXk34MRboXTDyrwED6ZI=
+        t=1632402519; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=w/gDJAniEk07y4xvkybDn7HV+NGUOUDW0TeqbBoxuiE=; 
+        b=V2yeYqrC4dXlA9juc5hRIxPCQsUJxAgGsTLEAC6bglrrN+I2Czgc9E5Fu5RL5k2m4kBKjabUONufQ5difqwiL2ttlJzmrjWak8WrqXc50I7dh13rNtN9r37h9+xE1gEIzV80oTQbJZh6EgvnQ3Y1XeYf+YO3auxuWHRMjk67RJ4=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1632402517;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1632402519;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=nzuO9db+SWL+uI8mD5Cj6/bYdT9zgt12KRFdhPHa4C8=;
-        b=ff3PytOohXhRoq0TJHWw4MwlnjUEnXgRzlEkTajzyeMkAHXEEgX1+znnORMSeJf3
-        VF9ukkfBaE0uCqC2pGAJmRFsKDSkl7uEwRf/2qxfDFL1W+ju2x00gDgtUB4rh2Mv3ij
-        XrQcC1yEcON62voe5GqDXdb2qgqG/EYE7ygJ+a20=
+        h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
+        bh=w/gDJAniEk07y4xvkybDn7HV+NGUOUDW0TeqbBoxuiE=;
+        b=QZMMaqGR5LywkBwNIGIgNW2QNHMHcxmweQfOG5wgRqe1XwZpwsJ9F3RbNy+oNB1R
+        ZsbBg6hQFf795E4yGcVKudkL4z182w6dZOIuJb9zBPSPvjp0rybADzD7HkiC3sm6JeN
+        Ql7TZ5CqCbpiSoLzbDYh+kcc4+hMxPea3JJVc4cA=
 Received: from localhost.localdomain (81.71.33.115 [81.71.33.115]) by mx.zoho.com.cn
-        with SMTPS id 163240251605690.26904563646679; Thu, 23 Sep 2021 21:08:36 +0800 (CST)
+        with SMTPS id 163240251872378.04107038429561; Thu, 23 Sep 2021 21:08:38 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-kernel@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20210923130814.140814-1-cgxu519@mykernel.net>
-Subject: [RFC PATCH v5 00/10] implement containerized syncfs for overlayfs
-Date:   Thu, 23 Sep 2021 21:08:04 +0800
+Message-ID: <20210923130814.140814-5-cgxu519@mykernel.net>
+Subject: [RFC PATCH v5 04/10] ovl: mark overlayfs' inode dirty on modification
+Date:   Thu, 23 Sep 2021 21:08:08 +0800
 X-Mailer: git-send-email 2.27.0
+In-Reply-To: <20210923130814.140814-1-cgxu519@mykernel.net>
+References: <20210923130814.140814-1-cgxu519@mykernel.net>
 MIME-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
 X-ZohoCNMailClient: External
@@ -57,67 +59,91 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Current syncfs(2) syscall on overlayfs just calls sync_filesystem()
-on upper_sb to synchronize whole dirty inodes in upper filesystem
-regardless of the overlay ownership of the inode. In the use case of
-container, when multiple containers using the same underlying upper
-filesystem, it has some shortcomings as below.
+Mark overlayfs' inode dirty on modification so that
+we can recognize and collect target inodes for syncfs.
 
-(1) Performance
-Synchronization is probably heavy because it actually syncs unnecessary
-inodes for target overlayfs.
+Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+---
+ fs/overlayfs/inode.c     |  1 +
+ fs/overlayfs/overlayfs.h |  4 ++++
+ fs/overlayfs/util.c      | 21 +++++++++++++++++++++
+ 3 files changed, 26 insertions(+)
 
-(2) Interference
-Unplanned synchronization will probably impact IO performance of
-unrelated container processes on the other overlayfs.
-
-This series try to implement containerized syncfs for overlayfs so that
-only sync target dirty upper inodes which are belong to specific overlayfs
-instance. By doing this, it is able to reduce cost of synchronization and
-will not seriously impact IO performance of unrelated processes.
-
-v1->v2:
-- Mark overlayfs' inode dirty itself instead of adding notification
-  mechanism to vfs inode.
-
-v2->v3:
-- Introduce overlayfs' extra syncfs wait list to wait target upper inodes
-in ->sync_fs.
-
-v3->v4:
-- Using wait_sb_inodes() to wait syncing upper inodes.
-- Mark overlay inode dirty only when having upper inode and  VM_SHARED
-flag in ovl_mmap().
-- Check upper i_state after checking upper mmap state
-in ovl_write_inode.
-
-v4->v5:
-- Add underlying inode dirtiness check after mnt_drop_write().
-- Handle both wait/no-wait mode of syncfs(2) in overlayfs' ->sync_fs().
-
-Chengguang Xu (10):
-  ovl: setup overlayfs' private bdi
-  ovl: implement ->writepages operation
-  ovl: implement overlayfs' ->evict_inode operation
-  ovl: mark overlayfs' inode dirty on modification
-  ovl: mark overlayfs' inode dirty on shared mmap
-  ovl: implement overlayfs' ->write_inode operation
-  ovl: cache dirty overlayfs' inode
-  fs: export wait_sb_inodes()
-  fs: introduce new helper sync_fs_and_blockdev()
-  ovl: implement containerized syncfs for overlayfs
-
- fs/fs-writeback.c         |  3 +-
- fs/overlayfs/file.c       |  6 ++++
- fs/overlayfs/inode.c      | 14 ++++++++
- fs/overlayfs/overlayfs.h  |  4 +++
- fs/overlayfs/super.c      | 69 ++++++++++++++++++++++++++++++++++-----
- fs/overlayfs/util.c       | 21 ++++++++++++
- fs/sync.c                 | 14 +++++---
- include/linux/fs.h        |  1 +
- include/linux/writeback.h |  1 +
- 9 files changed, 120 insertions(+), 13 deletions(-)
-
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index d854e59a3710..4a03aceaeedc 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -478,6 +478,7 @@ int ovl_update_time(struct inode *inode, struct timespe=
+c64 *ts, int flags)
+ =09=09if (upperpath.dentry) {
+ =09=09=09touch_atime(&upperpath);
+ =09=09=09inode->i_atime =3D d_inode(upperpath.dentry)->i_atime;
++=09=09=09ovl_mark_inode_dirty(inode);
+ =09=09}
+ =09}
+ =09return 0;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 3894f3347955..5a016baa06dd 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -276,6 +276,7 @@ static inline bool ovl_allow_offline_changes(struct ovl=
+_fs *ofs)
+=20
+=20
+ /* util.c */
++void ovl_mark_inode_dirty(struct inode *inode);
+ int ovl_want_write(struct dentry *dentry);
+ void ovl_drop_write(struct dentry *dentry);
+ struct dentry *ovl_workdir(struct dentry *dentry);
+@@ -529,6 +530,9 @@ static inline void ovl_copyattr(struct inode *from, str=
+uct inode *to)
+ =09to->i_mtime =3D from->i_mtime;
+ =09to->i_ctime =3D from->i_ctime;
+ =09i_size_write(to, i_size_read(from));
++
++=09if (ovl_inode_upper(to) && from->i_state & I_DIRTY_ALL)
++=09=09ovl_mark_inode_dirty(to);
+ }
+=20
+ /* vfs inode flags copied from real to ovl inode */
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index f48284a2a896..5441eae2e345 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -25,7 +25,14 @@ int ovl_want_write(struct dentry *dentry)
+ void ovl_drop_write(struct dentry *dentry)
+ {
+ =09struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
++=09struct dentry *upper;
++
+ =09mnt_drop_write(ovl_upper_mnt(ofs));
++=09if (d_inode(dentry)) {
++=09=09upper =3D ovl_dentry_upper(dentry);
++=09=09if (upper && d_inode(upper) && d_inode(upper)->i_state & I_DIRTY_ALL=
+)
++=09=09=09ovl_mark_inode_dirty(d_inode(dentry));
++=09}
+ }
+=20
+ struct dentry *ovl_workdir(struct dentry *dentry)
+@@ -1060,3 +1067,17 @@ int ovl_sync_status(struct ovl_fs *ofs)
+=20
+ =09return errseq_check(&mnt->mnt_sb->s_wb_err, ofs->errseq);
+ }
++
++/*
++ * We intentionally add I_DIRTY_SYNC flag regardless dirty flag
++ * of upper inode so that we have chance to invoke ->write_inode
++ * to re-dirty overlayfs' inode during writeback process.
++ */
++void ovl_mark_inode_dirty(struct inode *inode)
++{
++=09struct inode *upper =3D ovl_inode_upper(inode);
++=09unsigned long iflag =3D I_DIRTY_SYNC;
++
++=09iflag |=3D upper->i_state & I_DIRTY_ALL;
++=09__mark_inode_dirty(inode, iflag);
++}
 --=20
 2.27.0
 
