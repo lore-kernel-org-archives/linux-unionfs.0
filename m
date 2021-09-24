@@ -2,144 +2,140 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,
-	FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81D8AC433F5
-	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Sep 2021 07:21:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89213C433F5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Sep 2021 08:50:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69AFC60F21
-	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Sep 2021 07:21:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CFCC61211
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Sep 2021 08:50:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244320AbhIXHXA convert rfc822-to-8bit (ORCPT
+        id S244456AbhIXIvi (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 24 Sep 2021 03:23:00 -0400
-Received: from n169-111.mail.139.com ([120.232.169.111]:46537 "EHLO
-        n169-111.mail.139.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244191AbhIXHW7 (ORCPT
+        Fri, 24 Sep 2021 04:51:38 -0400
+Received: from szxga03-in.huawei.com ([45.249.212.189]:16292 "EHLO
+        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244334AbhIXIvi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 24 Sep 2021 03:22:59 -0400
-X-Greylist: delayed 560 seconds by postgrey-1.27 at vger.kernel.org; Fri, 24 Sep 2021 03:22:59 EDT
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM:                                                                                        
-X-RM-SPAM-FLAG: 00000000
-Received: from smtpclient.apple (unknown[59.37.125.124])
-        by rmsmtp-lg-appmail-16-12015 (RichMail) with SMTP id 2eef614d7a43db7-aacda;
-        Fri, 24 Sep 2021 15:12:04 +0800 (CST)
-X-RM-TRANSID: 2eef614d7a43db7-aacda
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (1.0)
-Subject: Re: [PATCH] ovl: fix oops in ovl_rename
-From:   139 <cgxu519@139.com>
-In-Reply-To: <20210924011628.2069334-1-zhengliang6@huawei.com>
-Date:   Fri, 24 Sep 2021 15:12:03 +0800
-Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        yi.zhang@huawei.com
-Message-Id: <E376E38A-ABB0-4E20-B7C8-980F8CFC2047@139.com>
+        Fri, 24 Sep 2021 04:51:38 -0400
+Received: from dggeme752-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4HG5LP13BHz8tKZ;
+        Fri, 24 Sep 2021 16:49:17 +0800 (CST)
+Received: from dggeme756-chm.china.huawei.com (10.3.19.102) by
+ dggeme752-chm.china.huawei.com (10.3.19.98) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
+ 15.1.2308.8; Fri, 24 Sep 2021 16:50:03 +0800
+Received: from dggeme756-chm.china.huawei.com ([10.6.80.68]) by
+ dggeme756-chm.china.huawei.com ([10.6.80.68]) with mapi id 15.01.2308.008;
+ Fri, 24 Sep 2021 16:50:03 +0800
+From:   "zhengliang (A)" <zhengliang6@huawei.com>
+To:     139 <cgxu519@139.com>
+CC:     "miklos@szeredi.hu" <miklos@szeredi.hu>,
+        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+        "zhangyi (F)" <yi.zhang@huawei.com>
+Subject: [PATCH] ovl: fix oops in ovl_rename
+Thread-Topic: [PATCH] ovl: fix oops in ovl_rename
+Thread-Index: AQHXsODKn1Cd/ru1PU6Kgobs5MUua6uyPxSAgACc/VA=
+Date:   Fri, 24 Sep 2021 08:50:03 +0000
+Message-ID: <233d2f5ffba043bdb8976256bec3bc27@huawei.com>
 References: <20210924011628.2069334-1-zhengliang6@huawei.com>
-To:     Zheng Liang <zhengliang6@huawei.com>
-X-Mailer: iPhone Mail (18G82)
+ <E376E38A-ABB0-4E20-B7C8-980F8CFC2047@139.com>
+In-Reply-To: <E376E38A-ABB0-4E20-B7C8-980F8CFC2047@139.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-originating-ip: [10.174.176.200]
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-在 2021年9月24日，09:09，Zheng Liang <zhengliang6@huawei.com> 写道：
-> 
-> ﻿We find a kernel NULL pointer dereference problem in overlayfs.
-> The problem can appear in the following scene:
-> 
-> mkdir lower upper work merge
-> touch lower/old
-> touch lower/new
-> mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work merge
-> rm merge/new
-> ------------------------------------------------------------------------------------------
-> process A(rename file in merge)                                process B(delete file in upper)
-> renameat2(AT_FDCWD, "old", AT_FDCWD, "new", 0)
-> (new is whiteout file in upper)
->  do_renameat2
->    vfs_rename
->      ovl_rename
->      (overwrite=true,ovl_lower_positive(old)=true,
->      ovl_dentry_is_whiteout(new)=true)
->      (we can add some delay after "flags|=RENAME_EXCHANGE",
->      it can make the problem appear more easy)
->      ……                                                       unlink(new)
->      ……                                                       (delete whiteout in upper)
->      (newdentry is negative)
->        ovl_do_rename
-
-Is it a real use case? I believe there will be many unexpected behaviors if you delete the files in upper layer deliberately.
-
-Thanks,
-Chengguang
-
-
-
-> 
-> So,before commencing with ovl_do_rename that the flags maybe attach RENAME_EXCHANGE
-> and the newdentry is negative in ovl_rename.If we enabled selinux,it
-> will lead to kernel panic.such as the following log:
-> PID: 2552045  TASK: ffff8880302faf00  CPU: 2   COMMAND: "fsstress"
-> #0 [ffff888080e772a0] machine_kexec at ffffffff856adedc
-> #1 [ffff888080e773a8] __crash_kexec at ffffffff8585cd20
-> #2 [ffff888080e774c0] panic at ffffffff8572b288
-> #3 [ffff888080e77590] oops_end at ffffffff85641f6e
-> #4 [ffff888080e775f0] __do_page_fault at ffffffff856cd55b
-> #5 [ffff888080e77668] do_page_fault at ffffffff856cd834
-> #6 [ffff888080e776a0] async_page_fault at ffffffff8660125e
->    [exception RIP: __inode_security_revalidate+34]
->    RIP: ffffffff85c43452  RSP: ffff888080e77758  RFLAGS: 00010202
->    RAX: 0000000000000000  RBX: 0000000000000000  RCX: ffffffff8593ae7e
->    RDX: 0000000000000000  RSI: 0000000000000297  RDI: 0000000000000297
->    RBP: ffff8881984e6628   R8: ffffed10115e3f39   R9: ffffed10115e3f39
->    R10: 0000000000000001  R11: ffffed10115e3f38  R12: 0000000000000001
->    R13: 0000000000000000  R14: ffff88808350a000  R15: 1ffff110101ceef5
->    ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
-> #7 [ffff888080e77780] selinux_inode_rename at ffffffff85c4418d
-> #8 [ffff888080e77858] security_inode_rename at ffffffff85c35f24
-> #9 [ffff888080e77890] vfs_rename at ffffffff85b01209
-> #10 [ffff888080e779a8] ovl_do_rename at ffffffffc0a44c22 [overlay]
-> #11 [ffff888080e779d8] ovl_rename at ffffffffc0a46575 [overlay]
-> #12 [ffff888080e77b48] vfs_rename at ffffffff85b0155a
-> #13 [ffff888080e77c60] do_renameat2 at ffffffff85b06e65
-> #14 [ffff888080e77f00] __x64_sys_renameat2 at ffffffff85b06fb2
-> #15 [ffff888080e77f30] do_syscall_64 at ffffffff85606243
-> #16 [ffff888080e77f50] entry_SYSCALL_64_after_hwframe at ffffffff866000ad
-> 
-> We can add some check in ovl_rename for this scene and return error to avoid kernel panic.
-> 
-> Signed-off-by: Zheng Liang <zhengliang6@huawei.com>
-> ---
-> fs/overlayfs/dir.c | 10 +++++++---
-> 1 file changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 1fefb2b8960e..93c7c267de93 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -1219,9 +1219,13 @@ static int ovl_rename(struct user_namespace *mnt_userns, struct inode *olddir,
->                goto out_dput;
->        }
->    } else {
-> -        if (!d_is_negative(newdentry) &&
-> -            (!new_opaque || !ovl_is_whiteout(newdentry)))
-> -            goto out_dput;
-> +        if (!d_is_negative(newdentry)) {
-> +            if (!new_opaque || !ovl_is_whiteout(newdentry))
-> +                goto out_dput;
-> +        } else {
-> +            if (flags & RENAME_EXCHANGE)
-> +                goto out_dput;
-> +        }
->    }
-> 
->    if (olddentry == trap)
-> -- 
-> 2.25.4
-> 
-
-
+DQoNCj4g77u/V2UgZmluZCBhIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVuY2UgcHJvYmxl
+bSBpbiBvdmVybGF5ZnMuDQo+IFRoZSBwcm9ibGVtIGNhbiBhcHBlYXIgaW4gdGhlIGZvbGxvd2lu
+ZyBzY2VuZToNCj4gDQo+IG1rZGlyIGxvd2VyIHVwcGVyIHdvcmsgbWVyZ2UNCj4gdG91Y2ggbG93
+ZXIvb2xkDQo+IHRvdWNoIGxvd2VyL25ldw0KPiBtb3VudCAtdCBvdmVybGF5IG92ZXJsYXkgLW9s
+b3dlcmRpcj1sb3dlcix1cHBlcmRpcj11cHBlcix3b3JrZGlyPXdvcmsgDQo+IG1lcmdlIHJtIG1l
+cmdlL25ldw0KPiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gcHJvY2VzcyBB
+KHJlbmFtZSBmaWxlIGluIG1lcmdlKSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcHJv
+Y2VzcyBCKGRlbGV0ZSBmaWxlIGluIHVwcGVyKQ0KPiByZW5hbWVhdDIoQVRfRkRDV0QsICJvbGQi
+LCBBVF9GRENXRCwgIm5ldyIsIDApIChuZXcgaXMgd2hpdGVvdXQgZmlsZSANCj4gaW4gdXBwZXIp
+DQo+ICBkb19yZW5hbWVhdDINCj4gICAgdmZzX3JlbmFtZQ0KPiAgICAgIG92bF9yZW5hbWUNCj4g
+ICAgICAob3ZlcndyaXRlPXRydWUsb3ZsX2xvd2VyX3Bvc2l0aXZlKG9sZCk9dHJ1ZSwNCj4gICAg
+ICBvdmxfZGVudHJ5X2lzX3doaXRlb3V0KG5ldyk9dHJ1ZSkNCj4gICAgICAod2UgY2FuIGFkZCBz
+b21lIGRlbGF5IGFmdGVyICJmbGFnc3w9UkVOQU1FX0VYQ0hBTkdFIiwNCj4gICAgICBpdCBjYW4g
+bWFrZSB0aGUgcHJvYmxlbSBhcHBlYXIgbW9yZSBlYXN5KQ0KPiAgICAgIOKApuKApiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB1bmxpbmsobmV3
+KQ0KPiAgICAgIOKApuKApiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAoZGVsZXRlIHdoaXRlb3V0IGluIHVwcGVyKQ0KPiAgICAgIChuZXdkZW50
+cnkgaXMgbmVnYXRpdmUpDQo+ICAgICAgICBvdmxfZG9fcmVuYW1lDQoNCklzIGl0IGEgcmVhbCB1
+c2UgY2FzZT8gSSBiZWxpZXZlIHRoZXJlIHdpbGwgYmUgbWFueSB1bmV4cGVjdGVkIGJlaGF2aW9y
+cyBpZiB5b3UgZGVsZXRlIHRoZSBmaWxlcyBpbiB1cHBlciBsYXllciBkZWxpYmVyYXRlbHkuDQoN
+ClRoYW5rcywNCkNoZW5nZ3VhbmcNCg0KDQpBcyBkZXNjcmliZWQgaW4gdGhlIGRvY3VtZW50YXRp
+b24gKERvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3ZlcmxheWZzLnJzdCkNCiAgICAgICBDaGFu
+Z2VzIHRvIHVuZGVybHlpbmcgZmlsZXN5c3RlbXMNCiAgICAgICAtLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0NCiAgICAgIENoYW5nZXMgdG8gdGhlIHVuZGVybHlpbmcgZmlsZXN5c3Rl
+bXMgd2hpbGUgcGFydCBvZiBhIG1vdW50ZWQgb3ZlcmxheQ0KICAgICAgZmlsZXN5c3RlbSBhcmUg
+bm90IGFsbG93ZWQuICBJZiB0aGUgdW5kZXJseWluZyBmaWxlc3lzdGVtIGlzIGNoYW5nZWQsDQog
+ICAgICB0aGUgYmVoYXZpb3Igb2YgdGhlIG92ZXJsYXkgaXMgdW5kZWZpbmVkLCB0aG91Z2ggaXQg
+d2lsbCBub3QgcmVzdWx0IGluDQogICAgICBhIGNyYXNoIG9yIGRlYWRsb2NrLg0KU28sIFdlIHNo
+b3VsZCBwcm9iYWJseSBmaXggdGhpcyBjcmFzaCBwcm9ibGVtLg0KDQo+IA0KPiBTbyxiZWZvcmUg
+Y29tbWVuY2luZyB3aXRoIG92bF9kb19yZW5hbWUgdGhhdCB0aGUgZmxhZ3MgbWF5YmUgYXR0YWNo
+IA0KPiBSRU5BTUVfRVhDSEFOR0UgYW5kIHRoZSBuZXdkZW50cnkgaXMgbmVnYXRpdmUgaW4gb3Zs
+X3JlbmFtZS5JZiB3ZSANCj4gZW5hYmxlZCBzZWxpbnV4LGl0IHdpbGwgbGVhZCB0byBrZXJuZWwg
+cGFuaWMuc3VjaCBhcyB0aGUgZm9sbG93aW5nIGxvZzoNCj4gUElEOiAyNTUyMDQ1ICBUQVNLOiBm
+ZmZmODg4MDMwMmZhZjAwICBDUFU6IDIgICBDT01NQU5EOiAiZnNzdHJlc3MiDQo+ICMwIFtmZmZm
+ODg4MDgwZTc3MmEwXSBtYWNoaW5lX2tleGVjIGF0IGZmZmZmZmZmODU2YWRlZGMNCj4gIzEgW2Zm
+ZmY4ODgwODBlNzczYThdIF9fY3Jhc2hfa2V4ZWMgYXQgZmZmZmZmZmY4NTg1Y2QyMA0KPiAjMiBb
+ZmZmZjg4ODA4MGU3NzRjMF0gcGFuaWMgYXQgZmZmZmZmZmY4NTcyYjI4OA0KPiAjMyBbZmZmZjg4
+ODA4MGU3NzU5MF0gb29wc19lbmQgYXQgZmZmZmZmZmY4NTY0MWY2ZQ0KPiAjNCBbZmZmZjg4ODA4
+MGU3NzVmMF0gX19kb19wYWdlX2ZhdWx0IGF0IGZmZmZmZmZmODU2Y2Q1NWINCj4gIzUgW2ZmZmY4
+ODgwODBlNzc2NjhdIGRvX3BhZ2VfZmF1bHQgYXQgZmZmZmZmZmY4NTZjZDgzNA0KPiAjNiBbZmZm
+Zjg4ODA4MGU3NzZhMF0gYXN5bmNfcGFnZV9mYXVsdCBhdCBmZmZmZmZmZjg2NjAxMjVlDQo+ICAg
+IFtleGNlcHRpb24gUklQOiBfX2lub2RlX3NlY3VyaXR5X3JldmFsaWRhdGUrMzRdDQo+ICAgIFJJ
+UDogZmZmZmZmZmY4NWM0MzQ1MiAgUlNQOiBmZmZmODg4MDgwZTc3NzU4ICBSRkxBR1M6IDAwMDEw
+MjAyDQo+ICAgIFJBWDogMDAwMDAwMDAwMDAwMDAwMCAgUkJYOiAwMDAwMDAwMDAwMDAwMDAwICBS
+Q1g6IGZmZmZmZmZmODU5M2FlN2UNCj4gICAgUkRYOiAwMDAwMDAwMDAwMDAwMDAwICBSU0k6IDAw
+MDAwMDAwMDAwMDAyOTcgIFJESTogMDAwMDAwMDAwMDAwMDI5Nw0KPiAgICBSQlA6IGZmZmY4ODgx
+OTg0ZTY2MjggICBSODogZmZmZmVkMTAxMTVlM2YzOSAgIFI5OiBmZmZmZWQxMDExNWUzZjM5DQo+
+ICAgIFIxMDogMDAwMDAwMDAwMDAwMDAwMSAgUjExOiBmZmZmZWQxMDExNWUzZjM4ICBSMTI6IDAw
+MDAwMDAwMDAwMDAwMDENCj4gICAgUjEzOiAwMDAwMDAwMDAwMDAwMDAwICBSMTQ6IGZmZmY4ODgw
+ODM1MGEwMDAgIFIxNTogMWZmZmYxMTAxMDFjZWVmNQ0KPiAgICBPUklHX1JBWDogZmZmZmZmZmZm
+ZmZmZmZmZiAgQ1M6IDAwMTAgIFNTOiAwMDE4DQo+ICM3IFtmZmZmODg4MDgwZTc3NzgwXSBzZWxp
+bnV4X2lub2RlX3JlbmFtZSBhdCBmZmZmZmZmZjg1YzQ0MThkDQo+ICM4IFtmZmZmODg4MDgwZTc3
+ODU4XSBzZWN1cml0eV9pbm9kZV9yZW5hbWUgYXQgZmZmZmZmZmY4NWMzNWYyNA0KPiAjOSBbZmZm
+Zjg4ODA4MGU3Nzg5MF0gdmZzX3JlbmFtZSBhdCBmZmZmZmZmZjg1YjAxMjA5DQo+ICMxMCBbZmZm
+Zjg4ODA4MGU3NzlhOF0gb3ZsX2RvX3JlbmFtZSBhdCBmZmZmZmZmZmMwYTQ0YzIyIFtvdmVybGF5
+XQ0KPiAjMTEgW2ZmZmY4ODgwODBlNzc5ZDhdIG92bF9yZW5hbWUgYXQgZmZmZmZmZmZjMGE0NjU3
+NSBbb3ZlcmxheV0NCj4gIzEyIFtmZmZmODg4MDgwZTc3YjQ4XSB2ZnNfcmVuYW1lIGF0IGZmZmZm
+ZmZmODViMDE1NWENCj4gIzEzIFtmZmZmODg4MDgwZTc3YzYwXSBkb19yZW5hbWVhdDIgYXQgZmZm
+ZmZmZmY4NWIwNmU2NQ0KPiAjMTQgW2ZmZmY4ODgwODBlNzdmMDBdIF9feDY0X3N5c19yZW5hbWVh
+dDIgYXQgZmZmZmZmZmY4NWIwNmZiMg0KPiAjMTUgW2ZmZmY4ODgwODBlNzdmMzBdIGRvX3N5c2Nh
+bGxfNjQgYXQgZmZmZmZmZmY4NTYwNjI0Mw0KPiAjMTYgW2ZmZmY4ODgwODBlNzdmNTBdIGVudHJ5
+X1NZU0NBTExfNjRfYWZ0ZXJfaHdmcmFtZSBhdCANCj4gZmZmZmZmZmY4NjYwMDBhZA0KPiANCj4g
+V2UgY2FuIGFkZCBzb21lIGNoZWNrIGluIG92bF9yZW5hbWUgZm9yIHRoaXMgc2NlbmUgYW5kIHJl
+dHVybiBlcnJvciB0byBhdm9pZCBrZXJuZWwgcGFuaWMuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBa
+aGVuZyBMaWFuZyA8emhlbmdsaWFuZzZAaHVhd2VpLmNvbT4NCj4gLS0tDQo+IGZzL292ZXJsYXlm
+cy9kaXIuYyB8IDEwICsrKysrKystLS0NCj4gMSBmaWxlIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygr
+KSwgMyBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvZGlyLmMg
+Yi9mcy9vdmVybGF5ZnMvZGlyLmMgaW5kZXggDQo+IDFmZWZiMmI4OTYwZS4uOTNjN2MyNjdkZTkz
+IDEwMDY0NA0KPiAtLS0gYS9mcy9vdmVybGF5ZnMvZGlyLmMNCj4gKysrIGIvZnMvb3ZlcmxheWZz
+L2Rpci5jDQo+IEBAIC0xMjE5LDkgKzEyMTksMTMgQEAgc3RhdGljIGludCBvdmxfcmVuYW1lKHN0
+cnVjdCB1c2VyX25hbWVzcGFjZSAqbW50X3VzZXJucywgc3RydWN0IGlub2RlICpvbGRkaXIsDQo+
+ICAgICAgICAgICAgICAgIGdvdG8gb3V0X2RwdXQ7DQo+ICAgICAgICB9DQo+ICAgIH0gZWxzZSB7
+DQo+IC0gICAgICAgIGlmICghZF9pc19uZWdhdGl2ZShuZXdkZW50cnkpICYmDQo+IC0gICAgICAg
+ICAgICAoIW5ld19vcGFxdWUgfHwgIW92bF9pc193aGl0ZW91dChuZXdkZW50cnkpKSkNCj4gLSAg
+ICAgICAgICAgIGdvdG8gb3V0X2RwdXQ7DQo+ICsgICAgICAgIGlmICghZF9pc19uZWdhdGl2ZShu
+ZXdkZW50cnkpKSB7DQo+ICsgICAgICAgICAgICBpZiAoIW5ld19vcGFxdWUgfHwgIW92bF9pc193
+aGl0ZW91dChuZXdkZW50cnkpKQ0KPiArICAgICAgICAgICAgICAgIGdvdG8gb3V0X2RwdXQ7DQo+
+ICsgICAgICAgIH0gZWxzZSB7DQo+ICsgICAgICAgICAgICBpZiAoZmxhZ3MgJiBSRU5BTUVfRVhD
+SEFOR0UpDQo+ICsgICAgICAgICAgICAgICAgZ290byBvdXRfZHB1dDsNCj4gKyAgICAgICAgfQ0K
+PiAgICB9DQo+IA0KPiAgICBpZiAob2xkZGVudHJ5ID09IHRyYXApDQo+IC0tDQo+IDIuMjUuNA0K
+PiANCg0KDQo=
