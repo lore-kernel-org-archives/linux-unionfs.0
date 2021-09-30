@@ -2,156 +2,72 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69B65C433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu, 30 Sep 2021 07:04:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE917C433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 429ED615E1
-	for <linux-unionfs@archiver.kernel.org>; Thu, 30 Sep 2021 07:04:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C9DC3610A4
+	for <linux-unionfs@archiver.kernel.org>; Thu, 30 Sep 2021 08:04:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348449AbhI3HFu (ORCPT
+        id S1348939AbhI3IF6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 30 Sep 2021 03:05:50 -0400
-Received: from n169-110.mail.139.com ([120.232.169.110]:44425 "EHLO
-        n169-110.mail.139.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233661AbhI3HFt (ORCPT
+        Thu, 30 Sep 2021 04:05:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57614 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1348950AbhI3IEb (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 30 Sep 2021 03:05:49 -0400
-X-Greylist: delayed 546 seconds by postgrey-1.27 at vger.kernel.org; Thu, 30 Sep 2021 03:05:49 EDT
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM:                                                                                        
-X-RM-SPAM-FLAG: 00000000
-Received: from [192.168.255.10] (unknown[113.108.77.54])
-        by rmsmtp-lg-appmail-08-12086 (RichMail) with SMTP id 2f3661555f3e397-57260;
-        Thu, 30 Sep 2021 14:54:56 +0800 (CST)
-X-RM-TRANSID: 2f3661555f3e397-57260
-Message-ID: <598d41fd-e0a1-393d-f425-2067724e4cd6@139.com>
-Date:   Thu, 30 Sep 2021 14:54:54 +0800
+        Thu, 30 Sep 2021 04:04:31 -0400
+Received: from mail-vs1-xe34.google.com (mail-vs1-xe34.google.com [IPv6:2607:f8b0:4864:20::e34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0A32C06161C
+        for <linux-unionfs@vger.kernel.org>; Thu, 30 Sep 2021 01:02:24 -0700 (PDT)
+Received: by mail-vs1-xe34.google.com with SMTP id y141so6244347vsy.5
+        for <linux-unionfs@vger.kernel.org>; Thu, 30 Sep 2021 01:02:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=92U70qC982rmm8b+Okt4L8pm/v/AS9jJLK7HS+uEBAg=;
+        b=dJoHRLneh7d55by8zbIYaGBb1Rl5vukOa2sMqN0mTBEiJrherDgmBPFsemKSLFVIIe
+         r9Upb57nqtjE/LiMirmmwrAbAJMjUO+ShYQ3pEgcst0GE0a0XkiLldVLtCyvh15yQWwP
+         fz+pGPiJwvoMRbsSJC2db+Fg+w6R/24w5Gl58=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=92U70qC982rmm8b+Okt4L8pm/v/AS9jJLK7HS+uEBAg=;
+        b=MbFzeU56FXjSedxRA5Qgmml6rh4arg4Vig9Wqfq5/uboqVcNaRGfID34bNepPWii/I
+         OEiMJ3CjU4Cvy2W2LUENwEZj7vBs/s8ByGdtHF/ajc4cBzQbNVcSGcuAdHUOztKGAO7v
+         CpbwmtMWuaTF7/Lzqd629gEoQG5g8+8Mq31sBz0R9xop6drYt/CclvUFD3pucnkOQw84
+         M5fuOB3mx/Y8RdbquG3xiK5XNuqm0jbRVI1mN8YUOOiCfXaC5HCNp+O7YEXXw+Z0Cor4
+         AdBgLSVoXpbUuj5tPK2w+pu8o4duf8bLf9lzh+CBY5iUuzkOM0cOfxXnVEyuExe3n/oj
+         bL9A==
+X-Gm-Message-State: AOAM530XaOE/IKAYe1m7AdR4LIm5RVDwc6xhaOivJMRIk9hSGSLmesdL
+        rR/tgWEiaTN/wmwlWdvPQ7JKtJgANl2r6i0m5vBagA==
+X-Google-Smtp-Source: ABdhPJyTheh7nHP1WtcTjy6Y15KZVT5U1wOuH/lf5ouCdlwrNToNvJ/MhaAaqCFSCtFP8YJNBtiFUCja7PXkcw0RBok=
+X-Received: by 2002:a67:a644:: with SMTP id r4mr2016362vsh.24.1632988944102;
+ Thu, 30 Sep 2021 01:02:24 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.1.1
-Subject: Re: [PATCH] ovl: set overlayfs inode's a_ops->direct_IO properly
-To:     Huang Jianan <huangjianan@oppo.com>,
-        Chengguang Xu <cgxu519@mykernel.net>, mszeredi@redhat.com
-Cc:     linux-unionfs@vger.kernel.org
-References: <20210928124757.117556-1-cgxu519@mykernel.net>
- <2ef5a5e3-234f-5b1b-5463-726d200e7e96@oppo.com>
-From:   Chengguang Xu <cgxu519@139.com>
+References: <20210928124757.117556-1-cgxu519@mykernel.net> <2ef5a5e3-234f-5b1b-5463-726d200e7e96@oppo.com>
 In-Reply-To: <2ef5a5e3-234f-5b1b-5463-726d200e7e96@oppo.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Thu, 30 Sep 2021 10:02:13 +0200
+Message-ID: <CAJfpegsJuprveXYHCz7wu11nZU2ZG+pOQ6Jy--PSO6Km1VnTng@mail.gmail.com>
+Subject: Re: [PATCH] ovl: set overlayfs inode's a_ops->direct_IO properly
+To:     Huang Jianan <huangjianan@oppo.com>
+Cc:     Chengguang Xu <cgxu519@mykernel.net>,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-在 2021/9/30 14:52, Huang Jianan 写道:
-> This patch can ensure that loop devices based on erofs and overlayfs 
+On Thu, 30 Sept 2021 at 08:52, Huang Jianan <huangjianan@oppo.com> wrote:
+>
+> This patch can ensure that loop devices based on erofs and overlayfs
 > can't set dio through __loop_update_dio.
->
-> Tested-by: Huang Jianan <huangjianan@oppo.com>
 
-HI Jianan,
+So does this mean that you tested the "loop on overlayfs on erofs"
+setup and it works?
 
-Thanks for the test!
-
-
-
->
-> Thanks,
-> Jianan
->
-> 在 2021/9/28 20:47, Chengguang Xu 写道:
->> Loop device checks the ability of DIRECT-IO by checking
->> a_ops->direct_IO of inode, in order to avoid this kind of
->> false detection we set a_ops->direct_IO for overlayfs inode
->> only when underlying inode really has DIRECT-IO ability.
->>
->> Reported-by: Huang Jianan <huangjianan@oppo.com>
->> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
->> ---
->>   fs/overlayfs/dir.c       |  2 ++
->>   fs/overlayfs/inode.c     |  4 ++--
->>   fs/overlayfs/overlayfs.h |  1 +
->>   fs/overlayfs/util.c      | 14 ++++++++++++++
->>   4 files changed, 19 insertions(+), 2 deletions(-)
->>
->> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
->> index 1fefb2b8960e..32a60f9e3f9e 100644
->> --- a/fs/overlayfs/dir.c
->> +++ b/fs/overlayfs/dir.c
->> @@ -648,6 +648,8 @@ static int ovl_create_object(struct dentry 
->> *dentry, int mode, dev_t rdev,
->>       /* Did we end up using the preallocated inode? */
->>       if (inode != d_inode(dentry))
->>           iput(inode);
->> +    else
->> +        ovl_inode_set_aops(inode);
->>     out_drop_write:
->>       ovl_drop_write(dentry);
->> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
->> index 832b17589733..a7a327e4f790 100644
->> --- a/fs/overlayfs/inode.c
->> +++ b/fs/overlayfs/inode.c
->> @@ -659,7 +659,7 @@ static const struct inode_operations 
->> ovl_special_inode_operations = {
->>       .update_time    = ovl_update_time,
->>   };
->>   -static const struct address_space_operations ovl_aops = {
->> +const struct address_space_operations ovl_aops = {
->>       /* For O_DIRECT dentry_open() checks 
->> f_mapping->a_ops->direct_IO */
->>       .direct_IO        = noop_direct_IO,
->>   };
->> @@ -786,6 +786,7 @@ void ovl_inode_init(struct inode *inode, struct 
->> ovl_inode_params *oip,
->>       ovl_copyattr(realinode, inode);
->>       ovl_copyflags(realinode, inode);
->>       ovl_map_ino(inode, ino, fsid);
->> +    ovl_inode_set_aops(inode);
->>   }
->>     static void ovl_fill_inode(struct inode *inode, umode_t mode, 
->> dev_t rdev)
->> @@ -802,7 +803,6 @@ static void ovl_fill_inode(struct inode *inode, 
->> umode_t mode, dev_t rdev)
->>       case S_IFREG:
->>           inode->i_op = &ovl_file_inode_operations;
->>           inode->i_fop = &ovl_file_operations;
->> -        inode->i_mapping->a_ops = &ovl_aops;
->>           break;
->>         case S_IFDIR:
->> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
->> index 3894f3347955..976c9d634293 100644
->> --- a/fs/overlayfs/overlayfs.h
->> +++ b/fs/overlayfs/overlayfs.h
->> @@ -349,6 +349,7 @@ bool ovl_is_metacopy_dentry(struct dentry *dentry);
->>   char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry 
->> *dentry,
->>                    int padding);
->>   int ovl_sync_status(struct ovl_fs *ofs);
->> +void ovl_inode_set_aops(struct inode *inode);
->>     static inline void ovl_set_flag(unsigned long flag, struct inode 
->> *inode)
->>   {
->> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
->> index f48284a2a896..33535dbee1c3 100644
->> --- a/fs/overlayfs/util.c
->> +++ b/fs/overlayfs/util.c
->> @@ -1060,3 +1060,17 @@ int ovl_sync_status(struct ovl_fs *ofs)
->>         return errseq_check(&mnt->mnt_sb->s_wb_err, ofs->errseq);
->>   }
->> +
->> +extern const struct address_space_operations ovl_aops;
->> +void ovl_inode_set_aops(struct inode *inode)
->> +{
->> +    struct inode *realinode;
->> +
->> +    if (!S_ISREG(inode->i_mode))
->> +        return;
->> +
->> +    realinode = ovl_inode_realdata(inode);
->> +    if (realinode && realinode->i_mapping && 
->> realinode->i_mapping->a_ops &&
->> +        realinode->i_mapping->a_ops->direct_IO)
->> +        inode->i_mapping->a_ops = &ovl_aops;
->> +}
->
-
+Thanks,
+Miklos
