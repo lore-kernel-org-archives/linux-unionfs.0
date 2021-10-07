@@ -2,91 +2,104 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F7BC433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 14:46:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B02D4C433EF
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 14:53:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4AA1C60F4A
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 14:46:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D3EF6109F
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 14:53:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242132AbhJGOsm (ORCPT
+        id S242207AbhJGOzi (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Oct 2021 10:48:42 -0400
-Received: from smtp-out2.suse.de ([195.135.220.29]:57798 "EHLO
-        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233419AbhJGOsl (ORCPT
+        Thu, 7 Oct 2021 10:55:38 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25328 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S242165AbhJGOzi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Oct 2021 10:48:41 -0400
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id 1A13D200CA;
-        Thu,  7 Oct 2021 14:46:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1633618007; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bn9jHUhGBy/09SeVT+oXfiBXLQm4zhIk/PLnuS4BfXI=;
-        b=B/xXd3mEz5i39N+aRPpqCSx8dpZC3l3YxzQvpAAzQJ/JuNzH97nq4rXaBGubVqGO/CtkTQ
-        SWV6nwz9TF+X3duxO6WwEvyVVlSmWhwaqBZJEw+u5HY2Eafvwri5A9ZfgfbSp8wxB22C3g
-        vqmjgMO1TUZ/xSV2WFX2aF1Sb5xFhn8=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1633618007;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bn9jHUhGBy/09SeVT+oXfiBXLQm4zhIk/PLnuS4BfXI=;
-        b=ML+pYq8+P53uEk51AL6tU6Xo3jdPHvJ1X3hWA591UWgFCiZ54EKDX0ClBt/zTX0f6p4DHE
-        2ivBMw5ulqfDO0Bg==
-Received: from quack2.suse.cz (unknown [10.100.224.230])
-        by relay2.suse.de (Postfix) with ESMTP id 026BAA3B83;
-        Thu,  7 Oct 2021 14:46:47 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id D43BF1F2C96; Thu,  7 Oct 2021 16:46:46 +0200 (CEST)
-Date:   Thu, 7 Oct 2021 16:46:46 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>, Jan Kara <jack@suse.cz>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
- operation
-Message-ID: <20211007144646.GL12712@quack2.suse.cz>
+        Thu, 7 Oct 2021 10:55:38 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1633618384; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=DDDHZlDWo+5WO3B+uN7PiJMZPS3Ma7R8eSk3Xg4n+RImp0vrhVIH/lgMHgaBBXCbWfmeknC8tkvansvD/nIHZeo23Q5ZiFZhjaE3Li1G3D7WLJVT4lKy/TDANoXDPbp4cX2gW8NRbrOMyuh0y8hpkP4XOItYVyR8r4Jx6A23l/g=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1633618384; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=ALDuNPX38fhXXa+zXpsu/pg/N+jdzTq1/9LsmnJf8oE=; 
+        b=haXNF92PhlygjHFnDrGa6rVw41FF+NYWBVcGSIOj245/euJunAMDZ0FtCi8/xZR0q5WVeZ1jqPVxFzJzGVeunxSp2s/FlueHR9QDc3Huh97+PfdRf64864HsXSURh44MShece1Q3ox7SAdug+8CYVl1YSMTdOZnCP5dOPhjMVnw=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1633618384;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=ALDuNPX38fhXXa+zXpsu/pg/N+jdzTq1/9LsmnJf8oE=;
+        b=L+O1RDm1I3OpdzH0D6CTw2wyfU0dcaZteD/O29Fd2o5YjEBSNkNtABol0C1uMzkw
+        cN6FztZZ0n4UUz0GE8ioNGnhLjZInMABhE0MeHBypVJ5MiTqps70yMIZSYETjf3+X00
+        aT/mbHhLtTu1QzgX834N4qvEKiHtScX14z7z+UtI=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1633618382638215.82362575268553; Thu, 7 Oct 2021 22:53:02 +0800 (CST)
+Date:   Thu, 07 Oct 2021 22:53:02 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>, "Miklos Szeredi" <miklos@szeredi.hu>
+Cc:     "Amir Goldstein" <amir73il@gmail.com>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "overlayfs" <linux-unionfs@vger.kernel.org>,
+        "linux-kernel" <linux-kernel@vger.kernel.org>
+Message-ID: <17c5b3e4f2b.113dc38cd26071.2800661599712778589@mykernel.net>
+In-Reply-To: <20211007144646.GL12712@quack2.suse.cz>
 References: <20210923130814.140814-1-cgxu519@mykernel.net>
  <20210923130814.140814-7-cgxu519@mykernel.net>
  <CAJfpeguqj2vst4Zj5EovSktJkXiDSCSWY=X12X0Yrz4M8gPRmQ@mail.gmail.com>
  <17c5aba1fef.c5c03d5825886.6577730832510234905@mykernel.net>
  <CAJfpegtr1NkOiY9YWd1meU1yiD-LFX-aB55UVJs94FrX0VNEJQ@mail.gmail.com>
  <17c5adfe5ea.12f1be94625921.4478415437452327206@mykernel.net>
- <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com>
+ <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com> <20211007144646.GL12712@quack2.suse.cz>
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
+ operation
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu 07-10-21 15:34:19, Miklos Szeredi wrote:
-> On Thu, 7 Oct 2021 at 15:10, Chengguang Xu <cgxu519@mykernel.net> wrote:
-> >  > However that wasn't what I was asking about.  AFAICS ->write_inode()
-> >  > won't start write back for dirty pages.   Maybe I'm missing something,
-> >  > but there it looks as if nothing will actually trigger writeback for
-> >  > dirty pages in upper inode.
-> >  >
-> >
-> > Actually, page writeback on upper inode will be triggered by overlayfs ->writepages and
-> > overlayfs' ->writepages will be called by vfs writeback function (i.e writeback_sb_inodes).
-> 
-> Right.
-> 
-> But wouldn't it be simpler to do this from ->write_inode()?
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-10-07 22:46:46 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Thu 07-10-21 15:34:19, Miklos Szeredi wrote:
+ > > On Thu, 7 Oct 2021 at 15:10, Chengguang Xu <cgxu519@mykernel.net> wrot=
+e:
+ > > >  > However that wasn't what I was asking about.  AFAICS ->write_inod=
+e()
+ > > >  > won't start write back for dirty pages.   Maybe I'm missing somet=
+hing,
+ > > >  > but there it looks as if nothing will actually trigger writeback =
+for
+ > > >  > dirty pages in upper inode.
+ > > >  >
+ > > >
+ > > > Actually, page writeback on upper inode will be triggered by overlay=
+fs ->writepages and
+ > > > overlayfs' ->writepages will be called by vfs writeback function (i.=
+e writeback_sb_inodes).
+ > >=20
+ > > Right.
+ > >=20
+ > > But wouldn't it be simpler to do this from ->write_inode()?
+ >=20
+ > You could but then you'd have to make sure you have I_DIRTY_SYNC always =
+set
+ > when I_DIRTY_PAGES is set on the upper inode so that your ->write_inode(=
+)
+ > callback gets called. Overall I agree the logic would be probably simple=
+r.
+ >=20
 
-You could but then you'd have to make sure you have I_DIRTY_SYNC always set
-when I_DIRTY_PAGES is set on the upper inode so that your ->write_inode()
-callback gets called. Overall I agree the logic would be probably simpler.
+Hi Jan, Miklos
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Thnaks for your suggestions. Let me have a try in next version.
+
+
+Thanks,
+Chengguang
