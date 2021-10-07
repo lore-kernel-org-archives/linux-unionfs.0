@@ -2,110 +2,128 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF038C433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 12:14:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C05C433EF
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 12:27:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CEC06125F
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 12:14:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3710561038
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Oct 2021 12:27:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241209AbhJGMPz (ORCPT
+        id S241288AbhJGM3B (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Oct 2021 08:15:55 -0400
-Received: from n169-113.mail.139.com ([120.232.169.113]:43535 "EHLO
-        n169-113.mail.139.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241206AbhJGMPy (ORCPT
+        Thu, 7 Oct 2021 08:29:01 -0400
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25310 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233135AbhJGM3A (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Oct 2021 08:15:54 -0400
-X-Greylist: delayed 560 seconds by postgrey-1.27 at vger.kernel.org; Thu, 07 Oct 2021 08:15:52 EDT
-X-RM-TagInfo: emlType=0                                       
-X-RM-SPAM:                                                                                        
-X-RM-SPAM-FLAG: 00000000
-Received: from [192.168.255.10] (unknown[116.30.194.209])
-        by rmsmtp-lg-appmail-31-12045 (RichMail) with SMTP id 2f0d615ee24f94a-8b09a;
-        Thu, 07 Oct 2021 20:04:31 +0800 (CST)
-X-RM-TRANSID: 2f0d615ee24f94a-8b09a
-Message-ID: <3b660f79-9f60-5acd-0b9a-47f9e3e6a04b@139.com>
-Date:   Thu, 7 Oct 2021 20:04:30 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.1.2
-Subject: Re: [RFC PATCH v5 07/10] ovl: cache dirty overlayfs' inode
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel@vger.kernel.org,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
+        Thu, 7 Oct 2021 08:29:00 -0400
+ARC-Seal: i=1; a=rsa-sha256; t=1633609599; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=pbVwJUO76c5OfYRLmclbHoK69TAyZ5YoRXtcgY/bqEBmjPnVUq5lDuAX5JD0uKnqMRINYTR0slHr0idsqHUxXsFj9Pode4MrKMEaJXG2qCS1Ccl059aerxJKAlHPEaCF/dAmf/J7Q3KlyLObr6DENE69/vlAyqT9h6FHlnuymkE=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1633609599; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=ZmDQWllWGjCMvtEuij8KJbKB+KItbbkjy4HSIF8fY/w=; 
+        b=HaFm5YkJxmLKrToodDRb8aUqwVddH7KC7kao0e+i3TpeNw9/MlXk46f3yelj8fxTEdBmsAyuAU0Sg7Id+/t87OsT8gYTRPlccE+o7Dp55/AjdoHzU0Kln8yZbAEDKGun2de7bSz5lULNu/i9cNBsNq3fofvJX0hJvJsLx3SHjBA=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1633609599;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=ZmDQWllWGjCMvtEuij8KJbKB+KItbbkjy4HSIF8fY/w=;
+        b=GeOvSt6R+tkMXJTQKpbnRvahIqsn55ytgPpB5ilePhrXK9obLeko2E6XKBbhIV3Z
+        6kBisByT+sz1Tp4mRWUE5FUs4ifKPCyGWaFM+JKxTwON7bfTccnC43z7QWsXBJmNJFT
+        /5OO78gyh6XAYCGnuwspIxcuuEXtc2jO/w8RmlMQ=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1633609596273981.3428858564824; Thu, 7 Oct 2021 20:26:36 +0800 (CST)
+Date:   Thu, 07 Oct 2021 20:26:36 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>
+Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
+        "linux-kernel" <linux-kernel@vger.kernel.org>
+Message-ID: <17c5ab83d6d.10cdb35ab25883.3563739472838823734@mykernel.net>
+In-Reply-To: <20211007090157.GB12712@quack2.suse.cz>
 References: <20210923130814.140814-1-cgxu519@mykernel.net>
- <20210923130814.140814-8-cgxu519@mykernel.net>
- <CAJfpegtLi1PsfpkohJ-8kTHVazf7cZiX96OSBMn7Q39PY_PXaw@mail.gmail.com>
-From:   Chengguang Xu <cgxu519@139.com>
-In-Reply-To: <CAJfpegtLi1PsfpkohJ-8kTHVazf7cZiX96OSBMn7Q39PY_PXaw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+ <20210923130814.140814-7-cgxu519@mykernel.net> <20211007090157.GB12712@quack2.suse.cz>
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
+ operation
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-在 2021/10/7 19:09, Miklos Szeredi 写道:
-> On Thu, 23 Sept 2021 at 15:08, Chengguang Xu <cgxu519@mykernel.net> wrote:
->> Now drop overlayfs' inode will sync dirty data,
->> so we change to only drop clean inode.
->>
->> The purpose of doing this is to keep compatible
->> behavior with before because without this change
->> dropping overlayfs inode will not trigger syncing
->> of underlying dirty inode.
->>
->> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
->> ---
->>   fs/overlayfs/super.c | 16 +++++++++++++++-
->>   1 file changed, 15 insertions(+), 1 deletion(-)
->>
->> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->> index cddae3ca2fa5..bf4000eb9be8 100644
->> --- a/fs/overlayfs/super.c
->> +++ b/fs/overlayfs/super.c
->> @@ -441,11 +441,25 @@ static int ovl_write_inode(struct inode *inode,
->>          return ret;
->>   }
->>
->> +/*
->> + * In iput_final(), clean inode will drop directly and dirty inode will
->> + * keep in the cache until write back to sync dirty data then add to lru
->> + * list to wait reclaim.
->> + */
->> +static int ovl_drop_inode(struct inode *inode)
->> +{
->> +       struct inode *upper = ovl_inode_upper(inode);
->> +
->> +       if (!upper || !(inode->i_state & I_DIRTY_ALL))
-> Could we check upper dirtyness here? That would give a more precise result.
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-10-07 17:01:57 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Thu 23-09-21 21:08:10, Chengguang Xu wrote:
+ > > Implement overlayfs' ->write_inode to sync dirty data
+ > > and redirty overlayfs' inode if necessary.
+ > >=20
+ > > Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+ >=20
+ > ...
+ >=20
+ > > +static int ovl_write_inode(struct inode *inode,
+ > > +               struct writeback_control *wbc)
+ > > +{
+ > > +    struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
+ > > +    struct inode *upper =3D ovl_inode_upper(inode);
+ > > +    unsigned long iflag =3D 0;
+ > > +    int ret =3D 0;
+ > > +
+ > > +    if (!upper)
+ > > +        return 0;
+ > > +
+ > > +    if (!ovl_should_sync(ofs))
+ > > +        return 0;
+ > > +
+ > > +    if (upper->i_sb->s_op->write_inode)
+ > > +        ret =3D upper->i_sb->s_op->write_inode(inode, wbc);
+ > > +
+ >=20
+ > I'm somewhat confused here. 'inode' is overlayfs inode AFAIU, so how is =
+it
+ > correct to pass it to ->write_inode function of upper filesystem? Should=
+n't
+ > you pass 'upper' there instead?
 
-We keep tracking mmapped-file(shared mode) by explicitely marking 
-overlay inode dirty,
+That's right!
 
-so if we drop overlay inode by checking upper dirtyness, we may lose 
-control on those mmapped upper inodes.
+ >=20
+ > > +    if (mapping_writably_mapped(upper->i_mapping) ||
+ > > +        mapping_tagged(upper->i_mapping, PAGECACHE_TAG_WRITEBACK))
+ > > +        iflag |=3D I_DIRTY_PAGES;
+ > > +
+ > > +    iflag |=3D upper->i_state & I_DIRTY_ALL;
+ >=20
+ > Also since you call ->write_inode directly upper->i_state won't be updat=
+ed
+ > to reflect that inode has been written out (I_DIRTY flags get cleared in
+ > __writeback_single_inode()). So it seems to me overlayfs will keep writi=
+ng
+ > out upper inode until flush worker on upper filesystem also writes the
+ > inode and clears the dirty flags? So you rather need to call something l=
+ike
+ > write_inode_now() that will handle the flag clearing and do writeback li=
+st
+ > handling for you?
+ >=20
 
->
-> Alternatively don't set .drop_inode (i.e. use generic_drop_inode())
-> and set I_DONTCACHE on overlay inodes.  That would cause the upper
-> inode to be always written back before eviction.
->
-> The latter would result in simpler logic, and I think performance-wise
-> it wouldn't matter.  But I may be missing something.
-
-I think we may seperate mmapped-file(shared) inode and other inode by
-
-clear/set I_DONTCACHE flag on overlay inode if you prefer this approach.
+Calling ->write_inode directly upper->i_state won't be updated,=20
+however, I don't think overlayfs will keep writing out upper inode since ->=
+write_inode
+will be called when only overlay inode itself marked dirty.  Am I missing s=
+omething?
 
 
 Thanks,
-
 Chengguang
-
-
-
 
 
