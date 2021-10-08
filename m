@@ -2,113 +2,153 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D7FBC433F5
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Oct 2021 13:13:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DBC9C433EF
+	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Oct 2021 15:14:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EB5BC61040
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Oct 2021 13:13:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AAE260F9C
+	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Oct 2021 15:14:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242591AbhJHNPw (ORCPT
+        id S242732AbhJHPP4 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 8 Oct 2021 09:15:52 -0400
-Received: from smtp-out2.suse.de ([195.135.220.29]:35764 "EHLO
-        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242558AbhJHNPv (ORCPT
+        Fri, 8 Oct 2021 11:15:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57314 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242662AbhJHPPz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 8 Oct 2021 09:15:51 -0400
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id D0CFE2012E;
-        Fri,  8 Oct 2021 13:13:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1633698834; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ugDtUlYWNamC1wVk99SJQfcQCo8cBWNlkB8aWdjRG/Q=;
-        b=MwaLbrnDI9nPWKefsT9kREclrK/WRJ269jjuYM4JWcuknUEehSkSQblsyg2WBrPK4TpDW9
-        5rOX7rd0a2RsqGAEEcFhIr+K6DDARnlDsNjHdLvSxfzWzt43ChVc3WJL/0FAZrRZa0hUBj
-        +wFAzKldEBYkS/9ufr6nbYwmvPgkPZU=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1633698834;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ugDtUlYWNamC1wVk99SJQfcQCo8cBWNlkB8aWdjRG/Q=;
-        b=svewaWRaCt5qQyLUDqoU4/tFzQy7sdFsCCeQMawmWISUqMWFYVfFLOPHUQi8foAljygp9p
-        T81e9w++i7jdiSCg==
-Received: from quack2.suse.cz (unknown [10.100.224.230])
-        by relay2.suse.de (Postfix) with ESMTP id 7452BA3B83;
-        Fri,  8 Oct 2021 13:13:54 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id E10321F2C8D; Fri,  8 Oct 2021 15:13:51 +0200 (CEST)
-Date:   Fri, 8 Oct 2021 15:13:51 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>, Jan Kara <jack@suse.cz>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
- operation
-Message-ID: <20211008131351.GA15930@quack2.suse.cz>
-References: <20210923130814.140814-1-cgxu519@mykernel.net>
- <20210923130814.140814-7-cgxu519@mykernel.net>
- <CAJfpeguqj2vst4Zj5EovSktJkXiDSCSWY=X12X0Yrz4M8gPRmQ@mail.gmail.com>
- <17c5aba1fef.c5c03d5825886.6577730832510234905@mykernel.net>
- <CAJfpegtr1NkOiY9YWd1meU1yiD-LFX-aB55UVJs94FrX0VNEJQ@mail.gmail.com>
- <17c5adfe5ea.12f1be94625921.4478415437452327206@mykernel.net>
- <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com>
- <20211007144646.GL12712@quack2.suse.cz>
- <17c5b3e4f2b.113dc38cd26071.2800661599712778589@mykernel.net>
- <CAJfpegvek6=+Xk+jLNYnH0piQKRqb9CWst_aNHWExZeq+7jOQw@mail.gmail.com>
+        Fri, 8 Oct 2021 11:15:55 -0400
+Received: from mail-ua1-x932.google.com (mail-ua1-x932.google.com [IPv6:2607:f8b0:4864:20::932])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B591C061570
+        for <linux-unionfs@vger.kernel.org>; Fri,  8 Oct 2021 08:14:00 -0700 (PDT)
+Received: by mail-ua1-x932.google.com with SMTP id f4so1223571uad.4
+        for <linux-unionfs@vger.kernel.org>; Fri, 08 Oct 2021 08:14:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=Ou4wJqMrKbnq18ZEmLZz9ZM48dcXVDVpgFXEVdWbEGY=;
+        b=hQxJ6ps3xY3T+CYpdQo2WT+qqId6aPvLF+41TnJv8llwep23SN3zSpisvin6bMayrW
+         ywCrqxt9/1Co8K2ej8gNYi02fiXH94hSx+BZer5r/MSfkBRmRbwycfZG3P/CRe+1dEyN
+         tophNgm9ozWTE3j5x1JtLRNyf6MSRcUo53S3E=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=Ou4wJqMrKbnq18ZEmLZz9ZM48dcXVDVpgFXEVdWbEGY=;
+        b=4s45YBfvf9DJZs4FX3wEFd/VZAysfC2H3f6iswROlYmLdDjCZdDt31Ukp/llsDO3oa
+         cLquoQRezJIsRENBCB0+fTnCR2FgyuSSsidV6tHOUmiQ0LMc0jrtHsizHKjUq3ycgA+L
+         uUMKnCzmceciyz5ASoE0aC1uaJZUILfpJ0FdrhWUtze8+N3duzhwzEcUsGdOY0bfQ4b5
+         Xfmm5ZuLGXVRf0Cci9p9E4E1EinvfbNB0Fshkv3T4e+Tos4Wgu25DDZBndd+KXMZqrw5
+         hHaVJbedVgsGXP/RYKoWIJpC90Qx2VKGeqYRjFhCDBArZzUqnJmcRVgWFRv2e+SBCgUW
+         /TWA==
+X-Gm-Message-State: AOAM531FXjbNN6jl4G31jj4S02fwoG6mzcQrq14+mUIjiVyx6i/zZmUG
+        MgAiR3WsrN3Xsq0jnd4n56lPR/VovA042J+SQVQxCjHXQWU=
+X-Google-Smtp-Source: ABdhPJwu6bXnpMgh3vjIsz9MYMsidWtfYK5NmXidDA4RBolBQT8KVlPZM/lrOC0dsLXj8lE+MEG6/j+PoXcibrqtOFY=
+X-Received: by 2002:a05:6130:3a7:: with SMTP id az39mr3608716uab.8.1633706039737;
+ Fri, 08 Oct 2021 08:13:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJfpegvek6=+Xk+jLNYnH0piQKRqb9CWst_aNHWExZeq+7jOQw@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20210930032228.3199690-1-yangerkun@huawei.com> <20210930032228.3199690-3-yangerkun@huawei.com>
+In-Reply-To: <20210930032228.3199690-3-yangerkun@huawei.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 8 Oct 2021 17:13:49 +0200
+Message-ID: <CAJfpeguSczH6E6AA+gL1ZVd37H-h4Nekw-e-FW=g6+S5qsKztQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ovl: fix UAF for ovl_aio_req
+To:     yangerkun <yangerkun@huawei.com>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Jiufei Xue <jiufei.xue@linux.alibaba.com>,
+        overlayfs <linux-unionfs@vger.kernel.org>, yukuai3@huawei.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu 07-10-21 20:51:47, Miklos Szeredi wrote:
-> On Thu, 7 Oct 2021 at 16:53, Chengguang Xu <cgxu519@mykernel.net> wrote:
-> >
-> >  ---- 在 星期四, 2021-10-07 22:46:46 Jan Kara <jack@suse.cz> 撰写 ----
-> >  > On Thu 07-10-21 15:34:19, Miklos Szeredi wrote:
-> >  > > On Thu, 7 Oct 2021 at 15:10, Chengguang Xu <cgxu519@mykernel.net> wrote:
-> >  > > >  > However that wasn't what I was asking about.  AFAICS ->write_inode()
-> >  > > >  > won't start write back for dirty pages.   Maybe I'm missing something,
-> >  > > >  > but there it looks as if nothing will actually trigger writeback for
-> >  > > >  > dirty pages in upper inode.
-> >  > > >  >
-> >  > > >
-> >  > > > Actually, page writeback on upper inode will be triggered by overlayfs ->writepages and
-> >  > > > overlayfs' ->writepages will be called by vfs writeback function (i.e writeback_sb_inodes).
-> >  > >
-> >  > > Right.
-> >  > >
-> >  > > But wouldn't it be simpler to do this from ->write_inode()?
-> >  >
-> >  > You could but then you'd have to make sure you have I_DIRTY_SYNC always set
-> >  > when I_DIRTY_PAGES is set on the upper inode so that your ->write_inode()
-> >  > callback gets called. Overall I agree the logic would be probably simpler.
-> >  >
-> >
-> 
-> And it's not just for simplicity.  The I_SYNC logic in
-> writeback_single_inode() is actually necessary to prevent races
-> between instances on a specific inode.  I.e. if inode writeback is
-> started by background wb then syncfs needs to synchronize with that
-> otherwise it will miss the inode, or worse, mess things up by calling
-> ->write_inode() multiple times in parallel.  So going throught
-> writeback_single_inode() is actually a must AFAICS.
+On Thu, 30 Sept 2021 at 05:12, yangerkun <yangerkun@huawei.com> wrote:
+>
+> Our testcase trigger follow UAF:
+>
+> [  153.939147] ==================================================================
+> [  153.942199] BUG: KASAN: use-after-free in ext4_dio_read_iter+0xcc/0x1a0
+> [  153.943331] Read of size 8 at addr ffff88803b7f1500 by task fsstress/726
+> [  153.948182] Call Trace:
+> [  153.948628]  ? dump_stack_lvl+0x73/0x9f
+> [  153.950255]  ? ext4_dio_read_iter+0xcc/0x1a0
+> [  153.950972]  ? ext4_dio_read_iter+0xcc/0x1a0
+> [  153.951693]  ? kasan_report.cold+0x81/0x165
+> [  153.952429]  ? ext4_dio_read_iter+0xcc/0x1a0
+> [  153.953190]  ? __asan_load8+0x74/0x110
+> [  153.953856]  ? ext4_dio_read_iter+0xcc/0x1a0
+> [  153.954612]  ? ext4_file_read_iter+0x1df/0x2a0
+> [  153.955394]  ? ext4_dio_read_iter+0x1a0/0x1a0
+> [  153.956159]  ? vfs_iocb_iter_read+0xd5/0x330
+> [  153.956916]  ? ovl_read_iter+0x15f/0x270
+> [  153.957605]  ? ovl_aio_cleanup_handler+0x2a0/0x2a0
+> [  153.958436]  ? aio_setup_rw+0xbf/0xe0
+> [  153.959101]  ? aio_read+0x190/0x2d0
+> [  153.959750]  ? aio_write+0x3e0/0x3e0
+> [  153.960404]  ? __kasan_check_read+0x1d/0x30
+> [  153.961167]  ? ext4_file_getattr+0x116/0x1b0
+> [  153.961978]  ? __put_user_ns+0x40/0x40
+> [  153.962714]  ? kasan_poison+0x40/0x90
+> [  153.963384]  ? set_alloc_info+0x46/0x70
+> [  153.964102]  ? __kasan_check_write+0x20/0x30
+> [  153.964856]  ? __fget_files+0x106/0x180
+> [  153.965571]  ? io_submit_one+0xaa7/0x1480
+> [  153.966325]  ? aio_poll_complete_work+0x590/0x590
+> [  153.967713]  ? ioctl_file_clone+0x110/0x110
+> [  153.969008]  ? vfs_getattr_nosec+0x14a/0x190
+> [  153.970539]  ? __do_sys_newfstat+0xd6/0xf0
+> [  153.971713]  ? __ia32_compat_sys_newfstat+0x40/0x40
+> [  153.973005]  ? __x64_sys_io_submit+0x125/0x3b0
+> [  153.974282]  ? __ia32_sys_io_submit+0x390/0x390
+> [  153.975575]  ? __kasan_check_read+0x1d/0x30
+> [  153.976749]  ? do_syscall_64+0x35/0x80
+> [  153.978034]  ? entry_SYSCALL_64_after_hwframe+0x44/0xae
+> [  153.979436]
+> [  153.979738] Allocated by task 726:
+> [  153.980352]  kasan_save_stack+0x23/0x60
+> [  153.981054]  set_alloc_info+0x46/0x70
+> [  153.981745]  __kasan_slab_alloc+0x4c/0x90
+> [  153.982492]  kmem_cache_alloc+0x153/0x750
+> [  153.983953]  ovl_read_iter+0x13b/0x270
+> [  153.984689]  aio_read+0x190/0x2d0
+> [  153.985332]  io_submit_one+0xaa7/0x1480
+> [  153.986060]  __x64_sys_io_submit+0x125/0x3b0
+> [  153.986878]  do_syscall_64+0x35/0x80
+> [  153.987590]  entry_SYSCALL_64_after_hwframe+0x44/0xae
+> [  153.988516]
+> [  153.988824] Freed by task 750:
+> [  153.989417]  kasan_save_stack+0x23/0x60
+> [  153.990140]  kasan_set_track+0x24/0x40
+> [  153.990871]  kasan_set_free_info+0x30/0x60
+> [  153.991639]  __kasan_slab_free+0x137/0x210
+> [  153.992390]  kmem_cache_free+0xf8/0x590
+> [  153.993303]  ovl_aio_cleanup_handler+0x1ae/0x2a0
+> [  153.994205]  ovl_aio_rw_complete+0x31/0x60
+> [  153.995043]  iomap_dio_complete_work+0x4b/0x60
+> [  153.995898]  iomap_dio_bio_end_io+0x23d/0x270
+> [  153.996742]  bio_endio+0x40d/0x440
+> [  153.997376]  blk_update_request+0x38f/0x820
+> [  153.998160]  scsi_end_request+0x56/0x320
+> [  153.998872]  scsi_io_completion+0x10a/0xb60
+> [  153.999655]  scsi_finish_command+0x194/0x2b0
+> [  154.000464]  scsi_complete+0xd7/0x1f0
+> [  154.001184]  blk_complete_reqs+0x92/0xb0
+> [  154.001930]  blk_done_softirq+0x29/0x40
+> [  154.002696]  __do_softirq+0x133/0x57f
+>
+> ext4_dio_read_iter
+>   ret = iomap_dio_rw(iocb, to, &ext4_iomap_ops, NULL, 0)
+>   file_accessed(iocb->ki_filp) <== this trigger UAF
+>
+> Ret can be -EIOCBQUEUED which means we will not wait for io completion in
+> iomap_dio_rw. So the release for ovl_aio_req will be done when io
+> completion routine call ovl_aio_rw_complete(or ovl_aio_cleanup_handler
+> in ovl_read_iter will do this). But once io finish soon, we may already
+> release ovl_aio_req before we call file_access in ext4_dio_read_iter.
+> This can trigger the upper UAF.
+>
+> Fix it by introduce refcount in ovl_aio_req like what aio_kiocb has did.
 
-Yes, you are correct.
+Looks good at a glance.   Will review more fully.
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+Thanks,
+MIklos
