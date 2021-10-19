@@ -2,88 +2,82 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2B79C433F5
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Oct 2021 06:53:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28649C433EF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Oct 2021 07:15:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D643D61177
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Oct 2021 06:53:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08C07610A3
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Oct 2021 07:15:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229695AbhJSGz6 (ORCPT
+        id S234275AbhJSHRw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 Oct 2021 02:55:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44084 "EHLO
+        Tue, 19 Oct 2021 03:17:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49134 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229755AbhJSGz5 (ORCPT
+        with ESMTP id S229584AbhJSHRw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 Oct 2021 02:55:57 -0400
-Received: from mail-il1-x135.google.com (mail-il1-x135.google.com [IPv6:2607:f8b0:4864:20::135])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BE42C06161C
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 Oct 2021 23:53:45 -0700 (PDT)
-Received: by mail-il1-x135.google.com with SMTP id k3so17422010ilu.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 Oct 2021 23:53:45 -0700 (PDT)
+        Tue, 19 Oct 2021 03:17:52 -0400
+Received: from mail-il1-x12f.google.com (mail-il1-x12f.google.com [IPv6:2607:f8b0:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC50CC06161C;
+        Tue, 19 Oct 2021 00:15:39 -0700 (PDT)
+Received: by mail-il1-x12f.google.com with SMTP id h10so17474943ilq.3;
+        Tue, 19 Oct 2021 00:15:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=8KnZj6mBtHQ69uI49qi6KkXWxN4+VFG9hMsZHX+vaNc=;
-        b=P9Yzljy8aZxyW9PErtzTogfrl03/NnA8VitQWh7tpuTbCn+FF3n6lrGYySLtbbajSV
-         FX1tFc/UNS+V6/NOVEoebKuWdmJzHquY/cX95/fgzyy4CQBeDGFnk3wpNDVpvVzFUAT6
-         nBLQsfcufl4rjYQOSASLRtQ+U1iyUUszD62/XX4J2VLhiXCZkJusRIjKvqD0V5ZfUgYN
-         JeRcIfK+NNn0pdaR67PJPdp/OI05fDzwIKL+c4EW5nDdvTrSsz6D708KZwLEX87WLISE
-         CT8VQ8JKIVXYggXiOwCZVe1nAVSefBzFtqLsDlyNBFfS7BBbvPNdhiDI6BxwurASJHEA
-         idaQ==
+        bh=Hl1u9M0rl+9gSZUge+5bqfea4i7wHZvAs7wZITYpJJA=;
+        b=nlDfQiCw4MTxALTdhD/5ocAg54hueHcy/dOILGBUU87jwiukUiMy/UmCkYBqhj+rVj
+         I/a1WANgLOExWOwX/d1E+p+QVTtEVNWIEJryS/DPnZXj4O9q9uj7uvwkTB0E2h8SUJ37
+         AJYEQiTkTC9llejX7E7wbcgwQz8gAEyTabybDfshVqUzmiuH5dN7nXNX/ocoDdH4266d
+         GbtPvd94vS1YRTh8hnIe1GcOIsvLSC3FonqrJsrKmgEPJ9/NxCu+DasngdEGCjPRwRYz
+         +mJyaspMFaBQpeLrXD7jC1El18QDhzlPLz0N55yEFLOia05TmUeQF9N6T4MEOlqyGPY+
+         yDTQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=8KnZj6mBtHQ69uI49qi6KkXWxN4+VFG9hMsZHX+vaNc=;
-        b=ArDvh683usyia2EDuAMjN80lAC4sBiAQYfOuh0rUOPbnTwoHfbi9G5pM3Je5fFTzMy
-         SpFo+B1+MAf0KieNeL/jv/si81OiWgAuKPv2Xwh36vdykhlpgWOuwmx/wxmHw1kCR0F1
-         gJiFm+Zf0eNKrJf2gFELu723kMo6ri+qh5A7B0JQW1LAT6gS+5VHYQ8jEc5+5rYpxJpm
-         qC+dPzJ9gMdwSf92ka/AxhmGGMuEW13C9p0ST1ORU6L+1v5J3yJxefZG/Nw/ctYEwkjU
-         gjfflAQCoT1iXJtiWrlYnApBnF24heD9VjvyucgcPhSzSd+hJk1BWy0J0Ui0k3+C6Gdb
-         PO+w==
-X-Gm-Message-State: AOAM533pr680vUrOmbN9rtauEstAXtM/jZXFgyupG5cCuUryVpYEOrTd
-        AQMjEOooKK1aB9HxiW5AXuEHbn3VxDjKwlqKWodBlAN/2mE=
-X-Google-Smtp-Source: ABdhPJzv+O+WFBAtShxO4dHKnaGCw54lmHTKdP7JO7tTTPrmGXNrrPavml3WhliRS7z7wi7Hn+zJHw0+4imHa4SsAn0=
-X-Received: by 2002:a92:cd82:: with SMTP id r2mr18312307ilb.198.1634626424836;
- Mon, 18 Oct 2021 23:53:44 -0700 (PDT)
+        bh=Hl1u9M0rl+9gSZUge+5bqfea4i7wHZvAs7wZITYpJJA=;
+        b=IUEmD526lTaYGYpb6EIJE2fqW4WQ9cRCgkcPLxM2Os55GEO3VeSrfluIkoG+r8Fdw8
+         g7q3dbnyS9AeF3vvcQJVnr4B3MFo7HRhtwPqkgwPTmN9yuNYlJx1Jp8eoJH/4RPo7ecb
+         m5Nof8O8Q2wMqRlXrIYAhypBz5i7aGfzBZXHvENZgHog5J7v5uf9vfnP8GGNp7wtbJWZ
+         UEnDiOIBXTRTAdkXPfNMtAjPvXL6Ms9CgF2uCfak23jbDCII4u/O1jKCrnjGH6rOL+eu
+         bsZHOYRA9fj87PVQQtTaC+FfIruNCuKbE99MCLz73oiqmUzYCH1euL3CbBWAZ9i/xEC0
+         VmvQ==
+X-Gm-Message-State: AOAM533K9a4Bt1yumVzlWOAI5kedXoneerD2akWKtttBHb7KmdSQQO7V
+        cT3DVXmZvJ5lhckLes+cBbrM3dTo5271XETU3ZY=
+X-Google-Smtp-Source: ABdhPJwOXz1RO8P/VLPzBCkzHmzOYMWA6zWUBuDUmc2QhEF54bdXUDQl5UZv3uXWYAYwUpd827+MtKqGv1ZxDPm4dtg=
+X-Received: by 2002:a92:cd82:: with SMTP id r2mr18370814ilb.198.1634627739368;
+ Tue, 19 Oct 2021 00:15:39 -0700 (PDT)
 MIME-Version: 1.0
-References: <CADmzSSgquwg49GfMNSxi6KRcvq2nxPhwtiH311D+Ux_VTuE+fA@mail.gmail.com>
- <CADmzSSgZqrBCavL=NmO1_YPCHP7DfG9hLnN4gNBXZXyJTo8XiQ@mail.gmail.com>
-In-Reply-To: <CADmzSSgZqrBCavL=NmO1_YPCHP7DfG9hLnN4gNBXZXyJTo8XiQ@mail.gmail.com>
+References: <20210923130814.140814-1-cgxu519@mykernel.net> <20210923130814.140814-10-cgxu519@mykernel.net>
+In-Reply-To: <20210923130814.140814-10-cgxu519@mykernel.net>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 19 Oct 2021 09:53:33 +0300
-Message-ID: <CAOQ4uxizf9=arB8V7N_EtgsDrjO3XetKSCkQA3ErtwyovExkuA@mail.gmail.com>
-Subject: Re: sd .img partition loop support
-To:     Carl Karsten <carl@nextdayvideo.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Date:   Tue, 19 Oct 2021 10:15:28 +0300
+Message-ID: <CAOQ4uxj4no4zHaOKSXyefUpP+JuMsjeuMPzpZ8BAm1xrs2h+Aw@mail.gmail.com>
+Subject: Re: [RFC PATCH v5 09/10] fs: introduce new helper sync_fs_and_blockdev()
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 18, 2021 at 9:46 PM Carl Karsten <carl@nextdayvideo.com> wrote:
+On Thu, Sep 23, 2021 at 4:08 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
 >
-> I'm trying to overlay an empty upper dir onto a fat/loop/img fs and getting:
+> Overlayfs needs to call upper layer's ->sync_fs
+> and __sync_blockdev() to sync metadata during syncfs(2).
 >
-> juser@negk:~/boot$ sudo mount -o ro /dev/mapper/loop0p1 img
-> juser@negk:~/boot$ sudo mount -t overlay overlay
-> -olowerdir=img,upperdir=upper,workdir=work merged
-> mount: /home/juser/boot/merged: wrong fs type, bad option, bad superblock
-> on overlay, missing codepage or helper program, or other error.
->
-> [ 2449.670177] overlayfs: filesystem on 'lower' not supported
->
+> Currently, __sync_blockdev() does not export to module
+> so introduce new helper sync_fs_and_blockdev() to wrap
+> those operations.
 
-fat was never supported as lower or upper layer AFAIK, see:
-https://lore.kernel.org/linux-unionfs/2527352.xHhNOModH5@nerdopolis/
+Heads up: looks like __sync_blockdev() will be gone soon,
+but you will have other exported symbols that overlayfs can use
 
-This is due to the case insensitive and special name encoding of fat.
-It is not unfixable, but it was never a priority for anyone to fix it.
-
-I suppose it would be easier for you to copy the image to another filesystem
-before constructing the overlay.
+https://lore.kernel.org/linux-fsdevel/20211019062530.2174626-1-hch@lst.de/T/
 
 Thanks,
 Amir.
