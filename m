@@ -2,148 +2,116 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44AD5C433EF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Oct 2021 11:37:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 014D0C433EF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Oct 2021 21:51:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24B5C60F93
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Oct 2021 11:37:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DAB41611CB
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Oct 2021 21:51:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229864AbhJTLjf (ORCPT
+        id S230317AbhJTVxQ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 20 Oct 2021 07:39:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39732 "EHLO
+        Wed, 20 Oct 2021 17:53:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230063AbhJTLje (ORCPT
+        with ESMTP id S229842AbhJTVxO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 20 Oct 2021 07:39:34 -0400
-Received: from mail-ua1-x934.google.com (mail-ua1-x934.google.com [IPv6:2607:f8b0:4864:20::934])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B1A3C061749
-        for <linux-unionfs@vger.kernel.org>; Wed, 20 Oct 2021 04:37:18 -0700 (PDT)
-Received: by mail-ua1-x934.google.com with SMTP id h4so6009753uaw.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 20 Oct 2021 04:37:18 -0700 (PDT)
+        Wed, 20 Oct 2021 17:53:14 -0400
+Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EEAFEC06161C
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Oct 2021 14:50:59 -0700 (PDT)
+Received: by mail-ua1-x92f.google.com with SMTP id r22so9417634uat.11
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Oct 2021 14:50:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=sgh0E4WzTxkz/1nH7Mg+y9YH3c6ZU+fCxLPTMDK0UIs=;
-        b=Pg4XCvk7v04pHdpqK/2dL1K6wTIEOCxnNkotjI+q0PVHQQ+Fnc+p2SZFAZbVc8fjka
-         oFHeKVfllqvc/7NcRdJ0i3LRAJ6R7LR40f3FYJNLr5ffORZemorpuunIAT6CK+ZNp80X
-         I2Bsvi/Na1hf011xtOItbeN4uXa1OKlCx9xDE=
+        d=nextdayvideo-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=xcxvX64IEDpdCEF/ZFYBh/S3uVtg9e2eHrKQ0tzJOYE=;
+        b=rn7yDu9y6c8ZXF/ps2xqiiICoHYZscC1MBs7lntgYLfcqr/Nzb6P7G8SP7EOOBljJg
+         XUabBjwGtG+YvLF6bz1YxjByKRgcaCagJHwMmBjSPk1BuImT71HsLDpCmP1E7zaibH4Z
+         6gVn029DvBkLmmfBU7NjW45MbFBHZRzTV5q8ZE70lTiTZW/TzY/g01uR4UIu+s/eV+Lr
+         OESp4/CCFoQpfrljeu+0nD22YREsqidl729K/uUH8aqjrbrPA61IEqJq0bPOcoOqPD9Z
+         AeXdzFkDJOJijbSIIlKCWLBGFIbWBCktKpbpb9Zr1dA2ylcocPdPS6Ts8Ft6A6FPDNOL
+         9FcA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=sgh0E4WzTxkz/1nH7Mg+y9YH3c6ZU+fCxLPTMDK0UIs=;
-        b=4bzPCTPY6SWxzwuqMYvdRVDngdoeJEcntfQTtPCyn5+QAvXGDZHYrVig8nbUX/ahi9
-         rG0Ar1sE2sRw4F0IlDk6CvzQ8b3ieT11qnHaQ9qQ0VQr0GtWOIWv8Fq70mbJv+VhTkLH
-         UqrCFe+Leh8LdzPwz7Hpyoha9FZNeLUy28I+RFvW5h+vpK2Lelr0mImKzVI1HTrrEvQh
-         Gpwt66vORFwI1j/1laz06pvCsuSJBS0p6H6T/LdhFxKyNQlFynyCGMYVX9xaYjWJ4E+f
-         jn19onxRxeVc/xlY5xOCykgRH59V95HCcXl1zxRa0oIcwklMgq390JuaEfzFfLXuD8au
-         Rwlw==
-X-Gm-Message-State: AOAM533tcVjUCcO/0fIyYwDPv0ZNJW1HGszceee1SxVdmWRA72AkDdDb
-        dezzyUAKJQW/LwPwnjCP5g1INQZek/pwtUr5D6kwK+3pgGE=
-X-Google-Smtp-Source: ABdhPJyCxYleL/0URzjEwPiKX5bnIFKIkI5XUl0ft13LtfDoe7baWMaJLQjsvskuwnHIWgBwHWwhPaBnVtSyhzSMzxg=
-X-Received: by 2002:a67:c284:: with SMTP id k4mr41762162vsj.24.1634729837141;
- Wed, 20 Oct 2021 04:37:17 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=xcxvX64IEDpdCEF/ZFYBh/S3uVtg9e2eHrKQ0tzJOYE=;
+        b=FKllHP/VvE6DxgONGGkgSjyHb5lJWNVsHFdGDrgustL4SFean7wl6rj1tbBJnPrcku
+         TprkIosMwFOzgILW3g8zHcCUgDggKlPVssLYmtbqS1EWV7LsR9w07io5tIQ3GG1H/sjq
+         y5hDNJRvIFucxDVnia496IoeABBqsUCikx0EUMaj8xBOGFNOXROAtTBkAbLRZdnAsvE1
+         q9OD5k8rwO7g232sigEKSnT0e5KUsBqyO6sKMM0bA41nvuKGGyHlQD+2AQyWWE1hFNWS
+         nKKFkWH9l/SVCNm4ycWILvNUhiW0iMdu6iek0ZD+xgfi4B4XNom/yazuIhUyyx3X9VTo
+         L8MA==
+X-Gm-Message-State: AOAM530J84VPmL2p1uuuJHx86799sifB/o6pFEVs4YoBFGwgoeB4YTqe
+        0gGNzYwQbePx/bMDEc8qEEdXi+VwbMuBuCXODRbe0EYH5NM=
+X-Google-Smtp-Source: ABdhPJzcwR/1nlw83dLQXvCS08i8QcXKwVaZBbJ01K9J5w2sO/c4Xw8WkxHCLDD5jNHJdtEv7s3KRDHo1IQ8K5YiujE=
+X-Received: by 2002:ab0:136d:: with SMTP id h42mr2639094uae.40.1634766658647;
+ Wed, 20 Oct 2021 14:50:58 -0700 (PDT)
 MIME-Version: 1.0
-References: <DB9P193MB140461EEF44F153D9F66FF958DB89@DB9P193MB1404.EURP193.PROD.OUTLOOK.COM>
- <PAXP193MB1405A3EC41713BE9D524FBE48DB89@PAXP193MB1405.EURP193.PROD.OUTLOOK.COM>
- <YW7i72bOgRGmCs2O@miu.piliscsaba.redhat.com> <YW7zuLv8TYDNzyqC@mussarela>
-In-Reply-To: <YW7zuLv8TYDNzyqC@mussarela>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 20 Oct 2021 13:37:06 +0200
-Message-ID: <CAJfpegutjX3oaJzBWdr1Ra2zNS2wm=2W4DoWV=PSMd-JVZ8nGQ@mail.gmail.com>
-Subject: Re: [oss-security] CVE-2021-3847: OverlayFS - Potential Privilege
- Escalation using overlays copy_up
-To:     Thadeu Lima de Souza Cascardo <cascardo@canonical.com>
-Cc:     oss-security@lists.openwall.com, linux-fsdevel@vger.kernel.org,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Alon Zahavi <Alon.Zahavi@cyberark.com>,
-        Vegard Nossum <vegard.nossum@oracle.com>,
-        Nir Chako <Nir.Chako@cyberark.com>,
-        Alon Zahavi <zahavi.alon@gmail.com>
+From:   Carl Karsten <carl@nextdayvideo.com>
+Date:   Wed, 20 Oct 2021 16:50:32 -0500
+Message-ID: <CADmzSSjy+bzPUus3xO2zT_USEKZYJ7WBOCbOiF+ro3EDoipXqg@mail.gmail.com>
+Subject: nfs server serving ... wrong mount?
+To:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 19 Oct 2021 at 18:35, Thadeu Lima de Souza Cascardo
-<cascardo@canonical.com> wrote:
->
-> On Tue, Oct 19, 2021 at 05:23:27PM +0200, Miklos Szeredi wrote:
-> > On Thu, Oct 14, 2021 at 06:30:53PM +0000, Alon Zahavi wrote:
-> > >
-> > > After disclosing the issue with the linux-distros mailing list, I am =
-reporting the security issue publicly to here.
-> > > There is no patch available and may not be available for a long time =
-because the kernel can=E2=80=99t enforce the mitigation proposed, as that w=
-ould be a layering violation and could also possibly cause a regression.
-> > > This vulnerability was attached with CVE-2021-3847.
-> > > Here is the report that was initially sent:
-> > >
-> > > ## Bug Class
-> > > Escalation of privileges - Bypassing the security extended attribute =
-attachment restrictions (in order to modify the security.capability xattr, =
-a process will need CAP_SYS_ADMIN or CAP_SETFCAP).
-> > > # Technical Details
-> > > ## Summary:
-> > > An attacker with a low-privileged user on a Linux machine with an ove=
-rlay mount which has a file capability in one of its layers may escalate hi=
-s privileges up to root when copying a capable file from a nosuid mount int=
-o another mount.
-> > > ## In details:
-> > > If there is an overlay mount that one of its lower layers contains a =
-file with capabilities and in case that the lower layer is a nosuid mount (=
-which means the file capabilities are being ignored at execution), an attac=
-ker with low-privileges user can touch the file, which causes the overlayFS=
- driver to copy_up the file with its capabilities into the upper layer. Tha=
-t way the attacker can now execute the file with the file's capabilities, t=
-hus escalating its privileges.
-> >
-> > I think this is a misunderstanding about how overlayfs operates.  Mount=
-ing
-> > overlayfs is effectively a just-in-time version of "cp -a lowerdir uppe=
-rdir".
-> > In other words if the admin creates an overlay where the lower layer is
-> > untrusted and the upper layer is trusted, then that act itself is the
-> > privilege escalation.
-> >
-> > This is more formally documented in "Documentation/filesystems/overlayf=
-s.rst"
-> > in the "Permission model" section.
-> >
-> > If this model is not clear, then maybe it needs to be spelled out more
-> > explicitly.  Perhaps even a warning message could be added to the kerne=
-l logs
-> > in case the lower mount is "nosuid".  But IMO erroring out on the copy-=
-up or
-> > skipping copy up of certain attributes would make the cure worse than t=
-he
-> > disease.
->
-> Should we fail (and log it) when the lower mount and upper mount have dif=
-ferent
-> suid settings, and require a force option to be used?
+I have 2 overlayfs monts.
 
-"cp -a" doesn't fail if used to copy from a nosuid mount to a suid
-mount, right?  Should it?
+I can nfs export one or the other fine, but not both at the same time,
+the client gets the wrong files.
 
-I understand the psychology behind this: people think copy-up is done
-by the current (unprivileged) user, because it's triggered by the
-current user.   But copy up isn't done by the current user, it's done
-by the mounting user (i.e .with the privileges of the mounting task).
+server hosthame negk bullseye ext4
+client twist ubuntu
 
-The reason for this is that in many cases copy up *can not* be
-performed by the current task.  Just think of the case where e.g. root
-owned parent directory needs to be copied up before the user writable
-file is copied up.
+juser@negk:~$ cat /etc/exports
+# /srv/nfs/rpi/buster/boot/merged *(ro,sync,no_subtree_check,no_root_squash)
+/srv/nfs/rpi/buster/root/merged *(ro,sync,no_subtree_check,no_root_squash)
 
-This means that it's the responsibility of the mounting user to ensure
-that copy-up does not compromise security, since the current
-(unprivileged) user will be able to *trigger* operations done with the
-privileges of the mounting user, such as the scenario described in
-this CVE.
+juser@negk:~$ ls /srv/nfs/rpi/buster/boot/merged
+bcm2708-rpi-b.dtb       bcm2710-rpi-3-b-plus.dtb  fixup4cd.dat
+kernel7.img       start4.elf
+(snip)
 
-Thanks,
-Miklos
+juser@negk:~$ ls /srv/nfs/rpi/buster/root/merged
+bin  boot  dev  etc  home  lib  lost+found  media  mnt  opt  proc
+root  run  sbin  srv  sys  tmp  usr  var
+
+carl@twist:~/mnt$ sudo mount -t nfs negk:/srv/nfs/rpi/buster/root/merged nfs
+carl@twist:~/mnt$ ls nfs
+bin  boot  dev  etc  home  lib  lost+found  media  mnt  opt  proc
+root  run  sbin  srv  sys  tmp  usr  var
+carl@twist:~/mnt$ sudo umount nfs
+
+# enable root in negk exports...
+
+carl@twist:~/mnt$ sudo mount -t nfs negk:/srv/nfs/rpi/buster/root/merged nfs
+carl@twist:~/mnt$ ls nfs
+bcm2708-rpi-b.dtb       bcm2710-rpi-3-b-plus.dtb  fixup4cd.dat
+kernel7.img       start4.elf
+(snip)
+
+
+juser@negk:~$ cat /etc/fstab
+# /etc/fstab: static file system information.
+
+/dev/mapper/negk--vg-root /               ext4    errors=remount-ro 0       1
+UUID=c031c4a4-3eda-4fb9-99ac-ce2cb9d05243 /boot           ext2
+defaults        0       2
+/dev/mapper/negk--vg-swap_1 none            swap    sw              0       0
+
+# rpi netboot boot: base, setup, updates = merged
+overlay   /srv/nfs/rpi/buster/boot/merged    overlay
+noauto,defaults,lowerdir=/srv/nfs/rpi/buster/boot/setup:/srv/nfs/rpi/buster/boot/base,upperdir=/srv/nfs/rpi/buster/boot/updates,workdir=/srv/nfs/rpi/buster/boot/work,nfs_export=on
+   0   2
+
+# rpi netboot root: base, setup, updates = merged
+overlay   /srv/nfs/rpi/buster/root/merged    overlay
+noauto,defaults,lowerdir=/srv/nfs/rpi/buster/root/setup:/srv/nfs/rpi/buster/root/base,upperdir=/srv/nfs/rpi/buster/root/updates,workdir=/srv/nfs/rpi/buster/root/work,nfs_export=on
+  0   2
+
+server setup: https://github.com/CarlFK/pici/blob/main/setup2.sh
+
+-- 
+Carl K
