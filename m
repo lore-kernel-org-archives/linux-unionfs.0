@@ -2,145 +2,85 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2531FC433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Oct 2021 08:10:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BE7C433EF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 25 Oct 2021 02:34:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0318860FDA
-	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Oct 2021 08:10:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 642A661002
+	for <linux-unionfs@archiver.kernel.org>; Mon, 25 Oct 2021 02:34:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230440AbhJUIMt (ORCPT
+        id S231912AbhJYCg1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 21 Oct 2021 04:12:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35888 "EHLO
+        Sun, 24 Oct 2021 22:36:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231239AbhJUIMt (ORCPT
+        with ESMTP id S230210AbhJYCg0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 21 Oct 2021 04:12:49 -0400
-Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E55D4C06161C
-        for <linux-unionfs@vger.kernel.org>; Thu, 21 Oct 2021 01:10:33 -0700 (PDT)
-Received: by mail-ua1-x92c.google.com with SMTP id r22so11531647uat.11
-        for <linux-unionfs@vger.kernel.org>; Thu, 21 Oct 2021 01:10:33 -0700 (PDT)
+        Sun, 24 Oct 2021 22:36:26 -0400
+Received: from mail-vk1-xa33.google.com (mail-vk1-xa33.google.com [IPv6:2607:f8b0:4864:20::a33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2C7CC061745
+        for <linux-unionfs@vger.kernel.org>; Sun, 24 Oct 2021 19:34:04 -0700 (PDT)
+Received: by mail-vk1-xa33.google.com with SMTP id s136so3028903vks.5
+        for <linux-unionfs@vger.kernel.org>; Sun, 24 Oct 2021 19:34:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=nextdayvideo-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=ZMvGWv/MagL159/9YX2pcsJdOngWrK19krnsQtC3fWc=;
-        b=lgu4j2UqhD0CQwwCFgCI6sw70JYYEUrun9TrxqWyb+LAfHxVnUzxQe6KRdPSj5cfeN
-         P+BoUz6MkO1uZMlZBC0H266NEKZVLX8LcsQPkjFTK9tFqv6hXMhlCzyirC6OuNGzuYgx
-         vOa5cTZYwcwCXSRGWe2V/8e5+I2VwAh8o36GbK1BpMIKhagLZVjyYJ8hOt/ik5Ul+A/A
-         tjkqmhTBbpb7v2lhzadBqI7h67pBgISBG+P43RNEABE+8IlPUepFoHibjn9E1H9BzHaf
-         MjDrEza1MR6tUjfluCKZO4aweFKP6q5UJEOYoizQTVC1YIZg5/KoU9u+eDf6imP0zr3Q
-         iMQQ==
+        h=mime-version:from:date:message-id:subject:to;
+        bh=5VJf6wW3Zw2DeMC1uvvUDH5A+ThvxlivtsSu9S+fKR8=;
+        b=ZxBHYqHxaFsnTs26SGeNSnwMbo5LFu4r/OMhcciAO4FrnSJCPGfeeWWmymabFicAxX
+         6hDzC5I7bHkLqRSChsMOWUHuYALbD8rAW7bGxcQjfTf2mQjH8uHZpomgtkBm7CtjcNsa
+         WDult1HzacVqZYJa/MnsPJ+19gkUb8JHDmtlF2az2DGRb1EUDUAj4exz0r82id2m/6Mh
+         N0x6Whc9oXfgvF1BXKL9LRjJwfTfTTDWa7IYn0JOwubjmNHPogp2klGBYouLYW6LWyVD
+         PPHaEZ2d9UAQ8DmxlH104S3XfBKOBnsBJ2AVfkkJdds78Z19P7w+1BH9WWkOQ7D0uIxE
+         ERgQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=ZMvGWv/MagL159/9YX2pcsJdOngWrK19krnsQtC3fWc=;
-        b=2CVAtGfiL0LdzVbH9ttTxz8otOeYq4HEJVfZ6wbRM7kOujmdKP8ODYSoaGbSMkr7NB
-         HO8/+rrU3SMNplue5hglKV1IFPUx6cdzXBQApvLYmj45sGhX76w4fizF8+uDxAFBvJsa
-         QRDFwZMyySsxx+RVuKOgmS65VcXsslwsByq7LGxCa2n+yUFt4pbjbDWnHap1zWoZr8tV
-         cckzanNjHirW9Jr9kwm+ZdCnyfU+fWpeHg7f/zKOsaQixvKyUSZMrWj5bF/h5XsQyFjn
-         Z56Ad0Nf23jvXzLv7aQdI02cYIMo9fzMjr0TZ+3x0zqES+IiQe5DWhpzDgXkBBp12mBG
-         xrtA==
-X-Gm-Message-State: AOAM533hyp/9lhyQiWBEcaR5aDR7/mEg36ulciTLfurIotiyUTjaig/6
-        K5XAX++UAzeteAdRlXmkruiFmu8GyIFBCX6Thl7p+IIYci0=
-X-Google-Smtp-Source: ABdhPJwTezu8SLeadIG9EZkt2aGPfRM9+gUGMNBaxhiAWQ5HO19ptx7MblEKVzOGtfangKXV8yqKx9P1LkZNHGCYVYg=
-X-Received: by 2002:ab0:6dcd:: with SMTP id r13mr4479540uaf.74.1634803833013;
- Thu, 21 Oct 2021 01:10:33 -0700 (PDT)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=5VJf6wW3Zw2DeMC1uvvUDH5A+ThvxlivtsSu9S+fKR8=;
+        b=QO/YmLCa1tZUaLkeO7jJf4916c98RicRYrDUO2ncdqd+A1O51hS4+Lteul5UeXmL1x
+         XHOjtTkzrShFE30m9FgM9M+9vR8scKK/wLumByb+VmYq4mlNyXfDV7jh2UlhEK4yyrLr
+         CFfOwpXGD7lxJ4hr36ZMVKtto/P+kwPjQHN8rKxZYm+VNpvgHy072cR2+9dbg/DRGckA
+         pErCJuz90HrXiQDoOKxy9Idf5sQLr2lAbejU7UqeWhRbJGtEd+/XHlJP/+pmV7wTnhk5
+         0qNCYTs8yIfr71AJa8ot9MJWC6fldYJ8G8Y9oS97lFPwzK1JPR9Nll+/WW3Jle20JxCk
+         I8mw==
+X-Gm-Message-State: AOAM530toEE6mJHRdzNTIU72uFn0XiOn/ZtvsLq+P3cPZIQZrKTXh3NE
+        v8lRbBUwItQfjI3pMYra/EqMTHbKusbDH1y02i0pkyR/Yf0=
+X-Google-Smtp-Source: ABdhPJwjeGaJOkOTjJiU9kzNWCo5WRGPgd8EhT7AB1CCOF+vOQ8V2hrSKwjYb95orb5jIwOWRlWlYP9ivKe8emDw1Es=
+X-Received: by 2002:a05:6122:550:: with SMTP id y16mr12851508vko.18.1635129242286;
+ Sun, 24 Oct 2021 19:34:02 -0700 (PDT)
 MIME-Version: 1.0
-References: <CADmzSSjy+bzPUus3xO2zT_USEKZYJ7WBOCbOiF+ro3EDoipXqg@mail.gmail.com>
- <CAOQ4uxgN50djKrqE4FYhC0pNpHdp5HDyQcSQX4+dHqOYp_NY6A@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgN50djKrqE4FYhC0pNpHdp5HDyQcSQX4+dHqOYp_NY6A@mail.gmail.com>
 From:   Carl Karsten <carl@nextdayvideo.com>
-Date:   Thu, 21 Oct 2021 03:10:06 -0500
-Message-ID: <CADmzSSg5AZE61KMmUkrUMGVN=db4Q8kpB4vVuALzaN2uwg89rQ@mail.gmail.com>
-Subject: Re: nfs server serving ... wrong mount?
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Date:   Sun, 24 Oct 2021 21:33:35 -0500
+Message-ID: <CADmzSShDEfBz=_uVAKMQw1Jkd7TX=chYg4bBo5srKkkhn3HR1A@mail.gmail.com>
+Subject: Overlayroot for pi
+To:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-ah, non-disk filesystem is the problem.  thanks.
+I'm looking for something like ubunt's overlayroot package to install on a pi.
+https://packages.ubuntu.com/impish/overlayroot
+description:
+https://spin.atomicobject.com/2015/03/10/protecting-ubuntu-root-filesystem/
 
-I had switched the mounts to use ..../base and everything was fine, so
-I figured overlayfs was mucking something up.
+I've found a dozen posts about ro pi fs solutions, they all bother me.
+mostly they seem more complex than needed,
 
-I'm glad you enjoying my riddles :)
+I'm hoping someone here can point me to something simple.
 
-On Thu, Oct 21, 2021 at 2:09 AM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Thu, Oct 21, 2021 at 12:51 AM Carl Karsten <carl@nextdayvideo.com> wrote:
-> >
-> > I have 2 overlayfs monts.
-> >
-> > I can nfs export one or the other fine, but not both at the same time,
-> > the client gets the wrong files.
->
-> Hi Carl,
->
-> Thanks for the daily overlayfs riddles ;-)
->
-> This is not an overlayfs issue. It's nfs exports configuration issue.
-> Please read the documentation of fsid export option.
-> Disk filesystems have uuid so they don't need explicit identification.
-> Overlayfs does not have a stable UUID.
->
-> >
-> > server hosthame negk bullseye ext4
-> > client twist ubuntu
-> >
-> > juser@negk:~$ cat /etc/exports
-> > # /srv/nfs/rpi/buster/boot/merged *(ro,sync,no_subtree_check,no_root_squash)
-> > /srv/nfs/rpi/buster/root/merged *(ro,sync,no_subtree_check,no_root_squash)
->
-> In this case, "root" is auto assigned fsid 1
->
-> >
-> > juser@negk:~$ ls /srv/nfs/rpi/buster/boot/merged
-> > bcm2708-rpi-b.dtb       bcm2710-rpi-3-b-plus.dtb  fixup4cd.dat
-> > kernel7.img       start4.elf
-> > (snip)
-> >
-> > juser@negk:~$ ls /srv/nfs/rpi/buster/root/merged
-> > bin  boot  dev  etc  home  lib  lost+found  media  mnt  opt  proc
-> > root  run  sbin  srv  sys  tmp  usr  var
-> >
-> > carl@twist:~/mnt$ sudo mount -t nfs negk:/srv/nfs/rpi/buster/root/merged nfs
-> > carl@twist:~/mnt$ ls nfs
-> > bin  boot  dev  etc  home  lib  lost+found  media  mnt  opt  proc
-> > root  run  sbin  srv  sys  tmp  usr  var
-> > carl@twist:~/mnt$ sudo umount nfs
-> >
-> > # enable root in negk exports...
->
-> I think you meant enable "boot"
-> and is that case "boot" gets assigned fsid 1 and "root" gets reassigned fsid 2
->
-> >
-> > carl@twist:~/mnt$ sudo mount -t nfs negk:/srv/nfs/rpi/buster/root/merged nfs
-> > carl@twist:~/mnt$ ls nfs
-> > bcm2708-rpi-b.dtb       bcm2710-rpi-3-b-plus.dtb  fixup4cd.dat
-> > kernel7.img       start4.elf
-> > (snip)
-> >
->
-> It is a bit surprising to me that you get the wrong export after a clean mount,
-> but it doesn't change the core configuration issue.
->
-> Perhaps nfs client has some fsid cache or you have a deferred umount in
-> the system of negk:/srv/nfs/rpi/buster/root/merged (e.g. due to spawned mount
-> ns or something) and then the "new" nfs mount uses the old resolved fsid 1.
->
-> In any case, when exporting more than one non-disk filesystem, you should
-> use explicit fsid.
->
-> Thanks,
-> Amir.
+My previous questions were about setting up a pxe server and that
+seems to be sorted:
+https://github.com/CarlFK/pici/blob/main/setup.md (all the good stuff
+is in setup2.sh)
 
+Now I need to have a rw fs on the pi, but the base fs is a ro nfs
+mount. (for production I want it ro, I'll flip it to rw when I need to
+apt upgrade the pi.)
 
+I had hope for
+https://linuxhit.com/raspberry-pi-pxe-boot-netbooting-a-pi-4-without-an-sd-card/
+except:
+todo: Make the root file system read-only and configure the client
+image to use tmpfs for ephemeral writes.
 
 -- 
 Carl K
