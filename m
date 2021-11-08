@@ -2,237 +2,171 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8A6C433EF
-	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Nov 2021 10:52:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDD7AC433FE
+	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Nov 2021 17:01:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1728E6058D
-	for <linux-unionfs@archiver.kernel.org>; Mon,  1 Nov 2021 10:52:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92F7E61359
+	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Nov 2021 17:01:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232051AbhKAKz3 (ORCPT
+        id S240363AbhKHRD6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 1 Nov 2021 06:55:29 -0400
-Received: from szxga01-in.huawei.com ([45.249.212.187]:13995 "EHLO
-        szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231271AbhKAKz2 (ORCPT
+        Mon, 8 Nov 2021 12:03:58 -0500
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:48768 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S235453AbhKHRD6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 1 Nov 2021 06:55:28 -0400
-Received: from dggemv703-chm.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4HjVF71SlNzZcfT;
-        Mon,  1 Nov 2021 18:50:51 +0800 (CST)
-Received: from dggema766-chm.china.huawei.com (10.1.198.208) by
- dggemv703-chm.china.huawei.com (10.3.19.46) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2308.15; Mon, 1 Nov 2021 18:52:53 +0800
-Received: from [10.174.177.210] (10.174.177.210) by
- dggema766-chm.china.huawei.com (10.1.198.208) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256_P256) id
- 15.1.2308.15; Mon, 1 Nov 2021 18:52:53 +0800
-Subject: Re: [PATCH 2/2] ovl: fix UAF for ovl_aio_req
-To:     Miklos Szeredi <miklos@szeredi.hu>
-CC:     Amir Goldstein <amir73il@gmail.com>,
-        Jiufei Xue <jiufei.xue@linux.alibaba.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>, <yukuai3@huawei.com>
-References: <20210930032228.3199690-1-yangerkun@huawei.com>
- <20210930032228.3199690-3-yangerkun@huawei.com>
- <CAJfpeguSczH6E6AA+gL1ZVd37H-h4Nekw-e-FW=g6+S5qsKztQ@mail.gmail.com>
- <5617bd21-7495-98b6-d2c9-4fec23f1411d@huawei.com>
- <401efae5-da00-b398-5895-fe6201e93096@huawei.com>
- <YXvdq5LjJ363a3hM@miu.piliscsaba.redhat.com>
- <fe0408e2-eeb7-17c2-6c21-9c66adafcf38@huawei.com>
- <CAJfpegvoSBFE6Z34yVYTSRazTv=+78h4g0Q_SgC5dMAaxnW3Hw@mail.gmail.com>
-From:   yangerkun <yangerkun@huawei.com>
-Message-ID: <d494e28c-0167-6e67-2028-0a1c65df77d1@huawei.com>
-Date:   Mon, 1 Nov 2021 18:52:52 +0800
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.5.0
+        Mon, 8 Nov 2021 12:03:58 -0500
+Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 1A8GWLA7017554;
+        Mon, 8 Nov 2021 17:01:11 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=qTgha4aiz9iITjfGZMEm4VpbubZUM3+NuX3efHPL2o0=;
+ b=JVxVWMrWNK7+wSWWcn15sfRlQk07rHCf1mB/5bantLMY/0hpLjetJOc7wVQNyUDuh6xM
+ KqAeZDznH/mesdAyokZ5KmFUCvluY/xU80+v6r7vXSLFCPO2nekWZJ4PLfRiYoUeRe58
+ 4BCRLXQvNOwrXSm9n7wMuMTItQ3oMxxKhpHDiKsRUNhj88th9Bjc7lj8Xi4HjxxnE5bj
+ QZlUwBoeqxiGG1yw05Wy2KqPEbajhy7y/piv+MIsK0bi/zkwW6gz9O7Ns7cOd/wW0VvU
+ 2gcGtiTMW/AXg52cBUBJohD2aOEdQg7Dm+sz3Ms7kkOZqD1RGV8ToojCxN8K02sW1SIr Tg== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 3c69dn3cue-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 08 Nov 2021 17:01:10 +0000
+Received: from m0127361.ppops.net (m0127361.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 1A8GXpG8025230;
+        Mon, 8 Nov 2021 17:01:10 GMT
+Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 3c69dn3cth-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 08 Nov 2021 17:01:10 +0000
+Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
+        by ppma04fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 1A8Gm9t6016447;
+        Mon, 8 Nov 2021 17:01:08 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+        by ppma04fra.de.ibm.com with ESMTP id 3c5hb9q2bt-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 08 Nov 2021 17:01:08 +0000
+Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
+        by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1A8H159423265568
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 8 Nov 2021 17:01:06 GMT
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id D97674C040;
+        Mon,  8 Nov 2021 17:01:05 +0000 (GMT)
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 8AA464C050;
+        Mon,  8 Nov 2021 17:01:04 +0000 (GMT)
+Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com.com (unknown [9.160.5.243])
+        by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Mon,  8 Nov 2021 17:01:04 +0000 (GMT)
+From:   Mimi Zohar <zohar@linux.ibm.com>
+To:     linux-integrity@vger.kernel.org
+Cc:     Mimi Zohar <zohar@linux.ibm.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: [RFC PATCH] ima: differentiate overlay, pivot_root, and other pathnames
+Date:   Mon,  8 Nov 2021 12:01:00 -0500
+Message-Id: <20211108170100.148066-1-zohar@linux.ibm.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-In-Reply-To: <CAJfpegvoSBFE6Z34yVYTSRazTv=+78h4g0Q_SgC5dMAaxnW3Hw@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
-X-Originating-IP: [10.174.177.210]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggema766-chm.china.huawei.com (10.1.198.208)
-X-CFilter-Loop: Reflected
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: ezzw92u2Y38_C0kO_2kbEnL3pYcIFrfD
+X-Proofpoint-ORIG-GUID: RptRndZ79OCqbGHtOyVZS2wU9ky8XPLf
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.205,Aquarius:18.0.790,Hydra:6.0.425,FMLib:17.0.607.475
+ definitions=2021-11-08_05,2021-11-08_02,2020-04-07_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999 mlxscore=0
+ malwarescore=0 clxscore=1011 adultscore=0 bulkscore=0 spamscore=0
+ priorityscore=1501 impostorscore=0 suspectscore=0 lowpriorityscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2110150000 definitions=main-2111080103
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+Relative file pathnames are included in the IMA measurement list making
+it difficult to differentiate files.  Permit replacing the relative
+pathname with the (raw) full pathname in the measurement list.
 
+Define a new module param named "ima.rawpath".
 
-On 2021/11/1 17:15, Miklos Szeredi wrote:
-> On Mon, 1 Nov 2021 at 05:02, yangerkun <yangerkun@huawei.com> wrote:
->>
->>
->>
->> On 2021/10/29 19:40, Miklos Szeredi wrote:
->>> On Thu, Oct 28, 2021 at 08:41:28PM +0800, yangerkun wrote:
->>>>
->>>>
->>>> 在 2021/10/18 22:26, yangerkun 写道:
->>>>>
->>>>>
->>>>> 在 2021/10/8 23:13, Miklos Szeredi 写道:
->>>>>> On Thu, 30 Sept 2021 at 05:12, yangerkun <yangerkun@huawei.com> wrote:
->>>>>>>
->>>>>>> Our testcase trigger follow UAF:
->>>>>>>
->>>>>>> [  153.939147]
->>>>>>> ==================================================================
->>>>>>> [  153.942199] BUG: KASAN: use-after-free in
->>>>>>> ext4_dio_read_iter+0xcc/0x1a0
->>>>>>> [  153.943331] Read of size 8 at addr ffff88803b7f1500 by task
->>>>>>> fsstress/726
->>>>>>> [  153.948182] Call Trace:
->>>>>>> [  153.948628]  ? dump_stack_lvl+0x73/0x9f
->>>>>>> [  153.950255]  ? ext4_dio_read_iter+0xcc/0x1a0
->>>>>>> [  153.950972]  ? ext4_dio_read_iter+0xcc/0x1a0
->>>>>>> [  153.951693]  ? kasan_report.cold+0x81/0x165
->>>>>>> [  153.952429]  ? ext4_dio_read_iter+0xcc/0x1a0
->>>>>>> [  153.953190]  ? __asan_load8+0x74/0x110
->>>>>>> [  153.953856]  ? ext4_dio_read_iter+0xcc/0x1a0
->>>>>>> [  153.954612]  ? ext4_file_read_iter+0x1df/0x2a0
->>>>>>> [  153.955394]  ? ext4_dio_read_iter+0x1a0/0x1a0
->>>>>>> [  153.956159]  ? vfs_iocb_iter_read+0xd5/0x330
->>>>>>> [  153.956916]  ? ovl_read_iter+0x15f/0x270
->>>>>>> [  153.957605]  ? ovl_aio_cleanup_handler+0x2a0/0x2a0
->>>>>>> [  153.958436]  ? aio_setup_rw+0xbf/0xe0
->>>>>>> [  153.959101]  ? aio_read+0x190/0x2d0
->>>>>>> [  153.959750]  ? aio_write+0x3e0/0x3e0
->>>>>>> [  153.960404]  ? __kasan_check_read+0x1d/0x30
->>>>>>> [  153.961167]  ? ext4_file_getattr+0x116/0x1b0
->>>>>>> [  153.961978]  ? __put_user_ns+0x40/0x40
->>>>>>> [  153.962714]  ? kasan_poison+0x40/0x90
->>>>>>> [  153.963384]  ? set_alloc_info+0x46/0x70
->>>>>>> [  153.964102]  ? __kasan_check_write+0x20/0x30
->>>>>>> [  153.964856]  ? __fget_files+0x106/0x180
->>>>>>> [  153.965571]  ? io_submit_one+0xaa7/0x1480
->>>>>>> [  153.966325]  ? aio_poll_complete_work+0x590/0x590
->>>>>>> [  153.967713]  ? ioctl_file_clone+0x110/0x110
->>>>>>> [  153.969008]  ? vfs_getattr_nosec+0x14a/0x190
->>>>>>> [  153.970539]  ? __do_sys_newfstat+0xd6/0xf0
->>>>>>> [  153.971713]  ? __ia32_compat_sys_newfstat+0x40/0x40
->>>>>>> [  153.973005]  ? __x64_sys_io_submit+0x125/0x3b0
->>>>>>> [  153.974282]  ? __ia32_sys_io_submit+0x390/0x390
->>>>>>> [  153.975575]  ? __kasan_check_read+0x1d/0x30
->>>>>>> [  153.976749]  ? do_syscall_64+0x35/0x80
->>>>>>> [  153.978034]  ? entry_SYSCALL_64_after_hwframe+0x44/0xae
->>>>>>> [  153.979436]
->>>>>>> [  153.979738] Allocated by task 726:
->>>>>>> [  153.980352]  kasan_save_stack+0x23/0x60
->>>>>>> [  153.981054]  set_alloc_info+0x46/0x70
->>>>>>> [  153.981745]  __kasan_slab_alloc+0x4c/0x90
->>>>>>> [  153.982492]  kmem_cache_alloc+0x153/0x750
->>>>>>> [  153.983953]  ovl_read_iter+0x13b/0x270
->>>>>>> [  153.984689]  aio_read+0x190/0x2d0
->>>>>>> [  153.985332]  io_submit_one+0xaa7/0x1480
->>>>>>> [  153.986060]  __x64_sys_io_submit+0x125/0x3b0
->>>>>>> [  153.986878]  do_syscall_64+0x35/0x80
->>>>>>> [  153.987590]  entry_SYSCALL_64_after_hwframe+0x44/0xae
->>>>>>> [  153.988516]
->>>>>>> [  153.988824] Freed by task 750:
->>>>>>> [  153.989417]  kasan_save_stack+0x23/0x60
->>>>>>> [  153.990140]  kasan_set_track+0x24/0x40
->>>>>>> [  153.990871]  kasan_set_free_info+0x30/0x60
->>>>>>> [  153.991639]  __kasan_slab_free+0x137/0x210
->>>>>>> [  153.992390]  kmem_cache_free+0xf8/0x590
->>>>>>> [  153.993303]  ovl_aio_cleanup_handler+0x1ae/0x2a0
->>>>>>> [  153.994205]  ovl_aio_rw_complete+0x31/0x60
->>>>>>> [  153.995043]  iomap_dio_complete_work+0x4b/0x60
->>>>>>> [  153.995898]  iomap_dio_bio_end_io+0x23d/0x270
->>>>>>> [  153.996742]  bio_endio+0x40d/0x440
->>>>>>> [  153.997376]  blk_update_request+0x38f/0x820
->>>>>>> [  153.998160]  scsi_end_request+0x56/0x320
->>>>>>> [  153.998872]  scsi_io_completion+0x10a/0xb60
->>>>>>> [  153.999655]  scsi_finish_command+0x194/0x2b0
->>>>>>> [  154.000464]  scsi_complete+0xd7/0x1f0
->>>>>>> [  154.001184]  blk_complete_reqs+0x92/0xb0
->>>>>>> [  154.001930]  blk_done_softirq+0x29/0x40
->>>>>>> [  154.002696]  __do_softirq+0x133/0x57f
->>>>>>>
->>>>>>> ext4_dio_read_iter
->>>>>>>      ret = iomap_dio_rw(iocb, to, &ext4_iomap_ops, NULL, 0)
->>>>>>>      file_accessed(iocb->ki_filp) <== this trigger UAF
->>>>>>>
->>>>>>> Ret can be -EIOCBQUEUED which means we will not wait for io
->>>>>>> completion in
->>>>>>> iomap_dio_rw. So the release for ovl_aio_req will be done when io
->>>>>>> completion routine call ovl_aio_rw_complete(or ovl_aio_cleanup_handler
->>>>>>> in ovl_read_iter will do this). But once io finish soon, we may already
->>>>>>> release ovl_aio_req before we call file_access in ext4_dio_read_iter.
->>>>>>> This can trigger the upper UAF.
->>>>>>>
->>>>>>> Fix it by introduce refcount in ovl_aio_req like what aio_kiocb has did.
->>>>>>
->>>>>> Looks good at a glance.   Will review more fully.
->>>>>
->>>>> Hi,
->>>>>
->>>>> Any comments for this patch? :)
->>>
->>> Thanks for the patch.  I found one issue: the fdput() needs to be moved to the
->>> destruction as well, since the iocb->ki_filp reference comes from aio_req->fd.
->>
->> Hi, it seems we will only use aio_req->iocb in ovl_aio_cleanup_handler
->> before we call fdput(aio_req->fd):
-> 
-> Correct.  However I'm taking about this call:
-> file_accessed(iocb->ki_filp).  If the fdput() is done from
-> ovl_aio_cleanup_handler() which is called from ->ki_complete() then
-> this would put the file, agains resulting in a UAF, only inside
-> file_accessed() this time.   The reason why you weren't seeing this,
-> is probably that most of the time aio_req->fd is from
-> file->private_data, which is the real file obtained at open time, and
-> which isn't actually closed at fdput() (flags == 0).
+Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
+---
+comment: this change does not address the simple "unshare -m" case
+without pivot_root.
 
-Thanks for your analysis. Got it now!
+ .../admin-guide/kernel-parameters.txt          |  7 +++++++
+ security/integrity/ima/ima_api.c               | 18 +++++++++++++++++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
 
-> 
->>
->> static void ovl_aio_cleanup_handler(struct ovl_aio_req *aio_req)
->> {
->>           struct kiocb *iocb = &aio_req->iocb;
->>           struct kiocb *orig_iocb = aio_req->orig_iocb;
->>
->>           if (iocb->ki_flags & IOCB_WRITE) {
->>                   struct inode *inode = file_inode(orig_iocb->ki_filp);
->>
->>                   /* Actually acquired in ovl_write_iter() */
->>                   __sb_writers_acquired(file_inode(iocb->ki_filp)->i_sb,
->>                                         SB_FREEZE_WRITE);
->>                   file_end_write(iocb->ki_filp);
->>                   <=== use iocb
->>                   ovl_copyattr(ovl_inode_real(inode), inode);
->>           }
->>
->>           orig_iocb->ki_pos = iocb->ki_pos;
->>           fdput(aio_req->fd); <=== release aio_req->fd
->>           kmem_cache_free(ovl_aio_request_cachep, aio_req);
->> }
->>
->> So call fdput(aio_req->fd) in ovl_aio_cleanup_handler or ovl_aio_put
->> seems all ok for me.
->>
->>>
->>> Other than that, it looks good.
->>>
->>> Minor things:
->>>
->>> - instead of setting refcount to 1 and incrementing it, just initialize it to 2
->>>
->>> - code deduplication can come after the fix (if at all), this helps backporting
->>
->> Agree.
->>
->>>
->>> - cleaned up header comment
->>>
->>> Here's the updated patch, can you please verify that I didn't break anything?
->>
->> Thanks! This patch can help pass the test!
-> 
-> Great, thanks.
-> 
-> Miklos
-> .
-> 
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index 91ba391f9b32..d49a5edcd3c3 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -1890,6 +1890,13 @@
+ 			different crypto accelerators. This option can be used
+ 			to achieve best performance for particular HW.
+ 
++	ima.rawpath=	[IMA]
++			Format: <bool>
++			Default: 0
++			This parameter controls whether the IMA measurement
++			list contains the relative or raw full file pathnames
++			in the IMA measurement list.
++
+ 	init=		[KNL]
+ 			Format: <full_path>
+ 			Run specified binary instead of /sbin/init as init
+diff --git a/security/integrity/ima/ima_api.c b/security/integrity/ima/ima_api.c
+index a64fb0130b01..42c6ff7056e6 100644
+--- a/security/integrity/ima/ima_api.c
++++ b/security/integrity/ima/ima_api.c
+@@ -9,14 +9,19 @@
+  *	appraise_measurement, store_measurement and store_template.
+  */
+ #include <linux/slab.h>
++#include <linux/moduleparam.h>
+ #include <linux/file.h>
+ #include <linux/fs.h>
++#include <linux/fs_struct.h>
+ #include <linux/xattr.h>
+ #include <linux/evm.h>
+ #include <linux/iversion.h>
+ 
+ #include "ima.h"
+ 
++static bool rawpath_enabled;
++module_param_named(rawpath, rawpath_enabled, bool, 0);
++
+ /*
+  * ima_free_template_entry - free an existing template entry
+  */
+@@ -390,11 +395,22 @@ void ima_audit_measurement(struct integrity_iint_cache *iint,
+  */
+ const char *ima_d_path(const struct path *path, char **pathbuf, char *namebuf)
+ {
++	struct dentry *dentry = NULL;
+ 	char *pathname = NULL;
+ 
+ 	*pathbuf = __getname();
+ 	if (*pathbuf) {
+-		pathname = d_absolute_path(path, *pathbuf, PATH_MAX);
++		if (!rawpath_enabled) {
++			pathname = d_absolute_path(path, *pathbuf, PATH_MAX);
++		} else {
++			/* Use union/overlay full pathname */
++			if (unlikely(path->dentry->d_flags & DCACHE_OP_REAL))
++				dentry = d_real(path->dentry, NULL);
++			else
++				dentry = path->dentry;
++			pathname = dentry_path_raw(dentry, *pathbuf, PATH_MAX);
++		}
++
+ 		if (IS_ERR(pathname)) {
+ 			__putname(*pathbuf);
+ 			*pathbuf = NULL;
+-- 
+2.27.0
+
