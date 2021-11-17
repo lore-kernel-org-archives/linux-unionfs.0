@@ -2,120 +2,278 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 339F4C433F5
-	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Nov 2021 12:36:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F782C4332F
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Nov 2021 01:58:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DD9A619E3
-	for <linux-unionfs@archiver.kernel.org>; Tue, 16 Nov 2021 12:36:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E01DC61C12
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Nov 2021 01:58:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235942AbhKPMjW (ORCPT
+        id S232640AbhKQCBZ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 16 Nov 2021 07:39:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42044 "EHLO
+        Tue, 16 Nov 2021 21:01:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236319AbhKPMjE (ORCPT
+        with ESMTP id S229629AbhKQCBY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 16 Nov 2021 07:39:04 -0500
-Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58F77C061570
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Nov 2021 04:36:07 -0800 (PST)
-Received: by mail-ua1-x92f.google.com with SMTP id l24so37733029uak.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Nov 2021 04:36:07 -0800 (PST)
+        Tue, 16 Nov 2021 21:01:24 -0500
+Received: from mail-qt1-x849.google.com (mail-qt1-x849.google.com [IPv6:2607:f8b0:4864:20::849])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75368C0613B9
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 Nov 2021 17:58:26 -0800 (PST)
+Received: by mail-qt1-x849.google.com with SMTP id v19-20020ac85793000000b002b19184b2bfso878780qta.14
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 Nov 2021 17:58:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=zNmSVnxPetdA0L3V4GkasCFzJmUbdsvVFKb52Nomjig=;
-        b=g4US1ExxJigUReu0nCm6t7eenv87wdEvhvIC9IPkm5AUhqVQCYDiktBcoWD0ZZ25Xl
-         AxOl19gDUJhflVAcMIDol8Msye7P9p12QxCgqu48YcxwK4It+3cELtjGCt7B+rET5OQU
-         0QH8DhxxbMcTJUwdW5NuzCXgNoS+StGwY3EAw=
+        d=google.com; s=20210112;
+        h=date:message-id:mime-version:subject:from:cc;
+        bh=caymuj0MGZCptln9VP4sHWU9D/RHZZIA+lbDSv4W7ok=;
+        b=b/fh0XJxqafyv9gl1yZedFfi5zsajwqjK2zxACnx0pWf5P2vKvj9M/vt0QY8/8XiYt
+         OcjCdGB5EVbawiItfV8N5xJLb4YciC1ec1luYWBeVcAYGJsHaRO8ZjLRWm4jxJs/dCbp
+         U63DLfZiahYLTG4Rsy9J5aUJcGGbCqanUoaHlCp8GvWyTPZYTNj14YlC5R+EvOM+wHhr
+         8HEk753sk1mRjZ+z8+k2tUytJOk4u12jYh3COQOKQHlSDqK1dxj1AMtBDaXPYBAvUxfX
+         MPsV6dQrGJ0YlLa4lTcT3d2wC+p677qtHWyaVX6HfQ0ba5Sa0Nst7Q0/91CWCG4NIe32
+         2yKA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=zNmSVnxPetdA0L3V4GkasCFzJmUbdsvVFKb52Nomjig=;
-        b=1FRsknrza9MbH9s7+FLLXb+mdFU77q+6WRwT6EtPi3j3rRZ/n3K8d5Fkq0f9CbOGzf
-         qjlTvxMYngMG/oQT9L6B8/lYYklvmYI0Z0QSFH92ag4aXLgE9jgdEi8pp4tNKiO5ulsN
-         iJPMHqzP3/efG7D7JZOIoanZJmAEmseIBWFlp1R9qxd/YGX87tlRDHlszIJ2Wni3f6eF
-         pc7PmRBdGLZl+udGpxAlsAsOL5R/1Cca165LUr5oGs9lzQm7/5ORE41W6TkfOMHD/KOt
-         wuWCUNx8i+1JQN+IuNAHg/RZ0UPO1bw2X1uoIgftycNdjJQBqVyEsx2q2KOmHFREaxVg
-         YmvA==
-X-Gm-Message-State: AOAM531mFIvvZ9BLx5jc/dpxRJUzMJWN45rfyq96OdNFRvKNn+57bxu9
-        fgJHJBaBJY1DdNphuYDU/N29g1hjRgRRBVHcnG4XLw==
-X-Google-Smtp-Source: ABdhPJzHYyzPvcxM6korW49fJ4HfL4hi+nMo6aC6cPBOiY6HTGLaUERL/do/oqHiPu5HovfkCuQ7/ow/7kyvew2ELZw=
-X-Received: by 2002:ab0:25da:: with SMTP id y26mr10449936uan.72.1637066166488;
- Tue, 16 Nov 2021 04:36:06 -0800 (PST)
-MIME-Version: 1.0
-References: <20210923130814.140814-1-cgxu519@mykernel.net> <20210923130814.140814-7-cgxu519@mykernel.net>
- <CAJfpeguqj2vst4Zj5EovSktJkXiDSCSWY=X12X0Yrz4M8gPRmQ@mail.gmail.com>
- <17c5aba1fef.c5c03d5825886.6577730832510234905@mykernel.net>
- <CAJfpegtr1NkOiY9YWd1meU1yiD-LFX-aB55UVJs94FrX0VNEJQ@mail.gmail.com>
- <17c5adfe5ea.12f1be94625921.4478415437452327206@mykernel.net>
- <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com> <17d268ba3ce.1199800543649.1713755891767595962@mykernel.net>
-In-Reply-To: <17d268ba3ce.1199800543649.1713755891767595962@mykernel.net>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 16 Nov 2021 13:35:55 +0100
-Message-ID: <CAJfpegttQreuuD_jLgJmrYpsLKBBe2LmB5NSj6F5dHoTzqPArw@mail.gmail.com>
-Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode operation
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:cc;
+        bh=caymuj0MGZCptln9VP4sHWU9D/RHZZIA+lbDSv4W7ok=;
+        b=ZNc89mYYXOHXyL6y7I8eSErTLpIhTpINcKRr7VHIaE9NfkkWOjZKQCKJ+9K/icAi48
+         /OCJVrgxBeHz3uMnqTjY40+kxJO1jlMlkK466VLcLDtV3u4sWJI4qiRtlhTuqogI+RCI
+         4fXeCZQsvKZJgE+i5XpznBhL2DuRmIZoG12GXVP8aevleZpr9U4M/AbksZqbUmrB6uQi
+         guFUuoZFH9T8EBP6/Y35WRez8iM0LZq7rlfKxt1VHceIxxcrikNfckPK7wo5PlCYcXar
+         H2UpVWAqFnF0uoBzPo88IqnpM1YOh05xCMzQHJZiipVCL80Qyn1uVBArh+0FsiT8rRNV
+         Jn8g==
+X-Gm-Message-State: AOAM530TazRA8lbLdqebXpg/q/ayM/G/3pScvyVK0u0RK7SmYLcxebH9
+        5CxwUrwRTRBg1V/oPpQgDDHzgqeI6Pyx
+X-Google-Smtp-Source: ABdhPJxBUPweJJY1+GgjaWTueZl7r8rLT33zDT9CZEWPJcotxU7v3nj++XPJdokw9KvwTukqUAIxF/x78Zxm
+X-Received: from dvandertop.c.googlers.com ([fda3:e722:ac3:cc00:14:4d90:c0a8:2862])
+ (user=dvander job=sendgmr) by 2002:a05:622a:293:: with SMTP id
+ z19mr6613270qtw.46.1637114305033; Tue, 16 Nov 2021 17:58:25 -0800 (PST)
+Date:   Wed, 17 Nov 2021 01:58:02 +0000
+Message-Id: <20211117015806.2192263-1-dvander@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.34.0.rc1.387.gb447b232ab-goog
+Subject: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
+From:   David Anderson <dvander@google.com>
+Cc:     David Anderson <dvander@google.com>,
+        Mark Salyzyn <salyzyn@android.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        "Eric W . Biederman" <ebiederm@xmission.com>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stephen Smalley <sds@tycho.nsa.gov>,
+        John Stultz <john.stultz@linaro.org>,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-security-module@vger.kernel.org, kernel-team@android.com,
+        selinux@vger.kernel.org, paulmoore@microsoft.com,
+        Luca.Boccassi@microsoft.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     unlisted-recipients:; (no To-header on input)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 16 Nov 2021 at 03:20, Chengguang Xu <cgxu519@mykernel.net> wrote:
->
->  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-10-07 21:34:19 Miklos S=
-zeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
->  > On Thu, 7 Oct 2021 at 15:10, Chengguang Xu <cgxu519@mykernel.net> wrot=
-e:
->  > >  > However that wasn't what I was asking about.  AFAICS ->write_inod=
-e()
->  > >  > won't start write back for dirty pages.   Maybe I'm missing somet=
-hing,
->  > >  > but there it looks as if nothing will actually trigger writeback =
-for
->  > >  > dirty pages in upper inode.
->  > >  >
->  > >
->  > > Actually, page writeback on upper inode will be triggered by overlay=
-fs ->writepages and
->  > > overlayfs' ->writepages will be called by vfs writeback function (i.=
-e writeback_sb_inodes).
->  >
->  > Right.
->  >
->  > But wouldn't it be simpler to do this from ->write_inode()?
->  >
->  > I.e. call write_inode_now() as suggested by Jan.
->  >
->  > Also could just call mark_inode_dirty() on the overlay inode
->  > regardless of the dirty flags on the upper inode since it shouldn't
->  > matter and results in simpler logic.
->  >
->
-> Hi Miklos=EF=BC=8C
->
-> Sorry for delayed response for this, I've been busy with another project.
->
-> I agree with your suggesion above and further more how about just mark ov=
-erlay inode dirty
-> when it has upper inode? This approach will make marking dirtiness simple=
- enough.
+Mark Salyzyn (3):
+  Add flags option to get xattr method paired to __vfs_getxattr
+  overlayfs: handle XATTR_NOSECURITY flag for get xattr method
+  overlayfs: override_creds=off option bypass creator_cred
 
-Are you suggesting that all non-lower overlay inodes should always be dirty=
-?
+Mark Salyzyn + John Stultz (1):
+  overlayfs: inode_owner_or_capable called during execv
 
-The logic would be simple, no doubt, but there's the cost to walking
-those overlay inodes which don't have a dirty upper inode, right?  Can
-you quantify this cost with a benchmark?  Can be totally synthetic,
-e.g. lookup a million upper files without modifying them, then call
-syncfs.
+The first three patches address fundamental security issues that should
+be solved regardless of the override_creds=off feature.
 
-Thanks,
-Miklos
+The fourth adds the feature depends on these other fixes.
+
+By default, all access to the upper, lower and work directories is the
+recorded mounter's MAC and DAC credentials.  The incoming accesses are
+checked against the caller's credentials.
+
+If the principles of least privilege are applied for sepolicy, the
+mounter's credentials might not overlap the credentials of the caller's
+when accessing the overlayfs filesystem.  For example, a file that a
+lower DAC privileged caller can execute, is MAC denied to the
+generally higher DAC privileged mounter, to prevent an attack vector.
+
+We add the option to turn off override_creds in the mount options; all
+subsequent operations after mount on the filesystem will be only the
+caller's credentials.  The module boolean parameter and mount option
+override_creds is also added as a presence check for this "feature",
+existence of /sys/module/overlay/parameters/overlay_creds
+
+Signed-off-by: Mark Salyzyn <salyzyn@android.com>
+Signed-off-by: David Anderson <dvander@google.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-fsdevel@vger.kernel.org
+Cc: linux-unionfs@vger.kernel.org
+Cc: linux-security-module@vger.kernel.org
+Cc: kernel-team@android.com
+Cc: selinux@vger.kernel.org
+Cc: paulmoore@microsoft.com
+Cc: Luca.Boccassi@microsoft.com
+
+---
+
+v19
+- rebase.
+
+v18
+- rebase + fix minor cut and paste error for inode argument in __vfs_getxattr
+
+v17
+- correct some zero-day build failures.
+- fix up documentation
+
+v16
+- rebase and merge of two patches.
+- add adjustment to deal with execv when overrides is off.
+
+v15
+- Revert back to v4 with fixes from on the way from v5-v14. The single
+  structure argument passing to address the complaints about too many
+  arguments was rejected by the community.
+- Drop the udner discussion fix for an additional CAP_DAC_READ_SEARCH
+  check. Can address that independently.
+- ToDo: upstream test frame for thes security fixes (currently testing
+  is all in Android).
+
+v14:
+- Rejoin, rebase and a few adjustments.
+
+v13:
+- Pull out first patch and try to get it in alone feedback, some
+  Acks, and then <crickets> because people forgot why we were doing i.
+
+v12:
+- Restore squished out patch 2 and 3 in the series,
+  then change algorithm to add flags argument.
+  Per-thread flag is a large security surface.
+
+v11:
+- Squish out v10 introduced patch 2 and 3 in the series,
+  then and use per-thread flag instead for nesting.
+- Switch name to ovl_do_vds_getxattr for __vds_getxattr wrapper.
+- Add sb argument to ovl_revert_creds to match future work.
+
+v10:
+- Return NULL on CAP_DAC_READ_SEARCH
+- Add __get xattr method to solve sepolicy logging issue
+- Drop unnecessary sys_admin sepolicy checking for administrative
+  driver internal xattr functions.
+
+v6:
+- Drop CONFIG_OVERLAY_FS_OVERRIDE_CREDS.
+- Do better with the documentation, drop rationalizations.
+- pr_warn message adjusted to report consequences.
+
+v5:
+- beefed up the caveats in the Documentation
+- Is dependent on
+  "overlayfs: check CAP_DAC_READ_SEARCH before issuing exportfs_decode_fh"
+  "overlayfs: check CAP_MKNOD before issuing vfs_whiteout"
+- Added prwarn when override_creds=off
+
+v4:
+- spelling and grammar errors in text
+
+v3:
+- Change name from caller_credentials / creator_credentials to the
+  boolean override_creds.
+- Changed from creator to mounter credentials.
+- Updated and fortified the documentation.
+- Added CONFIG_OVERLAY_FS_OVERRIDE_CREDS
+
+v2:
+- Forward port changed attr to stat, resulting in a build error.
+- altered commit message.
+
+David Anderson (4):
+  Add flags option to get xattr method paired to __vfs_getxattr
+  overlayfs: handle XATTR_NOSECURITY flag for get xattr method
+  overlayfs: override_creds=off option bypass creator_cred
+  overlayfs: inode_owner_or_capable called during execv
+
+ Documentation/filesystems/locking.rst   |  2 +-
+ Documentation/filesystems/overlayfs.rst | 26 ++++++++++++++-
+ fs/9p/acl.c                             |  3 +-
+ fs/9p/xattr.c                           |  3 +-
+ fs/afs/xattr.c                          | 10 +++---
+ fs/attr.c                               |  2 +-
+ fs/btrfs/xattr.c                        |  3 +-
+ fs/ceph/xattr.c                         |  3 +-
+ fs/cifs/xattr.c                         |  2 +-
+ fs/ecryptfs/inode.c                     |  6 ++--
+ fs/ecryptfs/mmap.c                      |  5 +--
+ fs/erofs/xattr.c                        |  3 +-
+ fs/ext2/xattr_security.c                |  2 +-
+ fs/ext2/xattr_trusted.c                 |  2 +-
+ fs/ext2/xattr_user.c                    |  2 +-
+ fs/ext4/xattr_hurd.c                    |  2 +-
+ fs/ext4/xattr_security.c                |  2 +-
+ fs/ext4/xattr_trusted.c                 |  2 +-
+ fs/ext4/xattr_user.c                    |  2 +-
+ fs/f2fs/xattr.c                         |  4 +--
+ fs/fuse/xattr.c                         |  4 +--
+ fs/gfs2/xattr.c                         |  3 +-
+ fs/hfs/attr.c                           |  2 +-
+ fs/hfsplus/xattr.c                      |  3 +-
+ fs/hfsplus/xattr_security.c             |  3 +-
+ fs/hfsplus/xattr_trusted.c              |  3 +-
+ fs/hfsplus/xattr_user.c                 |  3 +-
+ fs/inode.c                              |  7 +++--
+ fs/internal.h                           |  3 +-
+ fs/jffs2/security.c                     |  3 +-
+ fs/jffs2/xattr_trusted.c                |  3 +-
+ fs/jffs2/xattr_user.c                   |  3 +-
+ fs/jfs/xattr.c                          |  5 +--
+ fs/kernfs/inode.c                       |  3 +-
+ fs/nfs/nfs4proc.c                       |  9 ++++--
+ fs/ntfs3/xattr.c                        |  2 +-
+ fs/ocfs2/xattr.c                        |  9 ++++--
+ fs/open.c                               |  2 +-
+ fs/orangefs/xattr.c                     |  3 +-
+ fs/overlayfs/copy_up.c                  |  2 +-
+ fs/overlayfs/dir.c                      | 17 +++++-----
+ fs/overlayfs/file.c                     | 25 ++++++++-------
+ fs/overlayfs/inode.c                    | 29 ++++++++---------
+ fs/overlayfs/namei.c                    |  6 ++--
+ fs/overlayfs/overlayfs.h                |  7 +++--
+ fs/overlayfs/ovl_entry.h                |  1 +
+ fs/overlayfs/readdir.c                  |  8 ++---
+ fs/overlayfs/super.c                    | 34 ++++++++++++++++----
+ fs/overlayfs/util.c                     | 13 ++++++--
+ fs/posix_acl.c                          |  2 +-
+ fs/reiserfs/xattr_security.c            |  3 +-
+ fs/reiserfs/xattr_trusted.c             |  3 +-
+ fs/reiserfs/xattr_user.c                |  3 +-
+ fs/squashfs/xattr.c                     |  2 +-
+ fs/ubifs/xattr.c                        |  3 +-
+ fs/xattr.c                              | 42 +++++++++++++------------
+ fs/xfs/xfs_xattr.c                      |  3 +-
+ include/linux/lsm_hook_defs.h           |  3 +-
+ include/linux/security.h                |  6 ++--
+ include/linux/xattr.h                   |  6 ++--
+ include/uapi/linux/xattr.h              |  7 +++--
+ mm/shmem.c                              |  3 +-
+ net/socket.c                            |  3 +-
+ security/commoncap.c                    | 11 ++++---
+ security/integrity/evm/evm_main.c       | 13 +++++---
+ security/security.c                     |  5 +--
+ security/selinux/hooks.c                | 19 ++++++-----
+ security/smack/smack_lsm.c              | 18 ++++++-----
+ 68 files changed, 289 insertions(+), 167 deletions(-)
+
+-- 
+2.34.0.rc1.387.gb447b232ab-goog
+
