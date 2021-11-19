@@ -2,103 +2,191 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A01D3C433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Nov 2021 20:33:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22F7FC433EF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 19 Nov 2021 06:13:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AF8561B3B
-	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Nov 2021 20:33:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05F9661A6C
+	for <linux-unionfs@archiver.kernel.org>; Fri, 19 Nov 2021 06:13:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233268AbhKRUgK (ORCPT
+        id S230318AbhKSGQE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 18 Nov 2021 15:36:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43620 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232506AbhKRUgJ (ORCPT
+        Fri, 19 Nov 2021 01:16:04 -0500
+Received: from sender3-pp-o92.zoho.com.cn ([124.251.121.251]:25388 "EHLO
+        sender3-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S230064AbhKSGQE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Nov 2021 15:36:09 -0500
-Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EE87C06173E;
-        Thu, 18 Nov 2021 12:33:09 -0800 (PST)
-Received: by mail-il1-x133.google.com with SMTP id h23so7878400ila.4;
-        Thu, 18 Nov 2021 12:33:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qyTlozApB7Cn3WYv2QGUQ2usO+JOsj2om14zfMsi/V0=;
-        b=KIZmhLUJnxlibQakZ4sSihWlExAMKhdgIeUyFgE16sOKh3ZmI9K3yNz4RFeTY02ZMw
-         6elMv2plzKFkmTkbNvSHtsV3M8zszL7SHYt4LEIrNzVhhvXh97oLwa1I/J8Udf1QrcPX
-         nyqAZxA/hOMfTAvSyZ7lo8G5pTXBkQVUc/wLwpHSo5HlMzGlLTdIYYPaI90lgZ0kMH+0
-         1ilefnLO43msnpRwRaFCNpIOUzFEiss8WzdfHgYlUIenCOMxEP+PRJ7vjM+Y1NMb8mtG
-         WiXWZVJkBkWmuNZyRqkFmsjwlIbyJ71ASY2+BTuA8Zp2UyytvQCuL+7zAFVTC460Tf3G
-         T+7w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qyTlozApB7Cn3WYv2QGUQ2usO+JOsj2om14zfMsi/V0=;
-        b=xoOjyS94QHixzUB8/OdelPL/T3UQCZccsl1Gzfw/5bpgZWs3JuEAAGLB+k26gRmnkB
-         MrbJoiU3+zCgXi3oaofWN0OlGZLlAcHNYSU6+x7VCXsRCc2GTC5PVylL/fi6MK0V1ILk
-         vS/6BvpsA+1c9ovglPbSU9I2G4iU5OTrS8dAk8I9s+f0TW4GUQhxUSWa88vI9EdBRdLQ
-         cVhqkF+PT8WLUHPGh4j+N4iNawIMY7XT35hqe7AZoM8vPsk4ok66ryvgh4U9zWyG0v66
-         zsBEAZFps6X+f/kExwPW07iAO4lCFIKwnii6upidxp1SG7JMh7KPUbmgNF8IOIzcyMGC
-         WmdQ==
-X-Gm-Message-State: AOAM533yUl+8mjgYNEEtPYtimp+H+LANvgnnGE2iiObXNzU+QoNqewXc
-        Lh2VR9la04q29q+iGTPU27OgG3f4eg5QhJA4RQU=
-X-Google-Smtp-Source: ABdhPJwiVmhqZn50FP2evjzUqOYGkWeTTM9jGCAYdFOl5EjJ3oPfcfpC2lCnXXhJxXe4tmsTnpo2D4rvFwlT5ouu/Ak=
-X-Received: by 2002:a92:cf0d:: with SMTP id c13mr147792ilo.319.1637267588832;
- Thu, 18 Nov 2021 12:33:08 -0800 (PST)
+        Fri, 19 Nov 2021 01:16:04 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1637302367; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=UXGCPyCFz7tX85MFg1C4SMtYUakVegGcvK+ghlkQjHF+VwkA5beSLtJXqRcn6WDT2hy4iaWAUUlJq072BFx3tBJjTh1RtLNbqmVIRK0Qm5rTbBuNhmW/KPBq3Ih4Gz3oUOjosomMGSJlau8lOK/pDh2xDJQsSq2c0u06ZLwKdIE=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1637302367; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=FLpxUbOA32yB5Ph7jXFqI32bQbbWaYa3uHakj/Rxv4g=; 
+        b=ktF0zglxtGdmzO0UNpTLDXrHNret0srQEFDkxxOeUbZxc5vlAYcZv931tZaq/Y0WjZDzMItuA6UovKgBjsUWTQR8sFcr6mqVHzzF7VazQKcE62uuVaDkfkJTpuOYNxwBxmBASnjpg8t9N/c7+AmSp1uDLRfMbhuwBLxJy7V4McI=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1637302367;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=FLpxUbOA32yB5Ph7jXFqI32bQbbWaYa3uHakj/Rxv4g=;
+        b=XYdTETk+2zIVRC7GCNrTojZ2HsNemupRizkV8gAMU67hOBo5GcHdIEUl7IB8nL+w
+        7INnhueTlim8Q1tgkqUGfSA0OVqqS4hHbqgqLtHrDwqxEezVec9dgdZcRwSPTSBljj+
+        1AnQEuCuRL6scwz7KDN2rAskOe/Bpx11+YPLxKTk=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1637302366244693.5069430140323; Fri, 19 Nov 2021 14:12:46 +0800 (CST)
+Date:   Fri, 19 Nov 2021 14:12:46 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>
+Cc:     "Miklos Szeredi" <miklos@szeredi.hu>,
+        "Amir Goldstein" <amir73il@gmail.com>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "overlayfs" <linux-unionfs@vger.kernel.org>,
+        "linux-kernel" <linux-kernel@vger.kernel.org>
+Message-ID: <17d36d37022.1227b6f102736.1047689367927335302@mykernel.net>
+In-Reply-To: <20211118164349.GB8267@quack2.suse.cz>
+References: <17c5aba1fef.c5c03d5825886.6577730832510234905@mykernel.net>
+ <CAJfpegtr1NkOiY9YWd1meU1yiD-LFX-aB55UVJs94FrX0VNEJQ@mail.gmail.com>
+ <17c5adfe5ea.12f1be94625921.4478415437452327206@mykernel.net>
+ <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com>
+ <17d268ba3ce.1199800543649.1713755891767595962@mykernel.net>
+ <CAJfpegttQreuuD_jLgJmrYpsLKBBe2LmB5NSj6F5dHoTzqPArw@mail.gmail.com>
+ <17d2c858d76.d8a27d876510.8802992623030721788@mykernel.net>
+ <17d31bf3d62.1119ad4be10313.6832593367889908304@mykernel.net>
+ <20211118112315.GD13047@quack2.suse.cz>
+ <17d32ecf46e.124314f8f672.8832559275193368959@mykernel.net> <20211118164349.GB8267@quack2.suse.cz>
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
+ operation
 MIME-Version: 1.0
-References: <20211117015806.2192263-1-dvander@google.com> <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
- <CA+FmFJBDwt52Z-dVGfuUcnRMiMtGPhK4cCQJ=J_fg0r3x-b6ng@mail.gmail.com>
- <CAOQ4uxjTRfwGrXuWjACZyEQTozxUHTabJsN7yH5wCJcAapm-6g@mail.gmail.com> <CA+FmFJB1MwPVeuTJ=MJxH7AV+T-3EiHZvXTzhrQBX0=EJKqC-Q@mail.gmail.com>
-In-Reply-To: <CA+FmFJB1MwPVeuTJ=MJxH7AV+T-3EiHZvXTzhrQBX0=EJKqC-Q@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 18 Nov 2021 22:32:57 +0200
-Message-ID: <CAOQ4uxhxQfFfrpmRS6tOv5ANVug6d8dGx6Hsc7MYYe63sUOpcg@mail.gmail.com>
-Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-To:     David Anderson <dvander@google.com>
-Cc:     Mark Salyzyn <salyzyn@android.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stephen Smalley <sds@tycho.nsa.gov>,
-        John Stultz <john.stultz@linaro.org>,
-        linux-doc@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        LSM List <linux-security-module@vger.kernel.org>,
-        kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
-        paulmoore@microsoft.com, luca.boccassi@microsoft.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > It is something that is not at all easy to fix.
-> > In the example above, instead of checking permissions against the
-> > overlay inode (on "incoming" readdir) will need to check permissions of every
-> > accessing user against all layers, before allowing access to the merged
-> > directory content (which is cached).
-> > A lot more work - and this is just for this one example.
->
-> I see your point. If we could implement that, behind a mount flag, would that be
-> an acceptable solution?
->
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-11-19 00:43:49 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Thu 18-11-21 20:02:09, Chengguang Xu wrote:
+ > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-11-18 19:23:15 Jan K=
+ara <jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > >  > On Thu 18-11-21 14:32:36, Chengguang Xu wrote:
+ > >  > >=20
+ > >  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=89, 2021-11-17 14:11:29 =
+Chengguang Xu <cgxu519@mykernel.net> =E6=92=B0=E5=86=99 ----
+ > >  > >  >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=8C, 2021-11-16 20:35:=
+55 Miklos Szeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
+ > >  > >  >  > On Tue, 16 Nov 2021 at 03:20, Chengguang Xu <cgxu519@mykern=
+el.net> wrote:
+ > >  > >  >  > >
+ > >  > >  >  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-10-07 2=
+1:34:19 Miklos Szeredi <miklos@szeredi.hu> =E6=92=B0=E5=86=99 ----
+ > >  > >  >  > >  > On Thu, 7 Oct 2021 at 15:10, Chengguang Xu <cgxu519@my=
+kernel.net> wrote:
+ > >  > >  >  > >  > >  > However that wasn't what I was asking about.  AFA=
+ICS ->write_inode()
+ > >  > >  >  > >  > >  > won't start write back for dirty pages.   Maybe I=
+'m missing something,
+ > >  > >  >  > >  > >  > but there it looks as if nothing will actually tr=
+igger writeback for
+ > >  > >  >  > >  > >  > dirty pages in upper inode.
+ > >  > >  >  > >  > >  >
+ > >  > >  >  > >  > >
+ > >  > >  >  > >  > > Actually, page writeback on upper inode will be trig=
+gered by overlayfs ->writepages and
+ > >  > >  >  > >  > > overlayfs' ->writepages will be called by vfs writeb=
+ack function (i.e writeback_sb_inodes).
+ > >  > >  >  > >  >
+ > >  > >  >  > >  > Right.
+ > >  > >  >  > >  >
+ > >  > >  >  > >  > But wouldn't it be simpler to do this from ->write_ino=
+de()?
+ > >  > >  >  > >  >
+ > >  > >  >  > >  > I.e. call write_inode_now() as suggested by Jan.
+ > >  > >  >  > >  >
+ > >  > >  >  > >  > Also could just call mark_inode_dirty() on the overlay=
+ inode
+ > >  > >  >  > >  > regardless of the dirty flags on the upper inode since=
+ it shouldn't
+ > >  > >  >  > >  > matter and results in simpler logic.
+ > >  > >  >  > >  >
+ > >  > >  >  > >
+ > >  > >  >  > > Hi Miklos=EF=BC=8C
+ > >  > >  >  > >
+ > >  > >  >  > > Sorry for delayed response for this, I've been busy with =
+another project.
+ > >  > >  >  > >
+ > >  > >  >  > > I agree with your suggesion above and further more how ab=
+out just mark overlay inode dirty
+ > >  > >  >  > > when it has upper inode? This approach will make marking =
+dirtiness simple enough.
+ > >  > >  >  >=20
+ > >  > >  >  > Are you suggesting that all non-lower overlay inodes should=
+ always be dirty?
+ > >  > >  >  >=20
+ > >  > >  >  > The logic would be simple, no doubt, but there's the cost t=
+o walking
+ > >  > >  >  > those overlay inodes which don't have a dirty upper inode, =
+right? =20
+ > >  > >  >=20
+ > >  > >  > That's true.
+ > >  > >  >=20
+ > >  > >  >  > Can you quantify this cost with a benchmark?  Can be totall=
+y synthetic,
+ > >  > >  >  > e.g. lookup a million upper files without modifying them, t=
+hen call
+ > >  > >  >  > syncfs.
+ > >  > >  >  >=20
+ > >  > >  >=20
+ > >  > >  > No problem, I'll do some tests for the performance.
+ > >  > >  >=20
+ > >  > >=20
+ > >  > > Hi Miklos,
+ > >  > >=20
+ > >  > > I did some rough tests and the results like below.  In practice, =
+ I don't
+ > >  > > think that 1.3s extra time of syncfs will cause significant probl=
+em.
+ > >  > > What do you think?
+ > >  >=20
+ > >  > Well, burning 1.3s worth of CPU time for doing nothing seems like q=
+uite a
+ > >  > bit to me. I understand this is with 1000000 inodes but although th=
+at is
+ > >  > quite a few it is not unheard of. If there would be several contain=
+ers
+ > >  > calling sync_fs(2) on the machine they could easily hog the machine=
+... That
+ > >  > is why I was originally against keeping overlay inodes always dirty=
+ and
+ > >  > wanted their dirtiness to at least roughly track the real need to d=
+o
+ > >  > writeback.
+ > >  >=20
+ > >=20
+ > > Hi Jan,
+ > >=20
+ > > Actually, the time on user and sys are almost same with directly excut=
+e syncfs on underlying fs.
+ > > IMO, it only extends syncfs(2) waiting time for perticular container b=
+ut not burning cpu.
+ > > What am I missing?
+ >=20
+ > Ah, right, I've missed that only realtime changed, not systime. I'm sorr=
+y
+ > for confusion. But why did the realtime increase so much? Are we waiting
+ > for some IO?
+ >=20
 
-As I wrote, this is one specific problem that I identified.
-If you propose a different behavior base on mount flag you should
-be able to argue that is cannot be exploited to circumvent security
-access policies, by peaking into cached copies of objects that the user
-has no access to, or by any other way.
-
-I have no idea how to implement what you want and prove that
-it is safe.
-Maybe if you explained the use case in greater details with some
-examples someone could help you reach a possible solution.
+There are many places to call cond_resched() in writeback process,
+so sycnfs process was scheduled several times.
 
 Thanks,
-Amir.
+Chengguang
+
+
+
