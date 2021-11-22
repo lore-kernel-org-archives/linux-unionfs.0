@@ -2,46 +2,45 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AAC6FC433F5
-	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Nov 2021 03:16:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D63D1C433F5
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Nov 2021 03:16:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232659AbhKVDTd (ORCPT
+        id S238620AbhKVDTf (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 21 Nov 2021 22:19:33 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17240 "EHLO
+        Sun, 21 Nov 2021 22:19:35 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17259 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229870AbhKVDTd (ORCPT
+        by vger.kernel.org with ESMTP id S232793AbhKVDTe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 21 Nov 2021 22:19:33 -0500
-X-Greylist: delayed 909 seconds by postgrey-1.27 at vger.kernel.org; Sun, 21 Nov 2021 22:19:32 EST
-ARC-Seal: i=1; a=rsa-sha256; t=1637550057; cv=none; 
+        Sun, 21 Nov 2021 22:19:34 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1637550059; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=eY0YtbaY/soIiaCdiOOidKcTUawRhdshegAfy+e2SF+zGk0FgVesxbhhBSK9a+3Ew3Gbv4KiDcgiqLSvxV8412Flw4UBxDb+x6+2S6CeV17+6PYM0jXqX3me21nEoEH64cESOBT0gpSKf604guR3CluRLGcFBslPNRB8/de8tmM=
+        b=XNhysrQBlWhysCnOSjN2/XVn0WnIuSEWhJIUJEImumLcYy7dR+OjpTuuq0wZUtsSnuU+mb1JfiGY1tZHjYTprK4siXNXgv5EYJmV7XLmbHSMhCDuTpJlenyqfiHoqcp98LSd7Nluxr/xRx4zAKapYqC5kOMsFXSuRq74zdqinWY=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1637550057; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=hfXyzGcOlPoLrPQVGfEwV/ALvAXxxFIn8RyNQQA7A7g=; 
-        b=b5+R5pIYI8odWO+izB62xkuC0n+tIrpdri1lkcyN8fxOELuq8Gj3SJTeRMmgwoat1sOR/sIxZwXDBj5Au1CI2LUOvKPnOEQW0Aa5thcQlD5i7acAw66Kg8c7PPLYeEoQ026VsBnLdYJKw8OwSTAEN3gvOM9LBgr6+szYFk6kTzg=
+        t=1637550059; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=NN0J8syqY7HhBP+osWb94ylU37U4Vn/6TEJ/OnmUV+Q=; 
+        b=AgDaD7Ke3l5wOS2oBcwxb4vKC46uCisAbwrcaVBNeG65ytokCx8TkEtr+hizqw4n+GJnLutDzmp3hdi65ipfDDUbs/ssFbrFhmof6j1U9zLhTJ518gMDwQ5DCW3CQqimEYRsMzSKM3nORWegPez2Mzvi9db4INbtwOrdJQ4oCcw=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1637550057;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1637550059;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=hfXyzGcOlPoLrPQVGfEwV/ALvAXxxFIn8RyNQQA7A7g=;
-        b=ZzVSTDZqosTiCkcBE6HP1ykz2ZzERDzcyRoc4VZ5bqJYXghqLO40M5/R1djxVSJl
-        RA96GT4jY5hMKWEklMdlCx7WAptY+AhQbFjM+Dr9wPdJ9hQQrrnamYUhz0iSW/5Ws+C
-        V+Q9ACXkT2RzGBiD/pMfz6SQM1z/+p1hN+EJ9b2w=
+        bh=NN0J8syqY7HhBP+osWb94ylU37U4Vn/6TEJ/OnmUV+Q=;
+        b=AZ+LVnmi2vzyCCwDb/gHh0BF5qaCv9+DmGf4pp3zbpqUv9rD6pL8HzJeLu0DTH3B
+        ERRJRyPUJ6vYSBqQDiQWT5+uWv+Dxo+kNXrUSm0ep6+Wv2PSnbiHUr4ljLXCaOVrRRD
+        E+R+LPjpXbMQORtjXVmzp1i6N/J3Z/gmzQN1CI0E=
 Received: from localhost.localdomain (81.71.33.115 [81.71.33.115]) by mx.zoho.com.cn
-        with SMTPS id 1637550055397164.47965855404595; Mon, 22 Nov 2021 11:00:55 +0800 (CST)
+        with SMTPS id 1637550058013718.8663802684912; Mon, 22 Nov 2021 11:00:58 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Chengguang Xu <charliecgxu@tencent.com>
-Message-ID: <20211122030038.1938875-3-cgxu519@mykernel.net>
-Subject: [RFC PATCH V6 2/7] ovl: mark overlayfs inode dirty when it has upper
-Date:   Mon, 22 Nov 2021 11:00:33 +0800
+Message-ID: <20211122030038.1938875-7-cgxu519@mykernel.net>
+Subject: [RFC PATCH V6 6/7] ovl: introduce ovl_sync_upper_blockdev()
+Date:   Mon, 22 Nov 2021 11:00:37 +0800
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20211122030038.1938875-1-cgxu519@mykernel.net>
 References: <20211122030038.1938875-1-cgxu519@mykernel.net>
@@ -55,45 +54,36 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 From: Chengguang Xu <charliecgxu@tencent.com>
 
-We simply mark overlayfs inode dirty when it has upper,
-it's much simpler than mark dirtiness on modification.
+Introduce new helper ovl_sync_upper_blockdev() to sync
+upper blockdev.
 
 Signed-off-by: Chengguang Xu <charliecgxu@tencent.com>
 ---
- fs/overlayfs/inode.c | 4 +++-
- fs/overlayfs/util.c  | 1 +
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ fs/overlayfs/super.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 1f36158c7dbe..027ffc0a2539 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -778,8 +778,10 @@ void ovl_inode_init(struct inode *inode, struct ovl_in=
-ode_params *oip,
- {
- =09struct inode *realinode;
-=20
--=09if (oip->upperdentry)
-+=09if (oip->upperdentry) {
- =09=09OVL_I(inode)->__upperdentry =3D oip->upperdentry;
-+=09=09mark_inode_dirty(inode);
-+=09}
- =09if (oip->lowerpath && oip->lowerpath->dentry)
- =09=09OVL_I(inode)->lower =3D igrab(d_inode(oip->lowerpath->dentry));
- =09if (oip->lowerdata)
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index f48284a2a896..a1922af32a13 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -421,6 +421,7 @@ void ovl_inode_update(struct inode *inode, struct dentr=
-y *upperdentry)
- =09=09inode->i_private =3D upperinode;
- =09=09__insert_inode_hash(inode, (unsigned long) upperinode);
- =09}
-+=09mark_inode_dirty(inode);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 12acf0ec7395..ccffcd96491d 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -258,6 +258,16 @@ static void ovl_put_super(struct super_block *sb)
+ =09ovl_free_fs(ofs);
  }
 =20
- static void ovl_dir_version_inc(struct dentry *dentry, bool impurity)
++static int ovl_sync_upper_blockdev(struct super_block *sb, int wait)
++{
++=09if (!sb->s_bdev)
++=09=09return 0;
++
++=09if (!wait)
++=09=09return filemap_flush(sb->s_bdev->bd_inode->i_mapping);
++=09return filemap_write_and_wait_range(sb->s_bdev->bd_inode->i_mapping, 0,=
+ LLONG_MAX);
++}
++
+ /* Sync real dirty inodes in upper filesystem (if it exists) */
+ static int ovl_sync_fs(struct super_block *sb, int wait)
+ {
 --=20
 2.27.0
 
