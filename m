@@ -2,24 +2,24 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D63D1C433F5
-	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Nov 2021 03:16:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EE89C43217
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Nov 2021 03:16:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238620AbhKVDTf (ORCPT
+        id S229870AbhKVDTh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 21 Nov 2021 22:19:35 -0500
-Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17259 "EHLO
+        Sun, 21 Nov 2021 22:19:37 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17260 "EHLO
         sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232793AbhKVDTe (ORCPT
+        by vger.kernel.org with ESMTP id S232852AbhKVDTe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Sun, 21 Nov 2021 22:19:34 -0500
 ARC-Seal: i=1; a=rsa-sha256; t=1637550059; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=XNhysrQBlWhysCnOSjN2/XVn0WnIuSEWhJIUJEImumLcYy7dR+OjpTuuq0wZUtsSnuU+mb1JfiGY1tZHjYTprK4siXNXgv5EYJmV7XLmbHSMhCDuTpJlenyqfiHoqcp98LSd7Nluxr/xRx4zAKapYqC5kOMsFXSuRq74zdqinWY=
+        b=IfELBCtyhYXdJYLD821WMxeVm3FWdhn1emkZNIAK6p9G5lOv5LmeJ5UuvBF1WkengtFkk+fyyjcp7ksSXce6Rn0i1VoqeIX4bmWkE2zuiyD7RcFmkzIndB3HGQR19m2X/kGECHuWb/gf2kWRa4oDdG/fln6kmsMjbvhBDS9aK8c=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
         t=1637550059; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
-        bh=NN0J8syqY7HhBP+osWb94ylU37U4Vn/6TEJ/OnmUV+Q=; 
-        b=AgDaD7Ke3l5wOS2oBcwxb4vKC46uCisAbwrcaVBNeG65ytokCx8TkEtr+hizqw4n+GJnLutDzmp3hdi65ipfDDUbs/ssFbrFhmof6j1U9zLhTJ518gMDwQ5DCW3CQqimEYRsMzSKM3nORWegPez2Mzvi9db4INbtwOrdJQ4oCcw=
+        bh=x3rn9UpoZ7H4gQM/r9ta8j1G3E81TfSs5cv8aAEiDvI=; 
+        b=B9gSC4oPZ2QgwajSgoyyXnC1kgS8iZMGtMe2fwgh+QPNyZFCgsL35RzXh1Q3SL9zyOB3xkmmBui78NYpZGsGTQ+QJVJAS1qu6nyhBMlcSkADtJavBvdCQQRpTmF+C0D2BBPyGt6OIPiG1ptFL80iaZ2ZKC7vArc0uAB0O3ITQIM=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
@@ -27,20 +27,20 @@ ARC-Authentication-Results: i=1; mx.zoho.com.cn;
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1637550059;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=From:To:Cc:Message-ID:Subject:Date:In-Reply-To:References:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=NN0J8syqY7HhBP+osWb94ylU37U4Vn/6TEJ/OnmUV+Q=;
-        b=AZ+LVnmi2vzyCCwDb/gHh0BF5qaCv9+DmGf4pp3zbpqUv9rD6pL8HzJeLu0DTH3B
-        ERRJRyPUJ6vYSBqQDiQWT5+uWv+Dxo+kNXrUSm0ep6+Wv2PSnbiHUr4ljLXCaOVrRRD
-        E+R+LPjpXbMQORtjXVmzp1i6N/J3Z/gmzQN1CI0E=
+        bh=x3rn9UpoZ7H4gQM/r9ta8j1G3E81TfSs5cv8aAEiDvI=;
+        b=AFTuzWH9SAxJTvrxcRm8cOuK/qxEpcQss/Y91kivBQYd/zdA5ny6VddbwfkDBmgE
+        hYw5qUpln3MZaxCBe+FfwqjipusF+noZINF+x68eCtw16xRRhdwR5JMIKx/piOJraF0
+        kYfWdJ0c4Gkpu/8/wvCDDrW7bvFYtQrwQiZVkCLc=
 Received: from localhost.localdomain (81.71.33.115 [81.71.33.115]) by mx.zoho.com.cn
-        with SMTPS id 1637550058013718.8663802684912; Mon, 22 Nov 2021 11:00:58 +0800 (CST)
+        with SMTPS id 1637550058672726.6063942120564; Mon, 22 Nov 2021 11:00:58 +0800 (CST)
 From:   Chengguang Xu <cgxu519@mykernel.net>
 To:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com
 Cc:     linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         Chengguang Xu <charliecgxu@tencent.com>
-Message-ID: <20211122030038.1938875-7-cgxu519@mykernel.net>
-Subject: [RFC PATCH V6 6/7] ovl: introduce ovl_sync_upper_blockdev()
-Date:   Mon, 22 Nov 2021 11:00:37 +0800
+Message-ID: <20211122030038.1938875-8-cgxu519@mykernel.net>
+Subject: [RFC PATCH V6 7/7] ovl: implement containerized syncfs for overlayfs
+Date:   Mon, 22 Nov 2021 11:00:38 +0800
 X-Mailer: git-send-email 2.27.0
 In-Reply-To: <20211122030038.1938875-1-cgxu519@mykernel.net>
 References: <20211122030038.1938875-1-cgxu519@mykernel.net>
@@ -54,36 +54,43 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 From: Chengguang Xu <charliecgxu@tencent.com>
 
-Introduce new helper ovl_sync_upper_blockdev() to sync
-upper blockdev.
+Now overlayfs can only sync own dirty inodes during syncfs,
+so remove unnecessary sync_filesystem() on upper file system.
 
 Signed-off-by: Chengguang Xu <charliecgxu@tencent.com>
 ---
- fs/overlayfs/super.c | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/overlayfs/super.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 12acf0ec7395..ccffcd96491d 100644
+index ccffcd96491d..213b795a6a86 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -258,6 +258,16 @@ static void ovl_put_super(struct super_block *sb)
- =09ovl_free_fs(ofs);
- }
+@@ -292,18 +292,14 @@ static int ovl_sync_fs(struct super_block *sb, int wa=
+it)
+ =09/*
+ =09 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
+ =09 * All the super blocks will be iterated, including upper_sb.
+-=09 *
+-=09 * If this is a syncfs(2) call, then we do need to call
+-=09 * sync_filesystem() on upper_sb, but enough if we do it when being
+-=09 * called with wait =3D=3D 1.
+ =09 */
+-=09if (!wait)
+-=09=09return 0;
+-
+ =09upper_sb =3D ovl_upper_mnt(ofs)->mnt_sb;
+-
+ =09down_read(&upper_sb->s_umount);
+-=09ret =3D sync_filesystem(upper_sb);
++=09if (wait)
++=09=09wait_sb_inodes(upper_sb);
++=09if (upper_sb->s_op->sync_fs)
++=09=09upper_sb->s_op->sync_fs(upper_sb, wait);
++=09ret =3D ovl_sync_upper_blockdev(upper_sb, wait);
+ =09up_read(&upper_sb->s_umount);
 =20
-+static int ovl_sync_upper_blockdev(struct super_block *sb, int wait)
-+{
-+=09if (!sb->s_bdev)
-+=09=09return 0;
-+
-+=09if (!wait)
-+=09=09return filemap_flush(sb->s_bdev->bd_inode->i_mapping);
-+=09return filemap_write_and_wait_range(sb->s_bdev->bd_inode->i_mapping, 0,=
- LLONG_MAX);
-+}
-+
- /* Sync real dirty inodes in upper filesystem (if it exists) */
- static int ovl_sync_fs(struct super_block *sb, int wait)
- {
+ =09return ret;
 --=20
 2.27.0
 
