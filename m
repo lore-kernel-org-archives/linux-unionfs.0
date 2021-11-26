@@ -2,112 +2,108 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7B70C433F5
-	for <linux-unionfs@archiver.kernel.org>; Fri, 26 Nov 2021 09:27:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C9DEC433EF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 26 Nov 2021 13:09:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234458AbhKZJaW (ORCPT
+        id S241203AbhKZNMp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 26 Nov 2021 04:30:22 -0500
-Received: from smtp-out1.suse.de ([195.135.220.28]:56530 "EHLO
-        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235652AbhKZJ2W (ORCPT
+        Fri, 26 Nov 2021 08:12:45 -0500
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25343 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229555AbhKZNKp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 26 Nov 2021 04:28:22 -0500
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id DB98C212BC;
-        Fri, 26 Nov 2021 09:25:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1637918708; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=+BmyZ6nHsjemv7f4v1pkF+IOWYslCFmtmkVz+Xq0J28=;
-        b=OC44tj16AZJCpddzarYtO2rqZeK442EbB86zjW2HXf2ltg0/a7I8mpqT5KBW+k3XN1gFDg
-        zEaq80YY1SrCkmBGDOdrN6AjU+tD6wmSVXHvMzXrh9BHQz8e63j7axhMFZFt+haNQD/N3y
-        vxaZZ7O3kBND1DhbThlTLpV3S8r3y0w=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1637918708;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=+BmyZ6nHsjemv7f4v1pkF+IOWYslCFmtmkVz+Xq0J28=;
-        b=0ALdFhr5x+iuvXanawyssRtSdKo0ZqsSJB+d2sz0AFmNQEBMEa6zMfK3cmBu9plyqHKcge
-        NsjtGWyKTuzJIVBA==
-Received: from quack2.suse.cz (unknown [10.100.200.198])
-        by relay2.suse.de (Postfix) with ESMTP id 9D684A3B87;
-        Fri, 26 Nov 2021 09:25:08 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 8EFDE1E11F3; Fri, 26 Nov 2021 10:25:08 +0100 (CET)
-Date:   Fri, 26 Nov 2021 10:25:08 +0100
-From:   Jan Kara <jack@suse.cz>
-To:     Chengguang Xu <cgxu519@mykernel.net>
-Cc:     miklos@szeredi.hu, jack@suse.cz, amir73il@gmail.com,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Chengguang Xu <charliecgxu@tencent.com>
-Subject: Re: [RFC PATCH V6 7/7] ovl: implement containerized syncfs for
- overlayfs
-Message-ID: <20211126092508.GG13004@quack2.suse.cz>
+        Fri, 26 Nov 2021 08:10:45 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1637931974; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=Nof1v9BjaZLa7U9Yw6BND9HDJOH3W5sxq6+upyF6vQOwB4Fc7Q2Yals6F5Ev+BOs/3i0PxfG0xvE+O0hk6npLibCux886M6+C9CiVPEXU4Mw4T8H49sjONWiVTKUygo8+QhbRrP5qB3Wp7oe/0jz2Sww3Y6ZONEE1r3UuHuq9+U=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1637931974; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=A0WNNhMG+hvp6w62fCn0B0olJUzJi3Z1eLpxpY+eTuc=; 
+        b=Q5hyVYzY/rmWRH0Exs1Otf9lIdMDa7AnCS9Ts/aK9iWdPuq+sS3zY+2PHm3c6NjQAuZJ0kW8DkOFe8wPYrglJEOpfjLQ2bA5qqBTeQP6Sq3RDTn/Z6IUAH0BlY3lqNAC+nwrSGfofx+Nht0gUlmTcA2xRqAGHLfA+f6jVdcmy5M=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1637931974;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=A0WNNhMG+hvp6w62fCn0B0olJUzJi3Z1eLpxpY+eTuc=;
+        b=QLPGL/NGXGIHUbDmJRtqm1rYDzwsYVYhL6xb/SqFrPS+okFeG85Tofcxx/DygeMG
+        hQdbHWL4KO/uP/Zd7nwdoPwQJxfotEHuiW7KBoXafa5rptxgAeUsC5MOPHP7tRtUJx6
+        grp2ryMBW3GYlXfNtjtp/AhO3kFuhaTCsAbyerXI=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1637931970561213.4333284052757; Fri, 26 Nov 2021 21:06:10 +0800 (CST)
+Date:   Fri, 26 Nov 2021 21:06:10 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>
+Cc:     "miklos" <miklos@szeredi.hu>, "amir73il" <amir73il@gmail.com>,
+        "linux-unionfs" <linux-unionfs@vger.kernel.org>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "linux-kernel" <linux-kernel@vger.kernel.org>,
+        "Chengguang Xu" <charliecgxu@tencent.com>,
+        "ronyjin" <ronyjin@tencent.com>
+Message-ID: <17d5c5a6fed.f090bcae10973.4735687401243313694@mykernel.net>
+In-Reply-To: <20211126091007.GB13004@quack2.suse.cz>
 References: <20211122030038.1938875-1-cgxu519@mykernel.net>
- <20211122030038.1938875-8-cgxu519@mykernel.net>
+ <20211122030038.1938875-3-cgxu519@mykernel.net> <20211126091007.GB13004@quack2.suse.cz>
+Subject: Re: [RFC PATCH V6 2/7] ovl: mark overlayfs inode dirty when it has
+ upper
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211122030038.1938875-8-cgxu519@mykernel.net>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon 22-11-21 11:00:38, Chengguang Xu wrote:
-> From: Chengguang Xu <charliecgxu@tencent.com>
-> 
-> Now overlayfs can only sync own dirty inodes during syncfs,
-> so remove unnecessary sync_filesystem() on upper file system.
-> 
-> Signed-off-by: Chengguang Xu <charliecgxu@tencent.com>
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=BA=94, 2021-11-26 17:10:07 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Mon 22-11-21 11:00:33, Chengguang Xu wrote:
+ > > From: Chengguang Xu <charliecgxu@tencent.com>
+ > >=20
+ > > We simply mark overlayfs inode dirty when it has upper,
+ > > it's much simpler than mark dirtiness on modification.
+ > >=20
+ > > Signed-off-by: Chengguang Xu <charliecgxu@tencent.com>
+ > > ---
+ > >  fs/overlayfs/inode.c | 4 +++-
+ > >  fs/overlayfs/util.c  | 1 +
+ > >  2 files changed, 4 insertions(+), 1 deletion(-)
+ > >=20
+ > > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+ > > index 1f36158c7dbe..027ffc0a2539 100644
+ > > --- a/fs/overlayfs/inode.c
+ > > +++ b/fs/overlayfs/inode.c
+ > > @@ -778,8 +778,10 @@ void ovl_inode_init(struct inode *inode, struct o=
+vl_inode_params *oip,
+ > >  {
+ > >      struct inode *realinode;
+ > > =20
+ > > -    if (oip->upperdentry)
+ > > +    if (oip->upperdentry) {
+ > >          OVL_I(inode)->__upperdentry =3D oip->upperdentry;
+ > > +        mark_inode_dirty(inode);
+ > > +    }
+ > >      if (oip->lowerpath && oip->lowerpath->dentry)
+ > >          OVL_I(inode)->lower =3D igrab(d_inode(oip->lowerpath->dentry)=
+);
+ > >      if (oip->lowerdata)
+ >=20
+ > Hum, does this get called only for inodes with upper inode existing? I
+ > suppose we do not need to track inodes that were not copied up because t=
+hey
+ > cannot be dirty? I'm sorry, my knowledge of overlayfs is rather limited =
+so
+ > I may be missing something basic.
+ >=20
 
-Looks good. Feel free to add:
+Well, as long as overly inode has upper it can be modified without copy-up,
+so we need to track all overlay inodes which have upper inode.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+Thanks,
+Chengguang
 
-								Honza
 
-> ---
->  fs/overlayfs/super.c | 14 +++++---------
->  1 file changed, 5 insertions(+), 9 deletions(-)
-> 
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index ccffcd96491d..213b795a6a86 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -292,18 +292,14 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->  	/*
->  	 * Not called for sync(2) call or an emergency sync (SB_I_SKIP_SYNC).
->  	 * All the super blocks will be iterated, including upper_sb.
-> -	 *
-> -	 * If this is a syncfs(2) call, then we do need to call
-> -	 * sync_filesystem() on upper_sb, but enough if we do it when being
-> -	 * called with wait == 1.
->  	 */
-> -	if (!wait)
-> -		return 0;
-> -
->  	upper_sb = ovl_upper_mnt(ofs)->mnt_sb;
-> -
->  	down_read(&upper_sb->s_umount);
-> -	ret = sync_filesystem(upper_sb);
-> +	if (wait)
-> +		wait_sb_inodes(upper_sb);
-> +	if (upper_sb->s_op->sync_fs)
-> +		upper_sb->s_op->sync_fs(upper_sb, wait);
-> +	ret = ovl_sync_upper_blockdev(upper_sb, wait);
->  	up_read(&upper_sb->s_umount);
->  
->  	return ret;
-> -- 
-> 2.27.0
-> 
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
