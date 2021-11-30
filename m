@@ -2,157 +2,299 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65960C433EF
-	for <linux-unionfs@archiver.kernel.org>; Sat, 27 Nov 2021 09:29:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 773D0C433EF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 30 Nov 2021 05:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353212AbhK0JcS (ORCPT
+        id S233408AbhK3FwI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 27 Nov 2021 04:32:18 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25384 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1353211AbhK0JaR (ORCPT
+        Tue, 30 Nov 2021 00:52:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47520 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233394AbhK3FwH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 27 Nov 2021 04:30:17 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1638005196; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=n3tN4S2pUQeHcaidBskaxPvMtDHKVAxGlzpV4gGhKRw0ZRPexTpe+9491ASfmg0HTmlzpcGklxp+HMRiNT0nz7WB3yRDEgMXIVlbk6nppF5tsd9+xwYvYa+sqjKuO3IG1VFKI2d/3UUUTEAStZqRuO2G7fPvidPxfb9wuISL+GM=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1638005196; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=Gx78nwaiX6IcgNHFjD7iZoX/9w5JdvaOCjUYq7EIGF8=; 
-        b=L+x/I3014bH31MUiJjwlMUIA0OFhsckS6h6hv6axN+6zUKZ3hEWIrtJxc9FBqQ6Qibg6YP4JsjtX6NX4JOTcEAN2havNabHJChd8GNBZB0Un8LvTEUsJdciVm1vdlMiA5HCTyeHhT3WETZ5Uv7oleWAWjCIqSZgTHB0xWTty7g8=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1638005196;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=Gx78nwaiX6IcgNHFjD7iZoX/9w5JdvaOCjUYq7EIGF8=;
-        b=AOUteeEka8coVmSi4zQzORqE5JY1MaV08/LAMtbTc27DCvaprB+pMimMaBupCWxB
-        O+FA0+jbAUUvYwibbnxdThAmY5Ue8tUKtJFxMKJfWYfyRApCoywzOrqMRC2+ZkgXx95
-        aD4148NrPXGMaIDIGuyGKpO95c4vIFvh8io47D5E=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1638005193699274.15327156530714; Sat, 27 Nov 2021 17:26:33 +0800 (CST)
-Date:   Sat, 27 Nov 2021 17:26:33 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "miklos" <miklos@szeredi.hu>
-Cc:     "linux-unionfs" <linux-unionfs@vger.kernel.org>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-        "linux-kernel" <linux-kernel@vger.kernel.org>,
-        "Chengguang Xu" <charliecgxu@tencent.com>,
-        "ronyjin" <ronyjin@tencent.com>, "amir73il" <amir73il@gmail.com>,
-        "jack" <jack@suse.cz>
-Message-ID: <17d60b7bbc2.caee608a13298.8366222634423039066@mykernel.net>
-In-Reply-To: <20211122030038.1938875-1-cgxu519@mykernel.net>
-References: <20211122030038.1938875-1-cgxu519@mykernel.net>
-Subject: =?UTF-8?Q?=E5=9B=9E=E5=A4=8D:[RFC_PATCH_V6_0/7]_implement_c?=
- =?UTF-8?Q?ontainerized_syncfs_for_overlayfs?=
+        Tue, 30 Nov 2021 00:52:07 -0500
+Received: from mail-vk1-xa2f.google.com (mail-vk1-xa2f.google.com [IPv6:2607:f8b0:4864:20::a2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B785C061574
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 Nov 2021 21:48:49 -0800 (PST)
+Received: by mail-vk1-xa2f.google.com with SMTP id m16so11824813vkl.13
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 Nov 2021 21:48:49 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=nextdayvideo-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:from:date:message-id:subject:to;
+        bh=lmyUUTtEPApvuiop98acycwPcEbk1FVZqdXPNp/OU20=;
+        b=2bA+oH6TCCl6/20BwemckTrS4i20tVV0yhMdxmHWbbOpof0ZKOFYrCMcnATjEYAMA6
+         rOgPtTkyQnVUAGjXY+IEwGxv1iDOiL4prHvFsMWwllt7WzdYGG0kVJ3eZbCvBChjR8uN
+         CLeTA7zZA+omrE0dEAyeYK117UXfUball7+FVFgrjjq/m9gFn33eWO1SL6FSIRwtvJS7
+         GP/RvM+lQZWnRT7S5fGB8Psy/3xKXW7MLaoeUf57dlvab57geE9ylJbMYOZ2W8E9q4ZY
+         gPWyZ4loSapWhs3jeizwnYN5vmNI3K9LudZF7j/6vKNkjo4hwrbtwjD7d2LMkoBgayJ4
+         E7cA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
+        bh=lmyUUTtEPApvuiop98acycwPcEbk1FVZqdXPNp/OU20=;
+        b=BP9B6czFNl9oe54vJ08rR7Tnr1hMnVCzUeVlKBIVLpwcjAwdb8w33J3D1nEKLbBd2s
+         x/yZ1pRHJxvFgfwaXR36zVJ4kNt/fEse0ghpGKJhRm7SLUtJqdQ1QNVVCsaf9ydksQp8
+         Mc4UcYaqw7TeQUdmXztcNn5cSLscPK1cPlnkKbKgwQPc0RmASUEP5H1n2CGS7oLUgL4f
+         yEi92/HFRrbI0MT+2qLE4h5Uu0+TYfRBulnpFQg5GgJMEpXb0sAY+WsdWX1s8Rj6foA5
+         r1+AwQacVxbRBbKQuaJaHaYjrw70gyFkmstKPcX0DlW/L7uShARudBbf0rvZQl68hEyR
+         28Rw==
+X-Gm-Message-State: AOAM530mbBv0Ow/Ee/SC5RqrmKJq4VF2nasx8pGNo0QIuKApCIGS31sC
+        oTOH1A7qja4jUm0vGmBoqxsLAwT/IGTMHeNJ5Lg6sBwf5x0=
+X-Google-Smtp-Source: ABdhPJx+z1JP5l0UM7RG2hyy+BjqK+gIZCjHMf5cDsaZd317S4bxz0yOAUM7I9xR1PxtS5+k3JTbymm9RNRq3xBr0TM=
+X-Received: by 2002:a05:6122:78c:: with SMTP id k12mr42954488vkr.22.1638251327636;
+ Mon, 29 Nov 2021 21:48:47 -0800 (PST)
 MIME-Version: 1.0
+From:   Carl Karsten <carl@nextdayvideo.com>
+Date:   Mon, 29 Nov 2021 21:48:21 -0800
+Message-ID: <CADmzSSh7P+T78nuKxgK4mjOMMPO6AZmtYBFw+uu4UuE_K5FWCA@mail.gmail.com>
+Subject: index=on,nfs_export=on Operation not permitted
+To:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=80, 2021-11-22 11:00:31 Chengguang=
- Xu <cgxu519@mykernel.net> =E6=92=B0=E5=86=99 ----
- > From: Chengguang Xu <charliecgxu@tencent.com>
- >=20
- > Current syncfs(2) syscall on overlayfs just calls sync_filesystem()
- > on upper_sb to synchronize whole dirty inodes in upper filesystem
- > regardless of the overlay ownership of the inode. In the use case of
- > container, when multiple containers using the same underlying upper
- > filesystem, it has some shortcomings as below.
- >=20
- > (1) Performance
- > Synchronization is probably heavy because it actually syncs unnecessary
- > inodes for target overlayfs.
- >=20
- > (2) Interference
- > Unplanned synchronization will probably impact IO performance of
- > unrelated container processes on the other overlayfs.
- >=20
- > This series try to implement containerized syncfs for overlayfs so that
- > only sync target dirty upper inodes which are belong to specific overlay=
-fs
- > instance. By doing this, it is able to reduce cost of synchronization an=
-d=20
- > will not seriously impact IO performance of unrelated processes.
- >=20
- > v1->v2:
- > - Mark overlayfs' inode dirty itself instead of adding notification
- > mechanism to vfs inode.
- >=20
- > v2->v3:
- > - Introduce overlayfs' extra syncfs wait list to wait target upper inode=
-s
- > in ->sync_fs.
- >=20
- > v3->v4:
- > - Using wait_sb_inodes() to wait syncing upper inodes.
- > - Mark overlay inode dirty only when having upper inode and VM_SHARED
- > flag in ovl_mmap().
- > - Check upper i_state after checking upper mmap state
- > in ovl_write_inode.
- >=20
- > v4->v5:
- > - Add underlying inode dirtiness check after mnt_drop_write().
- > - Handle both wait/no-wait mode of syncfs(2) in overlayfs' ->sync_fs().
- >=20
- > v5->v6:
- > - Rebase to latest overlayfs-next tree.
- > - Mark oerlay inode dirty when it has upper instead of marking dirty on
- >   modification.
- > - Trigger dirty page writeback in overlayfs' ->write_inode().
- > - Mark overlay inode 'DONTCACHE' flag.
- > - Delete overlayfs' ->writepages() and ->evict_inode() operations.
+I don't need any help, This seems odd enough to report.
+
+I accidentally  built my nfs server on buster, which threw some errors
+about index=on, so I added index=on.  Then I rebuilt the server on
+bullseye, and almost everything was the same, except for 1 little
+thing.  I removed the index=on, and all was well again.
+
+server:
+dist=bullseye
+d=/srv/nfs/rpi/${dist}
+p=${d}/boot
+rm -rf ${p}/work/index
+mount -t overlay overlay -o index=on,nfs_export=on,\
+lowerdir=${p}/setup:${p}/base,\
+upperdir=${p}/updates,\
+workdir=${p}/work \
+    ${p}/merged
+
+/etc/exports
+/srv/nfs/rpi/bullseye/boot/merged
+*(rw,sync,no_subtree_check,no_root_squash,fsid=1)
 
 
-Hi Miklos,
+client:
+root@raspberrypi:~# mount
+10.21.0.1:/srv/nfs/rpi/bullseye/root/merged on / type nfs
+(rw,relatime,vers=3,rsize=4096,wsize=4096,namlen=255,hard,nolock,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=10.21.0.1,mountvers=3,mountproto=tcp,local_lock=all,addr=10.21.0.1)
 
-Have you got time to have a look at this V6 series? I think this version ha=
-s already fixed
-the issues in previous feedbacks of you guys and passed fstests (generic/ov=
-erlay cases).
+root@raspberrypi:~# mv /boot/z /boot/config.txt
+mv: cannot move '/boot/z' to '/boot/config.txt': Operation not permitted
 
-I did some stress long time tests (tar & syncfs & diff on w/wo copy-up) and=
- found no obvious problem.
-For syncfs time with 1M clean upper inodes, there was extra 1.3s wasted on =
-waiting scheduling.
-I guess this 1.3s will not bring significant impact to container instance i=
-n most cases, I also
-agree with Jack that we can start with this approach and do some improvemen=
-ts afterwards if there is
-complain from any real users.
+root@raspberrypi:~# strace mv /boot/z /boot/config.txt
+execve("/usr/bin/mv", ["mv", "/boot/z", "/boot/config.txt"],
+0xffd9caa8 /* 18 vars */) = 0
+brk(NULL)                               = 0x1541000
+uname({sysname="Linux", nodename="raspberrypi", ...}) = 0
+access("/etc/ld.so.preload", R_OK)      = 0
+openat(AT_FDCWD, "/etc/ld.so.preload", O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=54, ...}) = 0
+mmap2(NULL, 54, PROT_READ|PROT_WRITE, MAP_PRIVATE, 3, 0) = 0xf7cb7000
+close(3)                                = 0
+readlink("/proc/self/exe", "/usr/bin/mv", 4096) = 11
+openat(AT_FDCWD, "/usr/lib/arm-linux-gnueabihf/libarmmem-v8l.so",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\254\3\0\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=17708, ...}) = 0
+mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) = 0xf7cb5000
+mmap2(NULL, 81964, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf7c72000
+mprotect(0xf7c76000, 61440, PROT_NONE)  = 0
+mmap2(0xf7c85000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0xf7c85000
+close(3)                                = 0
+munmap(0xf7cb7000, 54)                  = 0
+openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=28423, ...}) = 0
+mmap2(NULL, 28423, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf7cae000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libselinux.so.1",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\20R\0\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=144896, ...}) = 0
+mmap2(NULL, 216100, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf7c3d000
+mprotect(0xf7c60000, 61440, PROT_NONE)  = 0
+mmap2(0xf7c6f000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x22000) = 0xf7c6f000
+mmap2(0xf7c71000, 3108, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7c71000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libacl.so.1",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\0\23\0\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=30052, ...}) = 0
+mmap2(NULL, 94276, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf7c25000
+mprotect(0xf7c2b000, 65536, PROT_NONE)  = 0
+mmap2(0xf7c3b000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0xf7c3b000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libattr.so.1",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0
+\16\0\0004\0\0\0"..., 512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=17724, ...}) = 0
+mmap2(NULL, 81932, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf7c10000
+mprotect(0xf7c14000, 61440, PROT_NONE)  = 0
+mmap2(0xf7c23000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0xf7c23000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libc.so.6",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\240\255\1\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=1321488, ...}) = 0
+mmap2(NULL, 1390760, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE,
+3, 0) = 0xf7abc000
+mprotect(0xf7bfb000, 61440, PROT_NONE)  = 0
+mmap2(0xf7c0a000, 16384, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x13e000) = 0xf7c0a000
+mmap2(0xf7c0e000, 6312, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7c0e000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libpcre2-8.so.0",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\220\31\0\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=563040, ...}) = 0
+mmap2(NULL, 627292, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf7a22000
+mprotect(0xf7aab000, 61440, PROT_NONE)  = 0
+mmap2(0xf7aba000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x88000) = 0xf7aba000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libdl.so.2",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\330\v\0\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0644, st_size=13864, ...}) = 0
+mmap2(NULL, 78020, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf7a0e000
+mprotect(0xf7a11000, 61440, PROT_NONE)  = 0
+mmap2(0xf7a20000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0xf7a20000
+close(3)                                = 0
+openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libpthread.so.0",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0t]\0\0004\0\0\0"...,
+512) = 512
+fstat64(3, {st_mode=S_IFREG|0755, st_size=137364, ...}) = 0
+mmap2(NULL, 176728, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
+0) = 0xf79e2000
+mprotect(0xf79fa000, 65536, PROT_NONE)  = 0
+mmap2(0xf7a0a000, 8192, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x18000) = 0xf7a0a000
+mmap2(0xf7a0c000, 4696, PROT_READ|PROT_WRITE,
+MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7a0c000
+close(3)                                = 0
+mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
+0) = 0xf7cac000
+set_tls(0xf7cac700)                     = 0
+mprotect(0xf7c0a000, 8192, PROT_READ)   = 0
+mprotect(0xf7a0a000, 4096, PROT_READ)   = 0
+mprotect(0xf7a20000, 4096, PROT_READ)   = 0
+mprotect(0xf7aba000, 4096, PROT_READ)   = 0
+mprotect(0xf7c23000, 4096, PROT_READ)   = 0
+mprotect(0xf7c3b000, 4096, PROT_READ)   = 0
+mprotect(0xf7c6f000, 4096, PROT_READ)   = 0
+mprotect(0xf7c85000, 4096, PROT_READ)   = 0
+mprotect(0x3a000, 4096, PROT_READ)      = 0
+mprotect(0xf7cb9000, 4096, PROT_READ)   = 0
+munmap(0xf7cae000, 28423)               = 0
+set_tid_address(0xf7cac2a8)             = 4282
+set_robust_list(0xf7cac2b0, 12)         = 0
+rt_sigaction(SIGRTMIN, {sa_handler=0xf79e76a8, sa_mask=[],
+sa_flags=SA_RESTORER|SA_SIGINFO, sa_restorer=0xf7aeedb0}, NULL, 8) = 0
+rt_sigaction(SIGRT_1, {sa_handler=0xf79e7764, sa_mask=[],
+sa_flags=SA_RESTORER|SA_RESTART|SA_SIGINFO, sa_restorer=0xf7aeedb0},
+NULL, 8) = 0
+rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+ugetrlimit(RLIMIT_STACK, {rlim_cur=8192*1024, rlim_max=RLIM_INFINITY}) = 0
+statfs("/sys/fs/selinux", 0xffd111ec)   = -1 ENOENT (No such file or directory)
+statfs("/selinux", 0xffd111ec)          = -1 ENOENT (No such file or directory)
+brk(NULL)                               = 0x1541000
+brk(0x1562000)                          = 0x1562000
+openat(AT_FDCWD, "/proc/filesystems", O_RDONLY|O_CLOEXEC) = 3
+fstat64(3, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
+read(3, "nodev\tsysfs\nnodev\ttmpfs\nnodev\tbd"..., 1024) = 370
+read(3, "", 1024)                       = 0
+close(3)                                = 0
+access("/etc/selinux/config", F_OK)     = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/lib/locale/locale-archive",
+O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=3041504, ...}) = 0
+mmap2(NULL, 2097152, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf77e2000
+mmap2(NULL, 2596864, PROT_READ, MAP_PRIVATE, 3, 0x6d000) = 0xf7568000
+close(3)                                = 0
+geteuid32()                             = 0
+ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
+renameat2(AT_FDCWD, "/boot/z", AT_FDCWD, "/boot/config.txt",
+RENAME_NOREPLACE) = -1 EEXIST (File exists)
+stat64("/boot/config.txt", {st_mode=S_IFREG|0755, st_size=2425, ...}) = 0
+fstatat64(AT_FDCWD, "/boot/z", {st_mode=S_IFREG|0755, st_size=2425,
+...}, AT_SYMLINK_NOFOLLOW) = 0
+fstatat64(AT_FDCWD, "/boot/config.txt", {st_mode=S_IFREG|0755,
+st_size=2425, ...}, AT_SYMLINK_NOFOLLOW) = 0
+geteuid32()                             = 0
+rename("/boot/z", "/boot/config.txt")   = -1 EPERM (Operation not permitted)
+openat(AT_FDCWD, "/usr/share/locale/locale.alias", O_RDONLY|O_CLOEXEC) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=2996, ...}) = 0
+read(3, "# Locale name alias data base.\n#"..., 4096) = 2996
+read(3, "", 4096)                       = 0
+close(3)                                = 0
+openat(AT_FDCWD,
+"/usr/share/locale/en_GB.UTF-8/LC_MESSAGES/coreutils.mo", O_RDONLY) =
+-1 ENOENT (No such file or directory)
+openat(AT_FDCWD,
+"/usr/share/locale/en_GB.utf8/LC_MESSAGES/coreutils.mo", O_RDONLY) =
+-1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en_GB/LC_MESSAGES/coreutils.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD,
+"/usr/share/locale/en.UTF-8/LC_MESSAGES/coreutils.mo", O_RDONLY) = -1
+ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/coreutils.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/coreutils.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+write(2, "mv: ", 4mv: )                     = 4
+write(2, "cannot move '/boot/z' to '/boot/"..., 43cannot move
+'/boot/z' to '/boot/config.txt') = 43
+openat(AT_FDCWD, "/usr/share/locale/en_GB.UTF-8/LC_MESSAGES/libc.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en_GB.utf8/LC_MESSAGES/libc.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en_GB/LC_MESSAGES/libc.mo", O_RDONLY) = 3
+fstat64(3, {st_mode=S_IFREG|0644, st_size=1433, ...}) = 0
+mmap2(NULL, 1433, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf7cb7000
+close(3)                                = 0
+openat(AT_FDCWD, "/usr/share/locale/en.UTF-8/LC_MESSAGES/libc.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/libc.mo",
+O_RDONLY) = -1 ENOENT (No such file or directory)
+openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/libc.mo", O_RDONLY)
+= -1 ENOENT (No such file or directory)
+write(2, ": Operation not permitted", 25: Operation not permitted) = 25
+write(2, "\n", 1
+)                       = 1
+_llseek(0, 0, 0xffd11120, SEEK_CUR)     = -1 ESPIPE (Illegal seek)
+close(0)                                = 0
+close(1)                                = 0
+close(2)                                = 0
+exit_group(1)                           = ?
++++ exited with 1 +++
 
 
 
-Thanks,
-Chengguang
-
-
- >=20
- > Chengguang Xu (7):
- >   ovl: setup overlayfs' private bdi
- >   ovl: mark overlayfs inode dirty when it has upper
- >   ovl: implement overlayfs' own ->write_inode operation
- >   ovl: set 'DONTCACHE' flag for overlayfs inode
- >   fs: export wait_sb_inodes()
- >   ovl: introduce ovl_sync_upper_blockdev()
- >   ovl: implement containerized syncfs for overlayfs
- >=20
- >  fs/fs-writeback.c         |  3 ++-
- >  fs/overlayfs/inode.c      |  5 +++-
- >  fs/overlayfs/super.c      | 49 ++++++++++++++++++++++++++++++++-------
- >  fs/overlayfs/util.c       |  1 +
- >  include/linux/writeback.h |  1 +
- >  5 files changed, 48 insertions(+), 11 deletions(-)
- >=20
- > --=20
- > 2.27.0
- >=20
- >=20
+-- 
+Carl K
