@@ -2,299 +2,171 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 773D0C433EF
-	for <linux-unionfs@archiver.kernel.org>; Tue, 30 Nov 2021 05:48:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3921C433FE
+	for <linux-unionfs@archiver.kernel.org>; Tue, 30 Nov 2021 11:22:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233408AbhK3FwI (ORCPT
+        id S238724AbhK3LZ3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 30 Nov 2021 00:52:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47520 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233394AbhK3FwH (ORCPT
+        Tue, 30 Nov 2021 06:25:29 -0500
+Received: from smtp-out2.suse.de ([195.135.220.29]:59606 "EHLO
+        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236283AbhK3LZ2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 30 Nov 2021 00:52:07 -0500
-Received: from mail-vk1-xa2f.google.com (mail-vk1-xa2f.google.com [IPv6:2607:f8b0:4864:20::a2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B785C061574
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 Nov 2021 21:48:49 -0800 (PST)
-Received: by mail-vk1-xa2f.google.com with SMTP id m16so11824813vkl.13
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 Nov 2021 21:48:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=nextdayvideo-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to;
-        bh=lmyUUTtEPApvuiop98acycwPcEbk1FVZqdXPNp/OU20=;
-        b=2bA+oH6TCCl6/20BwemckTrS4i20tVV0yhMdxmHWbbOpof0ZKOFYrCMcnATjEYAMA6
-         rOgPtTkyQnVUAGjXY+IEwGxv1iDOiL4prHvFsMWwllt7WzdYGG0kVJ3eZbCvBChjR8uN
-         CLeTA7zZA+omrE0dEAyeYK117UXfUball7+FVFgrjjq/m9gFn33eWO1SL6FSIRwtvJS7
-         GP/RvM+lQZWnRT7S5fGB8Psy/3xKXW7MLaoeUf57dlvab57geE9ylJbMYOZ2W8E9q4ZY
-         gPWyZ4loSapWhs3jeizwnYN5vmNI3K9LudZF7j/6vKNkjo4hwrbtwjD7d2LMkoBgayJ4
-         E7cA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to;
-        bh=lmyUUTtEPApvuiop98acycwPcEbk1FVZqdXPNp/OU20=;
-        b=BP9B6czFNl9oe54vJ08rR7Tnr1hMnVCzUeVlKBIVLpwcjAwdb8w33J3D1nEKLbBd2s
-         x/yZ1pRHJxvFgfwaXR36zVJ4kNt/fEse0ghpGKJhRm7SLUtJqdQ1QNVVCsaf9ydksQp8
-         Mc4UcYaqw7TeQUdmXztcNn5cSLscPK1cPlnkKbKgwQPc0RmASUEP5H1n2CGS7oLUgL4f
-         yEi92/HFRrbI0MT+2qLE4h5Uu0+TYfRBulnpFQg5GgJMEpXb0sAY+WsdWX1s8Rj6foA5
-         r1+AwQacVxbRBbKQuaJaHaYjrw70gyFkmstKPcX0DlW/L7uShARudBbf0rvZQl68hEyR
-         28Rw==
-X-Gm-Message-State: AOAM530mbBv0Ow/Ee/SC5RqrmKJq4VF2nasx8pGNo0QIuKApCIGS31sC
-        oTOH1A7qja4jUm0vGmBoqxsLAwT/IGTMHeNJ5Lg6sBwf5x0=
-X-Google-Smtp-Source: ABdhPJx+z1JP5l0UM7RG2hyy+BjqK+gIZCjHMf5cDsaZd317S4bxz0yOAUM7I9xR1PxtS5+k3JTbymm9RNRq3xBr0TM=
-X-Received: by 2002:a05:6122:78c:: with SMTP id k12mr42954488vkr.22.1638251327636;
- Mon, 29 Nov 2021 21:48:47 -0800 (PST)
+        Tue, 30 Nov 2021 06:25:28 -0500
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id 9EB7F1FD54;
+        Tue, 30 Nov 2021 11:22:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1638271328; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=eXbGNKNuwXGO6c7EKOduDaSAJNoK2kWEB4dyQyW5+Mc=;
+        b=tFwXyBCGyFOkqZQ8+4+b02/DKke9S3CEVx3EVEPisfBa6xvIuefRRLtycWqxI22Ja5VQov
+        6PxeAPqqnigAJ7EPND2I4uHc8o4GkvL8Vw7hLRPqee+XhCq3LjZclfq3F1rUVlyCVqiEda
+        VEUskr6HC+ohUevzOb2WXZ68ihrKWYE=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1638271328;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=eXbGNKNuwXGO6c7EKOduDaSAJNoK2kWEB4dyQyW5+Mc=;
+        b=8bphTj8o8uRtczjzUyUW7q+zUBy+sljEhm5ioFZnegWR5Upafra8EjVSqNwMk/Ej6tZW1d
+        ei4eTWkI3mJaRKAQ==
+Received: from quack2.suse.cz (unknown [10.100.200.198])
+        by relay2.suse.de (Postfix) with ESMTP id DBBE2A3B85;
+        Tue, 30 Nov 2021 11:22:07 +0000 (UTC)
+Received: by quack2.suse.cz (Postfix, from userid 1000)
+        id 5534F1F2CAE; Tue, 30 Nov 2021 12:22:06 +0100 (CET)
+Date:   Tue, 30 Nov 2021 12:22:06 +0100
+From:   Jan Kara <jack@suse.cz>
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
+ operation
+Message-ID: <20211130112206.GE7174@quack2.suse.cz>
+References: <17c5adfe5ea.12f1be94625921.4478415437452327206@mykernel.net>
+ <CAJfpegt4jZpSCXGFk2ieqUXVm3m=ng7QtSzZp2bXVs07bfrbXg@mail.gmail.com>
+ <17d268ba3ce.1199800543649.1713755891767595962@mykernel.net>
+ <CAJfpegttQreuuD_jLgJmrYpsLKBBe2LmB5NSj6F5dHoTzqPArw@mail.gmail.com>
+ <17d2c858d76.d8a27d876510.8802992623030721788@mykernel.net>
+ <17d31bf3d62.1119ad4be10313.6832593367889908304@mykernel.net>
+ <20211118112315.GD13047@quack2.suse.cz>
+ <17d32ecf46e.124314f8f672.8832559275193368959@mykernel.net>
+ <20211118164349.GB8267@quack2.suse.cz>
+ <17d36d37022.1227b6f102736.1047689367927335302@mykernel.net>
 MIME-Version: 1.0
-From:   Carl Karsten <carl@nextdayvideo.com>
-Date:   Mon, 29 Nov 2021 21:48:21 -0800
-Message-ID: <CADmzSSh7P+T78nuKxgK4mjOMMPO6AZmtYBFw+uu4UuE_K5FWCA@mail.gmail.com>
-Subject: index=on,nfs_export=on Operation not permitted
-To:     overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <17d36d37022.1227b6f102736.1047689367927335302@mykernel.net>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-I don't need any help, This seems odd enough to report.
+On Fri 19-11-21 14:12:46, Chengguang Xu wrote:
+>  ---- 在 星期五, 2021-11-19 00:43:49 Jan Kara <jack@suse.cz> 撰写 ----
+>  > On Thu 18-11-21 20:02:09, Chengguang Xu wrote:
+>  > >  ---- 在 星期四, 2021-11-18 19:23:15 Jan Kara <jack@suse.cz> 撰写 ----
+>  > >  > On Thu 18-11-21 14:32:36, Chengguang Xu wrote:
+>  > >  > > 
+>  > >  > >  ---- 在 星期三, 2021-11-17 14:11:29 Chengguang Xu <cgxu519@mykernel.net> 撰写 ----
+>  > >  > >  >  ---- 在 星期二, 2021-11-16 20:35:55 Miklos Szeredi <miklos@szeredi.hu> 撰写 ----
+>  > >  > >  >  > On Tue, 16 Nov 2021 at 03:20, Chengguang Xu <cgxu519@mykernel.net> wrote:
+>  > >  > >  >  > >
+>  > >  > >  >  > >  ---- 在 星期四, 2021-10-07 21:34:19 Miklos Szeredi <miklos@szeredi.hu> 撰写 ----
+>  > >  > >  >  > >  > On Thu, 7 Oct 2021 at 15:10, Chengguang Xu <cgxu519@mykernel.net> wrote:
+>  > >  > >  >  > >  > >  > However that wasn't what I was asking about.  AFAICS ->write_inode()
+>  > >  > >  >  > >  > >  > won't start write back for dirty pages.   Maybe I'm missing something,
+>  > >  > >  >  > >  > >  > but there it looks as if nothing will actually trigger writeback for
+>  > >  > >  >  > >  > >  > dirty pages in upper inode.
+>  > >  > >  >  > >  > >  >
+>  > >  > >  >  > >  > >
+>  > >  > >  >  > >  > > Actually, page writeback on upper inode will be triggered by overlayfs ->writepages and
+>  > >  > >  >  > >  > > overlayfs' ->writepages will be called by vfs writeback function (i.e writeback_sb_inodes).
+>  > >  > >  >  > >  >
+>  > >  > >  >  > >  > Right.
+>  > >  > >  >  > >  >
+>  > >  > >  >  > >  > But wouldn't it be simpler to do this from ->write_inode()?
+>  > >  > >  >  > >  >
+>  > >  > >  >  > >  > I.e. call write_inode_now() as suggested by Jan.
+>  > >  > >  >  > >  >
+>  > >  > >  >  > >  > Also could just call mark_inode_dirty() on the overlay inode
+>  > >  > >  >  > >  > regardless of the dirty flags on the upper inode since it shouldn't
+>  > >  > >  >  > >  > matter and results in simpler logic.
+>  > >  > >  >  > >  >
+>  > >  > >  >  > >
+>  > >  > >  >  > > Hi Miklos，
+>  > >  > >  >  > >
+>  > >  > >  >  > > Sorry for delayed response for this, I've been busy with another project.
+>  > >  > >  >  > >
+>  > >  > >  >  > > I agree with your suggesion above and further more how about just mark overlay inode dirty
+>  > >  > >  >  > > when it has upper inode? This approach will make marking dirtiness simple enough.
+>  > >  > >  >  > 
+>  > >  > >  >  > Are you suggesting that all non-lower overlay inodes should always be dirty?
+>  > >  > >  >  > 
+>  > >  > >  >  > The logic would be simple, no doubt, but there's the cost to walking
+>  > >  > >  >  > those overlay inodes which don't have a dirty upper inode, right?  
+>  > >  > >  > 
+>  > >  > >  > That's true.
+>  > >  > >  > 
+>  > >  > >  >  > Can you quantify this cost with a benchmark?  Can be totally synthetic,
+>  > >  > >  >  > e.g. lookup a million upper files without modifying them, then call
+>  > >  > >  >  > syncfs.
+>  > >  > >  >  > 
+>  > >  > >  > 
+>  > >  > >  > No problem, I'll do some tests for the performance.
+>  > >  > >  > 
+>  > >  > > 
+>  > >  > > Hi Miklos,
+>  > >  > > 
+>  > >  > > I did some rough tests and the results like below.  In practice,  I don't
+>  > >  > > think that 1.3s extra time of syncfs will cause significant problem.
+>  > >  > > What do you think?
+>  > >  > 
+>  > >  > Well, burning 1.3s worth of CPU time for doing nothing seems like quite a
+>  > >  > bit to me. I understand this is with 1000000 inodes but although that is
+>  > >  > quite a few it is not unheard of. If there would be several containers
+>  > >  > calling sync_fs(2) on the machine they could easily hog the machine... That
+>  > >  > is why I was originally against keeping overlay inodes always dirty and
+>  > >  > wanted their dirtiness to at least roughly track the real need to do
+>  > >  > writeback.
+>  > >  > 
+>  > > 
+>  > > Hi Jan,
+>  > > 
+>  > > Actually, the time on user and sys are almost same with directly excute syncfs on underlying fs.
+>  > > IMO, it only extends syncfs(2) waiting time for perticular container but not burning cpu.
+>  > > What am I missing?
+>  > 
+>  > Ah, right, I've missed that only realtime changed, not systime. I'm sorry
+>  > for confusion. But why did the realtime increase so much? Are we waiting
+>  > for some IO?
+>  > 
+> 
+> There are many places to call cond_resched() in writeback process,
+> so sycnfs process was scheduled several times.
 
-I accidentally  built my nfs server on buster, which threw some errors
-about index=on, so I added index=on.  Then I rebuilt the server on
-bullseye, and almost everything was the same, except for 1 little
-thing.  I removed the index=on, and all was well again.
+I was thinking about this a bit more and I don't think I buy this
+explanation. What I rather think is happening is that real work for syncfs
+(writeback_inodes_sb() and sync_inodes_sb() calls) gets offloaded to a flush
+worker. E.g. writeback_inodes_sb() ends up calling
+__writeback_inodes_sb_nr() which does:
 
-server:
-dist=bullseye
-d=/srv/nfs/rpi/${dist}
-p=${d}/boot
-rm -rf ${p}/work/index
-mount -t overlay overlay -o index=on,nfs_export=on,\
-lowerdir=${p}/setup:${p}/base,\
-upperdir=${p}/updates,\
-workdir=${p}/work \
-    ${p}/merged
+bdi_split_work_to_wbs()
+wb_wait_for_completion()
 
-/etc/exports
-/srv/nfs/rpi/bullseye/boot/merged
-*(rw,sync,no_subtree_check,no_root_squash,fsid=1)
+So you don't see the work done in the times accounted to your test
+program. But in practice the flush worker is indeed burning 1.3s worth of
+CPU to scan the 1 million inode list and do nothing.
 
-
-client:
-root@raspberrypi:~# mount
-10.21.0.1:/srv/nfs/rpi/bullseye/root/merged on / type nfs
-(rw,relatime,vers=3,rsize=4096,wsize=4096,namlen=255,hard,nolock,proto=tcp,timeo=600,retrans=2,sec=sys,mountaddr=10.21.0.1,mountvers=3,mountproto=tcp,local_lock=all,addr=10.21.0.1)
-
-root@raspberrypi:~# mv /boot/z /boot/config.txt
-mv: cannot move '/boot/z' to '/boot/config.txt': Operation not permitted
-
-root@raspberrypi:~# strace mv /boot/z /boot/config.txt
-execve("/usr/bin/mv", ["mv", "/boot/z", "/boot/config.txt"],
-0xffd9caa8 /* 18 vars */) = 0
-brk(NULL)                               = 0x1541000
-uname({sysname="Linux", nodename="raspberrypi", ...}) = 0
-access("/etc/ld.so.preload", R_OK)      = 0
-openat(AT_FDCWD, "/etc/ld.so.preload", O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-fstat64(3, {st_mode=S_IFREG|0644, st_size=54, ...}) = 0
-mmap2(NULL, 54, PROT_READ|PROT_WRITE, MAP_PRIVATE, 3, 0) = 0xf7cb7000
-close(3)                                = 0
-readlink("/proc/self/exe", "/usr/bin/mv", 4096) = 11
-openat(AT_FDCWD, "/usr/lib/arm-linux-gnueabihf/libarmmem-v8l.so",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\254\3\0\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0644, st_size=17708, ...}) = 0
-mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
-0) = 0xf7cb5000
-mmap2(NULL, 81964, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf7c72000
-mprotect(0xf7c76000, 61440, PROT_NONE)  = 0
-mmap2(0xf7c85000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0xf7c85000
-close(3)                                = 0
-munmap(0xf7cb7000, 54)                  = 0
-openat(AT_FDCWD, "/etc/ld.so.cache", O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-fstat64(3, {st_mode=S_IFREG|0644, st_size=28423, ...}) = 0
-mmap2(NULL, 28423, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf7cae000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libselinux.so.1",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\20R\0\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0644, st_size=144896, ...}) = 0
-mmap2(NULL, 216100, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf7c3d000
-mprotect(0xf7c60000, 61440, PROT_NONE)  = 0
-mmap2(0xf7c6f000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x22000) = 0xf7c6f000
-mmap2(0xf7c71000, 3108, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7c71000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libacl.so.1",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\0\23\0\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0644, st_size=30052, ...}) = 0
-mmap2(NULL, 94276, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf7c25000
-mprotect(0xf7c2b000, 65536, PROT_NONE)  = 0
-mmap2(0xf7c3b000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x6000) = 0xf7c3b000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libattr.so.1",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0
-\16\0\0004\0\0\0"..., 512) = 512
-fstat64(3, {st_mode=S_IFREG|0644, st_size=17724, ...}) = 0
-mmap2(NULL, 81932, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf7c10000
-mprotect(0xf7c14000, 61440, PROT_NONE)  = 0
-mmap2(0xf7c23000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x3000) = 0xf7c23000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libc.so.6",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\240\255\1\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0755, st_size=1321488, ...}) = 0
-mmap2(NULL, 1390760, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE,
-3, 0) = 0xf7abc000
-mprotect(0xf7bfb000, 61440, PROT_NONE)  = 0
-mmap2(0xf7c0a000, 16384, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x13e000) = 0xf7c0a000
-mmap2(0xf7c0e000, 6312, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7c0e000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libpcre2-8.so.0",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\220\31\0\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0644, st_size=563040, ...}) = 0
-mmap2(NULL, 627292, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf7a22000
-mprotect(0xf7aab000, 61440, PROT_NONE)  = 0
-mmap2(0xf7aba000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x88000) = 0xf7aba000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libdl.so.2",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0\330\v\0\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0644, st_size=13864, ...}) = 0
-mmap2(NULL, 78020, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf7a0e000
-mprotect(0xf7a11000, 61440, PROT_NONE)  = 0
-mmap2(0xf7a20000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x2000) = 0xf7a20000
-close(3)                                = 0
-openat(AT_FDCWD, "/lib/arm-linux-gnueabihf/libpthread.so.0",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-read(3, "\177ELF\1\1\1\0\0\0\0\0\0\0\0\0\3\0(\0\1\0\0\0t]\0\0004\0\0\0"...,
-512) = 512
-fstat64(3, {st_mode=S_IFREG|0755, st_size=137364, ...}) = 0
-mmap2(NULL, 176728, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3,
-0) = 0xf79e2000
-mprotect(0xf79fa000, 65536, PROT_NONE)  = 0
-mmap2(0xf7a0a000, 8192, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x18000) = 0xf7a0a000
-mmap2(0xf7a0c000, 4696, PROT_READ|PROT_WRITE,
-MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0xf7a0c000
-close(3)                                = 0
-mmap2(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1,
-0) = 0xf7cac000
-set_tls(0xf7cac700)                     = 0
-mprotect(0xf7c0a000, 8192, PROT_READ)   = 0
-mprotect(0xf7a0a000, 4096, PROT_READ)   = 0
-mprotect(0xf7a20000, 4096, PROT_READ)   = 0
-mprotect(0xf7aba000, 4096, PROT_READ)   = 0
-mprotect(0xf7c23000, 4096, PROT_READ)   = 0
-mprotect(0xf7c3b000, 4096, PROT_READ)   = 0
-mprotect(0xf7c6f000, 4096, PROT_READ)   = 0
-mprotect(0xf7c85000, 4096, PROT_READ)   = 0
-mprotect(0x3a000, 4096, PROT_READ)      = 0
-mprotect(0xf7cb9000, 4096, PROT_READ)   = 0
-munmap(0xf7cae000, 28423)               = 0
-set_tid_address(0xf7cac2a8)             = 4282
-set_robust_list(0xf7cac2b0, 12)         = 0
-rt_sigaction(SIGRTMIN, {sa_handler=0xf79e76a8, sa_mask=[],
-sa_flags=SA_RESTORER|SA_SIGINFO, sa_restorer=0xf7aeedb0}, NULL, 8) = 0
-rt_sigaction(SIGRT_1, {sa_handler=0xf79e7764, sa_mask=[],
-sa_flags=SA_RESTORER|SA_RESTART|SA_SIGINFO, sa_restorer=0xf7aeedb0},
-NULL, 8) = 0
-rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
-ugetrlimit(RLIMIT_STACK, {rlim_cur=8192*1024, rlim_max=RLIM_INFINITY}) = 0
-statfs("/sys/fs/selinux", 0xffd111ec)   = -1 ENOENT (No such file or directory)
-statfs("/selinux", 0xffd111ec)          = -1 ENOENT (No such file or directory)
-brk(NULL)                               = 0x1541000
-brk(0x1562000)                          = 0x1562000
-openat(AT_FDCWD, "/proc/filesystems", O_RDONLY|O_CLOEXEC) = 3
-fstat64(3, {st_mode=S_IFREG|0444, st_size=0, ...}) = 0
-read(3, "nodev\tsysfs\nnodev\ttmpfs\nnodev\tbd"..., 1024) = 370
-read(3, "", 1024)                       = 0
-close(3)                                = 0
-access("/etc/selinux/config", F_OK)     = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/lib/locale/locale-archive",
-O_RDONLY|O_LARGEFILE|O_CLOEXEC) = 3
-fstat64(3, {st_mode=S_IFREG|0644, st_size=3041504, ...}) = 0
-mmap2(NULL, 2097152, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf77e2000
-mmap2(NULL, 2596864, PROT_READ, MAP_PRIVATE, 3, 0x6d000) = 0xf7568000
-close(3)                                = 0
-geteuid32()                             = 0
-ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-renameat2(AT_FDCWD, "/boot/z", AT_FDCWD, "/boot/config.txt",
-RENAME_NOREPLACE) = -1 EEXIST (File exists)
-stat64("/boot/config.txt", {st_mode=S_IFREG|0755, st_size=2425, ...}) = 0
-fstatat64(AT_FDCWD, "/boot/z", {st_mode=S_IFREG|0755, st_size=2425,
-...}, AT_SYMLINK_NOFOLLOW) = 0
-fstatat64(AT_FDCWD, "/boot/config.txt", {st_mode=S_IFREG|0755,
-st_size=2425, ...}, AT_SYMLINK_NOFOLLOW) = 0
-geteuid32()                             = 0
-rename("/boot/z", "/boot/config.txt")   = -1 EPERM (Operation not permitted)
-openat(AT_FDCWD, "/usr/share/locale/locale.alias", O_RDONLY|O_CLOEXEC) = 3
-fstat64(3, {st_mode=S_IFREG|0644, st_size=2996, ...}) = 0
-read(3, "# Locale name alias data base.\n#"..., 4096) = 2996
-read(3, "", 4096)                       = 0
-close(3)                                = 0
-openat(AT_FDCWD,
-"/usr/share/locale/en_GB.UTF-8/LC_MESSAGES/coreutils.mo", O_RDONLY) =
--1 ENOENT (No such file or directory)
-openat(AT_FDCWD,
-"/usr/share/locale/en_GB.utf8/LC_MESSAGES/coreutils.mo", O_RDONLY) =
--1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en_GB/LC_MESSAGES/coreutils.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD,
-"/usr/share/locale/en.UTF-8/LC_MESSAGES/coreutils.mo", O_RDONLY) = -1
-ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/coreutils.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/coreutils.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-write(2, "mv: ", 4mv: )                     = 4
-write(2, "cannot move '/boot/z' to '/boot/"..., 43cannot move
-'/boot/z' to '/boot/config.txt') = 43
-openat(AT_FDCWD, "/usr/share/locale/en_GB.UTF-8/LC_MESSAGES/libc.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en_GB.utf8/LC_MESSAGES/libc.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en_GB/LC_MESSAGES/libc.mo", O_RDONLY) = 3
-fstat64(3, {st_mode=S_IFREG|0644, st_size=1433, ...}) = 0
-mmap2(NULL, 1433, PROT_READ, MAP_PRIVATE, 3, 0) = 0xf7cb7000
-close(3)                                = 0
-openat(AT_FDCWD, "/usr/share/locale/en.UTF-8/LC_MESSAGES/libc.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en.utf8/LC_MESSAGES/libc.mo",
-O_RDONLY) = -1 ENOENT (No such file or directory)
-openat(AT_FDCWD, "/usr/share/locale/en/LC_MESSAGES/libc.mo", O_RDONLY)
-= -1 ENOENT (No such file or directory)
-write(2, ": Operation not permitted", 25: Operation not permitted) = 25
-write(2, "\n", 1
-)                       = 1
-_llseek(0, 0, 0xffd11120, SEEK_CUR)     = -1 ESPIPE (Illegal seek)
-close(0)                                = 0
-close(1)                                = 0
-close(2)                                = 0
-exit_group(1)                           = ?
-+++ exited with 1 +++
-
-
-
+								Honza
 -- 
-Carl K
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
