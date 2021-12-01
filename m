@@ -2,50 +2,49 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22C8BC433EF
-	for <linux-unionfs@archiver.kernel.org>; Wed,  1 Dec 2021 15:00:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19D7AC433F5
+	for <linux-unionfs@archiver.kernel.org>; Wed,  1 Dec 2021 16:27:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350199AbhLAPD7 (ORCPT
+        id S239441AbhLAQao (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 1 Dec 2021 10:03:59 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25346 "EHLO
+        Wed, 1 Dec 2021 11:30:44 -0500
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25359 "EHLO
         sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1350140AbhLAPD5 (ORCPT
+        by vger.kernel.org with ESMTP id S239044AbhLAQan (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Dec 2021 10:03:57 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1638370778; cv=none; 
+        Wed, 1 Dec 2021 11:30:43 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1638375842; cv=none; 
         d=zoho.com.cn; s=zohoarc; 
-        b=byxPawvpsz9PY88EUKl47Fet4j2i0n9QeBqTTKnIlgahrNSfKqsvdRzHcnhYGhc+X1xT/7kbuIcnuQriKI6W0Wgckt5QPmyJ8+W7sNsMsgTqZjEfZwxsGpDLnhkOO8/HaMjK45w6YMxl6sDq3qF0kY8U8bpdhMy3Q7Z66ZsPcDo=
+        b=bsu7LQ2PoeLY0foZtF4JFW0yFeQvxbFUluNQXk3az6/4qMWdVyL7zq5fqzSRty2/3rjbqKl/iZNyBCNhJr7X9O+jJuzOC/W/dSR0YSjTiM5xf681ScJA/gx3VYEGp6HvKXDqAYnTOw15b+S5bHVBrb2P4S4QL9CJyz7oYI2imTY=
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1638370778; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=yJlbHNFyL+xacHgeF/Vdj133+UCdaX/2f7IuSx0T0m8=; 
-        b=qdJqaAisZMhShZC+aKJranFs/1YN2ZYd4oclGnnylpL2TFuzbbB5wxJ3niyXmLfvdKAaxfLjmQfHykPvGrPS7mvXtoQ4jnnGHKfROVTUpyGvP/R8Lyn+8c1HPHevDF7LWaeoGL3dAEA+8U+Te4YiN6/DxGISwvSfkN8oGJRT15Y=
+        t=1638375842; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=rcScbATqE6loxaDgQyPaD/4ZwjFVIqn67jJGI+uVyDw=; 
+        b=kLVzGKVujfAPYvMR/1Aln8qXgt7I7DeIGLwEeDNcRIPuHOAKPPegdQDEvwjo/FdUnFxer/7EmAywcz/7eTABMuoNaA0a/hQln6vpLGIspCdm7ghgiS6Bh0wsBBANrAJKrzMCQ79xVb6bNNc5lZIFlRSB+jK9trn2YjiXaWuBSzQ=
 ARC-Authentication-Results: i=1; mx.zoho.com.cn;
         dkim=pass  header.i=mykernel.net;
         spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
         dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1638370778;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1638375842;
         s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
         h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=yJlbHNFyL+xacHgeF/Vdj133+UCdaX/2f7IuSx0T0m8=;
-        b=M4jDjnP13Mlls9qVw3F/Rjn5r6uPbDMI3i4Ca15Ba8tF5FMhVXkIMBON5FNxaiG/
-        4lIoKNJ6HKXDkzyZ5Ho0wtVgk4obUNWqZBXox4WvQUU+zMHtgKpn+YUh3A8rZKBGPd/
-        CdcMDAJLSVlQtlc3YSZOOknDldarQxzvEQDXHC/U=
+        bh=rcScbATqE6loxaDgQyPaD/4ZwjFVIqn67jJGI+uVyDw=;
+        b=dpjnOQbInxwEwa4T0nZRewxMfGWJLRZ28x+r7O48ol1Cf0DHFYU4LOvHSWV0fljR
+        pX1G/6KwExjNjQeBgIUmeJgEz68+nayqn5npFifiTYswd6bxaezzNc+QUZ9xY4Lzida
+        SUg7W/+5nn/FSPbsys3d/+Al3GXaDOU1HSR9Fx3M=
 Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1638370776754126.6507127138733; Wed, 1 Dec 2021 22:59:36 +0800 (CST)
-Date:   Wed, 01 Dec 2021 22:59:36 +0800
+        with SMTP id 1638375840259479.9473699389241; Thu, 2 Dec 2021 00:24:00 +0800 (CST)
+Date:   Thu, 02 Dec 2021 00:24:00 +0800
 From:   Chengguang Xu <cgxu519@mykernel.net>
 Reply-To: cgxu519@mykernel.net
-To:     "Jan Kara" <jack@suse.cz>
-Cc:     "Amir Goldstein" <amir73il@gmail.com>,
-        "Miklos Szeredi" <miklos@szeredi.hu>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+To:     "Jan Kara" <jack@suse.cz>, "Amir Goldstein" <amir73il@gmail.com>,
+        "Miklos Szeredi" <miklos@szeredi.hu>
+Cc:     "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
         "overlayfs" <linux-unionfs@vger.kernel.org>,
         "linux-kernel" <linux-kernel@vger.kernel.org>,
         "ronyjin" <ronyjin@tencent.com>,
         "charliecgxu" <charliecgxu@tencent.com>,
         "Vivek Goyal" <vgoyal@redhat.com>
-Message-ID: <17d76821691.c8e249b322113.2136207110726046721@mykernel.net>
+Message-ID: <17d76cf59ee.12f4517f122167.2687299278423224602@mykernel.net>
 In-Reply-To: <20211201134610.GA1815@quack2.suse.cz>
 References: <20211118112315.GD13047@quack2.suse.cz>
  <17d32ecf46e.124314f8f672.8832559275193368959@mykernel.net>
@@ -89,25 +88,8 @@ ly
  >=20
  > Well, if inode is writeably mapped, it must be also open for write, does=
 n't
- > it?=20
-
-That's right.
-
-
- > The VMA of the mapping will hold file open.=20
-
-It's a bit tricky but currently ovl_mmap() will replace file to realfile in=
- upper layer
-and release overlayfs file. So overlayfs file itself will not have any rela=
-tionship with
-the VMA anymore after mmap().
-
-
-Thanks,
-Chengguang
-
-
- > So remarking overlay inode
+ > it? The VMA of the mapping will hold file open. So remarking overlay ino=
+de
  > dirty during writeback while inode_is_open_for_write(upper) looks like
  > reasonably easy and presumably there won't be that many inodes open for
  > writing for this to become big overhead?
@@ -123,8 +105,20 @@ ld
  > truncate(2) etc. to mark overlay inode dirty. Not sure how reliably that
  > can be done...
  >=20
- >                                 Honza
- > --=20
- > Jan Kara <jack@suse.com>
- > SUSE Labs, CR
- >=20
+
+To be honest I even don't fully understand what's the ->flush() logic in ov=
+erlayfs.
+Why should we open new underlying file when calling ->flush()?
+Is it still correct in the case of opening lower layer first then copy-uped=
+ case?=20
+
+
+Thanks,
+Chengguang
+
+
+
+
+
+
+ =20
