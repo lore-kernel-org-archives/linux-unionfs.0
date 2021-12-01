@@ -2,55 +2,51 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8DA7C433EF
-	for <linux-unionfs@archiver.kernel.org>; Wed,  1 Dec 2021 13:46:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22C8BC433EF
+	for <linux-unionfs@archiver.kernel.org>; Wed,  1 Dec 2021 15:00:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244756AbhLANtt (ORCPT
+        id S1350199AbhLAPD7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 1 Dec 2021 08:49:49 -0500
-Received: from smtp-out1.suse.de ([195.135.220.28]:55264 "EHLO
-        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243984AbhLANtg (ORCPT
+        Wed, 1 Dec 2021 10:03:59 -0500
+Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25346 "EHLO
+        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1350140AbhLAPD5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 1 Dec 2021 08:49:36 -0500
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id D8F38212BD;
-        Wed,  1 Dec 2021 13:46:13 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1638366373; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=kFdpGV0gChShndpvLmabsn1WZ0PgMpD+dQP2h4bmzQg=;
-        b=D+wgzn1i2O2ygMx8PX3YQ4ENgHlnwAmE6gPLr7PIGmC7hglivSU4A6haiXXMSN16leBHkb
-        JsAE0M9vzUAgthx1ClHbU72OpeTj7xYnJzeYFPA0edXj2/v38eswnIXCzqzh/PzRQsB3Yu
-        b23+O5tXvkOtViUEdojI3FiLF7sEqCA=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1638366373;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=kFdpGV0gChShndpvLmabsn1WZ0PgMpD+dQP2h4bmzQg=;
-        b=xuOautOusXhgrOYVbpH5MFMSpa9fYifjJ9oLVUoVx8BUZ0YnFoFag7yiwCGP7zHs129n1l
-        xqdXrI4WSYAqYQBQ==
-Received: from quack2.suse.cz (unknown [10.100.200.198])
-        by relay2.suse.de (Postfix) with ESMTP id 672EFA3B83;
-        Wed,  1 Dec 2021 13:46:11 +0000 (UTC)
-Received: by quack2.suse.cz (Postfix, from userid 1000)
-        id 357021E1494; Wed,  1 Dec 2021 14:46:10 +0100 (CET)
-Date:   Wed, 1 Dec 2021 14:46:10 +0100
-From:   Jan Kara <jack@suse.cz>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>, Jan Kara <jack@suse.cz>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        ronyjin <ronyjin@tencent.com>,
-        charliecgxu <charliecgxu@tencent.com>,
-        Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
- operation
-Message-ID: <20211201134610.GA1815@quack2.suse.cz>
+        Wed, 1 Dec 2021 10:03:57 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1638370778; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=byxPawvpsz9PY88EUKl47Fet4j2i0n9QeBqTTKnIlgahrNSfKqsvdRzHcnhYGhc+X1xT/7kbuIcnuQriKI6W0Wgckt5QPmyJ8+W7sNsMsgTqZjEfZwxsGpDLnhkOO8/HaMjK45w6YMxl6sDq3qF0kY8U8bpdhMy3Q7Z66ZsPcDo=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1638370778; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
+        bh=yJlbHNFyL+xacHgeF/Vdj133+UCdaX/2f7IuSx0T0m8=; 
+        b=qdJqaAisZMhShZC+aKJranFs/1YN2ZYd4oclGnnylpL2TFuzbbB5wxJ3niyXmLfvdKAaxfLjmQfHykPvGrPS7mvXtoQ4jnnGHKfROVTUpyGvP/R8Lyn+8c1HPHevDF7LWaeoGL3dAEA+8U+Te4YiN6/DxGISwvSfkN8oGJRT15Y=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1638370778;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
+        bh=yJlbHNFyL+xacHgeF/Vdj133+UCdaX/2f7IuSx0T0m8=;
+        b=M4jDjnP13Mlls9qVw3F/Rjn5r6uPbDMI3i4Ca15Ba8tF5FMhVXkIMBON5FNxaiG/
+        4lIoKNJ6HKXDkzyZ5Ho0wtVgk4obUNWqZBXox4WvQUU+zMHtgKpn+YUh3A8rZKBGPd/
+        CdcMDAJLSVlQtlc3YSZOOknDldarQxzvEQDXHC/U=
+Received: from mail.baihui.com by mx.zoho.com.cn
+        with SMTP id 1638370776754126.6507127138733; Wed, 1 Dec 2021 22:59:36 +0800 (CST)
+Date:   Wed, 01 Dec 2021 22:59:36 +0800
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Reply-To: cgxu519@mykernel.net
+To:     "Jan Kara" <jack@suse.cz>
+Cc:     "Amir Goldstein" <amir73il@gmail.com>,
+        "Miklos Szeredi" <miklos@szeredi.hu>,
+        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
+        "overlayfs" <linux-unionfs@vger.kernel.org>,
+        "linux-kernel" <linux-kernel@vger.kernel.org>,
+        "ronyjin" <ronyjin@tencent.com>,
+        "charliecgxu" <charliecgxu@tencent.com>,
+        "Vivek Goyal" <vgoyal@redhat.com>
+Message-ID: <17d76821691.c8e249b322113.2136207110726046721@mykernel.net>
+In-Reply-To: <20211201134610.GA1815@quack2.suse.cz>
 References: <20211118112315.GD13047@quack2.suse.cz>
  <17d32ecf46e.124314f8f672.8832559275193368959@mykernel.net>
  <20211118164349.GB8267@quack2.suse.cz>
@@ -60,46 +56,75 @@ References: <20211118112315.GD13047@quack2.suse.cz>
  <CAOQ4uxidK-yDMZoZtoRwTZLgSTr1o2Mu2L55vJRNJDLV0-Sb1w@mail.gmail.com>
  <17d73da701b.e571c37220081.6904057835107693340@mykernel.net>
  <17d74b08dcd.c0e94e6320632.9167792887632811518@mykernel.net>
- <CAOQ4uxiCYFeeH8oUUNG+rDCru_1XcwB6fR2keS1C6=d_yD9XzA@mail.gmail.com>
+ <CAOQ4uxiCYFeeH8oUUNG+rDCru_1XcwB6fR2keS1C6=d_yD9XzA@mail.gmail.com> <20211201134610.GA1815@quack2.suse.cz>
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
+ operation
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxiCYFeeH8oUUNG+rDCru_1XcwB6fR2keS1C6=d_yD9XzA@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Importance: Medium
+User-Agent: ZohoCN Mail
+X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed 01-12-21 09:19:17, Amir Goldstein wrote:
-> On Wed, Dec 1, 2021 at 8:31 AM Chengguang Xu <cgxu519@mykernel.net> wrote:
-> > So the final solution to handle all the concerns looks like accurately
-> > mark overlay inode diry on modification and re-mark dirty only for
-> > mmaped file in ->write_inode().
-> >
-> > Hi Miklos, Jan
-> >
-> > Will you agree with new proposal above?
-> >
-> 
-> Maybe you can still pull off a simpler version by remarking dirty only
-> writably mmapped upper AND inode_is_open_for_write(upper)?
+ ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=89, 2021-12-01 21:46:10 Jan Kara <=
+jack@suse.cz> =E6=92=B0=E5=86=99 ----
+ > On Wed 01-12-21 09:19:17, Amir Goldstein wrote:
+ > > On Wed, Dec 1, 2021 at 8:31 AM Chengguang Xu <cgxu519@mykernel.net> wr=
+ote:
+ > > > So the final solution to handle all the concerns looks like accurate=
+ly
+ > > > mark overlay inode diry on modification and re-mark dirty only for
+ > > > mmaped file in ->write_inode().
+ > > >
+ > > > Hi Miklos, Jan
+ > > >
+ > > > Will you agree with new proposal above?
+ > > >
+ > >=20
+ > > Maybe you can still pull off a simpler version by remarking dirty only
+ > > writably mmapped upper AND inode_is_open_for_write(upper)?
+ >=20
+ > Well, if inode is writeably mapped, it must be also open for write, does=
+n't
+ > it?=20
 
-Well, if inode is writeably mapped, it must be also open for write, doesn't
-it? The VMA of the mapping will hold file open. So remarking overlay inode
-dirty during writeback while inode_is_open_for_write(upper) looks like
-reasonably easy and presumably there won't be that many inodes open for
-writing for this to become big overhead?
+That's right.
 
-> If I am not mistaken, if you always mark overlay inode dirty on ovl_flush()
-> of FMODE_WRITE file, there is nothing that can make upper inode dirty
-> after last close (if upper is not mmaped), so one more inode sync should
-> be enough. No?
 
-But we still need to catch other dirtying events like timestamp updates,
-truncate(2) etc. to mark overlay inode dirty. Not sure how reliably that
-can be done...
+ > The VMA of the mapping will hold file open.=20
 
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+It's a bit tricky but currently ovl_mmap() will replace file to realfile in=
+ upper layer
+and release overlayfs file. So overlayfs file itself will not have any rela=
+tionship with
+the VMA anymore after mmap().
+
+
+Thanks,
+Chengguang
+
+
+ > So remarking overlay inode
+ > dirty during writeback while inode_is_open_for_write(upper) looks like
+ > reasonably easy and presumably there won't be that many inodes open for
+ > writing for this to become big overhead?
+ >=20
+ > > If I am not mistaken, if you always mark overlay inode dirty on ovl_fl=
+ush()
+ > > of FMODE_WRITE file, there is nothing that can make upper inode dirty
+ > > after last close (if upper is not mmaped), so one more inode sync shou=
+ld
+ > > be enough. No?
+ >=20
+ > But we still need to catch other dirtying events like timestamp updates,
+ > truncate(2) etc. to mark overlay inode dirty. Not sure how reliably that
+ > can be done...
+ >=20
+ >                                 Honza
+ > --=20
+ > Jan Kara <jack@suse.com>
+ > SUSE Labs, CR
+ >=20
