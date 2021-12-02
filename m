@@ -2,54 +2,54 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 82B7CC433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu,  2 Dec 2021 07:07:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0D3EC433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu,  2 Dec 2021 07:39:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345413AbhLBHKv (ORCPT
+        id S1355833AbhLBHms (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 2 Dec 2021 02:10:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48010 "EHLO
+        Thu, 2 Dec 2021 02:42:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230521AbhLBHKu (ORCPT
+        with ESMTP id S1345659AbhLBHmr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 2 Dec 2021 02:10:50 -0500
-Received: from mail-vk1-xa2b.google.com (mail-vk1-xa2b.google.com [IPv6:2607:f8b0:4864:20::a2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC7F4C061574
-        for <linux-unionfs@vger.kernel.org>; Wed,  1 Dec 2021 23:07:28 -0800 (PST)
-Received: by mail-vk1-xa2b.google.com with SMTP id j1so17832233vkr.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 01 Dec 2021 23:07:28 -0800 (PST)
+        Thu, 2 Dec 2021 02:42:47 -0500
+Received: from mail-ua1-x935.google.com (mail-ua1-x935.google.com [IPv6:2607:f8b0:4864:20::935])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45D19C061574
+        for <linux-unionfs@vger.kernel.org>; Wed,  1 Dec 2021 23:39:25 -0800 (PST)
+Received: by mail-ua1-x935.google.com with SMTP id p2so54070309uad.11
+        for <linux-unionfs@vger.kernel.org>; Wed, 01 Dec 2021 23:39:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=nextdayvideo-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
-        bh=4XJjXcFv1jrw5EI7h70lAMcVT9BW6orRFh8oh8HgT+w=;
-        b=TBP2cS5Ox+vouDOKw4utyt7otPnSxEFvtUZmYgjnRA7zCaWZpTdnlyuZeRQQhg/7T5
-         xp9ydwDgifVHJ6M9LWHLEuqPyDsghUawieHUcgzOzsL+pPplponAn6hkpSYjGDcKFXnP
-         JIAE4qQXqwt12o3xJi6YwvGQij8JZSuMcA6UUQHnlfiWbrKGBh2vKRH0PLCX7w3Qoc9n
-         GGBqPWZYD5/gVGxSF871EhRXdb/ezWK5HoFF8iA3fXnlVQ8XqnnoS41NcLYDRFuFAn0v
-         NdxjSlG4Dd6TZ13q8aVEnwPc8Ttrs6djkLHqqd4j70MByuh7NbDSqQfuQRbt2LGdxHe1
-         GvsQ==
+        bh=+MjKvkD4quMK1VMiteo/4/pFBTAJQvYzJjXAdpbeGfI=;
+        b=QK+oOD5yNv3IFoGNh/YWH6s0QBVe9KSRTn86z5UA+CvdfnEZw0LPzGLwCp3uxiiCvZ
+         F8g6BH9ZYhRyLCgZrqg0ElhuKAa76RcluEF1G2+0yTDX7gq1Tiul53Wy7ExSZIXenplm
+         08PBhZj8a5xQudLdSmI5P3Tj+GZOEoxwdEHXfywDPFt26a0OXYki9Li6PW9WrdK3Vuve
+         GOOhQYRzOoC50Z3kZJd9pSvOgVs6WgP1UN+DGqGD4IfxPPfR6LAdXcsopqB12co0b2WI
+         l9pt00pvKcUN95rBItETkbPED7ROdmWu5qduq6U1FhAq7Mvmqf7itEGJiJEXbxF1Lo4v
+         /DHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to;
-        bh=4XJjXcFv1jrw5EI7h70lAMcVT9BW6orRFh8oh8HgT+w=;
-        b=H0fGvVuKNOd8dfJCljAXSp7PaTN6Q79Ck93guL110r0T4BSNJ4XOvksBYK0b+sGuLK
-         +t1gIjaXuHbLCF5ee1gp0L0Yd6S1KZj1KbBC4Nl+BRDGkrc5Fa77FaOrF6QHTge89cbV
-         oaL12d5YD3fmz6JhhKGulL5LbG21QksBBBb/bsQmHSLiL1LcdA7KOSZJjsH40J1+rrQm
-         QjOCRrAXbjWqCPiDgZYdlS9J+gbdrowm6qKYXy7EFMmXn/X0BIMdtIfx4o+RTpWrLa1V
-         SwD4Y+N9TmBhNEbGJ5lOvufq5IEynNVpfFl2yrUGj0NfI8B2YxVnxDArAIMHbJSVdD1L
-         Z1QA==
-X-Gm-Message-State: AOAM5302UkCdm8SLwERiXdlzqwdtU5CX9/4mphOyXUfmgFPTgepfnXFh
-        KkeTfn2liD/AFbKBW+oh59K9o9IfJQBSJpGHGXGb8JZkwXA=
-X-Google-Smtp-Source: ABdhPJx2QhCNnj0yYaYnRVH/Lu1aJLmfySpaWoNAqch/ydNYH3Q7cFSVEtOzBA6469zJF0EMz08KoUxOJcU2sW7SKxw=
-X-Received: by 2002:ac5:c93a:: with SMTP id u26mr14217838vkl.41.1638428846484;
- Wed, 01 Dec 2021 23:07:26 -0800 (PST)
+        bh=+MjKvkD4quMK1VMiteo/4/pFBTAJQvYzJjXAdpbeGfI=;
+        b=eewl/m+RP694ojR45osvhnfs/wBPl/D+Wh3H2gnYt64F8H92N2aMCBclDBQs8JHIwo
+         m2rEw4vz2eIqItrkKw+TaIkv+b9PbBNbfgVqdUGDalPECj0bJUXWQbxZT6/RHXxPoo8z
+         cYKbEpqIVT28OM+O53eu/FAYR6HFolYEd0e1KU5iyO21xcwpUZqq4Gs0lTuZQma+WdLf
+         J1cm7wzzWj31tGqWmsHQ+Ac8kuoAvKnHqTnQRDwUDXidT+LB7GSCEJN/uqtlngVKgyc9
+         /d/p/fpqNL7hM/X/jDxWIVo2KM62Lz25dUPDS1T4Sg8LYnEmIqW7wDbc7rk6oc8MYvvf
+         QjMA==
+X-Gm-Message-State: AOAM5315hSddtNo9A7TLOeIkNbGHEXNL13zmOcvs+x0thNCb+63ZaK7x
+        PC6lGuMhsI/3zP+K7LVCZEbhSvnlGnExD58HjDekWy9NfcM=
+X-Google-Smtp-Source: ABdhPJyWkWJvRvw3ZVT4NJWj02hYG4cWy8WLH1iNyH6X97sFbuAyjpVWbtr3HUTyMblW1yYVERc8Gl4EtJRqMFcA4YM=
+X-Received: by 2002:a05:6102:6c9:: with SMTP id m9mr13144639vsg.32.1638430763796;
+ Wed, 01 Dec 2021 23:39:23 -0800 (PST)
 MIME-Version: 1.0
 References: <CADmzSSiE_XKnN3XaoP5HFV_3LOwOe9txCfbcEPAm-8B_9HkLRA@mail.gmail.com>
 In-Reply-To: <CADmzSSiE_XKnN3XaoP5HFV_3LOwOe9txCfbcEPAm-8B_9HkLRA@mail.gmail.com>
 From:   Carl Karsten <carl@nextdayvideo.com>
-Date:   Wed, 1 Dec 2021 23:06:59 -0800
-Message-ID: <CADmzSShngoD8xp4Ew1XkgP=inFvGwuxRaOKEs7TUQO3USuABew@mail.gmail.com>
+Date:   Wed, 1 Dec 2021 23:38:56 -0800
+Message-ID: <CADmzSSiKe-R-qzQaO3+gNZiAxqSTnsRVvt6JNjMeFyFLy8E7Nw@mail.gmail.com>
 Subject: Re: nfsd blocked
 To:     overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
@@ -57,330 +57,94 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-strace
+vers=4.2 no help
 
-close(15)                               = 0
-write(13, "\nStart-Date: 2021-12-02  06:56:5"..., 132) = 132
-clone(child_stack=NULL,
-flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD,
-child_tidptr=0xf72d90a8) = 901
-wait4(901, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 901
---- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=901,
-si_uid=0, si_status=0, si_utime=2, si_stime=2} ---
-clone(child_stack=NULL,
-flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD,
-child_tidptr=0xf72d90a8) = 902
-wait4(902, [{WIFEXITED(s) && WEXITSTATUS(s) == 0}], 0, NULL) = 902
---- SIGCHLD {si_signo=SIGCHLD, si_code=CLD_EXITED, si_pid=902,
-si_uid=0, si_status=0, si_utime=2, si_stime=1} ---
-ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-openat(AT_FDCWD, "/dev/ptmx", O_RDWR|O_NOCTTY) = 15
-statfs("/dev/pts", {f_type=DEVPTS_SUPER_MAGIC, f_bsize=4096,
-f_blocks=0, f_bfree=0, f_bavail=0, f_files=0, f_ffree=0,
-f_fsid={val=[0, 0]}, f_namelen=255, f_frsize=4096,
-f_flags=ST_VALID|ST_NOSUID|ST_NOEXEC|ST_RELATIME}) = 0
-ioctl(15, TIOCSPTLCK, [0])              = 0
-ioctl(15, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(15, TIOCGPTN, [1])                = 0
-stat64("/dev/pts/1", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88,
-0x1), ...}) = 0
-ioctl(15, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(15, TIOCGPTN, [1])                = 0
-stat64("/dev/pts/1", {st_mode=S_IFCHR|0620, st_rdev=makedev(0x88,
-0x1), ...}) = 0
-getuid32()                              = 0
-openat(AT_FDCWD, "/etc/group", O_RDONLY|O_CLOEXEC) = 16
-_llseek(16, 0, [0], SEEK_CUR)           = 0
-fstat64(16, {st_mode=S_IFREG|0644, st_size=762, ...}) = 0
-read(16, "root:x:0:\ndaemon:x:1:\nbin:x:2:\ns"..., 4096) = 762
-close(16)                               = 0
-ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(1, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(1, TIOCGWINSZ, {ws_row=28, ws_col=110, ws_xpixel=0, ws_ypixel=0}) = 0
-ioctl(15, TIOCSWINSZ, {ws_row=28, ws_col=110, ws_xpixel=0, ws_ypixel=0}) = 0
-ioctl(15, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(15, SNDCTL_TMR_START or TCSETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(15, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-rt_sigprocmask(SIG_BLOCK, [TTOU], [], 8) = 0
-ioctl(0, TCGETS, {B38400 opost isig icanon echo ...}) = 0
-ioctl(0, SNDCTL_TMR_CONTINUE or TCSETSF, {B38400 -opost isig -icanon
--echo ...}) = 0
-ioctl(0, TCGETS, {B38400 -opost isig -icanon -echo ...}) = 0
-rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
-openat(AT_FDCWD, "/dev/pts/1", O_RDWR|O_NOCTTY|O_LARGEFILE|O_CLOEXEC) = 16
-ioctl(1, TIOCGWINSZ, {ws_row=28, ws_col=110, ws_xpixel=0, ws_ypixel=0}) = 0
-write(1, "\n", 1)                       = 1
-write(1, "\0337\33[0;27r\338\33[1A", 15) = 15
-ioctl(15, TIOCGWINSZ, {ws_row=28, ws_col=110, ws_xpixel=0, ws_ypixel=0}) = 0
-ioctl(15, TIOCSWINSZ, {ws_row=27, ws_col=110, ws_xpixel=0, ws_ypixel=0}) = 0
-pipe([17, 18])                          = 0
-rt_sigaction(SIGQUIT, {sa_handler=SIG_IGN, sa_mask=[QUIT],
-sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0xf776cda0},
-{sa_handler=SIG_DFL, sa_mask=[QUIT], sa_flags=SA_RESTORER|SA_RESTART,
-sa_restorer=0xf776cda0}, 8) = 0
-rt_sigaction(SIGINT, {sa_handler=0xf7b425fc, sa_mask=[INT],
-sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0xf776cda0},
-{sa_handler=SIG_DFL, sa_mask=[INT], sa_flags=SA_RESTORER|SA_RESTART,
-sa_restorer=0xf776cda0}, 8) = 0
-rt_sigaction(SIGHUP, {sa_handler=SIG_IGN, sa_mask=[HUP],
-sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0xf776cda0},
-{sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
-clone(child_stack=NULL,
-flags=CLONE_CHILD_CLEARTID|CLONE_CHILD_SETTID|SIGCHLD,
-child_tidptr=0xf72d90a8) = 903
-close(18)                               = 0
-rt_sigprocmask(SIG_BLOCK, [], [], 8)    = 0
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [17], left {tv_sec=0, tv_nsec=28968682})
-read(17, "status: libfuse2:armhf: half-ins"..., 1024) = 39
-ioctl(1, TIOCGWINSZ, {ws_row=28, ws_col=110, ws_xpixel=0, ws_ypixel=0}) = 0
-write(1, "\0337\33[28;0f\33[42m\33[30mProgress: [ 5"..., 45) = 45
-write(1, " [##############################"..., 92) = 92
-write(1, "\338", 2)                     = 2
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=30205081})
-read(15, "(Reading database ... \r", 1024) = 23
-write(1, "(Reading database ... \r", 23) = 23
-write(5, "(Reading database ... \r", 23) = 23
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=5882690})
-read(15, "(Reading database ... 5%\r", 1024) = 25
-write(1, "(Reading database ... 5%\r", 25) = 25
-write(5, "(Reading database ... 5%\r", 25) = 25
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=10230422})
-read(15, "(Reading database ... 10%\r", 1024) = 26
-write(1, "(Reading database ... 10%\r", 26) = 26
-write(5, "(Reading database ... 10%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=45862892})
-read(15, "(Reading database ... 15%\r", 1024) = 26
-write(1, "(Reading database ... 15%\r", 26) = 26
-write(5, "(Reading database ... 15%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=30138674})
-read(15, "(Reading database ... 20%\r", 1024) = 26
-write(1, "(Reading database ... 20%\r", 26) = 26
-write(5, "(Reading database ... 20%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=10269380})
-read(15, "(Reading database ... 25%\r", 1024) = 26
-write(1, "(Reading database ... 25%\r", 26) = 26
-write(5, "(Reading database ... 25%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=5309987})
-read(15, "(Reading database ... 30%\r", 1024) = 26
-write(1, "(Reading database ... 30%\r", 26) = 26
-write(5, "(Reading database ... 30%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=2216674})
-read(15, "(Reading database ... 35%\r", 1024) = 26
-write(1, "(Reading database ... 35%\r", 26) = 26
-write(5, "(Reading database ... 35%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=8630745})
-read(15, "(Reading database ... 40%\r", 1024) = 26
-write(1, "(Reading database ... 40%\r", 26) = 26
-write(5, "(Reading database ... 40%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=12330669})
-read(15, "(Reading database ... 45%\r", 1024) = 26
-write(1, "(Reading database ... 45%\r", 26) = 26
-write(5, "(Reading database ... 45%\r", 26) = 26
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=49975053})
-read(15, "(Reading database ... 50%\r(Readi"..., 1024) = 360
-write(1, "(Reading database ... 50%\r(Readi"..., 360) = 360
-write(5, "(Reading database ... 50%\r(Readi"..., 360) = 360
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [15], left {tv_sec=0, tv_nsec=38900960})
-read(15, "Removing libfuse2:armhf (2.9.9-5"..., 1024) = 39
-write(1, "Removing libfuse2:armhf (2.9.9-5"..., 39) = 39
-write(5, "Removing libfuse2:armhf (2.9.9-5"..., 39) = 39
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [17], left {tv_sec=0, tv_nsec=49974896})
-read(17, "processing: remove: libfuse2:arm"..., 1024) = 35
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 1 (in [17], left {tv_sec=0, tv_nsec=42313593})
-read(17, "status: libc-bin: triggers-pendi"..., 1024) = 35
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
-pselect6(18, [0 15 17], NULL, NULL, {tv_sec=0, tv_nsec=50000000}, {[],
-8}) = 0 (Timeout)
-wait4(903, 0xff9c6574, WNOHANG, NULL)   = 0
+after 5 min, client dmesg:
+
+[  328.673438] nfs: server 10.21.0.1 not responding, still trying
+pi@raspberrypi:~ $ findmnt /
+TARGET SOURCE                                      FSTYPE OPTIONS
+/      10.21.0.1:/srv/nfs/rpi/bullseye/root/merged nfs4
+rw,relatime,vers=4.2,rsize=4096,wsize=4096,namlen=25
+
+server:
+
+[  612.314809] INFO: task nfsd:1034 blocked for more than 122 seconds.
+[  612.314820]       Tainted: G         C        5.10.63-v7+ #1488
+[  612.314825] "echo 0 > /proc/sys/kernel/hung_task_timeout_secs"
+disables this message.
+[  612.314832] task:nfsd            state:D stack:    0 pid: 1034
+ppid:     2 flags:0x00000000
+[  612.314847] Backtrace:
+[  612.314872] [<809f9df0>] (__schedule) from [<809fa7c8>] (schedule+0x68/0xe4)
+[  612.314882]  r10:00000000 r9:89353d04 r8:8c393100 r7:00000002
+r6:00000001 r5:82996c80
+[  612.314888]  r4:ffffe000
+[  612.314902] [<809fa760>] (schedule) from [<8017bcac>]
+(rwsem_down_write_slowpath+0x318/0x518)
+[  612.314909]  r5:ffffe000 r4:8c3930f0
+[  612.314919] [<8017b994>] (rwsem_down_write_slowpath) from
+[<809fd700>] (down_write+0x6c/0x70)
+[  612.314929]  r10:86f991a0 r9:00000000 r8:8c233ee0 r7:86e64490
+r6:93c56c00 r5:8c3930f0
+[  612.314934]  r4:8c3930f0
+[  612.314967] [<809fd694>] (down_write) from [<7f5ae6b8>]
+(ovl_dir_release+0x34/0x70 [overlay])
+[  612.314974]  r5:8c3930f0 r4:8eb98ac0
+[  612.314999] [<7f5ae684>] (ovl_dir_release [overlay]) from
+[<803359f0>] (__fput+0x90/0x25c)
+[  612.315007]  r7:86e64490 r6:000a841d r5:8c393068 r4:93c56c00
+[  612.315016] [<80335960>] (__fput) from [<80335c24>] (delayed_fput+0x4c/0x58)
+[  612.315026]  r9:8c393068 r8:00000122 r7:00000100 r6:80f05008
+r5:89353dec r4:93c56e40
+[  612.315036] [<80335bd8>] (delayed_fput) from [<80335c4c>]
+(flush_delayed_fput+0x1c/0x20)
+[  612.315042]  r5:89353dec r4:00000001
+[  612.315146] [<80335c30>] (flush_delayed_fput) from [<7f0c7ec4>]
+(nfsd_file_close_inode_sync+0x180/0x188 [nfsd])
+[  612.315295] [<7f0c7d44>] (nfsd_file_close_inode_sync [nfsd]) from
+[<7f0c065c>] (nfsd_unlink+0x230/0x270 [nfsd])
+[  612.315304]  r8:00008000 r7:9346d068 r6:86f42000 r5:93445440 r4:89290038
+[  612.315451] [<7f0c042c>] (nfsd_unlink [nfsd]) from [<7f0d0ccc>]
+(nfsd4_remove+0x5c/0x114 [nfsd])
+[  612.315461]  r9:00000000 r8:86f43a20 r7:86f43000 r6:86f42000
+r5:86f991c0 r4:89290038
+[  612.315610] [<7f0d0c70>] (nfsd4_remove [nfsd]) from [<7f0d06f4>]
+(nfsd4_proc_compound+0x3f4/0x648 [nfsd])
+[  612.315617]  r6:86f98000 r5:86f42000 r4:89290000
+[  612.315766] [<7f0d0300>] (nfsd4_proc_compound [nfsd]) from
+[<7f0b973c>] (nfsd_dispatch+0xc8/0x14c [nfsd])
+[  612.315776]  r10:7f0f3890 r9:00000018 r8:8ea15000 r7:8ea15014
+r6:7f0f3890 r5:86f43000
+[  612.315782]  r4:86f42000
+[  612.315862] [<7f0b9674>] (nfsd_dispatch [nfsd]) from [<809ca22c>]
+(svc_process_common+0x374/0x70c)
+[  612.315871]  r9:86f43000 r8:86f43a20 r7:86f42000 r6:80f05008
+r5:00000014 r4:86f42184
+[  612.315882] [<809c9eb8>] (svc_process_common) from [<809ca69c>]
+(svc_process+0xd8/0xec)
+[  612.315891]  r10:86c85cfc r9:86f42000 r8:81016540 r7:7f100bc4
+r6:816aa800 r5:bab24000
+[  612.315897]  r4:86f42000
+[  612.315976] [<809ca5c4>] (svc_process) from [<7f0b9100>]
+(nfsd+0xf4/0x164 [nfsd])
+[  612.315982]  r5:00057e40 r4:86f42000
+[  612.316062] [<7f0b900c>] (nfsd [nfsd]) from [<80143790>]
+(kthread+0x170/0x174)
+[  612.316072]  r9:86f42000 r8:7f0b900c r7:89352000 r6:00000000
+r5:89090200 r4:89256880
+[  612.316082] [<80143620>] (kthread) from [<801000ec>]
+(ret_from_fork+0x14/0x28)
+[  612.316089] Exception stack(0x89353fb0 to 0x89353ff8)
+[  612.316097] 3fa0:                                     00000000
+00000000 00000000 00000000
+[  612.316105] 3fc0: 00000000 00000000 00000000 00000000 00000000
+00000000 00000000 00000000
+[  612.316113] 3fe0: 00000000 00000000 00000000 00000000 00000013 00000000
+[  612.316122]  r10:00000000 r9:00000000 r8:00000000 r7:00000000
+r6:00000000 r5:80143620
+[  612.316128]  r4:89090200
+
 
 On Wed, Dec 1, 2021 at 6:56 PM Carl Karsten <carl@nextdayvideo.com> wrote:
 >
