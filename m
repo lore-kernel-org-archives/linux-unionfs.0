@@ -2,45 +2,60 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0BEFC433EF
-	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Dec 2021 15:38:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEF89C433F5
+	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Dec 2021 16:04:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381853AbhLCPld (ORCPT
+        id S1381939AbhLCQIM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 3 Dec 2021 10:41:33 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:45591 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1381746AbhLCPlc (ORCPT
+        Fri, 3 Dec 2021 11:08:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47048 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234430AbhLCQIM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 3 Dec 2021 10:41:32 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1638545887;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=V+VJ5JlbIEyr1e3uqTsmZjyZeTTKiBCM30K4YPw1YD0=;
-        b=Y0bBv+Jbr6biGlYxyZ2p7bOoibRxDj5Eu56l9EQPDYMfYb6fkI3fpWJcFU+q5CkmTjUzkp
-        bfc/Oz/UvatMb5YiiQKCq/KDpnmBZPCLbI66yWUx2w8bIA98Cuef63dm/FZ9B21FZy37XP
-        MlQIuNtSgMR44kd6Shi/hgY0yWwucNw=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-220-1JFi4bo7OCWr98heLdvL8g-1; Fri, 03 Dec 2021 10:38:02 -0500
-X-MC-Unique: 1JFi4bo7OCWr98heLdvL8g-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id A74A310168C0;
-        Fri,  3 Dec 2021 15:37:59 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.22.33.83])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id E1E6C5DAA5;
-        Fri,  3 Dec 2021 15:37:58 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 61623225EC0; Fri,  3 Dec 2021 10:37:58 -0500 (EST)
-Date:   Fri, 3 Dec 2021 10:37:58 -0500
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     David Anderson <dvander@google.com>,
+        Fri, 3 Dec 2021 11:08:12 -0500
+Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3F71C061751
+        for <linux-unionfs@vger.kernel.org>; Fri,  3 Dec 2021 08:04:47 -0800 (PST)
+Received: by mail-ed1-x536.google.com with SMTP id y13so13347363edd.13
+        for <linux-unionfs@vger.kernel.org>; Fri, 03 Dec 2021 08:04:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=o5UkY7PRTKX26ZutUDOAR8GdNlUQaahHbEkk5mmXfS0=;
+        b=2IjpP39TTGho5JpMWZSULn9plerXFndbpeBg4ZewjquTI/5S4B39O3XJEkyJVAAxDX
+         s4aUtvstJ9bvwa60UHuVKVCU444AeYn0R6jJjuaB+r12HvX75J2SQitA+VCwbnPZBPUT
+         ut/IAEGIez7cT2MZ03IjXneTtQpL8hhDS3OPPtLZcPe6GQuDkGjm2HMrliL60VT+P7eJ
+         ObL5qEPbrX3sPtH9nuI99UVZxekY6i/IjXMDklKaZA4Pu8MafxBd6/qvbfaeFZI1fxsG
+         al1bpcTjMKIfJXvO8IqNaGsUNtRSbOi5rsi0q9n2gLG64Z6JlhsTKgFQgpy4iKV1tOZn
+         EedQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=o5UkY7PRTKX26ZutUDOAR8GdNlUQaahHbEkk5mmXfS0=;
+        b=5T/hpVjeX+LPbuY6WQ+NxdWmGZj0+BhBQkEYxxPShkxMz44mkS24SsWGsH4VDzvo+8
+         mnSdmvTygIVtneVtg/K4bRfatzOh2ZOcDBYpd9j/H/0xdlJ+BYAksfa9Z8pqXMqlHQhA
+         0mTQ/3cjV5zjJTU81bu1gavEaic4SlgfScDbMLexB+FFE41FClKIVa2HRi+dxVzandfA
+         7sqxXKFto17mSuwf1FZPUnDoYxU2gFrBsFr+pCSyeom34wK9v9msDzsdoRL8oxL1qB3b
+         VaJv7ZkIlbSGvkLQRT38ON+ePSONXIv3teSoOASnD77UGdPqTEGmYB6r6S4PDwvZJrWZ
+         +CFA==
+X-Gm-Message-State: AOAM530xESwzIApDztt9+cX2K4Gcsw6kHiPm9lLsgEK9RFA3q2iE72bD
+        GBHbh4GrI0gmN4Oqk939g+9SQlbMF3oJUpPbVfc8
+X-Google-Smtp-Source: ABdhPJzAwC5Ow46EDycffiA8kJlHElhGLTqqouGmZbK9nJrOnqJs8UMlEELIb8hBBa/t5wU/HllpM/L7WTZf3zvn9yk=
+X-Received: by 2002:a17:907:2d12:: with SMTP id gs18mr24406726ejc.126.1638547474024;
+ Fri, 03 Dec 2021 08:04:34 -0800 (PST)
+MIME-Version: 1.0
+References: <20211117015806.2192263-1-dvander@google.com> <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
+ <Yao51m9EXszPsxNN@redhat.com>
+In-Reply-To: <Yao51m9EXszPsxNN@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Fri, 3 Dec 2021 11:04:23 -0500
+Message-ID: <CAHC9VhQ8NJdCKE7x5qzWoSDZvboyyy+fmOkA-cTN0XrvfYepeA@mail.gmail.com>
+Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
+To:     Vivek Goyal <vgoyal@redhat.com>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        David Anderson <dvander@google.com>,
         Mark Salyzyn <salyzyn@android.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         Jonathan Corbet <corbet@lwn.net>,
@@ -55,172 +70,50 @@ Cc:     David Anderson <dvander@google.com>,
         LSM List <linux-security-module@vger.kernel.org>,
         kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
         paulmoore@microsoft.com, Luca.Boccassi@microsoft.com
-Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr
- fix
-Message-ID: <Yao51m9EXszPsxNN@redhat.com>
-References: <20211117015806.2192263-1-dvander@google.com>
- <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Nov 17, 2021 at 09:36:42AM +0200, Amir Goldstein wrote:
-> On Wed, Nov 17, 2021 at 3:58 AM David Anderson <dvander@google.com> wrote:
-> >
-> > Mark Salyzyn (3):
-> >   Add flags option to get xattr method paired to __vfs_getxattr
-> >   overlayfs: handle XATTR_NOSECURITY flag for get xattr method
-> >   overlayfs: override_creds=off option bypass creator_cred
-> >
-> > Mark Salyzyn + John Stultz (1):
-> >   overlayfs: inode_owner_or_capable called during execv
-> >
-> > The first three patches address fundamental security issues that should
-> > be solved regardless of the override_creds=off feature.
-> >
-> > The fourth adds the feature depends on these other fixes.
-> >
-> > By default, all access to the upper, lower and work directories is the
-> > recorded mounter's MAC and DAC credentials.  The incoming accesses are
-> > checked against the caller's credentials.
-> >
-> > If the principles of least privilege are applied for sepolicy, the
-> > mounter's credentials might not overlap the credentials of the caller's
-> > when accessing the overlayfs filesystem.  For example, a file that a
-> > lower DAC privileged caller can execute, is MAC denied to the
-> > generally higher DAC privileged mounter, to prevent an attack vector.
-> >
-> > We add the option to turn off override_creds in the mount options; all
-> > subsequent operations after mount on the filesystem will be only the
-> > caller's credentials.  The module boolean parameter and mount option
-> > override_creds is also added as a presence check for this "feature",
-> > existence of /sys/module/overlay/parameters/overlay_creds
-> >
-> > Signed-off-by: Mark Salyzyn <salyzyn@android.com>
-> > Signed-off-by: David Anderson <dvander@google.com>
-> > Cc: Miklos Szeredi <miklos@szeredi.hu>
-> > Cc: Jonathan Corbet <corbet@lwn.net>
-> > Cc: Vivek Goyal <vgoyal@redhat.com>
-> > Cc: Eric W. Biederman <ebiederm@xmission.com>
-> > Cc: Amir Goldstein <amir73il@gmail.com>
-> > Cc: Randy Dunlap <rdunlap@infradead.org>
-> > Cc: Stephen Smalley <sds@tycho.nsa.gov>
-> > Cc: John Stultz <john.stultz@linaro.org>
-> > Cc: linux-doc@vger.kernel.org
-> > Cc: linux-kernel@vger.kernel.org
-> > Cc: linux-fsdevel@vger.kernel.org
-> > Cc: linux-unionfs@vger.kernel.org
-> > Cc: linux-security-module@vger.kernel.org
-> > Cc: kernel-team@android.com
-> > Cc: selinux@vger.kernel.org
-> > Cc: paulmoore@microsoft.com
-> > Cc: Luca.Boccassi@microsoft.com
-> >
-> > ---
-> >
-> > v19
-> > - rebase.
-> >
-> 
-> Hi David,
-> 
-> I see that the patch set has changed hands (presumably to Android upstreaming
-> team), but you just rebased v18 without addressing the maintainers concerns [1].
-> 
+On Fri, Dec 3, 2021 at 10:38 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+> On Wed, Nov 17, 2021 at 09:36:42AM +0200, Amir Goldstein wrote:
+> > On Wed, Nov 17, 2021 at 3:58 AM David Anderson <dvander@google.com> wrote:
+> > >
+> > > Mark Salyzyn (3):
+> > >   Add flags option to get xattr method paired to __vfs_getxattr
+> > >   overlayfs: handle XATTR_NOSECURITY flag for get xattr method
+> > >   overlayfs: override_creds=off option bypass creator_cred
+> > >
+> > > Mark Salyzyn + John Stultz (1):
+> > >   overlayfs: inode_owner_or_capable called during execv
+> > >
+> > > The first three patches address fundamental security issues that should
+> > > be solved regardless of the override_creds=off feature.
+> > >
+> > > The fourth adds the feature depends on these other fixes.
+> > >
+> > > By default, all access to the upper, lower and work directories is the
+> > > recorded mounter's MAC and DAC credentials.  The incoming accesses are
+> > > checked against the caller's credentials.
+> > >
+> > > If the principles of least privilege are applied for sepolicy, the
+> > > mounter's credentials might not overlap the credentials of the caller's
+> > > when accessing the overlayfs filesystem.  For example, a file that a
+> > > lower DAC privileged caller can execute, is MAC denied to the
+> > > generally higher DAC privileged mounter, to prevent an attack vector.
+> > >
+> > > We add the option to turn off override_creds in the mount options; all
+> > > subsequent operations after mount on the filesystem will be only the
+> > > caller's credentials.  The module boolean parameter and mount option
+> > > override_creds is also added as a presence check for this "feature",
+> > > existence of /sys/module/overlay/parameters/overlay_creds
+>
+> BTW, where is patch 1 of the series. I can't seem to find it.
 
-BTW, where is patch 1 of the series. I can't seem to find it.
+Lore to the rescue ...
 
-I think I was running into issues with getxattr() on underlying filesystem
-as well (if mounter did not have sufficient privileges) and tried to fix
-it. But did not find a good solution at that point of time.
+https://lore.kernel.org/selinux/20211117015806.2192263-2-dvander@google.com/
 
-https://lore.kernel.org/linux-unionfs/1467733854-6314-6-git-send-email-vgoyal@redhat.com/
-
-So basically when overlay inode is being initialized, code will try to
-query "security.selinux" xattr on underlying file to initialize selinux
-label on the overlay inode. For regular filesystems, they bypass the
-security check by calling __vfs_getxattr() when trying to initialize
-this selinux security label. But with layered filesystem, it still
-ends up calling vfs_getxattr() on underlying filesyste. Which means
-it checks for caller's creds and if caller is not priviliged enough,
-access will be denied.
-
-To solve this problem, looks like this patch set is passing a flag
-XATTR_NOSECUROTY so that permission checks are skipped in getxattr()
-path in underlying filesystem. As long as this information is
-not leaked to user space (and remains in overlayfs), it probably is
-fine? And if information is not going to user space, then it probably
-is fine for unprivileged overlayfs mounts as well?
-
-I see a comment from Miklos as well as you that it is not safe to
-do for unprivileged mounts. Can you help me understand why that's
-the case.
-
-
-> Specifically, the patch 2/4 is very wrong for unprivileged mount and
-
-Can you help me understand why it is wrong. (/me should spend more
-time reading the patch. But I am taking easy route of asking you. :-)).
-
-> I think that the very noisy patch 1/4 could be completely avoided:
-
-How can it completely avoided. If mounter is not privileged then 
-vfs_getxattr() on underlying filesystem will fail. Or if
-override_creds=off, then caller might not be privileged enough to
-do getxattr() but we still should be able to initialize overlay
-inode security label. 
-
-> Can't you use -o userxattr mount option
-
-user xattrs done't work for device nodes and symlinks.
-
-BTW, how will userxattr solve the problem completely. It can be used
-to store overlay specific xattrs but accessing security xattrs on
-underlying filesystem will still be a problem?
-
-Thanks
-Vivek
-
-> for Android use case and limit
-> the manipulation of user.ovrelay.* xattr based on sepolicy for actors
-> that are allowed
-> to make changes in overlayfs mount? or not limit at all?
-> The access to those xattr is forbidden via "incoming" xattr ops on
-> overlay inodes.
-> 
-> Also, IMO, the Documentation section about "Non overlapping credentials" does
-> not hold the same standards as the section about "Permission model" -
-> it does not
-> state the requirements clear enough for my non-security-oriented brain to be
-> able to understand if the "Ignore mounter's credentials" model can be exploited.
-> 
-> Can an unprivileged user create an overlay over a directory that they have
-> access to and redirect an innocent looking file name to an underlying file that
-> said the mounting user has no access to and by doing that, tricking a privileged
-> user to modify the innocent looking file on the  mounter's behalf?
-> Of course this could be avoided by forbidding unprivileged mount with
-> override_creds=off, but there could be other scenarios, so a clear model
-> would help to understand the risks.
-> 
-> For example:
-> If user 1 was able to read in lower dir A, now the content of overlay dir A
-> is cached and user 2, that has permissions to read upper dir A and does
-> not have read permissions on lower dir A will see the content of lower dir A.
-> 
-> I think that the core problem with the approach is using Non-uniform
-> credentials to access underlying layers. I don't see a simple way around
-> a big audit that checks all those cases, but maybe I'm missing some quick
-> shortcut or maybe your use case can add some restrictions about the
-> users that could access this overlay that would simplify the generic problem.
-> 
-> Thanks,
-> Amir.
-> 
-> [1] https://lore.kernel.org/linux-unionfs/CAJfpegtMoD85j5namV592sJD23QeUMD=+tq4SvFDqjVxsAszYQ@mail.gmail.com/
-> 
-
+-- 
+paul moore
+www.paul-moore.com
