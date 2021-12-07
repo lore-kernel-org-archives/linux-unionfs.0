@@ -2,51 +2,50 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9C53C433FE
-	for <linux-unionfs@archiver.kernel.org>; Sun,  5 Dec 2021 14:08:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A60BC433F5
+	for <linux-unionfs@archiver.kernel.org>; Tue,  7 Dec 2021 05:34:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234747AbhLEOLc (ORCPT
+        id S234784AbhLGFhe (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 5 Dec 2021 09:11:32 -0500
-Received: from sender2-pp-o92.zoho.com.cn ([163.53.93.251]:25335 "EHLO
-        sender2-pp-o92.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S234681AbhLEOLc (ORCPT
+        Tue, 7 Dec 2021 00:37:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59796 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234147AbhLGFhe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 5 Dec 2021 09:11:32 -0500
-ARC-Seal: i=1; a=rsa-sha256; t=1638713205; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=Pjh04aKkpVNie8eXie7ArqZYcveJ6yO9/4vbA9WsBvgt/JsBHCkXdbmwGTiKUzM2y+yV6BewgiE2ockRb68kt8K+mpKnKImneTl2/DKhcbhc44+iiYkcxA+kICNsSa5KtUfceR9MswgpY2ECxILmE5YuASdoh0ithyO2+UGPUGI=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1638713205; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:Reply-To:References:Subject:To; 
-        bh=WnJnhhs1cbnIWKL9y83KTn2rqy7va24PIvxGY6Xuyzc=; 
-        b=IMvvACGa3zW0ts56hwYy1RIIBPjZ+WaKoC4XosdVvkRKCXGkOXY4NmaxFa6qi6UpBM3ewgtpAC75C+NSNtVMz5nn7AOs7Poi+oFr0tbWD/l4zmFJTTeNspzziBV0cmbTf/XX/b1n0Z12la0/IVupcHEafbMR2x4akGFhN1Q3+hQ=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1638713205;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=Date:From:Reply-To:To:Cc:Message-ID:In-Reply-To:References:Subject:MIME-Version:Content-Type:Content-Transfer-Encoding;
-        bh=WnJnhhs1cbnIWKL9y83KTn2rqy7va24PIvxGY6Xuyzc=;
-        b=cScm90w9au9fBHlByU7rncxL05tpuy46N5Gm3jac7Ii2AW6VBwimc3c3BM8cyDC4
-        8PkNQxoR+0u8tcZnelC6jRRO/UM9UWJmKxUGNAvcB6SGgRXi60/ASz5JaO4jBUTXhdZ
-        zHY6aajjBdFKUmqyEHUUGPe7oMMXzMeTBuhNscHk=
-Received: from mail.baihui.com by mx.zoho.com.cn
-        with SMTP id 1638713203144575.728615583318; Sun, 5 Dec 2021 22:06:43 +0800 (CST)
-Date:   Sun, 05 Dec 2021 22:06:43 +0800
-From:   Chengguang Xu <cgxu519@mykernel.net>
-Reply-To: cgxu519@mykernel.net
-To:     "Amir Goldstein" <amir73il@gmail.com>
-Cc:     "Jan Kara" <jack@suse.cz>,
-        "linux-fsdevel" <linux-fsdevel@vger.kernel.org>,
-        "overlayfs" <linux-unionfs@vger.kernel.org>,
-        "linux-kernel" <linux-kernel@vger.kernel.org>,
-        "ronyjin" <ronyjin@tencent.com>,
-        "charliecgxu" <charliecgxu@tencent.com>,
-        "Vivek Goyal" <vgoyal@redhat.com>,
-        "Miklos Szeredi" <miklos@szeredi.hu>
-Message-ID: <17d8aeb19ac.f22523af26365.6531629287230366441@mykernel.net>
-In-Reply-To: <CAOQ4uxiEjGms-sKhrVDtDHSEk97Wku5oPxnmy4vVB=6yRE_Hdg@mail.gmail.com>
+        Tue, 7 Dec 2021 00:37:34 -0500
+Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B9FBC061746;
+        Mon,  6 Dec 2021 21:34:04 -0800 (PST)
+Received: by mail-io1-xd35.google.com with SMTP id x6so15562295iol.13;
+        Mon, 06 Dec 2021 21:34:04 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=Foo5IT0QdYnxFFa9bodUnnVRJ7cPv1e6msV9QJTF8yk=;
+        b=nwKSc1DBij0ic3RJCjNMNBgt8KadqTdhcbqBlCBquECz/FRCFZXA65gyTbhSteFeo3
+         LIOhRQMwp1FmO9XTum0yQtkfgsMmRewLZNJDVt/GOZhu8hGy08PC2ejkwhELo9yNYfci
+         PeFVc5pl6T7TnibBwEczchCjINQAkVPsoJojZsCVaMiv52L8xpYqt+qY9Mc+a91fhQVA
+         R+y12wt1x77dzeAj17IZ6wdnQxKpqICl+y3E+0itOaXkypST967YaRYah71zHU9i3Rkl
+         WET99tW3ovvDJfGJkGolKInFlrV0IJ/gPXqrVcVPVSwl0aBvkiMKKCvTE9VKv9IqtOfK
+         gTCA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=Foo5IT0QdYnxFFa9bodUnnVRJ7cPv1e6msV9QJTF8yk=;
+        b=ydYW0Qce7zNeAMb7F3NsX05dQOr/a5tDImewpQp0Bl4aqqdzs6UewG3U2/KeKfiA+S
+         FIYa5uU3Z7XAVJfkkjCoNes+wUhwmygsJIyauLW7C2PoQmsTpUi0sWZesdyI/LFhYjyy
+         6WFPGFBebfHyMUVYA00UuyN8QcKe5F4Zw3t8UEcvSL5uaY6+mpxZHn2lurYwqbAAkqix
+         78b+z3MS7U5VAhfzEYM9PpQEszHUhzZ4JuhHw0OTSkt9absG1MrehrTvGS/cYXNps9qy
+         NqFHa57BxzhAi9wcWcsExYGEO7A93SWPyX7CJbweuZqoZ2cvRhS7iVl5O1kReJE6hOMa
+         2x4A==
+X-Gm-Message-State: AOAM531NTFvqewutJ5p5+5R5xTwsLAGCNbTdbX7UUSGGHgrCl0B3jXHS
+        awjmyS1zjzeMcr+0zJ62uqkJNt/vLv1Cr+IpE6Y=
+X-Google-Smtp-Source: ABdhPJwV2Pgrf6dZi+UehOKNyiNBfmeN0PJyOjSEuaF+IAnJEBx55klJPHPNY04SmNimPt6Akpc6lDZZizWRoMWP+Hk=
+X-Received: by 2002:a02:a489:: with SMTP id d9mr46258543jam.47.1638855243954;
+ Mon, 06 Dec 2021 21:34:03 -0800 (PST)
+MIME-Version: 1.0
 References: <20211118112315.GD13047@quack2.suse.cz> <17d32ecf46e.124314f8f672.8832559275193368959@mykernel.net>
  <20211118164349.GB8267@quack2.suse.cz> <17d36d37022.1227b6f102736.1047689367927335302@mykernel.net>
  <20211130112206.GE7174@quack2.suse.cz> <17d719b79f9.d89bf95117881.5882353172682156775@mykernel.net>
@@ -54,118 +53,112 @@ References: <20211118112315.GD13047@quack2.suse.cz> <17d32ecf46e.124314f8f672.88
  <17d73da701b.e571c37220081.6904057835107693340@mykernel.net>
  <17d74b08dcd.c0e94e6320632.9167792887632811518@mykernel.net>
  <CAOQ4uxiCYFeeH8oUUNG+rDCru_1XcwB6fR2keS1C6=d_yD9XzA@mail.gmail.com>
- <20211201134610.GA1815@quack2.suse.cz> <17d76cf59ee.12f4517f122167.2687299278423224602@mykernel.net> <CAOQ4uxiEjGms-sKhrVDtDHSEk97Wku5oPxnmy4vVB=6yRE_Hdg@mail.gmail.com>
-Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
- operation
-MIME-Version: 1.0
+ <20211201134610.GA1815@quack2.suse.cz> <17d76cf59ee.12f4517f122167.2687299278423224602@mykernel.net>
+ <CAOQ4uxiEjGms-sKhrVDtDHSEk97Wku5oPxnmy4vVB=6yRE_Hdg@mail.gmail.com> <17d8aeb19ac.f22523af26365.6531629287230366441@mykernel.net>
+In-Reply-To: <17d8aeb19ac.f22523af26365.6531629287230366441@mykernel.net>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 7 Dec 2021 07:33:52 +0200
+Message-ID: <CAOQ4uxgwZoB5GQJZvpPLzRqrQA-+JSowD+brUwMSYWf9zZjiRQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode operation
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Jan Kara <jack@suse.cz>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        ronyjin <ronyjin@tencent.com>,
+        charliecgxu <charliecgxu@tencent.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Importance: Medium
-User-Agent: ZohoCN Mail
-X-Mailer: ZohoCN Mail
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
- ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-12-02 06:47:25 Amir Golds=
-tein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
- > On Wed, Dec 1, 2021 at 6:24 PM Chengguang Xu <cgxu519@mykernel.net> wrot=
-e:
- > >
- > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=89, 2021-12-01 21:46:10 Jan K=
-ara <jack@suse.cz> =E6=92=B0=E5=86=99 ----
- > >  > On Wed 01-12-21 09:19:17, Amir Goldstein wrote:
- > >  > > On Wed, Dec 1, 2021 at 8:31 AM Chengguang Xu <cgxu519@mykernel.ne=
-t> wrote:
- > >  > > > So the final solution to handle all the concerns looks like acc=
-urately
- > >  > > > mark overlay inode diry on modification and re-mark dirty only =
-for
- > >  > > > mmaped file in ->write_inode().
- > >  > > >
- > >  > > > Hi Miklos, Jan
- > >  > > >
- > >  > > > Will you agree with new proposal above?
- > >  > > >
- > >  > >
- > >  > > Maybe you can still pull off a simpler version by remarking dirty=
- only
- > >  > > writably mmapped upper AND inode_is_open_for_write(upper)?
- > >  >
- > >  > Well, if inode is writeably mapped, it must be also open for write,=
- doesn't
- > >  > it? The VMA of the mapping will hold file open. So remarking overla=
-y inode
- > >  > dirty during writeback while inode_is_open_for_write(upper) looks l=
-ike
- > >  > reasonably easy and presumably there won't be that many inodes open=
- for
- > >  > writing for this to become big overhead?
- >=20
- > I think it should be ok and a good tradeoff of complexity vs. performanc=
-e.
+On Sun, Dec 5, 2021 at 4:07 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
+>
+>  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-12-02 06:47:25 Amir Gol=
+dstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
+>  > On Wed, Dec 1, 2021 at 6:24 PM Chengguang Xu <cgxu519@mykernel.net> wr=
+ote:
+>  > >
+>  > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=89, 2021-12-01 21:46:10 Jan=
+ Kara <jack@suse.cz> =E6=92=B0=E5=86=99 ----
+>  > >  > On Wed 01-12-21 09:19:17, Amir Goldstein wrote:
+>  > >  > > On Wed, Dec 1, 2021 at 8:31 AM Chengguang Xu <cgxu519@mykernel.=
+net> wrote:
+>  > >  > > > So the final solution to handle all the concerns looks like a=
+ccurately
+>  > >  > > > mark overlay inode diry on modification and re-mark dirty onl=
+y for
+>  > >  > > > mmaped file in ->write_inode().
+>  > >  > > >
+>  > >  > > > Hi Miklos, Jan
+>  > >  > > >
+>  > >  > > > Will you agree with new proposal above?
+>  > >  > > >
+>  > >  > >
+>  > >  > > Maybe you can still pull off a simpler version by remarking dir=
+ty only
+>  > >  > > writably mmapped upper AND inode_is_open_for_write(upper)?
+>  > >  >
+>  > >  > Well, if inode is writeably mapped, it must be also open for writ=
+e, doesn't
+>  > >  > it? The VMA of the mapping will hold file open. So remarking over=
+lay inode
+>  > >  > dirty during writeback while inode_is_open_for_write(upper) looks=
+ like
+>  > >  > reasonably easy and presumably there won't be that many inodes op=
+en for
+>  > >  > writing for this to become big overhead?
+>  >
+>  > I think it should be ok and a good tradeoff of complexity vs. performa=
+nce.
+>
+> IMO, mark dirtiness on write is relatively simple, so I think we can mark=
+ the
+> overlayfs inode dirty during real write behavior and only remark writable=
+ mmap
+> unconditionally in ->write_inode().
+>
 
-IMO, mark dirtiness on write is relatively simple, so I think we can mark t=
-he=20
-overlayfs inode dirty during real write behavior and only remark writable m=
-map
-unconditionally in ->write_inode().
+If by "on write" you mean on write/copy_file_range/splice_write/...
+then yes I agree
+since we have to cover all other mnt_want_write() cases anyway.
 
+>
+>  >
+>  > >  >
+>  > >  > > If I am not mistaken, if you always mark overlay inode dirty on=
+ ovl_flush()
+>  > >  > > of FMODE_WRITE file, there is nothing that can make upper inode=
+ dirty
+>  > >  > > after last close (if upper is not mmaped), so one more inode sy=
+nc should
+>  > >  > > be enough. No?
+>  > >  >
+>  > >  > But we still need to catch other dirtying events like timestamp u=
+pdates,
+>  > >  > truncate(2) etc. to mark overlay inode dirty. Not sure how reliab=
+ly that
+>  > >  > can be done...
+>  > >  >
+>  >
+>  > Oh yeh, we have those as well :)
+>  > All those cases should be covered by ovl_copyattr() that updates the
+>  > ovl inode ctime/mtime, so always dirty in ovl_copyattr() should be goo=
+d.
+>
+> Currently ovl_copyattr() does not cover all the cases, so I think we stil=
+l need to carefully
+> check all the places of calling mnt_want_write().
+>
 
- >=20
- > >  >
- > >  > > If I am not mistaken, if you always mark overlay inode dirty on o=
-vl_flush()
- > >  > > of FMODE_WRITE file, there is nothing that can make upper inode d=
-irty
- > >  > > after last close (if upper is not mmaped), so one more inode sync=
- should
- > >  > > be enough. No?
- > >  >
- > >  > But we still need to catch other dirtying events like timestamp upd=
-ates,
- > >  > truncate(2) etc. to mark overlay inode dirty. Not sure how reliably=
- that
- > >  > can be done...
- > >  >
- >=20
- > Oh yeh, we have those as well :)
- > All those cases should be covered by ovl_copyattr() that updates the
- > ovl inode ctime/mtime, so always dirty in ovl_copyattr() should be good.
-
-Currently ovl_copyattr() does not cover all the cases, so I think we still =
-need to carefully
-check all the places of calling mnt_want_write().
-
+Careful audit is always good, but if we do not have ovl_copyattr() in
+a call site
+that should mark inode dirty, then it sounds like a bug, because ovl inode =
+ctime
+will not get updated. Do you know of any such cases?
 
 Thanks,
-Chengguang
-
-
-
- > I *think* the only case of ovl_copyattr() that should not dirty is in
- > ovl_inode_init(), so need some special helper there.
- >=20
- > >
- > > To be honest I even don't fully understand what's the ->flush() logic =
-in overlayfs.
- > > Why should we open new underlying file when calling ->flush()?
- > > Is it still correct in the case of opening lower layer first then copy=
--uped case?
- > >
- >=20
- > The semantics of flush() are far from being uniform across filesystems.
- > most local filesystems do nothing on close.
- > most network fs only flush dirty data when a writer closes a file
- > but not when a reader closes a file.
- > It is hard to imagine that applications rely on flush-on-close of
- > rdonly fd behavior and I agree that flushing only if original fd was upp=
-er
- > makes more sense, so I am not sure if it is really essential for
- > overlayfs to open an upper rdonly fd just to do whatever the upper fs
- > would have done on close of rdonly fd, but maybe there is no good
- > reason to change this behavior either.
- >=20
- > Thanks,
- > Amir.
- >=20
+Amir.
