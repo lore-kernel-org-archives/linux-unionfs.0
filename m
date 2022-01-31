@@ -2,57 +2,59 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8BC1C433EF
-	for <linux-unionfs@archiver.kernel.org>; Mon, 31 Jan 2022 15:32:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AD2CC433FE
+	for <linux-unionfs@archiver.kernel.org>; Mon, 31 Jan 2022 16:20:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379602AbiAaPcW (ORCPT
+        id S1349692AbiAaQU2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 31 Jan 2022 10:32:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51162 "EHLO
+        Mon, 31 Jan 2022 11:20:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34286 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1379586AbiAaPcU (ORCPT
+        with ESMTP id S232764AbiAaQU1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 31 Jan 2022 10:32:20 -0500
-Received: from mail-il1-x133.google.com (mail-il1-x133.google.com [IPv6:2607:f8b0:4864:20::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D25DC061714;
-        Mon, 31 Jan 2022 07:32:20 -0800 (PST)
-Received: by mail-il1-x133.google.com with SMTP id i1so11707908ils.5;
-        Mon, 31 Jan 2022 07:32:20 -0800 (PST)
+        Mon, 31 Jan 2022 11:20:27 -0500
+Received: from mail-il1-x129.google.com (mail-il1-x129.google.com [IPv6:2607:f8b0:4864:20::129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD4C6C061714;
+        Mon, 31 Jan 2022 08:20:25 -0800 (PST)
+Received: by mail-il1-x129.google.com with SMTP id y17so11861025ilm.1;
+        Mon, 31 Jan 2022 08:20:25 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=jqx1HO/XId0GJ3ue+sgoNKZespsPL3K2xwqbKDpT4Z8=;
-        b=qCbG24J5xi7OR+SJA1cM3K3hPlIdCvhlVIYCUMUhWrViwSdV3lI5toGxSOuRjuMaWV
-         IbJCYY0jNsFC9Mme90jsYcuqUJvirpwpQvh6S1WmtKEOx2H9AvhxT4vknBWIQnjO7IDy
-         5jSv6Oej0c/QJVC5wYdy0arfoIw4Go0UKYaVbjViGstV8gsY+rjqfKyK3HujGaM4QI2/
-         0Si1eMGwnT2Ros8DyPHg9iSx+VhGFNWwu19ooNtmXHYEeh/Zw2vD7cJxl/Z6ZZ4TdgrK
-         RIeP8pINbPGhXrk27CZhf2MPoz1UbtxFY+AN8IKQhp7glVgOaV3gLbupOefIrxsMFtDD
-         GW7g==
+        bh=UbFm592rz0IKfu+VnJFNxz1Msppocc460xkpKheRmIo=;
+        b=Yxn7d+6bC1PpKoxj3bEfo/bKYHYGd/coL4bL/5DRdCZnqKeOEWBSLDWXaqTuyV6MaI
+         VAq8BE8FbR6wJAoRY2DoD1HTZtpChDHnMxdQdflAntYc3ameSzQ3a2UuJgtqqVNHX+iO
+         82SDHSTqJftpRpK0T1kmeFOGDJMlCXJ7XLIASs6AzAB2bWrGWc261DsD3rI9UOT8kj2N
+         9UpIWI+qEFaaU8v2BNdLbjiKderpfJW6irGth+NlniaP/v/J6mVqlWe9drCJmmxMoHkc
+         AzxlFuXr7ZCXp3ieVLYyrH4DN1e4/wHkDwGVv3X2Se8jxNELDEEX8LYIMQxauKhVQU8A
+         tn0g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=jqx1HO/XId0GJ3ue+sgoNKZespsPL3K2xwqbKDpT4Z8=;
-        b=RqSUHB50KXt1O0DEEIJ23821m0ogclPTybYY9SWagSgNoMYAsZ2qKzV0rvkQgWxaXz
-         ttonSIsxL9+23/ofVL015NWvJMCcOvKzzHpGuaZIlbofGL4YUIIqUQbZmxVyDXz/twip
-         xl2t7p/7c0jS4H6iigdpD8tpc30S5RbugFsGdL1S6Bi2UWzUkL4libhrin0T+jn3zKNY
-         n2BLTnvXpEMDt0pjpGlYwUOv5RGuwVafqikbaqeB3Uzvo3Op7xp6f7IvmtT3Ze7z3IjO
-         zbf9zvzahWav1jCAJ4g+3Z1d6vEWNxSL/zhjQYJrwmisZhkzFcASuSv3Cbq6l41YqaQl
-         ZJ6g==
-X-Gm-Message-State: AOAM531SLN5uYgGzFJIGXUUnPvWxOaF+YvQZDqktESP3zQyPdYNsRwcm
-        HjymEiPNzipMw0w4heGx7t54RSbp4AoDkImbUPkdpcuA
-X-Google-Smtp-Source: ABdhPJwDvsoSJdwvQcWZaoSVoJexMFalqqhyG9QHDWiAie63dyRK4SBo1tRqk0uaLKxRPgzVO3JyCZV8AP3wZBQMGx4=
-X-Received: by 2002:a05:6e02:5cb:: with SMTP id l11mr13267786ils.198.1643643139591;
- Mon, 31 Jan 2022 07:32:19 -0800 (PST)
+        bh=UbFm592rz0IKfu+VnJFNxz1Msppocc460xkpKheRmIo=;
+        b=JXOFjMPQB6uKJlZh7stgmiIrNPCFEYfKBqI51QqWhxFiWxf9PGNtx2vMq6i/0I8Fbq
+         8Bea91JcqBAYb2a3IcKjpRax26MR/wdMv7A93xBs/YivETqlGoCBKGn0/g0fWj/G62op
+         avzrJR9BROlrAS6ihcGdAI7FF3CqU0YjYXHfzGcB0pTHJ5ieCg3s5lAD1iRo9BHgVa2n
+         FYUoxwPFYF1ZOR9lGxZk6FYAb5bOO0X61m92vCq51B0r5VKAhjxKGzz+hVe+jgcXM+rZ
+         4xrG/lUzGYj91IT0eEyiubq85eoOW0zXI+ofa2fKWwZuaeO+GnfcKfNUegue/q2f27KS
+         f3jA==
+X-Gm-Message-State: AOAM533sdkoV7FPhjEjSRpzxToCzZMX/YkCz/GWmClmAgSDEOuwQPIZB
+        vLSCC0TZy/Mwq7bBoBI6kxyuwCLy+m5u2M5dYUI=
+X-Google-Smtp-Source: ABdhPJyRorRaMlWkkgIN9K2SnqW/g5GLCJG6D2tuEyorWa6Y39EQqCnR0aSGdXlSeCoGJkW+S6ipBxaQeGvq99bLJmk=
+X-Received: by 2002:a05:6e02:1708:: with SMTP id u8mr5000825ill.319.1643646025247;
+ Mon, 31 Jan 2022 08:20:25 -0800 (PST)
 MIME-Version: 1.0
 References: <164364196407.1476539.8450117784231043601.stgit@warthog.procyon.org.uk>
- <164364202369.1476539.452557132083658522.stgit@warthog.procyon.org.uk>
-In-Reply-To: <164364202369.1476539.452557132083658522.stgit@warthog.procyon.org.uk>
+ <164364197646.1476539.3635698398603811895.stgit@warthog.procyon.org.uk>
+ <CAOQ4uxiorvXhhJbCsGo-B7aBX0BbSYp7wUHmYS1e1xxJ4dpF3w@mail.gmail.com> <1531209.1643643128@warthog.procyon.org.uk>
+In-Reply-To: <1531209.1643643128@warthog.procyon.org.uk>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 31 Jan 2022 17:32:08 +0200
-Message-ID: <CAOQ4uxit42u7BSM_UAOc9gFsDb5b9JeEh1m_gCKMO7pxrtsAiA@mail.gmail.com>
-Subject: Re: [PATCH 2/5] vfs: Add tracepoints for inode_excl_inuse_trylock/unlock
+Date:   Mon, 31 Jan 2022 18:20:14 +0200
+Message-ID: <CAOQ4uxhc6FW-io5mC=FN=vFawEAwjXZO7kCcGt5gzqq3ON1Y7w@mail.gmail.com>
+Subject: Re: [PATCH 1/5] vfs, overlayfs, cachefiles: Turn I_OVL_INUSE into
+ something generic
 To:     David Howells <dhowells@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
@@ -67,126 +69,44 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jan 31, 2022 at 5:13 PM David Howells <dhowells@redhat.com> wrote:
+On Mon, Jan 31, 2022 at 5:32 PM David Howells <dhowells@redhat.com> wrote:
 >
-> Add tracepoints for inode_excl_inuse_trylock/unlock() to record successful
-> and lock, failed lock, successful unlock and unlock when it wasn't locked.
+> Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> cc: Amir Goldstein <amir73il@gmail.com>
-> cc: Miklos Szeredi <miklos@szeredi.hu>
-> cc: linux-unionfs@vger.kernel.org
-> cc: linux-cachefs@redhat.com
-> ---
+> > Please leave ovl_* as wrappers instead of changing super.c.
 >
->  fs/inode.c           |   21 +++++++++++++++++----
->  fs/overlayfs/super.c |   10 ++++++----
->  include/linux/fs.h   |    9 +++++++--
->  3 files changed, 30 insertions(+), 10 deletions(-)
+> Do you want them turning into inline functions?
 >
-> diff --git a/fs/inode.c b/fs/inode.c
-> index 954719f66113..61b93a89853f 100644
-> --- a/fs/inode.c
-> +++ b/fs/inode.c
-> @@ -22,6 +22,8 @@
->  #include <linux/iversion.h>
->  #include <trace/events/writeback.h>
->  #include "internal.h"
-> +#define CREATE_TRACE_POINTS
-> +#include <trace/events/vfs.h>
->
->  /*
->   * Inode locking rules:
-> @@ -2409,11 +2411,14 @@ EXPORT_SYMBOL(current_time);
->  /**
->   * inode_excl_inuse_trylock - Try to exclusively lock an inode for kernel access
->   * @dentry: Reference to the inode to be locked
-> + * @o: Private reference for the kernel service
-> + * @who: Which kernel service is trying to gain the lock
->   *
->   * Try to gain exclusive access to an inode for a kernel service, returning
->   * true if successful.
->   */
-> -bool inode_excl_inuse_trylock(struct dentry *dentry)
-> +bool inode_excl_inuse_trylock(struct dentry *dentry, unsigned int o,
-> +                             enum inode_excl_inuse_by who)
->  {
->         struct inode *inode = d_inode(dentry);
->         bool locked = false;
-> @@ -2421,7 +2426,10 @@ bool inode_excl_inuse_trylock(struct dentry *dentry)
->         spin_lock(&inode->i_lock);
->         if (!(inode->i_state & I_EXCL_INUSE)) {
->                 inode->i_state |= I_EXCL_INUSE;
-> +               trace_inode_excl_inuse_lock(inode, o, who);
->                 locked = true;
-> +       } else {
-> +               trace_inode_excl_inuse_lock_failed(inode, o, who);
->         }
->         spin_unlock(&inode->i_lock);
->
-> @@ -2432,18 +2440,23 @@ EXPORT_SYMBOL(inode_excl_inuse_trylock);
->  /**
->   * inode_excl_inuse_unlock - Unlock exclusive kernel access to an inode
->   * @dentry: Reference to the inode to be unlocked
-> + * @o: Private reference for the kernel service
->   *
->   * Drop exclusive access to an inode for a kernel service.  A warning is given
->   * if the inode was not marked for exclusive access.
->   */
-> -void inode_excl_inuse_unlock(struct dentry *dentry)
-> +void inode_excl_inuse_unlock(struct dentry *dentry, unsigned int o)
->  {
->         if (dentry) {
->                 struct inode *inode = d_inode(dentry);
->
->                 spin_lock(&inode->i_lock);
-> -               WARN_ON(!(inode->i_state & I_EXCL_INUSE));
-> -               inode->i_state &= ~I_EXCL_INUSE;
-> +               if (WARN_ON(!(inode->i_state & I_EXCL_INUSE))) {
-> +                       trace_inode_excl_inuse_unlock_bad(inode, o);
-> +               } else {
-> +                       inode->i_state &= ~I_EXCL_INUSE;
-> +                       trace_inode_excl_inuse_unlock(inode, o);
-> +               }
->                 spin_unlock(&inode->i_lock);
->         }
->  }
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 5c3361a2dc7c..6434ae11496d 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -224,10 +224,10 @@ static void ovl_free_fs(struct ovl_fs *ofs)
->         dput(ofs->indexdir);
->         dput(ofs->workdir);
->         if (ofs->workdir_locked)
-> -               inode_excl_inuse_unlock(ofs->workbasedir);
-> +               inode_excl_inuse_unlock(ofs->workbasedir, 0);
->         dput(ofs->workbasedir);
->         if (ofs->upperdir_locked)
-> -               inode_excl_inuse_unlock(ovl_upper_mnt(ofs)->mnt_root);
-> +               inode_excl_inuse_unlock(ovl_upper_mnt(ofs)->mnt_root, 0);
->
->         /* Hack!  Reuse ofs->layers as a vfsmount array before freeing it */
->         mounts = (struct vfsmount **) ofs->layers;
-> @@ -1239,7 +1239,8 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
->         if (upper_mnt->mnt_sb->s_flags & SB_NOSEC)
->                 sb->s_flags |= SB_NOSEC;
->
-> -       if (inode_excl_inuse_trylock(ovl_upper_mnt(ofs)->mnt_root)) {
-> +       if (inode_excl_inuse_trylock(ovl_upper_mnt(ofs)->mnt_root, 0,
-> +                                    inode_excl_inuse_by_overlayfs)) {
->                 ofs->upperdir_locked = true;
->         } else {
->                 err = ovl_report_in_use(ofs, "upperdir");
-> @@ -1499,7 +1500,8 @@ static int ovl_get_workdir(struct super_block *sb, struct ovl_fs *ofs,
->
->         ofs->workbasedir = dget(workpath.dentry);
->
-> -       if (inode_excl_inuse_trylock(ofs->workbasedir)) {
-> +       if (inode_excl_inuse_trylock(ofs->workbasedir, 0,
-> +                                    inode_excl_inuse_by_overlayfs)) {
 
-More incentive to keep the ovl_* wrappers.
+inline would be fine.
+
+But I just noticed something that may wreck this party.
+
+The assumption, when I proposed this merger, was that an inode for
+upper/work and is exclusively owned by ovl driver, so there should be no
+conflicts with other drivers setting inuse flag.
+
+However, in ovl_check_layer(), we walk back to root to verify that an ovl
+layer of a new instance is not a descendant of another ovl upper/work inuse.
+So the meaning of I_OVL_INUSE is somewhat stronger than an exclusive inode lock.
+It implies ownership on the entire subtree.
+
+I guess there is no conflict with cachefiles since ovl upper/work should not be
+intersecting with any cachefiles storage, but that complicates the
+semantics when
+it comes to a generic flag.
+
+OTOH, I am not sure if this check on ovl mount is so smart to begin with.
+This check was added (after the exclusive ownership meaning) to silence syzbot
+that kept mutating to weird overlapping ovl setups.
+I think that a better approach would be to fail a lookup in the upper layer
+that results with a d_mountpoint() - those are not expected inside the overlay
+upper layer AFAICT.
+
+Anyway, I can make those changes if Miklos agrees with them, but I don't
+want to complicate your work on this, so maybe for now, create the I_EXCL_INUSE
+generic flag without changing overlayfs and I can make the cleanup to get rid of
+I_OVL_INUSE later.
 
 Thanks,
 Amir.
