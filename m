@@ -2,85 +2,115 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60DE6C433EF
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jan 2022 15:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E034C433FE
+	for <linux-unionfs@archiver.kernel.org>; Mon, 31 Jan 2022 15:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235386AbiAXPWZ (ORCPT
+        id S1345257AbiAaPM5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Jan 2022 10:22:25 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:47962 "EHLO
+        Mon, 31 Jan 2022 10:12:57 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:22889 "EHLO
         us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S235204AbiAXPWZ (ORCPT
+        by vger.kernel.org with ESMTP id S1359162AbiAaPM4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Jan 2022 10:22:25 -0500
+        Mon, 31 Jan 2022 10:12:56 -0500
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1643037744;
+        s=mimecast20190719; t=1643641976;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=X3nzb8Kb2pOdd4W/ZCxjX+bJ2HvpTp4PXFlhCz6DEsY=;
-        b=JKaBm9sW2SnqYTAjddAEmk48n28ZejHc0M8+ijxTJh6NqOqzLoY3+O8iwf7sj+3JLJUXxB
-        B5D7FAWpYzQg2TGj+RzFmt1ZyQL7Z3hmS1O/+PhzPdvA1m5tBeQeV898T717LwMvDCHhJq
-        LX5ieMN+1Ydqo7q4kA14dRDw4IqUGv4=
+         content-transfer-encoding:content-transfer-encoding;
+        bh=UBuMZR3GQdzPiBlUuQs6kPeXjEyft4S1kfNh1v0fTuU=;
+        b=GfjGDQHmWoC3fEav1vLuGrwFxUW++kGHoEQG+rsnbc4Kz7ztlMRLCXHEqJzJXXd64HepCs
+        J5eCyDbmGNojSIzRP2ZkaO2rr+wnwdBOjaRWwgSCVvkrYMQmDULt1hk/6N6hjVMjsejYQp
+        b9vCAs+EeSvHYrgqXVhl6Vban8ol1no=
 Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
  [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-643-T8UMhOmDNu-5avCYif1azQ-1; Mon, 24 Jan 2022 10:22:23 -0500
-X-MC-Unique: T8UMhOmDNu-5avCYif1azQ-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.14])
+ us-mta-265-7rr8uPTHOFyxwdsp32amkA-1; Mon, 31 Jan 2022 10:12:52 -0500
+X-MC-Unique: 7rr8uPTHOFyxwdsp32amkA-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.phx2.redhat.com [10.5.11.16])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4F071835B8F;
-        Mon, 24 Jan 2022 15:22:22 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.22.16.148])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id CD9FE798DB;
-        Mon, 24 Jan 2022 15:22:01 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 5D8C8220370; Mon, 24 Jan 2022 10:22:01 -0500 (EST)
-Date:   Mon, 24 Jan 2022 10:22:01 -0500
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Ming Lei <ming.lei@redhat.com>, Jens Axboe <axboe@kernel.dk>,
-        linux-block@vger.kernel.org, Pei Zhang <pezhang@redhat.com>,
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 350578519E0;
+        Mon, 31 Jan 2022 15:12:51 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.26])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 12BF47DE26;
+        Mon, 31 Jan 2022 15:12:44 +0000 (UTC)
+Subject: [RFC][PATCH 0/5] vfs, overlayfs,
+ cachefiles: Combine I_OVL_INUSE and S_KERNEL_FILE and split out no-remove
+From:   David Howells <dhowells@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     linux-unionfs@vger.kernel.org, linux-cachefs@redhat.com,
+        Miklos Szeredi <miklos@szeredi.hu>, dhowells@redhat.com,
+        Christoph Hellwig <hch@infradead.org>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] block: loop: set discard_granularity as PAGE_SIZE if
- sb->s_blocksize is 0
-Message-ID: <Ye7EGS2eYzhJX/e0@redhat.com>
-References: <20220124100628.1327718-1-ming.lei@redhat.com>
- <Ye6yE2Ephyv+WBYY@infradead.org>
+        Jeff Layton <jlayton@kernel.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        torvalds@linux-foundation.org, linux-unionfs@vger.kernel.org,
+        linux-cachefs@redhat.com, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Date:   Mon, 31 Jan 2022 15:12:44 +0000
+Message-ID: <164364196407.1476539.8450117784231043601.stgit@warthog.procyon.org.uk>
+User-Agent: StGit/1.4
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Ye6yE2Ephyv+WBYY@infradead.org>
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.14
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.16
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jan 24, 2022 at 06:05:07AM -0800, Christoph Hellwig wrote:
-> On Mon, Jan 24, 2022 at 06:06:28PM +0800, Ming Lei wrote:
-> > If backing file's filesystem has implemented ->fallocate(), we think the
-> > loop device can support discard, then pass sb->s_blocksize as
-> > discard_granularity. However, some underlying FS, such as overlayfs,
-> > doesn't set sb->s_blocksize, and causes discard_granularity to be set as
-> > zero, then the warning in __blkdev_issue_discard() is triggered.
-> > 
-> > Fix the issue by setting discard_granularity as PAGE_SIZE in this case
-> > since PAGE_SIZE is the most common data unit for FS.
-> 
-> sb->s_blocksize really does not mean anything.  kstat.blksize might
-> be a better choice, even if it someimes errs on the too large side.
 
-[ CC linux-unionfs, Miklos ]
+Hi Amir,
 
-This should work well for overlayfs too. I see it just passes the query
-to underlying filesystem and that should report optimal I/O size.
+How about this as a set of patches to do what you suggest[1] and hoist the
+handler functions for I_OVL_INUSE into common code and rename the flag to
+I_EXCL_INUSE.  This can then be shared with cachefiles - allowing me to get
+rid of S_KERNEL_FILE.
 
-On my overlayfs instance, I see.
+I did split out the functionality for preventing file/dir removal to a
+separate flag, I_NO_REMOVE, so that it's not tied to I_EXCL_INUSE in case
+overlayfs doesn't want to use it.  The downside to that, though is that it
+requires a separate locking of i_lock to set/clear it.
 
-# stat -c '%o' foo.txt
-4096
+I also added four general tracepoints to log successful lock/unlock,
+failure to lock and a bad unlock.  The lock tracepoints log which driver
+asked for the lock and all tracepoints allow the driver to log an arbitrary
+reference number (in cachefiles's case this is the object debug ID).
 
-Vivek
+Questions:
+
+ (1) Should it be using a flag in i_state or a flag in i_flags?  I'm not
+     sure what the difference is really.
+
+ (2) Do we really need to take i_lock when testing I_EXCL_INUSE?  Would
+     READ_ONCE() suffice?
+
+
+The patches are on a branch here:
+
+	https://git.kernel.org/pub/scm/linux/kernel/git/dhowells/linux-fs.git/log/?h=fscache-fixes
+
+David
+
+Link: https://lore.kernel.org/r/CAOQ4uxhRS3MGEnCUDcsB1RL0d1Oy0g0Rzm75hVFAJw2dJ7uKSA@mail.gmail.com/ [1]
+
+---
+David Howells (5):
+      vfs, overlayfs, cachefiles: Turn I_OVL_INUSE into something generic
+      vfs: Add tracepoints for inode_excl_inuse_trylock/unlock
+      cachefiles: Split removal-prevention from S_KERNEL_FILE and extend effects
+      cachefiles: Use I_EXCL_INUSE instead of S_KERNEL_FILE
+      cachefiles: Remove the now-unused mark-inode-in-use tracepoints
+
+
+ fs/cachefiles/namei.c             | 54 +++++++++++++-------------
+ fs/inode.c                        | 56 +++++++++++++++++++++++++++
+ fs/namei.c                        |  8 ++--
+ fs/overlayfs/overlayfs.h          |  3 --
+ fs/overlayfs/super.c              | 14 ++++---
+ fs/overlayfs/util.c               | 43 ---------------------
+ include/linux/fs.h                | 33 ++++++++++++++--
+ include/trace/events/cachefiles.h | 63 -------------------------------
+ 8 files changed, 126 insertions(+), 148 deletions(-)
+
 
