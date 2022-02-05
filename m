@@ -2,139 +2,170 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9805C433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Feb 2022 11:03:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F30CFC433EF
+	for <linux-unionfs@archiver.kernel.org>; Sat,  5 Feb 2022 16:10:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240363AbiBCLDA (ORCPT
+        id S235925AbiBEQK0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Feb 2022 06:03:00 -0500
-Received: from mout.gmx.net ([212.227.17.20]:37323 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236576AbiBCLC7 (ORCPT <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Feb 2022 06:02:59 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1643886177;
-        bh=dtuoNUKYd55ihTR8MNLq5bBgLKHrIBDb8lDYNxE6WvE=;
-        h=X-UI-Sender-Class:From:To:Cc:Subject:Date;
-        b=RCXEJayvilqgEYl8jQFYIeAps2+XLvKmgPFgOFg4TDLI6DTDzuwLsMbErxRw4pnpE
-         EMjLQFGdRlhtMIdZ3B1GbJa6T3/Z2bbu9SNs8uyAH/8fqTJMXhH8UjLWaeAvHmGSOj
-         YE6oiHyWOUHQo1quZdwMow9CyAIJQMaUZC9A1HtE=
-X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
-Received: from genesis.localnet ([80.143.62.129]) by mail.gmx.net (mrgmx104
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MxUrx-1mHpZQ1nL7-00xtX2; Thu, 03
- Feb 2022 12:02:57 +0100
-From:   Alois Wohlschlager <alois1@gmx-topmail.de>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ovl: warn if trusted xattr creation fails
-Date:   Thu, 03 Feb 2022 12:02:46 +0100
-Message-ID: <2783448.iqOl4yHqVZ@genesis>
+        Sat, 5 Feb 2022 11:10:26 -0500
+Received: from sender2-op-o12.zoho.com.cn ([163.53.93.243]:17145 "EHLO
+        sender2-op-o12.zoho.com.cn" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233316AbiBEQK0 (ORCPT
+        <rfc822;linux-unionfs@vger.kernel.org>);
+        Sat, 5 Feb 2022 11:10:26 -0500
+ARC-Seal: i=1; a=rsa-sha256; t=1644077387; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=RjNZQayxoGPaXXrZ1ftD6qh8ovCNXcz7Ov//aX/9oYdPnyizl+jAZD/wveGJZZ40LNRFREzZ3XTgMxhqmpFHpF32VEB/8vQPgg/0IqRlUo9BxtZpbQ8gEpLyeNfkhrIVkPnjh8+cUXMa4SYJmmSTW9B4K0pp3ujmEQexZlPGsoA=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1644077387; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:In-Reply-To:MIME-Version:Message-ID:References:Subject:To; 
+        bh=ZL/nqenoKCsAVEb0X9wysI1Nic97e3q2o8+TrCc2fZQ=; 
+        b=bR1cgX2tEsAqk2kLGRSKvYyutQidFZWOssGlvrSA2uK5fyZebWExLQ6bfc1wVnclOv+zfzwIt8mPAeIMLK/OJ3gCTJ4vq+53t5ffREUQtQy54pR9GblS0JcKKmy7JzAEAcKP0OpmhXy1hbsenfGYGNf41xL2qBNoHKnn0OV8JlU=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1644077387;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Date:MIME-Version:Subject:To:Cc:References:From:Message-ID:In-Reply-To:Content-Type:Content-Transfer-Encoding;
+        bh=ZL/nqenoKCsAVEb0X9wysI1Nic97e3q2o8+TrCc2fZQ=;
+        b=RLgFK62k/bK64QydxKogZQkdmX5WhDQrFuluLJaMeHRcGE5NIGwYr8N0ns8X6mw7
+        u1QPvMQIRtwBC5sjeNxM3fCe+EvwXFlBm0L9CIIIw5x0zU/IY7KZchYsqN7HxlsJTcF
+        /m+wDM+UThrWNfjG2Kt0rWIuIvyoThX+nDGJjW6M=
+Received: from [192.168.255.10] (116.30.192.113 [116.30.192.113]) by mx.zoho.com.cn
+        with SMTPS id 1644077384521462.94265162596264; Sun, 6 Feb 2022 00:09:44 +0800 (CST)
+Date:   Sun, 6 Feb 2022 00:09:39 +0800
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart2721792.dFq5vDo5FW"; micalg="pgp-sha256"; protocol="application/pgp-signature"
-X-Provags-ID: V03:K1:hQaQRD/tUj8dBRkhbSaEzZu9ABaoWdmdQ9xvCQBnLWVlyNAD9NO
- It342uC6uvsP02qYtiO1qSjDS0AeUTeesflSYPCvAy4ssrFnCLOq4LOUs5OVVbeEoH+loJC
- inVLZD7GeoSP1AeLwKuKK3Jz2IFQ8Me2KK3LXYrMdAyL4yqwstWkFQ34S+gOB2mo8QamJAS
- s7KCWbJU7nRkFsB0YTv3g==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:hApSr45sbcw=:nRe/ccW0cO4EkCCJZrz4yB
- HdXRqM6wyznnEeAhNN+M/Zk6GLn1rlcQZ7NTNOMqvezeKgri2xnjankBkan11d/opZVubuSk5
- EEHuEYuCsImTQZ6eCXaOi8zqXNTaZltzfIs4WnBjv/LjXD3zXZWYgQIIHo2Bu9kJFV5FED21a
- yFYY1nmY98xjacV/5gvJY2Jvr2sn2UteeLyH9LFPYeAl1gyn4p1Vheh1jeZ9w6f7k2dkP/eqO
- 2DNKfck/eK9ZeOXL174KRxTIttxwWpfz21idvu4CKM2AdCgTlAMYDNirGgCozAJ/PjSu+Zx10
- NuUff8RJkafcYaRGxFHi3vBnRCP4rYiObjm1IK2LsDjBPHgmPnsNL/g6HGdDS8JC8Ew/Tr6OO
- BOTMvXpVJa6hHmsfvqdPRMojb0vrc9II4u58cvRdJFmO0CNV4cu3XI6raX+QeSwEmDeKahLJc
- HlDimjF5fyIBA87J95xgR/hgFHgHv7dQrGakwiRnJVXp+9kz8afmpx8TK1t0JpRCCqC6isbCO
- kVRJbAsrmq54APY9xtHczfjWOL06p//XvrHKoI1dVowjNWF5jHq/JB3hUCs3zFRXSaf2CZlxh
- OT6Wc2mOct8ST1I30U1wCFp2jJJtjlLhLQDJboAzNpFyZIVbO86s/5Zw0SA5SNrGB1r9E+UmQ
- GoNj8Keu4sF/L1fBa7Imv9hO2LRFecXwGwyJDsrT/ZfR0aRJeZyR0AKCc88Wxe7Earb38sKPE
- 6imYTVPkKvqJf0gcDwBfL7uPTtVtxWrI/T48E9LtQww+gEDP9VWiFL8wKAB7LPwQOVSHyJbJo
- IOCRUQaYhGKyMekDG5+1dCM4NJko1ahYBhtNbsJXRXs15SEKl7cU4g+focb5Wk3V7VL62jQ5K
- VtaFn0BWdExbPGUURL3ay2uxb+qgpO+ss3olpIRdBIOk8bKZsDHwX1AyV3OVgS/QU0ZFfnmg6
- hkEN/L5rlzdepI8QuHh0Kwh+i/3N33yfAVFyGjkmLPB8n/nHCKUH03hBTpPkYPMG0a4NsCPuu
- KZ4apCRaiKsZXUiQkayBVo4cLpZ2ihGbMkRqwNYC2gkMe1S/UHAEz26T2Rb0SXtuiMA2oa9hH
- EYmaCOiFWJqDpg=
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [RFC PATCH v5 06/10] ovl: implement overlayfs' ->write_inode
+ operation
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Jan Kara <jack@suse.cz>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        ronyjin <ronyjin@tencent.com>,
+        charliecgxu <charliecgxu@tencent.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
+References: <20211118112315.GD13047@quack2.suse.cz>
+ <17d32ecf46e.124314f8f672.8832559275193368959@mykernel.net>
+ <20211118164349.GB8267@quack2.suse.cz>
+ <17d36d37022.1227b6f102736.1047689367927335302@mykernel.net>
+ <20211130112206.GE7174@quack2.suse.cz>
+ <17d719b79f9.d89bf95117881.5882353172682156775@mykernel.net>
+ <CAOQ4uxidK-yDMZoZtoRwTZLgSTr1o2Mu2L55vJRNJDLV0-Sb1w@mail.gmail.com>
+ <17d73da701b.e571c37220081.6904057835107693340@mykernel.net>
+ <17d74b08dcd.c0e94e6320632.9167792887632811518@mykernel.net>
+ <CAOQ4uxiCYFeeH8oUUNG+rDCru_1XcwB6fR2keS1C6=d_yD9XzA@mail.gmail.com>
+ <20211201134610.GA1815@quack2.suse.cz>
+ <17d76cf59ee.12f4517f122167.2687299278423224602@mykernel.net>
+ <CAOQ4uxiEjGms-sKhrVDtDHSEk97Wku5oPxnmy4vVB=6yRE_Hdg@mail.gmail.com>
+ <17d8aeb19ac.f22523af26365.6531629287230366441@mykernel.net>
+ <CAOQ4uxgwZoB5GQJZvpPLzRqrQA-+JSowD+brUwMSYWf9zZjiRQ@mail.gmail.com>
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Message-ID: <362c02fa-2625-30c4-17a1-1a95753b6065@mykernel.net>
+In-Reply-To: <CAOQ4uxgwZoB5GQJZvpPLzRqrQA-+JSowD+brUwMSYWf9zZjiRQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-ZohoCNMailClient: External
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
---nextPart2721792.dFq5vDo5FW
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"; protected-headers="v1"
-From: Alois Wohlschlager <alois1@gmx-topmail.de>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] ovl: warn if trusted xattr creation fails
-Date: Thu, 03 Feb 2022 12:02:46 +0100
-Message-ID: <2783448.iqOl4yHqVZ@genesis>
+=E5=9C=A8 2021/12/7 13:33, Amir Goldstein =E5=86=99=E9=81=93:
+> On Sun, Dec 5, 2021 at 4:07 PM Chengguang Xu <cgxu519@mykernel.net> wrote=
+:
+>>   ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E5=9B=9B, 2021-12-02 06:47:25 Amir G=
+oldstein <amir73il@gmail.com> =E6=92=B0=E5=86=99 ----
+>>   > On Wed, Dec 1, 2021 at 6:24 PM Chengguang Xu <cgxu519@mykernel.net> =
+wrote:
+>>   > >
+>>   > >  ---- =E5=9C=A8 =E6=98=9F=E6=9C=9F=E4=B8=89, 2021-12-01 21:46:10 J=
+an Kara <jack@suse.cz> =E6=92=B0=E5=86=99 ----
+>>   > >  > On Wed 01-12-21 09:19:17, Amir Goldstein wrote:
+>>   > >  > > On Wed, Dec 1, 2021 at 8:31 AM Chengguang Xu <cgxu519@mykerne=
+l.net> wrote:
+>>   > >  > > > So the final solution to handle all the concerns looks like=
+ accurately
+>>   > >  > > > mark overlay inode diry on modification and re-mark dirty o=
+nly for
+>>   > >  > > > mmaped file in ->write_inode().
+>>   > >  > > >
+>>   > >  > > > Hi Miklos, Jan
+>>   > >  > > >
+>>   > >  > > > Will you agree with new proposal above?
+>>   > >  > > >
+>>   > >  > >
+>>   > >  > > Maybe you can still pull off a simpler version by remarking d=
+irty only
+>>   > >  > > writably mmapped upper AND inode_is_open_for_write(upper)?
+>>   > >  >
+>>   > >  > Well, if inode is writeably mapped, it must be also open for wr=
+ite, doesn't
+>>   > >  > it? The VMA of the mapping will hold file open. So remarking ov=
+erlay inode
+>>   > >  > dirty during writeback while inode_is_open_for_write(upper) loo=
+ks like
+>>   > >  > reasonably easy and presumably there won't be that many inodes =
+open for
+>>   > >  > writing for this to become big overhead?
+>>   >
+>>   > I think it should be ok and a good tradeoff of complexity vs. perfor=
+mance.
+>>
+>> IMO, mark dirtiness on write is relatively simple, so I think we can mar=
+k the
+>> overlayfs inode dirty during real write behavior and only remark writabl=
+e mmap
+>> unconditionally in ->write_inode().
+>>
+> If by "on write" you mean on write/copy_file_range/splice_write/...
+> then yes I agree
+> since we have to cover all other mnt_want_write() cases anyway.
+>
+>>   >
+>>   > >  >
+>>   > >  > > If I am not mistaken, if you always mark overlay inode dirty =
+on ovl_flush()
+>>   > >  > > of FMODE_WRITE file, there is nothing that can make upper ino=
+de dirty
+>>   > >  > > after last close (if upper is not mmaped), so one more inode =
+sync should
+>>   > >  > > be enough. No?
+>>   > >  >
+>>   > >  > But we still need to catch other dirtying events like timestamp=
+ updates,
+>>   > >  > truncate(2) etc. to mark overlay inode dirty. Not sure how reli=
+ably that
+>>   > >  > can be done...
+>>   > >  >
+>>   >
+>>   > Oh yeh, we have those as well :)
+>>   > All those cases should be covered by ovl_copyattr() that updates the
+>>   > ovl inode ctime/mtime, so always dirty in ovl_copyattr() should be g=
+ood.
+>>
+>> Currently ovl_copyattr() does not cover all the cases, so I think we sti=
+ll need to carefully
+>> check all the places of calling mnt_want_write().
+>>
+> Careful audit is always good, but if we do not have ovl_copyattr() in
+> a call site
+> that should mark inode dirty, then it sounds like a bug, because ovl inod=
+e ctime
+> will not get updated. Do you know of any such cases?
 
-When mounting overlayfs in an unprivileged user namespace, trusted xattr
-creation will fail. This will lead to failures in some file operations,
-e.g. in the following situation:
-
-  mkdir lower upper work merged
-  mkdir lower/directory
-  mount -toverlay -olowerdir=3Dlower,upperdir=3Dupper,workdir=3Dwork none =
-merged
-  rmdir merged/directory
-  mkdir merged/directory
-
-The last mkdir will fail:
-
-  mkdir: cannot create directory 'merged/directory': Input/output error
-
-The cause for these failures is currently extremely non-obvious and hard
-to debug. Hence, warn the user and suggest using the userxattr mount
-option, if it is not already supplied and xattr creation fails during
-the self-check.
-
-Signed-off-by: Alois Wohlschlager <alois1@gmx-topmail.de>
-=2D--
- fs/overlayfs/super.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7bb0a47cb615..11123fe967e0 100644
-=2D-- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1427,6 +1427,8 @@ static int ovl_make_workdir(struct super_block *sb,
-struct ovl_fs *ofs,
- 			ofs->config.xino =3D OVL_XINO_OFF;
- 			pr_warn("upper fs does not support xattr,
-falling back to xino=3Doff.\n");
- 		}
-+		if (!ofs->config.userxattr)
-+			pr_warn("trusted xattr creation not
-supported, some file operations may fail. Try mounting with userxattr next
-time.\n");
- 		err =3D 0;
- 	} else {
- 		ovl_do_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
-=2D-
-2.35.1
+Sorry for my late response, I've been very busy lately.
+For your question, for example, there is a case of calling=20
+ovl_want_write() in ovl_cache_get_impure() and caller does not call=20
+ovl_copyattr()
+so I think we should explicitly mark ovl inode dirty in that case. Is=20
+that probably a bug?
 
 
---nextPart2721792.dFq5vDo5FW
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEypeoIv8kJdR0rz5L4PWepeUhaRQFAmH7tlYACgkQ4PWepeUh
-aRTRcg/7BTj3iFqS6SXGn4uCVIP8gkf80PR712eTRoIu61G+giEKbNaBL1J8/Y0t
-dTsvlkB/VRBSrjEQKXcD3aQWLpxGsahxD0noss9RfEXAR8FFMrIOhvHSK9uWi0WW
-DB/obTfIhncQeYIycnEA6VwnPJMyXIDmNQ6YStvD23h/XtkdFrH8lb+0hpaiUqnf
-gHG68t1li75xVHQNzt/otE3kVDluJxOCRDbw3NiDD1gNcIfPqJ5tR9q7YguFy7tU
-ynIVh4I5UWcdMrA/us1tMxJ4AprDczdmBv56HDkBhJqXDZzX52ONj6ZRZFbcB3QB
-GveTDZb/YloEUX3SaQZuaKgnPMty6XoEJAvpk+jHYM5HAVxNRO4a/U1bnNa0EARQ
-GdwYkz9WQKXdgMapSk2n6K7fnCjejBzoLWo6mo97m+CnfJl9PvvFe50Z/JAuotry
-MuSAGf2OFtnGQVIU0Fs+9jDaYVhoHWWBD/qplZnEMItoJYi7jibgjX5n3kyt4Ok9
-ysz08lelHWkAIb3lXu19QPqfGakKXgwCcEckUtD1urlZCYIarXg9A01vO7algDF9
-ZJVOtUprGmwUBBuR731Df4wXYxI8STGIXgBhctRoveHRttPM0q37SWmhQKVZ31SD
-C0WTFycb7Cl4NilBwjf8RHZhQYYBY4pW+0KXGVlXn63CdLAETDU=
-=dq/y
------END PGP SIGNATURE-----
-
---nextPart2721792.dFq5vDo5FW--
+Thanks,
+Chengguang
 
 
 
