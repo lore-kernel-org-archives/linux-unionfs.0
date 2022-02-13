@@ -2,106 +2,64 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 184D9C433F5
-	for <linux-unionfs@archiver.kernel.org>; Fri, 11 Feb 2022 03:01:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BBCDC433F5
+	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Feb 2022 14:56:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244059AbiBKDA7 (ORCPT
+        id S231842AbiBMO4X (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 10 Feb 2022 22:00:59 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:38636 "EHLO
+        Sun, 13 Feb 2022 09:56:23 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:32890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234830AbiBKDA7 (ORCPT
+        with ESMTP id S230399AbiBMO4X (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 10 Feb 2022 22:00:59 -0500
-Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87E6055A2
-        for <linux-unionfs@vger.kernel.org>; Thu, 10 Feb 2022 19:00:58 -0800 (PST)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R521e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=hongnan.li@linux.alibaba.com;NM=1;PH=DS;RN=2;SR=0;TI=SMTPD_---0V46pH9w_1644548455;
-Received: from localhost(mailfrom:hongnan.li@linux.alibaba.com fp:SMTPD_---0V46pH9w_1644548455)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Fri, 11 Feb 2022 11:00:56 +0800
-From:   Hongnan Li <hongnan.li@linux.alibaba.com>
-To:     linux-unionfs@vger.kernel.org
-Cc:     miklos@szeredi.hu
-Subject: [PATCH] fs/overlayfs: fix comments mentioning i_mutex
-Date:   Fri, 11 Feb 2022 11:00:55 +0800
-Message-Id: <20220211030055.95334-1-hongnan.li@linux.alibaba.com>
-X-Mailer: git-send-email 2.19.1.6.gb485710b
+        Sun, 13 Feb 2022 09:56:23 -0500
+X-Greylist: delayed 905 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 13 Feb 2022 06:56:16 PST
+Received: from sender2-op-o12.zoho.com.cn (sender2-op-o12.zoho.com.cn [163.53.93.243])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F196F5AEE1
+        for <linux-unionfs@vger.kernel.org>; Sun, 13 Feb 2022 06:56:16 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1644763267; cv=none; 
+        d=zoho.com.cn; s=zohoarc; 
+        b=mStRsKQUxbseTKTQHidYog6G4CVjHzbvwlM8VgUGXBPhmLcXFMsmRyo5M6M940xkP/gNO2gPEx37R1k1ElgrnA+7XxOU7Otj+HaY/qJ2pcx2KuGybT+AkHYLrN1OntGuQ4wC1fcIGPFR7Cqbu16/F9Hr6Q910Q4gO9QhXefbwIs=
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
+        t=1644763267; h=Content-Type:Content-Transfer-Encoding:Date:From:MIME-Version:Message-ID:Subject:To; 
+        bh=GJUQTCs9EfpBPf8oyu6GLucJslGQm6xkBxU4if1Typ0=; 
+        b=rACH3NHgdoUqFGTEPxso/qFQKPErj8tFb/Xs27fZdqEgnY4SjC1XRFsXWsAlK1tIlDCCsjPE6/c+kO4kjV5MrwsQzChXTu6ANfYXpJWKhP7tbjSteFpGlpKtVZw9jyvwOWm0yOhJa/p7wT1l5o3tceQqEFSGypceav3123f5o38=
+ARC-Authentication-Results: i=1; mx.zoho.com.cn;
+        dkim=pass  header.i=mykernel.net;
+        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
+        dmarc=pass header.from=<cgxu519@mykernel.net>
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1644763267;
+        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
+        h=Message-ID:Date:MIME-Version:To:From:Subject:Content-Type:Content-Transfer-Encoding;
+        bh=GJUQTCs9EfpBPf8oyu6GLucJslGQm6xkBxU4if1Typ0=;
+        b=HVrkSfZx7fYxY0lohxacyYEeupbK5VDkPi50ukGhUtkPjnNcOsBSDnwIy4W2pmJZ
+        sX8DJMyHAHigixZbDLFmF4Yxm3etq6En19WHaFP7EbEV2G+8MJvu8YIwGaxNCeOsyzf
+        NjDlphi5YUuPpRwI+8LiuKkwdG+oDxmwU6z9+i3g=
+Received: from [192.168.255.10] (113.116.159.36 [113.116.159.36]) by mx.zoho.com.cn
+        with SMTPS id 1644763265128197.25608189103343; Sun, 13 Feb 2022 22:41:05 +0800 (CST)
+Message-ID: <8d81eae9-1fb9-6c66-2c31-b02540db6af7@mykernel.net>
+Date:   Sun, 13 Feb 2022 22:41:04 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.1
+To:     overlayfs <linux-unionfs@vger.kernel.org>
+From:   Chengguang Xu <cgxu519@mykernel.net>
+Subject: Question about fsync in copy-up operaton
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-ZohoCNMailClient: External
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: hongnanli <hongnan.li@linux.alibaba.com>
+Hi Folks,
 
-inode->i_mutex has been replaced with inode->i_rwsem long ago. Fix
-comments still mentioning i_mutex.
+During copy-up when parent dir does not exist then will create parent 
+dir first.
+However, I noticed only regular file calls fsync in the end of copy-up 
+operation,
+so how newly created parent dir get synced in this case?
 
-Signed-off-by: hongnanli <hongnan.li@linux.alibaba.com>
----
- fs/overlayfs/copy_up.c | 4 ++--
- fs/overlayfs/dir.c     | 4 ++--
- fs/overlayfs/inode.c   | 2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b193d08a3dc3..8f7d7f05e5fb 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -432,7 +432,7 @@ static int ovl_set_upper_fh(struct ovl_fs *ofs, struct dentry *upper,
- /*
-  * Create and install index entry.
-  *
-- * Caller must hold i_mutex on indexdir.
-+ * Caller must hold i_rwsem on indexdir.
-  */
- static int ovl_create_index(struct dentry *dentry, struct dentry *origin,
- 			    struct dentry *upper)
-@@ -762,7 +762,7 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
-  *
-  * All renames start with copy up of source if necessary.  The actual
-  * rename will only proceed once the copy up was successful.  Copy up uses
-- * upper parent i_mutex for exclusion.  Since rename can change d_parent it
-+ * upper parent i_rwsem for exclusion.  Since rename can change d_parent it
-  * is possible that the copy up will lock the old parent.  At that point
-  * the file will have already been copied up anyway.
-  */
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index f18490813170..c96dfbf5c9e0 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -61,7 +61,7 @@ struct dentry *ovl_lookup_temp(struct dentry *workdir)
- 	return temp;
- }
- 
--/* caller holds i_mutex on workdir */
-+/* caller holds i_rwsem on workdir */
- static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
- {
- 	int err;
-@@ -105,7 +105,7 @@ static struct dentry *ovl_whiteout(struct ovl_fs *ofs)
- 	return whiteout;
- }
- 
--/* Caller must hold i_mutex on both workdir and dir */
-+/* Caller must hold i_rwsem on both workdir and dir */
- int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct inode *dir,
- 			     struct dentry *dentry)
- {
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 1f36158c7dbe..25c6d2c9a9bd 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -670,7 +670,7 @@ static const struct address_space_operations ovl_aops = {
- /*
-  * It is possible to stack overlayfs instance on top of another
-  * overlayfs instance as lower layer. We need to annotate the
-- * stackable i_mutex locks according to stack level of the super
-+ * stackable i_rwsem locks according to stack level of the super
-  * block instance. An overlayfs instance can never be in stack
-  * depth 0 (there is always a real fs below it).  An overlayfs
-  * inode lock will use the lockdep annotation ovl_i_mutex_key[depth].
--- 
-2.19.1.6.gb485710b
-
+Thanks,
+Chengguang
