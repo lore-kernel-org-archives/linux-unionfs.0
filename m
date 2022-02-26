@@ -2,115 +2,139 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC953C433EF
-	for <linux-unionfs@archiver.kernel.org>; Sat, 26 Feb 2022 18:16:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A15E2C433EF
+	for <linux-unionfs@archiver.kernel.org>; Sat, 26 Feb 2022 18:44:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231670AbiBZSQr (ORCPT
+        id S232073AbiBZSpT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 26 Feb 2022 13:16:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40408 "EHLO
+        Sat, 26 Feb 2022 13:45:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232201AbiBZSQr (ORCPT
+        with ESMTP id S231596AbiBZSpT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 26 Feb 2022 13:16:47 -0500
-Received: from mout.gmx.net (mout.gmx.net [212.227.15.18])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E68D227EC2B;
-        Sat, 26 Feb 2022 10:16:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1645899366;
-        bh=b6FURsJsW+kr6eAUTeFvjpLUUXagxQmlheQYAf45hrk=;
-        h=X-UI-Sender-Class:From:To:Cc:Subject:Date:In-Reply-To:References;
-        b=UmtMMia2tIroAhkdS1ib1bWj7SO9m1lrOWP+Hggn+h6fGnOhOs3e8yKIVt/tHQUKd
-         sG0F4BfbU+KrWHkFbdGjrCjY0XUtZjjmMWQg36CwDkmfczhhgyGeWGu5yhULJzMwkP
-         KTNAnqRPF/HE9WFGyd73pYc6m0vbX0muysAu3w5A=
-X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
-Received: from genesis.localnet ([217.232.144.251]) by mail.gmx.net (mrgmx004
- [212.227.17.190]) with ESMTPSA (Nemesis) id 1M3lc9-1nNkUn2hE3-000wzb; Sat, 26
- Feb 2022 19:16:06 +0100
-From:   Alois Wohlschlager <alwoju@gmx.de>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ovl: warn if trusted xattr creation fails
-Date:   Sat, 26 Feb 2022 19:15:50 +0100
-Message-ID: <2619141.9QKAVWPfZp@genesis>
-In-Reply-To: <YhNzc/++SHzdMXyt@miu.piliscsaba.redhat.com>
-References: <2783448.iqOl4yHqVZ@genesis> <YhNzc/++SHzdMXyt@miu.piliscsaba.redhat.com>
+        Sat, 26 Feb 2022 13:45:19 -0500
+Received: from mail-il1-x134.google.com (mail-il1-x134.google.com [IPv6:2607:f8b0:4864:20::134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50AEF1E6EB4;
+        Sat, 26 Feb 2022 10:44:44 -0800 (PST)
+Received: by mail-il1-x134.google.com with SMTP id d7so6940740ilf.8;
+        Sat, 26 Feb 2022 10:44:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=veVD4InLLdEeyOHVtYYrTzN/uzgqlu391hrjbiGqkKk=;
+        b=M0LlF9U2uwglFn8sR6OOp00cGfJJPtmnKi2R5r0Rg7zD8ey3tYY5NZw3dqtAI3qPkx
+         vKovA94Li5cc0mBP8uWcub1vdFTGu+wZO96UMgoJkNJWl/OkKo2FKvZiO0OeRPTVdY+r
+         bfRjutsOP4ql1EZACpA7GWV0RSdN+mYf/IRc6zlIeYAnuLOcJDbw6wOuHDsIY1ootuAj
+         suUWs5mfUUj9EuRSHr0bb8DyL44CHImrdQn8pkw26oez7KdKlkd3ind8hJteX4svAwTY
+         cvzaSvtDmH9wzqPHo2r+rCkdLx2RaMPa3aLQl0xM3VxABkwrKIfwCPrcm1iJHM0YrMwO
+         6eJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=veVD4InLLdEeyOHVtYYrTzN/uzgqlu391hrjbiGqkKk=;
+        b=6p/TuQsWIawHQ7IHTxka1C9UBROBsEiRM1i6F5jwqkMnzp0Z5Q3CsUeyDvaCgy5Ab6
+         0ZNqfqUBVlXEgjgaJgyAU3ln7H9q9Rhmnza9Vo+lsK2lXuuFjzBgKrDzMR6aUhhQO+nY
+         3zgGDHZkvndv12DmIMTj9HJOC1oAN8gglyvDMTXGBf/P1Z1mlQgczLsMTF9vSTU0hIja
+         v3CORQPnsEnByodHXPrpJD3Gl2wsNfdkVEfxeB2k8uW3QI1Nh+0AisbVJ1FRklqfOH8T
+         XUawtxjCvbRtCC2VKQVwwVTV8tBOdECxMF07mGmAetOkdJPkEplEpDVo6EFyEJ7xrkF+
+         urgg==
+X-Gm-Message-State: AOAM5317IXrakp11t3NkgT2xAJn8EElvoC3oVdCFmb1XtNN4YZ8PZxu4
+        KF9W1ljm8aS5tYSBPzMBQgoVhbAn0/SZDQGpNCA=
+X-Google-Smtp-Source: ABdhPJyfM8qcnwUwFPuBOWxf/nhdzSze6OhLMSC5D5CKuxNSnob61/Qq/zKpXX0h8tSuMp8c0doNFagZbAp0QYLfGHg=
+X-Received: by 2002:a05:6e02:214a:b0:2bf:a442:cbff with SMTP id
+ d10-20020a056e02214a00b002bfa442cbffmr11987525ilv.107.1645901083747; Sat, 26
+ Feb 2022 10:44:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
-X-Provags-ID: V03:K1:yea8lAhWsg2b284JbNbp1bAsDqhMJzbu+HTFIiw8iFSDFatyfPb
- mjBwN2E9rCnBU3bitsJLKVzL1zR8X3W+BGU39/iXsQAdRfj7mllmPE/wgVvtNqqkzi9RYmn
- suE6Z3BM/Cc+yGme+530l/JErtuLVhhfnaosILiC1SPJPC6u38vaO6d8i4pvNKJEowiEeqf
- RKTNTg0YipN2tkp+k9WPA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:rd50DzNluzk=:CxzKDPOsywbN/lwqTASyvx
- 3o+lMuZ6IM0RWiIFYS7B5OjKgSB0vZxYBhzlVCgq21dkJ57ORnIaNH5LoGMz8C2iAHxTecEdX
- TRY7WbgLTHxYS/FGC187EyaRn+caveLPvgzpGXKn7P8XuOFbUBpf72F/W9RlHA/f+SnWhO2ev
- O0a1FtC3luAPBAIh06Pr1+t+TCsyxb9rOlww5ubJF7Mkwy/cIiBZjlA6j/Rj5xEPjKR0BhMnZ
- l/qT4qF9z0fRyS5augxwa0EKPJVhYmiDC1Pyd9L2d6BgFekyokZAte7NaD7tLLpf2wJ+htdIu
- cUfDo3pwUrCjBp98oQC1vqa6c3eaNcALY0nwm84GB4aLfVX7piCoYQnHxeQ4Jk2dvfsbMIwv1
- gWygtEsAD2ifRAmH2gMGkG2tDWWSBZxLKzyY8d7TxLd/oFx0NahqnC8kPd/47ze0rJSV4WLy/
- YPFKYxWAzx9eYbYMNnF/P47jamQ3V0mt7MtrYmT4vdonhvAf+MQX0jOKoKYG2bePvVq7iRzKK
- liTyAG5jtV7rLaxbC5ipTj54ZuStvtHmyvUgoUsiM8kLY8Ql7bjErqy8C3rXkPE+r8WJB38Rj
- cF77bdY3ZWofzE7zXxPqg95EHaRRkTkXxIEMd2Bn5uBSArqbDQ8wTNdxUkSl/dGwJ3QfJHnFA
- TsxhFnA14+0dKP/ET2rvgLllYBdO/BmrHbYLaWCd95NoML45eKMo4BS1MoZZYDrph9ixR++fz
- HKCp1m1OwCfNg8am87F5i1KPPN+jEWeUkkhIWFwrXrkXaBq5dle75pI0deYGi9PUXGxm/n0e3
- 6ZrJ1vemgmolspH9+1hQ+KzLjnd5MVTZv0F1xURlKzaZemriTiiK4M5i85cCYEiwSukoFjIJP
- lBYPzbtS28qPtQyvahjCK7k5RO4oM4J9l7U+AtJKLmOh5fZlqay6/YcuPI2l3FuzNtRE/CT+n
- wPaYs+Aagyw4tJm+Jcoyeidtm3KC4k6THfYFus8pEygFNjQWKde0tzdT6igsfdLOf5kCCiBG9
- GhdUrg4joYZTqkPNPqBW7oso2BpDMhdWyWdAoW910r3HfZ+85Fm55rv7MTCVgeJqU2y7e6G3I
- eQZy878BMm2534=
+References: <20220226152520.289069-1-cgxu519@mykernel.net>
+In-Reply-To: <20220226152520.289069-1-cgxu519@mykernel.net>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 26 Feb 2022 20:44:32 +0200
+Message-ID: <CAOQ4uxjs83s7YdMFLTYOA2BOODme4XSymQHzDQ4DEgG4zQ7ykw@mail.gmail.com>
+Subject: Re: [PATCH] overlay/079: test for parent directory consistancy in copy-up
+To:     Chengguang Xu <cgxu519@mykernel.net>
+Cc:     Eryu Guan <guaneryu@gmail.com>, fstests <fstests@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Am Montag, 21. Februar 2022, 12:11:47 CET schrieb Miklos Szeredi:
+On Sat, Feb 26, 2022 at 8:15 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
 >
-> Thanks for the patch.
+> Make sure the change for parent direcotry get synced in copy-up.
 >
-> How about the following (untested) variant?
+> Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
+> ---
+>  tests/overlay/079     | 50 +++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/079.out |  2 ++
+>  2 files changed, 52 insertions(+)
+>  create mode 100755 tests/overlay/079
+>  create mode 100644 tests/overlay/079.out
 >
-> Thanks,
-> Miklos
->
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 7bb0a47cb615..955aeefc3b29 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1413,11 +1413,12 @@ static int ovl_make_workdir(struct super_block *=
-sb,
-> struct ovl_fs *ofs, */
->  	err =3D ovl_do_setxattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE, "0", 1);
->  	if (err) {
-> +		pr_warn("failed to set xattr on upper\n");
->  		ofs->noxattr =3D true;
->  		if (ofs->config.index || ofs->config.metacopy) {
->  			ofs->config.index =3D false;
->  			ofs->config.metacopy =3D false;
-> -			pr_warn("upper fs does not support xattr, falling back to
-> index=3Doff,metacopy=3Doff.\n"); +			pr_warn("...falling back to
-> index=3Doff,metacopy=3Doff.\n");
->  		}
->  		/*
->  		 * xattr support is required for persistent st_ino.
-> @@ -1425,8 +1426,10 @@ static int ovl_make_workdir(struct super_block *s=
-b,
-> struct ovl_fs *ofs, */
->  		if (ofs->config.xino =3D=3D OVL_XINO_AUTO) {
->  			ofs->config.xino =3D OVL_XINO_OFF;
-> -			pr_warn("upper fs does not support xattr, falling back to xino=3Doff=
-.\n");
-> +			pr_warn("...falling back to xino=3Doff.\n");
->  		}
-> +		if (err =3D=3D -EPERM && !ofs->config.userxattr)
-> +			pr_info("try mounting with 'userxattr' option\n");
->  		err =3D 0;
->  	} else {
->  		ovl_do_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
+> diff --git a/tests/overlay/079 b/tests/overlay/079
+> new file mode 100755
+> index 00000000..c542cfc9
+> --- /dev/null
+> +++ b/tests/overlay/079
+> @@ -0,0 +1,50 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (c) 2022 Chengguang Xu <cgxu519@mykernel.net>.
+> +# All Rights Reserved.
+> +#
+> +# FS QA Test 079
+> +#
+> +# Test copy up consistency for parent directory.
+> +#
+> +. ./common/preamble
+> +_begin_fstest copyup quick
+> +
+> +# get standard environment, filters and checks
+> +. ./common/rc
+> +. ./common/filter
+> +
+> +# remove previous $seqres.full before test
+> +rm -f $seqres.full
+> +
+> +# real QA test starts here
+> +
+> +# Modify as appropriate.
+> +_supported_fs overlay
+> +_require_scratch
+> +#_require_command "$FLOCK_PROG" flock
+> +_require_scratch_shutdown
+> +
+> +
+> +# Remove all files from previous tests
+> +_scratch_mkfs
+> +
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
+> +mkdir -p $lowerdir/foo_dir
+> +echo a > /tmp/foo
+> +echo a > $lowerdir/foo_dir/foo
+> +
+> +# Mounting overlay
+> +_scratch_mount
+> +
+> +touch $SCRATCH_MNT/foo_dir/foo
+> +_scratch_shutdown
+> +_scratch_cycle_mount
+> +
+> +echo "Silence is golden"
+> +diff /tmp/foo $upperdir/foo_dir/foo
+> +
 
-Seems sensible to me, since it doesn't duplicate information in case index=
-, metacopy or xino are attempted to be used.
+NACK.
 
-Alois
+Absolutely no reason for us to guarantee that file is copied up
+if the user did not request explicit sync on the file or the directory.
 
+Really, what is driving you to make this change and test?
+If it is a real world use case, then please encode the real use case
+in the form of a test.
 
+Thanks,
+Amir.
