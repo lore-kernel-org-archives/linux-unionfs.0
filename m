@@ -2,102 +2,76 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BABAFC433FE
-	for <linux-unionfs@archiver.kernel.org>; Mon, 28 Feb 2022 11:39:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34D59C433F5
+	for <linux-unionfs@archiver.kernel.org>; Mon, 28 Feb 2022 15:06:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234148AbiB1LkS (ORCPT
+        id S234103AbiB1PHb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 28 Feb 2022 06:40:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35344 "EHLO
+        Mon, 28 Feb 2022 10:07:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235919AbiB1LkM (ORCPT
+        with ESMTP id S233524AbiB1PHa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 28 Feb 2022 06:40:12 -0500
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7329571C8C;
-        Mon, 28 Feb 2022 03:39:33 -0800 (PST)
-Received: by mail-wr1-x433.google.com with SMTP id j17so15027389wrc.0;
-        Mon, 28 Feb 2022 03:39:33 -0800 (PST)
+        Mon, 28 Feb 2022 10:07:30 -0500
+Received: from mail-vk1-xa2b.google.com (mail-vk1-xa2b.google.com [IPv6:2607:f8b0:4864:20::a2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30DB076E0B
+        for <linux-unionfs@vger.kernel.org>; Mon, 28 Feb 2022 07:06:50 -0800 (PST)
+Received: by mail-vk1-xa2b.google.com with SMTP id l10so5306152vki.9
+        for <linux-unionfs@vger.kernel.org>; Mon, 28 Feb 2022 07:06:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=vAdCnAeNh+/KXi8tE5JN2RpP/3wcVJ4rhcaX9E9RdrA=;
-        b=W3vPFEEPyICp8MlhFKv76zhnFJNC9xv8u0PXU1xzwdb2TzfXc0FQISOxrdcEpg4Pym
-         b24r8geHTgtGlgoqUdZdb+VRzQxUnsQaVqT4HVSb9fei3+6FspHdp32wi2/DjZnGb8Gt
-         hvsF/ZDTmhHMkHshiP4AdTQdDtWSL8H5jGrxyJr1ql+qz3jdTyAgQ9wLhu/LHi4QYirZ
-         6sJZYEg1BHZ9mOhW+xu7gVXPj+GDgrMgkA9H3qDtetATyb0amlpscozMVuP0sY0ey7/i
-         eBdRMgm+JuNlv4FTCZarbAkAAdZie42tbQYEoQ24ePBLyXEaohO3etcu8TJK64j186XS
-         xnyA==
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=jiqKta+C/bUAijQgVs2pIwZxEquJxCrRrkx40wt5xeU=;
+        b=jrZ7QG8cvbuAWbySWWqcPRl1HzBxXrPIQi88Qwxn9KEns4B4V6BG/WCFVt2TODG2Ek
+         mVVcRUWT7BUAL5BAyusW6Vh4apN5Ewv3KR/Aq+pMkgfcel1DXFU8JWDqrvlCEpRo5wt5
+         tALdoK1ujT5pztZcBl+qe2p7Xd+6FhJuFYLw0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=vAdCnAeNh+/KXi8tE5JN2RpP/3wcVJ4rhcaX9E9RdrA=;
-        b=d+U7PcxGH+yKdD5KSdYCE+Rmfjnc+vyjgLxQkzDxwl6c3XQG0SirMtjK+2ijq5L3vW
-         EVjQOOvUKoM2eemxLQ+ll/5kxb9Th6dGbObgryZCrje9Cs5IhzRdvHLMQ/JTGObHWlN2
-         E1Pku8jalNFsmW9C+7verKJ7tRx1MX7kHftR9v7O0wrKGY4FSol6W4/mpjjFzQziF4xZ
-         yjKOGLbN39GF/AXDIKeg6iCa8xy2NGqy6pxzOd1B8RJlD1yL8TJDHlDSJ/OtgA/hZkEX
-         Qg8j/sgrC9Dk4hsPoUjpSQrwOanEe33kN8jdxFpP3HqNLQ0q9AvchYJXzYbqZCK8g2rL
-         pGIA==
-X-Gm-Message-State: AOAM532mSUI2DGlDYK1aWec2qa4b4rJiSsBv1NqD9WPtYV+CEd5CrCp6
-        GAzgjqhqmKBssKxxUEezPzM=
-X-Google-Smtp-Source: ABdhPJzCwegu8RMbRSzfsAQ+1JNo6Vm/YBliXUJFP9x33x0YfWht3hz6LdU7WKY2g6lHTJ039q1VTw==
-X-Received: by 2002:a5d:67ca:0:b0:1ed:d1e4:bce2 with SMTP id n10-20020a5d67ca000000b001edd1e4bce2mr15282901wrw.493.1646048372055;
-        Mon, 28 Feb 2022 03:39:32 -0800 (PST)
-Received: from localhost.localdomain ([5.29.13.154])
-        by smtp.gmail.com with ESMTPSA id e22-20020adf9bd6000000b001eda1017861sm10584592wrc.64.2022.02.28.03.39.31
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 28 Feb 2022 03:39:31 -0800 (PST)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org,
-        containers@lists.linux.dev, linux-fsdevel@vger.kernel.org
-Subject: [PATCH v2 5/6] ovl: opt-in for per-mount io stats
-Date:   Mon, 28 Feb 2022 13:39:09 +0200
-Message-Id: <20220228113910.1727819-6-amir73il@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220228113910.1727819-1-amir73il@gmail.com>
-References: <20220228113910.1727819-1-amir73il@gmail.com>
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=jiqKta+C/bUAijQgVs2pIwZxEquJxCrRrkx40wt5xeU=;
+        b=75Pg3V1tGxz1BXPJyNn0tUE7Nqm5tnfaE0NFH9MQuehT24fD+kxV4n9zAt+qF76zs8
+         0KfxO2eVHbbJHnBzdWylkq62991YEZ7+7vhDQyMU3HqgY7FLLECjfAgrmMBPhY7zlJna
+         qUqlLCjNZBaBTJ7GYDjAqFqHOeg8ilk5E7dOJKzBoaEUnhCjesKHfTUQFcKC3q9ZNdE8
+         bzt2R3Eh46jsuYYJOto+gn3+oqrFAUkvoWjrNHgMsnD1BYnDnRb+xxshxQaF4wBHGDvE
+         MQQcTc5qRYSUzuASSKl/VsGWkQAT6xKbzcDVH3ryJOeHlmlzwDqNZYLq6zfgbsf75vJ6
+         iIlQ==
+X-Gm-Message-State: AOAM531ZYUEsrsGADy6FhaNJ3pJsLEBpjBEBT+iXU5u4UCwL+q3+VI3z
+        rGq3yJ0s9CgQa3XouT0TwOBL5U+N+eA1SmyHq2MFeg==
+X-Google-Smtp-Source: ABdhPJwG4oeunZtfTAqFSdPSvXQ/EGO74OOSjPwKybQKY955Q+Lm+yXaJNDZXx6QkmGxjo5MfMxF2Uv2x7n3YyUuw60=
+X-Received: by 2002:a05:6122:2213:b0:31b:76c3:16df with SMTP id
+ bb19-20020a056122221300b0031b76c316dfmr7894044vkb.31.1646060809331; Mon, 28
+ Feb 2022 07:06:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220228113910.1727819-1-amir73il@gmail.com> <20220228113910.1727819-5-amir73il@gmail.com>
+In-Reply-To: <20220228113910.1727819-5-amir73il@gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Mon, 28 Feb 2022 16:06:38 +0100
+Message-ID: <CAJfpegvZefGp9NChm_69Km0FgpxwUs+og-uc2mpMAbH6mZ2azQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/6] fs: report per-mount io stats
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        containers@lists.linux.dev, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Traditionally, system administrators have used the iostat utility
-to track the amount of io performed to a local disk filesystem.
+On Mon, 28 Feb 2022 at 12:39, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Show optional collected per-mount io stats in /proc/<pid>/mountstats
+> for filesystems that do not implement their own show_stats() method
+> and opted-in to generic per-mount stats with FS_MOUNT_STATS flag.
 
-Similar functionality is provided for NFS mounts via the nfsstat
-utility that reads the NFS client's stats from /proc/pid/mountstats.
+This would allow some filesystems to report per-mount I/O stats, while
+leaving CIFS and NFS reporting a different set of per-sb stats.  This
+doesn't sound very clean.
 
-There is currently no good way for a system administrator or a
-monitoring application inside a container to track the amount of io
-performed via overlayfs.
+There was an effort to create saner and more efficient interfaces for
+per-mount info.  IMO this should be part of that effort instead of
+overloading the old interface.
 
-Opt-in for generic io stats via /proc/pid/mountstats to provide
-that functionality.
-
-This feature depends on CONFIG_MOUNT_IO_STATS.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/super.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 7bb0a47cb615..802e4ed567cc 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -2165,7 +2165,7 @@ static struct dentry *ovl_mount(struct file_system_type *fs_type, int flags,
- static struct file_system_type ovl_fs_type = {
- 	.owner		= THIS_MODULE,
- 	.name		= "overlay",
--	.fs_flags	= FS_USERNS_MOUNT,
-+	.fs_flags	= FS_USERNS_MOUNT | FS_MOUNT_STATS,
- 	.mount		= ovl_mount,
- 	.kill_sb	= kill_anon_super,
- };
--- 
-2.25.1
-
+Thanks,
+Miklos
