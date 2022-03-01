@@ -2,134 +2,151 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2674C433EF
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 01:09:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81F46C433EF
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 09:46:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231663AbiCABKI (ORCPT
+        id S229909AbiCAJr0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 28 Feb 2022 20:10:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46876 "EHLO
+        Tue, 1 Mar 2022 04:47:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230126AbiCABKD (ORCPT
+        with ESMTP id S232295AbiCAJrZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 28 Feb 2022 20:10:03 -0500
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16F3A2DE5
-        for <linux-unionfs@vger.kernel.org>; Mon, 28 Feb 2022 17:09:22 -0800 (PST)
-Received: by mail-ed1-x530.google.com with SMTP id q17so19980513edd.4
-        for <linux-unionfs@vger.kernel.org>; Mon, 28 Feb 2022 17:09:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=XQU+v0ncJKQsq8KVJD+e40cIco7m2GBd4rHARca/WR4=;
-        b=0jmzKwCWF4tyUOMYPO79E8fZ5IPNMaa8ViRAkdhJVQ+rpvYnB807H9RFMUbcIp7BZU
-         gZHQ1rDBx3PK62BLmbBlNNAT3jyzYaL4Q2y1jktn63TwPT5ab7vdpiN4MQeP1MOCyfW/
-         1hrpDZVGloDoRW/S3YgB7ZGNi+EX7JpeqF+27/Xd6NI08vCg4fnWr5/UMmQ3YP+rWN2q
-         yIGHsrbeKMCBBBgIhh1S5ZwIKqOb+wr4/4iLEbQ7SulNvHeNpE2lVCx7J+vfXvAVBYuU
-         4/QobemQ3yboRwLVKSLl98uQ/+1XfxEHp6My70akJWohmiB80lkECn8ozqFNVuNZKksq
-         Vmzg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=XQU+v0ncJKQsq8KVJD+e40cIco7m2GBd4rHARca/WR4=;
-        b=FM1qi/7l8jnaoOdsjMJV1Gl3r5BLVnBold6EcfpXxnrR27pGmvo/uCkp55Z7BSV6B5
-         zDCnQXxtLip0QVt181TvvIav7mAcKxQ6OC7tpqgtRETzeTGoh/VQ4sKSpXH82Ek+1pjK
-         le4v3ut7mfcB3kKTpBqXsb/RQ0oxMgACHM3ulYd2ZmdjZcyxJXzyrdsd3Gshr8EM02am
-         XILlUGfWtrwn0MRTCvbt7hAAwP90ureMvBaWaZ0gnFIKKoX8nb7fuLrDyN629coqe2bZ
-         7zyQ7BqTA/Ub341qWlY+3iU3kJfKCb5TqXitHkm7EZqYNBSljU+SUqiBzSo1saJJcHzX
-         nFVA==
-X-Gm-Message-State: AOAM5336Ozluv7xfq/Bt/OVAZYPwFlMBd6wbd8+Rs8Svspchql+PP/8P
-        CL3+Wl32QFeQglaywGIC+elOZM9IgV1dIchM93nD
-X-Google-Smtp-Source: ABdhPJyMYQib71KmGDawe2Sa6f6s4SJDfyMQRJedtkVd+Ib0jlueXrtB/26onK1/CMnUCdwxIX5WHVCU4U1exe/oGNQ=
-X-Received: by 2002:a05:6402:1e8e:b0:412:cfd8:4d12 with SMTP id
- f14-20020a0564021e8e00b00412cfd84d12mr21942842edf.343.1646096960582; Mon, 28
- Feb 2022 17:09:20 -0800 (PST)
-MIME-Version: 1.0
-References: <20211117015806.2192263-1-dvander@google.com> <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
- <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
- <YapjNRrjpDu2a5qQ@redhat.com>
-In-Reply-To: <YapjNRrjpDu2a5qQ@redhat.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 28 Feb 2022 20:09:09 -0500
-Message-ID: <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
-Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-To:     Vivek Goyal <vgoyal@redhat.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        David Anderson <dvander@google.com>
-Cc:     Mark Salyzyn <salyzyn@android.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "Eric W . Biederman" <ebiederm@xmission.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stephen Smalley <sds@tycho.nsa.gov>,
-        John Stultz <john.stultz@linaro.org>,
-        linux-doc@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        Tue, 1 Mar 2022 04:47:25 -0500
+Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AE8FD60D9C;
+        Tue,  1 Mar 2022 01:46:44 -0800 (PST)
+Received: from dread.disaster.area (pa49-186-17-0.pa.vic.optusnet.com.au [49.186.17.0])
+        by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id D359B10E1570;
+        Tue,  1 Mar 2022 20:46:41 +1100 (AEDT)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+        (envelope-from <david@fromorbit.com>)
+        id 1nOz5c-000Bhm-DQ; Tue, 01 Mar 2022 20:46:40 +1100
+Date:   Tue, 1 Mar 2022 20:46:40 +1100
+From:   Dave Chinner <david@fromorbit.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Al Viro <viro@zeniv.linux.org.uk>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        LSM List <linux-security-module@vger.kernel.org>,
-        kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
-        paulmoore@microsoft.com, Luca.Boccassi@microsoft.com
-Content-Type: text/plain; charset="UTF-8"
+        containers@lists.linux.dev,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH v2 4/6] fs: report per-mount io stats
+Message-ID: <20220301094640.GD3927073@dread.disaster.area>
+References: <20220228113910.1727819-1-amir73il@gmail.com>
+ <20220228113910.1727819-5-amir73il@gmail.com>
+ <20220228211113.GB3927073@dread.disaster.area>
+ <CAOQ4uxjPHxO+S3tOarO5w_rBwyFTgd7oMcC4f5xW7opCWb4LVQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjPHxO+S3tOarO5w_rBwyFTgd7oMcC4f5xW7opCWb4LVQ@mail.gmail.com>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.4 cv=e9dl9Yl/ c=1 sm=1 tr=0 ts=621deb83
+        a=+dVDrTVfsjPpH/ci3UuFng==:117 a=+dVDrTVfsjPpH/ci3UuFng==:17
+        a=kj9zAlcOel0A:10 a=o8Y5sQTvuykA:10 a=7-415B0cAAAA:8 a=pGLkceISAAAA:8
+        a=gsa_uG_OR_wHGMIp19MA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-I wanted to try and bring this thread back from the dead (?) as I
-believe the use-case is still valid and worth supporting.  Some more
-brief comments below ...
+On Mon, Feb 28, 2022 at 11:57:19PM +0200, Amir Goldstein wrote:
+> On Mon, Feb 28, 2022 at 11:11 PM Dave Chinner <david@fromorbit.com> wrote:
+> >
+> > On Mon, Feb 28, 2022 at 01:39:08PM +0200, Amir Goldstein wrote:
+> > > Show optional collected per-mount io stats in /proc/<pid>/mountstats
+> > > for filesystems that do not implement their own show_stats() method
+> > > and opted-in to generic per-mount stats with FS_MOUNT_STATS flag.
+> > >
+> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > > ---
+> > >  fs/mount.h          |  1 +
+> > >  fs/namespace.c      |  2 ++
+> > >  fs/proc_namespace.c | 13 +++++++++++++
+> > >  3 files changed, 16 insertions(+)
+> > >
+> > > diff --git a/fs/mount.h b/fs/mount.h
+> > > index f98bf4cd5b1a..2ab6308af78b 100644
+> > > --- a/fs/mount.h
+> > > +++ b/fs/mount.h
+> > > @@ -91,6 +91,7 @@ struct mount {
+> > >       int mnt_id;                     /* mount identifier */
+> > >       int mnt_group_id;               /* peer group identifier */
+> > >       int mnt_expiry_mark;            /* true if marked for expiry */
+> > > +     time64_t mnt_time;              /* time of mount */
+> > >       struct hlist_head mnt_pins;
+> > >       struct hlist_head mnt_stuck_children;
+> > >  } __randomize_layout;
+> > > diff --git a/fs/namespace.c b/fs/namespace.c
+> > > index 3fb8f11a42a1..546f07ed44c5 100644
+> > > --- a/fs/namespace.c
+> > > +++ b/fs/namespace.c
+> > > @@ -220,6 +220,8 @@ static struct mount *alloc_vfsmnt(const char *name)
+> > >               mnt->mnt_count = 1;
+> > >               mnt->mnt_writers = 0;
+> > >  #endif
+> > > +             /* For proc/<pid>/mountstats */
+> > > +             mnt->mnt_time = ktime_get_seconds();
+> > >
+> > >               INIT_HLIST_NODE(&mnt->mnt_hash);
+> > >               INIT_LIST_HEAD(&mnt->mnt_child);
+> > > diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
+> > > index 49650e54d2f8..d744fb8543f5 100644
+> > > --- a/fs/proc_namespace.c
+> > > +++ b/fs/proc_namespace.c
+> > > @@ -232,6 +232,19 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
+> > >       if (sb->s_op->show_stats) {
+> > >               seq_putc(m, ' ');
+> > >               err = sb->s_op->show_stats(m, mnt_path.dentry);
+> > > +     } else if (mnt_has_stats(mnt)) {
+> > > +             /* Similar to /proc/<pid>/io */
+> > > +             seq_printf(m, "\n"
+> > > +                        "\ttimes: %lld %lld\n"
+> > > +                        "\trchar: %lld\n"
+> > > +                        "\twchar: %lld\n"
+> > > +                        "\tsyscr: %lld\n"
+> > > +                        "\tsyscw: %lld\n",
+> > > +                        r->mnt_time, ktime_get_seconds(),
+> > > +                        mnt_iostats_counter_read(r, MNTIOS_CHARS_RD),
+> > > +                        mnt_iostats_counter_read(r, MNTIOS_CHARS_WR),
+> > > +                        mnt_iostats_counter_read(r, MNTIOS_SYSCALLS_RD),
+> > > +                        mnt_iostats_counter_read(r, MNTIOS_SYSCALLS_WR));
+> >
+> > This doesn't scale as {cpus, mounts, counters, read frequency}
+> > matrix explodes.  Please iterate the per-mount per cpu counters
+> > once, adding up all counters in one pass to an array on stack, then
+> > print them all from the array.
+> 
+> I am planning to move to per-sb iostats and was thinking of using
+> an array of 4 struct percpu_counter. That will make this sort of iteration
+> more challenging.
 
-On Fri, Dec 3, 2021 at 1:34 PM Vivek Goyal <vgoyal@redhat.com> wrote:
-> I am not sure. In the early version of patches I think argument was
-> that do not switch to mounter's creds and use caller's creds on
-> underlying filesystem as well. And each caller will be privileged
-> enough to be able to perform the operation.
+No, it would get rid of it entirely. percpu_counter_read_positive()
+does not require any summing at all - that's a much better solution
+than a hand rolled set of percpu counters. Please do this.
 
-The basic idea is that we can now build Linux systems with enough
-access control granularity such that a given process can have the
-necessary privileges to mount a filesystem, but not necessarily access
-all of the data on the filesystem, while other processes, with
-different access rights, are allowed to read and write data on the
-mounted filesystem.  Granted, this is a bit different from how things
-are usually done, but in my opinion it's a valid and interesting use
-case in that it allows us to remove unneeded access rights from
-historically very privileged system startup services/scripts: the
-service that runs to mount my homedir shouldn't be allowed to access
-my files just to mount the directory.
+> Do you really think the read frequency of /proc/self/mountstats
+> warrants such performance optimization?
 
-Unfortunately, this idea falls apart when we attempt to use overlayfs
-due to the clever/usual way it caches the mounting processes
-credentials and uses that in place of the current process' credentials
-when accessing certain parts of the underlying filesystems.  The
-current overlayfs implementation assumes that the mounter will always
-be more privileged than the processes accessing the filesystem, it
-would be nice if we could build a mechanism that didn't have this
-assumption baked into the implementation.
+We get bug reports every so often about the overhead of frequently
+summing per-cpu stats on large systems. Nothing ratelimits or
+restricts access to /proc/self/mountstats, so when you have a
+thousand CPUs and a million monkeys...
 
-This patchset may not have been The Answer, but surely there is
-something we can do to support this use-case.
+Rule of thumb: don't do computationally expensive things to generate
+data for globally accessible sysfs files.
 
-> Our take was that how is this model better because in current model
-> only mounter needs to be privileged while in this new model each
-> caller will have to be privileged. But Android guys seemed to be ok
-> with that. So has this assumption changed since early days. If callers
-> are privileged, then vfs_getxattr() on underlying filesystem for
-> overaly internal xattrs should succeed and there is no need for this
-> change.
->
-> I suspect patches have evolved since then and callers are not as
-> privileged as we expect them to and that's why we are bypassing this
-> check on all overlayfs internal trusted xattrs? This definitely requires
-> much close scrutiny. My initial reaction is that this sounds very scary.
->
-> In general I would think overlayfs should not bypass the check on
-> underlying fs. Either checks should be done in mounter's context or
-> caller's context (depending on override_creds=on/off).
->
-> Thanks
-> Vivek
+> It's not like the case of the mighty struct xfsstats.
+> It is only going to fold 4 per cpu iterations into 1.
+> This doesn't look like a game changer to me.
+> Am I missing something?
 
+I'm just pointing out something we've had problems with in
+the past and are trying to help you avoid making the same mistakes.
+That's what reviewers are supposed to do, yes?
+
+Cheers,
+
+Dave.
 -- 
-paul-moore.com
+Dave Chinner
+david@fromorbit.com
