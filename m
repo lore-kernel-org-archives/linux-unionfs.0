@@ -2,61 +2,61 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 567A9C433F5
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 18:42:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C1C3C433FE
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 18:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236957AbiCASn3 (ORCPT
+        id S236968AbiCASn3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
         Tue, 1 Mar 2022 13:43:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51114 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51292 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235801AbiCASnZ (ORCPT
+        with ESMTP id S236910AbiCASn2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 1 Mar 2022 13:43:25 -0500
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4130B60E8;
-        Tue,  1 Mar 2022 10:42:43 -0800 (PST)
-Received: by mail-wr1-x433.google.com with SMTP id t11so949280wrm.5;
-        Tue, 01 Mar 2022 10:42:43 -0800 (PST)
+        Tue, 1 Mar 2022 13:43:28 -0500
+Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63B505F9F;
+        Tue,  1 Mar 2022 10:42:46 -0800 (PST)
+Received: by mail-wm1-x32b.google.com with SMTP id q7-20020a7bce87000000b00382255f4ca9so1271225wmj.2;
+        Tue, 01 Mar 2022 10:42:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=from:to:cc:subject:date:message-id:in-reply-to:references
          :mime-version:content-transfer-encoding;
-        bh=ueonWTV//RvtAAAtBT8j+To7cQQtx5NYZB3dLunG3vo=;
-        b=Vp5u/dG3SIycMZeKXNcldGx9X1K4Vy/TwiYNqSqJwbAOpB3a3gdPwptS84IONVHao2
-         a5jUW3bacopJO71ZjBszFhEPKgCB65rdva5zzhu2CqyVkU4GdqLu9FvBF/+6ln5iag4p
-         hy4CmlJnKDHhzN6OIC/mmI+ncWIXAqI2mdIOHG0JrI1iiurq4cpneUjDb3Pl0PAGhizZ
-         TbbV/b6p7e84gOlkmVeC0BtYFVbNwS6mm7RjR8EFju0MBGLj1PXdYJRtc3Q4z+psb7Nb
-         fGkIPYeQS5Ni8avnfgSalslsgmL+QecYu5VsiP03QRn1ZxtaJ8QNUN4dVvmVYKzqv/F0
-         iw5Q==
+        bh=keu9XQdfLfISkI3it9Db+YQ9uyOCCwUS2A+od60Osj8=;
+        b=G+z/lzCJEZBFBWlqsLo6tNPh4FGNQTLjf5h5dqt3kIF3nwF/8hymAed/XgdjfQuDtA
+         ICIIUY9c1yd3YT8SdK5V+7+5FpH6hc3GEO9uHSPV4A6y+FCmAG5E7kpgNuB2JsQVBca4
+         5nN7lnp0iv/5+Q/ajOjjmXYzU2ZZsBiHr1qxulIsTHw47/Jjc+ZLLFqViRjZAl8suV4k
+         k/JJ835Rhp9n/5WgF6joh34HGv5lOeS6pYvDrIfFObUfmQs1tIhU3OgulDVDuTDpNXJk
+         fnriEbUF9nswpXgpcAIHGz5qhisT6iGST8uvxhdBkldMqO90Khav9/1GtPZx8IvxRI0J
+         b0QQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
          :references:mime-version:content-transfer-encoding;
-        bh=ueonWTV//RvtAAAtBT8j+To7cQQtx5NYZB3dLunG3vo=;
-        b=jR9f1aR1akSgHUfCOILcdEe+5GxIER1SIo16WKDGgGPdxs846DPp02dd46fxwB5m20
-         GfqkSq3YxDYrvElTF4VUxHXi6QWHUmPeGUbaUiXQOA5cHZmY6g6V9VRDoFm/Ri9P3vmg
-         2oLNzuwKuJNhtMO6JE5QlgQoC9ln55pOmIp4pXAXAvFR0RUkCSk+6PcfX/VEy5AH8x2t
-         oc9Qo8QtZjbGw6eZZxn7qLOHQomtlrWX1lf+7AiupJnxCuHRUHUEQKLZWM3FC4bNxi1d
-         7Tnr+LT7D2KBj/pogSz7le96RoZhsb/HS/DgV3Kho/50tW6gow3XTykKQsSp4R7hLWGH
-         jrdg==
-X-Gm-Message-State: AOAM530SNa6ZSLHJATjJZhmY+pr2EekOl8fUjKPXYnN/oj5JPexAcrw8
-        gR8lZc+LjuKT1b+elB/2C6w=
-X-Google-Smtp-Source: ABdhPJwBn9+3kcV+Ev0GGTjW3YMOEQ5GEVq+NX4Vv5Kbm5xNwBpSV6vaWAu2zmnFDehK0pGVIshBJA==
-X-Received: by 2002:adf:e751:0:b0:1f0:2139:2489 with SMTP id c17-20020adfe751000000b001f021392489mr2451021wrn.319.1646160161732;
-        Tue, 01 Mar 2022 10:42:41 -0800 (PST)
+        bh=keu9XQdfLfISkI3it9Db+YQ9uyOCCwUS2A+od60Osj8=;
+        b=qt7Do7habv4pnVuutwONMcNrJ/3IBf4j2Y0bdWSurRmaxsLHLYPFguVA416W7pWHHl
+         i/Y9t7l9UfJsXX1t2njfZ0W8sdm5R/T6Hu2wNEI7TjscSHR5DEaNvLszPJmr7JMR3jdC
+         zlLDLVJ3/3S+TCB0QvN7UMKtJYaQferfomkqCCJVx/T8JFl7DNOD28+AdYf6uzwPezcY
+         bJBLI+cuYRpqyWyqPzX4ON75ydg2gG4mow2mjzDgZh4fgglbYKFoA5ia2WieqPac8+mI
+         wQZdAiyAPPt8QmgTiNohGdBqZl2e+sl1BSPe3aBpEpRk/NR0fZDRhKHeCMASH3ghSKHi
+         CD2g==
+X-Gm-Message-State: AOAM5301UZpFhBvgemxpVUhkZp/M0iZAl27OWwWfdVl8GwEifQsB17an
+        ZW9EfK7vclG/9AExSjlC10s1eNptx/4=
+X-Google-Smtp-Source: ABdhPJz4MhuP1dVTfxo3a0hBm9dAT0IO3U32gcTpSu/6Qml5rElhu8Bg/0welr5e0juVKTefq8i2Tw==
+X-Received: by 2002:a7b:cb46:0:b0:37b:dd79:e1c4 with SMTP id v6-20020a7bcb46000000b0037bdd79e1c4mr17704458wmj.39.1646160164933;
+        Tue, 01 Mar 2022 10:42:44 -0800 (PST)
 Received: from localhost.localdomain ([77.137.71.203])
-        by smtp.gmail.com with ESMTPSA id f1-20020a5d4dc1000000b001eeadc98c0csm14020381wru.101.2022.03.01.10.42.40
+        by smtp.gmail.com with ESMTPSA id f1-20020a5d4dc1000000b001eeadc98c0csm14020381wru.101.2022.03.01.10.42.43
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 01 Mar 2022 10:42:41 -0800 (PST)
+        Tue, 01 Mar 2022 10:42:44 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Dave Chinner <david@fromorbit.com>,
         Al Viro <viro@zeniv.linux.org.uk>,
         linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: [PATCH v3 4/6] fs: report per-sb io stats
-Date:   Tue,  1 Mar 2022 20:42:19 +0200
-Message-Id: <20220301184221.371853-5-amir73il@gmail.com>
+Subject: [PATCH v3 6/6] fuse: opt-in for per-sb io stats
+Date:   Tue,  1 Mar 2022 20:42:21 +0200
+Message-Id: <20220301184221.371853-7-amir73il@gmail.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220301184221.371853-1-amir73il@gmail.com>
 References: <20220301184221.371853-1-amir73il@gmail.com>
@@ -66,49 +66,55 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Show optional collected per-sb io stats in /proc/<pid>/mountstats
-for filesystems that do not implement their own show_stats() method
-and opted-in to generic per-sb stats with sb_iostats_init().
+Traditionally, system administrators have used the iostat utility
+to track the amount of io performed to a local disk filesystem.
+
+Similar functionality is provided for NFS mounts via the nfsstat
+utility that reads the NFS client's stats from /proc/pid/mountstats.
+
+There is currently no good way for a system administrator or a
+monitoring application to track the amount of io performed via fuse
+filesystems.
+
+Opt-in for generic io stats via /proc/pid/mountstats to provide
+that functionality.
+
+It is possible to collect io stats on the server side inside libfuse,
+but those io stats will not cover cached writes and reads.  Therefore,
+implementing the server side io stats would be complementary to these
+client side io stats.  Also, this feature provides the io stats for
+existing fuse filesystem/lib release binaries.
+
+This feature depends on CONFIG_FS_IOSTATS.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/proc_namespace.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/fuse/inode.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
-index 49650e54d2f8..9054a909e031 100644
---- a/fs/proc_namespace.c
-+++ b/fs/proc_namespace.c
-@@ -11,6 +11,7 @@
- #include <linux/nsproxy.h>
- #include <linux/security.h>
- #include <linux/fs_struct.h>
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 9ee36aa73251..f19c666b9ac3 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -16,6 +16,7 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/fs_context.h>
 +#include <linux/fs_iostats.h>
- #include <linux/sched/task.h>
+ #include <linux/fs_parser.h>
+ #include <linux/statfs.h>
+ #include <linux/random.h>
+@@ -1517,6 +1518,10 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+ 	if (sb->s_flags & SB_MANDLOCK)
+ 		goto err;
  
- #include "proc/internal.h" /* only for get_proc_task() in ->open() */
-@@ -232,6 +233,21 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
- 	if (sb->s_op->show_stats) {
- 		seq_putc(m, ' ');
- 		err = sb->s_op->show_stats(m, mnt_path.dentry);
-+	} else if (sb_has_iostats(sb)) {
-+		struct sb_iostats *iostats = sb_iostats(sb);
++	err = sb_iostats_init(sb);
++	if (err && err != -EOPNOTSUPP)
++		goto err;
 +
-+		/* Similar to /proc/<pid>/io */
-+		seq_printf(m, "\n"
-+			   "\ttimes: %lld %lld\n"
-+			   "\trchar: %lld\n"
-+			   "\twchar: %lld\n"
-+			   "\tsyscr: %lld\n"
-+			   "\tsyscw: %lld\n",
-+			   iostats->start_time, ktime_get_seconds(),
-+			   sb_iostats_counter_read(sb, SB_IOSTATS_CHARS_RD),
-+			   sb_iostats_counter_read(sb, SB_IOSTATS_CHARS_WR),
-+			   sb_iostats_counter_read(sb, SB_IOSTATS_SYSCALLS_RD),
-+			   sb_iostats_counter_read(sb, SB_IOSTATS_SYSCALLS_WR));
- 	}
+ 	rcu_assign_pointer(fc->curr_bucket, fuse_sync_bucket_alloc());
+ 	fuse_sb_defaults(sb);
  
- 	seq_putc(m, '\n');
 -- 
 2.25.1
 
