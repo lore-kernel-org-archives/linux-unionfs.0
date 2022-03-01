@@ -2,146 +2,134 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBF93C433F5
-	for <linux-unionfs@archiver.kernel.org>; Mon, 28 Feb 2022 21:57:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2674C433EF
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 01:09:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230266AbiB1V6M (ORCPT
+        id S231663AbiCABKI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 28 Feb 2022 16:58:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55020 "EHLO
+        Mon, 28 Feb 2022 20:10:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46876 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbiB1V6L (ORCPT
+        with ESMTP id S230126AbiCABKD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 28 Feb 2022 16:58:11 -0500
-Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BFBF1E3D0;
-        Mon, 28 Feb 2022 13:57:31 -0800 (PST)
-Received: by mail-io1-xd35.google.com with SMTP id h16so16338755iol.11;
-        Mon, 28 Feb 2022 13:57:31 -0800 (PST)
+        Mon, 28 Feb 2022 20:10:03 -0500
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16F3A2DE5
+        for <linux-unionfs@vger.kernel.org>; Mon, 28 Feb 2022 17:09:22 -0800 (PST)
+Received: by mail-ed1-x530.google.com with SMTP id q17so19980513edd.4
+        for <linux-unionfs@vger.kernel.org>; Mon, 28 Feb 2022 17:09:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
+        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=xf4uBhhIfQHVx53ho/xTmpxUaDsjAI9m8Hj30e+skGc=;
-        b=Y6+Logc2zBCIyJE3KzDomF2MV4Dbe7WAM4QvT08NJcqXn1pY0wWBEheV5ZMmpSVDPO
-         nNZBVl1vXboi+78HGHlm2axbj58NbOly1YGVP3P7TmKzE9Eg0iyqzejsCPWDqhK7FPIo
-         I+C4CfBNQTGLx99L2GphGQ0GkiCJQYbDQoIyLlEv8Nvm2tZgRnoKUPmUYbg0zGnGAEdp
-         DKGDXF2cFUijgy7Hprghpao6D3abP1HWsfn4sDKU5vrFGeQlIoSZqVf0dN2scCunPEK/
-         P+3OXAQNiSj3pRPW7WKxXdvZN/N0KBhT+78sUTDUy29O2YDaoGNlcMkSVXg0W/tBOK1t
-         Nelw==
+        bh=XQU+v0ncJKQsq8KVJD+e40cIco7m2GBd4rHARca/WR4=;
+        b=0jmzKwCWF4tyUOMYPO79E8fZ5IPNMaa8ViRAkdhJVQ+rpvYnB807H9RFMUbcIp7BZU
+         gZHQ1rDBx3PK62BLmbBlNNAT3jyzYaL4Q2y1jktn63TwPT5ab7vdpiN4MQeP1MOCyfW/
+         1hrpDZVGloDoRW/S3YgB7ZGNi+EX7JpeqF+27/Xd6NI08vCg4fnWr5/UMmQ3YP+rWN2q
+         yIGHsrbeKMCBBBgIhh1S5ZwIKqOb+wr4/4iLEbQ7SulNvHeNpE2lVCx7J+vfXvAVBYuU
+         4/QobemQ3yboRwLVKSLl98uQ/+1XfxEHp6My70akJWohmiB80lkECn8ozqFNVuNZKksq
+         Vmzg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=xf4uBhhIfQHVx53ho/xTmpxUaDsjAI9m8Hj30e+skGc=;
-        b=ZYHhWuPcrSIMyaDaQnLwahreIMMRH1tWahDqRNt0NS6VLRkr6HsTHdhatof7uBl53q
-         8oGiY1iW5dztJrqRCfXWPpPf2cXJ9luAwkpLZ2s7m99ZQIjzLSMeIPfF7/vyav89cMNI
-         HzIgjW4L1Uratx300YPJByZ2JU/cLdXbSGXplbxeibZ/AymgWYGnwWm0St4Woo7zeF6C
-         pArVyBtyMVswzsKMXDRrtwrIv//+mPVv9HvfShX3THxyiooMAaJ5mg1Ohzt5iByOXQ2A
-         LHJmKuGa4NoKuc/YdfSKyCke7HPhoVLfCnNZL3eIGiPk5TXh6bvsglF+wRnxXM2h+zNk
-         Pzww==
-X-Gm-Message-State: AOAM53170wEoPaPXRyWgIyX7GWLdgmKQ5GuVUyVnfHEnhQKuH3wlSsTE
-        9YXo4q73rIC2LUsfPYbS/FN5kVHhNv4r2AIXiMFpWUEpQdI=
-X-Google-Smtp-Source: ABdhPJym/U0tkp+DoUcf2t/SPX3ZBBoSc4j+hwaUEIMi00iKKzffQT96aocNZlp5TKUfUzWxWpHKGlQYvc+OsO0ofiU=
-X-Received: by 2002:a5d:8f98:0:b0:640:dedf:63ed with SMTP id
- l24-20020a5d8f98000000b00640dedf63edmr16776426iol.52.1646085450109; Mon, 28
- Feb 2022 13:57:30 -0800 (PST)
+        bh=XQU+v0ncJKQsq8KVJD+e40cIco7m2GBd4rHARca/WR4=;
+        b=FM1qi/7l8jnaoOdsjMJV1Gl3r5BLVnBold6EcfpXxnrR27pGmvo/uCkp55Z7BSV6B5
+         zDCnQXxtLip0QVt181TvvIav7mAcKxQ6OC7tpqgtRETzeTGoh/VQ4sKSpXH82Ek+1pjK
+         le4v3ut7mfcB3kKTpBqXsb/RQ0oxMgACHM3ulYd2ZmdjZcyxJXzyrdsd3Gshr8EM02am
+         XILlUGfWtrwn0MRTCvbt7hAAwP90ureMvBaWaZ0gnFIKKoX8nb7fuLrDyN629coqe2bZ
+         7zyQ7BqTA/Ub341qWlY+3iU3kJfKCb5TqXitHkm7EZqYNBSljU+SUqiBzSo1saJJcHzX
+         nFVA==
+X-Gm-Message-State: AOAM5336Ozluv7xfq/Bt/OVAZYPwFlMBd6wbd8+Rs8Svspchql+PP/8P
+        CL3+Wl32QFeQglaywGIC+elOZM9IgV1dIchM93nD
+X-Google-Smtp-Source: ABdhPJyMYQib71KmGDawe2Sa6f6s4SJDfyMQRJedtkVd+Ib0jlueXrtB/26onK1/CMnUCdwxIX5WHVCU4U1exe/oGNQ=
+X-Received: by 2002:a05:6402:1e8e:b0:412:cfd8:4d12 with SMTP id
+ f14-20020a0564021e8e00b00412cfd84d12mr21942842edf.343.1646096960582; Mon, 28
+ Feb 2022 17:09:20 -0800 (PST)
 MIME-Version: 1.0
-References: <20220228113910.1727819-1-amir73il@gmail.com> <20220228113910.1727819-5-amir73il@gmail.com>
- <20220228211113.GB3927073@dread.disaster.area>
-In-Reply-To: <20220228211113.GB3927073@dread.disaster.area>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 28 Feb 2022 23:57:19 +0200
-Message-ID: <CAOQ4uxjPHxO+S3tOarO5w_rBwyFTgd7oMcC4f5xW7opCWb4LVQ@mail.gmail.com>
-Subject: Re: [PATCH v2 4/6] fs: report per-mount io stats
-To:     Dave Chinner <david@fromorbit.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Al Viro <viro@zeniv.linux.org.uk>,
+References: <20211117015806.2192263-1-dvander@google.com> <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
+ <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
+ <YapjNRrjpDu2a5qQ@redhat.com>
+In-Reply-To: <YapjNRrjpDu2a5qQ@redhat.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Mon, 28 Feb 2022 20:09:09 -0500
+Message-ID: <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
+Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
+To:     Vivek Goyal <vgoyal@redhat.com>,
+        Amir Goldstein <amir73il@gmail.com>,
+        David Anderson <dvander@google.com>
+Cc:     Mark Salyzyn <salyzyn@android.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "Eric W . Biederman" <ebiederm@xmission.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stephen Smalley <sds@tycho.nsa.gov>,
+        John Stultz <john.stultz@linaro.org>,
+        linux-doc@vger.kernel.org,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>,
-        containers@lists.linux.dev,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+        LSM List <linux-security-module@vger.kernel.org>,
+        kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
+        paulmoore@microsoft.com, Luca.Boccassi@microsoft.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Feb 28, 2022 at 11:11 PM Dave Chinner <david@fromorbit.com> wrote:
+I wanted to try and bring this thread back from the dead (?) as I
+believe the use-case is still valid and worth supporting.  Some more
+brief comments below ...
+
+On Fri, Dec 3, 2021 at 1:34 PM Vivek Goyal <vgoyal@redhat.com> wrote:
+> I am not sure. In the early version of patches I think argument was
+> that do not switch to mounter's creds and use caller's creds on
+> underlying filesystem as well. And each caller will be privileged
+> enough to be able to perform the operation.
+
+The basic idea is that we can now build Linux systems with enough
+access control granularity such that a given process can have the
+necessary privileges to mount a filesystem, but not necessarily access
+all of the data on the filesystem, while other processes, with
+different access rights, are allowed to read and write data on the
+mounted filesystem.  Granted, this is a bit different from how things
+are usually done, but in my opinion it's a valid and interesting use
+case in that it allows us to remove unneeded access rights from
+historically very privileged system startup services/scripts: the
+service that runs to mount my homedir shouldn't be allowed to access
+my files just to mount the directory.
+
+Unfortunately, this idea falls apart when we attempt to use overlayfs
+due to the clever/usual way it caches the mounting processes
+credentials and uses that in place of the current process' credentials
+when accessing certain parts of the underlying filesystems.  The
+current overlayfs implementation assumes that the mounter will always
+be more privileged than the processes accessing the filesystem, it
+would be nice if we could build a mechanism that didn't have this
+assumption baked into the implementation.
+
+This patchset may not have been The Answer, but surely there is
+something we can do to support this use-case.
+
+> Our take was that how is this model better because in current model
+> only mounter needs to be privileged while in this new model each
+> caller will have to be privileged. But Android guys seemed to be ok
+> with that. So has this assumption changed since early days. If callers
+> are privileged, then vfs_getxattr() on underlying filesystem for
+> overaly internal xattrs should succeed and there is no need for this
+> change.
 >
-> On Mon, Feb 28, 2022 at 01:39:08PM +0200, Amir Goldstein wrote:
-> > Show optional collected per-mount io stats in /proc/<pid>/mountstats
-> > for filesystems that do not implement their own show_stats() method
-> > and opted-in to generic per-mount stats with FS_MOUNT_STATS flag.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  fs/mount.h          |  1 +
-> >  fs/namespace.c      |  2 ++
-> >  fs/proc_namespace.c | 13 +++++++++++++
-> >  3 files changed, 16 insertions(+)
-> >
-> > diff --git a/fs/mount.h b/fs/mount.h
-> > index f98bf4cd5b1a..2ab6308af78b 100644
-> > --- a/fs/mount.h
-> > +++ b/fs/mount.h
-> > @@ -91,6 +91,7 @@ struct mount {
-> >       int mnt_id;                     /* mount identifier */
-> >       int mnt_group_id;               /* peer group identifier */
-> >       int mnt_expiry_mark;            /* true if marked for expiry */
-> > +     time64_t mnt_time;              /* time of mount */
-> >       struct hlist_head mnt_pins;
-> >       struct hlist_head mnt_stuck_children;
-> >  } __randomize_layout;
-> > diff --git a/fs/namespace.c b/fs/namespace.c
-> > index 3fb8f11a42a1..546f07ed44c5 100644
-> > --- a/fs/namespace.c
-> > +++ b/fs/namespace.c
-> > @@ -220,6 +220,8 @@ static struct mount *alloc_vfsmnt(const char *name)
-> >               mnt->mnt_count = 1;
-> >               mnt->mnt_writers = 0;
-> >  #endif
-> > +             /* For proc/<pid>/mountstats */
-> > +             mnt->mnt_time = ktime_get_seconds();
-> >
-> >               INIT_HLIST_NODE(&mnt->mnt_hash);
-> >               INIT_LIST_HEAD(&mnt->mnt_child);
-> > diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
-> > index 49650e54d2f8..d744fb8543f5 100644
-> > --- a/fs/proc_namespace.c
-> > +++ b/fs/proc_namespace.c
-> > @@ -232,6 +232,19 @@ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
-> >       if (sb->s_op->show_stats) {
-> >               seq_putc(m, ' ');
-> >               err = sb->s_op->show_stats(m, mnt_path.dentry);
-> > +     } else if (mnt_has_stats(mnt)) {
-> > +             /* Similar to /proc/<pid>/io */
-> > +             seq_printf(m, "\n"
-> > +                        "\ttimes: %lld %lld\n"
-> > +                        "\trchar: %lld\n"
-> > +                        "\twchar: %lld\n"
-> > +                        "\tsyscr: %lld\n"
-> > +                        "\tsyscw: %lld\n",
-> > +                        r->mnt_time, ktime_get_seconds(),
-> > +                        mnt_iostats_counter_read(r, MNTIOS_CHARS_RD),
-> > +                        mnt_iostats_counter_read(r, MNTIOS_CHARS_WR),
-> > +                        mnt_iostats_counter_read(r, MNTIOS_SYSCALLS_RD),
-> > +                        mnt_iostats_counter_read(r, MNTIOS_SYSCALLS_WR));
+> I suspect patches have evolved since then and callers are not as
+> privileged as we expect them to and that's why we are bypassing this
+> check on all overlayfs internal trusted xattrs? This definitely requires
+> much close scrutiny. My initial reaction is that this sounds very scary.
 >
-> This doesn't scale as {cpus, mounts, counters, read frequency}
-> matrix explodes.  Please iterate the per-mount per cpu counters
-> once, adding up all counters in one pass to an array on stack, then
-> print them all from the array.
+> In general I would think overlayfs should not bypass the check on
+> underlying fs. Either checks should be done in mounter's context or
+> caller's context (depending on override_creds=on/off).
+>
+> Thanks
+> Vivek
 
-I am planning to move to per-sb iostats and was thinking of using
-an array of 4 struct percpu_counter. That will make this sort of iteration
-more challenging.
-
-Do you really think the read frequency of /proc/self/mountstats
-warrants such performance optimization?
-
-It's not like the case of the mighty struct xfsstats.
-It is only going to fold 4 per cpu iterations into 1.
-This doesn't look like a game changer to me.
-Am I missing something?
-
-Thanks,
-Amir.
+-- 
+paul-moore.com
