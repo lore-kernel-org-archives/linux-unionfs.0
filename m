@@ -2,99 +2,109 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93EECC433FE
-	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 14:50:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D50F5C433F5
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Mar 2022 18:42:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235400AbiCAOuv (ORCPT
+        id S232767AbiCASnU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 1 Mar 2022 09:50:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41566 "EHLO
+        Tue, 1 Mar 2022 13:43:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235396AbiCAOuu (ORCPT
+        with ESMTP id S232016AbiCASnT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 1 Mar 2022 09:50:50 -0500
-Received: from mail-io1-xd35.google.com (mail-io1-xd35.google.com [IPv6:2607:f8b0:4864:20::d35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F4389BB83
-        for <linux-unionfs@vger.kernel.org>; Tue,  1 Mar 2022 06:50:09 -0800 (PST)
-Received: by mail-io1-xd35.google.com with SMTP id r8so5098038ioj.9
-        for <linux-unionfs@vger.kernel.org>; Tue, 01 Mar 2022 06:50:09 -0800 (PST)
+        Tue, 1 Mar 2022 13:43:19 -0500
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12ADC2AD3;
+        Tue,  1 Mar 2022 10:42:38 -0800 (PST)
+Received: by mail-wr1-x434.google.com with SMTP id b5so21999314wrr.2;
+        Tue, 01 Mar 2022 10:42:38 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=h12pZLLQWjKnl9av0ZtyYFXYHF4YPtyxSvcwvXIynQk=;
-        b=nCnwG4NKxS0TSlYaoRcPAfcxGC1WA5p/7kTjbu6NdcCNV44q0TIFkKqsvGQPLInQ+5
-         yt0uVHyaSbWRPuyRFg9+JtM7dXlajL83ANOEKismyMSTG8q0J9M2cN8YcJLa1p2cv2nu
-         APWQSD9MIxYycEbqUMOXXK2XZ4pYjitnNh+x4=
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vLWjZLiCgt7J8tD1cvWy0HmD9TGfbY7gITgVAS69YxY=;
+        b=FDXRqbQ2x+BhkC0JQaPX6kuPk+mWWgJBqIIty6HIx5vdTebOREczeIYXuFSBGm9u1D
+         b3PkmYWj1hSZHiKl52mQodm2qrmDVFtcF9el32LubJRs20lFl90q8FO32QkYk7ZmEYiJ
+         V7PGrkuyKU6jD1513ApxAyGBxxm1XlmVXKkfMquBYfr9P3QKYpzkLXnqqfUELzGFLMM6
+         3iOIC82Rv+eb783r8gF8IQptAB6J+9ZnRBlFdMsxeqmKzPh/8g0woaoy3r46VWYwCHsD
+         SyWC05FkD5Ek6rHaeZ0/TPlmPxmgNmGYhS5tTXPnSmVnUSVeCxFmTwPJ8toBUhnRYNAo
+         jx/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=h12pZLLQWjKnl9av0ZtyYFXYHF4YPtyxSvcwvXIynQk=;
-        b=uhXM14u13mWxpu2pnuBEXKzWEc+sNUO1ZHaGd3owQM6kOjNKu7GS6kpDlYmmuAHAZV
-         u3kzZmr2bpe+JsS/OWqCrF17fmjvAocThQRBMdNwrGcGOIBAdQGTShNHEARmI3XgTSqf
-         4b0sO/DDbtLQn5GJKbenOOsWcPnHOpYcNjvryfehY7i/zMUteImKWn1J9pm280f3+TxK
-         9rNn+Wxy63YSnJixjHIsxsBthf6t3CIIzFPcwdrNY7R7Xy6nXneyzpiX54RSuoo23o/1
-         FS2KnI2sBhUJ6ZMDJvK4JpJsQyp6Sepxg/x6I37L4iQStCxwWj3+Zzo6T7mwAlplxA8q
-         mLAw==
-X-Gm-Message-State: AOAM53016v05Yybz5bqmZ2631HZTtPfcCta72jyB4JfJfNfkuWE/RHcy
-        H5utHSV1iG1kTMJAlYkqExa1621ArTF2JtzU0v46bA==
-X-Google-Smtp-Source: ABdhPJxB87Q/GSLvjY/UA0RecLRnf0udxlwj3X9jdnWw9h5Dx6fZ97OXoBCr99MZEclnk16i8qIvsmGrmTGyhgxFqJ4=
-X-Received: by 2002:a05:6638:160d:b0:314:e6e5:4699 with SMTP id
- x13-20020a056638160d00b00314e6e54699mr21276956jas.47.1646146208428; Tue, 01
- Mar 2022 06:50:08 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=vLWjZLiCgt7J8tD1cvWy0HmD9TGfbY7gITgVAS69YxY=;
+        b=bMqBcooHpo9Ic48SzMCnTAHDWxjZCln6mQHHt7xGFvlMGhWcFTz8vZOXlEwwRndYod
+         3ifmgsVwab9S7uDWkEhZzaVgrvy8daNSFaQqKNs/nUGZYajuorK4BV6ePhuWd1KrJynb
+         5tebe0ORP92xb3Yi5fXLldPQJxVgyn436f19NR6q/I7dzdBJgfFmmaUdImwncwbd0FQW
+         c2MiyMwDqJ+KNrsul20sL+rAhLISZscNCZwXA3UrfEFKkDhK/CO7YSo0KwWGUvFE7Oek
+         XWRvXp5fWebpzgspIypMZU/wcnL3fA00z2oUMdPiseBlU8sjRKvgwLmvRvx3Z7RduAN1
+         3CTQ==
+X-Gm-Message-State: AOAM532OcjHrkpKE+sUmucAg0etUZXF0XPMCaoe9+5tkFMfJfmgtL+5O
+        nTU7lxJm4/JIuMWCogLXgek8HxHYCCg=
+X-Google-Smtp-Source: ABdhPJxyF14dQoDRfHGTnen8PPZKWf39hq8Tl/3YYqOL02DaQr9kQ2og856cmSqQd0xUcl68RSnb5w==
+X-Received: by 2002:a5d:4890:0:b0:1ed:9d4e:f8ef with SMTP id g16-20020a5d4890000000b001ed9d4ef8efmr20825410wrq.595.1646160156482;
+        Tue, 01 Mar 2022 10:42:36 -0800 (PST)
+Received: from localhost.localdomain ([77.137.71.203])
+        by smtp.gmail.com with ESMTPSA id f1-20020a5d4dc1000000b001eeadc98c0csm14020381wru.101.2022.03.01.10.42.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 01 Mar 2022 10:42:36 -0800 (PST)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Dave Chinner <david@fromorbit.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH v3 0/6] Generic per-sb io stats
+Date:   Tue,  1 Mar 2022 20:42:15 +0200
+Message-Id: <20220301184221.371853-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20220226152058.288353-1-cgxu519@mykernel.net> <CAOQ4uxiWZ4TWq4LuNOHYMHDgX+2Srq_3HNe+t5z-Ch4AFw9bRA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiWZ4TWq4LuNOHYMHDgX+2Srq_3HNe+t5z-Ch4AFw9bRA@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 1 Mar 2022 15:49:57 +0100
-Message-ID: <CAJfpegumX+H_-iDxfnCx_oAkwBYZH_5k1PhZO5F6oKz-Hrwv5Q@mail.gmail.com>
-Subject: Re: [RFC PATCH] ovl: fsync parent directory in copy-up
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Chengguang Xu <cgxu519@mykernel.net>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, 26 Feb 2022 at 17:38, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Sat, Feb 26, 2022 at 5:21 PM Chengguang Xu <cgxu519@mykernel.net> wrote:
-> >
-> > Calling fsync for parent directory in copy-up to
-> > ensure the change get synced.
->
-> It is not clear to me that this change is really needed
-> What if the reported problem?
->
-> Besides this can impact performance in some workloads.
->
-> The difference between parent copy up and file copy up is that
-> failing to fsync to copied up data and linking/moving the upper file
-> into place may result in corrupted data after power failure if temp
-> file data is not synced.
->
-> Failing the fsync the parent dir OTOH may result in revert to
-> lower file data after power failure.
->
-> The thing is, although POSIX gives you no such guarantee, with
-> ext4/xfs fsync of the upper file itself will guarantee that parents
-> will be present after power failure (see [1]).
->
-> This is not true for btrfs, but there are fewer users using overlayfs
-> over btrfs (at least in the container world).
->
-> So while your patch is certainly "correct", for most users its effects
-> will be only negative - performance penalty without fixing anything.
-> So I think this change should be opt-in with Kconfig/module/mount option.
+Miklos,
 
-Probably should be made conditional on ovl_should_sync(ofs).
-
-But before adding more options/complexity the performance impact
-itself should be evaluated.   My guess is that it will be minimal,
-since directory copy ups will generally be orders of magnitude less
-frequent than file copy ups.
+Following your feedback on v2 [1], I moved the iostats to per-sb.
 
 Thanks,
-Miklos
+Amir.
+
+[1] https://lore.kernel.org/linux-unionfs/20220228113910.1727819-1-amir73il@gmail.com/
+
+Changes since v2:
+- Change from per-mount to per-sb io stats (szeredi)
+- Avoid percpu loop when reading mountstats (dchinner)
+
+Changes since v1:
+- Opt-in for per-mount io stats for overlayfs and fuse
+
+Amir Goldstein (6):
+  lib/percpu_counter: add helpers for arrays of counters
+  fs: add optional iostats counters to struct super_block
+  fs: collect per-sb io stats
+  fs: report per-sb io stats
+  ovl: opt-in for per-sb io stats
+  fuse: opt-in for per-sb io stats
+
+ fs/Kconfig                     |   8 +++
+ fs/fuse/inode.c                |   5 ++
+ fs/nfsd/export.c               |   7 +-
+ fs/nfsd/nfscache.c             |   5 +-
+ fs/nfsd/stats.c                |  37 +---------
+ fs/nfsd/stats.h                |   3 -
+ fs/overlayfs/super.c           |   5 ++
+ fs/proc_namespace.c            |  16 +++++
+ fs/read_write.c                |  88 ++++++++++++++++-------
+ fs/super.c                     |   2 +
+ include/linux/fs.h             |  10 ++-
+ include/linux/fs_iostats.h     | 127 +++++++++++++++++++++++++++++++++
+ include/linux/percpu_counter.h |  28 ++++++++
+ lib/percpu_counter.c           |  27 +++++++
+ 14 files changed, 300 insertions(+), 68 deletions(-)
+ create mode 100644 include/linux/fs_iostats.h
+
+-- 
+2.25.1
+
