@@ -2,133 +2,275 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C24CEC43217
-	for <linux-unionfs@archiver.kernel.org>; Sat,  5 Mar 2022 16:04:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5C60C433F5
+	for <linux-unionfs@archiver.kernel.org>; Sat,  5 Mar 2022 16:04:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229878AbiCEQFg (ORCPT
+        id S231978AbiCEQFg (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
         Sat, 5 Mar 2022 11:05:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55136 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231978AbiCEQFf (ORCPT
+        with ESMTP id S231981AbiCEQFf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Sat, 5 Mar 2022 11:05:35 -0500
-Received: from mail-wm1-x32c.google.com (mail-wm1-x32c.google.com [IPv6:2a00:1450:4864:20::32c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAF2C54BCA;
-        Sat,  5 Mar 2022 08:04:42 -0800 (PST)
-Received: by mail-wm1-x32c.google.com with SMTP id c192so6671279wma.4;
-        Sat, 05 Mar 2022 08:04:42 -0800 (PST)
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E6173878C;
+        Sat,  5 Mar 2022 08:04:45 -0800 (PST)
+Received: by mail-wm1-x335.google.com with SMTP id q7-20020a7bce87000000b00382255f4ca9so8323130wmj.2;
+        Sat, 05 Mar 2022 08:04:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=aI1kTSJlZCn6rF/b3gjxXvp8qotZbFaZ/Pvew62pBcE=;
-        b=AAiHZ/vqILwHzCHEOOWothYV5SvTsEwlDIYzqEbw+ti46tVsM2+69sFPF1VrhfhSl4
-         8xqAxhPmYVzIWrbg9toQN4WgYULcoFI/M8RTB42FA6FrSf3xKB2uEiS6YqArZHeA1md5
-         7jKua0rm9tDbo5ZFq+y6fFRy8Dfu+N2FOE3rPYxNVKXHytmQl8ZVKCo9vgRFZtaajMG+
-         Mh15ztHBkWrGLHWnWuzsWseahC+IESDkSmv6T7EV5PljInndr8CsQm9Yb0gotxi/rWfm
-         0DiMlie27kI5kt7dN2QHgY/pLZ0t6l/WisaynwOydT58h6jPZxtyi6T+CrnrZY079fiU
-         9W2Q==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=FjOj0yhcyWryfJc/gOuiHfZG2qtTwyBqMdR1AX5xLrk=;
+        b=UCn+J6nrhzZt8zrm8r8aImFZRh1ijH4mj7j8aZ0F7QvalXFAxk3XDUz8G2cLY/YX/g
+         UsYwHXeahy2z7tPJSrcA2SPJzyqtE5ro0vD/zwxqNVLixwa7QzO9PbcX/Cdth95iMtM8
+         9/MIXBoiEJ2cbbnthQYRuTk3ma3b389OecLsWKXYxHulhXscyLKw0K1UHXxI0wlNoGKo
+         ytim/ODnJYll/DSzgSmuyoiK/R7R0RFlh7UAm/P3nz46LPgVlH5nMBbVBmOOJsxyDMFf
+         KghHrr5CLUOm9yzE82plVIF2W7i7rG962CyyUedxKArZXo26QphGTp3aqTE6yzj9IPpc
+         L0Zg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=aI1kTSJlZCn6rF/b3gjxXvp8qotZbFaZ/Pvew62pBcE=;
-        b=skQ75UM2emmvXugtMdIPpDjuyyllyGm1yOlym7MrL7AfCY3qahw5oblyYdCVe5pxWq
-         XTmAfKo+bMeNlR19jiHEMnNUYZZeBtrKSSsKgKRqfk7gpFksglYTKlIZ9CLlJi+P0X30
-         TNroLeS8hJiz8dkga5HYy9org0vgo1N8+owYQL2OBK9bP7BO6wKI5+Xc8dt+gDPJe4t+
-         ClTeTyR6vyt3lj84IpLkg3jrV8eAY+t/tbqkK47n5vNfREQ2rF5MEOhKO152oel8V5Hv
-         pLjCVi9VaB3BI3f2FKixhdBjqLGJJEymAeC6ZfZUx2chO6+tosVlBGsUD92TeZ9PHBc2
-         kiUg==
-X-Gm-Message-State: AOAM530eHebuLwwEu2y1grpinjeqeVdPu3Jg+XXzWm/JFqKSt/omNcXv
-        kQ69MkDXpiEu7Ncj+15pObiG8joaxN8=
-X-Google-Smtp-Source: ABdhPJzgX5GZP4r5MA8tuA72HG+BIxF7n7MruKdyXRDBLKLj+eS6/ZL7t+HlhLhnUxa3ulZ+81T6jw==
-X-Received: by 2002:a7b:c381:0:b0:37b:e01f:c1c0 with SMTP id s1-20020a7bc381000000b0037be01fc1c0mr11961550wmj.98.1646496281007;
-        Sat, 05 Mar 2022 08:04:41 -0800 (PST)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=FjOj0yhcyWryfJc/gOuiHfZG2qtTwyBqMdR1AX5xLrk=;
+        b=UUwgY/SXAj4vu5NpEbwFUMzqJxJsBGM6OA9++yoT/dZXHBd0zsYhuXxcH8vDSOQDpr
+         Ngd+JfacwDqJ8ut99qWlASTmCBOcASpokey00XQPXWX08Xp5JLwFi1Ig4qS3OFOVJae4
+         ncCU74h1m2RftDKq2bbCnAoxI2JKw8SevGF7iijetiKpr0CNN7FwdpnmJlxUXwBg877D
+         ue6LHmlP79T94u171nGyJ+3eTTjJ09fZ9C+iDXVnaIWabW/GyX4y4XewB6aBgtdcBN4i
+         HDi2x//BBR6SH5uv3wGc6NuUriaDNqWQMIn9eucSiHI77al4aQgM93oXj1QPaLM+bPa3
+         0w8w==
+X-Gm-Message-State: AOAM531G1DT3EZ589YqCSmEHoczQHFViFfrfD+ZC0QGR5DAqxjL6B0xP
+        eNQZdpAA0XvFzuiW50lYYxKa/X5y8HU=
+X-Google-Smtp-Source: ABdhPJzoafBUfwkUKcPtn01V4gK510mJCn220fcKXrpkTJk3pwAjQG55bDc5Ky4Up6fkOF8ElAmMIw==
+X-Received: by 2002:a1c:ed18:0:b0:37e:7a1d:a507 with SMTP id l24-20020a1ced18000000b0037e7a1da507mr11974558wmh.187.1646496283830;
+        Sat, 05 Mar 2022 08:04:43 -0800 (PST)
 Received: from localhost.localdomain ([77.137.71.203])
-        by smtp.gmail.com with ESMTPSA id n5-20020a5d5985000000b001f0122f63e1sm1650717wri.85.2022.03.05.08.04.39
+        by smtp.gmail.com with ESMTPSA id n5-20020a5d5985000000b001f0122f63e1sm1650717wri.85.2022.03.05.08.04.42
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 05 Mar 2022 08:04:40 -0800 (PST)
+        Sat, 05 Mar 2022 08:04:43 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Dave Chinner <david@fromorbit.com>,
         Al Viro <viro@zeniv.linux.org.uk>,
         linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: [PATCH v4 0/9] Generic per-sb io stats
-Date:   Sat,  5 Mar 2022 18:04:15 +0200
-Message-Id: <20220305160424.1040102-1-amir73il@gmail.com>
+Subject: [PATCH v4 2/9] lib/percpu_counter: add helpers for arrays of counters
+Date:   Sat,  5 Mar 2022 18:04:17 +0200
+Message-Id: <20220305160424.1040102-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20220305160424.1040102-1-amir73il@gmail.com>
+References: <20220305160424.1040102-1-amir73il@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Miklos,
+Hoist the helpers to init/destroy an array of counters from
+nfsd_stats to percpu_counter library.
 
-I ran some micro benchmarks on v3 patch [1] which demonstrated up to
-20% slowdown for some workloads (many small reads/writes in a small VM).
-This revision adds the "relaxed" percpu counter helpers to mitigate
-the iostats counters overhead.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/nfsd/export.c               | 10 ++++++---
+ fs/nfsd/nfscache.c             |  5 +++--
+ fs/nfsd/stats.c                | 37 +++-------------------------------
+ fs/nfsd/stats.h                |  3 ---
+ include/linux/percpu_counter.h | 19 +++++++++++++++++
+ lib/percpu_counter.c           | 27 +++++++++++++++++++++++++
+ 6 files changed, 59 insertions(+), 42 deletions(-)
 
-With the relaxed counters, the micro benchmarks that I ran did not
-demonstrate any measurable overhead on xfs, on overlayfs over xfs
-and overlayfs over tmpfs.
-
-Dave Chinner asked why the io stats should not be enabled for all
-filesystems.  That change seems too bold for me so instead, I included
-an extra patch to auto-enable per-sb io stats for blockdev filesystems.
-
-Should you decide to take the patches for enabling io stats for
-overlayfs and/or fuse through your tree, it is up to you to whether you
-want to take this patch as well or leave it out until more people have
-a chance to test it and run more performance tests on their setups.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-fsdevel/20220301184221.371853-1-amir73il@gmail.com/
-
-Changes since v3:
-- Use "relaxed" counters to reduce performance overhead
-- Opt-in to per-sb io stats via fs_flags (dchinner)
-- Add patch to auto-enable io stats for all blockdev fs (dchinner)
-
-Changes since v2:
-- Change from per-mount to per-sb io stats (szeredi)
-- Avoid percpu loop when reading mountstats (dchinner)
-
-Changes since v1:
-- Opt-in for per-mount io stats for overlayfs and fuse
-
-Amir Goldstein (9):
-  lib/percpu_counter: add helpers for "relaxed" counters
-  lib/percpu_counter: add helpers for arrays of counters
-  fs: tidy up fs_flags definitions
-  fs: add optional iostats counters to struct super_block
-  fs: collect per-sb io stats
-  fs: report per-sb io stats
-  ovl: opt-in for per-sb io stats
-  fuse: opt-in for per-sb io stats
-  fs: enable per-sb io stats for all blockdev filesystems
-
- fs/Kconfig                     |   8 ++
- fs/fuse/inode.c                |   3 +-
- fs/nfsd/export.c               |  10 ++-
- fs/nfsd/nfscache.c             |   5 +-
- fs/nfsd/stats.c                |  37 +---------
- fs/nfsd/stats.h                |   3 -
- fs/overlayfs/super.c           |   3 +-
- fs/proc_namespace.c            |  16 ++++
- fs/read_write.c                |  88 ++++++++++++++++------
- fs/super.c                     |  11 +++
- include/linux/fs.h             |  25 ++++---
- include/linux/fs_iostats.h     | 130 +++++++++++++++++++++++++++++++++
- include/linux/percpu_counter.h |  48 ++++++++++++
- lib/percpu_counter.c           |  27 +++++++
- 14 files changed, 337 insertions(+), 77 deletions(-)
- create mode 100644 include/linux/fs_iostats.h
-
+diff --git a/fs/nfsd/export.c b/fs/nfsd/export.c
+index 668c7527b17e..ec97a086077a 100644
+--- a/fs/nfsd/export.c
++++ b/fs/nfsd/export.c
+@@ -334,17 +334,21 @@ static void nfsd4_fslocs_free(struct nfsd4_fs_locations *fsloc)
+ static int export_stats_init(struct export_stats *stats)
+ {
+ 	stats->start_time = ktime_get_seconds();
+-	return nfsd_percpu_counters_init(stats->counter, EXP_STATS_COUNTERS_NUM);
++	return percpu_counters_init(stats->counter, EXP_STATS_COUNTERS_NUM, 0,
++				    GFP_KERNEL);
+ }
+ 
+ static void export_stats_reset(struct export_stats *stats)
+ {
+-	nfsd_percpu_counters_reset(stats->counter, EXP_STATS_COUNTERS_NUM);
++	int i;
++
++	for (i = 0; i < EXP_STATS_COUNTERS_NUM; i++)
++		percpu_counter_set(&stats->counter[i], 0);
+ }
+ 
+ static void export_stats_destroy(struct export_stats *stats)
+ {
+-	nfsd_percpu_counters_destroy(stats->counter, EXP_STATS_COUNTERS_NUM);
++	percpu_counters_destroy(stats->counter, EXP_STATS_COUNTERS_NUM);
+ }
+ 
+ static void svc_export_put(struct kref *ref)
+diff --git a/fs/nfsd/nfscache.c b/fs/nfsd/nfscache.c
+index 0b3f12aa37ff..d93bb4866d07 100644
+--- a/fs/nfsd/nfscache.c
++++ b/fs/nfsd/nfscache.c
+@@ -150,12 +150,13 @@ void nfsd_drc_slab_free(void)
+ 
+ static int nfsd_reply_cache_stats_init(struct nfsd_net *nn)
+ {
+-	return nfsd_percpu_counters_init(nn->counter, NFSD_NET_COUNTERS_NUM);
++	return percpu_counters_init(nn->counter, NFSD_NET_COUNTERS_NUM, 0,
++				    GFP_KERNEL);
+ }
+ 
+ static void nfsd_reply_cache_stats_destroy(struct nfsd_net *nn)
+ {
+-	nfsd_percpu_counters_destroy(nn->counter, NFSD_NET_COUNTERS_NUM);
++	percpu_counters_destroy(nn->counter, NFSD_NET_COUNTERS_NUM);
+ }
+ 
+ int nfsd_reply_cache_init(struct nfsd_net *nn)
+diff --git a/fs/nfsd/stats.c b/fs/nfsd/stats.c
+index a8c5a02a84f0..933e703cbb3b 100644
+--- a/fs/nfsd/stats.c
++++ b/fs/nfsd/stats.c
+@@ -84,46 +84,15 @@ static const struct proc_ops nfsd_proc_ops = {
+ 	.proc_release	= single_release,
+ };
+ 
+-int nfsd_percpu_counters_init(struct percpu_counter counters[], int num)
+-{
+-	int i, err = 0;
+-
+-	for (i = 0; !err && i < num; i++)
+-		err = percpu_counter_init(&counters[i], 0, GFP_KERNEL);
+-
+-	if (!err)
+-		return 0;
+-
+-	for (; i > 0; i--)
+-		percpu_counter_destroy(&counters[i-1]);
+-
+-	return err;
+-}
+-
+-void nfsd_percpu_counters_reset(struct percpu_counter counters[], int num)
+-{
+-	int i;
+-
+-	for (i = 0; i < num; i++)
+-		percpu_counter_set(&counters[i], 0);
+-}
+-
+-void nfsd_percpu_counters_destroy(struct percpu_counter counters[], int num)
+-{
+-	int i;
+-
+-	for (i = 0; i < num; i++)
+-		percpu_counter_destroy(&counters[i]);
+-}
+-
+ static int nfsd_stat_counters_init(void)
+ {
+-	return nfsd_percpu_counters_init(nfsdstats.counter, NFSD_STATS_COUNTERS_NUM);
++	return percpu_counters_init(nfsdstats.counter, NFSD_STATS_COUNTERS_NUM,
++				    0, GFP_KERNEL);
+ }
+ 
+ static void nfsd_stat_counters_destroy(void)
+ {
+-	nfsd_percpu_counters_destroy(nfsdstats.counter, NFSD_STATS_COUNTERS_NUM);
++	percpu_counters_destroy(nfsdstats.counter, NFSD_STATS_COUNTERS_NUM);
+ }
+ 
+ int nfsd_stat_init(void)
+diff --git a/fs/nfsd/stats.h b/fs/nfsd/stats.h
+index 9b43dc3d9991..61840f9035a9 100644
+--- a/fs/nfsd/stats.h
++++ b/fs/nfsd/stats.h
+@@ -36,9 +36,6 @@ extern struct nfsd_stats	nfsdstats;
+ 
+ extern struct svc_stat		nfsd_svcstats;
+ 
+-int nfsd_percpu_counters_init(struct percpu_counter counters[], int num);
+-void nfsd_percpu_counters_reset(struct percpu_counter counters[], int num);
+-void nfsd_percpu_counters_destroy(struct percpu_counter counters[], int num);
+ int nfsd_stat_init(void);
+ void nfsd_stat_shutdown(void);
+ 
+diff --git a/include/linux/percpu_counter.h b/include/linux/percpu_counter.h
+index 7f01f2e41304..37dd81c85411 100644
+--- a/include/linux/percpu_counter.h
++++ b/include/linux/percpu_counter.h
+@@ -46,6 +46,10 @@ s64 __percpu_counter_sum(struct percpu_counter *fbc);
+ int __percpu_counter_compare(struct percpu_counter *fbc, s64 rhs, s32 batch);
+ void percpu_counter_sync(struct percpu_counter *fbc);
+ 
++int percpu_counters_init(struct percpu_counter counters[], int num, s64 amount,
++			 gfp_t gfp);
++void percpu_counters_destroy(struct percpu_counter counters[], int num);
++
+ static inline int percpu_counter_compare(struct percpu_counter *fbc, s64 rhs)
+ {
+ 	return __percpu_counter_compare(fbc, rhs, percpu_counter_batch);
+@@ -109,6 +113,21 @@ static inline void percpu_counter_destroy(struct percpu_counter *fbc)
+ {
+ }
+ 
++static inline int percpu_counters_init(struct percpu_counter counters[],
++				       int num, s64 amount, gfp_t gfp)
++{
++	int i;
++
++	for (i = 0; i < num; i++)
++		counters[i] = amount;
++	return 0;
++}
++
++static inline void percpu_counters_destroy(struct percpu_counter counters[],
++					   int num)
++{
++}
++
+ static inline void percpu_counter_set(struct percpu_counter *fbc, s64 amount)
+ {
+ 	fbc->count = amount;
+diff --git a/lib/percpu_counter.c b/lib/percpu_counter.c
+index ed610b75dc32..f75a45c63c18 100644
+--- a/lib/percpu_counter.c
++++ b/lib/percpu_counter.c
+@@ -181,6 +181,33 @@ void percpu_counter_destroy(struct percpu_counter *fbc)
+ }
+ EXPORT_SYMBOL(percpu_counter_destroy);
+ 
++int percpu_counters_init(struct percpu_counter counters[], int num, s64 amount,
++			 gfp_t gfp)
++{
++	int i, err = 0;
++
++	for (i = 0; !err && i < num; i++)
++		err = percpu_counter_init(&counters[i], amount, gfp);
++
++	if (!err)
++		return 0;
++
++	for (; i > 0; i--)
++		percpu_counter_destroy(&counters[i-1]);
++
++	return err;
++}
++EXPORT_SYMBOL(percpu_counters_init);
++
++void percpu_counters_destroy(struct percpu_counter counters[], int num)
++{
++	int i;
++
++	for (i = 0; i < num; i++)
++		percpu_counter_destroy(&counters[i]);
++}
++EXPORT_SYMBOL(percpu_counters_destroy);
++
+ int percpu_counter_batch __read_mostly = 32;
+ EXPORT_SYMBOL(percpu_counter_batch);
+ 
 -- 
 2.25.1
 
