@@ -2,70 +2,105 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6193DC433EF
-	for <linux-unionfs@archiver.kernel.org>; Sun,  6 Mar 2022 04:36:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC3D4C43217
+	for <linux-unionfs@archiver.kernel.org>; Sun,  6 Mar 2022 05:33:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231663AbiCFEhE (ORCPT
+        id S232902AbiCFFdw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 5 Mar 2022 23:37:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58162 "EHLO
+        Sun, 6 Mar 2022 00:33:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229481AbiCFEhE (ORCPT
+        with ESMTP id S229481AbiCFFdv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 5 Mar 2022 23:37:04 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49CE224BC4;
-        Sat,  5 Mar 2022 20:36:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=Y6IRrwM9XbIc9OImDeEJKAn2uhHKqiedoDrNGSRpu4g=; b=AQmadDiwfjVWyyySRxV//3KZkQ
-        aeexEdj4JEOcM1yo4N01ZtuJZjeiXCI+Fu7Zhusm/7TAW9P1aJYk0pxa5axDFl4nn/J3FeC6PUrUl
-        N8sncEvKispevm1wo87a51sQE2cJsFpitIHcgsPWcN+2AJkLqf51AJEjYSaE+R/b01eeVWYeFNPkc
-        DNJK7pw49C8yrGasV2lIGCIyKVRv8Z2wDMCXZKRg2njCqG1PTggVp/a/2bYkQGuD+fX58FvN36ve7
-        qFf0PwLnd0ZG3KvxgZWH0plfkNICc1nmffc1bUj/AciAx1GKmfKFENeGVZ0VhMoau0IRhs0WFYtCq
-        bQtR54ZA==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nQicl-00E6AT-2W; Sun, 06 Mar 2022 04:36:03 +0000
-Date:   Sun, 6 Mar 2022 04:36:03 +0000
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Jarkko Sakkinen <jarkko@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
+        Sun, 6 Mar 2022 00:33:51 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 082203DA57;
+        Sat,  5 Mar 2022 21:32:58 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 829BB60FBE;
+        Sun,  6 Mar 2022 05:32:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60900C340EF;
+        Sun,  6 Mar 2022 05:32:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1646544776;
+        bh=UBl0Cn7SYsEWQP0mkjEP12HH7xWeNZim7VPPZ9aaiTE=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Nf4TxnefPNULT2ZF3w48Nx7IyrXI5cg6baok7cswurLbnmnnvxlwM1h48wZmVZqsZ
+         R7BGYtVkCdA6nOUw637GmAnQlhXlwvvKtg9NjL/U8AFj/y1qwytcUVhmH3ABo9g8LY
+         ubG06ZdBvHGqJ25qOIPJdf9/zPqxaQVyGDLy1tcIywZuflGcW62KsH8VknB28YY2hS
+         x9L/nacEEpqYzBOA3jynG83BWpGh7zSPw9a1x7ETRC74lUEJ2XlG2qQaXTnYvov+QK
+         AH17RQQXWyUnxGpsz32x9Sp5z+wG7//6e1d5/zMAVW3hcSnQUhLJjXWAo+fa7vx3r1
+         CtEqFjQJdNo6w==
+From:   Jarkko Sakkinen <jarkko@kernel.org>
+To:     linux-mm@kvack.org
+Cc:     Dave Hansen <dave.hansen@linux.intel.com>,
         Nathaniel McCallum <nathaniel@profian.com>,
         Reinette Chatre <reinette.chatre@intel.com>,
-        linux-sgx@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-kernel@vger.kernel.org, intel-gfx@lists.freedesktop.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jarkko Sakkinen <jarkko@kernel.org>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Matthew Auld <matthew.auld@intel.com>,
+        =?UTF-8?q?Thomas=20Hellstr=C3=B6m?= 
+        <thomas.hellstrom@linux.intel.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Jason Ekstrand <jason@jlekstrand.net>,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
+        Vasily Averin <vvs@virtuozzo.com>,
+        Shakeel Butt <shakeelb@google.com>,
+        Michal Hocko <mhocko@suse.com>,
+        zhangyiru <zhangyiru3@huawei.com>,
+        Alexey Gladkov <legion@kernel.org>,
+        Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
+        linux-mips@vger.kernel.org, intel-gfx@lists.freedesktop.org,
         dri-devel@lists.freedesktop.org, codalist@coda.cs.cmu.edu,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: Re: [PATCH RFC] mm: Add f_ops->populate()
-Message-ID: <YiQ6M/FsdHRV41DF@casper.infradead.org>
-References: <20220306021534.83553-1-jarkko@kernel.org>
- <YiQjM7LdwoAWpC5L@casper.infradead.org>
- <YiQop71ABWm7hbMy@iki.fi>
- <YiQv7JEBPzgYUTTa@casper.infradead.org>
- <YiQ0aWhwY4BGLEMK@iki.fi>
- <YiQ2ThvkvnBBFRzD@casper.infradead.org>
- <YiQ30O/5LGh84z3t@iki.fi>
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH RFC 0/3] MAP_POPULATE for device memory
+Date:   Sun,  6 Mar 2022 07:32:04 +0200
+Message-Id: <20220306053211.135762-1-jarkko@kernel.org>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YiQ30O/5LGh84z3t@iki.fi>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Mar 06, 2022 at 06:25:52AM +0200, Jarkko Sakkinen wrote:
-> > Are you deliberately avoiding the question?  I'm not asking about
-> > implementation.  I'm asking about the semantics of MAP_POPULATE with
-> > your driver.
-> 
-> No. I just noticed a bug in the guard from your comment that I wanted
-> point out.
-> 
-> With the next version I post the corresponding change to the driver,
-> in order to see this in context.
+For device memory (aka VM_IO | VM_PFNMAP) MAP_POPULATE does nothing. Allow
+to use that for initializing the device memory by providing a new callback
+f_ops->populate() for the purpose.
 
-Oh, good grief.  Don't bother.  NAK.
+SGX patches are provided to show the callback in context.
+
+An obvious alternative is a ioctl but it is less elegant and requires
+two syscalls (mmap + ioctl) per memory range, instead of just one
+(mmap).
+
+Jarkko Sakkinen (3):
+  mm: Add f_ops->populate()
+  x86/sgx: Export sgx_encl_page_alloc()
+  x86/sgx: Implement EAUG population with MAP_POPULATE
+
+ arch/mips/kernel/vdso.c                    |   2 +-
+ arch/x86/kernel/cpu/sgx/driver.c           | 129 +++++++++++++++++++++
+ arch/x86/kernel/cpu/sgx/encl.c             |  38 ++++++
+ arch/x86/kernel/cpu/sgx/encl.h             |   3 +
+ arch/x86/kernel/cpu/sgx/ioctl.c            |  38 ------
+ drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c |   2 +-
+ fs/coda/file.c                             |   2 +-
+ fs/overlayfs/file.c                        |   2 +-
+ include/linux/fs.h                         |  12 +-
+ include/linux/mm.h                         |   2 +-
+ ipc/shm.c                                  |   2 +-
+ mm/mmap.c                                  |  10 +-
+ mm/nommu.c                                 |   4 +-
+ 13 files changed, 193 insertions(+), 53 deletions(-)
+
+-- 
+2.35.1
+
