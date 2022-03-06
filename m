@@ -2,245 +2,120 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33DEAC433F5
-	for <linux-unionfs@archiver.kernel.org>; Sun,  6 Mar 2022 05:33:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5C6FC433F5
+	for <linux-unionfs@archiver.kernel.org>; Sun,  6 Mar 2022 07:56:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232951AbiCFFeR (ORCPT
+        id S231672AbiCFH4y (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 6 Mar 2022 00:34:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36610 "EHLO
+        Sun, 6 Mar 2022 02:56:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232965AbiCFFeM (ORCPT
+        with ESMTP id S231179AbiCFH4y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 6 Mar 2022 00:34:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62F013E5F5;
-        Sat,  5 Mar 2022 21:33:19 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D77486117B;
-        Sun,  6 Mar 2022 05:33:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC34DC340EF;
-        Sun,  6 Mar 2022 05:33:17 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1646544798;
-        bh=1QleQuXD9sbYe+LmMXGxObgEQXN9PMHkgqkds+kRlTM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=br5rY6M8UUvmHms71AlgV5lsODOmGXw50MS4+I7V3fElgLb1vTu6qkTPjqi9p/dbq
-         4yNZe7DQNlbD0VSvppQYCxnMI0UN8amuBXXfmZMqztoZCCA9IC5Nd5svIFTZMuuKUs
-         uvus/R1Z//ZKIJWKCAdh7lkXI29aKiUZm+8QTv6ORJ1FzJWbmN0xsZJ9okwsiG65HU
-         Q5NDUSii2Syt8UHh4JyJBS0siKxrhe0QxfBPhS7eXwugtFzSn/NqmWIfTYAc2e3AU7
-         SjgecmBC1M7G8Cl8UthVLZ2xk8evtzDlzNhm3mEz66egcGd+rub4wBzjX4nQkRJ5HJ
-         wGLon7vKnOtQA==
-From:   Jarkko Sakkinen <jarkko@kernel.org>
-To:     linux-mm@kvack.org
-Cc:     Dave Hansen <dave.hansen@linux.intel.com>,
-        Nathaniel McCallum <nathaniel@profian.com>,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jarkko Sakkinen <jarkko@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Matthew Auld <matthew.auld@intel.com>,
-        =?UTF-8?q?Thomas=20Hellstr=C3=B6m?= 
-        <thomas.hellstrom@linux.intel.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Jason Ekstrand <jason@jlekstrand.net>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Vasily Averin <vvs@virtuozzo.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Alexey Gladkov <legion@kernel.org>,
-        Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
-        zhangyiru <zhangyiru3@huawei.com>, linux-mips@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        codalist@coda.cs.cmu.edu, linux-unionfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org
-Subject: [PATCH RFC 3/3] x86/sgx: Implement EAUG population with MAP_POPULATE
-Date:   Sun,  6 Mar 2022 07:32:07 +0200
-Message-Id: <20220306053211.135762-4-jarkko@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220306053211.135762-1-jarkko@kernel.org>
-References: <20220306053211.135762-1-jarkko@kernel.org>
+        Sun, 6 Mar 2022 02:56:54 -0500
+Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B982D50B22;
+        Sat,  5 Mar 2022 23:56:01 -0800 (PST)
+Received: by mail-oi1-x22a.google.com with SMTP id ay7so12179015oib.8;
+        Sat, 05 Mar 2022 23:56:01 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=VqwqdOtBO5lTcgjpRhFJK1zCFBnLPUcQnpstSDT1zbw=;
+        b=StzwVolEsV86a+lFM6W92PVvxWExTcVntUlb+mtJgrGCtK3BXdkoLBXblnabrFlmr2
+         /I7iVPB4QmADByqFfzVgIRPqjETAkgzY52TqTcLU/4xlSFFEAdBr18nvfyGtvEbzgzi4
+         3K2QXxGFlImvvqBhSAOqkiyE2+TmNVG2nn2cVwVCQRgbCxhMBWfWzhfbqhUhau+M0ox5
+         iBKy1zJ6Zm8GNS7EgJ6xaM/aH9iGNnBlqcH/uQ5t4VmfOZ22GgCQqkeCgUkoSkBo4IFr
+         TvjplloETBJioPzWP1wfKKZdzSNzAIVgeLEq/brPGMeNOTbcgKGLUKiysnH02ba7763U
+         ByYQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=VqwqdOtBO5lTcgjpRhFJK1zCFBnLPUcQnpstSDT1zbw=;
+        b=Hpg0RmQ7G3bvx6NTVtvBHyoOVA9nuUM3Uq9juyKPXtYLoBREaDLKsdwzdyQv5TtTcd
+         /nsLWg1vFMM+MjYW2c44M5I4/fJ3/hPP3eboiFOUOHRFXQmWxbnomS7coUzFF/B4A7zy
+         j7WpyKFZmIHe2I1lA6KhcLH8l2piHYcx6HRbPA9qWEFLe6rLMroYRFEA6m/6M1Th6hAP
+         wqVvfwulXHlsyVzC4Sn8tWlUuR1F0XZCnsGj7it0pwut3rp5NPzJqA0QoDggyBz7a6an
+         zNpG8EP8sNILDiuWE7indqa0LF+O21LxVE4kW5boAEN/CXbUxu2AdX5K6b3JsJSYUfay
+         50yA==
+X-Gm-Message-State: AOAM530lY4VFM6xLqz+cyKW3pz8pal7+cw37MY2n9vBH5ps8z6wFgzO7
+        vPRFnyb7a6ePpQUUfBEYN0MuL5MuEZdiNJS0fV7PTKUQKiA=
+X-Google-Smtp-Source: ABdhPJw/bL9Y4AVwe5ELRBU6Me0VJgB9AGbxnYwg9zqCDC+BAAodez5S5jSdCsZXU0AK9iUtIJMVdv1AxseWxTt7aBk=
+X-Received: by 2002:aca:b845:0:b0:2d4:4207:8fd5 with SMTP id
+ i66-20020acab845000000b002d442078fd5mr14422804oif.98.1646553361087; Sat, 05
+ Mar 2022 23:56:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220305160424.1040102-1-amir73il@gmail.com> <YiQ2Gi8umX9LQBWr@mit.edu>
+In-Reply-To: <YiQ2Gi8umX9LQBWr@mit.edu>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sun, 6 Mar 2022 09:55:49 +0200
+Message-ID: <CAOQ4uxhtB=EcXoVBOGEo8dXAzSxkPi2XubNWHUBHE1VKRdrxpg@mail.gmail.com>
+Subject: Re: [PATCH v4 0/9] Generic per-sb io stats
+To:     "Theodore Ts'o" <tytso@mit.edu>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Dave Chinner <david@fromorbit.com>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        David Howells <dhowells@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-With SGX1 an enclave needs to be created with its maximum memory demands
-pre-allocated. Pages cannot be added to an enclave after it is initialized.
-SGX2 introduces a new function, ENCLS[EAUG] for adding pages to an
-initialized enclave.
+On Sun, Mar 6, 2022 at 6:18 AM Theodore Ts'o <tytso@mit.edu> wrote:
+>
+> On Sat, Mar 05, 2022 at 06:04:15PM +0200, Amir Goldstein wrote:
+> >
+> > Dave Chinner asked why the io stats should not be enabled for all
+> > filesystems.  That change seems too bold for me so instead, I included
+> > an extra patch to auto-enable per-sb io stats for blockdev filesystems.
+>
+> Perhaps something to consider is allowing users to be able to enable
+> or disable I/O stats on per mount basis?
+>
+> Consider if a potential future user of this feature has servers with
+> one or two 256-core AMD Epyc chip, and suppose that they have a
+> several thousand iSCSI mounted file systems containing various
+> software packages for use by Kubernetes jobs.  (Or even several
+> thousand mounted overlay file systems.....)
+>
+> The size of the percpu counter is going to be *big* on a large CPU
+> count machine, and the iostats structure has 5 of these per-cpu
+> counters, so if you have one for every single mounted file system,
+> even if the CPU slowdown isn't significant, the non-swappable kernel
+> memory overhead might be quite large.
+>
+> So maybe a VFS-level mount option, say, "iostats" and "noiostats", and
+> some kind of global option indicating whether the default should be
+> iostats being enabled or disabled?  Bonus points if iostats can be
+> enabled or disabled after the initial mount via remount operation.
+>
+> I could imagine some people only being interested to enable iostats on
+> certain file systems, or certain classes of block devices --- so they
+> might want it enabled on some ext4 file systems which are attached to
+> physical devices, but not on the N thousand iSCSI or nbd mounts that
+> are also happen to be using ext4.
+>
 
-Add support for dynamically adding pages to an initialized enclave with
-mmap() by populating pages with EAUG. Use f_ops->populate() callback to
-achieve this behaviour.
+Those were my thoughts as well.
 
-Signed-off-by: Jarkko Sakkinen <jarkko@kernel.org>
----
- arch/x86/kernel/cpu/sgx/driver.c | 129 +++++++++++++++++++++++++++++++
- 1 file changed, 129 insertions(+)
+As a matter of fact, I started to have a go at implementing
+"iostats"/"noiostats"
+and then I realized I have no clue how the designers of the new mount option
+parser API intended that new generic mount options like these would be added,
+so I ended up reusing SB_MAND_LOCK for the test patch.
 
-diff --git a/arch/x86/kernel/cpu/sgx/driver.c b/arch/x86/kernel/cpu/sgx/driver.c
-index aa9b8b868867..0e97e7476076 100644
---- a/arch/x86/kernel/cpu/sgx/driver.c
-+++ b/arch/x86/kernel/cpu/sgx/driver.c
-@@ -9,6 +9,7 @@
- #include <asm/traps.h>
- #include "driver.h"
- #include "encl.h"
-+#include "encls.h"
- 
- u64 sgx_attributes_reserved_mask;
- u64 sgx_xfrm_reserved_mask = ~0x3;
-@@ -101,6 +102,133 @@ static int sgx_mmap(struct file *file, struct vm_area_struct *vma)
- 	return 0;
- }
- 
-+static int sgx_encl_augment_page(struct sgx_encl *encl, unsigned long offset)
-+{
-+	struct sgx_pageinfo pginfo = {0};
-+	struct sgx_encl_page *encl_page;
-+	struct sgx_epc_page *epc_page;
-+	struct sgx_va_page *va_page;
-+	u64 secinfo_flags;
-+	int ret;
-+
-+	/*
-+	 * Ignore internal permission checking for dynamically added pages.
-+	 * They matter only for data added during the pre-initialization phase.
-+	 * The enclave decides the permissions by the means of EACCEPT,
-+	 * EACCEPTCOPY and EMODPE.
-+	 */
-+	secinfo_flags = SGX_SECINFO_R | SGX_SECINFO_W | SGX_SECINFO_X;
-+	encl_page = sgx_encl_page_alloc(encl, offset, secinfo_flags);
-+	if (IS_ERR(encl_page))
-+		return PTR_ERR(encl_page);
-+
-+	epc_page = sgx_alloc_epc_page(encl_page, true);
-+	if (IS_ERR(epc_page)) {
-+		ret = PTR_ERR(epc_page);
-+		goto err_alloc_epc_page;
-+	}
-+
-+	va_page = sgx_encl_grow(encl);
-+	if (IS_ERR(va_page)) {
-+		ret = PTR_ERR(va_page);
-+		goto err_grow;
-+	}
-+
-+	mutex_lock(&encl->lock);
-+
-+	/*
-+	 * Adding to encl->va_pages must be done under encl->lock.  Ditto for
-+	 * deleting (via sgx_encl_shrink()) in the error path.
-+	 */
-+	if (va_page)
-+		list_add(&va_page->list, &encl->va_pages);
-+
-+	/*
-+	 * Insert prior to EADD in case of OOM.  EADD modifies MRENCLAVE, i.e.
-+	 * can't be gracefully unwound, while failure on EADD/EXTEND is limited
-+	 * to userspace errors (or kernel/hardware bugs).
-+	 */
-+	ret = xa_insert(&encl->page_array, PFN_DOWN(encl_page->desc),
-+			encl_page, GFP_KERNEL);
-+
-+	/*
-+	 * If ret == -EBUSY then page was created in another flow while
-+	 * running without encl->lock
-+	 */
-+	if (ret)
-+		goto err_xa_insert;
-+
-+	pginfo.secs = (unsigned long)sgx_get_epc_virt_addr(encl->secs.epc_page);
-+	pginfo.addr = encl_page->desc & PAGE_MASK;
-+	pginfo.metadata = 0;
-+
-+	ret = __eaug(&pginfo, sgx_get_epc_virt_addr(epc_page));
-+	if (ret)
-+		goto err_eaug;
-+
-+	encl_page->encl = encl;
-+	encl_page->epc_page = epc_page;
-+	encl_page->type = SGX_PAGE_TYPE_REG;
-+	encl->secs_child_cnt++;
-+
-+	sgx_mark_page_reclaimable(encl_page->epc_page);
-+
-+	mutex_unlock(&encl->lock);
-+
-+	return 0;
-+
-+err_eaug:
-+	xa_erase(&encl->page_array, PFN_DOWN(encl_page->desc));
-+
-+err_xa_insert:
-+	sgx_encl_shrink(encl, va_page);
-+	mutex_unlock(&encl->lock);
-+
-+err_grow:
-+	sgx_encl_free_epc_page(epc_page);
-+
-+err_alloc_epc_page:
-+	kfree(encl_page);
-+
-+	return VM_FAULT_SIGBUS;
-+}
-+
-+/*
-+ * Add new pages to the enclave sequentially with ENCLS[EAUG]. Note that
-+ * sgx_mmap() validates that the given VMA is within the enclave range. Calling
-+ * here sgx_encl_may_map() second time would too time consuming.
-+ */
-+static int sgx_populate(struct file *file, struct vm_area_struct *vma)
-+{
-+	unsigned long length = vma->vm_end - vma->vm_start;
-+	struct sgx_encl *encl = file->private_data;
-+	unsigned long start = encl->base - vma->vm_start;
-+	unsigned long pos;
-+	int ret;
-+
-+	/* EAUG works only for initialized enclaves. */
-+	if (!test_bit(SGX_ENCL_INITIALIZED, &encl->flags))
-+		return -EINVAL;
-+
-+	for (pos = 0 ; pos < length; pos += PAGE_SIZE) {
-+		if (signal_pending(current)) {
-+			if (!pos)
-+				ret = -ERESTARTSYS;
-+
-+			break;
-+		}
-+
-+		if (need_resched())
-+			cond_resched();
-+
-+		ret = sgx_encl_augment_page(encl, start + pos);
-+		if (ret)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+
- static unsigned long sgx_get_unmapped_area(struct file *file,
- 					   unsigned long addr,
- 					   unsigned long len,
-@@ -133,6 +261,7 @@ static const struct file_operations sgx_encl_fops = {
- 	.compat_ioctl		= sgx_compat_ioctl,
- #endif
- 	.mmap			= sgx_mmap,
-+	.populate		= sgx_populate,
- 	.get_unmapped_area	= sgx_get_unmapped_area,
- };
- 
--- 
-2.35.1
+Was I supposed to extend struct fs_context fields sb_flags/sb_flags_mask to
+unsigned long and add new common SB_ flags to high 32 bits, which can only
+be set via fsopen()/fsconfig() on a 64bit arch?
 
+Or did the designers have something completely different in mind?
+
+Perhaps the scope of the new mount API was never to deal with running out of
+space for common SB_ flags?
+
+Thanks,
+Amir.
