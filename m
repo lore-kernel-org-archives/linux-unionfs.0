@@ -2,93 +2,131 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75694C433EF
-	for <linux-unionfs@archiver.kernel.org>; Sun,  6 Mar 2022 23:42:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FDF6C433F5
+	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Mar 2022 00:14:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234444AbiCFXmz (ORCPT
+        id S233373AbiCGAPT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 6 Mar 2022 18:42:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40630 "EHLO
+        Sun, 6 Mar 2022 19:15:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233025AbiCFXmy (ORCPT
+        with ESMTP id S232596AbiCGAPS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 6 Mar 2022 18:42:54 -0500
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 519743969B;
-        Sun,  6 Mar 2022 15:42:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1646610121; x=1678146121;
-  h=message-id:date:mime-version:to:cc:references:from:
-   subject:in-reply-to:content-transfer-encoding;
-  bh=ms8fEHLgOxSSRVUWFcxRUAylSAFNrqV0pk+t2bhqEvo=;
-  b=H9A6S1Xz2shq/6CtvJYfHnx3hv7W+VYWttrBVbzWPk8bJ3LPPwwk9xl1
-   MgRwgakynUElW9RTDoQzFLBXTIWhQNYdUalJK7zepP7zVmdyPz9eddEpO
-   lKaKaSZLfx+CbBXUllWa5AVvZm4etTxfp5Su6UQnT/m8022vEmYy0glcp
-   LFU1AWAdSOy7Cu71fDW+R3PbS4kHYSPh8vgLblL99v/qgMGcH67NyAT9u
-   YTxygB4rObiQx52hz/jEeZjeZA2wbA11pNkTZsf9JNctBJndU3XBjCHrl
-   3tA+mqlxLtMnyUl9fDRNQo+TIYIw45kR1Ck9cLCN9HtPGaTmgmYHQvfB7
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10278"; a="234876372"
-X-IronPort-AV: E=Sophos;i="5.90,160,1643702400"; 
-   d="scan'208";a="234876372"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2022 15:42:00 -0800
-X-IronPort-AV: E=Sophos;i="5.90,160,1643702400"; 
-   d="scan'208";a="552917258"
-Received: from nraghura-mobl2.amr.corp.intel.com (HELO [10.209.12.153]) ([10.209.12.153])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Mar 2022 15:42:00 -0800
-Message-ID: <c3083144-bfc1-3260-164c-e59b2d110df8@intel.com>
-Date:   Sun, 6 Mar 2022 15:41:54 -0800
+        Sun, 6 Mar 2022 19:15:18 -0500
+Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id EFE9B50E36;
+        Sun,  6 Mar 2022 16:14:24 -0800 (PST)
+Received: from dread.disaster.area (pa49-186-17-0.pa.vic.optusnet.com.au [49.186.17.0])
+        by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id A6FE510E1656;
+        Mon,  7 Mar 2022 11:14:21 +1100 (AEDT)
+Received: from dave by dread.disaster.area with local (Exim 4.92.3)
+        (envelope-from <david@fromorbit.com>)
+        id 1nR112-002Ofo-8x; Mon, 07 Mar 2022 11:14:20 +1100
+Date:   Mon, 7 Mar 2022 11:14:20 +1100
+From:   Dave Chinner <david@fromorbit.com>
+To:     Theodore Ts'o <tytso@mit.edu>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH v4 0/9] Generic per-sb io stats
+Message-ID: <20220307001420.GQ3927073@dread.disaster.area>
+References: <20220305160424.1040102-1-amir73il@gmail.com>
+ <YiQ2Gi8umX9LQBWr@mit.edu>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.5.0
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Jarkko Sakkinen <jarkko@kernel.org>
-Cc:     Dave Hansen <dave.hansen@linux.intel.com>,
-        Nathaniel McCallum <nathaniel@profian.com>,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        linux-sgx@vger.kernel.org, jaharkes@cs.cmu.edu,
-        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        codalist@telemann.coda.cs.cmu.edu, linux-unionfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org
-References: <20220306032655.97863-1-jarkko@kernel.org>
- <20220306152456.2649b1c56da2a4ce4f487be4@linux-foundation.org>
-From:   Dave Hansen <dave.hansen@intel.com>
-Subject: Re: [PATCH RFC v2] mm: Add f_ops->populate()
-In-Reply-To: <20220306152456.2649b1c56da2a4ce4f487be4@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YiQ2Gi8umX9LQBWr@mit.edu>
+X-Optus-CM-Score: 0
+X-Optus-CM-Analysis: v=2.4 cv=e9dl9Yl/ c=1 sm=1 tr=0 ts=62254e5f
+        a=+dVDrTVfsjPpH/ci3UuFng==:117 a=+dVDrTVfsjPpH/ci3UuFng==:17
+        a=kj9zAlcOel0A:10 a=o8Y5sQTvuykA:10 a=7-415B0cAAAA:8
+        a=awRMrf5kypXfiWRIGAcA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 3/6/22 15:24, Andrew Morton wrote:
-> On Sun,  6 Mar 2022 05:26:55 +0200 Jarkko Sakkinen <jarkko@kernel.org> wrote:
+On Sat, Mar 05, 2022 at 11:18:34PM -0500, Theodore Ts'o wrote:
+> On Sat, Mar 05, 2022 at 06:04:15PM +0200, Amir Goldstein wrote:
+> > 
+> > Dave Chinner asked why the io stats should not be enabled for all
+> > filesystems.  That change seems too bold for me so instead, I included
+> > an extra patch to auto-enable per-sb io stats for blockdev filesystems.
 > 
->> Sometimes you might want to use MAP_POPULATE to ask a device driver to
->> initialize the device memory in some specific manner. SGX driver can use
->> this to request more memory by issuing ENCLS[EAUG] x86 opcode for each
->> page in the address range.
-> Why is this useful?  Please fully describe the benefit to kernel users.
-> Convince us that the benefit justifies the code churn, maintenance
-> cost and larger kernel footprint.
+> Perhaps something to consider is allowing users to be able to enable
+> or disable I/O stats on per mount basis?
+> 
+> Consider if a potential future user of this feature has servers with
+> one or two 256-core AMD Epyc chip, and suppose that they have a
+> several thousand iSCSI mounted file systems containing various
+> software packages for use by Kubernetes jobs.  (Or even several
+> thousand mounted overlay file systems.....)
+> 
+> The size of the percpu counter is going to be *big* on a large CPU
+> count machine, and the iostats structure has 5 of these per-cpu
+> counters, so if you have one for every single mounted file system,
+> even if the CPU slowdown isn't significant, the non-swappable kernel
+> memory overhead might be quite large.
 
-In short: page faults stink.  The core kernel has lots of ways of
-avoiding page faults like madvise(MADV_WILLNEED) or mmap(MAP_POPULATE).
- But, those only work on normal RAM that the core mm manages.
+A percpu counter on a 256 core machine is ~1kB. Adding 5kB to the
+struct superblock isn't a bit deal for a machine of this size, even
+if you have thousands of superblocks - we're talking a few
+*megabytes* of extra memory in a machine that would typically have
+hundreds of GB of RAM. Seriously, the memory overhead of the per-cpu
+counters is noise compared to the memory footprint of, say, the
+stacks needing to be allocated for every background worker thread
+the filesystem needs.
 
-SGX is weird.  SGX memory is managed outside the core mm.  It doesn't
-have a 'struct page' and get_user_pages() doesn't work on it.  Its VMAs
-are marked with VM_IO.  So, none of the existing methods for avoiding
-page faults work on SGX memory.
+Yeah, I know, we have ~175 per-cpu stats counters per XFS superblock
+(we already cover the 4 counters Amir is proposing to add as generic
+SB counters), and we have half a dozen dedicated worker threads per
+mount. Yet systems still function just fine when there are thousands
+of XFS filesystems and thousands of CPUs.
 
-This essentially helps extend existing "normal RAM" kernel ABIs to work
-for avoiding faults for SGX too.  SGX users want to enjoy all of the
-benefits of a delayed allocation policy (better resource use,
-overcommit, NUMA affinity) but without the cost of millions of faults.
+Seriously, a small handful of per-cpu counters that capture
+information for all superblocks is not a big deal. Small systems
+will have relatively litte overhead, large systems have the memory
+to handle it.
 
-That said, this isn't how I would have implemented it.  I probably would
-have hooked in to populate_vma_page_range() or its callers.
+> So maybe a VFS-level mount option, say, "iostats" and "noiostats", and
+> some kind of global option indicating whether the default should be
+> iostats being enabled or disabled?  Bonus points if iostats can be
+> enabled or disabled after the initial mount via remount operation.
+
+Can we please just avoid mount options for stuff like this? It'll
+just never get tested unless it defaults to on, and then almost
+no-one will ever turn it off because why would you bother tweaking
+something that has not noticable impact but can give useful insights
+the workload that is running?
+
+I don't care one way or another here because this is essentially
+duplicating something we've had in XFS for 20+ years. What I want to
+avoid is blowing out the test matrix even further. Adding optional
+features has a cost in terms of testing time, so if it's a feature
+that is only rarely going to be turned on then we shouldn't add it
+at all. If it's only rearely going to be turned off, OTOH, then we
+should just make it ubiquitous and available for everything so it's
+always tested.
+
+Hence, AFAICT, the only real option for yes/no support is the
+Kconfig option. If the kernel builder turns it on, it is on for
+everything, otherwise it is off for everything.
+
+> I could imagine some people only being interested to enable iostats on
+> certain file systems, or certain classes of block devices --- so they
+> might want it enabled on some ext4 file systems which are attached to
+> physical devices, but not on the N thousand iSCSI or nbd mounts that
+> are also happen to be using ext4.
+
+That seems ... fairly contrived. Block device IO stats are not turned
+on and off based on the block device type - they are generic.
+Network device stats are not turned on and off based on teh network
+device - they are generic. Why should per-filesystem IO stats be
+special and different to everything else?
+
+Cheers,
+
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
