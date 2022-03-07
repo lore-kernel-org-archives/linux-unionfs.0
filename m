@@ -2,80 +2,149 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4756C433FE
-	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Mar 2022 07:48:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1395C433EF
+	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Mar 2022 10:34:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235949AbiCGHtg (ORCPT
+        id S239796AbiCGKe6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 7 Mar 2022 02:49:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55952 "EHLO
+        Mon, 7 Mar 2022 05:34:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235940AbiCGHte (ORCPT
+        with ESMTP id S242978AbiCGKcq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 Mar 2022 02:49:34 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C4D629CAA;
-        Sun,  6 Mar 2022 23:48:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=u44gcPJxldLKcwFv2Kgs/qlvzNfA8B/3/pfeFxePDMc=; b=ka9PRijrZ3eRBw1yItomT14Sqq
-        jmBORx4WCv4segJPEOqcAC3tqzYtvC+BUZU4+e3vHCXkSbArBKnX45ei5WNvlf36lcWjyUgzAE7OG
-        1oA20KbtigBeQELHwPKsjqg0DOYHqmH+C8bYJm1QGOnPjx44rkEdJgP72nidrDZW/i/nFGHYMk5sJ
-        XS5iV8+/7Zp5yJKt3rpIucmjX76N4zA0MRmAt1xxlFlNsVXNgR3q/FjL5Vu+0O5asOVkTIwmnnVbT
-        zBu2SjEeBZ2Q6NXtgxS2ilZzHIYsyxgi3fxgw7eWR6CXDcPj2eTY9YRLOob0H05nk494vP2VOmvp4
-        TM7swpKg==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nR86U-00GK0Y-TY; Mon, 07 Mar 2022 07:48:26 +0000
-Date:   Sun, 6 Mar 2022 23:48:26 -0800
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     Jarkko Sakkinen <jarkko@kernel.org>, linux-mm@kvack.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Nathaniel McCallum <nathaniel@profian.com>,
-        Reinette Chatre <reinette.chatre@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-sgx@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Matthew Auld <matthew.auld@intel.com>,
-        Thomas =?iso-8859-1?Q?Hellstr=F6m?= 
-        <thomas.hellstrom@linux.intel.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Jason Ekstrand <jason@jlekstrand.net>,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Vasily Averin <vvs@virtuozzo.com>,
-        Shakeel Butt <shakeelb@google.com>,
-        Michal Hocko <mhocko@suse.com>,
-        zhangyiru <zhangyiru3@huawei.com>,
-        Alexey Gladkov <legion@kernel.org>,
-        Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>,
-        linux-mips@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, codalist@coda.cs.cmu.edu,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH RFC 0/3] MAP_POPULATE for device memory
-Message-ID: <YiW4yurDXSifTYUt@infradead.org>
-References: <20220306053211.135762-1-jarkko@kernel.org>
- <YiSb7tsUEBRGS+HA@casper.infradead.org>
+        Mon, 7 Mar 2022 05:32:46 -0500
+Received: from mail-ot1-x332.google.com (mail-ot1-x332.google.com [IPv6:2607:f8b0:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76A10954B4;
+        Mon,  7 Mar 2022 02:04:31 -0800 (PST)
+Received: by mail-ot1-x332.google.com with SMTP id k9-20020a056830242900b005ad25f8ebfdso12548566ots.7;
+        Mon, 07 Mar 2022 02:04:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=eFINug5CEkg/2CdNeLAUX19KPmO0ycgYSIVhZEmafEA=;
+        b=YnBdJ49/EVrKDag+lDqSSFbAnRYBSHHjHZCWwFqVdHl+kyXwaVqUKvUnCuiLIheB8z
+         Ey8ogH3aGIBTahdO60MBpT8Wh0F9QnxrNrZZ2fVIL4v1cIv0PltapaknvXTQK6sT26GH
+         Z7CxcWiIn+jXqC8AvNUdPZ4RiZwr6X9boBd5OTTyeNRudQV+wkTQaSx6RX2EyhXWo971
+         3QlhdEeCX/eVc8WikfbIGpBJ6+cKisa2q/D/aHeVmpNPpeVS9wD3HGJ5drZH7UFAcPu7
+         FiQZev26Ri7c4RRYDlj+x8BerC95lz0oCu02KYmV6Pvny3F+4IPM6730N7QDkDEuV/Mg
+         zwXQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=eFINug5CEkg/2CdNeLAUX19KPmO0ycgYSIVhZEmafEA=;
+        b=yjKaCjhIcVRXwf4GS8mscfDYIuVXruKBgIHUADHdz0yPa+2AaRZmU6ihkQYTqG/zfZ
+         +5PQ4sOrCvUj+ooBL5CZTivj/46L8FdpihpiZgCQ4DeLX3pnhCrTh22zyxT/vhNwM4oN
+         jHhBMKaXlhyE1pww9TKmbrd2XkdXy3JgiYobY66jzBbNlKUkr/vmTmvl3lWQBca9kx3O
+         iFu0SKhZYfSkOgyS4gCxPMruUNbl68LJDdlLfFK5ggMyDQsNLgrNQSOJU4Derr6rRKxr
+         d1/hbLjCgfnpzPe8LkhLcm2MoyxbPNVfHM4tm9cj0TJdsmgg9na/XzdPDuAJB3M1DO3+
+         cXtg==
+X-Gm-Message-State: AOAM530lQa122wo//JQPJvsniEiaLBQ8sppOs8YJOLERBjXqlRKXaSKU
+        R7W/THTiE4r65dP15lcRxdbETgaeiiXAaeK6BzuOLilXmX8=
+X-Google-Smtp-Source: ABdhPJx4qz4BdpRtlQ5ORwOeZtTPXA9Q+my9KHbaCDRdZuwZnWooI3Y/1gLahKqTF3jgeV0y2piBqLKA17SuBObh5AE=
+X-Received: by 2002:a05:6830:1db0:b0:5af:22a6:e97d with SMTP id
+ z16-20020a0568301db000b005af22a6e97dmr5360074oti.288.1646647457616; Mon, 07
+ Mar 2022 02:04:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YiSb7tsUEBRGS+HA@casper.infradead.org>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20220305160424.1040102-1-amir73il@gmail.com> <YiQ2Gi8umX9LQBWr@mit.edu>
+ <20220307001420.GQ3927073@dread.disaster.area>
+In-Reply-To: <20220307001420.GQ3927073@dread.disaster.area>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 7 Mar 2022 12:04:06 +0200
+Message-ID: <CAOQ4uxhtm0pwC5SUX9t0cL-+eTTuGgNs26U_H7rvT7p6V1+wgQ@mail.gmail.com>
+Subject: Re: [PATCH v4 0/9] Generic per-sb io stats
+To:     Dave Chinner <david@fromorbit.com>
+Cc:     "Theodore Ts'o" <tytso@mit.edu>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Mar 06, 2022 at 11:33:02AM +0000, Matthew Wilcox wrote:
-> On Sun, Mar 06, 2022 at 07:32:04AM +0200, Jarkko Sakkinen wrote:
-> > For device memory (aka VM_IO | VM_PFNMAP) MAP_POPULATE does nothing. Allow
-> > to use that for initializing the device memory by providing a new callback
-> > f_ops->populate() for the purpose.
-> 
-> As I said, NAK.
+On Mon, Mar 7, 2022 at 2:14 AM Dave Chinner <david@fromorbit.com> wrote:
+>
+> On Sat, Mar 05, 2022 at 11:18:34PM -0500, Theodore Ts'o wrote:
+> > On Sat, Mar 05, 2022 at 06:04:15PM +0200, Amir Goldstein wrote:
+> > >
+> > > Dave Chinner asked why the io stats should not be enabled for all
+> > > filesystems.  That change seems too bold for me so instead, I included
+> > > an extra patch to auto-enable per-sb io stats for blockdev filesystems.
+> >
+> > Perhaps something to consider is allowing users to be able to enable
+> > or disable I/O stats on per mount basis?
+> >
+> > Consider if a potential future user of this feature has servers with
+> > one or two 256-core AMD Epyc chip, and suppose that they have a
+> > several thousand iSCSI mounted file systems containing various
+> > software packages for use by Kubernetes jobs.  (Or even several
+> > thousand mounted overlay file systems.....)
+> >
+> > The size of the percpu counter is going to be *big* on a large CPU
+> > count machine, and the iostats structure has 5 of these per-cpu
+> > counters, so if you have one for every single mounted file system,
+> > even if the CPU slowdown isn't significant, the non-swappable kernel
+> > memory overhead might be quite large.
+>
+> A percpu counter on a 256 core machine is ~1kB. Adding 5kB to the
+> struct superblock isn't a bit deal for a machine of this size, even
+> if you have thousands of superblocks - we're talking a few
+> *megabytes* of extra memory in a machine that would typically have
+> hundreds of GB of RAM. Seriously, the memory overhead of the per-cpu
+> counters is noise compared to the memory footprint of, say, the
+> stacks needing to be allocated for every background worker thread
+> the filesystem needs.
+>
+> Yeah, I know, we have ~175 per-cpu stats counters per XFS superblock
+> (we already cover the 4 counters Amir is proposing to add as generic
+> SB counters), and we have half a dozen dedicated worker threads per
+> mount. Yet systems still function just fine when there are thousands
+> of XFS filesystems and thousands of CPUs.
+>
+> Seriously, a small handful of per-cpu counters that capture
+> information for all superblocks is not a big deal. Small systems
+> will have relatively litte overhead, large systems have the memory
+> to handle it.
+>
+> > So maybe a VFS-level mount option, say, "iostats" and "noiostats", and
+> > some kind of global option indicating whether the default should be
+> > iostats being enabled or disabled?  Bonus points if iostats can be
+> > enabled or disabled after the initial mount via remount operation.
+>
+> Can we please just avoid mount options for stuff like this? It'll
+> just never get tested unless it defaults to on, and then almost
+> no-one will ever turn it off because why would you bother tweaking
+> something that has not noticable impact but can give useful insights
+> the workload that is running?
+>
+> I don't care one way or another here because this is essentially
+> duplicating something we've had in XFS for 20+ years. What I want to
+> avoid is blowing out the test matrix even further. Adding optional
+> features has a cost in terms of testing time, so if it's a feature
+> that is only rarely going to be turned on then we shouldn't add it
+> at all. If it's only rearely going to be turned off, OTOH, then we
+> should just make it ubiquitous and available for everything so it's
+> always tested.
+>
+> Hence, AFAICT, the only real option for yes/no support is the
+> Kconfig option. If the kernel builder turns it on, it is on for
+> everything, otherwise it is off for everything.
+>
 
-Agreed.  This is an amazingly bad interface.
+I agree with this sentiment and I also share Ted's concerns
+that we may be overlooking some aspect, so my preference would
+be that Miklos takes the sb_iostats infra patches through his tree
+to enable iostats for fuse/overlayfs (I argued in the commit message
+why I think they deserve a special treatment).
+
+Regarding the last patch -
+Ted, would you be more comfortable if it came with yet another
+Kconfig (e.g. FS_IOSTATS_DEFAULT)? Or perhaps with a /proc/sys/fs/
+fail safety off switch (like protected_symlinks)?
+That gives more options to distros.
+
+Thanks,
+Amir.
