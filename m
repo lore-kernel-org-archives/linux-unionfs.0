@@ -2,65 +2,66 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A6BFC433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 10 Mar 2022 22:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA80CC433F5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 11 Mar 2022 04:10:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344290AbiCJWMX (ORCPT
+        id S1346120AbiCKELL (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 10 Mar 2022 17:12:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37320 "EHLO
+        Thu, 10 Mar 2022 23:11:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42650 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245170AbiCJWMW (ORCPT
+        with ESMTP id S231511AbiCKELK (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 10 Mar 2022 17:12:22 -0500
-Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF5EF1959FA
-        for <linux-unionfs@vger.kernel.org>; Thu, 10 Mar 2022 14:11:18 -0800 (PST)
-Received: by mail-ej1-x62d.google.com with SMTP id d10so15131643eje.10
-        for <linux-unionfs@vger.kernel.org>; Thu, 10 Mar 2022 14:11:18 -0800 (PST)
+        Thu, 10 Mar 2022 23:11:10 -0500
+Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37C26986FF;
+        Thu, 10 Mar 2022 20:10:08 -0800 (PST)
+Received: by mail-oi1-x234.google.com with SMTP id n7so8157799oif.5;
+        Thu, 10 Mar 2022 20:10:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
+        d=gmail.com; s=20210112;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc:content-transfer-encoding;
-        bh=9km0i8SFuccdCOVZYquGLNsFmsoS5afCtujPM89debo=;
-        b=DkO/8stlw+jpHvI8npwNphLXTcJGdwo5HGKNzsLEQgRJKoqLNqUtQ14rO8YztWtv6H
-         bAxp1qhPNeH3fynL0mw7GJsoth6uZUwOJRQT3vdvrEI2RpF54ufTb0yXO3++rTXBespQ
-         x5lpjmtoM0L6NN0u9NAmn1YkWynYbmAVkFmqK9RxmA3NcICSIgE9yAEScpXJQ4VdYV+H
-         qGhCj6APjWltlRC5qBmw4vuoMHC3nKYsIbGWFHWJaXvc4I/QXkVgLDu0Y46f5aCQWnEh
-         nBP1d+G1PMaC87QCOjKfloK3Lw9CLGuuIdMcOaJnRc9h+7uDqcwjICH2qyHuewLribm8
-         lAZA==
+        bh=9QeKB4cZIGNALzfAGtAHD8EFO6aEieNDe1cqjoQ6gsM=;
+        b=W9vUjPbowBxn+x7F9t0T9ph91PQtdPdrKRG92teEt6N37XUEPsuq7+Semk0Sq7eBL6
+         dcYQ9Tv22KHCDJpJTZArvmF8RQJMWhrnNFrlH0Z9uAj420D8GZTtOsl5n/GtRwmZJ8IA
+         76XZx0gnVjqsOEJfE51RvM5322G6zPl57koGYA+BKcBlE7vuRS9sF5hcoMo88FJDRAK5
+         +kwRe4M+oG+gEgYFREXYAIe783yanNbzuJWyEOA9cbY052rFHSqbNMsxjUA23QLzXa3/
+         qwh29b/LmPrDFBeRC3n+EEkGfabc7nyxk2erQfzTI/vhMLMU2KsmYvLjrtBhha2kRRP/
+         ijHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc:content-transfer-encoding;
-        bh=9km0i8SFuccdCOVZYquGLNsFmsoS5afCtujPM89debo=;
-        b=4Os6KkeB+nFxNCUEv+1c/QlxyQH/lyEhFbPpM3+ajqDUfO5FrkwDlDSGcWUYIOhPqT
-         5EWUjayGy+jQ247gWF8HwXXAsFHrisbdMEwCrN5dEXDwFqIM7h3z6X95TJn9I7Vhzcyd
-         7rpUnOTu1Vm2EtcU90Z3sx8CxX4/ZIFUNzTtX/IC54Y+ievgbuNTvQRegFwv5DNnYkDQ
-         NJ30kXgYVIPeMAo/lR82sZ89siPV+z4ku59Hifzd6nwlG+KG5hi0lFatMQ4Q+oIw+hqv
-         jgB4ZueQ5wcJm8tl2UTi6f0tgvS/q6Y5ZxqE3SO7MMxTqB9S0nHN9FEGWcSai5EFDoGo
-         O5PA==
-X-Gm-Message-State: AOAM530sr9VcckhwZgcT1gXUoKanuU2Hi9L5URkDMazVa0A9pLbZ7m7q
-        CC+vxRCRhz4WuAPqVHlqWG4b6xJFjRTUEPSL3kO8
-X-Google-Smtp-Source: ABdhPJzuqe7pKCSsXOm2hSO3J0hQynYE7R+uH9xz7Xj/FjdVN2m1z54F4ZugUJ/pEbmhBHGUILXKrslgjHDns1/T+QA=
-X-Received: by 2002:a17:907:216f:b0:6ce:d85f:35cf with SMTP id
- rl15-20020a170907216f00b006ced85f35cfmr6109610ejb.517.1646950277373; Thu, 10
- Mar 2022 14:11:17 -0800 (PST)
+        bh=9QeKB4cZIGNALzfAGtAHD8EFO6aEieNDe1cqjoQ6gsM=;
+        b=NZW/LNPYvMyDD0iILIXVPwu3OT8GGJdCO4UJtixsPhNlztP4E6LlKBS9jgeqz3M2AM
+         tCweRqyvOVRbGq27iZiMFyj6xf9hBTs5S8ENRkCBDVeR/VMIqtbUWgyS4EBOl+dxKQyv
+         oXJoU/QrLAbMqXsBh7gJf5UONGHNHOuGO/1Remqi/V4Zvxp7xxViNvgu3GjM8sVDaVUU
+         PtWGGdBIa8dDl+hhhKskXt3wLUTunnprJFb2+bPoGJoEASC0r2yOWUklCuMwXl180Aa2
+         mAVzGzGSy3L9MNl1Qu+Xsy9+pIZUtR0RVos1mXFaURus2XzrenovKsHDXTNTGwlDlI5i
+         xZbA==
+X-Gm-Message-State: AOAM533+F5d23lhlFDMU4ZheXcb+Qdzb8jLj9KFs0TNCPnm0zsEmPZP0
+        +npyH6o6yAYkawv1QWEMDsCi5w59RZb1LbvWl9z6yTm6sBQ=
+X-Google-Smtp-Source: ABdhPJx+9DTvJp/p1u4f9zeF1IL/TTETZ9pXW0fHuKtmLByfNy/fessGS5yeAZyPOoS/6x3jVT2neAlc+D3agDdooSw=
+X-Received: by 2002:a05:6808:23c1:b0:2da:30fd:34d9 with SMTP id
+ bq1-20020a05680823c100b002da30fd34d9mr8741863oib.203.1646971807529; Thu, 10
+ Mar 2022 20:10:07 -0800 (PST)
 MIME-Version: 1.0
 References: <20211117015806.2192263-1-dvander@google.com> <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
  <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
  <YapjNRrjpDu2a5qQ@redhat.com> <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
- <CA+FmFJA-r+JgMqObNCvE_X+L6jxWtDrczM9Jh0L38Fq-6mnbbA@mail.gmail.com> <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com>
-In-Reply-To: <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 10 Mar 2022 17:11:05 -0500
-Message-ID: <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
+ <CA+FmFJA-r+JgMqObNCvE_X+L6jxWtDrczM9Jh0L38Fq-6mnbbA@mail.gmail.com>
+ <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com> <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
+In-Reply-To: <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 11 Mar 2022 06:09:56 +0200
+Message-ID: <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
 Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-To:     Vivek Goyal <vgoyal@redhat.com>,
-        Amir Goldstein <amir73il@gmail.com>,
+To:     Paul Moore <paul@paul-moore.com>
+Cc:     Vivek Goyal <vgoyal@redhat.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
-        David Anderson <dvander@google.com>
-Cc:     Mark Salyzyn <salyzyn@android.com>,
+        David Anderson <dvander@google.com>,
+        Mark Salyzyn <salyzyn@android.com>,
         Jonathan Corbet <corbet@lwn.net>,
         "Eric W . Biederman" <ebiederm@xmission.com>,
         Randy Dunlap <rdunlap@infradead.org>,
@@ -79,38 +80,74 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 9, 2022 at 4:13 PM Paul Moore <paul@paul-moore.com> wrote:
-> On Tue, Mar 1, 2022 at 12:05 AM David Anderson <dvander@google.com> wrote=
-:
-> > On Mon, Feb 28, 2022 at 5:09 PM Paul Moore <paul@paul-moore.com> wrote:
-
-...
-
-> >> This patchset may not have been The Answer, but surely there is
-> >> something we can do to support this use-case.
+On Fri, Mar 11, 2022 at 12:11 AM Paul Moore <paul@paul-moore.com> wrote:
+>
+> On Wed, Mar 9, 2022 at 4:13 PM Paul Moore <paul@paul-moore.com> wrote:
+> > On Tue, Mar 1, 2022 at 12:05 AM David Anderson <dvander@google.com> wro=
+te:
+> > > On Mon, Feb 28, 2022 at 5:09 PM Paul Moore <paul@paul-moore.com> wrot=
+e:
+>
+> ...
+>
+> > >> This patchset may not have been The Answer, but surely there is
+> > >> something we can do to support this use-case.
+> > >
+> > > Yup exactly, and we still need patches 3 & 4 to deal with this. My cu=
+rrent plan is to try and rework our sepolicy (we have some ideas on how it =
+could be made compatible with how overlayfs works). If that doesn't pan out=
+ we'll revisit these patches and think harder about how to deal with the co=
+herency issues.
 > >
-> > Yup exactly, and we still need patches 3 & 4 to deal with this. My curr=
-ent plan is to try and rework our sepolicy (we have some ideas on how it co=
-uld be made compatible with how overlayfs works). If that doesn't pan out w=
-e'll revisit these patches and think harder about how to deal with the cohe=
-rency issues.
+> > Can you elaborate a bit more on the coherency issues?  Is this the dir
+> > cache issue that is alluded to in the patchset?  Anything else that
+> > has come up on review?
+> >
+> > Before I start looking at the dir cache in any detail, did you have
+> > any thoughts on how to resolve the problems that have arisen?
 >
-> Can you elaborate a bit more on the coherency issues?  Is this the dir
-> cache issue that is alluded to in the patchset?  Anything else that
-> has come up on review?
+> David, Vivek, Amir, Miklos, or anyone for that matter, can you please
+> go into more detail on the cache issues?  I *think* I may have found a
+> potential solution for an issue that could arise when the credential
+> override is not in place, but I'm not certain it's the only issue :)
 >
-> Before I start looking at the dir cache in any detail, did you have
-> any thoughts on how to resolve the problems that have arisen?
 
-David, Vivek, Amir, Miklos, or anyone for that matter, can you please
-go into more detail on the cache issues?  I *think* I may have found a
-potential solution for an issue that could arise when the credential
-override is not in place, but I'm not certain it's the only issue :)
+Hi Paul,
 
-There is motivation on our part to try and get the
-"override_creds=3Doff" portion of the patchset working and suitable for
-upstreaming, but I need some help in making sure I understand all the
-objections/problems.
+In this thread I claimed that the authors of the patches did not present
+a security model for overlayfs, such as the one currently in overlayfs.rst.
+If we had a model we could have debated its correctness and review its
+implementation.
 
---=20
-paul-moore.com
+As a proof that there is no solid model, I gave an *example* regarding
+the overlay readdir cache.
+
+When listing a merged dir, meaning, a directory containing entries from
+several overlay layers, ovl_permission() is called to check user's permissi=
+on,
+but ovl_permission() does not currently check permissions to read all layer=
+s,
+because that is not the current overlayfs model.
+
+Overlayfs has a readdir cache, so without override_cred, a user with high
+credentials can populate the readdir cache and then a user will fewer
+credentials, not enough to access the lower layers, but enough to access
+the upper most layer, will pass ovl_permission() check and be allowed to
+read from readdir cache.
+
+This specific problem can be solved in several ways - disable readdir
+cache with override_cred=3Doff, check all layers in ovl_permission().
+That's not my point. My point is that I provided a proof that the current
+model of override_cred=3Doff is flawed and it is up to the authors of the
+patch to fix the model and provide the analysis of overlayfs code to
+prove the model's correctness.
+
+The core of the matter is there is no easy way to "merge" the permissions
+from all layers into a single permission blob that could be checked once.
+
+Maybe the example I gave is the only flaw in the model, maybe not
+I am not sure. I will be happy to help you in review of a model and the
+solution that you may have found.
+
+Thanks,
+Amir.
