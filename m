@@ -2,63 +2,48 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA80CC433F5
-	for <linux-unionfs@archiver.kernel.org>; Fri, 11 Mar 2022 04:10:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55B00C4332F
+	for <linux-unionfs@archiver.kernel.org>; Fri, 11 Mar 2022 14:01:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346120AbiCKELL (ORCPT
+        id S1349030AbiCKOCp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 10 Mar 2022 23:11:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42650 "EHLO
+        Fri, 11 Mar 2022 09:02:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34724 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231511AbiCKELK (ORCPT
+        with ESMTP id S1349035AbiCKOCo (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 10 Mar 2022 23:11:10 -0500
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37C26986FF;
-        Thu, 10 Mar 2022 20:10:08 -0800 (PST)
-Received: by mail-oi1-x234.google.com with SMTP id n7so8157799oif.5;
-        Thu, 10 Mar 2022 20:10:08 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=9QeKB4cZIGNALzfAGtAHD8EFO6aEieNDe1cqjoQ6gsM=;
-        b=W9vUjPbowBxn+x7F9t0T9ph91PQtdPdrKRG92teEt6N37XUEPsuq7+Semk0Sq7eBL6
-         dcYQ9Tv22KHCDJpJTZArvmF8RQJMWhrnNFrlH0Z9uAj420D8GZTtOsl5n/GtRwmZJ8IA
-         76XZx0gnVjqsOEJfE51RvM5322G6zPl57koGYA+BKcBlE7vuRS9sF5hcoMo88FJDRAK5
-         +kwRe4M+oG+gEgYFREXYAIe783yanNbzuJWyEOA9cbY052rFHSqbNMsxjUA23QLzXa3/
-         qwh29b/LmPrDFBeRC3n+EEkGfabc7nyxk2erQfzTI/vhMLMU2KsmYvLjrtBhha2kRRP/
-         ijHQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=9QeKB4cZIGNALzfAGtAHD8EFO6aEieNDe1cqjoQ6gsM=;
-        b=NZW/LNPYvMyDD0iILIXVPwu3OT8GGJdCO4UJtixsPhNlztP4E6LlKBS9jgeqz3M2AM
-         tCweRqyvOVRbGq27iZiMFyj6xf9hBTs5S8ENRkCBDVeR/VMIqtbUWgyS4EBOl+dxKQyv
-         oXJoU/QrLAbMqXsBh7gJf5UONGHNHOuGO/1Remqi/V4Zvxp7xxViNvgu3GjM8sVDaVUU
-         PtWGGdBIa8dDl+hhhKskXt3wLUTunnprJFb2+bPoGJoEASC0r2yOWUklCuMwXl180Aa2
-         mAVzGzGSy3L9MNl1Qu+Xsy9+pIZUtR0RVos1mXFaURus2XzrenovKsHDXTNTGwlDlI5i
-         xZbA==
-X-Gm-Message-State: AOAM533+F5d23lhlFDMU4ZheXcb+Qdzb8jLj9KFs0TNCPnm0zsEmPZP0
-        +npyH6o6yAYkawv1QWEMDsCi5w59RZb1LbvWl9z6yTm6sBQ=
-X-Google-Smtp-Source: ABdhPJx+9DTvJp/p1u4f9zeF1IL/TTETZ9pXW0fHuKtmLByfNy/fessGS5yeAZyPOoS/6x3jVT2neAlc+D3agDdooSw=
-X-Received: by 2002:a05:6808:23c1:b0:2da:30fd:34d9 with SMTP id
- bq1-20020a05680823c100b002da30fd34d9mr8741863oib.203.1646971807529; Thu, 10
- Mar 2022 20:10:07 -0800 (PST)
-MIME-Version: 1.0
-References: <20211117015806.2192263-1-dvander@google.com> <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
- <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
- <YapjNRrjpDu2a5qQ@redhat.com> <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
- <CA+FmFJA-r+JgMqObNCvE_X+L6jxWtDrczM9Jh0L38Fq-6mnbbA@mail.gmail.com>
- <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com> <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
-In-Reply-To: <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 11 Mar 2022 06:09:56 +0200
-Message-ID: <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
-Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Vivek Goyal <vgoyal@redhat.com>,
+        Fri, 11 Mar 2022 09:02:44 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 830EE1C57D8
+        for <linux-unionfs@vger.kernel.org>; Fri, 11 Mar 2022 06:01:40 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1647007299;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=I+nWv4ywDxtdW2kAMKWAd/9h8AiRGVEXkvqyetpKnWc=;
+        b=dWQFvdLKw//Dc84MFg9J4h3vnUbZ87VC6gRC0/Y90m7Kk90HSYH1+yxZdInEGp19iCvG0z
+        5Cnvw7Erx3fmuKMtQnGObTJSSavMcnjZV5cG5CY13eo6mTQktzWQBDgjAvZnR7c7SWG/Mv
+        ed6n7kd7Q2CDqa2pAqwdFXllfVmyhM8=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-669-sly5me0lPe6uMFhCLHqmOA-1; Fri, 11 Mar 2022 09:01:36 -0500
+X-MC-Unique: sly5me0lPe6uMFhCLHqmOA-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id C64741854E21;
+        Fri, 11 Mar 2022 14:01:31 +0000 (UTC)
+Received: from horse.redhat.com (unknown [10.22.16.83])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 06A257AD1B;
+        Fri, 11 Mar 2022 14:01:30 +0000 (UTC)
+Received: by horse.redhat.com (Postfix, from userid 10451)
+        id 58049223A46; Fri, 11 Mar 2022 09:01:30 -0500 (EST)
+Date:   Fri, 11 Mar 2022 09:01:30 -0500
+From:   Vivek Goyal <vgoyal@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Paul Moore <paul@paul-moore.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         David Anderson <dvander@google.com>,
         Mark Salyzyn <salyzyn@android.com>,
@@ -74,80 +59,142 @@ Cc:     Vivek Goyal <vgoyal@redhat.com>,
         LSM List <linux-security-module@vger.kernel.org>,
         kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
         paulmoore@microsoft.com, luca.boccassi@microsoft.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr
+ fix
+Message-ID: <YitWOqzIRjnP1lok@redhat.com>
+References: <20211117015806.2192263-1-dvander@google.com>
+ <CAOQ4uxjjapFeOAFGLmsXObdgFVYLfNer-rnnee1RR+joxK3xYg@mail.gmail.com>
+ <Yao51m9EXszPsxNN@redhat.com>
+ <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
+ <YapjNRrjpDu2a5qQ@redhat.com>
+ <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
+ <CA+FmFJA-r+JgMqObNCvE_X+L6jxWtDrczM9Jh0L38Fq-6mnbbA@mail.gmail.com>
+ <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com>
+ <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
+ <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Mar 11, 2022 at 12:11 AM Paul Moore <paul@paul-moore.com> wrote:
->
-> On Wed, Mar 9, 2022 at 4:13 PM Paul Moore <paul@paul-moore.com> wrote:
-> > On Tue, Mar 1, 2022 at 12:05 AM David Anderson <dvander@google.com> wro=
-te:
-> > > On Mon, Feb 28, 2022 at 5:09 PM Paul Moore <paul@paul-moore.com> wrot=
-e:
->
-> ...
->
-> > >> This patchset may not have been The Answer, but surely there is
-> > >> something we can do to support this use-case.
+On Fri, Mar 11, 2022 at 06:09:56AM +0200, Amir Goldstein wrote:
+> On Fri, Mar 11, 2022 at 12:11 AM Paul Moore <paul@paul-moore.com> wrote:
+> >
+> > On Wed, Mar 9, 2022 at 4:13 PM Paul Moore <paul@paul-moore.com> wrote:
+> > > On Tue, Mar 1, 2022 at 12:05 AM David Anderson <dvander@google.com> wrote:
+> > > > On Mon, Feb 28, 2022 at 5:09 PM Paul Moore <paul@paul-moore.com> wrote:
+> >
+> > ...
+> >
+> > > >> This patchset may not have been The Answer, but surely there is
+> > > >> something we can do to support this use-case.
+> > > >
+> > > > Yup exactly, and we still need patches 3 & 4 to deal with this. My current plan is to try and rework our sepolicy (we have some ideas on how it could be made compatible with how overlayfs works). If that doesn't pan out we'll revisit these patches and think harder about how to deal with the coherency issues.
 > > >
-> > > Yup exactly, and we still need patches 3 & 4 to deal with this. My cu=
-rrent plan is to try and rework our sepolicy (we have some ideas on how it =
-could be made compatible with how overlayfs works). If that doesn't pan out=
- we'll revisit these patches and think harder about how to deal with the co=
-herency issues.
+> > > Can you elaborate a bit more on the coherency issues?  Is this the dir
+> > > cache issue that is alluded to in the patchset?  Anything else that
+> > > has come up on review?
+> > >
+> > > Before I start looking at the dir cache in any detail, did you have
+> > > any thoughts on how to resolve the problems that have arisen?
 > >
-> > Can you elaborate a bit more on the coherency issues?  Is this the dir
-> > cache issue that is alluded to in the patchset?  Anything else that
-> > has come up on review?
+> > David, Vivek, Amir, Miklos, or anyone for that matter, can you please
+> > go into more detail on the cache issues?  I *think* I may have found a
+> > potential solution for an issue that could arise when the credential
+> > override is not in place, but I'm not certain it's the only issue :)
 > >
-> > Before I start looking at the dir cache in any detail, did you have
-> > any thoughts on how to resolve the problems that have arisen?
->
-> David, Vivek, Amir, Miklos, or anyone for that matter, can you please
-> go into more detail on the cache issues?  I *think* I may have found a
-> potential solution for an issue that could arise when the credential
-> override is not in place, but I'm not certain it's the only issue :)
->
+> 
+> Hi Paul,
+> 
+> In this thread I claimed that the authors of the patches did not present
+> a security model for overlayfs, such as the one currently in overlayfs.rst.
+> If we had a model we could have debated its correctness and review its
+> implementation.
 
-Hi Paul,
+Agreed. After going through the patch set, I was wondering what's the
+overall security model and how to visualize that.
 
-In this thread I claimed that the authors of the patches did not present
-a security model for overlayfs, such as the one currently in overlayfs.rst.
-If we had a model we could have debated its correctness and review its
-implementation.
+So probably there needs to be a documentation patch which explains
+what's the new security model and how does it work.
 
-As a proof that there is no solid model, I gave an *example* regarding
-the overlay readdir cache.
+Also think both in terms of DAC and MAC. (Instead of just focussing too
+hard on SELinux).
 
-When listing a merged dir, meaning, a directory containing entries from
-several overlay layers, ovl_permission() is called to check user's permissi=
-on,
-but ovl_permission() does not currently check permissions to read all layer=
-s,
-because that is not the current overlayfs model.
+My understanding is that in current model, some of the overlayfs
+operations require priviliges. So mounter is supposed to be priviliged
+and does the operation on underlying layers.
 
-Overlayfs has a readdir cache, so without override_cred, a user with high
-credentials can populate the readdir cache and then a user will fewer
-credentials, not enough to access the lower layers, but enough to access
-the upper most layer, will pass ovl_permission() check and be allowed to
-read from readdir cache.
+Now in this new model, there will be two levels of check. Both overlay
+level and underlying layer checks will happen in the context of task
+which is doing the operation. So first of all, all tasks will need
+to have enough priviliges to be able to perform various operations
+on lower layer. 
 
-This specific problem can be solved in several ways - disable readdir
-cache with override_cred=3Doff, check all layers in ovl_permission().
-That's not my point. My point is that I provided a proof that the current
-model of override_cred=3Doff is flawed and it is up to the authors of the
-patch to fix the model and provide the analysis of overlayfs code to
-prove the model's correctness.
+If we do checks at both the levels in with the creds of calling task,
+I guess that probably is fine. (But will require a closer code inspection
+to make sure there is no privilege escalation both for mounter as well
+calling task).
 
-The core of the matter is there is no easy way to "merge" the permissions
-from all layers into a single permission blob that could be checked once.
+> 
+> As a proof that there is no solid model, I gave an *example* regarding
+> the overlay readdir cache.
+> 
+> When listing a merged dir, meaning, a directory containing entries from
+> several overlay layers, ovl_permission() is called to check user's permission,
+> but ovl_permission() does not currently check permissions to read all layers,
+> because that is not the current overlayfs model.
+> 
+> Overlayfs has a readdir cache, so without override_cred, a user with high
+> credentials can populate the readdir cache and then a user will fewer
+> credentials, not enough to access the lower layers, but enough to access
+> the upper most layer, will pass ovl_permission() check and be allowed to
+> read from readdir cache.
 
-Maybe the example I gave is the only flaw in the model, maybe not
-I am not sure. I will be happy to help you in review of a model and the
-solution that you may have found.
+I am not very familiar with dir caching code. When I read through the
+overlayfs.rst, it gave the impression that caching is per "struct file".
 
-Thanks,
-Amir.
+"This merged name list is cached in the
+'struct file' and so remains as long as the file is kept open."
+
+And I was wondering if that's the case, then one user should not be able
+to access the cache built by another priviliged user (until and unless
+privileged user passed fd).
+
+But looks like we build this cache and store in ovl inode and that's
+why this issue of cache built by higher privileged process will be
+accessible to lower privileged process.
+
+With current model this is not an issue because "mounter" is providing
+those privileges to unprivileged process. So while unprivileged process
+can't do "readdir" on an underlying lower dir, it might still be able
+to do that through an overlay mount. But if we don't switch to mounter's
+creds, then we probably can't rely on this dir caching. Agreed that
+disabling dir caching seems simplest solution if we were to do
+override_creds=off.
+
+Thanks
+Vivek
+
+> 
+> This specific problem can be solved in several ways - disable readdir
+> cache with override_cred=off, check all layers in ovl_permission().
+> That's not my point. My point is that I provided a proof that the current
+> model of override_cred=off is flawed and it is up to the authors of the
+> patch to fix the model and provide the analysis of overlayfs code to
+> prove the model's correctness.
+> 
+> The core of the matter is there is no easy way to "merge" the permissions
+> from all layers into a single permission blob that could be checked once.
+> 
+> Maybe the example I gave is the only flaw in the model, maybe not
+> I am not sure. I will be happy to help you in review of a model and the
+> solution that you may have found.
+> 
+> Thanks,
+> Amir.
+> 
+
