@@ -2,80 +2,94 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1663AC433EF
-	for <linux-unionfs@archiver.kernel.org>; Sat, 19 Mar 2022 05:38:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59B1BC433F5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Mar 2022 11:02:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242213AbiCSFkM (ORCPT
+        id S1353388AbiCYLDo (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 19 Mar 2022 01:40:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41658 "EHLO
+        Fri, 25 Mar 2022 07:03:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232502AbiCSFkK (ORCPT
+        with ESMTP id S245291AbiCYLDn (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 19 Mar 2022 01:40:10 -0400
-Received: from sender2-op-o12.zoho.com.cn (sender2-op-o12.zoho.com.cn [163.53.93.243])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECA39BC90
-        for <linux-unionfs@vger.kernel.org>; Fri, 18 Mar 2022 22:38:45 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1647668317; cv=none; 
-        d=zoho.com.cn; s=zohoarc; 
-        b=BL17HeKrlKdwDLciADdS2pq1AX25um4pNZ70d4HQROy8wR/54j/ZDwVfEUrE0n6vsKAM/sW0DEwKFCU14V4yBrvoUT9xB3Fritz7jfKQzBKk69JO+Lt9FDWxSVFS2Y7b0rH1DfA8x9YMZ8cP5WB72YXI+xCCwTKjd/ov0Mxp5oo=
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=zoho.com.cn; s=zohoarc; 
-        t=1647668317; h=Content-Type:Content-Transfer-Encoding:Cc:Date:From:MIME-Version:Message-ID:Subject:To; 
-        bh=iyxUeI3LNsEmn3hvFd8lLx5YCK0Zt/QyUPgnxI2jDR0=; 
-        b=FqDQy4glyYEBLA2w9PYu4XaUaqtMzESkoBQ1+4peSl9Na8PxBNg1DGJEL5MJZqHfkOvX9Emds1m2zPkf7YBuOB9TpNB69hP26+/C2Dhv6lwVPlbRonBu+MDJvg1Ghjq77CKWT/7TX+SOMN8OSdyYnEsqu3XWkwmwwfhL4pJGLGE=
-ARC-Authentication-Results: i=1; mx.zoho.com.cn;
-        dkim=pass  header.i=mykernel.net;
-        spf=pass  smtp.mailfrom=cgxu519@mykernel.net;
-        dmarc=pass header.from=<cgxu519@mykernel.net>
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; t=1647668317;
-        s=zohomail; d=mykernel.net; i=cgxu519@mykernel.net;
-        h=From:To:Cc:Message-ID:Subject:Date:MIME-Version:Content-Transfer-Encoding:Content-Type;
-        bh=iyxUeI3LNsEmn3hvFd8lLx5YCK0Zt/QyUPgnxI2jDR0=;
-        b=HjyooxELlAyt6d3LPC/apSidrKCics+Qz+EowL0ErHVvCNdpq/wDYTkEG/6XyCoK
-        ISPxMWf8d+tILqaAO3gTbmkfJmlrxsv1zK/WFeLsqnbIqhfk2PupxN31JL6GwzoVcPy
-        OkshGklKE8WG53eERFhJnR5mWihufVE96Fi1733s=
-Received: from localhost.localdomain (106.55.170.121 [106.55.170.121]) by mx.zoho.com.cn
-        with SMTPS id 1647668315141864.8586636174805; Sat, 19 Mar 2022 13:38:35 +0800 (CST)
-From:   Chengguang Xu <cgxu519@mykernel.net>
-To:     miklos@szeredi.hu
-Cc:     linux-unionfs@vger.kernel.org, Chengguang Xu <cgxu519@mykernel.net>
-Message-ID: <20220319053828.2354927-1-cgxu519@mykernel.net>
-Subject: [RFC Patch] ovl: skip delever fadvise request to lower layers
-Date:   Sat, 19 Mar 2022 13:38:28 +0800
-X-Mailer: git-send-email 2.27.0
-MIME-Version: 1.0
+        Fri, 25 Mar 2022 07:03:43 -0400
+Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 484A4C4E0E
+        for <linux-unionfs@vger.kernel.org>; Fri, 25 Mar 2022 04:02:09 -0700 (PDT)
+Received: by mail-ej1-x636.google.com with SMTP id pv16so14669715ejb.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 25 Mar 2022 04:02:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fairphone.com; s=fair;
+        h=mime-version:content-transfer-encoding:date:message-id:cc:subject
+         :from:to:in-reply-to;
+        bh=0sU49Qn/ULUU8j1SeL39Iuenz7n14QMmEpvv6BRFE48=;
+        b=oCBZvdYXhfbMyHnPwSOjsv3H9DnbkhfYlhAVfgdV5NKoMeH7Zwv0zeXD1RgBmzOGjs
+         xZg0bNa8V9DCV1D77fUSyqGh3+zs2agY+7q5FF8O2f9tXa6SsIHX1eono4PzCH8+5mh4
+         NbfUhSTBuXv6GdiT8GaOvEDRd39qg0QKDrr3PS/b2SswF2h7f33+1JbY+XuuA8dAYzWh
+         aIoFpeoVwl9hatV7HvjIuDkZ1Fy+AgBxAyNPLU2cAdpKzUCo8hU4d/H/u7RrQjeMVJir
+         uK6mG07ZmPKfqulMCtev9f75JIn73OHoxQ+sFf0FfF5GzFQCQRT/3o1XZ0blU6XrHZSB
+         SjmQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:content-transfer-encoding:date
+         :message-id:cc:subject:from:to:in-reply-to;
+        bh=0sU49Qn/ULUU8j1SeL39Iuenz7n14QMmEpvv6BRFE48=;
+        b=Y472Ge37gbMuDifTl4H1MVIc6ccoimmqY9rI+Jrd2E7RRfUtqtBGV3hoTw7N9GPG0y
+         PKyzjY2KrH5ApRHWKjs3fhGBIvp/0asIIACH4FcLeIHuEh/oAiYdN2PPgb0lkmme00rt
+         SMkMOuyu9LMhv0oIKVg4nBQWSd4T1sFTdKlHslumRxQKTrRb4ZEoVMV4teykveybzOlT
+         pZrN5J0CPA9xU/yKC7L7JKS/xmWAArfmna85aCwGz0lbWO8kovwd5s2idQyEOiqtbjKC
+         wLLabdQgag3pt/ty4aIOXP1/NnNq/vIxAeqYgLB640b5G7ZdcEdOh05hOnOvk4fhHpPQ
+         cO9w==
+X-Gm-Message-State: AOAM532d6eL5p1fbfgkv0AGS4E12oitJsgoUM7IYykeMcnIgUqmGbm/P
+        htexna1CpWnuSL7in4RcZ1EcnA==
+X-Google-Smtp-Source: ABdhPJzP6mkhIuV1yLeKOLlJouj/OJgm3LgLVbahYZyJgrA1mgTfai4dO7C860RHTP2kMmtBW82dqw==
+X-Received: by 2002:a17:906:e28a:b0:6d6:e2e9:d39d with SMTP id gg10-20020a170906e28a00b006d6e2e9d39dmr10848821ejb.2.1648206127884;
+        Fri, 25 Mar 2022 04:02:07 -0700 (PDT)
+Received: from localhost (144-178-202-138.static.ef-service.nl. [144.178.202.138])
+        by smtp.gmail.com with ESMTPSA id d4-20020a1709067a0400b006d6e3ca9f71sm2183995ejo.198.2022.03.25.04.02.06
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 25 Mar 2022 04:02:07 -0700 (PDT)
+Mime-Version: 1.0
 Content-Transfer-Encoding: quoted-printable
-X-ZohoCNMailClient: External
-Content-Type: text/plain; charset=utf8
+Content-Type: text/plain; charset=UTF-8
+Date:   Fri, 25 Mar 2022 12:02:06 +0100
+Message-Id: <CISWB5OO4TSD.1YIUVDSVYSIF0@otso>
+Cc:     <Luca.Boccassi@microsoft.com>, <darrick.wong@oracle.com>,
+        <dsterba@suse.com>, <hubcap@omnibond.com>, <jack@suse.cz>,
+        <jlayton@kernel.org>, <kernel-team@android.com>,
+        <linux-fsdevel@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-security-module@vger.kernel.org>,
+        <linux-unionfs@vger.kernel.org>, <paulmoore@microsoft.com>,
+        <salyzyn@android.com>, <sds@tycho.nsa.gov>,
+        <selinux@vger.kernel.org>
+Subject: Re: [PATCH v19 1/4] Add flags option to get xattr method paired to
+ __vfs_getxattr
+From:   "Luca Weiss" <luca.weiss@fairphone.com>
+To:     <dvander@google.com>
+In-Reply-To: <20211117015806.2192263-2-dvander@google.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The files in lower layers are shared with multiple overlayfs instances.
-so directly delever fadvise request to lower layers may cause interfears
-between instances.
+Hi David,
 
-Signed-off-by: Chengguang Xu <cgxu519@mykernel.net>
----
- fs/overlayfs/file.c | 3 +++
- 1 file changed, 3 insertions(+)
+this patch doesn't compile with CONFIG_SECURITY=3Dn:
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index fa125feed0ff..7b51f3afef02 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -539,6 +539,9 @@ static int ovl_fadvise(struct file *file, loff_t offset=
-, loff_t len, int advice)
- =09const struct cred *old_cred;
- =09int ret;
-=20
-+=09if (!ovl_inode_upper(file_inode(file)))
-+=09=09return 0;
-+
- =09ret =3D ovl_real_fdget(file, &real);
- =09if (ret)
- =09=09return ret;
---=20
-2.27.0
+./include/linux/security.h: In function 'security_inode_need_killpriv':
+./include/linux/security.h:893:40: error: passing argument 1 of 'cap_inode_=
+need_killpriv' from incompatible pointer type [-Werror=3Dincompatible-point=
+er-types]
+  893 |         return cap_inode_need_killpriv(dentry);
+      |                                        ^~~~~~
+      |                                        |
+      |                                        struct dentry *
+./include/linux/security.h:153:52: note: expected 'struct user_namespace *'=
+ but argument is of type 'struct dentry *'
+  153 | int cap_inode_need_killpriv(struct user_namespace *mnt_userns,
+      |                             ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~
 
+I applied the patch on linux-next tag next-20220318, but the relevant part
+doesn't seem to have changed lately.
 
+Regards
+Luca
