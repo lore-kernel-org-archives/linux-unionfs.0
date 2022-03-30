@@ -2,37 +2,37 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29E6CC433EF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 30 Mar 2022 10:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 876AAC433FE
+	for <linux-unionfs@archiver.kernel.org>; Wed, 30 Mar 2022 10:26:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245351AbiC3K2D (ORCPT
+        id S238729AbiC3K2M (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 30 Mar 2022 06:28:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34074 "EHLO
+        Wed, 30 Mar 2022 06:28:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34642 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242937AbiC3K2D (ORCPT
+        with ESMTP id S242937AbiC3K2K (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 30 Mar 2022 06:28:03 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C125E25FD6D
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 03:26:18 -0700 (PDT)
+        Wed, 30 Mar 2022 06:28:10 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E56BD25FD6D
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 03:26:25 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E2C16147F
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 10:26:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2D34C340EC;
-        Wed, 30 Mar 2022 10:26:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8C85FB81AD2
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 10:26:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5D7FEC340EC;
+        Wed, 30 Mar 2022 10:26:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648635977;
-        bh=G6naFoPtdXpR2WKC80xSIzVxFbOl197lstuUWxX8bKM=;
+        s=k20201202; t=1648635982;
+        bh=5ys+ig6p16Mp5Mx8GpzUdJE75r9tr+3JbiMvWCNjgbQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Fk89VKTIzcV8+1VHYA6G0/jBN76+YIhgdQu8b/J65VREYWFTtAqMgzrAAc96wzcp8
-         Z2iyEgR+zbrjUTOYbL8tHLxmhGibZtH8iTlUG7jtUsJkgBOOk8nmGwm46LOpTnPUOZ
-         D5FadVmFfHNdi+v0F2GmLOh0Gh96bcyf5ZaOD1Ivt7x3t5Xb68ENEr5bq+vgg0e6sx
-         T77Gmh9OS8ammALIh+MQ4Vw7WmrVJgOka8H2+W23e9zrDKijrcj8Mcsyq0GoIzPmgC
-         g/tYdOGCrmwlhejjQckOPN26tUmYfWPptb+IM9n9184QfLT6J/eRbaM511WyRyFv/4
-         lVRBwBqvCCMKA==
+        b=KEHlmR+dQupuPIjmt280S7GadLYit93j96MKaq1/BkdLbL7pQixC5pin0V0ASgB9c
+         BYDSlUvmFbCET4CzS7lswXvG8L3CbrhmFI6p0NUQMk26kiCyU1qdZi7Gb+jP14ecu8
+         hv9ffD6ksIm5LRL3z38Q1DHcJc83ItIh/0KxbyiDQwMzGQ1mQccybro4UyK81mlolE
+         URkn+pQMT/rf0loRcoK1m5jUK49wc0o1miKy/9JoqLmhhiecnicyDfDHqaxmFlgI3u
+         82n1QK2gmCOvrXGPhHGwREfKsOVhSuaf/0B1LY2Jup6h6Z34Hs+tViDgM1YaAPR/vJ
+         iTJhlwTyGIJfw==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
@@ -45,24 +45,24 @@ Cc:     Christian Brauner <brauner@kernel.org>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
         =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
-Subject: [PATCH v2 16/19] ovl: handle idmappings in ovl_permission()
-Date:   Wed, 30 Mar 2022 12:24:04 +0200
-Message-Id: <20220330102409.1290850-17-brauner@kernel.org>
+Subject: [PATCH v2 17/19] ovl: handle idmappings in layer open helpers
+Date:   Wed, 30 Mar 2022 12:24:05 +0200
+Message-Id: <20220330102409.1290850-18-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220330102409.1290850-1-brauner@kernel.org>
 References: <20220330102409.1290850-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1882; h=from:subject; bh=G6naFoPtdXpR2WKC80xSIzVxFbOl197lstuUWxX8bKM=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS56B9YemPaF5mXdgGPjvjYHn7x/8fjNYpPii/pMUwVWb2y cdbi0o5SFgYxLgZZMUUWh3aTcLnlPBWbjTI1YOawMoEMYeDiFICJMHxmZOgqbGtZd3KF9wTGBC7pgp 4HJhd/ffjVt7BeuGS63d2YfcmMDE9nnAmq+Twl+sDvA6Jh23wF+FiOiO5qNs64MdtdV9JtIhcA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2758; h=from:subject; bh=5ys+ig6p16Mp5Mx8GpzUdJE75r9tr+3JbiMvWCNjgbQ=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS56B+QVqp8cOjhnxspWltMLT4t1nQv5Nh98apVzUyeS8fk pv4v7ShlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZhIgDXDP4XMEiXGfp5DTSck1A8E6s VMfqRizXuFnTFr1vPk951LYhn+cDJcuhwze+E1Xw3WP5o3z82qd9ooqv6Z5Y+8yP+cixNkeAE=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Use the previously introduced ovl_i_path_real() helper to retrieve the
-relevant upper or lower path and take the mount's idmapping into account
-for the lower layer permission check. This is needed to support idmapped
-base layers with overlay.
+In earlier patches we already passed down the relevant upper or lower
+path to ovl_open_realfile(). Now let the open helpers actually take the
+idmapping of the relevant mount into account when checking permissions.
+This is needed to support idmapped base layers with overlay.
 
 Cc: <linux-unionfs@vger.kernel.org>
 Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
@@ -72,47 +72,66 @@ Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 /* v2 */
 unchanged
 ---
- fs/overlayfs/inode.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/overlayfs/file.c | 7 +++++--
+ fs/overlayfs/util.c | 5 +++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 44fa578267fa..0b09e62091da 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -280,12 +280,14 @@ int ovl_permission(struct user_namespace *mnt_userns,
- 		   struct inode *inode, int mask)
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 656c30bf20a6..7dd44f4e2757 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -42,6 +42,7 @@ static struct file *ovl_open_realfile(const struct file *file,
  {
- 	struct inode *upperinode = ovl_inode_upper(inode);
--	struct inode *realinode = upperinode ?: ovl_inode_lower(inode);
-+	struct inode *realinode;
-+	struct path realpath;
+ 	struct inode *realinode = d_inode(realpath->dentry);
+ 	struct inode *inode = file_inode(file);
++	struct user_namespace *real_idmap;
+ 	struct file *realfile;
  	const struct cred *old_cred;
- 	int err;
+ 	int flags = file->f_flags | OVL_OPEN_FLAGS;
+@@ -51,12 +52,14 @@ static struct file *ovl_open_realfile(const struct file *file,
+ 	if (flags & O_APPEND)
+ 		acc_mode |= MAY_APPEND;
  
- 	/* Careful in RCU walk mode */
--	if (!realinode) {
-+	ovl_i_path_real(inode, &realpath);
-+	if (!realpath.dentry) {
- 		WARN_ON(!(mask & MAY_NOT_BLOCK));
- 		return -ECHILD;
- 	}
-@@ -298,6 +300,7 @@ int ovl_permission(struct user_namespace *mnt_userns,
- 	if (err)
- 		return err;
- 
-+	realinode = d_inode(realpath.dentry);
++
  	old_cred = ovl_override_creds(inode->i_sb);
- 	if (!upperinode &&
- 	    !special_file(realinode->i_mode) && mask & MAY_WRITE) {
-@@ -305,7 +308,7 @@ int ovl_permission(struct user_namespace *mnt_userns,
- 		/* Make sure mounter can read file for copy up later */
- 		mask |= MAY_READ;
- 	}
--	err = inode_permission(&init_user_ns, realinode, mask);
-+	err = inode_permission(mnt_user_ns(realpath.mnt), realinode, mask);
- 	revert_creds(old_cred);
+-	err = inode_permission(&init_user_ns, realinode, MAY_OPEN | acc_mode);
++	real_idmap = mnt_user_ns(realpath->mnt);
++	err = inode_permission(real_idmap, realinode, MAY_OPEN | acc_mode);
+ 	if (err) {
+ 		realfile = ERR_PTR(err);
+ 	} else {
+-		if (!inode_owner_or_capable(&init_user_ns, realinode))
++		if (!inode_owner_or_capable(real_idmap, realinode))
+ 			flags &= ~O_NOATIME;
  
- 	return err;
+ 		realfile = open_with_fake_path(&file->f_path, flags, realinode,
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 79fae06ee10a..7dd2e5e6662a 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -523,6 +523,7 @@ bool ovl_is_whiteout(struct dentry *dentry)
+ struct file *ovl_path_open(struct path *path, int flags)
+ {
+ 	struct inode *inode = d_inode(path->dentry);
++	struct user_namespace *real_idmap = mnt_user_ns(path->mnt);
+ 	int err, acc_mode;
+ 
+ 	if (flags & ~(O_ACCMODE | O_LARGEFILE))
+@@ -539,12 +540,12 @@ struct file *ovl_path_open(struct path *path, int flags)
+ 		BUG();
+ 	}
+ 
+-	err = inode_permission(&init_user_ns, inode, acc_mode | MAY_OPEN);
++	err = inode_permission(real_idmap, inode, acc_mode | MAY_OPEN);
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
+ 	/* O_NOATIME is an optimization, don't fail if not permitted */
+-	if (inode_owner_or_capable(&init_user_ns, inode))
++	if (inode_owner_or_capable(real_idmap, inode))
+ 		flags |= O_NOATIME;
+ 
+ 	return dentry_open(path, flags, current_cred());
 -- 
 2.32.0
 
