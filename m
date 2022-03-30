@@ -2,187 +2,220 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB469C433EF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 30 Mar 2022 10:25:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13844C433EF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 30 Mar 2022 10:25:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245349AbiC3K1X (ORCPT
+        id S245338AbiC3K1a (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 30 Mar 2022 06:27:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59300 "EHLO
+        Wed, 30 Mar 2022 06:27:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245347AbiC3K1X (ORCPT
+        with ESMTP id S245353AbiC3K13 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 30 Mar 2022 06:27:23 -0400
+        Wed, 30 Mar 2022 06:27:29 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8318C260C45
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 03:25:37 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11B77260C43
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 03:25:44 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3A53CB81AD2
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 10:25:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B856BC340EE;
-        Wed, 30 Mar 2022 10:25:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 95877B81BE7
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 10:25:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F713C34111;
+        Wed, 30 Mar 2022 10:25:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648635934;
-        bh=bHy6AeP1lMtEHbcM/A1dgdssELeIheVHRp7LoN3FDP0=;
+        s=k20201202; t=1648635941;
+        bh=ZlAv6wFPlFkvmfHR6zcgeL7uR4wZcXTN6IJyIAdhBVU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=nNc8X1iBuLiyZAQDgkCFOeC7bVbRkhNbSoQoSZDmwWUtUdMb4cOjtMqJBx/5Z7pXV
-         bQn4SqbiCy4bzv9Iwiu8e9MkCf2MHPSgYJQRuu05d1rPw0QnRe5lTdd+19Zgb/IWQf
-         FbUUn9tFtWVciZD3Dyc0kS1QSuNjOaoCdp+QRjB9YaM0fBQI0FlXdCEcHEMHcHG+3k
-         UiChf9hCUVFjLES8wNSY5Fp1Lh1i+LFr/IBsJZDoqzqYkVAqt7W5A5IxhIuw1NBta/
-         XKgZGxXURdg5LT6xdgpAzT0YOYpptkYCC83M33qy7CPURsUk89J39tWyO8/tlrH350
-         w+WiKDXHtyaDA==
+        b=p1i+aO1K4/0aHpaEq/VU8OmC1vhpGpJr0DX9KF1OT6QoH2IQmOwpXey6rvGjymZW5
+         6mfCjcmx81jY3s9RV4Ia+DAJYl0HrnFdBdimq76sGTpMAny4uMKJF6imxWa2TiN7mK
+         ShafN42Ns485fyNck7FlFi751CDHKcvFrEs/Jc1wYraOyeUdCaQTzhUjxICskDvSDD
+         wl8aN1OgHwq+KaReFtVfORC/xxQ73/tdqGikW8YOR1zmcD+/4OaOQnnWUGjL6sZ2KX
+         gfRP89juiecPQ8A7+JECZLtGclwP+iANc+oCVDPiZHo79oTxep1H/bXgUOKMgOYeoL
+         LvNiLsGvlnnVQ==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
-Cc:     Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
         Aleksa Sarai <cyphar@cyphar.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
         Rodrigo Campos Catelin <rodrigo@sdfg.com.ar>,
         Seth Forshee <sforshee@digitalocean.com>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
-        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>,
-        Christian Brauner <brauner@kernel.org>
-Subject: [PATCH v2 08/19] ovl: pass layer mnt to ovl_open_realfile()
-Date:   Wed, 30 Mar 2022 12:23:56 +0200
-Message-Id: <20220330102409.1290850-9-brauner@kernel.org>
+        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
+Subject: [PATCH v2 09/19] ovl: use ovl_do_notify_change() wrapper
+Date:   Wed, 30 Mar 2022 12:23:57 +0200
+Message-Id: <20220330102409.1290850-10-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220330102409.1290850-1-brauner@kernel.org>
 References: <20220330102409.1290850-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4552; i=brauner@kernel.org; h=from:subject; bh=Ywq1FeK9BXqPwdYj9v670/RpVl5CxsohCFBEIZ12gXU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS56O9N3v+al/fSZJWjrM47QgIzXH60rb5hG6rG8iGAd/HF BIVlHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABMR42f4xaTOtP/lGqHlzT/kVfbbSf Ub2u49KCZ8VOX9ZqOqAPVjsxgZdrYvsmqOXmRtzsbvLvXmr9oSa/YfhUsK1myPWFldvZubHQA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6455; h=from:subject; bh=ZlAv6wFPlFkvmfHR6zcgeL7uR4wZcXTN6IJyIAdhBVU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS56O/btfRFsP8S151b2wKswtq+qi/zPlgh7bN2bq5xg88/ /+snOkpZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACayqpaRoXde+3+Jn68qvvtl8utw/F wkmWfsnmXXqrj51RfrZS3CsowMPe+/lrPrbgxl5Dy3SP4sw+LSKZbl18Pe2ec4X3i947ABOwA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Amir Goldstein <amir73il@gmail.com>
+Introduce ovl_do_notify_change() as a simple wrapper around
+notify_change() to support idmapped layers. The helper mirrors other
+ovl_do_*() helpers that operate on the upper layers.
 
-Ensure that ovl_open_realfile() takes the mount's idmapping into
-account. We add a new helper ovl_path_realdata() that can be used to
-easily retrieve the relevant path which we can pass down. This is needed
-to support idmapped base layers with overlay.
+When changing ownership of an upper object the intended ownership needs
+to be mapped according to the upper layer's idmapping. This mapping is
+the inverse to the mapping applied when copying inode information from
+an upper layer to the corresponding overlay inode. So e.g., when an
+upper mount maps files that are stored on-disk as owned by id 1001 to
+1000 this means that calling stat on this object from an idmapped mount
+will report the file as being owned by id 1000. Consequently in order to
+change ownership of an object in this filesystem so it appears as being
+owned by id 1000 in the upper idmapped layer it needs to store id 1001
+on disk. The mnt mapping helpers take care of this.
+
+All idmapping helpers are nops when no idmapped base layers are used.
 
 Cc: <linux-unionfs@vger.kernel.org>
 Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
-Reviewed-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 ---
 /* v2 */
 unchanged
 ---
- fs/overlayfs/file.c      | 22 +++++++++++++---------
- fs/overlayfs/overlayfs.h |  1 +
- fs/overlayfs/util.c      | 14 ++++++++++++++
- 3 files changed, 28 insertions(+), 9 deletions(-)
+ fs/overlayfs/copy_up.c   |  8 ++++----
+ fs/overlayfs/dir.c       |  2 +-
+ fs/overlayfs/inode.c     |  3 ++-
+ fs/overlayfs/overlayfs.h | 27 +++++++++++++++++++++++++++
+ fs/overlayfs/super.c     |  2 +-
+ 5 files changed, 35 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index fa125feed0ff..9250e04e97af 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -38,8 +38,9 @@ static char ovl_whatisit(struct inode *inode, struct inode *realinode)
- #define OVL_OPEN_FLAGS (O_NOATIME | FMODE_NONOTIFY)
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 2c336acb2ba0..a5d68302693f 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -301,7 +301,7 @@ static int ovl_set_size(struct ovl_fs *ofs,
+ 		.ia_size = stat->size,
+ 	};
  
- static struct file *ovl_open_realfile(const struct file *file,
--				      struct inode *realinode)
-+				      struct path *realpath)
- {
-+	struct inode *realinode = d_inode(realpath->dentry);
- 	struct inode *inode = file_inode(file);
- 	struct file *realfile;
- 	const struct cred *old_cred;
-@@ -104,21 +105,21 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
- static int ovl_real_fdget_meta(const struct file *file, struct fd *real,
- 			       bool allow_meta)
- {
--	struct inode *inode = file_inode(file);
--	struct inode *realinode;
-+	struct dentry *dentry = file_dentry(file);
-+	struct path realpath;
- 
- 	real->flags = 0;
- 	real->file = file->private_data;
- 
- 	if (allow_meta)
--		realinode = ovl_inode_real(inode);
-+		ovl_path_real(dentry, &realpath);
- 	else
--		realinode = ovl_inode_realdata(inode);
-+		ovl_path_realdata(dentry, &realpath);
- 
- 	/* Has it been copied up since we'd opened it? */
--	if (unlikely(file_inode(real->file) != realinode)) {
-+	if (unlikely(file_inode(real->file) != d_inode(realpath.dentry))) {
- 		real->flags = FDPUT_FPUT;
--		real->file = ovl_open_realfile(file, realinode);
-+		real->file = ovl_open_realfile(file, &realpath);
- 
- 		return PTR_ERR_OR_ZERO(real->file);
- 	}
-@@ -144,17 +145,20 @@ static int ovl_real_fdget(const struct file *file, struct fd *real)
- 
- static int ovl_open(struct inode *inode, struct file *file)
- {
-+	struct dentry *dentry = file_dentry(file);
- 	struct file *realfile;
-+	struct path realpath;
- 	int err;
- 
--	err = ovl_maybe_copy_up(file_dentry(file), file->f_flags);
-+	err = ovl_maybe_copy_up(dentry, file->f_flags);
- 	if (err)
- 		return err;
- 
- 	/* No longer need these flags, so don't pass them on to underlying fs */
- 	file->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
- 
--	realfile = ovl_open_realfile(file, ovl_inode_realdata(inode));
-+	ovl_path_realdata(dentry, &realpath);
-+	realfile = ovl_open_realfile(file, &realpath);
- 	if (IS_ERR(realfile))
- 		return PTR_ERR(realfile);
- 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index b003652f8827..816a69b46b67 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -319,6 +319,7 @@ void ovl_path_upper(struct dentry *dentry, struct path *path);
- void ovl_path_lower(struct dentry *dentry, struct path *path);
- void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
-+enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 5a7e5d1e884b..42293610f64e 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -194,6 +194,20 @@ enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path)
- 	return type;
+-	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
++	return ovl_do_notify_change(ofs, upperdentry, &attr);
  }
  
-+enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path *path)
+ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
+@@ -314,7 +314,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
+ 		.ia_mtime = stat->mtime,
+ 	};
+ 
+-	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
++	return ovl_do_notify_change(ofs, upperdentry, &attr);
+ }
+ 
+ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
+@@ -327,7 +327,7 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
+ 			.ia_valid = ATTR_MODE,
+ 			.ia_mode = stat->mode,
+ 		};
+-		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
++		err = ovl_do_notify_change(ofs, upperdentry, &attr);
+ 	}
+ 	if (!err) {
+ 		struct iattr attr = {
+@@ -335,7 +335,7 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
+ 			.ia_uid = stat->uid,
+ 			.ia_gid = stat->gid,
+ 		};
+-		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
++		err = ovl_do_notify_change(ofs, upperdentry, &attr);
+ 	}
+ 	if (!err)
+ 		ovl_set_timestamps(ofs, upperdentry, stat);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 27a40b6754f4..9ae0352ff52a 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -516,7 +516,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 			.ia_mode = cattr->mode,
+ 		};
+ 		inode_lock(newdentry->d_inode);
+-		err = notify_change(&init_user_ns, newdentry, &attr, NULL);
++		err = ovl_do_notify_change(ofs, newdentry, &attr);
+ 		inode_unlock(newdentry->d_inode);
+ 		if (err)
+ 			goto out_cleanup;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index c51a9dd36cc7..9a8e6b94d9e8 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -21,6 +21,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+ 		struct iattr *attr)
+ {
+ 	int err;
++	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+ 	bool full_copy_up = false;
+ 	struct dentry *upperdentry;
+ 	const struct cred *old_cred;
+@@ -77,7 +78,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+ 
+ 		inode_lock(upperdentry->d_inode);
+ 		old_cred = ovl_override_creds(dentry->d_sb);
+-		err = notify_change(&init_user_ns, upperdentry, attr, NULL);
++		err = ovl_do_notify_change(ofs, upperdentry, attr);
+ 		revert_creds(old_cred);
+ 		if (!err)
+ 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 816a69b46b67..c1f4ff0553b5 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -122,6 +122,33 @@ static inline const char *ovl_xattr(struct ovl_fs *ofs, enum ovl_xattr ox)
+ 	return ovl_xattr_table[ox][ofs->config.userxattr];
+ }
+ 
++/*
++ * When changing ownership of an upper object map the intended ownership
++ * according to the upper layer's idmapping. When an upper mount idmaps files
++ * that are stored on-disk as owned by id 1001 to id 1000 this means stat on
++ * this object will report it as being owned by id 1000 when calling stat via
++ * the upper mount.
++ * In order to change ownership of an object so stat reports id 1000 when
++ * called on an idmapped upper mount the value written to disk - i.e., the
++ * value stored in ia_*id - must 1001. The mount mapping helper will thus take
++ * care to map 1000 to 1001.
++ * The mnt idmapping helpers are nops if the upper layer isn't idmapped.
++ */
++static inline int ovl_do_notify_change(struct ovl_fs *ofs,
++				       struct dentry *upperdentry,
++				       struct iattr *attr)
 +{
-+	enum ovl_path_type type = ovl_path_type(dentry);
++	struct user_namespace *upper_idmap = ovl_upper_idmap(ofs);
++	struct user_namespace *fs_idmap = i_user_ns(d_inode(upperdentry));
 +
-+	WARN_ON_ONCE(d_is_dir(dentry));
++	if (attr->ia_valid & ATTR_UID)
++		attr->ia_uid = mapped_kuid_user(upper_idmap, fs_idmap, attr->ia_uid);
++	if (attr->ia_valid & ATTR_GID)
++		attr->ia_gid = mapped_kgid_user(upper_idmap, fs_idmap, attr->ia_gid);
 +
-+	if (!OVL_TYPE_UPPER(type) || OVL_TYPE_MERGE(type))
-+		ovl_path_lowerdata(dentry, path);
-+	else
-+		ovl_path_upper(dentry, path);
-+
-+	return type;
++	return notify_change(upper_idmap, upperdentry, attr, NULL);
 +}
 +
- struct dentry *ovl_dentry_upper(struct dentry *dentry)
+ static inline int ovl_do_rmdir(struct ovl_fs *ofs,
+ 			       struct inode *dir, struct dentry *dentry)
  {
- 	return ovl_upperdentry_dereference(OVL_I(d_inode(dentry)));
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f1deb84aebcf..2cc27e707cb3 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -821,7 +821,7 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
+ 
+ 		/* Clear any inherited mode bits */
+ 		inode_lock(work->d_inode);
+-		err = notify_change(&init_user_ns, work, &attr, NULL);
++		err = ovl_do_notify_change(ofs, work, &attr);
+ 		inode_unlock(work->d_inode);
+ 		if (err)
+ 			goto out_dput;
 -- 
 2.32.0
 
