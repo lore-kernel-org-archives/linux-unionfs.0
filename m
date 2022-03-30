@@ -2,37 +2,37 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14708C433F5
-	for <linux-unionfs@archiver.kernel.org>; Wed, 30 Mar 2022 10:26:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDD88C433F5
+	for <linux-unionfs@archiver.kernel.org>; Wed, 30 Mar 2022 10:26:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245364AbiC3K2P (ORCPT
+        id S242937AbiC3K2T (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 30 Mar 2022 06:28:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34968 "EHLO
+        Wed, 30 Mar 2022 06:28:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245360AbiC3K2O (ORCPT
+        with ESMTP id S245363AbiC3K2R (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 30 Mar 2022 06:28:14 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD96325FD6F
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 03:26:29 -0700 (PDT)
+        Wed, 30 Mar 2022 06:28:17 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32726260C4D
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 03:26:33 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5DB89B81BE7
-        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 10:26:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC022C340F2;
-        Wed, 30 Mar 2022 10:26:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C6F6E61488
+        for <linux-unionfs@vger.kernel.org>; Wed, 30 Mar 2022 10:26:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17C7AC340EC;
+        Wed, 30 Mar 2022 10:26:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648635987;
-        bh=cmQxe0onAS1e1bm83vy7u3OkaCNT3x5WsSrjkVCJIA4=;
+        s=k20201202; t=1648635992;
+        bh=BiyoSanAlxlhOtl91kLiqfqBOJ35yEF59ejJOB0/jPY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=dHbTqaZI0C7/AzMc/hWqQx4yQ60AkyMboD+J7Y+6JcU+eVe6E7csTHoTIq8Y9RHP0
-         Vn8Hq7PxZOHvJ848DV3Pwc+ADy/zelbk1nQa+58x9KrzaRlm3xjajJIxliS+z9+p/l
-         kf7j/31tZBnu15siY9hd8JJ222h3/6GP07PAkX2bMCWNlu1hProRciUWq9QA1PzmXF
-         NnDic1qK3V7n+GGDSt0McgGEX397jLxIjLpXdR+cTU50MaoIXqS5+j8aK8yetDqQ29
-         18kxkrB35HftrInlpQXen/XsyGRmSEf7wj50luO+9l70lu+9IETTcxKDDCR4IUQd+1
-         eg6m0J6MwHFgw==
+        b=btejt+PtJCjkzA4rrdz/FgIDdKO/ye9ErwFm6+xLyH8WU9RoRGd/URrLb9U/4eByA
+         +2Qne0Uy2cv3DQCe+1Ltpa0RIjKLGNNQYOvsL9ysO9yfNcXuis+kEQEQVgyk3ZSUhb
+         j+V+rC4ubjiukkKEsjnxGfVj7iuyz6cXlK32NkirUDPya3xsOa9+4SJuI4Z6bmzs2i
+         jpImLYJTMhofz17IoN/rWyS+VdKTKUYs5sdiARKKr6NNoxkIhK+O+ywfZcTzMBOaye
+         We07hiHxiZej1Zg2npfV+xSv2WDjJfrXVjJNpKXgAVCP8zY2old3oUQlFtckElYfa9
+         +WhrSuf9HQElw==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
@@ -45,24 +45,22 @@ Cc:     Christian Brauner <brauner@kernel.org>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
         =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
-Subject: [PATCH v2 18/19] ovl: handle idmappings in ovl_xattr_{g,s}et()
-Date:   Wed, 30 Mar 2022 12:24:06 +0200
-Message-Id: <20220330102409.1290850-19-brauner@kernel.org>
+Subject: [PATCH v2 19/19] ovl: support idmapped layers
+Date:   Wed, 30 Mar 2022 12:24:07 +0200
+Message-Id: <20220330102409.1290850-20-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220330102409.1290850-1-brauner@kernel.org>
 References: <20220330102409.1290850-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2145; h=from:subject; bh=cmQxe0onAS1e1bm83vy7u3OkaCNT3x5WsSrjkVCJIA4=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS56B84xW+kNDU3/ffK05M3MbJ2vxap6ol192Zcte3Wnq1T vxyQ6yhlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIbHFGhmMq7+dFsTUylDQezv13n/ Eat4BnEl/nPo0XzK93ZElO3MHIcO1yvt/6x/+j3gZnRfubhmp8XHrV7Hqm1AL1SwvOCL/5wwcA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1524; h=from:subject; bh=BiyoSanAlxlhOtl91kLiqfqBOJ35yEF59ejJOB0/jPY=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS56B90ZJoX/M/Y5+5rp/brb8M4I2su/glO0tpoZ7TurKLE PQmtjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIncrGRkaGa54/vNOFq+Y9mNb+v55l hc8GMP1DKwSpXZpSR1kn/SFob/RWlX5SvUHHbeubblhu3TvdJ2HZz7bk0yFkngDM2WYmfiAgA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-When retrieving xattrs from the upper or lower layers take the relevant
-mount's idmapping into account. We rely on the previously introduced
-ovl_i_path_real() helper to retrieve the relevant path. This is needed
-to support idmapped base layers with overlay.
+Now that overlay is able to take a layers idmapping into account allow
+overlay mounts to be created on top of idmapped mounts.
 
 Cc: <linux-unionfs@vger.kernel.org>
 Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
@@ -72,47 +70,38 @@ Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 /* v2 */
 unchanged
 ---
- fs/overlayfs/inode.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/overlayfs/ovl_entry.h | 2 +-
+ fs/overlayfs/super.c     | 4 ----
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 0b09e62091da..a3fcb61844ff 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -349,6 +349,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
- 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
- 	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
-+	struct path realpath;
- 	const struct cred *old_cred;
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 79b612cfbe52..898b002a5c6f 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -92,7 +92,7 @@ static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
  
- 	err = ovl_want_write(dentry);
-@@ -356,8 +357,9 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
- 		goto out;
- 
- 	if (!value && !upperdentry) {
-+		ovl_path_lower(dentry, &realpath);
- 		old_cred = ovl_override_creds(dentry->d_sb);
--		err = vfs_getxattr(&init_user_ns, realdentry, name, NULL, 0);
-+		err = vfs_getxattr(mnt_user_ns(realpath.mnt), realdentry, name, NULL, 0);
- 		revert_creds(old_cred);
- 		if (err < 0)
- 			goto out_drop_write;
-@@ -395,11 +397,11 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ static inline struct user_namespace *ovl_upper_idmap(struct ovl_fs *ofs)
  {
- 	ssize_t res;
- 	const struct cred *old_cred;
--	struct dentry *realdentry =
--		ovl_i_dentry_upper(inode) ?: ovl_dentry_lower(dentry);
-+	struct path realpath;
- 
-+	ovl_i_path_real(inode, &realpath);
- 	old_cred = ovl_override_creds(dentry->d_sb);
--	res = vfs_getxattr(&init_user_ns, realdentry, name, value, size);
-+	res = vfs_getxattr(mnt_user_ns(realpath.mnt), realpath.dentry, name, value, size);
- 	revert_creds(old_cred);
- 	return res;
+-       return &init_user_ns;
++	return mnt_user_ns(ovl_upper_mnt(ofs));
  }
+ 
+ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 9a656a24f7b1..d4cc07f7a2ef 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -874,10 +874,6 @@ static int ovl_mount_dir_noesc(const char *name, struct path *path)
+ 		pr_err("filesystem on '%s' not supported\n", name);
+ 		goto out_put;
+ 	}
+-	if (is_idmapped_mnt(path->mnt)) {
+-		pr_err("idmapped layers are currently not supported\n");
+-		goto out_put;
+-	}
+ 	if (!d_is_dir(path->dentry)) {
+ 		pr_err("'%s' not a directory\n", name);
+ 		goto out_put;
 -- 
 2.32.0
 
