@@ -2,37 +2,37 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B551EC433FE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 31 Mar 2022 11:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E35CC433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu, 31 Mar 2022 11:24:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235132AbiCaL0L (ORCPT
+        id S235124AbiCaL0R (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 31 Mar 2022 07:26:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47188 "EHLO
+        Thu, 31 Mar 2022 07:26:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235124AbiCaL0K (ORCPT
+        with ESMTP id S235123AbiCaL0R (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 31 Mar 2022 07:26:10 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 315906257
-        for <linux-unionfs@vger.kernel.org>; Thu, 31 Mar 2022 04:24:23 -0700 (PDT)
+        Thu, 31 Mar 2022 07:26:17 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7D166257
+        for <linux-unionfs@vger.kernel.org>; Thu, 31 Mar 2022 04:24:29 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C1F68614ED
-        for <linux-unionfs@vger.kernel.org>; Thu, 31 Mar 2022 11:24:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59FDBC340EE;
-        Thu, 31 Mar 2022 11:24:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40198B820C5
+        for <linux-unionfs@vger.kernel.org>; Thu, 31 Mar 2022 11:24:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7467AC340F3;
+        Thu, 31 Mar 2022 11:24:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648725862;
-        bh=mLScqkgo58TWkua1/LdPLgSxN8Jz5NZ5m1BQQz4XrY8=;
+        s=k20201202; t=1648725866;
+        bh=G8Kzh+R7GydFwZRPvxFME95bIYK0lNrwuNtlox6V4OA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=iwsNc2lOM/5Wljyj5TFzkP4Zk+9SJM0Gs5we99jxkxPz9v0KmR9/qqp6sO0JmbzAz
-         y5zUWai1IqOKhf1z898iApatbuOBChpro9richd7Cb98Vc6L87KMj4VpQvDaDcFIjj
-         tAPPow4wmU3mG8YQwkG1Pt7pxRyQ7WceIHTVljxAPVvtBvnFfAMNC8gmF3H6cEL3GT
-         kZ9csRqAbC6slRFztGrRwQX7ElrKKPi0gWn5AYbE+xnK5/3BZhFK/AvjXehFsi1pcT
-         vLKiIsfJ8unjBCBO5PbHVIov59/M/wQrgZ9eCTjlrX40zgf7WBC73q1Y7CXnT0k6m/
-         PfC/tlt/mRRlg==
+        b=ft+gwUm2vzK9DUktcJcssk8Nev60ZoZ5SC8/CcJw1+lXJMPAf8ekwIIcox5v4VOvP
+         fF/bk8YlRCiz/9uHg6DhZddko0gWmIRhteSWhz7+VQ0cdDJcotEnkQ4aoOna11IQGO
+         IA+InFR1r+zOoE8RLH6Zz9LcqaHGnjSaL/3SrgmgWdxHaJCaVEW9Nu2bweh0V2W2G7
+         wsrLqNCf1HZp6vi0Kfd0svkvHmCdZ+MgKqufg5AugjheIcyw19NtJ/lPx3TzPCe/6R
+         hzy5/PNWfWHGM5m6YAwLTjkNH1a69dE5cXtnBk7HIxv0pv8vVW1cLUwdo3IPf9DMVt
+         taPcZX19TrKHw==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
@@ -45,36 +45,24 @@ Cc:     Christian Brauner <brauner@kernel.org>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
         =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
-Subject: [PATCH v3 09/19] ovl: use ovl_do_notify_change() wrapper
-Date:   Thu, 31 Mar 2022 13:23:07 +0200
-Message-Id: <20220331112318.1377494-10-brauner@kernel.org>
+Subject: [PATCH v3 10/19] ovl: use ovl_lookup_upper() wrapper
+Date:   Thu, 31 Mar 2022 13:23:08 +0200
+Message-Id: <20220331112318.1377494-11-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220331112318.1377494-1-brauner@kernel.org>
 References: <20220331112318.1377494-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=6478; h=from:subject; bh=mLScqkgo58TWkua1/LdPLgSxN8Jz5NZ5m1BQQz4XrY8=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS59kvmakkXcG82az757V+NoM3/no7o0jqzA1uOL3DN878y a41TRykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwEQermZk6Jx6sbbfe2r/pegOOYHOF+ Ji38PdvK35O+ZKBPq3i6zNYGSYmBk29+SJG92shg9r31z9WfNYePWCjlk/N+5dq+jmPK2DEQA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=9629; h=from:subject; bh=G8Kzh+R7GydFwZRPvxFME95bIYK0lNrwuNtlox6V4OA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSS59kvpe93x2ifX8KT4zJHPPqaK+2KbNx3a/Dyfl/HJvLaI FTvudpSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwkKIuRYeHa5X3blguFzHsstjhmef ByQ76o3T4hRfrTHnJF1V6Ri2NkWP/t/6mbEgenv9q/xCT9Y8zd9KDWjULqx2axH78SveFcCzsA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Introduce ovl_do_notify_change() as a simple wrapper around
-notify_change() to support idmapped layers. The helper mirrors other
-ovl_do_*() helpers that operate on the upper layers.
-
-When changing ownership of an upper object the intended ownership needs
-to be mapped according to the upper layer's idmapping. This mapping is
-the inverse to the mapping applied when copying inode information from
-an upper layer to the corresponding overlay inode. So e.g., when an
-upper mount maps files that are stored on-disk as owned by id 1001 to
-1000 this means that calling stat on this object from an idmapped mount
-will report the file as being owned by id 1000. Consequently in order to
-change ownership of an object in this filesystem so it appears as being
-owned by id 1000 in the upper idmapped layer it needs to store id 1001
-on disk. The mnt mapping helpers take care of this.
-
-All idmapping helpers are nops when no idmapped base layers are used.
+Introduce ovl_lookup_upper() as a simple wrapper around lookup_one().
+Make it clear in the helper's name that this only operates on the upper
+layer. The wrapper will take upper layer's idmapping into account when
+checking permission in lookup_one().
 
 Cc: <linux-unionfs@vger.kernel.org>
 Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
@@ -87,138 +75,250 @@ unchanged
 /* v3 */
 unchanged
 ---
- fs/overlayfs/copy_up.c   |  8 ++++----
- fs/overlayfs/dir.c       |  2 +-
- fs/overlayfs/inode.c     |  3 ++-
- fs/overlayfs/overlayfs.h | 27 +++++++++++++++++++++++++++
- fs/overlayfs/super.c     |  2 +-
- 5 files changed, 35 insertions(+), 7 deletions(-)
+ fs/overlayfs/copy_up.c   | 12 +++++++-----
+ fs/overlayfs/dir.c       | 31 +++++++++++++++----------------
+ fs/overlayfs/overlayfs.h |  8 ++++++++
+ fs/overlayfs/readdir.c   |  6 +++---
+ fs/overlayfs/super.c     |  6 +++---
+ fs/overlayfs/util.c      |  2 +-
+ 6 files changed, 37 insertions(+), 28 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 2c336acb2ba0..a5d68302693f 100644
+index a5d68302693f..19b5f75d1fe2 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -301,7 +301,7 @@ static int ovl_set_size(struct ovl_fs *ofs,
- 		.ia_size = stat->size,
- 	};
+@@ -487,7 +487,7 @@ static int ovl_create_index(struct dentry *dentry, struct dentry *origin,
+ 	if (err)
+ 		goto out;
  
--	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
-+	return ovl_do_notify_change(ofs, upperdentry, &attr);
- }
+-	index = lookup_one_len(name.name, indexdir, name.len);
++	index = ovl_lookup_upper(ofs, name.name, indexdir, name.len);
+ 	if (IS_ERR(index)) {
+ 		err = PTR_ERR(index);
+ 	} else {
+@@ -536,8 +536,8 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 		return err;
  
- static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
-@@ -314,7 +314,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
- 		.ia_mtime = stat->mtime,
- 	};
- 
--	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
-+	return ovl_do_notify_change(ofs, upperdentry, &attr);
- }
- 
- int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
-@@ -327,7 +327,7 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
- 			.ia_valid = ATTR_MODE,
- 			.ia_mode = stat->mode,
- 		};
--		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
-+		err = ovl_do_notify_change(ofs, upperdentry, &attr);
+ 	inode_lock_nested(udir, I_MUTEX_PARENT);
+-	upper = lookup_one_len(c->dentry->d_name.name, upperdir,
+-			       c->dentry->d_name.len);
++	upper = ovl_lookup_upper(ofs, c->dentry->d_name.name, upperdir,
++				 c->dentry->d_name.len);
+ 	err = PTR_ERR(upper);
+ 	if (!IS_ERR(upper)) {
+ 		err = ovl_do_link(ofs, ovl_dentry_upper(c->dentry), udir, upper);
+@@ -700,7 +700,8 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 			goto cleanup;
  	}
- 	if (!err) {
- 		struct iattr attr = {
-@@ -335,7 +335,7 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
- 			.ia_uid = stat->uid,
- 			.ia_gid = stat->gid,
- 		};
--		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
-+		err = ovl_do_notify_change(ofs, upperdentry, &attr);
- 	}
- 	if (!err)
- 		ovl_set_timestamps(ofs, upperdentry, stat);
+ 
+-	upper = lookup_one_len(c->destname.name, c->destdir, c->destname.len);
++	upper = ovl_lookup_upper(ofs, c->destname.name, c->destdir,
++				 c->destname.len);
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+ 		goto cleanup;
+@@ -752,7 +753,8 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
+ 
+ 	inode_lock_nested(udir, I_MUTEX_PARENT);
+ 
+-	upper = lookup_one_len(c->destname.name, c->destdir, c->destname.len);
++	upper = ovl_lookup_upper(ofs, c->destname.name, c->destdir,
++				 c->destname.len);
+ 	err = PTR_ERR(upper);
+ 	if (!IS_ERR(upper)) {
+ 		err = ovl_do_link(ofs, temp, udir, upper);
 diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 27a40b6754f4..9ae0352ff52a 100644
+index 9ae0352ff52a..d470eedfd42c 100644
 --- a/fs/overlayfs/dir.c
 +++ b/fs/overlayfs/dir.c
-@@ -516,7 +516,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
- 			.ia_mode = cattr->mode,
- 		};
- 		inode_lock(newdentry->d_inode);
--		err = notify_change(&init_user_ns, newdentry, &attr, NULL);
-+		err = ovl_do_notify_change(ofs, newdentry, &attr);
- 		inode_unlock(newdentry->d_inode);
- 		if (err)
- 			goto out_cleanup;
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index c51a9dd36cc7..9a8e6b94d9e8 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -21,6 +21,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
- 		struct iattr *attr)
- {
- 	int err;
-+	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	bool full_copy_up = false;
- 	struct dentry *upperdentry;
- 	const struct cred *old_cred;
-@@ -77,7 +78,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+@@ -51,7 +51,7 @@ struct dentry *ovl_lookup_temp(struct ovl_fs *ofs, struct dentry *workdir)
+ 	/* counter is allowed to wrap, since temp dentries are ephemeral */
+ 	snprintf(name, sizeof(name), "#%x", atomic_inc_return(&temp_id));
  
- 		inode_lock(upperdentry->d_inode);
- 		old_cred = ovl_override_creds(dentry->d_sb);
--		err = notify_change(&init_user_ns, upperdentry, attr, NULL);
-+		err = ovl_do_notify_change(ofs, upperdentry, attr);
- 		revert_creds(old_cred);
- 		if (!err)
- 			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
+-	temp = lookup_one_len(name, workdir, strlen(name));
++	temp = ovl_lookup_upper(ofs, name, workdir, strlen(name));
+ 	if (!IS_ERR(temp) && temp->d_inode) {
+ 		pr_err("workdir/%s already exists\n", name);
+ 		dput(temp);
+@@ -155,8 +155,8 @@ int ovl_mkdir_real(struct ovl_fs *ofs, struct inode *dir,
+ 	 * to it unhashed and negative. If that happens, try to
+ 	 * lookup a new hashed and positive dentry.
+ 	 */
+-	d = lookup_one_len(dentry->d_name.name, dentry->d_parent,
+-			   dentry->d_name.len);
++	d = ovl_lookup_upper(ofs, dentry->d_name.name, dentry->d_parent,
++			     dentry->d_name.len);
+ 	if (IS_ERR(d)) {
+ 		pr_warn("failed lookup after mkdir (%pd2, err=%i).\n",
+ 			dentry, err);
+@@ -333,9 +333,8 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
+ 
+ 	inode_lock_nested(udir, I_MUTEX_PARENT);
+ 	newdentry = ovl_create_real(ofs, udir,
+-				    lookup_one_len(dentry->d_name.name,
+-						   upperdir,
+-						   dentry->d_name.len),
++				    ovl_lookup_upper(ofs, dentry->d_name.name,
++						     upperdir, dentry->d_name.len),
+ 				    attr);
+ 	err = PTR_ERR(newdentry);
+ 	if (IS_ERR(newdentry))
+@@ -490,8 +489,8 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 	if (err)
+ 		goto out;
+ 
+-	upper = lookup_one_len(dentry->d_name.name, upperdir,
+-			       dentry->d_name.len);
++	upper = ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
++				 dentry->d_name.len);
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+ 		goto out_unlock;
+@@ -773,8 +772,8 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
+ 	if (err)
+ 		goto out_dput;
+ 
+-	upper = lookup_one_len(dentry->d_name.name, upperdir,
+-			       dentry->d_name.len);
++	upper = ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
++				 dentry->d_name.len);
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+ 		goto out_unlock;
+@@ -821,8 +820,8 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir,
+ 	}
+ 
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+-	upper = lookup_one_len(dentry->d_name.name, upperdir,
+-			       dentry->d_name.len);
++	upper = ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
++				 dentry->d_name.len);
+ 	err = PTR_ERR(upper);
+ 	if (IS_ERR(upper))
+ 		goto out_unlock;
+@@ -1197,8 +1196,8 @@ static int ovl_rename(struct user_namespace *mnt_userns, struct inode *olddir,
+ 
+ 	trap = lock_rename(new_upperdir, old_upperdir);
+ 
+-	olddentry = lookup_one_len(old->d_name.name, old_upperdir,
+-				   old->d_name.len);
++	olddentry = ovl_lookup_upper(ofs, old->d_name.name, old_upperdir,
++				     old->d_name.len);
+ 	err = PTR_ERR(olddentry);
+ 	if (IS_ERR(olddentry))
+ 		goto out_unlock;
+@@ -1207,8 +1206,8 @@ static int ovl_rename(struct user_namespace *mnt_userns, struct inode *olddir,
+ 	if (!ovl_matches_upper(old, olddentry))
+ 		goto out_dput_old;
+ 
+-	newdentry = lookup_one_len(new->d_name.name, new_upperdir,
+-				   new->d_name.len);
++	newdentry = ovl_lookup_upper(ofs, new->d_name.name, new_upperdir,
++				     new->d_name.len);
+ 	err = PTR_ERR(newdentry);
+ 	if (IS_ERR(newdentry))
+ 		goto out_dput_old;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 816a69b46b67..c1f4ff0553b5 100644
+index c1f4ff0553b5..4ecf49ce4fae 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -122,6 +122,33 @@ static inline const char *ovl_xattr(struct ovl_fs *ofs, enum ovl_xattr ox)
- 	return ovl_xattr_table[ox][ofs->config.userxattr];
+@@ -7,6 +7,7 @@
+ #include <linux/kernel.h>
+ #include <linux/uuid.h>
+ #include <linux/fs.h>
++#include <linux/namei.h>
+ #include "ovl_entry.h"
+ 
+ #undef pr_fmt
+@@ -307,6 +308,13 @@ static inline struct dentry *ovl_do_tmpfile(struct ovl_fs *ofs,
+ 	return ret;
  }
  
-+/*
-+ * When changing ownership of an upper object map the intended ownership
-+ * according to the upper layer's idmapping. When an upper mount idmaps files
-+ * that are stored on-disk as owned by id 1001 to id 1000 this means stat on
-+ * this object will report it as being owned by id 1000 when calling stat via
-+ * the upper mount.
-+ * In order to change ownership of an object so stat reports id 1000 when
-+ * called on an idmapped upper mount the value written to disk - i.e., the
-+ * value stored in ia_*id - must 1001. The mount mapping helper will thus take
-+ * care to map 1000 to 1001.
-+ * The mnt idmapping helpers are nops if the upper layer isn't idmapped.
-+ */
-+static inline int ovl_do_notify_change(struct ovl_fs *ofs,
-+				       struct dentry *upperdentry,
-+				       struct iattr *attr)
++static inline struct dentry *ovl_lookup_upper(struct ovl_fs *ofs,
++					      const char *name,
++					      struct dentry *base, int len)
 +{
-+	struct user_namespace *upper_idmap = ovl_upper_idmap(ofs);
-+	struct user_namespace *fs_idmap = i_user_ns(d_inode(upperdentry));
-+
-+	if (attr->ia_valid & ATTR_UID)
-+		attr->ia_uid = mapped_kuid_user(upper_idmap, fs_idmap, attr->ia_uid);
-+	if (attr->ia_valid & ATTR_GID)
-+		attr->ia_gid = mapped_kgid_user(upper_idmap, fs_idmap, attr->ia_gid);
-+
-+	return notify_change(upper_idmap, upperdentry, attr, NULL);
++	return lookup_one(ovl_upper_idmap(ofs), name, base, len);
 +}
 +
- static inline int ovl_do_rmdir(struct ovl_fs *ofs,
- 			       struct inode *dir, struct dentry *dentry)
+ static inline bool ovl_open_flags_need_copy_up(int flags)
  {
+ 	if (!flags)
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 9c580ef8cd6f..1d06222a496c 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -1013,7 +1013,7 @@ void ovl_cleanup_whiteouts(struct ovl_fs *ofs, struct dentry *upper,
+ 		if (WARN_ON(!p->is_whiteout || !p->is_upper))
+ 			continue;
+ 
+-		dentry = lookup_one_len(p->name, upper, p->len);
++		dentry = ovl_lookup_upper(ofs, p->name, upper, p->len);
+ 		if (IS_ERR(dentry)) {
+ 			pr_err("lookup '%s/%.*s' failed (%i)\n",
+ 			       upper->d_name.name, p->len, p->name,
+@@ -1113,7 +1113,7 @@ static int ovl_workdir_cleanup_recurse(struct ovl_fs *ofs, struct path *path,
+ 			err = -EINVAL;
+ 			break;
+ 		}
+-		dentry = lookup_one_len(p->name, path->dentry, p->len);
++		dentry = ovl_lookup_upper(ofs, p->name, path->dentry, p->len);
+ 		if (IS_ERR(dentry))
+ 			continue;
+ 		if (dentry->d_inode)
+@@ -1181,7 +1181,7 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
+ 			if (p->len == 2 && p->name[1] == '.')
+ 				continue;
+ 		}
+-		index = lookup_one_len(p->name, indexdir, p->len);
++		index = ovl_lookup_upper(ofs, p->name, indexdir, p->len);
+ 		if (IS_ERR(index)) {
+ 			err = PTR_ERR(index);
+ 			index = NULL;
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f1deb84aebcf..2cc27e707cb3 100644
+index 2cc27e707cb3..1ed230c7baf1 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -821,7 +821,7 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
+@@ -761,7 +761,7 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
  
- 		/* Clear any inherited mode bits */
- 		inode_lock(work->d_inode);
--		err = notify_change(&init_user_ns, work, &attr, NULL);
-+		err = ovl_do_notify_change(ofs, work, &attr);
- 		inode_unlock(work->d_inode);
- 		if (err)
- 			goto out_dput;
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ retry:
+-	work = lookup_one_len(name, ofs->workbasedir, strlen(name));
++	work = ovl_lookup_upper(ofs, name, ofs->workbasedir, strlen(name));
+ 
+ 	if (!IS_ERR(work)) {
+ 		struct iattr attr = {
+@@ -1289,7 +1289,7 @@ static int ovl_check_rename_whiteout(struct ovl_fs *ofs)
+ 		goto cleanup_temp;
+ 	}
+ 
+-	whiteout = lookup_one_len(name.name.name, workdir, name.name.len);
++	whiteout = ovl_lookup_upper(ofs, name.name.name, workdir, name.name.len);
+ 	err = PTR_ERR(whiteout);
+ 	if (IS_ERR(whiteout))
+ 		goto cleanup_temp;
+@@ -1321,7 +1321,7 @@ static struct dentry *ovl_lookup_or_create(struct ovl_fs *ofs,
+ 	struct dentry *child;
+ 
+ 	inode_lock_nested(parent->d_inode, I_MUTEX_PARENT);
+-	child = lookup_one_len(name, parent, len);
++	child = ovl_lookup_upper(ofs, name, parent, len);
+ 	if (!IS_ERR(child) && !child->d_inode)
+ 		child = ovl_create_real(ofs, parent->d_inode, child,
+ 					OVL_CATTR(mode));
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 42293610f64e..79e5a22a3c7c 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -838,7 +838,7 @@ static void ovl_cleanup_index(struct dentry *dentry)
+ 	}
+ 
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+-	index = lookup_one_len(name.name, indexdir, name.len);
++	index = ovl_lookup_upper(ofs, name.name, indexdir, name.len);
+ 	err = PTR_ERR(index);
+ 	if (IS_ERR(index)) {
+ 		index = NULL;
 -- 
 2.32.0
 
