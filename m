@@ -2,78 +2,85 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92F4EC433F5
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Apr 2022 10:54:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32863C433F5
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Apr 2022 10:54:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358874AbiDDK4l (ORCPT
+        id S240121AbiDDK4m (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Apr 2022 06:56:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35516 "EHLO
+        Mon, 4 Apr 2022 06:56:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358830AbiDDK4j (ORCPT
+        with ESMTP id S1355031AbiDDK4l (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Apr 2022 06:56:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D2B883D1D9
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 03:54:41 -0700 (PDT)
+        Mon, 4 Apr 2022 06:56:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A4E33D1CE
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 03:54:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3D83EB815AB
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 10:54:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 40A3DC2BBE4;
-        Mon,  4 Apr 2022 10:54:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9683F60AD9
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 10:54:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44E9BC36AE2;
+        Mon,  4 Apr 2022 10:54:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649069678;
-        bh=CZYKDklDZVj3DdHcppvR+hO/jPrGXK6ASVxm6wuSS3I=;
+        s=k20201202; t=1649069684;
+        bh=ERvP+ZUhJ3cyOpnquRM/jj6/B7qkqXSf8WpiRljlt5E=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=j7yR8bHydfLY7hVjLFoYET5O4Eg8/dw4Dj1qC26eh0vtVOE84A6MOm/Jtg82L/SZs
-         wpgeKXPDikufaJcS/CSnbChrq6bUGCExH7B6aSUkx1f7I0phdu5jKLuAV+QmjEcj4+
-         xRTdsBkVjQyELdRRkcjUxQhDGqJDXa9bSrxROjf+C1MWuRH2jQ4OcB3l8sbCNwn6O8
-         Yr/jUiahR57fVNycpeEs3+AknL1AAeUgBCJCC3nFRU5aLz4lEIr6motKOymP1DiE8y
-         2hAt/6TGcqhggALnSyJ4uLF18e3ImEyhb/P8tzuK13OKTVrjdHqdRd/Dr9JT9DVFGM
-         fBiimSoQ7XvXA==
+        b=nYM/AxhTY9OsEr/uHb2zLWSjBabzBSa1iLvBSttrT75q9AVp0oVxxuD0/93d3Uhdv
+         Yaay1n8mhRdUxYrnc5tsnr0+mZgOFoHYoQTzVnSL+rpRUpdD9NhFXYrCoEOV4zryjk
+         jMQWlNxkhh4MnAp5nNI60BQR4o1VQCl5Nh4Qz3zf6mDHVUWd7sp5k/pt63kAg6z2Zw
+         vnvWRMH4kpWDZ20MJSO6EI89p6XeNJxKKpS0escZ65Rm+Xt3dA3DxtRh/7QTUcrirm
+         OlNe/BPY7qNGluHCzFu91kuoRegb7v0A6gwpgHHZ4JuShiwhuC4Q/vU8G31NHrVUT5
+         UmtZYVfq2wGDQ==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
-Cc:     Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
         Aleksa Sarai <cyphar@cyphar.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
         Rodrigo Campos Catelin <rodrigo@sdfg.com.ar>,
         Seth Forshee <sforshee@digitalocean.com>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
-        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>,
-        Christian Brauner <brauner@kernel.org>
-Subject: [PATCH v4 14/19] ovl: store lower path in ovl_inode
-Date:   Mon,  4 Apr 2022 12:51:53 +0200
-Message-Id: <20220404105159.1567595-15-brauner@kernel.org>
+        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
+Subject: [PATCH v4 15/19] ovl: use ovl_copy_{real,upper}attr() wrappers
+Date:   Mon,  4 Apr 2022 12:51:54 +0200
+Message-Id: <20220404105159.1567595-16-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220404105159.1567595-1-brauner@kernel.org>
 References: <20220404105159.1567595-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=7970; i=brauner@kernel.org; h=from:subject; bh=m2C/iUHOXr58O2sHRLZ7bgVLLasoP1/nhp2/P/Ultrs=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSR5nT2WMzlYhTE3ZdpJ1rfO2zqOPNGL5Pxvud5f2WOi8/7Q e9mnO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACbCs5WR4WnAi03L+5e+tnZrlIxYc+ RQwKKJvadbWFdsPNT+I+PDwm0M/1RnLf/587My24nNGwO+XVg/64/Fi6VPZzz3aWZY5crQ6s8OAA==
+X-Developer-Signature: v=1; a=openpgp-sha256; l=9368; h=from:subject; bh=ERvP+ZUhJ3cyOpnquRM/jj6/B7qkqXSf8WpiRljlt5E=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSR5nT3Wv7/5ZN8Rh8++RX2tcwqNYuNVnm/atjD/h9VrvlK+ vCfhHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABMp28zIMKGjgPVAaHlDBN/yG7z8V4 vVZu/1uWoelrHXspKlQWvuCkaGlsLEjFtr7PY2Wb1n9Dy+OaqgYMrDu3+PyJfdm9l56NUzLgA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Amir Goldstein <amir73il@gmail.com>
+When copying inode attributes we from the upper or lower layer to ovl
+inodes we need to take the upper or lower layer's mount's idmapping into
+account. In a lot of places we call ovl_copyattr() only on upper inodes
+and in some we call it on either upper or lower inodes. Split this into
+two separate helpers.
 
-Create some ovl_i_* helpers to get real path from ovl inode. Instead of
-just stashing struct inode for the lower layer we stash struct path for
-the lower layer. The helpers allow to retrieve a struct path for the
-relevant upper or lower layer. This will be used when retrieving
-information based on struct inode when copying up inode attributes from
-upper or lower inodes to ovl inodes and when checking permissions in
-ovl_permission() in following patches. This is needed to support
-idmapped base layers with overlay.
+The first one should only be called on upper
+inodes and is thus called ovl_copy_upperattr(). The second one can be
+called on upper or lower inodes. We add ovl_copy_realattr() for this
+task. The new helper makes use of the previously added ovl_i_path_real()
+helper. This is needed to support idmapped base layers with overlay.
+
+When overlay copies the inode information from an upper or lower layer
+to the relevant overlay inode it will apply the idmapping of the upper
+or lower layer when doing so. The ovl inode ownership will thus always
+correctly reflect the ownership of the idmapped upper or lower layer.
+
+All idmapping helpers are nops when no idmapped base layers are used.
 
 Cc: <linux-unionfs@vger.kernel.org>
 Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
-Reviewed-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 ---
 /* v2 */
@@ -83,208 +90,228 @@ unchanged
 unchanged
 
 /* v4 */
-unchanged
+- Vivek Goyal <vgoyal@redhat.com>:
+  - rename some variables
 ---
- fs/overlayfs/inode.c     | 11 +++++---
- fs/overlayfs/overlayfs.h |  6 ++++
- fs/overlayfs/ovl_entry.h |  2 +-
- fs/overlayfs/super.c     |  5 ++--
- fs/overlayfs/util.c      | 61 ++++++++++++++++++++++++++++++++++------
- 5 files changed, 69 insertions(+), 16 deletions(-)
+ fs/overlayfs/dir.c       |  6 +++---
+ fs/overlayfs/file.c      | 15 +++++++--------
+ fs/overlayfs/inode.c     |  8 ++++----
+ fs/overlayfs/overlayfs.h | 22 +++++++++++++---------
+ fs/overlayfs/util.c      | 27 ++++++++++++++++++++++++++-
+ 5 files changed, 53 insertions(+), 25 deletions(-)
 
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index cacb34c0094d..bc0525cbcf82 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -931,7 +931,7 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 	 */
+ 	upperdentry = ovl_dentry_upper(dentry);
+ 	if (upperdentry)
+-		ovl_copyattr(d_inode(upperdentry), d_inode(dentry));
++		ovl_copy_upperattr(d_inode(upperdentry), d_inode(dentry));
+ 
+ out_drop_write:
+ 	ovl_drop_write(dentry);
+@@ -1279,9 +1279,9 @@ static int ovl_rename(struct user_namespace *mnt_userns, struct inode *olddir,
+ 			 (d_inode(new) && ovl_type_origin(new)));
+ 
+ 	/* copy ctime: */
+-	ovl_copyattr(d_inode(olddentry), d_inode(old));
++	ovl_copy_upperattr(d_inode(olddentry), d_inode(old));
+ 	if (d_inode(new) && ovl_dentry_upper(new))
+-		ovl_copyattr(d_inode(newdentry), d_inode(new));
++		ovl_copy_upperattr(d_inode(newdentry), d_inode(new));
+ 
+ out_dput:
+ 	dput(newdentry);
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 9250e04e97af..656c30bf20a6 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -277,7 +277,7 @@ static void ovl_aio_cleanup_handler(struct ovl_aio_req *aio_req)
+ 		__sb_writers_acquired(file_inode(iocb->ki_filp)->i_sb,
+ 				      SB_FREEZE_WRITE);
+ 		file_end_write(iocb->ki_filp);
+-		ovl_copyattr(ovl_inode_real(inode), inode);
++		ovl_copy_realattr(inode);
+ 	}
+ 
+ 	orig_iocb->ki_pos = iocb->ki_pos;
+@@ -360,7 +360,7 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 
+ 	inode_lock(inode);
+ 	/* Update mode */
+-	ovl_copyattr(ovl_inode_real(inode), inode);
++	ovl_copy_realattr(inode);
+ 	ret = file_remove_privs(file);
+ 	if (ret)
+ 		goto out_unlock;
+@@ -385,7 +385,7 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 				     ovl_iocb_to_rwf(ifl));
+ 		file_end_write(real.file);
+ 		/* Update size */
+-		ovl_copyattr(ovl_inode_real(inode), inode);
++		ovl_copy_realattr(inode);
+ 	} else {
+ 		struct ovl_aio_req *aio_req;
+ 
+@@ -435,12 +435,11 @@ static ssize_t ovl_splice_write(struct pipe_inode_info *pipe, struct file *out,
+ 	struct fd real;
+ 	const struct cred *old_cred;
+ 	struct inode *inode = file_inode(out);
+-	struct inode *realinode = ovl_inode_real(inode);
+ 	ssize_t ret;
+ 
+ 	inode_lock(inode);
+ 	/* Update mode */
+-	ovl_copyattr(realinode, inode);
++	ovl_copy_realattr(inode);
+ 	ret = file_remove_privs(out);
+ 	if (ret)
+ 		goto out_unlock;
+@@ -456,7 +455,7 @@ static ssize_t ovl_splice_write(struct pipe_inode_info *pipe, struct file *out,
+ 
+ 	file_end_write(real.file);
+ 	/* Update size */
+-	ovl_copyattr(realinode, inode);
++	ovl_copy_realattr(inode);
+ 	revert_creds(old_cred);
+ 	fdput(real);
+ 
+@@ -530,7 +529,7 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+ 	revert_creds(old_cred);
+ 
+ 	/* Update size */
+-	ovl_copyattr(ovl_inode_real(inode), inode);
++	ovl_copy_realattr(inode);
+ 
+ 	fdput(real);
+ 
+@@ -602,7 +601,7 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
+ 	revert_creds(old_cred);
+ 
+ 	/* Update size */
+-	ovl_copyattr(ovl_inode_real(inode_out), inode_out);
++	ovl_copy_realattr(inode_out);
+ 
+ 	fdput(real_in);
+ 	fdput(real_out);
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index f18b02b9dd53..e28b7ed755b3 100644
+index e28b7ed755b3..44fa578267fa 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -779,13 +779,16 @@ void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
- 		    unsigned long ino, int fsid)
- {
- 	struct inode *realinode;
-+	struct ovl_inode *oi = OVL_I(inode);
+@@ -81,7 +81,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+ 		err = ovl_do_notify_change(ofs, upperdentry, attr);
+ 		revert_creds(old_cred);
+ 		if (!err)
+-			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
++			ovl_copy_upperattr(upperdentry->d_inode, dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
  
- 	if (oip->upperdentry)
--		OVL_I(inode)->__upperdentry = oip->upperdentry;
--	if (oip->lowerpath && oip->lowerpath->dentry)
--		OVL_I(inode)->lower = igrab(d_inode(oip->lowerpath->dentry));
-+		oi->__upperdentry = oip->upperdentry;
-+	if (oip->lowerpath && oip->lowerpath->dentry) {
-+		oi->lowerpath.dentry = dget(oip->lowerpath->dentry);
-+		oi->lowerpath.layer = oip->lowerpath->layer;
-+	}
- 	if (oip->lowerdata)
--		OVL_I(inode)->lowerdata = igrab(d_inode(oip->lowerdata));
-+		oi->lowerdata = igrab(d_inode(oip->lowerdata));
+ 		if (winode)
+@@ -379,7 +379,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 	revert_creds(old_cred);
+ 
+ 	/* copy c/mtime */
+-	ovl_copyattr(d_inode(realdentry), inode);
++	ovl_copy_upperattr(d_inode(realdentry), inode);
+ 
+ out_drop_write:
+ 	ovl_drop_write(dentry);
+@@ -581,7 +581,7 @@ int ovl_fileattr_set(struct user_namespace *mnt_userns,
+ 		inode_set_flags(inode, flags, OVL_COPY_I_FLAGS_MASK);
+ 
+ 		/* Update ctime */
+-		ovl_copyattr(ovl_inode_real(inode), inode);
++		ovl_copy_realattr(inode);
+ 	}
+ 	ovl_drop_write(dentry);
+ out:
+@@ -791,7 +791,7 @@ void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
+ 		oi->lowerdata = igrab(d_inode(oip->lowerdata));
  
  	realinode = ovl_inode_real(inode);
- 	ovl_copyattr(realinode, inode);
+-	ovl_copyattr(realinode, inode);
++	ovl_copy_realattr(inode);
+ 	ovl_copyflags(realinode, inode);
+ 	ovl_map_ino(inode, ino, fsid);
+ }
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 2f5d44fde887..965588106e00 100644
+index 965588106e00..a49950a1a651 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -363,18 +363,24 @@ bool ovl_dentry_remote(struct dentry *dentry);
- void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *upperdentry,
- 			     unsigned int mask);
- bool ovl_dentry_weird(struct dentry *dentry);
-+enum ovl_path_type ovl_i_path_type(struct inode *inode, bool is_dir,
-+				   int numlower);
- enum ovl_path_type ovl_path_type(struct dentry *dentry);
- void ovl_path_upper(struct dentry *dentry, struct path *path);
- void ovl_path_lower(struct dentry *dentry, struct path *path);
- void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
-+enum ovl_path_type ovl_i_path_real(struct inode *inode, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
- struct dentry *ovl_dentry_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_lowerdata(struct dentry *dentry);
-+const struct ovl_layer *ovl_i_layer_lower(struct inode *inode);
- const struct ovl_layer *ovl_layer_lower(struct dentry *dentry);
- struct dentry *ovl_dentry_real(struct dentry *dentry);
-+struct dentry *ovl_i_dentry_real(struct inode *inode);
- struct dentry *ovl_i_dentry_upper(struct inode *inode);
-+struct dentry *ovl_i_dentry_lower(struct inode *inode);
- struct inode *ovl_inode_upper(struct inode *inode);
- struct inode *ovl_inode_lower(struct inode *inode);
- struct inode *ovl_inode_lowerdata(struct inode *inode);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 1c6495bc6bb3..8630fd93238a 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -134,7 +134,7 @@ struct ovl_inode {
- 	unsigned long flags;
- 	struct inode vfs_inode;
- 	struct dentry *__upperdentry;
--	struct inode *lower;
-+	struct ovl_path lowerpath;
+@@ -619,15 +619,19 @@ bool ovl_lookup_trap_inode(struct super_block *sb, struct dentry *dir);
+ struct inode *ovl_get_trap_inode(struct super_block *sb, struct dentry *dir);
+ struct inode *ovl_get_inode(struct super_block *sb,
+ 			    struct ovl_inode_params *oip);
+-static inline void ovl_copyattr(struct inode *from, struct inode *to)
+-{
+-	to->i_uid = from->i_uid;
+-	to->i_gid = from->i_gid;
+-	to->i_mode = from->i_mode;
+-	to->i_atime = from->i_atime;
+-	to->i_mtime = from->i_mtime;
+-	to->i_ctime = from->i_ctime;
+-	i_size_write(to, i_size_read(from));
++void ovl_do_copyattr(struct vfsmount *realmnt, struct inode *realinode,
++		     struct inode *inode);
++static inline void ovl_copy_upperattr(struct inode *upperinode, struct inode *to)
++{
++	ovl_do_copyattr(ovl_upper_mnt(OVL_FS(to->i_sb)), upperinode, to);
++}
++
++static inline void ovl_copy_realattr(struct inode *to)
++{
++	struct path realpath;
++
++	ovl_i_path_real(to, &realpath);
++	ovl_do_copyattr(realpath.mnt, d_inode(realpath.dentry), to);
+ }
  
- 	/* synchronize copy up and more */
- 	struct mutex lock;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 2fd2d3e5eaba..0123c8086ee9 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -184,7 +184,8 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
- 	oi->version = 0;
- 	oi->flags = 0;
- 	oi->__upperdentry = NULL;
--	oi->lower = NULL;
-+	oi->lowerpath.dentry = NULL;
-+	oi->lowerpath.layer = NULL;
- 	oi->lowerdata = NULL;
- 	mutex_init(&oi->lock);
- 
-@@ -205,7 +206,7 @@ static void ovl_destroy_inode(struct inode *inode)
- 	struct ovl_inode *oi = OVL_I(inode);
- 
- 	dput(oi->__upperdentry);
--	iput(oi->lower);
-+	dput(oi->lowerpath.dentry);
- 	if (S_ISDIR(inode->i_mode))
- 		ovl_dir_cache_free(inode);
- 	else
+ /* vfs inode flags copied from real to ovl inode */
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 3065393d143e..7dd9901c9d17 100644
+index 7dd9901c9d17..90182d9d7735 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -125,31 +125,37 @@ bool ovl_dentry_weird(struct dentry *dentry)
- 				  DCACHE_OP_COMPARE);
- }
- 
--enum ovl_path_type ovl_path_type(struct dentry *dentry)
-+enum ovl_path_type ovl_i_path_type(struct inode *inode, bool is_dir,
-+				   int numlower)
+@@ -500,7 +500,7 @@ static void ovl_dir_version_inc(struct dentry *dentry, bool impurity)
+ void ovl_dir_modified(struct dentry *dentry, bool impurity)
  {
--	struct ovl_entry *oe = dentry->d_fsdata;
- 	enum ovl_path_type type = 0;
+ 	/* Copy mtime/ctime */
+-	ovl_copyattr(d_inode(ovl_dentry_upper(dentry)), d_inode(dentry));
++	ovl_copy_upperattr(d_inode(ovl_dentry_upper(dentry)), d_inode(dentry));
  
--	if (ovl_dentry_upper(dentry)) {
-+	if (ovl_i_dentry_upper(inode)) {
- 		type = __OVL_PATH_UPPER;
- 
- 		/*
- 		 * Non-dir dentry can hold lower dentry of its copy up origin.
- 		 */
--		if (oe->numlower) {
--			if (ovl_test_flag(OVL_CONST_INO, d_inode(dentry)))
-+		if (numlower) {
-+			if (ovl_test_flag(OVL_CONST_INO, inode))
- 				type |= __OVL_PATH_ORIGIN;
--			if (d_is_dir(dentry) ||
--			    !ovl_has_upperdata(d_inode(dentry)))
-+			if (is_dir || !ovl_has_upperdata(inode))
- 				type |= __OVL_PATH_MERGE;
- 		}
- 	} else {
--		if (oe->numlower > 1)
-+		if (numlower > 1)
- 			type |= __OVL_PATH_MERGE;
- 	}
- 	return type;
+ 	ovl_dir_version_inc(dentry, impurity);
  }
+@@ -1116,3 +1116,28 @@ int ovl_sync_status(struct ovl_fs *ofs)
  
-+enum ovl_path_type ovl_path_type(struct dentry *dentry)
-+{
-+	struct ovl_entry *oe = dentry->d_fsdata;
-+
-+	return ovl_i_path_type(d_inode(dentry), d_is_dir(dentry), oe->numlower);
-+}
-+
- void ovl_path_upper(struct dentry *dentry, struct path *path)
- {
- 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
-@@ -250,6 +256,41 @@ struct dentry *ovl_i_dentry_upper(struct inode *inode)
- 	return ovl_upperdentry_dereference(OVL_I(inode));
+ 	return errseq_check(&mnt->mnt_sb->s_wb_err, ofs->errseq);
  }
- 
-+struct dentry *ovl_i_dentry_lower(struct inode *inode)
++
++/*
++ * ovl_do_copyattr() - copy inode attributes from layer to ovl inode
++ *
++ * When overlay copies inode information from an upper or lower layer to the
++ * relevant overlay inode it will apply the idmapping of the upper or lower
++ * layer when doing so ensuring that the ovl inode ownership will correctly
++ * reflect the ownership of the idmapped upper or lower layer. For example, an
++ * idmapped upper or lower layer mapping id 1001 to id 1000 will take care to
++ * map any lower or upper inode owned by id 1001 to id 1000. These mapping
++ * helpers are nops when the relevant layer isn't idmapped.
++ */
++void ovl_do_copyattr(struct vfsmount *realmnt, struct inode *realinode,
++		     struct inode *inode)
 +{
-+	return OVL_I(inode)->lowerpath.dentry;
++	struct user_namespace *real_mnt_userns = mnt_user_ns(realmnt);
++
++	inode->i_uid = i_uid_into_mnt(real_mnt_userns, realinode);
++	inode->i_gid = i_gid_into_mnt(real_mnt_userns, realinode);
++	inode->i_mode = realinode->i_mode;
++	inode->i_atime = realinode->i_atime;
++	inode->i_mtime = realinode->i_mtime;
++	inode->i_ctime = realinode->i_ctime;
++	i_size_write(inode, i_size_read(realinode));
 +}
-+
-+struct dentry *ovl_i_dentry_real(struct inode *inode)
-+{
-+	return ovl_i_dentry_upper(inode) ?: ovl_i_dentry_lower(inode);
-+}
-+
-+const struct ovl_layer *ovl_i_layer_lower(struct inode *inode)
-+{
-+	return OVL_I(inode)->lowerpath.layer;
-+}
-+
-+enum ovl_path_type ovl_i_path_real(struct inode *inode, struct path *path)
-+{
-+	struct dentry *lowerdentry = ovl_i_dentry_lower(inode);
-+	/* Will not set the __OVL_PATH_MERGE bit for merge lowers dir */
-+	enum ovl_path_type type = ovl_i_path_type(inode, S_ISDIR(inode->i_mode),
-+						  !!lowerdentry);
-+
-+	if (OVL_TYPE_UPPER(type)) {
-+		path->dentry = ovl_i_dentry_upper(inode);
-+		path->mnt = ovl_upper_mnt(OVL_FS(inode->i_sb));
-+	} else if (lowerdentry) {
-+		path->dentry = lowerdentry;
-+		path->mnt = ovl_i_layer_lower(inode)->mnt;
-+	} else {
-+		*path = (struct path) { };
-+	}
-+
-+	return type;
-+}
-+
- struct inode *ovl_inode_upper(struct inode *inode)
- {
- 	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
-@@ -259,7 +300,9 @@ struct inode *ovl_inode_upper(struct inode *inode)
- 
- struct inode *ovl_inode_lower(struct inode *inode)
- {
--	return OVL_I(inode)->lower;
-+	struct dentry *lowerdentry = ovl_i_dentry_lower(inode);
-+
-+	return lowerdentry ? d_inode(lowerdentry) : NULL;
- }
- 
- struct inode *ovl_inode_real(struct inode *inode)
 -- 
 2.32.0
 
