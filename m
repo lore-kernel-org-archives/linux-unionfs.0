@@ -2,37 +2,37 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8FC2C433F5
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Apr 2022 10:53:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28E8AC433EF
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Apr 2022 10:53:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244696AbiDDKzo (ORCPT
+        id S1356386AbiDDKzu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Apr 2022 06:55:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58894 "EHLO
+        Mon, 4 Apr 2022 06:55:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358677AbiDDKzl (ORCPT
+        with ESMTP id S1358584AbiDDKzs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Apr 2022 06:55:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB7E61EAC8
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 03:53:43 -0700 (PDT)
+        Mon, 4 Apr 2022 06:55:48 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B05114026
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 03:53:50 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EF9FD60ABE
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 10:53:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9BA3AC2BBE4;
-        Mon,  4 Apr 2022 10:53:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6021F60AE2
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 10:53:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E432AC340F3;
+        Mon,  4 Apr 2022 10:53:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649069622;
-        bh=Z5/tIkubyQt2MXYq8k7cnU0Bn7TZHoknGU+4HeTrsrE=;
+        s=k20201202; t=1649069629;
+        bh=Ey/3XPZ6kg4076G/5z6aH+hG6coL/gORxacZG9YwIHY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IInoa2tzKYq1rGNEDqV+vU/Al8RB845tpobAUq4pO5gds4jstvg/aXQJ5VMRXdPzF
-         lv/elvth41O7FtC1dWgh8bAEkokSUOoMCkY8x65OG2Hmkn1BrjYdmNcW9JgbC9iEjO
-         M61ERb+YqqLSkr/qC1i47MqoWAurBzHNowBfK4jPj3u6F8rYKPUd5RJfSedP2Na6ae
-         eoYnWChAhdbdxFDxj3Ty7NZ7pn3jeaFL8pVFVhk/SxudBfJs4w+rRO7fW3QvkiVKVr
-         B/AbcbcgnvqtNI42LfeMHqO5l+TcHiN4l5QjknAMwVeKCA2uX3YQNMz7Eg1WMfZXyW
-         Lld9Xz9XO0tCA==
+        b=TGP8cWPJGdCob0VxMSumXI2Xjcdoeg2wMtQrmMRpdqCWFxoPQjsSz0MoCO1jm1RM1
+         4iwcloP47u8RRDKmq047n8aTTwoz1NGJ7cAQPEOjDzVmvLfZxtqztt6PxPVHkRtu6/
+         +B2P7F2b9K+dd1rFRjHGcdO/VslsiBAHLr/sorV3PYtkr3YUIRNv26fxyPC+3TKPbU
+         bZqoQx11wWuLbOzX7KMgBw1mB94g36QPJ0xSQceY6YTeHURTke7rUNJXxGg1F5qEd6
+         DuMO7/ElbfYB/7qeY9SjuBl6T1oIcpQUxw05ICQ4LhYnjJOvmplGVQDlEFBogR/0qI
+         j6nMcNeqyMNmw==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>
@@ -45,23 +45,24 @@ Cc:     Christian Brauner <brauner@kernel.org>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
         =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
-Subject: [PATCH v4 06/19] ovl: handle idmappings in creation operations
-Date:   Mon,  4 Apr 2022 12:51:45 +0200
-Message-Id: <20220404105159.1567595-7-brauner@kernel.org>
+Subject: [PATCH v4 07/19] ovl: pass ofs to setattr operations
+Date:   Mon,  4 Apr 2022 12:51:46 +0200
+Message-Id: <20220404105159.1567595-8-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220404105159.1567595-1-brauner@kernel.org>
 References: <20220404105159.1567595-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4899; h=from:subject; bh=Z5/tIkubyQt2MXYq8k7cnU0Bn7TZHoknGU+4HeTrsrE=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSR5nT38QqNZwH3jf+c1hQecopaeaYg7q8gU8fyUy2Vzbj4b 9/zujlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgImcusfwv8rVYTenyoFrHzk2TTJpSh DWMBSyf8sQ2JevF2JWKP9xKsP/LB3ZD3u/V/1w12zbVnWVa2vFkslzc2dNuCrWfFzy6vJqdgA=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4425; h=from:subject; bh=Ey/3XPZ6kg4076G/5z6aH+hG6coL/gORxacZG9YwIHY=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSR5nT2S55891yhyhVftykSvZ2dlBRc0/xA/0eCZ5upbM391 yaVdHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABO5wc7IMP11+yslzqrry21e33doVl KdwC/5Zdr5zYEpkR9afH4xMjIybHliJy7lcujjFLcVDTGbDwres2ZsTfKZbW4pY/PCbE0SNwA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-When creating objects in the upper layer we need to pass down the upper
-idmapping into the respective vfs helpers in order to support idmapped
-base layers. The vfs helpers will take care of the rest.
+Pass down struct ovl_fs to setattr operations so we can ultimately
+retrieve the relevant upper mount and take the mount's idmapping into
+account when creating new filesystem objects. This is needed to support
+idmapped base layers with overlay.
 
 Cc: <linux-unionfs@vger.kernel.org>
 Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
@@ -75,113 +76,112 @@ unchanged
 unchanged
 
 /* v4 */
-- Vivek Goyal <vgoyal@redhat.com>:
-  - s/ovl_upper_idmap()/ovl_upper_mnt_userns()/g
-
-/* v4 */
 unchanged
 ---
- fs/overlayfs/overlayfs.h | 22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ fs/overlayfs/copy_up.c   | 19 +++++++++++--------
+ fs/overlayfs/dir.c       |  2 +-
+ fs/overlayfs/overlayfs.h |  2 +-
+ 3 files changed, 13 insertions(+), 10 deletions(-)
 
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 44605c51a382..2c336acb2ba0 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -293,7 +293,8 @@ static int ovl_copy_up_data(struct ovl_fs *ofs, struct path *old,
+ 	return error;
+ }
+ 
+-static int ovl_set_size(struct dentry *upperdentry, struct kstat *stat)
++static int ovl_set_size(struct ovl_fs *ofs,
++			struct dentry *upperdentry, struct kstat *stat)
+ {
+ 	struct iattr attr = {
+ 		.ia_valid = ATTR_SIZE,
+@@ -303,7 +304,8 @@ static int ovl_set_size(struct dentry *upperdentry, struct kstat *stat)
+ 	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
+ }
+ 
+-static int ovl_set_timestamps(struct dentry *upperdentry, struct kstat *stat)
++static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
++			      struct kstat *stat)
+ {
+ 	struct iattr attr = {
+ 		.ia_valid =
+@@ -315,7 +317,8 @@ static int ovl_set_timestamps(struct dentry *upperdentry, struct kstat *stat)
+ 	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
+ }
+ 
+-int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
++int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
++		 struct kstat *stat)
+ {
+ 	int err = 0;
+ 
+@@ -335,7 +338,7 @@ int ovl_set_attr(struct dentry *upperdentry, struct kstat *stat)
+ 		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
+ 	}
+ 	if (!err)
+-		ovl_set_timestamps(upperdentry, stat);
++		ovl_set_timestamps(ofs, upperdentry, stat);
+ 
+ 	return err;
+ }
+@@ -542,7 +545,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 
+ 		if (!err) {
+ 			/* Restore timestamps on parent (best effort) */
+-			ovl_set_timestamps(upperdir, &c->pstat);
++			ovl_set_timestamps(ofs, upperdir, &c->pstat);
+ 			ovl_dentry_set_upper_alias(c->dentry);
+ 		}
+ 	}
+@@ -616,9 +619,9 @@ static int ovl_copy_up_inode(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 
+ 	inode_lock(temp->d_inode);
+ 	if (S_ISREG(c->stat.mode))
+-		err = ovl_set_size(temp, &c->stat);
++		err = ovl_set_size(ofs, temp, &c->stat);
+ 	if (!err)
+-		err = ovl_set_attr(temp, &c->stat);
++		err = ovl_set_attr(ofs, temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+ 
+ 	return err;
+@@ -840,7 +843,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 
+ 		/* Restore timestamps on parent (best effort) */
+ 		inode_lock(udir);
+-		ovl_set_timestamps(c->destdir, &c->pstat);
++		ovl_set_timestamps(ofs, c->destdir, &c->pstat);
+ 		inode_unlock(udir);
+ 
+ 		ovl_dentry_set_upper_alias(c->dentry);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 8da72b1ebafc..27a40b6754f4 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -408,7 +408,7 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
+ 		goto out_cleanup;
+ 
+ 	inode_lock(opaquedir->d_inode);
+-	err = ovl_set_attr(opaquedir, &stat);
++	err = ovl_set_attr(ofs, opaquedir, &stat);
+ 	inode_unlock(opaquedir->d_inode);
+ 	if (err)
+ 		goto out_cleanup;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 8fae64722eda..85c503ba9c76 100644
+index 85c503ba9c76..05b549a01b70 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -125,7 +125,7 @@ static inline const char *ovl_xattr(struct ovl_fs *ofs, enum ovl_xattr ox)
- static inline int ovl_do_rmdir(struct ovl_fs *ofs,
- 			       struct inode *dir, struct dentry *dentry)
- {
--	int err = vfs_rmdir(&init_user_ns, dir, dentry);
-+	int err = vfs_rmdir(ovl_upper_mnt_userns(ofs), dir, dentry);
- 
- 	pr_debug("rmdir(%pd2) = %i\n", dentry, err);
- 	return err;
-@@ -134,7 +134,7 @@ static inline int ovl_do_rmdir(struct ovl_fs *ofs,
- static inline int ovl_do_unlink(struct ovl_fs *ofs, struct inode *dir,
- 				struct dentry *dentry)
- {
--	int err = vfs_unlink(&init_user_ns, dir, dentry, NULL);
-+	int err = vfs_unlink(ovl_upper_mnt_userns(ofs), dir, dentry, NULL);
- 
- 	pr_debug("unlink(%pd2) = %i\n", dentry, err);
- 	return err;
-@@ -143,7 +143,7 @@ static inline int ovl_do_unlink(struct ovl_fs *ofs, struct inode *dir,
- static inline int ovl_do_link(struct ovl_fs *ofs, struct dentry *old_dentry,
- 			      struct inode *dir, struct dentry *new_dentry)
- {
--	int err = vfs_link(old_dentry, &init_user_ns, dir, new_dentry, NULL);
-+	int err = vfs_link(old_dentry, ovl_upper_mnt_userns(ofs), dir, new_dentry, NULL);
- 
- 	pr_debug("link(%pd2, %pd2) = %i\n", old_dentry, new_dentry, err);
- 	return err;
-@@ -153,7 +153,7 @@ static inline int ovl_do_create(struct ovl_fs *ofs,
- 				struct inode *dir, struct dentry *dentry,
- 				umode_t mode)
- {
--	int err = vfs_create(&init_user_ns, dir, dentry, mode, true);
-+	int err = vfs_create(ovl_upper_mnt_userns(ofs), dir, dentry, mode, true);
- 
- 	pr_debug("create(%pd2, 0%o) = %i\n", dentry, mode, err);
- 	return err;
-@@ -163,7 +163,7 @@ static inline int ovl_do_mkdir(struct ovl_fs *ofs,
- 			       struct inode *dir, struct dentry *dentry,
- 			       umode_t mode)
- {
--	int err = vfs_mkdir(&init_user_ns, dir, dentry, mode);
-+	int err = vfs_mkdir(ovl_upper_mnt_userns(ofs), dir, dentry, mode);
- 	pr_debug("mkdir(%pd2, 0%o) = %i\n", dentry, mode, err);
- 	return err;
- }
-@@ -172,7 +172,7 @@ static inline int ovl_do_mknod(struct ovl_fs *ofs,
- 			       struct inode *dir, struct dentry *dentry,
- 			       umode_t mode, dev_t dev)
- {
--	int err = vfs_mknod(&init_user_ns, dir, dentry, mode, dev);
-+	int err = vfs_mknod(ovl_upper_mnt_userns(ofs), dir, dentry, mode, dev);
- 
- 	pr_debug("mknod(%pd2, 0%o, 0%o) = %i\n", dentry, mode, dev, err);
- 	return err;
-@@ -182,7 +182,7 @@ static inline int ovl_do_symlink(struct ovl_fs *ofs,
- 				 struct inode *dir, struct dentry *dentry,
- 				 const char *oldname)
- {
--	int err = vfs_symlink(&init_user_ns, dir, dentry, oldname);
-+	int err = vfs_symlink(ovl_upper_mnt_userns(ofs), dir, dentry, oldname);
- 
- 	pr_debug("symlink(\"%s\", %pd2) = %i\n", oldname, dentry, err);
- 	return err;
-@@ -244,10 +244,10 @@ static inline int ovl_do_rename(struct ovl_fs *ofs, struct inode *olddir,
- {
- 	int err;
- 	struct renamedata rd = {
--		.old_mnt_userns	= &init_user_ns,
-+		.old_mnt_userns	= ovl_upper_mnt_userns(ofs),
- 		.old_dir 	= olddir,
- 		.old_dentry 	= olddentry,
--		.new_mnt_userns	= &init_user_ns,
-+		.new_mnt_userns	= ovl_upper_mnt_userns(ofs),
- 		.new_dir 	= newdir,
- 		.new_dentry 	= newdentry,
- 		.flags 		= flags,
-@@ -265,7 +265,7 @@ static inline int ovl_do_rename(struct ovl_fs *ofs, struct inode *olddir,
- static inline int ovl_do_whiteout(struct ovl_fs *ofs,
- 				  struct inode *dir, struct dentry *dentry)
- {
--	int err = vfs_whiteout(&init_user_ns, dir, dentry);
-+	int err = vfs_whiteout(ovl_upper_mnt_userns(ofs), dir, dentry);
- 	pr_debug("whiteout(%pd2) = %i\n", dentry, err);
- 	return err;
- }
-@@ -273,7 +273,7 @@ static inline int ovl_do_whiteout(struct ovl_fs *ofs,
- static inline struct dentry *ovl_do_tmpfile(struct ovl_fs *ofs,
- 					    struct dentry *dentry, umode_t mode)
- {
--	struct dentry *ret = vfs_tmpfile(&init_user_ns, dentry, mode, 0);
-+	struct dentry *ret = vfs_tmpfile(ovl_upper_mnt_userns(ofs), dentry, mode, 0);
- 	int err = PTR_ERR_OR_ZERO(ret);
- 
- 	pr_debug("tmpfile(%pd2, 0%o) = %i\n", dentry, mode, err);
+@@ -622,7 +622,7 @@ int ovl_copy_up_with_data(struct dentry *dentry);
+ int ovl_maybe_copy_up(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
+ 		   struct dentry *new);
+-int ovl_set_attr(struct dentry *upper, struct kstat *stat);
++int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upper, struct kstat *stat);
+ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
+ 				  bool is_upper);
+ int ovl_set_origin(struct ovl_fs *ofs, struct dentry *lower,
 -- 
 2.32.0
 
