@@ -2,315 +2,389 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86CA6C433EF
-	for <linux-unionfs@archiver.kernel.org>; Sat,  2 Apr 2022 12:03:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C179FC433EF
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Apr 2022 10:52:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbiDBMFC (ORCPT
+        id S1354967AbiDDKyl (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 2 Apr 2022 08:05:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38516 "EHLO
+        Mon, 4 Apr 2022 06:54:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57544 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231209AbiDBMFB (ORCPT
+        with ESMTP id S245571AbiDDKyl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 2 Apr 2022 08:05:01 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A43F141FDA
-        for <linux-unionfs@vger.kernel.org>; Sat,  2 Apr 2022 05:03:09 -0700 (PDT)
+        Mon, 4 Apr 2022 06:54:41 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D10A43CFDD
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 03:52:43 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EE4FCB80761
-        for <linux-unionfs@vger.kernel.org>; Sat,  2 Apr 2022 12:03:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4C2D7C340EC;
-        Sat,  2 Apr 2022 12:03:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EDBD9B811D8
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Apr 2022 10:52:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E4F1C2BBE4;
+        Mon,  4 Apr 2022 10:52:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648900986;
-        bh=bN9tEaRkwoAFM1MHJpKSrEdAC/1gcj8njuzZpRfw0N0=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=fJrmidlCQ1p6GxgfdQnu9HEkriklb2syBHaWr04MhZSieYXzYTta5CW9o6Gu3sdL/
-         SVWPbpYNWVSQ1yNK4fC3j21JA6/nS4mepXB9P5LK6BWlZD95EP5Bduv7tjnsz1giZ9
-         o8O/GNDCcnxM1lDaiT+U3dwzmqw7myABAGifoBL20LKMFRnmmJ8eNru+XlS6aMErYW
-         8AkFQ0CJ2OqAwZz9QZwB1luU26vlDsCuT9s/uAZjyyC78qlI1u1pEZDH6Ea0vpYocf
-         M1UT0YJpdz1UnYR+mHaPefX2c4wMPKjTLkdWCa90PbXzeLU4sCWMCPK9OKUszTAZ0U
-         YEAjTWL42G4AA==
-Date:   Sat, 2 Apr 2022 14:03:00 +0200
+        s=k20201202; t=1649069560;
+        bh=jY2XTAFydCNdNTCT5E2qYz8StFOCgHzsEI1JrBpb12Y=;
+        h=From:To:Cc:Subject:Date:From;
+        b=qY7bl2WZy9nSepbXfSlHukt6w5JnBhJ54KaSo/IPk4Adr/iHhGnd5D/+f/664yOGb
+         GAh0nFKSMSRn7V9EW4L35n7nXHzBOdXtmPCgqhHCSKO0CmJU1lsfSJb9xOoPvnkMBq
+         dcwGdbzsLCgYMewgDATgHKnjcWPsvKxnvoj9gM6R28dSGQbB0nBooR8e6r7MBB/mpI
+         Kas7M4wz9+bDsxInQMVVL7sGj5t9uj72TJS9rLsnNwiTOVV+Ol9tXoGMZv5ZB3t2W8
+         LsWRR510nabgK1K9V6+CT+oIENalnatcu9EJhLcxujaZQ7bw0DcerUpq/WUFubzCub
+         i8F/wdrGSb0BA==
 From:   Christian Brauner <brauner@kernel.org>
-To:     Vivek Goyal <vgoyal@redhat.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <mszeredi@redhat.com>
+Cc:     "Christian Brauner (Microsoft)" <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org, Christoph Hellwig <hch@lst.de>,
         Aleksa Sarai <cyphar@cyphar.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
         Rodrigo Campos Catelin <rodrigo@sdfg.com.ar>,
         Seth Forshee <sforshee@digitalocean.com>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
-        =?utf-8?B?U3TDqXBoYW5l?= Graber <stgraber@ubuntu.com>
-Subject: Re: [PATCH v3 09/19] ovl: use ovl_do_notify_change() wrapper
-Message-ID: <20220402120300.aqy4b6cltdzb7iy2@wittgenstein>
-References: <20220331112318.1377494-1-brauner@kernel.org>
- <20220331112318.1377494-10-brauner@kernel.org>
- <YkdJQp7cEYeWODnX@redhat.com>
+        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>,
+        Vivek Goyal <vgoyal@redhat.com>
+Subject: [PATCH v4 00/19] overlay: support idmapped layers
+Date:   Mon,  4 Apr 2022 12:51:39 +0200
+Message-Id: <20220404105159.1567595-1-brauner@kernel.org>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YkdJQp7cEYeWODnX@redhat.com>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=14422; h=from:subject; bh=elcT5LRTz7f+fO5Z0EOsUtJ5UOKBh8YbpzdOxJblF2Q=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSR5nT20fNPefW94dJk3z9rge+DWzPUPlHPSZkc9nx/u7OI6 Y6bu3Y5SFgYxLgZZMUUWh3aTcLnlPBWbjTI1YOawMoEMYeDiFICJrGJmZJjat6/TZeuchXXXhMrO5b zT2/gr72pZcjP3mRXrolYXrWhhZPitqnvoVav+4WeTxVsuLtrIv0fWK9Bm+S7viuLv8u9Ut/EBAA==
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Apr 01, 2022 at 02:49:38PM -0400, Vivek Goyal wrote:
-> On Thu, Mar 31, 2022 at 01:23:07PM +0200, Christian Brauner wrote:
-> > Introduce ovl_do_notify_change() as a simple wrapper around
-> > notify_change() to support idmapped layers. The helper mirrors other
-> > ovl_do_*() helpers that operate on the upper layers.
-> > 
-> > When changing ownership of an upper object the intended ownership needs
-> > to be mapped according to the upper layer's idmapping. This mapping is
-> > the inverse to the mapping applied when copying inode information from
-> > an upper layer to the corresponding overlay inode. So e.g., when an
-> > upper mount maps files that are stored on-disk as owned by id 1001 to
-> > 1000 this means that calling stat on this object from an idmapped mount
-> > will report the file as being owned by id 1000. Consequently in order to
-> > change ownership of an object in this filesystem so it appears as being
-> > owned by id 1000 in the upper idmapped layer it needs to store id 1001
-> > on disk. The mnt mapping helpers take care of this.
-> > 
-> > All idmapping helpers are nops when no idmapped base layers are used.
-> > 
-> > Cc: <linux-unionfs@vger.kernel.org>
-> > Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
-> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-> > ---
-> > /* v2 */
-> > unchanged
-> > 
-> > /* v3 */
-> > unchanged
-> > ---
-> >  fs/overlayfs/copy_up.c   |  8 ++++----
-> >  fs/overlayfs/dir.c       |  2 +-
-> >  fs/overlayfs/inode.c     |  3 ++-
-> >  fs/overlayfs/overlayfs.h | 27 +++++++++++++++++++++++++++
-> >  fs/overlayfs/super.c     |  2 +-
-> >  5 files changed, 35 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 2c336acb2ba0..a5d68302693f 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -301,7 +301,7 @@ static int ovl_set_size(struct ovl_fs *ofs,
-> >  		.ia_size = stat->size,
-> >  	};
-> >  
-> > -	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
-> > +	return ovl_do_notify_change(ofs, upperdentry, &attr);
-> >  }
-> >  
-> >  static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
-> > @@ -314,7 +314,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
-> >  		.ia_mtime = stat->mtime,
-> >  	};
-> >  
-> > -	return notify_change(&init_user_ns, upperdentry, &attr, NULL);
-> > +	return ovl_do_notify_change(ofs, upperdentry, &attr);
-> >  }
-> >  
-> >  int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
-> > @@ -327,7 +327,7 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
-> >  			.ia_valid = ATTR_MODE,
-> >  			.ia_mode = stat->mode,
-> >  		};
-> > -		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
-> > +		err = ovl_do_notify_change(ofs, upperdentry, &attr);
-> >  	}
-> >  	if (!err) {
-> >  		struct iattr attr = {
-> > @@ -335,7 +335,7 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
-> >  			.ia_uid = stat->uid,
-> >  			.ia_gid = stat->gid,
-> >  		};
-> > -		err = notify_change(&init_user_ns, upperdentry, &attr, NULL);
-> > +		err = ovl_do_notify_change(ofs, upperdentry, &attr);
-> >  	}
-> >  	if (!err)
-> >  		ovl_set_timestamps(ofs, upperdentry, stat);
-> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > index 27a40b6754f4..9ae0352ff52a 100644
-> > --- a/fs/overlayfs/dir.c
-> > +++ b/fs/overlayfs/dir.c
-> > @@ -516,7 +516,7 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
-> >  			.ia_mode = cattr->mode,
-> >  		};
-> >  		inode_lock(newdentry->d_inode);
-> > -		err = notify_change(&init_user_ns, newdentry, &attr, NULL);
-> > +		err = ovl_do_notify_change(ofs, newdentry, &attr);
-> >  		inode_unlock(newdentry->d_inode);
-> >  		if (err)
-> >  			goto out_cleanup;
-> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> > index c51a9dd36cc7..9a8e6b94d9e8 100644
-> > --- a/fs/overlayfs/inode.c
-> > +++ b/fs/overlayfs/inode.c
-> > @@ -21,6 +21,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
-> >  		struct iattr *attr)
-> >  {
-> >  	int err;
-> > +	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
-> >  	bool full_copy_up = false;
-> >  	struct dentry *upperdentry;
-> >  	const struct cred *old_cred;
-> > @@ -77,7 +78,7 @@ int ovl_setattr(struct user_namespace *mnt_userns, struct dentry *dentry,
-> >  
-> >  		inode_lock(upperdentry->d_inode);
-> >  		old_cred = ovl_override_creds(dentry->d_sb);
-> > -		err = notify_change(&init_user_ns, upperdentry, attr, NULL);
-> > +		err = ovl_do_notify_change(ofs, upperdentry, attr);
-> >  		revert_creds(old_cred);
-> >  		if (!err)
-> >  			ovl_copyattr(upperdentry->d_inode, dentry->d_inode);
-> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> > index 816a69b46b67..c1f4ff0553b5 100644
-> > --- a/fs/overlayfs/overlayfs.h
-> > +++ b/fs/overlayfs/overlayfs.h
-> > @@ -122,6 +122,33 @@ static inline const char *ovl_xattr(struct ovl_fs *ofs, enum ovl_xattr ox)
-> >  	return ovl_xattr_table[ox][ofs->config.userxattr];
-> >  }
-> >  
-> > +/*
-> > + * When changing ownership of an upper object map the intended ownership
-> > + * according to the upper layer's idmapping. When an upper mount idmaps files
-> > + * that are stored on-disk as owned by id 1001 to id 1000 this means stat on
-> > + * this object will report it as being owned by id 1000 when calling stat via
-> > + * the upper mount.
-> > + * In order to change ownership of an object so stat reports id 1000 when
-> > + * called on an idmapped upper mount the value written to disk - i.e., the
-> > + * value stored in ia_*id - must 1001. The mount mapping helper will thus take
-> > + * care to map 1000 to 1001.
-> > + * The mnt idmapping helpers are nops if the upper layer isn't idmapped.
-> 
-> Hi Christian,
-> 
-> Trying to understand the code with above example where upper has been
-> idmapped to map on disk id 1001 to 1000. My understanding is very 
-> primitive, so most likely i have very obvious questions.
+From: "Christian Brauner (Microsoft)" <brauner@kernel.org>
 
-Hey Vivek,
+Hey,
 
-These are great questions. I'm happy to answer them.
-Please feel free to also peruse the documentation in mnt_idmapping.h and
-in Documentations/filesystems/idmappings.rst (the latter needs updating
-though as the function names changed).
+This adds support for mounting overlay on top of idmapped layers.
 
-> 
-> Given notify_change() takes "mnt_userns" as a parameter, I assumed
-> that notify_change() will map 1000 to 1001 instead. Looks like
-> that's not the case. Instead calling filesystem needs to map it
-> before calling notify_change().
+/* v4 */
+(no functional changes)
+- Rename variables (Vivek)
+- rebase onto v5.18-rc1
+- Push out new fs.idmapped.overlay.v4 tags.
 
-Usually all of that is done in the vfs. But since overlayfs calls
-notify_change() directly on the upper layer this step needs to be done
-here. So this is what ovl_do_notify_change() is doing.
+/* v3 */
+(no functional changes)
+- Add Christoph's reviews and add kerneldoc to the two lookup helpers.
+- Add link to repo with manual testing instructions.
+- Push out new fs.idmapped.overlay.v3 tags.
 
-As you might know notify_change() is (among other things) used to change
-i_{g,u}id. For filesystems only mountable in init_user_ns the i_{g,u}id
-values are identical to the on-disk or "backend store values".
+/* v2 */
+- Move ovl_upper_idmap() into a separate patch early in the series but
+  have it return the initial idmapping. Once all necessary preparations
+  are done we switch it to return the upper mount's idmapping in the
+  last patch. (Miklos)
+- Add a comment to the commit message explaining the acceptable increase
+  in debug output due to the switch of all places from open-coded
+  vfs_*xattr() calls to the respective ovl_do_*xattr() helpers. (Miklos)
+- I did another git rebase -i -x "make -j31 LOCALVERSION=-ovl" v5.17.
+- Push out new fs.idmapped.overlay.v2 tag.
 
-I'll use the (slimmed down) systemd-homed example. Assume we have an xfs
-filesystem mounted where all inodes on-disk are owned by 65534. We want
-to use a part of this xfs filesystem as our home directory mounted as
-/home/my-user. Our id on this system is 1000.
+These details can also be found in the comments of the individual commit
+messages.
 
-What systemd-homed will do is create an idmapped mount at /home/my-user.
-The mapping it will use is: 65534:1000:<some-range>.
+I have to start by saying a massive thank you to Amir! He did not just
+answer my constant overlay questions but also provided quite a few
+patches himself in this series in addition to reviews, comments and a
+lot of suggestions. Thank you!
 
-## Reporting file ownership
-If we now access /home/my-user and call stat to look at the ownership we
-see that all files are reported as being owned by id 1000.
+There have been a lot of requests to unblock this. For just a few select
+examples see [3], [4], and [5]. I've worked closely with various
+communities among them containerd, Kubernetes, Podman, LXD, runC, crun,
+and systemd (For the curious please see the various pull-request and
+issues below.) a lot of them already support idmapped mounts since they
+are enabled for btrfs, ext4, and xfs (and f2fs and fat fwiw). In
+additon, a few colleagues at Microsoft and from Red Hat work on a
+Kubernetes Enhancement Proposals (KEP) that also relies on overlayfs
+supporting idmapped layers, see [12].
 
-The responsible higher-level function here is i_uid_into_mnt() which
-translates from filesystem ownership into mount ownership. It uses the
-lower-level mapped_k*id_fs() which maps any inode owned by 65534 on-disk
-to 1000. Ultimately that's put in struct kstat and then reported in the
-last step to the user.
+Overlayfs on top of idmapped layers will be used in various ways:
 
-## Creating new files
-Now assume we're creating a new file in /home/my-user called "my-file".
-We know our id is 1000. We know that the idmapped mount makes it so that
-files on-disk owned by id 65534 are owned by id 1000.
-When we create new files on disk we thus need to create them as 65534.
-So if we do touch /home/my-dir/myfile followed by a stat on the file it
-will be owned by id 1000.
+* Container managers use overlayfs to efficiently share layers between
+  containers. However, this only works for privileged containers.
+  Layers cannot be shared if both privileged and unprivileged containers
+  are used. Layers can also not be shared if non-overlapping idmappings
+  are used for unprivileged containers. Layers cannot be shared because
+  of the conflicting ownership requirements between the containers.
 
-The function responsible for this is inode_fs*id_set() and it translates
-in the other direction, i.e. it maps from the idmapped mount into the
-filesystem 1000 -> 65534. The low-level function that is responsible for
-this is mapped_k*id_user() (as we're mapping from userspace to an on-disk
-value).
+  Both the KEP proposal (see [13]) and LXD (see [14]) use
+  non-overlapping idmappings to increase isolation.
 
-## Changing ownership: notify_change()
-Now assume we're trying to change ownership for some file on-disk in the
-idmapped mount to make it writable for our caller. Again, the idmapped
-mount makes it so that all files owned by id 65534 on-disk are owned by
-id 1000 in the idmapped mount.
-If a (sufficiently privileged over the inode ofc) calls:
-chown 1000:1000 /home/my-dir/some-file
-in the idmapped mount it's conceptually identical to creating a new file
-on-disk. This we covered earlier. We need to translate from the idmapped
-mount into the filesystem and thus from 1000 to 65534.
-The iattr->ia_{g,u}id need to contain the value 65534 as that's the
-ownership that needs to be on-disk. So here we call the
-mapped_k*id_user() helper.
+  All of these cases can be supported if overlayfs can be mounted on
+  idmapped layers. The container runtime will create idmapped mounts for
+  the layers supposed to be shared. Each container will be given
+  idmapped mounts with the correct idmapping. Either by attaching a
+  custom or its own user namespace depending on the use-case. Then an
+  overlay mount can be mounted on top of the idmapped layers. The
+  underlying idmapped mounts can then be unmounted and the mount table
+  will be in a clean state.
+  This approach has been tested an verified by Giuseppe and others.
 
-So if we do chown 1000:1000 /home/my-dir/some-file
-followed by stat on the file it will be owned by id 1000.
+* Because of the inability to share layers preparing a layer causes a
+  big runtime overhead as ownership needs to be recursively changed.
+  This becomes increasingly costly with the bigger the layers are.
+  Especially for a large rootfs it becomes prohibitively expensive.
 
-If we look at the filesystem from a non-idmapped location all files
-on-disk will be owned by 65534.
+  This recursive ownership change also causes a lot storage overhead.
+  Without metacopy it can quickly become unmanagable. With metacopy it
+  still wastes a lot of space and inodes.
 
-> 
-> .
-> > + */
-> > +static inline int ovl_do_notify_change(struct ovl_fs *ofs,
-> > +				       struct dentry *upperdentry,
-> > +				       struct iattr *attr)
-> > +{
-> > +	struct user_namespace *upper_idmap = ovl_upper_idmap(ofs);
-> > +	struct user_namespace *fs_idmap = i_user_ns(d_inode(upperdentry));
-> > +
-> > +	if (attr->ia_valid & ATTR_UID)
-> > +		attr->ia_uid = mapped_kuid_user(upper_idmap, fs_idmap, attr->ia_uid);
-> > +	if (attr->ia_valid & ATTR_GID)
-> > +		attr->ia_gid = mapped_kgid_user(upper_idmap, fs_idmap, attr->ia_gid);
-> 
-> Another thing which I don't understand is fs_idmap and its relation with
-> upper_idmap. 
-> 
-> IIUC, fs_idmap is upper dir's filesystem subper block's namespace. That
-> should be init_user_ns until and unless filesystem allows unprivileged
-> mounting from inside a namespace. Is that correct?
+  For both the KEP and container manager being able to use idmapped
+  layer with overlayfs on top of it solves all these problems.
 
-Correct. You can see this clearly in mnt_idmapping.h
+* Container managers such as LXD do run full system containers. Such
+  systems are managed like virtual machines and users run application
+  containers inside. Since LXD uses an idmapped mounts for the rootfs of
+  the container with the container's user namespace attached to the
+  mount container runtimes cannot user overlayfs inside.
 
-> 
-> So effectively what we are doing is two translations. A filesystem, 
-> mounted unprivliged, and then idmapped mount created and used as
-> upper. And then somehow we are doing translations both for idmapped
-> mounts and fs_idmap?
+  Once overlayfs can be mounted on top of idmapped layers it will be
+  possible for container runtimes to use overlayfs inside LXD
+  containers.
 
-The idmapped mount infra was designed to be generic enough so that it is
-possible to create idmapped mounts for filesystems that are themselves
-idmapped.
+* The systemd-homed daemon and toolsuite is a new component of systemd
+  to manage home areas in a portable way. systemd-homed makes use of
+  idmapped mounts for the home areas. If the kernel and used file system
+  support it the user's home area will be mounted as an idmapped mount
+  when they log into their system.
 
-It is important to understand that only filesystem that set
-FS_ALLOW_IDMAP in fs_flags are able to create idmapped mounts. Currently
-no filesystem that is mountable with a non-initial idmapping raises that
-flag. But if a filesystem wanted to do this then it is possible.
+  All files are internally owned by the "nobody" user (i.e. the user
+  typically used for indicating "this ownership is not mapped"), and
+  dynamically mapped to the {g,u}id used locally on the system via
+  idmapped mounts. This makes migrating home areas between different
+  systems trivial because recursively chown()ing file system trees is no
+  longer necessary. This also means that it is impossible to store files
+  as {g,u}id 0 on disk.
 
-> 
-> If you can shed some light on this, that will help a lot.
+  Once overlayfs can be mounted on top of idmapped layers it will be
+  possible for container runtimes to work better together with
+  systemd-homed.
 
-Hope this helps!
+* systemd provides various sandboxing features (see [11]) for services.
+  These serve as hardening measures. In this context, idmapped mounts
+  can be used to prevent services from creating files on disk as {g,u}id
+  0, making specific files inaccessible, or to prevent access to whole
+  directories. Since such services may also make use of overlayfs for
+  e.g. the ExtensionImages= option supporting overlayfs on top of
+  idmapped layers would be another huge hardening win.
 
+* systemd provides the ability to use system extension images [15] for
+  /usr and /opt (with a look to /etc in the future). Such system
+  extension images contain files and directories similar in fashion to
+  a regular OS system tree. When one or more system extension images are
+  activated, their /usr/ and /opt/ hierarchies are combined via
+  overlay with the same hierarchies of the host OS, and the host /usr/
+  and /opt/ overmounted with it ("merging"). These images are read-only.
+
+  This feature is available to unprivileged container and sandboxed
+  services as well. Idmapped layers are used here to avoid runtime and
+  storage overhead from recursively changing ownership and ultimately an
+  overlay mount is supposed to be created on top of it.
+
+Giuseppe provided testing for runC/crun/Podman and he put up a pull
+request to support overlayfs on top of idmapped layers at [16]. That
+already covers a lot of users. Other tools have put up pull requests as
+well and they are linked below.
+
+The patchset has been extensively tested for about 2 weeks with
+xfstests. The tests and results are explained in the following
+paragraphs.
+
+In order to test overlayfs with idmapped mounts a simple patch to
+xfstests has been added which is part of this series. The patchset
+simply allows for each test in the xfstests suite to be run on top of
+idmapped mounts. That is in addition to the generic idmapped mount tests
+that have existed and are already run for a long time.
+
+Since idmapped mounts can be created on top of btrfs, ext4, and xfs and
+these are the most relevant filesystems for users they were taken into
+the test matrix.
+
+Amir ensured that the test matrix also includes metacopy. So all tests
+are run once with metacopy=on and once with metacopy=off.
+
+Additionally, the unionmount tesuite that Amir maintains was run as part
+of xfstests. This brings testing for multi layer overlay and a few
+rarely used overlayfs use-cases.
+
+And last, xfstests were run with and without idmapped mounts.
+
+Since the patch series is based on Linux 5.17 the 5.17 kernel was chosen
+as a baseline kernel. The baseline kernel is pure 5.17 upstream without
+any of the patches in this series. The baseline kernel was used to run
+all xfstests with the same parameters minus the idmapped mount part of
+the test matrix. This ensured that regressions would be immediately
+noticeable.
+
+So the full test matrix is:
+
+ext4 x metacopy=off x -idmapped mounts
+ext4 x metacopy=on  x -idmapped mounts
+ext4 x metacopy=off x +idmapped mounts
+ext4 x metacopy=on  x +idmapped mounts
+
+xfs x metacopy=off x -idmapped mounts
+xfs x metacopy=on  x -idmapped mounts
+xfs x metacopy=off x +idmapped mounts
+xfs x metacopy=on  x +idmapped mounts
+
+btrfs x metacopy=off x -idmapped mounts
+btrfs x metacopy=on  x -idmapped mounts
+btrfs x metacopy=off x +idmapped mounts
+btrfs x metacopy=on  x +idmapped mounts
+
+The test runs were started with:
+
+sudo ./check -overlay
+
+so they encompass all xfstests apart from those that needed to be
+excluded because they triggered known issues (One such example is
+generic/530 which causes an xfs corruption that is currently under
+discussion for a fix upstream.).
+
+A single testrun with over 750 tests takes a bonkers long time given
+that I run them in a beefy VM on top of an ssd and not on bare metal.
+
+The successes and failures are identical for the whole test matrix with
+and without idmapped mounts. The tests and failures are also identical
+compared to the baseline kernel. All in all this should provide a good
+amount of convidence. The full test output can be found in [18].
+
+People that want to directly play with this have various options the two
+easiest are:
+
+1. Giuseppe has already put up support the containers/storage go library:
+   https://github.com/containers/storage/pull/1180
+   and he's been running workloads with that branch. If the tooling in
+   this area is familiar to you it easy to test this.
+   One can vendor containers/storage branch into Podman and then run
+   workloads like:
+   podman run --uidmap 0:2000:40000 --gidmap 0:8000:50000 --rm fedora bash
+
+2. xfstests have - for a long time already - support for a generic
+   idmapped mount testsuite. Part of the testsuite is the
+   "mount-idmapped" binary which makes it easy to create idmapped
+   mounts:
+   https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git/tree/src/idmapped-mounts/mount-idmapped.c
+
+More detailed instructions can be found in the
+"manual.test.instructions" file in the repo at [18].
+
+In order to create an idmapped mount the mount_setattr() system call
+(see [17]) can be used together with the MOUNT_ATTR_IDMAP flag to attach
+a userns fd to a detached mount created with open_tree()'s
+OPEN_TREE_CLONE flag. The only effect is that the idmapping of the
+userns becomes the idmapping of the relevant. The links below should
+serve to illustrate how widely they are already used.
+
+For people who would like to test I've created a tag fs.idmapped.overlay.v4
+which can be fetched:
+
+git fetch git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git fs.idmapped.overlay.v4
+
+the same goes for xfstests:
+
+git fetch git://git.kernel.org/pub/scm/linux/kernel/git/brauner/xfstests-dev.git fs.idmapped.overlay.v4
+
+Thanks!
 Christian
+
+[1]: OCI runtime-spec extension for idmapped mounts
+     https://github.com/opencontainers/runtime-spec/pull/1143
+
+[2]: Support for idmapped mounts for shared volumes
+     https://github.com/opencontainers/runc/pull/3429
+
+[3]: containerd support for idmapped mounts with focus on overlayfs
+     https://github.com/containerd/containerd/pull/5890
+
+[4]: runC support for idmapped mounts with focus on overlayfs
+     https://github.com/opencontainers/runc/issues/2821
+
+[5]: Podman support for idmapped mounts with focus on overlayfs
+     https://github.com/containers/podman/issues/10374
+
+[6]: systemd-nspawn support for idmapped mounts
+     https://github.com/systemd/systemd/pull/19438
+
+[7]: systemd-homed support for idmapped mounts
+     https://github.com/systemd/systemd/pull/21136
+
+[8]: LXD support for idmapped mounts
+     https://github.com/lxc/lxd/pull/8778
+
+[9]: LXC support for idmapped mounts
+     https://github.com/lxc/lxc/pull/3709
+
+[10]: crun support for idmapped mounts
+      https://github.com/containers/crun/pull/874
+
+[11]: https://www.freedesktop.org/software/systemd/man/systemd.exec.html#Sandboxing
+
+[12]: https://github.com/kubernetes/enhancements/pull/3065
+
+[13]: https://github.com/kubernetes/enhancements/pull/3065/files#diff-a9ca9fbce1538447b92f03125ca2b8474e2d875071f1172d2afa0b1e8cadeabaR118
+
+[14]: https://github.com/lxc/lxd/blob/master/doc/instances.md
+      (The relevant entry can be found by looking for the
+       "security.idmap.isolated" key.)
+
+[15]: https://www.freedesktop.org/software/systemd/man/systemd-sysext.html
+
+[16]: https://github.com/containers/storage/pull/1180
+
+[17]: https://man7.org/linux/man-pages/man2/mount_setattr.2.html
+
+[18]: https://gitlab.com/brauner/fs.idmapped.overlay.xfstests.output
+
+Amir Goldstein (3):
+  ovl: use wrappers to all vfs_*xattr() calls
+  ovl: pass layer mnt to ovl_open_realfile()
+  ovl: store lower path in ovl_inode
+
+Christian Brauner (16):
+  fs: add two trivial lookup helpers
+  exportfs: support idmapped mounts
+  ovl: pass ofs to creation operations
+  ovl: add ovl_upper_mnt_userns() wrapper
+  ovl: handle idmappings in creation operations
+  ovl: pass ofs to setattr operations
+  ovl: use ovl_do_notify_change() wrapper
+  ovl: use ovl_lookup_upper() wrapper
+  ovl: use ovl_path_getxattr() wrapper
+  ovl: handle idmappings for layer fileattrs
+  ovl: handle idmappings for layer lookup
+  ovl: use ovl_copy_{real,upper}attr() wrappers
+  ovl: handle idmappings in ovl_permission()
+  ovl: handle idmappings in layer open helpers
+  ovl: handle idmappings in ovl_xattr_{g,s}et()
+  ovl: support idmapped layers
+
+ fs/exportfs/expfs.c      |   5 +-
+ fs/namei.c               |  69 ++++++++++--
+ fs/overlayfs/copy_up.c   |  96 +++++++++-------
+ fs/overlayfs/dir.c       | 133 +++++++++++-----------
+ fs/overlayfs/export.c    |   3 +-
+ fs/overlayfs/file.c      |  44 ++++----
+ fs/overlayfs/inode.c     |  63 +++++++----
+ fs/overlayfs/namei.c     |  49 +++++---
+ fs/overlayfs/overlayfs.h | 235 ++++++++++++++++++++++++++++-----------
+ fs/overlayfs/ovl_entry.h |   7 +-
+ fs/overlayfs/readdir.c   |  48 ++++----
+ fs/overlayfs/super.c     |  57 +++++-----
+ fs/overlayfs/util.c      | 142 ++++++++++++++++++-----
+ include/linux/namei.h    |   6 +
+ 14 files changed, 631 insertions(+), 326 deletions(-)
+
+
+base-commit: 3123109284176b1532874591f7c81f3837bbdc17
+-- 
+2.32.0
+
