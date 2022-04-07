@@ -2,121 +2,107 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CA94C433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Apr 2022 11:22:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7486EC433FE
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Apr 2022 11:22:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244754AbiDGLY3 (ORCPT
+        id S244763AbiDGLYm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Apr 2022 07:24:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49206 "EHLO
+        Thu, 7 Apr 2022 07:24:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244740AbiDGLY1 (ORCPT
+        with ESMTP id S244774AbiDGLYl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Apr 2022 07:24:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82DA56E8D2;
-        Thu,  7 Apr 2022 04:22:28 -0700 (PDT)
+        Thu, 7 Apr 2022 07:24:41 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 971D3206EED
+        for <linux-unionfs@vger.kernel.org>; Thu,  7 Apr 2022 04:22:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1830A61CF0;
-        Thu,  7 Apr 2022 11:22:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DD77C385A0;
-        Thu,  7 Apr 2022 11:22:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3191761E51
+        for <linux-unionfs@vger.kernel.org>; Thu,  7 Apr 2022 11:22:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7E2DC385A0;
+        Thu,  7 Apr 2022 11:22:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649330547;
-        bh=3SB3NHl1PuAXJFmpwSTU6c82ytSgfL6twncwZKuVsLM=;
+        s=k20201202; t=1649330560;
+        bh=JfrsdHDGLeJqqPTrdqYYeqbl6kEjIABpAg4PlBvwaSs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=JcXVARvMW6cm3/E4vvW5yXRVKux8kASyP20uPZbyKxQ6dbXfnWJ3xEwQq5kdN6l2y
-         d9v9pm2XvzmZiC4oHO73kEZ3fvvqe7wAYvgrloTHcSCYvnKt+GL81iIqBVMy1806Ke
-         6hXZKYLbWDoxrtebli6AeVoJPD3IKBkome7GGe5NQ5xZTdIUDcUCpOq8lbewhQ6g5a
-         zXAE2BY3L8MjFhJiD6GaLyOHduy22Tx7FO+viAH1yq9/0paSsZQzWDlUK7CiGGIMTg
-         LayYwJ0BAVUGgTx7DsW1Da0f4uE7u44rl+5vZy9Ukb/NboVq2b0BYI4+O8FBaoW/5i
-         G26gWp9BAc6kw==
+        b=JhcMhVlfnAzoFzvIFJGbAeGAU2ScazwTDDq+Ywx19boUgZoQ3AlV0DDMKJfQxzbcv
+         MbgpkQBFDBK5Jw+wIWT3xB9b7l6wkJS+WxhWfiWSdaEcVEzSupUzw/j5Afay2m5eFH
+         U6TWxF3UY5aNisLZUrXj4V1mfYOezVMIDszdQkN21LCGEycPi0PuPPHJRMYPX4YLmX
+         cDCf6O6cnmBmtKoxzP81jVaq8Vfp7HttSB4M49FsSdbdakRKjQIQwes1i8Z+B3tFUx
+         KHSVEcBFWcwxbGbnvnc1HjUStP7UUIiZNNEdzVtTH9/4wkmbPDK5JuT1lAdm/E6Kw5
+         Vy1ODoaTDfimw==
 From:   Christian Brauner <brauner@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        Al Viro <viro@zeniv.linux.org.uk>
+        Miklos Szeredi <mszeredi@redhat.com>
 Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
         Aleksa Sarai <cyphar@cyphar.com>,
         Giuseppe Scrivano <gscrivan@redhat.com>,
         Rodrigo Campos Catelin <rodrigo@sdfg.com.ar>,
         Seth Forshee <sforshee@digitalocean.com>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
-        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>,
-        stable@vger.kernel.org
-Subject: [PATCH v5 02/19] exportfs: support idmapped mounts
-Date:   Thu,  7 Apr 2022 13:21:39 +0200
-Message-Id: <20220407112157.1775081-3-brauner@kernel.org>
+        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
+Subject: [PATCH v5 05/19] ovl: add ovl_upper_mnt_userns() wrapper
+Date:   Thu,  7 Apr 2022 13:21:42 +0200
+Message-Id: <20220407112157.1775081-6-brauner@kernel.org>
 X-Mailer: git-send-email 2.32.0
 In-Reply-To: <20220407112157.1775081-1-brauner@kernel.org>
 References: <20220407112157.1775081-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1973; h=from:subject; bh=3SB3NHl1PuAXJFmpwSTU6c82ytSgfL6twncwZKuVsLM=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMST5nfR0zv4T2/5vedIlYY7D0uXFW81+ygcfyq1SSjo4k3HJ 6XyxjlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIlk3WL4H1ehLXP9aNeP/Vanrq/Uu7 qAd7LRZYekl1316+0CPl08Y8PIcLDnW+D7psVrtjtpLTI89t2q4Q3/n85vj249f3RN08dzHjsA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1433; h=from:subject; bh=JfrsdHDGLeJqqPTrdqYYeqbl6kEjIABpAg4PlBvwaSs=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMST5nfS60f/S6XPYlySxOSnFHidkTA6vcWfvmjYzrX36mcvv lubydJSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAExk5g1GhkdH9BdzHLupw6hfvkRr16 VXlZu9IhQSJK69Sdg1mTHUX5bhf5DNHr/fTIrneATS/z2euPWxTjnrFqa96fJPM8wmtjVKswEA
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Make the two locations where exportfs helpers check permission to lookup
-a given inode idmapped mount aware by switching it to the lookup_one()
-helper. This is a bugfix for the open_by_handle_at() system call which
-doesn't take idmapped mounts into account currently. It's not tied to a
-specific commit so we'll just Cc stable.
+Add a tiny wrapper to retrieve the upper mount's idmapping. Have it
+return the initial idmapping until we have prepared and converted all
+places to take the relevant idmapping into account. Then we can switch
+on idmapped layer support by having ovl_upper_mnt_userns() return the
+upper mount's idmapping.
 
-In addition this is required to support idmapped base layers in overlay.
-The overlay filesystem uses exportfs to encode and decode file handles
-for its index=on mount option and when nfs_export=on.
-
-Cc: <stable@vger.kernel.org>
-Cc: <linux-fsdevel@vger.kernel.org>
-Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
+Suggested-by: Miklos Szeredi <mszeredi@redhat.com>
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 ---
 /* v2 */
-unchanged
+- Miklos Szeredi <mszeredi@redhat.com>:
+  - Add separate patch for ovl_upper_idmap() and have it return the
+    initial idmapping until we turn idmapped layer support on later.
 
 /* v3 */
 unchanged
 
 /* v4 */
-unchanged
+- Vivek Goyal <vgoyal@redhat.com>:
+  - s/ovl_upper_idmap()/ovl_upper_mnt_userns()/g
 
 /* v5 */
 unchanged
 ---
- fs/exportfs/expfs.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/overlayfs/ovl_entry.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/fs/exportfs/expfs.c b/fs/exportfs/expfs.c
-index 0106eba46d5a..3ef80d000e13 100644
---- a/fs/exportfs/expfs.c
-+++ b/fs/exportfs/expfs.c
-@@ -145,7 +145,7 @@ static struct dentry *reconnect_one(struct vfsmount *mnt,
- 	if (err)
- 		goto out_err;
- 	dprintk("%s: found name: %s\n", __func__, nbuf);
--	tmp = lookup_one_len_unlocked(nbuf, parent, strlen(nbuf));
-+	tmp = lookup_one_unlocked(mnt_user_ns(mnt), nbuf, parent, strlen(nbuf));
- 	if (IS_ERR(tmp)) {
- 		dprintk("%s: lookup failed: %d\n", __func__, PTR_ERR(tmp));
- 		err = PTR_ERR(tmp);
-@@ -525,7 +525,8 @@ exportfs_decode_fh_raw(struct vfsmount *mnt, struct fid *fid, int fh_len,
- 		}
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 63efee554f69..1c6495bc6bb3 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -90,6 +90,11 @@ static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+ 	return ofs->layers[0].mnt;
+ }
  
- 		inode_lock(target_dir->d_inode);
--		nresult = lookup_one_len(nbuf, target_dir, strlen(nbuf));
-+		nresult = lookup_one(mnt_user_ns(mnt), nbuf,
-+				     target_dir, strlen(nbuf));
- 		if (!IS_ERR(nresult)) {
- 			if (unlikely(nresult->d_inode != result->d_inode)) {
- 				dput(nresult);
++static inline struct user_namespace *ovl_upper_mnt_userns(struct ovl_fs *ofs)
++{
++       return &init_user_ns;
++}
++
+ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+ {
+ 	return (struct ovl_fs *)sb->s_fs_info;
 -- 
 2.32.0
 
