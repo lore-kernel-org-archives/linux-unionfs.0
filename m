@@ -2,117 +2,86 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62B56C433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Apr 2022 11:23:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B705BC433EF
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Apr 2022 14:01:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244766AbiDGLZk (ORCPT
+        id S231682AbiDSODw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Apr 2022 07:25:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54828 "EHLO
+        Tue, 19 Apr 2022 10:03:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43784 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232523AbiDGLZj (ORCPT
+        with ESMTP id S238692AbiDSODv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Apr 2022 07:25:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECD27637E
-        for <linux-unionfs@vger.kernel.org>; Thu,  7 Apr 2022 04:23:39 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9BE76B8272A
-        for <linux-unionfs@vger.kernel.org>; Thu,  7 Apr 2022 11:23:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B3231C385A0;
-        Thu,  7 Apr 2022 11:23:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649330617;
-        bh=6q5UKH/K1PP8S/3FSC7rpJszRqi5npsVnw4HIdIH8Y4=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=emE5kyZmMh6FZZh/R6QNUDKmlDaq1OIoCNXv/wRfsTFGJBS4vPnCWVNUAfCLCwC6P
-         KKanPDXzI0QA8lUGZ0ZYqX4IYUiE899DCfFSf2IF4qnauXsDOHHqTUZPMMhDRYiwJf
-         tpg8SOFNFq58TFuHHiZS/hf5UwFh7+sG1Ud1MkvsMNFH8LjvGLfy/bkvlWZTMJbU50
-         n+F8ifmJuoF6vEHfxXfnE0PUZhrY5Axf5DL1VoJGEDKVhTNuUzkJMAWLpyqnIV8nlJ
-         2J3KZ8rpwK3Ql2cHl1pb2yJS8Bwxpn0+iSO+F4erwKfWnJpGq0LrNprMHefqkzcfNV
-         6+QuIgYwJGoSQ==
-From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <mszeredi@redhat.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        Rodrigo Campos Catelin <rodrigo@sdfg.com.ar>,
-        Seth Forshee <sforshee@digitalocean.com>,
-        Luca Bocassi <luca.boccassi@microsoft.com>,
-        Lennart Poettering <mzxreary@0pointer.de>,
-        =?UTF-8?q?St=C3=A9phane=20Graber?= <stgraber@ubuntu.com>
-Subject: [PATCH v5 19/19] ovl: support idmapped layers
-Date:   Thu,  7 Apr 2022 13:21:56 +0200
-Message-Id: <20220407112157.1775081-20-brauner@kernel.org>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20220407112157.1775081-1-brauner@kernel.org>
-References: <20220407112157.1775081-1-brauner@kernel.org>
+        Tue, 19 Apr 2022 10:03:51 -0400
+Received: from mout.gmx.net (mout.gmx.net [212.227.17.22])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 108C613FBF
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 Apr 2022 07:01:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
+        s=badeba3b8450; t=1650376865;
+        bh=/4mM1U2bjx4Fy8z2B7P1fETVi8k09m4ldCezXZViXX0=;
+        h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:In-Reply-To;
+        b=NEdf5BxiZZjOyH2MaDw20C1x/kZrC1awXHddOndL5E8MmW7ZPFFsqRqzY5K0MKxSz
+         Csl+ZZ4AHBjbPTimuPQYGu6IoRm1uO9PXVshOoXltLSfDa5A+vFvQ+ZxeFmBRC8TYB
+         sUlj14/9GGFyiSUlTgvuRFGnHg+FRfv0j+bcdQAw=
+X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
+Received: from [10.54.0.101] ([87.167.92.4]) by mail.gmx.net (mrgmx105
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1Mq2nK-1oJm7v3HdK-00n7X7; Tue, 19
+ Apr 2022 16:01:05 +0200
+Message-ID: <330252e9-45c1-26f2-4add-b2dcd2701bb7@gmx.net>
+Date:   Tue, 19 Apr 2022 16:01:05 +0200
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1755; h=from:subject; bh=6q5UKH/K1PP8S/3FSC7rpJszRqi5npsVnw4HIdIH8Y4=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMST5nfSrblc6qcuitu1KxKyyvUli4fYPDMQK5B8Gb8nSSEli 71nWUcrCIMbFICumyOLQbhIut5ynYrNRpgbMHFYmkCEMXJwCMJH3+YwMB0tYWBZ0f93M4XgzbOO0t0 eiYmMXps/7r9SkIqt3ZcqcTIb/Tne4FvIc3b0gwnav9AKL/SHBF5gvbr5RM0XqbqmZ3V0/TgA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.7.0
+Subject: Re: overlayfs: supporting O_TMPFILE
+Content-Language: en-US
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+References: <951c68ed-3f0e-8d9b-6c10-690df778ecc2@gmx.net>
+ <CAOQ4uxh_P0fiV9gQOs9CLvB+xJpJT4hWfAFyKBx0A-TyxAma8Q@mail.gmail.com>
+ <YXvvAMJxj/DlyUqC@miu.piliscsaba.redhat.com>
+From:   =?UTF-8?Q?Georg_M=c3=bcller?= <georgmueller@gmx.net>
+In-Reply-To: <YXvvAMJxj/DlyUqC@miu.piliscsaba.redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:LoYYBKbhPyBu+i6ubqgvwwNPk3vr1QxoyCZe5uiGu/EOmdbqldI
+ tVJ6s5Ym7cDO1jIaJX29AcOpAUJ8ZzaBJihpi/AcvWwzpMCZjJI/YQJzyKW8aVyI01uVWwZ
+ Ebq0/UBWu5ZoNcKguNbFn9oO3+Ead/FUBj20o0ApW9vg0Qto1tAN8Hm/1jpai81x8wvMsDN
+ J8l3PVNrS7dxVGoib7S5A==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:kYA+x2WSyxk=:9YxyDTM3oouPU7Uagfpg3+
+ acTs2nvFiYMAxowaE1jO9NLb3P8h5adOZGJmvqawdGphhT4Os+eQm6ScC4B5u0kWQm/4hvVnj
+ PaAEJ9WPbax+sryVJlcQG16lsTfupMVhez0/WbWzKvuMIujolL2LfBvHGysfwfWycQ0nU5mgS
+ O7PfPLc1mNQYkNvJvn3LdUMzlBcgm8oOwVWAG1T4/Jvk69KhyvDJr1ax0xWB5Lxez0LjiFqja
+ 2zx/bEZQ5qa9MR/0++2/0M7ySGwVOSTBkbzuUq8tjihxt0M8QelvrGlLF/WnvhzyPuyx5WImk
+ S1Z4V7FYsMhEESSQHYf0ppu8x2K5l8mxYdFWE9XPbPKVdSys2SBXokeGLBQ//5tjEs/dr81Nn
+ K3VhtZAuljYa0QIgCUdQsuKrfsDuPt27BlQI7vEGyFrMy9ClIOr+Ah08h09nBwcqj+G+YEE15
+ iwtUTIQ1clBsvLB9wDVihev83SehgWeaXjPEmjIDBwSRn1H63dPKyREBIhmEXZbKFLP7frKiu
+ pW/+rYhLxOD23YOKQuNsf6NI5gHjl/T2Yu1jI3kAKPpAyan24IbU3QePmnH8CFWxj9E2ikNBv
+ PQrC4fxm04wxhigX0cr55qs1gLfwslXQzST4/P7HLcwqpiOj+9Z67xEUzXK0mB8nqfqmeEwq9
+ pSW34RuSUQ6hs5uTUk+dBkXDKz7XNlpdauK/yLZMlESFdGO1vQBOZ7MUKgRQcT7TXkWtVhsoH
+ A1U/+GCiBX6J49zKG9zs19fcpl08U273W8+/y1dYOR3UBW2GsGvVTxjSry/yorZ9n8Bl2BnHh
+ E88QXZVAtu7d6a/V07HVbg1T72MVBlxFCWpGN9n7nhFs/wbVQ0oLpwdbqImbzqWiVVAKRwte8
+ aQWR+1FjpAEFfZiv9KmKBNaoL/Z4qEzF+h6Oe9D4PEBhiyWRz909yMZAe+j8Ws7bOqBOb1Yxj
+ ZCKKvBR9L6QEMM6ZzBFuK797q98fglKZANcMlg/DJOLeIBmIH0u9Nj1h/a1ch++8GbHc731T3
+ N+IsoVos9AkdtQlMWEoHjXx5L7/H4HoqO75dkFB1a3xeX3DC9mw2HVg2wuYN29OOrwUUZDM6W
+ tubPTOqhXZ0lXo=
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Now that overlay is able to take a layers idmapping into account allow
-overlay mounts to be created on top of idmapped mounts.
+Hi Miklos,
 
-Cc: <linux-unionfs@vger.kernel.org>
-Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
----
-/* v2 */
-- Turn on support for idmapped mounts in ovl_upper_idmap() helper here
-  after we've introduced it earlier in the series and made it return the
-  initial idmapping.
+Am 29.10.21 um 14:54 schrieb Miklos Szeredi:
+> Here's something I prepared earlier;)
+>
+> Don't know why it got stuck, quite possibly I realized some fatal flaw t=
+hat I
+> can't remember anymore...
+>
+> Seems to work though, so getting this out for review and testing.
 
-/* v3 */
-unchanged
+Is there a special reason why the O_TMPFILE patch from you is not consider=
+ed for inclusion?
+Are there more tests I could do?
 
-/* v4 */
-unchanged
-
-/* v5 */
-unchanged
----
- fs/overlayfs/ovl_entry.h | 2 +-
- fs/overlayfs/super.c     | 4 ----
- 2 files changed, 1 insertion(+), 5 deletions(-)
-
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 8630fd93238a..e1af8f660698 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -92,7 +92,7 @@ static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
- 
- static inline struct user_namespace *ovl_upper_mnt_userns(struct ovl_fs *ofs)
- {
--       return &init_user_ns;
-+	return mnt_user_ns(ovl_upper_mnt(ofs));
- }
- 
- static inline struct ovl_fs *OVL_FS(struct super_block *sb)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 0123c8086ee9..e0a2e0468ee7 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -874,10 +874,6 @@ static int ovl_mount_dir_noesc(const char *name, struct path *path)
- 		pr_err("filesystem on '%s' not supported\n", name);
- 		goto out_put;
- 	}
--	if (is_idmapped_mnt(path->mnt)) {
--		pr_err("idmapped layers are currently not supported\n");
--		goto out_put;
--	}
- 	if (!d_is_dir(path->dentry)) {
- 		pr_err("'%s' not a directory\n", name);
- 		goto out_put;
--- 
-2.32.0
-
+Best regards,
+Georg
