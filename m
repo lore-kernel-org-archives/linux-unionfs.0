@@ -2,60 +2,57 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43F77C433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Apr 2022 10:57:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8E80C433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Apr 2022 11:31:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344956AbiD1LBB (ORCPT
+        id S231591AbiD1Le2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Apr 2022 07:01:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44424 "EHLO
+        Thu, 28 Apr 2022 07:34:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344751AbiD1LA4 (ORCPT
+        with ESMTP id S234872AbiD1Le1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Apr 2022 07:00:56 -0400
-Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D454E954AA
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 03:57:41 -0700 (PDT)
-Received: by mail-qk1-x72c.google.com with SMTP id j6so3270292qkp.9
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 03:57:41 -0700 (PDT)
+        Thu, 28 Apr 2022 07:34:27 -0400
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D43765BD0E
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 04:31:11 -0700 (PDT)
+Received: by mail-ed1-x52f.google.com with SMTP id g23so5135182edy.13
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 04:31:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
+        d=szeredi.hu; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=rUmsUk/3P4+TGTW1IIlh0pFryxG6W5PgoroVnDvQolg=;
-        b=Pfor6G6vkMHH9kLWPodJEg/biTfuZoK3MGOVcPLlwQ7uZART7TtNOIrw0anNWLaIzL
-         /sAD1++GZ+EGqoaaCgyTcN5Ubl3wKI3JnIC+tUh/DSN8eUB0bpnDDWE61omOH2NX4PbF
-         0L+83mX197/R6Fqx7JHEH5dnd3ws866BwqdqUKGaP5nP2vo6ty/haEahRr0t33dKljRV
-         FqFVkJIEuvFijvdB1KxsctOQJH5tTWh2P+lJlS6Fb1odAQ13pg0yOerMlb4b2cWzSc+D
-         u3alsqAnYN6ovkpu/S3cul4UwBENM3o90+FdFJ0FKAs3tqonaO7IBp3h001bFhovKxma
-         ETmg==
+        bh=5C4TM7J98gmhZAoyD7Qt7Kzyh0ImCK2J8UI4aH+IvNA=;
+        b=jjHRW5npydkxc7CA1aclqxr7hqZbEZku98z6EMqSW+EqLUUXc5YSV0hlmGX5nXFj4X
+         0BPK4oTR6doL6SiGH4faGrtDvx0ZyZRV126g59tE97ewqqd9lJNubQez/GIw4otlnDPq
+         ydZjsF7xHTCL+0e7HVXT+RhLuAp6EVl9EUU+U=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=rUmsUk/3P4+TGTW1IIlh0pFryxG6W5PgoroVnDvQolg=;
-        b=ASyX5c0dmVjDak41GTQmHoF84xiQhSuQcxX2jwSNaKfIrY03R4yj3P64xCO3fFjyZk
-         Y0PeKJhEOMv7fb/qka81X6jVs0t+9ehc/KdrrRIfzC4spxdgpZVBYDSLUgTycE1l4dbp
-         AYEcl9LeCWx34ofSzye5BgjdjtMUaAYQyKyThccdZiptkC7pS66qW18KvY29jL9vJy3T
-         vI39/OqLjnWbMyGmCqef38im9ZOg0BUIzxFmUl9M7Gr6avx6ysNqeWCZNq3jlUqjDJJb
-         +rJodIaCkuWMuZrD/ngM8YjGV8TDp6vl72jlxYb4ydAhPfvfpAag5qAg1v7qDxtoguzA
-         Z/Mw==
-X-Gm-Message-State: AOAM533VqFC8UayYHPYa3nYaPtrLO6MWBmVZ/Z4xAq/+4+gbOo1cCoK9
-        mlrr0bvnUrKBD9wXSbajyFWYTYJW52WzrfgZbyM=
-X-Google-Smtp-Source: ABdhPJxpB0fxH8kza58ryifIYNKIL+gI3UUlJVpvZx+aLzCsrX0tLtio9x466f2o6QC4w067bX1rlumvWYva9WGTtyI=
-X-Received: by 2002:ae9:eb87:0:b0:69e:75b3:6527 with SMTP id
- b129-20020ae9eb87000000b0069e75b36527mr19326522qkg.386.1651143460659; Thu, 28
- Apr 2022 03:57:40 -0700 (PDT)
+        bh=5C4TM7J98gmhZAoyD7Qt7Kzyh0ImCK2J8UI4aH+IvNA=;
+        b=V6tK5Xe43vu9xynwU+yGa03RmDTrXWAtztgSCotsWSCAsGNLtpqKJZQ7dvmp0vZJGp
+         f9XW9s54ntc11XlIRzs1w9hpfDST4rkL2E6bEm7lV1LBnWXAPwX7Yuygn9QiffAZqycH
+         pGwB/9PIwBV4LXBzbjfzWV8bLlokKKgpCbvybw6IpjH66yatqEPrsFzXwLBWGetzCL5/
+         NT2fEWunFypbWT663gVI2GfGWrUMgc6gtbLVy42zTbgUSEq8o4bFl5uf1oKJ8aac5QNj
+         Ndj5ABoNWem6rUzRchFxf+oeGqYtF/vLbrNw/INYu6lAOocuUBM6gR/fOiGg7Pn64dtX
+         6jHA==
+X-Gm-Message-State: AOAM533UpDtuFaly/wGtWtYAvCa6MzOCaDmw33z2waIyHJIuw520Ekux
+        cT0JMgUrWicSzikIgNr0rkGAHjcOs/1rtV2Jmy9hew==
+X-Google-Smtp-Source: ABdhPJwjkBXNHB1OFJA585xiInQIZ5JvKVOCixmt6wB8gvDIASYOwX+gg5spUyJWZzwEyT76p71chcIxdJajabWvFSY=
+X-Received: by 2002:a05:6402:2754:b0:426:2f8c:c39 with SMTP id
+ z20-20020a056402275400b004262f8c0c39mr1050327edd.224.1651145470411; Thu, 28
+ Apr 2022 04:31:10 -0700 (PDT)
 MIME-Version: 1.0
 References: <20220407112157.1775081-1-brauner@kernel.org> <20220407112157.1775081-14-brauner@kernel.org>
  <CAJfpegtXfrgb3qQTvqu6mtunhFjC-FwXcRvqMY4h-ZcjWyhUFg@mail.gmail.com> <20220428103046.kizonrkl7h2f2uvc@wittgenstein>
 In-Reply-To: <20220428103046.kizonrkl7h2f2uvc@wittgenstein>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 28 Apr 2022 13:57:29 +0300
-Message-ID: <CAOQ4uxgiGWK8yqFHEe+qa2fnfDwV79_K1bMPHWBGW7iQry0gaQ@mail.gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Thu, 28 Apr 2022 13:30:58 +0200
+Message-ID: <CAJfpeguor9gbfTgaHeZ-RxXoGM6V953vrrksWp9E8cOzc+gLDw@mail.gmail.com>
 Subject: Re: [PATCH v5 13/19] ovl: handle idmappings for layer lookup
 To:     Christian Brauner <brauner@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+Cc:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <mszeredi@redhat.com>,
         Christoph Hellwig <hch@lst.de>,
         overlayfs <linux-unionfs@vger.kernel.org>,
@@ -71,7 +68,7 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 28, 2022 at 1:30 PM Christian Brauner <brauner@kernel.org> wrote:
+On Thu, 28 Apr 2022 at 12:30, Christian Brauner <brauner@kernel.org> wrote:
 >
 > On Thu, Apr 28, 2022 at 12:10:24PM +0200, Miklos Szeredi wrote:
 > > On Thu, 7 Apr 2022 at 13:23, Christian Brauner <brauner@kernel.org> wrote:
@@ -138,7 +135,9 @@ On Thu, Apr 28, 2022 at 1:30 PM Christian Brauner <brauner@kernel.org> wrote:
 > The mnt_userns matters for permission checking only in so far as it is
 > used to map the k{g,u}ids according to the mount and so is relevant in
 > only that sense in inode_permission().
->
+
+Sorry, sloppy phrasing on my part. Yes, I meant permission checking.
+
 > If this is doing a lookup on an overlay and the relevant mount isn't
 > supposed to be idmapped then the simple thing to do is to pass
 > &init_user_ns.
@@ -146,14 +145,13 @@ On Thu, Apr 28, 2022 at 1:30 PM Christian Brauner <brauner@kernel.org> wrote:
 > Could you explain what "lookup on overlay" means here, i.e. what mount
 > is relevant?
 
-Let me explain because it's my hack ;)
+It's doing an fh -> dentry transform, the mount should be irrelevant.
+Lookup permission cannot properly be checked, hence the operation
+needs CAP_DAC_READ_SEARCH when invoked from userspace via
+open_by_handle_at(2).
 
-We need to find an ovl dentry corresponding with the dirent
-readdir result.
-
-The correct mount to use for lookup_one() is path->mnt
-(the mount of the ovl_readdir path) same as is done a few lines later
-for calling vfs_getattr().
+So I guess the proper fix would be to introduce a version of
+lookup_one_len() without inode_permission()...
 
 Thanks,
-Amir.
+Miklos
