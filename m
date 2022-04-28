@@ -2,41 +2,60 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6200CC433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Apr 2022 10:30:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43F77C433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Apr 2022 10:57:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240554AbiD1KeK (ORCPT
+        id S1344956AbiD1LBB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Apr 2022 06:34:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51516 "EHLO
+        Thu, 28 Apr 2022 07:01:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44424 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234079AbiD1KeJ (ORCPT
+        with ESMTP id S1344751AbiD1LA4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Apr 2022 06:34:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D60860DAE
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 03:30:55 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2C693B82C91
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 10:30:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 029AEC385A9;
-        Thu, 28 Apr 2022 10:30:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651141852;
-        bh=fECOgTMs/s0z9kXiusP5vXKjO2DAw/wVMq89CLn8FP8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=gDlV5343hdlR5K4MNM1cqfFaflF4s0MUWsZOE8MCS1W4HFbhNxMhBhaSdNfHBITjP
-         Vx/m4SVoPaf5IVP3pE0aFvcXpPZge7EefPYZ1LVG1vdcXI0VX2nsaPG2e84soGaK4w
-         +420jw8Ly1kB/GMD4RF0Ty8IIaTkXrl2gemvvL36MB3O5vp7IM5Udt5gr5w1A05pMF
-         0MtFpWJl84Ooxl5P4gfIxgzGrHtm4lVjGWH1BCnaeBYMWikneed29l3EHqysHKLVWU
-         qc8r/eOEG25s5Wod2OW0Ex2XlppnmJqbZVVhFxHn7+D02yQILLNm0v6hocVfh7JE0D
-         DGn1sUWk7pvjg==
-Date:   Thu, 28 Apr 2022 12:30:46 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Thu, 28 Apr 2022 07:00:56 -0400
+Received: from mail-qk1-x72c.google.com (mail-qk1-x72c.google.com [IPv6:2607:f8b0:4864:20::72c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D454E954AA
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 03:57:41 -0700 (PDT)
+Received: by mail-qk1-x72c.google.com with SMTP id j6so3270292qkp.9
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 03:57:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=rUmsUk/3P4+TGTW1IIlh0pFryxG6W5PgoroVnDvQolg=;
+        b=Pfor6G6vkMHH9kLWPodJEg/biTfuZoK3MGOVcPLlwQ7uZART7TtNOIrw0anNWLaIzL
+         /sAD1++GZ+EGqoaaCgyTcN5Ubl3wKI3JnIC+tUh/DSN8eUB0bpnDDWE61omOH2NX4PbF
+         0L+83mX197/R6Fqx7JHEH5dnd3ws866BwqdqUKGaP5nP2vo6ty/haEahRr0t33dKljRV
+         FqFVkJIEuvFijvdB1KxsctOQJH5tTWh2P+lJlS6Fb1odAQ13pg0yOerMlb4b2cWzSc+D
+         u3alsqAnYN6ovkpu/S3cul4UwBENM3o90+FdFJ0FKAs3tqonaO7IBp3h001bFhovKxma
+         ETmg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=rUmsUk/3P4+TGTW1IIlh0pFryxG6W5PgoroVnDvQolg=;
+        b=ASyX5c0dmVjDak41GTQmHoF84xiQhSuQcxX2jwSNaKfIrY03R4yj3P64xCO3fFjyZk
+         Y0PeKJhEOMv7fb/qka81X6jVs0t+9ehc/KdrrRIfzC4spxdgpZVBYDSLUgTycE1l4dbp
+         AYEcl9LeCWx34ofSzye5BgjdjtMUaAYQyKyThccdZiptkC7pS66qW18KvY29jL9vJy3T
+         vI39/OqLjnWbMyGmCqef38im9ZOg0BUIzxFmUl9M7Gr6avx6ysNqeWCZNq3jlUqjDJJb
+         +rJodIaCkuWMuZrD/ngM8YjGV8TDp6vl72jlxYb4ydAhPfvfpAag5qAg1v7qDxtoguzA
+         Z/Mw==
+X-Gm-Message-State: AOAM533VqFC8UayYHPYa3nYaPtrLO6MWBmVZ/Z4xAq/+4+gbOo1cCoK9
+        mlrr0bvnUrKBD9wXSbajyFWYTYJW52WzrfgZbyM=
+X-Google-Smtp-Source: ABdhPJxpB0fxH8kza58ryifIYNKIL+gI3UUlJVpvZx+aLzCsrX0tLtio9x466f2o6QC4w067bX1rlumvWYva9WGTtyI=
+X-Received: by 2002:ae9:eb87:0:b0:69e:75b3:6527 with SMTP id
+ b129-20020ae9eb87000000b0069e75b36527mr19326522qkg.386.1651143460659; Thu, 28
+ Apr 2022 03:57:40 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220407112157.1775081-1-brauner@kernel.org> <20220407112157.1775081-14-brauner@kernel.org>
+ <CAJfpegtXfrgb3qQTvqu6mtunhFjC-FwXcRvqMY4h-ZcjWyhUFg@mail.gmail.com> <20220428103046.kizonrkl7h2f2uvc@wittgenstein>
+In-Reply-To: <20220428103046.kizonrkl7h2f2uvc@wittgenstein>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 28 Apr 2022 13:57:29 +0300
+Message-ID: <CAOQ4uxgiGWK8yqFHEe+qa2fnfDwV79_K1bMPHWBGW7iQry0gaQ@mail.gmail.com>
+Subject: Re: [PATCH v5 13/19] ovl: handle idmappings for layer lookup
+To:     Christian Brauner <brauner@kernel.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Miklos Szeredi <mszeredi@redhat.com>,
         Christoph Hellwig <hch@lst.de>,
         overlayfs <linux-unionfs@vger.kernel.org>,
@@ -46,89 +65,95 @@ Cc:     Amir Goldstein <amir73il@gmail.com>,
         Seth Forshee <sforshee@digitalocean.com>,
         Luca Bocassi <luca.boccassi@microsoft.com>,
         Lennart Poettering <mzxreary@0pointer.de>,
-        =?utf-8?B?U3TDqXBoYW5l?= Graber <stgraber@ubuntu.com>
-Subject: Re: [PATCH v5 13/19] ovl: handle idmappings for layer lookup
-Message-ID: <20220428103046.kizonrkl7h2f2uvc@wittgenstein>
-References: <20220407112157.1775081-1-brauner@kernel.org>
- <20220407112157.1775081-14-brauner@kernel.org>
- <CAJfpegtXfrgb3qQTvqu6mtunhFjC-FwXcRvqMY4h-ZcjWyhUFg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAJfpegtXfrgb3qQTvqu6mtunhFjC-FwXcRvqMY4h-ZcjWyhUFg@mail.gmail.com>
+        =?UTF-8?Q?St=C3=A9phane_Graber?= <stgraber@ubuntu.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 28, 2022 at 12:10:24PM +0200, Miklos Szeredi wrote:
-> On Thu, 7 Apr 2022 at 13:23, Christian Brauner <brauner@kernel.org> wrote:
+On Thu, Apr 28, 2022 at 1:30 PM Christian Brauner <brauner@kernel.org> wrote:
+>
+> On Thu, Apr 28, 2022 at 12:10:24PM +0200, Miklos Szeredi wrote:
+> > On Thu, 7 Apr 2022 at 13:23, Christian Brauner <brauner@kernel.org> wrote:
+> > >
+> > > Make the two places where lookup helpers can be called either on lower
+> > > or upper layers take the mount's idmapping into account. To this end we
+> > > pass down the mount in struct ovl_lookup_data. It can later also be used
+> > > to construct struct path for various other helpers. This is needed to
+> > > support idmapped base layers with overlay.
+> > >
+> > > Cc: <linux-unionfs@vger.kernel.org>
+> > > Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
+> > > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> > > Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+> > > ---
+> > > /* v2 */
+> > > unchanged
+> > >
+> > > /* v3 */
+> > > unchanged
+> > >
+> > > /* v4 */
+> > > - Vivek Goyal <vgoyal@redhat.com>:
+> > >   - s/ovl_upper_idmap()/ovl_upper_mnt_userns()/g
+> > >
+> > > /* v5 */
+> > > unchanged
+> > > ---
+> > >  fs/overlayfs/export.c  |  3 ++-
+> > >  fs/overlayfs/namei.c   | 14 ++++++++------
+> > >  fs/overlayfs/readdir.c | 10 +++++-----
+> > >  3 files changed, 15 insertions(+), 12 deletions(-)
+> > >
+> > > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+> > > index ebde05c9cf62..5acf353d160b 100644
+> > > --- a/fs/overlayfs/export.c
+> > > +++ b/fs/overlayfs/export.c
+> > > @@ -391,7 +391,8 @@ static struct dentry *ovl_lookup_real_one(struct dentry *connected,
+> > >          * pointer because we hold no lock on the real dentry.
+> > >          */
+> > >         take_dentry_name_snapshot(&name, real);
+> > > -       this = lookup_one_len(name.name.name, connected, name.name.len);
+> > > +       this = lookup_one(mnt_user_ns(layer->mnt), name.name.name,
+> > > +                         connected, name.name.len);
 > >
-> > Make the two places where lookup helpers can be called either on lower
-> > or upper layers take the mount's idmapping into account. To this end we
-> > pass down the mount in struct ovl_lookup_data. It can later also be used
-> > to construct struct path for various other helpers. This is needed to
-> > support idmapped base layers with overlay.
+> > This one is tricky.  It's doing a lookup on overlay, so messing with
+> > the underlying mnt_userns is definitely wrong.
 > >
-> > Cc: <linux-unionfs@vger.kernel.org>
-> > Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
-> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-> > ---
-> > /* v2 */
-> > unchanged
-> >
-> > /* v3 */
-> > unchanged
-> >
-> > /* v4 */
-> > - Vivek Goyal <vgoyal@redhat.com>:
-> >   - s/ovl_upper_idmap()/ovl_upper_mnt_userns()/g
-> >
-> > /* v5 */
-> > unchanged
-> > ---
-> >  fs/overlayfs/export.c  |  3 ++-
-> >  fs/overlayfs/namei.c   | 14 ++++++++------
-> >  fs/overlayfs/readdir.c | 10 +++++-----
-> >  3 files changed, 15 insertions(+), 12 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> > index ebde05c9cf62..5acf353d160b 100644
-> > --- a/fs/overlayfs/export.c
-> > +++ b/fs/overlayfs/export.c
-> > @@ -391,7 +391,8 @@ static struct dentry *ovl_lookup_real_one(struct dentry *connected,
-> >          * pointer because we hold no lock on the real dentry.
-> >          */
-> >         take_dentry_name_snapshot(&name, real);
-> > -       this = lookup_one_len(name.name.name, connected, name.name.len);
-> > +       this = lookup_one(mnt_user_ns(layer->mnt), name.name.name,
-> > +                         connected, name.name.len);
-> 
-> This one is tricky.  It's doing a lookup on overlay, so messing with
-> the underlying mnt_userns is definitely wrong.
-> 
-> Is the mnt_userns needed for permission checking?   Possibly in that
-> case the permission checking needs to be skipped altogether, since
-> it's doing an fh -> dentry lookup which should succeed regardless of
-> caller's caps.
+> > Is the mnt_userns needed for permission checking?   Possibly in that
+> > case the permission checking needs to be skipped altogether, since
+> > it's doing an fh -> dentry lookup which should succeed regardless of
+> > caller's caps.
+>
+> If capabilities are checked then it's always caller's user namespace
+> that is used (Ofc, exceptions being filesystem-wide operations where
+> capabilities in the filesystem's userns are needed but that doesn't
+> apply here.).
+>
+> Nothing has changed with the introduction of the mnt_userns in the
+> area of capability checking. IOW, the mnt_userns isn't used for
+> capability checks as that would be a major permission model change
+> overall (It might have applications in the future ofc.).
+>
+> The mnt_userns matters for permission checking only in so far as it is
+> used to map the k{g,u}ids according to the mount and so is relevant in
+> only that sense in inode_permission().
+>
+> If this is doing a lookup on an overlay and the relevant mount isn't
+> supposed to be idmapped then the simple thing to do is to pass
+> &init_user_ns.
+>
+> Could you explain what "lookup on overlay" means here, i.e. what mount
+> is relevant?
 
-If capabilities are checked then it's always caller's user namespace
-that is used (Ofc, exceptions being filesystem-wide operations where
-capabilities in the filesystem's userns are needed but that doesn't
-apply here.).
+Let me explain because it's my hack ;)
 
-Nothing has changed with the introduction of the mnt_userns in the
-area of capability checking. IOW, the mnt_userns isn't used for
-capability checks as that would be a major permission model change
-overall (It might have applications in the future ofc.).
+We need to find an ovl dentry corresponding with the dirent
+readdir result.
 
-The mnt_userns matters for permission checking only in so far as it is
-used to map the k{g,u}ids according to the mount and so is relevant in
-only that sense in inode_permission().
+The correct mount to use for lookup_one() is path->mnt
+(the mount of the ovl_readdir path) same as is done a few lines later
+for calling vfs_getattr().
 
-If this is doing a lookup on an overlay and the relevant mount isn't
-supposed to be idmapped then the simple thing to do is to pass
-&init_user_ns.
-
-Could you explain what "lookup on overlay" means here, i.e. what mount
-is relevant?
+Thanks,
+Amir.
