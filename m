@@ -2,83 +2,76 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E67D4C433EF
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Apr 2022 14:48:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC3ABC433FE
+	for <linux-unionfs@archiver.kernel.org>; Tue,  3 May 2022 14:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348567AbiD1OvY (ORCPT
+        id S237568AbiECPCt convert rfc822-to-8bit (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Apr 2022 10:51:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55896 "EHLO
+        Tue, 3 May 2022 11:02:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231773AbiD1OvV (ORCPT
+        with ESMTP id S237603AbiECPCs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Apr 2022 10:51:21 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F016B0D2E
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 07:48:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 18A91B82D92
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Apr 2022 14:48:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A94F7C385A0;
-        Thu, 28 Apr 2022 14:48:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651157284;
-        bh=T//O2YwSoUfwlPmo1xOk77wlg588jiCgSqdWhnRQFF8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=SlSVDbDELUMAi1oO49koPfgqUIK2xzSzbl7LPtEYtxA7zXIXlwaqbjOEGoxApujel
-         gBHpClOVOC/OTnCWb+5yqDMITklUFk3EJpZvC46w0p4UVkw/VkmWj3FDdVjMYHmhxZ
-         1pqUsRNUdUyFDzbPtN5kvsZJqZo3sq7YMEEzk1/7746hWkeYQTGSDc/XnQyfRNL/fx
-         rBheRXy1fq4nINAuYKf1CDcQZ9EEbXi9mcSVuqzjQWTGBqfK/cDvqYwwwDgy7RUjrn
-         FxrdhmQM73EINAzQIiEu4eAwSYa7F2fBtTTBtpKaMiFVbnsexdpXBBpuHATeyw6Sa5
-         iEG9Ku2AXZ9vg==
-Date:   Thu, 28 Apr 2022 16:47:58 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        Rodrigo Campos Catelin <rodrigo@sdfg.com.ar>,
-        Seth Forshee <sforshee@digitalocean.com>,
-        Luca Bocassi <luca.boccassi@microsoft.com>,
-        Lennart Poettering <mzxreary@0pointer.de>,
-        =?utf-8?B?U3TDqXBoYW5l?= Graber <stgraber@ubuntu.com>,
-        Vivek Goyal <vgoyal@redhat.com>
-Subject: Re: [PATCH v5 00/19] overlay: support idmapped layers
-Message-ID: <20220428144758.iauivmnkm6mm2bz3@wittgenstein>
-References: <20220407112157.1775081-1-brauner@kernel.org>
- <CAJfpegvFNpruOPCXp-HfgMgw5n1Mj5bj7J0JMeAXeMa=587CsA@mail.gmail.com>
+        Tue, 3 May 2022 11:02:48 -0400
+X-Greylist: delayed 435 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 03 May 2022 07:59:16 PDT
+Received: from mail.megasoftsol.com (mail.megasoftsol.com [43.231.250.141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57ED339803
+        for <linux-unionfs@vger.kernel.org>; Tue,  3 May 2022 07:59:16 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.megasoftsol.com (Postfix) with ESMTP id 1680990DAF7
+        for <linux-unionfs@vger.kernel.org>; Tue,  3 May 2022 20:17:09 +0530 (IST)
+Received: from mail.megasoftsol.com ([127.0.0.1])
+        by localhost (mail.megasoftsol.com [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id kWxXky4JrZRQ for <linux-unionfs@vger.kernel.org>;
+        Tue,  3 May 2022 20:17:08 +0530 (IST)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.megasoftsol.com (Postfix) with ESMTP id 82A1A90DA8A
+        for <linux-unionfs@vger.kernel.org>; Tue,  3 May 2022 20:17:08 +0530 (IST)
+X-Virus-Scanned: amavisd-new at megasoftsol.com
+Received: from mail.megasoftsol.com ([127.0.0.1])
+        by localhost (mail.megasoftsol.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id 3FwhmPzHz4O8 for <linux-unionfs@vger.kernel.org>;
+        Tue,  3 May 2022 20:17:08 +0530 (IST)
+Received: from asda.co.uk (unknown [20.97.211.134])
+        (Authenticated sender: admin)
+        by mail.megasoftsol.com (Postfix) with ESMTPSA id B226690D948
+        for <linux-unionfs@vger.kernel.org>; Tue,  3 May 2022 20:17:07 +0530 (IST)
+Reply-To: sales@asdaa.uk
+From:   ASDA Stores Limited <Hanes.Thomas23877@asda.co.uk>
+To:     linux-unionfs@vger.kernel.org
+Subject: 2nd Quater puchase request
+Date:   03 May 2022 14:49:36 +0000
+Message-ID: <20220503092157.EEAEB37FBE63635D@asda.co.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAJfpegvFNpruOPCXp-HfgMgw5n1Mj5bj7J0JMeAXeMa=587CsA@mail.gmail.com>
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 28, 2022 at 04:39:27PM +0200, Miklos Szeredi wrote:
-> On Thu, 7 Apr 2022 at 13:22, Christian Brauner <brauner@kernel.org> wrote:
-> >
-> > From: "Christian Brauner (Microsoft)" <brauner@kernel.org>
-> >
-> > Hey,
-> >
-> > This adds support for mounting overlay on top of idmapped layers.
-> 
-> Pushed updated series to:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git#ovl-idmap
-> 
-> It's mostly just cleanups.  Survives quick xfstests, but please also
-> test that I haven't broken the new functionality.
+Dear linux-unionfs
 
-Thank you. I'll keep an eye out and I'm of course around going forward.
-Note, I'll be traveling starting early Saturday and there might be a
-slight delay in my responses for at least next week.
-
-Thanks!
-Christian
+We are interested in having some of your hot selling product in 
+our stores and outlets spread all over United Kingdom, Northern 
+Island and Africa. ASDA Stores Limited is one of the highest-
+ranking Wholesale & Retail outlets in the United Kingdom. 
+  
+We shall furnish our detailed company profile in our next 
+correspondent. However, it would be appreciated if you can send 
+us your catalog through email to learn more about your company's 
+products and wholesale quote. It is hopeful that we can start a 
+viable long-lasting business relationship (partnership) with you.  
+  
+  
+Your prompt response would be delightfully appreciated. 
+  
+Best Wishes 
+  
+  
+Hanes S. Thomas 
+Procurement Office. 
+ASDA Stores Limited 
+Tel:  + 44 - 7451271650 
+WhatsApp: + 44 – 7441440360 
+Website: www.asda.co.uk
