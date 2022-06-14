@@ -2,59 +2,32 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FACAC433EF
-	for <linux-unionfs@archiver.kernel.org>; Mon, 13 Jun 2022 21:14:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D78C43334
+	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Jun 2022 04:44:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351967AbiFMVOP (ORCPT
+        id S236829AbiFNEoj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 13 Jun 2022 17:14:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41912 "EHLO
+        Tue, 14 Jun 2022 00:44:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351889AbiFMVNI (ORCPT
+        with ESMTP id S229611AbiFNEoi (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 13 Jun 2022 17:13:08 -0400
-Received: from mail-oi1-x229.google.com (mail-oi1-x229.google.com [IPv6:2607:f8b0:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7F3D393DA
-        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jun 2022 13:52:41 -0700 (PDT)
-Received: by mail-oi1-x229.google.com with SMTP id bf7so7969238oib.11
-        for <linux-unionfs@vger.kernel.org>; Mon, 13 Jun 2022 13:52:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=Ie2xrfdugqSnUY/lUmZJBYqEw/Jj5HQgDROYZDI7Ljg=;
-        b=q8Sos2zHH2cqeJpqAWGopwq4BFpy5d162ZHvWsGBGzD8dXmnX4TsH4oGd9xtjxFj3k
-         kkiT7ORHTaWO7TVdzrFrUtvSJwyodFHKf3kDLk5zfyB6+Q4t7bACoSZoThK4QulFXt66
-         4eu47sTHknmVkiiSbjTEY+HxauLbTxzPeZ3t8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=Ie2xrfdugqSnUY/lUmZJBYqEw/Jj5HQgDROYZDI7Ljg=;
-        b=Ako8L7wDqdvgYSJ5yLSz5gQJxZ6LvN9qMMa1YGELQh99lLGLLE+ZWc1kFAM7FV8Z8Q
-         u9VQJm3In/4SZWPavWYDKQQxq1FWJNYpcqM8HbXXtXthpIzkQEV/12qD9I2PEOf66Cgs
-         DHfWfrqrAmI8oPUKtGbsuQMrJBveri11kB8tSij37Oj3xPijsCbCpnCcbTOoqyIv0hxH
-         EuHvQvxr8BEOnjUPmdawzHfbyqno8ED49W/mH3arvRm9IzPVCSp8u6Xz1AiABDIKWSw1
-         7S6pjZ3P6Jej/qwear0UrQhrkvly51bGxHTrMAp5vOAylBHCXmum4WEMzIv/Pv/zQYgE
-         P8Yw==
-X-Gm-Message-State: AOAM5306C/mQzUnp/pC1dnG4F0W3ovqUxGQJBGPy2Bvs7FlTqGL4kaGT
-        Z3/CaFlPfHGsvM1zG19Gfdelfw==
-X-Google-Smtp-Source: ABdhPJxwqO943xteTGAgFieA/vZp5/Zn/6Qxyj5rF6Le0Sf8rKMQHGa/+OpWxWOapQGjDXa0MQVMLw==
-X-Received: by 2002:a05:6808:2394:b0:326:d5d6:a4ba with SMTP id bp20-20020a056808239400b00326d5d6a4bamr321996oib.67.1655153561069;
-        Mon, 13 Jun 2022 13:52:41 -0700 (PDT)
-Received: from [192.168.0.41] ([184.4.90.121])
-        by smtp.gmail.com with ESMTPSA id dv8-20020a056870d88800b000f5eb6b409bsm4444747oab.45.2022.06.13.13.52.39
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 13 Jun 2022 13:52:40 -0700 (PDT)
-Message-ID: <e1b62234-9b8a-e7c2-2946-5ef9f6f23a08@cloudflare.com>
-Date:   Mon, 13 Jun 2022 15:52:38 -0500
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: [PATCH v3] cred: Propagate security_prepare_creds() error code
-Content-Language: en-US
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
+        Tue, 14 Jun 2022 00:44:38 -0400
+Received: from out01.mta.xmission.com (out01.mta.xmission.com [166.70.13.231])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 032D52E9E4;
+        Mon, 13 Jun 2022 21:44:37 -0700 (PDT)
+Received: from in02.mta.xmission.com ([166.70.13.52]:60056)
+        by out01.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1o0yPs-002t3o-D4; Mon, 13 Jun 2022 22:44:36 -0600
+Received: from ip68-227-174-4.om.om.cox.net ([68.227.174.4]:40374 helo=email.froward.int.ebiederm.org.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1o0yPr-008Y07-9H; Mon, 13 Jun 2022 22:44:36 -0600
+From:   "Eric W. Biederman" <ebiederm@xmission.com>
+To:     Frederick Lawler <fred@cloudflare.com>
 Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-aio@kvack.org, linux-fsdevel@vger.kernel.org,
         linux-cachefs@redhat.com, linux-cifs@vger.kernel.org,
@@ -66,60 +39,92 @@ Cc:     linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
         Jeff Moyer <jmoyer@redhat.com>,
         Paul Moore <paul@paul-moore.com>
 References: <20220608150942.776446-1-fred@cloudflare.com>
- <87tu8oze94.fsf@email.froward.int.ebiederm.org>
-From:   Frederick Lawler <fred@cloudflare.com>
-In-Reply-To: <87tu8oze94.fsf@email.froward.int.ebiederm.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        <87tu8oze94.fsf@email.froward.int.ebiederm.org>
+        <e1b62234-9b8a-e7c2-2946-5ef9f6f23a08@cloudflare.com>
+Date:   Mon, 13 Jun 2022 23:44:28 -0500
+In-Reply-To: <e1b62234-9b8a-e7c2-2946-5ef9f6f23a08@cloudflare.com> (Frederick
+        Lawler's message of "Mon, 13 Jun 2022 15:52:38 -0500")
+Message-ID: <87y1xzyhub.fsf@email.froward.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain
+X-XM-SPF: eid=1o0yPr-008Y07-9H;;;mid=<87y1xzyhub.fsf@email.froward.int.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.174.4;;;frm=ebiederm@xmission.com;;;spf=softfail
+X-XM-AID: U2FsdGVkX1+prA+7T4gv0KWu4+rCykKSU9Ye39R87hA=
+X-SA-Exim-Connect-IP: 68.227.174.4
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH v3] cred: Propagate security_prepare_creds() error code
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Eric,
+Frederick Lawler <fred@cloudflare.com> writes:
 
-On 6/13/22 12:04 PM, Eric W. Biederman wrote:
-> Frederick Lawler <fred@cloudflare.com> writes:
-> 
->> While experimenting with the security_prepare_creds() LSM hook, we
->> noticed that our EPERM error code was not propagated up the callstack.
->> Instead ENOMEM is always returned.  As a result, some tools may send a
->> confusing error message to the user:
->>
->> $ unshare -rU
->> unshare: unshare failed: Cannot allocate memory
->>
->> A user would think that the system didn't have enough memory, when
->> instead the action was denied.
->>
->> This problem occurs because prepare_creds() and prepare_kernel_cred()
->> return NULL when security_prepare_creds() returns an error code. Later,
->> functions calling prepare_creds() and prepare_kernel_cred() return
->> ENOMEM because they assume that a NULL meant there was no memory
->> allocated.
->>
->> Fix this by propagating an error code from security_prepare_creds() up
->> the callstack.
-> 
-> Why would it make sense for security_prepare_creds to return an error
-> code other than ENOMEM?
->  > That seems a bit of a violation of what that function is supposed to do
+> Hi Eric,
 >
+> On 6/13/22 12:04 PM, Eric W. Biederman wrote:
+>> Frederick Lawler <fred@cloudflare.com> writes:
+>> 
+>>> While experimenting with the security_prepare_creds() LSM hook, we
+>>> noticed that our EPERM error code was not propagated up the callstack.
+>>> Instead ENOMEM is always returned.  As a result, some tools may send a
+>>> confusing error message to the user:
+>>>
+>>> $ unshare -rU
+>>> unshare: unshare failed: Cannot allocate memory
+>>>
+>>> A user would think that the system didn't have enough memory, when
+>>> instead the action was denied.
+>>>
+>>> This problem occurs because prepare_creds() and prepare_kernel_cred()
+>>> return NULL when security_prepare_creds() returns an error code. Later,
+>>> functions calling prepare_creds() and prepare_kernel_cred() return
+>>> ENOMEM because they assume that a NULL meant there was no memory
+>>> allocated.
+>>>
+>>> Fix this by propagating an error code from security_prepare_creds() up
+>>> the callstack.
+>> Why would it make sense for security_prepare_creds to return an error
+>> code other than ENOMEM?
+>>  > That seems a bit of a violation of what that function is supposed to do
+>>
+>
+> The API allows LSM authors to decide what error code is returned from the
+> cred_prepare hook. security_task_alloc() is a similar hook, and has its return
+> code propagated.
 
-The API allows LSM authors to decide what error code is returned from 
-the cred_prepare hook. security_task_alloc() is a similar hook, and has 
-its return code propagated.
+It is not an api.  It is an implementation detail of the linux kernel.
+It is a set of convenient functions that do a job.
 
-I'm proposing we follow security_task_allocs() pattern, and add 
-visibility for failure cases in prepare_creds().
+The general rule is we don't support cases without an in-tree user.  I
+don't see an in-tree user.
 
-> I have probably missed a very interesting discussion where that was
-> mentioned but I don't see link to the discussion or anything explaining
-> why we want to do that in this change.
-> 
+> I'm proposing we follow security_task_allocs() pattern, and add visibility for
+> failure cases in prepare_creds().
 
-AFAIK, this is the start of the discussion.
+I am asking why we would want to.  Especially as it is not an API, and I
+don't see any good reason for anything but an -ENOMEM failure to be
+supported.
 
-> Eric
-> 
+Without an in-tree user that cares it is probably better to go the
+opposite direction and remove the possibility of return anything but
+memory allocation failure.  That will make it clearer to implementors
+that a general error code is not supported and this is not a location
+to implement policy, this is only a hook to allocate state for the LSM.
+
+>> I have probably missed a very interesting discussion where that was
+>> mentioned but I don't see link to the discussion or anything explaining
+>> why we want to do that in this change.
+>> 
+>
+> AFAIK, this is the start of the discussion.
+
+You were on v3 and had an out of tree piece of code so I assumed someone
+had at least thought about why you want to implement policy in a piece
+of code whose only purpose is to allocate memory to store state.
+
+Eric
+
 
 
