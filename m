@@ -2,148 +2,68 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFFE0C43334
-	for <linux-unionfs@archiver.kernel.org>; Thu, 16 Jun 2022 15:04:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFE7DC433EF
+	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Jun 2022 01:48:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377317AbiFPPEN (ORCPT
+        id S230264AbiFXBsT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 16 Jun 2022 11:04:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43776 "EHLO
+        Thu, 23 Jun 2022 21:48:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377757AbiFPPEM (ORCPT
+        with ESMTP id S229476AbiFXBsS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 16 Jun 2022 11:04:12 -0400
-Received: from mail-oa1-x2a.google.com (mail-oa1-x2a.google.com [IPv6:2001:4860:4864:20::2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3CD134664
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Jun 2022 08:04:10 -0700 (PDT)
-Received: by mail-oa1-x2a.google.com with SMTP id 586e51a60fabf-fe15832ce5so2189464fac.8
-        for <linux-unionfs@vger.kernel.org>; Thu, 16 Jun 2022 08:04:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cloudflare.com; s=google;
-        h=message-id:date:mime-version:user-agent:subject:content-language:to
-         :cc:references:from:in-reply-to:content-transfer-encoding;
-        bh=zoPzQU7tFCHKbazE96n62nKhOYL6lpl30iCKAfHWF3k=;
-        b=hzB+iWkLegyX/YVU4Z4Uk20/fD5mQ12Bb87V6Eh8E5BihrifNpR/2Kid3c5IL3kULj
-         /Kav66ARa+qN/N67YFml7VO4vjU3H+d51tIoMenFO1qIG1cNa0TEMy6orpmxvFp0gMGw
-         /kiER4gc6alC0Jl/FnyoXaEN+XA94MiTxlaik=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=zoPzQU7tFCHKbazE96n62nKhOYL6lpl30iCKAfHWF3k=;
-        b=yTOovA7jVhGshNXHgYWxvHzANHNoHOTri8q6/f4Ti1sKwslN0/s9PRo+px705NlBjr
-         4iAekoQV/TprpQzxR1ToaK3HiIKjClU1VkD+/pAIhPfL4QcMVyxdGa2eTMXA957sNWUJ
-         6kFG9tiuT3YqQBb16/GcdW7jdjm8s2oUjmKg6VOh2vPvaCnPbMynEFQlMKK5yHkPPGwy
-         K2pDtVQPxx6lB9xRytt5XBHKMLb37cyyVBKNtlJBoGxjGaH871zuEh1s2Sv9A4NT+jsU
-         VSjD34S+9JqI7FpH2lTgbts48RWkd3JmG780lxgeuvl5PJpgp1msg6aWGsRITp+zTbu7
-         hAmg==
-X-Gm-Message-State: AJIora/+tkO1NxZQjhGeQDU4BE/nNOJBaRjnJ1V9WTqunZ3AdKg/7tXf
-        FUSImdbyx89UumRd3hnHymOdGA==
-X-Google-Smtp-Source: AGRyM1t/ql2JMv1ewpAojMoM3/cs4LVSN9IuvwaxwKyqaHE21iNNhZqbPJBxqQN/Cljh9oFWXsyihg==
-X-Received: by 2002:a05:6870:c181:b0:f1:ea2f:f7f7 with SMTP id h1-20020a056870c18100b000f1ea2ff7f7mr8618905oad.18.1655391849854;
-        Thu, 16 Jun 2022 08:04:09 -0700 (PDT)
-Received: from [192.168.0.41] ([184.4.90.121])
-        by smtp.gmail.com with ESMTPSA id n5-20020a4ab345000000b0035eb4e5a6d6sm1098587ooo.44.2022.06.16.08.04.07
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 16 Jun 2022 08:04:08 -0700 (PDT)
-Message-ID: <9fe9cd9f-1ded-a179-8ded-5fde8960a586@cloudflare.com>
-Date:   Thu, 16 Jun 2022 10:04:07 -0500
+        Thu, 23 Jun 2022 21:48:18 -0400
+X-Greylist: delayed 126 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 23 Jun 2022 18:48:17 PDT
+Received: from unicom146.biz-email.net (unicom146.biz-email.net [210.51.26.146])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84C0C2E68A;
+        Thu, 23 Jun 2022 18:48:17 -0700 (PDT)
+Received: from ([60.208.111.195])
+        by unicom146.biz-email.net ((D)) with ASMTP (SSL) id SXS00107;
+        Fri, 24 Jun 2022 09:46:07 +0800
+Received: from localhost.localdomain (10.200.104.82) by
+ jtjnmail201612.home.langchao.com (10.100.2.12) with Microsoft SMTP Server id
+ 15.1.2308.27; Fri, 24 Jun 2022 09:46:06 +0800
+From:   Deming Wang <wangdeming@inspur.com>
+To:     <miklos@szeredi.hu>, <corbet@lwn.net>
+CC:     <linux-unionfs@vger.kernel.org>, <linux-doc@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, Deming Wang <wangdeming@inspur.com>
+Subject: [PATCH] media: docs: Modify the section of User xattr
+Date:   Thu, 23 Jun 2022 21:46:05 -0400
+Message-ID: <20220624014605.2007-1-wangdeming@inspur.com>
+X-Mailer: git-send-email 2.31.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: [PATCH v3] cred: Propagate security_prepare_creds() error code
-Content-Language: en-US
-To:     Casey Schaufler <casey@schaufler-ca.com>,
-        Paul Moore <paul@paul-moore.com>,
-        Ignat Korchagin <ignat@cloudflare.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        linux-doc@vger.kernel.org,
-        linux-kernel <linux-kernel@vger.kernel.org>, linux-aio@kvack.org,
-        linux-fsdevel@vger.kernel.org, linux-cachefs@redhat.com,
-        linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
-        linux-mm@kvack.org, linux-nfs@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        netdev <netdev@vger.kernel.org>, keyrings@vger.kernel.org,
-        selinux@vger.kernel.org, serge@hallyn.com, amir73il@gmail.com,
-        kernel-team <kernel-team@cloudflare.com>,
-        Jeff Moyer <jmoyer@redhat.com>
-References: <20220608150942.776446-1-fred@cloudflare.com>
- <87tu8oze94.fsf@email.froward.int.ebiederm.org>
- <e1b62234-9b8a-e7c2-2946-5ef9f6f23a08@cloudflare.com>
- <87y1xzyhub.fsf@email.froward.int.ebiederm.org>
- <859cb593-9e96-5846-2191-6613677b07c5@cloudflare.com>
- <87o7yvxl4x.fsf@email.froward.int.ebiederm.org>
- <9ed91f15-420c-3db6-8b3b-85438b02bf97@cloudflare.com>
- <20220615103031.qkzae4xr34wysj4b@wittgenstein>
- <CAHC9VhR8yPHZb2sCu4JGgXOSs7rudm=9opB+-LsG6_Lta9466A@mail.gmail.com>
- <CALrw=nGZtrNYn+CV+Q_w-2=Va_9m3C8PDvvPtd01d0tS=2NMWQ@mail.gmail.com>
- <CAHC9VhRSzXeAZmBdNSAFEh=6XR57ecO7Ov+6BV9b0xVN1YR_Qw@mail.gmail.com>
- <1c4b1c0d-12f6-6e9e-a6a3-cdce7418110c@schaufler-ca.com>
-From:   Frederick Lawler <fred@cloudflare.com>
-In-Reply-To: <1c4b1c0d-12f6-6e9e-a6a3-cdce7418110c@schaufler-ca.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.200.104.82]
+tUid:   20226240946072f1b8e7173e573eab90b3df8c2f41691
+X-Abuse-Reports-To: service@corp-email.com
+Abuse-Reports-To: service@corp-email.com
+X-Complaints-To: service@corp-email.com
+X-Report-Abuse-To: service@corp-email.com
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 6/15/22 10:55 AM, Casey Schaufler wrote:
-> On 6/15/2022 8:33 AM, Paul Moore wrote:
->> On Wed, Jun 15, 2022 at 11:06 AM Ignat Korchagin 
->> <ignat@cloudflare.com> wrote:
->>> On Wed, Jun 15, 2022 at 3:14 PM Paul Moore <paul@paul-moore.com> wrote:
->>>> On Wed, Jun 15, 2022 at 6:30 AM Christian Brauner 
->>>> <brauner@kernel.org> wrote:
->> ...
->>
->>>>> Fwiw, from this commit it wasn't very clear what you wanted to achieve
->>>>> with this. It might be worth considering adding a new security hook 
->>>>> for
->>>>> this. Within msft it recently came up SELinux might have an 
->>>>> interest in
->>>>> something like this as well.
->>>> Just to clarify things a bit, I believe SELinux would have an interest
->>>> in a LSM hook capable of implementing an access control point for user
->>>> namespaces regardless of Microsoft's current needs.  I suspect due to
->>>> the security relevant nature of user namespaces most other LSMs would
->>>> be interested as well; it seems like a well crafted hook would be
->>>> welcome by most folks I think.
->>> Just to get the full picture: is there actually a good reason not to
->>> make this hook support this scenario? I understand it was not
->>> originally intended for this, but it is well positioned in the code,
->>> covers multiple subsystems (not only user namespaces), doesn't require
->>> changing the LSM interface and it already does the job - just the
->>> kernel internals need to respect the error code better. What bad
->>> things can happen if we extend its use case to not only allocate
->>> resources in LSMs?
->> My concern is that the security_prepare_creds() hook, while only
->> called from two different functions, ends up being called for a
->> variety of different uses (look at the prepare_creds() and
->> perpare_kernel_cred() callers) and I think it would be a challenge to
->> identify the proper calling context in the LSM hook implementation
->> given the current hook parameters.  One might be able to modify the
->> hook to pass the necessary information, but I don't think that would
->> be any cleaner than adding a userns specific hook.  I'm also guessing
->> that the modified security_prepare_creds() hook implementations would
->> also be more likely to encounter future maintenance issues as
->> overriding credentials in the kernel seems only to be increasing, and
->> each future caller would risk using the modified hook wrong by passing
->> the wrong context and triggering the wrong behavior in the LSM.
-> 
-> We don't usually have hooks that do both attribute management and
-> access control. Some people seem excessively concerned about "cluttering"
-> calling code with security_something() instances, but for the most
-> part I think we're past that. I agree that making security_prepare_creds()
-> multi-purpose is a bad idea. Shared cred management isn't simple, and
-> adding access checks there is only going to make it worse.
-> 
+Delete duplicate words of "the".
 
-Sounds like we've reached the conclusion not to proceed with a v4 of 
-this patch. I'll pivot to propose a new hook instead.
+Signed-off-by: Deming Wang <wangdeming@inspur.com>
+---
+ Documentation/filesystems/overlayfs.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks for the feedback everyone :)
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index 7da6c30ed596..4c76fda07645 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -607,7 +607,7 @@ can be removed.
+ User xattr
+ ----------
+ 
+-The the "-o userxattr" mount option forces overlayfs to use the
++The "-o userxattr" mount option forces overlayfs to use the
+ "user.overlay." xattr namespace instead of "trusted.overlay.".  This is
+ useful for unprivileged mounting of overlayfs.
+ 
+-- 
+2.27.0
 
-Fred
