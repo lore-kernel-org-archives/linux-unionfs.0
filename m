@@ -2,63 +2,88 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D00D9CCA473
-	for <linux-unionfs@archiver.kernel.org>; Fri, 24 Jun 2022 19:11:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37F8FC433EF
+	for <linux-unionfs@archiver.kernel.org>; Sat, 25 Jun 2022 01:15:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229852AbiFXTLs (ORCPT
+        id S230224AbiFYBPt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 24 Jun 2022 15:11:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41304 "EHLO
+        Fri, 24 Jun 2022 21:15:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230504AbiFXTLh (ORCPT
+        with ESMTP id S229450AbiFYBPt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 24 Jun 2022 15:11:37 -0400
-Received: from ms.lwn.net (ms.lwn.net [IPv6:2600:3c01:e000:3a1::42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB70E82396;
-        Fri, 24 Jun 2022 12:11:36 -0700 (PDT)
-Received: from localhost (unknown [IPv6:2601:281:8300:73::5f6])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ms.lwn.net (Postfix) with ESMTPSA id 3B27A31A;
-        Fri, 24 Jun 2022 19:11:36 +0000 (UTC)
-DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net 3B27A31A
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
-        t=1656097896; bh=/hcWFSxgiaiNcPhaw2iwtRiQyURtEUizPdBnFLZxYPw=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=G/U+ZVLp6azbvZkvALXTUCqCtphtC5wJVs/vvq7aN/jIuetNE/bTvWw8LGMdDxnvF
-         AkQi1BerBWi0MZxZy0xDGs4qoDsUPnh3a+qrC9utEw3dy2hlP5shimQnO1+OHfJSWG
-         qH+2FwUo5jp86gWWP2R2GKx4iGn5mNRT+SKNv/j0za9cEzxrEh6T6zcaO/Vj0u64Ne
-         zA3FFwt1POOanp4EVM4PmRgF4zMRnSIpUSyxgLRWia5HT/xWendEuuOZuZEti4fCsS
-         cYC+uDR9r/+zZa2WFjnnYDLCvRzKIaXmrpK/Gf335Fk2N42wIPL1tXnONVEs+ZTROe
-         UAlX1pQMLjKmA==
-From:   Jonathan Corbet <corbet@lwn.net>
-To:     Deming Wang <wangdeming@inspur.com>, miklos@szeredi.hu
-Cc:     linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Deming Wang <wangdeming@inspur.com>
-Subject: Re: [PATCH] media: docs: Modify the section of User xattr
-In-Reply-To: <20220624014605.2007-1-wangdeming@inspur.com>
-References: <20220624014605.2007-1-wangdeming@inspur.com>
-Date:   Fri, 24 Jun 2022 13:11:35 -0600
-Message-ID: <87wnd55120.fsf@meer.lwn.net>
+        Fri, 24 Jun 2022 21:15:49 -0400
+Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78FB03ED2C;
+        Fri, 24 Jun 2022 18:15:48 -0700 (PDT)
+Received: by mail-pf1-x431.google.com with SMTP id t21so3966927pfq.1;
+        Fri, 24 Jun 2022 18:15:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :cc:references:from:in-reply-to:content-transfer-encoding;
+        bh=mddgUzjjMvwn6t+jkp7452qXuMD9uxs9pKqRGpWnzls=;
+        b=MFL75ZqSwniQVJ/Tg712PAfFoFZvNdUvvD/hHpnQShNFY/kvSnWnwMdGXuyFf6363F
+         InG8hiCJoMElYT0AYLFk9kwgttuBvSDgybhQeiOQSCJKXX7iV9NMaIVeA5V9HKkFeyQi
+         D0pv5Lh1cd1gjsl3hfadEOgKyegWuS6L4pjyOtchRD5G9RUb13fE+AayBbCz7dHeQ5ij
+         uDeIqmpxmzTFTUuU+wOTF4t+Z39oVUZh8SbygfhA9E5qr/MauwsO8C2xNOkzSUls3mnD
+         vdAhHP+ZGW5AWfuw6h3b3c4IyhkmWRsf0OR7t7/VRE3UVfFSEnuj/z6yN4gDae0XzvgM
+         KMsA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=mddgUzjjMvwn6t+jkp7452qXuMD9uxs9pKqRGpWnzls=;
+        b=Xx1C5wc9CAHLyRPp3h/8HT0uq1n4DXhx3fAg049UgsHbL6q1ie41LV0VVYE+6CFhqx
+         ZXvHz+1RiPu8+vBYrCgWGvuYYNvzJRc4qmO1N2ODyXJKiMBCAPe7Q1V1qBQRxnZNGSzt
+         m03wLfbSaMd2Pv3vA98/HAnQGaiHFhaClP2fkovRX2bPVvJgR28ez/MIl6IAtPY1HUK+
+         jxx2mo4+OOH+zcUJBCKLqEMr9bU54stup6zaGfGO+sgFPb694I5wL2HXWqpqCLhhE0QL
+         8wpjmCsCOUZPYu4IUGEjW9Sz/0ER/xvO/TPBt0GYkd+vYC6qKsdOZdBiEZ9ju4kdDumj
+         BTNQ==
+X-Gm-Message-State: AJIora/KfeoevwP8tngjw4Qqq8rd2tQKtMZIhjtd825kBGPKOfm44o4J
+        yUlU+vUqg87Bb5QDwMYd0eQ=
+X-Google-Smtp-Source: AGRyM1tyD3JHAlSkBQre22ZgvMm1Os5Ag+84SUDLVbeBfB3j6RW5jvPKEfdDHIPvu+CHWDALZaL72A==
+X-Received: by 2002:a63:6b08:0:b0:3fd:1b8e:3932 with SMTP id g8-20020a636b08000000b003fd1b8e3932mr1481851pgc.552.1656119747744;
+        Fri, 24 Jun 2022 18:15:47 -0700 (PDT)
+Received: from [192.168.43.80] (subs09a-223-255-225-71.three.co.id. [223.255.225.71])
+        by smtp.gmail.com with ESMTPSA id d76-20020a621d4f000000b005255151e248sm2433430pfd.174.2022.06.24.18.15.45
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 24 Jun 2022 18:15:47 -0700 (PDT)
+Message-ID: <241393bf-1fd3-ab25-867b-7132d7590aa8@gmail.com>
+Date:   Sat, 25 Jun 2022 08:15:43 +0700
 MIME-Version: 1.0
-Content-Type: text/plain
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.10.0
+Subject: Re: [PATCH] media: docs: Modify the section of User xattr
+Content-Language: en-US
+To:     Deming Wang <wangdeming@inspur.com>, miklos@szeredi.hu,
+        corbet@lwn.net
+Cc:     linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <20220624014605.2007-1-wangdeming@inspur.com>
+From:   Bagas Sanjaya <bagasdotme@gmail.com>
+In-Reply-To: <20220624014605.2007-1-wangdeming@inspur.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Deming Wang <wangdeming@inspur.com> writes:
-
+On 6/24/22 08:46, Deming Wang wrote:
 > Delete duplicate words of "the".
->
-> Signed-off-by: Deming Wang <wangdeming@inspur.com>
-> ---
->  Documentation/filesystems/overlayfs.rst | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-> index 7da6c30ed596..4c76fda07645 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
+> 
+
+I think "Modify something" isn't clear subject, because reviewers
+don't know at glance the logical change this patch is doing other
+than actually reading the diff below.
+
+For the patch message, what about "Remove duplicate the"?
+
+In this case of trivial patch, it's OK to have the patch message
+same as the subject, if the message can't be described more
+concise but clearer.
+
 > @@ -607,7 +607,7 @@ can be removed.
 >  User xattr
 >  ----------
@@ -67,11 +92,11 @@ Deming Wang <wangdeming@inspur.com> writes:
 > +The "-o userxattr" mount option forces overlayfs to use the
 >  "user.overlay." xattr namespace instead of "trusted.overlay.".  This is
 >  useful for unprivileged mounting of overlayfs.
+>  
 
-I've applied this but changed the patch title.  This is not a media
-patch, and "modify" tells the reader nothing; it's now "docs: Remove
-duplicate word".
+The diff looks OK.
 
-Thanks,
+Thanks.
 
-jon
+-- 
+An old man doll... just what I always wanted! - Clara
