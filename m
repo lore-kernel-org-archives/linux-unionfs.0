@@ -2,875 +2,334 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17184C43334
-	for <linux-unionfs@archiver.kernel.org>; Wed,  6 Jul 2022 18:01:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48D76CCA49E
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Jul 2022 06:58:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233722AbiGFSB2 (ORCPT
+        id S234995AbiGGG6I (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 6 Jul 2022 14:01:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47636 "EHLO
+        Thu, 7 Jul 2022 02:58:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233117AbiGFSBY (ORCPT
+        with ESMTP id S233366AbiGGG5x (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 6 Jul 2022 14:01:24 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 548032982A
-        for <linux-unionfs@vger.kernel.org>; Wed,  6 Jul 2022 11:01:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1657130479;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=mnnyCgnU5IKwag7krC4t/W6PmZpD4MQt1NOzzWj/G04=;
-        b=Ccs0xOEKkpH+00f+9c5+aTT9AmpfzBIBNbhonhMCs62MVrRLuzAwQqpf/iTcGKtuM5E7RS
-        IFfIE7PZbB1fG5b5TYvo9h3N1ZmgaQouXVKRXYiGMPFtPIaQeVV09l3lVJdc+OLEuWmCYZ
-        myuDh3ExAPJmzF4MHAg5HjZfmWT/4LI=
-Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
- [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-358-kekdD_9fPA2NsJoT-sNuMg-1; Wed, 06 Jul 2022 14:01:08 -0400
-X-MC-Unique: kekdD_9fPA2NsJoT-sNuMg-1
-Received: from smtp.corp.redhat.com (int-mx09.intmail.prod.int.rdu2.redhat.com [10.11.54.9])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id BC17C823F10;
-        Wed,  6 Jul 2022 18:01:07 +0000 (UTC)
-Received: from horse.redhat.com (unknown [10.22.33.36])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 870AE492C3B;
-        Wed,  6 Jul 2022 18:01:07 +0000 (UTC)
-Received: by horse.redhat.com (Postfix, from userid 10451)
-        id 48467220463; Wed,  6 Jul 2022 14:01:07 -0400 (EDT)
-Date:   Wed, 6 Jul 2022 14:01:07 -0400
-From:   Vivek Goyal <vgoyal@redhat.com>
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Seth Forshee <sforshee@digitalocean.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH] acl: report correct ownership in some ovl use-cases
-Message-ID: <YsXN4056AenjHap9@redhat.com>
-References: <20220705144502.165935-1-brauner@kernel.org>
+        Thu, 7 Jul 2022 02:57:53 -0400
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89AEA2CDFF;
+        Wed,  6 Jul 2022 23:57:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1657177070; x=1688713070;
+  h=date:from:to:cc:subject:message-id:mime-version:
+   content-transfer-encoding;
+  bh=hUaxS4FbU98cO1hd7qPjY6PMv7SAZrQrjnJcWkGCO9c=;
+  b=BJx3Ce5sJvWSeURQApb4aBJaKqQCevfAKIpd7wuJqkTIWiTvR5jzxuLi
+   Ji8JqnCzRA89jV8XM69YqgAEgmX+cl8FnUqh6NHLm7+08eIh1r34BOiVK
+   o3MMVUl3ZJY62N1T9uaS5v4NZTkcoe9BXs26agl02FavUpClfhVGSIMvQ
+   gP/sCdh0dD17hv72p/gZWgU9TBYX9RQbaL6mguKqsI9t9jr6em0RCp2lf
+   s6K9KC9hb/8GCXMNYdRKe6ZKzTKTGHxBr1FA4HAQZqwCl6eSn/mmVKsYr
+   DiR0O6wHLr6bKqQno7Wn1i6jbqzc5O5y1B4QUXN0fAHH04MS2ZT8s+dDr
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10400"; a="347932686"
+X-IronPort-AV: E=Sophos;i="5.92,252,1650956400"; 
+   d="scan'208";a="347932686"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jul 2022 23:57:46 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,252,1650956400"; 
+   d="scan'208";a="651007648"
+Received: from lkp-server01.sh.intel.com (HELO 68b931ab7ac1) ([10.239.97.150])
+  by fmsmga008.fm.intel.com with ESMTP; 06 Jul 2022 23:57:29 -0700
+Received: from kbuild by 68b931ab7ac1 with local (Exim 4.95)
+        (envelope-from <lkp@intel.com>)
+        id 1o9LS4-000LgU-Lh;
+        Thu, 07 Jul 2022 06:57:28 +0000
+Date:   Thu, 07 Jul 2022 14:56:34 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     virtualization@lists.linux-foundation.org,
+        usbb2k-api-dev@nongnu.org, tipc-discussion@lists.sourceforge.net,
+        target-devel@vger.kernel.org, sound-open-firmware@alsa-project.org,
+        samba-technical@lists.samba.org, rds-devel@oss.oracle.com,
+        patches@opensource.cirrus.com, osmocom-net-gprs@lists.osmocom.org,
+        openipmi-developer@lists.sourceforge.net, nvdimm@lists.linux.dev,
+        ntb@lists.linux.dev, netfilter-devel@vger.kernel.org,
+        netdev@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
+        megaraidlinux.pdl@broadcom.com, linuxppc-dev@lists.ozlabs.org,
+        linux1394-devel@lists.sourceforge.net, linux-x25@vger.kernel.org,
+        linux-wpan@vger.kernel.org, linux-wireless@vger.kernel.org,
+        linux-watchdog@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        linux-staging@lists.linux.dev, linux-serial@vger.kernel.org,
+        linux-sctp@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        linux-renesas-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-raid@vger.kernel.org, linux-pm@vger.kernel.org,
+        linux-phy@lists.infradead.org, linux-perf-users@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-parport@lists.infradead.org,
+        linux-parisc@vger.kernel.org, linux-omap@vger.kernel.org,
+        linux-nfc@lists.01.org, linux-mtd@lists.infradead.org,
+        linux-mmc@vger.kernel.org, linux-mm@kvack.org,
+        linux-mediatek@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-integrity@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-ide@vger.kernel.org, linux-hwmon@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-fpga@vger.kernel.org,
+        linux-fbdev@vger.kernel.org, linux-ext4@vger.kernel.org,
+        linux-efi@vger.kernel.org, linux-doc@vger.kernel.org,
+        linux-cxl@vger.kernel.org, linux-crypto@vger.kernel.org,
+        linux-clk@vger.kernel.org, linux-cifs@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-bcache@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-amlogic@lists.infradead.org, linaro-mm-sig@lists.linaro.org,
+        legousb-devel@lists.sourceforge.net, kvm@vger.kernel.org,
+        keyrings@vger.kernel.org, isdn4linux@listserv.isdn4linux.de,
+        iommu@lists.linux.dev, iommu@lists.linux-foundation.org,
+        intel-wired-lan@lists.osuosl.org, greybus-dev@lists.linaro.org,
+        dri-devel@lists.freedesktop.org, dm-devel@redhat.com,
+        devicetree@vger.kernel.org, dev@openvswitch.org,
+        dccp@vger.kernel.org, damon@lists.linux.dev,
+        coreteam@netfilter.org, cgroups@vger.kernel.org,
+        ceph-devel@vger.kernel.org, ath11k@lists.infradead.org,
+        apparmor@lists.ubuntu.com, amd-gfx@lists.freedesktop.org,
+        alsa-devel@alsa-project.org,
+        accessrunner-general@lists.sourceforge.net,
+        Linux Memory Management List <linux-mm@kvack.org>
+Subject: [linux-next:master] BUILD REGRESSION
+ 088b9c375534d905a4d337c78db3b3bfbb52c4a0
+Message-ID: <62c683a2.g1VSVt6BrQC6ZzOz%lkp@intel.com>
+User-Agent: Heirloom mailx 12.5 6/20/10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220705144502.165935-1-brauner@kernel.org>
-X-Scanned-By: MIMEDefang 2.85 on 10.11.54.9
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jul 05, 2022 at 04:45:02PM +0200, Christian Brauner wrote:
-> This cycle we added support for mounting overlayfs on top of idmapped mounts.
-> Recently I've started looking into potential corner cases when trying to add
-> additional tests and I noticed that reporting for POSIX ACLs is currently wrong
-> when using idmapped layers with overlayfs mounted on top of it.
-> 
-> I'm going to give a rather detailed explanation to both the origin of the
-> problem and the solution.
-> 
-> Let's assume the user creates the following directory layout and they have a
-> rootfs /var/lib/lxc/c1/rootfs. The files in this rootfs are owned as you would
-> expect files on your host system to be owned. For example, ~/.bashrc for your
-> regular user would be owned by 1000:1000 and /root/.bashrc would be owned by
-> 0:0. IOW, this is just regular boring filesystem tree on an ext4 or xfs
-> filesystem.
-> 
-> The user chooses to set POSIX ACLs using the setfacl binary granting the user
-> with uid 4 read, write, and execute permissions for their .bashrc file:
-> 
->         setfacl -m u:4:rwx /var/lib/lxc/c2/rootfs/home/ubuntu/.bashrc
-> 
-> Now they to expose the whole rootfs to a container using an idmapped mount. So
-> they first create:
-> 
->         mkdir -pv /vol/contpool/{ctrover,merge,lowermap,overmap}
->         mkdir -pv /vol/contpool/ctrover/{over,work}
-> 
-> The user now creates an idmapped mount for the rootfs:
-> 
->         mount-idmapped/mount-idmapped --map-mount=b:0:10000000:65536 \
->                                       /var/lib/lxc/c2/rootfs \
->                                       /vol/contpool/lowermap
-> 
-> This for example makes it so that /var/lib/lxc/c2/rootfs/home/ubuntu/.bashrc
-> which is owned by uid and gid 1000 as being owned by uid and gid 10001000 at
-> /vol/contpool/lowermap/home/ubuntu/.bashrc.
-> 
-> Similarly, the user creates another idmapped mount using the same idmapping:
-> 
->         mount-idmapped/mount-idmapped --map-mount=b:0:10000000:65536 \
->                                       /vol/contpool/ctrover/ \
->                                       /vol/contpool/overmap/
-> 
-> Assume the user wants to expose these idmapped mounts through an overlayfs
-> mount to a container.
-> 
->        mount -t overlay overlay                      \
->              -o lowerdir=/vol/contpool/lowermap,     \
->                 upperdir=/vol/contpool/overmap/over, \
->                 workdir=/vol/contpool/overmap/work   \
->              /vol/contpool/merge
-> 
-> The user can do this in two ways:
-> 
-> (1) Mount overlayfs in the initial user namespace and expose it to the
->     container.
-> (2) Mount overlayfs on top of the idmapped mounts inside of the container's
->     user namespace.
-> 
-> Let's assume the user chooses the (1) option and mounts overlayfs on the host
-> and then changes into a container which uses the idmapping 0:10000000:65536
-> which is the same used for the two idmapped mounts.
-> 
-> Now the user tries to retrieve the POSIX ACLs using the getfacl command
-> 
->         getfacl -n /vol/contpool/lowermap/home/ubuntu/.bashrc
-> 
-> and to their surprise they see:
-> 
->         # file: vol/contpool/merge/home/ubuntu/.bashrc
->         # owner: 1000
->         # group: 1000
->         user::rw-
->         user:4294967295:rwx
->         group::r--
->         mask::rwx
->         other::r--
-> 
-> indicating the the uid wasn't correctly translated according to the idmapped
-> mount. The problem is how we currently translate POSIX ACLs. Let's inspect the
-> callchain in this example:
-> 
->         idmapped mount /vol/contpool/merge:      0:10000000:65536
->         caller's idmapping:                      0:10000000:65536
->         overlayfs idmapping (ofs->creator_cred): 0:0:4k /* initial idmapping */
-> 
->         sys_getxattr()
->         -> path_getxattr()
->            -> getxattr()
->               -> do_getxattr()
->                   |> vfs_getxattr()
->                   |  -> __vfs_getxattr()
->                   |     -> handler->get == ovl_posix_acl_xattr_get()
->                   |        -> ovl_xattr_get()
->                   |           -> vfs_getxattr()
->                   |              -> __vfs_getxattr()
->                   |                 -> handler->get() /* lower filesystem callback */
->                   |> posix_acl_fix_xattr_to_user()
->                      {
->                               4 = make_kuid(&init_user_ns, 4);
->                               4 = mapped_kuid_fs(&init_user_ns /* no idmapped mount */, 4);
->                               /* FAILURE */
->                              -1 = from_kuid(0:10000000:65536 /* caller's idmapping */, 4);
->                      }
-> 
-> If the user chooses to use option (2) and mounts overlayfs on top of idmapped
-> mounts inside the container things don't look that much better:
-> 
->         idmapped mount /vol/contpool/merge:      0:10000000:65536
->         caller's idmapping:                      0:10000000:65536
->         overlayfs idmapping (ofs->creator_cred): 0:10000000:65536
-> 
->         sys_getxattr()
->         -> path_getxattr()
->            -> getxattr()
->               -> do_getxattr()
->                   |> vfs_getxattr()
->                   |  -> __vfs_getxattr()
->                   |     -> handler->get == ovl_posix_acl_xattr_get()
->                   |        -> ovl_xattr_get()
->                   |           -> vfs_getxattr()
->                   |              -> __vfs_getxattr()
->                   |                 -> handler->get() /* lower filesystem callback */
->                   |> posix_acl_fix_xattr_to_user()
->                      {
->                               4 = make_kuid(&init_user_ns, 4);
->                               4 = mapped_kuid_fs(&init_user_ns, 4);
->                               /* FAILURE */
->                              -1 = from_kuid(0:10000000:65536 /* caller's idmapping */, 4);
->                      }
-> 
-> As is easily seen the problem arises because the idmapping of the lower mount
-> isn't taken into account as all of this happens in do_gexattr(). But
-> do_getxattr() is always called on an overlayfs mount and inode and thus cannot
-> possible take the idmapping of the lower layers into account.
-> 
-> This problem is similar for fscaps but there the translation happens as part of
-> vfs_getxattr() already. Let's walk through an fscaps overlayfs callchain:
-> 
->         setcap 'cap_net_raw+ep' /var/lib/lxc/c2/rootfs/home/ubuntu/.bashrc
-> 
-> The expected outcome here is that we'll receive the cap_net_raw capability as
-> we are able to map the uid associated with the fscap to 0 within our container.
-> IOW, we want to see 0 as the result of the idmapping translations.
-> 
-> If the user chooses option (1) we get the following callchain for fscaps:
-> 
->         idmapped mount /vol/contpool/merge:      0:10000000:65536
->         caller's idmapping:                      0:10000000:65536
->         overlayfs idmapping (ofs->creator_cred): 0:0:4k /* initial idmapping */
-> 
->         sys_getxattr()
->         -> path_getxattr()
->            -> getxattr()
->               -> do_getxattr()
->                    -> vfs_getxattr()
->                       -> xattr_getsecurity()
->                          -> security_inode_getsecurity()                                       ________________________________
->                             -> cap_inode_getsecurity()                                         |                              |
->                                {                                                               V                              |
->                                         10000000 = make_kuid(0:0:4k /* overlayfs idmapping */, 10000000);                     |
->                                         10000000 = mapped_kuid_fs(0:0:4k /* no idmapped mount */, 10000000);                  |
->                                                /* Expected result is 0 and thus that we own the fscap. */                     |
->                                                0 = from_kuid(0:10000000:65536 /* caller's idmapping */, 10000000);            |
->                                }                                                                                              |
->                                -> vfs_getxattr_alloc()                                                                        |
->                                   -> handler->get == ovl_other_xattr_get()                                                    |
->                                      -> vfs_getxattr()                                                                        |
->                                         -> xattr_getsecurity()                                                                |
->                                            -> security_inode_getsecurity()                                                    |
->                                               -> cap_inode_getsecurity()                                                      |
->                                                  {                                                                            |
->                                                                 0 = make_kuid(0:0:4k /* lower s_user_ns */, 0);               |
->                                                          10000000 = mapped_kuid_fs(0:10000000:65536 /* idmapped mount */, 0); |
->                                                          10000000 = from_kuid(0:0:4k /* overlayfs idmapping */, 10000000);    |
->                                                          |____________________________________________________________________|
->                                                  }
->                                                  -> vfs_getxattr_alloc()
->                                                     -> handler->get == /* lower filesystem callback */
-> 
-> And if the user chooses option (2) we get:
-> 
->         idmapped mount /vol/contpool/merge:      0:10000000:65536
->         caller's idmapping:                      0:10000000:65536
->         overlayfs idmapping (ofs->creator_cred): 0:10000000:65536
-> 
->         sys_getxattr()
->         -> path_getxattr()
->            -> getxattr()
->               -> do_getxattr()
->                    -> vfs_getxattr()
->                       -> xattr_getsecurity()
->                          -> security_inode_getsecurity()                                                _______________________________
->                             -> cap_inode_getsecurity()                                                  |                             |
->                                {                                                                        V                             |
->                                        10000000 = make_kuid(0:10000000:65536 /* overlayfs idmapping */, 0);                           |
->                                        10000000 = mapped_kuid_fs(0:0:4k /* no idmapped mount */, 10000000);                           |
->                                                /* Expected result is 0 and thus that we own the fscap. */                             |
->                                               0 = from_kuid(0:10000000:65536 /* caller's idmapping */, 10000000);                     |
->                                }                                                                                                      |
->                                -> vfs_getxattr_alloc()                                                                                |
->                                   -> handler->get == ovl_other_xattr_get()                                                            |
->                                     |-> vfs_getxattr()                                                                                |
->                                         -> xattr_getsecurity()                                                                        |
->                                            -> security_inode_getsecurity()                                                            |
->                                               -> cap_inode_getsecurity()                                                              |
->                                                  {                                                                                    |
->                                                                  0 = make_kuid(0:0:4k /* lower s_user_ns */, 0);                      |
->                                                           10000000 = mapped_kuid_fs(0:10000000:65536 /* idmapped mount */, 0);        |
->                                                                  0 = from_kuid(0:10000000:65536 /* overlayfs idmapping */, 10000000); |
->                                                                  |____________________________________________________________________|
->                                                  }
->                                                  -> vfs_getxattr_alloc()
->                                                     -> handler->get == /* lower filesystem callback */
-> 
-> We can see how the translation happens correctly in those cases as the
-> conversion happens within the vfs_getxattr() helper.
-> 
-> For POSIX ACLs we need to do something similar. However, in contrast to fscaps
-> we cannot apply the fix directly to the kernel internal posix acl data
-> structure as this would alter the cached values and would also require a rework
-> of how we currently deal with POSIX ACLs in general which almost never take the
-> filesystem idmapping into account (the noteable exception being FUSE but even
-> there the implementation is special) and instead retrieve the raw values based
-> on the initial idmapping.
-> 
-> The correct values are then generated right before returning to userspace. The
-> fix for this is to move taking the mount's idmapping into account directly in
-> vfs_getxattr() instead of having it be part of posix_acl_fix_xattr_to_user().
-> 
-> To this end we split out two small and unexported helpers
-> posix_acl_getxattr_idmapped_mnt() and posix_acl_setxattr_idmapped_mnt(). The
-> former to be called in vfs_getxattr() and the latter to be called in
-> vfs_setxattr().
-> 
-> Let's go back to the original example. Assume the user chose option (1) and
-> mounted overlayfs on top of idmapped mounts on the host:
-> 
->         idmapped mount /vol/contpool/merge:      0:10000000:65536
->         caller's idmapping:                      0:10000000:65536
->         overlayfs idmapping (ofs->creator_cred): 0:0:4k /* initial idmapping */
-> 
->         sys_getxattr()
->         -> path_getxattr()
->            -> getxattr()
->               -> do_getxattr()
->                   |> vfs_getxattr()
->                   |  |> __vfs_getxattr()
->                   |  |  -> handler->get == ovl_posix_acl_xattr_get()
->                   |  |     -> ovl_xattr_get()
->                   |  |        -> vfs_getxattr()
->                   |  |           |> __vfs_getxattr()
->                   |  |           |  -> handler->get() /* lower filesystem callback */
->                   |  |           |> posix_acl_getxattr_idmapped_mnt()
->                   |  |              {
->                   |  |                       /* This is a nop on non-idmapped mounts. */
->                   |  |                              4 = make_kuid(&init_user_ns, 4);
->                   |  |                       10000004 = mapped_kuid_fs(0:10000000:65536 /* lower idmapped mount */, 4);
->                   |  |                       10000004 = from_kuid(&init_user_ns, 10000004);
->                   |  |                       |___________________________________
->                   |  |              }                                           |
->                   |  |> posix_acl_getxattr_idmapped_mnt()                       |
->                   |     {                                                       |
->                   |             /* This is a nop on non-idmapped mounts. */     V
->                   |             10000004 = make_kuid(&init_user_ns, 10000004);
->                   |             10000004 = mapped_kuid_fs(&init_user_ns /* no idmapped mount */, 10000004);
->                   |             10000004 = from_kuid(&init_user_ns, 10000004);
->                   |     }       |_________________________________________________
->                   |                                                              |
->                   |> posix_acl_fix_xattr_to_user()                               |
->                      {                                                           V
->                                  10000004 = make_kuid(0:0:4k /* init_user_ns */, 10000004);
->                                         /* SUCCESS */
->                                         4 = from_kuid(0:10000000:65536 /* caller's idmapping */, 10000004);
->                      }
+tree/branch: https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
+branch HEAD: 088b9c375534d905a4d337c78db3b3bfbb52c4a0  Add linux-next specific files for 20220706
 
-Hi Christian,
+Error/Warning reports:
 
-Trying to understand the problem and solution. I am wondering
-why do we still have posix_acl_fix_xattr_to_user().
+https://lore.kernel.org/linux-doc/202207070644.x48XOOvs-lkp@intel.com
 
-Shouldn't posix_acl_getxattr_idmapped_mnt() (Or whatever name is
-appropriate), take care of doing all the translations. Something along
-the lines of cap_inode_getsecurity(). 
+Error/Warning: (recently discovered and may have been fixed)
 
-IOW, I am viewing it as if posix_acl_getxattr_idmapped_mnt() takes
-care of doing all the translations for each layer. And it is called
-twice for stacked filesystem. So for the example when overaly is mounted
-from outside the user_ns.
+Documentation/arm/google/chromebook-boot-flow.rst: WARNING: document isn't included in any toctree
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x1108): undefined reference to `__aeabi_ddiv'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x1124): undefined reference to `__aeabi_ui2d'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x1164): undefined reference to `__aeabi_dmul'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x1170): undefined reference to `__aeabi_dadd'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x1180): undefined reference to `__aeabi_dsub'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x1190): undefined reference to `__aeabi_d2uiz'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x162c): undefined reference to `__aeabi_d2iz'
+arm-linux-gnueabi-ld: dc_dmub_srv.c:(.text+0x16b0): undefined reference to `__aeabi_i2d'
+dc_dmub_srv.c:(.text+0x10f8): undefined reference to `__aeabi_ui2d'
+dc_dmub_srv.c:(.text+0x464): undefined reference to `__floatunsidf'
+dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x33c): undefined reference to `__floatunsidf'
+drivers/pci/endpoint/functions/pci-epf-vntb.c:975:5: warning: no previous prototype for 'pci_read' [-Wmissing-prototypes]
+drivers/pci/endpoint/functions/pci-epf-vntb.c:984:5: warning: no previous prototype for 'pci_write' [-Wmissing-prototypes]
+drivers/vfio/vfio_iommu_type1.c:2141:35: warning: cast to smaller integer type 'enum iommu_cap' from 'void *' [-Wvoid-pointer-to-enum-cast]
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x34c): undefined reference to `__floatunsidf'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x378): undefined reference to `__divdf3'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x38c): undefined reference to `__muldf3'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x3a0): undefined reference to `__adddf3'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x3b4): undefined reference to `__subdf3'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x3d4): undefined reference to `__fixunsdfsi'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x750): undefined reference to `__fixdfsi'
+mips-linux-ld: dc_dmub_srv.c:(.text.dc_dmub_setup_subvp_dmub_command+0x7c0): undefined reference to `__floatsidf'
+powerpc-linux-ld: drivers/pci/endpoint/functions/pci-epf-vntb.c:174: undefined reference to `ntb_link_event'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x468): undefined reference to `__divdf3'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x46c): undefined reference to `__muldf3'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x470): undefined reference to `__adddf3'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x474): undefined reference to `__subdf3'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x478): undefined reference to `__fixunsdfsi'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x47c): undefined reference to `__fixdfsi'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x480): undefined reference to `__floatsidf'
+xtensa-linux-ld: dc_dmub_srv.c:(.text+0x60c): undefined reference to `__floatunsidf'
 
-	idmapped mount lower:      		0:10000000:65536
-	caller's idmapping:                      0:10000000:65536
-	overlayfs idmapping (ofs->creator_cred): 0:0:4k /* initial idmapping */
+Unverified Error/Warning (likely false positive, please contact us if interested):
 
-Overlay layer translations
-	10000004 = make_kuid(&init_user_ns, 10000004);
-	/* Overlayfs mount has no idmapping */
-	10000004 = mapped_kuid_fs(&init_user_ns, &init_user_ns, 10000004);
-	/* Map into caller's idmapping. And caller in this case is process
-	 * inside user namespace */
-	4 = from_kuid(0:10000000:65536, 10000004);
+arch/x86/events/core.c:2114 init_hw_perf_events() warn: missing error code 'err'
+drivers/android/binder.c:1481:19-23: ERROR: from is NULL but dereferenced.
+drivers/android/binder.c:2920:29-33: ERROR: target_thread is NULL but dereferenced.
+drivers/android/binder.c:353:25-35: ERROR: node -> proc is NULL but dereferenced.
+drivers/android/binder.c:4888:16-20: ERROR: t is NULL but dereferenced.
+drivers/base/regmap/regmap.c:1996:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/char/random.c:869:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/firmware/arm_scmi/clock.c:394:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/firmware/arm_scmi/powercap.c:376:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/gpu/drm/amd/amdgpu/../pm/powerplay/hwmgr/vega10_powertune.c:1214:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/gpu/drm/amd/display/dc/os_types.h: drm/drm_print.h is included more than once.
+drivers/gpu/drm/bridge/ite-it66121.c:1398:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/greybus/operation.c:617:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/infiniband/hw/irdma/hw.c:1484:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/md/dm-mpath.c:1681:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/media/dvb-frontends/mxl692.c:49:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/media/i2c/ov5647.c:636:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/media/i2c/st-mipid02.c:271:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/media/platform/qcom/venus/vdec.c:1505:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/media/platform/st/sti/delta/delta-v4l2.c:719:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/media/tuners/msi001.c:81:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/mfd/sec-core.c:429:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/mmc/core/core.c:471:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/mmc/host/sh_mmcif.c:1318:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/bonding/bond_main.c:4647:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c:1388:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/faraday/ftgmac100.c:854:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/hisilicon/hns/hnae.c:436:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/intel/i40e/i40e_main.c:9347:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/intel/ice/ice_base.c:1003:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/intel/ice/ice_dcb_lib.c:520:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/intel/ice/ice_vlan_mode.c:379:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/intel/igb/e1000_phy.c:1185:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/microchip/encx24j600.c:827:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/microchip/lan743x_main.c:1238:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/smsc/smsc9420.c:451:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/ethernet/vertexcom/mse102x.c:422:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/phy/dp83640.c:890:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/usb/cdc_ncm.c:195:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/usb/rtl8150.c:176:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/wireless/ath/ath11k/dp.c:334:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/wireless/ath/ath11k/mac.c:6142:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/wireless/ath/ath11k/qmi.c:2271:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/net/wireless/ath/ath11k/reg.c:226:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/parport/ieee1284_ops.c:615:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/scsi/elx/efct/efct_unsol.c:297:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/scsi/elx/libefc/efc_domain.c:692:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/scsi/megaraid/megaraid_sas_fp.c:297:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/soc/mediatek/mtk-mutex.c:799:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/staging/media/zoran/zr36016.c:430:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/staging/media/zoran/zr36050.c:829:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/staging/media/zoran/zr36060.c:869:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/target/iscsi/iscsi_target.c:2348:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/thunderbolt/tmu.c:758:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/thunderbolt/tunnel.c:1264:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/tty/serial/atmel_serial.c:1442:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/usb/host/uhci-q.c:1367:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/usb/serial/digi_acceleport.c:1167:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+drivers/video/backlight/qcom-wled.c:871:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+fs/ext4/mballoc.c:3612:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+fs/kernel_read_file.c:61 kernel_read_file() warn: impossible condition '(i_size > (((~0) >> 1))) => (s64min-s64max > s64max)'
+fs/ubifs/recovery.c:1062:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+kernel/cgroup/cgroup-v1.c:150:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+kernel/cgroup/cgroup.c:2813:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+kernel/sched/core.c:2076:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+mm/filemap.c:1354:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+mm/memory.c:5157:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+mm/page_alloc.c:3813 rmqueue_pcplist() warn: inconsistent returns 'flags'.
+mm/page_alloc.c:7692:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+mm/slub.c:5434:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+net/bluetooth/hci_event.c:5926:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+net/qrtr/mhi.c:102:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+net/wireless/reg.c:205:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+net/wireless/scan.c:1470:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+sound/pci/lola/lola.c:178:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+sound/pci/pcxhr/pcxhr_core.c:134:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+sound/pci/rme9652/hdsp.c:666:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+sound/soc/fsl/fsl_spdif.c:1467:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+sound/soc/sh/rcar/core.c:1602:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+sound/soc/sof/intel/mtl.c:547:1: internal compiler error: in arc_ifcvt, at config/arc/arc.c:9637
+{standard input}:2311: Error: expecting )
 
-Lower layer translations
-	4 = make_kuid(&init_user_ns, 4);
-	10000004 = mapped_kuid_fs(0:10000000:65536 /* lower idmapped mount */, &init_user_ns, 4);
-	/* Map into caller's idmapping. And caller in this case is mounter
-	 * of overlayfs which is init_user_ns */
-	10000004 = from_kuid(&init_user_ns, 10000004);
+Error/Warning ids grouped by kconfigs:
 
-Above kind of makes more sense to me based on your documentation here.
+gcc_recent_errors
+|-- alpha-allyesconfig
+|   |-- drivers-pci-endpoint-functions-pci-epf-vntb.c:warning:no-previous-prototype-for-pci_read
+|   `-- drivers-pci-endpoint-functions-pci-epf-vntb.c:warning:no-previous-prototype-for-pci_write
+|-- arc-allyesconfig
+|   |-- block-partitions-efi.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- block-sed-opal.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- crypto-asymmetric_keys-pkcs7_verify.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-ata-libata-core.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-ata-libata-eh.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-ata-sata_dwc_460ex.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-base-power-runtime.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-block-rbd.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-bluetooth-hci_ll.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-bluetooth-hci_qca.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-cdrom-cdrom.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-char-ipmi-ipmi_ssif.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-char-pcmcia-cm4000_cs.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-char-random.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-char-tpm-tpm_tis_core.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-clk-bcm-clk-iproc-armpll.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-clk-clk-bd718x7.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-clk-clk-lochnagar.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-crypto-ccree-cc_request_mgr.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-crypto-qce-sha.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-crypto-qce-skcipher.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-cxl-core-hdm.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-cxl-core-pci.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-dma-buf-dma-buf.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-firmware-arm_scmi-bus.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-firmware-arm_scmi-clock.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-firmware-arm_scmi-powercap.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-firmware-arm_scmi-sensors.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-firmware-arm_scmi-voltage.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-fpga-dfl-fme-mgr.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gnss-usb.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-core-dc_debug.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-core-dc_link_dp.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-dce110-dce110_resource.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-display-dc-dce112-dce112_resource.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-pm-powerplay-hwmgr-smu7_hwmgr.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-pm-powerplay-hwmgr-smu8_hwmgr.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-pm-powerplay-hwmgr-vega10_powertune.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-pm-powerplay-smumgr-smu7_smumgr.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-..-pm-swsmu-smu13-smu_v13_0.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-amd-amdgpu-amdgpu_ttm.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-bridge-cadence-cdns-mhdp8546-hdcp.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-bridge-ite-it66121.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-bridge-lontium-lt9211.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-bridge-sii902x.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+|   |-- drivers-gpu-drm-mcde-mcde_dsi.c:internal-compiler-error:in-arc_ifcvt-at-config-arc-arc.c
+clang_recent_errors
+|-- arm64-randconfig-r023-20220706
+|   `-- drivers-vfio-vfio_iommu_type1.c:warning:cast-to-smaller-integer-type-enum-iommu_cap-from-void
+|-- arm64-randconfig-r025-20220706
+|   `-- drivers-vfio-vfio_iommu_type1.c:warning:cast-to-smaller-integer-type-enum-iommu_cap-from-void
+`-- s390-randconfig-r044-20220706
+    `-- drivers-vfio-vfio_iommu_type1.c:warning:cast-to-smaller-integer-type-enum-iommu_cap-from-void
 
-https://www.kernel.org/doc/html/latest/filesystems/idmappings.html
+elapsed time: 1179m
 
-But there is a good chance that I am missing something.
+configs tested: 25
+configs skipped: 3
 
-And when overlayfs is mounted from inside user namepsace, then
-translations could look as follows.
+gcc tested configs:
+arm                                 defconfig
+arm                              allyesconfig
+arm64                            allyesconfig
+powerpc                           allnoconfig
+mips                             allyesconfig
+powerpc                          allmodconfig
+sh                               allmodconfig
+alpha                            allyesconfig
+m68k                             allmodconfig
+arc                              allyesconfig
+m68k                             allyesconfig
+x86_64                        randconfig-a015
+i386                          randconfig-a016
+arc                  randconfig-r043-20220706
+um                             i386_defconfig
+um                           x86_64_defconfig
+x86_64                              defconfig
+x86_64                               rhel-8.3
+x86_64                           allyesconfig
 
-	idmapped mount lower:      		0:10000000:65536
-	caller's idmapping:                      0:10000000:65536
-	overlayfs idmapping (ofs->creator_cred): 0:10000000:65536
+clang tested configs:
+x86_64                        randconfig-a016
+i386                          randconfig-a015
+hexagon              randconfig-r041-20220706
+hexagon              randconfig-r045-20220706
+riscv                randconfig-r042-20220706
+s390                 randconfig-r044-20220706
 
-Overlay layer translations
-	/* Overlayfs was mounted from inside user namespace */
-	10000004 = make_kuid(0:10000000:65536, 4);
-	/* Overlayfs mount has no idmapping */
-	10000004 = mapped_kuid_fs(&init_user_ns, 0:10000000:65536, 10000004);
-	/* Map into caller's idmapping. And caller in this case is process
-	 * inside user namespace */
-	4 = from_kuid(0:10000000:65536, 10000004);
-
-Lower layer translations
-	4 = make_kuid(&init_user_ns, 4);
-	10000004 = mapped_kuid_fs(0:10000000:65536 /* lower idmapped mount */, &init_user_ns, 4);
-	/* Map into caller's idmapping. And caller in this case is mounter
-	 * of overlayfs which was inside user namespace */
-	4 = from_kuid(0:10000000:65536, 10000004);
-
-
-
-> And similarly if the user chooses option (1) and mounted overayfs on top of
-
-You probably mean if "user chooses option (2)". And following example
-also seems to be for option 1 and not option 2.
-
-Thanks
-Vivek
-
-> idmapped mounts inside the container:
-> 
->         idmapped mount /vol/contpool/merge:      0:10000000:65536
->         caller's idmapping:                      0:10000000:65536
->         overlayfs idmapping (ofs->creator_cred): 0:10000000:65536
-> 
->         sys_getxattr()
->         -> path_getxattr()
->            -> getxattr()
->               -> do_getxattr()
->                   |> vfs_getxattr()
->                   |  |> __vfs_getxattr()
->                   |  |  -> handler->get == ovl_posix_acl_xattr_get()
->                   |  |     -> ovl_xattr_get()
->                   |  |        -> vfs_getxattr()
->                   |  |           |> __vfs_getxattr()
->                   |  |           |  -> handler->get() /* lower filesystem callback */
->                   |  |           |> posix_acl_getxattr_idmapped_mnt()
->                   |  |              {
->                   |  |                       /* This is a nop on non-idmapped mounts. */
->                   |  |                              4 = make_kuid(&init_user_ns, 4);
->                   |  |                       10000004 = mapped_kuid_fs(0:10000000:65536 /* lower idmapped mount */, 4);
->                   |  |                       10000004 = from_kuid(&init_user_ns, 10000004);
->                   |  |                       |___________________________________
->                   |  |              }                                           |
->                   |  |> posix_acl_getxattr_idmapped_mnt()                       |
->                   |     {                                                       |
->                   |             /* This is a nop on non-idmapped mounts. */     V
->                   |             10000004 = make_kuid(&init_user_ns, 10000004);
-
-In this example, overlayfs is mounted from inside the user namespace,
-so overlay filesystem idmappings are not init_user_ns. Should this be
-following instead.
-
-                                10000004 = make_kuid(&init_user_ns, 10000004);
-
-
->                   |             10000004 = mapped_kuid_fs(&init_user_ns /* no idmapped mount */, 10000004);
->                   |             10000004 = from_kuid(0(&init_user_ns, 10000004);
->                   |             |_________________________________________________
->                   |     }                                                        |
->                   |> posix_acl_fix_xattr_to_user()                               |
->                      {                                                           V
->                                  10000004 = make_kuid(0:0:4k /* init_user_ns */, 10000004);
->                                         /* SUCCESS */
->                                         4 = from_kuid(0:10000000:65536 /* caller's idmappings */, 10000004);
->                      }
-> 
-> Link: https://github.com/brauner/mount-idmapped/issues/9
-> Cc: Seth Forshee <sforshee@digitalocean.com>
-> Cc: Amir Goldstein <amir73il@gmail.com>
-> Cc: Vivek Goyal <vgoyal@redhat.com>
-> Cc: Christoph Hellwig <hch@lst.de>
-> Cc: Aleksa Sarai <cyphar@cyphar.com>
-> Cc: Miklos Szeredi <mszeredi@redhat.com>
-> Cc: linux-unionfs@vger.kernel.org
-> Cc: linux-fsdevel@vger.kernel.org
-> Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-> ---
-> Hey,
-> 
-> This passes the following tests:
-> 
-> sudo ./check -g quick
-> sudo ./check -g idmapped # always running that even though it's part of -g quick
-> sudo ./check -overlay
-> sudo ./check -overlay # export IDMAPPED_MOUNTS=true
-> sudo ./check -overlay -g overlay/union
-> sudo ./runltp # running the full LTP testsuite
-> 
-> We don't need a fixes tag since this work is only going to be released with v5.19.
-> 
-> Thanks!
-> Christian
-> ---
->  fs/ksmbd/vfs.c                  |   2 +-
->  fs/ksmbd/vfs.h                  |   2 +-
->  fs/overlayfs/overlayfs.h        |   2 +-
->  fs/posix_acl.c                  | 133 +++++++++++++++++++++++---------
->  fs/xattr.c                      |  24 ++++--
->  include/linux/capability.h      |   2 +-
->  include/linux/posix_acl_xattr.h |  32 +++++---
->  include/linux/xattr.h           |   2 +-
->  security/commoncap.c            |   2 +-
->  9 files changed, 139 insertions(+), 62 deletions(-)
-> 
-> diff --git a/fs/ksmbd/vfs.c b/fs/ksmbd/vfs.c
-> index 05efcdf7a4a7..7c849024999f 100644
-> --- a/fs/ksmbd/vfs.c
-> +++ b/fs/ksmbd/vfs.c
-> @@ -963,7 +963,7 @@ ssize_t ksmbd_vfs_getxattr(struct user_namespace *user_ns,
->   */
->  int ksmbd_vfs_setxattr(struct user_namespace *user_ns,
->  		       struct dentry *dentry, const char *attr_name,
-> -		       const void *attr_value, size_t attr_size, int flags)
-> +		       void *attr_value, size_t attr_size, int flags)
->  {
->  	int err;
->  
-> diff --git a/fs/ksmbd/vfs.h b/fs/ksmbd/vfs.h
-> index 8c37aaf936ab..70da4c0ba7ad 100644
-> --- a/fs/ksmbd/vfs.h
-> +++ b/fs/ksmbd/vfs.h
-> @@ -109,7 +109,7 @@ ssize_t ksmbd_vfs_casexattr_len(struct user_namespace *user_ns,
->  				int attr_name_len);
->  int ksmbd_vfs_setxattr(struct user_namespace *user_ns,
->  		       struct dentry *dentry, const char *attr_name,
-> -		       const void *attr_value, size_t attr_size, int flags);
-> +		       void *attr_value, size_t attr_size, int flags);
->  int ksmbd_vfs_xattr_stream_name(char *stream_name, char **xattr_stream_name,
->  				size_t *xattr_stream_name_size, int s_type);
->  int ksmbd_vfs_remove_xattr(struct user_namespace *user_ns,
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 4f34b7e02eee..9c793a42eda6 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -256,7 +256,7 @@ static inline ssize_t ovl_path_getxattr(struct ovl_fs *ofs,
->  }
->  
->  static inline int ovl_do_setxattr(struct ovl_fs *ofs, struct dentry *dentry,
-> -				  const char *name, const void *value,
-> +				  const char *name, void *value,
->  				  size_t size, int flags)
->  {
->  	int err = vfs_setxattr(ovl_upper_mnt_userns(ofs), dentry, name, value, size, flags);
-> diff --git a/fs/posix_acl.c b/fs/posix_acl.c
-> index 962d32468eb4..7eeb2c327b59 100644
-> --- a/fs/posix_acl.c
-> +++ b/fs/posix_acl.c
-> @@ -710,10 +710,30 @@ EXPORT_SYMBOL(posix_acl_update_mode);
->  /*
->   * Fix up the uids and gids in posix acl extended attributes in place.
->   */
-> -static void posix_acl_fix_xattr_userns(
-> -	struct user_namespace *to, struct user_namespace *from,
-> -	struct user_namespace *mnt_userns,
-> -	void *value, size_t size, bool from_user)
-> +static int posix_acl_fix_xattr_common(void *value, size_t size)
-> +{
-> +	struct posix_acl_xattr_header *header = value;
-> +	int count;
-> +
-> +	if (!header)
-> +		return -EINVAL;
-> +	if (size < sizeof(struct posix_acl_xattr_header))
-> +		return -EINVAL;
-> +	if (header->a_version != cpu_to_le32(POSIX_ACL_XATTR_VERSION))
-> +		return -EINVAL;
-> +
-> +	count = posix_acl_xattr_count(size);
-> +	if (count < 0)
-> +		return -EINVAL;
-> +	if (count == 0)
-> +		return -EINVAL;
-> +
-> +	return count;
-> +}
-> +
-> +void posix_acl_getxattr_idmapped_mnt(struct user_namespace *mnt_userns,
-> +				     const struct inode *inode,
-> +				     void *value, size_t size)
->  {
->  	struct posix_acl_xattr_header *header = value;
->  	struct posix_acl_xattr_entry *entry = (void *)(header + 1), *end;
-> @@ -721,35 +741,88 @@ static void posix_acl_fix_xattr_userns(
->  	kuid_t uid;
->  	kgid_t gid;
->  
-> -	if (!value)
-> +	if (no_idmapping(mnt_userns, i_user_ns(inode)))
->  		return;
-> -	if (size < sizeof(struct posix_acl_xattr_header))
-> +
-> +	count = posix_acl_fix_xattr_common(value, size);
-> +	if (count < 0)
->  		return;
-> -	if (header->a_version != cpu_to_le32(POSIX_ACL_XATTR_VERSION))
-> +
-> +	for (end = entry + count; entry != end; entry++) {
-> +		switch (le16_to_cpu(entry->e_tag)) {
-> +		case ACL_USER:
-> +			uid = make_kuid(&init_user_ns, le32_to_cpu(entry->e_id));
-> +			uid = mapped_kuid_fs(mnt_userns, &init_user_ns, uid);
-> +			entry->e_id = cpu_to_le32(from_kuid(&init_user_ns, uid));
-> +			break;
-> +		case ACL_GROUP:
-> +			gid = make_kgid(&init_user_ns, le32_to_cpu(entry->e_id));
-> +			gid = mapped_kgid_fs(mnt_userns, &init_user_ns, gid);
-> +			entry->e_id = cpu_to_le32(from_kgid(&init_user_ns, gid));
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +}
-> +
-> +void posix_acl_setxattr_idmapped_mnt(struct user_namespace *mnt_userns,
-> +				     const struct inode *inode,
-> +				     void *value, size_t size)
-> +{
-> +	struct posix_acl_xattr_header *header = value;
-> +	struct posix_acl_xattr_entry *entry = (void *)(header + 1), *end;
-> +	int count;
-> +	kuid_t uid;
-> +	kgid_t gid;
-> +
-> +	if (no_idmapping(mnt_userns, i_user_ns(inode)))
->  		return;
->  
-> -	count = posix_acl_xattr_count(size);
-> +	count = posix_acl_fix_xattr_common(value, size);
->  	if (count < 0)
->  		return;
-> -	if (count == 0)
-> +
-> +	for (end = entry + count; entry != end; entry++) {
-> +		switch (le16_to_cpu(entry->e_tag)) {
-> +		case ACL_USER:
-> +			uid = make_kuid(&init_user_ns, le32_to_cpu(entry->e_id));
-> +			uid = mapped_kuid_user(mnt_userns, &init_user_ns, uid);
-> +			entry->e_id = cpu_to_le32(from_kuid(&init_user_ns, uid));
-> +			break;
-> +		case ACL_GROUP:
-> +			gid = make_kgid(&init_user_ns, le32_to_cpu(entry->e_id));
-> +			gid = mapped_kgid_user(mnt_userns, &init_user_ns, gid);
-> +			entry->e_id = cpu_to_le32(from_kgid(&init_user_ns, gid));
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +}
-> +
-> +static void posix_acl_fix_xattr_userns(
-> +	struct user_namespace *to, struct user_namespace *from,
-> +	void *value, size_t size)
-> +{
-> +	struct posix_acl_xattr_header *header = value;
-> +	struct posix_acl_xattr_entry *entry = (void *)(header + 1), *end;
-> +	int count;
-> +	kuid_t uid;
-> +	kgid_t gid;
-> +
-> +	count = posix_acl_fix_xattr_common(value, size);
-> +	if (count < 0)
->  		return;
->  
->  	for (end = entry + count; entry != end; entry++) {
->  		switch(le16_to_cpu(entry->e_tag)) {
->  		case ACL_USER:
->  			uid = make_kuid(from, le32_to_cpu(entry->e_id));
-> -			if (from_user)
-> -				uid = mapped_kuid_user(mnt_userns, &init_user_ns, uid);
-> -			else
-> -				uid = mapped_kuid_fs(mnt_userns, &init_user_ns, uid);
->  			entry->e_id = cpu_to_le32(from_kuid(to, uid));
->  			break;
->  		case ACL_GROUP:
->  			gid = make_kgid(from, le32_to_cpu(entry->e_id));
-> -			if (from_user)
-> -				gid = mapped_kgid_user(mnt_userns, &init_user_ns, gid);
-> -			else
-> -				gid = mapped_kgid_fs(mnt_userns, &init_user_ns, gid);
->  			entry->e_id = cpu_to_le32(from_kgid(to, gid));
->  			break;
->  		default:
-> @@ -758,34 +831,20 @@ static void posix_acl_fix_xattr_userns(
->  	}
->  }
->  
-> -void posix_acl_fix_xattr_from_user(struct user_namespace *mnt_userns,
-> -				   struct inode *inode,
-> -				   void *value, size_t size)
-> +void posix_acl_fix_xattr_from_user(void *value, size_t size)
->  {
->  	struct user_namespace *user_ns = current_user_ns();
-> -
-> -	/* Leave ids untouched on non-idmapped mounts. */
-> -	if (no_idmapping(mnt_userns, i_user_ns(inode)))
-> -		mnt_userns = &init_user_ns;
-> -	if ((user_ns == &init_user_ns) && (mnt_userns == &init_user_ns))
-> +	if (user_ns == &init_user_ns)
->  		return;
-> -	posix_acl_fix_xattr_userns(&init_user_ns, user_ns, mnt_userns, value,
-> -				   size, true);
-> +	posix_acl_fix_xattr_userns(&init_user_ns, user_ns, value, size);
->  }
->  
-> -void posix_acl_fix_xattr_to_user(struct user_namespace *mnt_userns,
-> -				 struct inode *inode,
-> -				 void *value, size_t size)
-> +void posix_acl_fix_xattr_to_user(void *value, size_t size)
->  {
->  	struct user_namespace *user_ns = current_user_ns();
-> -
-> -	/* Leave ids untouched on non-idmapped mounts. */
-> -	if (no_idmapping(mnt_userns, i_user_ns(inode)))
-> -		mnt_userns = &init_user_ns;
-> -	if ((user_ns == &init_user_ns) && (mnt_userns == &init_user_ns))
-> +	if (user_ns == &init_user_ns)
->  		return;
-> -	posix_acl_fix_xattr_userns(user_ns, &init_user_ns, mnt_userns, value,
-> -				   size, false);
-> +	posix_acl_fix_xattr_userns(user_ns, &init_user_ns, value, size);
->  }
->  
->  /*
-> diff --git a/fs/xattr.c b/fs/xattr.c
-> index e8dd03e4561e..d60893b0056c 100644
-> --- a/fs/xattr.c
-> +++ b/fs/xattr.c
-> @@ -282,13 +282,19 @@ __vfs_setxattr_locked(struct user_namespace *mnt_userns, struct dentry *dentry,
->  }
->  EXPORT_SYMBOL_GPL(__vfs_setxattr_locked);
->  
-> +static inline bool is_posix_acl_xattr(const char *name)
-> +{
-> +	return (strcmp(name, XATTR_NAME_POSIX_ACL_ACCESS) == 0) ||
-> +	       (strcmp(name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0);
-> +}
-> +
->  int
->  vfs_setxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
-> -	     const char *name, const void *value, size_t size, int flags)
-> +	     const char *name, void *value, size_t size, int flags)
->  {
->  	struct inode *inode = dentry->d_inode;
->  	struct inode *delegated_inode = NULL;
-> -	const void  *orig_value = value;
-> +	void  *orig_value = value;
->  	int error;
->  
->  	if (size && strcmp(name, XATTR_NAME_CAPS) == 0) {
-> @@ -298,6 +304,9 @@ vfs_setxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
->  		size = error;
->  	}
->  
-> +	if (size && is_posix_acl_xattr(name))
-> +		posix_acl_setxattr_idmapped_mnt(mnt_userns, inode, value, size);
-> +
->  retry_deleg:
->  	inode_lock(inode);
->  	error = __vfs_setxattr_locked(mnt_userns, dentry, name, value, size,
-> @@ -431,7 +440,10 @@ vfs_getxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
->  		return ret;
->  	}
->  nolsm:
-> -	return __vfs_getxattr(dentry, inode, name, value, size);
-> +	error = __vfs_getxattr(dentry, inode, name, value, size);
-> +	if (error > 0 && is_posix_acl_xattr(name))
-> +		posix_acl_getxattr_idmapped_mnt(mnt_userns, inode, value, size);
-> +	return error;
->  }
->  EXPORT_SYMBOL_GPL(vfs_getxattr);
->  
-> @@ -577,8 +589,7 @@ static void setxattr_convert(struct user_namespace *mnt_userns,
->  	if (ctx->size &&
->  		((strcmp(ctx->kname->name, XATTR_NAME_POSIX_ACL_ACCESS) == 0) ||
->  		(strcmp(ctx->kname->name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0)))
-> -		posix_acl_fix_xattr_from_user(mnt_userns, d_inode(d),
-> -						ctx->kvalue, ctx->size);
-> +		posix_acl_fix_xattr_from_user(ctx->kvalue, ctx->size);
->  }
->  
->  int do_setxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
-> @@ -695,8 +706,7 @@ do_getxattr(struct user_namespace *mnt_userns, struct dentry *d,
->  	if (error > 0) {
->  		if ((strcmp(kname, XATTR_NAME_POSIX_ACL_ACCESS) == 0) ||
->  		    (strcmp(kname, XATTR_NAME_POSIX_ACL_DEFAULT) == 0))
-> -			posix_acl_fix_xattr_to_user(mnt_userns, d_inode(d),
-> -							ctx->kvalue, error);
-> +			posix_acl_fix_xattr_to_user(ctx->kvalue, error);
->  		if (ctx->size && copy_to_user(ctx->value, ctx->kvalue, error))
->  			error = -EFAULT;
->  	} else if (error == -ERANGE && ctx->size >= XATTR_SIZE_MAX) {
-> diff --git a/include/linux/capability.h b/include/linux/capability.h
-> index 65efb74c3585..c65c0d3c77d3 100644
-> --- a/include/linux/capability.h
-> +++ b/include/linux/capability.h
-> @@ -276,6 +276,6 @@ int get_vfs_caps_from_disk(struct user_namespace *mnt_userns,
->  			   struct cpu_vfs_cap_data *cpu_caps);
->  
->  int cap_convert_nscap(struct user_namespace *mnt_userns, struct dentry *dentry,
-> -		      const void **ivalue, size_t size);
-> +		      void **ivalue, size_t size);
->  
->  #endif /* !_LINUX_CAPABILITY_H */
-> diff --git a/include/linux/posix_acl_xattr.h b/include/linux/posix_acl_xattr.h
-> index 1766e1de6956..c4afeebcae32 100644
-> --- a/include/linux/posix_acl_xattr.h
-> +++ b/include/linux/posix_acl_xattr.h
-> @@ -33,21 +33,29 @@ posix_acl_xattr_count(size_t size)
->  }
->  
->  #ifdef CONFIG_FS_POSIX_ACL
-> -void posix_acl_fix_xattr_from_user(struct user_namespace *mnt_userns,
-> -				   struct inode *inode,
-> -				   void *value, size_t size);
-> -void posix_acl_fix_xattr_to_user(struct user_namespace *mnt_userns,
-> -				   struct inode *inode,
-> -				 void *value, size_t size);
-> +void posix_acl_fix_xattr_from_user(void *value, size_t size);
-> +void posix_acl_fix_xattr_to_user(void *value, size_t size);
-> +void posix_acl_getxattr_idmapped_mnt(struct user_namespace *mnt_userns,
-> +				     const struct inode *inode,
-> +				     void *value, size_t size);
-> +void posix_acl_setxattr_idmapped_mnt(struct user_namespace *mnt_userns,
-> +				     const struct inode *inode,
-> +				     void *value, size_t size);
->  #else
-> -static inline void posix_acl_fix_xattr_from_user(struct user_namespace *mnt_userns,
-> -						 struct inode *inode,
-> -						 void *value, size_t size)
-> +static inline void posix_acl_fix_xattr_from_user(void *value, size_t size)
->  {
->  }
-> -static inline void posix_acl_fix_xattr_to_user(struct user_namespace *mnt_userns,
-> -					       struct inode *inode,
-> -					       void *value, size_t size)
-> +static inline void posix_acl_fix_xattr_to_user(void *value, size_t size)
-> +{
-> +}
-> +void posix_acl_getxattr_idmapped_mnt(struct user_namespace *mnt_userns,
-> +				     const struct inode *inode,
-> +				     void *value, size_t size)
-> +{
-> +}
-> +void posix_acl_setxattr_idmapped_mnt(struct user_namespace *mnt_userns,
-> +				     const struct inode *inode,
-> +				     void *value, size_t size)
->  {
->  }
->  #endif
-> diff --git a/include/linux/xattr.h b/include/linux/xattr.h
-> index 4c379d23ec6e..979a9d3e5bfb 100644
-> --- a/include/linux/xattr.h
-> +++ b/include/linux/xattr.h
-> @@ -61,7 +61,7 @@ int __vfs_setxattr_locked(struct user_namespace *, struct dentry *,
->  			  const char *, const void *, size_t, int,
->  			  struct inode **);
->  int vfs_setxattr(struct user_namespace *, struct dentry *, const char *,
-> -		 const void *, size_t, int);
-> +		 void *, size_t, int);
->  int __vfs_removexattr(struct user_namespace *, struct dentry *, const char *);
->  int __vfs_removexattr_locked(struct user_namespace *, struct dentry *,
->  			     const char *, struct inode **);
-> diff --git a/security/commoncap.c b/security/commoncap.c
-> index 5fc8986c3c77..47c9b1a4a8bb 100644
-> --- a/security/commoncap.c
-> +++ b/security/commoncap.c
-> @@ -538,7 +538,7 @@ static bool validheader(size_t size, const struct vfs_cap_data *cap)
->   * Return: On success, return the new size; on error, return < 0.
->   */
->  int cap_convert_nscap(struct user_namespace *mnt_userns, struct dentry *dentry,
-> -		      const void **ivalue, size_t size)
-> +		      void **ivalue, size_t size)
->  {
->  	struct vfs_ns_cap_data *nscap;
->  	uid_t nsrootid;
-> 
-> base-commit: 88084a3df1672e131ddc1b4e39eeacfd39864acf
-> -- 
-> 2.34.1
-> 
-
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
