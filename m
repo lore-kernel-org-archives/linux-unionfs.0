@@ -2,92 +2,86 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFA0C43334
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Jul 2022 13:58:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5198EC433EF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 11 Jul 2022 20:11:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232462AbiGHN6Z (ORCPT
+        id S229629AbiGKULE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 8 Jul 2022 09:58:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58348 "EHLO
+        Mon, 11 Jul 2022 16:11:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237500AbiGHN6X (ORCPT
+        with ESMTP id S229542AbiGKULD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 8 Jul 2022 09:58:23 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7C62CDD5
-        for <linux-unionfs@vger.kernel.org>; Fri,  8 Jul 2022 06:58:22 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A01F6281A
-        for <linux-unionfs@vger.kernel.org>; Fri,  8 Jul 2022 13:58:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAC8CC341C0;
-        Fri,  8 Jul 2022 13:58:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1657288701;
-        bh=aS2ZBvHdj6zvkVNlqbQKZQneSdff/hZPJViFtRROYjg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=evYwJqIoeFUkBraOffhcrqcUTnlFKtrwEyhJaoJCRttqCiJ9Gp1BR+n/ubjEzoB01
-         8nrj8hOQAtAY/XsNa/bf4kKlT+JX4pqEUWXir2DqI7Ql9vZ69do5PORoWyptlnu04Y
-         KFoDHX8QFoiYnL2cQOhhoYjdrO9qZLpuRvQwOSEuLPvESzlZex3x7DLWzYJBlmAzSR
-         dH+WwccS7asUi4Wxfc0lqsO5pweI/bKIoh9BzqeZhYSGu7r/VH1Uh1m6msRIIBYiqr
-         uTnMApi5d6hmhyVp5RrogxHcltLmfFB0NNy2M46uo3oW/Tcc/7bERLUAfZNq8H76ST
-         TUkEcpD7FzaYw==
-Date:   Fri, 8 Jul 2022 15:58:16 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Seth Forshee <sforshee@digitalocean.com>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: [PATCH] ovl: turn of SB_POSIXACL with idmapped layers temporarily
-Message-ID: <20220708135816.qovjjyoe2iw2hid4@wittgenstein>
-References: <20220706135611.257213-1-brauner@kernel.org>
- <CAJfpegvg4AWRSotysxvcODLxX12gVCKm7=qUquu=Mo=sFtCy7g@mail.gmail.com>
- <20220707103336.op6zxx4wgqv6enxv@wittgenstein>
- <CAJfpegvS7ZzuauqbuWsUdOh=F=0=aCrd6vOKbGTMgcNYgDN4WA@mail.gmail.com>
+        Mon, 11 Jul 2022 16:11:03 -0400
+Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 48E0F2B1A0
+        for <linux-unionfs@vger.kernel.org>; Mon, 11 Jul 2022 13:11:02 -0700 (PDT)
+Received: by mail-wr1-x436.google.com with SMTP id f2so8422594wrr.6
+        for <linux-unionfs@vger.kernel.org>; Mon, 11 Jul 2022 13:11:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to;
+        bh=4qBBvQLkalstXPKKvGBw+eSa+Bdn/j8tTK7/6tgITzQ=;
+        b=4nZVwU9rxNDgtblc6K29Fzjkqd3jaQg7+msXBFfPBpie2EXd64tgsM67YAELuhpPCj
+         /FcjC1sG9TvNFQiQKcJ7LAvHwVOI4/0S62gGu4kX1kjywRUA258qFRT2OmrsRvaWscsj
+         zuTf/sqO3hS6Gp1Lln7+9bx/DKsf/RpSUHmR6xzzN6WU+FWRFLcoucRLKtVvnYu7rJym
+         LnvsLM+m9Xoc/R+g1rbEqP5Y6KX2qPzV0CRkQLlyP4x4TzgHCmH8OUKj9q3h5PLtAL2s
+         mKSF+z9nDkMH6K1I9nKqCLimJGTNN1PuRKtQKzses81iHbC5hotCO9z9RkV98p+gvVsj
+         zSLQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to;
+        bh=4qBBvQLkalstXPKKvGBw+eSa+Bdn/j8tTK7/6tgITzQ=;
+        b=s6UYj7bVZIxDK6HNUatFfehJtYbBBbWmH2+EJVGbdToLf6CqayabfBUzzXASUa2NQO
+         F1SsneeMOTMLMTrlN1stdLulzdupyHgDoSAmmMxryHjSc7aVX1maXSq0c3Yn9LCfVcQ8
+         6XHPxQ+fKat4YX7QKzE+sYLVKy488jih6AL86t9tT1xPgIkKZ1cPVT8Sl6cFn346f0oE
+         Oq+kcNcDKi2wHJW4qS/3CJ1HxfGJSQRkGi3aNLZRz/BAYueMQmyu+P8C87FvJYOAwdm9
+         a1ikW8UG4mXq2ixlMx+jb1ZJsq07zKBVgdwU3cL4QAIo0pgkinX3AqTKVq5kWqVun0F1
+         fo2w==
+X-Gm-Message-State: AJIora9ZHZhOxwwyF8TwHk2tkBd8pFvL1yP6zD0PmdVUUz1dbm5u72J+
+        7G0qsZjSMQrHmXtACqg+mVphfjpvOHAwNGZfrLxyHdtbKw==
+X-Google-Smtp-Source: AGRyM1vcKYYfmobWVhqVsis7TZ0/WUFPE8lDnNgKNQfhTHyMsfiv7K5sB7KQTKGTX3No9LzzMtFDKAigyu/HXYoOHN0=
+X-Received: by 2002:adf:f345:0:b0:21d:6a26:6d8f with SMTP id
+ e5-20020adff345000000b0021d6a266d8fmr19079659wrp.538.1657570260838; Mon, 11
+ Jul 2022 13:11:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAJfpegvS7ZzuauqbuWsUdOh=F=0=aCrd6vOKbGTMgcNYgDN4WA@mail.gmail.com>
+References: <165668469351.28601.2872895377697386439.stgit@olly> <CAHC9VhSBF5oK0x2zw6xemqNn-Zf5p8ih8Q5hWyF9waF1RpzAvA@mail.gmail.com>
+In-Reply-To: <CAHC9VhSBF5oK0x2zw6xemqNn-Zf5p8ih8Q5hWyF9waF1RpzAvA@mail.gmail.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Mon, 11 Jul 2022 16:11:09 -0400
+Message-ID: <CAHC9VhRmTzZD9HCWUeWx2=dV2v33kzzoJ1mtUtpEZT3uLjF=7w@mail.gmail.com>
+Subject: Re: [RFC PATCH] ovl: properly release old cache entries in ovl_cache_get()
+To:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jul 08, 2022 at 03:54:09PM +0200, Miklos Szeredi wrote:
-> On Thu, 7 Jul 2022 at 12:33, Christian Brauner <brauner@kernel.org> wrote:
+On Fri, Jul 1, 2022 at 10:15 AM Paul Moore <paul@paul-moore.com> wrote:
+> On Fri, Jul 1, 2022 at 10:11 AM Paul Moore <paul@paul-moore.com> wrote:
 > >
-> > On Thu, Jul 07, 2022 at 09:58:47AM +0200, Miklos Szeredi wrote:
-> > > On Wed, 6 Jul 2022 at 15:59, Christian Brauner <brauner@kernel.org> wrote:
-> 
-> > > However I don't think clearing SB_POSIXACL will do that.
-> > >
-> > > Maybe denying the operation in ovl_posix_acl_xattr_{get,set}() is the
-> > > right way to achieve the above?
+> > If an old readdir cache entry is found during lookup we need to
+> > ensure that we drop a reference to the old cache entry before
+> > we remove it from the cache.
 > >
-> > Hm, removing SB_POSIXACL in my tests fixed that completely. But we can
-> > add an additional check:
-> 
-> Strange... In my tests just clearing SB_POSIXACL will still let
-> overlayfs get and set ACL's.
+> > Signed-off-by: Paul Moore <paul@paul-moore.com>
+> > ---
+> >  fs/overlayfs/readdir.c |   21 +++++++++++----------
+> >  1 file changed, 11 insertions(+), 10 deletions(-)
+>
+> I ran across this a few months ago while working on something related
+> in overlayfs' readdir cache, unfortunately that work has been shelved
+> for now, but it seems like this bugfix might still have merit,
+> although I'll leave that decision up to the overlayfs experts; it's
+> very possible I've missed an important detail and this isn't actually
+> a bug.
+>
+> I've done some basic manual testing (kernel boots,
+> mounting/traversal/accesses are all okay), but nothing exhaustive.
 
-No, you were right. I was only checking ->get_acl() codepaths, not
-directly {g,s}etxattr() so my bad!
+Based on the lack of a response, should I assume this is not a bug and
+this patch is not needed?
 
-> 
-> >
-> >         if (!IS_POSIXACL(inode))
-> >                 return -EOPNOTSUPP;
-> >
-> > to both helpers additionally? Can you do that when you apply or do you
-> > want me to send a version with that added?
-> 
-> Added, also simplified ovl_has_idmapped_layers().
-> 
-> Pushed to #overlayfs-next  and will send to Linus next week.
-
-Thank you!
-Christian
+-- 
+paul-moore.com
