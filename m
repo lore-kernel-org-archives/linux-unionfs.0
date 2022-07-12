@@ -2,115 +2,107 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D069C43334
-	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jul 2022 15:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4010CC43334
+	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jul 2022 15:26:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230111AbiGLPZN (ORCPT
+        id S233212AbiGLP0j (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 12 Jul 2022 11:25:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55416 "EHLO
+        Tue, 12 Jul 2022 11:26:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34696 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232986AbiGLPY5 (ORCPT
+        with ESMTP id S233520AbiGLP03 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Jul 2022 11:24:57 -0400
-Received: from mail-m971.mail.163.com (mail-m971.mail.163.com [123.126.97.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 48ED15C9EE;
-        Tue, 12 Jul 2022 08:24:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=G+z5b
-        nYslAb/L5CvdEE281XrI0AtqzAgEbcezhR5z/g=; b=of5oPnfq0ElM4u3Gp0z1i
-        H6x9dcdaHbpeBh69qyBYQnJumYC0pdTof2nv3tDiWNCBJI1Ds78hDK1D3AuCWwGF
-        g8HTkld/63jjyU8LfwTJoKBk+FBMvPH37FIw2dWOHj67/lPR3/D+x2SS3tPRTbGy
-        fjcETL9HHU3Fir0f7JuGiQ=
-Received: from localhost.localdomain (unknown [123.58.221.99])
-        by smtp1 (Coremail) with SMTP id GdxpCgDnQqXpkc1iayuaNw--.2084S2;
-        Tue, 12 Jul 2022 23:23:24 +0800 (CST)
-From:   williamsukatube@163.com
-To:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     miklos@szeredi.hu, William Dean <williamsukatube@gmail.com>,
-        Hacash Robot <hacashRobot@santino.com>
-Subject: [PATCH -next] ovl: clean up comparsions to NULL
-Date:   Tue, 12 Jul 2022 23:23:18 +0800
-Message-Id: <20220712152318.2649819-1-williamsukatube@163.com>
-X-Mailer: git-send-email 2.25.1
+        Tue, 12 Jul 2022 11:26:29 -0400
+Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BE132F03E
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Jul 2022 08:26:28 -0700 (PDT)
+Received: by mail-wr1-x42d.google.com with SMTP id a5so11664066wrx.12
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Jul 2022 08:26:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=HM6IkKz6GiWAXMyG17S3kqQ6je/YJEcM0KLSycGzMfY=;
+        b=ojG9PSqwjBbAfRCx6wW7W8aD3YtDip+aAIlULOWEGdSGKRCV0WZmGCiljCrOqWln7A
+         UxGZcBBsd/ZRlbDedawHQOUj7MMdVVzavRW9ONMflwlpwqCrNY4zQU7cY9oml40klPUc
+         Ok115c/lQgXsqrFGqV5F1SLcpYCrpfX53YxqrI0L0PMNZ5RpcKoLDhQbSb8SnArBJaBF
+         260UqL0TpX8Qydcqm+9t5kRA9hHNzTfNn4qdhNYRds7wcj17lM3pBNSBffRMm/ABPzBQ
+         PfVMjDgNjULLnnHQwewNDozNU8g+lglhbeRRByKY6dkytpkoV9Kh1zEfLPoBlPfLggqc
+         5C3A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=HM6IkKz6GiWAXMyG17S3kqQ6je/YJEcM0KLSycGzMfY=;
+        b=s3y41sntil4EGuKny9qh5ZUhtqpBY+61HTaG2g7We4lxj8TEB5PkgLf7dCKMIH2R8O
+         IYLDgdF0Ta3G98WhcVQW0h68IY6ZtG4/mcCxknkI0I2a+i740Q03DlnrATcn4xYMUaXw
+         eTugkHfwjTamzoO9laDlSE6gmSV2L0K6dkwrIHkHpG0yDBU0Nz15bmGdSobkbHktAFhk
+         4b2vv8wYVkXlPeQPVY6PXYxO++JwGxTV2Q3Ks0njuu3PbaB4oID/lEDmjRIi+ukgWDxJ
+         Bsq6Qg4xUj10ggrn0+F1W4cdNs2lHXgoiNmHc1u69qaRADX3sdnjiyXCAu1S9CISs62O
+         uMjw==
+X-Gm-Message-State: AJIora9D7PxnBRuJAM202BDuWMxpgd/OVcQHKdvwg0gwRvDLV4fxov/6
+        BqPh3Nryw21mxEMnxDAy7C/a1Ryk5uZ1ZG1tNf6EbCTJ+w==
+X-Google-Smtp-Source: AGRyM1urQ0WXuOONjO9+8BAEpjg8aiiIDSEsPlg2LpEWLiZG3IASYvl3mr0aad0mOsDjcKCtcWluMQ8HdHoZmtjcCW0=
+X-Received: by 2002:a5d:698c:0:b0:21d:b2d0:ad4e with SMTP id
+ g12-20020a5d698c000000b0021db2d0ad4emr3642667wru.483.1657639587079; Tue, 12
+ Jul 2022 08:26:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: GdxpCgDnQqXpkc1iayuaNw--.2084S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7AF4rKry3ur1xWFy3KFyUZFb_yoW8CFWUpF
-        WxCa4rt34rX347ZF1SyF4q9Fy5X395GF47J348uwsFv395Ww4rAryjy3WjqF9rAFWrurWa
-        vanYgry5Ja1kZF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07b1GYLUUUUU=
-X-Originating-IP: [123.58.221.99]
-X-CM-SenderInfo: xzlozx5dpv3yxdwxuvi6rwjhhfrp/xtbB0Aw8g2EsrUTQrwAAs4
+References: <165668469351.28601.2872895377697386439.stgit@olly>
+ <CAHC9VhSBF5oK0x2zw6xemqNn-Zf5p8ih8Q5hWyF9waF1RpzAvA@mail.gmail.com>
+ <CAHC9VhRmTzZD9HCWUeWx2=dV2v33kzzoJ1mtUtpEZT3uLjF=7w@mail.gmail.com> <CAJfpegsAzgOBvBTv48N6e+xjS6h0wFAVjM7z+rFT_FK-va=35w@mail.gmail.com>
+In-Reply-To: <CAJfpegsAzgOBvBTv48N6e+xjS6h0wFAVjM7z+rFT_FK-va=35w@mail.gmail.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Tue, 12 Jul 2022 11:26:16 -0400
+Message-ID: <CAHC9VhRnEq1q--n-Xnu251ZhTr5+Nq_nPift55bE-GdXBEc=zQ@mail.gmail.com>
+Subject: Re: [RFC PATCH] ovl: properly release old cache entries in ovl_cache_get()
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: William Dean <williamsukatube@gmail.com>
+On Tue, Jul 12, 2022 at 9:05 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> On Mon, 11 Jul 2022 at 22:11, Paul Moore <paul@paul-moore.com> wrote:
+> > On Fri, Jul 1, 2022 at 10:15 AM Paul Moore <paul@paul-moore.com> wrote:
+> > > On Fri, Jul 1, 2022 at 10:11 AM Paul Moore <paul@paul-moore.com> wrote:
+> > > >
+> > > > If an old readdir cache entry is found during lookup we need to
+> > > > ensure that we drop a reference to the old cache entry before
+> > > > we remove it from the cache.
+> > > >
+> > > > Signed-off-by: Paul Moore <paul@paul-moore.com>
+> > > > ---
+> > > >  fs/overlayfs/readdir.c |   21 +++++++++++----------
+> > > >  1 file changed, 11 insertions(+), 10 deletions(-)
+> > >
+> > > I ran across this a few months ago while working on something related
+> > > in overlayfs' readdir cache, unfortunately that work has been shelved
+> > > for now, but it seems like this bugfix might still have merit,
+> > > although I'll leave that decision up to the overlayfs experts; it's
+> > > very possible I've missed an important detail and this isn't actually
+> > > a bug.
+> > >
+> > > I've done some basic manual testing (kernel boots,
+> > > mounting/traversal/accesses are all okay), but nothing exhaustive.
+> >
+> > Based on the lack of a response, should I assume this is not a bug and
+> > this patch is not needed?
+>
+> Hi Paul,
+>
+> Sorry for the late response.
+>
+> Yes, the code is okay, though could be better documented.   The logic
+> is that only open directories contain counted references to the cache,
+> not the directory inode.  The uncounted reference from the inode is
+> used to allow sharing the cache in case there are mulitple directory
+> readers. Thus the ref from the inode can be dropped without
+> decrementing the count, and this reference is reset to NULL when the
+> count hits zero.  Locking is provided by i_rwsem.
 
-Clean up comparsions to NULL, simplify as follows:
-if (x == NULL) -> if (!x)
+Great, I'm glad to hear the existing code is working as intended.
+Thanks for the explanation too!
 
-Reported-by: Hacash Robot <hacashRobot@santino.com>
-Signed-off-by: William Dean <williamsukatube@gmail.com>
----
- fs/overlayfs/readdir.c | 6 +++---
- fs/overlayfs/super.c   | 4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 78f62cc1797b..953ff22d825c 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -182,7 +182,7 @@ static int ovl_cache_entry_add_rb(struct ovl_readdir_data *rdd,
- 		return 0;
- 
- 	p = ovl_cache_entry_new(rdd, name, len, ino, d_type);
--	if (p == NULL) {
-+	if (!p) {
- 		rdd->err = -ENOMEM;
- 		return -ENOMEM;
- 	}
-@@ -205,7 +205,7 @@ static int ovl_fill_lowest(struct ovl_readdir_data *rdd,
- 		list_move_tail(&p->l_node, &rdd->middle);
- 	} else {
- 		p = ovl_cache_entry_new(rdd, name, namelen, ino, d_type);
--		if (p == NULL)
-+		if (!p)
- 			rdd->err = -ENOMEM;
- 		else
- 			list_add_tail(&p->l_node, &rdd->middle);
-@@ -538,7 +538,7 @@ static int ovl_fill_plain(struct dir_context *ctx, const char *name,
- 
- 	rdd->count++;
- 	p = ovl_cache_entry_new(rdd, name, namelen, ino, d_type);
--	if (p == NULL) {
-+	if (!p) {
- 		rdd->err = -ENOMEM;
- 		return -ENOMEM;
- 	}
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index e0a2e0468ee7..a474cb8040b2 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -468,7 +468,7 @@ static char *ovl_next_opt(char **s)
- 	char *sbegin = *s;
- 	char *p;
- 
--	if (sbegin == NULL)
-+	if (!sbegin)
- 		return NULL;
- 
- 	for (p = sbegin; *p; p++) {
-@@ -2186,7 +2186,7 @@ static int __init ovl_init(void)
- 					     (SLAB_RECLAIM_ACCOUNT|
- 					      SLAB_MEM_SPREAD|SLAB_ACCOUNT),
- 					     ovl_inode_init_once);
--	if (ovl_inode_cachep == NULL)
-+	if (!ovl_inode_cachep)
- 		return -ENOMEM;
- 
- 	err = ovl_aio_request_cache_init();
 -- 
-2.25.1
-
+paul-moore.com
