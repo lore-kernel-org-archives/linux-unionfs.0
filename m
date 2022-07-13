@@ -2,180 +2,89 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F4AAC433EF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Jul 2022 07:33:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2352C433EF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Jul 2022 10:18:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232024AbiGMHdS (ORCPT
+        id S234823AbiGMKSZ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 13 Jul 2022 03:33:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58800 "EHLO
+        Wed, 13 Jul 2022 06:18:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42844 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231130AbiGMHdR (ORCPT
+        with ESMTP id S230472AbiGMKSY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 13 Jul 2022 03:33:17 -0400
-Received: from mail-m973.mail.163.com (mail-m973.mail.163.com [123.126.97.3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0FE10E4774;
-        Wed, 13 Jul 2022 00:33:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=+iaFH
-        0XVV9VnTnS/vk4XmqXA2CqdtbQq885CFUjkLo8=; b=J+7JVxOrL+QHtxHXzsMzS
-        DUZKTZz8DmwQCZnU+b6PD7I4jvC6De+rYG+Q2GGdyPyIoS/xDuia36tExekI00fV
-        UZUjVMpWZ8FqaP43LqYXx41oZdLP+m5lkn4HLJB+WK4gCrw9Ec+X5OJBJNycD4kH
-        0rK1SADHSnWk3alHBt2pHk=
-Received: from localhost.localdomain (unknown [123.58.221.99])
-        by smtp3 (Coremail) with SMTP id G9xpCgC39aEFdc5imZ1_Ow--.5085S2;
-        Wed, 13 Jul 2022 15:32:22 +0800 (CST)
-From:   williamsukatube@163.com
-To:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     miklos@szeredi.hu, William Dean <williamsukatube@gmail.com>,
-        Hacash Robot <hacashRobot@santino.com>
-Subject: [PATCH] ovl: Fix a potential memory leak for kstrdup()
-Date:   Wed, 13 Jul 2022 15:32:17 +0800
-Message-Id: <20220713073217.2663078-1-williamsukatube@163.com>
-X-Mailer: git-send-email 2.25.1
+        Wed, 13 Jul 2022 06:18:24 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D63E3FA1D8
+        for <linux-unionfs@vger.kernel.org>; Wed, 13 Jul 2022 03:18:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9650EB81D87
+        for <linux-unionfs@vger.kernel.org>; Wed, 13 Jul 2022 10:18:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91315C34114;
+        Wed, 13 Jul 2022 10:18:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1657707501;
+        bh=6uwWow39rEewEZPxJu+5vNne5J3Fr2dD6Ha1qbLbTTw=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=f4oPAxUy8WGxtQ/kaMMVzK6LZIAurhVfMb15L84vtDIMkXsWkxhLY4PTiZIye7Y25
+         td0UuyTKpILaqtzAOfq8oH1fQN/tmYCBFmpXFDZHvg1VzFz26rC7SaIIGv7lxkoCrv
+         eiRFBqBE9Ye+m7Tr0w2G6zAvEA/W2He55Mtig7R9GQ3vtia+seqXOAz+VnyutJA6Q+
+         mrkO8mXsbL5Kaai1qAKA0/ylE09DhbA8I1X2g3HKYrh9vgyKYBe4niBCGMrGnMku3U
+         rwdRGqt/dk6qIjKO6wEqNhwkU0/ERSLLa9XBvcAWnZDyHfYPGMHgV3au9JOb97YsQG
+         f4HM3DFg/lHRw==
+Date:   Wed, 13 Jul 2022 12:18:14 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Miklos Szeredi <mszeredi@redhat.com>
+Cc:     Vivek Goyal <vgoyal@redhat.com>, Christoph Hellwig <hch@lst.de>,
+        Aleksa Sarai <cyphar@cyphar.com>,
+        linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+        Seth Forshee <sforshee@digitalocean.com>
+Subject: Re: [PATCH v2 0/3] ovl: acl fixes
+Message-ID: <20220713101814.d5vg3qcc2qk46vqs@wittgenstein>
+References: <20220708090134.385160-1-brauner@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: G9xpCgC39aEFdc5imZ1_Ow--.5085S2
-X-Coremail-Antispam: 1Uf129KBjvJXoWxJFyxur4kArWxurW3trWkZwb_yoW5Kw1DpF
-        48ury3JrWUJFyfXr42kFykuFy5Kwn7GFy5C3W8Aa17J3ZIkry0yFy5Kr1a9Fy3AF98Xry0
-        vFZ5KF1jgFsrZF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07brAp5UUUUU=
-X-Originating-IP: [123.58.221.99]
-X-CM-SenderInfo: xzlozx5dpv3yxdwxuvi6rwjhhfrp/xtbB0AY9g2EsrUz2EwAAsh
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220708090134.385160-1-brauner@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: William Dean <williamsukatube@gmail.com>
+On Fri, Jul 08, 2022 at 11:01:31AM +0200, Christian Brauner wrote:
+> From: "Christian Brauner (Microsoft)" <brauner@kernel.org>
+> 
+> Hey everyone,
+> Hey Miklos,
+> 
+> This is the series I described and announced in the commit message to
+> the patch I sent yesterdat (see [1]). It enables POSIX ACLs for
+> overlayfs on top of idmapped layers. It encompasses everything that is
+> needed to make this work correctly. There is a detailed explanation in
+> the first patch of this series so I won't repeat it all here in the
+> cover letter.
+> 
+> My plan would be to get this ready for the next merge window.
+> Once Miklos has merged the temporary fix I sent out yesterday in [1] and
+> it shows up in mainline I will rebase this series on top of the next
+> mainline rc. I will then add a revert of the fix in [1] to this series
+> reenabling POSIX ACL support for overlayfs on top of idmapped layers.
+> 
+> I will also merge in the vfs{g,u}id_t work that is in -next replacing
+> the old idmapped mount helpers with the new type safe idmapping helpers.
 
-kfree() is missing on an error path to free the memory
-allocated by kstrdup():
+Hey Miklos,
 
-config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+I've moved this into my for-next now with the changes I mentioned above.
+Could please take a look at the
 
-So it is better to free it via kfree(config->redirect_mode).
+    fs.idmapped.overlay.acl
 
-Reported-by: Hacash Robot <hacashRobot@santino.com>
-Signed-off-by: William Dean <williamsukatube@gmail.com>
----
- fs/overlayfs/super.c | 42 +++++++++++++++++++++++++++++-------------
- 1 file changed, 29 insertions(+), 13 deletions(-)
+branch at
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index b936e2c9226b..6e95ea078915 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -533,22 +533,28 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		case OPT_UPPERDIR:
- 			kfree(config->upperdir);
- 			config->upperdir = match_strdup(&args[0]);
--			if (!config->upperdir)
--				return -ENOMEM;
-+			if (!config->upperdir) {
-+				err = -ENOMEM;
-+				goto out_err;
-+			}
- 			break;
- 
- 		case OPT_LOWERDIR:
- 			kfree(config->lowerdir);
- 			config->lowerdir = match_strdup(&args[0]);
--			if (!config->lowerdir)
--				return -ENOMEM;
-+			if (!config->lowerdir) {
-+				err = -ENOMEM;
-+				goto out_err;
-+			}
- 			break;
- 
- 		case OPT_WORKDIR:
- 			kfree(config->workdir);
- 			config->workdir = match_strdup(&args[0]);
--			if (!config->workdir)
--				return -ENOMEM;
-+			if (!config->workdir) {
-+				err = -ENOMEM;
-+				goto out_err;
-+			}
- 			break;
- 
- 		case OPT_DEFAULT_PERMISSIONS:
-@@ -624,7 +630,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		default:
- 			pr_err("unrecognized mount option \"%s\" or missing value\n",
- 					p);
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto out_err;
- 		}
- 	}
- 
-@@ -650,7 +657,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- 	err = ovl_parse_redirect_mode(config, config->redirect_mode);
- 	if (err)
--		return err;
-+		goto out_err;
- 
- 	/*
- 	 * This is to make the logic below simpler.  It doesn't make any other
-@@ -664,7 +671,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		if (metacopy_opt && redirect_opt) {
- 			pr_err("conflicting options: metacopy=on,redirect_dir=%s\n",
- 			       config->redirect_mode);
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto out_err;
- 		}
- 		if (redirect_opt) {
- 			/*
-@@ -687,7 +695,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			config->nfs_export = false;
- 		} else if (nfs_export_opt && index_opt) {
- 			pr_err("conflicting options: nfs_export=on,index=off\n");
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto out_err;
- 		} else if (index_opt) {
- 			/*
- 			 * There was an explicit index=off that resulted
-@@ -705,7 +714,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 	if (config->nfs_export && config->metacopy) {
- 		if (nfs_export_opt && metacopy_opt) {
- 			pr_err("conflicting options: nfs_export=on,metacopy=on\n");
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto out_err;
- 		}
- 		if (metacopy_opt) {
- 			/*
-@@ -730,11 +740,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		if (config->redirect_follow && redirect_opt) {
- 			pr_err("conflicting options: userxattr,redirect_dir=%s\n",
- 			       config->redirect_mode);
--			return -EINVAL;
-+			err =  -EINVAL;
-+			goto out_err;
- 		}
- 		if (config->metacopy && metacopy_opt) {
- 			pr_err("conflicting options: userxattr,metacopy=on\n");
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto out_err;
- 		}
- 		/*
- 		 * Silently disable default setting of redirect and metacopy.
-@@ -747,6 +759,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 	}
- 
- 	return 0;
-+
-+out_err:
-+	kfree(config->redirect_mode);
-+	return err;
- }
- 
- #define OVL_WORKDIR_NAME "work"
--- 
-2.25.1
+    git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git
 
+and tell me if that looks ok to you?
+
+Thanks!
+Christian
