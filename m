@@ -2,70 +2,180 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61E51C43334
-	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Jul 2022 16:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F4AAC433EF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Jul 2022 07:33:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233286AbiGLQCR (ORCPT
+        id S232024AbiGMHdS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 12 Jul 2022 12:02:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41224 "EHLO
+        Wed, 13 Jul 2022 03:33:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233386AbiGLQCQ (ORCPT
+        with ESMTP id S231130AbiGMHdR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Jul 2022 12:02:16 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CCFFC54B6;
-        Tue, 12 Jul 2022 09:02:16 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BAE36617AB;
-        Tue, 12 Jul 2022 16:02:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 27DECC385A2;
-        Tue, 12 Jul 2022 16:02:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1657641735;
-        bh=0Qg4rX/nTEz2srme6kYvG//si1aLq7lju1ZtMsDkPYI=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=kCxNuv/IvdyTi6md36MANZyQc1YMwVw0A/X/7ixLxHurwChonRCLXljlmTf4tXcUK
-         4BIdq2P4MAFLnFEMnv9P3zZiVXlNtpd5tzHxRVpu4TP/iw3d40QbJxl7/A53d4iQ/O
-         mojllDbIpnJP1jn88ITaoIwqhCXOv7kADKSVtTEF0gDNU/EGKPw4vW70pnpSX/ZU2z
-         VAuFC/AqXIDfioGArk8LT7eVCmlnsEGC7BcTRYhLvohO7Y3/zkfxuDl/IW77aVTIRP
-         myQE0+nuhk6X6tGKW+Fs+tQWEIf6petAmNuSB6Pv403S+zEtHxrTfAHHw+tX9sfedO
-         fJ3vdh7/6Q7tg==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 13D1CE45221;
-        Tue, 12 Jul 2022 16:02:15 +0000 (UTC)
-Subject: Re: [GIT PULL] overlayfs fixes for 5.19-rc7
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <Ys13gTA+irEuI+OA@miu.piliscsaba.redhat.com>
-References: <Ys13gTA+irEuI+OA@miu.piliscsaba.redhat.com>
-X-PR-Tracked-List-Id: <linux-unionfs.vger.kernel.org>
-X-PR-Tracked-Message-Id: <Ys13gTA+irEuI+OA@miu.piliscsaba.redhat.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.19-rc7
-X-PR-Tracked-Commit-Id: 4a47c6385bb4e0786826e75bd4555aba32953653
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 72a8e05d4f66b5af7854df4490e3135168694b6b
-Message-Id: <165764173507.23543.13119309512770152751.pr-tracker-bot@kernel.org>
-Date:   Tue, 12 Jul 2022 16:02:15 +0000
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
+        Wed, 13 Jul 2022 03:33:17 -0400
+Received: from mail-m973.mail.163.com (mail-m973.mail.163.com [123.126.97.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0FE10E4774;
+        Wed, 13 Jul 2022 00:33:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=+iaFH
+        0XVV9VnTnS/vk4XmqXA2CqdtbQq885CFUjkLo8=; b=J+7JVxOrL+QHtxHXzsMzS
+        DUZKTZz8DmwQCZnU+b6PD7I4jvC6De+rYG+Q2GGdyPyIoS/xDuia36tExekI00fV
+        UZUjVMpWZ8FqaP43LqYXx41oZdLP+m5lkn4HLJB+WK4gCrw9Ec+X5OJBJNycD4kH
+        0rK1SADHSnWk3alHBt2pHk=
+Received: from localhost.localdomain (unknown [123.58.221.99])
+        by smtp3 (Coremail) with SMTP id G9xpCgC39aEFdc5imZ1_Ow--.5085S2;
+        Wed, 13 Jul 2022 15:32:22 +0800 (CST)
+From:   williamsukatube@163.com
+To:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc:     miklos@szeredi.hu, William Dean <williamsukatube@gmail.com>,
+        Hacash Robot <hacashRobot@santino.com>
+Subject: [PATCH] ovl: Fix a potential memory leak for kstrdup()
+Date:   Wed, 13 Jul 2022 15:32:17 +0800
+Message-Id: <20220713073217.2663078-1-williamsukatube@163.com>
+X-Mailer: git-send-email 2.25.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: G9xpCgC39aEFdc5imZ1_Ow--.5085S2
+X-Coremail-Antispam: 1Uf129KBjvJXoWxJFyxur4kArWxurW3trWkZwb_yoW5Kw1DpF
+        48ury3JrWUJFyfXr42kFykuFy5Kwn7GFy5C3W8Aa17J3ZIkry0yFy5Kr1a9Fy3AF98Xry0
+        vFZ5KF1jgFsrZF7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07brAp5UUUUU=
+X-Originating-IP: [123.58.221.99]
+X-CM-SenderInfo: xzlozx5dpv3yxdwxuvi6rwjhhfrp/xtbB0AY9g2EsrUz2EwAAsh
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The pull request you sent on Tue, 12 Jul 2022 15:31:24 +0200:
+From: William Dean <williamsukatube@gmail.com>
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-5.19-rc7
+kfree() is missing on an error path to free the memory
+allocated by kstrdup():
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/72a8e05d4f66b5af7854df4490e3135168694b6b
+config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
 
-Thank you!
+So it is better to free it via kfree(config->redirect_mode).
 
+Reported-by: Hacash Robot <hacashRobot@santino.com>
+Signed-off-by: William Dean <williamsukatube@gmail.com>
+---
+ fs/overlayfs/super.c | 42 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 29 insertions(+), 13 deletions(-)
+
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index b936e2c9226b..6e95ea078915 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -533,22 +533,28 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		case OPT_UPPERDIR:
+ 			kfree(config->upperdir);
+ 			config->upperdir = match_strdup(&args[0]);
+-			if (!config->upperdir)
+-				return -ENOMEM;
++			if (!config->upperdir) {
++				err = -ENOMEM;
++				goto out_err;
++			}
+ 			break;
+ 
+ 		case OPT_LOWERDIR:
+ 			kfree(config->lowerdir);
+ 			config->lowerdir = match_strdup(&args[0]);
+-			if (!config->lowerdir)
+-				return -ENOMEM;
++			if (!config->lowerdir) {
++				err = -ENOMEM;
++				goto out_err;
++			}
+ 			break;
+ 
+ 		case OPT_WORKDIR:
+ 			kfree(config->workdir);
+ 			config->workdir = match_strdup(&args[0]);
+-			if (!config->workdir)
+-				return -ENOMEM;
++			if (!config->workdir) {
++				err = -ENOMEM;
++				goto out_err;
++			}
+ 			break;
+ 
+ 		case OPT_DEFAULT_PERMISSIONS:
+@@ -624,7 +630,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		default:
+ 			pr_err("unrecognized mount option \"%s\" or missing value\n",
+ 					p);
+-			return -EINVAL;
++			err = -EINVAL;
++			goto out_err;
+ 		}
+ 	}
+ 
+@@ -650,7 +657,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 
+ 	err = ovl_parse_redirect_mode(config, config->redirect_mode);
+ 	if (err)
+-		return err;
++		goto out_err;
+ 
+ 	/*
+ 	 * This is to make the logic below simpler.  It doesn't make any other
+@@ -664,7 +671,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		if (metacopy_opt && redirect_opt) {
+ 			pr_err("conflicting options: metacopy=on,redirect_dir=%s\n",
+ 			       config->redirect_mode);
+-			return -EINVAL;
++			err = -EINVAL;
++			goto out_err;
+ 		}
+ 		if (redirect_opt) {
+ 			/*
+@@ -687,7 +695,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->nfs_export = false;
+ 		} else if (nfs_export_opt && index_opt) {
+ 			pr_err("conflicting options: nfs_export=on,index=off\n");
+-			return -EINVAL;
++			err = -EINVAL;
++			goto out_err;
+ 		} else if (index_opt) {
+ 			/*
+ 			 * There was an explicit index=off that resulted
+@@ -705,7 +714,8 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	if (config->nfs_export && config->metacopy) {
+ 		if (nfs_export_opt && metacopy_opt) {
+ 			pr_err("conflicting options: nfs_export=on,metacopy=on\n");
+-			return -EINVAL;
++			err = -EINVAL;
++			goto out_err;
+ 		}
+ 		if (metacopy_opt) {
+ 			/*
+@@ -730,11 +740,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		if (config->redirect_follow && redirect_opt) {
+ 			pr_err("conflicting options: userxattr,redirect_dir=%s\n",
+ 			       config->redirect_mode);
+-			return -EINVAL;
++			err =  -EINVAL;
++			goto out_err;
+ 		}
+ 		if (config->metacopy && metacopy_opt) {
+ 			pr_err("conflicting options: userxattr,metacopy=on\n");
+-			return -EINVAL;
++			err = -EINVAL;
++			goto out_err;
+ 		}
+ 		/*
+ 		 * Silently disable default setting of redirect and metacopy.
+@@ -747,6 +759,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 	}
+ 
+ 	return 0;
++
++out_err:
++	kfree(config->redirect_mode);
++	return err;
+ }
+ 
+ #define OVL_WORKDIR_NAME "work"
 -- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+2.25.1
+
