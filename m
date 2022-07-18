@@ -2,85 +2,140 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72194C43334
-	for <linux-unionfs@archiver.kernel.org>; Mon, 18 Jul 2022 12:21:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 972EFC433EF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 18 Jul 2022 13:04:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235039AbiGRMVd (ORCPT
+        id S235179AbiGRNEA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 18 Jul 2022 08:21:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42724 "EHLO
+        Mon, 18 Jul 2022 09:04:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235038AbiGRMVb (ORCPT
+        with ESMTP id S235170AbiGRND7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 18 Jul 2022 08:21:31 -0400
-Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 532DC25287
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 Jul 2022 05:21:29 -0700 (PDT)
-Received: by mail-ej1-x633.google.com with SMTP id j22so20889103ejs.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 18 Jul 2022 05:21:29 -0700 (PDT)
+        Mon, 18 Jul 2022 09:03:59 -0400
+Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFFF7261C
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 Jul 2022 06:03:56 -0700 (PDT)
+Received: by mail-ed1-x536.google.com with SMTP id r6so15172348edd.7
+        for <linux-unionfs@vger.kernel.org>; Mon, 18 Jul 2022 06:03:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=ie8y8xom7gdgORK3/wgC6v2nBY/N6LA9J5NWgTDl2HM=;
-        b=dZ9jScMt4MO13dtuzooZqTSxO2bjJkLycwSI6B0TBmg9pnUReCQ76CmaV4WQ6A5J1F
-         BXd0HR3D0YzUSUo21ICIN4NsTAl3SmzYXTrgawKRuq35PsRaR1GgaemH76YDIv0NQeDv
-         D1EK/PliBPHo5GdlCRd296v+4mVWyx5UzS/OI=
+        d=kohlschutter-com.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:subject:from:in-reply-to:date:cc
+         :content-transfer-encoding:message-id:references:to;
+        bh=zM3JzhRssik7POz7o5zHEQmq3nlUbfeSo9DWVPrJQK0=;
+        b=uyNTCGd5YUjRh25MM8MbjG2pfHd13DW9QxeLHwxPdMr/HplpVZnizhjdh/UcRb6tBB
+         fCUS2xYCqMnKffsyN9BJAVAtVbr0FHNTDXh3MN1iUUIxO+4PWQzLGO+xuzHr+n8ucgVw
+         l/xOxeJ9yuI8bUIPGD+weacTDu7ZBXxmPyyLqXglJEiaAw30JHtpgT2rs48ex4eqBXZz
+         6f3lFWK50iQfYcPT7KeLfknMMuMWeVFqDd3UIIBkhTS/uK30mDX28V7wjxGctX7CL7fY
+         tjew/FkcwCaTXMZwnau7VLfG8lkLAZaM3/znyOtX363b/HY2ggAG/e1o2SIqbrh7G2tM
+         m6nQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=ie8y8xom7gdgORK3/wgC6v2nBY/N6LA9J5NWgTDl2HM=;
-        b=Id8tWZogbwf/Kw2me/CNZ3j9OlS1+rEyiBAfvic6qemTqsURurBgS0CTz2TD9F2fNd
-         zidYvPQu7OUEopxy1ugsKoLvVgOgEPGWj3q8VcnuC4rCcTUcSHy9zuiavkB4Pghrjj+G
-         DayLMDuv0czCK2nePdNYB4mY2MCzJsb6dJOk+9Igv+bOlybqIjxEXr6BFuMDz7C4rGxm
-         QpjAgqo8czBGVVJJFe62aEHS29wt0/Vq2kKUKzrT/6y2kT3evdwl6Xl6jrS1M5EdVoTB
-         fwuqGC38T3lYdMlSPo/oU28WXo6ixwfnK1KwksW3p4M7sp2AijJ0vIRgyF/1MdGabe8q
-         Vq+g==
-X-Gm-Message-State: AJIora8rearovkBqRAwZWzY/JgSlD8HsspQyEAaxFh1oN/OvCfZH25Aw
-        BRawRr/vTrd3s5DQB8M95nqzKIH/61Sp/F+PtgktwA==
-X-Google-Smtp-Source: AGRyM1vI/im93ImHCgZ05iECidEYFcWtEzzcaF2dJOWQB1/Yq5IMa3L6gYgLFbipMZiZCi+5b2lvg6oArb2FqBJ9MTI=
-X-Received: by 2002:a17:906:93ef:b0:72b:44e2:bdd8 with SMTP id
- yl15-20020a17090693ef00b0072b44e2bdd8mr25545654ejb.192.1658146887863; Mon, 18
- Jul 2022 05:21:27 -0700 (PDT)
-MIME-Version: 1.0
+        h=x-gm-message-state:mime-version:subject:from:in-reply-to:date:cc
+         :content-transfer-encoding:message-id:references:to;
+        bh=zM3JzhRssik7POz7o5zHEQmq3nlUbfeSo9DWVPrJQK0=;
+        b=wcyj3iLjXk4PhCMV6qaEevov2iJFo3KV6tQbV26XEz4q3JiCHMqV0Skgz+rd0I1eL9
+         zOGRnaS1T4yDic8d4/7s/7gacx2XP99KHJ0Mw2sO63yJSeQEpaTlhTrx3GL3lNU8guYn
+         HVpDwjZ9RwDRKuqKynDFy7XSmvQC+ZnzWalvCKvaeL5ltP5HnToow6cYzGv3p/WtHoDs
+         PpMOjuyYDbsGE3a0MsgXDgA5XHBA7o4UYL3BL+7nKRdI7CrZm6v51YUbNJiiJ4yVhYEY
+         tYv+sdDt6AS7xXkDd1GUJQiyqKjCQYeJeLK36I9NuwPPEcIATXizNKVSkrE+FU3FfA3F
+         y1dA==
+X-Gm-Message-State: AJIora8l94HtU74jcsE5thAD4S6Hjm32V9d8MLj76swySGafK6tmaI7q
+        B8PNj2tMTtY2f20K6jlsM56srg==
+X-Google-Smtp-Source: AGRyM1sGi7hDRHgbtbQ1r4bhDDCZKOUJkCZ0vIKaczfxZ3PORpdqu17Jsa5awBE4iVj+SejJfaQlNw==
+X-Received: by 2002:a05:6402:12d8:b0:43a:6a70:9039 with SMTP id k24-20020a05640212d800b0043a6a709039mr37051772edx.379.1658149435052;
+        Mon, 18 Jul 2022 06:03:55 -0700 (PDT)
+Received: from smtpclient.apple (ip5b434222.dynamic.kabel-deutschland.de. [91.67.66.34])
+        by smtp.gmail.com with ESMTPSA id g21-20020a1709061e1500b00722f8d02928sm5555089ejj.174.2022.07.18.06.03.53
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 18 Jul 2022 06:03:54 -0700 (PDT)
+Content-Type: text/plain;
+        charset=utf-8
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3696.100.31\))
+Subject: Re: [PATCH] [REGRESSION] ovl: Handle ENOSYS when fileattr support is
+ missing in lower/upper fs
+From:   =?utf-8?Q?Christian_Kohlsch=C3=BCtter?= 
+        <christian@kohlschutter.com>
+In-Reply-To: <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
+Date:   Mon, 18 Jul 2022 15:03:52 +0200
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-fsdevel@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <A31096BA-C128-4D0B-B27D-C34560844ED0@kohlschutter.com>
 References: <4B9D76D5-C794-4A49-A76F-3D4C10385EE0@kohlschutter.com>
  <CAJfpegs1Kta-HcikDGFt4=fa_LDttCeRmffKhUjWLr=DxzXg-A@mail.gmail.com>
- <83A29F9C-1A91-4753-953A-0C98E8A9832C@kohlschutter.com> <CAJfpegv5W0CycWCc2-kcn4=UVqk1hP7KrvBpzXHwW-Nmkjx8zA@mail.gmail.com>
+ <83A29F9C-1A91-4753-953A-0C98E8A9832C@kohlschutter.com>
+ <CAJfpegv5W0CycWCc2-kcn4=UVqk1hP7KrvBpzXHwW-Nmkjx8zA@mail.gmail.com>
  <FFA26FD1-60EF-457E-B914-E1978CCC7B57@kohlschutter.com>
-In-Reply-To: <FFA26FD1-60EF-457E-B914-E1978CCC7B57@kohlschutter.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Mon, 18 Jul 2022 14:21:16 +0200
-Message-ID: <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Handle ENOSYS when fileattr support is missing in
- lower/upper fs
-To:     =?UTF-8?Q?Christian_Kohlsch=C3=BCtter?= 
-        <christian@kohlschutter.com>
-Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+ <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>, torvalds@linux-foundation.org
+X-Mailer: Apple Mail (2.3696.100.31)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, 18 Jul 2022 at 12:56, Christian Kohlsch=C3=BCtter
-<christian@kohlschutter.com> wrote:
+Am 18.07.2022 um 14:21 schrieb Miklos Szeredi <miklos@szeredi.hu>:
+>=20
+> On Mon, 18 Jul 2022 at 12:56, Christian Kohlsch=C3=BCtter
+> <christian@kohlschutter.com> wrote:
+>=20
+>> However, users of fuse that have no business with overlayfs suddenly =
+see their ioctl return ENOTTY instead of ENOSYS.
+>=20
+> And returning ENOTTY is the correct behavior.  See this comment in
+> <asm-generic/errrno.h>:
+>=20
+> /*
+> * This error code is special: arch syscall entry code will return
+> * -ENOSYS if users try to call a syscall that doesn't exist.  To keep
+> * failures of syscalls that really do exist distinguishable from
+> * failures due to attempts to use a nonexistent syscall, syscall
+> * implementations should refrain from returning -ENOSYS.
+> */
+> #define ENOSYS 38 /* Invalid system call number */
+>=20
+> Thanks,
+> Miklos
 
-> However, users of fuse that have no business with overlayfs suddenly see =
-their ioctl return ENOTTY instead of ENOSYS.
+That ship is sailed since ENOSYS was returned to user-space for the =
+first time.
 
-And returning ENOTTY is the correct behavior.  See this comment in
-<asm-generic/errrno.h>:
+It reminds me a bit of Linus' "we do not break userspace" email from =
+2012 [1, 2], where Linus wrote:
+> Applications *do* care about error return values. There's no way in
+> hell you can willy-nilly just change them. And if you do change them,
+> and applications break, there is no way in hell you can then blame the
+> application.
 
-/*
- * This error code is special: arch syscall entry code will return
- * -ENOSYS if users try to call a syscall that doesn't exist.  To keep
- * failures of syscalls that really do exist distinguishable from
- * failures due to attempts to use a nonexistent syscall, syscall
- * implementations should refrain from returning -ENOSYS.
- */
-#define ENOSYS 38 /* Invalid system call number */
+(Adding Linus for clarification whether his statement is still true in =
+2022, and marking subject with regression tag for visibility.)
 
-Thanks,
-Miklos
+As far as I, a fuse user, understand, fuse uses ENOSYS as a specific =
+marker to indicate permanent failure:
+
+=46rom libfuse =
+https://libfuse.github.io/doxygen/structfuse__lowlevel__ops.html:
+> If this request is answered with an error code of ENOSYS, this is =
+treated as a permanent failure with error code EOPNOTSUPP, i.e. all =
+future getxattr() requests will fail with EOPNOTSUPP without being send =
+to the filesystem process.
+
+(also see  https://man.openbsd.org/fuse_new.3)
+
+
+Again, in summary:
+1. I believe the fix should be in ovl, because ovl caused the =
+regression.
+2. Fixing in fuse would not be sufficient because other lower =
+filesystems that also return ENOSYS remain affected (a cursory search =
+indicates ecryptfs also returns ENOSYS).
+3. Fixing in fuse would break user-space. We do not break userspace.
+
+Cheers,
+Christian
+
+
+
+[1] https://lkml.org/lkml/2012/12/23/75
+[2] https://lkml.org/lkml/2012/12/23/99=
