@@ -2,99 +2,74 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77D4DC00140
-	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Jul 2022 01:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D956EC19F28
+	for <linux-unionfs@archiver.kernel.org>; Tue,  2 Aug 2022 13:43:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233628AbiG2B6n (ORCPT
+        id S234193AbiHBNnm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Jul 2022 21:58:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53060 "EHLO
+        Tue, 2 Aug 2022 09:43:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232420AbiG2B6m (ORCPT
+        with ESMTP id S233406AbiHBNnl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Jul 2022 21:58:42 -0400
-Received: from mail-m974.mail.163.com (mail-m974.mail.163.com [123.126.97.4])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D55F774344;
-        Thu, 28 Jul 2022 18:58:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=MCJfu
-        rDn3Pbl+fwBZE/+qbUoubdS0oZHppIQCbE4b0I=; b=VL8nUoOozBGr6PTEv/Ckc
-        g7sGnKk/mUosUJkHEbzduUxh1u93QIbA9y+HBbcxCluUNWox9khmov+F91X8c3tX
-        3xYgc+BtmYkyR3PWUjPzGLKqni582PqgnCkf82E+bXQB13YNwMebBEQQEALwgFFF
-        Zwecg5Y49PwoqRD5EI5xig=
-Received: from localhost.localdomain (unknown [123.58.221.99])
-        by smtp4 (Coremail) with SMTP id HNxpCgCn2NCNPuNivHoWRg--.38530S2;
-        Fri, 29 Jul 2022 09:57:34 +0800 (CST)
-From:   williamsukatube@163.com
-To:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     miklos@szeredi.hu, William Dean <williamsukatube@gmail.com>,
-        Hacash Robot <hacashRobot@santino.com>
-Subject: [PATCH -next] ovl: Fix spelling mistakes and cleanup code
-Date:   Fri, 29 Jul 2022 09:57:26 +0800
-Message-Id: <20220729015726.3076091-1-williamsukatube@163.com>
-X-Mailer: git-send-email 2.25.1
+        Tue, 2 Aug 2022 09:43:41 -0400
+Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AD7660D5
+        for <linux-unionfs@vger.kernel.org>; Tue,  2 Aug 2022 06:43:41 -0700 (PDT)
+Received: by mail-ed1-x52b.google.com with SMTP id i13so17654239edj.11
+        for <linux-unionfs@vger.kernel.org>; Tue, 02 Aug 2022 06:43:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WxMBbuBDdwyOFmQW1I8hAnSHIEKIwpcYs30ZPSwwd5M=;
+        b=FR5S3Cs0uToyFO8i8vZuZOYUJGqblJtUSCRmW2IF5+PQF2X0HKWATMMVySOTAJQ78Q
+         5rUvmOd/CV2RmEIc88WV06bRDN+yWhrZHegSl5abWyG5GLZkCdAbr+U0tVq8MkGlvReX
+         Sv2D0g0MI2LPEC7lDTYfdPGgtZS8Ulq4JtfFo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WxMBbuBDdwyOFmQW1I8hAnSHIEKIwpcYs30ZPSwwd5M=;
+        b=3gbAY8QESCqNG5D0ApEuFmMlyAh0S9MN/W31BPYiLtd7L2ZUvymnKjiXJOK8zPDD0M
+         IipE92yCv77AcWzTm20fUT9mA+8E0bfSQJ4/9jQtE6wuDVvTR55ZVbg5RYhRP5S3RXhq
+         JWjipJW9iLDtcR5O4XsrCGesaBulyJZfAjBxQ8Z6990CR59jIpdIX7Awe9EBPsrHJG3H
+         a+qgjVB+kCUF7KaZxwEH9JLsztR2w0y3fYHIupnyEveN7SS8MlUvNV4221RIeExms/Ta
+         pTff7E+dD29fmpu1+U3S+nEsK35kUlnsq1ApilDHrvse6QCX3GcWTqQdoCPhdpcX+9fu
+         dmCQ==
+X-Gm-Message-State: AJIora/Jxnix31UJD15kQ5e7Z140L60HTzhMrYffDAg6/aWwmSVhp25j
+        2d0+xFCL7iOrpdAtgv/yF9toBpJ3WZYYxAth8jxfGg==
+X-Google-Smtp-Source: AGRyM1tQcDM51UiQAKhZ3CCyYSZbkAlD+nb38S6lVfegL5x/v4zGD6nILExtE7KhfeHHXzFc6jNpTW+kzQ3J5XC8aKc=
+X-Received: by 2002:a05:6402:187:b0:43c:b095:4ab3 with SMTP id
+ r7-20020a056402018700b0043cb0954ab3mr20719367edv.5.1659447819700; Tue, 02 Aug
+ 2022 06:43:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: HNxpCgCn2NCNPuNivHoWRg--.38530S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7tryxCFyfZr17Ww15ArWrXwb_yoW8tF1kpF
-        WrGayvgr93Jry7ur1fAF4qqr18Was8WF17Jr48G3s3XFWvg34S9Fy2gr15ZFyrCFWrZryY
-        qF4Dt345C3WDAaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x07brAp5UUUUU=
-X-Originating-IP: [123.58.221.99]
-X-CM-SenderInfo: xzlozx5dpv3yxdwxuvi6rwjhhfrp/1tbiNxFMg1WBo552swADsG
+References: <20220729015726.3076091-1-williamsukatube@163.com>
+In-Reply-To: <20220729015726.3076091-1-williamsukatube@163.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 2 Aug 2022 15:43:28 +0200
+Message-ID: <CAJfpeguwkYgxX5u5Ww8rAKRYLfHPDgKs9rmGu+UJU=LtaaKweA@mail.gmail.com>
+Subject: Re: [PATCH -next] ovl: Fix spelling mistakes and cleanup code
+To:     williamsukatube@163.com
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        William Dean <williamsukatube@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: William Dean <williamsukatube@gmail.com>
+On Fri, 29 Jul 2022 at 03:58, <williamsukatube@163.com> wrote:
+>
+> From: William Dean <williamsukatube@gmail.com>
+>
+> fix follow spelling misktakes:
+>         decendant  ==> descendant
+>         indentify  ==> identify
+>         underlaying ==> underlying
+>
+> Reported-by: Hacash Robot <hacashRobot@santino.com>
+> Signed-off-by: William Dean <williamsukatube@gmail.com>
 
-fix follow spelling misktakes:
-	decendant  ==> descendant
-	indentify  ==> identify
-	underlaying ==> underlying
+Applied, thanks.
 
-Reported-by: Hacash Robot <hacashRobot@santino.com>
-Signed-off-by: William Dean <williamsukatube@gmail.com>
----
- fs/overlayfs/namei.c | 4 ++--
- fs/overlayfs/super.c | 2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 65c4346a5b43..69dc577974f8 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -42,7 +42,7 @@ static int ovl_check_redirect(struct path *path, struct ovl_lookup_data *d,
- 		 * One of the ancestor path elements in an absolute path
- 		 * lookup in ovl_lookup_layer() could have been opaque and
- 		 * that will stop further lookup in lower layers (d->stop=true)
--		 * But we have found an absolute redirect in decendant path
-+		 * But we have found an absolute redirect in descendant path
- 		 * element and that should force continue lookup in lower
- 		 * layers (reset d->stop).
- 		 */
-@@ -648,7 +648,7 @@ static int ovl_get_index_name_fh(struct ovl_fh *fh, struct qstr *name)
-  * If the index dentry for a copy up origin inode is positive, but points
-  * to an inode different than the upper inode, then either the upper inode
-  * has been copied up and not indexed or it was indexed, but since then
-- * index dir was cleared. Either way, that index cannot be used to indentify
-+ * index dir was cleared. Either way, that index cannot be used to identify
-  * the overlay inode.
-  */
- int ovl_get_index_name(struct ovl_fs *ofs, struct dentry *origin,
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index e4a95548705a..f8f1a190a8ab 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -2052,7 +2052,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	sb->s_stack_depth = 0;
- 	sb->s_maxbytes = MAX_LFS_FILESIZE;
- 	atomic_long_set(&ofs->last_ino, 1);
--	/* Assume underlaying fs uses 32bit inodes unless proven otherwise */
-+	/* Assume underlying fs uses 32bit inodes unless proven otherwise */
- 	if (ofs->config.xino != OVL_XINO_OFF) {
- 		ofs->xino_mode = BITS_PER_LONG - 32;
- 		if (!ofs->xino_mode) {
--- 
-2.25.1
-
+Miklos
