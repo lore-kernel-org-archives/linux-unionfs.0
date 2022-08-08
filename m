@@ -2,98 +2,70 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 808BBC00140
-	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Aug 2022 12:20:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E13CC25B0D
+	for <linux-unionfs@archiver.kernel.org>; Mon,  8 Aug 2022 18:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242339AbiHHMUR (ORCPT
+        id S244489AbiHHSmt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 8 Aug 2022 08:20:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45842 "EHLO
+        Mon, 8 Aug 2022 14:42:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239232AbiHHMUQ (ORCPT
+        with ESMTP id S244274AbiHHSmd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 8 Aug 2022 08:20:16 -0400
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 384B2250
-        for <linux-unionfs@vger.kernel.org>; Mon,  8 Aug 2022 05:20:12 -0700 (PDT)
-Received: by mail-wr1-x42f.google.com with SMTP id j7so10710712wrh.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 08 Aug 2022 05:20:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=EGJh6H4Q+/4Jo4xNeP066GXEwQs4C4KMootOF9X7m5E=;
-        b=m0qzJA/eP/VqrChusdQ4L8wxmlBRjqB1YRFbmJndfdkiQbKMoJKc+AEViatMKM3Png
-         9E3SiqQXL6dLmfKG65A9rBnCsuEipXMZ7mmzY6C0vA0prs4C+YMj+qBIVJDr1oAZgNGi
-         OmrhFHKz7YCVGe6CNhJzWTUM0EQVbEWv6FMS4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=EGJh6H4Q+/4Jo4xNeP066GXEwQs4C4KMootOF9X7m5E=;
-        b=VObX9oE7cGRuVSS2GhIOTb3/zit+I/nFLFxmA7PRVE6ZIifmMHroQaWwX4c0HTQeJR
-         gX7XhoX8gyFoB/hpHQEbHGjfab79httn1uyMhiEYY1Hl7PoYBjywssTSfjsdLItZN8JY
-         0L4tfFkGZRyPCblpc9uzqOB8rB3O6hygk+2KJvTkOrIWEFOJNHMOqt8RAtzZj+KPeDA5
-         BZnIeqa+kqH1xbN96++hI6/+7ub6RL/WtP6cg+firkIEEdbWPFI5dQWttLyWCVX1TVLO
-         kJO6qXNWEH1WqLtPHmK8Ud+/UU1fkw1vhqEZ+prgl+nU+8SZUnIWmLBC4ynK/lvaLwqA
-         MPSw==
-X-Gm-Message-State: ACgBeo0OA3JrkLzRBO3maCx8sl82/fsdnl0+v/Dp4fp/MasPQpIs3tiw
-        kAB/0bFpHZ6a512z8542Tlt2Twy038y5ow==
-X-Google-Smtp-Source: AA6agR60elkz35zB7183HO8LE91+Te3/f/Ds1v/OD1bLTXqK+UVHlZSUlbrlcejfmICbANVtDEPA3A==
-X-Received: by 2002:adf:fc47:0:b0:220:5f01:6a10 with SMTP id e7-20020adffc47000000b002205f016a10mr11672087wrs.7.1659961210759;
-        Mon, 08 Aug 2022 05:20:10 -0700 (PDT)
-Received: from miu.piliscsaba.redhat.com (87-97-117-187.pool.digikabel.hu. [87.97.117.187])
-        by smtp.gmail.com with ESMTPSA id f7-20020a5d6647000000b002217aed23b4sm8150586wrw.12.2022.08.08.05.20.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 08 Aug 2022 05:20:09 -0700 (PDT)
-Date:   Mon, 8 Aug 2022 14:20:02 +0200
-From:   Miklos Szeredi <miklos@szeredi.hu>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        Mon, 8 Aug 2022 14:42:33 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7ABC3265B;
+        Mon,  8 Aug 2022 11:42:09 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3A00CB8105A;
+        Mon,  8 Aug 2022 18:42:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id EFDC8C433D7;
+        Mon,  8 Aug 2022 18:42:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1659984127;
+        bh=yLXDTzKoagr2Gvnlghalzf4R7piz3/N6jNOnhwk3gh8=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=a8vs1LFB/Durhi6rRJiI8XWFLAfkg5c37scdQuwwS0cZKZbvXq4j2/FDckQlUUIkA
+         DstzjsO+DgRCVv8RmY6nIWxND7t13RmQY+I4QqoJilUx4GKQ8lpji2fgNZhQE2CZv3
+         NR2+3p73z9rZTGxijaLyK1ehnVEm7ZS+Tgkzoj8c07gkhHx+P5j9V7+G4NE+ALSfmS
+         bYk5TXyGUm6QX2sH0Iu2EeiWInupiUMATcRKdWhA8IKV+R+udByKtnWp08OzuLEOkH
+         qYnmLRaEQQ2hZvWoF2oIbBXoEl59v4ZtAYfZ/msopdbn3ereWjx8kcmdScScpylY3e
+         GfnMU5UK1lucg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id DD227C43142;
+        Mon,  8 Aug 2022 18:42:06 +0000 (UTC)
+Subject: Re: [GIT PULL] overlayfs update for 6.0
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <YvD/cnBLsE8P8sWS@miu.piliscsaba.redhat.com>
+References: <YvD/cnBLsE8P8sWS@miu.piliscsaba.redhat.com>
+X-PR-Tracked-List-Id: <linux-fsdevel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <YvD/cnBLsE8P8sWS@miu.piliscsaba.redhat.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-6.0
+X-PR-Tracked-Commit-Id: 4f1196288dfb6fc63e28e585392f2df3b8a63388
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 65512eb0e9e6308ca08110c88a9619a9e5a19aa9
+Message-Id: <165998412690.757.7088500334461976484.pr-tracker-bot@kernel.org>
+Date:   Mon, 08 Aug 2022 18:42:06 +0000
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs update for 6.0
-Message-ID: <YvD/cnBLsE8P8sWS@miu.piliscsaba.redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Mon, 8 Aug 2022 14:20:02 +0200:
 
-Please pull from:
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-6.0
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-update-6.0
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/65512eb0e9e6308ca08110c88a9619a9e5a19aa9
 
-This is just a small update.
+Thank you!
 
-There's a merge conflict with the mnt-userns series from Christian.  This should
-be resolved by moving the "#ifdef CONFIG_FS_POSIX_ACL" up, to include the newly
-introduced ovl_idmap_posix_acl() helper.
-
-Thanks,
-Miklos
-
----
-Jiachen Zhang (1):
-      ovl: drop WARN_ON() dentry is NULL in ovl_encode_fh()
-
-Miklos Szeredi (1):
-      ovl: warn if trusted xattr creation fails
-
-William Dean (1):
-      ovl: fix spelling mistakes
-
-Yang Li (1):
-      ovl: fix some kernel-doc comments
-
-Yang Xu (1):
-      ovl: improve ovl_get_acl() if POSIX ACL support is off
-
----
- fs/overlayfs/export.c    |  2 +-
- fs/overlayfs/inode.c     |  4 +++-
- fs/overlayfs/namei.c     |  4 ++--
- fs/overlayfs/overlayfs.h |  6 ++++++
- fs/overlayfs/super.c     | 13 +++++++++----
- 5 files changed, 21 insertions(+), 8 deletions(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
