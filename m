@@ -2,49 +2,49 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B1AC25B0F
-	for <linux-unionfs@archiver.kernel.org>; Sun, 14 Aug 2022 16:25:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66658C2BB41
+	for <linux-unionfs@archiver.kernel.org>; Sun, 14 Aug 2022 16:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240192AbiHNQZL (ORCPT
+        id S242190AbiHNQcX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 14 Aug 2022 12:25:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56826 "EHLO
+        Sun, 14 Aug 2022 12:32:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39734 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241471AbiHNQYt (ORCPT
+        with ESMTP id S242591AbiHNQav (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 14 Aug 2022 12:24:49 -0400
+        Sun, 14 Aug 2022 12:30:51 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCB3015A17;
-        Sun, 14 Aug 2022 09:22:34 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59C3955BE;
+        Sun, 14 Aug 2022 09:25:31 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3A4B4B80B7C;
-        Sun, 14 Aug 2022 16:22:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 12E33C4314E;
-        Sun, 14 Aug 2022 16:22:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A249DB80B79;
+        Sun, 14 Aug 2022 16:25:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95A5CC433D7;
+        Sun, 14 Aug 2022 16:25:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1660494152;
-        bh=nn64llpKQwSVbNBIKVAhqVnQyKZuwOGj7VhDj+fGt14=;
+        s=k20201202; t=1660494328;
+        bh=yUCLdPrcp7HjdH6J9/y0/mwXM0J3+C65FzXvvVTGhnk=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MZDfoAZvkwuXt1X36A2QFVfPNd/AN/x3xD4xFxONQEY2n2NyFQmGu2feKSAsnJJYJ
-         Fwta6wcEjb8Myi6wU08twTcGo2PvX1AA0AEOk8g5vphY+lFq12U72Yhk0igAdN5AgE
-         HzKjksO2goz7qQYvbhATzdlcD5IEYOjR5qlq8b/JDV2VWIVimngfGp9kk+eC+VbyWl
-         adcLrnPmgEpcXz5RN8VGPJe3bXD/NakImS3oX5jB4mcgrGElX0MjWhUO0E+mSILuNR
-         9gMqfImLQTA53LAttW8rmZfB0OXu/b2eteL2W0GYU6CCq4cZjoRGV1IwilXvMvt1jS
-         So3iKN1akW+5w==
+        b=nZWAvPwPQEdCgtdT0Fk5VpWshtoaxaK0k3qLu4YR5vKE1TUST787/LK7APD2Bq2Ic
+         oa03gNGWGSChFvKUVpQX95NyppSJmy2I94q8aHz3I9ABzKI6AkNcXzWnRL7ltbwwgl
+         VVwDCxlm5si+KDn1p/J8+tdF8Qpt1oTVIwdjLTXXnNkqieQzc3lTGM19xJH0Tagop9
+         heVz4434Ze3uleveldUSX0Xc/Jf/6X2jEirjrqkWbv4IBdMgUfwihyvDiFZScGP/pM
+         TDp/gqGQZFGkvPkZrZ0q3RbDlNx6PETBsC9Z41gG3FnQri3sX+Eebwy3OhL9lge7t/
+         xNCoBNqKpwRRg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Miklos Szeredi <mszeredi@redhat.com>,
         Alois Wohlschlager <alois1@gmx-topmail.de>,
         Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.19 34/48] ovl: warn if trusted xattr creation fails
-Date:   Sun, 14 Aug 2022 12:19:27 -0400
-Message-Id: <20220814161943.2394452-34-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.18 27/39] ovl: warn if trusted xattr creation fails
+Date:   Sun, 14 Aug 2022 12:23:16 -0400
+Message-Id: <20220814162332.2396012-27-sashal@kernel.org>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20220814161943.2394452-1-sashal@kernel.org>
-References: <20220814161943.2394452-1-sashal@kernel.org>
+In-Reply-To: <20220814162332.2396012-1-sashal@kernel.org>
+References: <20220814162332.2396012-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -84,12 +84,12 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 5 insertions(+), 2 deletions(-)
 
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 1ce5c9698393..4c2096130209 100644
+index 001cdbb8f015..f3c13eca5270 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -1418,11 +1418,12 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+@@ -1413,11 +1413,12 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
  	 */
- 	err = ovl_setxattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE, "0", 1);
+ 	err = ovl_do_setxattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE, "0", 1);
  	if (err) {
 +		pr_warn("failed to set xattr on upper\n");
  		ofs->noxattr = true;
@@ -101,7 +101,7 @@ index 1ce5c9698393..4c2096130209 100644
  		}
  		/*
  		 * xattr support is required for persistent st_ino.
-@@ -1430,8 +1431,10 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+@@ -1425,8 +1426,10 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
  		 */
  		if (ofs->config.xino == OVL_XINO_AUTO) {
  			ofs->config.xino = OVL_XINO_OFF;
@@ -112,7 +112,7 @@ index 1ce5c9698393..4c2096130209 100644
 +			pr_info("try mounting with 'userxattr' option\n");
  		err = 0;
  	} else {
- 		ovl_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
+ 		ovl_do_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
 -- 
 2.35.1
 
