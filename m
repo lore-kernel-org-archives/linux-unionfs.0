@@ -2,164 +2,203 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA792C25B08
-	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Aug 2022 09:55:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8B48C25B08
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Aug 2022 10:27:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232543AbiHQJzm (ORCPT
+        id S231548AbiHQK13 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 17 Aug 2022 05:55:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54128 "EHLO
+        Wed, 17 Aug 2022 06:27:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35002 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238928AbiHQJzf (ORCPT
+        with ESMTP id S229705AbiHQK12 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 17 Aug 2022 05:55:35 -0400
-Received: from mail-vk1-xa36.google.com (mail-vk1-xa36.google.com [IPv6:2607:f8b0:4864:20::a36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FDF658522;
-        Wed, 17 Aug 2022 02:55:34 -0700 (PDT)
-Received: by mail-vk1-xa36.google.com with SMTP id q191so6438287vkb.6;
-        Wed, 17 Aug 2022 02:55:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc;
-        bh=9jruxPToj7xc/oS5rHlxpPOpssy7XT3dNWOlNRoR2/0=;
-        b=bzIXYFpJyFsVjIXTFqBMfmRAWz3RL336qW+IjfQ2uQ7jz8cazOJDKAnvzILS2LwTE9
-         GSAq87Vrq+676hVxVm/1FBxHgyCj1Ac9lrAS5N8aWHq0zCh5qI4QCCpzxHLz9QSaQ0S+
-         jxLePMYK9dxOgbaV1FnblBooL2BFJ4vt3VDas5XAj/GeN/y/8ViOpgK5XM5RUHYIOLvK
-         vp2eaVWIQj2aBuMIQnj4muphljQzkHOvLTTm42jL7ww15YFR0MV7LIKcxyefM1I9nyGm
-         5AzKQTxcLWg3V9/yPvx9HkWr0C4s+O5jiN1Che8szMHCaC+Xuz0a/pii0cZ/ytKW9lao
-         Tk6w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc;
-        bh=9jruxPToj7xc/oS5rHlxpPOpssy7XT3dNWOlNRoR2/0=;
-        b=kGgvHwt+3szhlnHz53+dUZTeTQQZ9QKBSvNYnUVmz13eJ/fV1iwd0dZxei33cyt0sy
-         ECPcFGyjz43Fh1PijcdelOgfVuIXCNSM9hokzhN+0xWW6NjutZZ1dr0t+JcnBCoGpisn
-         BxGoKBN5BkwsAiQVzZeT1D79CQBK5A6QFXpumRKMnO4AD14adwNagG1/xMR09bC5OQLO
-         j2HY4tin04db2TMlYlX6wkk//6b+JSnGLLLRV4pnGZX0pzaOA9Gfga4iEAaZ87o3i7cu
-         YFvDYP04SaaJEv92u5XT7YoawrgblQg7ciEROPYyn8/nINRUAkj1byhyK6OzMALVdAnL
-         px6A==
-X-Gm-Message-State: ACgBeo0miot98LHerjsDK6ylET5C4j/TiShBQzKX413vs0HeL6y2CTKI
-        WtxcMqppFjfBieezu0JyiRGwC0TIv/6vrJN0XC7Y78eg
-X-Google-Smtp-Source: AA6agR5TWSVQ8+H7PRbxFERQAYOLBU8FJX5gyBo1Khhj6TwklLIfv3hl/AXI3ZgLGNvNjtteJMwVp+zuCNDJiUttc20=
-X-Received: by 2002:a1f:e3c5:0:b0:380:68eb:e647 with SMTP id
- a188-20020a1fe3c5000000b0038068ebe647mr2730301vkh.11.1660730133526; Wed, 17
- Aug 2022 02:55:33 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
- <CAOQ4uxgrkPYBkZG--70s4PnUiT0ht=GdWrrm+aY4ZHoZjZrWAw@mail.gmail.com>
- <CAP4dvsfqxEGJtQgSdfN+nxbyMAdm2rj_tmUeqXc8syPyK98MHA@mail.gmail.com> <CAOQ4uxhD0an61z5wArn=uRsXF7+_3soNgPB7ikp2HYX8nQGkCg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhD0an61z5wArn=uRsXF7+_3soNgPB7ikp2HYX8nQGkCg@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 17 Aug 2022 12:55:22 +0300
-Message-ID: <CAOQ4uxj_XhC51yS0QCoo8kYWmMxm1XQH4bhoSMZReUd7nc2UFA@mail.gmail.com>
-Subject: Re: [External] Re: [PATCH] ovl: Do not override fsuid and fsgid in ovl_link()
-To:     =?UTF-8?B?5aSp6LWQ5byg?= <zhangtianci.1997@bytedance.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Wed, 17 Aug 2022 06:27:28 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE9725D0EE;
+        Wed, 17 Aug 2022 03:27:27 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B40C61488;
+        Wed, 17 Aug 2022 10:27:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F2022C433D6;
+        Wed, 17 Aug 2022 10:27:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1660732046;
+        bh=xldrhFDSVmHnZLC+pCrxDTWZg1Ju9e7A+bnm/L2CWo4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=B4K2Z8c1+vC1dLlb1fDYYElsmtwG5LmqtED3HnlTFhmrdCErY4pglzAZF9+3pVZpg
+         RMeBBlFguonh7t8Z5mn9WTVVlM+aeHjp9In4tGRc+52SwARQoJDvPVZxjdd2795/Yr
+         Fi4ZpQ0CkwxFS55WAjvQu3d409mEKJQwWkFJlEWfwtho49lH2Loh9xmpow7uSmjEea
+         0xZ9NDI6vpcNpXTN33oiDQ1Wz7QqtgUfZcD//kM5wb/txBPhTE5ZY1LM22EwCm8V1P
+         Zm0F+Otlji+SIWClU2c/B3qr7MSpSuFQYFsa6WyZx3rWxHTygd8GJvwKyud7Pe8TD5
+         hI+r52I2z1TOw==
+Date:   Wed, 17 Aug 2022 12:27:22 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     =?utf-8?B?5aSp6LWQ5byg?= <zhangtianci.1997@bytedance.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         linux-kernel <linux-kernel@vger.kernel.org>,
-        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>,
-        Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+Subject: Re: [External] Re: [PATCH] ovl: Do not override fsuid and fsgid in
+ ovl_link()
+Message-ID: <20220817102722.wny7x5iwf62edpkd@wittgenstein>
+References: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
+ <CAOQ4uxgrkPYBkZG--70s4PnUiT0ht=GdWrrm+aY4ZHoZjZrWAw@mail.gmail.com>
+ <CAP4dvsfqxEGJtQgSdfN+nxbyMAdm2rj_tmUeqXc8syPyK98MHA@mail.gmail.com>
+ <CAOQ4uxhD0an61z5wArn=uRsXF7+_3soNgPB7ikp2HYX8nQGkCg@mail.gmail.com>
+ <CAOQ4uxj_XhC51yS0QCoo8kYWmMxm1XQH4bhoSMZReUd7nc2UFA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxj_XhC51yS0QCoo8kYWmMxm1XQH4bhoSMZReUd7nc2UFA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Aug 17, 2022 at 12:53 PM Amir Goldstein <amir73il@gmail.com> wrote:
->
-> On Wed, Aug 17, 2022 at 12:11 PM =E5=A4=A9=E8=B5=90=E5=BC=A0 <zhangtianci=
-.1997@bytedance.com> wrote:
+On Wed, Aug 17, 2022 at 12:55:22PM +0300, Amir Goldstein wrote:
+> On Wed, Aug 17, 2022 at 12:53 PM Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > On Wed, Aug 17, 2022 at 3:36 PM Amir Goldstein <amir73il@gmail.com> wro=
-te:
+> > On Wed, Aug 17, 2022 at 12:11 PM 天赐张 <zhangtianci.1997@bytedance.com> wrote:
 > > >
-> > > On Wed, Aug 17, 2022 at 6:49 AM Zhang Tianci
-> > > <zhangtianci.1997@bytedance.com> wrote:
+> > > On Wed, Aug 17, 2022 at 3:36 PM Amir Goldstein <amir73il@gmail.com> wrote:
 > > > >
-> > > > ovl_link() did not create a new inode after commit
-> > > > 51f7e52dc943 ("ovl: share inode for hard link"), so
-> > > > in ovl_create_or_link() we should not override cred's
-> > > > fsuid and fsgid when called by ovl_link().
+> > > > On Wed, Aug 17, 2022 at 6:49 AM Zhang Tianci
+> > > > <zhangtianci.1997@bytedance.com> wrote:
+> > > > >
+> > > > > ovl_link() did not create a new inode after commit
+> > > > > 51f7e52dc943 ("ovl: share inode for hard link"), so
+> > > > > in ovl_create_or_link() we should not override cred's
+> > > > > fsuid and fsgid when called by ovl_link().
+> > > > >
+> > > > > Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
+> > > > > Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+> > > > > ---
+> > > > >  fs/overlayfs/dir.c | 4 ++--
+> > > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > >
+> > > > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > > > > index 6b03457f72bb..568d338032db 100644
+> > > > > --- a/fs/overlayfs/dir.c
+> > > > > +++ b/fs/overlayfs/dir.c
+> > > > > @@ -595,9 +595,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+> > > > >         err = -ENOMEM;
+> > > > >         override_cred = prepare_creds();
+> > > > >         if (override_cred) {
+> > > > > -               override_cred->fsuid = inode->i_uid;
+> > > > > -               override_cred->fsgid = inode->i_gid;
+> > > > >                 if (!attr->hardlink) {
+> > > > > +                       override_cred->fsuid = inode->i_uid;
+> > > > > +                       override_cred->fsgid = inode->i_gid;
+> > > > >                         err = security_dentry_create_files_as(dentry,
+> > > > >                                         attr->mode, &dentry->d_name, old_cred,
+> > > > >                                         override_cred);
+> > > > > --
 > > > >
-> > > > Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
-> > > > Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-> > > > ---
-> > > >  fs/overlayfs/dir.c | 4 ++--
-> > > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > > > This change looks incorrect.
+> > > > Unless I am missing something, fsuid/fsgid still need to
+> > > > be overridden for calling link() on underlying fs.
+> > > > What made you do this change?
 > > > >
-> > > > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > > > index 6b03457f72bb..568d338032db 100644
-> > > > --- a/fs/overlayfs/dir.c
-> > > > +++ b/fs/overlayfs/dir.c
-> > > > @@ -595,9 +595,9 @@ static int ovl_create_or_link(struct dentry *de=
-ntry, struct inode *inode,
-> > > >         err =3D -ENOMEM;
-> > > >         override_cred =3D prepare_creds();
-> > > >         if (override_cred) {
-> > > > -               override_cred->fsuid =3D inode->i_uid;
-> > > > -               override_cred->fsgid =3D inode->i_gid;
-> > > >                 if (!attr->hardlink) {
-> > > > +                       override_cred->fsuid =3D inode->i_uid;
-> > > > +                       override_cred->fsgid =3D inode->i_gid;
-> > > >                         err =3D security_dentry_create_files_as(den=
-try,
-> > > >                                         attr->mode, &dentry->d_name=
-, old_cred,
-> > > >                                         override_cred);
-> > > > --
+> > > > Thanks,
+> > > > Amir.
 > > >
-> > > This change looks incorrect.
-> > > Unless I am missing something, fsuid/fsgid still need to
-> > > be overridden for calling link() on underlying fs.
-> > > What made you do this change?
+> > > Hi Amir,
 > > >
-> > > Thanks,
-> > > Amir.
+> > > I ran into an error when I tested overlay on fuse:
+> > >   $ mkdir /lower /fuse /merge
+> > >   $ mount -t fuse /fuse
+> > >   $ mkdir /fuse/upper /fuse/work
+> > >   $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,workdir=work
+> > >   $ touch /merge/file
+> > >   $ chown bin.bin /merge/file // the file's caller becomes "bin"
+> > >   $ ln /merge/file /merge/lnkfile
+> > >
+> > > Then I got an error(EACCES) because fuse daemon checks the link()'s
+> > > caller is "bin", it denied this request.
+> > > I browsed the changing history of ovl_link(). There are two key commits:
+> > > The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
+> > > overrides the cred's fsuid/fsgid using the new inode. The new inode's
+> > > owner is initialized by inode_init_owner(), and inode->fsuid is
+> > > assigned to the current user. So the override fsuid becomes the
+> > > current user. We know link() is actually modifying the directory, so
+> > > the caller must have the MAY_WRITE permission on the directory. The
+> > > current caller may should have this permission. I think this is
+> > > acceptable to use the caller's fsuid(But I still feel a little
+> > > conflicted with the overlay's design).
+> > > The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
+> > > which removed the inode creation in ovl_link(). This commit move
+> > > inode_init_owner() into ovl_create_object(), so the ovl_link() just
+> > > give the old inode to ovl_create_or_link(). Then the override fsuid
+> > > becomes the old inode's fsuid, neither the caller nor the overlay's
+> > > creator! So I think this is incorrect.
+> > > I think the link() should be like unlink(), overlay fs should just use
+> > > the creator cred to do underlying fs's operations.
+> > >
 > >
-> > Hi Amir,
+> > I see. The reproducer and explanation belong in the commit message.
 > >
-> > I ran into an error when I tested overlay on fuse:
-> >   $ mkdir /lower /fuse /merge
-> >   $ mount -t fuse /fuse
-> >   $ mkdir /fuse/upper /fuse/work
-> >   $ mount -t overlay /merge -o lowerdir=3D/lower,upperdir=3D/fuse/upper=
-,workdir=3Dwork
-> >   $ touch /merge/file
-> >   $ chown bin.bin /merge/file // the file's caller becomes "bin"
-> >   $ ln /merge/file /merge/lnkfile
-> >
-> > Then I got an error(EACCES) because fuse daemon checks the link()'s
-> > caller is "bin", it denied this request.
-> > I browsed the changing history of ovl_link(). There are two key commits=
-:
-> > The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
-> > overrides the cred's fsuid/fsgid using the new inode. The new inode's
-> > owner is initialized by inode_init_owner(), and inode->fsuid is
-> > assigned to the current user. So the override fsuid becomes the
-> > current user. We know link() is actually modifying the directory, so
-> > the caller must have the MAY_WRITE permission on the directory. The
-> > current caller may should have this permission. I think this is
-> > acceptable to use the caller's fsuid(But I still feel a little
-> > conflicted with the overlay's design).
-> > The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
-> > which removed the inode creation in ovl_link(). This commit move
-> > inode_init_owner() into ovl_create_object(), so the ovl_link() just
-> > give the old inode to ovl_create_or_link(). Then the override fsuid
-> > becomes the old inode's fsuid, neither the caller nor the overlay's
-> > creator! So I think this is incorrect.
-> > I think the link() should be like unlink(), overlay fs should just use
-> > the creator cred to do underlying fs's operations.
-> >
->
-> I see. The reproducer and explanation belong in the commit message.
->
-> Your argument makes sense to me, but CC Christian to make
-> sure I am not missing anything related to ACLs and what not.
+> > Your argument makes sense to me, but CC Christian to make
+> > sure I am not missing anything related to ACLs and what not.
+> 
+> Once again with correct email address...
 
-Once again with correct email address...
+So we have:
 
->
-> Thanks,
-> Amir.
+ovl_create_object()
+-> ovl_override_creds(ovl_sb)
+-> ovl_new_inode()
+   -> inode_init_owner()
+      {
+              inode->i_uid = current_fsuid();
+              inode->i_gid = current_fsgid();
+      }
+-> ovl_create_or_link(inode, ...)
+-> prepare_creds() // Copy of caller's creds
+{
+        override_creds->fsuid = inode->i_uid;
+        override_creds->fsgid = inode->i_gid;
+}
+-> revert_creds()
+
+which afaict means that the mounter's credentials are used apart from
+the fs{g,u}id which is taken from inode->i_{g,u}id which should
+correspond to current_fs{g,u}id().
+
+The commit that is pointed out in the patch
+51f7e52dc943 ("ovl: share inode for hard link")
+seems to have broken that assumption.
+
+Given that the intention was to use the creator's creds _with the
+caller's fs{g,u}id_ wouldn't it make more sense to simply ensure that
+the caller's fs{g,u}id are always used instead of using the full
+creator's creds just for the link operation? So something like this
+(untested):
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 6b03457f72bb..4a3ee16a6d70 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -575,6 +575,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+        const struct cred *old_cred;
+        struct cred *override_cred;
+        struct dentry *parent = dentry->d_parent;
++       /* Retrieve caller's fs{g,u}id before we override creds below. */
++       kuid_t caller_fsuid = current_fsuid();
++       kgid_t caller_fsgid = current_fsgid();
+
+        err = ovl_copy_up(parent);
+        if (err)
+@@ -595,8 +598,8 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+        err = -ENOMEM;
+        override_cred = prepare_creds();
+        if (override_cred) {
+-               override_cred->fsuid = inode->i_uid;
+-               override_cred->fsgid = inode->i_gid;
++               override_cred->fsuid = caller_fsuid;
++               override_cred->fsgid = caller_fsgid;
+                if (!attr->hardlink) {
+                        err = security_dentry_create_files_as(dentry,
+                                        attr->mode, &dentry->d_name, old_cred,
