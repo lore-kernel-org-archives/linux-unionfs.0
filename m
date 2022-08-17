@@ -2,95 +2,103 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB478C25B08
-	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Aug 2022 03:46:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 099B2C25B08
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Aug 2022 07:37:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230176AbiHQDqm (ORCPT
+        id S231396AbiHQHhY (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 16 Aug 2022 23:46:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52594 "EHLO
+        Wed, 17 Aug 2022 03:37:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51262 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229849AbiHQDqk (ORCPT
+        with ESMTP id S230011AbiHQHgw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 16 Aug 2022 23:46:40 -0400
-Received: from mail-pg1-x536.google.com (mail-pg1-x536.google.com [IPv6:2607:f8b0:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 519C072B7A
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Aug 2022 20:46:39 -0700 (PDT)
-Received: by mail-pg1-x536.google.com with SMTP id 202so10953890pgc.8
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Aug 2022 20:46:39 -0700 (PDT)
+        Wed, 17 Aug 2022 03:36:52 -0400
+Received: from mail-vk1-xa2d.google.com (mail-vk1-xa2d.google.com [IPv6:2607:f8b0:4864:20::a2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 190B575CF6;
+        Wed, 17 Aug 2022 00:36:51 -0700 (PDT)
+Received: by mail-vk1-xa2d.google.com with SMTP id w129so6295571vkg.10;
+        Wed, 17 Aug 2022 00:36:51 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc;
-        bh=ES4XSV6um0uYgsYcFmKj7KuYCP2ajc5QcgQlnvm8VA4=;
-        b=LNDDdT6zVhPPnzuEb9FR7yQ+IIT5NQfFf3mbhp1cCV1hWogez4of+apjE42XruIj/r
-         Ud/HxxN0Je5glx+Hyg5WEoQ3PycFC2StiDVpc0F0llcS3p3qq2lDXA6COThvzPYHxctj
-         B/Yit3d2G4YeOo2br4R3SjM2jZ/wYR7OCyQoDHt2s3SyK4+JDR8/NGJlrRpPWIRnA0VS
-         YuoJS7sQz4fP6pAr+GGMB9oSTo2dpu9/OmIRisujdGjhzgWhcorgo7UqtfwF1SlgzJBm
-         lObgAmqLUuvZI2cPYsVNFExlk+lEHI2mf6d0JJRCUj6k+4siJt8MDaO+q8coTJx96KqD
-         M94g==
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc;
+        bh=D+Wh1I5cqYGHkslt4DZh0xiKf9lFC9rLAk9e5WpFHyg=;
+        b=JriSE6+ITnwaiATCLk/li/D3cJh+MrPNSAqg++zkwSeVz1YuWXWMjUzlL0DCriToKS
+         ZSBRkRmD3lu5QkHnHTzgAgbigMF7I7vXhfv6F62stI7fus8uy7QdkAUJ02bHEt35olUW
+         A246owdZ/kPd3EuodDe9zpr54GE05vjA3swexo+RBBZKSDmIs5w8BtQhPaw6aEBAdgxL
+         +O3KhaHiszL5st0XsmRitmOIkmLmiiq4iMgEuLq7MDPWypjdg3c/GWo89LAbmTmBkH5X
+         pE9XjYVg6WjD6eJUFUe2w5ZEVhzNh5YdWcONgAS7js04rC7FKizPNUUlr1xpJYz/5aHd
+         uJ6w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc;
-        bh=ES4XSV6um0uYgsYcFmKj7KuYCP2ajc5QcgQlnvm8VA4=;
-        b=XmTKOuB9dIIBcKMLUEspOraCtCTWFoCpWHyXIx6bun42zwla30KYFfh4SZxbk2xdfD
-         Jt7jI1q+NAVPVQZ3ABCI7H96uNmhIB/7rKP8e3HvBIEp0CxizOGAmh5czFn0h6WiqLAt
-         bdY73joPAykdu9NJEfS/ssi5hBpP6GMOafHnTpBbPQTiT+EKOWkDnZJfIDr8VikSq5jc
-         1q2kRelm/t4NoxZXbicNkcrPbSukek9NYWpfw/4VduqVXO5UjdLHPC/aK/b3IXfDd6Ke
-         zbAIoxO0WT415f2p69H+BUZQP0GRmlZWQDj77DG8BhPTpxeNzaU6pVVirmbZRno2LRRT
-         vvhA==
-X-Gm-Message-State: ACgBeo1RJVSHUxIV9MXDhTmbJvyAyDI8hM4j52PNg74VuDhwrXJF4vMi
-        YaV3AgB7bT799GeXgVgFe8KENw==
-X-Google-Smtp-Source: AA6agR6aRxQIbONcFxrCU95ThiH0UjJgVVAGX9S3Tg4MiWbsz3OtXxNOrzYlfy6gkAkb+X15aN37RQ==
-X-Received: by 2002:a65:4205:0:b0:429:b155:4945 with SMTP id c5-20020a654205000000b00429b1554945mr3737562pgq.572.1660707998729;
-        Tue, 16 Aug 2022 20:46:38 -0700 (PDT)
-Received: from J23WFD767R.bytedance.net ([61.120.150.74])
-        by smtp.gmail.com with ESMTPSA id z7-20020a1709027e8700b001725a63746dsm179999pla.186.2022.08.16.20.46.34
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Tue, 16 Aug 2022 20:46:38 -0700 (PDT)
-From:   Zhang Tianci <zhangtianci.1997@bytedance.com>
-To:     miklos@szeredi.hu
-Cc:     Zhang Tianci <zhangtianci.1997@bytedance.com>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-Subject: [PATCH] ovl: Do not override fsuid and fsgid in ovl_link()
-Date:   Wed, 17 Aug 2022 11:45:59 +0800
-Message-Id: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
-X-Mailer: git-send-email 2.32.1 (Apple Git-133)
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc;
+        bh=D+Wh1I5cqYGHkslt4DZh0xiKf9lFC9rLAk9e5WpFHyg=;
+        b=uwc4Wy9UhzvShjg3h/qzqSyl13hSgr/WoP/ZivT8hwM5QNz26248+kgOYpI1g/b0Lg
+         +FS4DCtTp8UAfByXep6X/TKlKNOpD1gcv9dVMvF4sux43gmpStrq6za7XMsxVIlBlF/A
+         +7Sd4uyvhdG0J4TZcn1fXwaJcun6/AO2/N3hg1WyPewI9gE/YkyNxVK8gKe8KyqSzlqI
+         t61LzAPQO75ZnHIq7rR4s+330jo9LOBeCfCnfO+DQAM0qFRW/CUjC+pU/OWNg2RfdSRB
+         AF6QVj9y1m2G4M/wVWYvGmdpaH2ovGmf+aNrHHjm4OkuhA0QTwOMiGTGJNTuEuDjZ+fW
+         1Xhg==
+X-Gm-Message-State: ACgBeo2liHVPbNqYbdXH0ZYBiGyqa+k7Dy58gaxyuOkqAyFdvsi5Uhah
+        iuaGLa+3MbdpDe51swACpJiOin5uOlQ8shGHipU=
+X-Google-Smtp-Source: AA6agR6zgFS8IrrsDxylcSN0kOwJ5QleEDT3hb+MEc8EMNfrXnySAOpVUZeiWmPr2mOKs7WuMUEUsQCk1nlXhhTnPmM=
+X-Received: by 2002:a1f:2d06:0:b0:380:679d:fb9b with SMTP id
+ t6-20020a1f2d06000000b00380679dfb9bmr2641716vkt.25.1660721810173; Wed, 17 Aug
+ 2022 00:36:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
+In-Reply-To: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 17 Aug 2022 10:36:38 +0300
+Message-ID: <CAOQ4uxgrkPYBkZG--70s4PnUiT0ht=GdWrrm+aY4ZHoZjZrWAw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: Do not override fsuid and fsgid in ovl_link()
+To:     Zhang Tianci <zhangtianci.1997@bytedance.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-ovl_link() did not create a new inode after commit
-51f7e52dc943 ("ovl: share inode for hard link"), so
-in ovl_create_or_link() we should not override cred's
-fsuid and fsgid when called by ovl_link().
+On Wed, Aug 17, 2022 at 6:49 AM Zhang Tianci
+<zhangtianci.1997@bytedance.com> wrote:
+>
+> ovl_link() did not create a new inode after commit
+> 51f7e52dc943 ("ovl: share inode for hard link"), so
+> in ovl_create_or_link() we should not override cred's
+> fsuid and fsgid when called by ovl_link().
+>
+> Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
+> Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+> ---
+>  fs/overlayfs/dir.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 6b03457f72bb..568d338032db 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -595,9 +595,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+>         err = -ENOMEM;
+>         override_cred = prepare_creds();
+>         if (override_cred) {
+> -               override_cred->fsuid = inode->i_uid;
+> -               override_cred->fsgid = inode->i_gid;
+>                 if (!attr->hardlink) {
+> +                       override_cred->fsuid = inode->i_uid;
+> +                       override_cred->fsgid = inode->i_gid;
+>                         err = security_dentry_create_files_as(dentry,
+>                                         attr->mode, &dentry->d_name, old_cred,
+>                                         override_cred);
+> --
 
-Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
-Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
----
- fs/overlayfs/dir.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+This change looks incorrect.
+Unless I am missing something, fsuid/fsgid still need to
+be overridden for calling link() on underlying fs.
+What made you do this change?
 
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 6b03457f72bb..568d338032db 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -595,9 +595,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 	err = -ENOMEM;
- 	override_cred = prepare_creds();
- 	if (override_cred) {
--		override_cred->fsuid = inode->i_uid;
--		override_cred->fsgid = inode->i_gid;
- 		if (!attr->hardlink) {
-+			override_cred->fsuid = inode->i_uid;
-+			override_cred->fsgid = inode->i_gid;
- 			err = security_dentry_create_files_as(dentry,
- 					attr->mode, &dentry->d_name, old_cred,
- 					override_cred);
--- 
-2.32.1 (Apple Git-133)
-
+Thanks,
+Amir.
