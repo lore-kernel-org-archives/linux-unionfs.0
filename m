@@ -2,58 +2,58 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 099B2C25B08
-	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Aug 2022 07:37:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98728C25B08
+	for <linux-unionfs@archiver.kernel.org>; Wed, 17 Aug 2022 09:11:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231396AbiHQHhY (ORCPT
+        id S234458AbiHQJLz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 17 Aug 2022 03:37:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51262 "EHLO
+        Wed, 17 Aug 2022 05:11:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230011AbiHQHgw (ORCPT
+        with ESMTP id S234451AbiHQJLy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 17 Aug 2022 03:36:52 -0400
-Received: from mail-vk1-xa2d.google.com (mail-vk1-xa2d.google.com [IPv6:2607:f8b0:4864:20::a2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 190B575CF6;
-        Wed, 17 Aug 2022 00:36:51 -0700 (PDT)
-Received: by mail-vk1-xa2d.google.com with SMTP id w129so6295571vkg.10;
-        Wed, 17 Aug 2022 00:36:51 -0700 (PDT)
+        Wed, 17 Aug 2022 05:11:54 -0400
+Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFDAF67C84
+        for <linux-unionfs@vger.kernel.org>; Wed, 17 Aug 2022 02:11:52 -0700 (PDT)
+Received: by mail-lj1-x229.google.com with SMTP id x10so12970115ljq.4
+        for <linux-unionfs@vger.kernel.org>; Wed, 17 Aug 2022 02:11:52 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc;
-        bh=D+Wh1I5cqYGHkslt4DZh0xiKf9lFC9rLAk9e5WpFHyg=;
-        b=JriSE6+ITnwaiATCLk/li/D3cJh+MrPNSAqg++zkwSeVz1YuWXWMjUzlL0DCriToKS
-         ZSBRkRmD3lu5QkHnHTzgAgbigMF7I7vXhfv6F62stI7fus8uy7QdkAUJ02bHEt35olUW
-         A246owdZ/kPd3EuodDe9zpr54GE05vjA3swexo+RBBZKSDmIs5w8BtQhPaw6aEBAdgxL
-         +O3KhaHiszL5st0XsmRitmOIkmLmiiq4iMgEuLq7MDPWypjdg3c/GWo89LAbmTmBkH5X
-         pE9XjYVg6WjD6eJUFUe2w5ZEVhzNh5YdWcONgAS7js04rC7FKizPNUUlr1xpJYz/5aHd
-         uJ6w==
+        bh=8cEHKvq4W/wjYWThAFuTlzAAkuKprBvcscd59oqr3fE=;
+        b=5WcLEFDrT6Qwc1bh5Zk33hKzLH+PKb0/JTDE/t86lzoYmEAku5M/JiSmXR3ByxVSeN
+         6lsmMtKQE/keV4lj6wUY3MVOpO9NWFuQoUmOsRn6heImFXJeA4JrbODI5hd9eefaT7kf
+         FM426Tc6tByGvhnB04EwZZrF/azG6Wc2JMDcfZHoWrFBIsPZ2LhTBYTkr8aZDivygJPF
+         kMQDgt/+6F5MDh/UeydxjjXqlDKfjZrQ9qXZvIMyk1vtI6f6u2RgpKEesaUgqL9Ixu8R
+         9Wg/nmfV7G/LaNDbNP6do5pdvjVxwWJd063A51RPar/1GWFPdKYhkCjjgoDAO6jhLoTM
+         ZDUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc;
-        bh=D+Wh1I5cqYGHkslt4DZh0xiKf9lFC9rLAk9e5WpFHyg=;
-        b=uwc4Wy9UhzvShjg3h/qzqSyl13hSgr/WoP/ZivT8hwM5QNz26248+kgOYpI1g/b0Lg
-         +FS4DCtTp8UAfByXep6X/TKlKNOpD1gcv9dVMvF4sux43gmpStrq6za7XMsxVIlBlF/A
-         +7Sd4uyvhdG0J4TZcn1fXwaJcun6/AO2/N3hg1WyPewI9gE/YkyNxVK8gKe8KyqSzlqI
-         t61LzAPQO75ZnHIq7rR4s+330jo9LOBeCfCnfO+DQAM0qFRW/CUjC+pU/OWNg2RfdSRB
-         AF6QVj9y1m2G4M/wVWYvGmdpaH2ovGmf+aNrHHjm4OkuhA0QTwOMiGTGJNTuEuDjZ+fW
-         1Xhg==
-X-Gm-Message-State: ACgBeo2liHVPbNqYbdXH0ZYBiGyqa+k7Dy58gaxyuOkqAyFdvsi5Uhah
-        iuaGLa+3MbdpDe51swACpJiOin5uOlQ8shGHipU=
-X-Google-Smtp-Source: AA6agR6zgFS8IrrsDxylcSN0kOwJ5QleEDT3hb+MEc8EMNfrXnySAOpVUZeiWmPr2mOKs7WuMUEUsQCk1nlXhhTnPmM=
-X-Received: by 2002:a1f:2d06:0:b0:380:679d:fb9b with SMTP id
- t6-20020a1f2d06000000b00380679dfb9bmr2641716vkt.25.1660721810173; Wed, 17 Aug
- 2022 00:36:50 -0700 (PDT)
+        bh=8cEHKvq4W/wjYWThAFuTlzAAkuKprBvcscd59oqr3fE=;
+        b=FdkHOnpnp3pcphVrwQlWrrorM7lARkohZsBLx1UHdnBWO1H1SnyLz8FQUWOSg8K4AJ
+         zqw5H05Gqe9id01z2VwGS2Ny2fBVFiJV53OjbCe3V6+AoJ/xE9niq20IRrKWcjf+fFwt
+         FIK01T5xRre3utcybwiTmAY9Md8hsjqlkwEA/vzJUOTuuJT53UNOfmbh2RmoXv+lWqRl
+         9ibvBHFuU4qc41SWIsRu/7rUZPGVx+OCPlzNOrVV7ZmAc81BRNNnZwIEfpQR5MQToqED
+         WlGIGUYs6ywG29VK+e0vbzV7z/fXRmUmcWDzS2Gzk69+7idiqhtGH+VzrHxx5TFCvXFM
+         LcUw==
+X-Gm-Message-State: ACgBeo2fnZ/nQub7MuEEGHrZDA1E4LtkbxR+jaJEMaRB/Vu4xohhBTV4
+        u1/XZ3oRZ8/fXoUQ9WTKJzTlf6AQrBDdNbA2984PaQ==
+X-Google-Smtp-Source: AA6agR4A1i+oXgOJ7ySLT2F6wsF+A40u59M0kjmDn3Wq1eMeQxGeFgegnkjnvwQ0KOe8GbkYZ98S5VI58LPpQirNbIY=
+X-Received: by 2002:a05:651c:12cb:b0:25e:44ef:8bfa with SMTP id
+ 11-20020a05651c12cb00b0025e44ef8bfamr7867723lje.324.1660727511269; Wed, 17
+ Aug 2022 02:11:51 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
-In-Reply-To: <20220817034559.44936-1-zhangtianci.1997@bytedance.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 17 Aug 2022 10:36:38 +0300
-Message-ID: <CAOQ4uxgrkPYBkZG--70s4PnUiT0ht=GdWrrm+aY4ZHoZjZrWAw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Do not override fsuid and fsgid in ovl_link()
-To:     Zhang Tianci <zhangtianci.1997@bytedance.com>
+References: <20220817034559.44936-1-zhangtianci.1997@bytedance.com> <CAOQ4uxgrkPYBkZG--70s4PnUiT0ht=GdWrrm+aY4ZHoZjZrWAw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgrkPYBkZG--70s4PnUiT0ht=GdWrrm+aY4ZHoZjZrWAw@mail.gmail.com>
+From:   =?UTF-8?B?5aSp6LWQ5byg?= <zhangtianci.1997@bytedance.com>
+Date:   Wed, 17 Aug 2022 17:11:40 +0800
+Message-ID: <CAP4dvsfqxEGJtQgSdfN+nxbyMAdm2rj_tmUeqXc8syPyK98MHA@mail.gmail.com>
+Subject: Re: [External] Re: [PATCH] ovl: Do not override fsuid and fsgid in ovl_link()
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         linux-kernel <linux-kernel@vger.kernel.org>,
@@ -63,42 +63,79 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Aug 17, 2022 at 6:49 AM Zhang Tianci
-<zhangtianci.1997@bytedance.com> wrote:
+On Wed, Aug 17, 2022 at 3:36 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> ovl_link() did not create a new inode after commit
-> 51f7e52dc943 ("ovl: share inode for hard link"), so
-> in ovl_create_or_link() we should not override cred's
-> fsuid and fsgid when called by ovl_link().
+> On Wed, Aug 17, 2022 at 6:49 AM Zhang Tianci
+> <zhangtianci.1997@bytedance.com> wrote:
+> >
+> > ovl_link() did not create a new inode after commit
+> > 51f7e52dc943 ("ovl: share inode for hard link"), so
+> > in ovl_create_or_link() we should not override cred's
+> > fsuid and fsgid when called by ovl_link().
+> >
+> > Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
+> > Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+> > ---
+> >  fs/overlayfs/dir.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > index 6b03457f72bb..568d338032db 100644
+> > --- a/fs/overlayfs/dir.c
+> > +++ b/fs/overlayfs/dir.c
+> > @@ -595,9 +595,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+> >         err = -ENOMEM;
+> >         override_cred = prepare_creds();
+> >         if (override_cred) {
+> > -               override_cred->fsuid = inode->i_uid;
+> > -               override_cred->fsgid = inode->i_gid;
+> >                 if (!attr->hardlink) {
+> > +                       override_cred->fsuid = inode->i_uid;
+> > +                       override_cred->fsgid = inode->i_gid;
+> >                         err = security_dentry_create_files_as(dentry,
+> >                                         attr->mode, &dentry->d_name, old_cred,
+> >                                         override_cred);
+> > --
 >
-> Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
-> Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-> ---
->  fs/overlayfs/dir.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> This change looks incorrect.
+> Unless I am missing something, fsuid/fsgid still need to
+> be overridden for calling link() on underlying fs.
+> What made you do this change?
 >
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 6b03457f72bb..568d338032db 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -595,9 +595,9 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
->         err = -ENOMEM;
->         override_cred = prepare_creds();
->         if (override_cred) {
-> -               override_cred->fsuid = inode->i_uid;
-> -               override_cred->fsgid = inode->i_gid;
->                 if (!attr->hardlink) {
-> +                       override_cred->fsuid = inode->i_uid;
-> +                       override_cred->fsgid = inode->i_gid;
->                         err = security_dentry_create_files_as(dentry,
->                                         attr->mode, &dentry->d_name, old_cred,
->                                         override_cred);
-> --
+> Thanks,
+> Amir.
 
-This change looks incorrect.
-Unless I am missing something, fsuid/fsgid still need to
-be overridden for calling link() on underlying fs.
-What made you do this change?
+Hi Amir,
+
+I ran into an error when I tested overlay on fuse:
+  $ mkdir /lower /fuse /merge
+  $ mount -t fuse /fuse
+  $ mkdir /fuse/upper /fuse/work
+  $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,workdir=work
+  $ touch /merge/file
+  $ chown bin.bin /merge/file // the file's caller becomes "bin"
+  $ ln /merge/file /merge/lnkfile
+
+Then I got an error(EACCES) because fuse daemon checks the link()'s
+caller is "bin", it denied this request.
+I browsed the changing history of ovl_link(). There are two key commits:
+The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
+overrides the cred's fsuid/fsgid using the new inode. The new inode's
+owner is initialized by inode_init_owner(), and inode->fsuid is
+assigned to the current user. So the override fsuid becomes the
+current user. We know link() is actually modifying the directory, so
+the caller must have the MAY_WRITE permission on the directory. The
+current caller may should have this permission. I think this is
+acceptable to use the caller's fsuid(But I still feel a little
+conflicted with the overlay's design).
+The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
+which removed the inode creation in ovl_link(). This commit move
+inode_init_owner() into ovl_create_object(), so the ovl_link() just
+give the old inode to ovl_create_or_link(). Then the override fsuid
+becomes the old inode's fsuid, neither the caller nor the overlay's
+creator! So I think this is incorrect.
+I think the link() should be like unlink(), overlay fs should just use
+the creator cred to do underlying fs's operations.
 
 Thanks,
-Amir.
+Tianci.
