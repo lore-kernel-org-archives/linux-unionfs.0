@@ -2,62 +2,142 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 802A8C00140
-	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Aug 2022 14:36:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5715BC2BB41
+	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Aug 2022 16:14:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343641AbiHROgA (ORCPT
+        id S1344290AbiHRQOW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 18 Aug 2022 10:36:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57764 "EHLO
+        Thu, 18 Aug 2022 12:14:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343766AbiHROff (ORCPT
+        with ESMTP id S1344262AbiHRQOV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Aug 2022 10:35:35 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 978A48993B;
-        Thu, 18 Aug 2022 07:35:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=2AZvmHGmUWYRtU8m5E0Y2FaQ3RYx/t9Os+yxzS89zbE=; b=YYpNzkhXYjdFiNTAIrlJmpzhKN
-        JcxrksfNkLVtWmxo0N7RP87fpxhFhmBWzqCGl5mTAE0vsM52rWb9WSKoULQ85A4os9R+TiOCNV87X
-        dx+pCYenv4Vr2ecM2PrItSsmKhzZTCBx1ei8ZLfQ4lQjMQzlSexiV5osR/7dx/CRM3a66aB7tL2Q2
-        7PUISYNqrkUoiTEC43ypjVhhkrOd6soKsf9VM44E7CEUS91i+m84oBOtJ8+BwbjidVFChlJy5Q/PE
-        F1eID9xWyilIo7RkkhOXGwkHG+VLYTjd7hFqTaWn4B5/yzC/IvCatAl1QJ6r9Z0Xt5mstMYq4oypG
-        B0GPw+xA==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oOgcA-009t9W-K8; Thu, 18 Aug 2022 14:35:18 +0000
-Date:   Thu, 18 Aug 2022 15:35:18 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org,
-        ceph-devel@vger.kernel.org, coda@cs.cmu.edu,
-        codalist@coda.cs.cmu.edu, Namjae Jeon <linkinjeon@kernel.org>,
+        Thu, 18 Aug 2022 12:14:21 -0400
+Received: from smtp-relay-canonical-0.canonical.com (smtp-relay-canonical-0.canonical.com [185.125.188.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76D804D4D7;
+        Thu, 18 Aug 2022 09:14:20 -0700 (PDT)
+Received: from [10.0.0.100] (cpe5896308f56e8-cm5896308f56e6.cpe.net.cable.rogers.com [99.255.30.7])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 104733F127;
+        Thu, 18 Aug 2022 16:14:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1660839256;
+        bh=YZZSkhT+TTALwtfUjy6aWTR//Rq9MQ2cQ72rzDjTaGo=;
+        h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+         In-Reply-To:Content-Type;
+        b=eKZn0EnaLQ3LPA55KId1jrSyN9QJDFoGajfUjb4kCVLZw+GJfPoyEZk5YsBGY9MBs
+         BD5uhH5otcM+iD4WwVifrNr5NL1BUfcSMeQnhx/CHDs9NWQTtQwx1gGwhuoQTCfKMQ
+         uST4xRWXm8MKtsgcqv+2mfMMUaoVq3HafCDVAbqHwknm58OvYYcZd9zEcvuHOCriAW
+         5f5enAoNjxCzorVuGXsIE8HVJabgP9KqXKSRwJtYh0VtfpPArngeXisaJpK+yDOAEe
+         WaTsYv22CXUAmrDXOQbGO1R7EFcMRumQCCw3nOo7oiJ1DQDXooj3VDnRI/oZGvfm7y
+         iW9MAUvGRwJEw==
+Message-ID: <dc966283-d0b9-b411-0792-c8553b948c2e@canonical.com>
+Date:   Thu, 18 Aug 2022 09:14:13 -0700
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [apparmor] Switching to iterate_shared
+Content-Language: en-US
+To:     Matthew Wilcox <willy@infradead.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     jfs-discussion@lists.sourceforge.net,
+        Hans de Goede <hdegoede@redhat.com>,
+        devel@lists.orangefs.org, apparmor@lists.ubuntu.com,
+        linux-unionfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        coda@cs.cmu.edu, linux-security-module@vger.kernel.org,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        linux-fsdevel@vger.kernel.org, ceph-devel@vger.kernel.org,
         Sungjong Seo <sj1557.seo@samsung.com>,
-        jfs-discussion@lists.sourceforge.net, ocfs2-devel@oss.oracle.com,
-        devel@lists.orangefs.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org, apparmor@lists.ubuntu.com,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Switching to iterate_shared
-Message-ID: <Yv5OJuwJq17bQDXo@casper.infradead.org>
+        Namjae Jeon <linkinjeon@kernel.org>, ocfs2-devel@oss.oracle.com
 References: <YvvBs+7YUcrzwV1a@ZenIV>
  <CAHk-=wgkNwDikLfEkqLxCWR=pLi1rbPZ5eyE8FbfmXP2=r3qcw@mail.gmail.com>
  <Yvvr447B+mqbZAoe@casper.infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From:   John Johansen <john.johansen@canonical.com>
+Organization: Canonical
 In-Reply-To: <Yvvr447B+mqbZAoe@casper.infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Aug 16, 2022 at 08:11:31PM +0100, Matthew Wilcox wrote:
+On 8/16/22 12:11, Matthew Wilcox wrote:
+> On Tue, Aug 16, 2022 at 11:58:36AM -0700, Linus Torvalds wrote:
+>> That said, our filldir code is still confusing as hell. And I would
+>> really like to see that "shared vs non-shared" iterator thing go away,
+>> with everybody using the shared one - and filesystems that can't deal
+>> with it using their own lock.
+>>
+>> But that's a completely independent wart in our complicated filldir saga.
+>>
+>> But if somebody were to look at that iterate-vs-iterate_shared, that
+>> would be lovely. A quick grep shows that we don't have *that* many of
+>> the non-shared cases left:
+>>
+>>        git grep '\.iterate\>.*='
+>>
+>> seems to imply that converting them to a "use my own load" wouldn't be
+>> _too_ bad.
+>>
+>> And some of them might actually be perfectly ok with the shared
+>> semantics (ie inode->i_rwsem held just for reading) and they just were
+>> never converted originally.
+> 
+> What's depressing is that some of these are newly added.  It'd be
+> great if we could attach something _like_ __deprecated to things
+> that checkpatch could pick up on.
+> 
 > fs/adfs/dir_f.c:        .iterate        = adfs_f_iterate,
 > fs/adfs/dir_fplus.c:    .iterate        = adfs_fplus_iterate,
 > 
 > ADFS is read-only, so must be safe?
+> 
+> fs/ceph/dir.c:  .iterate = ceph_readdir,
+> fs/ceph/dir.c:  .iterate = ceph_readdir,
+> 
+> At least CEPH has active maintainers, cc'd
+> 
+> fs/coda/dir.c:  .iterate        = coda_readdir,
+> 
+> Would anyone notice if we broke CODA?  Maintainers cc'd anyway.
+> 
+> fs/exfat/dir.c: .iterate        = exfat_iterate,
+> 
+> Exfat is a new addition, but has active maintainers.
+> 
+> fs/jfs/namei.c: .iterate        = jfs_readdir,
+> 
+> Maintainer cc'd
+> 
+> fs/ntfs/dir.c:  .iterate        = ntfs_readdir,         /* Read directory contents. */
+> 
+> Maybe we can get rid of ntfs soon.
+> 
+> fs/ocfs2/file.c:        .iterate        = ocfs2_readdir,
+> fs/ocfs2/file.c:        .iterate        = ocfs2_readdir,
+> 
+> maintainers cc'd
+> 
+> fs/orangefs/dir.c:      .iterate = orangefs_dir_iterate,
+> 
+> New; maintainer cc'd
+> 
+> fs/overlayfs/readdir.c: .iterate        = ovl_iterate,
+> 
+> Active maintainer, cc'd
+> 
+> fs/proc/base.c: .iterate        = proc_##LSM##_attr_dir_iterate, \
+> 
+> Hmm.  We need both SMACK and Apparmor to agree to this ... cc's added.
 
-I just checked ADFS.  This isn't a f_ops ->iterate, this is a special
-adfs_dir_ops.  ADFS already uses f_ops->iterate_shared.
+This is fine for AppArmor
+
+
+> 
+> fs/vboxsf/dir.c:        .iterate = vboxsf_dir_iterate,
+> 
+> Also newly added.  Maintainer cc'd.
+> 
 
