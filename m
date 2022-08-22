@@ -2,142 +2,63 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5715BC2BB41
-	for <linux-unionfs@archiver.kernel.org>; Thu, 18 Aug 2022 16:14:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 286FFC28D13
+	for <linux-unionfs@archiver.kernel.org>; Mon, 22 Aug 2022 11:53:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344290AbiHRQOW (ORCPT
+        id S230454AbiHVLxa (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 18 Aug 2022 12:14:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34192 "EHLO
+        Mon, 22 Aug 2022 07:53:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344262AbiHRQOV (ORCPT
+        with ESMTP id S232841AbiHVLxM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 18 Aug 2022 12:14:21 -0400
-Received: from smtp-relay-canonical-0.canonical.com (smtp-relay-canonical-0.canonical.com [185.125.188.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76D804D4D7;
-        Thu, 18 Aug 2022 09:14:20 -0700 (PDT)
-Received: from [10.0.0.100] (cpe5896308f56e8-cm5896308f56e6.cpe.net.cable.rogers.com [99.255.30.7])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-        (No client certificate requested)
-        by smtp-relay-canonical-0.canonical.com (Postfix) with ESMTPSA id 104733F127;
-        Thu, 18 Aug 2022 16:14:14 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
-        s=20210705; t=1660839256;
-        bh=YZZSkhT+TTALwtfUjy6aWTR//Rq9MQ2cQ72rzDjTaGo=;
-        h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-         In-Reply-To:Content-Type;
-        b=eKZn0EnaLQ3LPA55KId1jrSyN9QJDFoGajfUjb4kCVLZw+GJfPoyEZk5YsBGY9MBs
-         BD5uhH5otcM+iD4WwVifrNr5NL1BUfcSMeQnhx/CHDs9NWQTtQwx1gGwhuoQTCfKMQ
-         uST4xRWXm8MKtsgcqv+2mfMMUaoVq3HafCDVAbqHwknm58OvYYcZd9zEcvuHOCriAW
-         5f5enAoNjxCzorVuGXsIE8HVJabgP9KqXKSRwJtYh0VtfpPArngeXisaJpK+yDOAEe
-         WaTsYv22CXUAmrDXOQbGO1R7EFcMRumQCCw3nOo7oiJ1DQDXooj3VDnRI/oZGvfm7y
-         iW9MAUvGRwJEw==
-Message-ID: <dc966283-d0b9-b411-0792-c8553b948c2e@canonical.com>
-Date:   Thu, 18 Aug 2022 09:14:13 -0700
+        Mon, 22 Aug 2022 07:53:12 -0400
+Received: from mail.ispras.ru (mail.ispras.ru [83.149.199.84])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B570B33A15;
+        Mon, 22 Aug 2022 04:53:09 -0700 (PDT)
+Received: from stanislav-HLY-WX9XX.. (unknown [46.172.13.71])
+        by mail.ispras.ru (Postfix) with ESMTPSA id 12A9640D4004;
+        Mon, 22 Aug 2022 11:53:01 +0000 (UTC)
+From:   Stanislav Goriainov <goriainov@ispras.ru>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Stanislav Goriainov <goriainov@ispras.ru>,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ldv-project@linuxtesting.org
+Subject: [PATCH] ovl: Fix potential memory leak
+Date:   Mon, 22 Aug 2022 14:52:57 +0300
+Message-Id: <20220822115257.7457-1-goriainov@ispras.ru>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.11.0
-Subject: Re: [apparmor] Switching to iterate_shared
-Content-Language: en-US
-To:     Matthew Wilcox <willy@infradead.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     jfs-discussion@lists.sourceforge.net,
-        Hans de Goede <hdegoede@redhat.com>,
-        devel@lists.orangefs.org, apparmor@lists.ubuntu.com,
-        linux-unionfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        coda@cs.cmu.edu, linux-security-module@vger.kernel.org,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, ceph-devel@vger.kernel.org,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Namjae Jeon <linkinjeon@kernel.org>, ocfs2-devel@oss.oracle.com
-References: <YvvBs+7YUcrzwV1a@ZenIV>
- <CAHk-=wgkNwDikLfEkqLxCWR=pLi1rbPZ5eyE8FbfmXP2=r3qcw@mail.gmail.com>
- <Yvvr447B+mqbZAoe@casper.infradead.org>
-From:   John Johansen <john.johansen@canonical.com>
-Organization: Canonical
-In-Reply-To: <Yvvr447B+mqbZAoe@casper.infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 8/16/22 12:11, Matthew Wilcox wrote:
-> On Tue, Aug 16, 2022 at 11:58:36AM -0700, Linus Torvalds wrote:
->> That said, our filldir code is still confusing as hell. And I would
->> really like to see that "shared vs non-shared" iterator thing go away,
->> with everybody using the shared one - and filesystems that can't deal
->> with it using their own lock.
->>
->> But that's a completely independent wart in our complicated filldir saga.
->>
->> But if somebody were to look at that iterate-vs-iterate_shared, that
->> would be lovely. A quick grep shows that we don't have *that* many of
->> the non-shared cases left:
->>
->>        git grep '\.iterate\>.*='
->>
->> seems to imply that converting them to a "use my own load" wouldn't be
->> _too_ bad.
->>
->> And some of them might actually be perfectly ok with the shared
->> semantics (ie inode->i_rwsem held just for reading) and they just were
->> never converted originally.
-> 
-> What's depressing is that some of these are newly added.  It'd be
-> great if we could attach something _like_ __deprecated to things
-> that checkpatch could pick up on.
-> 
-> fs/adfs/dir_f.c:        .iterate        = adfs_f_iterate,
-> fs/adfs/dir_fplus.c:    .iterate        = adfs_fplus_iterate,
-> 
-> ADFS is read-only, so must be safe?
-> 
-> fs/ceph/dir.c:  .iterate = ceph_readdir,
-> fs/ceph/dir.c:  .iterate = ceph_readdir,
-> 
-> At least CEPH has active maintainers, cc'd
-> 
-> fs/coda/dir.c:  .iterate        = coda_readdir,
-> 
-> Would anyone notice if we broke CODA?  Maintainers cc'd anyway.
-> 
-> fs/exfat/dir.c: .iterate        = exfat_iterate,
-> 
-> Exfat is a new addition, but has active maintainers.
-> 
-> fs/jfs/namei.c: .iterate        = jfs_readdir,
-> 
-> Maintainer cc'd
-> 
-> fs/ntfs/dir.c:  .iterate        = ntfs_readdir,         /* Read directory contents. */
-> 
-> Maybe we can get rid of ntfs soon.
-> 
-> fs/ocfs2/file.c:        .iterate        = ocfs2_readdir,
-> fs/ocfs2/file.c:        .iterate        = ocfs2_readdir,
-> 
-> maintainers cc'd
-> 
-> fs/orangefs/dir.c:      .iterate = orangefs_dir_iterate,
-> 
-> New; maintainer cc'd
-> 
-> fs/overlayfs/readdir.c: .iterate        = ovl_iterate,
-> 
-> Active maintainer, cc'd
-> 
-> fs/proc/base.c: .iterate        = proc_##LSM##_attr_dir_iterate, \
-> 
-> Hmm.  We need both SMACK and Apparmor to agree to this ... cc's added.
+ovl: Fix potential memory leak in ovl_lookup()
 
-This is fine for AppArmor
+If memory for uperredirect was allocated with kstrdup()
+in upperdir != NULL and d.redirect != NULL path,
+it may be lost when upperredirect is reassigned later.
 
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
 
-> 
-> fs/vboxsf/dir.c:        .iterate = vboxsf_dir_iterate,
-> 
-> Also newly added.  Maintainer cc'd.
-> 
+Signed-off-by: Stanislav Goriainov <goriainov@ispras.ru>
+---
+ fs/overlayfs/namei.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 69dc577974f8..226c69812379 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -1085,6 +1085,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			.mnt = ovl_upper_mnt(ofs),
+ 		};
+ 
++		kfree(upperredirect);
+ 		upperredirect = ovl_get_redirect_xattr(ofs, &upperpath, 0);
+ 		if (IS_ERR(upperredirect)) {
+ 			err = PTR_ERR(upperredirect);
+-- 
+2.34.1
 
