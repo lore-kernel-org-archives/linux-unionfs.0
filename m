@@ -2,175 +2,95 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 971A3ECAAD3
-	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Sep 2022 08:29:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3484FECAAD3
+	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Sep 2022 12:34:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232877AbiIAI3n (ORCPT
+        id S232107AbiIAMeB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 1 Sep 2022 04:29:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47356 "EHLO
+        Thu, 1 Sep 2022 08:34:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231137AbiIAI3m (ORCPT
+        with ESMTP id S232879AbiIAMd7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Sep 2022 04:29:42 -0400
-Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0A541243E7
-        for <linux-unionfs@vger.kernel.org>; Thu,  1 Sep 2022 01:29:37 -0700 (PDT)
-Received: by mail-pl1-x62f.google.com with SMTP id y1so14569584plb.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 01 Sep 2022 01:29:37 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date;
-        bh=Z8mNRx0q7JkHyItbYSH6ZMDmLisieuEpSm8lhGlJd7Y=;
-        b=M/zIvRwXEziAmG7s8UKFmRMZRr3Tec5uiWycNvfqiGrKkEL1QoRfWCquYsc1vYdEnC
-         SqcLAjZVEFmbPzNmWFNvdGa7WmyxIZ5yEBhh9CjlQ+d+YoTzJe7ZatTvuMt8uSTuu9Dz
-         vbkmiwFzS3dHfas7sXUSKgA+vTItoznGH9P5QkLMJvdLsDTM1WubQvIYIIm0ZZCxYnkD
-         +lKT87/GSuiEOc/fRnGuzX4lg5290fuuQ0W+f3vuvXkxy3iq4n7FmbHFYpabEtv4Byww
-         ytoNMSY/BaQ1jdybXJEya7H0qEGEJw7hmjRDLUzUgk/Piv0dz6UicBmjTG9TkjcjQVny
-         Nx7g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date;
-        bh=Z8mNRx0q7JkHyItbYSH6ZMDmLisieuEpSm8lhGlJd7Y=;
-        b=yeX7iXv3qEuJJvJXosuuT4HLEtVgoplRoxhyL2q4bcnO/ZqQTliNPxLefYUTDZMjTT
-         s83mg/hpFx/35G5weo3NdV5uF+SPRHBq35kBPa+e0l9k+Scf0QIH/qDVoYrUC4pYugm9
-         zjzGoCzpYx02YoM10e/Cvm1plghAXN2zpKS/l0quAtzLYS4BKYnzn07hn2nq0P9e6ggH
-         R0mi98TDFsiQfU3HOsb/qBiZHcPBzoYOrbs0N4dEUuGdvD5fYxLy1oy/VLzYzhvOk2d+
-         0ePhPZ+BX94xMM74dSKq5f5j87Acys/sAGo15KufY1uVdVX295pn6BT9VsKoDUPHtzgz
-         T6/g==
-X-Gm-Message-State: ACgBeo2KfhEW6+d1XKXfvToX1lxLB0hzsYnNpia+WkQfSRWxu3AjThPT
-        f2czMUNGrpckLq3I3HiL3p/wSA==
-X-Google-Smtp-Source: AA6agR4ZveHbdLnn20Sv5BWxz37Fsce4HodHVlJOfFj2kXaZohJIOmCDdV2znOy5vkho9v4dOoxUbw==
-X-Received: by 2002:a17:90a:e293:b0:1fd:7a55:9e1d with SMTP id d19-20020a17090ae29300b001fd7a559e1dmr7573587pjz.113.1662020977270;
-        Thu, 01 Sep 2022 01:29:37 -0700 (PDT)
-Received: from J23WFD767R.bytedance.net ([139.177.225.234])
-        by smtp.gmail.com with ESMTPSA id ij8-20020a170902ab4800b00172e19c5f8bsm5354889plb.168.2022.09.01.01.29.34
-        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 01 Sep 2022 01:29:36 -0700 (PDT)
-From:   Zhang Tianci <zhangtianci.1997@bytedance.com>
-To:     miklos@szeredi.hu
-Cc:     Zhang Tianci <zhangtianci.1997@bytedance.com>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        amir73il@gmail.com, brauner@kernel.org,
+        Thu, 1 Sep 2022 08:33:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2965CD112;
+        Thu,  1 Sep 2022 05:33:56 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id AED4961DF4;
+        Thu,  1 Sep 2022 12:33:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8291AC433D6;
+        Thu,  1 Sep 2022 12:33:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1662035635;
+        bh=9UIyfyyALoM0eBslsP+U76/M/W3Lbw5Q0719KJ6vMKU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Xvc/T3sCjwdDiqe3jU5SB+YjvT4jAnI6vmPeoP1OYgLt8fw9cBnmEDwC6xL3Sa3VL
+         1RizMwJ36Apxl/q0v7NGjPx2eFF2c6l7kT/0xYGs3J2M73VoXT3cyF1MwtVzpfSzwJ
+         rHRwtbtkw37e1xv+4v85vr/3QkTQyqhJCxEivyzMjl4xVaS7Ot+weuI3fX1zEUGQnq
+         ku4y0O9hpmMEz1HvIc9YDmAjoOid8IwX8KxAgbFltvVNXHyDuz9Eev/Ix8GHfzrabC
+         k0avvOm7M6MHs7I4/t3GJDtzlFwkNDrYHGI9iYGnGswMx9U4w2E5epMG6VU003Pht2
+         WWGt+VVqOD5aw==
+Date:   Thu, 1 Sep 2022 14:33:50 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Zhang Tianci <zhangtianci.1997@bytedance.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, amir73il@gmail.com,
         Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-Subject: [PATCH v3] ovl: Use ovl mounter's fsuid and fsgid in ovl_link()
-Date:   Thu,  1 Sep 2022 16:29:29 +0800
-Message-Id: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
-X-Mailer: git-send-email 2.32.1 (Apple Git-133)
+Subject: Re: [PATCH v3] ovl: Use ovl mounter's fsuid and fsgid in ovl_link()
+Message-ID: <20220901123350.wak7yjbvddtcnwfb@wittgenstein>
+References: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-There is a wrong case of link() on overlay:
-  $ mkdir /lower /fuse /merge
-  $ mount -t fuse /fuse
-  $ mkdir /fuse/upper /fuse/work
-  $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,\
-    workdir=work
-  $ touch /merge/file
-  $ chown bin.bin /merge/file // the file's caller becomes "bin"
-  $ ln /merge/file /merge/lnkfile
+On Thu, Sep 01, 2022 at 04:29:29PM +0800, Zhang Tianci wrote:
+> There is a wrong case of link() on overlay:
+>   $ mkdir /lower /fuse /merge
+>   $ mount -t fuse /fuse
+>   $ mkdir /fuse/upper /fuse/work
+>   $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,\
+>     workdir=work
+>   $ touch /merge/file
+>   $ chown bin.bin /merge/file // the file's caller becomes "bin"
+>   $ ln /merge/file /merge/lnkfile
+> 
+> Then we will get an error(EACCES) because fuse daemon checks the link()'s
+> caller is "bin", it denied this request.
+> 
+> In the changing history of ovl_link(), there are two key commits:
+> 
+> The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
+> overrides the cred's fsuid/fsgid using the new inode. The new inode's
+> owner is initialized by inode_init_owner(), and inode->fsuid is
+> assigned to the current user. So the override fsuid becomes the
+> current user. We know link() is actually modifying the directory, so
+> the caller must have the MAY_WRITE permission on the directory. The
+> current caller may should have this permission. This is acceptable
+> to use the caller's fsuid.
+> 
+> The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
+> which removed the inode creation in ovl_link(). This commit move
+> inode_init_owner() into ovl_create_object(), so the ovl_link() just
+> give the old inode to ovl_create_or_link(). Then the override fsuid
+> becomes the old inode's fsuid, neither the caller nor the overlay's
+> mounter! So this is incorrect.
+> 
+> Fix this bug by using ovl mounter's fsuid/fsgid to do underlying
+> fs's link().
+> 
+> v1: https://lore.kernel.org/all/20220817102952.xnvesg3a7rbv576x@wittgenstein/T
+> v2: https://lore.kernel.org/lkml/20220825130552.29587-1-zhangtianci.1997@bytedance.com/t
+> 
+> Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
+> Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+> ---
 
-Then we will get an error(EACCES) because fuse daemon checks the link()'s
-caller is "bin", it denied this request.
-
-In the changing history of ovl_link(), there are two key commits:
-
-The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
-overrides the cred's fsuid/fsgid using the new inode. The new inode's
-owner is initialized by inode_init_owner(), and inode->fsuid is
-assigned to the current user. So the override fsuid becomes the
-current user. We know link() is actually modifying the directory, so
-the caller must have the MAY_WRITE permission on the directory. The
-current caller may should have this permission. This is acceptable
-to use the caller's fsuid.
-
-The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
-which removed the inode creation in ovl_link(). This commit move
-inode_init_owner() into ovl_create_object(), so the ovl_link() just
-give the old inode to ovl_create_or_link(). Then the override fsuid
-becomes the old inode's fsuid, neither the caller nor the overlay's
-mounter! So this is incorrect.
-
-Fix this bug by using ovl mounter's fsuid/fsgid to do underlying
-fs's link().
-
-v1: https://lore.kernel.org/all/20220817102952.xnvesg3a7rbv576x@wittgenstein/T
-v2: https://lore.kernel.org/lkml/20220825130552.29587-1-zhangtianci.1997@bytedance.com/t
-
-Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
-Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
----
- fs/overlayfs/dir.c | 46 ++++++++++++++++++++++++++++++----------------
- 1 file changed, 30 insertions(+), 16 deletions(-)
-
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 6b03457f72bb..c3032cef391e 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -592,28 +592,42 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 			goto out_revert_creds;
- 	}
- 
--	err = -ENOMEM;
--	override_cred = prepare_creds();
--	if (override_cred) {
-+	if (!attr->hardlink) {
-+		err = -ENOMEM;
-+		override_cred = prepare_creds();
-+		if (!override_cred)
-+			goto out_revert_creds;
-+		/*
-+		 * In the creation cases(create, mkdir, mknod, symlink),
-+		 * ovl should transfer current's fs{u,g}id to underlying
-+		 * fs. Because underlying fs want to initialize its new
-+		 * inode owner using current's fs{u,g}id. And in this
-+		 * case, the @inode is a new inode that is initialized
-+		 * in inode_init_owner() to current's fs{u,g}id. So use
-+		 * the inode's i_{u,g}id to override the cred's fs{u,g}id.
-+		 *
-+		 * But in the other hardlink case, ovl_link() does not
-+		 * create a new inode, so just use the ovl mounter's
-+		 * fs{u,g}id.
-+		 */
- 		override_cred->fsuid = inode->i_uid;
- 		override_cred->fsgid = inode->i_gid;
--		if (!attr->hardlink) {
--			err = security_dentry_create_files_as(dentry,
--					attr->mode, &dentry->d_name, old_cred,
--					override_cred);
--			if (err) {
--				put_cred(override_cred);
--				goto out_revert_creds;
--			}
-+		err = security_dentry_create_files_as(dentry,
-+				attr->mode, &dentry->d_name, old_cred,
-+				override_cred);
-+		if (err) {
-+			put_cred(override_cred);
-+			goto out_revert_creds;
- 		}
- 		put_cred(override_creds(override_cred));
- 		put_cred(override_cred);
--
--		if (!ovl_dentry_is_whiteout(dentry))
--			err = ovl_create_upper(dentry, inode, attr);
--		else
--			err = ovl_create_over_whiteout(dentry, inode, attr);
- 	}
-+
-+	if (!ovl_dentry_is_whiteout(dentry))
-+		err = ovl_create_upper(dentry, inode, attr);
-+	else
-+		err = ovl_create_over_whiteout(dentry, inode, attr);
-+
- out_revert_creds:
- 	revert_creds(old_cred);
- 	return err;
--- 
-2.32.1 (Apple Git-133)
-
+Looks good to me,
+Reviewed-by: Christian Brauner (Microsoft) <brauner@kernel.org>
