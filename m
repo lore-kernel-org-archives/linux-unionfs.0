@@ -2,95 +2,78 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3484FECAAD3
-	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Sep 2022 12:34:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C808FECAAA1
+	for <linux-unionfs@archiver.kernel.org>; Mon,  5 Sep 2022 05:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232107AbiIAMeB (ORCPT
+        id S234712AbiIEFsD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 1 Sep 2022 08:34:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59928 "EHLO
+        Mon, 5 Sep 2022 01:48:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34838 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232879AbiIAMd7 (ORCPT
+        with ESMTP id S229604AbiIEFsD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Sep 2022 08:33:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2965CD112;
-        Thu,  1 Sep 2022 05:33:56 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AED4961DF4;
-        Thu,  1 Sep 2022 12:33:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8291AC433D6;
-        Thu,  1 Sep 2022 12:33:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662035635;
-        bh=9UIyfyyALoM0eBslsP+U76/M/W3Lbw5Q0719KJ6vMKU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Xvc/T3sCjwdDiqe3jU5SB+YjvT4jAnI6vmPeoP1OYgLt8fw9cBnmEDwC6xL3Sa3VL
-         1RizMwJ36Apxl/q0v7NGjPx2eFF2c6l7kT/0xYGs3J2M73VoXT3cyF1MwtVzpfSzwJ
-         rHRwtbtkw37e1xv+4v85vr/3QkTQyqhJCxEivyzMjl4xVaS7Ot+weuI3fX1zEUGQnq
-         ku4y0O9hpmMEz1HvIc9YDmAjoOid8IwX8KxAgbFltvVNXHyDuz9Eev/Ix8GHfzrabC
-         k0avvOm7M6MHs7I4/t3GJDtzlFwkNDrYHGI9iYGnGswMx9U4w2E5epMG6VU003Pht2
-         WWGt+VVqOD5aw==
-Date:   Thu, 1 Sep 2022 14:33:50 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Zhang Tianci <zhangtianci.1997@bytedance.com>
-Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, amir73il@gmail.com,
-        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-Subject: Re: [PATCH v3] ovl: Use ovl mounter's fsuid and fsgid in ovl_link()
-Message-ID: <20220901123350.wak7yjbvddtcnwfb@wittgenstein>
-References: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
+        Mon, 5 Sep 2022 01:48:03 -0400
+Received: from mail-m975.mail.163.com (mail-m975.mail.163.com [123.126.97.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 462332497E;
+        Sun,  4 Sep 2022 22:48:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=W7qfu
+        W2COxzqII9yQck1Az5gD2nwiCAVhdk+aSL11rs=; b=McxAL2/qNWlqsJDrkS6W+
+        UBA5L6kc7VrlUG/SWdZbq3WWY8xYW1H4TFl2GkLTKkN7A3scAe2iYb7F4Z4xKqGO
+        r0trMCr3207fF34k1mTN9nyPwDOYAp0TTQZC1fKpPHpuL+ipEWSbMrZGQsc+v5+P
+        /5o+NeBiC7xBtK+Ng2DGdw=
+Received: from localhost.localdomain (unknown [116.128.244.169])
+        by smtp5 (Coremail) with SMTP id HdxpCgCXeSCGjRVjWMK3Zw--.29957S2;
+        Mon, 05 Sep 2022 13:47:50 +0800 (CST)
+From:   Jiangshan Yi <13667453960@163.com>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jiangshan Yi <yijiangshan@kylinos.cn>,
+        k2ci <kernel-bot@kylinos.cn>
+Subject: [PATCH] fs/overlayfs/export.c: fix spelling typo in comment
+Date:   Mon,  5 Sep 2022 13:47:36 +0800
+Message-Id: <20220905054736.1816872-1-13667453960@163.com>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: HdxpCgCXeSCGjRVjWMK3Zw--.29957S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrury7Jr47ZFy5GFWxWr1Dtrb_yoWfGrcEkw
+        12gw40grW5J3WSyr47CrW5tF4Sga1FkrWUJrn3trZ8ua1qqw47Jas8tr1Sqr1DCry8tFyD
+        uwn8Jry0kw4rCjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IU15l1JUUUUU==
+X-Originating-IP: [116.128.244.169]
+X-CM-SenderInfo: bprtllyxuvjmiwq6il2tof0z/1tbiyAZz+1p7HmkcOQAAs1
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 01, 2022 at 04:29:29PM +0800, Zhang Tianci wrote:
-> There is a wrong case of link() on overlay:
->   $ mkdir /lower /fuse /merge
->   $ mount -t fuse /fuse
->   $ mkdir /fuse/upper /fuse/work
->   $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,\
->     workdir=work
->   $ touch /merge/file
->   $ chown bin.bin /merge/file // the file's caller becomes "bin"
->   $ ln /merge/file /merge/lnkfile
-> 
-> Then we will get an error(EACCES) because fuse daemon checks the link()'s
-> caller is "bin", it denied this request.
-> 
-> In the changing history of ovl_link(), there are two key commits:
-> 
-> The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
-> overrides the cred's fsuid/fsgid using the new inode. The new inode's
-> owner is initialized by inode_init_owner(), and inode->fsuid is
-> assigned to the current user. So the override fsuid becomes the
-> current user. We know link() is actually modifying the directory, so
-> the caller must have the MAY_WRITE permission on the directory. The
-> current caller may should have this permission. This is acceptable
-> to use the caller's fsuid.
-> 
-> The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
-> which removed the inode creation in ovl_link(). This commit move
-> inode_init_owner() into ovl_create_object(), so the ovl_link() just
-> give the old inode to ovl_create_or_link(). Then the override fsuid
-> becomes the old inode's fsuid, neither the caller nor the overlay's
-> mounter! So this is incorrect.
-> 
-> Fix this bug by using ovl mounter's fsuid/fsgid to do underlying
-> fs's link().
-> 
-> v1: https://lore.kernel.org/all/20220817102952.xnvesg3a7rbv576x@wittgenstein/T
-> v2: https://lore.kernel.org/lkml/20220825130552.29587-1-zhangtianci.1997@bytedance.com/t
-> 
-> Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
-> Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-> ---
+From: Jiangshan Yi <yijiangshan@kylinos.cn>
 
-Looks good to me,
-Reviewed-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+Fix spelling typo in comment.
+
+Reported-by: k2ci <kernel-bot@kylinos.cn>
+Signed-off-by: Jiangshan Yi <yijiangshan@kylinos.cn>
+---
+ fs/overlayfs/export.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index e065a5b9a442..bced83bd9ffa 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -339,7 +339,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ 	return dentry;
+ }
+ 
+-/* Get the upper or lower dentry in stach whose on layer @idx */
++/* Get the upper or lower dentry in stack whose on layer @idx */
+ static struct dentry *ovl_dentry_real_at(struct dentry *dentry, int idx)
+ {
+ 	struct ovl_entry *oe = dentry->d_fsdata;
+-- 
+2.27.0
+
+
+No virus found
+		Checked by Hillstone Network AntiVirus
+
