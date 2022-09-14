@@ -2,98 +2,225 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE21ECAAA1
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Sep 2022 09:08:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C711DECAAD8
+	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Sep 2022 03:46:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230360AbiIIJIR (ORCPT
+        id S229806AbiINDqy (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 9 Sep 2022 05:08:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39420 "EHLO
+        Tue, 13 Sep 2022 23:46:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60344 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229923AbiIIJIN (ORCPT
+        with ESMTP id S229802AbiINDqw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 9 Sep 2022 05:08:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73B995727F
-        for <linux-unionfs@vger.kernel.org>; Fri,  9 Sep 2022 02:08:12 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0815161F4B
-        for <linux-unionfs@vger.kernel.org>; Fri,  9 Sep 2022 09:08:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD961C433C1;
-        Fri,  9 Sep 2022 09:08:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662714491;
-        bh=0a3pbge29fF90Ee/MxPWEV27CllE5J5Tl3LSgHPAC7s=;
-        h=From:To:Cc:Subject:Date:From;
-        b=T8X+7L19IrblmsjduyDPPHNnoIwxWz/re5qjVV3lR9Qux157kzVojDusnspV/0/iV
-         a8WLWCH2e4ZZ9LKc93CZeojH81HxuukIC+31s9ShHqpC62LhU3MT5XBAM7PE2x3X5l
-         brxAliGfs7tchJMuCgilXL9Egi67o9jRtZEP+1NYO5T/CczXmqBhmdeUYCE/JoQ+a9
-         fMDTIT3wNFbf8jHSV/1RJyVAkDiGjramFcBPQaV8e53lm7w9O37UszEfih4u3Rd4gP
-         cId1JnXAl6VDWkQZZtmCMlpNEVNTL+vRdHEs0N86vZrAjDK60JywvTuum/lsQ/FAGm
-         Tw1ZIf41GBg6g==
-From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <mszeredi@redhat.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Seth Forshee <sforshee@kernel.org>,
-        Christoph Hellwig <hch@lst.de>, linux-unionfs@vger.kernel.org
-Subject: [PATCH] ovl: port to vfs{g,u}id_t and associated helpers
-Date:   Fri,  9 Sep 2022 11:07:47 +0200
-Message-Id: <20220909090747.930375-1-brauner@kernel.org>
-X-Mailer: git-send-email 2.34.1
+        Tue, 13 Sep 2022 23:46:52 -0400
+Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A634A6AA2A;
+        Tue, 13 Sep 2022 20:46:50 -0700 (PDT)
+Received: by mail-ua1-x92c.google.com with SMTP id a18so5057877uak.12;
+        Tue, 13 Sep 2022 20:46:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date;
+        bh=yUDym3ehzI6AmjjrIybEaCVUegk1hmpWzbzT6HzAP/U=;
+        b=aG2C/2JeXc6CTyXWlZrNqu0OTJDS+WtmUqyC+fYwFaMjrYCmimI4DpxnnxD3nXsK0k
+         UVnrB+ZZtfXFdEiKmeCvZvzLCFrq588Krwmt9o0NWVcp4i7lNjeSajrH86CP5dg+2w4K
+         HmO3TTmPAArl/C2dK2Da8RgMIDkwVkzdVW9qnDaTJURmkB6VFTiLipTJKqe5EVaGIfI3
+         69GrjZnGswC90nO1LTiVtT5aDaHndk4tCPY1Oz3Cwum6QjhTs/4sBX0b2Lg+w2ZZkUQ3
+         5uW+6ldilYG8DSBM2xZqUUqgZLzy/t75kMJwE4ENBbOZbsrDIjZSX3UIG3BJ07gWq0YO
+         mz/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date;
+        bh=yUDym3ehzI6AmjjrIybEaCVUegk1hmpWzbzT6HzAP/U=;
+        b=rnmCMV0z2USSM/vyOCJEzwgAdvz0fZjDnDxzBqx7NQI3vkczoIWEOzPBibLo7i7xKu
+         5cZbwjCQVmnQvmoETDhCmOGo90KLi15Fqb0Bijapbs9Kf9y3mT7e8UvWP6EuJqsoNBYe
+         GgUDtWQnaksjFZltc07hFIYLTcNqC30EpXe1aYCtub82oRZqc8FktfsOOIicjgMAybtt
+         25HPQKbT2WFLOnaJsJpWStEj4uPDU0VU4hChCvz1F9RfTimgLQVC15lvzxDdcDtL4igB
+         MsaOl4MYt7A6+G5l9tzmKMN4KuIEvff2ewvbT7WFB8qfvKmD10xuMHENNhW3DPHoPbSJ
+         FL1g==
+X-Gm-Message-State: ACgBeo2qLYVnpfUim7DY+MXKskSEnrPH6l0QcSqM2varkVTAv3g0gfb2
+        YtVnW3oPsLnMLJa1WTPiSoeuLkhQu6y1lmpIcEb8gjs2PPk=
+X-Google-Smtp-Source: AA6agR5OHWjTrdYy41nUp5wgC9uF9OFLtlrc57T5Q3YNnQC/JldeOchZ8/pRPDXqo/lw4GjdmqBeHRcvTzVqfdK3FkI=
+X-Received: by 2002:ab0:1c55:0:b0:3b6:3cbe:19ca with SMTP id
+ o21-20020ab01c55000000b003b63cbe19camr6949644uaj.114.1663127209734; Tue, 13
+ Sep 2022 20:46:49 -0700 (PDT)
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1707; i=brauner@kernel.org; h=from:subject; bh=0a3pbge29fF90Ee/MxPWEV27CllE5J5Tl3LSgHPAC7s=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSRLMwWJNN8Ju3hFjfHnDJ1zipPdmf3WBN9xSaywv7VUs+Cl 4NPajlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIns6mZkWJXxeNrkGzfkYk7qsdeXG1 vZ3vFLmB1rGDw1xTywbP99YUaGjfOWliYsKZm2/1YyU6H3wQTufTst5s9J51aXLZ22K9KUFwA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+References: <20210125153057.3623715-1-balsini@android.com> <20210125153057.3623715-4-balsini@android.com>
+ <CAJfpegs4=NYn9k4F4HvZK3mqLehhxCFKgVxctNGf1f2ed0gfqg@mail.gmail.com>
+ <CA+a=Yy5=4SJJoDLOPCYDh-Egk8gTv0JgCU-w-AT+Hxhua3_B2w@mail.gmail.com>
+ <CAJfpegtmXegm0FFxs-rs6UhJq4raktiyuzO483wRatj5HKZvYA@mail.gmail.com>
+ <YD0evc676pdANlHQ@google.com> <CAOQ4uxjCT+gJVeMsnjyFZ9n6Z0+jZ6V4s_AtyPmHvBd52+zF7Q@mail.gmail.com>
+ <CAJfpegsKJ38rmZT=VrOYPOZt4pRdQGjCFtM-TV+TRtcKS5WSDQ@mail.gmail.com>
+ <CAOQ4uxg-r3Fy-pmFrA0L2iUbUVcPz6YZMGrAH2LO315aE-6DzA@mail.gmail.com>
+ <CAJfpegvbMKadnsBZmEvZpCxeWaMEGDRiDBqEZqaBSXcWyPZnpA@mail.gmail.com>
+ <CAOQ4uxgXhVOpF8NgAcJCeW67QMKBOytzMXwy-GjdmS=DGGZ0hA@mail.gmail.com>
+ <CAJfpegtTHhjM5f3R4PVegCoyARA0B2VTdbwbwDva2GhBoX9NsA@mail.gmail.com>
+ <CAOQ4uxh2OZ_AMp6XRcMy0ZtjkQnBfBZFhH0t-+Pd298uPuSEVw@mail.gmail.com>
+ <CAJfpegt4N2nmCQGmLSBB--NzuSSsO6Z0sue27biQd4aiSwvNFw@mail.gmail.com>
+ <CAOQ4uxjjPOtH9+r=oSV4iVAUvW6s3RBjA9qC73bQN1LhUqjRYQ@mail.gmail.com>
+ <CA+khW7hviAT6DbNORYKcatOV1cigGyrd_1mH-oMwehafobVXVg@mail.gmail.com>
+ <CAOQ4uxjUbwKmLAO-jTE3y6EnH2PNw0+V=oXNqNyD+H9U+nX49g@mail.gmail.com>
+ <CA+khW7jQ6fZbEgzxCafsaaTyv7ze58bd9hQ0HBH4R+dQyRaqog@mail.gmail.com>
+ <CAOQ4uxjP0qeuUrdjT6hXCb5zO0AoY+LKM6uza2cL9UCGMo8KsQ@mail.gmail.com> <CA+khW7h907VDeD1mR2wH4pOWxPBG18C2enkZKSZgyWYrFP7Vnw@mail.gmail.com>
+In-Reply-To: <CA+khW7h907VDeD1mR2wH4pOWxPBG18C2enkZKSZgyWYrFP7Vnw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 14 Sep 2022 06:46:38 +0300
+Message-ID: <CAOQ4uxh9_7wRoDuzLkYCQVWWihuOFz5WmQemCskKg+U6FqR8wg@mail.gmail.com>
+Subject: Re: Overlayfs with writable lower layer
+To:     Hao Luo <haoluo@google.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Christian Brauner <brauner@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-A while ago we introduced a dedicated vfs{g,u}id_t type in commit
-1e5267cd0895 ("mnt_idmapping: add vfs{g,u}id_t"). We already switched
-over a good part of the VFS. Ultimately we will remove all legacy
-idmapped mount helpers that operate only on k{g,u}id_t in favor of the
-new type safe helpers that operate on vfs{g,u}id_t.
+On Tue, Sep 13, 2022 at 11:33 PM Hao Luo <haoluo@google.com> wrote:
+>
+> On Tue, Sep 13, 2022 at 11:54 AM Amir Goldstein <amir73il@gmail.com> wrot=
+e:
+> > OK. IIUC, you have upper fs files only in the root dir?
+>
+> Sorry, no, the upper fs files need to be in subdir.
+>
+> > And the lower root dir has only subdirs?
+>
+> There could be files.
+>
 
-Cc: Seth Forshee (Digital Ocean) <sforshee@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org
-Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
----
- fs/overlayfs/util.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+And assuming that those files are cgroupfs files, why
+did you say there is no need to write to those files?
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 87f811c089e4..40ea42c5100a 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1104,13 +1104,18 @@ void ovl_copyattr(struct inode *inode)
- 	struct path realpath;
- 	struct inode *realinode;
- 	struct user_namespace *real_mnt_userns;
-+	vfsuid_t vfsuid;
-+	vfsgid_t vfsgid;
- 
- 	ovl_i_path_real(inode, &realpath);
- 	realinode = d_inode(realpath.dentry);
- 	real_mnt_userns = mnt_user_ns(realpath.mnt);
- 
--	inode->i_uid = i_uid_into_mnt(real_mnt_userns, realinode);
--	inode->i_gid = i_gid_into_mnt(real_mnt_userns, realinode);
-+	vfsuid = i_uid_into_vfsuid(real_mnt_userns, realinode);
-+	vfsgid = i_gid_into_vfsgid(real_mnt_userns, realinode);
-+
-+	inode->i_uid = vfsuid_into_kuid(vfsuid);
-+	inode->i_gid = vfsgid_into_kgid(vfsgid);
- 	inode->i_mode = realinode->i_mode;
- 	inode->i_atime = realinode->i_atime;
- 	inode->i_mtime = realinode->i_mtime;
+I seem to recall that was an important distinction from
+standard overlayfs when you described the problem in LSFMM.
 
-base-commit: 7e18e42e4b280c85b76967a9106a13ca61c16179
--- 
-2.34.1
+> > Can you give a small example of an upper a lower and their
+> > union trees just for the sake of discussion?
+> >
+>
+> For example, assume lower has the following layout:
+> $ tree lower
+> .
+> =E2=94=94=E2=94=80=E2=94=80 A
+>     =E2=94=9C=E2=94=80=E2=94=80 B
+>     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower
+>     =E2=94=94=E2=94=80=E2=94=80 lower
+>
+> I can't create files in the fs in the lower.
+> $ touch A/B/file
+> touch: cannot touch 'A/B/file': Permission denied
+>
+> The upper is initially empty.
+>
+> I would like to overlay a writable fs on top of lower, so the union
+> tree looks like
+> $ tree union
+> .
+> =E2=94=94=E2=94=80=E2=94=80 A
+>     =E2=94=9C=E2=94=80=E2=94=80 B
+>     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower
+>     =E2=94=94=E2=94=80=E2=94=80 lower
+> $ touch A/B/file
+> $ tree union
+> .
+> =E2=94=94=E2=94=80=E2=94=80 A
+>     =E2=94=9C=E2=94=80=E2=94=80 B
+>     =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 file
+>     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower2
+>     =E2=94=94=E2=94=80=E2=94=80 lower1
+>
+> Here, 'file' exists in the upper.
+>
 
+So B is now called a "merged" dir - it is not a "pure" dir
+anymore because it contains both upper and lower files.
+
+Normally in overlayfs before creating 'file' in upper,
+the hierarchy A/B/ needs to be created in upper fs
+to contain the file.
+
+Unless your upper fs automagically has the same
+dirs hierarchy as the lower fs?
+
+You should know that overlayfs does more than just
+mkdir("A");mkdir("A/B")
+it created tmp dirs, sets xattrs and attrs on them and moves
+them into place.
+I am not sure if you planned to support all those operations
+in your upper fs?
+
+There are probably some other limitations at the moment
+related to pseudo filesystems that prevent them from being
+used as upper and/or lower fs in overlayfs.
+
+We will need to check what those limitations are and whether
+those limitations could be lifted for your specific use case.
+
+> Further, directory B could disappear from lower. When that happens, I
+> think there are two possible behaviors:
+>  - make 'file' disappear from union as well;
+>  - make 'file' and its directory accessible as well.
+>
+> In behavior 1, it will look like
+> $ tree union
+> .
+> =E2=94=94=E2=94=80=E2=94=80 A
+>     =E2=94=94=E2=94=80=E2=94=80 lower1
+>
+> In behavior 2, it will look like
+> $ tree union
+> .
+> =E2=94=94=E2=94=80=E2=94=80 A
+>     =E2=94=9C=E2=94=80=E2=94=80 B
+>     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 file
+>     =E2=94=94=E2=94=80=E2=94=80 lower1
+>
+> IMHO, behavior 1 works better in my use case. But if the FS experts
+> think behavior 2 makes more sense, I can work around.
+>
+
+Something that I always wanted to try is to get rid of the duplicated
+upper fs hierarchy.
+
+It's a bit complicated to explain the details, but if your use case
+does not involve any directory renames(?), then the upper path
+for the merge directories can be index based and not hierarchical.
+
+IOW:
+- union tree lookup/traversal by path is performed on the lower fs
+- upper fs is traversed by name only for pure upper dirs
+- merged dirs are found by index of lower dir inode
+
+The result will be behavior 1 that you wanted
+
+I have some other use cases that might benefit from this mode.
+
+> >
+> > If that is all then it sounds pretty simple.
+> > It could be described something like this:
+> > 1. merged directories cannot appear/disappear
+> > 2. lower pure directories can appear/disappear
+> > 3. upper files/dirs can be created inside merge dirs and pure upper dir=
+s
+> >
+> > I think I have some patches that could help with #2.
+> >
+>
+> These three semantics looks good to me.
+>
+
+Except the case about disappearing B that you just described
+above breaks rule #1 ;)
+so other semantics are needed.
+
+I will need some more clarifications about your use case to
+understand if what I have in mind could help your use case.
+
+Thanks,
+Amir.
