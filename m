@@ -2,51 +2,51 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C711DECAAD8
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Sep 2022 03:46:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89360ECAAD3
+	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Sep 2022 18:00:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229806AbiINDqy (ORCPT
+        id S229767AbiINSAS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 13 Sep 2022 23:46:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60344 "EHLO
+        Wed, 14 Sep 2022 14:00:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229802AbiINDqw (ORCPT
+        with ESMTP id S229907AbiINSAR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 13 Sep 2022 23:46:52 -0400
-Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A634A6AA2A;
-        Tue, 13 Sep 2022 20:46:50 -0700 (PDT)
-Received: by mail-ua1-x92c.google.com with SMTP id a18so5057877uak.12;
-        Tue, 13 Sep 2022 20:46:50 -0700 (PDT)
+        Wed, 14 Sep 2022 14:00:17 -0400
+Received: from mail-qt1-x830.google.com (mail-qt1-x830.google.com [IPv6:2607:f8b0:4864:20::830])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E88211EECD
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Sep 2022 11:00:14 -0700 (PDT)
+Received: by mail-qt1-x830.google.com with SMTP id j10so8980382qtv.4
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Sep 2022 11:00:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
+        d=google.com; s=20210112;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date;
-        bh=yUDym3ehzI6AmjjrIybEaCVUegk1hmpWzbzT6HzAP/U=;
-        b=aG2C/2JeXc6CTyXWlZrNqu0OTJDS+WtmUqyC+fYwFaMjrYCmimI4DpxnnxD3nXsK0k
-         UVnrB+ZZtfXFdEiKmeCvZvzLCFrq588Krwmt9o0NWVcp4i7lNjeSajrH86CP5dg+2w4K
-         HmO3TTmPAArl/C2dK2Da8RgMIDkwVkzdVW9qnDaTJURmkB6VFTiLipTJKqe5EVaGIfI3
-         69GrjZnGswC90nO1LTiVtT5aDaHndk4tCPY1Oz3Cwum6QjhTs/4sBX0b2Lg+w2ZZkUQ3
-         5uW+6ldilYG8DSBM2xZqUUqgZLzy/t75kMJwE4ENBbOZbsrDIjZSX3UIG3BJ07gWq0YO
-         mz/g==
+        bh=h4fGXoRURXYZVMZa3qpzUZ+qUx5M3FF8DFGX1noavt0=;
+        b=hZolzGc3K3d6zmlh4cqzpkUtTmmqadXKb+i8ZBgEuTT9HIKHoH+TcZAHwxAS9uqOAJ
+         kTfRjPHXE1hHlOzoJ1fsAFvxMJkN3hXk9oTkXahImB7y/jC0dh8XylykfhAJYzaAZlLb
+         E4R/Kv2V1rI3EuMoK5aSbc9VKmOaYf0o5PtwYmWTuolU9fHr40j2ZQuapxnoZaLs8trv
+         n7kldHfvgEhqFmOIt9pJ3DkGmm+6cPYh5D5he9akYDdFDvoJ3V7IagLo4xLfOPyaZHzG
+         4ucrotNqwSJZ5aAp49cb3p+esYLWzTd9avguRivV1K658m9JL5QeqS2JAafTq+49cHfR
+         dbhQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date;
-        bh=yUDym3ehzI6AmjjrIybEaCVUegk1hmpWzbzT6HzAP/U=;
-        b=rnmCMV0z2USSM/vyOCJEzwgAdvz0fZjDnDxzBqx7NQI3vkczoIWEOzPBibLo7i7xKu
-         5cZbwjCQVmnQvmoETDhCmOGo90KLi15Fqb0Bijapbs9Kf9y3mT7e8UvWP6EuJqsoNBYe
-         GgUDtWQnaksjFZltc07hFIYLTcNqC30EpXe1aYCtub82oRZqc8FktfsOOIicjgMAybtt
-         25HPQKbT2WFLOnaJsJpWStEj4uPDU0VU4hChCvz1F9RfTimgLQVC15lvzxDdcDtL4igB
-         MsaOl4MYt7A6+G5l9tzmKMN4KuIEvff2ewvbT7WFB8qfvKmD10xuMHENNhW3DPHoPbSJ
-         FL1g==
-X-Gm-Message-State: ACgBeo2qLYVnpfUim7DY+MXKskSEnrPH6l0QcSqM2varkVTAv3g0gfb2
-        YtVnW3oPsLnMLJa1WTPiSoeuLkhQu6y1lmpIcEb8gjs2PPk=
-X-Google-Smtp-Source: AA6agR5OHWjTrdYy41nUp5wgC9uF9OFLtlrc57T5Q3YNnQC/JldeOchZ8/pRPDXqo/lw4GjdmqBeHRcvTzVqfdK3FkI=
-X-Received: by 2002:ab0:1c55:0:b0:3b6:3cbe:19ca with SMTP id
- o21-20020ab01c55000000b003b63cbe19camr6949644uaj.114.1663127209734; Tue, 13
- Sep 2022 20:46:49 -0700 (PDT)
+        bh=h4fGXoRURXYZVMZa3qpzUZ+qUx5M3FF8DFGX1noavt0=;
+        b=2gdDJRCypxYJjffemLIDdzvoQpfJ1fs4aJtLPu8n8l1G7J38WIPj0GHZZ6dm/O5zVq
+         oRFvHe0ys1g4TNwol1Balij0WkG6PFu1XlplJqIWsgtwPmrgPGKvXslymEl3sq/JMgHE
+         1QTPgaqvykN+YQWbf634Dkkdy6HhBBZAWugnHn5Xc94xfV+OxA1vUBP/xGa9n21dUozm
+         8PH6Azj0yACAxQAt41PAZehaSk5p/qzNzytFFCNgsD8I/ZEAWnn01f5q7czk8knhbraL
+         LBEF8xC2tjWpTLICwUnzlSs0yzcWsKIX+EWRSezEj142yMtyFPV+ue7obZ2HLsIMOydL
+         +U5A==
+X-Gm-Message-State: ACgBeo2r+xJvrMpB0dD3Oa4aQ4aS+N61LVMid5o6GlyLqJKWBj73jz6G
+        FNwBw1B/AWATZGuudsmKKQZzNwKfQjLp5BtD6fY3nFnROLI=
+X-Google-Smtp-Source: AA6agR5HMTsIjU0S2lb8GdZUj5zD3g4lsNi5o9eOXaZBbZnR+pi3UAbW+Y9eNamDCfY5Wo4uBKL8DYXEaLvJBpYX5BI=
+X-Received: by 2002:a05:622a:30d:b0:343:63d1:3751 with SMTP id
+ q13-20020a05622a030d00b0034363d13751mr33527856qtw.679.1663178413799; Wed, 14
+ Sep 2022 11:00:13 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210125153057.3623715-1-balsini@android.com> <20210125153057.3623715-4-balsini@android.com>
  <CAJfpegs4=NYn9k4F4HvZK3mqLehhxCFKgVxctNGf1f2ed0gfqg@mail.gmail.com>
@@ -64,13 +64,14 @@ References: <20210125153057.3623715-1-balsini@android.com> <20210125153057.36237
  <CA+khW7hviAT6DbNORYKcatOV1cigGyrd_1mH-oMwehafobVXVg@mail.gmail.com>
  <CAOQ4uxjUbwKmLAO-jTE3y6EnH2PNw0+V=oXNqNyD+H9U+nX49g@mail.gmail.com>
  <CA+khW7jQ6fZbEgzxCafsaaTyv7ze58bd9hQ0HBH4R+dQyRaqog@mail.gmail.com>
- <CAOQ4uxjP0qeuUrdjT6hXCb5zO0AoY+LKM6uza2cL9UCGMo8KsQ@mail.gmail.com> <CA+khW7h907VDeD1mR2wH4pOWxPBG18C2enkZKSZgyWYrFP7Vnw@mail.gmail.com>
-In-Reply-To: <CA+khW7h907VDeD1mR2wH4pOWxPBG18C2enkZKSZgyWYrFP7Vnw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 14 Sep 2022 06:46:38 +0300
-Message-ID: <CAOQ4uxh9_7wRoDuzLkYCQVWWihuOFz5WmQemCskKg+U6FqR8wg@mail.gmail.com>
+ <CAOQ4uxjP0qeuUrdjT6hXCb5zO0AoY+LKM6uza2cL9UCGMo8KsQ@mail.gmail.com>
+ <CA+khW7h907VDeD1mR2wH4pOWxPBG18C2enkZKSZgyWYrFP7Vnw@mail.gmail.com> <CAOQ4uxh9_7wRoDuzLkYCQVWWihuOFz5WmQemCskKg+U6FqR8wg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxh9_7wRoDuzLkYCQVWWihuOFz5WmQemCskKg+U6FqR8wg@mail.gmail.com>
+From:   Hao Luo <haoluo@google.com>
+Date:   Wed, 14 Sep 2022 11:00:02 -0700
+Message-ID: <CA+khW7hwnX3d9=TA9W+-t-2nqAS+wV8JFC42B_aB9VDT-fEG9Q@mail.gmail.com>
 Subject: Re: Overlayfs with writable lower layer
-To:     Hao Luo <haoluo@google.com>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
         overlayfs <linux-unionfs@vger.kernel.org>,
@@ -81,146 +82,183 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Sep 13, 2022 at 11:33 PM Hao Luo <haoluo@google.com> wrote:
+On Tue, Sep 13, 2022 at 8:46 PM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> On Tue, Sep 13, 2022 at 11:54 AM Amir Goldstein <amir73il@gmail.com> wrot=
-e:
-> > OK. IIUC, you have upper fs files only in the root dir?
->
-> Sorry, no, the upper fs files need to be in subdir.
->
-> > And the lower root dir has only subdirs?
->
-> There could be files.
->
-
-And assuming that those files are cgroupfs files, why
-did you say there is no need to write to those files?
-
-I seem to recall that was an important distinction from
-standard overlayfs when you described the problem in LSFMM.
-
-> > Can you give a small example of an upper a lower and their
-> > union trees just for the sake of discussion?
+> On Tue, Sep 13, 2022 at 11:33 PM Hao Luo <haoluo@google.com> wrote:
+> >
+> > On Tue, Sep 13, 2022 at 11:54 AM Amir Goldstein <amir73il@gmail.com> wr=
+ote:
+> > > OK. IIUC, you have upper fs files only in the root dir?
+> >
+> > Sorry, no, the upper fs files need to be in subdir.
+> >
+> > > And the lower root dir has only subdirs?
+> >
+> > There could be files.
 > >
 >
-> For example, assume lower has the following layout:
-> $ tree lower
-> .
-> =E2=94=94=E2=94=80=E2=94=80 A
->     =E2=94=9C=E2=94=80=E2=94=80 B
->     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower
->     =E2=94=94=E2=94=80=E2=94=80 lower
+> And assuming that those files are cgroupfs files, why
+> did you say there is no need to write to those files?
 >
-> I can't create files in the fs in the lower.
-> $ touch A/B/file
-> touch: cannot touch 'A/B/file': Permission denied
+> I seem to recall that was an important distinction from
+> standard overlayfs when you described the problem in LSFMM.
+
+In my last reply, I was assuming all the writes to the cgroupfs files
+happen from remote, not from the union. One can read files from union,
+or create files that exist in the upper.
+
+The idea is, I can provide two copies of lower to users. One is the
+original lower, writable, so any update happens there. And the other
+is a union of the lower and the upper, it's a read-only view of the
+lower, but extended by the upper.
+
+I actually don't know whether supporting writes to the lower from the
+union is better. It probably is, because then I can combine the two
+copies into one.
+
 >
-> The upper is initially empty.
 >
-> I would like to overlay a writable fs on top of lower, so the union
-> tree looks like
-> $ tree union
-> .
-> =E2=94=94=E2=94=80=E2=94=80 A
->     =E2=94=9C=E2=94=80=E2=94=80 B
->     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower
->     =E2=94=94=E2=94=80=E2=94=80 lower
-> $ touch A/B/file
-> $ tree union
-> .
-> =E2=94=94=E2=94=80=E2=94=80 A
->     =E2=94=9C=E2=94=80=E2=94=80 B
->     =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 file
->     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower2
->     =E2=94=94=E2=94=80=E2=94=80 lower1
->
-> Here, 'file' exists in the upper.
->
-
-So B is now called a "merged" dir - it is not a "pure" dir
-anymore because it contains both upper and lower files.
-
-Normally in overlayfs before creating 'file' in upper,
-the hierarchy A/B/ needs to be created in upper fs
-to contain the file.
-
-Unless your upper fs automagically has the same
-dirs hierarchy as the lower fs?
-
-You should know that overlayfs does more than just
-mkdir("A");mkdir("A/B")
-it created tmp dirs, sets xattrs and attrs on them and moves
-them into place.
-I am not sure if you planned to support all those operations
-in your upper fs?
-
-There are probably some other limitations at the moment
-related to pseudo filesystems that prevent them from being
-used as upper and/or lower fs in overlayfs.
-
-We will need to check what those limitations are and whether
-those limitations could be lifted for your specific use case.
-
-> Further, directory B could disappear from lower. When that happens, I
-> think there are two possible behaviors:
->  - make 'file' disappear from union as well;
->  - make 'file' and its directory accessible as well.
->
-> In behavior 1, it will look like
-> $ tree union
-> .
-> =E2=94=94=E2=94=80=E2=94=80 A
->     =E2=94=94=E2=94=80=E2=94=80 lower1
->
-> In behavior 2, it will look like
-> $ tree union
-> .
-> =E2=94=94=E2=94=80=E2=94=80 A
->     =E2=94=9C=E2=94=80=E2=94=80 B
->     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 file
->     =E2=94=94=E2=94=80=E2=94=80 lower1
->
-> IMHO, behavior 1 works better in my use case. But if the FS experts
-> think behavior 2 makes more sense, I can work around.
->
-
-Something that I always wanted to try is to get rid of the duplicated
-upper fs hierarchy.
-
-It's a bit complicated to explain the details, but if your use case
-does not involve any directory renames(?), then the upper path
-for the merge directories can be index based and not hierarchical.
-
-IOW:
-- union tree lookup/traversal by path is performed on the lower fs
-- upper fs is traversed by name only for pure upper dirs
-- merged dirs are found by index of lower dir inode
-
-The result will be behavior 1 that you wanted
-
-I have some other use cases that might benefit from this mode.
-
+> > > Can you give a small example of an upper a lower and their
+> > > union trees just for the sake of discussion?
+> > >
 > >
-> > If that is all then it sounds pretty simple.
-> > It could be described something like this:
-> > 1. merged directories cannot appear/disappear
-> > 2. lower pure directories can appear/disappear
-> > 3. upper files/dirs can be created inside merge dirs and pure upper dir=
-s
+> > For example, assume lower has the following layout:
+> > $ tree lower
+> > .
+> > =E2=94=94=E2=94=80=E2=94=80 A
+> >     =E2=94=9C=E2=94=80=E2=94=80 B
+> >     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower
+> >     =E2=94=94=E2=94=80=E2=94=80 lower
 > >
-> > I think I have some patches that could help with #2.
+> > I can't create files in the fs in the lower.
+> > $ touch A/B/file
+> > touch: cannot touch 'A/B/file': Permission denied
+> >
+> > The upper is initially empty.
+> >
+> > I would like to overlay a writable fs on top of lower, so the union
+> > tree looks like
+> > $ tree union
+> > .
+> > =E2=94=94=E2=94=80=E2=94=80 A
+> >     =E2=94=9C=E2=94=80=E2=94=80 B
+> >     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower
+> >     =E2=94=94=E2=94=80=E2=94=80 lower
+> > $ touch A/B/file
+> > $ tree union
+> > .
+> > =E2=94=94=E2=94=80=E2=94=80 A
+> >     =E2=94=9C=E2=94=80=E2=94=80 B
+> >     =E2=94=82   =E2=94=9C=E2=94=80=E2=94=80 file
+> >     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 lower2
+> >     =E2=94=94=E2=94=80=E2=94=80 lower1
+> >
+> > Here, 'file' exists in the upper.
 > >
 >
-> These three semantics looks good to me.
+> So B is now called a "merged" dir - it is not a "pure" dir
+> anymore because it contains both upper and lower files.
+>
+> Normally in overlayfs before creating 'file' in upper,
+> the hierarchy A/B/ needs to be created in upper fs
+> to contain the file.
+>
+> Unless your upper fs automagically has the same
+> dirs hierarchy as the lower fs?
+>
+> You should know that overlayfs does more than just
+> mkdir("A");mkdir("A/B")
+> it created tmp dirs, sets xattrs and attrs on them and moves
+> them into place.
+> I am not sure if you planned to support all those operations
+> in your upper fs?
 >
 
-Except the case about disappearing B that you just described
-above breaks rule #1 ;)
-so other semantics are needed.
+Yeah. I can add support for tmp dirs, tmp files in my upper fs, that
+is, bpffs. I played it a bit back in May, that is totally doable. I
+remembered I successfully made bpffs accepted as overlayfs's upper
+without xattrs and attrs back then. Maybe I missed something.
 
-I will need some more clarifications about your use case to
-understand if what I have in mind could help your use case.
+> There are probably some other limitations at the moment
+> related to pseudo filesystems that prevent them from being
+> used as upper and/or lower fs in overlayfs.
+>
+> We will need to check what those limitations are and whether
+> those limitations could be lifted for your specific use case.
+>
 
-Thanks,
-Amir.
+How can we approach this? Maybe I can send my patch that adds tmp dir,
+tmp files and xattr, attr to upstream as RFC, so you can take a look?
+
+> > Further, directory B could disappear from lower. When that happens, I
+> > think there are two possible behaviors:
+> >  - make 'file' disappear from union as well;
+> >  - make 'file' and its directory accessible as well.
+> >
+> > In behavior 1, it will look like
+> > $ tree union
+> > .
+> > =E2=94=94=E2=94=80=E2=94=80 A
+> >     =E2=94=94=E2=94=80=E2=94=80 lower1
+> >
+> > In behavior 2, it will look like
+> > $ tree union
+> > .
+> > =E2=94=94=E2=94=80=E2=94=80 A
+> >     =E2=94=9C=E2=94=80=E2=94=80 B
+> >     =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 file
+> >     =E2=94=94=E2=94=80=E2=94=80 lower1
+> >
+> > IMHO, behavior 1 works better in my use case. But if the FS experts
+> > think behavior 2 makes more sense, I can work around.
+> >
+>
+> Something that I always wanted to try is to get rid of the duplicated
+> upper fs hierarchy.
+>
+> It's a bit complicated to explain the details, but if your use case
+> does not involve any directory renames(?), then the upper path
+> for the merge directories can be index based and not hierarchical.
+>
+
+Yeah, I don't expect directory renaming. But I can't say if there is
+anyone trying to do that by accident, or by bad intention.
+
+> IOW:
+> - union tree lookup/traversal by path is performed on the lower fs
+> - upper fs is traversed by name only for pure upper dirs
+> - merged dirs are found by index of lower dir inode
+>
+> The result will be behavior 1 that you wanted
+>
+> I have some other use cases that might benefit from this mode.
+>
+
+That will be very cool!
+
+> > >
+> > > If that is all then it sounds pretty simple.
+> > > It could be described something like this:
+> > > 1. merged directories cannot appear/disappear
+> > > 2. lower pure directories can appear/disappear
+> > > 3. upper files/dirs can be created inside merge dirs and pure upper d=
+irs
+> > >
+> > > I think I have some patches that could help with #2.
+> > >
+> >
+> > These three semantics looks good to me.
+> >
+>
+> Except the case about disappearing B that you just described
+> above breaks rule #1 ;)
+> so other semantics are needed.
+>
+
+Yes :) Now I understand. Thanks for the explanation on "merged" dir.
+
+> I will need some more clarifications about your use case to
+> understand if what I have in mind could help your use case.
+>
+> Thanks,
+> Amir.
