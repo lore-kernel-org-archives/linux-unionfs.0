@@ -2,121 +2,84 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B900CECAAD8
-	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Sep 2022 16:05:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B8EECAAD8
+	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Sep 2022 16:23:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229628AbiIWQFp (ORCPT
+        id S231627AbiIWQX2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 23 Sep 2022 12:05:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56096 "EHLO
+        Fri, 23 Sep 2022 12:23:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53690 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229724AbiIWQFn (ORCPT
+        with ESMTP id S230345AbiIWQX1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 23 Sep 2022 12:05:43 -0400
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B20F31A38F
-        for <linux-unionfs@vger.kernel.org>; Fri, 23 Sep 2022 09:05:41 -0700 (PDT)
-Received: by mail-io1-f70.google.com with SMTP id j20-20020a6b3114000000b006a3211a0ff0so196596ioa.7
-        for <linux-unionfs@vger.kernel.org>; Fri, 23 Sep 2022 09:05:41 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date;
-        bh=xvB57lWg96bipqQd7JSN013EXMYj71I2FBKSizlUzC0=;
-        b=BJ/lRGitc/thZZGXFQxtt6yywkD+wN2X9YjmBPd2rBgltf9+NRtdjPCi7VchjwKk/U
-         NePijghtp9aGktZuGPTst8Kj1cCj31LV1s1DyPHJkf7r31p1+ONr0XwoTa+POeFoy643
-         XHwGbV8erSo1HbpY0lwzwymgfBI6RGiidrVgVvazEQmUMs+8a5CZpMwfPxObyzCfv61/
-         GfPDMM7Zx0q0mS6IO3uz+01uo/26Ki3sPqU/NrqFpGNViKZ05kjwINeMohDjLrwJ7NN2
-         ieOtwFh8W37h6oI01/1gXvY26PUcFGwSoY6o5GnteI9kK6dfKlUBUaPeI0PJNpPZCcOd
-         l6Gg==
-X-Gm-Message-State: ACrzQf3rwyYZMT7kK5/atZ+EDY4ZnMGCcTQMZzHIC9N3pJVHtKArFbRv
-        tFy/OM/3b3GkJv6COGXDzRujGSYrjItKLlWkmr1MSvEprTFy
-X-Google-Smtp-Source: AMsMyM52Oi8jyoZPEsoqS27Q6toMMPpMDlP6zQbILEV2ExwDH0GrD15bw4aEQaFt3U3+FvzWjuMZ+igCfEutSaYGKGxN8NYCC/9Q
+        Fri, 23 Sep 2022 12:23:27 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C67C7113B66;
+        Fri, 23 Sep 2022 09:23:25 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4DB48B80FEF;
+        Fri, 23 Sep 2022 16:23:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21267C433D7;
+        Fri, 23 Sep 2022 16:23:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1663950202;
+        bh=CD0rNvsWFge93dq5vbuhhjn4Di5DBI42DFl0RcYObuI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=kGjkhWc7qOXCRFrdfalK/b3JIObcW2PznGAgAbJPDl4not+/7HAYMOkNJ5Px95UQc
+         nd9QdKKbt9C+FjC6VFgc483piWtq7smgsBb1kcoHcEPDAU88oxvuXfR7872fqpHjGT
+         iPZNQf8JA9qy2BUjplgkM5K/vJOlOI6gZgRBccDKGOBCBOADg08BX+DxJXuLNZzJDn
+         nFyOuVtKl6Lf8sJ38ptQ6BGna9SsrK7H1X0dSc9AGl8S2IKOmxAAKCw2z5AB8oxgQ6
+         VolV25e98h4aBWvcXl0Hw7uWMFoxDKLZtvnl/WkN627q5Iz/lXLIMFPXR9ehIyihzw
+         5gYBb44mnKpKw==
+Date:   Fri, 23 Sep 2022 18:23:17 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-fsdevel@vger.kernel.org, Seth Forshee <sforshee@kernel.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 23/29] ovl: use posix acl api
+Message-ID: <20220923162317.mvjlv6yzdsvjradl@wittgenstein>
+References: <20220922151728.1557914-1-brauner@kernel.org>
+ <20220922151728.1557914-24-brauner@kernel.org>
+ <CAJfpegs092_0VkmfnyRP54_fJrssQbDxsh2Q754GLq34LZb0LQ@mail.gmail.com>
+ <20220923154742.iplvc4nj5y6gaci4@wittgenstein>
+ <CAJfpegt1YJzyE=UYF=DNW-qd08zLRgG7vpbm32m0rWEbWjLNOw@mail.gmail.com>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1d84:b0:2f6:9a05:2230 with SMTP id
- h4-20020a056e021d8400b002f69a052230mr4575455ila.32.1663949140799; Fri, 23 Sep
- 2022 09:05:40 -0700 (PDT)
-Date:   Fri, 23 Sep 2022 09:05:40 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000763a6c05e95a5985@google.com>
-Subject: [syzbot] WARNING in ovl_fh_to_dentry
-From:   syzbot <syzbot+9d14351a171d0d1c7955@syzkaller.appspotmail.com>
-To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAJfpegt1YJzyE=UYF=DNW-qd08zLRgG7vpbm32m0rWEbWjLNOw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On Fri, Sep 23, 2022 at 05:57:04PM +0200, Miklos Szeredi wrote:
+> On Fri, 23 Sept 2022 at 17:47, Christian Brauner <brauner@kernel.org> wrote:
+> >
+> > On Fri, Sep 23, 2022 at 05:38:34PM +0200, Miklos Szeredi wrote:
+> 
+> > It's basically just like when you copy a file betweed idmapped mounts:
+> >
+> > mount -o X-mount.idmap=<mapping1> --bind /source /source-idmapped
+> > mount -o X-mount.idmap=<mapping2> --bind /target /target-idmapped
+> >
+> > cp /source-idmapped/file1 /target-idmapped
+> >
+> > where you need to take the source and target idmappings into account.
+> >
+> > So basically like what ovl_set_attr() is doing just for acls. But I
+> 
+> But then before this patch the copy-up behavior was incorrect, right?
+> 
+> In that case this needs to be advertised as a bug fix, rather than a cleanup.
 
-syzbot found the following issue on:
+No, it was correct. The testsuite I added would've yelled loudly if that
+were buggy.
 
-HEAD commit:    483fed3b5dc8 Add linux-next specific files for 20220921
-git tree:       linux-next
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=13b13f30880000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=849cb9f70f15b1ba
-dashboard link: https://syzkaller.appspot.com/bug?extid=9d14351a171d0d1c7955
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14283ac4880000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=156da4ef080000
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/1cb3f4618323/disk-483fed3b.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/cc02cb30b495/vmlinux-483fed3b.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+9d14351a171d0d1c7955@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-memcpy: detected field-spanning write (size 93) of single field "&fh->fb" at fs/overlayfs/export.c:799 (size 21)
-WARNING: CPU: 0 PID: 3608 at fs/overlayfs/export.c:799 ovl_fid_to_fh fs/overlayfs/export.c:799 [inline]
-WARNING: CPU: 0 PID: 3608 at fs/overlayfs/export.c:799 ovl_fh_to_dentry+0x880/0x950 fs/overlayfs/export.c:812
-Modules linked in:
-CPU: 1 PID: 3608 Comm: syz-executor365 Not tainted 6.0.0-rc6-next-20220921-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/16/2022
-RIP: 0010:ovl_fid_to_fh fs/overlayfs/export.c:799 [inline]
-RIP: 0010:ovl_fh_to_dentry+0x880/0x950 fs/overlayfs/export.c:812
-Code: f9 ff ff e8 62 b6 ab fe b9 15 00 00 00 4c 89 f6 48 c7 c2 a0 0f 28 8a 48 c7 c7 00 10 28 8a c6 05 a7 86 fa 0a 01 e8 4d ad 76 06 <0f> 0b e9 ec f8 ff ff 49 c7 c6 ea ff ff ff bb ea ff ff ff c7 44 24
-RSP: 0018:ffffc90003d7fb30 EFLAGS: 00010282
-RAX: 0000000000000000 RBX: 0000000000000060 RCX: 0000000000000000
-RDX: ffff88801f9f8000 RSI: ffffffff81620348 RDI: fffff520007aff58
-RBP: ffff88801798b900 R08: 0000000000000005 R09: 0000000000000000
-R10: 0000000080000000 R11: 203a7970636d656d R12: 00000000000000fb
-R13: 1ffff920007aff6e R14: 000000000000005d R15: ffff88801798b903
-FS:  0000555555748300(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f2ec877aa70 CR3: 0000000021a2b000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- exportfs_decode_fh_raw+0x127/0x7d0 fs/exportfs/expfs.c:435
- exportfs_decode_fh+0x38/0x90 fs/exportfs/expfs.c:575
- do_handle_to_path fs/fhandle.c:152 [inline]
- handle_to_path fs/fhandle.c:207 [inline]
- do_handle_open+0x2b6/0x8b0 fs/fhandle.c:223
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7fa84bf85cc9
-Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffd45ccfbd8 EFLAGS: 00000246 ORIG_RAX: 0000000000000130
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fa84bf85cc9
-RDX: 0000000000000000 RSI: 00000000200001c0 RDI: 0000000000000003
-RBP: 00007fa84bf49e70 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000073 R11: 0000000000000246 R12: 00007fa84bf49f00
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-syzbot can test patches for this issue, for details see:
-https://goo.gl/tpsmEJ#testing-patches
+It's just that this was done in vfs_getxattr() before. But that is
+rather hacky and is one of the things we're getting rid off. If
+vfs_get_acl() did that it would return mount not filesystem values which
+isn't correct for the general case.
