@@ -2,276 +2,168 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1C97ECAAD8
-	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Sep 2022 15:18:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90CAAECAAD8
+	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Sep 2022 15:35:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229963AbiIWPS6 (ORCPT
+        id S232578AbiIWPfW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 23 Sep 2022 11:18:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59334 "EHLO
+        Fri, 23 Sep 2022 11:35:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229724AbiIWPS5 (ORCPT
+        with ESMTP id S229810AbiIWPfV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 23 Sep 2022 11:18:57 -0400
-Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 308A213A052
-        for <linux-unionfs@vger.kernel.org>; Fri, 23 Sep 2022 08:18:54 -0700 (PDT)
-Received: by mail-ed1-x533.google.com with SMTP id a41so682909edf.4
-        for <linux-unionfs@vger.kernel.org>; Fri, 23 Sep 2022 08:18:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=eMjuix+L9lp+VBbvQ7BEp2UQNnNAkzh8oHeOUceM7CI=;
-        b=DdBvuiPcKmrT0wUSQyyZA4LooRGFjcKzR2mMzlf++igUtdqJ/oQ5yECmqaUcmfRGOr
-         jfZz19CicDzxgk4XaqIq9RRmaXPnMYdIY5GH1fxPOoKuuTuVLtxLZtZWp2LCwzDNCerc
-         FOB5bSQoRk/H5vkafweuSxsdgkxFs4nC9PDUI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=eMjuix+L9lp+VBbvQ7BEp2UQNnNAkzh8oHeOUceM7CI=;
-        b=xa/Xium37MuXOelhHPX08gbF29AGQDjQ1vNGToVMQj/HRhSDbaPbirqDyp8D0127+L
-         sjg7hmClLA1pAAp2onbgU03yJPl3B2mD0SM7+ekibCR3jwdLaFwl4H9rNOj0ixhq9A4k
-         Qeuz6IE6ekW7XaKCNGasr6gP5KB4RpMtZIr/zSTYyvNSaruxz2U4SUm92ETASwPmxFxW
-         7kL1CRFY91kOQSOQTFXjK4uHkTTZ+tkAd7GLoOjC1uph9ByRpCr0iUzrgUHE4Xr/0MfJ
-         u637X6GVljHwOGuSniSQRpNEeTFgLgs7rbbCgNJ7iH2Blfx5dHZarYkDClB4MB4om7G+
-         suBA==
-X-Gm-Message-State: ACrzQf35dj9q/XqER6tLzX6pPjPYAyPSwYdCQOiwErDvnFqpvexaU7Se
-        S/L4VPThc0mOaQpCYuaVSeTyvNM27bG0QcKFtBIfRwsJX5s=
-X-Google-Smtp-Source: AMsMyM4ejcdj8JeaEjlfgLk0GZet0WGoCM2prpblQ/SJKV5CAyd0xMBH/TaxLgg4uteBKCZJughA84eNdgXw8nCS/Xc=
-X-Received: by 2002:a05:6402:7c7:b0:456:d6fe:d803 with SMTP id
- u7-20020a05640207c700b00456d6fed803mr1975785edy.270.1663946333270; Fri, 23
- Sep 2022 08:18:53 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220922151728.1557914-1-brauner@kernel.org> <20220922151728.1557914-23-brauner@kernel.org>
-In-Reply-To: <20220922151728.1557914-23-brauner@kernel.org>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 23 Sep 2022 17:18:42 +0200
-Message-ID: <CAJfpegstf+gUMm0iqrMSSzXKY6f8-U3vHK+hp+O7UuVR7oYCGA@mail.gmail.com>
-Subject: Re: [PATCH 22/29] ovl: implement set acl method
-To:     Christian Brauner <brauner@kernel.org>
+        Fri, 23 Sep 2022 11:35:21 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EA5AE36A0;
+        Fri, 23 Sep 2022 08:35:20 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 178F5B838C4;
+        Fri, 23 Sep 2022 15:35:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C127BC433C1;
+        Fri, 23 Sep 2022 15:35:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1663947317;
+        bh=djVBjQKSdLhWOfDh1F/yLuKjrIOcK3jQ4fEKO4jut8c=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=bPRH9J4OclSilnkXZpNAUCQGdjA6u/XBZBMsVl0LWsgcROvzuZe86v+R4ykqJ3FNX
+         1aw6nUfZRV8p3ovSxqse8wJQH+M2iCffEyMxeotc5rEceCyiJz6xZbuof+G8AtHwpv
+         z50x9HmHeD2BfpI3OqzsZmxeD6ZKk+sGiojBrWI5slAyOPepydDcS2Q2YM+xh93+/5
+         2ue2tIqHMT2a9mA/BdWDJVvprej/CejxH+0BmQt8IQJIGfedr7q6ABorctQmd35HzN
+         NusTNjal+ED3zjhMvnOAr9crqbDDJXAi38SdkmLoHMb4xKJMBDsaHvTtimSa++J9xR
+         efin3X7mz3xtA==
+Date:   Fri, 23 Sep 2022 17:35:12 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     linux-fsdevel@vger.kernel.org, Seth Forshee <sforshee@kernel.org>,
         Christoph Hellwig <hch@lst.de>,
         Al Viro <viro@zeniv.linux.org.uk>,
         Amir Goldstein <amir73il@gmail.com>,
         linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 22/29] ovl: implement set acl method
+Message-ID: <20220923153512.mp4fgxj3l3ew4xff@wittgenstein>
+References: <20220922151728.1557914-1-brauner@kernel.org>
+ <20220922151728.1557914-23-brauner@kernel.org>
+ <CAJfpegstf+gUMm0iqrMSSzXKY6f8-U3vHK+hp+O7UuVR7oYCGA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAJfpegstf+gUMm0iqrMSSzXKY6f8-U3vHK+hp+O7UuVR7oYCGA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 22 Sept 2022 at 17:18, Christian Brauner <brauner@kernel.org> wrote:
->
-> The current way of setting and getting posix acls through the generic
-> xattr interface is error prone and type unsafe. The vfs needs to
-> interpret and fixup posix acls before storing or reporting it to
-> userspace. Various hacks exist to make this work. The code is hard to
-> understand and difficult to maintain in it's current form. Instead of
-> making this work by hacking posix acls through xattr handlers we are
-> building a dedicated posix acl api around the get and set inode
-> operations. This removes a lot of hackiness and makes the codepaths
-> easier to maintain. A lot of background can be found in [1].
->
-> In order to build a type safe posix api around get and set acl we need
-> all filesystem to implement get and set acl.
->
-> Now that we have added get and set acl inode operations that allow easy
-> access to the dentry we give overlayfs it's own get and set acl inode
-> operations.
->
-> The set acl inode operation is duplicates most of the ovl posix acl
-> xattr handler. The main difference being that the set acl inode
-> operation relies on the new posix acl api. Once the vfs has been
-> switched over the custom posix acl xattr handler will be removed
-> completely.
->
-> Note, until the vfs has been switched to the new posix acl api this
-> patch is a non-functional change.
->
-> Link: https://lore.kernel.org/all/20220801145520.1532837-1-brauner@kernel.org [1]
-> Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
-> ---
->  fs/overlayfs/dir.c       |  1 +
->  fs/overlayfs/inode.c     | 81 ++++++++++++++++++++++++++++++++++++++++
->  fs/overlayfs/overlayfs.h | 17 +++++++++
->  3 files changed, 99 insertions(+)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index eb49d5d7b56f..0e817ebce92c 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -1313,6 +1313,7 @@ const struct inode_operations ovl_dir_inode_operations = {
->         .listxattr      = ovl_listxattr,
->         .get_inode_acl  = ovl_get_inode_acl,
->         .get_acl        = ovl_get_acl,
-> +       .set_acl        = ovl_set_acl,
->         .update_time    = ovl_update_time,
->         .fileattr_get   = ovl_fileattr_get,
->         .fileattr_set   = ovl_fileattr_set,
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index dd11e13cd288..b0a19f9deaf1 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -596,6 +596,85 @@ struct posix_acl *ovl_get_acl(struct user_namespace *mnt_userns,
->         revert_creds(old_cred);
->         return acl;
->  }
-> +
-> +int ovl_set_acl(struct user_namespace *mnt_userns, struct dentry *dentry,
-> +               struct posix_acl *acl, int type)
-> +{
-> +       int err;
-> +       struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
-> +       struct inode *inode = d_inode(dentry);
-> +       struct dentry *upperdentry = ovl_dentry_upper(dentry);
-> +       struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
-> +       struct dentry *workdir = ovl_workdir(dentry);
-> +       struct inode *realinode = ovl_inode_real(inode);
-> +       struct path realpath;
-> +       const struct cred *old_cred;
-> +       const char *acl_name;
-> +
-> +       if (!IS_POSIXACL(d_inode(workdir)))
-> +               return -EOPNOTSUPP;
-> +       if (!realinode->i_op->set_acl)
-> +               return -EOPNOTSUPP;
-> +       if (type == ACL_TYPE_DEFAULT && !S_ISDIR(inode->i_mode))
-> +               return acl ? -EACCES : 0;
-> +       if (!inode_owner_or_capable(&init_user_ns, inode))
-> +               return -EPERM;
-> +
-> +       /*
-> +        * Check if sgid bit needs to be cleared (actual setacl operation will
-> +        * be done with mounter's capabilities and so that won't do it for us).
-> +        */
-> +       if (unlikely(inode->i_mode & S_ISGID) && type == ACL_TYPE_ACCESS &&
-> +           !in_group_p(inode->i_gid) &&
-> +           !capable_wrt_inode_uidgid(&init_user_ns, inode, CAP_FSETID)) {
-> +               struct iattr iattr = { .ia_valid = ATTR_KILL_SGID };
-> +
-> +               err = ovl_setattr(&init_user_ns, dentry, &iattr);
-> +               if (err)
-> +                       return err;
-> +       }
-> +
+On Fri, Sep 23, 2022 at 05:18:42PM +0200, Miklos Szeredi wrote:
+> On Thu, 22 Sept 2022 at 17:18, Christian Brauner <brauner@kernel.org> wrote:
+> >
+> > The current way of setting and getting posix acls through the generic
+> > xattr interface is error prone and type unsafe. The vfs needs to
+> > interpret and fixup posix acls before storing or reporting it to
+> > userspace. Various hacks exist to make this work. The code is hard to
+> > understand and difficult to maintain in it's current form. Instead of
+> > making this work by hacking posix acls through xattr handlers we are
+> > building a dedicated posix acl api around the get and set inode
+> > operations. This removes a lot of hackiness and makes the codepaths
+> > easier to maintain. A lot of background can be found in [1].
+> >
+> > In order to build a type safe posix api around get and set acl we need
+> > all filesystem to implement get and set acl.
+> >
+> > Now that we have added get and set acl inode operations that allow easy
+> > access to the dentry we give overlayfs it's own get and set acl inode
+> > operations.
+> >
+> > The set acl inode operation is duplicates most of the ovl posix acl
+> > xattr handler. The main difference being that the set acl inode
+> > operation relies on the new posix acl api. Once the vfs has been
+> > switched over the custom posix acl xattr handler will be removed
+> > completely.
+> >
+> > Note, until the vfs has been switched to the new posix acl api this
+> > patch is a non-functional change.
+> >
+> > Link: https://lore.kernel.org/all/20220801145520.1532837-1-brauner@kernel.org [1]
+> > Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+> > ---
+> >  fs/overlayfs/dir.c       |  1 +
+> >  fs/overlayfs/inode.c     | 81 ++++++++++++++++++++++++++++++++++++++++
+> >  fs/overlayfs/overlayfs.h | 17 +++++++++
+> >  3 files changed, 99 insertions(+)
+> >
+> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> > index eb49d5d7b56f..0e817ebce92c 100644
+> > --- a/fs/overlayfs/dir.c
+> > +++ b/fs/overlayfs/dir.c
+> > @@ -1313,6 +1313,7 @@ const struct inode_operations ovl_dir_inode_operations = {
+> >         .listxattr      = ovl_listxattr,
+> >         .get_inode_acl  = ovl_get_inode_acl,
+> >         .get_acl        = ovl_get_acl,
+> > +       .set_acl        = ovl_set_acl,
+> >         .update_time    = ovl_update_time,
+> >         .fileattr_get   = ovl_fileattr_get,
+> >         .fileattr_set   = ovl_fileattr_set,
+> > diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> > index dd11e13cd288..b0a19f9deaf1 100644
+> > --- a/fs/overlayfs/inode.c
+> > +++ b/fs/overlayfs/inode.c
+> > @@ -596,6 +596,85 @@ struct posix_acl *ovl_get_acl(struct user_namespace *mnt_userns,
+> >         revert_creds(old_cred);
+> >         return acl;
+> >  }
+> > +
+> > +int ovl_set_acl(struct user_namespace *mnt_userns, struct dentry *dentry,
+> > +               struct posix_acl *acl, int type)
+> > +{
+> > +       int err;
+> > +       struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+> > +       struct inode *inode = d_inode(dentry);
+> > +       struct dentry *upperdentry = ovl_dentry_upper(dentry);
+> > +       struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
+> > +       struct dentry *workdir = ovl_workdir(dentry);
+> > +       struct inode *realinode = ovl_inode_real(inode);
+> > +       struct path realpath;
+> > +       const struct cred *old_cred;
+> > +       const char *acl_name;
+> > +
+> > +       if (!IS_POSIXACL(d_inode(workdir)))
+> > +               return -EOPNOTSUPP;
+> > +       if (!realinode->i_op->set_acl)
+> > +               return -EOPNOTSUPP;
+> > +       if (type == ACL_TYPE_DEFAULT && !S_ISDIR(inode->i_mode))
+> > +               return acl ? -EACCES : 0;
+> > +       if (!inode_owner_or_capable(&init_user_ns, inode))
+> > +               return -EPERM;
+> > +
+> > +       /*
+> > +        * Check if sgid bit needs to be cleared (actual setacl operation will
+> > +        * be done with mounter's capabilities and so that won't do it for us).
+> > +        */
+> > +       if (unlikely(inode->i_mode & S_ISGID) && type == ACL_TYPE_ACCESS &&
+> > +           !in_group_p(inode->i_gid) &&
+> > +           !capable_wrt_inode_uidgid(&init_user_ns, inode, CAP_FSETID)) {
+> > +               struct iattr iattr = { .ia_valid = ATTR_KILL_SGID };
+> > +
+> > +               err = ovl_setattr(&init_user_ns, dentry, &iattr);
+> > +               if (err)
+> > +                       return err;
+> > +       }
+> > +
+> 
+> I'd split this function up here (same as was done in the original
+> xattr based one).
 
-I'd split this function up here (same as was done in the original
-xattr based one).
+Ok, will do.
 
-> +       err = ovl_want_write(dentry);
-> +       if (err)
-> +               goto out;
-> +
-> +       acl_name = posix_acl_xattr_name(type);
+> 
+> > +       err = ovl_want_write(dentry);
+> > +       if (err)
+> > +               goto out;
+> > +
+> > +       acl_name = posix_acl_xattr_name(type);
+> 
+> My bad, but this really deserves a comment:  /* If ACL is to be
+> removed from a lower file, check if it exists in the first place
+> before copying it up */
 
-My bad, but this really deserves a comment:  /* If ACL is to be
-removed from a lower file, check if it exists in the first place
-before copying it up */
-
-> +       if (!acl && !upperdentry) {
-> +               struct posix_acl *real_acl;
-> +
-> +               ovl_path_lower(dentry, &realpath);
-> +               old_cred = ovl_override_creds(dentry->d_sb);
-> +               real_acl = vfs_get_acl(mnt_user_ns(realpath.mnt), realdentry,
-> +                                      posix_acl_xattr_name(type));
-> +               revert_creds(old_cred);
-> +               posix_acl_release(real_acl);
-> +               if (IS_ERR(real_acl))
-> +                       goto out_drop_write;
-> +       }
-> +
-> +       if (!upperdentry) {
-> +               err = ovl_copy_up(dentry);
-> +               if (err)
-> +                       goto out_drop_write;
-> +
-> +               realdentry = ovl_dentry_upper(dentry);
-> +       }
-> +
-> +       old_cred = ovl_override_creds(dentry->d_sb);
-> +       if (acl)
-> +               err = ovl_do_set_acl(ofs, realdentry, acl_name, acl);
-> +       else
-> +               err = ovl_do_remove_acl(ofs, realdentry, acl_name);
-> +       revert_creds(old_cred);
-> +
-> +       /* copy c/mtime */
-> +       ovl_copyattr(inode);
-> +
-> +out_drop_write:
-> +       ovl_drop_write(dentry);
-> +out:
-> +       return err;
-> +}
->  #endif
->
->  int ovl_update_time(struct inode *inode, struct timespec64 *ts, int flags)
-> @@ -772,6 +851,7 @@ static const struct inode_operations ovl_file_inode_operations = {
->         .listxattr      = ovl_listxattr,
->         .get_inode_acl  = ovl_get_inode_acl,
->         .get_acl        = ovl_get_acl,
-> +       .set_acl        = ovl_set_acl,
->         .update_time    = ovl_update_time,
->         .fiemap         = ovl_fiemap,
->         .fileattr_get   = ovl_fileattr_get,
-> @@ -793,6 +873,7 @@ static const struct inode_operations ovl_special_inode_operations = {
->         .listxattr      = ovl_listxattr,
->         .get_inode_acl  = ovl_get_inode_acl,
->         .get_acl        = ovl_get_acl,
-> +       .set_acl        = ovl_set_acl,
->         .update_time    = ovl_update_time,
->  };
->
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 68a3030332e9..b2645baeba2f 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -8,6 +8,8 @@
->  #include <linux/uuid.h>
->  #include <linux/fs.h>
->  #include <linux/namei.h>
-> +#include <linux/posix_acl.h>
-> +#include <linux/posix_acl_xattr.h>
->  #include "ovl_entry.h"
->
->  #undef pr_fmt
-> @@ -278,6 +280,18 @@ static inline int ovl_removexattr(struct ovl_fs *ofs, struct dentry *dentry,
->         return ovl_do_removexattr(ofs, dentry, ovl_xattr(ofs, ox));
->  }
->
-> +static inline int ovl_do_set_acl(struct ovl_fs *ofs, struct dentry *dentry,
-> +                                const char *acl_name, struct posix_acl *acl)
-> +{
-> +       return vfs_set_acl(ovl_upper_mnt_userns(ofs), dentry, acl_name, acl);
-> +}
-> +
-> +static inline int ovl_do_remove_acl(struct ovl_fs *ofs, struct dentry *dentry,
-> +                                   const char *acl_name)
-> +{
-> +       return vfs_remove_acl(ovl_upper_mnt_userns(ofs), dentry, acl_name);
-> +}
-> +
->  static inline int ovl_do_rename(struct ovl_fs *ofs, struct inode *olddir,
->                                 struct dentry *olddentry, struct inode *newdir,
->                                 struct dentry *newdentry, unsigned int flags)
-> @@ -595,12 +609,15 @@ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
->  struct posix_acl *ovl_get_inode_acl(struct inode *inode, int type, bool rcu);
->  struct posix_acl *ovl_get_acl(struct user_namespace *mnt_userns,
->                               struct dentry *dentry, int type);
-> +int ovl_set_acl(struct user_namespace *mnt_userns, struct dentry *dentry,
-> +               struct posix_acl *acl, int type);
->  void ovl_idmap_posix_acl(struct inode *realinode,
->                          struct user_namespace *mnt_userns,
->                          struct posix_acl *acl);
->  #else
->  #define ovl_get_inode_acl      NULL
->  #define ovl_get_acl            NULL
-> +#define ovl_set_acl            NULL
->  #endif
->
->  int ovl_update_time(struct inode *inode, struct timespec64 *ts, int flags);
-> --
-> 2.34.1
->
+Ok, will add.
