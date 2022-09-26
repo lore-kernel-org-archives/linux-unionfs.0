@@ -2,104 +2,245 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC0ADC07E9D
-	for <linux-unionfs@archiver.kernel.org>; Sat, 24 Sep 2022 16:33:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D40A4C6FA86
+	for <linux-unionfs@archiver.kernel.org>; Mon, 26 Sep 2022 15:24:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231156AbiIXQdD (ORCPT
+        id S236556AbiIZPYu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 24 Sep 2022 12:33:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36014 "EHLO
+        Mon, 26 Sep 2022 11:24:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230451AbiIXQdC (ORCPT
+        with ESMTP id S236673AbiIZPYA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 24 Sep 2022 12:33:02 -0400
+        Mon, 26 Sep 2022 11:24:00 -0400
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4D9E67440;
-        Sat, 24 Sep 2022 09:33:01 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB8F4101F6;
+        Mon, 26 Sep 2022 07:09:41 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7C189B80687;
-        Sat, 24 Sep 2022 16:33:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D72F3C433C1;
-        Sat, 24 Sep 2022 16:32:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3800DB80A4A;
+        Mon, 26 Sep 2022 14:09:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E15E4C433C1;
+        Mon, 26 Sep 2022 14:09:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1664037179;
-        bh=eDvZ24I+VwB0DHpkH5Ck7T+J+ic8MD34cgwf6xb0jRM=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=uQeJTf1RYI/ZbQfhH2m/NC/v1SafpCBdOJK8fW7ydFR8PcZLhGsv8P62B4RY2Duh/
-         mpJiYkCbirm5JDz8zNoU4/Z+YrA5TOTMYIwoJ0LeK3z8PH7Lfbqc3yjlLv6i0FQZ9e
-         5W15s61HmqFG4oRQjRC5uSZIBGn3/fJzXi3Wb/dzBix/m7OvwqFJXUVKo2hKl3re01
-         tAyjPZv8x54fiZ85Ui6LN31IXsvCk0zPo9vhGoDbSvTS7HjxGji/vWSTbe8cMaovLl
-         H/NMC0wEgCyvmQCbx5G7UvUCu8+nFyNgIGMuG3OVLCHHcd8eBxksUxdNIPBFnmsWpW
-         f/TN+1cPkApEQ==
-Date:   Sat, 24 Sep 2022 11:32:54 -0500
-From:   "Gustavo A. R. Silva" <gustavoars@kernel.org>
-To:     Kees Cook <keescook@chromium.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
-        syzbot+9d14351a171d0d1c7955@syzkaller.appspotmail.com,
-        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
-Subject: Re: [PATCH] ovl: Use "buf" flexible array for memcpy() destination
-Message-ID: <Yy8xNjsZ1N/wbV8s@work>
-References: <20220924073315.3593031-1-keescook@chromium.org>
+        s=k20201202; t=1664201378;
+        bh=C8R1VlQrnaZHigxNgUVsGC169P781mpo/4srt52GI44=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=aeSh86bItVDxjfKyMPFLzLiWagmYmRzpQuiWoIR5oqLvlcIE+s/mtT3ho9RaUHit9
+         6wo6MJNx+lZWlwB4r3k1Mc3my4udLOkIrDs/LIwVyDKJivBLCsabkEawX/d+91sIVg
+         y9LtXh+ve3Q6Frtc5BJNJLZeriB9jyx/acX9+sGI6FMA1ji5N/K6uOVv5FP9AgmO7U
+         ooFCyd3v912OUi8VhDKl24SXPK/P0S+O4OFPdtJPFWMqWut0+daTMG/e4MFt1jpv3P
+         X5033sZoKoKHxsfSIm4e3AXTLJ1Kv00JNOtU29aXF1YpcGhgKfwVILSljfSlIRa/cx
+         STJB5l3IPGwyA==
+From:   Christian Brauner <brauner@kernel.org>
+To:     linux-fsdevel@vger.kernel.org
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Seth Forshee <sforshee@kernel.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-unionfs@vger.kernel.org,
+        linux-security-module@vger.kernel.org
+Subject: [PATCH v2 22/30] ovl: implement get acl method
+Date:   Mon, 26 Sep 2022 16:08:19 +0200
+Message-Id: <20220926140827.142806-23-brauner@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220926140827.142806-1-brauner@kernel.org>
+References: <20220926140827.142806-1-brauner@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220924073315.3593031-1-keescook@chromium.org>
+X-Developer-Signature: v=1; a=openpgp-sha256; l=6915; i=brauner@kernel.org; h=from:subject; bh=C8R1VlQrnaZHigxNgUVsGC169P781mpo/4srt52GI44=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSQbbnLkklnLwHeHRVFW/27OkwO7Gl6m9dXO+zAnSancZ8JX 7qoPHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABOZw8nIcKJPQ13E0fxs9PNdvy/zp0 0PqF9pk7d0tYLqjlv39m25x8bIcHXSsejKO/3R2X3TUxQ3TEzM/vAzYAZ7lVaYvazmp8yFDAA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Sep 24, 2022 at 12:33:15AM -0700, Kees Cook wrote:
-> The "buf" flexible array needs to be the memcpy() destination to avoid
-> false positive run-time warning from the recent FORTIFY_SOURCE
-> hardening:
-> 
->   memcpy: detected field-spanning write (size 93) of single field "&fh->fb" at fs/overlayfs/export.c:799 (size 21)
-> 
-> Cc: Miklos Szeredi <miklos@szeredi.hu>
-> Cc: linux-unionfs@vger.kernel.org
-> Reported-by: syzbot+9d14351a171d0d1c7955@syzkaller.appspotmail.com
-> Link: https://lore.kernel.org/all/000000000000763a6c05e95a5985@google.com/
-> Signed-off-by: Kees Cook <keescook@chromium.org>
+The current way of setting and getting posix acls through the generic
+xattr interface is error prone and type unsafe. The vfs needs to
+interpret and fixup posix acls before storing or reporting it to
+userspace. Various hacks exist to make this work. The code is hard to
+understand and difficult to maintain in it's current form. Instead of
+making this work by hacking posix acls through xattr handlers we are
+building a dedicated posix acl api around the get and set inode
+operations. This removes a lot of hackiness and makes the codepaths
+easier to maintain. A lot of background can be found in [1].
 
-Reviewed-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+In order to build a type safe posix api around get and set acl we need
+all filesystem to implement get and set acl.
 
-Thanks!
---
-Gustavo
+Now that we have added get and set acl inode operations that allow easy
+access to the dentry we give overlayfs it's own get and set acl inode
+operations.
 
-> ---
->  fs/overlayfs/export.c    | 2 +-
->  fs/overlayfs/overlayfs.h | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> index e065a5b9a442..ac9c3ad04016 100644
-> --- a/fs/overlayfs/export.c
-> +++ b/fs/overlayfs/export.c
-> @@ -796,7 +796,7 @@ static struct ovl_fh *ovl_fid_to_fh(struct fid *fid, int buflen, int fh_type)
->  		return ERR_PTR(-ENOMEM);
->  
->  	/* Copy unaligned inner fh into aligned buffer */
-> -	memcpy(&fh->fb, fid, buflen - OVL_FH_WIRE_OFFSET);
-> +	memcpy(fh->buf, fid, buflen - OVL_FH_WIRE_OFFSET);
->  	return fh;
->  }
->  
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 87759165d32b..a0e450313ea4 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -108,7 +108,7 @@ struct ovl_fh {
->  	u8 padding[3];	/* make sure fb.fid is 32bit aligned */
->  	union {
->  		struct ovl_fb fb;
-> -		u8 buf[0];
-> +		DECLARE_FLEX_ARRAY(u8, buf);
->  	};
->  } __packed;
->  
-> -- 
-> 2.34.1
-> 
+Since overlayfs is a stacking filesystem it will use the newly added
+posix acl api when retrieving posix acls from the relevant layer.
+
+Since overlayfs can also be mounted on top of idmapped layers. If
+idmapped layers are used overlayfs must take the layer's idmapping into
+account after it retrieved the posix acls from the relevant layer.
+
+Note, until the vfs has been switched to the new posix acl api this
+patch is a non-functional change.
+
+Link: https://lore.kernel.org/all/20220801145520.1532837-1-brauner@kernel.org [1]
+Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+---
+
+Notes:
+    /* v2 */
+    Miklos Szeredi <mszeredi@redhat.com>
+    - Use IS_ERR_OR_NULL() macro.
+
+ fs/overlayfs/dir.c       |  3 +-
+ fs/overlayfs/inode.c     | 61 ++++++++++++++++++++++++++++++++++++----
+ fs/overlayfs/overlayfs.h | 10 +++++--
+ 3 files changed, 65 insertions(+), 9 deletions(-)
+
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 7bece7010c00..eb49d5d7b56f 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -1311,7 +1311,8 @@ const struct inode_operations ovl_dir_inode_operations = {
+ 	.permission	= ovl_permission,
+ 	.getattr	= ovl_getattr,
+ 	.listxattr	= ovl_listxattr,
+-	.get_inode_acl	= ovl_get_acl,
++	.get_inode_acl	= ovl_get_inode_acl,
++	.get_acl	= ovl_get_acl,
+ 	.update_time	= ovl_update_time,
+ 	.fileattr_get	= ovl_fileattr_get,
+ 	.fileattr_set	= ovl_fileattr_set,
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index ecb51c249466..fed72225ebe1 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -14,6 +14,8 @@
+ #include <linux/fileattr.h>
+ #include <linux/security.h>
+ #include <linux/namei.h>
++#include <linux/posix_acl.h>
++#include <linux/posix_acl_xattr.h>
+ #include "overlayfs.h"
+ 
+ 
+@@ -460,9 +462,9 @@ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
+  * of the POSIX ACLs retrieved from the lower layer to this function to not
+  * alter the POSIX ACLs for the underlying filesystem.
+  */
+-static void ovl_idmap_posix_acl(struct inode *realinode,
+-				struct user_namespace *mnt_userns,
+-				struct posix_acl *acl)
++void ovl_idmap_posix_acl(struct inode *realinode,
++			 struct user_namespace *mnt_userns,
++			 struct posix_acl *acl)
+ {
+ 	struct user_namespace *fs_userns = i_user_ns(realinode);
+ 
+@@ -495,7 +497,7 @@ static void ovl_idmap_posix_acl(struct inode *realinode,
+  *
+  * This is obviously only relevant when idmapped layers are used.
+  */
+-struct posix_acl *ovl_get_acl(struct inode *inode, int type, bool rcu)
++struct posix_acl *ovl_get_inode_acl(struct inode *inode, int type, bool rcu)
+ {
+ 	struct inode *realinode = ovl_inode_real(inode);
+ 	struct posix_acl *acl, *clone;
+@@ -547,6 +549,51 @@ struct posix_acl *ovl_get_acl(struct inode *inode, int type, bool rcu)
+ 	posix_acl_release(acl);
+ 	return clone;
+ }
++
++static struct posix_acl *ovl_get_acl_path(const struct path *path,
++					  const char *acl_name)
++{
++	struct posix_acl *real_acl, *clone;
++	struct user_namespace *mnt_userns;
++
++	mnt_userns = mnt_user_ns(path->mnt);
++
++	real_acl = vfs_get_acl(mnt_userns, path->dentry, acl_name);
++	if (IS_ERR_OR_NULL(real_acl))
++		return real_acl;
++
++	if (!is_idmapped_mnt(path->mnt))
++		return real_acl;
++
++	/*
++        * We cannot alter the ACLs returned from the relevant layer as that
++        * would alter the cached values filesystem wide for the lower
++        * filesystem. Instead we can clone the ACLs and then apply the
++        * relevant idmapping of the layer.
++        */
++	clone = posix_acl_clone(real_acl, GFP_KERNEL);
++	if (clone)
++		ovl_idmap_posix_acl(d_inode(path->dentry), mnt_userns, clone);
++	else
++		clone = ERR_PTR(-ENOMEM);
++	/* Drop reference to original posix acls. */
++	posix_acl_release(real_acl);
++	return clone;
++}
++
++struct posix_acl *ovl_get_acl(struct user_namespace *mnt_userns,
++			      struct dentry *dentry, int type)
++{
++	struct posix_acl *acl = NULL;
++	const struct cred *old_cred;
++	struct path realpath;
++
++	ovl_path_real(dentry, &realpath);
++	old_cred = ovl_override_creds(dentry->d_sb);
++	acl = ovl_get_acl_path(&realpath, posix_acl_xattr_name(type));
++	revert_creds(old_cred);
++	return acl;
++}
+ #endif
+ 
+ int ovl_update_time(struct inode *inode, struct timespec64 *ts, int flags)
+@@ -721,7 +768,8 @@ static const struct inode_operations ovl_file_inode_operations = {
+ 	.permission	= ovl_permission,
+ 	.getattr	= ovl_getattr,
+ 	.listxattr	= ovl_listxattr,
+-	.get_inode_acl	= ovl_get_acl,
++	.get_inode_acl	= ovl_get_inode_acl,
++	.get_acl	= ovl_get_acl,
+ 	.update_time	= ovl_update_time,
+ 	.fiemap		= ovl_fiemap,
+ 	.fileattr_get	= ovl_fileattr_get,
+@@ -741,7 +789,8 @@ static const struct inode_operations ovl_special_inode_operations = {
+ 	.permission	= ovl_permission,
+ 	.getattr	= ovl_getattr,
+ 	.listxattr	= ovl_listxattr,
+-	.get_inode_acl	= ovl_get_acl,
++	.get_inode_acl	= ovl_get_inode_acl,
++	.get_acl	= ovl_get_acl,
+ 	.update_time	= ovl_update_time,
+ };
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index ee93c825b06b..68a3030332e9 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -592,9 +592,15 @@ int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char *name,
+ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size);
+ 
+ #ifdef CONFIG_FS_POSIX_ACL
+-struct posix_acl *ovl_get_acl(struct inode *inode, int type, bool rcu);
++struct posix_acl *ovl_get_inode_acl(struct inode *inode, int type, bool rcu);
++struct posix_acl *ovl_get_acl(struct user_namespace *mnt_userns,
++			      struct dentry *dentry, int type);
++void ovl_idmap_posix_acl(struct inode *realinode,
++			 struct user_namespace *mnt_userns,
++			 struct posix_acl *acl);
+ #else
+-#define ovl_get_acl	NULL
++#define ovl_get_inode_acl	NULL
++#define ovl_get_acl		NULL
+ #endif
+ 
+ int ovl_update_time(struct inode *inode, struct timespec64 *ts, int flags);
+-- 
+2.34.1
+
