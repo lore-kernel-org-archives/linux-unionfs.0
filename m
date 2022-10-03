@@ -2,215 +2,106 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BB43C433FE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 29 Sep 2022 15:34:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F27FC433FE
+	for <linux-unionfs@archiver.kernel.org>; Mon,  3 Oct 2022 12:22:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235039AbiI2Pev (ORCPT
+        id S229537AbiJCMWE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 29 Sep 2022 11:34:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46860 "EHLO
+        Mon, 3 Oct 2022 08:22:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235585AbiI2Pc7 (ORCPT
+        with ESMTP id S229470AbiJCMWE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 29 Sep 2022 11:32:59 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A2BDA17A5F7;
-        Thu, 29 Sep 2022 08:32:04 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 41C1261484;
-        Thu, 29 Sep 2022 15:32:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AED1BC43140;
-        Thu, 29 Sep 2022 15:32:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1664465523;
-        bh=Ki6ZaecL1WN2/CKcdKWufpBoACjb05XWERiuFsY24wg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GA7n7EJtHxE/twTEUBcJcUDhDcd51oaDTZkoyRHQ/RSGlvh6MgZWcaP8bPJVOmR5a
-         YDMEHfCXfADtrfSETl/QqClnX2Iz5S7XdexkNah3rGdCaDqc35MjPVKRifYiGNoY6T
-         7Rmx1m9ITipQhNpfQAa4HH0BC+E3/QNtuw/6ioT0t/BdO1P569zd/iqvKR3jonHwk0
-         LpQCoO2UihdeXl66ysLgGjFxvzm7ZD6ubBimSHV0bkPdixS/vJxPlrKXLK1MSGKiEa
-         3dAnnW9Kv1n8zDj5iJ0/EFZ9ZMkXJv0qwGmrlPpSVBnIrwi5GWAcZE4w2nrsocJCEs
-         Jl0fvfIJmPsMQ==
-From:   Christian Brauner <brauner@kernel.org>
-To:     linux-fsdevel@vger.kernel.org
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Seth Forshee <sforshee@kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Subject: [PATCH v4 27/30] ovl: use stub posix acl handlers
-Date:   Thu, 29 Sep 2022 17:30:37 +0200
-Message-Id: <20220929153041.500115-28-brauner@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220929153041.500115-1-brauner@kernel.org>
-References: <20220929153041.500115-1-brauner@kernel.org>
+        Mon, 3 Oct 2022 08:22:04 -0400
+Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7D0A2F65D;
+        Mon,  3 Oct 2022 05:22:02 -0700 (PDT)
+Received: by mail-wr1-x432.google.com with SMTP id a10so4122895wrm.12;
+        Mon, 03 Oct 2022 05:22:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date;
+        bh=T/fREI+xTUR4XLBsF14/qTUE846Qs6i3HlylJyTm2k0=;
+        b=j2dCQeYf0H+hOG9k/vfH/hMG+FYFkbuEXZAKylEfzvVz8RWSRXEm73zk444vydIGEg
+         JF7G/0gCd0QoY1VuF7froZmb5iMiLI7/Q3NyuR9Fk3JhuTBxE1YZiLzTZNp81LcM8NOD
+         +k92VqDP2P+P64kTc/x+BfIi1U8kruP3ehuXh76NLibJWfPsgpRVDGi6rWoRLkqbquEn
+         En7e3ROXU4Tstk0U21ro+pDBdDL8ygqnowaoadsw6fF66mqU6P7UDJ2uyEhrpRTYkHAa
+         XsQf+82RoXNrGpOocLwD2QdVX/NULzYG5SwGxRjLDpQgF5uLmz5JCFOIoWXUnnSvdpPE
+         IIGw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date;
+        bh=T/fREI+xTUR4XLBsF14/qTUE846Qs6i3HlylJyTm2k0=;
+        b=1pF1paFQ6nBXYn2t0V+Y7ydl9OYceRH4vDMjY9GTaqIGx6lG9oo3socQCIyDQA7aTC
+         yJ806kr3fe6TCcXtp3TDrvfVjg2R41XeCJM2dkrtIh94rf8zCCXId4GI/wR6ZVklzSGy
+         mYoyNZ2QDji58oDHl54RJx8XAYuPxoTYknbq9djbmivSxA+dfrdraYffrmS9Z4K2XODk
+         k4606GAuwC24VcS5AarxlEAX58FsVJt1mHs0PyeuzNsGGGFMnCXZ7mQR7ECtf6Ip+gNd
+         UMZP4AMneEiJNDvvwQnBLuGZBvA6UkiZQ0KXR0HHo9mQGMxT5JeO2URsYE2dUy/edITK
+         DDww==
+X-Gm-Message-State: ACrzQf2Oc4byr2A6k0rlhXQGKp8YY1eADqJTSZzzCHG9o8qWujW6HWR5
+        ctjgbEWW7H6AxHrQ3RxU0Ts=
+X-Google-Smtp-Source: AMsMyM7pW4+emV1gJQ+9fnjmtttrvUuJ9w/EipvvpnqZBunhQxjUxw0cLMEsAc/Yd/+A9ixoYiiV9w==
+X-Received: by 2002:a5d:6d85:0:b0:226:ffd5:5231 with SMTP id l5-20020a5d6d85000000b00226ffd55231mr12143995wrs.202.1664799721230;
+        Mon, 03 Oct 2022 05:22:01 -0700 (PDT)
+Received: from localhost.localdomain ([5.29.8.191])
+        by smtp.gmail.com with ESMTPSA id v11-20020a05600c444b00b003a682354f63sm16983387wmn.11.2022.10.03.05.21.58
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 03 Oct 2022 05:21:59 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Christian Brauner <brauner@kernel.com>,
+        Yang Xu <xuyang2018.jy@fujitsu.com>,
+        "Darrick J . Wong" <djwong@kernel.org>,
+        Filipe Manana <fdmanana@kernel.org>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH 0/2] Some fixes for overlayfs remove privs
+Date:   Mon,  3 Oct 2022 15:21:52 +0300
+Message-Id: <20221003122154.900300-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5136; i=brauner@kernel.org; h=from:subject; bh=Ki6ZaecL1WN2/CKcdKWufpBoACjb05XWERiuFsY24wg=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSSb7hJvtbjH8GaB1BRDSwbJimldVgpnb/eJKAa9YL5YtyRc R1e/o5SFQYyLQVZMkcWh3SRcbjlPxWajTA2YOaxMIEMYuDgFYCLPrBj+8OxzPzpPeL/+XzVO4eXB64 w9Ftl8f1c9+aevw//LE3SizjAyfNSMcHCxrhFm6+WVnjRbOSr/RTjjqqXHquouNHp4dP5jAwA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Now that ovl supports the get and set acl inode operations and the vfs
-has been switched to the new posi api, ovl can simply rely on the stub
-posix acl handlers. The custom xattr handlers and associated unused
-helpers can be removed.
+Miklos,
 
-Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
----
+While running latest fstests on overlayfs-next, I noticed these
+failures:
+generic/673 generic/683 generic/684 generic/685 generic/686 generic/687
 
-Notes:
-    /* v2 */
-    unchanged
-    
-    /* v3 */
-    unchanged
-    
-    /* v4 */
-    unchanged
+Christian has also reported those failures earlier.
 
- fs/overlayfs/super.c | 101 ++-----------------------------------------
- 1 file changed, 4 insertions(+), 97 deletions(-)
+Those are not regressions, those are 5 new tests added to fstests and
+one test whose expected result was modified by fstests commit b3a59bb6
+("generic/673: fix golden output to reflect vfs setgid behavior").
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 8a13319db1d3..0c7ae79b10b1 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -998,83 +998,6 @@ static unsigned int ovl_split_lowerdirs(char *str)
- 	return ctr;
- }
- 
--static int __maybe_unused
--ovl_posix_acl_xattr_get(const struct xattr_handler *handler,
--			struct dentry *dentry, struct inode *inode,
--			const char *name, void *buffer, size_t size)
--{
--	return ovl_xattr_get(dentry, inode, handler->name, buffer, size);
--}
--
--static int __maybe_unused
--ovl_posix_acl_xattr_set(const struct xattr_handler *handler,
--			struct user_namespace *mnt_userns,
--			struct dentry *dentry, struct inode *inode,
--			const char *name, const void *value,
--			size_t size, int flags)
--{
--	struct dentry *workdir = ovl_workdir(dentry);
--	struct inode *realinode = ovl_inode_real(inode);
--	struct posix_acl *acl = NULL;
--	int err;
--
--	/* Check that everything is OK before copy-up */
--	if (value) {
--		/* The above comment can be understood in two ways:
--		 *
--		 * 1. We just want to check whether the basic POSIX ACL format
--		 *    is ok. For example, if the header is correct and the size
--		 *    is sane.
--		 * 2. We want to know whether the ACL_{GROUP,USER} entries can
--		 *    be mapped according to the underlying filesystem.
--		 *
--		 * Currently, we only check 1. If we wanted to check 2. we
--		 * would need to pass the mnt_userns and the fs_userns of the
--		 * underlying filesystem. But frankly, I think checking 1. is
--		 * enough to start the copy-up.
--		 */
--		acl = vfs_set_acl_prepare(&init_user_ns, &init_user_ns, value, size);
--		if (IS_ERR(acl))
--			return PTR_ERR(acl);
--	}
--	err = -EOPNOTSUPP;
--	if (!IS_POSIXACL(d_inode(workdir)))
--		goto out_acl_release;
--	if (!realinode->i_op->set_acl)
--		goto out_acl_release;
--	if (handler->flags == ACL_TYPE_DEFAULT && !S_ISDIR(inode->i_mode)) {
--		err = acl ? -EACCES : 0;
--		goto out_acl_release;
--	}
--	err = -EPERM;
--	if (!inode_owner_or_capable(&init_user_ns, inode))
--		goto out_acl_release;
--
--	posix_acl_release(acl);
--
--	/*
--	 * Check if sgid bit needs to be cleared (actual setacl operation will
--	 * be done with mounter's capabilities and so that won't do it for us).
--	 */
--	if (unlikely(inode->i_mode & S_ISGID) &&
--	    handler->flags == ACL_TYPE_ACCESS &&
--	    !in_group_p(inode->i_gid) &&
--	    !capable_wrt_inode_uidgid(&init_user_ns, inode, CAP_FSETID)) {
--		struct iattr iattr = { .ia_valid = ATTR_KILL_SGID };
--
--		err = ovl_setattr(&init_user_ns, dentry, &iattr);
--		if (err)
--			return err;
--	}
--
--	err = ovl_xattr_set(dentry, inode, handler->name, value, size, flags);
--	return err;
--
--out_acl_release:
--	posix_acl_release(acl);
--	return err;
--}
--
- static int ovl_own_xattr_get(const struct xattr_handler *handler,
- 			     struct dentry *dentry, struct inode *inode,
- 			     const char *name, void *buffer, size_t size)
-@@ -1107,22 +1030,6 @@ static int ovl_other_xattr_set(const struct xattr_handler *handler,
- 	return ovl_xattr_set(dentry, inode, name, value, size, flags);
- }
- 
--static const struct xattr_handler __maybe_unused
--ovl_posix_acl_access_xattr_handler = {
--	.name = XATTR_NAME_POSIX_ACL_ACCESS,
--	.flags = ACL_TYPE_ACCESS,
--	.get = ovl_posix_acl_xattr_get,
--	.set = ovl_posix_acl_xattr_set,
--};
--
--static const struct xattr_handler __maybe_unused
--ovl_posix_acl_default_xattr_handler = {
--	.name = XATTR_NAME_POSIX_ACL_DEFAULT,
--	.flags = ACL_TYPE_DEFAULT,
--	.get = ovl_posix_acl_xattr_get,
--	.set = ovl_posix_acl_xattr_set,
--};
--
- static const struct xattr_handler ovl_own_trusted_xattr_handler = {
- 	.prefix	= OVL_XATTR_TRUSTED_PREFIX,
- 	.get = ovl_own_xattr_get,
-@@ -1143,8 +1050,8 @@ static const struct xattr_handler ovl_other_xattr_handler = {
- 
- static const struct xattr_handler *ovl_trusted_xattr_handlers[] = {
- #ifdef CONFIG_FS_POSIX_ACL
--	&ovl_posix_acl_access_xattr_handler,
--	&ovl_posix_acl_default_xattr_handler,
-+	&posix_acl_access_xattr_handler,
-+	&posix_acl_default_xattr_handler,
- #endif
- 	&ovl_own_trusted_xattr_handler,
- 	&ovl_other_xattr_handler,
-@@ -1153,8 +1060,8 @@ static const struct xattr_handler *ovl_trusted_xattr_handlers[] = {
- 
- static const struct xattr_handler *ovl_user_xattr_handlers[] = {
- #ifdef CONFIG_FS_POSIX_ACL
--	&ovl_posix_acl_access_xattr_handler,
--	&ovl_posix_acl_default_xattr_handler,
-+	&posix_acl_access_xattr_handler,
-+	&posix_acl_default_xattr_handler,
- #endif
- 	&ovl_own_user_xattr_handler,
- 	&ovl_other_xattr_handler,
+The following two patches aim to fix those test failures, but they are
+incomplete - without those patches, the tests fail miserably in all test
+cases, because no privs are stripped.
+
+With those two patches, only two test cases are failing, which are the
+two test cases whose expectation was changed by fstests commit b3a59bb6.
+The reason was explained in [1] and the issue was fixed for xfs by kernel
+commit e014f37db1a2 ("xfs: use setattr_copy to set vfs inode attributes").
+
+Trying to figure out how to fix this hurts my brain, so I'll need
+suggestions how to proceed.
+
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/linux-xfs/CAL3q7H47iNQ=Wmk83WcGB-KBJVOEtR9+qGczzCeXJ9Y2KCV25Q@mail.gmail.com/
+
+Amir Goldstein (2):
+  ovl: remove privs in ovl_copyfile()
+  ovl: remove privs in ovl_fallocate()
+
+ fs/overlayfs/file.c | 28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
+
 -- 
-2.34.1
+2.25.1
 
