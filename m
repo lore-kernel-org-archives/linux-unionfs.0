@@ -2,116 +2,100 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FC0AC433F5
-	for <linux-unionfs@archiver.kernel.org>; Mon,  3 Oct 2022 12:30:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ACA1C433F5
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Oct 2022 10:34:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229464AbiJCMaz (ORCPT
+        id S229592AbiJDKev (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 3 Oct 2022 08:30:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51412 "EHLO
+        Tue, 4 Oct 2022 06:34:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35040 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229802AbiJCMaw (ORCPT
+        with ESMTP id S229603AbiJDKen (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Oct 2022 08:30:52 -0400
-Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E494641D00;
-        Mon,  3 Oct 2022 05:30:50 -0700 (PDT)
-Received: by mail-wr1-x430.google.com with SMTP id a3so4233109wrt.0;
-        Mon, 03 Oct 2022 05:30:50 -0700 (PDT)
+        Tue, 4 Oct 2022 06:34:43 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01789B11
+        for <linux-unionfs@vger.kernel.org>; Tue,  4 Oct 2022 03:34:39 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id a3so8376727wrt.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 04 Oct 2022 03:34:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=95pD3kUkfrwjBpMlRxRAZrJWP3np9vHScnVl0JeavSM=;
-        b=dY+6Xw/ujB3LBTYWSZT9lkX5gdVOGr1UM4R9BsYWNqvrmwFHtdyDZ53mgy/rDyUKuC
-         WF5l1Zo+gyf/e8X+kxKkJzY5RHELupKp8so1GAAV+JNe3D9YUooRqQWpgJyNMbGSL2TK
-         Wwa7rCez++sF9GmDBqyILd2wRVhHtavFikoAvAjJZbEL/xq5VPvYBPz/XQ+00GDxaDe1
-         XTeeA5xAh1MrVvgq8y8oiktnwR/LDGLx2rAyzXHNDW9RAS5ZZtrCSSkJN6UaHdtT68S2
-         4cUhB/tLYNPr8a7KwpBasAZzJhbWnd32OLdhmiMkwRd3ffHLiu5Dt86KNRboBKe4if7p
-         XJww==
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date;
+        bh=C9FzVkEhDqWvyijrZNnPTbX6byLMU1z8gsP9/cp/X48=;
+        b=X1kEOOGsMlCIy26RnvZaMj+5Ey6NBH6zXPW4nKgk22zD/ReYUdrxHyp6SExrrqae1I
+         /Zq0N5Ulwz6tt6iHUFH1d2EXoxN1Y3KUJKrAhVr2Ly9IjU1mrBggpaNY4LIBRvK0dHYw
+         AzqQdmOSTKORJduc/+yF72oTZZfL0Gj5CNKtCLiu0JrMx8cfMivW0skkS6Ct4mRQdUm8
+         76Do/6tKUto7g7RVzKXm1ucxJtWyk1ww7cJf/51P3TeYQ5xKsrspwH5cFAdZ5aYmIFXE
+         UzJClUx4dMueWdsxYpvrv0JyRpsDpsZuUgOrinSefo1XREtPRXX4O/VALmVIHdlUTAkb
+         N2+Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=95pD3kUkfrwjBpMlRxRAZrJWP3np9vHScnVl0JeavSM=;
-        b=sso/7fBc3OcUVC/v2OjbeSqzpTpq//c1Dn8kzUziTibrLYf8Vi6fdA/ZPbXSo4Nmaa
-         4B0+kQ9we/2+GGY8yPLaFBgutA/61miMwKoih5ut/ipG0qN07r5mH6Kx4LfyM0RmUgZr
-         68MQU0N8T6kuGsl9axDnwlqMt1P22Rial/GctpgrOZ2CuxMKzSx9PIy/AujXCLF0iCHR
-         uTMeeml7Yy2UwS0t+NGV1fyBfbqGDooKeA+PMIskiWhoL//VrOxmf5XjK8Er377W4ush
-         tN3ZccDLPIkTAcm01V0UBFdLsLUKYLUvWuQmbSkhHrw2vNQ4ucNlX6Y44oaql+G21XEH
-         jY+g==
-X-Gm-Message-State: ACrzQf1rX6KTz9MHweM6dKKVTZ2tkg5g/GUR+nC7EQZi6MWlAdkzBf+r
-        0ij9t9IhKPiAN6drg84vbSI=
-X-Google-Smtp-Source: AMsMyM6vO78FnlnzKRt6zDuUYEZjtz2taLdEK1yCV2Avc0wB1Tr/NSIstA3a9cRf4CRTiQnAnT7Z4w==
-X-Received: by 2002:a05:6000:2c1:b0:226:e816:b6a4 with SMTP id o1-20020a05600002c100b00226e816b6a4mr13510266wry.330.1664800249514;
-        Mon, 03 Oct 2022 05:30:49 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date;
+        bh=C9FzVkEhDqWvyijrZNnPTbX6byLMU1z8gsP9/cp/X48=;
+        b=bja0EYn0BdTWamctBqA8wSP5pLPC7kQx0Zthi1SEgoek5DW0aX084uQjrur5A6DNop
+         MIByk4k4rPA3kTyK97Ei3lxkOJMSG9Q0kO/ODD61swPl8KyRb9RFbXYfGJA6N4AXFn1p
+         NS2GbdNSt6B5SS50cV2wORTwcl0JJ8Y4UkGuj/SFEgVwqVcGh3XU4C+NM4MmKts4HcDB
+         Ym3vxm/egXoSBOUXWbKvTlTVx6KbxvIgolMxVmzn7fftHM9J8xfKNduaSuH+gcysOpsB
+         MMHfJHDg3UDjJtPGPWDIz/kAhqLCDjOln/TeKlnENVoq0OAE6gnfegRNVtg5BkSldCRT
+         pSLg==
+X-Gm-Message-State: ACrzQf0zHf8GWpAOLH6KYRWH6UmjWR9z24Dn9YtoiVrX7suEBwwvbv/A
+        A/yUYb9fvG51fbfY5OSn92Ry+zgbCTY=
+X-Google-Smtp-Source: AMsMyM4Mm0ie9ioa/LI6P+Gz0Lox7YU1/lIV1Qk2E7z4a/7cUZJ1ZQQNjOfZshWTGBx/NU8ZPFYeTQ==
+X-Received: by 2002:a05:6000:982:b0:229:79e5:6a96 with SMTP id by2-20020a056000098200b0022979e56a96mr15469210wrb.469.1664879677475;
+        Tue, 04 Oct 2022 03:34:37 -0700 (PDT)
 Received: from localhost.localdomain ([5.29.8.191])
-        by smtp.gmail.com with ESMTPSA id b14-20020a05600c4e0e00b003b535ad4a5bsm11845392wmq.9.2022.10.03.05.30.47
+        by smtp.gmail.com with ESMTPSA id b14-20020a05600c4e0e00b003b535ad4a5bsm14691726wmq.9.2022.10.04.03.34.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 03 Oct 2022 05:30:48 -0700 (PDT)
+        Tue, 04 Oct 2022 03:34:36 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Yang Xu <xuyang2018.jy@fujitsu.com>,
-        "Darrick J . Wong" <djwong@kernel.org>,
-        Filipe Manana <fdmanana@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: [PATCH 2/2] ovl: remove privs in ovl_fallocate()
-Date:   Mon,  3 Oct 2022 15:30:40 +0300
-Message-Id: <20221003123040.900827-3-amir73il@gmail.com>
+Cc:     linux-unionfs@vger.kernel.org
+Subject: [PATCH 0/2] Performance improvements for ovl_indexdir_cleanup()
+Date:   Tue,  4 Oct 2022 13:34:31 +0300
+Message-Id: <20221004103433.966743-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221003123040.900827-1-amir73il@gmail.com>
-References: <20221003123040.900827-1-amir73il@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Underlying fs doesn't remove privs because fallocate is called with
-privileged mounter credentials.
+Miklos,
 
-This fixes some failure in fstests generic/683..687.
+I ran into an incident of very large index dir which took considerable
+amount of time to mount the indexed overlay (~30 minutes).
+The index dir had millions of entries and I do not think that the use
+case that caused this is typical.
 
-Fixes: aab8848cee5e ("ovl: add ovl_fallocate()")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/file.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+The following two patches are based on perf top analysis of this
+incident.  I do not have access to the data set that caused the
+very long mount time, but I tested the desired CPU usage improvements
+on a smaller scale data set.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index c8308da8909a..e90ac5376456 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -517,9 +517,16 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
- 	const struct cred *old_cred;
- 	int ret;
- 
-+	inode_lock(inode);
-+	/* Update mode */
-+	ovl_copyattr(inode);
-+	ret = file_remove_privs(file);
-+	if (ret)
-+		goto out_unlock;
-+
- 	ret = ovl_real_fdget(file, &real);
- 	if (ret)
--		return ret;
-+		goto out_unlock;
- 
- 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
- 	ret = vfs_fallocate(real.file, mode, offset, len);
-@@ -530,6 +537,9 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
- 
- 	fdput(real);
- 
-+out_unlock:
-+	inode_unlock(inode);
-+
- 	return ret;
- }
- 
+It is hard to say if this extreme case of very large index dir is
+common enough to be worth any attention, so I did not tag the fixes
+for stable and I don't think it is urgent to apply them.
+
+Unfortunattely, the investigation of the incident was not timed
+optimally w.r.t. to the current merge window.
+Nevertheless, the changes are quite trivial, so you may want to consider
+them either for -rc or for next release.
+
+Thanks,
+Amir.
+
+Amir Goldstein (2):
+  ovl: do not reconnect upper index records in ovl_indexdir_cleanup()
+  ovl: use plain list filler in indexdir and workdir cleanup
+
+ fs/overlayfs/export.c    |  4 ++--
+ fs/overlayfs/namei.c     |  7 ++++---
+ fs/overlayfs/overlayfs.h |  3 ++-
+ fs/overlayfs/readdir.c   | 12 ++----------
+ 4 files changed, 10 insertions(+), 16 deletions(-)
+
 -- 
 2.25.1
 
