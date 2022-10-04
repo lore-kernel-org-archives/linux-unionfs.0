@@ -2,123 +2,166 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94C37C433FE
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Oct 2022 10:34:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A310C433FE
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Oct 2022 11:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229612AbiJDKew (ORCPT
+        id S229846AbiJDLAB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Oct 2022 06:34:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35472 "EHLO
+        Tue, 4 Oct 2022 07:00:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45476 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229661AbiJDKen (ORCPT
+        with ESMTP id S229888AbiJDK7w (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Oct 2022 06:34:43 -0400
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 332ACC2D
-        for <linux-unionfs@vger.kernel.org>; Tue,  4 Oct 2022 03:34:41 -0700 (PDT)
-Received: by mail-wr1-x433.google.com with SMTP id w18so11914194wro.7
-        for <linux-unionfs@vger.kernel.org>; Tue, 04 Oct 2022 03:34:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=/+azcpZw7TmXkfiDz/siKwQknaF6esWxqtt0BxrGIvU=;
-        b=Huq2MN5k3NSRhwW8SW7PNzogvoJ2MFEkt3YDJ2+vejcYQazVHQN7H38vbfrewigPiA
-         w3FKAkMfzB7Mqz4XvOuFPzaWxSjXbjVmZJNOA235w+aTXoE87ZbyLysuVU7LJSOBVkds
-         VO0b5Fxuw9VyQAQR09sAphyOPDs6Nm/oQQ9m0BE9Wq/COr8LTKk78ARozwPwk9U7SaAL
-         4U1p5s527zuVJiyWSybU4Xu3uRW3Yn3yrjozQGZQAujAAUOfraIhMK4WQ67MdeIEnOPH
-         RIRgZ/EdEWm+KZ94sIVZeAbXI0IusaaIDO30Nj/yYI3iiIZU3VIdfcBod8JWps2EKKww
-         JqHA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=/+azcpZw7TmXkfiDz/siKwQknaF6esWxqtt0BxrGIvU=;
-        b=OT3ZhQbzjU6MsKbTB3rHprUCJxsyf93xugvlqvvkUqtLY1oJ1vVNE1PN2pwmsrTpU2
-         pi5YFCxHqsb+Qkbu46DBCYJKU2If718C7bp6PoQtArRw0XPVF3B2tLvukJ9xmWdQ12RM
-         ZdQIsr2jMiiTokLqImRcwiEioEop4/ZwPN0ihXgGpSt5unHzUD+AV8LD3iiqiK8ftDm7
-         Ig/vjker9FXgTUQjHe1QcJvK3EkhwgPPnU80RSJvIEjpP+jAB8Aofq0CLCSaNckUrO2f
-         cQiF7mi09ixCvFMH29npstCZM3cB+5YlBj2qw2xQAIiMthbGtF4xgH4jLAdwyfzk4Wlo
-         AvvA==
-X-Gm-Message-State: ACrzQf0QwnhURNNYrjLrBlu/T4dm59zl10ICv7gYG6u3xSHdyTJairz5
-        jC+B06pqeR7nviehfC4N4Nk=
-X-Google-Smtp-Source: AMsMyM4gGzCfpuBf+hvZwA3JFVa9wW784Gchhj9jJ5zgXjKtXEYanynV/2NNhlTQLeEdJ8jUv0KhlQ==
-X-Received: by 2002:adf:c713:0:b0:22a:3670:b08d with SMTP id k19-20020adfc713000000b0022a3670b08dmr16041593wrg.175.1664879679576;
-        Tue, 04 Oct 2022 03:34:39 -0700 (PDT)
-Received: from localhost.localdomain ([5.29.8.191])
-        by smtp.gmail.com with ESMTPSA id b14-20020a05600c4e0e00b003b535ad4a5bsm14691726wmq.9.2022.10.04.03.34.38
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 04 Oct 2022 03:34:39 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org
-Subject: [PATCH 2/2] ovl: use plain list filler in indexdir and workdir cleanup
-Date:   Tue,  4 Oct 2022 13:34:33 +0300
-Message-Id: <20221004103433.966743-3-amir73il@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20221004103433.966743-1-amir73il@gmail.com>
-References: <20221004103433.966743-1-amir73il@gmail.com>
+        Tue, 4 Oct 2022 06:59:52 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B40D10D6;
+        Tue,  4 Oct 2022 03:59:40 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CA733B819BA;
+        Tue,  4 Oct 2022 10:59:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFF3AC433D6;
+        Tue,  4 Oct 2022 10:59:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1664881177;
+        bh=41d3lcHf5P4mC0WuBshx8sCdcu2vykEQa3hb81hp1aQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ZoTbqhs3pH1e2O1fizPxHN92sywX0jpDkR7XSrmlIYF9qmVZD7Qr+0kWS5JWIV5Jo
+         2SS0kXKNTnI8sBIUkRY3dZazwYZMFvYKBXwdhq1gkKh0QxG2h1NXWLMVJn7znuE3VF
+         AWtGKmTVS3aAfe+cpD9MYAETx8L4BwMK4TkgUVfGyKuomhMIJgfRgqeO/hJucMlJsW
+         I93DH66UQ+zTCVzmAXhQRY4rVaWRB6kAIFaM2TCbRP1OWM+gTa+N8zBtrZQk8Feq1v
+         wHU32ANaziMDreKSpvCdS3GRuV+gI+0fd5Fj540AbsX9+M966X1OfPa98Msf6i9wFq
+         KNMxFSZ2CL6bw==
+Date:   Tue, 4 Oct 2022 12:59:32 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Yang Xu <xuyang2018.jy@fujitsu.com>,
+        "Darrick J . Wong" <djwong@kernel.org>,
+        Filipe Manana <fdmanana@kernel.org>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 2/2] ovl: remove privs in ovl_fallocate()
+Message-ID: <20221004105932.bpvqstjrfpud5rcs@wittgenstein>
+References: <20221003123040.900827-1-amir73il@gmail.com>
+ <20221003123040.900827-3-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20221003123040.900827-3-amir73il@gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Those two cleanup routines are using the helper ovl_dir_read() with
-the merge dir filler, which populates an rb tree, that is never used.
+On Mon, Oct 03, 2022 at 03:30:40PM +0300, Amir Goldstein wrote:
+> Underlying fs doesn't remove privs because fallocate is called with
+> privileged mounter credentials.
+> 
+> This fixes some failure in fstests generic/683..687.
+> 
+> Fixes: aab8848cee5e ("ovl: add ovl_fallocate()")
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/file.c | 12 +++++++++++-
+>  1 file changed, 11 insertions(+), 1 deletion(-)
+> 
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index c8308da8909a..e90ac5376456 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -517,9 +517,16 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
+>  	const struct cred *old_cred;
+>  	int ret;
+>  
+> +	inode_lock(inode);
+> +	/* Update mode */
+> +	ovl_copyattr(inode);
+> +	ret = file_remove_privs(file);
 
-The index dir entry names all have a long (42 bytes) constant prefix,
-so it is not surprising that perf top has demostrated high CPU usage
-by rb tree population during cleanup of a large index dir:
+First, thank you for picking this up!
 
-      - 9.53% ovl_fill_merge
-         - 78.41% ovl_cache_entry_find_link.constprop.27
-            + 72.11% strncmp
+Let me analyze generic/683 failure of Test1 to see why you still see
+failures in this test:
 
-Use the plain list filler that does not populate the unneeded rb tree.
+echo "Test 1 - qa_user, non-exec file $verb"
+setup_testfile
+chmod a+rws $junk_file
+commit_and_check "$qa_user" "$verb" 64k 64k
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/readdir.c | 12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+So this creates a file with 6666 permissions. While the file has the
+S_ISUID and S_ISGID bits set it does not have the S_IXGRP set. This is
+important in a little bit.
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 78f62cc1797b..f11324b46d23 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -1071,14 +1071,10 @@ static int ovl_workdir_cleanup_recurse(struct ovl_fs *ofs, struct path *path,
- 	int err;
- 	struct inode *dir = path->dentry->d_inode;
- 	LIST_HEAD(list);
--	struct rb_root root = RB_ROOT;
- 	struct ovl_cache_entry *p;
- 	struct ovl_readdir_data rdd = {
--		.ctx.actor = ovl_fill_merge,
--		.dentry = NULL,
-+		.ctx.actor = ovl_fill_plain,
- 		.list = &list,
--		.root = &root,
--		.is_lowest = false,
- 	};
- 	bool incompat = false;
- 
-@@ -1159,14 +1155,10 @@ int ovl_indexdir_cleanup(struct ovl_fs *ofs)
- 	struct inode *dir = indexdir->d_inode;
- 	struct path path = { .mnt = ovl_upper_mnt(ofs), .dentry = indexdir };
- 	LIST_HEAD(list);
--	struct rb_root root = RB_ROOT;
- 	struct ovl_cache_entry *p;
- 	struct ovl_readdir_data rdd = {
--		.ctx.actor = ovl_fill_merge,
--		.dentry = NULL,
-+		.ctx.actor = ovl_fill_plain,
- 		.list = &list,
--		.root = &root,
--		.is_lowest = false,
- 	};
- 
- 	err = ovl_dir_read(&path, &rdd);
--- 
-2.25.1
+On a regular filesystem like xfs what will happen is:
 
+sys_fallocate()
+-> vfs_fallocate()
+   -> xfs_file_fallocate()
+      -> file_modified()
+         -> __file_remove_privs()
+            -> dentry_needs_remove_privs()
+               -> should_remove_suid()
+            -> __remove_privs()
+               newattrs.ia_valid = ATTR_FORCE | kill;
+               -> notify_change()
+
+In should_remove_suid() we can see that ATTR_KILL_SUID is raised
+unconditionally because the file in the test has S_ISUID set.
+
+But we also see that ATTR_KILL_SGID won't be set because while the file
+is S_ISGID it is not S_IXGRP (see above) which is a condition for
+ATTR_KILL_SGID being raised.
+
+So by the time we call notify_change() we have attr->ia_valid set to
+ATTR_KILL_SUID | ATTR_FORCE. Now notify_change() sees that
+ATTR_KILL_SUID is set and does:
+
+ia_valid = attr->ia_valid |= ATTR_MODE
+attr->ia_mode = (inode->i_mode & ~S_ISUID);
+
+which means that when we call setattr_copy() later we will definitely
+update inode->i_mode. Note that attr->ia_mode still contain S_ISGID.
+
+Now we call into the filesystem's ->setattr() inode operation which will end up
+calling setattr_copy(). Since ATTR_MODE is set we will hit:
+
+if (ia_valid & ATTR_MODE) {
+        umode_t mode = attr->ia_mode;
+        vfsgid_t vfsgid = i_gid_into_vfsgid(mnt_userns, inode);
+        if (!vfsgid_in_group_p(vfsgid) &&
+            !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID))
+                mode &= ~S_ISGID;
+        inode->i_mode = mode;
+}
+
+and since the caller in the test is neither capable nor in the group of the
+inode the S_ISGID bit is stripped.
+
+But now contrast this with overlayfs even after your changes. When
+ovl_setattr() is hit from ovl_fallocate()'s call to file_remove_privs()
+and calls ovl_do_notify_change() then we are doing this under the
+mounter's creds and so the S_ISGID bit is retained:
+
+sys_fallocate()
+-> vfs_fallocate()
+   -> ovl_fallocate()
+      -> file_remove_privs()
+         -> dentry_needs_remove_privs()
+            -> should_remove_suid()
+         -> __remove_privs()
+            newattrs.ia_valid = attr_force | kill;
+            -> notify_change()
+	       -> ovl_setattr()
+	          // TAKE ON MOUNTER'S CREDS
+	          -> ovl_do_notify_change()
+	          // GIVE UP MOUNTER'S CREDS
+     // TAKE ON MOUNTER'S CREDS
+     -> vfs_fallocate()
+        -> xfs_file_fallocate()
+           -> file_modified()
+              -> __file_remove_privs()
+                 -> dentry_needs_remove_privs()
+                    -> should_remove_suid()
+                 -> __remove_privs()
+                    newattrs.ia_valid = attr_force | kill;
+                    -> notify_change()
