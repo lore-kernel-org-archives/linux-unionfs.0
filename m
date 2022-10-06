@@ -2,117 +2,85 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 516BAC433F5
-	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Oct 2022 07:09:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A70C8C433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Oct 2022 12:21:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230152AbiJFHJO (ORCPT
+        id S230124AbiJFMVg (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 6 Oct 2022 03:09:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45052 "EHLO
+        Thu, 6 Oct 2022 08:21:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230160AbiJFHJN (ORCPT
+        with ESMTP id S229491AbiJFMVf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Oct 2022 03:09:13 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70C47FFB9;
-        Thu,  6 Oct 2022 00:08:56 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47AAEB8200E;
-        Thu,  6 Oct 2022 07:08:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E297C433C1;
-        Thu,  6 Oct 2022 07:08:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665040134;
-        bh=GIycMYdJrWmWWTMboDPEwhhyBa0pYdnyXPpIPz/1g9M=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=o3Lp9GWXTMBfeqXYVRytWhkxNKCZMLUz+1kwDb/GYxdgZTo6bGSQrIy1sOlnLDMwM
-         t0DqYUKIgTVLLH+YbDFp24lKzQeydM8087xjolddOejfddJHvhhKniM+L/0sNl/5Ex
-         ZmAOuiygqLUrma0q7Ch80am6oILtiDUBdQzQIwGOeZ5eHKZruAvla5/cEaYwg9v2dO
-         9rRPvtN7s4FqnGnB2TXbryWDnlKwppmOnqnG+4iBzQ7MU7KOOBaiY69Es3EdEfFkOu
-         OeFXfFriHLO6cje/UJW/Q6i0MukUpMoC1OWhfUh5HFo9aXTZyFq1OA8bKkPXqz+aQ5
-         jWQ6FQDJrb5Pw==
-Date:   Thu, 6 Oct 2022 09:08:48 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Dave Chinner <david@fromorbit.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        "Darrick J . Wong" <djwong@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@lst.de>,
-        Seth Forshee <sforshee@kernel.org>,
-        Yang Xu <xuyang2018.jy@fujitsu.com>,
-        Filipe Manana <fdmanana@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH 1/3] attr: use consistent sgid stripping checks
-Message-ID: <20221006070848.r6uow4qw6vp5fuut@wittgenstein>
-References: <20221005151433.898175-1-brauner@kernel.org>
- <20221005151433.898175-2-brauner@kernel.org>
- <20221005212851.GB2703033@dread.disaster.area>
+        Thu, 6 Oct 2022 08:21:35 -0400
+Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE3239C2C0
+        for <linux-unionfs@vger.kernel.org>; Thu,  6 Oct 2022 05:21:33 -0700 (PDT)
+Received: by mail-ej1-x62b.google.com with SMTP id nb11so4180104ejc.5
+        for <linux-unionfs@vger.kernel.org>; Thu, 06 Oct 2022 05:21:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=p/a+BylFdCdO728LJbS2XQTYV3fs94fdBUxkAL78A1I=;
+        b=b9QApQdACzZcMS/3ddMhFYZJ2Pp2HgYRcc64PWXyBMhKAWw5IE2ntXUx2YxQNzNY6N
+         nQRf8mSnk8JpfgcX2IItlwIb0g0bpV3hgDtl9cEzHdZ0FhwtkzywBfHYQTNz2iJx0KiN
+         8Z+KaB02GVBXSb4OMz+mxSlbO0TMkSmQK9Oko=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=p/a+BylFdCdO728LJbS2XQTYV3fs94fdBUxkAL78A1I=;
+        b=SYxqPaM1ezM1JLMoDJm3Djewy58O17dnXPhxnixEegim3Q6ENbyz4N042aT1g5R2wf
+         mO4sSKdMoCetXxDi6k6FKTRuNqgtc9JPF/J2MI7rhYOws15P2b34rvK+99xQPs3Xa+Tq
+         /RE94tIlZBwFit4TZhdtId93/Dgz2XFOMeVmDIWSQQCvwfc0hyR5p97gtP38DF3uqCGb
+         qtoQPULiAAeXOYs0562qM7eSZNv7FysatmNZBlTKCZPmHCJ6u2spG0m+kIaZegDomSaR
+         gn8czX9qQQFjATtqmIIuuHbU9OezahDkchOgQlPdqJPMsr9bfSK/gsYOp0BXguz8hB3f
+         drzQ==
+X-Gm-Message-State: ACrzQf09z/tYiZtB3NRLFsxEy26kwtXvLmNc1DgEOy4hRsP3prKppaC5
+        bThXVtPvWUlQCWiKHl0Gb0pY2Q5m0jJakx+9xivjVw==
+X-Google-Smtp-Source: AMsMyM5GJwHjtmmJbzoVrA11P8H69wHSK+Q66NpDkI1oZGPqojb8clUgWRDofTII0NiKP0MQNY9LxaNWR22+BWKa8qk=
+X-Received: by 2002:a17:906:ef8c:b0:78d:4a00:7c7b with SMTP id
+ ze12-20020a170906ef8c00b0078d4a007c7bmr574879ejb.187.1665058892328; Thu, 06
+ Oct 2022 05:21:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20221005212851.GB2703033@dread.disaster.area>
+References: <20221004103433.966743-1-amir73il@gmail.com>
+In-Reply-To: <20221004103433.966743-1-amir73il@gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Thu, 6 Oct 2022 14:21:21 +0200
+Message-ID: <CAJfpeguemhcaGub8PkovtWQ-yR0y7ZRBwPRqYi99vUZWcWM5zA@mail.gmail.com>
+Subject: Re: [PATCH 0/2] Performance improvements for ovl_indexdir_cleanup()
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Oct 06, 2022 at 08:28:51AM +1100, Dave Chinner wrote:
-> On Wed, Oct 05, 2022 at 05:14:31PM +0200, Christian Brauner wrote:
-> > diff --git a/fs/inode.c b/fs/inode.c
-> > index ba1de23c13c1..4f3257f5ed7a 100644
-> > --- a/fs/inode.c
-> > +++ b/fs/inode.c
-> > @@ -1949,26 +1949,44 @@ void touch_atime(const struct path *path)
-> >  }
-> >  EXPORT_SYMBOL(touch_atime);
-> >  
-> > -/*
-> > - * The logic we want is
-> > +/**
-> > + * should_remove_sgid - determine whether the setgid bit needs to be removed
-> > + * @mnt_userns:	User namespace of the mount the inode was created from
-> > + * @inode: inode to check
-> > + *
-> > + * This function determines whether the setgid bit needs to be removed.
-> > + * We retain backwards compatibility where we require the setgid bit to be
-> > + * removed unconditionally if S_IXGRP is set. Otherwise we have the exact same
-> > + * requirements as setattr_prepare() and setattr_copy().
-> >   *
-> > - *	if suid or (sgid and xgrp)
-> > - *		remove privs
-> > + * Return: true if setgit bit needs to be removed, false otherwise.
-> >   */
-> > -int should_remove_suid(struct dentry *dentry)
-> > +static bool should_remove_sgid(struct user_namespace *mnt_userns,
-> > +			       struct inode *inode)
-> > +{
-> > +	umode_t mode = inode->i_mode;
-> > +
-> > +	if (unlikely(mode & S_ISGID)) {
-> > +		if ((mode & S_IXGRP) ||
-> > +		    (!vfsgid_in_group_p(i_gid_into_vfsgid(mnt_userns, inode)) &&
-> > +		     !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID)))
-> > +			return true;
-> > +	}
-> > +
-> > +	return false;
-> 
-> I find this sort of convoluted logic much easier to follow when it's
-> written as a stacked set of single comparisons like so:
-> 
-> 	if (!(mode & S_ISGID))
-> 		return false;
-> 	if (mode & S_IXGRP)
-> 		return true;
-> 	if (vfsgid_in_group_p(i_gid_into_vfsgid(mnt_userns, inode))
-> 		return false;
-> 	if (capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID)
-> 		return false;
-> 	return true;
+On Tue, 4 Oct 2022 at 12:34, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> Miklos,
+>
+> I ran into an incident of very large index dir which took considerable
+> amount of time to mount the indexed overlay (~30 minutes).
+> The index dir had millions of entries and I do not think that the use
+> case that caused this is typical.
+>
+> The following two patches are based on perf top analysis of this
+> incident.  I do not have access to the data set that caused the
+> very long mount time, but I tested the desired CPU usage improvements
+> on a smaller scale data set.
+>
+> It is hard to say if this extreme case of very large index dir is
+> common enough to be worth any attention, so I did not tag the fixes
+> for stable and I don't think it is urgent to apply them.
+>
+> Unfortunattely, the investigation of the incident was not timed
+> optimally w.r.t. to the current merge window.
+> Nevertheless, the changes are quite trivial, so you may want to consider
+> them either for -rc or for next release.
 
-Good idea, I'll fix that up in tree.
+Looks good.  Pushed to #overlayfs-next.
 
-Thanks!
-Christian
+Thanks,
+Miklos
