@@ -2,29 +2,40 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA94DC433F5
-	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Oct 2022 21:29:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 516BAC433F5
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Oct 2022 07:09:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229681AbiJEV3E (ORCPT
+        id S230152AbiJFHJO (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 5 Oct 2022 17:29:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60898 "EHLO
+        Thu, 6 Oct 2022 03:09:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231164AbiJEV3D (ORCPT
+        with ESMTP id S230160AbiJFHJN (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Oct 2022 17:29:03 -0400
-Received: from mail105.syd.optusnet.com.au (mail105.syd.optusnet.com.au [211.29.132.249])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id D91AE8277F
-        for <linux-unionfs@vger.kernel.org>; Wed,  5 Oct 2022 14:28:58 -0700 (PDT)
-Received: from dread.disaster.area (pa49-181-106-210.pa.nsw.optusnet.com.au [49.181.106.210])
-        by mail105.syd.optusnet.com.au (Postfix) with ESMTPS id 1D2371101E00;
-        Thu,  6 Oct 2022 08:28:53 +1100 (AEDT)
-Received: from dave by dread.disaster.area with local (Exim 4.92.3)
-        (envelope-from <david@fromorbit.com>)
-        id 1ogBwh-00G4n3-TV; Thu, 06 Oct 2022 08:28:51 +1100
-Date:   Thu, 6 Oct 2022 08:28:51 +1100
-From:   Dave Chinner <david@fromorbit.com>
-To:     Christian Brauner <brauner@kernel.org>
+        Thu, 6 Oct 2022 03:09:13 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70C47FFB9;
+        Thu,  6 Oct 2022 00:08:56 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47AAEB8200E;
+        Thu,  6 Oct 2022 07:08:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4E297C433C1;
+        Thu,  6 Oct 2022 07:08:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1665040134;
+        bh=GIycMYdJrWmWWTMboDPEwhhyBa0pYdnyXPpIPz/1g9M=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=o3Lp9GWXTMBfeqXYVRytWhkxNKCZMLUz+1kwDb/GYxdgZTo6bGSQrIy1sOlnLDMwM
+         t0DqYUKIgTVLLH+YbDFp24lKzQeydM8087xjolddOejfddJHvhhKniM+L/0sNl/5Ex
+         ZmAOuiygqLUrma0q7Ch80am6oILtiDUBdQzQIwGOeZ5eHKZruAvla5/cEaYwg9v2dO
+         9rRPvtN7s4FqnGnB2TXbryWDnlKwppmOnqnG+4iBzQ7MU7KOOBaiY69Es3EdEfFkOu
+         OeFXfFriHLO6cje/UJW/Q6i0MukUpMoC1OWhfUh5HFo9aXTZyFq1OA8bKkPXqz+aQ5
+         jWQ6FQDJrb5Pw==
+Date:   Thu, 6 Oct 2022 09:08:48 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Dave Chinner <david@fromorbit.com>
 Cc:     Amir Goldstein <amir73il@gmail.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         "Darrick J . Wong" <djwong@kernel.org>,
@@ -35,78 +46,73 @@ Cc:     Amir Goldstein <amir73il@gmail.com>,
         Filipe Manana <fdmanana@kernel.org>,
         linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
 Subject: Re: [PATCH 1/3] attr: use consistent sgid stripping checks
-Message-ID: <20221005212851.GB2703033@dread.disaster.area>
+Message-ID: <20221006070848.r6uow4qw6vp5fuut@wittgenstein>
 References: <20221005151433.898175-1-brauner@kernel.org>
  <20221005151433.898175-2-brauner@kernel.org>
+ <20221005212851.GB2703033@dread.disaster.area>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20221005151433.898175-2-brauner@kernel.org>
-X-Optus-CM-Score: 0
-X-Optus-CM-Analysis: v=2.4 cv=e9dl9Yl/ c=1 sm=1 tr=0 ts=633df718
-        a=j6JUzzrSC7wlfFge/rmVbg==:117 a=j6JUzzrSC7wlfFge/rmVbg==:17
-        a=kj9zAlcOel0A:10 a=Qawa6l4ZSaYA:10 a=7-415B0cAAAA:8
-        a=2WsWvY6D06ulCoi5GQoA:9 a=CjuIK1q_8ugA:10 a=biEYGPWJfzWAr4FL6Ov7:22
+In-Reply-To: <20221005212851.GB2703033@dread.disaster.area>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Oct 05, 2022 at 05:14:31PM +0200, Christian Brauner wrote:
-> diff --git a/fs/inode.c b/fs/inode.c
-> index ba1de23c13c1..4f3257f5ed7a 100644
-> --- a/fs/inode.c
-> +++ b/fs/inode.c
-> @@ -1949,26 +1949,44 @@ void touch_atime(const struct path *path)
->  }
->  EXPORT_SYMBOL(touch_atime);
->  
-> -/*
-> - * The logic we want is
-> +/**
-> + * should_remove_sgid - determine whether the setgid bit needs to be removed
-> + * @mnt_userns:	User namespace of the mount the inode was created from
-> + * @inode: inode to check
-> + *
-> + * This function determines whether the setgid bit needs to be removed.
-> + * We retain backwards compatibility where we require the setgid bit to be
-> + * removed unconditionally if S_IXGRP is set. Otherwise we have the exact same
-> + * requirements as setattr_prepare() and setattr_copy().
->   *
-> - *	if suid or (sgid and xgrp)
-> - *		remove privs
-> + * Return: true if setgit bit needs to be removed, false otherwise.
->   */
-> -int should_remove_suid(struct dentry *dentry)
-> +static bool should_remove_sgid(struct user_namespace *mnt_userns,
-> +			       struct inode *inode)
-> +{
-> +	umode_t mode = inode->i_mode;
-> +
-> +	if (unlikely(mode & S_ISGID)) {
-> +		if ((mode & S_IXGRP) ||
-> +		    (!vfsgid_in_group_p(i_gid_into_vfsgid(mnt_userns, inode)) &&
-> +		     !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID)))
-> +			return true;
-> +	}
-> +
-> +	return false;
+On Thu, Oct 06, 2022 at 08:28:51AM +1100, Dave Chinner wrote:
+> On Wed, Oct 05, 2022 at 05:14:31PM +0200, Christian Brauner wrote:
+> > diff --git a/fs/inode.c b/fs/inode.c
+> > index ba1de23c13c1..4f3257f5ed7a 100644
+> > --- a/fs/inode.c
+> > +++ b/fs/inode.c
+> > @@ -1949,26 +1949,44 @@ void touch_atime(const struct path *path)
+> >  }
+> >  EXPORT_SYMBOL(touch_atime);
+> >  
+> > -/*
+> > - * The logic we want is
+> > +/**
+> > + * should_remove_sgid - determine whether the setgid bit needs to be removed
+> > + * @mnt_userns:	User namespace of the mount the inode was created from
+> > + * @inode: inode to check
+> > + *
+> > + * This function determines whether the setgid bit needs to be removed.
+> > + * We retain backwards compatibility where we require the setgid bit to be
+> > + * removed unconditionally if S_IXGRP is set. Otherwise we have the exact same
+> > + * requirements as setattr_prepare() and setattr_copy().
+> >   *
+> > - *	if suid or (sgid and xgrp)
+> > - *		remove privs
+> > + * Return: true if setgit bit needs to be removed, false otherwise.
+> >   */
+> > -int should_remove_suid(struct dentry *dentry)
+> > +static bool should_remove_sgid(struct user_namespace *mnt_userns,
+> > +			       struct inode *inode)
+> > +{
+> > +	umode_t mode = inode->i_mode;
+> > +
+> > +	if (unlikely(mode & S_ISGID)) {
+> > +		if ((mode & S_IXGRP) ||
+> > +		    (!vfsgid_in_group_p(i_gid_into_vfsgid(mnt_userns, inode)) &&
+> > +		     !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID)))
+> > +			return true;
+> > +	}
+> > +
+> > +	return false;
+> 
+> I find this sort of convoluted logic much easier to follow when it's
+> written as a stacked set of single comparisons like so:
+> 
+> 	if (!(mode & S_ISGID))
+> 		return false;
+> 	if (mode & S_IXGRP)
+> 		return true;
+> 	if (vfsgid_in_group_p(i_gid_into_vfsgid(mnt_userns, inode))
+> 		return false;
+> 	if (capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID)
+> 		return false;
+> 	return true;
 
-I find this sort of convoluted logic much easier to follow when it's
-written as a stacked set of single comparisons like so:
+Good idea, I'll fix that up in tree.
 
-	if (!(mode & S_ISGID))
-		return false;
-	if (mode & S_IXGRP)
-		return true;
-	if (vfsgid_in_group_p(i_gid_into_vfsgid(mnt_userns, inode))
-		return false;
-	if (capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID)
-		return false;
-	return true;
-
-Cheers,
-
-Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+Thanks!
+Christian
