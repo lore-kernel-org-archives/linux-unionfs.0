@@ -2,60 +2,40 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE39CC433F5
-	for <linux-unionfs@archiver.kernel.org>; Tue, 11 Oct 2022 11:07:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C722EC433FE
+	for <linux-unionfs@archiver.kernel.org>; Tue, 11 Oct 2022 13:48:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229617AbiJKLHY (ORCPT
+        id S229913AbiJKNsx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 11 Oct 2022 07:07:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55802 "EHLO
+        Tue, 11 Oct 2022 09:48:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229501AbiJKLHX (ORCPT
+        with ESMTP id S229851AbiJKNsv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Oct 2022 07:07:23 -0400
-Received: from mail-vk1-xa2a.google.com (mail-vk1-xa2a.google.com [IPv6:2607:f8b0:4864:20::a2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A94617DF58;
-        Tue, 11 Oct 2022 04:07:22 -0700 (PDT)
-Received: by mail-vk1-xa2a.google.com with SMTP id q83so6453633vkb.2;
-        Tue, 11 Oct 2022 04:07:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=c7fuac57pyjpCxT69ZprcuJLhTm8TX8ks8Xrw2HTqTg=;
-        b=jI4q+Bo4ANbghOH9U8SJn28IM5POyRkH0hHb/eozn1Zz10r+tBRMc/fnol3uAHnqIf
-         e2s2T9eA3dLeuI8XDagF6KVjrcuY9tU5Ve7G/kIg1EBy3Vq4kXwO3SThKtlBfrkyxxtp
-         kz9tCujos2E+dBW/7fheNxEqAc1s0Xjm4QXpGiTjzqvp9Kiw/UAWwfL0RYZ2cJ9TZyoA
-         Vn5nLddWQMSlf/fAe3CSp2H1IbuJ6A9L7NNLABzcT9G7mylnsYMVjVZ+NHgM+Mo6xp4b
-         1esERsK/XHrXlS1xilqzPoVZ7lL1N1sGusisFtkUVhgJa+zVHcPy/X65TqZJnhtF07Hr
-         E9gA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=c7fuac57pyjpCxT69ZprcuJLhTm8TX8ks8Xrw2HTqTg=;
-        b=flzA3kEKwYTz/vds4QujzwAbPMT42nkk+7vYvFZdInuuoTAt2i0l8DRFm3tN9qpsba
-         qnFT/I/aIbsgOBwKPyZVPV3yN9ooIAOn8wdOfuguYSD9QxTl2BThSoTSq4Oah4gk3oqN
-         LXahmW3Lafgl5X0WBwBQYG5chne3baepZl+TUPLxiIoJgrq4Oa0ZB2pwigG78sYFhk4s
-         f3G6yZE33FthpnlJ41+JLutAf7IPsOBXetoJpZltFNZNKgPw6bSHUZPCaLz+AWeW+hOW
-         t8HYTl58TUn+OZdLan0jd7SWRG03s3SO+GGmq/n+wYUTRDDVFwYjcHr6HaxBI7yfnwI1
-         munA==
-X-Gm-Message-State: ACrzQf0UzafwJywAnEb+zY4HDsi54+ZO0Qp2Act1+PB26UhtkR9Gg7pl
-        3wfpiZpUDDvq0H2IFFlFhgmFXrflhh4z2GfxVM4xeTBZphg=
-X-Google-Smtp-Source: AMsMyM4uHAmUv1l/GRy5FCNfnAgputZqe85Qdaq9jdrxzHbjznt06vjNyvykFQ2DDTdt6e5bpyYxw+8ofM/GI0aUwC8=
-X-Received: by 2002:a1f:60cd:0:b0:3ae:da42:89d0 with SMTP id
- u196-20020a1f60cd000000b003aeda4289d0mr420939vkb.15.1665486441778; Tue, 11
- Oct 2022 04:07:21 -0700 (PDT)
-MIME-Version: 1.0
-References: <20221007140543.1039983-1-brauner@kernel.org> <20221007140543.1039983-4-brauner@kernel.org>
- <CAOQ4uxggKnsyi2DvVOCUQQ8hEZJjioing_H-M4y_Hq-wvRk0nA@mail.gmail.com> <20221011085634.2qp2ragzcdzub6oq@wittgenstein>
-In-Reply-To: <20221011085634.2qp2ragzcdzub6oq@wittgenstein>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 11 Oct 2022 14:07:10 +0300
-Message-ID: <CAOQ4uxhGqCkzsugEd_TZ+s3FEKiAxQtBy1rm3KP4KS=hzTsf4w@mail.gmail.com>
-Subject: Re: [PATCH v2 3/5] attr: use consistent sgid stripping checks
-To:     Christian Brauner <brauner@kernel.org>
+        Tue, 11 Oct 2022 09:48:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72BDE9FD7;
+        Tue, 11 Oct 2022 06:48:50 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 03F9960CD4;
+        Tue, 11 Oct 2022 13:48:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABCB5C433D6;
+        Tue, 11 Oct 2022 13:48:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1665496129;
+        bh=Y7w3/2h6RT8lZoM3bDrj/fs1hB6BhjEkjz5UMvLvsPA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Y04tTnkXB3chW9h1tMhZWOwzDgVoDkSRlCBZATta5Z7evh8ZpVDXc0xjTqSnmljCg
+         MH+H1JjSkOUSCctPE9OFz1+EfOqwjIG76x9Xi2eRkMPlr3eObsbH2S6gdAN/sD/xOe
+         EXejXG7aOlLy7MTUxnRTtnx177NtonVcT6QsQ18m31wFb6fRAITlSK2TYebY5AhP2T
+         LfFQSMCKYNsMBGHwLz9dBF1s5fUI3W+y/Be3tm8xSRTsP//I0WCLwDeDWB6Zr8bhfu
+         kAaB6LqaS5EDWu9aagk7KrxglNRtespCOhsCHTnZUkZX6vr6NTBqDOLv/v0eybp4gA
+         kPEv6EiuFzkkA==
+Date:   Tue, 11 Oct 2022 15:48:38 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         "Darrick J . Wong" <djwong@kernel.org>,
         Al Viro <viro@zeniv.linux.org.uk>,
@@ -64,79 +44,108 @@ Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Yang Xu <xuyang2018.jy@fujitsu.com>,
         Filipe Manana <fdmanana@kernel.org>,
         linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v2 3/5] attr: use consistent sgid stripping checks
+Message-ID: <20221011134838.3tkh3xroqnnkeydo@wittgenstein>
+References: <20221007140543.1039983-1-brauner@kernel.org>
+ <20221007140543.1039983-4-brauner@kernel.org>
+ <CAOQ4uxggKnsyi2DvVOCUQQ8hEZJjioing_H-M4y_Hq-wvRk0nA@mail.gmail.com>
+ <20221011085634.2qp2ragzcdzub6oq@wittgenstein>
+ <CAOQ4uxhGqCkzsugEd_TZ+s3FEKiAxQtBy1rm3KP4KS=hzTsf4w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxhGqCkzsugEd_TZ+s3FEKiAxQtBy1rm3KP4KS=hzTsf4w@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > > @@ -721,10 +721,10 @@ int chown_common(const struct path *path, uid_t user, gid_t group)
-> > >                 return -EINVAL;
-> > >         if ((group != (gid_t)-1) && !setattr_vfsgid(&newattrs, gid))
-> > >                 return -EINVAL;
-> > > -       if (!S_ISDIR(inode->i_mode))
-> > > -               newattrs.ia_valid |=
-> > > -                       ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
-> > >         inode_lock(inode);
-> > > +       if (!S_ISDIR(inode->i_mode))
-> > > +               newattrs.ia_valid |= ATTR_KILL_SUID | ATTR_KILL_PRIV |
-> > > +                                    should_remove_sgid(mnt_userns, inode);
+On Tue, Oct 11, 2022 at 02:07:10PM +0300, Amir Goldstein wrote:
+> > > > @@ -721,10 +721,10 @@ int chown_common(const struct path *path, uid_t user, gid_t group)
+> > > >                 return -EINVAL;
+> > > >         if ((group != (gid_t)-1) && !setattr_vfsgid(&newattrs, gid))
+> > > >                 return -EINVAL;
+> > > > -       if (!S_ISDIR(inode->i_mode))
+> > > > -               newattrs.ia_valid |=
+> > > > -                       ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
+> > > >         inode_lock(inode);
+> > > > +       if (!S_ISDIR(inode->i_mode))
+> > > > +               newattrs.ia_valid |= ATTR_KILL_SUID | ATTR_KILL_PRIV |
+> > > > +                                    should_remove_sgid(mnt_userns, inode);
+> > >
+> > > This is making me stop and wonder:
+> > > 1. This has !S_ISDIR, should_remove_suid() has S_ISREG and
+> > >     setattr_drop_sgid() has neither - is this consistent?
 > >
-> > This is making me stop and wonder:
-> > 1. This has !S_ISDIR, should_remove_suid() has S_ISREG and
-> >     setattr_drop_sgid() has neither - is this consistent?
->
-> I thought about that. It'very likely redundant since we deal with that
-> in other parts but I need to verify all callers before we can remove
-> that.
->
-> > 2. SUID and PRIV are removed unconditionally and SGID is
-> >     removed conditionally - this is not a change of behavior
-> >     (at least for non-overlayfs), but is it desired???
->
-> It looks that way but it isn't. The setgid bit was only killed
-> unconditionally for S_IXGRP. We continue to do that. But it was always
-> removed conditionally for ~S_IXGRP. The difference between this patchset
-> and earlier is that it was done in settattr_prepare() or setattr_copy()
-> before this change.
->
-> IOW, we raised ATTR_KILL_SGID unconditionally but then only
-> conditionally obeyed it in setattr_{prepare,copy}() whereas now we
-> conditionally raise ATTR_KILL_SGID. That's surely a slight change but it
-> just means that we don't cause bugs for filesystems that roll their own
-> prepare or copy helpers and is just nicer overall.
->
+> > I thought about that. It'very likely redundant since we deal with that
+> > in other parts but I need to verify all callers before we can remove
+> > that.
+> >
+> > > 2. SUID and PRIV are removed unconditionally and SGID is
+> > >     removed conditionally - this is not a change of behavior
+> > >     (at least for non-overlayfs), but is it desired???
+> >
+> > It looks that way but it isn't. The setgid bit was only killed
+> > unconditionally for S_IXGRP. We continue to do that. But it was always
+> > removed conditionally for ~S_IXGRP. The difference between this patchset
+> > and earlier is that it was done in settattr_prepare() or setattr_copy()
+> > before this change.
+> >
+> > IOW, we raised ATTR_KILL_SGID unconditionally but then only
+> > conditionally obeyed it in setattr_{prepare,copy}() whereas now we
+> > conditionally raise ATTR_KILL_SGID. That's surely a slight change but it
+> > just means that we don't cause bugs for filesystems that roll their own
+> > prepare or copy helpers and is just nicer overall.
+> >
+> 
+> Yes, that sounds right.
+> 
+> The point that I was trying to make and failed to articulate myself was
+> that chown_common() raises ATTR_KILL_SUID unconditionally,
+> while should_remove_suid() raises ATTR_KILL_SUID conditional
+> to !capable(CAP_FSETID).
+> 
+> Is this inconsistency in stripping SUID desired?
 
-Yes, that sounds right.
+I looked at this before and it likely isn't intentional. But I need to
+do pre-git archeology to determine that after I'm back from PTO. It
+likely is something we can tackle.
 
-The point that I was trying to make and failed to articulate myself was
-that chown_common() raises ATTR_KILL_SUID unconditionally,
-while should_remove_suid() raises ATTR_KILL_SUID conditional
-to !capable(CAP_FSETID).
+> 
+> According to man page (I think that) it is:
+> 
+> "When the owner or group of an executable file is changed by an
+>  unprivileged user, the S_ISUID and S_ISGID mode bits are cleared.
+>  POSIX does not specify whether this also  should  happen  when  root
+>  does the chown(); the Linux behavior depends on the kernel version,
+>  and since Linux 2.2.13, root is treated like other users..."
+> 
+> So special casing SUID stripping in chown() looks intentional,
+> but maybe it is worth a comment.
 
-Is this inconsistency in stripping SUID desired?
+It definitely is worth a comment but I think instead we should in the
+future risk changing this for the write path as well. Because right now
+losing the S_ISGID bit during chown() for regular files unconditionally
+is important to not accidently have root create a situation where they
+open a way for an unprivileged user to escalate privileges when chowning
+a non-root owned setuid binary to a root-owned setuid binary:
 
-According to man page (I think that) it is:
+touch aaa
+chown 1000:1000
+chmod u+s aaa
+sudo chown aaa
 
-"When the owner or group of an executable file is changed by an
- unprivileged user, the S_ISUID and S_ISGID mode bits are cleared.
- POSIX does not specify whether this also  should  happen  when  root
- does the chown(); the Linux behavior depends on the kernel version,
- and since Linux 2.2.13, root is treated like other users..."
+and if the setuid bit would be retained then an unpriv user can now
+abuse the setuid binary - if they can execute ofc. So that's why it's
+dropped unconditionally. However, if that is a valid attack scenario
+then a write should also drop setuid unconditionally since a non-harmful
+setuid binary could be changed to a harmful one.
 
-So special casing SUID stripping in chown() looks intentional,
-but maybe it is worth a comment.
+> 
+> The paragraph above *may* be interpreted that chown() should strip
+> S_SGID|S_IXGRP regardless of CAP_FSETID, which, as you say,
+> has not been the case for a while.
 
-The paragraph above *may* be interpreted that chown() should strip
-S_SGID|S_IXGRP regardless of CAP_FSETID, which, as you say,
-has not been the case for a while.
+Yeah, for the setgid bit we've been dropping it implicitly currently.
 
-"...In case of a non-group-executable file (i.e., one for which the
- S_IXGRP bit is not set) the S_ISGID bit indicates mandatory locking,
- and is not cleared by a chown().
- When the owner or group of an executable file is changed (by any user),
- all capability sets for the file are cleared."
-
-This part sounds aligned with the code.
-
-Thanks,
-Amir.
+Thanks!
+Christian
