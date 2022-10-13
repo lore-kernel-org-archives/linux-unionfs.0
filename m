@@ -2,150 +2,183 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C722EC433FE
-	for <linux-unionfs@archiver.kernel.org>; Tue, 11 Oct 2022 13:48:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 547C1C433FE
+	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Oct 2022 02:21:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229913AbiJKNsx (ORCPT
+        id S229550AbiJMCVN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 11 Oct 2022 09:48:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50136 "EHLO
+        Wed, 12 Oct 2022 22:21:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229851AbiJKNsv (ORCPT
+        with ESMTP id S229511AbiJMCVM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Oct 2022 09:48:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 72BDE9FD7;
-        Tue, 11 Oct 2022 06:48:50 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 03F9960CD4;
-        Tue, 11 Oct 2022 13:48:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ABCB5C433D6;
-        Tue, 11 Oct 2022 13:48:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665496129;
-        bh=Y7w3/2h6RT8lZoM3bDrj/fs1hB6BhjEkjz5UMvLvsPA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Y04tTnkXB3chW9h1tMhZWOwzDgVoDkSRlCBZATta5Z7evh8ZpVDXc0xjTqSnmljCg
-         MH+H1JjSkOUSCctPE9OFz1+EfOqwjIG76x9Xi2eRkMPlr3eObsbH2S6gdAN/sD/xOe
-         EXejXG7aOlLy7MTUxnRTtnx177NtonVcT6QsQ18m31wFb6fRAITlSK2TYebY5AhP2T
-         LfFQSMCKYNsMBGHwLz9dBF1s5fUI3W+y/Be3tm8xSRTsP//I0WCLwDeDWB6Zr8bhfu
-         kAaB6LqaS5EDWu9aagk7KrxglNRtespCOhsCHTnZUkZX6vr6NTBqDOLv/v0eybp4gA
-         kPEv6EiuFzkkA==
-Date:   Tue, 11 Oct 2022 15:48:38 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        "Darrick J . Wong" <djwong@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@lst.de>,
-        Seth Forshee <sforshee@kernel.org>,
-        Yang Xu <xuyang2018.jy@fujitsu.com>,
-        Filipe Manana <fdmanana@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: Re: [PATCH v2 3/5] attr: use consistent sgid stripping checks
-Message-ID: <20221011134838.3tkh3xroqnnkeydo@wittgenstein>
-References: <20221007140543.1039983-1-brauner@kernel.org>
- <20221007140543.1039983-4-brauner@kernel.org>
- <CAOQ4uxggKnsyi2DvVOCUQQ8hEZJjioing_H-M4y_Hq-wvRk0nA@mail.gmail.com>
- <20221011085634.2qp2ragzcdzub6oq@wittgenstein>
- <CAOQ4uxhGqCkzsugEd_TZ+s3FEKiAxQtBy1rm3KP4KS=hzTsf4w@mail.gmail.com>
+        Wed, 12 Oct 2022 22:21:12 -0400
+Received: from mail-pl1-x62e.google.com (mail-pl1-x62e.google.com [IPv6:2607:f8b0:4864:20::62e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B844C9835D
+        for <linux-unionfs@vger.kernel.org>; Wed, 12 Oct 2022 19:21:10 -0700 (PDT)
+Received: by mail-pl1-x62e.google.com with SMTP id l4so566986plb.8
+        for <linux-unionfs@vger.kernel.org>; Wed, 12 Oct 2022 19:21:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=O8NMEpN3FFPzEihahYZPGW20+5lL+Rum80lfffeoCZ0=;
+        b=WWLngWJxU7p45kcLgXcpHZ3r+v7sIBkXrp2lthww5Iw04paSf/LLCPXQXstA+Oh6Dl
+         ivNUYPsqffqRhGPXtKnilfD/vbU9IIVcu0MAxXnIt3pfrpg5pfj6tiTno4H72icQySWj
+         qumy0Y6PSwsK0/uNUYtY6RoFs8NhFoxNPuvYv1ynC7uwVC+i7QtwAeNSI+Thlk7VxMvi
+         stNiEfUjRiidVsr/EpQn2MmNpVaL2umIyNkqkNYbOzDszM68SCbz0aUTdzTtvKGfTRFn
+         SAtfrqGWRcHvsloMgxm8dOGiRy9aI1H9Jhoz+kKnYkcCVHrdL43s6iiu80Lkv6b82oRq
+         BsNA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=O8NMEpN3FFPzEihahYZPGW20+5lL+Rum80lfffeoCZ0=;
+        b=xb7J2d4pxmStZz/caQC1FwJxQ9EMnFDXkf1Apmx/Xzm84EveEhAN2nHDFV0H0w+Rrc
+         owkQ9pOV/oeeBqaLRlU8ilaMnQpFfphHNHl9TQOsZkNCi9q3hImZtIVn4uF2R3w9RBzx
+         iA6ZrA/TkbOdigP3dE2zSJfC9GFSUYIxTcQMhBT7tjtd2od9AbclTeX7CMlIxaE3GKqo
+         h5besq86F/uM8irMsbt+sYaLg/m72sWMBpPwO/4mnefB/6pVo66XenY3B9uhThdi2G82
+         9JFA3zh8la8dwSs81cT76LL99fjMgH9H/jNScjPHU1HaIoY8+BmczAwSgxWmu012KnY1
+         g4Bg==
+X-Gm-Message-State: ACrzQf0cEzCQdQm0ZAIwOF2aH2HmnfqkZAC8aZKlBZvf+6cnbrmnXGs8
+        ptvMHGB5aZ2AUCKid5+6WlcOCwCCj60K+R54zUCgCmcLm5/zeI18
+X-Google-Smtp-Source: AMsMyM7+ee0xIyaUZ1dYU1RhxDA9lzHKEFVGBye3OkcM6pCI8F5XYPLh35V1bjMJCVmrHR6yVI7XZyWDi5dW5acldGk=
+X-Received: by 2002:a17:90a:f3ca:b0:20a:d4ee:3859 with SMTP id
+ ha10-20020a17090af3ca00b0020ad4ee3859mr8557485pjb.70.1665627670000; Wed, 12
+ Oct 2022 19:21:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxhGqCkzsugEd_TZ+s3FEKiAxQtBy1rm3KP4KS=hzTsf4w@mail.gmail.com>
+References: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
+In-Reply-To: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
+From:   Zhang Tianci <zhangtianci.1997@bytedance.com>
+Date:   Thu, 13 Oct 2022 10:20:58 +0800
+Message-ID: <CAP4dvsct-B-fdG=8EoOsm+e3zv9rYfMW+1xRr_Nzs4y61XBajg@mail.gmail.com>
+Subject: Re: [PATCH v3] ovl: Use ovl mounter's fsuid and fsgid in ovl_link()
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        amir73il@gmail.com, brauner@kernel.org,
+        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 11, 2022 at 02:07:10PM +0300, Amir Goldstein wrote:
-> > > > @@ -721,10 +721,10 @@ int chown_common(const struct path *path, uid_t user, gid_t group)
-> > > >                 return -EINVAL;
-> > > >         if ((group != (gid_t)-1) && !setattr_vfsgid(&newattrs, gid))
-> > > >                 return -EINVAL;
-> > > > -       if (!S_ISDIR(inode->i_mode))
-> > > > -               newattrs.ia_valid |=
-> > > > -                       ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
-> > > >         inode_lock(inode);
-> > > > +       if (!S_ISDIR(inode->i_mode))
-> > > > +               newattrs.ia_valid |= ATTR_KILL_SUID | ATTR_KILL_PRIV |
-> > > > +                                    should_remove_sgid(mnt_userns, inode);
-> > >
-> > > This is making me stop and wonder:
-> > > 1. This has !S_ISDIR, should_remove_suid() has S_ISREG and
-> > >     setattr_drop_sgid() has neither - is this consistent?
-> >
-> > I thought about that. It'very likely redundant since we deal with that
-> > in other parts but I need to verify all callers before we can remove
-> > that.
-> >
-> > > 2. SUID and PRIV are removed unconditionally and SGID is
-> > >     removed conditionally - this is not a change of behavior
-> > >     (at least for non-overlayfs), but is it desired???
-> >
-> > It looks that way but it isn't. The setgid bit was only killed
-> > unconditionally for S_IXGRP. We continue to do that. But it was always
-> > removed conditionally for ~S_IXGRP. The difference between this patchset
-> > and earlier is that it was done in settattr_prepare() or setattr_copy()
-> > before this change.
-> >
-> > IOW, we raised ATTR_KILL_SGID unconditionally but then only
-> > conditionally obeyed it in setattr_{prepare,copy}() whereas now we
-> > conditionally raise ATTR_KILL_SGID. That's surely a slight change but it
-> > just means that we don't cause bugs for filesystems that roll their own
-> > prepare or copy helpers and is just nicer overall.
-> >
-> 
-> Yes, that sounds right.
-> 
-> The point that I was trying to make and failed to articulate myself was
-> that chown_common() raises ATTR_KILL_SUID unconditionally,
-> while should_remove_suid() raises ATTR_KILL_SUID conditional
-> to !capable(CAP_FSETID).
-> 
-> Is this inconsistency in stripping SUID desired?
+Hello Miklos,
 
-I looked at this before and it likely isn't intentional. But I need to
-do pre-git archeology to determine that after I'm back from PTO. It
-likely is something we can tackle.
+Gentle ping...
 
-> 
-> According to man page (I think that) it is:
-> 
-> "When the owner or group of an executable file is changed by an
->  unprivileged user, the S_ISUID and S_ISGID mode bits are cleared.
->  POSIX does not specify whether this also  should  happen  when  root
->  does the chown(); the Linux behavior depends on the kernel version,
->  and since Linux 2.2.13, root is treated like other users..."
-> 
-> So special casing SUID stripping in chown() looks intentional,
-> but maybe it is worth a comment.
+Thanks,
+Tianci
 
-It definitely is worth a comment but I think instead we should in the
-future risk changing this for the write path as well. Because right now
-losing the S_ISGID bit during chown() for regular files unconditionally
-is important to not accidently have root create a situation where they
-open a way for an unprivileged user to escalate privileges when chowning
-a non-root owned setuid binary to a root-owned setuid binary:
-
-touch aaa
-chown 1000:1000
-chmod u+s aaa
-sudo chown aaa
-
-and if the setuid bit would be retained then an unpriv user can now
-abuse the setuid binary - if they can execute ofc. So that's why it's
-dropped unconditionally. However, if that is a valid attack scenario
-then a write should also drop setuid unconditionally since a non-harmful
-setuid binary could be changed to a harmful one.
-
-> 
-> The paragraph above *may* be interpreted that chown() should strip
-> S_SGID|S_IXGRP regardless of CAP_FSETID, which, as you say,
-> has not been the case for a while.
-
-Yeah, for the setgid bit we've been dropping it implicitly currently.
-
-Thanks!
-Christian
+On Thu, Sep 1, 2022 at 4:29 PM Zhang Tianci
+<zhangtianci.1997@bytedance.com> wrote:
+>
+> There is a wrong case of link() on overlay:
+>   $ mkdir /lower /fuse /merge
+>   $ mount -t fuse /fuse
+>   $ mkdir /fuse/upper /fuse/work
+>   $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,\
+>     workdir=work
+>   $ touch /merge/file
+>   $ chown bin.bin /merge/file // the file's caller becomes "bin"
+>   $ ln /merge/file /merge/lnkfile
+>
+> Then we will get an error(EACCES) because fuse daemon checks the link()'s
+> caller is "bin", it denied this request.
+>
+> In the changing history of ovl_link(), there are two key commits:
+>
+> The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
+> overrides the cred's fsuid/fsgid using the new inode. The new inode's
+> owner is initialized by inode_init_owner(), and inode->fsuid is
+> assigned to the current user. So the override fsuid becomes the
+> current user. We know link() is actually modifying the directory, so
+> the caller must have the MAY_WRITE permission on the directory. The
+> current caller may should have this permission. This is acceptable
+> to use the caller's fsuid.
+>
+> The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
+> which removed the inode creation in ovl_link(). This commit move
+> inode_init_owner() into ovl_create_object(), so the ovl_link() just
+> give the old inode to ovl_create_or_link(). Then the override fsuid
+> becomes the old inode's fsuid, neither the caller nor the overlay's
+> mounter! So this is incorrect.
+>
+> Fix this bug by using ovl mounter's fsuid/fsgid to do underlying
+> fs's link().
+>
+> v1: https://lore.kernel.org/all/20220817102952.xnvesg3a7rbv576x@wittgenstein/T
+> v2: https://lore.kernel.org/lkml/20220825130552.29587-1-zhangtianci.1997@bytedance.com/t
+>
+> Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
+> Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+> ---
+>  fs/overlayfs/dir.c | 46 ++++++++++++++++++++++++++++++----------------
+>  1 file changed, 30 insertions(+), 16 deletions(-)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 6b03457f72bb..c3032cef391e 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -592,28 +592,42 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+>                         goto out_revert_creds;
+>         }
+>
+> -       err = -ENOMEM;
+> -       override_cred = prepare_creds();
+> -       if (override_cred) {
+> +       if (!attr->hardlink) {
+> +               err = -ENOMEM;
+> +               override_cred = prepare_creds();
+> +               if (!override_cred)
+> +                       goto out_revert_creds;
+> +               /*
+> +                * In the creation cases(create, mkdir, mknod, symlink),
+> +                * ovl should transfer current's fs{u,g}id to underlying
+> +                * fs. Because underlying fs want to initialize its new
+> +                * inode owner using current's fs{u,g}id. And in this
+> +                * case, the @inode is a new inode that is initialized
+> +                * in inode_init_owner() to current's fs{u,g}id. So use
+> +                * the inode's i_{u,g}id to override the cred's fs{u,g}id.
+> +                *
+> +                * But in the other hardlink case, ovl_link() does not
+> +                * create a new inode, so just use the ovl mounter's
+> +                * fs{u,g}id.
+> +                */
+>                 override_cred->fsuid = inode->i_uid;
+>                 override_cred->fsgid = inode->i_gid;
+> -               if (!attr->hardlink) {
+> -                       err = security_dentry_create_files_as(dentry,
+> -                                       attr->mode, &dentry->d_name, old_cred,
+> -                                       override_cred);
+> -                       if (err) {
+> -                               put_cred(override_cred);
+> -                               goto out_revert_creds;
+> -                       }
+> +               err = security_dentry_create_files_as(dentry,
+> +                               attr->mode, &dentry->d_name, old_cred,
+> +                               override_cred);
+> +               if (err) {
+> +                       put_cred(override_cred);
+> +                       goto out_revert_creds;
+>                 }
+>                 put_cred(override_creds(override_cred));
+>                 put_cred(override_cred);
+> -
+> -               if (!ovl_dentry_is_whiteout(dentry))
+> -                       err = ovl_create_upper(dentry, inode, attr);
+> -               else
+> -                       err = ovl_create_over_whiteout(dentry, inode, attr);
+>         }
+> +
+> +       if (!ovl_dentry_is_whiteout(dentry))
+> +               err = ovl_create_upper(dentry, inode, attr);
+> +       else
+> +               err = ovl_create_over_whiteout(dentry, inode, attr);
+> +
+>  out_revert_creds:
+>         revert_creds(old_cred);
+>         return err;
+> --
+> 2.32.1 (Apple Git-133)
+>
