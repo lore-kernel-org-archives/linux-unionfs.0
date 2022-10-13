@@ -2,183 +2,767 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 547C1C433FE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Oct 2022 02:21:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DB40C433FE
+	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Oct 2022 08:06:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229550AbiJMCVN (ORCPT
+        id S229803AbiJMIG0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 12 Oct 2022 22:21:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49592 "EHLO
+        Thu, 13 Oct 2022 04:06:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54518 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229511AbiJMCVM (ORCPT
+        with ESMTP id S229784AbiJMIF7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 12 Oct 2022 22:21:12 -0400
-Received: from mail-pl1-x62e.google.com (mail-pl1-x62e.google.com [IPv6:2607:f8b0:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B844C9835D
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Oct 2022 19:21:10 -0700 (PDT)
-Received: by mail-pl1-x62e.google.com with SMTP id l4so566986plb.8
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Oct 2022 19:21:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=O8NMEpN3FFPzEihahYZPGW20+5lL+Rum80lfffeoCZ0=;
-        b=WWLngWJxU7p45kcLgXcpHZ3r+v7sIBkXrp2lthww5Iw04paSf/LLCPXQXstA+Oh6Dl
-         ivNUYPsqffqRhGPXtKnilfD/vbU9IIVcu0MAxXnIt3pfrpg5pfj6tiTno4H72icQySWj
-         qumy0Y6PSwsK0/uNUYtY6RoFs8NhFoxNPuvYv1ynC7uwVC+i7QtwAeNSI+Thlk7VxMvi
-         stNiEfUjRiidVsr/EpQn2MmNpVaL2umIyNkqkNYbOzDszM68SCbz0aUTdzTtvKGfTRFn
-         SAtfrqGWRcHvsloMgxm8dOGiRy9aI1H9Jhoz+kKnYkcCVHrdL43s6iiu80Lkv6b82oRq
-         BsNA==
+        Thu, 13 Oct 2022 04:05:59 -0400
+Received: from mail-pf1-f200.google.com (mail-pf1-f200.google.com [209.85.210.200])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D4C81463A3
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Oct 2022 01:05:52 -0700 (PDT)
+Received: by mail-pf1-f200.google.com with SMTP id j20-20020a056a00235400b00565af23c8c2so828197pfj.7
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Oct 2022 01:05:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=O8NMEpN3FFPzEihahYZPGW20+5lL+Rum80lfffeoCZ0=;
-        b=xb7J2d4pxmStZz/caQC1FwJxQ9EMnFDXkf1Apmx/Xzm84EveEhAN2nHDFV0H0w+Rrc
-         owkQ9pOV/oeeBqaLRlU8ilaMnQpFfphHNHl9TQOsZkNCi9q3hImZtIVn4uF2R3w9RBzx
-         iA6ZrA/TkbOdigP3dE2zSJfC9GFSUYIxTcQMhBT7tjtd2od9AbclTeX7CMlIxaE3GKqo
-         h5besq86F/uM8irMsbt+sYaLg/m72sWMBpPwO/4mnefB/6pVo66XenY3B9uhThdi2G82
-         9JFA3zh8la8dwSs81cT76LL99fjMgH9H/jNScjPHU1HaIoY8+BmczAwSgxWmu012KnY1
-         g4Bg==
-X-Gm-Message-State: ACrzQf0cEzCQdQm0ZAIwOF2aH2HmnfqkZAC8aZKlBZvf+6cnbrmnXGs8
-        ptvMHGB5aZ2AUCKid5+6WlcOCwCCj60K+R54zUCgCmcLm5/zeI18
-X-Google-Smtp-Source: AMsMyM7+ee0xIyaUZ1dYU1RhxDA9lzHKEFVGBye3OkcM6pCI8F5XYPLh35V1bjMJCVmrHR6yVI7XZyWDi5dW5acldGk=
-X-Received: by 2002:a17:90a:f3ca:b0:20a:d4ee:3859 with SMTP id
- ha10-20020a17090af3ca00b0020ad4ee3859mr8557485pjb.70.1665627670000; Wed, 12
- Oct 2022 19:21:10 -0700 (PDT)
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=mnynIjrdRLYAS1wshaEi17rI4OwZ/VwE4UdIwgeg8Wo=;
+        b=CUkFmm7kFaobN7DHDNrD/T/9ulC/MfKITEsAvjUr1r9qUfgggpRDv15+/shOCs0/55
+         73QeWIlC5093Y3a7RTN2VNEc7gRSbaVW0q5HN7Rjm+34e6IoMcmvBKP1KDyTbW1VVKT8
+         CvzL8HUt40LA/0M5BMNct0S2VHzTDuUy6KShxCsDt6YkJjAZ7szlrQjaeTEs1EFAs1Xq
+         QLBwLkSgJPQSTJGkDDIswwsJcwPqSEQYfac7oQFqDa02vJqqRb7s26IKjBWH+/Y4S2hG
+         iHniY3DNY1r8UvyqNF/Llz42FdhYQwLWYE+f78R3HvvGG9stNBjP8Rq01LMg7HLWbUD+
+         goKQ==
+X-Gm-Message-State: ACrzQf0Z4QktWHs1ZWgLt6hzYRlqYNZrS582Q1bf9zKbAsDPOX3jtY7B
+        33gmTrY1dB2vLHuNh2mabncKOfvWDcCGZlgLKr7+w77RwXqg
+X-Google-Smtp-Source: AMsMyM77KVcqgU4rj+5WPf3iBXhzyOVk7SvjSuSFL1LszHxTyP1980YaQbwyOgLk3/F99GgKByCpeT8CA85vUSDA7c5M5KFBo3ji
 MIME-Version: 1.0
-References: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
-In-Reply-To: <20220901082929.66831-1-zhangtianci.1997@bytedance.com>
-From:   Zhang Tianci <zhangtianci.1997@bytedance.com>
-Date:   Thu, 13 Oct 2022 10:20:58 +0800
-Message-ID: <CAP4dvsct-B-fdG=8EoOsm+e3zv9rYfMW+1xRr_Nzs4y61XBajg@mail.gmail.com>
-Subject: Re: [PATCH v3] ovl: Use ovl mounter's fsuid and fsgid in ovl_link()
-To:     miklos@szeredi.hu
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        amir73il@gmail.com, brauner@kernel.org,
-        Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
+X-Received: by 2002:a05:6e02:158a:b0:2d3:f1c0:6b68 with SMTP id
+ m10-20020a056e02158a00b002d3f1c06b68mr16704213ilu.38.1665648340638; Thu, 13
+ Oct 2022 01:05:40 -0700 (PDT)
+Date:   Thu, 13 Oct 2022 01:05:40 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000aa237005eae5f9da@google.com>
+Subject: [syzbot] memory leak in vfs_tmpfile_open
+From:   syzbot <syzbot+fd749a7ea127a84e0ffd@syzkaller.appspotmail.com>
+To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello Miklos,
+Hello,
 
-Gentle ping...
+syzbot found the following issue on:
 
-Thanks,
-Tianci
+HEAD commit:    49da07006239 Merge tag 'memblock-v6.1-rc1' of git://git.ke..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=12fea734880000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8a068149f16da5bd
+dashboard link: https://syzkaller.appspot.com/bug?extid=fd749a7ea127a84e0ffd
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14dfc1a4880000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=123af8aa880000
 
-On Thu, Sep 1, 2022 at 4:29 PM Zhang Tianci
-<zhangtianci.1997@bytedance.com> wrote:
->
-> There is a wrong case of link() on overlay:
->   $ mkdir /lower /fuse /merge
->   $ mount -t fuse /fuse
->   $ mkdir /fuse/upper /fuse/work
->   $ mount -t overlay /merge -o lowerdir=/lower,upperdir=/fuse/upper,\
->     workdir=work
->   $ touch /merge/file
->   $ chown bin.bin /merge/file // the file's caller becomes "bin"
->   $ ln /merge/file /merge/lnkfile
->
-> Then we will get an error(EACCES) because fuse daemon checks the link()'s
-> caller is "bin", it denied this request.
->
-> In the changing history of ovl_link(), there are two key commits:
->
-> The first is commit bb0d2b8ad296 ("ovl: fix sgid on directory") which
-> overrides the cred's fsuid/fsgid using the new inode. The new inode's
-> owner is initialized by inode_init_owner(), and inode->fsuid is
-> assigned to the current user. So the override fsuid becomes the
-> current user. We know link() is actually modifying the directory, so
-> the caller must have the MAY_WRITE permission on the directory. The
-> current caller may should have this permission. This is acceptable
-> to use the caller's fsuid.
->
-> The second is commit 51f7e52dc943 ("ovl: share inode for hard link")
-> which removed the inode creation in ovl_link(). This commit move
-> inode_init_owner() into ovl_create_object(), so the ovl_link() just
-> give the old inode to ovl_create_or_link(). Then the override fsuid
-> becomes the old inode's fsuid, neither the caller nor the overlay's
-> mounter! So this is incorrect.
->
-> Fix this bug by using ovl mounter's fsuid/fsgid to do underlying
-> fs's link().
->
-> v1: https://lore.kernel.org/all/20220817102952.xnvesg3a7rbv576x@wittgenstein/T
-> v2: https://lore.kernel.org/lkml/20220825130552.29587-1-zhangtianci.1997@bytedance.com/t
->
-> Signed-off-by: Zhang Tianci <zhangtianci.1997@bytedance.com>
-> Signed-off-by: Jiachen Zhang <zhangjiachen.jaycee@bytedance.com>
-> ---
->  fs/overlayfs/dir.c | 46 ++++++++++++++++++++++++++++++----------------
->  1 file changed, 30 insertions(+), 16 deletions(-)
->
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 6b03457f72bb..c3032cef391e 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -592,28 +592,42 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
->                         goto out_revert_creds;
->         }
->
-> -       err = -ENOMEM;
-> -       override_cred = prepare_creds();
-> -       if (override_cred) {
-> +       if (!attr->hardlink) {
-> +               err = -ENOMEM;
-> +               override_cred = prepare_creds();
-> +               if (!override_cred)
-> +                       goto out_revert_creds;
-> +               /*
-> +                * In the creation cases(create, mkdir, mknod, symlink),
-> +                * ovl should transfer current's fs{u,g}id to underlying
-> +                * fs. Because underlying fs want to initialize its new
-> +                * inode owner using current's fs{u,g}id. And in this
-> +                * case, the @inode is a new inode that is initialized
-> +                * in inode_init_owner() to current's fs{u,g}id. So use
-> +                * the inode's i_{u,g}id to override the cred's fs{u,g}id.
-> +                *
-> +                * But in the other hardlink case, ovl_link() does not
-> +                * create a new inode, so just use the ovl mounter's
-> +                * fs{u,g}id.
-> +                */
->                 override_cred->fsuid = inode->i_uid;
->                 override_cred->fsgid = inode->i_gid;
-> -               if (!attr->hardlink) {
-> -                       err = security_dentry_create_files_as(dentry,
-> -                                       attr->mode, &dentry->d_name, old_cred,
-> -                                       override_cred);
-> -                       if (err) {
-> -                               put_cred(override_cred);
-> -                               goto out_revert_creds;
-> -                       }
-> +               err = security_dentry_create_files_as(dentry,
-> +                               attr->mode, &dentry->d_name, old_cred,
-> +                               override_cred);
-> +               if (err) {
-> +                       put_cred(override_cred);
-> +                       goto out_revert_creds;
->                 }
->                 put_cred(override_creds(override_cred));
->                 put_cred(override_cred);
-> -
-> -               if (!ovl_dentry_is_whiteout(dentry))
-> -                       err = ovl_create_upper(dentry, inode, attr);
-> -               else
-> -                       err = ovl_create_over_whiteout(dentry, inode, attr);
->         }
-> +
-> +       if (!ovl_dentry_is_whiteout(dentry))
-> +               err = ovl_create_upper(dentry, inode, attr);
-> +       else
-> +               err = ovl_create_over_whiteout(dentry, inode, attr);
-> +
->  out_revert_creds:
->         revert_creds(old_cred);
->         return err;
-> --
-> 2.32.1 (Apple Git-133)
->
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/827598b3022b/disk-49da0700.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/a6e5b024841f/vmlinux-49da0700.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+fd749a7ea127a84e0ffd@syzkaller.appspotmail.com
+
+BUG: memory leak
+unreferenced object 0xffff888105a4b500 (size 256):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 23.770s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    a0 04 7d 07 81 88 ff ff 00 8f b0 0e 81 88 ff ff  ..}.............
+  backtrace:
+    [<ffffffff815dbadf>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff815dbadf>] __alloc_file+0x1f/0xf0 fs/file_table.c:138
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff8881024495a0 (size 24):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 23.770s)
+  hex dump (first 24 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff82222e7a>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff82222e7a>] lsm_file_alloc security/security.c:575 [inline]
+    [<ffffffff82222e7a>] security_file_alloc+0x2a/0xb0 security/security.c:1529
+    [<ffffffff815dbb1d>] __alloc_file+0x5d/0xf0 fs/file_table.c:143
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105b4b900 (size 176):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 23.760s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81283347>] prepare_creds+0x27/0x470 kernel/cred.c:260
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888100c4bb80 (size 32):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 23.760s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff814ce961>] __do_kmalloc_node mm/slab_common.c:954 [inline]
+    [<ffffffff814ce961>] __kmalloc+0x41/0x130 mm/slab_common.c:968
+    [<ffffffff82223655>] kmalloc include/linux/slab.h:581 [inline]
+    [<ffffffff82223655>] kzalloc include/linux/slab.h:712 [inline]
+    [<ffffffff82223655>] lsm_cred_alloc security/security.c:540 [inline]
+    [<ffffffff82223655>] security_prepare_creds+0xa5/0xd0 security/security.c:1705
+    [<ffffffff81283606>] prepare_creds+0x2e6/0x470 kernel/cred.c:291
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105a4b500 (size 256):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 25.050s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    a0 04 7d 07 81 88 ff ff 00 8f b0 0e 81 88 ff ff  ..}.............
+  backtrace:
+    [<ffffffff815dbadf>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff815dbadf>] __alloc_file+0x1f/0xf0 fs/file_table.c:138
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff8881024495a0 (size 24):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 25.050s)
+  hex dump (first 24 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff82222e7a>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff82222e7a>] lsm_file_alloc security/security.c:575 [inline]
+    [<ffffffff82222e7a>] security_file_alloc+0x2a/0xb0 security/security.c:1529
+    [<ffffffff815dbb1d>] __alloc_file+0x5d/0xf0 fs/file_table.c:143
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105b4b900 (size 176):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 25.040s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81283347>] prepare_creds+0x27/0x470 kernel/cred.c:260
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888100c4bb80 (size 32):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 25.040s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff814ce961>] __do_kmalloc_node mm/slab_common.c:954 [inline]
+    [<ffffffff814ce961>] __kmalloc+0x41/0x130 mm/slab_common.c:968
+    [<ffffffff82223655>] kmalloc include/linux/slab.h:581 [inline]
+    [<ffffffff82223655>] kzalloc include/linux/slab.h:712 [inline]
+    [<ffffffff82223655>] lsm_cred_alloc security/security.c:540 [inline]
+    [<ffffffff82223655>] security_prepare_creds+0xa5/0xd0 security/security.c:1705
+    [<ffffffff81283606>] prepare_creds+0x2e6/0x470 kernel/cred.c:291
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105a4b500 (size 256):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 26.330s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    a0 04 7d 07 81 88 ff ff 00 8f b0 0e 81 88 ff ff  ..}.............
+  backtrace:
+    [<ffffffff815dbadf>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff815dbadf>] __alloc_file+0x1f/0xf0 fs/file_table.c:138
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff8881024495a0 (size 24):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 26.330s)
+  hex dump (first 24 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff82222e7a>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff82222e7a>] lsm_file_alloc security/security.c:575 [inline]
+    [<ffffffff82222e7a>] security_file_alloc+0x2a/0xb0 security/security.c:1529
+    [<ffffffff815dbb1d>] __alloc_file+0x5d/0xf0 fs/file_table.c:143
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105b4b900 (size 176):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 26.320s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81283347>] prepare_creds+0x27/0x470 kernel/cred.c:260
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888100c4bb80 (size 32):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 26.320s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff814ce961>] __do_kmalloc_node mm/slab_common.c:954 [inline]
+    [<ffffffff814ce961>] __kmalloc+0x41/0x130 mm/slab_common.c:968
+    [<ffffffff82223655>] kmalloc include/linux/slab.h:581 [inline]
+    [<ffffffff82223655>] kzalloc include/linux/slab.h:712 [inline]
+    [<ffffffff82223655>] lsm_cred_alloc security/security.c:540 [inline]
+    [<ffffffff82223655>] security_prepare_creds+0xa5/0xd0 security/security.c:1705
+    [<ffffffff81283606>] prepare_creds+0x2e6/0x470 kernel/cred.c:291
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105a4b500 (size 256):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 27.580s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    a0 04 7d 07 81 88 ff ff 00 8f b0 0e 81 88 ff ff  ..}.............
+  backtrace:
+    [<ffffffff815dbadf>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff815dbadf>] __alloc_file+0x1f/0xf0 fs/file_table.c:138
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff8881024495a0 (size 24):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 27.580s)
+  hex dump (first 24 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff82222e7a>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff82222e7a>] lsm_file_alloc security/security.c:575 [inline]
+    [<ffffffff82222e7a>] security_file_alloc+0x2a/0xb0 security/security.c:1529
+    [<ffffffff815dbb1d>] __alloc_file+0x5d/0xf0 fs/file_table.c:143
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105b4b900 (size 176):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 27.570s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81283347>] prepare_creds+0x27/0x470 kernel/cred.c:260
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888100c4bb80 (size 32):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 27.570s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff814ce961>] __do_kmalloc_node mm/slab_common.c:954 [inline]
+    [<ffffffff814ce961>] __kmalloc+0x41/0x130 mm/slab_common.c:968
+    [<ffffffff82223655>] kmalloc include/linux/slab.h:581 [inline]
+    [<ffffffff82223655>] kzalloc include/linux/slab.h:712 [inline]
+    [<ffffffff82223655>] lsm_cred_alloc security/security.c:540 [inline]
+    [<ffffffff82223655>] security_prepare_creds+0xa5/0xd0 security/security.c:1705
+    [<ffffffff81283606>] prepare_creds+0x2e6/0x470 kernel/cred.c:291
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105a4b500 (size 256):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 31.460s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    a0 04 7d 07 81 88 ff ff 00 8f b0 0e 81 88 ff ff  ..}.............
+  backtrace:
+    [<ffffffff815dbadf>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff815dbadf>] __alloc_file+0x1f/0xf0 fs/file_table.c:138
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff8881024495a0 (size 24):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 31.460s)
+  hex dump (first 24 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff82222e7a>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff82222e7a>] lsm_file_alloc security/security.c:575 [inline]
+    [<ffffffff82222e7a>] security_file_alloc+0x2a/0xb0 security/security.c:1529
+    [<ffffffff815dbb1d>] __alloc_file+0x5d/0xf0 fs/file_table.c:143
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105b4b900 (size 176):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 31.450s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81283347>] prepare_creds+0x27/0x470 kernel/cred.c:260
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888100c4bb80 (size 32):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 31.450s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff814ce961>] __do_kmalloc_node mm/slab_common.c:954 [inline]
+    [<ffffffff814ce961>] __kmalloc+0x41/0x130 mm/slab_common.c:968
+    [<ffffffff82223655>] kmalloc include/linux/slab.h:581 [inline]
+    [<ffffffff82223655>] kzalloc include/linux/slab.h:712 [inline]
+    [<ffffffff82223655>] lsm_cred_alloc security/security.c:540 [inline]
+    [<ffffffff82223655>] security_prepare_creds+0xa5/0xd0 security/security.c:1705
+    [<ffffffff81283606>] prepare_creds+0x2e6/0x470 kernel/cred.c:291
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105a4b500 (size 256):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 31.490s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    a0 04 7d 07 81 88 ff ff 00 8f b0 0e 81 88 ff ff  ..}.............
+  backtrace:
+    [<ffffffff815dbadf>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff815dbadf>] __alloc_file+0x1f/0xf0 fs/file_table.c:138
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff8881024495a0 (size 24):
+  comm "syz-executor426", pid 3643, jiffies 4294961352 (age 31.490s)
+  hex dump (first 24 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff82222e7a>] kmem_cache_zalloc include/linux/slab.h:702 [inline]
+    [<ffffffff82222e7a>] lsm_file_alloc security/security.c:575 [inline]
+    [<ffffffff82222e7a>] security_file_alloc+0x2a/0xb0 security/security.c:1529
+    [<ffffffff815dbb1d>] __alloc_file+0x5d/0xf0 fs/file_table.c:143
+    [<ffffffff815dc6e9>] alloc_empty_file_noaccount+0x19/0x50 fs/file_table.c:209
+    [<ffffffff815efee6>] vfs_tmpfile_open+0x26/0x90 fs/namei.c:3644
+    [<ffffffff81bf7e0c>] ovl_do_tmpfile fs/overlayfs/overlayfs.h:317 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:747 [inline]
+    [<ffffffff81bf7e0c>] ovl_do_copy_up fs/overlayfs/copy_up.c:839 [inline]
+    [<ffffffff81bf7e0c>] ovl_copy_up_one+0xe5c/0x1670 fs/overlayfs/copy_up.c:1007
+    [<ffffffff81bf8727>] ovl_copy_up_flags+0x107/0x170 fs/overlayfs/copy_up.c:1053
+    [<ffffffff81bf8890>] ovl_maybe_copy_up+0x100/0x130 fs/overlayfs/copy_up.c:1085
+    [<ffffffff81bedeb2>] ovl_open+0x52/0x100 fs/overlayfs/file.c:152
+    [<ffffffff815d009f>] do_dentry_open+0x2ff/0x7c0 fs/open.c:882
+    [<ffffffff815f68ef>] do_open fs/namei.c:3557 [inline]
+    [<ffffffff815f68ef>] path_openat+0x161f/0x1b70 fs/namei.c:3713
+    [<ffffffff815f96e1>] do_filp_open+0xc1/0x1b0 fs/namei.c:3740
+    [<ffffffff815d3a0d>] do_sys_openat2+0xed/0x260 fs/open.c:1310
+    [<ffffffff815d429d>] do_sys_open fs/open.c:1326 [inline]
+    [<ffffffff815d429d>] __do_sys_open fs/open.c:1334 [inline]
+    [<ffffffff815d429d>] __se_sys_open fs/open.c:1330 [inline]
+    [<ffffffff815d429d>] __x64_sys_open+0x7d/0xe0 fs/open.c:1330
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888105b4b900 (size 176):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 31.480s)
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81283347>] prepare_creds+0x27/0x470 kernel/cred.c:260
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+BUG: memory leak
+unreferenced object 0xffff888100c4bb80 (size 32):
+  comm "syz-executor426", pid 3645, jiffies 4294961353 (age 31.480s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 b0 12 bb 00 81 88 ff ff  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff814ce961>] __do_kmalloc_node mm/slab_common.c:954 [inline]
+    [<ffffffff814ce961>] __kmalloc+0x41/0x130 mm/slab_common.c:968
+    [<ffffffff82223655>] kmalloc include/linux/slab.h:581 [inline]
+    [<ffffffff82223655>] kzalloc include/linux/slab.h:712 [inline]
+    [<ffffffff82223655>] lsm_cred_alloc security/security.c:540 [inline]
+    [<ffffffff82223655>] security_prepare_creds+0xa5/0xd0 security/security.c:1705
+    [<ffffffff81283606>] prepare_creds+0x2e6/0x470 kernel/cred.c:291
+    [<ffffffff81be20cd>] ovl_fill_super+0xad/0x2730 fs/overlayfs/super.c:2007
+    [<ffffffff815df27c>] mount_nodev+0x5c/0xc0 fs/super.c:1446
+    [<ffffffff8164321b>] legacy_get_tree+0x2b/0x90 fs/fs_context.c:610
+    [<ffffffff815dcd78>] vfs_get_tree+0x28/0x100 fs/super.c:1530
+    [<ffffffff81620c37>] do_new_mount fs/namespace.c:3040 [inline]
+    [<ffffffff81620c37>] path_mount+0xc37/0x10d0 fs/namespace.c:3370
+    [<ffffffff8162181e>] do_mount fs/namespace.c:3383 [inline]
+    [<ffffffff8162181e>] __do_sys_mount fs/namespace.c:3591 [inline]
+    [<ffffffff8162181e>] __se_sys_mount fs/namespace.c:3568 [inline]
+    [<ffffffff8162181e>] __x64_sys_mount+0x18e/0x1d0 fs/namespace.c:3568
+    [<ffffffff84600f65>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+    [<ffffffff84600f65>] do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+    [<ffffffff84800087>] entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+executing program
+executing program
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+syzbot can test patches for this issue, for details see:
+https://goo.gl/tpsmEJ#testing-patches
