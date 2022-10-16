@@ -2,169 +2,168 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8109FC43217
-	for <linux-unionfs@archiver.kernel.org>; Sat, 15 Oct 2022 17:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0544FC433FE
+	for <linux-unionfs@archiver.kernel.org>; Sun, 16 Oct 2022 14:52:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229670AbiJORYq (ORCPT
+        id S229597AbiJPOw5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 15 Oct 2022 13:24:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52596 "EHLO
+        Sun, 16 Oct 2022 10:52:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229709AbiJORYo (ORCPT
+        with ESMTP id S229716AbiJPOw5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 15 Oct 2022 13:24:44 -0400
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B35E1D0EC
-        for <linux-unionfs@vger.kernel.org>; Sat, 15 Oct 2022 10:24:39 -0700 (PDT)
-Received: by mail-io1-f69.google.com with SMTP id t15-20020a5d81cf000000b006bc1ca3ae00so4919472iol.10
-        for <linux-unionfs@vger.kernel.org>; Sat, 15 Oct 2022 10:24:39 -0700 (PDT)
+        Sun, 16 Oct 2022 10:52:57 -0400
+Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6BE821E0D
+        for <linux-unionfs@vger.kernel.org>; Sun, 16 Oct 2022 07:52:53 -0700 (PDT)
+Received: by mail-yb1-xb2a.google.com with SMTP id k3so10709219ybk.9
+        for <linux-unionfs@vger.kernel.org>; Sun, 16 Oct 2022 07:52:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore-com.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=ZdHbgEIqE71zqzvD5lFD1iP09tkUsZi6uBS+RZqLGJk=;
+        b=xXVGCqLxPehqC5Kal6037wodgHSecfAsuPSBzWQ1Qeq8zBWBTXn9mdDlsJBBC86wgu
+         BEu3uRO4I8S2rBj/1d0f+w3HAueW4w1XOC9ZVr9Lf4QHaBy+3VSrFcyT3D0ETHq0tro5
+         WeQItCzXuyvYdRGjxz6MVk7LJmambgDKgjknFbutI5rOwqXi8PdxIXv9xrZ8/CsjD1M2
+         nii1cSrUGoM6RoC80IICwGYWlPbJd3esCsbrdDZo9aXJC4FNMPHL9iICqeeE3oacb2A1
+         mDtZ/ycDJq5IbDQWTm7H+hhCB9Jk1sGLLpAmZFXlW0qQbm867+JfIg1/pgPsalj8gjm5
+         a7mw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=FXDSuoFbN7ibdHQJGHhqaFHsM+PEsrRvhPrQr4NT61Q=;
-        b=m44oN32a7stbJH+VuZKJl1oIKALAbdnBhu49yyst0gIZhxo/mW/6+/SMXAsHV6wlYr
-         O9uDpwoL0HN8rAz1sxLr3yh4NlQhFOuJDESiInhh2Dm2/WSVNuuN3hg14bnYTviMai0t
-         89MlV1Ej6Xeaj2HvF3w4SiMiJt3u3b++G5fUKPzjnNYfBazeOBAuAA960Ebs6a8v3wS4
-         FTHYKmyz9ccMfLT/CKNvcH+LgUTsSaVT5v2KB7j23xFXzAlkO4/1MuzfyovFCtA2g3gT
-         BSISfd2riADGcJmkGd2cBFJ2cS//eJ4+O2oqpCznN3h3dX/7smd0Iy138xZa033QY9a1
-         ByWA==
-X-Gm-Message-State: ACrzQf312Q1AxCCDd0OgwTVo5zDneGAMTL6ZgtO4pPt8qpNlf4NF3SGE
-        H3VS9qmYtpasFjzMgrCmmlP8IiW8NEtE8m1lHLC3dbmFSLEW
-X-Google-Smtp-Source: AMsMyM7LsjR7kpP4xhca/8DFkSor8LrpGNZj5UjiIW5s6h0+tgtpLA8uyA22mZlK8EKO7jg9DEgb2XIEE8zWDvg9vntFqhtQxRaP
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ZdHbgEIqE71zqzvD5lFD1iP09tkUsZi6uBS+RZqLGJk=;
+        b=pV1zJA2TW8pa+p8fLTUAqEBETh3reAnebus5N9gs6qFx2rsF6gaOOSnK4RmELAJxNh
+         K10ffy38sCXC2kr7LnNQFN8cx4kBu28i4s1dixStZigVbGppfFqS/NcP24Xd9GaCe/Ww
+         eYdEFDhUAEldGavVy/1fO+AEaTR0KkBADxMu13luO3tebIz/b6d0XFHljdFq2OA9iaNp
+         +2b/Oc5gmEnlvexts/XNYqcEJdV2CfkAFHfRod894AcMQpQvAhKahIttQQd/48ky7rWv
+         JlZ7BSIwFKAjCF5XblakWrK6qr7Ck8q7Sm23w1PK4wGvOnvygs7dDPBGqz9465UHeetQ
+         pqdg==
+X-Gm-Message-State: ACrzQf1Ugf2M1d+4muQJiW1YIYm/k2RnSwRfNJN6+Lzel+YsJ86r562U
+        ZU/Psok6mdwa1FjOZQyEQDjj18bUTGgSgymfsacX
+X-Google-Smtp-Source: AMsMyM5gRTtPYzoabg/Y0bfdBfHZFAndDRmG+NHcskvOABLdhFlFTzIX3FhB4/EANoTxAQAz9MQgBJzs6ZnzTF97bUA=
+X-Received: by 2002:a05:6902:724:b0:6c0:1784:b6c7 with SMTP id
+ l4-20020a056902072400b006c01784b6c7mr5849058ybt.15.1665931972823; Sun, 16 Oct
+ 2022 07:52:52 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6602:1588:b0:6bc:d49a:61cc with SMTP id
- e8-20020a056602158800b006bcd49a61ccmr1519089iow.154.1665854678860; Sat, 15
- Oct 2022 10:24:38 -0700 (PDT)
-Date:   Sat, 15 Oct 2022 10:24:38 -0700
-In-Reply-To: <0000000000008caae305ab9a5318@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000618a8205eb160404@google.com>
+References: <0000000000008caae305ab9a5318@google.com> <000000000000618a8205eb160404@google.com>
+In-Reply-To: <000000000000618a8205eb160404@google.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Sun, 16 Oct 2022 10:52:41 -0400
+Message-ID: <CAHC9VhRt2vpArZ=bOrkBOGiAuoTdEcp2PRP5NtbyEZkuMHvopA@mail.gmail.com>
 Subject: Re: [syzbot] general protection fault in security_inode_getattr
-From:   syzbot <syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com>
-To:     andriin@fb.com, ast@kernel.org, bpf@vger.kernel.org,
+To:     syzbot <syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com>
+Cc:     andriin@fb.com, ast@kernel.org, bpf@vger.kernel.org,
         daniel@iogearbox.net, dvyukov@google.com, hdanton@sina.com,
         jmorris@namei.org, john.fastabend@gmail.com, kafai@fb.com,
         kpsingh@chromium.org, linux-fsdevel@vger.kernel.org,
         linux-kernel@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        netdev@vger.kernel.org, omosnace@redhat.com, paul@paul-moore.com,
-        serge@hallyn.com, songliubraving@fb.com,
-        syzkaller-bugs@googlegroups.com, tonymarislogistics@yandex.com,
-        yhs@fb.com
+        netdev@vger.kernel.org, omosnace@redhat.com, serge@hallyn.com,
+        songliubraving@fb.com, syzkaller-bugs@googlegroups.com,
+        tonymarislogistics@yandex.com, yhs@fb.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-syzbot has found a reproducer for the following issue on:
+On Sat, Oct 15, 2022 at 1:24 PM syzbot
+<syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com> wrote:
+>
+> syzbot has found a reproducer for the following issue on:
+>
+> HEAD commit:    55be6084c8e0 Merge tag 'timers-core-2022-10-05' of git://g..
+> git tree:       upstream
+> console+strace: https://syzkaller.appspot.com/x/log.txt?x=147637c6880000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=df75278aabf0681a
+> dashboard link: https://syzkaller.appspot.com/bug?extid=f07cc9be8d1d226947ed
+> compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1585a0c2880000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1480a464880000
+>
+> Downloadable assets:
+> disk image: https://storage.googleapis.com/syzbot-assets/6c791937c012/disk-55be6084.raw.xz
+> vmlinux: https://storage.googleapis.com/syzbot-assets/cb21a2879b4c/vmlinux-55be6084.xz
+> mounted in repro: https://storage.googleapis.com/syzbot-assets/2d56267ed26f/mount_1.gz
+>
+> The issue was bisected to:
+>
+> commit 35697c12d7ffd31a56d3c9604066a166b75d0169
+> Author: Yonghong Song <yhs@fb.com>
+> Date:   Thu Jan 16 17:40:04 2020 +0000
+>
+>     selftests/bpf: Fix test_progs send_signal flakiness with nmi mode
+>
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=13032139900000
+> final oops:     https://syzkaller.appspot.com/x/report.txt?x=10832139900000
+> console output: https://syzkaller.appspot.com/x/log.txt?x=17032139900000
+>
+> IMPORTANT: if you fix the issue, please add the following tag to the commit:
+> Reported-by: syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com
+> Fixes: 35697c12d7ff ("selftests/bpf: Fix test_progs send_signal flakiness with nmi mode")
+>
+> general protection fault, probably for non-canonical address 0xdffffc000000000d: 0000 [#1] PREEMPT SMP KASAN
+> KASAN: null-ptr-deref in range [0x0000000000000068-0x000000000000006f]
+> CPU: 0 PID: 3761 Comm: syz-executor352 Not tainted 6.0.0-syzkaller-09589-g55be6084c8e0 #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
+> RIP: 0010:d_backing_inode include/linux/dcache.h:542 [inline]
+> RIP: 0010:security_inode_getattr+0x46/0x140 security/security.c:1345
+> Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 04 01 00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 5d 08 48 8d 7b 68 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 d7 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b
+> RSP: 0018:ffffc9000400f578 EFLAGS: 00010212
+> RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
+> RDX: 000000000000000d RSI: ffffffff83bd72fe RDI: 0000000000000068
+> RBP: ffffc9000400f750 R08: 0000000000000005 R09: 0000000000000000
+> R10: 0000000000000000 R11: 000000000008c07d R12: ffff8880763dca48
+> R13: ffffc9000400f750 R14: 00000000000007ff R15: 0000000000000000
+> FS:  00007f246f27e700(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 00007f246f27e718 CR3: 00000000717a9000 CR4: 0000000000350ef0
+> Call Trace:
+>  <TASK>
+>  vfs_getattr+0x22/0x60 fs/stat.c:158
+>  ovl_copy_up_one+0x12c/0x2870 fs/overlayfs/copy_up.c:965
+>  ovl_copy_up_flags+0x150/0x1d0 fs/overlayfs/copy_up.c:1047
+>  ovl_maybe_copy_up+0x140/0x190 fs/overlayfs/copy_up.c:1079
+>  ovl_open+0xf1/0x2d0 fs/overlayfs/file.c:152
+>  do_dentry_open+0x6cc/0x13f0 fs/open.c:882
+>  do_open fs/namei.c:3557 [inline]
+>  path_openat+0x1c92/0x28f0 fs/namei.c:3691
+>  do_filp_open+0x1b6/0x400 fs/namei.c:3718
+>  do_sys_openat2+0x16d/0x4c0 fs/open.c:1310
+>  do_sys_open fs/open.c:1326 [inline]
+>  __do_sys_open fs/open.c:1334 [inline]
+>  __se_sys_open fs/open.c:1330 [inline]
+>  __x64_sys_open+0x119/0x1c0 fs/open.c:1330
+>  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+>  do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
+>  entry_SYSCALL_64_after_hwframe+0x63/0xcd
+> RIP: 0033:0x7f246f2f2b49
+> Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+> RSP: 002b:00007f246f27e2f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+> RAX: ffffffffffffffda RBX: 00007f246f3774b0 RCX: 00007f246f2f2b49
+> RDX: 0000000000000000 RSI: 0000000000000300 RDI: 0000000020000140
+> RBP: 00007f246f3442ac R08: 00007f246f27e700 R09: 0000000000000000
+> R10: 00007f246f27e700 R11: 0000000000000246 R12: 0031656c69662f2e
+> R13: 79706f636174656d R14: 0079616c7265766f R15: 00007f246f3774b8
+>  </TASK>
+> Modules linked in:
+> ---[ end trace 0000000000000000 ]---
 
-HEAD commit:    55be6084c8e0 Merge tag 'timers-core-2022-10-05' of git://g..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=147637c6880000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=df75278aabf0681a
-dashboard link: https://syzkaller.appspot.com/bug?extid=f07cc9be8d1d226947ed
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1585a0c2880000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1480a464880000
+It doesn't look like this is a problem with
+security_inode_getattr()/d_backing_inode() as it appears that the
+passed path struct pointer has a bogus/NULL path->dentry pointer and
+to the best of my knowledge it would appear that vfs_getattr() (the
+caller) requires a valid path->dentry value.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/6c791937c012/disk-55be6084.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/cb21a2879b4c/vmlinux-55be6084.xz
-mounted in repro: https://storage.googleapis.com/syzbot-assets/2d56267ed26f/mount_1.gz
+Looking quickly at the code, I wonder if there is something wonky
+going on in the overlayfs code, specifically ovl_copy_up_flags() and
+ovl_copy_up_one() as they have to play a number of tricks to handle
+the transparent overlays and copy up operations.  I'm not an overlayfs
+expert, but that seems like a good place to start digging further into
+this.
 
-The issue was bisected to:
-
-commit 35697c12d7ffd31a56d3c9604066a166b75d0169
-Author: Yonghong Song <yhs@fb.com>
-Date:   Thu Jan 16 17:40:04 2020 +0000
-
-    selftests/bpf: Fix test_progs send_signal flakiness with nmi mode
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=13032139900000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=10832139900000
-console output: https://syzkaller.appspot.com/x/log.txt?x=17032139900000
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com
-Fixes: 35697c12d7ff ("selftests/bpf: Fix test_progs send_signal flakiness with nmi mode")
-
-general protection fault, probably for non-canonical address 0xdffffc000000000d: 0000 [#1] PREEMPT SMP KASAN
-KASAN: null-ptr-deref in range [0x0000000000000068-0x000000000000006f]
-CPU: 0 PID: 3761 Comm: syz-executor352 Not tainted 6.0.0-syzkaller-09589-g55be6084c8e0 #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/22/2022
-RIP: 0010:d_backing_inode include/linux/dcache.h:542 [inline]
-RIP: 0010:security_inode_getattr+0x46/0x140 security/security.c:1345
-Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 04 01 00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 5d 08 48 8d 7b 68 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 d7 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b
-RSP: 0018:ffffc9000400f578 EFLAGS: 00010212
-RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 000000000000000d RSI: ffffffff83bd72fe RDI: 0000000000000068
-RBP: ffffc9000400f750 R08: 0000000000000005 R09: 0000000000000000
-R10: 0000000000000000 R11: 000000000008c07d R12: ffff8880763dca48
-R13: ffffc9000400f750 R14: 00000000000007ff R15: 0000000000000000
-FS:  00007f246f27e700(0000) GS:ffff8880b9a00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f246f27e718 CR3: 00000000717a9000 CR4: 0000000000350ef0
-Call Trace:
- <TASK>
- vfs_getattr+0x22/0x60 fs/stat.c:158
- ovl_copy_up_one+0x12c/0x2870 fs/overlayfs/copy_up.c:965
- ovl_copy_up_flags+0x150/0x1d0 fs/overlayfs/copy_up.c:1047
- ovl_maybe_copy_up+0x140/0x190 fs/overlayfs/copy_up.c:1079
- ovl_open+0xf1/0x2d0 fs/overlayfs/file.c:152
- do_dentry_open+0x6cc/0x13f0 fs/open.c:882
- do_open fs/namei.c:3557 [inline]
- path_openat+0x1c92/0x28f0 fs/namei.c:3691
- do_filp_open+0x1b6/0x400 fs/namei.c:3718
- do_sys_openat2+0x16d/0x4c0 fs/open.c:1310
- do_sys_open fs/open.c:1326 [inline]
- __do_sys_open fs/open.c:1334 [inline]
- __se_sys_open fs/open.c:1330 [inline]
- __x64_sys_open+0x119/0x1c0 fs/open.c:1330
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x35/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f246f2f2b49
-Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f246f27e2f8 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
-RAX: ffffffffffffffda RBX: 00007f246f3774b0 RCX: 00007f246f2f2b49
-RDX: 0000000000000000 RSI: 0000000000000300 RDI: 0000000020000140
-RBP: 00007f246f3442ac R08: 00007f246f27e700 R09: 0000000000000000
-R10: 00007f246f27e700 R11: 0000000000000246 R12: 0031656c69662f2e
-R13: 79706f636174656d R14: 0079616c7265766f R15: 00007f246f3774b8
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-RIP: 0010:d_backing_inode include/linux/dcache.h:542 [inline]
-RIP: 0010:security_inode_getattr+0x46/0x140 security/security.c:1345
-Code: 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 04 01 00 00 48 b8 00 00 00 00 00 fc ff df 49 8b 5d 08 48 8d 7b 68 48 89 fa 48 c1 ea 03 <80> 3c 02 00 0f 85 d7 00 00 00 48 b8 00 00 00 00 00 fc ff df 48 8b
-RSP: 0018:ffffc9000400f578 EFLAGS: 00010212
-RAX: dffffc0000000000 RBX: 0000000000000000 RCX: 0000000000000000
-RDX: 000000000000000d RSI: ffffffff83bd72fe RDI: 0000000000000068
-RBP: ffffc9000400f750 R08: 0000000000000005 R09: 0000000000000000
-R10: 0000000000000000 R11: 000000000008c07d R12: ffff8880763dca48
-R13: ffffc9000400f750 R14: 00000000000007ff R15: 0000000000000000
-FS:  00007f246f27e700(0000) GS:ffff8880b9b00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00005643c9471000 CR3: 00000000717a9000 CR4: 0000000000350ee0
-----------------
-Code disassembly (best guess):
-   0:	48 89 fa             	mov    %rdi,%rdx
-   3:	48 c1 ea 03          	shr    $0x3,%rdx
-   7:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
-   b:	0f 85 04 01 00 00    	jne    0x115
-  11:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
-  18:	fc ff df
-  1b:	49 8b 5d 08          	mov    0x8(%r13),%rbx
-  1f:	48 8d 7b 68          	lea    0x68(%rbx),%rdi
-  23:	48 89 fa             	mov    %rdi,%rdx
-  26:	48 c1 ea 03          	shr    $0x3,%rdx
-* 2a:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1) <-- trapping instruction
-  2e:	0f 85 d7 00 00 00    	jne    0x10b
-  34:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
-  3b:	fc ff df
-  3e:	48                   	rex.W
-  3f:	8b                   	.byte 0x8b
-
+-- 
+paul-moore.com
