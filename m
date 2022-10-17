@@ -2,58 +2,58 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72C7AC4332F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Oct 2022 12:00:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17D39C433FE
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Oct 2022 12:03:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230250AbiJQMAz (ORCPT
+        id S229950AbiJQMD0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Oct 2022 08:00:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54230 "EHLO
+        Mon, 17 Oct 2022 08:03:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57920 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229940AbiJQMAt (ORCPT
+        with ESMTP id S229896AbiJQMDY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Oct 2022 08:00:49 -0400
-Received: from mail-vs1-xe2c.google.com (mail-vs1-xe2c.google.com [IPv6:2607:f8b0:4864:20::e2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2CD562CE2A;
-        Mon, 17 Oct 2022 05:00:41 -0700 (PDT)
-Received: by mail-vs1-xe2c.google.com with SMTP id x66so2510736vsb.3;
-        Mon, 17 Oct 2022 05:00:41 -0700 (PDT)
+        Mon, 17 Oct 2022 08:03:24 -0400
+Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DC3D5925F;
+        Mon, 17 Oct 2022 05:03:22 -0700 (PDT)
+Received: by mail-ua1-x92f.google.com with SMTP id p89so4258295uap.12;
+        Mon, 17 Oct 2022 05:03:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=ISRtwPj9Tmi5akhQwYIhiWo2gl9XJ4+kMqUQVQ2ezcA=;
-        b=b8FhTx8mJIvW3Gxp2Npq+FQ5x42W1SjbGmDB5gD8vZYjbqvMqenQk+R0XRem4pliKH
-         83E7kAFxVFv4SWKRwQhXIsN+5iCdkLi/5y9CDOmY0jj7mqirC3R/xXyv8jPozIMSYRlP
-         Uoti4l4NEvYWFMvp6hGc1EoyAGuE4OV6y+6iI7LivNSkAEwauD99diwiFyw8Fro8Jdux
-         17e8NlA7ycZqYUY621dfD4RF8bovr0ufNpyleMIgYh0xsl+WQocwT4LWhTNTmlBrSKL2
-         G2trCJZN1oNXPK+A8l+eUJ0vq3jUQFbcwvkw4Tp6uQV7qw4CZZR6lwhEVSFm0nK9epPY
-         C7Sg==
+        bh=pWKnKWGzl3h2/GbRMuMzvHrgaAw7SEjx04wq/pIPoa0=;
+        b=XXI9WQMBoBrY492ICxxnlCOKTgNQXZhx5yVGHCxwaYBgOzcVz6AxzsiI7+PqdIlFIz
+         U5m/oL82LOov3Avr8Z2HT3FRXDQkmDHM6glJEWrKKKrKvF9TNQMmW4SDn0cW8iBaXHoz
+         Yrf2fQ/kdp0kohA4mZxBWI2pmZna5jTT+Uulz2FYS1WOcP5DjYWzsjpbT0bKm2k0XZKc
+         d5C3KRMC9f7CromDHB66mTSSa6fxwaaKXtBiEzrO3r0OOKnKT4cG01TcsCGo7Ov5S9OU
+         dH5X6sQjMf75dKmask0O1eZHfAxOV+mSq5AiqxL13FpA91xFN3fVQQf+Ur0OQqZieOhd
+         orkw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=ISRtwPj9Tmi5akhQwYIhiWo2gl9XJ4+kMqUQVQ2ezcA=;
-        b=AzXbE4FFzOutFT7vgmdPi4clngf9FQSbzsiOaBfjSAtYnqpFPxptVvziuKZZGFkezS
-         nF59XD72pjKzWc3/SKWInAn9rm2sGJcGDViJDQNdBZuInqU4uDKSy308fp4utqQbYd1x
-         EDp7++zAjp9KSsvOMJrS1iOE9jHsrG2RnMDcIf5BklH4W7SWSqRT+mH6+G8Bba8CXyHC
-         W4SMlrGZFOmczYBtyEmlPSQXKJsUENlPTUjV36HpRSpl+eHH4IC/JbzpeoAprabO3iai
-         qTKT0X9Ue8JwrV0+RDKMSbotPkMobo5+xgRbgYf7tT2D3OvUYYHF4wWX6rVfkzhxgKkh
-         +zEA==
-X-Gm-Message-State: ACrzQf1gmMOdQ21tviBezzC4WKxtj0/Vt5dryJSoxvIPHg9URPDyQ2dl
-        Rdux+tixb4hJisB+fLB5bCfRGEFNcqqg8qzujcA=
-X-Google-Smtp-Source: AMsMyM5DMQAPNgC7zJ1gBPsKuHTS+eFdTkJ0VuarVoMIotoXcxowOPIHciYsj0MgKS320bT5NOeaPtfljguyey3Hwcc=
-X-Received: by 2002:a67:c190:0:b0:3a7:e91:9072 with SMTP id
- h16-20020a67c190000000b003a70e919072mr4186451vsj.36.1666008040567; Mon, 17
- Oct 2022 05:00:40 -0700 (PDT)
+        bh=pWKnKWGzl3h2/GbRMuMzvHrgaAw7SEjx04wq/pIPoa0=;
+        b=x3XGf3kBwwImgkcJzD/4Qj+wU0+7140OOI4+EWMwvRRMSU84elNuU3xTQMrhXfg7jq
+         u4y31AGDMahA95vU3qpHJ6KRodZcfUvFAH70O/3dZnubgdNfSIugDNmtfYSSpvJ0A+0X
+         zBDyqRf/R0vdR/2hgZt5stuL5PZGmubaDpXcACb0YQrT4+2Qi5epwwhrY2h3NSwHDIgd
+         2cP8ZjFXRowLTt1hLGi6iyev0k75nKvSeVV3FhFVQFGIf2iG1vUM28IaNKahWXZ6vriK
+         ilx7uKypuvgN7YgMOIS8/i1aKAdMoX5k8y1v8m+NCgwa7F8Au24UxPpCwI/Xj6dJCKAl
+         eSYA==
+X-Gm-Message-State: ACrzQf34NwOuI0ye5oksuG/DC2MWaeF2UoJQ66nUrZC6s8pfUEs/4PQY
+        zw76/nJyjgfaii8YwZlKbvDWlxtw2ObUrZ5e9GE=
+X-Google-Smtp-Source: AMsMyM6aJsVZFWaW4dic4cmw/sjcGlgpVPJg5mCwxvAdVE71c7SEjo5mdMkqwsnHDN4O3/64hhaqy4R5EtzsrOYo4Eo=
+X-Received: by 2002:ab0:4715:0:b0:3ea:d249:de4c with SMTP id
+ h21-20020ab04715000000b003ead249de4cmr4365820uac.80.1666008201641; Mon, 17
+ Oct 2022 05:03:21 -0700 (PDT)
 MIME-Version: 1.0
-References: <20221017100600.70269-1-brauner@kernel.org> <20221017100600.70269-2-brauner@kernel.org>
-In-Reply-To: <20221017100600.70269-2-brauner@kernel.org>
+References: <20221017100600.70269-1-brauner@kernel.org> <20221017100600.70269-3-brauner@kernel.org>
+In-Reply-To: <20221017100600.70269-3-brauner@kernel.org>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 17 Oct 2022 15:00:29 +0300
-Message-ID: <CAOQ4uxhN9zrgH9YrAd1vj6W60jQ3dvBokT2DR1dwE-mg0Mj44A@mail.gmail.com>
-Subject: Re: [PATCH v3 1/5] attr: add setattr_drop_sgid()
+Date:   Mon, 17 Oct 2022 15:03:10 +0300
+Message-ID: <CAOQ4uxhwGZ6HWHOUS+eyzSUgVregLde5Wy_LjdefKC3Stm0ePQ@mail.gmail.com>
+Subject: Re: [PATCH v3 2/5] attr: add setattr_should_drop_sgid()
 To:     Christian Brauner <brauner@kernel.org>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         "Darrick J . Wong" <djwong@kernel.org>,
@@ -70,13 +70,20 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 On Mon, Oct 17, 2022 at 1:06 PM Christian Brauner <brauner@kernel.org> wrote:
 >
-> In setattr_{copy,prepare}() we need to perform the same permission
-> checks to determine whether we need to drop the setgid bit or not.
-> Instead of open-coding it twice add a simple helper the encapsulates the
-> logic. We will reuse this helpers to make dropping the setgid bit during
-> write operations more consistent in a follow up patch.
+> The current setgid stripping logic during write and ownership change
+> operations is inconsistent and strewn over multiple places. In order to
+> consolidate it and make more consistent we'll add a new helper
+> setattr_should_drop_sgid(). The function retains the old behavior where
+> we remove the S_ISGID bit unconditionally when S_IXGRP is set but also
+> when it isn't set and the caller is neither in the group of the inode
+> nor privileged over the inode.
+>
+> We will use this helper both in write operation permission removal such
+> as file_remove_privs() as well as in ownership change operations.
 >
 > Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+
+Some nits, but otherwise
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
@@ -84,69 +91,75 @@ Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 >
 > Notes:
 >     /* v2 */
->     patch added
+>     Dave Chinner <dchinner@redhat.com>:
+>     - Use easier to follow logic in the new helper.
 >
 >     /* v3 */
 >     Amir Goldstein <amir73il@gmail.com>:
->     - Return 0 or ATTR_KILL_SGID to make all dropping helpers behave similarly.
+>     - Rename helper from should_remove_sgid() to setattr_should_drop_sgid() to
+>       better indicate its semantics.
+>     - Return setattr_should_drop_sgid() directly now that it returns ATTR_KILL_SGID
+>       instead of a boolean.
 >
->  fs/attr.c | 29 ++++++++++++++++++++++++-----
->  1 file changed, 24 insertions(+), 5 deletions(-)
+>  fs/attr.c     | 26 ++++++++++++++++++++++++++
+>  fs/internal.h |  2 ++
+>  2 files changed, 28 insertions(+)
 >
 > diff --git a/fs/attr.c b/fs/attr.c
-> index 1552a5f23d6b..8bc2edd6bd3c 100644
+> index 8bc2edd6bd3c..3d03ceb332e5 100644
 > --- a/fs/attr.c
 > +++ b/fs/attr.c
-> @@ -18,6 +18,27 @@
->  #include <linux/evm.h>
->  #include <linux/ima.h>
+> @@ -39,6 +39,32 @@ static int setattr_drop_sgid(struct user_namespace *mnt_userns,
+>         return ATTR_KILL_SGID;
+>  }
 >
 > +/**
-> + * setattr_drop_sgid - check generic setgid permissions
+> + * setattr_should_drop_sgid - determine whether the setgid bit needs to be
+> + *                            removed
 > + * @mnt_userns:        user namespace of the mount @inode was found from
 > + * @inode:     inode to check
-> + * @vfsgid:    the new/current vfsgid of @inode
 > + *
-> + * This function determines whether the setgid bit needs to be removed because
-> + * the caller lacks privileges over the inode.
+> + * This function determines whether the setgid bit needs to be removed.
+> + * We retain backwards compatibility and require setgid bit to be removed
+> + * unconditionally if S_IXGRP is set. Otherwise we have the exact same
+> + * requirements as setattr_prepare() and setattr_copy().
 > + *
-> + * Return: ATTR_KILL_SGID if the setgid bit needs to be removed, 0 if not.
+> + * Return: ATTR_KILL_SGID if setgid bit needs to be removed, 0 otherwise.
 > + */
-> +static int setattr_drop_sgid(struct user_namespace *mnt_userns,
-> +                            const struct inode *inode, vfsgid_t vfsgid)
+> +int setattr_should_drop_sgid(struct user_namespace *mnt_userns,
+> +                            const struct inode *inode)
 > +{
-> +       if (vfsgid_in_group_p(vfsgid))
+> +       umode_t mode = inode->i_mode;
+> +
+> +       if (!(mode & S_ISGID))
 > +               return 0;
-> +       if (capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID))
-> +               return 0;
-> +       return ATTR_KILL_SGID;
+> +       if (mode & S_IXGRP)
+> +               return ATTR_KILL_SGID;
+> +       return setattr_drop_sgid(mnt_userns, inode,
+> +                                i_gid_into_vfsgid(mnt_userns, inode));
 > +}
 > +
 >  /**
 >   * chown_ok - verify permissions to chown inode
 >   * @mnt_userns:        user namespace of the mount @inode was found from
-> @@ -140,8 +161,7 @@ int setattr_prepare(struct user_namespace *mnt_userns, struct dentry *dentry,
->                         vfsgid = i_gid_into_vfsgid(mnt_userns, inode);
+> diff --git a/fs/internal.h b/fs/internal.h
+> index 6f0386b34fae..988e123d3885 100644
+> --- a/fs/internal.h
+> +++ b/fs/internal.h
+> @@ -234,3 +234,5 @@ int do_setxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+>                 struct xattr_ctx *ctx);
 >
->                 /* Also check the setgid bit! */
-> -               if (!vfsgid_in_group_p(vfsgid) &&
-> -                   !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID))
-> +               if (setattr_drop_sgid(mnt_userns, inode, vfsgid))
->                         attr->ia_mode &= ~S_ISGID;
->         }
->
-> @@ -251,9 +271,8 @@ void setattr_copy(struct user_namespace *mnt_userns, struct inode *inode,
->                 inode->i_ctime = attr->ia_ctime;
->         if (ia_valid & ATTR_MODE) {
->                 umode_t mode = attr->ia_mode;
-> -               vfsgid_t vfsgid = i_gid_into_vfsgid(mnt_userns, inode);
-> -               if (!vfsgid_in_group_p(vfsgid) &&
-> -                   !capable_wrt_inode_uidgid(mnt_userns, inode, CAP_FSETID))
-> +               if (setattr_drop_sgid(mnt_userns, inode,
-> +                                     i_gid_into_vfsgid(mnt_userns, inode)))
->                         mode &= ~S_ISGID;
->                 inode->i_mode = mode;
->         }
-> --
-> 2.34.1
->
+>  ssize_t __kernel_write_iter(struct file *file, struct iov_iter *from, loff_t *pos);
+> +int setattr_should_drop_sgid(struct user_namespace *mnt_userns,
+> +                            const struct inode *inode);
+
+Please add a section:
+/*
+ * fs/attr.c:
+ */
+
+Might as well as the missing section for read_write.c
+above __kernel_write_iter() while at it.
+
+Thanks,
+Amir.
