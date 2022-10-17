@@ -2,79 +2,151 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E58C4332F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Oct 2022 14:30:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B09CC43219
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Oct 2022 15:09:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230378AbiJQOaO (ORCPT
+        id S231637AbiJQPJF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Oct 2022 10:30:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59824 "EHLO
+        Mon, 17 Oct 2022 11:09:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230306AbiJQOaN (ORCPT
+        with ESMTP id S231197AbiJQPIz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Oct 2022 10:30:13 -0400
-Received: from www262.sakura.ne.jp (www262.sakura.ne.jp [202.181.97.72])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B82DD4B98D;
-        Mon, 17 Oct 2022 07:30:10 -0700 (PDT)
-Received: from fsav119.sakura.ne.jp (fsav119.sakura.ne.jp [27.133.134.246])
-        by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTP id 29HET4N6008933;
-        Mon, 17 Oct 2022 23:29:04 +0900 (JST)
-        (envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
-Received: from www262.sakura.ne.jp (202.181.97.72)
- by fsav119.sakura.ne.jp (F-Secure/fsigk_smtp/550/fsav119.sakura.ne.jp);
- Mon, 17 Oct 2022 23:29:04 +0900 (JST)
-X-Virus-Status: clean(F-Secure/fsigk_smtp/550/fsav119.sakura.ne.jp)
-Received: from [192.168.1.9] (M106072142033.v4.enabler.ne.jp [106.72.142.33])
-        (authenticated bits=0)
-        by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTPSA id 29HET4ge008929
-        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NO);
-        Mon, 17 Oct 2022 23:29:04 +0900 (JST)
-        (envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
-Message-ID: <4a3a6527-4a19-699a-d7a5-21249254522b@I-love.SAKURA.ne.jp>
-Date:   Mon, 17 Oct 2022 23:29:01 +0900
+        Mon, 17 Oct 2022 11:08:55 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A94C209B1;
+        Mon, 17 Oct 2022 08:08:41 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 67EDC60F8C;
+        Mon, 17 Oct 2022 15:08:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3966BC433D7;
+        Mon, 17 Oct 2022 15:08:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1666019312;
+        bh=cIYSo0yTz/F7YYNSgf0AVAvCPiy1ti841YYm0RO2PnU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=EisvWo3F8diDk4v20F3A+6hkvxohHZG8LtEMiXwxsNAXUVJYxYRkm2OfaTxKx2+eF
+         oRAKQ64YtMPJhoJKbEz7fIKCgZ3c0fMQt8l/pCTy836RjgZcWRRbfPp7FuuP6pi5SB
+         plXPSzq/7eNfWzERBOUuudlbmmvAs+UE/zlo/t01bkl8c4GwLJvwYvBeBYfFLaTf15
+         qPanKSiEdYICPmLnDBiwONn4+/Mv772sb+RuCEFknagYan3A7Dw+Ncz47YfEVp0qZ7
+         pkm41nI1jfB3vjYA6iqCAwbdV2Uu/OC5ypXecdVqMivu0VjCUQHzcWIcG1cg/nBUEc
+         QI73UuF2PYxtg==
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        "Darrick J . Wong" <djwong@kernel.org>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@lst.de>,
+        Seth Forshee <sforshee@kernel.org>,
+        Yang Xu <xuyang2018.jy@fujitsu.com>,
+        Filipe Manana <fdmanana@kernel.org>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH v4 3/6] attr: add setattr_should_drop_sgid()
+Date:   Mon, 17 Oct 2022 17:06:36 +0200
+Message-Id: <20221017150640.112577-4-brauner@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20221017150640.112577-1-brauner@kernel.org>
+References: <20221017150640.112577-1-brauner@kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.3
-Subject: Re: [syzbot] general protection fault in security_inode_getattr
-Content-Language: en-US
-To:     Paul Moore <paul@paul-moore.com>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org
-Cc:     dvyukov@google.com, hdanton@sina.com,
-        linux-fsdevel@vger.kernel.org, syzkaller-bugs@googlegroups.com,
-        syzbot <syzbot+f07cc9be8d1d226947ed@syzkaller.appspotmail.com>,
-        yhs@fb.com, omosnace@redhat.com
-References: <0000000000008caae305ab9a5318@google.com>
- <000000000000618a8205eb160404@google.com>
- <CAHC9VhRt2vpArZ=bOrkBOGiAuoTdEcp2PRP5NtbyEZkuMHvopA@mail.gmail.com>
-From:   Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-In-Reply-To: <CAHC9VhRt2vpArZ=bOrkBOGiAuoTdEcp2PRP5NtbyEZkuMHvopA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3062; i=brauner@kernel.org; h=from:subject; bh=cIYSo0yTz/F7YYNSgf0AVAvCPiy1ti841YYm0RO2PnU=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMST75ufcEgxQXHPHMn+LTX3f+mui/75Z1DW56+gcmOp12/72 xDi2jlIWBjEuBlkxRRaHdpNwueU8FZuNMjVg5rAygQxh4OIUgIkkijP8Fb+hLzjjy/nciFkvrm+7q+ aZuT4qp3Wjpyez6A7ZkEV3ShgZ9i+an6nO6Tx579KI7b/Wcu2c9vnYlmo5D7405hU14pLT2QA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 2022/10/16 23:52, Paul Moore wrote:
-> It doesn't look like this is a problem with
-> security_inode_getattr()/d_backing_inode() as it appears that the
-> passed path struct pointer has a bogus/NULL path->dentry pointer and
-> to the best of my knowledge it would appear that vfs_getattr() (the
-> caller) requires a valid path->dentry value.
-> 
-> Looking quickly at the code, I wonder if there is something wonky
-> going on in the overlayfs code, specifically ovl_copy_up_flags() and
-> ovl_copy_up_one() as they have to play a number of tricks to handle
-> the transparent overlays and copy up operations.  I'm not an overlayfs
-> expert, but that seems like a good place to start digging further into
-> this.
+The current setgid stripping logic during write and ownership change
+operations is inconsistent and strewn over multiple places. In order to
+consolidate it and make more consistent we'll add a new helper
+setattr_should_drop_sgid(). The function retains the old behavior where
+we remove the S_ISGID bit unconditionally when S_IXGRP is set but also
+when it isn't set and the caller is neither in the group of the inode
+nor privileged over the inode.
 
-Right. This is a bug in overlayfs code. Probably due to some race condition,
-ovl_copy_up_flags() is calling ovl_copy_up_one() with "next" dentry with
-"struct ovl_entry"->numlower == 0. As a result, ovl_path_lower() from
-ovl_copy_up_one() fills ctx.lowerpath with NULLs, and vfs_getattr() gets
-surprised by ctx.lowerpath.dentry == NULL.
+We will use this helper both in write operation permission removal such
+as file_remove_privs() as well as in ownership change operations.
 
-If we can't avoid selecting a dentry with "struct ovl_entry"->numlower == 0 using
-some lock, I guess that we would need to use a workaround suggested by Hillf Danton
-at https://groups.google.com/g/syzkaller-bugs/c/xDcxFKSppfE/m/b38Tv7LoAAAJ .
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+---
+
+Notes:
+    /* v2 */
+    Dave Chinner <dchinner@redhat.com>:
+    - Use easier to follow logic in the new helper.
+    
+    /* v3 */
+    Amir Goldstein <amir73il@gmail.com>:
+    - Rename helper from should_remove_sgid() to setattr_should_drop_sgid() to
+      better indicate its semantics.
+    - Return setattr_should_drop_sgid() directly now that it returns ATTR_KILL_SGID
+      instead of a boolean.
+    
+    /* v4 */
+    Amir Goldstein <amir73il@gmail.com>:
+    - Add a section comment for fs/attr.c into fs/internal.h to be consistent with
+      the rest.
+
+ fs/attr.c     | 28 ++++++++++++++++++++++++++++
+ fs/internal.h |  6 ++++++
+ 2 files changed, 34 insertions(+)
+
+diff --git a/fs/attr.c b/fs/attr.c
+index e508b3caae76..085322536127 100644
+--- a/fs/attr.c
++++ b/fs/attr.c
+@@ -20,6 +20,34 @@
+ 
+ #include "internal.h"
+ 
++/**
++ * setattr_should_drop_sgid - determine whether the setgid bit needs to be
++ *                            removed
++ * @mnt_userns:	user namespace of the mount @inode was found from
++ * @inode:	inode to check
++ *
++ * This function determines whether the setgid bit needs to be removed.
++ * We retain backwards compatibility and require setgid bit to be removed
++ * unconditionally if S_IXGRP is set. Otherwise we have the exact same
++ * requirements as setattr_prepare() and setattr_copy().
++ *
++ * Return: ATTR_KILL_SGID if setgid bit needs to be removed, 0 otherwise.
++ */
++int setattr_should_drop_sgid(struct user_namespace *mnt_userns,
++			     const struct inode *inode)
++{
++	umode_t mode = inode->i_mode;
++
++	if (!(mode & S_ISGID))
++		return 0;
++	if (mode & S_IXGRP)
++		return ATTR_KILL_SGID;
++	if (!in_group_or_capable(mnt_userns, inode,
++				 i_gid_into_vfsgid(mnt_userns, inode)))
++		return ATTR_KILL_SGID;
++	return 0;
++}
++
+ /*
+  * The logic we want is
+  *
+diff --git a/fs/internal.h b/fs/internal.h
+index 1de39bbc9ddd..771b0468d70c 100644
+--- a/fs/internal.h
++++ b/fs/internal.h
+@@ -236,3 +236,9 @@ int do_setxattr(struct user_namespace *mnt_userns, struct dentry *dentry,
+ 		struct xattr_ctx *ctx);
+ 
+ ssize_t __kernel_write_iter(struct file *file, struct iov_iter *from, loff_t *pos);
++
++/*
++ * fs/attr.c
++ */
++int setattr_should_drop_sgid(struct user_namespace *mnt_userns,
++			     const struct inode *inode);
+-- 
+2.34.1
 
