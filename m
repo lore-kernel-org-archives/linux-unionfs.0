@@ -2,218 +2,101 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9D60C43217
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Oct 2022 12:00:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D58DECAAA1
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Oct 2022 11:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230399AbiJRMAb (ORCPT
+        id S229779AbiJXLNm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 Oct 2022 08:00:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58092 "EHLO
+        Mon, 24 Oct 2022 07:13:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35932 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229846AbiJRL7f (ORCPT
+        with ESMTP id S229649AbiJXLNe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Oct 2022 07:59:35 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9406BE2EC;
-        Tue, 18 Oct 2022 04:58:30 -0700 (PDT)
+        Mon, 24 Oct 2022 07:13:34 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3FF258178;
+        Mon, 24 Oct 2022 04:13:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1382D6153A;
-        Tue, 18 Oct 2022 11:58:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F43FC43470;
-        Tue, 18 Oct 2022 11:58:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1B85EB810FA;
+        Mon, 24 Oct 2022 11:13:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2CCAC433D6;
+        Mon, 24 Oct 2022 11:13:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666094309;
-        bh=WzXM5WS7TjbMYEjZT5Omz7yBQ2wP5xFOjrFQWZY2TPI=;
+        s=k20201202; t=1666609992;
+        bh=SWVSQUQLuSItHvMK+ocRmWESELtEJtixCBVdU2/ksMc=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=boRhdrtmuICCrgbqwLjEgX3COaAr7MXIe+Q00jt/y7El1DAS8qKvAEl/PM3tXDYSw
-         RX3jzkNzjStvIk3dyQj17Ro39GSq6EvNXE31tBXsgy6BP88X4I8K5WeyxaZZqRFiYU
-         Yl+IkWGWOEkUEBOKmVEcf7uBlgo2N9UEemEj9+Oz9rGZSumnUELqXBGuZPwWUfvw62
-         vWUi0odBFtz/65VoH311pJoFB08aE556tvpe0SMMpkEfhGNqfqNRfFpgvGJsTzddFU
-         2QDwXbZhXkNT2Hoawz9ovkdCquEKUIGkSM3oAlPPt7jmvWBrSlnFXSrs2YIor9iUbS
-         211uC5isN0jEw==
+        b=p7dYgKrGdPHeysiadgY8YP/SNhUIpFsWRJ88XfUMgPgA5VsbSF3xwT6wZEodIjTuK
+         JnyIK855frRZs8WkkUrQdHR7xOwB+Dw5hnDbVjzgsJ6lbBJh8Mn4ipLyNCmRXMkjEP
+         0zNnOr/GCdoxo7JduDWstW5aZsNLf78dlLx316Ub2EEsGPVwrCguK8AxgI1B+ad2vl
+         9yRhl/R/+X9G6QxufpVuHBTWfY1ClL6z3OGnfiJWjKrA5Js9HWgyfIUm+MhUZ0fXt9
+         9Y8Dr5HpwsqVo2gev7o+PtQxmE7Qa96By2jfmBPanci3ku4T4ve5WcZFV+NbQr1dfZ
+         5H8AMCmOpijsA==
 From:   Christian Brauner <brauner@kernel.org>
-To:     linux-fsdevel@vger.kernel.org
+To:     Seth Forshee <sforshee@kernel.org>, Christoph Hellwig <hch@lst.de>,
+        linux-fsdevel@vger.kernel.org
 Cc:     Christian Brauner <brauner@kernel.org>,
-        Seth Forshee <sforshee@kernel.org>,
-        Christoph Hellwig <hch@lst.de>,
         Al Viro <viro@zeniv.linux.org.uk>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org
-Subject: [PATCH v5 27/30] ovl: use stub posix acl handlers
-Date:   Tue, 18 Oct 2022 13:56:57 +0200
-Message-Id: <20221018115700.166010-28-brauner@kernel.org>
+        Miklos Szeredi <mszeredi@redhat.com>,
+        linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
+Subject: [PATCH 7/8] ovl: port to vfs{g,u}id_t and associated helpers
+Date:   Mon, 24 Oct 2022 13:12:48 +0200
+Message-Id: <20221024111249.477648-8-brauner@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20221018115700.166010-1-brauner@kernel.org>
-References: <20221018115700.166010-1-brauner@kernel.org>
+In-Reply-To: <20221024111249.477648-1-brauner@kernel.org>
+References: <20221024111249.477648-1-brauner@kernel.org>
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5171; i=brauner@kernel.org; h=from:subject; bh=WzXM5WS7TjbMYEjZT5Omz7yBQ2wP5xFOjrFQWZY2TPI=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMST7TdGSkffcw7x1tZjuJ+7UZWofTid+vC9lvTN7Qeg5GfZ5 r9RWdZSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwkYhXDXwGVUL3H27n//mu6eEO4S4 1hmtShIzpnFxWeznvUueC51XRGhqvHnzArxVcvuKRxbE+dTeJbw6sGWSmZEmF9zGuur06ewAYA
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1645; i=brauner@kernel.org; h=from:subject; bh=SWVSQUQLuSItHvMK+ocRmWESELtEJtixCBVdU2/ksMc=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSSHFeu9L1r6Y+nG0OSHj8/sZhdinfXJwD0m3uQs58YU0w1e qcrtHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPRVWT477P90DW/hzdXvJiVbpowvz CWe+ax8leKGYoang27RG5y+jD8T51eqxYlyhdzeecRUdGeWMY4Yc+ND38vSrje1nD50IF3TAA=
 X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Now that ovl supports the get and set acl inode operations and the vfs
-has been switched to the new posi api, ovl can simply rely on the stub
-posix acl handlers. The custom xattr handlers and associated unused
-helpers can be removed.
+A while ago we introduced a dedicated vfs{g,u}id_t type in commit
+1e5267cd0895 ("mnt_idmapping: add vfs{g,u}id_t"). We already switched
+over a good part of the VFS. Ultimately we will remove all legacy
+idmapped mount helpers that operate only on k{g,u}id_t in favor of the
+new type safe helpers that operate on vfs{g,u}id_t.
 
+Cc: Seth Forshee (Digital Ocean) <sforshee@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
 ---
 
 Notes:
-    /* v2 */
-    unchanged
-    
-    /* v3 */
-    unchanged
-    
-    /* v4 */
-    unchanged
-    
-    /* v5 */
-    unchanged
+    Note that this patch is currently also in Miklos tree.
 
- fs/overlayfs/super.c | 101 ++-----------------------------------------
- 1 file changed, 4 insertions(+), 97 deletions(-)
+ fs/overlayfs/util.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 5c1b7971a9b3..2addafe4e14a 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -999,83 +999,6 @@ static unsigned int ovl_split_lowerdirs(char *str)
- 	return ctr;
- }
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 81a57a8d80d9..c0c20d33691b 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -1104,13 +1104,18 @@ void ovl_copyattr(struct inode *inode)
+ 	struct path realpath;
+ 	struct inode *realinode;
+ 	struct user_namespace *real_mnt_userns;
++	vfsuid_t vfsuid;
++	vfsgid_t vfsgid;
  
--static int __maybe_unused
--ovl_posix_acl_xattr_get(const struct xattr_handler *handler,
--			struct dentry *dentry, struct inode *inode,
--			const char *name, void *buffer, size_t size)
--{
--	return ovl_xattr_get(dentry, inode, handler->name, buffer, size);
--}
--
--static int __maybe_unused
--ovl_posix_acl_xattr_set(const struct xattr_handler *handler,
--			struct user_namespace *mnt_userns,
--			struct dentry *dentry, struct inode *inode,
--			const char *name, const void *value,
--			size_t size, int flags)
--{
--	struct dentry *workdir = ovl_workdir(dentry);
--	struct inode *realinode = ovl_inode_real(inode);
--	struct posix_acl *acl = NULL;
--	int err;
--
--	/* Check that everything is OK before copy-up */
--	if (value) {
--		/* The above comment can be understood in two ways:
--		 *
--		 * 1. We just want to check whether the basic POSIX ACL format
--		 *    is ok. For example, if the header is correct and the size
--		 *    is sane.
--		 * 2. We want to know whether the ACL_{GROUP,USER} entries can
--		 *    be mapped according to the underlying filesystem.
--		 *
--		 * Currently, we only check 1. If we wanted to check 2. we
--		 * would need to pass the mnt_userns and the fs_userns of the
--		 * underlying filesystem. But frankly, I think checking 1. is
--		 * enough to start the copy-up.
--		 */
--		acl = vfs_set_acl_prepare(&init_user_ns, &init_user_ns, value, size);
--		if (IS_ERR(acl))
--			return PTR_ERR(acl);
--	}
--	err = -EOPNOTSUPP;
--	if (!IS_POSIXACL(d_inode(workdir)))
--		goto out_acl_release;
--	if (!realinode->i_op->set_acl)
--		goto out_acl_release;
--	if (handler->flags == ACL_TYPE_DEFAULT && !S_ISDIR(inode->i_mode)) {
--		err = acl ? -EACCES : 0;
--		goto out_acl_release;
--	}
--	err = -EPERM;
--	if (!inode_owner_or_capable(&init_user_ns, inode))
--		goto out_acl_release;
--
--	posix_acl_release(acl);
--
--	/*
--	 * Check if sgid bit needs to be cleared (actual setacl operation will
--	 * be done with mounter's capabilities and so that won't do it for us).
--	 */
--	if (unlikely(inode->i_mode & S_ISGID) &&
--	    handler->flags == ACL_TYPE_ACCESS &&
--	    !in_group_p(inode->i_gid) &&
--	    !capable_wrt_inode_uidgid(&init_user_ns, inode, CAP_FSETID)) {
--		struct iattr iattr = { .ia_valid = ATTR_KILL_SGID };
--
--		err = ovl_setattr(&init_user_ns, dentry, &iattr);
--		if (err)
--			return err;
--	}
--
--	err = ovl_xattr_set(dentry, inode, handler->name, value, size, flags);
--	return err;
--
--out_acl_release:
--	posix_acl_release(acl);
--	return err;
--}
--
- static int ovl_own_xattr_get(const struct xattr_handler *handler,
- 			     struct dentry *dentry, struct inode *inode,
- 			     const char *name, void *buffer, size_t size)
-@@ -1108,22 +1031,6 @@ static int ovl_other_xattr_set(const struct xattr_handler *handler,
- 	return ovl_xattr_set(dentry, inode, name, value, size, flags);
- }
+ 	ovl_i_path_real(inode, &realpath);
+ 	realinode = d_inode(realpath.dentry);
+ 	real_mnt_userns = mnt_user_ns(realpath.mnt);
  
--static const struct xattr_handler __maybe_unused
--ovl_posix_acl_access_xattr_handler = {
--	.name = XATTR_NAME_POSIX_ACL_ACCESS,
--	.flags = ACL_TYPE_ACCESS,
--	.get = ovl_posix_acl_xattr_get,
--	.set = ovl_posix_acl_xattr_set,
--};
--
--static const struct xattr_handler __maybe_unused
--ovl_posix_acl_default_xattr_handler = {
--	.name = XATTR_NAME_POSIX_ACL_DEFAULT,
--	.flags = ACL_TYPE_DEFAULT,
--	.get = ovl_posix_acl_xattr_get,
--	.set = ovl_posix_acl_xattr_set,
--};
--
- static const struct xattr_handler ovl_own_trusted_xattr_handler = {
- 	.prefix	= OVL_XATTR_TRUSTED_PREFIX,
- 	.get = ovl_own_xattr_get,
-@@ -1144,8 +1051,8 @@ static const struct xattr_handler ovl_other_xattr_handler = {
- 
- static const struct xattr_handler *ovl_trusted_xattr_handlers[] = {
- #ifdef CONFIG_FS_POSIX_ACL
--	&ovl_posix_acl_access_xattr_handler,
--	&ovl_posix_acl_default_xattr_handler,
-+	&posix_acl_access_xattr_handler,
-+	&posix_acl_default_xattr_handler,
- #endif
- 	&ovl_own_trusted_xattr_handler,
- 	&ovl_other_xattr_handler,
-@@ -1154,8 +1061,8 @@ static const struct xattr_handler *ovl_trusted_xattr_handlers[] = {
- 
- static const struct xattr_handler *ovl_user_xattr_handlers[] = {
- #ifdef CONFIG_FS_POSIX_ACL
--	&ovl_posix_acl_access_xattr_handler,
--	&ovl_posix_acl_default_xattr_handler,
-+	&posix_acl_access_xattr_handler,
-+	&posix_acl_default_xattr_handler,
- #endif
- 	&ovl_own_user_xattr_handler,
- 	&ovl_other_xattr_handler,
+-	inode->i_uid = i_uid_into_mnt(real_mnt_userns, realinode);
+-	inode->i_gid = i_gid_into_mnt(real_mnt_userns, realinode);
++	vfsuid = i_uid_into_vfsuid(real_mnt_userns, realinode);
++	vfsgid = i_gid_into_vfsgid(real_mnt_userns, realinode);
++
++	inode->i_uid = vfsuid_into_kuid(vfsuid);
++	inode->i_gid = vfsgid_into_kgid(vfsgid);
+ 	inode->i_mode = realinode->i_mode;
+ 	inode->i_atime = realinode->i_atime;
+ 	inode->i_mtime = realinode->i_mtime;
 -- 
 2.34.1
 
