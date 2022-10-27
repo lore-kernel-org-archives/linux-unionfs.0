@@ -2,101 +2,60 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D58DECAAA1
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Oct 2022 11:13:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B23EBC38A2D
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Oct 2022 05:31:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229779AbiJXLNm (ORCPT
+        id S229691AbiJ0FbM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Oct 2022 07:13:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35932 "EHLO
+        Thu, 27 Oct 2022 01:31:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229649AbiJXLNe (ORCPT
+        with ESMTP id S229379AbiJ0FbL (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Oct 2022 07:13:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3FF258178;
-        Mon, 24 Oct 2022 04:13:15 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1B85EB810FA;
-        Mon, 24 Oct 2022 11:13:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2CCAC433D6;
-        Mon, 24 Oct 2022 11:13:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1666609992;
-        bh=SWVSQUQLuSItHvMK+ocRmWESELtEJtixCBVdU2/ksMc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=p7dYgKrGdPHeysiadgY8YP/SNhUIpFsWRJ88XfUMgPgA5VsbSF3xwT6wZEodIjTuK
-         JnyIK855frRZs8WkkUrQdHR7xOwB+Dw5hnDbVjzgsJ6lbBJh8Mn4ipLyNCmRXMkjEP
-         0zNnOr/GCdoxo7JduDWstW5aZsNLf78dlLx316Ub2EEsGPVwrCguK8AxgI1B+ad2vl
-         9yRhl/R/+X9G6QxufpVuHBTWfY1ClL6z3OGnfiJWjKrA5Js9HWgyfIUm+MhUZ0fXt9
-         9Y8Dr5HpwsqVo2gev7o+PtQxmE7Qa96By2jfmBPanci3ku4T4ve5WcZFV+NbQr1dfZ
-         5H8AMCmOpijsA==
-From:   Christian Brauner <brauner@kernel.org>
-To:     Seth Forshee <sforshee@kernel.org>, Christoph Hellwig <hch@lst.de>,
-        linux-fsdevel@vger.kernel.org
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
-Subject: [PATCH 7/8] ovl: port to vfs{g,u}id_t and associated helpers
-Date:   Mon, 24 Oct 2022 13:12:48 +0200
-Message-Id: <20221024111249.477648-8-brauner@kernel.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20221024111249.477648-1-brauner@kernel.org>
-References: <20221024111249.477648-1-brauner@kernel.org>
+        Thu, 27 Oct 2022 01:31:11 -0400
+Received: from out199-12.us.a.mail.aliyun.com (out199-12.us.a.mail.aliyun.com [47.90.199.12])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F71D15A8FE;
+        Wed, 26 Oct 2022 22:31:09 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045192;MF=yang.lee@linux.alibaba.com;NM=1;PH=DS;RN=5;SR=0;TI=SMTPD_---0VTA1yNm_1666848664;
+Received: from localhost(mailfrom:yang.lee@linux.alibaba.com fp:SMTPD_---0VTA1yNm_1666848664)
+          by smtp.aliyun-inc.com;
+          Thu, 27 Oct 2022 13:31:05 +0800
+From:   Yang Li <yang.lee@linux.alibaba.com>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Yang Li <yang.lee@linux.alibaba.com>,
+        Abaci Robot <abaci@linux.alibaba.com>
+Subject: [PATCH -next] ovl: Remove duplicated include in inode.c
+Date:   Thu, 27 Oct 2022 13:31:03 +0800
+Message-Id: <20221027053103.123173-1-yang.lee@linux.alibaba.com>
+X-Mailer: git-send-email 2.20.1.7.g153144c
 MIME-Version: 1.0
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1645; i=brauner@kernel.org; h=from:subject; bh=SWVSQUQLuSItHvMK+ocRmWESELtEJtixCBVdU2/ksMc=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMSSHFeu9L1r6Y+nG0OSHj8/sZhdinfXJwD0m3uQs58YU0w1e qcrtHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPRVWT477P90DW/hzdXvJiVbpowvz CWe+ax8leKGYoang27RG5y+jD8T51eqxYlyhdzeecRUdGeWMY4Yc+ND38vSrje1nD50IF3TAA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-A while ago we introduced a dedicated vfs{g,u}id_t type in commit
-1e5267cd0895 ("mnt_idmapping: add vfs{g,u}id_t"). We already switched
-over a good part of the VFS. Ultimately we will remove all legacy
-idmapped mount helpers that operate only on k{g,u}id_t in favor of the
-new type safe helpers that operate on vfs{g,u}id_t.
+./fs/overlayfs/inode.c: linux/posix_acl.h is included more than once.
 
-Cc: Seth Forshee (Digital Ocean) <sforshee@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+Link: https://bugzilla.openanolis.cn/show_bug.cgi?id=2599
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
 ---
+ fs/overlayfs/inode.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Notes:
-    Note that this patch is currently also in Miklos tree.
-
- fs/overlayfs/util.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 81a57a8d80d9..c0c20d33691b 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1104,13 +1104,18 @@ void ovl_copyattr(struct inode *inode)
- 	struct path realpath;
- 	struct inode *realinode;
- 	struct user_namespace *real_mnt_userns;
-+	vfsuid_t vfsuid;
-+	vfsgid_t vfsgid;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 77a77fd7a77b..d52bcdad4e5b 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -14,7 +14,6 @@
+ #include <linux/fileattr.h>
+ #include <linux/security.h>
+ #include <linux/namei.h>
+-#include <linux/posix_acl.h>
+ #include <linux/posix_acl_xattr.h>
+ #include "overlayfs.h"
  
- 	ovl_i_path_real(inode, &realpath);
- 	realinode = d_inode(realpath.dentry);
- 	real_mnt_userns = mnt_user_ns(realpath.mnt);
- 
--	inode->i_uid = i_uid_into_mnt(real_mnt_userns, realinode);
--	inode->i_gid = i_gid_into_mnt(real_mnt_userns, realinode);
-+	vfsuid = i_uid_into_vfsuid(real_mnt_userns, realinode);
-+	vfsgid = i_gid_into_vfsgid(real_mnt_userns, realinode);
-+
-+	inode->i_uid = vfsuid_into_kuid(vfsuid);
-+	inode->i_gid = vfsgid_into_kgid(vfsgid);
- 	inode->i_mode = realinode->i_mode;
- 	inode->i_atime = realinode->i_atime;
- 	inode->i_mtime = realinode->i_mtime;
 -- 
-2.34.1
+2.20.1.7.g153144c
 
