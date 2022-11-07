@@ -2,102 +2,88 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05CE8C4332F
-	for <linux-unionfs@archiver.kernel.org>; Thu,  3 Nov 2022 14:23:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B2743C433FE
+	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Nov 2022 04:29:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229791AbiKCOXt (ORCPT
+        id S230321AbiKGE3l (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 3 Nov 2022 10:23:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45106 "EHLO
+        Sun, 6 Nov 2022 23:29:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42866 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229667AbiKCOXs (ORCPT
+        with ESMTP id S230302AbiKGE3k (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 3 Nov 2022 10:23:48 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E107226DC;
-        Thu,  3 Nov 2022 07:23:47 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 4BB9DCE2722;
-        Thu,  3 Nov 2022 14:23:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7E0DDC433D6;
-        Thu,  3 Nov 2022 14:23:43 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1667485424;
-        bh=1mb0UurHHrNFqj2sHmybUCJt4bkS5HY4Ovca4anNFkc=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=XY6qTuHKDTt2JcS/mXxzCs2mTyv6ktexk/jwHBkomRWhGgdujJzF7NM/ANfK0EKGv
-         u2CUjFR7jiCpEKXUUXVAckSw9ayh/tFVvscGbr2Xz/7cvywSZz87T6Ub900CRx8Upd
-         FQ+sFbnhx6cCq2f/EnzTJrWNsTvsYpEIev2IrpLwroR3pI940YOoYIq2unsvG2pqFR
-         DcVNhKJ5bQgA6sCCeVN0zZK/tL7yLNm/TSqQKKndGti8QmXciB28MEieQwHsLi2HTx
-         zOPQgr3Ftc00LRdHzpyX2/9JS6lSVpAmt27EO1fRjSnSzxGEQJ4ngFXnXNHKv4fnz4
-         2PyDKFNb9i+xQ==
-Date:   Thu, 3 Nov 2022 15:23:40 +0100
-From:   Christian Brauner <brauner@kernel.org>
-To:     syzbot <syzbot+3f6ef1c4586bb6fd1f61@syzkaller.appspotmail.com>
-Cc:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] BUG: unable to handle kernel paging request in
- ovl_set_acl
-Message-ID: <20221103142340.6qc23fgvchtmrv6z@wittgenstein>
-References: <20221103072557.qc2hsowoaatstrbh@wittgenstein>
- <0000000000002d057805ec8f6cb5@google.com>
+        Sun, 6 Nov 2022 23:29:40 -0500
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8FC8A45F
+        for <linux-unionfs@vger.kernel.org>; Sun,  6 Nov 2022 20:29:38 -0800 (PST)
+Received: by mail-pj1-x102d.google.com with SMTP id l22-20020a17090a3f1600b00212fbbcfb78so13376449pjc.3
+        for <linux-unionfs@vger.kernel.org>; Sun, 06 Nov 2022 20:29:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=1hXEdKrSfJea2pwv7vtnqLeuRUkEVP2ciAxEoielt5Y=;
+        b=l37z8Mfi/ZJFWxBiVEDW66FYfBRNBih7l78+hE82DbJcwFDud0vXRthysO5az2JO5b
+         k1qNVCt2+biJrAtRlrRriie4ZzTysiRPmozX/i6HLd42by4qA1u4Acke4CA8wfXU1Of3
+         6Eq4TNJyABIMSec6DaKJkyOpok0u50UgkwSn5ppr8oaAWYSN5YmEeJs4zeCLlWapmsKe
+         xZOwjeOtORRbvKexql6hQg5Z0MdPHf2pxw/tnxRvC7LxaonaTsGbpPehSdtzjZtSEz7F
+         o42hKthZAViZuGtOifVAYk/6RkXuGNBQwkW8gYMu1zgDVgHvJslB+6xquUA28IbhDyd2
+         WeKA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=1hXEdKrSfJea2pwv7vtnqLeuRUkEVP2ciAxEoielt5Y=;
+        b=RyJEfg1Qrs9rPX64RdNhxe8Dgyr2HRxYaaFYEILw8TKuJQ/3SHlUlcI9oycHa553pb
+         te5GMv9IWJTj0pXdURX97X9lD0PVpW5u+PI12VbT4BwNu0iHalqq37ZuwwiWEJsN3JQt
+         hW7kd2ULUl4EbO3i+NgKvKeQCO8+bpLhwfxetA8f7CrDyOBRgVzIPrWIcrL+tfAxbVv8
+         +I+cTLV9pdeZWkRC4dQN7WRt0IW3+k/Mu4uPwczPw/5LHJHyoq0tN/Gk4LEx37tiVN/S
+         SDPiFTtEvyyfVrNOo0VXjju8KVnHWlhFfWLrvaSaTCsoo9mS+29pFt9oFXedYknwmlds
+         adgw==
+X-Gm-Message-State: ACrzQf260YOk6IBII8KrULaOyoUJqsU0LSdMjApDdf2+qrveSDAWdx1b
+        jciBJg/SimIA6ZDajxlBSW1+rwJRXM0=
+X-Google-Smtp-Source: AMsMyM66dC5Ib9NbOzitNz41Z7lmlnZwx0wSBaxZtxPb9dZ3GCscnpcdJwxX0UqSH2uzGGhUMBDLwQ==
+X-Received: by 2002:a17:90b:1490:b0:212:68bf:fcc5 with SMTP id js16-20020a17090b149000b0021268bffcc5mr32157673pjb.52.1667795378381;
+        Sun, 06 Nov 2022 20:29:38 -0800 (PST)
+Received: from ubuntu ([210.99.119.32])
+        by smtp.gmail.com with ESMTPSA id k17-20020a170902c41100b00186a6b6350esm3861457plk.268.2022.11.06.20.29.35
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 06 Nov 2022 20:29:36 -0800 (PST)
+Date:   Sun, 6 Nov 2022 20:29:32 -0800
+From:   "YoungJun.Park" <her0gyugyu@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org
+Subject: Question about ESTALE error whene deleting upper directory file.
+Message-ID: <20221107042932.GB1843153@ubuntu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <0000000000002d057805ec8f6cb5@google.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Nov 03, 2022 at 04:40:22AM -0700, syzbot wrote:
-> Hello,
-> 
-> syzbot tried to test the proposed patch but the build/boot failed:
+Here is my curious scenario.
 
-Unrelated failure. I've reproduced the issue manually and verified that
-the patch I wanted to test fixes it. Patch is in the relevant branch an
-in for-next:
+1. create a file on overlayfs.
+2. delete a file on upper directory.
+3. can see file contents using read sys call. (may file operations all success)
+4. cannot remove, rename. it return -ESTALE error (may inode operations fail)
 
-https://git.kernel.org/pub/scm/linux/kernel/git/vfs/idmapping.git/commit/?h=fs.acl.rework&id=5b52aebef8954cadff29918bb61d7fdc7be07837
+I understand this scenario onto the code level.
+But I don't understand this situation itself.
 
-This is only relevant for the next mw so nothing in ovl in mainline.
-Fwiw, this is the fix:
+I found a overlay kernel docs and it comments 
+Changes to underlying filesystems section
 
-From 5b52aebef8954cadff29918bb61d7fdc7be07837 Mon Sep 17 00:00:00 2001
-From: Christian Brauner <brauner@kernel.org>
-Date: Thu, 3 Nov 2022 08:18:46 +0100
-Subject: [PATCH] ovl: call posix_acl_release() after error checking
+...
+Changes to the underlying filesystems while part of a mounted overlay filesystem are not allowed. 
+If the underlying filesystem is changed, the behavior of the overlay is undefined, 
+though it will not result in a crash or deadlock.
+....
 
-The current placement of posix_acl_release() in ovl_set_or_remove_acl()
-means it can be called on an error pointer instead of actual acls.
-Fix this by moving the posix_acl_release() call after the error handling.
+So here is my question (may it is suggestion)
 
-Fixes: 0e641857322f ("ovl: implement set acl method") # mainline only
-Reported-by: syzbot+3f6ef1c4586bb6fd1f61@syzkaller.appspotmail.com
-Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
----
- fs/overlayfs/inode.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+1. underlying file system change is not allowed, then how about implementing shadow upper directory from user? 
+2. if read, write system call is allowed, how about changing remove, rename(and more I does not percept) operation success?
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 77a77fd7a77b..ee6dfa577c93 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -621,11 +621,11 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
- 		real_acl = vfs_get_acl(mnt_user_ns(realpath.mnt), realdentry,
- 				       acl_name);
- 		revert_creds(old_cred);
--		posix_acl_release(real_acl);
- 		if (IS_ERR(real_acl)) {
- 			err = PTR_ERR(real_acl);
- 			goto out_drop_write;
- 		}
-+		posix_acl_release(real_acl);
- 	}
- 
- 	if (!upperdentry) {
--- 
-2.34.1
-
+Best Regards.
