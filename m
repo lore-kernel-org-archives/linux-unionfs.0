@@ -2,59 +2,59 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B0FC433FE
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 11:15:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E9DEC43217
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 20:57:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229553AbiKVLPq (ORCPT
+        id S234450AbiKVU4y (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 22 Nov 2022 06:15:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60964 "EHLO
+        Tue, 22 Nov 2022 15:56:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233136AbiKVLP1 (ORCPT
+        with ESMTP id S230365AbiKVU4v (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Nov 2022 06:15:27 -0500
-Received: from mail-vs1-xe2e.google.com (mail-vs1-xe2e.google.com [IPv6:2607:f8b0:4864:20::e2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 109425BD41;
-        Tue, 22 Nov 2022 03:13:47 -0800 (PST)
-Received: by mail-vs1-xe2e.google.com with SMTP id t14so14085767vsr.9;
-        Tue, 22 Nov 2022 03:13:47 -0800 (PST)
+        Tue, 22 Nov 2022 15:56:51 -0500
+Received: from mail-il1-x130.google.com (mail-il1-x130.google.com [IPv6:2607:f8b0:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD89379E34
+        for <linux-unionfs@vger.kernel.org>; Tue, 22 Nov 2022 12:56:50 -0800 (PST)
+Received: by mail-il1-x130.google.com with SMTP id g7so7697051ile.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 22 Nov 2022 12:56:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
+        d=google.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=7ctwvpJ4WmLw8p9CFeleB7Pgd59LFpS1OykmA2+lU2U=;
-        b=b6gPC3FpAAoIsTrR/GjtWKbzKFsmS3SYe7WsW32gCahQi1HxOvCju2+tL83BVRwwG0
-         0nEFRgiiYSbd8tu4OiovxpIUT2VydWFiloCnps2GHxHiskGDzTcqJ+C7e6pjssUU4+4I
-         45MlrD7dxprQUpOvpPH4w1obxKoJqsPIkxjHe85bMFuekTi5c6jJ3+wQ2I/mH9I7k+iZ
-         5NV6LNcHggfuQcqEz/4CZM4pkh0EjvrysF98WHT5V56TOLx9EIiujHaDkR8TSZw4aQUX
-         QItzPMSSeejDkdIiKGFq6CnnbXwBaSmUDuvzj3ktAPddAkBZJotJHooi4VwA6GXdBMdf
-         WAmQ==
+        bh=KlMufq6wwOtc4XGTJGuBUwA4oTDJeZJWTn7LDaX9omo=;
+        b=cc48agsV/uOGmMsIxtLLEXqIc/tKDn7MSV+gANC7gdTPlIvVF8YI/++GcxTXOY5wMz
+         5Hcv5e/SblT6b22pBjcQ7fTC7BK1T+F59jdPEviqB/Tu/jwEbNI8jCrWbm6sdqcfOU1z
+         k7yL/j2qmH9wSR01r8qDn0ypEIbwmb99ruu35UY1zvqrTE9fkQdpoo/ftOuFuV6HmBPs
+         Tr4yETlCoCpE5OR8IN+a1YVsGSCpf3Nzc5EQ0LZ5ffg7Y5bFJAf0PzCqVPerNaHsc5zg
+         HfYGHcSZO+csoRtO/IYyWtJ2T3/ZHK9XvtR3/GvVcfHJnUxqIbsvSiLlxfa4TmTRDdle
+         CMCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=7ctwvpJ4WmLw8p9CFeleB7Pgd59LFpS1OykmA2+lU2U=;
-        b=I51GSTN5BZ2Ee6/kxYlTjwZQyegZPSHmFbbpJ5tv9CtamoVqaBPJ4n/ImIKURr0pgT
-         8Ar2xoQ5KcPNEO1s1e3GQEXBvbdnDwvYyzWyK8mmR910EVt57tXsH+QRYg+EnRxNn6B6
-         6XCt3/i52e8DUs4SwXZuT8LwSwxRZbSk7eY8zdszpEijEdE5knEPKvV0KvdT2/ajAcdq
-         rN3L5x/SMrDnj344/56xJLNPkwvGkGz+qnMr/p77O7zEFD8/ou8wEk/pqA+u6PWWVHNC
-         OlcxcPLm4BW5tZe1qKjWTcvqPZam8/1xjgfNJ7p/+Tm1zV37BqrNjSrvTnuRtuD0vQqR
-         mtig==
-X-Gm-Message-State: ANoB5pn1x/TUzNvlPi6akHNU8XdqQMbLHGydsNvMMF2TV/UczvA2z6q9
-        arWjMy142bwG2em/ThBwI0bDJb2MDZ1UTDHsSWF1gpEhmCk=
-X-Google-Smtp-Source: AA0mqf74RvZ9FOqf4Ak0ELFEqSpBYvkzZ3F8GxTEFa5nqLuTAn7Lk0xRxiTrgc/F38UyOU7gm4M4xAVNRxC0H2jJvW8=
-X-Received: by 2002:a05:6102:3bc1:b0:3a7:9b8c:2e4c with SMTP id
- a1-20020a0561023bc100b003a79b8c2e4cmr1731318vsv.72.1669115626788; Tue, 22 Nov
- 2022 03:13:46 -0800 (PST)
+        bh=KlMufq6wwOtc4XGTJGuBUwA4oTDJeZJWTn7LDaX9omo=;
+        b=zItz8AMRGJPgi0UOkcUpeQ1wDgmYxdXtMfFGjzisi/wwmI4IMcZEe473ppgkII4Doy
+         2SkAvmQMxOe0beskn7XW/FczHR7OIxJBGuLFDY7i7ujE8KVmCS36KYdYP1yjOK5tYroN
+         Z91WCbLN6PkNPMJSQbfsxHjLtTvvBB4uiyaotGBpTotCxvmxnkRfEzsM8lUqa43rmS0o
+         oPP3aPlpmOeYAGdU+SYwMl9bfoakZ27D9OeAwDEYYNpSKbQorya9XnY/ZKTlscNFnPNf
+         9drBgf3JNqUpuguHMf8JwWdLkfc1uIom2Pa02ZCLUun1BhytnfeZXXd0FKjNLWMF/y1D
+         Hu1w==
+X-Gm-Message-State: ANoB5pmPk3zPtwpHtqTHFaKjYmXwpxVkx1JvQ32tRW5PtduDBLUlpO6u
+        gb8DsIkAQQINqWtDCyyuXjoTIFF2SkLOCbgZenNTPA==
+X-Google-Smtp-Source: AA0mqf7MpSN1gs5UHuvg6Y+bJcDNPrwNMRrOYJimH4KCWL1V/xsX7F2M8ZSr2Uw3P0NmLLajaksjhrPeAmAmCr0plQ0=
+X-Received: by 2002:a05:6e02:11a3:b0:302:a9a5:d608 with SMTP id
+ 3-20020a056e0211a300b00302a9a5d608mr3748589ilj.141.1669150609835; Tue, 22 Nov
+ 2022 12:56:49 -0800 (PST)
 MIME-Version: 1.0
-References: <20221122021536.1629178-1-drosen@google.com>
-In-Reply-To: <20221122021536.1629178-1-drosen@google.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 22 Nov 2022 13:13:35 +0200
-Message-ID: <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
+References: <20221122021536.1629178-1-drosen@google.com> <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
+From:   Daniel Rosenberg <drosen@google.com>
+Date:   Tue, 22 Nov 2022 12:56:38 -0800
+Message-ID: <CA+PiJmRLTXfjJmgJm9VRBQeLVkWgaqSq0RMrRY1Vj7q6pV+omw@mail.gmail.com>
 Subject: Re: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for FUSE
-To:     Daniel Rosenberg <drosen@google.com>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         bpf@vger.kernel.org, kernel-team@android.com
@@ -63,60 +63,71 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Nov 22, 2022 at 4:15 AM Daniel Rosenberg <drosen@google.com> wrote:
+I've been running the generic xfstests against it, with some
+modifications to do things like mount/unmount the lower and upper fs
+at once. Most of the failures I see there are related to missing
+opcodes, like FUSE_SETLK, FUSE_GETLK, and FUSE_IOCTL. The main failure
+I have been seeing is generic/126, which is happening due to some
+additional checks we're doing in fuse_open_backing. I figured at some
+point we'd add some tests into libfuse, and that sounds like a good
+place to start.
+
+On Tue, Nov 22, 2022 at 3:13 AM Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> These patches extend FUSE to be able to act as a stacked filesystem. This
-> allows pure passthrough, where the fuse file system simply reflects the lower
-> filesystem, and also allows optional pre and post filtering in BPF and/or the
-> userspace daemon as needed. This can dramatically reduce or even eliminate
-> transitions to and from userspace.
+> On Tue, Nov 22, 2022 at 4:15 AM Daniel Rosenberg <drosen@google.com> wrote:
+> >
+> > These patches extend FUSE to be able to act as a stacked filesystem. This
+> > allows pure passthrough, where the fuse file system simply reflects the lower
+> > filesystem, and also allows optional pre and post filtering in BPF and/or the
+> > userspace daemon as needed. This can dramatically reduce or even eliminate
+> > transitions to and from userspace.
+> >
+> > For this patch set, I have removed the code related to the bpf side of things
+> > since that is undergoing some large reworks to get it in line with the more
+> > recent BPF developements. This set of patches implements direct passthrough to
+> > the lower filesystem with no alteration. Looking at the v1 code should give a
+> > pretty good idea of what the general shape of the bpf calls will look like.
+> > Without the bpf side, it's like a less efficient bind mount. Not very useful
+> > on its own, but still useful to get eyes on it since the backing calls will be
+> > larglely the same when bpf is in the mix.
+> >
+> > This changes the format of adding a backing file/bpf slightly from v1. It's now
+> > a bit more modular. You add a block of data at the end of a lookup response to
+> > give the bpf fd and backing id, but there is now a type header to both blocks,
+> > and a reserved value for future additions. In the future, we may allow for
+> > multiple bpfs or backing files, and this will allow us to extend it without any
+> > UAPI breaking changes. Multiple BPFs would be useful for combining fuse-bpf
+> > implementations without needing to manually combine bpf fragments. Multiple
+> > backing files would allow implementing things like a limited overlayfs.
+> > In this patch set, this is only a single block, with only backing supported,
+> > although I've left the definitions reflecting the BPF case as well.
+> > For bpf, the plan is to have two blocks, with the bpf one coming first.
+> > Any further extensions are currently just speculative.
+> >
+> > You can run this without needing to set up a userspace daemon by adding these
+> > mount options: root_dir=[fd],no_daemon where fd is an open file descriptor
+> > pointing to the folder you'd like to use as the root directory. The fd can be
+> > immediately closed after mounting. This is useful for running various fs tests.
+> >
 >
-> For this patch set, I have removed the code related to the bpf side of things
-> since that is undergoing some large reworks to get it in line with the more
-> recent BPF developements. This set of patches implements direct passthrough to
-> the lower filesystem with no alteration. Looking at the v1 code should give a
-> pretty good idea of what the general shape of the bpf calls will look like.
-> Without the bpf side, it's like a less efficient bind mount. Not very useful
-> on its own, but still useful to get eyes on it since the backing calls will be
-> larglely the same when bpf is in the mix.
+> Which tests did you run?
 >
-> This changes the format of adding a backing file/bpf slightly from v1. It's now
-> a bit more modular. You add a block of data at the end of a lookup response to
-> give the bpf fd and backing id, but there is now a type header to both blocks,
-> and a reserved value for future additions. In the future, we may allow for
-> multiple bpfs or backing files, and this will allow us to extend it without any
-> UAPI breaking changes. Multiple BPFs would be useful for combining fuse-bpf
-> implementations without needing to manually combine bpf fragments. Multiple
-> backing files would allow implementing things like a limited overlayfs.
-> In this patch set, this is only a single block, with only backing supported,
-> although I've left the definitions reflecting the BPF case as well.
-> For bpf, the plan is to have two blocks, with the bpf one coming first.
-> Any further extensions are currently just speculative.
+> My recommendation (if you haven't done that already):
+> Add a variant to libfuse test_passthrough (test_examples.py):
+> @pytest.mark.parametrize("name", ('passthrough', 'passthrough_plus',
+>                            'passthrough_fh', 'passthrough_ll',
+> 'passthrough_bpf'))
 >
-> You can run this without needing to set up a userspace daemon by adding these
-> mount options: root_dir=[fd],no_daemon where fd is an open file descriptor
-> pointing to the folder you'd like to use as the root directory. The fd can be
-> immediately closed after mounting. This is useful for running various fs tests.
+> and compose the no_daemon cmdline for the 'passthrough_bpf' mount.
 >
-
-Which tests did you run?
-
-My recommendation (if you haven't done that already):
-Add a variant to libfuse test_passthrough (test_examples.py):
-@pytest.mark.parametrize("name", ('passthrough', 'passthrough_plus',
-                           'passthrough_fh', 'passthrough_ll',
-'passthrough_bpf'))
-
-and compose the no_daemon cmdline for the 'passthrough_bpf' mount.
-
-This gives pretty good basic test coverage for FUSE passthrough operations.
-
-I've extended test_passthrough_hp() for my libfuse_passthrough patches [1],
-but it's the same principle.
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/libfuse/commits/fuse_passthrough
-* 'passthrough_module' uses 'libfuse_passthrough' which enables
-   Allesio's FUSE_DEV_IOC_PASSTHROUGH_OPEN by default.
+> This gives pretty good basic test coverage for FUSE passthrough operations.
+>
+> I've extended test_passthrough_hp() for my libfuse_passthrough patches [1],
+> but it's the same principle.
+>
+> Thanks,
+> Amir.
+>
+> [1] https://github.com/amir73il/libfuse/commits/fuse_passthrough
+> * 'passthrough_module' uses 'libfuse_passthrough' which enables
+>    Allesio's FUSE_DEV_IOC_PASSTHROUGH_OPEN by default.
