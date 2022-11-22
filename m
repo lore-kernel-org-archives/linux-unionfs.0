@@ -2,58 +2,58 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE4F5C43217
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 02:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42DA8C43219
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 02:17:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229676AbiKVCRV (ORCPT
+        id S229866AbiKVCRx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Nov 2022 21:17:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42374 "EHLO
+        Mon, 21 Nov 2022 21:17:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43320 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232592AbiKVCQj (ORCPT
+        with ESMTP id S232605AbiKVCRC (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Nov 2022 21:16:39 -0500
-Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06C35E6749
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:16:15 -0800 (PST)
-Received: by mail-yb1-xb4a.google.com with SMTP id e15-20020a5b0ccf000000b006ed1704b40cso3013449ybr.5
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:16:15 -0800 (PST)
+        Mon, 21 Nov 2022 21:17:02 -0500
+Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38864E675B
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:16:18 -0800 (PST)
+Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-3691846091fso126823607b3.9
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:16:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=mBD6bGviTnQaNR8TlIrtDcNsv7AoSToN0hwSmPU39NM=;
-        b=oKcvpaX8yBxVrqjzpCwp8hRJbcWcrVDPsDHSTtU/JumfrQNEB9LNqF2bZQDgm66L23
-         ezgqXB2c8vNVR5Ss+f0VlAAkX7XbGHrjbnnMn7F2oqVZtP8ZWNt7oydnS1QJUerPmQrw
-         wZlW7iK35Eki/V2aGDIyRlsqTBNDWVYquyeLToqnZuW5Dk/b7LAie/wJsfzS3DkKBD2Z
-         UTRBDxexsXEWuJSNee5jmYV9WWIOxyhAQPI0DgGAvgfFII8jVxgE22HiU1GNrHiYDYUL
-         1O33KGWuGc2xU5ucwwHWvW+lMdsOuhQ+wShSsdOzU36NkBFSAmPL0D30z2fGKF6c0j0K
-         MJ1Q==
+        bh=/H+L2cRtspRUVOzDKfhmH9r0h1z7XV5y5jiKoA2w7Jo=;
+        b=GkbYhSRuG3pnC12YeGswQtbl8Qkm/FgEIiaZy5lmsxd6nnIJGVSGgoCrt6HlEko6Ki
+         C6yr+mtFUhPtVnoaJg/ByALo10sNnWpcBCubg/D8R0ssNLL3XjyN46mJHVC5Um8b16CU
+         orSmyP3WSpCgYDTcMIiZcxb2R80zdMKhHpr45RrSwbcJgu+a3jL9Xhb8MiJaYe2teBth
+         L8HZN6e2FJlFs1cfNF808/GPl/xs2NrIzv6kCLjM5O/xSQgt9ou3kcdxWqlecQ+QDqfO
+         utLWnK4t1OVh8O7dFmQ1g64uSIWNxLOGjQxuWWbknOLE404qWDNW8Qs3bG4NsLYvtmbe
+         jw9Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=mBD6bGviTnQaNR8TlIrtDcNsv7AoSToN0hwSmPU39NM=;
-        b=Xxo0ph2r3IyJjjNlqkSsia7onEUkFsitIjdr4ykggKrfTcw7xgdtbP0OyaPw3yKf4b
-         BqzsbB1CuWyHaI6G4TM9hc+0sSf+3ev7nGqvcT52XczRqW9ORhkfAUuSdIUZs2r8Bui1
-         uH8S2BdvuANoyafCosL+tqRlEs2GMYKLqDRuc24efUVKSVF9BT2qJjMzP2rBRVO6Qq/O
-         iHmE5QWN7CSadCDr5eBKXxpjib045LdGT0DTwPBXAqmqNYuBX64Zz+j0/MAk4Z0HSzXZ
-         NNVabP2XVe0NzE/fuI+GOFxjRHs4sFaMyTHOu2s2lIcLQLWkAXu9/7VWp8Pmm6KHJ+sp
-         U3yA==
-X-Gm-Message-State: ACrzQf0Kf4VwJEhp7LLIUrRo5mmvhLMLAjk34gVZVVlpFXI1R9BSlBe6
-        GcNmQVt57kqjlaU5WjcGczpqPyz10Cw=
-X-Google-Smtp-Source: AMsMyM4Kn48IaLW3aQ/ISb02XRlP+7K9GeYY53FXTg2JD7CCTW1NuBvn0mi2FPfdwt99RzojkrLJTecFwGg=
+        bh=/H+L2cRtspRUVOzDKfhmH9r0h1z7XV5y5jiKoA2w7Jo=;
+        b=NLhS+GyH1Tmrfgi53gehNcnojVJBTPIPM+jOJVzGI1a0nhXEenWCg+shCyyVpsrs5Z
+         S51mytFC30O2bNykJHVlRAvOX5i4YtRvtfb2eJ+k0mVzykYfI/blK9BhV09NTMDNqGAZ
+         ABabXmtTBwYwxo380IXLMx9an/jbcnQ7UtC0oSgu5CO/Ulo6x3isz5yjVD/MJhOvlcP6
+         dvaBZlKPmWFzUYbiIaoP6yceC4WUROqTcDOmtVWA04963Hj9INgza3+C1VMu4trHUaD0
+         B/wdq2uM1WlJEKxn0A/HB19XnJdb+igYW3mmGwSkPKPSSUtvXCKqp7pCnUijZl6DhC3e
+         o4Dw==
+X-Gm-Message-State: ANoB5pltcZ0C/+plZgv3fxT3YbdHpFibxC59+ZCEWob9Iyj0Fj7LBFvJ
+        cHrh0gS5308OUmUQEDu7oXqta0vycU8=
+X-Google-Smtp-Source: AA0mqf6T81Q7kb/8MBkNfWtjc8pLPbKvhJyO5HsbQTEwR7WiW1wy5USpYOyxaJPL2wysP5NucahLhCtfZFU=
 X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:200:8539:aadd:13be:6e82])
- (user=drosen job=sendgmr) by 2002:a81:86c2:0:b0:332:a104:f7e4 with SMTP id
- w185-20020a8186c2000000b00332a104f7e4mr66525980ywf.505.1669083374599; Mon, 21
- Nov 2022 18:16:14 -0800 (PST)
-Date:   Mon, 21 Nov 2022 18:15:24 -0800
+ (user=drosen job=sendgmr) by 2002:a05:690c:845:b0:3a5:36e5:94eb with SMTP id
+ bz5-20020a05690c084500b003a536e594ebmr5266716ywb.39.1669083377322; Mon, 21
+ Nov 2022 18:16:17 -0800 (PST)
+Date:   Mon, 21 Nov 2022 18:15:25 -0800
 In-Reply-To: <20221122021536.1629178-1-drosen@google.com>
 Mime-Version: 1.0
 References: <20221122021536.1629178-1-drosen@google.com>
 X-Mailer: git-send-email 2.38.1.584.g0f3c55d4c2-goog
-Message-ID: <20221122021536.1629178-10-drosen@google.com>
-Subject: [RFC PATCH v2 09/21] fuse-bpf: Add lseek support
+Message-ID: <20221122021536.1629178-11-drosen@google.com>
+Subject: [RFC PATCH v2 10/21] fuse-bpf: Add support for fallocate
 From:   Daniel Rosenberg <drosen@google.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org,
@@ -69,139 +69,111 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 Signed-off-by: Daniel Rosenberg <drosen@google.com>
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 ---
- fs/fuse/backing.c | 88 +++++++++++++++++++++++++++++++++++++++++++++++
- fs/fuse/file.c    |  3 ++
- fs/fuse/fuse_i.h  |  6 ++++
- 3 files changed, 97 insertions(+)
+ fs/fuse/backing.c | 58 +++++++++++++++++++++++++++++++++++++++++++++++
+ fs/fuse/file.c    |  3 +++
+ fs/fuse/fuse_i.h  |  6 +++++
+ 3 files changed, 67 insertions(+)
 
 diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-index 8d862bc64acd..76f48872ed35 100644
+index 76f48872ed35..51aadeb1b7dc 100644
 --- a/fs/fuse/backing.c
 +++ b/fs/fuse/backing.c
-@@ -205,6 +205,94 @@ static void fuse_stat_to_attr(struct fuse_conn *fc, struct inode *inode,
- 	attr->blksize = 1 << blkbits;
+@@ -330,6 +330,64 @@ ssize_t fuse_backing_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return ret;
  }
  
-+struct fuse_lseek_io {
-+	struct fuse_lseek_in fli;
-+	struct fuse_lseek_out flo;
-+};
-+
-+static int fuse_lseek_initialize_in(struct fuse_args *fa, struct fuse_lseek_io *flio,
-+				    struct file *file, loff_t offset, int whence)
++static int fuse_file_fallocate_initialize_in(struct fuse_args *fa,
++					     struct fuse_fallocate_in *ffi,
++					     struct file *file, int mode, loff_t offset, loff_t length)
 +{
-+	struct fuse_file *fuse_file = file->private_data;
++	struct fuse_file *ff = file->private_data;
 +
-+	flio->fli = (struct fuse_lseek_in) {
-+		.fh = fuse_file->fh,
++	*ffi = (struct fuse_fallocate_in) {
++		.fh = ff->fh,
 +		.offset = offset,
-+		.whence = whence,
++		.length = length,
++		.mode = mode,
 +	};
 +
 +	*fa = (struct fuse_args) {
-+		.nodeid = get_node_id(file->f_inode),
-+		.opcode = FUSE_LSEEK,
++		.opcode = FUSE_FALLOCATE,
++		.nodeid = ff->nodeid,
 +		.in_numargs = 1,
-+		.in_args[0].size = sizeof(flio->fli),
-+		.in_args[0].value = &flio->fli,
++		.in_args[0].size = sizeof(*ffi),
++		.in_args[0].value = ffi,
 +	};
 +
 +	return 0;
 +}
 +
-+static int fuse_lseek_initialize_out(struct fuse_args *fa, struct fuse_lseek_io *flio,
-+				     struct file *file, loff_t offset, int whence)
++static int fuse_file_fallocate_initialize_out(struct fuse_args *fa,
++					      struct fuse_fallocate_in *ffi,
++					      struct file *file, int mode, loff_t offset, loff_t length)
 +{
-+	fa->out_numargs = 1;
-+	fa->out_args[0].size = sizeof(flio->flo);
-+	fa->out_args[0].value = &flio->flo;
-+
 +	return 0;
 +}
 +
-+static int fuse_lseek_backing(struct fuse_args *fa, loff_t *out,
-+			      struct file *file, loff_t offset, int whence)
++static int fuse_file_fallocate_backing(struct fuse_args *fa, int *out,
++				       struct file *file, int mode, loff_t offset, loff_t length)
 +{
-+	const struct fuse_lseek_in *fli = fa->in_args[0].value;
-+	struct fuse_lseek_out *flo = fa->out_args[0].value;
-+	struct fuse_file *fuse_file = file->private_data;
-+	struct file *backing_file = fuse_file->backing_file;
++	const struct fuse_fallocate_in *ffi = fa->in_args[0].value;
++	struct fuse_file *ff = file->private_data;
 +
-+	/* TODO: Handle changing of the file handle */
-+	if (offset == 0) {
-+		if (whence == SEEK_CUR) {
-+			flo->offset = file->f_pos;
-+			*out = flo->offset;
-+			return 0;
-+		}
-+
-+		if (whence == SEEK_SET) {
-+			flo->offset = vfs_setpos(file, 0, 0);
-+			*out = flo->offset;
-+			return 0;
-+		}
-+	}
-+
-+	inode_lock(file->f_inode);
-+	backing_file->f_pos = file->f_pos;
-+	*out = vfs_llseek(backing_file, fli->offset, fli->whence);
-+	flo->offset = *out;
-+	inode_unlock(file->f_inode);
++	*out = vfs_fallocate(ff->backing_file, ffi->mode, ffi->offset,
++			     ffi->length);
 +	return 0;
 +}
 +
-+static int fuse_lseek_finalize(struct fuse_args *fa, loff_t *out,
-+			       struct file *file, loff_t offset, int whence)
++static int fuse_file_fallocate_finalize(struct fuse_args *fa, int *out,
++					struct file *file, int mode, loff_t offset, loff_t length)
 +{
-+	struct fuse_lseek_out *flo = fa->out_args[0].value;
-+
-+	if (!fa->error_in)
-+		file->f_pos = flo->offset;
-+	*out = flo->offset;
 +	return 0;
 +}
 +
-+int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *file, loff_t offset, int whence)
++int fuse_bpf_file_fallocate(int *out, struct inode *inode, struct file *file, int mode, loff_t offset, loff_t length)
 +{
-+	return fuse_bpf_backing(inode, struct fuse_lseek_io, out,
-+				fuse_lseek_initialize_in, fuse_lseek_initialize_out,
-+				fuse_lseek_backing,
-+				fuse_lseek_finalize,
-+				file, offset, whence);
++	return fuse_bpf_backing(inode, struct fuse_fallocate_in, out,
++				fuse_file_fallocate_initialize_in,
++				fuse_file_fallocate_initialize_out,
++				fuse_file_fallocate_backing,
++				fuse_file_fallocate_finalize,
++				file, mode, offset, length);
 +}
 +
- ssize_t fuse_backing_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	int ret;
+ /*******************************************************************************
+  * Directory operations after here                                             *
+  ******************************************************************************/
 diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 24fd4f33105c..e90b3e2d5452 100644
+index e90b3e2d5452..ab3cd43556e0 100644
 --- a/fs/fuse/file.c
 +++ b/fs/fuse/file.c
-@@ -2704,6 +2704,9 @@ static loff_t fuse_file_llseek(struct file *file, loff_t offset, int whence)
- 	loff_t retval;
- 	struct inode *inode = file_inode(file);
+@@ -2997,6 +2997,9 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
  
-+	if (fuse_bpf_lseek(&retval, inode, file, offset, whence))
-+		return retval;
+ 	bool block_faults = FUSE_IS_DAX(inode) && lock_inode;
+ 
++	if (fuse_bpf_file_fallocate(&err, inode, file, mode, offset, length))
++		return err;
 +
- 	switch (whence) {
- 	case SEEK_SET:
- 	case SEEK_CUR:
+ 	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |
+ 		     FALLOC_FL_ZERO_RANGE))
+ 		return -EOPNOTSUPP;
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 95d67afcff05..108c2ea15a49 100644
+index 108c2ea15a49..4351dbc7f10d 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
-@@ -1400,11 +1400,17 @@ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num_entries);
- 
+@@ -1401,6 +1401,7 @@ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num_entries);
  #ifdef CONFIG_FUSE_BPF
  
-+int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *file, loff_t offset, int whence);
+ int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *file, loff_t offset, int whence);
++int fuse_bpf_file_fallocate(int *out, struct inode *inode, struct file *file, int mode, loff_t offset, loff_t length);
  int fuse_bpf_lookup(struct dentry **out, struct inode *dir, struct dentry *entry, unsigned int flags);
  int fuse_bpf_access(int *out, struct inode *inode, int mask);
  
- #else
+@@ -1411,6 +1412,11 @@ static inline int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *
+ 	return 0;
+ }
  
-+static inline int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *file, loff_t offset, int whence)
++static inline int fuse_bpf_file_fallocate(int *out, struct inode *inode, struct file *file, int mode, loff_t offset, loff_t length)
 +{
 +	return 0;
 +}
