@@ -2,213 +2,121 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4FBC4332F
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 10:21:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B0FC433FE
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 11:15:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233396AbiKVKVg (ORCPT
+        id S229553AbiKVLPq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 22 Nov 2022 05:21:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44664 "EHLO
+        Tue, 22 Nov 2022 06:15:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60964 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233129AbiKVKVR (ORCPT
+        with ESMTP id S233136AbiKVLP1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Nov 2022 05:21:17 -0500
-Received: from mail-vs1-xe2f.google.com (mail-vs1-xe2f.google.com [IPv6:2607:f8b0:4864:20::e2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98BEF5BD43;
-        Tue, 22 Nov 2022 02:19:36 -0800 (PST)
-Received: by mail-vs1-xe2f.google.com with SMTP id t14so13967037vsr.9;
-        Tue, 22 Nov 2022 02:19:36 -0800 (PST)
+        Tue, 22 Nov 2022 06:15:27 -0500
+Received: from mail-vs1-xe2e.google.com (mail-vs1-xe2e.google.com [IPv6:2607:f8b0:4864:20::e2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 109425BD41;
+        Tue, 22 Nov 2022 03:13:47 -0800 (PST)
+Received: by mail-vs1-xe2e.google.com with SMTP id t14so14085767vsr.9;
+        Tue, 22 Nov 2022 03:13:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=e8p9ZQ/UmpLjcFqjZPlNuCFs77ZDkwn/7XdgpymOLrg=;
-        b=asa+IPR7AAsj8nVdOvUGA9cCy6FoCH7gqyZ7Fyd14OPV1NfWqJIBxGnh+luw13+Rvt
-         2aKGWWagmWeODzAXtKpmPlvGS155M6d+TbAtWc1FmsFP0KDrnqMAp4sLawrKlq5seA4p
-         a2thLlsJ1BiRkKOF7ZUcIENv6WrnXA0RMxvAJvXrZmkbudEumBe35Ig5Eea3pec7RexW
-         8S4Lo+Hlcng6gHLNXfz2TFTLmQyXF5jN1yKQcbMkYFhYbia0c3kQ2gr+fJ+/3lyizCFL
-         d7XHK83LLvutNjB/Z2y5K5W6aqbsT0aB45KtYgpD4THa+32hailJg9iZin3oBBYJN2rI
-         t0gA==
+        bh=7ctwvpJ4WmLw8p9CFeleB7Pgd59LFpS1OykmA2+lU2U=;
+        b=b6gPC3FpAAoIsTrR/GjtWKbzKFsmS3SYe7WsW32gCahQi1HxOvCju2+tL83BVRwwG0
+         0nEFRgiiYSbd8tu4OiovxpIUT2VydWFiloCnps2GHxHiskGDzTcqJ+C7e6pjssUU4+4I
+         45MlrD7dxprQUpOvpPH4w1obxKoJqsPIkxjHe85bMFuekTi5c6jJ3+wQ2I/mH9I7k+iZ
+         5NV6LNcHggfuQcqEz/4CZM4pkh0EjvrysF98WHT5V56TOLx9EIiujHaDkR8TSZw4aQUX
+         QItzPMSSeejDkdIiKGFq6CnnbXwBaSmUDuvzj3ktAPddAkBZJotJHooi4VwA6GXdBMdf
+         WAmQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=e8p9ZQ/UmpLjcFqjZPlNuCFs77ZDkwn/7XdgpymOLrg=;
-        b=xPscTeUc5lfw+OecV0PeyRJR2QOAkxoc/tmjLQJRdr4S20nnOsDvDhi7pZxy88XvgE
-         70j5B4f3lP8dB1TPArdXZDwCuowyGzx6cawugDF76EwBN5XO7l0IuFQSszCAUF0hPdpe
-         kJCFxfkDyCGhNsIa8BELcY7I0KLAiOt0Qd6Ayqnq/AEl02t/Sqy6evyCPOENXgZXJ3Pd
-         hJiut9OyuXQ07pq9s+0ujiWdDnKzh4v2Ei9ZQhkQtMOCLAa2NV2luELA5Gi8jDpFMch5
-         tVPiGKU0hswVi+dE6Lt98jTzRXT9oot9QxoCQMq4RzHMCZ/1r4Qhvi6xczgZY0WdbW0u
-         K/+g==
-X-Gm-Message-State: ANoB5plOuEES7IezxGuUZhusfrqjtKhe6j0ugAoiTPQpNSGV+6gSRU7V
-        sErVz4ZHKUAXF5DyDlYsh09U5ruccRARRPmlMo/BMVd5
-X-Google-Smtp-Source: AA0mqf4+k6Ltt0LobrDMTg+yyfabacfVSb84QqqAWuB842avg9qXFmtK8YA40EBNP42QoyTa/E95DXD3l/lOYqi0dLg=
-X-Received: by 2002:a05:6102:1009:b0:3aa:13b1:86e6 with SMTP id
- q9-20020a056102100900b003aa13b186e6mr12991442vsp.36.1669112375533; Tue, 22
- Nov 2022 02:19:35 -0800 (PST)
+        bh=7ctwvpJ4WmLw8p9CFeleB7Pgd59LFpS1OykmA2+lU2U=;
+        b=I51GSTN5BZ2Ee6/kxYlTjwZQyegZPSHmFbbpJ5tv9CtamoVqaBPJ4n/ImIKURr0pgT
+         8Ar2xoQ5KcPNEO1s1e3GQEXBvbdnDwvYyzWyK8mmR910EVt57tXsH+QRYg+EnRxNn6B6
+         6XCt3/i52e8DUs4SwXZuT8LwSwxRZbSk7eY8zdszpEijEdE5knEPKvV0KvdT2/ajAcdq
+         rN3L5x/SMrDnj344/56xJLNPkwvGkGz+qnMr/p77O7zEFD8/ou8wEk/pqA+u6PWWVHNC
+         OlcxcPLm4BW5tZe1qKjWTcvqPZam8/1xjgfNJ7p/+Tm1zV37BqrNjSrvTnuRtuD0vQqR
+         mtig==
+X-Gm-Message-State: ANoB5pn1x/TUzNvlPi6akHNU8XdqQMbLHGydsNvMMF2TV/UczvA2z6q9
+        arWjMy142bwG2em/ThBwI0bDJb2MDZ1UTDHsSWF1gpEhmCk=
+X-Google-Smtp-Source: AA0mqf74RvZ9FOqf4Ak0ELFEqSpBYvkzZ3F8GxTEFa5nqLuTAn7Lk0xRxiTrgc/F38UyOU7gm4M4xAVNRxC0H2jJvW8=
+X-Received: by 2002:a05:6102:3bc1:b0:3a7:9b8c:2e4c with SMTP id
+ a1-20020a0561023bc100b003a79b8c2e4cmr1731318vsv.72.1669115626788; Tue, 22 Nov
+ 2022 03:13:46 -0800 (PST)
 MIME-Version: 1.0
-References: <20221122021536.1629178-1-drosen@google.com> <20221122021536.1629178-5-drosen@google.com>
-In-Reply-To: <20221122021536.1629178-5-drosen@google.com>
+References: <20221122021536.1629178-1-drosen@google.com>
+In-Reply-To: <20221122021536.1629178-1-drosen@google.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 22 Nov 2022 12:19:23 +0200
-Message-ID: <CAOQ4uxiVqR_HxCytweO_uKR=gdRHTjGG9SgHaNTFb1+5b6ucGQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 04/21] fuse: Add fuse-bpf, a stacked fs extension
- for FUSE
+Date:   Tue, 22 Nov 2022 13:13:35 +0200
+Message-ID: <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for FUSE
 To:     Daniel Rosenberg <drosen@google.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        bpf@vger.kernel.org, kernel-team@android.com,
-        Paul Lawrence <paullawrence@google.com>,
-        Alessio Balsini <balsini@google.com>
+        bpf@vger.kernel.org, kernel-team@android.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Nov 22, 2022 at 4:16 AM Daniel Rosenberg <drosen@google.com> wrote:
+On Tue, Nov 22, 2022 at 4:15 AM Daniel Rosenberg <drosen@google.com> wrote:
 >
-> Fuse-bpf provides a short circuit path for Fuse implementations that act
-> as a stacked filesystem. For cases that are directly unchanged,
-> operations are passed directly to the backing filesystem. Small
-> adjustments can be handled by bpf prefilters or postfilters, with the
-> option to fall back to userspace as needed.
+> These patches extend FUSE to be able to act as a stacked filesystem. This
+> allows pure passthrough, where the fuse file system simply reflects the lower
+> filesystem, and also allows optional pre and post filtering in BPF and/or the
+> userspace daemon as needed. This can dramatically reduce or even eliminate
+> transitions to and from userspace.
 >
-> Fuse implementations may supply backing node information, as well as bpf
-> programs via an optional add on to the lookup structure.
+> For this patch set, I have removed the code related to the bpf side of things
+> since that is undergoing some large reworks to get it in line with the more
+> recent BPF developements. This set of patches implements direct passthrough to
+> the lower filesystem with no alteration. Looking at the v1 code should give a
+> pretty good idea of what the general shape of the bpf calls will look like.
+> Without the bpf side, it's like a less efficient bind mount. Not very useful
+> on its own, but still useful to get eyes on it since the backing calls will be
+> larglely the same when bpf is in the mix.
 >
-> This has been split over the next set of patches for readability.
-> Clusters of fuse ops have been split into their own patches, as well as
-> the actual bpf calls and userspace calls for filters.
+> This changes the format of adding a backing file/bpf slightly from v1. It's now
+> a bit more modular. You add a block of data at the end of a lookup response to
+> give the bpf fd and backing id, but there is now a type header to both blocks,
+> and a reserved value for future additions. In the future, we may allow for
+> multiple bpfs or backing files, and this will allow us to extend it without any
+> UAPI breaking changes. Multiple BPFs would be useful for combining fuse-bpf
+> implementations without needing to manually combine bpf fragments. Multiple
+> backing files would allow implementing things like a limited overlayfs.
+> In this patch set, this is only a single block, with only backing supported,
+> although I've left the definitions reflecting the BPF case as well.
+> For bpf, the plan is to have two blocks, with the bpf one coming first.
+> Any further extensions are currently just speculative.
 >
-> Signed-off-by: Daniel Rosenberg <drosen@google.com>
-> Signed-off-by: Paul Lawrence <paullawrence@google.com>
-> Signed-off-by: Alessio Balsini <balsini@google.com>
-> ---
->  fs/fuse/Kconfig   |   8 +
->  fs/fuse/Makefile  |   1 +
->  fs/fuse/backing.c | 392 ++++++++++++++++++++++++++++++++++++++++++++++
->  fs/fuse/dev.c     |  41 ++++-
->  fs/fuse/dir.c     | 187 +++++++++++++++++-----
->  fs/fuse/file.c    |  25 ++-
->  fs/fuse/fuse_i.h  |  99 +++++++++++-
->  fs/fuse/inode.c   | 189 +++++++++++++++++-----
->  fs/fuse/ioctl.c   |   2 +-
->  9 files changed, 861 insertions(+), 83 deletions(-)
->  create mode 100644 fs/fuse/backing.c
+> You can run this without needing to set up a userspace daemon by adding these
+> mount options: root_dir=[fd],no_daemon where fd is an open file descriptor
+> pointing to the folder you'd like to use as the root directory. The fd can be
+> immediately closed after mounting. This is useful for running various fs tests.
 >
-> diff --git a/fs/fuse/Kconfig b/fs/fuse/Kconfig
-> index 038ed0b9aaa5..3a64fa73e591 100644
-> --- a/fs/fuse/Kconfig
-> +++ b/fs/fuse/Kconfig
-> @@ -52,3 +52,11 @@ config FUSE_DAX
->
->           If you want to allow mounting a Virtio Filesystem with the "dax"
->           option, answer Y.
-> +
-> +config FUSE_BPF
-> +       bool "Adds BPF to fuse"
-> +       depends on FUSE_FS
-> +       depends on BPF
-> +       help
-> +         Extends FUSE by adding BPF to prefilter calls and potentially pass to a
-> +         backing file system
-> diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
-> index 0c48b35c058d..a0853c439db2 100644
-> --- a/fs/fuse/Makefile
-> +++ b/fs/fuse/Makefile
-> @@ -9,5 +9,6 @@ obj-$(CONFIG_VIRTIO_FS) += virtiofs.o
->
->  fuse-y := dev.o dir.o file.o inode.o control.o xattr.o acl.o readdir.o ioctl.o
->  fuse-$(CONFIG_FUSE_DAX) += dax.o
-> +fuse-$(CONFIG_FUSE_BPF) += backing.o
->
->  virtiofs-y := virtio_fs.o
-> diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-> new file mode 100644
-> index 000000000000..5a59a8963d52
-> --- /dev/null
-> +++ b/fs/fuse/backing.c
-> @@ -0,0 +1,392 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +/*
-> + * FUSE-BPF: Filesystem in Userspace with BPF
-> + * Copyright (c) 2021 Google LLC
-> + */
-> +
-> +#include "fuse_i.h"
-> +
-> +#include <linux/fdtable.h>
-> +#include <linux/file.h>
-> +#include <linux/fs_stack.h>
-> +#include <linux/namei.h>
-> +
-> +/*
-> + * expression statement to wrap the backing filter logic
-> + * struct inode *inode: inode with bpf and backing inode
-> + * typedef io: (typically complex) type whose components fuse_args can point to.
-> + *     An instance of this type is created locally and passed to initialize
-> + * void initialize_in(struct fuse_args *fa, io *in_out, args...): function that sets
-> + *     up fa and io based on args
-> + * void initialize_out(struct fuse_args *fa, io *in_out, args...): function that sets
-> + *     up fa and io based on args
-> + * int backing(struct fuse_bpf_args_internal *fa, args...): function that actually performs
-> + *     the backing io operation
-> + * void *finalize(struct fuse_bpf_args *, args...): function that performs any final
-> + *     work needed to commit the backing io
-> + */
-> +#define fuse_bpf_backing(inode, io, out, initialize_in, initialize_out,        \
-> +                        backing, finalize, args...)                    \
-> +({                                                                     \
-> +       struct fuse_inode *fuse_inode = get_fuse_inode(inode);          \
-> +       struct fuse_args fa = { 0 };                                    \
-> +       bool initialized = false;                                       \
-> +       bool handled = false;                                           \
-> +       ssize_t res;                                                    \
-> +       io feo = { 0 };                                                 \
-> +       int error = 0;                                                  \
-> +                                                                       \
-> +       do {                                                            \
-> +               if (!fuse_inode || !fuse_inode->backing_inode)          \
-> +                       break;                                          \
-> +                                                                       \
-> +               handled = true;                                         \
-> +               error = initialize_in(&fa, &feo, args);                 \
-> +               if (error)                                              \
-> +                       break;                                          \
-> +                                                                       \
-> +               error = initialize_out(&fa, &feo, args);                \
-> +               if (error)                                              \
-> +                       break;                                          \
-> +                                                                       \
-> +               initialized = true;                                     \
-> +                                                                       \
-> +               error = backing(&fa, out, args);                        \
-> +               if (error < 0)                                          \
-> +                       fa.error_in = error;                            \
-> +                                                                       \
-> +       } while (false);                                                \
-> +                                                                       \
-> +       if (initialized && handled) {                                   \
-> +               res = finalize(&fa, out, args);                         \
-> +               if (res)                                                \
-> +                       error = res;                                    \
-> +       }                                                               \
-> +                                                                       \
-> +       *out = error ? _Generic((*out),                                 \
-> +                       default :                                       \
-> +                               error,                                  \
-> +                       struct dentry * :                               \
-> +                               ERR_PTR(error),                         \
-> +                       const char * :                                  \
-> +                               ERR_PTR(error)                          \
-> +                       ) : (*out);                                     \
-> +       handled;                                                        \
-> +})
-> +
 
-I hope there is a better way than this macro...
-Haven't studied the patches enough to be able to suggest one.
+Which tests did you run?
+
+My recommendation (if you haven't done that already):
+Add a variant to libfuse test_passthrough (test_examples.py):
+@pytest.mark.parametrize("name", ('passthrough', 'passthrough_plus',
+                           'passthrough_fh', 'passthrough_ll',
+'passthrough_bpf'))
+
+and compose the no_daemon cmdline for the 'passthrough_bpf' mount.
+
+This gives pretty good basic test coverage for FUSE passthrough operations.
+
+I've extended test_passthrough_hp() for my libfuse_passthrough patches [1],
+but it's the same principle.
 
 Thanks,
 Amir.
+
+[1] https://github.com/amir73il/libfuse/commits/fuse_passthrough
+* 'passthrough_module' uses 'libfuse_passthrough' which enables
+   Allesio's FUSE_DEV_IOC_PASSTHROUGH_OPEN by default.
