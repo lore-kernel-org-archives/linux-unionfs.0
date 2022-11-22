@@ -2,88 +2,160 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFCEEC4332F
-	for <linux-unionfs@archiver.kernel.org>; Sun, 20 Nov 2022 03:42:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2623BC4332F
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 02:16:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229478AbiKTDmJ (ORCPT
+        id S232429AbiKVCP6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 19 Nov 2022 22:42:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56268 "EHLO
+        Mon, 21 Nov 2022 21:15:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41548 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbiKTDmJ (ORCPT
+        with ESMTP id S229519AbiKVCPz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 19 Nov 2022 22:42:09 -0500
-Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7F78A8C24;
-        Sat, 19 Nov 2022 19:42:08 -0800 (PST)
-Received: by mail-pj1-x1032.google.com with SMTP id k5so7734086pjo.5;
-        Sat, 19 Nov 2022 19:42:08 -0800 (PST)
+        Mon, 21 Nov 2022 21:15:55 -0500
+Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA482E0CB5
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:15:54 -0800 (PST)
+Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-391bd92f931so121216787b3.22
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:15:54 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=0Y/8ElskN/imwJr8zX/roKTm/sqDR1NdeLdATGaejC8=;
-        b=ZMrxUweMkgRi3Mel/zBZQQQ2CyjuSUJYK+gSbd6SLxddGYxUSlfstmOmr6Mh6f8QMs
-         /JY33CnAVFEfSUiVogv7z0eeKkXNcMIsWr1SXAdsfM1/16ziexVcWp4JTIXDA/4KVO9A
-         pcAjFf2cbKVulJt3scSxz4ZawvvMdeTz6C8sYiMwP4ok9xz9lNAC7eheQxcylxLVFMJh
-         Ugcnmx+QYENGV7jZDfCTOyafOfKpyFrJQDLiWZv+DDq2UncmzZQU4tpxCu5GSICKucBf
-         xUWOcDlI35upyf6wTLmyV0Wkm5a1ROH/Tmjq6MZWiBhZtIQHmwaI+Ge04l/ezQbU4Jqg
-         SJ3w==
+        d=google.com; s=20210112;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=QwnVufQmqgsD71rU58/FXnZ6Kqu/OdIMDvlzn78hKF0=;
+        b=k4vZ9/HUzOIP2zBuWKoMtl7qYaF7WljtXH1qLMOjUPNFZJcho4S6mcX9oJEpI4eEhd
+         jQaDsDTCWLUiqZD9gEJJFxO5PXor/IPqkbWeHOf7/uBxPI/E42dhTBwWw9pGFQOWfXAz
+         XDQ8fyBePklEduv9JeWkDQ4ti9U2YQjgKEpwKg/jWHBZfFhH4Wu+UWVBtFUv25SKyusZ
+         fSg7ZhiEjA0ThA2qFhWu1e3M4PLIRyFPrs/duf2FcIkJ/FvMpg33uhosLAvbGHdEgxYZ
+         /ZnujCg1Q8yPcTksxCuAuCvR2S9fKlQMl0DKNoWVw/W4d1VCUoEAFxKyWrQ4PB5xS8r4
+         TzGA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=0Y/8ElskN/imwJr8zX/roKTm/sqDR1NdeLdATGaejC8=;
-        b=Ukbc8FIn7c+eQoDCegc6i+kIMJaXiwGQ9Yw/op+HNicpDSmHqaOuNls+7jqphdvgzD
-         qRFQvxZRQMLiSzNdNJieTTdTGw6EDhpxyLtFIKWSExBj7dWvdvzESNG9NBptLfMWJa+B
-         FTzDQArZrviPhtjZzyszJrpv1/seF4H0cLF90tv82AszINWyZT/u9zNmD5jOYbT48y3a
-         mxYh3G290xeE/aiRnHoogjbRbv/Ft7MpglZtTs2N1RjkabKp/ykq/LfR8TFL5ii175GQ
-         FjV7PrrnT4nqOxgZul7PWqwJ24iw567KDXqxxBwcea6ayIx1RLJG31TMV0e8Bkfn+TjB
-         7vNw==
-X-Gm-Message-State: ANoB5pnKGI6Q0V0aH8xtidhghm9aQsMjjyGOWy/nxGf4JtVcwWTy7xVP
-        r6xGKDdBrbD53HzGLlu8ZZc=
-X-Google-Smtp-Source: AA0mqf5TTkMDZE1NKxSa646ZzqR1M6jzTNxJh+vGT3R1heFpn3rlvcKG7VucazdiFdsLB3rt3Fcq/A==
-X-Received: by 2002:a17:903:41c9:b0:185:57b6:13c3 with SMTP id u9-20020a17090341c900b0018557b613c3mr6235211ple.116.1668915728034;
-        Sat, 19 Nov 2022 19:42:08 -0800 (PST)
-Received: from ownia.localdomain ([2400:9ce0:1358:905d:ef14:1201:cdd8:9210])
-        by smtp.gmail.com with ESMTPSA id x4-20020a1709029a4400b0018853dd8832sm6579531plv.4.2022.11.19.19.42.06
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 19 Nov 2022 19:42:07 -0800 (PST)
-From:   Weizhao Ouyang <o451686892@gmail.com>
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=QwnVufQmqgsD71rU58/FXnZ6Kqu/OdIMDvlzn78hKF0=;
+        b=2mgXCpby0xtB1oYG+67nNp8jtxoG8KtKMQqFL28n1DnjKfnEDNhLo/enGg198TvGOj
+         ffRg0io/TzZ+SW+EtVoRBZuQwabDzFlR0pWPyeMjiYuhcFs5MCZzsdQui9q3OGb+sbj0
+         cRdtuzSeydJ2rCIDwhl89rs/2fFqi+VT8voMMbON0ox7mPAHWGTa08+EjP5JtWBHkfZe
+         5XiHVSisr4NrInnxFJcAQi6ksXHtEh/c//0lPn9cVhqYC4XEKfd3SsoBn9cUcnULM5on
+         6wQDvmt0CoAI1Qn2EvF+wnS+Bkt9ZI01JHKfOFPaeoZgh/u6inzidtg6OWGlMhyi4nwX
+         dZqQ==
+X-Gm-Message-State: ANoB5ploA2P6Wfijnq1d9D77sYP9u8BTVS+xgOfIhphwNZzYe6X8QKQg
+        lQSVtGWxyjO53oIAPK15iCLfu6/EzXo=
+X-Google-Smtp-Source: AA0mqf4z6uMzBSUfVnuK3UoNIzNb/xg7g2J6WN3bup/hKRF8Re0V4qO2ezY0m7hXj/NH+yxnxq3+nl70YfU=
+X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:200:8539:aadd:13be:6e82])
+ (user=drosen job=sendgmr) by 2002:a81:d449:0:b0:38f:af02:ee94 with SMTP id
+ g9-20020a81d449000000b0038faf02ee94mr3ywl.230.1669083353587; Mon, 21 Nov 2022
+ 18:15:53 -0800 (PST)
+Date:   Mon, 21 Nov 2022 18:15:15 -0800
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.38.1.584.g0f3c55d4c2-goog
+Message-ID: <20221122021536.1629178-1-drosen@google.com>
+Subject: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for FUSE
+From:   Daniel Rosenberg <drosen@google.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Weizhao Ouyang <o451686892@gmail.com>
-Subject: [PATCH] ovl: check IOCB_APPEND flag
-Date:   Sun, 20 Nov 2022 03:41:43 +0000
-Message-Id: <20221120034143.684416-1-o451686892@gmail.com>
-X-Mailer: git-send-email 2.37.2
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Cc:     Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        bpf@vger.kernel.org, kernel-team@android.com,
+        Daniel Rosenberg <drosen@google.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Add *_APPEND flag for ovl_iocb_to_rwf().
+These patches extend FUSE to be able to act as a stacked filesystem. This
+allows pure passthrough, where the fuse file system simply reflects the lower
+filesystem, and also allows optional pre and post filtering in BPF and/or the
+userspace daemon as needed. This can dramatically reduce or even eliminate
+transitions to and from userspace.
 
-Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
----
- fs/overlayfs/file.c | 2 ++
- 1 file changed, 2 insertions(+)
+For this patch set, I have removed the code related to the bpf side of things
+since that is undergoing some large reworks to get it in line with the more
+recent BPF developements. This set of patches implements direct passthrough to
+the lower filesystem with no alteration. Looking at the v1 code should give a
+pretty good idea of what the general shape of the bpf calls will look like.
+Without the bpf side, it's like a less efficient bind mount. Not very useful
+on its own, but still useful to get eyes on it since the backing calls will be
+larglely the same when bpf is in the mix.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index a1a22f58ba18..ed286dd0e719 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -244,6 +244,8 @@ static rwf_t ovl_iocb_to_rwf(int ifl)
- {
- 	rwf_t flags = 0;
- 
-+	if (ifl & IOCB_APPEND)
-+		flags |= RWF_APPEND;
- 	if (ifl & IOCB_NOWAIT)
- 		flags |= RWF_NOWAIT;
- 	if (ifl & IOCB_HIPRI)
+This changes the format of adding a backing file/bpf slightly from v1. It's now
+a bit more modular. You add a block of data at the end of a lookup response to
+give the bpf fd and backing id, but there is now a type header to both blocks,
+and a reserved value for future additions. In the future, we may allow for
+multiple bpfs or backing files, and this will allow us to extend it without any
+UAPI breaking changes. Multiple BPFs would be useful for combining fuse-bpf
+implementations without needing to manually combine bpf fragments. Multiple
+backing files would allow implementing things like a limited overlayfs.
+In this patch set, this is only a single block, with only backing supported,
+although I've left the definitions reflecting the BPF case as well.
+For bpf, the plan is to have two blocks, with the bpf one coming first.
+Any further extensions are currently just speculative.
+
+You can run this without needing to set up a userspace daemon by adding these
+mount options: root_dir=[fd],no_daemon where fd is an open file descriptor
+pointing to the folder you'd like to use as the root directory. The fd can be
+immediately closed after mounting. This is useful for running various fs tests.
+
+The main changes for v2:
+-Refactored code to remove many of the ifdefs
+-Adjusted attr related code per Amir's suggestions
+-Added ioctl interface for responding to fuse requests (required for backing)
+-Adjusted lookup add-on block for adding backing file/bpf
+-Moved bpf related patches to the end of the stack (not included currently)
+
+TODO:
+override_creds to interact with backing files in the same context the daemon
+would
+
+Implement backing calls for other FUSE operations (i.e. File Locking/tmp files)
+
+Convert BPF over to more modern version
+
+Alessio Balsini (1):
+  fs: Generic function to convert iocb to rw flags
+
+Daniel Rosenberg (20):
+  fuse-bpf: Update fuse side uapi
+  fuse-bpf: Prepare for fuse-bpf patch
+  fuse: Add fuse-bpf, a stacked fs extension for FUSE
+  fuse-bpf: Add ioctl interface for /dev/fuse
+  fuse-bpf: Don't support export_operations
+  fuse-bpf: Add support for FUSE_ACCESS
+  fuse-bpf: Partially add mapping support
+  fuse-bpf: Add lseek support
+  fuse-bpf: Add support for fallocate
+  fuse-bpf: Support file/dir open/close
+  fuse-bpf: Support mknod/unlink/mkdir/rmdir
+  fuse-bpf: Add support for read/write iter
+  fuse-bpf: support FUSE_READDIR
+  fuse-bpf: Add support for sync operations
+  fuse-bpf: Add Rename support
+  fuse-bpf: Add attr support
+  fuse-bpf: Add support for FUSE_COPY_FILE_RANGE
+  fuse-bpf: Add xattr support
+  fuse-bpf: Add symlink/link support
+  fuse-bpf: allow mounting with no userspace daemon
+
+ fs/fuse/Kconfig           |    8 +
+ fs/fuse/Makefile          |    1 +
+ fs/fuse/backing.c         | 3118 +++++++++++++++++++++++++++++++++++++
+ fs/fuse/control.c         |    2 +-
+ fs/fuse/dev.c             |   83 +-
+ fs/fuse/dir.c             |  326 ++--
+ fs/fuse/file.c            |   62 +-
+ fs/fuse/fuse_i.h          |  424 ++++-
+ fs/fuse/inode.c           |  264 +++-
+ fs/fuse/ioctl.c           |    2 +-
+ fs/fuse/readdir.c         |    5 +
+ fs/fuse/xattr.c           |   18 +
+ fs/overlayfs/file.c       |   23 +-
+ include/linux/fs.h        |    5 +
+ include/uapi/linux/fuse.h |   24 +-
+ 15 files changed, 4154 insertions(+), 211 deletions(-)
+ create mode 100644 fs/fuse/backing.c
+
+
+base-commit: 23a60a03d9a9980d1e91190491ceea0dc58fae62
 -- 
-2.37.2
+2.38.1.584.g0f3c55d4c2-goog
 
