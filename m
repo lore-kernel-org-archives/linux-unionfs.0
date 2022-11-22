@@ -2,187 +2,213 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8E37C43219
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 02:20:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4FBC4332F
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Nov 2022 10:21:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232705AbiKVCUp (ORCPT
+        id S233396AbiKVKVg (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Nov 2022 21:20:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43562 "EHLO
+        Tue, 22 Nov 2022 05:21:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44664 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232600AbiKVCTn (ORCPT
+        with ESMTP id S233129AbiKVKVR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Nov 2022 21:19:43 -0500
-Received: from mail-yb1-xb4a.google.com (mail-yb1-xb4a.google.com [IPv6:2607:f8b0:4864:20::b4a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36A14E9154
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:16:44 -0800 (PST)
-Received: by mail-yb1-xb4a.google.com with SMTP id y82-20020a253255000000b006e7a04f3824so11780247yby.19
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Nov 2022 18:16:44 -0800 (PST)
+        Tue, 22 Nov 2022 05:21:17 -0500
+Received: from mail-vs1-xe2f.google.com (mail-vs1-xe2f.google.com [IPv6:2607:f8b0:4864:20::e2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98BEF5BD43;
+        Tue, 22 Nov 2022 02:19:36 -0800 (PST)
+Received: by mail-vs1-xe2f.google.com with SMTP id t14so13967037vsr.9;
+        Tue, 22 Nov 2022 02:19:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=tJXvhRhAgfuVfe2WyHPR4tz1JKdoKAJyNeGFfWGwJfA=;
-        b=qGkvx8TFpzkUW6hJpxPR4PKq3xLOu9Os7QX2lTMWCilalOFz9Xa1h5bFbtSpucKkWm
-         TltFT8llXWJ7GhU2/JCvGPxUKKyf+M5vl3oAklLsvD1oxP8MTw156iiPERz5BlwYWBaw
-         /Aotf3Al2u6liOXujyYy4ynyF1St9jqgbgFkLtP2NvI1Bj6udJvaG0Xmp52Kx7gzMg1Z
-         adtT/ZnVZK6ZkF1A3IJqIRE5Nn89VCvBJgCK2auE41NBM56Tw2QLxlXT3TEm6s4rCvbA
-         y+aBIj+GuWxJUkSGWY++ynL0CiCHeRY6X5vmgLh4cigCoA8tF6uoSbhGFr6AmKQfLhY7
-         hKQQ==
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=e8p9ZQ/UmpLjcFqjZPlNuCFs77ZDkwn/7XdgpymOLrg=;
+        b=asa+IPR7AAsj8nVdOvUGA9cCy6FoCH7gqyZ7Fyd14OPV1NfWqJIBxGnh+luw13+Rvt
+         2aKGWWagmWeODzAXtKpmPlvGS155M6d+TbAtWc1FmsFP0KDrnqMAp4sLawrKlq5seA4p
+         a2thLlsJ1BiRkKOF7ZUcIENv6WrnXA0RMxvAJvXrZmkbudEumBe35Ig5Eea3pec7RexW
+         8S4Lo+Hlcng6gHLNXfz2TFTLmQyXF5jN1yKQcbMkYFhYbia0c3kQ2gr+fJ+/3lyizCFL
+         d7XHK83LLvutNjB/Z2y5K5W6aqbsT0aB45KtYgpD4THa+32hailJg9iZin3oBBYJN2rI
+         t0gA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=tJXvhRhAgfuVfe2WyHPR4tz1JKdoKAJyNeGFfWGwJfA=;
-        b=8Cs0wxh2uelWIO0Whg1ShJhhH4MdwAEYgrphMvC49DlQZjCz1QPE66MaDNBpSNW2V3
-         MUob0NmzVxwUtQmwYBLloZIcs6nqLS2WsY9ti0yk4gZN0CHFDX0e3OG0QDyF78YST8Yz
-         SCKO9tgRj4yU0Wypx9k0PVj1mkoGNllcqn9oLjPl6E5+kk3xc/MqUCm4meIj+usDXvof
-         iOJlOpHbdBexRYLmv+JvmRLqOBdbiLORK+9tKoBQ7RyDxW6BmG68HYgXkrMNwmkKUd4p
-         YPx65CxY5jrWHOWGlKaa8Fk1fbdrJaykMtPBtUzTCzDbHPsZvA46gRgZXGHRBusWRJw4
-         C2Aw==
-X-Gm-Message-State: ANoB5pk69QfkbIr0Hz2/nSKhIZtugYN6ZXyWlGbxCJq2tXoALIhlfySs
-        H9/I/AMTcE0vq+GSnIlMgflciKDUyvE=
-X-Google-Smtp-Source: AA0mqf4ig5LKUxIEPBtpsrsS6x8pF+5RIGhWCLARqw1OqEfhOKW0oTQ5XDVHBGd5PrVtKUOP4DD+H6Fg8PM=
-X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:200:8539:aadd:13be:6e82])
- (user=drosen job=sendgmr) by 2002:a25:bd03:0:b0:6e6:9336:f565 with SMTP id
- f3-20020a25bd03000000b006e69336f565mr0ybk.598.1669083402808; Mon, 21 Nov 2022
- 18:16:42 -0800 (PST)
-Date:   Mon, 21 Nov 2022 18:15:36 -0800
-In-Reply-To: <20221122021536.1629178-1-drosen@google.com>
-Mime-Version: 1.0
-References: <20221122021536.1629178-1-drosen@google.com>
-X-Mailer: git-send-email 2.38.1.584.g0f3c55d4c2-goog
-Message-ID: <20221122021536.1629178-22-drosen@google.com>
-Subject: [RFC PATCH v2 21/21] fuse-bpf: allow mounting with no userspace daemon
-From:   Daniel Rosenberg <drosen@google.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org,
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=e8p9ZQ/UmpLjcFqjZPlNuCFs77ZDkwn/7XdgpymOLrg=;
+        b=xPscTeUc5lfw+OecV0PeyRJR2QOAkxoc/tmjLQJRdr4S20nnOsDvDhi7pZxy88XvgE
+         70j5B4f3lP8dB1TPArdXZDwCuowyGzx6cawugDF76EwBN5XO7l0IuFQSszCAUF0hPdpe
+         kJCFxfkDyCGhNsIa8BELcY7I0KLAiOt0Qd6Ayqnq/AEl02t/Sqy6evyCPOENXgZXJ3Pd
+         hJiut9OyuXQ07pq9s+0ujiWdDnKzh4v2Ei9ZQhkQtMOCLAa2NV2luELA5Gi8jDpFMch5
+         tVPiGKU0hswVi+dE6Lt98jTzRXT9oot9QxoCQMq4RzHMCZ/1r4Qhvi6xczgZY0WdbW0u
+         K/+g==
+X-Gm-Message-State: ANoB5plOuEES7IezxGuUZhusfrqjtKhe6j0ugAoiTPQpNSGV+6gSRU7V
+        sErVz4ZHKUAXF5DyDlYsh09U5ruccRARRPmlMo/BMVd5
+X-Google-Smtp-Source: AA0mqf4+k6Ltt0LobrDMTg+yyfabacfVSb84QqqAWuB842avg9qXFmtK8YA40EBNP42QoyTa/E95DXD3l/lOYqi0dLg=
+X-Received: by 2002:a05:6102:1009:b0:3aa:13b1:86e6 with SMTP id
+ q9-20020a056102100900b003aa13b186e6mr12991442vsp.36.1669112375533; Tue, 22
+ Nov 2022 02:19:35 -0800 (PST)
+MIME-Version: 1.0
+References: <20221122021536.1629178-1-drosen@google.com> <20221122021536.1629178-5-drosen@google.com>
+In-Reply-To: <20221122021536.1629178-5-drosen@google.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 22 Nov 2022 12:19:23 +0200
+Message-ID: <CAOQ4uxiVqR_HxCytweO_uKR=gdRHTjGG9SgHaNTFb1+5b6ucGQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 04/21] fuse: Add fuse-bpf, a stacked fs extension
+ for FUSE
+To:     Daniel Rosenberg <drosen@google.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         bpf@vger.kernel.org, kernel-team@android.com,
-        Daniel Rosenberg <drosen@google.com>,
-        Paul Lawrence <paullawrence@google.com>
+        Paul Lawrence <paullawrence@google.com>,
+        Alessio Balsini <balsini@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-When using fuse-bpf in pure passthrough mode, we don't explicitly need a
-userspace daemon. This allows simple testing of the backing operations.
+On Tue, Nov 22, 2022 at 4:16 AM Daniel Rosenberg <drosen@google.com> wrote:
+>
+> Fuse-bpf provides a short circuit path for Fuse implementations that act
+> as a stacked filesystem. For cases that are directly unchanged,
+> operations are passed directly to the backing filesystem. Small
+> adjustments can be handled by bpf prefilters or postfilters, with the
+> option to fall back to userspace as needed.
+>
+> Fuse implementations may supply backing node information, as well as bpf
+> programs via an optional add on to the lookup structure.
+>
+> This has been split over the next set of patches for readability.
+> Clusters of fuse ops have been split into their own patches, as well as
+> the actual bpf calls and userspace calls for filters.
+>
+> Signed-off-by: Daniel Rosenberg <drosen@google.com>
+> Signed-off-by: Paul Lawrence <paullawrence@google.com>
+> Signed-off-by: Alessio Balsini <balsini@google.com>
+> ---
+>  fs/fuse/Kconfig   |   8 +
+>  fs/fuse/Makefile  |   1 +
+>  fs/fuse/backing.c | 392 ++++++++++++++++++++++++++++++++++++++++++++++
+>  fs/fuse/dev.c     |  41 ++++-
+>  fs/fuse/dir.c     | 187 +++++++++++++++++-----
+>  fs/fuse/file.c    |  25 ++-
+>  fs/fuse/fuse_i.h  |  99 +++++++++++-
+>  fs/fuse/inode.c   | 189 +++++++++++++++++-----
+>  fs/fuse/ioctl.c   |   2 +-
+>  9 files changed, 861 insertions(+), 83 deletions(-)
+>  create mode 100644 fs/fuse/backing.c
+>
+> diff --git a/fs/fuse/Kconfig b/fs/fuse/Kconfig
+> index 038ed0b9aaa5..3a64fa73e591 100644
+> --- a/fs/fuse/Kconfig
+> +++ b/fs/fuse/Kconfig
+> @@ -52,3 +52,11 @@ config FUSE_DAX
+>
+>           If you want to allow mounting a Virtio Filesystem with the "dax"
+>           option, answer Y.
+> +
+> +config FUSE_BPF
+> +       bool "Adds BPF to fuse"
+> +       depends on FUSE_FS
+> +       depends on BPF
+> +       help
+> +         Extends FUSE by adding BPF to prefilter calls and potentially pass to a
+> +         backing file system
+> diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
+> index 0c48b35c058d..a0853c439db2 100644
+> --- a/fs/fuse/Makefile
+> +++ b/fs/fuse/Makefile
+> @@ -9,5 +9,6 @@ obj-$(CONFIG_VIRTIO_FS) += virtiofs.o
+>
+>  fuse-y := dev.o dir.o file.o inode.o control.o xattr.o acl.o readdir.o ioctl.o
+>  fuse-$(CONFIG_FUSE_DAX) += dax.o
+> +fuse-$(CONFIG_FUSE_BPF) += backing.o
+>
+>  virtiofs-y := virtio_fs.o
+> diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
+> new file mode 100644
+> index 000000000000..5a59a8963d52
+> --- /dev/null
+> +++ b/fs/fuse/backing.c
+> @@ -0,0 +1,392 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * FUSE-BPF: Filesystem in Userspace with BPF
+> + * Copyright (c) 2021 Google LLC
+> + */
+> +
+> +#include "fuse_i.h"
+> +
+> +#include <linux/fdtable.h>
+> +#include <linux/file.h>
+> +#include <linux/fs_stack.h>
+> +#include <linux/namei.h>
+> +
+> +/*
+> + * expression statement to wrap the backing filter logic
+> + * struct inode *inode: inode with bpf and backing inode
+> + * typedef io: (typically complex) type whose components fuse_args can point to.
+> + *     An instance of this type is created locally and passed to initialize
+> + * void initialize_in(struct fuse_args *fa, io *in_out, args...): function that sets
+> + *     up fa and io based on args
+> + * void initialize_out(struct fuse_args *fa, io *in_out, args...): function that sets
+> + *     up fa and io based on args
+> + * int backing(struct fuse_bpf_args_internal *fa, args...): function that actually performs
+> + *     the backing io operation
+> + * void *finalize(struct fuse_bpf_args *, args...): function that performs any final
+> + *     work needed to commit the backing io
+> + */
+> +#define fuse_bpf_backing(inode, io, out, initialize_in, initialize_out,        \
+> +                        backing, finalize, args...)                    \
+> +({                                                                     \
+> +       struct fuse_inode *fuse_inode = get_fuse_inode(inode);          \
+> +       struct fuse_args fa = { 0 };                                    \
+> +       bool initialized = false;                                       \
+> +       bool handled = false;                                           \
+> +       ssize_t res;                                                    \
+> +       io feo = { 0 };                                                 \
+> +       int error = 0;                                                  \
+> +                                                                       \
+> +       do {                                                            \
+> +               if (!fuse_inode || !fuse_inode->backing_inode)          \
+> +                       break;                                          \
+> +                                                                       \
+> +               handled = true;                                         \
+> +               error = initialize_in(&fa, &feo, args);                 \
+> +               if (error)                                              \
+> +                       break;                                          \
+> +                                                                       \
+> +               error = initialize_out(&fa, &feo, args);                \
+> +               if (error)                                              \
+> +                       break;                                          \
+> +                                                                       \
+> +               initialized = true;                                     \
+> +                                                                       \
+> +               error = backing(&fa, out, args);                        \
+> +               if (error < 0)                                          \
+> +                       fa.error_in = error;                            \
+> +                                                                       \
+> +       } while (false);                                                \
+> +                                                                       \
+> +       if (initialized && handled) {                                   \
+> +               res = finalize(&fa, out, args);                         \
+> +               if (res)                                                \
+> +                       error = res;                                    \
+> +       }                                                               \
+> +                                                                       \
+> +       *out = error ? _Generic((*out),                                 \
+> +                       default :                                       \
+> +                               error,                                  \
+> +                       struct dentry * :                               \
+> +                               ERR_PTR(error),                         \
+> +                       const char * :                                  \
+> +                               ERR_PTR(error)                          \
+> +                       ) : (*out);                                     \
+> +       handled;                                                        \
+> +})
+> +
 
-Signed-off-by: Daniel Rosenberg <drosen@google.com>
-Signed-off-by: Paul Lawrence <paullawrence@google.com>
----
- fs/fuse/fuse_i.h |  4 ++++
- fs/fuse/inode.c  | 25 +++++++++++++++++++------
- 2 files changed, 23 insertions(+), 6 deletions(-)
+I hope there is a better way than this macro...
+Haven't studied the patches enough to be able to suggest one.
 
-diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index 99c9231ec98b..402d80d35958 100644
---- a/fs/fuse/fuse_i.h
-+++ b/fs/fuse/fuse_i.h
-@@ -564,6 +564,7 @@ struct fuse_fs_context {
- 	bool no_control:1;
- 	bool no_force_umount:1;
- 	bool legacy_opts_show:1;
-+	bool no_daemon:1;
- 	enum fuse_dax_mode dax_mode;
- 	unsigned int max_read;
- 	unsigned int blksize;
-@@ -842,6 +843,9 @@ struct fuse_conn {
- 	/* Is tmpfile not implemented by fs? */
- 	unsigned int no_tmpfile:1;
- 
-+	/** BPF Only, no Daemon running */
-+	unsigned int no_daemon:1;
-+
- 	/** The number of requests waiting for completion */
- 	atomic_t num_waiting;
- 
-diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
-index 1e7d45977144..4820edcc242a 100644
---- a/fs/fuse/inode.c
-+++ b/fs/fuse/inode.c
-@@ -749,6 +749,7 @@ enum {
- 	OPT_MAX_READ,
- 	OPT_BLKSIZE,
- 	OPT_ROOT_DIR,
-+	OPT_NO_DAEMON,
- 	OPT_ERR
- };
- 
-@@ -764,6 +765,7 @@ static const struct fs_parameter_spec fuse_fs_parameters[] = {
- 	fsparam_u32	("blksize",		OPT_BLKSIZE),
- 	fsparam_string	("subtype",		OPT_SUBTYPE),
- 	fsparam_u32	("root_dir",		OPT_ROOT_DIR),
-+	fsparam_flag	("no_daemon",		OPT_NO_DAEMON),
- 	{}
- };
- 
-@@ -853,6 +855,11 @@ static int fuse_parse_param(struct fs_context *fsc, struct fs_parameter *param)
- 			return invalfc(fsc, "Unable to open root directory");
- 		break;
- 
-+	case OPT_NO_DAEMON:
-+		ctx->no_daemon = true;
-+		ctx->fd_present = true;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1411,7 +1418,7 @@ void fuse_send_init(struct fuse_mount *fm)
- 	ia->args.nocreds = true;
- 	ia->args.end = process_init_reply;
- 
--	if (fuse_simple_background(fm, &ia->args, GFP_KERNEL) != 0)
-+	if (unlikely(fm->fc->no_daemon) || fuse_simple_background(fm, &ia->args, GFP_KERNEL) != 0)
- 		process_init_reply(fm, &ia->args, -ENOTCONN);
- }
- EXPORT_SYMBOL_GPL(fuse_send_init);
-@@ -1693,6 +1700,7 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
- 	fc->destroy = ctx->destroy;
- 	fc->no_control = ctx->no_control;
- 	fc->no_force_umount = ctx->no_force_umount;
-+	fc->no_daemon = ctx->no_daemon;
- 
- 	err = -ENOMEM;
- 	root = fuse_get_root_inode(sb, ctx->rootmode, ctx->root_dir);
-@@ -1739,7 +1747,7 @@ static int fuse_fill_super(struct super_block *sb, struct fs_context *fsc)
- 	struct fuse_fs_context *ctx = fsc->fs_private;
- 	int err;
- 
--	if (!ctx->file || !ctx->rootmode_present ||
-+	if (!!ctx->file == ctx->no_daemon || !ctx->rootmode_present ||
- 	    !ctx->user_id_present || !ctx->group_id_present)
- 		return -EINVAL;
- 
-@@ -1747,10 +1755,12 @@ static int fuse_fill_super(struct super_block *sb, struct fs_context *fsc)
- 	 * Require mount to happen from the same user namespace which
- 	 * opened /dev/fuse to prevent potential attacks.
- 	 */
--	if ((ctx->file->f_op != &fuse_dev_operations) ||
--	    (ctx->file->f_cred->user_ns != sb->s_user_ns))
--		return -EINVAL;
--	ctx->fudptr = &ctx->file->private_data;
-+	if (ctx->file) {
-+		if ((ctx->file->f_op != &fuse_dev_operations) ||
-+		    (ctx->file->f_cred->user_ns != sb->s_user_ns))
-+			return -EINVAL;
-+		ctx->fudptr = &ctx->file->private_data;
-+	}
- 
- 	err = fuse_fill_super_common(sb, ctx);
- 	if (err)
-@@ -1800,6 +1810,9 @@ static int fuse_get_tree(struct fs_context *fsc)
- 
- 	fsc->s_fs_info = fm;
- 
-+	if (ctx->no_daemon)
-+		return get_tree_nodev(fsc, fuse_fill_super);
-+
- 	if (ctx->fd_present)
- 		ctx->file = fget(ctx->fd);
- 
--- 
-2.38.1.584.g0f3c55d4c2-goog
-
+Thanks,
+Amir.
