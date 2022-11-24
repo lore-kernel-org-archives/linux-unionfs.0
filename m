@@ -2,104 +2,68 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 366ABC43217
-	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Nov 2022 15:48:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C54CC433FE
+	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Nov 2022 16:20:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229750AbiKXPsD (ORCPT
+        id S229676AbiKXQUS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 24 Nov 2022 10:48:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37342 "EHLO
+        Thu, 24 Nov 2022 11:20:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55526 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229775AbiKXPsA (ORCPT
+        with ESMTP id S229468AbiKXQUR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 24 Nov 2022 10:48:00 -0500
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 525F52AC53;
-        Thu, 24 Nov 2022 07:47:59 -0800 (PST)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1oyESD-0007Tw-En; Thu, 24 Nov 2022 16:47:57 +0100
-Message-ID: <2505800d-8625-dab0-576a-3a0221954ba3@leemhuis.info>
-Date:   Thu, 24 Nov 2022 16:47:56 +0100
+        Thu, 24 Nov 2022 11:20:17 -0500
+Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA15614E6EF
+        for <linux-unionfs@vger.kernel.org>; Thu, 24 Nov 2022 08:20:16 -0800 (PST)
+Received: by mail-il1-f197.google.com with SMTP id a14-20020a921a0e000000b00302a8ffa8e5so1410318ila.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 24 Nov 2022 08:20:16 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=BLu57xj1JC82H0XXz+GNssdmQJiC9qe/YgctFzNmVG4=;
+        b=Oe/f4eRTWs5VO4xpWuGP1WGixLrUXFtP7QGZMKtfW0Q5rD6MIc8OZ/a97BcJWW8JuE
+         UEY81qWYaXUz+xDtcZ/QxDIJoQFkk+dnM6PyisyaXFRx2zXidgLMax/ueThYZJpWmrnv
+         efqM8BbZ4XuUt/VHL2ZuVMEc+70d9eEV6ZGO5o4ShYrRZLfaECUpcbLNSwCUDcmDQsad
+         1oj8PfBpffeMpLlD8D7Gop1OmK5B/7uY0r9XdUtV9d9QO5C3U3Jf0yW0TAHzoDwrISG1
+         MKmPNczhcrLqT+byXGfWuVG0mJui/jprV7r+o8Kbak1WApmrKjJxi0wxKUeeFBKRVcfw
+         MmLA==
+X-Gm-Message-State: ANoB5pkSCOJDrDi+WwQWWfnw9wGiX3O7a4QRUY24NDhivRF1/0AYeADL
+        OTyFfJsRd69gpAnlOfnBCOL/CeWe9BK42uWYouMvD5zA0CRw
+X-Google-Smtp-Source: AA0mqf4SJAQZVT4Jwk7/+fz5PzSbbTOB+9yCW80SQJofgTk2Q1JpUZ6ITjSAqpEq12edrM6PcQ2CYn2mBv5fHDzsVoZBesMnImOs
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.1
-Content-Language: en-US, de-DE
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-To:     Al Viro <viro@zeniv.linux.org.uk>
-Cc:     Linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        "regressions@lists.linux.dev" <regressions@lists.linux.dev>,
-        LKML <linux-kernel@vger.kernel.org>,
-        "Christian Brauner (Microsoft)" <brauner@kernel.org>,
-        Pierre Labastie <pierre.labastie@neuf.fr>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org
-Subject: =?UTF-8?Q?=5bregression=2c_bisected=5d_Bug=c2=a0216738_-_Adding_O?=
- =?UTF-8?Q?=5fAPPEND_to_O=5fRDWR_with_fcntl=28fd=2c_F=5fSETFL=29_does_not_wo?=
- =?UTF-8?Q?rk_on_overlayfs?=
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1669304879;d2e4648a;
-X-HE-SMSGID: 1oyESD-0007Tw-En
+X-Received: by 2002:a05:6638:1c0a:b0:386:8261:ab08 with SMTP id
+ ca10-20020a0566381c0a00b003868261ab08mr4116458jab.21.1669306816155; Thu, 24
+ Nov 2022 08:20:16 -0800 (PST)
+Date:   Thu, 24 Nov 2022 08:20:16 -0800
+In-Reply-To: <CAJfpeguD4Ai8_PiRnDO8dRFauHPdwLimWrB6xsxsyn8yFLgL6w@mail.gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000cc587705ee39c75c@google.com>
+Subject: Re: [syzbot] general protection fault in ovl_dentry_upper
+From:   syzbot <syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com>
+To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi, this is your Linux kernel regression tracker speaking.
+Hello,
 
-I noticed a regression report in bugzilla.kernel.org. As many (most?)
-kernel developer don't keep an eye on it, I decided to forward it by
-mail. Quoting from https://bugzilla.kernel.org/show_bug.cgi?id=216738 :
+syzbot has tested the proposed patch and the reproducer did not trigger any issue:
 
->  Pierre Labastie 2022-11-24 14:53:33 UTC
-> 
-> Created attachment 303287 [details]
-> C program for reproducing the bug
-> 
-> Not sure this is the right place to report this, but at least the offending commit
+Reported-and-tested-by: syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com
 
-[offending commit is 164f4064ca8 ("keep iocb_flags() result cached in
-struct file"), as specified in the "Kernel Version:" field in bugzilla]
+Tested on:
 
-> is in this component... 
-> 
-> Steps to reproduce:
-> $ gcc repro.c
-> $ rm -f toto
-> $ ./a.out
-> $ cat toto; echo
-> 
-> On an ext4 fs, the output is (on all versions):
-> abcdefghijklmnopqr
-> 
-> Now, make an overlayfs:
-> $ mkdir -p up lo wo mnt
-> $ sudo mount -t overlay overlay -oupperdir=up,lowerdir=lo,workdir=wo mnt
-> $ cd mnt
-> $ rm f toto
-> $ ../a.out
-> $ cat toto; echo
-> 
-> before the said commit, the output is:
-> abcdefghijklmnopqr
-> 
-> after the said commit, the output is:
-> ghijklmnopqr
-> 
-> That is the file is truncated when opened with O_RDWR, with O_APPEND added later, but not when opened with both.
+commit:         c3eb11fb Merge tag 'pci-v6.1-fixes-3' of git://git.ker..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=14a0ec05880000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8cdf448d3b35234
+dashboard link: https://syzkaller.appspot.com/bug?extid=a4055c78774bbf3498bb
+compiler:       Debian clang version 13.0.1-++20220126092033+75e33f71c2da-1~exp1~20220126212112.63, GNU ld (GNU Binutils for Debian) 2.35.2
+patch:          https://syzkaller.appspot.com/x/patch.diff?x=16b17403880000
 
-See the ticket for more details.
-
-BTW, let me use this mail to also add the report to the list of tracked
-regressions to ensure it's doesn't fall through the cracks:
-
-#regzbot introduced: 164f4064ca8
-https://bugzilla.kernel.org/show_bug.cgi?id=216738
-#regzbot ignore-activity
-
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
-
-P.S.: As the Linux kernel's regression tracker I deal with a lot of
-reports and sometimes miss something important when writing mails like
-this. If that's the case here, don't hesitate to tell me in a public
-reply, it's in everyone's interest to set the public record straight.
+Note: testing is done by a robot and is best-effort only.
