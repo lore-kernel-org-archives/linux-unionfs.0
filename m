@@ -2,118 +2,104 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80F44C433FE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Nov 2022 13:18:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 366ABC43217
+	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Nov 2022 15:48:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229379AbiKXNSF (ORCPT
+        id S229750AbiKXPsD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 24 Nov 2022 08:18:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39258 "EHLO
+        Thu, 24 Nov 2022 10:48:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37342 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229684AbiKXNSF (ORCPT
+        with ESMTP id S229775AbiKXPsA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 24 Nov 2022 08:18:05 -0500
-Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C7A4627EF;
-        Thu, 24 Nov 2022 05:18:04 -0800 (PST)
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.57])
-        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4NHz7F5w0pzRpSh;
-        Thu, 24 Nov 2022 21:17:29 +0800 (CST)
-Received: from dggpemm500013.china.huawei.com (7.185.36.172) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Thu, 24 Nov 2022 21:18:01 +0800
-Received: from [10.67.108.67] (10.67.108.67) by dggpemm500013.china.huawei.com
- (7.185.36.172) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Thu, 24 Nov
- 2022 21:18:01 +0800
-Message-ID: <6651f11c-9c56-6988-2e43-c6890fa51751@huawei.com>
-Date:   Thu, 24 Nov 2022 21:18:00 +0800
+        Thu, 24 Nov 2022 10:48:00 -0500
+Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 525F52AC53;
+        Thu, 24 Nov 2022 07:47:59 -0800 (PST)
+Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
+        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        id 1oyESD-0007Tw-En; Thu, 24 Nov 2022 16:47:57 +0100
+Message-ID: <2505800d-8625-dab0-576a-3a0221954ba3@leemhuis.info>
+Date:   Thu, 24 Nov 2022 16:47:56 +0100
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.0
-Subject: Re: [PATCH] ovl: Fix use inode directly in rcu-walk mode
-To:     Miklos Szeredi <miklos@szeredi.hu>
-CC:     <syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com>,
-        <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-References: <20221124092602.259809-1-chenzhongjin@huawei.com>
- <Y39nXuhwVi39nZPa@miu.piliscsaba.redhat.com>
-Content-Language: en-US
-From:   Chen Zhongjin <chenzhongjin@huawei.com>
-In-Reply-To: <Y39nXuhwVi39nZPa@miu.piliscsaba.redhat.com>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.1
+Content-Language: en-US, de-DE
+From:   Thorsten Leemhuis <regressions@leemhuis.info>
+To:     Al Viro <viro@zeniv.linux.org.uk>
+Cc:     Linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        "regressions@lists.linux.dev" <regressions@lists.linux.dev>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Christian Brauner (Microsoft)" <brauner@kernel.org>,
+        Pierre Labastie <pierre.labastie@neuf.fr>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org
+Subject: =?UTF-8?Q?=5bregression=2c_bisected=5d_Bug=c2=a0216738_-_Adding_O?=
+ =?UTF-8?Q?=5fAPPEND_to_O=5fRDWR_with_fcntl=28fd=2c_F=5fSETFL=29_does_not_wo?=
+ =?UTF-8?Q?rk_on_overlayfs?=
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.67.108.67]
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
- dggpemm500013.china.huawei.com (7.185.36.172)
-X-CFilter-Loop: Reflected
+X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1669304879;d2e4648a;
+X-HE-SMSGID: 1oyESD-0007Tw-En
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 2022/11/24 20:45, Miklos Szeredi wrote:
-> On Thu, Nov 24, 2022 at 05:26:02PM +0800, Chen Zhongjin wrote:
->> syzkaller reported a null-ptr-deref error:
->> https://syzkaller.appspot.com/bug?id=bb281e89381b9ed55728c274447a575e69a96c35
->>
->> ovl_dentry_revalidate_common() can be called in rcu-walk mode.
->> As document said, "in rcu-walk mode, d_parent and d_inode should not be
->> used without care". Check inode here to protect access under rcu-walk
->> mode.
->>
->> Fixes: bccece1ead36 ("ovl: allow remote upper")
->> Reported-by: syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com
->> Signed-off-by: Chen Zhongjin <chenzhongjin@huawei.com>
-> Hi,
->
-> Thanks for the quick analysis and patch.
->
-> I simplified the patch a bit without changing the attribution.
->
-> Thanks,
-> Miklos
->
-> ----
-> From: Chen Zhongjin <chenzhongjin@huawei.com>
-> Subject: ovl: fix use inode directly in rcu-walk mode
->
-> ovl_dentry_revalidate_common() can be called in rcu-walk mode.  As document
-> said, "in rcu-walk mode, d_parent and d_inode should not be used without
-> care".
->
-> Check inode here to protect access under rcu-walk mode.
->
-> Fixes: bccece1ead36 ("ovl: allow remote upper")
-> Reported-by: syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com
-> Signed-off-by: Chen Zhongjin <chenzhongjin@huawei.com>
-> Cc: <stable@vger.kernel.org> # v5.7
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->   fs/overlayfs/super.c |    7 ++++++-
->   1 file changed, 6 insertions(+), 1 deletion(-)
->
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -139,11 +139,16 @@ static int ovl_dentry_revalidate_common(
->   					unsigned int flags, bool weak)
->   {
->   	struct ovl_entry *oe = dentry->d_fsdata;
-> +	struct inode *inode = d_inode_rcu(dentry);
->   	struct dentry *upper;
->   	unsigned int i;
->   	int ret = 1;
->   
-> -	upper = ovl_dentry_upper(dentry);
-> +	/* Careful in RCU mode */
-> +	if (!inode)
-> +		return -ECHILD;
-> +
-> +	upper = ovl_i_dentry_upper(inode);
->   	if (upper)
->   		ret = ovl_revalidate_real(upper, flags, weak);
->   
+Hi, this is your Linux kernel regression tracker speaking.
 
-Thanks for review! LGTM
+I noticed a regression report in bugzilla.kernel.org. As many (most?)
+kernel developer don't keep an eye on it, I decided to forward it by
+mail. Quoting from https://bugzilla.kernel.org/show_bug.cgi?id=216738 :
 
-Best,
-Chen
+>  Pierre Labastie 2022-11-24 14:53:33 UTC
+> 
+> Created attachment 303287 [details]
+> C program for reproducing the bug
+> 
+> Not sure this is the right place to report this, but at least the offending commit
+
+[offending commit is 164f4064ca8 ("keep iocb_flags() result cached in
+struct file"), as specified in the "Kernel Version:" field in bugzilla]
+
+> is in this component... 
+> 
+> Steps to reproduce:
+> $ gcc repro.c
+> $ rm -f toto
+> $ ./a.out
+> $ cat toto; echo
+> 
+> On an ext4 fs, the output is (on all versions):
+> abcdefghijklmnopqr
+> 
+> Now, make an overlayfs:
+> $ mkdir -p up lo wo mnt
+> $ sudo mount -t overlay overlay -oupperdir=up,lowerdir=lo,workdir=wo mnt
+> $ cd mnt
+> $ rm f toto
+> $ ../a.out
+> $ cat toto; echo
+> 
+> before the said commit, the output is:
+> abcdefghijklmnopqr
+> 
+> after the said commit, the output is:
+> ghijklmnopqr
+> 
+> That is the file is truncated when opened with O_RDWR, with O_APPEND added later, but not when opened with both.
+
+See the ticket for more details.
+
+BTW, let me use this mail to also add the report to the list of tracked
+regressions to ensure it's doesn't fall through the cracks:
+
+#regzbot introduced: 164f4064ca8
+https://bugzilla.kernel.org/show_bug.cgi?id=216738
+#regzbot ignore-activity
+
+Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
+
+P.S.: As the Linux kernel's regression tracker I deal with a lot of
+reports and sometimes miss something important when writing mails like
+this. If that's the case here, don't hesitate to tell me in a public
+reply, it's in everyone's interest to set the public record straight.
