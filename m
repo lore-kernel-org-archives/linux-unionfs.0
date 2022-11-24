@@ -2,68 +2,125 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C54CC433FE
-	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Nov 2022 16:20:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3238BC4332F
+	for <linux-unionfs@archiver.kernel.org>; Thu, 24 Nov 2022 17:04:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229676AbiKXQUS (ORCPT
+        id S229728AbiKXRD7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 24 Nov 2022 11:20:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55526 "EHLO
+        Thu, 24 Nov 2022 12:03:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229468AbiKXQUR (ORCPT
+        with ESMTP id S229761AbiKXRDp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 24 Nov 2022 11:20:17 -0500
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA15614E6EF
-        for <linux-unionfs@vger.kernel.org>; Thu, 24 Nov 2022 08:20:16 -0800 (PST)
-Received: by mail-il1-f197.google.com with SMTP id a14-20020a921a0e000000b00302a8ffa8e5so1410318ila.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 24 Nov 2022 08:20:16 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BLu57xj1JC82H0XXz+GNssdmQJiC9qe/YgctFzNmVG4=;
-        b=Oe/f4eRTWs5VO4xpWuGP1WGixLrUXFtP7QGZMKtfW0Q5rD6MIc8OZ/a97BcJWW8JuE
-         UEY81qWYaXUz+xDtcZ/QxDIJoQFkk+dnM6PyisyaXFRx2zXidgLMax/ueThYZJpWmrnv
-         efqM8BbZ4XuUt/VHL2ZuVMEc+70d9eEV6ZGO5o4ShYrRZLfaECUpcbLNSwCUDcmDQsad
-         1oj8PfBpffeMpLlD8D7Gop1OmK5B/7uY0r9XdUtV9d9QO5C3U3Jf0yW0TAHzoDwrISG1
-         MKmPNczhcrLqT+byXGfWuVG0mJui/jprV7r+o8Kbak1WApmrKjJxi0wxKUeeFBKRVcfw
-         MmLA==
-X-Gm-Message-State: ANoB5pkSCOJDrDi+WwQWWfnw9wGiX3O7a4QRUY24NDhivRF1/0AYeADL
-        OTyFfJsRd69gpAnlOfnBCOL/CeWe9BK42uWYouMvD5zA0CRw
-X-Google-Smtp-Source: AA0mqf4SJAQZVT4Jwk7/+fz5PzSbbTOB+9yCW80SQJofgTk2Q1JpUZ6ITjSAqpEq12edrM6PcQ2CYn2mBv5fHDzsVoZBesMnImOs
+        Thu, 24 Nov 2022 12:03:45 -0500
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AE7173BA1;
+        Thu, 24 Nov 2022 09:03:15 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=PbmppnJ6peRHw9rwdAbdS45dXmoXZMyXZ7qI/el0I10=; b=slVFYodzDYzc7/QGXdh1S3LDGE
+        hb21aJ381Hfol/8n778iHvHHlUdELze04qweZ0uKmYXYl7lmexvF0lZZz6iTR0pnJ0HmgxMuD1AcW
+        m1l3SEarVPQfFj+2z1iNjWHZuBV4qHD0IATUTpdxUShtjVx4v+LVZqzEOqSPW3U+DK8E6f/kLCgp+
+        N18nDiyCJy15tRk3ZmpDnUz9pBgfQSNakvSSe/9RUDKT68Yyn6MMaPQiyLJYy0hH7N2e4WWmvb0rh
+        hsksonkUoqfK6KbI5aHkmcwSb6XhXPk1509g0LBMWEEp5AGP9q6WIVzTCHGBkGBRAeKYskSs9gyvJ
+        gxoRlj/Q==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1oyFd1-006TzA-1p;
+        Thu, 24 Nov 2022 17:03:11 +0000
+Date:   Thu, 24 Nov 2022 17:03:11 +0000
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Thorsten Leemhuis <regressions@leemhuis.info>
+Cc:     Linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        "regressions@lists.linux.dev" <regressions@lists.linux.dev>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "Christian Brauner (Microsoft)" <brauner@kernel.org>,
+        Pierre Labastie <pierre.labastie@neuf.fr>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org
+Subject: Re: [regression, =?iso-8859-1?Q?bisected?=
+ =?iso-8859-1?Q?=5D_Bug=A0216738_-_Adding_O=5FAPPEND_to_O=5FRDW?=
+ =?iso-8859-1?Q?R?= with fcntl(fd, F_SETFL) does not work on overlayfs
+Message-ID: <Y3+jz5CVA9S+h2+b@ZenIV>
+References: <2505800d-8625-dab0-576a-3a0221954ba3@leemhuis.info>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:1c0a:b0:386:8261:ab08 with SMTP id
- ca10-20020a0566381c0a00b003868261ab08mr4116458jab.21.1669306816155; Thu, 24
- Nov 2022 08:20:16 -0800 (PST)
-Date:   Thu, 24 Nov 2022 08:20:16 -0800
-In-Reply-To: <CAJfpeguD4Ai8_PiRnDO8dRFauHPdwLimWrB6xsxsyn8yFLgL6w@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000cc587705ee39c75c@google.com>
-Subject: Re: [syzbot] general protection fault in ovl_dentry_upper
-From:   syzbot <syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com>
-To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2505800d-8625-dab0-576a-3a0221954ba3@leemhuis.info>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On Thu, Nov 24, 2022 at 04:47:56PM +0100, Thorsten Leemhuis wrote:
+> Hi, this is your Linux kernel regression tracker speaking.
+> 
+> I noticed a regression report in bugzilla.kernel.org. As many (most?)
+> kernel developer don't keep an eye on it, I decided to forward it by
+> mail. Quoting from https://bugzilla.kernel.org/show_bug.cgi?id=216738 :
+> 
+> >  Pierre Labastie 2022-11-24 14:53:33 UTC
+> > 
+> > Created attachment 303287 [details]
+> > C program for reproducing the bug
+> > 
+> > Not sure this is the right place to report this, but at least the offending commit
+> 
+> [offending commit is 164f4064ca8 ("keep iocb_flags() result cached in
+> struct file"), as specified in the "Kernel Version:" field in bugzilla]
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+So basically we have this
+static int ovl_change_flags(struct file *file, unsigned int flags)
+{
+        struct inode *inode = file_inode(file);
+        int err;
 
-Reported-and-tested-by: syzbot+a4055c78774bbf3498bb@syzkaller.appspotmail.com
+        flags &= OVL_SETFL_MASK;
 
-Tested on:
+        if (((flags ^ file->f_flags) & O_APPEND) && IS_APPEND(inode))
+                return -EPERM;
 
-commit:         c3eb11fb Merge tag 'pci-v6.1-fixes-3' of git://git.ker..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=14a0ec05880000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=8cdf448d3b35234
-dashboard link: https://syzkaller.appspot.com/bug?extid=a4055c78774bbf3498bb
-compiler:       Debian clang version 13.0.1-++20220126092033+75e33f71c2da-1~exp1~20220126212112.63, GNU ld (GNU Binutils for Debian) 2.35.2
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=16b17403880000
+        if ((flags & O_DIRECT) && !(file->f_mode & FMODE_CAN_ODIRECT))
+                return -EINVAL;
 
-Note: testing is done by a robot and is best-effort only.
+        if (file->f_op->check_flags) {
+                err = file->f_op->check_flags(flags);
+                if (err)
+                        return err;
+        }
+
+        spin_lock(&file->f_lock);
+        file->f_flags = (file->f_flags & ~OVL_SETFL_MASK) | flags;
+        spin_unlock(&file->f_lock);
+
+        return 0;
+}
+open-coding what setfl() would've done, without updating ->f_iocb_flags...
+Not hard to deal with...
+
+I could pick it in vfs.git #fixes, or Miklos could put it through his tree.
+Miklos, which way would you prefer that to go?
+
+[PATCH] update ->f_iocb_flags when ovl_change_flags() modifies ->f_flags
+
+ovl_change_flags() is an open-coded variant of fs/fcntl.c:setfl() and it got
+missed by 164f4064ca81e "keep iocb_flags() result cached in struct file";
+the same change applies there.
+
+Reported-by: Pierre Labastie <pierre.labastie@neuf.fr>
+Fixes: 164f4064ca81e "keep iocb_flags() result cached in struct file"
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index a1a22f58ba18..dd688a842b0b 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -96,6 +96,7 @@ static int ovl_change_flags(struct file *file, unsigned int flags)
+ 
+ 	spin_lock(&file->f_lock);
+ 	file->f_flags = (file->f_flags & ~OVL_SETFL_MASK) | flags;
++	file->f_iocb_flags = iocb_flags(file);
+ 	spin_unlock(&file->f_lock);
+ 
+ 	return 0;
