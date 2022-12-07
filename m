@@ -2,46 +2,46 @@ Return-Path: <linux-unionfs-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BC3CC43217
-	for <linux-unionfs@archiver.kernel.org>; Thu,  1 Dec 2022 12:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3FACC352A1
+	for <linux-unionfs@archiver.kernel.org>; Wed,  7 Dec 2022 06:38:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229777AbiLAMnp (ORCPT
+        id S229744AbiLGGit (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 1 Dec 2022 07:43:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56550 "EHLO
+        Wed, 7 Dec 2022 01:38:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229630AbiLAMnp (ORCPT
+        with ESMTP id S229810AbiLGGin (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 1 Dec 2022 07:43:45 -0500
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 914C77E40A
-        for <linux-unionfs@vger.kernel.org>; Thu,  1 Dec 2022 04:43:43 -0800 (PST)
-Received: by mail-il1-f199.google.com with SMTP id d19-20020a056e020c1300b00300b5a12c44so1817258ile.15
-        for <linux-unionfs@vger.kernel.org>; Thu, 01 Dec 2022 04:43:43 -0800 (PST)
+        Wed, 7 Dec 2022 01:38:43 -0500
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 673021129
+        for <linux-unionfs@vger.kernel.org>; Tue,  6 Dec 2022 22:38:42 -0800 (PST)
+Received: by mail-il1-f198.google.com with SMTP id h10-20020a056e021b8a00b00302671bb5fdso16288859ili.21
+        for <linux-unionfs@vger.kernel.org>; Tue, 06 Dec 2022 22:38:42 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=to:from:subject:message-id:date:mime-version:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=Ti/q+iV51EFf1gizIZNIIwSFkpgiTRgXSWkOjPToyPM=;
-        b=P20izd79x37XA+2vt3XOgwgUKE3NX7ZoBDmOyoXRaUAT/IESuWst+P8c5pwnJuDd3Z
-         u08+12EDYPqqZ+HMFzkRb3uXvd8VlLU25BriyZxtym7tLqW9/QqkaPzPHwqQr8brA1RK
-         1yxSJ4yJnQkKohXYrPHOhav60qclXmcTlBSLu4YYM4S3GCry0w2LHn6jqxQMREy3p2mD
-         cOVxkzkmiMd5/+zUuzVvCqeVqOvduHOOgoiTN6VNP6K1aiwXSGuAJRdL+pltMU5gFl5y
-         HT+gKtv3sABEngdM/K2MDhc/cy3NKvOetOYS05AxJ8tEowqBgecUEVAB6C/3aB8hqgbR
-         Wd/A==
-X-Gm-Message-State: ANoB5pmMOiiHKfGQ+4kYikLwr6hPuSoCCvTIqUk0KuC8tNk62y7gh0Bv
-        KaaCWAZztdGpDtq5bhcMnCVyJwLZQW7msaUmIaIjTENboWl7
-X-Google-Smtp-Source: AA0mqf4KwfM8tJtygWaAtwlIzuW1bkJC3Bj40roejOm5IE8D61ojfcwVtsOkrnb06LFSg9mmmep6+wNQLPYrRyCCl5PvwmEPzTg4
+        bh=RXsdEwM6VKjQ3v18RXqjJN8uOxY6ZcgZPa+lfvwNQGA=;
+        b=iWxIg92DrxjHzvO9pupFFPDq6/hsq0mm7ftCIxFX1v3tjOf+KpsxefC8NhYDH6gH9u
+         InSguRLV0Qkfwkpf3ye6M1HrFENwopWiob37uj11uKOVJzvINCyVfjSevVDDviHa7QZT
+         TIinO46y8aw/sm9bbBW0u45XDMkhUMIuGI/SiYzBQEEyAahhvRhhLnJfm/0+ZBMcjfZT
+         KZdZGc2muCSDtC3lpSVhUIiCc5Ws1aXBQo394JRZha9JIyYoJdfea3uwxS2wo/ZhMJPJ
+         DsefQak7bcNiv15uABIZaJ3SLN4585O3vyEhGTplSbGTX0wUKxvWU1i6xxBghdb//O34
+         tWEA==
+X-Gm-Message-State: ANoB5pmuBP4ly0kw1kc66iFaApxlk71QLxhCSfKGRwNMtFr8aMdjU2Gj
+        7w/hItT0nUnWoUelp3F7XwxvHYJTkTLobKt72cYs9IpwjCR9
+X-Google-Smtp-Source: AA0mqf78nDci7ud65OBetX9jxxwxQeHdvXgDGAh/6cP6FwBvH1KcoKEfciRO03CegBK1KCzmw0wO4Vl7UdODypgVzhSpFckVgQPR
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:11d4:b0:389:ce3c:4ca5 with SMTP id
- g20-20020a05663811d400b00389ce3c4ca5mr12657778jas.308.1669898622957; Thu, 01
- Dec 2022 04:43:42 -0800 (PST)
-Date:   Thu, 01 Dec 2022 04:43:42 -0800
+X-Received: by 2002:a02:5403:0:b0:38a:6adf:48d1 with SMTP id
+ t3-20020a025403000000b0038a6adf48d1mr752439jaa.24.1670395121812; Tue, 06 Dec
+ 2022 22:38:41 -0800 (PST)
+Date:   Tue, 06 Dec 2022 22:38:41 -0800
 X-Google-Appengine-App-Id: s~syzkaller
 X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000003b7fee05eec392a8@google.com>
-Subject: [syzbot] BUG: unable to handle kernel paging request in take_dentry_name_snapshot
-From:   syzbot <syzbot+90392eaed540afcc8fc3@syzkaller.appspotmail.com>
+Message-ID: <000000000000decafe05ef372b92@google.com>
+Subject: [syzbot] possible deadlock in ovl_fallocate
+From:   syzbot <syzbot+38a94e1872470e3450a6@syzkaller.appspotmail.com>
 To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
@@ -53,108 +53,90 @@ Hello,
 
 syzbot found the following issue on:
 
-HEAD commit:    b7b275e60bcd Linux 6.1-rc7
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=102c68d5880000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=cc4b2e0a8e8a8366
-dashboard link: https://syzkaller.appspot.com/bug?extid=90392eaed540afcc8fc3
+HEAD commit:    591cd61541b9 Add linux-next specific files for 20221207
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=1509b2f5880000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=8b2d3e63e054c24f
+dashboard link: https://syzkaller.appspot.com/bug?extid=38a94e1872470e3450a6
 compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-userspace arch: i386
 
 Unfortunately, I don't have any reproducer for this issue yet.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+90392eaed540afcc8fc3@syzkaller.appspotmail.com
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/bc862c01ec56/disk-591cd615.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/8f9b93f8ed2f/vmlinux-591cd615.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/9d5cb636d548/bzImage-591cd615.xz
 
-REISERFS (device loop1): Created .reiserfs_priv - reserved for xattr storage.
-overlayfs: upper fs needs to support d_type.
-overlayfs: upper fs does not support tmpfile.
-BUG: unable to handle page fault for address: fffffffffff8161d
-#PF: supervisor read access in kernel mode
-#PF: error_code(0x0000) - not-present page
-PGD c28f067 P4D c28f067 PUD c291067 PMD 0 
-Oops: 0000 [#1] PREEMPT SMP KASAN
-CPU: 1 PID: 5330 Comm: syz-executor.1 Not tainted 6.1.0-rc7-syzkaller #0
-Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.14.0-2 04/01/2014
-RIP: 0010:__lock_acquire+0xd8d/0x56d0 kernel/locking/lockdep.c:4925
-Code: c8 00 00 00 89 05 73 07 19 0f e9 bd 00 00 00 48 b8 00 00 00 00 00 fc ff df 4c 89 f2 48 c1 ea 03 80 3c 02 00 0f 85 4e 31 00 00 <49> 81 3e 60 b5 d2 8f 0f 84 4c f3 ff ff 41 83 fc 01 0f 87 54 f3 ff
-RSP: 0018:ffffc9002212f7c8 EFLAGS: 00010046
-RAX: dffffc0000000000 RBX: 1ffff92004425f29 RCX: 0000000000000000
-RDX: 1fffffffffff02c3 RSI: 0000000000000000 RDI: 0000000000000001
-RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000000
-R10: fffffbfff1ca3442 R11: 0000000000000000 R12: 0000000000000000
-R13: ffff88801c779d40 R14: fffffffffff8161d R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff88802c700000(0063) knlGS:00000000f7f15b40
-CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
-CR2: fffffffffff8161d CR3: 000000001b613000 CR4: 0000000000150ee0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+38a94e1872470e3450a6@syzkaller.appspotmail.com
+
+============================================
+WARNING: possible recursive locking detected
+6.1.0-rc8-next-20221207-syzkaller #0 Not tainted
+--------------------------------------------
+syz-executor.5/21743 is trying to acquire lock:
+ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: ovl_remove_privs_unlocked fs/overlayfs/file.c:519 [inline]
+ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: ovl_fallocate+0x15c/0x270 fs/overlayfs/file.c:546
+
+but task is already holding lock:
+ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: ovl_fallocate+0x9f/0x270 fs/overlayfs/file.c:535
+
+other info that might help us debug this:
+ Possible unsafe locking scenario:
+
+       CPU0
+       ----
+  lock(&ovl_i_mutex_key[depth]#2);
+  lock(&ovl_i_mutex_key[depth]#2);
+
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+2 locks held by syz-executor.5/21743:
+ #0: ffff88801cc94460 (sb_writers#14){.+.+}-{0:0}, at: ksys_fallocate fs/open.c:346 [inline]
+ #0: ffff88801cc94460 (sb_writers#14){.+.+}-{0:0}, at: __do_sys_fallocate fs/open.c:354 [inline]
+ #0: ffff88801cc94460 (sb_writers#14){.+.+}-{0:0}, at: __se_sys_fallocate fs/open.c:352 [inline]
+ #0: ffff88801cc94460 (sb_writers#14){.+.+}-{0:0}, at: __x64_sys_fallocate+0xd3/0x140 fs/open.c:352
+ #1: ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: inode_lock include/linux/fs.h:756 [inline]
+ #1: ffff888058fdd340 (&ovl_i_mutex_key[depth]#2){+.+.}-{3:3}, at: ovl_fallocate+0x9f/0x270 fs/overlayfs/file.c:535
+
+stack backtrace:
+CPU: 1 PID: 21743 Comm: syz-executor.5 Not tainted 6.1.0-rc8-next-20221207-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 10/26/2022
 Call Trace:
  <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd1/0x138 lib/dump_stack.c:106
+ print_deadlock_bug kernel/locking/lockdep.c:2990 [inline]
+ check_deadlock kernel/locking/lockdep.c:3033 [inline]
+ validate_chain kernel/locking/lockdep.c:3818 [inline]
+ __lock_acquire.cold+0x116/0x3a7 kernel/locking/lockdep.c:5055
  lock_acquire kernel/locking/lockdep.c:5668 [inline]
  lock_acquire+0x1e3/0x630 kernel/locking/lockdep.c:5633
- __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
- _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
- spin_lock include/linux/spinlock.h:350 [inline]
- take_dentry_name_snapshot+0x2b/0x170 fs/dcache.c:315
- ovl_check_rename_whiteout fs/overlayfs/super.c:1297 [inline]
- ovl_make_workdir fs/overlayfs/super.c:1419 [inline]
- ovl_get_workdir fs/overlayfs/super.c:1534 [inline]
- ovl_fill_super+0x1ddd/0x6400 fs/overlayfs/super.c:2090
- mount_nodev+0x64/0x120 fs/super.c:1447
- legacy_get_tree+0x109/0x220 fs/fs_context.c:610
- vfs_get_tree+0x8d/0x2f0 fs/super.c:1531
- do_new_mount fs/namespace.c:3040 [inline]
- path_mount+0x132a/0x1e20 fs/namespace.c:3370
- do_mount fs/namespace.c:3383 [inline]
- __do_sys_mount fs/namespace.c:3591 [inline]
- __se_sys_mount fs/namespace.c:3568 [inline]
- __ia32_sys_mount+0x282/0x300 fs/namespace.c:3568
- do_syscall_32_irqs_on arch/x86/entry/common.c:112 [inline]
- __do_fast_syscall_32+0x65/0xf0 arch/x86/entry/common.c:178
- do_fast_syscall_32+0x33/0x70 arch/x86/entry/common.c:203
- entry_SYSENTER_compat_after_hwframe+0x70/0x82
-RIP: 0023:0xf7f1a549
-Code: 03 74 c0 01 10 05 03 74 b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
-RSP: 002b:00000000f7f155cc EFLAGS: 00000296 ORIG_RAX: 0000000000000015
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00000000200000c0
-RDX: 0000000020000080 RSI: 0000000000000000 RDI: 0000000020000480
-RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000296 R12: 0000000000000000
-R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ down_write+0x94/0x220 kernel/locking/rwsem.c:1562
+ inode_lock include/linux/fs.h:756 [inline]
+ ovl_remove_privs_unlocked fs/overlayfs/file.c:519 [inline]
+ ovl_fallocate+0x15c/0x270 fs/overlayfs/file.c:546
+ vfs_fallocate+0x48b/0xe00 fs/open.c:323
+ ksys_fallocate fs/open.c:346 [inline]
+ __do_sys_fallocate fs/open.c:354 [inline]
+ __se_sys_fallocate fs/open.c:352 [inline]
+ __x64_sys_fallocate+0xd3/0x140 fs/open.c:352
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fbb9608c0d9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fbb96dc6168 EFLAGS: 00000246 ORIG_RAX: 000000000000011d
+RAX: ffffffffffffffda RBX: 00007fbb961abf80 RCX: 00007fbb9608c0d9
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000003
+RBP: 00007fbb960e7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000001000f4 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffee8cc3bef R14: 00007fbb96dc6300 R15: 0000000000022000
  </TASK>
-Modules linked in:
-CR2: fffffffffff8161d
----[ end trace 0000000000000000 ]---
-RIP: 0010:__lock_acquire+0xd8d/0x56d0 kernel/locking/lockdep.c:4925
-Code: c8 00 00 00 89 05 73 07 19 0f e9 bd 00 00 00 48 b8 00 00 00 00 00 fc ff df 4c 89 f2 48 c1 ea 03 80 3c 02 00 0f 85 4e 31 00 00 <49> 81 3e 60 b5 d2 8f 0f 84 4c f3 ff ff 41 83 fc 01 0f 87 54 f3 ff
-RSP: 0018:ffffc9002212f7c8 EFLAGS: 00010046
-RAX: dffffc0000000000 RBX: 1ffff92004425f29 RCX: 0000000000000000
-RDX: 1fffffffffff02c3 RSI: 0000000000000000 RDI: 0000000000000001
-RBP: 0000000000000000 R08: 0000000000000001 R09: 0000000000000000
-R10: fffffbfff1ca3442 R11: 0000000000000000 R12: 0000000000000000
-R13: ffff88801c779d40 R14: fffffffffff8161d R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff88802c700000(0063) knlGS:00000000f7f15b40
-CS:  0010 DS: 002b ES: 002b CR0: 0000000080050033
-CR2: fffffffffff8161d CR3: 000000001b613000 CR4: 0000000000150ee0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-----------------
-Code disassembly (best guess):
-   0:	c8 00 00 00          	enterq $0x0,$0x0
-   4:	89 05 73 07 19 0f    	mov    %eax,0xf190773(%rip)        # 0xf19077d
-   a:	e9 bd 00 00 00       	jmpq   0xcc
-   f:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
-  16:	fc ff df
-  19:	4c 89 f2             	mov    %r14,%rdx
-  1c:	48 c1 ea 03          	shr    $0x3,%rdx
-  20:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
-  24:	0f 85 4e 31 00 00    	jne    0x3178
-* 2a:	49 81 3e 60 b5 d2 8f 	cmpq   $0xffffffff8fd2b560,(%r14) <-- trapping instruction
-  31:	0f 84 4c f3 ff ff    	je     0xfffff383
-  37:	41 83 fc 01          	cmp    $0x1,%r12d
-  3b:	0f                   	.byte 0xf
-  3c:	87 54 f3 ff          	xchg   %edx,-0x1(%rbx,%rsi,8)
 
 
 ---
