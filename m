@@ -2,78 +2,70 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93B6AC54EAA
-	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Jan 2023 15:26:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 818E0C61DB3
+	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Jan 2023 21:58:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234482AbjA0P0g (ORCPT
+        id S232295AbjA0V6j (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 27 Jan 2023 10:26:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55318 "EHLO
+        Fri, 27 Jan 2023 16:58:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234480AbjA0P0f (ORCPT
+        with ESMTP id S231790AbjA0V6h (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 27 Jan 2023 10:26:35 -0500
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A8277C331
-        for <linux-unionfs@vger.kernel.org>; Fri, 27 Jan 2023 07:26:32 -0800 (PST)
-Received: by mail-ej1-x629.google.com with SMTP id v6so14667455ejg.6
-        for <linux-unionfs@vger.kernel.org>; Fri, 27 Jan 2023 07:26:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=9lCm2tMGNVKG6SWJp8e+YHP+g7R9bSQ20DL1jjRz9r0=;
-        b=bbjGC6z9OVURgKt9VG4FKQztxD1j00SaCwSLpdaFsCfe20fjvGBgYkKNYV6QnSvb5U
-         mmMjeNscAdpiKrqEuEotSNiPB7c7sAExKvVpYBbUuZZUmZsfwtNVtXVqXNbDj4fvNjmY
-         MdG+81V/FPZXqhHnAP8sdtMbLPIsHS1gd4WuA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=9lCm2tMGNVKG6SWJp8e+YHP+g7R9bSQ20DL1jjRz9r0=;
-        b=nZVlBEWjB/VJyFBkPJwsPNuXncRWQ5CRxNok6oLfe8pjYPa7eAuAp9FULPmS1cRx2m
-         styZnpoOiTNm6RAoAjUR6cR0m6nMvmB/iAE3FNU3oOkTzGMSge2AKwgzwd1EtjqtcE/B
-         v3oZVz9Llp1UQUCC2jRG54OhfcCewsWh13rRqALYwXiDjVJR/LqPz+YJgi7b5NglCAQt
-         RB7pgClaMMXLbwdob1eWsNrvp3NVuWTEAaq9DEv3a8GJjzbbKzD8rc2V6PbwxhSbptDE
-         R0FfrWkCbU5SRbzdkFGZRdum9HML3tGOchSoUIQ8urJphRe3ecAfZ1eEBsudS08u2DNl
-         xdjQ==
-X-Gm-Message-State: AFqh2kp3AYkviQcittdIwB37VFr0tSwI/r4X7Q+Px2Ric5xkmUWae7Md
-        Nl8rGQyNsmD4k5bOBXMOHJJO5wW5F8h7aF8AcXyzlA==
-X-Google-Smtp-Source: AMrXdXsTaQwz9TAD4rVJPOzzyithzlpBYYsLgWwxH4XVWPutH94i7xmf530C53weISltIhZ9TNtMoQ7rNydz0nbu+IE=
-X-Received: by 2002:a17:906:2e94:b0:84d:ac8:ec37 with SMTP id
- o20-20020a1709062e9400b0084d0ac8ec37mr6058289eji.138.1674833190571; Fri, 27
- Jan 2023 07:26:30 -0800 (PST)
-MIME-Version: 1.0
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 27 Jan 2023 16:26:19 +0100
-Message-ID: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
-Subject: [GIT PULL] overlayfs fixes for 6.2-rc6
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        Fri, 27 Jan 2023 16:58:37 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6F9C7E6B6;
+        Fri, 27 Jan 2023 13:58:35 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A859B82147;
+        Fri, 27 Jan 2023 21:58:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 28619C4339B;
+        Fri, 27 Jan 2023 21:58:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1674856713;
+        bh=8Uxndj7RnVDXwjueHKfFc6HT4KL9eGRLAXZTB6iDkg4=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=BPOs006JoskKqTxiq2JvziIn6UIPKBwYmCc5aeaiqQChDul7UA1xn/RK2DcSvT8VA
+         RPB/1HwjyMsXNv7QzuzmGA5sPV0295Fk21hPAgAFOLW8/rX37e+8yHxbokcnFyY7pS
+         mwBQhJotrcMIsxr0US0wmoYcSsO6Zroos2/Yb2PNckPuli2hirJVujK0T7YjLBwY/C
+         ktoA0tYE4RPXNtwMkCuNcohkFvzmP8dXavr8Wn1tPcJmpH0KFNRBGqL4Fh4R6m3O33
+         aYUYtk4JxoCZzWg+VdmkNFNwEXagys+1GErF4Pzt45L4JdHRcOMs1XTAbFutNwdK6a
+         wlNcZ3rP8FTlA==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 159EEE52504;
+        Fri, 27 Jan 2023 21:58:33 +0000 (UTC)
+Subject: Re: [GIT PULL] overlayfs fixes for 6.2-rc6
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
+References: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-6.2-rc6
+X-PR-Tracked-Commit-Id: 4f11ada10d0ad3fd53e2bd67806351de63a4f9c3
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 0acffb235fbf57f11a3da1098f9134825ac7c1c9
+Message-Id: <167485671308.1722.4998992203009274552.pr-tracker-bot@kernel.org>
+Date:   Fri, 27 Jan 2023 21:58:33 +0000
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Fri, 27 Jan 2023 16:26:19 +0100:
 
-Please pull from:
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-6.2-rc6
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git
-tags/ovl-fixes-6.2-rc6
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/0acffb235fbf57f11a3da1098f9134825ac7c1c9
 
-Fix two bugs, a recent one introduced in the last cycle, and an older
-one from v5.11.
+Thank you!
 
-Thanks,
-Miklos
-
----
-Miklos Szeredi (2):
-      ovl: fix tmpfile leak
-      ovl: fail on invalid uid/gid mapping at copy up
-
----
- fs/overlayfs/copy_up.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
