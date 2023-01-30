@@ -2,70 +2,132 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 818E0C61DB3
-	for <linux-unionfs@archiver.kernel.org>; Fri, 27 Jan 2023 21:58:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31477C636D3
+	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Jan 2023 19:28:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232295AbjA0V6j (ORCPT
+        id S238182AbjA3T2q (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 27 Jan 2023 16:58:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34888 "EHLO
+        Mon, 30 Jan 2023 14:28:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231790AbjA0V6h (ORCPT
+        with ESMTP id S238255AbjA3T2d (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 27 Jan 2023 16:58:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6F9C7E6B6;
-        Fri, 27 Jan 2023 13:58:35 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7A859B82147;
-        Fri, 27 Jan 2023 21:58:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 28619C4339B;
-        Fri, 27 Jan 2023 21:58:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1674856713;
-        bh=8Uxndj7RnVDXwjueHKfFc6HT4KL9eGRLAXZTB6iDkg4=;
-        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-        b=BPOs006JoskKqTxiq2JvziIn6UIPKBwYmCc5aeaiqQChDul7UA1xn/RK2DcSvT8VA
-         RPB/1HwjyMsXNv7QzuzmGA5sPV0295Fk21hPAgAFOLW8/rX37e+8yHxbokcnFyY7pS
-         mwBQhJotrcMIsxr0US0wmoYcSsO6Zroos2/Yb2PNckPuli2hirJVujK0T7YjLBwY/C
-         ktoA0tYE4RPXNtwMkCuNcohkFvzmP8dXavr8Wn1tPcJmpH0KFNRBGqL4Fh4R6m3O33
-         aYUYtk4JxoCZzWg+VdmkNFNwEXagys+1GErF4Pzt45L4JdHRcOMs1XTAbFutNwdK6a
-         wlNcZ3rP8FTlA==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 159EEE52504;
-        Fri, 27 Jan 2023 21:58:33 +0000 (UTC)
-Subject: Re: [GIT PULL] overlayfs fixes for 6.2-rc6
-From:   pr-tracker-bot@kernel.org
-In-Reply-To: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
-References: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
-X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <CAJfpeguv6BpewqDjDLqQv2yaR+nPLmmAp++JWNquWpXt7eiepQ@mail.gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-6.2-rc6
-X-PR-Tracked-Commit-Id: 4f11ada10d0ad3fd53e2bd67806351de63a4f9c3
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 0acffb235fbf57f11a3da1098f9134825ac7c1c9
-Message-Id: <167485671308.1722.4998992203009274552.pr-tracker-bot@kernel.org>
-Date:   Fri, 27 Jan 2023 21:58:33 +0000
+        Mon, 30 Jan 2023 14:28:33 -0500
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA5BC2940C
+        for <linux-unionfs@vger.kernel.org>; Mon, 30 Jan 2023 11:28:10 -0800 (PST)
+Received: by mail-ed1-x530.google.com with SMTP id n6so9402960edo.9
+        for <linux-unionfs@vger.kernel.org>; Mon, 30 Jan 2023 11:28:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=eitmlabs-org.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:reply-to:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Pde1HtL0jbaSii0M64UiQFU/qnbGbv9/KpkjEUAcgCs=;
+        b=TWVNEU/0hAjW3MpjjnPz0cWL/yot4kqsCxV/7jfjoHxjkEOtTBUeb2P/yoA66RqRIa
+         SAmHwnIZaHuvl9SOPBm3mOdaeVwtrFifxKu6m5kSL/ElyJo5UcJOrhEhlRpIz3phkLpi
+         ixOd/FAnQe9kWf1puy9uSBXk4lTbWjG1IOX/+TL8JmYuYsmsWDR2pJ1du2f8pdw2n9Hz
+         0Ve1I0rr+DaICglug0SuufzQ3VTcDQc74xhodhtm4bKROyuG8Lf4XienJMU14TR2LcLW
+         uT6TIDHidO9VGv7DnWWfIEl1K8aVpoKL/zFREXx0YhBytGpyBRvzSI1c0ikePVJxSFke
+         aQNw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:reply-to:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Pde1HtL0jbaSii0M64UiQFU/qnbGbv9/KpkjEUAcgCs=;
+        b=0Lcp49ohIxcP64xRVf1GJniJ7nTFl/6/rijiGA8znHZ6f8+L0ux81E67FcqasZ7qZI
+         bgMO+guc/OGks+9tfOM2eDtaAwSaFdqQqgKpSRPOvu8E0L8C5T25mdUu9+VO+SlQKcZE
+         TsP+6CA0WElA2UwNIoIWHtIrOnNARiHk7eu/qgySCVP+UXGA1lnISIRbLpZB+2XPbqEa
+         AvswzzzcBA2DRf3v2RZxQ1KSLNz1NrSr90r0vb2SFqS/floaSWl6exrr4Sp0+rc3lZwz
+         HusO/a0DlCIg3TRueRoFzbUpAY02M2YKc375fgeozbwn+AO4CZvWgaXPuyUYon0C8FjQ
+         Am0g==
+X-Gm-Message-State: AO0yUKVN8fe/Fq5WRtyYcvxQsiJC60iQYQmnoPmNcsQHrQo/+rNcy6/I
+        mIQkYCnx2DwHPZJq7eCnqfw+meAd46dDAu9EdVa7h4DxBd5ap68Zeeo=
+X-Google-Smtp-Source: AK7set+Cbyu/gjwSId0z57qj4f7ODqmywQnBSUV4JGQR6P/djfb+lISYHaaBj+8ytqXxSzZC0HNu79mPM8DJ8vII9aw=
+X-Received: by 2002:a05:6402:2807:b0:4a0:e275:6844 with SMTP id
+ h7-20020a056402280700b004a0e2756844mr4935501ede.74.1675106889050; Mon, 30 Jan
+ 2023 11:28:09 -0800 (PST)
+MIME-Version: 1.0
+References: <4B9D76D5-C794-4A49-A76F-3D4C10385EE0@kohlschutter.com>
+ <CAJfpegs1Kta-HcikDGFt4=fa_LDttCeRmffKhUjWLr=DxzXg-A@mail.gmail.com>
+ <83A29F9C-1A91-4753-953A-0C98E8A9832C@kohlschutter.com> <CAJfpegv5W0CycWCc2-kcn4=UVqk1hP7KrvBpzXHwW-Nmkjx8zA@mail.gmail.com>
+ <FFA26FD1-60EF-457E-B914-E1978CCC7B57@kohlschutter.com> <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
+ <A31096BA-C128-4D0B-B27D-C34560844ED0@kohlschutter.com> <CAJfpegvBSCQwkCv=5LJDx1LRCN_ztTh9VMvrTbCyt0zf7W2trw@mail.gmail.com>
+ <CAHk-=wjg+xyBwMpQwLx_QWPY7Qf8gUOVek8rXdQccukDyVmE+w@mail.gmail.com>
+ <EE5E5841-3561-4530-8813-95C16A36D94A@kohlschutter.com> <CAHk-=wh5V8tQScw9Bgc8OiD0r5XmfVSCPp2OHPEf0p5T3obuZg@mail.gmail.com>
+ <CAJfpeguXB9mAk=jwWQmk3rivYnaWoLrju_hq-LwtYyNXG4JOeg@mail.gmail.com>
+ <CAHk-=wg+bpP5cvcaBhnmJKzTmAtgx12UhR4qzFXXb52atn9gDw@mail.gmail.com>
+ <56E6CAAE-FF25-4898-8F9D-048164582E7B@kohlschutter.com> <490c5026-27bd-1126-65dd-2ec975aae94c@eitmlabs.org>
+ <CAJfpegt7CMMapxD0W41n2SdwiBn8+B08vsov-iOpD=eQEiPN1w@mail.gmail.com>
+In-Reply-To: <CAJfpegt7CMMapxD0W41n2SdwiBn8+B08vsov-iOpD=eQEiPN1w@mail.gmail.com>
+Reply-To: jonathan@eitm.org
+From:   Jonathan Katz <jkatz@eitmlabs.org>
+Date:   Mon, 30 Jan 2023 11:27:53 -0800
+Message-ID: <CALKgVmeaPJj4e9sYP7g+v4hZ7XaHKAm6BUNz14gvaBd=sFCs9Q@mail.gmail.com>
+Subject: Re: [PATCH] [REGRESSION] ovl: Handle ENOSYS when fileattr support is
+ missing in lower/upper fs
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        overlayfs <linux-unionfs@vger.kernel.org>
+Cc:     =?UTF-8?Q?Christian_Kohlsch=C3=BCtter?= 
+        <christian@kohlschutter.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The pull request you sent on Fri, 27 Jan 2023 16:26:19 +0100:
+On Thu, Jan 26, 2023 at 5:26 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
+>
+> On Wed, 18 Jan 2023 at 04:41, Jonathan Katz <jkatz@eitmlabs.org> wrote:
+>
+> > I believe that I am still having issues occur within Ubuntu 22.10 with
+> > the 5.19 version of the kernel that might be associated with this
+> > discussion.  I apologize up front for any faux pas I make in writing
+> > this email.
+>
+> No need to apologize.   The fix in question went into v6.0 of the
+> upstream kernel.  So apparently it's still missing from the distro you
+> are using.
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git tags/ovl-fixes-6.2-rc6
+Thank you for the reply! ---  I have upgraded the Kernel and it still
+seems to be throwing errors.  Details follow:
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/0acffb235fbf57f11a3da1098f9134825ac7c1c9
+Distro: Ubuntu 22.10.
+Upgraded kernel using mainline (mainline --install-latest)
 
-Thank you!
+# uname -a
+Linux instance-20220314-1510-fileserver-for-overlay
+6.1.8-060108-generic #202301240742 SMP PREEMPT_DYNAMIC Tue Jan 24
+08:13:53 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+On mount I still get the following notice in syslog (representative):
+Jan 30 19:11:46 instance-20220314-1510-fileserver-for-overlay kernel:
+[   71.613334] overlayfs: null uuid detected in lower fs '/', falling
+back to xino=off,index=off,nfs_export=off.
+
+And on access (via samba) I still see the following errors in the
+syslog (representative):
+Jan 30 19:19:34 instance-20220314-1510-fileserver-for-overlay kernel:
+[  539.181858] overlayfs: failed to retrieve lower fileattr (8020
+MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1722.d/Storage.mcf_idx,
+err=-38)
+
+And on the Windows client, the software still fails with the same symptomology.
+
+
+
+
+>
+> > An example error from our syslog:
+> >
+> > kernel: [2702258.538549] overlayfs: failed to retrieve lower fileattr
+> > (8020 MeOHH2O
+> > RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1722.d/analysis.tsf,
+> > err=-38)
+>
+> Yep, looks like the same bug.
+>
+> Thanks,
+> Miklos
