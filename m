@@ -2,106 +2,144 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE6E3C05027
-	for <linux-unionfs@archiver.kernel.org>; Thu,  2 Feb 2023 08:47:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4AF4C61DA4
+	for <linux-unionfs@archiver.kernel.org>; Thu,  2 Feb 2023 22:02:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229851AbjBBIrv (ORCPT
+        id S233238AbjBBWCi (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 2 Feb 2023 03:47:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59712 "EHLO
+        Thu, 2 Feb 2023 17:02:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229640AbjBBIru (ORCPT
+        with ESMTP id S233079AbjBBWC2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 2 Feb 2023 03:47:50 -0500
-Received: from mail-vk1-xa2e.google.com (mail-vk1-xa2e.google.com [IPv6:2607:f8b0:4864:20::a2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B0B983966;
-        Thu,  2 Feb 2023 00:47:49 -0800 (PST)
-Received: by mail-vk1-xa2e.google.com with SMTP id s76so518659vkb.9;
-        Thu, 02 Feb 2023 00:47:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=8jltGU5PEP/8zuh7YjjieGS71K/Iq1B/4kENnhMp90g=;
-        b=AzFT25L7hRsKFB5cbJoScmALOFfvHoplZRE3HEy73xxi5iko5kUBqEcuUiObonr5z0
-         Qy+eZN/PHgsOkRgvm2zaixZ/s5ddKQCuIYlUg8wLtpQ71trBoJ/ixO+F+Dj6Rlt12Tru
-         MSTpMgFk9Q/0cwCNxG9Ka2TIwDrBDIr1yYtH7ybRvabUJhb+1zbTkDjVMMEr26MTnqG2
-         SNJdGB63ZtP2fx0HGOuF9SIDDMnb3gSXZ+eYO7Y/kDPS8Q83IWJ/l9b5p4zugxcefM2u
-         oSpobN59XK8TGPON1ewHV56phizkPEKXnPNIpxHYPRZsgh4K/z9SdjseRCryWDm96GLd
-         j/tQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=8jltGU5PEP/8zuh7YjjieGS71K/Iq1B/4kENnhMp90g=;
-        b=rDOSftCFDUdEVbM4eNoWhIK14sfB+5gqwWuFMecE6Yq5lcr1Le20odpV9k2RZKhTLC
-         /zCsscVM062SdbG9OO7PjWCx74u4p+XDPE2nMEnXhnSXqnZQXgdnjXdaNsdIwiqxdLAi
-         rRUG8utQZONq48JcQqr3HLwNCBTgUBDdP+B0Vrrhyf7EcXnLOllXP6x5yakwXHAHPLih
-         hSqz+X7NvOtDhmc321goehIFMvC9jwqyxgF30ycITRVh1odoB1hbZLT0hJdlSCgPdZ56
-         UEydWQvRkdjMgFBEmhAfJpVLFULTOfEn2+S0dQP/ZGMkQ+28I8ea73oKEV+yxDOPxatF
-         PfzA==
-X-Gm-Message-State: AO0yUKWmnhvm5GplI86lfFJawNlrLFanbftTVeUFM3w/OsAqvrteo5Oc
-        5lX05nLmXWFiL5zV8c2pcqu9u1xz6kVMTsVouHI=
-X-Google-Smtp-Source: AK7set+odum/96BXUSmaDqKIB8b2b6XGZoasbMzjviqoZJUN++OR+LZo1UWWufoG3tjaNTGS/dFVqhsmqzQhvfit9D4=
-X-Received: by 2002:a1f:de47:0:b0:3e2:446a:18a6 with SMTP id
- v68-20020a1fde47000000b003e2446a18a6mr893548vkg.36.1675327668396; Thu, 02 Feb
- 2023 00:47:48 -0800 (PST)
+        Thu, 2 Feb 2023 17:02:28 -0500
+Received: from out1-smtp.messagingengine.com (out1-smtp.messagingengine.com [66.111.4.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1869488CE0;
+        Thu,  2 Feb 2023 14:02:00 -0800 (PST)
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+        by mailout.nyi.internal (Postfix) with ESMTP id B193A5C0114;
+        Thu,  2 Feb 2023 17:01:39 -0500 (EST)
+Received: from mailfrontend1 ([10.202.2.162])
+  by compute1.internal (MEProxy); Thu, 02 Feb 2023 17:01:39 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=fastmail.fm; h=
+        cc:cc:content-transfer-encoding:content-type:date:date:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to; s=fm3; t=1675375299; x=
+        1675461699; bh=YCW7GaAtPaVZlrRCbu29XnWiMCmrl3ppTRURidgtXOY=; b=F
+        wc6nhXMDAmuFGL0TUU8QnKM2LD4H6JRBlwK9lG6zl8OjtKPm5c4SwLr6STgAeIzz
+        hIWugzL2X5B0P0wguXU/0S+HYq9FpUL/VmswIG2pFPM2WVywgSCeHFuwh4hJrD1L
+        JDuK3TX5jEyBhSpmUsZ4TSG1GbZSFMllfUG02zaG2sc+DSEyyhzwRM26tia+D6lX
+        QhSFemjuT4Gop482kCirNGgSozOzFfzhZ1Aj9l3/6umyU0arFgqUbvzSmcUarXO7
+        ocAoCcZyMsej7MwJbvJa4VSnrDGv2Wa9nuQ9qZ/fU4/IKJetK6bclRG+n5tz6piU
+        f9260Ohkvmqka/YCLcYSQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:date:date:feedback-id:feedback-id:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1675375299; x=
+        1675461699; bh=YCW7GaAtPaVZlrRCbu29XnWiMCmrl3ppTRURidgtXOY=; b=k
+        hWTk6kt4+dyIcwJkPWW2IwwH3GBn4laJh5KXGCo0LckiJFHG+9/XMIzARIIBbYXO
+        sAgkBibXMX9TYr/ATLiqaJ4idc26o9MV2gluEHsirR0avE6eYjN04roA0tAsrtJ3
+        9G23q6D93lMD1triUh6M2yP1jP3m2Lf5RqIVt9uYNwNqwvsOYhDsWV/tYmTI+Rty
+        W82SfORbCWVtGNhrmVeY3vbGaubMfo1t55L2v/0aSOkFCzxSrHQD8AdMT1Elhrt6
+        rlpJp4Y90NWPamdgdePjnLbjWxwJ4rKlpGvnfCQ/ninSu1ahcxWcE20M/0QA8Zp/
+        zWaaN9R1PfOQ3IBe6AoHg==
+X-ME-Sender: <xms:wjLcY6nfeO526MV7BTKpwDAfuD747TdEzwbg-s8_cMAogooVeiSdfg>
+    <xme:wjLcYx0tKyjL19DhByStlVm3L-k18lILIKnoLF-wiWzhAdm6vo0Iu2QgDhO8E9WEO
+    n7rnWqLpmPlEn82>
+X-ME-Received: <xmr:wjLcY4qbBplRk0OTvHgFiZV23WoZB_E05kwvWoDu5RzUzv17IREjarId5hCGmWLSn9y0n-OFGyGADsqRWdkHqnnFDN3uh8XWTczENy1wzPMdd63isU8A>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrudefkedgudehfecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enucfjughrpefkffggfgfuvfevfhfhjggtgfesthejredttdefjeenucfhrhhomhepuegv
+    rhhnugcuufgthhhusggvrhhtuceosggvrhhnugdrshgthhhusggvrhhtsehfrghsthhmrg
+    hilhdrfhhmqeenucggtffrrghtthgvrhhnpedtueduieefteefheeutdefheehteekuedu
+    teeukeegveektdfhtddthfdujeehvdenucffohhmrghinhepghhithhhuhgsrdgtohhmpd
+    hkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgr
+    ihhlfhhrohhmpegsvghrnhgurdhstghhuhgsvghrthesfhgrshhtmhgrihhlrdhfmh
+X-ME-Proxy: <xmx:wjLcY-mhqWtThg_P1R9B7fEwTdvAxglEiEGtSGPa-qMs8Al4lg4X6w>
+    <xmx:wjLcY40Kwcu9l8c6mHOz1io61YtVu3voIyBMYcDrdLGXZoN-yqDoWQ>
+    <xmx:wjLcY1vIjrGnngOCkAx0GrV9ZHcaA1IHJP13GDw5-hFMr250DGtY3w>
+    <xmx:wzLcY5k43sx9X8NYcj4tcOCC6nHlCmo6mNXqUMRq3bJtG_gPNKMBig>
+Feedback-ID: id8a24192:Fastmail
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
+ 2 Feb 2023 17:01:37 -0500 (EST)
+Message-ID: <283b5344-3ef5-7799-e243-13c707388cd8@fastmail.fm>
+Date:   Thu, 2 Feb 2023 23:01:35 +0100
 MIME-Version: 1.0
-References: <20221122021536.1629178-1-drosen@google.com> <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
- <CA+PiJmRLTXfjJmgJm9VRBQeLVkWgaqSq0RMrRY1Vj7q6pV+omw@mail.gmail.com> <2dc5e840-0ce8-dae9-99b9-e33d6ccbb016@fastmail.fm>
-In-Reply-To: <2dc5e840-0ce8-dae9-99b9-e33d6ccbb016@fastmail.fm>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 2 Feb 2023 10:47:36 +0200
-Message-ID: <CAOQ4uxiBD5NXLMXFev7vsCLU5-_o8-_H-XcoMY1aqhOwnADo9w@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for FUSE
-To:     Bernd Schubert <bernd.schubert@fastmail.fm>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for
+ FUSE
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Daniel Rosenberg <drosen@google.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         bpf@vger.kernel.org, kernel-team@android.com,
-        Vivek Goyal <vgoyal@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+        Vivek Goyal <vgoyal@redhat.com>,
+        Nikolaus Rath <Nikolaus@rath.org>
+References: <20221122021536.1629178-1-drosen@google.com>
+ <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
+ <CA+PiJmRLTXfjJmgJm9VRBQeLVkWgaqSq0RMrRY1Vj7q6pV+omw@mail.gmail.com>
+ <2dc5e840-0ce8-dae9-99b9-e33d6ccbb016@fastmail.fm>
+ <CAOQ4uxiBD5NXLMXFev7vsCLU5-_o8-_H-XcoMY1aqhOwnADo9w@mail.gmail.com>
+Content-Language: en-US, de-DE
+From:   Bernd Schubert <bernd.schubert@fastmail.fm>
+In-Reply-To: <CAOQ4uxiBD5NXLMXFev7vsCLU5-_o8-_H-XcoMY1aqhOwnADo9w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Nov 22, 2022 at 11:23 PM Bernd Schubert
-<bernd.schubert@fastmail.fm> wrote:
->
->
->
-> On 11/22/22 21:56, Daniel Rosenberg wrote:
-> > I've been running the generic xfstests against it, with some
-> > modifications to do things like mount/unmount the lower and upper fs
-> > at once. Most of the failures I see there are related to missing
-> > opcodes, like FUSE_SETLK, FUSE_GETLK, and FUSE_IOCTL. The main failure
-> > I have been seeing is generic/126, which is happening due to some
-> > additional checks we're doing in fuse_open_backing. I figured at some
-> > point we'd add some tests into libfuse, and that sounds like a good
-> > place to start.
->
->
-> Here is a branch of xfstests that should work with fuse and should not
-> run "rm -fr /" (we are going to give it more testing this week).
->
-> https://github.com/hbirth/xfstests
->
->
 
-Bernd, Daniel, Vivek,
 
-Did you see LSFMMBPF 2023 CFP [1]?
+On 2/2/23 09:47, Amir Goldstein wrote:
+> On Tue, Nov 22, 2022 at 11:23 PM Bernd Schubert
+> <bernd.schubert@fastmail.fm> wrote:
+>>
+>>
+>>
+>> On 11/22/22 21:56, Daniel Rosenberg wrote:
+>>> I've been running the generic xfstests against it, with some
+>>> modifications to do things like mount/unmount the lower and upper fs
+>>> at once. Most of the failures I see there are related to missing
+>>> opcodes, like FUSE_SETLK, FUSE_GETLK, and FUSE_IOCTL. The main failure
+>>> I have been seeing is generic/126, which is happening due to some
+>>> additional checks we're doing in fuse_open_backing. I figured at some
+>>> point we'd add some tests into libfuse, and that sounds like a good
+>>> place to start.
+>>
+>>
+>> Here is a branch of xfstests that should work with fuse and should not
+>> run "rm -fr /" (we are going to give it more testing this week).
+>>
+>> https://github.com/hbirth/xfstests
+>>
+>>
+> 
+> Bernd, Daniel, Vivek,
+> 
+> Did you see LSFMMBPF 2023 CFP [1]?
+> 
+> Did you consider requesting an invitation?
+> I think it could be a good opportunity to sit in a room and discuss the
+> roadmap of "FUSE2" with all the developers involved.
+> 
+> I am on the program committee for the Filesystem track, and I encourage
+> you to request an invite if you are interested to attend and/or nominate
+> other developers that you think will be valuable for this discussion.
+> 
+> Thanks,
+> Amir.
+> 
+> [1] https://lore.kernel.org/linux-fsdevel/Y9qBs82f94aV4%2F78@localhost.localdomain/
 
-Did you consider requesting an invitation?
-I think it could be a good opportunity to sit in a room and discuss the
-roadmap of "FUSE2" with all the developers involved.
 
-I am on the program committee for the Filesystem track, and I encourage
-you to request an invite if you are interested to attend and/or nominate
-other developers that you think will be valuable for this discussion.
+Thanks a lot Amir, I'm going to send out an invitation tomorrow. Maybe 
+Nikolaus as libfuse maintainer could also attend?
+
 
 Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-fsdevel/Y9qBs82f94aV4%2F78@localhost.localdomain/
+Bernd
