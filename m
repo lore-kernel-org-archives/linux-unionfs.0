@@ -2,122 +2,155 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8673FC61DA4
-	for <linux-unionfs@archiver.kernel.org>; Fri,  3 Feb 2023 11:43:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88A74C61DA4
+	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Feb 2023 08:58:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231748AbjBCLn1 (ORCPT
+        id S229950AbjBFI6w (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 3 Feb 2023 06:43:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40774 "EHLO
+        Mon, 6 Feb 2023 03:58:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230134AbjBCLn0 (ORCPT
+        with ESMTP id S229727AbjBFI6v (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 3 Feb 2023 06:43:26 -0500
-Received: from mail-vs1-xe2c.google.com (mail-vs1-xe2c.google.com [IPv6:2607:f8b0:4864:20::e2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 763269D5AA;
-        Fri,  3 Feb 2023 03:43:25 -0800 (PST)
-Received: by mail-vs1-xe2c.google.com with SMTP id y8so5113448vsq.0;
-        Fri, 03 Feb 2023 03:43:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=/O0wfDmh+hVYy+ZkNR4liogCM4hpIictaPGLw3sHiAs=;
-        b=cYd/WRYuLftKmgz18SrIZkr1UV0cfkm9D7jKlFiBkn6zFMSvruJ1rgl/8/bmn8hqMK
-         p7qf+/0iEMyjTgnU1fEQYDdMC6qf5QVxpPI33MqGuKx5ZW+t/3Fnd0UgtvW5DMhYU76q
-         qDRG53Ftek7aMHmOuA/bYxBZFyzlE9skG7VJ4lIkpvfBX0NUZC8CvVEael34U1JrMATm
-         r6awIZZO5uRRM9rSDnEhsM614j3VMzV6cuIVp60cUQX/KqH/tJjJR6qZ9+ItHMsfYVej
-         /dxKdV4UX8khN56fo/TAu5Nek4tB0rZwDIJk8t2jDFWIUHA/LuQjoN4uuKehWZfk+/an
-         y6aQ==
+        Mon, 6 Feb 2023 03:58:51 -0500
+Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E2F21ABF4
+        for <linux-unionfs@vger.kernel.org>; Mon,  6 Feb 2023 00:58:50 -0800 (PST)
+Received: by mail-il1-f197.google.com with SMTP id o10-20020a056e02102a00b003006328df7bso7675507ilj.17
+        for <linux-unionfs@vger.kernel.org>; Mon, 06 Feb 2023 00:58:49 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=/O0wfDmh+hVYy+ZkNR4liogCM4hpIictaPGLw3sHiAs=;
-        b=BCDWJOhSdle/MSDnyDX1dxWjB0jAqTBXO3YxbBe93HpZsNp0rSdI7IdgfA61McQ5xz
-         pCCk6x/RcsGk/yS4TAxFPnqAK647Tmo7GOezi94heYm8kvmQTKJCzDtZlBY5yzU5adpa
-         bzwp1II3i2NtaiaSUkJsjosEuUQWCEtGuLPN0Uy1KaSpsgwjSqIbLHg3BBMqtL+U7H0V
-         K6ehnyVOZTxTqDb7TnODgg2wtcoFtG4I9K41uxVc/Ydd7soPPgFetdr8jEaspRddRu4U
-         V3NNYQknWCOJt81LIIoD0Ktt4u2vOzfElI5CO+4MDR29+aZD9XLL+cSsh4a1q0N5oI3+
-         SktA==
-X-Gm-Message-State: AO0yUKVE/VkiVwsySUbSe19pzVQf7y/Hkwl1zecy0MQNLvLY5z7L1D4u
-        aqrJSCMSOFrujwJ7WC3ojmXZPqMDdVCqLYhjs1Y=
-X-Google-Smtp-Source: AK7set8HoY4/ZCAC8QSuult6Rp/Z114p0/1kQL9PigZw3gsjVIDleaMgZ+uaU0cuQkKZ+v8ELYvEVonF51NSkNTnp2c=
-X-Received: by 2002:a67:e102:0:b0:3f0:89e1:7c80 with SMTP id
- d2-20020a67e102000000b003f089e17c80mr1314417vsl.72.1675424604543; Fri, 03 Feb
- 2023 03:43:24 -0800 (PST)
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=zzoLADHANIqcF9FsafAB41ZC95Rig7FwqX55yF4UK6E=;
+        b=LG4xmRFjflYqw9bTO1hgXcGf0EuVh64ZCXLlK08zNuUClBAN9a5ghNknpscc3Y37WW
+         RQUoMLVVHhr+08MEl8z5OqRQrl5YtX9+JGSSsZeAMbC9xax3NgltnhwPmgG/JgUTHJ7N
+         vEolpZQE3V10HLl3ldf1XYFHITHd77aT/oHTYv5ftxSMKBiOH2Ss3FMgJ9dV2+gAfT79
+         kaY3bFB9DavbyDN0q95xENbxfZyGBijMqWqi12GrZ+YZhOZZhI0gOSEGt/FFTGPM25lf
+         nvEfIvBe7ojluF4WOJSN0k7KoWMVkH5+0qz5V0Puqt3g8D/jruDf2pW62vL3Gh8GRrRE
+         UOjQ==
+X-Gm-Message-State: AO0yUKX6Jygt0F7mX30+Fk1zZjONToYLKpcjcZN8zV6UQqgrqATEzYLT
+        OHE6/i3LU3+HdjiRuEw2y7prfQhuv9yzebta7WAx+O2vTPRI
+X-Google-Smtp-Source: AK7set8Ri2TWy/MQ9u6nr+4EJE4b+c1SRTqrxCE7CNpNZqHCk4vXBhRspElgpj6AHD6YKbvSLy27FGlQbIi3bKO2GnMtCVvuVlgq
 MIME-Version: 1.0
-References: <20221122021536.1629178-1-drosen@google.com> <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
- <CA+PiJmRLTXfjJmgJm9VRBQeLVkWgaqSq0RMrRY1Vj7q6pV+omw@mail.gmail.com>
- <2dc5e840-0ce8-dae9-99b9-e33d6ccbb016@fastmail.fm> <CAOQ4uxiBD5NXLMXFev7vsCLU5-_o8-_H-XcoMY1aqhOwnADo9w@mail.gmail.com>
- <283b5344-3ef5-7799-e243-13c707388cd8@fastmail.fm>
-In-Reply-To: <283b5344-3ef5-7799-e243-13c707388cd8@fastmail.fm>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 3 Feb 2023 13:43:13 +0200
-Message-ID: <CAOQ4uxjvUukDSBk977csO5cX=-1HiMHmyQxycbYQgrpLaanddw@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for FUSE
-To:     Bernd Schubert <bernd.schubert@fastmail.fm>
-Cc:     Daniel Rosenberg <drosen@google.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>, kernel-team <kernel-team@android.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        Nikolaus Rath <Nikolaus@rath.org>,
-        Josef Bacik <josef@toxicpanda.com>
+X-Received: by 2002:a02:9443:0:b0:3a9:46f6:b197 with SMTP id
+ a61-20020a029443000000b003a946f6b197mr4872940jai.20.1675673929301; Mon, 06
+ Feb 2023 00:58:49 -0800 (PST)
+Date:   Mon, 06 Feb 2023 00:58:49 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000050c30005f4043d1d@google.com>
+Subject: [syzbot] BUG: unable to handle kernel paging request in vfs_rename
+From:   syzbot <syzbot+e91636b670ccb340da5e@syzkaller.appspotmail.com>
+To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > Bernd, Daniel, Vivek,
-> >
-> > Did you see LSFMMBPF 2023 CFP [1]?
-> >
-> > Did you consider requesting an invitation?
-> > I think it could be a good opportunity to sit in a room and discuss the
-> > roadmap of "FUSE2" with all the developers involved.
-> >
-> > I am on the program committee for the Filesystem track, and I encourage
-> > you to request an invite if you are interested to attend and/or nominate
-> > other developers that you think will be valuable for this discussion.
-> >
-> > Thanks,
-> > Amir.
-> >
-> > [1] https://lore.kernel.org/linux-fsdevel/Y9qBs82f94aV4%2F78@localhost.localdomain/
->
->
-> Thanks a lot Amir, I'm going to send out an invitation tomorrow. Maybe
-> Nikolaus as libfuse maintainer could also attend?
->
+Hello,
 
-Since this summit is about kernel filesystem development, I am not sure
-on-prem attendance will be the best option for Nikolaus as we do have
-a quota for
-on-prem attendees, but we should have an option for connecting specific
-attendees remotely for specific sessions, so that could be great.
+syzbot found the following issue on:
 
-Two more notes:
-1. We realize that companies are going through economic changes and that
-    this may not be the best time to request travel approval or to be able to
-    get it. This should not stop you from requesting to attend!
-    Worse case, you can attend remotely. It is not the same experience, but
-    it is better than not attending at all if you have something to
-contribute to
-    the discussion.
-2. Bernd, I think you have some interesting WIP on "FUSE2" that the majority
-    of fs developers are not aware of.
-    It would be great if you can follow the instructions in CFP and also post
-    a TOPIC suggestion to fsdevel, to get the discussion started ahead of
-    the summit.
-    Daniel, same request for FUSE BFP. The TOPIC suggestion should
-    highlight the remaining open questions about design and API, which
-    may be good to discuss in this forum.
-    Please do not be intimidated by suggesting a TOPIC, you don't need
-    to prepare any slides if you do not want to, nor to submit an abstract
-    or anything of that sort.
+HEAD commit:    d2d11f342b17 Merge branch 'fixes' of git://git.kernel.org/..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=16055fbb480000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=6bb1911ff9919df0
+dashboard link: https://syzkaller.appspot.com/bug?extid=e91636b670ccb340da5e
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
 
-Thanks,
-Amir.
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/6be923b8a63a/disk-d2d11f34.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/9a426c0bf1d8/vmlinux-d2d11f34.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/3c6af145650b/bzImage-d2d11f34.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+e91636b670ccb340da5e@syzkaller.appspotmail.com
+
+BUG: unable to handle page fault for address: fffffffffff815ad
+#PF: supervisor read access in kernel mode
+#PF: error_code(0x0000) - not-present page
+PGD c48f067 P4D c48f067 PUD c491067 PMD 0 
+Oops: 0000 [#1] PREEMPT SMP KASAN
+CPU: 0 PID: 7143 Comm: syz-executor.3 Not tainted 6.2.0-rc7-syzkaller-00002-gd2d11f342b17 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+RIP: 0010:vfs_rename+0xd5/0x1a90 fs/namei.c:4691
+Code: 00 0f 85 41 17 00 00 48 8d 7d 68 4c 8b 6b 28 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 14 17 00 00 <48> 8b 45 68 4d 8d 75 68 4c 89 f2 48 c1 ea 03 48 89 44 24 08 48 b8
+RSP: 0018:ffffc9000aa4faa8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffffc9000aa4fc28 RCX: ffffc9000b5ea000
+RDX: 1fffffffffff02b5 RSI: ffffffff81e1dfba RDI: fffffffffff815ad
+RBP: fffffffffff81545 R08: 0000000000000005 R09: 0000000000200000
+R10: 0000000000000000 R11: 0000000000000000 R12: fffffffffff81545
+R13: ffff888073167028 R14: ffff888073167028 R15: ffff88803af73690
+FS:  00007f26c0b92700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffffff815ad CR3: 000000007ce37000 CR4: 0000000000350ef0
+Call Trace:
+ <TASK>
+ ovl_do_rename fs/overlayfs/overlayfs.h:311 [inline]
+ ovl_cleanup_and_whiteout+0x2c6/0x700 fs/overlayfs/dir.c:125
+ ovl_remove_and_whiteout fs/overlayfs/dir.c:784 [inline]
+ ovl_do_remove+0xb45/0xe50 fs/overlayfs/dir.c:911
+ vfs_unlink+0x355/0x930 fs/namei.c:4252
+ do_unlinkat+0x3b7/0x640 fs/namei.c:4320
+ __do_sys_unlink fs/namei.c:4368 [inline]
+ __se_sys_unlink fs/namei.c:4366 [inline]
+ __x64_sys_unlink+0xca/0x110 fs/namei.c:4366
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f26bfe8c0c9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f26c0b92168 EFLAGS: 00000246 ORIG_RAX: 0000000000000057
+RAX: ffffffffffffffda RBX: 00007f26bffabf80 RCX: 00007f26bfe8c0c9
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000020000100
+RBP: 00007f26bfee7ae9 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fff98d3e57f R14: 00007f26c0b92300 R15: 0000000000022000
+ </TASK>
+Modules linked in:
+CR2: fffffffffff815ad
+---[ end trace 0000000000000000 ]---
+RIP: 0010:vfs_rename+0xd5/0x1a90 fs/namei.c:4691
+Code: 00 0f 85 41 17 00 00 48 8d 7d 68 4c 8b 6b 28 48 b8 00 00 00 00 00 fc ff df 48 89 fa 48 c1 ea 03 80 3c 02 00 0f 85 14 17 00 00 <48> 8b 45 68 4d 8d 75 68 4c 89 f2 48 c1 ea 03 48 89 44 24 08 48 b8
+RSP: 0018:ffffc9000aa4faa8 EFLAGS: 00010246
+RAX: dffffc0000000000 RBX: ffffc9000aa4fc28 RCX: ffffc9000b5ea000
+RDX: 1fffffffffff02b5 RSI: ffffffff81e1dfba RDI: fffffffffff815ad
+RBP: fffffffffff81545 R08: 0000000000000005 R09: 0000000000200000
+R10: 0000000000000000 R11: 0000000000000000 R12: fffffffffff81545
+R13: ffff888073167028 R14: ffff888073167028 R15: ffff88803af73690
+FS:  00007f26c0b92700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: fffffffffff815ad CR3: 000000007ce37000 CR4: 0000000000350ef0
+----------------
+Code disassembly (best guess):
+   0:	00 0f                	add    %cl,(%rdi)
+   2:	85 41 17             	test   %eax,0x17(%rcx)
+   5:	00 00                	add    %al,(%rax)
+   7:	48 8d 7d 68          	lea    0x68(%rbp),%rdi
+   b:	4c 8b 6b 28          	mov    0x28(%rbx),%r13
+   f:	48 b8 00 00 00 00 00 	movabs $0xdffffc0000000000,%rax
+  16:	fc ff df
+  19:	48 89 fa             	mov    %rdi,%rdx
+  1c:	48 c1 ea 03          	shr    $0x3,%rdx
+  20:	80 3c 02 00          	cmpb   $0x0,(%rdx,%rax,1)
+  24:	0f 85 14 17 00 00    	jne    0x173e
+* 2a:	48 8b 45 68          	mov    0x68(%rbp),%rax <-- trapping instruction
+  2e:	4d 8d 75 68          	lea    0x68(%r13),%r14
+  32:	4c 89 f2             	mov    %r14,%rdx
+  35:	48 c1 ea 03          	shr    $0x3,%rdx
+  39:	48 89 44 24 08       	mov    %rax,0x8(%rsp)
+  3e:	48                   	rex.W
+  3f:	b8                   	.byte 0xb8
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
