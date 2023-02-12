@@ -2,112 +2,141 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1402AC05027
-	for <linux-unionfs@archiver.kernel.org>; Fri, 10 Feb 2023 10:54:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F1FC05027
+	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Feb 2023 07:12:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231569AbjBJKyE (ORCPT
+        id S229583AbjBLHMB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 10 Feb 2023 05:54:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37846 "EHLO
+        Sun, 12 Feb 2023 02:12:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232144AbjBJKyD (ORCPT
+        with ESMTP id S229472AbjBLHMA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 10 Feb 2023 05:54:03 -0500
-Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627F71E5C4
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Feb 2023 02:54:02 -0800 (PST)
-Received: by mail-ej1-x630.google.com with SMTP id ud5so14789305ejc.4
-        for <linux-unionfs@vger.kernel.org>; Fri, 10 Feb 2023 02:54:02 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=IY4Whe06KZr/dCRKC/k3Pnuiy/Cav2kBFD8hLrrOg8g=;
-        b=nY/IGLGNDxwn530xHObj2thmUqHZRExRlPumHRiXuRfiSoGNDPEVEF+L5oTEXv8PcP
-         ETbaF/URLWOEk55Yq0H8SNZ5bXxPS/Ze9/GJ9GFYZs9XeTEJ7dl9t9krGUkdAC3wi0WF
-         U3t/xZxHsaRWpDmZSXBrwiZnSO7RT+1smDyvY=
+        Sun, 12 Feb 2023 02:12:00 -0500
+Received: from mail-il1-f205.google.com (mail-il1-f205.google.com [209.85.166.205])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1123126E9
+        for <linux-unionfs@vger.kernel.org>; Sat, 11 Feb 2023 23:11:56 -0800 (PST)
+Received: by mail-il1-f205.google.com with SMTP id r8-20020a92cd88000000b00313f4759a73so7558897ilb.9
+        for <linux-unionfs@vger.kernel.org>; Sat, 11 Feb 2023 23:11:56 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IY4Whe06KZr/dCRKC/k3Pnuiy/Cav2kBFD8hLrrOg8g=;
-        b=BSm18z2L99hKGnGIc6ZZUjb7im+jbjC6dbrha42BA03llotBbpaFw69FZHnO21+ldS
-         8E+xPYG8wQjLtGtMZ1QY510OjfhjEdKIMpby8JPGK6K23JlzbvqEA+YOYk4tZVUpV+fu
-         64Jc0V0kQdzAXmDx2G/KjvNAdFwO0phPNSxtQlSpyLGIvWmtt8D3GsmPZUDyLjxlCo3a
-         OY+MDnbu6xQh37FLxWu0EHND5XLn+drAp5xW4U1jv2KlHoCPyLQFoXbklbaHjbC4bPL9
-         PyZGqUoLiQeIYgYUxT7vb9rAVc9D+voV82XBDpafaoKwKlHm0Ws+KvKaWmdIm5g8wFIJ
-         3iyA==
-X-Gm-Message-State: AO0yUKVCx0r3bSnVzItmY0n7kTMBrzO+gnbetTsu5nydh9v2jbFMOuYj
-        P6QpBJDGR0YFdD0kjCRnn4QihEIpQP0X/iNSoRI2zg==
-X-Google-Smtp-Source: AK7set8xkzxBOD+wDzOrHdqZR4xd8pnPuGMx8oY9OQNbChtJSYSGC6AgESAHznUmU7N13mMocyUpTYWHP03Gt0TCi8c=
-X-Received: by 2002:a17:906:7242:b0:889:a006:7db5 with SMTP id
- n2-20020a170906724200b00889a0067db5mr3270379ejk.138.1676026440994; Fri, 10
- Feb 2023 02:54:00 -0800 (PST)
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=zUPtEVM7t9nCmhssBCz2v1DpyQU0s3fiEsKPzMp+Z9w=;
+        b=Y0zWhkUzgz6iQFlYuNtxeXQcMihNnY2FuSn36jHK9XN/+FJf0qwq6qf/9QD3sq07CS
+         +D89KjIA4OjN7raQt3tnNj40NuYAKyVQDySiCYzmJluhvREPkjFN/VTyjg+X/LFahieT
+         /D7yQUK0OMnu6vx3ARq9nAuBi1nNTALzJYnmR7ueyuf9XsXB8fO02QI8kVrBNPV1Nvim
+         wwpoMTvAOXGytIjn9n0lva9TO2DIHgjUTTQ8VzXOHwGC5XKIKXcK4CjxqoNm04iVnfzS
+         RrwUdJqD2XkcyWbi7YF7J3eL6Up2Td5GzmpPBIGeXKgP6AkdzaP8FnaHcouhvV6MAu23
+         bTVQ==
+X-Gm-Message-State: AO0yUKUEsRlEkpi+i7jIELyRJxp3EtjE2MLN+QRyNJyFcx5IhI8jDyqM
+        96x/33c85Uy4Szot3jylwf3/UGiysKaSb1j/lACcwMFmC6Cc
+X-Google-Smtp-Source: AK7set+AwD/NMLVY9KMs03mbvIXvUcGf9fdJBuIHYh033nb1eHfkgm+qZU/LbXaTZ+dwY8DMIIiO02S1aDquL9hpEkXL/m5oTcCm
 MIME-Version: 1.0
-References: <20221122021536.1629178-1-drosen@google.com> <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
- <CA+PiJmRLTXfjJmgJm9VRBQeLVkWgaqSq0RMrRY1Vj7q6pV+omw@mail.gmail.com>
- <2dc5e840-0ce8-dae9-99b9-e33d6ccbb016@fastmail.fm> <CAOQ4uxiBD5NXLMXFev7vsCLU5-_o8-_H-XcoMY1aqhOwnADo9w@mail.gmail.com>
- <283b5344-3ef5-7799-e243-13c707388cd8@fastmail.fm> <CAOQ4uxjvUukDSBk977csO5cX=-1HiMHmyQxycbYQgrpLaanddw@mail.gmail.com>
- <CAJfpegvHKkCn0UnNRVxFXjjnkOuq0N4xLN4WzpqVX+56DqdjUw@mail.gmail.com> <81e010cc-b52b-4b20-8d08-631ce8ca7fad@app.fastmail.com>
-In-Reply-To: <81e010cc-b52b-4b20-8d08-631ce8ca7fad@app.fastmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 10 Feb 2023 11:53:50 +0100
-Message-ID: <CAJfpegsocoi-KobnSpD9dHvZDeDwG+ZPKRV9Yo-4i8utZa5Jww@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 00/21] FUSE BPF: A Stacked Filesystem Extension for FUSE
-To:     Nikolaus Rath <nikolaus@rath.org>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Bernd Schubert <bernd.schubert@fastmail.fm>,
-        Daniel Rosenberg <drosen@google.com>,
-        Linux FS Devel <linux-fsdevel@vger.kernel.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        bpf <bpf@vger.kernel.org>, kernel-team <kernel-team@android.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
-        Josef Bacik <josef@toxicpanda.com>
+X-Received: by 2002:a05:6638:118f:b0:3a9:7683:bf3b with SMTP id
+ f15-20020a056638118f00b003a97683bf3bmr12143516jas.101.1676185916117; Sat, 11
+ Feb 2023 23:11:56 -0800 (PST)
+Date:   Sat, 11 Feb 2023 23:11:56 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000001b987605f47b72d3@google.com>
+Subject: [syzbot] WARNING: locking bug in take_dentry_name_snapshot
+From:   syzbot <syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com>
+To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 10 Feb 2023 at 10:42, Nikolaus Rath <nikolaus@rath.org> wrote:
->
-> On Fri, 10 Feb 2023, at 09:38, Miklos Szeredi wrote:
-> > On Fri, 3 Feb 2023 at 12:43, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> >> > Thanks a lot Amir, I'm going to send out an invitation tomorrow. Maybe
-> >> > Nikolaus as libfuse maintainer could also attend?
-> >> >
-> >>
-> >> Since this summit is about kernel filesystem development, I am not sure
-> >> on-prem attendance will be the best option for Nikolaus as we do have
-> >> a quota for
-> >> on-prem attendees, but we should have an option for connecting specific
-> >> attendees remotely for specific sessions, so that could be great.
-> >
-> > Not sure.  I think including non-kernel people might be beneficial to
-> > the whole fs development community.  Not saying LSF is the best place,
-> > but it's certainly a possibility.
-> >
-> > Nikolaus, I don't even know where you're located.  Do you think it
-> > would make sense for you to attend?
->
-> Hi folks,
->
-> I'm located in London.
->
-> I've never been at LHS, so it's hard for me to tell if I'd be useful there or not. If there's interest, then I would make an effort to attend.
->
-> Are we talking about the event in Vancouver on May 8th?
+Hello,
 
-Yes, that's the one.
+syzbot found the following issue on:
 
-I'd certainly think it would be useful, since there will be people
-with interest in fuse filesystems and hashing out the development
-direction involves libfuse as well.
+HEAD commit:    38d2b86a665b Add linux-next specific files for 20230208
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=11f5e56b480000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=3691b32dd4410e01
+dashboard link: https://syzkaller.appspot.com/bug?extid=5a195884ee3ad761db4e
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
 
-Here's the CFP and attendance request if you are interested:
+Unfortunately, I don't have any reproducer for this issue yet.
 
-  https://events.linuxfoundation.org/lsfmm/program/cfp/
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/0a9d60e90514/disk-38d2b86a.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/71311be5f1a1/vmlinux-38d2b86a.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/a242870cc8eb/bzImage-38d2b86a.xz
 
-Thanks,
-Miklos
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com
+
+reiserfs: enabling write barrier flush mode
+REISERFS (device loop2): Created .reiserfs_priv - reserved for xattr storage.
+overlayfs: upper fs needs to support d_type.
+overlayfs: upper fs does not support tmpfile.
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(1)
+WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:232 [inline]
+WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:221 [inline]
+WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 check_wait_context kernel/locking/lockdep.c:4746 [inline]
+WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 __lock_acquire+0x1664/0x5df0 kernel/locking/lockdep.c:5024
+Modules linked in:
+CPU: 1 PID: 5500 Comm: syz-executor.2 Not tainted 6.2.0-rc7-next-20230208-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
+RIP: 0010:hlock_class kernel/locking/lockdep.c:232 [inline]
+RIP: 0010:hlock_class kernel/locking/lockdep.c:221 [inline]
+RIP: 0010:check_wait_context kernel/locking/lockdep.c:4746 [inline]
+RIP: 0010:__lock_acquire+0x1664/0x5df0 kernel/locking/lockdep.c:5024
+Code: 08 84 d2 0f 85 8c 3a 00 00 8b 0d 93 4e 10 0d 85 c9 0f 85 33 fb ff ff 48 c7 c6 80 6f 4c 8a 48 c7 c7 c0 63 4c 8a e8 9c 58 e6 ff <0f> 0b 31 ed e9 b3 ed ff ff e8 1e d6 b0 02 85 c0 0f 84 c3 fa ff ff
+RSP: 0000:ffffc900059cf7f0 EFLAGS: 00010086
+RAX: 0000000000000000 RBX: ffffffff92000c7f RCX: ffffc90005f61000
+RDX: 0000000000040000 RSI: ffffffff814bfdd7 RDI: 0000000000000001
+RBP: 0000000000001100 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 000000002d2d2d2d R12: ffff888028100ab0
+R13: ffff888028100000 R14: 0000000000040000 R15: 0000000000041100
+FS:  00007f8fab92e700(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00000000200de030 CR3: 00000000717c5000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ lock_acquire.part.0+0x11c/0x370 kernel/locking/lockdep.c:5691
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ take_dentry_name_snapshot+0x2b/0x170 fs/dcache.c:315
+ ovl_check_rename_whiteout fs/overlayfs/super.c:1207 [inline]
+ ovl_make_workdir fs/overlayfs/super.c:1329 [inline]
+ ovl_get_workdir fs/overlayfs/super.c:1444 [inline]
+ ovl_fill_super+0x2090/0x7270 fs/overlayfs/super.c:2000
+ mount_nodev+0x64/0x120 fs/super.c:1418
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x350 fs/super.c:1502
+ do_new_mount fs/namespace.c:3042 [inline]
+ path_mount+0x1342/0x1e40 fs/namespace.c:3372
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount fs/namespace.c:3571 [inline]
+ __x64_sys_mount+0x283/0x300 fs/namespace.c:3571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f8faac8c0f9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f8fab92e168 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007f8faadabf80 RCX: 00007f8faac8c0f9
+RDX: 0000000020000080 RSI: 0000000020000040 RDI: 0000000000000000
+RBP: 00007f8faace7ae9 R08: 0000000020000480 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007fff1f6e324f R14: 00007f8fab92e300 R15: 0000000000022000
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
