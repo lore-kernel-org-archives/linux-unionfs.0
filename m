@@ -2,141 +2,104 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F1FC05027
-	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Feb 2023 07:12:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD26FC05027
+	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Feb 2023 09:02:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229583AbjBLHMB (ORCPT
+        id S229463AbjBLJCS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 12 Feb 2023 02:12:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41048 "EHLO
+        Sun, 12 Feb 2023 04:02:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38992 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbjBLHMA (ORCPT
+        with ESMTP id S229472AbjBLJCS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 12 Feb 2023 02:12:00 -0500
-Received: from mail-il1-f205.google.com (mail-il1-f205.google.com [209.85.166.205])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1123126E9
-        for <linux-unionfs@vger.kernel.org>; Sat, 11 Feb 2023 23:11:56 -0800 (PST)
-Received: by mail-il1-f205.google.com with SMTP id r8-20020a92cd88000000b00313f4759a73so7558897ilb.9
-        for <linux-unionfs@vger.kernel.org>; Sat, 11 Feb 2023 23:11:56 -0800 (PST)
+        Sun, 12 Feb 2023 04:02:18 -0500
+Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1A881285B;
+        Sun, 12 Feb 2023 01:02:16 -0800 (PST)
+Received: by mail-wm1-x329.google.com with SMTP id u10so6715855wmj.3;
+        Sun, 12 Feb 2023 01:02:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=o054lJq7cNJLgChzGzCQ+WRE1bzNAT5cBcRzDdFJomI=;
+        b=BGNtl4F66FtklWTIE4ne2svwaooZ7g3z1KjWYUI6vGy7oJlAgTskn4ZdT80NCp4t/Z
+         t/Be3c6mDsYRSbFB7QhWskI6msrJf35wznQIPeL/bxOEvmmEBfA1bqznthEMtepzz3Sf
+         B01wfhs376EI0qTdI+yQ91d3fwKwYHIf4P4p7ZmLnZ8DM3VqU5D1vmgRPa5Tens3TYAM
+         mcCZcFow4LsUJM+MS+CiXx7yJ+d5sgar6ErWPEtzOyCIK7P7BTfnbbU4Yb8zEnAgABPf
+         F9DZxjJI+ENSU2x/8KUCCxawlx0uyHfQ4wj7v8T0jUMViSSuogZyvWGe9xM554NvggtV
+         FmTA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=zUPtEVM7t9nCmhssBCz2v1DpyQU0s3fiEsKPzMp+Z9w=;
-        b=Y0zWhkUzgz6iQFlYuNtxeXQcMihNnY2FuSn36jHK9XN/+FJf0qwq6qf/9QD3sq07CS
-         +D89KjIA4OjN7raQt3tnNj40NuYAKyVQDySiCYzmJluhvREPkjFN/VTyjg+X/LFahieT
-         /D7yQUK0OMnu6vx3ARq9nAuBi1nNTALzJYnmR7ueyuf9XsXB8fO02QI8kVrBNPV1Nvim
-         wwpoMTvAOXGytIjn9n0lva9TO2DIHgjUTTQ8VzXOHwGC5XKIKXcK4CjxqoNm04iVnfzS
-         RrwUdJqD2XkcyWbi7YF7J3eL6Up2Td5GzmpPBIGeXKgP6AkdzaP8FnaHcouhvV6MAu23
-         bTVQ==
-X-Gm-Message-State: AO0yUKUEsRlEkpi+i7jIELyRJxp3EtjE2MLN+QRyNJyFcx5IhI8jDyqM
-        96x/33c85Uy4Szot3jylwf3/UGiysKaSb1j/lACcwMFmC6Cc
-X-Google-Smtp-Source: AK7set+AwD/NMLVY9KMs03mbvIXvUcGf9fdJBuIHYh033nb1eHfkgm+qZU/LbXaTZ+dwY8DMIIiO02S1aDquL9hpEkXL/m5oTcCm
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=o054lJq7cNJLgChzGzCQ+WRE1bzNAT5cBcRzDdFJomI=;
+        b=oopOD7oD4sUS/ZC3ixRmkqgxmFyljKS3LQofd3AY/zMvIrJNiUzZrBrYxRLxvY4FA6
+         c5hOOJG96iumC3A8bqHdsKcLRKxZvO6zmuL5RB2JNqQ39/H3hZGJM64fTz9FSzgSOWJf
+         xCPr9mIVRh8Qm5OpbUCRqCQX+e/1AurXGM3ESrGaeK/Y6E0zBtQaNOZvqE16L1B8dh95
+         R15g3uxc9yHryD7uQZVChQjSIGNeJqCkMPBBuU/RDY/85eMUHsFOWMxjE1jhXfhXmr20
+         OHt+ghQJxJi68JGU72fpAb0AzYl5ncFqRYaskTh2MZ9hiHzmR0ckG5//6YP2ARh271gD
+         ja1A==
+X-Gm-Message-State: AO0yUKVI4bDckPysEwss+KxjrZAwP02xhS/d+J6je9NFAcd+qLmOxUdN
+        KQ4FirT9nWUZt5LGuA3EhuI=
+X-Google-Smtp-Source: AK7set+0sdObphmL7tZ+fdK1yIO/BppQpXtS3/wTcInpWjWoOAd3ibt9p2OnYK//N2kEpJ77sQQ1qQ==
+X-Received: by 2002:a05:600c:1694:b0:3dc:5deb:40a0 with SMTP id k20-20020a05600c169400b003dc5deb40a0mr16808150wmn.8.1676192535306;
+        Sun, 12 Feb 2023 01:02:15 -0800 (PST)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id t7-20020a05600c450700b003dc42d48defsm12017183wmo.6.2023.02.12.01.02.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 12 Feb 2023 01:02:14 -0800 (PST)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Sasha Levin <sashal@kernel.org>,
+        Leah Rumancik <leah.rumancik@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        stable@vger.kernel.org
+Subject: [PATCH 5.10 0/2] Backport two overlayfs fixed to 5.10.y
+Date:   Sun, 12 Feb 2023 11:02:02 +0200
+Message-Id: <20230212090204.339226-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:118f:b0:3a9:7683:bf3b with SMTP id
- f15-20020a056638118f00b003a97683bf3bmr12143516jas.101.1676185916117; Sat, 11
- Feb 2023 23:11:56 -0800 (PST)
-Date:   Sat, 11 Feb 2023 23:11:56 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000001b987605f47b72d3@google.com>
-Subject: [syzbot] WARNING: locking bug in take_dentry_name_snapshot
-From:   syzbot <syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com>
-To:     linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+Greg,
 
-syzbot found the following issue on:
+These two patches have been (correctly) auto selected to 5.15.y
+along with the two dependency patches tagged with:
+Stable-dep-of: b306e90ffabd ("ovl: remove privs in ovl_copyfile()")
+9636e70ee2d3 ("ovl: use ovl_copy_{real,upper}attr() wrappers")
+a54843833caf ("ovl: store lower path in ovl_inode")
 
-HEAD commit:    38d2b86a665b Add linux-next specific files for 20230208
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=11f5e56b480000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=3691b32dd4410e01
-dashboard link: https://syzkaller.appspot.com/bug?extid=5a195884ee3ad761db4e
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+It wasn't wrong to apply those patches with the two dependencies
+to 5.15.y, but it is not as easy to do for 5.10.y, so here is a
+very simple backport of the two fixes to 5.10.y, i.e.:
+replaced ovl_copyattr(X) with ovl_copyattr(ovl_inode_real(X), X).
 
-Unfortunately, I don't have any reproducer for this issue yet.
+Note that the language "This fixes some failure in fstests..."
+in commit message means that those fixes are not enough for the
+tests to pass. Additional backports from v6.2 are needed for the
+tests to pass and I am collaborating those backports with Leah,
+so they will hit 5.15.y first before posting them for 5.10.y.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/0a9d60e90514/disk-38d2b86a.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/71311be5f1a1/vmlinux-38d2b86a.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/a242870cc8eb/bzImage-38d2b86a.xz
+Never the less, these overlayfs fixes are important security
+fixes, so they should be applied to LTS kernel even before
+all the cases in the fstests are fixed.
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com
+Thanks,
+Amir.
 
-reiserfs: enabling write barrier flush mode
-REISERFS (device loop2): Created .reiserfs_priv - reserved for xattr storage.
-overlayfs: upper fs needs to support d_type.
-overlayfs: upper fs does not support tmpfile.
-------------[ cut here ]------------
-DEBUG_LOCKS_WARN_ON(1)
-WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:232 [inline]
-WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:221 [inline]
-WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 check_wait_context kernel/locking/lockdep.c:4746 [inline]
-WARNING: CPU: 1 PID: 5500 at kernel/locking/lockdep.c:232 __lock_acquire+0x1664/0x5df0 kernel/locking/lockdep.c:5024
-Modules linked in:
-CPU: 1 PID: 5500 Comm: syz-executor.2 Not tainted 6.2.0-rc7-next-20230208-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/12/2023
-RIP: 0010:hlock_class kernel/locking/lockdep.c:232 [inline]
-RIP: 0010:hlock_class kernel/locking/lockdep.c:221 [inline]
-RIP: 0010:check_wait_context kernel/locking/lockdep.c:4746 [inline]
-RIP: 0010:__lock_acquire+0x1664/0x5df0 kernel/locking/lockdep.c:5024
-Code: 08 84 d2 0f 85 8c 3a 00 00 8b 0d 93 4e 10 0d 85 c9 0f 85 33 fb ff ff 48 c7 c6 80 6f 4c 8a 48 c7 c7 c0 63 4c 8a e8 9c 58 e6 ff <0f> 0b 31 ed e9 b3 ed ff ff e8 1e d6 b0 02 85 c0 0f 84 c3 fa ff ff
-RSP: 0000:ffffc900059cf7f0 EFLAGS: 00010086
-RAX: 0000000000000000 RBX: ffffffff92000c7f RCX: ffffc90005f61000
-RDX: 0000000000040000 RSI: ffffffff814bfdd7 RDI: 0000000000000001
-RBP: 0000000000001100 R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 000000002d2d2d2d R12: ffff888028100ab0
-R13: ffff888028100000 R14: 0000000000040000 R15: 0000000000041100
-FS:  00007f8fab92e700(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00000000200de030 CR3: 00000000717c5000 CR4: 00000000003506e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- lock_acquire.part.0+0x11c/0x370 kernel/locking/lockdep.c:5691
- __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
- _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
- spin_lock include/linux/spinlock.h:350 [inline]
- take_dentry_name_snapshot+0x2b/0x170 fs/dcache.c:315
- ovl_check_rename_whiteout fs/overlayfs/super.c:1207 [inline]
- ovl_make_workdir fs/overlayfs/super.c:1329 [inline]
- ovl_get_workdir fs/overlayfs/super.c:1444 [inline]
- ovl_fill_super+0x2090/0x7270 fs/overlayfs/super.c:2000
- mount_nodev+0x64/0x120 fs/super.c:1418
- legacy_get_tree+0x109/0x220 fs/fs_context.c:610
- vfs_get_tree+0x8d/0x350 fs/super.c:1502
- do_new_mount fs/namespace.c:3042 [inline]
- path_mount+0x1342/0x1e40 fs/namespace.c:3372
- do_mount fs/namespace.c:3385 [inline]
- __do_sys_mount fs/namespace.c:3594 [inline]
- __se_sys_mount fs/namespace.c:3571 [inline]
- __x64_sys_mount+0x283/0x300 fs/namespace.c:3571
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f8faac8c0f9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007f8fab92e168 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007f8faadabf80 RCX: 00007f8faac8c0f9
-RDX: 0000000020000080 RSI: 0000000020000040 RDI: 0000000000000000
-RBP: 00007f8faace7ae9 R08: 0000000020000480 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
-R13: 00007fff1f6e324f R14: 00007f8fab92e300 R15: 0000000000022000
- </TASK>
+Amir Goldstein (2):
+  ovl: remove privs in ovl_copyfile()
+  ovl: remove privs in ovl_fallocate()
 
+ fs/overlayfs/file.c | 28 +++++++++++++++++++++++++---
+ 1 file changed, 25 insertions(+), 3 deletions(-)
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+-- 
+2.34.1
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
