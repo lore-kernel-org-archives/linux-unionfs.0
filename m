@@ -2,149 +2,167 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F5BEC64ED6
-	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Feb 2023 17:15:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70572C61DA4
+	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Feb 2023 18:04:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232731AbjBNRP1 (ORCPT
+        id S231343AbjBNSEz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 14 Feb 2023 12:15:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41456 "EHLO
+        Tue, 14 Feb 2023 13:04:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34778 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232983AbjBNRPD (ORCPT
+        with ESMTP id S229842AbjBNSEj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2023 12:15:03 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAE3BC643
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Feb 2023 09:14:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1676394854;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=9CqUl4uoQ+LRGKUoO3X6p5TYca6H7tIaOYxOpOq6akk=;
-        b=KseqYForNka+to6QSiiet1EMcoSNgAlLXSF6ZLGOKBxyzBKaE+aRvcX8wV8/u0v6brFfH7
-        qqp2ptl3fP3F6H25IyjmL1C0Od3Ig2IFB5x4rp9d22pcP/kSnmWcpUHLV/xaU4b693M6ZV
-        W37jMx87hNhWhkbkO79BJw8s/AFXZjk=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-253-cDT_luHMOIyAlH60JlEtxw-1; Tue, 14 Feb 2023 12:14:04 -0500
-X-MC-Unique: cDT_luHMOIyAlH60JlEtxw-1
-Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A98F52817248;
-        Tue, 14 Feb 2023 17:14:02 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.33.36.24])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 0D058492B15;
-        Tue, 14 Feb 2023 17:13:59 +0000 (UTC)
-From:   David Howells <dhowells@redhat.com>
-To:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>
-Cc:     David Howells <dhowells@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Jeff Layton <jlayton@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Hillf Danton <hdanton@sina.com>, linux-fsdevel@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
-        codalist@coda.cs.cmu.edu, linux-unionfs@vger.kernel.org
-Subject: [PATCH v14 06/17] coda: Implement splice-read
-Date:   Tue, 14 Feb 2023 17:13:19 +0000
-Message-Id: <20230214171330.2722188-7-dhowells@redhat.com>
-In-Reply-To: <20230214171330.2722188-1-dhowells@redhat.com>
-References: <20230214171330.2722188-1-dhowells@redhat.com>
+        Tue, 14 Feb 2023 13:04:39 -0500
+Received: from mail-vk1-xa2b.google.com (mail-vk1-xa2b.google.com [IPv6:2607:f8b0:4864:20::a2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CCCA5BBB6;
+        Tue, 14 Feb 2023 10:04:29 -0800 (PST)
+Received: by mail-vk1-xa2b.google.com with SMTP id v81so8391660vkv.5;
+        Tue, 14 Feb 2023 10:04:29 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=TMkf7c8z7/sNRkzcNDwG4/QBxpk3rcjnBNtaol4M2NI=;
+        b=akRLYn2Lt+j5KYsXonD7qbup/3PwO3moofYNPBFdWJkVw+5sAX6MrUuFQYDzf+PUtQ
+         eOigIsKg1yLWJVJPHlhn3GTB49jK92WJGohpggbYjVVrBMJASp5A4YCSpaKCtfL+wI/h
+         fmylS7WYz5GDurB8xcmbeBVZwgorB822MmzkHDaVynW9awqBsolKhtxUwARuwFXuqfzU
+         nKtvGRe/xC9+Q0hu/RGEVbWUXzCYjnj5uGruY8dUBZxa+RZPEncqOO9jZ92nyeGiDgs2
+         s7XOVJE8z+/PtoBXVcr/apdrA8lXC6ZwdZzoqqn1kgTp70EWoInTtO0C1pg1Tq52P7Ws
+         lA5A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=TMkf7c8z7/sNRkzcNDwG4/QBxpk3rcjnBNtaol4M2NI=;
+        b=nfQn2+JrEKqKQMmRLYcSP7745zOsaxgI6MJtaTPbqnzRdTUR9CV/db9YF7r9VR8EMt
+         CRktLaH8QEcdCs1Kc/+cfwQgUR8NihGy4KvpuguAAFy+nXEdQ4X+thfoiNcTnWeRCcGQ
+         GP1rXRljIQZMZ2MkF9iUbWGLCtFXX/CVk4lazujvoep+jd5ejfJX5uZ5Q2LXRKvRFomQ
+         Ri6qLMg9okiyrBOa7C10bqCrS0AWx0UpXmPh2rGVXJiaQQseokQU24iwzuCpesjkt6OL
+         mRennWnt7d/LsQvGfzveUTQooYeP8gsgBRT1fCRGCCBsNFhfuXYSqeomTSkVvHGlu6s2
+         qzRQ==
+X-Gm-Message-State: AO0yUKW0nDYgzGJQfWCvDycY21r5446XZbBLvdNUslo/Tgds5HMCMR75
+        I6SmQ50WX0YeXQDQt+yYYiTHVpfmNwN1w060VwUBfl8H
+X-Google-Smtp-Source: AK7set8E3Q1LiRcRuh+0KnT9RilvPri9nHdBF2Z0VeaMoKAPnrKE6kqUGgklozRykcihpkIg/7K/pocG/IuZZ3YSEgk=
+X-Received: by 2002:a1f:a681:0:b0:3d5:9b32:7ba4 with SMTP id
+ p123-20020a1fa681000000b003d59b327ba4mr482672vke.15.1676397868643; Tue, 14
+ Feb 2023 10:04:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.10
+References: <20221122021536.1629178-1-drosen@google.com> <CAOQ4uxiyRxsZjkku_V2dBMvh1AGiKQx-iPjsD5tmGPv1PgJHvQ@mail.gmail.com>
+ <CA+PiJmRLTXfjJmgJm9VRBQeLVkWgaqSq0RMrRY1Vj7q6pV+omw@mail.gmail.com>
+ <2dc5e840-0ce8-dae9-99b9-e33d6ccbb016@fastmail.fm> <CAOQ4uxiBD5NXLMXFev7vsCLU5-_o8-_H-XcoMY1aqhOwnADo9w@mail.gmail.com>
+ <283b5344-3ef5-7799-e243-13c707388cd8@fastmail.fm> <CAOQ4uxjvUukDSBk977csO5cX=-1HiMHmyQxycbYQgrpLaanddw@mail.gmail.com>
+ <CAJfpegvHKkCn0UnNRVxFXjjnkOuq0N4xLN4WzpqVX+56DqdjUw@mail.gmail.com>
+ <81e010cc-b52b-4b20-8d08-631ce8ca7fad@app.fastmail.com> <CAJfpegsocoi-KobnSpD9dHvZDeDwG+ZPKRV9Yo-4i8utZa5Jww@mail.gmail.com>
+ <56d5ac0e-4c54-46b7-85d3-5de127562630@app.fastmail.com>
+In-Reply-To: <56d5ac0e-4c54-46b7-85d3-5de127562630@app.fastmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 14 Feb 2023 20:04:17 +0200
+Message-ID: <CAOQ4uxhYafABMTYXQjVxaekkwbetwAEZFA42cCVQ-nzMQn4o5w@mail.gmail.com>
+Subject: Re: Attending LFS (was: [RFC PATCH v2 00/21] FUSE BPF: A Stacked
+ Filesystem Extension for FUSE)
+To:     Nikolaus Rath <nikolaus@rath.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Bernd Schubert <bernd.schubert@fastmail.fm>,
+        Daniel Rosenberg <drosen@google.com>,
+        Linux FS Devel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        bpf <bpf@vger.kernel.org>, kernel-team <kernel-team@android.com>,
+        Vivek Goyal <vgoyal@redhat.com>,
+        Josef Bacik <josef@toxicpanda.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Implement splice-read for coda by passing the request down a layer rather
-than going through generic_file_splice_read() which is going to be changed
-to assume that ->read_folio() is present on buffered files.
+On Tue, Feb 14, 2023 at 6:53 PM Nikolaus Rath <nikolaus@rath.org> wrote:
+>
+> Hi folks,
+>
+> I've looked into this in more detail.
+>
+> I wouldn't be able to get the travel funded by my employer, and I don't t=
+hink I'm a suitable recipient for the Linux Foundation's travel fund. There=
+fore, I think it would make more sense for me to attend potentially relevan=
+t sessions remotely.
+>
+> If there's anything I need to do for that, please let me know. Otherwise =
+I'll assume that at some point I'll get a meeting invite from someone :-).
+>
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Christoph Hellwig <hch@lst.de>
-cc: Jens Axboe <axboe@kernel.dk>
-cc: Al Viro <viro@zeniv.linux.org.uk>
-cc: John Hubbard <jhubbard@nvidia.com>
-cc: David Hildenbrand <david@redhat.com>
-cc: Matthew Wilcox <willy@infradead.org>
-cc: Jan Harkes <jaharkes@cs.cmu.edu>
-cc: coda@cs.cmu.edu
-cc: codalist@coda.cs.cmu.edu
-cc: linux-unionfs@vger.kernel.org
-cc: linux-block@vger.kernel.org
-cc: linux-fsdevel@vger.kernel.org
-cc: linux-mm@kvack.org
----
- fs/coda/file.c | 36 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 35 insertions(+), 1 deletion(-)
+Please use the Form in the CFP link to request to attend and specify
+that you can
+only  attend remotely.
 
-diff --git a/fs/coda/file.c b/fs/coda/file.c
-index 3f3c81e6b1ab..33cd7880d30e 100644
---- a/fs/coda/file.c
-+++ b/fs/coda/file.c
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/uio.h>
-+#include <linux/splice.h>
- 
- #include <linux/coda.h>
- #include "coda_psdev.h"
-@@ -94,6 +95,39 @@ coda_file_write_iter(struct kiocb *iocb, struct iov_iter *to)
- 	return ret;
- }
- 
-+static ssize_t
-+coda_file_splice_read(struct file *coda_file, loff_t *ppos,
-+		      struct pipe_inode_info *pipe,
-+		      size_t len, unsigned int flags)
-+{
-+	struct inode *coda_inode = file_inode(coda_file);
-+	struct coda_file_info *cfi = coda_ftoc(coda_file);
-+	struct file *in = cfi->cfi_container;
-+	loff_t ki_pos = *ppos;
-+	ssize_t ret;
-+
-+	if (!in->f_op->splice_read)
-+		return -EINVAL;
-+
-+	ret = rw_verify_area(READ, in, ppos, len);
-+	if (unlikely(ret < 0))
-+		return ret;
-+
-+	ret = venus_access_intent(coda_inode->i_sb, coda_i2f(coda_inode),
-+				  &cfi->cfi_access_intent,
-+				  len, ki_pos, CODA_ACCESS_TYPE_READ);
-+	if (ret)
-+		goto finish_read;
-+
-+	ret = in->f_op->splice_read(in, ppos, pipe, len, flags);
-+
-+finish_read:
-+	venus_access_intent(coda_inode->i_sb, coda_i2f(coda_inode),
-+			    &cfi->cfi_access_intent,
-+			    len, ki_pos, CODA_ACCESS_TYPE_READ_FINISH);
-+	return ret;
-+}
-+
- static void
- coda_vm_open(struct vm_area_struct *vma)
- {
-@@ -302,5 +336,5 @@ const struct file_operations coda_file_operations = {
- 	.open		= coda_open,
- 	.release	= coda_release,
- 	.fsync		= coda_fsync,
--	.splice_read	= generic_file_splice_read,
-+	.splice_read	= coda_file_splice_read,
- };
+This will get you subscribed to information about relevant sessions
+and how to connect.
 
+> If there's a way to schedule these sessions in a Europe-friendly time tha=
+t would be much appreciated!
+>
+
+Will do my best to take that into consideration :)
+
+Thanks,
+Amir.
+
+>
+> --
+> GPG Fingerprint: ED31 791B 2C5C 1613 AF38 8B8A D113 FCAC 3C4E 599F
+>
+>              =C2=BBTime flies like an arrow, fruit flies like a Banana.=
+=C2=AB
+>
+> On Fri, 10 Feb 2023, at 10:53, Miklos Szeredi wrote:
+> > On Fri, 10 Feb 2023 at 10:42, Nikolaus Rath <nikolaus@rath.org> wrote:
+> >>
+> >> On Fri, 10 Feb 2023, at 09:38, Miklos Szeredi wrote:
+> >> > On Fri, 3 Feb 2023 at 12:43, Amir Goldstein <amir73il@gmail.com> wro=
+te:
+> >> >
+> >> >> > Thanks a lot Amir, I'm going to send out an invitation tomorrow. =
+Maybe
+> >> >> > Nikolaus as libfuse maintainer could also attend?
+> >> >> >
+> >> >>
+> >> >> Since this summit is about kernel filesystem development, I am not =
+sure
+> >> >> on-prem attendance will be the best option for Nikolaus as we do ha=
+ve
+> >> >> a quota for
+> >> >> on-prem attendees, but we should have an option for connecting spec=
+ific
+> >> >> attendees remotely for specific sessions, so that could be great.
+> >> >
+> >> > Not sure.  I think including non-kernel people might be beneficial t=
+o
+> >> > the whole fs development community.  Not saying LSF is the best plac=
+e,
+> >> > but it's certainly a possibility.
+> >> >
+> >> > Nikolaus, I don't even know where you're located.  Do you think it
+> >> > would make sense for you to attend?
+> >>
+> >> Hi folks,
+> >>
+> >> I'm located in London.
+> >>
+> >> I've never been at LHS, so it's hard for me to tell if I'd be useful t=
+here or not. If there's interest, then I would make an effort to attend.
+> >>
+> >> Are we talking about the event in Vancouver on May 8th?
+> >
+> > Yes, that's the one.
+> >
+> > I'd certainly think it would be useful, since there will be people
+> > with interest in fuse filesystems and hashing out the development
+> > direction involves libfuse as well.
+> >
+> > Here's the CFP and attendance request if you are interested:
+> >
+> >   https://events.linuxfoundation.org/lsfmm/program/cfp/
+> >
+> > Thanks,
+> > Miklos
