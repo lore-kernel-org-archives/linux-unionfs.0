@@ -2,57 +2,55 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4224C64EC7
-	for <linux-unionfs@archiver.kernel.org>; Tue, 14 Feb 2023 18:04:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4459C636D4
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Feb 2023 14:21:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229842AbjBNSEz (ORCPT
+        id S229635AbjBOOVd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 14 Feb 2023 13:04:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34814 "EHLO
+        Wed, 15 Feb 2023 09:21:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55182 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232097AbjBNSEm (ORCPT
+        with ESMTP id S229614AbjBOOVc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 14 Feb 2023 13:04:42 -0500
-Received: from mail-qt1-x829.google.com (mail-qt1-x829.google.com [IPv6:2607:f8b0:4864:20::829])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B44532B2B4
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Feb 2023 10:04:32 -0800 (PST)
-Received: by mail-qt1-x829.google.com with SMTP id g8so18449234qtq.13
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Feb 2023 10:04:32 -0800 (PST)
+        Wed, 15 Feb 2023 09:21:32 -0500
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B31A538E8A
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Feb 2023 06:21:27 -0800 (PST)
+Received: by mail-ed1-x52f.google.com with SMTP id fj20so22342929edb.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Feb 2023 06:21:27 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=cs.cmu.edu; s=google-2021;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Z+RfWT82grRH2yp1+kvd7+qFvAWPLOfM6Uu0gZ6cTAM=;
-        b=Ln45vBZO59pu7SCdRQDTnrH5JI49m22gg9Iw5nS8G1OytCBUQAa/PPJ6CJSRLIKP3+
-         Ete2z9K+Wm3eHwhoGtsAFCh9phgnyG6yYdbPTck3fzzialpi0qtypazpwULGSrPF+WM/
-         zsYEB/dDXQAXtsn8h+2p2i2kC+MIVbcsaa3HMsG9WOs5iWLLHN7D3NiVXSw/ejzP17TE
-         u64Zo1uSlebWrDFdcT3bHKs3eQY5Q3UffPxwjLrAWeCqBsEDdwrS9lP+d9v5iBe7yjsJ
-         jANs/yFtaz2RhvqlutN7zSqbZLgf+xWR6Yp7KKok7CJkJypVa2gQtZG1fEX4B7zl8MJ1
-         x2UQ==
+        d=szeredi.hu; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=++V9SJUmsd6aNbKrrX2Vp+eNjsbnSXfCTQVhInkUQuc=;
+        b=QclEkGeJaDyJ2MN5w5QfiCQ8de3GeG3+uTs0OA0VXOnBAp915fljIHV1IoA0RRTgBT
+         AtADNyKxCgemkhvl5YgtEnxsHWDPD2qAlpo1Q2gcyAmZ5eGOMZ5gqoKGNxqR9q50Kbl4
+         K/tC+qnzux1LedbCJfBuAcn4PWcWuom4pMdcE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=Z+RfWT82grRH2yp1+kvd7+qFvAWPLOfM6Uu0gZ6cTAM=;
-        b=Q6703t09L8fBHdoVR5er9D0StEqSDhw8UwVI74vdg4cib6HELGabzRj4NHD5KxnrOM
-         pP7ZL+wvx+gHIERraw6yO7Utdo8bKOfRUS6CELurKOXsgOseDl1Obn4r8O/hZUPjFHSB
-         hA5pwRtSgl2aLXByETfc491EEgKPN22b2yZPkt6hSJzo5H1m0OQXVTwaB7FBYQTNlWeh
-         OVK5uTaNEdWaRnYxZHRepHDOsIo/5URLWuWUNO7S7B1PXYdWMKwdhg2I4ZOKRBHxUaFn
-         LsMJ1eES9nhQQ8Oc1Ij7Uv+JP050V4YK2fHzkz0n1HKQ/5F+lll1IhM1lZQaQeFS9oLd
-         E/3w==
-X-Gm-Message-State: AO0yUKX0rSkzhE8mJZXJJ4w1oadxrCigSds6c83CtZ0DaAMCeUjmUzZP
-        GaAvML8WF35MsmFgOoUGdJc8Sg==
-X-Google-Smtp-Source: AK7set+HUg0X5HtHNByMB4FKO6BoBVyKHOm7rQNL5MfU8paF1RWmVoOYq5KgxBs19P0Uaq1exxK3Dg==
-X-Received: by 2002:ac8:5dd2:0:b0:3b6:9817:18e4 with SMTP id e18-20020ac85dd2000000b003b6981718e4mr5283147qtx.49.1676397871740;
-        Tue, 14 Feb 2023 10:04:31 -0800 (PST)
-Received: from cs.cmu.edu (tunnel29655-pt.tunnel.tserv13.ash1.ipv6.he.net. [2001:470:7:582::2])
-        by smtp.gmail.com with ESMTPSA id e5-20020a05620a014500b006fcb77f3bd6sm12300242qkn.98.2023.02.14.10.04.30
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 14 Feb 2023 10:04:31 -0800 (PST)
-Date:   Tue, 14 Feb 2023 13:04:28 -0500
-From:   Jan Harkes <jaharkes@cs.cmu.edu>
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=++V9SJUmsd6aNbKrrX2Vp+eNjsbnSXfCTQVhInkUQuc=;
+        b=vKvALJuScIqsKdhopnenKAcHbIh8RuzTM1LOIVTHH8aD1CAMyYM4HtNS5NwUTgkA/2
+         V9TpknrpWMBV/rmwzAR8IoKFqVkWSrM30WR3az9nME+GLRiMsnrgl5hvk6Wmg4sU3QCO
+         UWFxfHgmEmRsihSunjfUTvN7xBWDQ0iHsGKBgpzeeHEFiJ74qKxSojC5v+LXc8Tl1GJk
+         E9XvuXXPFUHLzleB4h6muIXBG1jIO/l1zdyiyhZ1H4dNbEFiZuzGBLfxUFUQKvMEBRMA
+         i1OV31M4lKGLv2zrxF1gcnPXFe47HinI4RC6ohsnq04rpmETLx6JrMoDb9ML4xI52Pny
+         jiwQ==
+X-Gm-Message-State: AO0yUKUZld/ighuI/E2fI8t5Kzep3BrVoB2xcs4l/nNM3/Y81ETFwe3K
+        Z4aquFg1f7UtgAzQ+ZwKNuOw3SZlFdK7HmpMWdBfww==
+X-Google-Smtp-Source: AK7set8J/qhKUo3tQQmCquV6hVX4BcOX1+D6GldAwjXvhuzacLJCUaR0kGWnZj+kS/ecBNI3awJmTaF7IFjItE9S1tU=
+X-Received: by 2002:a50:ab5a:0:b0:4ac:c453:6d5f with SMTP id
+ t26-20020a50ab5a000000b004acc4536d5fmr1188884edc.8.1676470886215; Wed, 15 Feb
+ 2023 06:21:26 -0800 (PST)
+MIME-Version: 1.0
+References: <20230214171330.2722188-1-dhowells@redhat.com> <20230214171330.2722188-6-dhowells@redhat.com>
+In-Reply-To: <20230214171330.2722188-6-dhowells@redhat.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Wed, 15 Feb 2023 15:21:15 +0100
+Message-ID: <CAJfpegshWgUYZLc5v-Vwf6g3ZGmfnHsT_t9JLwxFoV8wPrvBnA@mail.gmail.com>
+Subject: Re: [PATCH v14 05/17] overlayfs: Implement splice-read
 To:     David Howells <dhowells@redhat.com>
 Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
@@ -66,35 +64,17 @@ Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
         linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>,
         John Hubbard <jhubbard@nvidia.com>,
         linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v14 06/17] coda: Implement splice-read
-Message-ID: <20230214180428.asqulrek773hae23@cs.cmu.edu>
-Mail-Followup-To: David Howells <dhowells@redhat.com>,
-        Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Jeff Layton <jlayton@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Hillf Danton <hdanton@sina.com>, linux-fsdevel@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>,
-        John Hubbard <jhubbard@nvidia.com>, linux-unionfs@vger.kernel.org
-References: <20230214171330.2722188-1-dhowells@redhat.com>
- <20230214171330.2722188-7-dhowells@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230214171330.2722188-7-dhowells@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Feb 14, 2023 at 05:13:19PM +0000, David Howells wrote:
-> Implement splice-read for coda by passing the request down a layer rather
-> than going through generic_file_splice_read() which is going to be changed
-> to assume that ->read_folio() is present on buffered files.
-> 
+On Tue, 14 Feb 2023 at 18:14, David Howells <dhowells@redhat.com> wrote:
+>
+> Implement splice-read for overlayfs by passing the request down a layer
+> rather than going through generic_file_splice_read() which is going to be
+> changed to assume that ->read_folio() is present on buffered files.
+>
 > Signed-off-by: David Howells <dhowells@redhat.com>
 > cc: Christoph Hellwig <hch@lst.de>
 > cc: Jens Axboe <axboe@kernel.dk>
@@ -102,14 +82,77 @@ On Tue, Feb 14, 2023 at 05:13:19PM +0000, David Howells wrote:
 > cc: John Hubbard <jhubbard@nvidia.com>
 > cc: David Hildenbrand <david@redhat.com>
 > cc: Matthew Wilcox <willy@infradead.org>
-> cc: Jan Harkes <jaharkes@cs.cmu.edu>
-> cc: coda@cs.cmu.edu
-> cc: codalist@coda.cs.cmu.edu
+> cc: Miklos Szeredi <miklos@szeredi.hu>
 > cc: linux-unionfs@vger.kernel.org
 > cc: linux-block@vger.kernel.org
 > cc: linux-fsdevel@vger.kernel.org
 > cc: linux-mm@kvack.org
 > ---
+>  fs/overlayfs/file.c | 36 +++++++++++++++++++++++++++++++++++-
+>  1 file changed, 35 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index c9d0c362c7ef..267b61df6fcd 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -419,6 +419,40 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+>         return ret;
+>  }
+>
+> +static ssize_t ovl_splice_read(struct file *in, loff_t *ppos,
+> +                              struct pipe_inode_info *pipe, size_t len,
+> +                              unsigned int flags)
+> +{
+> +       const struct cred *old_cred;
+> +       struct fd real;
+> +       ssize_t ret;
+> +
+> +       ret = ovl_real_fdget(in, &real);
+> +       if (ret)
+> +               return ret;
+> +
+> +       ret = -EINVAL;
+> +       if (in->f_flags & O_DIRECT &&
+> +           !(real.file->f_mode & FMODE_CAN_ODIRECT))
+> +               goto out_fdput;
 
-Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
+This is unnecessary, as it was already done in ovl_real_fdget() ->
+ovl_real_fdget_meta() -> ovl_change_flags().
 
+> +       if (!real.file->f_op->splice_read)
+> +               goto out_fdput;
+> +
+> +       ret = rw_verify_area(READ, in, ppos, len);
+
+Should be on real.file.
+
+> +       if (unlikely(ret < 0))
+> +               return ret;
+
+Leaks fd.
+
+> +
+> +       old_cred = ovl_override_creds(file_inode(in)->i_sb);
+> +       ret = real.file->f_op->splice_read(real.file, ppos, pipe, len, flags);
+> +
+> +       revert_creds(old_cred);
+> +       ovl_file_accessed(in);
+> +out_fdput:
+> +       fdput(real);
+> +
+> +       return ret;
+> +}
+> +
+>  /*
+>   * Calling iter_file_splice_write() directly from overlay's f_op may deadlock
+>   * due to lock order inversion between pipe->mutex in iter_file_splice_write()
+> @@ -695,7 +729,7 @@ const struct file_operations ovl_file_operations = {
+>         .fallocate      = ovl_fallocate,
+>         .fadvise        = ovl_fadvise,
+>         .flush          = ovl_flush,
+> -       .splice_read    = generic_file_splice_read,
+> +       .splice_read    = ovl_splice_read,
+>         .splice_write   = ovl_splice_write,
+>
+>         .copy_file_range        = ovl_copy_file_range,
+>
