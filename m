@@ -2,58 +2,53 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE71C636D7
-	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Feb 2023 15:32:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1984FC636D4
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Feb 2023 15:42:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbjBOPcr (ORCPT
+        id S229789AbjBOPmV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 15 Feb 2023 10:32:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53936 "EHLO
+        Wed, 15 Feb 2023 10:42:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60422 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229918AbjBOPcp (ORCPT
+        with ESMTP id S229830AbjBOPmT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Feb 2023 10:32:45 -0500
-Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E25883669B
-        for <linux-unionfs@vger.kernel.org>; Wed, 15 Feb 2023 07:32:41 -0800 (PST)
-Received: by mail-ed1-x529.google.com with SMTP id a10so22641831edu.9
-        for <linux-unionfs@vger.kernel.org>; Wed, 15 Feb 2023 07:32:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=MgMa6EJ46w+TjF/u1gN/gW9+ztz/QXzmUwMpKJQYIyo=;
-        b=pyNfe8Xn4nvIZUJPkKZ3EaDZhM1x8wWbetMkTtOH0evncRwi4yKGLjXRdzWjQL+CGR
-         zUU0rFXSeptYAzExzFvW5+hXf/mgKS+dwLmZL5MjnyEJlezTk5F+xWRqKbGGbiqg9+q9
-         EouNtTLiuyHyjSqyEs9gJGIWlHCjyVFL6bBpg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=MgMa6EJ46w+TjF/u1gN/gW9+ztz/QXzmUwMpKJQYIyo=;
-        b=yXWT80p60jcRUn6VyQx19XHPync7uTcFa2XvJ5gComDO5nNrJOXaiJ4VghJMb76vQS
-         u1Nv2ZVHKBK3hevzqewGwsJxsJ2Sp/hwRebGxJBH+tMMTfn3lvfJZ6Gi2w2QLNKkXdf/
-         a+/DdyMzCP2K1gmox8bOjJ4vmz2VjA85+SoKKYUkIyvc4dJeVzndaccCQ7AYxtzXxi4L
-         GZ8+mO29T6ttOJfACLFVk1lbnMVZID8pbTyCpsXZUTsdPWtWQmgSb1zLjJYkwAogoolR
-         Qbagv01jJivfDOJjKvlf/rLfIV00A5TCETalpcacm4eznzNtNOUG9eOf0vakLZhFdEMx
-         fyNw==
-X-Gm-Message-State: AO0yUKUCVSygoU9my36qd2mWe4NnrddcwVIxaGP0xXs9pwb6IxMnyyKd
-        Xg3XaQ8gGq65Jy+f7PZ1R2fl8vJmg4zrQVSFVOiDaA==
-X-Google-Smtp-Source: AK7set+rq8teOzHKNYBPin6GVDaWwGDfSkNDQLU44vMY19ftzX6MLaAK4DBXIxvqGc9E5ohBKkFVnJp40DgTuL1DMUc=
-X-Received: by 2002:a50:ab5a:0:b0:4ac:c453:6d5f with SMTP id
- t26-20020a50ab5a000000b004acc4536d5fmr1332039edc.8.1676475160544; Wed, 15 Feb
- 2023 07:32:40 -0800 (PST)
-MIME-Version: 1.0
-References: <20230214171330.2722188-1-dhowells@redhat.com> <20230214171330.2722188-6-dhowells@redhat.com>
- <CAJfpegshWgUYZLc5v-Vwf6g3ZGmfnHsT_t9JLwxFoV8wPrvBnA@mail.gmail.com> <3367219.1676473410@warthog.procyon.org.uk>
-In-Reply-To: <3367219.1676473410@warthog.procyon.org.uk>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 15 Feb 2023 16:32:29 +0100
-Message-ID: <CAJfpegtZXM7mOLbmc+si42iux+7E313QnRryztwT=U3g5Lqirw@mail.gmail.com>
-Subject: Re: [PATCH v14 05/17] overlayfs: Implement splice-read
-To:     David Howells <dhowells@redhat.com>
-Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
+        Wed, 15 Feb 2023 10:42:19 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 014C138661
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Feb 2023 07:41:07 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1676475667;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Us0zCop2bZgqcPW/JXsl5O/r2nwlZx53CdefM19JIrA=;
+        b=PTZhOUiBWB/5ykVlxxnLYC+UggT+G+Q6btEZ/m0wgZO/vg9qAlhyD0BGTpXAKg9FF3/Xaj
+        ruWWB4SBFA2eQM5w0WHjqwmvmYiMwRoBnax6KT3xfIDSEFSSziWsNEziheqDrbIGisiuRy
+        bYdl5CgFeyOI1XWsoI69e4GkXZZH9E4=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-630-LVpfoPQGNw6GNKM_irhueg-1; Wed, 15 Feb 2023 10:41:02 -0500
+X-MC-Unique: LVpfoPQGNw6GNKM_irhueg-1
+Received: from smtp.corp.redhat.com (int-mx05.intmail.prod.int.rdu2.redhat.com [10.11.54.5])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id A2A5E885620;
+        Wed, 15 Feb 2023 15:41:01 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.24])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 1BF9418EC1;
+        Wed, 15 Feb 2023 15:40:58 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <CAJfpegshWgUYZLc5v-Vwf6g3ZGmfnHsT_t9JLwxFoV8wPrvBnA@mail.gmail.com>
+References: <CAJfpegshWgUYZLc5v-Vwf6g3ZGmfnHsT_t9JLwxFoV8wPrvBnA@mail.gmail.com> <20230214171330.2722188-1-dhowells@redhat.com> <20230214171330.2722188-6-dhowells@redhat.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     dhowells@redhat.com, Jens Axboe <axboe@kernel.dk>,
+        Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
         Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
         Jeff Layton <jlayton@kernel.org>,
@@ -65,28 +60,104 @@ Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
         linux-mm@kvack.org, Christoph Hellwig <hch@lst.de>,
         John Hubbard <jhubbard@nvidia.com>,
         linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: [PATCH v15 05/17] overlayfs: Implement splice-read
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <3370084.1676475658.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: quoted-printable
+Date:   Wed, 15 Feb 2023 15:40:58 +0000
+Message-ID: <3370085.1676475658@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.5
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 15 Feb 2023 at 16:04, David Howells <dhowells@redhat.com> wrote:
->
-> Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> > > +       ret = -EINVAL;
-> > > +       if (in->f_flags & O_DIRECT &&
-> > > +           !(real.file->f_mode & FMODE_CAN_ODIRECT))
-> > > +               goto out_fdput;
-> >
-> > This is unnecessary, as it was already done in ovl_real_fdget() ->
-> > ovl_real_fdget_meta() -> ovl_change_flags().
->
-> Does that mean ovl_read_iter() and ovl_write_iter() shouldn't be doing it,
-> then?
+How about the attached then?
 
-That's a different thing, because ovl_*_iter() are checking on
-ki->flags, not f_flags.
+David
+---
+overlayfs: Implement splice-read
 
-Thanks,
-Miklos
+Implement splice-read for overlayfs by passing the request down a layer
+rather than going through generic_file_splice_read() which is going to be
+changed to assume that ->read_folio() is present on buffered files.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Christoph Hellwig <hch@lst.de>
+cc: Jens Axboe <axboe@kernel.dk>
+cc: Al Viro <viro@zeniv.linux.org.uk>
+cc: John Hubbard <jhubbard@nvidia.com>
+cc: David Hildenbrand <david@redhat.com>
+cc: Matthew Wilcox <willy@infradead.org>
+cc: Miklos Szeredi <miklos@szeredi.hu>
+cc: linux-unionfs@vger.kernel.org
+cc: linux-block@vger.kernel.org
+cc: linux-fsdevel@vger.kernel.org
+cc: linux-mm@kvack.org
+---
+Notes:
+    ver #15)
+     - Remove redundant FMODE_CAN_ODIRECT check on real file.
+     - Do rw_verify_area() on the real file, not the overlay file.
+     - Fix a file leak.
+
+ fs/overlayfs/file.c |   33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index c9d0c362c7ef..72a545da51a2 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -419,6 +419,37 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, str=
+uct iov_iter *iter)
+ 	return ret;
+ }
+ =
+
++static ssize_t ovl_splice_read(struct file *in, loff_t *ppos,
++			       struct pipe_inode_info *pipe, size_t len,
++			       unsigned int flags)
++{
++	const struct cred *old_cred;
++	struct fd real;
++	ssize_t ret;
++
++	ret =3D ovl_real_fdget(in, &real);
++	if (ret)
++		return ret;
++
++	ret =3D -EINVAL;
++	if (!real.file->f_op->splice_read)
++		goto out_fdput;
++
++	ret =3D rw_verify_area(READ, real.file, ppos, len);
++	if (unlikely(ret < 0))
++		goto out_fdput;
++
++	old_cred =3D ovl_override_creds(file_inode(in)->i_sb);
++	ret =3D real.file->f_op->splice_read(real.file, ppos, pipe, len, flags);
++
++	revert_creds(old_cred);
++	ovl_file_accessed(in);
++out_fdput:
++	fdput(real);
++
++	return ret;
++}
++
+ /*
+  * Calling iter_file_splice_write() directly from overlay's f_op may dead=
+lock
+  * due to lock order inversion between pipe->mutex in iter_file_splice_wr=
+ite()
+@@ -695,7 +726,7 @@ const struct file_operations ovl_file_operations =3D {
+ 	.fallocate	=3D ovl_fallocate,
+ 	.fadvise	=3D ovl_fadvise,
+ 	.flush		=3D ovl_flush,
+-	.splice_read    =3D generic_file_splice_read,
++	.splice_read    =3D ovl_splice_read,
+ 	.splice_write   =3D ovl_splice_write,
+ =
+
+ 	.copy_file_range	=3D ovl_copy_file_range,
+
