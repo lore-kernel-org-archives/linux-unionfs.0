@@ -2,162 +2,130 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C014FC61DA4
-	for <linux-unionfs@archiver.kernel.org>; Thu, 23 Feb 2023 23:11:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25E0BC64EC7
+	for <linux-unionfs@archiver.kernel.org>; Sat, 25 Feb 2023 15:20:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbjBWXL7 (ORCPT
+        id S229576AbjBYPUz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 23 Feb 2023 18:11:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35794 "EHLO
+        Sat, 25 Feb 2023 10:20:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229695AbjBWXLz (ORCPT
+        with ESMTP id S229473AbjBYPUy (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 23 Feb 2023 18:11:55 -0500
-Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E2A054A09
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Feb 2023 15:11:53 -0800 (PST)
-Received: by mail-ed1-x533.google.com with SMTP id f13so47641891edz.6
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Feb 2023 15:11:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=eitmlabs-org.20210112.gappssmtp.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:reply-to:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=4ZhcqxXFunyKmJAnTkBe/sYveKPMZiCHLdgGndCIvmw=;
-        b=RPm9ajGg+bpqPeCQ1T7jJwujkrC4b1kK2z76ktAQ91JHtEA7+I+szu01tvj9rAzM/6
-         YY+DVjRz2xFvARlTc6YLhn/CVGCjezw0WG0Nj9o08eMCQtsn4Ni0kQQ5hrisWocExNpl
-         QQXcRsZzf84o4wLtmHyJAVsELWiYpMAwBqsm3cfAIM8uzGMuPECGV+gOy3kw5UpACdbf
-         0Z/jcSjufhR8XAucuecmqwEZSK+mn9OLMordC8aoOMK3pbuKCjbqjaDq+ajY2nEi44B5
-         0l0AwBlR1tI9XjcOVBg6vkqMnpys15syHbxbKQ0PE1ZWaL+cMY526C+3g3CBl5OaIf30
-         aPyQ==
+        Sat, 25 Feb 2023 10:20:54 -0500
+Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D3F9E39F
+        for <linux-unionfs@vger.kernel.org>; Sat, 25 Feb 2023 07:20:48 -0800 (PST)
+Received: by mail-io1-f69.google.com with SMTP id g21-20020a6be615000000b0074cb292f57dso1065435ioh.17
+        for <linux-unionfs@vger.kernel.org>; Sat, 25 Feb 2023 07:20:48 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:reply-to:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=4ZhcqxXFunyKmJAnTkBe/sYveKPMZiCHLdgGndCIvmw=;
-        b=Cl2SiMh2VPQnIpskq+STEHNk9kZ/D5LGGij3hCnrG65NPHQwF1/DpXn/qPg1dIZl6J
-         NferqL5eEQeluPYOSX+35BgVLkphI+ozWGSAtG3bYrFGxUacIyhgLTlB7VMo3RohgrQ3
-         Vy5ip982Ax/B+paVEQ596rlC6I/d4fNoQ+NJmDnX9GBBZDgFn/3Sk44uP3wSjTus6Xv4
-         j3VsJtWGrqDPSdR3pbnET5PIvSjjl8VDlCfYHNacSHMQJgCtkJ3u1AzxpiTe5WZW8Uhu
-         eQCno4OH05dANKyFS+QL5oxOCmUNgm5peoSPRIkf1P74MwowPYOQ83Z+vLilXug3+dz0
-         2GOA==
-X-Gm-Message-State: AO0yUKVjN8Bgf41BBUueehtoQUF+HpiL80lVGOLKqsCt27YeB3lCkS6d
-        xlZoHEOqO19vqUNMORKo1h3gjueoCE8FMZK4JFmER4bFCbwM6nX6
-X-Google-Smtp-Source: AK7set/bDMEFLOb9zD5mIiYLI3kJ4oUZ7FKxuHEIh9/zbBkhb+idLsQElu6vADg4xiN5SGB6/VWABvfcrsDnri21a74=
-X-Received: by 2002:a17:906:3388:b0:8af:b63:b4ba with SMTP id
- v8-20020a170906338800b008af0b63b4bamr9918125eja.3.1677193911673; Thu, 23 Feb
- 2023 15:11:51 -0800 (PST)
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=CfXn2umQQaWezeF7y9XIAa2NUnaytgkeNQPlI66Edsg=;
+        b=E0HueDNkowecpmBZJgWxUbYADWhTEQIlYtaTBVz9L2BH1/zguEAJmZPZTRWXuzJ/MH
+         ceLDIbZ8XJ7rajBowl+oeLgGcbyv7OV7FLjG3LHrTbyUl/T9bJX6bOODFiU8CoNxsUwL
+         ilT9vz9hgrMffRmi4uJtlV4NI/qAJ5DnoeUn0i5AcuEJX4UAlCm13RWTw4te2vchrvdv
+         fvDhzH3aUzluDpq+FttNCo6ZxLMthg2natjezhCOC+5NpXI1KPXS+zlrQLmC0FmcauFv
+         E4DYJuPeGOPn5Ymj5SfyAYPL6L0SzB7eIiZ+5jdwneiTu4rxVnF3diKCV4yH1hs659d1
+         f+ag==
+X-Gm-Message-State: AO0yUKXk99iJPbnQy/4Q2PhlnyfY5vXhOOgzKuil0mdd0/KWJKunrCUa
+        QFym1ZTb2bTKNcqM+7h2vehjVvIujJT+dOc9KAlQY9ZXJ91b
+X-Google-Smtp-Source: AK7set/+/FC0OZcIyVhxIQ0dl3Lz+7iSxgpFWoiAiDVDYBJ5cRQ2UiA1af1sn1/Rs13SNLPU9XP/ddf5tBct4mZXg30a8I16YdSZ
 MIME-Version: 1.0
-References: <4B9D76D5-C794-4A49-A76F-3D4C10385EE0@kohlschutter.com>
- <CAJfpegs1Kta-HcikDGFt4=fa_LDttCeRmffKhUjWLr=DxzXg-A@mail.gmail.com>
- <83A29F9C-1A91-4753-953A-0C98E8A9832C@kohlschutter.com> <CAJfpegv5W0CycWCc2-kcn4=UVqk1hP7KrvBpzXHwW-Nmkjx8zA@mail.gmail.com>
- <FFA26FD1-60EF-457E-B914-E1978CCC7B57@kohlschutter.com> <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
- <A31096BA-C128-4D0B-B27D-C34560844ED0@kohlschutter.com> <CAJfpegvBSCQwkCv=5LJDx1LRCN_ztTh9VMvrTbCyt0zf7W2trw@mail.gmail.com>
- <CAHk-=wjg+xyBwMpQwLx_QWPY7Qf8gUOVek8rXdQccukDyVmE+w@mail.gmail.com>
- <EE5E5841-3561-4530-8813-95C16A36D94A@kohlschutter.com> <CAHk-=wh5V8tQScw9Bgc8OiD0r5XmfVSCPp2OHPEf0p5T3obuZg@mail.gmail.com>
- <CAJfpeguXB9mAk=jwWQmk3rivYnaWoLrju_hq-LwtYyNXG4JOeg@mail.gmail.com>
- <CAHk-=wg+bpP5cvcaBhnmJKzTmAtgx12UhR4qzFXXb52atn9gDw@mail.gmail.com>
- <56E6CAAE-FF25-4898-8F9D-048164582E7B@kohlschutter.com> <490c5026-27bd-1126-65dd-2ec975aae94c@eitmlabs.org>
- <CAJfpegt7CMMapxD0W41n2SdwiBn8+B08vsov-iOpD=eQEiPN1w@mail.gmail.com> <CALKgVmeaPJj4e9sYP7g+v4hZ7XaHKAm6BUNz14gvaBd=sFCs9Q@mail.gmail.com>
-In-Reply-To: <CALKgVmeaPJj4e9sYP7g+v4hZ7XaHKAm6BUNz14gvaBd=sFCs9Q@mail.gmail.com>
-Reply-To: jonathan@eitm.org
-From:   Jonathan Katz <jkatz@eitmlabs.org>
-Date:   Thu, 23 Feb 2023 15:11:35 -0800
-Message-ID: <CALKgVmdqircMjn+iEuta5a7v5rROmYGXmQ0VJtzcCQnZYbJX6w@mail.gmail.com>
-Subject: Re: [PATCH] [REGRESSION] ovl: Handle ENOSYS when fileattr support is
- missing in lower/upper fs
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     =?UTF-8?Q?Christian_Kohlsch=C3=BCtter?= 
-        <christian@kohlschutter.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+X-Received: by 2002:a05:6638:2185:b0:3c2:c1c9:8bca with SMTP id
+ s5-20020a056638218500b003c2c1c98bcamr2096487jaj.2.1677338447922; Sat, 25 Feb
+ 2023 07:20:47 -0800 (PST)
+Date:   Sat, 25 Feb 2023 07:20:47 -0800
+In-Reply-To: <0000000000001b987605f47b72d3@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000005b4dd905f587caf8@google.com>
+Subject: Re: [syzbot] [overlayfs?] WARNING: locking bug in take_dentry_name_snapshot
+From:   syzbot <syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com>
+To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi all,
+syzbot has found a reproducer for the following issue on:
 
-Problem persists with me with 6.2.0
-# mainline --install-latest
-# reboot
+HEAD commit:    8232539f864c Add linux-next specific files for 20230225
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=1774fe18c80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4fe68735401a6111
+dashboard link: https://syzkaller.appspot.com/bug?extid=5a195884ee3ad761db4e
+compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=144580a8c80000
 
-# uname -r
-6.2.0-060200-generic
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/4259815e0cee/disk-8232539f.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/5ea6ea28200d/vmlinux-8232539f.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/e461f15ffd6b/bzImage-8232539f.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/c143f8fb2778/mount_0.gz
 
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com
 
-Representative log messages when mounting:
-Feb 23 22:50:43 instance-20220314-1510-fileserver-for-overlay kernel:
-[   44.641683] overlayfs: null uuid detected in lower fs '/', falling
-back to xino=off,index=off,nfs_export=off.
+overlayfs: upper fs does not support tmpfile.
+------------[ cut here ]------------
+DEBUG_LOCKS_WARN_ON(1)
+WARNING: CPU: 1 PID: 6867 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:232 [inline]
+WARNING: CPU: 1 PID: 6867 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:221 [inline]
+WARNING: CPU: 1 PID: 6867 at kernel/locking/lockdep.c:232 check_wait_context kernel/locking/lockdep.c:4730 [inline]
+WARNING: CPU: 1 PID: 6867 at kernel/locking/lockdep.c:232 __lock_acquire+0x1615/0x5d40 kernel/locking/lockdep.c:5006
+Modules linked in:
+CPU: 1 PID: 6867 Comm: syz-executor.1 Not tainted 6.2.0-next-20230225-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/16/2023
+RIP: 0010:hlock_class kernel/locking/lockdep.c:232 [inline]
+RIP: 0010:hlock_class kernel/locking/lockdep.c:221 [inline]
+RIP: 0010:check_wait_context kernel/locking/lockdep.c:4730 [inline]
+RIP: 0010:__lock_acquire+0x1615/0x5d40 kernel/locking/lockdep.c:5006
+Code: 08 84 d2 0f 85 b4 3d 00 00 8b 15 22 11 13 0d 85 d2 0f 85 31 fb ff ff 48 c7 c6 a0 74 4c 8a 48 c7 c7 e0 68 4c 8a e8 5b 4f e6 ff <0f> 0b 31 ed e9 e9 ed ff ff e8 2d 6f b3 02 85 c0 0f 84 c1 fa ff ff
+RSP: 0018:ffffc90008c877f8 EFLAGS: 00010086
+RAX: 0000000000000000 RBX: ffffffff920012df RCX: 0000000000000000
+RDX: ffff888018c1d7c0 RSI: ffffffff814c1907 RDI: 0000000000000001
+RBP: 0000000000000f17 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 000000002d2d2d2d R12: ffff888018c1e270
+R13: ffff888018c1d7c0 R14: 0000000000040000 R15: 0000000000040f17
+FS:  00007fe856e5e700(0000) GS:ffff8880b9900000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f7e765fe000 CR3: 0000000077055000 CR4: 00000000003506e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ lock_acquire.part.0+0x11a/0x370 kernel/locking/lockdep.c:5669
+ __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
+ _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
+ spin_lock include/linux/spinlock.h:350 [inline]
+ take_dentry_name_snapshot+0x2b/0x170 fs/dcache.c:315
+ ovl_check_rename_whiteout fs/overlayfs/super.c:1207 [inline]
+ ovl_make_workdir fs/overlayfs/super.c:1329 [inline]
+ ovl_get_workdir fs/overlayfs/super.c:1444 [inline]
+ ovl_fill_super+0x2090/0x7270 fs/overlayfs/super.c:2000
+ mount_nodev+0x64/0x120 fs/super.c:1417
+ legacy_get_tree+0x109/0x220 fs/fs_context.c:610
+ vfs_get_tree+0x8d/0x350 fs/super.c:1501
+ do_new_mount fs/namespace.c:3042 [inline]
+ path_mount+0x1342/0x1e40 fs/namespace.c:3372
+ do_mount fs/namespace.c:3385 [inline]
+ __do_sys_mount fs/namespace.c:3594 [inline]
+ __se_sys_mount fs/namespace.c:3571 [inline]
+ __x64_sys_mount+0x283/0x300 fs/namespace.c:3571
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fe85608c0f9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 19 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fe856e5e168 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 00007fe8561abf80 RCX: 00007fe85608c0f9
+RDX: 0000000020000080 RSI: 00000000200000c0 RDI: 0000000000000000
+RBP: 00007fe8560e7ae9 R08: 0000000020000480 R09: 0000000000000000
+R10: 000000000000000b R11: 0000000000000246 R12: 0000000000000000
+R13: 00007ffc3063990f R14: 00007fe856e5e300 R15: 0000000000022000
+ </TASK>
 
-
-
-Representative log messages when accessing files:
-eb 23 23:06:31 instance-20220314-1510-fileserver-for-overlay kernel: [
- 992.505357] overlayfs: failed to retrieve lower fileattr (8020
-MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1722.d/Storage.mcf_idx,
-err=-38)
-Feb 23 23:06:32 instance-20220314-1510-fileserver-for-overlay kernel:
-[  993.523712] overlayfs: failed to retrieve lower fileattr (8020
-MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1722.d/Storage.mcf_idx,
-err=-38)
-
-
-On Mon, Jan 30, 2023 at 11:27 AM Jonathan Katz <jkatz@eitmlabs.org> wrote:
->
-> On Thu, Jan 26, 2023 at 5:26 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Wed, 18 Jan 2023 at 04:41, Jonathan Katz <jkatz@eitmlabs.org> wrote:
-> >
-> > > I believe that I am still having issues occur within Ubuntu 22.10 with
-> > > the 5.19 version of the kernel that might be associated with this
-> > > discussion.  I apologize up front for any faux pas I make in writing
-> > > this email.
-> >
-> > No need to apologize.   The fix in question went into v6.0 of the
-> > upstream kernel.  So apparently it's still missing from the distro you
-> > are using.
->
-> Thank you for the reply! ---  I have upgraded the Kernel and it still
-> seems to be throwing errors.  Details follow:
->
-> Distro: Ubuntu 22.10.
-> Upgraded kernel using mainline (mainline --install-latest)
->
-> # uname -a
-> Linux instance-20220314-1510-fileserver-for-overlay
-> 6.1.8-060108-generic #202301240742 SMP PREEMPT_DYNAMIC Tue Jan 24
-> 08:13:53 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
->
-> On mount I still get the following notice in syslog (representative):
-> Jan 30 19:11:46 instance-20220314-1510-fileserver-for-overlay kernel:
-> [   71.613334] overlayfs: null uuid detected in lower fs '/', falling
-> back to xino=off,index=off,nfs_export=off.
->
-> And on access (via samba) I still see the following errors in the
-> syslog (representative):
-> Jan 30 19:19:34 instance-20220314-1510-fileserver-for-overlay kernel:
-> [  539.181858] overlayfs: failed to retrieve lower fileattr (8020
-> MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1722.d/Storage.mcf_idx,
-> err=-38)
->
-> And on the Windows client, the software still fails with the same symptomology.
->
->
->
->
-> >
-> > > An example error from our syslog:
-> > >
-> > > kernel: [2702258.538549] overlayfs: failed to retrieve lower fileattr
-> > > (8020 MeOHH2O
-> > > RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1722.d/analysis.tsf,
-> > > err=-38)
-> >
-> > Yep, looks like the same bug.
-> >
-> > Thanks,
-> > Miklos
