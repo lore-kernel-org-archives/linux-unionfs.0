@@ -2,132 +2,105 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40F9BC6FA8E
-	for <linux-unionfs@archiver.kernel.org>; Sun, 26 Feb 2023 15:32:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD0BC61DA4
+	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Mar 2023 09:23:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230107AbjBZPcZ (ORCPT
+        id S229997AbjCFJXx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 26 Feb 2023 10:32:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35500 "EHLO
+        Mon, 6 Mar 2023 04:23:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229956AbjBZPcC (ORCPT
+        with ESMTP id S229956AbjCFJXr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 26 Feb 2023 10:32:02 -0500
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E955CC15
-        for <linux-unionfs@vger.kernel.org>; Sun, 26 Feb 2023 07:29:32 -0800 (PST)
-Received: by mail-il1-f199.google.com with SMTP id k2-20020a056e0205a200b0031703f4bcabso2529714ils.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 26 Feb 2023 07:29:32 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=eRV0BVLtP52549vMKkrKGdQrZnP3iMyF48xKc9khzkU=;
-        b=IQWW6b5L+DmYtkjQiKi3v3JIBlxxL8Zz4J3uMzdtZyTwBhLgSzz2+9int/HQ+gRPKU
-         SJnB/uQkDDUPxn293JsVmEJt8vDiygipStZWuE1Cxb6Y8NQ6hO5HvnBG0fdUyKeQce4/
-         x8OUH/w/BEdlOljaQUd8oh0oRwdlvYI4oy81UZV8/1S0uYq4UkJsuzmmefci6YijP9h8
-         2wXA+rD5xdoiMEmawkJSPGifvPO3pg9BzIsSuBOpoillMduxPZj7PfjI9nfn9DTxC3aV
-         7I/7jErlj1360jJLQDsuucbUZgrWXEGUfPlioLSG1eUYorxvZVp6O51T2o95ViCW4acP
-         S++w==
-X-Gm-Message-State: AO0yUKV1Uth7+UKW0AYKnKe04ZU5ROpuenTUJaPbh147cZVx1VlxiDd0
-        EzgQT6Ynz4vp2jEYc/YHFAJoRY2547aCZnmll5JOryORniyF
-X-Google-Smtp-Source: AK7set+v0Hn3n2ZAEuS+Wqe6EcNo8pDjg3JjlhF/vEFT4/WgAfZQa9gUNQHzdlXwX6c+ZDNBF5593VEE/ylJTF6ntEUPamhKzOdP
+        Mon, 6 Mar 2023 04:23:47 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A59E37DB7;
+        Mon,  6 Mar 2023 01:23:46 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 10E2660B1B;
+        Mon,  6 Mar 2023 09:23:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 905C7C433EF;
+        Mon,  6 Mar 2023 09:23:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1678094625;
+        bh=YuHiNibTfvsVI3IB9f2dBIPvtAF+oVsFjShxdpWt8vI=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=vRHqvzLb1zE9mcjQ1jp4FZpy4X8k8BOCAlO9Bd5FU1F4TVtHEQxIzWeAF7S818xQ+
+         7xK3kfsNq0N4FRkmFjgxeb0F6ohOwO36ABYH1YAeso+eRkf84EFU0ogvHt4F1UJ1RJ
+         oQemTFv/ifce2YxmokP97eoLfW9/UsnnpgZxsZeJQcMQA/7ILKaFJXh9YrPt7cRamg
+         RYtyJOTKXDNXB8Tey1paVCbZneSuXCyW4nM76R0EHO4qdYqbr8CIzaLd4NYRGY4Jv8
+         yzWzxlwfCzfkqcpdRm8guCNMHC0sEE+P+I82LhGfpNNbQlZBEoP8fpH3vG+O9o9ih1
+         nbwR4a4OxfI6A==
+From:   Christian Brauner <brauner@kernel.org>
+To:     linux-fsdevel@vger.kernel.org, Christoph Hellwig <hch@lst.de>,
+        Christian Brauner <brauner@kernel.org>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>,
+        Seth Forshee <sforshee@kernel.org>,
+        linux-f2fs-devel@lists.sourceforge.net,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-mtd@lists.infradead.org, reiserfs-devel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v3 00/10] acl: drop posix acl handlers from xattr handlers
+Date:   Mon,  6 Mar 2023 10:23:26 +0100
+Message-Id: <167809442083.601764.7315016407199154883.b4-ty@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230125-fs-acl-remove-generic-xattr-handlers-v3-0-f760cc58967d@kernel.org>
+References: <20230125-fs-acl-remove-generic-xattr-handlers-v3-0-f760cc58967d@kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:1122:b0:3c5:1302:c88c with SMTP id
- f2-20020a056638112200b003c51302c88cmr9012652jar.0.1677425324833; Sun, 26 Feb
- 2023 07:28:44 -0800 (PST)
-Date:   Sun, 26 Feb 2023 07:28:44 -0800
-In-Reply-To: <0000000000001b987605f47b72d3@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000009fc0a105f59c0428@google.com>
-Subject: Re: [syzbot] [overlayfs?] WARNING: locking bug in take_dentry_name_snapshot
-From:   syzbot <syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com>
-To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2098; i=brauner@kernel.org; h=from:subject:message-id; bh=6frdtzvyOBNLoWw4RvF5CPVqSoJpiwQ7PJrxxeWRt78=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSwbmQwlN8kdf9RF1PvK6H2638aD35gZ2WS5V7SlrHx1a6k lP/zO0pZGMS4GGTFFFkc2k3C5ZbzVGw2ytSAmcPKBDKEgYtTACZSN4nhv/tGP83DZ7cU/t0z7Qyb+v 13JVdvP12bIhN1RohDPt/PgIHhr8j29aLnKn8d6Lkdl8x5d16OtfgjxcXyB3axNO7KuBFczQ4A
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-syzbot has found a reproducer for the following issue on:
+From: Christian Brauner (Microsoft) <brauner@kernel.org>
 
-HEAD commit:    8232539f864c Add linux-next specific files for 20230225
-git tree:       linux-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=17f3f254c80000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=4fe68735401a6111
-dashboard link: https://syzkaller.appspot.com/bug?extid=5a195884ee3ad761db4e
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=11de1350c80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=17e26960c80000
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/4259815e0cee/disk-8232539f.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/5ea6ea28200d/vmlinux-8232539f.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/e461f15ffd6b/bzImage-8232539f.xz
-mounted in repro: https://storage.googleapis.com/syzbot-assets/ba8c8f871670/mount_0.gz
+On Wed, 01 Feb 2023 14:14:51 +0100, Christian Brauner wrote:
+> Hey everyone,
+> 
+> After we finished the introduction of the new posix acl api last cycle
+> we still left the generic POSIX ACL xattr handlers around in the
+> filesystems xattr handlers for two reasons:
+> 
+> (1) Because a few filesystems rely on the ->list() method of the generic
+>     POSIX ACL xattr handlers in their ->listxattr() inode operation.
+> (2) POSIX ACLs are only available if IOP_XATTR is raised. The IOP_XATTR
+>     flag is raised in inode_init_always() based on whether the
+>     sb->s_xattr pointer is non-NULL. IOW, the registered xattr handlers
+>     of the filesystem are used to raise IOP_XATTR.
+>     If we were to remove the generic POSIX ACL xattr handlers from all
+>     filesystems we would risk regressing filesystems that only implement
+>     POSIX ACL support and no other xattrs (nfs3 comes to mind).
+> 
+> [...]
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com
+With v6.3-rc1 out, I've applied this now. Please keep an eye out for any
+regressions as this has been a delicate undertaking: 
 
-overlayfs: upper fs does not support tmpfile.
-------------[ cut here ]------------
-DEBUG_LOCKS_WARN_ON(1)
-WARNING: CPU: 0 PID: 9271 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:232 [inline]
-WARNING: CPU: 0 PID: 9271 at kernel/locking/lockdep.c:232 hlock_class kernel/locking/lockdep.c:221 [inline]
-WARNING: CPU: 0 PID: 9271 at kernel/locking/lockdep.c:232 check_wait_context kernel/locking/lockdep.c:4730 [inline]
-WARNING: CPU: 0 PID: 9271 at kernel/locking/lockdep.c:232 __lock_acquire+0x1615/0x5d40 kernel/locking/lockdep.c:5006
-Modules linked in:
-CPU: 0 PID: 9271 Comm: syz-executor233 Not tainted 6.2.0-next-20230225-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/16/2023
-RIP: 0010:hlock_class kernel/locking/lockdep.c:232 [inline]
-RIP: 0010:hlock_class kernel/locking/lockdep.c:221 [inline]
-RIP: 0010:check_wait_context kernel/locking/lockdep.c:4730 [inline]
-RIP: 0010:__lock_acquire+0x1615/0x5d40 kernel/locking/lockdep.c:5006
-Code: 08 84 d2 0f 85 b4 3d 00 00 8b 15 22 11 13 0d 85 d2 0f 85 31 fb ff ff 48 c7 c6 a0 74 4c 8a 48 c7 c7 e0 68 4c 8a e8 5b 4f e6 ff <0f> 0b 31 ed e9 e9 ed ff ff e8 2d 6f b3 02 85 c0 0f 84 c1 fa ff ff
-RSP: 0018:ffffc90003a9f7f8 EFLAGS: 00010086
-RAX: 0000000000000000 RBX: ffffffff9200089f RCX: 0000000000000000
-RDX: ffff88807d953a80 RSI: ffffffff814c1907 RDI: 0000000000000001
-RBP: 0000000000000e17 R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 000000002d2d2d2d R12: ffff88807d954530
-R13: ffff88807d953a80 R14: 0000000000040000 R15: 0000000000040e17
-FS:  00007fba7628a700(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007fba6e0b3000 CR3: 0000000021c3d000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- lock_acquire.part.0+0x11a/0x370 kernel/locking/lockdep.c:5669
- __raw_spin_lock include/linux/spinlock_api_smp.h:133 [inline]
- _raw_spin_lock+0x2e/0x40 kernel/locking/spinlock.c:154
- spin_lock include/linux/spinlock.h:350 [inline]
- take_dentry_name_snapshot+0x2b/0x170 fs/dcache.c:315
- ovl_check_rename_whiteout fs/overlayfs/super.c:1207 [inline]
- ovl_make_workdir fs/overlayfs/super.c:1329 [inline]
- ovl_get_workdir fs/overlayfs/super.c:1444 [inline]
- ovl_fill_super+0x2090/0x7270 fs/overlayfs/super.c:2000
- mount_nodev+0x64/0x120 fs/super.c:1417
- legacy_get_tree+0x109/0x220 fs/fs_context.c:610
- vfs_get_tree+0x8d/0x350 fs/super.c:1501
- do_new_mount fs/namespace.c:3042 [inline]
- path_mount+0x1342/0x1e40 fs/namespace.c:3372
- do_mount fs/namespace.c:3385 [inline]
- __do_sys_mount fs/namespace.c:3594 [inline]
- __se_sys_mount fs/namespace.c:3571 [inline]
- __x64_sys_mount+0x283/0x300 fs/namespace.c:3571
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x39/0xb0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7fba762deb29
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 71 15 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fba7628a2f8 EFLAGS: 00000246
- ORIG_RAX: 00000000000000a5
-RAX: ffffffffffffffda RBX: 00007fba76364780 RCX: 00007fba762deb29
-RDX: 0000000020000080 RSI: 00000000200000c0 RDI: 0000000000000000
-RBP: 00007fba763311d0 R08: 0000000020000480 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 0079616c7265766f
-R13: d5e172a4510865ec R14: 9837512483e3bdcd R15: 00007fba76364788
- </TASK>
+[01/10] xattr: simplify listxattr helpers
+        commit: f2620f166e2a4db08f016b7b30b904ab28c265e4
+[02/10] xattr: add listxattr helper
+        commit: 2db8a948046cab3a2f707561592906a3d096972f
+[03/10] xattr: remove unused argument
+        commit: 831be973aa21d1cf8948bf4b1d4e73e6d5d028c0
+[04/10] fs: drop unused posix acl handlers
+        commit: 0c95c025a02e477b2d112350e1c78bb0cc994c51
+[05/10] fs: simplify ->listxattr() implementation
+        commit: a5488f29835c0eb5561b46e71c23f6c39aab6c83
+[06/10] reiserfs: rework ->listxattr() implementation
+        commit: 387b96a5891c075986afbf13e84cba357710068e
+[07/10] fs: rename generic posix acl handlers
+        commit: d549b741740e63e87e661754e2d1b336fdc51d50
+[08/10] reiserfs: rework priv inode handling
+        commit: d9f892b9bdc22b12bc960837a09f014d5a324975
+[09/10] ovl: check for ->listxattr() support
+        commit: a1fbb607340d49f208e90cc0d7bdfff2141cce8d
+[10/10] acl: don't depend on IOP_XATTR
+        commit: e499214ce3ef50c50522719e753a1ffc928c2ec1
 
+Christian
