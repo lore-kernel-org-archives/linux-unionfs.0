@@ -2,26 +2,53 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6458AC64EC4
-	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Mar 2023 15:58:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7463EC678D5
+	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Mar 2023 16:07:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232332AbjCHP6Q (ORCPT
+        id S232444AbjCHQHV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 8 Mar 2023 10:58:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36866 "EHLO
+        Wed, 8 Mar 2023 11:07:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58376 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231867AbjCHP5w (ORCPT
+        with ESMTP id S232068AbjCHQG7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Mar 2023 10:57:52 -0500
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13FFD591E9;
-        Wed,  8 Mar 2023 07:57:19 -0800 (PST)
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 4D71F67373; Wed,  8 Mar 2023 16:56:09 +0100 (CET)
-Date:   Wed, 8 Mar 2023 16:56:09 +0100
-From:   Christoph Hellwig <hch@lst.de>
-To:     David Howells <dhowells@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, Jens Axboe <axboe@kernel.dk>,
+        Wed, 8 Mar 2023 11:06:59 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 451B18C0D5
+        for <linux-unionfs@vger.kernel.org>; Wed,  8 Mar 2023 08:04:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1678291486;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=2NWMkFGTVgULUDjAwqmBVEBtedj5eFLtnY35SqecmsU=;
+        b=ZSjLlMbbJVrDjSQiofl+uDPU7gTSw/bNAP7sKJS+tihf5A8XqjV+squeuEezvz7q+f7xF4
+        l5pUYUX0ZZjKtwdMPCZgmT++l/iVDCasYtcM049043KG/mtaWwVUbsDA5N5UHfE49ITjUg
+        d9KxzwV8ukqGCJOqTZmXqrwXRCeeggw=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-512-sBNcmhvQO3ucJLvWDaxBBQ-1; Wed, 08 Mar 2023 11:04:43 -0500
+X-MC-Unique: sBNcmhvQO3ucJLvWDaxBBQ-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 384B687B2A6;
+        Wed,  8 Mar 2023 16:04:42 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id C38C42026D4B;
+        Wed,  8 Mar 2023 16:04:39 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <20230308155609.GA21508@lst.de>
+References: <20230308155609.GA21508@lst.de> <CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com> <20230308143754.1976726-1-dhowells@redhat.com> <20230308143754.1976726-4-dhowells@redhat.com> <2011735.1678290876@warthog.procyon.org.uk>
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     dhowells@redhat.com, Miklos Szeredi <miklos@szeredi.hu>,
+        Jens Axboe <axboe@kernel.dk>,
         Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
         Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
@@ -33,25 +60,33 @@ Cc:     Miklos Szeredi <miklos@szeredi.hu>, Jens Axboe <axboe@kernel.dk>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Christoph Hellwig <hch@lst.de>,
         John Hubbard <jhubbard@nvidia.com>,
         linux-unionfs@vger.kernel.org
 Subject: Re: [PATCH v16 03/13] overlayfs: Implement splice-read
-Message-ID: <20230308155609.GA21508@lst.de>
-References: <CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com> <20230308143754.1976726-1-dhowells@redhat.com> <20230308143754.1976726-4-dhowells@redhat.com> <2011735.1678290876@warthog.procyon.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2011735.1678290876@warthog.procyon.org.uk>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <2012342.1678291479.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: quoted-printable
+Date:   Wed, 08 Mar 2023 16:04:39 +0000
+Message-ID: <2012343.1678291479@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 08, 2023 at 03:54:36PM +0000, David Howells wrote:
-> Using do_splice_to() as a helper is probably a good idea, though both Willy
-> and Christoph seem to dislike it.
+Christoph Hellwig <hch@lst.de> wrote:
 
-That's not true.  What I'm fundamentlly against is pointless wrappers
-like the call_* that add no value.  do_splice_to adds useful checks,
-so if properly named and documented, I'm absolutely in favour.
+> On Wed, Mar 08, 2023 at 03:54:36PM +0000, David Howells wrote:
+> > Using do_splice_to() as a helper is probably a good idea, though both =
+Willy
+> > and Christoph seem to dislike it.
+> =
+
+> That's not true.  What I'm fundamentlly against is pointless wrappers
+> like the call_* that add no value.  do_splice_to adds useful checks,
+> so if properly named and documented, I'm absolutely in favour.
+
+Fair enough.  Rename to vfs_splice_read() okay with you?
+
+David
+
