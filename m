@@ -2,57 +2,53 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74089C64EC4
-	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Mar 2023 15:35:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AE2DC678D5
+	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Mar 2023 15:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230434AbjCHPfa (ORCPT
+        id S231825AbjCHP5X (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 8 Mar 2023 10:35:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51384 "EHLO
+        Wed, 8 Mar 2023 10:57:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37820 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231496AbjCHPfD (ORCPT
+        with ESMTP id S231867AbjCHP5F (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 8 Mar 2023 10:35:03 -0500
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5359CB074
-        for <linux-unionfs@vger.kernel.org>; Wed,  8 Mar 2023 07:34:00 -0800 (PST)
-Received: by mail-ed1-x532.google.com with SMTP id da10so67445255edb.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 08 Mar 2023 07:34:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1678289628;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=FOdmNK9WOQhlHB8lGx17ROzXlswee6Xo6KzJiX35bEc=;
-        b=IGbyZwzKWrnuucRDByz/T9XdybVORTyEUzEwmCw9V8AeXk4C/Vbt1Y9DvTo+PocdyV
-         +ZglmnhJlRwQjA/yEvs2zTY7iaEoULmcBkV+DAWRRr7fxQYcxZn3ZnjPnJxGm2wQLGZ3
-         SBE0Kx8A4/knCvNrWKZl4R6AwwC/zngJc0cDg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678289628;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=FOdmNK9WOQhlHB8lGx17ROzXlswee6Xo6KzJiX35bEc=;
-        b=rfD3u4exkjzlMEwai9CXKxMQ6yLh8IYXYTdzmYzbwKED9mc0ygHCKCJGHtbfO/bqgB
-         q2cj5PX/DRrMT2mtAGUgioJoLFsFksuotzmDSoE+WJyGdFC30zKLYY7CrmAan6o1uqej
-         eHlSs+xHmzatBGhAY75qcDg97nSPQ+mRnFZ4E+UJjqb/q0SPkLuKERrnA0BScTbnxURK
-         /H/1gLthPU5Ys38jZOKAFT3Cx/wnZkrBqiPnTJBnWmjsNcz4t1tEc2Squw4l6DoqBmxr
-         /m4QmIPWp/vWAfBQOGhAw4V+d2BA7vP7Ykm1hRoAgcb1UDlsA1p4GeeONCX1RP123QeP
-         s5kQ==
-X-Gm-Message-State: AO0yUKXXc7N2uoFv5hMWkjWaJkV82dsTOCyFCUl5CWDTByzLOQ7HtLBh
-        iEM8QKDv1dKT4AxSeJa31krebDjn+vDYEP3vF9CoVA==
-X-Google-Smtp-Source: AK7set8fCE+xVLpgwIvK6mlnHQtOhFn2Tstvgvpl6/ijsEsoNnESBLlosp3w1GqSEiDUZi7rq+daTFslIoRw8G0vaGE=
-X-Received: by 2002:a50:d615:0:b0:4bc:7c78:4304 with SMTP id
- x21-20020a50d615000000b004bc7c784304mr10244649edi.8.1678289627857; Wed, 08
- Mar 2023 07:33:47 -0800 (PST)
-MIME-Version: 1.0
-References: <20230308143754.1976726-1-dhowells@redhat.com> <20230308143754.1976726-4-dhowells@redhat.com>
-In-Reply-To: <20230308143754.1976726-4-dhowells@redhat.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 8 Mar 2023 16:33:37 +0100
-Message-ID: <CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com>
-Subject: Re: [PATCH v16 03/13] overlayfs: Implement splice-read
-To:     David Howells <dhowells@redhat.com>
-Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
+        Wed, 8 Mar 2023 10:57:05 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 163EBCD676
+        for <linux-unionfs@vger.kernel.org>; Wed,  8 Mar 2023 07:55:19 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1678290882;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=vhkGR776MdfrN7s64zhXsYKAYFWiHFuXPp/BUnqkV7o=;
+        b=hrXXLbAsO27WQBhxf2TX8fFM1JDsQKf2Nv6oK0C8wFVh5Wl9P6Ahm3wAh5gcTcZd8ufIb9
+        RyrqwWt/MCCiVb4sx7fswdyauOmWDJblUdn7zg5AjPTNa2pXuTfcbCXNP/UhEQ7NW1Ls+q
+        rqN+bJ9+qfcS3vAnSaxKWUahshaMA7U=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-509-pzA8nezuOzGg3yv_5nXINg-1; Wed, 08 Mar 2023 10:54:41 -0500
+X-MC-Unique: pzA8nezuOzGg3yv_5nXINg-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2B1AE85CCE0;
+        Wed,  8 Mar 2023 15:54:40 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id B0246400DB36;
+        Wed,  8 Mar 2023 15:54:36 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+        Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+        Kingdom.
+        Registered in England and Wales under Company Registration No. 3798903
+From:   David Howells <dhowells@redhat.com>
+In-Reply-To: <CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com>
+References: <CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com> <20230308143754.1976726-1-dhowells@redhat.com> <20230308143754.1976726-4-dhowells@redhat.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     dhowells@redhat.com, Jens Axboe <axboe@kernel.dk>,
+        Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>,
         Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
         Jeff Layton <jlayton@kernel.org>,
@@ -66,76 +62,46 @@ Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@lst.de>,
         John Hubbard <jhubbard@nvidia.com>,
         linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v16 03/13] overlayfs: Implement splice-read
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <2011734.1678290876.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: quoted-printable
+Date:   Wed, 08 Mar 2023 15:54:36 +0000
+Message-ID: <2011735.1678290876@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 8 Mar 2023 at 15:38, David Howells <dhowells@redhat.com> wrote:
->
-> Implement splice-read for overlayfs by passing the request down a layer
-> rather than going through generic_file_splice_read() which is going to be
-> changed to assume that ->read_folio() is present on buffered files.
->
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> cc: Christoph Hellwig <hch@lst.de>
-> cc: Jens Axboe <axboe@kernel.dk>
-> cc: Al Viro <viro@zeniv.linux.org.uk>
-> cc: John Hubbard <jhubbard@nvidia.com>
-> cc: David Hildenbrand <david@redhat.com>
-> cc: Matthew Wilcox <willy@infradead.org>
-> cc: Miklos Szeredi <miklos@szeredi.hu>
-> cc: linux-unionfs@vger.kernel.org
-> cc: linux-block@vger.kernel.org
-> cc: linux-fsdevel@vger.kernel.org
-> cc: linux-mm@kvack.org
-> ---
->
-> Notes:
->     ver #15)
->      - Remove redundant FMODE_CAN_ODIRECT check on real file.
->      - Do rw_verify_area() on the real file, not the overlay file.
->      - Fix a file leak.
->
->  fs/overlayfs/file.c | 33 ++++++++++++++++++++++++++++++++-
->  1 file changed, 32 insertions(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 7c04f033aadd..a12919e9ccba 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -419,6 +419,37 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
->         return ret;
->  }
->
-> +static ssize_t ovl_splice_read(struct file *in, loff_t *ppos,
-> +                              struct pipe_inode_info *pipe, size_t len,
-> +                              unsigned int flags)
-> +{
-> +       const struct cred *old_cred;
-> +       struct fd real;
-> +       ssize_t ret;
-> +
-> +       ret = ovl_real_fdget(in, &real);
-> +       if (ret)
-> +               return ret;
-> +
-> +       ret = -EINVAL;
-> +       if (!real.file->f_op->splice_read)
-> +               goto out_fdput;
-> +
-> +       ret = rw_verify_area(READ, real.file, ppos, len);
-> +       if (unlikely(ret < 0))
-> +               goto out_fdput;
-> +
-> +       old_cred = ovl_override_creds(file_inode(in)->i_sb);
-> +       ret = real.file->f_op->splice_read(real.file, ppos, pipe, len, flags);
+Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-I don't think you replied to my suggestion of using a helper here.
-E.g. it could be as simple as exporting do_splice_to(), or renaming it
-to vfs_splice_read() to be more readable.  It would remove the
-boilerplate and be more robust if any changes are done to the splice
-reading code.
+> > +       ret =3D -EINVAL;
+> > +       if (!real.file->f_op->splice_read)
+> > +               goto out_fdput;
+> > +
+> > +       ret =3D rw_verify_area(READ, real.file, ppos, len);
+> > +       if (unlikely(ret < 0))
+> > +               goto out_fdput;
+> > +
+> > +       old_cred =3D ovl_override_creds(file_inode(in)->i_sb);
+> > +       ret =3D real.file->f_op->splice_read(real.file, ppos, pipe, le=
+n, flags);
+> =
 
-Thanks,
-Miklos
+> I don't think you replied to my suggestion of using a helper here.
+> E.g. it could be as simple as exporting do_splice_to(), or renaming it
+> to vfs_splice_read() to be more readable.  It would remove the
+> boilerplate and be more robust if any changes are done to the splice
+> reading code.
+
+Using do_splice_to() as a helper is probably a good idea, though both Will=
+y
+and Christoph seem to dislike it.
+
+The pipe occupancy check has already been done, so I'm not sure if it shou=
+ld
+be repeated - though it probably wouldn't hurt.
+
+David
+
