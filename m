@@ -2,245 +2,148 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B308C6FD1A
-	for <linux-unionfs@archiver.kernel.org>; Tue,  7 Mar 2023 17:19:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBF58C64EC4
+	for <linux-unionfs@archiver.kernel.org>; Wed,  8 Mar 2023 14:39:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231263AbjCGRT0 (ORCPT
+        id S232234AbjCHOjX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 7 Mar 2023 12:19:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59620 "EHLO
+        Wed, 8 Mar 2023 09:39:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231276AbjCGRSx (ORCPT
+        with ESMTP id S231739AbjCHOjF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 7 Mar 2023 12:18:53 -0500
-Received: from mail-ed1-x52e.google.com (mail-ed1-x52e.google.com [IPv6:2a00:1450:4864:20::52e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D72AC97FCE
-        for <linux-unionfs@vger.kernel.org>; Tue,  7 Mar 2023 09:14:26 -0800 (PST)
-Received: by mail-ed1-x52e.google.com with SMTP id ay14so51524961edb.11
-        for <linux-unionfs@vger.kernel.org>; Tue, 07 Mar 2023 09:14:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=eitmlabs-org.20210112.gappssmtp.com; s=20210112; t=1678209265;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=uwDUxJcDJcMxnTkL2V+YwQldX6E+/2r615N9qnjsQ5k=;
-        b=loV6EpaQge6cTIm0ELzvl+6/bRyrJcc6FOYdFs0TRbxcEZGfB54dpAEyz14LRrDp50
-         P4H64uZoqdhR0rZE2NHKOe0NtYGy7ifOi/XD8e15TdxPvtPrIvHtR9+5xSssfxZiv1N0
-         EXIkf3Egrn1M8zOzQYhhfhKBFlqIhOZe1gSVeRAaZ+9fS4wJgL8XgqlNCXbiwGv6Hzcr
-         m/CrckAS/z3o1tWyQyDSo0Zh+ASo6JuCnqud7J2RSwVzwI69IIHm7axl8kSorq+ws5pg
-         uFqX9/V2NfyADasJ19Uzd3txoFCkMHnUxJEngMSTpmZ/XJ8mRyERbi4fEGqBWb6k9Khs
-         MEJw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678209265;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :reply-to:in-reply-to:references:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=uwDUxJcDJcMxnTkL2V+YwQldX6E+/2r615N9qnjsQ5k=;
-        b=NIljiP1eokPsCHY4O6CSEQ4BU/86yjcHGgiI/0v4DxOIRi1nrvZZV+TXf4JQ3koFSg
-         0Yjs1yO6ZRmRkU+oQEaciguhNPF2YVr10eHHNa03Jm05fRjF0yuIH0hB7eF92J0MjNwy
-         IzGl08VJV8emVooOd27dHGClWjN+3sUQGhIZz4i83cK71idQm03gMvyaJQEukJgvxfPq
-         H5gWVbjQBVtdUWwmjKCvy3/pCUhCcTUebZZv4uok/DsN1cO0WXXTL/3/TBUHaek7bm4J
-         vBlZzmYjRYCNKFqzcAXZchO/olb+zGdqDwUS4kjifK3OViKhRZImncpRQcwn4QLlWrDG
-         xxew==
-X-Gm-Message-State: AO0yUKUGAOeEdPymCj5NbHI1kvat9b6jcp5sChKLs/FWuaP1mzJf1CFk
-        6uy+T5Cl7CJhuB5JRqvNzmqvZkFP/ZlEo/+RJN/oDg==
-X-Google-Smtp-Source: AK7set/GhvrPLHOVoQw/QGOLf9lH9Ub7ISmxaTsewUUiP9pF0QT7WJRKuFmAjXI6QVFX7jksBphHX/IUgB80KGDUkME=
-X-Received: by 2002:a17:906:fcb9:b0:883:ba3b:eb94 with SMTP id
- qw25-20020a170906fcb900b00883ba3beb94mr7566442ejb.3.1678209265306; Tue, 07
- Mar 2023 09:14:25 -0800 (PST)
-MIME-Version: 1.0
-References: <4B9D76D5-C794-4A49-A76F-3D4C10385EE0@kohlschutter.com>
- <CAJfpegs1Kta-HcikDGFt4=fa_LDttCeRmffKhUjWLr=DxzXg-A@mail.gmail.com>
- <83A29F9C-1A91-4753-953A-0C98E8A9832C@kohlschutter.com> <CAJfpegv5W0CycWCc2-kcn4=UVqk1hP7KrvBpzXHwW-Nmkjx8zA@mail.gmail.com>
- <FFA26FD1-60EF-457E-B914-E1978CCC7B57@kohlschutter.com> <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
- <A31096BA-C128-4D0B-B27D-C34560844ED0@kohlschutter.com> <CAJfpegvBSCQwkCv=5LJDx1LRCN_ztTh9VMvrTbCyt0zf7W2trw@mail.gmail.com>
- <CAHk-=wjg+xyBwMpQwLx_QWPY7Qf8gUOVek8rXdQccukDyVmE+w@mail.gmail.com>
- <EE5E5841-3561-4530-8813-95C16A36D94A@kohlschutter.com> <CAHk-=wh5V8tQScw9Bgc8OiD0r5XmfVSCPp2OHPEf0p5T3obuZg@mail.gmail.com>
- <CAJfpeguXB9mAk=jwWQmk3rivYnaWoLrju_hq-LwtYyNXG4JOeg@mail.gmail.com>
- <CAHk-=wg+bpP5cvcaBhnmJKzTmAtgx12UhR4qzFXXb52atn9gDw@mail.gmail.com>
- <56E6CAAE-FF25-4898-8F9D-048164582E7B@kohlschutter.com> <490c5026-27bd-1126-65dd-2ec975aae94c@eitmlabs.org>
- <CAJfpegt7CMMapxD0W41n2SdwiBn8+B08vsov-iOpD=eQEiPN1w@mail.gmail.com>
- <CALKgVmeaPJj4e9sYP7g+v4hZ7XaHKAm6BUNz14gvaBd=sFCs9Q@mail.gmail.com>
- <CALKgVmdqircMjn+iEuta5a7v5rROmYGXmQ0VJtzcCQnZYbJX6w@mail.gmail.com>
- <CALKgVmfZdVnqMAW81T12sD5ZLTO0fp-oADp-WradW5O=PBjp1Q@mail.gmail.com> <CAJfpeguKVzCyUraDQPGw6vdQFfPwTCuZv0JkMxNA69AiRib3kg@mail.gmail.com>
-In-Reply-To: <CAJfpeguKVzCyUraDQPGw6vdQFfPwTCuZv0JkMxNA69AiRib3kg@mail.gmail.com>
-Reply-To: jonathan@eitm.org
-From:   Jonathan Katz <jkatz@eitmlabs.org>
-Date:   Tue, 7 Mar 2023 09:14:08 -0800
-Message-ID: <CALKgVmcC1VUV_gJVq70n--omMJZUb4HSh_FqvLTHgNBc+HCLFQ@mail.gmail.com>
-Subject: Re: [PATCH] [REGRESSION] ovl: Handle ENOSYS when fileattr support is
- missing in lower/upper fs
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     jonathan@eitm.org,
-        =?UTF-8?Q?Christian_Kohlsch=C3=BCtter?= 
-        <christian@kohlschutter.com>,
+        Wed, 8 Mar 2023 09:39:05 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0961550FB5
+        for <linux-unionfs@vger.kernel.org>; Wed,  8 Mar 2023 06:38:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1678286294;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=+3Ga7BRmh73UHrzRkOWvEl7XP18FVhE2HGszQBLwN/U=;
+        b=BkritqjPiSG2XrUBB0QEUxXn1dO5okGGzDjjkUJEC2A9V/6IgOmImTkDOSRF7hhWCwYaUF
+        11pXTvVL4no/FgX0ZzsUSYiVY8Ib5nCXW7iJOOcMHWufABtnFQqihiWYXAsslCY2LU951W
+        AsTSNwmq+VYx1N5Tw+p58dqofTJMXSY=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-591-Ie2N4SlAMG22ke7XWWlVVQ-1; Wed, 08 Mar 2023 09:38:09 -0500
+X-MC-Unique: Ie2N4SlAMG22ke7XWWlVVQ-1
+Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 01EBA18E0049;
+        Wed,  8 Mar 2023 14:38:08 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 5E61140C83B6;
+        Wed,  8 Mar 2023 14:38:05 +0000 (UTC)
+From:   David Howells <dhowells@redhat.com>
+To:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>
+Cc:     David Howells <dhowells@redhat.com>,
+        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+        Jeff Layton <jlayton@kernel.org>,
+        David Hildenbrand <david@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Hillf Danton <hdanton@sina.com>,
         Linus Torvalds <torvalds@linux-foundation.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        Christoph Hellwig <hch@lst.de>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org
+Subject: [PATCH v16 03/13] overlayfs: Implement splice-read
+Date:   Wed,  8 Mar 2023 14:37:44 +0000
+Message-Id: <20230308143754.1976726-4-dhowells@redhat.com>
+In-Reply-To: <20230308143754.1976726-1-dhowells@redhat.com>
+References: <20230308143754.1976726-1-dhowells@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Mar 7, 2023 at 12:38=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Tue, 7 Mar 2023 at 02:12, Jonathan Katz <jkatz@eitmlabs.org> wrote:
-> >
-> > Hi all,
-> >
-> > In pursuing this issue, I downloaded the kernel source to see if I
-> > could debug it further.  In so doing, it looks like Christian's patch
-> > was never committed to the main source tree (sorry if my terminology
-> > is wrong).  This is up to and including the 6.3-rc1.  I could also
-> > find no mention of the fix in the log.
-> >
-> > I am trying to manually apply this patch now, but, I am wondering if
-> > there was some reason that it was not applied (e.g. it introduces some
-> > instability?)?
->
-> It's fixing the bug in the wrong place, i.e. it's checking for an
-> -ENOSYS return from vfs_fileattr_get(), but that return value is not
-> valid at that point.
->
-> The right way to fix this bug is to prevent -ENOSYS from being
-> returned in the first place.
->
-> Commit 02c0cab8e734 ("fuse: ioctl: translate ENOSYS") fixes one of
-> those bugs, but of course it's possible that I missed something in
-> that fix.
->
-> Can you please first verify that an upstream kernel (>v6.0) can also
-> reproduce this issue?
+Implement splice-read for overlayfs by passing the request down a layer
+rather than going through generic_file_splice_read() which is going to be
+changed to assume that ->read_folio() is present on buffered files.
 
-Got ya.  that makes a lot of sense, thank you.
+Signed-off-by: David Howells <dhowells@redhat.com>
+cc: Christoph Hellwig <hch@lst.de>
+cc: Jens Axboe <axboe@kernel.dk>
+cc: Al Viro <viro@zeniv.linux.org.uk>
+cc: John Hubbard <jhubbard@nvidia.com>
+cc: David Hildenbrand <david@redhat.com>
+cc: Matthew Wilcox <willy@infradead.org>
+cc: Miklos Szeredi <miklos@szeredi.hu>
+cc: linux-unionfs@vger.kernel.org
+cc: linux-block@vger.kernel.org
+cc: linux-fsdevel@vger.kernel.org
+cc: linux-mm@kvack.org
+---
 
-I have confirmed that I continue to get the error with 6.2 .
-quick summary of the lowerdir:
-   server ---- NFS(ro) ---- > client "/nfs"
-   client "/nfs" --- bindfs(uidmap) --- > client "/lower"
+Notes:
+    ver #15)
+     - Remove redundant FMODE_CAN_ODIRECT check on real file.
+     - Do rw_verify_area() on the real file, not the overlay file.
+     - Fix a file leak.
 
+ fs/overlayfs/file.c | 33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 7c04f033aadd..a12919e9ccba 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -419,6 +419,37 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	return ret;
+ }
+ 
++static ssize_t ovl_splice_read(struct file *in, loff_t *ppos,
++			       struct pipe_inode_info *pipe, size_t len,
++			       unsigned int flags)
++{
++	const struct cred *old_cred;
++	struct fd real;
++	ssize_t ret;
++
++	ret = ovl_real_fdget(in, &real);
++	if (ret)
++		return ret;
++
++	ret = -EINVAL;
++	if (!real.file->f_op->splice_read)
++		goto out_fdput;
++
++	ret = rw_verify_area(READ, real.file, ppos, len);
++	if (unlikely(ret < 0))
++		goto out_fdput;
++
++	old_cred = ovl_override_creds(file_inode(in)->i_sb);
++	ret = real.file->f_op->splice_read(real.file, ppos, pipe, len, flags);
++
++	revert_creds(old_cred);
++	ovl_file_accessed(in);
++out_fdput:
++	fdput(real);
++
++	return ret;
++}
++
+ /*
+  * Calling iter_file_splice_write() directly from overlay's f_op may deadlock
+  * due to lock order inversion between pipe->mutex in iter_file_splice_write()
+@@ -695,7 +726,7 @@ const struct file_operations ovl_file_operations = {
+ 	.fallocate	= ovl_fallocate,
+ 	.fadvise	= ovl_fadvise,
+ 	.flush		= ovl_flush,
+-	.splice_read    = generic_file_splice_read,
++	.splice_read    = ovl_splice_read,
+ 	.splice_write   = ovl_splice_write,
+ 
+ 	.copy_file_range	= ovl_copy_file_range,
 
-
-
-
->
-> Thanks,
-> Miklos
->
->
->
-> >
-> > Thank you,
-> > Jonathan
-> >
-> >
-> >
-> > On Thu, Feb 23, 2023 at 3:11=E2=80=AFPM Jonathan Katz <jkatz@eitmlabs.o=
-rg> wrote:
-> > >
-> > > Hi all,
-> > >
-> > > Problem persists with me with 6.2.0
-> > > # mainline --install-latest
-> > > # reboot
-> > >
-> > > # uname -r
-> > > 6.2.0-060200-generic
-> > >
-> > >
-> > > Representative log messages when mounting:
-> > > Feb 23 22:50:43 instance-20220314-1510-fileserver-for-overlay kernel:
-> > > [   44.641683] overlayfs: null uuid detected in lower fs '/', falling
-> > > back to xino=3Doff,index=3Doff,nfs_export=3Doff.
-> > >
-> > >
-> > >
-> > > Representative log messages when accessing files:
-> > > eb 23 23:06:31 instance-20220314-1510-fileserver-for-overlay kernel: =
-[
-> > >  992.505357] overlayfs: failed to retrieve lower fileattr (8020
-> > > MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1=
-722.d/Storage.mcf_idx,
-> > > err=3D-38)
-> > > Feb 23 23:06:32 instance-20220314-1510-fileserver-for-overlay kernel:
-> > > [  993.523712] overlayfs: failed to retrieve lower fileattr (8020
-> > > MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-1=
-722.d/Storage.mcf_idx,
-> > > err=3D-38)
-> > >
-> > >
-> > > On Mon, Jan 30, 2023 at 11:27 AM Jonathan Katz <jkatz@eitmlabs.org> w=
-rote:
-> > > >
-> > > > On Thu, Jan 26, 2023 at 5:26 AM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
-> > > > >
-> > > > > On Wed, 18 Jan 2023 at 04:41, Jonathan Katz <jkatz@eitmlabs.org> =
-wrote:
-> > > > >
-> > > > > > I believe that I am still having issues occur within Ubuntu 22.=
-10 with
-> > > > > > the 5.19 version of the kernel that might be associated with th=
-is
-> > > > > > discussion.  I apologize up front for any faux pas I make in wr=
-iting
-> > > > > > this email.
-> > > > >
-> > > > > No need to apologize.   The fix in question went into v6.0 of the
-> > > > > upstream kernel.  So apparently it's still missing from the distr=
-o you
-> > > > > are using.
-> > > >
-> > > > Thank you for the reply! ---  I have upgraded the Kernel and it sti=
-ll
-> > > > seems to be throwing errors.  Details follow:
-> > > >
-> > > > Distro: Ubuntu 22.10.
-> > > > Upgraded kernel using mainline (mainline --install-latest)
-> > > >
-> > > > # uname -a
-> > > > Linux instance-20220314-1510-fileserver-for-overlay
-> > > > 6.1.8-060108-generic #202301240742 SMP PREEMPT_DYNAMIC Tue Jan 24
-> > > > 08:13:53 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
-> > > >
-> > > > On mount I still get the following notice in syslog (representative=
-):
-> > > > Jan 30 19:11:46 instance-20220314-1510-fileserver-for-overlay kerne=
-l:
-> > > > [   71.613334] overlayfs: null uuid detected in lower fs '/', falli=
-ng
-> > > > back to xino=3Doff,index=3Doff,nfs_export=3Doff.
-> > > >
-> > > > And on access (via samba) I still see the following errors in the
-> > > > syslog (representative):
-> > > > Jan 30 19:19:34 instance-20220314-1510-fileserver-for-overlay kerne=
-l:
-> > > > [  539.181858] overlayfs: failed to retrieve lower fileattr (8020
-> > > > MeOHH2O RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg=
--1722.d/Storage.mcf_idx,
-> > > > err=3D-38)
-> > > >
-> > > > And on the Windows client, the software still fails with the same s=
-ymptomology.
-> > > >
-> > > >
-> > > >
-> > > >
-> > > > >
-> > > > > > An example error from our syslog:
-> > > > > >
-> > > > > > kernel: [2702258.538549] overlayfs: failed to retrieve lower fi=
-leattr
-> > > > > > (8020 MeOHH2O
-> > > > > > RecoverySample2-20221219-A-JJL-WebinarHilic10C-TOF-TT54-Neg-172=
-2.d/analysis.tsf,
-> > > > > > err=3D-38)
-> > > > >
-> > > > > Yep, looks like the same bug.
-> > > > >
-> > > > > Thanks,
-> > > > > Miklos
