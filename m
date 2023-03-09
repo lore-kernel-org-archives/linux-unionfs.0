@@ -2,127 +2,130 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F20CDC64EC4
-	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Mar 2023 15:32:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 177C4C61DA4
+	for <linux-unionfs@archiver.kernel.org>; Thu,  9 Mar 2023 15:46:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230430AbjCIPcA (ORCPT
+        id S231429AbjCIPq1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 9 Mar 2023 10:32:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57966 "EHLO
+        Thu, 9 Mar 2023 10:46:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230333AbjCIPbz (ORCPT
+        with ESMTP id S230018AbjCIPq0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 9 Mar 2023 10:31:55 -0500
-Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EE92F2215
-        for <linux-unionfs@vger.kernel.org>; Thu,  9 Mar 2023 07:31:39 -0800 (PST)
-Received: by mail-ed1-x536.google.com with SMTP id u9so8636559edd.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 09 Mar 2023 07:31:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1678375898;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0DkXzgN0EHgf1dOpGSe3iIK1kwbBtYjaegg+rlUzVBc=;
-        b=rdHTwYBJwTAOH3ZoXGlY/Fp2X/QNDdM0A9louBiy2i2xKkjSp8XnVIFYOQFSgO9Jbo
-         8z013P4W0b9argImTH3e4qOX0yhxpK5Ek+WB91F7tRSQbJTQdDRo6BiJbOCQvZ3y9pDc
-         ioeOFqkSz9efsJ7Ls+hDktSxzsN5U4r2XK5S4=
+        Thu, 9 Mar 2023 10:46:26 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6668E4844
+        for <linux-unionfs@vger.kernel.org>; Thu,  9 Mar 2023 07:45:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1678376744;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=37/w03iyTP4+W8iPKFzYFgUbiQ52iRaqgtdVrDhT9xs=;
+        b=PSwkJ2jfh/Q1wzU1FQELNbWABHXie3ElG6EUf/+Yq6PmHZZV4MfcKCONQ6HisW7P8+gOzM
+        JZR6vkNX+apuXHF0kH35aLQGUsfeo6s3GQIJzTe0F1MTq9L80+WQ6uIymrkEcjsPjnuZMB
+        pmyuOkN4Ye6aOxlfy+P5r5oBywKnPwU=
+Received: from mail-io1-f71.google.com (mail-io1-f71.google.com
+ [209.85.166.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-34-ptClpdiNP9qWm_UFQuGa9g-1; Thu, 09 Mar 2023 10:45:44 -0500
+X-MC-Unique: ptClpdiNP9qWm_UFQuGa9g-1
+Received: by mail-io1-f71.google.com with SMTP id g21-20020a6be615000000b0074cb292f57dso1016098ioh.17
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Mar 2023 07:45:43 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678375898;
+        d=1e100.net; s=20210112; t=1678376743;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=0DkXzgN0EHgf1dOpGSe3iIK1kwbBtYjaegg+rlUzVBc=;
-        b=GLkRG3Xk/ICyUS5fZs9lgxGqV93fL695j9e7hHAjUaTSVJumzD7gS+5t6Y3UvRJX3d
-         Us9Jd9yTPgfZAfzTWbSdrfyOI4rt/QdAYEZJviir6phOlJAjk34sr+oGBoIdKHtiS7O3
-         r3z+adZNSvnG8MG9bWlJGMaGgvFKENIF02GgLfoDM2e5ZFw1rMdByPEx1Qte5dYsO2+h
-         tYUgj2vobOEfRioyP311qFuWcMNAEpGlsmPNyKlOJjnuaYVKVobF5AiFLJuQnmCf7Mj/
-         5lSNC1UAFuBqom1YPlO68flZFQ4ZOgB+qy7Ev3BfgVbR9NYZ+7bxn2NOlg1OWmI+ZkFB
-         J7dQ==
-X-Gm-Message-State: AO0yUKW9a0KfvwBGF3fNY1TgftA5cwHOkQ1BZgQDksA8Z8fh6tUYAKSv
-        xrICeRcx5BS8JyTGbyU7o7HQxpqZKtFUMO66mgnRGg==
-X-Google-Smtp-Source: AK7set93nfCrfqMRpk5wPUF0BPSDl1IyaSI2laXoRcIFWebZUNfI5Dc9nDdr7AGuCpFt8SmT8ftKkp/Q8PN8wE40nmg=
-X-Received: by 2002:a17:906:5811:b0:877:747d:4a90 with SMTP id
- m17-20020a170906581100b00877747d4a90mr11456691ejq.14.1678375897972; Thu, 09
- Mar 2023 07:31:37 -0800 (PST)
+        bh=37/w03iyTP4+W8iPKFzYFgUbiQ52iRaqgtdVrDhT9xs=;
+        b=qbrO7eAusCxOxeRWgVUjywuh1axauTpEY8yccZGJ23vm6VpvbROdIlIRoaOCXQXD/z
+         U9ouNGIyBaro5cmeSi/q7KGxEMbAsKIcMIRmmIJDaIkkGf34TEmYBfs5uDLSJyfLgQvU
+         b/GYtULuCbxokM352RSlCLAoXsq1z/DYiuwIy0L0gSIS5q0LLIuygeRTkMtQv5arfe7F
+         HRifjJEsqvAlsQZC/hv72qFp9nkaJJWIdshHegP7P2sJlh/Lwz81DfXUZWColPWw/8a8
+         el6CG7qQ0e5VbxrHQDuPPBHrALuugj16aSLtMIwPn/sSf8IXxOmQ/YKJFKkQpTzfS3qb
+         TtJg==
+X-Gm-Message-State: AO0yUKUbeSfQ4uk/U/y/DwKAsx0+1XrqBCO3k6BT0UGguPAdedorcdD0
+        ojDbMQQSvKKEYftVGtWcNAt/rAgDUIoIZa5yak0CKYspwqkkJD1NdnlhLv4jVIPQFBCRXJZPH9x
+        i+5R1ey48fgCJ4je8bZwLgRm6dzp1Rfthg+CTa1vquN+91dCSTQ==
+X-Received: by 2002:a02:aa1c:0:b0:3b4:42bd:bec with SMTP id r28-20020a02aa1c000000b003b442bd0becmr11003176jam.4.1678376743051;
+        Thu, 09 Mar 2023 07:45:43 -0800 (PST)
+X-Google-Smtp-Source: AK7set8QBRuryYFdirBo6eHZdfY2571MUkP1FwqMyqR1gOwhXmwSuzQmRXV2DIONkq+83p0UnSvSoKwmFcBwJVN7bHM=
+X-Received: by 2002:a02:aa1c:0:b0:3b4:42bd:bec with SMTP id
+ r28-20020a02aa1c000000b003b442bd0becmr11003168jam.4.1678376742785; Thu, 09
+ Mar 2023 07:45:42 -0800 (PST)
 MIME-Version: 1.0
-References: <4B9D76D5-C794-4A49-A76F-3D4C10385EE0@kohlschutter.com>
- <CAJfpegs1Kta-HcikDGFt4=fa_LDttCeRmffKhUjWLr=DxzXg-A@mail.gmail.com>
- <83A29F9C-1A91-4753-953A-0C98E8A9832C@kohlschutter.com> <CAJfpegv5W0CycWCc2-kcn4=UVqk1hP7KrvBpzXHwW-Nmkjx8zA@mail.gmail.com>
- <FFA26FD1-60EF-457E-B914-E1978CCC7B57@kohlschutter.com> <CAJfpeguDAJpLMABsomBFQ=w6Li0=sBW0bFyALv4EJrAmR2BkpQ@mail.gmail.com>
- <A31096BA-C128-4D0B-B27D-C34560844ED0@kohlschutter.com> <CAJfpegvBSCQwkCv=5LJDx1LRCN_ztTh9VMvrTbCyt0zf7W2trw@mail.gmail.com>
- <CAHk-=wjg+xyBwMpQwLx_QWPY7Qf8gUOVek8rXdQccukDyVmE+w@mail.gmail.com>
- <EE5E5841-3561-4530-8813-95C16A36D94A@kohlschutter.com> <CAHk-=wh5V8tQScw9Bgc8OiD0r5XmfVSCPp2OHPEf0p5T3obuZg@mail.gmail.com>
- <CAJfpeguXB9mAk=jwWQmk3rivYnaWoLrju_hq-LwtYyNXG4JOeg@mail.gmail.com>
- <CAHk-=wg+bpP5cvcaBhnmJKzTmAtgx12UhR4qzFXXb52atn9gDw@mail.gmail.com>
- <56E6CAAE-FF25-4898-8F9D-048164582E7B@kohlschutter.com> <490c5026-27bd-1126-65dd-2ec975aae94c@eitmlabs.org>
- <CAJfpegt7CMMapxD0W41n2SdwiBn8+B08vsov-iOpD=eQEiPN1w@mail.gmail.com>
- <CALKgVmeaPJj4e9sYP7g+v4hZ7XaHKAm6BUNz14gvaBd=sFCs9Q@mail.gmail.com>
- <CALKgVmdqircMjn+iEuta5a7v5rROmYGXmQ0VJtzcCQnZYbJX6w@mail.gmail.com>
- <CALKgVmfZdVnqMAW81T12sD5ZLTO0fp-oADp-WradW5O=PBjp1Q@mail.gmail.com>
- <CAJfpeguKVzCyUraDQPGw6vdQFfPwTCuZv0JkMxNA69AiRib3kg@mail.gmail.com> <CALKgVmcC1VUV_gJVq70n--omMJZUb4HSh_FqvLTHgNBc+HCLFQ@mail.gmail.com>
-In-Reply-To: <CALKgVmcC1VUV_gJVq70n--omMJZUb4HSh_FqvLTHgNBc+HCLFQ@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Thu, 9 Mar 2023 16:31:27 +0100
-Message-ID: <CAJfpegt0rduBcSqSR=XmQ8bd_ws7Qy=4pxVF0_iysfc7wFagQQ@mail.gmail.com>
-Subject: Re: [PATCH] [REGRESSION] ovl: Handle ENOSYS when fileattr support is
- missing in lower/upper fs
-To:     jonathan@eitm.org
-Cc:     =?UTF-8?Q?Christian_Kohlsch=C3=BCtter?= 
-        <christian@kohlschutter.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+References: <CAL7ro1GQcs28kT+_2M5JQZoUN6KHYmA85ouiwjj6JU+1=C-q4g@mail.gmail.com>
+ <CAJfpeguTqXKuBcR3ZBbpWTPTbhnLja0QkBz3ASa4mgaw+A4-rQ@mail.gmail.com>
+In-Reply-To: <CAJfpeguTqXKuBcR3ZBbpWTPTbhnLja0QkBz3ASa4mgaw+A4-rQ@mail.gmail.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Thu, 9 Mar 2023 16:45:31 +0100
+Message-ID: <CAL7ro1FZKNa1vMJ0CLsGr0Wcg=TSm_2Ehso=adQEVnn3G5i=xQ@mail.gmail.com>
+Subject: Re: WIP: verity support for overlayfs
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 7 Mar 2023 at 18:14, Jonathan Katz <jkatz@eitmlabs.org> wrote:
+On Thu, Mar 9, 2023 at 3:59=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
+rote:
 >
-> On Tue, Mar 7, 2023 at 12:38=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu=
-> wrote:
+> On Wed, 8 Mar 2023 at 16:29, Alexander Larsson <alexl@redhat.com> wrote:
 > >
-> > On Tue, 7 Mar 2023 at 02:12, Jonathan Katz <jkatz@eitmlabs.org> wrote:
-> > >
-> > > Hi all,
-> > >
-> > > In pursuing this issue, I downloaded the kernel source to see if I
-> > > could debug it further.  In so doing, it looks like Christian's patch
-> > > was never committed to the main source tree (sorry if my terminology
-> > > is wrong).  This is up to and including the 6.3-rc1.  I could also
-> > > find no mention of the fix in the log.
-> > >
-> > > I am trying to manually apply this patch now, but, I am wondering if
-> > > there was some reason that it was not applied (e.g. it introduces som=
+> > As was recently discussed in the various threads about composefs we
+> > want the ability to specify a fs-verity digest for metacopy files,
+> > such that the lower file used for the data is guaranteed to have the
+> > specified digest.
+> >
+> > I wrote an initial version of this here:
+> >
+> >   https://github.com/alexlarsson/linux/tree/overlay-verity
+> >
+> > I would like some feedback on this approach. Does it make sense?
+> >
+> > For context, here is the main commit text:
+> >
+> > This adds support for a new overlay xattr "overlay.verity", which
+> > contains a fs-verity digest. This is used for metacopy files, and
+> > whenever the lowerdata file is accessed overlayfs can verify that
+> > the data file fs-verity digest matches the expected one.
+> >
+> > By default this is ignored, but if the mount option "verity_policy" is
+> > set to "validate" or "require", then all accesses validate any
+> > specified digest. If you use "require" it additionally fails to access
+> > metacopy file if the verity xattr is missing.
+> >
+> > The digest is validated during ovl_open() as well as when the lower fil=
 e
-> > > instability?)?
-> >
-> > It's fixing the bug in the wrong place, i.e. it's checking for an
-> > -ENOSYS return from vfs_fileattr_get(), but that return value is not
-> > valid at that point.
-> >
-> > The right way to fix this bug is to prevent -ENOSYS from being
-> > returned in the first place.
-> >
-> > Commit 02c0cab8e734 ("fuse: ioctl: translate ENOSYS") fixes one of
-> > those bugs, but of course it's possible that I missed something in
-> > that fix.
-> >
-> > Can you please first verify that an upstream kernel (>v6.0) can also
-> > reproduce this issue?
+> > is copied up. Additionally the overlay.verity xattr is copied to the
+> > upper file during a metacopy operation, in order to later do the valida=
+tion
+> > of the digest when the copy-up happens.
 >
-> Got ya.  that makes a lot of sense, thank you.
->
-> I have confirmed that I continue to get the error with 6.2 .
-> quick summary of the lowerdir:
->    server ---- NFS(ro) ---- > client "/nfs"
->    client "/nfs" --- bindfs(uidmap) --- > client "/lower"
+> Hmm, so what exactly happens if the file is copied up and then
+> modified?  The verification will fail, no?
 
-Can you please run bindfs in debugging mode (-d) and send the
-resulting log after reproducing the issue?
+When we do a meta-copy-up we need to look at the data file and
+synthesize an overlay.verity xattr in the upper dir based on the
+existing fs-verity diges. At least if the file has fs-verity enabled.
+And indeed, in the verify_policy=3Drequired case, if there is no
+fs-verity in the lower file we should fall back to a full copy-up
+instead of a metacopy-up, or we will end up with a metacopy we can't
+validate.
 
-Thanks,
-Miklos
+However, if you actually modify a file I don't really see the problem,
+you will get a non-verified upper layer file with the changes. It will
+not fail validation because it is at that point not validated. Really
+we can only expect to validate the lower layers.
+
+
+--
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
+
