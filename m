@@ -2,50 +2,75 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DD44C61DA4
-	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Mar 2023 16:37:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95BFCC61DA4
+	for <linux-unionfs@archiver.kernel.org>; Wed, 15 Mar 2023 19:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232450AbjCOQhn (ORCPT
+        id S232713AbjCOTAB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 15 Mar 2023 12:37:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37332 "EHLO
+        Wed, 15 Mar 2023 15:00:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232303AbjCOQhR (ORCPT
+        with ESMTP id S231180AbjCOS77 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 15 Mar 2023 12:37:17 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABB0573033
-        for <linux-unionfs@vger.kernel.org>; Wed, 15 Mar 2023 09:36:15 -0700 (PDT)
+        Wed, 15 Mar 2023 14:59:59 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E711A8C589
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Mar 2023 11:59:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1678898174;
+        s=mimecast20190719; t=1678906751;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Mo6NWBR6hkfydtMnZeO+F5U5GhN+vbQRFCzRyccP/1I=;
-        b=Ax5X/Dcy2Q7ZssjDd/P6clUV3srPYXL7uvQnCgNua452c2w9Xq3D0I9tK3Ku1wNyCeXW6j
-        EmKnNWT73beFYNTXzO+uDzeN5LJRpf/ZoPDTD5MKwo03uOa9g+G+l0VUofDn1cNUucfCyS
-        3BBwKQ2M/Ifp2nShRrsxCtag+Ey5Gfw=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-217-WMsh2JaSO0acjNRTd_X4qA-1; Wed, 15 Mar 2023 12:36:11 -0400
-X-MC-Unique: WMsh2JaSO0acjNRTd_X4qA-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 9123C2807D8F;
-        Wed, 15 Mar 2023 16:36:08 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.33.36.18])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id CEEBB4042AC2;
-        Wed, 15 Mar 2023 16:36:05 +0000 (UTC)
-From:   David Howells <dhowells@redhat.com>
-To:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
+        bh=3pRuFXv24zO9iZj6MhHQgS7pRqlQAfg3F2hO5yqQOu0=;
+        b=RuPdYPWyEtf+Dd6brSDoaHrf/5zsqig1q8rj0lr6x7LU2nSJ4qLxRtMQN3WRIBNZ4PFBWl
+        61Jj3yRfUzR0552ZAJV6TqmSbjqs3t63lz/Uli7iNlm23nnEsT2MlAeXZpB4ORCS66hesa
+        lMrxSZEXruXV/PWemm9yVueuAN9rs8w=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-408-kAOhDdORM1Gpq_v4qvB1FQ-1; Wed, 15 Mar 2023 14:59:08 -0400
+X-MC-Unique: kAOhDdORM1Gpq_v4qvB1FQ-1
+Received: by mail-wm1-f71.google.com with SMTP id o31-20020a05600c511f00b003ed2ed2acb5so1417108wms.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 15 Mar 2023 11:59:07 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1678906747;
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=3pRuFXv24zO9iZj6MhHQgS7pRqlQAfg3F2hO5yqQOu0=;
+        b=ftWpjGmVGWN0eclhzNe7ghMoT9+W23DzlBGxCxXoFiQRBAsl9Jv0+zJR+BIVsX9POB
+         6ofVzH4t03wNQ5RXXvRmmHbImg9yiwOFhSYIQLm0iBNS7QtDxjAw2epxxc+S94VYQBij
+         Y/su1poLrVm0Y1ZamtBr25fU1RgwBDqKbum4pPlE3eQ3c+B97C2UBzQ3C2nWky8An/Zx
+         lqzmhKIl3bCCpNXfgcybxsxWAOOTd7Tgnb6QIWiV9XlmIVn20ycGiARdhR895b2sBR0n
+         +GDWxeD/1nN32piFzRLJ5Rr0AFRZuiqWTO2r4LcWSqb1f5uHPUmm9/yqt8cbIMem+1uN
+         5dKQ==
+X-Gm-Message-State: AO0yUKXfwMwZcdeikhfwCe5Zn+4qfjbic4CKM1y+ZEFOZC55bnOQV99B
+        yfVaH43Tf6V+nqH7VLUOPtpaOY2Wtl/2wafYh/boAYr264rZtlmgL0SzXo+0rZ9gA9dO49rqm3I
+        qQmP68PZwvDNPdGE5F1Q8cVkW8Q==
+X-Received: by 2002:a5d:452b:0:b0:2cf:ec84:b63a with SMTP id j11-20020a5d452b000000b002cfec84b63amr2499466wra.43.1678906746989;
+        Wed, 15 Mar 2023 11:59:06 -0700 (PDT)
+X-Google-Smtp-Source: AK7set/id0A51e2uD6Xav4KlpzhQfvsr1WBJ6M12HWKP+dMN7x79MowOlKwVntfM4m25nbOzwjbzYQ==
+X-Received: by 2002:a5d:452b:0:b0:2cf:ec84:b63a with SMTP id j11-20020a5d452b000000b002cfec84b63amr2499453wra.43.1678906746804;
+        Wed, 15 Mar 2023 11:59:06 -0700 (PDT)
+Received: from ?IPV6:2003:cb:c702:2f00:2038:213d:e59f:7d44? (p200300cbc7022f002038213de59f7d44.dip0.t-ipconnect.de. [2003:cb:c702:2f00:2038:213d:e59f:7d44])
+        by smtp.gmail.com with ESMTPSA id b10-20020a5d45ca000000b002ca864b807csm5451460wrs.0.2023.03.15.11.59.05
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 15 Mar 2023 11:59:06 -0700 (PDT)
+Message-ID: <0064f021-ac21-8bbc-5156-90328da61b8f@redhat.com>
+Date:   Wed, 15 Mar 2023 19:59:04 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [PATCH v19 02/15] splice: Make do_splice_to() generic and export
+ it
+Content-Language: en-US
+To:     David Howells <dhowells@redhat.com>, Jens Axboe <axboe@kernel.dk>,
+        Al Viro <viro@zeniv.linux.org.uk>,
         Christoph Hellwig <hch@infradead.org>
-Cc:     David Howells <dhowells@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
+Cc:     Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
         Jeff Layton <jlayton@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Logan Gunthorpe <logang@deltatee.com>,
         Hillf Danton <hdanton@sina.com>,
@@ -53,99 +78,45 @@ Cc:     David Howells <dhowells@redhat.com>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Jan Harkes <jaharkes@cs.cmu.edu>,
         Christoph Hellwig <hch@lst.de>,
-        John Hubbard <jhubbard@nvidia.com>, coda@cs.cmu.edu,
-        codalist@coda.cs.cmu.edu, linux-unionfs@vger.kernel.org
-Subject: [PATCH v19 05/15] coda: Implement splice-read
-Date:   Wed, 15 Mar 2023 16:35:39 +0000
-Message-Id: <20230315163549.295454-6-dhowells@redhat.com>
-In-Reply-To: <20230315163549.295454-1-dhowells@redhat.com>
+        Miklos Szeredi <miklos@szeredi.hu>,
+        John Hubbard <jhubbard@nvidia.com>,
+        linux-unionfs@vger.kernel.org
 References: <20230315163549.295454-1-dhowells@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.1
+ <20230315163549.295454-3-dhowells@redhat.com>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <20230315163549.295454-3-dhowells@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Implement splice-read for coda by passing the request down a layer rather
-than going through generic_file_splice_read() which is going to be changed
-to assume that ->read_folio() is present on buffered files.
+On 15.03.23 17:35, David Howells wrote:
+> Rename do_splice_to() to vfs_splice_read() and export it so that it can be
+> used as a helper when calling down to a lower layer filesystem as it
+> performs all the necessary checks[1].
+> 
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> cc: Miklos Szeredi <miklos@szeredi.hu>
+> cc: Jens Axboe <axboe@kernel.dk>
+> cc: Al Viro <viro@zeniv.linux.org.uk>
+> cc: John Hubbard <jhubbard@nvidia.com>
+> cc: David Hildenbrand <david@redhat.com>
+> cc: Matthew Wilcox <willy@infradead.org>
+> cc: linux-unionfs@vger.kernel.org
+> cc: linux-block@vger.kernel.org
+> cc: linux-fsdevel@vger.kernel.org
+> cc: linux-mm@kvack.org
+> Link: https://lore.kernel.org/r/CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com/ [1]
+> ---
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
-cc: Christoph Hellwig <hch@lst.de>
-cc: Jens Axboe <axboe@kernel.dk>
-cc: Al Viro <viro@zeniv.linux.org.uk>
-cc: John Hubbard <jhubbard@nvidia.com>
-cc: David Hildenbrand <david@redhat.com>
-cc: Matthew Wilcox <willy@infradead.org>
-cc: coda@cs.cmu.edu
-cc: codalist@coda.cs.cmu.edu
-cc: linux-unionfs@vger.kernel.org
-cc: linux-block@vger.kernel.org
-cc: linux-fsdevel@vger.kernel.org
-cc: linux-mm@kvack.org
----
+Reviewed-by: David Hildenbrand <david@redhat.com>
 
-Notes:
-    ver #17)
-     - Use vfs_splice_read() helper rather than open-coding checks.
+-- 
+Thanks,
 
- fs/coda/file.c | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
-
-diff --git a/fs/coda/file.c b/fs/coda/file.c
-index 3f3c81e6b1ab..12b26bd13564 100644
---- a/fs/coda/file.c
-+++ b/fs/coda/file.c
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/uio.h>
-+#include <linux/splice.h>
- 
- #include <linux/coda.h>
- #include "coda_psdev.h"
-@@ -94,6 +95,32 @@ coda_file_write_iter(struct kiocb *iocb, struct iov_iter *to)
- 	return ret;
- }
- 
-+static ssize_t
-+coda_file_splice_read(struct file *coda_file, loff_t *ppos,
-+		      struct pipe_inode_info *pipe,
-+		      size_t len, unsigned int flags)
-+{
-+	struct inode *coda_inode = file_inode(coda_file);
-+	struct coda_file_info *cfi = coda_ftoc(coda_file);
-+	struct file *in = cfi->cfi_container;
-+	loff_t ki_pos = *ppos;
-+	ssize_t ret;
-+
-+	ret = venus_access_intent(coda_inode->i_sb, coda_i2f(coda_inode),
-+				  &cfi->cfi_access_intent,
-+				  len, ki_pos, CODA_ACCESS_TYPE_READ);
-+	if (ret)
-+		goto finish_read;
-+
-+	ret = vfs_splice_read(in, ppos, pipe, len, flags);
-+
-+finish_read:
-+	venus_access_intent(coda_inode->i_sb, coda_i2f(coda_inode),
-+			    &cfi->cfi_access_intent,
-+			    len, ki_pos, CODA_ACCESS_TYPE_READ_FINISH);
-+	return ret;
-+}
-+
- static void
- coda_vm_open(struct vm_area_struct *vma)
- {
-@@ -302,5 +329,5 @@ const struct file_operations coda_file_operations = {
- 	.open		= coda_open,
- 	.release	= coda_release,
- 	.fsync		= coda_fsync,
--	.splice_read	= generic_file_splice_read,
-+	.splice_read	= coda_file_splice_read,
- };
+David / dhildenb
 
