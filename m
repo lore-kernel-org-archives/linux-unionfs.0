@@ -2,52 +2,52 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E950FC74A5B
-	for <linux-unionfs@archiver.kernel.org>; Wed, 22 Mar 2023 14:06:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29903C6FD1C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 22 Mar 2023 14:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231273AbjCVOGH (ORCPT
+        id S231214AbjCVOIE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 22 Mar 2023 10:06:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53382 "EHLO
+        Wed, 22 Mar 2023 10:08:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231280AbjCVOGD (ORCPT
+        with ESMTP id S231145AbjCVOIC (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 22 Mar 2023 10:06:03 -0400
-Received: from mail-yb1-xb36.google.com (mail-yb1-xb36.google.com [IPv6:2607:f8b0:4864:20::b36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78A305328E
-        for <linux-unionfs@vger.kernel.org>; Wed, 22 Mar 2023 07:05:51 -0700 (PDT)
-Received: by mail-yb1-xb36.google.com with SMTP id k17so10363644ybm.11
-        for <linux-unionfs@vger.kernel.org>; Wed, 22 Mar 2023 07:05:51 -0700 (PDT)
+        Wed, 22 Mar 2023 10:08:02 -0400
+Received: from mail-yw1-x1132.google.com (mail-yw1-x1132.google.com [IPv6:2607:f8b0:4864:20::1132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51C31B452
+        for <linux-unionfs@vger.kernel.org>; Wed, 22 Mar 2023 07:08:00 -0700 (PDT)
+Received: by mail-yw1-x1132.google.com with SMTP id 00721157ae682-5447d217bc6so340195977b3.7
+        for <linux-unionfs@vger.kernel.org>; Wed, 22 Mar 2023 07:08:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1679493950;
+        d=paul-moore.com; s=google; t=1679494079;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Tu9ylOLyEEUljLbJanTyH5TjxDHfMP7bFUbUHPkgu20=;
-        b=Ncfhn81yYigZZ5L7fp6Ojm4/iM9hNwnvT2Y3/OR2PMO6MV57bA8wj4uQQHFTlMfQ9b
-         EIxwloVA8tp1uJPGRty+5W4oy3de3PMKEJEwGXOf2u3fu98/EGkkVyzUKMRZBClY973K
-         FE2ssXKyRh85hcp16b69hXcNheDkrhWHXe55nO7u67lKGPY+jOgTBaaede+norCVOKQY
-         3wyj2hhZoRwdagrLh7YiYoCHhLLPvy+teYGRhIxd2XgJ1J21g7l4/I0O2Mbny9LGjdK1
-         BuX5vW2syhgZugPGVUgAdrOyAHAe/s3Ot4w4SDI0QlQM4fxr+nbCerVGWaNy0s9fdE27
-         xpMg==
+        bh=4EakOMVvmjMrpb457OnFfYZClCBACmlWo/Bdwpmz3ho=;
+        b=Bq0nLj0I4jhCoeI2O/FcBp826/00O1M1O0TDmkYE5MBR1Yw2ZzBCSrh+slr/9y6MKk
+         WhLZHaDuSoJCTuKHwMclihwWBvyAwU7M3Z2xjWTSy4cuqGOAB1lJlwCS5qH4dMSxGZba
+         iUW76DCjYQLx7FJvnh0eB9Ie1EWVbMCzK/ke58iKlYlBzg4Zw/hk54ZOC7xPuZn2sLvE
+         IHEniGW2jl979RkJGqZrM6MN+MssrXP2j9d/4rcnilRJ6oGC4EgFNU1ZunF69PI3HMUy
+         h5BZxjPJ7ssMceCccT/j7Awzy//rHe8Nc+AtqZlsxX8tVJapXASBrrhjj7qE4SQ7MLXi
+         glUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679493950;
+        d=1e100.net; s=20210112; t=1679494079;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Tu9ylOLyEEUljLbJanTyH5TjxDHfMP7bFUbUHPkgu20=;
-        b=69X/S13I2OnTVzO0Bl4m+YwhPF7zhqeRcIxZze92WC1JtTlXx6zni3P8t5O8gXmNDX
-         UV2vChuAITkCq07/qKeFp7F9RAUE8jQ2L6Y7zAD9ypBX1CE2b5JcwUwlubFddHp4Qh4V
-         7acX08s7/R8RX0peReMhdwPqxHfHmagli75csaqxDJZsKGZHLic5kOJ+1ppG89j5D7HX
-         hZZ1nfXpkBHdHW8IiU6lxDomp3RX4fjF5kB9SoTV1pElOZemyTIPPe3Q8r7wHmXJwcaK
-         8uvCOFMYK/4rDLPEB9aiSqH3CBQxWhR3caFgo5TZLp+34JFZbtcQA93ZT8n5owQcI7DC
-         lAyw==
-X-Gm-Message-State: AAQBX9eFKDqST2MLRbDZkroqWtzjlHlrYl03jgXDrnkcfaSG7ZIVy05M
-        fMOvikivTtKHJCG4G1F/NGyTHM+DU9YicYmY6nqX
-X-Google-Smtp-Source: AKy350YWJvvf7gP83H4sr4YJ3tFloH7yuJ9q4GscPsWMfRCZOFosCJVgg6V7XrhMh+WWlY5XAdl8Qa9ox2lEuo3exxY=
-X-Received: by 2002:a05:6902:1890:b0:b72:fff0:2f7f with SMTP id
- cj16-20020a056902189000b00b72fff02f7fmr1397709ybb.4.1679493950107; Wed, 22
- Mar 2023 07:05:50 -0700 (PDT)
+        bh=4EakOMVvmjMrpb457OnFfYZClCBACmlWo/Bdwpmz3ho=;
+        b=iWCHCeSSdp4kscZE933QWqDwNk3qj1fqthpdkXK/x3xM+6sKG9pyrV8dAeVybTXbfk
+         eiEWRzBtxUHA4KiVjV5Y48NGzcAsSrH2cMjAi/Bq+w0mkVtMdvlFDlAgDXkjArJ7FLCs
+         zSLR3IiGEGhKIW6TEpXdzZ19H6DyeMnOjdFvl6wBJSxRBtgKwQqUPOsSFFOz3ZWXbrj9
+         AovABBD10JPUHnpOGmsEK1hoF10r839YhxmHUidFwzBSc/03Yifb1BEWgBqs5LNlAmCe
+         PwIswkut/1G5iS5YpJaGy0Roi+XoynwDvzrBFfq6X6Q0zAqSonbdvAkBZ6AY/Ihz6Dx+
+         14zA==
+X-Gm-Message-State: AAQBX9cmVwU2N2mV0Q6ViHfDFeFPAdmFkS3yDjEDR5STKD5In/3N1J5a
+        7RawN7AW/fl0/dWac9gE5nC6u8BDPgG+ezPtLBoQ
+X-Google-Smtp-Source: AKy350YJvYPmZdXNUJfmC7kxcMB9gDrOVe3l06Mal5Xkb0cXB7QE+r2GmVHGornORg0Jzt4IPVF/0t2Zye7NOAwla6I=
+X-Received: by 2002:a81:ac62:0:b0:541:7f7b:a2ff with SMTP id
+ z34-20020a81ac62000000b005417f7ba2ffmr3075152ywj.8.1679494079305; Wed, 22 Mar
+ 2023 07:07:59 -0700 (PDT)
 MIME-Version: 1.0
 References: <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
  <YapjNRrjpDu2a5qQ@redhat.com> <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
@@ -56,14 +56,14 @@ References: <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmF
  <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
  <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
  <YitWOqzIRjnP1lok@redhat.com> <CAHC9VhQ+x3ko+=oU-P+w4ssqyyskRxaKsBGJLnXtP_NzWNuxHg@mail.gmail.com>
- <20230322072850.GA18056@suse.de>
-In-Reply-To: <20230322072850.GA18056@suse.de>
+ <20230322072850.GA18056@suse.de> <CAOQ4uxgH905R1dkQy5=tuG4nnB-p2XUWcf91vvYbfu2DyftzPw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgH905R1dkQy5=tuG4nnB-p2XUWcf91vvYbfu2DyftzPw@mail.gmail.com>
 From:   Paul Moore <paul@paul-moore.com>
-Date:   Wed, 22 Mar 2023 10:05:39 -0400
-Message-ID: <CAHC9VhTgbCUAT914f66p15HXP-91aAfNrkxHpS9fFoyPLhzj8A@mail.gmail.com>
+Date:   Wed, 22 Mar 2023 10:07:48 -0400
+Message-ID: <CAHC9VhQMixtPrUmqBKrEWeT-BshyP35By71h-QSXj1zoJBba4A@mail.gmail.com>
 Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-To:     Johannes Segitz <jsegitz@suse.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Johannes Segitz <jsegitz@suse.com>,
         Vivek Goyal <vgoyal@redhat.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         David Anderson <dvander@google.com>,
@@ -79,114 +79,24 @@ Cc:     Amir Goldstein <amir73il@gmail.com>,
         overlayfs <linux-unionfs@vger.kernel.org>,
         LSM List <linux-security-module@vger.kernel.org>,
         kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
-        paulmoore@microsoft.com, luca.boccassi@microsoft.com,
-        brauner@kernel.org
+        paulmoore@microsoft.com, luca.boccassi@microsoft.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Mar 22, 2023 at 3:28=E2=80=AFAM Johannes Segitz <jsegitz@suse.com> =
-wrote:
-> On Fri, Mar 11, 2022 at 03:52:54PM -0500, Paul Moore wrote:
-> > On Fri, Mar 11, 2022 at 9:01 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > > Agreed. After going through the patch set, I was wondering what's the
-> > > overall security model and how to visualize that.
-> > >
-> > > So probably there needs to be a documentation patch which explains
-> > > what's the new security model and how does it work.
-> >
-> > Yes, of course.  I'll be sure to add a section to the existing docs.
-> >
-> > > Also think both in terms of DAC and MAC. (Instead of just focussing t=
-oo
-> > > hard on SELinux).
-> >
-> > Definitely.  Most of what I've been thinking about the past day or so
-> > has been how to properly handle some of the DAC/capability issues; I
-> > have yet to start playing with the code, but for the most part I think
-> > the MAC/SELinux bits are already working properly.
-> >
-> > > My understanding is that in current model, some of the overlayfs
-> > > operations require priviliges. So mounter is supposed to be privilige=
-d
-> > > and does the operation on underlying layers.
-> > >
-> > > Now in this new model, there will be two levels of check. Both overla=
-y
-> > > level and underlying layer checks will happen in the context of task
-> > > which is doing the operation. So first of all, all tasks will need
-> > > to have enough priviliges to be able to perform various operations
-> > > on lower layer.
-> > >
-> > > If we do checks at both the levels in with the creds of calling task,
-> > > I guess that probably is fine. (But will require a closer code inspec=
-tion
-> > > to make sure there is no privilege escalation both for mounter as wel=
-l
-> > > calling task).
-> >
-> > I have thoughts on this, but I don't think I'm yet in a position to
-> > debate this in depth just yet; I still need to finish poking around
-> > the code and playing with a few things :)
-> >
-> > It may take some time before I'm back with patches, but I appreciate
-> > all of the tips and insight - thank you!
->
-> Let me resurrect this discussion. With
-> https://github.com/fedora-selinux/selinux-policy/commit/1e8688ea694393c9d=
-918939322b72dfb44a01792
-> the Fedora policy changed kernel_t to a confined domain. This means that
-> many overlayfs setups that are created in initrd will now run into issues=
-,
-> as it will have kernel_t as part of the saved credentials.
+On Wed, Mar 22, 2023 at 8:48=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+> If the security guys are going to be in LSS in Vancouver, perhaps
+> we can have a meetup with overlayfs developers on the overlap
+> day with LSFMM (May 10) to try and figure out a path forward.
 
-Regardless of any overlayfs cred work, it seems like it would also be
-worth spending some time to see if the kernel_t mounter creds
-situation can also be improved.  I'm guessing this is due to mounts
-happening before the SELinux policy is loaded?  Has anyone looked into
-mounting the SELinux policy even earlier in these cases (may not be
-possible) and/or umount/mount/remounting the affected overlayfs-based
-filesystems after the policy has been loaded?
+At the very least I currently plan to be at LSS-NA in Vancouver and
+would be very happy to discuss this with anyone who wants to talk
+about it.  I'm also happy to continue to conversation here too, for
+the sake of those who might not be able to travel to LSS-NA and/or
+LSFMM.
 
-I can't say I'm the best person to comment on how the Fedora SELinux
-policy is structured, but I do know a *little* about SELinux and I
-think that accepting kernel_t as an overlayfs mounter cred is a
-mistake.
-
-> So while the
-> original use case that inspired the patch set was probably not very commo=
-n
-> that now changed.
->
-> It's tricky to work around this. Loading a policy in initrd causes a lot =
-of
-> issues now that kernel_t isn't unconfined anymore. Once the policy is
-> loaded by systemd changing the mounts is tough since we use it for /etc a=
-nd
-> at this time systemd already has open file handles for policy files in
-> /etc.
-
-It's been a while since I worked on this, but I pretty much had to
-give up on the read-write case, the overlayfs copy-up/work-dir
-approach made this impractical, or at least I couldn't think of a sane
-way to handle this without some sort of credential override.  However,
-I did have a quick-and-dirty prototype that appeared to work well in
-the read-only/no-work-dir case; I think I still have it in a
-development branch somewhere, I can dig it back up and get it ported
-to a modern kernel if there is any interest.
-
-However, when discussing the prototype with Christian Brauner off-list
-(added to the CC line) he still objected to the no-cred-override
-approach and said it wasn't something he could support, so I dropped
-it and focused on the other piles of fire lying about my desk (my
-apologies to Christian if I'm mis-remembering/understanding the
-conversation).  I still think there is value in supporting a
-no-creds-override option, and if there is basic support for getting
-this upstream I'm happy to pick the work back up, but I can't invest a
-lot more time in this if there isn't an agreement from the
-overlayfs/VFS maintainers that this is something that would consider.
-
---
+--=20
 paul-moore.com
