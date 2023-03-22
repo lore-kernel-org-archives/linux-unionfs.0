@@ -2,41 +2,68 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FA8FC6FD1F
-	for <linux-unionfs@archiver.kernel.org>; Wed, 22 Mar 2023 07:29:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C532C761AF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 22 Mar 2023 12:48:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229754AbjCVH3C (ORCPT
+        id S230039AbjCVMso (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 22 Mar 2023 03:29:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60356 "EHLO
+        Wed, 22 Mar 2023 08:48:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229629AbjCVH3B (ORCPT
+        with ESMTP id S230008AbjCVMsm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 22 Mar 2023 03:29:01 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D6E55B9D;
-        Wed, 22 Mar 2023 00:28:54 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id 9981B20AD0;
-        Wed, 22 Mar 2023 07:28:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1679470133; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=cymDLHsKErmhpfJVevitVVO6X1IcQsyXzRz4TMydPWI=;
-        b=HqxxYv8w66oKUKmuICtM7fXmOPOun/5xVYIob9LRuwNBLJJccJqRVEjLEF+OO20vwxgCMr
-        rIsh48lVgxsWOraYch2q8wqcr9tcxnc3E9+VcYojz3Yoc6TPW4JVaceH94Bvd/KVXjIjaB
-        vUhx8C+O+On23OLHzI12eruEYFZpyag=
-Received: from suse.de (unknown [10.163.42.222])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 7AFFB2C141;
-        Wed, 22 Mar 2023 07:28:51 +0000 (UTC)
-Date:   Wed, 22 Mar 2023 08:28:50 +0100
-From:   Johannes Segitz <jsegitz@suse.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Vivek Goyal <vgoyal@redhat.com>,
+        Wed, 22 Mar 2023 08:48:42 -0400
+Received: from mail-ua1-x92e.google.com (mail-ua1-x92e.google.com [IPv6:2607:f8b0:4864:20::92e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5300DB770;
+        Wed, 22 Mar 2023 05:48:41 -0700 (PDT)
+Received: by mail-ua1-x92e.google.com with SMTP id i22so12515324uat.8;
+        Wed, 22 Mar 2023 05:48:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1679489320;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=C3oCNWppbROd6SSbXVVTTvNwlzOezQhHcc6I5uo2B6o=;
+        b=jkLoSQeZoj7lPy3YyjlsVsMY8EyX+PKWGwOqo5C2ioV84YccIr3jRx+beabTLQWAcm
+         dX13QrMNNSAdxPuqzedkdFMQqfXagX0CkiBz2fUE+Y46TNyt5Q99WvD1fs4QW36u4UfQ
+         9E7hMp10kDZBAVN0iLRtHEp3FUQOMWgazedgc7NkcEJppi7mbDU0gkt/e3MU2tHfVKqG
+         6iHZjoyEuzH3e/vLmQTkksMyXyP14EFYKysuWwhkPAOwJGqzQFyC+KNPBQa3/69HvG4P
+         l4aohuTWFo3TzEXsEdmqlw40xr7KD9Hqcz+TEDWQH4tm2W7krm6TbbgFL0qjamhLt41r
+         u3uQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1679489320;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=C3oCNWppbROd6SSbXVVTTvNwlzOezQhHcc6I5uo2B6o=;
+        b=nzhiYNubZLmN5l3Er6ZsLrxposCsemrFBbcCrykWENo/sjjmsNrknKj4EfQPl1VD2I
+         ARf/Nt7f3rrOsR0+BrCRiddyQSix5/MDcV4yjGRhTSd0afzqJMhOLu5n7aB0rEkExvpn
+         s7urOS8TzW0R2Mz6FhB4Jos1svXBRQKIwkidbm3lsQDEJeOPX7GZ8LCrslw8F7QAvEnH
+         paN3CuIzx/oHOnq5dVwkaWJZfWsyjZ2v/0aRwWau/I/vYoBHFKt9K0DW81wrTxKRSym4
+         e4RPfMsBf11x+Uo5JiOtXMkAfWY2yH9uccEcqRYU0aZCtv/S2aK+OHs93aHH297o53t5
+         M5ag==
+X-Gm-Message-State: AO0yUKVLqX3mzSTaHKKjIxfjxqCZU+oOt4jUw7mY7IsuDrOUojvrH+MH
+        6DC4qZ/aJ1Z5oizaenXkP9xQZfwD6r1z4xRsx2o=
+X-Google-Smtp-Source: AK7set/X+NyRJ6USDPXg3DEszeyebaLGd4pwgf3cHSfLLffG9nVVa2N7HRukXTPNJdgcyeb18X+C5ORBCTlBy5oo/4s=
+X-Received: by 2002:a1f:1e0a:0:b0:406:6b94:c4fe with SMTP id
+ e10-20020a1f1e0a000000b004066b94c4femr3280697vke.0.1679489320234; Wed, 22 Mar
+ 2023 05:48:40 -0700 (PDT)
+MIME-Version: 1.0
+References: <Yao51m9EXszPsxNN@redhat.com> <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
+ <YapjNRrjpDu2a5qQ@redhat.com> <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
+ <CA+FmFJA-r+JgMqObNCvE_X+L6jxWtDrczM9Jh0L38Fq-6mnbbA@mail.gmail.com>
+ <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com>
+ <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
+ <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
+ <YitWOqzIRjnP1lok@redhat.com> <CAHC9VhQ+x3ko+=oU-P+w4ssqyyskRxaKsBGJLnXtP_NzWNuxHg@mail.gmail.com>
+ <20230322072850.GA18056@suse.de>
+In-Reply-To: <20230322072850.GA18056@suse.de>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 22 Mar 2023 14:48:29 +0200
+Message-ID: <CAOQ4uxgH905R1dkQy5=tuG4nnB-p2XUWcf91vvYbfu2DyftzPw@mail.gmail.com>
+Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
+To:     Johannes Segitz <jsegitz@suse.com>
+Cc:     Paul Moore <paul@paul-moore.com>, Vivek Goyal <vgoyal@redhat.com>,
         Miklos Szeredi <miklos@szeredi.hu>,
         David Anderson <dvander@google.com>,
         Mark Salyzyn <salyzyn@android.com>,
@@ -52,120 +79,91 @@ Cc:     Amir Goldstein <amir73il@gmail.com>,
         LSM List <linux-security-module@vger.kernel.org>,
         kernel-team <kernel-team@android.com>, selinux@vger.kernel.org,
         paulmoore@microsoft.com, luca.boccassi@microsoft.com
-Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr
- fix
-Message-ID: <20230322072850.GA18056@suse.de>
-References: <Yao51m9EXszPsxNN@redhat.com>
- <CAOQ4uxjk4piLyx67Ena-FfypDVWzRqVN0xmFUXXPYa+SC4Q-vQ@mail.gmail.com>
- <YapjNRrjpDu2a5qQ@redhat.com>
- <CAHC9VhQTUgBRBEz_wFX8daSA70nGJCJLXj8Yvcqr5+DHcfDmwA@mail.gmail.com>
- <CA+FmFJA-r+JgMqObNCvE_X+L6jxWtDrczM9Jh0L38Fq-6mnbbA@mail.gmail.com>
- <CAHC9VhRer7UWdZyizWO4VuxrgQDnLCOyj8LO7P6T5BGjd=s9zQ@mail.gmail.com>
- <CAHC9VhQkLSBGQ-F5Oi9p3G6L7Bf_jQMWAxug_G4bSOJ0_cYXxQ@mail.gmail.com>
- <CAOQ4uxhfU+LGunL3cweorPPdoCXCZU0xMtF=MekOAe-F-68t_Q@mail.gmail.com>
- <YitWOqzIRjnP1lok@redhat.com>
- <CAHC9VhQ+x3ko+=oU-P+w4ssqyyskRxaKsBGJLnXtP_NzWNuxHg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="/04w6evG8XlLl3ft"
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhQ+x3ko+=oU-P+w4ssqyyskRxaKsBGJLnXtP_NzWNuxHg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-
---/04w6evG8XlLl3ft
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Mar 11, 2022 at 03:52:54PM -0500, Paul Moore wrote:
-> On Fri, Mar 11, 2022 at 9:01 AM Vivek Goyal <vgoyal@redhat.com> wrote:
-> > Agreed. After going through the patch set, I was wondering what's the
-> > overall security model and how to visualize that.
+On Wed, Mar 22, 2023 at 9:28=E2=80=AFAM Johannes Segitz <jsegitz@suse.com> =
+wrote:
+>
+> On Fri, Mar 11, 2022 at 03:52:54PM -0500, Paul Moore wrote:
+> > On Fri, Mar 11, 2022 at 9:01 AM Vivek Goyal <vgoyal@redhat.com> wrote:
+> > > Agreed. After going through the patch set, I was wondering what's the
+> > > overall security model and how to visualize that.
+> > >
+> > > So probably there needs to be a documentation patch which explains
+> > > what's the new security model and how does it work.
 > >
-> > So probably there needs to be a documentation patch which explains
-> > what's the new security model and how does it work.
->=20
-> Yes, of course.  I'll be sure to add a section to the existing docs.
->=20
-> > Also think both in terms of DAC and MAC. (Instead of just focussing too
-> > hard on SELinux).
->=20
-> Definitely.  Most of what I've been thinking about the past day or so
-> has been how to properly handle some of the DAC/capability issues; I
-> have yet to start playing with the code, but for the most part I think
-> the MAC/SELinux bits are already working properly.
->=20
-> > My understanding is that in current model, some of the overlayfs
-> > operations require priviliges. So mounter is supposed to be priviliged
-> > and does the operation on underlying layers.
+> > Yes, of course.  I'll be sure to add a section to the existing docs.
 > >
-> > Now in this new model, there will be two levels of check. Both overlay
-> > level and underlying layer checks will happen in the context of task
-> > which is doing the operation. So first of all, all tasks will need
-> > to have enough priviliges to be able to perform various operations
-> > on lower layer.
+> > > Also think both in terms of DAC and MAC. (Instead of just focussing t=
+oo
+> > > hard on SELinux).
 > >
-> > If we do checks at both the levels in with the creds of calling task,
-> > I guess that probably is fine. (But will require a closer code inspecti=
-on
-> > to make sure there is no privilege escalation both for mounter as well
-> > calling task).
->=20
-> I have thoughts on this, but I don't think I'm yet in a position to
-> debate this in depth just yet; I still need to finish poking around
-> the code and playing with a few things :)
->=20
-> It may take some time before I'm back with patches, but I appreciate
-> all of the tips and insight - thank you!
+> > Definitely.  Most of what I've been thinking about the past day or so
+> > has been how to properly handle some of the DAC/capability issues; I
+> > have yet to start playing with the code, but for the most part I think
+> > the MAC/SELinux bits are already working properly.
+> >
+> > > My understanding is that in current model, some of the overlayfs
+> > > operations require priviliges. So mounter is supposed to be privilige=
+d
+> > > and does the operation on underlying layers.
+> > >
+> > > Now in this new model, there will be two levels of check. Both overla=
+y
+> > > level and underlying layer checks will happen in the context of task
+> > > which is doing the operation. So first of all, all tasks will need
+> > > to have enough priviliges to be able to perform various operations
+> > > on lower layer.
+> > >
+> > > If we do checks at both the levels in with the creds of calling task,
+> > > I guess that probably is fine. (But will require a closer code inspec=
+tion
+> > > to make sure there is no privilege escalation both for mounter as wel=
+l
+> > > calling task).
+> >
+> > I have thoughts on this, but I don't think I'm yet in a position to
+> > debate this in depth just yet; I still need to finish poking around
+> > the code and playing with a few things :)
+> >
+> > It may take some time before I'm back with patches, but I appreciate
+> > all of the tips and insight - thank you!
+>
+> Let me resurrect this discussion. With
+> https://github.com/fedora-selinux/selinux-policy/commit/1e8688ea694393c9d=
+918939322b72dfb44a01792
+> the Fedora policy changed kernel_t to a confined domain. This means that
+> many overlayfs setups that are created in initrd will now run into issues=
+,
+> as it will have kernel_t as part of the saved credentials. So while the
+> original use case that inspired the patch set was probably not very commo=
+n
+> that now changed.
 
-Let me resurrect this discussion. With=20
-https://github.com/fedora-selinux/selinux-policy/commit/1e8688ea694393c9d91=
-8939322b72dfb44a01792
-the Fedora policy changed kernel_t to a confined domain. This means that
-many overlayfs setups that are created in initrd will now run into issues,
-as it will have kernel_t as part of the saved credentials. So while the
-original use case that inspired the patch set was probably not very common
-that now changed.
+I don't remember anyone rejecting the patches on the account that
+the Android use case is not important. It was never the issue.
 
-It's tricky to work around this. Loading a policy in initrd causes a lot of
-issues now that kernel_t isn't unconfined anymore. Once the policy is
-loaded by systemd changing the mounts is tough since we use it for /etc and
-at this time systemd already has open file handles for policy files in
-/etc.
+>
+> It's tricky to work around this. Loading a policy in initrd causes a lot =
+of
+> issues now that kernel_t isn't unconfined anymore. Once the policy is
+> loaded by systemd changing the mounts is tough since we use it for /etc a=
+nd
+> at this time systemd already has open file handles for policy files in
+> /etc.
+>
 
-Johannes
---=20
-GPG Key                EE16 6BCE AD56 E034 BFB3  3ADD 7BF7 29D5 E7C8 1FA0
-Subkey fingerprint:    250F 43F5 F7CE 6F1E 9C59  4F95 BC27 DD9D 2CC4 FD66
-SUSE Software Solutions Germany GmbH, Frankenstra=DFe 146, 90461 N=FCrnberg=
-, Germany
-Gesch=E4ftsf=FChrer: Ivo Totev, Andrew Myers, Andrew McDonald, Boudien Moer=
-man
-(HRB 36809, AG N=FCrnberg)
+I've already explained several times on this thread what needs to be
+done in order to move forward - express the security model and
+explain why it is safe.
 
---/04w6evG8XlLl3ft
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+If the security guys are going to be in LSS in Vancouver, perhaps
+we can have a meetup with overlayfs developers on the overlap
+day with LSFMM (May 10) to try and figure out a path forward.
 
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEEJQ9D9ffObx6cWU+VvCfdnSzE/WYFAmQarjEACgkQvCfdnSzE
-/WZskw/9FYgktDjOsvztkB5Utny04C0x3z8y+aHfEyEwMndpczZ3CXNIM9mjKu7c
-a1KFZEKqucb1wudqloCPoyleZJ5tym/h5gkyQ6jotEW6Y9+hzfB0pfZhg4ePS0OR
-OXTOuLumVuh/bWOTGbTF87S6Be5jJ1L9OorWC0God5jJwDi37OJURT2pe41DvPGQ
-oWPLmcr8olO7JmdVoFPzoTYqzOyB6eZvNOZX37X9mLowTE7gNIHm9kT01ca2ac3R
-4NoT0zJq4g8ZiW8WcM1GI2FM5B6GJ0DAhqGXAlICBz+K7sD2FrLfye0oJwr1xOZO
-zbA1Gzc0Va9d06mqmXUXM3fKzCko76HSUVSu2JfLs+9ScL9CZb9qyr4W6LjwdbjW
-3ZVswI8wXuuTrcv2+iZ+pr+wrNaOkTZPU3qX78xcBTbkrtDjDJKM2QWJJlbDMSYH
-mjL7A3N7676pwarozT5zmXse599yxTrN/EeRiLevTv4NhVYVzxjOppnXQGrX/s52
-Cy4PO9mR5U2NnbjduvnWhFnTXnmhmtU6pbCg3XSwHbFboquqD9D3IeZExnRhYa7Z
-DgGNPkWjHI+2O2+ZL323i6hJjGGKFUhV41dUrBvE0TBLZNSaBogE9loWvArTd8S0
-fA4gOhtBH68vM0m+OvveqRyFF6jWXQucPS5iTEQvKsEyNmErxbE=
-=+WdL
------END PGP SIGNATURE-----
-
---/04w6evG8XlLl3ft--
+Thanks,
+Amir.
