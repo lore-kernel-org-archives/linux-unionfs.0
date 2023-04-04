@@ -2,97 +2,85 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5024C77B70
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Apr 2023 17:15:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE18C761AF
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Apr 2023 22:17:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235684AbjDDRPM (ORCPT
+        id S236467AbjDDWQ7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Apr 2023 13:15:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37830 "EHLO
+        Tue, 4 Apr 2023 18:16:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235919AbjDDROx (ORCPT
+        with ESMTP id S229973AbjDDWQ5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Apr 2023 13:14:53 -0400
+        Tue, 4 Apr 2023 18:16:57 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25D6010FA;
-        Tue,  4 Apr 2023 10:14:53 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEA9E40D9;
+        Tue,  4 Apr 2023 15:16:56 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B51F163790;
-        Tue,  4 Apr 2023 17:14:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9CEAC4339B;
-        Tue,  4 Apr 2023 17:14:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 495E163962;
+        Tue,  4 Apr 2023 22:16:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3400BC433EF;
+        Tue,  4 Apr 2023 22:16:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1680628492;
-        bh=NBUCaONjYi40Vbcu4o/CCPE2N3ymcLwg1V2SlbPeNJs=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mHGfLFO/6lWqvTQg3dD+ZiGLcThFJvk3b7nrRH/m3eMGcgcPfBNNFG6drzx4LOJrr
-         /L6gN7acWGxiBVx7p9NtIy5ewclLB0T6z2nezlnjEKe4jCcFHpTj+cWbZfV+OPUa2n
-         Iuen29mduilHjKHmQMesnJATtLYk/UwJ2N+ZcuULKiETcbcfpeRkdzP6zHKyZ13BTC
-         l1QSKNjtUu7bwyO3EmM9BAGxTJOyRw/W/BmSLbpWzEP3LFtJIg1yBIIQcywBu14GE/
-         x/lbszQJwhPGa/5cqaAEZXkLpxfPtRy5Ltc8ciKsMrx7HIMYtZ+fI8cOlbIdlK5RVw
-         wd+gJ7j1HfZrQ==
-From:   Zorro Lang <zlang@kernel.org>
-To:     fstests@vger.kernel.org
-Cc:     linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
-        linux-cifs@vger.kernel.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net,
-        linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        ocfs2-devel@oss.oracle.com, linux-unionfs@vger.kernel.org,
-        jack@suse.com, linux-xfs@vger.kernel.org, fdmanana@suse.com,
-        ebiggers@google.com, brauner@kernel.org, amir73il@gmail.com,
-        djwong@kernel.org, anand.jain@oracle.com
-Subject: [PATCH 5/5] fstests/MAINTAINERS: add a co-maintainer for btrfs testing part
-Date:   Wed,  5 Apr 2023 01:14:11 +0800
-Message-Id: <20230404171411.699655-6-zlang@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230404171411.699655-1-zlang@kernel.org>
+        s=k20201202; t=1680646615;
+        bh=iq/IdV4ogpOzaM8KgGTnYC5Td3WCpb/PqmrSUjFcqq0=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=hKIBSlBctkP5bivjN4Y21mckkcqW66+dkJqVt3sV5xlPSN1yzxtbcIDAa/udoQiUM
+         sYGbOLNwfOA0gXRR+Wndw2VsarlhINwbmR9rKVH1FeHvdejvWrBskWjfnQnco9YqvD
+         rpI3rk+9EzaMTkMEFIRuzDVL9UMVtvyfJBQ1f5Ze4NeqUuke7n1BCeowZBAWgMngKo
+         42ZuMczWbvBA3Owwg/N+nslkw274BP30Pj/y3YKUBj/353slDtMf8ZPciuUUqEM6Ip
+         0wa3X6hCp3Y9aaK3d1yKPuqKpW2wz0WLI7SD2d8mkTPKHHanh741qLv7i4NdaAMa8g
+         +Pz1NY60vkAcQ==
+Date:   Tue, 4 Apr 2023 15:16:53 -0700
+From:   Eric Biggers <ebiggers@kernel.org>
+To:     Zorro Lang <zlang@kernel.org>
+Cc:     fstests@vger.kernel.org, brauner@kernel.org,
+        linux-cifs@vger.kernel.org, linux-nfs@vger.kernel.org,
+        djwong@kernel.org, amir73il@gmail.com,
+        linux-unionfs@vger.kernel.org, anand.jain@oracle.com,
+        linux-f2fs-devel@lists.sourceforge.net, linux-xfs@vger.kernel.org,
+        fdmanana@suse.com, ocfs2-devel@oss.oracle.com, jack@suse.com,
+        linux-fsdevel@vger.kernel.org, ceph-devel@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-btrfs@vger.kernel.org
+Subject: Re: [PATCH 3/5] fstests/MAINTAINERS: add supported mailing list
+Message-ID: <20230404221653.GC1893@sol.localdomain>
 References: <20230404171411.699655-1-zlang@kernel.org>
+ <20230404171411.699655-4-zlang@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230404171411.699655-4-zlang@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Darrick J. Wong would like to nominate Anand Jain to help more on
-btrfs testing part (tests/btrfs and common/btrfs). He would like to
-be a co-maintainer of btrfs part, will help to review and test
-fstests btrfs related patches, and I might merge from him if there's
-big patchset. So CC him besides send to fstests@ list, when you have
-a btrfs fstests patch.
+Hi Zorro,
 
-Signed-off-by: Zorro Lang <zlang@kernel.org>
----
+On Wed, Apr 05, 2023 at 01:14:09AM +0800, Zorro Lang wrote:
+> +FSVERITY
+> +L:	fsverity@lists.linux.dev
+> +S:	Supported
+> +F:	common/verity
+> +
+> +FSCRYPT
+> +L:      linux-fscrypt@vger.kernel.org
+> +S:	Supported
+> +F:	common/encrypt
 
-Please btrfs list help to review this change, if you agree (or no objection),
-then I'll push this change.
+Most of the encrypt and verity tests are in tests/generic/ and are in the
+'encrypt' or 'verity' test groups.
 
-A co-maintainer will do:
-1) Review patches are related with him.
-2) Merge and test patches in his local git repo, and give the patch an ACK.
-3) Maintainer will trust the ack from co-maintainer more (might merge directly).
-4) Maintainer might merge from co-maintainer when he has a big patchset wait for
-   merging.
+These file patterns only pick up the common files, not the actual tests.
 
-Thanks,
-Zorro
+Have you considered adding a way to specify maintainers for a test group?
+Something like:
 
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+    G:      encrypt
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0ad12a38..9fc6c6b5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -108,6 +108,7 @@ Maintainers List
- 	  or reviewer or co-maintainer can be in cc list.
- 
- BTRFS
-+M:	Anand Jain <anand.jain@oracle.com>
- R:	Filipe Manana <fdmanana@suse.com>
- L:	linux-btrfs@vger.kernel.org
- S:	Supported
--- 
-2.39.2
+and
 
+    G:      verity
+
+- Eric
