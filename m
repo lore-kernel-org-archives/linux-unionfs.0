@@ -2,208 +2,102 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42487C761AF
-	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Apr 2023 04:05:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47D92C761AF
+	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Apr 2023 07:29:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236763AbjDEEFL (ORCPT
+        id S236991AbjDEH30 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 5 Apr 2023 00:05:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47312 "EHLO
+        Wed, 5 Apr 2023 03:29:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbjDEEFJ (ORCPT
+        with ESMTP id S236980AbjDEH3Z (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Apr 2023 00:05:09 -0400
-Received: from mail-lf1-x12a.google.com (mail-lf1-x12a.google.com [IPv6:2a00:1450:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9746E30ED;
-        Tue,  4 Apr 2023 21:05:07 -0700 (PDT)
-Received: by mail-lf1-x12a.google.com with SMTP id y15so44958715lfa.7;
-        Tue, 04 Apr 2023 21:05:07 -0700 (PDT)
+        Wed, 5 Apr 2023 03:29:25 -0400
+Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F56530C4;
+        Wed,  5 Apr 2023 00:29:24 -0700 (PDT)
+Received: by mail-vs1-xe33.google.com with SMTP id h27so30674937vsa.1;
+        Wed, 05 Apr 2023 00:29:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680667506;
+        d=gmail.com; s=20210112; t=1680679763;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=TJlfy7j3jMnUpTZd8i2RXdQGxubaR4kSxjiHyHktxQU=;
-        b=GBLwfW9UJi4zFmg7y/9EKT5SVpOWVKBcOTg6x2OXZDoySEjA2NqEqCXXNliCGLdrIm
-         nANtfragDQ9GodkTcqPEAwnnOqLt5VwYILPmMXwTJFTkSdNjfkKykk8r1Y6VQtyxw4tz
-         49QTfWGO301+AXZ/tDP5Os97+TmEQtoTmx7a7D6G9iTjsDFMSK0NXGVLS1XFRV6pXVnF
-         Vgwi2jCdR+MWGco8cnyO9eIaxK6aByiWUuxhZp86TQv5vGBeDDUblpJ1ckYg8FnjBo47
-         vP04pmkcKH+Z2oHyTnSv5LBe8lrlwt2GBG52teC3ieI2/iHqJRH7hKihvKUPAsZrzDCc
-         3clg==
+        bh=25HHFCiyLUhnvNMN3ZGEFvQUg+RwTQV/ivTMt6xC9Mg=;
+        b=iqCKZDcoYFpA0M+eqC4XRZzZ6WPdE8TtgaPWpTccIw+s7B6t+avQvksnYHpSD/gRsK
+         /7l+pDyxGAUSloyhDbseKVfrI1ZE1SXBpS3Hbu9fCfdj4rIil2WgyvfYEUVhcHaRV66w
+         FhFVZSslPBXVonWr4d/XOa4As8dMb18EesozRsplMFeD0s4yYy6uvdYcDpyfv0l0U+r3
+         TLh6aj4jtblYotDtMEAyBxuBSIl+ddMJcP+VZF2A72fZEi9STDJvuAyhnt8uiMZSJsaA
+         W6u6fzNVSOTHJ2lQABwt7klWqyCNijm+pzccndrUq4DQQm+Te2FPNHktr/UU7hAaqJuA
+         Dnvw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680667506;
+        d=1e100.net; s=20210112; t=1680679763;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=TJlfy7j3jMnUpTZd8i2RXdQGxubaR4kSxjiHyHktxQU=;
-        b=3BYwUUwbDSwPeG12S9ctuxAu0dLcauWDWIn4iHy4rd6KETp0c78FulPEKxhmaG8lZD
-         3DRltotaJ6NX3Wf0AguofRM1M/QSSFm/Iu7vSgRWjimMg6j5wAxfqSEezyrmqA3S880x
-         dT7KZkQJrURvH7lxbHLIajpqZR5c7J3DoA1dOzijDKCxsC4M246F4Vkyciiw3f4oHKZ2
-         SaFONqKFNtuHW5VjAMkab/rld0HHgDPktzOXoQ7rWsxkUWNG3j6k0+4DPvzCjGYrYijx
-         ngxkcRvB/SeL4QtGk37TFuBjsD1+JreLhL0mejN7S1wQBxuhZ+SoVeN4HUWJOHxoJTUz
-         IpWg==
-X-Gm-Message-State: AAQBX9c8McvIJZeiL2wN0jS5RqyTTuuh8wcqOAjutCa2CFnO6+XAe/lK
-        dN2RYxO2PD2sWgyrL32LWKiNSNfFk0ttSPYAJzY=
-X-Google-Smtp-Source: AKy350YUnFw6FnCbM4/rIL7SfmUol3E7+vdFKY2q63D6zsUvp1WRxA+9ht3amnQRmHWnL/rEG8hkq3VPj2+tk7SUk4c=
-X-Received: by 2002:ac2:5291:0:b0:4e9:22ff:948d with SMTP id
- q17-20020ac25291000000b004e922ff948dmr1405756lfm.7.1680667505632; Tue, 04 Apr
- 2023 21:05:05 -0700 (PDT)
+        bh=25HHFCiyLUhnvNMN3ZGEFvQUg+RwTQV/ivTMt6xC9Mg=;
+        b=JHxZirsd+V6SRuZ0oLJSAB7G/WjB+lg3kV8ZtVgsxe2bIrgsj0WMLvZr6/ZKCGoQzD
+         hhuYnVPXmXy/ev5pNRcXMBWEQzI+yT+mANIIpf8tCAMWtlhEgxg7Nrjbca2FpMalZAGx
+         dsfsMXY52ktNfF1vjehb0YUFll4Z9Z+PnCHnfONc6RvI4WluzByOVvTJRao6oWvQwWjj
+         ICw8l8VRIkTvXLsZdd7/NvmOgXrGNfujXzvntiw0w6G4IJE0sTXC7HPK/lvXhoHxQ/0j
+         KiH4eu8zudhTs49UsVDx7zZuu0LlbhSSqRBpYqRzwVaNa1bZ5xcYRduq0TNnU8U+F0aN
+         DEVw==
+X-Gm-Message-State: AAQBX9fotVbzNCItzOjIBOKp+waQ4JebYQkkVORxPediKqZKRgbO5ir3
+        QPVBB7FX0mKv8u1vX1/lXsJd38Gq8YxcxFtVW9pFFvUZ7s0=
+X-Google-Smtp-Source: AKy350bXH8QvLNZF4r+a/oDr6AAoG6Bbj35a28iKXBV9tze5OixcVb7xkj9sCB1qEVF8gsQeHosQobA+qN++uU4lR8w=
+X-Received: by 2002:a67:c38f:0:b0:426:7730:1e6e with SMTP id
+ s15-20020a67c38f000000b0042677301e6emr4402762vsj.0.1680679763707; Wed, 05 Apr
+ 2023 00:29:23 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230404171411.699655-1-zlang@kernel.org> <20230404171411.699655-4-zlang@kernel.org>
- <20230404232159.GB109960@frogsfrogsfrogs>
-In-Reply-To: <20230404232159.GB109960@frogsfrogsfrogs>
-From:   Steve French <smfrench@gmail.com>
-Date:   Tue, 4 Apr 2023 23:04:53 -0500
-Message-ID: <CAH2r5mtmppW-vVdBAnxgH3zsH0b9pMUJyT=s3WTr9dnfwpHrWw@mail.gmail.com>
-Subject: Re: [PATCH 3/5] fstests/MAINTAINERS: add supported mailing list
-To:     "Darrick J. Wong" <djwong@kernel.org>
-Cc:     Zorro Lang <zlang@kernel.org>, fstests@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
-        linux-cifs@vger.kernel.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net,
-        linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        ocfs2-devel@oss.oracle.com, linux-unionfs@vger.kernel.org,
-        jack@suse.com, linux-xfs@vger.kernel.org, fdmanana@suse.com,
-        ebiggers@google.com, brauner@kernel.org, amir73il@gmail.com,
-        anand.jain@oracle.com
+References: <20230404171411.699655-1-zlang@kernel.org> <20230404171411.699655-5-zlang@kernel.org>
+In-Reply-To: <20230404171411.699655-5-zlang@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 5 Apr 2023 10:29:12 +0300
+Message-ID: <CAOQ4uxiO+m3xw4wwz-TMLsiaZh5z_+K=94bToKEoH1JVdkv1uw@mail.gmail.com>
+Subject: Re: [PATCH 4/5] fstests/MAINTAINERS: add some specific reviewers
+To:     Zorro Lang <zlang@kernel.org>
+Cc:     fstests@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, brauner@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Reviewed-by: Steven French <stfrench@microsoft.com>
+On Tue, Apr 4, 2023 at 8:14=E2=80=AFPM Zorro Lang <zlang@kernel.org> wrote:
+>
+> Some people contribute to someone specific fs testing mostly, record
+> some of them as Reviewer.
+>
+> Signed-off-by: Zorro Lang <zlang@kernel.org>
+> ---
+>
+> If someone doesn't want to be in cc list of related fstests patch, please
+> reply this email, I'll remove that reviewer line.
+>
+> Or if someone else (who contribute to fstests very much) would like to a
+> specific reviewer, nominate yourself to get a review.
+>
+> Thanks,
+> Zorro
+>
+>  MAINTAINERS | 6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 620368cb..0ad12a38 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -108,6 +108,7 @@ Maintainers List
+>           or reviewer or co-maintainer can be in cc list.
+>
 
-On Tue, Apr 4, 2023 at 6:22=E2=80=AFPM Darrick J. Wong <djwong@kernel.org> =
-wrote:
 >
-> On Wed, Apr 05, 2023 at 01:14:09AM +0800, Zorro Lang wrote:
-> > The fstests supports different kind of fs testing, better to cc
-> > specific fs mailing list for specific fs testing, to get better
-> > reviewing points. So record these mailing lists and files related
-> > with them in MAINTAINERS file.
-> >
-> > Signed-off-by: Zorro Lang <zlang@kernel.org>
-> > ---
-> >
-> > If someone mailing list doesn't want to be in cc list of related fstest=
-s
-> > patch, please reply this email, I'll remove that line.
-> >
-> > Or if I missed someone mailing list, please feel free to tell me.
-> >
-> > Thanks,
-> > Zorro
-> >
-> >  MAINTAINERS | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 77 insertions(+)
-> >
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 09b1a5a3..620368cb 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -107,6 +107,83 @@ Maintainers List
-> >         should send patch to fstests@ at least. Other relevant mailing =
-list
-> >         or reviewer or co-maintainer can be in cc list.
-> >
-> > +BTRFS
-> > +L:   linux-btrfs@vger.kernel.org
-> > +S:   Supported
-> > +F:   tests/btrfs/
-> > +F:   common/btrfs
-> > +
-> > +CEPH
-> > +L:   ceph-devel@vger.kernel.org
-> > +S:   Supported
-> > +F:   tests/ceph/
-> > +F:   common/ceph
-> > +
-> > +CIFS
-> > +L:   linux-cifs@vger.kernel.org
-> > +S:   Supported
-> > +F:   tests/cifs
-> > +
-> > +EXT4
-> > +L:   linux-ext4@vger.kernel.org
-> > +S:   Supported
-> > +F:   tests/ext4/
-> > +F:   common/ext4
-> > +
-> > +F2FS
-> > +L:   linux-f2fs-devel@lists.sourceforge.net
-> > +S:   Supported
-> > +F:   tests/f2fs/
-> > +F:   common/f2fs
-> > +
-> > +FSVERITY
-> > +L:   fsverity@lists.linux.dev
-> > +S:   Supported
-> > +F:   common/verity
-> > +
-> > +FSCRYPT
-> > +L:      linux-fscrypt@vger.kernel.org
-> > +S:   Supported
-> > +F:   common/encrypt
-> > +
-> > +FS-IDMAPPED
-> > +L:   linux-fsdevel@vger.kernel.org
-> > +S:   Supported
-> > +F:   src/vfs/
-> > +
-> > +NFS
-> > +L:   linux-nfs@vger.kernel.org
-> > +S:   Supported
-> > +F:   tests/nfs/
-> > +F:   common/nfs
-> > +
-> > +OCFS2
-> > +L:   ocfs2-devel@oss.oracle.com
-> > +S:   Supported
-> > +F:   tests/ocfs2/
-> > +
-> > +OVERLAYFS
-> > +L:   linux-unionfs@vger.kernel.org
-> > +S:   Supported
-> > +F:   tests/overlay
-> > +F:   common/overlay
-> > +
-> > +UDF
-> > +R:   Jan Kara <jack@suse.com>
-> > +S:   Supported
-> > +F:   tests/udf/
-> > +
-> > +XFS
-> > +L:   linux-xfs@vger.kernel.org
-> > +S:   Supported
-> > +F:   common/dump
-> > +F:   common/fuzzy
-> > +F:   common/inject
-> > +F:   common/populate
->
-> note that populate and fuzzy apply to ext* as well.
->
-> > +F:   common/repair
-> > +F:   common/xfs
-> > +F:   tests/xfs/
->
-> Otherwise looks good to me,
->
-> Reviewed-by: Darrick J. Wong <djwong@kernel.org>
->
-> --D
->
-> > +
-> >  ALL
-> >  M:   Zorro Lang <zlang@kernel.org>
-> >  L:   fstests@vger.kernel.org
-> > --
-> > 2.39.2
-> >
+>  OVERLAYFS
+> +R:     Amir Goldstein <amir73il@gmail.com>
+>  L:     linux-unionfs@vger.kernel.org
+>  S:     Supported
+>  F:     tests/overlay
 
-
-
---=20
-Thanks,
-
-Steve
+For overlayfs
+Acked-by: Amir Goldstein <amir73il@gmail.com>
