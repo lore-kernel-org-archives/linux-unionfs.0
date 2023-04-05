@@ -2,195 +2,119 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05E2EC77B72
-	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Apr 2023 09:52:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CECD7C76188
+	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Apr 2023 14:07:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237707AbjDEJwi (ORCPT
+        id S238432AbjDEOG7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 5 Apr 2023 05:52:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59248 "EHLO
+        Wed, 5 Apr 2023 10:06:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230103AbjDEJwe (ORCPT
+        with ESMTP id S238431AbjDEOGl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Apr 2023 05:52:34 -0400
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [IPv6:2001:67c:2178:6::1d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89E6E91;
-        Wed,  5 Apr 2023 02:52:21 -0700 (PDT)
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 1A3AB20685;
-        Wed,  5 Apr 2023 09:52:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1680688340; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
+        Wed, 5 Apr 2023 10:06:41 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F2A7659A
+        for <linux-unionfs@vger.kernel.org>; Wed,  5 Apr 2023 07:03:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1680703334;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=5kxEOZs1Ac76OBwtijAiq1LEHzxrTF/ESnoZeBX1s5U=;
-        b=IRxH5dLldXbzWoseDDJFLON27UWQisexrdux6pTmZwMEJUh7+KDDgOL2FFGwMdw4qXX+88
-        SZXtRstArd4pzrgcJ8oig7KPreFloNY/MGYHpRLp72bp2qfZlFYU7wFiZqAGyQ0vGW2203
-        wLigaRb7GuLAIa/y7Wt2ZqyTi00uXvE=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1680688340;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=5kxEOZs1Ac76OBwtijAiq1LEHzxrTF/ESnoZeBX1s5U=;
-        b=9GU3V54N4nWUFuOORZ946DHhtbHXxKXuPtMcQGot4qVFgX8PM9hEOJcrOnifZQlqrRHef3
-        ++8hpDdRa+nWC8Dg==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id E15F713A31;
-        Wed,  5 Apr 2023 09:52:19 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id rfgAN9NELWQFbwAAMHmgww
-        (envelope-from <jack@suse.cz>); Wed, 05 Apr 2023 09:52:19 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-        id 1E028A0729; Wed,  5 Apr 2023 11:52:19 +0200 (CEST)
-Date:   Wed, 5 Apr 2023 11:52:19 +0200
-From:   Jan Kara <jack@suse.cz>
-To:     Zorro Lang <zlang@kernel.org>
-Cc:     fstests@vger.kernel.org, linux-btrfs@vger.kernel.org,
-        ceph-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
-        linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
-        ocfs2-devel@oss.oracle.com, linux-unionfs@vger.kernel.org,
-        jack@suse.com, linux-xfs@vger.kernel.org, fdmanana@suse.com,
-        ebiggers@google.com, brauner@kernel.org, amir73il@gmail.com,
-        djwong@kernel.org, anand.jain@oracle.com
+        bh=net1/YQpLyeedtAUAtKmhMoSFz+7An5MzKe0V2cpLas=;
+        b=ckchfDaswZqr2jOOzGRRkrtwF+7vq5SpjseThpUHpCtEqlUdGdLKFYFTteNTBoAIasLjlJ
+        VqjtF00gB5nJoG3leYh+iDHQlyvgWc9tBhGoebVYSh/SodYplfZ/rgih5QZUWfngIBB2Gg
+        IUVCMWOoosqg++nz1/JjEld4EJTmU9c=
+Received: from mail-pj1-f71.google.com (mail-pj1-f71.google.com
+ [209.85.216.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-352-e3_QrPWZM0Okdh3ohtSdLg-1; Wed, 05 Apr 2023 10:02:12 -0400
+X-MC-Unique: e3_QrPWZM0Okdh3ohtSdLg-1
+Received: by mail-pj1-f71.google.com with SMTP id q30-20020a17090a17a100b0023d376ac2c5so9631931pja.5
+        for <linux-unionfs@vger.kernel.org>; Wed, 05 Apr 2023 07:02:11 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680703331;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=net1/YQpLyeedtAUAtKmhMoSFz+7An5MzKe0V2cpLas=;
+        b=3yHi6q7PBkwJIw/zMIjDCuCynXCl8AdBuj1nSL7/5ZRoFHvJezo3Uoac0jDNzmuWvS
+         klZmCpcSqKxK7CWCt5As0/VMqvTdmeRflzk0OZj4NrtJoitXRY9Zy0iIGgpcTWJoa8QL
+         IOvm50IqOwFYo1XeE5eXUh74Wg+fh3CkJw3gp/kiTH18ZLCatFs758htOuEmqBUTnvLS
+         t071Wnvl+v0RdbjaxKjLkuvxarSN1O/Z8zpPPuvMmPsiOaqTWUzsyQxkIpo4hwFj/C6C
+         LtvrHKAsCo8V2U80BimNeR1C9c2h3APmJOc/LcvyKLqbcvcNxRaNQr2fCPYyn1q7Ih6t
+         3GeA==
+X-Gm-Message-State: AAQBX9eXJ8i06d6T2IrRp5GVElujWdy1Y7U/SRSt3lP6PV5wMpAQPCMW
+        zOOrvyVaEEg6M5lUKymP1/Ft73Qb60UNuPU5C53IJN6WnhWpDYE5twUcTLB0salixMuFMagy3YX
+        ZgYR+w1VNnIO3RFgFHWZwFoionQ==
+X-Received: by 2002:a17:903:283:b0:1a1:cd69:d301 with SMTP id j3-20020a170903028300b001a1cd69d301mr6292237plr.68.1680703330931;
+        Wed, 05 Apr 2023 07:02:10 -0700 (PDT)
+X-Google-Smtp-Source: AKy350Z3hrO2tDczikPPadND/siCWP3StMDF6ZwRfuQDU1LtW+SuQXatmasFWBRAsAV4qHbVdUEpFA==
+X-Received: by 2002:a17:903:283:b0:1a1:cd69:d301 with SMTP id j3-20020a170903028300b001a1cd69d301mr6292202plr.68.1680703330583;
+        Wed, 05 Apr 2023 07:02:10 -0700 (PDT)
+Received: from zlang-mailbox ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id b24-20020a630c18000000b005023496e339sm9037285pgl.63.2023.04.05.07.02.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 05 Apr 2023 07:02:10 -0700 (PDT)
+Date:   Wed, 5 Apr 2023 22:02:02 +0800
+From:   Zorro Lang <zlang@redhat.com>
+To:     Eric Biggers <ebiggers@kernel.org>
+Cc:     Zorro Lang <zlang@kernel.org>, fstests@vger.kernel.org,
+        brauner@kernel.org, linux-cifs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, djwong@kernel.org, amir73il@gmail.com,
+        linux-unionfs@vger.kernel.org, anand.jain@oracle.com,
+        linux-f2fs-devel@lists.sourceforge.net, linux-xfs@vger.kernel.org,
+        fdmanana@suse.com, jack@suse.com, linux-fsdevel@vger.kernel.org,
+        ceph-devel@vger.kernel.org, linux-ext4@vger.kernel.org,
+        linux-btrfs@vger.kernel.org
 Subject: Re: [PATCH 3/5] fstests/MAINTAINERS: add supported mailing list
-Message-ID: <20230405095219.fx2lw4dt25gn34ib@quack3>
+Message-ID: <20230405140202.bdp3lzgross2cjbt@zlang-mailbox>
 References: <20230404171411.699655-1-zlang@kernel.org>
  <20230404171411.699655-4-zlang@kernel.org>
+ <20230404221653.GC1893@sol.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230404171411.699655-4-zlang@kernel.org>
+In-Reply-To: <20230404221653.GC1893@sol.localdomain>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed 05-04-23 01:14:09, Zorro Lang wrote:
-> The fstests supports different kind of fs testing, better to cc
-> specific fs mailing list for specific fs testing, to get better
-> reviewing points. So record these mailing lists and files related
-> with them in MAINTAINERS file.
+On Tue, Apr 04, 2023 at 03:16:53PM -0700, Eric Biggers wrote:
+> Hi Zorro,
 > 
-> Signed-off-by: Zorro Lang <zlang@kernel.org>
-> ---
+> On Wed, Apr 05, 2023 at 01:14:09AM +0800, Zorro Lang wrote:
+> > +FSVERITY
+> > +L:	fsverity@lists.linux.dev
+> > +S:	Supported
+> > +F:	common/verity
+> > +
+> > +FSCRYPT
+> > +L:      linux-fscrypt@vger.kernel.org
+> > +S:	Supported
+> > +F:	common/encrypt
+> 
+> Most of the encrypt and verity tests are in tests/generic/ and are in the
+> 'encrypt' or 'verity' test groups.
+> 
+> These file patterns only pick up the common files, not the actual tests.
+> 
+> Have you considered adding a way to specify maintainers for a test group?
+> Something like:
+> 
+>     G:      encrypt
+> 
+> and
+> 
+>     G:      verity
 
-Looks good to me. Feel free to add:
+Good idea! Let's check if this patchset is acceptable by most of you,
+then I'll think about how to add this feature later.
 
-Acked-by: Jan Kara <jack@suse.cz>
+Thanks,
+Zorro
 
-								Honza
+> 
+> - Eric
+> 
 
-> 
-> If someone mailing list doesn't want to be in cc list of related fstests
-> patch, please reply this email, I'll remove that line.
-> 
-> Or if I missed someone mailing list, please feel free to tell me.
-> 
-> Thanks,
-> Zorro
-> 
->  MAINTAINERS | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 77 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 09b1a5a3..620368cb 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -107,6 +107,83 @@ Maintainers List
->  	  should send patch to fstests@ at least. Other relevant mailing list
->  	  or reviewer or co-maintainer can be in cc list.
->  
-> +BTRFS
-> +L:	linux-btrfs@vger.kernel.org
-> +S:	Supported
-> +F:	tests/btrfs/
-> +F:	common/btrfs
-> +
-> +CEPH
-> +L:	ceph-devel@vger.kernel.org
-> +S:	Supported
-> +F:	tests/ceph/
-> +F:	common/ceph
-> +
-> +CIFS
-> +L:	linux-cifs@vger.kernel.org
-> +S:	Supported
-> +F:	tests/cifs
-> +
-> +EXT4
-> +L:	linux-ext4@vger.kernel.org
-> +S:	Supported
-> +F:	tests/ext4/
-> +F:	common/ext4
-> +
-> +F2FS
-> +L:	linux-f2fs-devel@lists.sourceforge.net
-> +S:	Supported
-> +F:	tests/f2fs/
-> +F:	common/f2fs
-> +
-> +FSVERITY
-> +L:	fsverity@lists.linux.dev
-> +S:	Supported
-> +F:	common/verity
-> +
-> +FSCRYPT
-> +L:      linux-fscrypt@vger.kernel.org
-> +S:	Supported
-> +F:	common/encrypt
-> +
-> +FS-IDMAPPED
-> +L:	linux-fsdevel@vger.kernel.org
-> +S:	Supported
-> +F:	src/vfs/
-> +
-> +NFS
-> +L:	linux-nfs@vger.kernel.org
-> +S:	Supported
-> +F:	tests/nfs/
-> +F:	common/nfs
-> +
-> +OCFS2
-> +L:	ocfs2-devel@oss.oracle.com
-> +S:	Supported
-> +F:	tests/ocfs2/
-> +
-> +OVERLAYFS
-> +L:	linux-unionfs@vger.kernel.org
-> +S:	Supported
-> +F:	tests/overlay
-> +F:	common/overlay
-> +
-> +UDF
-> +R:	Jan Kara <jack@suse.com>
-> +S:	Supported
-> +F:	tests/udf/
-> +
-> +XFS
-> +L:	linux-xfs@vger.kernel.org
-> +S:	Supported
-> +F:	common/dump
-> +F:	common/fuzzy
-> +F:	common/inject
-> +F:	common/populate
-> +F:	common/repair
-> +F:	common/xfs
-> +F:	tests/xfs/
-> +
->  ALL
->  M:	Zorro Lang <zlang@kernel.org>
->  L:	fstests@vger.kernel.org
-> -- 
-> 2.39.2
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
