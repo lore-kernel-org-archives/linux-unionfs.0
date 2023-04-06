@@ -2,72 +2,42 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61AB3C76196
-	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Apr 2023 19:11:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05AB8C76196
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Apr 2023 19:38:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240337AbjDFTLz (ORCPT
+        id S237423AbjDFTiF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 6 Apr 2023 15:11:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39744 "EHLO
+        Thu, 6 Apr 2023 15:38:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240333AbjDFTLx (ORCPT
+        with ESMTP id S237444AbjDFTh6 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Apr 2023 15:11:53 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD1EF19A7;
-        Thu,  6 Apr 2023 12:11:50 -0700 (PDT)
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 336IEX78008004;
-        Thu, 6 Apr 2023 19:11:41 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=vEyf8uTlzLbG3M0No9G1X2vAXuVVv9aUH9evS/ZvWrw=;
- b=Bus4kqwU1kIJvgwfc/0PKLY14Lwm0HepZ0w5osSN8nVhusp05sTthV32hS1yyQ1v1RHc
- LmiFY5kGNNXSa/iaU6DzwZHAhkuCdc2gmMTd49TXprKMEbijLcAxrjuYPwNJeXf4jvI4
- zNf2FanvjhgvYU5FtzKmnL2nJSh1YgpCroUxie2ZkuidsqkVUz+4IzDdcFy60ZezHiz1
- /j0grENrEhFmpITgyDLc5Q3shDyFzLyh8FuWgnwE0gXzi9dApPj07D1dJBIBjDeyjzC2
- lnLHtlV7Z/yEuh+VIFqW7QJPpoWqC6Cw12Tq8Wg+uzMW94ysNPSIxF7WaWkJm/7BPQya Cg== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3pt367h7gq-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 06 Apr 2023 19:11:41 +0000
-Received: from m0127361.ppops.net (m0127361.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 336IuqiI023672;
-        Thu, 6 Apr 2023 19:11:40 GMT
-Received: from ppma03dal.us.ibm.com (b.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.11])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3pt367h7gc-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 06 Apr 2023 19:11:40 +0000
-Received: from pps.filterd (ppma03dal.us.ibm.com [127.0.0.1])
-        by ppma03dal.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 336GPipc021879;
-        Thu, 6 Apr 2023 19:11:40 GMT
-Received: from smtprelay02.dal12v.mail.ibm.com ([9.208.130.97])
-        by ppma03dal.us.ibm.com (PPS) with ESMTPS id 3ppc88u7kt-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 06 Apr 2023 19:11:39 +0000
-Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
-        by smtprelay02.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 336JBc4j35586432
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 6 Apr 2023 19:11:39 GMT
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D3D2858052;
-        Thu,  6 Apr 2023 19:11:38 +0000 (GMT)
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 0C63C5805D;
-        Thu,  6 Apr 2023 19:11:38 +0000 (GMT)
-Received: from [9.47.158.152] (unknown [9.47.158.152])
-        by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
-        Thu,  6 Apr 2023 19:11:37 +0000 (GMT)
-Message-ID: <45a9c575-0b7e-f66a-4765-884865d14b72@linux.ibm.com>
-Date:   Thu, 6 Apr 2023 15:11:37 -0400
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after
- writes
-Content-Language: en-US
-To:     Jeff Layton <jlayton@kernel.org>,
+        Thu, 6 Apr 2023 15:37:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1104594;
+        Thu,  6 Apr 2023 12:37:57 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8C99E64BD8;
+        Thu,  6 Apr 2023 19:37:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC7ECC433EF;
+        Thu,  6 Apr 2023 19:37:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1680809876;
+        bh=sgAETLEuXyIGeAXVvg6ePMXon67bHi/EhQO67vdflcc=;
+        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
+        b=cSUN+muBnUrFEcexB+K7gFE6aC4/xJ1eg6rryHWmzL12d1Vfkk0k8unW4RAysOlgF
+         Mb4fG4itkjJj55h8b0zsA3M+0wbZniFEnRpsVIZc57DoZta9e9U4hGtFogWPVyx4EW
+         LIdVzpWUElBQqCQyiDMpMxrEVFj7/AI7T0gYLHnjSIonOouiR+ybUITpdPepA1hdGl
+         vzoy/teWoFY+x9TLi93J9zRFGP/3gMaFPzCjgGeQggmSxy2YiywSzXzzwOlw8c+lYW
+         8HeskIE5Qzpc/KyBwREpsozS4CERAMLp1n9w/Dkiu+Q+9de05rrRRfCoZJCXDi7eEz
+         iPOgvi3rBKtGw==
+Message-ID: <60339e3bd08a18358ac8c8a16dc67c74eb8ba756.camel@kernel.org>
+Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM
+ after writes
+From:   Jeff Layton <jlayton@kernel.org>
+To:     Stefan Berger <stefanb@linux.ibm.com>,
         Christian Brauner <brauner@kernel.org>,
         Paul Moore <paul@paul-moore.com>
 Cc:     zohar@linux.ibm.com, linux-integrity@vger.kernel.org,
@@ -75,57 +45,67 @@ Cc:     zohar@linux.ibm.com, linux-integrity@vger.kernel.org,
         linux-security-module@vger.kernel.org,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         amir73il@gmail.com
+Date:   Thu, 06 Apr 2023 15:37:53 -0400
+In-Reply-To: <45a9c575-0b7e-f66a-4765-884865d14b72@linux.ibm.com>
 References: <20230405171449.4064321-1-stefanb@linux.ibm.com>
- <20230406-diffamieren-langhaarig-87511897e77d@brauner>
- <CAHC9VhQsnkLzT7eTwVr-3SvUs+mcEircwztfaRtA+4ZaAh+zow@mail.gmail.com>
- <a6c6e0e4-047f-444b-3343-28b71ddae7ae@linux.ibm.com>
- <CAHC9VhQyWa1OnsOvoOzD37EmDnESfo4Rxt2eCSUgu+9U8po-CA@mail.gmail.com>
- <20230406-wasser-zwanzig-791bc0bf416c@brauner>
- <546145ecbf514c4c1a997abade5f74e65e5b1726.camel@kernel.org>
-From:   Stefan Berger <stefanb@linux.ibm.com>
-In-Reply-To: <546145ecbf514c4c1a997abade5f74e65e5b1726.camel@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: kk9FwcInVVDCzh3BSXFkt9Oqr4VaFYXM
-X-Proofpoint-ORIG-GUID: 5J1N3rlDHm0hfPcn-Ft1YHUFAQGLyVQS
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-04-06_10,2023-04-06_03,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 mlxscore=0
- priorityscore=1501 bulkscore=0 adultscore=0 lowpriorityscore=0 spamscore=0
- malwarescore=0 phishscore=0 mlxlogscore=814 suspectscore=0 impostorscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2303200000
- definitions=main-2304060163
+         <20230406-diffamieren-langhaarig-87511897e77d@brauner>
+         <CAHC9VhQsnkLzT7eTwVr-3SvUs+mcEircwztfaRtA+4ZaAh+zow@mail.gmail.com>
+         <a6c6e0e4-047f-444b-3343-28b71ddae7ae@linux.ibm.com>
+         <CAHC9VhQyWa1OnsOvoOzD37EmDnESfo4Rxt2eCSUgu+9U8po-CA@mail.gmail.com>
+         <20230406-wasser-zwanzig-791bc0bf416c@brauner>
+         <546145ecbf514c4c1a997abade5f74e65e5b1726.camel@kernel.org>
+         <45a9c575-0b7e-f66a-4765-884865d14b72@linux.ibm.com>
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Thu, 2023-04-06 at 15:11 -0400, Stefan Berger wrote:
+>=20
+> On 4/6/23 14:46, Jeff Layton wrote:
+> > On Thu, 2023-04-06 at 17:01 +0200, Christian Brauner wrote:
+> > > On Thu, Apr 06, 2023 at 10:36:41AM -0400, Paul Moore wrote:
+>=20
+> >=20
+> > Correct. As long as IMA is also measuring the upper inode then it seems
+> > like you shouldn't need to do anything special here.
+>=20
+> Unfortunately IMA does not notice the changes. With the patch provided in=
+ the other email IMA works as expected.
+>=20
 
 
-On 4/6/23 14:46, Jeff Layton wrote:
-> On Thu, 2023-04-06 at 17:01 +0200, Christian Brauner wrote:
->> On Thu, Apr 06, 2023 at 10:36:41AM -0400, Paul Moore wrote:
+It looks like remeasurement is usually done in ima_check_last_writer.
+That gets called from __fput which is called when we're releasing the
+last reference to the struct file.
 
-> 
-> Correct. As long as IMA is also measuring the upper inode then it seems
-> like you shouldn't need to do anything special here.
+You've hooked into the ->release op, which gets called whenever
+filp_close is called, which happens when we're disassociating the file
+from the file descriptor table.
 
-Unfortunately IMA does not notice the changes. With the patch provided in the other email IMA works as expected.
+So...I don't get it. Is ima_file_free not getting called on your file
+for some reason when you go to close it? It seems like that should be
+handling this.
 
->
-> What sort of fs are you using for the upper layer?
+In any case, I think this could use a bit more root-cause analysis.
 
-jffs2:
+> >=20
+> > What sort of fs are you using for the upper layer?
+>=20
+> jffs2:
+>=20
+> /dev/mtdblock4 on /run/initramfs/ro type squashfs (ro,relatime,errors=3Dc=
+ontinue)
+> /dev/mtdblock5 on /run/initramfs/rw type jffs2 (rw,relatime)
+> cow on / type overlay (rw,relatime,lowerdir=3Drun/initramfs/ro,upperdir=
+=3Drun/initramfs/rw/cow,workdir=3Drun/initramfs/rw/work)
+>=20
 
-/dev/mtdblock4 on /run/initramfs/ro type squashfs (ro,relatime,errors=continue)
-/dev/mtdblock5 on /run/initramfs/rw type jffs2 (rw,relatime)
-cow on / type overlay (rw,relatime,lowerdir=run/initramfs/ro,upperdir=run/initramfs/rw/cow,workdir=run/initramfs/rw/work)
-
-Regards,
-    Stefan
-
-
-
-
-
+jffs2 does not have a proper i_version counter, I'm afraid. But, IMA
+should handle that OK (by assuming that it always needs to remeasure
+when there is no i_version counter).
+--=20
+Jeff Layton <jlayton@kernel.org>
