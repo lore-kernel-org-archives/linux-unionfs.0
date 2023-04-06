@@ -2,71 +2,104 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D127C77B75
-	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Apr 2023 01:55:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F50DC7618D
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Apr 2023 10:26:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234570AbjDFBzM (ORCPT
+        id S236287AbjDFK0W (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 5 Apr 2023 21:55:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55754 "EHLO
+        Thu, 6 Apr 2023 06:26:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230527AbjDFBzK (ORCPT
+        with ESMTP id S235604AbjDFK0V (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Apr 2023 21:55:10 -0400
+        Thu, 6 Apr 2023 06:26:21 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C59A283CA;
-        Wed,  5 Apr 2023 18:54:36 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53BC21713;
+        Thu,  6 Apr 2023 03:26:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 07C10618D7;
-        Thu,  6 Apr 2023 01:53:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 65538C433EF;
-        Thu,  6 Apr 2023 01:53:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D5DB3642B5;
+        Thu,  6 Apr 2023 10:26:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ECB72C433D2;
+        Thu,  6 Apr 2023 10:26:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1680746022;
-        bh=RU0Q3vUCSoOriMTSmQ2CiAo6okbHQsDApEtyfqhB/os=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=FbWqGQ0wbGurzrP9KVHM0SNw0YC9GyWApFTXwdNVcK2A0TiZtlGaba89nxCOMrOnv
-         LWjeD76eOESSoHb3bjdBWreXKq9o6hYFzR7svS/T2cmmEB82GOCY4PQ4xwOErbFzpU
-         hmcAghCKLKqbx4A0blihXUGzlq7+9VmymPLp1sU/9GKwTNgaMazWLz2aF2o38rqb3J
-         b3LRiP0wTjMiqcG9t360E1ofmIBaOFnuhJb3uzgevc579iZR/wnVuIvdPxErd0uHqj
-         plvf4gfX7jEtsbHb5zbnA4A6/Ie41UsiXOM4Khj5aTYqCMkOCJ9lIg3iiItz27lqAh
-         KTIvUAvOE5HOQ==
-Message-ID: <b0214d14-aa0e-f1df-4ff3-02304b710a6e@kernel.org>
-Date:   Thu, 6 Apr 2023 09:53:36 +0800
+        s=k20201202; t=1680776779;
+        bh=yVOn8o+5hTtwRbr8XWL47ZWTuN1kQFTfBsh5tqfXXsQ=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=QWYNS0Io9NTLz6QIIXU25HZjd2/sgvoDoIrhLx/Yz50kimlZLKl7PXdLTeRCF0E+F
+         TTLD39rqPrNIE5+pZd8q1vXeULBayb9zSJbktxLOl/65+bAcfLNlTCkGBqHMrJaMwc
+         KUc7zYbWYouSEJKxP5Sh2yWpPuLjnyRRJ30d4suhCC/CiMiHFAynVIIVf/UUWWPQ4i
+         XYBdhcocsdcpgZGnu2YYh3FhbABlkQX3a/UxiH+1AAtce8afGlPO/ekJSSfOYld9Ml
+         S8giSIw0VqfkGjV9gnpZf0KtdAdBVHyXkut8KomvYWM1D2yX/s9riOcAWU7ALSjpkP
+         lg0/Q0/5zKwQw==
+Date:   Thu, 6 Apr 2023 12:26:13 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Stefan Berger <stefanb@linux.ibm.com>
+Cc:     zohar@linux.ibm.com, linux-integrity@vger.kernel.org,
+        miklos@szeredi.hu, linux-kernel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        amir73il@gmail.com
+Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after
+ writes
+Message-ID: <20230406-diffamieren-langhaarig-87511897e77d@brauner>
+References: <20230405171449.4064321-1-stefanb@linux.ibm.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.9.1
-Subject: Re: [f2fs-dev] [PATCH 3/5] fstests/MAINTAINERS: add supported mailing
- list
-Content-Language: en-US
-To:     Zorro Lang <zlang@kernel.org>, fstests@vger.kernel.org
-Cc:     brauner@kernel.org, linux-cifs@vger.kernel.org,
-        linux-nfs@vger.kernel.org, ebiggers@google.com, djwong@kernel.org,
-        amir73il@gmail.com, linux-unionfs@vger.kernel.org,
-        anand.jain@oracle.com, linux-f2fs-devel@lists.sourceforge.net,
-        linux-xfs@vger.kernel.org, fdmanana@suse.com,
-        ocfs2-devel@oss.oracle.com, jack@suse.com,
-        linux-fsdevel@vger.kernel.org, ceph-devel@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-btrfs@vger.kernel.org
-References: <20230404171411.699655-1-zlang@kernel.org>
- <20230404171411.699655-4-zlang@kernel.org>
-From:   Chao Yu <chao@kernel.org>
-In-Reply-To: <20230404171411.699655-4-zlang@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230405171449.4064321-1-stefanb@linux.ibm.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 2023/4/5 1:14, Zorro Lang wrote:
-> +F2FS
-> +L:	linux-f2fs-devel@lists.sourceforge.net
-> +S:	Supported
-> +F:	tests/f2fs/
-> +F:	common/f2fs
+On Wed, Apr 05, 2023 at 01:14:49PM -0400, Stefan Berger wrote:
+> Overlayfs fails to notify IMA / EVM about file content modifications
+> and therefore IMA-appraised files may execute even though their file
+> signature does not validate against the changed hash of the file
+> anymore. To resolve this issue, add a call to integrity_notify_change()
+> to the ovl_release() function to notify the integrity subsystem about
+> file changes. The set flag triggers the re-evaluation of the file by
+> IMA / EVM once the file is accessed again.
+> 
+> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> ---
+>  fs/overlayfs/file.c       |  4 ++++
+>  include/linux/integrity.h |  6 ++++++
+>  security/integrity/iint.c | 13 +++++++++++++
+>  3 files changed, 23 insertions(+)
+> 
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 6011f955436b..19b8f4bcc18c 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/security.h>
+>  #include <linux/mm.h>
+>  #include <linux/fs.h>
+> +#include <linux/integrity.h>
+>  #include "overlayfs.h"
+>  
+>  struct ovl_aio_req {
+> @@ -169,6 +170,9 @@ static int ovl_open(struct inode *inode, struct file *file)
+>  
+>  static int ovl_release(struct inode *inode, struct file *file)
+>  {
+> +	if (file->f_flags & O_ACCMODE)
+> +		integrity_notify_change(inode);
+> +
+>  	fput(file->private_data);
+>  
+>  	return 0;
+> diff --git a/include/linux/integrity.h b/include/linux/integrity.h
+> index 2ea0f2f65ab6..cefdeccc1619 100644
+> --- a/include/linux/integrity.h
+> +++ b/include/linux/integrity.h
+> @@ -23,6 +23,7 @@ enum integrity_status {
+>  #ifdef CONFIG_INTEGRITY
+>  extern struct integrity_iint_cache *integrity_inode_get(struct inode *inode);
+>  extern void integrity_inode_free(struct inode *inode);
+> +extern void integrity_notify_change(struct inode *inode);
 
-Acked-by: Chao Yu <chao@kernel.org>
-
-Thanks,
+I thought we concluded that ima is going to move into the security hook
+infrastructure so it seems this should be a proper LSM hook?
