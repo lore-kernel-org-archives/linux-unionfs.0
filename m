@@ -2,175 +2,134 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AAEBC761AF
-	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Apr 2023 17:15:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C7CC77B70
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Apr 2023 00:26:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232680AbjDERPI (ORCPT
+        id S234438AbjDFA00 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 5 Apr 2023 13:15:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34224 "EHLO
+        Wed, 5 Apr 2023 20:26:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229748AbjDERPG (ORCPT
+        with ESMTP id S234449AbjDFA0Y (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Apr 2023 13:15:06 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C08DA1BEF;
-        Wed,  5 Apr 2023 10:15:05 -0700 (PDT)
-Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 335GG6GM013112;
-        Wed, 5 Apr 2023 17:15:04 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=xdPANpjtlbwea8smzHbacqN4g1Ruy2zYgHhQtcKL4jA=;
- b=JviavfdghGpxFybYoZ5PlrAS6QH2tK6y0r0h+eXId+HQSVyuZwFsAE51ZdMf1ff8IoSY
- P++/zzbiTHnTDBH9nzhlqIg3PrXzCqG3Ag4Ui7vYjJ+SYDACo3jAydx7qX4BAmris178
- pSHQRQqmageLgFAvtA+6VddGcD5/HFH4snG+444FBWx9UBBRgbMxO4wf0+V11IoVldbJ
- fUBcS1Y+CJcWyp+IS+74gxvt0hoNYLjeLOYYde0GmAJIDbwNDfVjwLU3s2pSjWN+I7DV
- 8BrNIpuZsqc1J5HzEP9DCeb9eWi6kAyGm4xsmky9G580xQpWuJGp80zwxn/Zy53Yj8r8 GA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3ps8w7yu2n-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 05 Apr 2023 17:15:04 +0000
-Received: from m0098416.ppops.net (m0098416.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 335Gk6am002751;
-        Wed, 5 Apr 2023 17:15:03 GMT
-Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
-        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3ps8w7yu29-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 05 Apr 2023 17:15:03 +0000
-Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
-        by ppma02dal.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 335H1GMO031516;
-        Wed, 5 Apr 2023 17:15:03 GMT
-Received: from smtprelay02.dal12v.mail.ibm.com ([9.208.130.97])
-        by ppma02dal.us.ibm.com (PPS) with ESMTPS id 3ppc88d3y0-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 05 Apr 2023 17:15:02 +0000
-Received: from smtpav02.wdc07v.mail.ibm.com (smtpav02.wdc07v.mail.ibm.com [10.39.53.229])
-        by smtprelay02.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 335HF1hV36307508
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 5 Apr 2023 17:15:01 GMT
-Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 17F085805C;
-        Wed,  5 Apr 2023 17:15:01 +0000 (GMT)
-Received: from smtpav02.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 2D01B58059;
-        Wed,  5 Apr 2023 17:15:00 +0000 (GMT)
-Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
-        by smtpav02.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-        Wed,  5 Apr 2023 17:15:00 +0000 (GMT)
-From:   Stefan Berger <stefanb@linux.ibm.com>
-To:     zohar@linux.ibm.com, linux-integrity@vger.kernel.org,
-        miklos@szeredi.hu
-Cc:     linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        amir73il@gmail.com, Stefan Berger <stefanb@linux.ibm.com>
-Subject: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after writes
-Date:   Wed,  5 Apr 2023 13:14:49 -0400
-Message-Id: <20230405171449.4064321-1-stefanb@linux.ibm.com>
-X-Mailer: git-send-email 2.39.1
+        Wed, 5 Apr 2023 20:26:24 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A851F7DA3
+        for <linux-unionfs@vger.kernel.org>; Wed,  5 Apr 2023 17:25:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1680740736;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=YnG+nCyPWB8ZL9Ap6fLZh9ezCdT+TIIsCMEMmA9isDc=;
+        b=EXmP3vYYRWRmJJRhXqggrPi1F1uu+Px2PPChOJibgm3Iy2xeiePk+WOfQZu1yO6rZwQzHn
+        TyRjQExsPrN0h7D8yQeWJU3VFabn5gyBuaXgqilAfs35cEtZOss7WZKqBMtgxes7zO/an/
+        AzW/iwAdPfxBRjZHMURGqnb3Qf8tBNE=
+Received: from mail-pf1-f199.google.com (mail-pf1-f199.google.com
+ [209.85.210.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-421-3fLvdQPeNgiIUy93C7vt6Q-1; Wed, 05 Apr 2023 20:25:35 -0400
+X-MC-Unique: 3fLvdQPeNgiIUy93C7vt6Q-1
+Received: by mail-pf1-f199.google.com with SMTP id n3-20020a056a00212300b0062dfd10c477so5776731pfj.20
+        for <linux-unionfs@vger.kernel.org>; Wed, 05 Apr 2023 17:25:34 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680740734;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=YnG+nCyPWB8ZL9Ap6fLZh9ezCdT+TIIsCMEMmA9isDc=;
+        b=ljRWbymLiTliSIOf0wa9Rd256Crj8X22GrmNACs6elN31BXqEu8do26dh4JcxF4tCT
+         f7Y6FtrbdGIQeDfjZPoyswY1ei3BvekXE/sJqpApJ+0DgZ6WIPD4TxA7GPQkldTxMwQl
+         TnSGfQjlPHhgiOwjR9IxLnt/abeyyM/bkPWMkf/eCXJbDReRW2Mhi2WIUnECQe6oIjv9
+         uObq7cjBhnRvvg4aMRyHXO0yXVKfqoFvroGD3mu06SjFMfM/P74Qfu14F6JgKgHYEZYa
+         lVLys+FfsOllyXzFxv+7cyvEOxhhOf6IrP/dKOZfpSSB0XaQQ8nFylBrs71jvKC0ImxM
+         SCsw==
+X-Gm-Message-State: AAQBX9cnccI1VrvbJtp/wqF6/w9xIn6MXc498MTc6B/ehlng/vam90dv
+        HppZzFXgxaHzmzchcegec8bSEvF0JsMASQvg+pd8h7xc/UHgd2KtyM6eBgUISX5m9nIHVeKvqwX
+        7fgfkjlMfzXO6DRvzRKpPD2lHdQ==
+X-Received: by 2002:a17:90b:17c7:b0:23f:7d05:8765 with SMTP id me7-20020a17090b17c700b0023f7d058765mr8769201pjb.10.1680740734090;
+        Wed, 05 Apr 2023 17:25:34 -0700 (PDT)
+X-Google-Smtp-Source: AKy350YchunmOlWsqR1uqhyleFq+e6uT40JJEkEYVgwX9vsqmDYfOCSrK9/Althx8xc8uY/FzfvVaQ==
+X-Received: by 2002:a17:90b:17c7:b0:23f:7d05:8765 with SMTP id me7-20020a17090b17c700b0023f7d058765mr8769184pjb.10.1680740733840;
+        Wed, 05 Apr 2023 17:25:33 -0700 (PDT)
+Received: from [10.72.13.97] ([209.132.188.80])
+        by smtp.gmail.com with ESMTPSA id ce21-20020a17090aff1500b0023d386e4806sm1864484pjb.57.2023.04.05.17.25.26
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 05 Apr 2023 17:25:33 -0700 (PDT)
+Message-ID: <7c2bfeb5-3c93-1fc9-cc1e-e7350b406ea1@redhat.com>
+Date:   Thu, 6 Apr 2023 08:25:24 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: I-u9B3_Iu8NUUSka9TVqB0TEA3acKn1L
-X-Proofpoint-ORIG-GUID: usiMNPTQycmGVGH7XZb5S6smuMFo-bqs
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-04-05_11,2023-04-05_01,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 impostorscore=0
- lowpriorityscore=0 clxscore=1011 phishscore=0 spamscore=0 bulkscore=0
- adultscore=0 malwarescore=0 suspectscore=0 mlxlogscore=999
- priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2303200000 definitions=main-2304050154
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.9.1
+Subject: Re: [PATCH 3/5] fstests/MAINTAINERS: add supported mailing list
+Content-Language: en-US
+To:     Zorro Lang <zlang@kernel.org>, fstests@vger.kernel.org
+Cc:     linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        linux-cifs@vger.kernel.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net,
+        linux-fsdevel@vger.kernel.org, linux-nfs@vger.kernel.org,
+        ocfs2-devel@oss.oracle.com, linux-unionfs@vger.kernel.org,
+        jack@suse.com, linux-xfs@vger.kernel.org, fdmanana@suse.com,
+        ebiggers@google.com, brauner@kernel.org, amir73il@gmail.com,
+        djwong@kernel.org, anand.jain@oracle.com
+References: <20230404171411.699655-1-zlang@kernel.org>
+ <20230404171411.699655-4-zlang@kernel.org>
+From:   Xiubo Li <xiubli@redhat.com>
+In-Reply-To: <20230404171411.699655-4-zlang@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Overlayfs fails to notify IMA / EVM about file content modifications
-and therefore IMA-appraised files may execute even though their file
-signature does not validate against the changed hash of the file
-anymore. To resolve this issue, add a call to integrity_notify_change()
-to the ovl_release() function to notify the integrity subsystem about
-file changes. The set flag triggers the re-evaluation of the file by
-IMA / EVM once the file is accessed again.
 
-Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
----
- fs/overlayfs/file.c       |  4 ++++
- include/linux/integrity.h |  6 ++++++
- security/integrity/iint.c | 13 +++++++++++++
- 3 files changed, 23 insertions(+)
+On 4/5/23 01:14, Zorro Lang wrote:
+> The fstests supports different kind of fs testing, better to cc
+> specific fs mailing list for specific fs testing, to get better
+> reviewing points. So record these mailing lists and files related
+> with them in MAINTAINERS file.
+>
+> Signed-off-by: Zorro Lang <zlang@kernel.org>
+> ---
+>
+> If someone mailing list doesn't want to be in cc list of related fstests
+> patch, please reply this email, I'll remove that line.
+>
+> Or if I missed someone mailing list, please feel free to tell me.
+>
+> Thanks,
+> Zorro
+>
+>   MAINTAINERS | 77 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 77 insertions(+)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 09b1a5a3..620368cb 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -107,6 +107,83 @@ Maintainers List
+>   	  should send patch to fstests@ at least. Other relevant mailing list
+>   	  or reviewer or co-maintainer can be in cc list.
+>   
+> +BTRFS
+> +L:	linux-btrfs@vger.kernel.org
+> +S:	Supported
+> +F:	tests/btrfs/
+> +F:	common/btrfs
+> +
+> +CEPH
+> +L:	ceph-devel@vger.kernel.org
+> +S:	Supported
+> +F:	tests/ceph/
+> +F:	common/ceph
+> +
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 6011f955436b..19b8f4bcc18c 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -13,6 +13,7 @@
- #include <linux/security.h>
- #include <linux/mm.h>
- #include <linux/fs.h>
-+#include <linux/integrity.h>
- #include "overlayfs.h"
- 
- struct ovl_aio_req {
-@@ -169,6 +170,9 @@ static int ovl_open(struct inode *inode, struct file *file)
- 
- static int ovl_release(struct inode *inode, struct file *file)
- {
-+	if (file->f_flags & O_ACCMODE)
-+		integrity_notify_change(inode);
-+
- 	fput(file->private_data);
- 
- 	return 0;
-diff --git a/include/linux/integrity.h b/include/linux/integrity.h
-index 2ea0f2f65ab6..cefdeccc1619 100644
---- a/include/linux/integrity.h
-+++ b/include/linux/integrity.h
-@@ -23,6 +23,7 @@ enum integrity_status {
- #ifdef CONFIG_INTEGRITY
- extern struct integrity_iint_cache *integrity_inode_get(struct inode *inode);
- extern void integrity_inode_free(struct inode *inode);
-+extern void integrity_notify_change(struct inode *inode);
- extern void __init integrity_load_keys(void);
- 
- #else
-@@ -37,6 +38,11 @@ static inline void integrity_inode_free(struct inode *inode)
- 	return;
- }
- 
-+static inline void integrity_notify_change(struct inode *inode)
-+{
-+	return;
-+}
-+
- static inline void integrity_load_keys(void)
- {
- }
-diff --git a/security/integrity/iint.c b/security/integrity/iint.c
-index 8638976f7990..70d2d716f3ae 100644
---- a/security/integrity/iint.c
-+++ b/security/integrity/iint.c
-@@ -85,6 +85,19 @@ static void iint_free(struct integrity_iint_cache *iint)
- 	kmem_cache_free(iint_cache, iint);
- }
- 
-+void integrity_notify_change(struct inode *inode)
-+{
-+	struct integrity_iint_cache *iint;
-+
-+	if (!IS_IMA(inode))
-+		return;
-+
-+	iint = integrity_iint_find(inode);
-+	if (iint)
-+		set_bit(IMA_CHANGE_XATTR, &iint->atomic_flags);
-+}
-+EXPORT_SYMBOL_GPL(integrity_notify_change);
-+
- /**
-  * integrity_inode_get - find or allocate an iint associated with an inode
-  * @inode: pointer to the inode
--- 
-2.34.1
+LGTM and feel free to add:
+
+Acked-by: Xiubo Li <xiubli@redhat.com>
+
+Thanks,
+
+- Xiubo
 
