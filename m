@@ -2,61 +2,61 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39A32C77B71
-	for <linux-unionfs@archiver.kernel.org>; Sat,  8 Apr 2023 16:43:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44A9AC77B6C
+	for <linux-unionfs@archiver.kernel.org>; Sat,  8 Apr 2023 16:43:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229469AbjDHQnS (ORCPT
+        id S229481AbjDHQnT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 8 Apr 2023 12:43:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49988 "EHLO
+        Sat, 8 Apr 2023 12:43:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229463AbjDHQnR (ORCPT
+        with ESMTP id S229463AbjDHQnT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 8 Apr 2023 12:43:17 -0400
-Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37B85AF3C
-        for <linux-unionfs@vger.kernel.org>; Sat,  8 Apr 2023 09:43:16 -0700 (PDT)
-Received: by mail-wr1-x436.google.com with SMTP id w21so1082938wra.4
-        for <linux-unionfs@vger.kernel.org>; Sat, 08 Apr 2023 09:43:16 -0700 (PDT)
+        Sat, 8 Apr 2023 12:43:19 -0400
+Received: from mail-wm1-x334.google.com (mail-wm1-x334.google.com [IPv6:2a00:1450:4864:20::334])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A8BE30D7
+        for <linux-unionfs@vger.kernel.org>; Sat,  8 Apr 2023 09:43:17 -0700 (PDT)
+Received: by mail-wm1-x334.google.com with SMTP id gw11-20020a05600c850b00b003f07d305b32so1818153wmb.4
+        for <linux-unionfs@vger.kernel.org>; Sat, 08 Apr 2023 09:43:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680972194; x=1683564194;
+        d=gmail.com; s=20210112; t=1680972195; x=1683564195;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Yo8xuUH9dVbkvkQzupvHv6BX/r8z5AIwZUJeDqW6cIY=;
-        b=Am5rfJBHl6Dh4UE5xHOM+18IlbN9IYPMUQeTrGOW/gfSj63S3MswSZNj1L+XvEB16P
-         mvvznI/TXVj/dHbxO4tMg2izS9BatwifXLLqmbYp5U7RfJCg8t1Yw4Cv9p6M1wt1jgVQ
-         yB/EhcaVbRnm7L8nBRvD1kHH4B01TDVyMqiZVkpFX81Emt6sv7SnTj861eDT8aXv9AZj
-         N6sJqjyvV8QzQhcmK8vnenWktiAX3D/n58Kynp8xpKbXHmPQLTAWv2T3+ptcTb9CRSmq
-         d4s4zsl/gFcdYO5D1/BRvTnZzpqmO+9dtm08X6Nz6OIvi7WJHHPagPAcNn+mWTo7zjjy
-         Mylg==
+        bh=BcH4PrAveZP5IxL2KB7fNEhGKNy9PMCBlMxSGRo07Ko=;
+        b=bZq9hRgcIqifsJJEbrwnAzrCAWV2SetTyWEubLz+cSYxpc3hZZXNn7HnJUGLld9onS
+         zdZF/uXzvTB2jjNtjDdx79GjyfAjmiWGGfqbDBwJIugipicnAFqhJrPgBgsetH4U4W/6
+         5Yby0qrnGDDFx14mpFjPWlthM38/yUgwTp8tjE06qPSZDGJqi/WptQTabL6nXzvG9KDn
+         wTHYSJzKwbkymG4wH4HjPQya6Sqf8Oftr4pncvCNm950iziZ2vFEHNiL3gylgYbLjWJj
+         0bglCnsgHxdQ9C/lVqy7dVyOPKO0gb03D0V8Fx6jlslJ/K7Fk8CFlnxJXDFIxH24JU9d
+         WKSA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680972194; x=1683564194;
+        d=1e100.net; s=20210112; t=1680972195; x=1683564195;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Yo8xuUH9dVbkvkQzupvHv6BX/r8z5AIwZUJeDqW6cIY=;
-        b=hwEgLf78no5N/FqBAQQS0gcTlkWYsGBgUun4+YuyY2JMngvXhUaG7ptw8iJJdx9VCS
-         XdGFC+k0KEeuIpYtDKiuP0W7QvgiIqA8p3GRP5dKuM2j7DVLPNhS5l3UarNoBmdc06Ze
-         xIIwVDkUS3wsavGrQSCh+INqt8qEGTO3Ec4QSZy31qGmwwWEidi7Az62jmcsnRZ3DN2j
-         j4BMSzSHiDv9nhalEiTJTbnNDcI+JTRViCRx5kNFHfApeJrM8UbZ24cbMIf8igcrbqca
-         2Gfkk2ktjWwy4ihSlvq7FAjg+lZn4t9qGUW4EN962VSQYVqVsQmedbYsx8nierKwQc+7
-         MTYQ==
-X-Gm-Message-State: AAQBX9fUDZDHzofWLAZ603zrsb/KnrSgFTqmyX3Sr0xtwpa7ac+d6cJo
-        8TlTkAV1daeBu8ij+j99g6o476wQtDw=
-X-Google-Smtp-Source: AKy350ZqyrkrFuh/75zPgYZ8e0/RUItrI3O/u5lKhNi/yBr2jp5sLpARKMXMstE+3zf+qff8pDOafg==
-X-Received: by 2002:adf:de01:0:b0:2ef:b5c1:7f3b with SMTP id b1-20020adfde01000000b002efb5c17f3bmr2760241wrm.18.1680972194435;
-        Sat, 08 Apr 2023 09:43:14 -0700 (PDT)
+        bh=BcH4PrAveZP5IxL2KB7fNEhGKNy9PMCBlMxSGRo07Ko=;
+        b=ZTGhfuyudGGuZa2vbNITO/KLIcUOLErrC62V5DAC+L1USVf+97cQqGjxWY30tAvpa/
+         GuxfQYThhHT2WshIoUp/tKhOMQnPavodWwBmFMx49hgmC7e2sru68jV09arfM3//ziVE
+         r6K1xoW7nW6RxxCBHhptpE5PNkqXd2R+odBNReqVnLpWOMUtjGc/XHKXglH1d8QhgfdA
+         WLuLfl6eTeuCn5v1cWFXXK1rwQycNBrPXG7KbKBm8fyg7RMxUyX4gR7xd6VtCkLbU38N
+         X1QLrS9lxM+50Iiz0Qytt2zI+1+CvTIJ2gKGC5C9ptd4/rPd1WvRtBxTDC7xMVM7r8gz
+         CLyg==
+X-Gm-Message-State: AAQBX9c6mBHzcmgmvBMu7KBzJFcFz9937otLcMOfcttkoDDiB4rNJfEx
+        tCdR8X6gNnNkvbKMJyj3d4o=
+X-Google-Smtp-Source: AKy350ZzNPYsVwUxepjQZTWxT5mkKo7ZP7byb1R2n4T8dEYt2XHQnOrRK+MSdWld+NXF5bmsIv30jA==
+X-Received: by 2002:a05:600c:3786:b0:3ed:2b49:1571 with SMTP id o6-20020a05600c378600b003ed2b491571mr3424932wmr.20.1680972195505;
+        Sat, 08 Apr 2023 09:43:15 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id w9-20020adfec49000000b002cde25fba30sm7370438wrn.1.2023.04.08.09.43.13
+        by smtp.gmail.com with ESMTPSA id w9-20020adfec49000000b002cde25fba30sm7370438wrn.1.2023.04.08.09.43.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 08 Apr 2023 09:43:13 -0700 (PDT)
+        Sat, 08 Apr 2023 09:43:15 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-Subject: [PATCH 5/7] ovl: move ovl_entry into ovl_inode
-Date:   Sat,  8 Apr 2023 19:43:00 +0300
-Message-Id: <20230408164302.1392694-6-amir73il@gmail.com>
+Subject: [PATCH 6/7] ovl: deduplicate lowerpath and lowerstack[0]
+Date:   Sat,  8 Apr 2023 19:43:01 +0300
+Message-Id: <20230408164302.1392694-7-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230408164302.1392694-1-amir73il@gmail.com>
 References: <20230408164302.1392694-1-amir73il@gmail.com>
@@ -66,362 +66,473 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-The lower stacks of all the ovl inode aliases should be identical
-and there is redundant information in ovl_entry and ovl_inode.
+For the common case of single lower layer, embed ovl_entry with a
+single lower path in ovl_inode, so no stack allocation is needed.
 
-Move lowerstack into ovl_inode and keep only the OVL_E_FLAGS
-per overlay dentry.
+For directory with more than single lower layer and for regular file
+with lowerdata, the lower stack is stored in an external allocation.
 
-Following patches will deduplicate redundant ovl_inode fields.
-
-Note that for a negative dentry, OVL_E(dentry) can now be NULL,
-so it is imporatnt to use the ovl_numlower() accessor.
+Use accessor ovl_lowerstack() to get the embedded or external stack.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/dir.c       |  2 +-
- fs/overlayfs/export.c    | 22 ++++++++++++----------
- fs/overlayfs/inode.c     |  8 ++++----
- fs/overlayfs/namei.c     |  5 ++---
- fs/overlayfs/overlayfs.h |  6 ++++--
- fs/overlayfs/ovl_entry.h | 36 ++++++++++++++++++------------------
- fs/overlayfs/super.c     | 18 ++++--------------
- fs/overlayfs/util.c      |  8 ++++----
- 8 files changed, 49 insertions(+), 56 deletions(-)
+ fs/overlayfs/dir.c       |  2 ++
+ fs/overlayfs/export.c    | 18 +++++----------
+ fs/overlayfs/inode.c     | 12 ++++------
+ fs/overlayfs/namei.c     | 15 +++++--------
+ fs/overlayfs/overlayfs.h | 10 +++++----
+ fs/overlayfs/ovl_entry.h | 14 +++++++-----
+ fs/overlayfs/super.c     | 41 +++++++++++++---------------------
+ fs/overlayfs/util.c      | 48 +++++++++++++++++++++++++++++-----------
+ 8 files changed, 81 insertions(+), 79 deletions(-)
 
 diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 9be52d8013c8..92bdcedfaaec 100644
+index 92bdcedfaaec..aa0465c61064 100644
 --- a/fs/overlayfs/dir.c
 +++ b/fs/overlayfs/dir.c
-@@ -269,7 +269,7 @@ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
+@@ -262,9 +262,11 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
+ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
+ 			   struct dentry *newdentry, bool hardlink)
+ {
++	struct ovl_entry oe = {};
+ 	struct ovl_inode_params oip = {
+ 		.upperdentry = newdentry,
+ 		.newinode = inode,
++		.oe = &oe,
+ 	};
  
  	ovl_dir_modified(dentry->d_parent, false);
- 	ovl_dentry_set_upper_alias(dentry);
--	ovl_dentry_init_reval(dentry, newdentry);
-+	ovl_dentry_init_reval(dentry, newdentry, NULL);
- 
- 	if (!hardlink) {
- 		/*
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index ddb546627749..d4caf57c8e17 100644
+index d4caf57c8e17..9951c504fb8d 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -286,7 +286,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	struct dentry *lower = lowerpath ? lowerpath->dentry : NULL;
+@@ -287,30 +287,22 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
  	struct dentry *upper = upper_alias ?: index;
  	struct dentry *dentry;
--	struct inode *inode;
-+	struct inode *inode = NULL;
- 	struct ovl_entry *oe;
+ 	struct inode *inode = NULL;
+-	struct ovl_entry *oe;
++	struct ovl_entry oe;
  	struct ovl_inode_params oip = {
- 		.lowerpath = lowerpath,
-@@ -298,9 +298,19 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+-		.lowerpath = lowerpath,
++		.oe = &oe,
+ 		.index = index,
+-		.numlower = !!lower
+ 	};
+ 
+ 	/* We get overlay directory dentries with ovl_lookup_real() */
  	if (d_is_dir(upper ?: lower))
  		return ERR_PTR(-EIO);
  
-+	oe = ovl_alloc_entry(!!lower);
-+	if (!oe)
-+		goto nomem;
-+
- 	oip.upperdentry = dget(upper);
-+	if (lower) {
-+		ovl_lowerstack(oe)->dentry = dget(lower);
-+		ovl_lowerstack(oe)->layer = lowerpath->layer;
-+	}
-+	oip.oe = oe;
- 	inode = ovl_get_inode(sb, &oip);
- 	if (IS_ERR(inode)) {
-+		ovl_free_entry(oe);
- 		dput(upper);
- 		return ERR_CAST(inode);
- 	}
-@@ -315,19 +325,11 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	dentry = d_alloc_anon(inode->i_sb);
- 	if (unlikely(!dentry))
- 		goto nomem;
--	oe = ovl_alloc_entry(lower ? 1 : 0);
+-	oe = ovl_alloc_entry(!!lower);
 -	if (!oe)
 -		goto nomem;
- 
+-
+ 	oip.upperdentry = dget(upper);
 -	if (lower) {
 -		ovl_lowerstack(oe)->dentry = dget(lower);
 -		ovl_lowerstack(oe)->layer = lowerpath->layer;
 -	}
--	dentry->d_fsdata = oe;
- 	if (upper_alias)
- 		ovl_dentry_set_upper_alias(dentry);
- 
--	ovl_dentry_init_reval(dentry, upper);
-+	ovl_dentry_init_reval(dentry, upper, OVL_I_E(inode));
- 
- 	return d_instantiate_anon(dentry, inode);
- 
+-	oip.oe = oe;
++	/* Should not fail because does not allocate lowerstack */
++	ovl_init_entry(&oe, lowerpath, !!lower);
+ 	inode = ovl_get_inode(sb, &oip);
+ 	if (IS_ERR(inode)) {
+-		ovl_free_entry(oe);
++		ovl_destroy_entry(&oe);
+ 		dput(upper);
+ 		return ERR_CAST(inode);
+ 	}
 diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 541cf3717fc2..c296bd656858 100644
+index c296bd656858..9f29fc3e9fa5 100644
 --- a/fs/overlayfs/inode.c
 +++ b/fs/overlayfs/inode.c
-@@ -1003,8 +1003,9 @@ void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
- 	struct inode *realinode;
+@@ -1004,12 +1004,8 @@ void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
  	struct ovl_inode *oi = OVL_I(inode);
  
--	if (oip->upperdentry)
--		oi->__upperdentry = oip->upperdentry;
-+	oi->__upperdentry = oip->upperdentry;
-+	oi->oe = oip->oe;
-+	oi->redirect = oip->redirect;
- 	if (oip->lowerpath && oip->lowerpath->dentry) {
- 		oi->lowerpath.dentry = dget(oip->lowerpath->dentry);
- 		oi->lowerpath.layer = oip->lowerpath->layer;
-@@ -1369,6 +1370,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ 	oi->__upperdentry = oip->upperdentry;
+-	oi->oe = oip->oe;
++	oi->oe = *oip->oe;
+ 	oi->redirect = oip->redirect;
+-	if (oip->lowerpath && oip->lowerpath->dentry) {
+-		oi->lowerpath.dentry = dget(oip->lowerpath->dentry);
+-		oi->lowerpath.layer = oip->lowerpath->layer;
+-	}
+ 	if (oip->lowerdata)
+ 		oi->lowerdata = igrab(d_inode(oip->lowerdata));
+ 
+@@ -1326,7 +1322,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
+ {
+ 	struct ovl_fs *ofs = OVL_FS(sb);
+ 	struct dentry *upperdentry = oip->upperdentry;
+-	struct ovl_path *lowerpath = oip->lowerpath;
++	struct ovl_path *lowerpath = ovl_lowerstack(oip->oe);
+ 	struct inode *realinode = upperdentry ? d_inode(upperdentry) : NULL;
+ 	struct inode *inode;
+ 	struct dentry *lowerdentry = lowerpath ? lowerpath->dentry : NULL;
+@@ -1370,7 +1366,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
  			}
  
  			dput(upperdentry);
-+			ovl_free_entry(oip->oe);
+-			ovl_free_entry(oip->oe);
++			ovl_destroy_entry(oip->oe);
  			kfree(oip->redirect);
  			goto out;
  		}
-@@ -1398,8 +1400,6 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 	if (oip->index)
- 		ovl_set_flag(OVL_INDEX, inode);
+@@ -1405,7 +1401,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
  
--	OVL_I(inode)->redirect = oip->redirect;
--
- 	if (bylower)
- 		ovl_set_flag(OVL_CONST_INO, inode);
- 
+ 	/* Check for non-merge dir that may have whiteouts */
+ 	if (is_dir) {
+-		if (((upperdentry && lowerdentry) || oip->numlower > 1) ||
++		if (((upperdentry && lowerdentry) || ovl_numlower(oip->oe) > 1) ||
+ 		    ovl_path_check_origin_xattr(ofs, &realpath)) {
+ 			ovl_set_flag(OVL_WHITEOUTS, inode);
+ 		}
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index c237c8dbff09..a0a1c498dbd1 100644
+index a0a1c498dbd1..cdcb2ac5d95c 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -1073,7 +1073,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		goto out_put;
- 
- 	ovl_stack_cpy(ovl_lowerstack(oe), stack, ctr);
--	dentry->d_fsdata = oe;
- 
- 	if (upperopaque)
- 		ovl_dentry_set_opaque(dentry);
-@@ -1107,6 +1106,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 		struct ovl_inode_params oip = {
- 			.upperdentry = upperdentry,
- 			.lowerpath = stack,
-+			.oe = oe,
- 			.index = index,
- 			.numlower = ctr,
- 			.redirect = upperredirect,
-@@ -1122,7 +1122,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			ovl_set_flag(OVL_UPPERDATA, inode);
+@@ -831,7 +831,7 @@ static int ovl_fix_origin(struct ovl_fs *ofs, struct dentry *dentry,
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 			  unsigned int flags)
+ {
+-	struct ovl_entry *oe;
++	struct ovl_entry oe;
+ 	const struct cred *old_cred;
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+ 	struct ovl_entry *poe = OVL_E(dentry->d_parent);
+@@ -1067,13 +1067,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		}
  	}
  
--	ovl_dentry_init_reval(dentry, upperdentry);
-+	ovl_dentry_init_reval(dentry, upperdentry, OVL_I_E(inode));
+-	oe = ovl_alloc_entry(ctr);
+-	err = -ENOMEM;
+-	if (!oe)
++	err = ovl_init_entry(&oe, stack, ctr);
++	if (err)
+ 		goto out_put;
  
- 	revert_creds(old_cred);
- 	if (origin_path) {
-@@ -1135,7 +1135,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+-	ovl_stack_cpy(ovl_lowerstack(oe), stack, ctr);
+-
+ 	if (upperopaque)
+ 		ovl_dentry_set_opaque(dentry);
+ 
+@@ -1105,10 +1102,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	if (upperdentry || ctr) {
+ 		struct ovl_inode_params oip = {
+ 			.upperdentry = upperdentry,
+-			.lowerpath = stack,
+-			.oe = oe,
++			.oe = &oe,
+ 			.index = index,
+-			.numlower = ctr,
+ 			.redirect = upperredirect,
+ 			.lowerdata = (ctr > 1 && !d.is_dir) ?
+ 				      stack[ctr - 1].dentry : NULL,
+@@ -1135,7 +1130,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
  	return d_splice_alias(inode, dentry);
  
  out_free_oe:
--	dentry->d_fsdata = NULL;
- 	ovl_free_entry(oe);
+-	ovl_free_entry(oe);
++	ovl_destroy_entry(&oe);
  out_put:
  	dput(index);
+ 	ovl_stack_free(stack, ctr);
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 6a50296fef8f..e14ca0fd1063 100644
+index e14ca0fd1063..32532342e56a 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -381,9 +381,10 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
- void ovl_free_entry(struct ovl_entry *oe);
+@@ -377,8 +377,12 @@ struct ovl_path *ovl_stack_alloc(unsigned int n);
+ void ovl_stack_cpy(struct ovl_path *dst, struct ovl_path *src, unsigned int n);
+ void ovl_stack_put(struct ovl_path *stack, unsigned int n);
+ void ovl_stack_free(struct ovl_path *stack, unsigned int n);
+-struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
+-void ovl_free_entry(struct ovl_entry *oe);
++struct ovl_path *ovl_alloc_stack(unsigned int n);
++void ovl_stack_cpy(struct ovl_path *dst, struct ovl_path *src, unsigned int n);
++void ovl_stack_put(struct ovl_path *stack, unsigned int n);
++int ovl_init_entry(struct ovl_entry *oe, struct ovl_path *stack,
++		   unsigned int numlower);
++void ovl_destroy_entry(struct ovl_entry *oe);
  bool ovl_dentry_remote(struct dentry *dentry);
  void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *realdentry);
--void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry);
-+void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry,
-+			   struct ovl_entry *oe);
- void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
--			   unsigned int mask);
-+			   struct ovl_entry *oe, unsigned int mask);
- bool ovl_dentry_weird(struct dentry *dentry);
- enum ovl_path_type ovl_path_type(struct dentry *dentry);
- void ovl_path_upper(struct dentry *dentry, struct path *path);
-@@ -653,6 +654,7 @@ struct ovl_inode_params {
+ void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry,
+@@ -653,10 +657,8 @@ bool ovl_is_private_xattr(struct super_block *sb, const char *name);
+ struct ovl_inode_params {
  	struct inode *newinode;
  	struct dentry *upperdentry;
- 	struct ovl_path *lowerpath;
-+	struct ovl_entry *oe;
+-	struct ovl_path *lowerpath;
+ 	struct ovl_entry *oe;
  	bool index;
- 	unsigned int numlower;
+-	unsigned int numlower;
  	char *redirect;
+ 	struct dentry *lowerdata;
+ };
 diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 754f8ae4ce62..201de9da45d3 100644
+index 201de9da45d3..5d95e937f555 100644
 --- a/fs/overlayfs/ovl_entry.h
 +++ b/fs/overlayfs/ovl_entry.h
-@@ -47,6 +47,11 @@ struct ovl_path {
- 	struct dentry *dentry;
+@@ -49,7 +49,12 @@ struct ovl_path {
+ 
+ struct ovl_entry {
+ 	unsigned int __numlower;
+-	struct ovl_path __lowerstack[];
++	union {
++		/* Embedded path for numlower == 1 */
++		struct ovl_path __lowerpath;
++		/* External stack for numlower > 1 */
++		struct ovl_path *__lowerstack;
++	};
  };
  
-+struct ovl_entry {
-+	unsigned int __numlower;
-+	struct ovl_path __lowerstack[];
-+};
-+
  /* private information held for overlayfs's superblock */
- struct ovl_fs {
- 	unsigned int numlayer;
-@@ -105,18 +110,6 @@ static inline bool ovl_should_sync(struct ovl_fs *ofs)
- 	return !ofs->config.ovl_volatile;
- }
+@@ -117,7 +122,7 @@ static inline unsigned int ovl_numlower(struct ovl_entry *oe)
  
--/* private information held for every overlayfs dentry */
--struct ovl_entry {
--	union {
--		struct {
--			unsigned long flags;
--		};
--		struct rcu_head rcu;
--	};
--	unsigned int __numlower;
--	struct ovl_path __lowerstack[];
--};
--
- static inline unsigned int ovl_numlower(struct ovl_entry *oe)
+ static inline struct ovl_path *ovl_lowerstack(struct ovl_entry *oe)
  {
- 	return oe ? oe->__numlower : 0;
-@@ -127,14 +120,10 @@ static inline struct ovl_path *ovl_lowerstack(struct ovl_entry *oe)
- 	return oe ? oe->__lowerstack : NULL;
+-	return oe ? oe->__lowerstack : NULL;
++	return oe && oe->__numlower > 1 ? oe->__lowerstack : &oe->__lowerpath;
  }
  
--static inline struct ovl_entry *OVL_E(struct dentry *dentry)
--{
--	return (struct ovl_entry *) dentry->d_fsdata;
--}
--
-+/* private information held for every overlayfs dentry */
- static inline unsigned long *OVL_E_FLAGS(struct dentry *dentry)
- {
--	return &OVL_E(dentry)->flags;
-+	return (unsigned long *) &dentry->d_fsdata;
- }
- 
- struct ovl_inode {
-@@ -148,6 +137,7 @@ struct ovl_inode {
+ /* private information held for every overlayfs dentry */
+@@ -136,8 +141,7 @@ struct ovl_inode {
+ 	unsigned long flags;
  	struct inode vfs_inode;
  	struct dentry *__upperdentry;
- 	struct ovl_path lowerpath;
-+	struct ovl_entry *oe;
+-	struct ovl_path lowerpath;
+-	struct ovl_entry *oe;
++	struct ovl_entry oe;
  
  	/* synchronize copy up and more */
  	struct mutex lock;
-@@ -158,6 +148,16 @@ static inline struct ovl_inode *OVL_I(struct inode *inode)
- 	return container_of(inode, struct ovl_inode, vfs_inode);
+@@ -150,7 +154,7 @@ static inline struct ovl_inode *OVL_I(struct inode *inode)
+ 
+ static inline struct ovl_entry *OVL_I_E(struct inode *inode)
+ {
+-	return inode ? OVL_I(inode)->oe : NULL;
++	return inode ? &OVL_I(inode)->oe : NULL;
  }
  
-+static inline struct ovl_entry *OVL_I_E(struct inode *inode)
-+{
-+	return inode ? OVL_I(inode)->oe : NULL;
-+}
-+
-+static inline struct ovl_entry *OVL_E(struct dentry *dentry)
-+{
-+	return OVL_I_E(d_inode(dentry));
-+}
-+
- static inline struct dentry *ovl_upperdentry_dereference(struct ovl_inode *oi)
- {
- 	return READ_ONCE(oi->__upperdentry);
+ static inline struct ovl_entry *OVL_E(struct dentry *dentry)
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index d8fe857bd7e1..b9e62ccd609f 100644
+index b9e62ccd609f..e01a76de787c 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -59,16 +59,6 @@ module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
- MODULE_PARM_DESC(metacopy,
- 		 "Default to on or off for the metadata only copy up feature");
- 
--static void ovl_dentry_release(struct dentry *dentry)
--{
--	struct ovl_entry *oe = dentry->d_fsdata;
--
--	if (oe) {
--		ovl_stack_put(ovl_lowerstack(oe), ovl_numlower(oe));
--		kfree_rcu(oe, rcu);
--	}
--}
--
- static struct dentry *ovl_d_real(struct dentry *dentry,
- 				 const struct inode *inode)
- {
-@@ -162,7 +152,6 @@ static int ovl_dentry_weak_revalidate(struct dentry *dentry, unsigned int flags)
- }
- 
- static const struct dentry_operations ovl_dentry_operations = {
--	.d_release = ovl_dentry_release,
- 	.d_real = ovl_d_real,
- 	.d_revalidate = ovl_dentry_revalidate,
- 	.d_weak_revalidate = ovl_dentry_weak_revalidate,
-@@ -182,6 +171,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
+@@ -171,9 +171,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
  	oi->version = 0;
  	oi->flags = 0;
  	oi->__upperdentry = NULL;
-+	oi->oe = NULL;
- 	oi->lowerpath.dentry = NULL;
- 	oi->lowerpath.layer = NULL;
+-	oi->oe = NULL;
+-	oi->lowerpath.dentry = NULL;
+-	oi->lowerpath.layer = NULL;
++	ovl_init_entry(&oi->oe, NULL, 0);
  	oi->lowerdata = NULL;
-@@ -205,6 +195,7 @@ static void ovl_destroy_inode(struct inode *inode)
+ 	mutex_init(&oi->lock);
+ 
+@@ -194,8 +192,7 @@ static void ovl_destroy_inode(struct inode *inode)
+ 	struct ovl_inode *oi = OVL_I(inode);
  
  	dput(oi->__upperdentry);
- 	dput(oi->lowerpath.dentry);
-+	ovl_free_entry(oi->oe);
+-	dput(oi->lowerpath.dentry);
+-	ovl_free_entry(oi->oe);
++	ovl_destroy_entry(&oi->oe);
  	if (S_ISDIR(inode->i_mode))
  		ovl_dir_cache_free(inode);
  	else
-@@ -1857,14 +1848,13 @@ static struct dentry *ovl_get_root(struct super_block *sb,
+@@ -1702,7 +1699,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 	return err;
+ }
+ 
+-static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
++static int ovl_get_lowerstack(struct super_block *sb, struct ovl_entry *oe,
+ 				const char *lower, unsigned int numlower,
+ 				struct ovl_fs *ofs, struct ovl_layer *layers)
+ {
+@@ -1710,16 +1707,15 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 	struct path *stack = NULL;
+ 	struct ovl_path *lowerstack;
+ 	unsigned int i;
+-	struct ovl_entry *oe;
+ 
+ 	if (!ofs->config.upperdir && numlower == 1) {
+ 		pr_err("at least 2 lowerdir are needed while upperdir nonexistent\n");
+-		return ERR_PTR(-EINVAL);
++		return -EINVAL;
+ 	}
+ 
+ 	stack = kcalloc(numlower, sizeof(struct path), GFP_KERNEL);
+ 	if (!stack)
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 
+ 	err = -EINVAL;
+ 	for (i = 0; i < numlower; i++) {
+@@ -1741,9 +1737,8 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 	if (err)
+ 		goto out_err;
+ 
+-	err = -ENOMEM;
+-	oe = ovl_alloc_entry(numlower);
+-	if (!oe)
++	err = ovl_init_entry(oe, NULL, numlower);
++	if (err)
+ 		goto out_err;
+ 
+ 	lowerstack = ovl_lowerstack(oe);
+@@ -1752,16 +1747,12 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 		lowerstack[i].layer = &ofs->layers[i+1];
+ 	}
+ 
+-out:
++out_err:
+ 	for (i = 0; i < numlower; i++)
+ 		path_put(&stack[i]);
+ 	kfree(stack);
+ 
+-	return oe;
+-
+-out_err:
+-	oe = ERR_PTR(err);
+-	goto out;
++	return err;
+ }
+ 
+ /*
+@@ -1847,7 +1838,6 @@ static struct dentry *ovl_get_root(struct super_block *sb,
+ 	int fsid = lowerpath->layer->fsid;
  	struct ovl_inode_params oip = {
  		.upperdentry = upperdentry,
- 		.lowerpath = lowerpath,
-+		.oe = oe,
+-		.lowerpath = lowerpath,
+ 		.oe = oe,
  	};
  
- 	root = d_make_root(ovl_new_inode(sb, S_IFDIR, 0));
- 	if (!root)
- 		return NULL;
+@@ -1878,7 +1868,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ {
+ 	struct path upperpath = { };
+ 	struct dentry *root_dentry;
+-	struct ovl_entry *oe;
++	struct ovl_entry oe;
+ 	struct ovl_fs *ofs;
+ 	struct ovl_layer *layers;
+ 	struct cred *cred;
+@@ -1991,9 +1981,8 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		sb->s_stack_depth = upper_sb->s_stack_depth;
+ 		sb->s_time_gran = upper_sb->s_time_gran;
+ 	}
+-	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+-	err = PTR_ERR(oe);
+-	if (IS_ERR(oe))
++	err = ovl_get_lowerstack(sb, &oe, splitlower, numlower, ofs, layers);
++	if (err)
+ 		goto out_err;
  
--	root->d_fsdata = oe;
--
- 	if (upperdentry) {
- 		/* Root inode uses upper st_ino/i_ino */
- 		ino = d_inode(upperdentry)->i_ino;
-@@ -1879,7 +1869,7 @@ static struct dentry *ovl_get_root(struct super_block *sb,
- 	ovl_dentry_set_flag(OVL_E_CONNECTED, root);
- 	ovl_set_upperdata(d_inode(root));
- 	ovl_inode_init(d_inode(root), &oip, ino, fsid);
--	ovl_dentry_init_flags(root, upperdentry, DCACHE_OP_WEAK_REVALIDATE);
-+	ovl_dentry_init_flags(root, upperdentry, oe, DCACHE_OP_WEAK_REVALIDATE);
+ 	/* If the upper fs is nonexistent, we mark overlayfs r/o too */
+@@ -2006,7 +1995,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
  
- 	return root;
- }
+ 	if (!ovl_force_readonly(ofs) && ofs->config.index) {
+-		err = ovl_get_indexdir(sb, ofs, oe, &upperpath);
++		err = ovl_get_indexdir(sb, ofs, &oe, &upperpath);
+ 		if (err)
+ 			goto out_free_oe;
+ 
+@@ -2047,7 +2036,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_iflags |= SB_I_SKIP_SYNC;
+ 
+ 	err = -ENOMEM;
+-	root_dentry = ovl_get_root(sb, upperpath.dentry, oe);
++	root_dentry = ovl_get_root(sb, upperpath.dentry, &oe);
+ 	if (!root_dentry)
+ 		goto out_free_oe;
+ 
+@@ -2059,7 +2048,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	return 0;
+ 
+ out_free_oe:
+-	ovl_free_entry(oe);
++	ovl_destroy_entry(&oe);
+ out_err:
+ 	kfree(splitlower);
+ 	path_put(&upperpath);
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 1ba6dbea808c..f5e2c70a57f8 100644
+index f5e2c70a57f8..540819ac9b9c 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -145,15 +145,15 @@ void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *realdentry)
- 	spin_unlock(&dentry->d_lock);
+@@ -111,21 +111,41 @@ void ovl_stack_free(struct ovl_path *stack, unsigned int n)
+ 	kfree(stack);
  }
  
--void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry)
-+void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry,
-+			   struct ovl_entry *oe)
- {
--	return ovl_dentry_init_flags(dentry, upperdentry, OVL_D_REVALIDATE);
-+	return ovl_dentry_init_flags(dentry, upperdentry, oe, OVL_D_REVALIDATE);
+-struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
+-{
+-	size_t size = offsetof(struct ovl_entry, __lowerstack[numlower]);
+-	struct ovl_entry *oe = kzalloc(size, GFP_KERNEL);
++/* On success, takes references on @stack dentries */
++int ovl_init_entry(struct ovl_entry *oe, struct ovl_path *stack,
++		   unsigned int numlower)
++{
++	oe->__numlower = numlower;
++	oe->__lowerpath = (struct ovl_path) {};
++
++	/* No allocated stack for numlower <= 1 */
++	if (numlower <= 1) {
++		if (numlower && stack)
++			oe->__lowerpath = *stack;
++		dget(oe->__lowerpath.dentry);
++		return 0;
++	}
++
++	oe->__lowerstack = ovl_stack_alloc(numlower);
++	if (!oe->__lowerstack)
++		return -ENOMEM;
++
++	if (!stack)
++		return 0;
+ 
+-	if (oe)
+-		oe->__numlower = numlower;
++	ovl_stack_cpy(oe->__lowerstack, stack, numlower);
+ 
+-	return oe;
++	return 0;
  }
  
- void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
--			   unsigned int mask)
-+			   struct ovl_entry *oe, unsigned int mask)
+-void ovl_free_entry(struct ovl_entry *oe)
++void ovl_destroy_entry(struct ovl_entry *oe)
  {
--	struct ovl_entry *oe = OVL_E(dentry);
- 	struct ovl_path *lowerstack = ovl_lowerstack(oe);
- 	unsigned int i, flags = 0;
+-	ovl_stack_put(ovl_lowerstack(oe), ovl_numlower(oe));
+-	kfree(oe);
++	if (oe->__numlower > 1) {
++		ovl_stack_put(oe->__lowerstack, oe->__numlower);
++		kfree(oe->__lowerstack);
++	} else {
++		dput(oe->__lowerpath.dentry);
++	}
+ }
  
+ #define OVL_D_REVALIDATE (DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE)
+@@ -306,10 +326,12 @@ struct dentry *ovl_i_dentry_upper(struct inode *inode)
+ 
+ void ovl_i_path_real(struct inode *inode, struct path *path)
+ {
++	struct ovl_path *lowerstack = ovl_lowerstack(OVL_I_E(inode));
++
+ 	path->dentry = ovl_i_dentry_upper(inode);
+ 	if (!path->dentry) {
+-		path->dentry = OVL_I(inode)->lowerpath.dentry;
+-		path->mnt = OVL_I(inode)->lowerpath.layer->mnt;
++		path->dentry = lowerstack->dentry;
++		path->mnt = lowerstack->layer->mnt;
+ 	} else {
+ 		path->mnt = ovl_upper_mnt(OVL_FS(inode->i_sb));
+ 	}
+@@ -324,7 +346,7 @@ struct inode *ovl_inode_upper(struct inode *inode)
+ 
+ struct inode *ovl_inode_lower(struct inode *inode)
+ {
+-	struct dentry *lowerdentry = OVL_I(inode)->lowerpath.dentry;
++	struct dentry *lowerdentry = ovl_lowerstack(OVL_I_E(inode))->dentry;
+ 
+ 	return lowerdentry ? d_inode(lowerdentry) : NULL;
+ }
 -- 
 2.34.1
 
