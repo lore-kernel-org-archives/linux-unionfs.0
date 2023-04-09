@@ -2,272 +2,189 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1EAB5C7619A
-	for <linux-unionfs@archiver.kernel.org>; Sat,  8 Apr 2023 16:43:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C22FAC77B73
+	for <linux-unionfs@archiver.kernel.org>; Sun,  9 Apr 2023 15:22:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229463AbjDHQnU (ORCPT
+        id S229586AbjDIPW5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 8 Apr 2023 12:43:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50002 "EHLO
+        Sun, 9 Apr 2023 11:22:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbjDHQnT (ORCPT
+        with ESMTP id S229445AbjDIPW4 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 8 Apr 2023 12:43:19 -0400
-Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 227E6AF3F
-        for <linux-unionfs@vger.kernel.org>; Sat,  8 Apr 2023 09:43:18 -0700 (PDT)
-Received: by mail-wr1-x430.google.com with SMTP id j11so4835571wrd.2
-        for <linux-unionfs@vger.kernel.org>; Sat, 08 Apr 2023 09:43:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680972196; x=1683564196;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MpCVJ8pOb6zReg9k3WqEzN2eNNsaUGf+a3pH9DZ9NEY=;
-        b=OGlhSVTeuVwN/Bs+o8ddmPGcT3gxE/azZZMcdPStGuYs0AwItjM7ClRAZ4yD7wQ+qW
-         /tinT8RXXv0SV35h0mvYrhiX51WVS/fCm2AZKkv4gT/dNoTvbbdmus/cNIOEZxEpojkX
-         P3cddpPAAGgBA7D5yjCyIp4Bw0bmnIxC/ptk8dNI6h9gjtyZ3nErmMIfi23oIQ4L6P9q
-         8C0Ns5cIwhrrnyl4EZs38GTpmRWsp0DxNkoUt64uVtNJ8zhybhjOGrGhA3iW7IpPUFJa
-         ib4cGqMgM843cnQyxfB4EjLLHodOcRsUQd0MICg3v3gvimwuw+389ilaReRijsHcWjxv
-         fTuA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680972196; x=1683564196;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=MpCVJ8pOb6zReg9k3WqEzN2eNNsaUGf+a3pH9DZ9NEY=;
-        b=M7fyaprPq8OEU2HFnrPt/bzUCAZe2i3lFVarlMKDnl1KloJJgzahhdmT44aiUr0jX/
-         iNkTExzKcQvgsGgEj5+v+/75cjtxb0w1SshHvfTilMkQLbPejosIdfuMEy2i886VDpL5
-         IiYRsNS3cUxNcfpPzU5xzpvjEZUbR9qf6s8wS/ytylCAEmteDsUKT0gkoAMFaojmkC++
-         0glYi1Nhi/stHXHro3xSbVF0re0wn+pEt/C7MpXz6sBjsdiJGW0EPb1TAUG8KwGQpvyG
-         7uWyEW6IgSUxHbGQYcmYpwRctFGDAzrsaeMRexp8538ujxd7JKMsvi6et+vPhjPvdwsK
-         ykPA==
-X-Gm-Message-State: AAQBX9fd3C9SIVjFGgFKVBfv1nU2YfJaJApbcIny/D9e7eu/WTtAM8yg
-        QHf1Hr8eyQ09XoC+aH4XQcGXpdDNL88=
-X-Google-Smtp-Source: AKy350Y3+cYA+Nrgp3HQp40vs8NHOMvg1rjLtUGjPmnyWM7IMlmisBmBJ9iXU1nkn44Q5IU5QsvF7A==
-X-Received: by 2002:a5d:4381:0:b0:2ef:b7ed:bc1e with SMTP id i1-20020a5d4381000000b002efb7edbc1emr2040063wrq.29.1680972196672;
-        Sat, 08 Apr 2023 09:43:16 -0700 (PDT)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id w9-20020adfec49000000b002cde25fba30sm7370438wrn.1.2023.04.08.09.43.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 08 Apr 2023 09:43:16 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-Subject: [PATCH 7/7] ovl: replace lowerdata inode reference with lowerdata redirect
-Date:   Sat,  8 Apr 2023 19:43:02 +0300
-Message-Id: <20230408164302.1392694-8-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230408164302.1392694-1-amir73il@gmail.com>
-References: <20230408164302.1392694-1-amir73il@gmail.com>
+        Sun, 9 Apr 2023 11:22:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32E802D4A;
+        Sun,  9 Apr 2023 08:22:55 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B564060C08;
+        Sun,  9 Apr 2023 15:22:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71EE2C433D2;
+        Sun,  9 Apr 2023 15:22:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1681053774;
+        bh=JoFbzbecQMar72QvO0uBIMm1UiIbJWJem2Ie54x9qbA=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ESnq4grFoKkT4WAbHlcu94zOs2tgO4EKL0auznMVcvldsb9SuYy0kJPvOZWsLb5+X
+         ZVBGj9jj2B9melGWpNTqh6CJqzokKZFxLNGokUTE7Q9KbzLXbBkuuJrE0aw3B9+4cR
+         fXbEEBHNndTwwFzevhNcaroQm50QPgFUdni4i1ii/x/nLWMvTi5N67rwqobmJ6y3IA
+         oqRUa5pENSBGdmF5o6+cTQ2LxoOc2wAmJtrWLQlHpH03x9E3PI/mX6i4Yj9M9XP1pv
+         k628DafFoMZXLLlfuKJApX8XgTAxPD/vW8yOA36uHZ1BWoGK3VOMQcbzDLFz1O1bAs
+         QxzLSBDS2+gow==
+Date:   Sun, 9 Apr 2023 17:22:47 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Stefan Berger <stefanb@linux.ibm.com>,
+        Paul Moore <paul@paul-moore.com>, zohar@linux.ibm.com,
+        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
+        linux-kernel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after
+ writes
+Message-ID: <20230409-genick-pelikan-a1c534c2a3c1@brauner>
+References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
+ <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Now that we have the entire lower stack in ovl_inode, we do not
-need to hold another reference to the lowerdata inode.
+On Fri, Apr 07, 2023 at 09:29:29AM -0400, Jeff Layton wrote:
+> > > > > 
+> > > > > I would ditch the original proposal in favor of this 2-line patch shown here:
+> > > > > 
+> > > > > https://lore.kernel.org/linux-integrity/a95f62ed-8b8a-38e5-e468-ecbde3b221af@linux.ibm.com/T/#m3bd047c6e5c8200df1d273c0ad551c645dd43232
+> > 
+> > We should cool it with the quick hacks to fix things. :)
+> > 
+> 
+> Yeah. It might fix this specific testcase, but I think the way it uses
+> the i_version is "gameable" in other situations. Then again, I don't
+> know a lot about IMA in this regard.
+> 
+> When is it expected to remeasure? If it's only expected to remeasure on
+> a close(), then that's one thing. That would be a weird design though.
+> 
+> > > > > 
+> > > > > 
+> > > > 
+> > > > Ok, I think I get it. IMA is trying to use the i_version from the
+> > > > overlayfs inode.
+> > > > 
+> > > > I suspect that the real problem here is that IMA is just doing a bare
+> > > > inode_query_iversion. Really, we ought to make IMA call
+> > > > vfs_getattr_nosec (or something like it) to query the getattr routine in
+> > > > the upper layer. Then overlayfs could just propagate the results from
+> > > > the upper layer in its response.
+> > > > 
+> > > > That sort of design may also eventually help IMA work properly with more
+> > > > exotic filesystems, like NFS or Ceph.
+> > > > 
+> > > > 
+> > > > 
+> > > 
+> > > Maybe something like this? It builds for me but I haven't tested it. It
+> > > looks like overlayfs already should report the upper layer's i_version
+> > > in getattr, though I haven't tested that either:
+> > > 
+> > > -----------------------8<---------------------------
+> > > 
+> > > [PATCH] IMA: use vfs_getattr_nosec to get the i_version
+> > > 
+> > > IMA currently accesses the i_version out of the inode directly when it
+> > > does a measurement. This is fine for most simple filesystems, but can be
+> > > problematic with more complex setups (e.g. overlayfs).
+> > > 
+> > > Make IMA instead call vfs_getattr_nosec to get this info. This allows
+> > > the filesystem to determine whether and how to report the i_version, and
+> > > should allow IMA to work properly with a broader class of filesystems in
+> > > the future.
+> > > 
+> > > Reported-by: Stefan Berger <stefanb@linux.ibm.com>
+> > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> > > ---
+> > 
+> > So, I think we want both; we want the ovl_copyattr() and the
+> > vfs_getattr_nosec() change:
+> > 
+> > (1) overlayfs should copy up the inode version in ovl_copyattr(). That
+> >     is in line what we do with all other inode attributes. IOW, the
+> >     overlayfs inode's i_version counter should aim to mirror the
+> >     relevant layer's i_version counter. I wouldn't know why that
+> >     shouldn't be the case. Asking the other way around there doesn't
+> >     seem to be any use for overlayfs inodes to have an i_version that
+> >     isn't just mirroring the relevant layer's i_version.
+> 
+> It's less than ideal to do this IMO, particularly with an IS_I_VERSION
+> inode.
+> 
+> You can't just copy up the value from the upper. You'll need to call
+> inode_query_iversion(upper_inode), which will flag the upper inode for a
+> logged i_version update on the next write. IOW, this could create some
+> (probably minor) metadata write amplification in the upper layer inode
+> with IS_I_VERSION inodes.
 
-Instead, use the vacant ovl_inode space as a place holder for lowerdata
-redirect path from the metacopy to lowerdata, which is going to be used
-later on for lazy lowerdata lookup.
+I'm likely just missing context and am curious about this so bear with me. Why
+do we need to flag the upper inode for a logged i_version update? Any required
+i_version interactions should've already happened when overlayfs called into
+the upper layer. So all that's left to do is for overlayfs' to mirror the
+i_version value after the upper operation has returned.
 
-Use accessors to get the lowerdata path and dentry.
+ovl_copyattr() - which copies the inode attributes - is always called after the
+operation on the upper inode has finished. So the additional query seems odd at
+first glance. But there might well be a good reason for it. In my naive
+approach I would've thought that sm along the lines of:
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/inode.c     |  4 ++--
- fs/overlayfs/namei.c     |  7 +++++--
- fs/overlayfs/overlayfs.h |  3 ++-
- fs/overlayfs/ovl_entry.h | 16 +++++++++++++++-
- fs/overlayfs/super.c     |  4 ++--
- fs/overlayfs/util.c      | 26 ++++++++++++++++----------
- 6 files changed, 42 insertions(+), 18 deletions(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 9f29fc3e9fa5..35d51a6dced7 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -1006,8 +1006,7 @@ void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
- 	oi->__upperdentry = oip->upperdentry;
- 	oi->oe = *oip->oe;
- 	oi->redirect = oip->redirect;
--	if (oip->lowerdata)
--		oi->lowerdata = igrab(d_inode(oip->lowerdata));
-+	oi->lowerdata_redirect = oip->lowerdata_redirect;
- 
- 	realinode = ovl_inode_real(inode);
- 	ovl_copyattr(inode);
-@@ -1368,6 +1367,7 @@ struct inode *ovl_get_inode(struct super_block *sb,
- 			dput(upperdentry);
- 			ovl_destroy_entry(oip->oe);
- 			kfree(oip->redirect);
-+			kfree(oip->lowerdata_redirect);
- 			goto out;
- 		}
- 
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index cdcb2ac5d95c..b629261324f1 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -1105,10 +1105,13 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			.oe = &oe,
- 			.index = index,
- 			.redirect = upperredirect,
--			.lowerdata = (ctr > 1 && !d.is_dir) ?
--				      stack[ctr - 1].dentry : NULL,
- 		};
- 
-+		/* Store lowerdata redirect for lazy lookup */
-+		if (ctr > 1 && !d.is_dir && !stack[ctr - 1].dentry) {
-+			oip.lowerdata_redirect = d.redirect;
-+			d.redirect = NULL;
-+		}
- 		inode = ovl_get_inode(dentry->d_sb, &oip);
- 		err = PTR_ERR(inode);
- 		if (IS_ERR(inode))
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 32532342e56a..011b7b466f70 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -409,6 +409,7 @@ struct inode *ovl_inode_lower(struct inode *inode);
- struct inode *ovl_inode_lowerdata(struct inode *inode);
- struct inode *ovl_inode_real(struct inode *inode);
- struct inode *ovl_inode_realdata(struct inode *inode);
-+const char *ovl_lowerdata_redirect(struct inode *inode);
- struct ovl_dir_cache *ovl_dir_cache(struct inode *inode);
- void ovl_set_dir_cache(struct inode *inode, struct ovl_dir_cache *cache);
- void ovl_dentry_set_flag(unsigned long flag, struct dentry *dentry);
-@@ -660,7 +661,7 @@ struct ovl_inode_params {
- 	struct ovl_entry *oe;
- 	bool index;
- 	char *redirect;
--	struct dentry *lowerdata;
-+	char *lowerdata_redirect;
- };
- void ovl_inode_init(struct inode *inode, struct ovl_inode_params *oip,
- 		    unsigned long ino, int fsid);
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index 5d95e937f555..221f0cbe748e 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -125,6 +125,20 @@ static inline struct ovl_path *ovl_lowerstack(struct ovl_entry *oe)
- 	return oe && oe->__numlower > 1 ? oe->__lowerstack : &oe->__lowerpath;
- }
- 
-+static inline struct ovl_path *ovl_lowerdata(struct ovl_entry *oe)
-+{
-+	struct ovl_path *lowerstack = ovl_lowerstack(oe);
-+
-+	return lowerstack ? &lowerstack[oe->__numlower - 1] : NULL;
-+}
-+
-+static inline struct dentry *ovl_lowerdata_dentry(struct ovl_entry *oe)
-+{
-+	struct ovl_path *lowerdata = ovl_lowerdata(oe);
-+
-+	return lowerdata ? lowerdata->dentry : NULL;
-+}
-+
- /* private information held for every overlayfs dentry */
- static inline unsigned long *OVL_E_FLAGS(struct dentry *dentry)
- {
-@@ -134,7 +148,7 @@ static inline unsigned long *OVL_E_FLAGS(struct dentry *dentry)
- struct ovl_inode {
- 	union {
- 		struct ovl_dir_cache *cache;	/* directory */
--		struct inode *lowerdata;	/* regular file */
-+		const char *lowerdata_redirect;	/* regular file */
- 	};
- 	const char *redirect;
- 	u64 version;
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index e01a76de787c..6e4231799b86 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -172,7 +172,7 @@ static struct inode *ovl_alloc_inode(struct super_block *sb)
- 	oi->flags = 0;
- 	oi->__upperdentry = NULL;
- 	ovl_init_entry(&oi->oe, NULL, 0);
--	oi->lowerdata = NULL;
-+	oi->lowerdata_redirect = NULL;
- 	mutex_init(&oi->lock);
- 
- 	return &oi->vfs_inode;
-@@ -196,7 +196,7 @@ static void ovl_destroy_inode(struct inode *inode)
- 	if (S_ISDIR(inode->i_mode))
- 		ovl_dir_cache_free(inode);
- 	else
--		iput(oi->lowerdata);
-+		kfree(oi->lowerdata_redirect);
- }
- 
- static void ovl_free_fs(struct ovl_fs *ofs)
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 540819ac9b9c..fe2e5a8b216b 100644
+index 923d66d131c1..8b089035b9b3 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -245,11 +245,12 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
- void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
- {
- 	struct ovl_entry *oe = OVL_E(dentry);
--	struct ovl_path *lowerstack = ovl_lowerstack(oe);
-+	struct ovl_path *lowerdata = ovl_lowerdata(oe);
-+	struct dentry *lowerdata_dentry = ovl_lowerdata_dentry(oe);
- 
--	if (ovl_numlower(oe)) {
--		path->mnt = lowerstack[ovl_numlower(oe) - 1].layer->mnt;
--		path->dentry = lowerstack[ovl_numlower(oe) - 1].dentry;
-+	if (lowerdata_dentry) {
-+		path->dentry = lowerdata_dentry;
-+		path->mnt = lowerdata->layer->mnt;
- 	} else {
- 		*path = (struct path) { };
- 	}
-@@ -308,10 +309,7 @@ const struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
-  */
- struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
- {
--	struct ovl_entry *oe = OVL_E(dentry);
--
--	return ovl_numlower(oe) ?
--		ovl_lowerstack(oe)[ovl_numlower(oe) - 1].dentry : NULL;
-+	return ovl_lowerdata_dentry(OVL_E(dentry));
+@@ -1119,4 +1119,5 @@ void ovl_copyattr(struct inode *inode)
+        inode->i_mtime = realinode->i_mtime;
+        inode->i_ctime = realinode->i_ctime;
+        i_size_write(inode, i_size_read(realinode));
++       inode_set_iversion_raw(inode, inode_peek_iversion_raw(realinode));
  }
- 
- struct dentry *ovl_dentry_real(struct dentry *dentry)
-@@ -359,10 +357,12 @@ struct inode *ovl_inode_real(struct inode *inode)
- /* Return inode which contains lower data. Do not return metacopy */
- struct inode *ovl_inode_lowerdata(struct inode *inode)
- {
-+	struct dentry *lowerdata = ovl_lowerdata_dentry(OVL_I_E(inode));
-+
- 	if (WARN_ON(!S_ISREG(inode->i_mode)))
- 		return NULL;
- 
--	return OVL_I(inode)->lowerdata ?: ovl_inode_lower(inode);
-+	return lowerdata ? d_inode(lowerdata) : NULL;
- }
- 
- /* Return real inode which contains data. Does not return metacopy inode */
-@@ -377,9 +377,15 @@ struct inode *ovl_inode_realdata(struct inode *inode)
- 	return ovl_inode_lowerdata(inode);
- }
- 
-+const char *ovl_lowerdata_redirect(struct inode *inode)
-+{
-+	return inode && S_ISREG(inode->i_mode) ?
-+		OVL_I(inode)->lowerdata_redirect : NULL;
-+}
-+
- struct ovl_dir_cache *ovl_dir_cache(struct inode *inode)
- {
--	return OVL_I(inode)->cache;
-+	return inode && S_ISDIR(inode->i_mode) ? OVL_I(inode)->cache : NULL;
- }
- 
- void ovl_set_dir_cache(struct inode *inode, struct ovl_dir_cache *cache)
--- 
-2.34.1
 
+would've been sufficient.
+
+Since overlayfs' does explicitly disallow changes to the upper and lower trees
+while overlayfs is mounted it seems intuitive that it should just mirror the
+relevant layer's i_version.
+
+If we don't do this, then we should probably document that i_version doesn't
+have a meaning yet for the inodes of stacking filesystems.
+
+> 
+> 
+> > (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
+> >     Currently, ima assumes that it will get the correct i_version from
+> >     an inode but that just doesn't hold for stacking filesystem.
+> > 
+> > While (1) would likely just fix the immediate bug (2) is correct and
+> > _robust_. If we change how attributes are handled vfs_*() helpers will
+> > get updated and ima with it. Poking at raw inodes without using
+> > appropriate helpers is much more likely to get ima into trouble.
+> 
+> This will fix it the right way, I think (assuming it actually works),
+> and should open the door for IMA to work properly with networked
+> filesystems that support i_version as well.
+> 
+> Note that there Stephen is correct that calling getattr is probably
+> going to be less efficient here since we're going to end up calling
+> generic_fillattr unnecessarily, but I still think it's the right thing
+> to do.
+> 
+> If it turns out to cause measurable performance regressions though,
+> maybe we can look at adding a something that still calls ->getattr if it
+> exists but only returns the change_cookie value.
+
+Sounds good to me.
