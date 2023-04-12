@@ -2,52 +2,48 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47D8BC77B6E
-	for <linux-unionfs@archiver.kernel.org>; Wed, 12 Apr 2023 14:07:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A8E6C77B72
+	for <linux-unionfs@archiver.kernel.org>; Wed, 12 Apr 2023 14:21:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229881AbjDLOHL (ORCPT
+        id S229782AbjDLOVF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 12 Apr 2023 10:07:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38528 "EHLO
+        Wed, 12 Apr 2023 10:21:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48592 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229632AbjDLOHK (ORCPT
+        with ESMTP id S229802AbjDLOVE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 12 Apr 2023 10:07:10 -0400
-Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ADF411738
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Apr 2023 07:07:07 -0700 (PDT)
-Received: by mail-ua1-x92f.google.com with SMTP id x26so932437uav.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Apr 2023 07:07:07 -0700 (PDT)
+        Wed, 12 Apr 2023 10:21:04 -0400
+Received: from mail-ej1-x631.google.com (mail-ej1-x631.google.com [IPv6:2a00:1450:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D10C7469D
+        for <linux-unionfs@vger.kernel.org>; Wed, 12 Apr 2023 07:21:02 -0700 (PDT)
+Received: by mail-ej1-x631.google.com with SMTP id a640c23a62f3a-94771f05e20so419458866b.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 12 Apr 2023 07:21:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1681308427; x=1683900427;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=85p2tndvkROUxGkBE8d+d0WqA3Tm6Lp9n6Yv+SdkX+k=;
-        b=EwQ6Ukx+982beCUddAj8aa5JPDvi9GqvoZLNcO+0/trb2JxCqWja5Ju389+xAJqaTR
-         WZ7XrNZ1K5KQ88pulOK6TArcm3tKtcKplXm2nZMVF+DoQg1w3FBrHivZOC8x8Dvkbp8w
-         YXuOv49sRHX+UkFmgz3xDvbWThJzJX0c96v8VQgUxo4YuepzR4Mo+Cd2Rew9DAgUJWp6
-         lfZBHbnQ/pRHUz1kXS+nJYv8riRWpaDxUNs2q7ow+rIzh9nINtmUqEIn5Wn0CFXykVP4
-         JSOiZp+6PKni/HqMExvqNI7tstVXLg7N2iCU4NBXSkWdIrrb/6Q7AXu5nxwH31EWIOrC
-         kBsA==
+        d=szeredi.hu; s=google; t=1681309261; x=1683901261;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=U6Zk0kV5uyNqCMEgOxEs0anw8Gf7+M8kuxyKuMhLpwQ=;
+        b=hLIE+WrwtgDonKJoSaQk5dJPmZ6sLhWQ5wYDvELiinoAinQFYZt3C0cT2ffuN2bT+o
+         /SuR/2PULSw3WAW9fuEyU65cN1rz8zcbw6NJPPCoFnIqYK2gKN2UeC3SLCsh8W6+M9Uh
+         2Gmp44HuH3QT/0MvCvcSs5knxAwWBzE7AC0Bs=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1681308427; x=1683900427;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=85p2tndvkROUxGkBE8d+d0WqA3Tm6Lp9n6Yv+SdkX+k=;
-        b=DxWqX0SvNUKV5aG67K6E4P2B1e48aaucs2ofCg0iEP6Sv7lkeOazw3RCPtPT+eT2qn
-         LoZM/BbFJwEbkOt4m7qAFH8eDUxcKe7M4jTJc4zyAylKRvWHewx1Q6VN+vQfvzLu0Wta
-         +ZTdE7Qo6enx/ohnzoyNnPXSd3o69i0e/rD5gnaF3t9iuVXbgEYsFkVeO3zy4MyY0bxK
-         SBNtHLzI1xGEvO+hrBQPbXkH7MrKhHCNUdY19piqgJivCrz5Yf5yCf3ItsFKXXGMdI+l
-         7cb1CFhNMFh5tc5Kn6p4wGJymqr1oq/7BgPAOnrWVjsTZoh8MnLwoLbRY9bDseCZub4Z
-         rSZg==
-X-Gm-Message-State: AAQBX9d1swNzJ/N453DEY9NlQ3vMq8HCN50WPXUxGIwFdbc4cMWtKgPs
-        HVOs5+u9bAfSD+euyDwpw8ce2yrvwKAqxSm6XVpCXpn67TY=
-X-Google-Smtp-Source: AKy350a5IcZ/kpwwQthljAI4j9Bs21vWIFwa/9qd3QO8MkzU1UOUR24tUxN1RckZKHpzgg1g8BuxWVLPJuhPRUmXZyg=
-X-Received: by 2002:ab0:5406:0:b0:68e:33d7:7e6b with SMTP id
- n6-20020ab05406000000b0068e33d77e6bmr3917354uaa.1.1681308424760; Wed, 12 Apr
- 2023 07:07:04 -0700 (PDT)
+        d=1e100.net; s=20210112; t=1681309261; x=1683901261;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=U6Zk0kV5uyNqCMEgOxEs0anw8Gf7+M8kuxyKuMhLpwQ=;
+        b=HdF4BNhk6CWDJ/+Pzd7OEjry5Tq4ZWO2lQ53421uL19AI04KmBbxT8VtQOAqftMHvA
+         zuuIJGUCCtPjxuec5fer6KDw+86a10h38pwSFrtlv9hiFhTHLmjK1T/JXIJ9WY8w3Yfd
+         M1igMhmqOFfuvMNHITlKP8+1/iWGraMsG/kO/PmXaKCQexoHQmE9aHU33mT8iJD1opYX
+         6+ukTrPC7Ry40tkK/XjXScVNXfz0L4aK1c3AJ88nk86D8NT5mXpwhM0bmEh7WPTSUnMB
+         WfRZ3zOaWPgyxIYutYYHHOgEFNkm4fC3FsRDK8NHtEyVTbJVMDu1qdUFqiKDnC+s2ak3
+         /kRA==
+X-Gm-Message-State: AAQBX9ebzlVijt0cZLOV1XoWNEzcgxlk+CWBw3Pke8P09WgynjRBe5Ia
+        m5PYcg/6xpk7ctxFcry+qZXUmy8GalOkSzzIpRwx0iIQ3+0y59s6x1c=
+X-Google-Smtp-Source: AKy350azKneHffXHPOMv4xs6Wn5pR9uUPkQEKNf+69U8NwSWoIRSWp6lLruYSYjvEtVHJ84MEep5dK/tpB2LkxUpdhQ=
+X-Received: by 2002:a50:9ec5:0:b0:504:7684:a23c with SMTP id
+ a63-20020a509ec5000000b005047684a23cmr3003064edf.8.1681309261311; Wed, 12 Apr
+ 2023 07:21:01 -0700 (PDT)
 MIME-Version: 1.0
 References: <cover.1674227308.git.alexl@redhat.com> <5fb32a1297821040edd8c19ce796fc0540101653.camel@redhat.com>
  <CAOQ4uxhGX9NVxwsiBMP0q21ZRot6-UA0nGPp1wGNjgmKBjjBBA@mail.gmail.com>
@@ -65,132 +61,59 @@ References: <cover.1674227308.git.alexl@redhat.com> <5fb32a1297821040edd8c19ce79
  <CAOQ4uxiW0=DJpRAu90pJic0qu=pS6f2Eo7v-Uw3pmd0zsvFuuw@mail.gmail.com>
  <CAJfpeguczp-qOWJgsnKqx6CjCJLV49j1BOWs0Yxv93VUsTZ9AQ@mail.gmail.com>
  <CAOQ4uxg=1zSyTBZ-0_q=5PVuqs=4yQiMQJr1tNk7Kytxv=vuvA@mail.gmail.com>
- <CAOQ4uxich227fP7bGSCNqx-JX5h36O-MLwqPoy0r33tuH=z2cA@mail.gmail.com> <CAJfpegveZCu4zmyoeeRpqH9TmM60TgYw9cnBJuu+UyOyKJFQwA@mail.gmail.com>
-In-Reply-To: <CAJfpegveZCu4zmyoeeRpqH9TmM60TgYw9cnBJuu+UyOyKJFQwA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 12 Apr 2023 17:06:53 +0300
-Message-ID: <CAOQ4uxjhtwXfqfCeRRp2QW=NaxvVFjo2of1X95gEazV=1-x6wQ@mail.gmail.com>
+ <CAOQ4uxich227fP7bGSCNqx-JX5h36O-MLwqPoy0r33tuH=z2cA@mail.gmail.com>
+ <CAJfpegveZCu4zmyoeeRpqH9TmM60TgYw9cnBJuu+UyOyKJFQwA@mail.gmail.com> <CAOQ4uxjhtwXfqfCeRRp2QW=NaxvVFjo2of1X95gEazV=1-x6wQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjhtwXfqfCeRRp2QW=NaxvVFjo2of1X95gEazV=1-x6wQ@mail.gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Wed, 12 Apr 2023 16:20:50 +0200
+Message-ID: <CAJfpegtb4q+Oeqq8w6SpajX_YoVeJwkb1Frz+6Urwy6MXwg2sQ@mail.gmail.com>
 Subject: Re: Lazy lowerdata lookup and data-only layers (Was: Re: Composefs:)
-To:     Miklos Szeredi <miklos@szeredi.hu>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Alexander Larsson <alexl@redhat.com>,
         overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 11, 2023 at 6:50=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
+On Wed, 12 Apr 2023 at 16:07, Amir Goldstein <amir73il@gmail.com> wrote:
+
+> To elaborate:
 >
-> On Mon, 3 Apr 2023 at 21:00, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > > > >
-> > > > > I think lazyfollow could be enabled by default after we hashed ou=
-t
-> > > > > all the bugs and corner cases and most importantly remove the
-> > > > > POC limitation of lower-only overlay.
-> > > > >
-> > [...]
-> > > > >
-> > > >
-> > > > Lazy follow seems to make sense.  Why does it need to be optional?
-> > >
-> > > It doesn't.
-> > >
-> > > > Does it have any advantage to *not* do lazy follow?
-> > > >
-> > >
-> > > Not that I can think of.
-> >
-> > Miklos,
-> >
-> > I completed writing the lazy lookup patches [1].
-> >
-> > It wasn't trivial and the first versions had many traps that took time =
-to
-> > trip on, so I've made some design choices to make it safer and easier t=
-o
-> > land an initial improvement that will cater the composefs use case.
-> >
-> > The main design choice has to do with making lazy lowerdata lookup
-> > completely opt-in by defining a new type of data-only layers, such as
-> > the content addressable lower layer of composefs.
-> > The request for the data-only layers came from Alexander.
-> >
-> > The current patches only do lazy lookup in data-only layers and the loo=
-kup
-> > in data-only layers is always lazy.
-> >
-> > Data-only layers have some other advantages, for example, multiple
-> > data-only uuid-less layers are allowed.
-> > Please see the text below taken from the patches.
-> >
-> > What do you think about this direction?
-> >
-> > Alexander has started to test these patches.
-> > If he finds no issues and if you have no objections to the concept,
-> > then I will post the patches for wider review.
-> >
-> >
-> > Thanks,
-> > Amir.
-> >
-> > [1] https://github.com/amir73il/linux/commits/ovl-lazy-lowerdata-rc2
-> >
-> > Data-only lower layers
-> > ----------------------
-> >
-> > With "metacopy" feature enabled, an overlayfs regular file may be a
-> > composition of information from up to three different layers:
-> >
-> >  1) metadata from a file in the upper layer
-> >
-> >  2) st_ino and st_dev object identifier from a file in a lower layer
-> >
-> >  3) data from a file in another lower layer (further below)
-> >
-> > The "lower data" file can be on any lower layer, except from the top mo=
-st
-> > lower layer.
-> >
-> > Below the top most lower layer, any number of lower most layers may be
-> > defined as "data-only" lower layers, using the double collon ("::") sep=
-arator.
-> >
-> > For example:
-> >
-> >   mount -t overlay overlay -olowerdir=3D/lower1::/lower2:/lower3 /merge=
-d
+> lowerdir="lo1:lo2:lo3::do1:do2:do3" is allowed
 >
-> What are the rules?
+> :: must have non-zero lower layers on the left side
+> and non-zero data-only layers on the right side.
+
+Okay.   Can you please add this to the documentation?
+
 >
-> Is "do1::do2::lower" allowed?
-> Is "do1::lower1:do2::lower2 allowed?
+> Actually, this feature originates from a request from Alexander to
+> respect opaque root dir in lower layers, but I preferred to make this
+> change of behavior opt-in so it can be tested by userspace.
+
+Not sure I get that.  Does "opaque root dir" mean that only absolute
+redirects can access layers below such a layer?
+
+I guess that's not something that works today.  Or am I mistaken?
+
+I also don't get what you mean by testing in userspace.  Can you ellaborate?
+
 >
+> I took it one step further than the opaque root dir request -
+> the lookup in data-only is a generic vfs_path_lookup() of an
+> absolute path redirect from one of the lowerdirs, with no
+> checking of redirect/metacopy/opque xattrs.
+>
+> And then I only implemented lazy lookup for the lookup
+> in those new data-only layers, which made things simpler.
 
-To elaborate:
+Okay, makes sense.  If someone hits this limitation, then we can
+always start thinking about generalizing this feature.
 
-lowerdir=3D"lo1:lo2:lo3::do1:do2:do3" is allowed
+> Please see the patches I just posted for details [1].
 
-:: must have non-zero lower layers on the left side
-and non-zero data-only layers on the right side.
-
-Actually, this feature originates from a request from Alexander to
-respect opaque root dir in lower layers, but I preferred to make this
-change of behavior opt-in so it can be tested by userspace.
-
-I took it one step further than the opaque root dir request -
-the lookup in data-only is a generic vfs_path_lookup() of an
-absolute path redirect from one of the lowerdirs, with no
-checking of redirect/metacopy/opque xattrs.
-
-And then I only implemented lazy lookup for the lookup
-in those new data-only layers, which made things simpler.
-Please see the patches I just posted for details [1].
+Will do.
 
 Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-unionfs/20230412135412.1684197-1-amir73il=
-@gmail.com/
+Miklos
