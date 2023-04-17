@@ -2,185 +2,186 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77E43C77B70
-	for <linux-unionfs@archiver.kernel.org>; Fri, 14 Apr 2023 07:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E392EC77B73
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Apr 2023 01:57:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229464AbjDNHVV (ORCPT
+        id S229588AbjDQB53 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 14 Apr 2023 03:21:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48700 "EHLO
+        Sun, 16 Apr 2023 21:57:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229446AbjDNHVV (ORCPT
+        with ESMTP id S229461AbjDQB52 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 14 Apr 2023 03:21:21 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94EB14C06
-        for <linux-unionfs@vger.kernel.org>; Fri, 14 Apr 2023 00:21:19 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R171e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0Vg2fApy_1681456876;
-Received: from 30.97.49.1(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Vg2fApy_1681456876)
-          by smtp.aliyun-inc.com;
-          Fri, 14 Apr 2023 15:21:16 +0800
-Message-ID: <ae948b16-d35a-64eb-b9f4-127f66c232bb@linux.alibaba.com>
-Date:   Fri, 14 Apr 2023 15:21:15 +0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.9.1
-Subject: Re: [PATCH 1/7] ovl: update of dentry revalidate flags after copy up
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-References: <20230408164302.1392694-1-amir73il@gmail.com>
- <20230408164302.1392694-2-amir73il@gmail.com>
-From:   Gao Xiang <hsiangkao@linux.alibaba.com>
-In-Reply-To: <20230408164302.1392694-2-amir73il@gmail.com>
+        Sun, 16 Apr 2023 21:57:28 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5E751732;
+        Sun, 16 Apr 2023 18:57:26 -0700 (PDT)
+Received: from pps.filterd (m0098409.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 33GNUA2O001326;
+        Mon, 17 Apr 2023 01:57:16 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=L9Wcv8rkKVN5YPndk6JYhl0L5ZbWkzhm+xluOAyJPHs=;
+ b=lGqZ1ukiHNFWg/PALeJBikL6Cl8lCmFpUyRdRJgDDFdX66PkzF8DyqO+iy1XF6XR1BEF
+ i127tW3IUKxyvNc4URbU//R5ADdFDRpqUMBnwzkNipwUm65n5aXNRxocl1EWsysCJvX1
+ 4ilABjuUGNeqtsWRYReXQv44JzLfSGyqmI+gDfSloV7+ZB+5VNuTzAaZdPrqUAr1iZ1z
+ msmq1b7C6B+I/v0F9sZUSHVba1r6Pm9I5pVCvbYJsHBqJFu7jdxjt9qUhH8vHnJc+cTr
+ rdhFATZnwkmwuM4o8gamlAvLk2P82G0tD5KjKNXwBlRmXWTVc2wJ+FKw1m4dP1WiESMv hA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3q0deyu3kn-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 17 Apr 2023 01:57:15 +0000
+Received: from m0098409.ppops.net (m0098409.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 33H1uKvw022701;
+        Mon, 17 Apr 2023 01:57:15 GMT
+Received: from ppma02dal.us.ibm.com (a.bd.3ea9.ip4.static.sl-reverse.com [169.62.189.10])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3q0deyu3kc-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 17 Apr 2023 01:57:15 +0000
+Received: from pps.filterd (ppma02dal.us.ibm.com [127.0.0.1])
+        by ppma02dal.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 33H1u8Wr001635;
+        Mon, 17 Apr 2023 01:57:14 GMT
+Received: from smtprelay02.dal12v.mail.ibm.com ([9.208.130.97])
+        by ppma02dal.us.ibm.com (PPS) with ESMTPS id 3pykj72q5g-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 17 Apr 2023 01:57:13 +0000
+Received: from smtpav06.wdc07v.mail.ibm.com (smtpav06.wdc07v.mail.ibm.com [10.39.53.233])
+        by smtprelay02.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 33H1vCfU12059198
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 17 Apr 2023 01:57:12 GMT
+Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 7EF9858054;
+        Mon, 17 Apr 2023 01:57:12 +0000 (GMT)
+Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 384485803F;
+        Mon, 17 Apr 2023 01:57:11 +0000 (GMT)
+Received: from [9.47.158.152] (unknown [9.47.158.152])
+        by smtpav06.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+        Mon, 17 Apr 2023 01:57:11 +0000 (GMT)
+Message-ID: <e2455c0e-5a17-7fc1-95e3-5f2aca2eb409@linux.ibm.com>
+Date:   Sun, 16 Apr 2023 21:57:10 -0400
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.8.0
+Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after
+ writes
+Content-Language: en-US
+To:     Jeff Layton <jlayton@kernel.org>,
+        Christian Brauner <brauner@kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Paul Moore <paul@paul-moore.com>, zohar@linux.ibm.com,
+        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
+        linux-kernel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
+ <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
+From:   Stefan Berger <stefanb@linux.ibm.com>
+In-Reply-To: <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: lzAmk8wQKKpT3TCd3DOaOW_gHklSx6J9
+X-Proofpoint-GUID: hmd0gN8gzfOCF7eDU2NlxfKWEDSI_Btz
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+MIME-Version: 1.0
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
+ definitions=2023-04-16_16,2023-04-14_01,2023-02-09_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0 phishscore=0
+ suspectscore=0 spamscore=0 mlxlogscore=999 adultscore=0 mlxscore=0
+ impostorscore=0 lowpriorityscore=0 priorityscore=1501 clxscore=1015
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2303200000 definitions=main-2304170012
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
 
 
-On 2023/4/9 00:42, Amir Goldstein wrote:
-> After copy up, we may need to update d_flags if upper dentry is on a
-> remote fs and lower dentries are not.
+On 4/7/23 09:29, Jeff Layton wrote:
+>>>>>
+>>>>> I would ditch the original proposal in favor of this 2-line patch shown here:
+>>>>>
+>>>>> https://lore.kernel.org/linux-integrity/a95f62ed-8b8a-38e5-e468-ecbde3b221af@linux.ibm.com/T/#m3bd047c6e5c8200df1d273c0ad551c645dd43232
+>>
+>> We should cool it with the quick hacks to fix things. :)
+>>
 > 
-> Add helpers to allow incremental update of the revalidate flags.
+> Yeah. It might fix this specific testcase, but I think the way it uses
+> the i_version is "gameable" in other situations. Then again, I don't
+> know a lot about IMA in this regard.
 > 
-> Fixes: bccece1ead36 ("ovl: allow remote upper")
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> When is it expected to remeasure? If it's only expected to remeasure on
+> a close(), then that's one thing. That would be a weird design though.
 
-Reviewed-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+IMA should remeasure the file when it has visibly changed for another thread or process.
 
-> ---
->   fs/overlayfs/copy_up.c   |  2 ++
->   fs/overlayfs/dir.c       |  3 +--
->   fs/overlayfs/export.c    |  3 +--
->   fs/overlayfs/namei.c     |  3 +--
->   fs/overlayfs/overlayfs.h |  6 ++++--
->   fs/overlayfs/super.c     |  2 +-
->   fs/overlayfs/util.c      | 24 ++++++++++++++++++++----
->   7 files changed, 30 insertions(+), 13 deletions(-)
+
+>>> -----------------------8<---------------------------
+>>>
+>>> [PATCH] IMA: use vfs_getattr_nosec to get the i_version
+>>>
+>>> IMA currently accesses the i_version out of the inode directly when it
+>>> does a measurement. This is fine for most simple filesystems, but can be
+>>> problematic with more complex setups (e.g. overlayfs).
+>>>
+>>> Make IMA instead call vfs_getattr_nosec to get this info. This allows
+>>> the filesystem to determine whether and how to report the i_version, and
+>>> should allow IMA to work properly with a broader class of filesystems in
+>>> the future.
+>>>
+>>> Reported-by: Stefan Berger <stefanb@linux.ibm.com>
+>>> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+>>> ---
+>>
+>> So, I think we want both; we want the ovl_copyattr() and the
+>> vfs_getattr_nosec() change:
+>>
+>> (1) overlayfs should copy up the inode version in ovl_copyattr(). That
+>>      is in line what we do with all other inode attributes. IOW, the
+>>      overlayfs inode's i_version counter should aim to mirror the
+>>      relevant layer's i_version counter. I wouldn't know why that
+>>      shouldn't be the case. Asking the other way around there doesn't
+>>      seem to be any use for overlayfs inodes to have an i_version that
+>>      isn't just mirroring the relevant layer's i_version.
 > 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index c14e90764e35..7bf101e756c8 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -576,6 +576,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
->   			/* Restore timestamps on parent (best effort) */
->   			ovl_set_timestamps(ofs, upperdir, &c->pstat);
->   			ovl_dentry_set_upper_alias(c->dentry);
-> +			ovl_dentry_update_reval(c->dentry, upper);
->   		}
->   	}
->   	inode_unlock(udir);
-> @@ -895,6 +896,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
->   		inode_unlock(udir);
->   
->   		ovl_dentry_set_upper_alias(c->dentry);
-> +		ovl_dentry_update_reval(c->dentry, ovl_dentry_upper(c->dentry));
->   	}
->   
->   out:
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index fc25fb95d5fc..9be52d8013c8 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -269,8 +269,7 @@ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
->   
->   	ovl_dir_modified(dentry->d_parent, false);
->   	ovl_dentry_set_upper_alias(dentry);
-> -	ovl_dentry_update_reval(dentry, newdentry,
-> -			DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-> +	ovl_dentry_init_reval(dentry, newdentry);
->   
->   	if (!hardlink) {
->   		/*
-> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> index defd4e231ad2..5c36fb3a7bab 100644
-> --- a/fs/overlayfs/export.c
-> +++ b/fs/overlayfs/export.c
-> @@ -326,8 +326,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
->   	if (upper_alias)
->   		ovl_dentry_set_upper_alias(dentry);
->   
-> -	ovl_dentry_update_reval(dentry, upper,
-> -			DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-> +	ovl_dentry_init_reval(dentry, upper);
->   
->   	return d_instantiate_anon(dentry, inode);
->   
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index cfb3420b7df0..100a492d2b2a 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -1122,8 +1122,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
->   			ovl_set_flag(OVL_UPPERDATA, inode);
->   	}
->   
-> -	ovl_dentry_update_reval(dentry, upperdentry,
-> -			DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-> +	ovl_dentry_init_reval(dentry, upperdentry);
->   
->   	revert_creds(old_cred);
->   	if (origin_path) {
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 4d0b278f5630..e100c55bb924 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -375,8 +375,10 @@ bool ovl_index_all(struct super_block *sb);
->   bool ovl_verify_lower(struct super_block *sb);
->   struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
->   bool ovl_dentry_remote(struct dentry *dentry);
-> -void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *upperdentry,
-> -			     unsigned int mask);
-> +void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *realdentry);
-> +void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry);
-> +void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
-> +			   unsigned int mask);
->   bool ovl_dentry_weird(struct dentry *dentry);
->   enum ovl_path_type ovl_path_type(struct dentry *dentry);
->   void ovl_path_upper(struct dentry *dentry, struct path *path);
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index f1d9f75f8786..49b6956468f9 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1885,7 +1885,7 @@ static struct dentry *ovl_get_root(struct super_block *sb,
->   	ovl_dentry_set_flag(OVL_E_CONNECTED, root);
->   	ovl_set_upperdata(d_inode(root));
->   	ovl_inode_init(d_inode(root), &oip, ino, fsid);
-> -	ovl_dentry_update_reval(root, upperdentry, DCACHE_OP_WEAK_REVALIDATE);
-> +	ovl_dentry_init_flags(root, upperdentry, DCACHE_OP_WEAK_REVALIDATE);
->   
->   	return root;
->   }
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 923d66d131c1..6a0652bd51f2 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -94,14 +94,30 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
->   	return oe;
->   }
->   
-> +#define OVL_D_REVALIDATE (DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE)
-> +
->   bool ovl_dentry_remote(struct dentry *dentry)
->   {
-> -	return dentry->d_flags &
-> -		(DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-> +	return dentry->d_flags & OVL_D_REVALIDATE;
-> +}
-> +
-> +void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *realdentry)
-> +{
-> +	if (!ovl_dentry_remote(realdentry))
-> +		return;
-> +
-> +	spin_lock(&dentry->d_lock);
-> +	dentry->d_flags |= realdentry->d_flags & OVL_D_REVALIDATE;
+> It's less than ideal to do this IMO, particularly with an IS_I_VERSION
+> inode.
+> 
+> You can't just copy up the value from the upper. You'll need to call
+> inode_query_iversion(upper_inode), which will flag the upper inode for a
+> logged i_version update on the next write. IOW, this could create some
+> (probably minor) metadata write amplification in the upper layer inode
+> with IS_I_VERSION inodes.
+> 
+> 
+>> (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
+>>      Currently, ima assumes that it will get the correct i_version from
+>>      an inode but that just doesn't hold for stacking filesystem.
+>>
+>> While (1) would likely just fix the immediate bug (2) is correct and
+>> _robust_. If we change how attributes are handled vfs_*() helpers will
+>> get updated and ima with it. Poking at raw inodes without using
+>> appropriate helpers is much more likely to get ima into trouble.
+> 
+> This will fix it the right way, I think (assuming it actually works),
+> and should open the door for IMA to work properly with networked
+> filesystems that support i_version as well.
+> 
+> Note that there Stephen is correct that calling getattr is probably
+> going to be less efficient here since we're going to end up calling
+> generic_fillattr unnecessarily, but I still think it's the right thing
+> to do.
 
-Although I'm not sure if it could cause some lazy awareness due to dcache
-RCU-walk, but maybe that is fine since such window is small?
+I was wondering whether to use the existing inode_eq_iversion() for all
+other filesystems than overlayfs, nfs, and possibly other ones (which ones?)
+where we would use the vfs_getattr_nosec() via a case on inode->i_sb->s_magic?
+If so, would this function be generic enough to be a public function for libfs.c?
 
-Thanks,
-Gao Xiang
+I'll hopefully be able to test the proposed patch tomorrow.
+
+> 
+> If it turns out to cause measurable performance regressions though,
+> maybe we can look at adding a something that still calls ->getattr if it
+> exists but only returns the change_cookie value.
