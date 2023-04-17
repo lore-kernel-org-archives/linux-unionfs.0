@@ -2,260 +2,341 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0574EC77B76
-	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Apr 2023 14:08:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D54BC77B76
+	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Apr 2023 14:21:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231124AbjDQOIY (ORCPT
+        id S230085AbjDQOVK (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Apr 2023 10:08:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60834 "EHLO
+        Mon, 17 Apr 2023 10:21:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230285AbjDQOIF (ORCPT
+        with ESMTP id S230002AbjDQOVJ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Apr 2023 10:08:05 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0D517EDA;
-        Mon, 17 Apr 2023 07:07:33 -0700 (PDT)
-Received: from pps.filterd (m0098420.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 33HCqiBF006625;
-        Mon, 17 Apr 2023 14:07:10 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=laoXS98o4L49IyYojK48ave0JpcBP4QNQBAEUKLJsqQ=;
- b=Yxk+/6UtyQ2VoxtSYIMywS5JS8/eo7yZIh49cUs3tiKaBPVzr2HoT1BAEm4W30JuHyM0
- 3w7NyJ4iC4wiKmB80IlpAWZMkh081xrcSokaJNaTy200tkb/i1juDRPy2KMm3tVgOVKq
- JxtEUqkAfUkVgw/TUu28gwtyY5O/ZuwQE5oIbO9Ly5iX0T3/tDy6SvkhxnWppzME/8wz
- wD6JDvdpbvl6h6lPcXTQ13ZASmXxSmyewCGLmiVq5xqqGFPa6Fvsh4unJAVFXc5oiDW3
- MO2847gxTIciCA6I5Ng7Jt9uKQYy/Ul0HHD/+ZtVVTmk0KvgEqctaEh1BqN2cqe3dARq YA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3q12vkg8cm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 17 Apr 2023 14:07:10 +0000
-Received: from m0098420.ppops.net (m0098420.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 33HDQZSB024433;
-        Mon, 17 Apr 2023 14:07:10 GMT
-Received: from ppma04dal.us.ibm.com (7a.29.35a9.ip4.static.sl-reverse.com [169.53.41.122])
-        by mx0b-001b2d01.pphosted.com (PPS) with ESMTPS id 3q12vkg8c9-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 17 Apr 2023 14:07:10 +0000
-Received: from pps.filterd (ppma04dal.us.ibm.com [127.0.0.1])
-        by ppma04dal.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 33HC5u5D029086;
-        Mon, 17 Apr 2023 14:07:09 GMT
-Received: from smtprelay06.wdc07v.mail.ibm.com ([9.208.129.118])
-        by ppma04dal.us.ibm.com (PPS) with ESMTPS id 3pykj760v4-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 17 Apr 2023 14:07:09 +0000
-Received: from smtpav06.wdc07v.mail.ibm.com (smtpav06.wdc07v.mail.ibm.com [10.39.53.233])
-        by smtprelay06.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 33HE77Gr8651388
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 17 Apr 2023 14:07:07 GMT
-Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 971C858056;
-        Mon, 17 Apr 2023 14:07:07 +0000 (GMT)
-Received: from smtpav06.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id CE94758062;
-        Mon, 17 Apr 2023 14:07:05 +0000 (GMT)
-Received: from [9.47.158.152] (unknown [9.47.158.152])
-        by smtpav06.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-        Mon, 17 Apr 2023 14:07:05 +0000 (GMT)
-Message-ID: <496ba5fc-9c0b-a906-2373-5ac061d6da3a@linux.ibm.com>
-Date:   Mon, 17 Apr 2023 10:07:05 -0400
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after
- writes
-Content-Language: en-US
-To:     Jeff Layton <jlayton@kernel.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Paul Moore <paul@paul-moore.com>
-Cc:     zohar@linux.ibm.com, linux-integrity@vger.kernel.org,
-        miklos@szeredi.hu, linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        amir73il@gmail.com
-References: <20230405171449.4064321-1-stefanb@linux.ibm.com>
- <20230406-diffamieren-langhaarig-87511897e77d@brauner>
- <CAHC9VhQsnkLzT7eTwVr-3SvUs+mcEircwztfaRtA+4ZaAh+zow@mail.gmail.com>
- <a6c6e0e4-047f-444b-3343-28b71ddae7ae@linux.ibm.com>
- <CAHC9VhQyWa1OnsOvoOzD37EmDnESfo4Rxt2eCSUgu+9U8po-CA@mail.gmail.com>
- <20230406-wasser-zwanzig-791bc0bf416c@brauner>
- <546145ecbf514c4c1a997abade5f74e65e5b1726.camel@kernel.org>
- <45a9c575-0b7e-f66a-4765-884865d14b72@linux.ibm.com>
- <60339e3bd08a18358ac8c8a16dc67c74eb8ba756.camel@kernel.org>
- <d61ed13b-0fd2-0283-96d2-0ff9c5e0a2f9@linux.ibm.com>
- <4f739cc6847975991874d56ef9b9716c82cf62a3.camel@kernel.org>
- <7d8f05e26dc7152dfad771dfc867dec145aa054b.camel@kernel.org>
-From:   Stefan Berger <stefanb@linux.ibm.com>
-In-Reply-To: <7d8f05e26dc7152dfad771dfc867dec145aa054b.camel@kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: vaSjj_r0eeuQAYQrTvAwNhKeBSsvRQyk
-X-Proofpoint-ORIG-GUID: 9Zb0X9YUjnhtVPWptrW6DyL4kDDUKdjv
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        Mon, 17 Apr 2023 10:21:09 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AF89173A
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 07:20:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1681741220;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=P6nOdX40m7EcDkWmMzMYS+1SYVji7Eiopc2cYOWmrcE=;
+        b=igF84CaoNe/+fSkyAM22W11BT+qBehQCh1vu6xJ717bpShIdpXz4RonTlVxCxVPJyZWvji
+        S3CqUXulKFwArBLRrGSg9D2M0AkjGhRKn+bmP8IqBYobNN9h/bUhamOxHok2yP9tW9CjzX
+        gtBK1wbNRohdDU9MCMGzFSJxY+NTiac=
+Received: from mail-lf1-f71.google.com (mail-lf1-f71.google.com
+ [209.85.167.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-67-coBMAevyM26UuzLRr1XfbQ-1; Mon, 17 Apr 2023 10:20:19 -0400
+X-MC-Unique: coBMAevyM26UuzLRr1XfbQ-1
+Received: by mail-lf1-f71.google.com with SMTP id 2adb3069b0e04-4edb884cdc3so497228e87.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 07:20:19 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681741217; x=1684333217;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=P6nOdX40m7EcDkWmMzMYS+1SYVji7Eiopc2cYOWmrcE=;
+        b=lmDCfmO4L0wYo9aISQAIezGtb/dOAAx7hjH4L/0vtjbVF8LpCQwJfo4THLbjQL5RF/
+         VARc05OB1xoSe1Ut/uCAj5B5cxIZMERF/zEmj8YKKN7pOJ4MK0vDx/qAZicUjzqA+70V
+         4OT8HYrflx2rkGcOZuwFyxN+uIYYmK0SSwdUU4cI6Wfnzuak5RJwUWsK0fip7asO4Wbv
+         TwN5rQhr0+gYORPy2WVwh12ALwuyIBcw2JkHLdA+6EfVmEGepoI9ySZcKgpUzBzAwJrC
+         fU+lzVCdPPQZCyz4h8Om5CwRCeiCadrjyrNi/oHuoklLNYykXAN7PWJr3XwMDEh08Xjn
+         rKfg==
+X-Gm-Message-State: AAQBX9eGAORyxMgaRwZEpImIk8O8PiyXPfWVReff3H913nyfL89KUg0g
+        TCQXP+ZfwK1Na8JJLFNXm1Q2ICixkTyBshcsQELtJidtDsil+NCMF5nmBQu7SHXN3yeOxW8Civi
+        LR4jTQ5LIvJwKRBcKwMoplbjicVGYu6UwFQ==
+X-Received: by 2002:ac2:4558:0:b0:4eb:c19e:c61c with SMTP id j24-20020ac24558000000b004ebc19ec61cmr1810868lfm.38.1681741217306;
+        Mon, 17 Apr 2023 07:20:17 -0700 (PDT)
+X-Google-Smtp-Source: AKy350bkalk6ZmLKKHdtNCyD7jA3g3BxyTrLuSZZwCgHmEbL65Gxsn7KXQK7/KN1i8Pv78szOVfX+g==
+X-Received: by 2002:ac2:4558:0:b0:4eb:c19e:c61c with SMTP id j24-20020ac24558000000b004ebc19ec61cmr1810864lfm.38.1681741216922;
+        Mon, 17 Apr 2023 07:20:16 -0700 (PDT)
+Received: from greebo.mooo.com (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
+        by smtp.gmail.com with ESMTPSA id v16-20020ac25610000000b004cb0dd2367fsm2041390lfd.308.2023.04.17.07.20.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 17 Apr 2023 07:20:16 -0700 (PDT)
+Message-ID: <4893401820bb3339194dc6cd89a43ebc5c505ce5.camel@redhat.com>
+Subject: Re: [PATCH 2/7] ovl: use OVL_E() and OVL_E_FLAGS() accessors
+From:   Alexander Larsson <alexl@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org
+Date:   Mon, 17 Apr 2023 16:20:15 +0200
+In-Reply-To: <20230408164302.1392694-3-amir73il@gmail.com>
+References: <20230408164302.1392694-1-amir73il@gmail.com>
+         <20230408164302.1392694-3-amir73il@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-04-17_08,2023-04-17_01,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015 mlxscore=0
- malwarescore=0 adultscore=0 lowpriorityscore=0 mlxlogscore=999 bulkscore=0
- spamscore=0 phishscore=0 priorityscore=1501 impostorscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2303200000
- definitions=main-2304170126
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Sat, 2023-04-08 at 19:42 +0300, Amir Goldstein wrote:
+> Instead of open coded instances, because we are about to split
+> the two apart.
+>=20
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
+Reviewed-by: Alexander Larsson <alexl@redhat.com>
 
-On 4/6/23 18:04, Jeff Layton wrote:
-> On Thu, 2023-04-06 at 17:24 -0400, Jeff Layton wrote:
->> On Thu, 2023-04-06 at 16:22 -0400, Stefan Berger wrote:
->>>
->>> On 4/6/23 15:37, Jeff Layton wrote:
->>>> On Thu, 2023-04-06 at 15:11 -0400, Stefan Berger wrote:
->>>>>
->>>>> On 4/6/23 14:46, Jeff Layton wrote:
->>>>>> On Thu, 2023-04-06 at 17:01 +0200, Christian Brauner wrote:
->>>>>>> On Thu, Apr 06, 2023 at 10:36:41AM -0400, Paul Moore wrote:
->>>>>
->>>>>>
->>>>>> Correct. As long as IMA is also measuring the upper inode then it seems
->>>>>> like you shouldn't need to do anything special here.
->>>>>
->>>>> Unfortunately IMA does not notice the changes. With the patch provided in the other email IMA works as expected.
->>>>>
->>>>
->>>>
->>>> It looks like remeasurement is usually done in ima_check_last_writer.
->>>> That gets called from __fput which is called when we're releasing the
->>>> last reference to the struct file.
->>>>
->>>> You've hooked into the ->release op, which gets called whenever
->>>> filp_close is called, which happens when we're disassociating the file
->>>> from the file descriptor table.
->>>>
->>>> So...I don't get it. Is ima_file_free not getting called on your file
->>>> for some reason when you go to close it? It seems like that should be
->>>> handling this.
->>>
->>> I would ditch the original proposal in favor of this 2-line patch shown here:
->>>
->>> https://lore.kernel.org/linux-integrity/a95f62ed-8b8a-38e5-e468-ecbde3b221af@linux.ibm.com/T/#m3bd047c6e5c8200df1d273c0ad551c645dd43232
->>>
->>>
->>
->> Ok, I think I get it. IMA is trying to use the i_version from the
->> overlayfs inode.
->>
->> I suspect that the real problem here is that IMA is just doing a bare
->> inode_query_iversion. Really, we ought to make IMA call
->> vfs_getattr_nosec (or something like it) to query the getattr routine in
->> the upper layer. Then overlayfs could just propagate the results from
->> the upper layer in its response.
->>
->> That sort of design may also eventually help IMA work properly with more
->> exotic filesystems, like NFS or Ceph.
->>
->>
->>
-> 
-> Maybe something like this? It builds for me but I haven't tested it. It
-> looks like overlayfs already should report the upper layer's i_version
-> in getattr, though I haven't tested that either:
-> 
-> -----------------------8<---------------------------
-> 
-> [PATCH] IMA: use vfs_getattr_nosec to get the i_version
-> 
-> IMA currently accesses the i_version out of the inode directly when it
-> does a measurement. This is fine for most simple filesystems, but can be
-> problematic with more complex setups (e.g. overlayfs).
-> 
-> Make IMA instead call vfs_getattr_nosec to get this info. This allows
-> the filesystem to determine whether and how to report the i_version, and
-> should allow IMA to work properly with a broader class of filesystems in
-> the future.
-> 
-> Reported-by: Stefan Berger <stefanb@linux.ibm.com>
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
 > ---
->   security/integrity/ima/ima_api.c  |  9 ++++++---
->   security/integrity/ima/ima_main.c | 12 ++++++++----
->   2 files changed, 14 insertions(+), 7 deletions(-)
-> 
-> diff --git a/security/integrity/ima/ima_api.c b/security/integrity/ima/ima_api.c
-> index d3662f4acadc..c45902e72044 100644
-> --- a/security/integrity/ima/ima_api.c
-> +++ b/security/integrity/ima/ima_api.c
-> @@ -13,7 +13,6 @@
->   #include <linux/fs.h>
->   #include <linux/xattr.h>
->   #include <linux/evm.h>
-> -#include <linux/iversion.h>
->   #include <linux/fsverity.h>
->   
->   #include "ima.h"
-> @@ -246,10 +245,11 @@ int ima_collect_measurement(struct integrity_iint_cache *iint,
->   	struct inode *inode = file_inode(file);
->   	const char *filename = file->f_path.dentry->d_name.name;
->   	struct ima_max_digest_data hash;
-> +	struct kstat stat;
->   	int result = 0;
->   	int length;
->   	void *tmpbuf;
-> -	u64 i_version;
-> +	u64 i_version = 0;
->   
->   	/*
->   	 * Always collect the modsig, because IMA might have already collected
-> @@ -268,7 +268,10 @@ int ima_collect_measurement(struct integrity_iint_cache *iint,
->   	 * to an initial measurement/appraisal/audit, but was modified to
->   	 * assume the file changed.
->   	 */
-> -	i_version = inode_query_iversion(inode);
-> +	result = vfs_getattr_nosec(&file->f_path, &stat, STATX_CHANGE_COOKIE,
-> +				   AT_STATX_SYNC_AS_STAT);
-> +	if (!result && (stat.result_mask & STATX_CHANGE_COOKIE))
-> +		i_version = stat.change_cookie;
->   	hash.hdr.algo = algo;
->   	hash.hdr.length = hash_digest_size[algo];
->   
-> diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
-> index d66a0a36415e..365db0e43d7c 100644
-> --- a/security/integrity/ima/ima_main.c
-> +++ b/security/integrity/ima/ima_main.c
-> @@ -24,7 +24,6 @@
->   #include <linux/slab.h>
->   #include <linux/xattr.h>
->   #include <linux/ima.h>
-> -#include <linux/iversion.h>
->   #include <linux/fs.h>
->   
->   #include "ima.h"
-> @@ -164,11 +163,16 @@ static void ima_check_last_writer(struct integrity_iint_cache *iint,
->   
->   	mutex_lock(&iint->mutex);
->   	if (atomic_read(&inode->i_writecount) == 1) {
-> +		struct kstat stat;
+> =C2=A0fs/overlayfs/export.c=C2=A0=C2=A0=C2=A0 |=C2=A0 2 +-
+> =C2=A0fs/overlayfs/namei.c=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 8 ++++----
+> =C2=A0fs/overlayfs/ovl_entry.h |=C2=A0 5 +++++
+> =C2=A0fs/overlayfs/super.c=C2=A0=C2=A0=C2=A0=C2=A0 |=C2=A0 2 +-
+> =C2=A0fs/overlayfs/util.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 | 20 ++++++++++--=
+--------
+> =C2=A05 files changed, 21 insertions(+), 16 deletions(-)
+>=20
+> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+> index 5c36fb3a7bab..2cfdfcca5659 100644
+> --- a/fs/overlayfs/export.c
+> +++ b/fs/overlayfs/export.c
+> @@ -341,7 +341,7 @@ static struct dentry *ovl_obtain_alias(struct
+> super_block *sb,
+> =C2=A0/* Get the upper or lower dentry in stack whose on layer @idx */
+> =C2=A0static struct dentry *ovl_dentry_real_at(struct dentry *dentry, int
+> idx)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0int i;
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (!idx)
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 100a492d2b2a..e66352f19755 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -790,7 +790,7 @@ struct dentry *ovl_lookup_index(struct ovl_fs
+> *ofs, struct dentry *upper,
+> =C2=A0 */
+> =C2=A0int ovl_path_next(int idx, struct dentry *dentry, struct path *path=
+)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0BUG_ON(idx < 0);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (idx =3D=3D 0) {
+> @@ -833,8 +833,8 @@ struct dentry *ovl_lookup(struct inode *dir,
+> struct dentry *dentry,
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0const struct cred *old_cr=
+ed;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_fs *ofs =3D de=
+ntry->d_sb->s_fs_info;
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *poe =3D dent=
+ry->d_parent->d_fsdata;
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *roe =3D dent=
+ry->d_sb->s_root->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *poe =3D OVL_=
+E(dentry->d_parent);
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *roe =3D OVL_=
+E(dentry->d_sb->s_root);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_path *stack =
+=3D NULL, *origin_path =3D NULL;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct dentry *upperdir, =
+*upperdentry =3D NULL;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct dentry *origin =3D=
+ NULL;
+> @@ -1157,7 +1157,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> struct dentry *dentry,
+> =C2=A0
+> =C2=A0bool ovl_lower_positive(struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *poe =3D dent=
+ry->d_parent->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *poe =3D OVL_=
+E(dentry->d_parent);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0const struct qstr *name =
+=3D &dentry->d_name;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0const struct cred *old_cr=
+ed;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0unsigned int i;
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index fd11fe6d6d45..4c7312126b3b 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -124,6 +124,11 @@ static inline struct ovl_entry *OVL_E(struct
+> dentry *dentry)
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return (struct ovl_entry =
+*) dentry->d_fsdata;
+> =C2=A0}
+> =C2=A0
+> +static inline unsigned long *OVL_E_FLAGS(struct dentry *dentry)
+> +{
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return &OVL_E(dentry)->flags;
+> +}
 > +
->   		update = test_and_clear_bit(IMA_UPDATE_XATTR,
->   					    &iint->atomic_flags);
-> -		if (!IS_I_VERSION(inode) ||
-> -		    !inode_eq_iversion(inode, iint->version) ||
-> -		    (iint->flags & IMA_NEW_FILE)) {
-> +		if ((iint->flags & IMA_NEW_FILE) ||
-> +		    vfs_getattr_nosec(&file->f_path, &stat,
-> +				      STATX_CHANGE_COOKIE,
-> +				      AT_STATX_SYNC_AS_STAT) ||
-> +		    !(stat.result_mask & STATX_CHANGE_COOKIE) ||
-> +		    stat.change_cookie != iint->version) {
->   			iint->flags &= ~(IMA_DONE_MASK | IMA_NEW_FILE);
->   			iint->measured_pcrs = 0;
->   			if (update)
+> =C2=A0struct ovl_inode {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0union {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_dir_cache *cache;=C2=A0=C2=A0=C2=A0=C2=
+=A0/* directory */
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 49b6956468f9..108824b359e6 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -138,7 +138,7 @@ static int ovl_revalidate_real(struct dentry *d,
+> unsigned int flags, bool weak)
+> =C2=A0static int ovl_dentry_revalidate_common(struct dentry *dentry,
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0unsigned int flags, bool
+> weak)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct inode *inode =3D d=
+_inode_rcu(dentry);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct dentry *upper;
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0unsigned int i;
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 6a0652bd51f2..01e6b4ec3074 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -143,7 +143,7 @@ bool ovl_dentry_weird(struct dentry *dentry)
+> =C2=A0
+> =C2=A0enum ovl_path_type ovl_path_type(struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0enum ovl_path_type type =
+=3D 0;
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (ovl_dentry_upper(dent=
+ry)) {
+> @@ -176,7 +176,7 @@ void ovl_path_upper(struct dentry *dentry, struct
+> path *path)
+> =C2=A0
+> =C2=A0void ovl_path_lower(struct dentry *dentry, struct path *path)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (oe->numlower) {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0path->mnt =3D oe->lowerstack[0].layer->mnt;
+> @@ -188,7 +188,7 @@ void ovl_path_lower(struct dentry *dentry, struct
+> path *path)
+> =C2=A0
+> =C2=A0void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (oe->numlower) {
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0path->mnt =3D oe->lowerstack[oe->numlower - 1].laye=
+r-
+> >mnt;
+> @@ -231,14 +231,14 @@ struct dentry *ovl_dentry_upper(struct dentry
+> *dentry)
+> =C2=A0
+> =C2=A0struct dentry *ovl_dentry_lower(struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return oe->numlower ? oe-=
+>lowerstack[0].dentry : NULL;
+> =C2=A0}
+> =C2=A0
+> =C2=A0const struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return oe->numlower ? oe-=
+>lowerstack[0].layer : NULL;
+> =C2=A0}
+> @@ -251,7 +251,7 @@ const struct ovl_layer *ovl_layer_lower(struct
+> dentry *dentry)
+> =C2=A0 */
+> =C2=A0struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return oe->numlower ? oe-=
+>lowerstack[oe->numlower - 1].dentry
+> : NULL;
+> =C2=A0}
+> @@ -329,17 +329,17 @@ void ovl_set_dir_cache(struct inode *inode,
+> struct ovl_dir_cache *cache)
+> =C2=A0
+> =C2=A0void ovl_dentry_set_flag(unsigned long flag, struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0set_bit(flag, &OVL_E(dentry)->=
+flags);
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0set_bit(flag, OVL_E_FLAGS(dent=
+ry));
+> =C2=A0}
+> =C2=A0
+> =C2=A0void ovl_dentry_clear_flag(unsigned long flag, struct dentry
+> *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0clear_bit(flag, &OVL_E(dentry)=
+->flags);
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0clear_bit(flag, OVL_E_FLAGS(de=
+ntry));
+> =C2=A0}
+> =C2=A0
+> =C2=A0bool ovl_dentry_test_flag(unsigned long flag, struct dentry *dentry=
+)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return test_bit(flag, &OVL_E(d=
+entry)->flags);
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0return test_bit(flag, OVL_E_FL=
+AGS(dentry));
+> =C2=A0}
+> =C2=A0
+> =C2=A0bool ovl_dentry_is_opaque(struct dentry *dentry)
+> @@ -1015,7 +1015,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs
+> *ofs, const struct path *path)
+> =C2=A0
+> =C2=A0bool ovl_is_metacopy_dentry(struct dentry *dentry)
+> =C2=A0{
+> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D dentr=
+y->d_fsdata;
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0struct ovl_entry *oe =3D OVL_E=
+(dentry);
+> =C2=A0
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if (!d_is_reg(dentry))
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0return false;
 
-I tested this in the OpenBMC setup with overlayfs acting as rootfs. It works now as expected.
-
-Tested-by: Stefan Berger <stefanb@linux.ibm.com>
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
+=3D-=3D-=3D
+ Alexander Larsson                                            Red Hat,
+Inc=20
+       alexl@redhat.com            alexander.larsson@gmail.com=20
+He's a one-legged devious stage actor for the 21st century. She's a=20
+mistrustful blonde research scientist prone to fits of savage,=20
+blood-crazed rage. They fight crime!=20
 
