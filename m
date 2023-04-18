@@ -2,60 +2,60 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 716CDC6FD18
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 13:34:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4495EC6FD18
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 13:41:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229756AbjDRNeM (ORCPT
+        id S231544AbjDRNle (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 Apr 2023 09:34:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53394 "EHLO
+        Tue, 18 Apr 2023 09:41:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56726 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229627AbjDRNeL (ORCPT
+        with ESMTP id S230477AbjDRNld (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2023 09:34:11 -0400
-Received: from mail-ua1-x931.google.com (mail-ua1-x931.google.com [IPv6:2607:f8b0:4864:20::931])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 152B6119
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:34:10 -0700 (PDT)
-Received: by mail-ua1-x931.google.com with SMTP id l17so7521655uak.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:34:10 -0700 (PDT)
+        Tue, 18 Apr 2023 09:41:33 -0400
+Received: from mail-vs1-xe32.google.com (mail-vs1-xe32.google.com [IPv6:2607:f8b0:4864:20::e32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B00A210B
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:41:32 -0700 (PDT)
+Received: by mail-vs1-xe32.google.com with SMTP id l16so5966138vst.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:41:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1681824849; x=1684416849;
+        d=gmail.com; s=20221208; t=1681825291; x=1684417291;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=qMnORTrtLovyRrF4ko6mL37dx5rFXBbFyJLUt1NmH5g=;
-        b=gYYcmNZwwFHkxjbqYoyDcWw148+gxtej24Nqwr+cOKmBPysbECh0Ww20YiDDnerIJ6
-         ADfb9YlBCI/fmcqGAhcN5SGDgKxm0DVvTrLrOGCWknG93cbNIrufJjRxkqaPYO31+GJR
-         J8u69hPvQNSMhJPNEwWeb+zZk/eXb4/KMlxogUcnfGWos4S3i9k9IyJoIwFowRqyno8P
-         gHnqxzuqUdg9FMYgdaT+qmCFK9iCXPVh/XERkEB0sM3lxwd3EW9e8CZe5Inkv82f1H5g
-         38BpnncBOko0+uX8QcaU8oXyGlv1ceg+p0gSKZSjZLv03qtgFiUVfqsTRMT9+BEQIQhy
-         Y+Dw==
+        bh=zhxpMB3fGiQq+0vQZbOk4dc3m0RYfVvz7m99Q8e8S6Q=;
+        b=oizVRQUhVsL1d4aQPcATwCAqwjtpObi4kNIXwyppbeR543xk2We2CPUdDbZmKSWtNr
+         67Gb2EbJaxDOkifSd2peK12nqHTrUjcnNeqc0YKOzlu7Wm9Oo1+ACC6BKtzFnAYd+HlR
+         940JDpF0MA1nnX7P95ReBSVsMVKI6+sk0Na+9WmsM46QCPladuKLYdYDhRB/ztYgAmpM
+         zoSyeNt2ML4J/meNGxX0NZr9J6ALeSU7Q4khLTiWcDgjQNUMcvt4rvEMhj1SpVhaYz0Z
+         hDUHTj3kPzQWG+JzxPRpDkOQQPQlqnt6op0/sGfZV8gZ1oEVs3t9YhO8XzmhF/Xb/bN7
+         /4JA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681824849; x=1684416849;
+        d=1e100.net; s=20221208; t=1681825291; x=1684417291;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=qMnORTrtLovyRrF4ko6mL37dx5rFXBbFyJLUt1NmH5g=;
-        b=bL3pMuSUbW60TKjYjWAQMG0tCAP06gFLGqLsNnUicRKKenQq2Qcn+yt4ESCbrQ7atB
-         5r6d0k6GHdjgClnAhXc7RjxEYCX9R0eMrXisDVifBiUVPX+SMT8QgDF4fRfnh22GkKzC
-         0N+3X3blCzCSDeA2ikgd3dXrnhjMZwFiMHTbNbxtZecWU3yQ4ESa/+pC0Lsw1A+GUk3B
-         dACHs+UMLAz25qwwY/HhtCPN5PZ2UqD8h7+hI+bKTfDBsnfifkKUI7wMl2grqoEBJcG8
-         8mUew89OXBeeLQlf7Eyh1c6zF8fbZG8yZHiNhSa0EdzpWEmoYf1fyMBaOIqvKdAxyo94
-         KDMw==
-X-Gm-Message-State: AAQBX9curgVzSwhQUs+BEieniMFL2046wbseeCczVdEgiES1EOSYZFNH
-        Z+xC50h7c+uZiTdvoaYKPurEV+UN3A4vd/X03ds=
-X-Google-Smtp-Source: AKy350bGvoY8hTwD4KS2cHLYDKdtDCeA8miacmNZvBtZuXTk+sOyyy9BMM5RFmEAWWaqTkZvAee64hE2zhHbD/dSDYg=
-X-Received: by 2002:a1f:a710:0:b0:40c:4d1:b550 with SMTP id
- q16-20020a1fa710000000b0040c04d1b550mr9701078vke.0.1681824848952; Tue, 18 Apr
- 2023 06:34:08 -0700 (PDT)
+        bh=zhxpMB3fGiQq+0vQZbOk4dc3m0RYfVvz7m99Q8e8S6Q=;
+        b=C6ovtEUtgaE/B9SblKkKpcDZURFvsQoiJpUgmmQEQ1qNuLiO622jphfhrlnXqcSMyq
+         +uaeP0oTA5JKt0FuCLloHBjpSy7oOmVHnTbdTdjesRuGTYEdMKXgWW1qkyFMtVggZN4M
+         zusZNN6b3HfqIdIK6d+pbNy0YGnnyupSuqEVLvyjXgMtjMmEZ+i1eg+Quep1T3uuyRSS
+         +rKJEFjLkoEhBiWPVYY/f8ZM1pviiGSjLhQZUwXEBop1Y/+kqQRzEG2HNZfe46Fjg2Jf
+         yByPmUVSjus2EdpsAHDXn2SPwVqpBlIJ0y9POXobDfP6SlU3xXVsYfsMFajpmV+gIFLT
+         JWgA==
+X-Gm-Message-State: AAQBX9dMYhuwBiZPR8OWnduXRn2XOjFnAWS1S3rsJZM56mHPRUYZy4hB
+        Cb7p0DPVdfIgVduk6mjfrpuHfHLKqGtkHCQlLQc=
+X-Google-Smtp-Source: AKy350ZuWd7mugyrAdXnio6VE4crahsS9GEM0wwvqoF62wNhNJD2gHedf/RhJ4yd/a2MqeHzPVvMWDz/osYDZcJOjpo=
+X-Received: by 2002:a67:d719:0:b0:42c:8d9c:80d3 with SMTP id
+ p25-20020a67d719000000b0042c8d9c80d3mr10196437vsj.0.1681825291407; Tue, 18
+ Apr 2023 06:41:31 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230412135412.1684197-1-amir73il@gmail.com> <20230412135412.1684197-3-amir73il@gmail.com>
- <8ac422621de7b422cf4b744463f3c1e4bae148d9.camel@redhat.com>
-In-Reply-To: <8ac422621de7b422cf4b744463f3c1e4bae148d9.camel@redhat.com>
+References: <20230412135412.1684197-1-amir73il@gmail.com> <20230412135412.1684197-4-amir73il@gmail.com>
+ <f3d4d0dacf08cb227661c2145840781915c3c7c2.camel@redhat.com>
+In-Reply-To: <f3d4d0dacf08cb227661c2145840781915c3c7c2.camel@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 18 Apr 2023 16:33:57 +0300
-Message-ID: <CAOQ4uxgU4LZy5=ouqFDWAPn=t17mavfhs_1915-HW3AGywjYkw@mail.gmail.com>
-Subject: Re: [PATCH 2/5] ovl: introduce data-only lower layers
+Date:   Tue, 18 Apr 2023 16:41:20 +0300
+Message-ID: <CAOQ4uxgbO_7qcJiGKTJzV9dw5_cQrpVAAJ0DHQRQ+bi5NeUysQ@mail.gmail.com>
+Subject: Re: [PATCH 3/5] ovl: implement lookup in data-only layers
 To:     Alexander Larsson <alexl@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
@@ -64,271 +64,201 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 18, 2023 at 3:02=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
+On Tue, Apr 18, 2023 at 3:40=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
 > wrote:
 >
 > On Wed, 2023-04-12 at 16:54 +0300, Amir Goldstein wrote:
-> > Introduce the format lowerdir=3Dlower1:lower2::lowerdata1:lowerdata2
-> > where the lower layers after the :: separator are not merged into the
-> > overlayfs merge dirs.
+> > Lookup in data-only layers only for a lower metacopy with an absolute
+> > redirect xattr.
 > >
-> > The files in those layers are only meant to be accessible via
-> > absolute
-> > redirect from metacopy files in lower layers.  Following changes will
-> > implement lookup in the data layers.
-> >
-> > This feature was requested for composefs ostree use case, where the
-> > lower data layer should only be accessiable via absolute redirects
-> > from metacopy inodes.
-> >
-> > The lower data layers are not required to a have a unique uuid or any
-> > uuid at all, because they are never used to compose the overlayfs
-> > inode
-> > st_ino/st_dev.
+> > The metacopy xattr is not checked on files found in the data-only
+> > layers
+> > and redirect xattr are not followed in the data-only layers.
 > >
 > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 >
 > Reviewed-by: Alexander Larsson <alexl@redhat.com>
 >
 > > ---
-> >  Documentation/filesystems/overlayfs.rst | 32 +++++++++++++++++
-> >  fs/overlayfs/namei.c                    |  4 +--
-> >  fs/overlayfs/ovl_entry.h                |  9 +++++
-> >  fs/overlayfs/super.c                    | 46 +++++++++++++++++++++--
-> > --
-> >  4 files changed, 82 insertions(+), 9 deletions(-)
-> >
-> > diff --git a/Documentation/filesystems/overlayfs.rst
-> > b/Documentation/filesystems/overlayfs.rst
-> > index 4c76fda07645..c8e04a4f0e21 100644
-> > --- a/Documentation/filesystems/overlayfs.rst
-> > +++ b/Documentation/filesystems/overlayfs.rst
-> > @@ -371,6 +371,38 @@ conflict with metacopy=3Don, and will result in an
-> > error.
-> >  [*] redirect_dir=3Dfollow only conflicts with metacopy=3Don if
-> > upperdir=3D... is
-> >  given.
-> >
-> > +
-> > +Data-only lower layers
-> > +----------------------
-> > +
-> > +With "metacopy" feature enabled, an overlayfs regular file may be a
-> > composition
-> > +of information from up to three different layers:
-> > +
-> > + 1) metadata from a file in the upper layer
-> > +
-> > + 2) st_ino and st_dev object identifier from a file in a lower layer
-> > +
-> > + 3) data from a file in another lower layer (further below)
-> > +
-> > +The "lower data" file can be on any lower layer, except from the top
-> > most
-> > +lower layer.
-> > +
-> > +Below the top most lower layer, any number of lower most layers may
-> > be defined
-> > +as "data-only" lower layers, using the double collon ("::")
-> > separator.
->
-> "colon", not "collon"
->
-> > +
-> > +For example:
-> > +
-> > +  mount -t overlay overlay -olowerdir=3D/lower1::/lower2:/lower3
-> > /merged
-> > +
-> > +The paths of files in the "data-only" lower layers are not visible
-> > in the
-> > +merged overlayfs directories and the metadata and st_ino/st_dev of
-> > files
-> > +in the "data-only" lower layers are not visible in overlayfs inodes.
-> > +
-> > +Only the data of the files in the "data-only" lower layers may be
-> > visible
-> > +when a "metacopy" file in one of the lower layers above it, has a
-> > "redirect"
-> > +to the absolute path of the "lower data" file in the "data-only"
-> > lower layer.
-> > +
-> > +
-> >  Sharing and copying layers
-> >  --------------------------
+> >  fs/overlayfs/namei.c | 77
+> > ++++++++++++++++++++++++++++++++++++++++++--
+> >  1 file changed, 75 insertions(+), 2 deletions(-)
 > >
 > > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index b629261324f1..ff82155b4f7e 100644
+> > index ff82155b4f7e..82e103e2308b 100644
 > > --- a/fs/overlayfs/namei.c
 > > +++ b/fs/overlayfs/namei.c
-> > @@ -356,7 +356,7 @@ int ovl_check_origin_fh(struct ovl_fs *ofs,
-> > struct ovl_fh *fh, bool connected,
-> >         struct dentry *origin =3D NULL;
-> >         int i;
+> > @@ -14,6 +14,8 @@
+> >  #include <linux/exportfs.h>
+> >  #include "overlayfs.h"
 > >
-> > -       for (i =3D 1; i < ofs->numlayer; i++) {
-> > +       for (i =3D 1; i <=3D ovl_numlowerlayer(ofs); i++) {
+> > +#include "../internal.h"       /* for vfs_path_lookup */
+> > +
+> >  struct ovl_lookup_data {
+> >         struct super_block *sb;
+> >         struct vfsmount *mnt;
+> > @@ -24,6 +26,8 @@ struct ovl_lookup_data {
+> >         bool last;
+> >         char *redirect;
+> >         bool metacopy;
+> > +       /* Referring to last redirect xattr */
+> > +       bool absolute_redirect;
+> >  };
+> >
+> >  static int ovl_check_redirect(const struct path *path, struct
+> > ovl_lookup_data *d,
+> > @@ -33,11 +37,13 @@ static int ovl_check_redirect(const struct path
+> > *path, struct ovl_lookup_data *d
+> >         char *buf;
+> >         struct ovl_fs *ofs =3D OVL_FS(d->sb);
+> >
+> > +       d->absolute_redirect =3D false;
+> >         buf =3D ovl_get_redirect_xattr(ofs, path, prelen +
+> > strlen(post));
+> >         if (IS_ERR_OR_NULL(buf))
+> >                 return PTR_ERR(buf);
+> >
+> >         if (buf[0] =3D=3D '/') {
+> > +               d->absolute_redirect =3D true;
 > >                 /*
-> >                  * If lower fs uuid is not unique among lower fs we
-> > cannot match
-> >                  * fh->uuid to layer.
-> > @@ -907,7 +907,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> >                  * One of the ancestor path elements in an absolute
+> > path
+> >                  * lookup in ovl_lookup_layer() could have been
+> > opaque and
+> > @@ -349,6 +355,61 @@ static int ovl_lookup_layer(struct dentry *base,
+> > struct ovl_lookup_data *d,
+> >         return 0;
+> >  }
+> >
+> > +static int ovl_lookup_data_layer(struct dentry *dentry, const char
+> > *redirect,
+> > +                                const struct ovl_layer *layer,
+> > +                                struct path *datapath)
+> > +{
+> > +       int err;
+> > +
+> > +       err =3D vfs_path_lookup(layer->mnt->mnt_root, layer->mnt,
+> > redirect,
+> > +                       LOOKUP_BENEATH | LOOKUP_NO_SYMLINKS |
+> > LOOKUP_NO_XDEV,
+> > +                       datapath);
+> > +       pr_debug("lookup lowerdata (%pd2, redirect=3D\"%s\", layer=3D%d=
+,
+> > err=3D%i)\n",
+> > +                dentry, redirect, layer->idx, err);
+> > +
+> > +       if (err)
+> > +               return err;
+> > +
+> > +       err =3D -EREMOTE;
+> > +       if (ovl_dentry_weird(datapath->dentry))
+> > +               goto out_path_put;
+> > +
+> > +       err =3D -ENOENT;
+> > +       /* Only regular file is acceptable as lower data */
+> > +       if (!d_is_reg(datapath->dentry))
+> > +               goto out_path_put;
+> > +
+> > +       return 0;
+> > +
+> > +out_path_put:
+> > +       path_put(datapath);
+> > +
+> > +       return err;
+> > +}
+> > +
+> > +/* Lookup in data-only layers by absolute redirect to layer root */
+> > +static int ovl_lookup_data_layers(struct dentry *dentry, const char
+> > *redirect,
+> > +                                 struct ovl_path *lowerdata)
+> > +{
+> > +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
+> > +       const struct ovl_layer *layer;
+> > +       struct path datapath;
+> > +       int err =3D -ENOENT;
+> > +       int i;
+> > +
+> > +       layer =3D &ofs->layers[ofs->numlayer - ofs->numdatalayer];
+> > +       for (i =3D 0; i < ofs->numdatalayer; i++, layer++) {
+> > +               err =3D ovl_lookup_data_layer(dentry, redirect, layer,
+> > &datapath);
+> > +               if (!err) {
+> > +                       mntput(datapath.mnt);
+> > +                       lowerdata->dentry =3D datapath.dentry;
+> > +                       lowerdata->layer =3D layer;
+> > +                       return 0;
+> > +               }
+> > +       }
+> > +
+> > +       return err;
+> > +}
+> >
+> >  int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool
+> > connected,
+> >                         struct dentry *upperdentry, struct ovl_path
+> > **stackp)
+> > @@ -907,7 +968,9 @@ struct dentry *ovl_lookup(struct inode *dir,
 > > struct dentry *dentry,
 > >
 > >         if (!d.stop && ovl_numlower(poe)) {
 > >                 err =3D -ENOMEM;
-> > -               stack =3D ovl_stack_alloc(ofs->numlayer - 1);
-> > +               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs));
+> > -               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs));
+> > +               /* May need to reserve space in lowerstack for
+> > lowerdata */
+> > +               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs) +
+> > +                                       (!d.is_dir && !!ofs-
+> > >numdatalayer));
+>
+> I think this runs into issues if ovl_numlower(poe) is zero, but we
+> have a redirect into the lowerdata, due to the if (ovl_numlower(poe))
+> check above. We won't be allocating the lowerdata stack space in this
+> case.
+>
+
+Redirect from upper directly into data-only is not valid.
+As the comment below says:
+/* Lookup absolute redirect from lower metacopy in data-only layers */
+data-only can only be accessed by absolute redirect from
+lower layer.
+Is that a problem for your use case?
+
 > >                 if (!stack)
 > >                         goto out_put_upper;
 > >         }
->
-> Again, surely ovl_numlower(poe) is a better size here?
-
-Intentional. that is changed in the following patch.
-(to ovl_numlowerlayer(ofs) + 1)
-As the commit message says:
-"Following changes will implement lookup in the data layers."
-
->
-> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> > index 221f0cbe748e..25fabb3175cf 100644
-> > --- a/fs/overlayfs/ovl_entry.h
-> > +++ b/fs/overlayfs/ovl_entry.h
-> > @@ -62,6 +62,8 @@ struct ovl_fs {
-> >         unsigned int numlayer;
-> >         /* Number of unique fs among layers including upper fs */
-> >         unsigned int numfs;
-> > +       /* Number of data-only lower layers */
-> > +       unsigned int numdatalayer;
-> >         const struct ovl_layer *layers;
-> >         struct ovl_sb *fs;
-> >         /* workbasedir is the path at workdir=3D mount option */
-> > @@ -95,6 +97,13 @@ struct ovl_fs {
-> >         errseq_t errseq;
-> >  };
+> > @@ -917,7 +980,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > struct dentry *dentry,
 > >
-> > +
-> > +/* Number of lower layers, not including data-only layers */
-> > +static inline unsigned int ovl_numlowerlayer(struct ovl_fs *ofs)
-> > +{
-> > +       return ofs->numlayer - ofs->numdatalayer - 1;
-> > +}
-> > +
-> >  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
-> >  {
-> >         return ofs->layers[0].mnt;
-> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > index 7742aef3f3b3..3484f39a8f27 100644
-> > --- a/fs/overlayfs/super.c
-> > +++ b/fs/overlayfs/super.c
-> > @@ -1579,6 +1579,16 @@ static int ovl_get_fsid(struct ovl_fs *ofs,
-> > const struct path *path)
-> >         return ofs->numfs++;
-> >  }
+> >                 if (!ofs->config.redirect_follow)
+> >                         d.last =3D i =3D=3D ovl_numlower(poe) - 1;
+> > -               else
+> > +               else if (d.is_dir || !ofs->numdatalayer)
+> >                         d.last =3D lower.layer->idx =3D=3D
+> > ovl_numlower(roe);
 > >
-> > +/*
-> > + * The fsid after the last lower fsid is used for the data layers.
-> > + * It is a "null fs" with a null sb, null uuid, and no pseudo dev.
-> > + */
-> > +static int ovl_get_data_fsid(struct ovl_fs *ofs)
-> > +{
-> > +       return ofs->numfs;
-> > +}
-> > +
-> > +
-> >  static int ovl_get_layers(struct super_block *sb, struct ovl_fs
-> > *ofs,
-> >                           struct path *stack, unsigned int numlower,
-> >                           struct ovl_layer *layers)
-> > @@ -1586,11 +1596,14 @@ static int ovl_get_layers(struct super_block
-> > *sb, struct ovl_fs *ofs,
-> >         int err;
-> >         unsigned int i;
-> >
-> > -       ofs->fs =3D kcalloc(numlower + 1, sizeof(struct ovl_sb),
-> > GFP_KERNEL);
-> > +       ofs->fs =3D kcalloc(numlower + 2, sizeof(struct ovl_sb),
-> > GFP_KERNEL);
-> >         if (ofs->fs =3D=3D NULL)
-> >                 return -ENOMEM;
-> >
-> > -       /* idx/fsid 0 are reserved for upper fs even with lower only
-> > overlay */
-> > +       /*
-> > +        * idx/fsid 0 are reserved for upper fs even with lower only
-> > overlay
-> > +        * and the last fsid is reserved for "null fs" of the data
-> > layers.
-> > +        */
-> >         ofs->numfs++;
-> >
-> >         /*
-> > @@ -1615,7 +1628,10 @@ static int ovl_get_layers(struct super_block
-> > *sb, struct ovl_fs *ofs,
-> >                 struct inode *trap;
-> >                 int fsid;
-> >
-> > -               fsid =3D ovl_get_fsid(ofs, &stack[i]);
-> > +               if (i < numlower - ofs->numdatalayer)
-> > +                       fsid =3D ovl_get_fsid(ofs, &stack[i]);
-> > +               else
-> > +                       fsid =3D ovl_get_data_fsid(ofs);
-> >                 if (fsid < 0)
-> >                         return fsid;
-> >
-> > @@ -1703,6 +1719,7 @@ static int ovl_get_lowerstack(struct
-> > super_block *sb, struct ovl_entry *oe,
-> >         int err;
-> >         struct path *stack =3D NULL;
-> >         struct ovl_path *lowerstack;
-> > +       unsigned int numlowerdata =3D 0;
-> >         unsigned int i;
-> >
-> >         if (!ofs->config.upperdir && numlower =3D=3D 1) {
-> > @@ -1714,13 +1731,27 @@ static int ovl_get_lowerstack(struct
-> > super_block *sb, struct ovl_entry *oe,
-> >         if (!stack)
-> >                 return -ENOMEM;
-> >
-> > -       err =3D -EINVAL;
-> > -       for (i =3D 0; i < numlower; i++) {
-> > +       for (i =3D 0; i < numlower;) {
-> >                 err =3D ovl_lower_dir(lower, &stack[i], ofs, &sb-
-> > >s_stack_depth);
-> >                 if (err)
-> >                         goto out_err;
-> >
-> >                 lower =3D strchr(lower, '\0') + 1;
-> > +
-> > +               i++;
-> > +               err =3D -EINVAL;
-> > +               /* :: seperator indicates the start of lower data
-> > layers */
-> > +               if (!*lower && i < numlower && !numlowerdata) {
-> > +                       if (!ofs->config.metacopy) {
-> > +                               pr_err("lower data-only dirs require
-> > metacopy support.\n");
-> > +                               goto out_err;
-> > +                       }
-> > +                       lower++;
-> > +                       numlower--;
-> > +                       ofs->numdatalayer =3D numlowerdata =3D numlower=
- -
-> > i;
-> > +                       pr_info("using the lowest %d of %d lowerdirs
-> > as data layers\n",
-> > +                               numlowerdata, numlower);
-> > +               }
+> >                 d.mnt =3D lower.layer->mnt;
+> > @@ -1011,6 +1074,16 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > struct dentry *dentry,
+> >                 }
 > >         }
+> >
+> > +       /* Lookup absolute redirect from lower metacopy in data-only
+> > layers */
+> > +       if (d.metacopy && ctr && ofs->numdatalayer &&
+> > d.absolute_redirect) {
+> > +               err =3D ovl_lookup_data_layers(dentry, d.redirect,
+> > +                                            &stack[ctr]);
+> > +               if (!err) {
+> > +                       d.metacopy =3D false;
+> > +                       ctr++;
+> > +               }
+> > +       }
 >
-> This will handle a "::" at the end of the string as an error. Maybe it
-> would be better to treat it as "zero lower data layera", to make code
-> that generates mount options more regular? Not a huge issue though.
+> This code runs even if ofs->config.redirect_follow is false. I think
+> this is probably correct, but maybe it should be mentioned in the docs?
 >
 
-No reason to do that.
-Code that prepares lowerdata layers should know what it is doing.
+ofs->numdatalayer > 0 depends on ofs->config.metacopy
+which depends on ofs->config.redirect or ofs->config.redirect_follow.
 
 Thanks,
 Amir.
