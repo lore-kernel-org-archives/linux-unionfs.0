@@ -2,58 +2,58 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD6AEC77B76
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 01:42:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AA65C77B72
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 01:42:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230238AbjDRBmn (ORCPT
+        id S230468AbjDRBmx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Apr 2023 21:42:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54170 "EHLO
+        Mon, 17 Apr 2023 21:42:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230355AbjDRBl7 (ORCPT
+        with ESMTP id S230403AbjDRBmD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Apr 2023 21:41:59 -0400
-Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D99C26A6E
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:19 -0700 (PDT)
-Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-552d922f0faso34405107b3.14
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:19 -0700 (PDT)
+        Mon, 17 Apr 2023 21:42:03 -0400
+Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D06BD7AA4
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:22 -0700 (PDT)
+Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-54f3e30726cso211603977b3.22
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1681782078; x=1684374078;
+        d=google.com; s=20221208; t=1681782082; x=1684374082;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=oN6x+PcjBowjEB90+rsteKN+eOkqOSAMj6ggqH7i4oE=;
-        b=e2l+365Y5NfwgrmJ3glTREcW5dUMa28BQ3rkaEXIxzCaUVeE1IhaW2auQ6TAoZSlTV
-         2DPfi5gIQFGcRKYkma2DV8pvrKv+CMBRJ5PqPI/sdCdJlujipWSi8TX5fpC7CIATr/wd
-         IZ08/Y5ullb70ZOKJIK0Fa3l1w37fzqtYaUA2LBOQ+U08RbTKlpgXJi+kOkZuc5emqyT
-         txsRKHpNndZBshfMylH2G+PKKT4M75pZSQdvHa69EiYZG+SqYwtca9kBbOLbesWQNZOV
-         ScLqr6LEl57hIDUX6HFB91pq60LCptprJlfycy0AaC9T8kF5M0PJh2968Q/Fdg6j+/Y2
-         nZBA==
+        bh=XffErqhYI2OU7fEkAttVu8sFpvDYdEUvBhfwhueehVM=;
+        b=W64W7LYmODf/FRuZNRmhqRfU8jwPzAf2EgQjFr/GwQnfixQx1lnFWxTQHQr2157bLk
+         bOZx0B3xbbAKBKptnu3DGWAHW7YUWHUgXmFNH0B57uqjJVKJbfuIf6siNBmXF+8KrPKl
+         rq/fklWlDzNR/LfPz5La++65odFf+sqMFipQNJ9fbMo8fpXLvw0QrXhDgD89PZ+Bh4Cv
+         ClbkWZWwvPPc53kzJNCAMgQof+PQW1mdRELbdWXfLwzm+gUieIJC3zqNnbis5j2Pkdx0
+         ai+ArKZhDaSGmGokepURyuQtc1NoAeDczoa0Mwj+K+es3hQOC2CkYjntXKPcSV6FWNzd
+         ApiQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681782078; x=1684374078;
+        d=1e100.net; s=20221208; t=1681782082; x=1684374082;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=oN6x+PcjBowjEB90+rsteKN+eOkqOSAMj6ggqH7i4oE=;
-        b=ZUdjriN5ykk54Ken+ft8L74ivs/w+pnasKozBIWxaheQI7ix0sxRGdRoqZmEhIk9/G
-         XGFvH/TUilk2zp8yxqqda34NY1+9MPRKFIo2noDhIPjlXBje4hdJXtbpktoLBCF6Ycfq
-         tN3jbz5+ky6DnY/JCQtTi4j1cylhAmMGOg+M39pKnj4JmJZmHDP7Lfqz6AntQs1/oVUL
-         wPKUgGqodRaWhqgThg0uRsHq4hEqNgwAVhYEpBQlf1RqMa5dU7Plt1+1VF8MDQ8kByoA
-         JpO9fKMY1Gxo3KrRZ3VIwdgd/llr+u7v7Zqu4EKI7b8wrZJNVWrZJgH9kmpSCpCHkGky
-         ex6w==
-X-Gm-Message-State: AAQBX9edhuvB9hGAWkwbFIYiwph8GSm09eMoxqF1U2W+861SPRh5Au7U
-        ZsvEJqi08bJVjDE1Z3m28Wk8uKHyy8E=
-X-Google-Smtp-Source: AKy350ZlkcIB5L39o8Rx8chg+be3fQChvnEEvP0sguYtyhqx+uHhdIzeUdU455ATM/2zMsWmD3vY1g4K4MY=
+        bh=XffErqhYI2OU7fEkAttVu8sFpvDYdEUvBhfwhueehVM=;
+        b=c2fSZeoDk+PTERXykfrYrPmbJvSZgauNBP2TqBJrJLsuSEthlm6YtURHIHNRWFe3dW
+         rh2scfGDheJVaLS4slX8WJOUE2zHt88RaT+VK5zw3XM5v+ApjPvD7HVcHu7sSimdGHom
+         C+ztrs/URugNIaUwlp79qo6AkS2c7GkrOXhhpIpStp5A/9+guLOQnMflKrt4JbOCxIv+
+         UV3pd25cnKVP+sYbweXu9cPXuMKaj+sZY5HoswacXJBSYv/mU42MbyToaahDOp2HjUW2
+         vRngSiibzUHbBlgrFU6wL5895j3WHYHp5LW2LB+nZg0erTVUj1ApxDqA44TkKBIlL4Yp
+         lQkw==
+X-Gm-Message-State: AAQBX9dWU9+LIcZB5R+eaTt5p0bHr1dCGDAZaTZC/b0gUTdZHVTVsPqu
+        S84iQbxEomEyHMZcea3Xy4F8DbFpUTk=
+X-Google-Smtp-Source: AKy350bK1wIQRL+1GOlGecQQ1VG4drCo01/C/N6m/UsccfrVXFYrTKOINwumV372LVk08vQB5twTN47yWjc=
 X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:201:e67a:98b0:942d:86aa])
- (user=drosen job=sendgmr) by 2002:a25:74d4:0:b0:b8e:cb88:1b8a with SMTP id
- p203-20020a2574d4000000b00b8ecb881b8amr10919222ybc.8.1681782078105; Mon, 17
- Apr 2023 18:41:18 -0700 (PDT)
-Date:   Mon, 17 Apr 2023 18:40:12 -0700
+ (user=drosen job=sendgmr) by 2002:a81:b303:0:b0:545:1d7f:abfe with SMTP id
+ r3-20020a81b303000000b005451d7fabfemr10434358ywh.7.1681782082574; Mon, 17 Apr
+ 2023 18:41:22 -0700 (PDT)
+Date:   Mon, 17 Apr 2023 18:40:14 -0700
 In-Reply-To: <20230418014037.2412394-1-drosen@google.com>
 Mime-Version: 1.0
 References: <20230418014037.2412394-1-drosen@google.com>
 X-Mailer: git-send-email 2.40.0.634.g4ca3ef3211-goog
-Message-ID: <20230418014037.2412394-13-drosen@google.com>
-Subject: [RFC PATCH v3 12/37] fuse-bpf: Partially add mapping support
+Message-ID: <20230418014037.2412394-15-drosen@google.com>
+Subject: [RFC PATCH v3 14/37] fuse-bpf: Add support for fallocate
 From:   Daniel Rosenberg <drosen@google.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
         Alexei Starovoitov <ast@kernel.org>
@@ -78,97 +78,125 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This adds a backing implementation for mapping, but is not currently
-hooked into the infrastructure that will call the bpf programs.
+This adds backing support for FUSE_FALLOCATE
 
 Signed-off-by: Daniel Rosenberg <drosen@google.com>
 Signed-off-by: Paul Lawrence <paullawrence@google.com>
 ---
- fs/fuse/backing.c | 37 +++++++++++++++++++++++++++++++++++++
- fs/fuse/file.c    |  6 ++++++
- fs/fuse/fuse_i.h  |  4 +++-
- 3 files changed, 46 insertions(+), 1 deletion(-)
+ fs/fuse/backing.c | 60 +++++++++++++++++++++++++++++++++++++++++++++++
+ fs/fuse/file.c    |  3 +++
+ fs/fuse/fuse_i.h  |  6 +++++
+ 3 files changed, 69 insertions(+)
 
 diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-index e42622584037..930aa370e376 100644
+index c4916dde48c8..ee315598bc3f 100644
 --- a/fs/fuse/backing.c
 +++ b/fs/fuse/backing.c
-@@ -207,6 +207,43 @@ static void fuse_stat_to_attr(struct fuse_conn *fc, struct inode *inode,
- 	attr->blksize = 1 << blkbits;
+@@ -333,6 +333,66 @@ ssize_t fuse_backing_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return ret;
  }
  
-+ssize_t fuse_backing_mmap(struct file *file, struct vm_area_struct *vma)
++static int fuse_file_fallocate_initialize_in(struct bpf_fuse_args *fa,
++					     struct fuse_fallocate_in *in,
++					     struct file *file, int mode, loff_t offset, loff_t length)
 +{
-+	int ret;
 +	struct fuse_file *ff = file->private_data;
-+	struct inode *fuse_inode = file_inode(file);
-+	struct file *backing_file = ff->backing_file;
-+	struct inode *backing_inode = file_inode(backing_file);
 +
-+	if (!backing_file->f_op->mmap)
-+		return -ENODEV;
++	*in = (struct fuse_fallocate_in) {
++		.fh = ff->fh,
++		.offset = offset,
++		.length = length,
++		.mode = mode,
++	};
 +
-+	if (WARN_ON(file != vma->vm_file))
-+		return -EIO;
++	*fa = (struct bpf_fuse_args) {
++		.info = (struct bpf_fuse_meta_info) {
++			.opcode = FUSE_FALLOCATE,
++			.nodeid = ff->nodeid,
++		},
++		.in_numargs = 1,
++		.in_args[0].size = sizeof(*in),
++		.in_args[0].value = in,
++	};
 +
-+	vma->vm_file = get_file(backing_file);
++	return 0;
++}
 +
-+	ret = call_mmap(vma->vm_file, vma);
++static int fuse_file_fallocate_initialize_out(struct bpf_fuse_args *fa,
++					      struct fuse_fallocate_in *in,
++					      struct file *file, int mode, loff_t offset, loff_t length)
++{
++	return 0;
++}
 +
-+	if (ret)
-+		fput(backing_file);
-+	else
-+		fput(file);
++static int fuse_file_fallocate_backing(struct bpf_fuse_args *fa, int *out,
++				       struct file *file, int mode, loff_t offset, loff_t length)
++{
++	const struct fuse_fallocate_in *ffi = fa->in_args[0].value;
++	struct fuse_file *ff = file->private_data;
 +
-+	if (file->f_flags & O_NOATIME)
-+		return ret;
++	*out = vfs_fallocate(ff->backing_file, ffi->mode, ffi->offset,
++			     ffi->length);
++	return 0;
++}
 +
-+	if ((!timespec64_equal(&fuse_inode->i_mtime, &backing_inode->i_mtime) ||
-+	     !timespec64_equal(&fuse_inode->i_ctime,
-+			       &backing_inode->i_ctime))) {
-+		fuse_inode->i_mtime = backing_inode->i_mtime;
-+		fuse_inode->i_ctime = backing_inode->i_ctime;
-+	}
-+	touch_atime(&file->f_path);
++static int fuse_file_fallocate_finalize(struct bpf_fuse_args *fa, int *out,
++					struct file *file, int mode, loff_t offset, loff_t length)
++{
++	return 0;
++}
 +
-+	return ret;
++int fuse_bpf_file_fallocate(int *out, struct inode *inode, struct file *file, int mode, loff_t offset, loff_t length)
++{
++	return bpf_fuse_backing(inode, struct fuse_fallocate_in, out,
++				fuse_file_fallocate_initialize_in,
++				fuse_file_fallocate_initialize_out,
++				fuse_file_fallocate_backing,
++				fuse_file_fallocate_finalize,
++				file, mode, offset, length);
 +}
 +
  /*******************************************************************************
   * Directory operations after here                                             *
   ******************************************************************************/
 diff --git a/fs/fuse/file.c b/fs/fuse/file.c
-index 25fb49f0a9f7..865167a80d35 100644
+index 9758bd1665a6..58cff04660db 100644
 --- a/fs/fuse/file.c
 +++ b/fs/fuse/file.c
-@@ -2527,6 +2527,12 @@ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
- 	if (FUSE_IS_DAX(file_inode(file)))
- 		return fuse_dax_mmap(file, vma);
+@@ -3071,6 +3071,9 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
+ 		(!(mode & FALLOC_FL_KEEP_SIZE) ||
+ 		 (mode & (FALLOC_FL_PUNCH_HOLE | FALLOC_FL_ZERO_RANGE)));
  
-+#ifdef CONFIG_FUSE_BPF
-+	/* TODO - this is simply passthrough, not a proper BPF filter */
-+	if (ff->backing_file)
-+		return fuse_backing_mmap(file, vma);
-+#endif
++	if (fuse_bpf_file_fallocate(&err, inode, file, mode, offset, length))
++		return err;
 +
- 	if (ff->open_flags & FOPEN_DIRECT_IO) {
- 		/* Can't provide the coherency needed for MAP_SHARED */
- 		if (vma->vm_flags & VM_MAYSHARE)
+ 	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE |
+ 		     FALLOC_FL_ZERO_RANGE))
+ 		return -EOPNOTSUPP;
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index cb166168f9c2..5eb357f482dc 100644
+index 624d0cebd287..1dd9cc9720df 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
-@@ -1422,7 +1422,9 @@ static inline int fuse_bpf_access(int *out, struct inode *inode, int mask)
+@@ -1406,6 +1406,7 @@ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num_entries);
+ #ifdef CONFIG_FUSE_BPF
  
- #endif // CONFIG_FUSE_BPF
+ int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *file, loff_t offset, int whence);
++int fuse_bpf_file_fallocate(int *out, struct inode *inode, struct file *file, int mode, loff_t offset, loff_t length);
+ int fuse_bpf_lookup(struct dentry **out, struct inode *dir, struct dentry *entry, unsigned int flags);
+ int fuse_bpf_access(int *out, struct inode *inode, int mask);
  
--int fuse_handle_backing(struct fuse_bpf_entry *feb, struct path *backing_path);
-+ssize_t fuse_backing_mmap(struct file *file, struct vm_area_struct *vma);
+@@ -1416,6 +1417,11 @@ static inline int fuse_bpf_lseek(loff_t *out, struct inode *inode, struct file *
+ 	return 0;
+ }
+ 
++static inline int fuse_bpf_file_fallocate(int *out, struct inode *inode, struct file *file, int mode, loff_t offset, loff_t length)
++{
++	return 0;
++}
 +
-+int fuse_handle_backing(struct fuse_bpf_entry *fbe, struct path *backing_path);
- 
- int fuse_revalidate_backing(struct dentry *entry, unsigned int flags);
- 
+ static inline int fuse_bpf_lookup(struct dentry **out, struct inode *dir, struct dentry *entry, unsigned int flags)
+ {
+ 	return 0;
 -- 
 2.40.0.634.g4ca3ef3211-goog
 
