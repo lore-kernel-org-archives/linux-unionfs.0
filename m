@@ -2,276 +2,333 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4B8EC77B76
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 13:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 716CDC6FD18
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 13:34:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231489AbjDRNH0 (ORCPT
+        id S229756AbjDRNeM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 Apr 2023 09:07:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33344 "EHLO
+        Tue, 18 Apr 2023 09:34:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229652AbjDRNHZ (ORCPT
+        with ESMTP id S229627AbjDRNeL (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2023 09:07:25 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 300DC8A7C
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:06:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681823197;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=y1yyivED3ChqrgkEaJDoICoKgkVUP+JB1KAZ7VLZweY=;
-        b=JvVZ5qvHiqf7u8/gOtlrziaQU2iX03eaf0Vcv9YFZIK38Mpc+0veOht9vsk9fXhJ3M1hGi
-        +wSg4kVhZnBojBm7Cs8ofuRx9GVddC2Ec6uhw6la8K2/Hx78YTsto3Sb5OgpzR2erQmpW/
-        1zJykW0piGUdsVXco7Rkj9VUjfduRwc=
-Received: from mail-lj1-f197.google.com (mail-lj1-f197.google.com
- [209.85.208.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-247--1cuw9DPOr2MkiHB0AhdIw-1; Tue, 18 Apr 2023 09:06:35 -0400
-X-MC-Unique: -1cuw9DPOr2MkiHB0AhdIw-1
-Received: by mail-lj1-f197.google.com with SMTP id 38308e7fff4ca-2a8adcdb84aso8884921fa.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:06:35 -0700 (PDT)
+        Tue, 18 Apr 2023 09:34:11 -0400
+Received: from mail-ua1-x931.google.com (mail-ua1-x931.google.com [IPv6:2607:f8b0:4864:20::931])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 152B6119
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:34:10 -0700 (PDT)
+Received: by mail-ua1-x931.google.com with SMTP id l17so7521655uak.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 06:34:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1681824849; x=1684416849;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qMnORTrtLovyRrF4ko6mL37dx5rFXBbFyJLUt1NmH5g=;
+        b=gYYcmNZwwFHkxjbqYoyDcWw148+gxtej24Nqwr+cOKmBPysbECh0Ww20YiDDnerIJ6
+         ADfb9YlBCI/fmcqGAhcN5SGDgKxm0DVvTrLrOGCWknG93cbNIrufJjRxkqaPYO31+GJR
+         J8u69hPvQNSMhJPNEwWeb+zZk/eXb4/KMlxogUcnfGWos4S3i9k9IyJoIwFowRqyno8P
+         gHnqxzuqUdg9FMYgdaT+qmCFK9iCXPVh/XERkEB0sM3lxwd3EW9e8CZe5Inkv82f1H5g
+         38BpnncBOko0+uX8QcaU8oXyGlv1ceg+p0gSKZSjZLv03qtgFiUVfqsTRMT9+BEQIQhy
+         Y+Dw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681823194; x=1684415194;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=y1yyivED3ChqrgkEaJDoICoKgkVUP+JB1KAZ7VLZweY=;
-        b=iQ2JwknNcoMklzcXmvW8OemgQ2huKt7K4ELHvSMUFcdG0lOEC8eYs9QkzmuCEBTl4s
-         Qplo13rMhTJHQ0owywMpKnySNcxOaKBF/UoqCUrMLc3NF0SZiBDFZtCZ7hjLwocI8EeC
-         qkwqrBovTxVZ486Ns2Y84CLh8w4FwAu+CloNO3aWSj8h+eycJhxDk/O3DGQjJUSuxkPO
-         sYjxKAo1D+ndPRNqTK7aDObhKkmNihTpnlWXzsjb42I3/6GmLDD/GzZ0kcIBQHOV1d08
-         yH/M4GP6zFIQwu525mTn8N6zUSPyTkFhvKK8H6S314E+loqugTCrnQkQR3quM0gJmOGv
-         6b9Q==
-X-Gm-Message-State: AAQBX9cxeDb+JNmH2FEfzROzPHMk5oQ7kh1HKBa70cbzuM4kee6spr5F
-        rxbOhbjCgwTveAa3D74IPqsxqOxCr7Ly3RyrQAnoQLE2+kbTYnfeWgknjpcZIeC/SwZAzf1zrgF
-        JIAX0tvozUdH8Iq04S3fN5Hr+kA==
-X-Received: by 2002:ac2:5545:0:b0:4e8:3fc7:9483 with SMTP id l5-20020ac25545000000b004e83fc79483mr2523685lfk.23.1681823194187;
-        Tue, 18 Apr 2023 06:06:34 -0700 (PDT)
-X-Google-Smtp-Source: AKy350awZZo0WCwGvnMfK2FoqggM7+Ksdlp1SgEp056fhNrLI+vJ0Ff/0Cyk96haGgMn91izXzmsFg==
-X-Received: by 2002:ac2:5545:0:b0:4e8:3fc7:9483 with SMTP id l5-20020ac25545000000b004e83fc79483mr2523680lfk.23.1681823193843;
-        Tue, 18 Apr 2023 06:06:33 -0700 (PDT)
-Received: from greebo.mooo.com (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
-        by smtp.gmail.com with ESMTPSA id m9-20020ac24ac9000000b004ea018bb8f7sm2364417lfp.77.2023.04.18.06.06.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 18 Apr 2023 06:06:33 -0700 (PDT)
-Message-ID: <eca2fa9f586da7b69c992e5447593a6e681029b8.camel@redhat.com>
-Subject: Re: [PATCH 5/5] ovl: implement lazy lookup of lowerdata in
- data-only layers
-From:   Alexander Larsson <alexl@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org
-Date:   Tue, 18 Apr 2023 15:06:32 +0200
-In-Reply-To: <20230412135412.1684197-6-amir73il@gmail.com>
-References: <20230412135412.1684197-1-amir73il@gmail.com>
-         <20230412135412.1684197-6-amir73il@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+        d=1e100.net; s=20221208; t=1681824849; x=1684416849;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qMnORTrtLovyRrF4ko6mL37dx5rFXBbFyJLUt1NmH5g=;
+        b=bL3pMuSUbW60TKjYjWAQMG0tCAP06gFLGqLsNnUicRKKenQq2Qcn+yt4ESCbrQ7atB
+         5r6d0k6GHdjgClnAhXc7RjxEYCX9R0eMrXisDVifBiUVPX+SMT8QgDF4fRfnh22GkKzC
+         0N+3X3blCzCSDeA2ikgd3dXrnhjMZwFiMHTbNbxtZecWU3yQ4ESa/+pC0Lsw1A+GUk3B
+         dACHs+UMLAz25qwwY/HhtCPN5PZ2UqD8h7+hI+bKTfDBsnfifkKUI7wMl2grqoEBJcG8
+         8mUew89OXBeeLQlf7Eyh1c6zF8fbZG8yZHiNhSa0EdzpWEmoYf1fyMBaOIqvKdAxyo94
+         KDMw==
+X-Gm-Message-State: AAQBX9curgVzSwhQUs+BEieniMFL2046wbseeCczVdEgiES1EOSYZFNH
+        Z+xC50h7c+uZiTdvoaYKPurEV+UN3A4vd/X03ds=
+X-Google-Smtp-Source: AKy350bGvoY8hTwD4KS2cHLYDKdtDCeA8miacmNZvBtZuXTk+sOyyy9BMM5RFmEAWWaqTkZvAee64hE2zhHbD/dSDYg=
+X-Received: by 2002:a1f:a710:0:b0:40c:4d1:b550 with SMTP id
+ q16-20020a1fa710000000b0040c04d1b550mr9701078vke.0.1681824848952; Tue, 18 Apr
+ 2023 06:34:08 -0700 (PDT)
 MIME-Version: 1.0
+References: <20230412135412.1684197-1-amir73il@gmail.com> <20230412135412.1684197-3-amir73il@gmail.com>
+ <8ac422621de7b422cf4b744463f3c1e4bae148d9.camel@redhat.com>
+In-Reply-To: <8ac422621de7b422cf4b744463f3c1e4bae148d9.camel@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 18 Apr 2023 16:33:57 +0300
+Message-ID: <CAOQ4uxgU4LZy5=ouqFDWAPn=t17mavfhs_1915-HW3AGywjYkw@mail.gmail.com>
+Subject: Re: [PATCH 2/5] ovl: introduce data-only lower layers
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-T24gV2VkLCAyMDIzLTA0LTEyIGF0IDE2OjU0ICswMzAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToK
-PiBEZWZlciBsb29rdXAgb2YgbG93ZXJkYXRhIGluIHRoZSBkYXRhLW9ubHkgbGF5ZXJzIHRvIGZp
-cnN0IGRhdGEKPiBhY2Nlc3MKPiBvciBiZWZvcmUgY29weSB1cC4KPiAKPiBXZSBwZXJmb3JtIGxv
-d2VyZGF0YSBsb29rdXAgYmVmb3JlIGNvcHkgdXAgZXZlbiBpZiBjb3B5IHVwIGlzCj4gbWV0YWRh
-dGEKPiBvbmx5IGNvcHkgdXAuwqAgV2UgY2FuIGZ1cnRoZXIgb3B0aW1pemUgdGhpcyBsb29rdXAg
-bGF0ZXIgaWYgbmVlZGVkLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEFtaXIgR29sZHN0ZWluIDxhbWly
-NzNpbEBnbWFpbC5jb20+CgpMR1RNIAoKUmV2aWV3ZWQtYnk6IEFsZXhhbmRlciBMYXJzc29uIDxh
-bGV4bEByZWRoYXQuY29tPgoKPiAtLS0KPiDCoGZzL292ZXJsYXlmcy9jb3B5X3VwLmPCoMKgIHzC
-oCA5ICsrKysrKysKPiDCoGZzL292ZXJsYXlmcy9maWxlLmPCoMKgwqDCoMKgIHwgMTggKysrKysr
-KysrKy0tLQo+IMKgZnMvb3ZlcmxheWZzL25hbWVpLmPCoMKgwqDCoCB8IDU2ICsrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrLS0tCj4gLS0KPiDCoGZzL292ZXJsYXlmcy9vdmVybGF5
-ZnMuaCB8wqAgMiArKwo+IMKgZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oIHzCoCAyICstCj4gwqBm
-cy9vdmVybGF5ZnMvdXRpbC5jwqDCoMKgwqDCoCB8IDMxICsrKysrKysrKysrKysrKysrKysrKy0K
-PiDCoDYgZmlsZXMgY2hhbmdlZCwgMTA1IGluc2VydGlvbnMoKyksIDEzIGRlbGV0aW9ucygtKQo+
-IAo+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvY29weV91cC5jIGIvZnMvb3ZlcmxheWZzL2Nv
-cHlfdXAuYwo+IGluZGV4IDdiZjEwMWU3NTZjOC4uZWIyNjZmYjY4NzMwIDEwMDY0NAo+IC0tLSBh
-L2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMKPiArKysgYi9mcy9vdmVybGF5ZnMvY29weV91cC5jCj4g
-QEAgLTEwNzQsNiArMTA3NCwxNSBAQCBzdGF0aWMgaW50IG92bF9jb3B5X3VwX2ZsYWdzKHN0cnVj
-dCBkZW50cnkKPiAqZGVudHJ5LCBpbnQgZmxhZ3MpCj4gwqDCoMKgwqDCoMKgwqDCoGlmIChXQVJO
-X09OKGRpc2Nvbm5lY3RlZCAmJiBkX2lzX2RpcihkZW50cnkpKSkKPiDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRUlPOwo+IMKgCj4gK8KgwqDCoMKgwqDCoMKgLyoKPiAr
-wqDCoMKgwqDCoMKgwqAgKiBXZSBtYXkgbm90IG5lZWQgbG93ZXJkYXRhIGlmIHdlIGFyZSBvbmx5
-IGRvaW5nIG1ldGFjb3B5Cj4gdXAsIGJ1dCBpdCBpcwo+ICvCoMKgwqDCoMKgwqDCoCAqIG5vdCB2
-ZXJ5IGltcG9ydGFudCB0byBvcHRpbWl6ZSB0aGlzIGNhc2UsIHNvIGRvIGxhenkKPiBsb3dlcmRh
-dGEgbG9va3VwCj4gK8KgwqDCoMKgwqDCoMKgICogYmVmb3JlIGFueSBjb3B5IHVwLCBzbyB3ZSBj
-YW4gZG8gaXQgYmVmb3JlIHRha2luZwo+IG92bF9pbm9kZV9sb2NrKCkuCj4gK8KgwqDCoMKgwqDC
-oMKgICovCj4gK8KgwqDCoMKgwqDCoMKgZXJyID0gb3ZsX21heWJlX2xvb2t1cF9sb3dlcmRhdGEo
-ZGVudHJ5KTsKPiArwqDCoMKgwqDCoMKgwqBpZiAoZXJyKQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqByZXR1cm4gZXJyOwo+ICsKPiDCoMKgwqDCoMKgwqDCoMKgb2xkX2NyZWQgPSBv
-dmxfb3ZlcnJpZGVfY3JlZHMoZGVudHJ5LT5kX3NiKTsKPiDCoMKgwqDCoMKgwqDCoMKgd2hpbGUg
-KCFlcnIpIHsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBkZW50cnkg
-Km5leHQ7Cj4gZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9maWxlLmMgYi9mcy9vdmVybGF5ZnMv
-ZmlsZS5jCj4gaW5kZXggOTUxNjgzYTY2ZmY2Li4zOTczN2MyYWFhODQgMTAwNjQ0Cj4gLS0tIGEv
-ZnMvb3ZlcmxheWZzL2ZpbGUuYwo+ICsrKyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKPiBAQCAtMTA3
-LDE1ICsxMDcsMjEgQEAgc3RhdGljIGludCBvdmxfcmVhbF9mZGdldF9tZXRhKGNvbnN0IHN0cnVj
-dAo+IGZpbGUgKmZpbGUsIHN0cnVjdCBmZCAqcmVhbCwKPiDCoHsKPiDCoMKgwqDCoMKgwqDCoMKg
-c3RydWN0IGRlbnRyeSAqZGVudHJ5ID0gZmlsZV9kZW50cnkoZmlsZSk7Cj4gwqDCoMKgwqDCoMKg
-wqDCoHN0cnVjdCBwYXRoIHJlYWxwYXRoOwo+ICvCoMKgwqDCoMKgwqDCoGludCBlcnI7Cj4gwqAK
-PiDCoMKgwqDCoMKgwqDCoMKgcmVhbC0+ZmxhZ3MgPSAwOwo+IMKgwqDCoMKgwqDCoMKgwqByZWFs
-LT5maWxlID0gZmlsZS0+cHJpdmF0ZV9kYXRhOwo+IMKgCj4gLcKgwqDCoMKgwqDCoMKgaWYgKGFs
-bG93X21ldGEpCj4gK8KgwqDCoMKgwqDCoMKgaWYgKGFsbG93X21ldGEpIHsKPiDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoG92bF9wYXRoX3JlYWwoZGVudHJ5LCAmcmVhbHBhdGgpOwo+
-IC3CoMKgwqDCoMKgwqDCoGVsc2UKPiArwqDCoMKgwqDCoMKgwqB9IGVsc2Ugewo+ICvCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAvKiBsYXp5IGxvb2t1cCBvZiBsb3dlcmRhdGEgKi8KPiAr
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZXJyID0gb3ZsX21heWJlX2xvb2t1cF9sb3dl
-cmRhdGEoZGVudHJ5KTsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKGVycikK
-PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiBl
-cnI7Cj4gKwo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgb3ZsX3BhdGhfcmVhbGRh
-dGEoZGVudHJ5LCAmcmVhbHBhdGgpOwo+IC3CoMKgwqDCoMKgwqDCoC8qIFRPRE86IGxhenkgbG9v
-a3VwIG9mIGxvd2VyZGF0YSAqLwo+ICvCoMKgwqDCoMKgwqDCoH0KPiDCoMKgwqDCoMKgwqDCoMKg
-aWYgKCFyZWFscGF0aC5kZW50cnkpCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBy
-ZXR1cm4gLUVJTzsKPiDCoAo+IEBAIC0xNTMsNiArMTU5LDExIEBAIHN0YXRpYyBpbnQgb3ZsX29w
-ZW4oc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0Cj4gZmlsZSAqZmlsZSkKPiDCoMKgwqDCoMKg
-wqDCoMKgc3RydWN0IHBhdGggcmVhbHBhdGg7Cj4gwqDCoMKgwqDCoMKgwqDCoGludCBlcnI7Cj4g
-wqAKPiArwqDCoMKgwqDCoMKgwqAvKiBsYXp5IGxvb2t1cCBvZiBsb3dlcmRhdGEgKi8KPiArwqDC
-oMKgwqDCoMKgwqBlcnIgPSBvdmxfbWF5YmVfbG9va3VwX2xvd2VyZGF0YShkZW50cnkpOwo+ICvC
-oMKgwqDCoMKgwqDCoGlmIChlcnIpCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJl
-dHVybiBlcnI7Cj4gKwo+IMKgwqDCoMKgwqDCoMKgwqBlcnIgPSBvdmxfbWF5YmVfY29weV91cChk
-ZW50cnksIGZpbGUtPmZfZmxhZ3MpOwo+IMKgwqDCoMKgwqDCoMKgwqBpZiAoZXJyKQo+IMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIGVycjsKPiBAQCAtMTYxLDcgKzE3Miw2
-IEBAIHN0YXRpYyBpbnQgb3ZsX29wZW4oc3RydWN0IGlub2RlICppbm9kZSwgc3RydWN0Cj4gZmls
-ZSAqZmlsZSkKPiDCoMKgwqDCoMKgwqDCoMKgZmlsZS0+Zl9mbGFncyAmPSB+KE9fQ1JFQVQgfCBP
-X0VYQ0wgfCBPX05PQ1RUWSB8IE9fVFJVTkMpOwo+IMKgCj4gwqDCoMKgwqDCoMKgwqDCoG92bF9w
-YXRoX3JlYWxkYXRhKGRlbnRyeSwgJnJlYWxwYXRoKTsKPiAtwqDCoMKgwqDCoMKgwqAvKiBUT0RP
-OiBsYXp5IGxvb2t1cCBvZiBsb3dlcmRhdGEgKi8KPiDCoMKgwqDCoMKgwqDCoMKgaWYgKCFyZWFs
-cGF0aC5kZW50cnkpCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gLUVJ
-TzsKPiDCoAo+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvbmFtZWkuYyBiL2ZzL292ZXJsYXlm
-cy9uYW1laS5jCj4gaW5kZXggODJlMTAzZTIzMDhiLi5iYTJiMTU2MTYyY2EgMTAwNjQ0Cj4gLS0t
-IGEvZnMvb3ZlcmxheWZzL25hbWVpLmMKPiArKysgYi9mcy9vdmVybGF5ZnMvbmFtZWkuYwo+IEBA
-IC04ODksNiArODg5LDUyIEBAIHN0YXRpYyBpbnQgb3ZsX2ZpeF9vcmlnaW4oc3RydWN0IG92bF9m
-cyAqb2ZzLAo+IHN0cnVjdCBkZW50cnkgKmRlbnRyeSwKPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJu
-IGVycjsKPiDCoH0KPiDCoAo+ICsvKiBMYXp5IGxvb2t1cCBvZiBsb3dlcmRhdGEgKi8KPiAraW50
-IG92bF9tYXliZV9sb29rdXBfbG93ZXJkYXRhKHN0cnVjdCBkZW50cnkgKmRlbnRyeSkKPiArewo+
-ICvCoMKgwqDCoMKgwqDCoHN0cnVjdCBpbm9kZSAqaW5vZGUgPSBkX2lub2RlKGRlbnRyeSk7Cj4g
-K8KgwqDCoMKgwqDCoMKgY29uc3QgY2hhciAqcmVkaXJlY3QgPSBvdmxfbG93ZXJkYXRhX3JlZGly
-ZWN0KGlub2RlKTsKPiArwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qgb3ZsX3BhdGggZGF0YXBhdGggPSB7
-fTsKPiArwqDCoMKgwqDCoMKgwqBjb25zdCBzdHJ1Y3QgY3JlZCAqb2xkX2NyZWQ7Cj4gK8KgwqDC
-oMKgwqDCoMKgaW50IGVycjsKPiArCj4gK8KgwqDCoMKgwqDCoMKgaWYgKCFyZWRpcmVjdCB8fCBv
-dmxfZGVudHJ5X2xvd2VyZGF0YShkZW50cnkpKQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqByZXR1cm4gMDsKPiArCj4gK8KgwqDCoMKgwqDCoMKgaWYgKHJlZGlyZWN0WzBdICE9ICcv
-JykKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIC1FSU87Cj4gKwo+ICvC
-oMKgwqDCoMKgwqDCoGVyciA9IG92bF9pbm9kZV9sb2NrX2ludGVycnVwdGlibGUoaW5vZGUpOwo+
-ICvCoMKgwqDCoMKgwqDCoGlmIChlcnIpCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oHJldHVybiBlcnI7Cj4gKwo+ICvCoMKgwqDCoMKgwqDCoGVyciA9IDA7Cj4gK8KgwqDCoMKgwqDC
-oMKgLyogU29tZW9uZSBnb3QgaGVyZSBiZWZvcmUgdXM/ICovCj4gK8KgwqDCoMKgwqDCoMKgaWYg
-KG92bF9kZW50cnlfbG93ZXJkYXRhKGRlbnRyeSkpCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoGdvdG8gb3V0Owo+ICsKPiArwqDCoMKgwqDCoMKgwqBvbGRfY3JlZCA9IG92bF9vdmVy
-cmlkZV9jcmVkcyhkZW50cnktPmRfc2IpOwo+ICvCoMKgwqDCoMKgwqDCoGVyciA9IG92bF9sb29r
-dXBfZGF0YV9sYXllcnMoZGVudHJ5LCByZWRpcmVjdCwgJmRhdGFwYXRoKTsKPiArwqDCoMKgwqDC
-oMKgwqByZXZlcnRfY3JlZHMob2xkX2NyZWQpOwo+ICvCoMKgwqDCoMKgwqDCoGlmIChlcnIpCj4g
-K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gb3V0X2VycjsKPiArCj4gK8KgwqDC
-oMKgwqDCoMKgZXJyID0gb3ZsX2RlbnRyeV9zZXRfbG93ZXJkYXRhKGRlbnRyeSwgJmRhdGFwYXRo
-KTsKPiArwqDCoMKgwqDCoMKgwqBpZiAoZXJyKQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqBnb3RvIG91dF9lcnI7Cj4gKwo+ICtvdXQ6Cj4gK8KgwqDCoMKgwqDCoMKgb3ZsX2lub2Rl
-X3VubG9jayhpbm9kZSk7Cj4gK8KgwqDCoMKgwqDCoMKgZHB1dChkYXRhcGF0aC5kZW50cnkpOwo+
-ICsKPiArwqDCoMKgwqDCoMKgwqByZXR1cm4gZXJyOwo+ICsKPiArb3V0X2VycjoKPiArwqDCoMKg
-wqDCoMKgwqBwcl93YXJuX3JhdGVsaW1pdGVkKCJsYXp5IGxvd2VyZGF0YSBsb29rdXAgZmFpbGVk
-ICglcGQyLAo+IGVycj0laSlcbiIsCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqAgZGVudHJ5LCBlcnIpOwo+ICvCoMKgwqDCoMKgwqDCoGdvdG8g
-b3V0Owo+ICt9Cj4gKwo+IMKgc3RydWN0IGRlbnRyeSAqb3ZsX2xvb2t1cChzdHJ1Y3QgaW5vZGUg
-KmRpciwgc3RydWN0IGRlbnRyeSAqZGVudHJ5LAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHVuc2lnbmVkIGludCBmbGFncykKPiDCoHsKPiBAQCAt
-MTA3NCwxNCArMTEyMCwxMCBAQCBzdHJ1Y3QgZGVudHJ5ICpvdmxfbG9va3VwKHN0cnVjdCBpbm9k
-ZSAqZGlyLAo+IHN0cnVjdCBkZW50cnkgKmRlbnRyeSwKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoH0KPiDCoMKgwqDCoMKgwqDCoMKgfQo+IMKgCj4gLcKgwqDCoMKgwqDCoMKgLyog
-TG9va3VwIGFic29sdXRlIHJlZGlyZWN0IGZyb20gbG93ZXIgbWV0YWNvcHkgaW4gZGF0YS1vbmx5
-Cj4gbGF5ZXJzICovCj4gK8KgwqDCoMKgwqDCoMKgLyogRGVmZXIgbG9va3VwIG9mIGxvd2VyZGF0
-YSBpbiBkYXRhLW9ubHkgbGF5ZXJzIHRvIGZpcnN0Cj4gYWNjZXNzICovCj4gwqDCoMKgwqDCoMKg
-wqDCoGlmIChkLm1ldGFjb3B5ICYmIGN0ciAmJiBvZnMtPm51bWRhdGFsYXllciAmJgo+IGQuYWJz
-b2x1dGVfcmVkaXJlY3QpIHsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZXJyID0g
-b3ZsX2xvb2t1cF9kYXRhX2xheWVycyhkZW50cnksIGQucmVkaXJlY3QsCj4gLcKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgICZzdGFja1tjdHJdKTsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgaWYgKCFlcnIpIHsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoGQubWV0YWNvcHkgPSBmYWxzZTsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGN0cisrOwo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqB9Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGQubWV0YWNvcHkgPSBm
-YWxzZTsKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgY3RyKys7Cj4gwqDCoMKgwqDC
-oMKgwqDCoH0KPiDCoAo+IMKgwqDCoMKgwqDCoMKgwqAvKgo+IGRpZmYgLS1naXQgYS9mcy9vdmVy
-bGF5ZnMvb3ZlcmxheWZzLmggYi9mcy9vdmVybGF5ZnMvb3ZlcmxheWZzLmgKPiBpbmRleCAwMTFi
-N2I0NjZmNzAuLjRlMzI3NjY1YzMxNiAxMDA2NDQKPiAtLS0gYS9mcy9vdmVybGF5ZnMvb3Zlcmxh
-eWZzLmgKPiArKysgYi9mcy9vdmVybGF5ZnMvb3ZlcmxheWZzLmgKPiBAQCAtNDAwLDYgKzQwMCw3
-IEBAIGVudW0gb3ZsX3BhdGhfdHlwZSBvdmxfcGF0aF9yZWFsZGF0YShzdHJ1Y3QKPiBkZW50cnkg
-KmRlbnRyeSwgc3RydWN0IHBhdGggKnBhdGgpOwo+IMKgc3RydWN0IGRlbnRyeSAqb3ZsX2RlbnRy
-eV91cHBlcihzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpOwo+IMKgc3RydWN0IGRlbnRyeSAqb3ZsX2Rl
-bnRyeV9sb3dlcihzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpOwo+IMKgc3RydWN0IGRlbnRyeSAqb3Zs
-X2RlbnRyeV9sb3dlcmRhdGEoc3RydWN0IGRlbnRyeSAqZGVudHJ5KTsKPiAraW50IG92bF9kZW50
-cnlfc2V0X2xvd2VyZGF0YShzdHJ1Y3QgZGVudHJ5ICpkZW50cnksIHN0cnVjdCBvdmxfcGF0aAo+
-ICpkYXRhcGF0aCk7Cj4gwqBjb25zdCBzdHJ1Y3Qgb3ZsX2xheWVyICpvdmxfaV9sYXllcl9sb3dl
-cihzdHJ1Y3QgaW5vZGUgKmlub2RlKTsKPiDCoGNvbnN0IHN0cnVjdCBvdmxfbGF5ZXIgKm92bF9s
-YXllcl9sb3dlcihzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpOwo+IMKgc3RydWN0IGRlbnRyeSAqb3Zs
-X2RlbnRyeV9yZWFsKHN0cnVjdCBkZW50cnkgKmRlbnRyeSk7Cj4gQEAgLTU2Miw2ICs1NjMsNyBA
-QCBzdHJ1Y3QgZGVudHJ5ICpvdmxfZ2V0X2luZGV4X2ZoKHN0cnVjdCBvdmxfZnMKPiAqb2ZzLCBz
-dHJ1Y3Qgb3ZsX2ZoICpmaCk7Cj4gwqBzdHJ1Y3QgZGVudHJ5ICpvdmxfbG9va3VwX2luZGV4KHN0
-cnVjdCBvdmxfZnMgKm9mcywgc3RydWN0IGRlbnRyeQo+ICp1cHBlciwKPiDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3RydWN0
-IGRlbnRyeSAqb3JpZ2luLCBib29sIHZlcmlmeSk7Cj4gwqBpbnQgb3ZsX3BhdGhfbmV4dChpbnQg
-aWR4LCBzdHJ1Y3QgZGVudHJ5ICpkZW50cnksIHN0cnVjdCBwYXRoCj4gKnBhdGgpOwo+ICtpbnQg
-b3ZsX21heWJlX2xvb2t1cF9sb3dlcmRhdGEoc3RydWN0IGRlbnRyeSAqZGVudHJ5KTsKPiDCoHN0
-cnVjdCBkZW50cnkgKm92bF9sb29rdXAoc3RydWN0IGlub2RlICpkaXIsIHN0cnVjdCBkZW50cnkg
-KmRlbnRyeSwKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoCB1bnNpZ25lZCBpbnQgZmxhZ3MpOwo+IMKgYm9vbCBvdmxfbG93ZXJfcG9zaXRpdmUoc3Ry
-dWN0IGRlbnRyeSAqZGVudHJ5KTsKPiBkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL292bF9lbnRy
-eS5oIGIvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oCj4gaW5kZXggMjVmYWJiMzE3NWNmLi5hN2Ix
-MDA2YzUzMjEgMTAwNjQ0Cj4gLS0tIGEvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oCj4gKysrIGIv
-ZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oCj4gQEAgLTE0NSw3ICsxNDUsNyBAQCBzdGF0aWMgaW5s
-aW5lIHN0cnVjdCBkZW50cnkKPiAqb3ZsX2xvd2VyZGF0YV9kZW50cnkoc3RydWN0IG92bF9lbnRy
-eSAqb2UpCj4gwqB7Cj4gwqDCoMKgwqDCoMKgwqDCoHN0cnVjdCBvdmxfcGF0aCAqbG93ZXJkYXRh
-ID0gb3ZsX2xvd2VyZGF0YShvZSk7Cj4gwqAKPiAtwqDCoMKgwqDCoMKgwqByZXR1cm4gbG93ZXJk
-YXRhID8gbG93ZXJkYXRhLT5kZW50cnkgOiBOVUxMOwo+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBs
-b3dlcmRhdGEgPyBSRUFEX09OQ0UobG93ZXJkYXRhLT5kZW50cnkpIDogTlVMTDsKPiDCoH0KPiDC
-oAo+IMKgLyogcHJpdmF0ZSBpbmZvcm1hdGlvbiBoZWxkIGZvciBldmVyeSBvdmVybGF5ZnMgZGVu
-dHJ5ICovCj4gZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy91dGlsLmMgYi9mcy9vdmVybGF5ZnMv
-dXRpbC5jCj4gaW5kZXggMjg0YjViYTRmY2Y2Li45YTA0Mjc2ODAxM2UgMTAwNjQ0Cj4gLS0tIGEv
-ZnMvb3ZlcmxheWZzL3V0aWwuYwo+ICsrKyBiL2ZzL292ZXJsYXlmcy91dGlsLmMKPiBAQCAtMjUw
-LDcgKzI1MCwxMyBAQCB2b2lkIG92bF9wYXRoX2xvd2VyZGF0YShzdHJ1Y3QgZGVudHJ5ICpkZW50
-cnksCj4gc3RydWN0IHBhdGggKnBhdGgpCj4gwqAKPiDCoMKgwqDCoMKgwqDCoMKgaWYgKGxvd2Vy
-ZGF0YV9kZW50cnkpIHsKPiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHBhdGgtPmRl
-bnRyeSA9IGxvd2VyZGF0YV9kZW50cnk7Cj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oHBhdGgtPm1udCA9IGxvd2VyZGF0YS0+bGF5ZXItPm1udDsKPiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgLyoKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICogUGFpcnMg
-d2l0aCBzbXBfd21iKCkgaW4KPiBvdmxfZGVudHJ5X3NldF9sb3dlcmRhdGEoKS4KPiArwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICogTWFrZSBzdXJlIHRoYXQgaWYgbG93ZXJkYXRhLT5k
-ZW50cnkgaXMgdmlzaWJsZSwKPiB0aGVuCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oCAqIGRhdGFwYXRoLT5sYXllciBpcyB2aXNpYmxlIGFzIHdlbGwuCj4gK8KgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCAqLwo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzbXBf
-cm1iKCk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHBhdGgtPm1udCA9IFJFQURf
-T05DRShsb3dlcmRhdGEtPmxheWVyKS0+bW50Owo+IMKgwqDCoMKgwqDCoMKgwqB9IGVsc2Ugewo+
-IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgKnBhdGggPSAoc3RydWN0IHBhdGgpIHsg
-fTsKPiDCoMKgwqDCoMKgwqDCoMKgfQo+IEBAIC0zMTIsNiArMzE4LDI5IEBAIHN0cnVjdCBkZW50
-cnkgKm92bF9kZW50cnlfbG93ZXJkYXRhKHN0cnVjdAo+IGRlbnRyeSAqZGVudHJ5KQo+IMKgwqDC
-oMKgwqDCoMKgwqByZXR1cm4gb3ZsX2xvd2VyZGF0YV9kZW50cnkoT1ZMX0UoZGVudHJ5KSk7Cj4g
-wqB9Cj4gwqAKPiAraW50IG92bF9kZW50cnlfc2V0X2xvd2VyZGF0YShzdHJ1Y3QgZGVudHJ5ICpk
-ZW50cnksIHN0cnVjdCBvdmxfcGF0aAo+ICpkYXRhcGF0aCkKPiArewo+ICvCoMKgwqDCoMKgwqDC
-oHN0cnVjdCBvdmxfZW50cnkgKm9lID0gT1ZMX0UoZGVudHJ5KTsKPiArwqDCoMKgwqDCoMKgwqBz
-dHJ1Y3Qgb3ZsX3BhdGggKmxvd2VyZGF0YSA9IG92bF9sb3dlcmRhdGEob2UpOwo+ICvCoMKgwqDC
-oMKgwqDCoHN0cnVjdCBkZW50cnkgKmRhdGFkZW50cnkgPSBkYXRhcGF0aC0+ZGVudHJ5Owo+ICsK
-PiArwqDCoMKgwqDCoMKgwqBpZiAoV0FSTl9PTl9PTkNFKG92bF9udW1sb3dlcihvZSkgPD0gMSkp
-Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHJldHVybiAtRUlPOwo+ICsKPiArwqDC
-oMKgwqDCoMKgwqBXUklURV9PTkNFKGxvd2VyZGF0YS0+bGF5ZXIsIGRhdGFwYXRoLT5sYXllcik7
-Cj4gK8KgwqDCoMKgwqDCoMKgLyoKPiArwqDCoMKgwqDCoMKgwqAgKiBQYWlycyB3aXRoIHNtcF9y
-bWIoKSBpbiBvdmxfcGF0aF9sb3dlcmRhdGEoKS4KPiArwqDCoMKgwqDCoMKgwqAgKiBNYWtlIHN1
-cmUgdGhhdCBpZiBsb3dlcmRhdGEtPmRlbnRyeSBpcyB2aXNpYmxlLCB0aGVuCj4gK8KgwqDCoMKg
-wqDCoMKgICogbG93ZXJkYXRhLT5sYXllciBpcyB2aXNpYmxlIGFzIHdlbGwuCj4gK8KgwqDCoMKg
-wqDCoMKgICovCj4gK8KgwqDCoMKgwqDCoMKgc21wX3dtYigpOwo+ICvCoMKgwqDCoMKgwqDCoFdS
-SVRFX09OQ0UobG93ZXJkYXRhLT5kZW50cnksIGRnZXQoZGF0YWRlbnRyeSkpOwo+ICsKPiArwqDC
-oMKgwqDCoMKgwqBvdmxfZGVudHJ5X3VwZGF0ZV9yZXZhbChkZW50cnksIGRhdGFkZW50cnkpOwo+
-ICsKPiArwqDCoMKgwqDCoMKgwqByZXR1cm4gMDsKPiArfQo+ICsKPiDCoHN0cnVjdCBkZW50cnkg
-Km92bF9kZW50cnlfcmVhbChzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpCj4gwqB7Cj4gwqDCoMKgwqDC
-oMKgwqDCoHJldHVybiBvdmxfZGVudHJ5X3VwcGVyKGRlbnRyeSkgPzogb3ZsX2RlbnRyeV9sb3dl
-cihkZW50cnkpOwoKLS0gCj0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09
-LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS0KPS09LT0KIEFsZXhhbmRlciBMYXJzc29uICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBSZWQgSGF0LApJbmMgCiAg
-ICAgICBhbGV4bEByZWRoYXQuY29tICAgICAgICAgICAgYWxleGFuZGVyLmxhcnNzb25AZ21haWwu
-Y29tIApIZSdzIGFuIHVuY29udmVudGlvbmFsIGFyYWNobm9waG9iaWMgZXgtY29uIGZsZWVpbmcg
-ZnJvbSBhIHNlY3JldCAKZ292ZXJubWVudCBwcm9ncmFtbWUuIFNoZSdzIGEgc3Ryb25nLXdpbGxl
-ZCBtb3Rvcm1vdXRoIHBvbGl0aWNpYW4gZnJvbSAKb3V0IG9mIHRvd24uIFRoZXkgZmlnaHQgY3Jp
-bWUhIAo=
+On Tue, Apr 18, 2023 at 3:02=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
+> wrote:
+>
+> On Wed, 2023-04-12 at 16:54 +0300, Amir Goldstein wrote:
+> > Introduce the format lowerdir=3Dlower1:lower2::lowerdata1:lowerdata2
+> > where the lower layers after the :: separator are not merged into the
+> > overlayfs merge dirs.
+> >
+> > The files in those layers are only meant to be accessible via
+> > absolute
+> > redirect from metacopy files in lower layers.  Following changes will
+> > implement lookup in the data layers.
+> >
+> > This feature was requested for composefs ostree use case, where the
+> > lower data layer should only be accessiable via absolute redirects
+> > from metacopy inodes.
+> >
+> > The lower data layers are not required to a have a unique uuid or any
+> > uuid at all, because they are never used to compose the overlayfs
+> > inode
+> > st_ino/st_dev.
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+>
+> Reviewed-by: Alexander Larsson <alexl@redhat.com>
+>
+> > ---
+> >  Documentation/filesystems/overlayfs.rst | 32 +++++++++++++++++
+> >  fs/overlayfs/namei.c                    |  4 +--
+> >  fs/overlayfs/ovl_entry.h                |  9 +++++
+> >  fs/overlayfs/super.c                    | 46 +++++++++++++++++++++--
+> > --
+> >  4 files changed, 82 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/Documentation/filesystems/overlayfs.rst
+> > b/Documentation/filesystems/overlayfs.rst
+> > index 4c76fda07645..c8e04a4f0e21 100644
+> > --- a/Documentation/filesystems/overlayfs.rst
+> > +++ b/Documentation/filesystems/overlayfs.rst
+> > @@ -371,6 +371,38 @@ conflict with metacopy=3Don, and will result in an
+> > error.
+> >  [*] redirect_dir=3Dfollow only conflicts with metacopy=3Don if
+> > upperdir=3D... is
+> >  given.
+> >
+> > +
+> > +Data-only lower layers
+> > +----------------------
+> > +
+> > +With "metacopy" feature enabled, an overlayfs regular file may be a
+> > composition
+> > +of information from up to three different layers:
+> > +
+> > + 1) metadata from a file in the upper layer
+> > +
+> > + 2) st_ino and st_dev object identifier from a file in a lower layer
+> > +
+> > + 3) data from a file in another lower layer (further below)
+> > +
+> > +The "lower data" file can be on any lower layer, except from the top
+> > most
+> > +lower layer.
+> > +
+> > +Below the top most lower layer, any number of lower most layers may
+> > be defined
+> > +as "data-only" lower layers, using the double collon ("::")
+> > separator.
+>
+> "colon", not "collon"
+>
+> > +
+> > +For example:
+> > +
+> > +  mount -t overlay overlay -olowerdir=3D/lower1::/lower2:/lower3
+> > /merged
+> > +
+> > +The paths of files in the "data-only" lower layers are not visible
+> > in the
+> > +merged overlayfs directories and the metadata and st_ino/st_dev of
+> > files
+> > +in the "data-only" lower layers are not visible in overlayfs inodes.
+> > +
+> > +Only the data of the files in the "data-only" lower layers may be
+> > visible
+> > +when a "metacopy" file in one of the lower layers above it, has a
+> > "redirect"
+> > +to the absolute path of the "lower data" file in the "data-only"
+> > lower layer.
+> > +
+> > +
+> >  Sharing and copying layers
+> >  --------------------------
+> >
+> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> > index b629261324f1..ff82155b4f7e 100644
+> > --- a/fs/overlayfs/namei.c
+> > +++ b/fs/overlayfs/namei.c
+> > @@ -356,7 +356,7 @@ int ovl_check_origin_fh(struct ovl_fs *ofs,
+> > struct ovl_fh *fh, bool connected,
+> >         struct dentry *origin =3D NULL;
+> >         int i;
+> >
+> > -       for (i =3D 1; i < ofs->numlayer; i++) {
+> > +       for (i =3D 1; i <=3D ovl_numlowerlayer(ofs); i++) {
+> >                 /*
+> >                  * If lower fs uuid is not unique among lower fs we
+> > cannot match
+> >                  * fh->uuid to layer.
+> > @@ -907,7 +907,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > struct dentry *dentry,
+> >
+> >         if (!d.stop && ovl_numlower(poe)) {
+> >                 err =3D -ENOMEM;
+> > -               stack =3D ovl_stack_alloc(ofs->numlayer - 1);
+> > +               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs));
+> >                 if (!stack)
+> >                         goto out_put_upper;
+> >         }
+>
+> Again, surely ovl_numlower(poe) is a better size here?
 
+Intentional. that is changed in the following patch.
+(to ovl_numlowerlayer(ofs) + 1)
+As the commit message says:
+"Following changes will implement lookup in the data layers."
+
+>
+> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > index 221f0cbe748e..25fabb3175cf 100644
+> > --- a/fs/overlayfs/ovl_entry.h
+> > +++ b/fs/overlayfs/ovl_entry.h
+> > @@ -62,6 +62,8 @@ struct ovl_fs {
+> >         unsigned int numlayer;
+> >         /* Number of unique fs among layers including upper fs */
+> >         unsigned int numfs;
+> > +       /* Number of data-only lower layers */
+> > +       unsigned int numdatalayer;
+> >         const struct ovl_layer *layers;
+> >         struct ovl_sb *fs;
+> >         /* workbasedir is the path at workdir=3D mount option */
+> > @@ -95,6 +97,13 @@ struct ovl_fs {
+> >         errseq_t errseq;
+> >  };
+> >
+> > +
+> > +/* Number of lower layers, not including data-only layers */
+> > +static inline unsigned int ovl_numlowerlayer(struct ovl_fs *ofs)
+> > +{
+> > +       return ofs->numlayer - ofs->numdatalayer - 1;
+> > +}
+> > +
+> >  static inline struct vfsmount *ovl_upper_mnt(struct ovl_fs *ofs)
+> >  {
+> >         return ofs->layers[0].mnt;
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index 7742aef3f3b3..3484f39a8f27 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -1579,6 +1579,16 @@ static int ovl_get_fsid(struct ovl_fs *ofs,
+> > const struct path *path)
+> >         return ofs->numfs++;
+> >  }
+> >
+> > +/*
+> > + * The fsid after the last lower fsid is used for the data layers.
+> > + * It is a "null fs" with a null sb, null uuid, and no pseudo dev.
+> > + */
+> > +static int ovl_get_data_fsid(struct ovl_fs *ofs)
+> > +{
+> > +       return ofs->numfs;
+> > +}
+> > +
+> > +
+> >  static int ovl_get_layers(struct super_block *sb, struct ovl_fs
+> > *ofs,
+> >                           struct path *stack, unsigned int numlower,
+> >                           struct ovl_layer *layers)
+> > @@ -1586,11 +1596,14 @@ static int ovl_get_layers(struct super_block
+> > *sb, struct ovl_fs *ofs,
+> >         int err;
+> >         unsigned int i;
+> >
+> > -       ofs->fs =3D kcalloc(numlower + 1, sizeof(struct ovl_sb),
+> > GFP_KERNEL);
+> > +       ofs->fs =3D kcalloc(numlower + 2, sizeof(struct ovl_sb),
+> > GFP_KERNEL);
+> >         if (ofs->fs =3D=3D NULL)
+> >                 return -ENOMEM;
+> >
+> > -       /* idx/fsid 0 are reserved for upper fs even with lower only
+> > overlay */
+> > +       /*
+> > +        * idx/fsid 0 are reserved for upper fs even with lower only
+> > overlay
+> > +        * and the last fsid is reserved for "null fs" of the data
+> > layers.
+> > +        */
+> >         ofs->numfs++;
+> >
+> >         /*
+> > @@ -1615,7 +1628,10 @@ static int ovl_get_layers(struct super_block
+> > *sb, struct ovl_fs *ofs,
+> >                 struct inode *trap;
+> >                 int fsid;
+> >
+> > -               fsid =3D ovl_get_fsid(ofs, &stack[i]);
+> > +               if (i < numlower - ofs->numdatalayer)
+> > +                       fsid =3D ovl_get_fsid(ofs, &stack[i]);
+> > +               else
+> > +                       fsid =3D ovl_get_data_fsid(ofs);
+> >                 if (fsid < 0)
+> >                         return fsid;
+> >
+> > @@ -1703,6 +1719,7 @@ static int ovl_get_lowerstack(struct
+> > super_block *sb, struct ovl_entry *oe,
+> >         int err;
+> >         struct path *stack =3D NULL;
+> >         struct ovl_path *lowerstack;
+> > +       unsigned int numlowerdata =3D 0;
+> >         unsigned int i;
+> >
+> >         if (!ofs->config.upperdir && numlower =3D=3D 1) {
+> > @@ -1714,13 +1731,27 @@ static int ovl_get_lowerstack(struct
+> > super_block *sb, struct ovl_entry *oe,
+> >         if (!stack)
+> >                 return -ENOMEM;
+> >
+> > -       err =3D -EINVAL;
+> > -       for (i =3D 0; i < numlower; i++) {
+> > +       for (i =3D 0; i < numlower;) {
+> >                 err =3D ovl_lower_dir(lower, &stack[i], ofs, &sb-
+> > >s_stack_depth);
+> >                 if (err)
+> >                         goto out_err;
+> >
+> >                 lower =3D strchr(lower, '\0') + 1;
+> > +
+> > +               i++;
+> > +               err =3D -EINVAL;
+> > +               /* :: seperator indicates the start of lower data
+> > layers */
+> > +               if (!*lower && i < numlower && !numlowerdata) {
+> > +                       if (!ofs->config.metacopy) {
+> > +                               pr_err("lower data-only dirs require
+> > metacopy support.\n");
+> > +                               goto out_err;
+> > +                       }
+> > +                       lower++;
+> > +                       numlower--;
+> > +                       ofs->numdatalayer =3D numlowerdata =3D numlower=
+ -
+> > i;
+> > +                       pr_info("using the lowest %d of %d lowerdirs
+> > as data layers\n",
+> > +                               numlowerdata, numlower);
+> > +               }
+> >         }
+>
+> This will handle a "::" at the end of the string as an error. Maybe it
+> would be better to treat it as "zero lower data layera", to make code
+> that generates mount options more regular? Not a huge issue though.
+>
+
+No reason to do that.
+Code that prepares lowerdata layers should know what it is doing.
+
+Thanks,
+Amir.
