@@ -2,220 +2,247 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55910C77B76
-	for <linux-unionfs@archiver.kernel.org>; Mon, 17 Apr 2023 15:01:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B61B1C77B75
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 01:40:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230443AbjDQPBZ (ORCPT
+        id S229510AbjDRBkz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Apr 2023 11:01:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54274 "EHLO
+        Mon, 17 Apr 2023 21:40:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230432AbjDQPBX (ORCPT
+        with ESMTP id S229602AbjDRBky (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Apr 2023 11:01:23 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC9881708
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 08:00:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681743608;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=EZrdmJPqDoo2/XD5n+svs28c9p3EWox33HHMC8oKurw=;
-        b=ZP1Ewl/yQneAp5Go+3pzuHJC7RCWe8dsKvx+an9GfsDL/sqdtoxRzuSpTb7rgdZxbUKoHO
-        +tUmXw7MMUd1I6aKczmN9NI3m5l22kO6OGGeU/uxD9S9Cu6enXLabJjlDMGyO33kHlbnQG
-        /CY/MdFfiYMEIJ0RLvLA8N2bR/2wx3E=
-Received: from mail-lj1-f199.google.com (mail-lj1-f199.google.com
- [209.85.208.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-597-APX84b7HMHma6MVu6jtVTQ-1; Mon, 17 Apr 2023 11:00:07 -0400
-X-MC-Unique: APX84b7HMHma6MVu6jtVTQ-1
-Received: by mail-lj1-f199.google.com with SMTP id 38308e7fff4ca-2a8b52c112fso3589071fa.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 08:00:06 -0700 (PDT)
+        Mon, 17 Apr 2023 21:40:54 -0400
+Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 110575595
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:40:52 -0700 (PDT)
+Received: by mail-yb1-xb49.google.com with SMTP id 81-20020a251854000000b00b8f5b60b760so11391396yby.19
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:40:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1681782051; x=1684374051;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=bMGkpk1YzLLB6Dkq44tjt4SD+YA/2KPf5L1MlIvm+KE=;
+        b=Udx3W0F5kzh1CXU8g7LWKjoladX92jD4LTjvnTrKNMLe/kB98XFpP5SRZx2G+LODDa
+         732pusGPSRXAVbNv1DIlX0Ix/mgkMpYkAhIev8U1x0W6iV79Tc3pCVNmRId45lQ0WAA/
+         EZ99SloXabv8y9/w4zJ3OdFk7ysy68VPmNybl0mKuWWfNA7Y7xoxMkq0sjahR5oZ0MuY
+         DPHiauTUOQRsk4baUh8TGdku8HKB7uhASof5VCYaVS/6IfbdCc+Mj7ZxVPXsXJxIxLH2
+         P3qKzoLwPbp1hjacowQrK83FuYlcxOI/l+epJA+5jIXk+89QC8PPxLUm62Sti+tAzBt8
+         vFHg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681743605; x=1684335605;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+        d=1e100.net; s=20221208; t=1681782051; x=1684374051;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=EZrdmJPqDoo2/XD5n+svs28c9p3EWox33HHMC8oKurw=;
-        b=MH+8e61vbwuhQZAePFW1kL2Bh0Yz+2JeEWL0BML3arCdk/GjwSiJSd56JEkzZSETe9
-         KfFHYbD0IUP8VY+ihShV9HtCvhwlj9m6oglof0bVRhIMq/IaZxV6c7rCqd/90LRflIwh
-         XM4ivBPNjW2PEpFpg2s5/34BgyGDjRrJ51OI9B91plDdbNAIydv5v8iUQ9bGcDQj0KV+
-         oicGlMCluCDobbKgTnoYD0UFSdp20L4B06mi40VonxThIFqHs4rgGR2eylZqL6hgmaR7
-         J2HvLHpfkRWDPf5DztzUTAV26klB5m2qoJe3ng1n1eiJ/pjF/FBhDDMsfufGG3yEclxu
-         g6NQ==
-X-Gm-Message-State: AAQBX9c0jFInpZ7wBafjh54Fyp0lZsOprOwO5yf/9vpAhSUW4C+FzOIJ
-        JRNdGbv4LoLhNvtI8n2BNqijRGYCiXWrOWso7vBEp8MkGniIT+DxlKnrernhrdbkvMc9ddyN9yf
-        TkouurG+uVBohf58LUYGDG4y+rQ==
-X-Received: by 2002:ac2:5399:0:b0:4db:513f:fe2a with SMTP id g25-20020ac25399000000b004db513ffe2amr1989662lfh.23.1681743605732;
-        Mon, 17 Apr 2023 08:00:05 -0700 (PDT)
-X-Google-Smtp-Source: AKy350ZrUbD9m7T8+ke/rEIVCOEJOB1h3Hr0Bd88Qy+13CLlCWbQSygp5iQOErneM4phmOPVFFAP/g==
-X-Received: by 2002:ac2:5399:0:b0:4db:513f:fe2a with SMTP id g25-20020ac25399000000b004db513ffe2amr1989657lfh.23.1681743605394;
-        Mon, 17 Apr 2023 08:00:05 -0700 (PDT)
-Received: from greebo.mooo.com (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
-        by smtp.gmail.com with ESMTPSA id y8-20020ac255a8000000b004db45096c99sm2054176lfg.85.2023.04.17.08.00.04
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 17 Apr 2023 08:00:04 -0700 (PDT)
-Message-ID: <3bd51a1bb42362a267429c9cf24d0af1885145fc.camel@redhat.com>
-Subject: Re: [PATCH 4/7] ovl: factor out ovl_free_entry() and ovl_stack_*()
- helpers
-From:   Alexander Larsson <alexl@redhat.com>
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-unionfs@vger.kernel.org
-Date:   Mon, 17 Apr 2023 17:00:04 +0200
-In-Reply-To: <20230408164302.1392694-5-amir73il@gmail.com>
-References: <20230408164302.1392694-1-amir73il@gmail.com>
-         <20230408164302.1392694-5-amir73il@gmail.com>
+        bh=bMGkpk1YzLLB6Dkq44tjt4SD+YA/2KPf5L1MlIvm+KE=;
+        b=QMell/jSdFyq/zbplfd06OAypv4jRbEC5v0zZHG29SN0jU36YbY0ldKRrbOcLxEHQY
+         2/YTToRSEGlDg9AslFv4iNfqZNa/ZG3DydDImNbX3/imLoswGleWAbGL++yBLhxuP8E5
+         xWiEteC3GXfUY407vOOSysY7CPR31AacIKzBgjOlHtSAvoTgK4kbjCs6FghvhgNGu/ao
+         du6kvQRD440bpOPuJlAZlSPh2bNv0HdWYzT5VjB7WZG2KOX6WyrPiIWi9vUvEC+ijYwo
+         PQPVl8UyT47GsiQOPhX8DEwCqeafsGousHWBJclaOgzsbi0t2wOfBrFMyEi7eVY3iG3G
+         xwUQ==
+X-Gm-Message-State: AAQBX9eQvC3HQWk+YPnklDGafJF+oSV9s6OggXvuWBi1RdiSqARrFp1/
+        jUj8Mbyzu2cRFwU8ARf6PsiiF29cXrY=
+X-Google-Smtp-Source: AKy350ZnJUGlxh78CSx9AVxMzTV5Do1HydFLKImAN3ILv2glJWBD/IOtF7qzx+pznis4COWdPEoBhudQajU=
+X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:201:e67a:98b0:942d:86aa])
+ (user=drosen job=sendgmr) by 2002:a81:ac5d:0:b0:54f:b95f:8999 with SMTP id
+ z29-20020a81ac5d000000b0054fb95f8999mr10086901ywj.6.1681782051211; Mon, 17
+ Apr 2023 18:40:51 -0700 (PDT)
+Date:   Mon, 17 Apr 2023 18:40:00 -0700
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.40.0.634.g4ca3ef3211-goog
+Message-ID: <20230418014037.2412394-1-drosen@google.com>
+Subject: [RFC PATCH bpf-next v3 00/37] FUSE BPF: A Stacked Filesystem
+ Extension for FUSE
+From:   Daniel Rosenberg <drosen@google.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>
+Cc:     Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Joanne Koong <joannelkoong@gmail.com>,
+        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com,
+        Daniel Rosenberg <drosen@google.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
-User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
-MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-T24gU2F0LCAyMDIzLTA0LTA4IGF0IDE5OjQyICswMzAwLCBBbWlyIEdvbGRzdGVpbiB3cm90ZToK
-PiBJbiBwcmVwYXJhdGlvbiBmb3IgbW92aW5nIGxvd2Vyc3RhY2sgaW50byBvdmxfaW5vZGUuCj4g
-Cj4gTm90ZSB0aGF0IGluIG92bF9sb29rdXAoKSB0aGUgdGVtcCBzdGFjayBkZW50cnkgcmVmcyBh
-cmUgbm93IGNsb25lZAo+IGludG8gdGhlIGZpbmFsIG92bF9sb3dlcnN0YWNrIGluc3RlYWQgb2Yg
-YmVpbmcgdHJhbnNmZXJlZCwgc28gY2xlYW51cAo+IGFsd2F5cyBuZWVkcyB0byBjYWxsIG92bF9z
-dGFja19mcmVlKHN0YWNrKS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBBbWlyIEdvbGRzdGVpbiA8YW1p
-cjczaWxAZ21haWwuY29tPgoKUmV2aWV3ZWQtYnk6IEFsZXhhbmRlciBMYXJzc29uIDxhbGV4bEBy
-ZWRoYXQuY29tPgoKPiAtLS0KPiDCoGZzL292ZXJsYXlmcy9uYW1laS5jwqDCoMKgwqAgfCAxMyAr
-KysrKy0tLS0tLS0tCj4gwqBmcy9vdmVybGF5ZnMvb3ZlcmxheWZzLmggfMKgIDUgKysrKysKPiDC
-oGZzL292ZXJsYXlmcy9vdmxfZW50cnkuaCB8wqAgMiAtLQo+IMKgZnMvb3ZlcmxheWZzL3N1cGVy
-LmPCoMKgwqDCoCB8IDE0ICsrLS0tLS0tLS0tLS0tCj4gwqBmcy9vdmVybGF5ZnMvdXRpbC5jwqDC
-oMKgwqDCoCB8IDM0ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiDCoDUgZmls
-ZXMgY2hhbmdlZCwgNDYgaW5zZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAt
-LWdpdCBhL2ZzL292ZXJsYXlmcy9uYW1laS5jIGIvZnMvb3ZlcmxheWZzL25hbWVpLmMKPiBpbmRl
-eCAzMWY4ODlkMjcwODMuLmMyMzdjOGRiZmYwOSAxMDA2NDQKPiAtLS0gYS9mcy9vdmVybGF5ZnMv
-bmFtZWkuYwo+ICsrKyBiL2ZzL292ZXJsYXlmcy9uYW1laS5jCj4gQEAgLTkwNyw4ICs5MDcsNyBA
-QCBzdHJ1Y3QgZGVudHJ5ICpvdmxfbG9va3VwKHN0cnVjdCBpbm9kZSAqZGlyLAo+IHN0cnVjdCBk
-ZW50cnkgKmRlbnRyeSwKPiDCoAo+IMKgwqDCoMKgwqDCoMKgwqBpZiAoIWQuc3RvcCAmJiBvdmxf
-bnVtbG93ZXIocG9lKSkgewo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZXJyID0g
-LUVOT01FTTsKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgc3RhY2sgPSBrY2FsbG9j
-KG9mcy0+bnVtbGF5ZXIgLSAxLCBzaXplb2Yoc3RydWN0Cj4gb3ZsX3BhdGgpLAo+IC3CoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoEdG
-UF9LRVJORUwpOwo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBzdGFjayA9IG92bF9z
-dGFja19hbGxvYyhvZnMtPm51bWxheWVyIC0gMSk7CgpJIHJlYWxpemUgdGhpcyBpcyBub3QgcmVh
-bGx5IHJlbGF0ZWQgdG8geW91ciBwYXRjaCwgYnV0IHdoeSBpcyB0aGlzCnVzaW5nIG9mcy0+bnVt
-bGF5ZXIgLSAxLCByYXRoZXIgdGhhbiBvdmxfbnVtbG93ZXIocG9lKT8gVGhlIGxhdGVyIGlzCndo
-YXQgd2UgaXRlcmF0ZSBvdmVyIGJlbG93LCBhbmQgaXMgcG90ZW50aWFsbHkgc21hbGxlciB0aGFu
-IG51bWxheWVycy4KCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBpZiAoIXN0YWNr
-KQo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8g
-b3V0X3B1dF91cHBlcjsKPiDCoMKgwqDCoMKgwqDCoMKgfQo+IEBAIC0xMDczLDcgKzEwNzIsNyBA
-QCBzdHJ1Y3QgZGVudHJ5ICpvdmxfbG9va3VwKHN0cnVjdCBpbm9kZSAqZGlyLAo+IHN0cnVjdCBk
-ZW50cnkgKmRlbnRyeSwKPiDCoMKgwqDCoMKgwqDCoMKgaWYgKCFvZSkKPiDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoGdvdG8gb3V0X3B1dDsKPiDCoAo+IC3CoMKgwqDCoMKgwqDCoG1l
-bWNweShvdmxfbG93ZXJzdGFjayhvZSksIHN0YWNrLCBzaXplb2Yoc3RydWN0IG92bF9wYXRoKSAq
-Cj4gY3RyKTsKPiArwqDCoMKgwqDCoMKgwqBvdmxfc3RhY2tfY3B5KG92bF9sb3dlcnN0YWNrKG9l
-KSwgc3RhY2ssIGN0cik7Cj4gwqDCoMKgwqDCoMKgwqDCoGRlbnRyeS0+ZF9mc2RhdGEgPSBvZTsK
-PiDCoAo+IMKgwqDCoMKgwqDCoMKgwqBpZiAodXBwZXJvcGFxdWUpCj4gQEAgLTExMzEsMTggKzEx
-MzAsMTYgQEAgc3RydWN0IGRlbnRyeSAqb3ZsX2xvb2t1cChzdHJ1Y3QgaW5vZGUgKmRpciwKPiBz
-dHJ1Y3QgZGVudHJ5ICpkZW50cnksCj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBr
-ZnJlZShvcmlnaW5fcGF0aCk7Cj4gwqDCoMKgwqDCoMKgwqDCoH0KPiDCoMKgwqDCoMKgwqDCoMKg
-ZHB1dChpbmRleCk7Cj4gLcKgwqDCoMKgwqDCoMKga2ZyZWUoc3RhY2spOwo+ICvCoMKgwqDCoMKg
-wqDCoG92bF9zdGFja19mcmVlKHN0YWNrLCBjdHIpOwo+IMKgwqDCoMKgwqDCoMKgwqBrZnJlZShk
-LnJlZGlyZWN0KTsKPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIGRfc3BsaWNlX2FsaWFzKGlub2Rl
-LCBkZW50cnkpOwo+IMKgCj4gwqBvdXRfZnJlZV9vZToKPiDCoMKgwqDCoMKgwqDCoMKgZGVudHJ5
-LT5kX2ZzZGF0YSA9IE5VTEw7Cj4gLcKgwqDCoMKgwqDCoMKga2ZyZWUob2UpOwo+ICvCoMKgwqDC
-oMKgwqDCoG92bF9mcmVlX2VudHJ5KG9lKTsKPiDCoG91dF9wdXQ6Cj4gwqDCoMKgwqDCoMKgwqDC
-oGRwdXQoaW5kZXgpOwo+IC3CoMKgwqDCoMKgwqDCoGZvciAoaSA9IDA7IGkgPCBjdHI7IGkrKykK
-PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZHB1dChzdGFja1tpXS5kZW50cnkpOwo+
-IC3CoMKgwqDCoMKgwqDCoGtmcmVlKHN0YWNrKTsKPiArwqDCoMKgwqDCoMKgwqBvdmxfc3RhY2tf
-ZnJlZShzdGFjaywgY3RyKTsKPiDCoG91dF9wdXRfdXBwZXI6Cj4gwqDCoMKgwqDCoMKgwqDCoGlm
-IChvcmlnaW5fcGF0aCkgewo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZHB1dChv
-cmlnaW5fcGF0aC0+ZGVudHJ5KTsKPiBkaWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL292ZXJsYXlm
-cy5oIGIvZnMvb3ZlcmxheWZzL292ZXJsYXlmcy5oCj4gaW5kZXggZTEwMGM1NWJiOTI0Li42YTUw
-Mjk2ZmVmOGYgMTAwNjQ0Cj4gLS0tIGEvZnMvb3ZlcmxheWZzL292ZXJsYXlmcy5oCj4gKysrIGIv
-ZnMvb3ZlcmxheWZzL292ZXJsYXlmcy5oCj4gQEAgLTM3Myw3ICszNzMsMTIgQEAgaW50IG92bF9j
-YW5fZGVjb2RlX2ZoKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IpOwo+IMKgc3RydWN0IGRlbnRyeSAq
-b3ZsX2luZGV4ZGlyKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IpOwo+IMKgYm9vbCBvdmxfaW5kZXhf
-YWxsKHN0cnVjdCBzdXBlcl9ibG9jayAqc2IpOwo+IMKgYm9vbCBvdmxfdmVyaWZ5X2xvd2VyKHN0
-cnVjdCBzdXBlcl9ibG9jayAqc2IpOwo+ICtzdHJ1Y3Qgb3ZsX3BhdGggKm92bF9zdGFja19hbGxv
-Yyh1bnNpZ25lZCBpbnQgbik7Cj4gK3ZvaWQgb3ZsX3N0YWNrX2NweShzdHJ1Y3Qgb3ZsX3BhdGgg
-KmRzdCwgc3RydWN0IG92bF9wYXRoICpzcmMsCj4gdW5zaWduZWQgaW50IG4pOwo+ICt2b2lkIG92
-bF9zdGFja19wdXQoc3RydWN0IG92bF9wYXRoICpzdGFjaywgdW5zaWduZWQgaW50IG4pOwo+ICt2
-b2lkIG92bF9zdGFja19mcmVlKHN0cnVjdCBvdmxfcGF0aCAqc3RhY2ssIHVuc2lnbmVkIGludCBu
-KTsKPiDCoHN0cnVjdCBvdmxfZW50cnkgKm92bF9hbGxvY19lbnRyeSh1bnNpZ25lZCBpbnQgbnVt
-bG93ZXIpOwo+ICt2b2lkIG92bF9mcmVlX2VudHJ5KHN0cnVjdCBvdmxfZW50cnkgKm9lKTsKPiDC
-oGJvb2wgb3ZsX2RlbnRyeV9yZW1vdGUoc3RydWN0IGRlbnRyeSAqZGVudHJ5KTsKPiDCoHZvaWQg
-b3ZsX2RlbnRyeV91cGRhdGVfcmV2YWwoc3RydWN0IGRlbnRyeSAqZGVudHJ5LCBzdHJ1Y3QgZGVu
-dHJ5Cj4gKnJlYWxkZW50cnkpOwo+IMKgdm9pZCBvdmxfZGVudHJ5X2luaXRfcmV2YWwoc3RydWN0
-IGRlbnRyeSAqZGVudHJ5LCBzdHJ1Y3QgZGVudHJ5Cj4gKnVwcGVyZGVudHJ5KTsKPiBkaWZmIC0t
-Z2l0IGEvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oIGIvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5o
-Cj4gaW5kZXggZjQ1NmE5OWQ2MDE3Li43NTRmOGFlNGNlNjIgMTAwNjQ0Cj4gLS0tIGEvZnMvb3Zl
-cmxheWZzL292bF9lbnRyeS5oCj4gKysrIGIvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oCj4gQEAg
-LTEyNyw4ICsxMjcsNiBAQCBzdGF0aWMgaW5saW5lIHN0cnVjdCBvdmxfcGF0aAo+ICpvdmxfbG93
-ZXJzdGFjayhzdHJ1Y3Qgb3ZsX2VudHJ5ICpvZSkKPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIG9l
-ID8gb2UtPl9fbG93ZXJzdGFjayA6IE5VTEw7Cj4gwqB9Cj4gwqAKPiAtc3RydWN0IG92bF9lbnRy
-eSAqb3ZsX2FsbG9jX2VudHJ5KHVuc2lnbmVkIGludCBudW1sb3dlcik7Cj4gLQo+IMKgc3RhdGlj
-IGlubGluZSBzdHJ1Y3Qgb3ZsX2VudHJ5ICpPVkxfRShzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpCj4g
-wqB7Cj4gwqDCoMKgwqDCoMKgwqDCoHJldHVybiAoc3RydWN0IG92bF9lbnRyeSAqKSBkZW50cnkt
-PmRfZnNkYXRhOwo+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvc3VwZXIuYyBiL2ZzL292ZXJs
-YXlmcy9zdXBlci5jCj4gaW5kZXggODllOTg0M2JkMmRlLi5kOGZlODU3YmQ3ZTEgMTAwNjQ0Cj4g
-LS0tIGEvZnMvb3ZlcmxheWZzL3N1cGVyLmMKPiArKysgYi9mcy9vdmVybGF5ZnMvc3VwZXIuYwo+
-IEBAIC01NCwxNSArNTQsNiBAQCBtb2R1bGVfcGFyYW1fbmFtZWQoeGlub19hdXRvLCBvdmxfeGlu
-b19hdXRvX2RlZiwKPiBib29sLCAwNjQ0KTsKPiDCoE1PRFVMRV9QQVJNX0RFU0MoeGlub19hdXRv
-LAo+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgICJBdXRvIGVuYWJsZSB4aW5vIGZl
-YXR1cmUiKTsKPiDCoAo+IC1zdGF0aWMgdm9pZCBvdmxfZW50cnlfc3RhY2tfZnJlZShzdHJ1Y3Qg
-b3ZsX2VudHJ5ICpvZSkKPiAtewo+IC3CoMKgwqDCoMKgwqDCoHN0cnVjdCBvdmxfcGF0aCAqbG93
-ZXJzdGFjayA9IG92bF9sb3dlcnN0YWNrKG9lKTsKPiAtwqDCoMKgwqDCoMKgwqB1bnNpZ25lZCBp
-bnQgaTsKPiAtCj4gLcKgwqDCoMKgwqDCoMKgZm9yIChpID0gMDsgaSA8IG92bF9udW1sb3dlcihv
-ZSk7IGkrKykKPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZHB1dChsb3dlcnN0YWNr
-W2ldLmRlbnRyeSk7Cj4gLX0KPiAtCj4gwqBzdGF0aWMgYm9vbCBvdmxfbWV0YWNvcHlfZGVmID0K
-PiBJU19FTkFCTEVEKENPTkZJR19PVkVSTEFZX0ZTX01FVEFDT1BZKTsKPiDCoG1vZHVsZV9wYXJh
-bV9uYW1lZChtZXRhY29weSwgb3ZsX21ldGFjb3B5X2RlZiwgYm9vbCwgMDY0NCk7Cj4gwqBNT0RV
-TEVfUEFSTV9ERVNDKG1ldGFjb3B5LAo+IEBAIC03Myw3ICs2NCw3IEBAIHN0YXRpYyB2b2lkIG92
-bF9kZW50cnlfcmVsZWFzZShzdHJ1Y3QgZGVudHJ5Cj4gKmRlbnRyeSkKPiDCoMKgwqDCoMKgwqDC
-oMKgc3RydWN0IG92bF9lbnRyeSAqb2UgPSBkZW50cnktPmRfZnNkYXRhOwo+IMKgCj4gwqDCoMKg
-wqDCoMKgwqDCoGlmIChvZSkgewo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBvdmxf
-ZW50cnlfc3RhY2tfZnJlZShvZSk7Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoG92
-bF9zdGFja19wdXQob3ZsX2xvd2Vyc3RhY2sob2UpLCBvdmxfbnVtbG93ZXIob2UpKTsKPiDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGtmcmVlX3JjdShvZSwgcmN1KTsKPiDCoMKgwqDC
-oMKgwqDCoMKgfQo+IMKgfQo+IEBAIC0yMDc4LDggKzIwNjksNyBAQCBzdGF0aWMgaW50IG92bF9m
-aWxsX3N1cGVyKHN0cnVjdCBzdXBlcl9ibG9jawo+ICpzYiwgdm9pZCAqZGF0YSwgaW50IHNpbGVu
-dCkKPiDCoMKgwqDCoMKgwqDCoMKgcmV0dXJuIDA7Cj4gwqAKPiDCoG91dF9mcmVlX29lOgo+IC3C
-oMKgwqDCoMKgwqDCoG92bF9lbnRyeV9zdGFja19mcmVlKG9lKTsKPiAtwqDCoMKgwqDCoMKgwqBr
-ZnJlZShvZSk7Cj4gK8KgwqDCoMKgwqDCoMKgb3ZsX2ZyZWVfZW50cnkob2UpOwo+IMKgb3V0X2Vy
-cjoKPiDCoMKgwqDCoMKgwqDCoMKga2ZyZWUoc3BsaXRsb3dlcik7Cj4gwqDCoMKgwqDCoMKgwqDC
-oHBhdGhfcHV0KCZ1cHBlcnBhdGgpOwo+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvdXRpbC5j
-IGIvZnMvb3ZlcmxheWZzL3V0aWwuYwo+IGluZGV4IGExMzllYjU4MTA5My4uMWJhNmRiZWE4MDhj
-IDEwMDY0NAo+IC0tLSBhL2ZzL292ZXJsYXlmcy91dGlsLmMKPiArKysgYi9mcy9vdmVybGF5ZnMv
-dXRpbC5jCj4gQEAgLTgzLDYgKzgzLDM0IEBAIGJvb2wgb3ZsX3ZlcmlmeV9sb3dlcihzdHJ1Y3Qg
-c3VwZXJfYmxvY2sgKnNiKQo+IMKgwqDCoMKgwqDCoMKgwqByZXR1cm4gb2ZzLT5jb25maWcubmZz
-X2V4cG9ydCAmJiBvZnMtPmNvbmZpZy5pbmRleDsKPiDCoH0KPiDCoAo+ICtzdHJ1Y3Qgb3ZsX3Bh
-dGggKm92bF9zdGFja19hbGxvYyh1bnNpZ25lZCBpbnQgbikKPiArewo+ICvCoMKgwqDCoMKgwqDC
-oHJldHVybiBrY2FsbG9jKG4sIHNpemVvZihzdHJ1Y3Qgb3ZsX3BhdGgpLCBHRlBfS0VSTkVMKTsK
-PiArfQo+ICsKPiArdm9pZCBvdmxfc3RhY2tfY3B5KHN0cnVjdCBvdmxfcGF0aCAqZHN0LCBzdHJ1
-Y3Qgb3ZsX3BhdGggKnNyYywKPiB1bnNpZ25lZCBpbnQgbikKPiArewo+ICvCoMKgwqDCoMKgwqDC
-oHVuc2lnbmVkIGludCBpOwo+ICsKPiArwqDCoMKgwqDCoMKgwqBtZW1jcHkoZHN0LCBzcmMsIHNp
-emVvZihzdHJ1Y3Qgb3ZsX3BhdGgpICogbik7Cj4gK8KgwqDCoMKgwqDCoMKgZm9yIChpID0gMDsg
-aSA8IG47IGkrKykKPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZGdldChzcmNbaV0u
-ZGVudHJ5KTsKPiArfQo+ICsKPiArdm9pZCBvdmxfc3RhY2tfcHV0KHN0cnVjdCBvdmxfcGF0aCAq
-c3RhY2ssIHVuc2lnbmVkIGludCBuKQo+ICt7Cj4gK8KgwqDCoMKgwqDCoMKgdW5zaWduZWQgaW50
-IGk7Cj4gKwo+ICvCoMKgwqDCoMKgwqDCoGZvciAoaSA9IDA7IHN0YWNrICYmIGkgPCBuOyBpKysp
-Cj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoGRwdXQoc3RhY2tbaV0uZGVudHJ5KTsK
-PiArfQo+ICsKPiArdm9pZCBvdmxfc3RhY2tfZnJlZShzdHJ1Y3Qgb3ZsX3BhdGggKnN0YWNrLCB1
-bnNpZ25lZCBpbnQgbikKPiArewo+ICvCoMKgwqDCoMKgwqDCoG92bF9zdGFja19wdXQoc3RhY2ss
-IG4pOwo+ICvCoMKgwqDCoMKgwqDCoGtmcmVlKHN0YWNrKTsKPiArfQo+ICsKPiDCoHN0cnVjdCBv
-dmxfZW50cnkgKm92bF9hbGxvY19lbnRyeSh1bnNpZ25lZCBpbnQgbnVtbG93ZXIpCj4gwqB7Cj4g
-wqDCoMKgwqDCoMKgwqDCoHNpemVfdCBzaXplID0gb2Zmc2V0b2Yoc3RydWN0IG92bF9lbnRyeSwK
-PiBfX2xvd2Vyc3RhY2tbbnVtbG93ZXJdKTsKPiBAQCAtOTQsNiArMTIyLDEyIEBAIHN0cnVjdCBv
-dmxfZW50cnkgKm92bF9hbGxvY19lbnRyeSh1bnNpZ25lZCBpbnQKPiBudW1sb3dlcikKPiDCoMKg
-wqDCoMKgwqDCoMKgcmV0dXJuIG9lOwo+IMKgfQo+IMKgCj4gK3ZvaWQgb3ZsX2ZyZWVfZW50cnko
-c3RydWN0IG92bF9lbnRyeSAqb2UpCj4gK3sKPiArwqDCoMKgwqDCoMKgwqBvdmxfc3RhY2tfcHV0
-KG92bF9sb3dlcnN0YWNrKG9lKSwgb3ZsX251bWxvd2VyKG9lKSk7Cj4gK8KgwqDCoMKgwqDCoMKg
-a2ZyZWUob2UpOwo+ICt9Cj4gKwo+IMKgI2RlZmluZSBPVkxfRF9SRVZBTElEQVRFIChEQ0FDSEVf
-T1BfUkVWQUxJREFURSB8Cj4gRENBQ0hFX09QX1dFQUtfUkVWQUxJREFURSkKPiDCoAo+IMKgYm9v
-bCBvdmxfZGVudHJ5X3JlbW90ZShzdHJ1Y3QgZGVudHJ5ICpkZW50cnkpCgotLSAKPS09LT0tPS09
-LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0tPS09LT0t
-PS09LQo9LT0tPQogQWxleGFuZGVyIExhcnNzb24gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIFJlZCBIYXQsCkluYyAKICAgICAgIGFsZXhsQHJlZGhhdC5jb20gICAg
-ICAgICAgICBhbGV4YW5kZXIubGFyc3NvbkBnbWFpbC5jb20gCkhlJ3MgYW4gb3ZlcnNleGVkIGRl
-dmlvdXMgcm9tYW5jZSBub3ZlbGlzdCB3aG8gaGFuZ3Mgd2l0aCB0aGUgd3JvbmcgCmNyb3dkLiBT
-aGUncyBhIHJhZGljYWwgcmVkLWhlYWRlZCBkb2N0b3IgcHJvbmUgdG8gZml0cyBvZiBzYXZhZ2Us
-IApibG9vZC1jcmF6ZWQgcmFnZS4gVGhleSBmaWdodCBjcmltZSEgCg==
+These patches extend FUSE to be able to act as a stacked filesystem. This
+allows pure passthrough, where the fuse file system simply reflects the lower
+filesystem, and also allows optional pre and post filtering in BPF and/or the
+userspace daemon as needed. This can dramatically reduce or even eliminate
+transitions to and from userspace.
+
+In this patch set, I've reworked the bpf code to add a new struct_op type
+instead of a new program type, and used new kfuncs in place of new helpers.
+Additionally, it now uses dynptrs for variable sized buffers. The first three
+patches are repeats of a previous patch set which I have not yet adjusted for
+comments. I plan to adjust those and submit them separately with fixes, but
+wanted to have the current fuse-bpf code visible before then.
+
+Patches 4-7 mostly rearrange existing code to remove noise from the main patch.
+Patch 8 contains the main sections of fuse-bpf
+Patches 9-25 implementing most FUSE functions as operations on a lower
+filesystem. From patch 25, you can run fuse as a passthrough filesystem.
+Patches 26-32 provide bpf functionality so that you can alter fuse parameters
+via fuse_op programs.
+Patch 33 extends this to userspace, and patches 34-37 add some testing
+functionality.
+
+There's definitely a lot of cleanup and some restructuring I would like to do.
+In the current form, I could get rid of the large macro in place of a function
+that takes a struct that groups a bunch of function pointers, although I'm not
+sure a function that takes three void*'s is much better than the macro... I'm
+definitely open to suggestions on how to clean that up.
+
+This changes the format of adding a backing file/bpf slightly from v2. fuse_op
+programs are specified by name, limited to 15 characters. The block added to
+fuse_bpf_entires has been increased to compensate. This adds one more unused
+field when specifying the backing file.
+
+Lookups responses that add a backing file must go through an ioctl interface.
+This is to prevent any attempts at fooling priveledged programs with fd
+trickery.
+
+Currently, there are two types of fuse_bpf_entry. One for passing the fuse_op
+program you wish to use, specified by name, and one for passing the fd of the
+backing file you'd like to associate with the given lookup. In the future, this
+may be extended to a more complicated system allowing for multiple bpf programs
+or backing files. This would come with kfuncs for bpf to indicate which backing
+file should be acted upon. Multiple bpf programs would allow chaining existing
+programs to extend functionality without requiring an entirely new program set.
+
+You can run this without needing to set up a userspace daemon by adding these
+mount options: root_dir=[fd],no_daemon where fd is an open file descriptor
+pointing to the folder you'd like to use as the root directory. The fd can be
+immediately closed after mounting. You may also set a root_bpf program by
+setting root_bpf=[fuse_op name] after registering a fuse_op program.
+This is useful for running various fs tests.
+
+This patch set is against bpf-next
+
+The main changes for v3:
+Restructured around struct_op programs
+Using dynptrs instead of packets
+Using kfuncs instead of new helpers
+Selftests now use skel for loading
+
+Alessio Balsini (1):
+  fs: Generic function to convert iocb to rw flags
+
+Daniel Rosenberg (36):
+  bpf: verifier: Accept dynptr mem as mem in herlpers
+  bpf: Allow NULL buffers in bpf_dynptr_slice(_rw)
+  selftests/bpf: Test allowing NULL buffer in dynptr slice
+  fuse-bpf: Update fuse side uapi
+  fuse-bpf: Add data structures for fuse-bpf
+  fuse-bpf: Prepare for fuse-bpf patch
+  fuse: Add fuse-bpf, a stacked fs extension for FUSE
+  fuse-bpf: Add ioctl interface for /dev/fuse
+  fuse-bpf: Don't support export_operations
+  fuse-bpf: Add support for access
+  fuse-bpf: Partially add mapping support
+  fuse-bpf: Add lseek support
+  fuse-bpf: Add support for fallocate
+  fuse-bpf: Support file/dir open/close
+  fuse-bpf: Support mknod/unlink/mkdir/rmdir
+  fuse-bpf: Add support for read/write iter
+  fuse-bpf: support readdir
+  fuse-bpf: Add support for sync operations
+  fuse-bpf: Add Rename support
+  fuse-bpf: Add attr support
+  fuse-bpf: Add support for FUSE_COPY_FILE_RANGE
+  fuse-bpf: Add xattr support
+  fuse-bpf: Add symlink/link support
+  fuse-bpf: allow mounting with no userspace daemon
+  bpf: Increase struct_op limits
+  fuse-bpf: Add fuse-bpf constants
+  WIP: bpf: Add fuse_ops struct_op programs
+  fuse-bpf: Export Functions
+  fuse: Provide registration functions for fuse-bpf
+  fuse-bpf: Set fuse_ops at mount or lookup time
+  fuse-bpf: Call bpf for pre/post filters
+  fuse-bpf: Add userspace pre/post filters
+  WIP: fuse-bpf: add error_out
+  tools: Add FUSE, update bpf includes
+  fuse-bpf: Add selftests
+  fuse: Provide easy way to test fuse struct_op call
+
+ Documentation/bpf/kfuncs.rst                  |   23 +-
+ fs/fuse/Kconfig                               |    8 +
+ fs/fuse/Makefile                              |    1 +
+ fs/fuse/backing.c                             | 4241 +++++++++++++++++
+ fs/fuse/bpf_register.c                        |  209 +
+ fs/fuse/control.c                             |    2 +-
+ fs/fuse/dev.c                                 |   85 +-
+ fs/fuse/dir.c                                 |  344 +-
+ fs/fuse/file.c                                |   63 +-
+ fs/fuse/fuse_i.h                              |  495 +-
+ fs/fuse/inode.c                               |  360 +-
+ fs/fuse/ioctl.c                               |    2 +-
+ fs/fuse/readdir.c                             |    5 +
+ fs/fuse/xattr.c                               |   18 +
+ fs/overlayfs/file.c                           |   23 +-
+ include/linux/bpf.h                           |    2 +-
+ include/linux/bpf_fuse.h                      |  283 ++
+ include/linux/fs.h                            |    5 +
+ include/uapi/linux/bpf.h                      |   12 +
+ include/uapi/linux/fuse.h                     |   41 +
+ kernel/bpf/Makefile                           |    4 +
+ kernel/bpf/bpf_fuse.c                         |  241 +
+ kernel/bpf/bpf_struct_ops.c                   |    6 +-
+ kernel/bpf/bpf_struct_ops_types.h             |    4 +
+ kernel/bpf/btf.c                              |    1 +
+ kernel/bpf/helpers.c                          |   32 +-
+ kernel/bpf/verifier.c                         |   32 +
+ tools/include/uapi/linux/bpf.h                |   12 +
+ tools/include/uapi/linux/fuse.h               | 1135 +++++
+ .../testing/selftests/bpf/prog_tests/dynptr.c |    1 +
+ .../selftests/bpf/progs/dynptr_success.c      |   21 +
+ .../selftests/filesystems/fuse/.gitignore     |    2 +
+ .../selftests/filesystems/fuse/Makefile       |  189 +
+ .../testing/selftests/filesystems/fuse/OWNERS |    2 +
+ .../selftests/filesystems/fuse/bpf_common.h   |   51 +
+ .../selftests/filesystems/fuse/bpf_loader.c   |  597 +++
+ .../testing/selftests/filesystems/fuse/fd.txt |   21 +
+ .../selftests/filesystems/fuse/fd_bpf.bpf.c   |  397 ++
+ .../selftests/filesystems/fuse/fuse_daemon.c  |  300 ++
+ .../selftests/filesystems/fuse/fuse_test.c    | 2412 ++++++++++
+ .../filesystems/fuse/struct_op_test.bpf.c     |  642 +++
+ .../selftests/filesystems/fuse/test.bpf.c     |  996 ++++
+ .../filesystems/fuse/test_framework.h         |  172 +
+ .../selftests/filesystems/fuse/test_fuse.h    |  494 ++
+ 44 files changed, 13755 insertions(+), 231 deletions(-)
+ create mode 100644 fs/fuse/backing.c
+ create mode 100644 fs/fuse/bpf_register.c
+ create mode 100644 include/linux/bpf_fuse.h
+ create mode 100644 kernel/bpf/bpf_fuse.c
+ create mode 100644 tools/include/uapi/linux/fuse.h
+ create mode 100644 tools/testing/selftests/filesystems/fuse/.gitignore
+ create mode 100644 tools/testing/selftests/filesystems/fuse/Makefile
+ create mode 100644 tools/testing/selftests/filesystems/fuse/OWNERS
+ create mode 100644 tools/testing/selftests/filesystems/fuse/bpf_common.h
+ create mode 100644 tools/testing/selftests/filesystems/fuse/bpf_loader.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fd.txt
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fd_bpf.bpf.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fuse_daemon.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fuse_test.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/struct_op_test.bpf.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/test.bpf.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/test_framework.h
+ create mode 100644 tools/testing/selftests/filesystems/fuse/test_fuse.h
+
+
+base-commit: 49859de997c3115b85544bce6b6ceab60a7fabc4
+-- 
+2.40.0.634.g4ca3ef3211-goog
 
