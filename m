@@ -2,257 +2,127 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EB49C6FD18
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 14:08:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FC2DC6FD18
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 14:21:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229906AbjDROIG (ORCPT
+        id S231483AbjDROVt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 Apr 2023 10:08:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46576 "EHLO
+        Tue, 18 Apr 2023 10:21:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57400 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229456AbjDROIG (ORCPT
+        with ESMTP id S232297AbjDROVa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2023 10:08:06 -0400
-Received: from mail-ua1-x92a.google.com (mail-ua1-x92a.google.com [IPv6:2607:f8b0:4864:20::92a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7D2283FE
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 07:08:04 -0700 (PDT)
-Received: by mail-ua1-x92a.google.com with SMTP id r10so11212804uat.6
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 07:08:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1681826884; x=1684418884;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=a+MOC5/sLNaYEbKnkVvIVPAFc+ZlZwT6F6cr7grTmF0=;
-        b=QRn2CROOg2EYfv6bXOv4Vb5V7aa8cxqEXn7n6cgIFWR0mAQwZBqInWsYERyLnZ0rzh
-         nAQXHk5d4r/1y9fLQ73OKuXA8kb7amaYougS4i2RVeu/AxXTLg2Lh+9ZV7vFvS28K0W3
-         n88gTat6f+UA9kFV5lFuXJJxZYCpTCjziCNJEi4oqxq5ujImJ6mk+IYEqjZ31eWx9e23
-         Q+BOp9TCkGrMGFIfmbXSj8r9bd16vEZWADGTPFDGM2DIn3NhUdeBkp5mAJTJ1lpkUfBf
-         76NjUodKTKYnKkD6dPWGKIjvAbihoOfY2tPd4Z4xa3V1gJwP9BZQomhplvDApkMSwt43
-         cQBQ==
+        Tue, 18 Apr 2023 10:21:30 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1888DC161
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 07:20:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1681827644;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=C4ATO9nd2CUliTZxZlOKqkhuST/ECDO2XmOaOuQqd50=;
+        b=IOAQVo6MoJyQE4DrRnIbsL/RGxlPzjc1tTLZISG+e7mPEX2ho69rJA9uYFoO0NdGdUr5Dv
+        UA2z90puhcZFLiluimVXTgzT/Ql+k2tKMEdTFOksWChu8jE52N79ORb/+yC6aB0zIL+58t
+        n8IqaNHeG2sLyGCfVU/3S0MSM+hzaS0=
+Received: from mail-lf1-f71.google.com (mail-lf1-f71.google.com
+ [209.85.167.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-182-Hu1I0t3WPnO2-FxSnVK58w-1; Tue, 18 Apr 2023 10:20:43 -0400
+X-MC-Unique: Hu1I0t3WPnO2-FxSnVK58w-1
+Received: by mail-lf1-f71.google.com with SMTP id 2adb3069b0e04-4ecb00906d0so1026860e87.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 07:20:42 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681826884; x=1684418884;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=a+MOC5/sLNaYEbKnkVvIVPAFc+ZlZwT6F6cr7grTmF0=;
-        b=OkI+LGbGXUDzZRaaDq5ppHAn9JMRoeWd4reOEhQ/Ujw5ZfRNvxZ0724q9sBD4CQKNG
-         qXuB3UioXR44GSBfli+iUEPpgLzXadmQNZiV3KFFcoahAHS7cMENTZCfRgWLITRe7bKM
-         aSbrgYH8eIIURL5LIAHtA2RKQkFX8DS/6XA7VkHq1MbMcTntGzaQ3SouNkXs/j9fadET
-         PykJ+mPkQvq+2SNVWYQ9GZBHtZcK4c8y2M1w+TJFJE34ARBtU2wBTabpeesnA0dMy0i4
-         iT27QjGd8Kcc0SUE/3VADkXiaMJsIZwVfTPWUQMXJvW1zfYZf3xnHGTdILh5UnEkAIf8
-         faWw==
-X-Gm-Message-State: AAQBX9eJmWPjfZRTV3vrHfbvdqJ7Gq9nkqlhlaJO9Hj06cIJxSaJ+fUP
-        T+Ok0GSAonGqNU/kdK9jHS9/z8mVsUTAqXwYNz6Vfr8gDuE=
-X-Google-Smtp-Source: AKy350b2TIUuZu7wzIiIvZPOV05ZNL7Jl8RILwRnC50DVQyd1JbKFImrv3edMtL6teftJI97SlSir7PVVcyC0p7oe7E=
-X-Received: by 2002:ab0:5b54:0:b0:772:4a2:62af with SMTP id
- v20-20020ab05b54000000b0077204a262afmr9922217uae.1.1681826883620; Tue, 18 Apr
- 2023 07:08:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230412135412.1684197-1-amir73il@gmail.com> <20230412135412.1684197-4-amir73il@gmail.com>
- <f3d4d0dacf08cb227661c2145840781915c3c7c2.camel@redhat.com>
- <CAOQ4uxgbO_7qcJiGKTJzV9dw5_cQrpVAAJ0DHQRQ+bi5NeUysQ@mail.gmail.com> <CAL7ro1EhRJbiDq5rYbPmeUTa-BwJYr2CV7ufCAgD2mmL+yWhZA@mail.gmail.com>
-In-Reply-To: <CAL7ro1EhRJbiDq5rYbPmeUTa-BwJYr2CV7ufCAgD2mmL+yWhZA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 18 Apr 2023 17:07:52 +0300
-Message-ID: <CAOQ4uxh8naOzE4TU6CQ3aUOGRtxOsyue_7eNoeTVYtHkW-FqVA@mail.gmail.com>
-Subject: Re: [PATCH 3/5] ovl: implement lookup in data-only layers
-To:     Alexander Larsson <alexl@redhat.com>
+        d=1e100.net; s=20221208; t=1681827641; x=1684419641;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=C4ATO9nd2CUliTZxZlOKqkhuST/ECDO2XmOaOuQqd50=;
+        b=e/zwPXL/ciOTvuEgGqzM3+7QRVBJAhqF9qMyhc8Xx+3WzHvwBNcotS158cXoLoigPX
+         KodggEUcMl/6L1i4vsw5nXv0mhnBf6rC4Q7Noub2fjtXz+kwyOOXWY/C+Dd2dAW0VkeO
+         ABUfVfO8SJH0vzHJi+OlYL4us9OLeGYKt+5sYl6gALDUO8pzNuq724RjHGpAv2wrrb+w
+         v+kCCtLT1Fl/5t6Z9pFZikgGYD4J7/XICa5HWr0EkJTgo4VMJblg+QrBM65XvXCIp/XI
+         xwRZDg4iYmYsU0p5l8Tbu7YIqX/BFtrwfKG3l4EMQ3Jl4T22hLgF0Gxl3pVZwNtT77aF
+         D+hg==
+X-Gm-Message-State: AAQBX9cw6DyAXqOX695pwF55ljb7TQJqN4iedQGLiz31bjDnsMVTGcsf
+        EIGbcv4/WdWpSOHWSG6G7N0sBMD8wFYrU1Oc8JqBvF2AulvMDVJJIvxUdfnR52shyMov2ZiQnH/
+        ArUS6Th1N9yQMO9FAyQFNLOihWESjKjhetZsK
+X-Received: by 2002:a19:ee0e:0:b0:4e7:fa9a:4d3c with SMTP id g14-20020a19ee0e000000b004e7fa9a4d3cmr2654923lfb.16.1681827641253;
+        Tue, 18 Apr 2023 07:20:41 -0700 (PDT)
+X-Google-Smtp-Source: AKy350ZN/jOGXAI60tb5QDySBoaEq/YEGJib+Lm0Jz3ZcGZl0dDzLsvfRKTAurpUraHyuPdVSkJzPw==
+X-Received: by 2002:a19:ee0e:0:b0:4e7:fa9a:4d3c with SMTP id g14-20020a19ee0e000000b004e7fa9a4d3cmr2654916lfb.16.1681827640905;
+        Tue, 18 Apr 2023 07:20:40 -0700 (PDT)
+Received: from greebo.mooo.com (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
+        by smtp.gmail.com with ESMTPSA id g25-20020a19ee19000000b004eb252e3eb5sm2386104lfb.135.2023.04.18.07.20.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 18 Apr 2023 07:20:40 -0700 (PDT)
+Message-ID: <228e85e2c247da98cebea09ce2af418c64b60c85.camel@redhat.com>
+Subject: Re: [PATCH 2/5] ovl: introduce data-only lower layers
+From:   Alexander Larsson <alexl@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Date:   Tue, 18 Apr 2023 16:20:39 +0200
+In-Reply-To: <CAOQ4uxgU4LZy5=ouqFDWAPn=t17mavfhs_1915-HW3AGywjYkw@mail.gmail.com>
+References: <20230412135412.1684197-1-amir73il@gmail.com>
+         <20230412135412.1684197-3-amir73il@gmail.com>
+         <8ac422621de7b422cf4b744463f3c1e4bae148d9.camel@redhat.com>
+         <CAOQ4uxgU4LZy5=ouqFDWAPn=t17mavfhs_1915-HW3AGywjYkw@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 18, 2023 at 5:00=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
+On Tue, 2023-04-18 at 16:33 +0300, Amir Goldstein wrote:
+> On Tue, Apr 18, 2023 at 3:02=E2=80=AFPM Alexander Larsson <alexl@redhat.c=
+om>
 > wrote:
->
-> On Tue, Apr 18, 2023 at 3:41=E2=80=AFPM Amir Goldstein <amir73il@gmail.co=
-m> wrote:
-> >
-> > On Tue, Apr 18, 2023 at 3:40=E2=80=AFPM Alexander Larsson <alexl@redhat=
-.com> wrote:
-> > >
-> > > On Wed, 2023-04-12 at 16:54 +0300, Amir Goldstein wrote:
-> > > > Lookup in data-only layers only for a lower metacopy with an absolu=
-te
-> > > > redirect xattr.
-> > > >
-> > > > The metacopy xattr is not checked on files found in the data-only
-> > > > layers
-> > > > and redirect xattr are not followed in the data-only layers.
-> > > >
-> > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > >
-> > > Reviewed-by: Alexander Larsson <alexl@redhat.com>
-> > >
-> > > > ---
-> > > >  fs/overlayfs/namei.c | 77
-> > > > ++++++++++++++++++++++++++++++++++++++++++--
-> > > >  1 file changed, 75 insertions(+), 2 deletions(-)
-> > > >
-> > > > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > > > index ff82155b4f7e..82e103e2308b 100644
-> > > > --- a/fs/overlayfs/namei.c
-> > > > +++ b/fs/overlayfs/namei.c
-> > > > @@ -14,6 +14,8 @@
-> > > >  #include <linux/exportfs.h>
-> > > >  #include "overlayfs.h"
-> > > >
-> > > > +#include "../internal.h"       /* for vfs_path_lookup */
-> > > > +
-> > > >  struct ovl_lookup_data {
-> > > >         struct super_block *sb;
-> > > >         struct vfsmount *mnt;
-> > > > @@ -24,6 +26,8 @@ struct ovl_lookup_data {
-> > > >         bool last;
-> > > >         char *redirect;
-> > > >         bool metacopy;
-> > > > +       /* Referring to last redirect xattr */
-> > > > +       bool absolute_redirect;
-> > > >  };
-> > > >
-> > > >  static int ovl_check_redirect(const struct path *path, struct
-> > > > ovl_lookup_data *d,
-> > > > @@ -33,11 +37,13 @@ static int ovl_check_redirect(const struct path
-> > > > *path, struct ovl_lookup_data *d
-> > > >         char *buf;
-> > > >         struct ovl_fs *ofs =3D OVL_FS(d->sb);
-> > > >
-> > > > +       d->absolute_redirect =3D false;
-> > > >         buf =3D ovl_get_redirect_xattr(ofs, path, prelen +
-> > > > strlen(post));
-> > > >         if (IS_ERR_OR_NULL(buf))
-> > > >                 return PTR_ERR(buf);
-> > > >
-> > > >         if (buf[0] =3D=3D '/') {
-> > > > +               d->absolute_redirect =3D true;
-> > > >                 /*
-> > > >                  * One of the ancestor path elements in an absolute
-> > > > path
-> > > >                  * lookup in ovl_lookup_layer() could have been
-> > > > opaque and
-> > > > @@ -349,6 +355,61 @@ static int ovl_lookup_layer(struct dentry *bas=
-e,
-> > > > struct ovl_lookup_data *d,
-> > > >         return 0;
-> > > >  }
-> > > >
-> > > > +static int ovl_lookup_data_layer(struct dentry *dentry, const char
-> > > > *redirect,
-> > > > +                                const struct ovl_layer *layer,
-> > > > +                                struct path *datapath)
-> > > > +{
-> > > > +       int err;
-> > > > +
-> > > > +       err =3D vfs_path_lookup(layer->mnt->mnt_root, layer->mnt,
-> > > > redirect,
-> > > > +                       LOOKUP_BENEATH | LOOKUP_NO_SYMLINKS |
-> > > > LOOKUP_NO_XDEV,
-> > > > +                       datapath);
-> > > > +       pr_debug("lookup lowerdata (%pd2, redirect=3D\"%s\", layer=
-=3D%d,
-> > > > err=3D%i)\n",
-> > > > +                dentry, redirect, layer->idx, err);
-> > > > +
-> > > > +       if (err)
-> > > > +               return err;
-> > > > +
-> > > > +       err =3D -EREMOTE;
-> > > > +       if (ovl_dentry_weird(datapath->dentry))
-> > > > +               goto out_path_put;
-> > > > +
-> > > > +       err =3D -ENOENT;
-> > > > +       /* Only regular file is acceptable as lower data */
-> > > > +       if (!d_is_reg(datapath->dentry))
-> > > > +               goto out_path_put;
-> > > > +
-> > > > +       return 0;
-> > > > +
-> > > > +out_path_put:
-> > > > +       path_put(datapath);
-> > > > +
-> > > > +       return err;
-> > > > +}
-> > > > +
-> > > > +/* Lookup in data-only layers by absolute redirect to layer root *=
-/
-> > > > +static int ovl_lookup_data_layers(struct dentry *dentry, const cha=
-r
-> > > > *redirect,
-> > > > +                                 struct ovl_path *lowerdata)
-> > > > +{
-> > > > +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
-> > > > +       const struct ovl_layer *layer;
-> > > > +       struct path datapath;
-> > > > +       int err =3D -ENOENT;
-> > > > +       int i;
-> > > > +
-> > > > +       layer =3D &ofs->layers[ofs->numlayer - ofs->numdatalayer];
-> > > > +       for (i =3D 0; i < ofs->numdatalayer; i++, layer++) {
-> > > > +               err =3D ovl_lookup_data_layer(dentry, redirect, lay=
-er,
-> > > > &datapath);
-> > > > +               if (!err) {
-> > > > +                       mntput(datapath.mnt);
-> > > > +                       lowerdata->dentry =3D datapath.dentry;
-> > > > +                       lowerdata->layer =3D layer;
-> > > > +                       return 0;
-> > > > +               }
-> > > > +       }
-> > > > +
-> > > > +       return err;
-> > > > +}
-> > > >
-> > > >  int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, boo=
-l
-> > > > connected,
-> > > >                         struct dentry *upperdentry, struct ovl_path
-> > > > **stackp)
-> > > > @@ -907,7 +968,9 @@ struct dentry *ovl_lookup(struct inode *dir,
-> > > > struct dentry *dentry,
-> > > >
-> > > >         if (!d.stop && ovl_numlower(poe)) {
-> > > >                 err =3D -ENOMEM;
-> > > > -               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs));
-> > > > +               /* May need to reserve space in lowerstack for
-> > > > lowerdata */
-> > > > +               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs) +
-> > > > +                                       (!d.is_dir && !!ofs-
-> > > > >numdatalayer));
-> > >
-> > > I think this runs into issues if ovl_numlower(poe) is zero, but we
-> > > have a redirect into the lowerdata, due to the if (ovl_numlower(poe))
-> > > check above. We won't be allocating the lowerdata stack space in this
-> > > case.
-> > >
-> >
-> > Redirect from upper directly into data-only is not valid.
->
-> Ah.
->
-> > As the comment below says:
-> > /* Lookup absolute redirect from lower metacopy in data-only layers */
-> > data-only can only be accessed by absolute redirect from
-> > lower layer.
-> > Is that a problem for your use case?
->
-> No, just something I noticed that looked wrong.
+> >=20
+> >=20
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0 * fh->uuid to layer.
+> > > @@ -907,7 +907,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > > struct dentry *dentry,
+> > >=20
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (!d.stop && ovl_numlowe=
+r(poe)) {
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0 err =3D -ENOMEM;
+> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0 stack =3D ovl_stack_alloc(ofs->numlayer - 1);
+> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0 stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs));
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0 if (!stack)
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 goto =
+out_put_upper;
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 }
+> >=20
+> > Again, surely ovl_numlower(poe) is a better size here?
+>=20
+> Intentional. that is changed in the following patch.
+> (to ovl_numlowerlayer(ofs) + 1)
+> As the commit message says:
+> "Following changes will implement lookup in the data layers."
 
-I haven't actually explained why that limitation exists.
+Still, you might have 10 lower layers in the overlay mount overall, but
+this particular parent may only have 1 lower layer, no? So
+numlower(poe) would be smaller that numlowerlayer(ofs).
 
-Apart from the fact that your use case does not need
-redirect from upper to data-only, when the stack is composed
-of only upper and lower (not 2 lowers) then the lower is used
-for the overlay ino/index/fh.
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
+=3D-=3D-=3D
+ Alexander Larsson                                            Red Hat,
+Inc=20
+       alexl@redhat.com            alexander.larsson@gmail.com=20
+He's an all-American vegetarian romance novelist who must take
+medication=20
+to keep him sane. She's a vivacious extravagent stripper from Mars.
+They=20
+fight crime!=20
 
-data-only layers cannot be used for ovelray ino/index/fh because
-they are data-only and ino/fh is metadata.
-
-That's also the reason that data-only layers do not need to go through
-the ovl_lower_uuid_ok() check, which allows greater flexibility
-with the filesystems being used for the backing store of the data blobs.
-
-Thanks,
-Amir.
