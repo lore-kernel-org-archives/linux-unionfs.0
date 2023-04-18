@@ -2,58 +2,58 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35A4AC77B7F
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 01:41:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40B4BC77B75
+	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 01:41:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230285AbjDRBlS (ORCPT
+        id S230105AbjDRBlV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 17 Apr 2023 21:41:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53744 "EHLO
+        Mon, 17 Apr 2023 21:41:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53748 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230149AbjDRBlO (ORCPT
+        with ESMTP id S229838AbjDRBlR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 17 Apr 2023 21:41:14 -0400
-Received: from mail-yw1-x1149.google.com (mail-yw1-x1149.google.com [IPv6:2607:f8b0:4864:20::1149])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 45FB65BA9
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:00 -0700 (PDT)
-Received: by mail-yw1-x1149.google.com with SMTP id 00721157ae682-54f87e44598so162896037b3.5
-        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:00 -0700 (PDT)
+        Mon, 17 Apr 2023 21:41:17 -0400
+Received: from mail-yw1-x114a.google.com (mail-yw1-x114a.google.com [IPv6:2607:f8b0:4864:20::114a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 787DE65B0
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:04 -0700 (PDT)
+Received: by mail-yw1-x114a.google.com with SMTP id 00721157ae682-552e3fa8f2fso32390217b3.19
+        for <linux-unionfs@vger.kernel.org>; Mon, 17 Apr 2023 18:41:04 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1681782060; x=1684374060;
+        d=google.com; s=20221208; t=1681782064; x=1684374064;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=tI4xcmLYwpmFva3i/dRZyfQFdXSO1OOUgkc/BOul5Ro=;
-        b=2V9e6mUN9Le2shS/G4YvhPJcIGT2cNDZPr1QkNJOacyGU//myujH64KDbejS/tMlXz
-         4E6nR0HLcdcTv09CWWYmtKIX5wVZpN0ReS4cFCAJVsgaJjGnWqRP+K97KcNMss7R5lc/
-         8wSlpIQsxhUI3w04o4cPXpyg3kA0F6KHlojC/d7SlYfU/cCvQzPLbwOg1psSwLmSzRXn
-         Qn3vxYWDKyf/Fn+ASbJ7PU1gdKO1me/kfleFJ2griqgfwNcqIJ9AF057vwZ+pRcgxCsX
-         sF1c9SZLi/nimZi9xbCd1jVXTRuM8JHWnHdMqXKLly0BeGcWX5EH1LSs7jCfFcSZkogo
-         szkw==
+        bh=rGQ9sB/Rwqr1E4RbtpywhCeCd351RoNViaB6XX6OAcM=;
+        b=7a7FthehtIU1LDZHaPCjM+OU4rQTnwIJO65M0avbzwBgquVMpBou6qbE9n76s23acW
+         0ZLBEZD6ViB5CGK7UFFeuO58ubsaYIEMTp4GXx/KH8KrYV2koGO24wTVipTnAT5jPPv2
+         vDoFrFqHAHBzZbYHVKyk17HtLm24Tprum8PLjWK078LB0eS6ATINZq6HTShyS6UJyTbI
+         Pz0+UzgNTfLj4UnUR7Pl9WJGy4IzEKBoqH51/+5DCpzyuozlPN46l34XGNt300XMi2vv
+         0zHLgyVCJ6YKv4vRZGoF3hq5Tl/PhsQ2JO+iP5xq437JP1RbmlU4dS+oNmu6RXuBXKdD
+         Wvyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681782060; x=1684374060;
+        d=1e100.net; s=20221208; t=1681782064; x=1684374064;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=tI4xcmLYwpmFva3i/dRZyfQFdXSO1OOUgkc/BOul5Ro=;
-        b=CImGvvKQkOK2Q3g/zzGzSGUB3NdM0a7CKFOvCwmmSvGlfdcH1C682ebdF87uHYbMIK
-         q7lkfZr84L2baIClJH6dlDrcZH1sg179QxND+WExS14o2OAdkGORhbJwEvjldPfNaSGw
-         2wHqvGRT42SnfGNY0vog/HEBn6jLVyBU9zm0cuofeECK89NZC0Z38tK2Dq840bUdZSh6
-         hXRA0ARgZex1EtdUBoGlxxY9M1UCfkRbos8YoRjLr0Fh4ltL5gk7ze+XGKXndrYpT+sA
-         0BO384L2gPEiV8tmBaOfQfLt52le8WeR1VHFdKfNG6C/m0NE49THUTo72EtinbxH5F/l
-         P3Jg==
-X-Gm-Message-State: AAQBX9cxoyNIyj5hP6ZkS6KtwI6oz2qATk2Ljes2fOMVh/V6xD9rZ4mU
-        gP/KJM65Gpkp4SYRBYamdGkUSRncFyY=
-X-Google-Smtp-Source: AKy350YKpzErYw3bq9/BlI+znfoyrC46XNLf6K9cGOqwUJLaLH9t7tNWGgZpyi5xKkrMqdSo1O9knK3ZgUU=
+        bh=rGQ9sB/Rwqr1E4RbtpywhCeCd351RoNViaB6XX6OAcM=;
+        b=c92Mz1kJYrVKa+YFneIFMbYo5GuN5H5ojR7jJVrykdrexAKJ0JHywEIl9uDyY13qEo
+         emJY+xvnn4nLtxLzlaxUf9ZJ8FgL/Utxodau1uaAsEJfMecT6FeLPjmv94gJPQZ8hVuS
+         VuWLnio8BMtPVIoPuGerlHiVsg8COaJyXmBEDNZ5Wi4b/CJJXyPEQtY1OeAzEx9gphEG
+         O7xvwj5X0ahTQWIPAUUsd7xuvwZtM5dK1aVZP3ram+Mpw2F/o7Yz9eWZ0A4bCKaoSuux
+         2J4VitU09Du4vHJYeSyYPP0pm4ZxSwOcVVKhhJ386qXg4DU33xXuY1eDqBp8jIvWvfv5
+         +XEg==
+X-Gm-Message-State: AAQBX9cq7lvF7TDWjk41Axd1MaB3mebhrlsxS9KZGUPaxqmVYCaEucxV
+        foMB7+K6tOtbhpi8KVbxJ+Xi0f3AYPU=
+X-Google-Smtp-Source: AKy350bEg5Yq5yN301eh/701p5EkdiweIgQB8V883Xlr2DXOiBdY6xkRbjC+SVvzsfu/0C5Gu4BhRNTqFN8=
 X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:201:e67a:98b0:942d:86aa])
- (user=drosen job=sendgmr) by 2002:a25:d70a:0:b0:b77:ae4b:1b27 with SMTP id
- o10-20020a25d70a000000b00b77ae4b1b27mr8727839ybg.8.1681782059999; Mon, 17 Apr
- 2023 18:40:59 -0700 (PDT)
-Date:   Mon, 17 Apr 2023 18:40:04 -0700
+ (user=drosen job=sendgmr) by 2002:a25:d10e:0:b0:b8f:3881:1638 with SMTP id
+ i14-20020a25d10e000000b00b8f38811638mr8759594ybg.7.1681782064219; Mon, 17 Apr
+ 2023 18:41:04 -0700 (PDT)
+Date:   Mon, 17 Apr 2023 18:40:06 -0700
 In-Reply-To: <20230418014037.2412394-1-drosen@google.com>
 Mime-Version: 1.0
 References: <20230418014037.2412394-1-drosen@google.com>
 X-Mailer: git-send-email 2.40.0.634.g4ca3ef3211-goog
-Message-ID: <20230418014037.2412394-5-drosen@google.com>
-Subject: [RFC PATCH v3 04/37] fs: Generic function to convert iocb to rw flags
+Message-ID: <20230418014037.2412394-7-drosen@google.com>
+Subject: [RFC PATCH v3 06/37] fuse-bpf: Add data structures for fuse-bpf
 From:   Daniel Rosenberg <drosen@google.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
         Alexei Starovoitov <ast@kernel.org>
@@ -71,101 +71,111 @@ Cc:     Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org,
         Jonathan Corbet <corbet@lwn.net>,
         Joanne Koong <joannelkoong@gmail.com>,
         Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com,
-        Alessio Balsini <balsini@google.com>,
-        Alessio Balsini <balsini@android.com>
+        Daniel Rosenberg <drosen@google.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Alessio Balsini <balsini@google.com>
+These structures will be used to interact between the fuse bpf calls and
+normal userspace calls
 
-OverlayFS implements its own function to translate iocb flags into rw
-flags, so that they can be passed into another vfs call.
-With commit ce71bfea207b4 ("fs: align IOCB_* flags with RWF_* flags")
-Jens created a 1:1 matching between the iocb flags and rw flags,
-simplifying the conversion.
-
-Reduce the OverlayFS code by making the flag conversion function generic
-and reusable.
-
-Signed-off-by: Alessio Balsini <balsini@android.com>
+Signed-off-by: Daniel Rosenberg <drosen@google.com>
 ---
- fs/overlayfs/file.c | 23 +++++------------------
- include/linux/fs.h  |  5 +++++
- 2 files changed, 10 insertions(+), 18 deletions(-)
+ include/linux/bpf_fuse.h | 84 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 84 insertions(+)
+ create mode 100644 include/linux/bpf_fuse.h
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 7c04f033aadd..759893e4da04 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -15,6 +15,8 @@
- #include <linux/fs.h>
- #include "overlayfs.h"
- 
-+#define OVL_IOCB_MASK (IOCB_DSYNC | IOCB_HIPRI | IOCB_NOWAIT | IOCB_SYNC)
+diff --git a/include/linux/bpf_fuse.h b/include/linux/bpf_fuse.h
+new file mode 100644
+index 000000000000..ce8b1b347496
+--- /dev/null
++++ b/include/linux/bpf_fuse.h
+@@ -0,0 +1,84 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright 2022 Google LLC.
++ */
 +
- struct ovl_aio_req {
- 	struct kiocb iocb;
- 	refcount_t ref;
-@@ -241,22 +243,6 @@ static void ovl_file_accessed(struct file *file)
- 	touch_atime(&file->f_path);
- }
- 
--static rwf_t ovl_iocb_to_rwf(int ifl)
--{
--	rwf_t flags = 0;
--
--	if (ifl & IOCB_NOWAIT)
--		flags |= RWF_NOWAIT;
--	if (ifl & IOCB_HIPRI)
--		flags |= RWF_HIPRI;
--	if (ifl & IOCB_DSYNC)
--		flags |= RWF_DSYNC;
--	if (ifl & IOCB_SYNC)
--		flags |= RWF_SYNC;
--
--	return flags;
--}
--
- static inline void ovl_aio_put(struct ovl_aio_req *aio_req)
- {
- 	if (refcount_dec_and_test(&aio_req->ref)) {
-@@ -316,7 +302,8 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
- 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
- 	if (is_sync_kiocb(iocb)) {
- 		ret = vfs_iter_read(real.file, iter, &iocb->ki_pos,
--				    ovl_iocb_to_rwf(iocb->ki_flags));
-+				    iocb_to_rw_flags(iocb->ki_flags,
-+						     OVL_IOCB_MASK));
- 	} else {
- 		struct ovl_aio_req *aio_req;
- 
-@@ -380,7 +367,7 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
- 	if (is_sync_kiocb(iocb)) {
- 		file_start_write(real.file);
- 		ret = vfs_iter_write(real.file, iter, &iocb->ki_pos,
--				     ovl_iocb_to_rwf(ifl));
-+				     iocb_to_rw_flags(ifl, OVL_IOCB_MASK));
- 		file_end_write(real.file);
- 		/* Update size */
- 		ovl_copyattr(inode);
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index c85916e9f7db..c849074f44b7 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -3009,6 +3009,11 @@ static inline int kiocb_set_rw_flags(struct kiocb *ki, rwf_t flags)
- 	return 0;
- }
- 
-+static inline rwf_t iocb_to_rw_flags(int ifl, int iocb_mask)
++#ifndef _BPF_FUSE_H
++#define _BPF_FUSE_H
++
++#include <linux/types.h>
++#include <linux/fuse.h>
++
++struct fuse_buffer {
++	void *data;
++	unsigned size;
++	unsigned alloc_size;
++	unsigned max_size;
++	int flags;
++};
++
++/* These flags are used internally to track information about the fuse buffers.
++ * Fuse sets some of the flags in init. The helper functions sets others, depending on what
++ * was requested by the bpf program.
++ */
++// Flags set by FUSE
++#define BPF_FUSE_IMMUTABLE	(1 << 0) // Buffer may not be written to
++#define BPF_FUSE_VARIABLE_SIZE	(1 << 1) // Buffer length may be changed (growth requires alloc)
++#define BPF_FUSE_MUST_ALLOCATE	(1 << 2) // Buffer must be re allocated before allowing writes
++
++// Flags set by helper function
++#define BPF_FUSE_MODIFIED	(1 << 3) // The helper function allowed writes to the buffer
++#define BPF_FUSE_ALLOCATED	(1 << 4) // The helper function allocated the buffer
++
++/*
++ * BPF Fuse Args
++ *
++ * Used to translate between bpf program parameters and their userspace equivalent calls.
++ * Variable sized arguments are held in fuse_buffers. To access these, bpf programs must
++ * use kfuncs to access them as dynptrs.
++ *
++ */
++
++#define FUSE_MAX_ARGS_IN 3
++#define FUSE_MAX_ARGS_OUT 2
++
++struct bpf_fuse_arg {
++	union {
++		void *value;
++		struct fuse_buffer *buffer;
++	};
++	unsigned size;
++	bool is_buffer;
++};
++
++struct bpf_fuse_meta_info {
++	uint64_t nodeid;
++	uint32_t opcode;
++	uint32_t error_in;
++};
++
++struct bpf_fuse_args {
++	struct bpf_fuse_meta_info info;
++	uint32_t in_numargs;
++	uint32_t out_numargs;
++	uint32_t flags;
++	struct bpf_fuse_arg in_args[FUSE_MAX_ARGS_IN];
++	struct bpf_fuse_arg out_args[FUSE_MAX_ARGS_OUT];
++};
++
++// Mirrors for struct fuse_args flags
++#define FUSE_BPF_FORCE (1 << 0)
++#define FUSE_BPF_OUT_ARGVAR (1 << 6)
++#define FUSE_BPF_IS_LOOKUP (1 << 11)
++
++static inline void *bpf_fuse_arg_value(const struct bpf_fuse_arg *arg)
 +{
-+	return ifl & iocb_mask;
++	return arg->is_buffer ? arg->buffer : arg->value;
 +}
 +
- static inline ino_t parent_ino(struct dentry *dentry)
- {
- 	ino_t res;
++static inline unsigned bpf_fuse_arg_size(const struct bpf_fuse_arg *arg)
++{
++	return arg->is_buffer ? arg->buffer->size : arg->size;
++}
++
++#endif /* _BPF_FUSE_H */
 -- 
 2.40.0.634.g4ca3ef3211-goog
 
