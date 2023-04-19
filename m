@@ -2,112 +2,97 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9783C77B78
-	for <linux-unionfs@archiver.kernel.org>; Tue, 18 Apr 2023 15:30:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8536AC77B75
+	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Apr 2023 00:24:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230493AbjDRPaA (ORCPT
+        id S231362AbjDSAYF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 Apr 2023 11:30:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45842 "EHLO
+        Tue, 18 Apr 2023 20:24:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232178AbjDRP3v (ORCPT
+        with ESMTP id S230482AbjDSAYE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2023 11:29:51 -0400
-Received: from mail-vs1-xe29.google.com (mail-vs1-xe29.google.com [IPv6:2607:f8b0:4864:20::e29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A86B125B8
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 08:29:44 -0700 (PDT)
-Received: by mail-vs1-xe29.google.com with SMTP id u12so81853vst.11
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 08:29:43 -0700 (PDT)
+        Tue, 18 Apr 2023 20:24:04 -0400
+Received: from smtp-fw-2101.amazon.com (smtp-fw-2101.amazon.com [72.21.196.25])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59BF4E79;
+        Tue, 18 Apr 2023 17:24:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1681831783; x=1684423783;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oqRpxEBs6vax8hy9M6yY3xC3tO4kl0eQMqTXxKhKgkE=;
-        b=VJuG4nqRzhfCKUfy6xtLf5hcU15sm5uFA1SbLycIpizcZ1y6zehOFkD54UDJTkpgJy
-         +nDyPe0AMuNeTt7y+6hFcnGf/R2RJLAcsOv7aWFvjs5sawVnJUDpWjqxKV5SoLMgJCkB
-         kNCAWq/MFLyE0AOKF0h+hW1/u2zyKM2eSrDBNpIrlx0v9T584s7liZB5kVwtXwhTC/9F
-         ZENdHE/mqy2zRWKdeiaKE+LBH0Xq/ZVXfmpJrIS4RMAV7nLso1hipJWvXLuOOk6klkF9
-         pTmtqX18IE82Y1CJ8tO1Y4yEDHuAgdXY+ZzBRfxQwyxm6ZLcqD23BguYXr2qxNgF+tNo
-         o5DA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681831783; x=1684423783;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oqRpxEBs6vax8hy9M6yY3xC3tO4kl0eQMqTXxKhKgkE=;
-        b=KayOUo9ADAq9MJcaeAAMO3U7F4zA2ikknUqxkLedYjI16TCvbHIpWuzekiAG3gW44c
-         Ra8Q6UsTzhXdf42snE4NqevjI682rJgugCLpGpV92baNWjhzNKrzFOeFi26HjGSRB/Mz
-         MYwnoYVchWRDhM62+j+3GGCW+BiVEMwXABzizk6XjkQ09MRk7dpMinj2OXfbo+hwtZ6v
-         rSpC1tbyeJIfSJQdITr6FxuBWO22WfAliBUdFkNPdaYAKOHihafqyCaGNNzRj3602a0E
-         ROplOngNpfv4qiXoCGr0JXTkdzTzu/IWT7ImszOfRqtX0MZth/luChsSb6BHum4NnmjN
-         hirQ==
-X-Gm-Message-State: AAQBX9fKLiZnuLk5CiRjdpX/QLQ6BSYRDQMEAvztKizaBUWxdCg4mZwE
-        vaERT0HJx226oeipaCWBhBkt/opwgEcOZMwZVf4=
-X-Google-Smtp-Source: AKy350aOAbZxyitSQC9BuKhTZ8jrdV9lqJIDU+jwWTt4Dr+8rzjXk5m50/uZKJO92CIoa3+3sbMmZeTIPsaniqxlYy4=
-X-Received: by 2002:a67:e046:0:b0:42e:9b1e:1db5 with SMTP id
- n6-20020a67e046000000b0042e9b1e1db5mr5450317vsl.0.1681831783077; Tue, 18 Apr
- 2023 08:29:43 -0700 (PDT)
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1681863843; x=1713399843;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=1U+PLJSAIes/H5by++o3LB2P2U8s/P5yLe1M8rRVXXE=;
+  b=RZdSpj8M7dnzkjnggnFzOtKKG7iOhffv7O46RrfCqjLrA0Xf9T5DuffN
+   5AW89s/ydZZFqu2S5fYGee0cYMrny6qz0l60Umfg9hp51/n6WiNjQDPQN
+   GD8YcPyS0PVum4qkJO3n76tfqOvL8RX3obw08VWYxC172Z5i9eAZiwkHd
+   A=;
+X-IronPort-AV: E=Sophos;i="5.99,208,1677542400"; 
+   d="scan'208";a="315568726"
+Received: from iad12-co-svc-p1-lb1-vlan3.amazon.com (HELO email-inbound-relay-iad-1e-m6i4x-3554bfcf.us-east-1.amazon.com) ([10.43.8.6])
+  by smtp-border-fw-2101.iad2.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Apr 2023 00:24:03 +0000
+Received: from EX19MTAUWB001.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan2.iad.amazon.com [10.40.163.34])
+        by email-inbound-relay-iad-1e-m6i4x-3554bfcf.us-east-1.amazon.com (Postfix) with ESMTPS id 88C2A803C1;
+        Wed, 19 Apr 2023 00:24:01 +0000 (UTC)
+Received: from EX19D028UWA002.ant.amazon.com (10.13.138.248) by
+ EX19MTAUWB001.ant.amazon.com (10.250.64.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Wed, 19 Apr 2023 00:23:49 +0000
+Received: from uda95858fd22f53.ant.amazon.com (10.187.170.44) by
+ EX19D028UWA002.ant.amazon.com (10.13.138.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Wed, 19 Apr 2023 00:23:49 +0000
+From:   Mengchi Cheng <mengcc@amazon.com>
+To:     <miklos@szeredi.hu>, <casey@schaufler-ca.com>
+CC:     <linux-unionfs@vger.kernel.org>,
+        <linux-security-module@vger.kernel.org>, <kamatam@amazon.com>,
+        <yoonjaeh@amazon.com>
+Subject: Transmute flag is not inheritted on overlay fs
+Date:   Tue, 18 Apr 2023 17:23:38 -0700
+Message-ID: <20230419002338.566487-1-mengcc@amazon.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20230412135412.1684197-1-amir73il@gmail.com> <20230412135412.1684197-3-amir73il@gmail.com>
- <8ac422621de7b422cf4b744463f3c1e4bae148d9.camel@redhat.com>
- <CAOQ4uxgU4LZy5=ouqFDWAPn=t17mavfhs_1915-HW3AGywjYkw@mail.gmail.com> <228e85e2c247da98cebea09ce2af418c64b60c85.camel@redhat.com>
-In-Reply-To: <228e85e2c247da98cebea09ce2af418c64b60c85.camel@redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 18 Apr 2023 18:29:31 +0300
-Message-ID: <CAOQ4uxiWEhG0fqUJONPR=gWyZW0DuL=0uF_H0paONABhKYnAmw@mail.gmail.com>
-Subject: Re: [PATCH 2/5] ovl: introduce data-only lower layers
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Originating-IP: [10.187.170.44]
+X-ClientProxiedBy: EX19D041UWB001.ant.amazon.com (10.13.139.132) To
+ EX19D028UWA002.ant.amazon.com (10.13.138.248)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 18, 2023 at 5:20=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
-> wrote:
->
-> On Tue, 2023-04-18 at 16:33 +0300, Amir Goldstein wrote:
-> > On Tue, Apr 18, 2023 at 3:02=E2=80=AFPM Alexander Larsson <alexl@redhat=
-.com>
-> > wrote:
-> > >
-> > >
-> > > >                  * fh->uuid to layer.
-> > > > @@ -907,7 +907,7 @@ struct dentry *ovl_lookup(struct inode *dir,
-> > > > struct dentry *dentry,
-> > > >
-> > > >         if (!d.stop && ovl_numlower(poe)) {
-> > > >                 err =3D -ENOMEM;
-> > > > -               stack =3D ovl_stack_alloc(ofs->numlayer - 1);
-> > > > +               stack =3D ovl_stack_alloc(ovl_numlowerlayer(ofs));
-> > > >                 if (!stack)
-> > > >                         goto out_put_upper;
-> > > >         }
-> > >
-> > > Again, surely ovl_numlower(poe) is a better size here?
-> >
-> > Intentional. that is changed in the following patch.
-> > (to ovl_numlowerlayer(ofs) + 1)
-> > As the commit message says:
-> > "Following changes will implement lookup in the data layers."
->
-> Still, you might have 10 lower layers in the overlay mount overall, but
-> this particular parent may only have 1 lower layer, no? So
-> numlower(poe) would be smaller that numlowerlayer(ofs).
+Hello,
 
-Ah, I understand your question.
-The answer is that absolute redirect (a.k.a poe =3D roe) can change
-numlower(poe) after the stack was allocated.
+On the overlay ext4 file system, we found that transmute flag is not
+inherited by newly created sub-directories. The issue can be recreated on
+the newest kernel(6.3.0-rc6) on qemux86-64 with following steps.
 
-There are several "optimizations" that could be done, but they
-are useless, because stack is a temporary allocation.
-The permanent stack allocation is done at the end of lookup
-with ovl_alloc_entry(ctr).
+/data directory is mounted on /dev/vdb which is a ext4 fs. It is remounted
+as an overlay again to upperdir /home/root/data.
+# mount -t overlay overlay -o lowerdir=/data,upperdir=/home/root/data,workdir=/home/root/data_work /data
+Add a new smack rule and set label and flag to /data directory.
+# echo "_ system rwxatl" > /sys/fs/smackfs/load2
+# chsmack -a "system" /data
+# chsmack -t /data
+Create directories under /data.
+# mkdir -p /data/dir1/dir2
+And then check the smack label of dir1 and dir2.
+# chsmack /data/dir1
+/data/dir1 access="system"
+# chsmack /data/dir1/dir2
+/data/dir1/dir2 access="_"
+We can see dir1 did not inherit transmute flag from data and dir2 got the
+process label.
 
-Which means I could have also left it ofs->numlayer - 1
-this change ends up being just semantic.
+The transmute xattr of the inode is set inside the smack_d_instantiate
+which depends on SMK_INODE_CHANGED bit of isp->smk_flags. But the bit is
+not set in the overlay fs mkdir function call chain. So one simple solution
+we have is passing inode ptr into smack_dentry_create_files_as and set the
+SMK_INODE_CHANGED bit if parent dir is transmuting. Although it looks
+reasonable to me and we did not meet any issue in testing, I am not sure if
+there is a better solution to it. It will be great, if experts could take
+a look.
+
 
 Thanks,
-Amir.
+Mengchi Cheng
+
