@@ -2,117 +2,351 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D4F8C77B75
-	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Apr 2023 02:09:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7F0FC77B75
+	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Apr 2023 14:04:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230340AbjDSCJq (ORCPT
+        id S231591AbjDSOEE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 18 Apr 2023 22:09:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46734 "EHLO
+        Wed, 19 Apr 2023 10:04:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231625AbjDSCJo (ORCPT
+        with ESMTP id S231532AbjDSOED (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 18 Apr 2023 22:09:44 -0400
-Received: from sonic310-31.consmr.mail.ne1.yahoo.com (sonic310-31.consmr.mail.ne1.yahoo.com [66.163.186.212])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81173658E
-        for <linux-unionfs@vger.kernel.org>; Tue, 18 Apr 2023 19:09:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1681870182; bh=BeV4hQ0Xp+8FBWdmFGMRb4ap79c9hxRu3gp0AhZDlhI=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=SlXvUpkBUdpU0ETLynJUFTBPLTYTRNjRUA7nc7q3x9EQN2MV4hvq4dkSovNuyTDx9RUT4ApqWEwFKM6FXw1w+Bw5lalhe3qVVFCjn07nqKjmLMyytIv9xMYN8QHO3sjD4ICkh7k9iBg6JbbLMzdOx3TR0MZzNBtQjTsnwqgw1cLBKNpdWd/uWMbKQerPznzfy9Vktu//evETGeIWVQIjFvDLVrOh1faVOKdqDoYTTMtsoEou6UV4ZaPuVJ97lNw3Mdx5EgB2xpLIL7VPFXgVxB8aPURKEITtpTYMV65CeAkD66PhEgrLa8vR43NQo0oKXdrKodlZ1pSISu3ORsl0ew==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1681870182; bh=/iL3qZkFSwKrr9njo5z2Jwd6Gte3/bp4JOgWZcUdjzr=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=QEQCESx+dX+gQKgCtehF9ZK5649lWUFvdK4soylnVhVV3TiHFbXu73KX1N6UUE0Bf4/pMshbIX7cLpxHHRYFXf5xn2e8CWwTglqD/4uoqSsyh5JvL3u8uF0dzz+fQj3y9QQrKlcnATM9OfKuRAmGpV3BzX3WgJee+T6NVU0Cl049qiN7YCHahi1yq5yofVjY6Ez/eZ7WemBmi5LjxcwI5SFtQ/16GK0E70lJ1iBqVxZeHUnoGzAgay5WQQGuTRYMIQIdqcl+H/Sms7BaB5xqG4ZGqsksZGElyV57q9hba1buPJCIrMj3My42baWv1VajKWRfvdcmSS02baZTyrmpXQ==
-X-YMail-OSG: n_ukJfYVM1m.22t_4BORtFGiLlUqY1arj08W4sBN3QWDnPlhI1m2DaMqqQVGmrB
- 7zLiPkrYBQXPbn1xT2rdZ2r.tjZPNh6u.oh9KXorUkPDfivj7LM6FbYIOAFue.xrbQ8.WZ4ajKYl
- Nz31ZB1BSfCTlP3a9epxGVzX61iD3KcZSOSOuDWU9Hh5obWREccQUf1hmB5IPubTU8yexZcdsHQN
- noCPffyVrjTY2FNm9cK5Gyvo2XRWkigTm8Fb4wh8Eu0BJYAfit7fIR_BAAogQAXA0DWr8C1pkXrZ
- 71zo.hwzWwgDe7wflKit8AUivbLz.znwJexNe_UNzx68.It_EthitsJZFfjir28Rda.VSdWdZaGE
- LYQnIDZhhbT6x1Ca7EmtGztMlcuJfnAFu82o4ZEXKGED9LqhpQ4pTfU9dNXQ359A384n.bXYWezt
- 6pIPnpOfaeOdSL_nBu8r4u_eliZLtw5DXXgqEk8ej8nxu2rW6bFqbQ0SIrmkjv_qGw07BIQkTJlX
- _con49j35Snbtq_br3zHyExYJXO1RRSvBXfBETiVpaV6nOakTs8J64f0bky8MVxCNjz3dvimOd0u
- o10_sU5ahAityYPTgdZHKYRXs1FtdhdIapGvpVJiGDgMLbNbEhrx1aGMiMzBWPgJmYNyRGK908gL
- aAuic.__RuTXr9ITFLKfy7l5JTLeCs65fdc6h5jS_MFEqQhDW2f5.pEEA2M.BN6bkWwzNi.HMhHe
- AHEm68v6_dBLzUMAFUwL4tbb6Q1xJZBDpN_LgZagzFD6Ef_toUaQ_QztUP6IIh4a_OcQop23eMYL
- wRTGO1oXSVC_yS0.jJFljDmPStM4Imbwj0DJSBPN564knxGssc9hay.GQLhkr7IKj3je02w39a2h
- chFuvJ0PDcbGDp.YKXMmdZKymphSIcNynI4yIkbBXug8hV1McxQzL1tPmrQ8.ces1rqiJ8NtUfdN
- 9IqE32rS_NNoIqXD.f4nQEkgwElDhYVrmDFQoqRPq2zxewqlNNgF8qIBDQSKoxwVay_A391e4X3d
- ZdYx9VLTT7SgLIjs8ZT826ErxIaBjykKbgUipV.nPTFyiu3pWw56rfUo_5UmjsEXWl2DEmocqpzH
- sd_h0cUhRe3FfTwIsDTCadjMFen2.u431n7af2Nz80hsH7Qg7PGd_GIHE_wHVfNV68ckffX88flq
- jgvYcH7lfNmbzv4S4Ds6_KcJPHTGt1ozVaRdyJXODjUgEwFHXR5T5le5yU6LQBE.K3SO8Mb0ooqJ
- UaJ3H0XJhcKX2WV1cBrlcNJZsdEC7HnIR28075DjqChUB3xEXVx5_Ai3.KS3rqt3PuFyxG3TsKMV
- gU.mIEK4nlCw8pJ0eT5OIARQnow_h8J8P1owbqUp_5_GME_juXp07t0XqWubf83zHT1Y2XWjb06L
- 35OkaooZR3efEuplWTXL7wABqBLhmD2AYXPKsVvGSZ_aHP2Yt5SoJol9DhnRcvdiiIGbxMXdUrpY
- ItJaBp1QzoJ4vAnoYR2NADO0nHHycC0Xm1OW6pGAMZ.nwL.GnJxRXFYQKRrBtPqNBaOxEYNupRzd
- ISqJL2L2dqj_.bDRxFFcXNwNqBW6Wk9pG4CovQSZO7IqqEmgBYoj_eld2b4EwYfCeugJVBlMTGgH
- HvUT10lWB2XFLeEFscA3iXhsPqwsyLKLrxOgGcis3TQIRAIZC4MAJvo7J.fYKH_o4QCBuyM2zh7O
- OJvXuFWm2gcHxpgfbZe9qp4cKR9uyvD8pGHKElUSIaN_mWtAvAm9ERahx2wWrUVok8yv.yyugP0p
- oS8pi31UKwCdvIHKc79bFXHeoXPXZwpICndmjipGCXEkVMzMSAsEhmnopaZRkU4aFJfJk6nb5Oqa
- SAoFk4zNiomDB3dv.PwwzUkwWQONVgvCQ9Ia47oMB5S7FgeZ5d5C3OTaW.bqU1WlO_NYpOB_.e0n
- Cp3s8Hv4i..rjvGOu5_P9mcyipVK1vB1NwJa4wwqfneDnwU2yHPC20LbvXKpVMreMTU5ZdIxtUfB
- lcPVdlCcyNJNGtGX4Bcyfhwd3fXpv8McJ_8onV9_DSVb_SqHCL9YqZ2jlOQxBpvSLmX7FnVK7hb.
- 2_D6.FPMHhrFlnB.XNq5W8b4YWGaF1sklcGTv2ftqE5.9tQx0MkomNPCV5Vrb40RSHv1AsN10L4L
- U7wem8qIePPHXuxT2ORkuPi.mBGdN_M4oXwEzipybd4lOoHT2VIuL5ggxDDln.ZoMOuaclEtJwMG
- 00hXMVyOYWgYJK1OQdvICnyyGMXsnblk5s_KB1AAjyDjQH_Q.KLqcaRD.b8wPYrDQnFW3kZGZ6IX
- Iho3iZWiwmVqRLDc-
-X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: 93d27190-3f9c-44c1-bd73-9ebdd195ddb5
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic310.consmr.mail.ne1.yahoo.com with HTTP; Wed, 19 Apr 2023 02:09:42 +0000
-Received: by hermes--production-bf1-5f9df5c5c4-qlh82 (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID dde34e5f596ded5c5100665c917c3abe;
-          Wed, 19 Apr 2023 02:09:39 +0000 (UTC)
-Message-ID: <7d5c10b6-68da-dea9-b460-1427b17250b5@schaufler-ca.com>
-Date:   Tue, 18 Apr 2023 19:09:37 -0700
+        Wed, 19 Apr 2023 10:04:03 -0400
+X-Greylist: delayed 975 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 19 Apr 2023 07:04:00 PDT
+Received: from frasgout12.his.huawei.com (frasgout12.his.huawei.com [14.137.139.154])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DF451A1;
+        Wed, 19 Apr 2023 07:04:00 -0700 (PDT)
+Received: from mail02.huawei.com (unknown [172.18.147.227])
+        by frasgout12.his.huawei.com (SkyGuard) with ESMTP id 4Q1hfd0jD5z9xFmc;
+        Wed, 19 Apr 2023 21:37:13 +0800 (CST)
+Received: from roberto-ThinkStation-P620 (unknown [10.204.63.22])
+        by APP2 (Coremail) with SMTP id GxC2BwDXrGPQ8D9kQto3Ag--.1738S2;
+        Wed, 19 Apr 2023 14:47:12 +0100 (CET)
+Message-ID: <0fccab67e496f10f4ee7bf2220e70a655013935f.camel@huaweicloud.com>
+Subject: Re: [PATCH] Smack modifications for: security: Allow all LSMs to
+ provide xattrs for inode_init_security hook
+From:   Roberto Sassu <roberto.sassu@huaweicloud.com>
+To:     Casey Schaufler <casey@schaufler-ca.com>, zohar@linux.ibm.com,
+        dmitry.kasatkin@gmail.com, paul@paul-moore.com, jmorris@namei.org,
+        serge@hallyn.com, stephen.smalley.work@gmail.com,
+        eparis@parisplace.org
+Cc:     reiserfs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-integrity@vger.kernel.org,
+        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
+        bpf@vger.kernel.org, kpsingh@kernel.org, keescook@chromium.org,
+        nicolas.bouchinet@clip-os.org,
+        Roberto Sassu <roberto.sassu@huawei.com>,
+        Mengchi Cheng <mengcc@amazon.com>, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, kamatam@amazon.com,
+        yoonjaeh@amazon.com
+Date:   Wed, 19 Apr 2023 15:46:53 +0200
+In-Reply-To: <48c6073f-59b0-f5d1-532e-fe4b912b939d@schaufler-ca.com>
+References: <c7f38789-fe47-8289-e73a-4d07fbaf791d@schaufler-ca.com>
+         <20230411172337.340518-1-roberto.sassu@huaweicloud.com>
+         <2dc6486f-ce9b-f171-14fe-48a90386e1b7@schaufler-ca.com>
+         <8e7705972a0f306922d8bc4893cf940e319abb19.camel@huaweicloud.com>
+         <72b46d0f-75c7-ac18-4984-2bf1d6dad352@schaufler-ca.com>
+         <82ee6ddf66bb34470aa7b591df4d70783fdb2422.camel@huaweicloud.com>
+         <91f05dc4-a4b7-b40a-ba1a-0ccc489c84b2@schaufler-ca.com>
+         <5c50d98f1e5745c88270ae4ad3de6d9a803db4c6.camel@huaweicloud.com>
+         <48c6073f-59b0-f5d1-532e-fe4b912b939d@schaufler-ca.com>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.36.5-0ubuntu1 
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.10.0
-Subject: Re: Transmute flag is not inheritted on overlay fs
-Content-Language: en-US
-To:     Mengchi Cheng <mengcc@amazon.com>, miklos@szeredi.hu
-Cc:     linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org, kamatam@amazon.com,
-        yoonjaeh@amazon.com, Casey Schaufler <casey@schaufler-ca.com>
-References: <20230419002338.566487-1-mengcc@amazon.com>
-From:   Casey Schaufler <casey@schaufler-ca.com>
-In-Reply-To: <20230419002338.566487-1-mengcc@amazon.com>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-X-Mailer: WebService/1.1.21365 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
+X-CM-TRANSID: GxC2BwDXrGPQ8D9kQto3Ag--.1738S2
+X-Coremail-Antispam: 1UD129KBjvJXoW3CF18KF4xKF45Zr15uFWxJFb_yoWkGrWxpF
+        WUG3W7Kr4kJF1DGryFqF4UWw12k3y8Gr4UWwnxJr17AF1Dtr1xJryrJr1UCr1xXr1kuw1F
+        qr4jqry3Wrn8A37anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUUk0b4IE77IF4wAFF20E14v26ryj6rWUM7CY07I20VC2zVCF04k2
+        6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+        vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
+        xVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIEc7CjxV
+        AFwI0_Gr1j6F4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
+        6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
+        Cjc4AY6r1j6r4UM4x0Y48IcVAKI48JM4IIrI8v6xkF7I0E8cxan2IY04v7MxAIw28IcxkI
+        7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxV
+        Cjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc40Y0x0EwIxGrwCI42IY
+        6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6x
+        AIw20EY4v20xvaj40_WFyUJVCq3wCI42IY6I8E87Iv67AKxVWUJVW8JwCI42IY6I8E87Iv
+        6xkF7I0E14v26r4j6r4UJbIYCTnIWIevJa73UjIFyTuYvjxUFDGOUUUUU
+X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAgAMBF1jj4g8MgAAs9
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 4/18/2023 5:23 PM, Mengchi Cheng wrote:
-> Hello,
->
-> On the overlay ext4 file system, we found that transmute flag is not
-> inherited by newly created sub-directories. The issue can be recreated on
-> the newest kernel(6.3.0-rc6) on qemux86-64 with following steps.
->
-> /data directory is mounted on /dev/vdb which is a ext4 fs. It is remounted
-> as an overlay again to upperdir /home/root/data.
-> # mount -t overlay overlay -o lowerdir=/data,upperdir=/home/root/data,workdir=/home/root/data_work /data
-> Add a new smack rule and set label and flag to /data directory.
-> # echo "_ system rwxatl" > /sys/fs/smackfs/load2
-> # chsmack -a "system" /data
-> # chsmack -t /data
-> Create directories under /data.
-> # mkdir -p /data/dir1/dir2
-> And then check the smack label of dir1 and dir2.
-> # chsmack /data/dir1
-> /data/dir1 access="system"
-> # chsmack /data/dir1/dir2
-> /data/dir1/dir2 access="_"
-> We can see dir1 did not inherit transmute flag from data and dir2 got the
-> process label.
->
-> The transmute xattr of the inode is set inside the smack_d_instantiate
-> which depends on SMK_INODE_CHANGED bit of isp->smk_flags. But the bit is
-> not set in the overlay fs mkdir function call chain. So one simple solution
-> we have is passing inode ptr into smack_dentry_create_files_as and set the
-> SMK_INODE_CHANGED bit if parent dir is transmuting. Although it looks
-> reasonable to me and we did not meet any issue in testing, I am not sure if
-> there is a better solution to it. It will be great, if experts could take
-> a look.
+On Tue, 2023-04-18 at 09:02 -0700, Casey Schaufler wrote:
+> On 4/18/2023 12:05 AM, Roberto Sassu wrote:
+> > On Mon, 2023-04-17 at 09:41 -0700, Casey Schaufler wrote:
+> > > On 4/13/2023 12:11 AM, Roberto Sassu wrote:
+> > > > On Wed, 2023-04-12 at 13:29 -0700, Casey Schaufler wrote:
+> > > > > On 4/12/2023 12:22 AM, Roberto Sassu wrote:
+> > > > > > On Tue, 2023-04-11 at 10:54 -0700, Casey Schaufler wrote:
+> > > > > > > On 4/11/2023 10:23 AM, Roberto Sassu wrote:
+> > > > > > > > From: Roberto Sassu <roberto.sassu@huawei.com>
+> > > > > > > > 
+> > > > > > > > Very very quick modification. Not tested.
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Roberto Sassu <roberto.sassu@huawei.com>
+> > > > > > > > ---
+> > > > > > > >  security/smack/smack.h     |  2 +-
+> > > > > > > >  security/smack/smack_lsm.c | 42 ++++++++++++++++++++------------------
+> > > > > > > >  2 files changed, 23 insertions(+), 21 deletions(-)
+> > > > > > > > 
+> > > > > > > > diff --git a/security/smack/smack.h b/security/smack/smack.h
+> > > > > > > > index e2239be7bd6..f00c8498c60 100644
+> > > > > > > > --- a/security/smack/smack.h
+> > > > > > > > +++ b/security/smack/smack.h
+> > > > > > > > @@ -127,7 +127,7 @@ struct task_smack {
+> > > > > > > >  
+> > > > > > > >  #define	SMK_INODE_INSTANT	0x01	/* inode is instantiated */
+> > > > > > > >  #define	SMK_INODE_TRANSMUTE	0x02	/* directory is transmuting */
+> > > > > > > > -#define	SMK_INODE_CHANGED	0x04	/* smack was transmuted */
+> > > > > > > > +#define	SMK_INODE_CHANGED	0x04	/* smack was transmuted (unused) */
+> > > > > > > See below ...
+> > > > > > > 
+> > > > > > > >  #define	SMK_INODE_IMPURE	0x08	/* involved in an impure transaction */
+> > > > > > > >  
+> > > > > > > >  /*
+> > > > > > > > diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
+> > > > > > > > index 8392983334b..b43820bdbd0 100644
+> > > > > > > > --- a/security/smack/smack_lsm.c
+> > > > > > > > +++ b/security/smack/smack_lsm.c
+> > > > > > > > @@ -54,12 +54,12 @@
+> > > > > > > >  
+> > > > > > > >  /*
+> > > > > > > >   * Smack uses multiple xattrs.
+> > > > > > > > - * SMACK64 - for access control, SMACK64EXEC - label for the program,
+> > > > > > > > - * SMACK64MMAP - controls library loading,
+> > > > > > > > + * SMACK64 - for access control,
+> > > > > > > >   * SMACK64TRANSMUTE - label initialization,
+> > > > > > > > - * Not saved on files - SMACK64IPIN and SMACK64IPOUT
+> > > > > > > > + * Not saved on files - SMACK64IPIN and SMACK64IPOUT,
+> > > > > > > > + * Must be set explicitly - SMACK64EXEC and SMACK64MMAP
+> > > > > > > >   */
+> > > > > > > > -#define SMACK_INODE_INIT_XATTRS 4
+> > > > > > > > +#define SMACK_INODE_INIT_XATTRS 2
+> > > > > > > >  
+> > > > > > > >  #ifdef SMACK_IPV6_PORT_LABELING
+> > > > > > > >  static DEFINE_MUTEX(smack_ipv6_lock);
+> > > > > > > > @@ -957,11 +957,11 @@ static int smack_inode_init_security(struct inode *inode, struct inode *dir,
+> > > > > > > >  				     const struct qstr *qstr,
+> > > > > > > >  				     struct xattr *xattrs, int *xattr_count)
+> > > > > > > >  {
+> > > > > > > > -	struct inode_smack *issp = smack_inode(inode);
+> > > > > > > >  	struct smack_known *skp = smk_of_current();
+> > > > > > > >  	struct smack_known *isp = smk_of_inode(inode);
+> > > > > > > >  	struct smack_known *dsp = smk_of_inode(dir);
+> > > > > > > >  	struct xattr *xattr = lsm_get_xattr_slot(xattrs, xattr_count);
+> > > > > > > > +	struct xattr *xattr2;
+> > > > > > > I'm going to channel Paul and suggest this be xattr_transmute instead of xattr2.
+> > > > > > > It also looks like it could move to be declared in the if clause.
+> > > > > > > 
+> > > > > > > >  	int may;
+> > > > > > > >  
+> > > > > > > >  	if (xattr) {
+> > > > > > > > @@ -979,7 +979,17 @@ static int smack_inode_init_security(struct inode *inode, struct inode *dir,
+> > > > > > > >  		if (may > 0 && ((may & MAY_TRANSMUTE) != 0) &&
+> > > > > > > >  		    smk_inode_transmutable(dir)) {
+> > > > > > > >  			isp = dsp;
+> > > > > > > > -			issp->smk_flags |= SMK_INODE_CHANGED;
+> > > > > > > I think you need to keep this. More below.
+> > > > > > > 
+> > > > > > > > +			xattr2 = lsm_get_xattr_slot(xattrs, xattr_count);
+> > > > > > > > +			if (xattr2) {
+> > > > > > > > +				xattr2->value = kmemdup(TRANS_TRUE,
+> > > > > > > > +							TRANS_TRUE_SIZE,
+> > > > > > > > +							GFP_NOFS);
+> > > > > > > > +				if (xattr2->value == NULL)
+> > > > > > > > +					return -ENOMEM;
+> > > > > > > > +
+> > > > > > > > +				xattr2->value_len = TRANS_TRUE_SIZE;
+> > > > > > > > +				xattr2->name = XATTR_NAME_SMACKTRANSMUTE;
+> > > > > > > > +			}
+> > > > > > > >  		}
+> > > > > > > >  
+> > > > > > > >  		xattr->value = kstrdup(isp->smk_known, GFP_NOFS);
+> > > > > > > > @@ -3512,20 +3522,12 @@ static void smack_d_instantiate(struct dentry *opt_dentry, struct inode *inode)
+> > > > > > > >  			 * If there is a transmute attribute on the
+> > > > > > > >  			 * directory mark the inode.
+> > > > > > > >  			 */
+> > > > > > > > -			if (isp->smk_flags & SMK_INODE_CHANGED) {
+> > > > > > > > -				isp->smk_flags &= ~SMK_INODE_CHANGED;
+> > > > > > > > -				rc = __vfs_setxattr(&nop_mnt_idmap, dp, inode,
+> > > > > > > > -					XATTR_NAME_SMACKTRANSMUTE,
+> > > > > > > > -					TRANS_TRUE, TRANS_TRUE_SIZE,
+> > > > > > > > -					0);
+> > > > > > > > -			} else {
+> > > > > > > > -				rc = __vfs_getxattr(dp, inode,
+> > > > > > > > -					XATTR_NAME_SMACKTRANSMUTE, trattr,
+> > > > > > > > -					TRANS_TRUE_SIZE);
+> > > > > > > > -				if (rc >= 0 && strncmp(trattr, TRANS_TRUE,
+> > > > > > > > -						       TRANS_TRUE_SIZE) != 0)
+> > > > > > > > -					rc = -EINVAL;
+> > > > > > > > -			}
+> > > > > > > > +			rc = __vfs_getxattr(dp, inode,
+> > > > > > > > +					    XATTR_NAME_SMACKTRANSMUTE, trattr,
+> > > > > > > > +					    TRANS_TRUE_SIZE);
+> > > > > > > > +			if (rc >= 0 && strncmp(trattr, TRANS_TRUE,
+> > > > > > > > +					       TRANS_TRUE_SIZE) != 0)
+> > > > > > > > +				rc = -EINVAL;
+> > > > > > > Where is the SMACK64_TRANSMUTE attribute going to get set on the file?
+> > > > > > > It's not going to get set in smack_init_inode_security(). The inode will
+> > > > > > Isn't that the purpose of the inode_init_security hook?
+> > > > > No. It initializes the in-memory inode. 
+> > > > I hope I'm not mistaken here...
+> > > > 
+> > > > I make a small example. Filesystems call
+> > > > security_inode_init_security(). Ext4 does:
+> > > > 
+> > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/fs/ext4/xattr_security.c?h=v6.3-rc6#n54
+> > > > 
+> > > > security_inode_init_security() allocates new_xattrs. Each LSM fills
+> > > > new_xattrs. At the end of the loop, if there is at least one xattr
+> > > > filled, the initxattrs() callback passed by the caller of
+> > > > security_inode_init_security() is called.
+> > > > 
+> > > > The ext4 initxattrs() callback is:
+> > > > 
+> > > > https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/fs/ext4/xattr_security.c?h=v6.3-rc6#n35
+> > > > 
+> > > > which scans the xattr array and, for each xattr,
+> > > > calls ext4_xattr_set_handle().
+> > > > 
+> > > > Maybe I'm overlooking it, but ext4_xattr_set_handle() is setting xattrs
+> > > > on the disk. Am I wrong?
+> > > Yes, you're wrong. I tried your change, and the SMACK64_TRANSMUTE isn't
+> > > set on the sub-directory when it's created. The __vfs_setxattr() call really
+> > > is necessary. 
+> > Could you please also check if there is any change with this fix:
+> > 
+> > Replace:
+> > 
+> > 	xattr2->name = XATTR_NAME_SMACKTRANSMUTE;
+> > 
+> > with:
+> > 
+> > 	xattr2->name = XATTR_SMACK_TRANSMUTE;
+> > 
+> > Thanks
+> 
+> Unless I'm missing something really obvious there's no way that any
+> of the evm/ima changes would obviate the need for the __vfs_setxattr() call.
+> It's real easy to verify correct behavior, see the attached script.
+> (you'll want to change the "notroot" value to a user on your system)
 
-I will be happy to look at your solution. Please post a patch.
+I got some errors during xattr removal, so not sure if my patch was
+working properly or not (it happened also without it, didn't
+investigate more).
 
->
->
-> Thanks,
-> Mengchi Cheng
->
+However, I saw another discussion related to transmute:
+
+https://lore.kernel.org/linux-security-module/20230419002338.566487-1-mengcc@amazon.com/
+
+I add the people in CC.
+
+The steps described were so easy to understand and executed, I tried
+without and with overlayfs.
+
+Without:
+
+# echo "_ system rwxatl" > /sys/fs/smackfs/load2
+# mkdir /data
+# chsmack -a "system" /data
+# chsmack -t /data
+# mkdir -p /data/dir1/dir2
+# chsmack /data/dir1
+/data/dir1 access="system" transmute="TRUE"
+# chsmack /data/dir1/dir2
+/data/dir1/dir2 access="system" transmute="TRUE"
+
+It seems to work, right?
+
+With overlay fs it didn't work, same result as the one Mengchi
+reported. Since Mengchi's solution was to set SMK_INODE_CHANGED, and I
+want to get rid of it, I thought to investigate more.
+
+Looking at smack_dentry_create_files_as(), I see that the label of the
+process is overwritten with the label of the transmuting directory.
+
+That causes smack_inode_init_security() to lookup the transmuting rule
+on the overridden credential, and not on the original one.
+
+In the example above, it means that, when overlayfs is creating the new
+inode, the label of the process is system, not _. So no transmute
+permission, and also the xattr will not be added, as observed by
+Mengchi.
+
+Hopefully I undertood the code, so in this particular case we would not
+need to override the label of the process in smack_dentry_create_files_
+as().
+
+If you see smack_inode_init_security():
+
+	struct smack_known *skp = smk_of_current();
+	struct smack_known *isp = smk_of_inode(inode);
+	struct smack_known *dsp = smk_of_inode(dir);
+
+[...]
+
+		if (may > 0 && ((may & MAY_TRANSMUTE) != 0) &&
+		    smk_inode_transmutable(dir)) {
+			isp = dsp;
+[...]
+
+		xattr->value = kstrdup(isp->smk_known, GFP_NOFS);
+
+This code is telling, if there is a transmute rule, and the directory
+is transmuting, set the label of the new inode to the label of the
+directory. That should be already the result that we wanted to obtain.
+
+The current code should have been doing it by overriding the label of
+the process in smack_dentry_create_files_as() with the label of the
+parent directory, and letting the inode being created with the
+overridden label of the process. The transmute xattr is not set due to
+the problem described above.
+
+So, as a quick test, I kept this patch with the change to xattr2->name, 
+and skipped the label override in smack_dentry_create_files_as(). It
+worked, I get the same result as without overlayfs. Wondering if the
+process label override is necessary in other cases.
+
+Roberto
+
+> > Roberto
+> > 
+> > > > Thanks
+> > > > 
+> > > > Roberto
+> > > > 
+> > > > > > After all LSMs provide one or multiple xattrs, xattrs are going to be
+> > > > > > written to the disk with the initxattr() callback of filesystems.
+> > > > > > 
+> > > > > > There is a small mistake above (XATTR_SMACK_TRANSMUTE instead
+> > > > > > of XATTR_NAME_SMACKTRANSMUTE, as we are providing just the suffix).
+> > > > > but I'm pretty sure the __vfs_setxattr() call is necessary to get
+> > > > > the attribute written out. With your change the in-memory inode will
+> > > > > get the attribute, but if you reboot it won't be on the directory.
+> > > > > 
+> > > > > > 95 Passed, 0 Failed, 100% Success rate
+> > > > > > 
+> > > > > > There was a test failing in dir-transmute.sh, before I fixed the xattr
+> > > > > > name.
+> > > > > > 
+> > > > > > Thanks
+> > > > > > 
+> > > > > > Roberto
+> > > > > > 
+> > > > > > > know it's transmuting, but it won't get to disk without the __vfs_setxattr()
+> > > > > > > here in smack_d_instantiate(). Now, it's been a long time since that code
+> > > > > > > was written, so I could be wrong, but I'm pretty sure about that.
+> > > > > > > 
+> > > > > > > I think that you should be fine with the changes in smack_init_inode_security(),
+> > > > > > > and leaving smack_d_instantiate() untouched. 
+> > > > > > > 
+> > > > > > > >  			if (rc >= 0)
+> > > > > > > >  				transflag = SMK_INODE_TRANSMUTE;
+> > > > > > > >  		}
+
