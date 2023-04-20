@@ -2,59 +2,59 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB25FC77B72
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 12:13:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3EA2C77B73
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 12:15:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232140AbjDTMNN (ORCPT
+        id S234817AbjDTMPF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 20 Apr 2023 08:13:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35836 "EHLO
+        Thu, 20 Apr 2023 08:15:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234042AbjDTMNJ (ORCPT
+        with ESMTP id S234824AbjDTMO7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Apr 2023 08:13:09 -0400
-Received: from mail-ua1-x934.google.com (mail-ua1-x934.google.com [IPv6:2607:f8b0:4864:20::934])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D8E359F7
-        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 05:12:39 -0700 (PDT)
-Received: by mail-ua1-x934.google.com with SMTP id v18so1988541uak.8
-        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 05:12:39 -0700 (PDT)
+        Thu, 20 Apr 2023 08:14:59 -0400
+Received: from mail-ua1-x936.google.com (mail-ua1-x936.google.com [IPv6:2607:f8b0:4864:20::936])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2705E7A9F
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 05:14:37 -0700 (PDT)
+Received: by mail-ua1-x936.google.com with SMTP id x8so1988272uau.9
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 05:14:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1681992753; x=1684584753;
+        d=gmail.com; s=20221208; t=1681992875; x=1684584875;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Nguzq/f1Tjc/dp3Jnp8k4tZEg8n0swUGPV8jptc/xXY=;
-        b=DHQ2lFx2MizWMQQrYU/Zu46mRFRdtM4lEuTKEsZ2tYoxgcQldR2JQ3bQG2T5mJxOhR
-         b75zfmVi6WHumlV1KqvFEWyjGGVYORoOOzJPrPnkiI4CpPGnKMKfmiJ1Ff9xQI0zujLX
-         4LYMoxP6wcwkhMzWAnZjrlTobrLtGROySoTCpSUIU+YuAwZ0m7x0NruhjcL6YQ+pes6s
-         8rXwcP7fpckfnNNU0nNaDew9KHsoHdrDkSu5pbQUB4AWIuEWUJnxePaWNC5R0EJoHYx/
-         IxKIea0Lg7bjgZNTEoc7z6Ir8vLhMM1MZdom9RxmnKYhM4+VBHC42WTpzqRHeLK65F8T
-         a7Zw==
+        bh=qaylrUdg0+csiYgaM5+2CX7gGdXl19IxIjKJHzKB4FY=;
+        b=T59oQAg2MWq7i3cq5xS92GokDfg8LSKQr6n//AMVeN/y8m1wWCfWxlr3tJRQHm0oi8
+         c2d8EIeviic20oNZHKw+sfJMe7woMPxh6L2OxU0J21cCQNcjccUX+WNpfMIH8Pu+xhd0
+         sO6fkmqilDo/93nMbAJZ4QrtmxbhLHOOQ7GNKum2MQm05Ds/Hhm8iHwZM8dSoVq68B7R
+         WixL8YinjCpOI/oAE4je9+/3lCUocqV7q+YWIWXqn74TftuKPnAw4+ieTBAaY17WPrHt
+         VODnwMnGJE2C5meZrMYvmthpuDioqyGageYgv4e666vT7GK+rq7iv5Ce8lRB0c48W72i
+         vtFw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681992753; x=1684584753;
+        d=1e100.net; s=20221208; t=1681992875; x=1684584875;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Nguzq/f1Tjc/dp3Jnp8k4tZEg8n0swUGPV8jptc/xXY=;
-        b=c/na6kIAmZzaSAS7yA6YnFPwgjzC68uhJwp120GzI+gG8/oxrSJ+XAnL7Xrr9SCOD9
-         asjbvm9ZgQvF5ZSXLWg5JigRmKmmYdRU7FCbZBnjB+6XC74EjwfqPyPUWX1QHQtsI8dG
-         6QWqTpncfosD9H55cGj+AfJfEpPS81U0/Jpo17YC/CMfcfVoGU3bkCjXb6JRAuFjXWgi
-         WEPNp28gLBk9ygdV4QP1mA+MiXb1P77CPmneFCWYi/4cOWWAkQVRaD04tDYkOoN1C3dJ
-         rjQ8Za9FkaYqJBgf36ow37ckU3uSwSciRrSL15sX4hn7UToxC7yB97pwBCX7X0qmMgsn
-         ihMw==
-X-Gm-Message-State: AAQBX9fPLM/fd3NhVdTwkg9OwX/bHN+5BBGh3DPY5QkmkbIh/+c952O0
-        VkSBrFuX2RHwee8Kol9qUFZn9b1aPHYkLFE7gTc=
-X-Google-Smtp-Source: AKy350ZAWQBzAc920rmXqxFboV4WcJL/RkyzdyZVEAjmX5ykGw8ZKiZGhVdmaEOPbZo+XnBZYCpAiMN+G0rft3UT7lE=
-X-Received: by 2002:a1f:a994:0:b0:446:c76f:a7e5 with SMTP id
- s142-20020a1fa994000000b00446c76fa7e5mr855147vke.0.1681992753049; Thu, 20 Apr
- 2023 05:12:33 -0700 (PDT)
+        bh=qaylrUdg0+csiYgaM5+2CX7gGdXl19IxIjKJHzKB4FY=;
+        b=L4GJEPco11ZkJsUkDABHif+pZIiI3BOhYmvsN1fbL5EobO6/JTgDUSOZRlyF+nR7h2
+         mpX4Gl5wzSQ6q6gd1hwlodwVPCIwc4CCVsKvE7h+lwZT6C/YqnlobfDmxBRJMWw+wIyr
+         CvT5Ohpj3P66bi37nTkpXlo6j30+gh8HC+JPuTK9/UxMXKkHQ8kHEEZA4DQrJ/jc0iSa
+         xaGQqTNNKN/IFU0W//ufbr+AxRCMMfPQOHmN7p+a7/Wfhtg5ygu0xUvi4dw9s7EAfMSF
+         hJjtD3dq9HbCS4PIq27yGwWVKdIH348VO8bJz09L0T/R/2/CreeWhCVn7SAnxoFFGCHX
+         BcDg==
+X-Gm-Message-State: AAQBX9eWroZnhDXqhkOGTGPflcR1YbdABv9qA1JxIk2PprVgfZTHPpqb
+        uF5r5RbXCMFo2dKcGAdiznekzZIKkqRf/6KP/C0=
+X-Google-Smtp-Source: AKy350Yrv4NYwerSTBFmlWC65yBwWFEnf0PlTtRdRTVul1G1PUYzblBBWp37FTc5NhUJghGF9mgjX7tbs1+jP1CKVe4=
+X-Received: by 2002:a1f:a294:0:b0:443:e6f7:e37e with SMTP id
+ l142-20020a1fa294000000b00443e6f7e37emr852770vke.0.1681992875635; Thu, 20 Apr
+ 2023 05:14:35 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1681917551.git.alexl@redhat.com> <4c5c62c05a00a97dce0ce5fbee020e82ee76c202.1681917551.git.alexl@redhat.com>
-In-Reply-To: <4c5c62c05a00a97dce0ce5fbee020e82ee76c202.1681917551.git.alexl@redhat.com>
+References: <cover.1681917551.git.alexl@redhat.com> <69fa1af45ee0f51b50c1ff8a386a57d2842379c9.1681917551.git.alexl@redhat.com>
+In-Reply-To: <69fa1af45ee0f51b50c1ff8a386a57d2842379c9.1681917551.git.alexl@redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 20 Apr 2023 15:12:21 +0300
-Message-ID: <CAOQ4uxihGt_W=o69fdGn4DCKpY-kJYYvhhXf0qxqDLRmWAyL3w@mail.gmail.com>
-Subject: Re: [PATCH 2/6] ovl: Break out ovl_entry_path_real() from ovl_i_path_real()
+Date:   Thu, 20 Apr 2023 15:14:24 +0300
+Message-ID: <CAOQ4uxidTC7ZqxRjxDQ1cBGm0m4nzsjBjE-TRMjrk7XsS34qgg@mail.gmail.com>
+Subject: Re: [PATCH 3/6] ovl: Break out ovl_entry_path_lowerdata() from ovl_path_lowerdata()
 To:     Alexander Larsson <alexl@redhat.com>
 Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
         ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
@@ -67,46 +67,65 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 On Thu, Apr 20, 2023 at 10:44=E2=80=AFAM Alexander Larsson <alexl@redhat.co=
 m> wrote:
 >
-> This allows us to get the real path from the ovl_entry in ovl_lookup()
-> before having finished setting up the resulting inode.
+> This will be needed later when getting the lowerdata path from the
+> ovl_entry in ovl_lookup() before the dentry is set up.
 >
 > Signed-off-by: Alexander Larsson <alexl@redhat.com>
 > ---
->  fs/overlayfs/overlayfs.h |  2 ++
->  fs/overlayfs/util.c      | 25 ++++++++++++++++++-------
->  2 files changed, 20 insertions(+), 7 deletions(-)
+>  fs/overlayfs/overlayfs.h |  1 +
+>  fs/overlayfs/util.c      | 11 +++++++++--
+>  2 files changed, 10 insertions(+), 2 deletions(-)
 >
 > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 4e327665c316..477008186d18 100644
+> index 477008186d18..3d14770dc711 100644
 > --- a/fs/overlayfs/overlayfs.h
 > +++ b/fs/overlayfs/overlayfs.h
-> @@ -395,6 +395,8 @@ void ovl_path_upper(struct dentry *dentry, struct pat=
+> @@ -395,6 +395,7 @@ void ovl_path_upper(struct dentry *dentry, struct pat=
 h *path);
 >  void ovl_path_lower(struct dentry *dentry, struct path *path);
 >  void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
 >  void ovl_i_path_real(struct inode *inode, struct path *path);
-> +void ovl_entry_path_real(struct ovl_fs *ofs, struct ovl_entry *oe,
-> +                        struct dentry *upperdentry, struct path *path);
+> +void ovl_entry_path_lowerdata(struct ovl_entry *oe, struct path *path);
+>  void ovl_entry_path_real(struct ovl_fs *ofs, struct ovl_entry *oe,
+>                          struct dentry *upperdentry, struct path *path);
 >  enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *pat=
 h);
->  enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path =
-*path);
->  struct dentry *ovl_dentry_upper(struct dentry *dentry);
 > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 9a042768013e..77c954591daa 100644
+> index 77c954591daa..17eff3e31239 100644
 > --- a/fs/overlayfs/util.c
 > +++ b/fs/overlayfs/util.c
-> @@ -351,19 +351,30 @@ struct dentry *ovl_i_dentry_upper(struct inode *ino=
-de)
->         return ovl_upperdentry_dereference(OVL_I(inode));
+> @@ -242,9 +242,9 @@ void ovl_path_lower(struct dentry *dentry, struct pat=
+h *path)
+>         }
 >  }
 >
-> -void ovl_i_path_real(struct inode *inode, struct path *path)
-> -{
-> -       struct ovl_path *lowerstack =3D ovl_lowerstack(OVL_I_E(inode));
-> +void ovl_entry_path_real(struct ovl_fs *ofs,
+> -void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
+> +void ovl_entry_path_lowerdata(struct ovl_entry *oe,
 
 Nit: I would use ovl_e_ prefix. Not critical.
+
+> +                             struct path *path)
+>  {
+> -       struct ovl_entry *oe =3D OVL_E(dentry);
+>         struct ovl_path *lowerdata =3D ovl_lowerdata(oe);
+>         struct dentry *lowerdata_dentry =3D ovl_lowerdata_dentry(oe);
+>
+> @@ -262,6 +262,13 @@ void ovl_path_lowerdata(struct dentry *dentry, struc=
+t path *path)
+>         }
+>  }
+>
+> +void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
+> +{
+> +       struct ovl_entry *oe =3D OVL_E(dentry);
+> +
+> +       return ovl_entry_path_lowerdata(oe, path);
+
+Nit: I wouldn't use a helper var here.
+
+Otherwise you may add (also to the previous helper patch):
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
 Thanks,
 Amir.
