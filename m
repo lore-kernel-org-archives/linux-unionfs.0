@@ -2,142 +2,114 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A068C77B78
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 07:45:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7D7BC77B73
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 07:45:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234002AbjDTHpS (ORCPT
+        id S229749AbjDTHpT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 20 Apr 2023 03:45:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51344 "EHLO
+        Thu, 20 Apr 2023 03:45:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229749AbjDTHpQ (ORCPT
+        with ESMTP id S234078AbjDTHpR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Apr 2023 03:45:16 -0400
+        Thu, 20 Apr 2023 03:45:17 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E64A340F5
-        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 00:44:32 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ACEFB4200
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 00:44:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1681976672;
+        s=mimecast20190719; t=1681976668;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=xN6AqEpfmVjYvG0OhUB3hiPDQCXbC+IJ+pstcsNq1Nw=;
-        b=ff3NGvL4zs1dvqZs4pTeUrmDATSrmfdE+4dTSlma5aH9hCRtXUW7MS+5i++phCpYwOugUF
-        ZFRgmm9LsSTzwHwKbodEkhX7D8sCpyKtcjT9TlUbHLvVzCtjxQUlfMWk9qy1Dxw0UDOcnc
-        9FfbMWL4LZI81YWWrPY8BWWvmcDArPI=
-Received: from mail-lj1-f197.google.com (mail-lj1-f197.google.com
- [209.85.208.197]) by relay.mimecast.com with ESMTP with STARTTLS
+         content-transfer-encoding:content-transfer-encoding;
+        bh=wlIazMnz9pOTl1ymeBj6LcHkPUdAOxzUMXG5pIjT/Hw=;
+        b=fHnXhNOFwlTKsGtOfymj4FziVnhmxYLrNo6ylrjKFEkSWGvxc8GUYRCYujvvoXV97ypwjd
+        mhnRuE9HuPSh/0uUoB3+7tPdYRMs+LgUjOxgj6+YsJ3if8pWrZIQGbncENRrXhUGmRa8Is
+        DaD0T6Dm4qgNrqs0FRou4slRUW5Lsq4=
+Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
+ [209.85.167.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-584-KOjXK8sUPASczOi6CPROFA-1; Thu, 20 Apr 2023 03:44:31 -0400
-X-MC-Unique: KOjXK8sUPASczOi6CPROFA-1
-Received: by mail-lj1-f197.google.com with SMTP id 38308e7fff4ca-2a76e612fbfso1732161fa.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 00:44:30 -0700 (PDT)
+ us-mta-176-xwAa7BemPuyRWJ2N3y6jIQ-1; Thu, 20 Apr 2023 03:44:26 -0400
+X-MC-Unique: xwAa7BemPuyRWJ2N3y6jIQ-1
+Received: by mail-lf1-f70.google.com with SMTP id 2adb3069b0e04-4edb884cdc3so182361e87.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 00:44:26 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1681976669; x=1684568669;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xN6AqEpfmVjYvG0OhUB3hiPDQCXbC+IJ+pstcsNq1Nw=;
-        b=X1HAQMlPdadkHWJHNloYSe5w1RIR04BjRgaXeOKJrplxbtuwYvluJpIlVCcMZyDlN1
-         t8suL799p8vG5eVJ80Xv5XdtyI/NfwlscgNSdTNXxee/t32QAlQVn9M+vpy+NwG9hz/Q
-         96PpYgdH6oANEUNm7iLx1TqolFY7CYxD8FddtVyRQyjRw+wOjMr0j8gV3Vi1Kd+grXYd
-         7lVrl0XgRmUPLeixcsluWbF9ju8g0UV0V0Yz/fvU0lAtBKaHL0xbVbCQF/EnYxUFP+wW
-         A+0a4w+/rOgfPGmRazao7zbRMddc827VaTN/+S1yKy6F29TEVtd6px5xV9Yd83mVPAKb
-         IMzQ==
-X-Gm-Message-State: AAQBX9fVHndN1bb1DhbPH8OhogDMvJCo698AI+s6pbXdFQmgxMoOURv6
-        xz0geUbYsIfRKnazaEJasPkmgImbiTupdptI2g9C98GRkj8QhnQaKmVSEfaOTVdJw6YQAuMqb5i
-        9G4+sJwGwfivsJzp99+/X1hQIfOIfnhv/EA==
-X-Received: by 2002:ac2:415a:0:b0:4b5:178f:a14c with SMTP id c26-20020ac2415a000000b004b5178fa14cmr141389lfi.16.1681976669389;
-        Thu, 20 Apr 2023 00:44:29 -0700 (PDT)
-X-Google-Smtp-Source: AKy350Y5TnQWQVXrxaYR7XlAeeWpFAOT4dk0n7uhnsiswCgbwrGDYzd29Nz60slBTRnB2usl6kqryA==
-X-Received: by 2002:ac2:415a:0:b0:4b5:178f:a14c with SMTP id c26-20020ac2415a000000b004b5178fa14cmr141381lfi.16.1681976669093;
-        Thu, 20 Apr 2023 00:44:29 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1681976665; x=1684568665;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=wlIazMnz9pOTl1ymeBj6LcHkPUdAOxzUMXG5pIjT/Hw=;
+        b=h+2ZzRaeS8p+VNTEisnJlRyx+cPO4+OapgNbqD+7zzTX7arNn98buiggpEvDIUUjaE
+         W3Ofus7WAJRQuweOUFtOHVsPTcsDVYdlv+ytjUntmugQgdm8HWdG5olvlaYCbyBP4kMy
+         zhBhrws/sZHcx0QN3PMQAHqhSuro6Gz1qtGmAUxNybsv6yW8F7PnZxWw10L3tA+0uge8
+         3XTubBfTc+ECyjurcEyCzSUH04Lg91S5DgjK9OstYG3ujTjcyrqiLEvmLU/0FPonSl/N
+         CD1Pd488CgKoBy2EGy4edeS0s9rpbDvdi6WMliCYoXzYLAU7uKjWDuwPOHkhFEGl183a
+         /4MA==
+X-Gm-Message-State: AAQBX9euHpkIh3KSY/Zar96+G/BC7xiHNsjr3RLyqRvTqVQzDglHLKbs
+        2WCjcogEVeUdaM3DAa4e7c4qUKyT31GuIOyUsZYGOU80jNyGDjpRx1xj+4uhP05UmLSP62okg/L
+        RZW42/AM+338m63qKepu4svLCyA==
+X-Received: by 2002:ac2:51b3:0:b0:4ec:8615:303e with SMTP id f19-20020ac251b3000000b004ec8615303emr153859lfk.33.1681976665501;
+        Thu, 20 Apr 2023 00:44:25 -0700 (PDT)
+X-Google-Smtp-Source: AKy350YEziSOqiyA9fM17QB4Y5n27W0I+mAplCATFDWAS0IAwiGx01XZ3yJ3qzZFw6GbH5+krOMaiQ==
+X-Received: by 2002:ac2:51b3:0:b0:4ec:8615:303e with SMTP id f19-20020ac251b3000000b004ec8615303emr153849lfk.33.1681976665187;
+        Thu, 20 Apr 2023 00:44:25 -0700 (PDT)
 Received: from localhost.localdomain (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
-        by smtp.googlemail.com with ESMTPSA id x24-20020ac24898000000b004edc7247778sm129468lfc.79.2023.04.20.00.44.28
+        by smtp.googlemail.com with ESMTPSA id x24-20020ac24898000000b004edc7247778sm129468lfc.79.2023.04.20.00.44.24
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 20 Apr 2023 00:44:28 -0700 (PDT)
+        Thu, 20 Apr 2023 00:44:24 -0700 (PDT)
 From:   Alexander Larsson <alexl@redhat.com>
 To:     miklos@szeredi.hu
 Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com,
         ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev,
         Alexander Larsson <alexl@redhat.com>
-Subject: [PATCH 2/6] ovl: Break out ovl_entry_path_real() from ovl_i_path_real()
-Date:   Thu, 20 Apr 2023 09:44:01 +0200
-Message-Id: <4c5c62c05a00a97dce0ce5fbee020e82ee76c202.1681917551.git.alexl@redhat.com>
+Subject: [PATCH 0/6] ovl: Add support for fs-verity checking of lowerdata
+Date:   Thu, 20 Apr 2023 09:43:59 +0200
+Message-Id: <cover.1681917551.git.alexl@redhat.com>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <cover.1681917551.git.alexl@redhat.com>
-References: <cover.1681917551.git.alexl@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This allows us to get the real path from the ovl_entry in ovl_lookup()
-before having finished setting up the resulting inode.
+This patchset adds support for using fs-verity to validate lowerdata
+files by specifying an overlay.verity xattr on the metacopy
+files.
 
-Signed-off-by: Alexander Larsson <alexl@redhat.com>
----
- fs/overlayfs/overlayfs.h |  2 ++
- fs/overlayfs/util.c      | 25 ++++++++++++++++++-------
- 2 files changed, 20 insertions(+), 7 deletions(-)
+This is primarily motivated by the Composefs usecase, where there will
+be a read-only EROFS layer that contains redirect into a base data
+layer which has fs-verity enabled on all files. However, it is also
+useful in general if you want to ensure that the lowerdata files
+matches the expected content over time.
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 4e327665c316..477008186d18 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -395,6 +395,8 @@ void ovl_path_upper(struct dentry *dentry, struct path *path);
- void ovl_path_lower(struct dentry *dentry, struct path *path);
- void ovl_path_lowerdata(struct dentry *dentry, struct path *path);
- void ovl_i_path_real(struct inode *inode, struct path *path);
-+void ovl_entry_path_real(struct ovl_fs *ofs, struct ovl_entry *oe,
-+			 struct dentry *upperdentry, struct path *path);
- enum ovl_path_type ovl_path_real(struct dentry *dentry, struct path *path);
- enum ovl_path_type ovl_path_realdata(struct dentry *dentry, struct path *path);
- struct dentry *ovl_dentry_upper(struct dentry *dentry);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 9a042768013e..77c954591daa 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -351,19 +351,30 @@ struct dentry *ovl_i_dentry_upper(struct inode *inode)
- 	return ovl_upperdentry_dereference(OVL_I(inode));
- }
- 
--void ovl_i_path_real(struct inode *inode, struct path *path)
--{
--	struct ovl_path *lowerstack = ovl_lowerstack(OVL_I_E(inode));
-+void ovl_entry_path_real(struct ovl_fs *ofs,
-+			 struct ovl_entry *oe,
-+			 struct dentry *upperdentry,
-+			 struct path *path)
-+{
-+	if (upperdentry) {
-+		path->dentry = upperdentry;
-+		path->mnt = ovl_upper_mnt(ofs);
-+	} else {
-+		struct ovl_path *lowerstack = ovl_lowerstack(oe);
- 
--	path->dentry = ovl_i_dentry_upper(inode);
--	if (!path->dentry) {
- 		path->dentry = lowerstack->dentry;
- 		path->mnt = lowerstack->layer->mnt;
--	} else {
--		path->mnt = ovl_upper_mnt(OVL_FS(inode->i_sb));
- 	}
- }
- 
-+void ovl_i_path_real(struct inode *inode, struct path *path)
-+{
-+	ovl_entry_path_real(OVL_FS(inode->i_sb),
-+			    OVL_I_E(inode),
-+			    ovl_i_dentry_upper(inode),
-+			    path);
-+}
-+
- struct inode *ovl_inode_upper(struct inode *inode)
- {
- 	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
+This patch series is based on the lazy lowerdata patch series by Amir[1].
+
+I have also added some tests for this feature to xfstests[2].
+
+I'm also CC:ing the fsverity list and maintainers because there is one
+(tiny) fsverity change, and there may be interest in this usecase.
+
+[1] https://lore.kernel.org/linux-unionfs/20230412135412.1684197-1-amir73il@gmail.com/T/#m1bc31eb75dc9dd22204b8f0cfc67bad9b6c785a7
+[2] https://github.com/alexlarsson/xfstests/commits/verity-tests
+
+Alexander Larsson (6):
+  fsverity: Export fsverity_get_digest
+  ovl: Break out ovl_entry_path_real() from ovl_i_path_real()
+  ovl: Break out ovl_entry_path_lowerdata() from ovl_path_lowerdata()
+  ovl: Add framework for verity support
+  ovl: Validate verity xattr when resolving lowerdata
+  ovl: Handle verity during copy-up
+
+ Documentation/filesystems/overlayfs.rst |  33 +++++
+ fs/overlayfs/Kconfig                    |  14 ++
+ fs/overlayfs/copy_up.c                  |  27 ++++
+ fs/overlayfs/namei.c                    |  34 +++++
+ fs/overlayfs/overlayfs.h                |  11 ++
+ fs/overlayfs/ovl_entry.h                |   4 +
+ fs/overlayfs/super.c                    |  49 +++++++
+ fs/overlayfs/util.c                     | 167 ++++++++++++++++++++++--
+ fs/verity/measure.c                     |   1 +
+ 9 files changed, 332 insertions(+), 8 deletions(-)
+
 -- 
 2.39.2
 
