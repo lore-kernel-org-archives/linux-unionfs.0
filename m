@@ -2,137 +2,349 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D5DEC77B7E
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 10:46:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3997EC77B72
+	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 12:06:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235029AbjDTKqG (ORCPT
+        id S234038AbjDTMGu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 20 Apr 2023 06:46:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56686 "EHLO
+        Thu, 20 Apr 2023 08:06:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233846AbjDTKpi (ORCPT
+        with ESMTP id S233814AbjDTMGt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Apr 2023 06:45:38 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92B525FE9;
-        Thu, 20 Apr 2023 03:44:52 -0700 (PDT)
-Received: from pps.filterd (m0353728.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 33K9OBMs020332;
-        Thu, 20 Apr 2023 10:44:07 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=JiP4gaodXYE5HqdkzObSDp1lyfjXWhoq3PMYmdlsmkI=;
- b=UBmdFr4z5vi+OCGrGzJRjVwynCNjsEGshJFbizog0JX6dFd5v2HW268zR2hdJBQPzpvp
- ufTkv58EVnf+uOpHegmGYYQAzjMsGBkagych/iPTha7NP0hhb74J7KA0qGxfesXj5QkJ
- 4TRMC0gfKBJHThcQ9Tx010WFKYjiaHeoBG4ObjtTDh+iPEDJ6Jw/ft1L7rtE37UoXnQc
- bAdTfvZ0ys4BPwWfpevCR+Qv2n5/AKgyVg9651yvrobAyWQzOr3eu+TPpVFeLVCau3xZ
- 3jC5J/CXudsZ6QttEToqLklqNaf7/kMVX+V/rg6Aa7LWC54aCx8RpSXaSSOscsWZZfGu 1A== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3q32qvtpwk-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 20 Apr 2023 10:44:07 +0000
-Received: from m0353728.ppops.net (m0353728.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 33KAW1vP031769;
-        Thu, 20 Apr 2023 10:44:06 GMT
-Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3q32qvtpve-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 20 Apr 2023 10:44:06 +0000
-Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
-        by ppma03wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 33K97YPM010080;
-        Thu, 20 Apr 2023 10:44:04 GMT
-Received: from smtprelay01.wdc07v.mail.ibm.com ([9.208.129.119])
-        by ppma03wdc.us.ibm.com (PPS) with ESMTPS id 3pykj7krdf-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 20 Apr 2023 10:44:04 +0000
-Received: from smtpav04.wdc07v.mail.ibm.com (smtpav04.wdc07v.mail.ibm.com [10.39.53.231])
-        by smtprelay01.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 33KAi3SO12452206
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 20 Apr 2023 10:44:03 GMT
-Received: from smtpav04.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 25B0158045;
-        Thu, 20 Apr 2023 10:44:03 +0000 (GMT)
-Received: from smtpav04.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id DC4F958052;
-        Thu, 20 Apr 2023 10:44:00 +0000 (GMT)
-Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com (unknown [9.163.16.65])
-        by smtpav04.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-        Thu, 20 Apr 2023 10:44:00 +0000 (GMT)
-Message-ID: <97849695ef53ab3186e59d8a2c6b74812f13ee19.camel@linux.ibm.com>
-Subject: Re: [PATCH] Smack modifications for: security: Allow all LSMs to
- provide xattrs for inode_init_security hook
-From:   Mimi Zohar <zohar@linux.ibm.com>
-To:     Roberto Sassu <roberto.sassu@huaweicloud.com>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        dmitry.kasatkin@gmail.com, paul@paul-moore.com, jmorris@namei.org,
-        serge@hallyn.com, stephen.smalley.work@gmail.com,
-        eparis@parisplace.org
-Cc:     reiserfs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-integrity@vger.kernel.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
-        bpf@vger.kernel.org, kpsingh@kernel.org, keescook@chromium.org,
-        nicolas.bouchinet@clip-os.org,
-        Roberto Sassu <roberto.sassu@huawei.com>,
-        Mengchi Cheng <mengcc@amazon.com>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, kamatam@amazon.com,
-        yoonjaeh@amazon.com
-Date:   Thu, 20 Apr 2023 06:44:00 -0400
-In-Reply-To: <a98ddf946c474a3500bdcd72766c6cb0043278ff.camel@huaweicloud.com>
-References: <c7f38789-fe47-8289-e73a-4d07fbaf791d@schaufler-ca.com>
-         <20230411172337.340518-1-roberto.sassu@huaweicloud.com>
-         <2dc6486f-ce9b-f171-14fe-48a90386e1b7@schaufler-ca.com>
-         <8e7705972a0f306922d8bc4893cf940e319abb19.camel@huaweicloud.com>
-         <72b46d0f-75c7-ac18-4984-2bf1d6dad352@schaufler-ca.com>
-         <82ee6ddf66bb34470aa7b591df4d70783fdb2422.camel@huaweicloud.com>
-         <91f05dc4-a4b7-b40a-ba1a-0ccc489c84b2@schaufler-ca.com>
-         <5c50d98f1e5745c88270ae4ad3de6d9a803db4c6.camel@huaweicloud.com>
-         <48c6073f-59b0-f5d1-532e-fe4b912b939d@schaufler-ca.com>
-         <0fccab67e496f10f4ee7bf2220e70a655013935f.camel@huaweicloud.com>
-         <c16dd895-f488-241d-0be8-e56e5f0c1adb@schaufler-ca.com>
-         <a98ddf946c474a3500bdcd72766c6cb0043278ff.camel@huaweicloud.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-X-Mailer: Evolution 3.28.5 (3.28.5-18.el8) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: YMT3HG0ZS9vIkqH-n2uqmA3l0ZvnTJcF
-X-Proofpoint-ORIG-GUID: HmNKNdJGFNLBRcpC25uuB5H0hmVx9xdl
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-04-20_06,2023-04-20_01,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 mlxlogscore=860
- clxscore=1011 bulkscore=0 impostorscore=0 adultscore=0 suspectscore=0
- priorityscore=1501 malwarescore=0 mlxscore=0 phishscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2303200000 definitions=main-2304200085
+        Thu, 20 Apr 2023 08:06:49 -0400
+Received: from mail-ua1-x929.google.com (mail-ua1-x929.google.com [IPv6:2607:f8b0:4864:20::929])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57C3530DF
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 05:06:48 -0700 (PDT)
+Received: by mail-ua1-x929.google.com with SMTP id q10so2031630uas.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 05:06:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1681992407; x=1684584407;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=kh0Tza5X/hVCjLbJmuCvil/DeiezWINbTbkRvetbgJo=;
+        b=eHbzaiAm7IDaoBrb1GnXIzGtlUgtJojdgwrEi43gEpCovyXDYKsUo0Bm9KQQk7wXu4
+         BtLyI8ILuVsSnlaXojRUq9XG/3H7OGpkFdUz0YGmgyUBhArA8499688Kfpb5i+7BED6o
+         FMx+DLzT4X93jGE/ATHd+ndu0VM9tNYM94Q9G3cwye+NlLuxA6JXP95zb9uBwjWGfh42
+         YI9oXUwzuCpL62k3vFdz/IZsYfpBIQBc/867lOrlKGbMg3K4gghgs7hPf+BsE59Rsik/
+         x/OdCgROXFcJHB3bYP5D6y2OEEBeP2WOWRaw8LUbyk8ZtMaAaBj8hHeH5xk/YYk2hKWA
+         fBlA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1681992407; x=1684584407;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=kh0Tza5X/hVCjLbJmuCvil/DeiezWINbTbkRvetbgJo=;
+        b=YJM8C/ODoa/z9wMCEHY7lqme9z5mkL89u9lKMVKxCoOavESiq/F6hBdossB6HTrxbL
+         pTtp7hu9Y/OoabGDKCAd/kU6GgJgifuIRoyEHgEowfNpjaokKRja8iN3NCqQZ4/pCz5+
+         2H4//q3Lmneci1cOvq6lwv3hdb9oe7h0RSUtXD3/Zau6uFQZ8Gm05uj6sO3f+7w4RWEr
+         WYTO2LwbFC3aCi2yQO0Q2f2cye/SlEl9HjbsDD8chekkmvCv/+VeiZfuuXizcHB1i/3D
+         ZFGj1o2eEIgex1GOU/F9mEqlhbD/evsl2MC4mneV1YGVp0AXTnveILKqUJWwfqsK/xUv
+         1Zxw==
+X-Gm-Message-State: AAQBX9dkVlEJMNZXa+BG8GLG2qKuWkyGLtMiA4zeU17YNh7yszxylWCQ
+        FWZzri4G23/u/GcY5sIT+IcP26WZQmyOEC9yXyQ=
+X-Google-Smtp-Source: AKy350aXH+zQ5TbHFj3ceJDIuZoxq9tPjYEx0lgX0Ip2DTpLgYdxXjPhjD+UywBm+4iLQD9Q2pjA9T7aX1MwOrnTpqg=
+X-Received: by 2002:a1f:a994:0:b0:446:c76f:a7e5 with SMTP id
+ s142-20020a1fa994000000b00446c76fa7e5mr842790vke.0.1681992407337; Thu, 20 Apr
+ 2023 05:06:47 -0700 (PDT)
+MIME-Version: 1.0
+References: <cover.1681917551.git.alexl@redhat.com> <df41e9dc96ddad9f9e1e684e39c28f4e097e9d9b.1681917551.git.alexl@redhat.com>
+In-Reply-To: <df41e9dc96ddad9f9e1e684e39c28f4e097e9d9b.1681917551.git.alexl@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 20 Apr 2023 15:06:35 +0300
+Message-ID: <CAOQ4uxgdX-bphreqvO9UZXHa5vdP_weyK0aqAgSY-BuhwU1ZJA@mail.gmail.com>
+Subject: Re: [PATCH 5/6] ovl: Validate verity xattr when resolving lowerdata
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2023-04-20 at 10:50 +0200, Roberto Sassu wrote:
-> > 
-> > It's possible. It's been a long time since I've looked at this.
-> > I'm tempted to take a change to make overlayfs work upstream and
-> > then worry about the ima changes. There seems to be a lot more
-> > going on with the ima changes than is obvious from what's in the
-> > Smack code.
+ovl_maybe_lookup_lowerdata
 
-It doesn't sound like the patch set introduces the overlayfs bug.
+On Thu, Apr 20, 2023 at 10:44=E2=80=AFAM Alexander Larsson <alexl@redhat.co=
+m> wrote:
+>
+> When resolving lowerdata (lazily or non-lazily) we chech the
+> overlay.verity xattr on the metadata inode, and if set verify that the
+> source lowerdata inode matches it (according to the verity options
+> enabled).
+>
+> Signed-off-by: Alexander Larsson <alexl@redhat.com>
+> ---
+>  fs/overlayfs/namei.c     | 34 ++++++++++++++
+>  fs/overlayfs/overlayfs.h |  6 +++
+>  fs/overlayfs/util.c      | 97 ++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 137 insertions(+)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index ba2b156162ca..49f3715c582d 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -892,6 +892,7 @@ static int ovl_fix_origin(struct ovl_fs *ofs, struct =
+dentry *dentry,
+>  /* Lazy lookup of lowerdata */
+>  int ovl_maybe_lookup_lowerdata(struct dentry *dentry)
+>  {
+> +       struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
+>         struct inode *inode =3D d_inode(dentry);
+>         const char *redirect =3D ovl_lowerdata_redirect(inode);
+>         struct ovl_path datapath =3D {};
+> @@ -919,6 +920,21 @@ int ovl_maybe_lookup_lowerdata(struct dentry *dentry=
+)
+>         if (err)
+>                 goto out_err;
+>
+> +       if (ofs->config.verity_validate) {
+> +               struct path data =3D { .mnt =3D datapath.layer->mnt, .den=
+try =3D datapath.dentry, };
+> +               struct path metapath =3D {};
+> +
+> +               ovl_path_real(dentry, &metapath);
+> +               if (!metapath.dentry) {
+> +                       err =3D -EIO;
+> +                       goto out_err;
+> +               }
+> +
+> +               err =3D ovl_validate_verity(ofs, &metapath, &data);
+> +               if (err)
+> +                       goto out_err;
+> +       }
+> +
+>         err =3D ovl_dentry_set_lowerdata(dentry, &datapath);
+>         if (err)
+>                 goto out_err;
+> @@ -1186,6 +1202,24 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>         if (err)
+>                 goto out_put;
+>
+> +       /* Validate verity of lower-data */
+> +       if (ofs->config.verity_validate &&
+> +           !d.is_dir && (uppermetacopy || ctr > 1)) {
+> +               struct path datapath;
+> +
+> +               ovl_entry_path_lowerdata(&oe, &datapath);
+> +
+> +               /* Is NULL for lazy lookup, will be verified later */
+> +               if (datapath.dentry) {
+> +                       struct path metapath;
+> +
+> +                       ovl_entry_path_real(ofs, &oe, upperdentry, &metap=
+ath);
+> +                       err =3D ovl_validate_verity(ofs, &metapath, &data=
+path);
+> +                       if (err < 0)
+> +                               goto out_free_oe;
+> +               }
+> +       }
+> +
+>         if (upperopaque)
+>                 ovl_dentry_set_opaque(dentry);
+>
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index 3d14770dc711..b1d639ccd5ac 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -38,6 +38,7 @@ enum ovl_xattr {
+>         OVL_XATTR_UPPER,
+>         OVL_XATTR_METACOPY,
+>         OVL_XATTR_PROTATTR,
+> +       OVL_XATTR_VERITY,
+>  };
+>
+>  enum ovl_inode_flag {
+> @@ -467,6 +468,11 @@ int ovl_lock_rename_workdir(struct dentry *workdir, =
+struct dentry *upperdir);
+>  int ovl_check_metacopy_xattr(struct ovl_fs *ofs, const struct path *path=
+);
+>  bool ovl_is_metacopy_dentry(struct dentry *dentry);
+>  char *ovl_get_redirect_xattr(struct ovl_fs *ofs, const struct path *path=
+, int padding);
+> +int ovl_get_verity_xattr(struct ovl_fs *ofs, const struct path *path,
+> +                        u8 *digest_buf, int *buf_length);
+> +int ovl_validate_verity(struct ovl_fs *ofs,
+> +                       struct path *metapath,
+> +                       struct path *datapath);
+>  int ovl_sync_status(struct ovl_fs *ofs);
+>
+>  static inline void ovl_set_flag(unsigned long flag, struct inode *inode)
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 17eff3e31239..55e90aa0978a 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -10,7 +10,9 @@
+>  #include <linux/cred.h>
+>  #include <linux/xattr.h>
+>  #include <linux/exportfs.h>
+> +#include <linux/file.h>
+>  #include <linux/fileattr.h>
+> +#include <linux/fsverity.h>
+>  #include <linux/uuid.h>
+>  #include <linux/namei.h>
+>  #include <linux/ratelimit.h>
+> @@ -742,6 +744,7 @@ bool ovl_path_check_dir_xattr(struct ovl_fs *ofs, con=
+st struct path *path,
+>  #define OVL_XATTR_UPPER_POSTFIX                "upper"
+>  #define OVL_XATTR_METACOPY_POSTFIX     "metacopy"
+>  #define OVL_XATTR_PROTATTR_POSTFIX     "protattr"
+> +#define OVL_XATTR_VERITY_POSTFIX       "verity"
+>
+>  #define OVL_XATTR_TAB_ENTRY(x) \
+>         [x] =3D { [false] =3D OVL_XATTR_TRUSTED_PREFIX x ## _POSTFIX, \
+> @@ -756,6 +759,7 @@ const char *const ovl_xattr_table[][2] =3D {
+>         OVL_XATTR_TAB_ENTRY(OVL_XATTR_UPPER),
+>         OVL_XATTR_TAB_ENTRY(OVL_XATTR_METACOPY),
+>         OVL_XATTR_TAB_ENTRY(OVL_XATTR_PROTATTR),
+> +       OVL_XATTR_TAB_ENTRY(OVL_XATTR_VERITY),
+>  };
+>
+>  int ovl_check_setxattr(struct ovl_fs *ofs, struct dentry *upperdentry,
+> @@ -1188,6 +1192,99 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, c=
+onst struct path *path, int pa
+>         return ERR_PTR(res);
+>  }
+>
+> +int ovl_get_verity_xattr(struct ovl_fs *ofs, const struct path *path,
+> +                        u8 *digest_buf, int *buf_length)
+> +{
+> +       int res;
+> +
+> +       res =3D ovl_path_getxattr(ofs, path, OVL_XATTR_VERITY, digest_buf=
+, *buf_length);
+> +       if (res =3D=3D -ENODATA || res =3D=3D -EOPNOTSUPP)
+> +               return -ENODATA;
+> +       if (res < 0) {
+> +               pr_warn_ratelimited("failed to get digest (%i)\n", res);
+> +               return res;
+> +       }
+> +
+> +       *buf_length =3D res;
+> +       return 0;
+> +}
+> +
+> +static int ovl_ensure_verity_loaded(struct ovl_fs *ofs,
+> +                                   struct path *datapath)
+> +{
+> +       struct inode *inode =3D d_inode(datapath->dentry);
+> +       const struct fsverity_info *vi;
+> +       const struct cred *old_cred;
+> +       struct file *filp;
+> +
+> +       vi =3D fsverity_get_info(inode);
+> +       if (vi =3D=3D NULL && IS_VERITY(inode)) {
+> +               /*
+> +                * If this inode was not yet opened, the verity info hasn=
+'t been
+> +                * loaded yet, so we need to do that here to force it int=
+o memory.
+> +                */
+> +               old_cred =3D override_creds(ofs->creator_cred);
 
-The security_inode_init_security() change to initialize multiple LSMs
-and IMA xattrs and include them in the EVM hmac calculation is straight
-forward.
+Even though it may work, that's the wrong place for override_creds(),
+because you are calling this helper from within ovl_lookup() with
+mounter creds already.
 
-In addition, the patch set creates the infrastructure for allowing
-multiple per LSM xattrs, as requested, to be initialized in
-security_inode_init_security() and included in the EVM hmac.
+Better to move revert_creds() in ovl_maybe_lookup_lowerdata()
+to out_revert_creds: goto label and call ovl_validate_verity() with
+mounter creds from all call sites.
 
-Mimi
+> +               filp =3D dentry_open(datapath, O_RDONLY, current_cred());
 
-> We could also set only SMACK64 in smack_inode_init_security(), and move
-> SMACKTRANSMUTE64 later, when we figure out how to fix the case of
-> overlayfs.
-> 
-> IMA and EVM would work in both cases.
+You could use open_with_fake_path() here to avoid ENFILE
+not sure if this is critical.
 
+> +               revert_creds(old_cred);
+> +               if (IS_ERR(filp))
+> +                       return PTR_ERR(filp);
+> +               fput(filp);
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +int ovl_validate_verity(struct ovl_fs *ofs,
+> +                       struct path *metapath,
+> +                       struct path *datapath)
+> +{
+> +       u8 required_digest[FS_VERITY_MAX_DIGEST_SIZE];
+> +       u8 actual_digest[FS_VERITY_MAX_DIGEST_SIZE];
+> +       enum hash_algo verity_algo;
+> +       int digest_len;
+> +       int err;
+> +
+> +       if (!ofs->config.verity_validate ||
+> +           /* Verity only works on regular files */
+> +           !S_ISREG(d_inode(metapath->dentry)->i_mode))
+> +               return 0;
+> +
+> +       digest_len =3D sizeof(required_digest);
+> +       err =3D ovl_get_verity_xattr(ofs, metapath, required_digest, &dig=
+est_len);
+> +       if (err =3D=3D -ENODATA) {
+> +               if (ofs->config.verity_require) {
+> +                       pr_warn_ratelimited("metacopy file '%pd' has no o=
+verlay.verity xattr\n",
+> +                                           metapath->dentry);
+> +                       return -EIO;
+> +               }
+> +               return 0;
+> +       }
+
+Thinking out loud: feels to me that verity xattr is a property that is
+always "coupled" with metacopy xattr.
+
+I wonder if we should check and store them together during lookup.
+
+On one hand that means using a bit more memory per inode
+before we need it.
+
+OTOH, getxattr on metapath during lazy lookup may incur extra
+IO to the metapath inode xattr block that will have been amortized
+if done during lookup.
+
+I have no strong feelings one way or the other.
+
+Thanks,
+Amir.
+
+> +       if (err < 0)
+> +               return err;
+> +
+> +       err =3D ovl_ensure_verity_loaded(ofs, datapath);
+> +       if (err < 0) {
+> +               pr_warn_ratelimited("lower file '%pd' failed to load fs-v=
+erity info\n",
+> +                                   datapath->dentry);
+> +               return -EIO;
+> +       }
+> +
+> +       err =3D fsverity_get_digest(d_inode(datapath->dentry), actual_dig=
+est, &verity_algo);
+> +       if (err < 0) {
+> +               pr_warn_ratelimited("lower file '%pd' has no fs-verity di=
+gest\n", datapath->dentry);
+> +               return -EIO;
+> +       }
+> +
+> +       if (digest_len !=3D hash_digest_size[verity_algo] ||
+> +           memcmp(required_digest, actual_digest, digest_len) !=3D 0) {
+> +               pr_warn_ratelimited("lower file '%pd' has the wrong fs-ve=
+rity digest\n",
+> +                                   datapath->dentry);
+> +               return -EIO;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  /*
+>   * ovl_sync_status() - Check fs sync status for volatile mounts
+>   *
+> --
+> 2.39.2
+>
