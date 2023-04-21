@@ -2,131 +2,158 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21EF5C77B73
-	for <linux-unionfs@archiver.kernel.org>; Thu, 20 Apr 2023 14:11:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F466C77B73
+	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Apr 2023 01:41:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231909AbjDTOLb (ORCPT
+        id S233118AbjDUBlw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 20 Apr 2023 10:11:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37606 "EHLO
+        Thu, 20 Apr 2023 21:41:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229769AbjDTOLa (ORCPT
+        with ESMTP id S232981AbjDUBlv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 20 Apr 2023 10:11:30 -0400
-Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F83A212D;
-        Thu, 20 Apr 2023 07:11:28 -0700 (PDT)
-Received: from mail02.huawei.com (unknown [172.18.147.227])
-        by frasgout11.his.huawei.com (SkyGuard) with ESMTP id 4Q2K8c0mhtz9v7fx;
-        Thu, 20 Apr 2023 22:01:52 +0800 (CST)
-Received: from roberto-ThinkStation-P620 (unknown [10.204.63.22])
-        by APP2 (Coremail) with SMTP id GxC2BwB3JDvmR0Fk1Yo8Ag--.1954S2;
-        Thu, 20 Apr 2023 15:10:59 +0100 (CET)
-Message-ID: <5a9ba6618b37a592cda13ce36ea35cf78c98122b.camel@huaweicloud.com>
-Subject: Re: [PATCH] Smack modifications for: security: Allow all LSMs to
- provide xattrs for inode_init_security hook
-From:   Roberto Sassu <roberto.sassu@huaweicloud.com>
-To:     Mimi Zohar <zohar@linux.ibm.com>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        dmitry.kasatkin@gmail.com, paul@paul-moore.com, jmorris@namei.org,
-        serge@hallyn.com, stephen.smalley.work@gmail.com,
-        eparis@parisplace.org
-Cc:     reiserfs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-integrity@vger.kernel.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
-        bpf@vger.kernel.org, kpsingh@kernel.org, keescook@chromium.org,
-        nicolas.bouchinet@clip-os.org,
-        Roberto Sassu <roberto.sassu@huawei.com>,
-        Mengchi Cheng <mengcc@amazon.com>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, kamatam@amazon.com,
-        yoonjaeh@amazon.com
-Date:   Thu, 20 Apr 2023 16:10:42 +0200
-In-Reply-To: <97849695ef53ab3186e59d8a2c6b74812f13ee19.camel@linux.ibm.com>
-References: <c7f38789-fe47-8289-e73a-4d07fbaf791d@schaufler-ca.com>
-         <20230411172337.340518-1-roberto.sassu@huaweicloud.com>
-         <2dc6486f-ce9b-f171-14fe-48a90386e1b7@schaufler-ca.com>
-         <8e7705972a0f306922d8bc4893cf940e319abb19.camel@huaweicloud.com>
-         <72b46d0f-75c7-ac18-4984-2bf1d6dad352@schaufler-ca.com>
-         <82ee6ddf66bb34470aa7b591df4d70783fdb2422.camel@huaweicloud.com>
-         <91f05dc4-a4b7-b40a-ba1a-0ccc489c84b2@schaufler-ca.com>
-         <5c50d98f1e5745c88270ae4ad3de6d9a803db4c6.camel@huaweicloud.com>
-         <48c6073f-59b0-f5d1-532e-fe4b912b939d@schaufler-ca.com>
-         <0fccab67e496f10f4ee7bf2220e70a655013935f.camel@huaweicloud.com>
-         <c16dd895-f488-241d-0be8-e56e5f0c1adb@schaufler-ca.com>
-         <a98ddf946c474a3500bdcd72766c6cb0043278ff.camel@huaweicloud.com>
-         <97849695ef53ab3186e59d8a2c6b74812f13ee19.camel@linux.ibm.com>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.36.5-0ubuntu1 
+        Thu, 20 Apr 2023 21:41:51 -0400
+Received: from mail-pl1-x630.google.com (mail-pl1-x630.google.com [IPv6:2607:f8b0:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43F943C34
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 18:41:49 -0700 (PDT)
+Received: by mail-pl1-x630.google.com with SMTP id d9443c01a7336-1a686260adcso19203705ad.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 20 Apr 2023 18:41:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20221208; t=1682041309; x=1684633309;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=XBqsOzJXMqZz87HaUvjwXwIt5Yf5VZ43MrT/J+SNaHA=;
+        b=L9HGPktkFIv3hj//jIig628lTCOym6WdYsLabkRjz4vPNx/Pba6pe3Q3eptiQcuDRG
+         9E3m4rjFWCaFpRFsu7mO4NR0BqbEtxG3nw41ZssaXYUg+CHOaJSdWhrFsF1uJh5tI0Dq
+         16BnQZWO81aN+tvtJRQavuy3kts6YA4HOIscrhU70Uq5A5MduYEansXTUBxhAQMhdriO
+         J9UuGnB6GT5yZQkkcVCW/It5f1cvyTPfZg7KyD73MuSwwNtBVK1jj9sAd/22lKVC/R6u
+         BPPYC8mk3fYKBtmg5MNSqHtewWe51R7CGJ4F5aY/XhtJnSFFSCoD+uET0bJJuPE76+bc
+         unJA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682041309; x=1684633309;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=XBqsOzJXMqZz87HaUvjwXwIt5Yf5VZ43MrT/J+SNaHA=;
+        b=e8SXkkUrn22FCbh5mmjkRmBDkMzssesKl2YfenqtM30A6Fs1vNMdeXswCNFKT4yaIA
+         yVhZs1LNy9O+o1+MmKgiDx3CXoFWCt5AWJbbz+mGCP8tPD1bLYoKi2+GHeHAcHSWNGz7
+         3VRKyQ0H7hZ0oQwvmvLP8iUBvLHdUISHtkmzgmqEdFzu498ZRKVqyawJshCvMEVHyWQA
+         4RxDIJFmhmCIesm5fJLFXPpz4BV4KhBOB7jysQerrKbk3pcoffwHakuONOR8wQuGFXRQ
+         YGsooXsApjqwhdA276aMEAqdoSKUDrf9E6uER0C7sEFtai8z3vcQdidxKuZdgvHWCsLB
+         D9gA==
+X-Gm-Message-State: AAQBX9fLosy2rk09ePw9glX4D8gITW58O8+rbMeiXny7SxfLzaRsDj2p
+        OI+gT8kDRpZXy/Dvk3HKc/VhUhAMja2P2KrQCI26Jw==
+X-Google-Smtp-Source: AKy350YBmPf4UT7+Sv9FBtNv6x75XVeri6923gVAwbzyY1sqQ4aSiLgDLLBLvliUBPKzFSGfTV0H8S0pdRx2oeUV3X0=
+X-Received: by 2002:a17:902:e84c:b0:1a0:450d:a481 with SMTP id
+ t12-20020a170902e84c00b001a0450da481mr4112675plg.35.1682041308506; Thu, 20
+ Apr 2023 18:41:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-CM-TRANSID: GxC2BwB3JDvmR0Fk1Yo8Ag--.1954S2
-X-Coremail-Antispam: 1UD129KBjvJXoW7WFy5WrW3Zr1kur17GFW3ZFb_yoW8ZFW5pF
-        WIgayUKrs5tFWxGrZ2yr47Xa1I9rWrCF43JryYk34kAFn8Cr1ftFyFqw4Uuay8GrsYvr1Y
-        vFWUZ398Zr1DXaDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDU0xBIdaVrnRJUUUkYb4IE77IF4wAFF20E14v26ryj6rWUM7CY07I20VC2zVCF04k2
-        6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-        vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
-        xVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIEc7CjxV
-        AFwI0_Gr1j6F4UJwAS0I0E0xvYzxvE52x082IY62kv0487Mc02F40EFcxC0VAKzVAqx4xG
-        6I80ewAv7VC0I7IYx2IY67AKxVWUJVWUGwAv7VC2z280aVAFwI0_Jr0_Gr1lOx8S6xCaFV
-        Cjc4AY6r1j6r4UM4x0Y48IcVAKI48JM4IIrI8v6xkF7I0E8cxan2IY04v7MxAIw28IcxkI
-        7VAKI48JMxC20s026xCaFVCjc4AY6r1j6r4UMI8I3I0E5I8CrVAFwI0_Jr0_Jr4lx2IqxV
-        Cjr7xvwVAFwI0_JrI_JrWlx4CE17CEb7AF67AKxVW8ZVWrXwCIc40Y0x0EwIxGrwCI42IY
-        6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6x
-        AIw20EY4v20xvaj40_Wr1j6rW3Jr1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280
-        aVCY1x0267AKxVW8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU13rcDUUUUU==
-X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAQANBF1jj4xFswAAsD
-X-CFilter-Loop: Reflected
+References: <20230418014037.2412394-1-drosen@google.com> <CAOQ4uxhpFrRVcviQ6bK1ZMtZDSMXRFuqY-d_+uQ1C0YMDtQpLA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhpFrRVcviQ6bK1ZMtZDSMXRFuqY-d_+uQ1C0YMDtQpLA@mail.gmail.com>
+From:   Daniel Rosenberg <drosen@google.com>
+Date:   Thu, 20 Apr 2023 18:41:37 -0700
+Message-ID: <CA+PiJmT1wCoGnqtVSfcM-0qKm=Vu-jPf=7Op90vcGo3A7kYr0g@mail.gmail.com>
+Subject: Re: [RFC PATCH bpf-next v3 00/37] FUSE BPF: A Stacked Filesystem
+ Extension for FUSE
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Joanne Koong <joannelkoong@gmail.com>,
+        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2023-04-20 at 06:44 -0400, Mimi Zohar wrote:
-> On Thu, 2023-04-20 at 10:50 +0200, Roberto Sassu wrote:
-> > > It's possible. It's been a long time since I've looked at this.
-> > > I'm tempted to take a change to make overlayfs work upstream and
-> > > then worry about the ima changes. There seems to be a lot more
-> > > going on with the ima changes than is obvious from what's in the
-> > > Smack code.
-> 
-> It doesn't sound like the patch set introduces the overlayfs bug.
+On Mon, Apr 17, 2023 at 10:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
+> wrote:
+>
+>
+> Which brings me to my biggest concern.
+> I still do not see how these patches replace Allesio's
+> FUSE_DEV_IOC_PASSTHROUGH_OPEN patches.
+>
+> Is the idea here that ioctl needs to be done at FUSE_LOOKUP
+> instead or in addition to the ioctl on FUSE_OPEN to setup the
+> read/write passthrough on the backing file?
+>
 
-Correct.
+In these patches, the fuse daemon responds to the lookup request via
+an ioctl, essentially in the same way it would have to the /dev/fuse
+node. It just flags the write as coming from an ioctl and calls
+fuse_dev_do_write. An additional block in the lookup response gives
+the backing file and what bpf_ops to use. The main difference is that
+fuse-bpf uses backing inodes, while passthrough uses a file.
+Fuse-bpf's read/write support currently isn't complete, but it does
+allow for direct passthrough. You could set ops to default to
+userspace in every case that Allesio's passthrough code does and it
+should have about the same effect. With the struct_op change, I did
+notice that doing something like that is more annoying, and am
+planning to add a default op which only takes the meta info and runs
+if the opcode specific op is not present.
 
-The first problem of overlayfs is that smack_dentry_create_files_as()
-override the credentials in a way that transmuting is not detected
-correctly anymore in smack_inode_init_security(). The process label is
-already overwritten with the directory label, at the time smack_inode_i
-nit_security() calls smk_access_entry(), so the latter will not find
-the transmuting rule that refers to the original process label.
 
-The second problem is that overlayfs temporarily creates the new
-directory in the working directory, that does not necessarily have the
-same label of the parent directory the new file/directory will be added
-to, causing the transmuting to be computed incorrectly.
+> I am missing things like the FILESYSTEM_MAX_STACK_DEPTH check that
+> was added as a result of review on Allesio's patches.
+>
 
-> The security_inode_init_security() change to initialize multiple LSMs
-> and IMA xattrs and include them in the EVM hmac calculation is straight
-> forward.
-> 
-> In addition, the patch set creates the infrastructure for allowing
-> multiple per LSM xattrs, as requested, to be initialized in
-> security_inode_init_security() and included in the EVM hmac.
-> 
-> Mimi
-> 
-> > We could also set only SMACK64 in smack_inode_init_security(), and move
-> > SMACKTRANSMUTE64 later, when we figure out how to fix the case of
-> > overlayfs.
-> > 
-> > IMA and EVM would work in both cases.
+I'd definitely want to fix any issues that were fixed there. There's a
+lot of common code between fuse-bpf and fuse passthrough, so many of
+the suggestions there will apply here.
 
-Thanks to Mimi, I realized that adding SMACKTRANSMUTE64 in
-smack_inode_init_security() is actually necessary.
-Calling __vfs_getxattr() in smack_d_instantiate() causes the xattr to
-be added without EVM updating the HMAC (thus, making the HMAC invalid).
+> The reason I am concerned about this is that we are using the
+> FUSE_DEV_IOC_PASSTHROUGH_OPEN patches and I would like
+> to upstream their functionality sooner rather than later.
+> These patches have already been running in production for a while
+> I believe that they are running in Android as well and there is value
+> in upsteaming well tested patches.
+>
+> The API does not need to stay FUSE_DEV_IOC_PASSTHROUGH_OPEN
+> it should be an API that is extendable to FUSE-BPF, but it would be
+> useful if the read/write passthrough could be the goal for first merge.
+>
+> Does any of this make sense to you?
+> Can you draw a roadmap for merging FUSE-BPF that starts with
+> a first (hopefully short term) phase that adds the read/write passthrough
+> functionality?
+>
+> I can help with review and testing of that part if needed.
+> I was planning to discuss this with you on LSFMM anyway,
+> but better start the discussion beforehand.
+>
+> Thanks,
+> Amir.
 
-Thanks
+We've been using an earlier version of fuse-bpf on Android, closer to
+the V1 patches. They fit our current needs but don't cover everything
+we intend to. The V3 patches switch to a new style of bpf program,
+which I'm hoping to get some feedback on before I spend too much time
+fixing up the details. The backing calls themselves can be reviewed
+separately from that though.
 
-Roberto
-
+Without bpf, we're essentially enabling complete passthrough at a
+directory or file. By default, once you set a backing file fuse-bpf
+calls by the backing filesystem by default, with no additional
+userspace interaction apart from if an installed bpf program says
+otherwise. If we had some commands without others, we'd have behavior
+changes as we introduce support for additional calls. We'd need a way
+to set default behavior. Perhaps something like a u64 flag field
+extension in FUSE_INIT for indicating which opcodes support backing,
+and a response for what those should default to doing. If there's a
+bpf_op present for a given opcode, it would be able to override that
+default. If we had something like that, we'd be able to add support
+for a subset of opcodes in a sensible way.
