@@ -2,223 +2,189 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43F58C77B76
-	for <linux-unionfs@archiver.kernel.org>; Fri, 21 Apr 2023 15:38:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9927EC6FD18
+	for <linux-unionfs@archiver.kernel.org>; Sun, 23 Apr 2023 14:51:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232577AbjDUPiD (ORCPT
+        id S230456AbjDWOvY (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 21 Apr 2023 11:38:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35498 "EHLO
+        Sun, 23 Apr 2023 10:51:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57978 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231910AbjDUPiC (ORCPT
+        with ESMTP id S230507AbjDWOvM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 21 Apr 2023 11:38:02 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A451125AE;
-        Fri, 21 Apr 2023 08:38:00 -0700 (PDT)
-Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 33LEgShG006511;
-        Fri, 21 Apr 2023 14:44:14 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=2Ju8pqGa2m0Pa7C+ibK08Mb+2OAt+YEF09z+pzB+moc=;
- b=N26po9zJepipAXftwZ9Ksf2SAFtmayQlXTl4fN4SKUX8PCEzpZJ8nOU26gJ9UdfAOREV
- pGfQpxXppJGcNAEVT//KcDRVXW5e8GuFIf5HDKmtTb11TzYqtW5aeZva67LS/S3CVZhJ
- RMwHhbQFsB+3ZI6CIkc32HEo89tIhB4XPrYeu1JvAG50ngkjRjgz4deL958l9Q/xj0ps
- 9DEwoj3R/y3+6qCE60Dwwkr2CyARU3i/b/FNUfl1hKwxUD32WuJIeyQeR8uHE9eaEsVX
- JR1vzIkNq2o/pIz9/eWGIKiPNQB4InEQQ/MlO8IF9goqNIQIWmACzozTgDtZ4lALjnsv sw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3q3v2v94t7-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 21 Apr 2023 14:44:11 +0000
-Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 33LEh5EA009609;
-        Fri, 21 Apr 2023 14:44:03 GMT
-Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3q3v2v93x4-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 21 Apr 2023 14:44:03 +0000
-Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
-        by ppma01wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 33LCikYB027070;
-        Fri, 21 Apr 2023 14:43:50 GMT
-Received: from smtprelay05.dal12v.mail.ibm.com ([9.208.130.101])
-        by ppma01wdc.us.ibm.com (PPS) with ESMTPS id 3pykj79wwc-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 21 Apr 2023 14:43:50 +0000
-Received: from smtpav03.wdc07v.mail.ibm.com (smtpav03.wdc07v.mail.ibm.com [10.39.53.230])
-        by smtprelay05.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 33LEhn109110270
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 21 Apr 2023 14:43:49 GMT
-Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 3C7705805C;
-        Fri, 21 Apr 2023 14:43:49 +0000 (GMT)
-Received: from smtpav03.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D66835805F;
-        Fri, 21 Apr 2023 14:43:47 +0000 (GMT)
-Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com (unknown [9.163.8.185])
-        by smtpav03.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-        Fri, 21 Apr 2023 14:43:47 +0000 (GMT)
-Message-ID: <cbffa3dee65ecc0884dd16eb3af95c09a28f4297.camel@linux.ibm.com>
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM
- after writes
-From:   Mimi Zohar <zohar@linux.ibm.com>
-To:     Jeff Layton <jlayton@kernel.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>
-Cc:     Stefan Berger <stefanb@linux.ibm.com>,
-        Paul Moore <paul@paul-moore.com>,
-        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
-        linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Date:   Fri, 21 Apr 2023 10:43:46 -0400
-In-Reply-To: <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
-References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
-         <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
-Content-Type: text/plain; charset="ISO-8859-15"
-X-Mailer: Evolution 3.28.5 (3.28.5-18.el8) 
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: CFy9FUIyV3xuItYoC68paE8NPsJ-Yhek
-X-Proofpoint-ORIG-GUID: RgiN1v2180XPGj715m7iNirTDfUGKBQ0
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        Sun, 23 Apr 2023 10:51:12 -0400
+Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30C63271C;
+        Sun, 23 Apr 2023 07:51:07 -0700 (PDT)
+Received: by mail-vs1-xe33.google.com with SMTP id ada2fe7eead31-42ff08ab61dso765420137.1;
+        Sun, 23 Apr 2023 07:51:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1682261466; x=1684853466;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Byy5aNIeSbfDla4aJVVFrIzVSy2E3RHqITcEmVo7JRE=;
+        b=RKBXXCzMbPO0c3dNHN4kOwMb50a1vI21F46uM2qNrVGZnxlLgn6ryNiwH1XqALlyv7
+         mZQRQuTDmWR38qNqUA2rrHKP5Uhei0U8KHgtxj0lsz6a2FfEzm3+tYKroNLLgYxBiwKk
+         MLD2rYfWu3b0phFlVaYGkcvgnIFD3jbaMYAPdk5rPRrdzAvXYf7mJJMJ4KGa34iDcPt4
+         5ox0VFI/dPyeyTAhwd0MFh3YbdadxiwI14v1BK4DXfxDmc0mcGoQDdBZXnXi4+2CrscN
+         FyRRXhJW9V/P8Nb0SBdcjBCgwi04HqJfwI20sjH4UMKLdKUutDpCdU1VvKebky04iNnp
+         P9hw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682261466; x=1684853466;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Byy5aNIeSbfDla4aJVVFrIzVSy2E3RHqITcEmVo7JRE=;
+        b=GzX2wnZG97WGdB1le7spxvoebd1vJqz9duV/KV+vBz6YU0+OYg+eTUSBpGYixvBwAQ
+         A2ukyAt/8/yvW06Rm1+vRIlYFwtxC+/xSl+/gfSJHcdCYEYRwp6ko4laz+cnKuyibza4
+         cCeJF8NwTckjEhzIDHI1HgnNvnbT8NSvQ+6ew95L124ch4WLugOwFSZRwiKSm156JJAa
+         CPZ1ADB3vEAPWcCkWo0FPQZlEVShSg/XbOXeiFU72bzlLbOnYoExAAG2wHyJaCVjSEiK
+         ir9zJYhB7FQ/HuQfpGw/xsq/NSNFmhGeL9GPeyeug/kH25pTeJbl3v7xdEOxP2BIlwpw
+         /m6w==
+X-Gm-Message-State: AAQBX9ds2/4kjJ7PTkuRS51NclIssKzjw6znnCCVBEMafEsxNJsSPKma
+        v7l+6Mg+6KZBhPVKXSAdx9I1bJq8QCkmKKVo950=
+X-Google-Smtp-Source: AKy350Z5gzn4UWfEtW4Wn7+TaHy7dwqZraT/JdO1pegO5CuBK/GTa8ixWUrBAabB5nkoPrMqhSd1EaFai8Vxlw5iCMg=
+X-Received: by 2002:a67:fe97:0:b0:430:23c2:1c05 with SMTP id
+ b23-20020a67fe97000000b0043023c21c05mr4275621vsr.4.1682261466002; Sun, 23 Apr
+ 2023 07:51:06 -0700 (PDT)
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-04-21_07,2023-04-21_01,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- lowpriorityscore=0 malwarescore=0 phishscore=0 mlxlogscore=999 spamscore=0
- adultscore=0 bulkscore=0 mlxscore=0 priorityscore=1501 clxscore=1011
- suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2303200000 definitions=main-2304210127
+References: <20230418014037.2412394-1-drosen@google.com> <CAOQ4uxhpFrRVcviQ6bK1ZMtZDSMXRFuqY-d_+uQ1C0YMDtQpLA@mail.gmail.com>
+ <CA+PiJmT1wCoGnqtVSfcM-0qKm=Vu-jPf=7Op90vcGo3A7kYr0g@mail.gmail.com>
+In-Reply-To: <CA+PiJmT1wCoGnqtVSfcM-0qKm=Vu-jPf=7Op90vcGo3A7kYr0g@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sun, 23 Apr 2023 17:50:53 +0300
+Message-ID: <CAOQ4uxgwmsAA8b1ApmHh9fKuSyy0-NKgpkDSLk-gUWnaGKXtFQ@mail.gmail.com>
+Subject: Re: [RFC PATCH bpf-next v3 00/37] FUSE BPF: A Stacked Filesystem
+ Extension for FUSE
+To:     Daniel Rosenberg <drosen@google.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
+        Alexei Starovoitov <ast@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Joanne Koong <joannelkoong@gmail.com>,
+        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 2023-04-07 at 09:29 -0400, Jeff Layton wrote:
-> > > > > 
-> > > > > I would ditch the original proposal in favor of this 2-line patch shown here:
-> > > > > 
-> > > > > https://lore.kernel.org/linux-integrity/a95f62ed-8b8a-38e5-e468-ecbde3b221af@linux.ibm.com/T/#m3bd047c6e5c8200df1d273c0ad551c645dd43232
-> > 
-> > We should cool it with the quick hacks to fix things. :)
-> > 
-> 
-> Yeah. It might fix this specific testcase, but I think the way it uses
-> the i_version is "gameable" in other situations. Then again, I don't
-> know a lot about IMA in this regard.
-> 
-> When is it expected to remeasure? If it's only expected to remeasure on
-> a close(), then that's one thing. That would be a weird design though.
+On Fri, Apr 21, 2023 at 4:41=E2=80=AFAM Daniel Rosenberg <drosen@google.com=
+> wrote:
+>
+> On Mon, Apr 17, 2023 at 10:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.c=
+om> wrote:
+> >
+> >
+> > Which brings me to my biggest concern.
+> > I still do not see how these patches replace Allesio's
+> > FUSE_DEV_IOC_PASSTHROUGH_OPEN patches.
+> >
+> > Is the idea here that ioctl needs to be done at FUSE_LOOKUP
+> > instead or in addition to the ioctl on FUSE_OPEN to setup the
+> > read/write passthrough on the backing file?
+> >
+>
+> In these patches, the fuse daemon responds to the lookup request via
+> an ioctl, essentially in the same way it would have to the /dev/fuse
+> node. It just flags the write as coming from an ioctl and calls
+> fuse_dev_do_write. An additional block in the lookup response gives
+> the backing file and what bpf_ops to use. The main difference is that
+> fuse-bpf uses backing inodes, while passthrough uses a file.
 
-Historical background:
+Ah right. I wonder if there is benefit in both APIs or if backing inode
+is sufficient to impelelent everything the could be interesting to implemen=
+t
+with a backing file.
 
-Prior to IMA being upstreamed there was a lot of discussion about how
-much/how frequently to measure files.  Re-measuring files after each
-write would impact performance.  Instead of re-measuring files after
-each write, if a file already opened for write was opened for read
-(open writers) or a file already opened for read was opened for write
-(Time of Measure/Time of Use) the IMA meausrement list was invalidated
-by including a violation record in the measurement list.
+> Fuse-bpf's read/write support currently isn't complete, but it does
+> allow for direct passthrough. You could set ops to default to
+> userspace in every case that Allesio's passthrough code does and it
+> should have about the same effect.
 
-Only the BPRM hook prevents a file from being opened for write.
+What are the subtle differences then?
 
-> 
-> > > > > 
-> > > > > 
-> > > > 
-> > > > Ok, I think I get it. IMA is trying to use the i_version from the
-> > > > overlayfs inode.
-> > > > 
-> > > > I suspect that the real problem here is that IMA is just doing a bare
-> > > > inode_query_iversion. Really, we ought to make IMA call
-> > > > vfs_getattr_nosec (or something like it) to query the getattr routine in
-> > > > the upper layer. Then overlayfs could just propagate the results from
-> > > > the upper layer in its response.
-> > > > 
-> > > > That sort of design may also eventually help IMA work properly with more
-> > > > exotic filesystems, like NFS or Ceph.
-> > > > 
-> > > > 
-> > > > 
-> > > 
-> > > Maybe something like this? It builds for me but I haven't tested it. It
-> > > looks like overlayfs already should report the upper layer's i_version
-> > > in getattr, though I haven't tested that either:
-> > > 
-> > > -----------------------8<---------------------------
-> > > 
-> > > [PATCH] IMA: use vfs_getattr_nosec to get the i_version
-> > > 
-> > > IMA currently accesses the i_version out of the inode directly when it
-> > > does a measurement. This is fine for most simple filesystems, but can be
-> > > problematic with more complex setups (e.g. overlayfs).
-> > > 
-> > > Make IMA instead call vfs_getattr_nosec to get this info. This allows
-> > > the filesystem to determine whether and how to report the i_version, and
-> > > should allow IMA to work properly with a broader class of filesystems in
-> > > the future.
-> > > 
-> > > Reported-by: Stefan Berger <stefanb@linux.ibm.com>
-> > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> > > ---
-> > 
-> > So, I think we want both; we want the ovl_copyattr() and the
-> > vfs_getattr_nosec() change:
-> > 
-> > (1) overlayfs should copy up the inode version in ovl_copyattr(). That
-> >     is in line what we do with all other inode attributes. IOW, the
-> >     overlayfs inode's i_version counter should aim to mirror the
-> >     relevant layer's i_version counter. I wouldn't know why that
-> >     shouldn't be the case. Asking the other way around there doesn't
-> >     seem to be any use for overlayfs inodes to have an i_version that
-> >     isn't just mirroring the relevant layer's i_version.
-> 
-> It's less than ideal to do this IMO, particularly with an IS_I_VERSION
-> inode.
-> 
-> You can't just copy up the value from the upper. You'll need to call
-> inode_query_iversion(upper_inode), which will flag the upper inode for a
-> logged i_version update on the next write. IOW, this could create some
-> (probably minor) metadata write amplification in the upper layer inode
-> with IS_I_VERSION inodes.
-> 
-> 
-> > (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
-> >     Currently, ima assumes that it will get the correct i_version from
-> >     an inode but that just doesn't hold for stacking filesystem.
-> > 
-> > While (1) would likely just fix the immediate bug (2) is correct and
-> > _robust_. If we change how attributes are handled vfs_*() helpers will
-> > get updated and ima with it. Poking at raw inodes without using
-> > appropriate helpers is much more likely to get ima into trouble.
-> 
-> This will fix it the right way, I think (assuming it actually works),
-> and should open the door for IMA to work properly with networked
-> filesystems that support i_version as well.
+> With the struct_op change, I did
+> notice that doing something like that is more annoying, and am
+> planning to add a default op which only takes the meta info and runs
+> if the opcode specific op is not present.
+>
 
-On a local filesystem, there are guarantees that the calculated file
-hash is that of the file being used.  Reminder IMA reads a file, page
-size chunk at a time into a single buffer, calculating the file hash. 
-Once the file hash is calculated, the memory is freed.
+Sounds interesting. I'll wait to see what you propose.
 
-There are no guarantees on a fuse filesystem, for example, that the
-original file read and verified is the same as the one being executed. 
-I'm not sure that the integrity guarantees of a file on a remote
-filesystem will be the same as those on a local file system.
+>
+> > I am missing things like the FILESYSTEM_MAX_STACK_DEPTH check that
+> > was added as a result of review on Allesio's patches.
+> >
+>
+> I'd definitely want to fix any issues that were fixed there. There's a
+> lot of common code between fuse-bpf and fuse passthrough, so many of
+> the suggestions there will apply here.
+>
 
-> 
-> Note that there Stephen is correct that calling getattr is probably
-> going to be less efficient here since we're going to end up calling
-> generic_fillattr unnecessarily, but I still think it's the right thing
-> to do.
-> 
-> If it turns out to cause measurable performance regressions though,
-> maybe we can look at adding a something that still calls ->getattr if it
-> exists but only returns the change_cookie value.
+That's why I suggested trying to implement the passthough file ioctl
+functionality first to make sure that none of the review comments
+in the first round were missed.
 
-Sure.  For now,
+But if we need functionality of both ioctls, we can collaborate the
+work on merging them separately.
 
-Reviewed-by: Mimi Zohar <zohar@linux.ibm.com>
+> > The reason I am concerned about this is that we are using the
+> > FUSE_DEV_IOC_PASSTHROUGH_OPEN patches and I would like
+> > to upstream their functionality sooner rather than later.
+> > These patches have already been running in production for a while
+> > I believe that they are running in Android as well and there is value
+> > in upsteaming well tested patches.
+> >
+> > The API does not need to stay FUSE_DEV_IOC_PASSTHROUGH_OPEN
+> > it should be an API that is extendable to FUSE-BPF, but it would be
+> > useful if the read/write passthrough could be the goal for first merge.
+> >
+> > Does any of this make sense to you?
+> > Can you draw a roadmap for merging FUSE-BPF that starts with
+> > a first (hopefully short term) phase that adds the read/write passthrou=
+gh
+> > functionality?
+> >
+> > I can help with review and testing of that part if needed.
+> > I was planning to discuss this with you on LSFMM anyway,
+> > but better start the discussion beforehand.
+> >
+> > Thanks,
+> > Amir.
+>
+> We've been using an earlier version of fuse-bpf on Android, closer to
+> the V1 patches. They fit our current needs but don't cover everything
+> we intend to. The V3 patches switch to a new style of bpf program,
+> which I'm hoping to get some feedback on before I spend too much time
+> fixing up the details. The backing calls themselves can be reviewed
+> separately from that though.
+>
+> Without bpf, we're essentially enabling complete passthrough at a
+> directory or file. By default, once you set a backing file fuse-bpf
+> calls by the backing filesystem by default, with no additional
+> userspace interaction apart from if an installed bpf program says
+> otherwise. If we had some commands without others, we'd have behavior
+> changes as we introduce support for additional calls. We'd need a way
+> to set default behavior. Perhaps something like a u64 flag field
+> extension in FUSE_INIT for indicating which opcodes support backing,
+> and a response for what those should default to doing. If there's a
+> bpf_op present for a given opcode, it would be able to override that
+> default. If we had something like that, we'd be able to add support
+> for a subset of opcodes in a sensible way.
 
+So maybe this is something to consider.
+
+Thanks,
+Amir.
