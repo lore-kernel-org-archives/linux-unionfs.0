@@ -2,64 +2,59 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9927EC6FD18
-	for <linux-unionfs@archiver.kernel.org>; Sun, 23 Apr 2023 14:51:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13700C77B61
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Apr 2023 15:33:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230456AbjDWOvY (ORCPT
+        id S231794AbjDXPdJ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 23 Apr 2023 10:51:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57978 "EHLO
+        Mon, 24 Apr 2023 11:33:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230507AbjDWOvM (ORCPT
+        with ESMTP id S231908AbjDXPdH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 23 Apr 2023 10:51:12 -0400
-Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30C63271C;
-        Sun, 23 Apr 2023 07:51:07 -0700 (PDT)
-Received: by mail-vs1-xe33.google.com with SMTP id ada2fe7eead31-42ff08ab61dso765420137.1;
-        Sun, 23 Apr 2023 07:51:07 -0700 (PDT)
+        Mon, 24 Apr 2023 11:33:07 -0400
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8D157A9E
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Apr 2023 08:32:55 -0700 (PDT)
+Received: by mail-ed1-x532.google.com with SMTP id 4fb4d7f45d1cf-506bdf29712so34424560a12.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Apr 2023 08:32:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682261466; x=1684853466;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Byy5aNIeSbfDla4aJVVFrIzVSy2E3RHqITcEmVo7JRE=;
-        b=RKBXXCzMbPO0c3dNHN4kOwMb50a1vI21F46uM2qNrVGZnxlLgn6ryNiwH1XqALlyv7
-         mZQRQuTDmWR38qNqUA2rrHKP5Uhei0U8KHgtxj0lsz6a2FfEzm3+tYKroNLLgYxBiwKk
-         MLD2rYfWu3b0phFlVaYGkcvgnIFD3jbaMYAPdk5rPRrdzAvXYf7mJJMJ4KGa34iDcPt4
-         5ox0VFI/dPyeyTAhwd0MFh3YbdadxiwI14v1BK4DXfxDmc0mcGoQDdBZXnXi4+2CrscN
-         FyRRXhJW9V/P8Nb0SBdcjBCgwi04HqJfwI20sjH4UMKLdKUutDpCdU1VvKebky04iNnp
-         P9hw==
+        d=szeredi.hu; s=google; t=1682350374; x=1684942374;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=uAia9ZoCM3Ngt40DYLr2QLseOj/p7pPYWNkC2fjWJmw=;
+        b=qWrSGUzCxRq8qH9ciyQYay96/ootXHgah+P6qqyhGbCAQ2pJ8/OxJrzulk56To27uy
+         09RLg/kTfw37Y4n+Y6DBPHrqNJM86jTGeI+B59T2u0X1ivH2gkzn4r7IIy7tcMBPzleL
+         451KVjoReU+5shixxVPasIdCw/4ump/BEaTRo=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682261466; x=1684853466;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Byy5aNIeSbfDla4aJVVFrIzVSy2E3RHqITcEmVo7JRE=;
-        b=GzX2wnZG97WGdB1le7spxvoebd1vJqz9duV/KV+vBz6YU0+OYg+eTUSBpGYixvBwAQ
-         A2ukyAt/8/yvW06Rm1+vRIlYFwtxC+/xSl+/gfSJHcdCYEYRwp6ko4laz+cnKuyibza4
-         cCeJF8NwTckjEhzIDHI1HgnNvnbT8NSvQ+6ew95L124ch4WLugOwFSZRwiKSm156JJAa
-         CPZ1ADB3vEAPWcCkWo0FPQZlEVShSg/XbOXeiFU72bzlLbOnYoExAAG2wHyJaCVjSEiK
-         ir9zJYhB7FQ/HuQfpGw/xsq/NSNFmhGeL9GPeyeug/kH25pTeJbl3v7xdEOxP2BIlwpw
-         /m6w==
-X-Gm-Message-State: AAQBX9ds2/4kjJ7PTkuRS51NclIssKzjw6znnCCVBEMafEsxNJsSPKma
-        v7l+6Mg+6KZBhPVKXSAdx9I1bJq8QCkmKKVo950=
-X-Google-Smtp-Source: AKy350Z5gzn4UWfEtW4Wn7+TaHy7dwqZraT/JdO1pegO5CuBK/GTa8ixWUrBAabB5nkoPrMqhSd1EaFai8Vxlw5iCMg=
-X-Received: by 2002:a67:fe97:0:b0:430:23c2:1c05 with SMTP id
- b23-20020a67fe97000000b0043023c21c05mr4275621vsr.4.1682261466002; Sun, 23 Apr
- 2023 07:51:06 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1682350374; x=1684942374;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uAia9ZoCM3Ngt40DYLr2QLseOj/p7pPYWNkC2fjWJmw=;
+        b=b8b3Z6tRWuk0QZ+yBAaWbZK//oAfrpCa3Lbhals9eg36lLJDPrPaFDC3VgFXWIdvAd
+         bP4NHkbJ2WSysk8ekL2kdfAfeSS78WJ36GF5d0iKASYJFGjFtG5obp+xHwwY5uGm79MW
+         UR9sUXRKAdrTGkyIfFWuwtxxg5SP6WEfXoo35WVPKx0FoEI77XIh9nnbQmbENVDxziit
+         T9SOmp8jSDjLqNSbvDWz9CWlPAT0KHCVJACWHj3CwjSwsHJjXh3c8bZa2ZExT13CbAsO
+         w9hW1vtYxWzGK8Axwguc2bSxA0u8BKWBsN2R2NAz73q/XM7/V+SBAZL2h2FSN4oKAYcV
+         bcEQ==
+X-Gm-Message-State: AAQBX9edtcBatllU9iCQaoftuFr1hV/kpQcrC/JoUr9Ns1cDfTNtyV3G
+        jmx7Ok+7mQiyrJPbWcTcYAwwW9Ncw+B74CsZ7MWANJbjZAqiEiyaRc4=
+X-Google-Smtp-Source: AKy350ZlEFYElE3Cz+YrZZbx+udm5MYxX+58hoksQpdxqtGw8JQgjq/51zlo+VJfHxiyRLGkhE1nZhNtsXCZO/Kgvz0=
+X-Received: by 2002:a17:906:d1cb:b0:957:9ddd:8809 with SMTP id
+ bs11-20020a170906d1cb00b009579ddd8809mr8178755ejb.35.1682350374328; Mon, 24
+ Apr 2023 08:32:54 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230418014037.2412394-1-drosen@google.com> <CAOQ4uxhpFrRVcviQ6bK1ZMtZDSMXRFuqY-d_+uQ1C0YMDtQpLA@mail.gmail.com>
- <CA+PiJmT1wCoGnqtVSfcM-0qKm=Vu-jPf=7Op90vcGo3A7kYr0g@mail.gmail.com>
-In-Reply-To: <CA+PiJmT1wCoGnqtVSfcM-0qKm=Vu-jPf=7Op90vcGo3A7kYr0g@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 23 Apr 2023 17:50:53 +0300
-Message-ID: <CAOQ4uxgwmsAA8b1ApmHh9fKuSyy0-NKgpkDSLk-gUWnaGKXtFQ@mail.gmail.com>
+References: <20230418014037.2412394-1-drosen@google.com>
+In-Reply-To: <20230418014037.2412394-1-drosen@google.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Mon, 24 Apr 2023 17:32:42 +0200
+Message-ID: <CAJfpegtuNgbZfLiKnpzdEP0sNtCt=83NjGtBnmtvMaon2avv2w@mail.gmail.com>
 Subject: Re: [RFC PATCH bpf-next v3 00/37] FUSE BPF: A Stacked Filesystem
  Extension for FUSE
 To:     Daniel Rosenberg <drosen@google.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
+Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-unionfs@vger.kernel.org,
         Daniel Borkmann <daniel@iogearbox.net>,
@@ -75,116 +70,40 @@ Cc:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
         Joanne Koong <joannelkoong@gmail.com>,
         Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Apr 21, 2023 at 4:41=E2=80=AFAM Daniel Rosenberg <drosen@google.com=
-> wrote:
+On Tue, 18 Apr 2023 at 03:40, Daniel Rosenberg <drosen@google.com> wrote:
 >
-> On Mon, Apr 17, 2023 at 10:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.c=
-om> wrote:
-> >
-> >
-> > Which brings me to my biggest concern.
-> > I still do not see how these patches replace Allesio's
-> > FUSE_DEV_IOC_PASSTHROUGH_OPEN patches.
-> >
-> > Is the idea here that ioctl needs to be done at FUSE_LOOKUP
-> > instead or in addition to the ioctl on FUSE_OPEN to setup the
-> > read/write passthrough on the backing file?
-> >
->
-> In these patches, the fuse daemon responds to the lookup request via
-> an ioctl, essentially in the same way it would have to the /dev/fuse
-> node. It just flags the write as coming from an ioctl and calls
-> fuse_dev_do_write. An additional block in the lookup response gives
-> the backing file and what bpf_ops to use. The main difference is that
-> fuse-bpf uses backing inodes, while passthrough uses a file.
+> These patches extend FUSE to be able to act as a stacked filesystem. This
+> allows pure passthrough, where the fuse file system simply reflects the lower
+> filesystem, and also allows optional pre and post filtering in BPF and/or the
+> userspace daemon as needed. This can dramatically reduce or even eliminate
+> transitions to and from userspace.
 
-Ah right. I wonder if there is benefit in both APIs or if backing inode
-is sufficient to impelelent everything the could be interesting to implemen=
-t
-with a backing file.
+I'll ignore BPF for now and concentrate on the passthrough aspect,
+which I understand better.
 
-> Fuse-bpf's read/write support currently isn't complete, but it does
-> allow for direct passthrough. You could set ops to default to
-> userspace in every case that Allesio's passthrough code does and it
-> should have about the same effect.
+The security model needs to be thought about and documented.  Think
+about this: the fuse server now delegates operations it would itself
+perform to the passthrough code in fuse.  The permissions that would
+have been checked in the context of the fuse server are now checked in
+the context of the task performing the operation.  The server may be
+able to bypass seccomp restrictions.  Files that are open on the
+backing filesystem are now hidden (e.g. lsof won't find these), which
+allows the server to obfuscate accesses to backing files.  Etc.
 
-What are the subtle differences then?
+These are not particularly worrying if the server is privileged, but
+fuse comes with the history of supporting unprivileged servers, so we
+should look at supporting passthrough with unprivileged servers as
+well.
 
-> With the struct_op change, I did
-> notice that doing something like that is more annoying, and am
-> planning to add a default op which only takes the meta info and runs
-> if the opcode specific op is not present.
->
-
-Sounds interesting. I'll wait to see what you propose.
-
->
-> > I am missing things like the FILESYSTEM_MAX_STACK_DEPTH check that
-> > was added as a result of review on Allesio's patches.
-> >
->
-> I'd definitely want to fix any issues that were fixed there. There's a
-> lot of common code between fuse-bpf and fuse passthrough, so many of
-> the suggestions there will apply here.
->
-
-That's why I suggested trying to implement the passthough file ioctl
-functionality first to make sure that none of the review comments
-in the first round were missed.
-
-But if we need functionality of both ioctls, we can collaborate the
-work on merging them separately.
-
-> > The reason I am concerned about this is that we are using the
-> > FUSE_DEV_IOC_PASSTHROUGH_OPEN patches and I would like
-> > to upstream their functionality sooner rather than later.
-> > These patches have already been running in production for a while
-> > I believe that they are running in Android as well and there is value
-> > in upsteaming well tested patches.
-> >
-> > The API does not need to stay FUSE_DEV_IOC_PASSTHROUGH_OPEN
-> > it should be an API that is extendable to FUSE-BPF, but it would be
-> > useful if the read/write passthrough could be the goal for first merge.
-> >
-> > Does any of this make sense to you?
-> > Can you draw a roadmap for merging FUSE-BPF that starts with
-> > a first (hopefully short term) phase that adds the read/write passthrou=
-gh
-> > functionality?
-> >
-> > I can help with review and testing of that part if needed.
-> > I was planning to discuss this with you on LSFMM anyway,
-> > but better start the discussion beforehand.
-> >
-> > Thanks,
-> > Amir.
->
-> We've been using an earlier version of fuse-bpf on Android, closer to
-> the V1 patches. They fit our current needs but don't cover everything
-> we intend to. The V3 patches switch to a new style of bpf program,
-> which I'm hoping to get some feedback on before I spend too much time
-> fixing up the details. The backing calls themselves can be reviewed
-> separately from that though.
->
-> Without bpf, we're essentially enabling complete passthrough at a
-> directory or file. By default, once you set a backing file fuse-bpf
-> calls by the backing filesystem by default, with no additional
-> userspace interaction apart from if an installed bpf program says
-> otherwise. If we had some commands without others, we'd have behavior
-> changes as we introduce support for additional calls. We'd need a way
-> to set default behavior. Perhaps something like a u64 flag field
-> extension in FUSE_INIT for indicating which opcodes support backing,
-> and a response for what those should default to doing. If there's a
-> bpf_op present for a given opcode, it would be able to override that
-> default. If we had something like that, we'd be able to add support
-> for a subset of opcodes in a sensible way.
-
-So maybe this is something to consider.
+My other generic comment is that you should add justification for
+doing this in the first place.  I guess it's mainly performance.  So
+how performance can be won in real life cases?   It would also be good
+to measure the contribution of individual ops to that win.   Is there
+another reason for this besides performance?
 
 Thanks,
-Amir.
+Miklos
