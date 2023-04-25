@@ -2,130 +2,117 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C90AAC77B71
-	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 13:01:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C7E6C6FD18
+	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 13:22:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234202AbjDYNBk (ORCPT
+        id S234093AbjDYNWf (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 25 Apr 2023 09:01:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34726 "EHLO
+        Tue, 25 Apr 2023 09:22:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233936AbjDYNBb (ORCPT
+        with ESMTP id S234131AbjDYNWe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 25 Apr 2023 09:01:31 -0400
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BAFE6D312;
-        Tue, 25 Apr 2023 06:01:22 -0700 (PDT)
-Received: by mail-wr1-x434.google.com with SMTP id ffacd0b85a97d-2f3fe12de15so3467207f8f.3;
-        Tue, 25 Apr 2023 06:01:22 -0700 (PDT)
+        Tue, 25 Apr 2023 09:22:34 -0400
+Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A43E12C92;
+        Tue, 25 Apr 2023 06:22:32 -0700 (PDT)
+Received: by mail-wr1-x42d.google.com with SMTP id ffacd0b85a97d-2f625d52275so5535311f8f.3;
+        Tue, 25 Apr 2023 06:22:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682427681; x=1685019681;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=H1TOXMWuoQkvRdhBuoYArqNMO3EmKDW7kZ7IbV/tCJU=;
-        b=WyIWIQ97OpGHkoKqBzG1aUJg+1xShHnHZlOsEwGUZpMR43VuICkIdDUjxFu/zUmqrT
-         YM6/EAusONMFYpI3VtjLGRSdZ8gPfsezHaItywzHBlnC0WRzAoOZ/zpjw0OTtWYfiWfQ
-         67aOYQQxli2+KJSB9jFL8XV54cGuhd/0hkCxyeyg7C+rIxTwgrjTkx2JKlfj7Ap16cVc
-         y0rPjIwhwK8mtXjuOXsDk7COFOL7cNhg48NAyC0SEiDH+cHwQDr6ijiYR6wd3uUKMeLP
-         W4f68SYgD+eb3JkUM46EWMa9KhfEpW+Tv4QXv8R5CARi9azDAMxJl9aMFOSb3El2XXzr
-         654A==
+        d=gmail.com; s=20221208; t=1682428951; x=1685020951;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=T0ZsjvV/9cbUj7kTIaemNHRLJMoP4XNl0sJ/sTuYTSg=;
+        b=dkn+N2B5wcH0Lcy5M8gXSHYefBfOCcCxo/tg2mKIy1AQ/n3hzZGi2vI/C6se4b4Kac
+         fQ18mirgXoOSnnfoAo8MwvKfjBErn1T0+ryo42LnOFaaanA47WAQAMJ2IYZ9h99Ahav0
+         pZKICcM7FeApW6d3IIqvC8NVq32KfJALP9fDiecSCtqFnMvTSwdDuo0xpaawDlt1FpZb
+         TI4yn6mYyIr3nU03Qv/6WOkWq7e4BVWrxHxoYf8DHNhFqTtPI9sODrgTYfNbVNY9L0ya
+         CBTivBcvKe60wGexBv7AM6EmJH1XxVid+kOwa4TJJY4eu7UcvZsZSoEc/ZBFZ9hQMPSj
+         BJFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682427681; x=1685019681;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=H1TOXMWuoQkvRdhBuoYArqNMO3EmKDW7kZ7IbV/tCJU=;
-        b=XFfNOuFO+BzsayOcndol12h1qCRvxQR4XjpVpcpAZQYmIziBdQ2rBH5R/2QMdLHn7G
-         54rPBN3ZU+gtcp+V+PD9EEIzMfUohWSxv9zHummuud9irL7zmfit1jWfPrz+d6Bynrqd
-         1Q/UZNRvMouIareMRiRGm6pjHtz2fyQl/6Jq67Ii1cijd7d14To3Hlbm0VyTr9QA0mnV
-         OrzJKeUK0IEuxk/HlbIKKEeR0dMAiHIJbLVe2c1idREei1gJ/4JI5UgeU8XJu3QeKf8Q
-         98r+Zvsyn+ImeOgKFpJDh9pHNoBNpU4KbVnnbPTVSBpLLW3InEPBMtDjuP2+CqGqw2X1
-         PLjQ==
-X-Gm-Message-State: AAQBX9eos3voyRpGvTEVy0wkVwvzWTj5Hn5eLsTWbLdZfcdHFQ2TgyDt
-        ntg2UBhhR/kc5Ixcd4tU5tjUq5QevVk=
-X-Google-Smtp-Source: AKy350aMleWStRw+wvupNdJdGiarcUd5O4OGYZ3jUcCjrodh8ovgHoOwKveqhq8jq7tzEw0ymPTnwg==
-X-Received: by 2002:a5d:4b45:0:b0:2f4:9956:e828 with SMTP id w5-20020a5d4b45000000b002f49956e828mr12045313wrs.18.1682427680609;
-        Tue, 25 Apr 2023 06:01:20 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1682428951; x=1685020951;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=T0ZsjvV/9cbUj7kTIaemNHRLJMoP4XNl0sJ/sTuYTSg=;
+        b=BtCnmt1aglvi/GHSYBLTAkNEqqeFFIzHKxmktp0u5nKKgO5cntrCEpsngKycAtVT4g
+         udAZE8W8q/g+VnAu3hv/3H6lpr0ONlLFihYqEmK7x944h3HI6FeKdcVaLmBWGAHMN3xN
+         iEesnk5mxYit5wWwh0wxJGkx/BYthwF/HYFsZ2j2rpw/2APmZftY9Nh8P15oqxDRxXYx
+         i/NVoHrZDyF9/xpvgecchGdy8mO/siU7yAzwwxXruO7/FIxZALdTk3g3uJzGmLY6TJEf
+         RJ+6yBX8atkJwLSZb//1DVHD2GiayyRGgMagxA96fv6tsNHnbqKRm0eHLZ7wy1kenrm0
+         VjwA==
+X-Gm-Message-State: AAQBX9ds1nI5Vq1SlhJmUfYoC2gMcmcFDotyKOublNg95d4N06tnM8oC
+        NCXqyQk9KTQwcAE2nnoyQo0=
+X-Google-Smtp-Source: AKy350alWA9yLJwOppQ3HyTxHoiCc+gT4AlrxDyqOxRxaDLvoqL8TJkjQYnbma9U3QMFtHr9Tpv5Mw==
+X-Received: by 2002:adf:ee86:0:b0:2ff:2c39:d06b with SMTP id b6-20020adfee86000000b002ff2c39d06bmr12825210wro.46.1682428950671;
+        Tue, 25 Apr 2023 06:22:30 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id s1-20020adff801000000b00300aee6c9cesm13103447wrp.20.2023.04.25.06.01.19
+        by smtp.gmail.com with ESMTPSA id f12-20020adfdb4c000000b002f9ff443184sm13076973wrj.24.2023.04.25.06.22.29
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Apr 2023 06:01:20 -0700 (PDT)
+        Tue, 25 Apr 2023 06:22:30 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-To:     Jan Kara <jack@suse.cz>
+To:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>
 Cc:     Christian Brauner <brauner@kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-api@vger.kernel.org
-Subject: [RFC][PATCH 4/4] fanotify: support reporting non-decodeable file handles
-Date:   Tue, 25 Apr 2023 16:01:05 +0300
-Message-Id: <20230425130105.2606684-5-amir73il@gmail.com>
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [RFC][PATCH 0/3] Prepare for supporting more filesystems with fanotify
+Date:   Tue, 25 Apr 2023 16:22:20 +0300
+Message-Id: <20230425132223.2608226-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230425130105.2606684-1-amir73il@gmail.com>
-References: <20230425130105.2606684-1-amir73il@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-fanotify users do not always need to decode the file handles reported
-with FAN_REPORT_FID.
+Miklos,
 
-Relax the restriction that filesystem needs to support NFS export and
-allow reporting file handles from filesystems that only support ecoding
-unique file handles.
+This is the second part of the proposal to support fanotify reporing
+file ids on overlayfs.
 
-For such filesystems, users will have to use the AT_HANDLE_FID of
-name_to_handle_at(2) if they want to compare the object in path to the
-object fid reported in an event.
+The first part [1] relaxes the requirements for filesystems to support
+reporting events with fid to require only the ->encode_fh() operation.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/notify/fanotify/fanotify.c      | 4 ++--
- fs/notify/fanotify/fanotify_user.c | 6 ++----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+In this patch set, overlayfs is changed to meet the new requirements
+with default overlay configurations (i.e. no need for nfs_export=on).
 
-diff --git a/fs/notify/fanotify/fanotify.c b/fs/notify/fanotify/fanotify.c
-index d1a49f5b6e6d..d2bbf1445a9e 100644
---- a/fs/notify/fanotify/fanotify.c
-+++ b/fs/notify/fanotify/fanotify.c
-@@ -380,7 +380,7 @@ static int fanotify_encode_fh_len(struct inode *inode)
- 	if (!inode)
- 		return 0;
- 
--	exportfs_encode_inode_fh(inode, NULL, &dwords, NULL, 0);
-+	exportfs_encode_fid(inode, NULL, &dwords);
- 	fh_len = dwords << 2;
- 
- 	/*
-@@ -443,7 +443,7 @@ static int fanotify_encode_fh(struct fanotify_fh *fh, struct inode *inode,
- 	}
- 
- 	dwords = fh_len >> 2;
--	type = exportfs_encode_inode_fh(inode, buf, &dwords, NULL, 0);
-+	type = exportfs_encode_fid(inode, buf, &dwords);
- 	err = -EINVAL;
- 	if (!type || type == FILEID_INVALID || fh_len != dwords << 2)
- 		goto out_err;
-diff --git a/fs/notify/fanotify/fanotify_user.c b/fs/notify/fanotify/fanotify_user.c
-index 8f430bfad487..a5af84cbb30d 100644
---- a/fs/notify/fanotify/fanotify_user.c
-+++ b/fs/notify/fanotify/fanotify_user.c
-@@ -1586,11 +1586,9 @@ static int fanotify_test_fid(struct dentry *dentry)
- 	 * We need to make sure that the file system supports at least
- 	 * encoding a file handle so user can use name_to_handle_at() to
- 	 * compare fid returned with event to the file handle of watched
--	 * objects. However, name_to_handle_at() requires that the
--	 * filesystem also supports decoding file handles.
-+	 * objects, but it does not need to support decoding file handles.
- 	 */
--	if (!dentry->d_sb->s_export_op ||
--	    !dentry->d_sb->s_export_op->fh_to_dentry)
-+	if (!dentry->d_sb->s_export_op)
- 		return -EOPNOTSUPP;
- 
- 	return 0;
+The overlayfs and vfs/fanotify patch sets are completely independent.
+The are both available on my github branch [2] and there is a simple
+LTP test variant that tests reporting fid from overlayfs [3].
+
+Patches 2-3 are not really needed to support reporting fanotify events
+with fid, because overlayfs already reports a non-zero f_fsid, it's just
+not a very good fsid.  So before allowing to report overlayfs fids, I
+prefer to fix f_fsid to be more unique.
+
+I went back and forth about this change of behavior (from real fsid to
+per-instance fsid) - can we make this change without breaking any
+existing workloads? I don't know.
+
+For now, I added a mount option with a very lousy name (uuid=nogen)
+as an escape hatch, but I also left a const bool ovl_uuid_gen_def var
+that we can wire to a Kconfig/module option if that is desired.
+
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/linux-fsdevel/20230425130105.2606684-1-amir73il@gmail.com/
+[2] https://github.com/amir73il/linux/commits/exportfs_encode_fid
+[3] https://github.com/amir73il/ltp/commits/exportfs_encode_fid
+
+Amir Goldstein (3):
+  ovl: support encoding non-decodeable file handles
+  ovl: report a per-instance f_fsid by default
+  ovl: use persistent s_uuid with index=on
+
+ Documentation/filesystems/overlayfs.rst | 10 ++--
+ fs/overlayfs/export.c                   | 26 ++++++++---
+ fs/overlayfs/inode.c                    |  2 +-
+ fs/overlayfs/overlayfs.h                | 10 ++++
+ fs/overlayfs/ovl_entry.h                |  3 +-
+ fs/overlayfs/super.c                    | 62 ++++++++++++++++++++++---
+ fs/overlayfs/util.c                     | 41 ++++++++++++++++
+ 7 files changed, 135 insertions(+), 19 deletions(-)
+
 -- 
 2.34.1
 
