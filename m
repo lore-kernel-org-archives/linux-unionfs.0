@@ -2,311 +2,112 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EC5C77B61
-	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 11:19:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42BA6C77B71
+	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 13:01:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233725AbjDYLT5 (ORCPT
+        id S234147AbjDYNBV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 25 Apr 2023 07:19:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37194 "EHLO
+        Tue, 25 Apr 2023 09:01:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34530 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233849AbjDYLTw (ORCPT
+        with ESMTP id S234081AbjDYNBT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 25 Apr 2023 07:19:52 -0400
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9F35196
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Apr 2023 04:19:49 -0700 (PDT)
-Received: by mail-ej1-x629.google.com with SMTP id a640c23a62f3a-94f1a6e66c9so1024048366b.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Apr 2023 04:19:49 -0700 (PDT)
+        Tue, 25 Apr 2023 09:01:19 -0400
+Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A19F5D315;
+        Tue, 25 Apr 2023 06:01:15 -0700 (PDT)
+Received: by mail-wr1-x429.google.com with SMTP id ffacd0b85a97d-2f55ffdbaedso3611729f8f.2;
+        Tue, 25 Apr 2023 06:01:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1682421588; x=1685013588;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=r60+ZYsWi+NGG+DdYmWzo9dy0vKeQSvXXezC1r+/hAE=;
-        b=ldsvxxgdVaZld+OAuNFpEAhqK/xdSQ3y/Z9Wdpga97HK23KIE8ORkY1+TLUIdXaM6k
-         gYntA1hy4BlVPf+qlqQxkxvvM7jrUU80zH8CxE71FyKqPScqZZ2za3icVb44Wxk5YZLt
-         lUTnqr3+BUAOR912nKUXaBkhPJtE/SQhEUPXc=
+        d=gmail.com; s=20221208; t=1682427674; x=1685019674;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=gGePo+323IAj5uoeF7RJtIA7ttlt5KyRYR7yLs+0X/s=;
+        b=eIwu+SPFhBEvDEA6AUndh6gllmC6ap6HqhGKayQ7oZIa5OoxOprc9w9Qu9ZJ7I6uDt
+         Gpa5Oxg3kBBa1cETzgwkJA0bq7mFLlaPeqAeMxyDME0LopsBTs+56lIA9WFLyOhAIcN0
+         vHSkbOouH7xinu37wGluUrb0SM7m/j5uR+TzxEPCoOwDkEv2JRJjYD5D4Y/9YhnrowXi
+         14JhM697QCWA6onB2mdF6KseK3+L89F5IPJr8UJNWem36oxw4lcqBIgKibc2stNSlP5l
+         oUiMQo8RDwv3vuT9IgzPNqzwmFcl+CSVM1oOlKOP0MzYvCyicDctuhF6TNGDp/rImDwB
+         LzpQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682421588; x=1685013588;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20221208; t=1682427674; x=1685019674;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=r60+ZYsWi+NGG+DdYmWzo9dy0vKeQSvXXezC1r+/hAE=;
-        b=Li8iau9M2M4X598TpCUOnkZYSxa7a8YYEQs+LBg1vh9ve3n1lqhniJWGzriQmAh1WW
-         CNjEZcgWzzGsA2XhxyoFK5rjzf6/vqyZDz9nLd7wAECFXOfxWvRNkQkiCWz/0tEPcdfu
-         T5nKxe0W/6eUFfcKEAHn3Ej3gkKyQ1gAFlbWH5OD153kDvBmnQQhyGLxDJ1owr48HepF
-         f+eEzKoNhXHed6Qja3OeVoxOwytT/uBGYp6CwC0DbfaLFArmH+ZkYZyov0LCjwa3AYTe
-         MGI9wtiBumEIELTAYW/ZMkObTJlrKCAs5ZpQZCI8jvyow4MrVvMDNFNlolMRMbryicnm
-         TM+A==
-X-Gm-Message-State: AAQBX9chiympzv3P25M+w+giWFYH1VxFK0VyI2uFyRbTRA6KHNvb5ezB
-        6SPSu47kYIMdaUrxeg3e1qDWE+nTJPXZkqZ+WCNdprK2+QSdsiYLsS8Esg==
-X-Google-Smtp-Source: AKy350a63V/R7gkG4b97FpD6aBr8tOZGfYTQOnOefNAY5P2VN80a1nxZacPft76Vfdw1EB2HSnVNyQLhfc+xe0WZBtY=
-X-Received: by 2002:a17:906:4308:b0:948:a1ae:b2c4 with SMTP id
- j8-20020a170906430800b00948a1aeb2c4mr11921985ejm.6.1682421588252; Tue, 25 Apr
- 2023 04:19:48 -0700 (PDT)
+        bh=gGePo+323IAj5uoeF7RJtIA7ttlt5KyRYR7yLs+0X/s=;
+        b=fY2XfEmJvIjOpexrup1WzjwcO+MJlx29hLeg2orqHhM7LLyGFoINH0+rXMFkS8u8YO
+         F1BnqVNZrbEY97CxWlJ8jMks1Wh9sCvPLzt2iI2ZZJvbTQ3D9OkqYjpAPrPOolYGimB4
+         34c1airzqQVI9Fv1ZWTNYKLz6YkHwdH39Awi60IhXOS5EYACyO0sv6Ji+VHcI3HHo88O
+         12H+QFvVpNDD2yDbES2qhCef2oanfvEsyXRGr0Crifde/9UxmTIiseJeX0lOE4zbD9B8
+         RaCy0YqTT+pnRUSroQJ+HF//MrwSKtArNMFxSt4/2CNmLZJruwaqRFAMvijofH266Tki
+         symw==
+X-Gm-Message-State: AAQBX9f2/E52FcIKbOBPa2ktocZ0i6f63obvw5RBaCYy2IkFCYwd3dyK
+        1Dav89DSYRZYFUxYJifwI0Q=
+X-Google-Smtp-Source: AKy350bBFdtqGR/HCdXtKYXl75p64JMBisk/rq1s5bzeqqu/2BVcB3VNlW5sT9m1GWuQ2/LK//HI4g==
+X-Received: by 2002:adf:e590:0:b0:2fb:1f34:dc6d with SMTP id l16-20020adfe590000000b002fb1f34dc6dmr10969089wrm.64.1682427671425;
+        Tue, 25 Apr 2023 06:01:11 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id s1-20020adff801000000b00300aee6c9cesm13103447wrp.20.2023.04.25.06.01.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Apr 2023 06:01:11 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Jan Kara <jack@suse.cz>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-api@vger.kernel.org
+Subject: [RFC][PATCH 0/4] Prepare for supporting more filesystems with fanotify
+Date:   Tue, 25 Apr 2023 16:01:01 +0300
+Message-Id: <20230425130105.2606684-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-References: <cover.1681917551.git.alexl@redhat.com> <2b2c5ecaf80f810f46791a94d8638ec4027a3a0e.1681917551.git.alexl@redhat.com>
-In-Reply-To: <2b2c5ecaf80f810f46791a94d8638ec4027a3a0e.1681917551.git.alexl@redhat.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 25 Apr 2023 13:19:36 +0200
-Message-ID: <CAJfpegt_=nNne51Au0AvhVwBgHBesCQ9YCC6WMGVyN6nUA_B2A@mail.gmail.com>
-Subject: Re: [PATCH 4/6] ovl: Add framework for verity support
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com,
-        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 20 Apr 2023 at 09:44, Alexander Larsson <alexl@redhat.com> wrote:
->
-> This adds the scaffolding (docs, config, mount options) for supporting
-> for a new overlay xattr "overlay.verity", which contains a fs-verity
-> digest. This is used for metacopy files, and the actual fs-verity
-> digest of the lowerdata file needs to match it. The mount option
-> "verity" specifies how this xattrs is handled.
->
-> Unless you explicitly disable it ("verity=off") all existing xattrs
-> are validated before use. This is all that happens by default
-> ("verity=validate"), but, if you turn on verity ("verity=on") then
-> during metacopy we generate verity xattr in the upper metacopy file if
-> the source file has verity enabled. This means later accesses can
-> guarantee that the correct data is used.
->
-> Additionally you can use "verity=require". In this mode all metacopy
-> files must have a valid verity xattr. For this to work metadata
-> copy-up must be able to create a verity xattr (so that later accesses
-> are validated). Therefore, in this mode, if the lower data file
-> doesn't have fs-verity enabled we fall back to a full copy rather than
-> a metacopy.
+Jan,
 
-Maybe we can reduce the number of modes.  Which mode does your use case need?
+Following up on the FAN_REPORT_ANY_FID proposal [1], here is a shot at an
+alternative proposal to seamlessly support more filesystems.
 
->
-> Actual implementation follows in a separate commit.
->
-> Signed-off-by: Alexander Larsson <alexl@redhat.com>
-> ---
->  Documentation/filesystems/overlayfs.rst | 33 +++++++++++++++++
->  fs/overlayfs/Kconfig                    | 14 +++++++
->  fs/overlayfs/ovl_entry.h                |  4 ++
->  fs/overlayfs/super.c                    | 49 +++++++++++++++++++++++++
->  4 files changed, 100 insertions(+)
->
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-> index c8e04a4f0e21..66895bf71cd1 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -403,6 +403,39 @@ when a "metacopy" file in one of the lower layers above it, has a "redirect"
->  to the absolute path of the "lower data" file in the "data-only" lower layer.
->
->
-> +fs-verity support
-> +----------------------
-> +
-> +When metadata copy up is used for a file, then the xattr
-> +"trusted.overlay.verity" may be set on the metacopy file. This
-> +specifies the expected fs-verity digest of the lowerdata file. This
-> +may then be used to verify the content of the source file at the time
-> +the file is opened. If enabled, overlayfs can also set this xattr
-> +during metadata copy up.
-> +
-> +This is controlled by the "verity" mount option, which supports
-> +these values:
-> +
-> +- "off":
-> +    The verity xattr is never used.
-> +- "validate":
-> +    Whenever a metacopy files specifies an expected digest, the
-> +    corresponding data file must match the specified digest.
-> +- "on":
-> +    Same as validate, but additionally, when generating a metacopy
-> +    file the verity xattr will be set from the source file fs-verity
-> +    digest (if it has one).
-> +- "require":
-> +    Same as "on", but additionally all metacopy files must specify a
-> +    verity xattr. Additionally metadata copy up will only be used if
-> +    the data file has fs-verity enabled, otherwise a full copy-up is
-> +    used.
-> +
-> +There are two ways to tune the default behaviour. The kernel config
-> +option OVERLAY_FS_VERITY, or the module option "verity=BOOL". If
-> +either of these are enabled, then verity mode is "on" by default,
-> +otherwise it is "validate".
+While fanotify relaxes the requirements for filesystems to support
+reporting fid to require only the ->encode_fh() operation, there are
+currently no new filesystems that meet the relaxed requirements.
 
-I'm not sure that enabling verity by default is safe.  E.g. a script
-mounts overalyfs but doesn't set the verity mount, since it's on by
-default.  Then the script is moved to a different system where the
-default is off, which will result in verity not being enabled, even
-though that was not intended.  Is there an advantage to allowing to
-change the default?  I know it's done for most of the overlayfs
-options, but I think this is different.
+I will shortly post patches that allow overlayfs to meet the new
+requirements with default overlay configurations.
 
-> +
->  Sharing and copying layers
->  --------------------------
->
-> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
-> index 6708e54b0e30..98d6b1a7baf5 100644
-> --- a/fs/overlayfs/Kconfig
-> +++ b/fs/overlayfs/Kconfig
-> @@ -124,3 +124,17 @@ config OVERLAY_FS_METACOPY
->           that doesn't support this feature will have unexpected results.
->
->           If unsure, say N.
-> +
-> +config OVERLAY_FS_VERITY
-> +       bool "Overlayfs: turn on verity feature by default"
-> +       depends on OVERLAY_FS
-> +       depends on OVERLAY_FS_METACOPY
-> +       help
-> +         If this config option is enabled then overlay filesystems will
-> +         try to copy fs-verity digests from the lower file into the
-> +         metacopy file at metadata copy-up time. It is still possible
-> +         to turn off this feature globally with the "verity=off"
-> +         module option or on a filesystem instance basis with the
-> +         "verity=off" or "verity=validate" mount option.
-> +
-> +         If unsure, say N.
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index a7b1006c5321..f759e476dfc7 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -13,6 +13,10 @@ struct ovl_config {
->         bool redirect_dir;
->         bool redirect_follow;
->         const char *redirect_mode;
-> +       bool verity_validate;
-> +       bool verity_generate;
-> +       bool verity_require;
-> +       const char *verity_mode;
->         bool index;
->         bool uuid;
->         bool nfs_export;
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index ef78abc21998..953d76f6a1e3 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -59,6 +59,11 @@ module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
->  MODULE_PARM_DESC(metacopy,
->                  "Default to on or off for the metadata only copy up feature");
->
-> +static bool ovl_verity_def = IS_ENABLED(CONFIG_OVERLAY_FS_VERITY);
-> +module_param_named(verity, ovl_verity_def, bool, 0644);
-> +MODULE_PARM_DESC(verity,
-> +                "Default to on or validate for the metadata only copy up feature");
-> +
->  static struct dentry *ovl_d_real(struct dentry *dentry,
->                                  const struct inode *inode)
->  {
-> @@ -235,6 +240,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
->         kfree(ofs->config.upperdir);
->         kfree(ofs->config.workdir);
->         kfree(ofs->config.redirect_mode);
-> +       kfree(ofs->config.verity_mode);
->         if (ofs->creator_cred)
->                 put_cred(ofs->creator_cred);
->         kfree(ofs);
-> @@ -325,6 +331,11 @@ static const char *ovl_redirect_mode_def(void)
->         return ovl_redirect_dir_def ? "on" : "off";
->  }
->
-> +static const char *ovl_verity_mode_def(void)
-> +{
-> +       return ovl_verity_def ? "on" : "validate";
-> +}
-> +
->  static const char * const ovl_xino_str[] = {
->         "off",
->         "auto",
-> @@ -374,6 +385,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
->                 seq_puts(m, ",volatile");
->         if (ofs->config.userxattr)
->                 seq_puts(m, ",userxattr");
-> +       if (strcmp(ofs->config.verity_mode, ovl_verity_mode_def()) != 0)
-> +               seq_printf(m, ",verity=%s", ofs->config.verity_mode);
->         return 0;
->  }
->
-> @@ -429,6 +442,7 @@ enum {
->         OPT_METACOPY_ON,
->         OPT_METACOPY_OFF,
->         OPT_VOLATILE,
-> +       OPT_VERITY,
->         OPT_ERR,
->  };
->
-> @@ -451,6 +465,7 @@ static const match_table_t ovl_tokens = {
->         {OPT_METACOPY_ON,               "metacopy=on"},
->         {OPT_METACOPY_OFF,              "metacopy=off"},
->         {OPT_VOLATILE,                  "volatile"},
-> +       {OPT_VERITY,                    "verity=%s"},
->         {OPT_ERR,                       NULL}
->  };
->
-> @@ -500,6 +515,25 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
->         return 0;
->  }
->
-> +static int ovl_parse_verity_mode(struct ovl_config *config, const char *mode)
-> +{
-> +       if (strcmp(mode, "validate") == 0) {
-> +               config->verity_validate = true;
-> +       } else if (strcmp(mode, "on") == 0) {
-> +               config->verity_validate = true;
-> +               config->verity_generate = true;
-> +       } else if (strcmp(mode, "require") == 0) {
-> +               config->verity_validate = true;
-> +               config->verity_generate = true;
-> +               config->verity_require = true;
-> +       } else if (strcmp(mode, "off") != 0) {
-> +               pr_err("bad mount option \"verity=%s\"\n", mode);
-> +               return -EINVAL;
-> +       }
-> +
-> +       return 0;
-> +}
-> +
->  static int ovl_parse_opt(char *opt, struct ovl_config *config)
->  {
->         char *p;
-> @@ -511,6 +545,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->         if (!config->redirect_mode)
->                 return -ENOMEM;
->
-> +       config->verity_mode = kstrdup(ovl_verity_mode_def(), GFP_KERNEL);
-> +       if (!config->verity_mode)
-> +               return -ENOMEM;
-> +
->         while ((p = ovl_next_opt(&opt)) != NULL) {
->                 int token;
->                 substring_t args[MAX_OPT_ARGS];
-> @@ -611,6 +649,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->                         config->userxattr = true;
->                         break;
->
-> +               case OPT_VERITY:
-> +                       kfree(config->verity_mode);
-> +                       config->verity_mode = match_strdup(&args[0]);
-> +                       if (!config->verity_mode)
-> +                               return -ENOMEM;
-> +                       break;
-> +
->                 default:
->                         pr_err("unrecognized mount option \"%s\" or missing value\n",
->                                         p);
-> @@ -642,6 +687,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
->         if (err)
->                 return err;
->
-> +       err = ovl_parse_verity_mode(config, config->verity_mode);
-> +       if (err)
-> +               return err;
-> +
->         /*
->          * This is to make the logic below simpler.  It doesn't make any other
->          * difference, since config->redirect_dir is only used for upper.
-> --
-> 2.39.2
->
+The overlay and vfs/fanotify patch sets are completely independent.
+The are both available on my github branch [2] and there is a simple
+LTP test variant that tests reporting fid from overlayfs [3], which
+also demonstrates the minor UAPI change of name_to_handle_at(2) for
+requesting a non-decodeable file handle by userspace.
+
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/linux-fsdevel/20230417162721.ouzs33oh6mb7vtft@quack3/
+[2] https://github.com/amir73il/linux/commits/exportfs_encode_fid
+[3] https://github.com/amir73il/ltp/commits/exportfs_encode_fid
+
+Amir Goldstein (4):
+  exportfs: change connectable argument to bit flags
+  exportfs: add explicit flag to request non-decodeable file handles
+  exportfs: allow exporting non-decodeable file handles to userspace
+  fanotify: support reporting non-decodeable file handles
+
+ Documentation/filesystems/nfs/exporting.rst |  4 +--
+ fs/exportfs/expfs.c                         | 29 ++++++++++++++++++---
+ fs/fhandle.c                                | 20 ++++++++------
+ fs/nfsd/nfsfh.c                             |  5 ++--
+ fs/notify/fanotify/fanotify.c               |  4 +--
+ fs/notify/fanotify/fanotify_user.c          |  6 ++---
+ fs/notify/fdinfo.c                          |  2 +-
+ include/linux/exportfs.h                    | 18 ++++++++++---
+ include/uapi/linux/fcntl.h                  |  5 ++++
+ 9 files changed, 67 insertions(+), 26 deletions(-)
+
+-- 
+2.34.1
+
