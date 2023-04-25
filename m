@@ -2,108 +2,311 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13700C77B61
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Apr 2023 15:33:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EC5C77B61
+	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 11:19:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231794AbjDXPdJ (ORCPT
+        id S233725AbjDYLT5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Apr 2023 11:33:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40448 "EHLO
+        Tue, 25 Apr 2023 07:19:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231908AbjDXPdH (ORCPT
+        with ESMTP id S233849AbjDYLTw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Apr 2023 11:33:07 -0400
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8D157A9E
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Apr 2023 08:32:55 -0700 (PDT)
-Received: by mail-ed1-x532.google.com with SMTP id 4fb4d7f45d1cf-506bdf29712so34424560a12.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Apr 2023 08:32:55 -0700 (PDT)
+        Tue, 25 Apr 2023 07:19:52 -0400
+Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9F35196
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Apr 2023 04:19:49 -0700 (PDT)
+Received: by mail-ej1-x629.google.com with SMTP id a640c23a62f3a-94f1a6e66c9so1024048366b.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Apr 2023 04:19:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1682350374; x=1684942374;
+        d=szeredi.hu; s=google; t=1682421588; x=1685013588;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=uAia9ZoCM3Ngt40DYLr2QLseOj/p7pPYWNkC2fjWJmw=;
-        b=qWrSGUzCxRq8qH9ciyQYay96/ootXHgah+P6qqyhGbCAQ2pJ8/OxJrzulk56To27uy
-         09RLg/kTfw37Y4n+Y6DBPHrqNJM86jTGeI+B59T2u0X1ivH2gkzn4r7IIy7tcMBPzleL
-         451KVjoReU+5shixxVPasIdCw/4ump/BEaTRo=
+        bh=r60+ZYsWi+NGG+DdYmWzo9dy0vKeQSvXXezC1r+/hAE=;
+        b=ldsvxxgdVaZld+OAuNFpEAhqK/xdSQ3y/Z9Wdpga97HK23KIE8ORkY1+TLUIdXaM6k
+         gYntA1hy4BlVPf+qlqQxkxvvM7jrUU80zH8CxE71FyKqPScqZZ2za3icVb44Wxk5YZLt
+         lUTnqr3+BUAOR912nKUXaBkhPJtE/SQhEUPXc=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682350374; x=1684942374;
+        d=1e100.net; s=20221208; t=1682421588; x=1685013588;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=uAia9ZoCM3Ngt40DYLr2QLseOj/p7pPYWNkC2fjWJmw=;
-        b=b8b3Z6tRWuk0QZ+yBAaWbZK//oAfrpCa3Lbhals9eg36lLJDPrPaFDC3VgFXWIdvAd
-         bP4NHkbJ2WSysk8ekL2kdfAfeSS78WJ36GF5d0iKASYJFGjFtG5obp+xHwwY5uGm79MW
-         UR9sUXRKAdrTGkyIfFWuwtxxg5SP6WEfXoo35WVPKx0FoEI77XIh9nnbQmbENVDxziit
-         T9SOmp8jSDjLqNSbvDWz9CWlPAT0KHCVJACWHj3CwjSwsHJjXh3c8bZa2ZExT13CbAsO
-         w9hW1vtYxWzGK8Axwguc2bSxA0u8BKWBsN2R2NAz73q/XM7/V+SBAZL2h2FSN4oKAYcV
-         bcEQ==
-X-Gm-Message-State: AAQBX9edtcBatllU9iCQaoftuFr1hV/kpQcrC/JoUr9Ns1cDfTNtyV3G
-        jmx7Ok+7mQiyrJPbWcTcYAwwW9Ncw+B74CsZ7MWANJbjZAqiEiyaRc4=
-X-Google-Smtp-Source: AKy350ZlEFYElE3Cz+YrZZbx+udm5MYxX+58hoksQpdxqtGw8JQgjq/51zlo+VJfHxiyRLGkhE1nZhNtsXCZO/Kgvz0=
-X-Received: by 2002:a17:906:d1cb:b0:957:9ddd:8809 with SMTP id
- bs11-20020a170906d1cb00b009579ddd8809mr8178755ejb.35.1682350374328; Mon, 24
- Apr 2023 08:32:54 -0700 (PDT)
+        bh=r60+ZYsWi+NGG+DdYmWzo9dy0vKeQSvXXezC1r+/hAE=;
+        b=Li8iau9M2M4X598TpCUOnkZYSxa7a8YYEQs+LBg1vh9ve3n1lqhniJWGzriQmAh1WW
+         CNjEZcgWzzGsA2XhxyoFK5rjzf6/vqyZDz9nLd7wAECFXOfxWvRNkQkiCWz/0tEPcdfu
+         T5nKxe0W/6eUFfcKEAHn3Ej3gkKyQ1gAFlbWH5OD153kDvBmnQQhyGLxDJ1owr48HepF
+         f+eEzKoNhXHed6Qja3OeVoxOwytT/uBGYp6CwC0DbfaLFArmH+ZkYZyov0LCjwa3AYTe
+         MGI9wtiBumEIELTAYW/ZMkObTJlrKCAs5ZpQZCI8jvyow4MrVvMDNFNlolMRMbryicnm
+         TM+A==
+X-Gm-Message-State: AAQBX9chiympzv3P25M+w+giWFYH1VxFK0VyI2uFyRbTRA6KHNvb5ezB
+        6SPSu47kYIMdaUrxeg3e1qDWE+nTJPXZkqZ+WCNdprK2+QSdsiYLsS8Esg==
+X-Google-Smtp-Source: AKy350a63V/R7gkG4b97FpD6aBr8tOZGfYTQOnOefNAY5P2VN80a1nxZacPft76Vfdw1EB2HSnVNyQLhfc+xe0WZBtY=
+X-Received: by 2002:a17:906:4308:b0:948:a1ae:b2c4 with SMTP id
+ j8-20020a170906430800b00948a1aeb2c4mr11921985ejm.6.1682421588252; Tue, 25 Apr
+ 2023 04:19:48 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230418014037.2412394-1-drosen@google.com>
-In-Reply-To: <20230418014037.2412394-1-drosen@google.com>
+References: <cover.1681917551.git.alexl@redhat.com> <2b2c5ecaf80f810f46791a94d8638ec4027a3a0e.1681917551.git.alexl@redhat.com>
+In-Reply-To: <2b2c5ecaf80f810f46791a94d8638ec4027a3a0e.1681917551.git.alexl@redhat.com>
 From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Mon, 24 Apr 2023 17:32:42 +0200
-Message-ID: <CAJfpegtuNgbZfLiKnpzdEP0sNtCt=83NjGtBnmtvMaon2avv2w@mail.gmail.com>
-Subject: Re: [RFC PATCH bpf-next v3 00/37] FUSE BPF: A Stacked Filesystem
- Extension for FUSE
-To:     Daniel Rosenberg <drosen@google.com>
-Cc:     bpf@vger.kernel.org, Alexei Starovoitov <ast@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Joanne Koong <joannelkoong@gmail.com>,
-        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com
+Date:   Tue, 25 Apr 2023 13:19:36 +0200
+Message-ID: <CAJfpegt_=nNne51Au0AvhVwBgHBesCQ9YCC6WMGVyN6nUA_B2A@mail.gmail.com>
+Subject: Re: [PATCH 4/6] ovl: Add framework for verity support
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com,
+        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 18 Apr 2023 at 03:40, Daniel Rosenberg <drosen@google.com> wrote:
+On Thu, 20 Apr 2023 at 09:44, Alexander Larsson <alexl@redhat.com> wrote:
 >
-> These patches extend FUSE to be able to act as a stacked filesystem. This
-> allows pure passthrough, where the fuse file system simply reflects the lower
-> filesystem, and also allows optional pre and post filtering in BPF and/or the
-> userspace daemon as needed. This can dramatically reduce or even eliminate
-> transitions to and from userspace.
+> This adds the scaffolding (docs, config, mount options) for supporting
+> for a new overlay xattr "overlay.verity", which contains a fs-verity
+> digest. This is used for metacopy files, and the actual fs-verity
+> digest of the lowerdata file needs to match it. The mount option
+> "verity" specifies how this xattrs is handled.
+>
+> Unless you explicitly disable it ("verity=off") all existing xattrs
+> are validated before use. This is all that happens by default
+> ("verity=validate"), but, if you turn on verity ("verity=on") then
+> during metacopy we generate verity xattr in the upper metacopy file if
+> the source file has verity enabled. This means later accesses can
+> guarantee that the correct data is used.
+>
+> Additionally you can use "verity=require". In this mode all metacopy
+> files must have a valid verity xattr. For this to work metadata
+> copy-up must be able to create a verity xattr (so that later accesses
+> are validated). Therefore, in this mode, if the lower data file
+> doesn't have fs-verity enabled we fall back to a full copy rather than
+> a metacopy.
 
-I'll ignore BPF for now and concentrate on the passthrough aspect,
-which I understand better.
+Maybe we can reduce the number of modes.  Which mode does your use case need?
 
-The security model needs to be thought about and documented.  Think
-about this: the fuse server now delegates operations it would itself
-perform to the passthrough code in fuse.  The permissions that would
-have been checked in the context of the fuse server are now checked in
-the context of the task performing the operation.  The server may be
-able to bypass seccomp restrictions.  Files that are open on the
-backing filesystem are now hidden (e.g. lsof won't find these), which
-allows the server to obfuscate accesses to backing files.  Etc.
+>
+> Actual implementation follows in a separate commit.
+>
+> Signed-off-by: Alexander Larsson <alexl@redhat.com>
+> ---
+>  Documentation/filesystems/overlayfs.rst | 33 +++++++++++++++++
+>  fs/overlayfs/Kconfig                    | 14 +++++++
+>  fs/overlayfs/ovl_entry.h                |  4 ++
+>  fs/overlayfs/super.c                    | 49 +++++++++++++++++++++++++
+>  4 files changed, 100 insertions(+)
+>
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+> index c8e04a4f0e21..66895bf71cd1 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -403,6 +403,39 @@ when a "metacopy" file in one of the lower layers above it, has a "redirect"
+>  to the absolute path of the "lower data" file in the "data-only" lower layer.
+>
+>
+> +fs-verity support
+> +----------------------
+> +
+> +When metadata copy up is used for a file, then the xattr
+> +"trusted.overlay.verity" may be set on the metacopy file. This
+> +specifies the expected fs-verity digest of the lowerdata file. This
+> +may then be used to verify the content of the source file at the time
+> +the file is opened. If enabled, overlayfs can also set this xattr
+> +during metadata copy up.
+> +
+> +This is controlled by the "verity" mount option, which supports
+> +these values:
+> +
+> +- "off":
+> +    The verity xattr is never used.
+> +- "validate":
+> +    Whenever a metacopy files specifies an expected digest, the
+> +    corresponding data file must match the specified digest.
+> +- "on":
+> +    Same as validate, but additionally, when generating a metacopy
+> +    file the verity xattr will be set from the source file fs-verity
+> +    digest (if it has one).
+> +- "require":
+> +    Same as "on", but additionally all metacopy files must specify a
+> +    verity xattr. Additionally metadata copy up will only be used if
+> +    the data file has fs-verity enabled, otherwise a full copy-up is
+> +    used.
+> +
+> +There are two ways to tune the default behaviour. The kernel config
+> +option OVERLAY_FS_VERITY, or the module option "verity=BOOL". If
+> +either of these are enabled, then verity mode is "on" by default,
+> +otherwise it is "validate".
 
-These are not particularly worrying if the server is privileged, but
-fuse comes with the history of supporting unprivileged servers, so we
-should look at supporting passthrough with unprivileged servers as
-well.
+I'm not sure that enabling verity by default is safe.  E.g. a script
+mounts overalyfs but doesn't set the verity mount, since it's on by
+default.  Then the script is moved to a different system where the
+default is off, which will result in verity not being enabled, even
+though that was not intended.  Is there an advantage to allowing to
+change the default?  I know it's done for most of the overlayfs
+options, but I think this is different.
 
-My other generic comment is that you should add justification for
-doing this in the first place.  I guess it's mainly performance.  So
-how performance can be won in real life cases?   It would also be good
-to measure the contribution of individual ops to that win.   Is there
-another reason for this besides performance?
-
-Thanks,
-Miklos
+> +
+>  Sharing and copying layers
+>  --------------------------
+>
+> diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> index 6708e54b0e30..98d6b1a7baf5 100644
+> --- a/fs/overlayfs/Kconfig
+> +++ b/fs/overlayfs/Kconfig
+> @@ -124,3 +124,17 @@ config OVERLAY_FS_METACOPY
+>           that doesn't support this feature will have unexpected results.
+>
+>           If unsure, say N.
+> +
+> +config OVERLAY_FS_VERITY
+> +       bool "Overlayfs: turn on verity feature by default"
+> +       depends on OVERLAY_FS
+> +       depends on OVERLAY_FS_METACOPY
+> +       help
+> +         If this config option is enabled then overlay filesystems will
+> +         try to copy fs-verity digests from the lower file into the
+> +         metacopy file at metadata copy-up time. It is still possible
+> +         to turn off this feature globally with the "verity=off"
+> +         module option or on a filesystem instance basis with the
+> +         "verity=off" or "verity=validate" mount option.
+> +
+> +         If unsure, say N.
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index a7b1006c5321..f759e476dfc7 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -13,6 +13,10 @@ struct ovl_config {
+>         bool redirect_dir;
+>         bool redirect_follow;
+>         const char *redirect_mode;
+> +       bool verity_validate;
+> +       bool verity_generate;
+> +       bool verity_require;
+> +       const char *verity_mode;
+>         bool index;
+>         bool uuid;
+>         bool nfs_export;
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index ef78abc21998..953d76f6a1e3 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -59,6 +59,11 @@ module_param_named(metacopy, ovl_metacopy_def, bool, 0644);
+>  MODULE_PARM_DESC(metacopy,
+>                  "Default to on or off for the metadata only copy up feature");
+>
+> +static bool ovl_verity_def = IS_ENABLED(CONFIG_OVERLAY_FS_VERITY);
+> +module_param_named(verity, ovl_verity_def, bool, 0644);
+> +MODULE_PARM_DESC(verity,
+> +                "Default to on or validate for the metadata only copy up feature");
+> +
+>  static struct dentry *ovl_d_real(struct dentry *dentry,
+>                                  const struct inode *inode)
+>  {
+> @@ -235,6 +240,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+>         kfree(ofs->config.upperdir);
+>         kfree(ofs->config.workdir);
+>         kfree(ofs->config.redirect_mode);
+> +       kfree(ofs->config.verity_mode);
+>         if (ofs->creator_cred)
+>                 put_cred(ofs->creator_cred);
+>         kfree(ofs);
+> @@ -325,6 +331,11 @@ static const char *ovl_redirect_mode_def(void)
+>         return ovl_redirect_dir_def ? "on" : "off";
+>  }
+>
+> +static const char *ovl_verity_mode_def(void)
+> +{
+> +       return ovl_verity_def ? "on" : "validate";
+> +}
+> +
+>  static const char * const ovl_xino_str[] = {
+>         "off",
+>         "auto",
+> @@ -374,6 +385,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+>                 seq_puts(m, ",volatile");
+>         if (ofs->config.userxattr)
+>                 seq_puts(m, ",userxattr");
+> +       if (strcmp(ofs->config.verity_mode, ovl_verity_mode_def()) != 0)
+> +               seq_printf(m, ",verity=%s", ofs->config.verity_mode);
+>         return 0;
+>  }
+>
+> @@ -429,6 +442,7 @@ enum {
+>         OPT_METACOPY_ON,
+>         OPT_METACOPY_OFF,
+>         OPT_VOLATILE,
+> +       OPT_VERITY,
+>         OPT_ERR,
+>  };
+>
+> @@ -451,6 +465,7 @@ static const match_table_t ovl_tokens = {
+>         {OPT_METACOPY_ON,               "metacopy=on"},
+>         {OPT_METACOPY_OFF,              "metacopy=off"},
+>         {OPT_VOLATILE,                  "volatile"},
+> +       {OPT_VERITY,                    "verity=%s"},
+>         {OPT_ERR,                       NULL}
+>  };
+>
+> @@ -500,6 +515,25 @@ static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
+>         return 0;
+>  }
+>
+> +static int ovl_parse_verity_mode(struct ovl_config *config, const char *mode)
+> +{
+> +       if (strcmp(mode, "validate") == 0) {
+> +               config->verity_validate = true;
+> +       } else if (strcmp(mode, "on") == 0) {
+> +               config->verity_validate = true;
+> +               config->verity_generate = true;
+> +       } else if (strcmp(mode, "require") == 0) {
+> +               config->verity_validate = true;
+> +               config->verity_generate = true;
+> +               config->verity_require = true;
+> +       } else if (strcmp(mode, "off") != 0) {
+> +               pr_err("bad mount option \"verity=%s\"\n", mode);
+> +               return -EINVAL;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+>  static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>  {
+>         char *p;
+> @@ -511,6 +545,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>         if (!config->redirect_mode)
+>                 return -ENOMEM;
+>
+> +       config->verity_mode = kstrdup(ovl_verity_mode_def(), GFP_KERNEL);
+> +       if (!config->verity_mode)
+> +               return -ENOMEM;
+> +
+>         while ((p = ovl_next_opt(&opt)) != NULL) {
+>                 int token;
+>                 substring_t args[MAX_OPT_ARGS];
+> @@ -611,6 +649,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>                         config->userxattr = true;
+>                         break;
+>
+> +               case OPT_VERITY:
+> +                       kfree(config->verity_mode);
+> +                       config->verity_mode = match_strdup(&args[0]);
+> +                       if (!config->verity_mode)
+> +                               return -ENOMEM;
+> +                       break;
+> +
+>                 default:
+>                         pr_err("unrecognized mount option \"%s\" or missing value\n",
+>                                         p);
+> @@ -642,6 +687,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+>         if (err)
+>                 return err;
+>
+> +       err = ovl_parse_verity_mode(config, config->verity_mode);
+> +       if (err)
+> +               return err;
+> +
+>         /*
+>          * This is to make the logic below simpler.  It doesn't make any other
+>          * difference, since config->redirect_dir is only used for upper.
+> --
+> 2.39.2
+>
