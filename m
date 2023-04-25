@@ -2,202 +2,372 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 773BBC77B7C
-	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 13:22:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FD6AC77B61
+	for <linux-unionfs@archiver.kernel.org>; Tue, 25 Apr 2023 13:34:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234118AbjDYNWr (ORCPT
+        id S234042AbjDYNeq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 25 Apr 2023 09:22:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50574 "EHLO
+        Tue, 25 Apr 2023 09:34:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60124 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234150AbjDYNWp (ORCPT
+        with ESMTP id S233539AbjDYNeo (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 25 Apr 2023 09:22:45 -0400
-Received: from mail-wr1-x42d.google.com (mail-wr1-x42d.google.com [IPv6:2a00:1450:4864:20::42d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 390AE13C1F;
-        Tue, 25 Apr 2023 06:22:36 -0700 (PDT)
-Received: by mail-wr1-x42d.google.com with SMTP id ffacd0b85a97d-2febac9cacdso3498551f8f.1;
-        Tue, 25 Apr 2023 06:22:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682428954; x=1685020954;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=k8rtXwAOvwWhj9+w9vh8bXBpUv7WQrAKy9uaYdSbf6A=;
-        b=RPQ6oXXsgdWvs7D+BjdFHSuDeQ1Dbgow1h5nMxjk0T2CbxxVVh1QwmBW5jPblCUFzx
-         vmY8H6j0SazAHG4OBsGbHBwMZ2AB2RyrZwCgKcJa78m2UHqtwthqq1LIp7+DBmV7wtcJ
-         E9rtEbuicAdxL5j1KBGsk/BoBornD0mrA3cVb8ysfdxI3AVmuDpAEI5idnyU1g5pYSED
-         C23KsIZQIoke1BTexVKXjM53JxFN7VSKPHonT6/stwf0ZkQSP8DxlYu3PB9NJiG9S+FZ
-         cwnH63j3C50P+or2JLWweC84XhKvUkMa+564bFC95zH2kUXUSVUEiY4X0P/hjhAEQGQU
-         obbA==
+        Tue, 25 Apr 2023 09:34:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F36349E2
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Apr 2023 06:33:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1682429614;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=z7Dj3S8NvBEE90qucZ3YW+6jOQBh0fqkqFzsKLIOh3k=;
+        b=Gmw8S7O8JKuhRIbEGWHiczjozLBBZKkmuxbYmyXZJYaHmnlvrmvUFc7BzCden5fOOMYotq
+        e39uOq1oTEifYvRuBZWF5J1kHxud6eymHMnFL4zpA2z/h+8lZgK8jS/yuCnnyFy7fKN40B
+        QzLj1TeE2JpwRtIBu3RQ57duyZKRDpw=
+Received: from mail-il1-f199.google.com (mail-il1-f199.google.com
+ [209.85.166.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-81-S_mn-jjzP0KTGH47oxN9qw-1; Tue, 25 Apr 2023 09:33:30 -0400
+X-MC-Unique: S_mn-jjzP0KTGH47oxN9qw-1
+Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-32ad2e6cf31so92930815ab.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Apr 2023 06:33:30 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682428954; x=1685020954;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20221208; t=1682429609; x=1685021609;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=k8rtXwAOvwWhj9+w9vh8bXBpUv7WQrAKy9uaYdSbf6A=;
-        b=mF1FOt9LbLoAUQyhqc7lZFIJ29jdrMnTJokhjlI9mnx0OXZMGCucev5f5E7NXSniu6
-         hKKX/nQQL/m/+p/wU95DxVxzIqiHwjKkovk6kUbU6xzTYblxSyORV8NDzvSwEwi4nREq
-         4uM6EZAqO/28SqQ9C13VQl6nzBNPzjVEgKwADCJ8hEc9+bowlg4BUDBDd02CYYp5zMSd
-         Y4CtZEqRaA6WEfUqCNiG8nqFm9CYuow9MMY0FTc5ByAelc1D5hb4WEMXJBtVq5r5uEV3
-         njxqNLTsp94pb+EFA0Bq547kQTluDF4zWX4Tr/ZL0Cbf5AqCd7TRRy3oldyz4ro9XXp/
-         RVzA==
-X-Gm-Message-State: AAQBX9cPiNklr50OrH1GWEKo5+xqp+9nd8EpHskjPdYC1SjOQJ4LVYR7
-        LLGw3iTiOZdWDei9H9MKpFY=
-X-Google-Smtp-Source: AKy350aSWuoVwaSqvDF5d2453qX5a9nWQuRqywd1cdA4dJP7+UHHSbA8FVTFftepust71sSTaMoBcw==
-X-Received: by 2002:a5d:4acb:0:b0:2f7:80d9:bb2f with SMTP id y11-20020a5d4acb000000b002f780d9bb2fmr11945213wrs.22.1682428954431;
-        Tue, 25 Apr 2023 06:22:34 -0700 (PDT)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id f12-20020adfdb4c000000b002f9ff443184sm13076973wrj.24.2023.04.25.06.22.33
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Apr 2023 06:22:34 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Subject: [RFC][PATCH 3/3] ovl: use persistent s_uuid with index=on
-Date:   Tue, 25 Apr 2023 16:22:23 +0300
-Message-Id: <20230425132223.2608226-4-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230425132223.2608226-1-amir73il@gmail.com>
-References: <20230425132223.2608226-1-amir73il@gmail.com>
+        bh=z7Dj3S8NvBEE90qucZ3YW+6jOQBh0fqkqFzsKLIOh3k=;
+        b=YZNKqASFbLVzH+Ntu5k13EirCMbkPc93xj398vtvqU2MCQxRVzInmH8KkJcb/D+Okw
+         mATyu0GT85jQB7HHSR0GWD3QXMlmxbRopGGp8Bolb50lYVDYjSIhZM0841QSdZy65srA
+         RklzJnMAtl70ul4gxYgAp4RdJnYI+8jyAS+nMXsH1ErVBzxjUwwHR2yLLkKjcf3YaVEb
+         bbuVcPs5MgGPWuXpU5jLrdA5Qj6wTxusaq3u35otBBBMsPZqqZN75SMakTcj/Q2D874W
+         2ukv2/wOX4MtT7NPL+mGTBaURGUQwGOnfxJyKrEyF1bK4/XMHV/ygej15qVBPs2Joryv
+         pviQ==
+X-Gm-Message-State: AAQBX9ev6yw2RORv52DtWLiks67jSo5K/PtC5zi2jIIUJ7JSrsITbDZJ
+        kwQXPv6PBUqUFWVsw41y6FpsB3szL9ag9HO9VgwKUG/F7JRTv9SoEd+vKmb+jAqxP+xCjKJVCNG
+        /dXH+o/nh9Pqh/QvcOdjSGJSXjJtaMv6rQ1XrHBBJErqtY78ZYQ==
+X-Received: by 2002:a92:cc4d:0:b0:328:7960:dac0 with SMTP id t13-20020a92cc4d000000b003287960dac0mr8412548ilq.0.1682429609052;
+        Tue, 25 Apr 2023 06:33:29 -0700 (PDT)
+X-Google-Smtp-Source: AKy350bsHe12ld20R6hs9nANf+XWnR8lqQT4R1DqYE3HxD10EStGdbtXeG3PVsyyePAenNhHJr5uDuS1a7Vp19ZZIDI=
+X-Received: by 2002:a92:cc4d:0:b0:328:7960:dac0 with SMTP id
+ t13-20020a92cc4d000000b003287960dac0mr8412534ilq.0.1682429608724; Tue, 25 Apr
+ 2023 06:33:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <cover.1681917551.git.alexl@redhat.com> <2b2c5ecaf80f810f46791a94d8638ec4027a3a0e.1681917551.git.alexl@redhat.com>
+ <CAJfpegt_=nNne51Au0AvhVwBgHBesCQ9YCC6WMGVyN6nUA_B2A@mail.gmail.com>
+In-Reply-To: <CAJfpegt_=nNne51Au0AvhVwBgHBesCQ9YCC6WMGVyN6nUA_B2A@mail.gmail.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Tue, 25 Apr 2023 15:33:17 +0200
+Message-ID: <CAL7ro1ErBN_VmTpe8EmDTVHBsQnZaMEhHKcbEtGy-ynkhzKcVA@mail.gmail.com>
+Subject: Re: [PATCH 4/6] ovl: Add framework for verity support
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com,
+        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-With index=on, overlayfs instances are non-migratable, meaning that
-the layers cannot be copied without breaking the index.
+On Tue, Apr 25, 2023 at 1:19=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
+>
+> On Thu, 20 Apr 2023 at 09:44, Alexander Larsson <alexl@redhat.com> wrote:
+> >
+> > This adds the scaffolding (docs, config, mount options) for supporting
+> > for a new overlay xattr "overlay.verity", which contains a fs-verity
+> > digest. This is used for metacopy files, and the actual fs-verity
+> > digest of the lowerdata file needs to match it. The mount option
+> > "verity" specifies how this xattrs is handled.
+> >
+> > Unless you explicitly disable it ("verity=3Doff") all existing xattrs
+> > are validated before use. This is all that happens by default
+> > ("verity=3Dvalidate"), but, if you turn on verity ("verity=3Don") then
+> > during metacopy we generate verity xattr in the upper metacopy file if
+> > the source file has verity enabled. This means later accesses can
+> > guarantee that the correct data is used.
+> >
+> > Additionally you can use "verity=3Drequire". In this mode all metacopy
+> > files must have a valid verity xattr. For this to work metadata
+> > copy-up must be able to create a verity xattr (so that later accesses
+> > are validated). Therefore, in this mode, if the lower data file
+> > doesn't have fs-verity enabled we fall back to a full copy rather than
+> > a metacopy.
+>
+> Maybe we can reduce the number of modes.  Which mode does your use case n=
+eed?
 
-So when indexdir exists, store a persistent uuid in xattr on the
-indexdir to give the overlayfs instance a persistent identifier.
+For composefs I typically always create images with full verity info
+so they *can* be used with verity, but I want to allow using these
+even on systems that don't support verity. So, at the very minimum
+composefs needs "verity=3Doff" (don't even try to verify anything) and
+"verity=3Drequire" (ensure all redirects have a verity xattr and it is
+valid).
 
-This also makes f_fsid persistent and more reliable for reporting
-fid info in fanotify events.
+These are kind of extremes though, and I think it makes sense to have
+something in between where not everything has to be verified.
+Currently we have both "validate" and "on". But maybe those could be
+consolidated.
 
-With mount option uuid=nogen, a persistent uuid is not be initialized
-on indexdir, but if a persistent uuid already exists, it will be used.
+> >
+> > Actual implementation follows in a separate commit.
+> >
+> > Signed-off-by: Alexander Larsson <alexl@redhat.com>
+> > ---
+> >  Documentation/filesystems/overlayfs.rst | 33 +++++++++++++++++
+> >  fs/overlayfs/Kconfig                    | 14 +++++++
+> >  fs/overlayfs/ovl_entry.h                |  4 ++
+> >  fs/overlayfs/super.c                    | 49 +++++++++++++++++++++++++
+> >  4 files changed, 100 insertions(+)
+> >
+> > diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/fi=
+lesystems/overlayfs.rst
+> > index c8e04a4f0e21..66895bf71cd1 100644
+> > --- a/Documentation/filesystems/overlayfs.rst
+> > +++ b/Documentation/filesystems/overlayfs.rst
+> > @@ -403,6 +403,39 @@ when a "metacopy" file in one of the lower layers =
+above it, has a "redirect"
+> >  to the absolute path of the "lower data" file in the "data-only" lower=
+ layer.
+> >
+> >
+> > +fs-verity support
+> > +----------------------
+> > +
+> > +When metadata copy up is used for a file, then the xattr
+> > +"trusted.overlay.verity" may be set on the metacopy file. This
+> > +specifies the expected fs-verity digest of the lowerdata file. This
+> > +may then be used to verify the content of the source file at the time
+> > +the file is opened. If enabled, overlayfs can also set this xattr
+> > +during metadata copy up.
+> > +
+> > +This is controlled by the "verity" mount option, which supports
+> > +these values:
+> > +
+> > +- "off":
+> > +    The verity xattr is never used.
+> > +- "validate":
+> > +    Whenever a metacopy files specifies an expected digest, the
+> > +    corresponding data file must match the specified digest.
+> > +- "on":
+> > +    Same as validate, but additionally, when generating a metacopy
+> > +    file the verity xattr will be set from the source file fs-verity
+> > +    digest (if it has one).
+> > +- "require":
+> > +    Same as "on", but additionally all metacopy files must specify a
+> > +    verity xattr. Additionally metadata copy up will only be used if
+> > +    the data file has fs-verity enabled, otherwise a full copy-up is
+> > +    used.
+> > +
+> > +There are two ways to tune the default behaviour. The kernel config
+> > +option OVERLAY_FS_VERITY, or the module option "verity=3DBOOL". If
+> > +either of these are enabled, then verity mode is "on" by default,
+> > +otherwise it is "validate".
+>
+> I'm not sure that enabling verity by default is safe.  E.g. a script
+> mounts overalyfs but doesn't set the verity mount, since it's on by
+> default.  Then the script is moved to a different system where the
+> default is off, which will result in verity not being enabled, even
+> though that was not intended.  Is there an advantage to allowing to
+> change the default?  I know it's done for most of the overlayfs
+> options, but I think this is different.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/overlayfs.h |  3 +++
- fs/overlayfs/super.c     |  7 +++++++
- fs/overlayfs/util.c      | 41 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 51 insertions(+)
+I sort of agree, in particular because many filesystems still don't
+support verity, or need it to be specifically enabled.
+So, what about dropping "validate" and go with modes: "off, on,
+require", where "off" is the default?
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index dcdb02d0ddf8..9927472a3aaa 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -36,6 +36,7 @@ enum ovl_xattr {
- 	OVL_XATTR_IMPURE,
- 	OVL_XATTR_NLINK,
- 	OVL_XATTR_UPPER,
-+	OVL_XATTR_UUID,
- 	OVL_XATTR_METACOPY,
- 	OVL_XATTR_PROTATTR,
- };
-@@ -431,6 +432,8 @@ bool ovl_already_copied_up(struct dentry *dentry, int flags);
- bool ovl_path_check_dir_xattr(struct ovl_fs *ofs, const struct path *path,
- 			      enum ovl_xattr ox);
- bool ovl_path_check_origin_xattr(struct ovl_fs *ofs, const struct path *path);
-+bool ovl_init_uuid_xattr(struct super_block *sb, struct ovl_fs *ofs,
-+			 struct dentry *upperdentry, bool set);
- 
- static inline bool ovl_check_origin_xattr(struct ovl_fs *ofs,
- 					  struct dentry *upperdentry)
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index ad2250f98b38..8364620e8722 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1535,6 +1535,9 @@ static int ovl_get_indexdir(struct super_block *sb, struct ovl_fs *ofs,
- 		if (err)
- 			pr_err("failed to verify index dir 'upper' xattr\n");
- 
-+		/* Best effort get or set persistent uuid */
-+		ovl_init_uuid_xattr(sb, ofs, ofs->indexdir, true);
-+
- 		/* Cleanup bad/stale/orphan index entries */
- 		if (!err)
- 			err = ovl_indexdir_cleanup(ofs);
-@@ -2052,6 +2055,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 			ovl_uuid_str[ofs->config.uuid]);
- 	}
- 
-+	/*
-+	 * This uuid may be overridden by a persistent uuid stored in xattr on
-+	 * index dir and it may be persisted in xattr on first index=on mount.
-+	 */
- 	if (ovl_want_uuid_gen(ofs))
- 		uuid_gen(&sb->s_uuid);
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 923d66d131c1..8902db4b2975 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -589,6 +589,45 @@ bool ovl_path_check_origin_xattr(struct ovl_fs *ofs, const struct path *path)
- 	return false;
- }
- 
-+/*
-+ * Load persistent uuid from xattr into s_uuid if found, possibly overriding
-+ * the random generated value in s_uuid.
-+ * Otherwise, if @set is true and s_uuid contains a valid value, store this
-+ * value in xattr.
-+ */
-+bool ovl_init_uuid_xattr(struct super_block *sb, struct ovl_fs *ofs,
-+			 struct dentry *upperdentry, bool set)
-+{
-+	struct path path = {
-+		.dentry = upperdentry,
-+		.mnt = ovl_upper_mnt(ofs),
-+	};
-+	uuid_t uuid;
-+	int res;
-+
-+	res = ovl_path_getxattr(ofs, &path, OVL_XATTR_UUID, uuid.b, UUID_SIZE);
-+	if (res == UUID_SIZE) {
-+		uuid_copy(&sb->s_uuid, &uuid);
-+		return true;
-+	}
-+
-+	if (res == -ENODATA) {
-+		if (!set || uuid_is_null(&sb->s_uuid))
-+			return false;
-+
-+		res = ovl_setxattr(ofs, upperdentry, OVL_XATTR_UUID,
-+				   sb->s_uuid.b, UUID_SIZE);
-+		if (res == 0)
-+			return true;
-+	} else {
-+		set = false;
-+	}
-+
-+	pr_warn("failed to %s uuid (%pd2, err=%i)\n",
-+		set ? "set" : "get", upperdentry, res);
-+	return false;
-+}
-+
- bool ovl_path_check_dir_xattr(struct ovl_fs *ofs, const struct path *path,
- 			       enum ovl_xattr ox)
- {
-@@ -611,6 +650,7 @@ bool ovl_path_check_dir_xattr(struct ovl_fs *ofs, const struct path *path,
- #define OVL_XATTR_IMPURE_POSTFIX	"impure"
- #define OVL_XATTR_NLINK_POSTFIX		"nlink"
- #define OVL_XATTR_UPPER_POSTFIX		"upper"
-+#define OVL_XATTR_UUID_POSTFIX		"uuid"
- #define OVL_XATTR_METACOPY_POSTFIX	"metacopy"
- #define OVL_XATTR_PROTATTR_POSTFIX	"protattr"
- 
-@@ -625,6 +665,7 @@ const char *const ovl_xattr_table[][2] = {
- 	OVL_XATTR_TAB_ENTRY(OVL_XATTR_IMPURE),
- 	OVL_XATTR_TAB_ENTRY(OVL_XATTR_NLINK),
- 	OVL_XATTR_TAB_ENTRY(OVL_XATTR_UPPER),
-+	OVL_XATTR_TAB_ENTRY(OVL_XATTR_UUID),
- 	OVL_XATTR_TAB_ENTRY(OVL_XATTR_METACOPY),
- 	OVL_XATTR_TAB_ENTRY(OVL_XATTR_PROTATTR),
- };
--- 
-2.34.1
+> > +
+> >  Sharing and copying layers
+> >  --------------------------
+> >
+> > diff --git a/fs/overlayfs/Kconfig b/fs/overlayfs/Kconfig
+> > index 6708e54b0e30..98d6b1a7baf5 100644
+> > --- a/fs/overlayfs/Kconfig
+> > +++ b/fs/overlayfs/Kconfig
+> > @@ -124,3 +124,17 @@ config OVERLAY_FS_METACOPY
+> >           that doesn't support this feature will have unexpected result=
+s.
+> >
+> >           If unsure, say N.
+> > +
+> > +config OVERLAY_FS_VERITY
+> > +       bool "Overlayfs: turn on verity feature by default"
+> > +       depends on OVERLAY_FS
+> > +       depends on OVERLAY_FS_METACOPY
+> > +       help
+> > +         If this config option is enabled then overlay filesystems wil=
+l
+> > +         try to copy fs-verity digests from the lower file into the
+> > +         metacopy file at metadata copy-up time. It is still possible
+> > +         to turn off this feature globally with the "verity=3Doff"
+> > +         module option or on a filesystem instance basis with the
+> > +         "verity=3Doff" or "verity=3Dvalidate" mount option.
+> > +
+> > +         If unsure, say N.
+> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > index a7b1006c5321..f759e476dfc7 100644
+> > --- a/fs/overlayfs/ovl_entry.h
+> > +++ b/fs/overlayfs/ovl_entry.h
+> > @@ -13,6 +13,10 @@ struct ovl_config {
+> >         bool redirect_dir;
+> >         bool redirect_follow;
+> >         const char *redirect_mode;
+> > +       bool verity_validate;
+> > +       bool verity_generate;
+> > +       bool verity_require;
+> > +       const char *verity_mode;
+> >         bool index;
+> >         bool uuid;
+> >         bool nfs_export;
+> > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> > index ef78abc21998..953d76f6a1e3 100644
+> > --- a/fs/overlayfs/super.c
+> > +++ b/fs/overlayfs/super.c
+> > @@ -59,6 +59,11 @@ module_param_named(metacopy, ovl_metacopy_def, bool,=
+ 0644);
+> >  MODULE_PARM_DESC(metacopy,
+> >                  "Default to on or off for the metadata only copy up fe=
+ature");
+> >
+> > +static bool ovl_verity_def =3D IS_ENABLED(CONFIG_OVERLAY_FS_VERITY);
+> > +module_param_named(verity, ovl_verity_def, bool, 0644);
+> > +MODULE_PARM_DESC(verity,
+> > +                "Default to on or validate for the metadata only copy =
+up feature");
+> > +
+> >  static struct dentry *ovl_d_real(struct dentry *dentry,
+> >                                  const struct inode *inode)
+> >  {
+> > @@ -235,6 +240,7 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+> >         kfree(ofs->config.upperdir);
+> >         kfree(ofs->config.workdir);
+> >         kfree(ofs->config.redirect_mode);
+> > +       kfree(ofs->config.verity_mode);
+> >         if (ofs->creator_cred)
+> >                 put_cred(ofs->creator_cred);
+> >         kfree(ofs);
+> > @@ -325,6 +331,11 @@ static const char *ovl_redirect_mode_def(void)
+> >         return ovl_redirect_dir_def ? "on" : "off";
+> >  }
+> >
+> > +static const char *ovl_verity_mode_def(void)
+> > +{
+> > +       return ovl_verity_def ? "on" : "validate";
+> > +}
+> > +
+> >  static const char * const ovl_xino_str[] =3D {
+> >         "off",
+> >         "auto",
+> > @@ -374,6 +385,8 @@ static int ovl_show_options(struct seq_file *m, str=
+uct dentry *dentry)
+> >                 seq_puts(m, ",volatile");
+> >         if (ofs->config.userxattr)
+> >                 seq_puts(m, ",userxattr");
+> > +       if (strcmp(ofs->config.verity_mode, ovl_verity_mode_def()) !=3D=
+ 0)
+> > +               seq_printf(m, ",verity=3D%s", ofs->config.verity_mode);
+> >         return 0;
+> >  }
+> >
+> > @@ -429,6 +442,7 @@ enum {
+> >         OPT_METACOPY_ON,
+> >         OPT_METACOPY_OFF,
+> >         OPT_VOLATILE,
+> > +       OPT_VERITY,
+> >         OPT_ERR,
+> >  };
+> >
+> > @@ -451,6 +465,7 @@ static const match_table_t ovl_tokens =3D {
+> >         {OPT_METACOPY_ON,               "metacopy=3Don"},
+> >         {OPT_METACOPY_OFF,              "metacopy=3Doff"},
+> >         {OPT_VOLATILE,                  "volatile"},
+> > +       {OPT_VERITY,                    "verity=3D%s"},
+> >         {OPT_ERR,                       NULL}
+> >  };
+> >
+> > @@ -500,6 +515,25 @@ static int ovl_parse_redirect_mode(struct ovl_conf=
+ig *config, const char *mode)
+> >         return 0;
+> >  }
+> >
+> > +static int ovl_parse_verity_mode(struct ovl_config *config, const char=
+ *mode)
+> > +{
+> > +       if (strcmp(mode, "validate") =3D=3D 0) {
+> > +               config->verity_validate =3D true;
+> > +       } else if (strcmp(mode, "on") =3D=3D 0) {
+> > +               config->verity_validate =3D true;
+> > +               config->verity_generate =3D true;
+> > +       } else if (strcmp(mode, "require") =3D=3D 0) {
+> > +               config->verity_validate =3D true;
+> > +               config->verity_generate =3D true;
+> > +               config->verity_require =3D true;
+> > +       } else if (strcmp(mode, "off") !=3D 0) {
+> > +               pr_err("bad mount option \"verity=3D%s\"\n", mode);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> > +       return 0;
+> > +}
+> > +
+> >  static int ovl_parse_opt(char *opt, struct ovl_config *config)
+> >  {
+> >         char *p;
+> > @@ -511,6 +545,10 @@ static int ovl_parse_opt(char *opt, struct ovl_con=
+fig *config)
+> >         if (!config->redirect_mode)
+> >                 return -ENOMEM;
+> >
+> > +       config->verity_mode =3D kstrdup(ovl_verity_mode_def(), GFP_KERN=
+EL);
+> > +       if (!config->verity_mode)
+> > +               return -ENOMEM;
+> > +
+> >         while ((p =3D ovl_next_opt(&opt)) !=3D NULL) {
+> >                 int token;
+> >                 substring_t args[MAX_OPT_ARGS];
+> > @@ -611,6 +649,13 @@ static int ovl_parse_opt(char *opt, struct ovl_con=
+fig *config)
+> >                         config->userxattr =3D true;
+> >                         break;
+> >
+> > +               case OPT_VERITY:
+> > +                       kfree(config->verity_mode);
+> > +                       config->verity_mode =3D match_strdup(&args[0]);
+> > +                       if (!config->verity_mode)
+> > +                               return -ENOMEM;
+> > +                       break;
+> > +
+> >                 default:
+> >                         pr_err("unrecognized mount option \"%s\" or mis=
+sing value\n",
+> >                                         p);
+> > @@ -642,6 +687,10 @@ static int ovl_parse_opt(char *opt, struct ovl_con=
+fig *config)
+> >         if (err)
+> >                 return err;
+> >
+> > +       err =3D ovl_parse_verity_mode(config, config->verity_mode);
+> > +       if (err)
+> > +               return err;
+> > +
+> >         /*
+> >          * This is to make the logic below simpler.  It doesn't make an=
+y other
+> >          * difference, since config->redirect_dir is only used for uppe=
+r.
+> > --
+> > 2.39.2
+> >
+>
+
+
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
 
