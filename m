@@ -2,86 +2,108 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F362C7618E
-	for <linux-unionfs@archiver.kernel.org>; Wed, 26 Apr 2023 12:39:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46D65C77B78
+	for <linux-unionfs@archiver.kernel.org>; Wed, 26 Apr 2023 13:47:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240503AbjDZMjG (ORCPT
+        id S241211AbjDZNrv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 26 Apr 2023 08:39:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47280 "EHLO
+        Wed, 26 Apr 2023 09:47:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240010AbjDZMjF (ORCPT
+        with ESMTP id S241217AbjDZNrt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 26 Apr 2023 08:39:05 -0400
-Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F2C6C26B8
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 05:39:04 -0700 (PDT)
-Received: by mail-ed1-x530.google.com with SMTP id 4fb4d7f45d1cf-506bdf29712so52996371a12.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 05:39:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1682512743; x=1685104743;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=WiJVTK8jkH0oseeeZCUccv7KlmTTWCLEzwFbGQSh0LE=;
-        b=A4mU3JAJi8QZvf8Bu9A0qCKV4HbbP4U2oJFNsEMBvtJC13odW5w8Fcloxh50tWJs5B
-         VK4JgQuHfeI11bKhgD08SPTfLCQZhl2maDNIHu24jgJGb63Lzy0gSBOfxfHvWZa0UlKQ
-         9yQITX8ZMeBwvjV1KzCsMYiTnMYJPROeOqHmY=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682512743; x=1685104743;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=WiJVTK8jkH0oseeeZCUccv7KlmTTWCLEzwFbGQSh0LE=;
-        b=E+SJ84DeOimnVHb+SYJlIXARrxxkK5dYWIOak0E1PDF9//mZ5jQBd0mbUmtr5GkjOw
-         Jl4/7COzWBBVD6qYIRNyFE86nL4wdiYa33eNhLVH9U7lZfReOv5jGSK0Sw0tihucrUhg
-         eQEqND+Fpm8rN6o88JlgmwURxnKxvffoLri5maT+Fzm1bASRDWUuDG8YpuXyK5J0Ju+f
-         t+cy/CPvPAnoW5Lx4n+cv/rjwp9KB8KZZ0+U/5dRGHaO2wp385kEfkHHAO/5Zz5Nf75O
-         h3xxk8vOyIX2Jq0HxkNef0hidUWITRkOruSY6RZB8ObRV+wFJesZCZTXKbCEWHiWjiQf
-         DLaw==
-X-Gm-Message-State: AC+VfDyhwzwEinnoYBk9l8n3Q9c+sMOCk95ih8skKi/tKx3/qyg9+twy
-        mnK5LKdKKY9mrIEfN+P+HRm9HY4KgSU+Qd8DIaCFgQ==
-X-Google-Smtp-Source: ACHHUZ4qunQI8u3+yTDkczQEBuTb3LREcEUuuYrGRR2lkK7RzhVrHh93fmgZB4tGW4I3HKHydNAGMm6kDnHUInF7lGs=
-X-Received: by 2002:a17:907:2bce:b0:94d:e2ef:1618 with SMTP id
- gv14-20020a1709072bce00b0094de2ef1618mr1984070ejc.7.1682512743467; Wed, 26
- Apr 2023 05:39:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230408164302.1392694-1-amir73il@gmail.com> <20230408164302.1392694-8-amir73il@gmail.com>
-In-Reply-To: <20230408164302.1392694-8-amir73il@gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Wed, 26 Apr 2023 14:38:52 +0200
-Message-ID: <CAJfpegu3HBQyKkUFmYywwKqifwWVO6CYjt3O0WiEdzUirjt9mA@mail.gmail.com>
-Subject: Re: [PATCH 7/7] ovl: replace lowerdata inode reference with lowerdata redirect
+        Wed, 26 Apr 2023 09:47:49 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1CF12108;
+        Wed, 26 Apr 2023 06:47:45 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 55E7862C99;
+        Wed, 26 Apr 2023 13:47:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6EAFC433D2;
+        Wed, 26 Apr 2023 13:47:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1682516864;
+        bh=BeQTHSgn73mgmnwOUhFvCFWNIQI7Fzt95A2oYI6JAVU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=hGIBv6jgEkOMCRHIO2QoFmdaFfllJS5HHYOEltqpcJDSiMJDYbfbdz0YoqhuieIit
+         4MbhvwfQFB2AnICy+pWO4vP/JcvQRxovDM5V09Ee9HmXesFUoJ0DjwMsxyMZqPy9lZ
+         3E1c/3Txqs0+trwliJIpplhKByGavEAgHpnA7iEFKPUiwfvZeNMdvjqCZdD7kUiCKZ
+         L18+gOq7p+V2QmcNutl4pgiIsaIVfOks6rmgUUqqbb6f2zO15Y1cJtIEr6OQ/1CtIu
+         hETi+o+0IuJKnx31EHUSeK1sQQDbsb8TGmgSnsefo247RF85bwA9Y6PFZWwZzIiNgm
+         jQdMBe8wh4W1A==
+Date:   Wed, 26 Apr 2023 09:47:41 -0400
+From:   Chuck Lever <cel@kernel.org>
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-api@vger.kernel.org, linux-nfs@vger.kernel.org,
+        jlayton@kernel.org
+Subject: Re: [RFC][PATCH 0/4] Prepare for supporting more filesystems with
+ fanotify
+Message-ID: <ZEkrfVEQ8EkmUcxK@manet.1015granger.net>
+References: <20230425130105.2606684-1-amir73il@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230425130105.2606684-1-amir73il@gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, 8 Apr 2023 at 18:43, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> Now that we have the entire lower stack in ovl_inode, we do not
-> need to hold another reference to the lowerdata inode.
->
-> Instead, use the vacant ovl_inode space as a place holder for lowerdata
-> redirect path from the metacopy to lowerdata, which is going to be used
-> later on for lazy lowerdata lookup.
+On Tue, Apr 25, 2023 at 04:01:01PM +0300, Amir Goldstein wrote:
+> Jan,
+> 
+> Following up on the FAN_REPORT_ANY_FID proposal [1], here is a shot at an
+> alternative proposal to seamlessly support more filesystems.
+> 
+> While fanotify relaxes the requirements for filesystems to support
+> reporting fid to require only the ->encode_fh() operation, there are
+> currently no new filesystems that meet the relaxed requirements.
+> 
+> I will shortly post patches that allow overlayfs to meet the new
+> requirements with default overlay configurations.
+> 
+> The overlay and vfs/fanotify patch sets are completely independent.
+> The are both available on my github branch [2] and there is a simple
+> LTP test variant that tests reporting fid from overlayfs [3], which
+> also demonstrates the minor UAPI change of name_to_handle_at(2) for
+> requesting a non-decodeable file handle by userspace.
+> 
+> Thanks,
+> Amir.
+> 
+> [1] https://lore.kernel.org/linux-fsdevel/20230417162721.ouzs33oh6mb7vtft@quack3/
+> [2] https://github.com/amir73il/linux/commits/exportfs_encode_fid
+> [3] https://github.com/amir73il/ltp/commits/exportfs_encode_fid
+> 
+> Amir Goldstein (4):
+>   exportfs: change connectable argument to bit flags
+>   exportfs: add explicit flag to request non-decodeable file handles
+>   exportfs: allow exporting non-decodeable file handles to userspace
+>   fanotify: support reporting non-decodeable file handles
+> 
+>  Documentation/filesystems/nfs/exporting.rst |  4 +--
+>  fs/exportfs/expfs.c                         | 29 ++++++++++++++++++---
+>  fs/fhandle.c                                | 20 ++++++++------
+>  fs/nfsd/nfsfh.c                             |  5 ++--
+>  fs/notify/fanotify/fanotify.c               |  4 +--
+>  fs/notify/fanotify/fanotify_user.c          |  6 ++---
+>  fs/notify/fdinfo.c                          |  2 +-
+>  include/linux/exportfs.h                    | 18 ++++++++++---
+>  include/uapi/linux/fcntl.h                  |  5 ++++
+>  9 files changed, 67 insertions(+), 26 deletions(-)
 
-Seems like this patch is combining two independent changes into one.
-Could this be spit into
+Hello Amir-
 
-  - remove lowerdata
-  - add lowerdata_redirect
+Note that the maintainers of exportfs are Jeff and myself. Please
+copy us on future versions of this patch series. Thanks!
 
-?
+[cel@klimt even-releases]$ scripts/get_maintainer.pl fs/exportfs/
+Chuck Lever <chuck.lever@oracle.com> (supporter:KERNEL NFSD, SUNRPC, AND LOCKD SERVERS)
+Jeff Layton <jlayton@kernel.org> (supporter:KERNEL NFSD, SUNRPC, AND LOCKD SERVERS)
+linux-nfs@vger.kernel.org (open list:KERNEL NFSD, SUNRPC, AND LOCKD SERVERS)
+linux-kernel@vger.kernel.org (open list)
 
-
-
-> +               /* Store lowerdata redirect for lazy lookup */
-> +               if (ctr > 1 && !d.is_dir && !stack[ctr - 1].dentry) {
-
- So lazy lookup will be signaled with a NULL dentry?  This should be
-spelled out in the patch header.
-
-Thanks,
-Miklos
