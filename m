@@ -2,70 +2,92 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C640CC7618E
-	for <linux-unionfs@archiver.kernel.org>; Wed, 26 Apr 2023 21:47:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 190E2C77B7C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 26 Apr 2023 23:07:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239052AbjDZVrt (ORCPT
+        id S236056AbjDZXHY (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 26 Apr 2023 17:47:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60746 "EHLO
+        Wed, 26 Apr 2023 19:07:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231915AbjDZVrr (ORCPT
+        with ESMTP id S233809AbjDZXHX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 26 Apr 2023 17:47:47 -0400
+        Wed, 26 Apr 2023 19:07:23 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9715120
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 14:47:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 059BE2694;
+        Wed, 26 Apr 2023 16:07:22 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4EC1761565
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 21:47:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EE9DC433EF;
-        Wed, 26 Apr 2023 21:47:45 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8B97363998;
+        Wed, 26 Apr 2023 23:07:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id DA025C4339C;
+        Wed, 26 Apr 2023 23:07:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682545665;
-        bh=xzooVPlLJGbbf0vgExnpBPZ3keOfqQYgMfnBZepoFgs=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=py9DvG0n6cx82FF7vhrHlUSbJ/hI0LxtPfwQRbtw5aNK9hO3Pub2d76nAEZQeTqDw
-         PhY0ZkHeRw7isV0+AaQZYyKBO5vbKLARcU7jPbOcxkBMiKbm03W/eqzrCnE8bFP7oF
-         SnRlp1cqDid78ww5Ni5/u5lG9gscpnh5jPnbNkAz5SUnprTcaca4VJMOJnvzM/WE9g
-         HAsznfDm0Bp9Jqi5qtPztiN8oZMqaJiEldfS0qLEZArYeLv60//uNlcpm32XzyWY2H
-         Umc9x3oyQ2GRK3zTcvJiUwUnYIQ8e2nYmR7xCxRikwul+lsoIFWV1Ck09pZZPOJRWP
-         DMHbab7zntbLg==
-Date:   Wed, 26 Apr 2023 14:47:43 -0700
-From:   Eric Biggers <ebiggers@kernel.org>
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
-Subject: Re: [PATCH 5/6] ovl: Validate verity xattr when resolving lowerdata
-Message-ID: <20230426214743.GA58528@sol.localdomain>
-References: <cover.1681917551.git.alexl@redhat.com>
- <df41e9dc96ddad9f9e1e684e39c28f4e097e9d9b.1681917551.git.alexl@redhat.com>
+        s=k20201202; t=1682550440;
+        bh=71/XsA8gAmo1yutYZ1cS0twFrW61Rssu2AmOx0Z5eqs=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=LCsCJGnd35MidYfxnMlF2ceb389n1B9U+KnzrgVKwgz5bAx1JzOufQeZ/SGRGVkkX
+         AkwL7o7IUXB84i3Vrp+2dYvTEB2raGyt1bPfIePkPzimyVl0QF0nykjXoFPdK/iGyF
+         xmS+0hcVEEqQ/mzOQIEuWBo+aNi0OdLZoD2sU5j7TMMHl0xiWsv3YDVAgdm/lv4bBl
+         2hkD0FnZL1h9SA7ETWRkHuT5vigtQxRgpaiySgxZcycuzc9OCObp4SvRjW6CqNYxGL
+         A85Yr6YutIEXIGmgBh1OeDzgtzNYHzp8kT1wAHqE0jDNsJNShVauqRfHNLAzt5GYDW
+         hhMvyD5bq6lZw==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B47F5E270D8;
+        Wed, 26 Apr 2023 23:07:20 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <df41e9dc96ddad9f9e1e684e39c28f4e097e9d9b.1681917551.git.alexl@redhat.com>
+Content-Transfer-Encoding: 8bit
+Subject: Re: [f2fs-dev] [PATCH v3 00/10] acl: drop posix acl handlers from xattr
+ handlers
+From:   patchwork-bot+f2fs@kernel.org
+Message-Id: <168255044073.16014.8337870090900748986.git-patchwork-notify@kernel.org>
+Date:   Wed, 26 Apr 2023 23:07:20 +0000
+References: <20230125-fs-acl-remove-generic-xattr-handlers-v3-0-f760cc58967d@kernel.org>
+In-Reply-To: <20230125-fs-acl-remove-generic-xattr-handlers-v3-0-f760cc58967d@kernel.org>
+To:     Christian Brauner <brauner@kernel.org>
+Cc:     linux-fsdevel@vger.kernel.org, hch@lst.de,
+        linux-unionfs@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net,
+        linux-mtd@lists.infradead.org, viro@zeniv.linux.org.uk,
+        linux-ext4@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+        sforshee@kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 20, 2023 at 09:44:04AM +0200, Alexander Larsson wrote:
-> +	err = fsverity_get_digest(d_inode(datapath->dentry), actual_digest, &verity_algo);
-> +	if (err < 0) {
-> +		pr_warn_ratelimited("lower file '%pd' has no fs-verity digest\n", datapath->dentry);
-> +		return -EIO;
-> +	}
-> +
-> +	if (digest_len != hash_digest_size[verity_algo] ||
-> +	    memcmp(required_digest, actual_digest, digest_len) != 0) {
-> +		pr_warn_ratelimited("lower file '%pd' has the wrong fs-verity digest\n",
-> +				    datapath->dentry);
-> +		return -EIO;
-> +	}
-> +
-> +	return 0;
+Hello:
 
-This is incorrect because the digest algorithm is not being compared.
+This patch was applied to jaegeuk/f2fs.git (dev)
+by Christian Brauner (Microsoft) <brauner@kernel.org>:
 
-- Eric
+On Wed, 01 Feb 2023 14:14:51 +0100 you wrote:
+> Hey everyone,
+> 
+> After we finished the introduction of the new posix acl api last cycle
+> we still left the generic POSIX ACL xattr handlers around in the
+> filesystems xattr handlers for two reasons:
+> 
+> (1) Because a few filesystems rely on the ->list() method of the generic
+>     POSIX ACL xattr handlers in their ->listxattr() inode operation.
+> (2) POSIX ACLs are only available if IOP_XATTR is raised. The IOP_XATTR
+>     flag is raised in inode_init_always() based on whether the
+>     sb->s_xattr pointer is non-NULL. IOW, the registered xattr handlers
+>     of the filesystem are used to raise IOP_XATTR.
+>     If we were to remove the generic POSIX ACL xattr handlers from all
+>     filesystems we would risk regressing filesystems that only implement
+>     POSIX ACL support and no other xattrs (nfs3 comes to mind).
+> 
+> [...]
+
+Here is the summary with links:
+  - [f2fs-dev,v3,05/10] fs: simplify ->listxattr() implementation
+    https://git.kernel.org/jaegeuk/f2fs/c/a5488f29835c
+
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
