@@ -2,149 +2,106 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3DDCC77B73
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 06:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43F5AC77B61
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 06:32:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242920AbjD0G3k (ORCPT
+        id S233120AbjD0Gc2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 02:29:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39808 "EHLO
+        Thu, 27 Apr 2023 02:32:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242951AbjD0G3k (ORCPT
+        with ESMTP id S233083AbjD0Gc0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 02:29:40 -0400
-Received: from mail-vs1-xe32.google.com (mail-vs1-xe32.google.com [IPv6:2607:f8b0:4864:20::e32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C212422B
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 23:29:39 -0700 (PDT)
-Received: by mail-vs1-xe32.google.com with SMTP id ada2fe7eead31-42e35b7290fso2997905137.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 23:29:39 -0700 (PDT)
+        Thu, 27 Apr 2023 02:32:26 -0400
+Received: from mail-ua1-x932.google.com (mail-ua1-x932.google.com [IPv6:2607:f8b0:4864:20::932])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CE9C210A
+        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 23:32:25 -0700 (PDT)
+Received: by mail-ua1-x932.google.com with SMTP id a1e0cc1a2514c-7782debbc4bso5322833241.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 26 Apr 2023 23:32:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682576978; x=1685168978;
+        d=gmail.com; s=20221208; t=1682577144; x=1685169144;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=sEzqtB3HJTKeyXatyO56vK9yTZyCXQxsIoja3ZfinvQ=;
-        b=E/5gjj61UauCm30en12z5ffsK7y4p9MbL+N2qDeAHBtDafN0rBPAvbt0rWIbHHTWlw
-         JOA4/xcfDbfnTGhV2nU4twZk9FgLJe6Npt78HDq466joeyCfSN0YnkjAa75NkRPvhnPS
-         KTgxW9LYoVNdVBQL0sf1dit676KbtMZ9W8q0YR3z3jPfgj5AHTx5mevT9Eagz8lu5TcO
-         pozEg4/Z8vLB+mndt1cWdjYzvgs5+XFBEl/1nTiGAOowgjjJ5bybBEc4jcSXiQXKhfzd
-         VPfXs/a9AkONFtag5KlNBu4+VTRtSrYcm74Ut/L2h5x1tFAjZThSf4cxf8oLLXFNRutm
-         Pxpg==
+        bh=nYPuMBT40eG8szrpwX7JJCcnMbJolGw+oh7yUYYVFH8=;
+        b=Q2KacqkObR3EXTVDvAyBCc90tWJMSW9mlrbm17g5crp8gZNmLt9gxJIYAa759lQ2mz
+         ki/Rf5Y7lbj1BTyqTjC3ql+0IGoUpocVUCKc3fKZnNZDT+m+s7M2DReqSO+m5pKkQBWg
+         gtD7+9aS2c04H+PiPQIamHA8gTY+asS8hvsllGuvwIwtWauSbeaOML+t5BxKSSG9O4z3
+         xvqVHYoyj5E/Qj8bAOSls1bC33fTwbrMYuSHcM+fbGbbPqZU6Q2Whu3r/0QEsUR9wYaz
+         G4yXIA5KJUoPy5ttQvCWEj/P3zMkFbzKGpeVVPtJtHy/12vfNmUWQtCy3LxnpOZ6pAB9
+         2sTA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682576978; x=1685168978;
+        d=1e100.net; s=20221208; t=1682577144; x=1685169144;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=sEzqtB3HJTKeyXatyO56vK9yTZyCXQxsIoja3ZfinvQ=;
-        b=U5vVcVjtPVTzq4qWbnK7zE++AC+PVhKyIYvlOjFNXxrIBJU22gTKW+Q+MQZF4xoGDm
-         8E92zh2CD6DIa61KOdkSkqiI9AqNOHw1slGuk/oNbRFjRSbnu1/aWEwO5An2OY7U5OzI
-         xp7mJXvwPNcXNkNuqVUW+Xfr2eXWK/ed7aA4QX86TbgEYfIt0Q5pZSLjy6Jst4W8FuhP
-         /twUKt6JAPLPxfzbBHPUHaGw0DJK9Vv0bKshmf1dxN9HFw22m5XRhBr8MlgkouWUtKoa
-         wmmFqNNhV3biCmhrinG+KOEH0XsOmI8pcJvELGOeyeJxvZHzb8NBVKaR5aEgRAJxGHnY
-         lbug==
-X-Gm-Message-State: AC+VfDw8P7FTiogEvHrqXnRXGNqn4UU4Y+EId5yAuNkMXa2osIpTJoA7
-        dVWLzUeV1NLkx64/PxHS2aU1E59iy3KHsF+Cv+8C+4x7Tiw=
-X-Google-Smtp-Source: ACHHUZ4+BBzsLNPlSAW9S0x+4SXdpuxAjLS7ne3duozduX7EmhFNiNQOp1hp/x5k4RuYH8nyocXSEraVk/SV/lkZS9E=
-X-Received: by 2002:a67:eb14:0:b0:42e:549d:617d with SMTP id
- a20-20020a67eb14000000b0042e549d617dmr248193vso.7.1682576978012; Wed, 26 Apr
- 2023 23:29:38 -0700 (PDT)
+        bh=nYPuMBT40eG8szrpwX7JJCcnMbJolGw+oh7yUYYVFH8=;
+        b=HxtuXX8xoEptBtrh0Jb4CaU1JKj82EsVki7btGpH1auBg3G/EwdTbjzF7/wbpyrOYO
+         4URhWxBKFEFOG3vYv/YSoj/NTIufqCgHh+8GxdRoDsAttGW8zdBrHP/U+UtZki0bJAx1
+         w9t3uX/otXyQeNrtObD7QdJlKpSoCeOmm+Z6YxMsvPUdUkXU9nqI5+ZYg93pvL3xbLip
+         m+Qv4CYJmCMrWabijLHJPiyNJzeIUomXkUMb3JmQGvfduV3mAnHXwA0AIM3xYegbj4eJ
+         0aOqUg+vkHm7DfIbc+A19bO2sh1zMR4JsoxT3WziPhbnaLoZlCaDS9aSRtFvikNInCz9
+         GUJw==
+X-Gm-Message-State: AC+VfDzl9e2zPp+9pB5ig2GmELihTlbA2TthkuD0wNThVBdkhYkAyPaE
+        MIwhUHzU9f7f+Jf2sz6cyJ5tV+vh2V4h7+BcdiWIGhUxD0FKfg==
+X-Google-Smtp-Source: ACHHUZ6YRKYLk3loyfocKiY4Lq2wEWKtoWSXee7Qby4jEgLLShYs/JoRIaXFL4edYrIL3BS7qjjRU5e+8qc04a7QXh4=
+X-Received: by 2002:a67:f58e:0:b0:42e:4fb0:af1b with SMTP id
+ i14-20020a67f58e000000b0042e4fb0af1bmr294191vso.34.1682577144646; Wed, 26 Apr
+ 2023 23:32:24 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230408164302.1392694-1-amir73il@gmail.com> <20230408164302.1392694-7-amir73il@gmail.com>
- <e46a122924384758e784db584c21c56358c88390.camel@redhat.com>
-In-Reply-To: <e46a122924384758e784db584c21c56358c88390.camel@redhat.com>
+References: <20230408164302.1392694-1-amir73il@gmail.com> <20230408164302.1392694-8-amir73il@gmail.com>
+ <CAJfpegu3HBQyKkUFmYywwKqifwWVO6CYjt3O0WiEdzUirjt9mA@mail.gmail.com>
+In-Reply-To: <CAJfpegu3HBQyKkUFmYywwKqifwWVO6CYjt3O0WiEdzUirjt9mA@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 27 Apr 2023 09:29:27 +0300
-Message-ID: <CAOQ4uxh5f_rX9KbwrKtGUp_QV8LN7jMkC1bYwNi7Cji0UPmz3A@mail.gmail.com>
-Subject: Re: [PATCH 6/7] ovl: deduplicate lowerpath and lowerstack[0]
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Date:   Thu, 27 Apr 2023 09:32:13 +0300
+Message-ID: <CAOQ4uxiibBpK28QsqhNgsT7wcfd2H14cWJfq7xEkpN4hTd-AHA@mail.gmail.com>
+Subject: Re: [PATCH 7/7] ovl: replace lowerdata inode reference with lowerdata redirect
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 18, 2023 at 11:10=E2=80=AFAM Alexander Larsson <alexl@redhat.co=
-m> wrote:
+On Wed, Apr 26, 2023 at 3:39=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
 >
-> On Sat, 2023-04-08 at 19:43 +0300, Amir Goldstein wrote:
-> > For the common case of single lower layer, embed ovl_entry with a
-> > single lower path in ovl_inode, so no stack allocation is needed.
+> On Sat, 8 Apr 2023 at 18:43, Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > For directory with more than single lower layer and for regular file
-> > with lowerdata, the lower stack is stored in an external allocation.
+> > Now that we have the entire lower stack in ovl_inode, we do not
+> > need to hold another reference to the lowerdata inode.
 > >
-> > Use accessor ovl_lowerstack() to get the embedded or external stack.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > Instead, use the vacant ovl_inode space as a place holder for lowerdata
+> > redirect path from the metacopy to lowerdata, which is going to be used
+> > later on for lazy lowerdata lookup.
 >
-> Reviewed-by: Alexander Larsson <alexl@redhat.com>
+> Seems like this patch is combining two independent changes into one.
+> Could this be spit into
 >
-> > ---
-> >  fs/overlayfs/dir.c       |  2 ++
-> >  fs/overlayfs/export.c    | 18 +++++----------
-> >  fs/overlayfs/inode.c     | 12 ++++------
-> >  fs/overlayfs/namei.c     | 15 +++++--------
-> >  fs/overlayfs/overlayfs.h | 10 +++++----
-> >  fs/overlayfs/ovl_entry.h | 14 +++++++-----
-> >  fs/overlayfs/super.c     | 41 +++++++++++++---------------------
-> >  fs/overlayfs/util.c      | 48 +++++++++++++++++++++++++++++---------
-> > --
-> >  8 files changed, 81 insertions(+), 79 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> > index 92bdcedfaaec..aa0465c61064 100644
-> > --- a/fs/overlayfs/dir.c
-> > +++ b/fs/overlayfs/dir.c
-> > @@ -262,9 +262,11 @@ static int ovl_set_opaque(struct dentry *dentry,
-> > struct dentry *upperdentry)
-> >  static int ovl_instantiate(struct dentry *dentry, struct inode
-> > *inode,
-> >                            struct dentry *newdentry, bool hardlink)
-> >  {
-> > +       struct ovl_entry oe =3D {};
-> >         struct ovl_inode_params oip =3D {
-> >                 .upperdentry =3D newdentry,
-> >                 .newinode =3D inode,
-> > +               .oe =3D &oe,
-> >         };
-> >
-> >         ovl_dir_modified(dentry->d_parent, false);
-> > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> > index d4caf57c8e17..9951c504fb8d 100644
-> > --- a/fs/overlayfs/export.c
-> > +++ b/fs/overlayfs/export.c
-> > @@ -287,30 +287,22 @@ static struct dentry *ovl_obtain_alias(struct
-> > super_block *sb,
-> >         struct dentry *upper =3D upper_alias ?: index;
-> >         struct dentry *dentry;
-> >         struct inode *inode =3D NULL;
-> > -       struct ovl_entry *oe;
-> > +       struct ovl_entry oe;
-> >         struct ovl_inode_params oip =3D {
-> > -               .lowerpath =3D lowerpath,
-> > +               .oe =3D &oe,
-> >                 .index =3D index,
-> > -               .numlower =3D !!lower
-> >         };
-> >
-> >         /* We get overlay directory dentries with ovl_lookup_real()
-> > */
-> >         if (d_is_dir(upper ?: lower))
-> >                 return ERR_PTR(-EIO);
-> >
-> > -       oe =3D ovl_alloc_entry(!!lower);
-> > -       if (!oe)
-> > -               goto nomem;
-> > -
+>   - remove lowerdata
+>   - add lowerdata_redirect
 >
-> Ah, I see that the goto nomem goes away here, so I guess ignore my
-> comment on previous patch.
+> ?
+
+Yeh, ok.
+I posted it like that for review because I thought it would be
+easier to review.
+But really remove lowerdata belongs to this prep series
+and add lowerdata_redirect belongs to the next one so
+I wont mix them
+
 >
+>
+>
+> > +               /* Store lowerdata redirect for lazy lookup */
+> > +               if (ctr > 1 && !d.is_dir && !stack[ctr - 1].dentry) {
+>
+>  So lazy lookup will be signaled with a NULL dentry?  This should be
+> spelled out in the patch header.
 >
 
-No need to ignore, we do not leave mid series bugs.
-It is bad for bisection.
+This also doesnt belong to this series.
 
 Thanks,
 Amir.
