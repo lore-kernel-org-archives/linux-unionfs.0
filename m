@@ -2,61 +2,61 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17D7EC77B73
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 13:06:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95A69C77B61
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 13:06:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243427AbjD0NF7 (ORCPT
+        id S243521AbjD0NGA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 09:05:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34882 "EHLO
+        Thu, 27 Apr 2023 09:06:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243521AbjD0NF5 (ORCPT
+        with ESMTP id S243632AbjD0NF7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 09:05:57 -0400
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02FA32D72
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:56 -0700 (PDT)
-Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3f19afc4fd8so40014685e9.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:55 -0700 (PDT)
+        Thu, 27 Apr 2023 09:05:59 -0400
+Received: from mail-wm1-x336.google.com (mail-wm1-x336.google.com [IPv6:2a00:1450:4864:20::336])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB9FC30D6
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:57 -0700 (PDT)
+Received: by mail-wm1-x336.google.com with SMTP id 5b1f17b1804b1-3f1728c2a57so87878325e9.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682600754; x=1685192754;
+        d=gmail.com; s=20221208; t=1682600757; x=1685192757;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=SMsed4532Nz/Mh0512rsS4ERkqpr0aVaT+pRsmVpayM=;
-        b=oX59Li7Lisxtl8eqCfMDgMh2ON3c5TzF/FLXOISedg6/xoKusmp5x+BXtg8ioMTnZY
-         7+FyFLgEqTnlpbgRzmKYvuRvT7fnyc/U2VYGwejOxVLv/jjdQ0D1O1s2SFUfcH/QHcC/
-         a/xAMUeFEHahnz3cuyQiN8LXvMtPzRnvv9DT/hBFVxGk6pEhqvBpb6WGCMaWAl1qGt3k
-         X6wKQ33RPvctsCPLOOoRRUkVoGJY/GhJLUYlVlB7zkTDVob3/AV1wmNPRebtsDZpF6J0
-         TUz2bnkILXUjG4ucIZGL8WsHpBidtPy6neEsYKAbEd2IGBIih+fb4esXd+W8A53FJaqb
-         FqWA==
+        bh=svsZeU0vfsc1yUlI07ImvxFKAslYP3v9p8fS4gEjeIg=;
+        b=k1MQUu/Za3esu0PgD5hwtxsozJ0/EcIAEkXKGaJNOCPSi4366KZVm8LYIyYY2T4WCb
+         n/XcVw0Us4lcUmI2phOwieOWgO/jvQlEvzdNUBL9WlgcNU3KG6/vIt1ThRhqCNLA+pyq
+         YybOWwFzf2qCuYNUMIsvbkz1ac7ItMhy9e0GlJU2HEyptcGBefsOFK9u5q8C1gnnJYRj
+         MfOhdYD/Wu4TOcPBP4Et0RXHKFcudPfbIzDlHEEFlsbZMXxIY0Wida1hrSYymF8L6OXM
+         c1qs1d/TZ7AL3k62y1q9obmCPtETJTp333En9Od3v9tQwsgeum83Q/eXwhdq447969Qx
+         Fseg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682600754; x=1685192754;
+        d=1e100.net; s=20221208; t=1682600757; x=1685192757;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=SMsed4532Nz/Mh0512rsS4ERkqpr0aVaT+pRsmVpayM=;
-        b=XRqLya9Ax5XNZ+h0zUNuXpFECGAj17zDt79lNyxvncLl58b7+wIDunVQpZNkcDM4fP
-         xstU4S1rIfBsHXb3d/TmTYEYMvNReAlGgKz9mLyAcg770ZWDC2+ROPyCBKhT0R/U3IuF
-         VSP3/rnkGtvAU4QJqbtMCHsq5I2k2PsoVldvijzzGpHZ/MMS8IxucICIjKb4HNw/B0xX
-         Q/CmFvzEL4fbWCyBBpQ2HTzp80ZJBlXfINyb8XOGYxKLF3V+RPNUBlcDHvwvTRPN/P5m
-         2UQfWJxX1bYQPPCYrCbRvbXSKRHb2lWJDYHhPVsThy6v29mZ4pyS6E0v3DSWrfGter6e
-         qckA==
-X-Gm-Message-State: AC+VfDx7E6WId8mmLrTxsopOmUaEvWFhfcWu+jAKCo9ZuO+kO50we00D
-        plF6nm92Gf4Mf1wxWCX2wc0=
-X-Google-Smtp-Source: ACHHUZ6XZ2KAgmVyUHqVax9O4whf8b5iyMg45HH3ZJAp+0RPlfL5bElMqhRW7hwIdrcVwU5EToWeSQ==
-X-Received: by 2002:a1c:7c12:0:b0:3f1:6fba:b69a with SMTP id x18-20020a1c7c12000000b003f16fbab69amr1449057wmc.11.1682600754577;
-        Thu, 27 Apr 2023 06:05:54 -0700 (PDT)
+        bh=svsZeU0vfsc1yUlI07ImvxFKAslYP3v9p8fS4gEjeIg=;
+        b=S+ifp2fMAOhh4Ab0zHzmC4N5pCqj/fZloM1qdoA8P/7/G8GMWU87SaA6wkrjB/CG02
+         /3HB9GyU9IqchS6b1y2vHK1LEEwsqJd1fmBCn/K2FWhhvyb/qCwPHJYR6ueCB8ZMw2sS
+         I2zMNuzysclSknSN9m88PSXP9SulH6evSfzwvXpyD8mMfivaPcnPkXxCiKCJgm8sPlYL
+         2YmWTfe1c189ImcyfDDtx8Hck9YBf7vUKao+RULHVoZx2kr1eJDgoHnIya0C27sVxXK6
+         ZZfR2xKD6/c8YazYi6PZwSlZQc9kLa3TNZcb3jXT3BEcw4gXK6va/YG18Y0Tam2VfUlw
+         hhNA==
+X-Gm-Message-State: AC+VfDxAf5aPbo2C+IX+OdKwXUkvUcvGRUlhE1UA6gE3oEmLWsNJ3j9j
+        w8HMZrm0sw9c4Zsk+cW6CCihHxHrFuj79w==
+X-Google-Smtp-Source: ACHHUZ4UNsiOFYscE/NCuPd9MFUBa3NMUO1rkzyYYHY55qskXGjU714FQolcYn+73OKOV6FHWJ7zBQ==
+X-Received: by 2002:a1c:f706:0:b0:3f2:5028:a54d with SMTP id v6-20020a1cf706000000b003f25028a54dmr1498650wmh.0.1682600757239;
+        Thu, 27 Apr 2023 06:05:57 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id k17-20020a5d6291000000b002c561805a4csm18533426wru.45.2023.04.27.06.05.53
+        by smtp.gmail.com with ESMTPSA id k17-20020a5d6291000000b002c561805a4csm18533426wru.45.2023.04.27.06.05.56
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Apr 2023 06:05:54 -0700 (PDT)
+        Thu, 27 Apr 2023 06:05:56 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 08/13] ovl: remove unneeded goto instructions
-Date:   Thu, 27 Apr 2023 16:05:34 +0300
-Message-Id: <20230427130539.2798797-9-amir73il@gmail.com>
+Subject: [PATCH v2 10/13] ovl: implement lookup in data-only layers
+Date:   Thu, 27 Apr 2023 16:05:36 +0300
+Message-Id: <20230427130539.2798797-11-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230427130539.2798797-1-amir73il@gmail.com>
 References: <20230427130539.2798797-1-amir73il@gmail.com>
@@ -66,88 +66,142 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-There is nothing in the out goto target of ovl_get_layers().
+Lookup in data-only layers only for a lower metacopy with an absolute
+redirect xattr.
+
+The metacopy xattr is not checked on files found in the data-only layers
+and redirect xattr are not followed in the data-only layers.
 
 Reviewed-by: Alexander Larsson <alexl@redhat.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/super.c | 21 +++++++++------------
- 1 file changed, 9 insertions(+), 12 deletions(-)
+ fs/overlayfs/namei.c | 73 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 72 insertions(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 1bfbdce2209a..9b326b857ad6 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1583,10 +1583,9 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 	int err;
- 	unsigned int i;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 6bb07e1c01ee..1ed64ff129d9 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -14,6 +14,8 @@
+ #include <linux/exportfs.h>
+ #include "overlayfs.h"
  
--	err = -ENOMEM;
- 	ofs->fs = kcalloc(numlower + 1, sizeof(struct ovl_sb), GFP_KERNEL);
- 	if (ofs->fs == NULL)
--		goto out;
-+		return -ENOMEM;
++#include "../internal.h"	/* for vfs_path_lookup */
++
+ struct ovl_lookup_data {
+ 	struct super_block *sb;
+ 	struct vfsmount *mnt;
+@@ -24,6 +26,8 @@ struct ovl_lookup_data {
+ 	bool last;
+ 	char *redirect;
+ 	bool metacopy;
++	/* Referring to last redirect xattr */
++	bool absolute_redirect;
+ };
  
- 	/* idx/fsid 0 are reserved for upper fs even with lower only overlay */
- 	ofs->numfs++;
-@@ -1600,7 +1599,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 	err = get_anon_bdev(&ofs->fs[0].pseudo_dev);
- 	if (err) {
- 		pr_err("failed to get anonymous bdev for upper fs\n");
--		goto out;
-+		return err;
- 	}
+ static int ovl_check_redirect(const struct path *path, struct ovl_lookup_data *d,
+@@ -33,11 +37,13 @@ static int ovl_check_redirect(const struct path *path, struct ovl_lookup_data *d
+ 	char *buf;
+ 	struct ovl_fs *ofs = OVL_FS(d->sb);
  
- 	if (ovl_upper_mnt(ofs)) {
-@@ -1613,9 +1612,9 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		struct inode *trap;
- 		int fsid;
++	d->absolute_redirect = false;
+ 	buf = ovl_get_redirect_xattr(ofs, path, prelen + strlen(post));
+ 	if (IS_ERR_OR_NULL(buf))
+ 		return PTR_ERR(buf);
  
--		err = fsid = ovl_get_fsid(ofs, &stack[i]);
--		if (err < 0)
--			goto out;
-+		fsid = ovl_get_fsid(ofs, &stack[i]);
-+		if (fsid < 0)
-+			return fsid;
- 
+ 	if (buf[0] == '/') {
++		d->absolute_redirect = true;
  		/*
- 		 * Check if lower root conflicts with this overlay layers before
-@@ -1626,13 +1625,13 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		 */
- 		err = ovl_setup_trap(sb, stack[i].dentry, &trap, "lowerdir");
- 		if (err)
--			goto out;
-+			return err;
- 
- 		if (ovl_is_inuse(stack[i].dentry)) {
- 			err = ovl_report_in_use(ofs, "lowerdir");
- 			if (err) {
- 				iput(trap);
--				goto out;
-+				return err;
- 			}
- 		}
- 
-@@ -1641,7 +1640,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 		if (IS_ERR(mnt)) {
- 			pr_err("failed to clone lowerpath\n");
- 			iput(trap);
--			goto out;
-+			return err;
- 		}
- 
- 		/*
-@@ -1691,9 +1690,7 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
- 			ofs->xino_mode);
- 	}
- 
--	err = 0;
--out:
--	return err;
-+	return 0;
+ 		 * One of the ancestor path elements in an absolute path
+ 		 * lookup in ovl_lookup_layer() could have been opaque and
+@@ -349,6 +355,61 @@ static int ovl_lookup_layer(struct dentry *base, struct ovl_lookup_data *d,
+ 	return 0;
  }
  
- static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
++static int ovl_lookup_data_layer(struct dentry *dentry, const char *redirect,
++				 const struct ovl_layer *layer,
++				 struct path *datapath)
++{
++	int err;
++
++	err = vfs_path_lookup(layer->mnt->mnt_root, layer->mnt, redirect,
++			LOOKUP_BENEATH | LOOKUP_NO_SYMLINKS | LOOKUP_NO_XDEV,
++			datapath);
++	pr_debug("lookup lowerdata (%pd2, redirect=\"%s\", layer=%d, err=%i)\n",
++		 dentry, redirect, layer->idx, err);
++
++	if (err)
++		return err;
++
++	err = -EREMOTE;
++	if (ovl_dentry_weird(datapath->dentry))
++		goto out_path_put;
++
++	err = -ENOENT;
++	/* Only regular file is acceptable as lower data */
++	if (!d_is_reg(datapath->dentry))
++		goto out_path_put;
++
++	return 0;
++
++out_path_put:
++	path_put(datapath);
++
++	return err;
++}
++
++/* Lookup in data-only layers by absolute redirect to layer root */
++static int ovl_lookup_data_layers(struct dentry *dentry, const char *redirect,
++				  struct ovl_path *lowerdata)
++{
++	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
++	const struct ovl_layer *layer;
++	struct path datapath;
++	int err = -ENOENT;
++	int i;
++
++	layer = &ofs->layers[ofs->numlayer - ofs->numdatalayer];
++	for (i = 0; i < ofs->numdatalayer; i++, layer++) {
++		err = ovl_lookup_data_layer(dentry, redirect, layer, &datapath);
++		if (!err) {
++			mntput(datapath.mnt);
++			lowerdata->dentry = datapath.dentry;
++			lowerdata->layer = layer;
++			return 0;
++		}
++	}
++
++	return err;
++}
+ 
+ int ovl_check_origin_fh(struct ovl_fs *ofs, struct ovl_fh *fh, bool connected,
+ 			struct dentry *upperdentry, struct ovl_path **stackp)
+@@ -917,7 +978,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 
+ 		if (!ofs->config.redirect_follow)
+ 			d.last = i == ovl_numlower(poe) - 1;
+-		else
++		else if (d.is_dir || !ofs->numdatalayer)
+ 			d.last = lower.layer->idx == ovl_numlower(roe);
+ 
+ 		d.mnt = lower.layer->mnt;
+@@ -1011,6 +1072,16 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		}
+ 	}
+ 
++	/* Lookup absolute redirect from lower metacopy in data-only layers */
++	if (d.metacopy && ctr && ofs->numdatalayer && d.absolute_redirect) {
++		err = ovl_lookup_data_layers(dentry, d.redirect,
++					     &stack[ctr]);
++		if (!err) {
++			d.metacopy = false;
++			ctr++;
++		}
++	}
++
+ 	/*
+ 	 * For regular non-metacopy upper dentries, there is no lower
+ 	 * path based lookup, hence ctr will be zero. If a dentry is found
 -- 
 2.34.1
 
