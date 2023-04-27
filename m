@@ -2,120 +2,124 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B630C77B73
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 04:25:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD167C77B73
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 04:57:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229605AbjD0EZB (ORCPT
+        id S242744AbjD0E5n (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 00:25:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37932 "EHLO
+        Thu, 27 Apr 2023 00:57:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42224 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242703AbjD0EY6 (ORCPT
+        with ESMTP id S229552AbjD0E5m (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 00:24:58 -0400
-Received: from mail-ed1-x52c.google.com (mail-ed1-x52c.google.com [IPv6:2a00:1450:4864:20::52c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3CAF30E0;
-        Wed, 26 Apr 2023 21:24:50 -0700 (PDT)
-Received: by mail-ed1-x52c.google.com with SMTP id 4fb4d7f45d1cf-506c04dd879so13823569a12.3;
-        Wed, 26 Apr 2023 21:24:50 -0700 (PDT)
+        Thu, 27 Apr 2023 00:57:42 -0400
+Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 496753AB0;
+        Wed, 26 Apr 2023 21:57:39 -0700 (PDT)
+Received: by mail-ua1-x92b.google.com with SMTP id a1e0cc1a2514c-77106047c7dso2744880241.1;
+        Wed, 26 Apr 2023 21:57:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682569489; x=1685161489;
+        d=gmail.com; s=20221208; t=1682571458; x=1685163458;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=e9BPTABkCQ4wyIp6Wf2934lahb8sP4xbJb6UHZ9xVyw=;
-        b=KHlh84VSsn4sm4nugwRFHAFauJyxzdBLWxqsCzWNBEmI9BY4yIKs4uOO9iO6Fsw6nD
-         Knqhtuupm2OTXBhWjOAnrZnOVQAneDhXu1rAg9hViP5c1zQwQdmkjBCiTyPxx53YSsQE
-         OG76ZPvfHdLkfzVj3vqMnhDFZYXovmkg6E95p2QGJHtxXzuit+OUCWqKZS2quzuKtxvM
-         UznIIshU+4AT/2NUgjpbOzMWqDeZH9W8xQ8rUUsUwjd/2x/1GlHXPEcyF28gVUFxUYak
-         Fp+JY6xesvcEHd2+lDZtToWvv5c4v3+lvlwRAGY99s+0HVlntZaFw+2FktD/Vgbdj5oQ
-         wp7A==
+        bh=RLmWIFpnn20j0lccvqVtw0L56xvxxqFU548NhO28Qec=;
+        b=Cbknn0Oex4GnYVwe9GEWBYrrMj1F9BhPRxqYrOTzI2A+w6OJhSK2a/v+CXOV/foGiG
+         6Y4qgtWxWJNcpIeM+DnyI2tNhYoaHEPVYR716+hJpoGHaMMNY8GoMq/rHJa/8ECmsZjE
+         Ahw6EiS57bmx/acs0YNLduKRDAduk1rQbwLlyDd9d0WI6FWAaT3Gddhpg/ws/UNffqQc
+         BhTEWLInc1ZVlV8pRK669xCqYopaN0OOp4uH9cKXbxAxl5iIpw4zoh+BBSEnO9xrKlIK
+         OvAefcIS55/I72oHPjktHpe7o4f07umosVQNJtCHu82suBabrn8H6zxSAI5NC+s1NTUW
+         a+jg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682569489; x=1685161489;
+        d=1e100.net; s=20221208; t=1682571458; x=1685163458;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=e9BPTABkCQ4wyIp6Wf2934lahb8sP4xbJb6UHZ9xVyw=;
-        b=ObhC70V1A5C4bofjyhOseHdRFvY1bWXB1uoGTDiLx4ig3ebQnG3k80kNA9kYTiCGm+
-         yxNDImALVTTR/V9EXw28UH2GgamSKBFChXDlsL115gw7ewxfhtW8wAd/Ol2cpcWP9PFo
-         BsPp23qDYxYNRN52JdbpKJ2OOglMKkdVb8gvsFQ+GFPtcy/3hZ3RXn8SjAV/vnB2az5D
-         5hkUsiXOHoWh0m5dDAbbs+WjGfHGyX8fTueuA1sXkQEOE5vqJhWoGrnFCU9R71jxSE1B
-         PgKkRkXMyf3xJcjeiYvCWEblX0geNmDJlpBur+ibCSl2M7TOx+FlhT3EJDbGGC5AEBmB
-         XB9g==
-X-Gm-Message-State: AC+VfDw31a7siT7u/DOJna1qFBGld3bRucc5mOfoO9Hejpzle6Z1LEW1
-        vv7XMRnPwsAJjBhnQYL11eYLZ7qC83nqFryurFo=
-X-Google-Smtp-Source: ACHHUZ5fqfAwKjuAWSkAihFFHvEwlRfsA02iW3+avOLbRVhBPDOZ7ASIChRyDulgSARBNY1hKrj3N2Ty5GA1cdPmSDw=
-X-Received: by 2002:aa7:d603:0:b0:506:bc29:2ce7 with SMTP id
- c3-20020aa7d603000000b00506bc292ce7mr444319edr.29.1682569489175; Wed, 26 Apr
- 2023 21:24:49 -0700 (PDT)
+        bh=RLmWIFpnn20j0lccvqVtw0L56xvxxqFU548NhO28Qec=;
+        b=IWn6H0VxNKYlrNZkPq+F249Wx7fXSgC8ZLctb1KAaRY658LNmfm8lC8LAbchvTv9Ug
+         CrITXMUenxVnzP+BvSa6+JQXb4l6DsgikJ0jNY3yW7RMsEFXEqC15ZwCgJpf40sDGA6J
+         A3YI8TqfxkYhVEzLj9bYOK+N4V/9HcDQ2DWRT2pkTSvRDGvVZMMbM7+82l4wyNPo54Au
+         fWCQ8a6duKVEQTYX9sdGO24w7C6+jRwvEquSoA8QAXyFKb1kvjikyNyaEfwyQoiLnZLZ
+         BBlF0u6f4tU8CMIaDqfFXZN5BPKsp08m/CR1R8WNTKEbRbrTkzpEtwty5mAO/JZQ0z49
+         bZwg==
+X-Gm-Message-State: AC+VfDwiiPZ2E08pF19EfbKVArNzre5yw7QguLBb/Z4+6EKWdE9RZa7I
+        FaATfJv7LuUsgu3J9jbu9cgicgbP8M6bBK1Mq40HcTnCa7g=
+X-Google-Smtp-Source: ACHHUZ6FxsA/v05Ew0AoOkka/784qMVNZ58NlcOrY65lOQIFTNGfnXrlaDZm/QEj1HN1H5dd2sqAZigvANvAusP6djg=
+X-Received: by 2002:a67:f8d2:0:b0:42c:7e09:f41f with SMTP id
+ c18-20020a67f8d2000000b0042c7e09f41fmr189090vsp.16.1682571458302; Wed, 26 Apr
+ 2023 21:57:38 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230418014037.2412394-1-drosen@google.com> <20230418014037.2412394-36-drosen@google.com>
-In-Reply-To: <20230418014037.2412394-36-drosen@google.com>
-From:   Andrii Nakryiko <andrii.nakryiko@gmail.com>
-Date:   Wed, 26 Apr 2023 21:24:37 -0700
-Message-ID: <CAEf4BzYD9P+1aP+q77i7RJPJW=iSS6-iTw+rfPuCz=FFB2MiZw@mail.gmail.com>
-Subject: Re: [RFC PATCH v3 35/37] tools: Add FUSE, update bpf includes
-To:     Daniel Rosenberg <drosen@google.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Joanne Koong <joannelkoong@gmail.com>,
-        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com
+References: <20230425130105.2606684-1-amir73il@gmail.com> <ZEkrfVEQ8EkmUcxK@manet.1015granger.net>
+In-Reply-To: <ZEkrfVEQ8EkmUcxK@manet.1015granger.net>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 27 Apr 2023 07:57:27 +0300
+Message-ID: <CAOQ4uxgjZD3RtYLV+LVLf8Yf6kazQSKBbSh6NUrds=tE6s9Aog@mail.gmail.com>
+Subject: Re: [RFC][PATCH 0/4] Prepare for supporting more filesystems with fanotify
+To:     Chuck Lever <cel@kernel.org>
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-api@vger.kernel.org, linux-nfs@vger.kernel.org,
+        jlayton@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Apr 17, 2023 at 6:42=E2=80=AFPM Daniel Rosenberg <drosen@google.com=
-> wrote:
+On Wed, Apr 26, 2023 at 4:47=E2=80=AFPM Chuck Lever <cel@kernel.org> wrote:
 >
-> Updates the bpf includes under tools, and adds fuse
+> On Tue, Apr 25, 2023 at 04:01:01PM +0300, Amir Goldstein wrote:
+> > Jan,
+> >
+> > Following up on the FAN_REPORT_ANY_FID proposal [1], here is a shot at =
+an
+> > alternative proposal to seamlessly support more filesystems.
+> >
+> > While fanotify relaxes the requirements for filesystems to support
+> > reporting fid to require only the ->encode_fh() operation, there are
+> > currently no new filesystems that meet the relaxed requirements.
+> >
+> > I will shortly post patches that allow overlayfs to meet the new
+> > requirements with default overlay configurations.
+> >
+> > The overlay and vfs/fanotify patch sets are completely independent.
+> > The are both available on my github branch [2] and there is a simple
+> > LTP test variant that tests reporting fid from overlayfs [3], which
+> > also demonstrates the minor UAPI change of name_to_handle_at(2) for
+> > requesting a non-decodeable file handle by userspace.
+> >
+> > Thanks,
+> > Amir.
+> >
+> > [1] https://lore.kernel.org/linux-fsdevel/20230417162721.ouzs33oh6mb7vt=
+ft@quack3/
+> > [2] https://github.com/amir73il/linux/commits/exportfs_encode_fid
+> > [3] https://github.com/amir73il/ltp/commits/exportfs_encode_fid
+> >
+> > Amir Goldstein (4):
+> >   exportfs: change connectable argument to bit flags
+> >   exportfs: add explicit flag to request non-decodeable file handles
+> >   exportfs: allow exporting non-decodeable file handles to userspace
+> >   fanotify: support reporting non-decodeable file handles
+> >
+> >  Documentation/filesystems/nfs/exporting.rst |  4 +--
+> >  fs/exportfs/expfs.c                         | 29 ++++++++++++++++++---
+> >  fs/fhandle.c                                | 20 ++++++++------
+> >  fs/nfsd/nfsfh.c                             |  5 ++--
+> >  fs/notify/fanotify/fanotify.c               |  4 +--
+> >  fs/notify/fanotify/fanotify_user.c          |  6 ++---
+> >  fs/notify/fdinfo.c                          |  2 +-
+> >  include/linux/exportfs.h                    | 18 ++++++++++---
+> >  include/uapi/linux/fcntl.h                  |  5 ++++
+> >  9 files changed, 67 insertions(+), 26 deletions(-)
 >
-> Signed-off-by: Daniel Rosenberg <drosen@google.com>
-> ---
->  tools/include/uapi/linux/bpf.h  |   12 +
->  tools/include/uapi/linux/fuse.h | 1135 +++++++++++++++++++++++++++++++
->  2 files changed, 1147 insertions(+)
->  create mode 100644 tools/include/uapi/linux/fuse.h
+> Hello Amir-
 >
-> diff --git a/tools/include/uapi/linux/bpf.h b/tools/include/uapi/linux/bp=
-f.h
-> index 4b20a7269bee..6521c40875c7 100644
-> --- a/tools/include/uapi/linux/bpf.h
-> +++ b/tools/include/uapi/linux/bpf.h
-> @@ -7155,4 +7155,16 @@ struct bpf_iter_num {
->         __u64 __opaque[1];
->  } __attribute__((aligned(8)));
->
-> +/* Return Codes for Fuse BPF struct_op programs */
-> +#define BPF_FUSE_CONTINUE              0
-> +#define BPF_FUSE_USER                  1
-> +#define BPF_FUSE_USER_PREFILTER                2
-> +#define BPF_FUSE_POSTFILTER            3
-> +#define BPF_FUSE_USER_POSTFILTER       4
+> Note that the maintainers of exportfs are Jeff and myself. Please
+> copy us on future versions of this patch series. Thanks!
 
-nit: can this be an enum instead? It would be more self-documenting,
-IMO. At given it's FUSE BPF-specific, why is it not in
-uapi/linux/fuse.h?
+Sorry. Will do.
+Thanks for the review!
 
-> +
-> +/* Op Code Filter values for BPF Programs */
-> +#define FUSE_OPCODE_FILTER     0x0ffff
-> +#define FUSE_PREFILTER         0x10000
-> +#define FUSE_POSTFILTER                0x20000
-> +
-
-[...]
+Amir.
