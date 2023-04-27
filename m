@@ -2,154 +2,130 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBE76C77B61
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 12:28:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D38DCC77B61
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 13:05:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243978AbjD0M2o (ORCPT
+        id S243492AbjD0NFr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 08:28:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45742 "EHLO
+        Thu, 27 Apr 2023 09:05:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243996AbjD0M2h (ORCPT
+        with ESMTP id S243367AbjD0NFq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 08:28:37 -0400
-Received: from mail-ua1-x92d.google.com (mail-ua1-x92d.google.com [IPv6:2607:f8b0:4864:20::92d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85DE15BB7;
-        Thu, 27 Apr 2023 05:28:35 -0700 (PDT)
-Received: by mail-ua1-x92d.google.com with SMTP id a1e0cc1a2514c-77217c862b3so2620299241.3;
-        Thu, 27 Apr 2023 05:28:35 -0700 (PDT)
+        Thu, 27 Apr 2023 09:05:46 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 532102D72
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:45 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id ffacd0b85a97d-2f87c5b4635so7636114f8f.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682598514; x=1685190514;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=c4upoSGz+k+e+el5zscXUKPfxUEDiAW8o9zGPiapxio=;
-        b=DPnim84Ki8Z5lVy0hY7rTRJQ17k6jHg37OMO7mxe19JyrOc2XGr+8vD5AN0jNAiNA4
-         FkBTmCDOdHhnXz/kNZkbfCIssDVpSVhkpWJL81ToU1eQa4vIxRJnNsw1s8cHQozj5j6S
-         /1N60U8POemboyMsf5Ks2QHaSQN386N0LTFzwStylM6p2n83XosvIgG4q7gmgKvfz/sH
-         WOPBCpXI1AIel1RmDPTX7zYSybJA4ZrURGdH+HrQXfwqyP/N8IFqGcs/Z16imtzHZQ2n
-         xcULxnlzz4J0IIEQsRT2l6nbxBx0iXU14m51RSqaAjWK+xX1G8RX8dkemsikMXqwS7Zw
-         G9+g==
+        d=gmail.com; s=20221208; t=1682600744; x=1685192744;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=sZJh/gJ4iqyXHCOWDpuQVQJzNZE9BNtqZM/CW+tuXGU=;
+        b=Vd0ZM6p5RgX3uCI3cjcJUyLJdj+Y6WkyxsFy6ZgX7KLeICZcFH4/amX9vOQB/3E4jE
+         7B3HuMJOSQBmIlL9gyrRSprt3BOux4aWF/mfjIwznc5tq16UTEwFfs2FzoIbcpIPM7hU
+         0GqJLh+QnhnvesAlJIQ0iCyaTQ02RyIwJ4ysCoCaMIMSyx4fdLHTp86MFi0CQmjGrWg3
+         QrGuaHEshGOYWpFcW2GD+8gBkz1cw3XsCnOB8m+vfsOwjhAwXRcHJXZPDdH+3FJdxoHV
+         bujsh7RseN4EKnb21XZ2jffaUgrnsROaduWT2kD1oJqsYU+tMY/gFLKr9LJS3C7YgVLG
+         Zm8A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682598514; x=1685190514;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=c4upoSGz+k+e+el5zscXUKPfxUEDiAW8o9zGPiapxio=;
-        b=YatOIi1xlaO8SRoM8bT0nC45tOpgeTO+UUEGfZfyHow8DURcmWFH3nJGI20Ch9XeQd
-         QeA2QxcwJ/LEP2Nuh7jYXiJ8Qv0QsW3dcDXGlEbiXRg1OLce5GoDeunahMaKXuGWC8BR
-         JY+L8vKOZljb5JBFwWsgDGux/11kxshj9gsAq06ogGh0MZErxcjPs9F+ocMtZaCvV1nc
-         M1XgxFfZVdH/hMq8RopSt9CtCzztmVZ+WECRNtc5u5hZABHaNzbNquHImoP0LG0eq5Cl
-         dy9k0G1WUDGdqn+Buqn00SOaojsXm0uCjHpdJys5ykqbqyboenawC6FNY5Ltkr2uBVIv
-         Dmcw==
-X-Gm-Message-State: AC+VfDyGdzbSxzLTrV0es+Pc+PoKkrLpDewATUSVlojipVoY83PWTKE2
-        W56SdtPRephnMDI5oBjO2+oCH2NHCAge/3DkG0s=
-X-Google-Smtp-Source: ACHHUZ7TC6YiCnC1CVuW7jNBUZeaZU1KaGfmdmSZ85GStKkw/Otlm49DYVKQPEfWGI7TnFZ+UfpZEJkXpENk762lBh4=
-X-Received: by 2002:a05:6102:3579:b0:42f:ec21:1c18 with SMTP id
- bh25-20020a056102357900b0042fec211c18mr589937vsb.35.1682598514273; Thu, 27
- Apr 2023 05:28:34 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230425130105.2606684-1-amir73il@gmail.com> <20230425130105.2606684-5-amir73il@gmail.com>
- <20230427114849.cv3kzxk7rvxpohjc@quack3>
-In-Reply-To: <20230427114849.cv3kzxk7rvxpohjc@quack3>
+        d=1e100.net; s=20221208; t=1682600744; x=1685192744;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=sZJh/gJ4iqyXHCOWDpuQVQJzNZE9BNtqZM/CW+tuXGU=;
+        b=eKmquNnXJMAA0NB2Bc/IGHLGMRdzUYPOyLm8+61OvpwQYiEMUxNJFKaMAX+1IXQKL5
+         051+YFe1tHxMsw9PelQFYvBKNwZ608oMLxJFQPnUMNgnpD3A5qabF8x4QdDhn2RT5I0d
+         24anI5SLd3AarRGDi3Ncwx4fgLSAvPs2ComU3gbNSLDhAxd+kvjT6sU+8wxGAw5sUSab
+         CU7fg9tmtY/kVCmST9LUngOUP1qqQPkbQmXk5yeSM3jA7o3d7E/Fp0j2GBVnz+MmZEms
+         bfxiON/BzH2U6WAe/Q1Y0uz386U0XgRDxyxDv0+H+CUh45wEshlORmuNCgfEnHPfpa4j
+         WY2w==
+X-Gm-Message-State: AC+VfDysaNrQP61Y0NHIvs6N2/qZ4vsEaYNGo1xS3syqM5pB87nN68U+
+        Ewheoe8l4fXgFC2HkKMSCwU=
+X-Google-Smtp-Source: ACHHUZ4KSl+EedWk4B2EDHuOnMvaELZt7r3S5uMB3Irik7l2l70N0SW+tp2qj4Dmr36xziiMcghgXA==
+X-Received: by 2002:adf:edd0:0:b0:300:6473:e33b with SMTP id v16-20020adfedd0000000b003006473e33bmr1364590wro.53.1682600743431;
+        Thu, 27 Apr 2023 06:05:43 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id k17-20020a5d6291000000b002c561805a4csm18533426wru.45.2023.04.27.06.05.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 27 Apr 2023 06:05:43 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 27 Apr 2023 15:28:23 +0300
-Message-ID: <CAOQ4uxhBaZ4_c5Ko6jZ6UzqtB-4spE_xiRC=TNMO8+bwnYMSnA@mail.gmail.com>
-Subject: Re: [RFC][PATCH 4/4] fanotify: support reporting non-decodeable file handles
-To:     Jan Kara <jack@suse.cz>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-api@vger.kernel.org, Chuck Lever <cel@kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
+Date:   Thu, 27 Apr 2023 16:05:26 +0300
+Message-Id: <20230427130539.2798797-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-s_export_op
+Miklos,
 
-On Thu, Apr 27, 2023 at 2:48=E2=80=AFPM Jan Kara <jack@suse.cz> wrote:
->
-> On Tue 25-04-23 16:01:05, Amir Goldstein wrote:
-> > fanotify users do not always need to decode the file handles reported
-> > with FAN_REPORT_FID.
-> >
-> > Relax the restriction that filesystem needs to support NFS export and
-> > allow reporting file handles from filesystems that only support ecoding
-> > unique file handles.
-> >
-> > For such filesystems, users will have to use the AT_HANDLE_FID of
-> > name_to_handle_at(2) if they want to compare the object in path to the
-> > object fid reported in an event.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ...
-> > diff --git a/fs/notify/fanotify/fanotify_user.c b/fs/notify/fanotify/fa=
-notify_user.c
-> > index 8f430bfad487..a5af84cbb30d 100644
-> > --- a/fs/notify/fanotify/fanotify_user.c
-> > +++ b/fs/notify/fanotify/fanotify_user.c
-> > @@ -1586,11 +1586,9 @@ static int fanotify_test_fid(struct dentry *dent=
-ry)
-> >        * We need to make sure that the file system supports at least
-> >        * encoding a file handle so user can use name_to_handle_at() to
-> >        * compare fid returned with event to the file handle of watched
-> > -      * objects. However, name_to_handle_at() requires that the
-> > -      * filesystem also supports decoding file handles.
-> > +      * objects, but it does not need to support decoding file handles=
-.
-> >        */
-> > -     if (!dentry->d_sb->s_export_op ||
-> > -         !dentry->d_sb->s_export_op->fh_to_dentry)
-> > +     if (!dentry->d_sb->s_export_op)
-> >               return -EOPNOTSUPP;
->
-> So AFAICS the only thing you require is that s_export_op is set to
-> *something* as exportfs_encode_inode_fh() can deal with NULL ->encode_fh
-> just fine without any filesystem cooperation. What is the reasoning behin=
-d
-> the dentry->d_sb->s_export_op check? Is there an implicit expectation tha=
-t
-> if s_export_op is set to something, the filesystem has sensible
-> i_generation? Or is it just a caution that you don't want the functionali=
-ty
-> to be enabled for unexpected filesystems?
+This v2 combines the prep patch set [1] and lazy lookup patch set [2].
 
-A little bit of both.
-Essentially, I do not want to use the generic encoding unless the filesyste=
-m
-opted-in to say "This is how objects should be identified".
+This work is motivated by Alexander's composefs use case.
+Alexander has been developing and testing his fsverity patches over
+my lazy-lowerdata-lookup branch [3].
 
-The current fs that have s_export_op && !s_export_op->encode_fh
-practically make that statement because they support NFS export
-(i.e. they implement fh_to_dentry()).
+Alexander has also written tests for lazy lowerdata lookup [4].
 
-I don't like the implicit fallback to generic encoding, especially when
-introducing this new functionality of encode_fid().
+Note that patch #1 is a Fixes patch for stable.
+Gao commented that the fix may not be complete, but I think it is better
+than no fix at all.
 
-Before posting this patch set I had two earlier revisions.
-One that changed the encode_fh() to mandatory and converted
-all the INO32_GEN fs to explicitly set
-s_export_op.encode_fh =3D generic_encode_ino32_fh,
-And one that marked all the INO32_GEN fs with
-s_export_op.flags =3D EXPORT_OP_ENCODE_INO32_GEN
-in both cases there was no blind fallback to INO32_GEN.
-
-But in the end, these added noise without actual value so
-I dropped them, because the d_sb->s_export_op check is anyway
-a pretty strong indication for opt-in to export fids.
-
-CC exportfs maintainers in case they have an opinion one
-way or the other.
-
-> In either case it would be good
-> to capture the reasoning either in a comment or the changelog...
->
-
-Will do.
+Regarding lazy lookup in d_real(), I am not sure if the best effort
+lookup is the best solution, but in any case, none of this code kicks in
+without explicit opt-in to data-only layers, so the risk of breaking
+existing setups is quite low.
 
 Thanks,
 Amir.
+
+Changes since v1:
+- Include the prep patch set
+- Split remove lowerdata from add lowerdata_redirect patch
+- Remove embedded ovl_entry stack optimization
+- Add lazy lookup and comment in d_real_inode()
+- Improve documentation of :: data-only layers syntax
+- Added RVBs
+
+[1] https://lore.kernel.org/linux-unionfs/20230408164302.1392694-1-amir73il@gmail.com/
+[2] https://lore.kernel.org/linux-unionfs/20230412135412.1684197-1-amir73il@gmail.com/
+[3] https://github.com/amir73il/linux/commits/ovl-lazy-lowerdata
+[4] https://github.com/amir73il/xfstests/commits/ovl-lazy-lowerdata
+
+Amir Goldstein (13):
+  ovl: update of dentry revalidate flags after copy up
+  ovl: use OVL_E() and OVL_E_FLAGS() accessors
+  ovl: use ovl_numlower() and ovl_lowerstack() accessors
+  ovl: factor out ovl_free_entry() and ovl_stack_*() helpers
+  ovl: move ovl_entry into ovl_inode
+  ovl: deduplicate lowerpath and lowerstack[]
+  ovl: deduplicate lowerdata and lowerstack[]
+  ovl: remove unneeded goto instructions
+  ovl: introduce data-only lower layers
+  ovl: implement lookup in data-only layers
+  ovl: prepare to store lowerdata redirect for lazy lowerdata lookup
+  ovl: prepare for lazy lookup of lowerdata inode
+  ovl: implement lazy lookup of lowerdata in data-only layers
+
+ Documentation/filesystems/overlayfs.rst |  36 +++++
+ fs/overlayfs/copy_up.c                  |  11 ++
+ fs/overlayfs/dir.c                      |   3 +-
+ fs/overlayfs/export.c                   |  41 +++---
+ fs/overlayfs/file.c                     |  21 ++-
+ fs/overlayfs/inode.c                    |  38 +++--
+ fs/overlayfs/namei.c                    | 185 +++++++++++++++++++-----
+ fs/overlayfs/overlayfs.h                |  20 ++-
+ fs/overlayfs/ovl_entry.h                |  73 ++++++++--
+ fs/overlayfs/super.c                    | 132 ++++++++++-------
+ fs/overlayfs/util.c                     | 165 ++++++++++++++++-----
+ 11 files changed, 534 insertions(+), 191 deletions(-)
+
+-- 
+2.34.1
+
