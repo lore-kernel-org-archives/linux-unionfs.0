@@ -2,119 +2,216 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB863C77B61
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 17:58:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DC07C77B61
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 19:12:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244039AbjD0R6Z (ORCPT
+        id S244484AbjD0TMA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 13:58:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38670 "EHLO
+        Thu, 27 Apr 2023 15:12:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229539AbjD0R6Y (ORCPT
+        with ESMTP id S244317AbjD0TL7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 13:58:24 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 864333A91
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 10:58:23 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1FB9263EC2
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 17:58:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5335BC433EF;
-        Thu, 27 Apr 2023 17:58:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1682618302;
-        bh=jydreXTrkzBK4j1QQvAcqSBGsTsp36XuvyGcc7jG60w=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=aCmKhrcO3KsLyOka0Q/mTS3kh6m9hE+LR317pKl9NKBH34lnFI2cZ58dyAc/pZXPW
-         bn06KheMS3BwWIiDtmf377tQ+TUTc9Fyvw6qbrtnYEcHYHlriHw4QZa1/AKgrnCMNj
-         YLB4CboQAbReaCYGA+/rpQZaq7s7BqXSo0L9VwkgkXtN8TkutS1DdOLI/eXFCjN4Oo
-         abtej6YfxHbN8gzGAThi2xlYKQPEm+Wx1hMrQMipBP1WNt4BnWiQH+DYnErzOwuE54
-         D1XIz2QKi2xuzBcZAEE4hNpQTJIdpqSx+/IeSzxl0dGQvRpTCjrCerQzMPNaDkjEkm
-         EDZQGSSrt3H2w==
-Date:   Thu, 27 Apr 2023 17:58:20 +0000
-From:   Eric Biggers <ebiggers@kernel.org>
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
-Subject: Re: [PATCH 5/6] ovl: Validate verity xattr when resolving lowerdata
-Message-ID: <ZEq3vN09rhEAr19w@gmail.com>
-References: <cover.1681917551.git.alexl@redhat.com>
- <df41e9dc96ddad9f9e1e684e39c28f4e097e9d9b.1681917551.git.alexl@redhat.com>
- <20230426214743.GA58528@sol.localdomain>
- <CAL7ro1EYZXUQM+Ygp3aO8-rWD0ULZyaJH4rN_+88LNS4h5p78w@mail.gmail.com>
+        Thu, 27 Apr 2023 15:11:59 -0400
+Received: from mail-ua1-x92a.google.com (mail-ua1-x92a.google.com [IPv6:2607:f8b0:4864:20::92a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A3F683;
+        Thu, 27 Apr 2023 12:11:58 -0700 (PDT)
+Received: by mail-ua1-x92a.google.com with SMTP id a1e0cc1a2514c-77aad9ad986so5257173241.0;
+        Thu, 27 Apr 2023 12:11:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1682622717; x=1685214717;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=STvq7oaJUgF6DWduqzMBwKUOBKMNNJjV5P1F4ifhZfE=;
+        b=gxvwGazxlJcxjzNFnMXOVnLgfj8ArkO1N6eIOMEZdqet4tWSwinemkemNcsA7n9HU5
+         avEP4iXP5zrbPA2pi8KQpfbTRx0cWgeWjgqmZl26H6gsm1Tu8HvZ88gzztLTPyvBM4N5
+         svXfJzCPpGJldK23HMeasgXYVqUv/MljzXzTbokefvzFyKreHFBCuImFzpzx5m334ox+
+         B3DWBscRGInqpGWeeuhuHKcDC1yJ0CqPkHWn8Bs1mB+vuwroAaJ4HZrmTMH3qZm4yC4f
+         DH5pnldplPm8AZJIbuURs6VcNEOR/AVzcHrxKw4ykEkO7/DsSGVaPjAHPpCES95hu3d3
+         cDsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1682622717; x=1685214717;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=STvq7oaJUgF6DWduqzMBwKUOBKMNNJjV5P1F4ifhZfE=;
+        b=cqtfAnj39l7GqZh6xYQ66cBKa3jCMdCCPJHoONs7ceQMouwJMTAEhg4eDpfFLJa+L0
+         hTfn/OqEWJAFpKU/fpe4PqrjE1VM6k4ll3LjDEZZO7tqPVQzzj8T72ljKzjdI1hcP0Y/
+         tzR1w05bOFmEzQVhy1pekummOXInJYLlwhtGSktueoyRT8MCQJfsjZohRPEdR8r4xZ67
+         kOXcoLvLlnkUz28wsup6QA+UNyZcVsEF7jylVLxXbqUA4wQZ/QMgTdGLCyIG2eqyOttn
+         mNyMGAN7Qy1Ul4VzVzFPcuhfJzuWKLdR45d8CMaSCT7gBZs4PD3YHBejSrmIuiMglhRK
+         4dOg==
+X-Gm-Message-State: AC+VfDy+LxmAcMFG0WrRbLabw2X0I0JQ32ydFVE933Le5uudw5rK/kqC
+        1xKKDON95sMfLGBcsnpjW3dDK7wgIFTlo6UWwp8r/YipVYM=
+X-Google-Smtp-Source: ACHHUZ6pFIcxwQ6ieYeHyqxXuIkV+Qiv0y9ZUd6RglW9ITyuZzaIc5EgPqxQZLXtQflaXH35MM3bnBXSH91HMkVpEi8=
+X-Received: by 2002:a05:6102:e88:b0:42e:4383:783d with SMTP id
+ l8-20020a0561020e8800b0042e4383783dmr3646225vst.3.1682622717253; Thu, 27 Apr
+ 2023 12:11:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAL7ro1EYZXUQM+Ygp3aO8-rWD0ULZyaJH4rN_+88LNS4h5p78w@mail.gmail.com>
+References: <20230425130105.2606684-1-amir73il@gmail.com> <dafbff6baa201b8af862ee3faf7fe948d2a026ab.camel@kernel.org>
+ <CAOQ4uxjR0cdjW1Pr1DWAn+dkTd3SbV7CUqeGRh2FeDVBGAdtRw@mail.gmail.com> <df31058f662fe9ec9ad1cc59838f288b8aff10f0.camel@kernel.org>
+In-Reply-To: <df31058f662fe9ec9ad1cc59838f288b8aff10f0.camel@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 27 Apr 2023 22:11:46 +0300
+Message-ID: <CAOQ4uxhWzV7YJ_kPGg_4wHhWAd79_Xgo2uoDY+1K9sEtJcH_cA@mail.gmail.com>
+Subject: Re: [RFC][PATCH 0/4] Prepare for supporting more filesystems with fanotify
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-api@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 27, 2023 at 09:22:57AM +0200, Alexander Larsson wrote:
-> On Wed, Apr 26, 2023 at 11:47 PM Eric Biggers <ebiggers@kernel.org> wrote:
+handle_bytes
+
+On Thu, Apr 27, 2023 at 7:36=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
+ote:
+>
+> On Thu, 2023-04-27 at 18:52 +0300, Amir Goldstein wrote:
+> > On Thu, Apr 27, 2023 at 6:13=E2=80=AFPM Jeff Layton <jlayton@kernel.org=
+> wrote:
+> > >
+> > > On Tue, 2023-04-25 at 16:01 +0300, Amir Goldstein wrote:
+> > > > Jan,
+> > > >
+> > > > Following up on the FAN_REPORT_ANY_FID proposal [1], here is a shot=
+ at an
+> > > > alternative proposal to seamlessly support more filesystems.
+> > > >
+> > > > While fanotify relaxes the requirements for filesystems to support
+> > > > reporting fid to require only the ->encode_fh() operation, there ar=
+e
+> > > > currently no new filesystems that meet the relaxed requirements.
+> > > >
+> > > > I will shortly post patches that allow overlayfs to meet the new
+> > > > requirements with default overlay configurations.
+> > > >
+> > > > The overlay and vfs/fanotify patch sets are completely independent.
+> > > > The are both available on my github branch [2] and there is a simpl=
+e
+> > > > LTP test variant that tests reporting fid from overlayfs [3], which
+> > > > also demonstrates the minor UAPI change of name_to_handle_at(2) for
+> > > > requesting a non-decodeable file handle by userspace.
+> > > >
+> > > > Thanks,
+> > > > Amir.
+> > > >
+> > > > [1] https://lore.kernel.org/linux-fsdevel/20230417162721.ouzs33oh6m=
+b7vtft@quack3/
+> > > > [2] https://github.com/amir73il/linux/commits/exportfs_encode_fid
+> > > > [3] https://github.com/amir73il/ltp/commits/exportfs_encode_fid
+> > > >
+> > > > Amir Goldstein (4):
+> > > >   exportfs: change connectable argument to bit flags
+> > > >   exportfs: add explicit flag to request non-decodeable file handle=
+s
+> > > >   exportfs: allow exporting non-decodeable file handles to userspac=
+e
+> > > >   fanotify: support reporting non-decodeable file handles
+> > > >
+> > > >  Documentation/filesystems/nfs/exporting.rst |  4 +--
+> > > >  fs/exportfs/expfs.c                         | 29 +++++++++++++++++=
++---
+> > > >  fs/fhandle.c                                | 20 ++++++++------
+> > > >  fs/nfsd/nfsfh.c                             |  5 ++--
+> > > >  fs/notify/fanotify/fanotify.c               |  4 +--
+> > > >  fs/notify/fanotify/fanotify_user.c          |  6 ++---
+> > > >  fs/notify/fdinfo.c                          |  2 +-
+> > > >  include/linux/exportfs.h                    | 18 ++++++++++---
+> > > >  include/uapi/linux/fcntl.h                  |  5 ++++
+> > > >  9 files changed, 67 insertions(+), 26 deletions(-)
+> > > >
+> > >
+> > > This set looks fairly benign to me, so ACK on the general concept.
 > >
-> > On Thu, Apr 20, 2023 at 09:44:04AM +0200, Alexander Larsson wrote:
-> > > +     err = fsverity_get_digest(d_inode(datapath->dentry), actual_digest, &verity_algo);
-> > > +     if (err < 0) {
-> > > +             pr_warn_ratelimited("lower file '%pd' has no fs-verity digest\n", datapath->dentry);
-> > > +             return -EIO;
-> > > +     }
-> > > +
-> > > +     if (digest_len != hash_digest_size[verity_algo] ||
-> > > +         memcmp(required_digest, actual_digest, digest_len) != 0) {
-> > > +             pr_warn_ratelimited("lower file '%pd' has the wrong fs-verity digest\n",
-> > > +                                 datapath->dentry);
-> > > +             return -EIO;
-> > > +     }
-> > > +
-> > > +     return 0;
+> > Thanks!
 > >
-> > This is incorrect because the digest algorithm is not being compared.
-> 
-> This is actually an interesting question. How much are things weakened
-> by comparing the digest size, but not comparing the digest type. Like,
-> suppose the xattr has a sha256 digest (32 bytes), how likely is there
-> to be another new supported verity algorithm of the same digest size
-> where you can force it to produce matching digests?
+> > >
+> > > I am starting to dislike how the AT_* flags are turning into a bunch =
+of
+> > > flags that only have meanings on certain syscalls. I don't see a clea=
+ner
+> > > way to handle it though.
+> >
+> > Yeh, it's not great.
+> >
+> > There is also a way to extend the existing API with:
+> >
+> > Perhstruct file_handle {
+> >         unsigned int handle_bytes:8;
+> >         unsigned int handle_flags:24;
+> >         int handle_type;
+> >         unsigned char f_handle[];
+> > };
+> >
+> > AFAICT, this is guaranteed to be backward compat
+> > with old kernels and old applications.
+> >
+>
+> That could work. It would probably look cleaner as a union though.
+> Something like this maybe?
+>
+> union {
+>         unsigned int legacy_handle_bytes;
+>         struct {
+>                 u8      handle_bytes;
+>                 u8      __reserved;
+>                 u16     handle_flags;
+>         };
+> }
 
-It might actually be fairly likely, considering that whenever a system includes
-a choice of cryptographic algorithm, it tends to grow to include many different
-algorithms.  Some of the reasons for this include:
+I have no problem with the union, but does this struct
+guarantee that the lowest byte of legacy_handle_bytes
+is in handle_bytes for all architectures?
 
-  - Algorithms can become outdated and broken, yet systems often have to
-    continue to support such algorithms for backwards compatibility.
+That's the reason I went with
 
-  - People sometimes insist on using "national pride" algorithms, e.g. due to
-    government regulations.  For example, in China people can be required to use
-    Chinese algorithms instead of the U.S. / NIST algorithms.  See e.g. the
-    existing support for SM3, SM4, Streebog, and Aria in the kernel crypto API
-    and various other kernel subsystems.
+struct {
+         unsigned int handle_bytes:8;
+         unsigned int handle_flags:24;
+}
 
-  - Non-cryptographic algorithms might be added for use cases that don't
-    actually require cryptographic security, e.g. integrity-only.
+Is there a problem with this approach?
 
-I'd strongly discourage you from building something whose security critically
-depends on every algorithm that may ever exist being cryptographically secure.
+> >         unsigned int handle_bytes:8;
+> >         unsigned int handle_flags:24;
+>
+> __reserved must be zeroed (for now). You could consider using it for
+> some other purpose later.
+>
+> It's a little ugly as an API but it would be backward compatible, given
+> that we never use the high bits today anyway.
+>
+> Callers might need to deal with an -EINVAL when they try to pass non-
+> zero handle_flags to existing kernels, since you'd trip the
+> MAX_HANDLE_SZ check that's there today.
+>
 
-Also, two hash algorithms that are each secure individually are not necessarily
-secure when used as alternatives sharing the same output space.  E.g. consider
-algorithm1 = SHA-256(data) and algorithm2 = SHA-256(data with all bits flipped).
+Exactly.
 
-> 
-> I ask because ideally we want to minimize the size of the xattrs,
-> since they are stored for each file, and not having to specify the
-> type for each saves space. Currently the only two supported algorithms
-> (sha256 and sha512) are different sizes, so we essentially compare
-> type by comparing the size.
-> 
-> I see three options here:
-> 1) Only compare digest + size (like now)
-> 2) Assume size 32 means sha256, and 64 means sha512 and validate that
-> 3) Use more space in the xattr to store an algorithm type
+> > It also may not be a bad idea that the handle_flags could
+> > be used to request specific fh properties (FID) and can also
+> > describe the properties of the returned fh (i.e. non-decodeable)
+> > that could also be respected by open_by_handle_at().
+> >
+> > For backward compact, kernel will only set handle_flags in
+> > response if new flags were set in the request.
+> >
+> > Do you consider this extension better than AT_HANDLE_FID
+> > or worse? At least it is an API change that is contained within the
+> > exportfs subsystem, without polluting the AT_ flags global namespace.
+> >
+>
+> Personally, yes. I think adding a struct file_handle_v2 would be cleaner
+> and allows for expanding the API later through new flags.
 
-Just store the algorithm alongside the digest.  It's just 1 extra byte.
+I agree.
+I will give it a try.
 
-- Eric
+Thanks,
+Amir.
