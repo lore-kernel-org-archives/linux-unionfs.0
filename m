@@ -2,63 +2,61 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA4D0C77B7C
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 13:05:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 909A7C77B73
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 13:05:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243511AbjD0NFs (ORCPT
+        id S243367AbjD0NFt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 09:05:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34836 "EHLO
+        Thu, 27 Apr 2023 09:05:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34842 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243367AbjD0NFr (ORCPT
+        with ESMTP id S243517AbjD0NFs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 09:05:47 -0400
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DA4A30C5
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:46 -0700 (PDT)
-Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3f315735514so22591765e9.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:46 -0700 (PDT)
+        Thu, 27 Apr 2023 09:05:48 -0400
+Received: from mail-wr1-x430.google.com (mail-wr1-x430.google.com [IPv6:2a00:1450:4864:20::430])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6D602D72
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:47 -0700 (PDT)
+Received: by mail-wr1-x430.google.com with SMTP id ffacd0b85a97d-2f917585b26so7744333f8f.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 06:05:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682600745; x=1685192745;
+        d=gmail.com; s=20221208; t=1682600746; x=1685192746;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=EUx+hSs1GqSlRZxyuwSB8fOVcDQ/RGWYj+MVZKDGEtQ=;
-        b=kelZZQTzM2hdG0rNCihjkk4aK6SbqZAOLv0R5wUjSC/GvkIGazLAXXzyj6yFo6t58/
-         z7DjparMNSA8Tz4kuhdm4HSfGe3YyP6gN5KUS0wl8qyVrzOIL7bZV+prKVj0M3fNir43
-         15vRPJLHD10DfOIlXcnSFzI/ucILxq+FU5BuhcmFfY+fK+WNDsRMivoC90KVcJCefrfs
-         zHKHGyaTuUu5IZHTZet09TZlcosa3Xr73jiyQ6jF/ZCdZZiR/VuqOQVlA8RUdDRi/K0O
-         IFFjROXIRsSGI500uxufVmV/TVFJwFUDzhRyMtCeimzwOQ/2M++AtGIlCGdNcLuEAMZw
-         +jKQ==
+        bh=Eiu7VsKOvNFqbEJ1wzkIZ5kPCSavYtV1oX+jDQF+o8A=;
+        b=JCerxOTVRZXetElulsf3oWMXUP/LPDDv74obw1NXTKHYvj7NF48D3Iy+uyid8Reosw
+         Edawnf2l3NOlm44GeyUc0obJKLpU2F5uHiqlsOs6wcAzWTzRQsKt/q+nFM0VX+f3Qq6d
+         KaBDGuu1Mwg6g2i3q2j+U4T2OFRjjWN74l8zuLtFlqG08Ub5s98aalo0h0FHpOOSxzwq
+         ZFBOEKgQjnPka3HzN5/D2p/25Ou7zWxW3EKweBA52D6kw56109Hf6OH7vnfAGe+8aT4l
+         fGAHqkWL5lgFAk+u6KJ8w/PVtpxJNTD5s8lJ5CG6zKE2cWN570Rsh7Yl6ftLUZdxlLc+
+         J5AA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682600745; x=1685192745;
+        d=1e100.net; s=20221208; t=1682600746; x=1685192746;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=EUx+hSs1GqSlRZxyuwSB8fOVcDQ/RGWYj+MVZKDGEtQ=;
-        b=ldSP+wyYRQDe8DJZS18C32ojQknpUf7MfPR11A9gvRB9ETIQTIKY/H2zJEgako+lrb
-         GTJ+9WGcszL3aWZHz+WLO8lprMY8cN0r4kB6nzM+loM2z/uImIRtvDGv+0ynfMYxod9T
-         9et7Bt/iY+TA6w0+UJ2nC1a9l+w4CKNm4/Wrpgb3ktIMScahMYci8B5mpiBemuO54Raz
-         6Y+ge9u82neL1yqdF+6EtsRDX1ft9c5gxxDjbbHwv0qUY7p62o9B1N7rxU4J6XpOSi8B
-         3pxMziKLjoznB0ND5YpmJGGmD6qfXsf4nH3dYCBJA2n7Gr0PlUwWBNKorJXPLLJeImaz
-         x+Jg==
-X-Gm-Message-State: AC+VfDxAMuyMbWzvTtsJUWn3svzmsw86xCP+YW66rjZcqywkuEWcIkaD
-        WKvww4sg2k52H6Un+24ijnA=
-X-Google-Smtp-Source: ACHHUZ4jRVPbXnMWdZOv18tDzGA3FiKd1r5i2RQqvyjrfCvpwzr7f8TKKT5nwtqK/RgpC07nHDqInQ==
-X-Received: by 2002:adf:ff81:0:b0:2d0:58f9:a6b with SMTP id j1-20020adfff81000000b002d058f90a6bmr4651396wrr.13.1682600744613;
-        Thu, 27 Apr 2023 06:05:44 -0700 (PDT)
+        bh=Eiu7VsKOvNFqbEJ1wzkIZ5kPCSavYtV1oX+jDQF+o8A=;
+        b=kvXhAP06atfAm0kdLQ5v+vQZoRH52WbFMFS/GHPKU535lLQZmS17jpumvZO72caLai
+         Jkz5fpAmAOMVBrYjz6CNH/nj7teSZOGWwcwj3jN+ChlG04nUq94Mn9m0SDsyzGsJecLe
+         BnB1gr4ZjJsRlhNOjiq+xtEsKbD+t5RI0TqHpT3pguW4oAN7KkxBwXMOqjzV4i9hEvKc
+         RAZDZ4jd9YEbHtlrZTDlXC1QTvmV6zG+V+Nk1jgPjQ2eKJhtfh6XhatnueWNV8//fgxn
+         XMSTKlKL8KHJNjM1Kr9UzqW8TOoXJ+MP4gLatRHp5Ih1G113lAPFOWUwJFNjOzgMjH7k
+         +hKA==
+X-Gm-Message-State: AC+VfDw749E23dYaBuQAdnPrJ8LZjOwc9b53oSWNSXJUZysKaZG34oB9
+        a+SteGdgH5ROXJNej1uMAJ14jUFGBeDzfw==
+X-Google-Smtp-Source: ACHHUZ4sEYpk6+BMOlR/qWZXRzz2E/wp1/rVUnGrpZJpuO4wBBxI3s+mInTWZaZatp5c+2IFnenVEA==
+X-Received: by 2002:a5d:69c6:0:b0:2fc:37be:af9c with SMTP id s6-20020a5d69c6000000b002fc37beaf9cmr1096495wrw.71.1682600746097;
+        Thu, 27 Apr 2023 06:05:46 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id k17-20020a5d6291000000b002c561805a4csm18533426wru.45.2023.04.27.06.05.43
+        by smtp.gmail.com with ESMTPSA id k17-20020a5d6291000000b002c561805a4csm18533426wru.45.2023.04.27.06.05.44
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 27 Apr 2023 06:05:44 -0700 (PDT)
+        Thu, 27 Apr 2023 06:05:45 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>,
-        linux-unionfs@vger.kernel.org,
-        Gao Xiang <hsiangkao@linux.alibaba.com>
-Subject: [PATCH v2 01/13] ovl: update of dentry revalidate flags after copy up
-Date:   Thu, 27 Apr 2023 16:05:27 +0300
-Message-Id: <20230427130539.2798797-2-amir73il@gmail.com>
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 02/13] ovl: use OVL_E() and OVL_E_FLAGS() accessors
+Date:   Thu, 27 Apr 2023 16:05:28 +0300
+Message-Id: <20230427130539.2798797-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230427130539.2798797-1-amir73il@gmail.com>
 References: <20230427130539.2798797-1-amir73il@gmail.com>
@@ -68,155 +66,181 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-After copy up, we may need to update d_flags if upper dentry is on a
-remote fs and lower dentries are not.
+Instead of open coded instances, because we are about to split
+the two apart.
 
-Add helpers to allow incremental update of the revalidate flags.
-
-Fixes: bccece1ead36 ("ovl: allow remote upper")
-Reviewed-by: Gao Xiang <hsiangkao@linux.alibaba.com>
+Reviewed-by: Alexander Larsson <alexl@redhat.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c   |  2 ++
- fs/overlayfs/dir.c       |  3 +--
- fs/overlayfs/export.c    |  3 +--
- fs/overlayfs/namei.c     |  3 +--
- fs/overlayfs/overlayfs.h |  6 ++++--
+ fs/overlayfs/export.c    |  2 +-
+ fs/overlayfs/namei.c     |  8 ++++----
+ fs/overlayfs/ovl_entry.h |  5 +++++
  fs/overlayfs/super.c     |  2 +-
- fs/overlayfs/util.c      | 24 ++++++++++++++++++++----
- 7 files changed, 30 insertions(+), 13 deletions(-)
+ fs/overlayfs/util.c      | 20 ++++++++++----------
+ 5 files changed, 21 insertions(+), 16 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c14e90764e35..7bf101e756c8 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -576,6 +576,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
- 			/* Restore timestamps on parent (best effort) */
- 			ovl_set_timestamps(ofs, upperdir, &c->pstat);
- 			ovl_dentry_set_upper_alias(c->dentry);
-+			ovl_dentry_update_reval(c->dentry, upper);
- 		}
- 	}
- 	inode_unlock(udir);
-@@ -895,6 +896,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 		inode_unlock(udir);
- 
- 		ovl_dentry_set_upper_alias(c->dentry);
-+		ovl_dentry_update_reval(c->dentry, ovl_dentry_upper(c->dentry));
- 	}
- 
- out:
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index fc25fb95d5fc..9be52d8013c8 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -269,8 +269,7 @@ static int ovl_instantiate(struct dentry *dentry, struct inode *inode,
- 
- 	ovl_dir_modified(dentry->d_parent, false);
- 	ovl_dentry_set_upper_alias(dentry);
--	ovl_dentry_update_reval(dentry, newdentry,
--			DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-+	ovl_dentry_init_reval(dentry, newdentry);
- 
- 	if (!hardlink) {
- 		/*
 diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-index defd4e231ad2..5c36fb3a7bab 100644
+index 5c36fb3a7bab..2cfdfcca5659 100644
 --- a/fs/overlayfs/export.c
 +++ b/fs/overlayfs/export.c
-@@ -326,8 +326,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
- 	if (upper_alias)
- 		ovl_dentry_set_upper_alias(dentry);
+@@ -341,7 +341,7 @@ static struct dentry *ovl_obtain_alias(struct super_block *sb,
+ /* Get the upper or lower dentry in stack whose on layer @idx */
+ static struct dentry *ovl_dentry_real_at(struct dentry *dentry, int idx)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 	int i;
  
--	ovl_dentry_update_reval(dentry, upper,
--			DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-+	ovl_dentry_init_reval(dentry, upper);
- 
- 	return d_instantiate_anon(dentry, inode);
- 
+ 	if (!idx)
 diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index cfb3420b7df0..100a492d2b2a 100644
+index 100a492d2b2a..e66352f19755 100644
 --- a/fs/overlayfs/namei.c
 +++ b/fs/overlayfs/namei.c
-@@ -1122,8 +1122,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			ovl_set_flag(OVL_UPPERDATA, inode);
- 	}
+@@ -790,7 +790,7 @@ struct dentry *ovl_lookup_index(struct ovl_fs *ofs, struct dentry *upper,
+  */
+ int ovl_path_next(int idx, struct dentry *dentry, struct path *path)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
  
--	ovl_dentry_update_reval(dentry, upperdentry,
--			DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-+	ovl_dentry_init_reval(dentry, upperdentry);
+ 	BUG_ON(idx < 0);
+ 	if (idx == 0) {
+@@ -833,8 +833,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	struct ovl_entry *oe;
+ 	const struct cred *old_cred;
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
+-	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
+-	struct ovl_entry *roe = dentry->d_sb->s_root->d_fsdata;
++	struct ovl_entry *poe = OVL_E(dentry->d_parent);
++	struct ovl_entry *roe = OVL_E(dentry->d_sb->s_root);
+ 	struct ovl_path *stack = NULL, *origin_path = NULL;
+ 	struct dentry *upperdir, *upperdentry = NULL;
+ 	struct dentry *origin = NULL;
+@@ -1157,7 +1157,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
  
- 	revert_creds(old_cred);
- 	if (origin_path) {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 4d0b278f5630..e100c55bb924 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -375,8 +375,10 @@ bool ovl_index_all(struct super_block *sb);
- bool ovl_verify_lower(struct super_block *sb);
- struct ovl_entry *ovl_alloc_entry(unsigned int numlower);
- bool ovl_dentry_remote(struct dentry *dentry);
--void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *upperdentry,
--			     unsigned int mask);
-+void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *realdentry);
-+void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry);
-+void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
-+			   unsigned int mask);
- bool ovl_dentry_weird(struct dentry *dentry);
- enum ovl_path_type ovl_path_type(struct dentry *dentry);
- void ovl_path_upper(struct dentry *dentry, struct path *path);
+ bool ovl_lower_positive(struct dentry *dentry)
+ {
+-	struct ovl_entry *poe = dentry->d_parent->d_fsdata;
++	struct ovl_entry *poe = OVL_E(dentry->d_parent);
+ 	const struct qstr *name = &dentry->d_name;
+ 	const struct cred *old_cred;
+ 	unsigned int i;
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index fd11fe6d6d45..4c7312126b3b 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -124,6 +124,11 @@ static inline struct ovl_entry *OVL_E(struct dentry *dentry)
+ 	return (struct ovl_entry *) dentry->d_fsdata;
+ }
+ 
++static inline unsigned long *OVL_E_FLAGS(struct dentry *dentry)
++{
++	return &OVL_E(dentry)->flags;
++}
++
+ struct ovl_inode {
+ 	union {
+ 		struct ovl_dir_cache *cache;	/* directory */
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index f1d9f75f8786..49b6956468f9 100644
+index 49b6956468f9..108824b359e6 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -1885,7 +1885,7 @@ static struct dentry *ovl_get_root(struct super_block *sb,
- 	ovl_dentry_set_flag(OVL_E_CONNECTED, root);
- 	ovl_set_upperdata(d_inode(root));
- 	ovl_inode_init(d_inode(root), &oip, ino, fsid);
--	ovl_dentry_update_reval(root, upperdentry, DCACHE_OP_WEAK_REVALIDATE);
-+	ovl_dentry_init_flags(root, upperdentry, DCACHE_OP_WEAK_REVALIDATE);
- 
- 	return root;
- }
+@@ -138,7 +138,7 @@ static int ovl_revalidate_real(struct dentry *d, unsigned int flags, bool weak)
+ static int ovl_dentry_revalidate_common(struct dentry *dentry,
+ 					unsigned int flags, bool weak)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 	struct inode *inode = d_inode_rcu(dentry);
+ 	struct dentry *upper;
+ 	unsigned int i;
 diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 923d66d131c1..6a0652bd51f2 100644
+index 6a0652bd51f2..01e6b4ec3074 100644
 --- a/fs/overlayfs/util.c
 +++ b/fs/overlayfs/util.c
-@@ -94,14 +94,30 @@ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
- 	return oe;
+@@ -143,7 +143,7 @@ bool ovl_dentry_weird(struct dentry *dentry)
+ 
+ enum ovl_path_type ovl_path_type(struct dentry *dentry)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 	enum ovl_path_type type = 0;
+ 
+ 	if (ovl_dentry_upper(dentry)) {
+@@ -176,7 +176,7 @@ void ovl_path_upper(struct dentry *dentry, struct path *path)
+ 
+ void ovl_path_lower(struct dentry *dentry, struct path *path)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 
+ 	if (oe->numlower) {
+ 		path->mnt = oe->lowerstack[0].layer->mnt;
+@@ -188,7 +188,7 @@ void ovl_path_lower(struct dentry *dentry, struct path *path)
+ 
+ void ovl_path_lowerdata(struct dentry *dentry, struct path *path)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 
+ 	if (oe->numlower) {
+ 		path->mnt = oe->lowerstack[oe->numlower - 1].layer->mnt;
+@@ -231,14 +231,14 @@ struct dentry *ovl_dentry_upper(struct dentry *dentry)
+ 
+ struct dentry *ovl_dentry_lower(struct dentry *dentry)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 
+ 	return oe->numlower ? oe->lowerstack[0].dentry : NULL;
  }
  
-+#define OVL_D_REVALIDATE (DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE)
-+
- bool ovl_dentry_remote(struct dentry *dentry)
+ const struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
  {
--	return dentry->d_flags &
--		(DCACHE_OP_REVALIDATE | DCACHE_OP_WEAK_REVALIDATE);
-+	return dentry->d_flags & OVL_D_REVALIDATE;
-+}
-+
-+void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *realdentry)
-+{
-+	if (!ovl_dentry_remote(realdentry))
-+		return;
-+
-+	spin_lock(&dentry->d_lock);
-+	dentry->d_flags |= realdentry->d_flags & OVL_D_REVALIDATE;
-+	spin_unlock(&dentry->d_lock);
-+}
-+
-+void ovl_dentry_init_reval(struct dentry *dentry, struct dentry *upperdentry)
-+{
-+	return ovl_dentry_init_flags(dentry, upperdentry, OVL_D_REVALIDATE);
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 
+ 	return oe->numlower ? oe->lowerstack[0].layer : NULL;
+ }
+@@ -251,7 +251,7 @@ const struct ovl_layer *ovl_layer_lower(struct dentry *dentry)
+  */
+ struct dentry *ovl_dentry_lowerdata(struct dentry *dentry)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 
+ 	return oe->numlower ? oe->lowerstack[oe->numlower - 1].dentry : NULL;
+ }
+@@ -329,17 +329,17 @@ void ovl_set_dir_cache(struct inode *inode, struct ovl_dir_cache *cache)
+ 
+ void ovl_dentry_set_flag(unsigned long flag, struct dentry *dentry)
+ {
+-	set_bit(flag, &OVL_E(dentry)->flags);
++	set_bit(flag, OVL_E_FLAGS(dentry));
  }
  
--void ovl_dentry_update_reval(struct dentry *dentry, struct dentry *upperdentry,
--			     unsigned int mask)
-+void ovl_dentry_init_flags(struct dentry *dentry, struct dentry *upperdentry,
-+			   unsigned int mask)
+ void ovl_dentry_clear_flag(unsigned long flag, struct dentry *dentry)
  {
- 	struct ovl_entry *oe = OVL_E(dentry);
- 	unsigned int i, flags = 0;
+-	clear_bit(flag, &OVL_E(dentry)->flags);
++	clear_bit(flag, OVL_E_FLAGS(dentry));
+ }
+ 
+ bool ovl_dentry_test_flag(unsigned long flag, struct dentry *dentry)
+ {
+-	return test_bit(flag, &OVL_E(dentry)->flags);
++	return test_bit(flag, OVL_E_FLAGS(dentry));
+ }
+ 
+ bool ovl_dentry_is_opaque(struct dentry *dentry)
+@@ -1015,7 +1015,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs *ofs, const struct path *path)
+ 
+ bool ovl_is_metacopy_dentry(struct dentry *dentry)
+ {
+-	struct ovl_entry *oe = dentry->d_fsdata;
++	struct ovl_entry *oe = OVL_E(dentry);
+ 
+ 	if (!d_is_reg(dentry))
+ 		return false;
 -- 
 2.34.1
 
