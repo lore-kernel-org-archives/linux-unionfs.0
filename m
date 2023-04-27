@@ -2,147 +2,115 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20C42C77B73
-	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 11:43:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1E63C77B73
+	for <linux-unionfs@archiver.kernel.org>; Thu, 27 Apr 2023 11:48:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243737AbjD0Ln0 (ORCPT
+        id S243501AbjD0Lsx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 27 Apr 2023 07:43:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45150 "EHLO
+        Thu, 27 Apr 2023 07:48:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47246 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243459AbjD0LnZ (ORCPT
+        with ESMTP id S242961AbjD0Lsw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 27 Apr 2023 07:43:25 -0400
-Received: from mail-ua1-x92e.google.com (mail-ua1-x92e.google.com [IPv6:2607:f8b0:4864:20::92e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76D3059EF
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 04:43:23 -0700 (PDT)
-Received: by mail-ua1-x92e.google.com with SMTP id a1e0cc1a2514c-77aad9ef9adso3088763241.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 27 Apr 2023 04:43:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682595802; x=1685187802;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lHdFHvUgmfz/8TjKjuKgVtAuz/GdDSbRwpxPrqQbvB0=;
-        b=hPFNrkXQlAm5Cub+KB9LYVg0qZHY11TtvcoK+kGM6Yivi3pJCnuju9aDNpkHDwX6kW
-         Le7QpaIcXBBzHgF83z84D8sv3kFP80nmLAz8oU+8jN5rkmtcjVIP0IkwJDzgWGJlHCVY
-         BQmuGBCDohTQaZI33syK8oz/89OF49C/ogNnLjEcD7Hs8WC+E44QtvDo6II3/rUcpXBX
-         m+C/iUe+7Lq83sYj1Joo78ugGsxYnXEl72l0GievZgVAxzeImvZViw4PChW4YoW9o0lA
-         nE6/R2mSjWXAqfgGODyPr97wGit/5/xOuI+gYp8bSKmUMJGuZrXuYS7QVuXih7/byrgI
-         SKFA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682595802; x=1685187802;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=lHdFHvUgmfz/8TjKjuKgVtAuz/GdDSbRwpxPrqQbvB0=;
-        b=L3aB0dEXlS1z7qiMLR/VXvgHKEKzyKha1tYWjtp/uUcGBd2+SeAanYgbf5ZGEOhkby
-         Q78I5kH9KaLcQn2kpJ3/Bb4qchA1BigkcneyxXUNNGC6EBteypsOce/+7ifV3kEy/VrK
-         QkmuBaeNFbLTjpdEQxtGr1wpgDB2Xv764E0dC5pd4i95SSkQEmaPlRfcorvSiTuWd+Cx
-         Z9AyFvzYx3jx4aubcdI6AmOrOep8M5lL1FH8TOIDidED1nQFo3L1p7s/9TYoSdrfxEBe
-         tPBKih9+uZQC9mC1rr3zAog203IIrDXcQm3bxQaVl2m+B9LbrT7OmAznobmiFXjQ/VyM
-         KzJA==
-X-Gm-Message-State: AC+VfDzj8Wykk7s9V9pKqiqCMg4GPpfbpAvQy8ooH0iWvkSg37rAzdQ6
-        0rWMz6JYLmpFFutvlokH1mhsGJ8c1yw8s5dvAm8=
-X-Google-Smtp-Source: ACHHUZ4lWTwjNglpVxLCI4LqNGnt+w8uamw6xSxhT/0N4l2T70KPDT9KxZuNvWe9L2ejqba24DWplgTpNtanOdj0OuM=
-X-Received: by 2002:a05:6102:4191:b0:42e:50f6:b50a with SMTP id
- cd17-20020a056102419100b0042e50f6b50amr2610689vsb.8.1682595802522; Thu, 27
- Apr 2023 04:43:22 -0700 (PDT)
+        Thu, 27 Apr 2023 07:48:52 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC89FA8;
+        Thu, 27 Apr 2023 04:48:51 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 5709321AED;
+        Thu, 27 Apr 2023 11:48:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1682596130; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=9pShv+zjTWSRAZ+oHqUB7CbDWUj57qhhbL44EosO+l4=;
+        b=clSFyKuyskXNCr4ylgVN0cfWefDtMgVHJ8w/QZqtoItFWC3zkS0RGfE01gyV4fCkKH9yK8
+        +xkSGVH5eRIyMeVjHABYQ8IMJWJbUlQRHUr1iAvnXS1T/RBhvOEVt8vylnz/PEm1Flu0ut
+        bwpCCJyOkoopL9E2QVxt7OVCUocypbU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1682596130;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=9pShv+zjTWSRAZ+oHqUB7CbDWUj57qhhbL44EosO+l4=;
+        b=98dWMwrzz8mIUciuXQbPUCemjR4t7zJ20i6vELna9tv3vzHgKQGxarYWJfGR9MzLpTXJfH
+        cc+IHpmerGe3mJDA==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 483FA138F9;
+        Thu, 27 Apr 2023 11:48:50 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id xJShESJhSmTdQAAAMHmgww
+        (envelope-from <jack@suse.cz>); Thu, 27 Apr 2023 11:48:50 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+        id D2C95A0729; Thu, 27 Apr 2023 13:48:49 +0200 (CEST)
+Date:   Thu, 27 Apr 2023 13:48:49 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-api@vger.kernel.org
+Subject: Re: [RFC][PATCH 4/4] fanotify: support reporting non-decodeable file
+ handles
+Message-ID: <20230427114849.cv3kzxk7rvxpohjc@quack3>
+References: <20230425130105.2606684-1-amir73il@gmail.com>
+ <20230425130105.2606684-5-amir73il@gmail.com>
 MIME-Version: 1.0
-References: <20230412135412.1684197-1-amir73il@gmail.com> <20230412135412.1684197-5-amir73il@gmail.com>
- <CAJfpegtx2DixU+TNRa5LA8Dv=mvi_w=Oh5k3USLmip3LmGtX2g@mail.gmail.com> <CAOQ4uxgBDf2-mFmRQN=Q_bgYsZ4GmAPWT0x8uH29SGVpyAoeJw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgBDf2-mFmRQN=Q_bgYsZ4GmAPWT0x8uH29SGVpyAoeJw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 27 Apr 2023 14:43:11 +0300
-Message-ID: <CAOQ4uxgyqWR4eyNBo7ANRTNA7D0x-pv+7F2M1YeLmcXwxMyd6Q@mail.gmail.com>
-Subject: Re: [PATCH 4/5] ovl: prepare for lazy lookup of lowerdata inode
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230425130105.2606684-5-amir73il@gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Apr 27, 2023 at 2:12=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Wed, Apr 26, 2023 at 5:57=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu=
-> wrote:
-> >
-> > On Wed, 12 Apr 2023 at 15:54, Amir Goldstein <amir73il@gmail.com> wrote=
-:
-> > >
-> > > Make the code handle the case of numlower > 1 and missing lowerdata
-> > > dentry gracefully.
-> > >
-> > > Missing lowerdata dentry is an indication for lazy lookup of lowerdat=
-a
-> > > and in that case the lowerdata_redirect path is stored in ovl_inode.
-> > >
-> > > Following commits will defer lookup and perform the lazy lookup on
-> > > acccess.
-> > >
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > ---
-> > >  fs/overlayfs/export.c |  2 +-
-> > >  fs/overlayfs/file.c   |  7 +++++++
-> > >  fs/overlayfs/inode.c  | 18 ++++++++++++++----
-> > >  fs/overlayfs/super.c  |  3 +++
-> > >  fs/overlayfs/util.c   |  2 +-
-> > >  5 files changed, 26 insertions(+), 6 deletions(-)
-> > >
-> > > diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> > > index 9951c504fb8d..2498fa8311e3 100644
-> > > --- a/fs/overlayfs/export.c
-> > > +++ b/fs/overlayfs/export.c
-> > > @@ -343,7 +343,7 @@ static struct dentry *ovl_dentry_real_at(struct d=
-entry *dentry, int idx)
-> > >         if (!idx)
-> > >                 return ovl_dentry_upper(dentry);
-> > >
-> > > -       for (i =3D 0; i < ovl_numlower(oe); i++) {
-> > > +       for (i =3D 0; i < ovl_numlower(oe) && lowerstack[i].layer; i+=
-+) {
-> >
-> > Metacopy and NFS export are mutually exclusive, so this doesn't make se=
-nse.
-> >
->
-> OK.
->
-> >
-> > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > > index 3484f39a8f27..ef78abc21998 100644
-> > > --- a/fs/overlayfs/super.c
-> > > +++ b/fs/overlayfs/super.c
-> >
-> > ovl_d_real() calls ovl_dentry_lowerdata().  If triggered from
-> > file_dentry() it should be okay, since that is done on an open file
-> > (lazy lookup already perfromed).   But it can also be called from
-> > d_real_inode(), the only caller of which is trace_uprobe.  Is this
-> > going to be okay?
-> >
->
-> Not sure.
-> It's hard to imagine that trace_uprobe_create() is being called to place
-> a probe on a file at offset X without reading the content of symbols firs=
-t.
->
-> I wonder if lazy lookup from within ovl_d_real(d, NULL) is acceptable?
-> It does look like the context of trace_uprobe() callers should be fine fo=
-r lazy
-> lowerdata lookup.
->
-> > In any case a comment is needed at least.
-> >
->
-> I will leave it as is and add a comment.
+On Tue 25-04-23 16:01:05, Amir Goldstein wrote:
+> fanotify users do not always need to decode the file handles reported
+> with FAN_REPORT_FID.
+> 
+> Relax the restriction that filesystem needs to support NFS export and
+> allow reporting file handles from filesystems that only support ecoding
+> unique file handles.
+> 
+> For such filesystems, users will have to use the AT_HANDLE_FID of
+> name_to_handle_at(2) if they want to compare the object in path to the
+> object fid reported in an event.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+...
+> diff --git a/fs/notify/fanotify/fanotify_user.c b/fs/notify/fanotify/fanotify_user.c
+> index 8f430bfad487..a5af84cbb30d 100644
+> --- a/fs/notify/fanotify/fanotify_user.c
+> +++ b/fs/notify/fanotify/fanotify_user.c
+> @@ -1586,11 +1586,9 @@ static int fanotify_test_fid(struct dentry *dentry)
+>  	 * We need to make sure that the file system supports at least
+>  	 * encoding a file handle so user can use name_to_handle_at() to
+>  	 * compare fid returned with event to the file handle of watched
+> -	 * objects. However, name_to_handle_at() requires that the
+> -	 * filesystem also supports decoding file handles.
+> +	 * objects, but it does not need to support decoding file handles.
+>  	 */
+> -	if (!dentry->d_sb->s_export_op ||
+> -	    !dentry->d_sb->s_export_op->fh_to_dentry)
+> +	if (!dentry->d_sb->s_export_op)
+>  		return -EOPNOTSUPP;
 
-On second thought, I will add best effort lazy lowerdata lookup
-in addition to the warning.
-d_real_inode() does not expect errors or NULL and trace_uprobe
-does not check for them either.
+So AFAICS the only thing you require is that s_export_op is set to
+*something* as exportfs_encode_inode_fh() can deal with NULL ->encode_fh
+just fine without any filesystem cooperation. What is the reasoning behind
+the dentry->d_sb->s_export_op check? Is there an implicit expectation that
+if s_export_op is set to something, the filesystem has sensible
+i_generation? Or is it just a caution that you don't want the functionality
+to be enabled for unexpected filesystems? In either case it would be good
+to capture the reasoning either in a comment or the changelog...
 
-Thanks,
-Amir.
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
