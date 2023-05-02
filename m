@@ -2,137 +2,169 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F230DC77B7C
-	for <linux-unionfs@archiver.kernel.org>; Tue,  2 May 2023 03:38:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E91CC7EE2D
+	for <linux-unionfs@archiver.kernel.org>; Tue,  2 May 2023 12:48:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233378AbjEBDie (ORCPT
+        id S234240AbjEBMse (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 1 May 2023 23:38:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33546 "EHLO
+        Tue, 2 May 2023 08:48:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232790AbjEBDib (ORCPT
+        with ESMTP id S234146AbjEBMs2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 1 May 2023 23:38:31 -0400
-Received: from mail-pf1-x433.google.com (mail-pf1-x433.google.com [IPv6:2607:f8b0:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 934053581;
-        Mon,  1 May 2023 20:38:30 -0700 (PDT)
-Received: by mail-pf1-x433.google.com with SMTP id d2e1a72fcca58-63b67a26069so3803050b3a.0;
-        Mon, 01 May 2023 20:38:30 -0700 (PDT)
+        Tue, 2 May 2023 08:48:28 -0400
+Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BF1359E1;
+        Tue,  2 May 2023 05:48:26 -0700 (PDT)
+Received: by mail-wr1-x433.google.com with SMTP id ffacd0b85a97d-3062b101ae1so1650003f8f.2;
+        Tue, 02 May 2023 05:48:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1682998710; x=1685590710;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=w9jeK1WbiwcypTGmla3kWNgoIrfPhM6KWaPpZ6YT+Bk=;
-        b=XsJPAfcFHefELfP+zLqKYwE+euLdjM+gOZ9eOAFebg2yP4yAWVVVJUo8P83IgFURLf
-         9N9J6k7rvDDFBs7rHQrBkE+h8BdPRT8CmImoNyrxoIQCbTk9XgoErMDmvIGIgOScSSgw
-         ACsGCRj3OUZqa3wcWIScaAzruMtubAehdERyfwgtTbslvkuF5CaEcE/nItizOr1psEbV
-         6AtVyN0wed3KM65+K9WuJNi6GzMy0uuvgHN/sZMP4Waj/61mNYfBOS1jj/8qu+zsJLMT
-         RGCmC9yFjbCXRH7PpXmOallFPBEDb0+Gn3u/dyxGyo82YcOpg5yHSxm6bVYF7Hwxt4dR
-         Z0lw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1682998710; x=1685590710;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20221208; t=1683031705; x=1685623705;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=w9jeK1WbiwcypTGmla3kWNgoIrfPhM6KWaPpZ6YT+Bk=;
-        b=OcApiRmmG8nCk1vza7NQOqc36fg1P429OhPNadLsSzNp2nFmwWEJ1PU4k6eK8oJgMx
-         9G+MH9cweTYGTaE6ntUFzs1m/KbS/MuMAR9Dwpky6ptmihDuVYTVMbG70gQwoyF0EStH
-         kLfDmgyDIHyzUH4rCrvU3lKsfPuxnGWApsmreOVGFRjUEAirDp5rhQNDjm9vgFn2ZDg4
-         eGsQpEbcEvZ2cwu+d3H7/GY0OfPvFze+0EQoQqDp90peVkodAIMopIfF6kmPQ+CSVjfD
-         D+dO/ZDtrLHnjVWSjrU1ppx2zM6MOmxiGq7VAUOgVuiuGvXKpALXjQ2g7nPKGN3tmBNQ
-         5yNw==
-X-Gm-Message-State: AC+VfDwpodrO3dhDwaP3NYWd6xozeHR2Yl8hnBUNDd24ivy20lf846J1
-        wg0PUyWeKCUBcDjZmPOLAMWnnamPAw4=
-X-Google-Smtp-Source: ACHHUZ68Q+sZJie50x8IkLzjGYZzCLAtUYbmqpoSIQ9PXxasFWP1mYSN3aOVLlxZN7rEd+blBqIflg==
-X-Received: by 2002:a05:6a00:2ea6:b0:63f:24f1:adac with SMTP id fd38-20020a056a002ea600b0063f24f1adacmr24849208pfb.25.1682998709655;
-        Mon, 01 May 2023 20:38:29 -0700 (PDT)
-Received: from dhcp-172-26-102-232.dhcp.thefacebook.com ([2620:10d:c090:400::5:c9f6])
-        by smtp.gmail.com with ESMTPSA id d16-20020a056a00199000b0063f1a27f2c9sm18778284pfl.70.2023.05.01.20.38.26
+        bh=vjYpK+xxCL8lt/8cmLRqktVRJYxjE9M35ggTsbeXktw=;
+        b=PtNnZDgcd4JaXJYhROzvogPEYsP/mjQAagAXmMeTaE71zXMHmzbrpJbxU8aZxVbfGu
+         uqRQO75241GPJSW1gi+ZrXnSxSg80SGiEJTU1xl+YgaWNa/3X+MWvBysFq/x4YzJrZaC
+         9RvVlvNLGdfkTWhXujejwbqkoafdEHXOpbgZoOxKTGMYspF2J07PkThFrzq+9bXPELvq
+         J2kMg5y//H53h/SSqKxHJre1ABFgDiA76v6zWNCmdxYMlGBj7fF2jqay1kr+RbKkOo0B
+         d/33RRtNS7nl3ZBXOTbKqbsyy3xp0T5KFok7kh51s2X5w0KXV4bz+U4XDGqdDlIp1BE2
+         aObA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683031705; x=1685623705;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vjYpK+xxCL8lt/8cmLRqktVRJYxjE9M35ggTsbeXktw=;
+        b=Ew424nCy2noHV9n72bE2Q3GgMtN9oCy/wCk+BdoqbY39av7uV550iIazHK2u3M3cNo
+         nHLRA05iqMuIPaQ3LBw7tZQjIbUhbUzCfvceHd9SiU+TsA9Wnxe2YxTYbAQLwlPk0463
+         rcxN4bV0RVqFzcycoI1+dHA66QBqN3sOEjRms0U4h1kuuMHCTH3BN1lKm0qAyPK8Lydk
+         rNbOY1NTI2UWPHI8YbDDhIt3kVApF+J6gqaNFFCpQjE+nvf/P3A4jhe9oPYhHcdD272s
+         J/3SAVzFH7DQ4Le/+Ar71lRh5AOPLG2n+tgnQ2tuoj8Jv3F9sJJjMlKtkgxDgaYG5qTU
+         bEdQ==
+X-Gm-Message-State: AC+VfDzaKtGgqyVyD1RplXaqt0Y4wMC/qTOZ/i79MlJZqNikWy37ebOb
+        EaxUrjABhnfTAH1afhJAPyM=
+X-Google-Smtp-Source: ACHHUZ46pAdh5nrXUz4ensPQsgGhFbH8llcw3yjTXdNKf7VhKZW+HE5WyNeR1pBXIPnhY9qeQOfLqg==
+X-Received: by 2002:adf:ff91:0:b0:2d7:4c98:78fe with SMTP id j17-20020adfff91000000b002d74c9878femr11739176wrr.34.1683031704851;
+        Tue, 02 May 2023 05:48:24 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id d9-20020a5d6dc9000000b00304adbeeabbsm14226259wrz.99.2023.05.02.05.48.23
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 01 May 2023 20:38:29 -0700 (PDT)
-Date:   Mon, 1 May 2023 20:38:25 -0700
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-To:     Daniel Rosenberg <drosen@google.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Joanne Koong <joannelkoong@gmail.com>,
-        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com,
-        Paul Lawrence <paullawrence@google.com>,
-        Alessio Balsini <balsini@google.com>
-Subject: Re: [RFC PATCH v3 08/37] fuse: Add fuse-bpf, a stacked fs extension
- for FUSE
-Message-ID: <20230502033825.ofcxttuquoanhe7b@dhcp-172-26-102-232.dhcp.thefacebook.com>
-References: <20230418014037.2412394-1-drosen@google.com>
- <20230418014037.2412394-9-drosen@google.com>
+        Tue, 02 May 2023 05:48:24 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Jan Kara <jack@suse.cz>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Jeff Layton <jlayton@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-api@vger.kernel.org
+Subject: [PATCH v2 1/4] exportfs: change connectable argument to bit flags
+Date:   Tue,  2 May 2023 15:48:14 +0300
+Message-Id: <20230502124817.3070545-2-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230502124817.3070545-1-amir73il@gmail.com>
+References: <20230502124817.3070545-1-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230418014037.2412394-9-drosen@google.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Apr 17, 2023 at 06:40:08PM -0700, Daniel Rosenberg wrote:
-> Fuse-bpf provides a short circuit path for Fuse implementations that act
-> as a stacked filesystem. For cases that are directly unchanged,
-> operations are passed directly to the backing filesystem. Small
-> adjustments can be handled by bpf prefilters or postfilters, with the
-> option to fall back to userspace as needed.
+Convert the bool connectable arguemnt into a bit flags argument and
+define the EXPORT_FS_CONNECTABLE flag as a requested property of the
+file handle.
 
-Here is my understanding of fuse-bpf design:
-- bpf progs can mostly read-only access fuse_args before and after proper vfs
-  operation on a backing path/file/inode.
-- args are unconditionally prepared for bpf prog consumption, but progs won't
-  be doing anything with them most of the time.
-- progs unfortunately cannot do any real work. they're nothing but simple filters.
-  They can give 'green light' for a fuse_FOO op to be delegated to proper vfs_FOO
-  in backing file. The logic in this patch keeps track of backing_path/file/inode.
-- in other words bpf side is "dumb", but it's telling kernel what to do with
-  real things like path/file/inode and the kernel is doing real work and calling vfs_*.
+We are going to add a flag for requesting non-decodeable file handles.
 
-This design adds non-negligible overhead to fuse when CONFIG_FUSE_BPF is set.
-Comparing to trip to user space it's close to zero, but the cost of
-initialize_in/out + backing + finalize is not free.
-The patch 33 is especially odd.
-fuse has a traditional mechanism to upcall to user space with fuse_simple_request.
-The patch 33 allows bpf prog to return special return value and trigger two more
-fuse_bpf_simple_request-s to user space. Not clear why.
-It seems to me that the main assumption of the fuse bpf design is that bpf prog
-has to stay short and simple. It cannot do much other than reading and comparing
-strings with the help of dynptr.
-How about we allow bpf attach to fuse_simple_request and nothing else?
-All fuse ops call it anyway and cmd is already encoded in the args.
-Then let bpf prog read fuse_args as-is (without converting them to bpf_fuse_args)
-and avoid doing actual fuse_req to user space.
-Also allow bpf prog acquire and remember path/file/inode.
-The verifier is already smart enough to track that the prog is doing it safely
-without leaking references and what not.
-And, of course, allow bpf prog call vfs_* via kfuncs.
-In other words, instead of hard coding
- +#define bpf_fuse_backing(inode, io, out,                             \
- +                      initialize_in, initialize_out,                 \
- +                      backing, finalize, args...)                    \
-one for each fuse_ops in the kernel let bpf prog do the same but on demand.
-The biggest advantage is that this patch set instead of 95% on fuse side and 5% on bpf
-will become 5% addition to fuse code. All the logic will be handled purely by bpf.
-Right now you're limiting it to one backing_file per fuse_file.
-With bpf prog driving it the prog can keep multiple backing_files and shuffle
-access to them as prog decides.
-Instead of doing 'return BPF_FUSE_CONTINUE' the bpf progs will
-pass 'path' to kfunc bpf_vfs_open, than stash 'struct bpf_file*', etc.
-Probably will be easier to white board this idea during lsfmmbpf.
+Acked-by: Jeff Layton <jlayton@kernel.org>
+Acked-by: Chuck Lever <chuck.lever@oracle.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/exportfs/expfs.c      | 13 +++++++++++--
+ fs/nfsd/nfsfh.c          |  5 +++--
+ include/linux/exportfs.h |  6 ++++--
+ 3 files changed, 18 insertions(+), 6 deletions(-)
 
-First 3 patches look fine. Thank you for resending them separately.
+diff --git a/fs/exportfs/expfs.c b/fs/exportfs/expfs.c
+index ab88d33d106c..ab7feffe2d19 100644
+--- a/fs/exportfs/expfs.c
++++ b/fs/exportfs/expfs.c
+@@ -393,14 +393,23 @@ int exportfs_encode_inode_fh(struct inode *inode, struct fid *fid,
+ }
+ EXPORT_SYMBOL_GPL(exportfs_encode_inode_fh);
+ 
++/**
++ * exportfs_encode_fh - encode a file handle from dentry
++ * @dentry:  the object to encode
++ * @fid:     where to store the file handle fragment
++ * @max_len: maximum length to store there
++ * @flags:   properties of the requested file handle
++ *
++ * Returns an enum fid_type or a negative errno.
++ */
+ int exportfs_encode_fh(struct dentry *dentry, struct fid *fid, int *max_len,
+-		int connectable)
++		       int flags)
+ {
+ 	int error;
+ 	struct dentry *p = NULL;
+ 	struct inode *inode = dentry->d_inode, *parent = NULL;
+ 
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
++	if ((flags & EXPORT_FH_CONNECTABLE) && !S_ISDIR(inode->i_mode)) {
+ 		p = dget_parent(dentry);
+ 		/*
+ 		 * note that while p might've ceased to be our parent already,
+diff --git a/fs/nfsd/nfsfh.c b/fs/nfsd/nfsfh.c
+index ccd8485fee04..31e4505c0df3 100644
+--- a/fs/nfsd/nfsfh.c
++++ b/fs/nfsd/nfsfh.c
+@@ -414,10 +414,11 @@ static void _fh_update(struct svc_fh *fhp, struct svc_export *exp,
+ 		struct fid *fid = (struct fid *)
+ 			(fhp->fh_handle.fh_fsid + fhp->fh_handle.fh_size/4 - 1);
+ 		int maxsize = (fhp->fh_maxsize - fhp->fh_handle.fh_size)/4;
+-		int subtreecheck = !(exp->ex_flags & NFSEXP_NOSUBTREECHECK);
++		int fh_flags = (exp->ex_flags & NFSEXP_NOSUBTREECHECK) ? 0 :
++				EXPORT_FH_CONNECTABLE;
+ 
+ 		fhp->fh_handle.fh_fileid_type =
+-			exportfs_encode_fh(dentry, fid, &maxsize, subtreecheck);
++			exportfs_encode_fh(dentry, fid, &maxsize, fh_flags);
+ 		fhp->fh_handle.fh_size += maxsize * 4;
+ 	} else {
+ 		fhp->fh_handle.fh_fileid_type = FILEID_ROOT;
+diff --git a/include/linux/exportfs.h b/include/linux/exportfs.h
+index 601700fedc91..66e16022cc3d 100644
+--- a/include/linux/exportfs.h
++++ b/include/linux/exportfs.h
+@@ -135,6 +135,8 @@ struct fid {
+ 	};
+ };
+ 
++#define EXPORT_FH_CONNECTABLE	0x1 /* Encode file handle with parent */
++
+ /**
+  * struct export_operations - for nfsd to communicate with file systems
+  * @encode_fh:      encode a file handle fragment from a dentry
+@@ -150,7 +152,7 @@ struct fid {
+  * encode_fh:
+  *    @encode_fh should store in the file handle fragment @fh (using at most
+  *    @max_len bytes) information that can be used by @decode_fh to recover the
+- *    file referred to by the &struct dentry @de.  If the @connectable flag is
++ *    file referred to by the &struct dentry @de.  If @flag has CONNECTABLE bit
+  *    set, the encode_fh() should store sufficient information so that a good
+  *    attempt can be made to find not only the file but also it's place in the
+  *    filesystem.   This typically means storing a reference to de->d_parent in
+@@ -226,7 +228,7 @@ struct export_operations {
+ extern int exportfs_encode_inode_fh(struct inode *inode, struct fid *fid,
+ 				    int *max_len, struct inode *parent);
+ extern int exportfs_encode_fh(struct dentry *dentry, struct fid *fid,
+-	int *max_len, int connectable);
++			      int *max_len, int flags);
+ extern struct dentry *exportfs_decode_fh_raw(struct vfsmount *mnt,
+ 					     struct fid *fid, int fh_len,
+ 					     int fileid_type,
+-- 
+2.34.1
+
