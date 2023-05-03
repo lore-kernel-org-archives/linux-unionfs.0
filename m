@@ -2,168 +2,126 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29FF0C77B78
-	for <linux-unionfs@archiver.kernel.org>; Wed,  3 May 2023 03:45:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 013DBC77B75
+	for <linux-unionfs@archiver.kernel.org>; Wed,  3 May 2023 08:52:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbjECDpc (ORCPT
+        id S229526AbjECIwm (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 2 May 2023 23:45:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32972 "EHLO
+        Wed, 3 May 2023 04:52:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229461AbjECDpb (ORCPT
+        with ESMTP id S229449AbjECIwl (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 2 May 2023 23:45:31 -0400
-Received: from mail-ua1-x92d.google.com (mail-ua1-x92d.google.com [IPv6:2607:f8b0:4864:20::92d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA4A92683;
-        Tue,  2 May 2023 20:45:29 -0700 (PDT)
-Received: by mail-ua1-x92d.google.com with SMTP id a1e0cc1a2514c-77d46c7dd10so1521686241.0;
-        Tue, 02 May 2023 20:45:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683085529; x=1685677529;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=e/HXv6CG+LxJ7BClSWO3ugL9TVXyN0Lqq9OyDlKsu+U=;
-        b=hZ2fCikkaJ3a8AARHzwxnFamVk+Ky1uH8Sv3ZmruF70hU5fTJER//ZGjvUth/M+Tls
-         w+FlE6924Bz6XqfFZn50ZPuqGiHpw0PrAZtx5WVfEv2joJ6RyF/L4ynNU0jPzRak30Ck
-         z22nyDOyti4yCC9GS6fzKvB7vDbkmrt3kxYb9Z9RexGYEd51PgLB+zWssA18S7zmJ4Em
-         sdTP5SHmqQEzxnobgoPdo8+9/GfCBEVtZCEdVLhAhw1miPbyAXyUpJ5MwOLoObrXUbRN
-         tukCKwHxTTci7FSkFfebZdBTI+HKHArdxM8bCliFQxnkwQm/+WB9Nkvl8+DxWnwk0zTS
-         fPVg==
+        Wed, 3 May 2023 04:52:41 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5883010D9
+        for <linux-unionfs@vger.kernel.org>; Wed,  3 May 2023 01:51:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1683103917;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=4a+f8Fz30tFWUstPUy0HitI6O2dH+5DYRSPePkoVA7E=;
+        b=cibz2IIRo8D3cm+6MLMqprI4OLbupm1AEywFfgbQDE8rZ/55rQWlFl3mJQo6g7mnhYbqWa
+        nXTIM+XzTGdwrbP9seV0r5uUPa/GHjMCMM2fWY7Y+U/gx4Tj1SbCxNd4y2SKpIybtcDRCI
+        JCi+SBhdHjq/oZGjMLR96LZ6qyTYju4=
+Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
+ [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-411-1Fe_3vMmMXGptLseMH28TQ-1; Wed, 03 May 2023 04:51:56 -0400
+X-MC-Unique: 1Fe_3vMmMXGptLseMH28TQ-1
+Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-4edc5d704bbso2760376e87.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 03 May 2023 01:51:55 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683085529; x=1685677529;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=e/HXv6CG+LxJ7BClSWO3ugL9TVXyN0Lqq9OyDlKsu+U=;
-        b=IYe22Jvc5IRMcVeW7LJ9/nz54Hg1X29GAYj89+iQHuU7mQv8zEH5Ka6eqwBQiCMNCe
-         O6ICOyyaebNCA1ms5x0F+2m38eu1N8+ZAh5jkPsALux2OjrOTJHmGdFzp44xkOjEj12Y
-         D4ksbrWSBM7iv7Q00Ru9cyaiWL6c1bF+R3ViqIA+rLEOtuhHiDynmGW/jnlYi+B62bCF
-         eaFRYIZzxWaXRDMsmg3klcH1xM2pXNNGJw79VqxXtyqb5zgvilrjOtfuz6MEmmo5RuLV
-         3qN4+b21tKQyD0rYkSAiSRO2pzhl51tcWQmY2ja93PqRSQXqApXdDqIH6YP0uvKJaIix
-         ANcA==
-X-Gm-Message-State: AC+VfDzR7jzgLk2UDP620tl6ZaMERugrcsHRPvFDR9TtbTpDdog8sSJ+
-        4A4Rk0f/Ahb6NSj/oWpH/4THO8YdYtAbkcfL/hY=
-X-Google-Smtp-Source: ACHHUZ5tzzMWOASC+yK6hxGcJYLcI+b9I/oT+mJ2v1V8ZQ4we7IPzywRC+azTftiFych0glVNcKyJE7ikI8ACK/DupM=
-X-Received: by 2002:a1f:5e10:0:b0:432:e55:b103 with SMTP id
- s16-20020a1f5e10000000b004320e55b103mr290197vkb.3.1683085528720; Tue, 02 May
- 2023 20:45:28 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1683103915; x=1685695915;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=4a+f8Fz30tFWUstPUy0HitI6O2dH+5DYRSPePkoVA7E=;
+        b=PMBw/DRpIc7SmkRd6Kx/Ia9bzCm7TH9Ym12aq2bV3LbZUPZVIU06zDB0Cvg5eAs/YV
+         D+YaQXYlZVU+XBcvwoEDkZYXKvpO9R8tEBBgj4R8I/Pcx/HbAamdOkSofWONt/DoYImH
+         S3lVbQLoOOUlwHfW03AlThVSyQmdZFqfQmGTs0ie7zI4YsW9JU/uVCKmMnteuehuh2z7
+         lrDE/Afekw+YMJj/xNThJqPXYSlp/gn78yBnleYUZhRZXPw4LnP8NnMn8VG6AYd4PuNB
+         6h6pVOEgPpIrx4WBX/IGFrhsrwBbL0JL95s23Dn6dcNWnnjBZoPXuaVPzZ/y9OL9+fVE
+         QxKQ==
+X-Gm-Message-State: AC+VfDxeBlb23tmFX/AAL5HTex9SUU9nbK+iig7+FpGBInNF7Zl0bZGo
+        7YO5cYjVv4SGKU7TdS/FH/iWganU0wOVgbZt3hApj97UMi2Aeytx5vK2lfWz5QNjwko/++uRGNX
+        xoWJA4NucWm7IZzLF+wFvqZ9rhw==
+X-Received: by 2002:ac2:4468:0:b0:4dc:82b0:4c68 with SMTP id y8-20020ac24468000000b004dc82b04c68mr640874lfl.50.1683103914864;
+        Wed, 03 May 2023 01:51:54 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ6Xzkn0lqidzGMiyCQRL8W1ti01Ujxk2+TA/bge7mKgJluQVT0T2m86kotF44T0gebhvbFgdg==
+X-Received: by 2002:ac2:4468:0:b0:4dc:82b0:4c68 with SMTP id y8-20020ac24468000000b004dc82b04c68mr640867lfl.50.1683103914526;
+        Wed, 03 May 2023 01:51:54 -0700 (PDT)
+Received: from localhost.localdomain (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
+        by smtp.googlemail.com with ESMTPSA id j6-20020ac24546000000b004ed4fa5f20fsm5907089lfm.25.2023.05.03.01.51.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 03 May 2023 01:51:53 -0700 (PDT)
+From:   Alexander Larsson <alexl@redhat.com>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com,
+        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev,
+        Alexander Larsson <alexl@redhat.com>
+Subject: [PATCH v2 0/6] ovl: Add support for fs-verity checking of lowerdata
+Date:   Wed,  3 May 2023 10:51:33 +0200
+Message-Id: <cover.1683102959.git.alexl@redhat.com>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-References: <20230418014037.2412394-1-drosen@google.com> <20230418014037.2412394-9-drosen@google.com>
- <20230502033825.ofcxttuquoanhe7b@dhcp-172-26-102-232.dhcp.thefacebook.com>
-In-Reply-To: <20230502033825.ofcxttuquoanhe7b@dhcp-172-26-102-232.dhcp.thefacebook.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 3 May 2023 06:45:17 +0300
-Message-ID: <CAOQ4uxi3WXb2MKx+YUnsCad2jUDtUuafFzuqJi0uo4us7xmfuA@mail.gmail.com>
-Subject: Re: [RFC PATCH v3 08/37] fuse: Add fuse-bpf, a stacked fs extension
- for FUSE
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Daniel Rosenberg <drosen@google.com>,
-        Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Joanne Koong <joannelkoong@gmail.com>,
-        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com,
-        Paul Lawrence <paullawrence@google.com>,
-        Alessio Balsini <balsini@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 2, 2023 at 6:38=E2=80=AFAM Alexei Starovoitov
-<alexei.starovoitov@gmail.com> wrote:
->
-> On Mon, Apr 17, 2023 at 06:40:08PM -0700, Daniel Rosenberg wrote:
-> > Fuse-bpf provides a short circuit path for Fuse implementations that ac=
-t
-> > as a stacked filesystem. For cases that are directly unchanged,
-> > operations are passed directly to the backing filesystem. Small
-> > adjustments can be handled by bpf prefilters or postfilters, with the
-> > option to fall back to userspace as needed.
->
-> Here is my understanding of fuse-bpf design:
-> - bpf progs can mostly read-only access fuse_args before and after proper=
- vfs
->   operation on a backing path/file/inode.
-> - args are unconditionally prepared for bpf prog consumption, but progs w=
-on't
->   be doing anything with them most of the time.
-> - progs unfortunately cannot do any real work. they're nothing but simple=
- filters.
->   They can give 'green light' for a fuse_FOO op to be delegated to proper=
- vfs_FOO
->   in backing file. The logic in this patch keeps track of backing_path/fi=
-le/inode.
-> - in other words bpf side is "dumb", but it's telling kernel what to do w=
-ith
->   real things like path/file/inode and the kernel is doing real work and =
-calling vfs_*.
->
-> This design adds non-negligible overhead to fuse when CONFIG_FUSE_BPF is =
-set.
-> Comparing to trip to user space it's close to zero, but the cost of
-> initialize_in/out + backing + finalize is not free.
-> The patch 33 is especially odd.
-> fuse has a traditional mechanism to upcall to user space with fuse_simple=
-_request.
-> The patch 33 allows bpf prog to return special return value and trigger t=
-wo more
-> fuse_bpf_simple_request-s to user space. Not clear why.
-> It seems to me that the main assumption of the fuse bpf design is that bp=
-f prog
-> has to stay short and simple. It cannot do much other than reading and co=
-mparing
-> strings with the help of dynptr.
-> How about we allow bpf attach to fuse_simple_request and nothing else?
-> All fuse ops call it anyway and cmd is already encoded in the args.
-> Then let bpf prog read fuse_args as-is (without converting them to bpf_fu=
-se_args)
-> and avoid doing actual fuse_req to user space.
-> Also allow bpf prog acquire and remember path/file/inode.
-> The verifier is already smart enough to track that the prog is doing it s=
-afely
-> without leaking references and what not.
-> And, of course, allow bpf prog call vfs_* via kfuncs.
-> In other words, instead of hard coding
->  +#define bpf_fuse_backing(inode, io, out,                             \
->  +                      initialize_in, initialize_out,                 \
->  +                      backing, finalize, args...)                    \
-> one for each fuse_ops in the kernel let bpf prog do the same but on deman=
-d.
-> The biggest advantage is that this patch set instead of 95% on fuse side =
-and 5% on bpf
-> will become 5% addition to fuse code. All the logic will be handled purel=
-y by bpf.
-> Right now you're limiting it to one backing_file per fuse_file.
-> With bpf prog driving it the prog can keep multiple backing_files and shu=
-ffle
-> access to them as prog decides.
-> Instead of doing 'return BPF_FUSE_CONTINUE' the bpf progs will
-> pass 'path' to kfunc bpf_vfs_open, than stash 'struct bpf_file*', etc.
-> Probably will be easier to white board this idea during lsfmmbpf.
->
+This patchset adds support for using fs-verity to validate lowerdata
+files by specifying an overlay.verity xattr on the metacopy
+files.
 
-I have to admit that sounds a bit challenging, but I'm up for sitting
-in front of that whiteboard :)
+This is primarily motivated by the Composefs usecase, where there will
+be a read-only EROFS layer that contains redirect into a base data
+layer which has fs-verity enabled on all files. However, it is also
+useful in general if you want to ensure that the lowerdata files
+matches the expected content over time.
 
-BTW, thanks Daniel (Borkmann) for sorting out the cross track
-sessions for FS-BFP.
-We have another FS only session on FUSE-BFP, but I feel there is plenty
-to discuss on the FUSE-bypass part, as well as on the BPF part.
-Same goes for BFP iterators for filesystems session.
+This patch series is based on the lazy lowerdata patch series by Amir[1].
 
-Thanks,
-Amir.
+I have also added some tests for this feature to xfstests[2].
+
+I'm also CC:ing the fsverity list and maintainers because there is one
+(tiny) fsverity change, and there may be interest in this usecase.
+
+Changes since v1:
+ * Rebased on v2 lazy lowerdata series
+ * Dropped the "validate" mount option variant. We now only support
+   "off", "on" and "require", where "off" is the default.
+ * We now store the digest algorithm used in the overlay.verity xattr.
+ * Dropped ability to configure default verity options, as this could
+   cause problems moving layers between machines.
+ * We now properly resolve dependent mount options by automatically
+   enabling metacopy and redirect_dir if verity is on, or failing
+   if the specified options conflict.
+ * Streamlined and fixed the handling of creds in ovl_ensure_verity_loaded().
+ * Renamed new helpers from ovl_entry_path_ to ovl_e_path_
+
+[1] https://lore.kernel.org/linux-unionfs/20230427130539.2798797-1-amir73il@gmail.com/T/#m3968bf64a31946e77bdba8e3d07688a34cf79982
+[2] https://github.com/alexlarsson/xfstests/commits/verity-tests
+
+Alexander Larsson (6):
+  fsverity: Export fsverity_get_digest
+  ovl: Break out ovl_e_path_real() from ovl_i_path_real()
+  ovl: Break out ovl_e_path_lowerdata() from ovl_path_lowerdata()
+  ovl: Add framework for verity support
+  ovl: Validate verity xattr when resolving lowerdata
+  ovl: Handle verity during copy-up
+
+ Documentation/filesystems/overlayfs.rst |  27 ++++
+ fs/overlayfs/copy_up.c                  |  31 +++++
+ fs/overlayfs/namei.c                    |  42 +++++-
+ fs/overlayfs/overlayfs.h                |  12 ++
+ fs/overlayfs/ovl_entry.h                |   3 +
+ fs/overlayfs/super.c                    |  74 ++++++++++-
+ fs/overlayfs/util.c                     | 165 ++++++++++++++++++++++--
+ fs/verity/measure.c                     |   1 +
+ 8 files changed, 343 insertions(+), 12 deletions(-)
+
+-- 
+2.39.2
+
