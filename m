@@ -2,138 +2,134 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AEABC77B7C
-	for <linux-unionfs@archiver.kernel.org>; Thu,  4 May 2023 11:38:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 687B7C7EE2A
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 May 2023 08:13:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230294AbjEDLiA (ORCPT
+        id S231437AbjEEINc (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 4 May 2023 07:38:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54536 "EHLO
+        Fri, 5 May 2023 04:13:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47390 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230311AbjEDLhy (ORCPT
+        with ESMTP id S231139AbjEEINa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 4 May 2023 07:37:54 -0400
-Received: from mail-vs1-xe36.google.com (mail-vs1-xe36.google.com [IPv6:2607:f8b0:4864:20::e36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA6CA4200;
-        Thu,  4 May 2023 04:37:50 -0700 (PDT)
-Received: by mail-vs1-xe36.google.com with SMTP id ada2fe7eead31-430556f35ebso99680137.3;
-        Thu, 04 May 2023 04:37:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1683200270; x=1685792270;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=arLbA3HNdyw+twAm+vIkZFygVCLFMYZpLtNy6xlyP2A=;
-        b=MusRBuIPuKzhY3ZOXC/kEwn/biFqb+f/fhEGrG75D0huT12YiE1j0OrfWYdzXJf8Vk
-         aBTZ7JhIPCIYQitUr7R+5jpAGvurCKM2YRwUu0gPzpAOPgM+gn6HMSWqtiulWnSaJcbX
-         mZQFPUoy4bGzKQpaAGEaGAk3PrmxQyTNBCKz7MQ5MEHyHPFMHGEN4de1P1Ayy0QeGgOE
-         G46IKI6zqPvUDkwAmzcLyScDQPfFMUYfNvNaafySat3MQAS1zH2ayT80UEK1pjNaOOzI
-         Q7Ssd3lLO8uEqCb9uZ1DzmCyssOHyXSpOy7TscLqFbVOEGqMB0KpotGOF5vgCdxF27oC
-         twtw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1683200270; x=1685792270;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=arLbA3HNdyw+twAm+vIkZFygVCLFMYZpLtNy6xlyP2A=;
-        b=YRrHhkdRfrat+GyCQ1Sc4kxGP/Y7wnW94G2fAn1LB0Qfy3orHcwMJFMuOd4ieAHuls
-         8yezGHmDSlgq2VVXdSrj0b6BmRxnKJejAjUnWpVlQ1RjHDDwt4oj1wfod0p4PTlHFLqM
-         5TIsADY80y45khz88x9iQTXdQwY6NOH9ZJmqRXPd5gatXvQKKsV0m66sGjYr+yig2ISp
-         FKdeGS0A9Dg5m5VLY1KC7ZTlwsdcGkrf1h/GtI5fqDW9ZB3lxZn7TRfSRDxJ7LCY2yEX
-         wLzQm273nU48MDwxgcs2S6L1lv0TD4rMqXm1PGTgRFSACOsxp5g/D4LwTVuHaO9wPQ+O
-         lmuQ==
-X-Gm-Message-State: AC+VfDzwF4JFtFIeEtxdfYBbDwMrCCC79OFKQS1uKYMG3/jzidMhd8cE
-        j3e3gmqdfumgNlrp2RPOzx7fGT+0sZd57ufqRZg=
-X-Google-Smtp-Source: ACHHUZ4AFI8iwYTRO1EDDmzfftusChrWK+GNqtbaCP+VrvYKMD0KMyF7asvBDZjEaxQBlpzQpQEhctWbes56ONTAbrM=
-X-Received: by 2002:a67:b349:0:b0:426:4773:963 with SMTP id
- b9-20020a67b349000000b0042647730963mr3176916vsm.34.1683200269879; Thu, 04 May
- 2023 04:37:49 -0700 (PDT)
+        Fri, 5 May 2023 04:13:30 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 710981634D;
+        Fri,  5 May 2023 01:13:29 -0700 (PDT)
+Received: from dggpeml500023.china.huawei.com (unknown [172.30.72.56])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4QCNgb2Bb0zsR53;
+        Fri,  5 May 2023 16:11:39 +0800 (CST)
+Received: from ubuntu1804.huawei.com (10.67.174.58) by
+ dggpeml500023.china.huawei.com (7.185.36.114) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2507.23; Fri, 5 May 2023 16:13:26 +0800
+From:   Xiu Jianfeng <xiujianfeng@huawei.com>
+To:     <gregkh@linuxfoundation.org>, <rafael@kernel.org>,
+        <viro@zeniv.linux.org.uk>, <brauner@kernel.org>,
+        <dhowells@redhat.com>, <code@tyhicks.com>,
+        <hirofumi@mail.parknet.co.jp>, <linkinjeon@kernel.org>,
+        <sfrench@samba.org>, <senozhatsky@chromium.org>, <tom@talpey.com>,
+        <chuck.lever@oracle.com>, <jlayton@kernel.org>,
+        <miklos@szeredi.hu>, <paul@paul-moore.com>, <jmorris@namei.org>,
+        <serge@hallyn.com>, <stephen.smalley.work@gmail.com>,
+        <eparis@parisplace.org>, <casey@schaufler-ca.com>,
+        <dchinner@redhat.com>, <john.johansen@canonical.com>,
+        <mcgrof@kernel.org>, <mortonm@chromium.org>, <fred@cloudflare.com>,
+        <mic@digikod.net>, <mpe@ellerman.id.au>, <nathanl@linux.ibm.com>,
+        <gnoack3000@gmail.com>, <roberto.sassu@huawei.com>
+CC:     <linux-kernel@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+        <linux-cachefs@redhat.com>, <ecryptfs@vger.kernel.org>,
+        <linux-cifs@vger.kernel.org>, <linux-nfs@vger.kernel.org>,
+        <linux-unionfs@vger.kernel.org>,
+        <linux-security-module@vger.kernel.org>, <selinux@vger.kernel.org>,
+        <wangweiyang2@huawei.com>
+Subject: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
+Date:   Fri, 5 May 2023 16:11:58 +0800
+Message-ID: <20230505081200.254449-1-xiujianfeng@huawei.com>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-References: <20230502124817.3070545-1-amir73il@gmail.com> <20230502124817.3070545-4-amir73il@gmail.com>
- <20230503172314.kptbcaluwd6xiamz@quack3> <20230504-unruhen-lauftraining-d676c7702fea@brauner>
-In-Reply-To: <20230504-unruhen-lauftraining-d676c7702fea@brauner>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 4 May 2023 14:37:38 +0300
-Message-ID: <CAOQ4uxh4Kij7fMyFOMgdnZee5_HcHc9RYTNxvLTBtD-JxpCZwQ@mail.gmail.com>
-Subject: Re: [PATCH v2 3/4] exportfs: allow exporting non-decodeable file
- handles to userspace
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
-        Jeff Layton <jlayton@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-api@vger.kernel.org,
-        Al Viro <viro@zeniv.linux.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-Originating-IP: [10.67.174.58]
+X-ClientProxiedBy: dggems704-chm.china.huawei.com (10.3.19.181) To
+ dggpeml500023.china.huawei.com (7.185.36.114)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, May 4, 2023 at 2:19=E2=80=AFPM Christian Brauner <brauner@kernel.or=
-g> wrote:
->
-> On Wed, May 03, 2023 at 07:23:14PM +0200, Jan Kara wrote:
-> > On Tue 02-05-23 15:48:16, Amir Goldstein wrote:
-> > > Some userspace programs use st_ino as a unique object identifier, eve=
-n
-> > > though inode numbers may be recycable.
-> > >
-> > > This issue has been addressed for NFS export long ago using the expor=
-tfs
-> > > file handle API and the unique file handle identifiers are also expor=
-ted
-> > > to userspace via name_to_handle_at(2).
-> > >
-> > > fanotify also uses file handles to identify objects in events, but on=
-ly
-> > > for filesystems that support NFS export.
-> > >
-> > > Relax the requirement for NFS export support and allow more filesyste=
-ms
-> > > to export a unique object identifier via name_to_handle_at(2) with th=
-e
-> > > flag AT_HANDLE_FID.
-> > >
-> > > A file handle requested with the AT_HANDLE_FID flag, may or may not b=
-e
-> > > usable as an argument to open_by_handle_at(2).
-> > >
-> > > To allow filesystems to opt-in to supporting AT_HANDLE_FID, a struct
-> > > export_operations is required, but even an empty struct is sufficient
-> > > for encoding FIDs.
-> >
-> > Christian (or Al), are you OK with sparing one AT_ flag for this
-> > functionality? Otherwise the patch series looks fine to me so I'd like =
-to
-> > queue it into my tree. Thanks!
->
-> At first it looked like there are reasons to complain about this on the
-> grounds that this seems like a flag only for a single system call. But
-> another look at include/uapi/linux/fcntl.h reveals that oh well, the
-> AT_* flag namespace already contains system call specific flags.
->
-> The overloading of AT_EACCESS and AT_REMOVEDIR as 0x200 is especially
-> creative since it doesn't even use an infix like the statx specific
-> flags.
->
-> Long story short, since there's already overloading of the flag
-> namespace happening it wouldn't be unprecedent or in any way wrong if
-> this patch just reused the 0x200 value as well.
->
+Hi,
 
-I had considered this myself as well...
-Couldn't decide if this was ugly or not.
-Obviously, I do not mind which value the flag gets.
+I am working on adding xattr/attr support for landlock [1], so we can
+control fs accesses such as chmod, chown, uptimes, setxattr, etc.. inside
+landlock sandbox. the LSM hooks as following are invoved:
+1.inode_setattr
+2.inode_setxattr
+3.inode_removexattr
+4.inode_set_acl
+5.inode_remove_acl
+which are controlled by LANDLOCK_ACCESS_FS_WRITE_METADATA.
 
-> In fact, it might come in handy since it would mean that we have the bit
-> you're using right now free for a flag that is meaningful for multiple
-> system calls. So something to consider but you can just change that
-> in-tree as far as I'm concerned.
->
-> All this amounts to a long-winded,
->
-> Acked-by: Christian Brauner <brauner@kernel.org>
+and
+1.inode_getattr
+2.inode_get_acl
+3.inode_getxattr
+4.inode_listxattr
+which are controlled by LANDLOCK_ACCESS_FS_READ_METADATA
 
-Thanks,
-Amir.
+Some of these hooks only take struct dentry as a argument, However, for
+path-based LSMs such Landlock, Apparmor and Tomoyo, struct path instead
+of struct dentry required to make sense of attr/xattr accesses. So we
+need to refactor these hooks to take a struct path argument.
+
+This patchset only refators inode_setattr hook as part of whole work.
+
+Also, I have a problem about file_dentry() in __file_remove_privs() of the
+first patch, before changes in commit c1892c37769cf ("vfs: fix deadlock in
+file_remove_privs() on overlayfs"), it gets dentry and inode as belows:
+
+struct dentry *dentry = file->f_path.dentry;
+struct inode *inode = d_inode(dentry);
+
+That would be clear to change it to pass &file->f_path to
+__remove_privs()->notify_change()->inode_setattr().
+After that commit, it has been changed to:
+
+struct dentry *dentry = file_dentry(file);
+struct inode *inode = file_inode(file);
+
+If I understand correctly, the dentry from file_dentry() maybe the upper
+or the lower, it can be different from file->f_path.dentry. It can't just
+go back to use &file->f_path otherwise the bug will come back for
+overlayfs. So for such scenario, how to get a path from file if the file
+maybe or not from overlayfs, and which kind of overlayfs path is ok for
+Landlock?
+
+Xiu Jianfeng (2):
+  fs: Change notify_change() to take struct path argument
+  lsm: Change inode_setattr hook to take struct path argument
+
+ drivers/base/devtmpfs.c       |  5 +++--
+ fs/attr.c                     |  7 ++++---
+ fs/cachefiles/interface.c     |  4 ++--
+ fs/coredump.c                 |  2 +-
+ fs/ecryptfs/inode.c           | 18 +++++++++---------
+ fs/fat/file.c                 |  2 +-
+ fs/inode.c                    |  8 +++++---
+ fs/ksmbd/smb2pdu.c            |  6 +++---
+ fs/ksmbd/smbacl.c             |  2 +-
+ fs/namei.c                    |  2 +-
+ fs/nfsd/vfs.c                 | 12 ++++++++----
+ fs/open.c                     | 19 ++++++++++---------
+ fs/overlayfs/overlayfs.h      |  4 +++-
+ fs/utimes.c                   |  2 +-
+ include/linux/fs.h            |  4 ++--
+ include/linux/lsm_hook_defs.h |  2 +-
+ include/linux/security.h      |  4 ++--
+ security/security.c           | 10 +++++-----
+ security/selinux/hooks.c      |  3 ++-
+ security/smack/smack_lsm.c    |  5 +++--
+ 20 files changed, 67 insertions(+), 54 deletions(-)
+
+-- 
+2.17.1
+
