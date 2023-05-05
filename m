@@ -2,36 +2,34 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32994C7EE22
-	for <linux-unionfs@archiver.kernel.org>; Fri,  5 May 2023 12:26:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30415C77B7F
+	for <linux-unionfs@archiver.kernel.org>; Fri,  5 May 2023 12:26:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232129AbjEEM0O (ORCPT
+        id S231881AbjEEM0P (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 5 May 2023 08:26:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41586 "EHLO
+        Fri, 5 May 2023 08:26:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231925AbjEEM0M (ORCPT
+        with ESMTP id S232012AbjEEM0M (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
         Fri, 5 May 2023 08:26:12 -0400
-Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21EC21CFE2;
-        Fri,  5 May 2023 05:26:06 -0700 (PDT)
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 943C41CFEC;
+        Fri,  5 May 2023 05:26:07 -0700 (PDT)
 Received: from kwepemm600013.china.huawei.com (unknown [172.30.72.56])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4QCVDR67GfzZflD;
-        Fri,  5 May 2023 20:21:59 +0800 (CST)
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4QCVFv6CFvzLndx;
+        Fri,  5 May 2023 20:23:15 +0800 (CST)
 Received: from huawei.com (10.175.127.227) by kwepemm600013.china.huawei.com
  (7.193.23.68) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.23; Fri, 5 May
- 2023 20:26:04 +0800
+ 2023 20:26:03 +0800
 From:   Zhihao Cheng <chengzhihao1@huawei.com>
 To:     <miklos@szeredi.hu>, <amir73il@gmail.com>, <brauner@kernel.org>
 CC:     <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [PATCH 2/2] ovl: ovl_permission: Fix null pointer dereference at realinode in rcu-walk mode
-Date:   Fri, 5 May 2023 20:24:52 +0800
-Message-ID: <20230505122452.405661-3-chengzhihao1@huawei.com>
+Subject: [PATCH 0/2] ovl: Fix null ptr dereference at realinode in rcu-walk
+Date:   Fri, 5 May 2023 20:24:50 +0800
+Message-ID: <20230505122452.405661-1-chengzhihao1@huawei.com>
 X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20230505122452.405661-1-chengzhihao1@huawei.com>
-References: <20230505122452.405661-1-chengzhihao1@huawei.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
 Content-Type:   text/plain; charset=US-ASCII
@@ -43,75 +41,15 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Following process:
-          P1                     P2
- path_lookupat
-  link_path_walk
-   inode_permission
-    ovl_permission
-      ovl_i_path_real(inode, &realpath)
-        path->dentry = ovl_i_dentry_upper(inode)
-                          drop_cache
-			   __dentry_kill(ovl_dentry)
-		            iput(ovl_inode)
-		             ovl_destroy_inode(ovl_inode)
-		              dput(oi->__upperdentry)
-		               dentry_kill(upperdentry)
-		                dentry_unlink_inode
-				 upperdentry->d_inode = NULL
-      realinode = d_inode(realpath.dentry) // return NULL
-      inode_permission(realinode)
-       inode->i_sb  // NULL pointer dereference
-, will trigger an null pointer dereference at realinode:
-  [  335.664979] BUG: kernel NULL pointer dereference,
-                 address: 0000000000000002
-  [  335.668032] CPU: 0 PID: 2592 Comm: ls Not tainted 6.3.0
-  [  335.669956] RIP: 0010:inode_permission+0x33/0x2c0
-  [  335.678939] Call Trace:
-  [  335.679165]  <TASK>
-  [  335.679371]  ovl_permission+0xde/0x320
-  [  335.679723]  inode_permission+0x15e/0x2c0
-  [  335.680090]  link_path_walk+0x115/0x550
-  [  335.680771]  path_lookupat.isra.0+0xb2/0x200
-  [  335.681170]  filename_lookup+0xda/0x240
-  [  335.681922]  vfs_statx+0xa6/0x1f0
-  [  335.682233]  vfs_fstatat+0x7b/0xb0
+Zhihao Cheng (2):
+  ovl: get_acl: Fix null pointer dereference at realinode in rcu-walk
+    mode
+  ovl: ovl_permission: Fix null pointer dereference at realinode in
+    rcu-walk mode
 
-Fetch a reproducer in [Link].
+ fs/overlayfs/inode.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-Fix it by checking realinode whether to be NULL before accessing it.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=217405
-Fixes: 4b7791b2e958 ("ovl: handle idmappings in ovl_permission()")
-Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
----
- fs/overlayfs/inode.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 38cfdf9e2b44..a4c56584b8c2 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -293,6 +293,11 @@ int ovl_permission(struct mnt_idmap *idmap,
- 		WARN_ON(!(mask & MAY_NOT_BLOCK));
- 		return -ECHILD;
- 	}
-+	realinode = d_inode(realpath.dentry);
-+	if (!realinode) {
-+		WARN_ON(!(mask & MAY_NOT_BLOCK));
-+		return -ECHILD;
-+	}
- 
- 	/*
- 	 * Check overlay inode with the creds of task and underlying inode
-@@ -302,7 +307,6 @@ int ovl_permission(struct mnt_idmap *idmap,
- 	if (err)
- 		return err;
- 
--	realinode = d_inode(realpath.dentry);
- 	old_cred = ovl_override_creds(inode->i_sb);
- 	if (!upperinode &&
- 	    !special_file(realinode->i_mode) && mask & MAY_WRITE) {
 -- 
 2.31.1
 
