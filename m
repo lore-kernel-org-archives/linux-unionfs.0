@@ -2,535 +2,817 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E17C77B73
-	for <linux-unionfs@archiver.kernel.org>; Sat,  6 May 2023 10:51:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D3B4C77B73
+	for <linux-unionfs@archiver.kernel.org>; Sat,  6 May 2023 15:09:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231956AbjEFKvR (ORCPT
+        id S232145AbjEFPJW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 6 May 2023 06:51:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44716 "EHLO
+        Sat, 6 May 2023 11:09:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229872AbjEFKvP (ORCPT
+        with ESMTP id S231830AbjEFPJW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 6 May 2023 06:51:15 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22F033A85;
-        Sat,  6 May 2023 03:51:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683370273; x=1714906273;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=PC7zVeIIArZFoNf5Uhrbn2o905hsUevHgo9oAP0rVe0=;
-  b=P+VENBCrximPWLp5c6NHYb6+NvrVc2e/7q7/1zj22YxOzdjXR9ZfviDl
-   Y1i43Wp4Y839KF+J4RIwYJ6feA5nzcb2FGGDTQAK9w0TrlHqZn2R1YmJG
-   2jzWQ3VRsgmoTJLJNyclwvTn5NFzmM/jLfI9EkLcvAonGpQQOO/kvrMWQ
-   zLQrvHLy33QxtgU72unFofvGhSGQ7VcLukEeDGOA7zQ8wYvm3mMu4NsIW
-   3/d28pudJ8rCBkiX0f0znBNAcoXUrHMDdTvq6Kg9MEhwspqiLYfW1jtOW
-   h5YnGZxV9/2XtmjYVNHJr/Tor5edjpYRMLgqsEnWsOsBC0JRR51E7ixxm
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10701"; a="349404137"
-X-IronPort-AV: E=Sophos;i="5.99,254,1677571200"; 
-   d="scan'208";a="349404137"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2023 03:51:12 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10701"; a="809598352"
-X-IronPort-AV: E=Sophos;i="5.99,254,1677571200"; 
-   d="scan'208";a="809598352"
-Received: from lkp-server01.sh.intel.com (HELO dea6d5a4f140) ([10.239.97.150])
-  by fmsmga002.fm.intel.com with ESMTP; 06 May 2023 03:51:10 -0700
-Received: from kbuild by dea6d5a4f140 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pvFVO-0000AT-07;
-        Sat, 06 May 2023 10:51:10 +0000
-Date:   Sat, 6 May 2023 18:50:52 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     wenjun93 <gwj0511@gmail.com>, miklos@szeredi.hu
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        gwj1235@yeah.net
-Subject: Re: [PATCH] overlayfs: clean error handling
-Message-ID: <202305061831.o7pAYoBr-lkp@intel.com>
-References: <20230506082111.1655980-1-gwj1235@yeah.net>
+        Sat, 6 May 2023 11:09:22 -0400
+Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A525E1157B;
+        Sat,  6 May 2023 08:09:19 -0700 (PDT)
+Received: by mail-pf1-x434.google.com with SMTP id d2e1a72fcca58-64115e652eeso25653214b3a.0;
+        Sat, 06 May 2023 08:09:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1683385759; x=1685977759;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qF8GDeVIxyqlJEAfd0RcDDRRi9wR9sAYdpzmsClyNvE=;
+        b=nHr4+3jU7Qavm5W04l5x1287DlXrE+tyxBSvJm42iij5SAri4RknRKSUGKQPCM+j5K
+         rk/d1yj/966tKVSY5CAlnEgpcQmJP5y9oXWvA3asP2fs8HFYc8JwHbEk/22TpvJn6o9n
+         KYZVKm+RThNcRNuYJiYiaq/gEFTI0HXkJbQkwH3X6egT7h4cGB3FVZYejXJqZBXNGf6a
+         3+g/SQUlkNBw6yAmGtAGPa3jpsfQpCxxAAMdI9PjIZMsKMUzjnQPneN3iP81Lq6aUXW2
+         dUdy/lAUGXdLfmwpsaj1St+MhHogwZb+Csi/CcrabRAPm+1bwXw8SF+NFdjl3cp+Vv+C
+         bV1A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1683385759; x=1685977759;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qF8GDeVIxyqlJEAfd0RcDDRRi9wR9sAYdpzmsClyNvE=;
+        b=KQTdoo6g2AHuHz7mVz7AkB3bVNXuZoJQLaEJOf+D4UYgiOeBAZAPWJjAsbuG7frVST
+         vyJCnX8Lt0sISd0Q4iqWhtc9I7WTBs+5Gk/JG/lJbLzy72Oox1cId5rTLE7+eSxhfg41
+         4q0652M/L/c5VYXjs9jSCnNrEgP+CDjKdxmsMt5JchjsnFwM+2rdxGCGgCcM7wLmeNH3
+         nMKuBfguIZpav3N6Fld3TiNf+yPwjwReeAttqk5+hbh5K0bVCMrXM4wC2TIqxnzZI//4
+         1PeWQbq91aSo7QGEp+GC1A3DfD1FlHQELo7eZaOb+61jP24B3scoXw44hcjYXLPegoE0
+         8laA==
+X-Gm-Message-State: AC+VfDztbJ7lB1LsfdpY1knDnnlknAD9gKHotQYwWUvJxaGdHg0R8RMl
+        ngPH8R+DlRZFYruZYb7362I=
+X-Google-Smtp-Source: ACHHUZ7yrrFvsmZLxYpRQvwebKg4YynQZdND3cQLzZjomKfjgRuMl4mVVOciLBKkrL3SCEw7iHQvKA==
+X-Received: by 2002:a05:6a20:144f:b0:ef:8de0:6a5 with SMTP id a15-20020a056a20144f00b000ef8de006a5mr6083765pzi.3.1683385758731;
+        Sat, 06 May 2023 08:09:18 -0700 (PDT)
+Received: from localhost.localdomain ([47.98.195.232])
+        by smtp.gmail.com with ESMTPSA id y15-20020aa7854f000000b0063db25e140bsm3347182pfn.32.2023.05.06.08.09.17
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 06 May 2023 08:09:18 -0700 (PDT)
+From:   wenjun93 <gwj0511@gmail.com>
+X-Google-Original-From: wenjun93 <gwj1235@yeah.net>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        wenjun93 <gwj1235@yeah.net>
+Subject: [PATCH v2] overlayfs: clean error handling
+Date:   Sat,  6 May 2023 23:09:11 +0800
+Message-Id: <20230506150911.1983249-1-gwj1235@yeah.net>
+X-Mailer: git-send-email 2.27.0
+In-Reply-To: <amir73il@gmail.com>
+References: <amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230506082111.1655980-1-gwj1235@yeah.net>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi wenjun93,
+Remove PTR_ERR from unused code path and
+assign error value where it exactly happens.
+This cleans the code and also helps to reduce 
+the possibility of incorrect err settings
+when it's set globally and is forgotten to be
+overwrite in custom development.
 
-kernel test robot noticed the following build warnings:
+Signed-off-by: wenjun93 <gwj1235@yeah.net>
+---
+ fs/overlayfs/copy_up.c |  20 ++++----
+ fs/overlayfs/dir.c     | 101 ++++++++++++++++++++++++-----------------
+ fs/overlayfs/export.c  |  22 +++++----
+ fs/overlayfs/namei.c   |  34 ++++++++------
+ fs/overlayfs/readdir.c |   5 +-
+ fs/overlayfs/super.c   |  80 ++++++++++++++++++--------------
+ fs/overlayfs/util.c    |   2 +-
+ 7 files changed, 154 insertions(+), 110 deletions(-)
 
-[auto build test WARNING on mszeredi-vfs/overlayfs-next]
-[also build test WARNING on linus/master v6.3 next-20230505]
-[cannot apply to mszeredi-vfs/next]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/wenjun93/overlayfs-clean-error-handling/20230506-162258
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
-patch link:    https://lore.kernel.org/r/20230506082111.1655980-1-gwj1235%40yeah.net
-patch subject: [PATCH] overlayfs: clean error handling
-config: i386-randconfig-a011-20230501 (https://download.01.org/0day-ci/archive/20230506/202305061831.o7pAYoBr-lkp@intel.com/config)
-compiler: clang version 14.0.6 (https://github.com/llvm/llvm-project f28c006a5895fc0e329fe15fead81e37457cb1d1)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/d5593461bec1095c3008da7403952420e637c01a
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review wenjun93/overlayfs-clean-error-handling/20230506-162258
-        git checkout d5593461bec1095c3008da7403952420e637c01a
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 SHELL=/bin/bash fs/overlayfs/
-
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202305061831.o7pAYoBr-lkp@intel.com/
-
-All warnings (new ones prefixed by >>):
-
->> fs/overlayfs/super.c:806:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                           goto out_dput;
-                           ^
-   fs/overlayfs/super.c:804:3: note: previous statement is here
-                   if (d_really_is_negative(work))
-                   ^
-   fs/overlayfs/super.c:1197:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_unlock;
-                   ^
-   fs/overlayfs/super.c:1195:2: note: previous statement is here
-           if (IS_ERR(temp))
-           ^
-   fs/overlayfs/super.c:1218:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto cleanup_temp;
-                   ^
-   fs/overlayfs/super.c:1216:2: note: previous statement is here
-           if (IS_ERR(whiteout))
-           ^
->> fs/overlayfs/super.c:1195:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (IS_ERR(temp))
-               ^~~~~~~~~~~~
-   fs/overlayfs/super.c:1236:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/super.c:1195:2: note: remove the 'if' if its condition is always true
-           if (IS_ERR(temp))
-           ^~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:1190:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   fs/overlayfs/super.c:1297:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out;
-                   ^
-   fs/overlayfs/super.c:1295:2: note: previous statement is here
-           if (IS_ERR_OR_NULL(workdir))
-           ^
-   fs/overlayfs/super.c:1612:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out;
-                   ^
-   fs/overlayfs/super.c:1610:2: note: previous statement is here
-           if (ofs->fs == NULL)
-           ^
-   fs/overlayfs/super.c:1610:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (ofs->fs == NULL)
-               ^~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:1719:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/super.c:1610:2: note: remove the 'if' if its condition is always true
-           if (ofs->fs == NULL)
-           ^~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:1606:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   fs/overlayfs/super.c:1762:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_err;
-                   ^
-   fs/overlayfs/super.c:1760:2: note: previous statement is here
-           if (!oe)
-           ^
-   fs/overlayfs/super.c:1906:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out;
-                   ^
-   fs/overlayfs/super.c:1904:2: note: previous statement is here
-           if (WARN_ON(sb->s_user_ns != current_user_ns()))
-           ^
-   fs/overlayfs/super.c:1913:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out;
-                   ^
-   fs/overlayfs/super.c:1911:2: note: previous statement is here
-           if (!ofs)
-           ^
-   fs/overlayfs/super.c:1918:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_err;
-                   ^
-   fs/overlayfs/super.c:1916:2: note: previous statement is here
-           if (!cred)
-           ^
-   fs/overlayfs/super.c:1942:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_err;
-                   ^
-   fs/overlayfs/super.c:1940:2: note: previous statement is here
-           if (!splitlower)
-           ^
-   fs/overlayfs/super.c:1955:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_err;
-                   ^
-   fs/overlayfs/super.c:1953:2: note: previous statement is here
-           if (!layers)
-           ^
-   fs/overlayfs/super.c:2012:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_err;
-                   ^
-   fs/overlayfs/super.c:2010:2: note: previous statement is here
-           if (IS_ERR(oe))
-           ^
-   fs/overlayfs/super.c:2067:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_free_oe;
-                   ^
-   fs/overlayfs/super.c:2065:2: note: previous statement is here
-           if (!root_dentry)
-           ^
-   fs/overlayfs/super.c:1904:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (WARN_ON(sb->s_user_ns != current_user_ns()))
-               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   include/asm-generic/bug.h:121:28: note: expanded from macro 'WARN_ON'
-   #define WARN_ON(condition) ({                                           \
-                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:2084:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/super.c:1904:2: note: remove the 'if' if its condition is always true
-           if (WARN_ON(sb->s_user_ns != current_user_ns()))
-           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:1902:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
---
->> fs/overlayfs/namei.c:538:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto fail;
-                   ^
-   fs/overlayfs/namei.c:536:2: note: previous statement is here
-           if (index->d_name.len < sizeof(struct ovl_fb)*2)
-           ^
-   fs/overlayfs/namei.c:544:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto fail;
-                   ^
-   fs/overlayfs/namei.c:542:2: note: previous statement is here
-           if (!fh)
-           ^
-   fs/overlayfs/namei.c:548:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto fail;
-                   ^
-   fs/overlayfs/namei.c:546:2: note: previous statement is here
-           if (hex2bin(fh->buf, index->d_name.name, len))
-           ^
->> fs/overlayfs/namei.c:536:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (index->d_name.len < sizeof(struct ovl_fb)*2)
-               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/namei.c:610:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/namei.c:536:2: note: remove the 'if' if its condition is always true
-           if (index->d_name.len < sizeof(struct ovl_fb)*2)
-           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/namei.c:531:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   fs/overlayfs/namei.c:912:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                           goto out_put_upper;
-                           ^
-   fs/overlayfs/namei.c:910:3: note: previous statement is here
-                   if (!stack)
-                   ^
-   fs/overlayfs/namei.c:1073:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_put;
-                   ^
-   fs/overlayfs/namei.c:1071:2: note: previous statement is here
-           if (!oe)
-           ^
-   fs/overlayfs/namei.c:1120:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                           goto out_free_oe;
-                           ^
-   fs/overlayfs/namei.c:1118:3: note: previous statement is here
-                   if (IS_ERR(inode))
-                   ^
-   7 warnings generated.
---
->> fs/overlayfs/dir.c:120:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   return err;
-                   ^
-   fs/overlayfs/dir.c:118:2: note: previous statement is here
-           if (IS_ERR(whiteout))
-           ^
->> fs/overlayfs/dir.c:118:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (IS_ERR(whiteout))
-               ^~~~~~~~~~~~~~~~
-   fs/overlayfs/dir.c:120:10: note: uninitialized use occurs here
-                   return err;
-                          ^~~
-   fs/overlayfs/dir.c:118:2: note: remove the 'if' if its condition is always true
-           if (IS_ERR(whiteout))
-           ^~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/dir.c:114:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   fs/overlayfs/dir.c:181:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out;
-                   ^
-   fs/overlayfs/dir.c:179:2: note: previous statement is here
-           if (newdentry->d_inode)
-           ^
-   fs/overlayfs/dir.c:179:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (newdentry->d_inode)
-               ^~~~~~~~~~~~~~~~~~
-   fs/overlayfs/dir.c:220:6: note: uninitialized use occurs here
-           if (err) {
-               ^~~
-   fs/overlayfs/dir.c:179:2: note: remove the 'if' if its condition is always true
-           if (newdentry->d_inode)
-           ^~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/dir.c:174:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   fs/overlayfs/dir.c:341:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_unlock;
-                   ^
-   fs/overlayfs/dir.c:339:2: note: previous statement is here
-           if (IS_ERR(newdentry))
-           ^
-   fs/overlayfs/dir.c:339:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (IS_ERR(newdentry))
-               ^~~~~~~~~~~~~~~~~
-   fs/overlayfs/dir.c:354:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/dir.c:339:2: note: remove the 'if' if its condition is always true
-           if (IS_ERR(newdentry))
-           ^~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/dir.c:329:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   fs/overlayfs/dir.c:399:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_unlock;
-                   ^
-   fs/overlayfs/dir.c:397:2: note: previous statement is here
-           if (IS_ERR(opaquedir))
-           ^
-   fs/overlayfs/dir.c:478:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_unlock;
-                   ^
-   fs/overlayfs/dir.c:476:2: note: previous statement is here
-           if (IS_ERR(upper))
-           ^
-   fs/overlayfs/dir.c:482:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_dput;
-                   ^
-   fs/overlayfs/dir.c:480:2: note: previous statement is here
-           if (d_is_negative(upper) || !IS_WHITEOUT(d_inode(upper)))
-           ^
-   fs/overlayfs/dir.c:487:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_dput;
-                   ^
-   fs/overlayfs/dir.c:485:2: note: previous statement is here
-           if (IS_ERR(newdentry))
-           ^
-   fs/overlayfs/dir.c:583:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                           goto out_revert_creds;
-                           ^
-   fs/overlayfs/dir.c:581:3: note: previous statement is here
-                   if (!override_cred)
-                   ^
-   fs/overlayfs/dir.c:638:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_drop_write;
-                   ^
-   fs/overlayfs/dir.c:636:2: note: previous statement is here
-           if (!inode)
-           ^
-   fs/overlayfs/dir.c:764:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                           goto out;
-                           ^
-   fs/overlayfs/dir.c:762:3: note: previous statement is here
-                   if (IS_ERR(opaquedir))
-                   ^
-   fs/overlayfs/dir.c:775:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto out_unlock;
-                   ^
-   fs/overlayfs/dir.c:773:2: note: previous statement is here
-           if (IS_ERR(upper))
-           ^
-   fs/overlayfs/dir.c:762:7: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-                   if (IS_ERR(opaquedir))
---
->> fs/overlayfs/readdir.c:769:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                           goto out;
-                           ^
-   fs/overlayfs/readdir.c:767:3: note: previous statement is here
-                   if (IS_ERR(cache))
-                   ^
->> fs/overlayfs/readdir.c:767:7: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-                   if (IS_ERR(cache))
-                       ^~~~~~~~~~~~~
-   fs/overlayfs/readdir.c:795:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/readdir.c:767:3: note: remove the 'if' if its condition is always true
-                   if (IS_ERR(cache))
-                   ^~~~~~~~~~~~~~~~~~
-   fs/overlayfs/readdir.c:740:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   2 warnings generated.
---
->> fs/overlayfs/copy_up.c:513:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto free_name;
-                   ^
-   fs/overlayfs/copy_up.c:511:2: note: previous statement is here
-           if (IS_ERR(temp))
-           ^
-   fs/overlayfs/copy_up.c:711:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto unlock;
-                   ^
-   fs/overlayfs/copy_up.c:709:2: note: previous statement is here
-           if (lock_rename(c->workdir, c->destdir) != NULL)
-           ^
-   fs/overlayfs/copy_up.c:722:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto unlock;
-                   ^
-   fs/overlayfs/copy_up.c:720:2: note: previous statement is here
-           if (IS_ERR(temp))
-           ^
-   fs/overlayfs/copy_up.c:747:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
-                   goto cleanup;
-                   ^
-   fs/overlayfs/copy_up.c:745:2: note: previous statement is here
-           if (IS_ERR(upper))
-           ^
->> fs/overlayfs/copy_up.c:709:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
-           if (lock_rename(c->workdir, c->destdir) != NULL)
-               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/copy_up.c:763:9: note: uninitialized use occurs here
-           return err;
-                  ^~~
-   fs/overlayfs/copy_up.c:709:2: note: remove the 'if' if its condition is always true
-           if (lock_rename(c->workdir, c->destdir) != NULL)
-           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/copy_up.c:700:9: note: initialize the variable 'err' to silence this warning
-           int err;
-                  ^
-                   = 0
-   5 warnings generated.
-..
-
-
-vim +/if +806 fs/overlayfs/super.c
-
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  761  
-ad204488d3046b Miklos Szeredi    2017-11-10  762  static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  763  					 const char *name, bool persist)
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  764  {
-ad204488d3046b Miklos Szeredi    2017-11-10  765  	struct inode *dir =  ofs->workbasedir->d_inode;
-08f4c7c86d4cf1 Miklos Szeredi    2020-06-04  766  	struct vfsmount *mnt = ovl_upper_mnt(ofs);
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  767  	struct dentry *work;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  768  	int err;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  769  	bool retried = false;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  770  
-5955102c9984fa Al Viro           2016-01-22  771  	inode_lock_nested(dir, I_MUTEX_PARENT);
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  772  retry:
-22f289ce1f8b10 Christian Brauner 2022-04-04  773  	work = ovl_lookup_upper(ofs, name, ofs->workbasedir, strlen(name));
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  774  
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  775  	if (!IS_ERR(work)) {
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  776  		struct iattr attr = {
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  777  			.ia_valid = ATTR_MODE,
-32a3d848eb91a2 Al Viro           2016-12-04  778  			.ia_mode = S_IFDIR | 0,
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  779  		};
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  780  
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  781  		if (work->d_inode) {
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  782  			err = -EEXIST;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  783  			if (retried)
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  784  				goto out_dput;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  785  
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  786  			if (persist)
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  787  				goto out_unlock;
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  788  
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  789  			retried = true;
-576bb263450bbb Christian Brauner 2022-04-04  790  			err = ovl_workdir_cleanup(ofs, dir, mnt, work, 0);
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  791  			dput(work);
-235ce9ed96bc62 Amir Goldstein    2020-08-30  792  			if (err == -EINVAL) {
-235ce9ed96bc62 Amir Goldstein    2020-08-30  793  				work = ERR_PTR(err);
-235ce9ed96bc62 Amir Goldstein    2020-08-30  794  				goto out_unlock;
-235ce9ed96bc62 Amir Goldstein    2020-08-30  795  			}
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  796  			goto retry;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  797  		}
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  798  
-576bb263450bbb Christian Brauner 2022-04-04  799  		err = ovl_mkdir_real(ofs, dir, &work, attr.ia_mode);
-1f5573cfe7a705 Miklos Szeredi    2021-11-04  800  		if (err)
-1f5573cfe7a705 Miklos Szeredi    2021-11-04  801  			goto out_dput;
-1f5573cfe7a705 Miklos Szeredi    2021-11-04  802  
-1f5573cfe7a705 Miklos Szeredi    2021-11-04  803  		/* Weird filesystem returning with hashed negative (kernfs)? */
-1f5573cfe7a705 Miklos Szeredi    2021-11-04  804  		if (d_really_is_negative(work))
-d5593461bec109 wenjun93          2023-05-06  805  			err = -EINVAL;
-1f5573cfe7a705 Miklos Szeredi    2021-11-04 @806  			goto out_dput;
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  807  
-cb348edb6bef72 Miklos Szeredi    2016-10-04  808  		/*
-cb348edb6bef72 Miklos Szeredi    2016-10-04  809  		 * Try to remove POSIX ACL xattrs from workdir.  We are good if:
-cb348edb6bef72 Miklos Szeredi    2016-10-04  810  		 *
-cb348edb6bef72 Miklos Szeredi    2016-10-04  811  		 * a) success (there was a POSIX ACL xattr and was removed)
-cb348edb6bef72 Miklos Szeredi    2016-10-04  812  		 * b) -ENODATA (there was no POSIX ACL xattr)
-cb348edb6bef72 Miklos Szeredi    2016-10-04  813  		 * c) -EOPNOTSUPP (POSIX ACL xattrs are not supported)
-cb348edb6bef72 Miklos Szeredi    2016-10-04  814  		 *
-cb348edb6bef72 Miklos Szeredi    2016-10-04  815  		 * There are various other error values that could effectively
-cb348edb6bef72 Miklos Szeredi    2016-10-04  816  		 * mean that the xattr doesn't exist (e.g. -ERANGE is returned
-cb348edb6bef72 Miklos Szeredi    2016-10-04  817  		 * if the xattr name is too long), but the set of filesystems
-cb348edb6bef72 Miklos Szeredi    2016-10-04  818  		 * allowed as upper are limited to "normal" ones, where checking
-cb348edb6bef72 Miklos Szeredi    2016-10-04  819  		 * for the above two errors is sufficient.
-cb348edb6bef72 Miklos Szeredi    2016-10-04  820  		 */
-31acceb97500dd Christian Brauner 2022-09-22  821  		err = ovl_do_remove_acl(ofs, work, XATTR_NAME_POSIX_ACL_DEFAULT);
-e1ff3dd1ae52ce Miklos Szeredi    2016-09-05  822  		if (err && err != -ENODATA && err != -EOPNOTSUPP)
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  823  			goto out_dput;
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  824  
-31acceb97500dd Christian Brauner 2022-09-22  825  		err = ovl_do_remove_acl(ofs, work, XATTR_NAME_POSIX_ACL_ACCESS);
-e1ff3dd1ae52ce Miklos Szeredi    2016-09-05  826  		if (err && err != -ENODATA && err != -EOPNOTSUPP)
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  827  			goto out_dput;
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  828  
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  829  		/* Clear any inherited mode bits */
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  830  		inode_lock(work->d_inode);
-a15506eac96fdb Christian Brauner 2022-04-04  831  		err = ovl_do_notify_change(ofs, work, &attr);
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  832  		inode_unlock(work->d_inode);
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  833  		if (err)
-c11b9fdd6a612f Miklos Szeredi    2016-09-01  834  			goto out_dput;
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  835  	} else {
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  836  		err = PTR_ERR(work);
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  837  		goto out_err;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  838  	}
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  839  out_unlock:
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  840  	inode_unlock(dir);
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  841  	return work;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  842  
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  843  out_dput:
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  844  	dput(work);
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  845  out_err:
-1bd0a3aea4357e lijiazi           2019-12-16  846  	pr_warn("failed to create directory %s/%s (errno: %i); mounting read-only\n",
-ad204488d3046b Miklos Szeredi    2017-11-10  847  		ofs->config.workdir, name, -err);
-6b8aa129dcbe0e Amir Goldstein    2017-06-21  848  	work = NULL;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  849  	goto out_unlock;
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  850  }
-e9be9d5e76e348 Miklos Szeredi    2014-10-24  851  
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f658cc8ea492..2ec25bcacf8f 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -507,9 +507,10 @@ static int ovl_create_index(struct dentry *dentry, struct dentry *origin,
+ 		return err;
+ 
+ 	temp = ovl_create_temp(ofs, indexdir, OVL_CATTR(S_IFDIR | 0));
+-	err = PTR_ERR(temp);
+-	if (IS_ERR(temp))
++	if (IS_ERR(temp)) {
++		err = PTR_ERR(temp);
+ 		goto free_name;
++	}
+ 
+ 	err = ovl_set_upper_fh(ofs, upper, temp);
+ 	if (err)
+@@ -705,9 +706,10 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 	};
+ 
+ 	/* workdir and destdir could be the same when copying up to indexdir */
+-	err = -EIO;
+-	if (lock_rename(c->workdir, c->destdir) != NULL)
++	if (lock_rename(c->workdir, c->destdir) != NULL) {
++		err = -EIO;
+ 		goto unlock;
++	}
+ 
+ 	err = ovl_prep_cu_creds(c->dentry, &cc);
+ 	if (err)
+@@ -716,9 +718,10 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 	temp = ovl_create_temp(ofs, c->workdir, &cattr);
+ 	ovl_revert_cu_creds(&cc);
+ 
+-	err = PTR_ERR(temp);
+-	if (IS_ERR(temp))
++	if (IS_ERR(temp)) {
++		err = PTR_ERR(temp);
+ 		goto unlock;
++	}
+ 
+ 	/*
+ 	 * Copy up data first and then xattrs. Writing data after
+@@ -741,9 +744,10 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 
+ 	upper = ovl_lookup_upper(ofs, c->destname.name, c->destdir,
+ 				 c->destname.len);
+-	err = PTR_ERR(upper);
+-	if (IS_ERR(upper))
++	if (IS_ERR(upper)) {
++		err = PTR_ERR(upper);
+ 		goto cleanup;
++	}
+ 
+ 	err = ovl_do_rename(ofs, wdir, temp, udir, upper, 0);
+ 	dput(upper);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index fc25fb95d5fc..e083bb343ffa 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -115,9 +115,10 @@ int ovl_cleanup_and_whiteout(struct ovl_fs *ofs, struct inode *dir,
+ 	int flags = 0;
+ 
+ 	whiteout = ovl_whiteout(ofs);
+-	err = PTR_ERR(whiteout);
+-	if (IS_ERR(whiteout))
++	if (IS_ERR(whiteout)) {
++		err = PTR_ERR(whiteout);
+ 		return err;
++	}
+ 
+ 	if (d_is_dir(dentry))
+ 		flags = RENAME_EXCHANGE;
+@@ -176,9 +177,10 @@ struct dentry *ovl_create_real(struct ovl_fs *ofs, struct inode *dir,
+ 	if (IS_ERR(newdentry))
+ 		return newdentry;
+ 
+-	err = -ESTALE;
+-	if (newdentry->d_inode)
++	if (newdentry->d_inode) {
++		err = -ESTALE;
+ 		goto out;
++	}
+ 
+ 	if (attr->hardlink) {
+ 		err = ovl_do_link(ofs, attr->hardlink, dir, newdentry);
+@@ -336,9 +338,10 @@ static int ovl_create_upper(struct dentry *dentry, struct inode *inode,
+ 				    ovl_lookup_upper(ofs, dentry->d_name.name,
+ 						     upperdir, dentry->d_name.len),
+ 				    attr);
+-	err = PTR_ERR(newdentry);
+-	if (IS_ERR(newdentry))
++	if (IS_ERR(newdentry)) {
++		err = PTR_ERR(newdentry);
+ 		goto out_unlock;
++	}
+ 
+ 	if (ovl_type_merge(dentry->d_parent) && d_is_dir(newdentry) &&
+ 	    !ovl_allow_offline_changes(ofs)) {
+@@ -394,9 +397,10 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
+ 		goto out_unlock;
+ 
+ 	opaquedir = ovl_create_temp(ofs, workdir, OVL_CATTR(stat.mode));
+-	err = PTR_ERR(opaquedir);
+-	if (IS_ERR(opaquedir))
++	if (IS_ERR(opaquedir)) {
++		err = PTR_ERR(opaquedir);
+ 		goto out_unlock;
++	}
+ 
+ 	err = ovl_copy_xattr(dentry->d_sb, &upperpath, opaquedir);
+ 	if (err)
+@@ -473,18 +477,21 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 
+ 	upper = ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
+ 				 dentry->d_name.len);
+-	err = PTR_ERR(upper);
+-	if (IS_ERR(upper))
++	if (IS_ERR(upper)) {
++		err = PTR_ERR(upper);
+ 		goto out_unlock;
++	}
+ 
+-	err = -ESTALE;
+-	if (d_is_negative(upper) || !IS_WHITEOUT(d_inode(upper)))
++	if (d_is_negative(upper) || !IS_WHITEOUT(d_inode(upper))) {
++		err = -ESTALE;
+ 		goto out_dput;
++	}
+ 
+ 	newdentry = ovl_create_temp(ofs, workdir, cattr);
+-	err = PTR_ERR(newdentry);
+-	if (IS_ERR(newdentry))
++	if (IS_ERR(newdentry)) {
++		err = PTR_ERR(newdentry);
+ 		goto out_dput;
++	}
+ 
+ 	/*
+ 	 * mode could have been mutilated due to umask (e.g. sgid directory)
+@@ -577,10 +584,11 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 	}
+ 
+ 	if (!attr->hardlink) {
+-		err = -ENOMEM;
+ 		override_cred = prepare_creds();
+-		if (!override_cred)
++		if (!override_cred) {
++			err = -ENOMEM;
+ 			goto out_revert_creds;
++		}
+ 		/*
+ 		 * In the creation cases(create, mkdir, mknod, symlink),
+ 		 * ovl should transfer current's fs{u,g}id to underlying
+@@ -632,10 +640,11 @@ static int ovl_create_object(struct dentry *dentry, int mode, dev_t rdev,
+ 		goto out;
+ 
+ 	/* Preallocate inode to be used by ovl_get_inode() */
+-	err = -ENOMEM;
+ 	inode = ovl_new_inode(dentry->d_sb, mode, rdev);
+-	if (!inode)
++	if (!inode) {
++		err = -ENOMEM;
+ 		goto out_drop_write;
++	}
+ 
+ 	spin_lock(&inode->i_lock);
+ 	inode->i_state |= I_CREATING;
+@@ -759,9 +768,10 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
+ 
+ 	if (!list_empty(list)) {
+ 		opaquedir = ovl_clear_empty(dentry, list);
+-		err = PTR_ERR(opaquedir);
+-		if (IS_ERR(opaquedir))
++		if (IS_ERR(opaquedir)) {
++			err = PTR_ERR(opaquedir);
+ 			goto out;
++		}
+ 	}
+ 
+ 	err = ovl_lock_rename_workdir(workdir, upperdir);
+@@ -770,14 +780,15 @@ static int ovl_remove_and_whiteout(struct dentry *dentry,
+ 
+ 	upper = ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
+ 				 dentry->d_name.len);
+-	err = PTR_ERR(upper);
+-	if (IS_ERR(upper))
++	if (IS_ERR(upper)) {
++		err = PTR_ERR(upper);
+ 		goto out_unlock;
++	}
+ 
+-	err = -ESTALE;
+ 	if ((opaquedir && upper != opaquedir) ||
+ 	    (!opaquedir && ovl_dentry_upper(dentry) &&
+ 	     !ovl_matches_upper(dentry, upper))) {
++		err = -ESTALE;
+ 		goto out_dput_upper;
+ 	}
+ 
+@@ -810,22 +821,25 @@ static int ovl_remove_upper(struct dentry *dentry, bool is_dir,
+ 
+ 	if (!list_empty(list)) {
+ 		opaquedir = ovl_clear_empty(dentry, list);
+-		err = PTR_ERR(opaquedir);
+-		if (IS_ERR(opaquedir))
++		if (IS_ERR(opaquedir)) {
++			err = PTR_ERR(opaquedir);
+ 			goto out;
++		}
+ 	}
+ 
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 	upper = ovl_lookup_upper(ofs, dentry->d_name.name, upperdir,
+ 				 dentry->d_name.len);
+-	err = PTR_ERR(upper);
+-	if (IS_ERR(upper))
++	if (IS_ERR(upper)) {
++		err = PTR_ERR(upper);
+ 		goto out_unlock;
++	}
+ 
+-	err = -ESTALE;
+ 	if ((opaquedir && upper != opaquedir) ||
+-	    (!opaquedir && !ovl_matches_upper(dentry, upper)))
++	    (!opaquedir && !ovl_matches_upper(dentry, upper))) {
++		err = -ESTALE;
+ 		goto out_dput_upper;
++	}
+ 
+ 	if (is_dir)
+ 		err = ovl_do_rmdir(ofs, dir, upper);
+@@ -1098,18 +1112,18 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
+ 	struct ovl_fs *ofs = OVL_FS(old->d_sb);
+ 	LIST_HEAD(list);
+ 
+-	err = -EINVAL;
+-	if (flags & ~(RENAME_EXCHANGE | RENAME_NOREPLACE))
++	if (flags & ~(RENAME_EXCHANGE | RENAME_NOREPLACE)) {
++		err = -EINVAL;
+ 		goto out;
++	}
+ 
+ 	flags &= ~RENAME_NOREPLACE;
+ 
+ 	/* Don't copy up directory trees */
+-	err = -EXDEV;
+-	if (!ovl_can_move(old))
+-		goto out;
+-	if (!overwrite && !ovl_can_move(new))
++	if (!ovl_can_move(old) || (!overwrite && !ovl_can_move(new))) {
++		err = -EXDEV;
+ 		goto out;
++	}
+ 
+ 	if (overwrite && new_is_dir && !ovl_pure_upper(new)) {
+ 		err = ovl_check_empty_dir(new, &list);
+@@ -1159,8 +1173,8 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
+ 
+ 	if (!list_empty(&list)) {
+ 		opaquedir = ovl_clear_empty(new, &list);
+-		err = PTR_ERR(opaquedir);
+ 		if (IS_ERR(opaquedir)) {
++			err = PTR_ERR(opaquedir);
+ 			opaquedir = NULL;
+ 			goto out_revert_creds;
+ 		}
+@@ -1192,19 +1206,22 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
+ 
+ 	olddentry = ovl_lookup_upper(ofs, old->d_name.name, old_upperdir,
+ 				     old->d_name.len);
+-	err = PTR_ERR(olddentry);
+-	if (IS_ERR(olddentry))
++	if (IS_ERR(olddentry)) {
++		err = PTR_ERR(olddentry);
+ 		goto out_unlock;
++	}
+ 
+-	err = -ESTALE;
+-	if (!ovl_matches_upper(old, olddentry))
++	if (!ovl_matches_upper(old, olddentry)) {
++		err = -ESTALE;
+ 		goto out_dput_old;
++	}
+ 
+ 	newdentry = ovl_lookup_upper(ofs, new->d_name.name, new_upperdir,
+ 				     new->d_name.len);
+-	err = PTR_ERR(newdentry);
+-	if (IS_ERR(newdentry))
++	if (IS_ERR(newdentry)) {
++		err = PTR_ERR(newdentry);
+ 		goto out_dput_old;
++	}
+ 
+ 	old_opaque = ovl_dentry_is_opaque(old);
+ 	new_opaque = ovl_dentry_is_opaque(new);
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index defd4e231ad2..00183ebf8d28 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -379,10 +379,11 @@ static struct dentry *ovl_lookup_real_one(struct dentry *connected,
+ 	 * connected real path from the top.
+ 	 */
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+-	err = -ECHILD;
+ 	parent = dget_parent(real);
+-	if (ovl_dentry_real_at(connected, layer->idx) != parent)
++	if (ovl_dentry_real_at(connected, layer->idx) != parent) {
++		err = -ECHILD;
+ 		goto fail;
++	}
+ 
+ 	/*
+ 	 * We also need to take a snapshot of real dentry name to protect us
+@@ -716,9 +717,10 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 	if (!d_is_dir(origin.dentry) ||
+ 	    !(origin.dentry->d_flags & DCACHE_DISCONNECTED)) {
+ 		inode = ovl_lookup_inode(sb, origin.dentry, false);
+-		err = PTR_ERR(inode);
+-		if (IS_ERR(inode))
++		if (IS_ERR(inode)) {
++			err = PTR_ERR(inode);
+ 			goto out_err;
++		}
+ 		if (inode) {
+ 			dentry = d_find_any_alias(inode);
+ 			iput(inode);
+@@ -730,8 +732,8 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 	/* Then lookup indexed upper/whiteout by origin fh */
+ 	if (ofs->indexdir) {
+ 		index = ovl_get_index_fh(ofs, fh);
+-		err = PTR_ERR(index);
+ 		if (IS_ERR(index)) {
++			err = PTR_ERR(index);
+ 			index = NULL;
+ 			goto out_err;
+ 		}
+@@ -741,9 +743,10 @@ static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
+ 	if (index && d_is_dir(index)) {
+ 		struct dentry *upper = ovl_index_upper(ofs, index, true);
+ 
+-		err = PTR_ERR(upper);
+-		if (IS_ERR_OR_NULL(upper))
++		if (IS_ERR_OR_NULL(upper)) {
++			err = PTR_ERR(upper);
+ 			goto out_err;
++		}
+ 
+ 		dentry = ovl_get_dentry(sb, upper, NULL, NULL);
+ 		dput(upper);
+@@ -810,9 +813,10 @@ static struct dentry *ovl_fh_to_dentry(struct super_block *sb, struct fid *fid,
+ 	int err;
+ 
+ 	fh = ovl_fid_to_fh(fid, len, fh_type);
+-	err = PTR_ERR(fh);
+-	if (IS_ERR(fh))
++	if (IS_ERR(fh)) {
++		err = PTR_ERR(fh);
+ 		goto out_err;
++	}
+ 
+ 	err = ovl_check_fh_len(fh, len);
+ 	if (err)
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index cfb3420b7df0..665e9f19d8de 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -462,8 +462,8 @@ int ovl_verify_set_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 	int err;
+ 
+ 	fh = ovl_encode_real_fh(ofs, real, is_upper);
+-	err = PTR_ERR(fh);
+ 	if (IS_ERR(fh)) {
++		err = PTR_ERR(fh);
+ 		fh = NULL;
+ 		goto fail;
+ 	}
+@@ -533,19 +533,22 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
+ 	if (!d_inode(index))
+ 		return 0;
+ 
+-	err = -EINVAL;
+-	if (index->d_name.len < sizeof(struct ovl_fb)*2)
++	if (index->d_name.len < sizeof(struct ovl_fb)*2) {
++		err = -EINVAL;
+ 		goto fail;
++	}
+ 
+-	err = -ENOMEM;
+ 	len = index->d_name.len / 2;
+ 	fh = kzalloc(len + OVL_FH_WIRE_OFFSET, GFP_KERNEL);
+-	if (!fh)
++	if (!fh) {
++		err = -ENOMEM;
+ 		goto fail;
++	}
+ 
+-	err = -EINVAL;
+-	if (hex2bin(fh->buf, index->d_name.name, len))
++	if (hex2bin(fh->buf, index->d_name.name, len)) {
++		err = -EINVAL;
+ 		goto fail;
++	}
+ 
+ 	err = ovl_check_fb_len(&fh->fb, len);
+ 	if (err)
+@@ -905,11 +908,12 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	}
+ 
+ 	if (!d.stop && poe->numlower) {
+-		err = -ENOMEM;
+ 		stack = kcalloc(ofs->numlayer - 1, sizeof(struct ovl_path),
+ 				GFP_KERNEL);
+-		if (!stack)
++		if (!stack) {
++			err = -ENOMEM;
+ 			goto out_put_upper;
++		}
+ 	}
+ 
+ 	for (i = 0; !d.stop && i < poe->numlower; i++) {
+@@ -994,10 +998,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		 * Only following redirects when redirects are enabled disables
+ 		 * this attack vector when not necessary.
+ 		 */
+-		err = -EPERM;
+ 		if (d.redirect && !ofs->config.redirect_follow) {
+ 			pr_warn_ratelimited("refusing to follow redirect for (%pd2)\n",
+ 					    dentry);
++			err = -EPERM;
+ 			goto out_put;
+ 		}
+ 
+@@ -1068,9 +1072,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	}
+ 
+ 	oe = ovl_alloc_entry(ctr);
+-	err = -ENOMEM;
+-	if (!oe)
++	if (!oe) {
++		err = -ENOMEM;
+ 		goto out_put;
++	}
+ 
+ 	memcpy(oe->lowerstack, stack, sizeof(struct ovl_path) * ctr);
+ 	dentry->d_fsdata = oe;
+@@ -1115,9 +1120,10 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		};
+ 
+ 		inode = ovl_get_inode(dentry->d_sb, &oip);
+-		err = PTR_ERR(inode);
+-		if (IS_ERR(inode))
++		if (IS_ERR(inode)) {
++			err = PTR_ERR(inode);
+ 			goto out_free_oe;
++		}
+ 		if (upperdentry && !uppermetacopy)
+ 			ovl_set_flag(OVL_UPPERDATA, inode);
+ 	}
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index b6952b21a7ee..ad5363ac3a68 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -764,9 +764,10 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
+ 		struct ovl_dir_cache *cache;
+ 
+ 		cache = ovl_cache_get(dentry);
+-		err = PTR_ERR(cache);
+-		if (IS_ERR(cache))
++		if (IS_ERR(cache)) {
++			err = PTR_ERR(cache);
+ 			goto out;
++		}
+ 
+ 		od->cache = cache;
+ 		ovl_seek_cursor(od, ctx->pos);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index f97ad8b40dbb..f683ff46edaf 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -801,9 +801,10 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
+ 			goto out_dput;
+ 
+ 		/* Weird filesystem returning with hashed negative (kernfs)? */
+-		err = -EINVAL;
+-		if (d_really_is_negative(work))
++		if (d_really_is_negative(work)) {
++			err = -EINVAL;
+ 			goto out_dput;
++		}
+ 
+ 		/*
+ 		 * Try to remove POSIX ACL xattrs from workdir.  We are good if:
+@@ -1130,8 +1131,8 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+ 		goto out;
+ 
+ 	upper_mnt = clone_private_mount(upperpath);
+-	err = PTR_ERR(upper_mnt);
+ 	if (IS_ERR(upper_mnt)) {
++		err = PTR_ERR(upper_mnt);
+ 		pr_err("failed to clone upperpath\n");
+ 		goto out;
+ 	}
+@@ -1184,13 +1185,14 @@ static int ovl_check_rename_whiteout(struct ovl_fs *ofs)
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 
+ 	temp = ovl_create_temp(ofs, workdir, OVL_CATTR(S_IFREG | 0));
+-	err = PTR_ERR(temp);
+-	if (IS_ERR(temp))
++	if (IS_ERR(temp)) {
++		err = PTR_ERR(temp);
+ 		goto out_unlock;
++	}
+ 
+ 	dest = ovl_lookup_temp(ofs, workdir);
+-	err = PTR_ERR(dest);
+ 	if (IS_ERR(dest)) {
++		err = PTR_ERR(dest);
+ 		dput(temp);
+ 		goto out_unlock;
+ 	}
+@@ -1205,9 +1207,10 @@ static int ovl_check_rename_whiteout(struct ovl_fs *ofs)
+ 	}
+ 
+ 	whiteout = ovl_lookup_upper(ofs, name.name.name, workdir, name.name.len);
+-	err = PTR_ERR(whiteout);
+-	if (IS_ERR(whiteout))
++	if (IS_ERR(whiteout)) {
++		err = PTR_ERR(whiteout);
+ 		goto cleanup_temp;
++	}
+ 
+ 	err = ovl_is_whiteout(whiteout);
+ 
+@@ -1284,9 +1287,10 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 		return err;
+ 
+ 	workdir = ovl_workdir_create(ofs, OVL_WORKDIR_NAME, false);
+-	err = PTR_ERR(workdir);
+-	if (IS_ERR_OR_NULL(workdir))
++	if (IS_ERR_OR_NULL(workdir)) {
++		err = PTR_ERR(workdir);
+ 		goto out;
++	}
+ 
+ 	ofs->workdir = workdir;
+ 
+@@ -1598,10 +1602,11 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 	int err;
+ 	unsigned int i;
+ 
+-	err = -ENOMEM;
+ 	ofs->fs = kcalloc(numlower + 1, sizeof(struct ovl_sb), GFP_KERNEL);
+-	if (ofs->fs == NULL)
++	if (ofs->fs == NULL) {
++		err = -ENOMEM;
+ 		goto out;
++	}
+ 
+ 	/* idx/fsid 0 are reserved for upper fs even with lower only overlay */
+ 	ofs->numfs++;
+@@ -1652,8 +1657,8 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 		}
+ 
+ 		mnt = clone_private_mount(&stack[i]);
+-		err = PTR_ERR(mnt);
+ 		if (IS_ERR(mnt)) {
++			err = PTR_ERR(mnt);
+ 			pr_err("failed to clone lowerpath\n");
+ 			iput(trap);
+ 			goto out;
+@@ -1729,7 +1734,6 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 	if (!stack)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	err = -EINVAL;
+ 	for (i = 0; i < numlower; i++) {
+ 		err = ovl_lower_dir(lower, &stack[i], ofs, &sb->s_stack_depth);
+ 		if (err)
+@@ -1738,10 +1742,10 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 		lower = strchr(lower, '\0') + 1;
+ 	}
+ 
+-	err = -EINVAL;
+ 	sb->s_stack_depth++;
+ 	if (sb->s_stack_depth > FILESYSTEM_MAX_STACK_DEPTH) {
+ 		pr_err("maximum fs stacking depth exceeded\n");
++		err = -EINVAL;
+ 		goto out_err;
+ 	}
+ 
+@@ -1749,10 +1753,11 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 	if (err)
+ 		goto out_err;
+ 
+-	err = -ENOMEM;
+ 	oe = ovl_alloc_entry(numlower);
+-	if (!oe)
++	if (!oe) {
++		err = -ENOMEM;
+ 		goto out_err;
++	}
+ 
+ 	for (i = 0; i < numlower; i++) {
+ 		oe->lowerstack[i].dentry = dget(stack[i].dentry);
+@@ -1894,21 +1899,24 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	unsigned int numlower;
+ 	int err;
+ 
+-	err = -EIO;
+-	if (WARN_ON(sb->s_user_ns != current_user_ns()))
++	if (WARN_ON(sb->s_user_ns != current_user_ns())) {
++		err = -EIO;
+ 		goto out;
++	}
+ 
+ 	sb->s_d_op = &ovl_dentry_operations;
+ 
+-	err = -ENOMEM;
+ 	ofs = kzalloc(sizeof(struct ovl_fs), GFP_KERNEL);
+-	if (!ofs)
++	if (!ofs) {
++		err = -ENOMEM;
+ 		goto out;
++	}
+ 
+-	err = -ENOMEM;
+ 	ofs->creator_cred = cred = prepare_creds();
+-	if (!cred)
++	if (!cred) {
++		err = -ENOMEM;
+ 		goto out_err;
++	}
+ 
+ 	/* Is there a reason anyone would want not to share whiteouts? */
+ 	ofs->share_whiteout = true;
+@@ -1922,30 +1930,32 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (err)
+ 		goto out_err;
+ 
+-	err = -EINVAL;
+ 	if (!ofs->config.lowerdir) {
+ 		if (!silent)
+ 			pr_err("missing 'lowerdir'\n");
++		err = -EINVAL;
+ 		goto out_err;
+ 	}
+ 
+-	err = -ENOMEM;
+ 	splitlower = kstrdup(ofs->config.lowerdir, GFP_KERNEL);
+-	if (!splitlower)
++	if (!splitlower) {
++		err = -ENOMEM;
+ 		goto out_err;
++	}
+ 
+-	err = -EINVAL;
+ 	numlower = ovl_split_lowerdirs(splitlower);
+ 	if (numlower > OVL_MAX_STACK) {
+ 		pr_err("too many lower directories, limit is %d\n",
+ 		       OVL_MAX_STACK);
++		err = -EINVAL;
+ 		goto out_err;
+ 	}
+ 
+-	err = -ENOMEM;
+ 	layers = kcalloc(numlower + 1, sizeof(struct ovl_layer), GFP_KERNEL);
+-	if (!layers)
++	if (!layers) {
++		err = -ENOMEM;
+ 		goto out_err;
++	}
+ 
+ 	ofs->layers = layers;
+ 	/* Layer 0 is reserved for upper even if there's no upper */
+@@ -1969,9 +1979,9 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (ofs->config.upperdir) {
+ 		struct super_block *upper_sb;
+ 
+-		err = -EINVAL;
+ 		if (!ofs->config.workdir) {
+ 			pr_err("missing 'workdir'\n");
++			err = -EINVAL;
+ 			goto out_err;
+ 		}
+ 
+@@ -2000,9 +2010,10 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 		sb->s_time_gran = upper_sb->s_time_gran;
+ 	}
+ 	oe = ovl_get_lowerstack(sb, splitlower, numlower, ofs, layers);
+-	err = PTR_ERR(oe);
+-	if (IS_ERR(oe))
++	if (IS_ERR(oe)) {
++		err = PTR_ERR(oe);
+ 		goto out_err;
++	}
+ 
+ 	/* If the upper fs is nonexistent, we mark overlayfs r/o too */
+ 	if (!ovl_upper_mnt(ofs))
+@@ -2054,10 +2065,11 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_flags |= SB_POSIXACL;
+ 	sb->s_iflags |= SB_I_SKIP_SYNC;
+ 
+-	err = -ENOMEM;
+ 	root_dentry = ovl_get_root(sb, upperpath.dentry, oe);
+-	if (!root_dentry)
++	if (!root_dentry) {
++		err = -ENOMEM;
+ 		goto out_free_oe;
++	}
+ 
+ 	mntput(upperpath.mnt);
+ 	kfree(splitlower);
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 923d66d131c1..4b9f09a274ae 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -851,8 +851,8 @@ static void ovl_cleanup_index(struct dentry *dentry)
+ 
+ 	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 	index = ovl_lookup_upper(ofs, name.name, indexdir, name.len);
+-	err = PTR_ERR(index);
+ 	if (IS_ERR(index)) {
++		err = PTR_ERR(index);
+ 		index = NULL;
+ 	} else if (ovl_index_all(dentry->d_sb)) {
+ 		/* Whiteout orphan index to block future open by handle */
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+2.27.0
+
