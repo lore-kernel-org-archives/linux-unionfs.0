@@ -2,55 +2,56 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13BC7C77B7F
-	for <linux-unionfs@archiver.kernel.org>; Sat,  6 May 2023 09:59:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E17C77B73
+	for <linux-unionfs@archiver.kernel.org>; Sat,  6 May 2023 10:51:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230475AbjEFJ7P (ORCPT
+        id S231956AbjEFKvR (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 6 May 2023 05:59:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60394 "EHLO
+        Sat, 6 May 2023 06:51:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44716 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230000AbjEFJ7O (ORCPT
+        with ESMTP id S229872AbjEFKvP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 6 May 2023 05:59:14 -0400
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386C35FE5;
-        Sat,  6 May 2023 02:59:11 -0700 (PDT)
+        Sat, 6 May 2023 06:51:15 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22F033A85;
+        Sat,  6 May 2023 03:51:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1683367151; x=1714903151;
+  t=1683370273; x=1714906273;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=E4m4FKscU3TLCqCEte0uaO/HavtRa1vj8zpUntm/7uc=;
-  b=T3dQaEcG2JLb/rBKnEDA0XegoHs7f95uDW2Qln+4XIyQ4ohexQjSln+c
-   h8alnHF8MxNC7+LF5UEsOTIMYli95BffdQl97V36MWUuKzF+cUIdjLdb6
-   9+MEWaUK4ZzhBvN7CQ7LRqSFdfMomqbdLxu2Q0qs0Wnh1WllvMQx7WHEY
-   6ftDBjdqZPx1NLF4HFoH28r6IhAEosz9q86lZvk/TJWD9EMI1Ep7SEBXr
-   yb55TUHbmOHqiUwwSxLQF/tmh32ABXZgDgMtL2eSrVq3Cbry5gzQv6qcL
-   M8MpUmS1z7lZsIj656+fjJyYoI2aeYtPHER7Jm96Ujrke9lHWQARWT4Us
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10701"; a="414916505"
+  bh=PC7zVeIIArZFoNf5Uhrbn2o905hsUevHgo9oAP0rVe0=;
+  b=P+VENBCrximPWLp5c6NHYb6+NvrVc2e/7q7/1zj22YxOzdjXR9ZfviDl
+   Y1i43Wp4Y839KF+J4RIwYJ6feA5nzcb2FGGDTQAK9w0TrlHqZn2R1YmJG
+   2jzWQ3VRsgmoTJLJNyclwvTn5NFzmM/jLfI9EkLcvAonGpQQOO/kvrMWQ
+   zLQrvHLy33QxtgU72unFofvGhSGQ7VcLukEeDGOA7zQ8wYvm3mMu4NsIW
+   3/d28pudJ8rCBkiX0f0znBNAcoXUrHMDdTvq6Kg9MEhwspqiLYfW1jtOW
+   h5YnGZxV9/2XtmjYVNHJr/Tor5edjpYRMLgqsEnWsOsBC0JRR51E7ixxm
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10701"; a="349404137"
 X-IronPort-AV: E=Sophos;i="5.99,254,1677571200"; 
-   d="scan'208";a="414916505"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2023 02:59:10 -0700
+   d="scan'208";a="349404137"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 May 2023 03:51:12 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10701"; a="842105386"
+X-IronPort-AV: E=McAfee;i="6600,9927,10701"; a="809598352"
 X-IronPort-AV: E=Sophos;i="5.99,254,1677571200"; 
-   d="scan'208";a="842105386"
+   d="scan'208";a="809598352"
 Received: from lkp-server01.sh.intel.com (HELO dea6d5a4f140) ([10.239.97.150])
-  by fmsmga001.fm.intel.com with ESMTP; 06 May 2023 02:59:08 -0700
+  by fmsmga002.fm.intel.com with ESMTP; 06 May 2023 03:51:10 -0700
 Received: from kbuild by dea6d5a4f140 with local (Exim 4.96)
         (envelope-from <lkp@intel.com>)
-        id 1pvEh1-00007F-28;
-        Sat, 06 May 2023 09:59:07 +0000
-Date:   Sat, 6 May 2023 17:58:54 +0800
+        id 1pvFVO-0000AT-07;
+        Sat, 06 May 2023 10:51:10 +0000
+Date:   Sat, 6 May 2023 18:50:52 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     wenjun93 <gwj0511@gmail.com>, miklos@szeredi.hu
-Cc:     oe-kbuild-all@lists.linux.dev, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, gwj1235@yeah.net
+Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        gwj1235@yeah.net
 Subject: Re: [PATCH] overlayfs: clean error handling
-Message-ID: <202305061745.OX1sfYxg-lkp@intel.com>
+Message-ID: <202305061831.o7pAYoBr-lkp@intel.com>
 References: <20230506082111.1655980-1-gwj1235@yeah.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -75,8 +76,8 @@ url:    https://github.com/intel-lab-lkp/linux/commits/wenjun93/overlayfs-clean-
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
 patch link:    https://lore.kernel.org/r/20230506082111.1655980-1-gwj1235%40yeah.net
 patch subject: [PATCH] overlayfs: clean error handling
-config: ia64-allyesconfig (https://download.01.org/0day-ci/archive/20230506/202305061745.OX1sfYxg-lkp@intel.com/config)
-compiler: ia64-linux-gcc (GCC) 12.1.0
+config: i386-randconfig-a011-20230501 (https://download.01.org/0day-ci/archive/20230506/202305061831.o7pAYoBr-lkp@intel.com/config)
+compiler: clang version 14.0.6 (https://github.com/llvm/llvm-project f28c006a5895fc0e329fe15fead81e37457cb1d1)
 reproduce (this is a W=1 build):
         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
         chmod +x ~/bin/make.cross
@@ -86,307 +87,357 @@ reproduce (this is a W=1 build):
         git checkout d5593461bec1095c3008da7403952420e637c01a
         # save the config file
         mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=ia64 olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=ia64 SHELL=/bin/bash fs/
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 olddefconfig
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 SHELL=/bin/bash fs/overlayfs/
 
 If you fix the issue, kindly add following tag where applicable
 | Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202305061745.OX1sfYxg-lkp@intel.com/
+| Link: https://lore.kernel.org/oe-kbuild-all/202305061831.o7pAYoBr-lkp@intel.com/
 
 All warnings (new ones prefixed by >>):
 
-   fs/overlayfs/super.c: In function 'ovl_workdir_create':
->> fs/overlayfs/super.c:804:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     804 |                 if (d_really_is_negative(work))
-         |                 ^~
-   fs/overlayfs/super.c:806:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     806 |                         goto out_dput;
-         |                         ^~~~
-   fs/overlayfs/super.c: In function 'ovl_check_rename_whiteout':
-   fs/overlayfs/super.c:1195:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1195 |         if (IS_ERR(temp))
-         |         ^~
-   fs/overlayfs/super.c:1197:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1197 |                 goto out_unlock;
-         |                 ^~~~
-   fs/overlayfs/super.c:1216:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1216 |         if (IS_ERR(whiteout))
-         |         ^~
-   fs/overlayfs/super.c:1218:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1218 |                 goto cleanup_temp;
-         |                 ^~~~
-   fs/overlayfs/super.c: In function 'ovl_make_workdir':
-   fs/overlayfs/super.c:1295:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1295 |         if (IS_ERR_OR_NULL(workdir))
-         |         ^~
-   fs/overlayfs/super.c:1297:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1297 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/super.c: In function 'ovl_get_layers':
-   fs/overlayfs/super.c:1610:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1610 |         if (ofs->fs == NULL)
-         |         ^~
-   fs/overlayfs/super.c:1612:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1612 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/super.c: In function 'ovl_get_lowerstack':
-   fs/overlayfs/super.c:1760:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1760 |         if (!oe)
-         |         ^~
-   fs/overlayfs/super.c:1762:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1762 |                 goto out_err;
-         |                 ^~~~
-   fs/overlayfs/super.c: In function 'ovl_fill_super':
-   fs/overlayfs/super.c:1904:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1904 |         if (WARN_ON(sb->s_user_ns != current_user_ns()))
-         |         ^~
-   fs/overlayfs/super.c:1906:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1906 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/super.c:1911:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1911 |         if (!ofs)
-         |         ^~
-   fs/overlayfs/super.c:1913:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1913 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/super.c:1916:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1916 |         if (!cred)
-         |         ^~
-   fs/overlayfs/super.c:1918:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1918 |                 goto out_err;
-         |                 ^~~~
-   fs/overlayfs/super.c:1940:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1940 |         if (!splitlower)
-         |         ^~
-   fs/overlayfs/super.c:1942:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1942 |                 goto out_err;
-         |                 ^~~~
-   fs/overlayfs/super.c:1953:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1953 |         if (!layers)
-         |         ^~
-   fs/overlayfs/super.c:1955:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1955 |                 goto out_err;
-         |                 ^~~~
-   fs/overlayfs/super.c:2010:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    2010 |         if (IS_ERR(oe))
-         |         ^~
-   fs/overlayfs/super.c:2012:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    2012 |                 goto out_err;
-         |                 ^~~~
-   fs/overlayfs/super.c:2065:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    2065 |         if (!root_dentry)
-         |         ^~
-   fs/overlayfs/super.c:2067:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    2067 |                 goto out_free_oe;
-         |                 ^~~~
+>> fs/overlayfs/super.c:806:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                           goto out_dput;
+                           ^
+   fs/overlayfs/super.c:804:3: note: previous statement is here
+                   if (d_really_is_negative(work))
+                   ^
+   fs/overlayfs/super.c:1197:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_unlock;
+                   ^
+   fs/overlayfs/super.c:1195:2: note: previous statement is here
+           if (IS_ERR(temp))
+           ^
+   fs/overlayfs/super.c:1218:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto cleanup_temp;
+                   ^
+   fs/overlayfs/super.c:1216:2: note: previous statement is here
+           if (IS_ERR(whiteout))
+           ^
+>> fs/overlayfs/super.c:1195:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (IS_ERR(temp))
+               ^~~~~~~~~~~~
+   fs/overlayfs/super.c:1236:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/super.c:1195:2: note: remove the 'if' if its condition is always true
+           if (IS_ERR(temp))
+           ^~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:1190:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   fs/overlayfs/super.c:1297:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out;
+                   ^
+   fs/overlayfs/super.c:1295:2: note: previous statement is here
+           if (IS_ERR_OR_NULL(workdir))
+           ^
+   fs/overlayfs/super.c:1612:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out;
+                   ^
+   fs/overlayfs/super.c:1610:2: note: previous statement is here
+           if (ofs->fs == NULL)
+           ^
+   fs/overlayfs/super.c:1610:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (ofs->fs == NULL)
+               ^~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:1719:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/super.c:1610:2: note: remove the 'if' if its condition is always true
+           if (ofs->fs == NULL)
+           ^~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:1606:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   fs/overlayfs/super.c:1762:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_err;
+                   ^
+   fs/overlayfs/super.c:1760:2: note: previous statement is here
+           if (!oe)
+           ^
+   fs/overlayfs/super.c:1906:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out;
+                   ^
+   fs/overlayfs/super.c:1904:2: note: previous statement is here
+           if (WARN_ON(sb->s_user_ns != current_user_ns()))
+           ^
+   fs/overlayfs/super.c:1913:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out;
+                   ^
+   fs/overlayfs/super.c:1911:2: note: previous statement is here
+           if (!ofs)
+           ^
+   fs/overlayfs/super.c:1918:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_err;
+                   ^
+   fs/overlayfs/super.c:1916:2: note: previous statement is here
+           if (!cred)
+           ^
+   fs/overlayfs/super.c:1942:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_err;
+                   ^
+   fs/overlayfs/super.c:1940:2: note: previous statement is here
+           if (!splitlower)
+           ^
+   fs/overlayfs/super.c:1955:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_err;
+                   ^
+   fs/overlayfs/super.c:1953:2: note: previous statement is here
+           if (!layers)
+           ^
+   fs/overlayfs/super.c:2012:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_err;
+                   ^
+   fs/overlayfs/super.c:2010:2: note: previous statement is here
+           if (IS_ERR(oe))
+           ^
+   fs/overlayfs/super.c:2067:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_free_oe;
+                   ^
+   fs/overlayfs/super.c:2065:2: note: previous statement is here
+           if (!root_dentry)
+           ^
+   fs/overlayfs/super.c:1904:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (WARN_ON(sb->s_user_ns != current_user_ns()))
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   include/asm-generic/bug.h:121:28: note: expanded from macro 'WARN_ON'
+   #define WARN_ON(condition) ({                                           \
+                              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:2084:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/super.c:1904:2: note: remove the 'if' if its condition is always true
+           if (WARN_ON(sb->s_user_ns != current_user_ns()))
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:1902:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
 --
-   fs/overlayfs/namei.c: In function 'ovl_verify_index':
->> fs/overlayfs/namei.c:536:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     536 |         if (index->d_name.len < sizeof(struct ovl_fb)*2)
-         |         ^~
-   fs/overlayfs/namei.c:538:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     538 |                 goto fail;
-         |                 ^~~~
-   fs/overlayfs/namei.c:542:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     542 |         if (!fh)
-         |         ^~
-   fs/overlayfs/namei.c:544:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     544 |                 goto fail;
-         |                 ^~~~
-   fs/overlayfs/namei.c:546:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     546 |         if (hex2bin(fh->buf, index->d_name.name, len))
-         |         ^~
-   fs/overlayfs/namei.c:548:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     548 |                 goto fail;
-         |                 ^~~~
-   fs/overlayfs/namei.c: In function 'ovl_lookup':
-   fs/overlayfs/namei.c:910:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     910 |                 if (!stack)
-         |                 ^~
-   fs/overlayfs/namei.c:912:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     912 |                         goto out_put_upper;
-         |                         ^~~~
-   fs/overlayfs/namei.c:1071:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1071 |         if (!oe)
-         |         ^~
-   fs/overlayfs/namei.c:1073:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1073 |                 goto out_put;
-         |                 ^~~~
-   fs/overlayfs/namei.c:1118:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1118 |                 if (IS_ERR(inode))
-         |                 ^~
-   fs/overlayfs/namei.c:1120:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1120 |                         goto out_free_oe;
-         |                         ^~~~
+>> fs/overlayfs/namei.c:538:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto fail;
+                   ^
+   fs/overlayfs/namei.c:536:2: note: previous statement is here
+           if (index->d_name.len < sizeof(struct ovl_fb)*2)
+           ^
+   fs/overlayfs/namei.c:544:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto fail;
+                   ^
+   fs/overlayfs/namei.c:542:2: note: previous statement is here
+           if (!fh)
+           ^
+   fs/overlayfs/namei.c:548:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto fail;
+                   ^
+   fs/overlayfs/namei.c:546:2: note: previous statement is here
+           if (hex2bin(fh->buf, index->d_name.name, len))
+           ^
+>> fs/overlayfs/namei.c:536:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (index->d_name.len < sizeof(struct ovl_fb)*2)
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/namei.c:610:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/namei.c:536:2: note: remove the 'if' if its condition is always true
+           if (index->d_name.len < sizeof(struct ovl_fb)*2)
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/namei.c:531:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   fs/overlayfs/namei.c:912:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                           goto out_put_upper;
+                           ^
+   fs/overlayfs/namei.c:910:3: note: previous statement is here
+                   if (!stack)
+                   ^
+   fs/overlayfs/namei.c:1073:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_put;
+                   ^
+   fs/overlayfs/namei.c:1071:2: note: previous statement is here
+           if (!oe)
+           ^
+   fs/overlayfs/namei.c:1120:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                           goto out_free_oe;
+                           ^
+   fs/overlayfs/namei.c:1118:3: note: previous statement is here
+                   if (IS_ERR(inode))
+                   ^
+   7 warnings generated.
 --
-   fs/overlayfs/dir.c: In function 'ovl_cleanup_and_whiteout':
->> fs/overlayfs/dir.c:118:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     118 |         if (IS_ERR(whiteout))
-         |         ^~
-   fs/overlayfs/dir.c:120:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     120 |                 return err;
-         |                 ^~~~~~
-   fs/overlayfs/dir.c: In function 'ovl_create_real':
-   fs/overlayfs/dir.c:179:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     179 |         if (newdentry->d_inode)
-         |         ^~
-   fs/overlayfs/dir.c:181:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     181 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_create_upper':
-   fs/overlayfs/dir.c:339:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     339 |         if (IS_ERR(newdentry))
-         |         ^~
-   fs/overlayfs/dir.c:341:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     341 |                 goto out_unlock;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_clear_empty':
-   fs/overlayfs/dir.c:397:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     397 |         if (IS_ERR(opaquedir))
-         |         ^~
-   fs/overlayfs/dir.c:399:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     399 |                 goto out_unlock;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_create_over_whiteout':
-   fs/overlayfs/dir.c:476:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     476 |         if (IS_ERR(upper))
-         |         ^~
-   fs/overlayfs/dir.c:478:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     478 |                 goto out_unlock;
-         |                 ^~~~
-   fs/overlayfs/dir.c:480:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     480 |         if (d_is_negative(upper) || !IS_WHITEOUT(d_inode(upper)))
-         |         ^~
-   fs/overlayfs/dir.c:482:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     482 |                 goto out_dput;
-         |                 ^~~~
-   fs/overlayfs/dir.c:485:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     485 |         if (IS_ERR(newdentry))
-         |         ^~
-   fs/overlayfs/dir.c:487:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     487 |                 goto out_dput;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_create_or_link':
-   fs/overlayfs/dir.c:581:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     581 |                 if (!override_cred)
-         |                 ^~
-   fs/overlayfs/dir.c:583:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     583 |                         goto out_revert_creds;
-         |                         ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_create_object':
-   fs/overlayfs/dir.c:636:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     636 |         if (!inode)
-         |         ^~
-   fs/overlayfs/dir.c:638:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     638 |                 goto out_drop_write;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_remove_and_whiteout':
-   fs/overlayfs/dir.c:762:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     762 |                 if (IS_ERR(opaquedir))
-         |                 ^~
-   fs/overlayfs/dir.c:764:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     764 |                         goto out;
-         |                         ^~~~
-   fs/overlayfs/dir.c:773:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     773 |         if (IS_ERR(upper))
-         |         ^~
-   fs/overlayfs/dir.c:775:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     775 |                 goto out_unlock;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_remove_upper':
-   fs/overlayfs/dir.c:813:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     813 |                 if (IS_ERR(opaquedir))
-         |                 ^~
-   fs/overlayfs/dir.c:815:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     815 |                         goto out;
-         |                         ^~~~
-   fs/overlayfs/dir.c:821:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     821 |         if (IS_ERR(upper))
-         |         ^~
-   fs/overlayfs/dir.c:823:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     823 |                 goto out_unlock;
-         |                 ^~~~
-   fs/overlayfs/dir.c:825:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     825 |         if ((opaquedir && upper != opaquedir) ||
-         |         ^~
-   fs/overlayfs/dir.c:828:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     828 |                 goto out_dput_upper;
-         |                 ^~~~
-   fs/overlayfs/dir.c: In function 'ovl_rename':
-   fs/overlayfs/dir.c:1101:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1101 |         if (flags & ~(RENAME_EXCHANGE | RENAME_NOREPLACE))
-         |         ^~
-   fs/overlayfs/dir.c:1103:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-    1103 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/dir.c:1108:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-    1108 |         if (!ovl_can_move(old) || (!overwrite && !ovl_can_move(new)))
+>> fs/overlayfs/dir.c:120:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   return err;
+                   ^
+   fs/overlayfs/dir.c:118:2: note: previous statement is here
+           if (IS_ERR(whiteout))
+           ^
+>> fs/overlayfs/dir.c:118:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (IS_ERR(whiteout))
+               ^~~~~~~~~~~~~~~~
+   fs/overlayfs/dir.c:120:10: note: uninitialized use occurs here
+                   return err;
+                          ^~~
+   fs/overlayfs/dir.c:118:2: note: remove the 'if' if its condition is always true
+           if (IS_ERR(whiteout))
+           ^~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/dir.c:114:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   fs/overlayfs/dir.c:181:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out;
+                   ^
+   fs/overlayfs/dir.c:179:2: note: previous statement is here
+           if (newdentry->d_inode)
+           ^
+   fs/overlayfs/dir.c:179:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (newdentry->d_inode)
+               ^~~~~~~~~~~~~~~~~~
+   fs/overlayfs/dir.c:220:6: note: uninitialized use occurs here
+           if (err) {
+               ^~~
+   fs/overlayfs/dir.c:179:2: note: remove the 'if' if its condition is always true
+           if (newdentry->d_inode)
+           ^~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/dir.c:174:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   fs/overlayfs/dir.c:341:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_unlock;
+                   ^
+   fs/overlayfs/dir.c:339:2: note: previous statement is here
+           if (IS_ERR(newdentry))
+           ^
+   fs/overlayfs/dir.c:339:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (IS_ERR(newdentry))
+               ^~~~~~~~~~~~~~~~~
+   fs/overlayfs/dir.c:354:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/dir.c:339:2: note: remove the 'if' if its condition is always true
+           if (IS_ERR(newdentry))
+           ^~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/dir.c:329:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   fs/overlayfs/dir.c:399:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_unlock;
+                   ^
+   fs/overlayfs/dir.c:397:2: note: previous statement is here
+           if (IS_ERR(opaquedir))
+           ^
+   fs/overlayfs/dir.c:478:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_unlock;
+                   ^
+   fs/overlayfs/dir.c:476:2: note: previous statement is here
+           if (IS_ERR(upper))
+           ^
+   fs/overlayfs/dir.c:482:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_dput;
+                   ^
+   fs/overlayfs/dir.c:480:2: note: previous statement is here
+           if (d_is_negative(upper) || !IS_WHITEOUT(d_inode(upper)))
+           ^
+   fs/overlayfs/dir.c:487:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_dput;
+                   ^
+   fs/overlayfs/dir.c:485:2: note: previous statement is here
+           if (IS_ERR(newdentry))
+           ^
+   fs/overlayfs/dir.c:583:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                           goto out_revert_creds;
+                           ^
+   fs/overlayfs/dir.c:581:3: note: previous statement is here
+                   if (!override_cred)
+                   ^
+   fs/overlayfs/dir.c:638:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_drop_write;
+                   ^
+   fs/overlayfs/dir.c:636:2: note: previous statement is here
+           if (!inode)
+           ^
+   fs/overlayfs/dir.c:764:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                           goto out;
+                           ^
+   fs/overlayfs/dir.c:762:3: note: previous statement is here
+                   if (IS_ERR(opaquedir))
+                   ^
+   fs/overlayfs/dir.c:775:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto out_unlock;
+                   ^
+   fs/overlayfs/dir.c:773:2: note: previous statement is here
+           if (IS_ERR(upper))
+           ^
+   fs/overlayfs/dir.c:762:7: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                   if (IS_ERR(opaquedir))
 --
-   fs/overlayfs/readdir.c: In function 'ovl_iterate':
->> fs/overlayfs/readdir.c:767:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     767 |                 if (IS_ERR(cache))
-         |                 ^~
-   fs/overlayfs/readdir.c:769:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     769 |                         goto out;
-         |                         ^~~~
+>> fs/overlayfs/readdir.c:769:4: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                           goto out;
+                           ^
+   fs/overlayfs/readdir.c:767:3: note: previous statement is here
+                   if (IS_ERR(cache))
+                   ^
+>> fs/overlayfs/readdir.c:767:7: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+                   if (IS_ERR(cache))
+                       ^~~~~~~~~~~~~
+   fs/overlayfs/readdir.c:795:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/readdir.c:767:3: note: remove the 'if' if its condition is always true
+                   if (IS_ERR(cache))
+                   ^~~~~~~~~~~~~~~~~~
+   fs/overlayfs/readdir.c:740:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   2 warnings generated.
 --
-   fs/overlayfs/copy_up.c: In function 'ovl_create_index':
->> fs/overlayfs/copy_up.c:511:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     511 |         if (IS_ERR(temp))
-         |         ^~
-   fs/overlayfs/copy_up.c:513:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     513 |                 goto free_name;
-         |                 ^~~~
-   fs/overlayfs/copy_up.c: In function 'ovl_copy_up_workdir':
-   fs/overlayfs/copy_up.c:709:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     709 |         if (lock_rename(c->workdir, c->destdir) != NULL)
-         |         ^~
-   fs/overlayfs/copy_up.c:711:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     711 |                 goto unlock;
-         |                 ^~~~
-   fs/overlayfs/copy_up.c:720:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     720 |         if (IS_ERR(temp))
-         |         ^~
-   fs/overlayfs/copy_up.c:722:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     722 |                 goto unlock;
-         |                 ^~~~
-   fs/overlayfs/copy_up.c:745:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     745 |         if (IS_ERR(upper))
-         |         ^~
-   fs/overlayfs/copy_up.c:747:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     747 |                 goto cleanup;
-         |                 ^~~~
---
-   fs/overlayfs/export.c: In function 'ovl_lookup_real_one':
->> fs/overlayfs/export.c:383:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     383 |         if (ovl_dentry_real_at(connected, layer->idx) != parent)
-         |         ^~
-   fs/overlayfs/export.c:385:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     385 |                 goto fail;
-         |                 ^~~~
-   fs/overlayfs/export.c: In function 'ovl_lower_fh_to_d':
-   fs/overlayfs/export.c:719:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     719 |                 if (IS_ERR(inode))
-         |                 ^~
-   fs/overlayfs/export.c:721:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     721 |                         goto out_err;
-         |                         ^~~~
-   fs/overlayfs/export.c:744:17: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     744 |                 if (IS_ERR_OR_NULL(upper))
-         |                 ^~
-   fs/overlayfs/export.c:746:25: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     746 |                         goto out_err;
-         |                         ^~~~
-   fs/overlayfs/export.c: In function 'ovl_fh_to_dentry':
-   fs/overlayfs/export.c:813:9: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
-     813 |         if (IS_ERR(fh))
-         |         ^~
-   fs/overlayfs/export.c:815:17: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
-     815 |                 goto out_err;
-         |                 ^~~~
+>> fs/overlayfs/copy_up.c:513:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto free_name;
+                   ^
+   fs/overlayfs/copy_up.c:511:2: note: previous statement is here
+           if (IS_ERR(temp))
+           ^
+   fs/overlayfs/copy_up.c:711:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto unlock;
+                   ^
+   fs/overlayfs/copy_up.c:709:2: note: previous statement is here
+           if (lock_rename(c->workdir, c->destdir) != NULL)
+           ^
+   fs/overlayfs/copy_up.c:722:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto unlock;
+                   ^
+   fs/overlayfs/copy_up.c:720:2: note: previous statement is here
+           if (IS_ERR(temp))
+           ^
+   fs/overlayfs/copy_up.c:747:3: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+                   goto cleanup;
+                   ^
+   fs/overlayfs/copy_up.c:745:2: note: previous statement is here
+           if (IS_ERR(upper))
+           ^
+>> fs/overlayfs/copy_up.c:709:6: warning: variable 'err' is used uninitialized whenever 'if' condition is false [-Wsometimes-uninitialized]
+           if (lock_rename(c->workdir, c->destdir) != NULL)
+               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/copy_up.c:763:9: note: uninitialized use occurs here
+           return err;
+                  ^~~
+   fs/overlayfs/copy_up.c:709:2: note: remove the 'if' if its condition is always true
+           if (lock_rename(c->workdir, c->destdir) != NULL)
+           ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/copy_up.c:700:9: note: initialize the variable 'err' to silence this warning
+           int err;
+                  ^
+                   = 0
+   5 warnings generated.
+..
 
 
-vim +/if +804 fs/overlayfs/super.c
+vim +/if +806 fs/overlayfs/super.c
 
 e9be9d5e76e348 Miklos Szeredi    2014-10-24  761  
 ad204488d3046b Miklos Szeredi    2017-11-10  762  static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
@@ -431,9 +482,9 @@ e9be9d5e76e348 Miklos Szeredi    2014-10-24  798
 1f5573cfe7a705 Miklos Szeredi    2021-11-04  801  			goto out_dput;
 1f5573cfe7a705 Miklos Szeredi    2021-11-04  802  
 1f5573cfe7a705 Miklos Szeredi    2021-11-04  803  		/* Weird filesystem returning with hashed negative (kernfs)? */
-1f5573cfe7a705 Miklos Szeredi    2021-11-04 @804  		if (d_really_is_negative(work))
+1f5573cfe7a705 Miklos Szeredi    2021-11-04  804  		if (d_really_is_negative(work))
 d5593461bec109 wenjun93          2023-05-06  805  			err = -EINVAL;
-1f5573cfe7a705 Miklos Szeredi    2021-11-04  806  			goto out_dput;
+1f5573cfe7a705 Miklos Szeredi    2021-11-04 @806  			goto out_dput;
 c11b9fdd6a612f Miklos Szeredi    2016-09-01  807  
 cb348edb6bef72 Miklos Szeredi    2016-10-04  808  		/*
 cb348edb6bef72 Miklos Szeredi    2016-10-04  809  		 * Try to remove POSIX ACL xattrs from workdir.  We are good if:
