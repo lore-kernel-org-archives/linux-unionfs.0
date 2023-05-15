@@ -2,151 +2,66 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A61ECC77B7D
-	for <linux-unionfs@archiver.kernel.org>; Mon, 15 May 2023 06:47:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F0FCC77B7D
+	for <linux-unionfs@archiver.kernel.org>; Mon, 15 May 2023 11:05:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238849AbjEOGrj (ORCPT
+        id S241090AbjEOLFG (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 15 May 2023 02:47:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45060 "EHLO
+        Mon, 15 May 2023 07:05:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240103AbjEOGri (ORCPT
+        with ESMTP id S241084AbjEOLFF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 May 2023 02:47:38 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 353A81BCC
-        for <linux-unionfs@vger.kernel.org>; Sun, 14 May 2023 23:46:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684133203;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=KAO4OYx+CvEgSrP0Lc+Dq0btGojc5GqPxlfkTsCupXw=;
-        b=TbVm8rBPU4m4Bc0mKUH9+sypoiQa50kRz0TDN+vCRmg7iFGwUfifUAq3ej1QSzrvKMnLPo
-        x6akjiV0f0f/dT4CgJ2EtVvOaymvYR4wrfBjq5N+/msH0QbtYv0pAlMLHvJI63MTwpKKV4
-        4NejFFSJv1CbuIlgu9UPHS71m0IyMjw=
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com
- [209.85.166.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-404-TPSoBIwxMpuxGab-fMra_Q-1; Mon, 15 May 2023 02:46:42 -0400
-X-MC-Unique: TPSoBIwxMpuxGab-fMra_Q-1
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-331ab91abdeso174318095ab.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 14 May 2023 23:46:41 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684133201; x=1686725201;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=KAO4OYx+CvEgSrP0Lc+Dq0btGojc5GqPxlfkTsCupXw=;
-        b=ZYhfdDamngfLaCXphHRCwOheeSRjMv31kUsmstl8TVY5K0IqB+z7EGL4idWrDPR838
-         R/ZXkBcOlmSZ9cdCbhVbEjkfxFZgVT9sBKO9PIr3EoG+QngL7ErTcjCmxOUEeLThQd+C
-         YZLAk+tuqdMSbqkXOmWlHDYjX2yHcFjcn0+mzK0UyX1nNXEqzHav+pcvnSKtNhG643uo
-         g9kVVT8my1U7EPvYKW3YKVQRzvOIzFkKUepL57HbrH7o6wLFqVrDWENxLG21Z3vIaMGf
-         /thRDZhtJVpGgSA04FvNr9WgUYPcX+S4/IIrLU8nKupfT4XRfvUQpKuZQwUn0BDDNvK+
-         TREg==
-X-Gm-Message-State: AC+VfDxvl7bNOvezlo5NXFgRAK6yOsLca60VfIjggPqKk+9lopNxcbF1
-        yxvNZZMukt3HIiOGzf9h7vlzXFVa/okutz99J431aSebng3HXoFYrzwRdfN6VX05IP0c/EhcmAh
-        swPVbZ+571gST2+aBv/yelXJ2sSZM9zjq+me9m+vIVw==
-X-Received: by 2002:a92:c0c9:0:b0:337:8342:e6a5 with SMTP id t9-20020a92c0c9000000b003378342e6a5mr2635687ilf.31.1684133201318;
-        Sun, 14 May 2023 23:46:41 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ7OaAVV+swMnkzhwcIFNcVNKS7Pt+STutkJWfUnbVbiLDbVoBJAbLgS1K90NNVDEz8Z3vwx8GrHVQziEnVEpF8=
-X-Received: by 2002:a92:c0c9:0:b0:337:8342:e6a5 with SMTP id
- t9-20020a92c0c9000000b003378342e6a5mr2635675ilf.31.1684133201085; Sun, 14 May
- 2023 23:46:41 -0700 (PDT)
+        Mon, 15 May 2023 07:05:05 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B054310FB;
+        Mon, 15 May 2023 04:05:03 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D94D6228B;
+        Mon, 15 May 2023 11:05:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFE9C4339B;
+        Mon, 15 May 2023 11:05:01 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1684148702;
+        bh=NghsNVLtn2JgTdeoRFwN9eKB00Dm9jlnwQxjILz0lks=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=ELKC7UFSxHoz8aSWh9DlNUT+4aUg9w0AYq5Vlpn4BHHK9uvi+703WJ8n+EXtOOXNo
+         WOLtjR8V2JFI9DokQfJG37gnANTeF4UO7DtfdVYozfDgaTlm71HhTLAEhPU+KsNBcv
+         InwPsX8+oW5lcGs5WNno20yJm0AIJ5pKEjuuKjTKoldkWQtNi+4OAxHkZ4cHxMci73
+         8qJmawUKPJsVrJfro4cr+1P6iae91vIBbJH43A2t/nbQklenl3uChlntp/90HeBEbk
+         3axD6xh+a32paxkbQg2nzC4rq/5csvXWM/jPt69hQWoO8LKCIr8unTekwBg96/ayaP
+         j+D14hTfSInFw==
+Date:   Mon, 15 May 2023 13:04:58 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Zhihao Cheng <chengzhihao1@huawei.com>
+Cc:     miklos@szeredi.hu, amir73il@gmail.com,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/2] ovl: Fix null ptr dereference at realinode in
+ rcu-walk
+Message-ID: <20230515-befestigen-stopfen-ab8100cb6a00@brauner>
+References: <20230505122452.405661-1-chengzhihao1@huawei.com>
 MIME-Version: 1.0
-References: <cover.1683102959.git.alexl@redhat.com> <0292ade77250a8bb563744f596ecaab5614cbd80.1683102959.git.alexl@redhat.com>
- <20230514192227.GE9528@sol.localdomain> <CAL7ro1EaqFcS5sRAAJLWuiy4OHEP8KGXTm5T-LRh09XSrnav5A@mail.gmail.com>
- <20230515060008.GA15871@sol.localdomain>
-In-Reply-To: <20230515060008.GA15871@sol.localdomain>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Mon, 15 May 2023 08:46:30 +0200
-Message-ID: <CAL7ro1GGAfdZG9cHDWE2vnhY5tSE=9MxYi_n_gJHRfaw7zMSgg@mail.gmail.com>
-Subject: Re: [PATCH v2 4/6] ovl: Add framework for verity support
-To:     Eric Biggers <ebiggers@kernel.org>
-Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20230505122452.405661-1-chengzhihao1@huawei.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, May 15, 2023 at 8:00=E2=80=AFAM Eric Biggers <ebiggers@kernel.org> =
-wrote:
->
-> On Mon, May 15, 2023 at 07:44:13AM +0200, Alexander Larsson wrote:
-> > On Sun, May 14, 2023 at 9:22=E2=80=AFPM Eric Biggers <ebiggers@kernel.o=
-rg> wrote:
-> > >
-> > > On Wed, May 03, 2023 at 10:51:37AM +0200, Alexander Larsson wrote:
-> > > > +- "require":
-> > > > +    Same as "on", but additionally all metacopy files must specify=
- a
-> > > > +    verity xattr. This means metadata copy up will only be used if
-> > > > +    the data file has fs-verity enabled, otherwise a full copy-up =
-is
-> > > > +    used.
-> > >
-> > > The second sentence makes it sound like an attacker can inject arbitr=
-ary data
-> > > just by replacing a data file with one that doesn't have fsverity ena=
-bled.
-> > >
-> > > I really hope that's not the case?
-> > >
-> > > I *think* there is a subtlety here involving "metacopy files" that we=
-re created
-> > > ahead of time by the user, vs. being generated by overlayfs.  But it'=
-s not
-> > > really explained.
-> >
-> > I'm not sure what you mean here? When you say "replacing a data file",
-> > do you mean "changing the content of the lowerdir"?
->
-> Yes.  Specifically the data-only lowerdir.
->
-> > Because if you can just change lowerdir content then you can make users=
- of the
-> > overlayfs mount read whatever data you want (independent of metacopy or=
- any of
-> > this).
->
-> But isn't preventing that the whole point of your feature?
->
-> What am I missing?
+On Fri, May 05, 2023 at 08:24:50PM +0800, Zhihao Cheng wrote:
+> Zhihao Cheng (2):
+>   ovl: get_acl: Fix null pointer dereference at realinode in rcu-walk
+>     mode
+>   ovl: ovl_permission: Fix null pointer dereference at realinode in
+>     rcu-walk mode
+> 
+>  fs/overlayfs/inode.c | 14 +++++++++-----
+>  1 file changed, 9 insertions(+), 5 deletions(-)
 
-If by "your feature", you mean the full composefs idea, then things
-are different. In this case the root mount is an overlayfs with two
-lowerdirs and no upper. The uppermost lower is a read-only erofs mount
-with metadata and overlay xattrs for all files, and the lowermost one
-is a data-only dir. You cannot modify the uppermost layer (since it's
-a fsverity readonly erofs file). If you modify a data-only file it
-will be detected at validation, because it can only be reached from
-redirects in the image file, and we ensured all image files specified
-a digest. There is no upper dir, so the overlayfs mount itself is not
-writable, and thus there can be any meta-copy-up operations triggered
-at all.
+Seems fine to me. Thanks for fixing this,
+Reviewed-by: Christian Brauner <brauner@kernel.org>
 
-However, even if you had an upper dir ("writable composefs" usecase) I
-don't see a problem. If you trigger a full (i.e. non-metadata) copy-up
-then the copy-up operation itself will validate the data from the
-lower at copy time (due to the verity xattr on the "middle layer").
-
-
-I think again there is some confusion due to the two kinds of usecases
-for the verity support. The basic usecase is just for general
-robustness. I.e it allows the kernel to record information about the
-original state of the content file when generating a metacopy
-reference to it. If you later accidentally mount the overlayfs against
-the wrong lower version you will get told about it. The second usecase
-is the tamper proofing image case (composefs), and its security
-depends on more details (i.e. the readonly image part and its
-construction).
-
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
-
+(One thing that might be possible is to move this into a tiny static
+inline helper but might not be worth it.)
