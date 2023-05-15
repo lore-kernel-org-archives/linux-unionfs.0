@@ -2,77 +2,152 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB4AC77B75
-	for <linux-unionfs@archiver.kernel.org>; Mon, 15 May 2023 11:18:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CE3CC77B7D
+	for <linux-unionfs@archiver.kernel.org>; Mon, 15 May 2023 13:39:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239553AbjEOLSJ (ORCPT
+        id S241197AbjEONj1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 15 May 2023 07:18:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58230 "EHLO
+        Mon, 15 May 2023 09:39:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51850 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240305AbjEOLSI (ORCPT
+        with ESMTP id S229695AbjEONj1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 15 May 2023 07:18:08 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91D46114;
-        Mon, 15 May 2023 04:18:07 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2DB9F622A2;
-        Mon, 15 May 2023 11:18:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EE52C433EF;
-        Mon, 15 May 2023 11:18:04 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684149486;
-        bh=XPqJC1famnX99qOLE2B4jz1Qeg8LKXnvOXIOuG7G6eA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=EzxVXexVyRZzIVNPG9xjRIgvqeXwwbX6DzX6d5RbrXLvTBWCJZkk9AOhtCK4Q+8WL
-         0wlxTCQ1rmytwtxnfMZo7ajHpNGqWpCF3tOWFzuHJr5mmhVYjt8zohuYmGoatKf2uA
-         zOT3HwwIShqtRovw+U6MHRN3K5JAjQ3SNa1i/58PCUxATt6VlFdJV0wsIIn68DZhM6
-         mkzLa8RbsyVzySA/B+IwhGqXVF09FKyZchx6h3Sr33AOKZvOf1DKeQ0/2R2//USd3g
-         6gl6C08iO3Rrz6BG12sPLgs2QeGfu5Zq0iUpoArX6nv/JAxIPb+Mg3bamCvgpugGej
-         QkCBBhRBXZDng==
-From:   Christian Brauner <brauner@kernel.org>
-To:     Min-Hua Chen <minhuadotchen@gmail.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Subject: Re: [PATCH] fs: fix incorrect fmode_t casts
-Date:   Mon, 15 May 2023 13:17:58 +0200
-Message-Id: <20230515-hirsch-robust-fb5b936fb943@brauner>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230502232210.119063-1-minhuadotchen@gmail.com>
-References: <20230502232210.119063-1-minhuadotchen@gmail.com>
+        Mon, 15 May 2023 09:39:27 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 661F41BC;
+        Mon, 15 May 2023 06:39:25 -0700 (PDT)
+Received: from kwepemm600013.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4QKgN86mwlzqSS4;
+        Mon, 15 May 2023 21:35:04 +0800 (CST)
+Received: from huawei.com (10.175.104.67) by kwepemm600013.china.huawei.com
+ (7.193.23.68) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2507.23; Mon, 15 May
+ 2023 21:39:22 +0800
+From:   Zhihao Cheng <chengzhihao1@huawei.com>
+To:     <miklos@szeredi.hu>, <amir73il@gmail.com>, <brauner@kernel.org>
+CC:     <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <chengzhihao1@huawei.com>
+Subject: [PATCH v2 1/2] ovl: ovl_permission: Fix null pointer dereference at realinode in rcu-walk mode
+Date:   Mon, 15 May 2023 21:36:28 +0800
+Message-ID: <20230515133629.1974610-2-chengzhihao1@huawei.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20230515133629.1974610-1-chengzhihao1@huawei.com>
+References: <20230515133629.1974610-1-chengzhihao1@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=865; i=brauner@kernel.org; h=from:subject:message-id; bh=XPqJC1famnX99qOLE2B4jz1Qeg8LKXnvOXIOuG7G6eA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaQkiTw4sO3m3kSZS7+a6u8+j/DV3+GwU1p5WgDHxqZDcz1O 7dLk6ShlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIbWtGhnWM1TdmsCfWHTrp0tn7Uv rJquhZaVummj4uVtZ06RFfc4GR4X5ljVjnthMzywWrL+xdqRgT/eHGqZ8z7371fqzjFDCjjxsA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.104.67]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ kwepemm600013.china.huawei.com (7.193.23.68)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 03 May 2023 07:22:08 +0800, Min-Hua Chen wrote:
-> Use __FMODE_NONOTIFY instead of FMODE_NONOTIFY to fixes
-> the following sparce warnings:
-> fs/overlayfs/file.c:48:37: sparse: warning: restricted fmode_t degrades to integer
-> fs/overlayfs/file.c:128:13: sparse: warning: restricted fmode_t degrades to integer
-> fs/open.c:1159:21: sparse: warning: restricted fmode_t degrades to integer
-> 
-> 
-> [...]
+Following process:
+          P1                     P2
+ path_lookupat
+  link_path_walk
+   inode_permission
+    ovl_permission
+      ovl_i_path_real(inode, &realpath)
+        path->dentry = ovl_i_dentry_upper(inode)
+                          drop_cache
+			   __dentry_kill(ovl_dentry)
+		            iput(ovl_inode)
+		             ovl_destroy_inode(ovl_inode)
+		              dput(oi->__upperdentry)
+		               dentry_kill(upperdentry)
+		                dentry_unlink_inode
+				 upperdentry->d_inode = NULL
+      realinode = d_inode(realpath.dentry) // return NULL
+      inode_permission(realinode)
+       inode->i_sb  // NULL pointer dereference
+, will trigger an null pointer dereference at realinode:
+  [  335.664979] BUG: kernel NULL pointer dereference,
+                 address: 0000000000000002
+  [  335.668032] CPU: 0 PID: 2592 Comm: ls Not tainted 6.3.0
+  [  335.669956] RIP: 0010:inode_permission+0x33/0x2c0
+  [  335.678939] Call Trace:
+  [  335.679165]  <TASK>
+  [  335.679371]  ovl_permission+0xde/0x320
+  [  335.679723]  inode_permission+0x15e/0x2c0
+  [  335.680090]  link_path_walk+0x115/0x550
+  [  335.680771]  path_lookupat.isra.0+0xb2/0x200
+  [  335.681170]  filename_lookup+0xda/0x240
+  [  335.681922]  vfs_statx+0xa6/0x1f0
+  [  335.682233]  vfs_fstatat+0x7b/0xb0
 
-Applied to the vfs.misc branch of the vfs/vfs.git tree.
-Patches in the vfs.misc branch should appear in linux-next soon.
+Fetch a reproducer in [Link].
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+Add a new helper ovl_i_path_realinode() to get realpath and real inode
+after non-nullptr checking, use the helper to replace the current realpath
+getting logic.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.misc
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=217405
+Fixes: 4b7791b2e958 ("ovl: handle idmappings in ovl_permission()")
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+Suggested-by: Christian Brauner <brauner@kernel.org>
+---
+ fs/overlayfs/inode.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-[1/1] fs: fix incorrect fmode_t casts
-      https://git.kernel.org/vfs/vfs/c/079ad16ded46
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 541cf3717fc2..cc3ef5a6666a 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -278,6 +278,26 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
+ 	return err;
+ }
+ 
++static inline int ovl_i_path_realinode(struct inode *inode,
++				       struct path *realpath,
++				       struct inode **realinode, int rcu)
++{
++	/* Careful in RCU walk mode */
++	ovl_i_path_real(inode, realpath);
++	if (!realpath->dentry) {
++		WARN_ON(!rcu);
++		return -ECHILD;
++	}
++
++	*realinode = d_inode(realpath->dentry);
++	if (!*realinode) {
++		WARN_ON(!rcu);
++		return -ECHILD;
++	}
++
++	return 0;
++}
++
+ int ovl_permission(struct mnt_idmap *idmap,
+ 		   struct inode *inode, int mask)
+ {
+@@ -287,12 +307,10 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 	const struct cred *old_cred;
+ 	int err;
+ 
+-	/* Careful in RCU walk mode */
+-	ovl_i_path_real(inode, &realpath);
+-	if (!realpath.dentry) {
+-		WARN_ON(!(mask & MAY_NOT_BLOCK));
+-		return -ECHILD;
+-	}
++	err = ovl_i_path_realinode(inode, &realpath, &realinode,
++				   mask & MAY_NOT_BLOCK);
++	if (err)
++		return err;
+ 
+ 	/*
+ 	 * Check overlay inode with the creds of task and underlying inode
+@@ -302,7 +320,6 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 	if (err)
+ 		return err;
+ 
+-	realinode = d_inode(realpath.dentry);
+ 	old_cred = ovl_override_creds(inode->i_sb);
+ 	if (!upperinode &&
+ 	    !special_file(realinode->i_mode) && mask & MAY_WRITE) {
+-- 
+2.39.2
+
