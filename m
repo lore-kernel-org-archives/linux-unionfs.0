@@ -2,188 +2,225 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C86FC77B75
-	for <linux-unionfs@archiver.kernel.org>; Wed, 17 May 2023 07:19:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8695C77B73
+	for <linux-unionfs@archiver.kernel.org>; Thu, 18 May 2023 20:46:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbjEQHT5 (ORCPT
+        id S229498AbjERUqr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 17 May 2023 03:19:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51732 "EHLO
+        Thu, 18 May 2023 16:46:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229895AbjEQHTk (ORCPT
+        with ESMTP id S229550AbjERUqq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 17 May 2023 03:19:40 -0400
-Received: from out30-113.freemail.mail.aliyun.com (out30-113.freemail.mail.aliyun.com [115.124.30.113])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54301E1;
-        Wed, 17 May 2023 00:19:37 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=23;SR=0;TI=SMTPD_---0Vireqb9_1684307968;
-Received: from 30.97.48.190(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Vireqb9_1684307968)
-          by smtp.aliyun-inc.com;
-          Wed, 17 May 2023 15:19:32 +0800
-Message-ID: <caea44dd-10a8-accb-7dec-868fb8f2f061@linux.alibaba.com>
-Date:   Wed, 17 May 2023 15:19:28 +0800
+        Thu, 18 May 2023 16:46:46 -0400
+Received: from mail-yw1-x1132.google.com (mail-yw1-x1132.google.com [IPv6:2607:f8b0:4864:20::1132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01EA1E7F
+        for <linux-unionfs@vger.kernel.org>; Thu, 18 May 2023 13:46:42 -0700 (PDT)
+Received: by mail-yw1-x1132.google.com with SMTP id 00721157ae682-562191bcfb9so2007507b3.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 18 May 2023 13:46:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1684442801; x=1687034801;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ceRGVx/G/DIAtzoiWa4XydM/1i0e0FVfY4COrvhs3MU=;
+        b=f3lAmIY6pXJsw2oWtyM6mMS+jpx4Rl6M61SR+LixhHxuPTSkl55UpVUTtpqAtW3ECd
+         SkSHp6dsMUTIQRXyCa/VmIfIQde+Cblzk7shN4RTrv0X6+n3vGG+Rboae9GqEYkOzbRt
+         KgJC4j0T2KzDHYkhHZ05XlH1G54OSrIQTPu/TmiNKqM+2WhiNsqvxquIj/YfL2hni7Md
+         oLXb4ehJX/DBoA8ETkFhdpgb7nXMYkogVAbgvK9UgJAEoqNteYa2Z0jVmt37lwJAt8Nq
+         jT8MDtSQh8Fn9jZ8VpWQo29agACImh5m8pOaCUvbjB82agUALx82/JX/2CzsKZYI+Kzg
+         1NVw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684442801; x=1687034801;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ceRGVx/G/DIAtzoiWa4XydM/1i0e0FVfY4COrvhs3MU=;
+        b=FL1aSVryReSXZMBkiYnzEWPRDELDafbNajDRNX9MOmlwTJjbe/YZ2lBe9RlG28bSiQ
+         nJnOR5nFHzr9nPtJP0XH7WAjyYPsJ3h63nYTCpFstSujZlXAacx6CzMXMOElvrFOkGga
+         TRT5suprxsMMk/QbFuQDIatINh+wehL/tZUkWHHXNInpGDWDLnMhGA0T3iR+Ski6++62
+         5BQP+3O3GTmWLPBpkzD1poYgC806/ITh5G74wwGC7WfFfGpBUCb+H4oTNgZqv4gWmKCX
+         zw4vNYF+hgfoYYbu+Ox+8L59barBfsjCRaDEv3LO6t/VkB/xYWTaBYvqB8F58k3W8zrB
+         Io8Q==
+X-Gm-Message-State: AC+VfDygoUx8rusoo6YxdUO8hhkmDa9Nkkg3W6I9o6jrqvpCMGwi6nR2
+        HgdWwez8j1jEYMsduyJNdlmbts+rOKhXLM3SUPldE+fKIpBpE0w=
+X-Google-Smtp-Source: ACHHUZ4eL17jrcySmxt9X35Rh5Et3YQ+GGqU79cdnwTL2tIi9T9iIRnbebiNAOfzGfnlla+q/zh/RWedcu4H6IybIdI=
+X-Received: by 2002:a25:aba5:0:b0:ba8:1089:3338 with SMTP id
+ v34-20020a25aba5000000b00ba810893338mr264525ybi.39.1684442801146; Thu, 18 May
+ 2023 13:46:41 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.10.0
-Subject: Re: [RFC PATCH bpf-next v3 00/37] FUSE BPF: A Stacked Filesystem
- Extension for FUSE
-From:   Gao Xiang <hsiangkao@linux.alibaba.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Daniel Rosenberg <drosen@google.com>,
-        Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org,
-        Alexei Starovoitov <ast@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Joanne Koong <joannelkoong@gmail.com>,
-        Mykola Lysenko <mykolal@fb.com>, kernel-team@android.com
-References: <20230418014037.2412394-1-drosen@google.com>
- <CAJfpegtuNgbZfLiKnpzdEP0sNtCt=83NjGtBnmtvMaon2avv2w@mail.gmail.com>
- <CA+PiJmTMs2u=J6ANYqHdGww5SoE_focZGjMRZk5WgoH8fVuCsA@mail.gmail.com>
- <93e0e991-147f-0021-d635-95e615057273@linux.alibaba.com>
- <CAOQ4uxjCebxGxkguAh9s4_Vg7QHM=oBoV0LUPZpb+0pcm3z1bw@mail.gmail.com>
- <7386e858-1026-2924-9df9-22350b1e33a7@linux.alibaba.com>
-In-Reply-To: <7386e858-1026-2924-9df9-22350b1e33a7@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
+ <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org> <cbffa3dee65ecc0884dd16eb3af95c09a28f4297.camel@linux.ibm.com>
+In-Reply-To: <cbffa3dee65ecc0884dd16eb3af95c09a28f4297.camel@linux.ibm.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Thu, 18 May 2023 16:46:30 -0400
+Message-ID: <CAHC9VhSeBn-4UN48NcQWhJqLvQuydt4OvdyUsk9AXcviJ9Cqyw@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after writes
+To:     Mimi Zohar <zohar@linux.ibm.com>,
+        Stefan Berger <stefanb@linux.ibm.com>
+Cc:     Jeff Layton <jlayton@kernel.org>,
+        Christian Brauner <brauner@kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
+        linux-kernel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Fri, Apr 21, 2023 at 10:44=E2=80=AFAM Mimi Zohar <zohar@linux.ibm.com> w=
+rote:
+> On Fri, 2023-04-07 at 09:29 -0400, Jeff Layton wrote:
+> > > > > >
+> > > > > > I would ditch the original proposal in favor of this 2-line pat=
+ch shown here:
+> > > > > >
+> > > > > > https://lore.kernel.org/linux-integrity/a95f62ed-8b8a-38e5-e468=
+-ecbde3b221af@linux.ibm.com/T/#m3bd047c6e5c8200df1d273c0ad551c645dd43232
+> > >
+> > > We should cool it with the quick hacks to fix things. :)
+> > >
+> >
+> > Yeah. It might fix this specific testcase, but I think the way it uses
+> > the i_version is "gameable" in other situations. Then again, I don't
+> > know a lot about IMA in this regard.
+> >
+> > When is it expected to remeasure? If it's only expected to remeasure on
+> > a close(), then that's one thing. That would be a weird design though.
+>
+> Historical background:
+>
+> Prior to IMA being upstreamed there was a lot of discussion about how
+> much/how frequently to measure files.  Re-measuring files after each
+> write would impact performance.  Instead of re-measuring files after
+> each write, if a file already opened for write was opened for read
+> (open writers) or a file already opened for read was opened for write
+> (Time of Measure/Time of Use) the IMA meausrement list was invalidated
+> by including a violation record in the measurement list.
+>
+> Only the BPRM hook prevents a file from being opened for write.
+>
+> >
+> > > > > >
+> > > > > >
+> > > > >
+> > > > > Ok, I think I get it. IMA is trying to use the i_version from the
+> > > > > overlayfs inode.
+> > > > >
+> > > > > I suspect that the real problem here is that IMA is just doing a =
+bare
+> > > > > inode_query_iversion. Really, we ought to make IMA call
+> > > > > vfs_getattr_nosec (or something like it) to query the getattr rou=
+tine in
+> > > > > the upper layer. Then overlayfs could just propagate the results =
+from
+> > > > > the upper layer in its response.
+> > > > >
+> > > > > That sort of design may also eventually help IMA work properly wi=
+th more
+> > > > > exotic filesystems, like NFS or Ceph.
+> > > > >
+> > > > >
+> > > > >
+> > > >
+> > > > Maybe something like this? It builds for me but I haven't tested it=
+. It
+> > > > looks like overlayfs already should report the upper layer's i_vers=
+ion
+> > > > in getattr, though I haven't tested that either:
+> > > >
+> > > > -----------------------8<---------------------------
+> > > >
+> > > > [PATCH] IMA: use vfs_getattr_nosec to get the i_version
+> > > >
+> > > > IMA currently accesses the i_version out of the inode directly when=
+ it
+> > > > does a measurement. This is fine for most simple filesystems, but c=
+an be
+> > > > problematic with more complex setups (e.g. overlayfs).
+> > > >
+> > > > Make IMA instead call vfs_getattr_nosec to get this info. This allo=
+ws
+> > > > the filesystem to determine whether and how to report the i_version=
+, and
+> > > > should allow IMA to work properly with a broader class of filesyste=
+ms in
+> > > > the future.
+> > > >
+> > > > Reported-by: Stefan Berger <stefanb@linux.ibm.com>
+> > > > Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> > > > ---
+> > >
+> > > So, I think we want both; we want the ovl_copyattr() and the
+> > > vfs_getattr_nosec() change:
+> > >
+> > > (1) overlayfs should copy up the inode version in ovl_copyattr(). Tha=
+t
+> > >     is in line what we do with all other inode attributes. IOW, the
+> > >     overlayfs inode's i_version counter should aim to mirror the
+> > >     relevant layer's i_version counter. I wouldn't know why that
+> > >     shouldn't be the case. Asking the other way around there doesn't
+> > >     seem to be any use for overlayfs inodes to have an i_version that
+> > >     isn't just mirroring the relevant layer's i_version.
+> >
+> > It's less than ideal to do this IMO, particularly with an IS_I_VERSION
+> > inode.
+> >
+> > You can't just copy up the value from the upper. You'll need to call
+> > inode_query_iversion(upper_inode), which will flag the upper inode for =
+a
+> > logged i_version update on the next write. IOW, this could create some
+> > (probably minor) metadata write amplification in the upper layer inode
+> > with IS_I_VERSION inodes.
+> >
+> >
+> > > (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
+> > >     Currently, ima assumes that it will get the correct i_version fro=
+m
+> > >     an inode but that just doesn't hold for stacking filesystem.
+> > >
+> > > While (1) would likely just fix the immediate bug (2) is correct and
+> > > _robust_. If we change how attributes are handled vfs_*() helpers wil=
+l
+> > > get updated and ima with it. Poking at raw inodes without using
+> > > appropriate helpers is much more likely to get ima into trouble.
+> >
+> > This will fix it the right way, I think (assuming it actually works),
+> > and should open the door for IMA to work properly with networked
+> > filesystems that support i_version as well.
+>
+> On a local filesystem, there are guarantees that the calculated file
+> hash is that of the file being used.  Reminder IMA reads a file, page
+> size chunk at a time into a single buffer, calculating the file hash.
+> Once the file hash is calculated, the memory is freed.
+>
+> There are no guarantees on a fuse filesystem, for example, that the
+> original file read and verified is the same as the one being executed.
+> I'm not sure that the integrity guarantees of a file on a remote
+> filesystem will be the same as those on a local file system.
+>
+> >
+> > Note that there Stephen is correct that calling getattr is probably
+> > going to be less efficient here since we're going to end up calling
+> > generic_fillattr unnecessarily, but I still think it's the right thing
+> > to do.
+> >
+> > If it turns out to cause measurable performance regressions though,
+> > maybe we can look at adding a something that still calls ->getattr if i=
+t
+> > exists but only returns the change_cookie value.
+>
+> Sure.  For now,
+>
+> Reviewed-by: Mimi Zohar <zohar@linux.ibm.com>
 
+I'm going through my review queue to make sure I haven't missed
+anything and this thread popped up ... Stefan, Mimi, did you get a fix
+into an upstream tree somewhere?  If not, is it because you are
+waiting on a review/merge from me into the LSM tree?
 
-On 2023/5/17 00:05, Gao Xiang wrote:
-> Hi Amir,
-> 
-> On 2023/5/17 23:51, Amir Goldstein wrote:
->> On Wed, May 17, 2023 at 5:50 AM Gao Xiang <hsiangkao@linux.alibaba.com> wrote:
->>>
->>>
->>>
->>> On 2023/5/2 17:07, Daniel Rosenberg wrote:
->>>> On Mon, Apr 24, 2023 at 8:32 AM Miklos Szeredi <miklos@szeredi.hu> wrote:
->>>>>
->>>>>
->>>>> The security model needs to be thought about and documented.  Think
->>>>> about this: the fuse server now delegates operations it would itself
->>>>> perform to the passthrough code in fuse.  The permissions that would
->>>>> have been checked in the context of the fuse server are now checked in
->>>>> the context of the task performing the operation.  The server may be
->>>>> able to bypass seccomp restrictions.  Files that are open on the
->>>>> backing filesystem are now hidden (e.g. lsof won't find these), which
->>>>> allows the server to obfuscate accesses to backing files.  Etc.
->>>>>
->>>>> These are not particularly worrying if the server is privileged, but
->>>>> fuse comes with the history of supporting unprivileged servers, so we
->>>>> should look at supporting passthrough with unprivileged servers as
->>>>> well.
->>>>>
->>>>
->>>> This is on my todo list. My current plan is to grab the creds that the
->>>> daemon uses to respond to FUSE_INIT. That should keep behavior fairly
->>>> similar. I'm not sure if there are cases where the fuse server is
->>>> operating under multiple contexts.
->>>> I don't currently have a plan for exposing open files via lsof. Every
->>>> such file should relate to one that will show up though. I haven't dug
->>>> into how that's set up, but I'm open to suggestions.
->>>>
->>>>> My other generic comment is that you should add justification for
->>>>> doing this in the first place.  I guess it's mainly performance.  So
->>>>> how performance can be won in real life cases?   It would also be good
->>>>> to measure the contribution of individual ops to that win.   Is there
->>>>> another reason for this besides performance?
->>>>>
->>>>> Thanks,
->>>>> Miklos
->>>>
->>>> Our main concern with it is performance. We have some preliminary
->>>> numbers looking at the pure passthrough case. We've been testing using
->>>> a ramdrive on a somewhat slow machine, as that should highlight
->>>> differences more. We ran fio for sequential reads, and random
->>>> read/write. For sequential reads, we were seeing libfuse's
->>>> passthrough_hp take about a 50% hit, with fuse-bpf not being
->>>> detectably slower. For random read/write, we were seeing a roughly 90%
->>>> drop in performance from passthrough_hp, while fuse-bpf has about a 7%
->>>> drop in read and write speed. When we use a bpf that traces every
->>>> opcode, that performance hit increases to a roughly 1% drop in
->>>> sequential read performance, and a 20% drop in both read and write
->>>> performance for random read/write. We plan to make more complex bpf
->>>> examples, with fuse daemon equivalents to compare against.
->>>>
->>>> We have not looked closely at the impact of individual opcodes yet.
->>>>
->>>> There's also a potential ease of use for fuse-bpf. If you're
->>>> implementing a fuse daemon that is largely mirroring a backing
->>>> filesystem, you only need to write code for the differences in
->>>> behavior. For instance, say you want to remove image metadata like
->>>> location. You could give bpf information on what range of data is
->>>> metadata, and zero out that section without having to handle any other
->>>> operations.
->>>
->>> A bit out of topic (although I'm not quite look into FUSE BPF internals)
->>> After roughly listening to this topic in FS track last week, I'm not
->>> quite sure (at least in the long term) if it might be better if
->>> ebpf-related filter/redirect stuffs could be landed in vfs or in a
->>> somewhat stackable fs so that we could redirect/filter any sub-fstree
->>> in principle?    It's just an open question and I have no real tendency
->>> of this but do we really need a BPF-filter functionality for each
->>> individual fs?
->>
->> I think that is a valid question, but the answer is that even if it makes sense,
->> doing something like this in vfs would be a much bigger project with larger
->> consequences on performance and security and whatnot, so even if
->> (and a very big if) this ever happens, using FUSE-BPF as a playground for
->> this sort of stuff would be a good idea.
-> 
-> My current observation is that the total Fuse-BPF LoC is already beyond the
-
-
-                          ^ sorry I double-checked now I was wrong, forget about it.
-
-> whole FUSE itself.  In addition, it almost hooks all fs operations which
-> impacts something to me.
-> 
->>
->> This reminds me of union mounts - it made sense to have union mount
->> functionality in vfs, but after a long winding road, a stacked fs (overlayfs)
->> turned out to be a much more practical solution.
-> 
-> Yeah, I agree.  So it was just a pure hint on my side.
-> 
->>
->>>
->>> It sounds much like
->>> https://learn.microsoft.com/en-us/windows-hardware/drivers/ifs/about-file-system-filter-drivers
->>>
->>
->> Nice reference.
->> I must admit that I found it hard to understand what Windows filter drivers
->> can do compared to FUSE-BPF design.
->> It'd be nice to get some comparison from what is planned for FUSE-BPF.
-> 
-> At least some investigation/analysis first might be better in the long
-> term development.
-> 
->>
->> Interesting to note that there is a "legacy" Windows filter driver API,
->> so Windows didn't get everything right for the first API - that is especially
->> interesting to look at as repeating other people's mistakes would be a shame.
-> 
-> I'm not familiar with that details as well, yet I saw that they have a
-> filesystem filter subsystem, so I mentioned it here.
-> 
-> Thanks,
-> Gao Xiang
-> 
->>
->> Thanks,
->> Amir.
+--=20
+paul-moore.com
