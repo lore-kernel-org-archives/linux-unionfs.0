@@ -2,142 +2,96 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24B11C7EE2A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 19 May 2023 07:43:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C63DC7EE2A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 19 May 2023 14:58:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230510AbjESHnG (ORCPT
+        id S232203AbjESO6p (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 19 May 2023 03:43:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59478 "EHLO
+        Fri, 19 May 2023 10:58:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231216AbjESHms (ORCPT
+        with ESMTP id S232194AbjESO6o (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 19 May 2023 03:42:48 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB0CE170F
-        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2023 00:41:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1684482091;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=74aMisHJvcrsbS5g8R7662ZNEA+1A6hMiypJVvVd5yo=;
-        b=gPhoLIB7ysPM5LqXV5pacYaHyund+Pesp4CTtcwCHHn49r27SVH0624kJ47U1Z+2z77Y0Z
-        oRYN93M9sHErrMJ52fYQ4UzFUHDND6XqPJiFkiGedN43+r4Mkx0EMy2TLkuw59RmDN5KV0
-        HrkB1cGYFgq9fQcTILmPIz5Y0EfUGPU=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-271-zhDNyJpoN6uuRXwKl_ogyg-1; Fri, 19 May 2023 03:41:26 -0400
-X-MC-Unique: zhDNyJpoN6uuRXwKl_ogyg-1
-Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 591D03804098;
-        Fri, 19 May 2023 07:41:25 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.221])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 1119C2166B25;
-        Fri, 19 May 2023 07:41:22 +0000 (UTC)
-From:   David Howells <dhowells@redhat.com>
-To:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
-        Christoph Hellwig <hch@infradead.org>
-Cc:     David Howells <dhowells@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
-        Jeff Layton <jlayton@kernel.org>,
-        David Hildenbrand <david@redhat.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Hillf Danton <hdanton@sina.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Christoph Hellwig <hch@lst.de>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH v20 07/32] overlayfs: Implement splice-read
-Date:   Fri, 19 May 2023 08:40:22 +0100
-Message-Id: <20230519074047.1739879-8-dhowells@redhat.com>
-In-Reply-To: <20230519074047.1739879-1-dhowells@redhat.com>
-References: <20230519074047.1739879-1-dhowells@redhat.com>
+        Fri, 19 May 2023 10:58:44 -0400
+Received: from mail-yw1-x1130.google.com (mail-yw1-x1130.google.com [IPv6:2607:f8b0:4864:20::1130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 998AD18C
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2023 07:58:42 -0700 (PDT)
+Received: by mail-yw1-x1130.google.com with SMTP id 00721157ae682-564941e3bbcso3246827b3.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2023 07:58:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=paul-moore.com; s=google; t=1684508322; x=1687100322;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AajyqWszb0uY6qD9cS3VXYrfDU988bXtZCs1rPMruhw=;
+        b=CVjYLnK8pZSm+0s+2JgmOpL6fd7Fh3xe0DrvRV47kW58O8GUdqascT+ihAWb+4/PB5
+         57l1fSbdpzDrjebhCKxmt8dH+h8nzNnzfGUC6O47kcvj+/tq7D0PSJjuIJJayEMDuPTp
+         RZmYcbvGlGStIcUkuVCBO7399/guNv++G9I5Asoz5DROlHagoZjpYdqO7T9i1NOAzJ1w
+         Du4lToaIIcFchOrn0Nn//43a6dCasI0vQfLXRVHExkpStSbCh+g9ayLmw5x0ghVHqblw
+         Dsm6QLKodk9RMwxd+A5A9Ln0JG71pTOJEq/9kFiLF97zE4pLcdM5N8FRzbB5GfM0mP18
+         P5iQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684508322; x=1687100322;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=AajyqWszb0uY6qD9cS3VXYrfDU988bXtZCs1rPMruhw=;
+        b=dyKTPUS2noq2gxT8u53B6rt2bev3jRj8LbUPfEfGJT3GhmeotRKHLnWn6NzDLt/m3x
+         J/2Fx/EEe4iu1k5YPHVRwMoEKxRqsXBLb5dizWN+JnXctCyE3GfTg1r2aTDiL9MNIAgY
+         GS4mZ/DjFOyFu1DuQmRl7CFktJcRjLAwJkJUbjQO1wrunPSWzdfzqN0gDmmFvmgk2cPA
+         5/hT0Z9c9pefM1rwLsRwkN0bXGFtCZ70xghxWqxNy8V/oYyh0xw+xFIR8BS+i1bEPi4t
+         ChQxNs/Nk03CExsim5QF07Ywp75eyhhfoBv2nsysKuwZtfayy4fJu6/LyyIKBAfMzr0Z
+         Tk4g==
+X-Gm-Message-State: AC+VfDzeKxfHO/kdx93SbKg6l2eTAJ6ClSwOK2YyqkK8aFwVNIg+XfC7
+        irZJ++a6FfAdz6qZiK7tRi0Uzgl8hU7nu14pGGsP
+X-Google-Smtp-Source: ACHHUZ4wVQ8Htbed+cTytEWUQf0lb6NRULZiiMX8VBBzsWBICc5rj9+tiqRxdZAlDEbFGOiNVwJSMMDulwZ/apnybkg=
+X-Received: by 2002:a81:4e92:0:b0:561:d6dd:bc84 with SMTP id
+ c140-20020a814e92000000b00561d6ddbc84mr2216527ywb.48.1684508321812; Fri, 19
+ May 2023 07:58:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
+References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
+ <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
+ <cbffa3dee65ecc0884dd16eb3af95c09a28f4297.camel@linux.ibm.com>
+ <CAHC9VhSeBn-4UN48NcQWhJqLvQuydt4OvdyUsk9AXcviJ9Cqyw@mail.gmail.com> <49a31515666cb0ecf78909f09d40d29eb5528e0f.camel@linux.ibm.com>
+In-Reply-To: <49a31515666cb0ecf78909f09d40d29eb5528e0f.camel@linux.ibm.com>
+From:   Paul Moore <paul@paul-moore.com>
+Date:   Fri, 19 May 2023 10:58:30 -0400
+Message-ID: <CAHC9VhS7uMMgvwRRDzpZPUQDAeibdkLi0OCdp=j_Q-EcMHm0cw@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after writes
+To:     Mimi Zohar <zohar@linux.ibm.com>
+Cc:     Stefan Berger <stefanb@linux.ibm.com>,
+        Jeff Layton <jlayton@kernel.org>,
+        Christian Brauner <brauner@kernel.org>,
+        Amir Goldstein <amir73il@gmail.com>,
+        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
+        linux-kernel@vger.kernel.org,
+        linux-security-module@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Implement splice-read for overlayfs by passing the request down a layer
-rather than going through generic_file_splice_read() which is going to be
-changed to assume that ->read_folio() is present on buffered files.
+On Thu, May 18, 2023 at 4:56=E2=80=AFPM Mimi Zohar <zohar@linux.ibm.com> wr=
+ote:
+> On Thu, 2023-05-18 at 16:46 -0400, Paul Moore wrote:
+> > On Fri, Apr 21, 2023 at 10:44=E2=80=AFAM Mimi Zohar <zohar@linux.ibm.co=
+m> wrote:
+> > > On Fri, 2023-04-07 at 09:29 -0400, Jeff Layton wrote:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Christoph Hellwig <hch@lst.de>
-cc: Jens Axboe <axboe@kernel.dk>
-cc: Al Viro <viro@zeniv.linux.org.uk>
-cc: John Hubbard <jhubbard@nvidia.com>
-cc: David Hildenbrand <david@redhat.com>
-cc: Matthew Wilcox <willy@infradead.org>
-cc: Miklos Szeredi <miklos@szeredi.hu>
-cc: linux-unionfs@vger.kernel.org
-cc: linux-block@vger.kernel.org
-cc: linux-fsdevel@vger.kernel.org
-cc: linux-mm@kvack.org
----
+...
 
-Notes:
-    ver #17)
-     - Use vfs_splice_read() helper rather than open-coding checks.
-    
-    ver #15)
-     - Remove redundant FMODE_CAN_ODIRECT check on real file.
-     - Do rw_verify_area() on the real file, not the overlay file.
-     - Fix a file leak.
+> > I'm going through my review queue to make sure I haven't missed
+> > anything and this thread popped up ... Stefan, Mimi, did you get a fix
+> > into an upstream tree somewhere?  If not, is it because you are
+> > waiting on a review/merge from me into the LSM tree?
+>
+> Sorry for the delay.  Between vacation and LSS, I just started testing
+> Jeff Layton's patch.
 
- fs/overlayfs/file.c | 23 ++++++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
+No worries, I'm a bit behind too, I just wanted to make sure I wasn't
+blocking this thread :)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 7c04f033aadd..86197882ff35 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -419,6 +419,27 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
- 	return ret;
- }
- 
-+static ssize_t ovl_splice_read(struct file *in, loff_t *ppos,
-+			       struct pipe_inode_info *pipe, size_t len,
-+			       unsigned int flags)
-+{
-+	const struct cred *old_cred;
-+	struct fd real;
-+	ssize_t ret;
-+
-+	ret = ovl_real_fdget(in, &real);
-+	if (ret)
-+		return ret;
-+
-+	old_cred = ovl_override_creds(file_inode(in)->i_sb);
-+	ret = vfs_splice_read(real.file, ppos, pipe, len, flags);
-+	revert_creds(old_cred);
-+	ovl_file_accessed(in);
-+
-+	fdput(real);
-+	return ret;
-+}
-+
- /*
-  * Calling iter_file_splice_write() directly from overlay's f_op may deadlock
-  * due to lock order inversion between pipe->mutex in iter_file_splice_write()
-@@ -695,7 +716,7 @@ const struct file_operations ovl_file_operations = {
- 	.fallocate	= ovl_fallocate,
- 	.fadvise	= ovl_fadvise,
- 	.flush		= ovl_flush,
--	.splice_read    = generic_file_splice_read,
-+	.splice_read    = ovl_splice_read,
- 	.splice_write   = ovl_splice_write,
- 
- 	.copy_file_range	= ovl_copy_file_range,
-
+--=20
+paul-moore.com
