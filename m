@@ -2,139 +2,75 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ABBFC7EE29
-	for <linux-unionfs@archiver.kernel.org>; Fri, 19 May 2023 19:42:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E88EC77B7A
+	for <linux-unionfs@archiver.kernel.org>; Fri, 19 May 2023 20:56:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230479AbjESTm4 (ORCPT
+        id S230144AbjESU4q (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 19 May 2023 15:42:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40404 "EHLO
+        Fri, 19 May 2023 16:56:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229788AbjESTmz (ORCPT
+        with ESMTP id S229792AbjESU4e (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 19 May 2023 15:42:55 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F40EC186;
-        Fri, 19 May 2023 12:42:53 -0700 (PDT)
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34JJb0aX023123;
-        Fri, 19 May 2023 19:42:43 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=XsOHwqSus0ATATt2cux6Mgrp0/sHwsa6ufvz+q0MK8g=;
- b=c9ELQp+Re9BiKXDXTxlE0rFLbKbhdTmPV7aKJsnIAVCyEYJ5wdS1pyzDF/1q127Se3eJ
- acLqWr8DruMmg7pbMDK9/9HWMxGmr753ygh0j6NIopweYQ80CKmihTT18tTdjH2GxLDC
- d0LT7c4Gys94/z7+Q7le/6wwf5Jv/opLotpAnOMtY/BfuXBJcPgChzk1nEWpudQyOVwC
- iFPgh+IXGMuqNkfEs+hLIRGprjbrc1idmvR+Wy7J9mY6hb9oUw/r/syVUka5IQtRyE+K
- kUoaXa204wkk+VKa6RnXHnic/5Hp0x++2ctSqUJD6ptgJZTNGT3QX3OXV+5DGuR51U54 FA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qpem8198y-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 19 May 2023 19:42:43 +0000
-Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 34JJb6ED023940;
-        Fri, 19 May 2023 19:42:42 GMT
-Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qpem8198h-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 19 May 2023 19:42:42 +0000
-Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
-        by ppma02wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 34JJBZ5F005254;
-        Fri, 19 May 2023 19:42:41 GMT
-Received: from smtprelay05.wdc07v.mail.ibm.com ([9.208.129.117])
-        by ppma02wdc.us.ibm.com (PPS) with ESMTPS id 3qj266rjv1-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 19 May 2023 19:42:41 +0000
-Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
-        by smtprelay05.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 34JJgeAi57082344
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 19 May 2023 19:42:40 GMT
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id E25495805E;
-        Fri, 19 May 2023 19:42:39 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 247025805A;
-        Fri, 19 May 2023 19:42:39 +0000 (GMT)
-Received: from wecm-9-67-22-188.wecm.ibm.com (unknown [9.67.22.188])
-        by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
-        Fri, 19 May 2023 19:42:39 +0000 (GMT)
-Message-ID: <078d8c1fd6b6de59cde8aa85f8e59a056cb78614.camel@linux.ibm.com>
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM
- after writes
-From:   Mimi Zohar <zohar@linux.ibm.com>
-To:     Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Jeff Layton <jlayton@kernel.org>
-Cc:     Stefan Berger <stefanb@linux.ibm.com>,
-        Paul Moore <paul@paul-moore.com>,
-        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
-        linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        Ignaz Forster <iforster@suse.de>, Petr Vorel <pvorel@suse.cz>
-Date:   Fri, 19 May 2023 15:42:38 -0400
-In-Reply-To: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
-References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
-Content-Type: text/plain; charset="ISO-8859-15"
-X-Mailer: Evolution 3.28.5 (3.28.5-18.el8) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: zr_Pq2V2khX2xqvpCsnZD1Mjxeh_EExZ
-X-Proofpoint-ORIG-GUID: ks43xaZjg_1cB0zk9Sgi9XaOBDVpYPRs
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-05-19_14,2023-05-17_02,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501 mlxscore=0
- lowpriorityscore=0 bulkscore=0 spamscore=0 mlxlogscore=999 clxscore=1011
- phishscore=0 malwarescore=0 adultscore=0 impostorscore=0 suspectscore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2304280000
- definitions=main-2305190168
+        Fri, 19 May 2023 16:56:34 -0400
+Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02CA010CE
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2023 13:56:23 -0700 (PDT)
+Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-76fffd0116eso28392739f.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 May 2023 13:56:23 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684529783; x=1687121783;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=dAhsFZWzv4pW+FEJe+j1meXIun7sOpZm0ldqZGqi+6E=;
+        b=hCYJwT+/KT1DewmeCK2OLU8lltMViu4yRm96xNyf8lrWC63vdg7hJUkxATVJn664pw
+         atBA4dT0EpyT4x0lJfiIXEzfwoMiWPfBCv2HKeFoA33eY4BcrIOOFXXseOeJYvCMBggk
+         JG3tjiJnpvUgFjbePGh62vdpMOEAM3kP2jV2+ftwiQ1sgSUg2VMDXRfiIBA5o38Q7Ecm
+         0y+P6SvIzRjy2iNAH31hPtC3E/JLj/eD9ml3SOymoAi2tSqfqiFbsNpsfPBSQ5bd4q4e
+         HDGIxmw3w9IgDmHvN/b9NmMHgEi1WzwpjIAh7Ei/pslWYyKLfWj60fwnniUpD5xIhBtt
+         GcBQ==
+X-Gm-Message-State: AC+VfDzN7k05rl0OEKCqa8S4kr57XFMqVbZG4NY3MjOEdA41e1jvgPn7
+        4x2Vh9JNCOStASjnVp8DHhUmvR8DONQ+5QGd9bqCf6/2oEnC
+X-Google-Smtp-Source: ACHHUZ5eBPeWyWaKDI49prhq7AsL0tX3Bj9eT6ivEGfM3LMeHkEYBzhvJHuqViDOaSy6/2UcdyP6aCq7gupAugrkOgoTWXQny1xM
+MIME-Version: 1.0
+X-Received: by 2002:a02:b0ca:0:b0:40f:ae69:a144 with SMTP id
+ w10-20020a02b0ca000000b0040fae69a144mr1390179jah.5.1684529783286; Fri, 19 May
+ 2023 13:56:23 -0700 (PDT)
+Date:   Fri, 19 May 2023 13:56:23 -0700
+In-Reply-To: <0000000000001b987605f47b72d3@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000058b12b05fc122703@google.com>
+Subject: Re: [syzbot] [reiserfs?] [overlayfs?] WARNING: locking bug in take_dentry_name_snapshot
+From:   syzbot <syzbot+5a195884ee3ad761db4e@syzkaller.appspotmail.com>
+To:     casey@schaufler-ca.com, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, paul@paul-moore.com,
+        reiserfs-devel@vger.kernel.org, roberto.sassu@huawei.com,
+        syzkaller-bugs@googlegroups.com, zohar@linux.ibm.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 2023-04-07 at 10:31 +0200, Christian Brauner wrote:
-> So, I think we want both; we want the ovl_copyattr() and the
-> vfs_getattr_nosec() change:
-> 
-> (1) overlayfs should copy up the inode version in ovl_copyattr(). That
->     is in line what we do with all other inode attributes. IOW, the
->     overlayfs inode's i_version counter should aim to mirror the
->     relevant layer's i_version counter. I wouldn't know why that
->     shouldn't be the case. Asking the other way around there doesn't
->     seem to be any use for overlayfs inodes to have an i_version that
->     isn't just mirroring the relevant layer's i_version.
-> (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
->     Currently, ima assumes that it will get the correct i_version from
->     an inode but that just doesn't hold for stacking filesystem.
-> 
-> While (1) would likely just fix the immediate bug (2) is correct and
-> _robust_. If we change how attributes are handled vfs_*() helpers will
-> get updated and ima with it. Poking at raw inodes without using
-> appropriate helpers is much more likely to get ima into trouble.
+syzbot suspects this issue was fixed by commit:
 
-In addition to properly setting the i_version for IMA, EVM has a
-similar issue with i_generation and s_uuid. Adding them to
-ovl_copyattr() seems to resolve it.   Does that make sense?
+commit 52ca4b6435a493e47aaa98e7345e19e1e8710b13
+Author: Roberto Sassu <roberto.sassu@huawei.com>
+Date:   Tue Mar 14 08:17:15 2023 +0000
 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 923d66d131c1..cd0aeb828868 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1118,5 +1118,8 @@ void ovl_copyattr(struct inode *inode)
- 	inode->i_atime = realinode->i_atime;
- 	inode->i_mtime = realinode->i_mtime;
- 	inode->i_ctime = realinode->i_ctime;
-+	inode->i_generation = realinode->i_generation;
-+	if (inode->i_sb)
-+		uuid_copy(&inode->i_sb->s_uuid, &realinode->i_sb-
->s_uuid);
- 	i_size_write(inode, i_size_read(realinode));
- }
--- 
-thanks,
+    reiserfs: Switch to security_inode_init_security()
 
-Mimib
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=121dea5a280000
+start commit:   4bdec23f971b Merge tag 'hwmon-for-v6.3-rc4' of git://git.k..
+git tree:       upstream
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ea09b0836073ee4
+dashboard link: https://syzkaller.appspot.com/bug?extid=5a195884ee3ad761db4e
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1277fb1ec80000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=12543651c80000
 
+If the result looks correct, please mark the issue as fixed by replying with:
+
+#syz fix: reiserfs: Switch to security_inode_init_security()
+
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
