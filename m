@@ -2,104 +2,86 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6417C77B7D
-	for <linux-unionfs@archiver.kernel.org>; Sat, 20 May 2023 09:17:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A5F4C77B7D
+	for <linux-unionfs@archiver.kernel.org>; Sat, 20 May 2023 09:35:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229827AbjETJRo (ORCPT
+        id S230039AbjETJfw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 20 May 2023 05:17:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41142 "EHLO
+        Sat, 20 May 2023 05:35:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44074 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229654AbjETJRn (ORCPT
+        with ESMTP id S230333AbjETJfv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 20 May 2023 05:17:43 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B1E61A1;
-        Sat, 20 May 2023 02:17:42 -0700 (PDT)
+        Sat, 20 May 2023 05:35:51 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0DEB2E42;
+        Sat, 20 May 2023 02:35:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 079AF60FAF;
-        Sat, 20 May 2023 09:17:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B076C433D2;
-        Sat, 20 May 2023 09:17:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9ECCF60A50;
+        Sat, 20 May 2023 09:35:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AB62C433D2;
+        Sat, 20 May 2023 09:35:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1684574261;
-        bh=mowLDJSazBRR389uypvAnkZ6SteMSeKtNBJ9Du8HS5g=;
+        s=k20201202; t=1684575350;
+        bh=XPhOQxZBAHirkjEbqmXA8TiRBnpIbB+KvI7CiE4bWiM=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=X4zhr8OReoYGWjCxyrnnJPmEBBPax2FUJlVJ6fON3YjXnloiSN8wGWlZgfC7Z9y0X
-         aYoR8THbEudStlUXj+9y10YshY3tcQRxcWsaV4fT9H+hKDsG717IEI6JqlvctuvyKt
-         OwsCbPBAzwNGUUmoS4pANmD//mFetFtlKIWKCKqFbNatHTd5/EUzNoWWgQJNGba7d1
-         jPFD0da4bqaDI0MrBApqwJaNUMqENuhEcHIKJoXuN1PdgI/A0HIB/Wsib+HutoTS7u
-         7Yl3qYyLOIJaqcoUKvQ1dXFsHTOD+PsKsS0NDTt9NEuslShts07XAaKrVR5B5ALwVL
-         u+6l3bPVS9UYA==
-Date:   Sat, 20 May 2023 11:17:35 +0200
+        b=ZiEG+0nE3xM6rClP9D98QcFzagARRVpAU38JQER9ZLgaxrUQgMOEptFZkE6GMJg24
+         yr6XPzjlQj4H+tVtPNj1n12cjNSfSr+kC02YW+IP9XZSysU/OJgZ0eycD6slGaPsM/
+         JCbkX8QyTqEcAFFgDJFXo7859BjqgHXNW/1iwNJDl1NpD4hwuIm5zMC3lj3g2yR+1k
+         wU7FQx/MH91527KgdfF7hQtM26F/tfMS+LelFt4EH9hs3X4cSAiXJM4xSCzgwK5Kri
+         H1tkuR7C0C+MaujVTsHYZJGlc33eXKQcNYzpDUwoAaJF4xte39cFuXcmd66tmrOUk9
+         7lkVFuexJOkpQ==
+Date:   Sat, 20 May 2023 11:35:42 +0200
 From:   Christian Brauner <brauner@kernel.org>
-To:     Mimi Zohar <zohar@linux.ibm.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
+To:     David Howells <dhowells@redhat.com>
+Cc:     Jens Axboe <axboe@kernel.dk>, Al Viro <viro@zeniv.linux.org.uk>,
+        Christoph Hellwig <hch@infradead.org>,
+        Matthew Wilcox <willy@infradead.org>, Jan Kara <jack@suse.cz>,
         Jeff Layton <jlayton@kernel.org>,
-        Stefan Berger <stefanb@linux.ibm.com>,
-        Paul Moore <paul@paul-moore.com>,
-        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
-        linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        Ignaz Forster <iforster@suse.de>, Petr Vorel <pvorel@suse.cz>
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM after
- writes
-Message-ID: <20230520-angenehm-orangen-80fdce6f9012@brauner>
-References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
- <078d8c1fd6b6de59cde8aa85f8e59a056cb78614.camel@linux.ibm.com>
+        David Hildenbrand <david@redhat.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Hillf Danton <hdanton@sina.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-fsdevel@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        Christoph Hellwig <hch@lst.de>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        John Hubbard <jhubbard@nvidia.com>,
+        linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v21 05/30] splice: Make do_splice_to() generic and export
+ it
+Message-ID: <20230520-hochqualifiziert-torpedieren-a205b46c77a0@brauner>
+References: <20230520000049.2226926-1-dhowells@redhat.com>
+ <20230520000049.2226926-6-dhowells@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <078d8c1fd6b6de59cde8aa85f8e59a056cb78614.camel@linux.ibm.com>
+In-Reply-To: <20230520000049.2226926-6-dhowells@redhat.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, May 19, 2023 at 03:42:38PM -0400, Mimi Zohar wrote:
-> On Fri, 2023-04-07 at 10:31 +0200, Christian Brauner wrote:
-> > So, I think we want both; we want the ovl_copyattr() and the
-> > vfs_getattr_nosec() change:
-> > 
-> > (1) overlayfs should copy up the inode version in ovl_copyattr(). That
-> >     is in line what we do with all other inode attributes. IOW, the
-> >     overlayfs inode's i_version counter should aim to mirror the
-> >     relevant layer's i_version counter. I wouldn't know why that
-> >     shouldn't be the case. Asking the other way around there doesn't
-> >     seem to be any use for overlayfs inodes to have an i_version that
-> >     isn't just mirroring the relevant layer's i_version.
-> > (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
-> >     Currently, ima assumes that it will get the correct i_version from
-> >     an inode but that just doesn't hold for stacking filesystem.
-> > 
-> > While (1) would likely just fix the immediate bug (2) is correct and
-> > _robust_. If we change how attributes are handled vfs_*() helpers will
-> > get updated and ima with it. Poking at raw inodes without using
-> > appropriate helpers is much more likely to get ima into trouble.
+On Sat, May 20, 2023 at 01:00:24AM +0100, David Howells wrote:
+> Rename do_splice_to() to vfs_splice_read() and export it so that it can be
+> used as a helper when calling down to a lower layer filesystem as it
+> performs all the necessary checks[1].
 > 
-> In addition to properly setting the i_version for IMA, EVM has a
-> similar issue with i_generation and s_uuid. Adding them to
-> ovl_copyattr() seems to resolve it.   Does that make sense?
-> 
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 923d66d131c1..cd0aeb828868 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -1118,5 +1118,8 @@ void ovl_copyattr(struct inode *inode)
->  	inode->i_atime = realinode->i_atime;
->  	inode->i_mtime = realinode->i_mtime;
->  	inode->i_ctime = realinode->i_ctime;
-> +	inode->i_generation = realinode->i_generation;
-> +	if (inode->i_sb)
-> +		uuid_copy(&inode->i_sb->s_uuid, &realinode->i_sb-
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> cc: Miklos Szeredi <miklos@szeredi.hu>
+> cc: Jens Axboe <axboe@kernel.dk>
+> cc: Al Viro <viro@zeniv.linux.org.uk>
+> cc: John Hubbard <jhubbard@nvidia.com>
+> cc: David Hildenbrand <david@redhat.com>
+> cc: Matthew Wilcox <willy@infradead.org>
+> cc: linux-unionfs@vger.kernel.org
+> cc: linux-block@vger.kernel.org
+> cc: linux-fsdevel@vger.kernel.org
+> cc: linux-mm@kvack.org
+> Link: https://lore.kernel.org/r/CAJfpeguGksS3sCigmRi9hJdUec8qtM9f+_9jC1rJhsXT+dV01w@mail.gmail.com/ [1]
+> ---
 
-Overlayfs can consist of multiple lower layers and each of those lower
-layers may have a different uuid. So everytime you trigger a
-ovl_copyattr() on a different layer this patch would alter the uuid of
-the overlayfs superblock.
-
-In addition the uuid should be set when the filesystem is mounted.
-Unless the filesystem implements a dedicated ioctl() - like ext4 - to
-change the uuid.
+Reviewed-by: Christian Brauner <brauner@kernel.org>
