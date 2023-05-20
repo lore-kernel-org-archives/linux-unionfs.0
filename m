@@ -2,249 +2,115 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D42C77B7D
-	for <linux-unionfs@archiver.kernel.org>; Sat, 20 May 2023 12:33:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F9F7C77B7F
+	for <linux-unionfs@archiver.kernel.org>; Sat, 20 May 2023 13:19:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229654AbjETMdr (ORCPT
+        id S230527AbjETNTz (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 20 May 2023 08:33:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58914 "EHLO
+        Sat, 20 May 2023 09:19:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229563AbjETMdq (ORCPT
+        with ESMTP id S230194AbjETNTw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 20 May 2023 08:33:46 -0400
-Received: from mail-vs1-xe31.google.com (mail-vs1-xe31.google.com [IPv6:2607:f8b0:4864:20::e31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D6D3BEE;
-        Sat, 20 May 2023 05:33:44 -0700 (PDT)
-Received: by mail-vs1-xe31.google.com with SMTP id ada2fe7eead31-437e2e0a5c7so826798137.0;
-        Sat, 20 May 2023 05:33:44 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1684586024; x=1687178024;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Yf84jDrozMrVV1oSYdPXMslyu1qqK1BqRWzZfbaK148=;
-        b=mhC8RSqOMipd/H+QQ7X/H5lG97+eN3kQcqDo4ll/2O1NjwbY+Ym8IidvgesuRLmMHC
-         VS3tnrq51JnysqdyfLAZofABlVIfNnQF4QMJgxTWIIyj7hFEhCBPKPamKJOpVgPnUNaC
-         pKWS5JToSm6UrCbASXJEvaLIT3EPBKtf8wBesHoAaefzeNAuqXnmFO5YQ5YOGVRoT7G6
-         fP+SJ3DIYqEXTZkvvZfVdQdWBWWul978WFjFVjYQ5XqJkI5GDlSKdHYqGBtYrTaLqDpN
-         FmIZZsry4xe7joi54JZ1c5wixbz8NGYl3Bbid6qGvOHc6RN91lULv9QHfS6uJ9cCiN7e
-         L86Q==
+        Sat, 20 May 2023 09:19:52 -0400
+Received: from smtp-relay-internal-0.canonical.com (smtp-relay-internal-0.canonical.com [185.125.188.122])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DBA0BF
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 May 2023 06:19:50 -0700 (PDT)
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com [209.85.218.72])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 3F4D13F4A6
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 May 2023 13:19:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1684588788;
+        bh=NzthO7BMG0Z86lKTG5pcPZLaqdSgk8GzDOcuVAlDI3A=;
+        h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+         Content-Type:In-Reply-To;
+        b=wXdF+c8Wfz0aZ5OVDhy/iU5/99nBsm6BwOUXsQcP1y9sUr6EX3Q4TeZgZ7E68MX0q
+         SqXk7gt/X3w4OdZsA8exzwIiY3dlqb/F+dB9cif5Dkd1FfuKwKFqUZQvNqEZI+6jdv
+         U68XxTLZmDG8QWSBIfU8wg0AgeP3fbUh5O7mNo8yKJIUpbA3uLbOt4DhwclFCiKuu2
+         lO1F1zzsOc9yG4Hcc2ytSShVaykTukmfu7JS8EKNTtfEfgB1XZ1qfVuZjR+VxWZz4U
+         l5mng90Xez039mv6AM0lL94G9TimmwbkwqCsrlpVTlfb5TvFcZagJAWWJKKVnfMXhI
+         DwbEAlugFnXWw==
+Received: by mail-ej1-f72.google.com with SMTP id a640c23a62f3a-9698409b9bfso241590366b.1
+        for <linux-unionfs@vger.kernel.org>; Sat, 20 May 2023 06:19:48 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1684586024; x=1687178024;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Yf84jDrozMrVV1oSYdPXMslyu1qqK1BqRWzZfbaK148=;
-        b=bgcurzoFKFSGajBXEzXnuR8OMb+TVd6w3L3R3WG8NtVqVVCan/Bhhpv3RFTOThSEKW
-         qFhd4jCHo0/4qJkPS5//jpIhrtVJiuRRN93vbNXXlYEPwzRgHIUPzU4rV2n90c0/QBed
-         pDEl/pmFASkQDFCdu4Gaab8roJuYX8jki/QxFQ0xwRgFk3Ha7J9PUxajzWjeBn9p2r7H
-         YowuniyE8dkPlRi8v2RZaMsrn+85S45fsoa2r0nlcQA8U1kiIjjurXXcMfxCUDQ6FMCg
-         pPRoUTBvRB1ddpKiY3SMaXS3USS+MkeJxxjFjsKpCt9Dl258C1x59yUg/u/SQTycxZ9X
-         ywjQ==
-X-Gm-Message-State: AC+VfDxYUFW11Q+mE0eE69mtO3S62bFtpqS4pDUVYcTQZCbCK95xFBpB
-        CC51Drb2fhOJ4aBkHMq7/1kUssMAC+HM+0ODxdM=
-X-Google-Smtp-Source: ACHHUZ6O99wAxftOjtNLOfQmUxEfN/7H5XRgGxtF695mB/3s6/+Mjm9D+Wo/pNvXyyIo9zmtfUK2284RT9Lm+0Q/UPU=
-X-Received: by 2002:a05:6102:e46:b0:434:5359:61b1 with SMTP id
- p6-20020a0561020e4600b00434535961b1mr820666vst.19.1684586023789; Sat, 20 May
- 2023 05:33:43 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230520120528.339680-1-andrea.righi@canonical.com>
-In-Reply-To: <20230520120528.339680-1-andrea.righi@canonical.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 20 May 2023 15:33:32 +0300
-Message-ID: <CAOQ4uxjOgWDqufLcabkkPcxvFcrehzoDuO0d6kdJZuoiRBKStw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: make consistent use of OVL_FS()
-To:     Andrea Righi <andrea.righi@canonical.com>
+        d=1e100.net; s=20221208; t=1684588787; x=1687180787;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=NzthO7BMG0Z86lKTG5pcPZLaqdSgk8GzDOcuVAlDI3A=;
+        b=ST9XlFzDtnP0e8Mdf0e8iPt1dtvkVxOgg/m2Gu5+s0a/jphwupCkIPnURp/bAlg0vJ
+         MSCOa9r0rEPjJlf/SeaO8TKdDtA/K4gd53CMUo24cIs0nqwN5gA31jw8dPo9lBtuon5U
+         PsTO/7zLz+pmNscw41YWyWjkwMW+fgWQGkTZoPIfAXBkR2x3VS04oBUbZGhTaXuaA2b2
+         MhL2QOq9qIzbYVpU1StVLen2WxJOEUaYOtbOf+5bktfkmg9HcxQoctDo+XqC5oHDeX4Z
+         KOqpa9zKN12vXabxxSfAwNw8Qnciyfn/0m8LpBnnBc1W6p+mssE/cDfIbvd8McdP3BnB
+         gRXw==
+X-Gm-Message-State: AC+VfDy8/NBJFTk3IiKBcbSWxAHVN9G+12iWSKrvUYrY5JZlo0l+SXtz
+        7A8rnj6ey4QfNKu1bZyjlAVhMmarxI2pUwcGCWg33Dx53WnAdwXP8GtXMFe4x2k8movKhkyCUPO
+        SP31TlqM3Tx4VOJIp67w5rtx4MKpPB92mFth/6uapg5w=
+X-Received: by 2002:a17:907:360c:b0:969:9c0c:4c97 with SMTP id bk12-20020a170907360c00b009699c0c4c97mr4345924ejc.1.1684588787746;
+        Sat, 20 May 2023 06:19:47 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ7du0+pcc/ypA6rXudHicfHbFFFlQPmbDMyIlAS1D42x2hBvPlKAhnw6o02K4eWbFkgkHqzhA==
+X-Received: by 2002:a17:907:360c:b0:969:9c0c:4c97 with SMTP id bk12-20020a170907360c00b009699c0c4c97mr4345910ejc.1.1684588787417;
+        Sat, 20 May 2023 06:19:47 -0700 (PDT)
+Received: from localhost (host-87-10-127-160.retail.telecomitalia.it. [87.10.127.160])
+        by smtp.gmail.com with ESMTPSA id s14-20020a170906c30e00b0094f410225c7sm770863ejz.169.2023.05.20.06.19.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 20 May 2023 06:19:47 -0700 (PDT)
+Date:   Sat, 20 May 2023 15:19:44 +0200
+From:   Andrea Righi <andrea.righi@canonical.com>
+To:     Amir Goldstein <amir73il@gmail.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: Re: [PATCH] ovl: make consistent use of OVL_FS()
+Message-ID: <ZGjI8Hutt9JwuN/i@righiandr-XPS-13-7390>
+References: <20230520120528.339680-1-andrea.righi@canonical.com>
+ <CAOQ4uxjOgWDqufLcabkkPcxvFcrehzoDuO0d6kdJZuoiRBKStw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxjOgWDqufLcabkkPcxvFcrehzoDuO0d6kdJZuoiRBKStw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, May 20, 2023 at 3:20=E2=80=AFPM Andrea Righi <andrea.righi@canonica=
-l.com> wrote:
->
-> Always use OVL_FS() to retrieve the corresponding struct ovl_fs from a
+On Sat, May 20, 2023 at 03:33:32PM +0300, Amir Goldstein wrote:
+> On Sat, May 20, 2023 at 3:20 PM Andrea Righi <andrea.righi@canonical.com> wrote:
+...
+> > @@ -97,6 +99,8 @@ static inline struct mnt_idmap *ovl_upper_mnt_idmap(struct ovl_fs *ofs)
+> >
+> >  static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+> >  {
+> > +       /* Make sure OVL_FS() is always used with an overlayfs superblock */
+> > +       BUG_ON(sb->s_magic != OVERLAYFS_SUPER_MAGIC);
+> 
+> 1. Adding new BUG_ON to kernel code is not acceptable - if anything
+>     you can add WARN_ON_ONCE()
 
-I don't mind this cleanup, but...
+OK, but accessing a pointer to a struct ovl_fs that is not really a
+struct ovl_fs can potentially have nasty effects, even data corruption
+maybe? I'd rather crash the system now rather than experiencing random
+behaviors later...
 
-> struct super_block and make sure that it is exclusively used with an
-> overlayfs superblock (otherwise, trigger a BUG).
->
-> Signed-off-by: Andrea Righi <andrea.righi@canonical.com>
-> ---
->  fs/overlayfs/copy_up.c   |  2 +-
->  fs/overlayfs/export.c    | 10 +++++-----
->  fs/overlayfs/inode.c     |  8 ++++----
->  fs/overlayfs/namei.c     |  2 +-
->  fs/overlayfs/ovl_entry.h |  4 ++++
->  fs/overlayfs/super.c     | 10 +++++-----
->  fs/overlayfs/util.c      | 18 +++++++++---------
->  7 files changed, 29 insertions(+), 25 deletions(-)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index f658cc8ea492..60aa615820e7 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -905,7 +905,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
->  static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
->                                   int flags)
->  {
-> -       struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->
->         if (!ofs->config.metacopy)
->                 return false;
-> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> index defd4e231ad2..f5f0ef8e3ce8 100644
-> --- a/fs/overlayfs/export.c
-> +++ b/fs/overlayfs/export.c
-> @@ -182,7 +182,7 @@ static int ovl_connect_layer(struct dentry *dentry)
->   */
->  static int ovl_check_encode_origin(struct dentry *dentry)
->  {
-> -       struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->
->         /* Upper file handle for pure upper */
->         if (!ovl_dentry_lower(dentry))
-> @@ -434,7 +434,7 @@ static struct dentry *ovl_lookup_real_inode(struct su=
-per_block *sb,
->                                             struct dentry *real,
->                                             const struct ovl_layer *layer=
-)
->  {
-> -       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
->         struct dentry *index =3D NULL;
->         struct dentry *this =3D NULL;
->         struct inode *inode;
-> @@ -655,7 +655,7 @@ static struct dentry *ovl_get_dentry(struct super_blo=
-ck *sb,
->                                      struct ovl_path *lowerpath,
->                                      struct dentry *index)
->  {
-> -       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
->         const struct ovl_layer *layer =3D upper ? &ofs->layers[0] : lower=
-path->layer;
->         struct dentry *real =3D upper ?: (index ?: lowerpath->dentry);
->
-> @@ -680,7 +680,7 @@ static struct dentry *ovl_get_dentry(struct super_blo=
-ck *sb,
->  static struct dentry *ovl_upper_fh_to_d(struct super_block *sb,
->                                         struct ovl_fh *fh)
->  {
-> -       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
->         struct dentry *dentry;
->         struct dentry *upper;
->
-> @@ -700,7 +700,7 @@ static struct dentry *ovl_upper_fh_to_d(struct super_=
-block *sb,
->  static struct dentry *ovl_lower_fh_to_d(struct super_block *sb,
->                                         struct ovl_fh *fh)
->  {
-> -       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
->         struct ovl_path origin =3D { };
->         struct ovl_path *stack =3D &origin;
->         struct dentry *dentry =3D NULL;
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 541cf3717fc2..c27823f6e7aa 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -334,7 +334,7 @@ static const char *ovl_get_link(struct dentry *dentry=
-,
->
->  bool ovl_is_private_xattr(struct super_block *sb, const char *name)
->  {
-> -       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
->
->         if (ofs->config.userxattr)
->                 return strncmp(name, OVL_XATTR_USER_PREFIX,
-> @@ -689,7 +689,7 @@ int ovl_set_acl(struct mnt_idmap *idmap, struct dentr=
-y *dentry,
->  int ovl_update_time(struct inode *inode, struct timespec64 *ts, int flag=
-s)
->  {
->         if (flags & S_ATIME) {
-> -               struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
-> +               struct ovl_fs *ofs =3D OVL_FS(inode->i_sb);
->                 struct path upperpath =3D {
->                         .mnt =3D ovl_upper_mnt(ofs),
->                         .dentry =3D ovl_upperdentry_dereference(OVL_I(ino=
-de)),
-> @@ -952,7 +952,7 @@ static inline void ovl_lockdep_annotate_inode_mutex_k=
-ey(struct inode *inode)
->
->  static void ovl_next_ino(struct inode *inode)
->  {
-> -       struct ovl_fs *ofs =3D inode->i_sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(inode->i_sb);
->
->         inode->i_ino =3D atomic_long_inc_return(&ofs->last_ino);
->         if (unlikely(!inode->i_ino))
-> @@ -1284,7 +1284,7 @@ struct inode *ovl_get_trap_inode(struct super_block=
- *sb, struct dentry *dir)
->  static bool ovl_hash_bylower(struct super_block *sb, struct dentry *uppe=
-r,
->                              struct dentry *lower, bool index)
->  {
-> -       struct ovl_fs *ofs =3D sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
->
->         /* No, if pure upper */
->         if (!lower)
-> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> index cfb3420b7df0..d0f196b85541 100644
-> --- a/fs/overlayfs/namei.c
-> +++ b/fs/overlayfs/namei.c
-> @@ -832,7 +832,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct d=
-entry *dentry,
->  {
->         struct ovl_entry *oe;
->         const struct cred *old_cred;
-> -       struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
-> +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
->         struct ovl_entry *poe =3D dentry->d_parent->d_fsdata;
->         struct ovl_entry *roe =3D dentry->d_sb->s_root->d_fsdata;
->         struct ovl_path *stack =3D NULL, *origin_path =3D NULL;
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index fd11fe6d6d45..b91b3694ae26 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -5,6 +5,8 @@
->   * Copyright (C) 2016 Red Hat, Inc.
->   */
->
-> +#include <uapi/linux/magic.h>
-> +
->  struct ovl_config {
->         char *lowerdir;
->         char *upperdir;
-> @@ -97,6 +99,8 @@ static inline struct mnt_idmap *ovl_upper_mnt_idmap(str=
-uct ovl_fs *ofs)
->
->  static inline struct ovl_fs *OVL_FS(struct super_block *sb)
->  {
-> +       /* Make sure OVL_FS() is always used with an overlayfs superblock=
- */
-> +       BUG_ON(sb->s_magic !=3D OVERLAYFS_SUPER_MAGIC);
+> 2. If anything, you should check s_type == s_ovl_fs_type, not s_magic
 
-1. Adding new BUG_ON to kernel code is not acceptable - if anything
-    you can add WARN_ON_ONCE()
-2. If anything, you should check s_type =3D=3D s_ovl_fs_type, not s_magic
-3. It is very unclear to me that this check has that much value and OVL_FS(=
-)
-    macro is very commonly used inside internal helpers, so please add a
-    "why" to your patch - why do you think that it is desired and/or valuab=
-le
-    to fortify OVL_FS() like this?
+Hm.. is there a fast way to determine when sb->s_type == overlayfs?
+Using get_fs_type() here seems quite expensive and I'm not even sure if
+it's doable, is there a better way that I don't see?
 
-Thanks,
-Amir.
+> 3. It is very unclear to me that this check has that much value and OVL_FS()
+>     macro is very commonly used inside internal helpers, so please add a
+>     "why" to your patch - why do you think that it is desired and/or valuable
+>     to fortify OVL_FS() like this?
+
+Sure, I can send a v2 explaining why I think this is needed. Basically I
+was debugging a custom overlayfs patch and after a while I realized that
+I was accessing the sb->s_fs_info of a real path (not an overlayfs sb),
+using OVL_FS() with a proper check would have saved a me a bunch of
+time.
+
+Thanks for looking at this!
+-Andrea
