@@ -2,244 +2,146 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65D66C77B75
-	for <linux-unionfs@archiver.kernel.org>; Tue, 23 May 2023 19:39:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B595FC77B7C
+	for <linux-unionfs@archiver.kernel.org>; Wed, 24 May 2023 17:14:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238424AbjEWTjn (ORCPT
+        id S229742AbjEXROU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 23 May 2023 15:39:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45540 "EHLO
+        Wed, 24 May 2023 13:14:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36590 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238390AbjEWTjl (ORCPT
+        with ESMTP id S236470AbjEXRNr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 23 May 2023 15:39:41 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F6C6E4F;
-        Tue, 23 May 2023 12:39:13 -0700 (PDT)
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34NJHPbK027740;
-        Tue, 23 May 2023 19:38:57 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=Vgex8UsbtCktiKteHQwNp7o1/Ls7Gbddnp8I3giQeKQ=;
- b=ql+IgI8Q6eDCb9hrhKJ1Bq10PXgnvyKau54mTxPo9qJB0wLVgygl8e+6lDb/inIaWr3J
- r0iGE4DLy7NfPje0bxYTi6cWnywgNN48/tYZwqU+bXEcG1HMBDIjoAXmvasWHAkVNq3u
- PBbiRoreOJW5qMjifpv6L8W1uZQYYMKRMLpXa9/yeRa5RKbgjG5UN/DmPO0bAXk/CjYn
- WDuK1eNFq7b1pU57mincQMPnLuervcmlFTHp3HcN7SwFcKuDPhsNIcgTU6PPR9O6Y/Ag
- UVNF1hKCV8E2Mx+GhjCPGRcFtHRIJI7iiXfsVclFxaCbk7H9CuzjXoMgn31Nse/7vmFB OA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qs29pjk90-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 May 2023 19:38:56 +0000
-Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 34NIeHaC028885;
-        Tue, 23 May 2023 19:38:56 GMT
-Received: from ppma03wdc.us.ibm.com (ba.79.3fa9.ip4.static.sl-reverse.com [169.63.121.186])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qs29pjk83-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 May 2023 19:38:56 +0000
-Received: from pps.filterd (ppma03wdc.us.ibm.com [127.0.0.1])
-        by ppma03wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 34NFUXRU009193;
-        Tue, 23 May 2023 19:38:54 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([9.208.130.100])
-        by ppma03wdc.us.ibm.com (PPS) with ESMTPS id 3qppc5gmq0-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 23 May 2023 19:38:54 +0000
-Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
-        by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 34NJcslr3146358
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 23 May 2023 19:38:54 GMT
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 055CE58056;
-        Tue, 23 May 2023 19:38:54 +0000 (GMT)
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 3C58858052;
-        Tue, 23 May 2023 19:38:53 +0000 (GMT)
-Received: from wecm-9-67-154-32.wecm.ibm.com (unknown [9.67.154.32])
-        by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
-        Tue, 23 May 2023 19:38:53 +0000 (GMT)
-Message-ID: <85070b837c134341bb10a2647dbe62e2b5806565.camel@linux.ibm.com>
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM
- after writes
-From:   Mimi Zohar <zohar@linux.ibm.com>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Stefan Berger <stefanb@linux.ibm.com>,
-        Paul Moore <paul@paul-moore.com>,
-        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
-        linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        Ignaz Forster <iforster@suse.de>, Petr Vorel <pvorel@suse.cz>
-Date:   Tue, 23 May 2023 15:38:52 -0400
-In-Reply-To: <CAOQ4uxjjLLGQM5BUgDrFdghYsFgShNA6tDpvC8vNg_jOh9WGAQ@mail.gmail.com>
-References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
-         <078d8c1fd6b6de59cde8aa85f8e59a056cb78614.camel@linux.ibm.com>
-         <CAOQ4uxi7PFPPUuW9CZAZB9tvU2GWVpmpdBt=EUYyw60K=WX-Yg@mail.gmail.com>
-         <9aced306f134628221c55530643535b89874ccc0.camel@linux.ibm.com>
-         <CAOQ4uxjjLLGQM5BUgDrFdghYsFgShNA6tDpvC8vNg_jOh9WGAQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-18.el8) 
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: LycEsRAw8JRrBB-8NMf98hXLdZNeEj3b
-X-Proofpoint-ORIG-GUID: nFeOZ42C0MsrKmUcQk_gPLhlgBP0djeB
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        Wed, 24 May 2023 13:13:47 -0400
+Received: from mail-vk1-xa2a.google.com (mail-vk1-xa2a.google.com [IPv6:2607:f8b0:4864:20::a2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A528A10D7
+        for <linux-unionfs@vger.kernel.org>; Wed, 24 May 2023 10:13:02 -0700 (PDT)
+Received: by mail-vk1-xa2a.google.com with SMTP id 71dfb90a1353d-4572fc80fe2so833647e0c.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 24 May 2023 10:13:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1684948338; x=1687540338;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OTA+XIW7LOtcolKXZyg9zOBYBTvElXQ/8g9Ut9eeWoY=;
+        b=jZh6p6svW57n0ujnGq5e9cWDI7mGGxLnsdxvB5riUO0wl/P8rSGa62RsQJu/lt4lbV
+         vPOHuBQO4wBXrWffvKVEFRIV3JDNro6SsxkuQQ/BxNboZMvsGs99vGsK2eA8S+g4dT4I
+         cSchgRXsNgRINwrO0mdgmI8TK4nL1z+XfsMvuMiZGBeU7YTzPDj/0IT872mUmoXExdkz
+         gCKqCA2LQm4KXyrgxPqd2GDxkoHTSvBMLjnqE5vCl3o4ZO71yYRwXBYo4C304Yzmbl1X
+         zVczYGYhXxBtHMDrH1ezIyuQKddyhZ8sZaBdILkwHU5KJ95Jr1KDjq8/N351yUS8S10r
+         Przg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1684948338; x=1687540338;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OTA+XIW7LOtcolKXZyg9zOBYBTvElXQ/8g9Ut9eeWoY=;
+        b=YD0qyfFuNr+CP0cXVQVeV5JNspo1tVp2456xUzXNoEc8Ak0WV4zmYqBXbF0nBfM88w
+         tRjx1tEndzfDMvG6vtv1UIxI6n5QVQUPmK0kE6KN2OJlMouuIM2Iudx7A95ozwrSTyhz
+         9Qfdta7StblKUyIxEVo7PiKEGvBK/0T8X8ZAQZhYNMP+Fkc/tp60qDWF0XFoXFmDrVOx
+         5m89Cj0zpg8ni+sfkXlxNkGqjAO09L8LYz0E2o43gmWF0hGgpzX4uAZLsUctDqH2t6ll
+         C0C1+GNUhnbuywUnrXDcxXxwKyh8H7G6mKcfz1KJfa66f6+kQEqVC1a9uKgQti8+/wEA
+         tVGg==
+X-Gm-Message-State: AC+VfDx1mKO8kq6bk4aiUYVBLEaM74zS7CxTfQZf3D57zRH0/ddDs6Zt
+        A2w6YmqETnIBjwXsTEXk71HOJe3ovZpcX90tNqFaiIJzo+w=
+X-Google-Smtp-Source: ACHHUZ7FDh0rNK0hLz0stYcyqr7tah7dhYgQqjDQg7MxLVD+tb3P1lvcuzfOnR8N2C+OvYyv3mTm2N29dJoZh7uFOsw=
+X-Received: by 2002:a05:6102:2849:b0:42c:3457:6718 with SMTP id
+ az9-20020a056102284900b0042c34576718mr5378039vsb.5.1684948338322; Wed, 24 May
+ 2023 10:12:18 -0700 (PDT)
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.176.26
- definitions=2023-05-23_12,2023-05-23_02,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
- priorityscore=1501 lowpriorityscore=0 adultscore=0 impostorscore=0
- mlxscore=0 phishscore=0 spamscore=0 malwarescore=0 mlxlogscore=999
- suspectscore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2304280000 definitions=main-2305230158
+References: <20230427130539.2798797-1-amir73il@gmail.com>
+In-Reply-To: <20230427130539.2798797-1-amir73il@gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 24 May 2023 20:12:07 +0300
+Message-ID: <CAOQ4uxiT1dmnUiFhthQ+Yd_2s8OCYRFxCaJtezHTBahnJe-syQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, 2023-05-22 at 17:00 +0300, Amir Goldstein wrote:
-> On Mon, May 22, 2023 at 3:18 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
-> >
-> > On Sat, 2023-05-20 at 12:15 +0300, Amir Goldstein wrote:
-> > > On Fri, May 19, 2023 at 10:42 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
-> > > >
-> > > > On Fri, 2023-04-07 at 10:31 +0200, Christian Brauner wrote:
-> > > > > So, I think we want both; we want the ovl_copyattr() and the
-> > > > > vfs_getattr_nosec() change:
-> > > > >
-> > > > > (1) overlayfs should copy up the inode version in ovl_copyattr(). That
-> > > > >     is in line what we do with all other inode attributes. IOW, the
-> > > > >     overlayfs inode's i_version counter should aim to mirror the
-> > > > >     relevant layer's i_version counter. I wouldn't know why that
-> > > > >     shouldn't be the case. Asking the other way around there doesn't
-> > > > >     seem to be any use for overlayfs inodes to have an i_version that
-> > > > >     isn't just mirroring the relevant layer's i_version.
-> > > > > (2) Jeff's changes for ima to make it rely on vfs_getattr_nosec().
-> > > > >     Currently, ima assumes that it will get the correct i_version from
-> > > > >     an inode but that just doesn't hold for stacking filesystem.
-> > > > >
-> > > > > While (1) would likely just fix the immediate bug (2) is correct and
-> > > > > _robust_. If we change how attributes are handled vfs_*() helpers will
-> > > > > get updated and ima with it. Poking at raw inodes without using
-> > > > > appropriate helpers is much more likely to get ima into trouble.
-> > > >
-> > > > In addition to properly setting the i_version for IMA, EVM has a
-> > > > similar issue with i_generation and s_uuid. Adding them to
-> > > > ovl_copyattr() seems to resolve it.   Does that make sense?
-> > > >
-> > > > diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> > > > index 923d66d131c1..cd0aeb828868 100644
-> > > > --- a/fs/overlayfs/util.c
-> > > > +++ b/fs/overlayfs/util.c
-> > > > @@ -1118,5 +1118,8 @@ void ovl_copyattr(struct inode *inode)
-> > > >         inode->i_atime = realinode->i_atime;
-> > > >         inode->i_mtime = realinode->i_mtime;
-> > > >         inode->i_ctime = realinode->i_ctime;
-> > > > +       inode->i_generation = realinode->i_generation;
-> > > > +       if (inode->i_sb)
-> > > > +               uuid_copy(&inode->i_sb->s_uuid, &realinode->i_sb-
-> > > > >s_uuid);
-> > >
-> > > That is not a possible solution Mimi.
-> > >
-> > > The i_gneration copy *may* be acceptable in "all layers on same fs"
-> > > setup, but changing overlayfs s_uuid over and over is a non-starter.
-> > >
-> > > If you explain the problem, I may be able to help you find a better solution.
-> >
-> > EVM calculates an HMAC of the file metadata (security xattrs, i_ino,
-> > i_generation, i_uid, i_gid, i_mode, s_uuid)  and stores it as
-> > security.evm.  Notrmally this would be used for mutable files, which
-> > cannot be signed.  The i_generation and s_uuid on the lower layer and
-> > the overlay are not the same, causing the EVM HMAC verification to
-> > fail.
-> >
-> 
-> OK, so EVM expects i_ino, i_generation, i_uid, i_gid, i_mode, s_uuid
-> and security xattr to remain stable and persistent (survive umount/mount).
-> Correct?
+On Thu, Apr 27, 2023 at 4:05=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+>
+> Miklos,
+>
+> This v2 combines the prep patch set [1] and lazy lookup patch set [2].
+>
+> This work is motivated by Alexander's composefs use case.
+> Alexander has been developing and testing his fsverity patches over
+> my lazy-lowerdata-lookup branch [3].
 
-Yes
+FYI, I rebased this branch on top of v6.4-rc2 and on top
+of branch ovl-fixes with the NULL pointer defer fix patches
+from Zhihao Cheng:
 
-> 
-> You cannot expect that the same EVM xattr will correctly describe both
-> the overlayfs inode and the underlying real fs inode, because they may
-> vary in some of the metadata, so need to decide if you only want to attest
-> overlayfs inodes, real underlying inodes or both.
+https://lore.kernel.org/linux-unionfs/20230516141619.2160800-1-chengzhihao1=
+@huawei.com/
 
-Understood.  Accessing a file on the overlay filesystem then needs to
-be verified based on the backing file metadata.  Currently that isn't
-being done.  So either all the backing file metadata needs to be copied
-up or some other change(s) need to be made.
+Thanks,
+Amir.
 
-> If both, then the same EVM xattr cannot be used, but as it is, overlayfs
-> inode has no "private" xattr version, it stores its xattr on the underlying
-> real inode.
-> 
-> i_uid, i_gid, i_mode:
-> Should be stable and persistent for overlayfs inode and survive copy up.
-> Should be identical to the underlying inode.
-> 
-> security xattr:
-> Overlayfs tries to copy up all security.* xattr and also calls the LSM
-> hook security_inode_copy_up_xattr() to approve each copied xattr.
-> Should be identical to the underlying inode.
-
-> s_uuid:
-> So far, overlayfs sb has a null uuid.
-> With this patch, overlayfs will gain a persistent s_uuid, just like any
-> other disk fs with the opt-in feature index=on:
-> https://lore.kernel.org/linux-unionfs/20230425132223.2608226-4-amir73il@gmail.com/
-> Should be different from the underlying fs uuid when there is more
-> than one underlying fs.
-> We can consider inheriting s_uuid from underlying fs when all layers
-> are on the same fs.
-> 
-> i_ino:
-> As documented in:
-> https://github.com/torvalds/linux/blob/master/Documentation/filesystems/overlayfs.rst#inode-properties
-> It should be persistent and survive copy up with the
-> xino=auto feature (module param or mount option) or
-> CONFIG_OVERLAY_FS_XINO_AUTO=y
-> which is not the kernel default, but already set by some distros.
-> Will be identical to the underlying inode only in some special cases
-> such as pure upper (not copied up) inodes.
-> Will be different from the underlying lower file inode many in other cases.
-> 
-> i_generation:
-> For xino=auto, we could follow the same rules as i_ino and get similar
-> qualities -
-> i_generation will become persistent and survive copy up, but it will not be
-> identical to the real underlying inode i_generation in many cases.
-> 
-> Bottom line:
-> If you only want to attest overlayfs inodes - shouldn't be too hard
-> If you want to attest both overlayfs inodes AND their backing "real" inodes -
-> much more challenging.
-> 
-> Hope that this writeup helps more than it confuses.
-
-Thanks, Amir.   It definitely helps.
-
-To summarize what I'm seeing (IMA hash and EVM HMAC):
-
-- Directly accessing overlay files, "lower" backed file, fails to
-verify without copying all the file metadata up.
-
-- Writing directly to the "upper" backing file properly updates the
-file metadata.
-
-- Writing directly to the overlay file does not write security.ima
-either to the overlayfs  or the "upper" backing file.
-
-policy rules:
-appraise func=FILE_CHECK fsuuid=....
-measure func=FILE_CHECK fsuuid=....
-appraise func=FILE_CHECK fsname=overlay 
-measure func=FILE_CHECK fsname=overlay
-
-Mimi
-
+>
+> Alexander has also written tests for lazy lowerdata lookup [4].
+>
+> Note that patch #1 is a Fixes patch for stable.
+> Gao commented that the fix may not be complete, but I think it is better
+> than no fix at all.
+>
+> Regarding lazy lookup in d_real(), I am not sure if the best effort
+> lookup is the best solution, but in any case, none of this code kicks in
+> without explicit opt-in to data-only layers, so the risk of breaking
+> existing setups is quite low.
+>
+> Thanks,
+> Amir.
+>
+> Changes since v1:
+> - Include the prep patch set
+> - Split remove lowerdata from add lowerdata_redirect patch
+> - Remove embedded ovl_entry stack optimization
+> - Add lazy lookup and comment in d_real_inode()
+> - Improve documentation of :: data-only layers syntax
+> - Added RVBs
+>
+> [1] https://lore.kernel.org/linux-unionfs/20230408164302.1392694-1-amir73=
+il@gmail.com/
+> [2] https://lore.kernel.org/linux-unionfs/20230412135412.1684197-1-amir73=
+il@gmail.com/
+> [3] https://github.com/amir73il/linux/commits/ovl-lazy-lowerdata
+> [4] https://github.com/amir73il/xfstests/commits/ovl-lazy-lowerdata
+>
+> Amir Goldstein (13):
+>   ovl: update of dentry revalidate flags after copy up
+>   ovl: use OVL_E() and OVL_E_FLAGS() accessors
+>   ovl: use ovl_numlower() and ovl_lowerstack() accessors
+>   ovl: factor out ovl_free_entry() and ovl_stack_*() helpers
+>   ovl: move ovl_entry into ovl_inode
+>   ovl: deduplicate lowerpath and lowerstack[]
+>   ovl: deduplicate lowerdata and lowerstack[]
+>   ovl: remove unneeded goto instructions
+>   ovl: introduce data-only lower layers
+>   ovl: implement lookup in data-only layers
+>   ovl: prepare to store lowerdata redirect for lazy lowerdata lookup
+>   ovl: prepare for lazy lookup of lowerdata inode
+>   ovl: implement lazy lookup of lowerdata in data-only layers
+>
+>  Documentation/filesystems/overlayfs.rst |  36 +++++
+>  fs/overlayfs/copy_up.c                  |  11 ++
+>  fs/overlayfs/dir.c                      |   3 +-
+>  fs/overlayfs/export.c                   |  41 +++---
+>  fs/overlayfs/file.c                     |  21 ++-
+>  fs/overlayfs/inode.c                    |  38 +++--
+>  fs/overlayfs/namei.c                    | 185 +++++++++++++++++++-----
+>  fs/overlayfs/overlayfs.h                |  20 ++-
+>  fs/overlayfs/ovl_entry.h                |  73 ++++++++--
+>  fs/overlayfs/super.c                    | 132 ++++++++++-------
+>  fs/overlayfs/util.c                     | 165 ++++++++++++++++-----
+>  11 files changed, 534 insertions(+), 191 deletions(-)
+>
+> --
+> 2.34.1
+>
