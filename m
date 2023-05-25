@@ -2,126 +2,163 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F4B7C7EE29
-	for <linux-unionfs@archiver.kernel.org>; Thu, 25 May 2023 15:00:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B26FC7EE29
+	for <linux-unionfs@archiver.kernel.org>; Thu, 25 May 2023 15:22:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240923AbjEYPAu (ORCPT
+        id S241309AbjEYPWb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 25 May 2023 11:00:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42732 "EHLO
+        Thu, 25 May 2023 11:22:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56704 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235299AbjEYPAt (ORCPT
+        with ESMTP id S241186AbjEYPW3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 25 May 2023 11:00:49 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 47188191;
-        Thu, 25 May 2023 08:00:44 -0700 (PDT)
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 34PEuBK2013223;
-        Thu, 25 May 2023 15:00:32 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=HEaA0SnACFr+FUUA4vFdDc5HJuDhxRyje+Mm0nAY+ZM=;
- b=p8Ye07mO8CTSu1WRW+JgiPjAYwph3UffmX0LQlbe9ujJvK82JkjkXIHgNMR/lgHL4CCt
- eB1cg368Lc7VfnQi1aSajKLJsfCBn3KczawHxm1lCZKmrqiy2riw/RvXcDGzeqpb5pMr
- zjSZTyg14AB/Auhumf0Bup/DqsFsNNifnusI9VdV2VYDtlYjvfROuCmRrLTBWq2ZC33n
- RmOpc+gDd6EQAmx45jSDf2/WLA4a8rxs9AfVtsJyrnw5nqgb5/MBUZypQ3lzw//oBWcR
- 3ztem2nX6pnaC1PiX3LMhf3exh8+duebJ3jYW9T0oy6l6XnkUf/P1UectOks+gzCWvle 5w== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qt9vdg2nk-4
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 25 May 2023 15:00:32 +0000
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 34PEU9FY019836;
-        Thu, 25 May 2023 14:43:30 GMT
-Received: from ppma01dal.us.ibm.com (83.d6.3fa9.ip4.static.sl-reverse.com [169.63.214.131])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3qt9fngdq2-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 25 May 2023 14:43:30 +0000
-Received: from pps.filterd (ppma01dal.us.ibm.com [127.0.0.1])
-        by ppma01dal.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 34PCoFgv016415;
-        Thu, 25 May 2023 14:43:29 GMT
-Received: from smtprelay06.wdc07v.mail.ibm.com ([9.208.129.118])
-        by ppma01dal.us.ibm.com (PPS) with ESMTPS id 3qppdta0vr-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 25 May 2023 14:43:29 +0000
-Received: from smtpav01.wdc07v.mail.ibm.com (smtpav01.wdc07v.mail.ibm.com [10.39.53.228])
-        by smtprelay06.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 34PEhSCP60424648
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Thu, 25 May 2023 14:43:28 GMT
-Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 4ED2C58055;
-        Thu, 25 May 2023 14:43:28 +0000 (GMT)
-Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 2B7D558059;
-        Thu, 25 May 2023 14:43:27 +0000 (GMT)
-Received: from wecm-9-67-23-194.wecm.ibm.com (unknown [9.67.23.194])
-        by smtpav01.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-        Thu, 25 May 2023 14:43:27 +0000 (GMT)
-Message-ID: <ba494e92990e520bd8660208b3cc10bb9af8dd26.camel@linux.ibm.com>
-Subject: Re: [PATCH] overlayfs: Trigger file re-evaluation by IMA / EVM
- after writes
-From:   Mimi Zohar <zohar@linux.ibm.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Stefan Berger <stefanb@linux.ibm.com>,
-        Jeff Layton <jlayton@kernel.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-integrity@vger.kernel.org, miklos@szeredi.hu,
-        linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Date:   Thu, 25 May 2023 10:43:26 -0400
-In-Reply-To: <CAHC9VhS7uMMgvwRRDzpZPUQDAeibdkLi0OCdp=j_Q-EcMHm0cw@mail.gmail.com>
-References: <20230407-trasse-umgearbeitet-d580452b7a9b@brauner>
-         <90a25725b4b3c96e84faefdb827b261901022606.camel@kernel.org>
-         <cbffa3dee65ecc0884dd16eb3af95c09a28f4297.camel@linux.ibm.com>
-         <CAHC9VhSeBn-4UN48NcQWhJqLvQuydt4OvdyUsk9AXcviJ9Cqyw@mail.gmail.com>
-         <49a31515666cb0ecf78909f09d40d29eb5528e0f.camel@linux.ibm.com>
-         <CAHC9VhS7uMMgvwRRDzpZPUQDAeibdkLi0OCdp=j_Q-EcMHm0cw@mail.gmail.com>
+        Thu, 25 May 2023 11:22:29 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 81E2F19A
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 May 2023 08:21:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1685028096;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=9jcrtP1xHu1msENXKazIP4DyVQkJLfmcc3PtFdmyyDo=;
+        b=afPcPwfwK75+YpAb7q4wcLQIqrIr1Z4PdPyB96huzXeE1NYn6GnR4feyH5AvAl9gC+3OYP
+        FyTwbdNH4fz49Ad4kYNLGk72OoqKHrpjrSvH/pLBOMYzz+cQKsACP9sJyQj3hb3Tqfy0uo
+        8BHt2GxUXpyswQx4N4LX1NcMp3QpAWo=
+Received: from mail-il1-f200.google.com (mail-il1-f200.google.com
+ [209.85.166.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-540-Zu9xq9HfMym3TPFHsyCt7w-1; Thu, 25 May 2023 11:21:35 -0400
+X-MC-Unique: Zu9xq9HfMym3TPFHsyCt7w-1
+Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-33859d4a322so40870175ab.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 25 May 2023 08:21:35 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685028094; x=1687620094;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9jcrtP1xHu1msENXKazIP4DyVQkJLfmcc3PtFdmyyDo=;
+        b=PUCz3gPiO1ZPP8JqfhIbLjqgcrP4g3Mn3EJB9n4tmi0OvMgtIQ5+TrHT0NgckVsNZs
+         O/TdBpvRc3DAg3yNSGgTikZr4AxhMOAPekZRl0wyM789g6TjwkqsmHZhdfEfaySqBl9w
+         z0fmnGCgaer9Y+S+Wy/FA/tHJIhzctA3IHr4lc6QsW5o4ELMuG88Dn8CLbaAxgQheSIB
+         DwzE7WfvurTaqIb6AHBzmOQiOB5QdQ9TWL2Ux//b8mnIxk4WMM4CoaCFeBCPMBMov3MW
+         aaoiwqTWiCgFl9CqUWigsei1gGq3X5cuUEX4PydM0BBGeKNOMY5uiuwvsnhwq3r2BUho
+         bVqQ==
+X-Gm-Message-State: AC+VfDygnMboHCSIXpnABG/zO87SDMw+gPsexwUR9kQYRboCTCkSmgLd
+        GZ1ER/8cfab6A52C4mWgTjaOxfxhGnqArEQe27gBvkutuC9kl5SLqMmXtlhOAmgrz6ODk8sewfK
+        VvBJ6PkUBziXqLheXJa3UfovCd1wWi4/g7WLJc3aFysvBpXxAFw==
+X-Received: by 2002:a92:cb4a:0:b0:339:38d7:5bb6 with SMTP id f10-20020a92cb4a000000b0033938d75bb6mr11584594ilq.19.1685028094289;
+        Thu, 25 May 2023 08:21:34 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ4h5BhFTW8apUVe4PmeANuwbo1x9X4P890zT8txJ2eyK5ei1z/iX1BWCqr02P8XGoRJectBBxH67mZJUURXnqM=
+X-Received: by 2002:a92:cb4a:0:b0:339:38d7:5bb6 with SMTP id
+ f10-20020a92cb4a000000b0033938d75bb6mr11584584ilq.19.1685028094084; Thu, 25
+ May 2023 08:21:34 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230427130539.2798797-1-amir73il@gmail.com>
+In-Reply-To: <20230427130539.2798797-1-amir73il@gmail.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Thu, 25 May 2023 17:21:22 +0200
+Message-ID: <CAL7ro1G7DQS_aAC4+9-ppdQz_7vjoXdBLohZ6bKo6S75NQUDPA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Giuseppe Scrivano <gscrivan@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-18.el8) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: uwPqM4NirCy91ZQJ05ShddySVI9qgyX1
-X-Proofpoint-GUID: 7QZbnswjjeRPFa_t9axwduAacG9ioe-q
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.176.26
- definitions=2023-05-25_08,2023-05-25_03,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- suspectscore=0 mlxlogscore=999 spamscore=0 bulkscore=0 lowpriorityscore=0
- malwarescore=0 adultscore=0 clxscore=1015 priorityscore=1501 mlxscore=0
- phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2304280000 definitions=main-2305250119
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 2023-05-19 at 10:58 -0400, Paul Moore wrote:
-> On Thu, May 18, 2023 at 4:56 PM Mimi Zohar <zohar@linux.ibm.com> wrote:
-> > On Thu, 2023-05-18 at 16:46 -0400, Paul Moore wrote:
-> > > On Fri, Apr 21, 2023 at 10:44 AM Mimi Zohar <zohar@linux.ibm.com> wrote:
-> > > > On Fri, 2023-04-07 at 09:29 -0400, Jeff Layton wrote:
-> 
-> ...
-> 
-> > > I'm going through my review queue to make sure I haven't missed
-> > > anything and this thread popped up ... Stefan, Mimi, did you get a fix
-> > > into an upstream tree somewhere?  If not, is it because you are
-> > > waiting on a review/merge from me into the LSM tree?
-> >
-> > Sorry for the delay.  Between vacation and LSS, I just started testing
-> > Jeff Layton's patch.
-> 
-> No worries, I'm a bit behind too, I just wanted to make sure I wasn't
-> blocking this thread :)
+Something that came up about this in a discussion recently was
+multi-layer composefs style images. For example, this may be a useful
+approach for multi-layer container images.
 
-FYI, Jeff Layton's patch is now queued in next-integrity.
+In such a setup you would have one lowerdata layer, but two real
+lowerdirs, like lowerdir=3DA:B::C. In this situation a file in B may
+accidentally have the same name as a file on C, causing a redirect
+from A to end up in B instead of C.
 
--- 
-thanks,
+Would it be possible to have a syntax for redirects that mean "only
+lookup in lowerdata layers. For example a double-slash path
+//some/file.
 
-Mimi
+On Thu, Apr 27, 2023 at 3:06=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+>
+> Miklos,
+>
+> This v2 combines the prep patch set [1] and lazy lookup patch set [2].
+>
+> This work is motivated by Alexander's composefs use case.
+> Alexander has been developing and testing his fsverity patches over
+> my lazy-lowerdata-lookup branch [3].
+>
+> Alexander has also written tests for lazy lowerdata lookup [4].
+>
+> Note that patch #1 is a Fixes patch for stable.
+> Gao commented that the fix may not be complete, but I think it is better
+> than no fix at all.
+>
+> Regarding lazy lookup in d_real(), I am not sure if the best effort
+> lookup is the best solution, but in any case, none of this code kicks in
+> without explicit opt-in to data-only layers, so the risk of breaking
+> existing setups is quite low.
+>
+> Thanks,
+> Amir.
+>
+> Changes since v1:
+> - Include the prep patch set
+> - Split remove lowerdata from add lowerdata_redirect patch
+> - Remove embedded ovl_entry stack optimization
+> - Add lazy lookup and comment in d_real_inode()
+> - Improve documentation of :: data-only layers syntax
+> - Added RVBs
+>
+> [1] https://lore.kernel.org/linux-unionfs/20230408164302.1392694-1-amir73=
+il@gmail.com/
+> [2] https://lore.kernel.org/linux-unionfs/20230412135412.1684197-1-amir73=
+il@gmail.com/
+> [3] https://github.com/amir73il/linux/commits/ovl-lazy-lowerdata
+> [4] https://github.com/amir73il/xfstests/commits/ovl-lazy-lowerdata
+>
+> Amir Goldstein (13):
+>   ovl: update of dentry revalidate flags after copy up
+>   ovl: use OVL_E() and OVL_E_FLAGS() accessors
+>   ovl: use ovl_numlower() and ovl_lowerstack() accessors
+>   ovl: factor out ovl_free_entry() and ovl_stack_*() helpers
+>   ovl: move ovl_entry into ovl_inode
+>   ovl: deduplicate lowerpath and lowerstack[]
+>   ovl: deduplicate lowerdata and lowerstack[]
+>   ovl: remove unneeded goto instructions
+>   ovl: introduce data-only lower layers
+>   ovl: implement lookup in data-only layers
+>   ovl: prepare to store lowerdata redirect for lazy lowerdata lookup
+>   ovl: prepare for lazy lookup of lowerdata inode
+>   ovl: implement lazy lookup of lowerdata in data-only layers
+>
+>  Documentation/filesystems/overlayfs.rst |  36 +++++
+>  fs/overlayfs/copy_up.c                  |  11 ++
+>  fs/overlayfs/dir.c                      |   3 +-
+>  fs/overlayfs/export.c                   |  41 +++---
+>  fs/overlayfs/file.c                     |  21 ++-
+>  fs/overlayfs/inode.c                    |  38 +++--
+>  fs/overlayfs/namei.c                    | 185 +++++++++++++++++++-----
+>  fs/overlayfs/overlayfs.h                |  20 ++-
+>  fs/overlayfs/ovl_entry.h                |  73 ++++++++--
+>  fs/overlayfs/super.c                    | 132 ++++++++++-------
+>  fs/overlayfs/util.c                     | 165 ++++++++++++++++-----
+>  11 files changed, 534 insertions(+), 191 deletions(-)
+>
+> --
+> 2.34.1
+>
+
+
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
 
