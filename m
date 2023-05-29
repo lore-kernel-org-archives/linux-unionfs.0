@@ -2,228 +2,221 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EDE52C77B7E
-	for <linux-unionfs@archiver.kernel.org>; Mon, 29 May 2023 07:24:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1527C77B7E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 29 May 2023 15:16:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229625AbjE2HYG (ORCPT
+        id S229686AbjE2PQF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 29 May 2023 03:24:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46952 "EHLO
+        Mon, 29 May 2023 11:16:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54874 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229561AbjE2HYF (ORCPT
+        with ESMTP id S229632AbjE2PQE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 29 May 2023 03:24:05 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECB54AC
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 May 2023 00:23:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1685344995;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=pckkZm77JkSAvkVHteKxpmPACDg20vGFkUfG2N1BwDk=;
-        b=QNrxpfJ46IzO5yXhDjnHnmq1zop57HBmiRyp4xNKPYsQfJdLgzqmOzjrOc1C/ZfkagRoYB
-        KOpM7DXs/aYWdkARfEBlNC4gmXFHuI8XpK1wzW6MPedu8uLtYDH4oPle/nYP60nfmDIcDk
-        Ognl8lerNPgKJGeQSQ/ug81hVNF48rE=
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com
- [209.85.166.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-590-nQ5lS6XRPjyVnp5bXHL-3g-1; Mon, 29 May 2023 03:23:11 -0400
-X-MC-Unique: nQ5lS6XRPjyVnp5bXHL-3g-1
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-33b27ff696eso8768355ab.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 May 2023 00:23:11 -0700 (PDT)
+        Mon, 29 May 2023 11:16:04 -0400
+Received: from mail-vk1-xa31.google.com (mail-vk1-xa31.google.com [IPv6:2607:f8b0:4864:20::a31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D5DAC4
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 May 2023 08:16:00 -0700 (PDT)
+Received: by mail-vk1-xa31.google.com with SMTP id 71dfb90a1353d-4570a6b7b06so758282e0c.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 May 2023 08:16:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1685373359; x=1687965359;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=hw2OwRA0Vht/HYTw1fXEGcFXtQeR8q7Qd88LC9tf4ps=;
+        b=NBRaIxKJZ3q27MWnldHYNucwnNA+kZ6kFC6Xa/RpvO+jWFmQhxHsUDRLvWlhBxssdG
+         e2Iu34NBIJKONb9CEzBphwwkMIRY2kmUZp8+NpwLdT62Y+2xbgTCisT5YymjqnX7c0Ib
+         +YG/zuJroF3pCSWwsKbJsS1/bFYNTKUTOxwyEpwJgrKcUpAMlFPlt6+Q7nsLO7JPOMIj
+         ShK4GeblJ5I5QAMYVCi1s4u8mHwhRGnCWbK1QZ+LGEnMza+rlJnd0eXZPPZ70bMtWbjB
+         4tJXAy4w8Q10SMweim/xTAz7lSUlCSXZjX/hZAe/M8RQeZlpEbl44uHIGLOAl7a+H1+5
+         cdcA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685344990; x=1687936990;
+        d=1e100.net; s=20221208; t=1685373359; x=1687965359;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=pckkZm77JkSAvkVHteKxpmPACDg20vGFkUfG2N1BwDk=;
-        b=HpTRxLdRMSngaSzN1L+to0vF7lzAgME9H6SQXv/50feIBspiArabUC5Sc9/XDmfPl4
-         7ZtkKYrduM3uhFVeGl2A86ZfbdHgL4YLzpuSAfV00h19+CdD61iXlciL3PpqpBJct7uD
-         0LHtFSLi5zHdg5zycUdHAlk/+emdrJd8jC/5HctXAv2VBKF+hvkpm9yLBpw1XQFsUuxd
-         f0IwfAfA2LJPm2ydYOegaMKDhnYHcWJ2ramX3QHyq/DX+j8xWkeuhynam7ekPdC+TsJC
-         uojf/rmAKWRC9fgnJ0W7+hzKP2gEIlpxJ/YlMWyd0Uom6F31pyMK0BMDt5in0sjqF27h
-         vg6A==
-X-Gm-Message-State: AC+VfDxh0E5Nj3/L5T9unyN0ppgQ5UlWc2/4jnl6ai9yeUTMMrsgm7AI
-        YmMCqhqaDx5KWupHNs8SED5V9UneAU3Ge458t50se4uDK90dj+gqmxMG6g00Ek8sBPib0JZJZMf
-        /b8bPIrMRGPs9zIALACUHntHV1dizBMXpmb/bsCOy0w==
-X-Received: by 2002:a92:d203:0:b0:338:1b0f:28eb with SMTP id y3-20020a92d203000000b003381b0f28ebmr5487993ily.23.1685344990671;
-        Mon, 29 May 2023 00:23:10 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ529OiGrIiy0UYe04cy3yKqtolCBZ6rvdYujFS+CoYubmh+m0yhHHMbdqS16mlzVT4wqTObepl0mcBv6l/ZWPI=
-X-Received: by 2002:a92:d203:0:b0:338:1b0f:28eb with SMTP id
- y3-20020a92d203000000b003381b0f28ebmr5487986ily.23.1685344990402; Mon, 29 May
- 2023 00:23:10 -0700 (PDT)
+        bh=hw2OwRA0Vht/HYTw1fXEGcFXtQeR8q7Qd88LC9tf4ps=;
+        b=lJqtlQtsRHiVpkP0eZUh4P2d5h1UFdeK85V96E42jYuPKM5B3g509qCNfmVvXH/Pr0
+         mMGhkvlg7OW346JzMk52VvwWvL4Jz0hXH5pSgLni97qyzO5IKL7UzRGBiHpw23p/9fID
+         kdPGq6l2dCE0cDeByNhHe0hXXau/uqn1NIrTyhTQNsWHppyatmsjTVKE7KAfrtZz8bYx
+         PFMqL7L8KzYdnTftSOj/9UNSAA//fM70uQae/zV7S07ZBKZ5mKWeK+6uJWTPC0QYsd8r
+         b4H/ZcJ80UKPgVTIUFu5IJ1i8hpfwBqKYedZ/xDTw7EW3v6PMeQdY68yk8K1EGToV3Wj
+         /A8g==
+X-Gm-Message-State: AC+VfDwYawwpAu2EHULYMZ2OWZBL7EwhDf0aCU+OMK6EU9fj7QxHe2+k
+        BXi6/RAfNY6rZ+7puql1PvgjnKhTMx4r/USsxpa3GPFj0UI=
+X-Google-Smtp-Source: ACHHUZ5nES1zp9SgXOcdzQzq+V9l2CmD0EMQkksJI7R6k1ksdJrz2lzudP9fCha5fdXt/Lt0Rae62CWLjRSb575XwD4=
+X-Received: by 2002:a67:fe0c:0:b0:421:c588:4d40 with SMTP id
+ l12-20020a67fe0c000000b00421c5884d40mr2807828vsr.15.1685373359090; Mon, 29
+ May 2023 08:15:59 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230427130539.2798797-1-amir73il@gmail.com> <CAL7ro1G7DQS_aAC4+9-ppdQz_7vjoXdBLohZ6bKo6S75NQUDPA@mail.gmail.com>
- <CAOQ4uxhN1dPBkhAu3Zag8=RKCbzMQghuXnyp+uur83dRW8tz6Q@mail.gmail.com>
- <87h6s0z6rf.fsf@redhat.com> <CAOQ4uxhkCgU2=F2oAJn34Jor2_Hr56fLsa8cAAz936G05d-+ZQ@mail.gmail.com>
- <CAL7ro1EoNDMxU2d9WYrb772VFWWMDWV=KVvrZDnK=5byemmo8Q@mail.gmail.com>
- <fb711bb4-3f25-ccee-0d21-2cb6deea75ec@linux.alibaba.com> <CAOQ4uxiCzTbr4OXhxv=RbNbKn+kaBva-Wkz4AGW8OJUwL3GfLQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiCzTbr4OXhxv=RbNbKn+kaBva-Wkz4AGW8OJUwL3GfLQ@mail.gmail.com>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Mon, 29 May 2023 09:22:59 +0200
-Message-ID: <CAL7ro1Fg_2pibX2LW0LJht7f+vDfFPazz6zHSYtD9MbwO+SzXw@mail.gmail.com>
-Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Gao Xiang <hsiangkao@linux.alibaba.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        linux-unionfs@vger.kernel.org,
-        Christian Brauner <brauner@kernel.org>,
-        Lennart Poettering <lennart@poettering.net>
+References: <20210125194848.GA12389@ircssh-2.c.rugged-nimbus-611.internal>
+In-Reply-To: <20210125194848.GA12389@ircssh-2.c.rugged-nimbus-611.internal>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 29 May 2023 18:15:48 +0300
+Message-ID: <CAOQ4uxg0BHD8OHWk-b6TrE=SqGJTvp8TuHaLCwC5g9ZL=7W0Ew@mail.gmail.com>
+Subject: Re: Detaching lower layers (Was: Lazy Loading Layers)
+To:     Sargun Dhillon <sargun@sargun.me>
+Cc:     overlayfs <linux-unionfs@vger.kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, May 27, 2023 at 4:04=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Mon, Jan 25, 2021 at 9:54=E2=80=AFPM Sargun Dhillon <sargun@sargun.me> w=
+rote:
 >
-> On Fri, May 26, 2023 at 9:27=E2=80=AFPM Gao Xiang <hsiangkao@linux.alibab=
-a.com> wrote:
-> >
-> > Hi,
-> >
-> > On 2023/5/26 04:36, Alexander Larsson wrote:
-> > > On Fri, May 26, 2023 at 7:12=E2=80=AFAM Amir Goldstein <amir73il@gmai=
-l.com> wrote:
-> > >>
-> > >> On Thu, May 25, 2023 at 7:59=E2=80=AFPM Giuseppe Scrivano <gscrivan@=
-redhat.com> wrote:
-> > >>>
-> > >>> Hi Amir,
-> > >>>
-> > >>> Amir Goldstein <amir73il@gmail.com> writes:
-> > >>>
-> > >>>> On Thu, May 25, 2023 at 6:21=E2=80=AFPM Alexander Larsson <alexl@r=
-edhat.com> wrote:
-> > >>>>>
-> > >>>>> Something that came up about this in a discussion recently was
-> > >>>>> multi-layer composefs style images. For example, this may be a us=
-eful
-> > >>>>> approach for multi-layer container images.
-> > >>>>>
-> > >>>>> In such a setup you would have one lowerdata layer, but two real
-> > >>>>> lowerdirs, like lowerdir=3DA:B::C. In this situation a file in B =
-may
-> > >>>>> accidentally have the same name as a file on C, causing a redirec=
+> One of the projects I'm playing with for containers is lazy-loading of la=
+yers.
+> We've found that less than 10% of the files on a layer actually get used,=
+ which
+> is an unfortunate waste. It also means in some cases downloading ~100s of=
+ MB, or
+> ~1s of GB of files before starting a container workload. This is unfortun=
+ate.
+>
+> It would be nice if there was a way to start a container workload, and ha=
+ve
+> it so that if it tries to access and unpopulated (not yet downloaded) par=
 t
-> > >>>>> from A to end up in B instead of C.
-> > >>>>>
-> > >>>>
-> > >>>> I was under the impression that the names of the data blobs in C
-> > >>>> are supposed to be content derived names (hash).
-> > >>>> Is this not the case or is the concern about hash conflicts?
-> > >>>>
-> > >>>>> Would it be possible to have a syntax for redirects that mean "on=
-ly
-> > >>>>> lookup in lowerdata layers. For example a double-slash path
-> > >>>>> //some/file.
-> > >>>>>
-> > >>>>
-> > >>>> Anything is possible if we can define the problem that needs to be=
- solved.
-> > >>>> In this case, I did not understand why the problem is limited to f=
-inding a file
-> > >>>> by mistake in layer B.
-> > >>>>
-> > >>>> If there are several data layers A:B::C:D why wouldn't we have the=
- same
-> > >>>> problem with a file name collision between C and D?
-> > >>>
-> > >>> the data layer is constructed in a way that files are stored by the=
-ir
-> > >>> hash and there is control from the container runtime on how this is
-> > >>> built and maintained.  So a file name collision would happen only w=
-hen
-> > >>> on a hash collision.
-> > >>>
-> > >>> Differently for the other layers we've no control on what files are=
- in
-> > >>> the image, unless we limit to mount only one EROFS as the first low=
-er
-> > >>> layer and then all the other lower layers are data layers.
-> > >>>
-> > >>> Given your example above A:B::C:D, if both A and B are EROFS we are
-> > >>> limited in the files/directories that can be in B.
-> > >>>
-> > >>> e.g. we have A/foo with the following xattrs:
-> > >>>
-> > >>> trusted.overlay.metacopy=3D""
-> > >>> trusted.overlay.redirect=3D"/1e/de1743e73b904f16924c04fbd0b7fbfb7e4=
-5b8640241e7a08779e8f38fc20d"
-> > >>>
-> > >>> Now what would happen if /1e is present as a file in layer B?  It w=
-ill
-> > >>> just cause the lookup for `foo` to fail with EIO since the redirect
-> > >>> didn't find any file in the layers below.
-> > >>>
-> > >>>
-> > >>
-> > >> I understand the problem and I understand why a // redirect to data-=
-only layers
-> > >> would be a simple and workable solution for composefs.
-> > >>
-> > >> Unlike the rest of the changes to overlayfs that we worked on to sup=
-port
-> > >> composefs, this would really be a composefs only on-disk format beca=
-use it
-> > >> could not be generated by overlayfs itself, so we need Miklos to chi=
-me in to
-> > >> say if this is acceptable.
-> >
-> > An alternative way might allow data-only layers (or invisible layers) i=
-n the
-> > middle rather than as the tail?
-> >
+> of the filesystem block while trying to be accessed. This is trivial to d=
+o
+> if the "lowest" layer is FUSE, where one can just stall in userspace on
+> loads. Unfortunately, AFAIK, there's not a good way to swap out the FUSE
+> filesystem with the "real" filesystem once it's done fully populating,
+> and you have to pay for the full FUSE cost on each read / write.
 >
-> Anything is possible if you can justify its worth.
+> I've tossed around:
+> 1. Mutable lowerdirs and having something like this:
 >
-> > I'm not sure in the long term if it's flexible to fix data-only layers =
-as the
-> > bottom-most layers for future potential use cases.
-> >
-> > At a quick glance, I've seen the implementation of this patchset also
-> > strictly code that.   I wonder if using non-fixed invisible layers incr=
-eases
-> > the complexity or am I still missing something?
-> >
+> layer0 --> Writeable space
+> layer1 --> Real XFS filesystem
+> layer2 --> FUSE FS
 >
-> The current implementation is quite simplified due to keeping data-only
-> layers in the tail, and even more simplified that lazy lowerdata lookup
-> is only in the data-only layers at the tail of the stack.
-> The documentation is also simpler as do the tests.
+> and if there is a "miss" on layer 1, it will then look it up on
+> layer 2 while layer 1 is being populated. Then the FUSE FS can block.
+> This is neat, but it requires the FUSE FS to always be up, and incurs
+> a userspace bounce on every miss.
 >
-> Making all the the above more complex needs justification and so far
-> I did not see any use case that would justify it, because the /.cfs
-> workaround is good enough IMO.
+> It also means things like metadata only copies don't work.
 >
-> That leaves the question - is the design/API flexible enough to be
-> extended in the future if we needed to?
+> Does anyone have a suggestion of a mechanism to handle this? I've looked =
+into
+> swapping out layers on the fly, and what it would take to add a mechanism=
+ like
+> userfaultfd to overlayfs, but I was wondering if anything like this was a=
+lready
+> built, or if someone has thought it through more than me.
 >
-> If we would want to support data-only layers in the middle on the
-> stack, which would this syntax make sense?
-> lowerdir=3Dlower1::data1:lower2::data2
->
-> If this syntax makes sense to everyone, then we can change the syntax
-> of data-only in the tail from lower1::data1:data2 to lower1::data1::data2
-> and enforce that after the first ::, only :: are allowed.
->
-> Miklos, any thoughts?
-> I have a feeling that this was your natural interpretation when you first
-> saw the :: syntax.
 
-I agree that the current limit of data only at the end is good enough
-for now. But yeah, having this syntax seems to give more options long
-terms, and no real disadvantages. At the very least it is not harder
-to understand or worse, and as you say, probably even more natural.
+Hi Sargun,
 
+I believe that this is the use case that you asked me about in LSFMM,
+at least the lower part of layer1+layer2. Is that correct?
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
+You did not mention three layers in the use case that you described
+Is that because you decided that layer0 and layer1 can be combined?
 
+Technically, you can also setup a nested overlay with the lower overlay
+layer1+layer2 only doing the lazy loading of the remote read-only layer
+and the upper overlay is composed of layer0+ovl(layer1+layer2), but this
+nested overlay configuration has some limitations.
+
+Anyway, I have talked with Miklos about the use case that requires
+detaching the lowermost FUSE layer eventually and the solution that
+we discussed was to gradually "opaquify" directories whose entire
+descendant hierarchy is fully copied up at readdir time.
+
+I have prepared POC patches for this design:
+
+https://github.com/amir73il/linux/commits/ovl-xino-nofollow
+
+This was tested using the following patch to unionmount-testsuite:
+
+https://github.com/amir73il/unionmount-testsuite/commits/ovl-xino-nofollow
+
+commit 026e73c37f3993f56e76128a267e54faedf2322c
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Mon May 29 17:01:55 2023 +0300
+
+    Test detaching lower fs
+
+    Test that with xino=3Dnofollow, after copying up all files and listing
+    all the directories in DFS order, the lower fs can be detached.
+
+    Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+
+diff --git a/mount_union.py b/mount_union.py
+index e905b83..4fad5dd 100644
+--- a/mount_union.py
++++ b/mount_union.py
+@@ -54,3 +54,13 @@ def mount_union(ctx):
+         ctx.note_upper_fs(upper_mntroot, testdir, union_mntroot + "/f")
+         ctx.note_lower_layers(lower_mntroot)
+         ctx.note_upper_layer(upperdir)
++        if cfg.is_xino():
++            # Copy up everything, set all dirs opaque and then detach lowe=
+r fs.
++            # Instead of iterating in DFS order we iterate 4 times as the =
+depth
++            # of the dataset tree - on every iteration, level 4-i
+becomes opaque.
++            system("chown -R 0.0 " + union_mntroot)
++            system("find " + union_mntroot + " -inum 0")
++            system("find " + union_mntroot + " -inum 0")
++            system("find " + union_mntroot + " -inum 0")
++            system("find " + union_mntroot + " -inum 0")
++            system("xfs_io -x -c shutdown " + lower_mntroot)
+diff --git a/run b/run
+index 3a6efc3..f8116c1 100755
+--- a/run
++++ b/run
+@@ -219,7 +219,7 @@ if redirect_dir is False:
+
+ # Auto-upgrade xino=3Dauto to xino=3Don for kernel < v5.7
+ if xino:
+-    cfg.add_mntopt("xino=3Don")
++    cfg.add_mntopt("xino=3Dnofollow")
+
+--
+
+It should be pretty self-explanatory - after mounting the overlay, all
+lower files
+are copied up using chown -R (no metacopy) and then the overlay is iterated
+several times, until all the merge directories iterations notice that
+there is nothing
+interesting in the lower dirs, so they all become opaque.
+At this point, the lowest xfs layer is being shutdown and the tests are run=
+.
+With the 4*find iterations, none of the tests get EIO.
+
+This does not mean that the lower xfs can be cleanly unmounted - there may
+still be references to dentries/inodes from the lower fs, but
+overlayfs never calls
+any filesystem methods on the lower dentry/inodes - specifically lookup mis=
+ses
+in the upper dir do not end up looking in the lower dir.
+
+The reason that I used an opt-in mount option (xino=3Dnofollow) to enable t=
+his
+functionality is because even after all files have been copied up,
+overlayfs does
+currently access one bit of information from the lower fs - it calls
+getattr() to get
+st_ino from the lower file/directory in order to preserve st_ino across cop=
+y up.
+
+I used an opt-in mount option to allow st_ino to change across copy up.
+I hope this change of behavior is acceptable for your use case.
+Note that after the completion of the migration process (e.g. chown -R + 4*=
+find)
+all inode numbers are stabilized.
+
+Are you interested in testing these patches?
+If you indicate that they are useful to you, I can post them for review
+and in that case, I would appreciate if you can write the xfstests
+for the feature.
+
+Thanks,
+Amir.
