@@ -2,107 +2,123 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EAB9C7EE2C
-	for <linux-unionfs@archiver.kernel.org>; Tue, 30 May 2023 16:02:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20746C7EE23
+	for <linux-unionfs@archiver.kernel.org>; Tue, 30 May 2023 16:19:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233256AbjE3QC1 (ORCPT
+        id S230171AbjE3QT0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 30 May 2023 12:02:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49402 "EHLO
+        Tue, 30 May 2023 12:19:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233258AbjE3QCV (ORCPT
+        with ESMTP id S230234AbjE3QTY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 30 May 2023 12:02:21 -0400
+        Tue, 30 May 2023 12:19:24 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 830B5188;
-        Tue, 30 May 2023 09:02:03 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 52A45102
+        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2023 09:19:19 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id EE42E61E32;
-        Tue, 30 May 2023 16:01:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 81848C433D2;
-        Tue, 30 May 2023 16:01:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E28F8611DC
+        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2023 16:19:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8713CC433EF;
+        Tue, 30 May 2023 16:19:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1685462519;
-        bh=+bjafflQkeGR0pj0+9Bhf6+uOuRDMWm4LCaEU7oL4w0=;
+        s=k20201202; t=1685463558;
+        bh=ds7pi7wEsz5YoX1D7hn5LB8yLIGcR9eTtKstAoKXQbA=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=KLaTmgKr9+qOi4tzVuxg+TXb+MUGtQm7dHTrbVzElWgKQyLB4yL5GjduODeFwRiOu
-         Z/KbTROKs6gwvjktFWLm+DRnfyvGl9LTyL1jLsCJuUcwkddIxWa28IRFVdUB4mzHIc
-         ZIcKKI8sh6HsrQRBikCHvASIM1PBETBZ7XBXwUkiDGchVhpuNNcCgqYfC08Sw14KZN
-         J3FBIe+2O0JrexwQZbteEyl5Y1EvTCK0ovYPa5m9Wq+LR+BL0VbYMte2EVnFOh7pjt
-         vMCw9rDFL12RPrANGQ46P+uvqgCVwG7jGeAYU8SwL5GbXZS8i15QKkNMxcFQvwzrXA
-         B9MAgoVoJO94w==
-Date:   Tue, 30 May 2023 18:01:47 +0200
+        b=BFU2u0GC9XC9kfdA0kiYGp3aajovjHl/0i8xilfAv5oGILWXRd3oUmCnWUzyYTrDI
+         ERMxWhLkHxT9ee40W/Hn7ngQpqYSsUytcb+05SsDtdjuecOnkYnLTIV7vORPH2o632
+         4dyFkG7GJ30FzNLya9trCkXPJnY0xVflFc9M1iZSPub1T90Moalj4DBq3MkMuScvrR
+         CyDM8Qthq+cX+Ne0I+ZeyTQ1AjjzUirppoifT2i0ezs+nLeMmTraKz2Jv++nF3fJB/
+         Z5ZEGmvddULl1kn0hVxzmo57GrArh+rt+f347qDOwLE+4p49Gu38mtYioqweZVA/tW
+         7eVmUrfcjSC6A==
+Date:   Tue, 30 May 2023 18:19:13 +0200
 From:   Christian Brauner <brauner@kernel.org>
-To:     Casey Schaufler <casey@schaufler-ca.com>
-Cc:     Christoph Hellwig <hch@lst.de>,
-        =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>,
-        gregkh@linuxfoundation.org, rafael@kernel.org,
-        viro@zeniv.linux.org.uk, dhowells@redhat.com, code@tyhicks.com,
-        hirofumi@mail.parknet.co.jp, linkinjeon@kernel.org,
-        sfrench@samba.org, senozhatsky@chromium.org, tom@talpey.com,
-        chuck.lever@oracle.com, jlayton@kernel.org, miklos@szeredi.hu,
-        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
-        stephen.smalley.work@gmail.com, eparis@parisplace.org,
-        dchinner@redhat.com, john.johansen@canonical.com,
-        mcgrof@kernel.org, mortonm@chromium.org, fred@cloudflare.com,
-        mpe@ellerman.id.au, nathanl@linux.ibm.com, gnoack3000@gmail.com,
-        roberto.sassu@huawei.com, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-cachefs@redhat.com,
-        ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
-        wangweiyang2@huawei.com
-Subject: Re: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
-Message-ID: <20230530-tumult-adrenalin-8d48cb35d506@brauner>
-References: <20230505081200.254449-1-xiujianfeng@huawei.com>
- <20230515-nutzen-umgekehrt-eee629a0101e@brauner>
- <75b4746d-d41e-7c9f-4bb0-42a46bda7f17@digikod.net>
- <20230530-mietfrei-zynisch-8b63a8566f66@brauner>
- <20230530142826.GA9376@lst.de>
- <301a58de-e03f-02fd-57c5-1267876eb2df@schaufler-ca.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Gao Xiang <hsiangkao@linux.alibaba.com>,
+        Alexander Larsson <alexl@redhat.com>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        linux-unionfs@vger.kernel.org,
+        Lennart Poettering <lennart@poettering.net>
+Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
+Message-ID: <20230530-klagen-zudem-32c0908c2108@brauner>
+References: <20230427130539.2798797-1-amir73il@gmail.com>
+ <CAL7ro1G7DQS_aAC4+9-ppdQz_7vjoXdBLohZ6bKo6S75NQUDPA@mail.gmail.com>
+ <CAOQ4uxhN1dPBkhAu3Zag8=RKCbzMQghuXnyp+uur83dRW8tz6Q@mail.gmail.com>
+ <87h6s0z6rf.fsf@redhat.com>
+ <CAOQ4uxhkCgU2=F2oAJn34Jor2_Hr56fLsa8cAAz936G05d-+ZQ@mail.gmail.com>
+ <CAL7ro1EoNDMxU2d9WYrb772VFWWMDWV=KVvrZDnK=5byemmo8Q@mail.gmail.com>
+ <fb711bb4-3f25-ccee-0d21-2cb6deea75ec@linux.alibaba.com>
+ <CAOQ4uxiCzTbr4OXhxv=RbNbKn+kaBva-Wkz4AGW8OJUwL3GfLQ@mail.gmail.com>
+ <CAJfpegvsEuSNepb_9MNEkEFsW7R60DDk57x3oivA6wx9y8StRA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <301a58de-e03f-02fd-57c5-1267876eb2df@schaufler-ca.com>
+In-Reply-To: <CAJfpegvsEuSNepb_9MNEkEFsW7R60DDk57x3oivA6wx9y8StRA@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 30, 2023 at 07:55:17AM -0700, Casey Schaufler wrote:
-> On 5/30/2023 7:28 AM, Christoph Hellwig wrote:
-> > On Tue, May 30, 2023 at 03:58:35PM +0200, Christian Brauner wrote:
-> >> The main concern which was expressed on other patchsets before is that
-> >> modifying inode operations to take struct path is not the way to go.
-> >> Passing struct path into individual filesystems is a clear layering
-> >> violation for most inode operations, sometimes downright not feasible,
-> >> and in general exposing struct vfsmount to filesystems is a hard no. At
-> >> least as far as I'm concerned.
-> > Agreed.  Passing struct path into random places is not how the VFS works.
-> >
-> >> So the best way to achieve the landlock goal might be to add new hooks
-> > What is "the landlock goal", and why does it matter?
-> >
-> >> or not. And we keep adding new LSMs without deprecating older ones (A
-> >> problem we also face in the fs layer.) and then they sit around but
-> >> still need to be taken into account when doing changes.
-> > Yes, I'm really worried about th amount of LSMs we have, and the weird
-> > things they do.
+On Tue, May 30, 2023 at 04:08:38PM +0200, Miklos Szeredi wrote:
+> On Sat, 27 May 2023 at 16:04, Amir Goldstein <amir73il@gmail.com> wrote:
 > 
-> Which LSM(s) do you think ought to be deprecated? I only see one that I
+> > If we would want to support data-only layers in the middle on the
+> > stack, which would this syntax make sense?
+> > lowerdir=lower1::data1:lower2::data2
+> >
+> > If this syntax makes sense to everyone, then we can change the syntax
+> > of data-only in the tail from lower1::data1:data2 to lower1::data1::data2
+> > and enforce that after the first ::, only :: are allowed.
+> >
+> > Miklos, any thoughts?
+> > I have a feeling that this was your natural interpretation when you first
+> > saw the :: syntax.
+> 
+> Yes, I think it's more natural to have a prefix for each data-only
+> layer.  And this is also good for extensibility, as discussed.
 
-I don't have a good insight into what LSMs are actively used or are
-effectively unused but I would be curious to hear what LSMs are
-considered actively used/maintained from the LSM maintainer's
-perspective.
+Sorry, just a quick braindump vaguely related to this new mount syntax.
 
-> might consider a candidate. As for weird behavior, that's what LSMs are
-> for, and the really weird ones proposed (e.g. pathname character set limitations)
+A while ago util-linux reported issues with overlayfs when mounted
+through the new mount api (cf. [1]) and I completely forgot to mention
+this to you during LSFMM. So say you do:
 
-If this is effectively saying that LSMs are licensed to step outside the
-rules of the subsystem they're a guest in then it seems unlikely
-subsystems will be very excited to let new LSM changes go in important
-codepaths going forward. In fact this seems like a good argument against
-it.
+        fs_fd = fsopen("overlay", FSOPEN_CLOEXEC);
+
+        fsconfig(fs_fd, FSCONFIG_SET_STRING, "upperdir", "/home/asavah/kross/tmp/asusb450eg/upper", 0);
+
+        fsconfig(fs_fd, FSCONFIG_SET_STRING, "workdir", "/tmp/work", 0);
+
+        fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "0:1:2:3:4:5:6:7:8:9:a:b:c:d:e:f:10:11:12:13:14:15:16:17:18:19:1a:1b:1c:1d:1e:1f:20:21:22:23:24:25:26:27:28:29:2a:2b:2c:2d:2e:2f:
+
+This will fail because FSCONFIG_SET_STRING is limited to 256 bytes.
+That's a reasonable limit and I don't think we need to extend this to
+PATH_MAX.
+
+Instead, my reaction had been that lowerdir should be specifiable
+multiple times through fsconfig() and overlayfs should probably append
+lower layers via:
+
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "/home/username/project/data1", 0);
+        // append 
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", ":/home/username/project/data2", 0);
+        // append
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", ":/home/username/project/data3", 0);
+
+        // replace everything specified until now
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "/home/username/project/data4", 0);
+
+        // reset everything
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "", 0);
+
+so with the new syntax this would probably be:
+
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "/home/username/project/data1", 0);
+        // append data only layer
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "::/home/username/project/data2", 0);
+        // append data only layer
+        ret = fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "::/home/username/project/data3", 0);
+
+[1]: https://github.com/util-linux/util-linux/issues/1992
