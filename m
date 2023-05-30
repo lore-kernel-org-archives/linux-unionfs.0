@@ -2,63 +2,136 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F23DDC77B7A
-	for <linux-unionfs@archiver.kernel.org>; Tue, 30 May 2023 03:58:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4993BC77B7A
+	for <linux-unionfs@archiver.kernel.org>; Tue, 30 May 2023 08:31:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229514AbjE3D6h (ORCPT
+        id S229914AbjE3IbE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 29 May 2023 23:58:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52734 "EHLO
+        Tue, 30 May 2023 04:31:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43564 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229478AbjE3D6f (ORCPT
+        with ESMTP id S229884AbjE3IbD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 29 May 2023 23:58:35 -0400
-X-Greylist: delayed 2461 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 29 May 2023 20:58:34 PDT
-Received: from fallback16.i.mail.ru (fallback16.i.mail.ru [79.137.243.71])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09314DE;
-        Mon, 29 May 2023 20:58:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mail.ru; s=mail4;
-        h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:Cc:To:From:From:Subject:Content-Type:Content-Transfer-Encoding:To:Cc; bh=N/mtbL55pJKF+R0EMmVz0u7PirGDXhwNr5PDfaUJlZw=;
-        t=1685419114;x=1685509114; 
-        b=UllfkzNUQ1stL5yiHiCsR+jRhPVS0uOzcxqk8NyPIg2sOR6NgiRxsBEbJtndYJsgF8iNFW0UT0Hhsqv+vgWe84l/Rgmf3pu03t25u45+zLdcnYiLNCNfLG9Z+XhVfJguhLNc1dv9NOMyuU5GqYjuhckG0SvTfROAqAYnI/5zIaI7Vx3rsf6VFAJxln4rJf85WNDC/UZ16GJg7k21akjBDe8W5gKoUBwAAxZy/xhyo6ggj2ySPE/B3tfax9farAi1FRtIBWc1MW5G9GaVaNOz5iVi1UeDYl1HpCsRx2Tfys+GjsFiP+aQp8N0TxDbyS4fIvs1ZVPlp1xr2ARGJOSI8w==;
-Received: from [10.12.4.10] (port=55094 helo=smtp34.i.mail.ru)
-        by fallback16.i.mail.ru with esmtp (envelope-from <listdansp@mail.ru>)
-        id 1q3pAW-005wxR-N7; Tue, 30 May 2023 05:33:04 +0300
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mail.ru; s=mail4;
-        h=Content-Transfer-Encoding:MIME-Version:Message-Id:Date:Subject:Cc:To:From:From:Subject:Content-Type:Content-Transfer-Encoding:To:Cc; bh=N/mtbL55pJKF+R0EMmVz0u7PirGDXhwNr5PDfaUJlZw=;
-        t=1685413984;x=1685503984; 
-        b=1cq7nKd4+whU4vOdvIRkCAIb63wHqEx/ob+CUaLpFTu8oJdcDBJBNQVUAIiTh34KKiNCWCo/tumaX7iOEo29ApHsSdkxeuTqq/iaxSZkhW4Obj+NzUoGmSiQ8PbMGn5vRxz0jzmx7AwS059nekr8CSnDGa0rbxYxga8XOg4G8WvCV1QKQJ5/daU5hS04Ry5cU37gLL/369TWxoKZbKcfjYL8ML4/+OC+6XZa7WoUI7sTW3T6R70oHxrs3U53+Ww3xh4fzX2e0bjAT9lYs9bDgR8cKfcVKkKmYLh2K6wVMZ/5VfNOVuzQzMcmVwj7ewLWqhx9KuZAE2+mOI9W7Kvmfw==;
-Received: by smtp34.i.mail.ru with esmtpa (envelope-from <listdansp@mail.ru>)
-        id 1q3pAS-006P3c-JY; Tue, 30 May 2023 05:33:00 +0300
-From:   Danila Chernetsov <listdansp@mail.ru>
-To:     stable@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc:     Danila Chernetsov <listdansp@mail.ru>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5.10 0/1] ovl: fail on invalid uid/gid mapping at copy up
-Date:   Tue, 30 May 2023 02:29:16 +0000
-Message-Id: <20230530022917.18574-1-listdansp@mail.ru>
-X-Mailer: git-send-email 2.25.1
+        Tue, 30 May 2023 04:31:03 -0400
+Received: from mail-vk1-xa2e.google.com (mail-vk1-xa2e.google.com [IPv6:2607:f8b0:4864:20::a2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9981AA8;
+        Tue, 30 May 2023 01:31:00 -0700 (PDT)
+Received: by mail-vk1-xa2e.google.com with SMTP id 71dfb90a1353d-456d534f403so2710102e0c.2;
+        Tue, 30 May 2023 01:31:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1685435459; x=1688027459;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vAlYUMVoTgINlE2ocSHP8Vr62dJ4pHluRJc9g9INcEU=;
+        b=D47tqMBFjsl7TeJNaoYnAx0DNSZPSt4iFNajnB+Qh43GFOewu5Lr8jW30kJreXspQK
+         xOQb7Y0Y8e/Cpg7RTKEbv4zppgP0XUxK4a2zO7ybOOXO2VuycuYtYhmGhE+U8hCINRLa
+         extr6N2yXJdI7IzPgUotVJ/f879fBC9Y6PkMlmSkMI3jUaaMori4u3jo//QpMD0yE4qm
+         nzPnskNMm/RRtjkmaDdvBT2GomzMdZHsWE9q9is5kqcVV6dPcI+9PHHefEZj6qeClcog
+         uxq2MZfHdU5i4vK5t5E+W/LsZVvvV1aAyI9QFqlYv8DRisy2D2s1GH2lhtvL79p3kDnf
+         USHA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1685435459; x=1688027459;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vAlYUMVoTgINlE2ocSHP8Vr62dJ4pHluRJc9g9INcEU=;
+        b=VbH8k16zAlAf5VovPLRCr7AM+JJx61gWZyC2nR8bbixNKImHUoWjIt+8nj1ZoLJkro
+         Ox2MGmHZmTxvYgoUjY3yCFSrTIDXnnmWNmVNNgXe1nWcjhYBm4V1JoLUfXUpwrX5oM1F
+         958uS/Cp0NjR94yjF78x5w6nKAraA+YF4yE8vTzJ2puiB8y3AKXRnVFM78v9fQOL7tTk
+         M2Qh5xgC+Y93jY6eMTH+kH4G+X7zaKzcchWUfM2q0cTR2fVfHCXCfHtw7AqdgEWzCLBz
+         PnWkebP55R8Pspq4jvD1k2HBVYmb+Dk4KVZozA1wvPG6AlD5U3TXtHi9kTvgARpJuVeR
+         WxTA==
+X-Gm-Message-State: AC+VfDwtANECLu6WifuYuuqN8vM2EUSXt3WLJLGCKlgKBhjuL5rwftaS
+        u08MTsBMOqh5Jvcpn6wcNyoH1e9079lk5wJeeWg=
+X-Google-Smtp-Source: ACHHUZ7U5uvuaRU2XQx3fWPq48tXSMo+4gvRAtJWWGsNOucGTPfPvzlMCOGgwinW52VweuMJvCobK+Kc5tdm+cWSWa4=
+X-Received: by 2002:a67:ff08:0:b0:439:4284:3f74 with SMTP id
+ v8-20020a67ff08000000b0043942843f74mr460985vsp.16.1685435459529; Tue, 30 May
+ 2023 01:30:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Mailru-Src: smtp
-X-7564579A: 78E4E2B564C1792B
-X-77F55803: 4F1203BC0FB41BD9FA9FE7958A526B7720A7778064FAD46CFFAE4421AB0E3E4100894C459B0CD1B9C0B2C06A1FFB7161C03AB56184CCB6AEC09BBED9A7CA5B3118AC86DD68069C2D
-X-7FA49CB5: FF5795518A3D127A4AD6D5ED66289B5278DA827A17800CE705B093C0FC4B30B9EA1F7E6F0F101C67BD4B6F7A4D31EC0BCC500DACC3FED6E28638F802B75D45FF8AA50765F790063764FE777F378F21448638F802B75D45FF36EB9D2243A4F8B5A6FCA7DBDB1FC311F39EFFDF887939037866D6147AF826D8B78AB5E607A4E02BBF2F15A3D2B86E216F9789CCF6C18C3F8528715B7D10C86878DA827A17800CE7D9442B0B5983000E8941B15DA834481FA18204E546F3947C6633242DC0339950F6B57BC7E64490618DEB871D839B7333395957E7521B51C2DFABB839C843B9C08941B15DA834481F8AA50765F790063738CA231DD84B2BC5389733CBF5DBD5E9B5C8C57E37DE458BD9DD9810294C998ED8FC6C240DEA76428AA50765F7900637F4E2927FE2267820D81D268191BDAD3DBD4B6F7A4D31EC0BEA7A3FFF5B025636D81D268191BDAD3D78DA827A17800CE75A26554B14DCFBBCEC76A7562686271ED91E3A1F190DE8FD2E808ACE2090B5E14AD6D5ED66289B5259CC434672EE63711DD303D21008E298D5E8D9A59859A8B6B372FE9A2E580EFC725E5C173C3A84C3B62F86BFDE33731535872C767BF85DA2F004C90652538430E4A6367B16DE6309
-X-C1DE0DAB: 0D63561A33F958A51D2D2310D2A0B0644D7E3024AE287B0661549223A00EC5C2F87CCE6106E1FC07E67D4AC08A07B9B06A1CB4668A9CA5FA9C5DF10A05D560A950611B66E3DA6D700B0A020F03D25A09D2DCF9CF1F528DBCCB5012B2E24CD356
-X-C8649E89: 1C3962B70DF3F0ADBF74143AD284FC7177DD89D51EBB7742DC8270968E61249B1004E42C50DC4CA955A7F0CF078B5EC49A30900B95165D3450C5E6D685282BA13E41F4D1A7DD05FF078C923A70BD21D2D8E15DDE1F473278F3753A140BDB13DD1D7E09C32AA3244CE5CAC226F57046CB3B0967B16FFF7EF89CA7333006C390A08D5DD81C2BAB7D1D
-X-D57D3AED: 3ZO7eAau8CL7WIMRKs4sN3D3tLDjz0dLbV79QFUyzQ2Ujvy7cMT6pYYqY16iZVKkSc3dCLJ7zSJH7+u4VD18S7Vl4ZUrpaVfd2+vE6kuoey4m4VkSEu530nj6fImhcD4MUrOEAnl0W826KZ9Q+tr5ycPtXkTV4k65bRjmOUUP8cvGozZ33TWg5HZplvhhXbhDGzqmQDTd6OAevLeAnq3Ra9uf7zvY2zzsIhlcp/Y7m53TZgf2aB4JOg4gkr2biojjC1ARgSIbgSLvs3oywYgqw==
-X-Mailru-Sender: 4CE1109FD677D2770147F6A9E21DCA7BC7F566A1B8E54524820F4E3C0788D1EDCC1DBAD77A66FE617E3C9C7AF06D9E7B78274A4A9E9E44FD3C3897ABF9FF211DE8284E426C7B2D9A5FEEDEB644C299C0ED14614B50AE0675
-X-Mras: Ok
-X-7564579A: B8F34718100C35BD
-X-77F55803: 6242723A09DB00B4485927362E3B8E42AAA24C10A56A03911FEBDA0C0CF6EE17049FFFDB7839CE9EE822F105BA4D6AE1D23EF48A982D229189B6EF036818F9332558D62C152ECA77
-X-7FA49CB5: 0D63561A33F958A5EA5FAE7B045DB8F1F675EAC1C545B38B221D666B6DBB12C8CACD7DF95DA8FC8BD5E8D9A59859A8B68EAFBCB99A755DA6
-X-D57D3AED: 3ZO7eAau8CL7WIMRKs4sN3D3tLDjz0dLbV79QFUyzQ2Ujvy7cMT6pYYqY16iZVKkSc3dCLJ7zSJH7+u4VD18S7Vl4ZUrpaVfd2+vE6kuoey4m4VkSEu530nj6fImhcD4MUrOEAnl0W826KZ9Q+tr5xhPKz0ZEsZ5k6NOOPWz5QAiZSCXKGQRq3/7KxbCLSB2ESzQkaOXqCBFZPLWFrEGlV1shfWe2EVcxl5toh0c/aCGOghz/frdRhzMe95NxDFdZdU6KX1s6V7K1l9KCkRYmA==
-X-Mailru-MI: C000000000000800
-X-Mras: Ok
+References: <20230530022917.18574-1-listdansp@mail.ru> <20230530022917.18574-2-listdansp@mail.ru>
+In-Reply-To: <20230530022917.18574-2-listdansp@mail.ru>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 30 May 2023 11:30:48 +0300
+Message-ID: <CAOQ4uxgCizoAT1fWLKy6hytdhBiCwV0nSwkqzyVckozx5EACPA@mail.gmail.com>
+Subject: Re: [PATCH 5.10 1/1] ovl: fail on invalid uid/gid mapping at copy up
+To:     Danila Chernetsov <listdansp@mail.ru>
+Cc:     stable@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        Seth Forshee <sforshee@kernel.org>,
+        Christian Brauner <brauner@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This patch is needed to fix CVE-2023-0386
+On Tue, May 30, 2023 at 5:44=E2=80=AFAM Danila Chernetsov <listdansp@mail.r=
+u> wrote:
+>
+> From: Miklos Szeredi <mszeredi@redhat.com>
+>
+> commit  4f11ada10d0ad3fd53e2bd67806351de63a4f9c3 upstream.
+>
+> If st_uid/st_gid doesn't have a mapping in the mounter's user_ns, then
+> copy-up should fail, just like it would fail if the mounter task was doin=
+g
+> the copy using "cp -a".
+>
+> There's a corner case where the "cp -a" would succeed but copy up fail: i=
+f
+> there's a mapping of the invalid uid/gid (65534 by default) in the user
+> namespace.  This is because stat(2) will return this value if the mapping
+> doesn't exist in the current user_ns and "cp -a" will in turn be able to
+> create a file with this uid/gid.
+>
+> This behavior would be inconsistent with POSIX ACL's, which return -1 for
+> invalid uid/gid which result in a failed copy.
+>
+> For consistency and simplicity fail the copy of the st_uid/st_gid are
+> invalid.
+>
+> Fixes: 459c7c565ac3 ("ovl: unprivieged mounts")
+> Cc: <stable@vger.kernel.org> # v5.11
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> Reviewed-by: Christian Brauner <brauner@kernel.org>
+> Reviewed-by: Seth Forshee <sforshee@kernel.org>
+> Signed-off-by: Danila Chernetsov <listdansp@mail.ru>
+> ---
+>  fs/overlayfs/copy_up.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index e466c58f9ec4..fd33abc0edc0 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -882,6 +882,10 @@ static int ovl_copy_up_one(struct dentry *parent, st=
+ruct dentry *dentry,
+>         if (err)
+>                 return err;
+>
+> +       if (!kuid_has_mapping(current_user_ns(), ctx.stat.uid) ||
+> +           !kgid_has_mapping(current_user_ns(), ctx.stat.gid))
+> +               return -EOVERFLOW;
+> +
+>         ctx.metacopy =3D ovl_need_meta_copy_up(dentry, ctx.stat.mode, fla=
+gs);
+>
+>         if (parent) {
+> --
+> 2.25.1
+>
+
+You are requesting to backport to kernel 5.10.y a fix to a bug that is tagg=
+ed as
+introduced in 5.11 with overlayfs unprivileged mounts.
+
+IOW, in kernel 5.10, current_user_ns() would always be init_user_ns.
+
+Am I missing something?
+
+Thanks,
+Amir.
