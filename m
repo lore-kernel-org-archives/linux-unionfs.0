@@ -2,127 +2,73 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CC86C77B73
-	for <linux-unionfs@archiver.kernel.org>; Tue, 30 May 2023 14:15:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7A77C7EE37
+	for <linux-unionfs@archiver.kernel.org>; Tue, 30 May 2023 14:29:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233036AbjE3OP4 (ORCPT
+        id S231739AbjE3O3c (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 30 May 2023 10:15:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58010 "EHLO
+        Tue, 30 May 2023 10:29:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41266 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232518AbjE3OPz (ORCPT
+        with ESMTP id S231836AbjE3O31 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 30 May 2023 10:15:55 -0400
-Received: from mail-ua1-x92d.google.com (mail-ua1-x92d.google.com [IPv6:2607:f8b0:4864:20::92d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4FF51A2
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2023 07:15:30 -0700 (PDT)
-Received: by mail-ua1-x92d.google.com with SMTP id a1e0cc1a2514c-786d10951d8so1305105241.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 30 May 2023 07:15:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1685456128; x=1688048128;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=HadSdWrukqdbBt43//k/Q4boeRw3eTi2aTbyslqwByo=;
-        b=h6WXLDaRtJCJIPVxVHit4LGR5cInwGm1PmYSJDaBRQH8xsBnQB9JiPmebLX5D4uxDp
-         VD1kc1GLqGdtEgYg02bt/kqY1HCbc/JfaRJCK2ZivAKEHx8sUmhZctXZ7HiRnPvlEueF
-         E6yYW0NRyx64LJqqYNy7oadJHzHPepKX7IujBq+HNcu49MgklEuJz8wUxlEGRin+mgHu
-         S+JzRcq/Tv5r/auS9kbigTOTjotpIMOvHJpewllm8sVmtai7mCB8VBJCyrYA0mx2Pcvv
-         vsmzpt/8QLreT5dxAByWMgSt7elc7aKH6JLU5lcCAS8qkqUlREMRkeJdQ4W2S/62HUyI
-         P+ig==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1685456128; x=1688048128;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=HadSdWrukqdbBt43//k/Q4boeRw3eTi2aTbyslqwByo=;
-        b=iUBBCt6n3kYJvmC3rTu123hEJu/2rFqQg+P9K/l0h31kv9RmamYQfcQRPg9ZOmiX9O
-         9S7poFr+qazV7VgzEd+XFhnLLDxQM1vG7CC5o1ss4jbAWKI3O6o4SugBDNUgxIQy/8F0
-         WX0rWRMD9gF7WQxC3xzjhtIT7l2jLSfJHns/tE6gEoXQdS/h+fzjEJTt4n3g7BFQaCvh
-         Af4LT3oshs2BucjSqkUsR++zoSnUP1fVVysLDXeXU1SKVXhWer8nI8CrTQtP27I7vWsw
-         fQ4ZYFq/Ufm8pfWWcZKmgeAfonMWP4sNopH3KxM8VdoFbqPhzICdZnaJj3xHp+CUL5Pw
-         B67A==
-X-Gm-Message-State: AC+VfDwZKNX5puaXSSzjo6JGQPTkc2ZOkTKMjG5+F8fqBU1jsvfiSVeo
-        Nh0qrONBhWfUh8EdUR+pbHWfvXuRNFduTo0e8OHYe1vWGEU=
-X-Google-Smtp-Source: ACHHUZ6I++Y1ZdrHwsYogtDx00wuyjWJWCNN1j6mmHHStj9C4DjbX0GLBZpwDHTRfJuzWAsG/lBlxmtyYnnF7ghPmHw=
-X-Received: by 2002:a67:fe8c:0:b0:434:70b4:b356 with SMTP id
- b12-20020a67fe8c000000b0043470b4b356mr854784vsr.28.1685456128025; Tue, 30 May
- 2023 07:15:28 -0700 (PDT)
+        Tue, 30 May 2023 10:29:27 -0400
+Received: from verein.lst.de (verein.lst.de [213.95.11.211])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66716102;
+        Tue, 30 May 2023 07:29:05 -0700 (PDT)
+Received: by verein.lst.de (Postfix, from userid 2407)
+        id 277B268B05; Tue, 30 May 2023 16:28:27 +0200 (CEST)
+Date:   Tue, 30 May 2023 16:28:26 +0200
+From:   Christoph Hellwig <hch@lst.de>
+To:     Christian Brauner <brauner@kernel.org>
+Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Xiu Jianfeng <xiujianfeng@huawei.com>,
+        gregkh@linuxfoundation.org, rafael@kernel.org,
+        viro@zeniv.linux.org.uk, dhowells@redhat.com, code@tyhicks.com,
+        hirofumi@mail.parknet.co.jp, linkinjeon@kernel.org,
+        sfrench@samba.org, senozhatsky@chromium.org, tom@talpey.com,
+        chuck.lever@oracle.com, jlayton@kernel.org, miklos@szeredi.hu,
+        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
+        stephen.smalley.work@gmail.com, eparis@parisplace.org,
+        casey@schaufler-ca.com, dchinner@redhat.com,
+        john.johansen@canonical.com, mcgrof@kernel.org,
+        mortonm@chromium.org, fred@cloudflare.com, mpe@ellerman.id.au,
+        nathanl@linux.ibm.com, gnoack3000@gmail.com,
+        roberto.sassu@huawei.com, linux-kernel@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org,
+        linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
+        wangweiyang2@huawei.com, Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
+Message-ID: <20230530142826.GA9376@lst.de>
+References: <20230505081200.254449-1-xiujianfeng@huawei.com> <20230515-nutzen-umgekehrt-eee629a0101e@brauner> <75b4746d-d41e-7c9f-4bb0-42a46bda7f17@digikod.net> <20230530-mietfrei-zynisch-8b63a8566f66@brauner>
 MIME-Version: 1.0
-References: <20230427130539.2798797-1-amir73il@gmail.com> <CAL7ro1G7DQS_aAC4+9-ppdQz_7vjoXdBLohZ6bKo6S75NQUDPA@mail.gmail.com>
- <CAOQ4uxhN1dPBkhAu3Zag8=RKCbzMQghuXnyp+uur83dRW8tz6Q@mail.gmail.com>
- <87h6s0z6rf.fsf@redhat.com> <CAOQ4uxhkCgU2=F2oAJn34Jor2_Hr56fLsa8cAAz936G05d-+ZQ@mail.gmail.com>
- <CAL7ro1EoNDMxU2d9WYrb772VFWWMDWV=KVvrZDnK=5byemmo8Q@mail.gmail.com>
- <fb711bb4-3f25-ccee-0d21-2cb6deea75ec@linux.alibaba.com> <CAOQ4uxiCzTbr4OXhxv=RbNbKn+kaBva-Wkz4AGW8OJUwL3GfLQ@mail.gmail.com>
- <CAJfpegvsEuSNepb_9MNEkEFsW7R60DDk57x3oivA6wx9y8StRA@mail.gmail.com>
-In-Reply-To: <CAJfpegvsEuSNepb_9MNEkEFsW7R60DDk57x3oivA6wx9y8StRA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 30 May 2023 17:15:16 +0300
-Message-ID: <CAOQ4uxh14O9aRiewc+nq+AL-029YGu4bb4AZpp854r78Jm=_dw@mail.gmail.com>
-Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Gao Xiang <hsiangkao@linux.alibaba.com>,
-        Alexander Larsson <alexl@redhat.com>,
-        Giuseppe Scrivano <gscrivan@redhat.com>,
-        linux-unionfs@vger.kernel.org,
-        Christian Brauner <brauner@kernel.org>,
-        Lennart Poettering <lennart@poettering.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230530-mietfrei-zynisch-8b63a8566f66@brauner>
+User-Agent: Mutt/1.5.17 (2007-11-01)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, May 30, 2023 at 5:08=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Sat, 27 May 2023 at 16:04, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > If we would want to support data-only layers in the middle on the
-> > stack, which would this syntax make sense?
-> > lowerdir=3Dlower1::data1:lower2::data2
-> >
-> > If this syntax makes sense to everyone, then we can change the syntax
-> > of data-only in the tail from lower1::data1:data2 to lower1::data1::dat=
-a2
-> > and enforce that after the first ::, only :: are allowed.
-> >
-> > Miklos, any thoughts?
-> > I have a feeling that this was your natural interpretation when you fir=
-st
-> > saw the :: syntax.
->
-> Yes, I think it's more natural to have a prefix for each data-only
-> layer.  And this is also good for extensibility, as discussed.
->
+On Tue, May 30, 2023 at 03:58:35PM +0200, Christian Brauner wrote:
+> The main concern which was expressed on other patchsets before is that
+> modifying inode operations to take struct path is not the way to go.
+> Passing struct path into individual filesystems is a clear layering
+> violation for most inode operations, sometimes downright not feasible,
+> and in general exposing struct vfsmount to filesystems is a hard no. At
+> least as far as I'm concerned.
 
-Good timing ;-)
+Agreed.  Passing struct path into random places is not how the VFS works.
 
-I was just about to say that I changed the syntax and pushed to:
+> So the best way to achieve the landlock goal might be to add new hooks
 
-https://github.com/amir73il/linux/commits/ovl-lazy-lowerdata-v3
-https://github.com/amir73il/xfstests/commits/ovl-lazy-lowerdata
+What is "the landlock goal", and why does it matter?
 
-The gist of the documentation of v3 is:
+> or not. And we keep adding new LSMs without deprecating older ones (A
+> problem we also face in the fs layer.) and then they sit around but
+> still need to be taken into account when doing changes.
 
-Below the top most lower layer, any number of lower most layers may be defi=
-ned
-as "data-only" lower layers, using double colon ("::") separators.
-A normal lower layer is not allowed to be below a data-only layer, so singl=
-e
-colon separators are not allowed to the right of double colon ("::") separa=
-tors.
-
-For example:
-
-  mount -t overlay overlay -olowerdir=3D/l1:/l2:/l3::/do1::/do2 /merged
-
-
-Do you need me to post the v3 patches?
-
-The changes since ovl-lazy-lowerdata-v2 branch are:
-- Reabse on 6.4-rc2 + NULL deref fixes
-- Syntax change
-
-Thanks,
-Amir.
+Yes, I'm really worried about th amount of LSMs we have, and the weird
+things they do.
