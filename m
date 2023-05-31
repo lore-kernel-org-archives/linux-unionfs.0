@@ -2,118 +2,122 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F815C77B73
-	for <linux-unionfs@archiver.kernel.org>; Wed, 31 May 2023 14:20:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7995C77B7A
+	for <linux-unionfs@archiver.kernel.org>; Wed, 31 May 2023 15:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235836AbjEaOUH (ORCPT
+        id S234154AbjEaPMq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 31 May 2023 10:20:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32940 "EHLO
+        Wed, 31 May 2023 11:12:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235858AbjEaOTa (ORCPT
+        with ESMTP id S234184AbjEaPMp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 31 May 2023 10:19:30 -0400
-Received: from sonic311-29.consmr.mail.ne1.yahoo.com (sonic311-29.consmr.mail.ne1.yahoo.com [66.163.188.210])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92C1D10CA
-        for <linux-unionfs@vger.kernel.org>; Wed, 31 May 2023 07:18:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1685542634; bh=u06wsoXDKdLhDwBL6GQjdUhNEcg8dn6HnYPO197Z4ZY=; h=Date:Subject:To:Cc:References:From:In-Reply-To:From:Subject:Reply-To; b=uTl2NPF0uY45Lh47ZMmSIPqHz12daNS0NgeNKiReY8eyrxDDrfTQcgiz4NnQWUNQW7F1MwuSDHW9ZpVyLJqKOHJPOz/6KCpO4nKGd5BVNbzRyKmJHyu80qxzU/KEvZHBOfLp6u/SJMgRS0b0pLcN8zO52SWl1YDRCuA2SaotQ3TXufEATP7RYyKZYnLWthOz2EVCLnd2aIr7rdJVTCDb3fvEe/oQHsU+l8nHuw+OTcr/AF+gsikWYq13eAlw1UEkTq5PNC3MECGdLjrjmklJLYIaf8/CDVL5UuQVhvmo7Bzp6nE4UogviP7f3QRdcwQxCbsQypmHU8PKuSDA+WRWnQ==
-X-SONIC-DKIM-SIGN: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1685542634; bh=In52hxvGcGscBnK4YcfxGoJg05ahXzVDO4vWcIkg9zX=; h=X-Sonic-MF:Date:Subject:To:From:From:Subject; b=FZcoenma9wFmozb+7JbcPV2PcIO/+4pT7+0R3axAr1SRbtx7EI4JAlM/1BveGMIbY5/tsB7TSdMdDoPO635kk3pi4OH2yXPwQL9RGvoIBv+SGfINgAwDfdKoKx50N5kV0s0L2STPyKq7F7FzFebllYJEYJ3uo5NUAHsE2hEpixpnCq+vJOongrz1lr2O5immV+bFN2Bw03Q6hv43aBYMle/pRgjoqhWpfI6aO9u9sYPrvKq0k91adtMIH2cpfvckSuHxsStj/3CaZJ7acD5JASKu7FwJe6R4fuSCz+LDohr6Vir2j/LSuECeSdR73HaRKDE6jPOUDMmA2yQE5Vv4QA==
-X-YMail-OSG: YS2OiOgVM1kmwmgmji0DUz5dLhGzTb5Z198M4.LCNKObOZhn4oZZvKSnFZmfrxY
- UN6hR2P.A3qTmfVVDLFNYjn5QLt.nWYU8UGVZqmdVBdYYliraQ4peiZ_mZcfzn3.A8K3FJVwas4G
- KCkturum0T2vml6moo5VB_FFFCpq9blIh4jyzDm553j1p2bCA71u8R6jlUzlpTIt_AfZPJNoCA__
- H0qDyP0SzecdXb8h5oqmF9l3hveY.Oscf_4EXTa6rBmRoFDSjkoq8QSewWZX3XufbrpnwqTtTVUw
- 5P4lE4bm8YEuzhtOqPLNsFHy8ALL9jifaNIHQeYWomRilT54uVLHQBjcs2PUTQk9EBgGFm1Rmmdt
- B4KynaXuuw1_MkEUIlciCaFkiDKBTKzMlbGg2PyiNrmZEinAVHVh7PTVCsbfiMwSBRjXxhjqgdSt
- ukLyssbUujJcgQLRcitba21rG1jjuK3FNCDPagA7f.v1IE_d76aBghD7vp8dhcSs2aiicgjLXhtp
- 0KsakzlYZyz0O0sTeXe_c2ac9GCL_AlpGd9TzKiouagsNT9CCDbgbIU.MKNYAOMcAo1l7PChe4iE
- zSTIZcZEnzmTx1Cwxy.VgFIeEXgxMD22KonFWwq1k8lyWC7isb9.8czYhGHqT4KuTjcg.fGOd.p5
- PcYFKBOQm0244ErDybsrwRrRoYWLFQcFq5ZM3_akYqobgfpsqw1KPRGneQQA8Nz3fja7n6GUbi.0
- sF3GEfazRl_OkzU9pLsL2tvFb2oo4cLKB9oLJQvfOMX5PVv6KquqCIGB9kQFvpCtGrDQpkhF9uwO
- zByidQDBEvSU.ktIviMPVxB1aqq5pcdpQkfsVS.cPz9SKVqFZQ661XuWjjPg9Kgp3e9M0POOl4R1
- rXvZJb_zS8HqbT.vWYysdJ5KhAGE6Iz5wlVivG2pXjXNGRJpLUOvz25viKevlGxdtO7j48C9FwUS
- bJG0rsEKsL62VVoxF4PuMPsAyFj9B5XdmQL_8uEABBVfXBEFeiB26z7FB0vJ0a3YZ_uSrDioHI9k
- nkQITYnz2FAAVrFLOcedWIc8xj4iPYDkkLJIqyno6KmWYiZQrQLAJWx4iOGKg72Fg2ihfubvT85r
- fbelkwhNU7S814bNZoeXzHHJKHNqpW.SVpzgloR_rWwPhwopW2hv5P4zcV3N_BNwZ7hVDUwn0TBZ
- TrnvLMAvHMzsjtYBAkpZE19ZH6b0R_qDTh95G_nF7DgX7oBkCp0lgN96yAmR9uxkxgRJGLxycFN5
- I9iuict_MkQhlkgXJ3Z0HtOrvP.Eg6jO5tzPRE9zS23fN.zQb5mWCTkZO5tTD6f0v0gWiR4Ipy.Q
- WP4x.2R7E5ZW4bBZ4Dyh_CmcklfnK6Xd5b6p3XFXwPn0iSWp1EyX7y7eKWSqjAzLG9e4sLtj4Ms8
- OA9jegw6OLMyuMrqCGCN6aJ6mlG6jhFhiPgl8AkiPLFOD.KEoqO4IkMnkBE_cyF3EpqnDZOqHnbS
- 1eg3T_W027MlCxYxaQnjXm3ovfPg3S2zbHe4E2Su6n5D7vpK_pcTsL.VBJP7M31FkZABOboMXUl8
- 9OjG9feh6TKi7q1wcG4iNFhgeOlXfcxzG.1zgrTbib79_ZBbsgsob9dNCzCFEZkf8dhcXeqBGA8D
- 35Re5Hm2sZgi1YAJK0qvF5hPlMFmciJVbhlYm9hDa50iGdskBZoLcn1SJFHjx6yxBNbXWnD2vqiX
- zMwjsMNeICbbzvVLzWiA7iHhQ1jUvnKO8xGwQXjGy3b8CA2wQ6LOf4G2wabay9gwtSzKpAoNCRwf
- 2903ZRu3jb1qoz3OXVdKb6G9phej1Yr1.G2LnSPYfiZGYNhFEsRXWF9JMI7IEX2TGbS6Yy4brrPf
- TNrZ4dFaKP1cNxLBT7tQKWqHopat3VrDLHWs0pfcgBKvk1wJjWiVZuRPdMtlQ5m.YBhpcT3KeubG
- 2Nddz9SCkTCdE9dLB6PQOLpd6IfCLw9clJNhKfccV1hvMEJ6B0Si2Dm5lG6ehw0.HhcC61YrSuNo
- MZTp9MbC.z0KejFZeSUufaJa.0QwifMQkyjMV7LWTZnp.fo2C2RYgPyxqZCc46kXctvazZO.6WuD
- 2puR7R75dq8bRw77TcUQ.gG1I6Lv4sdt8Fxf84nPpOLxQ0VR_kRW.3StmliYVsqwshi_2FIMrC.i
- JraN9OfrRBrDGTnKPvU4OpTs8nRiDZNPm.CboKKDWSWk6uMsAXNkpyxWW7dRodvE1zI1oKKFsniL
- 0ArNumaHMH7b9R6glIEZlbmcJ3zn.5mQyOhh0J4YxJszoanvccTV_P02lqJGioEc-
-X-Sonic-MF: <casey@schaufler-ca.com>
-X-Sonic-ID: 4d60b986-7ed3-4d05-823c-5d7a7b7466b1
-Received: from sonic.gate.mail.ne1.yahoo.com by sonic311.consmr.mail.ne1.yahoo.com with HTTP; Wed, 31 May 2023 14:17:14 +0000
-Received: by hermes--production-ne1-574d4b7954-bq277 (Yahoo Inc. Hermes SMTP Server) with ESMTPA ID 174ebacd8784abefa7ff5b7a2ade66e9;
-          Wed, 31 May 2023 14:17:11 +0000 (UTC)
-Message-ID: <cbd61b82-43e1-ad4d-e984-775f1209948c@schaufler-ca.com>
-Date:   Wed, 31 May 2023 07:17:08 -0700
+        Wed, 31 May 2023 11:12:45 -0400
+X-Greylist: delayed 131973 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 31 May 2023 08:12:37 PDT
+Received: from smtp45.i.mail.ru (smtp45.i.mail.ru [95.163.41.83])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9BAF98;
+        Wed, 31 May 2023 08:12:37 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mail.ru; s=mail4;
+        h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:From:Subject:Content-Type:Content-Transfer-Encoding:To:Cc; bh=B0l+XTA5FGlPVTPUKIvg8UhwhNLqm34Y1pLjTr83bQM=;
+        t=1685545958;x=1685635958; 
+        b=Y3lLT2cO/HAhkKPnVmkRwiobUl/82Guj6g1oDUVLvnSmBe5kT8vfYZO8ZMk+HFq7bG2w1+9U4XZywJT6Ai41Au96JAhz8yKRogz1K3uWwEwRKcRelKK/P7eVFZipXRBahUP753dispGSRurywpqhCv5Liw2O5ovLB7xzgk1tFhk26N0yMvUHhqSSUKr7eCZGub1i0DqSBST7ML2yzq/1nD+tbkZGaY7Mq22qFtIdcfq5MtXmXow+1EYBwDwmQn1dGEQCB9UvVUE/GRVLdP1ycYVivaFo9z6inFtMu11S3ZlnVH+mXTZYpCeWfVPloSmgo2+kiyDYzz1BTbJ7ggv+og==;
+Received: by smtp45.i.mail.ru with esmtpa (envelope-from <listdansp@mail.ru>)
+        id 1q4NV3-00DwZL-VZ; Wed, 31 May 2023 18:12:34 +0300
+Message-ID: <35224f5b-cc66-ec27-7477-e9f98e7a5279@mail.ru>
+Date:   Wed, 31 May 2023 18:12:32 +0300
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
- Thunderbird/102.11.0
-Subject: Re: [PATCH -next 0/2] lsm: Change inode_setattr() to take struct
-Content-Language: en-US
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        =?UTF-8?B?TWlja2HDq2wgU2FsYcO8?= =?UTF-8?Q?n?= <mic@digikod.net>,
-        Xiu Jianfeng <xiujianfeng@huawei.com>,
-        gregkh@linuxfoundation.org, rafael@kernel.org,
-        viro@zeniv.linux.org.uk, dhowells@redhat.com, code@tyhicks.com,
-        hirofumi@mail.parknet.co.jp, linkinjeon@kernel.org,
-        sfrench@samba.org, senozhatsky@chromium.org, tom@talpey.com,
-        chuck.lever@oracle.com, jlayton@kernel.org, miklos@szeredi.hu,
-        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
-        stephen.smalley.work@gmail.com, eparis@parisplace.org,
-        dchinner@redhat.com, john.johansen@canonical.com,
-        mcgrof@kernel.org, mortonm@chromium.org, fred@cloudflare.com,
-        mpe@ellerman.id.au, nathanl@linux.ibm.com, gnoack3000@gmail.com,
-        roberto.sassu@huawei.com, linux-kernel@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-cachefs@redhat.com,
-        ecryptfs@vger.kernel.org, linux-cifs@vger.kernel.org,
-        linux-nfs@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-security-module@vger.kernel.org, selinux@vger.kernel.org,
-        wangweiyang2@huawei.com, Casey Schaufler <casey@schaufler-ca.com>
-References: <20230505081200.254449-1-xiujianfeng@huawei.com>
- <20230515-nutzen-umgekehrt-eee629a0101e@brauner>
- <75b4746d-d41e-7c9f-4bb0-42a46bda7f17@digikod.net>
- <20230530-mietfrei-zynisch-8b63a8566f66@brauner>
- <20230530142826.GA9376@lst.de>
- <301a58de-e03f-02fd-57c5-1267876eb2df@schaufler-ca.com>
- <20230531132200.GB30016@lst.de>
-From:   Casey Schaufler <casey@schaufler-ca.com>
-In-Reply-To: <20230531132200.GB30016@lst.de>
-Content-Type: text/plain; charset=UTF-8
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.1
+Subject: Re: [PATCH 5.10 1/1] ovl: fail on invalid uid/gid mapping at copy up
+Content-Language: ru
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     stable@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Miklos Szeredi <mszeredi@redhat.com>,
+        Seth Forshee <sforshee@kernel.org>,
+        Christian Brauner <brauner@kernel.org>
+References: <20230530022917.18574-1-listdansp@mail.ru>
+ <20230530022917.18574-2-listdansp@mail.ru>
+ <CAOQ4uxgCizoAT1fWLKy6hytdhBiCwV0nSwkqzyVckozx5EACPA@mail.gmail.com>
+From:   listdansp <listdansp@mail.ru>
+In-Reply-To: <CAOQ4uxgCizoAT1fWLKy6hytdhBiCwV0nSwkqzyVckozx5EACPA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-X-Mailer: WebService/1.1.21495 mail.backend.jedi.jws.acl:role.jedi.acl.token.atz.jws.hermes.yahoo
+Authentication-Results: smtp45.i.mail.ru; auth=pass smtp.auth=listdansp@mail.ru smtp.mailfrom=listdansp@mail.ru
+X-Mailru-Src: smtp
+X-7564579A: B8F34718100C35BD
+X-77F55803: 4F1203BC0FB41BD9FA9FE7958A526B7749C3D014EB2503E6839C1F944BEC2EA800894C459B0CD1B98F06A9CF50DFA013A8FB064D0C686CF76B0A0FE30BB0F3737B820C60925959D8
+X-7FA49CB5: FF5795518A3D127A4AD6D5ED66289B5278DA827A17800CE743A67C3F703598BFEA1F7E6F0F101C67BD4B6F7A4D31EC0BCC500DACC3FED6E28638F802B75D45FF8AA50765F7900637AC83A81C8FD4AD23D82A6BABE6F325AC2E85FA5F3EDFCBAA7353EFBB55337566E73BB9F70E9C8FAC9D0E474CA61CF5D6DB63F1BD2D50B66BA471835C12D1D977725E5C173C3A84C31E02C13459908652117882F4460429728AD0CFFFB425014E868A13BD56FB6657D81D268191BDAD3DC09775C1D3CA48CF15B380B5B570BCA9BA3038C0950A5D36C8A9BA7A39EFB766EC990983EF5C0329BA3038C0950A5D36D5E8D9A59859A8B6F4CAD2F895B8664376E601842F6C81A1F004C906525384303E02D724532EE2C3F43C7A68FF6260569E8FC8737B5C2249EC8D19AE6D49635B68655334FD4449CB9ECD01F8117BC8BEAAAE862A0553A39223F8577A6DFFEA7CE1AEB6AF2DA18B6243847C11F186F3C59DAA53EE0834AAEE
+X-C8649E89: 1C3962B70DF3F0ADBF74143AD284FC7177DD89D51EBB7742DC8270968E61249B1004E42C50DC4CA955A7F0CF078B5EC49A30900B95165D346B1FF97F6D0959A27DD7739A9D673168A929A171D74DE76F24C0DC8BA2554B2712BB58559AB791D01D7E09C32AA3244CA20D0A9534768D155C79BAEE451C3FE163871F383B54D9B37F5F07B4909EF5025DA084F8E80FEBD3D42CA810AD4FA7D0A8069D772E6E5B8583DB18EBE73F7D69
+X-D57D3AED: 3ZO7eAau8CL7WIMRKs4sN3D3tLDjz0dLbV79QFUyzQ2Ujvy7cMT6pYYqY16iZVKkSc3dCLJ7zSJH7+u4VD18S7Vl4ZUrpaVfd2+vE6kuoey4m4VkSEu530nj6fImhcD4MUrOEAnl0W826KZ9Q+tr5ycPtXkTV4k65bRjmOUUP8cvGozZ33TWg5HZplvhhXbhDGzqmQDTd6OAevLeAnq3Ra9uf7zvY2zzsIhlcp/Y7m53TZgf2aB4JOg4gkr2biojiEKym4lkdssspREoQkZFiQ==
+X-Mailru-Sender: 4CE1109FD677D2770147F6A9E21DCA7B45B19515236DF9B1A073B805C7F8A3FF97F17C85D3F6D89F7E3C9C7AF06D9E7B78274A4A9E9E44FD3C3897ABF9FF211DE8284E426C7B2D9A5FEEDEB644C299C0ED14614B50AE0675
+X-Mras: Ok
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 5/31/2023 6:22 AM, Christoph Hellwig wrote:
-> On Tue, May 30, 2023 at 07:55:17AM -0700, Casey Schaufler wrote:
->> Which LSM(s) do you think ought to be deprecated?
-> I have no idea.  But what I want is less weirdo things messing with
-> VFS semantics.
 
-I am curious what you consider a weirdo thing done by LSMs. Things like
-io_uring are much stranger than anything an LSM does.
-
+>> From: Miklos Szeredi <mszeredi@redhat.com>
+>>
+>> commit  4f11ada10d0ad3fd53e2bd67806351de63a4f9c3 upstream.
+>>
+>> If st_uid/st_gid doesn't have a mapping in the mounter's user_ns, then
+>> copy-up should fail, just like it would fail if the mounter task was doing
+>> the copy using "cp -a".
+>>
+>> There's a corner case where the "cp -a" would succeed but copy up fail: if
+>> there's a mapping of the invalid uid/gid (65534 by default) in the user
+>> namespace.  This is because stat(2) will return this value if the mapping
+>> doesn't exist in the current user_ns and "cp -a" will in turn be able to
+>> create a file with this uid/gid.
+>>
+>> This behavior would be inconsistent with POSIX ACL's, which return -1 for
+>> invalid uid/gid which result in a failed copy.
+>>
+>> For consistency and simplicity fail the copy of the st_uid/st_gid are
+>> invalid.
+>>
+>> Fixes: 459c7c565ac3 ("ovl: unprivieged mounts")
+>> Cc: <stable@vger.kernel.org> # v5.11
+>> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+>> Reviewed-by: Christian Brauner <brauner@kernel.org>
+>> Reviewed-by: Seth Forshee <sforshee@kernel.org>
+>> Signed-off-by: Danila Chernetsov <listdansp@mail.ru>
+>> ---
+>>   fs/overlayfs/copy_up.c | 4 ++++
+>>   1 file changed, 4 insertions(+)
+>>
+>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>> index e466c58f9ec4..fd33abc0edc0 100644
+>> --- a/fs/overlayfs/copy_up.c
+>> +++ b/fs/overlayfs/copy_up.c
+>> @@ -882,6 +882,10 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+>>          if (err)
+>>                  return err;
+>>
+>> +       if (!kuid_has_mapping(current_user_ns(), ctx.stat.uid) ||
+>> +           !kgid_has_mapping(current_user_ns(), ctx.stat.gid))
+>> +               return -EOVERFLOW;
+>> +
+>>          ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
+>>
+>>          if (parent) {
+>> --
+>> 2.25.1
+>>
+> You are requesting to backport to kernel 5.10.y a fix to a bug that is tagged as
+> introduced in 5.11 with overlayfs unprivileged mounts.
 >
->> I only see one that I
->> might consider a candidate. As for weird behavior, that's what LSMs are
->> for, and the really weird ones proposed (e.g. pathname character set limitations)
->> (and excepting for BPF, of course) haven't gotten far.
-> They haven't gotten far for a reason usually.  Trying to sneak things in
-> through the back door is exactly what is the problem with LSMs.
+> IOW, in kernel 5.10, current_user_ns() would always be init_user_ns.
+>
+> Am I missing something?
+>
+> Thanks,
+> Amir.
+>
+Sorry for this inconvientions, really this issue was introduced in 5.11
 
-Mostly developers play by the rules, and we don't let things sneak in. 
-
+Danila
 
