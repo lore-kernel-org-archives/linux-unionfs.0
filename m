@@ -2,94 +2,108 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E51C7EE25
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 13:10:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62762C7EE25
+	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 13:15:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240227AbjFINKM (ORCPT
+        id S241287AbjFINPW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 9 Jun 2023 09:10:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35834 "EHLO
+        Fri, 9 Jun 2023 09:15:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38806 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229903AbjFINKK (ORCPT
+        with ESMTP id S241293AbjFINPT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 9 Jun 2023 09:10:10 -0400
-Received: from mail-ua1-x92d.google.com (mail-ua1-x92d.google.com [IPv6:2607:f8b0:4864:20::92d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 640D330E4;
-        Fri,  9 Jun 2023 06:10:08 -0700 (PDT)
-Received: by mail-ua1-x92d.google.com with SMTP id a1e0cc1a2514c-783f17f0a00so677026241.2;
-        Fri, 09 Jun 2023 06:10:08 -0700 (PDT)
+        Fri, 9 Jun 2023 09:15:19 -0400
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D16AF132
+        for <linux-unionfs@vger.kernel.org>; Fri,  9 Jun 2023 06:15:14 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id a640c23a62f3a-97454836448so264778966b.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 09 Jun 2023 06:15:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686316207; x=1688908207;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Dmde1pLQrUFHwxH8GArzxr7nArrRokC/6tMbTNZ4vYA=;
-        b=PrPiRxaFrijUaQBfhWQB6UWFzKXRTh8e8GTEAZaCCPhL8ffZCSTEXTmARL0iZV4QyD
-         6eaUFJtpaSSryO3r5tJ692Vim9a2rM9ZWPhku3/Msb6tuSEgqOZCunRQDrI8hBYM65zP
-         oz93dhHdb9oMPZrn9DDcFJPksViNkdQp3JK9V/SU/XLuQwl84qSHWCUj5vDDnQgtfFYE
-         3UUlScGvETd1iwzA50fI7xzDVS4L/lPJuNy7lENCRR6+J3XPvCE9+129oFtJmuxHlpPC
-         B2qtdH3DNVtJw5sGpyrmfPrsA7UFxTyshSVkUwOpwD2Qe8d9reGBMM1jiwVHn5rnkO8b
-         lmXw==
+        d=szeredi.hu; s=google; t=1686316513; x=1688908513;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=O4lMbSF/WKw37kVGzYJN8z0LZRsxBdV16p4NHbZLues=;
+        b=GnuhizAfo1jB5gx1HIPyhR7X8g/tc7i4cFhAWEi+g4yswEORfPkw1Wkxq1jLrcRmzO
+         ZDuAX4QSdBbujRiRz3qhM0Z2ff/nSIIEthiZlKemoU3V29lXnZFAwkR5ak/1A5RAwVV1
+         JHwBs8ZgKp6KxlNAbi2uJJ83CkJenkeyAxI18=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686316207; x=1688908207;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Dmde1pLQrUFHwxH8GArzxr7nArrRokC/6tMbTNZ4vYA=;
-        b=S/GfQI0Gqy+y2VUzkssCJs42pgC50VUgQ4nchOjKeJovO7vzo+8nUY7mps56DKzpEf
-         ct8Pd91Lo6JZK876nzc2VNa8qOXdgdA+GRN4MiymgTOUlEQ31IR+Nbg0LNWmvs1YQBJT
-         zWrbte9w3DXL9eYXp7BYWKpbP0FWjTSYBx5nfJoWmyLB6eqIEObS3eXpBi67Tldwm4Sh
-         hfp9eDfBytYHuqyn4FMYr36g/W9afc2VLzdQda55hmAjfdTE93MPSGTComv1aRW1X6cf
-         biB0GfI0Buv/bPUGgxDuY/ivhj2lta5bVFhw4BU+aNkycsaOcHnYUdqmaFhqGmnPuvpB
-         dLtA==
-X-Gm-Message-State: AC+VfDwlQZYjQiv1eoN0eqZtnksKPfrP2fikfeJS5WrLGHJXQADbQPK9
-        dsXVTrIpPf9otytlKQC482c0o6Lz4FjeubaXtV4=
-X-Google-Smtp-Source: ACHHUZ5shVe8IGXgEE23N53BY9COrpJ5Gm7B62kRYf8XFOw/RwopS+nLAzZtLZzffCZXrmVWuiwSHNpg7AoTM2BlVcI=
-X-Received: by 2002:a67:f95a:0:b0:43b:1e61:2207 with SMTP id
- u26-20020a67f95a000000b0043b1e612207mr876314vsq.21.1686316207465; Fri, 09 Jun
- 2023 06:10:07 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1686316513; x=1688908513;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=O4lMbSF/WKw37kVGzYJN8z0LZRsxBdV16p4NHbZLues=;
+        b=VqQ7csrTdUGhCp6L76lCIqndkeLCkiHRBWmZ/dWWV59KUdiw8l+Q68h90P44cCibZ1
+         WaBORR3hkKhCTAV4mnuWzmRyAaJ7DOlcF1AhuGXwG/OWEfrruIa6bQ97LQnPPoOu3+Xp
+         aXN7niBP/JRNFDX67yxqi7SanqULyhj+gzDk+5sKiRWcFfd+jgKE66bgKxh6mcUE7kl3
+         4pucX63Tkn3ZBWk3wzBfmDKg5Teydb6pgp5CJLgs7UdaHNc2Z3AMoi9ak2mnO49cQD92
+         4MkzI9xMkGfcAE/Z0yzXiQi88DrbDYRkM8qPqcitvg1vuMLNB+fEBJ9h0izj8WcO7V2D
+         lWZQ==
+X-Gm-Message-State: AC+VfDyCA6YPTLU0Y79TBZwzMI/3UtvAb21/GTY/yo8i3r3UGdf3WtLh
+        ZYfZooUC1MvGUQ2+x+3RCq/B6FrD80iIbmaiEetnVw==
+X-Google-Smtp-Source: ACHHUZ7cblCrMkn0nLfqS/kCoNdDKaG/uM5PkAV7C69VJqJogllQr25QqHVSRD848NXXNOfd6XtOssymbkOKu+w9JL8=
+X-Received: by 2002:a17:906:9b85:b0:96f:dd14:f749 with SMTP id
+ dd5-20020a1709069b8500b0096fdd14f749mr1470541ejc.23.1686316513172; Fri, 09
+ Jun 2023 06:15:13 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230609073239.957184-1-amir73il@gmail.com> <20230609073239.957184-2-amir73il@gmail.com>
- <20230609-umwandeln-zuhalten-dc8b985a7ad1@brauner> <CAOQ4uxgR5z3yGqJ7jna=r45_Gru5LePU57XG++Ew_9pGWKcwCQ@mail.gmail.com>
- <20230609-fakten-bildt-4bda22b203f8@brauner> <CAOQ4uxgfvXdkWWLnz=5s6JxP2L50JOsZv63f0P9-KhuHtCEaCQ@mail.gmail.com>
- <20230609-konform-datteln-52f405ce6411@brauner> <20230609-woran-halstuch-b1b82b2a0ee7@brauner>
-In-Reply-To: <20230609-woran-halstuch-b1b82b2a0ee7@brauner>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 9 Jun 2023 16:09:56 +0300
-Message-ID: <CAOQ4uxgnKDemEN2HHZsDdm8v3ut9UKY9+pZj5SHd=NzXdGVmGQ@mail.gmail.com>
-Subject: Re: [PATCH 1/3] fs: use fake_file container for internal files with
- fake f_path
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+References: <20230609073239.957184-1-amir73il@gmail.com>
+In-Reply-To: <20230609073239.957184-1-amir73il@gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 9 Jun 2023 15:15:01 +0200
+Message-ID: <CAJfpegvDoSWPRaoa_i_Do3JDdaXrhohDtfQNObSJ7tNhhuHAKw@mail.gmail.com>
+Subject: Re: [PATCH 0/3] Reduce impact of overlayfs fake path files
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
         Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
         Paul Moore <paul@paul-moore.com>,
         Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        David Howells <dhowells@redhat.com>
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 9, 2023 at 4:00=E2=80=AFPM Christian Brauner <brauner@kernel.or=
-g> wrote:
+On Fri, 9 Jun 2023 at 09:32, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> On Fri, Jun 09, 2023 at 02:54:32PM +0200, Christian Brauner wrote:
-[...]
+> Miklos,
 >
-> Uh, I misread as that's only used in cachefiles and in overlayfs so it's
-> probably fine. I thought this was the generic version. Though it might
-> still be preferable to keep FMODE_NOACCOUNT and FMODE_FAKE_PATH distinct
-> since there's really no reason why tmpfiles should partake in the fake
-> path stuff...
+> This is the solution that we discussed for removing FMODE_NONOTIFY
+> from overlayfs real files.
+>
+> My branch [1] has an extra patch for remove FMODE_NONOTIFY, but
+> I am still testing the ovl-fsnotify interaction, so we can defer
+> that step to later.
+>
+> I wanted to post this series earlier to give more time for fsdevel
+> feedback and if these patches get your blessing and the blessing of
+> vfs maintainers, it is probably better that they will go through the
+> vfs tree.
+>
+> I've tested that overlay "fake" path are still shown in /proc/self/maps
+> and in the /proc/self/exe and /proc/self/map_files/ symlinks.
+>
+> The audit and tomoyo use of file_fake_path() is not tested
+> (CC maintainers), but they both look like user displayed paths,
+> so I assumed they's want to preserve the existing behavior
+> (i.e. displaying the fake overlayfs path).
 
-The reason is (wait for it) no more available bits in f_flags.
-Yeh, there is one place left in 0x4000000, but I didn't want to
-waste it given that FMODE_NOACCOUNT and FMODE_FAKE_PATH
-use cases are pretty close.
+I did an audit of all ->vm_file  and found a couple of missing ones:
 
-BTW, you reminded me that I forgot to CC dhowells (add now).
+dump_common_audit_data
+ima_file_mprotect
+common_file_perm (I don't understand the code enough to know whether
+it needs fake dentry or not)
+aa_file_perm
+__file_path_perm
+print_bad_pte
+file_path
+seq_print_user_ip
+__mnt_want_write_file
+__mnt_drop_write_file
+file_dentry_name
+
+Didn't go into drivers/ and didn't follow indirect calls (e.g.
+f_op->fsysnc).  I also may have missed something along the way, but my
+guess is that I did catch most cases.
 
 Thanks,
-Amir.
+Miklos
