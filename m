@@ -2,108 +2,70 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62762C7EE25
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 13:15:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCF08C7EE29
+	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 13:16:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241287AbjFINPW (ORCPT
+        id S241298AbjFINQk (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 9 Jun 2023 09:15:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38806 "EHLO
+        Fri, 9 Jun 2023 09:16:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40238 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241293AbjFINPT (ORCPT
+        with ESMTP id S241344AbjFINQj (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 9 Jun 2023 09:15:19 -0400
-Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D16AF132
-        for <linux-unionfs@vger.kernel.org>; Fri,  9 Jun 2023 06:15:14 -0700 (PDT)
-Received: by mail-ej1-x62c.google.com with SMTP id a640c23a62f3a-97454836448so264778966b.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 09 Jun 2023 06:15:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1686316513; x=1688908513;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=O4lMbSF/WKw37kVGzYJN8z0LZRsxBdV16p4NHbZLues=;
-        b=GnuhizAfo1jB5gx1HIPyhR7X8g/tc7i4cFhAWEi+g4yswEORfPkw1Wkxq1jLrcRmzO
-         ZDuAX4QSdBbujRiRz3qhM0Z2ff/nSIIEthiZlKemoU3V29lXnZFAwkR5ak/1A5RAwVV1
-         JHwBs8ZgKp6KxlNAbi2uJJ83CkJenkeyAxI18=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686316513; x=1688908513;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=O4lMbSF/WKw37kVGzYJN8z0LZRsxBdV16p4NHbZLues=;
-        b=VqQ7csrTdUGhCp6L76lCIqndkeLCkiHRBWmZ/dWWV59KUdiw8l+Q68h90P44cCibZ1
-         WaBORR3hkKhCTAV4mnuWzmRyAaJ7DOlcF1AhuGXwG/OWEfrruIa6bQ97LQnPPoOu3+Xp
-         aXN7niBP/JRNFDX67yxqi7SanqULyhj+gzDk+5sKiRWcFfd+jgKE66bgKxh6mcUE7kl3
-         4pucX63Tkn3ZBWk3wzBfmDKg5Teydb6pgp5CJLgs7UdaHNc2Z3AMoi9ak2mnO49cQD92
-         4MkzI9xMkGfcAE/Z0yzXiQi88DrbDYRkM8qPqcitvg1vuMLNB+fEBJ9h0izj8WcO7V2D
-         lWZQ==
-X-Gm-Message-State: AC+VfDyCA6YPTLU0Y79TBZwzMI/3UtvAb21/GTY/yo8i3r3UGdf3WtLh
-        ZYfZooUC1MvGUQ2+x+3RCq/B6FrD80iIbmaiEetnVw==
-X-Google-Smtp-Source: ACHHUZ7cblCrMkn0nLfqS/kCoNdDKaG/uM5PkAV7C69VJqJogllQr25QqHVSRD848NXXNOfd6XtOssymbkOKu+w9JL8=
-X-Received: by 2002:a17:906:9b85:b0:96f:dd14:f749 with SMTP id
- dd5-20020a1709069b8500b0096fdd14f749mr1470541ejc.23.1686316513172; Fri, 09
- Jun 2023 06:15:13 -0700 (PDT)
+        Fri, 9 Jun 2023 09:16:39 -0400
+Received: from www262.sakura.ne.jp (www262.sakura.ne.jp [202.181.97.72])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C99830C5;
+        Fri,  9 Jun 2023 06:16:30 -0700 (PDT)
+Received: from fsav119.sakura.ne.jp (fsav119.sakura.ne.jp [27.133.134.246])
+        by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTP id 359DFoBT063047;
+        Fri, 9 Jun 2023 22:15:50 +0900 (JST)
+        (envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
+Received: from www262.sakura.ne.jp (202.181.97.72)
+ by fsav119.sakura.ne.jp (F-Secure/fsigk_smtp/550/fsav119.sakura.ne.jp);
+ Fri, 09 Jun 2023 22:15:50 +0900 (JST)
+X-Virus-Status: clean(F-Secure/fsigk_smtp/550/fsav119.sakura.ne.jp)
+Received: from [192.168.1.6] (M106072142033.v4.enabler.ne.jp [106.72.142.33])
+        (authenticated bits=0)
+        by www262.sakura.ne.jp (8.15.2/8.15.2) with ESMTPSA id 359DFodC063044
+        (version=TLSv1.2 cipher=AES256-GCM-SHA384 bits=256 verify=NO);
+        Fri, 9 Jun 2023 22:15:50 +0900 (JST)
+        (envelope-from penguin-kernel@I-love.SAKURA.ne.jp)
+Message-ID: <4c21885d-828f-98ef-a030-58335716b990@I-love.SAKURA.ne.jp>
+Date:   Fri, 9 Jun 2023 22:15:50 +0900
 MIME-Version: 1.0
-References: <20230609073239.957184-1-amir73il@gmail.com>
-In-Reply-To: <20230609073239.957184-1-amir73il@gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Fri, 9 Jun 2023 15:15:01 +0200
-Message-ID: <CAJfpegvDoSWPRaoa_i_Do3JDdaXrhohDtfQNObSJ7tNhhuHAKw@mail.gmail.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Thunderbird/102.11.2
 Subject: Re: [PATCH 0/3] Reduce impact of overlayfs fake path files
-To:     Amir Goldstein <amir73il@gmail.com>
+Content-Language: en-US
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Christian Brauner <brauner@kernel.org>,
         Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
         Paul Moore <paul@paul-moore.com>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+References: <20230609073239.957184-1-amir73il@gmail.com>
+From:   Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+In-Reply-To: <20230609073239.957184-1-amir73il@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, 9 Jun 2023 at 09:32, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> Miklos,
->
-> This is the solution that we discussed for removing FMODE_NONOTIFY
-> from overlayfs real files.
->
-> My branch [1] has an extra patch for remove FMODE_NONOTIFY, but
-> I am still testing the ovl-fsnotify interaction, so we can defer
-> that step to later.
->
-> I wanted to post this series earlier to give more time for fsdevel
-> feedback and if these patches get your blessing and the blessing of
-> vfs maintainers, it is probably better that they will go through the
-> vfs tree.
->
-> I've tested that overlay "fake" path are still shown in /proc/self/maps
-> and in the /proc/self/exe and /proc/self/map_files/ symlinks.
->
+On 2023/06/09 16:32, Amir Goldstein wrote:
 > The audit and tomoyo use of file_fake_path() is not tested
 > (CC maintainers), but they both look like user displayed paths,
 > so I assumed they's want to preserve the existing behavior
 > (i.e. displaying the fake overlayfs path).
 
-I did an audit of all ->vm_file  and found a couple of missing ones:
+Since I'm not using overlayfs, I don't know the difference between
+real path and fake path. Would you explain using command line example?
 
-dump_common_audit_data
-ima_file_mprotect
-common_file_perm (I don't understand the code enough to know whether
-it needs fake dentry or not)
-aa_file_perm
-__file_path_perm
-print_bad_pte
-file_path
-seq_print_user_ip
-__mnt_want_write_file
-__mnt_drop_write_file
-file_dentry_name
+  mkdir what_path1
+  mkdir what_path2
+  mkdir what_path3
+  mount -t overlayfs ...what_paths_come_here?...
 
-Didn't go into drivers/ and didn't follow indirect calls (e.g.
-f_op->fsysnc).  I also may have missed something along the way, but my
-guess is that I did catch most cases.
+what the pathname returned by wrapping with file_fake_path() is, and
+what the pathname returned by not wrapping with file_fake_path() is?
 
-Thanks,
-Miklos
