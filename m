@@ -2,249 +2,170 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B77C7EE25
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 10:06:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67637C7EE2E
+	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 10:54:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231708AbjFIKFj (ORCPT
+        id S238861AbjFIKyd (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 9 Jun 2023 06:05:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50464 "EHLO
+        Fri, 9 Jun 2023 06:54:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241609AbjFIKEw (ORCPT
+        with ESMTP id S231156AbjFIKyd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 9 Jun 2023 06:04:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A085876AC;
-        Fri,  9 Jun 2023 02:55:58 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1DD146562F;
-        Fri,  9 Jun 2023 09:55:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6D030C433EF;
-        Fri,  9 Jun 2023 09:55:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686304552;
-        bh=uqvOx4/42WF9u1Z4/HtFX8Pm1E0TonQfTXArXvkURkw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hdzIyam8/Hprw/kcrk1+G6ruKL7QoJEXhrCZElBH/E7fcFmxlSZtuGyhKv8D/GdqC
-         r1rT27XhvJT5eHPL2u7ybGdpBoleCA+z9Nw7GN23rvEAZVvSme0KLjGcKMuFy6BzAR
-         m4C5ia4AvOuFGECAuGPIni2pfBAE3rHNHpDLPstMDbc5FHXevH6JOnTjGx+ZkKLOwQ
-         HJXvgiCRsyRAIZNX+fgREfuKqjV9fokG5sqWNMe5P7rs19rbmPItAD+ZPdPCC+zICu
-         tmi783MSlRsCaDVA+u7wqYx/4WrnShKaPlQ16hzpeXoWWGDZ2T72G2iGZD7evNFG3t
-         s1nO3ri4UAXuw==
-Date:   Fri, 9 Jun 2023 11:55:48 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] ovl: port to new mount api
-Message-ID: <20230609-zubetoniert-bretter-52206737d6a8@brauner>
-References: <20230605-fs-overlayfs-mount_api-v1-1-a8d78c3fbeaf@kernel.org>
- <CAOQ4uxhMwet9mO2RpsJn0CFGkqJZ-fTYvDFuV-rAD6xy9RZjkw@mail.gmail.com>
- <20230609-hufen-zensor-490247280b6c@brauner>
- <CAOQ4uxhzbAZLydw=eEH12XfR37LDV-E5SD9b_et5QsG+qyLu-Q@mail.gmail.com>
- <20230609-tasten-raumfahrt-7b8a499ef787@brauner>
- <CAJfpegv4q4=kOM9KLiTmvbPkR15g1vkmWq3brkFuFqy50J7Xwg@mail.gmail.com>
+        Fri, 9 Jun 2023 06:54:33 -0400
+Received: from mail-vs1-xe2a.google.com (mail-vs1-xe2a.google.com [IPv6:2607:f8b0:4864:20::e2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB233EB
+        for <linux-unionfs@vger.kernel.org>; Fri,  9 Jun 2023 03:54:29 -0700 (PDT)
+Received: by mail-vs1-xe2a.google.com with SMTP id ada2fe7eead31-43dda815756so455613137.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 09 Jun 2023 03:54:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686308069; x=1688900069;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=S10cZYn6jMTIFufDBCPJskbbnd8PV/ltIrhpBROzolQ=;
+        b=I74Wq4AVQGEAKxM68lz2vV315ZKmLstfrnvNeCfK/+BFjAYJe9broKazmOyvC4e2Yc
+         d0kzZXe/jruL/kNvr5TC8wz5aHOZKC+LvDydp23iq/V6lb2HES8CcI7g+N+BtnsmoLYO
+         KW3ti80k9O6OdQH4kY7EY5w1zAna20Si9FZtMeNFMUz9O3oT0FZZkkY+c3Jd6zHheX4l
+         Ns5cRDzCFlT9/EFxwx5MX8+PoOgOcuAX8J4GLnryJXPJnPgqQwUHOIHRpvPrsEMt8Ygh
+         iWvGxIGQqAZNkZbh25VVNmrtQlgNX17m/BCcWlNgVtNlmPOHQk5ZT2BsWzcrSE7q+zTw
+         Picw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686308069; x=1688900069;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=S10cZYn6jMTIFufDBCPJskbbnd8PV/ltIrhpBROzolQ=;
+        b=SBLhjavAxW8cLrjktkD7usIU2bTx4EWqeT+qvP4VfCVcYU9lSj2OK2h+L6G2OZJUPY
+         Sxy1XjZwex3sfkgizHQ8S2LPwGGAgkTY0vuidcgcZx/NZyyGp+ksepebdbMTDdCQCLXp
+         fT6sN6eW/HS5zZEQhp3oIcrPUz+V/KFfSUJauuEZZOjMGzd4N38UyP0zlQQ2Vbrxr+Ha
+         bpiwI7oRDlnfONnFQqo4s0lEs/XHTHyA3SJShij3AYBppfWnvwa8eeYCD/HqfoacHcIG
+         FZ4VS3CDAf4iiSqLApl8+rUUXlCZKRd73INK3D5Hv8m9yq2tbfLpL+5xYwdA1v49XGDE
+         WsUg==
+X-Gm-Message-State: AC+VfDwpvQpvCPVCcrxiVXwGkBYradPXFd1pxSE7QvP9sFFqdggWwECe
+        EC5mV1htTWNhpRSkTxLz0VwGuPWz9VcWj9f8dcYDdrkahOI=
+X-Google-Smtp-Source: ACHHUZ6ziPnLDF9YTvlIkfPcX1g5UtKD2X2IMkZ82XCV4B4MysevAzfymUm7EgbfDDNbAMwayMpiDfEFtgaZzPJccEw=
+X-Received: by 2002:a05:6102:a32:b0:43b:2fd0:e6 with SMTP id
+ 18-20020a0561020a3200b0043b2fd000e6mr560164vsb.33.1686308068856; Fri, 09 Jun
+ 2023 03:54:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJfpegv4q4=kOM9KLiTmvbPkR15g1vkmWq3brkFuFqy50J7Xwg@mail.gmail.com>
+References: <20230427130539.2798797-1-amir73il@gmail.com> <CAL7ro1G7DQS_aAC4+9-ppdQz_7vjoXdBLohZ6bKo6S75NQUDPA@mail.gmail.com>
+ <CAOQ4uxhN1dPBkhAu3Zag8=RKCbzMQghuXnyp+uur83dRW8tz6Q@mail.gmail.com>
+ <87h6s0z6rf.fsf@redhat.com> <CAOQ4uxhkCgU2=F2oAJn34Jor2_Hr56fLsa8cAAz936G05d-+ZQ@mail.gmail.com>
+ <CAL7ro1EoNDMxU2d9WYrb772VFWWMDWV=KVvrZDnK=5byemmo8Q@mail.gmail.com>
+ <fb711bb4-3f25-ccee-0d21-2cb6deea75ec@linux.alibaba.com> <CAOQ4uxiCzTbr4OXhxv=RbNbKn+kaBva-Wkz4AGW8OJUwL3GfLQ@mail.gmail.com>
+ <CAJfpegvsEuSNepb_9MNEkEFsW7R60DDk57x3oivA6wx9y8StRA@mail.gmail.com>
+ <CAOQ4uxh14O9aRiewc+nq+AL-029YGu4bb4AZpp854r78Jm=_dw@mail.gmail.com> <CAJfpegvnBrLtNcW0Oy8Y7seju96scQ0-FHoiXxx3+A3X4N_LMQ@mail.gmail.com>
+In-Reply-To: <CAJfpegvnBrLtNcW0Oy8Y7seju96scQ0-FHoiXxx3+A3X4N_LMQ@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 9 Jun 2023 13:54:17 +0300
+Message-ID: <CAOQ4uxgHiOTYAgxL4=g26XgPBwdRhZqKReR8mp21e43zC2b2KA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Gao Xiang <hsiangkao@linux.alibaba.com>,
+        Alexander Larsson <alexl@redhat.com>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        linux-unionfs@vger.kernel.org,
+        Christian Brauner <brauner@kernel.org>,
+        Lennart Poettering <lennart@poettering.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 09, 2023 at 10:36:17AM +0200, Miklos Szeredi wrote:
-> On Fri, 9 Jun 2023 at 10:03, Christian Brauner <brauner@kernel.org> wrote:
+On Fri, Jun 9, 2023 at 10:24=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
+>
+> On Tue, 30 May 2023 at 16:15, Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > On Fri, Jun 09, 2023 at 10:38:15AM +0300, Amir Goldstein wrote:
-> > > On Fri, Jun 9, 2023 at 10:28 AM Christian Brauner <brauner@kernel.org> wrote:
-> > > >
-> > > > On Thu, Jun 08, 2023 at 09:29:39PM +0300, Amir Goldstein wrote:
-> > > > > On Thu, Jun 8, 2023 at 7:07 PM Christian Brauner <brauner@kernel.org> wrote:
-> > > > > >
-> > > > > > We recently ported util-linux to the new mount api. Now the mount(8)
-> > > > > > tool will by default use the new mount api. While trying hard to fall
-> > > > > > back to the old mount api gracefully there are still cases where we run
-> > > > > > into issues that are difficult to handle nicely.
-> > > > > >
-> > > > > > Now with mount(8) and libmount supporting the new mount api I expect an
-> > > > > > increase in the number of bug reports and issues we're going to see with
-> > > > > > filesystems that don't yet support the new mount api. So it's time we
-> > > > > > rectify this.
-> > > > > >
-> > > > > > For overlayfs specifically we ran into issues where mount(8) passed
-> > > > > > multiple lower layers as one big string through fsconfig(). But the
-> > > > > > fsconfig() FSCONFIG_SET_STRING option is limited to 256 bytes in
-> > > > > > strndup_user(). While this would be fixable by extending the fsconfig()
-> > > > > > buffer I'd rather encourage users to append layers via multiple
-> > > > > > fsconfig() calls as the interface allows nicely for this. This has also
-> > > > > > been requested as a feature before.
-> > > > > >
-> > > > > > With this port to the new mount api the following will be possible:
-> > > > > >
-> > > > > >         fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", "/lower1", 0);
-> > > > > >
-> > > > > >         /* set upper layer */
-> > > > > >         fsconfig(fs_fd, FSCONFIG_SET_STRING, "upperdir", "/upper", 0);
-> > > > > >
-> > > > > >         /* append "/lower2", "/lower3", and "/lower4" */
-> > > > > >         fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", ":/lower2:/lower3:/lower4", 0);
-> > > > > >
-> > > > > >         /* turn index feature on */
-> > > > > >         fsconfig(fs_fd, FSCONFIG_SET_STRING, "index", "on", 0);
-> > > > > >
-> > > > > >         /* append "/lower5" */
-> > > > > >         fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir", ":/lower5", 0);
-> > > > > >
-> > > > > > Specifying ':' would have been rejected so this isn't a regression. And
-> > > > > > we can't simply use "lowerdir=/lower" to append on top of existing
-> > > > > > layers as "lowerdir=/lower,lowerdir=/other-lower" would make
-> > > > > > "/other-lower" the only lower layer so we'd break uapi if we changed
-> > > > > > this. So the ':' prefix seems a good compromise.
-> > > > > >
-> > > > > > Users can choose to specify multiple layers at once or individual
-> > > > > > layers. A layer is appended if it starts with ":". This requires that
-> > > > > > the user has already added at least one layer before. If lowerdir is
-> > > > > > specified again without a leading ":" then all previous layers are
-> > > > > > dropped and replaced with the new layers. If lowerdir is specified and
-> > > > > > empty than all layers are simply dropped.
-> > > > > >
-> > > > > > An additional change is that overlayfs will now parse and resolve layers
-> > > > > > right when they are specified in fsconfig() instead of deferring until
-> > > > > > super block creation. This allows users to receive early errors.
-> > > > > >
-> > > > > > It also allows users to actually use up to 500 layers something which
-> > > > > > was theoretically possible but ended up not working due to the mount
-> > > > > > option string passed via mount(2) being too large.
-> > > > > >
-> > > > > > This also allows a more privileged process to set config options for a
-> > > > > > lesser privileged process as the creds for fsconfig() and the creds for
-> > > > > > fsopen() can differ. We could restrict that they match by enforcing that
-> > > > > > the creds of fsopen() and fsconfig() match but I don't see why that
-> > > > > > needs to be the case and allows for a good delegation mechanism.
-> > > > > >
-> > > > > > Plus, in the future it means we're able to extend overlayfs mount
-> > > > > > options and allow users to specify layers via file descriptors instead
-> > > > > > of paths:
-> > > > > >
-> > > > > >         fsconfig(FSCONFIG_SET_PATH{_EMPTY}, "lowerdir", "lower1", dirfd);
-> > > > > >
-> > > > > >         /* append */
-> > > > > >         fsconfig(FSCONFIG_SET_PATH{_EMPTY}, "lowerdir", "lower2", dirfd);
-> > > > > >
-> > > > > >         /* append */
-> > > > > >         fsconfig(FSCONFIG_SET_PATH{_EMPTY}, "lowerdir", "lower3", dirfd);
-> > > > > >
-> > > > > >         /* clear all layers specified until now */
-> > > > > >         fsconfig(FSCONFIG_SET_STRING, "lowerdir", NULL, 0);
-> > > > > >
-> > > > > > This would be especially nice if users create an overlayfs mount on top
-> > > > > > of idmapped layers or just in general private mounts created via
-> > > > > > open_tree(OPEN_TREE_CLONE). Those mounts would then never have to appear
-> > > > > > anywhere in the filesystem. But for now just do the minimal thing.
-> > > > > >
-> > > > > > We should probably aim to move more validation into ovl_fs_parse_param()
-> > > > > > so users get errors before fsconfig(FSCONFIG_CMD_CREATE). But that can
-> > > > > > be done in additional patches later.
-> > > > > >
-> > > > > > Link: https://github.com/util-linux/util-linux/issues/2287 [1]
-> > > > > > Link: https://github.com/util-linux/util-linux/issues/1992 [2]
-> > > > > > Link: https://bugs.archlinux.org/task/78702 [3]
-> > > > > > Link: https://lore.kernel.org/linux-unionfs/20230530-klagen-zudem-32c0908c2108@brauner [4]
-> > > > > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > > > > ---
-> > > > > >
-> > > > > > ---
-> > > > > >
-> > > > > > I'm starting to get the feeling that I stared enough at this and I would
-> > > > > > need a fresh set of eyes to review it for any bugs. Plus, Amir seems to
-> > > > > > have conflicting series and I would have to rebase anyway so no point in
-> > > > > > delaying this any further.
-> > > > > > ---
-> > > > > >  fs/overlayfs/super.c | 896 ++++++++++++++++++++++++++++++++-------------------
-> > > > > >  1 file changed, 568 insertions(+), 328 deletions(-)
-> > > > > >
-> > > > >
-> > > > > Very big patch - Not so easy to review.
-> > > > > It feels like a large refactoring mixed with the api change.
-> > > > > Can it easily be split to just the refactoring patch
-> > > > > and the api change patch? or any other split that will be
-> > > > > easier to review.
-> > > >
-> > > > I don't really think so because you can't do a piecemeal conversion
-> > > > unfortunately. But if you have concrete ideas I'm happy to hear them.
-> > > >
+> > On Tue, May 30, 2023 at 5:08=E2=80=AFPM Miklos Szeredi <miklos@szeredi.=
+hu> wrote:
 > > >
-> > > To me it looks like besides using new api you changed the order
-> > > of config parsing to:
-> > > - fill ovl_config and sanitize path arguments
-> > >   (replacing string with path in case of upper/workdir)
+> > > On Sat, 27 May 2023 at 16:04, Amir Goldstein <amir73il@gmail.com> wro=
+te:
+> > >
+> > > > If we would want to support data-only layers in the middle on the
+> > > > stack, which would this syntax make sense?
+> > > > lowerdir=3Dlower1::data1:lower2::data2
+> > > >
+> > > > If this syntax makes sense to everyone, then we can change the synt=
+ax
+> > > > of data-only in the tail from lower1::data1:data2 to lower1::data1:=
+:data2
+> > > > and enforce that after the first ::, only :: are allowed.
+> > > >
+> > > > Miklos, any thoughts?
+> > > > I have a feeling that this was your natural interpretation when you=
+ first
+> > > > saw the :: syntax.
+> > >
+> > > Yes, I think it's more natural to have a prefix for each data-only
+> > > layer.  And this is also good for extensibility, as discussed.
+> > >
 > >
-> > Afaict this only makes sense if you cane have a sensible split between
-> > option parsing and superblock creation. While the new mount api does
-> > have that the old one doesn't. So ovl_fill_super() does option parsing,
-> > verification, and superblock creation.
+> > Good timing ;-)
 > >
-> > So the only thing we could do is something where we move
-> > ovl_mount_dir_noesc() out of ovl_lower_dir() and ovl_mount_dir() out of
-> > ovl_get_workdir() and ovl_get_upper(). And resolve all layers first.
+> > I was just about to say that I changed the syntax and pushed to:
 > >
-> > But it would still need to remain centralized in ovl_fill_super() and
-> > then it'd be an equal amount of churn when we implement proper option
-> > parsing for the new mount api in ovl_parse_param() as the implementation
-> > of the helpers used in there doesn't make sense before the switch.
+> > https://github.com/amir73il/linux/commits/ovl-lazy-lowerdata-v3
+> > https://github.com/amir73il/xfstests/commits/ovl-lazy-lowerdata
 > >
-> > So I honestly thing this might end up being churn for churn. But I'll do
-> > it if you insist.
+> > The gist of the documentation of v3 is:
 > >
-> > But it'd be good to first get an indication whether this is even
-> > acceptable overall and whether I should do rebase and resend asap
-> > for v6.5.
-> 
-> Looks good to me overall.  The only added complexity I see is parsing
-> the lowerdir option, so it might make sense to split it like this:
-> 
-> 1) convert to new API, don't touch lowerdir parsing (technically this
-> could be a bisect confusing regression, but I'm not really worried)
-> 
-> 2) add the new split lowerdir handling
+> > Below the top most lower layer, any number of lower most layers may be =
+defined
+> > as "data-only" lower layers, using double colon ("::") separators.
+> > A normal lower layer is not allowed to be below a data-only layer, so s=
+ingle
+> > colon separators are not allowed to the right of double colon ("::") se=
+parators.
+> >
+> > For example:
+> >
+> >   mount -t overlay overlay -olowerdir=3D/l1:/l2:/l3::/do1::/do2 /merged
+> >
+> >
+> > Do you need me to post the v3 patches?
+> >
+> > The changes since ovl-lazy-lowerdata-v2 branch are:
+> > - Reabse on 6.4-rc2 + NULL deref fixes
+> > - Syntax change
+>
+> Patches look good to me.
+>
+> Pushed v3 to overlayfs-next.
+>
+> It'd be interesting to hear what obstacles you encountered when trying
+> to implement generic lazy lookup.  I can put that into the pull
+> request so the information is not lost.
+>
 
-Ok.
+Depends on what you mean by "generic lazy lookup".
 
-> 
-> Also would it make sense to move parsing to a separate source file?
+Generic lazy lookup in the sense that it does lazy lookup to lower
+(not to lowerdata) is challenging, because we use lower inode
+number for many things including hashing the overlay inode,
+which is done during lookup.
 
-Let me try.
+The challenges with generic lazy lowerdata lookup in layers
+that are not data-only is that there is more state to store for
+the lazy lookup:
+- Which layer we stopped lookup
+- The current path, if not an absolute redirect
+- Maybe more?
 
-> 
-> Does the split option handling make sense for other fs?  Is it
-> something that could be standardized?
+And the lazy lookup will have to resume the ovl layers lookup
+state machine on access including checking redirects,
+metacopy, etc.
 
-So far I only see overlayfs that would immediately benefit from this.
-If we wanted to standardize this my preference would be:
-* Additive options should be implemented simply by specifying the same
-  options multiple times. For example:
+The current code only stores an optional absolute lowerdata_redirect
+string on ovl_lookup() only for the case of lowerdata lookup in data-only
+layers and lazy lookup calls a single vfs helper vfs_path_lookup() per
+data-only layer - it is quite trivial.
 
-  fsconfig(FSCONFIG_SET_FD, "option", NULL, fd1)
-  // add
-  fsconfig(FSCONFIG_SET_FD, "option", NULL, fd2)
-  // add
-  fsconfig(FSCONFIG_SET_FD, "option", NULL, fd3)
+No obstacles that I am aware of - only more work that
+is not driven by request from users.
 
-* To reset all specified options the mount options should be specified
-  as:
-
-  fsconfig(FSCONFIG_SET_STRING, "option", NULL, 0)
-
-This would still need to be handled in the filesystem of course but I
-would personally prefer this over stuff like:
-
-  fsconfig(FSCONFIG_SET_FD, "option", NULL, fd3)
-  // add
-  fsconfig(FSCONFIG_SET_FD, "+option", NULL, fd3)
-
-or other prefixed/suffixed methods. But I'm not sure it's something we
-need to do right now given that I don't see that there are so many other
-beneficiaries currently.
+Thanks,
+Amir.
