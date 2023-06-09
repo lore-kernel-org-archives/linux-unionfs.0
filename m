@@ -2,91 +2,117 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A595C7EE2E
-	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 11:12:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ABFFC7EE25
+	for <linux-unionfs@archiver.kernel.org>; Fri,  9 Jun 2023 11:31:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238834AbjFILMs (ORCPT
+        id S231382AbjFILbB (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 9 Jun 2023 07:12:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56938 "EHLO
+        Fri, 9 Jun 2023 07:31:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37112 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239166AbjFILMl (ORCPT
+        with ESMTP id S237805AbjFILbB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 9 Jun 2023 07:12:41 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D51FDC1;
-        Fri,  9 Jun 2023 04:12:40 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 71D5C65704;
-        Fri,  9 Jun 2023 11:12:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED2B9C433D2;
-        Fri,  9 Jun 2023 11:12:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686309159;
-        bh=k/IRtFeBohjeJRyYL1MKsaOaYYziYhDqwabFnM+iWV8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=I6s1FWZUoGqS2HNbL3AJLCtR+U74IpdHx3v9jiS+KJZT3HFtAXDUplH9CQL04FHHe
-         3NXMacBFOPxNo87KW3SwQ3fQ31dUQ5TGaqDH1G2bQBlYxVdKxf3vMS/Zzd1NONa60x
-         1tdDjDRjv2nzDzBcZ/xYqSiDPTmwr6yxgqBXhoN4IezCLAOwRQXsEMyUzIhKFpCiTg
-         xk8dgKHwYVO7ae6I3XBNzOTSjbYxyRLHusdJFVNyYSk8i+wariNYVWd3guHN83vWeS
-         ZxRJX/IWAZkW/AuP/MKZOYvzNtIuLwTLk02Mj6ieXno7dTZAMSymvMeXjDCGP9cs4d
-         NGhv/uMdS9tXw==
-Date:   Fri, 9 Jun 2023 13:12:35 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>
+        Fri, 9 Jun 2023 07:31:01 -0400
+Received: from mail-ua1-x934.google.com (mail-ua1-x934.google.com [IPv6:2607:f8b0:4864:20::934])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 62FB72722;
+        Fri,  9 Jun 2023 04:30:56 -0700 (PDT)
+Received: by mail-ua1-x934.google.com with SMTP id a1e0cc1a2514c-78a065548e3so664820241.0;
+        Fri, 09 Jun 2023 04:30:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686310255; x=1688902255;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=LwVZ/XGE5c1QHahOLiLLnyyW3+3Yf1nA497g14ni8wc=;
+        b=oDqrXSOs+YFWq/Q8G9zFbNPBovK5/HQNmpxPRsFtGWflpChzj0woCBmxikTPH16ewP
+         YZVI7O+PtKUQXtK5dEbfquybUSJ/NaSAsIIMWroXk4ZvsrWy6Ca3gxW/fIP0llwltxgD
+         uUBddVB29ViEVhLq+VUsKhf2XYKtERnjjiqbHYU2qMZJe8uK0YodWnEf1b+KGjSTkcz1
+         J89xAOcEAVjWxvCYraKTB1kpinzVg0/72O+MM4SoWjDj2zcn7WSTs/rQhe3bCjYWDtyV
+         1LbLtOxBifkcN2SOlftFFvZsw7Ak2MIstiw/lKoeqgOPFX4jNYrAmxOXWLuTwe3EkVY/
+         ad5g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686310255; x=1688902255;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=LwVZ/XGE5c1QHahOLiLLnyyW3+3Yf1nA497g14ni8wc=;
+        b=SFxR4FqQrQqCja0SixoU8/JyjdAzCjrPSCV5BCYThhwmdfSs+jMgccrqKb5rXgMYYb
+         J89WCfQ606le2XoQNMoLJcO3v1/+gAInuMlf8VyOusXK8Gv0vqR7ADc2VFsnv3Ojy6Dz
+         NLGa/HRxYKbyqxUMMuM9rAZuCs0JkFyfbUiWGfziwEEvIC0+klcBGyzWKuGvuVDhMDlR
+         fkBR+CmpmB6FxjqJN+RsiCU0fxuBAvLg1kqIp2ZletOAlBP6cIATzfRpKsYfRO3qMTce
+         N6UYDEUs1Zl8mr8NUiAMWJo76FwxJ/3z9O8d+iDz1bmJueKTuHz7TccxSHuV1FTDXH6u
+         ZUWg==
+X-Gm-Message-State: AC+VfDwrgLT9XZPcp8DEsdXnuge5I6EK0TF927RD+YbKdOYgnym+dxtM
+        dSNblldU2jSIVIl3H70WghykTqYDEZe2gWAaIRELZ9O3
+X-Google-Smtp-Source: ACHHUZ4TC6JTFaTdFc3WPfcfbb4LsGKQWCQT7OENifXBua54rpFYDeaR/2ZeZS0ZRe/zB/oejiriYWqwhFh8tEOoVEo=
+X-Received: by 2002:a67:fd52:0:b0:43c:8c56:14a9 with SMTP id
+ g18-20020a67fd52000000b0043c8c5614a9mr773863vsr.9.1686310255422; Fri, 09 Jun
+ 2023 04:30:55 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230609073239.957184-1-amir73il@gmail.com> <20230609073239.957184-4-amir73il@gmail.com>
+ <20230609-bannmeile-speziell-54dc72b5008c@brauner>
+In-Reply-To: <20230609-bannmeile-speziell-54dc72b5008c@brauner>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 9 Jun 2023 14:30:44 +0300
+Message-ID: <CAOQ4uxjC_VpdKFmWKghLGv-CczfeZRbZAXrdztSctZPnx+2rTA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] fs: store fake path in file_fake along with real path
+To:     Christian Brauner <brauner@kernel.org>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
         Paul Moore <paul@paul-moore.com>,
-        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
+        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 3/3] fs: store fake path in file_fake along with real path
-Message-ID: <20230609-bannmeile-speziell-54dc72b5008c@brauner>
-References: <20230609073239.957184-1-amir73il@gmail.com>
- <20230609073239.957184-4-amir73il@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230609073239.957184-4-amir73il@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 09, 2023 at 10:32:39AM +0300, Amir Goldstein wrote:
-> Instead of storing only the fake path in f_path, store the real path
-> in f_path and the fake path in file_fake container.
-> 
-> Call sites that use the macro file_fake_path() continue to get the fake
-> path from its new location.
-> 
-> Call sites that access f_path directly will now see the overlayfs real
-> path instead of the fake overlayfs path, which is the desired bahvior
-> for most users, because it makes f_path consistent with f_inode.
-> 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
+On Fri, Jun 9, 2023 at 2:12=E2=80=AFPM Christian Brauner <brauner@kernel.or=
+g> wrote:
+>
+> On Fri, Jun 09, 2023 at 10:32:39AM +0300, Amir Goldstein wrote:
+> > Instead of storing only the fake path in f_path, store the real path
+> > in f_path and the fake path in file_fake container.
+> >
+> > Call sites that use the macro file_fake_path() continue to get the fake
+> > path from its new location.
+> >
+> > Call sites that access f_path directly will now see the overlayfs real
+> > path instead of the fake overlayfs path, which is the desired bahvior
+> > for most users, because it makes f_path consistent with f_inode.
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+>
+> If you resend, can you take the chance and refactor this into a slightly =
+more
+> readable pattern, please? So something like
+>
 
-If you resend, can you take the chance and refactor this into a slightly more
-readable pattern, please? So something like
+Sure!
+I like this better myself.
 
-struct file *open_with_fake_path(const struct path *fake_path, int flags,
-                                 const struct path *path,
-                                 const struct cred *cred)
-{
-        int error;
-        struct file *f;
+Thanks,
+Amir.
 
-        f = alloc_empty_file_fake(fake_path, flags, cred);
-        if (IS_ERR(f))
-                return f;
-
-        f->f_path = *path;
-        error = do_dentry_open(f, d_inode(path->dentry), NULL);
-        if (error) {
-                fput(f);
-                return ERR_PTR(error);
-        }
-
-        return f;
-}
+> struct file *open_with_fake_path(const struct path *fake_path, int flags,
+>                                  const struct path *path,
+>                                  const struct cred *cred)
+> {
+>         int error;
+>         struct file *f;
+>
+>         f =3D alloc_empty_file_fake(fake_path, flags, cred);
+>         if (IS_ERR(f))
+>                 return f;
+>
+>         f->f_path =3D *path;
+>         error =3D do_dentry_open(f, d_inode(path->dentry), NULL);
+>         if (error) {
+>                 fput(f);
+>                 return ERR_PTR(error);
+>         }
+>
+>         return f;
+> }
