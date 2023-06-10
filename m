@@ -2,191 +2,131 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 606ECC7EE2F
-	for <linux-unionfs@archiver.kernel.org>; Sat, 10 Jun 2023 15:03:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F31C7EE29
+	for <linux-unionfs@archiver.kernel.org>; Sat, 10 Jun 2023 22:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232753AbjFJPDf (ORCPT
+        id S231325AbjFJWce (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 10 Jun 2023 11:03:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46848 "EHLO
+        Sat, 10 Jun 2023 18:32:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232738AbjFJPDf (ORCPT
+        with ESMTP id S230432AbjFJWcd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 10 Jun 2023 11:03:35 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 634B63588
-        for <linux-unionfs@vger.kernel.org>; Sat, 10 Jun 2023 08:02:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686409367;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=iQ1tKe6xor/WE4oQ659wefhGp8d7f4VFJ0vODZMWN3w=;
-        b=YCActHMs13LMN41k8G4t5qAjPXXa7YRora0dIZaVuBfHiNgi9enc6ooM2FFDVS9UFHXuoG
-        f4FxkNazADiZx896yTTXp5X73cqZlErYX6C9oOv1HMtMqM0xuTURRHl+Wp9TxtRB4fICmQ
-        /TpGbd3yIvwbALoqRILyNyzZP2rE9jE=
-Received: from mail-il1-f200.google.com (mail-il1-f200.google.com
- [209.85.166.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-45-yqSiYBuMMTOfjO6ySijgbg-1; Sat, 10 Jun 2023 11:02:46 -0400
-X-MC-Unique: yqSiYBuMMTOfjO6ySijgbg-1
-Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-33e5ad802b4so28146665ab.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 10 Jun 2023 08:02:46 -0700 (PDT)
+        Sat, 10 Jun 2023 18:32:33 -0400
+Received: from mail-pl1-x630.google.com (mail-pl1-x630.google.com [IPv6:2607:f8b0:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E72C35A9
+        for <linux-unionfs@vger.kernel.org>; Sat, 10 Jun 2023 15:32:32 -0700 (PDT)
+Received: by mail-pl1-x630.google.com with SMTP id d9443c01a7336-1b3be6c0b4cso940755ad.3
+        for <linux-unionfs@vger.kernel.org>; Sat, 10 Jun 2023 15:32:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=fromorbit-com.20221208.gappssmtp.com; s=20221208; t=1686436352; x=1689028352;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=yIMevQtafEsanIaRpoX6Xg8apLrTfiAQUxFguirgsS4=;
+        b=ZSWqsuDCkm85kpo25ZJDyW9qqRe+Bhjz7weXfYfE4wwpRDqIECq9Dc0d6IWh4NK2zb
+         bfMiGXgn6IxFDrngUtiI6bl4D6cLDKAjdiKbfpichvHe1Mw6IJSYTT5NRnT21JLqH34f
+         06tDZe1TOCnhJvsgMngvsHLQ7XCHkPXDS/0/+7Mt8BNXCyqae2LZs8zVp1aOrQmM7qpL
+         JUc03DN44mfKkCudMfji15bkQYk26yGDLQ+l/cdei//8jfaDTIQ+Ax/myTJZ3rpeGMwv
+         eUpwd6kqNs677UXDbSiwOUeTr703xjfsRQ6B2HqD5eHvKAh4HwB9PhlMZtXnBIxM3BTO
+         ixqQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686409365; x=1689001365;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=iQ1tKe6xor/WE4oQ659wefhGp8d7f4VFJ0vODZMWN3w=;
-        b=k5oqVr95LJ/70uO08ZRveh832qlBxEQle8o43jcVt9rWIQuHCrvd0h4yCo/IgyorXs
-         quhONdxmlUnix4kOa2nmmXL8hROsmtIiQ6hMFENbz2doC9CgeV/HlHyDqT2SpINfzSbP
-         Jnm4LqN5j01UOSxpF6K3UTkSi+XcwcHlz/EnFD33eBzH84VsXJGgKLI0pUBDVXUnLIQK
-         g89wRO7uyO54H3rmJIggfzAQ5r0Yu+UQRDdGDf1+LUn+CNrWZ/e4khCD3vn6QBXWgTAC
-         Hu2afqvC4JIfySD0qOX4H5pswpZiMJ9nVndk8vP90+e+QwofjLM9QHzOJnFclfCvWBtB
-         WYnA==
-X-Gm-Message-State: AC+VfDwRG4Z8ZEgXE+RauE+MVl/VqpHpmq+TENzr3hyMBJqBvN28IJIC
-        GNiyczOeyGAWYOQeVuh/VHpbFPqox6pRiPnDu/p+TQdo5RThU4bAXWFRSww3Yu4qtuzmzfsygOo
-        Zt4W6Zy8MtJwDRViMbyBlCOFq6VdcnAMtOcvPH97OBu6mbgWAUKp9
-X-Received: by 2002:a92:cd07:0:b0:33b:6f65:2dd0 with SMTP id z7-20020a92cd07000000b0033b6f652dd0mr3822155iln.29.1686409365619;
-        Sat, 10 Jun 2023 08:02:45 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ5vyKyPaT5mEEM3ONVAHbJbi+CkCb0codUV093zAYjLykDMTLim7jSew/LSq5k0qy6nBNTtF8ENki0TgmBIsww=
-X-Received: by 2002:a92:cd07:0:b0:33b:6f65:2dd0 with SMTP id
- z7-20020a92cd07000000b0033b6f652dd0mr3822134iln.29.1686409365359; Sat, 10 Jun
- 2023 08:02:45 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1686436352; x=1689028352;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=yIMevQtafEsanIaRpoX6Xg8apLrTfiAQUxFguirgsS4=;
+        b=XASq6S24hUFZUpJoACZ1keqciBuwkPmpitmFcwZsEF0Po7QLoKLfdL/3pmOD39Iw+Y
+         JplMd1bZdjFaiXABVmTaU1d+14hhrvlU8TUfLvMUihOcSBr/ZXhXJp83hlZTmWseUfUL
+         HcWekgflA6nV09JL40xULx+RiJEBkdNuy8qgiAUqr8QRTLSR+a+ko6dUWf1dBuwhOg++
+         ixqtcrqdGuXaitG/oLeN2j7v87dQiofvDxei1bKDqgmdrXjSXfUUUsC5IgyzK9dp8jEJ
+         ozylzoDFpvtz2BaeJbj+nzANkvOf7Srwbm32VXu3RIrvW0rheFwmWmYjRX1MjXQXV74N
+         Pbkg==
+X-Gm-Message-State: AC+VfDzi599/GabkdGJF6CUNRAnz+JigIO8HhqzXiPI0Cihlqx+tqlOi
+        j2VIJPhl/c/xqDLbh54fpsOrgg==
+X-Google-Smtp-Source: ACHHUZ5mQ6sKDWv4O3omCBMHc2v4zVRCVzstNuuujtL90nnc2U9ek4CLvI8yW5NButAum0FJ0vyzbg==
+X-Received: by 2002:a17:902:7616:b0:1b0:7739:657a with SMTP id k22-20020a170902761600b001b07739657amr2674447pll.50.1686436351820;
+        Sat, 10 Jun 2023 15:32:31 -0700 (PDT)
+Received: from dread.disaster.area (pa49-179-79-151.pa.nsw.optusnet.com.au. [49.179.79.151])
+        by smtp.gmail.com with ESMTPSA id k1-20020a170902694100b00199203a4fa3sm5417299plt.203.2023.06.10.15.32.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 10 Jun 2023 15:32:31 -0700 (PDT)
+Received: from dave by dread.disaster.area with local (Exim 4.96)
+        (envelope-from <david@fromorbit.com>)
+        id 1q878G-00AFdI-1H;
+        Sun, 11 Jun 2023 08:32:28 +1000
+Date:   Sun, 11 Jun 2023 08:32:28 +1000
+From:   Dave Chinner <david@fromorbit.com>
+To:     Christian Brauner <brauner@kernel.org>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH] ovl: port to new mount api
+Message-ID: <ZIT5/ChoiLPEz5o6@dread.disaster.area>
+References: <20230605-fs-overlayfs-mount_api-v1-1-a8d78c3fbeaf@kernel.org>
+ <CAOQ4uxhMwet9mO2RpsJn0CFGkqJZ-fTYvDFuV-rAD6xy9RZjkw@mail.gmail.com>
+ <20230609-hufen-zensor-490247280b6c@brauner>
+ <CAOQ4uxhzbAZLydw=eEH12XfR37LDV-E5SD9b_et5QsG+qyLu-Q@mail.gmail.com>
+ <20230609-tasten-raumfahrt-7b8a499ef787@brauner>
 MIME-Version: 1.0
-References: <cover.1683102959.git.alexl@redhat.com> <b58e57955e122b5d6c4e087cf2dd6ed664152c7b.1683102959.git.alexl@redhat.com>
- <20230514191647.GD9528@sol.localdomain> <CAOQ4uxhEq8u37YNnqQmLbybJy1Kkg3Qk0TVtRZQP-yHt8CMmWA@mail.gmail.com>
- <CAL7ro1Hqc29w-FuRuoEfcsxiXTnqqwHP73nwvmZRuKVRsz4D9w@mail.gmail.com> <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Sat, 10 Jun 2023 17:02:34 +0200
-Message-ID: <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com>
-Subject: Re: [PATCH v2 5/6] ovl: Validate verity xattr when resolving lowerdata
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Eric Biggers <ebiggers@kernel.org>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, tytso@mit.edu,
-        fsverity@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230609-tasten-raumfahrt-7b8a499ef787@brauner>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 9, 2023 at 3:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com> =
-wrote:
->
-> On Mon, May 15, 2023 at 9:15=E2=80=AFAM Alexander Larsson <alexl@redhat.c=
-om> wrote:
-> >
-> > On Sun, May 14, 2023 at 11:00=E2=80=AFPM Amir Goldstein <amir73il@gmail=
-.com> wrote:
-> > >
-> > > On Sun, May 14, 2023 at 10:16=E2=80=AFPM Eric Biggers <ebiggers@kerne=
-l.org> wrote:
+On Fri, Jun 09, 2023 at 10:03:07AM +0200, Christian Brauner wrote:
+> On Fri, Jun 09, 2023 at 10:38:15AM +0300, Amir Goldstein wrote:
+> > On Fri, Jun 9, 2023 at 10:28 AM Christian Brauner <brauner@kernel.org> wrote:
+> > > On Thu, Jun 08, 2023 at 09:29:39PM +0300, Amir Goldstein wrote:
+> > > > >  fs/overlayfs/super.c | 896 ++++++++++++++++++++++++++++++++-------------------
+> > > > >  1 file changed, 568 insertions(+), 328 deletions(-)
+> > > > >
 > > > >
-> > > > On Wed, May 03, 2023 at 10:51:38AM +0200, Alexander Larsson wrote:
-> > > > > When resolving lowerdata (lazily or non-lazily) we check the
-> > > > > overlay.verity xattr on the metadata inode, and if set verify tha=
-t the
-> > > > > source lowerdata inode matches it (according to the verity option=
-s
-> > > > > enabled).
-> > > >
-> > > > Keep in mind that the lifetime of an inode's fsverity digest is fro=
-m when it is
-> > > > first opened to when the inode is evicted from the inode cache.
-> > > >
-> > > > If the inode gets evicted from cache and re-instantiated, it could =
-have been
-> > > > arbitrarily changed.
-> > > >
-> > > > Given that, does this verification happen in the right place?  I wo=
-uld have
-> > > > expected it to happen whenever the file is opened, but it seems you=
- do it when
-> > > > the dentry is looked up instead.  Maybe that works too, but I'd app=
-reciate an
-> > > > explanation.
+> > > > Very big patch - Not so easy to review.
+> > > > It feels like a large refactoring mixed with the api change.
+> > > > Can it easily be split to just the refactoring patch
+> > > > and the api change patch? or any other split that will be
+> > > > easier to review.
 > > >
-> > > Hmm. I do not think it is wrong because the overlay file cannot be op=
-ened before
-> > > the inode overlay is looked up and fsverity is verified on lookup.
-> > > In theory, overlay inode with lower could have been instantiated by d=
-ecode_fh(),
-> > > but verity=3Don and nfs_export=3Don are conflicting options.
+> > > I don't really think so because you can't do a piecemeal conversion
+> > > unfortunately. But if you have concrete ideas I'm happy to hear them.
 > > >
-> > > However, I agree that doing verify check on lookup is a bit too early=
-, as
-> > > ls -lR will incur the overhead of verifying all file's data even
-> > > though their data
-> > > is not accessed in a non-lazy-lower-data scenario.
-> > >
-> > > The intuition of doing verity check before file is opened (or copied =
-up)
-> > > when there is a realfile open is not wrong, it would have gotten rid =
-of the
-> > > dodgy ovl_ensure_verity_loaded(), but I think that will be a bit hard=
-er to
-> > > implement (not sure).
-> > >
-> > > My suggestion for Alexander:
-> > > - Use ovl_set/test_flag(OVL_VERIFIED, inode) for lazy verify
-> > > - Implement ovl_maybe_validate_verity() similar to
-> > >   ovl_maybe_lookup_lowerdata()
-> > > - Implement a helper ovl_verify_lowerdata()
-> > >   that calls them both
-> > > - Replace the ovl_maybe_lookup_lowerdata() calls with
-> > >   ovl_verify_lowerdata() calls
-> > >
-> > > Then before opening (or copy up) a file, it could have either
-> > > lazy lower data lookup or lazy lower data validate or both (or none).
-> > >
-> > > This will not avoid ovl_ensure_verity_loaded(), but it will load fsve=
-rity
-> > > just before it is needed and it is a bit easier to take ovl_inode_loc=
-k
-> > > unconditionally, in those call sites then deeper within copy_up, wher=
-e
-> > > ovl_inode_lock is already taken.
-> > >
-> > > I *think* this is a good idea, but we won't know until you try it,
-> > > so please take my suggestion with a grain of salt.
-> >
-> > I'll have a look at it in a bit. It would make performance of
-> > verity=3Don in the non-lazy-lookup case better.
-> >
->
-> Hi Alex,
->
-> Now that lazy lookup is queued for next, I wanted to ask about the
-> status of your patches.
->
-> Is the issue above the only thing you still need to look at?
-> No rush on my end, just wanted to be in sync.
+> > 
+> > To me it looks like besides using new api you changed the order
+> > of config parsing to:
+> > - fill ovl_config and sanitize path arguments
+> >   (replacing string with path in case of upper/workdir)
+> 
+> Afaict this only makes sense if you cane have a sensible split between
+> option parsing and superblock creation. While the new mount api does
+> have that the old one doesn't. So ovl_fill_super() does option parsing,
+> verification, and superblock creation.
 
-I spent some time on friday doing the initial work on this rework. In
-case you want to look at it  I just pushed it to:
+This is the same problem we had with XFS and ext4 conversions, and
+to a lesser extent all the other simpler ones that have been done.
 
-https://github.com/alexlarsson/linux/tree/overlay-verity
+There is no real intermediate step - the change from old parser to
+new parser as an atomic unit of change comes down to a single large
+patch. Yes, we whittled away at the edges to make it a bit smaller,
+but in the end the core API changeover was still a single large
+patch...
 
-The first 3 commits are the same as before, and the last one is the
-new approach. It's turned out pretty nice, simplifying things
-considerable. But I really haven't had time to do a full re-review and
-test of it, so please don't merge it yet. I'll spend Monday ensuring
-it is in a good state for upstream.
+> So I honestly thing this might end up being churn for churn. But I'll do
+> it if you insist.
 
-Also, for the people following at home, ostree master has now landed
-initial work for using composefs images for the root filesystem. The
-initial work with minimal changes to ostree, but long term we are also
-considering a complete rework of ostree based 100% on composefs.
-Interested parties can follow this here:
+Yup, based on the experience of converting other filesytsems, I
+think it is largely a waste of time and effort to try to
+significantly rework this into smaller chunks.  The bulk of the work
+has been done, reworking individual patches doesn't change the end
+result, so just review it as is, merge it and move on with more
+important stuff....
 
- https://github.com/ostreedev/ostree/issues/2867
+Cheers,
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
-
+Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
