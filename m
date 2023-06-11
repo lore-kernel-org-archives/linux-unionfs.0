@@ -2,199 +2,105 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA7F8C77B7A
-	for <linux-unionfs@archiver.kernel.org>; Sun, 11 Jun 2023 11:20:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB9B2C7EE2E
+	for <linux-unionfs@archiver.kernel.org>; Sun, 11 Jun 2023 13:27:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233599AbjFKLUY (ORCPT
+        id S230511AbjFKN1m (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 11 Jun 2023 07:20:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37724 "EHLO
+        Sun, 11 Jun 2023 09:27:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230404AbjFKLUX (ORCPT
+        with ESMTP id S230489AbjFKN1l (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 11 Jun 2023 07:20:23 -0400
-Received: from mail-vs1-xe30.google.com (mail-vs1-xe30.google.com [IPv6:2607:f8b0:4864:20::e30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E72E210FB
-        for <linux-unionfs@vger.kernel.org>; Sun, 11 Jun 2023 04:20:18 -0700 (PDT)
-Received: by mail-vs1-xe30.google.com with SMTP id ada2fe7eead31-43b5882f945so989315137.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 11 Jun 2023 04:20:18 -0700 (PDT)
+        Sun, 11 Jun 2023 09:27:41 -0400
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0C3DE57;
+        Sun, 11 Jun 2023 06:27:39 -0700 (PDT)
+Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-3f6dfc4e01fso34544865e9.0;
+        Sun, 11 Jun 2023 06:27:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686482418; x=1689074418;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rGF2bLvqUrQgx2/DoVjy72nkfwvcmnl5slEgEbFBtFc=;
-        b=iJkDzOcd8/o57NtG7UQY1F1sIeBqNoWQdgOSRs3ns9urbsYNBz1eYSKLIHibIpp+iI
-         wbBtZ/NZVT/dpOGt7k6T/jdCH7EYmSFYNf9BPbHxr867t0SEWZCno4BfJpqQwZ9dBJOW
-         WEB83ygVTgm+uygut0G/NyhH+gbmNu/eLKVpFiAqGwi5ekH/68dzjcmT29zyFG8u6MiX
-         960ViNDgIRzeo17ROXtGtMaMfbuGGw7QjreaOV7PttD+o+NfYCkI0hAOvLqWw8Sj3CaS
-         2FtMUIgXzinN5HGLhzuxKQ7Q8sLZXAO9ywTBP15a6nGsJ4R5Zv98goWFYvsno7TQWMjK
-         YFDQ==
+        d=gmail.com; s=20221208; t=1686490058; x=1689082058;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=SUythJtyf4D6pVFb37cdEXL1QhgyDpOkZ6Klz3pGZ3Y=;
+        b=pYktIgsFkOwv4jxz3hqYcDyh+TquaUdu3vTC+qfsSBi3kVqLsVh0dm7M7khPDoBmVl
+         tR7iqHCgauLP2Q+UgTm9bx15+iu9QuFrZkK1w39owylAJJsf7dwV0VGsB1bL4cVWO8CN
+         Zxsz2N/gSjMwtRkiHL8mrHeYPe3PBGRXK1D8RQvMONRGGmIflpKf6oi6FtJthe2dPR4x
+         C8ls97Qb6XbzJaCipklJ5A8m627cP4YCqZLO8msWmqF/VbACvsPX7QFL3zlPteQHJYnu
+         Cl3c9HxrEH04xny4csH6s5O4Sq4LZxULbBG+nN4zGnDOO4MKGEg5mzrgQBvL0e0k1wNf
+         mZdw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686482418; x=1689074418;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=rGF2bLvqUrQgx2/DoVjy72nkfwvcmnl5slEgEbFBtFc=;
-        b=KLNdNOJAzXmnuNkxAf7e8fWFiXuaBWPcNyoPp3mJKJERDnUwx1WhuDl3+oof+/l3zX
-         8w7I38f5Jg0A9kkpz8Qou7VaIme5qB1Iwxjvu5v9qvhLY4+caXnmQvxZVXpwfunr2vhi
-         dkxMi+mxtkfvhpofFuc2poSwfibADJ0WB1MO8wcwo89G3FHKs5Bs1FQprJlzw10UBTII
-         vQS3aF4e7aGq4mMuvE91IM0z2/wUjXw8Q2simQOpDZqHkMnxLWsWkD55FEBh9fPbaUCD
-         BjUleRQmIUzBX7PVVMhNZHAmDf/p2LR1JpAU0O+OovJ8+QGBFTmUdzDOJtZBy4YjuKi5
-         i3MA==
-X-Gm-Message-State: AC+VfDy+XiHm8ncxLYAGrjvRxkmbNs/fmGLun4zIgEuH1CqT1A12/cWF
-        vX1Fpj3G1x/LkhxHLigJbwGd5s2wmhQ9fOWqL+E=
-X-Google-Smtp-Source: ACHHUZ6Uomhcg3MQgSadOCVtIlGUY4e78rLWi+46N5PdmxjLHyLW9WeB5GGeGorrVM8r4A4cHLc5endRn3LJZWzeugI=
-X-Received: by 2002:a67:f04c:0:b0:43b:4688:7fb0 with SMTP id
- q12-20020a67f04c000000b0043b46887fb0mr2522861vsm.16.1686482417812; Sun, 11
- Jun 2023 04:20:17 -0700 (PDT)
-MIME-Version: 1.0
-References: <cover.1683102959.git.alexl@redhat.com> <b58e57955e122b5d6c4e087cf2dd6ed664152c7b.1683102959.git.alexl@redhat.com>
- <20230514191647.GD9528@sol.localdomain> <CAOQ4uxhEq8u37YNnqQmLbybJy1Kkg3Qk0TVtRZQP-yHt8CMmWA@mail.gmail.com>
- <CAL7ro1Hqc29w-FuRuoEfcsxiXTnqqwHP73nwvmZRuKVRsz4D9w@mail.gmail.com>
- <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com> <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com>
-In-Reply-To: <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com>
+        d=1e100.net; s=20221208; t=1686490058; x=1689082058;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=SUythJtyf4D6pVFb37cdEXL1QhgyDpOkZ6Klz3pGZ3Y=;
+        b=VUQ04ssh1FkVkdEK8lMhH4pwzQa64eV1caSYN6Sx2i3q4A2P5AcB+Y2MXVGnDwFhn4
+         cGd3eZPArXCfIw/cHSCNyf79U8Bn4VBFJqBpKzUkIkff5F5vB/wzUNgwmJdYHtfeZcZV
+         ej6Q1EKypJm5dNXOxa/xhmKXy5q6HWicewrbiAxdjZDb8l3I7INm//yW1bOj8WIH02Ot
+         vgw86iFPgE+QVnspFGEd9nSz79FF3wHWynacY2p5XOyAmx5O6flnHA7zLeZFbNPZ75//
+         Lk9GyK8yHcQa8G31zwpyvCjkPhWXCLuzSupR9qg4JvssCiuhgswLS0ZFXHXv4S0tr+uK
+         DmgQ==
+X-Gm-Message-State: AC+VfDwyytkdKqepMSTyS+wRj0gsj+SNWSTiHSVKT481idQarcax5iBe
+        GC8Ih8gQT7J9R5GSzn1+VXg=
+X-Google-Smtp-Source: ACHHUZ4e8CjHkDYZn5H/j86r+cboslhQduNUNr1Iycn2ruo/TifEK1gWXGZuM1iIkcW0sxd7Ey06Pw==
+X-Received: by 2002:adf:f791:0:b0:306:30ea:a060 with SMTP id q17-20020adff791000000b0030630eaa060mr3107993wrp.51.1686490058303;
+        Sun, 11 Jun 2023 06:27:38 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (bzq-166-168-31-246.red.bezeqint.net. [31.168.166.246])
+        by smtp.gmail.com with ESMTPSA id c3-20020adffb03000000b0030ab5ebefa8sm9593940wrr.46.2023.06.11.06.27.37
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 11 Jun 2023 06:27:37 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 11 Jun 2023 14:20:06 +0300
-Message-ID: <CAOQ4uxgbMD2RdEqta7a2t3uVceLuZDxOWA9SBNDAgZSdO_532Q@mail.gmail.com>
-Subject: Re: [PATCH v2 5/6] ovl: Validate verity xattr when resolving lowerdata
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     Eric Biggers <ebiggers@kernel.org>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, tytso@mit.edu,
-        fsverity@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 0/3] Handle notifications on overlayfs fake path files
+Date:   Sun, 11 Jun 2023 16:27:29 +0300
+Message-Id: <20230611132732.1502040-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Jun 10, 2023 at 6:02=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
-> wrote:
->
-> On Fri, Jun 9, 2023 at 3:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
-> wrote:
-> >
-> > On Mon, May 15, 2023 at 9:15=E2=80=AFAM Alexander Larsson <alexl@redhat=
-.com> wrote:
-> > >
-> > > On Sun, May 14, 2023 at 11:00=E2=80=AFPM Amir Goldstein <amir73il@gma=
-il.com> wrote:
-> > > >
-> > > > On Sun, May 14, 2023 at 10:16=E2=80=AFPM Eric Biggers <ebiggers@ker=
-nel.org> wrote:
-> > > > >
-> > > > > On Wed, May 03, 2023 at 10:51:38AM +0200, Alexander Larsson wrote=
-:
-> > > > > > When resolving lowerdata (lazily or non-lazily) we check the
-> > > > > > overlay.verity xattr on the metadata inode, and if set verify t=
-hat the
-> > > > > > source lowerdata inode matches it (according to the verity opti=
-ons
-> > > > > > enabled).
-> > > > >
-> > > > > Keep in mind that the lifetime of an inode's fsverity digest is f=
-rom when it is
-> > > > > first opened to when the inode is evicted from the inode cache.
-> > > > >
-> > > > > If the inode gets evicted from cache and re-instantiated, it coul=
-d have been
-> > > > > arbitrarily changed.
-> > > > >
-> > > > > Given that, does this verification happen in the right place?  I =
-would have
-> > > > > expected it to happen whenever the file is opened, but it seems y=
-ou do it when
-> > > > > the dentry is looked up instead.  Maybe that works too, but I'd a=
-ppreciate an
-> > > > > explanation.
-> > > >
-> > > > Hmm. I do not think it is wrong because the overlay file cannot be =
-opened before
-> > > > the inode overlay is looked up and fsverity is verified on lookup.
-> > > > In theory, overlay inode with lower could have been instantiated by=
- decode_fh(),
-> > > > but verity=3Don and nfs_export=3Don are conflicting options.
-> > > >
-> > > > However, I agree that doing verify check on lookup is a bit too ear=
-ly, as
-> > > > ls -lR will incur the overhead of verifying all file's data even
-> > > > though their data
-> > > > is not accessed in a non-lazy-lower-data scenario.
-> > > >
-> > > > The intuition of doing verity check before file is opened (or copie=
-d up)
-> > > > when there is a realfile open is not wrong, it would have gotten ri=
-d of the
-> > > > dodgy ovl_ensure_verity_loaded(), but I think that will be a bit ha=
-rder to
-> > > > implement (not sure).
-> > > >
-> > > > My suggestion for Alexander:
-> > > > - Use ovl_set/test_flag(OVL_VERIFIED, inode) for lazy verify
-> > > > - Implement ovl_maybe_validate_verity() similar to
-> > > >   ovl_maybe_lookup_lowerdata()
-> > > > - Implement a helper ovl_verify_lowerdata()
-> > > >   that calls them both
-> > > > - Replace the ovl_maybe_lookup_lowerdata() calls with
-> > > >   ovl_verify_lowerdata() calls
-> > > >
-> > > > Then before opening (or copy up) a file, it could have either
-> > > > lazy lower data lookup or lazy lower data validate or both (or none=
-).
-> > > >
-> > > > This will not avoid ovl_ensure_verity_loaded(), but it will load fs=
-verity
-> > > > just before it is needed and it is a bit easier to take ovl_inode_l=
-ock
-> > > > unconditionally, in those call sites then deeper within copy_up, wh=
-ere
-> > > > ovl_inode_lock is already taken.
-> > > >
-> > > > I *think* this is a good idea, but we won't know until you try it,
-> > > > so please take my suggestion with a grain of salt.
-> > >
-> > > I'll have a look at it in a bit. It would make performance of
-> > > verity=3Don in the non-lazy-lookup case better.
-> > >
-> >
-> > Hi Alex,
-> >
-> > Now that lazy lookup is queued for next, I wanted to ask about the
-> > status of your patches.
-> >
-> > Is the issue above the only thing you still need to look at?
-> > No rush on my end, just wanted to be in sync.
->
-> I spent some time on friday doing the initial work on this rework. In
-> case you want to look at it  I just pushed it to:
->
-> https://github.com/alexlarsson/linux/tree/overlay-verity
->
-> The first 3 commits are the same as before, and the last one is the
-> new approach. It's turned out pretty nice, simplifying things
-> considerable.
+Miklos,
 
-It does look nicer :)
-I gave you a small review comment on github, but overall looks good.
+The first solution that we discussed for removing FMODE_NONOTIFY
+from overlayfs real files using file_fake container got complicated.
 
-> But I really haven't had time to do a full re-review and
-> test of it, so please don't merge it yet. I'll spend Monday ensuring
-> it is in a good state for upstream.
->
-
-When you are done testing, please post v3 patches.
-
-Note that I pushed a new version of ovl-lazy-lowerdata branch to
-fstests, with the minor :: syntax change.
-
-Not sure if Miklos will have time to review them this cycle or wait
-for the next one.
-
-There are also the mount api changes from Christian that conflict
-with the new verify option.
-
-If we want to have all of these changes for this cycle, some collaboration
-will be required.
+This alternative solution is less intrusive to vfs and all the vfs
+code should remian unaffected expect for the special fsnotify case
+that we want to fix.
 
 Thanks,
 Amir.
+
+Changes since v1:
+- Drop the file_fake container
+- Leave f_path fake and special case only fsnotify
+
+[1] https://github.com/amir73il/linux/commits/ovl_real_path
+
+Amir Goldstein (3):
+  fs: rename FMODE_NOACCOUNT to FMODE_INTERNAL
+  fs: introduce f_real_path() helper
+  ovl: enable fsnotify events on underlying real files
+
+ Documentation/filesystems/locking.rst |  3 ++-
+ Documentation/filesystems/vfs.rst     |  3 ++-
+ fs/file_table.c                       | 29 ++++++++++++++++++++++++---
+ fs/internal.h                         |  5 +++--
+ fs/namei.c                            |  2 +-
+ fs/open.c                             |  2 +-
+ fs/overlayfs/file.c                   |  4 ++--
+ fs/overlayfs/super.c                  | 27 ++++++++++++++++---------
+ include/linux/dcache.h                | 11 ++++++----
+ include/linux/fs.h                    |  8 +++++---
+ include/linux/fsnotify.h              |  6 ++++--
+ 11 files changed, 71 insertions(+), 29 deletions(-)
+
+-- 
+2.34.1
+
