@@ -2,93 +2,147 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45699C7EE25
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 06:39:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DA58C7EE23
+	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 06:46:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233932AbjFLGji (ORCPT
+        id S233429AbjFLGql (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Jun 2023 02:39:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55732 "EHLO
+        Mon, 12 Jun 2023 02:46:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58008 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbjFLGjg (ORCPT
+        with ESMTP id S232917AbjFLGql (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Jun 2023 02:39:36 -0400
-Received: from mail-vs1-xe32.google.com (mail-vs1-xe32.google.com [IPv6:2607:f8b0:4864:20::e32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 465531708;
-        Sun, 11 Jun 2023 23:34:36 -0700 (PDT)
-Received: by mail-vs1-xe32.google.com with SMTP id ada2fe7eead31-43b1c483c39so1444514137.2;
-        Sun, 11 Jun 2023 23:34:36 -0700 (PDT)
+        Mon, 12 Jun 2023 02:46:41 -0400
+Received: from mail-ot1-x336.google.com (mail-ot1-x336.google.com [IPv6:2607:f8b0:4864:20::336])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B40191718;
+        Sun, 11 Jun 2023 23:41:40 -0700 (PDT)
+Received: by mail-ot1-x336.google.com with SMTP id 46e09a7af769-6b160f3f384so2153310a34.3;
+        Sun, 11 Jun 2023 23:41:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686551536; x=1689143536;
+        d=gmail.com; s=20221208; t=1686551883; x=1689143883;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=KP3Pjx93vXIFN83dx/ceEF3t7U3VTCBctTN3DgUC6Os=;
-        b=DnMaOUcqFzalQvVamUt5hdY4LTKzNOvEYTKLk1MIQ+v/2qKxYlLeCOuJt4POhznmfL
-         kAxAnDMOkcH/hk+58I6v4b7olUD1cfivqinWH1dOTrU1W9bS9MddwU1FGjB7CE/ec1Gb
-         1ITO1eM4SfOwDNiOaj99RId+VKnBz8iR6N8kXjx3aMHAD4N4zWuz7O9Wi5cjwRpxHuJK
-         Mm6ZGZ+oxy0ScJiQ1klD68bC9VTGyRcupLMcttsuHgZPm0B5FLDRQh92EdpZtHDMyPAk
-         DTv02GxlsoWZLzF4KDqyt7gYpiAYvZOdDuuOz9gC8lyhoO8o4ktRBMDF5W0tJtFSmAJE
-         MMxA==
+        bh=F4exatAjzA6+D9Buih0I3sDbrZV0bAmcGM6sRCZZP0s=;
+        b=qLKBCROEPFUb9xE+j3Fg+if0Gu9f1P3M6cbUbzaVVNu0v/GQZCpiPp2+7Z02T1EOYq
+         UWAhFbTtovTme3h3e9O7aFNgetwuPjjdkhb0c95Wo+P5XqFIBnakGcUQ6rM63MpOC1Mu
+         mFYyR9eso3IL5/pmMeAJJrwUwmp0hijrrDf5ILK/PzMOfWNKurMXEyNZucjoNOz/cRkf
+         WrafNnMy24egyEIwxOVz6GKu2ZJblOn0RACF8XmFU/2f1Yjr8FEn0VPqjbIaA55f5XL3
+         A7bkU6jquC4e9/cAfmD/V2Jz8b0vxYqyXvSelXs4w0P4hJ0atccg11npNOb2Y/5ZXhFY
+         +Ltw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686551536; x=1689143536;
+        d=1e100.net; s=20221208; t=1686551883; x=1689143883;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=KP3Pjx93vXIFN83dx/ceEF3t7U3VTCBctTN3DgUC6Os=;
-        b=jXG9ZJSI5SEYniX+JdjAIiNBXxrFsB9VbyOmZT7TiRl+/L14pOlU26X2Xr/PxKUtut
-         BupCATCL+DedUqpCNP4YSK/kBm5T0PlqTSXbxJwwgeEse7lPxy2I49UqT6yCskvlRDru
-         8soxGIlVxyXApO9L8lJmrYLl1PjCdJuc0opT873q0pCCSMSgCG8by3yKIDYXfbmU3DPR
-         O/occ8giEDjczygQKgGTl2Z3gnB2R2QpFM3BUZfHg16aYRdAnPkXAVkiJEbD8ewpPBNG
-         2vAapDfJXM5XF7ztNfE4p7HjIk8YXoy5jvi/6MMuz4hMt0+noAeYwHbKHdh1B2ZCFUcc
-         NeyA==
-X-Gm-Message-State: AC+VfDw4B1BT4UPDWedfrgPBrXOUMoV2F0BgsNU0CUOfF7pdBExEzoMH
-        UcuwZPRxTU5vDYm7crnEd4Rg1A90VGz8vWpI3+4=
-X-Google-Smtp-Source: ACHHUZ5vqYcmwNKLSkCtKR8AtyZXy7vcX3GpuEsItccHgwEuoJlqH333DdyFDblRuEy+G91/HsGmq+h6Z2m6L/oM0BE=
-X-Received: by 2002:a67:f646:0:b0:43b:554e:fce8 with SMTP id
- u6-20020a67f646000000b0043b554efce8mr3736335vso.19.1686551536461; Sun, 11 Jun
- 2023 23:32:16 -0700 (PDT)
+        bh=F4exatAjzA6+D9Buih0I3sDbrZV0bAmcGM6sRCZZP0s=;
+        b=gD3of2468wuYfV67SSv82y4bJVMRYO3Dw9nMSLMYl1YngVZYGyX7GTKIO5INGnieBt
+         Y5CQ8pOIoljM4xBO6CZHy1kqxcis+RbrwCR1njhAuEJEUqZX68FOWO8/YlyCnYeF9sgs
+         lxNNHoD88HeVSxAPRh4Btc7w3iDgdAi5d+wLKnA9HOCpQe0CU6o+1PGWjNfinFPqV0ZJ
+         r1noiB6cGY9/PL/2zFhPoz14MGkMJXDNZluAleYfUE8WMK5wQR6xNqQdQype1i+lXYKi
+         exkSNKvsrnfnYfk86mdtAIFuOsMxgQLthNRN1ymdG+gms3H0F2EtePdGYINDBGQJuHcz
+         wCqQ==
+X-Gm-Message-State: AC+VfDwCKy+zC3JeOe+8VLYzi92Z8XQxY9kxpBq+IV+oAyEG/TLH3rTw
+        kJ52a8TB/qAdXnvL1MaNfXDIjR7OefYPHhP3gFgA5Cfttu8=
+X-Google-Smtp-Source: ACHHUZ5MqUvpUdY0rwaAId/Ti6yvLpoO7CSrnFVfnXENtwlYP8lB028tL69I1eya+xT8fE0v2bTS85eKcRtR4b1md8M=
+X-Received: by 2002:a05:6358:c122:b0:129:b96d:1b0d with SMTP id
+ fh34-20020a056358c12200b00129b96d1b0dmr3266805rwb.1.1686551882745; Sun, 11
+ Jun 2023 23:38:02 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230611132732.1502040-1-amir73il@gmail.com> <20230611132732.1502040-2-amir73il@gmail.com>
- <ZIaelQAs0EjPw4TR@infradead.org> <CAOQ4uxhNtnzpxUzfxjCJ3_7afCG1ye-pHViHjGi8asXTR_Cm3w@mail.gmail.com>
- <ZIa3DfH9D0BIBf8G@infradead.org>
-In-Reply-To: <ZIa3DfH9D0BIBf8G@infradead.org>
+References: <20230611194706.1583818-1-amir73il@gmail.com> <20230611194706.1583818-2-amir73il@gmail.com>
+ <ZIai+UWrU9o2UVcJ@infradead.org>
+In-Reply-To: <ZIai+UWrU9o2UVcJ@infradead.org>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 12 Jun 2023 09:32:05 +0300
-Message-ID: <CAOQ4uxgQc3DivjAQNYhpDRZ5PA-wH1wSenoLkzYmFatueGJwUg@mail.gmail.com>
-Subject: Re: [PATCH v2 1/3] fs: rename FMODE_NOACCOUNT to FMODE_INTERNAL
+Date:   Mon, 12 Jun 2023 09:37:51 +0300
+Message-ID: <CAOQ4uxj0WjQHNN6qHEnXfijYSoiaZkCucvNQYTL4LH0TPLt28A@mail.gmail.com>
+Subject: Re: [PATCH v3 1/2] fs: use fake_file container for internal files
+ with fake f_path
 To:     Christoph Hellwig <hch@infradead.org>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Christian Brauner <brauner@kernel.org>,
         Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        David Howells <dhowells@redhat.com>
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jun 12, 2023 at 9:11=E2=80=AFAM Christoph Hellwig <hch@infradead.or=
+On Mon, Jun 12, 2023 at 7:45=E2=80=AFAM Christoph Hellwig <hch@infradead.or=
 g> wrote:
 >
-> On Mon, Jun 12, 2023 at 09:08:37AM +0300, Amir Goldstein wrote:
-> > Well, I am not sure if FMODE_FAKE_PATH in v3 is a better name,
-> > because you did rightfully say that "fake path" is not that descriptive=
-,
-> > but I will think of a better way to describe "fake path" and match the
-> > flag to the file container name.
+> On Sun, Jun 11, 2023 at 10:47:05PM +0300, Amir Goldstein wrote:
+> > Overlayfs and cachefiles use open_with_fake_path() to allocate internal
+> > files, where overlayfs also puts a "fake" path in f_path - a path which
+> > is not on the same fs as f_inode.
 >
-> I suspect the just claling it out what it is and naming it
-> FMODE_OVERLAYFS might be a good idea.  We'd just need to make sure not
-> to set it for the cachefiles use case, which is probably a good idea
-> anyway.
+> But cachefs doesn't, so this needs a better explanation / documentation.
+>
+> > Allocate a container struct file_fake for those internal files, that
+> > is used to hold the fake path along with an optional real path.
+>
+> The idea looks sensible, but fake a is a really weird term here.
+> I know open_with_fake_path also uses it, but we really need to
+> come up with a better name, and also good documentation of the
+> concept here.
+>
+> > +/* Returns the real_path field that could be empty */
+> > +struct path *__f_real_path(struct file *f)
+> > +{
+> > +     struct file_fake *ff =3D file_fake(f);
+> > +
+> > +     if (f->f_mode & FMODE_FAKE_PATH)
+> > +             return &ff->real_path;
+> > +     else
+> > +             return &f->f_path;
+> > +}
+>
+> two of the three callers always have FMODE_FAKE_PATH set, so please
+> just drop this helper and open code it in the three callers.
+>
 
-Agree to both.
-As I told Christian, I was reluctant to use the last available flag bit
-(although you did free up a couple of flags:)), but making
-FMODE_OVERLAYFS overlayfs only and keeping cachefiles with
-FMODE_NOACCOUNT would be the cleaner thing to do.
+I wanted to keep the container opaque
+I can make __f_real_path not check the flag at all
+and only f_real_path will check the flag
+
+> > +
+> > +/* Returns the real_path if not empty or f_path */
+> > +const struct path *f_real_path(struct file *f)
+> > +{
+> > +     const struct path *path =3D __f_real_path(f);
+> > +
+> > +     return path->dentry ? path : &f->f_path;
+> > +}
+> > +EXPORT_SYMBOL(f_real_path);
+>
+> This is only needed by the few places like nfsd or btrfs send
+> that directlycall fsnotify and should at very least be
+> EXPORT_SYMBOL_GPL.  But I suspect with all the exta code, fsnotify_file
+> really should move out of line and have an EXORT_SYMBOL_GPL instead.
+>
+
+fsnotify_file() inline is expected to avoid to call to fsnotify()
+due to the optimization of zero s_fsnotify_connector
+in fsnotify_parents() - this was observed as needed by some benchmarks.
+
+> > +
+> > +const struct path *f_fake_path(struct file *f)
+> > +{
+> > +     return &f->f_path;
+> > +}
+> > +EXPORT_SYMBOL(f_fake_path);
+>
+> .. and this helper is completely pointless.
+>
+> > +extern struct file *alloc_empty_file(int flags, const struct cred *cre=
+d);
+> > +extern struct file *alloc_empty_file_fake(int flags, const struct cred=
+ *cred);
+> > +extern struct path *__f_real_path(struct file *f);
+>
+> Please drop all the pointless externs while you're at it.
+
+sure,
 
 Thanks,
 Amir.
