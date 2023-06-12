@@ -2,97 +2,87 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC369C7EE2E
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 05:36:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F95CC7EE2E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 06:08:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234347AbjFLFge (ORCPT
+        id S231462AbjFLGIv (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Jun 2023 01:36:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39180 "EHLO
+        Mon, 12 Jun 2023 02:08:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50174 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234025AbjFLFgc (ORCPT
+        with ESMTP id S229604AbjFLGIv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Jun 2023 01:36:32 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E64B0127
-        for <linux-unionfs@vger.kernel.org>; Sun, 11 Jun 2023 22:36:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-        Content-ID:Content-Description:In-Reply-To:References;
-        bh=Iqb8yqv42Jpk9dF5nG2xmCjIa7S0ggClh5tb3+YGBGI=; b=qIqkyI+C7NtRzFcpPQzJIWzT29
-        6pFWxIpg6pyQ2fwpca0fkfzcTwrPbh7uLNnt/e3Zap9fKfxewcTuTq0qsirxtS3wdYtZCgTBol1bw
-        DJGga0oZX1eqWYf/u5iVK678LNMzR+TkNGlWmVK0W10V39IS/jjydo9oEBUWtlL6jfcM9JZIikk+O
-        p4W1iduWIWgsTP7Rxsn3Ak7u1oPQns8yl/diwyLHqcMz2t7pMi3Iu4ZRWaP4C0Lgzdle3EdWPBiQ+
-        +6AnFCnPTUnRm6qB8IdARxlJxuawu9a2RYO/vkWPRn4t9M/hOq8FrdPulT2NPDqwnCz8bWnNy30I3
-        c31so4PA==;
-Received: from 2a02-8389-2341-5b80-8c8c-28f8-1274-e038.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:8c8c:28f8:1274:e038] helo=localhost)
-        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
-        id 1q8aEA-002fDI-2h;
-        Mon, 12 Jun 2023 05:36:31 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     miklos@szeredi.hu
-Cc:     linux-unionfs@vger.kernel.org
-Subject: [PATCH] overlayfs: set FMODE_CAN_ODIRECT instead of a dummy direct_IO method
-Date:   Mon, 12 Jun 2023 07:36:28 +0200
-Message-Id: <20230612053628.585624-1-hch@lst.de>
-X-Mailer: git-send-email 2.39.2
+        Mon, 12 Jun 2023 02:08:51 -0400
+Received: from mail-ua1-x92a.google.com (mail-ua1-x92a.google.com [IPv6:2607:f8b0:4864:20::92a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0E9C3BE;
+        Sun, 11 Jun 2023 23:08:50 -0700 (PDT)
+Received: by mail-ua1-x92a.google.com with SMTP id a1e0cc1a2514c-789de11638fso1684356241.1;
+        Sun, 11 Jun 2023 23:08:50 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686550129; x=1689142129;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=4pXJQNJHnK2JGcladbSbhRHkw1El98GpnY35UtFaoK8=;
+        b=WtJuItw7dSKc1j4n+QNef5JcJpJxyey2ejgTw9IXGsl57i+Tc3kF1t1VRnVGlHqqcZ
+         Aj6A4Y7ETt2RhBq/40QKxGxqWk2/MiKT4z7cKbBX0BKSpj5X47LwRy98pLrWP5I95xr4
+         Ej6Trb/7GtcLOHyhinhUTwCCnkvug3Nq8+SVeKUUBD1JR57Ly4C3+CEzS5Na9z5vL93n
+         gYXVsnyHTk9ZEGQIeraCiTZjKgPmA7hOozmRBkRKMSDGPn9vGwYzC7kJtj8ElZwOuZ0a
+         uxyUKuOajeBkw+RJY5VMRvGWqSeGyaFC+VR7tbFcwMkX/1m77Ego8aTjcUsRAe1id9zt
+         By9A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1686550129; x=1689142129;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=4pXJQNJHnK2JGcladbSbhRHkw1El98GpnY35UtFaoK8=;
+        b=B3GpnyJplgCsl4ldoxTJC9Lgz+1KSQisqLNQPucf+b7psTeysSIx2gu9Cpcy8XK8gz
+         hpOjuSqs7FrakR9TkZb1vaU0EF4vh3b7FqHxzHZDFBqnjIx5r6T8q1Pf4Zn+c9of2HeV
+         vShAepzk9BNWCf65afoQMMGCuBiqoHRaKg2IaPpyemKnNKXdUTS7zaftErr0WthgbtsA
+         Oe6IP8bq997sXEes9FTeX8LQJ4ksxv7JghrjGUyYNzCxYvwBE8D1dV7lkXfgOrM5HiZX
+         6Bosszf1bEjEvVs7q1fbnbZAbRQmYD1jCuYdoFgrXP5LGSbHXdZt3WrKRrLFTBlLn125
+         Yrig==
+X-Gm-Message-State: AC+VfDx+aH+PJSBukz9BtnAgQ+n25f07xTeZgMZ/Yl99be5wK3VHDDci
+        x29y1DbiopLVNtZS6VFe5JSO5+XiQDVwBBTvl8hMsdz3
+X-Google-Smtp-Source: ACHHUZ4Dz/ExnZ718XFgcyllqKbYhmmBpLPdWz/5vlG4m3pY5kfNK6Cc1F0G1UoquGGErgzBg7qyKaWwMtUbjQXR09M=
+X-Received: by 2002:a05:6102:303a:b0:434:3cf1:96e with SMTP id
+ v26-20020a056102303a00b004343cf1096emr3728035vsa.1.1686550129052; Sun, 11 Jun
+ 2023 23:08:49 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+References: <20230611132732.1502040-1-amir73il@gmail.com> <20230611132732.1502040-2-amir73il@gmail.com>
+ <ZIaelQAs0EjPw4TR@infradead.org>
+In-Reply-To: <ZIaelQAs0EjPw4TR@infradead.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 12 Jun 2023 09:08:37 +0300
+Message-ID: <CAOQ4uxhNtnzpxUzfxjCJ3_7afCG1ye-pHViHjGi8asXTR_Cm3w@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] fs: rename FMODE_NOACCOUNT to FMODE_INTERNAL
+To:     Christoph Hellwig <hch@infradead.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Since commit a2ad63daa88b ("VFS: add FMODE_CAN_ODIRECT file flag") file
-systems can just set the FMODE_CAN_ODIRECT flag at open time instead of
-wiring up a dummy direct_IO method to indicate support for direct I/O.
+On Mon, Jun 12, 2023 at 7:27=E2=80=AFAM Christoph Hellwig <hch@infradead.or=
+g> wrote:
+>
+> On Sun, Jun 11, 2023 at 04:27:30PM +0300, Amir Goldstein wrote:
+> > Rename the flag FMODE_NOACCOUNT that is used to mark internal files of
+> > overlayfs and cachefiles to the more generic name FMODE_INTERNAL, which
+> > also indicates that the file's f_path is possibly "fake".
+>
+> FMODE_INTERNAL is completely meaningless.  Plase come up with a name
+> that actually explain what is special about these files.
+>
 
-Remove .direct_IO and thus the entire address space operations for
-overlayfs and set FMODE_CAN_ODIRECT in ovl_open instead.
+Well, I am not sure if FMODE_FAKE_PATH in v3 is a better name,
+because you did rightfully say that "fake path" is not that descriptive,
+but I will think of a better way to describe "fake path" and match the
+flag to the file container name.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/overlayfs/file.c  | 1 +
- fs/overlayfs/inode.c | 6 ------
- 2 files changed, 1 insertion(+), 6 deletions(-)
-
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 7c04f033aadd75..4c9bc79ae1d452 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -156,6 +156,7 @@ static int ovl_open(struct inode *inode, struct file *file)
- 
- 	/* No longer need these flags, so don't pass them on to underlying fs */
- 	file->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
-+	file->f_mode |= FMODE_CAN_ODIRECT;
- 
- 	ovl_path_realdata(dentry, &realpath);
- 	realfile = ovl_open_realfile(file, &realpath);
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 541cf3717fc2b1..efaa8e41579210 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -886,11 +886,6 @@ static const struct inode_operations ovl_special_inode_operations = {
- 	.update_time	= ovl_update_time,
- };
- 
--static const struct address_space_operations ovl_aops = {
--	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
--	.direct_IO		= noop_direct_IO,
--};
--
- /*
-  * It is possible to stack overlayfs instance on top of another
-  * overlayfs instance as lower layer. We need to annotate the
-@@ -1032,7 +1027,6 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
- 	case S_IFREG:
- 		inode->i_op = &ovl_file_inode_operations;
- 		inode->i_fop = &ovl_file_operations;
--		inode->i_mapping->a_ops = &ovl_aops;
- 		break;
- 
- 	case S_IFDIR:
--- 
-2.39.2
-
+Thanks,
+Amir.
