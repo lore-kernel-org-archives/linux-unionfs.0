@@ -2,227 +2,247 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 20EF4C8300C
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 10:50:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42375C7EE43
+	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 11:04:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232112AbjFLKuX (ORCPT
+        id S237955AbjFLLE3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Jun 2023 06:50:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51538 "EHLO
+        Mon, 12 Jun 2023 07:04:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229757AbjFLKti (ORCPT
+        with ESMTP id S237145AbjFLLEP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Jun 2023 06:49:38 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8AAB7D8B
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Jun 2023 03:33:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686565991;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=5rnUtUvAxrIG0+x6pEPBqjxD12uNXgsMQSi7V6WAdB8=;
-        b=fsrLFBEy5Ddmkgg4MQo772ml5xlR6+Kjuo40/3WYCLScOrGaobuoOLrLgzKXjThpm6sbCF
-        Ll1l2hZnum5j8dToaUH7GizwKsMiWllJpNgbDyj/Oh2OFG3Jo77Cy0VzshB5skr31JLgnm
-        /oPtV6wHO9vB2CivlO9Zu3Hl5bxRaTI=
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com
- [209.85.166.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-435-qIUmBnxBMhaJxBJ1BHOQlQ-1; Mon, 12 Jun 2023 06:33:10 -0400
-X-MC-Unique: qIUmBnxBMhaJxBJ1BHOQlQ-1
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-33b88241696so46621315ab.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 12 Jun 2023 03:33:09 -0700 (PDT)
+        Mon, 12 Jun 2023 07:04:15 -0400
+Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894AD86A4
+        for <linux-unionfs@vger.kernel.org>; Mon, 12 Jun 2023 03:52:20 -0700 (PDT)
+Received: by mail-ua1-x92b.google.com with SMTP id a1e0cc1a2514c-78cbc8176c7so461946241.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 12 Jun 2023 03:52:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686567139; x=1689159139;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=BY0nnvkAsU0s9Yyq9P4+eIGHl7OnLRukyFML9k84YvE=;
+        b=UYRT+akyGDbYY895Fj2UizqhhQ8PKWW+GPm1bj5iDJg+nERp6P+8dG1V43fVBzT0VR
+         eh3XvOz0WLSkGsHIzYI+c1Ekb61A14AwdRHN6V31bY7GtEoynfln+tPZ84vUJTy7caC/
+         4eHWMNuosYNdcucDOm2f5FG8cPfV+ZrqGAioMx5JBfOicvgvesw/++f2IfvMfMllj/k7
+         Jmz+bmkYdS1zyupV7befK5r7CWXg+hxjP17jbyuF2G2vVBOqVLOaZmnlp7yyasQoSuDR
+         RfV//lmB/B02Bw6u3s5XOlU06wku2YpvZFbFgUAFRy9yDIJdNOxcrMUSZz7sDnT5yqoq
+         oXhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686565989; x=1689157989;
+        d=1e100.net; s=20221208; t=1686567139; x=1689159139;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=5rnUtUvAxrIG0+x6pEPBqjxD12uNXgsMQSi7V6WAdB8=;
-        b=GW1Js30AxS8d8W3qfMYwc79HhkOv1xSVAeL4EoFNWoDbDrDyAlmZ4FP0HfX4l05pEz
-         +IP1zNkU7PIkyOIAunt8r4JzKoLfzSrZLgA3h1MEmnm7qiT0vkMB9iOA9aJLqX5730lH
-         k92XLVv2c4jP+5Khki4etIYd1wug5A+uVNMqJw4G3I8Yjpe8jg4IhvKmgDCjyNH/RrWP
-         Dnv0kuh7kTlpID0V7aLxQ9MfF128f6+e3ECGqGx4B5tY6wHQXlNWe5PcLrP6Cu72iDEX
-         UACqr/DeTdAY8ShqEkxZ/CoweLbPB/Rlz93RnYUEOC49ZM/EIi6w6VajmdBTrQ/YEUGy
-         04Vw==
-X-Gm-Message-State: AC+VfDxqzqlWYz5dAzAEmUd0mOwEpJCMqsCRuHvFhi9/EUDX+Rm5eSI8
-        3X1jnGZyb1E02N7Vl6/O1ka4j2+ZQ7kHOqOuFQjgOiF6LmyPxsOO0oIm6gsp0fk0F5jiy/+yV0z
-        eHcXqLYT1jVfpWEt7jOuonVdhPK1l7e4rUlTfibqcxw==
-X-Received: by 2002:a92:db47:0:b0:33d:504a:3058 with SMTP id w7-20020a92db47000000b0033d504a3058mr8174669ilq.18.1686565989284;
-        Mon, 12 Jun 2023 03:33:09 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ6Cy8qW4EorV7FH58amcDmbatyuFgE+ZtI9OEeETArSzbhdSMlrkQTo90WqwIM5lW3psrgi3bjLBddnASBCh6Q=
-X-Received: by 2002:a92:db47:0:b0:33d:504a:3058 with SMTP id
- w7-20020a92db47000000b0033d504a3058mr8174654ilq.18.1686565988983; Mon, 12 Jun
- 2023 03:33:08 -0700 (PDT)
+        bh=BY0nnvkAsU0s9Yyq9P4+eIGHl7OnLRukyFML9k84YvE=;
+        b=hu51yv8YT5YB11HbVqN3sMqQy/yK0XYUtUZ6Jyduz1kyfi6vnofMv4AAPWQWgfjr01
+         LZz8pJYlYCeet44iOMCjqL/o6uJYokbrTl8norNKUNRCxNE25VkU9HB2B/1RXwS9u+57
+         PmoVbjqCltpwFQxTeSe3xkoCpxrQPTOrKHSKuLvi96I4E1POc6rLxrszEhsYRxFBfbke
+         dcr55loz3YddlK5MonZmrLpC92C7jis5XvmWmKo+zxTaNdSa/CN7DKbijWSFwe4xnlCX
+         H69g0XHU+MBMlZtqlgU7cEWgUmrH7ZtvcVdYJwueA0gnozDJ9VfOEM1cOWo3gI2rytBR
+         kUHg==
+X-Gm-Message-State: AC+VfDzMIj9/jV0z/6CU0raAv2qxMvFFep71RnrkMdX5Q+RxfxE/M+qb
+        zc3QLP3ZCERWG6uG4R0yjOLyHz3oGEh5SOMbXN4=
+X-Google-Smtp-Source: ACHHUZ7xCP28gE/k5HmDE92p/ZqHwYOTV5QYC9C7gO2oTCvn6WtTKVlcHU8mad6uHxXsSDzv7WpOz1sVBuFbW1/n6tc=
+X-Received: by 2002:a05:6102:1354:b0:43b:3574:fb7b with SMTP id
+ j20-20020a056102135400b0043b3574fb7bmr3043898vsl.7.1686567139574; Mon, 12 Jun
+ 2023 03:52:19 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1683102959.git.alexl@redhat.com> <b58e57955e122b5d6c4e087cf2dd6ed664152c7b.1683102959.git.alexl@redhat.com>
- <20230514191647.GD9528@sol.localdomain> <CAOQ4uxhEq8u37YNnqQmLbybJy1Kkg3Qk0TVtRZQP-yHt8CMmWA@mail.gmail.com>
- <CAL7ro1Hqc29w-FuRuoEfcsxiXTnqqwHP73nwvmZRuKVRsz4D9w@mail.gmail.com>
- <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com>
- <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com> <CAOQ4uxgbMD2RdEqta7a2t3uVceLuZDxOWA9SBNDAgZSdO_532Q@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgbMD2RdEqta7a2t3uVceLuZDxOWA9SBNDAgZSdO_532Q@mail.gmail.com>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Mon, 12 Jun 2023 12:32:58 +0200
-Message-ID: <CAL7ro1FF_q7FEJdevWrqvugkJ9S8bU5MxcoHHrLC3D834u4+zQ@mail.gmail.com>
-Subject: Re: [PATCH v2 5/6] ovl: Validate verity xattr when resolving lowerdata
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Eric Biggers <ebiggers@kernel.org>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, tytso@mit.edu,
-        fsverity@lists.linux.dev
+References: <cover.1686565330.git.alexl@redhat.com> <4548bcf591f7928606c2f487274292b512927d4f.1686565330.git.alexl@redhat.com>
+In-Reply-To: <4548bcf591f7928606c2f487274292b512927d4f.1686565330.git.alexl@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 12 Jun 2023 13:52:08 +0300
+Message-ID: <CAOQ4uxj65YcC3zfWQE1n2M4PRYWihWoSp3Yr=oW3QsyRECre6A@mail.gmail.com>
+Subject: Re: [PATCH v3 4/4] ovl: Handle verity during copy-up
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Jun 11, 2023 at 1:20=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Mon, Jun 12, 2023 at 1:29=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
+> wrote:
 >
-> On Sat, Jun 10, 2023 at 6:02=E2=80=AFPM Alexander Larsson <alexl@redhat.c=
-om> wrote:
-> >
-> > On Fri, Jun 9, 2023 at 3:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.c=
-om> wrote:
-> > >
-> > > On Mon, May 15, 2023 at 9:15=E2=80=AFAM Alexander Larsson <alexl@redh=
-at.com> wrote:
-> > > >
-> > > > On Sun, May 14, 2023 at 11:00=E2=80=AFPM Amir Goldstein <amir73il@g=
-mail.com> wrote:
-> > > > >
-> > > > > On Sun, May 14, 2023 at 10:16=E2=80=AFPM Eric Biggers <ebiggers@k=
-ernel.org> wrote:
-> > > > > >
-> > > > > > On Wed, May 03, 2023 at 10:51:38AM +0200, Alexander Larsson wro=
-te:
-> > > > > > > When resolving lowerdata (lazily or non-lazily) we check the
-> > > > > > > overlay.verity xattr on the metadata inode, and if set verify=
- that the
-> > > > > > > source lowerdata inode matches it (according to the verity op=
-tions
-> > > > > > > enabled).
-> > > > > >
-> > > > > > Keep in mind that the lifetime of an inode's fsverity digest is=
- from when it is
-> > > > > > first opened to when the inode is evicted from the inode cache.
-> > > > > >
-> > > > > > If the inode gets evicted from cache and re-instantiated, it co=
-uld have been
-> > > > > > arbitrarily changed.
-> > > > > >
-> > > > > > Given that, does this verification happen in the right place?  =
-I would have
-> > > > > > expected it to happen whenever the file is opened, but it seems=
- you do it when
-> > > > > > the dentry is looked up instead.  Maybe that works too, but I'd=
- appreciate an
-> > > > > > explanation.
-> > > > >
-> > > > > Hmm. I do not think it is wrong because the overlay file cannot b=
-e opened before
-> > > > > the inode overlay is looked up and fsverity is verified on lookup=
-.
-> > > > > In theory, overlay inode with lower could have been instantiated =
-by decode_fh(),
-> > > > > but verity=3Don and nfs_export=3Don are conflicting options.
-> > > > >
-> > > > > However, I agree that doing verify check on lookup is a bit too e=
-arly, as
-> > > > > ls -lR will incur the overhead of verifying all file's data even
-> > > > > though their data
-> > > > > is not accessed in a non-lazy-lower-data scenario.
-> > > > >
-> > > > > The intuition of doing verity check before file is opened (or cop=
-ied up)
-> > > > > when there is a realfile open is not wrong, it would have gotten =
-rid of the
-> > > > > dodgy ovl_ensure_verity_loaded(), but I think that will be a bit =
-harder to
-> > > > > implement (not sure).
-> > > > >
-> > > > > My suggestion for Alexander:
-> > > > > - Use ovl_set/test_flag(OVL_VERIFIED, inode) for lazy verify
-> > > > > - Implement ovl_maybe_validate_verity() similar to
-> > > > >   ovl_maybe_lookup_lowerdata()
-> > > > > - Implement a helper ovl_verify_lowerdata()
-> > > > >   that calls them both
-> > > > > - Replace the ovl_maybe_lookup_lowerdata() calls with
-> > > > >   ovl_verify_lowerdata() calls
-> > > > >
-> > > > > Then before opening (or copy up) a file, it could have either
-> > > > > lazy lower data lookup or lazy lower data validate or both (or no=
-ne).
-> > > > >
-> > > > > This will not avoid ovl_ensure_verity_loaded(), but it will load =
-fsverity
-> > > > > just before it is needed and it is a bit easier to take ovl_inode=
-_lock
-> > > > > unconditionally, in those call sites then deeper within copy_up, =
-where
-> > > > > ovl_inode_lock is already taken.
-> > > > >
-> > > > > I *think* this is a good idea, but we won't know until you try it=
-,
-> > > > > so please take my suggestion with a grain of salt.
-> > > >
-> > > > I'll have a look at it in a bit. It would make performance of
-> > > > verity=3Don in the non-lazy-lookup case better.
-> > > >
-> > >
-> > > Hi Alex,
-> > >
-> > > Now that lazy lookup is queued for next, I wanted to ask about the
-> > > status of your patches.
-> > >
-> > > Is the issue above the only thing you still need to look at?
-> > > No rush on my end, just wanted to be in sync.
-> >
-> > I spent some time on friday doing the initial work on this rework. In
-> > case you want to look at it  I just pushed it to:
-> >
-> > https://github.com/alexlarsson/linux/tree/overlay-verity
-> >
-> > The first 3 commits are the same as before, and the last one is the
-> > new approach. It's turned out pretty nice, simplifying things
-> > considerable.
+> During regular metacopy, if lowerdata file has fs-verity enabled,
+> set the new overlay.verity xattr (if enabled).
 >
-> It does look nicer :)
-> I gave you a small review comment on github, but overall looks good.
+> During real data copy up, remove any old overlay.verity xattr.
 >
-> > But I really haven't had time to do a full re-review and
-> > test of it, so please don't merge it yet. I'll spend Monday ensuring
-> > it is in a good state for upstream.
-> >
+> If verity is required, and lowerdata does not have fs-verity enabled,
+> fall back to full copy-up (or the generated metacopy would not validate).
 >
-> When you are done testing, please post v3 patches.
+> Signed-off-by: Alexander Larsson <alexl@redhat.com>
+> ---
+>  fs/overlayfs/copy_up.c   | 31 +++++++++++++++++++++++++++++++
+>  fs/overlayfs/overlayfs.h |  3 +++
+>  fs/overlayfs/util.c      | 39 ++++++++++++++++++++++++++++++++++++++-
+>  3 files changed, 72 insertions(+), 1 deletion(-)
 >
-> Note that I pushed a new version of ovl-lazy-lowerdata branch to
-> fstests, with the minor :: syntax change.
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 68f01fd7f211..67c4f14c694c 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/fdtable.h>
+>  #include <linux/ratelimit.h>
+>  #include <linux/exportfs.h>
+> +#include <linux/fsverity.h>
+>  #include "overlayfs.h"
+>
+>  #define OVL_COPY_UP_CHUNK_SIZE (1 << 20)
+> @@ -643,6 +644,18 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_c=
+tx *c, struct dentry *temp)
+>         if (c->metacopy) {
+>                 err =3D ovl_check_setxattr(ofs, temp, OVL_XATTR_METACOPY,
+>                                          NULL, 0, -EOPNOTSUPP);
+> +
+> +               /* Copy the verity digest if any so we can validate the c=
+opy-up later */
+> +               if (!err) {
+> +                       struct path lowerdatapath;
+> +
+> +                       ovl_path_lowerdata(c->dentry, &lowerdatapath);
+> +                       if (WARN_ON_ONCE(lowerdatapath.dentry =3D=3D NULL=
+))
+> +                               err =3D -EIO;
+> +                       else
+> +                               err =3D ovl_set_verity_xattr_from(ofs, te=
+mp, &lowerdatapath);
+> +               }
+> +
+>                 if (err)
+>                         return err;
+>         }
+> @@ -918,6 +931,19 @@ static bool ovl_need_meta_copy_up(struct dentry *den=
+try, umode_t mode,
+>         if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRU=
+NC)))
+>                 return false;
+>
+> +       /* Fall back to full copy if no fsverity on source data and we re=
+quire verity */
+> +       if (ofs->config.require_verity) {
+> +               struct path lowerdata;
+> +
+> +               ovl_path_lowerdata(dentry, &lowerdata);
+> +
+> +               if (WARN_ON_ONCE(lowerdata.dentry =3D=3D NULL) ||
+> +                   ovl_ensure_verity_loaded(&lowerdata) ||
+> +                   !fsverity_get_info(d_inode(lowerdata.dentry))) {
+> +                       return false;
+> +               }
+> +       }
+> +
+>         return true;
+>  }
+>
+> @@ -984,6 +1010,11 @@ static int ovl_copy_up_meta_inode_data(struct ovl_c=
+opy_up_ctx *c)
+>         if (err)
+>                 goto out_free;
+>
+> +       err =3D ovl_removexattr(ofs, upperpath.dentry, OVL_XATTR_VERITY);
+> +       if (err && err !=3D -ENODATA)
 
-I posted the patches, and I also had to make some small changes to the
-xfstest commit:
+-EOPNOTSUPP is also not a failure, although you could do:
+if (!ofs->noxattr) ...
 
-https://github.com/alexlarsson/xfstests/commits/verity-tests
+to avoid this error
 
-> Not sure if Miklos will have time to review them this cycle or wait
-> for the next one.
+> +               goto out_free;
+> +
+> +       err =3D 0;
+>         ovl_set_upperdata(d_inode(c->dentry));
+>  out_free:
+>         kfree(capability);
+> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> index 66e3f79ed6d0..472bef93cb0b 100644
+> --- a/fs/overlayfs/overlayfs.h
+> +++ b/fs/overlayfs/overlayfs.h
+> @@ -462,11 +462,14 @@ int ovl_lock_rename_workdir(struct dentry *workdir,=
+ struct dentry *upperdir);
+>  int ovl_check_metacopy_xattr(struct ovl_fs *ofs, const struct path *path=
+);
+>  bool ovl_is_metacopy_dentry(struct dentry *dentry);
+>  char *ovl_get_redirect_xattr(struct ovl_fs *ofs, const struct path *path=
+, int padding);
+> +int ovl_ensure_verity_loaded(struct path *path);
+>  int ovl_get_verity_xattr(struct ovl_fs *ofs, const struct path *path,
+>                          u8 *digest_buf, int *buf_length);
+>  int ovl_validate_verity(struct ovl_fs *ofs,
+>                         struct path *metapath,
+>                         struct path *datapath);
+> +int ovl_set_verity_xattr_from(struct ovl_fs *ofs, struct dentry *dst,
+> +                             struct path *src);
+>  int ovl_sync_status(struct ovl_fs *ofs);
 >
-> There are also the mount api changes from Christian that conflict
-> with the new verify option.
+>  static inline void ovl_set_flag(unsigned long flag, struct inode *inode)
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index a4666ba3d5a3..cef907ff66bc 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -1174,7 +1174,7 @@ int ovl_get_verity_xattr(struct ovl_fs *ofs, const =
+struct path *path,
+>  }
 >
-> If we want to have all of these changes for this cycle, some collaboratio=
-n
-> will be required.
-
-I would really like to get the overlay.verity xattr support in
-upstream pretty soon, because without it I can't release a stable
-version of the composefs userspace code. I don't want to release
-something that is using an xattr format that is not guaranteed to be
-stable.
-
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
-
+>  /* Call with mounter creds as it may open the file */
+> -static int ovl_ensure_verity_loaded(struct path *datapath)
+> +int ovl_ensure_verity_loaded(struct path *datapath)
+>  {
+>         struct inode *inode =3D d_inode(datapath->dentry);
+>         const struct fsverity_info *vi;
+> @@ -1248,6 +1248,43 @@ int ovl_validate_verity(struct ovl_fs *ofs,
+>         return 0;
+>  }
+>
+> +int ovl_set_verity_xattr_from(struct ovl_fs *ofs, struct dentry *dst,
+> +                             struct path *src)
+> +{
+> +       int err;
+> +       u8 src_digest[1+FS_VERITY_MAX_DIGEST_SIZE];
+> +       enum hash_algo verity_algo;
+> +
+> +       if (!ofs->config.verity || !S_ISREG(d_inode(dst)->i_mode))
+> +               return 0;
+> +
+> +       err =3D -EIO;
+> +       if (src) {
+> +               err =3D ovl_ensure_verity_loaded(src);
+> +               if (err < 0) {
+> +                       pr_warn_ratelimited("lower file '%pd' failed to l=
+oad fs-verity info\n",
+> +                                           src->dentry);
+> +                       return -EIO;
+> +               }
+> +
+> +               err =3D fsverity_get_digest(d_inode(src->dentry), src_dig=
+est + 1, &verity_algo);
+> +       }
+> +       if (err =3D=3D -ENODATA) {
+> +               if (ofs->config.require_verity) {
+> +                       pr_warn_ratelimited("lower file '%pd' has no fs-v=
+erity digest\n",
+> +                                           src->dentry);
+> +                       return -EIO;
+> +               }
+> +               return 0;
+> +       }
+> +       if (err < 0)
+> +               return err;
+> +
+> +       src_digest[0] =3D (u8)verity_algo;
+> +       return ovl_check_setxattr(ofs, dst, OVL_XATTR_VERITY,
+> +                                 src_digest, 1 + hash_digest_size[verity=
+_algo], -EOPNOTSUPP);
+> +}
+> +
+>  /*
+>   * ovl_sync_status() - Check fs sync status for volatile mounts
+>   *
+> --
+> 2.40.1
+>
