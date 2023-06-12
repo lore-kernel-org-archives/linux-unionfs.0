@@ -2,109 +2,97 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C094C87FE4
-	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 04:46:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC369C7EE2E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 12 Jun 2023 05:36:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234734AbjFLEqP (ORCPT
+        id S234347AbjFLFge (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 12 Jun 2023 00:46:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48748 "EHLO
+        Mon, 12 Jun 2023 01:36:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39180 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235745AbjFLEpt (ORCPT
+        with ESMTP id S234025AbjFLFgc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 12 Jun 2023 00:45:49 -0400
+        Mon, 12 Jun 2023 01:36:32 -0400
 Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC49CE3;
-        Sun, 11 Jun 2023 21:45:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E64B0127
+        for <linux-unionfs@vger.kernel.org>; Sun, 11 Jun 2023 22:36:31 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=MRQfyaryecE5DjoaDy2pXUSA4KRcvXkmj5TgNNEuQww=; b=Otg83G+5lvSCFg+IOdnV06pNnV
-        6/iT9OTZWdYhyqz1E+jcFI6HmsG+K7YIZYV5EJSoi+MCnsTzQQfGAq974llBvqcXNwM/UCS5QKKt6
-        f6s8Mob0EPyrCU0tnQcj4d4JwogKfVlHwbs7VI4iWut2OFVu18rA4CQFYa8UWsKZ/lXpwSRbjc7hp
-        yObeFxRaltAe4i5AmvDRnxtkGZKnfHTrn3wgh5LaMHTdHkRAZMq7S/PWwZ2NOIUhuDEF3z90k0xka
-        cdRfPMGKy4tgxzJ0FOYOfx4Wa5woBu8FoaHUCcXuarau8xscspE6W0Euqgc8y+BQtdH/SQ04mSmHN
-        6u0tgQ1A==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
-        id 1q8ZR3-002ZEu-37;
-        Mon, 12 Jun 2023 04:45:45 +0000
-Date:   Sun, 11 Jun 2023 21:45:45 -0700
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Christian Brauner <brauner@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v3 1/2] fs: use fake_file container for internal files
- with fake f_path
-Message-ID: <ZIai+UWrU9o2UVcJ@infradead.org>
-References: <20230611194706.1583818-1-amir73il@gmail.com>
- <20230611194706.1583818-2-amir73il@gmail.com>
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=Iqb8yqv42Jpk9dF5nG2xmCjIa7S0ggClh5tb3+YGBGI=; b=qIqkyI+C7NtRzFcpPQzJIWzT29
+        6pFWxIpg6pyQ2fwpca0fkfzcTwrPbh7uLNnt/e3Zap9fKfxewcTuTq0qsirxtS3wdYtZCgTBol1bw
+        DJGga0oZX1eqWYf/u5iVK678LNMzR+TkNGlWmVK0W10V39IS/jjydo9oEBUWtlL6jfcM9JZIikk+O
+        p4W1iduWIWgsTP7Rxsn3Ak7u1oPQns8yl/diwyLHqcMz2t7pMi3Iu4ZRWaP4C0Lgzdle3EdWPBiQ+
+        +6AnFCnPTUnRm6qB8IdARxlJxuawu9a2RYO/vkWPRn4t9M/hOq8FrdPulT2NPDqwnCz8bWnNy30I3
+        c31so4PA==;
+Received: from 2a02-8389-2341-5b80-8c8c-28f8-1274-e038.cable.dynamic.v6.surfer.at ([2a02:8389:2341:5b80:8c8c:28f8:1274:e038] helo=localhost)
+        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+        id 1q8aEA-002fDI-2h;
+        Mon, 12 Jun 2023 05:36:31 +0000
+From:   Christoph Hellwig <hch@lst.de>
+To:     miklos@szeredi.hu
+Cc:     linux-unionfs@vger.kernel.org
+Subject: [PATCH] overlayfs: set FMODE_CAN_ODIRECT instead of a dummy direct_IO method
+Date:   Mon, 12 Jun 2023 07:36:28 +0200
+Message-Id: <20230612053628.585624-1-hch@lst.de>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230611194706.1583818-2-amir73il@gmail.com>
+Content-Transfer-Encoding: 8bit
 X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Jun 11, 2023 at 10:47:05PM +0300, Amir Goldstein wrote:
-> Overlayfs and cachefiles use open_with_fake_path() to allocate internal
-> files, where overlayfs also puts a "fake" path in f_path - a path which
-> is not on the same fs as f_inode.
+Since commit a2ad63daa88b ("VFS: add FMODE_CAN_ODIRECT file flag") file
+systems can just set the FMODE_CAN_ODIRECT flag at open time instead of
+wiring up a dummy direct_IO method to indicate support for direct I/O.
 
-But cachefs doesn't, so this needs a better explanation / documentation.
+Remove .direct_IO and thus the entire address space operations for
+overlayfs and set FMODE_CAN_ODIRECT in ovl_open instead.
 
-> Allocate a container struct file_fake for those internal files, that
-> is used to hold the fake path along with an optional real path.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/overlayfs/file.c  | 1 +
+ fs/overlayfs/inode.c | 6 ------
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-The idea looks sensible, but fake a is a really weird term here.
-I know open_with_fake_path also uses it, but we really need to
-come up with a better name, and also good documentation of the
-concept here.
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 7c04f033aadd75..4c9bc79ae1d452 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -156,6 +156,7 @@ static int ovl_open(struct inode *inode, struct file *file)
+ 
+ 	/* No longer need these flags, so don't pass them on to underlying fs */
+ 	file->f_flags &= ~(O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC);
++	file->f_mode |= FMODE_CAN_ODIRECT;
+ 
+ 	ovl_path_realdata(dentry, &realpath);
+ 	realfile = ovl_open_realfile(file, &realpath);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 541cf3717fc2b1..efaa8e41579210 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -886,11 +886,6 @@ static const struct inode_operations ovl_special_inode_operations = {
+ 	.update_time	= ovl_update_time,
+ };
+ 
+-static const struct address_space_operations ovl_aops = {
+-	/* For O_DIRECT dentry_open() checks f_mapping->a_ops->direct_IO */
+-	.direct_IO		= noop_direct_IO,
+-};
+-
+ /*
+  * It is possible to stack overlayfs instance on top of another
+  * overlayfs instance as lower layer. We need to annotate the
+@@ -1032,7 +1027,6 @@ static void ovl_fill_inode(struct inode *inode, umode_t mode, dev_t rdev)
+ 	case S_IFREG:
+ 		inode->i_op = &ovl_file_inode_operations;
+ 		inode->i_fop = &ovl_file_operations;
+-		inode->i_mapping->a_ops = &ovl_aops;
+ 		break;
+ 
+ 	case S_IFDIR:
+-- 
+2.39.2
 
-> +/* Returns the real_path field that could be empty */
-> +struct path *__f_real_path(struct file *f)
-> +{
-> +	struct file_fake *ff = file_fake(f);
-> +
-> +	if (f->f_mode & FMODE_FAKE_PATH)
-> +		return &ff->real_path;
-> +	else
-> +		return &f->f_path;
-> +}
-
-two of the three callers always have FMODE_FAKE_PATH set, so please
-just drop this helper and open code it in the three callers.
-
-> +
-> +/* Returns the real_path if not empty or f_path */
-> +const struct path *f_real_path(struct file *f)
-> +{
-> +	const struct path *path = __f_real_path(f);
-> +
-> +	return path->dentry ? path : &f->f_path;
-> +}
-> +EXPORT_SYMBOL(f_real_path);
-
-This is only needed by the few places like nfsd or btrfs send
-that directlycall fsnotify and should at very least be
-EXPORT_SYMBOL_GPL.  But I suspect with all the exta code, fsnotify_file
-really should move out of line and have an EXORT_SYMBOL_GPL instead.
-
-> +
-> +const struct path *f_fake_path(struct file *f)
-> +{
-> +	return &f->f_path;
-> +}
-> +EXPORT_SYMBOL(f_fake_path);
-
-.. and this helper is completely pointless.
-
-> +extern struct file *alloc_empty_file(int flags, const struct cred *cred);
-> +extern struct file *alloc_empty_file_fake(int flags, const struct cred *cred);
-> +extern struct path *__f_real_path(struct file *f);
-
-Please drop all the pointless externs while you're at it.
