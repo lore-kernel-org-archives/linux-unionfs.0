@@ -2,146 +2,119 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FFDCEB64D8
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Jun 2023 13:26:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E85D2EB64D8
+	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Jun 2023 13:30:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236592AbjFNN0t (ORCPT
+        id S245012AbjFNNaX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 14 Jun 2023 09:26:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41806 "EHLO
+        Wed, 14 Jun 2023 09:30:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235333AbjFNN0s (ORCPT
+        with ESMTP id S245019AbjFNNaV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2023 09:26:48 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E11D61BEF;
-        Wed, 14 Jun 2023 06:26:47 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 77AB364247;
-        Wed, 14 Jun 2023 13:26:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 01795C433C0;
-        Wed, 14 Jun 2023 13:26:44 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1686749206;
-        bh=nPNRrMeXI1rGe6CmC5fnrg+eHs1DY5z0cl/EbfjndVU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=XCaqMDjv1V+TLzxklaM9RIBrUWbptvN+ZKs8US/UCssImMMGmBEtjRJz8gTE9uOvb
-         wUmRNKxQYjI4qlzEPHqA9JyBGLIJgFqr0UX8N0oRDALhAJD47wDhQ1uwsyk+6MozGy
-         IuBnuyFOZvk1nW1Bhhj/3hiW8GIsD5ggHVeadQniF3UbIrvQ01jtQLfZTqzDuWQ1+v
-         KNotEDu7qFRqRthl1F7ufQ2JnqwItJlLS3JTgPB/WHzPjFrruUvdGahLBEtNx5jwOi
-         dGPLQKplRjGoVqVTxuNR1rk0Po5PnP9mduN/9Nh39zEFDFVF8UVQkxchM8EVGkU0v4
-         AN+CdaVlFnIKg==
-Date:   Wed, 14 Jun 2023 15:26:41 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
-        Christoph Hellwig <hch@lst.de>,
-        David Howells <dhowells@redhat.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v4 1/2] fs: use backing_file container for internal files
- with "fake" f_path
-Message-ID: <20230614-kilowatt-kindgerecht-46c7210ee82e@brauner>
-References: <20230614074907.1943007-1-amir73il@gmail.com>
- <20230614074907.1943007-2-amir73il@gmail.com>
+        Wed, 14 Jun 2023 09:30:21 -0400
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E8E61FF7;
+        Wed, 14 Jun 2023 06:30:18 -0700 (PDT)
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 35EDLSuw027897;
+        Wed, 14 Jun 2023 13:30:04 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=ILVPSf3o9GLRJAOnBHDkXiB2yee3btVY+Xuw+FhOo0A=;
+ b=WByMOWqLiC+0BtwjIBqYUr3q4Bxa3K1A34gsYm6EH6jrd3gQmTJ6PMxeX6+skYOXENHY
+ fS7D9z0qI9k7kjn8cU85oAKwJsFcPcw2sZ2BYOwf+fZdxw5LRrgzDVtXCoCtsmI3BxVm
+ r9Xz5cXP2SonOsE2Gh6SfTVMxyRC5WyPC4gePKGSVGB86NaYLnuzUhsWM+lxtWqzDxok
+ 3j9EjaqQmrfrkLIF0QQBhEqzqB/hAg7QIXzhCpiMSub09x3nc9wn1GR0sDcdG6Auia/k
+ +xTc+yzG59L8NT8FP4uTcagP39/8VoijuEeNUgbENJXBJsS0ZGBakvBHO1f30ScHgLS8 jA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3r7ec0g78h-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 14 Jun 2023 13:30:04 +0000
+Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 35EDNcKg002782;
+        Wed, 14 Jun 2023 13:30:04 GMT
+Received: from ppma02wdc.us.ibm.com (aa.5b.37a9.ip4.static.sl-reverse.com [169.55.91.170])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3r7ec0g77s-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 14 Jun 2023 13:30:03 +0000
+Received: from pps.filterd (ppma02wdc.us.ibm.com [127.0.0.1])
+        by ppma02wdc.us.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 35ECx8A2014554;
+        Wed, 14 Jun 2023 13:30:03 GMT
+Received: from smtprelay07.wdc07v.mail.ibm.com ([9.208.129.116])
+        by ppma02wdc.us.ibm.com (PPS) with ESMTPS id 3r4gt5nv4e-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Wed, 14 Jun 2023 13:30:03 +0000
+Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
+        by smtprelay07.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 35EDU1Dv55575000
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 14 Jun 2023 13:30:01 GMT
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 3C1DA58067;
+        Wed, 14 Jun 2023 13:30:01 +0000 (GMT)
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id E12A558069;
+        Wed, 14 Jun 2023 13:30:00 +0000 (GMT)
+Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com (unknown [9.61.19.215])
+        by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
+        Wed, 14 Jun 2023 13:30:00 +0000 (GMT)
+Message-ID: <a8e4d70d2b46f41827375d9290131ea93ad5830a.camel@linux.ibm.com>
+Subject: Re: [PATCH] fsverity: rework fsverity_get_digest() again
+From:   Mimi Zohar <zohar@linux.ibm.com>
+To:     Eric Biggers <ebiggers@kernel.org>, fsverity@lists.linux.dev
+Cc:     linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        Alexander Larsson <alexl@redhat.com>
+Date:   Wed, 14 Jun 2023 09:30:00 -0400
+In-Reply-To: <20230612190047.59755-1-ebiggers@kernel.org>
+References: <20230612190047.59755-1-ebiggers@kernel.org>
+Content-Type: text/plain; charset="ISO-8859-15"
+X-Mailer: Evolution 3.28.5 (3.28.5-18.el8) 
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: _R_OBG5ealS_BdfMCy1swJOnlj1gRx0a
+X-Proofpoint-ORIG-GUID: K5PbRqElOIh5cgd4WnaMVzObC6uOOSie
+Content-Transfer-Encoding: 7bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20230614074907.1943007-2-amir73il@gmail.com>
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.957,Hydra:6.0.573,FMLib:17.11.176.26
+ definitions=2023-06-14_08,2023-06-14_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 clxscore=1011
+ bulkscore=0 impostorscore=0 mlxscore=0 suspectscore=0 malwarescore=0
+ priorityscore=1501 mlxlogscore=999 spamscore=0 lowpriorityscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2305260000 definitions=main-2306140113
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 14, 2023 at 10:49:06AM +0300, Amir Goldstein wrote:
-> Overlayfs and cachefiles use open_with_fake_path() to allocate internal
-> files, where overlayfs also puts a "fake" path in f_path - a path which
-> is not on the same fs as f_inode.
+On Mon, 2023-06-12 at 12:00 -0700, Eric Biggers wrote:
+> From: Eric Biggers <ebiggers@google.com>
 > 
-> Allocate a container struct backing_file for those internal files, that
-> is used to hold the "fake" ovl path along with the real path.
+> Address several issues with the calling convention and documentation of
+> fsverity_get_digest():
 > 
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->  fs/cachefiles/namei.c |  4 +--
->  fs/file_table.c       | 74 +++++++++++++++++++++++++++++++++++++------
->  fs/internal.h         |  5 +--
->  fs/open.c             | 30 +++++++++++-------
->  fs/overlayfs/file.c   |  4 +--
->  include/linux/fs.h    | 24 +++++++++++---
->  6 files changed, 109 insertions(+), 32 deletions(-)
+> - Make it provide the hash algorithm as either a FS_VERITY_HASH_ALG_*
+>   value or HASH_ALGO_* value, at the caller's choice, rather than only a
+>   HASH_ALGO_* value as it did before.  This allows callers to work with
+>   the fsverity native algorithm numbers if they want to.  HASH_ALGO_* is
+>   what IMA uses, but other users (e.g. overlayfs) should use
+>   FS_VERITY_HASH_ALG_* to match fsverity-utils and the fsverity UAPI.
 > 
-> diff --git a/fs/cachefiles/namei.c b/fs/cachefiles/namei.c
-> index 82219a8f6084..283534c6bc8d 100644
-> --- a/fs/cachefiles/namei.c
-> +++ b/fs/cachefiles/namei.c
-> @@ -560,8 +560,8 @@ static bool cachefiles_open_file(struct cachefiles_object *object,
->  	 */
->  	path.mnt = cache->mnt;
->  	path.dentry = dentry;
-> -	file = open_with_fake_path(&path, O_RDWR | O_LARGEFILE | O_DIRECT,
-> -				   d_backing_inode(dentry), cache->cache_cred);
-> +	file = open_backing_file(&path, O_RDWR | O_LARGEFILE | O_DIRECT,
-> +				 &path, cache->cache_cred);
->  	if (IS_ERR(file)) {
->  		trace_cachefiles_vfs_error(object, d_backing_inode(dentry),
->  					   PTR_ERR(file),
-> diff --git a/fs/file_table.c b/fs/file_table.c
-> index 372653b92617..138d5d405df7 100644
-> --- a/fs/file_table.c
-> +++ b/fs/file_table.c
-> @@ -44,18 +44,40 @@ static struct kmem_cache *filp_cachep __read_mostly;
->  
->  static struct percpu_counter nr_files __cacheline_aligned_in_smp;
->  
-> +/* Container for backing file with optional real path */
-> +struct backing_file {
-> +	struct file file;
-> +	struct path real_path;
-> +};
-> +
-> +static inline struct backing_file *backing_file(struct file *f)
-> +{
-> +	return container_of(f, struct backing_file, file);
-> +}
-> +
-> +struct path *backing_file_real_path(struct file *f)
-> +{
-> +	return &backing_file(f)->real_path;
-> +}
-> +EXPORT_SYMBOL_GPL(backing_file_real_path);
-> +
->  static void file_free_rcu(struct rcu_head *head)
->  {
->  	struct file *f = container_of(head, struct file, f_rcuhead);
->  
->  	put_cred(f->f_cred);
-> -	kmem_cache_free(filp_cachep, f);
-> +	if (unlikely(f->f_mode & FMODE_BACKING))
-> +		kfree(backing_file(f));
-> +	else
-> +		kmem_cache_free(filp_cachep, f);
->  }
->  
->  static inline void file_free(struct file *f)
->  {
->  	security_file_free(f);
-> -	if (!(f->f_mode & FMODE_NOACCOUNT))
-> +	if (unlikely(f->f_mode & FMODE_BACKING))
-> +		path_put(backing_file_real_path(f));
-> +	else
->  		percpu_counter_dec(&nr_files);
+> - Make it return the digest size so that it doesn't need to be looked up
+>   separately.  Use the return value for this, since 0 works nicely for
+>   the "file doesn't have fsverity enabled" case.  This also makes it
+>   clear that no other errors are possible.
+> 
+> - Rename the 'digest' parameter to 'raw_digest' and clearly document
+>   that it is only useful in combination with the algorithm ID.  This
+>   hopefully clears up a point of confusion.
+> 
+> - Export it to modules, since overlayfs will need it for checking the
+>   fsverity digests of lowerdata files
+>   (https://lore.kernel.org/r/dd294a44e8f401e6b5140029d8355f88748cd8fd.1686565330.git.alexl@redhat.com).
+> 
+> Signed-off-by: Eric Biggers <ebiggers@google.com>
 
-I think this needs to be:
+Acked-by: Mimi Zohar <zohar@linux.ibm.com> for the IMA piece.
 
-if (unlikely(f->f_mode & FMODE_BACKING))
-        path_put(backing_file_real_path(f));
-
-if (likely(!(f->f_mode & FMODE_NOACCOUNT)))
-        percpu_counter_dec(&nr_files);
-
-as we do have FMODE_NOACCOUNT without FMODE_BACKING.
-
-No need to resend though.
