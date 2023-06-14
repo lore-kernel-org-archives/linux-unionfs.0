@@ -2,144 +2,121 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B4E8EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Jun 2023 07:20:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B0FB2EB64D9
+	for <linux-unionfs@archiver.kernel.org>; Wed, 14 Jun 2023 07:23:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243212AbjFNHTm (ORCPT
+        id S233802AbjFNHXN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 14 Jun 2023 03:19:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39508 "EHLO
+        Wed, 14 Jun 2023 03:23:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39836 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242938AbjFNHTG (ORCPT
+        with ESMTP id S234394AbjFNHWP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 14 Jun 2023 03:19:06 -0400
+        Wed, 14 Jun 2023 03:22:15 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DBC971FD4
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2023 00:17:35 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4FC52295D
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2023 00:20:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686727025;
+        s=mimecast20190719; t=1686727187;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=K902JB2gisvUpm4Q1IJPniY1DPyobZ0q8ZnApt8706w=;
-        b=WBQtLaWcYqTtjyYWpZYxn9f680/avdOru+OnP5j/r1GYVjQFXUfobFX1Ayoz7jcHlpMG8g
-        SkU4AhuA3LfUBrkDQa5+SeLaUNMJvLBVsIxIimj32BG9+B33VP1SRrtGSmS1XwYfl0cuYl
-        Dr9Lh0Z4XFeHOrA9vQF1mUWsTSGJBEk=
+        bh=/pCHUjyR9Iz29Lv6cKyWgShfYL2WKapdtIdczZk9ZcU=;
+        b=D6GWRnVUrenCW+L94vkeqU67X1QE4s2BuSUdqcpd+4SyazAJf9nPzkhNp0OpgN1dotvuAt
+        WBlc1PSQiuFfTzubcwruxVhaLx5hdP1R6xNPlamkgxvjzI3W2VP19doXpTdSZRKm5/uZi/
+        st6EZMEyiWK8VXwzaOTL7562aPn0jFw=
 Received: from mail-il1-f197.google.com (mail-il1-f197.google.com
  [209.85.166.197]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-616-FsQ9KYK2Pf6poN1tBBhaIQ-1; Wed, 14 Jun 2023 03:17:03 -0400
-X-MC-Unique: FsQ9KYK2Pf6poN1tBBhaIQ-1
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-33d232a2de4so60496015ab.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2023 00:17:02 -0700 (PDT)
+ us-mta-110-DdQgbg7aOZ6dkPkiaqZ-UQ-1; Wed, 14 Jun 2023 03:19:46 -0400
+X-MC-Unique: DdQgbg7aOZ6dkPkiaqZ-UQ-1
+Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-34083c0f42cso8527525ab.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 14 Jun 2023 00:19:46 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686727022; x=1689319022;
+        d=1e100.net; s=20221208; t=1686727185; x=1689319185;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=K902JB2gisvUpm4Q1IJPniY1DPyobZ0q8ZnApt8706w=;
-        b=QiUb3J19sUxziMmaeh5rDWD4NtGem8rRmAqZt9K3ek/K3WfCgvDDDfGU6oS6ouMz1Q
-         K64KePzUOQKDIJtN/n6WQU1cfM9vE0/O/TqpVBrWGC64wn+yz7e0uCTO/blvDgdrcz8l
-         YXcoJxORgFqlgzk2oZ0q350vfl/RLOEWGTS3Dy0lXhnk2m8ybFHFc9aP1UZo1mmMPhXO
-         ZS3NQnbwCFYucUO/eZPG0kdmeKiZbCz7XjCvundca789nj8kgoqvpNp+5PipMFbEOoVO
-         tLlG8YZVjRs/dG4LaqhVQXpCierj3JYMS281N+RoXfwFmXq8LmLuxPpfutYKI3bdusYG
-         exVg==
-X-Gm-Message-State: AC+VfDw8MmdSUEBH0mrzQRv2OzE8QyETFjNW20wTdBXzedWxifBx+PcL
-        ZVT82VFWINmVayGvksT5eIZJcV5rzt+Qi9fmv5Yn36WhGlam7m4/qTNX0SmCT2p6C0p4WnA8Smy
-        gIB/1R+YOBMcLVjrwlhhv+xvj+le7cGDPlUZgGFj+Pg==
-X-Received: by 2002:a92:cf06:0:b0:340:5661:5186 with SMTP id c6-20020a92cf06000000b0034056615186mr4969696ilo.14.1686727022350;
-        Wed, 14 Jun 2023 00:17:02 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ7+sxzko6RrSbKfWX5Bu2zRNR4xkp9rC8602a0pEeUUDxiAai24rFMC3xgdT6qSuxylLqckDMbTBJJCR+8NZpc=
-X-Received: by 2002:a92:cf06:0:b0:340:5661:5186 with SMTP id
- c6-20020a92cf06000000b0034056615186mr4969690ilo.14.1686727022140; Wed, 14 Jun
- 2023 00:17:02 -0700 (PDT)
+        bh=/pCHUjyR9Iz29Lv6cKyWgShfYL2WKapdtIdczZk9ZcU=;
+        b=ftK0u2COZXOA9T4MXOmp7bk9QXzwL9oQEOORXqayS7wslVx63O4RdItCuQtnoC+6BA
+         QViwjKQhIkZcaBQ/9gFZcJnPcCb0xiVcyVWkuj2MjeyqTfAPr1+7CHZtyO50fwJHmVT+
+         KszSVlOtiLWZoGQh7qDx9eRW7I02rUi+VLf0oAn61uLqECYwzSPHgyci14ARfKFSomr7
+         h90VKfkkV0jvhq2oSGDeGYCH+U/S79+u4CsZHRhx4haDMt9BMOE2gGSR45gP/Sd4S6xl
+         BfEtUa4yHspfFa2GK2JlcmBJVDQYm8Ln/2YDXdJSzlMXld7tspIeu6WMoIyZh5qM5kdV
+         E1Wg==
+X-Gm-Message-State: AC+VfDwmNJTeAw4R24kWQiub41xlinyPXLeTIjJo+TR6/eWcaxdU+bnr
+        17fO05oC75g7gSDR6m/V4+YzSw+Fr+V7JMux4wkuh1Fm0Ti+VYHW8gDVjIjtCByeiQTXqu4k1xD
+        vkjaMzKjMeMINkrdO59Mz6mT9IB2rSpustF9WZpy7d5jS9LYL0g==
+X-Received: by 2002:a05:6e02:60b:b0:33e:325a:cc0d with SMTP id t11-20020a056e02060b00b0033e325acc0dmr820462ils.2.1686727185453;
+        Wed, 14 Jun 2023 00:19:45 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ6NvcK9EjuJTD90FDBzgLJXunqZKTfxqE9fL1zhDpVNZQcYTV1jLq4gBp10xsVhSHP4LjUt1ILT5e2UFwZC3wY=
+X-Received: by 2002:a05:6e02:60b:b0:33e:325a:cc0d with SMTP id
+ t11-20020a056e02060b00b0033e325acc0dmr820453ils.2.1686727185262; Wed, 14 Jun
+ 2023 00:19:45 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1686565330.git.alexl@redhat.com> <CAOQ4uxgmV1KKCeq8=8FPkAciwqPpz8JiSM8WEuxDaZbVuYcQ7Q@mail.gmail.com>
- <CAL7ro1EiYOOOqexrKy+UXRzmpGyCaNec3+LHGxnA0YfmoMDN3A@mail.gmail.com>
- <CAL7ro1FKwgUY4e7N_vYi0cFsuVx6St0-oKvcBkiRFnzLH8D1eQ@mail.gmail.com> <CAOQ4uxgVnv7wtwFZaBnEotFCwQD1EZcSK2KW4K4vRD8d9fzCiw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgVnv7wtwFZaBnEotFCwQD1EZcSK2KW4K4vRD8d9fzCiw@mail.gmail.com>
+References: <cover.1686565330.git.alexl@redhat.com> <dd294a44e8f401e6b5140029d8355f88748cd8fd.1686565330.git.alexl@redhat.com>
+ <20230612190944.GB847@sol.localdomain> <CAL7ro1Feep_aQimxEJzKk+4cv6-UNgco3VNDKZrrC3y2u04DCw@mail.gmail.com>
+ <20230613175759.GA1139@sol.localdomain> <20230614032813.GA1146@sol.localdomain>
+In-Reply-To: <20230614032813.GA1146@sol.localdomain>
 From:   Alexander Larsson <alexl@redhat.com>
-Date:   Wed, 14 Jun 2023 09:16:51 +0200
-Message-ID: <CAL7ro1FY6OmhypFGDjinOkkjyJzymntVje4nRA558dKY+KsgzQ@mail.gmail.com>
-Subject: Re: [PATCH v3 0/4] ovl: Add support for fs-verity checking of lowerdata
-To:     Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 14 Jun 2023 09:19:34 +0200
+Message-ID: <CAL7ro1EA6kzojYuwXAkLvQNNGQ=bx2UmQmg_jaCD3omEPekAbA@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] ovl: Validate verity xattr when resolving lowerdata
+To:     Eric Biggers <ebiggers@kernel.org>
 Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev
+        amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 14, 2023 at 8:14=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Wed, Jun 14, 2023 at 5:28=E2=80=AFAM Eric Biggers <ebiggers@kernel.org> =
+wrote:
 >
-> On Mon, Jun 12, 2023 at 5:54=E2=80=AFPM Alexander Larsson <alexl@redhat.c=
-om> wrote:
-> >
-> > On Mon, Jun 12, 2023 at 1:09=E2=80=AFPM Alexander Larsson <alexl@redhat=
-.com> wrote:
+> On Tue, Jun 13, 2023 at 10:57:59AM -0700, Eric Biggers wrote:
+> > On Tue, Jun 13, 2023 at 01:41:34PM +0200, Alexander Larsson wrote:
+> > > > Can you consider
+> > > > https://lore.kernel.org/r/20230612190047.59755-1-ebiggers@kernel.or=
+g which would
+> > > > make fsverity_get_digest() support both types of IDs?  Then you can=
+ use
+> > > > FS_VERITY_HASH_ALG_*, which I think would make things slightly easi=
+er for you.
 > > >
-> > > On Mon, Jun 12, 2023 at 12:54=E2=80=AFPM Amir Goldstein <amir73il@gma=
-il.com> wrote:
-> > > >
-> > > > On Mon, Jun 12, 2023 at 1:27=E2=80=AFPM Alexander Larsson <alexl@re=
-dhat.com> wrote:
-> > > > >
-> > > > > This patchset adds support for using fs-verity to validate lowerd=
-ata
-> > > > > files by specifying an overlay.verity xattr on the metacopy
-> > > > > files.
-> > > > >
-> > > > > This is primarily motivated by the Composefs usecase, where there=
- will
-> > > > > be a read-only EROFS layer that contains redirect into a base dat=
-a
-> > > > > layer which has fs-verity enabled on all files. However, it is al=
-so
-> > > > > useful in general if you want to ensure that the lowerdata files
-> > > > > matches the expected content over time.
-> > > > >
-> > > > > I have also added some tests for this feature to xfstests[1].
-> > > >
-> > > > I can't remember if there is a good reason why your test does
-> > > > not include verify in a data-only layer.
-> > > >
-> > > > I think this test coverage needs to be added.
-> > >
-> > > Yeah. I'll add that.
+> > > Sounds very good to me. I'll rebase the patchset on top of it. Not
+> > > sure how to best land this though, are you ok with this landing via
+> > > overlayfs-next?
 > >
-> > Updated the git branch with some lowerdata tests.
+> > If you're confident that this series will land in v6.4, then sure, you =
+can apply
+> > my patch "fsverity: rework fsverity_get_digest() again" to overlayfs-ne=
+xt,
+> > instead of me taking it through fsverity/for-next.  (Hopefully the IMA
+> > maintainer will ack it as well, as it touches security/integrity/.)
 > >
+> > Just be careful about being overly-optimistic about features landing in=
+ the next
+> > release.  I've had experience with cases like this before, where I didn=
+'t apply
+> > something for a reason like this, but then the series didn't make it in=
+ right
+> > away so it was worse than me just taking the patch in the first place.
+> >
+> > I do see that the other prerequisites were just applied to overlayfs-ne=
+xt, so
+> > maybe this is good to go now.  It's up to the other overlayfs folks.
 >
-> What do I need to do in order to enable verity on ext4 besides
-> enabling FS_VERITY in the kernel?
+> I meant to say 6.5, not 6.4.
 >
-> I'm getting these on verity tests on ext4 in the default 4k config.
-> _require_scratch_verity() doesn't mention any requirement other
-> that 4K blocks and extent format files.
->
-> Thanks,
-> Amir.
->
-> BEGIN TEST 4k (10 tests): Ext4 4k block Wed Jun 14 06:04:25 UTC 2023
-> DEVICE: /dev/vdb
-> EXT_MKFS_OPTIONS: -b 4096
-> EXT_MOUNT_OPTIONS: -o block_validity
-> FSTYP         -- ext4
-> PLATFORM      -- Linux/x86_64 kvm-xfstests
-> 6.4.0-rc2-xfstests-00026-g35774ba7f07c #1596 SMP PREEMPT_DYNAMIC Tue
-> Jun 13 18:16:59 IDT 2023
-> MKFS_OPTIONS  -- -F -q -b 4096 /dev/vdc
-> MOUNT_OPTIONS -- -o acl,user_xattr -o block_validity /dev/vdc /vdc
->
-> generic/572        [06:04:42] [06:04:47] [not run]
-> generic/572 -- ext4 verity isn't usable by default with these mkfs option=
-s
-> ...
+> Anyway, just let me know if I should apply it or not, before it gets too =
+late.
 
-You need to "tune2fs -O verity" (or pass -O verity to mkfs.ext4).
+Honestly, I have no idea about the timescale here. That is all up to
+miklos really. Maybe best to do as amir say and take it through your
+tree but on from a branch that milklos can merge into overlafs-next if
+he wants to take it this cycle.
 
 --=20
 =3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
