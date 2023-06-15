@@ -2,175 +2,86 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B5F8EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Jun 2023 11:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA604EB64D9
+	for <linux-unionfs@archiver.kernel.org>; Thu, 15 Jun 2023 23:52:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245731AbjFOLcj (ORCPT
+        id S231739AbjFOXwe (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 15 Jun 2023 07:32:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50094 "EHLO
+        Thu, 15 Jun 2023 19:52:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35438 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343907AbjFOLcd (ORCPT
+        with ESMTP id S230300AbjFOXwd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 15 Jun 2023 07:32:33 -0400
-Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33DAD2729;
-        Thu, 15 Jun 2023 04:32:30 -0700 (PDT)
-Received: by mail-ua1-x92b.google.com with SMTP id a1e0cc1a2514c-7872d7b79e1so1351494241.0;
-        Thu, 15 Jun 2023 04:32:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686828749; x=1689420749;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fNQhYfypORMjFqwsysMs1sJQPWoHQ3GQv2t7/T8AiqU=;
-        b=MId8gXUXYgqEhPESUWCpo8ic87i0GuFOM6+dCKKW8++K7+LIWnkfzyaIRZdgwshuCJ
-         sKksZFpqoxbsfnu4AapgmcHn7RvpcJgCUtZa+PMfn9iIXHBVG0kpf8d/EEiKkKe6IyWO
-         z58DjRULBrx4rJD2f2ZfgM8NGjBOxTwdrmMRSKHLOg48sDrseTGgrJFpxeAe0uLGkPG+
-         avGcgAAHMXaQSNyez0FlcqtmwM4gVFESDzQe71lZGkFA2YDDPwZPEi8tqRpgznCP6aqf
-         6xtsTYp71y64aQeQ0IRmN+UiXeBcOmdvlNdjcxIfcv5jXesAdmzkvsJ+OflBcM/lBQ0V
-         wJJg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686828749; x=1689420749;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=fNQhYfypORMjFqwsysMs1sJQPWoHQ3GQv2t7/T8AiqU=;
-        b=PvfK3oZcdasmBR+bkc6LicKvQDlO+bDxPJkkd9fT+OnBv0m1hPAGjik32RnKXHGFDp
-         0C00DUePnUE/hU5QcjQVYSapPzbwViGuWvMhTwCbJ9a8iPrkT/QzpyhfUzWYR8K0BHKp
-         T7fxbExzANZXMjeoEVFdwkt2FE9sRxRnpSw7X7Nr0vQ/aoKLCaVmqkF65RhH1itgUX6m
-         DUE8sszwzgzVf6vt6rOrXv3Y5vhiSIDi3dPF8rCe91det7MBma+w2We67+E7LwezMS9D
-         ihyOUnZOJ+X8Sfw5K7Y0X54BeZwYiRpJUitDJhu6EFZOaifMUz7rrxDvQ4myxos4TN/n
-         jZ9w==
-X-Gm-Message-State: AC+VfDwsJ+pccDsyjC/eZ8ztGSoyOQC1TuSjP+5xNIQYaco0B/vVdEpi
-        T5YmxawFjnomMLEiauyuH9qO9/PrkXvY5CbX9+s=
-X-Google-Smtp-Source: ACHHUZ5hk0bjr+fW+7XqCLNSmknX+HBo7Xwb0bkFIkJO/mMIrTQYo29iNF7wfjxkk2obzPY+Ql+b/UOraJ6tZj94vQM=
-X-Received: by 2002:a67:f7d7:0:b0:43f:54b4:d763 with SMTP id
- a23-20020a67f7d7000000b0043f54b4d763mr2418934vsp.3.1686828749243; Thu, 15 Jun
- 2023 04:32:29 -0700 (PDT)
+        Thu, 15 Jun 2023 19:52:33 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D22D01BF9
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 Jun 2023 16:52:32 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 58844623C0
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 Jun 2023 23:52:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 49813C433C8;
+        Thu, 15 Jun 2023 23:52:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1686873151;
+        bh=cSQ7iQiaFIvOzEObGqNHvT9FEmXaqIOekoIY4cgyXmU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=GVsFPs698FKNMg0EFczGR3bbsaMyMPbWIa7+aWSqQ4z68iwfn6kAj3W+gU6FZ9dHK
+         bv/li4GJrcocuStENtt0co3eUOfDkq3ieutPqFdBbAR6pW0YVz8sX1MydwNlvjAwvI
+         rySvA3P/C0/rZ4MDCVwJUWAYnLmVLlVjPyxm+jyzmA7ic0CMPsCGOGO5RI37Br6hrd
+         GHEiTb5Qo9hNFrHOt8JN21pl6D8p9TbruivaTvlj8vk0MIAFREazuOCHESPSagCShR
+         a4Pw5toIt5sDNjFiJd4ipMeNrTl+3fttckanewspihjzn5lw8F2c59zs270cRduBny
+         I3uXWpJ9s/9WQ==
+Date:   Thu, 15 Jun 2023 16:52:29 -0700
+From:   Eric Biggers <ebiggers@kernel.org>
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     Amir Goldstein <amir73il@gmail.com>, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, tytso@mit.edu,
+        fsverity@lists.linux.dev
+Subject: Re: [PATCH v3 2/4] ovl: Add framework for verity support
+Message-ID: <20230615235229.GC25295@sol.localdomain>
+References: <cover.1686565330.git.alexl@redhat.com>
+ <03ac0ffd82bc1edc3a9baa68d1125f5e8cad93fd.1686565330.git.alexl@redhat.com>
+ <20230612163216.GA847@sol.localdomain>
+ <CAOQ4uxjS5-7_PaoxM41YaXW+KxwLK_K8AyJMaoi1m-3P-vZ9Kw@mail.gmail.com>
+ <20230613063704.GA879@sol.localdomain>
+ <CAOQ4uxg6BD_RDtWob5q2eX6uQ5hcWrK7wEDcBhFVrGM3vsn=NA@mail.gmail.com>
+ <20230613182233.GC1139@sol.localdomain>
+ <CAOQ4uxhzJFpfuFLxK2s0JqS5qGQDGfndFPY7n2NDmZso4cG4Rg@mail.gmail.com>
+ <CAL7ro1FF2iUjPsXrha8tELYvi9MwW7WRhksqX7ahSXc4gPHraw@mail.gmail.com>
 MIME-Version: 1.0
-References: <20230614074907.1943007-1-amir73il@gmail.com> <20230614074907.1943007-2-amir73il@gmail.com>
- <20230614-kilowatt-kindgerecht-46c7210ee82e@brauner>
-In-Reply-To: <20230614-kilowatt-kindgerecht-46c7210ee82e@brauner>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 15 Jun 2023 14:32:18 +0300
-Message-ID: <CAOQ4uxiQeet1_QrDvydygCMUsN4-e0KtYQO9k=3iA1wcJeOUhg@mail.gmail.com>
-Subject: Re: [PATCH v4 1/2] fs: use backing_file container for internal files
- with "fake" f_path
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
-        Christoph Hellwig <hch@lst.de>,
-        David Howells <dhowells@redhat.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL7ro1FF2iUjPsXrha8tELYvi9MwW7WRhksqX7ahSXc4gPHraw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 14, 2023 at 4:26=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> On Wed, Jun 14, 2023 at 10:49:06AM +0300, Amir Goldstein wrote:
-> > Overlayfs and cachefiles use open_with_fake_path() to allocate internal
-> > files, where overlayfs also puts a "fake" path in f_path - a path which
-> > is not on the same fs as f_inode.
-> >
-> > Allocate a container struct backing_file for those internal files, that
-> > is used to hold the "fake" ovl path along with the real path.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  fs/cachefiles/namei.c |  4 +--
-> >  fs/file_table.c       | 74 +++++++++++++++++++++++++++++++++++++------
-> >  fs/internal.h         |  5 +--
-> >  fs/open.c             | 30 +++++++++++-------
-> >  fs/overlayfs/file.c   |  4 +--
-> >  include/linux/fs.h    | 24 +++++++++++---
-> >  6 files changed, 109 insertions(+), 32 deletions(-)
-> >
-> > diff --git a/fs/cachefiles/namei.c b/fs/cachefiles/namei.c
-> > index 82219a8f6084..283534c6bc8d 100644
-> > --- a/fs/cachefiles/namei.c
-> > +++ b/fs/cachefiles/namei.c
-> > @@ -560,8 +560,8 @@ static bool cachefiles_open_file(struct cachefiles_=
-object *object,
-> >        */
-> >       path.mnt =3D cache->mnt;
-> >       path.dentry =3D dentry;
-> > -     file =3D open_with_fake_path(&path, O_RDWR | O_LARGEFILE | O_DIRE=
-CT,
-> > -                                d_backing_inode(dentry), cache->cache_=
-cred);
-> > +     file =3D open_backing_file(&path, O_RDWR | O_LARGEFILE | O_DIRECT=
-,
-> > +                              &path, cache->cache_cred);
-> >       if (IS_ERR(file)) {
-> >               trace_cachefiles_vfs_error(object, d_backing_inode(dentry=
-),
-> >                                          PTR_ERR(file),
-> > diff --git a/fs/file_table.c b/fs/file_table.c
-> > index 372653b92617..138d5d405df7 100644
-> > --- a/fs/file_table.c
-> > +++ b/fs/file_table.c
-> > @@ -44,18 +44,40 @@ static struct kmem_cache *filp_cachep __read_mostly=
-;
-> >
-> >  static struct percpu_counter nr_files __cacheline_aligned_in_smp;
-> >
-> > +/* Container for backing file with optional real path */
-> > +struct backing_file {
-> > +     struct file file;
-> > +     struct path real_path;
-> > +};
-> > +
-> > +static inline struct backing_file *backing_file(struct file *f)
-> > +{
-> > +     return container_of(f, struct backing_file, file);
-> > +}
-> > +
-> > +struct path *backing_file_real_path(struct file *f)
-> > +{
-> > +     return &backing_file(f)->real_path;
-> > +}
-> > +EXPORT_SYMBOL_GPL(backing_file_real_path);
-> > +
-> >  static void file_free_rcu(struct rcu_head *head)
-> >  {
-> >       struct file *f =3D container_of(head, struct file, f_rcuhead);
-> >
-> >       put_cred(f->f_cred);
-> > -     kmem_cache_free(filp_cachep, f);
-> > +     if (unlikely(f->f_mode & FMODE_BACKING))
-> > +             kfree(backing_file(f));
-> > +     else
-> > +             kmem_cache_free(filp_cachep, f);
-> >  }
-> >
-> >  static inline void file_free(struct file *f)
-> >  {
-> >       security_file_free(f);
-> > -     if (!(f->f_mode & FMODE_NOACCOUNT))
-> > +     if (unlikely(f->f_mode & FMODE_BACKING))
-> > +             path_put(backing_file_real_path(f));
-> > +     else
-> >               percpu_counter_dec(&nr_files);
->
-> I think this needs to be:
->
-> if (unlikely(f->f_mode & FMODE_BACKING))
->         path_put(backing_file_real_path(f));
->
-> if (likely(!(f->f_mode & FMODE_NOACCOUNT)))
->         percpu_counter_dec(&nr_files);
->
-> as we do have FMODE_NOACCOUNT without FMODE_BACKING.
->
-> No need to resend though.
+On Wed, Jun 14, 2023 at 09:57:41AM +0200, Alexander Larsson wrote:
+> When a layer containing verity xattrs is used, it means that any
+> such metacopy file in the upper layer is guaranteed to match the
+> content that was in the lower at the time of the copy-up. If at any time
+> (during a mount, after a remount, etc) such a file in the lower is
+> replaced or modified in any way, then opening the corresponding file on
+> overlayfs will result in EIO and a detailed error printed to the kernel logs.
+> (Actually, due to caching the overlayfs mount might still see the previous
+> file contents after a lower file is replaced under an active mount, but
+> it will never see the wrong data.)
 
-Ay! forgot to include this in v5.
-Please fix it for me again.
+Well, the key point of fsverity is that data is not verified until it is
+actually read.  At open time, the fsverity file digest is made available in
+constant time, and overlayfs will verify that.  However, invalid data blocks are
+not reported until the data is actually read.  The error that applications get
+is EIO for syscalls, and SIGBUS for memory-mapped reads, as mentioned at
+https://www.kernel.org/doc/html/latest/filesystems/fsverity.html#accessing-verity-files
 
-Thanks,
-Amir.
+So overlayfs might report EIO at open time, or it might not report an error
+until the modified data is read.  And in the latter case, presumably the error
+seen by the application matches the one for using fsverity natively?
+
+You can link to the fsverity documentation somewhere if it would be helpful, but
+I'd still like the semantics of how this works on overlayfs to be documented.
+
+- Eric
