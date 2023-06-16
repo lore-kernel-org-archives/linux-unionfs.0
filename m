@@ -2,106 +2,123 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D74AFEB64D8
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 13:05:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D29ABEB64D7
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 13:14:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231286AbjFPNFw (ORCPT
+        id S229705AbjFPNO0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 16 Jun 2023 09:05:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54040 "EHLO
+        Fri, 16 Jun 2023 09:14:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343593AbjFPNFv (ORCPT
+        with ESMTP id S1345435AbjFPNOZ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 16 Jun 2023 09:05:51 -0400
-Received: from mail-oo1-xc2e.google.com (mail-oo1-xc2e.google.com [IPv6:2607:f8b0:4864:20::c2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A6802D79;
-        Fri, 16 Jun 2023 06:05:50 -0700 (PDT)
-Received: by mail-oo1-xc2e.google.com with SMTP id 006d021491bc7-555508fd7f9so396215eaf.3;
-        Fri, 16 Jun 2023 06:05:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686920749; x=1689512749;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5tK8wLCi3af6jsEqrkD/MXLL1+C0wikgHbAi3OROsDs=;
-        b=oH5+RDzeiX4QI9IucvHRIxhHYAvdmwVih4VsEI9vnUqd9rG+jSo4GV79BFmspBWYbX
-         9iK5j96Cqzxo7vWzghAa25QwPn+CubEfWLWg0WSJOpROtvJQk2CfyC8M38JCggx1eQrk
-         Yu2bN9embTCGcmvpyczVsex1XobLrkxSDeMT+bItk8/XaFAepmRjB3BMOUsTgkJXJFYf
-         Vge7qWzoWsjOtxjSYgA2+i5+Xgd4nAnyFkd2EH3XX/6vSuFxdEOtktDkV9VHu7mVgka8
-         oR3TbMzaHOcPk7ctUffcaMDz5YWkVjLrsVaiNbOG6dTHeSIhAIgsmG0mfghPcRTrGExp
-         dewQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686920749; x=1689512749;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=5tK8wLCi3af6jsEqrkD/MXLL1+C0wikgHbAi3OROsDs=;
-        b=g7QTAKnT/QCimpiYDpaAsrJQM/1pOQGXRQLFLRLRonLih3OfNWmXdEoPk8eRTm6rF/
-         pgwd8TTjUaMQ0vDDU9WKu43acyPShrODpaNOxA5HjY+0FtjlfYbxqyDFJ97Cbd5loTQU
-         DLPKIxohT2oy0N/Ccr2q53798e+G6ywTAU/xwOVAzgjScRvMkF0pWzp2MYBL0CJj9D7A
-         j7Z2x9iHdKjigV0noTxEkZOMGrooeYv1FBHiLNqXKBv580uVX+AMOqCO6lzmSA8hnmhf
-         GnbKCFP/cKEXLNnu9yAbwfyO3e3WGsPbPgRMUJkY22WuUP7+LQZVkxo9PmgDYuJW5r3P
-         68qg==
-X-Gm-Message-State: AC+VfDyu70bWbW7QYOeOKHXlrG6d/99ROQQ431UPjKOFo6X8rAQF0BD0
-        Y6itn5voQuKfRQp3cGgatYi0q2H/xrfGHn+ViwrtS/HIXzQ=
-X-Google-Smtp-Source: ACHHUZ511yDQ1kilsGuc7oFI82rXmpGSZTQ0w5t8U1P4qYulpklas41F52o1lQNt37NzYmwNtv5tAPW7cELHq0njTW4=
-X-Received: by 2002:a05:6358:6117:b0:12b:e47a:8191 with SMTP id
- 23-20020a056358611700b0012be47a8191mr466226rws.16.1686920749467; Fri, 16 Jun
- 2023 06:05:49 -0700 (PDT)
+        Fri, 16 Jun 2023 09:14:25 -0400
+Received: from out30-110.freemail.mail.aliyun.com (out30-110.freemail.mail.aliyun.com [115.124.30.110])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFC223592
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 06:14:23 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R621e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045170;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VlGJdN7_1686921257;
+Received: from 192.168.33.9(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VlGJdN7_1686921257)
+          by smtp.aliyun-inc.com;
+          Fri, 16 Jun 2023 21:14:19 +0800
+Message-ID: <f177a721-d137-424d-2fc5-adc149ea4766@linux.alibaba.com>
+Date:   Fri, 16 Jun 2023 21:14:16 +0800
 MIME-Version: 1.0
-References: <20230616-fs-overlayfs-mount_api-fix-v1-1-b6710ba366ea@kernel.org>
-In-Reply-To: <20230616-fs-overlayfs-mount_api-fix-v1-1-b6710ba366ea@kernel.org>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 16 Jun 2023 16:05:38 +0300
-Message-ID: <CAOQ4uxj2dcP-Uj76ez629kkWh=nAVKDTv0_yV2z7Xcgx+YPLRA@mail.gmail.com>
-Subject: Re: [PATCH FOLD] ovl: fix mount api conversion braino
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.10.0
+Subject: Re: [PATCH v2 5/6] ovl: Validate verity xattr when resolving
+ lowerdata
+To:     Alexander Larsson <alexl@redhat.com>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Eric Biggers <ebiggers@kernel.org>, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, tytso@mit.edu,
+        fsverity@lists.linux.dev
+References: <cover.1683102959.git.alexl@redhat.com>
+ <CAOQ4uxhEq8u37YNnqQmLbybJy1Kkg3Qk0TVtRZQP-yHt8CMmWA@mail.gmail.com>
+ <CAL7ro1Hqc29w-FuRuoEfcsxiXTnqqwHP73nwvmZRuKVRsz4D9w@mail.gmail.com>
+ <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com>
+ <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com>
+ <CAOQ4uxgbMD2RdEqta7a2t3uVceLuZDxOWA9SBNDAgZSdO_532Q@mail.gmail.com>
+ <CAL7ro1FF_q7FEJdevWrqvugkJ9S8bU5MxcoHHrLC3D834u4+zQ@mail.gmail.com>
+ <CAOQ4uxgo9LOM3minBH0vw3huxjrHmO5O-caGfhgOUGCuT0B9Vg@mail.gmail.com>
+ <20230616052444.GA181948@sol.localdomain>
+ <CAOQ4uxjBfPvDb5921vV+jO1wtgoeWenEietmK6orP7Bh+gROqw@mail.gmail.com>
+ <CAL7ro1FSPYL=P+h_qUXw=NHzPx89vR24dbZc8UOtVeYMqg5xrw@mail.gmail.com>
+ <CAOQ4uxjSLwx3NsrXJAir5DLjY-Xo5e7Qs5NjK1gFygsbTO3E-g@mail.gmail.com>
+ <CAL7ro1EYAPZYcqAiiR7r6HX2kp4XiWby0OBCEjYodNjP4VD18A@mail.gmail.com>
+ <CAOQ4uxig=DHThgTr97ga4oGmoGshxa5f+or9gbjxXZ=qTDHHgg@mail.gmail.com>
+ <CAL7ro1FUPQnwiN43jRZWAgdczPgYKj2H6Scx081gS-V+sC7cqA@mail.gmail.com>
+From:   Gao Xiang <hsiangkao@linux.alibaba.com>
+In-Reply-To: <CAL7ro1FUPQnwiN43jRZWAgdczPgYKj2H6Scx081gS-V+sC7cqA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 16, 2023 at 1:28=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> Cleanup sb->s_fs_info when ovl_fill_super() fails before setting
-> sb->s_root. The logic is a bit convoluted but tl;dr: If sget_fc() has
-> succeeded fc->s_fs_info will have been transferred to sb->s_fs_info. So
-> by the time ->fill_super()/ovl_fill_super() is called fc->s_fs_info is
-> NULL consequently fs_context->free() won't call ovl_free_fs(). If we
-> fail before sb->s_root() is set then ->put_super() won't be called which
-> would call ovl_free_fs(). IOW, if we fail in ->fill_super() before
-> sb->s_root we have to clean it up.
->
-> Amir reported an issue when running xfstests overlay/037 which made me
-> investigate and detect this.
->
-> Fixes: fc0dc3a9b73b ("ovl: port to new mount api")
-> Signed-off-by: Christian Brauner <brauner@kernel.org>
-> ---
->
-> ---
-> I would just fold this into ("ovl: port to new mount api"). The patch
-> here is mostly so we have a track record of the issue.
 
-Folder (with commit message) and applied to
-https://github.com/amir73il/linux/commits/fs-overlayfs-mount_api
 
-I've split out two prep patches, so "port to new mount api" patch
-is now as clean as it can be.
+On 2023/6/16 19:33, Alexander Larsson wrote:
+> On Fri, Jun 16, 2023 at 11:28 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>>
+>> On Fri, Jun 16, 2023 at 11:39 AM Alexander Larsson <alexl@redhat.com> wrote:
+>>>
+>>> On Fri, Jun 16, 2023 at 10:12 AM Amir Goldstein <amir73il@gmail.com> wrote:
+>>>>
+>>>>
+>>>>> I don't believe this format will actually need to change much.
+>>>>> However, I do agree
+>>>>> with the general requirement for *some* ability to move forward with
+>>>>> this format,
+>>>>> so I'm gonna go with a single version byte.
+>>>>>
+>>>>
+>>>> I disagree.
+>>>> If you present a real life use case why that really matters
+>>>> then I can reconsider.
+>>>
+>>> I disagree, but I'll add them.
+>>>
+>>
+>> Let's ask for a 3rd opinion.
+>> don't add them for now, unless Miklos says that you should.
+> 
+> I added them to the branch anyway for now. However, if we're going
+> full header + flags anyway, I wonder if we really need the
+> "overlay.digest" xattr at all? We could just put the header + optional
+> digest in the "overlay.metacopy" xattr, and then just read/store one
+> xattr. Right now metacopy is zero size, but adding some data to it
+> would not break ovl_check_metacopy_xattr() in older kernels.
+> 
+> Basically, during the lookup we get the metacopy xattr anyway, and
+> when we do we could record in a flag that there is a digest in it,
+> then during open we don't have to look for a separate digest xattr,
+> just re-load the metacopy xattr if the flag is set. With this in place
+> we can also easily add other flags to overlay.metacopy, which imho
+> makes a ton more sense than adding flags to overlay.digest.
 
->
-> Passes both
->
-> sudo ./check -overlay overlay/*
-> sudo ./check -overlay -g overlay/union
->
-> I somehow must've missed the earlier failure of overlay/037.
+My own slight concern about this is that:
 
-No failures on my tests so far.
+Previously, all metacopy inodes shares a common EROFS shared xattr
+which can be cached in memory once when the first read and other
+inodes won't trigger any I/Os for this.
 
-Thanks!
-Amir.
+If "overlay.metacopy" xattr is not empty thus it cannot be shared,
+I guess at least you could place it into an EROFS inline xattr, that
+may be good as well if you also keep "header + flags".
+
+But I'm not sure if it's a good idea to keep the full fsverity
+digest in "overlay.metacopy" honestly, especially overlayfs
+fsverity feature is off.  That will amplify I/Os (which could be
+landed in EROFS shared xattrs as "overlay.digest" in the past and
+now we need to read it immediately.)
+
+Especially for the "ls -lR" workload, I guess you might need to
+evaluate this way (only add flags vs flags + digest in
+"overlay.metacopy") first.
+
+Thanks,
+Gao Xiang
+
+> 
+> I'll have a look at this.
+> 
