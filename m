@@ -2,183 +2,94 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C83AEB64DA
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 14:05:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE9EDEB64DA
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 14:19:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229598AbjFPOFT (ORCPT
+        id S229770AbjFPOTt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 16 Jun 2023 10:05:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55118 "EHLO
+        Fri, 16 Jun 2023 10:19:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345649AbjFPOE7 (ORCPT
+        with ESMTP id S235100AbjFPOTs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 16 Jun 2023 10:04:59 -0400
-Received: from mail-ua1-x92a.google.com (mail-ua1-x92a.google.com [IPv6:2607:f8b0:4864:20::92a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6CB8735A5;
-        Fri, 16 Jun 2023 07:04:32 -0700 (PDT)
-Received: by mail-ua1-x92a.google.com with SMTP id a1e0cc1a2514c-7870821d9a1so605747241.1;
-        Fri, 16 Jun 2023 07:04:32 -0700 (PDT)
+        Fri, 16 Jun 2023 10:19:48 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A4EB930D3
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 07:19:47 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3f8cc042e2bso5959205e9.2
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 07:19:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686924225; x=1689516225;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=1iqX1mClaCrIBk4/Mil5Oa6jacTIU5M6Y0BtufyXlsU=;
-        b=obrSTLVJVXV8hD4TnKJPyePcxhqzv04Upb0puHO3evN3cWytxFK5BX/z+lIJsfzzAe
-         R58ntJXkT0o7VIxTxWx+4dItpE0V6Gmhoiu7QGf3YYA2GUwUGFW5c2FoRYYB4h/IN7Xl
-         5TlYhV51ryWuQjQmBAmmIoDOo1CVAS/e0PcqY03biYkOjCHnIYaTSq+cD/H12VL3O0Lw
-         cjesuOojdZfYrQy9iCVv0iR/uuJ6jfpDzONqnjM1Xba8KDztAZY40Y4ICImW8/HK0FQS
-         txdntSnd9t/7TVYK0Y8xcwy6SfCbWMxjtHDVRUeMYFSDA5CyDUzNEIzeC+V5/0ZvY2Tw
-         V/DA==
+        d=gmail.com; s=20221208; t=1686925186; x=1689517186;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=zycsjxQgDEHYrtGuk2CwAMtI1Q+ONQvj4wgXhuxt6/8=;
+        b=qFE4pkKK/9vWVaZnwHcpud26F2ww4KlHxF5v1w1TUL0PSp4qh+3UrF91L904Onjpa4
+         zPlih+dE74u8WmA5VLsM1AmodrjpZ3LGLKjXbra+WFkcxihUtm83IMh5GkWld3CeKEaM
+         r/zpHpVyeUmqQnD7q9wnzVy1h7mr2vSA+0IvwMhs8Jv3j6D5uoAgNYJtjI44Gtx/jImi
+         SgGej5Z55p5NSz1twylFE4rguw9ZTdeC1m7CuW4BVsJYLRfy2BnESpTu+egRtCXdUW+A
+         rLHxR5DgziMHyvZFY/EYN7QFF6OEXSQxpybeobWARAGu4h4B18HOZzK5JzIOcyhN7OG4
+         fkqA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686924225; x=1689516225;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=1iqX1mClaCrIBk4/Mil5Oa6jacTIU5M6Y0BtufyXlsU=;
-        b=k0pCZX5ImJGAZ7WClbeG9I/scqPS8xBiHrwxSQPtirPPgao42zoU+EESVx0VChgi+6
-         aOwX+0W4rfW7LcEXE2J97dnLZvsJ+0DjeoFcxNXg3SWRO6RLriuwb5eaYMgiyNxUTpS5
-         O4rPZ+kbC0oV2YvqLWvzeoOeWcO1N5Cj87iCMFKO4emJ64WHNTJQpoeM6+1NidaEEBWi
-         UnU1Ft9wBy4V9nhIQbGt9BrVh2JS8O5cpqKqOmG8YWiOGKq4NiViFb9/Y/Qd5ApEoljn
-         lf8bzy47kpyuDZ4UBkdcHnH0JlghhqtY/bw4EZRIwazGT9ygKFIXtPt5ptbbEU5zvRpF
-         Fn9w==
-X-Gm-Message-State: AC+VfDxC0/L3DcUj3edKNFnHIq6jcC0z/blh+rIoxP6oQr5l/ZZutgnJ
-        nT5cdMUo8r6JdGzm/XsK6kmFI+wyD16/ug17eCIFhfCY
-X-Google-Smtp-Source: ACHHUZ46Jm4b78a8FWI2iVK7jzykiYZxpF9iRzI42ODzmAmyOLGiJiU+ZkoSWTyZBFPEfUFxHDc6lUpjWOa/nfRWZQ0=
-X-Received: by 2002:a05:6102:440b:b0:43b:4f2e:359 with SMTP id
- df11-20020a056102440b00b0043b4f2e0359mr4163906vsb.3.1686924225581; Fri, 16
- Jun 2023 07:03:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230605-fs-overlayfs-mount_api-v3-0-730d9646b27d@kernel.org>
- <20230605-fs-overlayfs-mount_api-v3-2-730d9646b27d@kernel.org>
- <CAOQ4uxi0cVquk5=VF8Q9JY8XWKOp19WxijHNkFGiO=LfpTw+Ng@mail.gmail.com>
- <20230616-neuplanung-zudem-0408ceb10767@brauner> <CAOQ4uxic2o+-NjbQRdfjuc8hJUwZMm9Lr+t_U7BKb8F7nQxV-A@mail.gmail.com>
-In-Reply-To: <CAOQ4uxic2o+-NjbQRdfjuc8hJUwZMm9Lr+t_U7BKb8F7nQxV-A@mail.gmail.com>
+        d=1e100.net; s=20221208; t=1686925186; x=1689517186;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=zycsjxQgDEHYrtGuk2CwAMtI1Q+ONQvj4wgXhuxt6/8=;
+        b=VDrZIBzkzegVbNIHh3JeNjjVfLPd24c139Ucb5PJoLGICMJxkzCWydKjiMSBmwGIX5
+         RZLwsZzjZ1m+YScyHmHvYojfIRvqSAs+s+BDLKOp1V4/GoJlIyXrLZQFV576e0FUVVO+
+         6HnAZHcxWDIgQ6X6a13T473i/uMVkRQljeBt5rGCzvW71CTxIPaXqKysYPAr+Vz+LyqZ
+         CG+HQTsSRoedKrscHASuB7Bhkkb/VQQHuBb87HkepESHF4z/5IKX/9tipR0+lQt6vE0R
+         gP+ZEGCnDp8Z7OU5K/AndsLlm17Kjr9EP9/Y/Qmb4Z3taQDlyufNmI4G+rXzZPVtdC2K
+         sRgw==
+X-Gm-Message-State: AC+VfDzpimJQTnfk997uP05GLuGNV/PPOkqQWR1Ne7Kh2dzwqe5Xlyn4
+        LIfj0xSTPKU0l6Lb3mfubXcy9QUIz4I=
+X-Google-Smtp-Source: ACHHUZ5qF+nCYNaI/xQ30llLdKOELZunQuiNDobbBqu5wPkumnLIBfssUkcl04KWKXYdu1xJSjyVCg==
+X-Received: by 2002:a7b:c014:0:b0:3f8:f1db:d206 with SMTP id c20-20020a7bc014000000b003f8f1dbd206mr1506737wmb.25.1686925185723;
+        Fri, 16 Jun 2023 07:19:45 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id k17-20020a05600c0b5100b003f7ec896cefsm2399269wmr.8.2023.06.16.07.19.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 16 Jun 2023 07:19:45 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 16 Jun 2023 17:03:34 +0300
-Message-ID: <CAOQ4uxiLiqxftSGSG6vD4OK1hhBiHiN26iZ1NhC38Xyk6E=fBw@mail.gmail.com>
-Subject: Re: [PATCH v3 2/3] ovl: port to new mount api
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org,
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Christian Brauner <brauner@kernel.org>,
         linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: [PATCH 0/2] Prep patches for porting overlayfs to new mount api
+Date:   Fri, 16 Jun 2023 17:19:39 +0300
+Message-Id: <20230616141941.2402664-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 16, 2023 at 4:37=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Fri, Jun 16, 2023 at 4:28=E2=80=AFPM Christian Brauner <brauner@kernel=
-.org> wrote:
-> >
-> > On Fri, Jun 16, 2023 at 04:21:29PM +0300, Amir Goldstein wrote:
-> > > On Tue, Jun 13, 2023 at 5:49=E2=80=AFPM Christian Brauner <brauner@ke=
-rnel.org> wrote:
-> > > >
-> > > > We recently ported util-linux to the new mount api. Now the mount(8=
-)
-> > > > tool will by default use the new mount api. While trying hard to fa=
-ll
-> > > > back to the old mount api gracefully there are still cases where we=
- run
-> > > > into issues that are difficult to handle nicely.
-> > > >
-> > > > Now with mount(8) and libmount supporting the new mount api I expec=
-t an
-> > > > increase in the number of bug reports and issues we're going to see=
- with
-> > > > filesystems that don't yet support the new mount api. So it's time =
-we
-> > > > rectify this.
-> > > >
-> > > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > > ---
-> > > >  fs/overlayfs/ovl_entry.h |   2 +-
-> > > >  fs/overlayfs/super.c     | 557 ++++++++++++++++++++++++++---------=
-------------
-> > > >  2 files changed, 305 insertions(+), 254 deletions(-)
-> > > >
-> > > > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> > > > index e5207c4bf5b8..c72433c06006 100644
-> > > > --- a/fs/overlayfs/ovl_entry.h
-> > > > +++ b/fs/overlayfs/ovl_entry.h
-> > > > @@ -12,7 +12,7 @@ struct ovl_config {
-> > > >         bool default_permissions;
-> > > >         bool redirect_dir;
-> > > >         bool redirect_follow;
-> > > > -       const char *redirect_mode;
-> > > > +       unsigned redirect_mode;
-> > >
-> > > I have a separate patch to get rid of redirect_dir and redirect_follo=
-w
-> > > leaving only redirect_mode enum.
-> > >
-> > > I've already rebased your patches over this change in my branch.
-> > >
-> > > https://github.com/amir73il/linux/commits/fs-overlayfs-mount_api
-> > >
-> > >
-> > > >         bool index;
-> > > >         bool uuid;
-> > > >         bool nfs_export;
-> > > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > > > index d9be5d318e1b..3392dc5d2082 100644
-> > > > --- a/fs/overlayfs/super.c
-> > > > +++ b/fs/overlayfs/super.c
-> > > > @@ -16,6 +16,8 @@
-> > > >  #include <linux/posix_acl_xattr.h>
-> > > >  #include <linux/exportfs.h>
-> > > >  #include <linux/file.h>
-> > > > +#include <linux/fs_context.h>
-> > > > +#include <linux/fs_parser.h>
-> > > >  #include "overlayfs.h"
-> > > >
-> > > >  MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-> > > > @@ -59,6 +61,79 @@ module_param_named(metacopy, ovl_metacopy_def, b=
-ool, 0644);
-> > > >  MODULE_PARM_DESC(metacopy,
-> > > >                  "Default to on or off for the metadata only copy u=
-p feature");
-> > > >
-> > > > +enum {
-> > > > +       Opt_lowerdir,
-> > > > +       Opt_upperdir,
-> > > > +       Opt_workdir,
-> > > > +       Opt_default_permissions,
-> > > > +       Opt_redirect_dir,
-> > > > +       Opt_index,
-> > > > +       Opt_uuid,
-> > > > +       Opt_nfs_export,
-> > > > +       Opt_userxattr,
-> > > > +       Opt_xino,
-> > > > +       Opt_metacopy,
-> > > > +       Opt_volatile,
-> > > > +};
-> > >
-> > > Renaming all those enums to lower case creates unneeded churn.
-> > > I undid that in my branch, so now the mount api porting patch is a
-> > > lot smaller.
-> >
-> > Every single filesystem apart from fuse and overlayfs uses the standard
-> > "Opt_" syntax. Only fuse and overlayfs use OPT_* all uppercase. Even th=
-e
-> > documenation uses Opt_* throughout.
-> >
-> > So I'd appreciate it if you please did not go out of your way to deviat=
-e
-> > from this. I already did the work to convert to the Opt_* format on
-> > purpose. If you want less churn however, then you can ofc move this to =
-a
-> > preparatory patch that converts to the standard format.
->
-> okay.
-> as long as the logical changes are separate from the renaming.
+Miklos,
 
-Looking at it again, after my prep patches, this enum rename
-does not make reviewing harder, so I restored the Opt_* names
-and pushed to my branch.
+Following two cleanup patches that make Christian's new mount api
+patches smaller and easier to review.
 
-Thanks,
+I had already rebased Christain's patches over these cleanups
+and pushed to github branch fs-overlayfs-mount_api [1], which I am
+running tests on.
+
+Thanks.
 Amir.
+
+[1] https://github.com/amir73il/linux/commits/fs-overlayfs-mount_api
+
+Amir Goldstein (2):
+  ovl: store enum redirect_mode in config instead of a string
+  ovl: factor out ovl_parse_options() helper
+
+ fs/overlayfs/dir.c       |   2 +-
+ fs/overlayfs/namei.c     |   6 +-
+ fs/overlayfs/overlayfs.h |  28 ++-
+ fs/overlayfs/ovl_entry.h |   4 +-
+ fs/overlayfs/super.c     | 355 +++++++++++++++++++++------------------
+ fs/overlayfs/util.c      |   7 -
+ 6 files changed, 224 insertions(+), 178 deletions(-)
+
+-- 
+2.34.1
+
