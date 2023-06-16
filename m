@@ -2,71 +2,70 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED135EB64D7
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 08:12:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDFD9EB64D7
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 08:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231642AbjFPIMJ (ORCPT
+        id S231580AbjFPIM5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 16 Jun 2023 04:12:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53874 "EHLO
+        Fri, 16 Jun 2023 04:12:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244661AbjFPIMI (ORCPT
+        with ESMTP id S245183AbjFPIMv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 16 Jun 2023 04:12:08 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76588296C
-        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 01:11:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1686903080;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=WJJXtoHx/PWyibukTRSCD3QMM2w15zdSv1dfITtFgjc=;
-        b=QuRxDZF5pSwy4n0WinRDt6IHhOIRH4kZ9kE+CrWCUHPIVL2Th0L5JxfHFxQNr8Izn/V/Fw
-        eutmmoryryX/gEcVeJm6elCOrw2e7Pu02OhIwWXy0hzQOV0e1EBE3fzu1ktegWy/VvSlhx
-        yrGRt1NvIWVblhSmIoSWBKr525cvr/Y=
-Received: from mail-il1-f198.google.com (mail-il1-f198.google.com
- [209.85.166.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-230-sEkItJcHNNCQwdQQUOkA-w-1; Fri, 16 Jun 2023 04:11:18 -0400
-X-MC-Unique: sEkItJcHNNCQwdQQUOkA-w-1
-Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-34055a1cc0fso3759115ab.2
-        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 01:11:18 -0700 (PDT)
+        Fri, 16 Jun 2023 04:12:51 -0400
+Received: from mail-vs1-xe33.google.com (mail-vs1-xe33.google.com [IPv6:2607:f8b0:4864:20::e33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56B2C30C5
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 01:12:49 -0700 (PDT)
+Received: by mail-vs1-xe33.google.com with SMTP id ada2fe7eead31-43f5c963fbbso150830137.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 01:12:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1686903168; x=1689495168;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Fv+7INReWev0Yt8OtSlRVi4n8fPYkR08IfepHUzN7bg=;
+        b=MJaEeOUYZubOR9MPoytvEhceGtCLa9si8AcI6VQ2UZ1CE1l8NnPB03mrSzlPI7rN3C
+         7NB/yUu38X7zramr3Z2nCIon1J5WhE53Cg1JejLuzBpeWYrgeyzrtltOzwMB8G72JLhB
+         PT5SJCxhhSUIdrfP6qCpmSy5ZgmyxuMDH5htuI+UAWIHxg8hc23b5sMmw1VsWtYNexCE
+         mDs8/9ABdPiT1rjHNxgTDiDkFpyTfG7g/UW3M3I9IuvcfY2NBQt07C+TVkHJxTw6sY/p
+         FvFpWI3LlIOhELITAwVpdhjRRpcQ3d1FCzY1QV7DKTcQmOoK4UhLs6c4Yh0488RxOQDV
+         6lbw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686903078; x=1689495078;
+        d=1e100.net; s=20221208; t=1686903168; x=1689495168;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=WJJXtoHx/PWyibukTRSCD3QMM2w15zdSv1dfITtFgjc=;
-        b=EEtBHgRtPTbm59AuVPOf1ChjoCKfy+i5HanJzOGGh4cQogFr25Vv8n9Yklh2RWzV2t
-         O42S8pskHv9ituWasKrDvpYf6CBxNYUAikqne//Aq6LtvIxOldDqpvJI+89EwI1wHhIS
-         73PZFpZ7ziSms124XczV+bYXQYJGisdEOlIZTmhx4xWxA45n+TMnrcuKLpZQnFYYI4Em
-         0F7OnUJ/IxCOc5ZdhhMOyjPtANjS/PgdnU7dIW8Dyc4YCT9Kw1hUkFy+0UZeFNgBMPGR
-         XzO8i4Oge04umXV7nAP8zzbwFVY9XpVI6sDVCRQ1MIGEZ72co+gSnDa34GLKBnjFdn3N
-         7bRw==
-X-Gm-Message-State: AC+VfDxS/Bfm2ELPEt4rkAPqoNsVyuTx0RyA1x7mslrre0uX+wf38cTx
-        T253bCfP32p70xUicXgBq0D0GcjFNiBGVUeSWfnoviB7m1aL542y2ys4Co+Kv5lqZY45WFh0zV7
-        ZTc8Xki/TJMZ8cINFnuiA8N6K2nL4zTIyFFYAxG1ULA==
-X-Received: by 2002:a92:d686:0:b0:341:d535:8c0a with SMTP id p6-20020a92d686000000b00341d5358c0amr1707559iln.29.1686903078117;
-        Fri, 16 Jun 2023 01:11:18 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ50qTVty7I7235/QbtI1tN5/iA4lhWbPcjlb0fXch5+NkuoYv/L20ZZXG0IpNhIn/AIs6tpioU+GTgK64W8kRM=
-X-Received: by 2002:a92:d686:0:b0:341:d535:8c0a with SMTP id
- p6-20020a92d686000000b00341d5358c0amr1707549iln.29.1686903077878; Fri, 16 Jun
- 2023 01:11:17 -0700 (PDT)
+        bh=Fv+7INReWev0Yt8OtSlRVi4n8fPYkR08IfepHUzN7bg=;
+        b=SCj8fMtf3Q2gm4+jGHkrRfyHCI2KvxthO444StYrGCbNZ7QJ2l1/pFZpSBewawxhcB
+         A8/Qp2bUbuZp8fygHoCGSNhp6AzSMJB0mcJlfDKXrFWiS510FFYwgudqUu++X9LLyHCs
+         K6BeO+8la0ruyxJIXpMIlShUeyTn1FNEbMr8x2ZgV7qcLzrGIkX/KhgcOuwYIjydCLaP
+         6sfXTTSn56lbU/fwm7Y4glF4PkEBm1tsjvzJV4dx2LzWMp1WDVxlmoc2JSja7I+eYPnl
+         +v7klri8WWwjNX5mAbu/Uv+e8eVH9PBALmYJPn8eTcEJkVpJfAeaOD8dFFLBZmf9BwCb
+         zUfg==
+X-Gm-Message-State: AC+VfDxH2V1FlXykg4EUCgLiVC+ACXRA+sBTGhM1cxWK8jAPgxzdrNRy
+        BNUR7GrBpwGQkYfu94cysEgc9oyJvny5F2tQ7UQ=
+X-Google-Smtp-Source: ACHHUZ5nemZrOhAY+r852jkZH9MBHs5gfu2ifH2nZH2BZETYAdL6YTx6aZ1Uny0UvrNPKH88EnRebxBmkhAnf7tK2h4=
+X-Received: by 2002:a05:6102:e52:b0:43c:8c56:14a9 with SMTP id
+ p18-20020a0561020e5200b0043c8c5614a9mr1250087vst.9.1686903168190; Fri, 16 Jun
+ 2023 01:12:48 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1686565330.git.alexl@redhat.com> <03ac0ffd82bc1edc3a9baa68d1125f5e8cad93fd.1686565330.git.alexl@redhat.com>
- <20230612163216.GA847@sol.localdomain> <CAOQ4uxjS5-7_PaoxM41YaXW+KxwLK_K8AyJMaoi1m-3P-vZ9Kw@mail.gmail.com>
- <20230613063704.GA879@sol.localdomain> <CAOQ4uxg6BD_RDtWob5q2eX6uQ5hcWrK7wEDcBhFVrGM3vsn=NA@mail.gmail.com>
- <20230613182233.GC1139@sol.localdomain> <CAOQ4uxhzJFpfuFLxK2s0JqS5qGQDGfndFPY7n2NDmZso4cG4Rg@mail.gmail.com>
- <CAL7ro1FF2iUjPsXrha8tELYvi9MwW7WRhksqX7ahSXc4gPHraw@mail.gmail.com> <20230615235229.GC25295@sol.localdomain>
-In-Reply-To: <20230615235229.GC25295@sol.localdomain>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Fri, 16 Jun 2023 10:11:06 +0200
-Message-ID: <CAL7ro1G+Dnet=M+CUY7e_9nJhOtD3rQm16C7bWkMBVnfcvm4Yg@mail.gmail.com>
-Subject: Re: [PATCH v3 2/4] ovl: Add framework for verity support
-To:     Eric Biggers <ebiggers@kernel.org>
-Cc:     Amir Goldstein <amir73il@gmail.com>, miklos@szeredi.hu,
+References: <cover.1683102959.git.alexl@redhat.com> <b58e57955e122b5d6c4e087cf2dd6ed664152c7b.1683102959.git.alexl@redhat.com>
+ <20230514191647.GD9528@sol.localdomain> <CAOQ4uxhEq8u37YNnqQmLbybJy1Kkg3Qk0TVtRZQP-yHt8CMmWA@mail.gmail.com>
+ <CAL7ro1Hqc29w-FuRuoEfcsxiXTnqqwHP73nwvmZRuKVRsz4D9w@mail.gmail.com>
+ <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com>
+ <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com>
+ <CAOQ4uxgbMD2RdEqta7a2t3uVceLuZDxOWA9SBNDAgZSdO_532Q@mail.gmail.com>
+ <CAL7ro1FF_q7FEJdevWrqvugkJ9S8bU5MxcoHHrLC3D834u4+zQ@mail.gmail.com>
+ <CAOQ4uxgo9LOM3minBH0vw3huxjrHmO5O-caGfhgOUGCuT0B9Vg@mail.gmail.com>
+ <20230616052444.GA181948@sol.localdomain> <CAOQ4uxjBfPvDb5921vV+jO1wtgoeWenEietmK6orP7Bh+gROqw@mail.gmail.com>
+ <CAL7ro1FSPYL=P+h_qUXw=NHzPx89vR24dbZc8UOtVeYMqg5xrw@mail.gmail.com>
+In-Reply-To: <CAL7ro1FSPYL=P+h_qUXw=NHzPx89vR24dbZc8UOtVeYMqg5xrw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 16 Jun 2023 11:12:36 +0300
+Message-ID: <CAOQ4uxjSLwx3NsrXJAir5DLjY-Xo5e7Qs5NjK1gFygsbTO3E-g@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] ovl: Validate verity xattr when resolving lowerdata
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     Eric Biggers <ebiggers@kernel.org>, miklos@szeredi.hu,
         linux-unionfs@vger.kernel.org, tytso@mit.edu,
         fsverity@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
@@ -75,73 +74,114 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 16, 2023 at 1:52=E2=80=AFAM Eric Biggers <ebiggers@kernel.org> =
-wrote:
+On Fri, Jun 16, 2023 at 10:50=E2=80=AFAM Alexander Larsson <alexl@redhat.co=
+m> wrote:
 >
-> On Wed, Jun 14, 2023 at 09:57:41AM +0200, Alexander Larsson wrote:
-> > When a layer containing verity xattrs is used, it means that any
-> > such metacopy file in the upper layer is guaranteed to match the
-> > content that was in the lower at the time of the copy-up. If at any tim=
+> On Fri, Jun 16, 2023 at 7:55=E2=80=AFAM Amir Goldstein <amir73il@gmail.co=
+m> wrote:
+> >
+> > On Fri, Jun 16, 2023 at 8:24=E2=80=AFAM Eric Biggers <ebiggers@kernel.o=
+rg> wrote:
+> > >
+> > > On Fri, Jun 16, 2023 at 08:07:43AM +0300, Amir Goldstein wrote:
+> > > > > I would really like to get the overlay.verity xattr support in
+> > > > > upstream pretty soon, because without it I can't release a stable
+> > > > > version of the composefs userspace code. I don't want to release
+> > > > > something that is using an xattr format that is not guaranteed to=
+ be
+> > > > > stable.
+> > > > >
+> > > >
+> > > > Alex,
+> > > >
+> > > > Pondering about this last sentence.
+> > > >
+> > > > The overlay.verity xattr format is already in its 3rd revision sinc=
 e
-> > (during a mount, after a remount, etc) such a file in the lower is
-> > replaced or modified in any way, then opening the corresponding file on
-> > overlayfs will result in EIO and a detailed error printed to the kernel=
- logs.
-> > (Actually, due to caching the overlayfs mount might still see the previ=
-ous
-> > file contents after a lower file is replaced under an active mount, but
-> > it will never see the wrong data.)
+> > > > the beginning of development.
+> > > >
+> > > > When it was bare digest, it might have made sense to have no
+> > > > header that describes the format.
+> > > >
+> > > > When the algo byte was added, that was already a very big hint
+> > > > that a proper header was in order.
+> > > >
+> > > > Now that you had to change the meaning of the byte, it is very hard
+> > > > to argue that the xattr format is guaranteed to be stable - in the =
+sense
+> > > > that it can never change again.
+> > > >
+> > > > Please add a minimal header to the overlay.verity xattr format,
+> > > > similar to ovl_fb, that will allow composefs/overlayfs to be
+> > > > maintained as the separate projects that they are.
+> > > >
+> > > > Something like this?
+> > > >
+> > > > /* On-disk format for "verity" xattr */
+> > > > struct ovl_verity {
+> > > >         u8 version;     /* 0 */
+> > > >         u8 len;          /* size of this header + size of digest */
+> > > >         u8 flags;
+> > > >         u8 algo;        /* digest algo */
+> > > >         u8 digest[];
+> > > > };
+> > > >
+> > > > I realize that digest size may be inferred from xattr size,
+> > > > but it is better to state the stored digest size explicitly and ver=
+ify
+> > > > that it matches expected xattr size.
+> > >
+> > > If it was up to me I think I'd keep it even more "minimal" just do:
+> > >
+> > >         struct ovl_verity {
+> > >                 u8 version;     /* 0 */
+> > >                 u8 algo;        /* digest algo */
+> > >                 u8 digest[];
+> > >         };
+> > >
+> > > It's up to you, though.
+> >
+> > Please keep len and flags.
+> > Nothing to be gained from removing them.
 >
-> Well, the key point of fsverity is that data is not verified until it is
-> actually read.  At open time, the fsverity file digest is made available =
-in
-> constant time, and overlayfs will verify that.  However, invalid data blo=
-cks are
-> not reported until the data is actually read.  The error that application=
-s get
-> is EIO for syscalls, and SIGBUS for memory-mapped reads, as mentioned at
-> https://www.kernel.org/doc/html/latest/filesystems/fsverity.html#accessin=
-g-verity-files
+> Something is gained by removing them: smaller images.
 >
-> So overlayfs might report EIO at open time, or it might not report an err=
-or
-> until the modified data is read.  And in the latter case, presumably the =
-error
-> seen by the application matches the one for using fsverity natively?
+> I have a Centos 9 developer rootfs here to test with. The basic
+> composefs image size for this with the current format (1 byte for algo)
+> is 11M. Adding one more byte (version) adds 88k (0.8%) to it and adding 3
+> bytes (version+flags+len) adds 240k (2.1%).
+>
 
-Yes, I'm aware of that, but do we need to describe this in the
-overlayfs documentation?
-The text I wrote is describing the behaviour that overlayfs adds to
-the mix, and I sort of
-assumed the late validation from fs-verity itself would be known about
-if the file already
-has fs-verity enabled.
+I am not impressed.
+This is micro optimization IMO.
+If you want to optimize xattrs for size, you could have erofs
+compress all trusted.overlay.* names into byte special codes.
+On local disk fs, this few bytes change in xattr size won't matter one bit.
 
-> You can link to the fsverity documentation somewhere if it would be helpf=
-ul, but
-> I'd still like the semantics of how this works on overlayfs to be documen=
-ted.
+> These are not huge costs, but they are not really giving any huge advanta=
+ges
+> either. I mean, the digest length can be computed already, both from
+> the xattr size
+> and the algo type. And flag-like features could be encoded in the
+> version byte, or,
+> if really needed, a version 2 header could add a flags field.
+>
 
-I guess just adding a link to that is not that bad. What about:
+Yes it could at the cost of uglier code.
+We will do that if we have to, but not because we failed
+to reserve room for flags to begin with.
+It would be a rookie on-disk format mistake to do that.
 
-----
-When a layer containing verity xattrs is used, it means that any such
-metacopy file in the upper layer is guaranteed to match the content
-that was in the lower at the time of the copy-up. If at any time
-(during a mount, after a remount, etc) such a file in the lower is
-replaced or modified in any way, then opening the corresponding file
-on overlayfs will result in EIO and a detailed error printed to the
-kernel logs.  (Actually, due to caching the overlayfs mount might
-still see the previous file contents after a lower file is replaced
-under an active mount, but it will never see the wrong data.)  In
-addition fs-verity will do late validation of the file content, as
-described in :ref:`Documentation/filesystems/fsverity.rst
-<accessing_verity_files>`.
----
+> I don't believe this format will actually need to change much.
+> However, I do agree
+> with the general requirement for *some* ability to move forward with
+> this format,
+> so I'm gonna go with a single version byte.
+>
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
+I disagree.
+If you present a real life use case why that really matters
+then I can reconsider.
 
+Thanks,
+Amir.
