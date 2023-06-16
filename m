@@ -2,174 +2,173 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8626EB64D8
-	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 07:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 204A9EB64D7
+	for <linux-unionfs@archiver.kernel.org>; Fri, 16 Jun 2023 07:51:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233812AbjFPHpR (ORCPT
+        id S243554AbjFPHvg (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 16 Jun 2023 03:45:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40134 "EHLO
+        Fri, 16 Jun 2023 03:51:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44170 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245644AbjFPHpI (ORCPT
+        with ESMTP id S241738AbjFPHvc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 16 Jun 2023 03:45:08 -0400
-Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92C882719;
-        Fri, 16 Jun 2023 00:45:07 -0700 (PDT)
-Received: by mail-ua1-x92b.google.com with SMTP id a1e0cc1a2514c-786e637f06dso158230241.2;
-        Fri, 16 Jun 2023 00:45:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686901506; x=1689493506;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RbyMv4kVSEw6ifFRfsiwdW9ibmL3bA472bGIxbxrS1Y=;
-        b=lwnG7Rq+mHsIaIQvdaWaNxYcmsHsocdBwuoQAnd/6uolvTtheDHlarJSF5I3ovge8/
-         d5JNxEUT2UuvZVIKHUh645OyAmUOB+ATrdR+gI6dWeMNAj80E2YNNn1NQogRQdy8YP8i
-         j4zeUkv5KMpAftiSsDZB86x7/i5qa/BO/FRFRZUncbaNp6hmqFJR6o/7Oj2SM3gDg7V6
-         qDDnuTCF7L5UzeL9EUI/8TZHX78PFyja8WoBh7X+OrjueKSEHROiWS6Fo93Qjeqf/dC+
-         27NAMtKbpSWhgy3ZVKOpScoRZyYm63jqvpjeriXDFbDgCZvfPgJi/t2YPdM4wxvTfoSx
-         jJxA==
+        Fri, 16 Jun 2023 03:51:32 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8438B2965
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 00:50:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1686901857;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=3yTALJgl5VwfXZyTr99YwpTRrW0V6/OKG4FhyimV7kk=;
+        b=EpnvbEux7GaS7+wg9OA+YWKeZgeC7I9+zzq8yCvUf3g8owQhVvc72InyRwP27p7IwYzc+w
+        XYjVPpumYuC27vuHDFnlSgfgGcy0w7C9zI4QJVI6YrDi4j64v0iy29+ZERq82aDru+WCev
+        0/K0YXY7f9y1+Fnj5xPQ7P5xXRMfOvE=
+Received: from mail-il1-f197.google.com (mail-il1-f197.google.com
+ [209.85.166.197]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-213-bA2Kq6s9NwSL4v1IppNEVA-1; Fri, 16 Jun 2023 03:50:56 -0400
+X-MC-Unique: bA2Kq6s9NwSL4v1IppNEVA-1
+Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-340bdf36dcdso4094265ab.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Jun 2023 00:50:56 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686901506; x=1689493506;
+        d=1e100.net; s=20221208; t=1686901855; x=1689493855;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=RbyMv4kVSEw6ifFRfsiwdW9ibmL3bA472bGIxbxrS1Y=;
-        b=j9MSzrNFGaLk4WSoHmYBgJCQ4eD24VvC/VRIKQDV165QY7fxeKDAHVjUd3H66yI6r9
-         Uir+89WmY666CMfyxmHmXiEM2GNOX/nEy4mjP13zcDaSggd2kVrFSZE34CN8skfHFcry
-         Uxf3/Bl1jefnIOFCKvcGJeDlSrj8sTeSJlEd4F+LXIVt5uSNsJQ7Fsg8Y778DiVCH1nf
-         z2hiaR118KLee3pjvDYe5G56JLBVl99ZENqfy1ZKKVPHB7l+E5O4aTF21fDw4HI2ejpo
-         9VUZpoqRXARKBdWkv6m4qIvgvClvSodMItrmcASGsdcgytgo3BtfnjsN/nm+ycePTZ0u
-         Ggvg==
-X-Gm-Message-State: AC+VfDzZ9KHkxPXoHyTqYoWYbTaBYbEtWcJ0FAQRYFlQ9McL21qKHG3n
-        LLlSxzA9Uzvvxo3OS+Zspn+CXAEv7CTFq+uLUn0=
-X-Google-Smtp-Source: ACHHUZ4bd95yfoeqsQLVACMfgHvAEnHgBjuJpZ3JNuNIs72INDnxegOeFugJ1dX5LGnc6KVgFGlBggufIT9eeaaD/mo=
-X-Received: by 2002:a05:6102:354c:b0:43b:4da5:f9ba with SMTP id
- e12-20020a056102354c00b0043b4da5f9bamr1090103vss.32.1686901506551; Fri, 16
- Jun 2023 00:45:06 -0700 (PDT)
+        bh=3yTALJgl5VwfXZyTr99YwpTRrW0V6/OKG4FhyimV7kk=;
+        b=hLvV9gd7WMVmkCX0IHLSX3RHKzYd+NxPRi2gzzqooClfH4pP4p9KrvidUpK3npcRB4
+         zzJNXQLk8vprShti3xB8pcboYgZj4aE4h1hs+7EBw360ErqDh4B7VDSl9w4eZnczHZ4E
+         +3ZOnN3DYyJUtbxaEpeWHInEmIOHr0R5bQWh0Ul4jfpNJLOam+wRwHy/dk9Rhw5Axhbt
+         fX2b9vpc3lRaYZ+JIi8Ib0He1fBrDob3jkmxSarns3tCi3HVFR2OXGSONXYtHFuEHU6l
+         TQXcMWyjMb8QbqQ71Elv4UArCaRcl+VFa/KQkMm8j0oCFU7k1u11qN2fs/xfkX+4gUFZ
+         a5RA==
+X-Gm-Message-State: AC+VfDz/yd2ZxotJgsRg7p7kCysbJUHFZiEWBY5AcxkU05agDpuoKt1X
+        h/8v5qU/hiyF2K4IqAW5bz43O6TE64FW7XMWAs6NRmcZsSwFaCEgf0RidUpKrgHE6/k6peMTfTe
+        KqhwfjAxCnl00aK/+1nZsGuFoJRJIlLZsBiyImzOEzLCravO2+Q==
+X-Received: by 2002:a92:d648:0:b0:331:4f70:a2b with SMTP id x8-20020a92d648000000b003314f700a2bmr2103662ilp.5.1686901855178;
+        Fri, 16 Jun 2023 00:50:55 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ6u8kPaJAhdFTppm5aeqe/Nh0jLq0BPZdDYi0jZOv7ZP+P4/LRD6o//oF4FFAuFaYMcjFhAQqjG74sY15zemxc=
+X-Received: by 2002:a92:d648:0:b0:331:4f70:a2b with SMTP id
+ x8-20020a92d648000000b003314f700a2bmr2103653ilp.5.1686901854927; Fri, 16 Jun
+ 2023 00:50:54 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230615112229.2143178-1-amir73il@gmail.com> <20230615112229.2143178-5-amir73il@gmail.com>
- <20230616071534.GD29590@lst.de>
-In-Reply-To: <20230616071534.GD29590@lst.de>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 16 Jun 2023 10:44:55 +0300
-Message-ID: <CAOQ4uxjHLW8vObUHLBj4TWZvxheV38AnqL_-y9vhcvL=qezQDw@mail.gmail.com>
-Subject: Re: [PATCH v5 4/5] fs: use backing_file container for internal files
- with "fake" f_path
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        David Howells <dhowells@redhat.com>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+References: <cover.1683102959.git.alexl@redhat.com> <b58e57955e122b5d6c4e087cf2dd6ed664152c7b.1683102959.git.alexl@redhat.com>
+ <20230514191647.GD9528@sol.localdomain> <CAOQ4uxhEq8u37YNnqQmLbybJy1Kkg3Qk0TVtRZQP-yHt8CMmWA@mail.gmail.com>
+ <CAL7ro1Hqc29w-FuRuoEfcsxiXTnqqwHP73nwvmZRuKVRsz4D9w@mail.gmail.com>
+ <CAOQ4uxh_y+YO3q7dB=ALCriq31RhapOHGt+jcXTQbOC7iVqYTw@mail.gmail.com>
+ <CAL7ro1GTzJy5Nv1vH0buVEXUnUk7cXBhSJB2ap8Jt_hutk7nYw@mail.gmail.com>
+ <CAOQ4uxgbMD2RdEqta7a2t3uVceLuZDxOWA9SBNDAgZSdO_532Q@mail.gmail.com>
+ <CAL7ro1FF_q7FEJdevWrqvugkJ9S8bU5MxcoHHrLC3D834u4+zQ@mail.gmail.com>
+ <CAOQ4uxgo9LOM3minBH0vw3huxjrHmO5O-caGfhgOUGCuT0B9Vg@mail.gmail.com>
+ <20230616052444.GA181948@sol.localdomain> <CAOQ4uxjBfPvDb5921vV+jO1wtgoeWenEietmK6orP7Bh+gROqw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjBfPvDb5921vV+jO1wtgoeWenEietmK6orP7Bh+gROqw@mail.gmail.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Fri, 16 Jun 2023 09:50:43 +0200
+Message-ID: <CAL7ro1FSPYL=P+h_qUXw=NHzPx89vR24dbZc8UOtVeYMqg5xrw@mail.gmail.com>
+Subject: Re: [PATCH v2 5/6] ovl: Validate verity xattr when resolving lowerdata
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Eric Biggers <ebiggers@kernel.org>, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, tytso@mit.edu,
+        fsverity@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 16, 2023 at 10:15=E2=80=AFAM Christoph Hellwig <hch@lst.de> wro=
-te:
+On Fri, Jun 16, 2023 at 7:55=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
 >
-> > -     if (!(f->f_mode & FMODE_NOACCOUNT))
-> > +     if (unlikely(f->f_mode & FMODE_BACKING))
-> > +             path_put(backing_file_real_path(f));
-> > +     else
-> >               percpu_counter_dec(&nr_files);
->
-> This is still missing the earlier pointed out fix that we still need
-> the FMODE_NOACCOUNT check, isn't it?
-
-Yes, I forgot and Christian has already fixed this on his branch.
-
->
-> > + * This is only for kernel internal use, and the allocate file must no=
-t be
-> > + * installed into file tables or such.
->
-> I'd use the same blurb I'd suggest for the previous patch here as well.
->
-> > +/**
-> > + * backing_file_open - open a backing file for kernel internal use
-> > + * @path:    path of the file to open
-> > + * @flags:   open flags
-> > + * @path:    path of the backing file
-> > + * @cred:    credentials for open
-> > + *
-> > + * Open a file whose f_inode !=3D d_inode(f_path.dentry).
-> > + * the returned struct file is embedded inside a struct backing_file
-> > + * container which is used to store the @real_path of the inode.
-> > + * The @real_path can be accessed by backing_file_real_path() and the
-> > + * real dentry can be accessed with file_dentry().
-> > + * The kernel internal backing file is not accounted in nr_files.
-> > + * This is only for kernel internal use, and must not be installed int=
-o
-> > + * file tables or such.
-> > + */
->
-> I still find this comment not very descriptive.  Here is my counter
-> suggestion, which I'm also not totally happy with, and which might not
-> even be factually correct as I'm trying to understand the use case a bit
-> better by reading the code:
->
->  * Open a backing file for a stackable file system (e.g. overlayfs).
->  * For these backing files that reside on the underlying file system, we =
-still
->  * want to be able to return the path of the upper file in the stackable =
-file
->  * system.  This is done by embedding the returned file into a container
->  * structure that also stores the path on the upper file system, which ca=
-n be
->  * retreived using backing_file_real_path().
-
-It is the other way around.
-Those ovl files currently in master have the ovl path in f_path
-and xfs inode in f_inode.
-After this change, f_path is still ovl and f_inode is still xfs, but
-backing_file_real_path() can be used to get the xfs path.
-
-Using the terminology "upper file in the stackable file" above
-is different from what "upper file" means in overlayfs terminology.
-So maybe:
-
- * Open a backing file for a stackable filesystem (e.g. overlayfs).
- * @path may be on the stackable filesystem and backing inode on the
- * underlying filesystem.  In this case, we want to be able to return the
- * @real_path of the backing inode.  This is done by embedding the
- * returned file into a container structure that also stores the path of th=
+> On Fri, Jun 16, 2023 at 8:24=E2=80=AFAM Eric Biggers <ebiggers@kernel.org=
+> wrote:
+> >
+> > On Fri, Jun 16, 2023 at 08:07:43AM +0300, Amir Goldstein wrote:
+> > > > I would really like to get the overlay.verity xattr support in
+> > > > upstream pretty soon, because without it I can't release a stable
+> > > > version of the composefs userspace code. I don't want to release
+> > > > something that is using an xattr format that is not guaranteed to b=
 e
- * backing inode on the underlying filesystem, which can be retrieved
- * using backing_file_real_path().
-
->  *
->  * The return file is not accounted in nr_files and must not be installed
->  * into the file descriptor table.
+> > > > stable.
+> > > >
+> > >
+> > > Alex,
+> > >
+> > > Pondering about this last sentence.
+> > >
+> > > The overlay.verity xattr format is already in its 3rd revision since
+> > > the beginning of development.
+> > >
+> > > When it was bare digest, it might have made sense to have no
+> > > header that describes the format.
+> > >
+> > > When the algo byte was added, that was already a very big hint
+> > > that a proper header was in order.
+> > >
+> > > Now that you had to change the meaning of the byte, it is very hard
+> > > to argue that the xattr format is guaranteed to be stable - in the se=
+nse
+> > > that it can never change again.
+> > >
+> > > Please add a minimal header to the overlay.verity xattr format,
+> > > similar to ovl_fb, that will allow composefs/overlayfs to be
+> > > maintained as the separate projects that they are.
+> > >
+> > > Something like this?
+> > >
+> > > /* On-disk format for "verity" xattr */
+> > > struct ovl_verity {
+> > >         u8 version;     /* 0 */
+> > >         u8 len;          /* size of this header + size of digest */
+> > >         u8 flags;
+> > >         u8 algo;        /* digest algo */
+> > >         u8 digest[];
+> > > };
+> > >
+> > > I realize that digest size may be inferred from xattr size,
+> > > but it is better to state the stored digest size explicitly and verif=
+y
+> > > that it matches expected xattr size.
+> >
+> > If it was up to me I think I'd keep it even more "minimal" just do:
+> >
+> >         struct ovl_verity {
+> >                 u8 version;     /* 0 */
+> >                 u8 algo;        /* digest algo */
+> >                 u8 digest[];
+> >         };
+> >
+> > It's up to you, though.
 >
-> > +static inline const struct path *f_real_path(struct file *f)
->
-> Question from an earlier revision: why f_real_path and not file_real_path=
-?
->
+> Please keep len and flags.
+> Nothing to be gained from removing them.
 
-I missed this question.
-I don't really mind.
-Considering the documentation below, perhaps it should be called
-file_inode_path()
+Something is gained by removing them: smaller images.
 
-> Also this really needs a kerneldoc comment explaining when it should
-> be used.
+I have a Centos 9 developer rootfs here to test with. The basic
+composefs image size for this with the current format (1 byte for algo)
+is 11M. Adding one more byte (version) adds 88k (0.8%) to it and adding 3
+bytes (version+flags+len) adds 240k (2.1%).
 
-How about this:
+These are not huge costs, but they are not really giving any huge advantage=
+s
+either. I mean, the digest length can be computed already, both from
+the xattr size
+and the algo type. And flag-like features could be encoded in the
+version byte, or,
+if really needed, a version 2 header could add a flags field.
 
-/*
- * file_real_path - get the path corresponding to f_inode
- *
- * When opening a backing file for a stackable filesystem (e.g. overlayfs)
- * f_path may be on the stackable filesystem and f_inode on the
- * underlying filesystem.  When the path associated with f_inode is
- * needed, this helper should be used instead of accessing f_path directly.
-*/
+I don't believe this format will actually need to change much.
+However, I do agree
+with the general requirement for *some* ability to move forward with
+this format,
+so I'm gonna go with a single version byte.
 
-Thanks,
-Amir.
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
+
