@@ -2,62 +2,62 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 978C2EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Sat, 17 Jun 2023 08:47:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97059EB64DB
+	for <linux-unionfs@archiver.kernel.org>; Sat, 17 Jun 2023 08:47:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232705AbjFQIrQ (ORCPT
+        id S233116AbjFQIrT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 17 Jun 2023 04:47:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38932 "EHLO
+        Sat, 17 Jun 2023 04:47:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231423AbjFQIrP (ORCPT
+        with ESMTP id S231423AbjFQIrR (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 17 Jun 2023 04:47:15 -0400
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5455DE5E
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 01:47:14 -0700 (PDT)
-Received: by mail-wr1-x42c.google.com with SMTP id ffacd0b85a97d-3112f256941so60985f8f.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 01:47:14 -0700 (PDT)
+        Sat, 17 Jun 2023 04:47:17 -0400
+Received: from mail-wr1-x432.google.com (mail-wr1-x432.google.com [IPv6:2a00:1450:4864:20::432])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FB45E76
+        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 01:47:15 -0700 (PDT)
+Received: by mail-wr1-x432.google.com with SMTP id ffacd0b85a97d-3094910b150so1323816f8f.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 01:47:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686991633; x=1689583633;
+        d=gmail.com; s=20221208; t=1686991634; x=1689583634;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=7IG4ZxhI9IA8WE74+7EVjA/Hs4jfJSgi0ceQ/psHivg=;
-        b=dh3+k3Hi6VZXfxi5oIqu6CtsoOGIioHSMlIqe5mIC7CytpU2dXyjG4eLGZD1poKMt0
-         ONDT7vjJdopkLIvhRzjmM6DWlf1clqu8ZCh+UHaG6oPPp9sfof7Ytgm93tMuH8wZJGq7
-         iHYu7QBQcx9nYvVIw+RVpikOR8tbCS1h/mcqttBe680z4PpR68dXtu/7sg6izvST9Au4
-         CCl2c2T/pxUPZbbJoBeBPyF/VLtHKOcNBlwDj3tkOkDV9s5Z/fX+v8ig/dwj5jnL8Ua2
-         bwUlsYaYKECQ2xESkRYIe2A32QIfr6uoh+syltlsd0aCBX3F8rZZZ9Wh2eqvSF9qldfR
-         0hew==
+        bh=d9AFFePSRWmk4HU3qOHG7bGeLbdVYMOYJyR8effkFLM=;
+        b=SUHfMK7rYgbsFxS3jIHn5+KG1vINCyq5/f5YT3RAvOia0lH47xI+0xFPb/mc8iof1A
+         sMRsVXUpBeuj35k/2s1bml/Ptv/uWX6xPdyfdDRS9t+WQj9woS61ZNvqCkkO9ViHaUjj
+         gOp+13wUWgXxqwzqpIB7JKIex022pHUO50oADPTsh2gpM8uX7Cp6GJbqaiXffOioaDs0
+         im49bBBrtY7FVJ+NW6CQam9DZSV1I5zoIMEyap2Ojq4xm2T50+3awRxm6MLUgeMBmJQQ
+         sRL3nY5w+3rVTQQn4GREHqhMxRwfmtY4KxYIJoC7ABxjzwJs9R4/VEv5Q4VxS29vr6WZ
+         tULw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686991633; x=1689583633;
+        d=1e100.net; s=20221208; t=1686991634; x=1689583634;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=7IG4ZxhI9IA8WE74+7EVjA/Hs4jfJSgi0ceQ/psHivg=;
-        b=UXO0AQ3CggsnV1wmM3vhhlr+L1noncuQCgwhlzOIqxXVfG2rHmFkDwQ92y5/aiCC0V
-         wTa4fLP80QItY2+Ub09sJxgTbx22YFPkpU/klVb+xk6svlgQ9ghzbPrDbAPHSO7UDG7R
-         LtSx3/dluvS/Xan6H0rXlYQVmdXNgZWfsQvZZVN7f7W+ZkTGp9m1knTriH0FYBLIFEx+
-         ugPVpWvi888jOe76PJR68ILj7A0eCy1ShslgmgmanuW6miNap/h8qA6U+gUch3S5qcQo
-         ob7WzZYdobcE7jtC8dPMZnIP3DmPOcK02VwrYk944btE//EMZiDUFajAyAObUo8eLbNT
-         u9LQ==
-X-Gm-Message-State: AC+VfDxq9OC1E+G3Apy+N0E23D9SMeXPUwVZpb4C6lg290VlngS0LdFg
-        Or/vh8EK/rDkvwkZ5kp+XD7zgEKRhMM=
-X-Google-Smtp-Source: ACHHUZ6yK/WiAmVVmiSwYm2haj61PureIwKbYXuxGuGcGz1SvdGI1qRoGmq7OJh2VIGnqk8pwMRmcg==
-X-Received: by 2002:a5d:4e8f:0:b0:30f:bf2e:4b99 with SMTP id e15-20020a5d4e8f000000b0030fbf2e4b99mr2562523wru.49.1686991632642;
-        Sat, 17 Jun 2023 01:47:12 -0700 (PDT)
+        bh=d9AFFePSRWmk4HU3qOHG7bGeLbdVYMOYJyR8effkFLM=;
+        b=PsTh+u32H+xHgdvujstlk9KLg+plVisjs5bUmbRnC3weoimU0iVCLanwl8CnqpCYJb
+         prdX9aT+v7jfV33iUvdtzVMsfINnZKznAxSkwEnCGTIkpLss5F1rkxxxFfUHLSerlTtD
+         CsE/mTLQhh7C4IZYuWVt08CM/xuBVzy03ZayFIsQ3k5H/yD0xqr21LF3nbT0pNQdYeA3
+         tAL3ThAtBQPb+VfS/HG60+Ew1AOd6ZRXWBfUYnH2cUOZ2UrIO+7RfyedeEcrJPjiXNIQ
+         JwIkVxiPri+j2p63zhHYznc0C+SAoq94rLxnhBSI0cYcWrB/E8wCLJjDPcTrWwMxHz1G
+         ZVYw==
+X-Gm-Message-State: AC+VfDxjGzNeSfwdUbUoT4nvNlf3HQNxWwSAX5PKYJ8SpFrZC4988njo
+        YwwxtSzGqmpE17+l+YQTqPActPQYgTQ=
+X-Google-Smtp-Source: ACHHUZ4kYBK9g6HBE/QNtNc8EwOtlwrjNd1D/zw5OrBr88kepEcWXM90UmZTx4BQeatDBmI4Ra00wA==
+X-Received: by 2002:adf:df02:0:b0:2f6:bf04:c8cc with SMTP id y2-20020adfdf02000000b002f6bf04c8ccmr2993102wrl.55.1686991633980;
+        Sat, 17 Jun 2023 01:47:13 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id t12-20020adfe10c000000b00307acec258esm25630481wrz.3.2023.06.17.01.47.11
+        by smtp.gmail.com with ESMTPSA id t12-20020adfe10c000000b00307acec258esm25630481wrz.3.2023.06.17.01.47.12
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Jun 2023 01:47:12 -0700 (PDT)
+        Sat, 17 Jun 2023 01:47:13 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Christian Brauner <brauner@kernel.org>,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 3/5] ovl: pass ovl_fs to xino helpers
-Date:   Sat, 17 Jun 2023 11:47:00 +0300
-Message-Id: <20230617084702.2468470-4-amir73il@gmail.com>
+Subject: [PATCH v2 4/5] ovl: store enum redirect_mode in config instead of a string
+Date:   Sat, 17 Jun 2023 11:47:01 +0300
+Message-Id: <20230617084702.2468470-5-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230617084702.2468470-1-amir73il@gmail.com>
 References: <20230617084702.2468470-1-amir73il@gmail.com>
@@ -67,259 +67,462 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Internal ovl methods should use ovl_fs and not sb as much as
-possible.
+Do all the logic to set the mode during mount options parsing and
+do not keep the option string around.
 
-Use a constant_table to translate from enum xino mode to string
+Use a constant_table to translate from enum redirect mode to string
 in preperation for new mount api option parsing.
+
+The mount option "off" is translated to either "follow" or "nofollow",
+depending on the "redirect_always_follow" build/module config, so
+in effect, there are only three possible redirect modes.
+
+This results in a minor change to the string that is displayed
+in show_options() - when redirect_dir is enabled by default and the user
+mounts with the option "redirect_dir=off", instead of displaying the mode
+"redirect_dir=off" in show_options(), the displayed mode will be either
+"redirect_dir=follow" or "redirect_dir=nofollow", depending on the value
+of "redirect_always_follow" build/module config.
+
+The displayed mode reflects the effective mode, so mounting overlayfs
+again with the dispalyed redirect_dir option will result with the same
+effective and displayed mode.
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/inode.c     | 18 ++++++++++--------
- fs/overlayfs/overlayfs.h | 16 ++++++++--------
- fs/overlayfs/readdir.c   | 19 +++++++++++--------
- fs/overlayfs/super.c     | 21 ++++++++++++++-------
- 4 files changed, 43 insertions(+), 31 deletions(-)
+ Documentation/filesystems/overlayfs.rst |   9 +-
+ fs/overlayfs/dir.c                      |   2 +-
+ fs/overlayfs/namei.c                    |   6 +-
+ fs/overlayfs/overlayfs.h                |  39 ++++---
+ fs/overlayfs/ovl_entry.h                |   4 +-
+ fs/overlayfs/super.c                    | 129 +++++++++++++-----------
+ fs/overlayfs/util.c                     |   7 --
+ 7 files changed, 107 insertions(+), 89 deletions(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index bf47a0a94d1e..a63e57447be9 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -97,8 +97,9 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index 4f36b8919f7c..eb7d2c88ddec 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -231,12 +231,11 @@ Mount options:
+     Redirects are enabled.
+ - "redirect_dir=follow":
+     Redirects are not created, but followed.
+-- "redirect_dir=off":
+-    Redirects are not created and only followed if "redirect_always_follow"
+-    feature is enabled in the kernel/module config.
+ - "redirect_dir=nofollow":
+-    Redirects are not created and not followed (equivalent to "redirect_dir=off"
+-    if "redirect_always_follow" feature is not enabled).
++    Redirects are not created and not followed.
++- "redirect_dir=off":
++    If "redirect_always_follow" is enabled in the kernel/module config,
++    this "off" traslates to "follow", otherwise it translates to "nofollow".
  
- static void ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
+ When the NFS export feature is enabled, every copied up directory is
+ indexed by the file handle of the lower inode and a file handle of the
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 0da45727099b..033fc0458a3d 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -952,7 +952,7 @@ static bool ovl_type_merge_or_lower(struct dentry *dentry)
+ 
+ static bool ovl_can_move(struct dentry *dentry)
  {
--	bool samefs = ovl_same_fs(dentry->d_sb);
--	unsigned int xinobits = ovl_xino_bits(dentry->d_sb);
-+	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
-+	bool samefs = ovl_same_fs(ofs);
-+	unsigned int xinobits = ovl_xino_bits(ofs);
- 	unsigned int xinoshift = 64 - xinobits;
- 
- 	if (samefs) {
-@@ -123,7 +124,7 @@ static void ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 			stat->ino |= ((u64)fsid) << (xinoshift + 1);
- 			stat->dev = dentry->d_sb->s_dev;
- 			return;
--		} else if (ovl_xino_warn(dentry->d_sb)) {
-+		} else if (ovl_xino_warn(ofs)) {
- 			pr_warn_ratelimited("inode number too big (%pd2, ino=%llu, xinobits=%d)\n",
- 					    dentry, stat->ino, xinobits);
- 		}
-@@ -149,7 +150,7 @@ static void ovl_map_dev_ino(struct dentry *dentry, struct kstat *stat, int fsid)
- 		 * is unique per underlying fs, so we use the unique anonymous
- 		 * bdev assigned to the underlying fs.
- 		 */
--		stat->dev = OVL_FS(dentry->d_sb)->fs[fsid].pseudo_dev;
-+		stat->dev = ofs->fs[fsid].pseudo_dev;
- 	}
+-	return ovl_redirect_dir(dentry->d_sb) ||
++	return ovl_redirect_dir(OVL_FS(dentry->d_sb)) ||
+ 		!d_is_dir(dentry) || !ovl_type_merge_or_lower(dentry);
  }
  
-@@ -186,7 +187,7 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 	 * If lower filesystem supports NFS file handles, this also guaranties
- 	 * persistent st_ino across mount cycle.
- 	 */
--	if (!is_dir || ovl_same_dev(dentry->d_sb)) {
-+	if (!is_dir || ovl_same_dev(OVL_FS(dentry->d_sb))) {
- 		if (!OVL_TYPE_UPPER(type)) {
- 			fsid = ovl_layer_lower(dentry)->fsid;
- 		} else if (OVL_TYPE_ORIGIN(type)) {
-@@ -961,7 +962,7 @@ static inline void ovl_lockdep_annotate_inode_mutex_key(struct inode *inode)
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 292b8a948f1a..288e3c0ee0e6 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -961,7 +961,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		.is_dir = false,
+ 		.opaque = false,
+ 		.stop = false,
+-		.last = ofs->config.redirect_follow ? false : !ovl_numlower(poe),
++		.last = ovl_redirect_follow(ofs) ? false : !ovl_numlower(poe),
+ 		.redirect = NULL,
+ 		.metacopy = false,
+ 	};
+@@ -1022,7 +1022,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 	for (i = 0; !d.stop && i < ovl_numlower(poe); i++) {
+ 		struct ovl_path lower = ovl_lowerstack(poe)[i];
  
- static void ovl_next_ino(struct inode *inode)
- {
--	struct ovl_fs *ofs = inode->i_sb->s_fs_info;
-+	struct ovl_fs *ofs = OVL_FS(inode->i_sb);
- 
- 	inode->i_ino = atomic_long_inc_return(&ofs->last_ino);
- 	if (unlikely(!inode->i_ino))
-@@ -970,7 +971,8 @@ static void ovl_next_ino(struct inode *inode)
- 
- static void ovl_map_ino(struct inode *inode, unsigned long ino, int fsid)
- {
--	int xinobits = ovl_xino_bits(inode->i_sb);
-+	struct ovl_fs *ofs = OVL_FS(inode->i_sb);
-+	int xinobits = ovl_xino_bits(ofs);
- 	unsigned int xinoshift = 64 - xinobits;
- 
- 	/*
-@@ -981,7 +983,7 @@ static void ovl_map_ino(struct inode *inode, unsigned long ino, int fsid)
- 	 * with d_ino also causes nfsd readdirplus to fail.
- 	 */
- 	inode->i_ino = ino;
--	if (ovl_same_fs(inode->i_sb)) {
-+	if (ovl_same_fs(ofs)) {
- 		return;
- 	} else if (xinobits && likely(!(ino >> xinoshift))) {
- 		inode->i_ino |= (unsigned long)fsid << (xinoshift + 1);
+-		if (!ofs->config.redirect_follow)
++		if (!ovl_redirect_follow(ofs))
+ 			d.last = i == ovl_numlower(poe) - 1;
+ 		else if (d.is_dir || !ofs->numdatalayer)
+ 			d.last = lower.layer->idx == ovl_numlower(roe);
+@@ -1102,7 +1102,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+ 		 * this attack vector when not necessary.
+ 		 */
+ 		err = -EPERM;
+-		if (d.redirect && !ofs->config.redirect_follow) {
++		if (d.redirect && !ovl_redirect_follow(ofs)) {
+ 			pr_warn_ratelimited("refusing to follow redirect for (%pd2)\n",
+ 					    dentry);
+ 			goto out_put;
 diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index fcac4e2c56ab..05e9acfe1590 100644
+index 05e9acfe1590..80c10228bd64 100644
 --- a/fs/overlayfs/overlayfs.h
 +++ b/fs/overlayfs/overlayfs.h
-@@ -494,26 +494,26 @@ static inline bool ovl_is_impuredir(struct super_block *sb,
-  * d_ino consistent with st_ino.
-  * With xino=on, we do the same effort but we warn if we failed.
-  */
--static inline bool ovl_xino_warn(struct super_block *sb)
-+static inline bool ovl_xino_warn(struct ovl_fs *ofs)
- {
--	return OVL_FS(sb)->config.xino == OVL_XINO_ON;
-+	return ofs->config.xino == OVL_XINO_ON;
- }
- 
- /* All layers on same fs? */
--static inline bool ovl_same_fs(struct super_block *sb)
-+static inline bool ovl_same_fs(struct ovl_fs *ofs)
- {
--	return OVL_FS(sb)->xino_mode == 0;
-+	return ofs->xino_mode == 0;
- }
- 
- /* All overlay inodes have same st_dev? */
--static inline bool ovl_same_dev(struct super_block *sb)
-+static inline bool ovl_same_dev(struct ovl_fs *ofs)
- {
--	return OVL_FS(sb)->xino_mode >= 0;
-+	return ofs->xino_mode >= 0;
- }
- 
--static inline unsigned int ovl_xino_bits(struct super_block *sb)
-+static inline unsigned int ovl_xino_bits(struct ovl_fs *ofs)
- {
--	return ovl_same_dev(sb) ? OVL_FS(sb)->xino_mode : 0;
-+	return ovl_same_dev(ofs) ? ofs->xino_mode : 0;
- }
- 
- static inline void ovl_inode_lock(struct inode *inode)
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index b6952b21a7ee..ee5c4736480f 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -118,7 +118,7 @@ static bool ovl_calc_d_ino(struct ovl_readdir_data *rdd,
- 		return false;
- 
- 	/* Always recalc d_ino when remapping lower inode numbers */
--	if (ovl_xino_bits(rdd->dentry->d_sb))
-+	if (ovl_xino_bits(OVL_FS(rdd->dentry->d_sb)))
- 		return true;
- 
- 	/* Always recalc d_ino for parent */
-@@ -460,13 +460,14 @@ static int ovl_cache_update_ino(const struct path *path, struct ovl_cache_entry
- 
- {
- 	struct dentry *dir = path->dentry;
-+	struct ovl_fs *ofs = OVL_FS(dir->d_sb);
- 	struct dentry *this = NULL;
- 	enum ovl_path_type type;
- 	u64 ino = p->real_ino;
--	int xinobits = ovl_xino_bits(dir->d_sb);
-+	int xinobits = ovl_xino_bits(ofs);
- 	int err = 0;
- 
--	if (!ovl_same_dev(dir->d_sb))
-+	if (!ovl_same_dev(ofs))
- 		goto out;
- 
- 	if (p->name[0] == '.') {
-@@ -515,7 +516,7 @@ static int ovl_cache_update_ino(const struct path *path, struct ovl_cache_entry
- 		ino = ovl_remap_lower_ino(ino, xinobits,
- 					  ovl_layer_lower(this)->fsid,
- 					  p->name, p->len,
--					  ovl_xino_warn(dir->d_sb));
-+					  ovl_xino_warn(ofs));
- 	}
- 
- out:
-@@ -694,12 +695,13 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
- 	int err;
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dir = file->f_path.dentry;
-+	struct ovl_fs *ofs = OVL_FS(dir->d_sb);
- 	const struct ovl_layer *lower_layer = ovl_layer_lower(dir);
- 	struct ovl_readdir_translate rdt = {
- 		.ctx.actor = ovl_fill_real,
- 		.orig_ctx = ctx,
--		.xinobits = ovl_xino_bits(dir->d_sb),
--		.xinowarn = ovl_xino_warn(dir->d_sb),
-+		.xinobits = ovl_xino_bits(ofs),
-+		.xinowarn = ovl_xino_warn(ofs),
- 	};
- 
- 	if (rdt.xinobits && lower_layer)
-@@ -735,6 +737,7 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- {
- 	struct ovl_dir_file *od = file->private_data;
- 	struct dentry *dentry = file->f_path.dentry;
-+	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	struct ovl_cache_entry *p;
- 	const struct cred *old_cred;
- 	int err;
-@@ -749,8 +752,8 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 		 * dir is impure then need to adjust d_ino for copied up
- 		 * entries.
- 		 */
--		if (ovl_xino_bits(dentry->d_sb) ||
--		    (ovl_same_fs(dentry->d_sb) &&
-+		if (ovl_xino_bits(ofs) ||
-+		    (ovl_same_fs(ofs) &&
- 		     (ovl_is_impure_dir(file) ||
- 		      OVL_TYPE_MERGE(ovl_path_type(dentry->d_parent))))) {
- 			err = ovl_iterate_real(file, ctx);
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 280f2aa2f356..5bcb26528408 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -16,6 +16,7 @@
- #include <linux/posix_acl_xattr.h>
- #include <linux/exportfs.h>
- #include <linux/file.h>
-+#include <linux/fs_parser.h>
- #include "overlayfs.h"
- 
- MODULE_AUTHOR("Miklos Szeredi <miklos@szeredi.hu>");
-@@ -334,12 +335,18 @@ static const char *ovl_redirect_mode_def(void)
- 	return ovl_redirect_dir_def ? "on" : "off";
- }
- 
--static const char * const ovl_xino_str[] = {
--	"off",
--	"auto",
--	"on",
-+static const struct constant_table ovl_parameter_xino[] = {
-+	{ "off",	OVL_XINO_OFF  },
-+	{ "auto",	OVL_XINO_AUTO },
-+	{ "on",		OVL_XINO_ON   },
-+	{}
+@@ -57,6 +57,13 @@ enum ovl_entry_flag {
+ 	OVL_E_CONNECTED,
  };
  
-+static const char *ovl_xino_mode(struct ovl_config *config)
++enum {
++	OVL_REDIRECT_OFF,	/* "off" mode is never used. In effect	*/
++	OVL_REDIRECT_FOLLOW,	/* ...it translates to either "follow"	*/
++	OVL_REDIRECT_NOFOLLOW,	/* ...or "nofollow".			*/
++	OVL_REDIRECT_ON,
++};
++
+ enum {
+ 	OVL_XINO_OFF,
+ 	OVL_XINO_AUTO,
+@@ -352,17 +359,6 @@ static inline bool ovl_open_flags_need_copy_up(int flags)
+ 	return ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC));
+ }
+ 
+-static inline bool ovl_allow_offline_changes(struct ovl_fs *ofs)
+-{
+-	/*
+-	 * To avoid regressions in existing setups with overlay lower offline
+-	 * changes, we allow lower changes only if none of the new features
+-	 * are used.
+-	 */
+-	return (!ofs->config.index && !ofs->config.metacopy &&
+-		!ofs->config.redirect_dir && ofs->config.xino != OVL_XINO_ON);
+-}
+-
+ 
+ /* util.c */
+ int ovl_want_write(struct dentry *dentry);
+@@ -421,7 +417,6 @@ bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags);
+ bool ovl_dentry_needs_data_copy_up_locked(struct dentry *dentry, int flags);
+ bool ovl_has_upperdata(struct inode *inode);
+ void ovl_set_upperdata(struct inode *inode);
+-bool ovl_redirect_dir(struct super_block *sb);
+ const char *ovl_dentry_get_redirect(struct dentry *dentry);
+ void ovl_dentry_set_redirect(struct dentry *dentry, const char *redirect);
+ void ovl_inode_update(struct inode *inode, struct dentry *upperdentry);
+@@ -489,6 +484,16 @@ static inline bool ovl_is_impuredir(struct super_block *sb,
+ 	return ovl_path_check_dir_xattr(ofs, &upperpath, OVL_XATTR_IMPURE);
+ }
+ 
++static inline bool ovl_redirect_follow(struct ovl_fs *ofs)
 +{
-+	return ovl_parameter_xino[config->xino].name;
++	return ofs->config.redirect_mode != OVL_REDIRECT_NOFOLLOW;
 +}
 +
- static inline int ovl_xino_def(void)
++static inline bool ovl_redirect_dir(struct ovl_fs *ofs)
++{
++	return ofs->config.redirect_mode == OVL_REDIRECT_ON;
++}
++
+ /*
+  * With xino=auto, we do best effort to keep all inodes on same st_dev and
+  * d_ino consistent with st_ino.
+@@ -499,6 +504,16 @@ static inline bool ovl_xino_warn(struct ovl_fs *ofs)
+ 	return ofs->config.xino == OVL_XINO_ON;
+ }
+ 
++/*
++ * To avoid regressions in existing setups with overlay lower offline changes,
++ * we allow lower changes only if none of the new features are used.
++ */
++static inline bool ovl_allow_offline_changes(struct ovl_fs *ofs)
++{
++	return (!ofs->config.index && !ofs->config.metacopy &&
++		!ovl_redirect_dir(ofs) && !ovl_xino_warn(ofs));
++}
++
+ /* All layers on same fs? */
+ static inline bool ovl_same_fs(struct ovl_fs *ofs)
  {
- 	return ovl_xino_auto_def ? OVL_XINO_AUTO : OVL_XINO_OFF;
-@@ -374,8 +381,8 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 	if (ofs->config.nfs_export != ovl_nfs_export_def)
- 		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
- 						"on" : "off");
--	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(sb))
--		seq_printf(m, ",xino=%s", ovl_xino_str[ofs->config.xino]);
-+	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(ofs))
-+		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
- 	if (ofs->config.metacopy != ovl_metacopy_def)
- 		seq_printf(m, ",metacopy=%s",
- 			   ofs->config.metacopy ? "on" : "off");
-@@ -1566,7 +1573,7 @@ static int ovl_get_fsid(struct ovl_fs *ofs, const struct path *path)
- 			pr_warn("%s uuid detected in lower fs '%pd2', falling back to xino=%s,index=off,nfs_export=off.\n",
- 				uuid_is_null(&sb->s_uuid) ? "null" :
- 							    "conflicting",
--				path->dentry, ovl_xino_str[ofs->config.xino]);
-+				path->dentry, ovl_xino_mode(&ofs->config));
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 40232b056be8..b4eb0bd5d0b6 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -10,9 +10,7 @@ struct ovl_config {
+ 	char *upperdir;
+ 	char *workdir;
+ 	bool default_permissions;
+-	bool redirect_dir;
+-	bool redirect_follow;
+-	const char *redirect_mode;
++	int redirect_mode;
+ 	bool index;
+ 	bool uuid;
+ 	bool nfs_export;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 5bcb26528408..5a84af92c91e 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -244,7 +244,6 @@ static void ovl_free_fs(struct ovl_fs *ofs)
+ 	kfree(ofs->config.lowerdir);
+ 	kfree(ofs->config.upperdir);
+ 	kfree(ofs->config.workdir);
+-	kfree(ofs->config.redirect_mode);
+ 	if (ofs->creator_cred)
+ 		put_cred(ofs->creator_cred);
+ 	kfree(ofs);
+@@ -330,9 +329,24 @@ static bool ovl_force_readonly(struct ovl_fs *ofs)
+ 	return (!ovl_upper_mnt(ofs) || !ofs->workdir);
+ }
+ 
+-static const char *ovl_redirect_mode_def(void)
++static const struct constant_table ovl_parameter_redirect_dir[] = {
++	{ "off",	OVL_REDIRECT_OFF      },
++	{ "follow",	OVL_REDIRECT_FOLLOW   },
++	{ "nofollow",	OVL_REDIRECT_NOFOLLOW },
++	{ "on",		OVL_REDIRECT_ON       },
++	{}
++};
++
++static const char *ovl_redirect_mode(struct ovl_config *config)
+ {
+-	return ovl_redirect_dir_def ? "on" : "off";
++	return ovl_parameter_redirect_dir[config->redirect_mode].name;
++}
++
++static int ovl_redirect_mode_def(void)
++{
++	return ovl_redirect_dir_def ? OVL_REDIRECT_ON :
++		ovl_redirect_always_follow ? OVL_REDIRECT_FOLLOW :
++					     OVL_REDIRECT_NOFOLLOW;
+ }
+ 
+ static const struct constant_table ovl_parameter_xino[] = {
+@@ -372,8 +386,9 @@ static int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	}
+ 	if (ofs->config.default_permissions)
+ 		seq_puts(m, ",default_permissions");
+-	if (strcmp(ofs->config.redirect_mode, ovl_redirect_mode_def()) != 0)
+-		seq_printf(m, ",redirect_dir=%s", ofs->config.redirect_mode);
++	if (ofs->config.redirect_mode != ovl_redirect_mode_def())
++		seq_printf(m, ",redirect_dir=%s",
++			   ovl_redirect_mode(&ofs->config));
+ 	if (ofs->config.index != ovl_index_def)
+ 		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
+ 	if (!ofs->config.uuid)
+@@ -431,7 +446,10 @@ enum {
+ 	OPT_UPPERDIR,
+ 	OPT_WORKDIR,
+ 	OPT_DEFAULT_PERMISSIONS,
+-	OPT_REDIRECT_DIR,
++	OPT_REDIRECT_DIR_ON,
++	OPT_REDIRECT_DIR_OFF,
++	OPT_REDIRECT_DIR_FOLLOW,
++	OPT_REDIRECT_DIR_NOFOLLOW,
+ 	OPT_INDEX_ON,
+ 	OPT_INDEX_OFF,
+ 	OPT_UUID_ON,
+@@ -453,7 +471,10 @@ static const match_table_t ovl_tokens = {
+ 	{OPT_UPPERDIR,			"upperdir=%s"},
+ 	{OPT_WORKDIR,			"workdir=%s"},
+ 	{OPT_DEFAULT_PERMISSIONS,	"default_permissions"},
+-	{OPT_REDIRECT_DIR,		"redirect_dir=%s"},
++	{OPT_REDIRECT_DIR_ON,		"redirect_dir=on"},
++	{OPT_REDIRECT_DIR_OFF,		"redirect_dir=off"},
++	{OPT_REDIRECT_DIR_FOLLOW,	"redirect_dir=follow"},
++	{OPT_REDIRECT_DIR_NOFOLLOW,	"redirect_dir=nofollow"},
+ 	{OPT_INDEX_ON,			"index=on"},
+ 	{OPT_INDEX_OFF,			"index=off"},
+ 	{OPT_USERXATTR,			"userxattr"},
+@@ -493,40 +514,12 @@ static char *ovl_next_opt(char **s)
+ 	return sbegin;
+ }
+ 
+-static int ovl_parse_redirect_mode(struct ovl_config *config, const char *mode)
+-{
+-	if (strcmp(mode, "on") == 0) {
+-		config->redirect_dir = true;
+-		/*
+-		 * Does not make sense to have redirect creation without
+-		 * redirect following.
+-		 */
+-		config->redirect_follow = true;
+-	} else if (strcmp(mode, "follow") == 0) {
+-		config->redirect_follow = true;
+-	} else if (strcmp(mode, "off") == 0) {
+-		if (ovl_redirect_always_follow)
+-			config->redirect_follow = true;
+-	} else if (strcmp(mode, "nofollow") != 0) {
+-		pr_err("bad mount option \"redirect_dir=%s\"\n",
+-		       mode);
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ {
+ 	char *p;
+-	int err;
+ 	bool metacopy_opt = false, redirect_opt = false;
+ 	bool nfs_export_opt = false, index_opt = false;
+ 
+-	config->redirect_mode = kstrdup(ovl_redirect_mode_def(), GFP_KERNEL);
+-	if (!config->redirect_mode)
+-		return -ENOMEM;
+-
+ 	while ((p = ovl_next_opt(&opt)) != NULL) {
+ 		int token;
+ 		substring_t args[MAX_OPT_ARGS];
+@@ -561,11 +554,25 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			config->default_permissions = true;
+ 			break;
+ 
+-		case OPT_REDIRECT_DIR:
+-			kfree(config->redirect_mode);
+-			config->redirect_mode = match_strdup(&args[0]);
+-			if (!config->redirect_mode)
+-				return -ENOMEM;
++		case OPT_REDIRECT_DIR_ON:
++			config->redirect_mode = OVL_REDIRECT_ON;
++			redirect_opt = true;
++			break;
++
++		case OPT_REDIRECT_DIR_OFF:
++			config->redirect_mode = ovl_redirect_always_follow ?
++						OVL_REDIRECT_FOLLOW :
++						OVL_REDIRECT_NOFOLLOW;
++			redirect_opt = true;
++			break;
++
++		case OPT_REDIRECT_DIR_FOLLOW:
++			config->redirect_mode = OVL_REDIRECT_FOLLOW;
++			redirect_opt = true;
++			break;
++
++		case OPT_REDIRECT_DIR_NOFOLLOW:
++			config->redirect_mode = OVL_REDIRECT_NOFOLLOW;
+ 			redirect_opt = true;
+ 			break;
+ 
+@@ -654,22 +661,18 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		config->ovl_volatile = false;
+ 	}
+ 
+-	err = ovl_parse_redirect_mode(config, config->redirect_mode);
+-	if (err)
+-		return err;
+-
+ 	/*
+ 	 * This is to make the logic below simpler.  It doesn't make any other
+-	 * difference, since config->redirect_dir is only used for upper.
++	 * difference, since redirect_dir=on is only used for upper.
+ 	 */
+-	if (!config->upperdir && config->redirect_follow)
+-		config->redirect_dir = true;
++	if (!config->upperdir && config->redirect_mode == OVL_REDIRECT_FOLLOW)
++		config->redirect_mode = OVL_REDIRECT_ON;
+ 
+ 	/* Resolve metacopy -> redirect_dir dependency */
+-	if (config->metacopy && !config->redirect_dir) {
++	if (config->metacopy && config->redirect_mode != OVL_REDIRECT_ON) {
+ 		if (metacopy_opt && redirect_opt) {
+ 			pr_err("conflicting options: metacopy=on,redirect_dir=%s\n",
+-			       config->redirect_mode);
++			       ovl_redirect_mode(config));
+ 			return -EINVAL;
+ 		}
+ 		if (redirect_opt) {
+@@ -678,17 +681,18 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 			 * in this conflict.
+ 			 */
+ 			pr_info("disabling metacopy due to redirect_dir=%s\n",
+-				config->redirect_mode);
++				ovl_redirect_mode(config));
+ 			config->metacopy = false;
+ 		} else {
+ 			/* Automatically enable redirect otherwise. */
+-			config->redirect_follow = config->redirect_dir = true;
++			config->redirect_mode = OVL_REDIRECT_ON;
  		}
  	}
  
+ 	/* Resolve nfs_export -> index dependency */
+ 	if (config->nfs_export && !config->index) {
+-		if (!config->upperdir && config->redirect_follow) {
++		if (!config->upperdir &&
++		    config->redirect_mode != OVL_REDIRECT_NOFOLLOW) {
+ 			pr_info("NFS export requires \"redirect_dir=nofollow\" on non-upper mount, falling back to nfs_export=off.\n");
+ 			config->nfs_export = false;
+ 		} else if (nfs_export_opt && index_opt) {
+@@ -733,9 +737,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 
+ 	/* Resolve userxattr -> !redirect && !metacopy dependency */
+ 	if (config->userxattr) {
+-		if (config->redirect_follow && redirect_opt) {
++		if (redirect_opt &&
++		    config->redirect_mode != OVL_REDIRECT_NOFOLLOW) {
+ 			pr_err("conflicting options: userxattr,redirect_dir=%s\n",
+-			       config->redirect_mode);
++			       ovl_redirect_mode(config));
+ 			return -EINVAL;
+ 		}
+ 		if (config->metacopy && metacopy_opt) {
+@@ -748,7 +753,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
+ 		 * options must be explicitly enabled if used together with
+ 		 * userxattr.
+ 		 */
+-		config->redirect_dir = config->redirect_follow = false;
++		config->redirect_mode = OVL_REDIRECT_NOFOLLOW;
+ 		config->metacopy = false;
+ 	}
+ 
+@@ -1332,10 +1337,17 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 	if (err) {
+ 		pr_warn("failed to set xattr on upper\n");
+ 		ofs->noxattr = true;
+-		if (ofs->config.index || ofs->config.metacopy) {
+-			ofs->config.index = false;
++		if (ovl_redirect_follow(ofs)) {
++			ofs->config.redirect_mode = OVL_REDIRECT_NOFOLLOW;
++			pr_warn("...falling back to redirect_dir=nofollow.\n");
++		}
++		if (ofs->config.metacopy) {
+ 			ofs->config.metacopy = false;
+-			pr_warn("...falling back to index=off,metacopy=off.\n");
++			pr_warn("...falling back to metacopy=off.\n");
++		}
++		if (ofs->config.index) {
++			ofs->config.index = false;
++			pr_warn("...falling back to index=off.\n");
+ 		}
+ 		/*
+ 		 * xattr support is required for persistent st_ino.
+@@ -1963,6 +1975,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (!cred)
+ 		goto out_err;
+ 
++	ofs->config.redirect_mode = ovl_redirect_mode_def();
+ 	ofs->config.index = ovl_index_def;
+ 	ofs->config.uuid = true;
+ 	ofs->config.nfs_export = ovl_nfs_export_def;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 939e4d586ec2..7ef9e13c404a 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -506,13 +506,6 @@ bool ovl_dentry_needs_data_copy_up(struct dentry *dentry, int flags)
+ 	return !ovl_has_upperdata(d_inode(dentry));
+ }
+ 
+-bool ovl_redirect_dir(struct super_block *sb)
+-{
+-	struct ovl_fs *ofs = sb->s_fs_info;
+-
+-	return ofs->config.redirect_dir && !ofs->noxattr;
+-}
+-
+ const char *ovl_dentry_get_redirect(struct dentry *dentry)
+ {
+ 	return OVL_I(d_inode(dentry))->redirect;
 -- 
 2.34.1
 
