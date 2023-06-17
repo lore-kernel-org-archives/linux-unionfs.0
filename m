@@ -2,429 +2,148 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F07A9EB64DC
-	for <linux-unionfs@archiver.kernel.org>; Sat, 17 Jun 2023 08:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA0FEEB64D9
+	for <linux-unionfs@archiver.kernel.org>; Sat, 17 Jun 2023 17:40:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231423AbjFQIrT (ORCPT
+        id S232009AbjFQRki (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 17 Jun 2023 04:47:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38948 "EHLO
+        Sat, 17 Jun 2023 13:40:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232856AbjFQIrS (ORCPT
+        with ESMTP id S229745AbjFQRkh (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 17 Jun 2023 04:47:18 -0400
-Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FFF719A3
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 01:47:16 -0700 (PDT)
-Received: by mail-wr1-x434.google.com with SMTP id ffacd0b85a97d-31129591288so388001f8f.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 01:47:16 -0700 (PDT)
+        Sat, 17 Jun 2023 13:40:37 -0400
+Received: from mail-ua1-x931.google.com (mail-ua1-x931.google.com [IPv6:2607:f8b0:4864:20::931])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F5B4CF
+        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 10:40:36 -0700 (PDT)
+Received: by mail-ua1-x931.google.com with SMTP id a1e0cc1a2514c-78f36f37e36so615506241.3
+        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 10:40:36 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1686991635; x=1689583635;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=gmail.com; s=20221208; t=1687023635; x=1689615635;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=xMwQDFtbq4iJLGKRo5StjzdSYYaK+2TVQEMk7yiWjqU=;
-        b=UGepr2lwpqor6JWDCAfg5uFAQQIv1TXZO3/TKintTXEUT5pSsOe/KO1Vg9YEhhwCjv
-         4CdJ7EFdCFby1JXpH5yCiFomqCG+v7LRsBzXE8Rw+PqrorTwUhO5DN7kdvupLJ5InPO+
-         Plbq2Ry5YQaqFofEQyOT9hH7IiLhckazOPlt4Yt61YIbIKFdcskGxdahoV/qSdt73wZ0
-         P7AalbhG7qsR4Bjatkp57uTHw30XCRK3PssI7z+wgaDa5jk+tJPibE5A0lW0+6CLlGQM
-         JfulpknrrHn7WdeNsWq+OxP94iRP4Z0O2jsZV6eXlbT92449nofQP1nQd6DcjpSqSJSH
-         KTmA==
+        bh=skZ8Rt9NY7gObfpKi/EVYEg+Du7w4ujkJU4ra21m1aE=;
+        b=cH0YjKc8S22B4y70weXAGyWP17w5aul3g/Ug+9E/EN1tqldJDUJZHwlm8EiNeMAiAm
+         FE6jqPFHb6BalQ8weBposAQRMTTI4CTcrfUXrXZUnBkyUVRU/WxRO6gDm+vqS+G8XO63
+         fLeKp0UNf20nL8Te//khP6TpvQewYZSs1QImZ9+SOCQyAbdFrlCnTD+IYpYiXWnxYxXM
+         HlFzxLTssu0ECfpdkAihQU0/svAtqGJztCHunDfaAzeG/Oo5ECxJh6kfGB15dftmyXZh
+         fL0PKl/wW7Pr7xOqLy9iSqT0cF9ZJnxkMK8pFqB4BnTNj6EhU6SJsT8ef0a1tPFE8e4d
+         GDpw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1686991635; x=1689583635;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20221208; t=1687023635; x=1689615635;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=xMwQDFtbq4iJLGKRo5StjzdSYYaK+2TVQEMk7yiWjqU=;
-        b=esE5FGZfBfQ8/mZEMhF2+2DDsKKi2cdKmUQd+IXG00FOGR93y+XJMB+P84OTPz3/ju
-         Wm7VG/d48L0ahtRVBo5bm5R5/yRhupfA2N2x1hvVbRV+jgErWcH7vBl1evJIaG+d1z88
-         7Z4PEI2tawPuiO98JVwWIna5cLhE+4CCDRCAHOPSNoW58edNtlmf5RfrRcd4bWV+T7JW
-         vuyn/SussbdemRAlteyOZl1S6JH66qSMlIrq4ZsryijF1ALz5ZKPKu1pDJ/+LB32n9Z9
-         GrIN0XRVhng/VaYyzQZ1fhKCvPQybrKKWucWQesXw5MKLgtr53++BOyNMuvwuO7uXol0
-         MX1g==
-X-Gm-Message-State: AC+VfDwmF3Z3q8Y+B5osGgSdXOrZC6tgIrAl88+cJlak9eugw543tNOv
-        wJNha2PaYw+3wZ5eIknRIAP8vZeBddA=
-X-Google-Smtp-Source: ACHHUZ4WMlI9n0JwPVW07DWQ/JiKMP5JhSFT7sJNq0Wyi6umNtANSm27vrSpArcm8tvo19ZaDkKpYw==
-X-Received: by 2002:adf:f046:0:b0:30f:ccca:f482 with SMTP id t6-20020adff046000000b0030fcccaf482mr2542086wro.71.1686991634995;
-        Sat, 17 Jun 2023 01:47:14 -0700 (PDT)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id t12-20020adfe10c000000b00307acec258esm25630481wrz.3.2023.06.17.01.47.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 17 Jun 2023 01:47:14 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 5/5] ovl: factor out ovl_parse_options() helper
-Date:   Sat, 17 Jun 2023 11:47:02 +0300
-Message-Id: <20230617084702.2468470-6-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230617084702.2468470-1-amir73il@gmail.com>
-References: <20230617084702.2468470-1-amir73il@gmail.com>
+        bh=skZ8Rt9NY7gObfpKi/EVYEg+Du7w4ujkJU4ra21m1aE=;
+        b=FrlMuOfSJBExs6Lp91PzFj3TUhnfeQ/fdSK6tTMSiZW08ailu6s8IK8sxFv340KE8S
+         r0DRIAf7gxh85NXpv8KiAllS47XrdN8ZCf5aQWSMKuqRsC/jZWFyt7QPa55PJgyVrIeo
+         DdvDmSCLuUQTGC5FtcD4OQN7o37Zb4f3B22QkeY6OCzdXMyjc5OvJQAWeqfgIPvaqk7v
+         bOl6uzGdWOoG+kmW2JrVb2OSl5qcFQZc6QKEQisD78yjog1OX3BtVRwt03l7iUQvCqaH
+         VrxtCPzoDU9tP65VlBIHqm+pfuJgSQBXp175lypH9UtOjPvPOKH2hsO7qpCn+C6DHbe5
+         AkUw==
+X-Gm-Message-State: AC+VfDwzf95TbCYA+TplmOQNT5Ie8bBnL9TlwGV6QrOX9veB4hPF/NVV
+        HZ8KOXfis0yvRFO/ABUW4ppd3wfHZ76T7lnvSO4=
+X-Google-Smtp-Source: ACHHUZ6briZt2snv+rc0IO+Yifwp4pGS9jsaa9u3E0wdKUUKVvyXpA/anMv2GyHL8mBQH6GmMPWpEKTbPUpVDkHfiKc=
+X-Received: by 2002:a67:eb4c:0:b0:434:8c89:17f9 with SMTP id
+ x12-20020a67eb4c000000b004348c8917f9mr1220945vso.20.1687023635501; Sat, 17
+ Jun 2023 10:40:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230427130539.2798797-1-amir73il@gmail.com> <CAL7ro1G7DQS_aAC4+9-ppdQz_7vjoXdBLohZ6bKo6S75NQUDPA@mail.gmail.com>
+ <CAOQ4uxhN1dPBkhAu3Zag8=RKCbzMQghuXnyp+uur83dRW8tz6Q@mail.gmail.com>
+ <87h6s0z6rf.fsf@redhat.com> <CAOQ4uxhkCgU2=F2oAJn34Jor2_Hr56fLsa8cAAz936G05d-+ZQ@mail.gmail.com>
+ <CAL7ro1EoNDMxU2d9WYrb772VFWWMDWV=KVvrZDnK=5byemmo8Q@mail.gmail.com>
+ <fb711bb4-3f25-ccee-0d21-2cb6deea75ec@linux.alibaba.com> <CAOQ4uxiCzTbr4OXhxv=RbNbKn+kaBva-Wkz4AGW8OJUwL3GfLQ@mail.gmail.com>
+ <CAJfpegvsEuSNepb_9MNEkEFsW7R60DDk57x3oivA6wx9y8StRA@mail.gmail.com>
+ <CAOQ4uxh14O9aRiewc+nq+AL-029YGu4bb4AZpp854r78Jm=_dw@mail.gmail.com>
+ <CAJfpegvnBrLtNcW0Oy8Y7seju96scQ0-FHoiXxx3+A3X4N_LMQ@mail.gmail.com>
+ <CAOQ4uxjPe5DBBFN5XfUPoYE1rKdbzTLsP9yOa2V9Ej4K8U4oEA@mail.gmail.com> <CAJfpegvnGe0e5Kp5hh6y4PES7xbr=LmgzOeXnFbBs9StcCou2g@mail.gmail.com>
+In-Reply-To: <CAJfpegvnGe0e5Kp5hh6y4PES7xbr=LmgzOeXnFbBs9StcCou2g@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 17 Jun 2023 20:40:24 +0300
+Message-ID: <CAOQ4uxjMOdSWhz0KPUanzM_UCyiQ6rMgNU4ouDsfmTN8X=+7Hg@mail.gmail.com>
+Subject: Re: [PATCH v2 00/13] Overlayfs lazy lookup of lowerdata
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Gao Xiang <hsiangkao@linux.alibaba.com>,
+        Alexander Larsson <alexl@redhat.com>,
+        Giuseppe Scrivano <gscrivan@redhat.com>,
+        linux-unionfs@vger.kernel.org,
+        Christian Brauner <brauner@kernel.org>,
+        Lennart Poettering <lennart@poettering.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-For parsing a single mount option.
+On Fri, Jun 9, 2023 at 4:52=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
+rote:
+>
+> On Fri, 9 Jun 2023 at 15:42, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > Miklos,
+> >
+> > I see you pushed the branch as is.
+> >
+> > Please be warned that it contains the following unexplained
+> > merge commit:
+> >
+> > commit b892fac09d57668181ff5c433958e96ec7755453
+> > Merge: f1fcbaa18b28 7cdafe6cc4a6
+> > Author: Amir Goldstein <amir73il@gmail.com>
+> > Date:   Thu May 25 15:14:13 2023 +0300
+> >
+> >     Merge remote-tracking branch 'jack/fsnotify' into next
+> >
+> > And you know how Linus hates unexplained merge commits.
+> >
+> > In this case, it is unexplained and also does not have a
+> > good reason in the context of an ovl pull request.
+>
+> Yes, I will redo this, but for getting into -next this will do.
+>
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/overlayfs.h |   8 ++
- fs/overlayfs/super.c     | 243 ++++++++++++++++++++-------------------
- 2 files changed, 135 insertions(+), 116 deletions(-)
+Miklos,
 
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 80c10228bd64..30227ccc758d 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -70,6 +70,14 @@ enum {
- 	OVL_XINO_ON,
- };
- 
-+/* The set of options that user requested explicitly via mount options */
-+struct ovl_opt_set {
-+	bool metacopy;
-+	bool redirect;
-+	bool nfs_export;
-+	bool index;
-+};
-+
- /*
-  * The tuple (fh,uuid) is a universal unique identifier for a copy up origin,
-  * where:
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 5a84af92c91e..dbd9151dc073 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -514,131 +514,142 @@ static char *ovl_next_opt(char **s)
- 	return sbegin;
- }
- 
--static int ovl_parse_opt(char *opt, struct ovl_config *config)
-+static int ovl_parse_opt(char *opt, struct ovl_config *config,
-+			 struct ovl_opt_set *set)
+I found a memory leak in these patches (reported by kmemleak).
+For negative dentries, oe was allocated but not stored and not
+freed.
+
+Below is diff -w of the fix.
+I squashed this fix into:
+"ovl: move ovl_entry into ovl_inode"
+and pushed the fixed overlayfs-next to my github [1]
+I've also reabsed overlayfs-next onto 6.4-rc6.
+
+Let me know if you want me to ask Steven to pull the fixed
+branch into linux-next.
+
+Thanks,
+Amir.
+
+[1] https://github.com/amir73il/linux/commits/fs-overlayfs-mount_api
+
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -938,7 +938,7 @@ int ovl_maybe_lookup_lowerdata(struct dentry *dentry)
+ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+                          unsigned int flags)
  {
--	char *p;
--	bool metacopy_opt = false, redirect_opt = false;
--	bool nfs_export_opt = false, index_opt = false;
--
--	while ((p = ovl_next_opt(&opt)) != NULL) {
--		int token;
--		substring_t args[MAX_OPT_ARGS];
--
--		if (!*p)
--			continue;
-+	int err = 0;
-+	int token;
-+	substring_t args[MAX_OPT_ARGS];
- 
--		token = match_token(p, ovl_tokens, args);
--		switch (token) {
--		case OPT_UPPERDIR:
--			kfree(config->upperdir);
--			config->upperdir = match_strdup(&args[0]);
--			if (!config->upperdir)
--				return -ENOMEM;
--			break;
-+	if (!*opt)
-+		return 0;
- 
--		case OPT_LOWERDIR:
--			kfree(config->lowerdir);
--			config->lowerdir = match_strdup(&args[0]);
--			if (!config->lowerdir)
--				return -ENOMEM;
--			break;
-+	token = match_token(opt, ovl_tokens, args);
-+	switch (token) {
-+	case OPT_UPPERDIR:
-+		kfree(config->upperdir);
-+		config->upperdir = match_strdup(&args[0]);
-+		if (!config->upperdir)
-+			return -ENOMEM;
-+		break;
-+
-+	case OPT_LOWERDIR:
-+		kfree(config->lowerdir);
-+		config->lowerdir = match_strdup(&args[0]);
-+		if (!config->lowerdir)
-+			return -ENOMEM;
-+		break;
-+
-+	case OPT_WORKDIR:
-+		kfree(config->workdir);
-+		config->workdir = match_strdup(&args[0]);
-+		if (!config->workdir)
-+			return -ENOMEM;
-+		break;
-+
-+	case OPT_DEFAULT_PERMISSIONS:
-+		config->default_permissions = true;
-+		break;
-+
-+	case OPT_REDIRECT_DIR_ON:
-+		config->redirect_mode = OVL_REDIRECT_ON;
-+		set->redirect = true;
-+		break;
-+
-+	case OPT_REDIRECT_DIR_OFF:
-+		config->redirect_mode = ovl_redirect_always_follow ?
-+			OVL_REDIRECT_FOLLOW :
-+			OVL_REDIRECT_NOFOLLOW;
-+		set->redirect = true;
-+		break;
-+
-+	case OPT_REDIRECT_DIR_FOLLOW:
-+		config->redirect_mode = OVL_REDIRECT_FOLLOW;
-+		set->redirect = true;
-+		break;
-+
-+	case OPT_REDIRECT_DIR_NOFOLLOW:
-+		config->redirect_mode = OVL_REDIRECT_NOFOLLOW;
-+		set->redirect = true;
-+		break;
- 
--		case OPT_WORKDIR:
--			kfree(config->workdir);
--			config->workdir = match_strdup(&args[0]);
--			if (!config->workdir)
--				return -ENOMEM;
--			break;
-+	case OPT_INDEX_ON:
-+		config->index = true;
-+		set->index = true;
-+		break;
- 
--		case OPT_DEFAULT_PERMISSIONS:
--			config->default_permissions = true;
--			break;
-+	case OPT_INDEX_OFF:
-+		config->index = false;
-+		set->index = true;
-+		break;
- 
--		case OPT_REDIRECT_DIR_ON:
--			config->redirect_mode = OVL_REDIRECT_ON;
--			redirect_opt = true;
--			break;
-+	case OPT_UUID_ON:
-+		config->uuid = true;
-+		break;
- 
--		case OPT_REDIRECT_DIR_OFF:
--			config->redirect_mode = ovl_redirect_always_follow ?
--						OVL_REDIRECT_FOLLOW :
--						OVL_REDIRECT_NOFOLLOW;
--			redirect_opt = true;
--			break;
-+	case OPT_UUID_OFF:
-+		config->uuid = false;
-+		break;
- 
--		case OPT_REDIRECT_DIR_FOLLOW:
--			config->redirect_mode = OVL_REDIRECT_FOLLOW;
--			redirect_opt = true;
--			break;
-+	case OPT_NFS_EXPORT_ON:
-+		config->nfs_export = true;
-+		set->nfs_export = true;
-+		break;
- 
--		case OPT_REDIRECT_DIR_NOFOLLOW:
--			config->redirect_mode = OVL_REDIRECT_NOFOLLOW;
--			redirect_opt = true;
--			break;
-+	case OPT_NFS_EXPORT_OFF:
-+		config->nfs_export = false;
-+		set->nfs_export = true;
-+		break;
- 
--		case OPT_INDEX_ON:
--			config->index = true;
--			index_opt = true;
--			break;
-+	case OPT_XINO_ON:
-+		config->xino = OVL_XINO_ON;
-+		break;
- 
--		case OPT_INDEX_OFF:
--			config->index = false;
--			index_opt = true;
--			break;
-+	case OPT_XINO_OFF:
-+		config->xino = OVL_XINO_OFF;
-+		break;
- 
--		case OPT_UUID_ON:
--			config->uuid = true;
--			break;
-+	case OPT_XINO_AUTO:
-+		config->xino = OVL_XINO_AUTO;
-+		break;
- 
--		case OPT_UUID_OFF:
--			config->uuid = false;
--			break;
-+	case OPT_METACOPY_ON:
-+		config->metacopy = true;
-+		set->metacopy = true;
-+		break;
- 
--		case OPT_NFS_EXPORT_ON:
--			config->nfs_export = true;
--			nfs_export_opt = true;
--			break;
--
--		case OPT_NFS_EXPORT_OFF:
--			config->nfs_export = false;
--			nfs_export_opt = true;
--			break;
--
--		case OPT_XINO_ON:
--			config->xino = OVL_XINO_ON;
--			break;
--
--		case OPT_XINO_OFF:
--			config->xino = OVL_XINO_OFF;
--			break;
-+	case OPT_METACOPY_OFF:
-+		config->metacopy = false;
-+		set->metacopy = true;
-+		break;
- 
--		case OPT_XINO_AUTO:
--			config->xino = OVL_XINO_AUTO;
--			break;
-+	case OPT_VOLATILE:
-+		config->ovl_volatile = true;
-+		break;
- 
--		case OPT_METACOPY_ON:
--			config->metacopy = true;
--			metacopy_opt = true;
--			break;
-+	case OPT_USERXATTR:
-+		config->userxattr = true;
-+		break;
- 
--		case OPT_METACOPY_OFF:
--			config->metacopy = false;
--			metacopy_opt = true;
--			break;
-+	default:
-+		pr_err("unrecognized mount option \"%s\" or missing value\n",
-+		       opt);
-+		return -EINVAL;
-+	}
- 
--		case OPT_VOLATILE:
--			config->ovl_volatile = true;
--			break;
-+	return err;
-+}
- 
--		case OPT_USERXATTR:
--			config->userxattr = true;
--			break;
-+static int ovl_parse_options(char *opt, struct ovl_config *config)
-+{
-+	char *p;
-+	int err;
-+	struct ovl_opt_set set = {};
- 
--		default:
--			pr_err("unrecognized mount option \"%s\" or missing value\n",
--					p);
--			return -EINVAL;
--		}
-+	while ((p = ovl_next_opt(&opt)) != NULL) {
-+		err = ovl_parse_opt(p, config, &set);
-+		if (err)
-+			return err;
- 	}
- 
- 	/* Workdir/index are useless in non-upper mount */
-@@ -649,9 +660,9 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 			kfree(config->workdir);
- 			config->workdir = NULL;
- 		}
--		if (config->index && index_opt) {
-+		if (config->index && set.index) {
- 			pr_info("option \"index=on\" is useless in a non-upper mount, ignore\n");
--			index_opt = false;
-+			set.index = false;
- 		}
- 		config->index = false;
- 	}
-@@ -670,12 +681,12 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- 	/* Resolve metacopy -> redirect_dir dependency */
- 	if (config->metacopy && config->redirect_mode != OVL_REDIRECT_ON) {
--		if (metacopy_opt && redirect_opt) {
-+		if (set.metacopy && set.redirect) {
- 			pr_err("conflicting options: metacopy=on,redirect_dir=%s\n",
- 			       ovl_redirect_mode(config));
- 			return -EINVAL;
- 		}
--		if (redirect_opt) {
-+		if (set.redirect) {
- 			/*
- 			 * There was an explicit redirect_dir=... that resulted
- 			 * in this conflict.
-@@ -695,10 +706,10 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 		    config->redirect_mode != OVL_REDIRECT_NOFOLLOW) {
- 			pr_info("NFS export requires \"redirect_dir=nofollow\" on non-upper mount, falling back to nfs_export=off.\n");
- 			config->nfs_export = false;
--		} else if (nfs_export_opt && index_opt) {
-+		} else if (set.nfs_export && set.index) {
- 			pr_err("conflicting options: nfs_export=on,index=off\n");
- 			return -EINVAL;
--		} else if (index_opt) {
-+		} else if (set.index) {
- 			/*
- 			 * There was an explicit index=off that resulted
- 			 * in this conflict.
-@@ -713,11 +724,11 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- 	/* Resolve nfs_export -> !metacopy dependency */
- 	if (config->nfs_export && config->metacopy) {
--		if (nfs_export_opt && metacopy_opt) {
-+		if (set.nfs_export && set.metacopy) {
- 			pr_err("conflicting options: nfs_export=on,metacopy=on\n");
- 			return -EINVAL;
- 		}
--		if (metacopy_opt) {
-+		if (set.metacopy) {
- 			/*
- 			 * There was an explicit metacopy=on that resulted
- 			 * in this conflict.
-@@ -737,13 +748,13 @@ static int ovl_parse_opt(char *opt, struct ovl_config *config)
- 
- 	/* Resolve userxattr -> !redirect && !metacopy dependency */
- 	if (config->userxattr) {
--		if (redirect_opt &&
-+		if (set.redirect &&
- 		    config->redirect_mode != OVL_REDIRECT_NOFOLLOW) {
- 			pr_err("conflicting options: userxattr,redirect_dir=%s\n",
- 			       ovl_redirect_mode(config));
- 			return -EINVAL;
- 		}
--		if (config->metacopy && metacopy_opt) {
-+		if (config->metacopy && set.metacopy) {
- 			pr_err("conflicting options: userxattr,metacopy=on\n");
- 			return -EINVAL;
- 		}
-@@ -1981,7 +1992,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	ofs->config.nfs_export = ovl_nfs_export_def;
- 	ofs->config.xino = ovl_xino_def();
- 	ofs->config.metacopy = ovl_metacopy_def;
--	err = ovl_parse_opt((char *) data, &ofs->config);
-+	err = ovl_parse_options((char *) data, &ofs->config);
- 	if (err)
- 		goto out_err;
- 
--- 
-2.34.1
+-       struct ovl_entry *oe;
++       struct ovl_entry *oe =3D NULL;
+        const struct cred *old_cred;
+        struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
+        struct ovl_entry *poe =3D OVL_E(dentry->d_parent);
+@@ -1180,12 +1180,14 @@ struct dentry *ovl_lookup(struct inode *dir,
+struct dentry *dentry,
+                }
+        }
 
++       if (ctr) {
+                oe =3D ovl_alloc_entry(ctr);
+                err =3D -ENOMEM;
+                if (!oe)
+                        goto out_put;
+
+                ovl_stack_cpy(ovl_lowerstack(oe), stack, ctr);
++       }
