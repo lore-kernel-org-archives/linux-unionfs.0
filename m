@@ -2,121 +2,123 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 343A5EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Sat, 17 Jun 2023 19:47:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C407FEB64D7
+	for <linux-unionfs@archiver.kernel.org>; Sun, 18 Jun 2023 12:45:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230040AbjFQTrk (ORCPT
+        id S229478AbjFRMpP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 17 Jun 2023 15:47:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33600 "EHLO
+        Sun, 18 Jun 2023 08:45:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229487AbjFQTrj (ORCPT
+        with ESMTP id S229447AbjFRMpO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 17 Jun 2023 15:47:39 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C243BE4
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 12:47:38 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 52CCF610E7
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 Jun 2023 19:47:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 75821C433C8;
-        Sat, 17 Jun 2023 19:47:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687031257;
-        bh=uizU/zBwhLt6NInEicPvKsyGRX5jWVQ/eAUgQgGVQaU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=KibC2zkygC9VPYzbAGXMHZ9HG7k1nVmW5gOtA1V3jdg+C7cIRBfBUurski4WToam5
-         mkOyGxefGXPTuJoHn4gDd9qjzq6lsIT5H/PCW3BCTKUJcomXIugz0w0RKsZXOJfGc1
-         1eW7Zrt77G8XGxTprwKJ+Gr8XRYu1pG62xWLmXTA5vXEFhtyslZD2XPV8TG3QaOqHN
-         Ki73uf8YdT5EOwFEN3f1W0guYqLY/2jtZzmBxDnCv7/7h+Tyt6yTKxvfXOesybVeUr
-         J9rbI57wV2u8LJiAUe8hmOQslc/dL2p0mzyHxxiHVJgA6NqwMgNGvpqV36UpqeYSYa
-         GQuYyPBjWP8mA==
-Date:   Sat, 17 Jun 2023 12:47:35 -0700
-From:   Eric Biggers <ebiggers@kernel.org>
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     Amir Goldstein <amir73il@gmail.com>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, tytso@mit.edu,
-        fsverity@lists.linux.dev
-Subject: Re: [PATCH v3 2/4] ovl: Add framework for verity support
-Message-ID: <20230617194735.GA4703@sol.localdomain>
-References: <03ac0ffd82bc1edc3a9baa68d1125f5e8cad93fd.1686565330.git.alexl@redhat.com>
- <20230612163216.GA847@sol.localdomain>
- <CAOQ4uxjS5-7_PaoxM41YaXW+KxwLK_K8AyJMaoi1m-3P-vZ9Kw@mail.gmail.com>
- <20230613063704.GA879@sol.localdomain>
- <CAOQ4uxg6BD_RDtWob5q2eX6uQ5hcWrK7wEDcBhFVrGM3vsn=NA@mail.gmail.com>
- <20230613182233.GC1139@sol.localdomain>
- <CAOQ4uxhzJFpfuFLxK2s0JqS5qGQDGfndFPY7n2NDmZso4cG4Rg@mail.gmail.com>
- <CAL7ro1FF2iUjPsXrha8tELYvi9MwW7WRhksqX7ahSXc4gPHraw@mail.gmail.com>
- <20230615235229.GC25295@sol.localdomain>
- <CAL7ro1G+Dnet=M+CUY7e_9nJhOtD3rQm16C7bWkMBVnfcvm4Yg@mail.gmail.com>
+        Sun, 18 Jun 2023 08:45:14 -0400
+Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4DD4912B;
+        Sun, 18 Jun 2023 05:45:13 -0700 (PDT)
+Received: by mail-wm1-x329.google.com with SMTP id 5b1f17b1804b1-3f8f3786f20so26872345e9.2;
+        Sun, 18 Jun 2023 05:45:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1687092312; x=1689684312;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=xYeTuGFmhi+YOPdUe1jxRogKu1PxiPvt6NvrFb5U0Ho=;
+        b=qZc8dr1pqW4NjiUHRNvPlj94iqqwLdxKPuD3fLEr/iDPb8GO27ZCYcQ8hflPtRMSoz
+         cQcg9cCvgsBKsSQXitdtZY/tn08CbVxj5WErlW4hT1m0ugFoIrGkBEELuw5iprnKJipQ
+         Vjemi+cRPUyI2EMg8vh1aspipa0q34NfUKUsbgbm4tvyE2+PnkjRF2abd092gzDHHjHJ
+         o8ojA/uAL39Y8nSk6HJeHdBLz2Qw9EFqLl8JBNpXM/KaPdjl9JlP1wg9OWpxxLgH7Ih3
+         muIC/5O6hJTq48RXGyDLrtfGxAQ0JunVqc6v/K5K0UvmpMGK6cvUfnP0zLhM8M8/axy4
+         40CQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687092312; x=1689684312;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=xYeTuGFmhi+YOPdUe1jxRogKu1PxiPvt6NvrFb5U0Ho=;
+        b=kRcU1eL7LyL4c9wIzYGMUAR5VDpSy0DFxiakqn6muH34JUuY+2wtEuVk5yT9rDoB6O
+         3fhWMZi+Bi8V+P0DPMe3aDSABNud8xcBwVEENkbqXokFqbq5NUtJ0CGTSY6XMNc3Qwki
+         jfUCejPn79ru1TCaIXioPbyTsMN7wsdDw7OkleGeexeYdEf3o4YyB7i6NPLTbJzdvl3b
+         W2aGgI7TQpGTdVk0Cy+8dlppgUlWt1wPyoPKv5AdGiv8m9C7mgCp0X3pwcyNIpYTR3LA
+         LsjQB9gJ4BZ6Evrf39De2c1TEgUXZWtVE4WqKQWXVKKkJpDDM380y1mZnSd/c2KIoyGK
+         OrtQ==
+X-Gm-Message-State: AC+VfDzvEj/UCushCuxFqwo0tVeHnIFwvxQO1jiZm4KwrysQfZwqpfWv
+        eX1LtYvV7rV+HaVgmX2nRbKKxq3Q3FE=
+X-Google-Smtp-Source: ACHHUZ5COqUC268ByFv7L1sJCgjmQYv700d+a+JoSdoE3vts7oomhVWOV/z3E+R3brpo9sGdsMPa0A==
+X-Received: by 2002:a7b:c051:0:b0:3f6:1474:905 with SMTP id u17-20020a7bc051000000b003f614740905mr6782606wmc.29.1687092311524;
+        Sun, 18 Jun 2023 05:45:11 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id m19-20020a7bca53000000b003f801c12c58sm7597657wml.43.2023.06.18.05.45.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 18 Jun 2023 05:45:11 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Zorro Lang <zlang@redhat.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Subject: [PATCH] generic/604: Fix for overlayfs
+Date:   Sun, 18 Jun 2023 15:45:06 +0300
+Message-Id: <20230618124506.2642352-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAL7ro1G+Dnet=M+CUY7e_9nJhOtD3rQm16C7bWkMBVnfcvm4Yg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Jun 16, 2023 at 10:11:06AM +0200, Alexander Larsson wrote:
-> On Fri, Jun 16, 2023 at 1:52 AM Eric Biggers <ebiggers@kernel.org> wrote:
-> >
-> > On Wed, Jun 14, 2023 at 09:57:41AM +0200, Alexander Larsson wrote:
-> > > When a layer containing verity xattrs is used, it means that any
-> > > such metacopy file in the upper layer is guaranteed to match the
-> > > content that was in the lower at the time of the copy-up. If at any time
-> > > (during a mount, after a remount, etc) such a file in the lower is
-> > > replaced or modified in any way, then opening the corresponding file on
-> > > overlayfs will result in EIO and a detailed error printed to the kernel logs.
-> > > (Actually, due to caching the overlayfs mount might still see the previous
-> > > file contents after a lower file is replaced under an active mount, but
-> > > it will never see the wrong data.)
-> >
-> > Well, the key point of fsverity is that data is not verified until it is
-> > actually read.  At open time, the fsverity file digest is made available in
-> > constant time, and overlayfs will verify that.  However, invalid data blocks are
-> > not reported until the data is actually read.  The error that applications get
-> > is EIO for syscalls, and SIGBUS for memory-mapped reads, as mentioned at
-> > https://www.kernel.org/doc/html/latest/filesystems/fsverity.html#accessing-verity-files
-> >
-> > So overlayfs might report EIO at open time, or it might not report an error
-> > until the modified data is read.  And in the latter case, presumably the error
-> > seen by the application matches the one for using fsverity natively?
-> 
-> Yes, I'm aware of that, but do we need to describe this in the
-> overlayfs documentation?
-> The text I wrote is describing the behaviour that overlayfs adds to
-> the mix, and I sort of
-> assumed the late validation from fs-verity itself would be known about
-> if the file already
-> has fs-verity enabled.
-> 
-> > You can link to the fsverity documentation somewhere if it would be helpful, but
-> > I'd still like the semantics of how this works on overlayfs to be documented.
-> 
-> I guess just adding a link to that is not that bad. What about:
-> 
-> ----
-> When a layer containing verity xattrs is used, it means that any such
-> metacopy file in the upper layer is guaranteed to match the content
-> that was in the lower at the time of the copy-up. If at any time
-> (during a mount, after a remount, etc) such a file in the lower is
-> replaced or modified in any way, then opening the corresponding file
-> on overlayfs will result in EIO and a detailed error printed to the
-> kernel logs.  (Actually, due to caching the overlayfs mount might
-> still see the previous file contents after a lower file is replaced
-> under an active mount, but it will never see the wrong data.)  In
-> addition fs-verity will do late validation of the file content, as
-> described in :ref:`Documentation/filesystems/fsverity.rst
-> <accessing_verity_files>`.
+Since v6.3, I noticed that generic/604 does not run on overlayfs
+because:
 
-That still has the incorrect statement "If at any time (during a mount, after a
-remount, etc) such a file in the lower is replaced or modified in any way, then
-opening the corresponding file on overlayfs will result in EIO and a detailed
-error printed to the kernel logs."  See my last email where I explained why that
-statement is not correct.
+  generic/604 -- upper fs needs to support d_type
 
-- Eric
+This is odd because the base fs I am using (xfs) does support d_type.
+
+The reason is that for overlayfs, this sequence run by this test:
+
+  _scratch_unmount &
+  _scratch_mount
+
+Translates to:
+
+  umount $OVL_MNT; umount $BASE_MNT &
+  mount $BASE_MNT ...; mount $OVL_MNT ...
+
+Which can end up reordred as:
+
+  umount $OVL_MNT;
+  mount $BASE_MNT ...
+                  umount $BASE_MNT &
+                  mount $OVL_MNT ...
+
+and overlayfs is trying to use a non-existing upper fs.
+
+Use UMOUNT_PROG directly instead of the _scratch_unmount
+helper, to avoid unmounting the base fs.
+
+Incidently, the only thing that has changed in overlayfs in v6.3
+is idmapped mounts support and the test in question was run without
+idmapped mounts enabled, so the cahnge in behavior must be related
+to some subtle timing change.
+
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/generic/604 | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/tests/generic/604 b/tests/generic/604
+index 9c53fd57..cc6a4b21 100755
+--- a/tests/generic/604
++++ b/tests/generic/604
+@@ -24,7 +24,9 @@ _scratch_mount
+ for i in $(seq 0 500); do
+ 	$XFS_IO_PROG -f -c "pwrite 0 4K" $SCRATCH_MNT/$i >/dev/null
+ done
+-_scratch_unmount &
++# For overlayfs, avoid unmouting the base fs after _scratch_mount
++# tries to mount the base fs
++$UMOUNT_PROG $SCRATCH_MNT &
+ _scratch_mount
+ wait
+ 
+-- 
+2.34.1
+
