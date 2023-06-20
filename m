@@ -2,158 +2,84 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29BCCEB64D7
-	for <linux-unionfs@archiver.kernel.org>; Tue, 20 Jun 2023 15:41:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41C03EB64D7
+	for <linux-unionfs@archiver.kernel.org>; Tue, 20 Jun 2023 16:15:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229670AbjFTPk7 (ORCPT
+        id S232634AbjFTQPM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 20 Jun 2023 11:40:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32820 "EHLO
+        Tue, 20 Jun 2023 12:15:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48606 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230501AbjFTPk6 (ORCPT
+        with ESMTP id S231420AbjFTQPL (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 20 Jun 2023 11:40:58 -0400
-Received: from mail-vk1-xa2e.google.com (mail-vk1-xa2e.google.com [IPv6:2607:f8b0:4864:20::a2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCA8D198E;
-        Tue, 20 Jun 2023 08:40:39 -0700 (PDT)
-Received: by mail-vk1-xa2e.google.com with SMTP id 71dfb90a1353d-47167a4ce3cso1304011e0c.2;
-        Tue, 20 Jun 2023 08:40:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687275639; x=1689867639;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ImkbtTBshXFrTu51toIVTeMzpJA/vCS2rButKUG6s6U=;
-        b=hdsZCoGcUqoptZOvRI+VwvkDGnv+M0jUmluDg0Tdi6HXiySwa9LXh46U6MdnFmh/4d
-         d0ydNoXRUgOlDzxZXt3/LC6bLaaT55BZqok9vPsOBjlhT+dYhV+jXenxTli1uXps8y4I
-         6L8bft0Pt4DJNUXlbSOeA1NY1uY5y9vCu3D+Br4ncGNwC1DMMnHKPF/BNTVyD9s466He
-         cHdPnROzvvi71kaE3Qof4mb++BjYSbrIgsGBRhu2+8tfLxZafA/UF98R2GXUq3ctXcHs
-         H8FqepyMA6DYTR+FiVhG6W6LccnyEd6yDG7eW3b98D9J6vRENRNMbJInnSWFfPehpyjF
-         /TmA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687275639; x=1689867639;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ImkbtTBshXFrTu51toIVTeMzpJA/vCS2rButKUG6s6U=;
-        b=ieH8wd4VSj+jya2MfJKukn1PEAf/CWJh34uBh300UkmCeXpH+RJEEe9c4r0rvmB6nk
-         +8lO500fVK4ODeYhKrxiwfoMwNxr1BaFs+psAW5CwkHs2wf9gKGE5McbgR3BkQxPByCa
-         11rQP+IBdfNzK2mQvkRqMGOktV4LpGvB/t6GbEiAvbNdqWWztfv0OUFcPZVY83Ocx9Y2
-         Q0e24WaBdGx5QjqJa9gJuURp3TEg1rWThRokXX4lVBFKLBqUJKea7gzNBcJ6NKZvxjbp
-         8gY3v+xqvgG0wqsRJu688maHaAVWgWRFRWflA68aDfwLLNhj925kx01aovRD2kLc/Of/
-         FTzA==
-X-Gm-Message-State: AC+VfDzxtMcjIuVupwcnMKzlXCqWscgXNKbGih4hvzF5zE9GUb7QTy/K
-        /+w2vpOH5NH6V0hEVakNCgkPpRTJVEWz53cJ7LA=
-X-Google-Smtp-Source: ACHHUZ6dKTU0vB6WjettzF9j1VMkV0hjR/PKt7GwtfhYlpeV44H9FzU2LnL0HWod1q9xqX8qdoRaEj/dbCjkQIcMGp8=
-X-Received: by 2002:a67:de05:0:b0:440:cac4:5e40 with SMTP id
- q5-20020a67de05000000b00440cac45e40mr1097086vsk.35.1687275638728; Tue, 20 Jun
- 2023 08:40:38 -0700 (PDT)
+        Tue, 20 Jun 2023 12:15:11 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83C8E1709
+        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jun 2023 09:15:10 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 180E361320
+        for <linux-unionfs@vger.kernel.org>; Tue, 20 Jun 2023 16:15:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 46F09C433C8;
+        Tue, 20 Jun 2023 16:15:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1687277709;
+        bh=knteJC5PVvOfnbRwO/RZ3TKEht6Hors3/XkV5/hWREg=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=bUlVPvysXbVqhoD81KTRiTbkbYMNr3oaKLqzT4fIVVGSlzQ97XqI9ZnpbnQEL5peT
+         mwMl4bM+7sChRWvrylK/MNm5itIZ8QdzTR3yFTMQfgpctpUJhsE2IUM6Gl1Aq4r38I
+         w0Roe2w75Cp1BG/EEO/N178DIp6HGhHoBLLMyICZEsIsFdqK4VIsrFpbdcfekXfyuU
+         C3di2//NauDqUiLxOjFmKBAm58sXogoqQ9/qCjgNpVqpSm1XVwIx1aEXnd8WVcNjyO
+         EK3pC9dn5pjSgyw5rAc47VjxC97unWFEay9JAbONTB9n7UCZavxmc3GjxVOsJ0keAE
+         ktRwn67ruTA+A==
+Date:   Tue, 20 Jun 2023 09:15:07 -0700
+From:   Eric Biggers <ebiggers@kernel.org>
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
+Subject: Re: [PATCH v4 0/3] ovl: Add support for fs-verity checking of
+ lowerdata
+Message-ID: <20230620161507.GA864@sol.localdomain>
+References: <cover.1687255035.git.alexl@redhat.com>
 MIME-Version: 1.0
-References: <20230620-fs-overlayfs-mount-api-remount-v1-1-6dfcb89088e3@kernel.org>
-In-Reply-To: <20230620-fs-overlayfs-mount-api-remount-v1-1-6dfcb89088e3@kernel.org>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 20 Jun 2023 18:40:27 +0300
-Message-ID: <CAOQ4uxjeDRyLHJHYg9Rb2nwc4E6GnR+=7FCyoU1MyvH7-vH-6A@mail.gmail.com>
-Subject: Re: [PATCH] ovl: reserve ability to reconfigure mount options with
- new mount api
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Miklos Szeredi <mszeredi@redhat.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1687255035.git.alexl@redhat.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Jun 20, 2023 at 2:42=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> Using the old mount api to remount an overlayfs superblock via
-> mount(MS_REMOUNT) all mount options will be silently ignored. For
-> example, if you create an overlayfs mount:
->
->         mount -t overlay overlay -o lowerdir=3D/mnt/a:/mnt/b,upperdir=3D/=
-mnt/upper,workdir=3D/mnt/work /mnt/merged
->
-> and then issue a remount via:
->
->         # force mount(8) to use mount(2)
->         export LIBMOUNT_FORCE_MOUNT2=3Dalways
->         mount -t overlay overlay -o remount,WOOTWOOT,lowerdir=3D/DOESNT-E=
-XIST /mnt/merged
->
-> with completely nonsensical mount options whatsoever it will succeed
-> nonetheless. This prevents us from every changing any mount options we
-> might introduce in the future that could reasonably be changed during a
-> remount.
->
-> We don't need to carry this issue into the new mount api port. Similar
-> to FUSE we can use the fs_context::oldapi member to figure out that this
-> is a request coming through the legacy mount api. If we detect it we
-> continue silently ignoring all mount options.
->
-> But for the new mount api we simply report that mount options cannot
-> currently be changed. This will allow us to potentially alter mount
-> properties for new or even old properties. It any case, silently
-> ignoring everything is not something new apis should do.
->
-> Signed-off-by: Christian Brauner <brauner@kernel.org>
-> ---
->
+On Tue, Jun 20, 2023 at 12:15:15PM +0200, Alexander Larsson wrote:
+> This series depends on the commit
+>   fsverity: rework fsverity_get_digest() again
+> Which is in the "for-next" branch of 
+>   https://git.kernel.org/pub/scm/fs/fsverity/linux.git/
+> 
+> This series, plus the above commit are also in git here:
+>   https://github.com/alexlarsson/linux/tree/overlay-verity
+> 
+> I would love to see this go into 6.5. So Eric, could you maybe Ack the
+> implementation patches separately from the documentation patches? Then
+> maybe we can get this in early, and I promise to try to get the
+> documentation up to standard during the 6.5 cycle as needed.
 
-Looks good and tests passed.
-I Applied this to overlayfs-next on my github.
+I think it's gotten too late for 6.5.  If there is no 6.4-rc8, then the 6.5
+merge window will open just 5 days from now.  This series has recently gone
+through some significant changes, including in the version just sent out today
+which I haven't had a chance to review yet.
 
-Miklos,
+Please don't try to rush things in when they involve UAPI and on-disk format
+changes, which will have to be supported forever.  We need to take the time to
+get them right.
+ 
+I also see that the overlayfs tree is already very busy in 6.5, with the support
+for data-only lower layers, lazy lookup of lowerdata, and the new mount API.
 
-Please update your branch.
+I think 6.6 would be a more realistic target.  That would give time to write
+proper documentation as well, which is super important.  (Very often while
+writing documentation, I realize that I should do something differently in the
+code.  Please don't think of documentation as something can be done "later".)
 
-Thanks,
-Amir.
-
-> ---
->  fs/overlayfs/super.c | 25 ++++++++++++++++++-------
->  1 file changed, 18 insertions(+), 7 deletions(-)
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index ed4b35c9d647..c14c52560fd6 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -499,13 +499,24 @@ static int ovl_parse_param(struct fs_context *fc, s=
-truct fs_parameter *param)
->         struct ovl_fs_context *ctx =3D fc->fs_private;
->         int opt;
->
-> -       /*
-> -        * On remount overlayfs has always ignored all mount options no
-> -        * matter if malformed or not so for backwards compatibility we
-> -        * do the same here.
-> -        */
-> -       if (fc->purpose =3D=3D FS_CONTEXT_FOR_RECONFIGURE)
-> -               return 0;
-> +       if (fc->purpose =3D=3D FS_CONTEXT_FOR_RECONFIGURE) {
-> +               /*
-> +                * On remount overlayfs has always ignored all mount
-> +                * options no matter if malformed or not so for
-> +                * backwards compatibility we do the same here.
-> +                */
-> +               if (fc->oldapi)
-> +                       return 0;
-> +
-> +               /*
-> +                * Give us the freedom to allow changing mount options
-> +                * with the new mount api in the future. So instead of
-> +                * silently ignoring everything we report a proper
-> +                * error. This is only visible for users of the new
-> +                * mount api.
-> +                */
-> +               return invalfc(fc, "No changes allowed in reconfigure");
-> +       }
->
->         opt =3D fs_parse(fc, ovl_parameter_spec, param, &result);
->         if (opt < 0)
->
-> ---
-> base-commit: cc7e4d7ce5ea183b9ca735f7466b4491a1ee440e
-> change-id: 20230620-fs-overlayfs-mount-api-remount-93b210e6ccd8
->
+- Eric
