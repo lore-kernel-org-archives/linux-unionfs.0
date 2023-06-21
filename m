@@ -2,161 +2,253 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63977EB64D7
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A451CEB64DC
 	for <linux-unionfs@archiver.kernel.org>; Wed, 21 Jun 2023 11:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232655AbjFULUi (ORCPT
+        id S232664AbjFULUj (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 21 Jun 2023 07:20:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44358 "EHLO
+        Wed, 21 Jun 2023 07:20:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44620 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232664AbjFULUM (ORCPT
+        with ESMTP id S232666AbjFULUN (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Jun 2023 07:20:12 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E38219BB
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2023 04:18:46 -0700 (PDT)
+        Wed, 21 Jun 2023 07:20:13 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6DA721BEA
+        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2023 04:18:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1687346325;
+        s=mimecast20190719; t=1687346334;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=IO5VVrvlt4yaLcBQDvZ3hx40/hKZEJoz2Z1VJGTPERo=;
-        b=OqpnTBd6JJlKrJz6wM8IUARQA1M7yErQHdeFHrbB6iEoWbnMdB4d1j2iBCzY5wzncLuCPk
-        8naOKhkbWsQNSR882TtYXdwb3RIbMJyXq8A2sGZGFobJGF+dO00HrGDp+oIGVJcAIMR6kL
-        QaA9B4B1hQ6u7mhdTguWrrO+hCWXgeE=
-Received: from mail-lf1-f71.google.com (mail-lf1-f71.google.com
- [209.85.167.71]) by relay.mimecast.com with ESMTP with STARTTLS
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=oOUnohaMXefRhkI4iyZGMnRzQ4QyShTyqNghobmvALI=;
+        b=aTK0WHE1qYiRE5HVvUjMa3zJTEHqJQZevNau3y3+R/unuZN1zwmaNKAc0QBl/HU/pcU17z
+        0YT43WrXCHRkzJhxX5HGZDwCcz+eVa4HODTuiRB9In9Wgm8lAK+3H7CLCH8x48C744IGwI
+        7N19MHbC84Xvt1jEQlVmaFRKIfOyg4A=
+Received: from mail-lj1-f199.google.com (mail-lj1-f199.google.com
+ [209.85.208.199]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-161-R0_TchyFMVq7tpWkI1p4Pw-1; Wed, 21 Jun 2023 07:18:44 -0400
-X-MC-Unique: R0_TchyFMVq7tpWkI1p4Pw-1
-Received: by mail-lf1-f71.google.com with SMTP id 2adb3069b0e04-4f8727c7fb6so2643467e87.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2023 04:18:44 -0700 (PDT)
+ us-mta-110-7kbQtL1PMDuMI3-jE6xeOw-1; Wed, 21 Jun 2023 07:18:53 -0400
+X-MC-Unique: 7kbQtL1PMDuMI3-jE6xeOw-1
+Received: by mail-lj1-f199.google.com with SMTP id 38308e7fff4ca-2b483c8ff1dso21943991fa.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 21 Jun 2023 04:18:53 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687346323; x=1689938323;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IO5VVrvlt4yaLcBQDvZ3hx40/hKZEJoz2Z1VJGTPERo=;
-        b=aY0+RSoOm9AWP3/ifAE2HKimRfiMzgTqe0G2DbLUIUTBxIixdurT6g6Ev7zY/F1UtV
-         ivkvUM99Ro6XQo8k0FcJi3Zhfr30DdN+UUonge2eWKNsc98N/zwFxqO8XoVSnIZgtTCQ
-         cp11zJ/kIeEWH2CyCXY6UO+gM1pisJDJuPuU+lQ2jMf1HdF2gsIg+MlO3O/Q+j/SLV6d
-         3dbyd/1ALak2A0CTmpSN2kXWL34xtW2tqA7Zo9IR8zek2ATkiK36Jmio5Gw6/CYSn62Y
-         /C0Y0Z4uRSvhIAWegiPNlj3GGaZJyyeJykPvPe4KkSVGg85xwuw2wpKMqZtWpe3+fdap
-         4mpg==
-X-Gm-Message-State: AC+VfDxsu10sL396D3lNWaGdO8W03rD+ls+zCS0f4hxOJ8+6znMajfey
-        XKc9VzRlzwA5Y/XPSk9goae9g3Bk2tWYRhC9Su9wtZVh47WsutIZmL+3ksBHkkwNj9Hd+kLZpd5
-        UyQHuMbXkMj7HKYu45FW1lDVxZA==
-X-Received: by 2002:a2e:8654:0:b0:2b4:6c47:6258 with SMTP id i20-20020a2e8654000000b002b46c476258mr8277792ljj.21.1687346322941;
-        Wed, 21 Jun 2023 04:18:42 -0700 (PDT)
-X-Google-Smtp-Source: ACHHUZ75STI+9YmMxhyOMTB2nW8t1lI8hVUiHvnl+SYoP8Cj8j7VpblaN//ktHoJZboKXjcN34nMPw==
-X-Received: by 2002:a2e:8654:0:b0:2b4:6c47:6258 with SMTP id i20-20020a2e8654000000b002b46c476258mr8277768ljj.21.1687346322575;
-        Wed, 21 Jun 2023 04:18:42 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1687346332; x=1689938332;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=oOUnohaMXefRhkI4iyZGMnRzQ4QyShTyqNghobmvALI=;
+        b=S4xK2czMoDV6R0jDYZoIRHwBElWDo0ePXFW2G1g0gmo4H+paOGVE1eHrp3zvDDMhNg
+         IRSFojAcOfAwVJhh8vlQGxPNKHLaD2qRSGkJmMxtxvjMbtb/MkpfipjVLzZw0DeU6bnB
+         Du0oAYw6ELVKPLJL0Rohm1J3L/sv3QC2Jsj3DxOHOsS/dA3kGo1fQXipZvQuWoz3k0JU
+         bKCi8cAEJPJ9yCuw+XkY5krJnyzyI0ts9nMWOzn1vgWxwGVQG/pfl9ZLZT6aqlRyrmc5
+         Uek48I4CLA6tsiZ1PLpQAx47as2zcv4sEBj3shW3Eu57mYTEYX3X92TKkwBAtzcs9d69
+         6N4A==
+X-Gm-Message-State: AC+VfDx1DDsKEGBkpqomun6sDnJ7Zm+3OYxJsJMuMXxR+iMCj5NlGxvo
+        QfuOzW9/lDFZokAp82ftNtypibNCnu74Vo1+yiEFKQVSmjdpWNUqlczfgYpY0yjZCmNDZLhkhez
+        HIvlasz7S44oBl5miQw5EWx3qWQ==
+X-Received: by 2002:a2e:888f:0:b0:2b4:85d1:e299 with SMTP id k15-20020a2e888f000000b002b485d1e299mr3885348lji.5.1687346331823;
+        Wed, 21 Jun 2023 04:18:51 -0700 (PDT)
+X-Google-Smtp-Source: ACHHUZ7mDgx4/rXl3EP8KFgYC8B1RJgfoSNPso3A7CQxIOB+JxEl7ZVWS4zkTAcsHrCwWAIPagrNdA==
+X-Received: by 2002:a2e:888f:0:b0:2b4:85d1:e299 with SMTP id k15-20020a2e888f000000b002b485d1e299mr3885343lji.5.1687346331607;
+        Wed, 21 Jun 2023 04:18:51 -0700 (PDT)
 Received: from localhost.localdomain (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
-        by smtp.googlemail.com with ESMTPSA id 3-20020a05651c00c300b002b31ec01c97sm864436ljr.15.2023.06.21.04.18.41
+        by smtp.googlemail.com with ESMTPSA id 3-20020a05651c00c300b002b31ec01c97sm864436ljr.15.2023.06.21.04.18.50
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 21 Jun 2023 04:18:42 -0700 (PDT)
+        Wed, 21 Jun 2023 04:18:51 -0700 (PDT)
 From:   Alexander Larsson <alexl@redhat.com>
 To:     miklos@szeredi.hu
 Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com,
         ebiggers@kernel.org, tytso@mit.edu, fsverity@lists.linux.dev,
         Alexander Larsson <alexl@redhat.com>
-Subject: [PATCH v5 0/4] ovl: Add support for fs-verity checking of lowerdata
-Date:   Wed, 21 Jun 2023 13:18:24 +0200
-Message-Id: <cover.1687345663.git.alexl@redhat.com>
+Subject: [PATCH v4 4/4] ovl: Handle verity during copy-up
+Date:   Wed, 21 Jun 2023 13:18:28 +0200
+Message-Id: <8771725be2a8b7d65ea6c50a69bb6392b9e903aa.1687345663.git.alexl@redhat.com>
 X-Mailer: git-send-email 2.40.1
+In-Reply-To: <cover.1687345663.git.alexl@redhat.com>
+References: <cover.1687345663.git.alexl@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-This patchset adds support for using fs-verity to validate lowerdata
-files by specifying an overlay.verity xattr on the metacopy
-files.
+During regular metacopy, if lowerdata file has fs-verity enabled, and
+the verity option is enabled, we add the digest to the metacopy xattr.
 
-This is primarily motivated by the Composefs usecase, where there will
-be a read-only EROFS layer that contains redirect into a base data
-layer which has fs-verity enabled on all files. However, it is also
-useful in general if you want to ensure that the lowerdata files
-matches the expected content over time.
+If verity is required, and lowerdata does not have fs-verity enabled,
+fall back to full copy-up (or the generated metacopy would not
+validate).
 
-I have also added some tests for this feature to xfstests[1].
+Signed-off-by: Alexander Larsson <alexl@redhat.com>
+---
+ fs/overlayfs/copy_up.c   | 45 ++++++++++++++++++++++++++++++++++++++--
+ fs/overlayfs/overlayfs.h |  3 +++
+ fs/overlayfs/util.c      | 33 ++++++++++++++++++++++++++++-
+ 3 files changed, 78 insertions(+), 3 deletions(-)
 
-This series depends on commits from overlay-next, fs-verity-next and
-vfs.all, so I based it on:
-
-  https://github.com/amir73il/linux/tree/next
-
-Which contains all of these
-
-This series is also available in git here:
-  https://github.com/alexlarsson/linux/tree/overlay-verity
-
-Changes since v4:
- * Rebased also on vfs.all
-
- * Refactored patch series with the new overlay.metadata versioned
-   xattr header in its own patch.
-
- * Some documentation updates
-
- * Fixes for issues reported in review from Amir.
-
-Changes since v3:
- * Instead of using a overlay.digest xattr we extend the current
-   overlay.metacopy xattr with version, flags and digest. This makes
-   it flexible for later changes and allows us to use the existing
-   xattr lookup to know ahead of time whether a file needs to have
-   verity validated.
-
-   I've done some performance checks on this new layout, and the
-   results are essentially the same as before.
-
- * This is rebased on top of the latest overlayfs-next, which includes
-   the changes to the new mount API, so that part has been redone.
-
- * The documentation changes have been rewritten to try to be more
-   clear about the behaviour of i/o verification when verity is used.
-
-Changes since v2:
- * Rebased on top of overlayfs-next
- * We now alway do verity verification the first time the file content
-   is used, rather than doing it at lookup time for the non-lazy lookup
-   case.
-
-Changes since v1:
- * Rebased on v2 lazy lowerdata series
- * Dropped the "validate" mount option variant. We now only support
-   "off", "on" and "require", where "off" is the default.
- * We now store the digest algorithm used in the overlay.verity xattr.
- * Dropped ability to configure default verity options, as this could
-   cause problems moving layers between machines.
- * We now properly resolve dependent mount options by automatically
-   enabling metacopy and redirect_dir if verity is on, or failing
-   if the specified options conflict.
- * Streamlined and fixed the handling of creds in ovl_ensure_verity_loaded().
- * Renamed new helpers from ovl_entry_path_ to ovl_e_path_
-
-[1] https://github.com/alexlarsson/xfstests/commits/verity-tests
-
-Alexander Larsson (4):
-  ovl: Add framework for verity support
-  ovl: Add versioned header for overlay.metacopy xattr
-  ovl: Validate verity xattr when resolving lowerdata
-  ovl: Handle verity during copy-up
-
- Documentation/filesystems/fsverity.rst  |   2 +
- Documentation/filesystems/overlayfs.rst |  47 +++++++
- fs/overlayfs/copy_up.c                  |  47 ++++++-
- fs/overlayfs/file.c                     |   8 +-
- fs/overlayfs/namei.c                    |  82 +++++++++++-
- fs/overlayfs/overlayfs.h                |  44 ++++++-
- fs/overlayfs/ovl_entry.h                |   1 +
- fs/overlayfs/super.c                    |  66 +++++++++-
- fs/overlayfs/util.c                     | 158 +++++++++++++++++++++++-
- 9 files changed, 432 insertions(+), 23 deletions(-)
-
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 68f01fd7f211..fce7d048673c 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -544,6 +544,7 @@ struct ovl_copy_up_ctx {
+ 	bool origin;
+ 	bool indexed;
+ 	bool metacopy;
++	bool metacopy_digest;
+ };
+ 
+ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -641,8 +642,21 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 	}
+ 
+ 	if (c->metacopy) {
+-		err = ovl_check_setxattr(ofs, temp, OVL_XATTR_METACOPY,
+-					 NULL, 0, -EOPNOTSUPP);
++		struct path lowerdatapath;
++		struct ovl_metacopy metacopy_data = OVL_METACOPY_INIT;
++
++		ovl_path_lowerdata(c->dentry, &lowerdatapath);
++		if (WARN_ON_ONCE(lowerdatapath.dentry == NULL))
++			err = -EIO;
++		else
++			err = ovl_set_verity_xattr_from(ofs, &lowerdatapath, &metacopy_data);
++
++		if (metacopy_data.digest_algo)
++			c->metacopy_digest = true;
++
++		if (!err)
++			err = ovl_set_metacopy_xattr(ofs, temp, &metacopy_data);
++
+ 		if (err)
+ 			return err;
+ 	}
+@@ -751,6 +765,12 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
+ 	if (err)
+ 		goto cleanup;
+ 
++	if (c->metacopy_digest)
++		ovl_set_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
++	else
++		ovl_clear_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
++	ovl_clear_flag(OVL_VERIFIED_DIGEST, d_inode(c->dentry));
++
+ 	if (!c->metacopy)
+ 		ovl_set_upperdata(d_inode(c->dentry));
+ 	inode = d_inode(c->dentry);
+@@ -813,6 +833,12 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
+ 	if (err)
+ 		goto out_fput;
+ 
++	if (c->metacopy_digest)
++		ovl_set_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
++	else
++		ovl_clear_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
++	ovl_clear_flag(OVL_VERIFIED_DIGEST, d_inode(c->dentry));
++
+ 	if (!c->metacopy)
+ 		ovl_set_upperdata(d_inode(c->dentry));
+ 	ovl_inode_update(d_inode(c->dentry), dget(temp));
+@@ -918,6 +944,19 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+ 	if (flags && ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC)))
+ 		return false;
+ 
++	/* Fall back to full copy if no fsverity on source data and we require verity */
++	if (ofs->config.verity_mode == OVL_VERITY_REQUIRE) {
++		struct path lowerdata;
++
++		ovl_path_lowerdata(dentry, &lowerdata);
++
++		if (WARN_ON_ONCE(lowerdata.dentry == NULL) ||
++		    ovl_ensure_verity_loaded(&lowerdata) ||
++		    !fsverity_get_info(d_inode(lowerdata.dentry))) {
++			return false;
++		}
++	}
++
+ 	return true;
+ }
+ 
+@@ -984,6 +1023,8 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+ 	if (err)
+ 		goto out_free;
+ 
++	ovl_clear_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
++	ovl_clear_flag(OVL_VERIFIED_DIGEST, d_inode(c->dentry));
+ 	ovl_set_upperdata(d_inode(c->dentry));
+ out_free:
+ 	kfree(capability);
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 9fbbc077643b..e728360c66ff 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -519,11 +519,14 @@ int ovl_set_metacopy_xattr(struct ovl_fs *ofs, struct dentry *d,
+ 			   struct ovl_metacopy *metacopy);
+ bool ovl_is_metacopy_dentry(struct dentry *dentry);
+ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, const struct path *path, int padding);
++int ovl_ensure_verity_loaded(struct path *path);
+ int ovl_get_verity_xattr(struct ovl_fs *ofs, const struct path *path,
+ 			 u8 *digest_buf, int *buf_length);
+ int ovl_validate_verity(struct ovl_fs *ofs,
+ 			struct path *metapath,
+ 			struct path *datapath);
++int ovl_set_verity_xattr_from(struct ovl_fs *ofs, struct path *src,
++			      struct ovl_metacopy *metacopy);
+ int ovl_sync_status(struct ovl_fs *ofs);
+ 
+ static inline void ovl_set_flag(unsigned long flag, struct inode *inode)
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 927a1133859d..439e23496713 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -1188,7 +1188,7 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, const struct path *path, int pa
+ }
+ 
+ /* Call with mounter creds as it may open the file */
+-static int ovl_ensure_verity_loaded(struct path *datapath)
++int ovl_ensure_verity_loaded(struct path *datapath)
+ {
+ 	struct inode *inode = d_inode(datapath->dentry);
+ 	const struct fsverity_info *vi;
+@@ -1264,6 +1264,37 @@ int ovl_validate_verity(struct ovl_fs *ofs,
+ 	return 0;
+ }
+ 
++int ovl_set_verity_xattr_from(struct ovl_fs *ofs, struct path *src,
++			      struct ovl_metacopy *metacopy)
++{
++	int err, digest_size;
++
++	if (!ofs->config.verity_mode || !S_ISREG(d_inode(src->dentry)->i_mode))
++		return 0;
++
++	err = ovl_ensure_verity_loaded(src);
++	if (err < 0) {
++		pr_warn_ratelimited("lower file '%pd' failed to load fs-verity info\n",
++				    src->dentry);
++		return -EIO;
++	}
++
++	digest_size = fsverity_get_digest(d_inode(src->dentry),
++					  metacopy->digest, &metacopy->digest_algo, NULL);
++	if (digest_size == 0 ||
++	    WARN_ON_ONCE(digest_size > FS_VERITY_MAX_DIGEST_SIZE)) {
++		if (ofs->config.verity_mode == OVL_VERITY_REQUIRE) {
++			pr_warn_ratelimited("lower file '%pd' has no fs-verity digest\n",
++					    src->dentry);
++			return -EIO;
++		}
++		return 0;
++	}
++
++	metacopy->len += digest_size;
++	return 0;
++}
++
+ /*
+  * ovl_sync_status() - Check fs sync status for volatile mounts
+  *
 -- 
 2.40.1
 
