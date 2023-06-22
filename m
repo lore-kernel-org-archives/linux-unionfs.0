@@ -2,105 +2,132 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 115DFEB64DC
-	for <linux-unionfs@archiver.kernel.org>; Wed, 21 Jun 2023 14:53:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A32ACEB64D8
+	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Jun 2023 06:44:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232943AbjFUOxJ (ORCPT
+        id S230105AbjFVGo4 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 21 Jun 2023 10:53:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56704 "EHLO
+        Thu, 22 Jun 2023 02:44:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232592AbjFUOwL (ORCPT
+        with ESMTP id S230080AbjFVGoz (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 21 Jun 2023 10:52:11 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35EAE2D7C;
-        Wed, 21 Jun 2023 07:49:11 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1287B61596;
-        Wed, 21 Jun 2023 14:49:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE600C433C0;
-        Wed, 21 Jun 2023 14:49:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687358950;
-        bh=YWuokfMJ+4rhgsv839ofdmeql5mHi2OINpoubcGpHfQ=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IIOagbf41K//lPF2/RO6T6Q5+Xe/GO1RvWVI/XL+oj89Hlvg040jUCa3I74FwjDJT
-         CJLs5m8r2RvvSFTtMUXujc6DP3fJkU9mQ7h5goH8M+BpBiUO0KBj6G6F0NG5Flio54
-         jjHv5hY+vES2eZOQPHMcVCpyy8tU035oESGmxyI0xwUfCrP+TicwbpVV8HKL+jHoBG
-         j1u7oE1BpXsHkcZZApRcJ5CuI/3mVRjeXtsvEH7WoOgyjQWDPRtGX/1WOAY6YS1UlI
-         yc8Sb5evqBTN6lIFkgLp3qLOwJpI+Z05vtg61orV6upUy76HSwv3v52zltYxzTIN/S
-         V4ReCo+RuQdNA==
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Christian Brauner <brauner@kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 54/79] overlayfs: switch to new ctime accessors
-Date:   Wed, 21 Jun 2023 10:46:07 -0400
-Message-ID: <20230621144735.55953-53-jlayton@kernel.org>
-X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230621144735.55953-1-jlayton@kernel.org>
-References: <20230621144507.55591-1-jlayton@kernel.org>
- <20230621144735.55953-1-jlayton@kernel.org>
+        Thu, 22 Jun 2023 02:44:55 -0400
+Received: from mail-vk1-xa35.google.com (mail-vk1-xa35.google.com [IPv6:2607:f8b0:4864:20::a35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E39B1BCD;
+        Wed, 21 Jun 2023 23:44:51 -0700 (PDT)
+Received: by mail-vk1-xa35.google.com with SMTP id 71dfb90a1353d-4715cbe0422so2086297e0c.3;
+        Wed, 21 Jun 2023 23:44:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1687416290; x=1690008290;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zLj587xVoRgqRKhRrCaStNTVfSpf62GN7fanQWD11SU=;
+        b=pAYd6nAPjPRzKeYBogRAlKwoLK8J7LQEL1liFk+ROKA8FpeX30A32TuvQupOzDgJIq
+         k2eS2rI+bikqGPN6YOuK12NdohOKlsiWggSznnqOp4RUDaL479dBdqtILEVuxBJmDj52
+         GgWehiWyVo9dlXpUZmF3SrZMBtRYbRwOvgUDgbPo2TJlfYDZIYVr7rgM14VhSiv4Mo5L
+         eZVnkce3ml2MPUyy+lD9vHgf7QF+fVJGs6WqCi4C/2ok6yNJwbgyH5YlZRIR/B8LfcNG
+         S6we4Joo6eF2y+maoJBmKuyZKM7i5ORrsqll3ksncuvSCUsVJSoE7BfjHAxoxXCblpj3
+         txVA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687416290; x=1690008290;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zLj587xVoRgqRKhRrCaStNTVfSpf62GN7fanQWD11SU=;
+        b=MQdPNlnRIdgECOnOzxeaPfPCOguhVSiqBNoOHrRm81By7gDu0wzEojkz7F6akujpI7
+         f2B6vktdQqYG+gbfE7vvnTSNcKJ7Thj136Tjw6a1rpwZlpHDSyF14LRmU93OW6Wt/Xrx
+         ZCyw7mlgIwlsagLAVomuImTFs3rWyA0IUi8oEcRS26M5R9eVVeAo/A9aLT1wXDCSnqUS
+         sO+S8orv/FLrdoq1g17FuUW7QL/ZnpcpvOd6FzNZ0mbSmgPoblPSuAKPp0/h7armIh7s
+         Snt/pAyvfPKaRnHKTNu0rueBzL+2qByNCgKJb+iUq9INOLyXklA6biqo3ifdz51qM1U3
+         En0w==
+X-Gm-Message-State: AC+VfDw1/daNLT+sVCoJGDjqQxswNXAa2pve9+fjlyK4NAHl1fysurEJ
+        vBhlOgyl35k5Ubt3DyAL4n5AYvv/cdXtflGZL1c=
+X-Google-Smtp-Source: ACHHUZ6rnsFBpiN9nme7mbbJP0DhYYv9kGoecSxJkmZCIm0Cd88zxgPwHK0ei7ug07hVTVmYXUzYCvJEUHGdHz5gbWg=
+X-Received: by 2002:a1f:c14e:0:b0:46e:8724:5dbb with SMTP id
+ r75-20020a1fc14e000000b0046e87245dbbmr6011900vkf.2.1687416290370; Wed, 21 Jun
+ 2023 23:44:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230621144507.55591-1-jlayton@kernel.org> <20230621144735.55953-1-jlayton@kernel.org>
+ <20230621144735.55953-53-jlayton@kernel.org>
+In-Reply-To: <20230621144735.55953-53-jlayton@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 22 Jun 2023 09:44:39 +0300
+Message-ID: <CAOQ4uxi=KhEQT6nvKga7T8wJ5M8E8owO30KeE8C_E4hmmoUtyA@mail.gmail.com>
+Subject: Re: [PATCH 54/79] overlayfs: switch to new ctime accessors
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Al Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-In later patches, we're going to change how the ctime.tv_nsec field is
-utilized. Switch to using accessor functions instead of raw accesses of
-inode->i_ctime.
+On Wed, Jun 21, 2023 at 5:54=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
+ote:
+>
+> In later patches, we're going to change how the ctime.tv_nsec field is
+> utilized. Switch to using accessor functions instead of raw accesses of
+> inode->i_ctime.
+>
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> ---
 
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
----
- fs/overlayfs/file.c | 7 +++++--
- fs/overlayfs/util.c | 2 +-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+Looks ok.
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 21245b00722a..b47013d4bd4e 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -239,6 +239,7 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- static void ovl_file_accessed(struct file *file)
- {
- 	struct inode *inode, *upperinode;
-+	struct timespec64 ct, uct;
- 
- 	if (file->f_flags & O_NOATIME)
- 		return;
-@@ -249,10 +250,12 @@ static void ovl_file_accessed(struct file *file)
- 	if (!upperinode)
- 		return;
- 
-+	ct = inode_ctime_peek(inode);
-+	uct = inode_ctime_peek(upperinode);
- 	if ((!timespec64_equal(&inode->i_mtime, &upperinode->i_mtime) ||
--	     !timespec64_equal(&inode->i_ctime, &upperinode->i_ctime))) {
-+	     !timespec64_equal(&ct, &uct))) {
- 		inode->i_mtime = upperinode->i_mtime;
--		inode->i_ctime = upperinode->i_ctime;
-+		inode_ctime_set(inode, uct);
- 	}
- 
- 	touch_atime(&file->f_path);
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 7ef9e13c404a..e3746f9a202f 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1202,6 +1202,6 @@ void ovl_copyattr(struct inode *inode)
- 	inode->i_mode = realinode->i_mode;
- 	inode->i_atime = realinode->i_atime;
- 	inode->i_mtime = realinode->i_mtime;
--	inode->i_ctime = realinode->i_ctime;
-+	inode_ctime_set(inode, inode_ctime_peek(realinode));
- 	i_size_write(inode, i_size_read(realinode));
- }
--- 
-2.41.0
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
+Thanks,
+Amir.
+
+>  fs/overlayfs/file.c | 7 +++++--
+>  fs/overlayfs/util.c | 2 +-
+>  2 files changed, 6 insertions(+), 3 deletions(-)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 21245b00722a..b47013d4bd4e 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -239,6 +239,7 @@ static loff_t ovl_llseek(struct file *file, loff_t of=
+fset, int whence)
+>  static void ovl_file_accessed(struct file *file)
+>  {
+>         struct inode *inode, *upperinode;
+> +       struct timespec64 ct, uct;
+>
+>         if (file->f_flags & O_NOATIME)
+>                 return;
+> @@ -249,10 +250,12 @@ static void ovl_file_accessed(struct file *file)
+>         if (!upperinode)
+>                 return;
+>
+> +       ct =3D inode_ctime_peek(inode);
+> +       uct =3D inode_ctime_peek(upperinode);
+>         if ((!timespec64_equal(&inode->i_mtime, &upperinode->i_mtime) ||
+> -            !timespec64_equal(&inode->i_ctime, &upperinode->i_ctime))) {
+> +            !timespec64_equal(&ct, &uct))) {
+>                 inode->i_mtime =3D upperinode->i_mtime;
+> -               inode->i_ctime =3D upperinode->i_ctime;
+> +               inode_ctime_set(inode, uct);
+>         }
+>
+>         touch_atime(&file->f_path);
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 7ef9e13c404a..e3746f9a202f 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -1202,6 +1202,6 @@ void ovl_copyattr(struct inode *inode)
+>         inode->i_mode =3D realinode->i_mode;
+>         inode->i_atime =3D realinode->i_atime;
+>         inode->i_mtime =3D realinode->i_mtime;
+> -       inode->i_ctime =3D realinode->i_ctime;
+> +       inode_ctime_set(inode, inode_ctime_peek(realinode));
+>         i_size_write(inode, i_size_read(realinode));
+>  }
+> --
+> 2.41.0
+>
