@@ -2,277 +2,203 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BA44EB64DC
-	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Jun 2023 10:14:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34339EB64DA
+	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Jun 2023 11:45:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231267AbjFVKO5 (ORCPT
+        id S230009AbjFVLpw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 22 Jun 2023 06:14:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36808 "EHLO
+        Thu, 22 Jun 2023 07:45:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230009AbjFVKOw (ORCPT
+        with ESMTP id S229691AbjFVLpv (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Jun 2023 06:14:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73FA2DD;
-        Thu, 22 Jun 2023 03:14:49 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F2EBF617C7;
-        Thu, 22 Jun 2023 10:14:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2888C433C9;
-        Thu, 22 Jun 2023 10:14:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687428888;
-        bh=7+cabg86v1cYpPv8vDJOW5RfunjhlSEWXfJLwIkmtqs=;
-        h=Subject:From:To:Date:In-Reply-To:References:From;
-        b=bash4qEoN8ysoF4HTnLUBoIb4R/VvEf+WW/D9VIwZ7IkIbfsRZHAuo5DrHgU3mESQ
-         YV3L6vJlJ5RLoTi5/71VkN5rQAydrP7yy38zcSGGfwasNdQxjqfQEDJO2KhRfaS72P
-         L3pOkZCMNStmacczTh8Bxts4KstAt3iUVQoAzfNq5O0qEkTp/AQ/ZxnvFiOtuM8Rrh
-         hGFigQvIDdzAyY8j4H2gTF58blmQ8XCJxFBrtJ8bp21DHjiO/HINP7f4QOOgCaaZnm
-         wPOh/3PFD9MITyv48Pm3mcErp57QuFgfhsUJhmJROqlUtadgwIZDzlw31/avwVXFpE
-         VwFt0TPP5toFA==
-Message-ID: <ad4bfb630128709588164db6f1fd2ef39c31d2a5.camel@kernel.org>
-Subject: Re: [PATCH 01/79] fs: add ctime accessors infrastructure
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Damien Le Moal <dlemoal@kernel.org>, Jeremy Kerr <jk@ozlabs.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>,
-        Todd Kjos <tkjos@android.com>,
-        Martijn Coenen <maco@android.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Carlos Llamas <cmllamas@google.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Brad Warrum <bwarrum@linux.ibm.com>,
-        Ritu Agarwal <rituagar@linux.ibm.com>,
-        Eric Van Hensbergen <ericvh@kernel.org>,
-        Latchesar Ionkov <lucho@ionkov.net>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Schoenebeck <linux_oss@crudebyte.com>,
-        David Sterba <dsterba@suse.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Ian Kent <raven@themaw.net>,
-        Luis de Bethencourt <luisbg@kernel.org>,
-        Salah Triki <salah.triki@gmail.com>,
-        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
-        Eric Biederman <ebiederm@xmission.com>,
-        Kees Cook <keescook@chromium.org>, Chris Mason <clm@fb.com>,
-        Josef Bacik <josef@toxicpanda.com>,
-        Xiubo Li <xiubli@redhat.com>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
-        Joel Becker <jlbec@evilplan.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Tyler Hicks <code@tyhicks.com>,
-        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Jaegeuk Kim <jaegeuk@kernel.org>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Bob Peterson <rpeterso@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <muchun.song@linux.dev>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
-        Anton Altaparmakov <anton@tuxera.com>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mark Fasheh <mark@fasheh.com>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>,
-        Bob Copeland <me@bobcopeland.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Tony Luck <tony.luck@intel.com>,
-        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-        Anders Larsen <al@alarsen.net>,
-        Steve French <sfrench@samba.org>,
-        Paulo Alcantara <pc@manguebit.com>,
-        Ronnie Sahlberg <lsahlber@redhat.com>,
-        Shyam Prasad N <sprasad@microsoft.com>,
-        Tom Talpey <tom@talpey.com>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Phillip Lougher <phillip@squashfs.org.uk>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Evgeniy Dushistov <dushistov@mail.ru>,
-        Hans de Goede <hdegoede@redhat.com>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Johannes Thumshirn <jth@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        John Johansen <john.johansen@canonical.com>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Juergen Gross <jgross@suse.com>,
-        Ruihan Li <lrh2000@pku.edu.cn>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Udipto Goswami <quic_ugoswami@quicinc.com>,
-        Linyu Yuan <quic_linyyuan@quicinc.com>,
-        John Keeping <john@keeping.me.uk>,
-        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
-        Dan Carpenter <error27@gmail.com>,
-        Yuta Hayama <hayama@lineo.co.jp>,
-        Jozef Martiniak <jomajm@gmail.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Sandeep Dhavale <dhavale@google.com>,
-        Dave Chinner <dchinner@redhat.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        ZhangPeng <zhangpeng362@huawei.com>,
-        Viacheslav Dubeyko <slava@dubeyko.com>,
-        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
-        Aditya Garg <gargaditya08@live.com>,
-        Erez Zadok <ezk@cs.stonybrook.edu>,
-        Yifei Liu <yifeliu@cs.stonybrook.edu>,
-        Yu Zhe <yuzhe@nfschina.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Oleg Kanatov <okanatov@gmail.com>,
-        "Dr. David Alan Gilbert" <linux@treblig.org>,
-        Jiangshan Yi <yijiangshan@kylinos.cn>,
-        xu xin <cgel.zte@gmail.com>, Stefan Roesch <shr@devkernel.io>,
-        Zhihao Cheng <chengzhihao1@huawei.com>,
-        "Liam R. Howlett" <Liam.Howlett@Oracle.com>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Minghao Chi <chi.minghao@zte.com.cn>,
-        Seth Forshee <sforshee@digitalocean.com>,
-        Zeng Jingxiang <linuszeng@tencent.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Roberto Sassu <roberto.sassu@huawei.com>,
-        Zhang Yi <yi.zhang@huawei.com>, Tom Rix <trix@redhat.com>,
-        "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
-        Chen Zhongjin <chenzhongjin@huawei.com>,
-        Zhengchao Shao <shaozhengchao@huawei.com>,
-        Rik van Riel <riel@surriel.com>,
-        Jingyu Wang <jingyuwang_vip@163.com>,
-        Hangyu Hua <hbh25y@gmail.com>, linuxppc-dev@lists.ozlabs.org,
-        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org,
-        v9fs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
-        linux-mm@kvack.org, linux-btrfs@vger.kernel.org,
-        ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        ecryptfs@vger.kernel.org, linux-efi@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
-        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
-        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
-        ntfs3@lists.linux.dev, ocfs2-devel@oss.oracle.com,
-        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
-        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org,
-        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        bpf@vger.kernel.org, netdev@vger.kernel.org,
-        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
-        selinux@vger.kernel.org
-Date:   Thu, 22 Jun 2023 06:14:30 -0400
-In-Reply-To: <99b3c749-23d9-6f09-fb75-6a84f3d1b066@kernel.org>
-References: <20230621144507.55591-1-jlayton@kernel.org>
-         <20230621144507.55591-2-jlayton@kernel.org>
-         <99b3c749-23d9-6f09-fb75-6a84f3d1b066@kernel.org>
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.3 (3.48.3-1.fc38) 
+        Thu, 22 Jun 2023 07:45:51 -0400
+Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73A12E6E
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Jun 2023 04:45:46 -0700 (PDT)
+Received: by mail-ua1-x92b.google.com with SMTP id a1e0cc1a2514c-78f36f37e36so2571819241.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Jun 2023 04:45:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1687434345; x=1690026345;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=HILfXiyJTzqIWiU2ds9vS2XsGukIr6n4KyLc8e2yavI=;
+        b=eaS3xUSrs8PQn6dBchdEKDSHFLc64oFo5hy7YEWFIw6V3sOWGTcYsIA9tB06F8RS8g
+         FlLdXMRDNv11xhDY21luoC02vGh6kkAY2QxfQF3E0uu4jC6X2jzgKt6en/ukT5AGVaPk
+         y0AK6OTLekATGE3hStGtkhdcrF//dk7HxUFXu0j/pgJINI6gox1VkzzDv9pDrvcFxPZa
+         gfK6DIa0vrh9BIhsfbpoJCYfNuzCXv5EayIqHUbxKHhIU2pXZ9Iff1tF1duu9e5xITtV
+         83omGA30WMnYqncAXq+/EczyvSaahDcWS7X/aJ3VzcDojn7yks8Gpryf+vvSL0rkasPa
+         zykw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1687434345; x=1690026345;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=HILfXiyJTzqIWiU2ds9vS2XsGukIr6n4KyLc8e2yavI=;
+        b=f8826RXPcrrY78ylRQ9OJuB3uLakwPMdAxB7otozqsacf0+tVMyFGSCb93aJyO16Vf
+         1PqihqygqEhwpdq0/OlqsEk/hCESXZltlpJJfmZz0dgKUCLkjX5R028J1PrjnfqE5to/
+         LLHNKkCpWM102qUDefTcb0ITd4b8KpeS5A1PYzI/MeqaEPrVznKmbDqWf6WM82pzGjcg
+         al2pQSHqjImkRb6YhJBvXBVfpONIeZOCEd7R2SxNMArenwtoi6jXPR/xoN6cCArH1+kL
+         HW8gnrWK1pebrjReGJEMRN4tDXc9bCBuOXj4kCNHFnY0uHqKVQxE2k+1HkpJfhmw2k+g
+         S/Ug==
+X-Gm-Message-State: AC+VfDwEPWxRm/LISQQoUa49mNigDwppN7DHuywsZ34ZMgOVbixFRP5F
+        RGWs52j3jT63UEi4AvNUjQYWAEylnhEfjhmj07yr9t4H42s=
+X-Google-Smtp-Source: ACHHUZ7VsJxGdhJR1w92sy48nDflxrVzz13c6GCAx02UUdfI4cSeAw3LHPAJz/orzJWayksSphv97z+GCi7MyAfdRqE=
+X-Received: by 2002:a67:fc08:0:b0:440:af3c:4c18 with SMTP id
+ o8-20020a67fc08000000b00440af3c4c18mr7053535vsq.5.1687434345423; Thu, 22 Jun
+ 2023 04:45:45 -0700 (PDT)
 MIME-Version: 1.0
+References: <cover.1686565330.git.alexl@redhat.com> <CAOQ4uxgmV1KKCeq8=8FPkAciwqPpz8JiSM8WEuxDaZbVuYcQ7Q@mail.gmail.com>
+ <CAL7ro1EiYOOOqexrKy+UXRzmpGyCaNec3+LHGxnA0YfmoMDN3A@mail.gmail.com>
+ <CAL7ro1FKwgUY4e7N_vYi0cFsuVx6St0-oKvcBkiRFnzLH8D1eQ@mail.gmail.com>
+ <CAOQ4uxgVnv7wtwFZaBnEotFCwQD1EZcSK2KW4K4vRD8d9fzCiw@mail.gmail.com>
+ <CAL7ro1FY6OmhypFGDjinOkkjyJzymntVje4nRA558dKY+KsgzQ@mail.gmail.com>
+ <CAOQ4uxjuhzxgTxmRXxczJLDrMzKKr-jzS3R8ESwkw4XQ+UyAfQ@mail.gmail.com> <CAL7ro1GYEdMvjn+e8Y8CmMC-s_5NZOXjsj=iv7s5NbnpTZz+Cg@mail.gmail.com>
+In-Reply-To: <CAL7ro1GYEdMvjn+e8Y8CmMC-s_5NZOXjsj=iv7s5NbnpTZz+Cg@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 22 Jun 2023 14:45:34 +0300
+Message-ID: <CAOQ4uxjS9mTjCCTS9eS1HmZqKAQV97mh1wpkqJuShCHP_MKqag@mail.gmail.com>
+Subject: Re: [PATCH v3 0/4] ovl: Add support for fs-verity checking of lowerdata
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     ebiggers@kernel.org, tytso@mit.edu, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, fsverity@lists.linux.dev
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2023-06-22 at 09:46 +0900, Damien Le Moal wrote:
-> On 6/21/23 23:45, Jeff Layton wrote:
-> > struct timespec64 has unused bits in the tv_nsec field that can be used
-> > for other purposes. In future patches, we're going to change how the
-> > inode->i_ctime is accessed in certain inodes in order to make use of
-> > them. In order to do that safely though, we'll need to eradicate raw
-> > accesses of the inode->i_ctime field from the kernel.
-> >=20
-> > Add new accessor functions for the ctime that we can use to replace the=
-m.
-> >=20
-> > Signed-off-by: Jeff Layton <jlayton@kernel.org>
->=20
-> [...]
->=20
-> > +/**
-> > + * inode_ctime_peek - fetch the current ctime from the inode
-> > + * @inode: inode from which to fetch ctime
-> > + *
-> > + * Grab the current ctime from the inode and return it.
-> > + */
-> > +static inline struct timespec64 inode_ctime_peek(const struct inode *i=
-node)
->=20
-> To be consistent with inode_ctime_set(), why not call this one inode_ctim=
-e_get()
+On Thu, Jun 22, 2023 at 12:52=E2=80=AFPM Alexander Larsson <alexl@redhat.co=
+m> wrote:
+>
+> On Thu, Jun 22, 2023 at 11:37=E2=80=AFAM Amir Goldstein <amir73il@gmail.c=
+om> wrote:
+> >
+> > On Wed, Jun 14, 2023 at 10:17=E2=80=AFAM Alexander Larsson <alexl@redha=
+t.com> wrote:
+> > >
+> > > On Wed, Jun 14, 2023 at 8:14=E2=80=AFAM Amir Goldstein <amir73il@gmai=
+l.com> wrote:
+> > > >
+> > > > On Mon, Jun 12, 2023 at 5:54=E2=80=AFPM Alexander Larsson <alexl@re=
+dhat.com> wrote:
+> > > > >
+> > > > > On Mon, Jun 12, 2023 at 1:09=E2=80=AFPM Alexander Larsson <alexl@=
+redhat.com> wrote:
+> > > > > >
+> > > > > > On Mon, Jun 12, 2023 at 12:54=E2=80=AFPM Amir Goldstein <amir73=
+il@gmail.com> wrote:
+> > > > > > >
+> > > > > > > On Mon, Jun 12, 2023 at 1:27=E2=80=AFPM Alexander Larsson <al=
+exl@redhat.com> wrote:
+> > > > > > > >
+> > > > > > > > This patchset adds support for using fs-verity to validate =
+lowerdata
+> > > > > > > > files by specifying an overlay.verity xattr on the metacopy
+> > > > > > > > files.
+> > > > > > > >
+> > > > > > > > This is primarily motivated by the Composefs usecase, where=
+ there will
+> > > > > > > > be a read-only EROFS layer that contains redirect into a ba=
+se data
+> > > > > > > > layer which has fs-verity enabled on all files. However, it=
+ is also
+> > > > > > > > useful in general if you want to ensure that the lowerdata =
+files
+> > > > > > > > matches the expected content over time.
+> > > > > > > >
+> > > > > > > > I have also added some tests for this feature to xfstests[1=
+].
+> > > > > > >
+> > > > > > > I can't remember if there is a good reason why your test does
+> > > > > > > not include verify in a data-only layer.
+> > > > > > >
+> > > > > > > I think this test coverage needs to be added.
+> > > > > >
+> > > > > > Yeah. I'll add that.
+> > > > >
+> > > > > Updated the git branch with some lowerdata tests.
+> > > > >
+> > > >
+> > > > What do I need to do in order to enable verity on ext4 besides
+> > > > enabling FS_VERITY in the kernel?
+> > > >
+> > > > I'm getting these on verity tests on ext4 in the default 4k config.
+> > > > _require_scratch_verity() doesn't mention any requirement other
+> > > > that 4K blocks and extent format files.
+> > > >
+> > > > Thanks,
+> > > > Amir.
+> > > >
+> > > > BEGIN TEST 4k (10 tests): Ext4 4k block Wed Jun 14 06:04:25 UTC 202=
+3
+> > > > DEVICE: /dev/vdb
+> > > > EXT_MKFS_OPTIONS: -b 4096
+> > > > EXT_MOUNT_OPTIONS: -o block_validity
+> > > > FSTYP         -- ext4
+> > > > PLATFORM      -- Linux/x86_64 kvm-xfstests
+> > > > 6.4.0-rc2-xfstests-00026-g35774ba7f07c #1596 SMP PREEMPT_DYNAMIC Tu=
+e
+> > > > Jun 13 18:16:59 IDT 2023
+> > > > MKFS_OPTIONS  -- -F -q -b 4096 /dev/vdc
+> > > > MOUNT_OPTIONS -- -o acl,user_xattr -o block_validity /dev/vdc /vdc
+> > > >
+> > > > generic/572        [06:04:42] [06:04:47] [not run]
+> > > > generic/572 -- ext4 verity isn't usable by default with these mkfs =
+options
+> > > > ...
+> > >
+> > > You need to "tune2fs -O verity" (or pass -O verity to mkfs.ext4).
+> > >
+> >
+> > That was indeed missing in my setup, but it did not fix the problem.
+> >
+> > Turned out that I had a very old version of fsverity installed in my
+> > kvm-xfstest test VM, where there is no --block-size option to
+> > fsverity enable would always fail.
+> >
+> > Eric,
+> >
+> > You may consider adding a check for minimal version of
+> > fsverity or check for support of --block-size option to make
+> > this error reason more clear for testers.
+> >
+> > Ted,
+> >
+> > FYI, FSVERITY_GIT in fstests-bld/config points to an out of date URL
+> >
+> > How come there is no ext4/cfg/verity in fstests-bld?
+> > Are you guys not testing fsverity with fstests-bld?
+> > Should we just add fsverity config or add verity to ext4/cfg/encrypt
+> > instead to avoid growing the test matrix?
+> >
+> > I can send patches for fstests-bld fixing the above if you like.
+> >
+> > Alex,
+> >
+> > Verified that your verity-tests2 work as expected with v5 patches.
+>
+> To be honest I have not validated that my changes to the shared verity
+> code still works with the non-overlayfs tests. If you have a setup for
+> it it would be great if you could try the regular ext4 w/ fs-veriy
+> tests on top of the verity-test2 branch.
+>
 
-In later patches fetching the ctime for presentation may have side
-effects on certain filesystems. Using "peek" here is a hint that we want
-to avoid those side effects in these calls.
+There is no problem with "./check -g verity" on ext4
+those tests pass.
 
-> ? Also, inode_set_ctime() & inode_get_ctime() may be a little more natura=
-l. But
-> no strong opinion about that though.
->=20
+However, "./check -overlay -g generic/verity" fails several test:
+Failures: generic/572 generic/573 generic/574 generic/575 generic/577
+because _require_scratch_verity falsely claims that overlay (over ext4)
+supports verify, but then FS_IOC_ENABLE_VERITY actually fails
+during the test.
 
-I like the consistency of the inode_ctime_* prefix. It makes it simpler
-to find these calls when grepping, etc.
+Instead of changing _require_scratch_verity() as you did,
+you should consider passing optional arguments, e.g.:
+  local fstyp=3D${1:-$FSTYP}
+and calling it from _require_scratch_overlay_verity() with the
+$OVL_BASE_* values.
 
-That said, my opinions on naming are pretty loosely-held, so if the
-consensus is that the names should as you suggest, I'll go along with
-it.
---=20
-Jeff Layton <jlayton@kernel.org>
+Thanks,
+Amir.
