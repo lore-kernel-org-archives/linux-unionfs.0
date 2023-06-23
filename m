@@ -2,230 +2,258 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB8FDEB64D8
-	for <linux-unionfs@archiver.kernel.org>; Thu, 22 Jun 2023 18:08:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BB7A7C0015E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Jun 2023 12:43:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230100AbjFVSIC (ORCPT
+        id S231688AbjFWMnU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 22 Jun 2023 14:08:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50456 "EHLO
+        Fri, 23 Jun 2023 08:43:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60946 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229934AbjFVSIB (ORCPT
+        with ESMTP id S229961AbjFWMnN (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 22 Jun 2023 14:08:01 -0400
-Received: from mail-vk1-xa2c.google.com (mail-vk1-xa2c.google.com [IPv6:2607:f8b0:4864:20::a2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 784701FED
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Jun 2023 11:08:00 -0700 (PDT)
-Received: by mail-vk1-xa2c.google.com with SMTP id 71dfb90a1353d-4714e9f070bso2566607e0c.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Jun 2023 11:08:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1687457279; x=1690049279;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=T3SpfpkSm7QX57pHLgtZxuZphS9HDEHPUEgYTbSXYgQ=;
-        b=d5tmVTlteVE2uhaktLMQmpndNI2gK0uso6qgDv42ujCy+BQT+UtREZrIYCSaSuYOSO
-         S1Aqs9fac0LxjuDr2lOlTouGuXEjBPQgfuXCxqgN540x0EatZ1MDlKkxTqHxPFE7r0JH
-         lwfrQt3aBRRT3eL9cUwleoXTV6IJqE/XEXHNFL79GVUrqSY34T8EH1Ei60AC7Bpk0wgV
-         9i2h1/BEw32MhwyfSxPJcW8paUU4+aLRE7DCTXR7bdXJd3+WGHG/85TXSb9aZ7/9s2RL
-         bTCT+z65g+IP+wylXSNu6snWq8y1UmkhplyFcWd2uo29i8dHfNkSxAC4nlQh1eEeBpKu
-         6v1g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1687457279; x=1690049279;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=T3SpfpkSm7QX57pHLgtZxuZphS9HDEHPUEgYTbSXYgQ=;
-        b=HKa5v5KNehefuF9odx8bxkfuYohbuBODM7+2QoWPigumoOmqez9YJkLfPNJXGvVy2q
-         RhmwODlaQbQvlMmKSt62l/xTTRwAZVcWz3Q67mSXsdjDuVhPAN+7/V6GoOj2nTzDl4SH
-         dww+YYciDnQg7GD+UQe8Bw42Sw+yBak26/hImgB8bD8JFLGCWeA26TbeX2OwoXooJBYL
-         sPpFJli/K9d+tdbvDA1Z7ghmaSxH+e1TccdM2zIdxrsv2/WF2S3uBggaNsTAcp/GAi/B
-         442NlcdvoIk8AB7nUT/P41U1otIELar3Rk6E72AlnMbGuwa+RMiEgPNcgbAaRntUJBoE
-         na5w==
-X-Gm-Message-State: AC+VfDyHvifCQEsZznV1yFtDN7hbXTJg1WGHKc3vp9gq1s0l+4O66wGW
-        xvWY7+ONR6qp6R7lab1S4GH6cnO3m6TtkI/mLqc=
-X-Google-Smtp-Source: ACHHUZ7LQdaD7aw1S/p6MsQNbpDdLaPb6gLNjkAD1zXHfXVpL8vbux5IDPa+jjnd4BDp7kGFKLEALXSI2y8hdMLlLeU=
-X-Received: by 2002:a67:e3a6:0:b0:439:31ec:8602 with SMTP id
- j6-20020a67e3a6000000b0043931ec8602mr8276623vsm.27.1687457279262; Thu, 22 Jun
- 2023 11:07:59 -0700 (PDT)
+        Fri, 23 Jun 2023 08:43:13 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDE7C2969;
+        Fri, 23 Jun 2023 05:42:28 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8268861A44;
+        Fri, 23 Jun 2023 12:42:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DB4BC433C8;
+        Fri, 23 Jun 2023 12:41:45 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1687524146;
+        bh=ljQRDIRYG4TydFhjD0LuSn8BREerPmb4Ipkpa2QAq6Q=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=apfm6xvoeO6UvUfxPwNSOl0FaLWJ7ShkzzPeuSOb0bank70626+jFCCnlqxUCd2NX
+         mV+Eb3SlbyeKtShM0cPnGoccCVrProiQPYgaM4HyeW5epsbNbu8US+O9nrIP4r+ghW
+         Y8FmG2CVOdPNZ1eNovI71PsOzsGS/p5EOkEcjtA4zTWfFdhpQkNKBq1hEMuzxsWytK
+         w9zTBeB4xmhiyjllhLtRaoNC8lgBTTH19xNIsLsgb+18yFVUlxxLoSku7XQ5A1i1lR
+         WF4IRekFC21BVGIj1AxyqNGVCxMph3jwY74VjiaGchsSc5v31PlBNGYvRkbk2aFmu+
+         9KQZIm3JpdS0g==
+Date:   Fri, 23 Jun 2023 14:41:42 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Steven Rostedt <rostedt@goodmis.org>, Jeremy Kerr <jk@ozlabs.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>,
+        Todd Kjos <tkjos@android.com>,
+        Martijn Coenen <maco@android.com>,
+        Joel Fernandes <joel@joelfernandes.org>,
+        Carlos Llamas <cmllamas@google.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Brad Warrum <bwarrum@linux.ibm.com>,
+        Ritu Agarwal <rituagar@linux.ibm.com>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Sterba <dsterba@suse.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Ian Kent <raven@themaw.net>,
+        Luis de Bethencourt <luisbg@kernel.org>,
+        Salah Triki <salah.triki@gmail.com>,
+        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Kees Cook <keescook@chromium.org>, Chris Mason <clm@fb.com>,
+        Josef Bacik <josef@toxicpanda.com>,
+        Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Joel Becker <jlbec@evilplan.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Tyler Hicks <code@tyhicks.com>,
+        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bob Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Muchun Song <muchun.song@linux.dev>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
+        Anton Altaparmakov <anton@tuxera.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Bob Copeland <me@bobcopeland.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Anders Larsen <al@alarsen.net>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <lsahlber@redhat.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Tom Talpey <tom@talpey.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Phillip Lougher <phillip@squashfs.org.uk>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Evgeniy Dushistov <dushistov@mail.ru>,
+        Hans de Goede <hdegoede@redhat.com>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Damien Le Moal <dlemoal@kernel.org>,
+        Naohiro Aota <naohiro.aota@wdc.com>,
+        Johannes Thumshirn <jth@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        John Johansen <john.johansen@canonical.com>,
+        Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Stephen Smalley <stephen.smalley.work@gmail.com>,
+        Eric Paris <eparis@parisplace.org>,
+        Juergen Gross <jgross@suse.com>,
+        Ruihan Li <lrh2000@pku.edu.cn>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Udipto Goswami <quic_ugoswami@quicinc.com>,
+        Linyu Yuan <quic_linyyuan@quicinc.com>,
+        John Keeping <john@keeping.me.uk>,
+        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
+        Dan Carpenter <error27@gmail.com>,
+        Yuta Hayama <hayama@lineo.co.jp>,
+        Jozef Martiniak <jomajm@gmail.com>,
+        Jens Axboe <axboe@kernel.dk>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Sandeep Dhavale <dhavale@google.com>,
+        Dave Chinner <dchinner@redhat.com>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        ZhangPeng <zhangpeng362@huawei.com>,
+        Viacheslav Dubeyko <slava@dubeyko.com>,
+        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
+        Aditya Garg <gargaditya08@live.com>,
+        Erez Zadok <ezk@cs.stonybrook.edu>,
+        Yifei Liu <yifeliu@cs.stonybrook.edu>,
+        Yu Zhe <yuzhe@nfschina.com>,
+        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
+        Oleg Kanatov <okanatov@gmail.com>,
+        "Dr. David Alan Gilbert" <linux@treblig.org>,
+        Jiangshan Yi <yijiangshan@kylinos.cn>,
+        xu xin <cgel.zte@gmail.com>, Stefan Roesch <shr@devkernel.io>,
+        Zhihao Cheng <chengzhihao1@huawei.com>,
+        "Liam R. Howlett" <Liam.Howlett@Oracle.com>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Minghao Chi <chi.minghao@zte.com.cn>,
+        Seth Forshee <sforshee@digitalocean.com>,
+        Zeng Jingxiang <linuszeng@tencent.com>,
+        Bart Van Assche <bvanassche@acm.org>,
+        Mimi Zohar <zohar@linux.ibm.com>,
+        Roberto Sassu <roberto.sassu@huawei.com>,
+        Zhang Yi <yi.zhang@huawei.com>, Tom Rix <trix@redhat.com>,
+        "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
+        Chen Zhongjin <chenzhongjin@huawei.com>,
+        Zhengchao Shao <shaozhengchao@huawei.com>,
+        Rik van Riel <riel@surriel.com>,
+        Jingyu Wang <jingyuwang_vip@163.com>,
+        Hangyu Hua <hbh25y@gmail.com>, linuxppc-dev@lists.ozlabs.org,
+        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org,
+        v9fs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
+        linux-mm@kvack.org, linux-btrfs@vger.kernel.org,
+        ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        ecryptfs@vger.kernel.org, linux-efi@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
+        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
+        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
+        ntfs3@lists.linux.dev, ocfs2-devel@oss.oracle.com,
+        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
+        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
+        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org,
+        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        bpf@vger.kernel.org, netdev@vger.kernel.org,
+        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+        selinux@vger.kernel.org
+Subject: Re: [PATCH 00/79] fs: new accessors for inode->i_ctime
+Message-ID: <20230623-wegelagerei-kanzlei-45cdcf5da157@brauner>
+References: <20230621144507.55591-1-jlayton@kernel.org>
+ <20230621152141.5961cf5f@gandalf.local.home>
+ <2a5a069572b46b59dd16fe8d54e549a9b5bbb6eb.camel@kernel.org>
 MIME-Version: 1.0
-References: <cover.1686565330.git.alexl@redhat.com> <CAOQ4uxgmV1KKCeq8=8FPkAciwqPpz8JiSM8WEuxDaZbVuYcQ7Q@mail.gmail.com>
- <CAL7ro1EiYOOOqexrKy+UXRzmpGyCaNec3+LHGxnA0YfmoMDN3A@mail.gmail.com>
- <CAL7ro1FKwgUY4e7N_vYi0cFsuVx6St0-oKvcBkiRFnzLH8D1eQ@mail.gmail.com>
- <CAOQ4uxgVnv7wtwFZaBnEotFCwQD1EZcSK2KW4K4vRD8d9fzCiw@mail.gmail.com>
- <CAL7ro1FY6OmhypFGDjinOkkjyJzymntVje4nRA558dKY+KsgzQ@mail.gmail.com>
- <CAOQ4uxjuhzxgTxmRXxczJLDrMzKKr-jzS3R8ESwkw4XQ+UyAfQ@mail.gmail.com> <20230622161209.GA1191@sol.localdomain>
-In-Reply-To: <20230622161209.GA1191@sol.localdomain>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 22 Jun 2023 21:07:48 +0300
-Message-ID: <CAOQ4uxi+zRZRkZi_QQF22ygmJORXBfWw_mOTVe-jjvAaDWNhog@mail.gmail.com>
-Subject: Re: [PATCH v3 0/4] ovl: Add support for fs-verity checking of lowerdata
-To:     Eric Biggers <ebiggers@kernel.org>
-Cc:     Alexander Larsson <alexl@redhat.com>, tytso@mit.edu,
-        miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
-        fsverity@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2a5a069572b46b59dd16fe8d54e549a9b5bbb6eb.camel@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jun 22, 2023 at 7:12=E2=80=AFPM Eric Biggers <ebiggers@kernel.org> =
-wrote:
->
-> Hi Amir,
->
-> On Thu, Jun 22, 2023 at 12:36:59PM +0300, Amir Goldstein wrote:
-> > > > What do I need to do in order to enable verity on ext4 besides
-> > > > enabling FS_VERITY in the kernel?
-> > > >
-> > > > I'm getting these on verity tests on ext4 in the default 4k config.
-> > > > _require_scratch_verity() doesn't mention any requirement other
-> > > > that 4K blocks and extent format files.
-> > > >
-> > > > Thanks,
-> > > > Amir.
-> > > >
-> > > > BEGIN TEST 4k (10 tests): Ext4 4k block Wed Jun 14 06:04:25 UTC 202=
-3
-> > > > DEVICE: /dev/vdb
-> > > > EXT_MKFS_OPTIONS: -b 4096
-> > > > EXT_MOUNT_OPTIONS: -o block_validity
-> > > > FSTYP         -- ext4
-> > > > PLATFORM      -- Linux/x86_64 kvm-xfstests
-> > > > 6.4.0-rc2-xfstests-00026-g35774ba7f07c #1596 SMP PREEMPT_DYNAMIC Tu=
-e
-> > > > Jun 13 18:16:59 IDT 2023
-> > > > MKFS_OPTIONS  -- -F -q -b 4096 /dev/vdc
-> > > > MOUNT_OPTIONS -- -o acl,user_xattr -o block_validity /dev/vdc /vdc
-> > > >
-> > > > generic/572        [06:04:42] [06:04:47] [not run]
-> > > > generic/572 -- ext4 verity isn't usable by default with these mkfs =
-options
-> > > > ...
-> > >
-> > > You need to "tune2fs -O verity" (or pass -O verity to mkfs.ext4).
-> > >
-> >
-> > That was indeed missing in my setup, but it did not fix the problem.
-> >
-> > Turned out that I had a very old version of fsverity installed in my
-> > kvm-xfstest test VM, where there is no --block-size option to
-> > fsverity enable would always fail.
->
-> That would do it.  So the tests were in fact skipping themselves as expec=
-ted;
-> just the skip message was not clear.
->
+On Wed, Jun 21, 2023 at 03:52:27PM -0400, Jeff Layton wrote:
+> On Wed, 2023-06-21 at 15:21 -0400, Steven Rostedt wrote:
+> > On Wed, 21 Jun 2023 10:45:05 -0400
+> > Jeff Layton <jlayton@kernel.org> wrote:
+> > 
+> > > Most of this conversion was done via coccinelle, with a few of the more
+> > > non-standard accesses done by hand. There should be no behavioral
+> > > changes with this set. That will come later, as we convert individual
+> > > filesystems to use multigrain timestamps.
+> > 
+> > BTW, Linus has suggested to me that whenever a conccinelle script is used,
+> > it should be included in the change log.
+> > 
+> 
+> Ok, here's what I have. I note again that my usage of coccinelle is
+> pretty primitive, so I ended up doing a fair bit of by-hand fixing after
+> applying these.
+> 
+> Given the way that this change is broken up into 77 patches by
+> subsystem, to which changelogs should I add it? I could add it to the
+> "infrastructure" patch, but that's the one where I _didn't_ use it. 
+> 
+> Maybe to patch #79 (the one that renames i_ctime)?
 
-Right.
-
-> >
-> > Eric,
-> >
-> > You may consider adding a check for minimal version of
-> > fsverity or check for support of --block-size option to make
-> > this error reason more clear for testers.
->
-> I'm thinking it wouldn't be worth bothering, as the --block-size option w=
-as in
-> the first actual release of fsverity-utils (v1.0).  You must have pulled =
-down a
-> work-in-progress version of fsverity-utils back in 2018 or early 2019, we=
-ll
-> before the kernel support for fsverity was upstreamed, and then never upd=
-ated
-> it.  I expect this issue affects very few people.
->
-
-Agree.
-
-> > Ted,
-> >
-> > FYI, FSVERITY_GIT in fstests-bld/config points to an out of date URL
->
-> It was already updated several months ago.  Please run 'git pull'.
->
-
-I thought I did. My bad.
-Sorry for the noise.
-
-> >
-> > How come there is no ext4/cfg/verity in fstests-bld?
->
-> xfstests has a verity test *group*, which contains the tests that were wr=
-itten
-> specifically to test verity.
->
-> An xfstests-bld test config is something that applies to all tests.  Feat=
-ures
-> like "encrypt" have an xfstests-bld test config since there is a way to
-> enable/use those features in all tests.  In the case of encrypt that mean=
-s
-> mounting the filesystem with "-o test_dummy_encryption".
->
-> In the case of verity, there is no way to enable/use verity in all tests.=
-  (It
-> would be possible to always enable "-O verity" on the filesystem, but tha=
-t does
-> nothing to make verity actually be used/tested.)  Hence, it doesn't have =
-an
-> xfstests-bld test config.
->
-
-Got it.
-
-In case of overlayfs over ext4 (i.e. -c ext4:overlay/small) it is needed
-to format ext4 in the beginning with -O verity because overlayfs
-tests do not currently have support for formatting the base fs differently
-per test.
-
-This is the patch I intend to post.
-Shout it you disagree:
-
-commit 28d65d957c25eab85eb80b06724b215770a734a1
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Thu Jun 22 11:30:06 2023 +0300
-
-    test-appliance: enable verity for testing overlay over ext4
-
-    Add -O verity for ext4 formatted for overlay tests, so that overlay
-    verity feature could be tested.
-
-    Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-
-diff --git a/test-appliance/files/root/fs/overlay/config
-b/test-appliance/files/root/fs/overlay/config
-index 7c50b19..f252a70 100644
---- a/test-appliance/files/root/fs/overlay/config
-+++ b/test-appliance/files/root/fs/overlay/config
-@@ -55,7 +55,7 @@ function __mkfs()
-
-        case "$BASE_FSTYPE" in
-            ext4)
--               /sbin/mke2fs -F -q -t ext4 "$dev"
-+               /sbin/mke2fs -F -q -t ext4 -O verity "$dev"
-                ;;
-            xfs)
-                mkfs.xfs -f -m rmapbt=3D1,reflink=3D1 "$dev"
-
-
-> > Are you guys not testing fsverity with fstests-bld?
->
-> We are.  The documented way to test fsverity is to use kvm-xfstests:
-> https://www.kernel.org/doc/html/latest/filesystems/fsverity.html#tests
->
-> > Should we just add fsverity config or add verity to ext4/cfg/encrypt
-> > instead to avoid growing the test matrix?
-> >
-> > I can send patches for fstests-bld fixing the above if you like.
->
-> As per the above, I don't think there is anything to fix.
->
-
-Right.
-Expect for the patch above which is needed for running Alex's
--g overlay/verity test
-
-Thanks,
-Amir.
+That works. I can also put this into a merge commit or pr message.
