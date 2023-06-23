@@ -2,258 +2,221 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB7A7C0015E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Jun 2023 12:43:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9744CEB64DD
+	for <linux-unionfs@archiver.kernel.org>; Fri, 23 Jun 2023 19:32:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231688AbjFWMnU (ORCPT
+        id S231688AbjFWTct (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 23 Jun 2023 08:43:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60946 "EHLO
+        Fri, 23 Jun 2023 15:32:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229961AbjFWMnN (ORCPT
+        with ESMTP id S231742AbjFWTcr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 23 Jun 2023 08:43:13 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDE7C2969;
-        Fri, 23 Jun 2023 05:42:28 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8268861A44;
-        Fri, 23 Jun 2023 12:42:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DB4BC433C8;
-        Fri, 23 Jun 2023 12:41:45 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1687524146;
-        bh=ljQRDIRYG4TydFhjD0LuSn8BREerPmb4Ipkpa2QAq6Q=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=apfm6xvoeO6UvUfxPwNSOl0FaLWJ7ShkzzPeuSOb0bank70626+jFCCnlqxUCd2NX
-         mV+Eb3SlbyeKtShM0cPnGoccCVrProiQPYgaM4HyeW5epsbNbu8US+O9nrIP4r+ghW
-         Y8FmG2CVOdPNZ1eNovI71PsOzsGS/p5EOkEcjtA4zTWfFdhpQkNKBq1hEMuzxsWytK
-         w9zTBeB4xmhiyjllhLtRaoNC8lgBTTH19xNIsLsgb+18yFVUlxxLoSku7XQ5A1i1lR
-         WF4IRekFC21BVGIj1AxyqNGVCxMph3jwY74VjiaGchsSc5v31PlBNGYvRkbk2aFmu+
-         9KQZIm3JpdS0g==
-Date:   Fri, 23 Jun 2023 14:41:42 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     Steven Rostedt <rostedt@goodmis.org>, Jeremy Kerr <jk@ozlabs.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Arve =?utf-8?B?SGrDuG5uZXbDpWc=?= <arve@android.com>,
-        Todd Kjos <tkjos@android.com>,
-        Martijn Coenen <maco@android.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Carlos Llamas <cmllamas@google.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Brad Warrum <bwarrum@linux.ibm.com>,
-        Ritu Agarwal <rituagar@linux.ibm.com>,
-        Eric Van Hensbergen <ericvh@kernel.org>,
-        Latchesar Ionkov <lucho@ionkov.net>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Schoenebeck <linux_oss@crudebyte.com>,
-        David Sterba <dsterba@suse.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Ian Kent <raven@themaw.net>,
-        Luis de Bethencourt <luisbg@kernel.org>,
-        Salah Triki <salah.triki@gmail.com>,
-        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
-        Eric Biederman <ebiederm@xmission.com>,
-        Kees Cook <keescook@chromium.org>, Chris Mason <clm@fb.com>,
-        Josef Bacik <josef@toxicpanda.com>,
-        Xiubo Li <xiubli@redhat.com>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
-        Joel Becker <jlbec@evilplan.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Tyler Hicks <code@tyhicks.com>,
-        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Jaegeuk Kim <jaegeuk@kernel.org>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Bob Peterson <rpeterso@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <muchun.song@linux.dev>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
-        Anton Altaparmakov <anton@tuxera.com>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mark Fasheh <mark@fasheh.com>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>,
-        Bob Copeland <me@bobcopeland.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Tony Luck <tony.luck@intel.com>,
-        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-        Anders Larsen <al@alarsen.net>,
-        Steve French <sfrench@samba.org>,
-        Paulo Alcantara <pc@manguebit.com>,
-        Ronnie Sahlberg <lsahlber@redhat.com>,
-        Shyam Prasad N <sprasad@microsoft.com>,
-        Tom Talpey <tom@talpey.com>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Phillip Lougher <phillip@squashfs.org.uk>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Evgeniy Dushistov <dushistov@mail.ru>,
-        Hans de Goede <hdegoede@redhat.com>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Damien Le Moal <dlemoal@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Johannes Thumshirn <jth@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        John Johansen <john.johansen@canonical.com>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Juergen Gross <jgross@suse.com>,
-        Ruihan Li <lrh2000@pku.edu.cn>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Udipto Goswami <quic_ugoswami@quicinc.com>,
-        Linyu Yuan <quic_linyyuan@quicinc.com>,
-        John Keeping <john@keeping.me.uk>,
-        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
-        Dan Carpenter <error27@gmail.com>,
-        Yuta Hayama <hayama@lineo.co.jp>,
-        Jozef Martiniak <jomajm@gmail.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Sandeep Dhavale <dhavale@google.com>,
-        Dave Chinner <dchinner@redhat.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        ZhangPeng <zhangpeng362@huawei.com>,
-        Viacheslav Dubeyko <slava@dubeyko.com>,
-        Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>,
-        Aditya Garg <gargaditya08@live.com>,
-        Erez Zadok <ezk@cs.stonybrook.edu>,
-        Yifei Liu <yifeliu@cs.stonybrook.edu>,
-        Yu Zhe <yuzhe@nfschina.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Oleg Kanatov <okanatov@gmail.com>,
-        "Dr. David Alan Gilbert" <linux@treblig.org>,
-        Jiangshan Yi <yijiangshan@kylinos.cn>,
-        xu xin <cgel.zte@gmail.com>, Stefan Roesch <shr@devkernel.io>,
-        Zhihao Cheng <chengzhihao1@huawei.com>,
-        "Liam R. Howlett" <Liam.Howlett@Oracle.com>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Minghao Chi <chi.minghao@zte.com.cn>,
-        Seth Forshee <sforshee@digitalocean.com>,
-        Zeng Jingxiang <linuszeng@tencent.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Roberto Sassu <roberto.sassu@huawei.com>,
-        Zhang Yi <yi.zhang@huawei.com>, Tom Rix <trix@redhat.com>,
-        "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
-        Chen Zhongjin <chenzhongjin@huawei.com>,
-        Zhengchao Shao <shaozhengchao@huawei.com>,
-        Rik van Riel <riel@surriel.com>,
-        Jingyu Wang <jingyuwang_vip@163.com>,
-        Hangyu Hua <hbh25y@gmail.com>, linuxppc-dev@lists.ozlabs.org,
-        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org,
-        v9fs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
-        linux-mm@kvack.org, linux-btrfs@vger.kernel.org,
-        ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        ecryptfs@vger.kernel.org, linux-efi@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
-        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
-        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
-        ntfs3@lists.linux.dev, ocfs2-devel@oss.oracle.com,
-        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
-        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org,
-        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        bpf@vger.kernel.org, netdev@vger.kernel.org,
-        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
-        selinux@vger.kernel.org
-Subject: Re: [PATCH 00/79] fs: new accessors for inode->i_ctime
-Message-ID: <20230623-wegelagerei-kanzlei-45cdcf5da157@brauner>
-References: <20230621144507.55591-1-jlayton@kernel.org>
- <20230621152141.5961cf5f@gandalf.local.home>
- <2a5a069572b46b59dd16fe8d54e549a9b5bbb6eb.camel@kernel.org>
+        Fri, 23 Jun 2023 15:32:47 -0400
+Received: from smtp-fw-80007.amazon.com (smtp-fw-80007.amazon.com [99.78.197.218])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C51192711;
+        Fri, 23 Jun 2023 12:32:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
+  t=1687548766; x=1719084766;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=MXGjsQVBbUEfugTyhqtLOg34xJrVsEnXiFXbx+PaHRY=;
+  b=UeBmqFaRBZo0LDtqdhDP+Lx7Igt3lPCiaclNEshFzFYa8pq9OAvmbg5x
+   BNrQDx/bcCJCOm36lZsIE7QQCmf9uNwu01CVUwrsnGDUxIMzt3bcNxYsy
+   DJhuAbGuZbBKHzzhqg0Y+zHXN6qCFCy82o2PrKhTb32avjKZPVAr5tGzh
+   A=;
+X-IronPort-AV: E=Sophos;i="6.01,152,1684800000"; 
+   d="scan'208";a="222788639"
+Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO email-inbound-relay-iad-1e-m6i4x-a65ebc6e.us-east-1.amazon.com) ([10.25.36.214])
+  by smtp-border-fw-80007.pdx80.corp.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jun 2023 19:32:42 +0000
+Received: from EX19MTAUWA002.ant.amazon.com (iad12-ws-svc-p26-lb9-vlan3.iad.amazon.com [10.40.163.38])
+        by email-inbound-relay-iad-1e-m6i4x-a65ebc6e.us-east-1.amazon.com (Postfix) with ESMTPS id E6DAB66811;
+        Fri, 23 Jun 2023 19:32:35 +0000 (UTC)
+Received: from EX19D028UWA002.ant.amazon.com (10.13.138.248) by
+ EX19MTAUWA002.ant.amazon.com (10.250.64.202) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Fri, 23 Jun 2023 19:32:35 +0000
+Received: from uda95858fd22f53.ant.amazon.com (10.88.166.238) by
+ EX19D028UWA002.ant.amazon.com (10.13.138.248) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.2.1118.26; Fri, 23 Jun 2023 19:32:34 +0000
+From:   Mengchi Cheng <mengcc@amazon.com>
+To:     <roberto.sassu@huaweicloud.com>
+CC:     <bpf@vger.kernel.org>, <casey@schaufler-ca.com>,
+        <dmitry.kasatkin@gmail.com>, <eparis@parisplace.org>,
+        <jmorris@namei.org>, <kamatam@amazon.com>, <keescook@chromium.org>,
+        <kpsingh@kernel.org>, <linux-integrity@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-security-module@vger.kernel.org>,
+        <linux-unionfs@vger.kernel.org>, <mengcc@amazon.com>,
+        <miklos@szeredi.hu>, <nicolas.bouchinet@clip-os.org>,
+        <paul@paul-moore.com>, <roberto.sassu@huawei.com>,
+        <selinux@vger.kernel.org>, <serge@hallyn.com>,
+        <stephen.smalley.work@gmail.com>, <yoonjaeh@amazon.com>,
+        <zohar@linux.ibm.com>
+Subject: Re: [PATCH v11 2/4] smack: Set the SMACK64TRANSMUTE xattr in smack_inode_init_security()
+Date:   Fri, 23 Jun 2023 12:32:22 -0700
+Message-ID: <20230623193222.2326429-1-mengcc@amazon.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <9f4b7bef5d090da9de50ed1aa1e103abc19b125f.camel@huaweicloud.com>
+References: <9f4b7bef5d090da9de50ed1aa1e103abc19b125f.camel@huaweicloud.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <2a5a069572b46b59dd16fe8d54e549a9b5bbb6eb.camel@kernel.org>
+Content-Type: text/plain
+X-Originating-IP: [10.88.166.238]
+X-ClientProxiedBy: EX19D044UWA001.ant.amazon.com (10.13.139.100) To
+ EX19D028UWA002.ant.amazon.com (10.13.138.248)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 21, 2023 at 03:52:27PM -0400, Jeff Layton wrote:
-> On Wed, 2023-06-21 at 15:21 -0400, Steven Rostedt wrote:
-> > On Wed, 21 Jun 2023 10:45:05 -0400
-> > Jeff Layton <jlayton@kernel.org> wrote:
+On Mon, 2023-06-05 08:38:29 +0000, Roberto Sassu wrote:
+>
+> On Sat, 2023-06-03 at 21:15 +0200, Roberto Sassu wrote:
+> > From: Roberto Sassu <roberto.sassu@huawei.com>
 > > 
-> > > Most of this conversion was done via coccinelle, with a few of the more
-> > > non-standard accesses done by hand. There should be no behavioral
-> > > changes with this set. That will come later, as we convert individual
-> > > filesystems to use multigrain timestamps.
+> > With the newly added ability of LSMs to supply multiple xattrs, set
+> > SMACK64TRASMUTE in smack_inode_init_security(), instead of d_instantiate().
+> > Do it by incrementing SMACK_INODE_INIT_XATTRS to 2 and by calling
+> > lsm_get_xattr_slot() a second time, if the transmuting conditions are met.
 > > 
-> > BTW, Linus has suggested to me that whenever a conccinelle script is used,
-> > it should be included in the change log.
+> > The LSM infrastructure passes all xattrs provided by LSMs to the
+> > filesystems through the initxattrs() callback, so that filesystems can
+> > store xattrs in the disk.
 > > 
+> > After the change, the SMK_INODE_TRANSMUTE inode flag is always set by
+> > d_instantiate() after fetching SMACK64TRANSMUTE from the disk. Before it
+> > was done by smack_inode_post_setxattr() as result of the __vfs_setxattr()
+> > call.
+> > 
+> > Removing __vfs_setxattr() also prevents invalidating the EVM HMAC, by
+> > adding a new xattr without checking and updating the existing HMAC.
 > 
-> Ok, here's what I have. I note again that my usage of coccinelle is
-> pretty primitive, so I ended up doing a fair bit of by-hand fixing after
-> applying these.
+> Hi Mengchi
 > 
-> Given the way that this change is broken up into 77 patches by
-> subsystem, to which changelogs should I add it? I could add it to the
-> "infrastructure" patch, but that's the one where I _didn't_ use it. 
+> could you please redo your tests with this patch set applied?
 > 
-> Maybe to patch #79 (the one that renames i_ctime)?
+> https://lore.kernel.org/linux-integrity/20230603191518.1397490-1-roberto.sassu@huaweicloud.com/
+> 
+> You need:
+> 
+> https://git.kernel.org/pub/scm/linux/kernel/git/pcmoore/lsm.git/log/?h=next
+> 
+> https://github.com/cschaufler/smack-next/commits/next
+> 
+> Thanks
+> 
+> Roberto
 
-That works. I can also put this into a merge commit or pr message.
+Sorry for the later reply. It turned out lsm.git repo needs your previous
+two overlay fs fixes before applying these four patches.
+With v12 I did not see the issue I reported anymore.
+
+Best,
+Mengchi
+
+> 
+> > Signed-off-by: Roberto Sassu <roberto.sassu@huawei.com>
+> > ---
+> >  security/smack/smack.h     |  2 +-
+> >  security/smack/smack_lsm.c | 43 +++++++++++++++++++++++---------------
+> >  2 files changed, 27 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/security/smack/smack.h b/security/smack/smack.h
+> > index aa15ff56ed6..041688e5a77 100644
+> > --- a/security/smack/smack.h
+> > +++ b/security/smack/smack.h
+> > @@ -128,7 +128,7 @@ struct task_smack {
+> >  
+> >  #define	SMK_INODE_INSTANT	0x01	/* inode is instantiated */
+> >  #define	SMK_INODE_TRANSMUTE	0x02	/* directory is transmuting */
+> > -#define	SMK_INODE_CHANGED	0x04	/* smack was transmuted */
+> > +#define	SMK_INODE_CHANGED	0x04	/* smack was transmuted (unused) */
+> >  #define	SMK_INODE_IMPURE	0x08	/* involved in an impure transaction */
+> >  
+> >  /*
+> > diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
+> > index a1c30275692..b67d901ee74 100644
+> > --- a/security/smack/smack_lsm.c
+> > +++ b/security/smack/smack_lsm.c
+> > @@ -52,7 +52,14 @@
+> >  #define SMK_RECEIVING	1
+> >  #define SMK_SENDING	2
+> >  
+> > -#define SMACK_INODE_INIT_XATTRS 1
+> > +/*
+> > + * Smack uses multiple xattrs.
+> > + * SMACK64 - for access control,
+> > + * SMACK64TRANSMUTE - label initialization,
+> > + * Not saved on files - SMACK64IPIN and SMACK64IPOUT,
+> > + * Must be set explicitly - SMACK64EXEC and SMACK64MMAP
+> > + */
+> > +#define SMACK_INODE_INIT_XATTRS 2
+> >  
+> >  #ifdef SMACK_IPV6_PORT_LABELING
+> >  static DEFINE_MUTEX(smack_ipv6_lock);
+> > @@ -935,7 +942,6 @@ static int smack_inode_init_security(struct inode *inode, struct inode *dir,
+> >  				     struct xattr *xattrs, int *xattr_count)
+> >  {
+> >  	struct task_smack *tsp = smack_cred(current_cred());
+> > -	struct inode_smack *issp = smack_inode(inode);
+> >  	struct smack_known *skp = smk_of_task(tsp);
+> >  	struct smack_known *isp = smk_of_inode(inode);
+> >  	struct smack_known *dsp = smk_of_inode(dir);
+> > @@ -963,6 +969,8 @@ static int smack_inode_init_security(struct inode *inode, struct inode *dir,
+> >  		if ((tsp->smk_task == tsp->smk_transmuted) ||
+> >  		    (may > 0 && ((may & MAY_TRANSMUTE) != 0) &&
+> >  		     smk_inode_transmutable(dir))) {
+> > +			struct xattr *xattr_transmute;
+> > +
+> >  			/*
+> >  			 * The caller of smack_dentry_create_files_as()
+> >  			 * should have overridden the current cred, so the
+> > @@ -971,7 +979,16 @@ static int smack_inode_init_security(struct inode *inode, struct inode *dir,
+> >  			 */
+> >  			if (tsp->smk_task != tsp->smk_transmuted)
+> >  				isp = dsp;
+> > -			issp->smk_flags |= SMK_INODE_CHANGED;
+> > +			xattr_transmute = lsm_get_xattr_slot(xattrs, xattr_count);
+> > +			if (xattr_transmute) {
+> > +				xattr_transmute->value = kmemdup(TRANS_TRUE,
+> > +						TRANS_TRUE_SIZE, GFP_NOFS);
+> > +				if (xattr_transmute->value == NULL)
+> > +					return -ENOMEM;
+> > +
+> > +				xattr_transmute->value_len = TRANS_TRUE_SIZE;
+> > +				xattr_transmute->name = XATTR_SMACK_TRANSMUTE;
+> > +			}
+> >  		}
+> >  
+> >  		xattr->value = kstrdup(isp->smk_known, GFP_NOFS);
+> > @@ -3518,20 +3535,12 @@ static void smack_d_instantiate(struct dentry *opt_dentry, struct inode *inode)
+> >  			 * If there is a transmute attribute on the
+> >  			 * directory mark the inode.
+> >  			 */
+> > -			if (isp->smk_flags & SMK_INODE_CHANGED) {
+> > -				isp->smk_flags &= ~SMK_INODE_CHANGED;
+> > -				rc = __vfs_setxattr(&nop_mnt_idmap, dp, inode,
+> > -					XATTR_NAME_SMACKTRANSMUTE,
+> > -					TRANS_TRUE, TRANS_TRUE_SIZE,
+> > -					0);
+> > -			} else {
+> > -				rc = __vfs_getxattr(dp, inode,
+> > -					XATTR_NAME_SMACKTRANSMUTE, trattr,
+> > -					TRANS_TRUE_SIZE);
+> > -				if (rc >= 0 && strncmp(trattr, TRANS_TRUE,
+> > -						       TRANS_TRUE_SIZE) != 0)
+> > -					rc = -EINVAL;
+> > -			}
+> > +			rc = __vfs_getxattr(dp, inode,
+> > +					    XATTR_NAME_SMACKTRANSMUTE, trattr,
+> > +					    TRANS_TRUE_SIZE);
+> > +			if (rc >= 0 && strncmp(trattr, TRANS_TRUE,
+> > +					       TRANS_TRUE_SIZE) != 0)
+> > +				rc = -EINVAL;
+> >  			if (rc >= 0)
+> >  				transflag = SMK_INODE_TRANSMUTE;
+> >  		}
+> 
+> 
