@@ -2,272 +2,317 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E8FAEB64DC
-	for <linux-unionfs@archiver.kernel.org>; Sat,  1 Jul 2023 15:29:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6469DEB64DC
+	for <linux-unionfs@archiver.kernel.org>; Sat,  1 Jul 2023 16:52:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229826AbjGAP3E (ORCPT
+        id S229671AbjGAQwo convert rfc822-to-8bit (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 1 Jul 2023 11:29:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43848 "EHLO
+        Sat, 1 Jul 2023 12:52:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58880 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229506AbjGAP3E (ORCPT
+        with ESMTP id S229665AbjGAQwh (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 1 Jul 2023 11:29:04 -0400
-Received: from mail-qk1-x734.google.com (mail-qk1-x734.google.com [IPv6:2607:f8b0:4864:20::734])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56F912686;
-        Sat,  1 Jul 2023 08:29:02 -0700 (PDT)
-Received: by mail-qk1-x734.google.com with SMTP id af79cd13be357-7673180224bso227524285a.0;
-        Sat, 01 Jul 2023 08:29:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688225341; x=1690817341;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=hnNzK0gcLhdk7+1QqOQy43AVinh7QwNlHxtbGqrRBuc=;
-        b=pap8qWR74dXqxWn6FQeFI3pdTeUi0m3Fl6A+CigdLzqZvRCZ2iZUGCV0RMHm/BRZKi
-         cTpD4luE8a2uLVHSWInLfyilyHKKPnmrYVgiB17a2kQlq2cE3muO4hZCRRO5F8k4NzAD
-         GRHp8ulAm5qOuIV8BT9QskgzurZspXs7Mu3wGrvXRmsSu70ctd36CUggw4hrZbp+Szqf
-         0V7MQ1AflGEdQ2oyWxr+aYR/9HK1MsdZ1P7Vnyjwc/G/Cpncun48mwZC8BUn7v34aZVU
-         AqRB6egEcDBcsKvO4J3Bjui+3R9QhF4GM1UbrkdAOkWL+gyKT3yD452/+i22PveWk8Ny
-         PBhg==
+        Sat, 1 Jul 2023 12:52:37 -0400
+Received: from mail-pf1-f199.google.com (mail-pf1-f199.google.com [209.85.210.199])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 08CE51FE7
+        for <linux-unionfs@vger.kernel.org>; Sat,  1 Jul 2023 09:52:34 -0700 (PDT)
+Received: by mail-pf1-f199.google.com with SMTP id d2e1a72fcca58-666ecb24eb3so2643835b3a.1
+        for <linux-unionfs@vger.kernel.org>; Sat, 01 Jul 2023 09:52:34 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688225341; x=1690817341;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=hnNzK0gcLhdk7+1QqOQy43AVinh7QwNlHxtbGqrRBuc=;
-        b=Fo1akEsCuISrf0WFnXMgnzEj4yEOGoneSZENxdYMsRwKZUwN2Bg0FG+k1aA7ATy3F0
-         CynACqIFYIeJdf2Ft9ZFYCSxP7th69K5xVosqCTRMUYAk4mv++22TTnUZM1Qd3kUI8oC
-         tI7wltkpB5+PRUttlOh3YeHhY9SFNh8wvtYh/rVqKjTpuub5FoZ+NF/zZULv0doPDNtD
-         6+m+c1T3dchwRqTOG42Za+vqoNH4Lf7K6/a9h/5K5XdRm9IYF8CkswO22pNqHTadoMz/
-         /jvCK1/DwqvOJMzPArNZgLsrtJtbgHBUAXk0M1Qi593r+SGhnzseEmmZFmve+Drzsve7
-         dMjA==
-X-Gm-Message-State: AC+VfDzq+en9PTFgPfVci39z5RFtLpIhKQ5VKYa1s2zsCgcb6vtIrNsJ
-        OFjyuZsxJtus9vFWzHGe/0cXXHCDSBsmS5/EkcE=
-X-Google-Smtp-Source: ACHHUZ6YBzIclo7TEG7+dFbhzHg9+2G0s3PXVypcpJ5IeL7RdU6mqzJxqrcN+5K/hzsuAHk4dexr5CMN67Qtg4o17e4=
-X-Received: by 2002:a05:620a:28d4:b0:767:3e6e:3c6c with SMTP id
- l20-20020a05620a28d400b007673e6e3c6cmr7421464qkp.12.1688225341113; Sat, 01
- Jul 2023 08:29:01 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1688230353; x=1690822353;
+        h=content-transfer-encoding:to:from:subject:message-id:in-reply-to
+         :date:mime-version:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ySurgJmBT+5Dhc6CZeRbarLNSVjGIvGveq8MgdS1Jqo=;
+        b=CvYWqtPQmfaWuokF2TKvVsFBmzdrJ5uHgG+bt955Gwe/FhtUx1Vq/HE7wW9+AmUnyv
+         TCuZY62DLr75lDK1G5wnW9LTXU5Geh1sBmGjQc5tFtKaGeoPub2U9ho57uezeuDYAOEZ
+         7NoRXY3CMS1+XaVov3/eRfVDTQvwBoozMzsbKspEOTfYKIn2UttZi5fxxNk0iJgYEPZd
+         UvIYhswnII+u3HpteWoywV9s2if+Fq7Wlzl2nHYXwTX4oJxYFa0VwV5WXADvDtMZnVOY
+         Xq2wxWcGMv30y5GEFFD44FeRuApww+b77qD7DkkAbTSRJrMujk1NKLtosENTorDMgpT/
+         PRzg==
+X-Gm-Message-State: ABy/qLa9p/QGfyyoaFCfDVyv0QBNOuKyz944JsH1CwXpuTr4bCDXmkms
+        qIWK20Ws40igM3FAasXsceB4VLwF3hIDmbOPtRN37Htdz+bL
+X-Google-Smtp-Source: APBJJlH3kIa6qD4yqJWlDjtLJeKZIldqaMKFOJf9sUocWrPNUcZowKRE3RfeYW73wwHljPzrgFw/PWEU/uyykNw7co2buSA3jtld
 MIME-Version: 1.0
-References: <000000000000b7a0c305ff6da727@google.com>
-In-Reply-To: <000000000000b7a0c305ff6da727@google.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 1 Jul 2023 18:28:49 +0300
-Message-ID: <CAOQ4uxirxK6ts20Ri97pMstcJYrTW8PbgYML057Uj0MBoySeGg@mail.gmail.com>
+X-Received: by 2002:a05:6a00:2d9a:b0:67c:3aeb:a47c with SMTP id
+ fb26-20020a056a002d9a00b0067c3aeba47cmr6178067pfb.5.1688230353477; Sat, 01
+ Jul 2023 09:52:33 -0700 (PDT)
+Date:   Sat, 01 Jul 2023 09:52:33 -0700
+In-Reply-To: <CAOQ4uxirxK6ts20Ri97pMstcJYrTW8PbgYML057Uj0MBoySeGg@mail.gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000084a55305ff6fc27d@google.com>
 Subject: Re: [syzbot] [overlayfs?] KASAN: invalid-free in init_file
-To:     syzbot <syzbot+ada42aab05cf51b00e98@syzkaller.appspotmail.com>
-Cc:     brauner@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+From:   syzbot <syzbot+ada42aab05cf51b00e98@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, brauner@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Jul 1, 2023 at 5:21=E2=80=AFPM syzbot
-<syzbot+ada42aab05cf51b00e98@syzkaller.appspotmail.com> wrote:
->
-> Hello,
->
-> syzbot found the following issue on:
->
-> HEAD commit:    1ef6663a587b Merge tag 'tag-chrome-platform-for-v6.5' of =
-g..
-> git tree:       upstream
-> console+strace: https://syzkaller.appspot.com/x/log.txt?x=3D120fd3a8a8000=
-0
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=3D33c8c2baba1cf=
-c7e
-> dashboard link: https://syzkaller.appspot.com/bug?extid=3Dada42aab05cf51b=
-00e98
-> compiler:       Debian clang version 15.0.7, GNU ld (GNU Binutils for Deb=
-ian) 2.35.2
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D130a5670a80=
-000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D11aac680a8000=
-0
->
-> Downloadable assets:
-> disk image: https://storage.googleapis.com/syzbot-assets/6561f5e7c861/dis=
-k-1ef6663a.raw.xz
-> vmlinux: https://storage.googleapis.com/syzbot-assets/aed67f7d3a9d/vmlinu=
-x-1ef6663a.xz
-> kernel image: https://storage.googleapis.com/syzbot-assets/baa651e2ed8e/b=
-zImage-1ef6663a.xz
->
-> The issue was bisected to:
->
-> commit 62d53c4a1dfe347bd87ede46ffad38c9a3870338
-> Author: Amir Goldstein <amir73il@gmail.com>
-> Date:   Thu Jun 15 11:22:28 2023 +0000
->
->     fs: use backing_file container for internal files with "fake" f_path
->
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=3D156341e0a8=
-0000
-> final oops:     https://syzkaller.appspot.com/x/report.txt?x=3D176341e0a8=
-0000
-> console output: https://syzkaller.appspot.com/x/log.txt?x=3D136341e0a8000=
-0
->
-> IMPORTANT: if you fix the issue, please add the following tag to the comm=
-it:
-> Reported-by: syzbot+ada42aab05cf51b00e98@syzkaller.appspotmail.com
-> Fixes: 62d53c4a1dfe ("fs: use backing_file container for internal files w=
-ith "fake" f_path")
->
-> RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007fbb808467a9
-> RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000005
-> RBP: 00007ffdc0c78ff0 R08: 0000000000000001 R09: 00007fbb80800034
-> R10: 000000007ffff000 R11: 0000000000000246 R12: 0000000000000006
-> R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
->  </TASK>
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> BUG: KASAN: invalid-free in init_file+0x195/0x200 fs/file_table.c:163
-> Free of addr ffff88801ea5a800 by task syz-executor145/4991
->
-> CPU: 0 PID: 4991 Comm: syz-executor145 Not tainted 6.4.0-syzkaller-01224-=
-g1ef6663a587b #0
-> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS G=
-oogle 05/27/2023
-> Call Trace:
->  <TASK>
->  __dump_stack lib/dump_stack.c:88 [inline]
->  dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
->  print_address_description mm/kasan/report.c:351 [inline]
->  print_report+0x163/0x540 mm/kasan/report.c:462
->  kasan_report_invalid_free+0xeb/0x100 mm/kasan/report.c:537
->  ____kasan_slab_free+0xfb/0x120
->  kasan_slab_free include/linux/kasan.h:162 [inline]
->  slab_free_hook mm/slub.c:1781 [inline]
->  slab_free_freelist_hook mm/slub.c:1807 [inline]
->  slab_free mm/slub.c:3786 [inline]
->  kmem_cache_free+0x297/0x520 mm/slub.c:3808
->  init_file+0x195/0x200 fs/file_table.c:163
->  alloc_empty_backing_file+0x67/0xd0 fs/file_table.c:267
->  backing_file_open+0x26/0x100 fs/open.c:1166
->  ovl_open_realfile+0x1f6/0x350 fs/overlayfs/file.c:64
->  ovl_real_fdget_meta fs/overlayfs/file.c:122 [inline]
->  ovl_real_fdget fs/overlayfs/file.c:143 [inline]
->  ovl_splice_read+0x7cc/0x8c0 fs/overlayfs/file.c:430
->  splice_direct_to_actor+0x2a8/0x9a0 fs/splice.c:961
->  do_splice_direct+0x286/0x3d0 fs/splice.c:1070
->  do_sendfile+0x623/0x1070 fs/read_write.c:1254
->  __do_sys_sendfile64 fs/read_write.c:1322 [inline]
->  __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1308
->  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
->  do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
->  entry_SYSCALL_64_after_hwframe+0x63/0xcd
-> RIP: 0033:0x7fbb808467a9
-> Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f=
-7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff=
- ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
-> RSP: 002b:00007ffdc0c78fe8 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
-> RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007fbb808467a9
-> RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000005
-> RBP: 00007ffdc0c78ff0 R08: 0000000000000001 R09: 00007fbb80800034
-> R10: 000000007ffff000 R11: 0000000000000246 R12: 0000000000000006
-> R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
->  </TASK>
->
-> Allocated by task 4991:
->  kasan_save_stack mm/kasan/common.c:45 [inline]
->  kasan_set_track+0x4f/0x70 mm/kasan/common.c:52
->  ____kasan_kmalloc mm/kasan/common.c:374 [inline]
->  __kasan_kmalloc+0x98/0xb0 mm/kasan/common.c:383
->  kmalloc include/linux/slab.h:559 [inline]
->  kzalloc include/linux/slab.h:680 [inline]
->  alloc_empty_backing_file+0x52/0xd0 fs/file_table.c:263
->  backing_file_open+0x26/0x100 fs/open.c:1166
->  ovl_open_realfile+0x1f6/0x350 fs/overlayfs/file.c:64
->  ovl_real_fdget_meta fs/overlayfs/file.c:122 [inline]
->  ovl_real_fdget fs/overlayfs/file.c:143 [inline]
->  ovl_splice_read+0x7cc/0x8c0 fs/overlayfs/file.c:430
->  splice_direct_to_actor+0x2a8/0x9a0 fs/splice.c:961
->  do_splice_direct+0x286/0x3d0 fs/splice.c:1070
->  do_sendfile+0x623/0x1070 fs/read_write.c:1254
->  __do_sys_sendfile64 fs/read_write.c:1322 [inline]
->  __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1308
->  do_syscall_x64 arch/x86/entry/common.c:50 [inline]
->  do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
->  entry_SYSCALL_64_after_hwframe+0x63/0xcd
->
-> The buggy address belongs to the object at ffff88801ea5a800
->  which belongs to the cache kmalloc-512 of size 512
-> The buggy address is located 0 bytes inside of
->  480-byte region [ffff88801ea5a800, ffff88801ea5a9e0)
->
-> The buggy address belongs to the physical page:
-> page:ffffea00007a9600 refcount:1 mapcount:0 mapping:0000000000000000 inde=
-x:0x0 pfn:0x1ea58
-> head:ffffea00007a9600 order:2 entire_mapcount:0 nr_pages_mapped:0 pincoun=
-t:0
-> anon flags: 0xfff00000010200(slab|head|node=3D0|zone=3D1|lastcpupid=3D0x7=
-ff)
-> page_type: 0xffffffff()
-> raw: 00fff00000010200 ffff888012441c80 0000000000000000 dead000000000001
-> raw: 0000000000000000 0000000080100010 00000001ffffffff 0000000000000000
-> page dumped because: kasan: bad access detected
-> page_owner tracks the page as allocated
-> page last allocated via order 2, migratetype Unmovable, gfp_mask 0xd20c0(=
-__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), =
-pid 733, tgid 733 (kworker/u4:0), ts 6534177535, free_ts 0
->  set_page_owner include/linux/page_owner.h:31 [inline]
->  post_alloc_hook+0x1e6/0x210 mm/page_alloc.c:1744
->  prep_new_page mm/page_alloc.c:1751 [inline]
->  get_page_from_freelist+0x320e/0x3390 mm/page_alloc.c:3523
->  __alloc_pages+0x255/0x670 mm/page_alloc.c:4794
->  alloc_slab_page+0x6a/0x160 mm/slub.c:1851
->  allocate_slab mm/slub.c:1998 [inline]
->  new_slab+0x84/0x2f0 mm/slub.c:2051
->  ___slab_alloc+0xa85/0x10a0 mm/slub.c:3192
->  __slab_alloc mm/slub.c:3291 [inline]
->  __slab_alloc_node mm/slub.c:3344 [inline]
->  slab_alloc_node mm/slub.c:3441 [inline]
->  __kmem_cache_alloc_node+0x1b8/0x290 mm/slub.c:3490
->  kmalloc_trace+0x2a/0xe0 mm/slab_common.c:1057
->  kmalloc include/linux/slab.h:559 [inline]
->  kzalloc include/linux/slab.h:680 [inline]
->  alloc_bprm+0x56/0x900 fs/exec.c:1512
->  kernel_execve+0x96/0xa10 fs/exec.c:1987
->  call_usermodehelper_exec_async+0x233/0x370 kernel/umh.c:110
->  ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
-> page_owner free stack trace missing
->
-> Memory state around the buggy address:
->  ffff88801ea5a700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
->  ffff88801ea5a780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
-> >ffff88801ea5a800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->                    ^
->  ffff88801ea5a880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->  ffff88801ea5a900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->
->
-> ---
-> This report is generated by a bot. It may contain errors.
-> See https://goo.gl/tpsmEJ for more information about syzbot.
-> syzbot engineers can be reached at syzkaller@googlegroups.com.
->
-> syzbot will keep track of this issue. See:
-> https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisect=
-ion
->
-> If the bug is already fixed, let syzbot know by replying with:
-> #syz fix: exact-commit-title
->
-> If you want syzbot to run the reproducer, reply with:
-> #syz test: git://repo/address.git branch-or-commit-hash
-> If you attach or paste a git patch, syzbot will apply it before testing.
->
+Hello,
 
-#syz test https://github.com/amir73il/linux.git ovl-fixes
+syzbot tried to test the proposed patch but the build/boot failed:
 
-Thanks,
-Amir.
+27119][    T0] Smack:  IPv6 Netfilter enabled.
+[    2.128178][    T0] LSM support for eBPF active
+[    2.134180][    T0] Dentry cache hash table entries: 1048576 (order: 11, 8388608 bytes, vmalloc hugepage)
+[    2.138824][    T0] Inode-cache hash table entries: 524288 (order: 10, 4194304 bytes, vmalloc hugepage)
+[    2.141770][    T0] Mount-cache hash table entries: 16384 (order: 5, 131072 bytes, vmalloc)
+[    2.143494][    T0] Mountpoint-cache hash table entries: 16384 (order: 5, 131072 bytes, vmalloc)
+[    2.148953][    T0] Running RCU synchronous self tests
+[    2.150087][    T0] Running RCU synchronous self tests
+[    2.272250][    T1] smpboot: CPU0: Intel(R) Xeon(R) CPU @ 2.20GHz (family: 0x6, model: 0x4f, stepping: 0x0)
+[    2.273215][    T1] RCU Tasks: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1.
+[    2.273215][    T1] RCU Tasks Trace: Setting shift to 1 and lim to 1 rcu_task_cb_adjust=1.
+[    2.273254][    T1] Running RCU-tasks wait API self tests
+[    2.403503][    T1] Performance Events: unsupported p6 CPU model 79 no PMU driver, software events only.
+[    2.405504][    T1] signal: max sigframe size: 1776
+[    2.407112][    T1] rcu: Hierarchical SRCU implementation.
+[    2.408574][    T1] rcu: 	Max phase no-delay instances is 1000.
+[    2.414512][    T1] NMI watchdog: Perf NMI watchdog permanently disabled
+[    2.417267][    T1] smp: Bringing up secondary CPUs ...
+[    2.420500][    T1] smpboot: x86: Booting SMP configuration:
+[    2.421388][    T1] .... node  #0, CPUs:      #1
+[    2.423383][    T1] MDS CPU bug present and SMT on, data leak possible. See https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/mds.html for more details.
+[    2.426407][    T1] TAA CPU bug present and SMT on, data leak possible. See https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/tsx_async_abort.html for more details.
+[    2.429092][    T1] MMIO Stale Data CPU bug present and SMT on, data leak possible. See https://www.kernel.org/doc/html/latest/admin-guide/hw-vuln/processor_mmio_stale_data.html for more details.
+[    2.433473][    T1] smp: Brought up 2 nodes, 2 CPUs
+[    2.434299][    T1] smpboot: Max logical packages: 1
+[    2.435188][    T1] smpboot: Total of 2 processors activated (8800.92 BogoMIPS)
+[    2.439416][    T1] devtmpfs: initialized
+[    2.439416][    T1] x86/mm: Memory block size: 128MB
+[    2.453338][   T14] Callback from call_rcu_tasks_trace() invoked.
+[    2.475089][    T1] Running RCU synchronous self tests
+[    2.476319][    T1] Running RCU synchronous self tests
+[    2.478039][    T1] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    2.480252][    T1] futex hash table entries: 512 (order: 4, 65536 bytes, vmalloc)
+[    2.483248][    T1] PM: RTC time: 16:50:51, date: 2023-07-01
+[    2.492493][    T1] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    2.506662][    T1] audit: initializing netlink subsys (disabled)
+[    2.508842][    T1] thermal_sys: Registered thermal governor 'step_wise'
+[    2.508842][    T1] thermal_sys: Registered thermal governor 'user_space'
+[    2.508842][   T27] audit: type=2000 audit(1688230251.721:1): state=initialized audit_enabled=0 res=1
+[    2.518243][    T1] cpuidle: using governor menu
+[    2.518243][    T1] NET: Registered PF_QIPCRTR protocol family
+[    2.518243][    T1] dca service started, version 1.12.1
+[    2.518243][    T1] PCI: Using configuration type 1 for base access
+[    2.523361][    T1] WARNING: workqueue cpumask: online intersect > possible intersect
+[    2.564096][    T1] HugeTLB: registered 1.00 GiB page size, pre-allocated 0 pages
+[    2.565677][    T1] HugeTLB: 16380 KiB vmemmap can be freed for a 1.00 GiB page
+[    2.568064][    T1] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    2.570294][    T1] HugeTLB: 28 KiB vmemmap can be freed for a 2.00 MiB page
+[    2.623640][   T13] Callback from call_rcu_tasks() invoked.
+[    2.625239][    T1] cryptd: max_cpu_qlen set to 1000
+[    2.654723][    T1] raid6: skipped pq benchmark and selected avx2x4
+[    2.656007][    T1] raid6: using avx2x2 recovery algorithm
+[    2.658822][    T1] ACPI: Added _OSI(Module Device)
+[    2.659746][    T1] ACPI: Added _OSI(Processor Device)
+[    2.660600][    T1] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    2.661534][    T1] ACPI: Added _OSI(Processor Aggregator Device)
+[    2.779896][    T1] ACPI: 2 ACPI AML tables successfully acquired and loaded
+[    2.853240][    T1] ACPI: Interpreter enabled
+[    2.853824][    T1] ACPI: PM: (supports S0 S3 S4 S5)
+[    2.855217][    T1] ACPI: Using IOAPIC for interrupt routing
+[    2.858802][    T1] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    2.861808][    T1] PCI: Ignoring E820 reservations for host bridge windows
+[    2.877265][    T1] ACPI: Enabled 16 GPEs in block 00 to 0F
+[    3.020230][    T1] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    3.022254][    T1] acpi PNP0A03:00: _OSC: OS supports [ASPM ClockPM Segments MSI HPX-Type3]
+[    3.033237][    T1] acpi PNP0A03:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    3.037635][    T1] acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended configuration space under this bridge
+[    3.045938][    T1] PCI host bridge to bus 0000:00
+[    3.047232][    T1] pci_bus 0000:00: Unknown NUMA node; performance will be reduced
+[    3.049572][    T1] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    3.053249][    T1] pci_bus 0000:00: root bus resource [io  0x0d00-0xffff window]
+[    3.055000][    T1] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    3.056802][    T1] pci_bus 0000:00: root bus resource [mem 0xc0000000-0xfebfefff window]
+[    3.059261][    T1] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    3.061286][    T1] pci 0000:00:00.0: [8086:1237] type 00 class 0x060000
+[    3.077371][    T1] pci 0000:00:01.0: [8086:7110] type 00 class 0x060100
+[    3.108998][    T1] pci 0000:00:01.3: [8086:7113] type 00 class 0x068000
+[    3.132904][    T1] pci 0000:00:01.3: quirk: [io  0xb000-0xb03f] claimed by PIIX4 ACPI
+[    3.132904][    T1] pci 0000:00:03.0: [1af4:1004] type 00 class 0x000000
+[    3.155328][    T1] pci 0000:00:03.0: reg 0x10: [io  0xc000-0xc03f]
+[    3.165224][    T1] pci 0000:00:03.0: reg 0x14: [mem 0xfe800000-0xfe80007f]
+[    3.191213][    T1] pci 0000:00:04.0: [1af4:1000] type 00 class 0x020000
+[    3.207352][    T1] pci 0000:00:04.0: reg 0x10: [io  0xc040-0xc07f]
+[    3.213009][    T1] pci 0000:00:04.0: reg 0x14: [mem 0xfe801000-0xfe80107f]
+[    3.242801][    T1] pci 0000:00:05.0: [1ae0:a002] type 00 class 0x030000
+[    3.258142][    T1] pci 0000:00:05.0: reg 0x10: [mem 0xfe000000-0xfe7fffff]
+[    3.283115][    T1] pci 0000:00:05.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
+[    3.297395][    T1] pci 0000:00:06.0: [1af4:1002] type 00 class 0x00ff00
+[    3.309891][    T1] pci 0000:00:06.0: reg 0x10: [io  0xc080-0xc09f]
+[    3.313249][    T1] pci 0000:00:06.0: reg 0x14: [mem 0xfe802000-0xfe80207f]
+[    3.357243][    T1] pci 0000:00:07.0: [1af4:1005] type 00 class 0x00ff00
+[    3.363247][    T1] pci 0000:00:07.0: reg 0x10: [io  0xc0a0-0xc0bf]
+[    3.383254][    T1] pci 0000:00:07.0: reg 0x14: [mem 0xfe803000-0xfe80303f]
+[    3.428038][    T1] ACPI: PCI: Interrupt link LNKA configured for IRQ 10
+[    3.436722][    T1] ACPI: PCI: Interrupt link LNKB configured for IRQ 10
+[    3.445230][    T1] ACPI: PCI: Interrupt link LNKC configured for IRQ 11
+[    3.453537][    T1] ACPI: PCI: Interrupt link LNKD configured for IRQ 11
+[    3.464044][    T1] ACPI: PCI: Interrupt link LNKS configured for IRQ 9
+[    3.483327][    T1] iommu: Default domain type: Translated 
+[    3.484528][    T1] iommu: DMA domain TLB invalidation policy: lazy mode 
+[    3.491460][    T1] SCSI subsystem initialized
+[    3.505337][    T1] ACPI: bus type USB registered
+[    3.506708][    T1] usbcore: registered new interface driver usbfs
+[    3.508578][    T1] usbcore: registered new interface driver hub
+[    3.510528][    T1] usbcore: registered new device driver usb
+[    3.513915][    T1] mc: Linux media interface: v0.10
+[    3.515542][    T1] videodev: Linux video capture interface: v2.00
+[    3.518037][    T1] pps_core: LinuxPPS API ver. 1 registered
+[    3.520082][    T1] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    3.533454][    T1] PTP clock support registered
+[    3.543864][    T1] EDAC MC: Ver: 3.0.0
+[    3.546889][    T1] Advanced Linux Sound Architecture Driver Initialized.
+[    3.553096][    T1] Bluetooth: Core ver 2.22
+[    3.563575][    T1] NET: Registered PF_BLUETOOTH protocol family
+[    3.565252][    T1] Bluetooth: HCI device and connection manager initialized
+[    3.567107][    T1] Bluetooth: HCI socket layer initialized
+[    3.568386][    T1] Bluetooth: L2CAP socket layer initialized
+[    3.570088][    T1] Bluetooth: SCO socket layer initialized
+[    3.571402][    T1] NET: Registered PF_ATMPVC protocol family
+[    3.573245][    T1] NET: Registered PF_ATMSVC protocol family
+[    3.575012][    T1] NetLabel: Initializing
+[    3.575925][    T1] NetLabel:  domain hash size = 128
+[    3.576962][    T1] NetLabel:  protocols = UNLABELED CIPSOv4 CALIPSO
+[    3.578855][    T1] NetLabel:  unlabeled traffic allowed by default
+[    3.582694][    T1] nfc: nfc_init: NFC Core ver 0.1
+[    3.582694][    T1] NET: Registered PF_NFC protocol family
+[    3.582694][    T1] PCI: Using ACPI for IRQ routing
+[    3.582694][    T1] pci 0000:00:05.0: vgaarb: setting as boot VGA device
+[    3.582694][    T1] pci 0000:00:05.0: vgaarb: bridge control possible
+[    3.582694][    T1] pci 0000:00:05.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
+[    3.582988][    T1] vgaarb: loaded
+[    3.597539][    T1] clocksource: Switched to clocksource kvm-clock
+[    3.603189][    T1] VFS: Disk quotas dquot_6.6.0
+[    3.603189][    T1] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    3.603189][    T1] FS-Cache: Loaded
+[    3.605594][    T1] CacheFiles: Loaded
+[    3.607713][    T1] TOMOYO: 2.6.0
+[    3.608509][    T1] Mandatory Access Control activated.
+[    3.610238][    T1] pnp: PnP ACPI init
+[    3.632464][    T1] pnp: PnP ACPI: found 7 devices
+[    3.690116][    T1] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    3.693133][    T1] NET: Registered PF_INET protocol family
+[    3.699454][    T1] IP idents hash table entries: 131072 (order: 8, 1048576 bytes, vmalloc)
+[    3.712599][    T1] tcp_listen_portaddr_hash hash table entries: 4096 (order: 6, 294912 bytes, vmalloc)
+[    3.718202][    T1] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, vmalloc)
+[    3.723203][    T1] TCP established hash table entries: 65536 (order: 7, 524288 bytes, vmalloc)
+[    3.735432][    T1] TCP bind hash table entries: 65536 (order: 11, 9437184 bytes, vmalloc hugepage)
+[    3.753052][    T1] TCP: Hash tables configured (established 65536 bind 65536)
+[    3.759662][    T1] MPTCP token hash table entries: 8192 (order: 7, 720896 bytes, vmalloc)
+[    3.766188][    T1] UDP hash table entries: 4096 (order: 7, 655360 bytes, vmalloc)
+[    3.772152][    T1] UDP-Lite hash table entries: 4096 (order: 7, 655360 bytes, vmalloc)
+[    3.776897][    T1] NET: Registered PF_UNIX/PF_LOCAL protocol family
+[    3.781241][    T1] RPC: Registered named UNIX socket transport module.
+[    3.783239][    T1] RPC: Registered udp transport module.
+[    3.784886][    T1] RPC: Registered tcp transport module.
+[    3.786903][    T1] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    3.792324][    T1] NET: Registered PF_XDP protocol family
+[    3.794148][    T1] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+[    3.796651][    T1] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+[    3.798897][    T1] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+[    3.801385][    T1] pci_bus 0000:00: resource 7 [mem 0xc0000000-0xfebfefff window]
+[    3.805305][    T1] pci 0000:00:00.0: Limiting direct PCI/PCI transfers
+[    3.807722][    T1] PCI: CLS 0 bytes, default 64
+[    3.814903][    T1] PCI-DMA: Using software bounce buffering for IO (SWIOTLB)
+[    3.817626][    T1] software IO TLB: mapped [mem 0x00000000b5800000-0x00000000b9800000] (64MB)
+[    3.821308][    T1] ACPI: bus type thunderbolt registered
+[    3.827146][    T1] RAPL PMU: API unit is 2^-32 Joules, 0 fixed counters, 10737418240 ms ovfl timer
+[    3.837618][   T57] kworker/u4:3 (57) used greatest stack depth: 25848 bytes left
+[    3.853873][    T1] kvm_amd: SVM not supported by CPU 0, not amd or hygon
+[    3.856145][    T1] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x1fb70c0f8fc, max_idle_ns: 440795213829 ns
+[    3.859506][    T1] clocksource: Switched to clocksource tsc
+[    3.872085][    T1] AVX2 instructions are not detected.
+[    3.874215][    T1] AVX or AES-NI instructions are not detected.
+[    3.876743][    T1] AVX2 or AES-NI instructions are not detected.
+[    3.879753][    T1] AVX or AES-NI instructions are not detected.
+[    3.881266][    T1] AVX2 or AES-NI instructions are not detected.
+[    3.883437][    T1] AVX or AES-NI instructions are not detected.
+
+
+syzkaller build log:
+go env (err=<nil>)
+GO111MODULE="auto"
+GOARCH="amd64"
+GOBIN=""
+GOCACHE="/syzkaller/.cache/go-build"
+GOENV="/syzkaller/.config/go/env"
+GOEXE=""
+GOEXPERIMENT=""
+GOFLAGS=""
+GOHOSTARCH="amd64"
+GOHOSTOS="linux"
+GOINSECURE=""
+GOMODCACHE="/syzkaller/jobs-2/linux/gopath/pkg/mod"
+GONOPROXY=""
+GONOSUMDB=""
+GOOS="linux"
+GOPATH="/syzkaller/jobs-2/linux/gopath"
+GOPRIVATE=""
+GOPROXY="https://proxy.golang.org,direct"
+GOROOT="/usr/local/go"
+GOSUMDB="sum.golang.org"
+GOTMPDIR=""
+GOTOOLDIR="/usr/local/go/pkg/tool/linux_amd64"
+GOVCS=""
+GOVERSION="go1.20.1"
+GCCGO="gccgo"
+GOAMD64="v1"
+AR="ar"
+CC="gcc"
+CXX="g++"
+CGO_ENABLED="1"
+GOMOD="/syzkaller/jobs-2/linux/gopath/src/github.com/google/syzkaller/go.mod"
+GOWORK=""
+CGO_CFLAGS="-O2 -g"
+CGO_CPPFLAGS=""
+CGO_CXXFLAGS="-O2 -g"
+CGO_FFLAGS="-O2 -g"
+CGO_LDFLAGS="-O2 -g"
+PKG_CONFIG="pkg-config"
+GOGCCFLAGS="-fPIC -m64 -pthread -Wl,--no-gc-sections -fmessage-length=0 -fdebug-prefix-map=/tmp/go-build2315435869=/tmp/go-build -gno-record-gcc-switches"
+
+git status (err=<nil>)
+HEAD detached at 4cd5bb25a
+nothing to commit, working tree clean
+
+
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+Makefile:32: run command via tools/syz-env for best compatibility, see:
+Makefile:33: https://github.com/google/syzkaller/blob/master/docs/contributing.md#using-syz-env
+go list -f '{{.Stale}}' ./sys/syz-sysgen | grep -q false || go install ./sys/syz-sysgen
+make .descriptions
+tput: No value for $TERM and no -T specified
+tput: No value for $TERM and no -T specified
+bin/syz-sysgen
+touch .descriptions
+GOOS=linux GOARCH=amd64 go build "-ldflags=-s -w -X github.com/google/syzkaller/prog.GitRevision=4cd5bb25a2752a9a5b25597d1da34656681f07a6 -X 'github.com/google/syzkaller/prog.gitRevisionDate=20230626-110233'" "-tags=syz_target syz_os_linux syz_arch_amd64 " -o ./bin/linux_amd64/syz-fuzzer github.com/google/syzkaller/syz-fuzzer
+GOOS=linux GOARCH=amd64 go build "-ldflags=-s -w -X github.com/google/syzkaller/prog.GitRevision=4cd5bb25a2752a9a5b25597d1da34656681f07a6 -X 'github.com/google/syzkaller/prog.gitRevisionDate=20230626-110233'" "-tags=syz_target syz_os_linux syz_arch_amd64 " -o ./bin/linux_amd64/syz-execprog github.com/google/syzkaller/tools/syz-execprog
+GOOS=linux GOARCH=amd64 go build "-ldflags=-s -w -X github.com/google/syzkaller/prog.GitRevision=4cd5bb25a2752a9a5b25597d1da34656681f07a6 -X 'github.com/google/syzkaller/prog.gitRevisionDate=20230626-110233'" "-tags=syz_target syz_os_linux syz_arch_amd64 " -o ./bin/linux_amd64/syz-stress github.com/google/syzkaller/tools/syz-stress
+mkdir -p ./bin/linux_amd64
+gcc -o ./bin/linux_amd64/syz-executor executor/executor.cc \
+	-m64 -O2 -pthread -Wall -Werror -Wparentheses -Wunused-const-variable -Wframe-larger-than=16384 -Wno-stringop-overflow -Wno-array-bounds -Wno-format-overflow -Wno-unused-but-set-variable -Wno-unused-command-line-argument -static-pie -fpermissive -w -DGOOS_linux=1 -DGOARCH_amd64=1 \
+	-DHOSTGOOS_linux=1 -DGIT_REVISION=\"4cd5bb25a2752a9a5b25597d1da34656681f07a6\"
+
+
+Error text is too large and was truncated, full error text is at:
+https://syzkaller.appspot.com/x/error.txt?x=11de8314a80000
+
+
+Tested on:
+
+commit:         a2175988 fs: fix invalid-free in init_file()
+git tree:       https://github.com/amir73il/linux.git ovl-fixes
+kernel config:  https://syzkaller.appspot.com/x/.config?x=a9def0ca2621537a
+dashboard link: https://syzkaller.appspot.com/bug?extid=ada42aab05cf51b00e98
+compiler:       Debian clang version 15.0.7, GNU ld (GNU Binutils for Debian) 2.35.2
+
+Note: no patches were applied.
