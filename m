@@ -2,241 +2,230 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2A1AC04E69
-	for <linux-unionfs@archiver.kernel.org>; Fri, 30 Jun 2023 22:16:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A4DDEB64DC
+	for <linux-unionfs@archiver.kernel.org>; Sat,  1 Jul 2023 14:22:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232710AbjF3WQY (ORCPT
+        id S230451AbjGAOWA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 30 Jun 2023 18:16:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49770 "EHLO
+        Sat, 1 Jul 2023 10:22:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33534 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232351AbjF3WQJ (ORCPT
+        with ESMTP id S230334AbjGAOV7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 30 Jun 2023 18:16:09 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B79FE3C34;
-        Fri, 30 Jun 2023 15:16:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=lAGAJ28n1AlcMoZYeCm9uRz7rvcCocSlQtZJp9kS4hM=; b=MDK5OMbWDIQ7k5BUsVfTTCeUKK
-        ykHg2ksytfiKty5DqeoojsJgI19pnpO3bU4G0Nu4GjG2hEs2ZxnYXR7D6/oVlp5Pe2D5JneqmFcdb
-        aqUSSmtLLmtBD1hqWecPq0g6kKIyzG4SS3mQ1IFdkZFT8q1yIbLznGNVCRFkmuvgVZewrQL+j94VD
-        WaM6JFD5ZLKSStA4y0A2mjB/5tQW5fCKp810bYosB6+mCMAVZBJndIY7cGkKy5/JBuK2Tl+F43Ugr
-        599NI5n1vZXoqkj6Re0aIa5xI5fj+j2Mg09LQQtRQAZLHqXoNHWcWfm/2CAipcBnuw9FG3zZ4Gpbp
-        XVBvS0Ww==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
-        id 1qFMM7-004egi-0d;
-        Fri, 30 Jun 2023 22:12:43 +0000
-Date:   Fri, 30 Jun 2023 15:12:43 -0700
-From:   Luis Chamberlain <mcgrof@kernel.org>
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     Jeremy Kerr <jk@ozlabs.org>, Arnd Bergmann <arnd@arndb.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-        Todd Kjos <tkjos@android.com>,
-        Martijn Coenen <maco@android.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Carlos Llamas <cmllamas@google.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Brad Warrum <bwarrum@linux.ibm.com>,
-        Ritu Agarwal <rituagar@linux.ibm.com>,
-        Eric Van Hensbergen <ericvh@kernel.org>,
-        Latchesar Ionkov <lucho@ionkov.net>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Schoenebeck <linux_oss@crudebyte.com>,
-        David Sterba <dsterba@suse.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Ian Kent <raven@themaw.net>,
-        Luis de Bethencourt <luisbg@kernel.org>,
-        Salah Triki <salah.triki@gmail.com>,
-        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
-        Eric Biederman <ebiederm@xmission.com>,
-        Kees Cook <keescook@chromium.org>, Chris Mason <clm@fb.com>,
-        Josef Bacik <josef@toxicpanda.com>,
-        Xiubo Li <xiubli@redhat.com>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
-        Joel Becker <jlbec@evilplan.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Tyler Hicks <code@tyhicks.com>,
-        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Jaegeuk Kim <jaegeuk@kernel.org>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Bob Peterson <rpeterso@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <muchun.song@linux.dev>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
-        Anton Altaparmakov <anton@tuxera.com>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mark Fasheh <mark@fasheh.com>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>,
-        Bob Copeland <me@bobcopeland.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Tony Luck <tony.luck@intel.com>,
-        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-        Anders Larsen <al@alarsen.net>,
-        Steve French <sfrench@samba.org>,
-        Paulo Alcantara <pc@manguebit.com>,
-        Ronnie Sahlberg <lsahlber@redhat.com>,
-        Shyam Prasad N <sprasad@microsoft.com>,
-        Tom Talpey <tom@talpey.com>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Phillip Lougher <phillip@squashfs.org.uk>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Evgeniy Dushistov <dushistov@mail.ru>,
-        Hans de Goede <hdegoede@redhat.com>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Damien Le Moal <dlemoal@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Johannes Thumshirn <jth@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>, Yonghong Song <yhs@fb.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        John Johansen <john.johansen@canonical.com>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Juergen Gross <jgross@suse.com>,
-        Ruihan Li <lrh2000@pku.edu.cn>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        Udipto Goswami <quic_ugoswami@quicinc.com>,
-        Linyu Yuan <quic_linyyuan@quicinc.com>,
-        John Keeping <john@keeping.me.uk>,
-        Andrzej Pietrasiewicz <andrzej.p@collabora.com>,
-        Dan Carpenter <error27@gmail.com>,
-        Yuta Hayama <hayama@lineo.co.jp>,
-        Jozef Martiniak <jomajm@gmail.com>,
-        Jens Axboe <axboe@kernel.dk>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Sandeep Dhavale <dhavale@google.com>,
-        Dave Chinner <dchinner@redhat.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        ZhangPeng <zhangpeng362@huawei.com>,
-        Viacheslav Dubeyko <slava@dubeyko.com>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-        Aditya Garg <gargaditya08@live.com>,
-        Erez Zadok <ezk@cs.stonybrook.edu>,
-        Yifei Liu <yifeliu@cs.stonybrook.edu>,
-        Yu Zhe <yuzhe@nfschina.com>,
-        "Matthew Wilcox (Oracle)" <willy@infradead.org>,
-        Oleg Kanatov <okanatov@gmail.com>,
-        "Dr. David Alan Gilbert" <linux@treblig.org>,
-        Jiangshan Yi <yijiangshan@kylinos.cn>,
-        xu xin <cgel.zte@gmail.com>, Stefan Roesch <shr@devkernel.io>,
-        Zhihao Cheng <chengzhihao1@huawei.com>,
-        "Liam R. Howlett" <Liam.Howlett@oracle.com>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Minghao Chi <chi.minghao@zte.com.cn>,
-        Seth Forshee <sforshee@digitalocean.com>,
-        Zeng Jingxiang <linuszeng@tencent.com>,
-        Bart Van Assche <bvanassche@acm.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Roberto Sassu <roberto.sassu@huawei.com>,
-        Zhang Yi <yi.zhang@huawei.com>, Tom Rix <trix@redhat.com>,
-        "Fabio M. De Francesco" <fmdefrancesco@gmail.com>,
-        Chen Zhongjin <chenzhongjin@huawei.com>,
-        Zhengchao Shao <shaozhengchao@huawei.com>,
-        Rik van Riel <riel@surriel.com>,
-        Jingyu Wang <jingyuwang_vip@163.com>,
-        Hangyu Hua <hbh25y@gmail.com>, linuxppc-dev@lists.ozlabs.org,
-        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-usb@vger.kernel.org,
-        v9fs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
-        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
-        linux-mm@kvack.org, linux-btrfs@vger.kernel.org,
-        ceph-devel@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        ecryptfs@vger.kernel.org, linux-efi@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
-        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
-        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
-        ntfs3@lists.linux.dev, ocfs2-devel@oss.oracle.com,
-        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
-        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org,
-        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        bpf@vger.kernel.org, netdev@vger.kernel.org,
-        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
-        selinux@vger.kernel.org
-Subject: Re: [PATCH 01/79] fs: add ctime accessors infrastructure
-Message-ID: <ZJ9TW9MQmlqmbRU/@bombadil.infradead.org>
-References: <20230621144507.55591-1-jlayton@kernel.org>
- <20230621144507.55591-2-jlayton@kernel.org>
+        Sat, 1 Jul 2023 10:21:59 -0400
+Received: from mail-pl1-f207.google.com (mail-pl1-f207.google.com [209.85.214.207])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFFBA3C34
+        for <linux-unionfs@vger.kernel.org>; Sat,  1 Jul 2023 07:21:54 -0700 (PDT)
+Received: by mail-pl1-f207.google.com with SMTP id d9443c01a7336-1b7ef04ddfeso28787805ad.0
+        for <linux-unionfs@vger.kernel.org>; Sat, 01 Jul 2023 07:21:54 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688221314; x=1690813314;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=OT8IPwfbE64wzXdylWaPxtAqsU48uR9clEZjxfkIm00=;
+        b=Oqi4eeShIuGXu5EqAxVl3dZdnYUqcVfhC4cKCAveNjXBoiWnDI/b7hhAU1EJ57un0u
+         R7RZ8lx6eHrvKL2lUnA9KUs1oL1D4TZxjYkAKlrC7oTZPyR2Jlh8ZWQGIj42BH/+WtvQ
+         E3FfC1RN5N0aUFkZPq4gTcTV/O3bjjzsiZSX/VnLubjVV+l/9aoBfTy8AvgNysJaR0s2
+         kCzCOmQvmB1PrPLHfH91AvpWHqO22WYgiLMxYh7HZ255lKHdZ4vhE1wlzyw6mLWqph6w
+         Xx9gWZ5wYTMu6l7+GS09VFuoa5h6fgJh+Y/9xlmMk/KY9T7BR51Fx/XXyhszYwxjHc84
+         7/dQ==
+X-Gm-Message-State: ABy/qLb5dgQMEoG8qt80KzfvQ/nFwYLdB0PC8rebojrf+vMHOa6AAOfm
+        8pi0HiiOR32Nbhcz1nRHh+ooYi15RgrbZGUbNOnFL5EJn0xK
+X-Google-Smtp-Source: APBJJlH9bi9qfBOjoH2i36RqLtgB5R0q2IcMIeBbWh5J0+zMQVMH3/phBQXMUzmWT9cpoE/06oTWS+uRWTimSnEHfd6EpPaFALY5
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230621144507.55591-2-jlayton@kernel.org>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+X-Received: by 2002:a17:902:f389:b0:1b2:436b:931d with SMTP id
+ f9-20020a170902f38900b001b2436b931dmr4212186ple.2.1688221313898; Sat, 01 Jul
+ 2023 07:21:53 -0700 (PDT)
+Date:   Sat, 01 Jul 2023 07:21:53 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000b7a0c305ff6da727@google.com>
+Subject: [syzbot] [overlayfs?] KASAN: invalid-free in init_file
+From:   syzbot <syzbot+ada42aab05cf51b00e98@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, brauner@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Jun 21, 2023 at 10:45:06AM -0400, Jeff Layton wrote:
-> struct timespec64 has unused bits in the tv_nsec field that can be used
-> for other purposes. In future patches, we're going to change how the
-> inode->i_ctime is accessed in certain inodes in order to make use of
-> them. In order to do that safely though, we'll need to eradicate raw
-> accesses of the inode->i_ctime field from the kernel.
-> 
-> Add new accessor functions for the ctime that we can use to replace them.
-> 
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+Hello,
 
-Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+syzbot found the following issue on:
 
-  Luis
+HEAD commit:    1ef6663a587b Merge tag 'tag-chrome-platform-for-v6.5' of g..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=120fd3a8a80000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=33c8c2baba1cfc7e
+dashboard link: https://syzkaller.appspot.com/bug?extid=ada42aab05cf51b00e98
+compiler:       Debian clang version 15.0.7, GNU ld (GNU Binutils for Debian) 2.35.2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=130a5670a80000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=11aac680a80000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/6561f5e7c861/disk-1ef6663a.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/aed67f7d3a9d/vmlinux-1ef6663a.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/baa651e2ed8e/bzImage-1ef6663a.xz
+
+The issue was bisected to:
+
+commit 62d53c4a1dfe347bd87ede46ffad38c9a3870338
+Author: Amir Goldstein <amir73il@gmail.com>
+Date:   Thu Jun 15 11:22:28 2023 +0000
+
+    fs: use backing_file container for internal files with "fake" f_path
+
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=156341e0a80000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=176341e0a80000
+console output: https://syzkaller.appspot.com/x/log.txt?x=136341e0a80000
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+ada42aab05cf51b00e98@syzkaller.appspotmail.com
+Fixes: 62d53c4a1dfe ("fs: use backing_file container for internal files with "fake" f_path")
+
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007fbb808467a9
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000005
+RBP: 00007ffdc0c78ff0 R08: 0000000000000001 R09: 00007fbb80800034
+R10: 000000007ffff000 R11: 0000000000000246 R12: 0000000000000006
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+==================================================================
+BUG: KASAN: invalid-free in init_file+0x195/0x200 fs/file_table.c:163
+Free of addr ffff88801ea5a800 by task syz-executor145/4991
+
+CPU: 0 PID: 4991 Comm: syz-executor145 Not tainted 6.4.0-syzkaller-01224-g1ef6663a587b #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 05/27/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:351 [inline]
+ print_report+0x163/0x540 mm/kasan/report.c:462
+ kasan_report_invalid_free+0xeb/0x100 mm/kasan/report.c:537
+ ____kasan_slab_free+0xfb/0x120
+ kasan_slab_free include/linux/kasan.h:162 [inline]
+ slab_free_hook mm/slub.c:1781 [inline]
+ slab_free_freelist_hook mm/slub.c:1807 [inline]
+ slab_free mm/slub.c:3786 [inline]
+ kmem_cache_free+0x297/0x520 mm/slub.c:3808
+ init_file+0x195/0x200 fs/file_table.c:163
+ alloc_empty_backing_file+0x67/0xd0 fs/file_table.c:267
+ backing_file_open+0x26/0x100 fs/open.c:1166
+ ovl_open_realfile+0x1f6/0x350 fs/overlayfs/file.c:64
+ ovl_real_fdget_meta fs/overlayfs/file.c:122 [inline]
+ ovl_real_fdget fs/overlayfs/file.c:143 [inline]
+ ovl_splice_read+0x7cc/0x8c0 fs/overlayfs/file.c:430
+ splice_direct_to_actor+0x2a8/0x9a0 fs/splice.c:961
+ do_splice_direct+0x286/0x3d0 fs/splice.c:1070
+ do_sendfile+0x623/0x1070 fs/read_write.c:1254
+ __do_sys_sendfile64 fs/read_write.c:1322 [inline]
+ __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1308
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7fbb808467a9
+Code: 28 c3 e8 2a 14 00 00 66 2e 0f 1f 84 00 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 c0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffdc0c78fe8 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007fbb808467a9
+RDX: 0000000000000000 RSI: 0000000000000004 RDI: 0000000000000005
+RBP: 00007ffdc0c78ff0 R08: 0000000000000001 R09: 00007fbb80800034
+R10: 000000007ffff000 R11: 0000000000000246 R12: 0000000000000006
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 4991:
+ kasan_save_stack mm/kasan/common.c:45 [inline]
+ kasan_set_track+0x4f/0x70 mm/kasan/common.c:52
+ ____kasan_kmalloc mm/kasan/common.c:374 [inline]
+ __kasan_kmalloc+0x98/0xb0 mm/kasan/common.c:383
+ kmalloc include/linux/slab.h:559 [inline]
+ kzalloc include/linux/slab.h:680 [inline]
+ alloc_empty_backing_file+0x52/0xd0 fs/file_table.c:263
+ backing_file_open+0x26/0x100 fs/open.c:1166
+ ovl_open_realfile+0x1f6/0x350 fs/overlayfs/file.c:64
+ ovl_real_fdget_meta fs/overlayfs/file.c:122 [inline]
+ ovl_real_fdget fs/overlayfs/file.c:143 [inline]
+ ovl_splice_read+0x7cc/0x8c0 fs/overlayfs/file.c:430
+ splice_direct_to_actor+0x2a8/0x9a0 fs/splice.c:961
+ do_splice_direct+0x286/0x3d0 fs/splice.c:1070
+ do_sendfile+0x623/0x1070 fs/read_write.c:1254
+ __do_sys_sendfile64 fs/read_write.c:1322 [inline]
+ __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1308
+ do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+ do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+The buggy address belongs to the object at ffff88801ea5a800
+ which belongs to the cache kmalloc-512 of size 512
+The buggy address is located 0 bytes inside of
+ 480-byte region [ffff88801ea5a800, ffff88801ea5a9e0)
+
+The buggy address belongs to the physical page:
+page:ffffea00007a9600 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x1ea58
+head:ffffea00007a9600 order:2 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+anon flags: 0xfff00000010200(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+page_type: 0xffffffff()
+raw: 00fff00000010200 ffff888012441c80 0000000000000000 dead000000000001
+raw: 0000000000000000 0000000080100010 00000001ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 2, migratetype Unmovable, gfp_mask 0xd20c0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC), pid 733, tgid 733 (kworker/u4:0), ts 6534177535, free_ts 0
+ set_page_owner include/linux/page_owner.h:31 [inline]
+ post_alloc_hook+0x1e6/0x210 mm/page_alloc.c:1744
+ prep_new_page mm/page_alloc.c:1751 [inline]
+ get_page_from_freelist+0x320e/0x3390 mm/page_alloc.c:3523
+ __alloc_pages+0x255/0x670 mm/page_alloc.c:4794
+ alloc_slab_page+0x6a/0x160 mm/slub.c:1851
+ allocate_slab mm/slub.c:1998 [inline]
+ new_slab+0x84/0x2f0 mm/slub.c:2051
+ ___slab_alloc+0xa85/0x10a0 mm/slub.c:3192
+ __slab_alloc mm/slub.c:3291 [inline]
+ __slab_alloc_node mm/slub.c:3344 [inline]
+ slab_alloc_node mm/slub.c:3441 [inline]
+ __kmem_cache_alloc_node+0x1b8/0x290 mm/slub.c:3490
+ kmalloc_trace+0x2a/0xe0 mm/slab_common.c:1057
+ kmalloc include/linux/slab.h:559 [inline]
+ kzalloc include/linux/slab.h:680 [inline]
+ alloc_bprm+0x56/0x900 fs/exec.c:1512
+ kernel_execve+0x96/0xa10 fs/exec.c:1987
+ call_usermodehelper_exec_async+0x233/0x370 kernel/umh.c:110
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:308
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff88801ea5a700: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+ ffff88801ea5a780: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>ffff88801ea5a800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+                   ^
+ ffff88801ea5a880: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff88801ea5a900: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+==================================================================
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+
+If the bug is already fixed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to change bug's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the bug is a duplicate of another bug, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
