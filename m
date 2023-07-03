@@ -2,112 +2,114 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E4D6EB64DC
-	for <linux-unionfs@archiver.kernel.org>; Mon,  3 Jul 2023 12:54:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA91CC001B0
+	for <linux-unionfs@archiver.kernel.org>; Mon,  3 Jul 2023 19:09:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230418AbjGCMyK (ORCPT
+        id S230439AbjGCTJD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 3 Jul 2023 08:54:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59706 "EHLO
+        Mon, 3 Jul 2023 15:09:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229930AbjGCMyK (ORCPT
+        with ESMTP id S229450AbjGCTJD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Jul 2023 08:54:10 -0400
-Received: from mail-vk1-xa31.google.com (mail-vk1-xa31.google.com [IPv6:2607:f8b0:4864:20::a31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A0FDE58;
-        Mon,  3 Jul 2023 05:54:09 -0700 (PDT)
-Received: by mail-vk1-xa31.google.com with SMTP id 71dfb90a1353d-47e5cf4e347so159654e0c.3;
-        Mon, 03 Jul 2023 05:54:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688388848; x=1690980848;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8UNjUFxogKwa7w723fW56Ug+Y7s+F2FtRHsJB36Mz9o=;
-        b=KoI8luSuFSpDxhSSQSZ1IAWiWyD9Ctbdj/6LYRQkmggybdV7t2a0UOuV+Hw/bjlWr3
-         TKsHTDWgdVTIi4hEGYmmDJQzL3jY0RpamZWYCiC73/TfFz1QVarPSYsgm6PX8vh8AfTa
-         4Mk5ZCj5vpfXmtLaobAT5o3SLkon0tJDSjp1XUXJSxdpV+7BYXz8z/xRTkbOv8B88aLz
-         LMq9T3fXP+hhI0Eg+vNFLeYE7zUmnmeDzqE6tfA4RMSPGVRE+/94b9Dmi4iQjxNZtC3V
-         bOV54ukfW84Nwc99HT/0Is0JOV4ofXhZxT0JkVnM+dPfUArt/TPOvnGYo8eue49Dmwes
-         F67Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688388848; x=1690980848;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=8UNjUFxogKwa7w723fW56Ug+Y7s+F2FtRHsJB36Mz9o=;
-        b=GVexBi3yx/+wyOXNZmv1DvxxnZOeBGkqXORawecn1XbwXy6SvtsZHMdT7hguslsqSS
-         6yK47Dc+/LeVg3d3amxlot64T7cdm6iRoGlOg/EmhoH7Nh0w1uApFfN7NREeaeEAJUt5
-         FoghZ0LYTmnMEYo4wYVS6HqFjq2uP2cTT3NVgurwmO/0j1gn/xWj+l46Eg+wY+wPGnAE
-         PeOnblnJCJ952JbZLdP7ePlnI7yz0ky+o8O6fHjyRLF38mys4QAOeyErpZVYmj3hXd4i
-         XcQQXl0nCS8RxQJkEFFTodr8bb0186ag4mK3U1DrJ27h7ISPZTqBPri3l1KH9EulWUxC
-         lFsg==
-X-Gm-Message-State: ABy/qLbPjnbBWurFtGGCjaut61O5CAldlwAb2P6rP3c7HrSGbl6eoA1a
-        Z4PKmfA2SdyO1OU6pbUgrdJJ7P2zeG2Y2hIm2kQ=
-X-Google-Smtp-Source: APBJJlEyfvGPjC4sl8jnRJcD1mI5MQh0QGdeOcVz+gjYTgStp4xiqpqSM7Pt6GQrZjE9wkd/yzrx/O7U8G5/LUovkLs=
-X-Received: by 2002:a05:6102:21b:b0:443:6457:10e with SMTP id
- z27-20020a056102021b00b004436457010emr4733155vsp.7.1688388848288; Mon, 03 Jul
- 2023 05:54:08 -0700 (PDT)
+        Mon, 3 Jul 2023 15:09:03 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 360CDAF
+        for <linux-unionfs@vger.kernel.org>; Mon,  3 Jul 2023 12:09:02 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7085D60F24
+        for <linux-unionfs@vger.kernel.org>; Mon,  3 Jul 2023 19:09:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC6C6C433C8;
+        Mon,  3 Jul 2023 19:09:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1688411340;
+        bh=WjILfPLuDalAzQP1xRPS3ChkeLQUCRh1hiQ9Xuf8lL4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Qx2Nt4dIvBem2MGCxSDWvqkxolCtdbCyq8+lKDMJ2UPaUxytQORrfdPL/iU4q3n97
+         l1Vl+jbzTljrHHtXDMUM38Z3lMuTMOUUUJZmp1dFIpKthwiwX8MnmWL1FtD5JwRSaI
+         o0XPFLKwK7IUi/ecXpVYycv6eW/qFogznUwU+LDi4+nBUD4SYCabO6IxdBojw/wqMV
+         uHQE0zMxUoKBOCrBsMgzZGyZK5vmtuMiro5ESOxBtRK9ZRKIXJYG5+jISchpxouMK2
+         25IzRIYExZAx/m90g6+5NSfJHs8WUM4cGggoCaf37hYy5MbvA8RPD7J6rDZmSQ2SNV
+         queb89SpsAaCA==
+Date:   Mon, 3 Jul 2023 12:08:59 -0700
+From:   Eric Biggers <ebiggers@kernel.org>
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
+Subject: Re: [PATCH v4 1/4] ovl: Add framework for verity support
+Message-ID: <20230703190859.GB1194@sol.localdomain>
+References: <cover.1687345663.git.alexl@redhat.com>
+ <8bbfe13980cc9aa70e347811280b62eba930ffd2.1687345663.git.alexl@redhat.com>
 MIME-Version: 1.0
-References: <20230703113142.424670-1-arnd@kernel.org>
-In-Reply-To: <20230703113142.424670-1-arnd@kernel.org>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 3 Jul 2023 15:53:57 +0300
-Message-ID: <CAOQ4uxj5v=zTsiXvHGD70nMcKSvTVwM2G0raCDePY64gofu+AQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: mark ovl_redirect_mode() as static again
-To:     Arnd Bergmann <arnd@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Christian Brauner <brauner@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8bbfe13980cc9aa70e347811280b62eba930ffd2.1687345663.git.alexl@redhat.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jul 3, 2023 at 2:31=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> wrot=
-e:
->
-> From: Arnd Bergmann <arnd@arndb.de>
->
-> This function was moved to another file and is no longer marked
-> static there, causing a W=3D1 warning:
->
-> fs/overlayfs/params.c:92:13: error: no previous prototype for 'ovl_redire=
-ct_mode' [-Werror=3Dmissing-prototypes]
->
-> This was probably lost by accident during the refactoring, as there is
-> still no caller in another file, so add back the annotation.
->
-> Fixes: 06bcaa2dafb7e ("ovl: move all parameter handling into params.{c,h}=
-")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
+On Wed, Jun 21, 2023 at 01:18:25PM +0200, Alexander Larsson wrote:
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+> index eb7d2c88ddec..b63e0db03631 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -405,6 +405,53 @@ when a "metacopy" file in one of the lower layers above it, has a "redirect"
+>  to the absolute path of the "lower data" file in the "data-only" lower layer.
+>  
+>  
+> +fs-verity support
+> +----------------------
+> +
+> +During metadata copy up of a lower file, if the source file has
+> +fs-verity enabled and overlay verity support is enabled, then the
+> +digest of the lower file is added to the "trusted.overlay.metacopy"
+> +xattr. This is then used to verify the content of the lower file
+> +each the time the metacopy file is opened.
+> +
+> +When a layer containing verity xattrs is used, it means that any such
+> +metacopy file in the upper layer is guaranteed to match the content
+> +that was in the lower at the time of the copy-up. If at any time
+> +(during a mount, after a remount, etc) such a file in the lower is
+> +replaced or modified in any way, access to the corresponding file in
+> +overlayfs will result in EIO errors (either on open, due to overlayfs
+> +digest check, or from a later read due to fs-verity) and a detailed
+> +error is printed to the kernel logs. For more details of how fs-verity
+> +file access works, see :ref:`Documentation/filesystems/fsverity.rst
+> +<accessing_verity_files>`.
+> +
+> +Verity can be used as a general robustness check to detect accidental
+> +changes in the overlayfs directories in use. But, with additional care
+> +it can also give more powerful guarantees. For example, if the upper
+> +layer is fully trusted (by using dm-verity or something similar), then
+> +an untrusted lower layer can be used to supply validated file content
+> +for all metacopy files.  If additionally the untrusted lower
+> +directories are specified as "Data-only", then they can only supply
+> +such file content, and the entire mount can be trusted to match the
+> +upper layer.
+> +
+> +This feature is controlled by the "verity" mount option, which
+> +supports these values:
+> +
+> +- "off":
+> +    The metacopy digest is never generated or used. This is the
+> +    default if verity option is not specified.
+> +- "on":
+> +    Whenever a metacopy files specifies an expected digest, the
+> +    corresponding data file must match the specified digest. When
+> +    generating a metacopy file the verity digest will be set in it
+> +    based on the source file (if it has one).
+> +- "require":
+> +    Same as "on", but additionally all metacopy files must specify a
+> +    digest (or EIO is returned on open). This means metadata copy up
+> +    will only be used if the data file has fs-verity enabled,
+> +    otherwise a full copy-up is used.
+> +
 
-This is against a patch that is not upstream.
-I will squash it.
+Thanks, it's not perfect but it's much improved.
 
-Thanks,
-Amir.
+Acked-by: Eric Biggers <ebiggers@google.com>
 
->  fs/overlayfs/params.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index b8c2f6056a9a8..a63160dbb0f95 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -89,7 +89,7 @@ const struct constant_table ovl_parameter_redirect_dir[=
-] =3D {
->         {}
->  };
->
-> -const char *ovl_redirect_mode(struct ovl_config *config)
-> +static const char *ovl_redirect_mode(struct ovl_config *config)
->  {
->         return ovl_parameter_redirect_dir[config->redirect_mode].name;
->  }
-> --
-> 2.39.2
->
+- Eric
