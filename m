@@ -2,83 +2,112 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4F31EB64DC
-	for <linux-unionfs@archiver.kernel.org>; Mon,  3 Jul 2023 11:31:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E4D6EB64DC
+	for <linux-unionfs@archiver.kernel.org>; Mon,  3 Jul 2023 12:54:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229830AbjGCLbu (ORCPT
+        id S230418AbjGCMyK (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 3 Jul 2023 07:31:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48400 "EHLO
+        Mon, 3 Jul 2023 08:54:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59706 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbjGCLbt (ORCPT
+        with ESMTP id S229930AbjGCMyK (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 3 Jul 2023 07:31:49 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5C4FC6;
-        Mon,  3 Jul 2023 04:31:48 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5381560EDF;
-        Mon,  3 Jul 2023 11:31:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 441B6C433C7;
-        Mon,  3 Jul 2023 11:31:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1688383907;
-        bh=TsjDdvjS8/OWRhhJmkiLl/ZF0tTAzN9y6MLUtNVZ9rw=;
-        h=From:To:Cc:Subject:Date:From;
-        b=fkTJ4qZ5AL/d49j52i/ZpcisAhtjImBdHPPpTYz00V5ReU6DYoLN7zJUHLFgWUGD4
-         NQuY1GO7aMu1wuzM4wQRO9oCNMgf1mDNFgSwaqWcmMhs8l20PZB/FrdzA7E4OIUfbi
-         843ao+uUzuBxXTaUKS4ZYFMVS8HdhWJYxDOAMdw7oTm4It88405Y2YFUScoNFMQqmf
-         SpK0NWi8ys7dmk+nUZIZmTLpS7C/A1AMc14RaPmdZmqx3ERhFcfy4v/Rkn4b1BN01I
-         TsJFhqiYAfxh1C9uzFl1BA6+R+caJTK0921z7X+B/8xCQbSFBttK6DrnOBMd1hJItx
-         j18fkK/DH2KOg==
-From:   Arnd Bergmann <arnd@kernel.org>
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Christian Brauner <brauner@kernel.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] ovl: mark ovl_redirect_mode() as static again
-Date:   Mon,  3 Jul 2023 13:31:33 +0200
-Message-Id: <20230703113142.424670-1-arnd@kernel.org>
-X-Mailer: git-send-email 2.39.2
+        Mon, 3 Jul 2023 08:54:10 -0400
+Received: from mail-vk1-xa31.google.com (mail-vk1-xa31.google.com [IPv6:2607:f8b0:4864:20::a31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A0FDE58;
+        Mon,  3 Jul 2023 05:54:09 -0700 (PDT)
+Received: by mail-vk1-xa31.google.com with SMTP id 71dfb90a1353d-47e5cf4e347so159654e0c.3;
+        Mon, 03 Jul 2023 05:54:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1688388848; x=1690980848;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8UNjUFxogKwa7w723fW56Ug+Y7s+F2FtRHsJB36Mz9o=;
+        b=KoI8luSuFSpDxhSSQSZ1IAWiWyD9Ctbdj/6LYRQkmggybdV7t2a0UOuV+Hw/bjlWr3
+         TKsHTDWgdVTIi4hEGYmmDJQzL3jY0RpamZWYCiC73/TfFz1QVarPSYsgm6PX8vh8AfTa
+         4Mk5ZCj5vpfXmtLaobAT5o3SLkon0tJDSjp1XUXJSxdpV+7BYXz8z/xRTkbOv8B88aLz
+         LMq9T3fXP+hhI0Eg+vNFLeYE7zUmnmeDzqE6tfA4RMSPGVRE+/94b9Dmi4iQjxNZtC3V
+         bOV54ukfW84Nwc99HT/0Is0JOV4ofXhZxT0JkVnM+dPfUArt/TPOvnGYo8eue49Dmwes
+         F67Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1688388848; x=1690980848;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=8UNjUFxogKwa7w723fW56Ug+Y7s+F2FtRHsJB36Mz9o=;
+        b=GVexBi3yx/+wyOXNZmv1DvxxnZOeBGkqXORawecn1XbwXy6SvtsZHMdT7hguslsqSS
+         6yK47Dc+/LeVg3d3amxlot64T7cdm6iRoGlOg/EmhoH7Nh0w1uApFfN7NREeaeEAJUt5
+         FoghZ0LYTmnMEYo4wYVS6HqFjq2uP2cTT3NVgurwmO/0j1gn/xWj+l46Eg+wY+wPGnAE
+         PeOnblnJCJ952JbZLdP7ePlnI7yz0ky+o8O6fHjyRLF38mys4QAOeyErpZVYmj3hXd4i
+         XcQQXl0nCS8RxQJkEFFTodr8bb0186ag4mK3U1DrJ27h7ISPZTqBPri3l1KH9EulWUxC
+         lFsg==
+X-Gm-Message-State: ABy/qLbPjnbBWurFtGGCjaut61O5CAldlwAb2P6rP3c7HrSGbl6eoA1a
+        Z4PKmfA2SdyO1OU6pbUgrdJJ7P2zeG2Y2hIm2kQ=
+X-Google-Smtp-Source: APBJJlEyfvGPjC4sl8jnRJcD1mI5MQh0QGdeOcVz+gjYTgStp4xiqpqSM7Pt6GQrZjE9wkd/yzrx/O7U8G5/LUovkLs=
+X-Received: by 2002:a05:6102:21b:b0:443:6457:10e with SMTP id
+ z27-20020a056102021b00b004436457010emr4733155vsp.7.1688388848288; Mon, 03 Jul
+ 2023 05:54:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20230703113142.424670-1-arnd@kernel.org>
+In-Reply-To: <20230703113142.424670-1-arnd@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 3 Jul 2023 15:53:57 +0300
+Message-ID: <CAOQ4uxj5v=zTsiXvHGD70nMcKSvTVwM2G0raCDePY64gofu+AQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: mark ovl_redirect_mode() as static again
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
+On Mon, Jul 3, 2023 at 2:31=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> wrot=
+e:
+>
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> This function was moved to another file and is no longer marked
+> static there, causing a W=3D1 warning:
+>
+> fs/overlayfs/params.c:92:13: error: no previous prototype for 'ovl_redire=
+ct_mode' [-Werror=3Dmissing-prototypes]
+>
+> This was probably lost by accident during the refactoring, as there is
+> still no caller in another file, so add back the annotation.
+>
+> Fixes: 06bcaa2dafb7e ("ovl: move all parameter handling into params.{c,h}=
+")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
 
-This function was moved to another file and is no longer marked
-static there, causing a W=1 warning:
+This is against a patch that is not upstream.
+I will squash it.
 
-fs/overlayfs/params.c:92:13: error: no previous prototype for 'ovl_redirect_mode' [-Werror=missing-prototypes]
+Thanks,
+Amir.
 
-This was probably lost by accident during the refactoring, as there is
-still no caller in another file, so add back the annotation.
-
-Fixes: 06bcaa2dafb7e ("ovl: move all parameter handling into params.{c,h}")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- fs/overlayfs/params.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index b8c2f6056a9a8..a63160dbb0f95 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -89,7 +89,7 @@ const struct constant_table ovl_parameter_redirect_dir[] = {
- 	{}
- };
- 
--const char *ovl_redirect_mode(struct ovl_config *config)
-+static const char *ovl_redirect_mode(struct ovl_config *config)
- {
- 	return ovl_parameter_redirect_dir[config->redirect_mode].name;
- }
--- 
-2.39.2
-
+>  fs/overlayfs/params.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> index b8c2f6056a9a8..a63160dbb0f95 100644
+> --- a/fs/overlayfs/params.c
+> +++ b/fs/overlayfs/params.c
+> @@ -89,7 +89,7 @@ const struct constant_table ovl_parameter_redirect_dir[=
+] =3D {
+>         {}
+>  };
+>
+> -const char *ovl_redirect_mode(struct ovl_config *config)
+> +static const char *ovl_redirect_mode(struct ovl_config *config)
+>  {
+>         return ovl_parameter_redirect_dir[config->redirect_mode].name;
+>  }
+> --
+> 2.39.2
+>
