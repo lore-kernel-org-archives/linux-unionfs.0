@@ -2,104 +2,110 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA02EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Jul 2023 15:14:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA64EEB64DD
+	for <linux-unionfs@archiver.kernel.org>; Tue,  4 Jul 2023 16:54:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231694AbjGDPOH (ORCPT
+        id S231444AbjGDQyF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 4 Jul 2023 11:14:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37240 "EHLO
+        Tue, 4 Jul 2023 12:54:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231249AbjGDPOG (ORCPT
+        with ESMTP id S231859AbjGDQx5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 4 Jul 2023 11:14:06 -0400
-Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E4C710D5;
-        Tue,  4 Jul 2023 08:14:05 -0700 (PDT)
-Received: by mail-ua1-x92f.google.com with SMTP id a1e0cc1a2514c-791b8525b59so2175760241.1;
-        Tue, 04 Jul 2023 08:14:05 -0700 (PDT)
+        Tue, 4 Jul 2023 12:53:57 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6827173C;
+        Tue,  4 Jul 2023 09:53:24 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-3fbc244d386so63778145e9.2;
+        Tue, 04 Jul 2023 09:53:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688483644; x=1691075644;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=18US8w0C3qU4DiEkJ9jXYu7TawUKRfr7sw1OsNONIqI=;
-        b=AuTMDE0JpsWVSaY/Xb8ckUoOyH9PKudki3prIAQpOv/2YZ3iQwCJhapLPBD8kV6eha
-         s5FRu1FTHY69rDwqHzb7dqRWMMTMvt/nJrffomH/6XE/hPhMiITudicc2lDcKVyjBa2V
-         tXAS4Cbci5SGTBWGjGI/xcrQm3IQ7PYHTJPiVg6CUCkJhPIbmGct7DDICOQc2zHzNRTA
-         nwlStfUCuy9n+ueggtaH2E+9Qa6ySS3KObQlDBww1ClZnAHgXwNB/Ib46d/S+GikptzS
-         LCTAfeVnkqUrmGkALtXaymsNY5BkWt8UU6HLzPd7fNUlh04kfZB1iZEg4PwGQdkhO3RH
-         8E8Q==
+        d=gmail.com; s=20221208; t=1688489590; x=1691081590;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=6X46p/v45YXoW3BdBBZYISaaAyjIN+YgHZ7H48FuHJU=;
+        b=rVZrx+uc46MV8vFmTkQUHOsSfj+Ea/gfLcAoDgFVIk83t+9NVj0WJrQPHSND5i2KIe
+         UPuAV15kHCCV5yqfThsBoRdBssG+oLuPAnLKdaQpX+H25oipwzrnxovRJYQQryiNL5Oc
+         NE3n2ZA9YmgNbjtPEL4xCg1HNhPtxidkciM4HPrOSzPbCojM6uzZpyQo0ntt0KHOZGgi
+         Qoi5hkbeNGKgcQYAc0rZD8yEEf06YlSge2XIMPQbZYgqHmzIb+91lAvA4LMDEiZendyO
+         iNdqzJENofxteqIVG0vioT0+MIR6+byxXradrUiCc5E0bVeju+406nSnm62jvGUHe1fm
+         IE8w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688483644; x=1691075644;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=18US8w0C3qU4DiEkJ9jXYu7TawUKRfr7sw1OsNONIqI=;
-        b=j4BU83vtgukS3d2vqoy7AI1MQv2r1TU4VDewNg4Y9HqEiWiruWCcqSrbAUHAT4rosC
-         jHe6ah9Q038MhtLGJKS02wCZ5pSf9U1L1BEiOtm6FAkAn/nMcRpym/H5sef0jGIwkrUV
-         tLwolxxlY2XsPKCaF0xbymfeCaY1Hq907coV8Zw6hxw6wNXfYr+nCLLPk802VL6TABR1
-         /AsvnTwig1HpADoh7G5FgZXLKdb21qGtFg8IZlz278T3+olPwVMLfgNcIELbi7EHQ4vC
-         7GZrgr+RAaWiPwJExR75DR3ii1+aoyX+IwH4hix33v79fnoUDre8FPgL3smYBJwkKbz1
-         9mSQ==
-X-Gm-Message-State: ABy/qLYYaEqttETdmdbFQB2UPWz44M2996XrXTgyWfN8F7EcifQNLmWD
-        izqIJKvoYu/BgJc4KxPT1fp2TRbEq1OOi0Fczsg=
-X-Google-Smtp-Source: APBJJlEf//tr/JzH2tEXtaLjx28hEl4Xu/NsRumDDcx/vKSvONN5yyLt61d78dw5Ndg+lpCdMt8+vcQ0I4Ae05d/Hno=
-X-Received: by 2002:a67:e8cc:0:b0:443:5981:72ad with SMTP id
- y12-20020a67e8cc000000b00443598172admr6919656vsn.24.1688483644488; Tue, 04
- Jul 2023 08:14:04 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230626-fs-overlayfs-mount-api-param-v1-1-29afb997a19f@kernel.org>
- <CAOQ4uxiOsHEx30ERLYeLdnOdFG1rw_OnXo+rBbKCY-ZzNxV_uQ@mail.gmail.com> <CAL7ro1GgW-2gUhB=TBxwDAiybbQBbFabkU2tBNbBH85Q_KZWew@mail.gmail.com>
-In-Reply-To: <CAL7ro1GgW-2gUhB=TBxwDAiybbQBbFabkU2tBNbBH85Q_KZWew@mail.gmail.com>
+        d=1e100.net; s=20221208; t=1688489590; x=1691081590;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=6X46p/v45YXoW3BdBBZYISaaAyjIN+YgHZ7H48FuHJU=;
+        b=CdlOihSZaY79MGsy0j43LHVJeCYop6KDAeIB1E6cV6IlKvmnZm4FXx2KbUCFljz4BV
+         +J46aDd8PC+f04L86pvvQGLRmcaenyiXyYeyloccfRPKFCNpumkOl9K7aMj4L24FGwHg
+         rmX9nlIcU3KojXhZ/FkWXEfE+aIQpx+nhdk64yBljQUe7H3jCbvDlHGmwgz0eixKJKbC
+         n87V74hb+MAd0XKaBMTdprwVuyi6VXz6txNCELKh5j0QIeCFJDFzOeZLgSDb0eRX3f2h
+         hZtj3yoRFzVRRKuAZF0F0AKvDOXM9kna/SRjmHVE5E1GO7mFKvPnUTZ+JXdLzeSFIhbs
+         9cHw==
+X-Gm-Message-State: ABy/qLbT+/nMGQh8B7mDDxxE1TtbB5AhikVQjDkEQsK0WUUZDq23sAVC
+        DryWmC7ebZOQG4gG3yRdfzlB78D7zck=
+X-Google-Smtp-Source: APBJJlEYOXGRphrO4SkMWru9BIX7s+yP6/RWwOXYhBB8ipdXBjtCRmjHjaYI/qnu+WwTlQOSzPPjwQ==
+X-Received: by 2002:a1c:f713:0:b0:3fb:d60f:8a8e with SMTP id v19-20020a1cf713000000b003fbd60f8a8emr6486901wmh.31.1688489589960;
+        Tue, 04 Jul 2023 09:53:09 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id p8-20020a7bcc88000000b003fb225d414fsm24216421wma.21.2023.07.04.09.53.08
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 04 Jul 2023 09:53:09 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 4 Jul 2023 18:13:53 +0300
-Message-ID: <CAOQ4uxhkMYMnPL81RoWdnxCsiNtf-AbBVPcRj=hbo4vd8yp=QA@mail.gmail.com>
-Subject: Re: [PATCH] ovl: move all parameter handling into params.{c,h}
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Miklos Szeredi <mszeredi@redhat.com>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs update for 6.5 - part 2
+Date:   Tue,  4 Jul 2023 19:53:04 +0300
+Message-Id: <20230704165304.658275-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jul 3, 2023 at 12:16=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
-> wrote:
->
-> On Mon, Jun 26, 2023 at 4:40=E2=80=AFPM Amir Goldstein <amir73il@gmail.co=
-m> wrote:
-> >
-> > On Mon, Jun 26, 2023 at 1:23=E2=80=AFPM Christian Brauner <brauner@kern=
-el.org> wrote:
-> > >
-> > > While initially I thought that we couldn't move all new mount api
-> > > handling into params.{c,h} it turns out it is possible. So this just
-> > > moves a good chunk of code out of super.c and into params.{c,h}.
-> > >
-> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > ---
-> > >
-> >
-> > Thank you for this cleanup!
-> >
-> > Alex,
-> >
-> > I took the liberty to resolve the conflicts with your branch, see:
-> >
-> > https://github.com/amir73il/linux/commits/overlay-verity
->
-> Thanks, I took a look at this and it seems good. Updated my branch to thi=
-s too.
->
+Hi Linus,
 
-FYI, I pushed this cleanup commit to overlayfs-next, so
-you can rebase overlay-verity v5 on top of that.
+This is a small "move code around" followup by Christian to his
+work on porting overlayfs to the new mount api for 6.5.
 
-I will send this cleanup to Linus, so we have a clean slate for
-the 6.6 cycle.
+This branch merges cleanly with master and passes the usual tests.
+It has been sitting in linux-next for a few days and yesterday
+it was updated with a build warning fix reported by Arnd [1].
+
+It is not strictly necessary to have this merged for rc1, but it will
+make things a bit cleaner and simpler for the next development cycle
+when I hand overlayfs over to Miklos.
 
 Thanks,
 Amir.
+
+[1] https://lore.kernel.org/linux-unionfs/CAOQ4uxj5v=zTsiXvHGD70nMcKSvTVwM2G0raCDePY64gofu+AQ@mail.gmail.com/
+
+The following changes since commit a901a3568fd26ca9c4a82d8bc5ed5b3ed844d451:
+
+  Merge tag 'iomap-6.5-merge-1' of git://git.kernel.org/pub/scm/fs/xfs/xfs-linux (2023-07-02 11:14:54 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-update-6.5-2
+
+for you to fetch changes up to 7fb7998b599a2e1f3744fbd34a3e7145da841ed1:
+
+  ovl: move all parameter handling into params.{c,h} (2023-07-03 16:08:17 +0300)
+
+----------------------------------------------------------------
+overlayfs update for 6.5 - part 2
+
+----------------------------------------------------------------
+Christian Brauner (1):
+      ovl: move all parameter handling into params.{c,h}
+
+ fs/overlayfs/overlayfs.h |  41 +---
+ fs/overlayfs/params.c    | 532 ++++++++++++++++++++++++++++++++++++++++++++++-
+ fs/overlayfs/params.h    |  42 ++++
+ fs/overlayfs/super.c     | 530 +---------------------------------------------
+ 4 files changed, 581 insertions(+), 564 deletions(-)
+ create mode 100644 fs/overlayfs/params.h
