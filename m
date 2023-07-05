@@ -2,66 +2,66 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C171EB64DD
-	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Jul 2023 08:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00CC5EB64DA
+	for <linux-unionfs@archiver.kernel.org>; Wed,  5 Jul 2023 09:10:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231789AbjGEIIi (ORCPT
+        id S230487AbjGEJKF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 5 Jul 2023 04:08:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39226 "EHLO
+        Wed, 5 Jul 2023 05:10:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231521AbjGEIIh (ORCPT
+        with ESMTP id S230157AbjGEJKE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 5 Jul 2023 04:08:37 -0400
+        Wed, 5 Jul 2023 05:10:04 -0400
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 525D9133
-        for <linux-unionfs@vger.kernel.org>; Wed,  5 Jul 2023 01:07:54 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 991581706
+        for <linux-unionfs@vger.kernel.org>; Wed,  5 Jul 2023 02:09:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1688544473;
+        s=mimecast20190719; t=1688548165;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=ZjAnllnS92S3vOqpBo7l6W/k2CUBJSHTlRNn8Oppiz4=;
-        b=Ywe7lWs9V0k3aw1x0c4CesuJJtFeU6VeinmUQ+Kv15undQfVfYLg2VRYa/AcjPK46WhDWM
-        SNZUx+dMlePEU43z3RZt2gCaWzQBFcSND9E+SEpf0LUbH0LtYbsbNm8R/u+eMaALVpdvPF
-        t7hKf/8Xu646AUymVN5WJg11ntSLjPY=
+        bh=eiFA7P4RMGjmdgMoHl/w6ySnit/pa7gC/N0C4ZnDvgU=;
+        b=CaRJ2LGfkiW7v5cUGRt5YMUrBFbO5I03Zd2LfB3Uv9MBgtEQqCA42jd2kfikcPst5rhL+Q
+        lVKAUCleI2437fwB0IPKC69QlvVpUzHh/LqWntlw1ys3oC6S8DosJyV3VGzuOB34rhFlD+
+        5SF+2jO6vYho4Dz/NepeKnap8DkakDM=
 Received: from mail-il1-f197.google.com (mail-il1-f197.google.com
  [209.85.166.197]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-222-lnOXJF0ROWaPMUlXqztMfA-1; Wed, 05 Jul 2023 04:07:51 -0400
-X-MC-Unique: lnOXJF0ROWaPMUlXqztMfA-1
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-34606e2dcc9so13545255ab.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 05 Jul 2023 01:07:51 -0700 (PDT)
+ us-mta-78-YXqX0PYhN9SynQzC5uK8bQ-1; Wed, 05 Jul 2023 05:09:24 -0400
+X-MC-Unique: YXqX0PYhN9SynQzC5uK8bQ-1
+Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-34603502e5aso23139075ab.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 05 Jul 2023 02:09:24 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688544471; x=1691136471;
+        d=1e100.net; s=20221208; t=1688548163; x=1691140163;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ZjAnllnS92S3vOqpBo7l6W/k2CUBJSHTlRNn8Oppiz4=;
-        b=hCPC3bnbV3UpUZt9EVIGohzsKzCYLL9UGTJZzcwaT2V8BnHv3bMW/6DlCiNzUhtMje
-         +wj702xKQGj9fjZrNoyR2yLmfGBSPQb+7kLcwvZX6+EjGlAjm51VcOcDKbJPWNeeaDqI
-         dOsGZEiiTaavi4z1Gfhr6SwB3rCZCUtVrXzE8hw78c6UU3WcbjLu8jeqmoeDYTopXLpN
-         JVk9UMT9Xbwd7JKZhIJNCvFw1xuK/SazQhnEFx37Ij2rIMwwBi4vHsLqDJQSv9xzwXVT
-         uxAElsWbm0ZjC9hWc7SLuKwWk8KvE/Jap9jCnpQgQrvUV6l+23TUYPYJmid2tT8OOQeb
-         +qHA==
-X-Gm-Message-State: ABy/qLY+O4SEE1obuYGnQJPGatH+GrTicZhhc83W7guaT0KfTe9scdVJ
-        MNZG04Ls1WgAuU3xgxyZ07khKxhoeDbhu/nRaUWgSIt9z4R6Hrhx4V1Sxf6+zEMfeGEkIBEPG0p
-        /+Z2A5TjQjm7zFp5ca2ysyH/Aq45Psx62kLs2tnAU9Q==
-X-Received: by 2002:a92:d7d1:0:b0:342:655f:6f25 with SMTP id g17-20020a92d7d1000000b00342655f6f25mr13496181ilq.31.1688544470858;
-        Wed, 05 Jul 2023 01:07:50 -0700 (PDT)
-X-Google-Smtp-Source: APBJJlH6iahUKCHAfmzEsw4rJkqZmgC0TqPd8lrw7+xDO9rFoaLFb6rFR8YZz8IFjmvbtQrnu5EBsxlUKgDi9bT0iTA=
-X-Received: by 2002:a92:d7d1:0:b0:342:655f:6f25 with SMTP id
- g17-20020a92d7d1000000b00342655f6f25mr13496165ilq.31.1688544470652; Wed, 05
- Jul 2023 01:07:50 -0700 (PDT)
+        bh=eiFA7P4RMGjmdgMoHl/w6ySnit/pa7gC/N0C4ZnDvgU=;
+        b=J06C2xwySf6P/bPFk5HqKxbAkxPiwDIr6vPqP0MFRbCQaB81hoG9hJVLgOTVUfYh+l
+         dJP3gyNLG4u7cPI0ZYor2hrMFWiD5jLhhDlDYY2S3chXkhyIYD1+bUlCsO1E/U67D+K8
+         K87wETzoxZGpBxV8MXTuUa+tn8eBP8Yu9lbyUSnNp2AQMM1GfZVdfziUGmxgueDxYh7x
+         /jNDXKclyzih28GV0gw5MDqkkso2QT0V9jozmOEqj8j++IOcGsqIXYe4tBBPIX7NDr9n
+         godBX/fkCsx7b7Yrq6ai9g3BNBBARmwXk6tWp7O7AxLmLQs5N7l6PMYjNoJMnssfxcYL
+         V1jA==
+X-Gm-Message-State: ABy/qLYHKolK+sQ7rwjTT7fzq+3y37C4bPvAtmLPl7bSSWXswp7Js/5u
+        x0m7DGzOhFEZch0Wd43ybm5DtlrZmODnbIumOEqioZ/huVIVE4wEufbKNOtAx7swR2fd1C+4w0k
+        iVXBAi9F2rx0xoo4rw+ARHcKJKKBcCqkFmZ6ROpBdx3Rsq9jyUUUl
+X-Received: by 2002:a92:d710:0:b0:345:d326:9c7f with SMTP id m16-20020a92d710000000b00345d3269c7fmr14785016iln.29.1688548163730;
+        Wed, 05 Jul 2023 02:09:23 -0700 (PDT)
+X-Google-Smtp-Source: APBJJlFkB4taqnhwZxeT8jJevExkCOnqfRT3EZ4R2Os2oQzvRu1q95PSSlutxrDmjLNuM/DNP6JZcVhVfJBvfLH//uM=
+X-Received: by 2002:a92:d710:0:b0:345:d326:9c7f with SMTP id
+ m16-20020a92d710000000b00345d3269c7fmr14785009iln.29.1688548163584; Wed, 05
+ Jul 2023 02:09:23 -0700 (PDT)
 MIME-Version: 1.0
-References: <cover.1687345663.git.alexl@redhat.com> <b7a2dfb80e35dda04edd942ad715dc88b784c218.1687345663.git.alexl@redhat.com>
- <20230703191355.GC1194@sol.localdomain>
-In-Reply-To: <20230703191355.GC1194@sol.localdomain>
+References: <cover.1687345663.git.alexl@redhat.com> <5dfdecee8f0260729c4a8e8150587f128a731ccb.1687345663.git.alexl@redhat.com>
+ <20230703192434.GD1194@sol.localdomain>
+In-Reply-To: <20230703192434.GD1194@sol.localdomain>
 From:   Alexander Larsson <alexl@redhat.com>
-Date:   Wed, 5 Jul 2023 10:07:39 +0200
-Message-ID: <CAL7ro1GpGczvGN28yVNMOw_9Uz-2SEJcRUMmvoBdmEWO5ynb7g@mail.gmail.com>
-Subject: Re: [PATCH v4 2/4] ovl: Add versioned header for overlay.metacopy xattr
+Date:   Wed, 5 Jul 2023 11:09:12 +0200
+Message-ID: <CAL7ro1FH33+bBbBM4bOdR75AZ4XjkezSfThHJ2Czb_GMTxw9MQ@mail.gmail.com>
+Subject: Re: [PATCH v4 3/4] ovl: Validate verity xattr when resolving lowerdata
 To:     Eric Biggers <ebiggers@kernel.org>
 Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
         amir73il@gmail.com, tytso@mit.edu, fsverity@lists.linux.dev
@@ -71,60 +71,28 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jul 3, 2023 at 9:14=E2=80=AFPM Eric Biggers <ebiggers@kernel.org> w=
+On Mon, Jul 3, 2023 at 9:24=E2=80=AFPM Eric Biggers <ebiggers@kernel.org> w=
 rote:
 >
-> On Wed, Jun 21, 2023 at 01:18:26PM +0200, Alexander Larsson wrote:
-> > Historically overlay.metacopy was a zero-size xattr, and it's
-> > existence marked a metacopy file. This change adds a versioned header
-> > with a flag field, a length and a digest. The initial use-case of this
-> > will be for validating a fs-verity digest, but the flags field could
-> > also be used later for other new features.
-> >
-> > ovl_check_metacopy_xattr() now returns the size of the xattr,
-> > emulating a size of OVL_METACOPY_MIN_SIZE for empty xattrs to
-> > distinguish it from the no-xattr case.
-> >
-> > Signed-off-by: Alexander Larsson <alexl@redhat.com>
-> > ---
-> >  fs/overlayfs/namei.c     | 10 +++++-----
-> >  fs/overlayfs/overlayfs.h | 24 +++++++++++++++++++++++-
-> >  fs/overlayfs/util.c      | 37 +++++++++++++++++++++++++++++++++----
-> >  3 files changed, 61 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-> > index 57adf911735f..3dd480253710 100644
-> > --- a/fs/overlayfs/namei.c
-> > +++ b/fs/overlayfs/namei.c
-> > @@ -25,7 +25,7 @@ struct ovl_lookup_data {
-> >       bool stop;
-> >       bool last;
-> >       char *redirect;
-> > -     bool metacopy;
-> > +     int metacopy;
+> On Wed, Jun 21, 2023 at 01:18:27PM +0200, Alexander Larsson wrote:
+> > +static int ovl_ensure_verity_loaded(struct path *datapath)
+> > +{
+> > +     struct inode *inode =3D d_inode(datapath->dentry);
+> > +     const struct fsverity_info *vi;
+> > +     struct file *filp;
+> > +
+> > +     vi =3D fsverity_get_info(inode);
+> > +     if (vi =3D=3D NULL && IS_VERITY(inode)) {
 >
-> Should this be called 'metacopy_size' now?
+> Can you please use '!fsverity_active(inode)' instead of
+> 'fsverity_get_info(inode) =3D=3D NULL'?  The result is exactly the same, =
+but
+> fsverity_active() is the intended "API" for code outside fs/verity/.
+> fsverity_get_info() is in the header only because fsverity_active() calls=
+ it.
 
-Honestly I don't know. That would change a lot of locations that still
-use this as "essentially" a boolean (i.e. !=3D 0 means "has metacopy"),
-and ity would make that code less compact. I guess this is up to Amir
-and Miklos. Surely we could add a comment in the struct definition
-though.
-
-> > -             err =3D ovl_check_metacopy_xattr(OVL_FS(d->sb), &path);
-> > +             err =3D ovl_check_metacopy_xattr(OVL_FS(d->sb), &path, NU=
-LL);
-> >               if (err < 0)
-> >                       goto out_err;
->
-> This part is confusing because variables named 'err' conventionally conta=
-in only
-> 0 or a negative errno value.  But this patch makes it possible for
-> ovl_check_metacopy_xattr() to return a positive size.
-
-It was already returning "negative, 0 or 1", so it's not fundamentally
-changed. Again, this is not my code so I'd rather Amir and Miklos
-decide such code style questions.
+Changed this in git:
+https://github.com/alexlarsson/linux/tree/overlay-verity
 
 --=20
 =3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
