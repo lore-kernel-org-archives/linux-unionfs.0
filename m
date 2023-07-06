@@ -2,256 +2,134 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7917EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Jul 2023 07:27:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 314BFEB64D9
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Jul 2023 07:51:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231950AbjGFH13 (ORCPT
+        id S229528AbjGFHvu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 6 Jul 2023 03:27:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47674 "EHLO
+        Thu, 6 Jul 2023 03:51:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231659AbjGFH12 (ORCPT
+        with ESMTP id S233927AbjGFHvt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Jul 2023 03:27:28 -0400
-Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 555E410A;
-        Thu,  6 Jul 2023 00:27:27 -0700 (PDT)
-Received: by mail-ua1-x92f.google.com with SMTP id a1e0cc1a2514c-76d846a4b85so135867241.1;
-        Thu, 06 Jul 2023 00:27:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688628446; x=1691220446;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uISjg6ChBgK0HXMruOvFhiDZACJ6uRcTTfMW8Zf5U6s=;
-        b=hwXrI9BKuovy+Rnvq34hNjrVvQ67zEZsbnp1jQKYvtotZ1Y77CXK0UOrxDR6YbZSID
-         vB4vqONtsg+IQG4TuKMoUcNAylrH+SspxoAeeaavS6WDTa8bVYlCwm3r+m3IWRVh46gA
-         oQdpSGohRRUp5f/CDX9ANOn4+u/wHuyDH9UMCEEONbyaIgGT5ynQO27eBi1giSdkT6Hm
-         srjBFPJ22PooaWIGRv3V6l08Vl5OxaEx/pybKfFyiSUs3tgrEIt7tA1Bmv4WlSS+/95s
-         fvs2WDQ0aGOSizcGgj6BE44DCHmjPtGoXNakcVZxMaOVlcEf0Dt04p7tFC3l/1fxwAd9
-         ORPw==
+        Thu, 6 Jul 2023 03:51:49 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 296EF1BD2
+        for <linux-unionfs@vger.kernel.org>; Thu,  6 Jul 2023 00:51:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1688629866;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=2kVVtIZSoE8S9z1B4caCrql+YqVtIvzxCPgrjGJ9FzM=;
+        b=M/KhcobUSVotCWD4mHzH2cI8IhLq0+REX7E/XDBANokSFLXcVn/YX5kKsJtJ3L3r0HUbFu
+        KXI3QHWZrHFKLfZg859z8Fmr6cgenYPaCCSvhbUr3Gm0FHJVfwp3qVY8JAPjOQUTFxcOiM
+        RxV1UDCCmOHe12wPPJUi3qOhwxLsPoA=
+Received: from mail-il1-f199.google.com (mail-il1-f199.google.com
+ [209.85.166.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-193-INbtqlc1PM2sTeDeLh8zaA-1; Thu, 06 Jul 2023 03:51:03 -0400
+X-MC-Unique: INbtqlc1PM2sTeDeLh8zaA-1
+Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-345e7434a79so1672205ab.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 06 Jul 2023 00:51:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688628446; x=1691220446;
+        d=1e100.net; s=20221208; t=1688629862; x=1691221862;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=uISjg6ChBgK0HXMruOvFhiDZACJ6uRcTTfMW8Zf5U6s=;
-        b=MzlbXWkcIDxecUfhlcaz3f7O9SxSSJAfIHrYiuK/dgMCoE3OLxc9wEcg4zeRV+fJHM
-         tVXoSWdj2FqLLiOhv5DicXdaVcejqaUfJB2iqYO5aUysNaAUx4I8fBHuiWhpNC6ea0UF
-         L6lJI+rAkkp3dPNhzQQ7sfT3quPhw2+z0Un1mKioRQxBG5UhjH8X/XQ/6bpayxpEV1q5
-         iGPpc2w0xxbvPWpYG0QEYGjNIbXdtJxkH1KNb9FaTOD6SHoqIOLJ+YYjIg69IOryGPxr
-         5kHyr218xrAA5JZ3ywTxDp2hB7jP4AFQfl26qRZRfyZ44gUmyLJN8EebaPjZp3DnnPmq
-         eTtw==
-X-Gm-Message-State: ABy/qLYkvMlIt6sFE3YIIOF8m/Pj5Nj5p+odWGsLwR5VSlFFH7XsQtM2
-        /B/RRboqKxwncdvHlfm+hN1eQWjsv3qHQ9di+ds=
-X-Google-Smtp-Source: APBJJlELbNo2X6GQfQ9G96Q57ELTFwqdMlj1Psro/5ccMyC3gS4n+hLkhSCFC37mxbjHSdoOpgM2Hulu/zkq5e2pczc=
-X-Received: by 2002:a67:f7c3:0:b0:443:60d7:3925 with SMTP id
- a3-20020a67f7c3000000b0044360d73925mr663927vsp.20.1688628446353; Thu, 06 Jul
- 2023 00:27:26 -0700 (PDT)
+        bh=2kVVtIZSoE8S9z1B4caCrql+YqVtIvzxCPgrjGJ9FzM=;
+        b=J3PVc9K7o5SpkuKD0KDHYwNd10KNiWParCoKUE7Dc4SeUqiI3QgKaq8q7DjsDrj+NY
+         UCDlvCj/CfiuqEMNbZXMPGXF4LSyxaaVkYY1s9oiu44I/n6kdtAPr3oXaiZS2LkGuDO6
+         3h1287VocEA3v7Sm6Ip9Cbv9SYrXaZ9GuzGms5ou5plmm222svq4NTIV3EjWM0Z0hbMO
+         XhCKDL2slch/Re2z833pZdemXy020GVtl6kdWM3N+CBXO2QiMVoPa2PL/xhbKfBVO60h
+         YHkatW7EZHbrXU1Bk2b+bfVK8owexItJgUgN2gmiAiZHU/bzb4Y2yhuIl5JiF5/lvnFO
+         Hvzg==
+X-Gm-Message-State: ABy/qLZDTu15mxoD35qjjtvb99g3qcCeabqA+CCXZDEoS/gTkSkqpWip
+        r7UxqnnXw9Y/8LuNoXYoTKtQ6pbNXkhnviBxQ+e/9o8OJvm+t+xj0Ns7fsYhRHKpMq3cEusbecS
+        Gnn+GSeLYpCgOq0QA+1H35mcBHYMoc2W0d5jB1qAXvg==
+X-Received: by 2002:a92:c841:0:b0:346:d51:9922 with SMTP id b1-20020a92c841000000b003460d519922mr1455437ilq.13.1688629862424;
+        Thu, 06 Jul 2023 00:51:02 -0700 (PDT)
+X-Google-Smtp-Source: APBJJlG7a0GhK3+Saee/CYGqC2wgFg3RwMjVJuW61vfPauNuP+k8RbTpRIBwqBpzenz0FE1yw3OZdau6SJbewpgWgJ4=
+X-Received: by 2002:a92:c841:0:b0:346:d51:9922 with SMTP id
+ b1-20020a92c841000000b003460d519922mr1455429ilq.13.1688629862197; Thu, 06 Jul
+ 2023 00:51:02 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230425132223.2608226-1-amir73il@gmail.com> <20230425132223.2608226-2-amir73il@gmail.com>
-In-Reply-To: <20230425132223.2608226-2-amir73il@gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 6 Jul 2023 10:27:15 +0300
-Message-ID: <CAOQ4uxh70boEqU4cxhWFOk8y=eQCBTr=68TY39SMmgdD-B2HKA@mail.gmail.com>
-Subject: Re: [RFC][PATCH 1/3] ovl: support encoding non-decodeable file handles
-To:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+References: <cover.1686565330.git.alexl@redhat.com> <CAOQ4uxgmV1KKCeq8=8FPkAciwqPpz8JiSM8WEuxDaZbVuYcQ7Q@mail.gmail.com>
+ <CAL7ro1EiYOOOqexrKy+UXRzmpGyCaNec3+LHGxnA0YfmoMDN3A@mail.gmail.com>
+ <CAL7ro1FKwgUY4e7N_vYi0cFsuVx6St0-oKvcBkiRFnzLH8D1eQ@mail.gmail.com>
+ <CAOQ4uxgVnv7wtwFZaBnEotFCwQD1EZcSK2KW4K4vRD8d9fzCiw@mail.gmail.com>
+ <CAL7ro1FY6OmhypFGDjinOkkjyJzymntVje4nRA558dKY+KsgzQ@mail.gmail.com>
+ <CAOQ4uxjuhzxgTxmRXxczJLDrMzKKr-jzS3R8ESwkw4XQ+UyAfQ@mail.gmail.com>
+ <CAL7ro1GYEdMvjn+e8Y8CmMC-s_5NZOXjsj=iv7s5NbnpTZz+Cg@mail.gmail.com>
+ <CAOQ4uxjS9mTjCCTS9eS1HmZqKAQV97mh1wpkqJuShCHP_MKqag@mail.gmail.com>
+ <CAOQ4uxjNMJG6TQcZiT2sx8eLTyybf+iLR3GtOKaaj7QydVr_0Q@mail.gmail.com>
+ <CAL7ro1GhLcPK-xahOVmJAtL5pbgMVm0GVd2xW7tgO+_R4dbD5Q@mail.gmail.com> <CAOQ4uxhiU-y=dMocoSGb75Rze_jOLp82MctB26yFYPT3CMOM3g@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhiU-y=dMocoSGb75Rze_jOLp82MctB26yFYPT3CMOM3g@mail.gmail.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Thu, 6 Jul 2023 09:50:50 +0200
+Message-ID: <CAL7ro1HzspAnCMX-EK3gzaggPqTCEREv1qzeQSTuNhGyM8ESaQ@mail.gmail.com>
+Subject: Re: [PATCH v3 0/4] ovl: Add support for fs-verity checking of lowerdata
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     ebiggers@kernel.org, tytso@mit.edu, miklos@szeredi.hu,
+        linux-unionfs@vger.kernel.org, fsverity@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Apr 25, 2023 at 4:22=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Thu, Jul 6, 2023 at 9:10=E2=80=AFAM Amir Goldstein <amir73il@gmail.com> =
+wrote:
 >
-> When all layers support file handles, we support encoding non-decodeable
-> file handles (a.k.a. fid) even with nfs_export=3Doff.
+> On Mon, Jul 3, 2023 at 11:11=E2=80=AFAM Alexander Larsson <alexl@redhat.c=
+om> wrote:
+> >
+> > Cool, I wanted to look at this, but was on PTO last week.
+> > It looks good to me, and I synced this to:
+> >   https://github.com/alexlarsson/xfstests/commits/verity-tests
+> > To avoid drift.
+> >
 >
-> When file handles do not need to be decoded, we do not need to copy up
-> redirected lower directories on encode, and we encode also non-indexed
-> upper with lower file handle, so fid will not change on copy up.
+> I pushed the overlay-verity series to overlayfs-next, so you may
+> expect "finishing touches" bug reports from bots in the near future.
+> As long as they are minor fixes, you can fix your branch and let me know
+> and I will update overlayfs-next.
 >
-> This enables reporting fanotify events with file handles on overlayfs
-> with default config/mount options.
->
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
+> Miklos may yet have feedback on the final version, but I think all his
+> comments were addressed including the ACK from Eric (thanks!).
 
-FYI, the exportfs support for non-decodable file handles has been merged.
+Nice!
 
-This follow up series which adds support for non-decodable file handles
-to overlayfs has been pushed to:
-https://github.com/amir73il/linux/commits/ovl_encode_fid
-and to overlayfs-next (pending review by Miklos).
+> Eric,
+>
+> There was no posting of v5 that addressed your v4 review comments,
+> so we do not have your RVB/ACK for patches 2-4.
+> Let me know if you want me to add that to the patches.
+>
+> Alex,
+>
+> wrt overlay verity-tests, please submit those tests along with the lowerd=
+ata
+> tests to fstests anytime between now and the 6.6 merge window.
+> The tests are properly equipped to check for the feature and testers can
+> use them to test linux-next.
 
-fanotify (over ovl) tests are available at:
-https://github.com/amir73il/ltp/commits/ovl_encode_fid
+I'll have a look at this soon.
 
-Thanks,
-Amir.
+> For test overlay/080 you may add:
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> For test overlay/079 you may retain my authorship or assume authorship
+> I don't mind as it was co-authored and you took it to the finish line.
+>
+> Thanks,
+> Amir.
+>
 
->  fs/overlayfs/export.c    | 26 ++++++++++++++++++++------
->  fs/overlayfs/inode.c     |  2 +-
->  fs/overlayfs/overlayfs.h |  1 +
->  fs/overlayfs/ovl_entry.h |  1 +
->  fs/overlayfs/super.c     |  9 +++++++++
->  5 files changed, 32 insertions(+), 7 deletions(-)
->
-> diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
-> index defd4e231ad2..dfd05ad2b722 100644
-> --- a/fs/overlayfs/export.c
-> +++ b/fs/overlayfs/export.c
-> @@ -173,28 +173,37 @@ static int ovl_connect_layer(struct dentry *dentry)
->   * U =3D upper file handle
->   * L =3D lower file handle
->   *
-> - * (*) Connecting an overlay dir from real lower dentry is not always
-> + * (*) Decoding a connected overlay dir from real lower dentry is not al=
-ways
->   * possible when there are redirects in lower layers and non-indexed mer=
-ge dirs.
->   * To mitigate those case, we may copy up the lower dir ancestor before =
-encode
-> - * a lower dir file handle.
-> + * of a decodeable file handle for non-upper dir.
->   *
->   * Return 0 for upper file handle, > 0 for lower file handle or < 0 on e=
-rror.
->   */
->  static int ovl_check_encode_origin(struct dentry *dentry)
->  {
->         struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
-> +       bool decodeable =3D ofs->config.nfs_export;
-> +
-> +       /* Lower file handle for non-upper non-decodeable */
-> +       if (!ovl_dentry_upper(dentry) && !decodeable)
-> +               return 0;
->
->         /* Upper file handle for pure upper */
->         if (!ovl_dentry_lower(dentry))
->                 return 0;
->
->         /*
-> -        * Upper file handle for non-indexed upper.
-> -        *
->          * Root is never indexed, so if there's an upper layer, encode up=
-per for
->          * root.
->          */
-> -       if (ovl_dentry_upper(dentry) &&
-> +       if (dentry =3D=3D dentry->d_sb->s_root)
-> +               return 0;
-> +
-> +       /*
-> +        * Upper decodeable file handle for non-indexed upper.
-> +        */
-> +       if (ovl_dentry_upper(dentry) && decodeable &&
->             !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
->                 return 0;
->
-> @@ -204,7 +213,7 @@ static int ovl_check_encode_origin(struct dentry *den=
-try)
->          * ovl_connect_layer() will try to make origin's layer "connected=
-" by
->          * copying up a "connectable" ancestor.
->          */
-> -       if (d_is_dir(dentry) && ovl_upper_mnt(ofs))
-> +       if (d_is_dir(dentry) && ovl_upper_mnt(ofs) && decodeable)
->                 return ovl_connect_layer(dentry);
->
->         /* Lower file handle for indexed and non-upper dir/non-dir */
-> @@ -875,3 +884,8 @@ const struct export_operations ovl_export_operations =
-=3D {
->         .get_name       =3D ovl_get_name,
->         .get_parent     =3D ovl_get_parent,
->  };
-> +
-> +/* encode_fh() encodes non-decodeable file handles with nfs_export=3Doff=
- */
-> +const struct export_operations ovl_export_fid_operations =3D {
-> +       .encode_fh      =3D ovl_encode_fh,
-> +};
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 541cf3717fc2..b6bec4064390 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -1304,7 +1304,7 @@ static bool ovl_hash_bylower(struct super_block *sb=
-, struct dentry *upper,
->                 return false;
->
->         /* No, if non-indexed upper with NFS export */
-> -       if (sb->s_export_op && upper)
-> +       if (ofs->config.nfs_export && upper)
->                 return false;
->
->         /* Otherwise, hash by lower inode for fsnotify */
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 4d0b278f5630..87d44b889129 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -734,3 +734,4 @@ int ovl_set_origin(struct ovl_fs *ofs, struct dentry =
-*lower,
->
->  /* export.c */
->  extern const struct export_operations ovl_export_operations;
-> +extern const struct export_operations ovl_export_fid_operations;
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index fd11fe6d6d45..5cc0b6e65488 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -67,6 +67,7 @@ struct ovl_fs {
->         const struct cred *creator_cred;
->         bool tmpfile;
->         bool noxattr;
-> +       bool nofh;
->         /* Did we take the inuse lock? */
->         bool upperdir_locked;
->         bool workdir_locked;
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index f1d9f75f8786..5ed8c2650293 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -954,6 +954,7 @@ static int ovl_lower_dir(const char *name, struct pat=
-h *path,
->                 pr_warn("fs on '%s' does not support file handles, fallin=
-g back to index=3Doff,nfs_export=3Doff.\n",
->                         name);
->         }
-> +       ofs->nofh |=3D !fh_type;
->         /*
->          * Decoding origin file handle is required for persistent st_ino.
->          * Without persistent st_ino, xino=3Dauto falls back to xino=3Dof=
-f.
-> @@ -1391,6 +1392,7 @@ static int ovl_make_workdir(struct super_block *sb,=
- struct ovl_fs *ofs,
->                 ofs->config.index =3D false;
->                 pr_warn("upper fs does not support file handles, falling =
-back to index=3Doff.\n");
->         }
-> +       ofs->nofh |=3D !fh_type;
->
->         /* Check if upper fs has 32bit inode numbers */
->         if (fh_type !=3D FILEID_INO32_GEN)
-> @@ -2049,8 +2051,15 @@ static int ovl_fill_super(struct super_block *sb, =
-void *data, int silent)
->                 ofs->config.nfs_export =3D false;
->         }
->
-> +       /*
-> +        * Support encoding decodeable file handles with nfs_export=3Don
-> +        * and encoding non-decodeable file handles with nfs_export=3Doff
-> +        * if all layers support file handles.
-> +        */
->         if (ofs->config.nfs_export)
->                 sb->s_export_op =3D &ovl_export_operations;
-> +       else if (!ofs->nofh)
-> +               sb->s_export_op =3D &ovl_export_fid_operations;
->
->         /* Never override disk quota limits or use reserved space */
->         cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-> --
-> 2.34.1
->
+
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
+
