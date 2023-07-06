@@ -2,185 +2,190 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2610CEB64DC
-	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Jul 2023 17:49:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C658AC04A94
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Jul 2023 19:06:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231551AbjGFRtT (ORCPT
+        id S232344AbjGFTGS (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 6 Jul 2023 13:49:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45942 "EHLO
+        Thu, 6 Jul 2023 15:06:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39668 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230466AbjGFRtS (ORCPT
+        with ESMTP id S231213AbjGFTGO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Jul 2023 13:49:18 -0400
-Received: from mail-vs1-xe2f.google.com (mail-vs1-xe2f.google.com [IPv6:2607:f8b0:4864:20::e2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B1C41994;
-        Thu,  6 Jul 2023 10:49:17 -0700 (PDT)
-Received: by mail-vs1-xe2f.google.com with SMTP id ada2fe7eead31-44523d9fd18so240874137.0;
-        Thu, 06 Jul 2023 10:49:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688665756; x=1691257756;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=r7YVAvRgBwLU7VNNwMWt+QDw4y422q60OVOAo7u9pOs=;
-        b=scReaXK2EFyHrPuAAGDOm6MpiHph8fwS+r4Ddbll9B3Qni8YRGy393VlY7N/3oOKgh
-         EVcOBP/S0joD0zd16zBAGjd0dql8H/yUsBRW7FTZgozQLFowEskbufCIbjgBOg5a2bqE
-         eJfUlvkOU9u8+/TNvXJeRHf0A5MokHGkdRXB0eaWsgUnHpP9uFAKB2qEfNdoBHnUfWPp
-         GmEPZEZG+pq5dDqnsTGMlS5R9qmABAc9rIAHo0jXA9sB4GHzhTs+cN+RlLgb6V/IOVGw
-         EMNZDBUolZmRghKHMoxLMMfGtiURW7B633Xjtff9pgt6ynAbg4DwuuQ6/5B9O0eLXTas
-         nbcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688665756; x=1691257756;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=r7YVAvRgBwLU7VNNwMWt+QDw4y422q60OVOAo7u9pOs=;
-        b=euD11F1ACDQykFUVHemkSM7RlZ23rDO+8gLkXFlbSFKHYu2xe9QOGnbtvoqX+4cNFZ
-         TabHgO52WMaT+6FCCeWfgIx0GsL/fr7M4B0pKV2Fq6qoWeYI8gR54UUOMGNUh9g42CDI
-         fsOq7rCJRUZzyNBKISj7LJ637kT3DQg6pCtNE3L9VBWXcUk+ywnUUnPQ1aSAq3gMprEC
-         gWPTsH1PoPJ7c+GTcumkk5yIogX3Ub6kwDSOCjt3Sl96FPZYZGTvwrReKKfNwVeYuBU/
-         zipV0/h6yDR7W8KSW0LJJT6BuvRYi9avEiAs8tCkO/UZuVJUy23YBnPCoADi8R33Rgmm
-         RACQ==
-X-Gm-Message-State: ABy/qLZ7ofZ8OFRXGElmB7SMzlhwifeyb3qHM6eqdc12EVGDVWuCcV52
-        2bahdhoYgLXSzAUvVeFlEuskKSZPpywzxQjlUPg=
-X-Google-Smtp-Source: APBJJlFemOouqmN0uw4a9jmKiaVfqXFICB31VE/qNSt1sixAY+4Gc3eKenyPpqGoElIzTAxRfJp5bBHsgvgz/Ia+2EM=
-X-Received: by 2002:a67:e889:0:b0:445:110:acce with SMTP id
- x9-20020a67e889000000b004450110accemr1253493vsn.14.1688665756578; Thu, 06 Jul
- 2023 10:49:16 -0700 (PDT)
+        Thu, 6 Jul 2023 15:06:14 -0400
+X-Greylist: delayed 5284 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 06 Jul 2023 12:06:12 PDT
+Received: from out02.mta.xmission.com (out02.mta.xmission.com [166.70.13.232])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 69E491BDB;
+        Thu,  6 Jul 2023 12:06:12 -0700 (PDT)
+Received: from in01.mta.xmission.com ([166.70.13.51]:40568)
+        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1qHQio-00FMgf-7e; Thu, 06 Jul 2023 09:16:42 -0600
+Received: from ip68-110-29-46.om.om.cox.net ([68.110.29.46]:55228 helo=email.froward.int.ebiederm.org.xmission.com)
+        by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1qHQim-00AsXt-Fk; Thu, 06 Jul 2023 09:16:41 -0600
+From:   "Eric W. Biederman" <ebiederm@xmission.com>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     jk@ozlabs.org, arnd@arndb.de, mpe@ellerman.id.au,
+        npiggin@gmail.com, christophe.leroy@csgroup.eu, hca@linux.ibm.com,
+        gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        gregkh@linuxfoundation.org, arve@android.com, tkjos@android.com,
+        maco@android.com, joel@joelfernandes.org, brauner@kernel.org,
+        cmllamas@google.com, surenb@google.com,
+        dennis.dalessandro@cornelisnetworks.com, jgg@ziepe.ca,
+        leon@kernel.org, bwarrum@linux.ibm.com, rituagar@linux.ibm.com,
+        ericvh@kernel.org, lucho@ionkov.net, asmadeus@codewreck.org,
+        linux_oss@crudebyte.com, dsterba@suse.com, dhowells@redhat.com,
+        marc.dionne@auristor.com, viro@zeniv.linux.org.uk,
+        raven@themaw.net, luisbg@kernel.org, salah.triki@gmail.com,
+        aivazian.tigran@gmail.com, keescook@chromium.org, clm@fb.com,
+        josef@toxicpanda.com, xiubli@redhat.com, idryomov@gmail.com,
+        jaharkes@cs.cmu.edu, coda@cs.cmu.edu, jlbec@evilplan.org,
+        hch@lst.de, nico@fluxnic.net, rafael@kernel.org, code@tyhicks.com,
+        ardb@kernel.org, xiang@kernel.org, chao@kernel.org,
+        huyue2@coolpad.com, jefflexu@linux.alibaba.com,
+        linkinjeon@kernel.org, sj1557.seo@samsung.com, jack@suse.com,
+        tytso@mit.edu, adilger.kernel@dilger.ca, jaegeuk@kernel.org,
+        hirofumi@mail.parknet.co.jp, miklos@szeredi.hu,
+        rpeterso@redhat.com, agruenba@redhat.com, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        mikulas@artax.karlin.mff.cuni.cz, mike.kravetz@oracle.com,
+        muchun.song@linux.dev, dwmw2@infradead.org, shaggy@kernel.org,
+        tj@kernel.org, trond.myklebust@hammerspace.com, anna@kernel.org,
+        chuck.lever@oracle.com, neilb@suse.de, kolga@netapp.com,
+        Dai.Ngo@oracle.com, tom@talpey.com, konishi.ryusuke@gmail.com,
+        anton@tuxera.com, almaz.alexandrovich@paragon-software.com,
+        mark@fasheh.com, joseph.qi@linux.alibaba.com, me@bobcopeland.com,
+        hubcap@omnibond.com, martin@omnibond.com, amir73il@gmail.com,
+        mcgrof@kernel.org, yzaikin@google.com, tony.luck@intel.com,
+        gpiccoli@igalia.com, al@alarsen.net, sfrench@samba.org,
+        pc@manguebit.com, lsahlber@redhat.com, sprasad@microsoft.com,
+        senozhatsky@chromium.org, phillip@squashfs.org.uk,
+        rostedt@goodmis.org, mhiramat@kernel.org, dushistov@mail.ru,
+        hdegoede@redhat.com, djwong@kernel.org, dlemoal@kernel.org,
+        naohiro.aota@wdc.com, jth@kernel.org, ast@kernel.org,
+        daniel@iogearbox.net, andrii@kernel.org, martin.lau@linux.dev,
+        song@kernel.org, yhs@fb.com, john.fastabend@gmail.com,
+        kpsingh@kernel.org, sdf@google.com, haoluo@google.com,
+        jolsa@kernel.org, hughd@google.com, akpm@linux-foundation.org,
+        davem@davemloft.net, edumazet@google.com, kuba@kernel.org,
+        pabeni@redhat.com, john.johansen@canonical.com,
+        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
+        stephen.smalley.work@gmail.com, eparis@parisplace.org,
+        jgross@suse.com, stern@rowland.harvard.edu, lrh2000@pku.edu.cn,
+        sebastian.reichel@collabora.com, wsa+renesas@sang-engineering.com,
+        quic_ugoswami@quicinc.com, quic_linyyuan@quicinc.com,
+        john@keeping.me.uk, error27@gmail.com, quic_uaggarwa@quicinc.com,
+        hayama@lineo.co.jp, jomajm@gmail.com, axboe@kernel.dk,
+        dhavale@google.com, dchinner@redhat.com, hannes@cmpxchg.org,
+        zhangpeng362@huawei.com, slava@dubeyko.com, gargaditya08@live.com,
+        penguin-kernel@I-love.SAKURA.ne.jp, yifeliu@cs.stonybrook.edu,
+        madkar@cs.stonybrook.edu, ezk@cs.stonybrook.edu,
+        yuzhe@nfschina.com, willy@infradead.org, okanatov@gmail.com,
+        jeffxu@chromium.org, linux@treblig.org, mirimmad17@gmail.com,
+        yijiangshan@kylinos.cn, yang.yang29@zte.com.cn,
+        xu.xin16@zte.com.cn, chengzhihao1@huawei.com, shr@devkernel.io,
+        Liam.Howlett@Oracle.com, adobriyan@gmail.com,
+        chi.minghao@zte.com.cn, roberto.sassu@huawei.com,
+        linuszeng@tencent.com, bvanassche@acm.org, zohar@linux.ibm.com,
+        yi.zhang@huawei.com, trix@redhat.com, fmdefrancesco@gmail.com,
+        ebiggers@google.com, princekumarmaurya06@gmail.com,
+        chenzhongjin@huawei.com, riel@surriel.com,
+        shaozhengchao@huawei.com, jingyuwang_vip@163.com,
+        linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-rdma@vger.kernel.org,
+        linux-usb@vger.kernel.org, v9fs@lists.linux.dev,
+        linux-fsdevel@vger.kernel.org, linux-afs@lists.infradead.org,
+        autofs@vger.kernel.org, linux-mm@kvack.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
+        linux-efi@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+        linux-ext4@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
+        cluster-devel@redhat.com, linux-um@lists.infradead.org,
+        linux-mtd@lists.infradead.org,
+        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
+        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
+        ntfs3@lists.linux.dev, ocfs2-devel@lists.linux.dev,
+        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
+        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
+        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org,
+        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        bpf@vger.kernel.org, netdev@vger.kernel.org,
+        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+        selinux@vger.kernel.org
+References: <20230705185812.579118-1-jlayton@kernel.org>
+        <a4e6cfec345487fc9ac8ab814a817c79a61b123a.camel@kernel.org>
+Date:   Thu, 06 Jul 2023 10:16:19 -0500
+In-Reply-To: <a4e6cfec345487fc9ac8ab814a817c79a61b123a.camel@kernel.org> (Jeff
+        Layton's message of "Wed, 05 Jul 2023 17:57:46 -0400")
+Message-ID: <87ilaxgjek.fsf@email.froward.int.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
 MIME-Version: 1.0
-References: <20230425132223.2608226-1-amir73il@gmail.com> <20230425132223.2608226-4-amir73il@gmail.com>
- <CAOQ4uxgX0Tx07q2gAzsB2kPsUm+MjsYw9BG4W7-h8ODNnqH_1A@mail.gmail.com> <CAOQ4uxhh6fh8spdBSxaPQCMK8OKGLjvi=JvwAM0J9vZaEeAgZg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhh6fh8spdBSxaPQCMK8OKGLjvi=JvwAM0J9vZaEeAgZg@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 6 Jul 2023 20:49:05 +0300
-Message-ID: <CAOQ4uxgfTTQ5VAYTrQw0jkFVhiBRvTZ7hL9HU1MoPSCDCd_p6g@mail.gmail.com>
-Subject: Re: [RFC][PATCH 3/3] ovl: use persistent s_uuid with index=on
-To:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+X-XM-SPF: eid=1qHQim-00AsXt-Fk;;;mid=<87ilaxgjek.fsf@email.froward.int.ebiederm.org>;;;hst=in01.mta.xmission.com;;;ip=68.110.29.46;;;frm=ebiederm@xmission.com;;;spf=pass
+X-XM-AID: U2FsdGVkX19hfnilZzLMqG1RlF+DuMto1+nqSkCNAbk=
+X-SA-Exim-Connect-IP: 68.110.29.46
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH v2 00/89] fs: new accessors for inode->i_ctime
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jul 6, 2023 at 1:14=E2=80=AFPM Amir Goldstein <amir73il@gmail.com> =
-wrote:
->
-> On Thu, Jul 6, 2023 at 10:19=E2=80=AFAM Amir Goldstein <amir73il@gmail.co=
-m> wrote:
-> >
-> > On Tue, Apr 25, 2023 at 4:22=E2=80=AFPM Amir Goldstein <amir73il@gmail.=
-com> wrote:
-> > >
-> > > With index=3Don, overlayfs instances are non-migratable, meaning that
-> > > the layers cannot be copied without breaking the index.
-> > >
-> > > So when indexdir exists, store a persistent uuid in xattr on the
-> > > indexdir to give the overlayfs instance a persistent identifier.
-> > >
-> > > This also makes f_fsid persistent and more reliable for reporting
-> > > fid info in fanotify events.
-> > >
-> > > With mount option uuid=3Dnogen, a persistent uuid is not be initializ=
-ed
-> > > on indexdir, but if a persistent uuid already exists, it will be used=
-.
-> > >
-> >
-> > This behavior (along with the grammatical mistakes) was changed in
-> > https://github.com/amir73il/linux/commits/ovl_encode_fid
-> >
-> > uuid=3Doff or uuid=3Dnull both set ovl fsid to null regardless of persi=
-stent
-> > uuid xattr.
-> >
->
-> Sorry, that was meant to say "set ovl uuid to null..."
-> when ovl uuid is null then ovl fsid is not null, it is the fsid of the
-> uppermost fs.
->
-> This creates a dilemma wrt backward compat.
->
-> With index=3Doff, the mounter has a choice between two sub-optimal option=
-s:
-> 1. persistent ovl fsid (of upper fs)
-> 2. unique ovl fsid (from random uuid)
->
-> If we change the default from legacy (1) to unique (2), that
-> could also break systems that rely on the persistent ovl fsid
-> of existing overlayfs layers.
->
-> With index=3Don, the choice is between:
-> 1. persistent ovl fsid (of upper fs)
-> 2. persistent and unique ovl fsid (from uuid xattr)
->
-> option (2) is superior, but still could break existing systems
-> that rely on (1) being persistent.
->
-> The decision to tie uuid xattr to the index dir and index=3Don
-> was rationalized in the commit message, but persistent and
-> unique fsid could also be implemented regardless of index=3Don.
->
-> I think I may have found a dignified way out of this mess:
-> - In ovl_fill_super(), check impure xattr on upper root dir
-> - If impure xattr does not exist (very likely new overlay),
->   uuid_gen() and write the persistent uuid xattr on upper fs root
-> - If uuid xattr is written or already exists, use that to initialize
->   s_uuid otherwise, leave it null
-> - in ovl_statfs(), override the upper fs fsid, only if ovl uuid is non-nu=
-ll
->
-> This gives:
-> 1. Old overlayfs deployments retain old behavior wrt null uuid
->     and upper fsid, as long as they have had at least one subdir
->     of root copied up or looked up to trigger ovl_fix_origin()
-> 2. New overlayfs deployments always generate and use a unique
->     and persistent uuid/fsid
-> 3. mount option uuid=3Doff/null (*) can be used to retain legacy behavior
->     on old/new overlayfs deployments (for whatever reason) and ignore
->     existing persistent uuid xattr
-> 4. mount option uuid=3Don can be used to force new behavior on an
->     existing overlayfs with impure xattr and without uuid xattr
->
-> (*) uuid=3Doff was originally introduced for the use case of copied layer=
-s.
->      That is similar to the use case of copying disk images and dropping
->      the old persistent ovl uuid makes sense in that case.
->
-> I will try to write this up.
->
+Jeff Layton <jlayton@kernel.org> writes:
 
-OK, this is what I got in overlayfs.rst:
+> On Wed, 2023-07-05 at 14:58 -0400, Jeff Layton wrote:
+>> v2:
+>> - prepend patches to add missing ctime updates
+>> - add simple_rename_timestamp helper function
+>> - rename ctime accessor functions as inode_get_ctime/inode_set_ctime_*
+>> - drop individual inode_ctime_set_{sec,nsec} helpers
+>> 
+>> I've been working on a patchset to change how the inode->i_ctime is
+>> accessed in order to give us conditional, high-res timestamps for the
+>> ctime and mtime. struct timespec64 has unused bits in it that we can use
+>> to implement this. In order to do that however, we need to wrap all
+>> accesses of inode->i_ctime to ensure that bits used as flags are
+>> appropriately handled.
+>> 
+>> The patchset starts with reposts of some missing ctime updates that I
+>> spotted in the tree. It then adds a new helper function for updating the
+>> timestamp after a successful rename, and new ctime accessor
+>> infrastructure.
+>> 
+>> The bulk of the patchset is individual conversions of different
+>> subsysteme to use the new infrastructure. Finally, the patchset renames
+>> the i_ctime field to __i_ctime to help ensure that I didn't miss
+>> anything.
+>> 
+>> This should apply cleanly to linux-next as of this morning.
+>> 
+>> Most of this conversion was done via 5 different coccinelle scripts, run
+>> in succession, with a large swath of by-hand conversions to clean up the
+>> remainder.
+>> 
+>
+> A couple of other things I should note:
+>
+> If you sent me an Acked-by or Reviewed-by in the previous set, then I
+> tried to keep it on the patch here, since the respun patches are mostly
+> just renaming stuff from v1. Let me know if I've missed any.
+>
+> I've also pushed the pile to my tree as this tag:
+>
+>     https://git.kernel.org/pub/scm/linux/kernel/git/jlayton/linux.git/tag/?h=ctime.20230705
+>
+> In case that's easier to work with.
 
-UUID and fsid
--------------
+Are there any preliminary patches showing what you want your introduced
+accessors to turn into?  It is hard to judge the sanity of the
+introduction of wrappers without seeing what the wrappers are ultimately
+going to do.
 
-The UUID of overlayfs instance itself and the fsid reported by statfs(2) ar=
-e
-controlled by the "uuid" mount option, which supports these values:
-
-- "null":
-    UUID of overlayfs in null, fsid is taken from upper most fs.
-- "off":
-    UUID of overlayfs in null, fsid is taken from upper most fs
-    and UUID of underlying layers not checked.
-- "on":
-    UUID of overlayfs in generated on first mount used to report a unique f=
-sid.
-    If upper filesystem supports xattrs, the UUID is stored in xattr
-    "trusted.overlay.uuid", making the fsid unique and persistent.
-- "auto": (default)
-    Upgrade to "uuid=3Don" on first time mount of new overlay filesystem.
-    Downgrade to "uuid=3Dnull" for existing overlay filesystems that were n=
-ever
-    mounted with "uuid=3Don".
-
-Pushed to:
-https://github.com/amir73il/linux/commits/ovl_encode_fid
-
-Will post next week.
-
-Thanks,
-Amir.
+Eric
