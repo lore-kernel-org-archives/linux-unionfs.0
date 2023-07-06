@@ -2,146 +2,122 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37F86EB64D9
-	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Jul 2023 10:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07FA9EB64DD
+	for <linux-unionfs@archiver.kernel.org>; Thu,  6 Jul 2023 10:25:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232135AbjGFKPO (ORCPT
+        id S231502AbjGFKZ2 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 6 Jul 2023 06:15:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55896 "EHLO
+        Thu, 6 Jul 2023 06:25:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232479AbjGFKOr (ORCPT
+        with ESMTP id S229957AbjGFKZ1 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 6 Jul 2023 06:14:47 -0400
-Received: from mail-vs1-xe29.google.com (mail-vs1-xe29.google.com [IPv6:2607:f8b0:4864:20::e29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 602F92105;
-        Thu,  6 Jul 2023 03:14:26 -0700 (PDT)
-Received: by mail-vs1-xe29.google.com with SMTP id ada2fe7eead31-440bc794fcdso158684137.3;
-        Thu, 06 Jul 2023 03:14:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1688638460; x=1691230460;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=nhQqU5Yz/JT+HPms2OHuWNTi6R2tVVUTMviH7q7Cu94=;
-        b=rEuLB2NabxKUC5ag022F6IL0G1BwTWhIPqiiccCmZCcuZ1QFxVWw9m/mldJAKd3sBH
-         IRT6hUh1QdBZ23WtrnNRnQRAZB9SqQwFPFJxyaU+FNwedO1VeE6cghaGSMvHFVUXss7f
-         P5KVJCvBLkRCxv9Dr3k1xSizuR5rXV4JT9oSuyuHzFhI1yLRCGXdd0hpaS+Cq4Cf/bfc
-         0O+T/0FpXG464E3Uhj3QQZq09f0atNHTxNjntA0sVNTxbT50/qRADL2dgECG9mpPGUbZ
-         9x9vgyQghDI03xBoPVniNKG6ogv8zU9zBC3pFahnqGe19hjEvpFDmI1sp91fKQGESvR9
-         G0Vw==
+        Thu, 6 Jul 2023 06:25:27 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7FE819AE
+        for <linux-unionfs@vger.kernel.org>; Thu,  6 Jul 2023 03:24:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1688639084;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=A63lyIBs1VR5pfZpltdeIG7F/0bdA3IWJCmKQZ/Z8lI=;
+        b=gKjzWW46/TqO9/gWQgT9HlnaEjFGEAIW/isFoDmj3EnA7zTxGWcHNmWdIeZSBnWrU4U/cc
+        yut+wUwbyjhdny+aCXRSduJTaMD+xhgW8ATZnh4VHAaXPmSs8d0oooCH2RWWrbNcJmFwUD
+        GAiLxZsMDVQ3WgkeqsMZx0Ds+nc/EQc=
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com
+ [209.85.166.198]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-632-UFbP2JW4MnuFGDliMDXjMw-1; Thu, 06 Jul 2023 06:24:42 -0400
+X-MC-Unique: UFbP2JW4MnuFGDliMDXjMw-1
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-345e7434a79so2130765ab.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 06 Jul 2023 03:24:42 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1688638460; x=1691230460;
+        d=1e100.net; s=20221208; t=1688639082; x=1691231082;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=nhQqU5Yz/JT+HPms2OHuWNTi6R2tVVUTMviH7q7Cu94=;
-        b=NpjH8r4xk0JQHRiFcZhA505Ku2vPJ+AIHTbAe4BT6/lFe8aiJrOVpWmDUtJLr1ZQTh
-         eAMryRLlgQM8pDNHgKJt5DUJ5ZLIPgb1sF56ircrWBw00GRCOE/tPFTIDT/W/8bTbmUP
-         kRyxWoamdniscZfNY9Y9rEXIn5l/fl6On2C6nls3m8jYpYSUpPum5CUaulT2LfpzrIEM
-         YNp7THh57GG5Xf/8xaYUTYh77f1H35v3kOSQkjIlezXt0V6aK/J5nB/r2v0tzt7HgJuL
-         nzlI2v+qgVKTv66jQwoDOp7ruEth71/RYcK87s6zeo1nHzEtiTWBkQAgIGgpJtjQy/6g
-         Cmnw==
-X-Gm-Message-State: ABy/qLYCLAefUTJ9Twh2AvklsaekrfYg7WGtkMmKfGFn/QGGdbmcmkxf
-        lwsR53n5Xm81SFbCWwocGykNqf3fxCRB295u5EhhbXve
-X-Google-Smtp-Source: APBJJlFiUWz12SRf67vLaQmmFLzoASc/YgbCiNxQV5khLx0FvqtfXtkNyQHR2sYWfhJ58JFQ0D5/Mp1Fw7CY338XcO8=
-X-Received: by 2002:a05:6102:3bce:b0:443:ef68:1f06 with SMTP id
- a14-20020a0561023bce00b00443ef681f06mr733233vsv.18.1688638460263; Thu, 06 Jul
- 2023 03:14:20 -0700 (PDT)
+        bh=A63lyIBs1VR5pfZpltdeIG7F/0bdA3IWJCmKQZ/Z8lI=;
+        b=IHMPiF+ssgqasNfph+8Cbq6Sil5frh8OI1E8wc784oN1IC5gUnbTgdipVHiX8YNqUQ
+         CHSTa2rrPFq3kAFKMpnVA9BqzyWCISXX+DVAlnpf7tCYy42mqigzv9aGhtxIevW+iXTx
+         KjToOj2DZ3qUh0Q196KliInEUWywtNlma3ppvkpOjpUM7MDoQLMp0fvaMjhNFHtXNcaa
+         ivb+u+0yhw9haTCdxxORXfcwzaw1hunL1F14RZsWaZCiPHOE/M+nQ16W+rgdTXDdzhnZ
+         ZXmPV+/H4sp639HwfXHWuzycB/G9iEWNPcgCFRQ0jO5PrtTXoF6HJMAxFZNcWqIHrx/z
+         T0Ug==
+X-Gm-Message-State: ABy/qLa6wzSh6/quWKayKvIDiU4IfGP55cpeKUWXata8dafxE0hPhBYi
+        /3WtChcZQ6hu1BxhhrE/OgDr8iyuiPUzJhq0jScVCHtWMrywWZ6JBQeMs3lB1qzCNufyrbSFHgx
+        u4oGZaIyrld3TcAmTqK2zW/Gr+kma7wyEHAfedPuC7Q==
+X-Received: by 2002:a92:c803:0:b0:345:cc4d:bb7b with SMTP id v3-20020a92c803000000b00345cc4dbb7bmr1724845iln.6.1688639081897;
+        Thu, 06 Jul 2023 03:24:41 -0700 (PDT)
+X-Google-Smtp-Source: APBJJlFsi/ILE5yudppFjjTFCadU7uj6+pDPYoTK0ET+XgI8Dy2atiaa5AFTgjzsH3vYzuBdp5gLXqI0spd/MT8FjF0=
+X-Received: by 2002:a92:c803:0:b0:345:cc4d:bb7b with SMTP id
+ v3-20020a92c803000000b00345cc4dbb7bmr1724831iln.6.1688639081670; Thu, 06 Jul
+ 2023 03:24:41 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230425132223.2608226-1-amir73il@gmail.com> <20230425132223.2608226-4-amir73il@gmail.com>
- <CAOQ4uxgX0Tx07q2gAzsB2kPsUm+MjsYw9BG4W7-h8ODNnqH_1A@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgX0Tx07q2gAzsB2kPsUm+MjsYw9BG4W7-h8ODNnqH_1A@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 6 Jul 2023 13:14:09 +0300
-Message-ID: <CAOQ4uxhh6fh8spdBSxaPQCMK8OKGLjvi=JvwAM0J9vZaEeAgZg@mail.gmail.com>
-Subject: Re: [RFC][PATCH 3/3] ovl: use persistent s_uuid with index=on
-To:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+References: <cover.1688634271.git.alexl@redhat.com> <76c983397d13212ff3105ae05fe4240d830440a9.1688634271.git.alexl@redhat.com>
+In-Reply-To: <76c983397d13212ff3105ae05fe4240d830440a9.1688634271.git.alexl@redhat.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Thu, 6 Jul 2023 12:24:30 +0200
+Message-ID: <CAL7ro1GSF62xtzRuJDD9rQYT=cNGdhZHw+gatQwDPCNeWmn52g@mail.gmail.com>
+Subject: Re: [PATCH 1/4] overlay: add helper for mounting rdonly overlay
+To:     fstests@vger.kernel.org
+Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Jul 6, 2023 at 10:19=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Thu, Jul 6, 2023 at 11:50=E2=80=AFAM <alexl@redhat.com> wrote:
 >
-> On Tue, Apr 25, 2023 at 4:22=E2=80=AFPM Amir Goldstein <amir73il@gmail.co=
-m> wrote:
-> >
-> > With index=3Don, overlayfs instances are non-migratable, meaning that
-> > the layers cannot be copied without breaking the index.
-> >
-> > So when indexdir exists, store a persistent uuid in xattr on the
-> > indexdir to give the overlayfs instance a persistent identifier.
-> >
-> > This also makes f_fsid persistent and more reliable for reporting
-> > fid info in fanotify events.
-> >
-> > With mount option uuid=3Dnogen, a persistent uuid is not be initialized
-> > on indexdir, but if a persistent uuid already exists, it will be used.
-> >
+> From: Amir Goldstein <amir73il@gmail.com>
 >
-> This behavior (along with the grammatical mistakes) was changed in
-> https://github.com/amir73il/linux/commits/ovl_encode_fid
+> Allow passing empty upperdir to _overlay_mount_dirs().
 >
-> uuid=3Doff or uuid=3Dnull both set ovl fsid to null regardless of persist=
-ent
-> uuid xattr.
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+
+Signed-off-by: Alexander Larsson <alexl@redhat.com>
+
+> ---
+>  common/overlay | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+>
+> diff --git a/common/overlay b/common/overlay
+> index 20cafeb1..452b3b09 100644
+> --- a/common/overlay
+> +++ b/common/overlay
+> @@ -17,15 +17,19 @@ if [ -n "$OVL_BASE_FSTYP" ];then
+>  fi
+>
+>  # helper function to do the actual overlayfs mount operation
+> +# accepts "-" as upperdir for non-upper overlayfs
+>  _overlay_mount_dirs()
+>  {
+>         local lowerdir=3D$1
+>         local upperdir=3D$2
+>         local workdir=3D$3
+>         shift 3
+> +       local diropts=3D"-olowerdir=3D$lowerdir"
+>
+> -       $MOUNT_PROG -t overlay -o lowerdir=3D$lowerdir -o upperdir=3D$upp=
+erdir \
+> -                   -o workdir=3D$workdir `_common_dev_mount_options $*`
+> +       [ -n "$upperdir" ] && [ "$upperdir" !=3D "-" ] && \
+> +               diropts+=3D",upperdir=3D$upperdir,workdir=3D$workdir"
+> +
+> +       $MOUNT_PROG -t overlay $diropts `_common_dev_mount_options $*`
+>  }
+>
+>  # Mount with same options/mnt/dev of scratch mount, but optionally
+> --
+> 2.40.1
 >
 
-Sorry, that was meant to say "set ovl uuid to null..."
-when ovl uuid is null then ovl fsid is not null, it is the fsid of the
-uppermost fs.
 
-This creates a dilemma wrt backward compat.
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
 
-With index=3Doff, the mounter has a choice between two sub-optimal options:
-1. persistent ovl fsid (of upper fs)
-2. unique ovl fsid (from random uuid)
-
-If we change the default from legacy (1) to unique (2), that
-could also break systems that rely on the persistent ovl fsid
-of existing overlayfs layers.
-
-With index=3Don, the choice is between:
-1. persistent ovl fsid (of upper fs)
-2. persistent and unique ovl fsid (from uuid xattr)
-
-option (2) is superior, but still could break existing systems
-that rely on (1) being persistent.
-
-The decision to tie uuid xattr to the index dir and index=3Don
-was rationalized in the commit message, but persistent and
-unique fsid could also be implemented regardless of index=3Don.
-
-I think I may have found a dignified way out of this mess:
-- In ovl_fill_super(), check impure xattr on upper root dir
-- If impure xattr does not exist (very likely new overlay),
-  uuid_gen() and write the persistent uuid xattr on upper fs root
-- If uuid xattr is written or already exists, use that to initialize
-  s_uuid otherwise, leave it null
-- in ovl_statfs(), override the upper fs fsid, only if ovl uuid is non-null
-
-This gives:
-1. Old overlayfs deployments retain old behavior wrt null uuid
-    and upper fsid, as long as they have had at least one subdir
-    of root copied up or looked up to trigger ovl_fix_origin()
-2. New overlayfs deployments always generate and use a unique
-    and persistent uuid/fsid
-3. mount option uuid=3Doff/null (*) can be used to retain legacy behavior
-    on old/new overlayfs deployments (for whatever reason) and ignore
-    existing persistent uuid xattr
-4. mount option uuid=3Don can be used to force new behavior on an
-    existing overlayfs with impure xattr and without uuid xattr
-
-(*) uuid=3Doff was originally introduced for the use case of copied layers.
-     That is similar to the use case of copying disk images and dropping
-     the old persistent ovl uuid makes sense in that case.
-
-I will try to write this up.
-
-Thanks,
-Amir.
