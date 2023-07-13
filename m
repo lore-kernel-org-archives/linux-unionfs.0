@@ -2,128 +2,228 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA8AEB64DD
-	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Jul 2023 12:03:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFB41C0015E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Jul 2023 12:04:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233058AbjGMMD6 (ORCPT
+        id S231280AbjGMMEA (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 13 Jul 2023 08:03:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60046 "EHLO
+        Thu, 13 Jul 2023 08:04:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60070 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231280AbjGMMD5 (ORCPT
+        with ESMTP id S233976AbjGMMD7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 13 Jul 2023 08:03:57 -0400
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92D8F1FCD
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:03:56 -0700 (PDT)
-Received: by mail-wr1-x42f.google.com with SMTP id ffacd0b85a97d-3141fa31c2bso732152f8f.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:03:56 -0700 (PDT)
+        Thu, 13 Jul 2023 08:03:59 -0400
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A211B1FF0
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:03:57 -0700 (PDT)
+Received: by mail-wr1-x42e.google.com with SMTP id ffacd0b85a97d-3159d75606dso729722f8f.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:03:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1689249835; x=1691841835;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=TYvnZZXuWBP4YQ84uNj7MPEh7CAwYkVJ9xSCzws7dLk=;
-        b=Rk+bcRo1uxb0ssUJZY5N3k7e/oH5rxoaBhnuu9WD5wXMtrblFCmlAhFzVrLR11qjUx
-         kKSM+rd81JPqpjjnNIOd/Cs2Qgtk106olbE3gvo90zJtV2mh4NC5E6D60OrRb8iYSiFf
-         ViIa4o3pCEuOEv+qLDpl+5bYaWyITdQFZqbByKIA0oyeeYkSJ5k0ZKChVwiZqIRQ02Ry
-         Iaw9fCBYqQar17Z6XG5LVxIP6hikOoy6uzeBmqBXWp/e4V6IeIUGfdgDNBY7AsImAwkI
-         t5FvIbZl5l8gnaYmNAjb8+W1VQLCqlEz4GOZMrHY/E2Imgh+Epf+vR3AzNV8XqXnPNGU
-         5GBw==
+        d=gmail.com; s=20221208; t=1689249836; x=1691841836;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zDGe0LpI1hD6uK5uplXcUbZdwyG2RPsvnZCLPwR0/jc=;
+        b=P/9B3VqJF5t8mGVSUqyjdDDdYeXvTFNG5SVTBuu9NoAwNU4BEObwE6qlnePOTNjNS0
+         S/iDYUpTzrVweVEwWCfy26EcO4tC++6mxBGy4Rn1bSQ/AhtcWDNfR9sItD3PbDGK/k4O
+         uXyRM++tBqyyutZh0weutzsnsdsh7M4/i4UoGujc2PPIZPDF2m1T118N8/OuzqbNfO4k
+         JRR5GepSwuH5YaBws4YJOyewSY13U2HfwEghq+6o5/QbLm5bkQYlJTf11yfr7JeReaGY
+         E2ARLZdENt12VLol0piISUdCphd5LJBOvClI8RTtGnnz3g/r4fPfXhKHa/Yh66myvOWJ
+         1CXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689249835; x=1691841835;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=TYvnZZXuWBP4YQ84uNj7MPEh7CAwYkVJ9xSCzws7dLk=;
-        b=EmhOZFPHXYGnsbWZ5LhC5t7BRlTvacSmNudtg5VTRxiFWaWX2PraamzziRk2eRqoP8
-         jzU5lIh55T2QCxVI1l7LoD+0uZWW+AJfVnuTi6hkfYmlZEVm9Eo11mpJgyIOcYRFmwZD
-         KC8TynAn0no9YgRe5hUmUoctqkxjRivnO7Zvcud336W1R83agi1Zx+rSZaIqFkrB+Ha9
-         yycu0sSFyVT5e419EbmZqllO38igy/aLHaGh6NJZk4OCacNJLtHzQn42HUgL1ug75oPR
-         dCQVILGTP/+nPZ7ivmDHIfR7LOJoc+/Yww3N9/1cQ0zTys57a9XN6Uqo5WgCcaehqKOO
-         v40w==
-X-Gm-Message-State: ABy/qLanqh9VhbV1ku4GH84IkazJqVmZ2YuGgV+xOjYowF42jNpUF5Pr
-        UuAWud2U6NfKs4nLDtGjYU4=
-X-Google-Smtp-Source: APBJJlGcdmCTrs6grn9c+OJiXHe2i8VXm5nGE+wziobRgQifo8whpigH+V009/ew6VozYJfWJ8pdKg==
-X-Received: by 2002:a05:6000:50:b0:314:8d:7eb5 with SMTP id k16-20020a056000005000b00314008d7eb5mr1252975wrx.29.1689249834686;
-        Thu, 13 Jul 2023 05:03:54 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1689249836; x=1691841836;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zDGe0LpI1hD6uK5uplXcUbZdwyG2RPsvnZCLPwR0/jc=;
+        b=EQeaEzWt6TBuXWHifkeW5uJiLiSaXVeSxzPwnSrFSF7l1ryEDF4Wkbu9+We3CbMMmR
+         lyQauaa5Jn6wlO073KGuIz/H6M0Sj/T88wEkM38kMbJxXfwiHDTuA2JvBGtsHLzcrOk+
+         b8l4CCAM98j++aFMTexGthPpNvX2oCekATQdjSfLig6RtFkEshu/ZvS/E3dz3IbboDDd
+         22hF9BniGt7m0JTKheRV+Ke+xFusm2lgpQlHIH3xzx3ADYOVqQ2YG+D4pc/1e6SkUfOy
+         I6UtFuX99jELxLW43HpZ884gwheofxRRigfY38UP75psUo4KtqB3/wQqm6Sbp94vzk8+
+         Y2/w==
+X-Gm-Message-State: ABy/qLaiNiWna0hywLzHTN+bnCfa1au91pUfaZutsMzF5t8egKU3bxdA
+        2Q8wJ8WGg2aYK42JbdoSJ1dZf4HHZK0=
+X-Google-Smtp-Source: APBJJlEKgXm71LztXi9sF+wJL88M3GnIakelNqTdu7uTiJhH+VEh0W+v7CH4XqARNPxw84gjgbLJtw==
+X-Received: by 2002:a5d:570b:0:b0:314:1494:fe28 with SMTP id a11-20020a5d570b000000b003141494fe28mr990831wrv.53.1689249835829;
+        Thu, 13 Jul 2023 05:03:55 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id cr13-20020a05600004ed00b003143ba62cf4sm7848772wrb.86.2023.07.13.05.03.53
+        by smtp.gmail.com with ESMTPSA id cr13-20020a05600004ed00b003143ba62cf4sm7848772wrb.86.2023.07.13.05.03.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 Jul 2023 05:03:54 -0700 (PDT)
+        Thu, 13 Jul 2023 05:03:55 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 0/4] Report overlayfs file ids with fanotify
-Date:   Thu, 13 Jul 2023 15:03:40 +0300
-Message-Id: <20230713120344.1422468-1-amir73il@gmail.com>
+Subject: [PATCH v2 1/4] ovl: support encoding non-decodable file handles
+Date:   Thu, 13 Jul 2023 15:03:41 +0300
+Message-Id: <20230713120344.1422468-2-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230713120344.1422468-1-amir73il@gmail.com>
+References: <20230713120344.1422468-1-amir73il@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Miklos,
+When all layers support file handles, we support encoding non-decodable
+file handles (a.k.a. fid) even with nfs_export=off.
 
-This is the second part of the work to support fanotify reporting of
-events with file ids on overlayfs.  The fanotify_event_info_fid struct
-reported with fanotify events has an object file handle and an fsid,
-so fanotify requires that filesystems can encode file handles and have
-a non-zero f_fsid.
+When file handles do not need to be decoded, we do not need to copy up
+redirected lower directories on encode, and we encode also non-indexed
+upper with lower file handle, so fid will not change on copy up.
 
-The first part [1] that was merged to v6.5-rc1, relaxed the fanotify
-requirements for filesystems to support reporting events with fid to
-require only the ->encode_fh() export operation.
+This enables reporting fanotify events with file handles on overlayfs
+with default config/mount options.
 
-Patch 1 changes overlayfs export_operations to meet the new requirements
-with the default overlay configurations (i.e. no need for nfs_export=on),
-thus, allowing an fanotify watch with FAN_REPORT_FID on overlayfs.
-There are LTS tests [2] for fanotify(FAN_REPORT_FID) + overlayfs.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/export.c    | 26 ++++++++++++++++++++------
+ fs/overlayfs/inode.c     |  2 +-
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/super.c     |  9 +++++++++
+ 5 files changed, 32 insertions(+), 7 deletions(-)
 
-Patches 2-4 are not strcitly needed to support reporting fanotify events
-with fid, because overlayfs already reports a non-zero f_fsid, it's just
-not a unique fsid.  So before allowing to report events with overlayfs
-fids, I wanted to fix overlayfs fsid to be more unique.
-
-I wanted to implement a persistent and unique fsid for overlayfs.
-I wanted it to be the default behavior, but needed to avoid breaking
-applications that rely on an existing overlayfs fsid to persist.
-I came up with a solution that is described in patch 4 (uuid=auto) that
-meets all the requirement above.
-There is an xfstest to test the persistent-unique fsid feature [3].
-
-This patch set has been in overlayfs-next for soaking since v6.5-rc1.
-If you have any reservations that we will not be able to resolve in time
-for 6.6, especially regarding the on-disk format and backward compat,
-we could also merge only patch 1 and leave the fsid patches for later.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-fsdevel/20230425130105.2606684-1-amir73il@gmail.com/
-[2] https://github.com/amir73il/ltp/commits/ovl_encode_fid
-[3] https://github.com/amir73il/xfstests/commits/ovl_fsid
-
-
-Amir Goldstein (4):
-  ovl: support encoding non-decodable file handles
-  ovl: add support for unique fsid per instance
-  ovl: store persistent uuid/fsid with uuid=on
-  ovl: auto generate uuid for new overlay filesystems
-
- Documentation/filesystems/overlayfs.rst | 25 ++++++++++
- fs/overlayfs/copy_up.c                  |  2 +-
- fs/overlayfs/export.c                   | 26 ++++++++---
- fs/overlayfs/inode.c                    |  2 +-
- fs/overlayfs/namei.c                    |  5 +-
- fs/overlayfs/overlayfs.h                | 22 +++++++++
- fs/overlayfs/ovl_entry.h                |  3 +-
- fs/overlayfs/params.c                   | 31 +++++++++++--
- fs/overlayfs/super.c                    | 29 ++++++++++--
- fs/overlayfs/util.c                     | 61 +++++++++++++++++++++++++
- 10 files changed, 186 insertions(+), 20 deletions(-)
-
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 35680b6e175b..6d54f3fc24c5 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -174,28 +174,37 @@ static int ovl_connect_layer(struct dentry *dentry)
+  * U = upper file handle
+  * L = lower file handle
+  *
+- * (*) Connecting an overlay dir from real lower dentry is not always
++ * (*) Decoding a connected overlay dir from real lower dentry is not always
+  * possible when there are redirects in lower layers and non-indexed merge dirs.
+  * To mitigate those case, we may copy up the lower dir ancestor before encode
+- * a lower dir file handle.
++ * of a decodable file handle for non-upper dir.
+  *
+  * Return 0 for upper file handle, > 0 for lower file handle or < 0 on error.
+  */
+ static int ovl_check_encode_origin(struct dentry *dentry)
+ {
+ 	struct ovl_fs *ofs = dentry->d_sb->s_fs_info;
++	bool decodable = ofs->config.nfs_export;
++
++	/* Lower file handle for non-upper non-decodable */
++	if (!ovl_dentry_upper(dentry) && !decodable)
++		return 0;
+ 
+ 	/* Upper file handle for pure upper */
+ 	if (!ovl_dentry_lower(dentry))
+ 		return 0;
+ 
+ 	/*
+-	 * Upper file handle for non-indexed upper.
+-	 *
+ 	 * Root is never indexed, so if there's an upper layer, encode upper for
+ 	 * root.
+ 	 */
+-	if (ovl_dentry_upper(dentry) &&
++	if (dentry == dentry->d_sb->s_root)
++		return 0;
++
++	/*
++	 * Upper decodable file handle for non-indexed upper.
++	 */
++	if (ovl_dentry_upper(dentry) && decodable &&
+ 	    !ovl_test_flag(OVL_INDEX, d_inode(dentry)))
+ 		return 0;
+ 
+@@ -205,7 +214,7 @@ static int ovl_check_encode_origin(struct dentry *dentry)
+ 	 * ovl_connect_layer() will try to make origin's layer "connected" by
+ 	 * copying up a "connectable" ancestor.
+ 	 */
+-	if (d_is_dir(dentry) && ovl_upper_mnt(ofs))
++	if (d_is_dir(dentry) && ovl_upper_mnt(ofs) && decodable)
+ 		return ovl_connect_layer(dentry);
+ 
+ 	/* Lower file handle for indexed and non-upper dir/non-dir */
+@@ -876,3 +885,8 @@ const struct export_operations ovl_export_operations = {
+ 	.get_name	= ovl_get_name,
+ 	.get_parent	= ovl_get_parent,
+ };
++
++/* encode_fh() encodes non-decodable file handles with nfs_export=off */
++const struct export_operations ovl_export_fid_operations = {
++	.encode_fh	= ovl_encode_fh,
++};
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index a63e57447be9..c1c9ff62caad 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -1311,7 +1311,7 @@ static bool ovl_hash_bylower(struct super_block *sb, struct dentry *upper,
+ 		return false;
+ 
+ 	/* No, if non-indexed upper with NFS export */
+-	if (sb->s_export_op && upper)
++	if (ofs->config.nfs_export && upper)
+ 		return false;
+ 
+ 	/* Otherwise, hash by lower inode for fsnotify */
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 488bd14c2ed8..453610fb9bf9 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -799,6 +799,7 @@ int ovl_set_origin(struct ovl_fs *ofs, struct dentry *lower,
+ 
+ /* export.c */
+ extern const struct export_operations ovl_export_operations;
++extern const struct export_operations ovl_export_fid_operations;
+ 
+ /* super.c */
+ int ovl_fill_super(struct super_block *sb, struct fs_context *fc);
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index e999c73fb0c3..7a5196c94d75 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -82,6 +82,7 @@ struct ovl_fs {
+ 	const struct cred *creator_cred;
+ 	bool tmpfile;
+ 	bool noxattr;
++	bool nofh;
+ 	/* Did we take the inuse lock? */
+ 	bool upperdir_locked;
+ 	bool workdir_locked;
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 0ec37bb597f8..7234810a4b54 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -400,6 +400,7 @@ static int ovl_lower_dir(const char *name, struct path *path,
+ 		pr_warn("fs on '%s' does not support file handles, falling back to index=off,nfs_export=off.\n",
+ 			name);
+ 	}
++	ofs->nofh |= !fh_type;
+ 	/*
+ 	 * Decoding origin file handle is required for persistent st_ino.
+ 	 * Without persistent st_ino, xino=auto falls back to xino=off.
+@@ -818,6 +819,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 		ofs->config.index = false;
+ 		pr_warn("upper fs does not support file handles, falling back to index=off.\n");
+ 	}
++	ofs->nofh |= !fh_type;
+ 
+ 	/* Check if upper fs has 32bit inode numbers */
+ 	if (fh_type != FILEID_INO32_GEN)
+@@ -1452,8 +1454,15 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+ 		ofs->config.nfs_export = false;
+ 	}
+ 
++	/*
++	 * Support encoding decodable file handles with nfs_export=on
++	 * and encoding non-decodable file handles with nfs_export=off
++	 * if all layers support file handles.
++	 */
+ 	if (ofs->config.nfs_export)
+ 		sb->s_export_op = &ovl_export_operations;
++	else if (!ofs->nofh)
++		sb->s_export_op = &ovl_export_fid_operations;
+ 
+ 	/* Never override disk quota limits or use reserved space */
+ 	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
 -- 
 2.34.1
 
