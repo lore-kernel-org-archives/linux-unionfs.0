@@ -2,69 +2,128 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 122E2EB64DD
-	for <linux-unionfs@archiver.kernel.org>; Tue, 11 Jul 2023 09:55:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CA8AEB64DD
+	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Jul 2023 12:03:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229468AbjGKJzb (ORCPT
+        id S233058AbjGMMD6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 11 Jul 2023 05:55:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41674 "EHLO
+        Thu, 13 Jul 2023 08:03:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230017AbjGKJz3 (ORCPT
+        with ESMTP id S231280AbjGMMD5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 11 Jul 2023 05:55:29 -0400
-Received: from mail-ot1-f72.google.com (mail-ot1-f72.google.com [209.85.210.72])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BCC47DD
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2023 02:55:26 -0700 (PDT)
-Received: by mail-ot1-f72.google.com with SMTP id 46e09a7af769-6b7431b77ffso4318897a34.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 11 Jul 2023 02:55:26 -0700 (PDT)
+        Thu, 13 Jul 2023 08:03:57 -0400
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92D8F1FCD
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:03:56 -0700 (PDT)
+Received: by mail-wr1-x42f.google.com with SMTP id ffacd0b85a97d-3141fa31c2bso732152f8f.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:03:56 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1689249835; x=1691841835;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=TYvnZZXuWBP4YQ84uNj7MPEh7CAwYkVJ9xSCzws7dLk=;
+        b=Rk+bcRo1uxb0ssUJZY5N3k7e/oH5rxoaBhnuu9WD5wXMtrblFCmlAhFzVrLR11qjUx
+         kKSM+rd81JPqpjjnNIOd/Cs2Qgtk106olbE3gvo90zJtV2mh4NC5E6D60OrRb8iYSiFf
+         ViIa4o3pCEuOEv+qLDpl+5bYaWyITdQFZqbByKIA0oyeeYkSJ5k0ZKChVwiZqIRQ02Ry
+         Iaw9fCBYqQar17Z6XG5LVxIP6hikOoy6uzeBmqBXWp/e4V6IeIUGfdgDNBY7AsImAwkI
+         t5FvIbZl5l8gnaYmNAjb8+W1VQLCqlEz4GOZMrHY/E2Imgh+Epf+vR3AzNV8XqXnPNGU
+         5GBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689069326; x=1691661326;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZcloSHs79l9WLtw5wCq7rljrtMphumU2bij75yt+08U=;
-        b=akMMsAC8P8ncgdTr5OxyB3wRUFFDqFRcVoCoOmacpYboy1Rp5PdAAZBLD6DL8XcIzl
-         wQ/zRn+2cTylIJfpGx7BhpERztxB+motZxpVQzyhofOJxmIQRvZ9k3oM9YSDKZ7KfPl6
-         DC//Ms1O+bBbQPaDL4EI0M5LxEFiMC2QHoQUbqBOgFKRl1XBPGEgtyNtcpG1X/VHRizx
-         aRkwr0ptiZSYem6ChwBEejxSpzrDbHRZnGCVzz5BOTLPpO17uw2AsbB+S6krjtvzIH34
-         KZItRrtdRrCiUvRmcvXa67i6UE+yW7gnzF33zLv1hHrLPiNh2SyA0ngBcTL5RuVHv9h3
-         ICGg==
-X-Gm-Message-State: ABy/qLYpgPXcg60lAhM+8JuYK9EcKuukoK6vPfk7dzGKqhncwqJjm08t
-        4TzdPlgiIN4CWJS30uCtelbhStuD+AxsIF+4UkgDH3ri240k
-X-Google-Smtp-Source: APBJJlG+Y2stJI6lo+xrfpFL0vzaKSDOn/mZxf8Cf2lChooL8gNyzSBg1zJaCt6wJiO6k1leSV57zO96Wz6zgVVABI47EAn4TrM5
+        d=1e100.net; s=20221208; t=1689249835; x=1691841835;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=TYvnZZXuWBP4YQ84uNj7MPEh7CAwYkVJ9xSCzws7dLk=;
+        b=EmhOZFPHXYGnsbWZ5LhC5t7BRlTvacSmNudtg5VTRxiFWaWX2PraamzziRk2eRqoP8
+         jzU5lIh55T2QCxVI1l7LoD+0uZWW+AJfVnuTi6hkfYmlZEVm9Eo11mpJgyIOcYRFmwZD
+         KC8TynAn0no9YgRe5hUmUoctqkxjRivnO7Zvcud336W1R83agi1Zx+rSZaIqFkrB+Ha9
+         yycu0sSFyVT5e419EbmZqllO38igy/aLHaGh6NJZk4OCacNJLtHzQn42HUgL1ug75oPR
+         dCQVILGTP/+nPZ7ivmDHIfR7LOJoc+/Yww3N9/1cQ0zTys57a9XN6Uqo5WgCcaehqKOO
+         v40w==
+X-Gm-Message-State: ABy/qLanqh9VhbV1ku4GH84IkazJqVmZ2YuGgV+xOjYowF42jNpUF5Pr
+        UuAWud2U6NfKs4nLDtGjYU4=
+X-Google-Smtp-Source: APBJJlGcdmCTrs6grn9c+OJiXHe2i8VXm5nGE+wziobRgQifo8whpigH+V009/ew6VozYJfWJ8pdKg==
+X-Received: by 2002:a05:6000:50:b0:314:8d:7eb5 with SMTP id k16-20020a056000005000b00314008d7eb5mr1252975wrx.29.1689249834686;
+        Thu, 13 Jul 2023 05:03:54 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id cr13-20020a05600004ed00b003143ba62cf4sm7848772wrb.86.2023.07.13.05.03.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 13 Jul 2023 05:03:54 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org
+Subject: [PATCH v2 0/4] Report overlayfs file ids with fanotify
+Date:   Thu, 13 Jul 2023 15:03:40 +0300
+Message-Id: <20230713120344.1422468-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:d8ae:b0:1b4:71b0:749 with SMTP id
- dv46-20020a056870d8ae00b001b471b00749mr1062532oab.3.1689069326128; Tue, 11
- Jul 2023 02:55:26 -0700 (PDT)
-Date:   Tue, 11 Jul 2023 02:55:26 -0700
-In-Reply-To: <CAOQ4uxgQodMoCLvO6TGPiR3dKOhbtYKrDHzmu-gkaRAO8iSLTQ@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000002f59ee06003319ec@google.com>
-Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_init_uuid_xattr
-From:   syzbot <syzbot+b592c1f562f0da80ce2c@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+Miklos,
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+This is the second part of the work to support fanotify reporting of
+events with file ids on overlayfs.  The fanotify_event_info_fid struct
+reported with fanotify events has an object file handle and an fsid,
+so fanotify requires that filesystems can encode file handles and have
+a non-zero f_fsid.
 
-Reported-and-tested-by: syzbot+b592c1f562f0da80ce2c@syzkaller.appspotmail.com
+The first part [1] that was merged to v6.5-rc1, relaxed the fanotify
+requirements for filesystems to support reporting events with fid to
+require only the ->encode_fh() export operation.
 
-Tested on:
+Patch 1 changes overlayfs export_operations to meet the new requirements
+with the default overlay configurations (i.e. no need for nfs_export=on),
+thus, allowing an fanotify watch with FAN_REPORT_FID on overlayfs.
+There are LTS tests [2] for fanotify(FAN_REPORT_FID) + overlayfs.
 
-commit:         0a3bf81d ovl: auto generate uuid for new overlay files..
-git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git overlayfs-next
-console output: https://syzkaller.appspot.com/x/log.txt?x=16079b6ca80000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=150188feee7071a7
-dashboard link: https://syzkaller.appspot.com/bug?extid=b592c1f562f0da80ce2c
-compiler:       gcc (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2
+Patches 2-4 are not strcitly needed to support reporting fanotify events
+with fid, because overlayfs already reports a non-zero f_fsid, it's just
+not a unique fsid.  So before allowing to report events with overlayfs
+fids, I wanted to fix overlayfs fsid to be more unique.
 
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
+I wanted to implement a persistent and unique fsid for overlayfs.
+I wanted it to be the default behavior, but needed to avoid breaking
+applications that rely on an existing overlayfs fsid to persist.
+I came up with a solution that is described in patch 4 (uuid=auto) that
+meets all the requirement above.
+There is an xfstest to test the persistent-unique fsid feature [3].
+
+This patch set has been in overlayfs-next for soaking since v6.5-rc1.
+If you have any reservations that we will not be able to resolve in time
+for 6.6, especially regarding the on-disk format and backward compat,
+we could also merge only patch 1 and leave the fsid patches for later.
+
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/linux-fsdevel/20230425130105.2606684-1-amir73il@gmail.com/
+[2] https://github.com/amir73il/ltp/commits/ovl_encode_fid
+[3] https://github.com/amir73il/xfstests/commits/ovl_fsid
+
+
+Amir Goldstein (4):
+  ovl: support encoding non-decodable file handles
+  ovl: add support for unique fsid per instance
+  ovl: store persistent uuid/fsid with uuid=on
+  ovl: auto generate uuid for new overlay filesystems
+
+ Documentation/filesystems/overlayfs.rst | 25 ++++++++++
+ fs/overlayfs/copy_up.c                  |  2 +-
+ fs/overlayfs/export.c                   | 26 ++++++++---
+ fs/overlayfs/inode.c                    |  2 +-
+ fs/overlayfs/namei.c                    |  5 +-
+ fs/overlayfs/overlayfs.h                | 22 +++++++++
+ fs/overlayfs/ovl_entry.h                |  3 +-
+ fs/overlayfs/params.c                   | 31 +++++++++++--
+ fs/overlayfs/super.c                    | 29 ++++++++++--
+ fs/overlayfs/util.c                     | 61 +++++++++++++++++++++++++
+ 10 files changed, 186 insertions(+), 20 deletions(-)
+
+-- 
+2.34.1
+
