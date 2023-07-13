@@ -2,191 +2,122 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8074AC0015E
-	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Jul 2023 12:04:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D614EB64DD
+	for <linux-unionfs@archiver.kernel.org>; Thu, 13 Jul 2023 13:34:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234406AbjGMMEF (ORCPT
+        id S230439AbjGMNeN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 13 Jul 2023 08:04:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60108 "EHLO
+        Thu, 13 Jul 2023 09:34:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234441AbjGMMEE (ORCPT
+        with ESMTP id S235043AbjGMNeM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 13 Jul 2023 08:04:04 -0400
-Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 352F41FDB
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:04:03 -0700 (PDT)
-Received: by mail-wm1-x333.google.com with SMTP id 5b1f17b1804b1-3fbfcc6daa9so5336915e9.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 05:04:03 -0700 (PDT)
+        Thu, 13 Jul 2023 09:34:12 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E038DE4D
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 06:34:10 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id ffacd0b85a97d-3143ccb0f75so929067f8f.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jul 2023 06:34:10 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1689249842; x=1691841842;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=GEJK4SJaZNolZqffM6Jfer4NyAA9jERbRw7Q+9aJJ8U=;
-        b=AMwaHP9FWW8hPi+nNwawEeDj10YMzkBXjFXCa4NnengWMvv0Do33pQKQ0q2eZ8Sb4r
-         bqKVvYvivTI09hUZNfkIO9wesdmgV3JrkP9GkZGuGTV3mjQ5ZZi8sXM6HWL4uEBKm+Ji
-         4YFFkGfB3BJrVdM0AvVFaVUEPRFI4O9WUQTyNVmQDJT3lDSHKa6nmRdWreNYUTgrDgm4
-         3r0NeUNxUvJAugoT5/xJzjw2hlst5nipKyOr6TVMkAPciVyjFQqjnBu/O8fQY9nVG+VM
-         KrA0AYsH9JMhEkLI00bXwUXvmnwi3odVYq69scyPatHnbCO6RvV+bZSaau27rihLglNc
-         fkvw==
+        d=gmail.com; s=20221208; t=1689255249; x=1691847249;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=tGh35fGrCQn9ZZfyfGGlMueVGoXX0VzXWi3FmLcRTcE=;
+        b=oo0hCDrWMpnm2Q+RcLvS8Y7NqXdhhXrbNpc705Jf50gvug994L4o++73O0w1+I6wVu
+         gcxXBMuGvnMkhrhBl/BYaNCVRqcswGTNAfGnyTfZouoFU3u1OvdMF6iPHmBFnKtguZth
+         0QaAUSGDF6d3v5h/d7FhWwEc9Er4Wjm5OctR8fAHA5owkXqiJersPtVnY0aLLYCdWe2t
+         YTG99QQ96kT83GO/S8q7XQHN4z5n6J876Zp4DPdvreFkTR4P2NGiezKxJN/1owBycOTy
+         yMCAHmI3pIMEFanaJ+BX6wxBQ0YnopobaJNYIFn+NrxLp+zRj07uDRbT/fNMSl/WyLOt
+         7kJA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689249842; x=1691841842;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=GEJK4SJaZNolZqffM6Jfer4NyAA9jERbRw7Q+9aJJ8U=;
-        b=LtVQ38m/ADaeNipUCIyy7YlHD64NaTnioI/HBca0eQlaqUqyOP2RhzoWFcEgf4s7oi
-         vCP8equ1DKexhGtldSGHf1psIK4umAB38/1F1+BtdbvnSx88mts5XiMPzTezLPWS/z/u
-         YDbnsvOqUZZvE7SEX3gxoKIVRB5v/Jdz5Dpp3bvwHPx0hXsvrrFELqiBmPp7dCRSI18M
-         e4/nCtbRtTlneA54LUkOKKW/Gzvizq7e/wWUtjRcYEExRpcVmeIRhTlOiYUxUpzXos6Q
-         I3Hj032JCTYboPnWbExjEXfi5rUXGaAPtmbWP6NzlC1asCRsUImYQuxoq1csp3DV+NOM
-         FAuA==
-X-Gm-Message-State: ABy/qLYA9A9j3Y7BuT+oEp9YKHzVyT6rbS8auNROPEQDOHK24qeslxuv
-        opBG39RDHz2MC1MvDOtU3FXDntbLrJ4=
-X-Google-Smtp-Source: APBJJlHSs2GOvdpJ3vGYiCaksiFasSGTH+Mmu9FkZiXuo6AozFkY5+Cp1tOkj1A0s6LS7Lt1yQFHyQ==
-X-Received: by 2002:a7b:c7cb:0:b0:3f7:f45d:5e44 with SMTP id z11-20020a7bc7cb000000b003f7f45d5e44mr1055690wmk.32.1689249841667;
-        Thu, 13 Jul 2023 05:04:01 -0700 (PDT)
+        d=1e100.net; s=20221208; t=1689255249; x=1691847249;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=tGh35fGrCQn9ZZfyfGGlMueVGoXX0VzXWi3FmLcRTcE=;
+        b=iDhwWZn/MwN3g+8XaG4xBRfEEZir39nKRmyczgqinEfHGngo+0Z4CXRI230V7MzSno
+         QwbOTkSgkAZ+D7qJJBIP5oWTtb0Se2pULFXD8D7HOWp7iYjWKXiTo+jR3y0+BOUrfIVx
+         kcVYNBi5iEkWNw8UjB9tpL7RkYD6ZhPlj03579TwoQexpstYRpjiCtcMZCmQzpFCOrIz
+         tBapMiMBPl5j334bLGB9Erj0tTOR3pj7ZJG1x86sEn1jbGvrmC6gCfviNemehyeeqbeA
+         8JXslb5NJW/+yloTWrcTOvqTkm3pUmdwXquMm+Dh5N959ctQNTSSCvUL2GdmbcP+7cbc
+         vSbA==
+X-Gm-Message-State: ABy/qLa+YjPtPXmwZZbwJ0DKloYXwT+gvEUkJlUQ1SNRxzqGLS6b65Q9
+        cH+gagCGWt/t/cQeK8s8c3jbwGr9S0U=
+X-Google-Smtp-Source: APBJJlE2lq0Kxz+z2ahtNqnYYN1yjyf1o5J9CIkxYW2bAqI6nxMCxVQwQzo9uxmfFhrQ/fVp1lTTEQ==
+X-Received: by 2002:a05:6000:114e:b0:314:1416:3be3 with SMTP id d14-20020a056000114e00b0031414163be3mr1831108wrx.70.1689255248650;
+        Thu, 13 Jul 2023 06:34:08 -0700 (PDT)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id cr13-20020a05600004ed00b003143ba62cf4sm7848772wrb.86.2023.07.13.05.04.00
+        by smtp.gmail.com with ESMTPSA id i10-20020a5d558a000000b0030fb828511csm7986544wrv.100.2023.07.13.06.34.07
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 13 Jul 2023 05:04:01 -0700 (PDT)
+        Thu, 13 Jul 2023 06:34:08 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 4/4] ovl: auto generate uuid for new overlay filesystems
-Date:   Thu, 13 Jul 2023 15:03:44 +0300
-Message-Id: <20230713120344.1422468-5-amir73il@gmail.com>
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
+Subject: [ANNOUNCE] ovl: overlayfs-next branch updated to 0a3bf81dbcb2
+Date:   Thu, 13 Jul 2023 16:34:04 +0300
+Message-Id: <20230713133404.1426405-1-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20230713120344.1422468-1-amir73il@gmail.com>
-References: <20230713120344.1422468-1-amir73il@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Add a new mount option uuid=auto, which is the default.
+Hi all,
 
-If a persistent UUID xattr is found it is used.
+The overlayfs-next branch of the overlayfs repository at:
 
-Otherwise, an existing ovelrayfs with copied up subdirs in upper dir
-that was never mounted with uuid=on retains the null UUID.
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
 
-A new overlayfs with no copied up subdirs, generates the persistent UUID
-on first mount.
+has been updated.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/overlayfs.rst |  8 +++++++-
- fs/overlayfs/overlayfs.h                |  4 +++-
- fs/overlayfs/params.c                   |  3 ++-
- fs/overlayfs/util.c                     | 22 ++++++++++++++++++++++
- 4 files changed, 34 insertions(+), 3 deletions(-)
+The head of the overlayfs-next branch is commit:
 
-diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 8275ed735f77..35853906accb 100644
---- a/Documentation/filesystems/overlayfs.rst
-+++ b/Documentation/filesystems/overlayfs.rst
-@@ -664,7 +664,7 @@ UUID and fsid
- The UUID of overlayfs instance itself and the fsid reported by statfs(2) are
- controlled by the "uuid" mount option, which supports these values:
- 
--- "null": (default)
-+- "null":
-     UUID of overlayfs is null. fsid is taken from upper most filesystem.
- - "off":
-     UUID of overlayfs is null. fsid is taken from upper most filesystem.
-@@ -674,6 +674,12 @@ controlled by the "uuid" mount option, which supports these values:
-     UUID is stored in xattr "trusted.overlay.uuid", making overlayfs fsid
-     unique and persistent.  This option requires an overlayfs with upper
-     filesystem that supports xattrs.
-+- "auto": (default)
-+    UUID is taken from xattr "trusted.overlay.uuid" if it exists.
-+    Upgrade to "uuid=on" on first time mount of new overlay filesystem that
-+    meets the prerequites.
-+    Downgrade to "uuid=null" for existing overlay filesystems that were never
-+    mounted with "uuid=on".
- 
- 
- Volatile mount
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 8b026d758eaf..72f57d919aa9 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -71,6 +71,7 @@ enum {
- enum {
- 	OVL_UUID_OFF,
- 	OVL_UUID_NULL,
-+	OVL_UUID_AUTO,
- 	OVL_UUID_ON,
- };
- 
-@@ -550,7 +551,8 @@ static inline bool ovl_origin_uuid(struct ovl_fs *ofs)
- 
- static inline bool ovl_has_fsid(struct ovl_fs *ofs)
- {
--	return ofs->config.uuid == OVL_UUID_ON;
-+	return ofs->config.uuid == OVL_UUID_ON ||
-+	       ofs->config.uuid == OVL_UUID_AUTO;
- }
- 
- /*
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 5a59c87c1dfe..3fc01feb5f12 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -68,6 +68,7 @@ static const struct constant_table ovl_parameter_bool[] = {
- static const struct constant_table ovl_parameter_uuid[] = {
- 	{ "off",	OVL_UUID_OFF  },
- 	{ "null",	OVL_UUID_NULL },
-+	{ "auto",	OVL_UUID_AUTO },
- 	{ "on",		OVL_UUID_ON   },
- 	{}
- };
-@@ -79,7 +80,7 @@ static const char *ovl_uuid_mode(struct ovl_config *config)
- 
- static int ovl_uuid_def(void)
- {
--	return OVL_UUID_NULL;
-+	return OVL_UUID_AUTO;
- }
- 
- static const struct constant_table ovl_parameter_xino[] = {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 8602982ae579..9ebb9598e7ec 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -695,6 +695,28 @@ bool ovl_init_uuid_xattr(struct super_block *sb, struct ovl_fs *ofs,
- 	if (res != -ENODATA)
- 		goto fail;
- 
-+	/*
-+	 * With uuid=auto, if uuid xattr is found, it will be used.
-+	 * If uuid xattrs is not found, generate a persistent uuid only on mount
-+	 * of new overlays where upper root dir is not yet marked as impure.
-+	 * An upper dir is marked as impure on copy up or lookup of its subdirs.
-+	 */
-+	if (ofs->config.uuid == OVL_UUID_AUTO) {
-+		res = ovl_path_getxattr(ofs, upperpath, OVL_XATTR_IMPURE, NULL,
-+					0);
-+		if (res > 0) {
-+			/* Any mount of old overlay - downgrade to uuid=null */
-+			ofs->config.uuid = OVL_UUID_NULL;
-+			return true;
-+		} else if (res == -ENODATA) {
-+			/* First mount of new overlay - upgrade to uuid=on */
-+			ofs->config.uuid = OVL_UUID_ON;
-+		} else if (res < 0) {
-+			goto fail;
-+		}
-+
-+	}
-+
- 	/* Generate overlay instance uuid */
- 	uuid_gen(&sb->s_uuid);
- 
--- 
-2.34.1
+  0a3bf81dbcb2 ("ovl: auto generate uuid for new overlay filesystems")
 
+The updated head contains the following patch sets:
+
+- Add support for fs-verity checking of lowerdata -
+  including fixes to address review comments of Eric Biggers on v5 [1]
+
+- Report overlayfs file ids with fanotify (v2) [2]
+
+The new code was tested using fstests including new tests written
+by Alex and myself, which are available on my xfstests tree [3].
+Test setup scripts for testing the verity feature are available
+in my xfstests-bld tree [4].
+
+Thanks,
+Amir.
+
+[1] https://lore.kernel.org/r/cover.1687345663.git.alexl@redhat.com
+[2] https://lore.kernel.org/r/20230713120344.1422468-1-amir73il@gmail.com
+[3] https://github.com/amir73il/xfstests/commits/overlayfs-devel
+[4] https://github.com/amir73il/xfstests-bld/commits/overlayfs-devel
+
+----------------------------------------------------------------
+Alexander Larsson (4):
+      ovl: Add framework for verity support
+      ovl: Add versioned header for overlay.metacopy xattr
+      ovl: Validate verity xattr when resolving lowerdata
+      ovl: Handle verity during copy-up
+
+Amir Goldstein (4):
+      ovl: support encoding non-decodable file handles
+      ovl: add support for unique fsid per instance
+      ovl: store persistent uuid/fsid with uuid=on
+      ovl: auto generate uuid for new overlay filesystems
+
+ Documentation/filesystems/fsverity.rst  |   2 +
+ Documentation/filesystems/overlayfs.rst |  72 +++++++++++
+ fs/overlayfs/copy_up.c                  |  52 +++++++-
+ fs/overlayfs/export.c                   |  26 +++-
+ fs/overlayfs/file.c                     |   8 +-
+ fs/overlayfs/inode.c                    |   2 +-
+ fs/overlayfs/namei.c                    |  87 +++++++++++--
+ fs/overlayfs/overlayfs.h                |  66 +++++++++-
+ fs/overlayfs/ovl_entry.h                |   4 +-
+ fs/overlayfs/params.c                   |  92 ++++++++++++--
+ fs/overlayfs/super.c                    |  34 ++++-
+ fs/overlayfs/util.c                     | 217 +++++++++++++++++++++++++++++++-
+ 12 files changed, 617 insertions(+), 45 deletions(-)
