@@ -2,240 +2,306 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95D5CC001B0
-	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Jul 2023 13:17:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8874DC001B0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Jul 2023 13:48:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbjGSNRI (ORCPT
+        id S230440AbjGSNsr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 19 Jul 2023 09:17:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43986 "EHLO
+        Wed, 19 Jul 2023 09:48:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230509AbjGSNRH (ORCPT
+        with ESMTP id S230178AbjGSNsn (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 19 Jul 2023 09:17:07 -0400
-Received: from mail-ot1-f80.google.com (mail-ot1-f80.google.com [209.85.210.80])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5D97171A
-        for <linux-unionfs@vger.kernel.org>; Wed, 19 Jul 2023 06:17:02 -0700 (PDT)
-Received: by mail-ot1-f80.google.com with SMTP id 46e09a7af769-6b9c09823e7so7092907a34.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 19 Jul 2023 06:17:02 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1689772622; x=1692364622;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=J+/NLVDk6pVE99eI5/RKyyNr2TfWektXWHpLNSnb2QI=;
-        b=OieuhgeZcLRZOx4xP98ZS7lEyyGJeV56bkrRq3jo5wkqSCb/GqDbJBW7oQ5ecR9KyF
-         bXwe4zC6gz1AA+KlEUSThNLi5HNAcgugXZ8RyKyErWi/gNkhn6qFyZXsIGPIuv8o6RG+
-         SO425De6VAr3wfbuDPwS/m4Yj6bYe0jmQcA9ntMFq6gKpw4fpy/MRYuzh/2asPAv2xmc
-         Udl43qHLut91DJqCMr8Pkp3lh6Zuc8f+rcDy6+uPfxuG/Np/lNLDjIN41+0yz9f7PeWy
-         Ypqe/IFKiUp3DEYIVjZxmyVUB0anUpQah5JVWFO5xqKqXMJVnoMenfo8v9Ss2f0UkCXg
-         nWmA==
-X-Gm-Message-State: ABy/qLZEKgz4fWzQh7Qlp+pvHD2f/9/+APEeBuZkaBPGHq4e9q9HSrE6
-        yMQIvhL3Q9PVgXp41iQkwSXRvIGaTJXj2xQ6SYUl/8vCg5S7
-X-Google-Smtp-Source: APBJJlETVnFJ4hE14zLh3mloorKCcbm3ra9GHReJe4xoyfVRhHQRQs6xCWjpLPaNQsN+tzhlgjQ93f0RBUk5e/Xwfh8WprWnZIcx
+        Wed, 19 Jul 2023 09:48:43 -0400
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 429C019A;
+        Wed, 19 Jul 2023 06:48:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1689774521; x=1721310521;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=WtZGo5MYz/QLJnMhXvyu+YJ2hDQjW8Fo7x4zjLlESKg=;
+  b=Eogipyz7swNoe9lT+o1WwY9+lnjYO8QQrpbFp+WUL5IlI+1Ex03IdBxa
+   Ny2Z07cDYeLip2pmZPHqsosXp7qUbHxmbojklsdwixfsWtcefcibt7Xis
+   5BKL52lL3LYhZRXFpn5/Pou3RXTYkfVTzdHPfAdgInGG3OR+gH7DxwRDM
+   v+LB/BaAoweGLZu9Oh9zvE2pyzgXzxYr+boBLfcKa1vpkX9Q6oZC0xTcp
+   DirjmhjHQLS/4K3Qldc7oBTiOATgU4QYD621CgwulZt3aVUtgF74ApiCF
+   2ZD22fkm3LtHLKnse1ELfCzKMQltGpRb4KA1IbBy6gBtXDP6tc1trYzOu
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10776"; a="346772072"
+X-IronPort-AV: E=Sophos;i="6.01,216,1684825200"; 
+   d="scan'208";a="346772072"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jul 2023 06:48:40 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10776"; a="1054716022"
+X-IronPort-AV: E=Sophos;i="6.01,216,1684825200"; 
+   d="scan'208";a="1054716022"
+Received: from lkp-server02.sh.intel.com (HELO 36946fcf73d7) ([10.239.97.151])
+  by fmsmga005.fm.intel.com with ESMTP; 19 Jul 2023 06:48:38 -0700
+Received: from kbuild by 36946fcf73d7 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qM7Xh-0004xS-1u;
+        Wed, 19 Jul 2023 13:48:37 +0000
+Date:   Wed, 19 Jul 2023 21:40:21 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Yunlong Xing <yunlong.xing@unisoc.com>, miklos@szeredi.hu,
+        amir73il@gmail.com
+Cc:     oe-kbuild-all@lists.linux.dev, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, zhiguo.niu@unisoc.com,
+        hongyu.jin@unisoc.com, yunlongxing23@gmail.com
+Subject: Re: [PATCH V2] ovl: fix mount fail because the upper doesn't have
+ space
+Message-ID: <202307192158.lNbgYfit-lkp@intel.com>
+References: <20230719085434.154834-1-yunlong.xing@unisoc.com>
 MIME-Version: 1.0
-X-Received: by 2002:a9d:5e17:0:b0:6b8:92ea:23c4 with SMTP id
- d23-20020a9d5e17000000b006b892ea23c4mr2868144oti.4.1689772621916; Wed, 19 Jul
- 2023 06:17:01 -0700 (PDT)
-Date:   Wed, 19 Jul 2023 06:17:01 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000e171200600d6d8bd@google.com>
-Subject: [syzbot] [overlayfs?] possible deadlock in seq_read_iter (2)
-From:   syzbot <syzbot+da4f9f61f96525c62cc7@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230719085434.154834-1-yunlong.xing@unisoc.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+Hi Yunlong,
 
-syzbot found the following issue on:
+kernel test robot noticed the following build warnings:
 
-HEAD commit:    fdf0eaf11452 Linux 6.5-rc2
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=135aae66a80000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a4507c291b5ab5d4
-dashboard link: https://syzkaller.appspot.com/bug?extid=da4f9f61f96525c62cc7
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+[auto build test WARNING on mszeredi-vfs/overlayfs-next]
+[also build test WARNING on linus/master]
+[cannot apply to mszeredi-vfs/next]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-Unfortunately, I don't have any reproducer for this issue yet.
+url:    https://github.com/intel-lab-lkp/linux/commits/Yunlong-Xing/ovl-fix-mount-fail-because-the-upper-doesn-t-have-space/20230719-165654
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
+patch link:    https://lore.kernel.org/r/20230719085434.154834-1-yunlong.xing%40unisoc.com
+patch subject: [PATCH V2] ovl: fix mount fail because the upper doesn't have space
+config: i386-randconfig-i002-20230718 (https://download.01.org/0day-ci/archive/20230719/202307192158.lNbgYfit-lkp@intel.com/config)
+compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
+reproduce: (https://download.01.org/0day-ci/archive/20230719/202307192158.lNbgYfit-lkp@intel.com/reproduce)
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/f95d243908cc/disk-fdf0eaf1.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/f55beab9d6de/vmlinux-fdf0eaf1.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/bea743a43c4f/bzImage-fdf0eaf1.xz
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202307192158.lNbgYfit-lkp@intel.com/
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+da4f9f61f96525c62cc7@syzkaller.appspotmail.com
+All warnings (new ones prefixed by >>):
 
-======================================================
-WARNING: possible circular locking dependency detected
-6.5.0-rc2-syzkaller #0 Not tainted
-------------------------------------------------------
-syz-executor.0/14284 is trying to acquire lock:
-ffff8880870e9c30 (&p->lock){+.+.}-{3:3}, at: seq_read_iter+0xb2/0xd10 fs/seq_file.c:182
-
-but task is already holding lock:
-ffff88814bdc8410 (sb_writers#4){.+.+}-{0:0}, at: do_sendfile+0x600/0x1070 fs/read_write.c:1253
-
-which lock already depends on the new lock.
-
-
-the existing dependency chain (in reverse order) is:
-
--> #3 (sb_writers#4){.+.+}-{0:0}:
-       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
-       __sb_start_write include/linux/fs.h:1494 [inline]
-       sb_start_write+0x4d/0x1c0 include/linux/fs.h:1569
-       mnt_want_write+0x3f/0x90 fs/namespace.c:403
-       ovl_create_object+0xf8/0x300 fs/overlayfs/dir.c:629
-       lookup_open fs/namei.c:3492 [inline]
-       open_last_lookups fs/namei.c:3560 [inline]
-       path_openat+0x13e7/0x3180 fs/namei.c:3790
-       do_filp_open+0x234/0x490 fs/namei.c:3820
-       do_sys_openat2+0x13e/0x1d0 fs/open.c:1407
-       do_sys_open fs/open.c:1422 [inline]
-       __do_sys_openat fs/open.c:1438 [inline]
-       __se_sys_openat fs/open.c:1433 [inline]
-       __x64_sys_openat+0x247/0x290 fs/open.c:1433
-       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
-       entry_SYSCALL_64_after_hwframe+0x63/0xcd
-
--> #2 (&ovl_i_mutex_dir_key[depth]){++++}-{3:3}:
-       down_read+0x47/0x2f0 kernel/locking/rwsem.c:1520
-       inode_lock_shared include/linux/fs.h:781 [inline]
-       lookup_slow+0x45/0x70 fs/namei.c:1706
-       walk_component+0x2d0/0x400 fs/namei.c:1998
-       lookup_last fs/namei.c:2455 [inline]
-       path_lookupat+0x16f/0x450 fs/namei.c:2479
-       filename_lookup+0x255/0x610 fs/namei.c:2508
-       kern_path+0x3b/0x180 fs/namei.c:2606
-       lookup_bdev+0xc5/0x290 block/bdev.c:943
-       resume_store+0x19c/0x700 kernel/power/hibernate.c:1177
-       kernfs_fop_write_iter+0x3a6/0x4f0 fs/kernfs/file.c:334
-       call_write_iter include/linux/fs.h:1871 [inline]
-       new_sync_write fs/read_write.c:491 [inline]
-       vfs_write+0x782/0xaf0 fs/read_write.c:584
-       ksys_write+0x1a0/0x2c0 fs/read_write.c:637
-       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
-       entry_SYSCALL_64_after_hwframe+0x63/0xcd
-
--> #1 (&of->mutex){+.+.}-{3:3}:
-       __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
-       __mutex_lock kernel/locking/mutex.c:747 [inline]
-       mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
-       kernfs_seq_start+0x53/0x3a0 fs/kernfs/file.c:154
-       seq_read_iter+0x3d4/0xd10 fs/seq_file.c:225
-       call_read_iter include/linux/fs.h:1865 [inline]
-       new_sync_read fs/read_write.c:389 [inline]
-       vfs_read+0x795/0xb00 fs/read_write.c:470
-       ksys_read+0x1a0/0x2c0 fs/read_write.c:613
-       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
-       entry_SYSCALL_64_after_hwframe+0x63/0xcd
-
--> #0 (&p->lock){+.+.}-{3:3}:
-       check_prev_add kernel/locking/lockdep.c:3142 [inline]
-       check_prevs_add kernel/locking/lockdep.c:3261 [inline]
-       validate_chain kernel/locking/lockdep.c:3876 [inline]
-       __lock_acquire+0x39ff/0x7f70 kernel/locking/lockdep.c:5144
-       lock_acquire+0x1e3/0x520 kernel/locking/lockdep.c:5761
-       __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
-       __mutex_lock kernel/locking/mutex.c:747 [inline]
-       mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
-       seq_read_iter+0xb2/0xd10 fs/seq_file.c:182
-       proc_reg_read_iter+0x1bc/0x290 fs/proc/inode.c:305
-       call_read_iter include/linux/fs.h:1865 [inline]
-       copy_splice_read+0x4c9/0x9c0 fs/splice.c:367
-       splice_direct_to_actor+0x2c4/0x9e0 fs/splice.c:1070
-       do_splice_direct+0x2ac/0x3f0 fs/splice.c:1195
-       do_sendfile+0x623/0x1070 fs/read_write.c:1254
-       __do_sys_sendfile64 fs/read_write.c:1322 [inline]
-       __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1308
-       do_syscall_x64 arch/x86/entry/common.c:50 [inline]
-       do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
-       entry_SYSCALL_64_after_hwframe+0x63/0xcd
-
-other info that might help us debug this:
-
-Chain exists of:
-  &p->lock --> &ovl_i_mutex_dir_key[depth] --> sb_writers#4
-
- Possible unsafe locking scenario:
-
-       CPU0                    CPU1
-       ----                    ----
-  rlock(sb_writers#4);
-                               lock(&ovl_i_mutex_dir_key[depth]);
-                               lock(sb_writers#4);
-  lock(&p->lock);
-
- *** DEADLOCK ***
-
-1 lock held by syz-executor.0/14284:
- #0: ffff88814bdc8410 (sb_writers#4){.+.+}-{0:0}, at: do_sendfile+0x600/0x1070 fs/read_write.c:1253
-
-stack backtrace:
-CPU: 1 PID: 14284 Comm: syz-executor.0 Not tainted 6.5.0-rc2-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 07/03/2023
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0x1e7/0x2d0 lib/dump_stack.c:106
- check_noncircular+0x375/0x4a0 kernel/locking/lockdep.c:2195
- check_prev_add kernel/locking/lockdep.c:3142 [inline]
- check_prevs_add kernel/locking/lockdep.c:3261 [inline]
- validate_chain kernel/locking/lockdep.c:3876 [inline]
- __lock_acquire+0x39ff/0x7f70 kernel/locking/lockdep.c:5144
- lock_acquire+0x1e3/0x520 kernel/locking/lockdep.c:5761
- __mutex_lock_common+0x1d8/0x2530 kernel/locking/mutex.c:603
- __mutex_lock kernel/locking/mutex.c:747 [inline]
- mutex_lock_nested+0x1b/0x20 kernel/locking/mutex.c:799
- seq_read_iter+0xb2/0xd10 fs/seq_file.c:182
- proc_reg_read_iter+0x1bc/0x290 fs/proc/inode.c:305
- call_read_iter include/linux/fs.h:1865 [inline]
- copy_splice_read+0x4c9/0x9c0 fs/splice.c:367
- splice_direct_to_actor+0x2c4/0x9e0 fs/splice.c:1070
- do_splice_direct+0x2ac/0x3f0 fs/splice.c:1195
- do_sendfile+0x623/0x1070 fs/read_write.c:1254
- __do_sys_sendfile64 fs/read_write.c:1322 [inline]
- __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1308
- do_syscall_x64 arch/x86/entry/common.c:50 [inline]
- do_syscall_64+0x41/0xc0 arch/x86/entry/common.c:80
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7fed17a7cb29
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007fed188640c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
-RAX: ffffffffffffffda RBX: 00007fed17b9c1f0 RCX: 00007fed17a7cb29
-RDX: 0000000000000000 RSI: 0000000000000009 RDI: 0000000000000008
-RBP: 00007fed17ac847a R08: 0000000000000000 R09: 0000000000000000
-R10: 4000000000010046 R11: 0000000000000246 R12: 0000000000000000
-R13: 000000000000006e R14: 00007fed17b9c1f0 R15: 00007fff433e8a98
- </TASK>
+   fs/overlayfs/super.c: In function 'ovl_make_workdir':
+   fs/overlayfs/super.c:1192:25: warning: missing terminating " character
+    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
+         |                         ^
+   fs/overlayfs/super.c:1193:28: warning: missing terminating " character
+    1193 |                         err");
+         |                            ^
+   fs/overlayfs/super.c:2065:23: error: unterminated argument list invoking macro "pr_warn"
+    2065 | module_exit(ovl_exit);
+         |                       ^
+   fs/overlayfs/super.c:1192:17: error: 'pr_warn' undeclared (first use in this function)
+    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
+         |                 ^~~~~~~
+   fs/overlayfs/super.c:1192:17: note: each undeclared identifier is reported only once for each function it appears in
+   fs/overlayfs/super.c:1192:24: error: expected ';' at end of input
+    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
+         |                        ^
+         |                        ;
+   ......
+   fs/overlayfs/super.c:1191:9: note: '-Wmisleading-indentation' is disabled from this point onwards, since column-tracking was disabled due to the size of the code/headers
+    1191 |         if (!rename_whiteout)
+         |         ^~
+   fs/overlayfs/super.c:1191:9: note: adding '-flarge-source-files' will allow for more column-tracking support, at the expense of compilation time and memory
+   fs/overlayfs/super.c:1192:17: error: expected declaration or statement at end of input
+    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
+         |                 ^~~~~~~
+   fs/overlayfs/super.c:1188:17: error: label 'out' used but not defined
+    1188 |                 goto out;
+         |                 ^~~~
+>> fs/overlayfs/super.c:1144:13: warning: unused variable 'fh_type' [-Wunused-variable]
+    1144 |         int fh_type;
+         |             ^~~~~~~
+   fs/overlayfs/super.c: At top level:
+   fs/overlayfs/super.c:1136:12: warning: 'ovl_make_workdir' defined but not used [-Wunused-function]
+    1136 | static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+         |            ^~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:1118:12: warning: 'ovl_create_volatile_dirty' defined but not used [-Wunused-function]
+    1118 | static int ovl_create_volatile_dirty(struct ovl_fs *ofs)
+         |            ^~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:969:12: warning: 'ovl_get_upper' defined but not used [-Wunused-function]
+     969 | static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+         |            ^~~~~~~~~~~~~
+>> fs/overlayfs/super.c:926:36: warning: 'ovl_user_xattr_handlers' defined but not used [-Wunused-variable]
+     926 | static const struct xattr_handler *ovl_user_xattr_handlers[] = {
+         |                                    ^~~~~~~~~~~~~~~~~~~~~~~
+>> fs/overlayfs/super.c:920:36: warning: 'ovl_trusted_xattr_handlers' defined but not used [-Wunused-variable]
+     920 | static const struct xattr_handler *ovl_trusted_xattr_handlers[] = {
+         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:859:13: warning: 'ovl_workdir_ok' defined but not used [-Wunused-function]
+     859 | static bool ovl_workdir_ok(struct dentry *workdir, struct dentry *upperdir)
+         |             ^~~~~~~~~~~~~~
+   fs/overlayfs/super.c:816:12: warning: 'ovl_lower_dir' defined but not used [-Wunused-function]
+     816 | static int ovl_lower_dir(const char *name, struct path *path,
+         |            ^~~~~~~~~~~~~
+   fs/overlayfs/super.c:580:12: warning: 'ovl_fs_params_verify' defined but not used [-Wunused-function]
+     580 | static int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+         |            ^~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:493:12: warning: 'ovl_parse_param' defined but not used [-Wunused-function]
+     493 | static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
+         |            ^~~~~~~~~~~~~~~
+>> fs/overlayfs/super.c:442:38: warning: 'ovl_super_operations' defined but not used [-Wunused-const-variable=]
+     442 | static const struct super_operations ovl_super_operations = {
+         |                                      ^~~~~~~~~~~~~~~~~~~~
+   fs/overlayfs/super.c:420:12: warning: 'ovl_reconfigure' defined but not used [-Wunused-function]
+     420 | static int ovl_reconfigure(struct fs_context *fc)
+         |            ^~~~~~~~~~~~~~~
+>> fs/overlayfs/super.c:166:39: warning: 'ovl_dentry_operations' defined but not used [-Wunused-const-variable=]
+     166 | static const struct dentry_operations ovl_dentry_operations = {
+         |                                       ^~~~~~~~~~~~~~~~~~~~~
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+vim +/fh_type +1144 fs/overlayfs/super.c
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+c86243b090bc25 Vivek Goyal       2020-08-31  1135  
+146d62e5a5867f Amir Goldstein    2019-04-18  1136  static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+2d3430875a3a97 Al Viro           2022-08-04  1137  			    const struct path *workpath)
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1138  {
+08f4c7c86d4cf1 Miklos Szeredi    2020-06-04  1139  	struct vfsmount *mnt = ovl_upper_mnt(ofs);
+2b1a77461f1602 Miklos Szeredi    2022-09-24  1140  	struct dentry *workdir;
+2b1a77461f1602 Miklos Szeredi    2022-09-24  1141  	struct file *tmpfile;
+d80172c2d85947 Amir Goldstein    2020-02-20  1142  	bool rename_whiteout;
+d80172c2d85947 Amir Goldstein    2020-02-20  1143  	bool d_type;
+e487d889b7e3e8 Amir Goldstein    2017-11-07 @1144  	int fh_type;
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1145  	int err;
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1146  
+2ba9d57e650448 Amir Goldstein    2018-01-03  1147  	err = mnt_want_write(mnt);
+2ba9d57e650448 Amir Goldstein    2018-01-03  1148  	if (err)
+2ba9d57e650448 Amir Goldstein    2018-01-03  1149  		return err;
+2ba9d57e650448 Amir Goldstein    2018-01-03  1150  
+235ce9ed96bc62 Amir Goldstein    2020-08-30  1151  	workdir = ovl_workdir_create(ofs, OVL_WORKDIR_NAME, false);
+235ce9ed96bc62 Amir Goldstein    2020-08-30  1152  	err = PTR_ERR(workdir);
+235ce9ed96bc62 Amir Goldstein    2020-08-30  1153  	if (IS_ERR_OR_NULL(workdir))
+2ba9d57e650448 Amir Goldstein    2018-01-03  1154  		goto out;
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1155  
+235ce9ed96bc62 Amir Goldstein    2020-08-30  1156  	ofs->workdir = workdir;
+235ce9ed96bc62 Amir Goldstein    2020-08-30  1157  
+146d62e5a5867f Amir Goldstein    2019-04-18  1158  	err = ovl_setup_trap(sb, ofs->workdir, &ofs->workdir_trap, "workdir");
+146d62e5a5867f Amir Goldstein    2019-04-18  1159  	if (err)
+146d62e5a5867f Amir Goldstein    2019-04-18  1160  		goto out;
+146d62e5a5867f Amir Goldstein    2019-04-18  1161  
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1162  	/*
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1163  	 * Upper should support d_type, else whiteouts are visible.  Given
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1164  	 * workdir and upper are on same fs, we can do iterate_dir() on
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1165  	 * workdir. This check requires successful creation of workdir in
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1166  	 * previous step.
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1167  	 */
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1168  	err = ovl_check_d_type_supported(workpath);
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1169  	if (err < 0)
+2ba9d57e650448 Amir Goldstein    2018-01-03  1170  		goto out;
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1171  
+d80172c2d85947 Amir Goldstein    2020-02-20  1172  	d_type = err;
+d80172c2d85947 Amir Goldstein    2020-02-20  1173  	if (!d_type)
+1bd0a3aea4357e lijiazi           2019-12-16  1174  		pr_warn("upper fs needs to support d_type.\n");
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1175  
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1176  	/* Check if upper/work fs supports O_TMPFILE */
+2b1a77461f1602 Miklos Szeredi    2022-09-24  1177  	tmpfile = ovl_do_tmpfile(ofs, ofs->workdir, S_IFREG | 0);
+2b1a77461f1602 Miklos Szeredi    2022-09-24  1178  	ofs->tmpfile = !IS_ERR(tmpfile);
+ad204488d3046b Miklos Szeredi    2017-11-10  1179  	if (ofs->tmpfile)
+2b1a77461f1602 Miklos Szeredi    2022-09-24  1180  		fput(tmpfile);
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1181  	else
+1bd0a3aea4357e lijiazi           2019-12-16  1182  		pr_warn("upper fs does not support tmpfile.\n");
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1183  
+cad218ab332078 Amir Goldstein    2020-02-20  1184  
+cad218ab332078 Amir Goldstein    2020-02-20  1185  	/* Check if upper/work fs supports RENAME_WHITEOUT */
+576bb263450bbb Christian Brauner 2022-04-04  1186  	err = ovl_check_rename_whiteout(ofs);
+a64df2da371f93 Yunlong Xing      2023-07-19  1187  	if (err < 0 && err != -ENOSPC)
+cad218ab332078 Amir Goldstein    2020-02-20  1188  		goto out;
+cad218ab332078 Amir Goldstein    2020-02-20  1189  
+a64df2da371f93 Yunlong Xing      2023-07-19  1190  	rename_whiteout = err > 0;
+d80172c2d85947 Amir Goldstein    2020-02-20  1191  	if (!rename_whiteout)
+a64df2da371f93 Yunlong Xing      2023-07-19  1192  		pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
+a64df2da371f93 Yunlong Xing      2023-07-19  1193  			err");
+cad218ab332078 Amir Goldstein    2020-02-20  1194  
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1195  	/*
+2d2f2d7322ff43 Miklos Szeredi    2020-12-14  1196  	 * Check if upper/work fs supports (trusted|user).overlay.* xattr
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1197  	 */
+c914c0e27eb084 Amir Goldstein    2022-04-04  1198  	err = ovl_setxattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE, "0", 1);
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1199  	if (err) {
+b10b85fe5149ee Miklos Szeredi    2022-07-27  1200  		pr_warn("failed to set xattr on upper\n");
+ad204488d3046b Miklos Szeredi    2017-11-10  1201  		ofs->noxattr = true;
+af5f2396b671c9 Amir Goldstein    2023-06-17  1202  		if (ovl_redirect_follow(ofs)) {
+af5f2396b671c9 Amir Goldstein    2023-06-17  1203  			ofs->config.redirect_mode = OVL_REDIRECT_NOFOLLOW;
+af5f2396b671c9 Amir Goldstein    2023-06-17  1204  			pr_warn("...falling back to redirect_dir=nofollow.\n");
+af5f2396b671c9 Amir Goldstein    2023-06-17  1205  		}
+af5f2396b671c9 Amir Goldstein    2023-06-17  1206  		if (ofs->config.metacopy) {
+d5791044d2e574 Vivek Goyal       2018-05-11  1207  			ofs->config.metacopy = false;
+af5f2396b671c9 Amir Goldstein    2023-06-17  1208  			pr_warn("...falling back to metacopy=off.\n");
+af5f2396b671c9 Amir Goldstein    2023-06-17  1209  		}
+af5f2396b671c9 Amir Goldstein    2023-06-17  1210  		if (ofs->config.index) {
+af5f2396b671c9 Amir Goldstein    2023-06-17  1211  			ofs->config.index = false;
+af5f2396b671c9 Amir Goldstein    2023-06-17  1212  			pr_warn("...falling back to index=off.\n");
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1213  		}
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1214  		/*
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1215  		 * xattr support is required for persistent st_ino.
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1216  		 * Without persistent st_ino, xino=auto falls back to xino=off.
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1217  		 */
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1218  		if (ofs->config.xino == OVL_XINO_AUTO) {
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1219  			ofs->config.xino = OVL_XINO_OFF;
+b10b85fe5149ee Miklos Szeredi    2022-07-27  1220  			pr_warn("...falling back to xino=off.\n");
+b0e0f69731cde2 Amir Goldstein    2021-03-09  1221  		}
+b10b85fe5149ee Miklos Szeredi    2022-07-27  1222  		if (err == -EPERM && !ofs->config.userxattr)
+b10b85fe5149ee Miklos Szeredi    2022-07-27  1223  			pr_info("try mounting with 'userxattr' option\n");
+2ba9d57e650448 Amir Goldstein    2018-01-03  1224  		err = 0;
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1225  	} else {
+c914c0e27eb084 Amir Goldstein    2022-04-04  1226  		ovl_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1227  	}
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1228  
+d80172c2d85947 Amir Goldstein    2020-02-20  1229  	/*
+d80172c2d85947 Amir Goldstein    2020-02-20  1230  	 * We allowed sub-optimal upper fs configuration and don't want to break
+d80172c2d85947 Amir Goldstein    2020-02-20  1231  	 * users over kernel upgrade, but we never allowed remote upper fs, so
+d80172c2d85947 Amir Goldstein    2020-02-20  1232  	 * we can enforce strict requirements for remote upper fs.
+d80172c2d85947 Amir Goldstein    2020-02-20  1233  	 */
+d80172c2d85947 Amir Goldstein    2020-02-20  1234  	if (ovl_dentry_remote(ofs->workdir) &&
+d80172c2d85947 Amir Goldstein    2020-02-20  1235  	    (!d_type || !rename_whiteout || ofs->noxattr)) {
+d80172c2d85947 Amir Goldstein    2020-02-20  1236  		pr_err("upper fs missing required features.\n");
+d80172c2d85947 Amir Goldstein    2020-02-20  1237  		err = -EINVAL;
+d80172c2d85947 Amir Goldstein    2020-02-20  1238  		goto out;
+d80172c2d85947 Amir Goldstein    2020-02-20  1239  	}
+d80172c2d85947 Amir Goldstein    2020-02-20  1240  
+c86243b090bc25 Vivek Goyal       2020-08-31  1241  	/*
+c86243b090bc25 Vivek Goyal       2020-08-31  1242  	 * For volatile mount, create a incompat/volatile/dirty file to keep
+c86243b090bc25 Vivek Goyal       2020-08-31  1243  	 * track of it.
+c86243b090bc25 Vivek Goyal       2020-08-31  1244  	 */
+c86243b090bc25 Vivek Goyal       2020-08-31  1245  	if (ofs->config.ovl_volatile) {
+c86243b090bc25 Vivek Goyal       2020-08-31  1246  		err = ovl_create_volatile_dirty(ofs);
+c86243b090bc25 Vivek Goyal       2020-08-31  1247  		if (err < 0) {
+c86243b090bc25 Vivek Goyal       2020-08-31  1248  			pr_err("Failed to create volatile/dirty file.\n");
+c86243b090bc25 Vivek Goyal       2020-08-31  1249  			goto out;
+c86243b090bc25 Vivek Goyal       2020-08-31  1250  		}
+c86243b090bc25 Vivek Goyal       2020-08-31  1251  	}
+c86243b090bc25 Vivek Goyal       2020-08-31  1252  
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1253  	/* Check if upper/work fs supports file handles */
+e487d889b7e3e8 Amir Goldstein    2017-11-07  1254  	fh_type = ovl_can_decode_fh(ofs->workdir->d_sb);
+e487d889b7e3e8 Amir Goldstein    2017-11-07  1255  	if (ofs->config.index && !fh_type) {
+ad204488d3046b Miklos Szeredi    2017-11-10  1256  		ofs->config.index = false;
+1bd0a3aea4357e lijiazi           2019-12-16  1257  		pr_warn("upper fs does not support file handles, falling back to index=off.\n");
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1258  	}
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1259  
+e487d889b7e3e8 Amir Goldstein    2017-11-07  1260  	/* Check if upper fs has 32bit inode numbers */
+e487d889b7e3e8 Amir Goldstein    2017-11-07  1261  	if (fh_type != FILEID_INO32_GEN)
+0f831ec85eda1a Amir Goldstein    2019-11-16  1262  		ofs->xino_mode = -1;
+e487d889b7e3e8 Amir Goldstein    2017-11-07  1263  
+f168f1098dd903 Amir Goldstein    2018-01-19  1264  	/* NFS export of r/w mount depends on index */
+f168f1098dd903 Amir Goldstein    2018-01-19  1265  	if (ofs->config.nfs_export && !ofs->config.index) {
+1bd0a3aea4357e lijiazi           2019-12-16  1266  		pr_warn("NFS export requires \"index=on\", falling back to nfs_export=off.\n");
+f168f1098dd903 Amir Goldstein    2018-01-19  1267  		ofs->config.nfs_export = false;
+f168f1098dd903 Amir Goldstein    2018-01-19  1268  	}
+2ba9d57e650448 Amir Goldstein    2018-01-03  1269  out:
+2ba9d57e650448 Amir Goldstein    2018-01-03  1270  	mnt_drop_write(mnt);
+2ba9d57e650448 Amir Goldstein    2018-01-03  1271  	return err;
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1272  }
+8ed61dc37ee0a3 Miklos Szeredi    2017-11-09  1273  
 
-If the bug is already fixed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want to change bug's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the bug is a duplicate of another bug, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
