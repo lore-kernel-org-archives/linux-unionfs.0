@@ -2,58 +2,59 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0846FEB64DA
-	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Jul 2023 11:26:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CE81EB64DA
+	for <linux-unionfs@archiver.kernel.org>; Wed, 19 Jul 2023 12:18:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229525AbjGSL0x (ORCPT
+        id S229972AbjGSMSt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 19 Jul 2023 07:26:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49870 "EHLO
+        Wed, 19 Jul 2023 08:18:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43888 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229793AbjGSL0w (ORCPT
+        with ESMTP id S229744AbjGSMSq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 19 Jul 2023 07:26:52 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C3579E4D;
-        Wed, 19 Jul 2023 04:26:48 -0700 (PDT)
+        Wed, 19 Jul 2023 08:18:46 -0400
+Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10EEAE0;
+        Wed, 19 Jul 2023 05:18:45 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1689766008; x=1721302008;
+  t=1689769125; x=1721305125;
   h=date:from:to:cc:subject:message-id:references:
    mime-version:in-reply-to;
-  bh=iCZNLBU8weIydVb6QYttZRo+MtivYuPsXDy7xlDmD3Y=;
-  b=UQcGnwNFhlbYnDzqxrKSEide8K5kwiAYIXOHul0exQ1iI3N//4tWwU5r
-   HpPSH3xZVI9SqCjCBMjp3Ebu0lo//cGxgooJOinYzdL8M3N7LauirjqVt
-   7cspaIlaah8HVQS5JyUlCSJRWsCesN72fOGiyOu6O+RW1MJKlkncgVkKx
-   5ieqa+tVFBDx/LJZAm5ybntp3u7dnJF+IQIDKaoiwqXf5+hh+pWlcklG4
-   2I3Q0zbKsP6Z3a4szVTnrfp0yfhweyDwKMvBmU7YLzjnUeHJpO7XgXMM/
-   pPXFGFEpAqmWXIF0jU4sdIzmfy9z1MyqSiR5bll/cEVYDDmP+kGKVVN4y
+  bh=yu1UzLTeugLyqYX6UqEkcCgWfK42hiuHpkQFfI2Ed04=;
+  b=LugTkoDUUdpeDdermFQsnfrC7QAfrwwCQKM2t2oyO+abpmD7atS8+2Pe
+   6Lsr9OnUTvzJLuk1SkjwmyD60Wm9IfyEha6QipBworO8SXmMuBstLd8WO
+   p9y1gN5T6oLuvIvHvBJ5i+lNNta5aH7GdAx67RGyPxAJqrKYWS6XWhFwn
+   thivoRzMSGxmL10PIRwqTN6Z+xi/q3C7liSQffw1STh6UBtGpYXDSycZI
+   sMPYPKXIG00yHsNfUS5/lrl5VyX2+wCEpExmWX7LLMjFkwxm5qPXGSV86
+   36AdCNBcL+wW+CWZT+vnZCUb2uv8oCZgAKs5KvY6XXgRw6rN8SrKD1TTZ
    A==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10775"; a="351303050"
+X-IronPort-AV: E=McAfee;i="6600,9927,10776"; a="346747429"
 X-IronPort-AV: E=Sophos;i="6.01,216,1684825200"; 
-   d="scan'208";a="351303050"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jul 2023 04:26:48 -0700
+   d="scan'208";a="346747429"
+Received: from orsmga003.jf.intel.com ([10.7.209.27])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Jul 2023 05:18:44 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10775"; a="897887988"
+X-IronPort-AV: E=McAfee;i="6600,9927,10776"; a="674267301"
 X-IronPort-AV: E=Sophos;i="6.01,216,1684825200"; 
-   d="scan'208";a="897887988"
+   d="scan'208";a="674267301"
 Received: from lkp-server02.sh.intel.com (HELO 36946fcf73d7) ([10.239.97.151])
-  by orsmga005.jf.intel.com with ESMTP; 19 Jul 2023 04:26:45 -0700
+  by orsmga003.jf.intel.com with ESMTP; 19 Jul 2023 05:18:41 -0700
 Received: from kbuild by 36946fcf73d7 with local (Exim 4.96)
         (envelope-from <lkp@intel.com>)
-        id 1qM5KP-0004it-0o;
-        Wed, 19 Jul 2023 11:26:45 +0000
-Date:   Wed, 19 Jul 2023 19:26:07 +0800
+        id 1qM68f-0004mt-0M;
+        Wed, 19 Jul 2023 12:18:41 +0000
+Date:   Wed, 19 Jul 2023 20:17:42 +0800
 From:   kernel test robot <lkp@intel.com>
 To:     Yunlong Xing <yunlong.xing@unisoc.com>, miklos@szeredi.hu,
         amir73il@gmail.com
-Cc:     oe-kbuild-all@lists.linux.dev, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, zhiguo.niu@unisoc.com,
-        hongyu.jin@unisoc.com, yunlongxing23@gmail.com
+Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        zhiguo.niu@unisoc.com, hongyu.jin@unisoc.com,
+        yunlongxing23@gmail.com
 Subject: Re: [PATCH V2] ovl: fix mount fail because the upper doesn't have
  space
-Message-ID: <202307191949.czbm8CT2-lkp@intel.com>
+Message-ID: <202307192047.274jiOge-lkp@intel.com>
 References: <20230719085434.154834-1-yunlong.xing@unisoc.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -65,10 +66,10 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 Hi Yunlong,
 
-kernel test robot noticed the following build warnings:
+kernel test robot noticed the following build errors:
 
-[auto build test WARNING on mszeredi-vfs/overlayfs-next]
-[also build test WARNING on linus/master v6.5-rc2 next-20230719]
+[auto build test ERROR on mszeredi-vfs/overlayfs-next]
+[also build test ERROR on linus/master]
 [cannot apply to mszeredi-vfs/next]
 [If your patch is applied to the wrong git tree, kindly drop us a note.
 And when submitting patch, we suggest to use '--base' as documented in
@@ -78,86 +79,46 @@ url:    https://github.com/intel-lab-lkp/linux/commits/Yunlong-Xing/ovl-fix-moun
 base:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git overlayfs-next
 patch link:    https://lore.kernel.org/r/20230719085434.154834-1-yunlong.xing%40unisoc.com
 patch subject: [PATCH V2] ovl: fix mount fail because the upper doesn't have space
-config: alpha-allyesconfig (https://download.01.org/0day-ci/archive/20230719/202307191949.czbm8CT2-lkp@intel.com/config)
-compiler: alpha-linux-gcc (GCC) 12.3.0
-reproduce: (https://download.01.org/0day-ci/archive/20230719/202307191949.czbm8CT2-lkp@intel.com/reproduce)
+config: arm64-randconfig-r026-20230718 (https://download.01.org/0day-ci/archive/20230719/202307192047.274jiOge-lkp@intel.com/config)
+compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project.git 4a5ac14ee968ff0ad5d2cc1ffa0299048db4c88a)
+reproduce: (https://download.01.org/0day-ci/archive/20230719/202307192047.274jiOge-lkp@intel.com/reproduce)
 
 If you fix the issue in a separate patch/commit (i.e. not just a new version of
 the same patch/commit), kindly add following tags
 | Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202307191949.czbm8CT2-lkp@intel.com/
+| Closes: https://lore.kernel.org/oe-kbuild-all/202307192047.274jiOge-lkp@intel.com/
 
-All warnings (new ones prefixed by >>):
+All error/warnings (new ones prefixed by >>):
 
-   fs/overlayfs/super.c: In function 'ovl_make_workdir':
->> fs/overlayfs/super.c:1192:25: warning: missing terminating " character
+   fs/overlayfs/super.c:1192:11: warning: missing terminating '"' character [-Winvalid-pp-token]
     1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
          |                         ^
-   fs/overlayfs/super.c:1193:28: warning: missing terminating " character
+   fs/overlayfs/super.c:1193:7: warning: missing terminating '"' character [-Winvalid-pp-token]
     1193 |                         err");
          |                            ^
-   fs/overlayfs/super.c:2065:23: error: unterminated argument list invoking macro "pr_warn"
+>> fs/overlayfs/super.c:1192:3: error: unterminated function-like macro invocation
+    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
+         |                 ^
+   include/linux/printk.h:507:9: note: macro 'pr_warn' defined here
+     507 | #define pr_warn(fmt, ...) \
+         |         ^
+>> fs/overlayfs/super.c:2065:23: error: expected expression
     2065 | module_exit(ovl_exit);
          |                       ^
-   fs/overlayfs/super.c:1192:17: error: 'pr_warn' undeclared (first use in this function)
-    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
-         |                 ^~~~~~~
-   fs/overlayfs/super.c:1192:17: note: each undeclared identifier is reported only once for each function it appears in
-   fs/overlayfs/super.c:1192:24: error: expected ';' at end of input
-    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
-         |                        ^
-         |                        ;
-   ......
-   fs/overlayfs/super.c:1191:9: note: '-Wmisleading-indentation' is disabled from this point onwards, since column-tracking was disabled due to the size of the code/headers
+>> fs/overlayfs/super.c:2065:23: warning: misleading indentation; statement is not part of the previous 'if' [-Wmisleading-indentation]
+   fs/overlayfs/super.c:1191:2: note: previous statement is here
     1191 |         if (!rename_whiteout)
-         |         ^~
-   fs/overlayfs/super.c:1191:9: note: adding '-flarge-source-files' will allow for more column-tracking support, at the expense of compilation time and memory
-   fs/overlayfs/super.c:1192:17: error: expected declaration or statement at end of input
-    1192 |                 pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
-         |                 ^~~~~~~
-   fs/overlayfs/super.c:1188:17: error: label 'out' used but not defined
-    1188 |                 goto out;
-         |                 ^~~~
-   fs/overlayfs/super.c:1144:13: warning: unused variable 'fh_type' [-Wunused-variable]
-    1144 |         int fh_type;
-         |             ^~~~~~~
-   fs/overlayfs/super.c: At top level:
-   fs/overlayfs/super.c:1136:12: warning: 'ovl_make_workdir' defined but not used [-Wunused-function]
-    1136 | static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
-         |            ^~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:1118:12: warning: 'ovl_create_volatile_dirty' defined but not used [-Wunused-function]
-    1118 | static int ovl_create_volatile_dirty(struct ovl_fs *ofs)
-         |            ^~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:969:12: warning: 'ovl_get_upper' defined but not used [-Wunused-function]
-     969 | static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
-         |            ^~~~~~~~~~~~~
-   fs/overlayfs/super.c:926:36: warning: 'ovl_user_xattr_handlers' defined but not used [-Wunused-variable]
-     926 | static const struct xattr_handler *ovl_user_xattr_handlers[] = {
-         |                                    ^~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:920:36: warning: 'ovl_trusted_xattr_handlers' defined but not used [-Wunused-variable]
-     920 | static const struct xattr_handler *ovl_trusted_xattr_handlers[] = {
-         |                                    ^~~~~~~~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:859:13: warning: 'ovl_workdir_ok' defined but not used [-Wunused-function]
-     859 | static bool ovl_workdir_ok(struct dentry *workdir, struct dentry *upperdir)
-         |             ^~~~~~~~~~~~~~
-   fs/overlayfs/super.c:816:12: warning: 'ovl_lower_dir' defined but not used [-Wunused-function]
-     816 | static int ovl_lower_dir(const char *name, struct path *path,
-         |            ^~~~~~~~~~~~~
-   fs/overlayfs/super.c:580:12: warning: 'ovl_fs_params_verify' defined but not used [-Wunused-function]
-     580 | static int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
-         |            ^~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:493:12: warning: 'ovl_parse_param' defined but not used [-Wunused-function]
-     493 | static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
-         |            ^~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:442:38: warning: 'ovl_super_operations' defined but not used [-Wunused-const-variable=]
-     442 | static const struct super_operations ovl_super_operations = {
-         |                                      ^~~~~~~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:420:12: warning: 'ovl_reconfigure' defined but not used [-Wunused-function]
-     420 | static int ovl_reconfigure(struct fs_context *fc)
-         |            ^~~~~~~~~~~~~~~
-   fs/overlayfs/super.c:166:39: warning: 'ovl_dentry_operations' defined but not used [-Wunused-const-variable=]
-     166 | static const struct dentry_operations ovl_dentry_operations = {
-         |                                       ^~~~~~~~~~~~~~~~~~~~~
+         |         ^
+>> fs/overlayfs/super.c:2065:23: error: expected '}'
+    2065 | module_exit(ovl_exit);
+         |                       ^
+   fs/overlayfs/super.c:1138:1: note: to match this '{'
+    1138 | {
+         | ^
+>> fs/overlayfs/super.c:1154:8: error: use of undeclared label 'out'
+    1154 |                 goto out;
+         |                      ^
+   3 warnings and 4 errors generated.
 
 
 vim +1192 fs/overlayfs/super.c
@@ -181,7 +142,7 @@ vim +1192 fs/overlayfs/super.c
   1151		workdir = ovl_workdir_create(ofs, OVL_WORKDIR_NAME, false);
   1152		err = PTR_ERR(workdir);
   1153		if (IS_ERR_OR_NULL(workdir))
-  1154			goto out;
+> 1154			goto out;
   1155	
   1156		ofs->workdir = workdir;
   1157	
@@ -218,9 +179,9 @@ vim +1192 fs/overlayfs/super.c
   1188			goto out;
   1189	
   1190		rename_whiteout = err > 0;
-  1191		if (!rename_whiteout)
+> 1191		if (!rename_whiteout)
 > 1192			pr_warn("upper fs does not support RENAME_WHITEOUT (%i).\n,
-  1193				err");
+> 1193				err");
   1194	
   1195		/*
   1196		 * Check if upper/work fs supports (trusted|user).overlay.* xattr
