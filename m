@@ -2,54 +2,54 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80713C001E0
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jul 2023 01:23:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89634C00528
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jul 2023 01:28:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230235AbjGXBXY (ORCPT
+        id S230287AbjGXB21 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 23 Jul 2023 21:23:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52904 "EHLO
+        Sun, 23 Jul 2023 21:28:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230474AbjGXBWw (ORCPT
+        with ESMTP id S231506AbjGXB1T (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 23 Jul 2023 21:22:52 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65DC51737;
-        Sun, 23 Jul 2023 18:22:19 -0700 (PDT)
+        Sun, 23 Jul 2023 21:27:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91DCA4682;
+        Sun, 23 Jul 2023 18:24:51 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4431A60F1D;
-        Mon, 24 Jul 2023 01:20:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9B19C433C7;
-        Mon, 24 Jul 2023 01:20:47 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DC32360F13;
+        Mon, 24 Jul 2023 01:24:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0527C433CB;
+        Mon, 24 Jul 2023 01:24:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690161648;
-        bh=p62JdF+2MEhQfOERPRBStL6d3PjNgVIJpUiixC9DnRA=;
+        s=k20201202; t=1690161850;
+        bh=UhaWQwJ10TNFYLdIupAYVg8SYBySq2CqoJQgWJ3VDf8=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=i9YN0AAkY4FUtum8GSwkZeCG9qJsegh/RsU3X5eM3UX1zMpmdEPkEcIiog0Ud43yx
-         TKxzk/bXGEUY3FRU1ifi33Sp9bI8Z67WXhI+UQV1z0TKKUPXQNsmiGC0DRzHKt/fFo
-         1TFQaSand8oSJ87oXNSTJj4UP0HKKryAYn3k7VKEKbsyovDi03gpIJgQ6oO53WEhOd
-         zxLHt8uncOICKbyGjwsbElDYBIWOVTpQbV1X4cbYNCaY+Gm1ecRetgrg1+ZyqDhMgm
-         ZVsFE1Y51F5W55jqBQpyUpxIsl9M503zuoHrLj5s48Ptgs+xHTY28n9iuYAJA31z0/
-         4r5OER2eatnYw==
+        b=gOo5XemfOIQ9x9/Ki5DblF6CvSnubGYIHvghIClLuT/wuUlEWNal8mVu5808lsb9R
+         G+nhyurrAKu33DhrvheyxkgU2fsn5AFIp8HRclhMAUSthRr1QnZ3OfthfnAJentzpu
+         0uUHKi0SGjIlifQUfo1Y5yKVMudMI1EP3U5hI4NXKr3C3wL8n4ZGqq0pqauLMW3zSS
+         5ymUhrbHytrgmyGW1YDc32MZ/8qR2fLFYA+jSUc+HjQX5lxmq+twOD/U3q6uANeX2V
+         cmYxKdkqwPzt3OX9Z6u3cLetKby7xYWbLXaPHn35uIHOHiRriBxxGemeLOoSqIfcag
+         SSJKP/BFmrmLA==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Christian Brauner <brauner@kernel.org>,
         Amir Goldstein <amir73il@gmail.com>,
         Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.4 51/58] ovl: check type and offset of struct vfsmount in ovl_entry
-Date:   Sun, 23 Jul 2023 21:13:19 -0400
-Message-Id: <20230724011338.2298062-51-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 17/23] ovl: check type and offset of struct vfsmount in ovl_entry
+Date:   Sun, 23 Jul 2023 21:23:28 -0400
+Message-Id: <20230724012334.2317140-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230724011338.2298062-1-sashal@kernel.org>
-References: <20230724011338.2298062-1-sashal@kernel.org>
+In-Reply-To: <20230724012334.2317140-1-sashal@kernel.org>
+References: <20230724012334.2317140-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.4.5
+X-stable-base: Linux 5.15.121
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
@@ -82,7 +82,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 9 insertions(+)
 
 diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index fd11fe6d6d45f..6b9f7917fc1bb 100644
+index b2d64f3c974bb..08031638bbeec 100644
 --- a/fs/overlayfs/ovl_entry.h
 +++ b/fs/overlayfs/ovl_entry.h
 @@ -32,6 +32,7 @@ struct ovl_sb {
