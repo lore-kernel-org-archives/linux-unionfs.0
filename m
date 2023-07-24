@@ -2,112 +2,82 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02169C001E0
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jul 2023 01:49:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B04FC0015E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jul 2023 08:32:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232813AbjGXBth (ORCPT
+        id S230062AbjGXIcF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 23 Jul 2023 21:49:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54032 "EHLO
+        Mon, 24 Jul 2023 04:32:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232797AbjGXBr5 (ORCPT
+        with ESMTP id S231550AbjGXIcE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 23 Jul 2023 21:47:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894454EC8;
-        Sun, 23 Jul 2023 18:40:10 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D95160F0B;
-        Mon, 24 Jul 2023 01:23:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0DEF2C433CB;
-        Mon, 24 Jul 2023 01:23:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1690161797;
-        bh=TUIGnMRQyP3Tbk6uTBFpwvFdEI75vkiy6WmBX3JOVoA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AUcwXdTRiq6kqo9BCz7lvH4GTcnAiT+cDSJqnywBNzOUqzXsXS5NWSQ6SCzSOle53
-         0SolF/RtjEJsFOS7hx9nkGMAj8zAEz6c5qNiKkMnTerNFAA45NwVAYCnYAJDX76soo
-         10wqA/c+inzXbjKdzHEpA6SpxMkngU2Yrs4aO3veJJadbzl2H/KOyVAIHfxzCgSb2X
-         +dYLoPLGmsYOvfKqWbDrfAJjJ1iR07TH7uiIGLNYCmzCLOJECx4veTjb3yiFij9jjm
-         1ogB4h+mYon4EqjP5R5pPaiHjJ/776q93hLqtQfzU5id2kyhALB5ILlIB2YKuvcfgj
-         g1W8zkOCrwaqA==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.1 34/41] ovl: check type and offset of struct vfsmount in ovl_entry
-Date:   Sun, 23 Jul 2023 21:21:07 -0400
-Message-Id: <20230724012118.2316073-34-sashal@kernel.org>
-X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230724012118.2316073-1-sashal@kernel.org>
-References: <20230724012118.2316073-1-sashal@kernel.org>
+        Mon, 24 Jul 2023 04:32:04 -0400
+Received: from mail-oa1-f69.google.com (mail-oa1-f69.google.com [209.85.160.69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABC6294
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2023 01:31:57 -0700 (PDT)
+Received: by mail-oa1-f69.google.com with SMTP id 586e51a60fabf-1bb5d553d19so1968806fac.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2023 01:31:57 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1690187517; x=1690792317;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=5J7ktKzhmZkgZE+x3/G0qL4ztdEtmMYBnbiSBN9PzD4=;
+        b=e0oTxcwDPFpVbtVg+WiDzALExzf6GMW0SmJt4x3qyBCmlYk8CUhza2EK+CHVZu5FbX
+         IielXxZmpvl3tDGEiz4/+XGsE/o9lniKrOXaiAbTfM61xhIDV6ckwn8uJrMtN4XzbiCX
+         HCFIp4TSzgOPz7fazxg4eyhGu0U8zcp9Ig98Jlh1+EVCMDdAh1NMvSSsnCoKruJ+jlMu
+         IAGydjwQ6OdU+c7Yi3WCiSZOn8hjl6Zq4gLJTXrTAUhosqKaSWZvaSxICCyKFabQqWv1
+         qI8zBqq2Qu3YRNNJFocszOtjoFXCHtwiC4MGlmdqo24dM6CJW4gHN+YUyJcbv84JKJVh
+         /Zcg==
+X-Gm-Message-State: ABy/qLb1V9tSMPHsca43fX9G+wVoNm689ySkOfH+B785uGUM5UPtwAxz
+        MC4++kxOyKTlaHqS/R/eRpX6C6B4RHI+NQhcOhR2Ps/61gIP
+X-Google-Smtp-Source: APBJJlGj/AJV4crgXsUXx9xg+t5bD9FjXzISucJ6nztTudvcQmIAzJBWyVunO9vhiMzwYzSXUNaEEibrpyrJIIYrloS6X308afx3
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.1.40
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6870:5b1b:b0:1bb:785d:7436 with SMTP id
+ ds27-20020a0568705b1b00b001bb785d7436mr1599528oab.10.1690187517019; Mon, 24
+ Jul 2023 01:31:57 -0700 (PDT)
+Date:   Mon, 24 Jul 2023 01:31:56 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000008e4e370601377210@google.com>
+Subject: [syzbot] Monthly overlayfs report (Jul 2023)
+From:   syzbot <syzbot+lista7343adf220a77c2e87e@syzkaller.appspotmail.com>
+To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Christian Brauner <brauner@kernel.org>
+Hello overlayfs maintainers/developers,
 
-[ Upstream commit f723edb8a532cd26e1ff0a2b271d73762d48f762 ]
+This is a 31-day syzbot report for the overlayfs subsystem.
+All related reports/information can be found at:
+https://syzkaller.appspot.com/upstream/s/overlayfs
 
-Porting overlayfs to the new amount api I started experiencing random
-crashes that couldn't be explained easily. So after much debugging and
-reasoning it became clear that struct ovl_entry requires the point to
-struct vfsmount to be the first member and of type struct vfsmount.
+During the period, 3 new issues were detected and 1 were fixed.
+In total, 7 issues are still open and 18 have been fixed so far.
 
-During the port I added a new member at the beginning of struct
-ovl_entry which broke all over the place in the form of random crashes
-and cache corruptions. While there's a comment in ovl_free_fs() to the
-effect of "Hack! Reuse ofs->layers as a vfsmount array before freeing
-it" there's no such comment on struct ovl_entry which makes this easy to
-trip over.
+Some of the still happening issues:
 
-Add a comment and two static asserts for both the offset and the type of
-pointer in struct ovl_entry.
+Ref Crashes Repro Title
+<1> 727     Yes   possible deadlock in mnt_want_write (2)
+                  https://syzkaller.appspot.com/bug?extid=b42fe626038981fb7bfa
+<2> 50      No    general protection fault in d_path
+                  https://syzkaller.appspot.com/bug?extid=a67fc5321ffb4b311c98
+<3> 5       No    possible deadlock in seq_read_iter (2)
+                  https://syzkaller.appspot.com/bug?extid=da4f9f61f96525c62cc7
 
-Signed-off-by: Christian Brauner <brauner@kernel.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/overlayfs/ovl_entry.h | 9 +++++++++
- 1 file changed, 9 insertions(+)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-index e1af8f6606984..a479680a5ccd8 100644
---- a/fs/overlayfs/ovl_entry.h
-+++ b/fs/overlayfs/ovl_entry.h
-@@ -32,6 +32,7 @@ struct ovl_sb {
- };
- 
- struct ovl_layer {
-+	/* ovl_free_fs() relies on @mnt being the first member! */
- 	struct vfsmount *mnt;
- 	/* Trap in ovl inode cache */
- 	struct inode *trap;
-@@ -42,6 +43,14 @@ struct ovl_layer {
- 	int fsid;
- };
- 
-+/*
-+ * ovl_free_fs() relies on @mnt being the first member when unmounting
-+ * the private mounts created for each layer. Let's check both the
-+ * offset and type.
-+ */
-+static_assert(offsetof(struct ovl_layer, mnt) == 0);
-+static_assert(__same_type(typeof_member(struct ovl_layer, mnt), struct vfsmount *));
-+
- struct ovl_path {
- 	const struct ovl_layer *layer;
- 	struct dentry *dentry;
--- 
-2.39.2
+To disable reminders for individual bugs, reply with the following command:
+#syz set <Ref> no-reminders
 
+To change bug's subsystems, reply with:
+#syz set <Ref> subsystems: new-subsystem
+
+You may send multiple commands in a single email message.
