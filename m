@@ -2,82 +2,102 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B04FC0015E
-	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jul 2023 08:32:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B101C0015E
+	for <linux-unionfs@archiver.kernel.org>; Mon, 24 Jul 2023 14:43:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230062AbjGXIcF (ORCPT
+        id S230295AbjGXOnV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 24 Jul 2023 04:32:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60502 "EHLO
+        Mon, 24 Jul 2023 10:43:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59146 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231550AbjGXIcE (ORCPT
+        with ESMTP id S229485AbjGXOnU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 24 Jul 2023 04:32:04 -0400
-Received: from mail-oa1-f69.google.com (mail-oa1-f69.google.com [209.85.160.69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABC6294
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2023 01:31:57 -0700 (PDT)
-Received: by mail-oa1-f69.google.com with SMTP id 586e51a60fabf-1bb5d553d19so1968806fac.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2023 01:31:57 -0700 (PDT)
+        Mon, 24 Jul 2023 10:43:20 -0400
+Received: from mail-ej1-x62f.google.com (mail-ej1-x62f.google.com [IPv6:2a00:1450:4864:20::62f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3791610F
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2023 07:43:19 -0700 (PDT)
+Received: by mail-ej1-x62f.google.com with SMTP id a640c23a62f3a-9939fbb7191so936627266b.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 24 Jul 2023 07:43:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1690209797; x=1690814597;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=oWtBMwxjTwxYWh+dw3/8mngiuHp6BECAcQUcMWQtOq0=;
+        b=n3iSISe9tTfRu/kre2x1L0mivaM2UTKHvN14BmPHSiAYxxhP7GU6tXtSn5XYsmzJpo
+         /djMPW3gg4HNLg0vRfL4Cd/7V9DaPexQyrMIFvMUriPY2tPllshxIdp4MsqVhu1Us+jB
+         QXVnY9J1rTKpCqI1tKlEq+YtOi6knWXbR8ibI=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690187517; x=1690792317;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=5J7ktKzhmZkgZE+x3/G0qL4ztdEtmMYBnbiSBN9PzD4=;
-        b=e0oTxcwDPFpVbtVg+WiDzALExzf6GMW0SmJt4x3qyBCmlYk8CUhza2EK+CHVZu5FbX
-         IielXxZmpvl3tDGEiz4/+XGsE/o9lniKrOXaiAbTfM61xhIDV6ckwn8uJrMtN4XzbiCX
-         HCFIp4TSzgOPz7fazxg4eyhGu0U8zcp9Ig98Jlh1+EVCMDdAh1NMvSSsnCoKruJ+jlMu
-         IAGydjwQ6OdU+c7Yi3WCiSZOn8hjl6Zq4gLJTXrTAUhosqKaSWZvaSxICCyKFabQqWv1
-         qI8zBqq2Qu3YRNNJFocszOtjoFXCHtwiC4MGlmdqo24dM6CJW4gHN+YUyJcbv84JKJVh
-         /Zcg==
-X-Gm-Message-State: ABy/qLb1V9tSMPHsca43fX9G+wVoNm689ySkOfH+B785uGUM5UPtwAxz
-        MC4++kxOyKTlaHqS/R/eRpX6C6B4RHI+NQhcOhR2Ps/61gIP
-X-Google-Smtp-Source: APBJJlGj/AJV4crgXsUXx9xg+t5bD9FjXzISucJ6nztTudvcQmIAzJBWyVunO9vhiMzwYzSXUNaEEibrpyrJIIYrloS6X308afx3
+        d=1e100.net; s=20221208; t=1690209797; x=1690814597;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=oWtBMwxjTwxYWh+dw3/8mngiuHp6BECAcQUcMWQtOq0=;
+        b=Ol0NnWbiBFwSPUgj+EJ+4sUxLRZ+RW48YMjDn3AqUIG2Cpk4RG1U+gz1MpG+LtxO2y
+         cRSoi/DSfyayQM5AeEd+gn8LtaznMBEiplLP+gELPlaj7ZZHAUV2KT6fjTYqkfxmkzFs
+         c+NluW7H5aDpONI+0sR4MVszdpSJtkBqegOmPjDa25PS8QNDHhxZnESNoEIqIYoggTDS
+         WHR6pMgDk4NQwVYjKeJO/FlUxLhAlLE5e9KRjAPvQDr12qpiafkzHIQs8Vw2mqD97Rdk
+         lrMhK9RdMZg/pi/IgqI0SCteUAZCxlxC0fsIutkePfUm5xEHu//27LfmntwEz2bUz21U
+         8i+g==
+X-Gm-Message-State: ABy/qLYK8TzkonIGyeZU0keeeiXDKtYuDMwYBIrwutHookDdF6iwa6WY
+        LYIinfinzMEo+lTtxnS9/iAs6XXaeiozD9dHL7bxwA==
+X-Google-Smtp-Source: APBJJlEJ++BMwaJfOYS5QSck6VeKtoXZyF5jK7NnG0gtqQ6srKymRKQXQJQUpiGGU+gMOiFVmkOUMH2YV3pKOuj5RBA=
+X-Received: by 2002:a17:907:86a8:b0:966:1bf2:2af5 with SMTP id
+ qa40-20020a17090786a800b009661bf22af5mr16284235ejc.22.1690209797651; Mon, 24
+ Jul 2023 07:43:17 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:5b1b:b0:1bb:785d:7436 with SMTP id
- ds27-20020a0568705b1b00b001bb785d7436mr1599528oab.10.1690187517019; Mon, 24
- Jul 2023 01:31:57 -0700 (PDT)
-Date:   Mon, 24 Jul 2023 01:31:56 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000008e4e370601377210@google.com>
-Subject: [syzbot] Monthly overlayfs report (Jul 2023)
-From:   syzbot <syzbot+lista7343adf220a77c2e87e@syzkaller.appspotmail.com>
-To:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        syzkaller-bugs@googlegroups.com
+References: <20230521082813.17025-1-andrea.righi@canonical.com> <20230521082813.17025-4-andrea.righi@canonical.com>
+In-Reply-To: <20230521082813.17025-4-andrea.righi@canonical.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Mon, 24 Jul 2023 16:43:06 +0200
+Message-ID: <CAJfpegtK=dh0yNdvxSC8YF6vOYqGPM5EOWny07jYDdFc0qfhTQ@mail.gmail.com>
+Subject: Re: [PATCH v3 3/3] ovl: validate superblock in OVL_FS()
+To:     Andrea Righi <andrea.righi@canonical.com>
+Cc:     Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello overlayfs maintainers/developers,
+On Sun, 21 May 2023 at 10:28, Andrea Righi <andrea.righi@canonical.com> wrote:
+>
+> When CONFIG_OVERLAY_FS_DEBUG is enabled add an explicit check to make
+> sure that OVL_FS() is always used with a valid overlayfs superblock.
+> Otherwise trigger a WARN_ON_ONCE().
+>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Andrea Righi <andrea.righi@canonical.com>
+> ---
+>  fs/overlayfs/ovl_entry.h | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> index b32c38fdf3c7..e156649d9c71 100644
+> --- a/fs/overlayfs/ovl_entry.h
+> +++ b/fs/overlayfs/ovl_entry.h
+> @@ -97,8 +97,20 @@ static inline struct mnt_idmap *ovl_upper_mnt_idmap(struct ovl_fs *ofs)
+>
+>  extern struct file_system_type ovl_fs_type;
+>
+> +static inline bool is_ovl_fs_sb(struct super_block *sb)
+> +{
+> +       return sb->s_type == &ovl_fs_type;
+> +}
+> +
+> +#ifdef CONFIG_OVERLAY_FS_DEBUG
+> +#define OVL_VALIDATE_SB(__sb)  WARN_ON_ONCE(!is_ovl_fs_sb(__sb))
+> +#else
+> +#define OVL_VALIDATE_SB(__sb)
+> +#endif
+> +
+>  static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+>  {
+> +       OVL_VALIDATE_SB(sb);
 
-This is a 31-day syzbot report for the overlayfs subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/overlayfs
+This could be written simply and naturally:
 
-During the period, 3 new issues were detected and 1 were fixed.
-In total, 7 issues are still open and 18 have been fixed so far.
+    if (IS_ENABLED(CONFIG_OVERLAY_FS_DEBUG))
+         WARN_ON_ONCE(sb->s_type != &ovl_fs_type)
 
-Some of the still happening issues:
-
-Ref Crashes Repro Title
-<1> 727     Yes   possible deadlock in mnt_want_write (2)
-                  https://syzkaller.appspot.com/bug?extid=b42fe626038981fb7bfa
-<2> 50      No    general protection fault in d_path
-                  https://syzkaller.appspot.com/bug?extid=a67fc5321ffb4b311c98
-<3> 5       No    possible deadlock in seq_read_iter (2)
-                  https://syzkaller.appspot.com/bug?extid=da4f9f61f96525c62cc7
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
-
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
+Thanks,
+Miklos
