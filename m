@@ -2,75 +2,80 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A572C001DC
-	for <linux-unionfs@archiver.kernel.org>; Sun, 30 Jul 2023 14:34:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29D89C001DF
+	for <linux-unionfs@archiver.kernel.org>; Tue,  1 Aug 2023 17:43:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229915AbjG3Oem (ORCPT
+        id S230514AbjHARnV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 30 Jul 2023 10:34:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44424 "EHLO
+        Tue, 1 Aug 2023 13:43:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229842AbjG3Oek (ORCPT
+        with ESMTP id S229543AbjHARnU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 30 Jul 2023 10:34:40 -0400
-Received: from mail-oo1-f70.google.com (mail-oo1-f70.google.com [209.85.161.70])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A8ACE65
-        for <linux-unionfs@vger.kernel.org>; Sun, 30 Jul 2023 07:34:39 -0700 (PDT)
-Received: by mail-oo1-f70.google.com with SMTP id 006d021491bc7-56c99e94fa9so1854314eaf.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 30 Jul 2023 07:34:39 -0700 (PDT)
+        Tue, 1 Aug 2023 13:43:20 -0400
+Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3E9710C1
+        for <linux-unionfs@vger.kernel.org>; Tue,  1 Aug 2023 10:43:18 -0700 (PDT)
+Received: by mail-ej1-x636.google.com with SMTP id a640c23a62f3a-99bdd262bb0so863804766b.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 01 Aug 2023 10:43:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1690911797; x=1691516597;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=f36gOBPIy1Zmguze7mrHnn3xV4XJM8s2rEorRuGLnXc=;
+        b=Zi1hII0MO9R5yWLVXT8B+0SQ0LjH3M3E/oT4RuK3eRJyYEq7xNP84v3HGk/HUSDngL
+         07/vNKIUsCHhOeYc6y1n4veCmp8wi9+Pgd3RqnsX57ItndaJ+Xb6fctJB3ewKB/eR9Ai
+         QtQyVhVmYrV4Z6Oewnn40D5I9FK1HHwbOGKss=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1690727678; x=1691332478;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=lWEs9tBxQ1qd6Nv15hqv+sQ9Wsq7wE6UQ0dhzWGDEw0=;
-        b=btpppN/L0xaIaPa5qCNBzD6JQ2njh0sVYRkt5rL3i1TkzXcD6yttKenP+Dv4eBAwR6
-         8rO9DwXUqxJGzJ+R0b0cDcKKLVKtiRraI+mOZOXz/5RMbq5G7gnru/bAHWqpPXf54L0f
-         BE76zzGcGDPnSS3HU4ZuwYu/Mo7ICG+n2HPJlNmnTtDysCphgXXQoZu6J4HGAbYJsdA1
-         Chd8ug6ych29Us10n/yjhcZ6mDrTvspaqEYlSzWEDM2EsCWiRRP6HQRuYlD2Z/o8W73V
-         4b8I4hgoc7H1cwHcPtXNIl9o8wFuPxsGaWdV2TCP0K0gqSRLRHDw+JW2EkkV4mauGSRI
-         ggTg==
-X-Gm-Message-State: ABy/qLax/EHOTNx5cTeqCjK585rOBvGvE0R7xqXY0o1S7BRHjqYrhXtP
-        hZ7Ujw2rrU+9FifPwy5EGRBEnq1a3NG7WOyj9b3+rUJxyVKp
-X-Google-Smtp-Source: APBJJlHlZeRsJhA1JwC+Vdmu+N9LIUtZDdY44VIw8JRBKBvwAYj1K34PoqnTCgPrj4fdOUK92lFjeE0YyPKsMBKChX5FPGXNgJdc
+        d=1e100.net; s=20221208; t=1690911797; x=1691516597;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=f36gOBPIy1Zmguze7mrHnn3xV4XJM8s2rEorRuGLnXc=;
+        b=FQt5EsDsa7HXA02MaaDdS1yr8G4ni+yTLI+c/pnh4nhaIAowtgidZicGqr03qxTvDj
+         VJolxZS/k/75sL4fxa3PT0Yge1pWCCfRI1A8s4qhdfl714pV1y5uUUl8hjNd1/bAmEV9
+         0lPO3DqIpVAjqqrl50L/UglZq6t5mjP/Y8tJtfGw23GMCaQykLZ+M46jg1Pc7PG18IIz
+         aXCRTXs9StD2sKS4Qw9g9ynHl/46+6zvzXttTROuIIxwmrs4ONykO1JwgXge1qk7PVeW
+         v6hhEHIWjvAl1yptpxCHIC7bqRM8wWpn9n4wwz2KR2qlVyGQqO1LVrdKCoUoyRurhERT
+         1dkQ==
+X-Gm-Message-State: ABy/qLZxFYNpWzM1Nw916J4zp2dQQb2XtZHD3xIk34zTYaLr0JMQO6tz
+        4ajSGwMtJwQtC3IDuLqpojI+Qum7ZrQwyVVuW4GDng==
+X-Google-Smtp-Source: APBJJlFc3tECXtwdT1fGKtwv5Y7sZ3DeX9Zxcc5NxZqOazeNZ/DxzNWV68X6gHOVSrO26ZWckR39AVWL7lfgF5Y0rWM=
+X-Received: by 2002:a17:906:649e:b0:987:16c6:6ff3 with SMTP id
+ e30-20020a170906649e00b0098716c66ff3mr3243440ejm.38.1690911797040; Tue, 01
+ Aug 2023 10:43:17 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:1a18:b0:3a7:2d4c:5d34 with SMTP id
- bk24-20020a0568081a1800b003a72d4c5d34mr1839695oib.8.1690727677890; Sun, 30
- Jul 2023 07:34:37 -0700 (PDT)
-Date:   Sun, 30 Jul 2023 07:34:37 -0700
-In-Reply-To: <0000000000003b7fee05eec392a8@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000a7178a0601b5366f@google.com>
-Subject: Re: [syzbot] [reiserfs?] [overlayfs?] BUG: unable to handle kernel
- paging request in take_dentry_name_snapshot
-From:   syzbot <syzbot+90392eaed540afcc8fc3@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, brauner@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        reiserfs-devel@vger.kernel.org, syzkaller-bugs@googlegroups.com
+References: <20230720091436.399691-1-yunlong.xing@unisoc.com>
+In-Reply-To: <20230720091436.399691-1-yunlong.xing@unisoc.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 1 Aug 2023 19:43:05 +0200
+Message-ID: <CAJfpeguygW3JY5L5d+87+V538hAWu2tL9Yksg5p-QMP3ppv13w@mail.gmail.com>
+Subject: Re: [PATCH V3] ovl: fix mount fail because the upper doesn't have space
+To:     Yunlong Xing <yunlong.xing@unisoc.com>
+Cc:     amir73il@gmail.com, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, zhiguo.niu@unisoc.com,
+        hongyu.jin@unisoc.com, yunlongxing23@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-syzbot suspects this issue was fixed by commit:
+On Thu, 20 Jul 2023 at 11:15, Yunlong Xing <yunlong.xing@unisoc.com> wrote:
+>
+> The current ovlfs mount flow:
+>
+> ovl_fill_super
+>  |_ovl_get_workdir
+>     |_ovl_make_workdir
+>        |_ovl_check_rename_whiteout
+>
+> In ovl_check_rename_whiteout(), a new file is attempted to create.But if
+> the upper doesn't have space to do this, it will return error -ENOSPC,
+> causing the mount fail. It means that if the upper is full, the overlayfs
+> cannot be mounted. It is not reasonable, so this patch will omit this error
+> and continue mount flow.
 
-commit 1784fbc2ed9c888ea4e895f30a53207ed7ee8208
-Author: Christian Brauner <brauner@kernel.org>
-Date:   Fri Jun 16 12:53:58 2023 +0000
+Wouldn't mounting without upper (two or more lower layers) work in this case?
 
-    ovl: port to new mount api
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=12561bd9a80000
-start commit:   8395ae05cb5a Merge tag 'scsi-misc' of git://git.kernel.org..
-git tree:       upstream
-kernel config:  https://syzkaller.appspot.com/x/.config?x=85327a149d5f50f
-dashboard link: https://syzkaller.appspot.com/bug?extid=90392eaed540afcc8fc3
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=16199460480000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1797f274480000
-
-If the result looks correct, please mark the issue as fixed by replying with:
-
-#syz fix: ovl: port to new mount api
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Thanks,
+Miklos
