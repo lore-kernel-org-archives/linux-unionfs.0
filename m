@@ -2,48 +2,58 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F4AFC04FE0
-	for <linux-unionfs@archiver.kernel.org>; Mon,  7 Aug 2023 19:47:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF74EC41513
+	for <linux-unionfs@archiver.kernel.org>; Tue,  8 Aug 2023 15:53:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230054AbjHGTrF (ORCPT
+        id S230407AbjHHPx6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 7 Aug 2023 15:47:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38446 "EHLO
+        Tue, 8 Aug 2023 11:53:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39928 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231446AbjHGTqp (ORCPT
+        with ESMTP id S230053AbjHHPwG (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 7 Aug 2023 15:46:45 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24A691BF7;
-        Mon,  7 Aug 2023 12:46:24 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        Tue, 8 Aug 2023 11:52:06 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC2A81FFF;
+        Tue,  8 Aug 2023 08:42:56 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 35A79621E2;
-        Mon,  7 Aug 2023 19:39:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ED32C433CC;
-        Mon,  7 Aug 2023 19:39:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691437192;
-        bh=OzDnAOkFvdqmLBbFuJs/CLbN23QVgBEedYg5nk4xP+Y=;
-        h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-        b=cvOqFZBtdtaUZUpcYT8YaLre5p00FbNuCj4U3qnBqbXM0xIZiA7wntOQvtwkVyYsY
-         KzGPHHfNfeSagX//jmohNvYFm+rBns57CsQSi8EBkJHPSRhrZFT/BjhJZaM5mUMarX
-         bymb2xPd0mApBaQcG7sD1IUhckW6N/LCVX49ha2NO5jL3KT5jPvgzVeVTUtPAxnWiK
-         dM7ooX8FgUdfO8Pq4IPDz02iL29DbkONAJVmc5YAAa/XW37auYiCa14sJSBbDU2ME8
-         1Yyd+iGC1KcpMynDMsQYI8CRvGycMoa1dPssmnhNbpjlfyCvisRz0YkztzSP0nrAdx
-         wLRgkNq83WixQ==
-From:   Jeff Layton <jlayton@kernel.org>
-Date:   Mon, 07 Aug 2023 15:38:41 -0400
-Subject: [PATCH v7 10/13] tmpfs: add support for multigrain timestamps
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230807-mgctime-v7-10-d1dec143a704@kernel.org>
-References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
-In-Reply-To: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
-To:     Alexander Viro <viro@zeniv.linux.org.uk>,
+        by smtp-out1.suse.de (Postfix) with ESMTPS id A5D3C22487;
+        Tue,  8 Aug 2023 09:45:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1691487959; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=4oOLWl4gstb/E24tmA8lOZvGXU8EGsCYOGiZDuV9ojs=;
+        b=lLrE4gVbl4Ys56f43Fm5p3Xgc+uttQq5Le5SAj/AGsdOsCPxyBSWC2O0IpSl0k3K+hnRZK
+        ZBv1ebXrfaExZ7cDvXNGrjZ6xpFGOMKiAeCI9qKY/Q/IKCJ9cx1Ukr/WgtZ76IUDmcLKuU
+        KNpTUoI2LFAiLqt+xbns1Pf6Aruyr0s=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1691487959;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=4oOLWl4gstb/E24tmA8lOZvGXU8EGsCYOGiZDuV9ojs=;
+        b=siRsNQ5xaJJdg8UEXv1F6ndcrBP+WFiABqKYf3mt6YpMrLfp0SJdDJiIz6//upEoYljBFS
+        Iao2lSywwi36fkCg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 925BB139E9;
+        Tue,  8 Aug 2023 09:45:59 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id 65qtI9cO0mTCIQAAMHmgww
+        (envelope-from <jack@suse.cz>); Tue, 08 Aug 2023 09:45:59 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+        id 07563A0769; Tue,  8 Aug 2023 11:45:59 +0200 (CEST)
+Date:   Tue, 8 Aug 2023 11:45:58 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christian Brauner <brauner@kernel.org>,
         Eric Van Hensbergen <ericvh@kernel.org>,
         Latchesar Ionkov <lucho@ionkov.net>,
@@ -92,8 +102,8 @@ To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Andrew Morton <akpm@linux-foundation.org>,
         Amir Goldstein <amir73il@gmail.com>,
         "Darrick J. Wong" <djwong@kernel.org>,
-        Benjamin Coddington <bcodding@redhat.com>
-Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Benjamin Coddington <bcodding@redhat.com>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         v9fs@lists.linux.dev, linux-afs@lists.infradead.org,
         linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
         codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
@@ -103,55 +113,33 @@ Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
         linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
         linux-mtd@lists.infradead.org, linux-mm@kvack.org,
-        linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org,
-        Jeff Layton <jlayton@kernel.org>, Jan Kara <jack@suse.cz>
-X-Mailer: b4 0.12.3
-X-Developer-Signature: v=1; a=openpgp-sha256; l=807; i=jlayton@kernel.org;
- h=from:subject:message-id; bh=OzDnAOkFvdqmLBbFuJs/CLbN23QVgBEedYg5nk4xP+Y=;
- b=owEBbQKS/ZANAwAIAQAOaEEZVoIVAcsmYgBk0Ug+f9kdguq5TMBwkHk+cBAUTkwGtaz5BtdXB
- OuPQyDsL9iJAjMEAAEIAB0WIQRLwNeyRHGyoYTq9dMADmhBGVaCFQUCZNFIPgAKCRAADmhBGVaC
- FVU+EACRHWq/ok8Ci5soDBQDERlUIptXu4lEgbxup7TkwLUNnWrAdD6epDKSNEsW7DCyiz2IdS1
- pGFVdR0NuWmsNAsV4apdFq8utofCuuQXFkShF4CGpObdFNxDJjMvsoXKFeW/E7fgIlv1w8tvl+M
- TZtcYLa5VLnkhenORjC9b3TlE8YCfiuxsrGTC8mYBJrtx5d9p30op1+bDdzyytFLNJLQlLWj14x
- j1oAiR8gG08J92of6XhtGMD0DtCossd3jSeVrC8OYlXA4vCmfZq6JtZhAw+CoNRKb+cOARV+9B+
- SJr5nKCvKTzIuqmy7l7OMNEkKl8S2V9AJAwTild9ZW1Z2NAyOuSAeKhrWBFQMIPlWrhkCWsPn6K
- JuesJK2mMm/FyjTbn/I6u5siqSU+d61eK1yIU1rMkdJoxmydONqyifHcvL1HSrQrWIl2MdAApFE
- sPG4vDGwzddPezBep3zrdQxC6ZJab7utCrvAwfewI5O/GjTDxkX7FpjNTk1I212uzshngLd6djC
- Jrse0kdmFbO8tdzk0ywQY79OHNNTMRCNavw0Op2MIxwOIQ4yfXuQcnlaEFLrYX3pIwPe744NWnr
- cqzI6yqNIe8Y5zTQLAa6eRvH5OhjhgpJax5SPfaimHbaGB73Wa4hwyRmG2bufpcQYrEKNjYr5s0
- glVbeH5wiH7pM1w==
-X-Developer-Key: i=jlayton@kernel.org; a=openpgp;
- fpr=4BC0D7B24471B2A184EAF5D3000E684119568215
+        linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org
+Subject: Re: [PATCH v7 08/13] fs: drop the timespec64 argument from
+ update_time
+Message-ID: <20230808094558.fgogaxmgtbstbij3@quack3>
+References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
+ <20230807-mgctime-v7-8-d1dec143a704@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230807-mgctime-v7-8-d1dec143a704@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Enable multigrain timestamps, which should ensure that there is an
-apparent change to the timestamp whenever it has been written after
-being actively observed via getattr.
+On Mon 07-08-23 15:38:39, Jeff Layton wrote:
+> Now that all of the update_time operations are prepared for it, we can
+> drop the timespec64 argument from the update_time operation. Do that and
+> remove it from some associated functions like inode_update_time and
+> inode_needs_update_time.
+> 
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
 
-tmpfs only requires the FS_MGTIME flag.
+Looks good to me. Feel free to add:
 
 Reviewed-by: Jan Kara <jack@suse.cz>
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
----
- mm/shmem.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/mm/shmem.c b/mm/shmem.c
-index 142ead70e8c1..98cc4be7a8a8 100644
---- a/mm/shmem.c
-+++ b/mm/shmem.c
-@@ -4220,7 +4220,7 @@ static struct file_system_type shmem_fs_type = {
- #endif
- 	.kill_sb	= kill_litter_super,
- #ifdef CONFIG_SHMEM
--	.fs_flags	= FS_USERNS_MOUNT | FS_ALLOW_IDMAP,
-+	.fs_flags	= FS_USERNS_MOUNT | FS_ALLOW_IDMAP | FS_MGTIME,
- #else
- 	.fs_flags	= FS_USERNS_MOUNT,
- #endif
-
+								Honza
 -- 
-2.41.0
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
