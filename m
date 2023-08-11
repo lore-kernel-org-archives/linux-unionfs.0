@@ -2,131 +2,150 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D7895C0015E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 11 Aug 2023 09:14:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E63BC001DB
+	for <linux-unionfs@archiver.kernel.org>; Fri, 11 Aug 2023 09:44:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234742AbjHKJOy (ORCPT
+        id S230364AbjHKJot (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 11 Aug 2023 05:14:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60958 "EHLO
+        Fri, 11 Aug 2023 05:44:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229709AbjHKJOx (ORCPT
+        with ESMTP id S233266AbjHKJos (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 11 Aug 2023 05:14:53 -0400
-Received: from mail-oi1-x231.google.com (mail-oi1-x231.google.com [IPv6:2607:f8b0:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3419E1BD;
-        Fri, 11 Aug 2023 02:14:53 -0700 (PDT)
-Received: by mail-oi1-x231.google.com with SMTP id 5614622812f47-3a76d882052so1501253b6e.0;
-        Fri, 11 Aug 2023 02:14:53 -0700 (PDT)
+        Fri, 11 Aug 2023 05:44:48 -0400
+Received: from mail-vs1-xe2d.google.com (mail-vs1-xe2d.google.com [IPv6:2607:f8b0:4864:20::e2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C1C0272D
+        for <linux-unionfs@vger.kernel.org>; Fri, 11 Aug 2023 02:44:48 -0700 (PDT)
+Received: by mail-vs1-xe2d.google.com with SMTP id ada2fe7eead31-447abb2f228so710887137.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 11 Aug 2023 02:44:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691745291; x=1692350091;
+        d=gmail.com; s=20221208; t=1691747087; x=1692351887;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=diGjMzcK+6SwwH5w7FGvR2kPAAmdD+cz2vEifZfgJK8=;
-        b=SbKT5GtBaVAtViOg16H84jFbWDFn0jS71cTFCxl3yu2Z5XZBKYkSsCA2sYG0VzYiGp
-         PH1py9bPCQRdBGBwKtfJ0vzlyWPVXM67CeMCq2v5SqiglhgKpe7Mm8TuioT0sdVOZ6am
-         KLYGlM63xRP2M6NEAGTXIJz6VIobvuw6igJfjFj4uLoaoD1WqLcsQbimAgnnndcOfAzP
-         yM6k3J21X6dF1v4MAlQ4q03zvR0js/HKmKTM3pKaAID1iGMgg66v5kkqskK43X/3zYxH
-         NSNFf/H/L6lFJDwxuTMIRAh/Q6IhwwSLJ9TkxLD0T6IwICgwWNFVU1l3dSypg75O8o3s
-         jioQ==
+        bh=VOZnaYXhHxwjsurcJFdC8a0QqamD+NEzEyeOqdkA0ZY=;
+        b=liFrZnpaJ2MPTClq0m9vx+u8QHtorbrNFfqhuSd7SRrAsNOYwqAKv7XF2Rlit3RCVf
+         GfPlxnkeOaIoUpNhQHhP54q5mUS6tQcvpzXJL1y4T6nEG9VToN0tynsDlZWEqBBueSsR
+         HiKjl0FUwTRrK3JlIDTmEqmQVbcQ3P2TGwdmtLwH8upW5zLN7YAQFPopEghxH9dlUaZd
+         gY8VW8uNgPWbhWdQG818+Ad4CMlTuQJ17bFXgklvytBw/fQ6al6uUpUk5H8seDuVlhTN
+         BBKeg9JNOAJ1HKyOc+i3WeuYTjaYkyUuY2WtJTVggSARRCUufN/C0k0AQhbQ44dhJFAP
+         Jjyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691745291; x=1692350091;
+        d=1e100.net; s=20221208; t=1691747087; x=1692351887;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=diGjMzcK+6SwwH5w7FGvR2kPAAmdD+cz2vEifZfgJK8=;
-        b=hOTMumLFuTVpktox7e2uxy8q5/bz77eCjx3+kDojx6BlKAN7m13rfrTwFUKFLKmwPF
-         SD2K7xG9eXpAYFl0NYL0Y/Usrx2JZk+AescXxtjmUVzNSrzyjrbDQ6G5Gb/hAhJTGbLV
-         o9Cba8Z/51WakB2q9qxO7HICX0cwWH7KcCrVMJU4ziXO1bli1nGDTVL2rcUZNgOAsyNy
-         WWgcC0Yg/XmEm6MO/LbgBET6yLTomhF60Ugp8DUE/RqetkzFgBBlBUOwKCRanukCSncz
-         JLPcs7X4MnnWBurh2Pnt/MUO33Irn2omp2cGQOijkZOYzZpU8/a2x6Lw7JoaHp1B2Uzv
-         Pr7g==
-X-Gm-Message-State: AOJu0Yynn/dTf3CUCoqdmVvkFG8tPJOdte/XZ9+Z2l30BVVJcVwDzWJK
-        ZgSzIFOzCZBr45t1AKjRSWYAsC+WrARi2sJMzh8Ydqei+bw=
-X-Google-Smtp-Source: AGHT+IF8ydQX+PE1GNDYJsiJelaw0s8oI1yTQGzWRJFgxbaZmi/idQI7p42d4mBdnXlb4udJcfxd5sqYWMXrXIGJfv0=
-X-Received: by 2002:a05:6358:998d:b0:139:b123:ae9 with SMTP id
- j13-20020a056358998d00b00139b1230ae9mr1558616rwb.16.1691745291399; Fri, 11
- Aug 2023 02:14:51 -0700 (PDT)
+        bh=VOZnaYXhHxwjsurcJFdC8a0QqamD+NEzEyeOqdkA0ZY=;
+        b=At9n05FdA+hQbuqI6qHJ/5n4K7psNDbW2EKFutjFNb7QIxOWkUwyWvKyJ/rHjQ3mAV
+         q2b5pMacMbobyfNtGSozr7yZsrfsMabame7CGnkeiozBn6ZbM2nDSlB7QnQlF/c3YBTT
+         eBpY/ThVuMrytQBAqJlIB4/UX9U1XYwS5aAwd4jTa98y6N3po6Pa6SP/kX0T6lXq0Br6
+         +EOFNcgnjsiTzScAv4B5SlDsYV0iI0uk4jbpvtj519W5tCriJ4cZ/8tYRUo9t2zcO11o
+         5KbegVOjsweOVsP3e/uZn9JLjZSJsmafOarNNjKUSd5Hk32AqwUG8Vwg+1szLhJrcmJo
+         XZcg==
+X-Gm-Message-State: AOJu0YzQjkqv5ABYJiMctaPg6ioMadB6V/5035LrQcSPqNH/EgQHNI/+
+        84daR0Qi3NYeC7vZH0+fJiP3ReRI3Hr+oWNq1OAygjLc2uA=
+X-Google-Smtp-Source: AGHT+IErWxwHRX8tnpCitlPKFu8DR47xSmiaDo0mx8u78KrIBM2FeMt27C5IzM08P7Q/Ml9mXTKSfJSChPPZdbQe2Rg=
+X-Received: by 2002:a67:fc94:0:b0:445:872:67ea with SMTP id
+ x20-20020a67fc94000000b00445087267eamr1029990vsp.34.1691747087168; Fri, 11
+ Aug 2023 02:44:47 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230521082813.17025-1-andrea.righi@canonical.com>
- <20230521082813.17025-4-andrea.righi@canonical.com> <CAJfpegtK=dh0yNdvxSC8YF6vOYqGPM5EOWny07jYDdFc0qfhTQ@mail.gmail.com>
-In-Reply-To: <CAJfpegtK=dh0yNdvxSC8YF6vOYqGPM5EOWny07jYDdFc0qfhTQ@mail.gmail.com>
+References: <20230713120344.1422468-1-amir73il@gmail.com>
+In-Reply-To: <20230713120344.1422468-1-amir73il@gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 11 Aug 2023 12:14:40 +0300
-Message-ID: <CAOQ4uxjxSVNqicAUhevCXEuRZGZdAPhz4BksM8yE5HbE0piZ6A@mail.gmail.com>
-Subject: Re: [PATCH v3 3/3] ovl: validate superblock in OVL_FS()
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Andrea Righi <andrea.righi@canonical.com>
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Fri, 11 Aug 2023 12:44:35 +0300
+Message-ID: <CAOQ4uxibDU2Lko2WCFofJ+eQZV8YVBx_w-sm4H1cqO0fefP6Kw@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] Report overlayfs file ids with fanotify
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Jul 24, 2023 at 5:43=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
+On Thu, Jul 13, 2023 at 3:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
 >
-> On Sun, 21 May 2023 at 10:28, Andrea Righi <andrea.righi@canonical.com> w=
-rote:
-> >
-> > When CONFIG_OVERLAY_FS_DEBUG is enabled add an explicit check to make
-> > sure that OVL_FS() is always used with a valid overlayfs superblock.
-> > Otherwise trigger a WARN_ON_ONCE().
-> >
-> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > Signed-off-by: Andrea Righi <andrea.righi@canonical.com>
-> > ---
-> >  fs/overlayfs/ovl_entry.h | 12 ++++++++++++
-> >  1 file changed, 12 insertions(+)
-> >
-> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> > index b32c38fdf3c7..e156649d9c71 100644
-> > --- a/fs/overlayfs/ovl_entry.h
-> > +++ b/fs/overlayfs/ovl_entry.h
-> > @@ -97,8 +97,20 @@ static inline struct mnt_idmap *ovl_upper_mnt_idmap(=
-struct ovl_fs *ofs)
-> >
-> >  extern struct file_system_type ovl_fs_type;
-> >
-> > +static inline bool is_ovl_fs_sb(struct super_block *sb)
-> > +{
-> > +       return sb->s_type =3D=3D &ovl_fs_type;
-> > +}
-> > +
-> > +#ifdef CONFIG_OVERLAY_FS_DEBUG
-> > +#define OVL_VALIDATE_SB(__sb)  WARN_ON_ONCE(!is_ovl_fs_sb(__sb))
-> > +#else
-> > +#define OVL_VALIDATE_SB(__sb)
-> > +#endif
-> > +
-> >  static inline struct ovl_fs *OVL_FS(struct super_block *sb)
-> >  {
-> > +       OVL_VALIDATE_SB(sb);
+> Miklos,
 >
-> This could be written simply and naturally:
+> This is the second part of the work to support fanotify reporting of
+> events with file ids on overlayfs.  The fanotify_event_info_fid struct
+> reported with fanotify events has an object file handle and an fsid,
+> so fanotify requires that filesystems can encode file handles and have
+> a non-zero f_fsid.
 >
->     if (IS_ENABLED(CONFIG_OVERLAY_FS_DEBUG))
->          WARN_ON_ONCE(sb->s_type !=3D &ovl_fs_type)
+> The first part [1] that was merged to v6.5-rc1, relaxed the fanotify
+> requirements for filesystems to support reporting events with fid to
+> require only the ->encode_fh() export operation.
+>
+> Patch 1 changes overlayfs export_operations to meet the new requirements
+> with the default overlay configurations (i.e. no need for nfs_export=3Don=
+),
+> thus, allowing an fanotify watch with FAN_REPORT_FID on overlayfs.
+> There are LTS tests [2] for fanotify(FAN_REPORT_FID) + overlayfs.
+>
+> Patches 2-4 are not strcitly needed to support reporting fanotify events
+> with fid, because overlayfs already reports a non-zero f_fsid, it's just
+> not a unique fsid.  So before allowing to report events with overlayfs
+> fids, I wanted to fix overlayfs fsid to be more unique.
+>
+> I wanted to implement a persistent and unique fsid for overlayfs.
+> I wanted it to be the default behavior, but needed to avoid breaking
+> applications that rely on an existing overlayfs fsid to persist.
+> I came up with a solution that is described in patch 4 (uuid=3Dauto) that
+> meets all the requirement above.
+> There is an xfstest to test the persistent-unique fsid feature [3].
+>
+> This patch set has been in overlayfs-next for soaking since v6.5-rc1.
+> If you have any reservations that we will not be able to resolve in time
+> for 6.6, especially regarding the on-disk format and backward compat,
+> we could also merge only patch 1 and leave the fsid patches for later.
 >
 
-Andrea,
+Hi Miklos,
 
-There is an inherent challenge with a cleanup series like this one
-that touches many functions to avoid merge conflicts with other
-devel branches. I did not try, but I expect there are conflicts
-with the current overlayfs-next branch.
+Any comments on this series (which is currently on overlayfs-next)?
 
-I also see at least one new direct reference of sb->s_fs_info
-in ovl_maybe_validate_verity().
+Please let me know if you want me to take care of the 6.6 PR or
+if you intend to prepare it yourself.
 
-Please make sure to base your next submission on overlayfs-next
-branch from git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git=
-.
-
-Once you do that, we could apply your patches to overlayfs-next
-so they won't get stale again.
+Other candidates for 6.6 include:
+- ovl lock re-ordering
+https://lore.kernel.org/linux-unionfs/20230720153731.420290-1-amir73il@gmai=
+l.com/
+- CONFIG_OVERLAY_FS_DEBUG
+https://lore.kernel.org/linux-unionfs/20230521082813.17025-1-andrea.righi@c=
+anonical.com/
 
 Thanks,
 Amir.
+
+>
+> [1] https://lore.kernel.org/linux-fsdevel/20230425130105.2606684-1-amir73=
+il@gmail.com/
+> [2] https://github.com/amir73il/ltp/commits/ovl_encode_fid
+> [3] https://github.com/amir73il/xfstests/commits/ovl_fsid
+>
+>
+> Amir Goldstein (4):
+>   ovl: support encoding non-decodable file handles
+>   ovl: add support for unique fsid per instance
+>   ovl: store persistent uuid/fsid with uuid=3Don
+>   ovl: auto generate uuid for new overlay filesystems
+>
+>  Documentation/filesystems/overlayfs.rst | 25 ++++++++++
+>  fs/overlayfs/copy_up.c                  |  2 +-
+>  fs/overlayfs/export.c                   | 26 ++++++++---
+>  fs/overlayfs/inode.c                    |  2 +-
+>  fs/overlayfs/namei.c                    |  5 +-
+>  fs/overlayfs/overlayfs.h                | 22 +++++++++
+>  fs/overlayfs/ovl_entry.h                |  3 +-
+>  fs/overlayfs/params.c                   | 31 +++++++++++--
+>  fs/overlayfs/super.c                    | 29 ++++++++++--
+>  fs/overlayfs/util.c                     | 61 +++++++++++++++++++++++++
+>  10 files changed, 186 insertions(+), 20 deletions(-)
+>
+> --
+> 2.34.1
+>
