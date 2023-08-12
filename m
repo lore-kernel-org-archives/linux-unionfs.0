@@ -2,138 +2,118 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76760C001E0
-	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Aug 2023 16:26:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6827DC04A6A
+	for <linux-unionfs@archiver.kernel.org>; Sat, 12 Aug 2023 16:28:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229740AbjHLQ0M (ORCPT
+        id S229913AbjHLQ2s (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 12 Aug 2023 12:26:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37972 "EHLO
+        Sat, 12 Aug 2023 12:28:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229451AbjHLQ0L (ORCPT
+        with ESMTP id S229903AbjHLQ2r (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 12 Aug 2023 12:26:11 -0400
-Received: from mail-vs1-xe2d.google.com (mail-vs1-xe2d.google.com [IPv6:2607:f8b0:4864:20::e2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FF991BEC;
-        Sat, 12 Aug 2023 09:26:14 -0700 (PDT)
-Received: by mail-vs1-xe2d.google.com with SMTP id ada2fe7eead31-44768e056e1so1235785137.1;
-        Sat, 12 Aug 2023 09:26:14 -0700 (PDT)
+        Sat, 12 Aug 2023 12:28:47 -0400
+Received: from mail-vk1-xa34.google.com (mail-vk1-xa34.google.com [IPv6:2607:f8b0:4864:20::a34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC0CF1BEC;
+        Sat, 12 Aug 2023 09:28:50 -0700 (PDT)
+Received: by mail-vk1-xa34.google.com with SMTP id 71dfb90a1353d-487d998be8fso58748e0c.2;
+        Sat, 12 Aug 2023 09:28:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1691857573; x=1692462373;
+        d=gmail.com; s=20221208; t=1691857730; x=1692462530;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=kpQF2jb9S26eRaRt+HxIZRVdjuYf869tDcD3W/2sESQ=;
-        b=cBvxQ9L83Yt5nefPpuvc0YUpLvWPtYQbXXa+ZaxS2i67igSA6xiM+Wk1iyK5oYvHDC
-         RkvpXNf24mb77xD29WDqaDw9dtqVZbXtdWh6OsMDW6igCElVVu5r0LqU8myR1wimnnU5
-         KAorAKstgaQvAisdQ9EutXqr9ujnamX/Rwi526rmDqRvjWPue2V2Q4t7DpVc0OfD+cbv
-         ofOYIsWz2S77qo74unKyDDwXDPqjv8akSK4601Oji+LfZrVJcufI42Gh35t9vOBDYpsg
-         NMZH/dLdLQO+kVYWNl7Wrv07hGFHtkMreZy+Y/AxKqkCl40DMqaE+2St2vXcPtoPYpQ3
-         6G7w==
+        bh=wI9FQMCLNTpjL2qhhzRaINad7koGEujRLKt4T3Y5F2s=;
+        b=YyfNRdluycvVmawX6YasZQk9xLOZaZGtUgI83btoGQZ5Bdc9x2Jej/XESKtU6ow+Ig
+         jbDiwlk4efKGURTf6wv+kf4DG09qC4hgP3QieimabEWDh/4eW3yNTuN3yBymOv3xTHGq
+         D6LjTUv9X3lTFYU7BA2qe/qFIZwUFXc7p+zH8/XwLyoipkt+t16h3b+SMq59ee5HU44C
+         k7mDLjXV+k3zPn9EeZ9IET9xMyqeZHj8aYNd0Rq0WLyDASeXFJGD3zdsDKyNMX3xe59N
+         5BGrQo4IOHXcCzBiuwlMSmjCso+STImlWQ2xAwSITD+CcAcTFmwE5nucxWFIdpu/Ih3K
+         zbjg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1691857573; x=1692462373;
+        d=1e100.net; s=20221208; t=1691857730; x=1692462530;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=kpQF2jb9S26eRaRt+HxIZRVdjuYf869tDcD3W/2sESQ=;
-        b=P7HsuHDimNnqgmUeFZnuDrUUlHUM8Qmui79mLbP3VWo1VA51x5kP2ps+BWI3NvVj1Q
-         9Ki4xvUgKGUtdRB73a9vjADPi0RimPwBePljIE/NHJ7PCFrCGbYtgDlkw3DKG8SZjnqF
-         gt34hS8qKqqJQltVxLyXSpc29xryc3+pQZXtsESkbAnkJV8ePumKqBA5QS+mRKbId4gx
-         Ff1wKHCO9+dKhuH7bgoSSi8TNTJ8/pirUkzJeaV9reAyqqDb38gUTmt7PpXX2hxAHCsl
-         uURYb0rcA4pjKEQJa6Iqm20IuEXHGDEcoa748ZM8/weTFU8sP06zBenxa4Dj+sXkE6wa
-         yv+w==
-X-Gm-Message-State: AOJu0YycneOlchGtY5P4uCQXmsedhfl5ghhgeuW2xusIU5Y2SAEZgkUq
-        Y3h5E6JyXXyYA4uf+sgQcVOikp28TbUCy6QSpqGqsGEm7uk=
-X-Google-Smtp-Source: AGHT+IHgx8NCZclLuhUoLggEHg4viiFjhX4VIzJENOwxmr3Cef8qND6lwpro6gGBYdP55BZ0wWqFs0ImGpU/K842oOI=
-X-Received: by 2002:a67:db81:0:b0:443:7170:b048 with SMTP id
- f1-20020a67db81000000b004437170b048mr4486829vsk.27.1691857572983; Sat, 12 Aug
- 2023 09:26:12 -0700 (PDT)
+        bh=wI9FQMCLNTpjL2qhhzRaINad7koGEujRLKt4T3Y5F2s=;
+        b=l6feYH4jUOJNGA4IBCVgOVSMNIZnMfRiPlcFRRYAkWZIPHI6n2cbHGpj5B1x9kCvMf
+         VCIflfci0vHUIg0w8cmOIvwov3W+dDjxAFbt7K+xyhAK/iglaUNUGvBVumloAwYQf/k9
+         NJ29cqj+BB1o1VZlRk0SRlfpncFeliNcBCGYoqX741xUn80xhdvQ/lUl0tiFhXNEFszO
+         k5RdW5mNkf+ki+ge50JYF/mGlypAutvLWEXXv8PQNbfG6xYoUoBGIYAD/iSUeANk3t4A
+         CSYTsLx4fnug51erKC/2UxvTUUuwlWJ4hPhB+iNtkxlb0YSmxNkrseMyWAnvkETjWzp6
+         D84Q==
+X-Gm-Message-State: AOJu0Yw5R4UKn3giRYjoJSZS4So+4qIHL8fu16V8nBYfUaNoDcbfuHcD
+        VaZ0pbk85qXBMRZzFBxLiPvBWMh67fXCP1MOXvQNUQAKCbs=
+X-Google-Smtp-Source: AGHT+IHwMU6ZqvaSpsMWf4CoeExm9OpLPl8DKkQaQhlRRioXQrUSXY5J9zkviBMdrR8GKUUQ4oXbNK2/DC1fAJtzgDQ=
+X-Received: by 2002:a1f:4545:0:b0:487:1370:d672 with SMTP id
+ s66-20020a1f4545000000b004871370d672mr3587225vka.13.1691857729780; Sat, 12
+ Aug 2023 09:28:49 -0700 (PDT)
 MIME-Version: 1.0
 References: <20230521082813.17025-1-andrea.righi@canonical.com>
- <20230521082813.17025-4-andrea.righi@canonical.com> <CAJfpegtK=dh0yNdvxSC8YF6vOYqGPM5EOWny07jYDdFc0qfhTQ@mail.gmail.com>
- <CAOQ4uxjxSVNqicAUhevCXEuRZGZdAPhz4BksM8yE5HbE0piZ6A@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjxSVNqicAUhevCXEuRZGZdAPhz4BksM8yE5HbE0piZ6A@mail.gmail.com>
+In-Reply-To: <20230521082813.17025-1-andrea.righi@canonical.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 12 Aug 2023 19:26:01 +0300
-Message-ID: <CAOQ4uxgzVVh1F6QiMKcXdBsYaVC7zsF4mCLciYnFU8hBvxzgkA@mail.gmail.com>
-Subject: Re: [PATCH v3 3/3] ovl: validate superblock in OVL_FS()
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Andrea Righi <andrea.righi@canonical.com>
-Cc:     linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Sat, 12 Aug 2023 19:28:38 +0300
+Message-ID: <CAOQ4uxhE8Y0eLDoKu9tfxvjJo-7K3aAmt4jN9+Q37Jzk7LxokA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/3] overlayfs: debugging check for valid superblock
+To:     Andrea Righi <andrea.righi@canonical.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Aug 11, 2023 at 12:14=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
-> wrote:
+On Sun, May 21, 2023 at 11:28=E2=80=AFAM Andrea Righi
+<andrea.righi@canonical.com> wrote:
 >
-> On Mon, Jul 24, 2023 at 5:43=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu=
-> wrote:
-> >
-> > On Sun, 21 May 2023 at 10:28, Andrea Righi <andrea.righi@canonical.com>=
- wrote:
-> > >
-> > > When CONFIG_OVERLAY_FS_DEBUG is enabled add an explicit check to make
-> > > sure that OVL_FS() is always used with a valid overlayfs superblock.
-> > > Otherwise trigger a WARN_ON_ONCE().
-> > >
-> > > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> > > Signed-off-by: Andrea Righi <andrea.righi@canonical.com>
-> > > ---
-> > >  fs/overlayfs/ovl_entry.h | 12 ++++++++++++
-> > >  1 file changed, 12 insertions(+)
-> > >
-> > > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> > > index b32c38fdf3c7..e156649d9c71 100644
-> > > --- a/fs/overlayfs/ovl_entry.h
-> > > +++ b/fs/overlayfs/ovl_entry.h
-> > > @@ -97,8 +97,20 @@ static inline struct mnt_idmap *ovl_upper_mnt_idma=
-p(struct ovl_fs *ofs)
-> > >
-> > >  extern struct file_system_type ovl_fs_type;
-> > >
-> > > +static inline bool is_ovl_fs_sb(struct super_block *sb)
-> > > +{
-> > > +       return sb->s_type =3D=3D &ovl_fs_type;
-> > > +}
-> > > +
-> > > +#ifdef CONFIG_OVERLAY_FS_DEBUG
-> > > +#define OVL_VALIDATE_SB(__sb)  WARN_ON_ONCE(!is_ovl_fs_sb(__sb))
-> > > +#else
-> > > +#define OVL_VALIDATE_SB(__sb)
-> > > +#endif
-> > > +
-> > >  static inline struct ovl_fs *OVL_FS(struct super_block *sb)
-> > >  {
-> > > +       OVL_VALIDATE_SB(sb);
-> >
-> > This could be written simply and naturally:
-> >
-> >     if (IS_ENABLED(CONFIG_OVERLAY_FS_DEBUG))
-> >          WARN_ON_ONCE(sb->s_type !=3D &ovl_fs_type)
-> >
+> OVL_FS() is used to get a struct ovl_fs from a sturct super_block, but
+> we don't have any check to determine if the superblock is valid or not.
 >
-> Andrea,
+> This can lead to unexpected behaviors or bugs that are pretty hard to
+> track down.
 >
-> There is an inherent challenge with a cleanup series like this one
-> that touches many functions to avoid merge conflicts with other
-> devel branches. I did not try, but I expect there are conflicts
-> with the current overlayfs-next branch.
+> Add an explicit WARN_ON_ONCE() check to OVL_FS() to make sure it's
+> always used with a valid overlayfs superblock.
 >
-> I also see at least one new direct reference of sb->s_fs_info
-> in ovl_maybe_validate_verity().
+> To avoid enabling this additional pendatic check everywhere, introduce
+> the new config option CONFIG_OVERLAY_FS_DEBUG, that can be used in the
+> future also for other additional debugging checks.
 >
-> Please make sure to base your next submission on overlayfs-next
-> branch from git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.g=
-it.
+> Maybe a nicer solution could be to return an error from OVL_FS() when
+> it's used with an invalid superblock and propagate the error in the rest
+> of overlayfs code, but for now having at least the possibility to
+> trigger a warning can help to catch potential bugs in advance.
 >
-> Once you do that, we could apply your patches to overlayfs-next
-> so they won't get stale again.
 
-Nevermind, I had rebased overlayfs-next, so already applied your
-patches with the needed conflict resolutions and addressed Miklos' comment.
+Applied to overlayfs-next with following changes:
+- open code WARN_ON_ONCE() in OVL_FS() (Miklos)
+- rebase and add missing OVL_FS() accessors
 
 Thanks,
 Amir.
+
+> Changelog (v2 -> v3):
+>  - do not hide is_ovl_fs_sb() under CONFIG_OVERLAY_FS_DEBUG
+>  - split consistent use of OVL_FS() and superblock validation in two
+>    separate patches
+>
+> Changelog (v1 -> v2):
+>  - replace BUG_ON() with WARN_ON_ONCE()
+>  - introduce CONFIG_OVERLAY_FS_DEBUG
+>
+> Andrea Righi (3):
+>       ovl: Kconfig: introduce CONFIG_OVERLAY_FS_DEBUG
+>       ovl: make consistent use of OVL_FS()
+>       ovl: validate superblock in OVL_FS()
+>
+>  fs/overlayfs/Kconfig     |  9 +++++++++
+>  fs/overlayfs/copy_up.c   |  2 +-
+>  fs/overlayfs/export.c    | 10 +++++-----
+>  fs/overlayfs/inode.c     |  8 ++++----
+>  fs/overlayfs/namei.c     |  2 +-
+>  fs/overlayfs/ovl_entry.h | 14 ++++++++++++++
+>  fs/overlayfs/super.c     | 12 ++++++------
+>  fs/overlayfs/util.c      | 18 +++++++++---------
+>  8 files changed, 49 insertions(+), 26 deletions(-)
+>
