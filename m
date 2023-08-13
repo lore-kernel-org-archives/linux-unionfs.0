@@ -2,38 +2,38 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91D48C04A6A
-	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Aug 2023 16:11:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD815C04FDF
+	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Aug 2023 16:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232776AbjHMQLF (ORCPT
+        id S231161AbjHMQM3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 13 Aug 2023 12:11:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47542 "EHLO
+        Sun, 13 Aug 2023 12:12:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42128 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232796AbjHMQKd (ORCPT
+        with ESMTP id S233306AbjHMQMM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 13 Aug 2023 12:10:33 -0400
+        Sun, 13 Aug 2023 12:12:12 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 899822D42;
-        Sun, 13 Aug 2023 09:10:13 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D09AB30CD;
+        Sun, 13 Aug 2023 09:11:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (2048 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0A58463962;
-        Sun, 13 Aug 2023 16:08:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C28BAC433C9;
-        Sun, 13 Aug 2023 16:08:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D002A61022;
+        Sun, 13 Aug 2023 16:11:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56E0AC433C7;
+        Sun, 13 Aug 2023 16:11:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691942934;
-        bh=NS8BRsPezJRxfb8/o9K3dwAAXswAOv7memJUVJWCtQA=;
+        s=k20201202; t=1691943070;
+        bh=S17R4XdwtPlDKk7mV1DbWLo33kEhrihEBc9yDssDvUM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BzHWLJvWZnsg+M0XEVOauYAfP5Nyc7lcvWPTSxDPYw6t+VV4ECwxbYHJSJon2DXBi
-         MtkU2PANxVlUHIhaKukqvcorPhzJE1Ct+PXRSLW6qTWJ5/QM1TAoO83jP4OFsC9gsl
-         GK2pOIP4XPa4mpPAbdN9jrXNruP2jeCQ5lvPAXghjBHYleYKZYhSPcqCJJu7nhrkoU
-         mDLWLzK+8Oshg/YIiiAMk23GwPXqYnpo0/slSg7kQAgs/XSAdmEqHrkMwxh5wiZEyf
-         GiF9fXvTnIMmsduelCc98YwNw7SliExWY+JIkl/ztK8x1W2T+DE6WJ6ZfPShytsLpx
-         ubKJxxNIrv/mw==
+        b=BZic1dck37A0LCWK+hG+qmslKc9gEspspAxtqq8rX9ltVtrLRHEc/IsBSIobLQxxG
+         vkIWCcLCqKfMpfZAixfu67g9MUHgz7dm27u6rl6Vae8+3Qk/Ff4dERKcdrrBfIVc8v
+         1EXwAf/Y5HSayfcsShL7NZhiLmyuUIZvMVpd9mmDHb8r73ali5ac/t73s4AcFpyCR7
+         myV5iLh2RGYCtjOA5TlOMmAWN6olAsd+/KVWD64BwJ/PoLOGjAfbuJGqYrfZAvbsmK
+         cylULAnI8qAlEuewmKWupvVdrojT9bCcPQQfNNK8uui0k+u3pr/yjlxk0qm8XojyH7
+         jpn3jsfiLK4KQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Eric Snowberg <eric.snowberg@oracle.com>,
@@ -41,16 +41,16 @@ Cc:     Eric Snowberg <eric.snowberg@oracle.com>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
         amir73il@gmail.com, linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 26/31] ovl: Always reevaluate the file signature for IMA
-Date:   Sun, 13 Aug 2023 12:05:59 -0400
-Message-Id: <20230813160605.1080385-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.10 20/25] ovl: Always reevaluate the file signature for IMA
+Date:   Sun, 13 Aug 2023 12:09:31 -0400
+Message-Id: <20230813160936.1082758-20-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230813160605.1080385-1-sashal@kernel.org>
-References: <20230813160605.1080385-1-sashal@kernel.org>
+In-Reply-To: <20230813160936.1082758-1-sashal@kernel.org>
+References: <20230813160936.1082758-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.15.126
+X-stable-base: Linux 5.10.190
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
@@ -80,11 +80,11 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 5310271cf2e38..e18025b5c8872 100644
+index 5d7df839902df..e0384095ca960 100644
 --- a/fs/overlayfs/super.c
 +++ b/fs/overlayfs/super.c
-@@ -2140,7 +2140,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 		ovl_trusted_xattr_handlers;
+@@ -2028,7 +2028,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_xattr = ovl_xattr_handlers;
  	sb->s_fs_info = ofs;
  	sb->s_flags |= SB_POSIXACL;
 -	sb->s_iflags |= SB_I_SKIP_SYNC;
