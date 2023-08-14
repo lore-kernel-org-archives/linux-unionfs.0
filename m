@@ -2,61 +2,61 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C9A3C001B0
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AD11C41513
 	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Aug 2023 14:06:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231322AbjHNOFy (ORCPT
+        id S229984AbjHNOFx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 14 Aug 2023 10:05:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59768 "EHLO
+        Mon, 14 Aug 2023 10:05:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59754 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231532AbjHNOF1 (ORCPT
+        with ESMTP id S231524AbjHNOF0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 14 Aug 2023 10:05:27 -0400
-Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56FF8E6D
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Aug 2023 07:05:26 -0700 (PDT)
-Received: by mail-wr1-x42b.google.com with SMTP id ffacd0b85a97d-31977ace1c8so882970f8f.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Aug 2023 07:05:26 -0700 (PDT)
+        Mon, 14 Aug 2023 10:05:26 -0400
+Received: from mail-wr1-x434.google.com (mail-wr1-x434.google.com [IPv6:2a00:1450:4864:20::434])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3927AE3
+        for <linux-unionfs@vger.kernel.org>; Mon, 14 Aug 2023 07:05:25 -0700 (PDT)
+Received: by mail-wr1-x434.google.com with SMTP id ffacd0b85a97d-31757edd9edso3635821f8f.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 14 Aug 2023 07:05:25 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692021925; x=1692626725;
+        d=gmail.com; s=20221208; t=1692021924; x=1692626724;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=z3vxaar6S0TG0ma9dQEds7wPD0UBbFdbug+vtfS7Zt8=;
-        b=Tj00b2whFNbBeSkc4eBYllsaumWCCRyCNBMs9kh0NS3XBmfc6/PZwL4bJhJ+9N7+F9
-         r9/CCGymff2E5CCduLscoZGOlODwsfbGdHHUSs1hd77HRBUN1vrrKHtz1G0dWwQ7Cm/C
-         vAEspUlAT5QwdJWXKmqcGdOt8abr8gdvb25Yty/74RewYsTxAnNxO8q5C6LSZDgeoE83
-         +YWUIkxnBamEYsmygUR9YLBK1l2nPEGQNS8FykpQTH4qNNVB1P0VIkBYp6YfIZhzswcN
-         fMasdYxUAaaT3F/OsDa6ZyGMpDyFWtWBjmVmHAGLTYUGmSn/LKynbJ35ku2+VjKjpvlc
-         p1Ug==
+        bh=5V17D3hVipoRPKWTTYuX6YdMJdWuIOAdAVRoiukonPg=;
+        b=k7VMpCcbjCZfRs3vJVZG1iVBc7ZNNZJudxqWg0Bp+r6NHz4M6ZUUpQdCiJLXuf7iBf
+         Lm3sxxUVyYYM1u6tH2KFC4ePJlaC9x+4FQFZyEXTH34r7bJmfk1aXCAtVLtlVgGQnHhf
+         KwWgyYCX85tKA29fVq7GDGmMthPei3fOOVtVj3Tvs82l8+DQjy43W87Vg3apmftt3o1I
+         j3rCQoOcFOCNDA2nHjVYwWLO4p9hkjPoiaqomGW0syX05VtltYP1p5GV3lt7tPA/VnLn
+         XhmLKtsJvuN7/zqxcofSF0LEzknLhF2nH6wZLr5P6QfzhgNo4GvN9GgMyT6KXEI4W8wX
+         NTFg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692021925; x=1692626725;
+        d=1e100.net; s=20221208; t=1692021924; x=1692626724;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=z3vxaar6S0TG0ma9dQEds7wPD0UBbFdbug+vtfS7Zt8=;
-        b=M/la5QZS04ose3YzKzl1Y61VVMedhU7XWVRfxykKur2RWnpfC2SF8Z2uJUtF9ZysMj
-         fAKvoSMBXQo4u7PyGTwT+1H60MVGkh8jHANTd4a+7hxZENOghomBvL2YcKOG1oR1+jmS
-         V/gMMnJmJrAhsqgtSc8PHrLOuEyWkUUMxZb16t44umyTY1V8aiF8fRcqlsnpCV61/Z0m
-         jVq1SRhl05PliuvByswl/LmXgxccvBBQikaWOagCy+PqL6ihhV2TNcpes9v5pEv4mloh
-         jaLIN6eNl4bRCJkvCgr8jInoep/Lax7EqKEvV6STjol0SMbi52OqpAzZ7oMC/xuqMOqK
-         tVuA==
-X-Gm-Message-State: AOJu0Yx2EdWBQ7su9fJl/LiaCSBoPYygldpJbnKHJ8BoQ7uqRxV8RFHL
-        NcDGnYwbaE9zEjZ2wKd1+oxV8TNEc/8=
-X-Google-Smtp-Source: AGHT+IFUjAAHrJnCqNJjH+pUpC6tLuCEU9NYhb+y1wZKlbrK9E79KGtK0jAw1+ErXzRgJIAGukvPUg==
-X-Received: by 2002:adf:e44f:0:b0:319:522a:17f5 with SMTP id t15-20020adfe44f000000b00319522a17f5mr7168112wrm.10.1692021924594;
-        Mon, 14 Aug 2023 07:05:24 -0700 (PDT)
+        bh=5V17D3hVipoRPKWTTYuX6YdMJdWuIOAdAVRoiukonPg=;
+        b=I+NuUPkIk18Ov9RSqLK722W4zHd7dvkElTl8hU6g/0CLNBNQotzwM3f0kT9Q7Ft0Jj
+         KeIpEvllYfn2FZ9PLTDymE8kJI4ynN11hRjhxr6UgLsEjBmdq74j1UvnencbpWKvZRDO
+         Q75Qogt0Fa5WGXzMKAQVZ3RC24QMZXXXAYqetIYFLAHF8LNUXH6lCD2Qr+1yGGKKABR8
+         kqJp1/B/RETlBC18pQFAfDXqIkfED95wmGoHX5UV/b9FwZZDaqabpZKf/DNKQ8bBQs6D
+         esGQWWtnzy/Jmv9wsjDwKDr5xnHWSYNvCedo57+PMKtTwo2eDZn40Xaq/CSh7kcDN+/s
+         QwSQ==
+X-Gm-Message-State: AOJu0YzgcNpN7/RcWrgU0dutF4K33Ocv0cQuU0ADHHalaLO4lSFt1mGg
+        e9JN7gOH4R/a1hgFq9wl/RQ=
+X-Google-Smtp-Source: AGHT+IF2JsWA2J+7vDGWe1jtckNOXpFnLPNEbKgh8SgTTiRFD7jAaPchrbxPjVg7Skw07OcuFapi3Q==
+X-Received: by 2002:a5d:6547:0:b0:317:6965:ef4d with SMTP id z7-20020a5d6547000000b003176965ef4dmr6337501wrv.56.1692021923353;
+        Mon, 14 Aug 2023 07:05:23 -0700 (PDT)
 Received: from amir-ThinkPad-T480.ctera.local (bzq-166-168-31-246.red.bezeqint.net. [31.168.166.246])
-        by smtp.gmail.com with ESMTPSA id j4-20020adfff84000000b003142ea7a661sm14609901wrr.21.2023.08.14.07.05.23
+        by smtp.gmail.com with ESMTPSA id j4-20020adfff84000000b003142ea7a661sm14609901wrr.21.2023.08.14.07.05.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 14 Aug 2023 07:05:24 -0700 (PDT)
+        Mon, 14 Aug 2023 07:05:23 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org
-Subject: [PATCH v2 2/3] ovl: do not open/llseek lower file with upper sb_writers held
-Date:   Mon, 14 Aug 2023 17:05:17 +0300
-Message-Id: <20230814140518.763674-3-amir73il@gmail.com>
+Subject: [PATCH v2 1/3] ovl: reorder ovl_want_write() after ovl_inode_lock()
+Date:   Mon, 14 Aug 2023 17:05:16 +0300
+Message-Id: <20230814140518.763674-2-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230814140518.763674-1-amir73il@gmail.com>
 References: <20230814140518.763674-1-amir73il@gmail.com>
@@ -66,322 +66,494 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-overlayfs file open (ovl_maybe_lookup_lowerdata) and overlay file llseek
-take the ovl_inode_lock, without holding upper sb_writers.
+Make the locking order of ovl_inode_lock() strictly between the two
+vfs stacked layers, i.e.:
+- ovl vfs locks: sb_writers, inode_lock, ...
+- ovl_inode_lock
+- upper vfs locks: sb_writers, inode_lock, ...
 
-In case of nested lower overlay that uses same upper fs as this overlay,
-lockdep will warn about (possibly false positive) circular lock
-dependency when doing open/llseek of lower ovl file during copy up with
-our upper sb_writers held, because the locking ordering seems reverse to
-the locking order in ovl_copy_up_start():
-
-- lower ovl_inode_lock
-- upper sb_writers
-
-Take upper sb_writers only when we actually need it, so we won't hold it
-during lower file open and lower file llseek to avoid the lockdep warning.
-
-Minimizing the scope of ovl_want_write() during copy up is also needed
-for fixing other possible deadlocks by following patches.
+To that effect, move ovl_want_write() into the helpers ovl_nlink_start()
+and ovl_copy_up_one() which currently take the ovl_inode_lock() after
+ovl_want_write().
 
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- fs/overlayfs/copy_up.c | 117 +++++++++++++++++++++++++++++++----------
- 1 file changed, 88 insertions(+), 29 deletions(-)
+ fs/overlayfs/copy_up.c | 36 ++++++++++-----------
+ fs/overlayfs/dir.c     | 71 ++++++++++++++++++------------------------
+ fs/overlayfs/export.c  |  7 +----
+ fs/overlayfs/inode.c   | 56 ++++++++++++++++-----------------
+ fs/overlayfs/util.c    |  7 +++++
+ 5 files changed, 83 insertions(+), 94 deletions(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index c998dab440f8..f2a31ff790fb 100644
+index bae404a1bad4..c998dab440f8 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -251,8 +251,13 @@ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
- 	if (IS_ERR(old_file))
- 		return PTR_ERR(old_file);
- 
-+	error = ovl_want_write(dentry);
-+	if (error)
-+		goto out_fput;
-+
- 	/* Try to use clone_file_range to clone up within the same fs */
- 	cloned = do_clone_file_range(old_file, 0, new_file, 0, len, 0);
-+	ovl_drop_write(dentry);
- 	if (cloned == len)
- 		goto out_fput;
- 	/* Couldn't clone, so now we try to copy the data */
-@@ -287,8 +292,12 @@ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
- 		 * it may not recognize all kind of holes and sometimes
- 		 * only skips partial of hole area. However, it will be
- 		 * enough for most of the use cases.
-+		 *
-+		 * We do not hold upper sb_writers throughout the loop to avert
-+		 * lockdep warning with llseek of lower file in nested overlay:
-+		 * - upper sb_writers
-+		 * -- lower ovl_inode_lock (ovl_llseek)
- 		 */
--
- 		if (skip_hole && data_pos < old_pos) {
- 			data_pos = vfs_llseek(old_file, old_pos, SEEK_DATA);
- 			if (data_pos > old_pos) {
-@@ -303,9 +312,14 @@ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
- 			}
- 		}
- 
-+		error = ovl_want_write(dentry);
-+		if (error)
-+			break;
-+
- 		bytes = do_splice_direct(old_file, &old_pos,
- 					 new_file, &new_pos,
- 					 this_len, SPLICE_F_MOVE);
-+		ovl_drop_write(dentry);
- 		if (bytes <= 0) {
- 			error = bytes;
- 			break;
-@@ -555,14 +569,18 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
- 	struct ovl_fs *ofs = OVL_FS(c->dentry->d_sb);
- 	struct inode *udir = d_inode(upperdir);
- 
-+	err = ovl_want_write(c->dentry);
-+	if (err)
-+		return err;
-+
- 	/* Mark parent "impure" because it may now contain non-pure upper */
- 	err = ovl_set_impure(c->parent, upperdir);
- 	if (err)
--		return err;
-+		goto out_drop_write;
- 
- 	err = ovl_set_nlink_lower(c->dentry);
- 	if (err)
--		return err;
-+		goto out_drop_write;
- 
- 	inode_lock_nested(udir, I_MUTEX_PARENT);
- 	upper = ovl_lookup_upper(ofs, c->dentry->d_name.name, upperdir,
-@@ -581,10 +599,12 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -1085,15 +1085,22 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (unlikely(err)) {
+ 		if (err > 0)
+ 			err = 0;
+-	} else {
+-		if (!ovl_dentry_upper(dentry))
+-			err = ovl_do_copy_up(&ctx);
+-		if (!err && parent && !ovl_dentry_has_upper_alias(dentry))
+-			err = ovl_link_up(&ctx);
+-		if (!err && ovl_dentry_needs_data_copy_up_locked(dentry, flags))
+-			err = ovl_copy_up_meta_inode_data(&ctx);
+-		ovl_copy_up_end(dentry);
++		goto out;
  	}
- 	inode_unlock(udir);
- 	if (err)
--		return err;
-+		goto out_drop_write;
- 
- 	err = ovl_set_nlink_upper(c->dentry);
- 
-+out_drop_write:
-+	ovl_drop_write(c->dentry);
- 	return err;
- }
- 
-@@ -710,7 +730,7 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 	struct path path = { .mnt = ovl_upper_mnt(ofs) };
- 	struct dentry *temp, *upper;
- 	struct ovl_cu_creds cc;
--	int err;
-+	int err, err2;
- 	struct ovl_cattr cattr = {
- 		/* Can't properly set mode on creation because of the umask */
- 		.mode = c->stat.mode & S_IFMT,
-@@ -718,21 +738,22 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 		.link = c->link
- 	};
- 
--	/* workdir and destdir could be the same when copying up to indexdir */
--	err = -EIO;
--	if (lock_rename(c->workdir, c->destdir) != NULL)
--		goto unlock;
--
- 	err = ovl_prep_cu_creds(c->dentry, &cc);
- 	if (err)
--		goto unlock;
-+		return err;
- 
--	temp = ovl_create_temp(ofs, c->workdir, &cattr);
-+	err = ovl_want_write(c->dentry);
-+	if (!err) {
-+		inode_lock(d_inode(c->workdir));
-+		temp = ovl_create_temp(ofs, c->workdir, &cattr);
-+		inode_unlock(d_inode(c->workdir));
-+		ovl_drop_write(c->dentry);
-+		if (IS_ERR(temp))
-+			err = PTR_ERR(temp);
-+	}
- 	ovl_revert_cu_creds(&cc);
--
--	err = PTR_ERR(temp);
--	if (IS_ERR(temp))
--		goto unlock;
-+	if (err)
-+		return err;
- 
- 	/*
- 	 * Copy up data first and then xattrs. Writing data after
-@@ -740,6 +761,21 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 	 */
- 	path.dentry = temp;
- 	err = ovl_copy_up_data(c, &path);
-+	/*
-+	 * Request write access, lock workdir and destdir and make sure that
-+	 * temp wasn't moved before copy up completion or cleanup.
-+	 * workdir and destdir could be the same when copying up to indexdir.
-+	 */
-+	err2 = ovl_want_write(c->dentry);
-+	if (err2)
-+		return err ?: err2;
 +
-+	if (lock_rename(c->workdir, c->destdir) != NULL ||
-+	    temp->d_parent != c->workdir) {
-+		err = err ?: -EIO;
-+		goto unlock;
-+	}
-+
- 	if (err)
- 		goto cleanup;
- 
-@@ -778,6 +814,7 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx *c)
- 		ovl_set_flag(OVL_WHITEOUTS, inode);
- unlock:
- 	unlock_rename(c->workdir, c->destdir);
-+	ovl_drop_write(c->dentry);
- 
- 	return err;
- 
-@@ -801,11 +838,16 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
- 	if (err)
- 		return err;
- 
--	tmpfile = ovl_do_tmpfile(ofs, c->workdir, c->stat.mode);
-+	err = ovl_want_write(c->dentry);
-+	if (!err) {
-+		tmpfile = ovl_do_tmpfile(ofs, c->workdir, c->stat.mode);
-+		ovl_drop_write(c->dentry);
-+		if (IS_ERR(tmpfile))
-+			err = PTR_ERR(tmpfile);
-+	}
- 	ovl_revert_cu_creds(&cc);
--
--	if (IS_ERR(tmpfile))
--		return PTR_ERR(tmpfile);
-+	if (err)
-+		return err;
- 
- 	temp = tmpfile->f_path.dentry;
- 	if (!c->metacopy && c->stat.size) {
-@@ -814,10 +856,14 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
- 			goto out_fput;
- 	}
- 
--	err = ovl_copy_up_metadata(c, temp);
-+	err = ovl_want_write(c->dentry);
- 	if (err)
- 		goto out_fput;
- 
-+	err = ovl_copy_up_metadata(c, temp);
-+	if (err)
-+		goto out_drop_write;
-+
- 	inode_lock_nested(udir, I_MUTEX_PARENT);
- 
- 	upper = ovl_lookup_upper(ofs, c->destname.name, c->destdir,
-@@ -830,7 +876,7 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
- 	inode_unlock(udir);
- 
- 	if (err)
--		goto out_fput;
-+		goto out_drop_write;
- 
- 	if (c->metacopy_digest)
- 		ovl_set_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
-@@ -842,6 +888,8 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
- 		ovl_set_upperdata(d_inode(c->dentry));
- 	ovl_inode_update(d_inode(c->dentry), dget(temp));
- 
-+out_drop_write:
-+	ovl_drop_write(c->dentry);
- out_fput:
- 	fput(tmpfile);
- 	return err;
-@@ -892,7 +940,12 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 		 * Mark parent "impure" because it may now contain non-pure
- 		 * upper
- 		 */
-+		err = ovl_want_write(c->dentry);
-+		if (err)
-+			return err;
-+
- 		err = ovl_set_impure(c->parent, c->destdir);
-+		ovl_drop_write(c->dentry);
- 		if (err)
- 			return err;
- 	}
-@@ -908,6 +961,10 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 	if (c->indexed)
- 		ovl_set_flag(OVL_INDEX, d_inode(c->dentry));
- 
-+	err = ovl_want_write(c->dentry);
++	err = ovl_want_write(dentry);
 +	if (err)
 +		goto out;
 +
- 	if (to_index) {
- 		/* Initialize nlink for copy up of disconnected dentry */
- 		err = ovl_set_nlink_upper(c->dentry);
-@@ -923,6 +980,7 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
- 		ovl_dentry_update_reval(c->dentry, ovl_dentry_upper(c->dentry));
- 	}
++	if (!ovl_dentry_upper(dentry))
++		err = ovl_do_copy_up(&ctx);
++	if (!err && parent && !ovl_dentry_has_upper_alias(dentry))
++		err = ovl_link_up(&ctx);
++	if (!err && ovl_dentry_needs_data_copy_up_locked(dentry, flags))
++		err = ovl_copy_up_meta_inode_data(&ctx);
++	ovl_drop_write(dentry);
++	ovl_copy_up_end(dentry);
++out:
+ 	do_delayed_call(&done);
  
-+	ovl_drop_write(c->dentry);
- out:
- 	if (to_index)
- 		kfree(c->destname.name);
-@@ -1006,6 +1064,10 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
- 	if (err)
- 		goto out_free;
+ 	return err;
+@@ -1169,17 +1176,10 @@ static bool ovl_open_need_copy_up(struct dentry *dentry, int flags)
  
-+	err = ovl_want_write(c->dentry);
-+	if (err)
-+		goto out_free;
-+
+ int ovl_maybe_copy_up(struct dentry *dentry, int flags)
+ {
+-	int err = 0;
+-
+-	if (ovl_open_need_copy_up(dentry, flags)) {
+-		err = ovl_want_write(dentry);
+-		if (!err) {
+-			err = ovl_copy_up_flags(dentry, flags);
+-			ovl_drop_write(dentry);
+-		}
+-	}
++	if (!ovl_open_need_copy_up(dentry, flags))
++		return 0;
+ 
+-	return err;
++	return ovl_copy_up_flags(dentry, flags);
+ }
+ 
+ int ovl_copy_up_with_data(struct dentry *dentry)
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 033fc0458a3d..f01031fe7b97 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -559,10 +559,6 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
+ 	struct cred *override_cred;
+ 	struct dentry *parent = dentry->d_parent;
+ 
+-	err = ovl_copy_up(parent);
+-	if (err)
+-		return err;
+-
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 
  	/*
- 	 * Writing to upper file will clear security.capability xattr. We
- 	 * don't want that to happen for normal copy-up operation.
-@@ -1014,17 +1076,19 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
- 		err = ovl_do_setxattr(ofs, upperpath.dentry, XATTR_NAME_CAPS,
- 				      capability, cap_size, 0);
+@@ -626,15 +622,11 @@ static int ovl_create_object(struct dentry *dentry, int mode, dev_t rdev,
+ 		.link = link,
+ 	};
+ 
+-	err = ovl_want_write(dentry);
+-	if (err)
+-		goto out;
+-
+ 	/* Preallocate inode to be used by ovl_get_inode() */
+ 	err = -ENOMEM;
+ 	inode = ovl_new_inode(dentry->d_sb, mode, rdev);
+ 	if (!inode)
+-		goto out_drop_write;
++		goto out;
+ 
+ 	spin_lock(&inode->i_lock);
+ 	inode->i_state |= I_CREATING;
+@@ -643,12 +635,19 @@ static int ovl_create_object(struct dentry *dentry, int mode, dev_t rdev,
+ 	inode_init_owner(&nop_mnt_idmap, inode, dentry->d_parent->d_inode, mode);
+ 	attr.mode = inode->i_mode;
+ 
++	err = ovl_copy_up(dentry->d_parent);
++	if (err)
++		return err;
++
++	err = ovl_want_write(dentry);
++	if (err)
++		goto out;
++
+ 	err = ovl_create_or_link(dentry, inode, &attr, false);
+ 	/* Did we end up using the preallocated inode? */
+ 	if (inode != d_inode(dentry))
+ 		iput(inode);
+ 
+-out_drop_write:
+ 	ovl_drop_write(dentry);
+ out:
+ 	return err;
+@@ -700,28 +699,24 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
+ 	int err;
+ 	struct inode *inode;
+ 
+-	err = ovl_want_write(old);
++	err = ovl_copy_up(old);
+ 	if (err)
+ 		goto out;
+ 
+-	err = ovl_copy_up(old);
++	err = ovl_copy_up(new->d_parent);
+ 	if (err)
+-		goto out_drop_write;
++		goto out;
+ 
+-	err = ovl_copy_up(new->d_parent);
++	err = ovl_nlink_start(old);
+ 	if (err)
+-		goto out_drop_write;
++		goto out;
+ 
+ 	if (ovl_is_metacopy_dentry(old)) {
+ 		err = ovl_set_link_redirect(old);
  		if (err)
--			goto out_free;
-+			goto out_drop_write;
+-			goto out_drop_write;
++			goto out_nlink_end;
  	}
  
+-	err = ovl_nlink_start(old);
+-	if (err)
+-		goto out_drop_write;
+-
+ 	inode = d_inode(old);
+ 	ihold(inode);
  
- 	err = ovl_removexattr(ofs, upperpath.dentry, OVL_XATTR_METACOPY);
+@@ -731,9 +726,8 @@ static int ovl_link(struct dentry *old, struct inode *newdir,
  	if (err)
--		goto out_free;
-+		goto out_drop_write;
+ 		iput(inode);
  
- 	ovl_clear_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
- 	ovl_clear_flag(OVL_VERIFIED_DIGEST, d_inode(c->dentry));
- 	ovl_set_upperdata(d_inode(c->dentry));
-+out_drop_write:
-+	ovl_drop_write(c->dentry);
- out_free:
- 	kfree(capability);
++out_nlink_end:
+ 	ovl_nlink_end(old);
+-out_drop_write:
+-	ovl_drop_write(old);
  out:
-@@ -1088,17 +1152,12 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 		goto out;
+ 	return err;
+ }
+@@ -891,17 +885,13 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 			goto out;
  	}
  
 -	err = ovl_want_write(dentry);
 -	if (err)
 -		goto out;
 -
- 	if (!ovl_dentry_upper(dentry))
- 		err = ovl_do_copy_up(&ctx);
- 	if (!err && parent && !ovl_dentry_has_upper_alias(dentry))
- 		err = ovl_link_up(&ctx);
- 	if (!err && ovl_dentry_needs_data_copy_up_locked(dentry, flags))
- 		err = ovl_copy_up_meta_inode_data(&ctx);
+ 	err = ovl_copy_up(dentry->d_parent);
+ 	if (err)
+-		goto out_drop_write;
++		goto out;
+ 
+ 	err = ovl_nlink_start(dentry);
+ 	if (err)
+-		goto out_drop_write;
++		goto out;
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	if (!lower_positive)
+@@ -926,8 +916,6 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
+ 	if (ovl_dentry_upper(dentry))
+ 		ovl_copyattr(d_inode(dentry));
+ 
+-out_drop_write:
 -	ovl_drop_write(dentry);
- 	ovl_copy_up_end(dentry);
  out:
- 	do_delayed_call(&done);
+ 	ovl_cache_free(&list);
+ 	return err;
+@@ -1131,29 +1119,32 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
+ 		}
+ 	}
+ 
+-	err = ovl_want_write(old);
+-	if (err)
+-		goto out;
+-
+ 	err = ovl_copy_up(old);
+ 	if (err)
+-		goto out_drop_write;
++		goto out;
+ 
+ 	err = ovl_copy_up(new->d_parent);
+ 	if (err)
+-		goto out_drop_write;
++		goto out;
+ 	if (!overwrite) {
+ 		err = ovl_copy_up(new);
+ 		if (err)
+-			goto out_drop_write;
++			goto out;
+ 	} else if (d_inode(new)) {
+ 		err = ovl_nlink_start(new);
+ 		if (err)
+-			goto out_drop_write;
++			goto out;
+ 
+ 		update_nlink = true;
+ 	}
+ 
++	if (!update_nlink) {
++		/* ovl_nlink_start() took ovl_want_write() */
++		err = ovl_want_write(old);
++		if (err)
++			goto out;
++	}
++
+ 	old_cred = ovl_override_creds(old->d_sb);
+ 
+ 	if (!list_empty(&list)) {
+@@ -1286,8 +1277,8 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
+ 	revert_creds(old_cred);
+ 	if (update_nlink)
+ 		ovl_nlink_end(new);
+-out_drop_write:
+-	ovl_drop_write(old);
++	else
++		ovl_drop_write(old);
+ out:
+ 	dput(opaquedir);
+ 	ovl_cache_free(&list);
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index c8c8588bd98c..4a79c479c971 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -23,12 +23,7 @@ static int ovl_encode_maybe_copy_up(struct dentry *dentry)
+ 	if (ovl_dentry_upper(dentry))
+ 		return 0;
+ 
+-	err = ovl_want_write(dentry);
+-	if (!err) {
+-		err = ovl_copy_up(dentry);
+-		ovl_drop_write(dentry);
+-	}
+-
++	err = ovl_copy_up(dentry);
+ 	if (err) {
+ 		pr_warn_ratelimited("failed to copy up on encode (%pd2, err=%i)\n",
+ 				    dentry, err);
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index b395cd84bfce..f5638cfe8f6d 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -32,10 +32,6 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 	if (err)
+ 		return err;
+ 
+-	err = ovl_want_write(dentry);
+-	if (err)
+-		goto out;
+-
+ 	if (attr->ia_valid & ATTR_SIZE) {
+ 		/* Truncate should trigger data copy up as well */
+ 		full_copy_up = true;
+@@ -54,7 +50,7 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 			winode = d_inode(upperdentry);
+ 			err = get_write_access(winode);
+ 			if (err)
+-				goto out_drop_write;
++				goto out;
+ 		}
+ 
+ 		if (attr->ia_valid & (ATTR_KILL_SUID|ATTR_KILL_SGID))
+@@ -78,6 +74,10 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 		 */
+ 		attr->ia_valid &= ~ATTR_OPEN;
+ 
++		err = ovl_want_write(dentry);
++		if (err)
++			goto out;
++
+ 		inode_lock(upperdentry->d_inode);
+ 		old_cred = ovl_override_creds(dentry->d_sb);
+ 		err = ovl_do_notify_change(ofs, upperdentry, attr);
+@@ -85,12 +85,11 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 		if (!err)
+ 			ovl_copyattr(dentry->d_inode);
+ 		inode_unlock(upperdentry->d_inode);
++		ovl_drop_write(dentry);
+ 
+ 		if (winode)
+ 			put_write_access(winode);
+ 	}
+-out_drop_write:
+-	ovl_drop_write(dentry);
+ out:
+ 	return err;
+ }
+@@ -361,27 +360,27 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 	struct path realpath;
+ 	const struct cred *old_cred;
+ 
+-	err = ovl_want_write(dentry);
+-	if (err)
+-		goto out;
+-
+ 	if (!value && !upperdentry) {
+ 		ovl_path_lower(dentry, &realpath);
+ 		old_cred = ovl_override_creds(dentry->d_sb);
+ 		err = vfs_getxattr(mnt_idmap(realpath.mnt), realdentry, name, NULL, 0);
+ 		revert_creds(old_cred);
+ 		if (err < 0)
+-			goto out_drop_write;
++			goto out;
+ 	}
+ 
+ 	if (!upperdentry) {
+ 		err = ovl_copy_up(dentry);
+ 		if (err)
+-			goto out_drop_write;
++			goto out;
+ 
+ 		realdentry = ovl_dentry_upper(dentry);
+ 	}
+ 
++	err = ovl_want_write(dentry);
++	if (err)
++		goto out;
++
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	if (value) {
+ 		err = ovl_do_setxattr(ofs, realdentry, name, value, size,
+@@ -391,12 +390,10 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 		err = ovl_do_removexattr(ofs, realdentry, name);
+ 	}
+ 	revert_creds(old_cred);
++	ovl_drop_write(dentry);
+ 
+ 	/* copy c/mtime */
+ 	ovl_copyattr(inode);
+-
+-out_drop_write:
+-	ovl_drop_write(dentry);
+ out:
+ 	return err;
+ }
+@@ -611,10 +608,6 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
+ 	struct dentry *upperdentry = ovl_dentry_upper(dentry);
+ 	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
+ 
+-	err = ovl_want_write(dentry);
+-	if (err)
+-		return err;
+-
+ 	/*
+ 	 * If ACL is to be removed from a lower file, check if it exists in
+ 	 * the first place before copying it up.
+@@ -630,7 +623,7 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
+ 		revert_creds(old_cred);
+ 		if (IS_ERR(real_acl)) {
+ 			err = PTR_ERR(real_acl);
+-			goto out_drop_write;
++			goto out;
+ 		}
+ 		posix_acl_release(real_acl);
+ 	}
+@@ -638,23 +631,26 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
+ 	if (!upperdentry) {
+ 		err = ovl_copy_up(dentry);
+ 		if (err)
+-			goto out_drop_write;
++			goto out;
+ 
+ 		realdentry = ovl_dentry_upper(dentry);
+ 	}
+ 
++	err = ovl_want_write(dentry);
++	if (err)
++		goto out;
++
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+ 	if (acl)
+ 		err = ovl_do_set_acl(ofs, realdentry, acl_name, acl);
+ 	else
+ 		err = ovl_do_remove_acl(ofs, realdentry, acl_name);
+ 	revert_creds(old_cred);
++	ovl_drop_write(dentry);
+ 
+ 	/* copy c/mtime */
+ 	ovl_copyattr(inode);
+-
+-out_drop_write:
+-	ovl_drop_write(dentry);
++out:
+ 	return err;
+ }
+ 
+@@ -777,14 +773,14 @@ int ovl_fileattr_set(struct mnt_idmap *idmap,
+ 	unsigned int flags;
+ 	int err;
+ 
+-	err = ovl_want_write(dentry);
+-	if (err)
+-		goto out;
+-
+ 	err = ovl_copy_up(dentry);
+ 	if (!err) {
+ 		ovl_path_real(dentry, &upperpath);
+ 
++		err = ovl_want_write(dentry);
++		if (err)
++			goto out;
++
+ 		old_cred = ovl_override_creds(inode->i_sb);
+ 		/*
+ 		 * Store immutable/append-only flags in xattr and clear them
+@@ -797,6 +793,7 @@ int ovl_fileattr_set(struct mnt_idmap *idmap,
+ 		if (!err)
+ 			err = ovl_real_fileattr_set(&upperpath, fa);
+ 		revert_creds(old_cred);
++		ovl_drop_write(dentry);
+ 
+ 		/*
+ 		 * Merge real inode flags with inode flags read from
+@@ -811,7 +808,6 @@ int ovl_fileattr_set(struct mnt_idmap *idmap,
+ 		/* Update ctime */
+ 		ovl_copyattr(inode);
+ 	}
+-	ovl_drop_write(dentry);
+ out:
+ 	return err;
+ }
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 0f387092450e..4deed8a2a112 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -1062,6 +1062,10 @@ int ovl_nlink_start(struct dentry *dentry)
+ 	if (err)
+ 		return err;
+ 
++	err = ovl_want_write(dentry);
++	if (err)
++		goto out;
++
+ 	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, inode))
+ 		goto out;
+ 
+@@ -1074,6 +1078,8 @@ int ovl_nlink_start(struct dentry *dentry)
+ 	 */
+ 	err = ovl_set_nlink_upper(dentry);
+ 	revert_creds(old_cred);
++	if (err)
++		ovl_drop_write(dentry);
+ 
+ out:
+ 	if (err)
+@@ -1094,6 +1100,7 @@ void ovl_nlink_end(struct dentry *dentry)
+ 		revert_creds(old_cred);
+ 	}
+ 
++	ovl_drop_write(dentry);
+ 	ovl_inode_unlock(inode);
+ }
+ 
 -- 
 2.34.1
 
