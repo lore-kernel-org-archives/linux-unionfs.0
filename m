@@ -2,96 +2,120 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD815C04FDF
-	for <linux-unionfs@archiver.kernel.org>; Sun, 13 Aug 2023 16:12:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFB8FC001DB
+	for <linux-unionfs@archiver.kernel.org>; Mon, 14 Aug 2023 11:39:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231161AbjHMQM3 (ORCPT
+        id S232582AbjHNLie (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 13 Aug 2023 12:12:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42128 "EHLO
+        Mon, 14 Aug 2023 07:38:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233306AbjHMQMM (ORCPT
+        with ESMTP id S229668AbjHNLiL (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 13 Aug 2023 12:12:12 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D09AB30CD;
-        Sun, 13 Aug 2023 09:11:42 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D002A61022;
-        Sun, 13 Aug 2023 16:11:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 56E0AC433C7;
-        Sun, 13 Aug 2023 16:11:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1691943070;
-        bh=S17R4XdwtPlDKk7mV1DbWLo33kEhrihEBc9yDssDvUM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=BZic1dck37A0LCWK+hG+qmslKc9gEspspAxtqq8rX9ltVtrLRHEc/IsBSIobLQxxG
-         vkIWCcLCqKfMpfZAixfu67g9MUHgz7dm27u6rl6Vae8+3Qk/Ff4dERKcdrrBfIVc8v
-         1EXwAf/Y5HSayfcsShL7NZhiLmyuUIZvMVpd9mmDHb8r73ali5ac/t73s4AcFpyCR7
-         myV5iLh2RGYCtjOA5TlOMmAWN6olAsd+/KVWD64BwJ/PoLOGjAfbuJGqYrfZAvbsmK
-         cylULAnI8qAlEuewmKWupvVdrojT9bCcPQQfNNK8uui0k+u3pr/yjlxk0qm8XojyH7
-         jpn3jsfiLK4KQ==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Eric Snowberg <eric.snowberg@oracle.com>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
-        amir73il@gmail.com, linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 20/25] ovl: Always reevaluate the file signature for IMA
-Date:   Sun, 13 Aug 2023 12:09:31 -0400
-Message-Id: <20230813160936.1082758-20-sashal@kernel.org>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20230813160936.1082758-1-sashal@kernel.org>
-References: <20230813160936.1082758-1-sashal@kernel.org>
+        Mon, 14 Aug 2023 07:38:11 -0400
+Received: from mail-ua1-x933.google.com (mail-ua1-x933.google.com [IPv6:2607:f8b0:4864:20::933])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D7B994
+        for <linux-unionfs@vger.kernel.org>; Mon, 14 Aug 2023 04:38:11 -0700 (PDT)
+Received: by mail-ua1-x933.google.com with SMTP id a1e0cc1a2514c-79ddb7fae73so72455241.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 14 Aug 2023 04:38:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692013090; x=1692617890;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=CfSGXdjq/EthvVoPMHKzpIAp+w3cf/VYazg6WrhmxpA=;
+        b=Xsd+DuWB7ciEe05IJ8NqGo62B2Iy0whqqjkrBY1HmriZcEwT+OajdR8Pf6lri95B9k
+         ZNMuIIFCznxkMpo/eB8h4HPs2AWI0x3JHjKfezaVMOs2aRjXCQkQs3R2UzWvu0UsSrbp
+         XDlHfAgX+VitmNsQUf4LlTKWaVUrmU4+QjKT+3BgvtrAxZ2a1DbhFbCr0pv7PsS0gaeY
+         /IV3TEupz+WewxZN+NcaMjkYaGYGrIgqkkdjPLc9w2Ol6sH7LszCB+5cjDD1umNwWNFk
+         cb1s2/BQDwfLBeWDKq3oZL5aKunyPdBV8kzJPNxbZRs2JMEMB0eFVrIFAk+LgbHvZ963
+         WP9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692013090; x=1692617890;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=CfSGXdjq/EthvVoPMHKzpIAp+w3cf/VYazg6WrhmxpA=;
+        b=L9ej/orIH82wD+VlVvDb/HFcU2u+mRemfXa5DIepJKcSmCfNhaBtIe9vwVgzmJVLWw
+         8LsvinNfE5LhmZlogaGf4VLSpYpnqDyBSlLwRatLAxQT4Hwgwy9QjiGVCSOyDEljJGWx
+         LT9H0S0AvgBPg4ehTce3XwXmlHF7XJ0V896iBZ9ZOgOHIYbMFU1xc1CPYraa/Jwt4O5z
+         IJygExqvmGp+MIP/ROr4qtfocTIvUm1tZiTrC1bxY7Wa5VjFEdfz+Wt/T2WpLqQdl46i
+         LArwOGMwDyM1gFKUoJqimRdEE1Sct0b7bMgR15Dfy6NZcmsuaEREtrCdWnhmKXxOwSTu
+         ZmwQ==
+X-Gm-Message-State: AOJu0YwfuABN2bnY5oS7m4jSt8CzqTNDF31XH7gcb+Mvzjvk5J0ymtuN
+        ZhdYt+6OPoJtbIXK4bLzFMcUS8RIbwGCVvOSPTlf/Fwt
+X-Google-Smtp-Source: AGHT+IFmKvMvKVhQDoWipsyuQleQN5N1RfOx5NrrmVQBMqs2ZZnqq7flQ9tuDxOBKKkaU8mkKIQHLFUuGloJWI5xVIE=
+X-Received: by 2002:a67:ad1a:0:b0:443:6352:464c with SMTP id
+ t26-20020a67ad1a000000b004436352464cmr6055928vsl.15.1692013089963; Mon, 14
+ Aug 2023 04:38:09 -0700 (PDT)
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 5.10.190
-Content-Transfer-Encoding: 8bit
+References: <20230720153731.420290-1-amir73il@gmail.com> <CAJfpegtbBy63yCej3A6m3NvdroAJyi3WMz9L=xt5piaSyV=AKw@mail.gmail.com>
+In-Reply-To: <CAJfpegtbBy63yCej3A6m3NvdroAJyi3WMz9L=xt5piaSyV=AKw@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 14 Aug 2023 14:37:59 +0300
+Message-ID: <CAOQ4uxhUQ8wCb3T3P_P5Ere1Hd+EaZ7ub2V_ErYU0rdrr=QRbw@mail.gmail.com>
+Subject: Re: [PATCH 0/2] overlayfs lock ordering changes
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Eric Snowberg <eric.snowberg@oracle.com>
+On Fri, Aug 11, 2023 at 4:06=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
+>
+> On Thu, 20 Jul 2023 at 17:37, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > Hi Miklos,
+> >
+> > These prep patches are needed for my start-write-safe series [1].
+> > This is not urgent and the prep patches don't need to be merged
+> > for next cycle, but I think these are good changes regardless,
+> > so wanted to post them for early review - if you like them you can
+> > queue them for 6.6.
+> >
+> > It is quite hard to do the review of the locking reorder patch from the
+> > diff itself and I couldn't figure out a better way to split this change=
+.
+> > I've intentionally left some otherwise useless out: goto labels to
+> > make the patch review a bit simper - they could be removed later.
+> >
+> > On the good side, lockdep was very tough with me and it easily detected
+> > bugs in the earlier versions of the patches.
+> >
+> > Going on vacation. will be back round rc6.
+> >
+> > Thanks,
+> > Amir.
+> >
+> > [1] https://github.com/amir73il/linux/commits/start-write-safe
+> >
+> > Amir Goldstein (2):
+> >   ovl: reorder ovl_want_write() after ovl_inode_lock()
+>
+> This one generally looks good.  The failure paths will need careful
+> review, because those are usually not exercised by the test suites.
+>
+> >   ovl: avoid lockdep warning with open and llseek of lower file
+>
+> But I dislike this one.  Seems like a bad workaround for a possibly
+> non-issue.  I understand the desire to silence lockdep, but surely we
+> can do better.
 
-[ Upstream commit 18b44bc5a67275641fb26f2c54ba7eef80ac5950 ]
+Well, I didn't do it to silence lockdep. I did it as a prereq for
+start-write-safe fsnotify hooks (see [1] above).
+Silencing lockdep is an added bonus that I observed along the way.
 
-Commit db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
-partially closed an IMA integrity issue when directly modifying a file
-on the lower filesystem.  If the overlay file is first opened by a user
-and later the lower backing file is modified by root, but the extended
-attribute is NOT updated, the signature validation succeeds with the old
-original signature.
+v2 [2] has a less hacky, but more noisy version of this patch which
+minimizes the scope of ovl_want_write() to when we need it.
+Let me know if this is what you had in mind.
 
-Update the super_block s_iflags to SB_I_IMA_UNVERIFIABLE_SIGNATURE to
-force signature reevaluation on every file access until a fine grained
-solution can be found.
+After looking more closely, I found another possible deadlock with
+nested overlay, which I think is real and added another commit to fix it.
 
-Signed-off-by: Eric Snowberg <eric.snowberg@oracle.com>
-Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- fs/overlayfs/super.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[2] https://github.com/amir73il/linux/commits/ovl_want_write-v2
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 5d7df839902df..e0384095ca960 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -2028,7 +2028,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
- 	sb->s_xattr = ovl_xattr_handlers;
- 	sb->s_fs_info = ofs;
- 	sb->s_flags |= SB_POSIXACL;
--	sb->s_iflags |= SB_I_SKIP_SYNC;
-+	sb->s_iflags |= SB_I_SKIP_SYNC | SB_I_IMA_UNVERIFIABLE_SIGNATURE;
- 
- 	err = -ENOMEM;
- 	root_dentry = ovl_get_root(sb, upperpath.dentry, oe);
--- 
-2.40.1
-
+Thanks,
+Amir.
