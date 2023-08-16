@@ -2,77 +2,83 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E28C04FDF
-	for <linux-unionfs@archiver.kernel.org>; Tue, 15 Aug 2023 20:38:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA5FFC001B0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 16 Aug 2023 10:29:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238358AbjHOUhr (ORCPT
+        id S243965AbjHPK2z (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 15 Aug 2023 16:37:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54148 "EHLO
+        Wed, 16 Aug 2023 06:28:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238693AbjHOUhj (ORCPT
+        with ESMTP id S243893AbjHPK2X (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 15 Aug 2023 16:37:39 -0400
-Received: from mail-lj1-x22b.google.com (mail-lj1-x22b.google.com [IPv6:2a00:1450:4864:20::22b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF32A2110
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Aug 2023 13:37:05 -0700 (PDT)
-Received: by mail-lj1-x22b.google.com with SMTP id 38308e7fff4ca-2b9cdba1228so93401971fa.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 15 Aug 2023 13:37:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1692131824; x=1692736624;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=KZTo6XdqYaKXacmEopjCl5CDpMbRF+JheqJwGxzGk+0=;
-        b=FW4W8WdmgR8dNMtrYu3ETLxIj66T1s/tHEkjRSb8OrN4X3X4Z7+ogiz5qI1Hpelg6p
-         t9fbOLM9m1+vGemnc1bD1BW+vqofJDCwJvGZCUrZjwfR6FkqgeVSXYZHtOZOaDAf2z4X
-         gN9zbtKjU13IjVXJBcaYrCA9NiZHQufEnjZYI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692131824; x=1692736624;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=KZTo6XdqYaKXacmEopjCl5CDpMbRF+JheqJwGxzGk+0=;
-        b=bLjVs53nbmbDiTn/x5Vn6de4uTSk0mN05jeOREFHie7P7hdwvrcNFZr8qu4lzU1SGW
-         To2aZlA1cpIfV5dRUbf0sFFhqvcBgZXNtacp1ipAaveOIdBe9KrZqKKfyc2qRbFswRWP
-         3wn4N51xZz+YvTS2QaM1ErqTJ2fi0hDmJ9YgIsOUpP/QZlrdSZYcUtEHQMc4Svneqx+X
-         /tliaUloicgIokJZvvZZpN2uF3ppcLcycH7RIZXY75poruZl8ULO4VoPUwfLD4Eijl67
-         L4o0dvK0Vy9MSGKmI6pcdL3CG86IRb0Wxdc/H2PIlRAZUu3X3gvX/mEqcU2UjdfeSVh5
-         wksw==
-X-Gm-Message-State: AOJu0YwGojMoO0Lcj9SIR4Z0E77sfEdEQs48lyQZFnkwzb/DiYSxESXT
-        YIaVeoiV6c1dMt8AwXhNW49KC+R8itjqQNdzwMz2mw==
-X-Google-Smtp-Source: AGHT+IHSUfqnUH9hiwSnMRnVECPDC7A88sO6yFLLxD+FL8U+Ic/kMpx/0EBiDFetTlg577aDnClMjCiihm5MHJmm/eA=
-X-Received: by 2002:a2e:854c:0:b0:2b7:b9ca:3eda with SMTP id
- u12-20020a2e854c000000b002b7b9ca3edamr9750690ljj.34.1692131823711; Tue, 15
- Aug 2023 13:37:03 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230814140518.763674-1-amir73il@gmail.com> <20230814140518.763674-3-amir73il@gmail.com>
- <CAJfpegu=-+jA1026KoqrFBX9dsfvQbcjHbkNunkZ6A794mZ1TQ@mail.gmail.com>
- <CAOQ4uxiTtraLVdsKJdty6z89=Lm52DGHFf1i_aL9jQz3L80V9Q@mail.gmail.com>
- <CAJfpegudye=2e2BWtk+fmaKMN_vUnwsKM8fi-GPcEX5n_vEizQ@mail.gmail.com> <CAOQ4uxi5oF7HWudQ7BBN9Matpsc2jqcftKZNH2Wpc778YK0mNg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi5oF7HWudQ7BBN9Matpsc2jqcftKZNH2Wpc778YK0mNg@mail.gmail.com>
-From:   Miklos Szeredi <miklos@szeredi.hu>
-Date:   Tue, 15 Aug 2023 22:36:52 +0200
-Message-ID: <CAJfpegssz5jpMBZs871QHuVfjA8ODvnc2_kN9YXw53Q7e47gLg@mail.gmail.com>
+        Wed, 16 Aug 2023 06:28:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95FCF1BF3
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Aug 2023 03:28:22 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 32E51619F3
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Aug 2023 10:28:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 69713C433C8;
+        Wed, 16 Aug 2023 10:28:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1692181701;
+        bh=zr86vRAB3oBynLh20oWxKGdO9OfbNgNS+1F691D8760=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=chhxWXul3EdLXiWSAeAPfdn3QIzY9L5rXIOERpleQAqgB6RzZL26ST4rWIF8Dm8Pc
+         0F4xle3MtkoAnGGKF4zea9ugEorY+V/0N3uhn9+xvi/dlekEhMp0aGzm2bXcMD8y3P
+         B5AjnV+ki7eQr+2s8SXuDx1ZBa46Wjch9J5+b6k5JlCftH5gbGZWA2nQzHniDsQcTT
+         7LcSwF23/9L7miY2+Nb53PoQrvbvz68Py1J0F5/Fef+1CzwXUIbUsxlirEv94iwiQo
+         rfRE+Jju3avAOC+eO4YmnCBXoW0a+hkuCUearLiIOK90TY+BAi1F6oSKIIzqExDPp9
+         y4psjN7GtBiRA==
+Date:   Wed, 16 Aug 2023 12:28:17 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org
 Subject: Re: [PATCH v2 2/3] ovl: do not open/llseek lower file with upper
  sb_writers held
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org,
-        Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Message-ID: <20230816-beantragen-fehlalarm-98d937e251f7@brauner>
+References: <20230814140518.763674-1-amir73il@gmail.com>
+ <20230814140518.763674-3-amir73il@gmail.com>
+ <CAJfpegu=-+jA1026KoqrFBX9dsfvQbcjHbkNunkZ6A794mZ1TQ@mail.gmail.com>
+ <CAOQ4uxiTtraLVdsKJdty6z89=Lm52DGHFf1i_aL9jQz3L80V9Q@mail.gmail.com>
+ <CAJfpegudye=2e2BWtk+fmaKMN_vUnwsKM8fi-GPcEX5n_vEizQ@mail.gmail.com>
+ <CAOQ4uxi5oF7HWudQ7BBN9Matpsc2jqcftKZNH2Wpc778YK0mNg@mail.gmail.com>
+ <CAJfpegssz5jpMBZs871QHuVfjA8ODvnc2_kN9YXw53Q7e47gLg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAJfpegssz5jpMBZs871QHuVfjA8ODvnc2_kN9YXw53Q7e47gLg@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 15 Aug 2023 at 21:51, Amir Goldstein <amir73il@gmail.com> wrote:
+On Tue, Aug 15, 2023 at 10:36:52PM +0200, Miklos Szeredi wrote:
+> On Tue, 15 Aug 2023 at 21:51, Amir Goldstein <amir73il@gmail.com> wrote:
+> 
+> > What I meant is, except from emergency remount rdonly and fs specific
+> > cases like ext4 remount-ro on error, is there a way via new mount API
+> > that users can request remount of the upper SB rdonly, despite the
+> > fact that this sb has private writable mount clones?
+> > even if ovl has elevated mnt_writers of upper_mnt?
+> 
+> Private and public mounts are completely equal in this regard.  So no,
+> you can't remount rdonly if upper mnt has an elevated mnt_writers.
 
-> What I meant is, except from emergency remount rdonly and fs specific
-> cases like ext4 remount-ro on error, is there a way via new mount API
-> that users can request remount of the upper SB rdonly, despite the
-> fact that this sb has private writable mount clones?
-> even if ovl has elevated mnt_writers of upper_mnt?
+It's worth noting that during _emergency_ rw->ro remount writers on
+mounts are ignored.
 
-Private and public mounts are completely equal in this regard.  So no,
-you can't remount rdonly if upper mnt has an elevated mnt_writers.
+IOW, if SB_FORCE is set then we don't call sb_prepare_remount_readonly()
+which would otherwise walk all mounts of the superblock marking them as
+about to be made ro and would fail the rw->ro if there are any active
+writers.
 
-Thanks,
-Miklos
+And a real emergency ro remount would make all active superblocks ro
+including any overlayfs ones.
+
+But for a regular rw->ro any writable mount with active writers would
+prevent the sb from going ro.
