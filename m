@@ -2,145 +2,89 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65979EE4996
-	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Aug 2023 07:55:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEDBDEE4993
+	for <linux-unionfs@archiver.kernel.org>; Mon, 21 Aug 2023 11:00:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233855AbjHUHzd (ORCPT
+        id S229868AbjHULAH (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 21 Aug 2023 03:55:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35046 "EHLO
+        Mon, 21 Aug 2023 07:00:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230415AbjHUHzc (ORCPT
+        with ESMTP id S229596AbjHULAH (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 21 Aug 2023 03:55:32 -0400
-Received: from smtp-fw-80008.amazon.com (smtp-fw-80008.amazon.com [99.78.197.219])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27840B1;
-        Mon, 21 Aug 2023 00:55:31 -0700 (PDT)
+        Mon, 21 Aug 2023 07:00:07 -0400
+Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D87DFDF
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Aug 2023 04:00:02 -0700 (PDT)
+Received: by mail-ej1-x630.google.com with SMTP id a640c23a62f3a-99357737980so422532266b.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 21 Aug 2023 04:00:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-  d=amazon.com; i=@amazon.com; q=dns/txt; s=amazon201209;
-  t=1692604531; x=1724140531;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=WarJnYSIIDCoK08Blaeh9upNnOdNiIg5pqTIPcpbuWA=;
-  b=RCudqmiK2HRxPtCNSvs1FVe+gYbJxtPOMrlEzFBd80e6uOO/SRf0pn5x
-   X5d0sPMs6hRLzkagtQAnZHNgct4pv1I43/vo1CNIl+33+3pILcFoe26bi
-   jGkIo4BYn4SnTCmKSo9UHS/Uk6ZibleOnvk4pVwzCdJld+V2i954LUhiW
-   I=;
-X-IronPort-AV: E=Sophos;i="6.01,189,1684800000"; 
-   d="scan'208";a="23717432"
-Received: from pdx4-co-svc-p1-lb2-vlan3.amazon.com (HELO email-inbound-relay-pdx-2a-m6i4x-af372327.us-west-2.amazon.com) ([10.25.36.214])
-  by smtp-border-fw-80008.pdx80.corp.amazon.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2023 07:55:30 +0000
-Received: from EX19MTAUWC001.ant.amazon.com (pdx1-ws-svc-p6-lb9-vlan3.pdx.amazon.com [10.236.137.198])
-        by email-inbound-relay-pdx-2a-m6i4x-af372327.us-west-2.amazon.com (Postfix) with ESMTPS id F02B860E80;
-        Mon, 21 Aug 2023 07:55:29 +0000 (UTC)
-Received: from EX19D010UWA004.ant.amazon.com (10.13.138.204) by
- EX19MTAUWC001.ant.amazon.com (10.250.64.174) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1118.30; Mon, 21 Aug 2023 07:55:29 +0000
-Received: from u0acfa43c8cad58.ant.amazon.com (10.142.138.205) by
- EX19D010UWA004.ant.amazon.com (10.13.138.204) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1118.37; Mon, 21 Aug 2023 07:55:29 +0000
-From:   Munehisa Kamata <kamatam@amazon.com>
-To:     <casey@schaufler-ca.com>
-CC:     <jmorris@namei.org>, <kamatam@amazon.com>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-security-module@vger.kernel.org>,
-        <linux-unionfs@vger.kernel.org>, <mengcc@amazon.com>,
-        <miklos@szeredi.hu>, <paul@paul-moore.com>,
-        <roberto.sassu@huawei.com>, <roberto.sassu@huaweicloud.com>,
-        <serge@hallyn.com>, <yoonjaeh@amazon.com>, <zohar@linux.ibm.com>
-Subject: Re: [RFC][PATCH 1/2] smack: Retrieve transmuting information in smack_inode_getsecurity()
-Date:   Mon, 21 Aug 2023 00:55:17 -0700
-Message-ID: <20230821075517.2320555-1-kamatam@amazon.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <b0a4fa15-df54-46df-afe7-2af03c3d56df@schaufler-ca.com>
-References: <b0a4fa15-df54-46df-afe7-2af03c3d56df@schaufler-ca.com>
+        d=szeredi.hu; s=google; t=1692615601; x=1693220401;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=q4kipjLJapoK8kg3cLY785ipfDEy2WZsYLbd/5W3f0M=;
+        b=dL7rWup9IPe1BBSo6gJG3GoHrlVTEYTtMd4hp8H48yEatHVDfomUssMQUxj4xfCKJK
+         mSJjm8SAVY21u7E/ktSb7UUhN5mDOA/ErmomRohe8N86F7h5Sbfzcj3728X14LKpsICQ
+         JKvmEIY8RiBzi/0AxMgiX1QjtFc5X3cxoSEIo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1692615601; x=1693220401;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=q4kipjLJapoK8kg3cLY785ipfDEy2WZsYLbd/5W3f0M=;
+        b=SJM8jzPoYF70mUJWce3m5oL6sN9u02UCS0VWm2FR7g/qhRwhRh9CSnEH/KUcp2KFWo
+         Lc1PCl2+srTGQGC3F8U2N4knvUqy21Yr/j227qajle2H6+Gbgg2sj0kC+HWp5vEybO9L
+         /9tfjkm4ifHUWVsbtLCfjyEcOWLo+mGu+B920cc6LgygtdR6CBqokyAid1UA+GLPMMs+
+         u+BfiHy9o9BOq0bDNjUuHSZGtC71T7tHudt4dAiTz3JQNtYcggGZdGzcy84ChirhBPDQ
+         vGNOl0rW94u1Q69r4qIPtF56QtOCm4sj8TTA0DcFS2OauShgvEiHLlkIfkW/IdUB57d/
+         30tA==
+X-Gm-Message-State: AOJu0YwJ95JsGG0uzrOgQkIwcnQEm7Spp21doxALP28d+yMk/Ply1NnO
+        ScKvoqymfB2b0RwgsEtKJKEQTtPT0la60YdU4MIPKA==
+X-Google-Smtp-Source: AGHT+IGyxgUXzTk+1OLv/UQpG+C5Ts2fZM5Cqnsv8BrUjmNypZhraKICdUYKKaWAYxu/lIhl5A7N+SBXeSV4hfLTTFk=
+X-Received: by 2002:a17:906:100c:b0:99d:f3ae:9a3e with SMTP id
+ 12-20020a170906100c00b0099df3ae9a3emr5656839ejm.38.1692615601276; Mon, 21 Aug
+ 2023 04:00:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain
-X-Originating-IP: [10.142.138.205]
-X-ClientProxiedBy: EX19D037UWB001.ant.amazon.com (10.13.138.123) To
- EX19D010UWA004.ant.amazon.com (10.13.138.204)
+References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
+In-Reply-To: <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Mon, 21 Aug 2023 12:59:49 +0200
+Message-ID: <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
+Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on overlayfs
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Casey, Roberto
-
-On Thu, 2023-05-11 17:12:50 +0000, Casey Schaufler wrote:
+On Thu, 17 Aug 2023 at 13:05, Alexander Larsson <alexl@redhat.com> wrote:
 >
-> On 5/8/2023 10:02 AM, Roberto Sassu wrote:
-> > From: Roberto Sassu <roberto.sassu@huawei.com>
-> >
-> > Enhance smack_inode_getsecurity() to retrieve the value for
-> > SMACK64TRANSMUTE from the inode security blob, similarly to SMACK64.
-> >
-> > This helps to display accurate values in the situation where the security
-> > labels come from mount options and not from xattrs.
-> >
-> > Signed-off-by: Roberto Sassu <roberto.sassu@huawei.com>
-> 
-> Looks good. I have added to smack next.
+> This is needed to properly stack overlay filesystems, I.E, being able
+> to create a whiteout file on an overlay mount and then use that as
+> part of the lowerdir in another overlay mount.
+>
+> The way this works is that we create a regular whiteout, but set the
+> `overlay.nowhiteout` xattr on it. Whenever we check if a file is a
+> whiteout we check this xattr and don't treat it as a whiteout if it is
+> set. The xattr itself is then stripped and when viewed as part of the
+> overlayfs mount it looks like a regular whiteout.
+>
 
-Do you have any objections to backporting these patches to -stable? If not,
-I'll ask it in the stable list along with another overlayfs-related fix
-387ef964460f ("Smack:- Use overlay inode label in smack_inode_copy_up()").
+I understand the motivation, but don't have good feelings about the
+implementation.  Like the xattr escaping this should also have the
+property that when fed to an old kernel version, it shouldn't
+interpret this object as a whiteout.  Whether it remains hidden like
+the escaped xattrs or if it shows up as something else is
+uninteresting.
+
+It could just be a zero sized regular file with "overlay.whiteout".
+
+But we are also getting to the stage where the number of getxattr
+queries on lookup could be a performance problem.  Or maybe not.  It
+would be good to look at this aspect as well when adding xattr queries
+to lookup.
 
 
 Thanks,
-Munehisa
-
-> 
-> > ---
-> >  security/smack/smack_lsm.c | 22 ++++++++++++++++++----
-> >  1 file changed, 18 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
-> > index 7a3e9ab137d..c7e37ed2799 100644
-> > --- a/security/smack/smack_lsm.c
-> > +++ b/security/smack/smack_lsm.c
-> > @@ -1463,10 +1463,19 @@ static int smack_inode_getsecurity(struct mnt_idmap *idmap,
-> >  	struct super_block *sbp;
-> >  	struct inode *ip = inode;
-> >  	struct smack_known *isp;
-> > +	struct inode_smack *ispp;
-> > +	size_t label_len;
-> > +	char *label = NULL;
-> >  
-> > -	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0)
-> > +	if (strcmp(name, XATTR_SMACK_SUFFIX) == 0) {
-> >  		isp = smk_of_inode(inode);
-> > -	else {
-> > +	} else if (strcmp(name, XATTR_SMACK_TRANSMUTE) == 0) {
-> > +		ispp = smack_inode(inode);
-> > +		if (ispp->smk_flags & SMK_INODE_TRANSMUTE)
-> > +			label = TRANS_TRUE;
-> > +		else
-> > +			label = "";
-> > +	} else {
-> >  		/*
-> >  		 * The rest of the Smack xattrs are only on sockets.
-> >  		 */
-> > @@ -1488,13 +1497,18 @@ static int smack_inode_getsecurity(struct mnt_idmap *idmap,
-> >  			return -EOPNOTSUPP;
-> >  	}
-> >  
-> > +	if (!label)
-> > +		label = isp->smk_known;
-> > +
-> > +	label_len = strlen(label);
-> > +
-> >  	if (alloc) {
-> > -		*buffer = kstrdup(isp->smk_known, GFP_KERNEL);
-> > +		*buffer = kstrdup(label, GFP_KERNEL);
-> >  		if (*buffer == NULL)
-> >  			return -ENOMEM;
-> >  	}
-> >  
-> > -	return strlen(isp->smk_known);
-> > +	return label_len;
-> >  }
-> >  
-> >  
-> 
+Millos
