@@ -2,142 +2,80 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CA9DEE49AE
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Aug 2023 17:30:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD361EE49AF
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Aug 2023 01:37:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229522AbjHVRaF (ORCPT
+        id S232048AbjHWBhG (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 22 Aug 2023 13:30:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46964 "EHLO
+        Tue, 22 Aug 2023 21:37:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229595AbjHVRaF (ORCPT
+        with ESMTP id S230025AbjHWBhF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Aug 2023 13:30:05 -0400
-Received: from mail-vs1-xe34.google.com (mail-vs1-xe34.google.com [IPv6:2607:f8b0:4864:20::e34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D81C36599C
-        for <linux-unionfs@vger.kernel.org>; Tue, 22 Aug 2023 10:29:57 -0700 (PDT)
-Received: by mail-vs1-xe34.google.com with SMTP id ada2fe7eead31-44d5c49af07so459664137.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 22 Aug 2023 10:29:57 -0700 (PDT)
+        Tue, 22 Aug 2023 21:37:05 -0400
+X-Greylist: delayed 903 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 22 Aug 2023 18:36:59 PDT
+Received: from symantec4.comsats.net.pk (symantec4.comsats.net.pk [203.124.41.30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFE39E45
+        for <linux-unionfs@vger.kernel.org>; Tue, 22 Aug 2023 18:36:59 -0700 (PDT)
+X-AuditID: cb7c291e-055ff70000002aeb-fc-64e54a4cbe6f
+Received: from iesco.comsatshosting.com (iesco.comsatshosting.com [210.56.28.11])
+        (using TLS with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+        (Client did not present a certificate)
+        by symantec4.comsats.net.pk (Symantec Messaging Gateway) with SMTP id 30.3A.10987.C4A45E46; Wed, 23 Aug 2023 04:52:44 +0500 (PKT)
+DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns;
+        d=iesco.com.pk; s=default;
+        h=received:content-type:mime-version:content-transfer-encoding
+          :content-description:subject:to:from:date:reply-to;
+        b=dn+DtPbWrBeTkKYgXZV5Mp5kzLCYZpLE3j5NNWOgQc89f1CpnMEEkcUNLi0bj+kdy
+          HM/e9kR1FfReo1nMcrh3yTkX8ITw3hasy9E9KFB3TgiEw8Nkb+z6hfO6tCTxyniXA
+          v/DLh0mvM8XjeTqa0yeUMqGH7NUyytlSc99ffwXXs=
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692725397; x=1693330197;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oVXot+jWf/1J6wof/lsdtj7kOWdiU2G4dWi1We5pvu0=;
-        b=sb9ljiK+F/OcG6GSHt7G2jG5kvLZ7u6H1WzKYXuoZbCA5IA9tdwuCMhsvFdSsx5H/X
-         c2ijPLO+Z1Hlg4L6ENBd2VAdbcjI2G/cwdGOy0Ic+qMgEr5fUCqQ0++IUpiKB0pI1Hc5
-         uWjxgGBAuFU8Gu2UK71lLfX4Mp/U6O9Vlo9xuVwRu+UGlrkluxHeKSzmR8CIYBcIyLsS
-         C+aaNtoQGXh74k7DbkjZn9+1BXplRmYKUMi+zOGz4xUCkB49CLf2UVtDWYAHXXiTySqt
-         JL5JA1DW8bWxyr6dQk9RmCdZ0QJp8UUq6Et1vGAHUl9Na32rnIwOMfOBSbnFesiNpNwb
-         hU6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692725397; x=1693330197;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oVXot+jWf/1J6wof/lsdtj7kOWdiU2G4dWi1We5pvu0=;
-        b=cgT7NOW2ny1xaT3gaJ4lAOZ2wF/RzdU+b7OemYLlvsO4p3rUo64jKjT6limWemuo6a
-         Nintras1aFUq7dJssvAAJLf76DXUf9atId8+yr2fHfqGP3nZZd7DRY32wAhG59WoidRa
-         EplA83DD1M9YgXHQQy/y7FC3cJlZ68kD0fZ0KvGKnkJCV7xeFsDTtqSQG8+6DpBLdqsJ
-         b6PVQ6Fk3erv5eSz7RkNc9MBbidM93tAkNu7Ui72ACLrSq7McNegPybDRSBoYW6Z0zOa
-         sNu2ii9BwWSWgkKycojUbdoaQR9E0tiBAA1Ta6hu341fZovf45jwaukHCe9Nl+HH0BYb
-         nwEQ==
-X-Gm-Message-State: AOJu0YyAICV3vK5zB2UGSLB4UC7VBpWWtcAk7niS/mGeKtAkhCy8t9SF
-        4lEi0RFWNk9EDNC0gy3rAA5EueAHHpeq/Ot7Oq4=
-X-Google-Smtp-Source: AGHT+IGZdLF7B/Zag/pbAkl4jkTcET1RJ+l2XxSM+8m2D8+3Y7XMbLsqGO/U8W4Az9Ft3gdkRmh88aEjwlnr5RF5L8k=
-X-Received: by 2002:a05:6102:41b:b0:44d:55a4:226d with SMTP id
- d27-20020a056102041b00b0044d55a4226dmr4234816vsq.4.1692725395896; Tue, 22 Aug
- 2023 10:29:55 -0700 (PDT)
+        d=iesco.com.pk; s=default;
+        h=reply-to:date:from:to:subject:content-description
+          :content-transfer-encoding:mime-version:content-type;
+        bh=GMzYzcyTxDsE6wX/XHG6MHqAdAiHrhqbmmLQ/TZ1QnQ=;
+        b=GmvmGpbEFXYjr4E/rrs8fyF12ZyzfZl2FMwQ+OV0DNFFUCE3pjvSFH8xrH6OQ52Rz
+          hXK9uJouBAs1aAmIrthTlwKaOy+mJqFcb9HM6RtUTY+C3qG0wS7fSJZaOAokucusA
+          OFZJZLrgZlu0e8XW4KhTZrfAtI6hFN9AwfrkpyVTQ=
+Received: from [94.156.6.90] (UnknownHost [94.156.6.90]) by iesco.comsatshosting.com with SMTP;
+   Wed, 23 Aug 2023 04:31:08 +0500
+Message-ID: <30.3A.10987.C4A45E46@symantec4.comsats.net.pk>
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
- <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
- <CAL7ro1HMZxXZDyJG9yikx+KCd3HsYPZdgk7SJBLAGWBKVrYD6g@mail.gmail.com>
- <CAJfpeguerGOWAELyd7oY=z8Y-1sGG6OY9MurhCB7-kegxZ-wmQ@mail.gmail.com>
- <CAL7ro1Hr43u7CoyHwVOzxp+pcN2MHEf18B7+CZk=HFw=viGz8A@mail.gmail.com>
- <CAL7ro1FagGOZZg9yeWvWDov6L3prrjJE-+Yre1CJuViT7idNYw@mail.gmail.com>
- <CAOQ4uxhVXrNfhWc-EsunfyWyrJDFCjYu8GeAtvN0__QTfjtV5A@mail.gmail.com>
- <CAL7ro1HyGrwdH7B8C4-uWsfK4XTA=LF6GSS+4+LwT_iosdO2wQ@mail.gmail.com>
- <CAOQ4uxjhVR656cME=G-wOu_zrpqPS1M=sx32ogiUtrSxLsaBsw@mail.gmail.com> <CAJfpegsLDi-V_0GYW=9qu3RE16Oh9Wc8-bmMX=3q3EfdSn-iQw@mail.gmail.com>
-In-Reply-To: <CAJfpegsLDi-V_0GYW=9qu3RE16Oh9Wc8-bmMX=3q3EfdSn-iQw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 22 Aug 2023 20:29:42 +0300
-Message-ID: <CAOQ4uxioDBiKH267ijR5VOXzStwkOvYGrjMGtP26x0LJR0oWAg@mail.gmail.com>
-Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on overlayfs
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
+Content-Description: Mail message body
+Subject: Re; Interest,
+To:     linux-unionfs@vger.kernel.org
+From:   "Chen Yun" <pso.chairmanbod@iesco.com.pk>
+Date:   Tue, 22 Aug 2023 16:31:22 -0700
+Reply-To: chnyne@gmail.com
+X-Brightmail-Tracker: H4sIAAAAAAAAA+NgFlrDLMWRmVeSWpSXmKPExsVyyUKGW9fH62mKwbfLRhZt19cwOjB6fN4k
+        F8AYxWWTkpqTWZZapG+XwJWxZN0FloLdzBVt/YtYGhgfM3UxcnJICJhIfF9xjwXEFhLYwyQx
+        6XFkFyMXB4vAamaJF4tWsUE4D5klNi7fwA7iCAk0M0p0n3jEDNLCK2At8fPNfFYQm1lAT+LG
+        1ClsEHFBiZMzn7BAxLUlli18DVTPAWSrSXztKgEJCwuISXyatowdxBYRUJR433QXbCSbgL7E
+        iq/NjCA2i4CqxJTTDUwQ10lJbLyynm0CI/8sJNtmIdk2C8m2WQjbFjCyrGKUKK7MTQSGWrKJ
+        XnJ+bnFiSbFeXmqJXkH2JkZgGJ6u0ZTbwbj0UuIhRgEORiUe3p/rnqQIsSaWAXUdYpTgYFYS
+        4ZX+/jBFiDclsbIqtSg/vqg0J7X4EKM0B4uSOK+t0LNkIYH0xJLU7NTUgtQimCwTB6dUA6OX
+        QYCcpjy/o0Va7JfywBULg3M3pdVbbdkbv2nKtqSd4bI304svT2O2thD80ltb9TLygYKG0l6G
+        Owv/v986j/1y2cTXBrHZS+x3Lzg1073obZ7qkglRNRZLgr+GhU7pKxOczpphfSYwvNLvdko6
+        1941fjpKT7OK2z5bqB255uLfuuWabNYiTyWW4oxEQy3mouJEAPOlqa0/AgAA
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Aug 22, 2023 at 7:19=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Tue, 22 Aug 2023 at 17:57, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > On Tue, Aug 22, 2023 at 6:43=E2=80=AFPM Alexander Larsson <alexl@redhat=
-.com> wrote:
-> > >
-> > > On Tue, Aug 22, 2023 at 5:31=E2=80=AFPM Amir Goldstein <amir73il@gmai=
-l.com> wrote:
->
-> > > > FWIW, there is also DT_WHT that was defined and never used.
-> > > > But that is just an anecdote.
->
-> Overlay could be the first filesystem to set DT_WHT in its readdir.
-> I wouldn't mind if others would follow suit, but it's not a high
-> priority thing.
->
->
->
-> > > >
-> > > > Regarding the issue of avoiding getxattr for every dirent.
-> > > > Note that in readdir, dirent that goes through ovl_cache_update_ino=
-()
-> > > > calls lookup()/stat() on the overlay itself, so as long as ovl_look=
-up()
-> > > > will treat overlay.whiteout file as a whiteout, the code
-> > > >                  /* Mark a stale entry */
-> > > >                 p->is_whiteout =3D true;
-> > > > will kick in and do the right thing for readdir wrt cleaning up
-> > > > lower entries covered with whiteouts, regardless of DT_CHR.
-> > >
-> > > We don't want to treat this file as a whiteout though. We want it to
-> > > be exposed as a regular file that looks like a whiteout marker file
-> > > (i.e. char dev 0,0). Or am I missing something?
-> > >
-> >
-> > Not sure if you really need to emulate chardev(0,0) at all.
-> >
-> > Suppose that you just define a new way to express a whiteout -
-> > an empty regular file with xattr overlay.whiteout.
->
-> Oh, you mean overlay.overlay.whiteout on realfile, which gets turned
-> into overlay.whiteout on bottom overlay, which gets interpreted as a
-> whiteout on top overlay?
->
-> I suppose that would work too, but it's a bit of a layering violation.
->
+Re; Interest,
 
-I proposed to look at the two features independently:
-1. Nesting of overlayfs xattrs (patch 3/5)
-2. Alternative format for whiteout (overlay.whiteout) that can be used
-   by container tools converting OCI/tar images to overlayfs images
+I am interested in discussing the Investment proposal as I explained
+in my previous mail. May you let me know your interest and the
+possibility of a cooperation aimed for mutual interest.
 
-Together, they provide a solution to Alexander's use case.
+Looking forward to your mail for further discussion.
 
-IIUC, the way this is intended to work is that mkfs.composefs
-is running inside a container, whose work directory is overlayfs
-and it composes some lower layers on that host mounted overlayfs.
+Regards
 
-mkfs.composefs composes layers with overlay.{metacopy,whiteout,redirect}
-xattrs (up to here it is standard mkfs.composefs) and because those layers
-are stored in overlayfs, the xattrs are stored in the host fs as
-overlay.overlay.*.
+------
+Chen Yun - Chairman of CREC
+China Railway Engineering Corporation - CRECG
+China Railway Plaza, No.69 Fuxing Road, Haidian District, Beijing, P.R.
+China
 
-I hope I got the use case correctly?
-Why is that a layering violation?
-
-Thanks,
-Amir.
