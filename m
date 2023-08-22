@@ -2,130 +2,116 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C1DEE4993
-	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Aug 2023 13:22:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63580EE4993
+	for <linux-unionfs@archiver.kernel.org>; Tue, 22 Aug 2023 13:22:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236080AbjHVNWl (ORCPT
+        id S236081AbjHVNW7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 22 Aug 2023 09:22:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42376 "EHLO
+        Tue, 22 Aug 2023 09:22:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236123AbjHVNWj (ORCPT
+        with ESMTP id S234984AbjHVNW7 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 22 Aug 2023 09:22:39 -0400
-Received: from mail-ua1-x930.google.com (mail-ua1-x930.google.com [IPv6:2607:f8b0:4864:20::930])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6750CEB;
-        Tue, 22 Aug 2023 06:22:34 -0700 (PDT)
-Received: by mail-ua1-x930.google.com with SMTP id a1e0cc1a2514c-79dea64c428so1316997241.3;
-        Tue, 22 Aug 2023 06:22:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692710553; x=1693315353;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wZiAVsDpb/EogH9eLF3AXPNbgSh0YM/k8XU96DkY0Sc=;
-        b=GexZpJBw2Ptr/Nu8mEFiGOpENH5+euv6N1kIlB6BRJxCjT2wgXwzb8Kd1gi/kj69mS
-         rFI4a6NFlC6+Qg3VyvKbydEwkJ8RR47QQ/evJvzniVCMnOcbKAfdQn/4gpQyWcn/rOgt
-         Ng2T9O+9DsOQObJNumfS7iLHXH6MSOZoIxwMVl/8mYj0fuPztV2MdK1G6Rc3vP4QkSNt
-         luKpTKhcnB4FbAa+ExRfZQkIBv02Xe4Yueint5zhiooPEBZtTyyW0jCQ53yL4L8UT7Bb
-         4jaIs4o86cXKUxFyy5o286VAOv5Lqmfc+fTcFH0h2EnZMDZ0VbJEogkg14ovZBs273xr
-         6EoQ==
+        Tue, 22 Aug 2023 09:22:59 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57B98CD4
+        for <linux-unionfs@vger.kernel.org>; Tue, 22 Aug 2023 06:22:15 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1692710534;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=FP04C/3+AW7mEu+K4tolPkw509XByebnbKRbF8ZPnSg=;
+        b=G0aRv3O5/BvbkylCncGmUrLU910JrOVMGU/d9UHVwG3fc/BZm2DRxuwbKiBn11EFSzYz1r
+        e7cQQ2/r4rqddB+Lb6cfa3F4hFubcbmLHMh2PIcX493V5ZgflwZnCbFkPFeSsmhJsOoWS6
+        9mKUlS/6aMhxNqlr1HO7tk9jQfZGrRc=
+Received: from mail-il1-f200.google.com (mail-il1-f200.google.com
+ [209.85.166.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-394-_FM6C8VhPbqJzGNTJBQMeQ-1; Tue, 22 Aug 2023 09:22:13 -0400
+X-MC-Unique: _FM6C8VhPbqJzGNTJBQMeQ-1
+Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-34bbc4b957dso37536945ab.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 22 Aug 2023 06:22:12 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692710553; x=1693315353;
+        d=1e100.net; s=20221208; t=1692710532; x=1693315332;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=wZiAVsDpb/EogH9eLF3AXPNbgSh0YM/k8XU96DkY0Sc=;
-        b=CnGbxST14E4BDSJvI++lRwoUIkCHodS30bplm41+dE5oyqi6GV+hfRbjp2/4GWaKj9
-         oxsv9jEfC1vDBMORQRvyP1dBYWFo8CawUdOAlxFvxUWYTMYme4bmlRkoc0ru1syyl2uG
-         33liXaTIHFf0BSnTRvNkocKgi17uYZHIvOXTK14TE0rvGLJyv/3TJFKGspLLDBID9jz1
-         ygLz7O0+UISCCRMSWX4U4Xn151q1njoI2oIatQ749GDKBcm5hzHIuFABSrdjAWzwggPs
-         ya3OG1+WeB5yi0WzRzk7FLiXJmaFlnvA8QkSQG6Nktv1JDIOpoa6BGiwaZ7gNPWnlLVq
-         +5Mw==
-X-Gm-Message-State: AOJu0YxnahH4XjD+gEhT9B2y91WP5LCtTC8DHvvrrZjWt5YzdjOpszhL
-        I3SaSZOHfXdsDOaqK6wgUtmbuuLJxLCgqArfFv9vEZR7cQxevw==
-X-Google-Smtp-Source: AGHT+IFvTPBD9DUnhL1ZjtKzrlpt4XtLgDV2PpHPukY7zxoWU1Ie+MKdrKD5nCu+U2QpTtY8/Ih1T+mjjqbamnXKCBs=
-X-Received: by 2002:a67:f3d7:0:b0:447:4cb2:74fb with SMTP id
- j23-20020a67f3d7000000b004474cb274fbmr7325909vsn.19.1692710553622; Tue, 22
- Aug 2023 06:22:33 -0700 (PDT)
+        bh=FP04C/3+AW7mEu+K4tolPkw509XByebnbKRbF8ZPnSg=;
+        b=HYHYS9BEhR6g5siYeAqfF/zOpxtC3xH5tMjMWqbazs5QP1ENjhd2//wGNZhN128CDr
+         9UQmYaeWnLpap2IwJDApwA/KfJkgQ/ZKoRXqsYz9vfU7DDCw7Me9KJFxCVysBMnVcxp8
+         U8Z7XXds4CNsgvKgCbAtbK/MIj0woXO1jTdAxuUJpZkJ50oUOS63FzC1XAXbLv20GSTs
+         vrdnIqxGnkl5Mv0DqJBUmKuhcisZO3bB1BskLpzY55+nPmtUIpCMBgQh25kZsOrEkp64
+         6G3apXz889cnP61K2xexffqzBAhKi6LPjocKbpBvcWxiMuVg2pytVWT4XSwkDyTuuxuu
+         WTJw==
+X-Gm-Message-State: AOJu0Yw+ezAui9wiVCGvN3mAMTHtwgD9tUGkoUoK2Y0HfBk/HFSNUEwn
+        WgsMgHtD+iYHlA55QJEssMogD+Dbr1oTU8iq/6ipP4TjVnWzdij80TCC9xs0JU6xIGJLqWTxetY
+        nWMGiad3VoCL23JK7Uga3UoNjooqw7Htl0iaTcaKTJWFNKz6o2TOB
+X-Received: by 2002:a05:6e02:1069:b0:348:987a:fd8c with SMTP id q9-20020a056e02106900b00348987afd8cmr10440688ilj.31.1692710532166;
+        Tue, 22 Aug 2023 06:22:12 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IESp9R+OhHIR3lgt3Td0oLKij5y+VwK24P8+kcjHQ96xkDlWTWsawshBjd6SEK2/VeaNz8gkUD5/l00F3ygH9s=
+X-Received: by 2002:a05:6e02:1069:b0:348:987a:fd8c with SMTP id
+ q9-20020a056e02106900b00348987afd8cmr10440671ilj.31.1692710531965; Tue, 22
+ Aug 2023 06:22:11 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230519125705.598234-1-amir73il@gmail.com> <20230519125705.598234-6-amir73il@gmail.com>
- <CAJfpeguhmZbjP3JLqtUy0AdWaHOkAPWeP827BBWwRFEAUgnUcQ@mail.gmail.com>
- <CAOQ4uxhYZqe0-r9knvdW_BWNvfeKapiwReTv4FWr_Px+CB+ENw@mail.gmail.com>
- <CAOQ4uxhBeFSV7TFuWXBgJZuu-eJBjKcsshDdxCz-fie0MqwVcw@mail.gmail.com>
- <CAOQ4uxirdrsaHPyctxRgSMxb2mBHJCJqB12Eof02CnouExKgzQ@mail.gmail.com> <CAJfpegth3TASZKvc_HrhGLOAFSGiAriiqO6iCN2OzT2bu62aDA@mail.gmail.com>
-In-Reply-To: <CAJfpegth3TASZKvc_HrhGLOAFSGiAriiqO6iCN2OzT2bu62aDA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 22 Aug 2023 16:22:22 +0300
-Message-ID: <CAOQ4uxjU5D=BmLe66NyG_qGWk8rhZGKx+BCZmJQmhQOdCSw+1g@mail.gmail.com>
-Subject: Re: [PATCH v13 05/10] fuse: Handle asynchronous read and write in passthrough
+References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
+ <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
+In-Reply-To: <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
+From:   Alexander Larsson <alexl@redhat.com>
+Date:   Tue, 22 Aug 2023 15:22:00 +0200
+Message-ID: <CAL7ro1HMZxXZDyJG9yikx+KCd3HsYPZdgk7SJBLAGWBKVrYD6g@mail.gmail.com>
+Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on overlayfs
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Daniel Rosenberg <drosen@google.com>,
-        Paul Lawrence <paullawrence@google.com>,
-        Alessio Balsini <balsini@android.com>,
-        fuse-devel@lists.sourceforge.net, linux-fsdevel@vger.kernel.org,
-        overlayfs <linux-unionfs@vger.kernel.org>
+Cc:     linux-unionfs@vger.kernel.org, amir73il@gmail.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Aug 22, 2023 at 2:03=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+On Mon, Aug 21, 2023 at 1:00=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
 wrote:
 >
-> On Tue, 22 Aug 2023 at 12:18, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Thu, 17 Aug 2023 at 13:05, Alexander Larsson <alexl@redhat.com> wrote:
 > >
-> > On Mon, Aug 21, 2023 at 6:27=E2=80=AFPM Amir Goldstein <amir73il@gmail.=
-com> wrote:
->
-> > > Getting back to this.
-> > > Did you mean something like that? (only compile tested)
-> > >
-> > > https://github.com/amir73il/linux/commits/backing_fs
-> > >
-> > > If yes, then I wonder:
-> > > 1. Is the difference between FUSE_IOCB_MASK and OVL_IOCB_MASK
-> > >     (i.e. the APPEND flag) intentional?
->
-> Setting IOCB_APPEND on the backing file doesn't make a difference as
-> long as the backing file is not modified during the write.
->
-> In overlayfs the case of the backing file being modified is not
-> defined, so I guess that's the reason to omit it.  However I don't see
-> a problem with setting it on the backing file either, the file
-> size/position is synchronized after the write, so nothing bad should
-> happen if the backing file was modified.
->
-> > > 2. What would be the right way to do ovl_copyattr() on io completion?
-> > >     Pass another completion handler to read/write helpers?
-> > >     This seems a bit ugly. Do you have a nicer idea?
-> > >
->
-> Ugh, I missed that little detail.   I don't have a better idea than to
-> use a callback function.
->
+> > This is needed to properly stack overlay filesystems, I.E, being able
+> > to create a whiteout file on an overlay mount and then use that as
+> > part of the lowerdir in another overlay mount.
 > >
-> > Hmm. Looking closer, ovl_copyattr() in ovl_aio_cleanup_handler()
-> > seems a bit racy as it is not done under inode_lock().
+> > The way this works is that we create a regular whiteout, but set the
+> > `overlay.nowhiteout` xattr on it. Whenever we check if a file is a
+> > whiteout we check this xattr and don't treat it as a whiteout if it is
+> > set. The xattr itself is then stripped and when viewed as part of the
+> > overlayfs mount it looks like a regular whiteout.
 > >
-> > I wonder if it is enough to fix that by adding the lock or if we need
-> > to resort to a more complicated scheme like FUSE_I_SIZE_UNSTABLE
-> > for overlayfs aio?
 >
-> Quite recently rename didn't take inode lock on source, so
-> ovl_aio_cleanup_handler() wasn't the only unlocked instance.
+> I understand the motivation, but don't have good feelings about the
+> implementation.  Like the xattr escaping this should also have the
+> property that when fed to an old kernel version, it shouldn't
+> interpret this object as a whiteout.  Whether it remains hidden like
+> the escaped xattrs or if it shows up as something else is
+> uninteresting.
 >
-> I don't see a strong reason to always lock the inode before
-> ovl_copyattr(), but I could be wrong.
->
+> It could just be a zero sized regular file with "overlay.whiteout".
 
-IDK, ovl_copyattr() looks like a textbook example of a race
-if not protected by something because it reads a bunch of stuff
-from realinode and then writes a bunch of stuff to inode.
+So, I started doing this, where a whiteout is just a regular file with
+the xattr set. Initially I thought I only needed to check the xattr
+during lookup and convert the inode mode from S_IFREG to S_IFCHR.
+However, I also need to hook up readdir and convert DT_REG to DT_CHR,
+otherwise readdir will report the wrong d_type. To make it worse,
+overlayfs itself looks for DT_CHR to handle whiteouts when listing
+files, so nesting is not working without that.
 
-Anyway, I guess it wouldn't hurt to wrap it with inode_lock()
-in the ovl completion callback.
+The only way I see to implement that conversion is to call getxattr()
+on every DT_REG file during readdir(), and while a single getxattr()
+on lookup is fine, I don't think that is.
 
-Thanks,
-Amir.
+Any other ideas?
+
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
+ Alexander Larsson                                Red Hat, Inc
+       alexl@redhat.com         alexander.larsson@gmail.com
+
