@@ -2,58 +2,52 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E9A4EE4993
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Aug 2023 15:03:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AFBFEE49A0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Aug 2023 15:50:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231365AbjHWPDG (ORCPT
+        id S237060AbjHWPuU (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 23 Aug 2023 11:03:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33708 "EHLO
+        Wed, 23 Aug 2023 11:50:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235917AbjHWPDF (ORCPT
+        with ESMTP id S236827AbjHWPuU (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 23 Aug 2023 11:03:05 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38AE8FB
-        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 08:02:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692802934;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=iInQJFuRPkyPa++LK14kV1E/T1CGD8AvyYuXUXM3SxU=;
-        b=EbLHvR2S9S8AIvIPjYCcqdgRDo0Q0hhLst/5XnkQI3TqAVGnUfnO4YDgnGe2xNeelXPmse
-        L66teTN1GoCeSa53O/iSu2Zbnj8B+KqD2N6KqTy2l57h1gPHP1CWIGuh7vu4wT2aeLLWeI
-        S1dIuKN+rDNLGuVjmE/4rVYhFwFYA54=
-Received: from mail-il1-f198.google.com (mail-il1-f198.google.com
- [209.85.166.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-31-QxgFyiIXNc6yDsKxQ0RFXw-1; Wed, 23 Aug 2023 11:02:12 -0400
-X-MC-Unique: QxgFyiIXNc6yDsKxQ0RFXw-1
-Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-34cb37f2780so17715015ab.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 08:02:12 -0700 (PDT)
+        Wed, 23 Aug 2023 11:50:20 -0400
+Received: from mail-vk1-xa35.google.com (mail-vk1-xa35.google.com [IPv6:2607:f8b0:4864:20::a35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B079CD1
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 08:50:18 -0700 (PDT)
+Received: by mail-vk1-xa35.google.com with SMTP id 71dfb90a1353d-48d05fdb8bfso1506992e0c.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 08:50:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692805817; x=1693410617;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=XP4jIvzHPCDM6ha2aH5+6/uf7nrUnrGlhgyW0UfS3NQ=;
+        b=d40KtYXOEoFzMF6TCGvVNaTEsSe/QhstuBAewpPUw0GsYWGLolHhAQJmyiIzM0eXEP
+         xQj2UKp5tUb4RF3xyhCUwWwxeCUSGgwvFO/ey4hYQGMkhejaypo34chr60xZxeQ+refb
+         Uz5J4yOri9cjWGs7/8lgNfWWzk1LyaKe6xmqUE+ZYTnHyeoM/IPRpZvQ3wdD72GF2qQp
+         bTHd28zyBJHVmgdeBmmEw6WH/pxd1UUFQ+cRpfwW0w3e/gogSyH5arW8kTsjNVQWjctE
+         sGLiVg7fjqX3cLPImYuwUoxr2SzWti+5mcaikH9d7vMC9YUFA3dToXvsenBbxipXXSH4
+         +Jog==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692802932; x=1693407732;
+        d=1e100.net; s=20221208; t=1692805817; x=1693410617;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=iInQJFuRPkyPa++LK14kV1E/T1CGD8AvyYuXUXM3SxU=;
-        b=MIE1dSXwBpBzf2rId3pgmoIWL/lKGFSKej+TmbKO9NIrkaX+mTjs2Gda/EaYUh6/pZ
-         D2A7qoLTrn/8HKuBkaClkuR1m22FNaFhjismUs3Kh1ReyCYiwtF5BSh97rLOnrNUaPww
-         8cLxrucrP01zNf80T3390JwdGOKNlvKp0eA3coX8vGPIC1EA+KZIENj+ExDfr0seWJol
-         dW5uh7yt/rxMqLXKc54d0JM2SFapkfjEVNr9Vk5NnWP+8TJREAaP4NqmQY0kULGnF5Ym
-         j+na/ahEsptMuU5IvzNDCf/27gw5yFI7gMSFShvCjk8w5R/bVNtQeX75PMxBYD+H8wIa
-         3ZQg==
-X-Gm-Message-State: AOJu0YwYe81isOrPrqKNf2vfwU+lAR1dSmKh60mzMKHOiaOd8NdKYy1y
-        VhSZ+nZHcrYF86BzQ0K0+bNeZPr9lknw8oZpzcYrYPmpZJkwK4lLvXfaEGxAF5Wzl20CSnXUPmu
-        8pf1Y+1rQJ9raM6iAqb45QgZ9YnDo4o3Py42hM8qxnQ==
-X-Received: by 2002:a05:6e02:1c89:b0:340:79ff:c1b6 with SMTP id w9-20020a056e021c8900b0034079ffc1b6mr3776670ill.4.1692802931835;
-        Wed, 23 Aug 2023 08:02:11 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGhAN2N/klD9NjK1B/TefydSTsrS0WCGtWTQ41HWD+D7dWEmF7iEOCcZV0DlYgvqast9Ltx8r3QTBrKFwq8VeQ=
-X-Received: by 2002:a05:6e02:1c89:b0:340:79ff:c1b6 with SMTP id
- w9-20020a056e021c8900b0034079ffc1b6mr3776650ill.4.1692802931601; Wed, 23 Aug
- 2023 08:02:11 -0700 (PDT)
+        bh=XP4jIvzHPCDM6ha2aH5+6/uf7nrUnrGlhgyW0UfS3NQ=;
+        b=EOceo0BdE4gm3VG0UPiR2AUy5nFAtaEzSD+Vs7owqpH9heCffGmSgpDzd10KQiDHU7
+         +ZL/Zpd8mObHrpM1u7oWa86vRfsi5jh9ThU0AoWQZUgMH/mptcIjKRnp8pzmvgRviEhf
+         UqPAePSmFLFjjU8fgbxXujfz/eHj8evkqMRRP169dsa3OPcw4LIOTRa2nXMJvblaLvud
+         TUrY7hf+hkfV2XD1g4qKOhLKVrqbX6RyPiO4+BuLGBT9d1lIccH/7xUE4cXPLSD3qgRZ
+         f0XiYQdWyn3qOEwYhMs5Jyy1TSFwNkJthL43/7oH0BDu66+qPyP07pfOPjfB4lNNwsUk
+         /aXA==
+X-Gm-Message-State: AOJu0YxPxxwxmLzNxRhTU1daPcn/TvqIjoVaGUqcce07gIoozuFbVdbo
+        e64EFh8fu7AK93AgKdAlrMVrjj9jt9RUuS3pcB4=
+X-Google-Smtp-Source: AGHT+IGAv9VQ3th4LDcLx4BKv6QfsSfps+Ux0oQ3K+adO14i5VoyH4ItkuoYoo0thOMiiIAeehlRbaU7/d8j9nfm6PE=
+X-Received: by 2002:a05:6102:34f9:b0:447:6f5a:5123 with SMTP id
+ bi25-20020a05610234f900b004476f5a5123mr9971004vsb.30.1692805817205; Wed, 23
+ Aug 2023 08:50:17 -0700 (PDT)
 MIME-Version: 1.0
 References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
  <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
@@ -65,19 +59,19 @@ References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3f
  <CAL7ro1GS9ieN=ZuDLE9mreiiYH4KUK6xWxp40hS-7ZTzf+r6Gg@mail.gmail.com>
  <CAOQ4uxhYH1SH5TbYfARDkep5p+xspUX2gq1HgMyLnv7J4=1emg@mail.gmail.com> <CAJfpegsv3fHwutkEq7S8PV9fYWC07BRUE8GMEpsnK1XkE2hb5w@mail.gmail.com>
 In-Reply-To: <CAJfpegsv3fHwutkEq7S8PV9fYWC07BRUE8GMEpsnK1XkE2hb5w@mail.gmail.com>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Wed, 23 Aug 2023 17:02:00 +0200
-Message-ID: <CAL7ro1E8aa1Qsqbo61=KSEkX0qsz0g+=3gpzqgr90rvt47mBDg@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 23 Aug 2023 18:50:05 +0300
+Message-ID: <CAOQ4uxhZySm0rNamtv3GNu8TFOZ66TdSzPVwwda16MQfWNKAQQ@mail.gmail.com>
 Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on overlayfs
 To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Aug 23, 2023 at 4:52=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+On Wed, Aug 23, 2023 at 5:52=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
 wrote:
 >
 > On Wed, 23 Aug 2023 at 16:43, Amir Goldstein <amir73il@gmail.com> wrote:
@@ -93,25 +87,38 @@ wrote:
 > should not treat it as a whiteout, but instead transform that into a
 > chrdev(0,0) for the top overlay to interpret as a whiteout?  Or
 > something else?
+>
 
-Both of these have been discussed, and I tried both in my two
-alternative proposals in the other mail I just sent. Also, both
-approaches could use the taint-the-directory xattr approach amir
-proposed here.
+My proposal does not involve any transformation.
+It is "just" to support another format for a whiteout.
+Transforming a REG or FIFO real object to CHR ovl object
+will be a pain IMO and I don't see why it is needed.
 
-I think the overlay.whiteout transforms to chrdev(0,0) approach is
-better, because that will allow the resulting unescaped whiteout to be
-used by both regular and userxattr overlay mounts.
+Let me try again from the top:
+1. ovl_path_is_whiteout() checks if either ovl_is_whiteout() (chardev(0,0))
+    or regular file with "overlay.whiteout" xattr, so ovl_lookup()
+will result in
+    a negative dentry if either whiteout format is found at topmost layer
+2. To optimize unneeded getxattr, "overlay.whiteout" xattr could be checked
+    only in case the parent dir has xattr "overlay.xattr_whiteouts"
+3. mkfs.composefs is responsible of creating the non-chardev whiteouts
+    as well as the marking the dirs that contains them with
+    "overlay.xattr_whiteouts" - overlayfs itself never does that
+4. ovl_calc_d_ino() (from readdir on a merge dir) returns true if the
+    the iterated dir has "overlay.xattr_whiteouts" xattr
+5. That will cause ovl_cache_update_ino() to lookup the
+    *overlay dentry* that will be negative (as per rule 1 above)
+    if either whiteout format is found at topmost layer and that
+    will cause the readdir dirent to be marked is_whiteout and
+    filtered out of readdir results
 
-I'll have a go at combining the transform approach with a directory
-xattr, because that could use regular files that get transformed to
-whiteouts, which means it could also work with user.overlay.whiteout
-xattrs.
+* The trick for readdir is that the the per dirent DT_CHR optimization
+  is traded off for a per parent dir optimization, but even the worst case
+  where all directories have xattr_whiteouts, readdir is not more
+  expensive than readdir with xino enabled, which is the default for
+  several Linux distros
 
+Hope this is more clear?
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
-
+Thanks,
+Amir.
