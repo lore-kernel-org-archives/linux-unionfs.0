@@ -2,58 +2,52 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23AF3EE49A0
-	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Aug 2023 13:24:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ABF0EE49A0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 23 Aug 2023 14:43:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230143AbjHWNYS (ORCPT
+        id S236625AbjHWOnT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 23 Aug 2023 09:24:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54232 "EHLO
+        Wed, 23 Aug 2023 10:43:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235570AbjHWNYS (ORCPT
+        with ESMTP id S235658AbjHWOnQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 23 Aug 2023 09:24:18 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 845E910F5
-        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 06:23:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1692796915;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=w1wEEclvLfs6V6F0PUtqovWGMAx2yivqxxFFoeixV9s=;
-        b=S528SjkcG5m/cUIOdM5bVxHdlpwNnZiqFAU7ztilE+aQWLeliHpokHgh8PYDVOvCmlibPu
-        uIVjtWLG5A2gYOhah25I7mIwcsBThaZQ99VDU89RnB6YhOplPOG/yNtCIhqkEPuGp7yNUf
-        ZIIiCfVi49oJ4Rmu283rXpPgcYkkiQs=
-Received: from mail-il1-f198.google.com (mail-il1-f198.google.com
- [209.85.166.198]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-661-mGZRiLJbNmC5J5d7UCWwMA-1; Wed, 23 Aug 2023 09:21:53 -0400
-X-MC-Unique: mGZRiLJbNmC5J5d7UCWwMA-1
-Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-34bb2fba9afso49069565ab.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 06:21:53 -0700 (PDT)
+        Wed, 23 Aug 2023 10:43:16 -0400
+Received: from mail-vs1-xe30.google.com (mail-vs1-xe30.google.com [IPv6:2607:f8b0:4864:20::e30])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5AFFDE69
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 07:43:10 -0700 (PDT)
+Received: by mail-vs1-xe30.google.com with SMTP id ada2fe7eead31-44dbd5011beso610030137.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 23 Aug 2023 07:43:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1692801789; x=1693406589;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=gCmTFq6tZmf618ytELdirCtCeQTjMRFimkrlfxfz1OQ=;
+        b=R8uS81AkRaq4eyrWEAf3q+YZMLaZ0pnl+qihVWkJR7S+5FhjSQQl3FaVJDVC4nbRxS
+         lSH/LZiuYh7Q/Q9PWXktsm5q+I5olEZ2Ie7kj8PEDUYJc9B90y7lQCdFm8WLrhCUhHCM
+         3yp4Qx2lKY9CqBatGf96b4JJQx7gBVhsF5xHJMBRuhJXh5LG3JNh+7vPuymEdQv3cbq7
+         wjyihxl0BdWAjeHxuraNmeBNi/u7GqGkqvw6zJ9/U99sdKr/X3jHOOjjB7STuZvGWduG
+         9oZHAS8D2WjndVCiW+WqZXoQB+pWLZjS8WmTiZjAzWOjiFvO2V2XssfFF1yPMGChh35Z
+         WL/g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692796913; x=1693401713;
+        d=1e100.net; s=20221208; t=1692801789; x=1693406589;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=w1wEEclvLfs6V6F0PUtqovWGMAx2yivqxxFFoeixV9s=;
-        b=LOGblz0avBVAdYkjoG2raeZQMoUmmZWdph6fV/q1fTk/2WPQaeLBABmEnBjaZ73kKc
-         tWAz1sb4TSXTcj+obQ8pnQrPrNZ/9OOhvor013kZJBPjZx6yzVgFyEzeke81pWDaCDPz
-         7hrb4SRjwNXOF09SNbOaDa4oJR+DhmAZiBFatRiRe6Wat34oB0NBbLmrCNaYFKnan43U
-         kStq7C9AwX7hapDwisx1syGlwY+47GMjniko1ky7mG0vY5UtqUr7Qo0o5vJ8mr3lC+8J
-         T8Tv8PJVltnM+4OMFLSTlilBTEXeQUY7Yyoa82CPhT++wHfFgXM6kZJY3CSbieSkJ1q9
-         SPgw==
-X-Gm-Message-State: AOJu0YzHX/ULecxdla1+xEfn1/FQ742xJIF0Vgtd2UNoVFT2Z7cgq0uW
-        UQsGyLh7MxeIFZ+BXG6AGIAN7XfwPkbWc6+GAS5NCMAfHCLYfrLnojBqVFnUV61M6nA5lfoTn4D
-        fHugXQuZUktXkJugBa+XguLEaSg9YdgxoEnooaAVorQ==
-X-Received: by 2002:a05:6e02:20c4:b0:349:3020:d103 with SMTP id 4-20020a056e0220c400b003493020d103mr3058629ilq.25.1692796913115;
-        Wed, 23 Aug 2023 06:21:53 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IHOBRClJNC6O1c+LsEgiKG0gWE7pPY1RBT4FzXZMxjyUrypPKIJz6rvYttfauXrv9cj7VV3Cz/1316qyAo0H7M=
-X-Received: by 2002:a05:6e02:20c4:b0:349:3020:d103 with SMTP id
- 4-20020a056e0220c400b003493020d103mr3058616ilq.25.1692796912883; Wed, 23 Aug
- 2023 06:21:52 -0700 (PDT)
+        bh=gCmTFq6tZmf618ytELdirCtCeQTjMRFimkrlfxfz1OQ=;
+        b=OK+GFm/wwdWk22By1j4CBs7hcCE/Yw4c/zspyVO/6yn1twiPrpipfVwk9f+4exTPqh
+         uBbbulWX+jXJaMHx6IYA5B5+kWv/9Ul+/yjkwPf6LU4fXUKVqk2Kv/2qJPMEJnyivlH9
+         L4MWytvng5812uR8S3vv/jQ9mShPiQ5s+McETGQJtDSdBWzGTjUBGHIpHxyiQ6EGrIZo
+         Hys33b1CHhEvMduMqyqMHM+uWHnYAl0yMoOxdO5DWQ1cZdkQiQthR0IQbTK7fzyROODt
+         ML4AcjV1zubIRVK2LCF81xKuUd7XMCqfdFJOq7T5fEVLjTMFTbQYc2Gkvp6f/EnpleL9
+         8Ozw==
+X-Gm-Message-State: AOJu0Yx7e1iPXxyr/QIa+2k3Jvwisg6tkkOECptkxkR4NyhXD2xnGD92
+        2TxDYSysE/HFKwlZfT0Kdfrex0+wB3TWCNfKsL1C6RxhphE=
+X-Google-Smtp-Source: AGHT+IFIGT4dCwnBi6HLWE0ZsWJ0SAb2i6qXJatwRv2quwRqwhSFFqKMClhzDFkklKwczllLvCx4tjwkChPVNDLSVTo=
+X-Received: by 2002:a67:fdc8:0:b0:44d:5937:56f9 with SMTP id
+ l8-20020a67fdc8000000b0044d593756f9mr6255424vsq.9.1692801789327; Wed, 23 Aug
+ 2023 07:43:09 -0700 (PDT)
 MIME-Version: 1.0
 References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
  <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
@@ -63,11 +57,11 @@ References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3f
  <CAL7ro1FagGOZZg9yeWvWDov6L3prrjJE-+Yre1CJuViT7idNYw@mail.gmail.com>
  <CAOQ4uxhVXrNfhWc-EsunfyWyrJDFCjYu8GeAtvN0__QTfjtV5A@mail.gmail.com> <CAL7ro1GS9ieN=ZuDLE9mreiiYH4KUK6xWxp40hS-7ZTzf+r6Gg@mail.gmail.com>
 In-Reply-To: <CAL7ro1GS9ieN=ZuDLE9mreiiYH4KUK6xWxp40hS-7ZTzf+r6Gg@mail.gmail.com>
-From:   Alexander Larsson <alexl@redhat.com>
-Date:   Wed, 23 Aug 2023 15:21:42 +0200
-Message-ID: <CAL7ro1G3xFhRyGiY10wpb==5FpMANA0abjUmBZeV-fPs0ND0DA@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 23 Aug 2023 17:42:57 +0300
+Message-ID: <CAOQ4uxhYH1SH5TbYfARDkep5p+xspUX2gq1HgMyLnv7J4=1emg@mail.gmail.com>
 Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on overlayfs
-To:     Amir Goldstein <amir73il@gmail.com>
+To:     Alexander Larsson <alexl@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -75,7 +69,7 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Aug 23, 2023 at 3:13=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
+On Wed, Aug 23, 2023 at 4:13=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
 > wrote:
 >
 > On Tue, Aug 22, 2023 at 5:31=E2=80=AFPM Amir Goldstein <amir73il@gmail.co=
@@ -198,32 +192,35 @@ ttr()
 > elsewere. Relying on xino which is essentially unrelated to whiteouts
 > to get enabled seems quite fragile.
 >
-> I'm gonna instead try to make the alternative whiteout be a fifo with
-> an xattr. Then we can add DT_FIFO to the maybe_whiteout case during
-> readdir() which will then get picked up as a whiteout without relying
-> on xino.
->
-> I still have an issue with this approach though. Suppose we have a
-> rootfs that we want to make available as an overlayfs lower (using
-> trusted.overlay.*). We can escape all the xattrs in the rootfs with
-> trusted.overlay.overlay to make them show up correctly. However,
-> suppose the rootfs contains a char(0.0) whiteout. how do we encode
-> this? We can use a file with trusted.overlay.overlay.whiteout, which
-> then will be visible as trusted.overlay.whiteout in the overlayfs
-> mount. This is normally functionally equivalent to the char(0,0)
-> whiteout, but not if the user of the rootfs mounts the second
-> overlayfs using userxattr.
->
-> Maybe it could convert a char(0,0) to a file with both
-> trusted.overlay.overlay.whiteout and user.overlay.whiteout? The the
-> resulting overlayfs file could be used as a whiteout for both types,
-> just like the char node...
 
-Ah, no. that won't work because we can't set a user xattr on a fifo.
+All right. But you do not have to rely on xino && !ovl_same_fs().
+What you need is for ovl_calc_d_ino() to be true.
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D
- Alexander Larsson                                Red Hat, Inc
-       alexl@redhat.com         alexander.larsson@gmail.com
+For example, consider this (edited) condition in ovl_calc_d_ino():
+        /*
+         * Recalc d_ino for all entries if dir is impure (contains
+         * copied up entries)
+         */
+        if (ovl_test_flag(OVL_IMPURE, d_inode(rdd->dentry)))
+                return true;
 
+It decided to lookup the entries based on a property of the parent dir.
+
+Specifically, this check will always be true for merge dirs that have an
+upper dir with non-zero copied-up files.
+But you can use the some principle to "taint" directories that contain
+"xattr_whiteouts" in a similar manner to "impurity" and that would
+be enough for ovl_calc_d_ino() to do the right thing also for merge dirs
+with no upper dir.
+
+If we do this, then both overlay.whiteout and overlay.xattr_whiteouts
+xattrs will be xattrs that the overlayfs driver never sets.
+It's a precedent, but as long as it is properly documented and encoded
+in fstests, I will be fine with it. Not sure about Miklos.
+
+Are you ok with leaving the responsibility to mark the directories as
+overlay.xattr_whiteouts to mkfs.composefs?
+Does this solution work for you?
+
+Thanks,
+Amir.
