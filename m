@@ -2,31 +2,31 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8AE23C88CB2
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:06:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CA01EE49A6
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:06:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245524AbjHYOGH (ORCPT
+        id S245538AbjHYOGI (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Aug 2023 10:06:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33422 "EHLO
+        Fri, 25 Aug 2023 10:06:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245681AbjHYOCq (ORCPT
+        with ESMTP id S1343566AbjHYOGG (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Aug 2023 10:02:46 -0400
-Received: from out-247.mta1.migadu.com (out-247.mta1.migadu.com [IPv6:2001:41d0:203:375::f7])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F27842720;
-        Fri, 25 Aug 2023 07:02:18 -0700 (PDT)
+        Fri, 25 Aug 2023 10:06:06 -0400
+Received: from out-249.mta1.migadu.com (out-249.mta1.migadu.com [IPv6:2001:41d0:203:375::f9])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64DE4E7B;
+        Fri, 25 Aug 2023 07:05:42 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1692972134;
+        t=1692972321;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=KWqxpxLv+BWdZ1zPLCWWiPjW3gW3QR8GdaNCgbqB+rA=;
-        b=W3mJ9hHH5VKigloC5U9bTjeZXL1WzXE+if57PbkgslJR/vwxXv7urAz03rnLzn8z8erL5h
-        VCpx6iOsBDC23kpw8k8XGE0qr0cLxvBRgKj1NfrV6YtEtntJMub0qfyQ1aHr3mZsH0O0dL
-        P836PFFsTuNux9i0jwQOVu5ehTDOpZM=
+        bh=6/Nd9xxoGpB2Y5m9xwXDJRTcGKza/1aMnRr8dKaa6VQ=;
+        b=KEbezTf0obDqS0d0+ZY03Au9A3+XAlHMaifao/gSyVuoHlKJlTUkwmI81DvHZmrTrUQaLF
+        sGTDWP5rChj2LFxWYHnJBky5ZudbW2OzCc+00JgxX/lbJXlYqo7/5HQVTOk8DmfuG/wY54
+        UCC6hfeA7Mu6K3Y30dgBdV885aCoMfc=
 From:   Hao Xu <hao.xu@linux.dev>
 To:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>
 Cc:     Dominique Martinet <asmadeus@codewreck.org>,
@@ -48,9 +48,9 @@ Cc:     Dominique Martinet <asmadeus@codewreck.org>,
         devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
         samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
         Wanpeng Li <wanpengli@tencent.com>
-Subject: [PATCH 16/29] xfs: add nowait parameter for xfs_inode_item_init()
-Date:   Fri, 25 Aug 2023 21:54:18 +0800
-Message-Id: <20230825135431.1317785-17-hao.xu@linux.dev>
+Subject: [PATCH 25/29] xfs: support nowait for xfs_buf_item_init()
+Date:   Fri, 25 Aug 2023 21:54:27 +0800
+Message-Id: <20230825135431.1317785-26-hao.xu@linux.dev>
 In-Reply-To: <20230825135431.1317785-1-hao.xu@linux.dev>
 References: <20230825135431.1317785-1-hao.xu@linux.dev>
 MIME-Version: 1.0
@@ -62,78 +62,124 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 From: Hao Xu <howeyxu@tencent.com>
 
-Add nowait parameter for xfs_inode_item_init() to support nowait
-semantics.
+support nowait for xfs_buf_item_init() and error out -EAGAIN to
+_xfs_trans_bjoin() when it would block.
 
 Signed-off-by: Hao Xu <howeyxu@tencent.com>
 ---
- fs/xfs/libxfs/xfs_trans_inode.c |  3 ++-
- fs/xfs/xfs_inode_item.c         | 12 ++++++++----
- fs/xfs/xfs_inode_item.h         |  3 ++-
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ fs/xfs/xfs_buf_item.c         |  9 +++++++--
+ fs/xfs/xfs_buf_item.h         |  2 +-
+ fs/xfs/xfs_buf_item_recover.c |  2 +-
+ fs/xfs/xfs_trans_buf.c        | 16 +++++++++++++---
+ 4 files changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/fs/xfs/libxfs/xfs_trans_inode.c b/fs/xfs/libxfs/xfs_trans_inode.c
-index cb4796b6e693..e7a8f63c8975 100644
---- a/fs/xfs/libxfs/xfs_trans_inode.c
-+++ b/fs/xfs/libxfs/xfs_trans_inode.c
-@@ -33,7 +33,8 @@ xfs_trans_ijoin(
- 
- 	ASSERT(xfs_isilocked(ip, XFS_ILOCK_EXCL));
- 	if (ip->i_itemp == NULL)
--		xfs_inode_item_init(ip, ip->i_mount);
-+		xfs_inode_item_init(ip, ip->i_mount,
-+				    tp->t_flags & XFS_TRANS_NOWAIT);
- 	iip = ip->i_itemp;
- 
- 	ASSERT(iip->ili_lock_flags == 0);
-diff --git a/fs/xfs/xfs_inode_item.c b/fs/xfs/xfs_inode_item.c
-index 91c847a84e10..1742920bb4ce 100644
---- a/fs/xfs/xfs_inode_item.c
-+++ b/fs/xfs/xfs_inode_item.c
-@@ -825,21 +825,25 @@ static const struct xfs_item_ops xfs_inode_item_ops = {
- /*
-  * Initialize the inode log item for a newly allocated (in-core) inode.
-  */
--void
-+int
- xfs_inode_item_init(
- 	struct xfs_inode	*ip,
--	struct xfs_mount	*mp)
-+	struct xfs_mount	*mp,
-+	bool			nowait)
+diff --git a/fs/xfs/xfs_buf_item.c b/fs/xfs/xfs_buf_item.c
+index 023d4e0385dd..b1e63137d65b 100644
+--- a/fs/xfs/xfs_buf_item.c
++++ b/fs/xfs/xfs_buf_item.c
+@@ -827,7 +827,8 @@ xfs_buf_item_free_format(
+ int
+ xfs_buf_item_init(
+ 	struct xfs_buf	*bp,
+-	struct xfs_mount *mp)
++	struct xfs_mount *mp,
++	bool   nowait)
  {
- 	struct xfs_inode_log_item *iip;
-+	gfp_t gfp_flags = GFP_KERNEL | (nowait ? 0 : __GFP_NOFAIL);
+ 	struct xfs_buf_log_item	*bip = bp->b_log_item;
+ 	int			chunks;
+@@ -847,7 +848,11 @@ xfs_buf_item_init(
+ 		return 0;
+ 	}
  
- 	ASSERT(ip->i_itemp == NULL);
--	iip = ip->i_itemp = kmem_cache_zalloc(xfs_ili_cache,
--					      GFP_KERNEL | __GFP_NOFAIL);
-+	iip = ip->i_itemp = kmem_cache_zalloc(xfs_ili_cache, gfp_flags);
-+	if (!iip)
+-	bip = kmem_cache_zalloc(xfs_buf_item_cache, GFP_KERNEL | __GFP_NOFAIL);
++	bip = kmem_cache_zalloc(xfs_buf_item_cache,
++				GFP_KERNEL | (nowait ? 0 : __GFP_NOFAIL));
++	if (!bip)
 +		return -EAGAIN;
++
+ 	xfs_log_item_init(mp, &bip->bli_item, XFS_LI_BUF, &xfs_buf_item_ops);
+ 	bip->bli_buf = bp;
  
- 	iip->ili_inode = ip;
- 	spin_lock_init(&iip->ili_lock);
- 	xfs_log_item_init(mp, &iip->ili_item, XFS_LI_INODE,
- 						&xfs_inode_item_ops);
+diff --git a/fs/xfs/xfs_buf_item.h b/fs/xfs/xfs_buf_item.h
+index 4d8a6aece995..b1daf8988280 100644
+--- a/fs/xfs/xfs_buf_item.h
++++ b/fs/xfs/xfs_buf_item.h
+@@ -47,7 +47,7 @@ struct xfs_buf_log_item {
+ 	struct xfs_buf_log_format __bli_format;	/* embedded in-log header */
+ };
+ 
+-int	xfs_buf_item_init(struct xfs_buf *, struct xfs_mount *);
++int	xfs_buf_item_init(struct xfs_buf *bp, struct xfs_mount *mp, bool nowait);
+ void	xfs_buf_item_done(struct xfs_buf *bp);
+ void	xfs_buf_item_relse(struct xfs_buf *);
+ bool	xfs_buf_item_put(struct xfs_buf_log_item *);
+diff --git a/fs/xfs/xfs_buf_item_recover.c b/fs/xfs/xfs_buf_item_recover.c
+index 43167f543afc..aa64d5a499d6 100644
+--- a/fs/xfs/xfs_buf_item_recover.c
++++ b/fs/xfs/xfs_buf_item_recover.c
+@@ -429,7 +429,7 @@ xlog_recover_validate_buf_type(
+ 		struct xfs_buf_log_item	*bip;
+ 
+ 		bp->b_flags |= _XBF_LOGRECOVERY;
+-		xfs_buf_item_init(bp, mp);
++		xfs_buf_item_init(bp, mp, false);
+ 		bip = bp->b_log_item;
+ 		bip->bli_item.li_lsn = current_lsn;
+ 	}
+diff --git a/fs/xfs/xfs_trans_buf.c b/fs/xfs/xfs_trans_buf.c
+index 016371f58f26..a1e4f2e8629a 100644
+--- a/fs/xfs/xfs_trans_buf.c
++++ b/fs/xfs/xfs_trans_buf.c
+@@ -57,13 +57,14 @@ xfs_trans_buf_item_match(
+  * If the buffer does not yet have a buf log item associated with it,
+  * then allocate one for it.  Then add the buf item to the transaction.
+  */
+-STATIC void
++STATIC int
+ _xfs_trans_bjoin(
+ 	struct xfs_trans	*tp,
+ 	struct xfs_buf		*bp,
+ 	int			reset_recur)
+ {
+ 	struct xfs_buf_log_item	*bip;
++	int ret;
+ 
+ 	ASSERT(bp->b_transp == NULL);
+ 
+@@ -72,7 +73,11 @@ _xfs_trans_bjoin(
+ 	 * it doesn't have one yet, then allocate one and initialize it.
+ 	 * The checks to see if one is there are in xfs_buf_item_init().
+ 	 */
+-	xfs_buf_item_init(bp, tp->t_mountp);
++	ret = xfs_buf_item_init(bp, tp->t_mountp,
++				tp->t_flags & XFS_TRANS_NOWAIT);
++	if (ret < 0)
++		return ret;
++
+ 	bip = bp->b_log_item;
+ 	ASSERT(!(bip->bli_flags & XFS_BLI_STALE));
+ 	ASSERT(!(bip->__bli_format.blf_flags & XFS_BLF_CANCEL));
+@@ -92,6 +97,7 @@ _xfs_trans_bjoin(
+ 	xfs_trans_add_item(tp, &bip->bli_item);
+ 	bp->b_transp = tp;
+ 
 +	return 0;
  }
  
- /*
-diff --git a/fs/xfs/xfs_inode_item.h b/fs/xfs/xfs_inode_item.h
-index 377e06007804..7ba6f8a6b243 100644
---- a/fs/xfs/xfs_inode_item.h
-+++ b/fs/xfs/xfs_inode_item.h
-@@ -42,7 +42,8 @@ static inline int xfs_inode_clean(struct xfs_inode *ip)
- 	return !ip->i_itemp || !(ip->i_itemp->ili_fields & XFS_ILOG_ALL);
- }
+ void
+@@ -309,7 +315,11 @@ xfs_trans_read_buf_map(
+ 	}
  
--extern void xfs_inode_item_init(struct xfs_inode *, struct xfs_mount *);
-+extern int xfs_inode_item_init(struct xfs_inode *ip, struct xfs_mount *mp,
-+			       bool nowait);
- extern void xfs_inode_item_destroy(struct xfs_inode *);
- extern void xfs_iflush_abort(struct xfs_inode *);
- extern void xfs_iflush_shutdown_abort(struct xfs_inode *);
+ 	if (tp) {
+-		_xfs_trans_bjoin(tp, bp, 1);
++		error = _xfs_trans_bjoin(tp, bp, 1);
++		if (error) {
++			xfs_buf_relse(bp);
++			return error;
++		}
+ 		trace_xfs_trans_read_buf(bp->b_log_item);
+ 	}
+ 	ASSERT(bp->b_ops != NULL || ops == NULL);
 -- 
 2.25.1
 
