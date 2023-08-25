@@ -2,355 +2,281 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA3A7C71133
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:40:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47511EE49B5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 15:11:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343816AbjHYOje (ORCPT
+        id S233267AbjHYPL1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Aug 2023 10:39:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58790 "EHLO
+        Fri, 25 Aug 2023 11:11:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50034 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343825AbjHYOje (ORCPT
+        with ESMTP id S235346AbjHYPLT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Aug 2023 10:39:34 -0400
-Received: from mail-ua1-x929.google.com (mail-ua1-x929.google.com [IPv6:2607:f8b0:4864:20::929])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A2DAEC
-        for <linux-unionfs@vger.kernel.org>; Fri, 25 Aug 2023 07:39:31 -0700 (PDT)
-Received: by mail-ua1-x929.google.com with SMTP id a1e0cc1a2514c-791b8525b59so398209241.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 25 Aug 2023 07:39:31 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1692974370; x=1693579170;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+tCrOWwy2jlfq8BiFwEiOvkbc40qSbxCAwfAqdd98EA=;
-        b=W9z06cm7D0xBepZI62RGekH8EWMtiQGG7wzGg0auHAixpv433jaGG2cXazX1zqmHIL
-         I6EFRKBtlFTrDH4O7CBMTwlM2J9HvcWVFc8LACUfwWRYjS9/4I25+OKMFuNxFI929690
-         RPwY1qJ3WMM0xn0O+06tph+/2ANMNNf6hKWqFIY8gztd4xxeduhZW5W4AvKW6SaYUZ+K
-         tSWJX5ZXWpDZigvMB9XV2gwdKZgLquWgUh3vmyyhqKB8vmf2yaPe/OFbCp893/Tp5yl4
-         nG6QhhBxtPAGiP7IaYwScXejWu40oWV5kI5GVM8Ckl4VWKQN2DXnjFzLuRtG3B16o/1+
-         PPVw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1692974370; x=1693579170;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=+tCrOWwy2jlfq8BiFwEiOvkbc40qSbxCAwfAqdd98EA=;
-        b=YfYmlnpHe04YMFV6vI+WB2UnLL2IFORLTU+0ZNUOGcKLJ66knya+dxFay+JfBcdvKe
-         1/Kl3h5GnuoApek06KzTrTQkUq0xVmX7YeoceymI8LFSwGufoptwjtD/8eaD4/2OkRDp
-         IFNcVcqY8K37migbvmc4KZRfXCyKECEGCPGOYb/q45nKAToezs1G875fJqYhc60Txgry
-         7JHeeAG2EnbWQM2KDkbKuKGaDXatd+vnXle2m83FsCkEezQtwG8mc7M+8+64PpAHyoxc
-         c0x3t7ucXgbhMTEUt6FNWym7wwChB4N5D6tj+3lDHq9MiHB94umDzy5HuHmw2W7B/Fyl
-         dcaw==
-X-Gm-Message-State: AOJu0YxPY871IQDxqjOIs2dw8Sq0gg3woUOY7C/X4Q/vFHZ1UviIcO7j
-        TM+MkmZt/SS/x+4rq4r2Dm1KEWpG2nahvF+sV1Q=
-X-Google-Smtp-Source: AGHT+IE0pIlkCxnTAKfRrHlmdxumlVpxZKPDoeXOi3OlRJVFr+OlIy5Txeakrqz2fY1YIqsUO/bUtFFXP+qGatoR4Uw=
-X-Received: by 2002:a67:de0c:0:b0:44d:40b1:926f with SMTP id
- q12-20020a67de0c000000b0044d40b1926fmr16120634vsk.1.1692974370478; Fri, 25
- Aug 2023 07:39:30 -0700 (PDT)
+        Fri, 25 Aug 2023 11:11:19 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD010212E;
+        Fri, 25 Aug 2023 08:11:16 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DC3962EC1;
+        Fri, 25 Aug 2023 15:11:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A51CFC433C7;
+        Fri, 25 Aug 2023 15:11:15 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1692976275;
+        bh=Yk82zBo/CO5JhPqCebob30ONG4lnlvLUkORIUTY0ODE=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=NYYVRerqYqnGpLF8blJdmxVpMOEPQLv0528BjC5vvBFsZNAz6HSSGB0+0FSTqmw/7
+         Db7P0mmTsJO1oNY1/ZHWu8NyzK9JrsOCasrcwziq7v3vDEDceQvRopW668kANjqE5f
+         XtN676xYCoJvkIHN5kf251pR26YpJ9SQiBSWWbB3qvKX/kVrAeNfp0cfhulI06kGyS
+         rDA+euytpnrfPPjqUYcEaqjX12Vj0EdMyf1Oo7A6QZMfrIIcEUaHvGZ8srUTvsTFVz
+         en/rpIYHaZ7zIlQRk5TaAyXVnqxQP9imT2Z+zB9eRFWghRFbDct0Qujy/WQpJcsiaU
+         Wx3ea7l8r3I0w==
+Date:   Fri, 25 Aug 2023 08:11:15 -0700
+From:   "Darrick J. Wong" <djwong@kernel.org>
+To:     Hao Xu <hao.xu@linux.dev>
+Cc:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Pavel Begunkov <asml.silence@gmail.com>,
+        Christian Brauner <brauner@kernel.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
+        Dave Chinner <david@fromorbit.com>,
+        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
+        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
+        Wanpeng Li <wanpengli@tencent.com>
+Subject: Re: [PATCH RFC v5 00/29] io_uring getdents
+Message-ID: <20230825151115.GB17891@frogsfrogsfrogs>
+References: <20230825135431.1317785-1-hao.xu@linux.dev>
 MIME-Version: 1.0
-References: <cover.1692270188.git.alexl@redhat.com> <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
- <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
- <CAL7ro1HMZxXZDyJG9yikx+KCd3HsYPZdgk7SJBLAGWBKVrYD6g@mail.gmail.com>
- <CAJfpeguerGOWAELyd7oY=z8Y-1sGG6OY9MurhCB7-kegxZ-wmQ@mail.gmail.com>
- <CAL7ro1Hr43u7CoyHwVOzxp+pcN2MHEf18B7+CZk=HFw=viGz8A@mail.gmail.com>
- <CAL7ro1FagGOZZg9yeWvWDov6L3prrjJE-+Yre1CJuViT7idNYw@mail.gmail.com>
- <CAOQ4uxhVXrNfhWc-EsunfyWyrJDFCjYu8GeAtvN0__QTfjtV5A@mail.gmail.com>
- <CAL7ro1GS9ieN=ZuDLE9mreiiYH4KUK6xWxp40hS-7ZTzf+r6Gg@mail.gmail.com>
- <CAOQ4uxhYH1SH5TbYfARDkep5p+xspUX2gq1HgMyLnv7J4=1emg@mail.gmail.com>
- <CAJfpegsv3fHwutkEq7S8PV9fYWC07BRUE8GMEpsnK1XkE2hb5w@mail.gmail.com>
- <CAOQ4uxhZySm0rNamtv3GNu8TFOZ66TdSzPVwwda16MQfWNKAQQ@mail.gmail.com>
- <CAL7ro1EJy-Mx=y=CLfnjgFxwey5jjH0qXbMyAKx0OyqAG-wcZw@mail.gmail.com>
- <CAOQ4uxhSecqp0zrBU=zuxAx9dJuZYJh4p7ePAodj4Ue8ryDR1Q@mail.gmail.com>
- <CAL7ro1ETE+OgBtokNN3jbTqoBpCRaeWSsvbFj-axV=5CZFeEyw@mail.gmail.com>
- <CAOQ4uxh8b6_yiyXSVpWv6Pz=-fg7qkAxMPY-vDZ0uws+_KTRMA@mail.gmail.com> <CAL7ro1FPLE97S=UXePg90ntE2vcM+FuDFPVPzB6nCQdRCvMGWA@mail.gmail.com>
-In-Reply-To: <CAL7ro1FPLE97S=UXePg90ntE2vcM+FuDFPVPzB6nCQdRCvMGWA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 25 Aug 2023 17:39:17 +0300
-Message-ID: <CAOQ4uxhuZ7MJEQOF3gOkYd0X5JTi2d4sQoT0K45hkaJevKW-nA@mail.gmail.com>
-Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on overlayfs
-To:     Alexander Larsson <alexl@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230825135431.1317785-1-hao.xu@linux.dev>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Aug 25, 2023 at 2:30=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
-> wrote:
->
-> On Fri, Aug 25, 2023 at 10:41=E2=80=AFAM Amir Goldstein <amir73il@gmail.c=
-om> wrote:
-> >
-> > On Thu, Aug 24, 2023 at 5:23=E2=80=AFPM Alexander Larsson <alexl@redhat=
-.com> wrote:
-> > >
-> > > On Thu, Aug 24, 2023 at 1:43=E2=80=AFPM Amir Goldstein <amir73il@gmai=
-l.com> wrote:
-> > > >
-> > > > On Thu, Aug 24, 2023 at 12:56=E2=80=AFPM Alexander Larsson <alexl@r=
-edhat.com> wrote:
-> > > > >
-> > > > > On Wed, Aug 23, 2023 at 5:50=E2=80=AFPM Amir Goldstein <amir73il@=
-gmail.com> wrote:
-> > > > > >
-> > > > > > On Wed, Aug 23, 2023 at 5:52=E2=80=AFPM Miklos Szeredi <miklos@=
-szeredi.hu> wrote:
-> > > > > > >
-> > > > > > > On Wed, 23 Aug 2023 at 16:43, Amir Goldstein <amir73il@gmail.=
-com> wrote:
-> > > > > > >
-> > > > > > > > If we do this, then both overlay.whiteout and overlay.xattr=
-_whiteouts
-> > > > > > > > xattrs will be xattrs that the overlayfs driver never sets.
-> > > > > > > > It's a precedent, but as long as it is properly documented =
-and encoded
-> > > > > > > > in fstests, I will be fine with it. Not sure about Miklos.
-> > > > > > >
-> > > > > > > Firstly I need to properly understand the proposal.  At this =
-point I'm
-> > > > > > > not sure what overlay.whiteout is supposed to mean.   Does it=
- mean the
-> > > > > > > same as a whiteout (chrdev(0,0))?  Or does it mean that overl=
-ayfs
-> > > > > > > should not treat it as a whiteout, but instead transform that=
- into a
-> > > > > > > chrdev(0,0) for the top overlay to interpret as a whiteout?  =
-Or
-> > > > > > > something else?
-> > > > > > >
-> > > > > >
-> > > > > > My proposal does not involve any transformation.
-> > > > > > It is "just" to support another format for a whiteout.
-> > > > > > Transforming a REG or FIFO real object to CHR ovl object
-> > > > > > will be a pain IMO and I don't see why it is needed.
-> > > > > >
-> > > > > > Let me try again from the top:
-> > > > > > 1. ovl_path_is_whiteout() checks if either ovl_is_whiteout() (c=
-hardev(0,0))
-> > > > > >     or regular file with "overlay.whiteout" xattr, so ovl_looku=
-p()
-> > > > > > will result in
-> > > > > >     a negative dentry if either whiteout format is found at top=
-most layer
-> > > > > > 2. To optimize unneeded getxattr, "overlay.whiteout" xattr coul=
-d be checked
-> > > > > >     only in case the parent dir has xattr "overlay.xattr_whiteo=
-uts"
-> > > > > > 3. mkfs.composefs is responsible of creating the non-chardev wh=
-iteouts
-> > > > > >     as well as the marking the dirs that contains them with
-> > > > > >     "overlay.xattr_whiteouts" - overlayfs itself never does tha=
-t
-> > > > > > 4. ovl_calc_d_ino() (from readdir on a merge dir) returns true =
-if the
-> > > > > >     the iterated dir has "overlay.xattr_whiteouts" xattr
-> > > > > > 5. That will cause ovl_cache_update_ino() to lookup the
-> > > > > >     *overlay dentry* that will be negative (as per rule 1 above=
-)
-> > > > > >     if either whiteout format is found at topmost layer and tha=
-t
-> > > > > >     will cause the readdir dirent to be marked is_whiteout and
-> > > > > >     filtered out of readdir results
-> > > > > >
-> > > > > > * The trick for readdir is that the the per dirent DT_CHR optim=
-ization
-> > > > > >   is traded off for a per parent dir optimization, but even the=
- worst case
-> > > > > >   where all directories have xattr_whiteouts, readdir is not mo=
-re
-> > > > > >   expensive than readdir with xino enabled, which is the defaul=
-t for
-> > > > > >   several Linux distros
-> > > > > >
-> > > > > > Hope this is more clear?
-> > > > >
-> > > > > Ok, so I implemented this, both using the transforming-to-whiteou=
-t and
-> > > > > the alternative-whiteout approach.
-> > > > >
-> > > > > Here is the transform-to-whiteout approach:
-> > > > >   https://github.com/alexlarsson/linux/tree/ovl-nesting-transform
-> > > > >
-> > > > > In it, if you have a lower dir with these files/xattrs:
-> > > > >  * lowerdir/foo - directory
-> > > > >      trusted.overlay.whiteouts
-> > > > >  * lowerdir/foo/hide_file - regular file
-> > > > >      trusted.overlay.whiteout
-> > > > >
-> > > > > Then you will get an overlay no-userxattr mount like this:
-> > > > >  * lowerdir/foo - directory
-> > > > >  * lowerdir/foo/hide_file - chardev(0,0) file
-> > > > >
-> > > > > This can be used as a lower in any overlayfs mount you want, user=
-xattr or no.
-> > > > >
-> > > > > Here is the alternative-whiteout approach:
-> > > > >  https://github.com/alexlarsson/linux/tree/ovl-nesting-alternativ=
-e
-> > > > >
-> > > > > In it, if you have a lower dir with these files/xattrs:
-> > > > >  * lowerdir/foo - directory
-> > > > >      trusted.overlay.overlay.whiteouts
-> > > > >      user.overlay.whiteouts
-> > > > >   * lowerdir/foo/hide_file - regular file
-> > > > >      trusted.overlay.overlay.whiteout
-> > > > >      user.overlay.whiteout
-> > > > >
-> > > > > Then you will get an overlay no-userxattr mount like this:
-> > > > >  * lowerdir/foo - directory
-> > > > >      trusted.overlay.whiteouts
-> > > > >      user.overlay.whiteouts
-> > > > >   * lowerdir/foo/hide_file - regular file
-> > > > >      trusted.overlay.whiteout
-> > > > >      user.overlay.whiteout
-> > > > >
-> > > > > This can be used as a lower in any overlayfs mount you want, user=
-xattr or no.
-> > > > >
-> > > > > I prefer the transform-to-whiteout approach for a two reasons:
-> > > > >
-> > > > > Given an existing image (say an OCI image) we can construct an
-> > > > > overlayfs mount that is not just functionally identical, but also
-> > > > > indistinguible from the expected one. I.e. if the original OCI im=
-age
-> > > > > had a chardev(0,0) we will still have one in the mount.
-> > > > >
-> > > >
-> > > > I thought that OCI image format is using a different without format
-> > > > which is converted to ovl whiteout format anyway:
-> > > > https://github.com/opencontainers/image-spec/blob/main/layer.md#whi=
-teouts
-> > >
-> > > Yeah, but those whiteouts are not the target of this work. An OCI
-> > > image is a set of tarballs, and one tarball can contain magically
-> > > marked ".wh." prefixed files for whiteouts. These are converted to
-> > > real whiteouts by docker. However, suppose the image itself contains
-> > > an overlayfs lower directory, which the app in the container wants to
-> > > use. This would look like a chardev(0,0) (not a .wh.*) in the tarball=
-.
-> > > If this is naively extracted to disk (without escaping) then those
-> > > whiteouts will not be visible to the container app when it runs in th=
-e
-> > > container, because the outer overlayfs ate them.
-> > >
-> > > Such whiteouts in OCI containers don't currently work, so you won't
-> > > find any such OCI containers in the wild. But with escapes it seems
-> > > useful. Something similar that you *will* find in the wild however, i=
-s
-> > > ostree images with whiteouts in them, and we want to keep supporting
-> > > these. See more below.
-> > >
-> > > > Also, IIUC, you want this feature for mkfs.composefs, which doesn't
-> > > > have backward compat requirements and doesn't need to create
-> > > > ovl images identical to existing ones. Please correct me if I am wr=
-ong.
-> > >
-> > > One of the goals is to use composefs as a backend for ostree (instead
-> > > of hardlinked trees). And ostree images with whiteouts in them are
-> > > pretty common (typically from os images with preinstalled container
-> > > images).
-> > >
-> > > If mkfs.composefs converted these to xattr whiteouts it may work when
-> > > you run the containers in the image. But its not ideal if the content
-> > > of the rootfs depends on the ostree backend, and its quite possible
-> > > that some existing tooling will be confused by the new whiteouts.
-> > >
-> >
-> > I think I understand. I will try to remember how all those pieces
-> > work together...
-> >
-> > > > > When creating multiple lower dirs (e.g. from a multi-layered OCI
-> > > > > image) you have to carry forward xattrs on directories from the l=
-ower
-> > > > > layers to the upper, otherwise a merged directory from a higher l=
-ayer
-> > > > > will overwrite the "overlay.whiteouts" xattr. This makes an other=
-wise
-> > > > > local operation (just escape the files in this layer) to a global=
- one
-> > > > > that depends on all layers.
-> > > >
-> > > > I don't understand this claim. In you implementation:
-> > > > rdd->in_xwhiteouts_dir =3D
-> > > >    ovl_path_check_xwhiteouts_xattr(OVL_FS(rdd->dentry->d_sb), realp=
-ath);
-> > > > checks the "overlay.whiteouts" xattr on every layer.
-> > > >
-> > > > Checking if an entry is a whiteout only matters in the uppermost la=
-yer
-> > > > that this named entry is found.
-> > >
-> > > Yeah, that is true for the whiteouts, but not the escaped whiteouts.
-> > > It's a bit confusing, so let me give an example:
-> > >
-> > > Suppose I have this file structure with a 2 layer overlayfs with an x=
-whiteout.
-> > >
-> > > =E2=94=9C=E2=94=80=E2=94=80 layer1
-> > > =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 dir
-> > > =E2=94=82       =E2=94=94=E2=94=80=E2=94=80 file
-> > > =E2=94=94=E2=94=80=E2=94=80 layer2
-> > >     =E2=94=94=E2=94=80=E2=94=80 dir - overlay.whiteouts
-> > >         =E2=94=94=E2=94=80=E2=94=80 file - overlay.whiteout
-> > >
-> > > (At this point, it is true what you say. If a layer3/dir existed
-> > > without "overlay.whiteouts", things would still work.)
-> > >
-> > > Now I want to store this structure as the first layer inside another
-> > > overlayfs by escaping the xattrs, it would look like this:
-> > >
-> > > layerA
-> > > =E2=94=9C=E2=94=80=E2=94=80 layer1
-> > > =E2=94=82   =E2=94=94=E2=94=80=E2=94=80 dir
-> > > =E2=94=82       =E2=94=94=E2=94=80=E2=94=80 file
-> > > =E2=94=94=E2=94=80=E2=94=80 layer2
-> > >     =E2=94=94=E2=94=80=E2=94=80 dir - overlay.overlay.whiteouts
-> > >         =E2=94=94=E2=94=80=E2=94=80 file - overlay.overlay.whiteout
-> > > layerB
-> > > =E2=94=94=E2=94=80=E2=94=80 layer2
-> > >     =E2=94=94=E2=94=80=E2=94=80 dir
-> > >         =E2=94=94=E2=94=80=E2=94=80 new-file
-> > >
-> > > You'd use it like this:
-> > >  mount -t overlay -o lowerdir=3DlayerB:layerA overlay mntAB
-> > >  mount -t overlay -o lowerdir=3DmntAB/layer2:mntAB/layer1 overlay mnt=
-12
-> >
-> > Painful example.
-> > Next time please draw the top most layers on top and
-> > not on bottom. I think it will be clearer this way.
-> >
-> > >
-> > > However, if you try this, you'll notice that It doesn't work, due to =
-a
-> > > missing "overlay.whiteouts" xattr on mntAB/layer2/dir.
-> > > This is caused by the file that got added to layer2/dir in layerB.
-> > > Since we got a new merged directory (layerB/layer2/dir) it overrides
-> > > the escaped xattrs from layerA/layer2/dir.
-> > >
-> > > This is not an absolute showstopper, but it would be a nice property
-> > > if escaping a layer was an isolated operation independent of the othe=
-r
-> > > layers.
-> > >
-> >
-> > I see your point.
->
-> I updated the ovl-nesting-alternative branch with an addition that
-> makes reading escaped whiteout dir markers take into account all
-> layers. With that I got the example above to work.
->
-> Those that look sane to you?
->
+On Fri, Aug 25, 2023 at 09:54:02PM +0800, Hao Xu wrote:
+> From: Hao Xu <howeyxu@tencent.com>
+> 
+> This series introduce getdents64 to io_uring, the code logic is similar
+> with the snychronized version's. It first try nowait issue, and offload
+> it to io-wq threads if the first try fails.
 
-I can live with that slightly odd code as it is harmless for
-anything other than this corner use case, just please add it
-in a separate commit with some drawing like above to
-explain the problem that it is solving.
+NAK on the entire series until Jens actually writes down what NOWAIT
+does, so that we can check that the *existing* nowait code branches
+actually behave how he says it should.
 
-Let's see what Miklos has to say.
+https://lore.kernel.org/all/e2d8e5f1-f794-38eb-cecf-ed30c571206b@kernel.dk/
 
-Thanks,
-Amir.
+--D
+
+> 
+> Patch1 and Patch2 are some preparation
+> Patch3 supports nowait for xfs getdents code
+> Patch4-11 are vfs change, include adding helpers and trylock for locks
+> Patch12-29 supports nowait for involved xfs journal stuff
+> note, Patch24 and 27 are actually two questions, might be removed later.
+> an xfs test may come later.
+> 
+> Tests I've done:
+> a liburing test case for functional test:
+> https://github.com/HowHsu/liburing/commit/39dc9a8e19c06a8cebf8c2301b85320eb45c061e?diff=unified
+> 
+> xfstests:
+>     test/generic: 1 fails and 171 not run
+>     test/xfs: 72 fails and 156 not run
+> run the code before without this patchset, same result.
+> I'll try to make the environment more right to run more tests here.
+> 
+> 
+> Tested it with a liburing performance test:
+> https://github.com/HowHsu/liburing/blob/getdents/test/getdents2.c
+> 
+> The test is controlled by the below script[2] which runs getdents2.t 100
+> times and calulate the avg.
+> The result show that io_uring version is about 2.6% faster:
+> 
+> note:
+> [1] the number of getdents call/request in io_uring and normal sync version
+> are made sure to be same beforehand.
+> 
+> [2] run_getdents.py
+> 
+> ```python3
+> 
+> import subprocess
+> 
+> N = 100
+> sum = 0.0
+> args = ["/data/home/howeyxu/tmpdir", "sync"]
+> 
+> for i in range(N):
+>     output = subprocess.check_output(["./liburing/test/getdents2.t"] + args)
+>     sum += float(output)
+> 
+> average = sum / N
+> print("Average of sync:", average)
+> 
+> sum = 0.0
+> args = ["/data/home/howeyxu/tmpdir", "iouring"]
+> 
+> for i in range(N):
+>     output = subprocess.check_output(["./liburing/test/getdents2.t"] + args)
+>     sum += float(output)
+> 
+> average = sum / N
+> print("Average of iouring:", average)
+> 
+> ```
+> 
+> v4->v5:
+>  - move atime update to the beginning of getdents operation
+>  - trylock for i_rwsem
+>  - nowait semantics for involved xfs journal stuff
+> 
+> v3->v4:
+>  - add Dave's xfs nowait code and fix a deadlock problem, with some code
+>    style tweak.
+>  - disable fixed file to avoid a race problem for now
+>  - add a test program.
+> 
+> v2->v3:
+>  - removed the kernfs patches
+>  - add f_pos_lock logic
+>  - remove the "reduce last EOF getdents try" optimization since
+>    Dominique reports that doesn't make difference
+>  - remove the rewind logic, I think the right way is to introduce lseek
+>    to io_uring not to patch this logic to getdents.
+>  - add Singed-off-by of Stefan Roesch for patch 1 since checkpatch
+>    complained that Co-developed-by someone should be accompanied with
+>    Signed-off-by same person, I can remove them if Stefan thinks that's
+>    not proper.
+> 
+> 
+> Dominique Martinet (1):
+>   fs: split off vfs_getdents function of getdents64 syscall
+> 
+> Hao Xu (28):
+>   xfs: rename XBF_TRYLOCK to XBF_NOWAIT
+>   xfs: add NOWAIT semantics for readdir
+>   vfs: add nowait flag for struct dir_context
+>   vfs: add a vfs helper for io_uring file pos lock
+>   vfs: add file_pos_unlock() for io_uring usage
+>   vfs: add a nowait parameter for touch_atime()
+>   vfs: add nowait parameter for file_accessed()
+>   vfs: move file_accessed() to the beginning of iterate_dir()
+>   vfs: add S_NOWAIT for nowait time update
+>   vfs: trylock inode->i_rwsem in iterate_dir() to support nowait
+>   xfs: enforce GFP_NOIO implicitly during nowait time update
+>   xfs: make xfs_trans_alloc() support nowait semantics
+>   xfs: support nowait for xfs_log_reserve()
+>   xfs: don't wait for free space in xlog_grant_head_check() in nowait
+>     case
+>   xfs: add nowait parameter for xfs_inode_item_init()
+>   xfs: make xfs_trans_ijoin() error out -EAGAIN
+>   xfs: set XBF_NOWAIT for xfs_buf_read_map if necessary
+>   xfs: support nowait memory allocation in _xfs_buf_alloc()
+>   xfs: distinguish error type of memory allocation failure for nowait
+>     case
+>   xfs: return -EAGAIN when bulk memory allocation fails in nowait case
+>   xfs: comment page allocation for nowait case in xfs_buf_find_insert()
+>   xfs: don't print warn info for -EAGAIN error in  xfs_buf_get_map()
+>   xfs: support nowait for xfs_buf_read_map()
+>   xfs: support nowait for xfs_buf_item_init()
+>   xfs: return -EAGAIN when nowait meets sync in transaction commit
+>   xfs: add a comment for xlog_kvmalloc()
+>   xfs: support nowait semantics for xc_ctx_lock in xlog_cil_commit()
+>   io_uring: add support for getdents
+> 
+>  arch/s390/hypfs/inode.c         |  2 +-
+>  block/fops.c                    |  2 +-
+>  fs/btrfs/file.c                 |  2 +-
+>  fs/btrfs/inode.c                |  2 +-
+>  fs/cachefiles/namei.c           |  2 +-
+>  fs/coda/dir.c                   |  4 +--
+>  fs/ecryptfs/file.c              |  4 +--
+>  fs/ext2/file.c                  |  4 +--
+>  fs/ext4/file.c                  |  6 ++--
+>  fs/f2fs/file.c                  |  4 +--
+>  fs/file.c                       | 13 +++++++
+>  fs/fuse/dax.c                   |  2 +-
+>  fs/fuse/file.c                  |  4 +--
+>  fs/gfs2/file.c                  |  2 +-
+>  fs/hugetlbfs/inode.c            |  2 +-
+>  fs/inode.c                      | 10 +++---
+>  fs/internal.h                   |  8 +++++
+>  fs/namei.c                      |  4 +--
+>  fs/nfsd/vfs.c                   |  2 +-
+>  fs/nilfs2/file.c                |  2 +-
+>  fs/orangefs/file.c              |  2 +-
+>  fs/orangefs/inode.c             |  2 +-
+>  fs/overlayfs/file.c             |  2 +-
+>  fs/overlayfs/inode.c            |  2 +-
+>  fs/pipe.c                       |  2 +-
+>  fs/ramfs/file-nommu.c           |  2 +-
+>  fs/readdir.c                    | 61 +++++++++++++++++++++++++--------
+>  fs/smb/client/cifsfs.c          |  2 +-
+>  fs/splice.c                     |  2 +-
+>  fs/stat.c                       |  2 +-
+>  fs/ubifs/file.c                 |  2 +-
+>  fs/udf/file.c                   |  2 +-
+>  fs/xfs/libxfs/xfs_alloc.c       |  2 +-
+>  fs/xfs/libxfs/xfs_attr_remote.c |  2 +-
+>  fs/xfs/libxfs/xfs_btree.c       |  2 +-
+>  fs/xfs/libxfs/xfs_da_btree.c    | 16 +++++++++
+>  fs/xfs/libxfs/xfs_da_btree.h    |  1 +
+>  fs/xfs/libxfs/xfs_dir2_block.c  |  7 ++--
+>  fs/xfs/libxfs/xfs_dir2_priv.h   |  2 +-
+>  fs/xfs/libxfs/xfs_shared.h      |  2 ++
+>  fs/xfs/libxfs/xfs_trans_inode.c | 12 +++++--
+>  fs/xfs/scrub/dir.c              |  2 +-
+>  fs/xfs/scrub/readdir.c          |  2 +-
+>  fs/xfs/scrub/repair.c           |  2 +-
+>  fs/xfs/xfs_buf.c                | 43 +++++++++++++++++------
+>  fs/xfs/xfs_buf.h                |  4 +--
+>  fs/xfs/xfs_buf_item.c           |  9 +++--
+>  fs/xfs/xfs_buf_item.h           |  2 +-
+>  fs/xfs/xfs_buf_item_recover.c   |  2 +-
+>  fs/xfs/xfs_dir2_readdir.c       | 49 ++++++++++++++++++++------
+>  fs/xfs/xfs_dquot.c              |  2 +-
+>  fs/xfs/xfs_file.c               |  6 ++--
+>  fs/xfs/xfs_inode.c              | 27 +++++++++++++++
+>  fs/xfs/xfs_inode.h              | 17 +++++----
+>  fs/xfs/xfs_inode_item.c         | 12 ++++---
+>  fs/xfs/xfs_inode_item.h         |  3 +-
+>  fs/xfs/xfs_iops.c               | 31 ++++++++++++++---
+>  fs/xfs/xfs_log.c                | 33 ++++++++++++------
+>  fs/xfs/xfs_log.h                |  5 +--
+>  fs/xfs/xfs_log_cil.c            | 17 +++++++--
+>  fs/xfs/xfs_log_priv.h           |  4 +--
+>  fs/xfs/xfs_trans.c              | 44 ++++++++++++++++++++----
+>  fs/xfs/xfs_trans.h              |  2 +-
+>  fs/xfs/xfs_trans_buf.c          | 18 ++++++++--
+>  fs/zonefs/file.c                |  4 +--
+>  include/linux/file.h            |  7 ++++
+>  include/linux/fs.h              | 16 +++++++--
+>  include/uapi/linux/io_uring.h   |  1 +
+>  io_uring/fs.c                   | 53 ++++++++++++++++++++++++++++
+>  io_uring/fs.h                   |  3 ++
+>  io_uring/opdef.c                |  8 +++++
+>  kernel/bpf/inode.c              |  4 +--
+>  mm/filemap.c                    |  8 ++---
+>  mm/shmem.c                      |  6 ++--
+>  net/unix/af_unix.c              |  4 +--
+>  75 files changed, 499 insertions(+), 161 deletions(-)
+> 
+> -- 
+> 2.25.1
+> 
