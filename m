@@ -2,31 +2,31 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 028C0C79F68
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:02:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0E92EE49A3
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:03:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245542AbjHYOBz (ORCPT
+        id S245552AbjHYOC6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Aug 2023 10:01:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55242 "EHLO
+        Fri, 25 Aug 2023 10:02:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45084 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245582AbjHYOBX (ORCPT
+        with ESMTP id S245511AbjHYOCd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Aug 2023 10:01:23 -0400
-Received: from out-245.mta1.migadu.com (out-245.mta1.migadu.com [95.215.58.245])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4BDB2D51;
-        Fri, 25 Aug 2023 07:00:49 -0700 (PDT)
+        Fri, 25 Aug 2023 10:02:33 -0400
+Received: from out-242.mta1.migadu.com (out-242.mta1.migadu.com [95.215.58.242])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4BB31272D;
+        Fri, 25 Aug 2023 07:02:02 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1692972039;
+        t=1692972120;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=A8n142m+ckTq2ok9t7Tm2FnSZDGwRTGaDgQRQd0QVrs=;
-        b=pz2+RJXny/FRc9X5ZHvo0v2sP0AhNIbG6GqEDC3f4IgSNhM3HBNVDwOESMUSOR4IEMUxcQ
-        QeB+zNMG6saCP+3Ee3iNvTaLm94PmwVrh29h0zPxcQxdxo6uNrunXvw2MGBXff+gKAxGGD
-        nCmOsY1G1aaOlGneScmRPtSGG9/rCYg=
+        bh=d4c4JLcaw2hXejiOrGnFBQPVU2RM5hO/J+/aXcCYNEw=;
+        b=khe71NuAofqjJQcQBQh8qaSLQW5l+ABTZSFJ8Vvkem+VJ7Uz3lPnhsRbG1QiQpVIB0WzKu
+        TWSkBSbRJUjuC3LbOfeO0WhIFxiibQKBlsbXK8GLa0a537NlmAJDnBgPGmvzDTS140+5t+
+        gKh3+G5l/F0DpREKKRmtO+kz90FC86s=
 From:   Hao Xu <hao.xu@linux.dev>
 To:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>
 Cc:     Dominique Martinet <asmadeus@codewreck.org>,
@@ -48,9 +48,9 @@ Cc:     Dominique Martinet <asmadeus@codewreck.org>,
         devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
         samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
         Wanpeng Li <wanpengli@tencent.com>
-Subject: [PATCH 12/29] xfs: enforce GFP_NOIO implicitly during nowait time update
-Date:   Fri, 25 Aug 2023 21:54:14 +0800
-Message-Id: <20230825135431.1317785-13-hao.xu@linux.dev>
+Subject: [PATCH 15/29] xfs: don't wait for free space in xlog_grant_head_check() in nowait case
+Date:   Fri, 25 Aug 2023 21:54:17 +0800
+Message-Id: <20230825135431.1317785-16-hao.xu@linux.dev>
 In-Reply-To: <20230825135431.1317785-1-hao.xu@linux.dev>
 References: <20230825135431.1317785-1-hao.xu@linux.dev>
 MIME-Version: 1.0
@@ -62,65 +62,65 @@ X-Mailing-List: linux-unionfs@vger.kernel.org
 
 From: Hao Xu <howeyxu@tencent.com>
 
-Enforce GFP_NOIO logic implicitly by set pflags if we are in nowait
-time update process. Nowait semantics means no waiting for IO,
-therefore GFP_NOIO is needed.
+Don't sleep and wait for more space for a log ticket in
+xlog_grant_head_check() when it is in nowait case.
 
 Signed-off-by: Hao Xu <howeyxu@tencent.com>
 ---
- fs/xfs/xfs_iops.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ fs/xfs/xfs_log.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
-index bf1d4c31f009..5fa391083de9 100644
---- a/fs/xfs/xfs_iops.c
-+++ b/fs/xfs/xfs_iops.c
-@@ -1037,6 +1037,8 @@ xfs_vn_update_time(
- 	int			log_flags = XFS_ILOG_TIMESTAMP;
- 	struct xfs_trans	*tp;
- 	int			error;
-+	int			old_pflags;
-+	bool			nowait = flags & S_NOWAIT;
- 
- 	trace_xfs_update_time(ip);
- 
-@@ -1049,13 +1051,18 @@ xfs_vn_update_time(
- 		log_flags |= XFS_ILOG_CORE;
+diff --git a/fs/xfs/xfs_log.c b/fs/xfs/xfs_log.c
+index 90fbb1c0eca2..a2aabdd42a29 100644
+--- a/fs/xfs/xfs_log.c
++++ b/fs/xfs/xfs_log.c
+@@ -341,7 +341,8 @@ xlog_grant_head_check(
+ 	struct xlog		*log,
+ 	struct xlog_grant_head	*head,
+ 	struct xlog_ticket	*tic,
+-	int			*need_bytes)
++	int			*need_bytes,
++	bool			nowait)
+ {
+ 	int			free_bytes;
+ 	int			error = 0;
+@@ -360,13 +361,15 @@ xlog_grant_head_check(
+ 		spin_lock(&head->lock);
+ 		if (!xlog_grant_head_wake(log, head, &free_bytes) ||
+ 		    free_bytes < *need_bytes) {
+-			error = xlog_grant_head_wait(log, head, tic,
+-						     *need_bytes);
++			error = nowait ?
++				-EAGAIN : xlog_grant_head_wait(log, head, tic,
++							       *need_bytes);
+ 		}
+ 		spin_unlock(&head->lock);
+ 	} else if (free_bytes < *need_bytes) {
+ 		spin_lock(&head->lock);
+-		error = xlog_grant_head_wait(log, head, tic, *need_bytes);
++		error = nowait ? -EAGAIN : xlog_grant_head_wait(log, head, tic,
++								*need_bytes);
+ 		spin_unlock(&head->lock);
  	}
  
-+	if (nowait)
-+		old_pflags = memalloc_noio_save();
-+
- 	error = xfs_trans_alloc(mp, &M_RES(mp)->tr_fsyncts, 0, 0, 0, &tp);
+@@ -428,7 +431,7 @@ xfs_log_regrant(
+ 	trace_xfs_log_regrant(log, tic);
+ 
+ 	error = xlog_grant_head_check(log, &log->l_write_head, tic,
+-				      &need_bytes);
++				      &need_bytes, false);
  	if (error)
--		return error;
-+		goto out;
+ 		goto out_error;
  
--	if (flags & S_NOWAIT) {
--		if (!xfs_ilock_nowait(ip, XFS_ILOCK_EXCL))
--			return -EAGAIN;
-+	if (nowait) {
-+		if (!xfs_ilock_nowait(ip, XFS_ILOCK_EXCL)) {
-+			error = -EAGAIN;
-+			goto out;
-+		}
- 	} else {
- 		xfs_ilock(ip, XFS_ILOCK_EXCL);
- 	}
-@@ -1069,7 +1076,12 @@ xfs_vn_update_time(
+@@ -487,7 +490,7 @@ xfs_log_reserve(
+ 	trace_xfs_log_reserve(log, tic);
  
- 	xfs_trans_ijoin(tp, ip, XFS_ILOCK_EXCL);
- 	xfs_trans_log_inode(tp, ip, log_flags);
--	return xfs_trans_commit(tp);
-+	error = xfs_trans_commit(tp);
-+
-+out:
-+	if (nowait)
-+		memalloc_noio_restore(old_pflags);
-+	return error;
- }
+ 	error = xlog_grant_head_check(log, &log->l_reserve_head, tic,
+-				      &need_bytes);
++				      &need_bytes, nowait);
+ 	if (error)
+ 		goto out_error;
  
- STATIC int
 -- 
 2.25.1
 
