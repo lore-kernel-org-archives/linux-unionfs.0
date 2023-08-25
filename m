@@ -2,31 +2,31 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 138F2C79F68
-	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:05:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44835C79F65
+	for <linux-unionfs@archiver.kernel.org>; Fri, 25 Aug 2023 14:05:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245706AbjHYOEn (ORCPT
+        id S242625AbjHYOFG (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 25 Aug 2023 10:04:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34324 "EHLO
+        Fri, 25 Aug 2023 10:05:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38770 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245656AbjHYOEM (ORCPT
+        with ESMTP id S245759AbjHYOEs (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 25 Aug 2023 10:04:12 -0400
-Received: from out-245.mta1.migadu.com (out-245.mta1.migadu.com [IPv6:2001:41d0:203:375::f5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34DFD128;
-        Fri, 25 Aug 2023 07:03:44 -0700 (PDT)
+        Fri, 25 Aug 2023 10:04:48 -0400
+Received: from out-248.mta1.migadu.com (out-248.mta1.migadu.com [IPv6:2001:41d0:203:375::f8])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 057342722;
+        Fri, 25 Aug 2023 07:04:23 -0700 (PDT)
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1692971717;
+        t=1692972248;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=M7eywqhb1fMAXTeyjh6BJsPONBLehGvo8wJ7nQSmBJs=;
-        b=sf0c3BaV5zKRH4Bb8TUwfPopplZAFyQJxSB3uPd/Bru862GHE/6uLEqra/FCbrZoDX4RQi
-        CIrt1XneKgBJ/A8gWA/etx0kgRlpMUcGJTfa14yTcf5Kv3L0Wt8Br8rgcIz1PY9X6AeQ+Q
-        Vrx6zJaXOEDBrQhrS+G7Zr51TGkx4FM=
+        bh=ZAHRQkTlH3B9Ayy3ByDVW6IFO8x4JKviNIiMKvNnRxw=;
+        b=rqq9t63T1b93nHdvHPb4iPnifbVgNhCPhaGA0/+lVUtdq72oLevGN3oePkSOWgj4tFeMJO
+        883BuPqR+igY5LuYYZDHjdap5mSmKgc54EL0giqHkQRTPmks0t1/1oKfHQU1t1pMyd2ThX
+        7baCMPgFPzeqpA42kG/A+w1RFMlPw/c=
 From:   Hao Xu <hao.xu@linux.dev>
 To:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>
 Cc:     Dominique Martinet <asmadeus@codewreck.org>,
@@ -48,9 +48,9 @@ Cc:     Dominique Martinet <asmadeus@codewreck.org>,
         devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
         samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
         Wanpeng Li <wanpengli@tencent.com>
-Subject: [PATCH 01/29] fs: split off vfs_getdents function of getdents64 syscall
-Date:   Fri, 25 Aug 2023 21:54:03 +0800
-Message-Id: <20230825135431.1317785-2-hao.xu@linux.dev>
+Subject: [PATCH 22/29] xfs: comment page allocation for nowait case in xfs_buf_find_insert()
+Date:   Fri, 25 Aug 2023 21:54:24 +0800
+Message-Id: <20230825135431.1317785-23-hao.xu@linux.dev>
 In-Reply-To: <20230825135431.1317785-1-hao.xu@linux.dev>
 References: <20230825135431.1317785-1-hao.xu@linux.dev>
 MIME-Version: 1.0
@@ -60,104 +60,28 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Dominique Martinet <asmadeus@codewreck.org>
+From: Hao Xu <howeyxu@tencent.com>
 
-This splits off the vfs_getdents function from the getdents64 system
-call.
-This will allow io_uring to call the vfs_getdents function.
+Add comments for page allocation in nowait case in xfs_buf_find_insert()
 
-Co-developed-by: Stefan Roesch <shr@fb.com>
-Signed-off-by: Stefan Roesch <shr@fb.com>
-Signed-off-by: Dominique Martinet <asmadeus@codewreck.org>
 Signed-off-by: Hao Xu <howeyxu@tencent.com>
 ---
- fs/internal.h |  8 ++++++++
- fs/readdir.c  | 34 ++++++++++++++++++++++++++--------
- 2 files changed, 34 insertions(+), 8 deletions(-)
+ fs/xfs/xfs_buf.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/fs/internal.h b/fs/internal.h
-index f7a3dc111026..b1f66e52d61b 100644
---- a/fs/internal.h
-+++ b/fs/internal.h
-@@ -304,3 +304,11 @@ ssize_t __kernel_write_iter(struct file *file, struct iov_iter *from, loff_t *po
- struct mnt_idmap *alloc_mnt_idmap(struct user_namespace *mnt_userns);
- struct mnt_idmap *mnt_idmap_get(struct mnt_idmap *idmap);
- void mnt_idmap_put(struct mnt_idmap *idmap);
-+
-+/*
-+ * fs/readdir.c
-+ */
-+struct linux_dirent64;
-+
-+int vfs_getdents(struct file *file, struct linux_dirent64 __user *dirent,
-+		 unsigned int count);
-diff --git a/fs/readdir.c b/fs/readdir.c
-index b264ce60114d..9592259b7e7f 100644
---- a/fs/readdir.c
-+++ b/fs/readdir.c
-@@ -21,6 +21,7 @@
- #include <linux/unistd.h>
- #include <linux/compat.h>
- #include <linux/uaccess.h>
-+#include "internal.h"
- 
- #include <asm/unaligned.h>
- 
-@@ -351,10 +352,16 @@ static bool filldir64(struct dir_context *ctx, const char *name, int namlen,
- 	return false;
- }
- 
--SYSCALL_DEFINE3(getdents64, unsigned int, fd,
--		struct linux_dirent64 __user *, dirent, unsigned int, count)
-+
-+/**
-+ * vfs_getdents - getdents without fdget
-+ * @file    : pointer to file struct of directory
-+ * @dirent  : pointer to user directory structure
-+ * @count   : size of buffer
-+ */
-+int vfs_getdents(struct file *file, struct linux_dirent64 __user *dirent,
-+		 unsigned int count)
- {
--	struct fd f;
- 	struct getdents_callback64 buf = {
- 		.ctx.actor = filldir64,
- 		.count = count,
-@@ -362,11 +369,7 @@ SYSCALL_DEFINE3(getdents64, unsigned int, fd,
- 	};
- 	int error;
- 
--	f = fdget_pos(fd);
--	if (!f.file)
--		return -EBADF;
--
--	error = iterate_dir(f.file, &buf.ctx);
-+	error = iterate_dir(file, &buf.ctx);
- 	if (error >= 0)
- 		error = buf.error;
- 	if (buf.prev_reclen) {
-@@ -379,6 +382,21 @@ SYSCALL_DEFINE3(getdents64, unsigned int, fd,
- 		else
- 			error = count - buf.count;
- 	}
-+	return error;
-+}
-+
-+SYSCALL_DEFINE3(getdents64, unsigned int, fd,
-+		struct linux_dirent64 __user *, dirent, unsigned int, count)
-+{
-+	struct fd f;
-+	int error;
-+
-+	f = fdget_pos(fd);
-+	if (!f.file)
-+		return -EBADF;
-+
-+	error = vfs_getdents(f.file, dirent, count);
-+
- 	fdput_pos(f);
- 	return error;
- }
+diff --git a/fs/xfs/xfs_buf.c b/fs/xfs/xfs_buf.c
+index eb3cd7702545..57bdc4c5dde1 100644
+--- a/fs/xfs/xfs_buf.c
++++ b/fs/xfs/xfs_buf.c
+@@ -633,6 +633,8 @@ xfs_buf_find_insert(
+ 	 * allocate the memory from the heap to minimise memory usage. If we
+ 	 * can't get heap memory for these small buffers, we fall back to using
+ 	 * the page allocator.
++	 * xfs_buf_alloc_kmem may return -EAGAIN, let's not return it but turn
++	 * to page allocator as well.
+ 	 */
+ 	if (BBTOB(new_bp->b_length) >= PAGE_SIZE ||
+ 	    xfs_buf_alloc_kmem(new_bp, flags) < 0) {
 -- 
 2.25.1
 
