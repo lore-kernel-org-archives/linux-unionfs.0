@@ -2,121 +2,81 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69D8DC83F1F
-	for <linux-unionfs@archiver.kernel.org>; Tue, 29 Aug 2023 13:06:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 898F5C71153
+	for <linux-unionfs@archiver.kernel.org>; Tue, 29 Aug 2023 18:59:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235865AbjH2NGH (ORCPT
+        id S238620AbjH2S6x (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 29 Aug 2023 09:06:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36046 "EHLO
+        Tue, 29 Aug 2023 14:58:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55926 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235541AbjH2NFb (ORCPT
+        with ESMTP id S238609AbjH2S6d (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 29 Aug 2023 09:05:31 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FFCA184;
-        Tue, 29 Aug 2023 06:05:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=RchKoATVAdQvPJfSjQ7igQ4w+5FVPwMefhSLf5vYpSI=; b=Q3QmRgXTehCOZCVueX+FS2Az5N
-        PVqmWnEC5SOyltZJNMDkbuPj3BuxIKobdTkUGJdkwt9An23qab7RWIeUTJvkRcM5ZQw7A9VajHpfv
-        K7r2l3ZZ2pGC+tetoYQU12TmTvlZI3sm3ayVKtCD8x7/yd2j9SuUz7gnHbMb8LXGAJC6qfT96aNHD
-        /+KAN9szQKpq1/b+zh8evtWeBszURne3cpQtIIZ5DUWss+rP/RkNTx5Y/tCCASZPZaSLUEyAkYJWx
-        0SrCGJoWwn5s3UmnWTZbObVE6DrneAPDreiurlPZ6M22SpYEkwQtVmJFqXgm29PIZAfXouLOFvP7I
-        44OUuuBQ==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1qayP8-006i8Z-JC; Tue, 29 Aug 2023 13:05:10 +0000
-Date:   Tue, 29 Aug 2023 14:05:10 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Hao Xu <hao.xu@linux.dev>
-Cc:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Pavel Begunkov <asml.silence@gmail.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
-        Dave Chinner <david@fromorbit.com>,
-        "Darrick J . Wong" <djwong@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
-        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
-        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
-        Wanpeng Li <wanpengli@tencent.com>
-Subject: Re: [PATCH 02/11] xfs: add NOWAIT semantics for readdir
-Message-ID: <ZO3tBqJLtRwSYrEr@casper.infradead.org>
-References: <20230827132835.1373581-1-hao.xu@linux.dev>
- <20230827132835.1373581-3-hao.xu@linux.dev>
- <ZOu1xYS6LRmPgEiV@casper.infradead.org>
- <ca10040f-b7fa-7c43-1c89-6706d13b2747@linux.dev>
+        Tue, 29 Aug 2023 14:58:33 -0400
+Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE5A1FC
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Aug 2023 11:58:30 -0700 (PDT)
+Received: by mail-ej1-x62d.google.com with SMTP id a640c23a62f3a-99c3c8adb27so594843366b.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Aug 2023 11:58:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1693335509; x=1693940309;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=XptbQaF/TmqMzXqMFitdSA+1Ea5JhH7OV4FqHHSEswk=;
+        b=MzOH9ntoAa4tre9LGFBbm0kW96r5U6m0Hbco+L7dUsgXWOvDQcwCIAeoavMJ8m0o8F
+         ycLlIzAUfuv54nMVhIvc3ZWLr8U3ITmw2eFLzswjLhhs9NiFEzn6u9ynWuCobMDrtaqq
+         9ZARfr6rUoH/mZ0FV3yft6KM0QmsdqImsO0Aw=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693335509; x=1693940309;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=XptbQaF/TmqMzXqMFitdSA+1Ea5JhH7OV4FqHHSEswk=;
+        b=TijdfF0ilvxcV/O6KqYhaiZRWCyn5vbHb188Lf/XFXZifkCqruOdepWnSGoxeDJ30h
+         UB+pbus6fAsYJm9QE1n/KUqL7DGpGANQlgBCRYFNtP0ZoBG0SxtGN/J8PjjlN6bli1zG
+         zyFlPOsPx9cl2+1SL1lo7jATcXnd42R936hwwiO0atBYCaoRXvpH1kWKOclpfexFa7g5
+         4kNjRqTjsDmfRwZzUM4Bu2v1hsX8/h1kH9+adQG2zKQvyA4wD+7Hb+tDd2487injmSP/
+         XXiA47AiWqtHeaf/zYEDFjLNTp//PljZ8OxRl6coMGneibZzXNLg6MnVeu4Durdzn0J8
+         /0KA==
+X-Gm-Message-State: AOJu0Yx8ORSNxMoBDPgjEBCgOlcz3mlzEMLAc1FiIWRVDDS2cX29Lrio
+        YPypXwpsQzkik+iAcvt3bFNjhPz32V0+K6JLIAD6wnmy
+X-Google-Smtp-Source: AGHT+IFNK7j8LrVW+2VEOvrqXNyOkVtoV/TYkqQ5It7Kmq95pNdaVOv/GbhZ366hX3PC0x+5Vxg9aQ==
+X-Received: by 2002:a17:906:aadb:b0:99d:fc31:242f with SMTP id kt27-20020a170906aadb00b0099dfc31242fmr21961285ejb.66.1693335509256;
+        Tue, 29 Aug 2023 11:58:29 -0700 (PDT)
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com. [209.85.208.44])
+        by smtp.gmail.com with ESMTPSA id d7-20020a1709064c4700b0099bd453357esm6204613ejw.41.2023.08.29.11.58.28
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 29 Aug 2023 11:58:28 -0700 (PDT)
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-52a069edca6so6586489a12.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Aug 2023 11:58:28 -0700 (PDT)
+X-Received: by 2002:a17:906:249:b0:9a1:cbe4:d033 with SMTP id
+ 9-20020a170906024900b009a1cbe4d033mr16078457ejl.53.1693335507850; Tue, 29 Aug
+ 2023 11:58:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ca10040f-b7fa-7c43-1c89-6706d13b2747@linux.dev>
+References: <20230829103512.2245736-1-amir73il@gmail.com>
+In-Reply-To: <20230829103512.2245736-1-amir73il@gmail.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 29 Aug 2023 11:58:11 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wiVaYx8+S4KFK0h_PdvG_-WpTgUagTcmt70_13LbHas3g@mail.gmail.com>
+Message-ID: <CAHk-=wiVaYx8+S4KFK0h_PdvG_-WpTgUagTcmt70_13LbHas3g@mail.gmail.com>
+Subject: Re: [GIT PULL] overlayfs update for 6.6
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Aug 29, 2023 at 03:41:43PM +0800, Hao Xu wrote:
-> On 8/28/23 04:44, Matthew Wilcox wrote:
-> > > @@ -391,10 +401,17 @@ xfs_dir2_leaf_getdents(
-> > >   				bp = NULL;
-> > >   			}
-> > > -			if (*lock_mode == 0)
-> > > -				*lock_mode = xfs_ilock_data_map_shared(dp);
-> > > +			if (*lock_mode == 0) {
-> > > +				*lock_mode =
-> > > +					xfs_ilock_data_map_shared_generic(dp,
-> > > +					ctx->flags & DIR_CONTEXT_F_NOWAIT);
-> > > +				if (!*lock_mode) {
-> > > +					error = -EAGAIN;
-> > > +					break;
-> > > +				}
-> > > +			}
-> > 
-> > 'generic' doesn't seem like a great suffix to mean 'takes nowait flag'.
-> > And this is far too far indented.
-> > 
-> > 			xfs_dir2_lock(dp, ctx, lock_mode);
-> > 
-> > with:
-> > 
-> > STATIC void xfs_dir2_lock(struct xfs_inode *dp, struct dir_context *ctx,
-> > 		unsigned int lock_mode)
-> > {
-> > 	if (*lock_mode)
-> > 		return;
-> > 	if (ctx->flags & DIR_CONTEXT_F_NOWAIT)
-> > 		return xfs_ilock_data_map_shared_nowait(dp);
-> > 	return xfs_ilock_data_map_shared(dp);
-> > }
-> > 
-> > ... which I think you can use elsewhere in this patch (reformat it to
-> > XFS coding style, of course).  And then you don't need
-> > xfs_ilock_data_map_shared_generic().
-> 
-> How about rename xfs_ilock_data_map_shared() to xfs_ilock_data_map_block()
-> and rename xfs_ilock_data_map_shared_generic() to
-> xfs_ilock_data_map_shared()?
-> 
-> STATIC void xfs_ilock_data_map_shared(struct xfs_inode *dp, struct
-> dir_context *ctx, unsigned int lock_mode)
-> {
->  	if (*lock_mode)
->  		return;
->  	if (ctx->flags & DIR_CONTEXT_F_NOWAIT)
->  		return xfs_ilock_data_map_shared_nowait(dp);
->  	return xfs_ilock_data_map_shared_block(dp);
-> }
+On Tue, 29 Aug 2023 at 03:35, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+>   git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git overlayfs-next
 
-xfs_ilock_data_map_shared() is used for a lot of things which are not
-directories.  I think a new function name is appropriate, and that
-function name should include the word 'dir' in it somewhere.
+Please send me a pull with signed tag, not a bare branch.
+
+I know you can do that, since you've done that before...
+
+               Linus
