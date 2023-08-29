@@ -2,147 +2,94 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1C24C83F14
-	for <linux-unionfs@archiver.kernel.org>; Tue, 29 Aug 2023 10:36:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF030C83F17
+	for <linux-unionfs@archiver.kernel.org>; Tue, 29 Aug 2023 11:54:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235045AbjH2Kfb (ORCPT
+        id S232720AbjH2Lxx (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 29 Aug 2023 06:35:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46120 "EHLO
+        Tue, 29 Aug 2023 07:53:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36634 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234822AbjH2KfZ (ORCPT
+        with ESMTP id S232475AbjH2Lxa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 29 Aug 2023 06:35:25 -0400
-Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B7A219A;
-        Tue, 29 Aug 2023 03:35:21 -0700 (PDT)
-Received: by mail-wr1-x433.google.com with SMTP id ffacd0b85a97d-31aeef88a55so3470403f8f.2;
-        Tue, 29 Aug 2023 03:35:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693305319; x=1693910119;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=BUbeRqeh9uNIjLySiGI5zkMUywv5IH9VIu1bjik05/Y=;
-        b=KmW09QY5lB3y14ciY4LmuGK5Fa5z0SSRSvCPNNuY/4m1V9jiJgCcCIK3dLTSaRDxwl
-         mQgMW2sXdaneX12U+V9tFEXKhrMUxJW5YJ7HaAoJyoS65DJ2WRKpk0VcERDJ6lmf5eMW
-         qsBv4RHwQfJ+XYJ3kv4m1IM3/8OJ4l1JFsCLei02BbIY4ZxQ6xVJ8M9g99LqcsiQ5+ZM
-         7qXdcgBXZz7SMnCQI9TZg4THx1QL+EXVJIZvSPlWOsqPiSftAwAAF5RLXZ770WBtiqWo
-         521DK10adbeg1er42c28VJg/MvoGmGKshLu3IQqLSk176i4jKZt6vBEO/0K/Ei59p6OF
-         vrhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693305319; x=1693910119;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=BUbeRqeh9uNIjLySiGI5zkMUywv5IH9VIu1bjik05/Y=;
-        b=G1fuFvSFXZXQZriPRrEdSXve16gQHnpm/VAbKsAZszcaBcvG4o1bYKy8At8onfFfWU
-         0ZqO+3aAyNrJrEJkKBdjyCHx7YpEIrtakb+FnH7qeQC6tvULSRg4TXN+nRkm5phG+PsN
-         MIidub5qXCYuGqImwccB4F0hPizYOG5AgSeCU0x5Altz1Sk/uDfjyh0ma4fAbXXgkcaX
-         UBZNUXqBeqMgMBcGcuJNBisb+NajRDdeWo28uanhIiGlihwD0AbWvnREgtx/LnsMB7XB
-         3rp0n/YlaWS7VRTbJ3NzpqBfzHL7LfGFc/kmtHOWBucK9l+a9jXgkHcsB9No63VZcmBE
-         LzAA==
-X-Gm-Message-State: AOJu0YwT4oOKb9WdqPg4cfHY38JblsugUwp6l3+yD5N33PUtJc1uxgxW
-        +aN67UDqlu07m2HRJGzKrh+oR/b31Jc=
-X-Google-Smtp-Source: AGHT+IFhi/cF5MH7ZYKdSkQgLJ415vkaILp3GEY8mGQq9JwMIOPTKqsR4ZhNYEo9VLt1WGVCu5bVsA==
-X-Received: by 2002:adf:f892:0:b0:317:6c19:6445 with SMTP id u18-20020adff892000000b003176c196445mr21725890wrp.39.1693305319344;
-        Tue, 29 Aug 2023 03:35:19 -0700 (PDT)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id a12-20020adfe5cc000000b0030ada01ca78sm13350849wrn.10.2023.08.29.03.35.17
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 29 Aug 2023 03:35:18 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Tue, 29 Aug 2023 07:53:30 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDF84194;
+        Tue, 29 Aug 2023 04:53:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=YZxpYOTF14BVcouqFhbahruwZXBLTSy2TCKsEoryGgA=; b=kNMS0YeYJE43XRXxkVUmLf2G+X
+        0F+Ci8x/vmTvip6eYnQqjlZo85hPiq+1XBtqpwy24WfkqxJcN3oDroYdU0hmUGTZO8DmOvrKcLnsA
+        I7wiz/QgNWUfJcZJ1P+jwtCGJuvaBfIm6i+nYBm4G4q1TzqZrEd8vmeeXhUF+nfDcEVXWTUFH8hQX
+        gmgzKK6rDBAyLZFUyKz32+/IHnRsGl+xYuxNBS8JVzpCmXVMJxm/LAsn2AL2YmcWHqJedjjw347sz
+        rnlxqkUfOTw1wHOoS2VuCxy8fDxR1A9rikvDXoQ9fhtzraRL7eHJTnjVX6n6aHUnUp8GZkipnoXzv
+        988YMF3g==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1qaxHQ-006P4x-1X; Tue, 29 Aug 2023 11:53:08 +0000
+Date:   Tue, 29 Aug 2023 12:53:07 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Hao Xu <hao.xu@linux.dev>
+Cc:     io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Pavel Begunkov <asml.silence@gmail.com>,
         Christian Brauner <brauner@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs update for 6.6
-Date:   Tue, 29 Aug 2023 13:35:12 +0300
-Message-Id: <20230829103512.2245736-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
+        Dave Chinner <david@fromorbit.com>,
+        "Darrick J . Wong" <djwong@kernel.org>,
+        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
+        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
+        Wanpeng Li <wanpengli@tencent.com>
+Subject: Re: [PATCH 07/11] vfs: add nowait parameter for file_accessed()
+Message-ID: <ZO3cI+DkotHQo3md@casper.infradead.org>
+References: <20230827132835.1373581-1-hao.xu@linux.dev>
+ <20230827132835.1373581-8-hao.xu@linux.dev>
+ <ZOvA5DJDZN0FRymp@casper.infradead.org>
+ <c728bf3f-d9db-4865-8473-058b26c11c06@linux.dev>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c728bf3f-d9db-4865-8473-058b26c11c06@linux.dev>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+On Tue, Aug 29, 2023 at 03:46:13PM +0800, Hao Xu wrote:
+> On 8/28/23 05:32, Matthew Wilcox wrote:
+> > On Sun, Aug 27, 2023 at 09:28:31PM +0800, Hao Xu wrote:
+> > > From: Hao Xu <howeyxu@tencent.com>
+> > > 
+> > > Add a boolean parameter for file_accessed() to support nowait semantics.
+> > > Currently it is true only with io_uring as its initial caller.
+> > 
+> > So why do we need to do this as part of this series?  Apparently it
+> > hasn't caused any problems for filemap_read().
+> > 
+> 
+> We need this parameter to indicate if nowait semantics should be enforced in
+> touch_atime(), There are locks and maybe IOs in it.
 
-This branch has been sitting in linux-next for several weeks and it
-has gone through all the usual overlayfs test routines.
+That's not my point.  We currently call file_accessed() and
+touch_atime() for nowait reads and nowait writes.  You haven't done
+anything to fix those.
 
-The branch has also been tested together with the changes in
-Christain's vfs tree, which have been merged to master yesterday.
+I suspect you can trim this patchset down significantly by avoiding
+fixing the file_accessed() problem.  And then come back with a later
+patchset that fixes it for all nowait i/o.  Or do a separate prep series
+first that fixes it for the existing nowait users, and then a second
+series to do all the directory stuff.
 
-The branch merges cleanly with master branch of the moment.
-
-Please refer to details about contained patch sets below.
-
-Thanks,
-Amir.
-
-----------------------------------------------------------------
-
-The following changes since commit 52a93d39b17dc7eb98b6aa3edb93943248e03b2f:
-
-  Linux 6.5-rc5 (2023-08-06 15:07:51 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git overlayfs-next
-
-for you to fetch changes up to adcd459ff805ce5e11956cfa1e9aa85471b6ae8d:
-
-  ovl: validate superblock in OVL_FS() (2023-08-12 19:02:54 +0300)
-
-----------------------------------------------------------------
-
-Overlayfs update for 6.6
-
-Contains the following patch sets:
-
-Alexander Larsson added the verification feature needed by composefs
-- [1] Add support for fs-verity checking of lowerdata
-
-Amir Goldstein improved integration of overlayfs and fanotify
-- [2] Report overlayfs file ids with fanotify
-
-Andrea Righi fortified some overlayfs code
-- [3] overlayfs: debugging check for valid superblock
-
-[1] https://lore.kernel.org/r/cover.1687345663.git.alexl@redhat.com
-[2] https://lore.kernel.org/r/20230713120344.1422468-1-amir73il@gmail.com
-[3] https://lore.kernel.org/r/20230521082813.17025-1-andrea.righi@canonical.com
-
-----------------------------------------------------------------
-Alexander Larsson (4):
-      ovl: Add framework for verity support
-      ovl: Add versioned header for overlay.metacopy xattr
-      ovl: Validate verity xattr when resolving lowerdata
-      ovl: Handle verity during copy-up
-
-Amir Goldstein (4):
-      ovl: support encoding non-decodable file handles
-      ovl: add support for unique fsid per instance
-      ovl: store persistent uuid/fsid with uuid=on
-      ovl: auto generate uuid for new overlay filesystems
-
-Andrea Righi (3):
-      ovl: Kconfig: introduce CONFIG_OVERLAY_FS_DEBUG
-      ovl: make consistent use of OVL_FS()
-      ovl: validate superblock in OVL_FS()
-
- Documentation/filesystems/fsverity.rst  |   2 +
- Documentation/filesystems/overlayfs.rst |  72 ++++++++++
- fs/overlayfs/Kconfig                    |   9 ++
- fs/overlayfs/copy_up.c                  |  54 +++++++-
- fs/overlayfs/export.c                   |  36 +++--
- fs/overlayfs/file.c                     |   8 +-
- fs/overlayfs/inode.c                    |   8 +-
- fs/overlayfs/namei.c                    |  89 ++++++++++--
- fs/overlayfs/overlayfs.h                |  66 ++++++++-
- fs/overlayfs/ovl_entry.h                |   9 +-
- fs/overlayfs/params.c                   |  96 +++++++++++--
- fs/overlayfs/super.c                    |  40 ++++--
- fs/overlayfs/util.c                     | 233 ++++++++++++++++++++++++++++++--
- 13 files changed, 654 insertions(+), 68 deletions(-)
+I'd do the first thing.  Just ignore the problem.  Directory atime
+updates cause I/O so rarely that you can afford to ignore it.  Almost
+everyone uses relatime or nodiratime.
