@@ -2,231 +2,250 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ACD06CA0FF6
-	for <linux-unionfs@archiver.kernel.org>; Sat,  2 Sep 2023 09:52:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C69FFC83F2D
+	for <linux-unionfs@archiver.kernel.org>; Sun,  3 Sep 2023 07:54:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231882AbjIBJwq (ORCPT
+        id S232320AbjICHyV (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 2 Sep 2023 05:52:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33532 "EHLO
+        Sun, 3 Sep 2023 03:54:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234809AbjIBJwp (ORCPT
+        with ESMTP id S229464AbjICHyV (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 2 Sep 2023 05:52:45 -0400
-Received: from mail-ua1-x92e.google.com (mail-ua1-x92e.google.com [IPv6:2607:f8b0:4864:20::92e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F2CB10FA
-        for <linux-unionfs@vger.kernel.org>; Sat,  2 Sep 2023 02:52:34 -0700 (PDT)
-Received: by mail-ua1-x92e.google.com with SMTP id a1e0cc1a2514c-7a25071d633so1165891241.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 02 Sep 2023 02:52:34 -0700 (PDT)
+        Sun, 3 Sep 2023 03:54:21 -0400
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 656C212E;
+        Sun,  3 Sep 2023 00:54:17 -0700 (PDT)
+Received: by mail-wm1-x335.google.com with SMTP id 5b1f17b1804b1-401c90ed2ecso5114015e9.0;
+        Sun, 03 Sep 2023 00:54:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693648353; x=1694253153; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=vZ+OOB/WdyAucG4I+sQPgF1MvbKs0UllfwDSXLIVndE=;
-        b=az2R/WLg9cHhSUstPi+GMI61L1p80GQ0UU3IGeOUU7AZhp2Yf3zgbjd83j/lVaO9rX
-         8DfVwOvfpABodegTXDdHWpKJCGU/W7gOX4oLqKw854Tq/ugf6MhWRB524srxYY5F2o64
-         U0k5LFubZeKSTkp7QRY1qDLZnJJuaMnOGSDKzuk4Jy+aFKYSVN4UUow+cD0/nrlkNZyz
-         cx491i+tungBDMmSZSYPTxMicBT+dkz/L8DJeKFLS89mnSEMLOBP6e4STm6kJClE/pPr
-         QIOp6+44df/w/NKtXILFPMqzUY6m6j9mOj95OPM0s3AJ3p0YhMM0QlDXXVMAGiWqQQOI
-         8xgg==
+        d=gmail.com; s=20221208; t=1693727656; x=1694332456; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=myK1oq3x664TINacbafir9+NyUQlPgaIT0SL5O6FbM8=;
+        b=k6lgluYkymHbb1qJ+1dWlMLfwPWN/6arQrx+vOlxc1kmZg+aygb0xgjFB+302dcYW4
+         Vkj1x1f+sfb6NO39EW03NVSscHjnG+06f6/vM14ZnIGfrNJ4OTx3I+2see+cXQQJNRWj
+         pBP/8xXhof5QLe3V8LA0V96GHH4y/zDP8xmvtFWWZQbP7pIKu9PtF1sfvISRp2KLlAYf
+         SEELulgE2hzs+ujT6vROOEDHRLXU4EMaWk1rd/J+ASjtnYbqJOEazMqPzU8NAafRGHoa
+         lesk/hDLfjfBgoVClIE+AfbeZYEMzkuUYqcfhoY6FWojKyXRnfHYxLBu1KlmB701eDgR
+         Bxwg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693648353; x=1694253153;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=vZ+OOB/WdyAucG4I+sQPgF1MvbKs0UllfwDSXLIVndE=;
-        b=dquIBi9UeICr/NoRz0uAz/sqkbtAhx8Q75upoeoS2RnUFCjbF6Z7PXW1p1+/KST8CS
-         hq5w6lpCjnNhV3WzCPJhx6vAe8ROlz2Bt72XEJ0WXvHclwP5tFkbuQBA22hRtXx+jbtw
-         0Kc6tYjR1IEfcKywkiSkRPoLzkzI0MT+lbtSRz0NzAGtzvFZ0pseIa4C9OV1fMKHBGXj
-         e7SEpy4bh6mRVC3aZ5rYPc1rRwWNeMOGrT1j1mV5HlPdJW0ChXtDetktLWcZzzT62KW2
-         yqa4FCJNFDI+gXR4UsB/heF0150BK5yo9cH1iRWZwh++uFLbpDLorTsDS9jvGGvl6gAm
-         thZw==
-X-Gm-Message-State: AOJu0Yx/sWuUUQMlXd/DpkZx2ZQ9AqDuSpPUUJT2CuzKZXT2WnyfNBHc
-        LvWlIVNz2TBitlNInG2L0Gxj6/rv9oiQMHalWdHEfOC3Mwo=
-X-Google-Smtp-Source: AGHT+IFvr5zFLrdUFGNEo72HOrD3oh1nsC5qGBf4Nj0vELOSNxEtq9llkcSAQphYtMA8E6o8SCwHlS2Z2o4phzDuZjk=
-X-Received: by 2002:a67:f3c6:0:b0:44d:5c17:d066 with SMTP id
- j6-20020a67f3c6000000b0044d5c17d066mr4666340vsn.3.1693648353578; Sat, 02 Sep
- 2023 02:52:33 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAKd=y5EeKfC6vBXh1xqTfeW6OQZiNWaZ04J1SNWxyEjY4QxhHw@mail.gmail.com>
- <CAKd=y5HZ0nJJ9XN9i6vnyhzM=COijmuSzgqJPAPFn6dguQyFQA@mail.gmail.com>
- <CAOQ4uxid-eDr2XBHo_JoPhiP99PrXj0eNKgEQXP-SOEbg4hn_Q@mail.gmail.com>
- <CAKd=y5Gsz1z1xSmHGyoEs+SckC=M0T7nrP7t5mvvuoWkCWkDLg@mail.gmail.com>
- <CAOQ4uxiQtSSHL0gLohBpRs7vwUrF5LqCLB=Oh6kSz1O-ga04Tw@mail.gmail.com>
- <CAJfpegvCEsvac5j3CSVWjjZLsxDvZ-_vX-6u1ZQra26dnUk-jg@mail.gmail.com>
- <CAOQ4uxjHob=nDUghkGHpcfoAYSUNV_MZB5YHEkTUXB+bOuUBoA@mail.gmail.com>
- <CAKd=y5FZ+imzR_bWK+g-xhBNvxhV2OpuHYLtm3dd4y+k0pMyNw@mail.gmail.com> <CAKd=y5Hpg7J2gxrFT02F94o=FM9QvGp=kcH1Grctx8HzFYvpiA@mail.gmail.com>
-In-Reply-To: <CAKd=y5Hpg7J2gxrFT02F94o=FM9QvGp=kcH1Grctx8HzFYvpiA@mail.gmail.com>
+        d=1e100.net; s=20221208; t=1693727656; x=1694332456;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=myK1oq3x664TINacbafir9+NyUQlPgaIT0SL5O6FbM8=;
+        b=IzeIcfi+uVbEXaH+bCewmIvJOgm8KB0NpD4HMG9H8U+drVRKXbhwxNWJoAIOjFM3AB
+         sTpmLv5r+yitKJopE5tVQ+lczSNTHIalIWGZ6IeTSIMJI1QID0PID7HYbv/62Uii1ioe
+         BAYH85Zp7iQy74OP1LT5Gcd27i5+akmAd76Mw3XtlcmczuwogQXvyrtdguHGGMd6LX1Z
+         pmESObd7SqQhDyXxj21xuPvwXWuyWKg3Uy+gWquHvyZJrFNFhYVqBhExTKr3y/pwDTCG
+         70o0/0i042RpCQP7I83X4EzNgZeWcjnl21GUeRwEdA+HjVMGAQ13HIWeiVPSSs9XpdZ8
+         PbXA==
+X-Gm-Message-State: AOJu0YxsLnIDvUrxSbbkCjn6dsJxfvEsdQDjI/na4v6e1dF6e32eTz2e
+        DN698w9zB9BlW547MeVYr3Ujd1tizks=
+X-Google-Smtp-Source: AGHT+IEppZZBUdzPKcjVr24WYr7S85jEbxy5QxrCXDGa2M7PnQRKRb7T4FF1blHQwEkFjj7WKTZdDw==
+X-Received: by 2002:a05:600c:11c7:b0:3fe:d7c8:e0d with SMTP id b7-20020a05600c11c700b003fed7c80e0dmr4734769wmi.34.1693727655535;
+        Sun, 03 Sep 2023 00:54:15 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id 17-20020a05600c021100b003fefca26c72sm10328040wmi.23.2023.09.03.00.54.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 03 Sep 2023 00:54:15 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 2 Sep 2023 12:52:22 +0300
-Message-ID: <CAOQ4uxjiJGBMuru79HRua-9FnNdbNd4G9BZ53BL9EOhNs0MsnA@mail.gmail.com>
-Subject: Re: [Bug report] overlayfs: cannot rename symlink if lower filesystem
- is FUSE/NFS
-To:     Ruiwen Zhao <ruiwen@google.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
-        Sergey Kanzhelev <skanzhelev@google.com>,
-        Michael Sheinin <msheinin@google.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     Zorro Lang <zlang@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Alexander Larsson <alexl@redhat.com>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org, fstests@vger.kernel.org
+Subject: [PATCH] overlay: add test for persistent unique fsid
+Date:   Sun,  3 Sep 2023 10:54:11 +0300
+Message-Id: <20230903075411.2596590-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Sep 1, 2023 at 11:02=E2=80=AFPM Ruiwen Zhao <ruiwen@google.com> wro=
-te:
+Test overlayfs fsid behavior with new mount options uuid=null/on
+that were introduced in kernel v6.6:
 
-> On Fri, Sep 1, 2023 at 12:27=E2=80=AFPM Ruiwen Zhao <ruiwen@google.com> w=
-rote:
-> >
-> > Hi all,
-> >
-> > Thanks for all the help! I tested the easy fix (i.e. to ignore ENXIO, s=
-ee git diff here [1]), and can confirm it worked. The setup is the same as =
-the repro steps I mentioned above, so I am only pasting the last step here:
-> >
-> > ```
-> > ruiwen@instance-1:/tmp # mv merged/home/ruiwen/foolink merged/home/ruiw=
-en/foolink2
-> > ruiwen@instance-1:/tmp # ls -l merged/home/ruiwen/ -l
-> > total 0
-> > -rw-r--r-- 1 root root 0 Sep  1 18:46 foo
-> > lrwxrwxrwx 1 root root 3 Sep  1 18:47 foolink2 -> foo
-> > ```
-> >
-> > I also checked dmesg and can confirm that there is no error. I can send=
- out a PR for this fix. Meanwhile I have a followup question on the source =
-of ENXIO.
-> >
-> > Amir - you mentioned that ENXIO might come from no_open() default ->ope=
-n() method. I found no_open in fs/inode.c returned ENXIO [2], but cannot co=
-nnect it to ovl_security_fileattr. If the error happens on every open, then=
- it will happen on even reading the symlink, instead of only moving it, rig=
-ht? Can you elaborate on no_open() default ->open() method?
-> >
-> >
-> > [1] https://gist.github.com/ruiwen-zhao/93ebe0b4ad20fab005d0300e9f0194c=
-2
-> >
-> > [2] https://github.com/torvalds/linux/blob/b84acc11b1c9552c9ca3a099b161=
-0a6018619332/fs/inode.c#L145
-> >
-> > Thanks,
-> > Ruiwen
-> >
-> > On Fri, Sep 1, 2023 at 10:58=E2=80=AFAM Amir Goldstein <amir73il@gmail.=
-com> wrote:
-> >>
-> >> On Fri, Sep 1, 2023 at 1:14=E2=80=AFPM Miklos Szeredi <miklos@szeredi.=
-hu> wrote:
-> >> >
-> >> > On Fri, 1 Sept 2023 at 12:08, Amir Goldstein <amir73il@gmail.com> wr=
-ote:
-> >> > >
-> >> > > On Fri, Sep 1, 2023 at 12:59=E2=80=AFAM Ruiwen Zhao <ruiwen@google=
-.com> wrote:
-> >> > > >
-> >> > > > Thanks for the reply Amir! Really helps. I will try the easy fix=
- (i.e. ignoring ENXIO) and test it. Meanwhile I have two questions:
-> >> > > >
-> >> > > > 1. Since ENXIO comes from ovl_security_fileattr() trying to open=
- the symlink, I was trying to find who returns ENXIO in the first place. I =
-did some code search on libfuse (https://github.com/libfuse/libfuse), but c=
-annot find ENXIO anywhere. Could it be from the kernel side? (I am trying t=
-o use this as a justification of the easy fix.)
-> >> > > >
-> >> > >
-> >> > > I think ENXIO comes from no_open() default ->open() method.
-> >> > >
-> >> > > > 2. Miklos's commit message says "The reason is that ovl_copy_fil=
-eattr() is triggered due to S_NOATIME being
-> >> > > > set on all inodes (by fuse) regardless of fileattr." Does that m=
-ean `ovl_copy_fileattr` should not be triggered on symlink files but it is,=
- and therefore it is getting the errors like ENXIO and ENOTTY?
-> >> > > >
-> >> > >
-> >> > > Miklos' comment explains why ovl_copy_fileattr() passes the gate:
-> >> > >
-> >> > >         if (inode->i_flags & OVL_COPY_I_FLAGS_MASK) {
-> >> > >
-> >> > > S_NOATIME is an indication that the file MAY have fileattr FS_NOAT=
-IME_FL,
-> >> > > but in the case of FUSE and NFS, S_NOATIME is there for another un=
-related
-> >> > > reason.
-> >> > >
-> >> > > In any case, S_NOATIME on a symlink is never an indication of file=
-attr,
-> >> > > so I think the correct solution is to add the conditions to the ga=
-te:
-> >> > >
-> >> > >         if (inode->i_flags & OVL_COPY_I_FLAGS_MASK &&
-> >> > >            ((S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode))) {
-> >> > >
-> >> >
+- Test inherited upper fs fsid with mount option uuid=off/null
+- Test uuid=null behavior for existing overlayfs by default
+- Test persistent unique fsid with mount option uuid=on
+- Test uuid=on behavior for new overlayfs by default
 
->
-> (Sending again in plain-text mode because previous email was blocked)
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-In the future, when sending to mailing lists, please do not "top post".
-write your reply below the text, so mailing list readers can follow
-the conversation.
+Zorro,
 
->
-> Hi all,
->
-> Thanks for all the help! I tested the easy fix (i.e. to ignore ENXIO,
-> see git diff here [1]), and can confirm it worked. The setup is the
+This is the functional test for an overlayfs feature merged to v6.6.
+The test does _notrun on older kernels:
 
-For the record, there is no need to check ENXIO on upper.
-It makes no sense to get ENXIO from upper and not from lower.
+overlay/081 14s ...  [07:40:13][   57.780790] overlay: Bad value for 'uuid'
+ [07:40:14] [not run]
+	overlay/081 -- Overlayfs does not support unique fsid feature
 
-> same as the repro steps I mentioned above, so I am only pasting the
-> last step here:
+The test for another big overlayfs feature that was merged to v6.6,
+overlay/080 (validate lower using fs-verity) is already merged to fstests.
 
-Thanks for the report.
-Could you please also test the alternative I suggested above.
-
->
-> ```
-> ruiwen@instance-1:/tmp # mv merged/home/ruiwen/foolink
-> merged/home/ruiwen/foolink2
-> ruiwen@instance-1:/tmp # ls -l merged/home/ruiwen/ -l
-> total 0
-> -rw-r--r-- 1 root root 0 Sep  1 18:46 foo
-> lrwxrwxrwx 1 root root 3 Sep  1 18:47 foolink2 -> foo
-> ```
->
-
-Thank you for testing.
-I will add your Tested-by.
-If you want to learn how to write an xfstest for this repro
-I can guide you - if not, I will do it myself.
-
-> I also checked dmesg and can confirm that there is no error. I can
-> send out a PR for this fix. Meanwhile I have a followup question on
-> the source of ENXIO.
->
-> Amir - you mentioned that ENXIO might come from no_open() default
-> ->open() method. I found no_open in fs/inode.c returned ENXIO [2], but
-> cannot connect it to ovl_security_fileattr. If the error happens on
-> every open, then it will happen on even reading the symlink, instead
-> of only moving it, right? Can you elaborate on no_open() default
-> ->open() method?
->
-> [1] https://gist.github.com/ruiwen-zhao/93ebe0b4ad20fab005d0300e9f0194c2
->
-> [2] https://github.com/torvalds/linux/blob/b84acc11b1c9552c9ca3a099b1610a=
-6018619332/fs/inode.c#L145
->
-
-The way that fileattr flags are set and read from a file/dir is via ioctl.
-It is not possible to open a symlink to perform the ioctl in this manner.
-
-The situation with blockdev and chardev is even messier -
-it is possible to open them for ioctl, but trying to set the fileattr
-with ioctl is not expected to work and in any case, those are not
-going to be inode attributes that ovl needs to copy up.
+Note that overlay/080 requires running overlayfs over a base filesystem
+with fs-verity support enabled, for example, on ext4 formatted with
+mkfs.ext4 -O verity [1].
 
 Thanks,
 Amir.
+
+[1] https://lore.kernel.org/fstests/20230625135033.3205742-2-amir73il@gmail.com/
+
+ tests/overlay/081     | 128 ++++++++++++++++++++++++++++++++++++++++++
+ tests/overlay/081.out |   2 +
+ 2 files changed, 130 insertions(+)
+ create mode 100755 tests/overlay/081
+ create mode 100644 tests/overlay/081.out
+
+diff --git a/tests/overlay/081 b/tests/overlay/081
+new file mode 100755
+index 00000000..05156a3c
+--- /dev/null
++++ b/tests/overlay/081
+@@ -0,0 +1,128 @@
++#! /bin/bash
++# SPDX-License-Identifier: GPL-2.0
++# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
++#
++# FSQA Test No. 081
++#
++# Test persistent (and optionally unique) overlayfs fsid
++# with mount options uuid=null/on introduced in kernel v6.6
++#
++. ./common/preamble
++_begin_fstest auto quick
++
++# Import common functions.
++. ./common/filter
++. ./common/attr
++
++# real QA test starts here
++_supported_fs overlay
++
++_scratch_mkfs >>$seqres.full 2>&1
++
++# Create overlay layer with pre-packaged merge dir
++upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
++workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
++lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
++mkdir -p $upperdir/test_dir
++mkdir -p $lowerdir/test_dir
++test_dir=$SCRATCH_MNT/test_dir/
++
++# Record base fs fsid
++upper_fsid=$(stat -f -c '%i' $upperdir)
++lower_fsid=$(stat -f -c '%i' $lowerdir)
++
++# Sanity tests
++[[ -n "$upper_fsid" ]] || \
++	echo "invalid upper fs fsid"
++[[ "$lower_fsid" == "$upper_fsid" ]] || \
++	echo "lower fs and upper fs fsid differ"
++
++# Test legacy behavior - ovl fsid inherited from upper fs
++_overlay_scratch_mount_dirs $lowerdir $upperdir $workdir -o uuid=null 2>/dev/null || \
++	_notrun "Overlayfs does not support unique fsid feature"
++
++# Lookup of test_dir marks upper root as "impure", so following (uuid=auto) mounts
++# will NOT behave as first time mount of a new overlayfs
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++[[ "$ovl_fsid" == "$upper_fsid" ]] || \
++	echo "Overlayfs (uuid=null) and upper fs fsid differ"
++
++# Keep base fs mounted in case it has a volatile fsid (e.g. tmpfs)
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Test legacy behavior is preserved by default for existing "impure" overlayfs
++_scratch_mount
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++[[ "$ovl_fsid" == "$upper_fsid" ]] || \
++	echo "Overlayfs (uuid=auto) and upper fs fsid differ"
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Test unique fsid on explicit opt-in for existing "impure" overlayfs
++_scratch_mount -o uuid=on
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++ovl_unique_fsid=$ovl_fsid
++[[ "$ovl_fsid" != "$upper_fsid" ]] || \
++	echo "Overlayfs (uuid=on) and upper fs fsid are the same"
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Test unique fsid is persistent by default after it was created
++_scratch_mount
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++[[ "$ovl_fsid" == "$ovl_unique_fsid" ]] || \
++	echo "Overlayfs (uuid=auto) unique fsid is not persistent"
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Test ignore existing persistent fsid on explicit opt-out
++_scratch_mount -o uuid=off
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++[[ "$ovl_fsid" == "$upper_fsid" ]] || \
++	echo "Overlayfs (uuid=off) and upper fs fsid differ"
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Test fallback to uuid=null with non-upper ovelray
++_overlay_scratch_mount_dirs "$upperdir:$lowerdir" "-" "-" -o ro,uuid=on
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++[[ "$ovl_fsid" == "$lower_fsid" ]] || \
++	echo "Overlayfs (uuid=null) and lower fs fsid differ"
++
++# Re-create fresh overlay layers, so following (uuid=auto) mounts
++# will behave as first time mount of a new overlayfs
++_scratch_unmount
++_scratch_mkfs >>$seqres.full 2>&1
++mkdir -p $upperdir/test_dir
++mkdir -p $lowerdir/test_dir
++
++# Record new base fs fsid
++upper_fsid=$(stat -f -c '%i' $upperdir)
++
++# Test unique fsid by default for first time mount of new overlayfs
++_scratch_mount
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++ovl_unique_fsid=$ovl_fsid
++[[ "$ovl_fsid" != "$upper_fsid" ]] || \
++	echo "Overlayfs (uuid=auto) and upper fs fsid are the same"
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++# Test unique fsid is persistent by default after it was created
++_scratch_mount -o uuid=on
++
++ovl_fsid=$(stat -f -c '%i' $test_dir)
++[[ "$ovl_fsid" == "$ovl_unique_fsid" ]] || \
++	echo "Overlayfs (uuid=on) unique fsid is not persistent"
++
++$UMOUNT_PROG $SCRATCH_MNT
++
++echo "Silence is golden"
++status=0
++exit
+diff --git a/tests/overlay/081.out b/tests/overlay/081.out
+new file mode 100644
+index 00000000..663a8864
+--- /dev/null
++++ b/tests/overlay/081.out
+@@ -0,0 +1,2 @@
++QA output created by 081
++Silence is golden
+-- 
+2.34.1
+
