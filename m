@@ -2,165 +2,142 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B2F67C83F2C
-	for <linux-unionfs@archiver.kernel.org>; Sun,  3 Sep 2023 17:32:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE54CA0FE9
+	for <linux-unionfs@archiver.kernel.org>; Sun,  3 Sep 2023 22:31:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232636AbjICRcj (ORCPT
+        id S1348904AbjICWbF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 3 Sep 2023 13:32:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42838 "EHLO
+        Sun, 3 Sep 2023 18:31:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244551AbjICRci (ORCPT
+        with ESMTP id S1347805AbjICWbE (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 3 Sep 2023 13:32:38 -0400
-Received: from mail-vs1-xe30.google.com (mail-vs1-xe30.google.com [IPv6:2607:f8b0:4864:20::e30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61074DD
-        for <linux-unionfs@vger.kernel.org>; Sun,  3 Sep 2023 10:32:35 -0700 (PDT)
-Received: by mail-vs1-xe30.google.com with SMTP id ada2fe7eead31-44d3a5cd2f9so244279137.3
-        for <linux-unionfs@vger.kernel.org>; Sun, 03 Sep 2023 10:32:35 -0700 (PDT)
+        Sun, 3 Sep 2023 18:31:04 -0400
+Received: from mail-oa1-x2e.google.com (mail-oa1-x2e.google.com [IPv6:2001:4860:4864:20::2e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D3AC4100
+        for <linux-unionfs@vger.kernel.org>; Sun,  3 Sep 2023 15:30:55 -0700 (PDT)
+Received: by mail-oa1-x2e.google.com with SMTP id 586e51a60fabf-1cc87405650so783574fac.2
+        for <linux-unionfs@vger.kernel.org>; Sun, 03 Sep 2023 15:30:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693762354; x=1694367154; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=/OzOeSDrd8GAssKYP5q/fNq74LNE+/yk6IYjvCGAw8w=;
-        b=dgVbG9aH4qCDsJwDERsnUgduoRzczuQhb/fhNsyvzvYNvi+b1OmRddBihIhPVyB/Iy
-         /q7j21iT/WOXYhb7ILoW2DZTQenNBpS0R1ME/K4/YCdalIc3ulXyTydaLKXcs5kjh2Qr
-         b4bbvX6LHyyn2XkvOW+kbW39TVXBpM8laCZagMiADAtFxVqN2OhQNMT3h+wiF5ux9uNH
-         /UUDvkt5Szocs05Wfk8LLn1EGAeASFMKVGjAxia/zaWTUt9+WSNB8HT4Lb4J3/bkxYIG
-         snJQhxULtxe+nAI8ZBLxdRsYc4yfokEpv0hd88sUKL02JYJaHiVe5rALoJ4fpe4Xn4dr
-         AdgA==
+        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1693780255; x=1694385055; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=Nv6YpToDNZJcA/Ccz8YHJKQ8zE37n7OYKvDh05ivZ8M=;
+        b=eLvFMZ6HweV3i75Mje3KyiQMHp72f3fVYJp4X8QBR1sUoWt5LbUe2oYe6gz7J03xSV
+         aHsv7iDil4KTnD32vRddboJhyW5dIQThpWZBfmdQlNdU/+SQKnZqTkI+8YNmhDFqSNM4
+         M/5uOEBZigGEpPC3vmfjiwnDFOd47IixsMl044OpUX7QG234XdFYwtba/jPyi6PCo/kZ
+         okP+nX6zzbLjyilv/Ocy1qCe5aC4gkdgDOfyh92JWGe8bVg+DmwjlPuuV3kM/V8mAkRG
+         YMrGVWwsvVs5uRT8A9BN8JD3DAOcyXyqtn49LxBGuGru+09OFjvSzk6tINPlQnplnbJD
+         r/Aw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693762354; x=1694367154;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=/OzOeSDrd8GAssKYP5q/fNq74LNE+/yk6IYjvCGAw8w=;
-        b=CQLVuYjmpbJNds6Rw4Z4M4Np8pjlRP93W10+RVeKub51CmAYKXPjEJQaflJorapyQE
-         Rr+1q8GuygBA+YJvOyo7ySFHC/1qVSFOtzGavGBev6dUJ2gOJHp+TgQ4s7suHjHXvS5F
-         8WkpZ0QZd4dOZb/m5OrmH14/0S1+9wSjseZyG9g7e6SHsaC28ZikuK5ZQMd4AIdKRD05
-         CmtyX2SWyvTtLcF9Ef3RWQ0Y+n4EaOV5JNFFNQUlP6/71x/O4Ua7Z7eJdTMYccPVqaaq
-         MMwkDV+nPD9xkCBjlePnyvFFsfSLBgIkR/rGQeurTa6Vt1QtOokVCnbQEV8CsjadIvP/
-         QPNg==
-X-Gm-Message-State: AOJu0Yzyo5DS1CoBhnrLyySxJv0+Ke7rfVJHaZWMHTdY5aX4DAlX+3BR
-        1CnCEdsYWDpqJBhVhrECTSL+ex1Rx2GJzXKLH/6wjseQGOY=
-X-Google-Smtp-Source: AGHT+IFAGZVwArF8DkDkLcAQ+DkiqJyPf1lyXCvpZSqevRfFzEW3aVZlAI4a2P9vcZt2ezyh1R/cHeeoKVqI78tUlbE=
-X-Received: by 2002:a67:e24c:0:b0:44d:482a:5443 with SMTP id
- w12-20020a67e24c000000b0044d482a5443mr7496833vse.11.1693762354398; Sun, 03
- Sep 2023 10:32:34 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAKd=y5EeKfC6vBXh1xqTfeW6OQZiNWaZ04J1SNWxyEjY4QxhHw@mail.gmail.com>
- <CAKd=y5HZ0nJJ9XN9i6vnyhzM=COijmuSzgqJPAPFn6dguQyFQA@mail.gmail.com>
- <CAOQ4uxid-eDr2XBHo_JoPhiP99PrXj0eNKgEQXP-SOEbg4hn_Q@mail.gmail.com>
- <CAKd=y5Gsz1z1xSmHGyoEs+SckC=M0T7nrP7t5mvvuoWkCWkDLg@mail.gmail.com>
- <CAOQ4uxiQtSSHL0gLohBpRs7vwUrF5LqCLB=Oh6kSz1O-ga04Tw@mail.gmail.com>
- <CAJfpegvCEsvac5j3CSVWjjZLsxDvZ-_vX-6u1ZQra26dnUk-jg@mail.gmail.com> <CAOQ4uxjHob=nDUghkGHpcfoAYSUNV_MZB5YHEkTUXB+bOuUBoA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjHob=nDUghkGHpcfoAYSUNV_MZB5YHEkTUXB+bOuUBoA@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 3 Sep 2023 20:32:23 +0300
-Message-ID: <CAOQ4uxhJ5jw+mY_VJeEOXR7-xauFSY+GkTNnrr+N0nqY8dFPZQ@mail.gmail.com>
-Subject: Re: [Bug report] overlayfs: cannot rename symlink if lower filesystem
- is FUSE/NFS
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org,
-        Sergey Kanzhelev <skanzhelev@google.com>,
-        Michael Sheinin <msheinin@google.com>,
-        Theodore Tso <tytso@mit.edu>,
+        d=1e100.net; s=20221208; t=1693780255; x=1694385055;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Nv6YpToDNZJcA/Ccz8YHJKQ8zE37n7OYKvDh05ivZ8M=;
+        b=fk+qxHmvMW+AcqHAT/iX+jRW/v6KqjJK3w/KzrRmO1x49IPiWKghrxQ4tOiPMU1IkZ
+         IIIeYWkFq7ev4KIkfp9zXf5qKzerHyKoAJMs3yB7R3GKGKEXOe5GeAeVdcFf91sHhrSb
+         +MsWj1+xUOUxVG/hdPE6Hm7ssR6YZXg5tzf6A3khT9jt82b2pmFRNbAoemy1h0oVGu6L
+         qZevzPH5XIzM3J8F2rNUAaLWz9qlOV6DGYF4E0NRYO3JBBt2DA+MRa4wSdu1lslKteFs
+         Xnl4Hlg4dukuOb9Kxc3ncQwzwqVUB3kXhGPp+eWQexe5ZCpRhWjhnEjsdTo3eUS0RQHn
+         Io/Q==
+X-Gm-Message-State: AOJu0YztM1XAvJIu8JxMpdPW2xH7Z23OiKTrSacbUz8CqzRDjaUZkhGd
+        hb1H2yiU+bg4PAbTGeeoPjiAtg==
+X-Google-Smtp-Source: AGHT+IGLu9Ypqvz2HQH6Ke2apJHDtGTD5ZHmV6+9u1MT+8XuCmbNG2jkA6AQg79Zc5mY+kWQOWShIA==
+X-Received: by 2002:a05:6870:568d:b0:1be:c8e2:3ec3 with SMTP id p13-20020a056870568d00b001bec8e23ec3mr11536784oao.14.1693780255066;
+        Sun, 03 Sep 2023 15:30:55 -0700 (PDT)
+Received: from dread.disaster.area (pa49-195-66-88.pa.nsw.optusnet.com.au. [49.195.66.88])
+        by smtp.gmail.com with ESMTPSA id i15-20020a63bf4f000000b00565e96d9874sm5648132pgo.89.2023.09.03.15.30.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 03 Sep 2023 15:30:54 -0700 (PDT)
+Received: from dave by dread.disaster.area with local (Exim 4.96)
+        (envelope-from <david@fromorbit.com>)
+        id 1qcvcK-00ASFy-0F;
+        Mon, 04 Sep 2023 08:30:52 +1000
+Date:   Mon, 4 Sep 2023 08:30:52 +1000
+From:   Dave Chinner <david@fromorbit.com>
+To:     Hao Xu <hao.xu@linux.dev>
+Cc:     Matthew Wilcox <willy@infradead.org>, io-uring@vger.kernel.org,
+        Jens Axboe <axboe@kernel.dk>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Pavel Begunkov <asml.silence@gmail.com>,
         Christian Brauner <brauner@kernel.org>,
-        "Darrick J. Wong" <djwong@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
+        "Darrick J . Wong" <djwong@kernel.org>,
+        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
+        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
+        Wanpeng Li <wanpengli@tencent.com>
+Subject: Re: [PATCH 07/11] vfs: add nowait parameter for file_accessed()
+Message-ID: <ZPUJHAKzxvXiEDYA@dread.disaster.area>
+References: <20230827132835.1373581-1-hao.xu@linux.dev>
+ <20230827132835.1373581-8-hao.xu@linux.dev>
+ <ZOvA5DJDZN0FRymp@casper.infradead.org>
+ <c728bf3f-d9db-4865-8473-058b26c11c06@linux.dev>
+ <ZO3cI+DkotHQo3md@casper.infradead.org>
+ <642de4e6-801d-fcad-a7ce-bfc6dec3b6e5@linux.dev>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <642de4e6-801d-fcad-a7ce-bfc6dec3b6e5@linux.dev>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Sep 1, 2023 at 8:57=E2=80=AFPM Amir Goldstein <amir73il@gmail.com> =
-wrote:
->
-> On Fri, Sep 1, 2023 at 1:14=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu>=
- wrote:
-> >
-> > On Fri, 1 Sept 2023 at 12:08, Amir Goldstein <amir73il@gmail.com> wrote=
-:
-> > >
-> > > On Fri, Sep 1, 2023 at 12:59=E2=80=AFAM Ruiwen Zhao <ruiwen@google.co=
-m> wrote:
-> > > >
-> > > > Thanks for the reply Amir! Really helps. I will try the easy fix (i=
-.e. ignoring ENXIO) and test it. Meanwhile I have two questions:
-> > > >
-> > > > 1. Since ENXIO comes from ovl_security_fileattr() trying to open th=
-e symlink, I was trying to find who returns ENXIO in the first place. I did=
- some code search on libfuse (https://github.com/libfuse/libfuse), but cann=
-ot find ENXIO anywhere. Could it be from the kernel side? (I am trying to u=
-se this as a justification of the easy fix.)
-> > > >
-> > >
-> > > I think ENXIO comes from no_open() default ->open() method.
-> > >
-> > > > 2. Miklos's commit message says "The reason is that ovl_copy_fileat=
-tr() is triggered due to S_NOATIME being
-> > > > set on all inodes (by fuse) regardless of fileattr." Does that mean=
- `ovl_copy_fileattr` should not be triggered on symlink files but it is, an=
-d therefore it is getting the errors like ENXIO and ENOTTY?
-> > > >
-> > >
-> > > Miklos' comment explains why ovl_copy_fileattr() passes the gate:
-> > >
-> > >         if (inode->i_flags & OVL_COPY_I_FLAGS_MASK) {
-> > >
-> > > S_NOATIME is an indication that the file MAY have fileattr FS_NOATIME=
-_FL,
-> > > but in the case of FUSE and NFS, S_NOATIME is there for another unrel=
-ated
-> > > reason.
-> > >
-> > > In any case, S_NOATIME on a symlink is never an indication of fileatt=
-r,
-> > > so I think the correct solution is to add the conditions to the gate:
-> > >
-> > >         if (inode->i_flags & OVL_COPY_I_FLAGS_MASK &&
-> > >            ((S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode))) {
-> > >
-> >
-> > I don't think this is correct: symlink's atime is updated on readlink
-> > or following.
->
-> I am not saying that symlink cannot have S_NOATIME, but
-> i_flags of the symlink have already been copied to ovl inode.
-> I don't think that symlink can have fileattr, because symlink
-> cannot be opened for the FS_IOC_SETFLAGS ioctl, so there
-> is never a reason to call ovl_copy_fileattr() for anything other
-> than dir or regular file. Right?
->
+On Wed, Aug 30, 2023 at 02:11:31PM +0800, Hao Xu wrote:
+> On 8/29/23 19:53, Matthew Wilcox wrote:
+> > On Tue, Aug 29, 2023 at 03:46:13PM +0800, Hao Xu wrote:
+> > > On 8/28/23 05:32, Matthew Wilcox wrote:
+> > > > On Sun, Aug 27, 2023 at 09:28:31PM +0800, Hao Xu wrote:
+> > > > > From: Hao Xu <howeyxu@tencent.com>
+> > > > > 
+> > > > > Add a boolean parameter for file_accessed() to support nowait semantics.
+> > > > > Currently it is true only with io_uring as its initial caller.
+> > > > 
+> > > > So why do we need to do this as part of this series?  Apparently it
+> > > > hasn't caused any problems for filemap_read().
+> > > > 
+> > > 
+> > > We need this parameter to indicate if nowait semantics should be enforced in
+> > > touch_atime(), There are locks and maybe IOs in it.
+> > 
+> > That's not my point.  We currently call file_accessed() and
+> > touch_atime() for nowait reads and nowait writes.  You haven't done
+> > anything to fix those.
+> > 
+> > I suspect you can trim this patchset down significantly by avoiding
+> > fixing the file_accessed() problem.  And then come back with a later
+> > patchset that fixes it for all nowait i/o.  Or do a separate prep series
+> 
+> I'm ok to do that.
+> 
+> > first that fixes it for the existing nowait users, and then a second
+> > series to do all the directory stuff.
+> > 
+> > I'd do the first thing.  Just ignore the problem.  Directory atime
+> > updates cause I/O so rarely that you can afford to ignore it.  Almost
+> > everyone uses relatime or nodiratime.
+> 
+> Hi Matthew,
+> The previous discussion shows this does cause issues in real
+> producations: https://lore.kernel.org/io-uring/2785f009-2ebb-028d-8250-d5f3a30510f0@gmail.com/#:~:text=fwiw%2C%20we%27ve%20just%20recently%20had%20similar%20problems%20with%20io_uring%20read/write
+> 
 
-Well, not exactly right.
+Then separate it out into it's own patch set so we can have a
+discussion on the merits of requiring using noatime, relatime or
+lazytime for really latency sensitive IO applications. Changing code
+is not always the right solution...
 
-Apparently, in ext*/btrfs/f2fs/... and recently also tmpfs, the
-FS_NOATIME_FL | FS_NODUMP_FL flags are inherited
-from parent to all file types, so they actually can exist on symlinks
-and ext4 symlinks created inside FS_NOATIME_FL parent do indeed
-exhibit S_NOATIME behavior.
-
-This is not the case with xfs, which takes care not to copy any flags
-to special files and symlinks.
-
-The thing is that for those fs that inherit NOATIME to symlink:
-1. lsattr cannot be used to query the NOATIME flag on symlink
-2. chattr cannot be used to remove the NOATIME flag on symlink
-3. overlayfs fails to copy up those symlinks
-
-While technically, overlayfs can query and set flags directly without
-opening the symlink, I don't think we should bother with this at all
-and I think it should be fine if overlayfs only ever copied up
-fileattr flags for directories and regular files.
-
-Here is an xfstest for the regression [1].
-It only fails when running fstests with ext4 or one of the other
-mentioned fs as base fs.
-
-Thanks,
-Amir.
-
-[1] https://github.com/amir73il/xfstests/blob/overlayfs-devel/tests/overlay=
-/082
+-Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
