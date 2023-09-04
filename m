@@ -2,171 +2,135 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95725C83F33
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 14:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF230C83F33
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 14:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237806AbjIDOiZ (ORCPT
+        id S237249AbjIDOra (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Sep 2023 10:38:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60588 "EHLO
+        Mon, 4 Sep 2023 10:47:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34942 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236396AbjIDOiZ (ORCPT
+        with ESMTP id S230477AbjIDOra (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Sep 2023 10:38:25 -0400
-Received: from out30-132.freemail.mail.aliyun.com (out30-132.freemail.mail.aliyun.com [115.124.30.132])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C420ACFB
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 07:38:20 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046050;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0VrMPkpC_1693838294;
-Received: from 30.25.202.3(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VrMPkpC_1693838294)
-          by smtp.aliyun-inc.com;
-          Mon, 04 Sep 2023 22:38:18 +0800
-Message-ID: <6a43ee5c-cc25-ff9f-1198-7c2b445d3775@linux.alibaba.com>
-Date:   Mon, 4 Sep 2023 22:38:13 +0800
+        Mon, 4 Sep 2023 10:47:30 -0400
+Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99DFDE56
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 07:47:26 -0700 (PDT)
+Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-401d67434daso16450275e9.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 04 Sep 2023 07:47:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1693838845; x=1694443645; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=uLTz42G1uPO0ZNnPyy1tP9l85ibmAFjTuNP6GV3skPg=;
+        b=hS6lqSXQQF5zxw3V/2pwMQXCxGiT42Oe1O8/AX5jO++NF56DnaggOMWK8AMRKYxtJ5
+         7HZCOLbeuXtZVnCV/2/wN1IJt8pplYgENbbk/6pUg2pBVIYfM/pyfZOpi9w3MZGOFWEv
+         2diYTtAWoOHpLk99RWE+ngefmHP8mYKrOcFJHW50fneVnyEeE59goPAnQMKB6+Wf4CHJ
+         txU0wMu1XP9GohA1FRPMaUw554qCgGqbBGH12jfRd/4CsDDzgd5TRfG+1fIcPZLhic6A
+         Ledndc/cWw20olTFM+eyx3a0J61lE090yCguTKUxyhIcEKT7eRQwwEKZ10dKOMAiTiVL
+         y4/Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20221208; t=1693838845; x=1694443645;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uLTz42G1uPO0ZNnPyy1tP9l85ibmAFjTuNP6GV3skPg=;
+        b=ddPh2CdIf3lwpacv42QK0gw67McKZC9jlkP6CvAcIE6eBMYkk++kSHuWhxt7gxGyxn
+         +B6pN8WRsojvrlPkn0q3yyEPzLIwrknH8i0VsVqIlHmxkndoqnj58VYGOtAtrsvPm/bN
+         w50nDnEuYrFsBma5X2UbteYNXDpprhbDAFLigF+OCtlvSXWTOZ36cNzqrrg3lM0w7qOD
+         +j9eK3PmWLrwD/QZZZ0qnGVlDPJr5fa1nQu52Lc6rT8/ZKe8TXBnbM+HJl1Hmon3A0Kc
+         BGbtqLiKOhkRBsMu5pjh0ZZxCuPrOsyvL/mSYeG+CMJgO6nnsmdiCtNJJDcTqukO0BI9
+         aIVQ==
+X-Gm-Message-State: AOJu0YwJRjx+Yzil/LBVdegbzBZ2sZduSMDwUcCv600at+V12V3bHtUL
+        6a+a4Q+5bwHcQGQtVtjXHPYmZZdtXdQ=
+X-Google-Smtp-Source: AGHT+IEPU4WFxW6hG3WpHi16ZS7AhdatFMYUUF+jBvabr1rkCoxWze0m6QKFvP55UuVnFLe55QBdXQ==
+X-Received: by 2002:a05:6000:1201:b0:317:e5dc:5cd0 with SMTP id e1-20020a056000120100b00317e5dc5cd0mr6913546wrx.21.1693838844843;
+        Mon, 04 Sep 2023 07:47:24 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (bzq-166-168-31-246.red.bezeqint.net. [31.168.166.246])
+        by smtp.gmail.com with ESMTPSA id a28-20020a5d457c000000b00317f70240afsm14721356wrc.27.2023.09.04.07.47.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 04 Sep 2023 07:47:24 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     yangerkun <yangerkun@huawei.com>, linux-unionfs@vger.kernel.org
+Subject: [PATCH] ovl: fix incorrect fdput() on aio completion
+Date:   Mon,  4 Sep 2023 17:47:18 +0300
+Message-Id: <20230904144718.2707411-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.13.0
-Subject: Re: [potential issue, question] whiteout shows up in merged directory
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Jingbo Xu <jefflexu@linux.alibaba.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Xiang Gao <xiang@kernel.org>,
-        "zhangyi (F)" <yi.zhang@huawei.com>
-References: <a05e13c7-2fc2-77d8-05b5-759a73d7f5e2@linux.alibaba.com>
- <CAOQ4uxj_gM1BBCUE6p=TfVketOZohLPZs3fbw0BLacQFKEsuGg@mail.gmail.com>
- <9a89150e-cd84-c541-8088-41c2dfe863ac@linux.alibaba.com>
- <fe799167-249b-8fe2-a6c8-b222ac9acaf0@linux.alibaba.com>
- <CAOQ4uxgAoxgjQV2R0CJr-9UpyMTwdbGMYKb+qApco1YjBzE2HA@mail.gmail.com>
-From:   Gao Xiang <hsiangkao@linux.alibaba.com>
-In-Reply-To: <CAOQ4uxgAoxgjQV2R0CJr-9UpyMTwdbGMYKb+qApco1YjBzE2HA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Amir,
+ovl_{read,write}_iter() always call fdput(real) to put one or zero
+refcounts of the real file, but for aio, whether it was submitted or not,
+ovl_aio_put() also calls fdput(), which is not balanced.  This is only a
+problem in the less common case when FDPUT_FPUT flag is set.
 
-On 2023/9/4 22:07, Amir Goldstein wrote:
-> On Mon, Sep 4, 2023 at 4:27 PM Gao Xiang <hsiangkao@linux.alibaba.com> wrote:
->>
->>
->>
->> On 2023/9/4 20:49, Jingbo Xu wrote:
->>
->> ...
->>
->>>
->>> Thanks for the reply and it's really helpful to me.
->>>
->>> I can understand in the normal use case, whiteout can not appear in
->>> non-merged directory without origin xattr, except it's hand crafted.
->>>
->>> But indeed we suffer from this issue in the tarfs for erofs-utils we are
->>> developing. As described previously, in tarfs mode erofs-utils can
->>> convert each tar layer into one separate erofs image, and then merge
->>> these erofs images into one merged erofs image in a overlayfs-like model.
->>>
->>> Suppose:
->>>
->>> layer 0 + layer 1   +        layer 2         -->  merged
->>>          /foo/bar   /foo/bar (whiteout)
->>>
->>>
->>> To speed the merging process, we may merge the two top-most layers
->>> (layer 1 and layer 2) first, and then make layer0 merged into the final
->>> merged image as:
->>>
->>>
->>>
->>>              layer 1   +        layer 2         -->  merged-intermediate
->>>          /foo/bar   /foo/bar (whiteout)
->>>
->>> layer0 + merged-intermediate                -->  merged
->>
->>
->> I could add some more background to this, assuming layer 0 is a
->> baseos layer (e.g. almost all images use this layer); and layer 1 +
->> layer 2 belongs to some specific workload images;
->>
->> since layer 1 + layer 2 are always used together, so we could merge
->> layer 1 + layer 2 as a new merged layer to avoid extra overhead of
->> too many overlay layer dirs (but to simplify, here we just illustrate
->> layer 1 and layer 2, there could be layer 3, 4, ...), but layer 1 +
->> layer 2 has no relationship with layer 0 in principle (in principle,
->> merge tool doesn't need to know if layer 0 or any underlay layer
->> exists).
->>
->> So if we merge layer 1 + layer 2 here first, and use layer0 together
->> with the merged layer, it could generate such whiteout cases
->> described before.
->>
-> ...
->>>
->>> Then there comes the problem: when merging layer1 and layer2, I need to
->>> keep the whiteout in the intermediate merged image though the target of
->>> the whiteout has showed up in underlying layer (/foo/bar in layer 1),
->>> because I have no idea if "/foo/bar" exits in the following further
->>> underlying layer (layer 0).  Reusing this logic, the whiteout is kept
->>> there in the final merged image after merging layer0 and
->>> merged-intermediate.
->>>
->>> Then if "/foo" is not a merged directory, the "/foo/bar" whiteout will
->>> be exposed in the overlayfs unexpectedly.
->>>
->>> Currently we work around this in erofs-utils side.  Apart from setting
->>> origin xattr on the parent directory of the whiteout, I'm not sure if
->>> the above use case is reasonable enough to fix this in the kernel side.
->>>
->> Anyway, we could work around this in the merge tool, but I'm not
->> sure if it's a design constaint of overlayfs.
->>
-> 
-> Let me put it this way:
-> If there was an official offline tool to merge overlayfs layers
-> I would expect that tool to mark the offline merged directories
-> with an empty "trusted.overlayfs.origin", to be able to distinguish
-> them from pure non-merge directories.
-> 
-> I do not consider dealing with this in erofs-utils side a workaround
-> I consider it crafting layers in expected overlayfs format.
+To fix the problem use get_file() to take file refcount and use fput()
+instead of fdput() in ovl_aio_put().
 
-Thanks for the hints.
+Fixes: 2406a307ac7d ("ovl: implement async IO routines")
+Cc: <stable@vger.kernel.org> # v5.6
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-Ok, marking impure makes sense as long as it's properly described.
+Miklos,
 
-Just tried to describe the background since the question I think
-is not quite erofs-utils specific, btw, if there could be some
-reference official offline tool, that would be great!
+This is the refcount leak fix that I found during work on backing_fs [1]
+that deserves to be fast tracked into stable.
 
-> 
-> You should know that there are potential costs for marking a directory
-> as merged directory - ovl_iterate() implementation for merged dirs
-> that needs to filter out whiteouts is quite different than the
-> ovl_iterate_real() case -
-> The entire dirs needs to be read into cache before any response
-> could be returned. For very large dirs this may matter.
-> 
-> So you may want your tool to be able to clear the unneeded whiteouts
-> and unneeded origin xattr eventually.
-
-Yes, I know there is some overhead though, so I tend to add
-some option to the merge tool called "--keep-whiteout=0" to
-formally drop unneeded whiteouts in the end, and I think we
-also need to clear unneeded origin xattrs later.  Jingbo once
-would like to confirm the best way to describe such situation
-to work out the merge tool.
-
-> 
-> OTOH, ovl_dir_read_impure() with xino enabled on layers
-> not from the same fs, has quite a similar impact.
-> Not sure if this configuration is relevant for your use case.
-
-Thanks for the reminder, we will check later (off work now..)
+If it's ok with you, I will prepare a PR after rc1 including this
+fix and the symlink fileattr fix.
 
 Thanks,
-Gao Xiang
+Amir.
 
-> 
-> Thanks,
-> Amir.
+[1] https://lore.kernel.org/r/CAOQ4uxgzYevVCaGBjjckOr1vv0gKvVPYiOAL6E_KQY-YQx_7hg@mail.gmail.com/
+
+ fs/overlayfs/file.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 3b4cc633d763..c743820e5c61 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -19,7 +19,6 @@ struct ovl_aio_req {
+ 	struct kiocb iocb;
+ 	refcount_t ref;
+ 	struct kiocb *orig_iocb;
+-	struct fd fd;
+ };
+ 
+ static struct kmem_cache *ovl_aio_request_cachep;
+@@ -280,7 +279,7 @@ static rwf_t ovl_iocb_to_rwf(int ifl)
+ static inline void ovl_aio_put(struct ovl_aio_req *aio_req)
+ {
+ 	if (refcount_dec_and_test(&aio_req->ref)) {
+-		fdput(aio_req->fd);
++		fput(aio_req->iocb.ki_filp);
+ 		kmem_cache_free(ovl_aio_request_cachep, aio_req);
+ 	}
+ }
+@@ -342,7 +341,7 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 		if (!aio_req)
+ 			goto out;
+ 
+-		aio_req->fd = real;
++		get_file(real.file);
+ 		real.flags = 0;
+ 		aio_req->orig_iocb = iocb;
+ 		kiocb_clone(&aio_req->iocb, iocb, real.file);
+@@ -409,7 +408,7 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 		if (!aio_req)
+ 			goto out;
+ 
+-		aio_req->fd = real;
++		get_file(real.file);
+ 		real.flags = 0;
+ 		aio_req->orig_iocb = iocb;
+ 		kiocb_clone(&aio_req->iocb, iocb, real.file);
+-- 
+2.34.1
+
