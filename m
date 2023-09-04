@@ -2,156 +2,88 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C51AEC83F2C
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 15:09:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E42CC83F2C
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 15:13:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236296AbjIDPJP (ORCPT
+        id S237826AbjIDPNC (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Sep 2023 11:09:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36750 "EHLO
+        Mon, 4 Sep 2023 11:13:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235331AbjIDPJP (ORCPT
+        with ESMTP id S229854AbjIDPNB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Sep 2023 11:09:15 -0400
-Received: from mail-ot1-x32c.google.com (mail-ot1-x32c.google.com [IPv6:2607:f8b0:4864:20::32c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E5A2BD
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 08:09:11 -0700 (PDT)
-Received: by mail-ot1-x32c.google.com with SMTP id 46e09a7af769-6bd3317144fso1361595a34.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 04 Sep 2023 08:09:11 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693840150; x=1694444950; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=B8aXDqKxB3z9PsOFAHiQV01ufdENPCdMeiraEXTut4U=;
-        b=B+sjVKyZ8elPz6yNYh+WOQhY985Vn4VysyKekOHjYuqf1pIELEK3Ykw0arDf8KamLS
-         aH+M6sHVOuqoRZAjL3WhJXQDvxQAov3M6vgWCEbMbhm7F5slb4oFq7RxR76jkTZRd3Fy
-         ktEIZkzrIG312zdQghLRnjYAg4Z0UjwJX05yKXiyBJVbAQvfRtEq1ypbao8en+7k1HqD
-         ZSBr/6RkUpm9vtS1GR6GVjpRj6VHUsUAs5V0xEwsV5SU6gpuWQChuJSYY9H+6ZEQRhtl
-         e3XEH8jvWoBTB/urdcaPxWe2GYj58U+Nhj8UK81h4cgNFy2L6kCwJY5k5UKlRTmYivFG
-         RAoQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693840150; x=1694444950;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=B8aXDqKxB3z9PsOFAHiQV01ufdENPCdMeiraEXTut4U=;
-        b=ZP/W3guZGbtIZt1wqVleUTwhksW/RG6L8Nx9FB1hfnEL17IYezCm97MHrbGQLiFNiW
-         qFLZGmqc8hOnqlYi9iP2KTvGuuvdv1dNb5etafw3oxQZghYPbsTku6gTxfxXDv40jzmb
-         peo74ipuM1ymKQ2QV71/vvujk3U8N3tCpj478HnEp7YYK4m91NeiyRIp5Hzl12y021sy
-         M0o7JX1GHUw6HoIXFup88MKg3iWzSCTXX0aD+EJUdz/OVujK8vxREBVq+wXEZQa8tJZ6
-         t26a35Rv7NW/6V+WIpJLwX9m6ACokwrRdB2XsFJ66z4acCfPlDBAcfBDSLg6ezx40D96
-         iUcA==
-X-Gm-Message-State: AOJu0YzZS5Lq8gxvZ3fwYSGOe0ZGd91PInoSjbAs9km/0e3duFmrOmpL
-        x3rdVxjePtr6N1x6kqyDur1kEKOrN3VTxZC6inZh27DX
-X-Google-Smtp-Source: AGHT+IE1tbShtJHl6VzDF4Fwi6FCkLvRLzWbMU3B+g2I9CzKCEIA+pnZAEyNF7oJ3+3XL9vQrMfnSSOAz2nrYJHGYL8=
-X-Received: by 2002:a9d:7d10:0:b0:6bd:af4:274d with SMTP id
- v16-20020a9d7d10000000b006bd0af4274dmr11078492otn.8.1693840150703; Mon, 04
- Sep 2023 08:09:10 -0700 (PDT)
+        Mon, 4 Sep 2023 11:13:01 -0400
+Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA9F6CC3
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 08:12:57 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R821e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VrMNdsz_1693840371;
+Received: from 30.25.202.3(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VrMNdsz_1693840371)
+          by smtp.aliyun-inc.com;
+          Mon, 04 Sep 2023 23:12:54 +0800
+Message-ID: <bc9b3731-9eac-28be-e635-44a098e87d76@linux.alibaba.com>
+Date:   Mon, 4 Sep 2023 23:12:50 +0800
 MIME-Version: 1.0
-References: <20230904144718.2707411-1-amir73il@gmail.com> <CAJfpegvP+_ERUU_LvB2b=N13C=vqczYmtTrbM=opjXKYmva4Vw@mail.gmail.com>
-In-Reply-To: <CAJfpegvP+_ERUU_LvB2b=N13C=vqczYmtTrbM=opjXKYmva4Vw@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 4 Sep 2023 18:08:59 +0300
-Message-ID: <CAOQ4uxiuZHhxBMupBPTmkf8rg3QQM7M=7EPg9XmNeGZOR9Eb=Q@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix incorrect fdput() on aio completion
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     yangerkun <yangerkun@huawei.com>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.13.0
+Subject: Re: [potential issue, question] whiteout shows up in merged directory
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Jingbo Xu <jefflexu@linux.alibaba.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Xiang Gao <xiang@kernel.org>,
+        "zhangyi (F)" <yi.zhang@huawei.com>, kmxz <kxzkxz7139@gmail.com>
+References: <a05e13c7-2fc2-77d8-05b5-759a73d7f5e2@linux.alibaba.com>
+ <CAOQ4uxj_gM1BBCUE6p=TfVketOZohLPZs3fbw0BLacQFKEsuGg@mail.gmail.com>
+ <9a89150e-cd84-c541-8088-41c2dfe863ac@linux.alibaba.com>
+ <fe799167-249b-8fe2-a6c8-b222ac9acaf0@linux.alibaba.com>
+ <CAOQ4uxgAoxgjQV2R0CJr-9UpyMTwdbGMYKb+qApco1YjBzE2HA@mail.gmail.com>
+ <6a43ee5c-cc25-ff9f-1198-7c2b445d3775@linux.alibaba.com>
+ <CAOQ4uxgiBNcD-vBi3OLF5Nc8gHYS-Hm1=yA4+At=nRUk18A9ng@mail.gmail.com>
+From:   Gao Xiang <hsiangkao@linux.alibaba.com>
+In-Reply-To: <CAOQ4uxgiBNcD-vBi3OLF5Nc8gHYS-Hm1=yA4+At=nRUk18A9ng@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Sep 4, 2023 at 6:03=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
-rote:
->
-> On Mon, 4 Sept 2023 at 16:47, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > ovl_{read,write}_iter() always call fdput(real) to put one or zero
-> > refcounts of the real file, but for aio, whether it was submitted or no=
-t,
-> > ovl_aio_put() also calls fdput(), which is not balanced.  This is only =
-a
-> > problem in the less common case when FDPUT_FPUT flag is set.
-> >
-> > To fix the problem use get_file() to take file refcount and use fput()
-> > instead of fdput() in ovl_aio_put().
-> >
-> > Fixes: 2406a307ac7d ("ovl: implement async IO routines")
-> > Cc: <stable@vger.kernel.org> # v5.6
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >
-> > Miklos,
-> >
-> > This is the refcount leak fix that I found during work on backing_fs [1=
-]
-> > that deserves to be fast tracked into stable.
-> >
-> > If it's ok with you, I will prepare a PR after rc1 including this
-> > fix and the symlink fileattr fix.
->
-> Looks good.
->
+
+
+On 2023/9/4 23:03, Amir Goldstein wrote:
+> On Mon, Sep 4, 2023 at 5:38 PM Gao Xiang <hsiangkao@linux.alibaba.com> wrote:
+
+..
+
+>>>>
+>>>
+>>> Let me put it this way:
+>>> If there was an official offline tool to merge overlayfs layers
+>>> I would expect that tool to mark the offline merged directories
+>>> with an empty "trusted.overlayfs.origin", to be able to distinguish
+>>> them from pure non-merge directories.
+>>>
+>>> I do not consider dealing with this in erofs-utils side a workaround
+>>> I consider it crafting layers in expected overlayfs format.
+>>
+>> Thanks for the hints.
+>>
+>> Ok, marking impure makes sense as long as it's properly described.
+>>
+>> Just tried to describe the background since the question I think
+>> is not quite erofs-utils specific, btw, if there could be some
+>> reference official offline tool, that would be great!
+>>
+> 
+> There is this tool from kmxz that supports offline merge:
+> https://github.com/kmxz/overlayfs-tools
+> but it is not in any way "official".
+> 
+> I have contributed redirect and metacopy support in 2020
+> and there hasn't been much traffic since.
+> This tool does not deal with origin and impure xattrs.
+
+Thanks, very useful link! will also check this later.
+
+> 
 > Thanks,
-> Miklos
->
->
-> >
-> > Thanks,
-> > Amir.
-> >
-> > [1] https://lore.kernel.org/r/CAOQ4uxgzYevVCaGBjjckOr1vv0gKvVPYiOAL6E_K=
-QY-YQx_7hg@mail.gmail.com/
-> >
-> >  fs/overlayfs/file.c | 7 +++----
-> >  1 file changed, 3 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> > index 3b4cc633d763..c743820e5c61 100644
-> > --- a/fs/overlayfs/file.c
-> > +++ b/fs/overlayfs/file.c
-> > @@ -19,7 +19,6 @@ struct ovl_aio_req {
-> >         struct kiocb iocb;
-> >         refcount_t ref;
-> >         struct kiocb *orig_iocb;
-> > -       struct fd fd;
-> >  };
-> >
-> >  static struct kmem_cache *ovl_aio_request_cachep;
-> > @@ -280,7 +279,7 @@ static rwf_t ovl_iocb_to_rwf(int ifl)
-> >  static inline void ovl_aio_put(struct ovl_aio_req *aio_req)
-> >  {
-> >         if (refcount_dec_and_test(&aio_req->ref)) {
-> > -               fdput(aio_req->fd);
-> > +               fput(aio_req->iocb.ki_filp);
-> >                 kmem_cache_free(ovl_aio_request_cachep, aio_req);
-> >         }
-> >  }
-> > @@ -342,7 +341,7 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, st=
-ruct iov_iter *iter)
-> >                 if (!aio_req)
-> >                         goto out;
-> >
-> > -               aio_req->fd =3D real;
-> > +               get_file(real.file);
-> >                 real.flags =3D 0;
-> >                 aio_req->orig_iocb =3D iocb;
-> >                 kiocb_clone(&aio_req->iocb, iocb, real.file);
->
-> It might be clearer to do the get_file() here:
->
-> +                 kiocb_clone(&aio_req->iocb, iocb, get_file(real.file));
->
-
-Right. I will fix and stage.
-
-> Looks good otherwise.
->
-
-I will take it as Reviewed-by ;-)
-and will do the same for symlink fileattr fix.
-
-Thanks,
-Amir.
+> Amir.
