@@ -2,189 +2,156 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F1FBC71153
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 15:04:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C51AEC83F2C
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 15:09:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234848AbjIDPEH (ORCPT
+        id S236296AbjIDPJP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Sep 2023 11:04:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36858 "EHLO
+        Mon, 4 Sep 2023 11:09:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36750 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229745AbjIDPEG (ORCPT
+        with ESMTP id S235331AbjIDPJP (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Sep 2023 11:04:06 -0400
-Received: from mail-oi1-x234.google.com (mail-oi1-x234.google.com [IPv6:2607:f8b0:4864:20::234])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61B201A5
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 08:04:03 -0700 (PDT)
-Received: by mail-oi1-x234.google.com with SMTP id 5614622812f47-3a76d882052so1141867b6e.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 04 Sep 2023 08:04:03 -0700 (PDT)
+        Mon, 4 Sep 2023 11:09:15 -0400
+Received: from mail-ot1-x32c.google.com (mail-ot1-x32c.google.com [IPv6:2607:f8b0:4864:20::32c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E5A2BD
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 08:09:11 -0700 (PDT)
+Received: by mail-ot1-x32c.google.com with SMTP id 46e09a7af769-6bd3317144fso1361595a34.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 04 Sep 2023 08:09:11 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693839842; x=1694444642; darn=vger.kernel.org;
+        d=gmail.com; s=20221208; t=1693840150; x=1694444950; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=59rHnvCwkGvp+C2ioyaihcU5hO+0rqS+8uBHQjvgafw=;
-        b=VtroQWkJlNOcsbASEoxAmzBUVHQ7LO4EbAyVwBbN15sg7uJy8BLthhTiaqCRF5C8Qo
-         wyh1uc2bWcluQ4Ehrb8jIWhR4/hNoJcGBvs+NWiUuYv2lLq7OYFi+0Anm4EuKuS76Nwx
-         LqJgcKjp4yl1H0RRuX71O2tS2OE7DnIo8qDd1lTjTDuVI/3iQXUQwmLTDNJ6ow+MK09q
-         EjL0zti850Xx7SxOR3c6KOf1X6s0JOgQhIj9YGdR5kx5+qTDWn3w8QGWuVxygxwrtetI
-         Xzp6Uov3T31HbQDOQiI4uHOM8oGu6FEFf1hrMXNGII8Hp63FfNP/RyzTB651X94/urYs
-         we6g==
+        bh=B8aXDqKxB3z9PsOFAHiQV01ufdENPCdMeiraEXTut4U=;
+        b=B+sjVKyZ8elPz6yNYh+WOQhY985Vn4VysyKekOHjYuqf1pIELEK3Ykw0arDf8KamLS
+         aH+M6sHVOuqoRZAjL3WhJXQDvxQAov3M6vgWCEbMbhm7F5slb4oFq7RxR76jkTZRd3Fy
+         ktEIZkzrIG312zdQghLRnjYAg4Z0UjwJX05yKXiyBJVbAQvfRtEq1ypbao8en+7k1HqD
+         ZSBr/6RkUpm9vtS1GR6GVjpRj6VHUsUAs5V0xEwsV5SU6gpuWQChuJSYY9H+6ZEQRhtl
+         e3XEH8jvWoBTB/urdcaPxWe2GYj58U+Nhj8UK81h4cgNFy2L6kCwJY5k5UKlRTmYivFG
+         RAoQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693839842; x=1694444642;
+        d=1e100.net; s=20221208; t=1693840150; x=1694444950;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=59rHnvCwkGvp+C2ioyaihcU5hO+0rqS+8uBHQjvgafw=;
-        b=BrpaML+x2DqJe8p5jFw60MmlE+ufPCuUcI+3l5/7CQmJHmO49qDv3CH1X6QCsUJZEb
-         VdsF66NP52XyU4ePk50/LiSU3gAOGpUeBIYqxE8A/nhGxtblrZl7f7RWcq4V4q3bHTTG
-         BVe4WtTCaOFv1mtvw5L3E8yogfF7nnyZz8Y3AO4lgdgHPEt/SFBkKptRN/R3bVRJFQff
-         x+BbpHNB5H9HLcRARHaJhHY7NZVBNFvdh0fs2bCeaGb8yEl8QMxdHDQL6L28FP2vZTW8
-         CiDrs1NoYtIepun8/mfsM3oGH2MYmg/ymF1MB0/KnVkkrBj1gc/YQkQmphM9+BF7x9RG
-         OCDw==
-X-Gm-Message-State: AOJu0YzLsqzNY1r1bhHTMQGQl919AfTX1SHDZ1ou4Y/AHYatj7pxzQWG
-        HF+97hBa+nR4zbP0pzRBwrpCvN4/cPpxHjx18ns=
-X-Google-Smtp-Source: AGHT+IHqUCRs3MHBsV+mLJMPdjl/bJGr0ZNTQpWUEzJXOLu68iIzpjURUi9Qr5IyYNJtZ6Y27DL07UqMlhC0TPZF3KQ=
-X-Received: by 2002:a05:6808:d52:b0:3a7:49f1:1d7d with SMTP id
- w18-20020a0568080d5200b003a749f11d7dmr12241921oik.41.1693839842498; Mon, 04
- Sep 2023 08:04:02 -0700 (PDT)
+        bh=B8aXDqKxB3z9PsOFAHiQV01ufdENPCdMeiraEXTut4U=;
+        b=ZP/W3guZGbtIZt1wqVleUTwhksW/RG6L8Nx9FB1hfnEL17IYezCm97MHrbGQLiFNiW
+         qFLZGmqc8hOnqlYi9iP2KTvGuuvdv1dNb5etafw3oxQZghYPbsTku6gTxfxXDv40jzmb
+         peo74ipuM1ymKQ2QV71/vvujk3U8N3tCpj478HnEp7YYK4m91NeiyRIp5Hzl12y021sy
+         M0o7JX1GHUw6HoIXFup88MKg3iWzSCTXX0aD+EJUdz/OVujK8vxREBVq+wXEZQa8tJZ6
+         t26a35Rv7NW/6V+WIpJLwX9m6ACokwrRdB2XsFJ66z4acCfPlDBAcfBDSLg6ezx40D96
+         iUcA==
+X-Gm-Message-State: AOJu0YzZS5Lq8gxvZ3fwYSGOe0ZGd91PInoSjbAs9km/0e3duFmrOmpL
+        x3rdVxjePtr6N1x6kqyDur1kEKOrN3VTxZC6inZh27DX
+X-Google-Smtp-Source: AGHT+IE1tbShtJHl6VzDF4Fwi6FCkLvRLzWbMU3B+g2I9CzKCEIA+pnZAEyNF7oJ3+3XL9vQrMfnSSOAz2nrYJHGYL8=
+X-Received: by 2002:a9d:7d10:0:b0:6bd:af4:274d with SMTP id
+ v16-20020a9d7d10000000b006bd0af4274dmr11078492otn.8.1693840150703; Mon, 04
+ Sep 2023 08:09:10 -0700 (PDT)
 MIME-Version: 1.0
-References: <a05e13c7-2fc2-77d8-05b5-759a73d7f5e2@linux.alibaba.com>
- <CAOQ4uxj_gM1BBCUE6p=TfVketOZohLPZs3fbw0BLacQFKEsuGg@mail.gmail.com>
- <9a89150e-cd84-c541-8088-41c2dfe863ac@linux.alibaba.com> <fe799167-249b-8fe2-a6c8-b222ac9acaf0@linux.alibaba.com>
- <CAOQ4uxgAoxgjQV2R0CJr-9UpyMTwdbGMYKb+qApco1YjBzE2HA@mail.gmail.com> <6a43ee5c-cc25-ff9f-1198-7c2b445d3775@linux.alibaba.com>
-In-Reply-To: <6a43ee5c-cc25-ff9f-1198-7c2b445d3775@linux.alibaba.com>
+References: <20230904144718.2707411-1-amir73il@gmail.com> <CAJfpegvP+_ERUU_LvB2b=N13C=vqczYmtTrbM=opjXKYmva4Vw@mail.gmail.com>
+In-Reply-To: <CAJfpegvP+_ERUU_LvB2b=N13C=vqczYmtTrbM=opjXKYmva4Vw@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 4 Sep 2023 18:03:51 +0300
-Message-ID: <CAOQ4uxgiBNcD-vBi3OLF5Nc8gHYS-Hm1=yA4+At=nRUk18A9ng@mail.gmail.com>
-Subject: Re: [potential issue, question] whiteout shows up in merged directory
-To:     Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc:     Jingbo Xu <jefflexu@linux.alibaba.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Xiang Gao <xiang@kernel.org>,
-        "zhangyi (F)" <yi.zhang@huawei.com>, kmxz <kxzkxz7139@gmail.com>
+Date:   Mon, 4 Sep 2023 18:08:59 +0300
+Message-ID: <CAOQ4uxiuZHhxBMupBPTmkf8rg3QQM7M=7EPg9XmNeGZOR9Eb=Q@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix incorrect fdput() on aio completion
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     yangerkun <yangerkun@huawei.com>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Sep 4, 2023 at 5:38=E2=80=AFPM Gao Xiang <hsiangkao@linux.alibaba.c=
-om> wrote:
+On Mon, Sep 4, 2023 at 6:03=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
+rote:
 >
-> Hi Amir,
->
-> On 2023/9/4 22:07, Amir Goldstein wrote:
-> > On Mon, Sep 4, 2023 at 4:27=E2=80=AFPM Gao Xiang <hsiangkao@linux.aliba=
-ba.com> wrote:
-> >>
-> >>
-> >>
-> >> On 2023/9/4 20:49, Jingbo Xu wrote:
-> >>
-> >> ...
-> >>
-> >>>
-> >>> Thanks for the reply and it's really helpful to me.
-> >>>
-> >>> I can understand in the normal use case, whiteout can not appear in
-> >>> non-merged directory without origin xattr, except it's hand crafted.
-> >>>
-> >>> But indeed we suffer from this issue in the tarfs for erofs-utils we =
-are
-> >>> developing. As described previously, in tarfs mode erofs-utils can
-> >>> convert each tar layer into one separate erofs image, and then merge
-> >>> these erofs images into one merged erofs image in a overlayfs-like mo=
-del.
-> >>>
-> >>> Suppose:
-> >>>
-> >>> layer 0 + layer 1   +        layer 2         -->  merged
-> >>>          /foo/bar   /foo/bar (whiteout)
-> >>>
-> >>>
-> >>> To speed the merging process, we may merge the two top-most layers
-> >>> (layer 1 and layer 2) first, and then make layer0 merged into the fin=
-al
-> >>> merged image as:
-> >>>
-> >>>
-> >>>
-> >>>              layer 1   +        layer 2         -->  merged-intermedi=
-ate
-> >>>          /foo/bar   /foo/bar (whiteout)
-> >>>
-> >>> layer0 + merged-intermediate                -->  merged
-> >>
-> >>
-> >> I could add some more background to this, assuming layer 0 is a
-> >> baseos layer (e.g. almost all images use this layer); and layer 1 +
-> >> layer 2 belongs to some specific workload images;
-> >>
-> >> since layer 1 + layer 2 are always used together, so we could merge
-> >> layer 1 + layer 2 as a new merged layer to avoid extra overhead of
-> >> too many overlay layer dirs (but to simplify, here we just illustrate
-> >> layer 1 and layer 2, there could be layer 3, 4, ...), but layer 1 +
-> >> layer 2 has no relationship with layer 0 in principle (in principle,
-> >> merge tool doesn't need to know if layer 0 or any underlay layer
-> >> exists).
-> >>
-> >> So if we merge layer 1 + layer 2 here first, and use layer0 together
-> >> with the merged layer, it could generate such whiteout cases
-> >> described before.
-> >>
-> > ...
-> >>>
-> >>> Then there comes the problem: when merging layer1 and layer2, I need =
-to
-> >>> keep the whiteout in the intermediate merged image though the target =
-of
-> >>> the whiteout has showed up in underlying layer (/foo/bar in layer 1),
-> >>> because I have no idea if "/foo/bar" exits in the following further
-> >>> underlying layer (layer 0).  Reusing this logic, the whiteout is kept
-> >>> there in the final merged image after merging layer0 and
-> >>> merged-intermediate.
-> >>>
-> >>> Then if "/foo" is not a merged directory, the "/foo/bar" whiteout wil=
-l
-> >>> be exposed in the overlayfs unexpectedly.
-> >>>
-> >>> Currently we work around this in erofs-utils side.  Apart from settin=
-g
-> >>> origin xattr on the parent directory of the whiteout, I'm not sure if
-> >>> the above use case is reasonable enough to fix this in the kernel sid=
-e.
-> >>>
-> >> Anyway, we could work around this in the merge tool, but I'm not
-> >> sure if it's a design constaint of overlayfs.
-> >>
+> On Mon, 4 Sept 2023 at 16:47, Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > Let me put it this way:
-> > If there was an official offline tool to merge overlayfs layers
-> > I would expect that tool to mark the offline merged directories
-> > with an empty "trusted.overlayfs.origin", to be able to distinguish
-> > them from pure non-merge directories.
+> > ovl_{read,write}_iter() always call fdput(real) to put one or zero
+> > refcounts of the real file, but for aio, whether it was submitted or no=
+t,
+> > ovl_aio_put() also calls fdput(), which is not balanced.  This is only =
+a
+> > problem in the less common case when FDPUT_FPUT flag is set.
 > >
-> > I do not consider dealing with this in erofs-utils side a workaround
-> > I consider it crafting layers in expected overlayfs format.
+> > To fix the problem use get_file() to take file refcount and use fput()
+> > instead of fdput() in ovl_aio_put().
+> >
+> > Fixes: 2406a307ac7d ("ovl: implement async IO routines")
+> > Cc: <stable@vger.kernel.org> # v5.6
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+> > Miklos,
+> >
+> > This is the refcount leak fix that I found during work on backing_fs [1=
+]
+> > that deserves to be fast tracked into stable.
+> >
+> > If it's ok with you, I will prepare a PR after rc1 including this
+> > fix and the symlink fileattr fix.
 >
-> Thanks for the hints.
+> Looks good.
 >
-> Ok, marking impure makes sense as long as it's properly described.
+> Thanks,
+> Miklos
 >
-> Just tried to describe the background since the question I think
-> is not quite erofs-utils specific, btw, if there could be some
-> reference official offline tool, that would be great!
+>
+> >
+> > Thanks,
+> > Amir.
+> >
+> > [1] https://lore.kernel.org/r/CAOQ4uxgzYevVCaGBjjckOr1vv0gKvVPYiOAL6E_K=
+QY-YQx_7hg@mail.gmail.com/
+> >
+> >  fs/overlayfs/file.c | 7 +++----
+> >  1 file changed, 3 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > index 3b4cc633d763..c743820e5c61 100644
+> > --- a/fs/overlayfs/file.c
+> > +++ b/fs/overlayfs/file.c
+> > @@ -19,7 +19,6 @@ struct ovl_aio_req {
+> >         struct kiocb iocb;
+> >         refcount_t ref;
+> >         struct kiocb *orig_iocb;
+> > -       struct fd fd;
+> >  };
+> >
+> >  static struct kmem_cache *ovl_aio_request_cachep;
+> > @@ -280,7 +279,7 @@ static rwf_t ovl_iocb_to_rwf(int ifl)
+> >  static inline void ovl_aio_put(struct ovl_aio_req *aio_req)
+> >  {
+> >         if (refcount_dec_and_test(&aio_req->ref)) {
+> > -               fdput(aio_req->fd);
+> > +               fput(aio_req->iocb.ki_filp);
+> >                 kmem_cache_free(ovl_aio_request_cachep, aio_req);
+> >         }
+> >  }
+> > @@ -342,7 +341,7 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, st=
+ruct iov_iter *iter)
+> >                 if (!aio_req)
+> >                         goto out;
+> >
+> > -               aio_req->fd =3D real;
+> > +               get_file(real.file);
+> >                 real.flags =3D 0;
+> >                 aio_req->orig_iocb =3D iocb;
+> >                 kiocb_clone(&aio_req->iocb, iocb, real.file);
+>
+> It might be clearer to do the get_file() here:
+>
+> +                 kiocb_clone(&aio_req->iocb, iocb, get_file(real.file));
 >
 
-There is this tool from kmxz that supports offline merge:
-https://github.com/kmxz/overlayfs-tools
-but it is not in any way "official".
+Right. I will fix and stage.
 
-I have contributed redirect and metacopy support in 2020
-and there hasn't been much traffic since.
-This tool does not deal with origin and impure xattrs.
+> Looks good otherwise.
+>
+
+I will take it as Reviewed-by ;-)
+and will do the same for symlink fileattr fix.
 
 Thanks,
 Amir.
