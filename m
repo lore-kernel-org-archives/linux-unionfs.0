@@ -2,126 +2,117 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 604EEC88CB2
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 13:24:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAB70C83F2C
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 13:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234273AbjIDNYx (ORCPT
+        id S230233AbjIDN1l (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Sep 2023 09:24:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37468 "EHLO
+        Mon, 4 Sep 2023 09:27:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232760AbjIDNYu (ORCPT
+        with ESMTP id S242377AbjIDN1i (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Sep 2023 09:24:50 -0400
-Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 827F4C1
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 06:24:47 -0700 (PDT)
-Received: by mail-wm1-x330.google.com with SMTP id 5b1f17b1804b1-401b5516104so14221345e9.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 04 Sep 2023 06:24:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1693833886; x=1694438686; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=v/SC07s540vJG4374KyhVRU0O6m71PwbG6X0SG009wo=;
-        b=QfQvIiXHzev5OlQ7I86GDu6/q0wNlmdp9+7IIAjUsZJ8LB9CAayTIIPC/tRE9v8Lsr
-         EVEXeICI1/nN33drtj7GsuklmjBKrXWZ8Zf540R0L0Vahf1JuGWyyJly+OS3+68h8ZPD
-         hcpyl/bpK3eXasCPfQNrx6sNVENKU957HCztakspRBwegLhO2fIrl0bpqSSPFvcV39fv
-         pIlnI9CdSXRMY9FYJpVu2gv8nbWU+V7mfhoIYad7N4NXd9MnDIY4g+8RA18s7bvFVJ9q
-         wBwxVv4Dg7txF5ZKh+ZSe9/oIKr/wRALhtwNev02wA3gsSWUYWmXHFAAoE7S+N0biJg6
-         QDxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693833886; x=1694438686;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=v/SC07s540vJG4374KyhVRU0O6m71PwbG6X0SG009wo=;
-        b=HalmVbGf39XxE68ujyvbRgjBlaXaO3EB3mClIfEcBepb0RepBGm93WfnlNJP9i579u
-         rV05ojFZIj3GWfm3OH+q6K6rb4d7mISbIN4VWo+0wHpf3Qc+Zdoay9bR0ywpDZ+uMZ7q
-         VFRXlzy7DEp7b9AFkW1ko8lTdTyC20zkfeSTc86DK962buYvJSxgOzZREgyfVJV5da+K
-         nKN1ix1hK/Jst4Z9n93sruzOQSmKGZYmqrUPyWsPFQEYoEfAYT1yvkbWYYObUqMII68+
-         XrCIIgJeI4Q14DVEZ0n9n52FnBOxoyLl/rj3yxfgd86bIz/u57r1bSG9t3TrLdXjwtZe
-         /xRg==
-X-Gm-Message-State: AOJu0YzrSBHPzTSkbdvMeAzkFMsitRPbkNO44laeQCVT9Bu+Gkv4KLL2
-        vSvx6q0XFUKAz+1XDIE6bhs=
-X-Google-Smtp-Source: AGHT+IEruNB/fNR1uvhM1IvuvY01KSRuy/xAw47lTOu79nzPA4Y/MkZ5CidWMiAbDcGDB9tPs5GKhg==
-X-Received: by 2002:a7b:c4c7:0:b0:3fe:d6bf:f314 with SMTP id g7-20020a7bc4c7000000b003fed6bff314mr6844657wmk.39.1693833885643;
-        Mon, 04 Sep 2023 06:24:45 -0700 (PDT)
-Received: from amir-ThinkPad-T480.ctera.local (bzq-166-168-31-246.red.bezeqint.net. [31.168.166.246])
-        by smtp.gmail.com with ESMTPSA id r5-20020adfe685000000b003143867d2ebsm14572736wrm.63.2023.09.04.06.24.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 Sep 2023 06:24:45 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org
-Subject: [PATCH] ovl: fix failed copyup of fileattr on a symlink
-Date:   Mon,  4 Sep 2023 16:24:41 +0300
-Message-Id: <20230904132441.2680355-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        Mon, 4 Sep 2023 09:27:38 -0400
+Received: from out30-99.freemail.mail.aliyun.com (out30-99.freemail.mail.aliyun.com [115.124.30.99])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A44B0CD5
+        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 06:27:25 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R201e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=6;SR=0;TI=SMTPD_---0VrMGhM7_1693834039;
+Received: from 192.168.3.4(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VrMGhM7_1693834039)
+          by smtp.aliyun-inc.com;
+          Mon, 04 Sep 2023 21:27:21 +0800
+Message-ID: <fe799167-249b-8fe2-a6c8-b222ac9acaf0@linux.alibaba.com>
+Date:   Mon, 4 Sep 2023 21:27:18 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.13.0
+Subject: Re: [potential issue, question] whiteout shows up in merged directory
+To:     Jingbo Xu <jefflexu@linux.alibaba.com>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        overlayfs <linux-unionfs@vger.kernel.org>,
+        Xiang Gao <xiang@kernel.org>,
+        "zhangyi (F)" <yi.zhang@huawei.com>
+References: <a05e13c7-2fc2-77d8-05b5-759a73d7f5e2@linux.alibaba.com>
+ <CAOQ4uxj_gM1BBCUE6p=TfVketOZohLPZs3fbw0BLacQFKEsuGg@mail.gmail.com>
+ <9a89150e-cd84-c541-8088-41c2dfe863ac@linux.alibaba.com>
+From:   Gao Xiang <hsiangkao@linux.alibaba.com>
+In-Reply-To: <9a89150e-cd84-c541-8088-41c2dfe863ac@linux.alibaba.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Some local filesystems support setting persistent fileattr flags
-(e.g. FS_NOATIME_FL) on directories and regular files via ioctl.
-Some of those persistent fileattr flags are reflected to vfs as
-in-memory inode flags (e.g. S_NOATIME).
 
-Overlayfs uses the in-memory inode flags (e.g. S_NOATIME) on a lower file
-as an indication that a the lower file may have persistent inode fileattr
-flags (e.g. FS_NOATIME_FL) that need to be copied to upper file.
 
-However, in some cases, the S_NOATIME in-memory flag could be a false
-indication for persistent FS_NOATIME_FL fileattr. For example, with NFS
-and FUSE lower fs, as was the case in the two bug reports, the S_NOATIME
-flag is set unconditionally for all inodes.
+On 2023/9/4 20:49, Jingbo Xu wrote:
 
-Users cannot set persistent fileattr flags on symlinks and special files,
-but in some local fs, such as ext4/btrfs/tmpfs, the FS_NOATIME_FL fileattr
-flag are inheritted to symlinks and special files from parent directory.
+...
 
-In both cases described above, when lower symlink has the S_NOATIME flag,
-overlayfs will try to copy the symlink's fileattrs and fail with error
-ENOXIO, because it could not open the symlink for the ioctl security hook.
+> 
+> Thanks for the reply and it's really helpful to me.
+> 
+> I can understand in the normal use case, whiteout can not appear in
+> non-merged directory without origin xattr, except it's hand crafted.
+> 
+> But indeed we suffer from this issue in the tarfs for erofs-utils we are
+> developing. As described previously, in tarfs mode erofs-utils can
+> convert each tar layer into one separate erofs image, and then merge
+> these erofs images into one merged erofs image in a overlayfs-like model.
+> 
+> Suppose:
+> 
+> layer 0 + layer 1   +        layer 2         -->  merged
+> 	  /foo/bar   /foo/bar (whiteout)
+> 
+> 
+> To speed the merging process, we may merge the two top-most layers
+> (layer 1 and layer 2) first, and then make layer0 merged into the final
+> merged image as:
+> 
+> 
+> 
+>             layer 1   +        layer 2         -->  merged-intermediate
+> 	  /foo/bar   /foo/bar (whiteout)
+> 
+> layer0 + merged-intermediate		      -->  merged
 
-To solve this failure, do not attempt to copyup fileattrs for anything
-other than directories and regular files.
 
-Reported-by: Ruiwen Zhao <ruiwen@google.com>
-Link: https://lore.kernel.org/r/CAKd=y5Hpg7J2gxrFT02F94o=FM9QvGp=kcH1Grctx8HzFYvpiA@mail.gmail.com/
-Fixes: 72db82115d2b ("ovl: copy up sync/noatime fileattr flags")
-Cc: <stable@vger.kernel.org> # v5.15
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
+I could add some more background to this, assuming layer 0 is a
+baseos layer (e.g. almost all images use this layer); and layer 1 +
+layer 2 belongs to some specific workload images;
 
-Hi Miklos,
+since layer 1 + layer 2 are always used together, so we could merge
+layer 1 + layer 2 as a new merged layer to avoid extra overhead of
+too many overlay layer dirs (but to simplify, here we just illustrate
+layer 1 and layer 2, there could be layer 3, 4, ...), but layer 1 +
+layer 2 has no relationship with layer 0 in principle (in principle,
+merge tool doesn't need to know if layer 0 or any underlay layer
+exists).
 
-Do you agree with this solution?
+So if we merge layer 1 + layer 2 here first, and use layer0 together
+with the merged layer, it could generate such whiteout cases
+described before.
 
-See fstests at:
-https://github.com/amir73il/xfstests/blob/overlayfs-devel/tests/overlay/082
+Anyway, we could work around this in the merge tool, but I'm not
+sure if it's a design constaint of overlayfs.
 
 Thanks,
-Amir.
+Gao Xiang
 
- fs/overlayfs/copy_up.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index bae404a1bad4..d1761ec5866a 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -618,7 +618,8 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 	if (err)
- 		return err;
- 
--	if (inode->i_flags & OVL_COPY_I_FLAGS_MASK) {
-+	if (inode->i_flags & OVL_COPY_I_FLAGS_MASK &&
-+	    (S_ISREG(c->stat.mode) || S_ISDIR(c->stat.mode))) {
- 		/*
- 		 * Copy the fileattr inode flags that are the source of already
- 		 * copied i_flags
--- 
-2.34.1
-
+> 
+> Then there comes the problem: when merging layer1 and layer2, I need to
+> keep the whiteout in the intermediate merged image though the target of
+> the whiteout has showed up in underlying layer (/foo/bar in layer 1),
+> because I have no idea if "/foo/bar" exits in the following further
+> underlying layer (layer 0).  Reusing this logic, the whiteout is kept
+> there in the final merged image after merging layer0 and
+> merged-intermediate.
+> 
+> Then if "/foo" is not a merged directory, the "/foo/bar" whiteout will
+> be exposed in the overlayfs unexpectedly.
+> 
+> Currently we work around this in erofs-utils side.  Apart from setting
+> origin xattr on the parent directory of the whiteout, I'm not sure if
+> the above use case is reasonable enough to fix this in the kernel side.
+> 
