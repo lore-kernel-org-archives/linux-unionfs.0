@@ -2,88 +2,136 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E42CC83F2C
-	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 15:13:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 154A0CA1005
+	for <linux-unionfs@archiver.kernel.org>; Mon,  4 Sep 2023 18:11:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237826AbjIDPNC (ORCPT
+        id S1353464AbjIDSLX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 4 Sep 2023 11:13:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37914 "EHLO
+        Mon, 4 Sep 2023 14:11:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229854AbjIDPNB (ORCPT
+        with ESMTP id S1353426AbjIDSLQ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 4 Sep 2023 11:13:01 -0400
-Received: from out30-98.freemail.mail.aliyun.com (out30-98.freemail.mail.aliyun.com [115.124.30.98])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA9F6CC3
-        for <linux-unionfs@vger.kernel.org>; Mon,  4 Sep 2023 08:12:57 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R821e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045168;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=7;SR=0;TI=SMTPD_---0VrMNdsz_1693840371;
-Received: from 30.25.202.3(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VrMNdsz_1693840371)
-          by smtp.aliyun-inc.com;
-          Mon, 04 Sep 2023 23:12:54 +0800
-Message-ID: <bc9b3731-9eac-28be-e635-44a098e87d76@linux.alibaba.com>
-Date:   Mon, 4 Sep 2023 23:12:50 +0800
+        Mon, 4 Sep 2023 14:11:16 -0400
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86573197;
+        Mon,  4 Sep 2023 11:11:12 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (No client certificate requested)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 9A8C7CE0E24;
+        Mon,  4 Sep 2023 18:11:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id C9A2DC433C8;
+        Mon,  4 Sep 2023 18:11:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1693851068;
+        bh=KWuluqFF5yFV+lOCkFnoct0phRXw96Jca/CuZaTU2kY=;
+        h=Subject:From:Date:References:In-Reply-To:To:Cc:From;
+        b=K3gkbkhJRwgpsacHeBsq0A7kucjUSGo8OzMP1ouPw/XPyf9sD5QK/Sf142+usc7ZE
+         C827H7oMTO9xQURopm4EWqGoFioLBjSEY4gmbRDnvHI4L+ywXrxJRVy5ldQmRaAtfj
+         1pffFi8IArgTV4dPuYUPdlhMXVuT7Hb/6kEuD4lj+4NJdrul8tjUb9OXjEUjpGn+jT
+         2ndFdt5oPLx5wHtLQ20DiaB9Xl09djxp9OA/4zW9QgSOHR3JDKxABg9kMIgFr5Ox62
+         wqlEdaiOf1aM8ubxkjKV3yvjnRyA83mc2npN6NfYoiPdtaZLbxGvWm4TgDkfWkglX8
+         L2qkw/qB1Voxg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id A2BE4C04E26;
+        Mon,  4 Sep 2023 18:11:08 +0000 (UTC)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.13.0
-Subject: Re: [potential issue, question] whiteout shows up in merged directory
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Jingbo Xu <jefflexu@linux.alibaba.com>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        overlayfs <linux-unionfs@vger.kernel.org>,
-        Xiang Gao <xiang@kernel.org>,
-        "zhangyi (F)" <yi.zhang@huawei.com>, kmxz <kxzkxz7139@gmail.com>
-References: <a05e13c7-2fc2-77d8-05b5-759a73d7f5e2@linux.alibaba.com>
- <CAOQ4uxj_gM1BBCUE6p=TfVketOZohLPZs3fbw0BLacQFKEsuGg@mail.gmail.com>
- <9a89150e-cd84-c541-8088-41c2dfe863ac@linux.alibaba.com>
- <fe799167-249b-8fe2-a6c8-b222ac9acaf0@linux.alibaba.com>
- <CAOQ4uxgAoxgjQV2R0CJr-9UpyMTwdbGMYKb+qApco1YjBzE2HA@mail.gmail.com>
- <6a43ee5c-cc25-ff9f-1198-7c2b445d3775@linux.alibaba.com>
- <CAOQ4uxgiBNcD-vBi3OLF5Nc8gHYS-Hm1=yA4+At=nRUk18A9ng@mail.gmail.com>
-From:   Gao Xiang <hsiangkao@linux.alibaba.com>
-In-Reply-To: <CAOQ4uxgiBNcD-vBi3OLF5Nc8gHYS-Hm1=yA4+At=nRUk18A9ng@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Subject: Re: [f2fs-dev] [PATCH v7 00/13] fs: implement multigrain timestamps
+From:   patchwork-bot+f2fs@kernel.org
+Message-Id: <169385106866.19669.14483196627780303129.git-patchwork-notify@kernel.org>
+Date:   Mon, 04 Sep 2023 18:11:08 +0000
+References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
+In-Reply-To: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     viro@zeniv.linux.org.uk, brauner@kernel.org, ericvh@kernel.org,
+        lucho@ionkov.net, asmadeus@codewreck.org, linux_oss@crudebyte.com,
+        dhowells@redhat.com, marc.dionne@auristor.com, clm@fb.com,
+        josef@toxicpanda.com, dsterba@suse.com, xiubli@redhat.com,
+        idryomov@gmail.com, jaharkes@cs.cmu.edu, coda@cs.cmu.edu,
+        code@tyhicks.com, xiang@kernel.org, chao@kernel.org,
+        huyue2@coolpad.com, jefflexu@linux.alibaba.com,
+        linkinjeon@kernel.org, sj1557.seo@samsung.com, jack@suse.com,
+        tytso@mit.edu, adilger.kernel@dilger.ca, jaegeuk@kernel.org,
+        hirofumi@mail.parknet.co.jp, miklos@szeredi.hu,
+        rpeterso@redhat.com, agruenba@redhat.com,
+        gregkh@linuxfoundation.org, tj@kernel.org,
+        trond.myklebust@hammerspace.com, anna@kernel.org,
+        almaz.alexandrovich@paragon-software.com, mark@fasheh.com,
+        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
+        hubcap@omnibond.com, martin@omnibond.com, mcgrof@kernel.org,
+        keescook@chromium.org, yzaikin@google.com, sfrench@samba.org,
+        pc@manguebit.com, ronniesahlberg@gmail.com, sprasad@microsoft.com,
+        tom@talpey.com, senozhatsky@chromium.org, richard@nod.at,
+        hdegoede@redhat.com, hughd@google.com, akpm@linux-foundation.org,
+        amir73il@gmail.com, djwong@kernel.org, bcodding@redhat.com,
+        jack@suse.cz, linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-mtd@lists.infradead.org, linux-afs@lists.infradead.org,
+        linux-cifs@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        cluster-devel@redhat.com, linux-ext4@vger.kernel.org,
+        devel@lists.orangefs.org, ecryptfs@vger.kernel.org,
+        ocfs2-devel@lists.linux.dev, ceph-devel@vger.kernel.org,
+        linux-nfs@vger.kernel.org, v9fs@lists.linux.dev,
+        samba-technical@lists.samba.org, linux-unionfs@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, linux-xfs@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, ntfs3@lists.linux.dev,
+        linux-erofs@lists.ozlabs.org, linux-btrfs@vger.kernel.org
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+Hello:
 
+This series was applied to jaegeuk/f2fs.git (dev)
+by Christian Brauner <brauner@kernel.org>:
 
-On 2023/9/4 23:03, Amir Goldstein wrote:
-> On Mon, Sep 4, 2023 at 5:38 PM Gao Xiang <hsiangkao@linux.alibaba.com> wrote:
-
-..
-
->>>>
->>>
->>> Let me put it this way:
->>> If there was an official offline tool to merge overlayfs layers
->>> I would expect that tool to mark the offline merged directories
->>> with an empty "trusted.overlayfs.origin", to be able to distinguish
->>> them from pure non-merge directories.
->>>
->>> I do not consider dealing with this in erofs-utils side a workaround
->>> I consider it crafting layers in expected overlayfs format.
->>
->> Thanks for the hints.
->>
->> Ok, marking impure makes sense as long as it's properly described.
->>
->> Just tried to describe the background since the question I think
->> is not quite erofs-utils specific, btw, if there could be some
->> reference official offline tool, that would be great!
->>
+On Mon, 07 Aug 2023 15:38:31 -0400 you wrote:
+> The VFS always uses coarse-grained timestamps when updating the
+> ctime and mtime after a change. This has the benefit of allowing
+> filesystems to optimize away a lot metadata updates, down to around 1
+> per jiffy, even when a file is under heavy writes.
 > 
-> There is this tool from kmxz that supports offline merge:
-> https://github.com/kmxz/overlayfs-tools
-> but it is not in any way "official".
+> Unfortunately, this coarseness has always been an issue when we're
+> exporting via NFSv3, which relies on timestamps to validate caches. A
+> lot of changes can happen in a jiffy, so timestamps aren't sufficient to
+> help the client decide to invalidate the cache.
 > 
-> I have contributed redirect and metacopy support in 2020
-> and there hasn't been much traffic since.
-> This tool does not deal with origin and impure xattrs.
+> [...]
 
-Thanks, very useful link! will also check this later.
+Here is the summary with links:
+  - [f2fs-dev,v7,01/13] fs: remove silly warning from current_time
+    https://git.kernel.org/jaegeuk/f2fs/c/b3030e4f2344
+  - [f2fs-dev,v7,02/13] fs: pass the request_mask to generic_fillattr
+    https://git.kernel.org/jaegeuk/f2fs/c/0d72b92883c6
+  - [f2fs-dev,v7,03/13] fs: drop the timespec64 arg from generic_update_time
+    https://git.kernel.org/jaegeuk/f2fs/c/541d4c798a59
+  - [f2fs-dev,v7,04/13] btrfs: have it use inode_update_timestamps
+    https://git.kernel.org/jaegeuk/f2fs/c/bb7cc0a62e47
+  - [f2fs-dev,v7,05/13] fat: make fat_update_time get its own timestamp
+    (no matching commit)
+  - [f2fs-dev,v7,06/13] ubifs: have ubifs_update_time use inode_update_timestamps
+    (no matching commit)
+  - [f2fs-dev,v7,07/13] xfs: have xfs_vn_update_time gets its own timestamp
+    (no matching commit)
+  - [f2fs-dev,v7,08/13] fs: drop the timespec64 argument from update_time
+    (no matching commit)
+  - [f2fs-dev,v7,09/13] fs: add infrastructure for multigrain timestamps
+    https://git.kernel.org/jaegeuk/f2fs/c/ffb6cf19e063
+  - [f2fs-dev,v7,10/13] tmpfs: add support for multigrain timestamps
+    https://git.kernel.org/jaegeuk/f2fs/c/d48c33972916
+  - [f2fs-dev,v7,11/13] xfs: switch to multigrain timestamps
+    (no matching commit)
+  - [f2fs-dev,v7,12/13] ext4: switch to multigrain timestamps
+    https://git.kernel.org/jaegeuk/f2fs/c/0269b585868e
+  - [f2fs-dev,v7,13/13] btrfs: convert to multigrain timestamps
+    https://git.kernel.org/jaegeuk/f2fs/c/50e9ceef1d4f
 
-> 
-> Thanks,
-> Amir.
+You are awesome, thank you!
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/patchwork/pwbot.html
+
+
