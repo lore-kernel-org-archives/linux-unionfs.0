@@ -2,172 +2,157 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DC5F0CCF9E9
-	for <linux-unionfs@archiver.kernel.org>; Wed,  6 Sep 2023 00:20:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1278EEC873E
+	for <linux-unionfs@archiver.kernel.org>; Thu,  7 Sep 2023 16:11:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232006AbjIFAUF (ORCPT
+        id S234662AbjIGQLC (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 5 Sep 2023 20:20:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54170 "EHLO
+        Thu, 7 Sep 2023 12:11:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229469AbjIFAUE (ORCPT
+        with ESMTP id S235597AbjIGQKp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 5 Sep 2023 20:20:04 -0400
-Received: from mail-qv1-xf36.google.com (mail-qv1-xf36.google.com [IPv6:2607:f8b0:4864:20::f36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78589C2
-        for <linux-unionfs@vger.kernel.org>; Tue,  5 Sep 2023 17:20:00 -0700 (PDT)
-Received: by mail-qv1-xf36.google.com with SMTP id 6a1803df08f44-6516a8e2167so18803726d6.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 05 Sep 2023 17:20:00 -0700 (PDT)
+        Thu, 7 Sep 2023 12:10:45 -0400
+Received: from mail-yw1-x1131.google.com (mail-yw1-x1131.google.com [IPv6:2607:f8b0:4864:20::1131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A4067A9E
+        for <linux-unionfs@vger.kernel.org>; Thu,  7 Sep 2023 09:06:17 -0700 (PDT)
+Received: by mail-yw1-x1131.google.com with SMTP id 00721157ae682-58ca499456dso11678477b3.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 07 Sep 2023 09:06:17 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20221208; t=1693959599; x=1694564399; darn=vger.kernel.org;
+        d=gmail.com; s=20221208; t=1694102704; x=1694707504; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=8gUanDTBJLT6YkNoFBDuHA2hli46RjA2kLxjH0vZLVM=;
-        b=i8gkzbfrvD3IvNRDHBa5/BQL3R6dNoOWShzVJI9U1SEGXMjpyrzR7jbVoioUc14Ez8
-         7tBoEFzDEkYVaGNsK93B/qwPrjoj/81Mu9k40LXGa3K2YPCYjTv/WXw0V/ASiCfNn8sG
-         ZA2/IVztWwDpgVwKqNe2qMbxf3pIch9V6/3/poR5ZWVgnn615uEosi8ZbvN8Qtq7nb0B
-         dZ4si/jA9GN4bGD4cHM93hRHWOSOpwULtYYAp7Bz+ShUehKu7YRT+r7oad9zHy52DGSo
-         CBZG9kTp91kJJvqrH6Y4EqMuviSVLncspGwMWAxwMlj3kBkvk+eIz1NevCeex6yiiPOo
-         Xt8g==
+        bh=tIW1wQnbn7QifvC78y9tLpOKuKJRAApzYD1rdxYpBy4=;
+        b=HrDLnOLNZMGpbFyUPmQuDWdykbyHfcxYbJz/Le4/uS5mpLVgLA2azwGv3/LicnWQDm
+         SPe8eUjjjCDjjqG/bcB0xG9prL5GkmMsAUdnGjS884eI+Z4bf/WH/6AVfux3oirkJeAe
+         Z3JvabXlVmb1JkjUdUWNyl18e59UmTxd0ABd7oe1KbQ+woLGkqaWln3KFgHk/uxbh0Za
+         R/nuvEpS3FASquFWs37+WWVEprzRmuFYkiMiOtWZ7zbtjbnbIuL9Y7FmdFZAu9PAl4xi
+         qNFwa5sYiRZyslbOHFI95trQaPwWTPaXQ9fUh7Pa+/JKb+Fh4InOZVZ2JWAXsStDlhv0
+         YYig==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20221208; t=1693959599; x=1694564399;
+        d=1e100.net; s=20221208; t=1694102704; x=1694707504;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=8gUanDTBJLT6YkNoFBDuHA2hli46RjA2kLxjH0vZLVM=;
-        b=mDjizeO2I+7bH+dKC+fwlSIuWpFg1txTTUotOq6daFII6c8ujMezIzLl2s14n/xwMN
-         AjhdwsD5CjOWOxx7ooslFEkCeDpU6P/7uHzPaIU+VvFwmXQnf/sJJ+MabkwZ0AroVL80
-         XlIWGWcz8311oYmWvBNWLsqPiibYLsOShS7/4BturlBUIkv8W5ILq9srXfoUgOEVeSex
-         NOcjUxJRVKzgKvhFNPUM1KW1SuujlxutoyI/S20ptHY67/NS2bebK+QEcT1mxbMDZExc
-         gP4tykgCvu0jBqYB/0ArzHWsHLAt6JFAuCHCmedcesxQNJDFpO3nVSj1E//CjrR8uoQc
-         vZhw==
-X-Gm-Message-State: AOJu0YzqBgOs6JIN+JQmZep5GgRk6FMnE0vm0jRgYjKk3dAaUMIfbn2J
-        RwLXhSxK1HjdBxstPJla0iPtCaOkXknGFkem4nNAGgerbgePicwH+j6MYQ==
-X-Google-Smtp-Source: AGHT+IEBh36v6jbAggOwiDPAHzZQXAobH39IlLticbeHyBO1pdWWV4blGHBjc8kT8NX7jfk06K2RZMb+9758tnhP3gs=
-X-Received: by 2002:a05:6214:8e9:b0:64f:802b:7e07 with SMTP id
- dr9-20020a05621408e900b0064f802b7e07mr15238620qvb.55.1693959599439; Tue, 05
- Sep 2023 17:19:59 -0700 (PDT)
+        bh=tIW1wQnbn7QifvC78y9tLpOKuKJRAApzYD1rdxYpBy4=;
+        b=ZK/btQO/tHhvm4opBD70ZcbZjhC5UZou5JpJaLHfZeAyFBKaqeyut4zSI39zC9OeI1
+         piMRC9UGgyIbVVlymj4FApTK7H7yJDsJ9aNSzVUn4Nb9k1Oqbvh+lUyMcRO0MmAuxKt0
+         Gt6gwDQnVLBoo3C2RrlRdWl1RPhprzSWnieqMXPQXvyFYFypRLX7V5SVLZnVShXRaPQl
+         PRTXgiHtYM4gvhxsFJj8nZpCIiRZckI7nRBQ6f0uL6ZywInGOCTcmt0g6NGw/KPqZe0H
+         Jexeub+unJZByYBm3pO0TR9Ta9LRqxvCQ+1V8lcgdaq4JfI3gln1dI1D9xv4WHcBaz3h
+         NDNw==
+X-Gm-Message-State: AOJu0YxjE61s19VjsXHVJYneWqEiMOoqxVi4Vbs0ovaE+H6oAvbl8DUQ
+        cMyGWWrnDF7kch7Wja2kEJqYdB5ghsUf+J5XaL/urXXSQe8=
+X-Google-Smtp-Source: AGHT+IE/w1hLcRCPW4Vjev2AhlyHnDqVEoYTU/tSsJgx4kOytycEQbUoyop5sAg9ELfuoyz60m9qYGet25Rm5GXXVt4=
+X-Received: by 2002:a67:eb9a:0:b0:44d:41bc:705f with SMTP id
+ e26-20020a67eb9a000000b0044d41bc705fmr6330826vso.16.1694092968112; Thu, 07
+ Sep 2023 06:22:48 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230904132441.2680355-1-amir73il@gmail.com> <CAJfpegtNgHnacX4CaPU8cyZcK=WPWHF_yK6CcGH1MFNYpT3UqQ@mail.gmail.com>
- <CAKd=y5EWW0WBeG-pEhOFnooonOnqdAs1RUHPTsq7h3M9uDJMxg@mail.gmail.com> <CAOQ4uxgkHCCT8prDpKPf2rgXSEwgF6yj8AeTE1qrY9V=2CaEYw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgkHCCT8prDpKPf2rgXSEwgF6yj8AeTE1qrY9V=2CaEYw@mail.gmail.com>
-From:   Ruiwen Zhao <ruiwen@google.com>
-Date:   Tue, 5 Sep 2023 17:19:48 -0700
-Message-ID: <CAKd=y5Hm8c7cPmHq0hoWojTSiKEgrbRzB5wgV4wkaQ_M0VR0NQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix failed copyup of fileattr on a symlink
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>
+References: <cover.1694075674.git.alexl@redhat.com>
+In-Reply-To: <cover.1694075674.git.alexl@redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 7 Sep 2023 16:22:37 +0300
+Message-ID: <CAOQ4uxgsH2B68O91-Rx8_EXNkwUe26M1P3EKRDnS-0u=GepVZA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/6] Support nested overlayfs mounts
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Sep 4, 2023 at 11:57=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Thu, Sep 7, 2023 at 11:44=E2=80=AFAM Alexander Larsson <alexl@redhat.com=
+> wrote:
 >
-> On Mon, Sep 4, 2023 at 9:40=E2=80=AFPM Ruiwen Zhao <ruiwen@google.com> wr=
-ote:
-> >
-> > On Mon, Sep 4, 2023 at 6:44=E2=80=AFAM Miklos Szeredi <miklos@szeredi.h=
-u> wrote:
-> > >
-> > > On Mon, 4 Sept 2023 at 15:24, Amir Goldstein <amir73il@gmail.com> wro=
-te:
-> > > >
-> > > > Some local filesystems support setting persistent fileattr flags
-> > > > (e.g. FS_NOATIME_FL) on directories and regular files via ioctl.
-> > > > Some of those persistent fileattr flags are reflected to vfs as
-> > > > in-memory inode flags (e.g. S_NOATIME).
-> > > >
-> > > > Overlayfs uses the in-memory inode flags (e.g. S_NOATIME) on a lowe=
-r file
-> > > > as an indication that a the lower file may have persistent inode fi=
-leattr
-> > > > flags (e.g. FS_NOATIME_FL) that need to be copied to upper file.
-> > > >
-> > > > However, in some cases, the S_NOATIME in-memory flag could be a fal=
-se
-> > > > indication for persistent FS_NOATIME_FL fileattr. For example, with=
- NFS
-> > > > and FUSE lower fs, as was the case in the two bug reports, the S_NO=
-ATIME
-> > > > flag is set unconditionally for all inodes.
-> > > >
-> > > > Users cannot set persistent fileattr flags on symlinks and special =
-files,
-> > > > but in some local fs, such as ext4/btrfs/tmpfs, the FS_NOATIME_FL f=
-ileattr
-> > > > flag are inheritted to symlinks and special files from parent direc=
-tory.
-> > > >
-> > > > In both cases described above, when lower symlink has the S_NOATIME=
- flag,
-> > > > overlayfs will try to copy the symlink's fileattrs and fail with er=
-ror
-> > > > ENOXIO, because it could not open the symlink for the ioctl securit=
-y hook.
-> > > >
-> > > > To solve this failure, do not attempt to copyup fileattrs for anyth=
-ing
-> > > > other than directories and regular files.
-> > > >
-> > > > Reported-by: Ruiwen Zhao <ruiwen@google.com>
-> > > > Link: https://lore.kernel.org/r/CAKd=3Dy5Hpg7J2gxrFT02F94o=3DFM9QvG=
-p=3DkcH1Grctx8HzFYvpiA@mail.gmail.com/
-> > > > Fixes: 72db82115d2b ("ovl: copy up sync/noatime fileattr flags")
-> > > > Cc: <stable@vger.kernel.org> # v5.15
-> > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > > ---
-> > > >
-> > > > Hi Miklos,
-> > > >
-> > > > Do you agree with this solution?
-> > >
-> > > It's good enough.   Linux might add API's in the future that allow
-> > > querying and setting fileattr on symlinks, but we can deal with that
-> > > later.
-> > >
-> > > Thanks,
-> > > Miklos
-> >
-> > Thanks Amir for sending the fix! The fix looks good but I am not sure
-> > how to LGTM it. (Still new to the kernel review process)
-> >
-> > I believe the fix will be merged to the master branch first. Can we
-> > backport it to 5.15, considering this is a regression and 5.15 is an
-> > LTS version?
-> >
+> There are cases where you want to use an overlayfs mount as a lowerdir fo=
+r
+> another overlayfs mount. For example, if the system rootfs is on overlayf=
+s due
+> to composefs, or to make it volatile (via tmpfs), then you cannot current=
+ly store
+> a lowerdir on the rootfs, becasue the inner overlayfs will eat all the wh=
+iteouts
+> and overlay xattrs. This means you can't e.g. store on the rootfs a prepa=
+red
+> container image for use with overlayfs.
 >
-> The commit, when it gets merged will include:
+> This patch series adds support for nesting of overlayfs mounts by escapin=
+g the
+> problematic features and unescaping them when exposing to the overlayfs u=
+ser.
 >
->     Reported-by: Ruiwen Zhao <ruiwen@google.com>
->     Closes: https://bugzilla.kernel.org/show_bug.cgi?id=3D217850
->     Fixes: 72db82115d2b ("ovl: copy up sync/noatime fileattr flags")
->     Cc: <stable@vger.kernel.org> # v5.15
+> This series is also available here:
+>   https://github.com/alexlarsson/linux/tree/ovl-nesting
 >
-> So it should be automatically picked for stable bots
-> and by bugzilla I suppose.
+> And xfstest to test it is available here:
+>   https://github.com/alexlarsson/xfstests/tree/overlayfs-nesting
 >
-> Please let me know if you tested my patch and I will change to
-> Reported-and-tested-by:
+> The overlay/083 test checks both xattr escaping, the new whiteouts as wel=
+l as
+> actual nesting of overlayfs.
 >
-> Thanks,
-> Amir.
 
-Thanks! I tested this patch with the same repro step mentioned before
-and can confirm it fixed the issue. Also checked dmesg and can confirm
-there is no error. I think we can merge the fix.
+This test look good. Left minor comments in github.
+Missing test for the perplexing "escaped xwhiteouts across layers" use case=
+.
 
-ruiwen@instance-1:/tmp # mv merged/home/ruiwen/foolink
-merged/home/ruiwen/foolink2
-ruiwen@instance-1:/tmp # ls -l merged/home/ruiwen/ -l
-total 0
--rw-r--r-- 1 root root 0 Sep  6 00:07 foo
-lrwxrwxrwx 1 root root 3 Sep  6 00:07 foolink2 -> foo
+> Note that this series breaks the overlay/026 test which validates that
+> writing overlay.* xattrs is not supported, but it now is. I'm not sure
+> if we should fix this test to not fail, or if we should make this an
+> opt-in mount feature.
 
+I think we don't need an opt-in mount option, but would like to know
+what Miklos thinks?
 
+We can fix the test this way:
+
+setfattr trusted.overlayfsrz
+verify success
+getfattr trusted.overlayfsrz
+verify success AND that xattr was not escaped
+
+setfattr trusted.overlay.fsz
+verify failure OR that xattr was escaped
+getfattr trusted.overlay.fsz
+verify failure OR that xattr was escaped
 
 Thanks,
-Ruiwen
+Amir.
+
+>
+> Changes since v2:
+>  * Uses a new approach for escaping whiteouts with a regular file with an
+>    overlay.whiteout xattr in a lower directory with an overlay.whiteouts
+>    xattr.
+>
+> Changes since v1:
+>
+>  * Moved all xattr handling to xattr.c
+>  * Made creation of escaped whiteouts atomic
+>
+> Alexander Larsson (6):
+>   ovl: Move xattr support to new xattrs.c file
+>   ovl: Add OVL_XATTR_TRUSTED/USER_PREFIX_LEN macros
+>   ovl: Support escaped overlay.* xattrs
+>   ovl: Add an alternative type of whiteout
+>   ovl: Handle escaped xwhiteouts across layers
+>   ovl: Add documentation on nesting of overlayfs mounts
+>
+>  Documentation/filesystems/overlayfs.rst |  23 ++
+>  fs/overlayfs/Makefile                   |   2 +-
+>  fs/overlayfs/dir.c                      |   4 +-
+>  fs/overlayfs/inode.c                    | 124 ----------
+>  fs/overlayfs/namei.c                    |  15 +-
+>  fs/overlayfs/overlayfs.h                |  42 +++-
+>  fs/overlayfs/readdir.c                  |  27 +-
+>  fs/overlayfs/super.c                    |  67 +----
+>  fs/overlayfs/util.c                     |  40 +++
+>  fs/overlayfs/xattrs.c                   | 312 ++++++++++++++++++++++++
+>  10 files changed, 443 insertions(+), 213 deletions(-)
+>  create mode 100644 fs/overlayfs/xattrs.c
+>
+> --
+> 2.41.0
+>
