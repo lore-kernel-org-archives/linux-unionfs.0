@@ -2,93 +2,157 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48186EC8747
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Sep 2023 02:21:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7181EE57E1
+	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Sep 2023 07:48:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236207AbjIHCVW (ORCPT
+        id S242527AbjIHHsD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Sep 2023 22:21:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45612 "EHLO
+        Fri, 8 Sep 2023 03:48:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234854AbjIHCVW (ORCPT
+        with ESMTP id S242313AbjIHHsB (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Sep 2023 22:21:22 -0400
-Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1257D1BCD
-        for <linux-unionfs@vger.kernel.org>; Thu,  7 Sep 2023 19:21:17 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0Vran2.W_1694139673;
-Received: from 30.97.49.0(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Vran2.W_1694139673)
-          by smtp.aliyun-inc.com;
-          Fri, 08 Sep 2023 10:21:14 +0800
-Message-ID: <3e5c0260-53fe-4955-b77e-ab79282556d3@linux.alibaba.com>
-Date:   Fri, 8 Sep 2023 10:21:13 +0800
+        Fri, 8 Sep 2023 03:48:01 -0400
+Received: from mail-ua1-x930.google.com (mail-ua1-x930.google.com [IPv6:2607:f8b0:4864:20::930])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3A4F1FC9
+        for <linux-unionfs@vger.kernel.org>; Fri,  8 Sep 2023 00:47:55 -0700 (PDT)
+Received: by mail-ua1-x930.google.com with SMTP id a1e0cc1a2514c-7a2785e34b6so667321241.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 08 Sep 2023 00:47:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1694159275; x=1694764075; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=J3/i2pQQJd3+4L/Za1KJFuS+1DfpBuLmiWRbyZA6IQg=;
+        b=pn/SKmw/IFTt/cQ/7Smgo+IUlsdtCp6BFIxCj0lci4GWiwUJwwJdADMjka0DxS4FXM
+         2fcUBZulZInhQRwQJi0W0t0fPj4/HwMj/9GERcQpg4oiYLd+KV44OTUIRn+kVQh/juW7
+         dJ+LMAoehVLKxpwCJKO2jutUw14KuePU+IPoDiN/7sTbLzidgJE35zwDZw5HnvMhY8Na
+         fD+MIht58z1YoKbJczbYCQl4Wm5AgXnzjWOqKJBdSyxdpt7HZuvdSJ11dIb9TwVIwX0d
+         Mr7SspYbifGldq3vpK/94LQlTdsC5rYQb9RsB8jf3DULb248BsxhOlsETXRN1o8L9FNw
+         ktuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694159275; x=1694764075;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=J3/i2pQQJd3+4L/Za1KJFuS+1DfpBuLmiWRbyZA6IQg=;
+        b=OeLuO1+FavhE0E/OjxmSWccaJmwRiXBELwlkYH1YlOniN6NA76VUCGHJZFQXDCLoPi
+         HAKu+TRoBQpTs5eu6Og2rqO6Q8oO7TbFngDXnUtQ3TeX3EwAkQjFAveDhH4dwxODDeX5
+         tWQVCPA/zzU5/S+gGO7HT5Bj00NvNvBaMBIeYGbII7B8wxKSIpo4izeIuYMHLycmHyrK
+         VrL5toK3RQGZ8wR3+gzhgksuRJqZTOvx0vHqbcTN161eBgwsUODCqr4hrIgAQiCvwzS0
+         SQKDY+PGzkVmDenJ8Ivu2Sv6l1qoi+abL+W1Rxrpo7FvGD5Gf011e2bJdchNTIZ8J58x
+         7Srw==
+X-Gm-Message-State: AOJu0YzqIV1FSu9nHKcJkLP8u84IVuwKfOdZVMfkB8kLe+PaxCjGCc2v
+        zGm+1X1kaU0/czmnGpmrEbqBvDS+t2srPoF13VA=
+X-Google-Smtp-Source: AGHT+IF/6z90+NNVY+UMuYlpVIf3mc9dLd3xyH2Uxb8D1Pi4ul0XJgXutFKhc467YeMkTCEpQqjcJyRJ1vhPIms6aMY=
+X-Received: by 2002:a67:f8c8:0:b0:44d:4385:1627 with SMTP id
+ c8-20020a67f8c8000000b0044d43851627mr1724752vsp.14.1694159274946; Fri, 08 Sep
+ 2023 00:47:54 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
- Gecko/20100101 Thunderbird/102.13.0
-Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on
- overlayfs
-To:     Amir Goldstein <amir73il@gmail.com>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
-References: <cover.1692270188.git.alexl@redhat.com>
- <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
- <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
- <CAL7ro1HMZxXZDyJG9yikx+KCd3HsYPZdgk7SJBLAGWBKVrYD6g@mail.gmail.com>
- <CAJfpeguerGOWAELyd7oY=z8Y-1sGG6OY9MurhCB7-kegxZ-wmQ@mail.gmail.com>
- <CAL7ro1Hr43u7CoyHwVOzxp+pcN2MHEf18B7+CZk=HFw=viGz8A@mail.gmail.com>
- <CAL7ro1FagGOZZg9yeWvWDov6L3prrjJE-+Yre1CJuViT7idNYw@mail.gmail.com>
- <CAOQ4uxhVXrNfhWc-EsunfyWyrJDFCjYu8GeAtvN0__QTfjtV5A@mail.gmail.com>
- <CAL7ro1HyGrwdH7B8C4-uWsfK4XTA=LF6GSS+4+LwT_iosdO2wQ@mail.gmail.com>
- <CAOQ4uxjhVR656cME=G-wOu_zrpqPS1M=sx32ogiUtrSxLsaBsw@mail.gmail.com>
- <CAJfpegsLDi-V_0GYW=9qu3RE16Oh9Wc8-bmMX=3q3EfdSn-iQw@mail.gmail.com>
- <CAOQ4uxioDBiKH267ijR5VOXzStwkOvYGrjMGtP26x0LJR0oWAg@mail.gmail.com>
-From:   Gao Xiang <hsiangkao@linux.alibaba.com>
-In-Reply-To: <CAOQ4uxioDBiKH267ijR5VOXzStwkOvYGrjMGtP26x0LJR0oWAg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+References: <cover.1694075674.git.alexl@redhat.com> <CAOQ4uxgsH2B68O91-Rx8_EXNkwUe26M1P3EKRDnS-0u=GepVZA@mail.gmail.com>
+ <CAL7ro1Fm72xndy1C0zZbScPtgjGXucZ3rip0cO4VutSu0Jy4-A@mail.gmail.com>
+In-Reply-To: <CAL7ro1Fm72xndy1C0zZbScPtgjGXucZ3rip0cO4VutSu0Jy4-A@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 8 Sep 2023 10:47:43 +0300
+Message-ID: <CAOQ4uxigSZAGFh8jPfCupiHk0DN-4t65yYKaF3MmGdO+O7yMkA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/6] Support nested overlayfs mounts
+To:     Alexander Larsson <alexl@redhat.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi folks,
-
-On 2023/8/23 01:29, Amir Goldstein wrote:
-> On Tue, Aug 22, 2023 at 7:19 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-
-...
-
+On Fri, Sep 8, 2023 at 10:08=E2=80=AFAM Alexander Larsson <alexl@redhat.com=
+> wrote:
+>
+>
+>
+> On Thu, Sep 7, 2023 at 3:22=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
+> wrote:
 >>
-> 
-> I proposed to look at the two features independently:
-> 1. Nesting of overlayfs xattrs (patch 3/5)
-> 2. Alternative format for whiteout (overlay.whiteout) that can be used
->     by container tools converting OCI/tar images to overlayfs images
-> 
-> Together, they provide a solution to Alexander's use case.
-> 
-> IIUC, the way this is intended to work is that mkfs.composefs
-> is running inside a container, whose work directory is overlayfs
-> and it composes some lower layers on that host mounted overlayfs.
-> 
-> mkfs.composefs composes layers with overlay.{metacopy,whiteout,redirect}
-> xattrs (up to here it is standard mkfs.composefs) and because those layers
-> are stored in overlayfs, the xattrs are stored in the host fs as
-> overlay.overlay.*.
-> 
-> I hope I got the use case correctly?
-Sorry for the dumb questions below.  I'm interested in the use cases:
-after checking the previous github issue and emails (sorry if I'm
-still missing something), I'm curious about this too.
+>> On Thu, Sep 7, 2023 at 11:44=E2=80=AFAM Alexander Larsson <alexl@redhat.=
+com> wrote:
+>> >
+>> > There are cases where you want to use an overlayfs mount as a lowerdir=
+ for
+>> > another overlayfs mount. For example, if the system rootfs is on overl=
+ayfs due
+>> > to composefs, or to make it volatile (via tmpfs), then you cannot curr=
+ently store
+>> > a lowerdir on the rootfs, becasue the inner overlayfs will eat all the=
+ whiteouts
+>> > and overlay xattrs. This means you can't e.g. store on the rootfs a pr=
+epared
+>> > container image for use with overlayfs.
+>> >
+>> > This patch series adds support for nesting of overlayfs mounts by esca=
+ping the
+>> > problematic features and unescaping them when exposing to the overlayf=
+s user.
+>> >
+>> > This series is also available here:
+>> >   https://github.com/alexlarsson/linux/tree/ovl-nesting
+>> >
+>> > And xfstest to test it is available here:
+>> >   https://github.com/alexlarsson/xfstests/tree/overlayfs-nesting
+>> >
+>> > The overlay/083 test checks both xattr escaping, the new whiteouts as =
+well as
+>> > actual nesting of overlayfs.
+>> >
+>>
+>> This test look good. Left minor comments in github.
+>> Missing test for the perplexing "escaped xwhiteouts across layers" use c=
+ase.
+>
+>
+> It's kinda hidden, but the creation of $middir/mid actually does test thi=
+s.
+> The whiteouts xattr is set on $lowerdir/mid, and this is shadowed by the =
+$middir/mid, so
+> if that change is removed from the tree, then the "ls" in do_test_xwhiteo=
+ut" breaks due to the readdir not seeing the xwhiteouts on the mid dir when=
+ $lowerdir and $middir are merged.
+>
+> We could perhaps point it out more clearly though.
+>
+>> > Note that this series breaks the overlay/026 test which validates that
+>> > writing overlay.* xattrs is not supported, but it now is. I'm not sure
+>> > if we should fix this test to not fail, or if we should make this an
+>> > opt-in mount feature.
+>>
+>> I think we don't need an opt-in mount option, but would like to know
+>> what Miklos thinks?
+>>
+>> We can fix the test this way:
+>>
+>> setfattr trusted.overlayfsrz
+>> verify success
+>> getfattr trusted.overlayfsrz
+>> verify success AND that xattr was not escaped
+>>
+>> setfattr trusted.overlay.fsz
+>> verify failure OR that xattr was escaped
+>> getfattr trusted.overlay.fsz
+>> verify failure OR that xattr was escaped
+>
+>
+> Yes, it's fixable in a new xfstest. My question is more about how much we=
+ care about older xfstest versions showing a regression.
 
-I totally understand how it plans to work and how it works (by using
-escape xattr prefixes) but I'm not sure if I'm quite understand the
-original issue:
+Don't worry about that - it happens quite often when tests are encoding
+expectations that is not a SPEC and we change behavior.
 
-Do composefs use cases store overlayfs xattrs in the meta-only layer?
-if so, such layer is actually hand-crafted by mkfs.  Why do we need
-a way to keep escape xattrs on the underlay overlayfs?  Does the
-other layer are data-only layers (do we keep some overlay xattrs in
-these data-only layers)?
+Yes it can be a nuisance to testers, but testers should update to
+recent xfstests
+or at least check what changed in recent xfstests when they see a regressio=
+n.
+
+If there is an actual application that breaks because of the behavior chang=
+e
+it is a different story, but I doubt there is.
 
 Thanks,
-Gao Xiang
+Amir.
