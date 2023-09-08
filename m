@@ -2,146 +2,93 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31E7BEB8FDE
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Sep 2023 00:30:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48186EC8747
+	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Sep 2023 02:21:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240772AbjIHAad (ORCPT
+        id S236207AbjIHCVW (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 7 Sep 2023 20:30:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51408 "EHLO
+        Thu, 7 Sep 2023 22:21:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45612 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229890AbjIHAa3 (ORCPT
+        with ESMTP id S234854AbjIHCVW (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 7 Sep 2023 20:30:29 -0400
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38E3B1BD8;
-        Thu,  7 Sep 2023 17:30:23 -0700 (PDT)
-Received: by mail-ej1-x635.google.com with SMTP id a640c23a62f3a-99bc9e3cbf1so319222466b.0;
-        Thu, 07 Sep 2023 17:30:23 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1694133021; x=1694737821; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=rWH+VGW4ynUEnqVgfK8Uo5vbTneevGaezyT5mB/sqg4=;
-        b=OiY77u4+0lZZf05zyJjqtXsFEt53gnu17pzSAddazvgmxBSqq/iFfofB+q7WLCDEyU
-         m/fz+w2DjK7ajFwh6Wl5OMnpq2lSnZxhKNITuhb+ArT10qBLF/w3E6hUYLr2Ynr9Uy0L
-         sHeGcXkyahOnjrEnkCzBF3EwG9xF9KIv8UmufrGSjWBO9hDNyInV8+iHy5QYfk82jWye
-         xbFkA6w68il0m14wAmbY3aZ9vJvLyqfqhwJlL2IlVpJJ69odvj++3/+rNIuFZ3ktA/po
-         yf2n1Q3ML2zeCD2E+gfopvnQ7ym8KgJXlk0oJnacR9HwefsoXzYDvWgFTWYeFL/HpkjL
-         rvkQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694133021; x=1694737821;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=rWH+VGW4ynUEnqVgfK8Uo5vbTneevGaezyT5mB/sqg4=;
-        b=swAuNJCU2T/msM1CDytYscRXwuvHCPjssnrRg+Q6Gn7quYAY71uw8aCdr4KLss/JJi
-         G6KLB7yGgMtpzSEqasgGhnoK9InCJNEld8+zIiBIk6Ib73pTZPE7X04zo7zpkugFhJci
-         FB+wowcPCWOhpTjklmK7ntYr2LOzHNB4AGtrC9b25JIVYeLFsYHwRSAhkJs8WFQWvS4u
-         vQxfHEgY989eWvrIeqsl/qncCGZ2RDh8vKZ5Mk2v5JpUD/f4gpCSG4bq17oZDFtAC9Kv
-         wJHwZCnijNuEHfLVBXqC1a5ybSKNjL6PIh5HcP7KQEar+axr0nPLUVpqEUAJzfRRNzW3
-         rmNw==
-X-Gm-Message-State: AOJu0Ywbm+yLTgh3g27h3+DIFkr+l/LoZwnwZO1VTqKbEQRqI2iKTpej
-        ASdAUdrtewy2vCnIWaRCJoM=
-X-Google-Smtp-Source: AGHT+IHUmcSd3yGn0Yc+fxHKH36GJLlYUzap6qvtcfMqwZgOcAgDOYhbcm3dJF4+eYZ9U6PvPuYQ6g==
-X-Received: by 2002:a17:907:6e87:b0:9a1:c69c:9388 with SMTP id sh7-20020a1709076e8700b009a1c69c9388mr4152809ejc.37.1694133021412;
-        Thu, 07 Sep 2023 17:30:21 -0700 (PDT)
-Received: from [192.168.8.100] ([148.252.141.16])
-        by smtp.gmail.com with ESMTPSA id lz24-20020a170906fb1800b009932337747esm280974ejb.86.2023.09.07.17.30.18
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 07 Sep 2023 17:30:21 -0700 (PDT)
-Message-ID: <6489b8cb-7d54-1e29-f192-a3449ed87fa1@gmail.com>
-Date:   Fri, 8 Sep 2023 01:29:55 +0100
+        Thu, 7 Sep 2023 22:21:22 -0400
+Received: from out30-124.freemail.mail.aliyun.com (out30-124.freemail.mail.aliyun.com [115.124.30.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1257D1BCD
+        for <linux-unionfs@vger.kernel.org>; Thu,  7 Sep 2023 19:21:17 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R121e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046056;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0Vran2.W_1694139673;
+Received: from 30.97.49.0(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0Vran2.W_1694139673)
+          by smtp.aliyun-inc.com;
+          Fri, 08 Sep 2023 10:21:14 +0800
+Message-ID: <3e5c0260-53fe-4955-b77e-ab79282556d3@linux.alibaba.com>
+Date:   Fri, 8 Sep 2023 10:21:13 +0800
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 07/11] vfs: add nowait parameter for file_accessed()
-To:     Dave Chinner <david@fromorbit.com>, Hao Xu <hao.xu@linux.dev>
-Cc:     Matthew Wilcox <willy@infradead.org>, io-uring@vger.kernel.org,
-        Jens Axboe <axboe@kernel.dk>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
-        "Darrick J . Wong" <djwong@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
-        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
-        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
-        Wanpeng Li <wanpengli@tencent.com>
-References: <20230827132835.1373581-1-hao.xu@linux.dev>
- <20230827132835.1373581-8-hao.xu@linux.dev>
- <ZOvA5DJDZN0FRymp@casper.infradead.org>
- <c728bf3f-d9db-4865-8473-058b26c11c06@linux.dev>
- <ZO3cI+DkotHQo3md@casper.infradead.org>
- <642de4e6-801d-fcad-a7ce-bfc6dec3b6e5@linux.dev>
- <ZPUJHAKzxvXiEDYA@dread.disaster.area>
-Content-Language: en-US
-From:   Pavel Begunkov <asml.silence@gmail.com>
-In-Reply-To: <ZPUJHAKzxvXiEDYA@dread.disaster.area>
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.13.0
+Subject: Re: [PATCH v2 4/5] ovl: Support creation of whiteout files on
+ overlayfs
+To:     Amir Goldstein <amir73il@gmail.com>,
+        Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Alexander Larsson <alexl@redhat.com>, linux-unionfs@vger.kernel.org
+References: <cover.1692270188.git.alexl@redhat.com>
+ <f140fd46c2f61e69630c14a6b3fb8ed5e3c62307.1692270188.git.alexl@redhat.com>
+ <CAJfpeguHCVFpcGVWdP5-j+7-+4cqjvd+-40UM=+vL1OFwS7rZA@mail.gmail.com>
+ <CAL7ro1HMZxXZDyJG9yikx+KCd3HsYPZdgk7SJBLAGWBKVrYD6g@mail.gmail.com>
+ <CAJfpeguerGOWAELyd7oY=z8Y-1sGG6OY9MurhCB7-kegxZ-wmQ@mail.gmail.com>
+ <CAL7ro1Hr43u7CoyHwVOzxp+pcN2MHEf18B7+CZk=HFw=viGz8A@mail.gmail.com>
+ <CAL7ro1FagGOZZg9yeWvWDov6L3prrjJE-+Yre1CJuViT7idNYw@mail.gmail.com>
+ <CAOQ4uxhVXrNfhWc-EsunfyWyrJDFCjYu8GeAtvN0__QTfjtV5A@mail.gmail.com>
+ <CAL7ro1HyGrwdH7B8C4-uWsfK4XTA=LF6GSS+4+LwT_iosdO2wQ@mail.gmail.com>
+ <CAOQ4uxjhVR656cME=G-wOu_zrpqPS1M=sx32ogiUtrSxLsaBsw@mail.gmail.com>
+ <CAJfpegsLDi-V_0GYW=9qu3RE16Oh9Wc8-bmMX=3q3EfdSn-iQw@mail.gmail.com>
+ <CAOQ4uxioDBiKH267ijR5VOXzStwkOvYGrjMGtP26x0LJR0oWAg@mail.gmail.com>
+From:   Gao Xiang <hsiangkao@linux.alibaba.com>
+In-Reply-To: <CAOQ4uxioDBiKH267ijR5VOXzStwkOvYGrjMGtP26x0LJR0oWAg@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On 9/3/23 23:30, Dave Chinner wrote:
-> On Wed, Aug 30, 2023 at 02:11:31PM +0800, Hao Xu wrote:
->> On 8/29/23 19:53, Matthew Wilcox wrote:
->>> On Tue, Aug 29, 2023 at 03:46:13PM +0800, Hao Xu wrote:
->>>> On 8/28/23 05:32, Matthew Wilcox wrote:
->>>>> On Sun, Aug 27, 2023 at 09:28:31PM +0800, Hao Xu wrote:
->>>>>> From: Hao Xu <howeyxu@tencent.com>
->>>>>>
->>>>>> Add a boolean parameter for file_accessed() to support nowait semantics.
->>>>>> Currently it is true only with io_uring as its initial caller.
->>>>>
->>>>> So why do we need to do this as part of this series?  Apparently it
->>>>> hasn't caused any problems for filemap_read().
->>>>>
->>>>
->>>> We need this parameter to indicate if nowait semantics should be enforced in
->>>> touch_atime(), There are locks and maybe IOs in it.
->>>
->>> That's not my point.  We currently call file_accessed() and
->>> touch_atime() for nowait reads and nowait writes.  You haven't done
->>> anything to fix those.
->>>
->>> I suspect you can trim this patchset down significantly by avoiding
->>> fixing the file_accessed() problem.  And then come back with a later
->>> patchset that fixes it for all nowait i/o.  Or do a separate prep series
->>
->> I'm ok to do that.
->>
->>> first that fixes it for the existing nowait users, and then a second
->>> series to do all the directory stuff.
->>>
->>> I'd do the first thing.  Just ignore the problem.  Directory atime
->>> updates cause I/O so rarely that you can afford to ignore it.  Almost
->>> everyone uses relatime or nodiratime.
->>
->> Hi Matthew,
->> The previous discussion shows this does cause issues in real
->> producations: https://lore.kernel.org/io-uring/2785f009-2ebb-028d-8250-d5f3a30510f0@gmail.com/#:~:text=fwiw%2C%20we%27ve%20just%20recently%20had%20similar%20problems%20with%20io_uring%20read/write
+Hi folks,
+
+On 2023/8/23 01:29, Amir Goldstein wrote:
+> On Tue, Aug 22, 2023 at 7:19 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+
+...
+
 >>
 > 
-> Then separate it out into it's own patch set so we can have a
-> discussion on the merits of requiring using noatime, relatime or
-> lazytime for really latency sensitive IO applications. Changing code
-> is not always the right solution...
+> I proposed to look at the two features independently:
+> 1. Nesting of overlayfs xattrs (patch 3/5)
+> 2. Alternative format for whiteout (overlay.whiteout) that can be used
+>     by container tools converting OCI/tar images to overlayfs images
+> 
+> Together, they provide a solution to Alexander's use case.
+> 
+> IIUC, the way this is intended to work is that mkfs.composefs
+> is running inside a container, whose work directory is overlayfs
+> and it composes some lower layers on that host mounted overlayfs.
+> 
+> mkfs.composefs composes layers with overlay.{metacopy,whiteout,redirect}
+> xattrs (up to here it is standard mkfs.composefs) and because those layers
+> are stored in overlayfs, the xattrs are stored in the host fs as
+> overlay.overlay.*.
+> 
+> I hope I got the use case correctly?
+Sorry for the dumb questions below.  I'm interested in the use cases:
+after checking the previous github issue and emails (sorry if I'm
+still missing something), I'm curious about this too.
 
-Separation sounds reasonable, but it can hardly be said that only
-latency sensitive apps would care about >1s nowait/async submission
-delays. Presumably, btrfs can improve on that, but it still looks
-like it's perfectly legit for filesystems do heavy stuff in
-timestamping like waiting for IO. Right?
+I totally understand how it plans to work and how it works (by using
+escape xattr prefixes) but I'm not sure if I'm quite understand the
+original issue:
 
--- 
-Pavel Begunkov
+Do composefs use cases store overlayfs xattrs in the meta-only layer?
+if so, such layer is actually hand-crafted by mkfs.  Why do we need
+a way to keep escape xattrs on the underlay overlayfs?  Does the
+other layer are data-only layers (do we keep some overlay xattrs in
+these data-only layers)?
+
+Thanks,
+Gao Xiang
