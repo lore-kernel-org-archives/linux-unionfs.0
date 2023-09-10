@@ -2,141 +2,161 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8801EE7FE4
-	for <linux-unionfs@archiver.kernel.org>; Fri,  8 Sep 2023 12:29:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 855F1EEB58C
+	for <linux-unionfs@archiver.kernel.org>; Sun, 10 Sep 2023 22:01:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236549AbjIHM3g (ORCPT
+        id S231759AbjIJWBh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 8 Sep 2023 08:29:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37668 "EHLO
+        Sun, 10 Sep 2023 18:01:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232080AbjIHM3f (ORCPT
+        with ESMTP id S231639AbjIJWBe (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 8 Sep 2023 08:29:35 -0400
-Received: from mail-vs1-xe35.google.com (mail-vs1-xe35.google.com [IPv6:2607:f8b0:4864:20::e35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA51A1BF1
-        for <linux-unionfs@vger.kernel.org>; Fri,  8 Sep 2023 05:29:31 -0700 (PDT)
-Received: by mail-vs1-xe35.google.com with SMTP id ada2fe7eead31-450711d9bf1so830250137.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 08 Sep 2023 05:29:31 -0700 (PDT)
+        Sun, 10 Sep 2023 18:01:34 -0400
+Received: from mail-pf1-x42a.google.com (mail-pf1-x42a.google.com [IPv6:2607:f8b0:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F0F5188
+        for <linux-unionfs@vger.kernel.org>; Sun, 10 Sep 2023 15:01:28 -0700 (PDT)
+Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-68e3083aa1dso3670341b3a.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 10 Sep 2023 15:01:28 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1694176171; x=1694780971; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=cAW4H4Hf9Br34Vfz9+EUhg/lM9Xs99GgxEO0FuyWIWY=;
-        b=JG522ALo3yIhTZgFa5RuCY8ddcEeJUaG1r6tohEvOc1I8lsAzlS51eS78TCr+UEB+N
-         jRLAx4Jc4w0M2MHcLQtV3vRY6Z1q8YsxwgZyaWZ65BeO1ejcdGpFcXziqw0NWv6X1N8b
-         8G4ppHiPY6CbF6zIB2kK3IOAF/rTRpnEr0E15fLgLvqWTZBONCFr/zL8/caX7f8zSNf8
-         2VOD2P9EaTBb+dL8tuHB+jjb4TEN0tCIEglRUU5fcy23QNW2JDbdDG5AuzoaJ75fqMNx
-         aze7rRYRGVkbYPB1pkIz13pw8QQ1UWq1xWX+gn75P2Bbjn8zKaVXOvJAGK2wC+ihBSVt
-         aJHw==
+        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1694383288; x=1694988088; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=EyybjuBSw2AsBAibBPVqGccWs6P0JtTeGBB0Kwx90Dw=;
+        b=b1Q+Djrc6DRgK0lSMIXf6OVmm1S98Rb1dJdV/4AjeMobXYoqxa/k4Xb7XAYcmCuvbB
+         T8pFPhiJHk/Ig8CcU4is+jZGfReesXQjqK7ULjc+VZz110Uqhy1NjrWTu4Ej2kgb1UEn
+         ZHgnS7dDfuM0nrDuRkgBy+D/YOBtPecXxWCyUh6h/0/NlsJyyOwKHQwSKYYxfVY7xjkS
+         7I+QxdaDiDVRMV8qekGuV48jZlbOlbc6skR8a29kp5hS8zsrhWfeCv9XIJ/gwMURSkPX
+         Ncgzq9d3+KaDgvRq3XsvmeqBjcqt9Lc7ewxeY00IZtUnccPI4WIduUYqP2aDlo+H2VFl
+         7yRw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694176171; x=1694780971;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=cAW4H4Hf9Br34Vfz9+EUhg/lM9Xs99GgxEO0FuyWIWY=;
-        b=Ndc+g+Sz6OEK1hsAZRVV1MHwK6Gek5SzvrcqwkI1Xq0gedvnEC+zGzNW48FYkfXjqJ
-         jspOs1yXpW2QiNx4/wgEZngBBgi0VGJzjQBLnEkLRlhLEVQnOaQnfnsdWMgcpm6OzN3D
-         lnM2yU17uZfEsOSiB6ZMdFfSRKFoww+EYBua9pc2sFFstvCJO7ddZAAPYaCOQ5P7S31k
-         ohlwQO7wqWa66EIQ2tXUbM+0xJEp733omWGkcD3TOM8g43QoG3HrCUQWDT59IQD59j5r
-         0k4FsgGkx6VQZneGLhAYiSAtGNN9qhB02gBg4LwQs5KX6ynx0A27kS/MWyv3tMXAb4mc
-         NuJA==
-X-Gm-Message-State: AOJu0YyMKKk37K8/5MD1Ewyw6V/JIcrW37VH8mfOtKLeaX6bd+fdbDML
-        SUvd2IaziqcyxQSjG7+5GFXwcRohTyPU2n38790=
-X-Google-Smtp-Source: AGHT+IFLbOWLSI82AmRUdrh41VI49x2OoS4KzXiSsn1e7+8Z7YXhgSwLcw3KfBntgX/foBf8h5aMB2NiGBdFy/ejh6k=
-X-Received: by 2002:a67:d085:0:b0:44e:8ef9:3369 with SMTP id
- s5-20020a67d085000000b0044e8ef93369mr2613417vsi.0.1694176170654; Fri, 08 Sep
- 2023 05:29:30 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1694383288; x=1694988088;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EyybjuBSw2AsBAibBPVqGccWs6P0JtTeGBB0Kwx90Dw=;
+        b=Wymk3Il/YEyEoU/cmN/AWG4JzXcHTCrgBKHu8zApXscsOGYu/Xcxh+3TLJSVJoGGtZ
+         /SPNqXG2xO1cXLsxEXzLTr+QXTy7558ES8USB3/wHLbNh5CFTlpCDUfF+oK5g/WnIvQ/
+         jfA4j9XrYuQOkK2EHWBylT8AGEHGMMv0sHJzzkbVtYv38tlbx7BHg0C7tzbuzEfLV+ko
+         T8b2NaIGBAFpo8u0rxQP1eSiKhYE40byVRHSUlnJ0v9GUPpAE35/FLhEZLqASTZC0Kv5
+         jkarPOnQiGixaO7Sudu31vkRTGd7mRhCHUUAafDZDXf0zHXm0B3ioZUyRd9CpnSBnXtv
+         Md+w==
+X-Gm-Message-State: AOJu0YytKy0UJi2gsGFijzVMm4nzLUTxH1JOU9mDHuw7DQ7Au77OXrTr
+        ltiReMgu4w1awoq04bohJpzC/g==
+X-Google-Smtp-Source: AGHT+IHSYFPf3w2qdTZr9bikkzuSsvPYQjYYZyW+Zfc616rQWXs3Eeo2BzwinmhhOfJVOtnHj1lBTA==
+X-Received: by 2002:a05:6a00:1a0c:b0:68c:57c7:1eb0 with SMTP id g12-20020a056a001a0c00b0068c57c71eb0mr9371853pfv.11.1694383287795;
+        Sun, 10 Sep 2023 15:01:27 -0700 (PDT)
+Received: from dread.disaster.area (pa49-195-66-88.pa.nsw.optusnet.com.au. [49.195.66.88])
+        by smtp.gmail.com with ESMTPSA id u10-20020a62ed0a000000b0068a3dd6c1dasm4403641pfh.142.2023.09.10.15.01.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 10 Sep 2023 15:01:27 -0700 (PDT)
+Received: from dave by dread.disaster.area with local (Exim 4.96)
+        (envelope-from <david@fromorbit.com>)
+        id 1qfSUe-00DWBA-0u;
+        Mon, 11 Sep 2023 08:01:24 +1000
+Date:   Mon, 11 Sep 2023 08:01:24 +1000
+From:   Dave Chinner <david@fromorbit.com>
+To:     Pavel Begunkov <asml.silence@gmail.com>
+Cc:     Hao Xu <hao.xu@linux.dev>, Matthew Wilcox <willy@infradead.org>,
+        io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Brauner <brauner@kernel.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
+        "Darrick J . Wong" <djwong@kernel.org>,
+        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
+        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
+        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
+        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
+        Wanpeng Li <wanpengli@tencent.com>
+Subject: Re: [PATCH 07/11] vfs: add nowait parameter for file_accessed()
+Message-ID: <ZP48tAg2iS0UzKQf@dread.disaster.area>
+References: <20230827132835.1373581-1-hao.xu@linux.dev>
+ <20230827132835.1373581-8-hao.xu@linux.dev>
+ <ZOvA5DJDZN0FRymp@casper.infradead.org>
+ <c728bf3f-d9db-4865-8473-058b26c11c06@linux.dev>
+ <ZO3cI+DkotHQo3md@casper.infradead.org>
+ <642de4e6-801d-fcad-a7ce-bfc6dec3b6e5@linux.dev>
+ <ZPUJHAKzxvXiEDYA@dread.disaster.area>
+ <6489b8cb-7d54-1e29-f192-a3449ed87fa1@gmail.com>
 MIME-Version: 1.0
-References: <20230814140518.763674-1-amir73il@gmail.com> <20230814140518.763674-3-amir73il@gmail.com>
- <CAJfpegu=-+jA1026KoqrFBX9dsfvQbcjHbkNunkZ6A794mZ1TQ@mail.gmail.com>
- <CAOQ4uxiTtraLVdsKJdty6z89=Lm52DGHFf1i_aL9jQz3L80V9Q@mail.gmail.com>
- <CAJfpegudye=2e2BWtk+fmaKMN_vUnwsKM8fi-GPcEX5n_vEizQ@mail.gmail.com> <CAOQ4uxj+RAFeaqErOdE7xymUShawJka7L0noCopjzaeFY8ZQ-w@mail.gmail.com>
-In-Reply-To: <CAOQ4uxj+RAFeaqErOdE7xymUShawJka7L0noCopjzaeFY8ZQ-w@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 8 Sep 2023 15:29:19 +0300
-Message-ID: <CAOQ4uxis1UR36rJ-sLsgfk4mHhTOn_uM3xhSGbR08G0auzbhxQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] ovl: do not open/llseek lower file with upper
- sb_writers held
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org,
-        Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6489b8cb-7d54-1e29-f192-a3449ed87fa1@gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Aug 16, 2023 at 6:02=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Tue, Aug 15, 2023 at 10:07=E2=80=AFPM Miklos Szeredi <miklos@szeredi.h=
-u> wrote:
-> >
-> > On Tue, 15 Aug 2023 at 17:59, Amir Goldstein <amir73il@gmail.com> wrote=
-:
-> >
-> > > > What occurs to me is why are we bothering with getting write access=
- on
-> > > > the internal upper mnt each time.  Seems to me it's a historical th=
-ing
-> > > > without a good reason.  Upper mnt is never changed from R/W to R/O.
-> > > >
-> > > > So the only thing we need to do is grab the upper mount write acces=
-s
-> > > > on superblock creation and do the sb_start_write/end_write() thing
-> > > > which can't fail.  If upper mnt is read-only, we effectively have a
-> > > > read-only filesystem, and can handle it that way (sb->s_flags |=3D
-> > > > SB_RDONLY).
-> > > >
-> > > > There's still the possibility that we do some changes to upper even
-> > > > for non-modify operations.  But with careful review we can remove a
-> > > > most (possibly all) error handling cases from ovl_want_write()
-> > > > callsites when we do know that we have write access on upper.  And
-> > > > WARN_ON(__mnt_is_readonly(ovl_upper_mnt(ofs))) should ensure that w=
-e
-> > > > catch any mistakes.
-> > > >
-> > > > Hmm?
-> > > >
-> > >
-> > > I was thinking the same thing myself, before I went on this journey.
-> > > I reached the conclusion that doing only sb_start_write() would not b=
-e
-> > > safe against emergency remount rdonly of the upper sb.
-> > >
-> > > I guess if upper sb is emergency mounted rdonly, then overlayfs
-> > > sb would also be emergency remounted rdonly, but for example
-> > > ext4 sb can become rdonly on internal errors.
-> > > But maybe that is not the responsibility of vfs or ovl to care about?
-> >
-> > Consider the case of a writable open file: the mount write access is
-> > only checked on open.  So not having fine grained mnt write access
-> > checks is not without precedent.
-> >
-> > I'm not sure, but the number of added lines in this particular patch
-> > makes me think that at least during copy-up we could separate the mnt
-> > and the sb write locks.
-> >
->
-> The patch with separate locks during copy-up is not much smaller
-> but it is a lot nicer IMO:
->
-> https://github.com/amir73il/linux/commits/ovl_want_write-v3
->
-> I shall post these shortly after tests are complete.
->
+On Fri, Sep 08, 2023 at 01:29:55AM +0100, Pavel Begunkov wrote:
+> On 9/3/23 23:30, Dave Chinner wrote:
+> > On Wed, Aug 30, 2023 at 02:11:31PM +0800, Hao Xu wrote:
+> > > On 8/29/23 19:53, Matthew Wilcox wrote:
+> > > > On Tue, Aug 29, 2023 at 03:46:13PM +0800, Hao Xu wrote:
+> > > > > On 8/28/23 05:32, Matthew Wilcox wrote:
+> > > > > > On Sun, Aug 27, 2023 at 09:28:31PM +0800, Hao Xu wrote:
+> > > > > > > From: Hao Xu <howeyxu@tencent.com>
+> > > > > > > 
+> > > > > > > Add a boolean parameter for file_accessed() to support nowait semantics.
+> > > > > > > Currently it is true only with io_uring as its initial caller.
+> > > > > > 
+> > > > > > So why do we need to do this as part of this series?  Apparently it
+> > > > > > hasn't caused any problems for filemap_read().
+> > > > > > 
+> > > > > 
+> > > > > We need this parameter to indicate if nowait semantics should be enforced in
+> > > > > touch_atime(), There are locks and maybe IOs in it.
+> > > > 
+> > > > That's not my point.  We currently call file_accessed() and
+> > > > touch_atime() for nowait reads and nowait writes.  You haven't done
+> > > > anything to fix those.
+> > > > 
+> > > > I suspect you can trim this patchset down significantly by avoiding
+> > > > fixing the file_accessed() problem.  And then come back with a later
+> > > > patchset that fixes it for all nowait i/o.  Or do a separate prep series
+> > > 
+> > > I'm ok to do that.
+> > > 
+> > > > first that fixes it for the existing nowait users, and then a second
+> > > > series to do all the directory stuff.
+> > > > 
+> > > > I'd do the first thing.  Just ignore the problem.  Directory atime
+> > > > updates cause I/O so rarely that you can afford to ignore it.  Almost
+> > > > everyone uses relatime or nodiratime.
+> > > 
+> > > Hi Matthew,
+> > > The previous discussion shows this does cause issues in real
+> > > producations: https://lore.kernel.org/io-uring/2785f009-2ebb-028d-8250-d5f3a30510f0@gmail.com/#:~:text=fwiw%2C%20we%27ve%20just%20recently%20had%20similar%20problems%20with%20io_uring%20read/write
+> > > 
+> > 
+> > Then separate it out into it's own patch set so we can have a
+> > discussion on the merits of requiring using noatime, relatime or
+> > lazytime for really latency sensitive IO applications. Changing code
+> > is not always the right solution...
+> 
+> Separation sounds reasonable, but it can hardly be said that only
+> latency sensitive apps would care about >1s nowait/async submission
+> delays. Presumably, btrfs can improve on that, but it still looks
+> like it's perfectly legit for filesystems do heavy stuff in
+> timestamping like waiting for IO. Right?
 
-Hi Miklos,
+Yes, it is, no-one is denying that. And some filesystems are worse
+than others, but none of that means it has to be fixed so getdents
+can be converted to NOWAIT semantics.
 
-Did you get a change to review v3 patches [1] with the split of
-ovl_want_write() to ovl_get_mnt_write() and ovl_start_write()?
+ie. this patchset is about the getdents NOWAIT machinery, and
+fiddling around with timestamps has much, much wider scope than just
+NOWAIT getdents machinery. We'll have this discussion about NOWAIT
+timestamp updates when a RFC is proposed to address the wider
+problem of how timestamp updates should behave in NOWAIT context.
 
-I would like to queue this lock ordering change for 6.7.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-unionfs/20230816152334.924960-1-amir73il@=
-gmail.com/
+-Dave.
+-- 
+Dave Chinner
+david@fromorbit.com
