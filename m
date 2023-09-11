@@ -2,161 +2,110 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 855F1EEB58C
-	for <linux-unionfs@archiver.kernel.org>; Sun, 10 Sep 2023 22:01:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEDF2EE57DF
+	for <linux-unionfs@archiver.kernel.org>; Mon, 11 Sep 2023 08:06:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231759AbjIJWBh (ORCPT
+        id S233217AbjIKIGX (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 10 Sep 2023 18:01:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46188 "EHLO
+        Mon, 11 Sep 2023 04:06:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231639AbjIJWBe (ORCPT
+        with ESMTP id S230389AbjIKIGX (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 10 Sep 2023 18:01:34 -0400
-Received: from mail-pf1-x42a.google.com (mail-pf1-x42a.google.com [IPv6:2607:f8b0:4864:20::42a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F0F5188
-        for <linux-unionfs@vger.kernel.org>; Sun, 10 Sep 2023 15:01:28 -0700 (PDT)
-Received: by mail-pf1-x42a.google.com with SMTP id d2e1a72fcca58-68e3083aa1dso3670341b3a.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 10 Sep 2023 15:01:28 -0700 (PDT)
+        Mon, 11 Sep 2023 04:06:23 -0400
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03FF1CD7;
+        Mon, 11 Sep 2023 01:06:08 -0700 (PDT)
+Received: by mail-wr1-x42f.google.com with SMTP id ffacd0b85a97d-31f4a286ae1so3811835f8f.3;
+        Mon, 11 Sep 2023 01:06:07 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=fromorbit-com.20230601.gappssmtp.com; s=20230601; t=1694383288; x=1694988088; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=EyybjuBSw2AsBAibBPVqGccWs6P0JtTeGBB0Kwx90Dw=;
-        b=b1Q+Djrc6DRgK0lSMIXf6OVmm1S98Rb1dJdV/4AjeMobXYoqxa/k4Xb7XAYcmCuvbB
-         T8pFPhiJHk/Ig8CcU4is+jZGfReesXQjqK7ULjc+VZz110Uqhy1NjrWTu4Ej2kgb1UEn
-         ZHgnS7dDfuM0nrDuRkgBy+D/YOBtPecXxWCyUh6h/0/NlsJyyOwKHQwSKYYxfVY7xjkS
-         7I+QxdaDiDVRMV8qekGuV48jZlbOlbc6skR8a29kp5hS8zsrhWfeCv9XIJ/gwMURSkPX
-         Ncgzq9d3+KaDgvRq3XsvmeqBjcqt9Lc7ewxeY00IZtUnccPI4WIduUYqP2aDlo+H2VFl
-         7yRw==
+        d=gmail.com; s=20221208; t=1694419566; x=1695024366; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=XDXBfh7oY4pmFmGSF4PND0R5OaSxpWXbzV+EwmN9Pdw=;
+        b=Exth6Ca9CLd3UXafGJSXVaY+v1jFTIAeKdkbwOksZM3AuyBL46VowEeo3FV6t3M9jI
+         BgbTaL6rRGGB9Q1IOuA63qBo5FJlOQqnw+sXZ6lU1hAlv7U8q0Dq4DDgRXlzxXQosd/r
+         0/u2xSghQEvN7IY9is/P8vc5700qZ5WvFgMwM41SVf+HyOIY9orMrskQgf/1xaV0tlb7
+         7SeKFv9t0w7iwFvYJPi8GbPDwvrrj+GHSa1saBlLJ1+KGMcADtraRe86IN+CpGcFb9bl
+         HvTA3dgNovmmvFWby64FiKch+5AaX0AFsTV/zfq4K9jJoD5SuMGDh55A0eC+mbJkawd2
+         fMWg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694383288; x=1694988088;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=EyybjuBSw2AsBAibBPVqGccWs6P0JtTeGBB0Kwx90Dw=;
-        b=Wymk3Il/YEyEoU/cmN/AWG4JzXcHTCrgBKHu8zApXscsOGYu/Xcxh+3TLJSVJoGGtZ
-         /SPNqXG2xO1cXLsxEXzLTr+QXTy7558ES8USB3/wHLbNh5CFTlpCDUfF+oK5g/WnIvQ/
-         jfA4j9XrYuQOkK2EHWBylT8AGEHGMMv0sHJzzkbVtYv38tlbx7BHg0C7tzbuzEfLV+ko
-         T8b2NaIGBAFpo8u0rxQP1eSiKhYE40byVRHSUlnJ0v9GUPpAE35/FLhEZLqASTZC0Kv5
-         jkarPOnQiGixaO7Sudu31vkRTGd7mRhCHUUAafDZDXf0zHXm0B3ioZUyRd9CpnSBnXtv
-         Md+w==
-X-Gm-Message-State: AOJu0YytKy0UJi2gsGFijzVMm4nzLUTxH1JOU9mDHuw7DQ7Au77OXrTr
-        ltiReMgu4w1awoq04bohJpzC/g==
-X-Google-Smtp-Source: AGHT+IHSYFPf3w2qdTZr9bikkzuSsvPYQjYYZyW+Zfc616rQWXs3Eeo2BzwinmhhOfJVOtnHj1lBTA==
-X-Received: by 2002:a05:6a00:1a0c:b0:68c:57c7:1eb0 with SMTP id g12-20020a056a001a0c00b0068c57c71eb0mr9371853pfv.11.1694383287795;
-        Sun, 10 Sep 2023 15:01:27 -0700 (PDT)
-Received: from dread.disaster.area (pa49-195-66-88.pa.nsw.optusnet.com.au. [49.195.66.88])
-        by smtp.gmail.com with ESMTPSA id u10-20020a62ed0a000000b0068a3dd6c1dasm4403641pfh.142.2023.09.10.15.01.27
+        d=1e100.net; s=20230601; t=1694419566; x=1695024366;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=XDXBfh7oY4pmFmGSF4PND0R5OaSxpWXbzV+EwmN9Pdw=;
+        b=xAzmHjZAsSdHt+4HlzvKgQmSmgZFlHlbQ33yhIAqolcEhhHKoSWtPKz/ixVsAZKQXX
+         jZufGOQg5gSwrCs1x/MWzxskK1r6HiVNGRPlTAPUOmDdiAUafBDZ1Yh6EEMlmFBTcfXd
+         b83Cb3vQNU8enG15hOUewl6ZakdYmemgC2YFvZ6i5zsiw8f6wQp086P8LZGfkUJhX9DQ
+         pzGSUjO49HcOKEj2nTnbhBL2QXfh2pT0lG+6qbrwByNFKIOyKzHkk/LnDDXX8aMFE3ZR
+         3LxKAiA+obBPtMCYbsQ9VYXQruMi2c16iF9fUZCxprwLvqz8wSYZ7OttZHrm3iRfyroK
+         FMLg==
+X-Gm-Message-State: AOJu0YxJto23nNfdw4IKtcMKgdMkFIB4lgF2of5fXNh/hwt8XOUtmlh/
+        jmlMVNvOQAfgX671B8CIVn4=
+X-Google-Smtp-Source: AGHT+IFdax2hVRIOrZsTiUvyn39s51JCtfiYuOHBeWdbv0V7Ww7JkD8FS7pTk1aCIKgGSX/58mOh7Q==
+X-Received: by 2002:a05:6000:137b:b0:314:1b36:f440 with SMTP id q27-20020a056000137b00b003141b36f440mr6505126wrz.70.1694419566094;
+        Mon, 11 Sep 2023 01:06:06 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (bzq-166-168-31-246.red.bezeqint.net. [31.168.166.246])
+        by smtp.gmail.com with ESMTPSA id i9-20020a5d5589000000b003141e629cb6sm9216396wrv.101.2023.09.11.01.06.04
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 10 Sep 2023 15:01:27 -0700 (PDT)
-Received: from dave by dread.disaster.area with local (Exim 4.96)
-        (envelope-from <david@fromorbit.com>)
-        id 1qfSUe-00DWBA-0u;
-        Mon, 11 Sep 2023 08:01:24 +1000
-Date:   Mon, 11 Sep 2023 08:01:24 +1000
-From:   Dave Chinner <david@fromorbit.com>
-To:     Pavel Begunkov <asml.silence@gmail.com>
-Cc:     Hao Xu <hao.xu@linux.dev>, Matthew Wilcox <willy@infradead.org>,
-        io-uring@vger.kernel.org, Jens Axboe <axboe@kernel.dk>,
-        Dominique Martinet <asmadeus@codewreck.org>,
+        Mon, 11 Sep 2023 01:06:05 -0700 (PDT)
+From:   Amir Goldstein <amir73il@gmail.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Christian Brauner <brauner@kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Stefan Roesch <shr@fb.com>, Clay Harris <bugs@claycon.org>,
-        "Darrick J . Wong" <djwong@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        linux-ext4@vger.kernel.org, linux-cachefs@redhat.com,
-        ecryptfs@vger.kernel.org, linux-nfs@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, bpf@vger.kernel.org,
-        netdev@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, codalist@coda.cs.cmu.edu,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-mm@kvack.org, linux-nilfs@vger.kernel.org,
-        devel@lists.orangefs.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org, linux-mtd@lists.infradead.org,
-        Wanpeng Li <wanpengli@tencent.com>
-Subject: Re: [PATCH 07/11] vfs: add nowait parameter for file_accessed()
-Message-ID: <ZP48tAg2iS0UzKQf@dread.disaster.area>
-References: <20230827132835.1373581-1-hao.xu@linux.dev>
- <20230827132835.1373581-8-hao.xu@linux.dev>
- <ZOvA5DJDZN0FRymp@casper.infradead.org>
- <c728bf3f-d9db-4865-8473-058b26c11c06@linux.dev>
- <ZO3cI+DkotHQo3md@casper.infradead.org>
- <642de4e6-801d-fcad-a7ce-bfc6dec3b6e5@linux.dev>
- <ZPUJHAKzxvXiEDYA@dread.disaster.area>
- <6489b8cb-7d54-1e29-f192-a3449ed87fa1@gmail.com>
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs fixes for 6.6-rc2
+Date:   Mon, 11 Sep 2023 11:06:01 +0300
+Message-Id: <20230911080601.3145430-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6489b8cb-7d54-1e29-f192-a3449ed87fa1@gmail.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Sep 08, 2023 at 01:29:55AM +0100, Pavel Begunkov wrote:
-> On 9/3/23 23:30, Dave Chinner wrote:
-> > On Wed, Aug 30, 2023 at 02:11:31PM +0800, Hao Xu wrote:
-> > > On 8/29/23 19:53, Matthew Wilcox wrote:
-> > > > On Tue, Aug 29, 2023 at 03:46:13PM +0800, Hao Xu wrote:
-> > > > > On 8/28/23 05:32, Matthew Wilcox wrote:
-> > > > > > On Sun, Aug 27, 2023 at 09:28:31PM +0800, Hao Xu wrote:
-> > > > > > > From: Hao Xu <howeyxu@tencent.com>
-> > > > > > > 
-> > > > > > > Add a boolean parameter for file_accessed() to support nowait semantics.
-> > > > > > > Currently it is true only with io_uring as its initial caller.
-> > > > > > 
-> > > > > > So why do we need to do this as part of this series?  Apparently it
-> > > > > > hasn't caused any problems for filemap_read().
-> > > > > > 
-> > > > > 
-> > > > > We need this parameter to indicate if nowait semantics should be enforced in
-> > > > > touch_atime(), There are locks and maybe IOs in it.
-> > > > 
-> > > > That's not my point.  We currently call file_accessed() and
-> > > > touch_atime() for nowait reads and nowait writes.  You haven't done
-> > > > anything to fix those.
-> > > > 
-> > > > I suspect you can trim this patchset down significantly by avoiding
-> > > > fixing the file_accessed() problem.  And then come back with a later
-> > > > patchset that fixes it for all nowait i/o.  Or do a separate prep series
-> > > 
-> > > I'm ok to do that.
-> > > 
-> > > > first that fixes it for the existing nowait users, and then a second
-> > > > series to do all the directory stuff.
-> > > > 
-> > > > I'd do the first thing.  Just ignore the problem.  Directory atime
-> > > > updates cause I/O so rarely that you can afford to ignore it.  Almost
-> > > > everyone uses relatime or nodiratime.
-> > > 
-> > > Hi Matthew,
-> > > The previous discussion shows this does cause issues in real
-> > > producations: https://lore.kernel.org/io-uring/2785f009-2ebb-028d-8250-d5f3a30510f0@gmail.com/#:~:text=fwiw%2C%20we%27ve%20just%20recently%20had%20similar%20problems%20with%20io_uring%20read/write
-> > > 
-> > 
-> > Then separate it out into it's own patch set so we can have a
-> > discussion on the merits of requiring using noatime, relatime or
-> > lazytime for really latency sensitive IO applications. Changing code
-> > is not always the right solution...
-> 
-> Separation sounds reasonable, but it can hardly be said that only
-> latency sensitive apps would care about >1s nowait/async submission
-> delays. Presumably, btrfs can improve on that, but it still looks
-> like it's perfectly legit for filesystems do heavy stuff in
-> timestamping like waiting for IO. Right?
+Hi Linus,
 
-Yes, it is, no-one is denying that. And some filesystems are worse
-than others, but none of that means it has to be fixed so getdents
-can be converted to NOWAIT semantics.
+Please pull these two fixes for pretty old regressions.
+They have no relation to the ovl updates in 6.6-rc1, except for
+the timing. They were reported late in the merge window.
 
-ie. this patchset is about the getdents NOWAIT machinery, and
-fiddling around with timestamps has much, much wider scope than just
-NOWAIT getdents machinery. We'll have this discussion about NOWAIT
-timestamp updates when a RFC is proposed to address the wider
-problem of how timestamp updates should behave in NOWAIT context.
+I could have sent the fixes last week, during the merge window,
+but they are not so urgent, so I preferred to test them against rc1.
 
--Dave.
--- 
-Dave Chinner
-david@fromorbit.com
+This branch has been sitting in linux-next for over a week and
+it has gone through all the usual overlayfs test routines.
+
+The branch merges cleanly with master branch of the moment
+and I even signed it this time ;)
+
+Thanks,
+Amir.
+
+----------------------------------------------------------------
+
+The following changes since commit 92901222f83d988617aee37680cb29e1a743b5e4:
+
+  Merge tag 'f2fs-for-6-6-rc1' of git://git.kernel.org/pub/scm/linux/kernel/git/jaegeuk/f2fs (2023-09-02 15:37:59 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git tags/ovl-fixes-6.6-rc2
+
+for you to fetch changes up to 724768a39374d35b70eaeae8dd87048a2ec7ae8e:
+
+  ovl: fix incorrect fdput() on aio completion (2023-09-04 18:27:38 +0300)
+
+----------------------------------------------------------------
+overlayfs fixes for 6.6-rc2
+
+----------------------------------------------------------------
+Amir Goldstein (2):
+      ovl: fix failed copyup of fileattr on a symlink
+      ovl: fix incorrect fdput() on aio completion
+
+ fs/overlayfs/copy_up.c | 3 ++-
+ fs/overlayfs/file.c    | 9 +++------
+ 2 files changed, 5 insertions(+), 7 deletions(-)
