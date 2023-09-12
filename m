@@ -2,155 +2,169 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB2BBEE3F11
-	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Sep 2023 19:50:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22CF1EE3F3F
+	for <linux-unionfs@archiver.kernel.org>; Tue, 12 Sep 2023 22:10:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229936AbjILTuE (ORCPT
+        id S234111AbjILWK6 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 12 Sep 2023 15:50:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50676 "EHLO
+        Tue, 12 Sep 2023 18:10:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42586 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229500AbjILTuD (ORCPT
+        with ESMTP id S233593AbjILWK5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 12 Sep 2023 15:50:03 -0400
-X-Greylist: delayed 3762 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 12 Sep 2023 12:49:58 PDT
-Received: from mx08-0040c702.pphosted.com (mx08-0040c702.pphosted.com [185.183.31.154])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3EDC115
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Sep 2023 12:49:58 -0700 (PDT)
-Received: from pps.filterd (m0267678.ppops.net [127.0.0.1])
-        by mx07-0040c702.pphosted.com (8.17.1.22/8.17.1.22) with ESMTP id 38C1TKSd025936
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Sep 2023 18:47:15 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=karlstorz.com;
-         h=from:to:subject:date:message-id:content-type
-        :content-transfer-encoding:mime-version; s=S-DKIM-20210427; bh=X
-        O2MWhdb+lK4d+Z76lr2I066Ztaps9kDJ7zHBg7Z9n4=; b=WkxJBQdWVoWmlhnpc
-        CR+Szt/enllg+5lp9SShdfqpChq2ficTe7ePuicOBaf0EsIyLKdO/UuJLt1rbOaQ
-        J5nwlVnPHJ79fUEhP7boonjYI3mv4tutJkgstfOXDv/HFO2XwuTd51R/jo6KcnK0
-        5xkhndDqHgyoO0xhFeEMMmk+b0pgZZllH92E/dQypqk6duSkxWFt9NvUZF914u2m
-        B+9zMhpYhni44C8f4KctzNd6jXQmvOhsdkEi8rBgx7ynf97tgCOplPuuDX98ChV0
-        4Wrkwgml4DhFlgnjpkuCjrD7T/WqMYZwCyQ5tMaFgcv0XpDFU6bZTkdcro58bfH/
-        peA6A==
-Received: from eur01-db5-obe.outbound.protection.outlook.com (mail-db5eur01lp2059.outbound.protection.outlook.com [104.47.2.59])
-        by mx07-0040c702.pphosted.com (PPS) with ESMTPS id 3t0fmb314x-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT)
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Sep 2023 18:47:14 +0000 (GMT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=aqCOFVsdm97SYhx86aWHHQkV47z1KOOrg2lnmRG73a2SyupuxSkwxb6mEtBbPr5jiz6l4hcFpBtVeyKkx/zbNBaQ608Qw1YsjTGdAXJZm4dO091wDl2o491OYo+GlbwT7zqCJTecAdynZsZrq0lzJfyP0koExTqTP28hRlEtj8zqODGQyj7+ipAmuOXuVrU2hDjRps/0SbFyawDrbxWy+5wZN5aE8mzESJSqFQ/TVvPncxvIHLmkuyr7nD4hXVLgIeXJyxyetVAMhLviP+OBvCjaZldj1/imLjHwZzklQietjfpOFQbnxHmC7MtPC+7WynfZQ//ao2meY6C4vPP2rA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=XO2MWhdb+lK4d+Z76lr2I066Ztaps9kDJ7zHBg7Z9n4=;
- b=YQH08xtZAH345kntocCkBFGP/HMWEVlZV0WimeJMgJPQkyQ4PK6NWuaUWR65BwPRbIRnYdWri4cxLXkFDlT8GpqcVps3QUJOvVGqtYuDfyro70t/fPW7mjVqR16bCP2rawXGDBRgygyjOPZ4+S+7h+bRKv3n/kNWzBN9qhPqdSDN6s8mcEDluhHM0PM7ngHnHuGw4zx1Kn63HZkRvtA8eF37RqwGMRVAcfODYJBp4OCZP3r9RaxbbpVr+3FnNSqMi+hS9RMoDWEckUZT7UJ2HREi7CLYH4XyjoSDmvmij7ZPyAOXzlQ8Av4m0WpRjLDYWRXrko+oQLS2EXNQLizjAA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=karlstorz.com; dmarc=pass action=none
- header.from=karlstorz.com; dkim=pass header.d=karlstorz.com; arc=none
-Received: from DB6PR01MB3736.eurprd01.prod.exchangelabs.com
- (2603:10a6:6:4b::33) by AS8PR01MB7527.eurprd01.prod.exchangelabs.com
- (2603:10a6:20b:2a6::13) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6792.15; Tue, 12 Sep
- 2023 18:47:10 +0000
-Received: from DB6PR01MB3736.eurprd01.prod.exchangelabs.com
- ([fe80::91fe:d06c:d05e:e7fc]) by DB6PR01MB3736.eurprd01.prod.exchangelabs.com
- ([fe80::91fe:d06c:d05e:e7fc%4]) with mapi id 15.20.6792.015; Tue, 12 Sep 2023
- 18:47:10 +0000
-From:   "Sebert, Holger.ext" <Holger.Sebert.ext@karlstorz.com>
-To:     "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>
-Subject: Quota on OverlayFS supported?
-Thread-Topic: Quota on OverlayFS supported?
-Thread-Index: AQHZ5al7Az3PGWuDSkaig+FoTYCYAg==
-Date:   Tue, 12 Sep 2023 18:47:09 +0000
-Message-ID: <DB6PR01MB373613B9CD1198A409333D77A4F1A@DB6PR01MB3736.eurprd01.prod.exchangelabs.com>
-Accept-Language: de-DE, en-US
-Content-Language: de-DE
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-msip_labels: 
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DB6PR01MB3736:EE_|AS8PR01MB7527:EE_
-x-ms-office365-filtering-correlation-id: 867d3f2f-3292-4ea3-9479-08dbb3c0aba1
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: 3uWhXAMfXpMCV550V2JezGzihVegaLkc7HrOKY12gLply6jJXfRBzvM0Og9JsJgZFJx5SW38K+uvg9YH0O4LrYYv2NHPHR42cVqXhNl/pNSm3gzcntpL5vTfSAgVu6h5hBkfi9qD2ykgnOz9IM8uodPV3TJuAUDDrRUrQNFFW9euWbFChExIXjv+2wpulud/NN9N3mGhsmZLJ6mzkRlz9Gs/uj9S9pEgE5Hn2LJ8R+fGvGzi8kKj7Te06yaDzk/Ibauby1TM22zAr+VJWWJAaPYEkJ8hBDsy6qxmKpQidlEVXmQ8Pg9VV+Sbu5JecGrx+hBN40j9QmfYa0fqotjtYl2BHbFD/Qe3rk5n2ZhpzMKwAqM9jwlXTCGggAIz1VgUazvLFdt6QVGAmIakSzvXCGqFOX3YffE0F9SOGaufWiu9loBkTNgj1iaxrITG6VtuQ3G6vdk32E2VmaW9kve+H/9SU2BUzWTck+5sLGwnf09q7VvJmJ7z4V4MCba3DBQYjmxawnLK6mNMfDkoZmVOqd54cxhAqtLV0ZvOKLyf2RpQJuLyFzrZnOaoYHEUl+CcqdqvrhPFii2kTLqVcr8sKlckZMgvOXz8sCx8GLA3LhNLocpcms5BkmVisT/MLd6S
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DB6PR01MB3736.eurprd01.prod.exchangelabs.com;PTR:;CAT:NONE;SFS:(13230031)(366004)(136003)(396003)(376002)(39860400002)(346002)(451199024)(186009)(1800799009)(91956017)(76116006)(15650500001)(41300700001)(4744005)(55016003)(316002)(8936002)(8676002)(66446008)(66556008)(64756008)(66476007)(6916009)(2906002)(66946007)(5660300002)(52536014)(478600001)(9686003)(7696005)(6506007)(3480700007)(38100700002)(122000001)(26005)(71200400001)(83380400001)(38070700005)(86362001)(33656002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?n+Ut5qkwjPTyVP63oNAwEWSdeCpBHvmu9+Mlzme3uJeQVSEuK09UysF+G/?=
- =?iso-8859-1?Q?06gY6lIwTshr2OkbMH7SYOpG2vKdXhbCT4gelEW480dY4fJ1J0D51tqexm?=
- =?iso-8859-1?Q?LZTBXjxiylvh92xjob08uKUVYYwa3mlXYqpiok7HyyZfnjqpdHGYoIZmtm?=
- =?iso-8859-1?Q?DWrCSlTd36kpzFndBzFxs7SpdK8QPB8t09MGJ8YAd30itLNsc4km4yRh8f?=
- =?iso-8859-1?Q?i0TFxn7Wkxcsxe3h3GsKsQU1DxuL2FVwu7UO8LAqDn03rUZEW7ldgEQp1z?=
- =?iso-8859-1?Q?paZls4Qne+lhnCix34+L+R6UTwEV0/d1k20mx9hbAXZJ1RzG4k/JSgJPH6?=
- =?iso-8859-1?Q?kzInTf+/KGrSU/J6CYz+Xs6MKFxpcUuJTX1kJEVMAwLc6PXEy4QIPIa8UQ?=
- =?iso-8859-1?Q?XByN6kpVByWMGdGs4jU033Tk1GSkij4i/yYR6PSgwRVpMfCGE+Co6/3bQh?=
- =?iso-8859-1?Q?MirT79vMpaKCGgiHLHDhWbHmaDJW3HbGcmXXSvWsCqWsTrPIdIrvwIhHnd?=
- =?iso-8859-1?Q?HwajMSO7Ex4JIb76c9BlGwQd9vqsn4UaBDVD0p6BIRyqr72WPaX/2hNO+Y?=
- =?iso-8859-1?Q?hZnWpexShk07kdCMKlgUoejWU5U8XUchKF7KJpR/xheBf6o9txtqLeJPNl?=
- =?iso-8859-1?Q?fTUZqOPIYxNft6FMqtQ2nZ++kbgcKw6btXrNcW4oAN8/cQ354w+mZ+jocU?=
- =?iso-8859-1?Q?MxH0U3+QL5QigXyjnADZlMkvt0ZQrFO91kvKgju76pTCl+aEY43FbwAsRV?=
- =?iso-8859-1?Q?NmbghZCyyxVt+YyFquWHWB7F+9GshogWJss+0RPPxiQ5JTWIQDsDlWIio6?=
- =?iso-8859-1?Q?YUisaQ7F6q1WHvCFq4wcxrYk32YFgDVUvv5PhW52a1VS9Mb6EMGfG53qOU?=
- =?iso-8859-1?Q?bE+62SqqJru8NQjKdmlKLmp8vq/q5BLpRvpZHZ8xo7u73BNrhCch7xswgn?=
- =?iso-8859-1?Q?vf9X4gQn7W1xy0LyI5MZKwm5CsbFvqFNZfk9CLMqMtD1iKxWkZyS2M2UL2?=
- =?iso-8859-1?Q?s4Dg6Bz6vrjUqD9l9Cr1Ulig+Rv0PqX0TSu/jrDZRRWUg+Wc4kCDa4phi9?=
- =?iso-8859-1?Q?jd0UyWziHg0VEkPSUr4ww6H3O3mC3V5alMR2+w0q+vRpxcgNllaUdjL39F?=
- =?iso-8859-1?Q?0sVO/zgUgUB0gBHLGDOhLPnYeC78zLS2mTCoLdd7cKJb+vKo2JcIh80QxS?=
- =?iso-8859-1?Q?lHMBUfBfPa75BpEONGHmCet7USklf5fKsRX2ju9FN7sw86qF2MA9cHHbwx?=
- =?iso-8859-1?Q?2zLHTC9M5PJ+FfXtK4beH0pEaoaMjztzZRBZnqNjwPRW9DxaUKeif8AmzE?=
- =?iso-8859-1?Q?eF201fMQ2LfbHfSTkQoB2qDuRfuKTfLA4gmQ8CmqVpeLY2pnSj4TsK/u7U?=
- =?iso-8859-1?Q?EmKJTqSvL4Skqjvkmj+gsFDmjq4q8tcfHC1cvFbCSMeEHuV9WpjSFDKxdQ?=
- =?iso-8859-1?Q?Fd4/EULfPD5SddN0CyNI27j+EvgcbEDBYAjMud6TxdslJSwSwJsRafYjkM?=
- =?iso-8859-1?Q?ENrfosE+xd/i4rlv6iUWoXfZJwlzXPzahq7r2jOApGOOFgDd2bhAGcV1AB?=
- =?iso-8859-1?Q?inohL/QrpicLVmPL7RHRUNL8w8sDQ+PjrEUHYAQYqZu8ET//bjrVkzGeCh?=
- =?iso-8859-1?Q?0LLpKbyhA2b6BXIhc0CWvjzpqkN1si7A5CPo9X4/Ciqwx7xeIyX5EVEA?=
- =?iso-8859-1?Q?=3D=3D?=
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 12 Sep 2023 18:10:57 -0400
+Received: from mail-oo1-f80.google.com (mail-oo1-f80.google.com [209.85.161.80])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABB2310EB
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Sep 2023 15:10:53 -0700 (PDT)
+Received: by mail-oo1-f80.google.com with SMTP id 006d021491bc7-5768b18cec1so3625577eaf.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Sep 2023 15:10:53 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694556653; x=1695161453;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=Bg4x9Ei5cShEmm+xrzB6bN3O2q48k7uN+pXjT1so+no=;
+        b=PjO75NrtDuMTkQR40P2p10qJEN9r/H1zOEoYOhz3/0SJFU2BhD+ByPoY675LrFIepV
+         67cqJd7Yp4a9ITWzoS3VsxndW/RmW23APy9e594cK5llByxk+rUcu8BARaO42QKcG+Qr
+         oD0Mh7OChwI77XMe4S7tmvTV7ZyVlifAdNL1GzD80nlIVwaaP2D7X3RPRODFVvX5NGXB
+         YWFwLnY26kGuqcobxaqlelsZulWBbkpz/FJzwaU1rxgfywxTIR+k3g2g5BGNAhpXpYxw
+         dDSvYLFSdCoCIZs9VpgxbNkZaP4GBD6PTtMiTPXtOCA8tDSpVe3S7ahaCEduMdEgSpBY
+         UA5w==
+X-Gm-Message-State: AOJu0YzeN7iEl9GF70KS7dn9qds8bQ6zOVQsy5EuFL8IMrYtWmOs26WR
+        FjU1DPo4jswB1l+FVX3EoyLPkcdXD8gFiJUJCL68Bka7EJjw
+X-Google-Smtp-Source: AGHT+IFg+PVOt0CyCuS8Og9h7oyEP00/P9KCv24WE/6Jna3eu60DuKJl5t6UFxNPuoS7NKeFVj+hjBOqjKQNkHUnAkzNaOZ13aCf
 MIME-Version: 1.0
-X-OriginatorOrg: karlstorz.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DB6PR01MB3736.eurprd01.prod.exchangelabs.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 867d3f2f-3292-4ea3-9479-08dbb3c0aba1
-X-MS-Exchange-CrossTenant-originalarrivaltime: 12 Sep 2023 18:47:09.7386
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 4a0b6f21-e6e1-4ed6-9dcf-e60e7190f648
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: tskMPQJwrKwRcaGsGOQ3uq1gQgrwfIgPIdzgXL7apduiTQrcBcrx2fymDJpc7SN7tMzRGOX8IKRQs+6NiEWF40KMrlhmXGkDfA/stO7f2WQ=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: AS8PR01MB7527
-X-Proofpoint-ORIG-GUID: 5PacBCDPHbGVvn3tmpTX-5vDr7UhalKW
-X-Proofpoint-GUID: 5PacBCDPHbGVvn3tmpTX-5vDr7UhalKW
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.267,Aquarius:18.0.957,Hydra:6.0.601,FMLib:17.11.176.26
- definitions=2023-09-12_18,2023-09-05_01,2023-05-22_02
+X-Received: by 2002:a05:6870:989d:b0:1c8:bec5:59c4 with SMTP id
+ eg29-20020a056870989d00b001c8bec559c4mr234519oab.1.1694556653078; Tue, 12 Sep
+ 2023 15:10:53 -0700 (PDT)
+Date:   Tue, 12 Sep 2023 15:10:53 -0700
+In-Reply-To: <0000000000004f34d705ffbc2604@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <0000000000005bd097060530b758@google.com>
+Subject: Re: [syzbot] [overlayfs?] general protection fault in d_path
+From:   syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, brauner@kernel.org, jlayton@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        syzkaller-bugs@googlegroups.com, zohar@linux.ibm.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi,=0A=
-=0A=
-On my system I use OverlayFS. The overlay filesystem is mounted as=0A=
-follows:=0A=
-=0A=
-    mount -t overlay overlay -o lowerdir=3D${ROMOUNT},upperdir=3D${UPPER_DI=
-R},workdir=3D${WORK_DIR} ${NEWROOT}=0A=
-=0A=
-with the variables ROMOUNT, UPPER_DIR, WORK_DIR and NEWROOT pointing=0A=
-to the relevant directories.=0A=
-=0A=
-I tried to activate quota by adding the mount options 'usrquota' and=0A=
-'grpquota' to the above mount command as follows:=0A=
-=0A=
-    mount -t overlay overlay -o lowerdir=3D${ROMOUNT},upperdir=3D${UPPER_DI=
-R},workdir=3D${WORK_DIR},usrquota,grpquota ${NEWROOT}=0A=
-=0A=
-While I don't get an error, the quota tools report that quota isn't=0A=
-activated on the (overlay-)filesystem containing the r/w uppder dir.=0A=
-=0A=
-This makes me wonder whether quotas are actually supported by OverlayFS?=0A=
-=0A=
-I searched the web, asked on ServerFault, but did not receive a definite=0A=
-answer.=0A=
-=0A=
-Thanks!=0A=
-=0A=
--Holger=0A=
+syzbot has found a reproducer for the following issue on:
+
+HEAD commit:    a747acc0b752 Merge tag 'linux-kselftest-next-6.6-rc2' of g..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=11c82308680000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=df91a3034fe3f122
+dashboard link: https://syzkaller.appspot.com/bug?extid=a67fc5321ffb4b311c98
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1671b694680000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14ec94d8680000
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/b28ecb88c714/disk-a747acc0.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/03dd2cd5356f/vmlinux-a747acc0.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/63365d9bf980/bzImage-a747acc0.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com
+
+general protection fault, probably for non-canonical address 0xdffffc0000000009: 0000 [#1] PREEMPT SMP KASAN
+KASAN: null-ptr-deref in range [0x0000000000000048-0x000000000000004f]
+CPU: 0 PID: 5030 Comm: syz-executor173 Not tainted 6.6.0-rc1-syzkaller-00014-ga747acc0b752 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/04/2023
+RIP: 0010:__seqprop_spinlock_sequence include/linux/seqlock.h:275 [inline]
+RIP: 0010:get_fs_root_rcu fs/d_path.c:244 [inline]
+RIP: 0010:d_path+0x2f0/0x6e0 fs/d_path.c:286
+Code: 30 00 74 08 48 89 df e8 be 20 e1 ff 4c 8b 23 4d 8d 6c 24 48 49 81 c4 88 00 00 00 4c 89 eb 48 c1 eb 03 4c 89 ef e8 00 1e 00 00 <42> 0f b6 04 33 84 c0 0f 85 89 00 00 00 45 8b 7d 00 44 89 fe 83 e6
+RSP: 0018:ffffc90003a7eee0 EFLAGS: 00010246
+RAX: 7e73051ae5315e00 RBX: 0000000000000009 RCX: ffff88807da73b80
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffc90003a7eff0 R08: ffffffff82068d08 R09: 1ffffffff1d34ccd
+R10: dffffc0000000000 R11: fffffbfff1d34cce R12: 0000000000000088
+R13: 0000000000000048 R14: dffffc0000000000 R15: ffff8880206d8000
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f351862ebb8 CR3: 00000000276a7000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ audit_log_d_path+0xd3/0x310 kernel/audit.c:2138
+ dump_common_audit_data security/lsm_audit.c:224 [inline]
+ common_lsm_audit+0x7cf/0x1a90 security/lsm_audit.c:458
+ smack_log+0x421/0x540 security/smack/smack_access.c:383
+ smk_tskacc+0x2ff/0x360 security/smack/smack_access.c:253
+ smack_inode_getattr+0x203/0x270 security/smack/smack_lsm.c:1271
+ security_inode_getattr+0xd3/0x120 security/security.c:2153
+ vfs_getattr+0x2a/0x3a0 fs/stat.c:206
+ ovl_getattr+0x1b1/0xf70 fs/overlayfs/inode.c:174
+ ima_check_last_writer security/integrity/ima/ima_main.c:171 [inline]
+ ima_file_free+0x26e/0x4b0 security/integrity/ima/ima_main.c:203
+ __fput+0x36a/0x910 fs/file_table.c:378
+ task_work_run+0x24a/0x300 kernel/task_work.c:179
+ exit_task_work include/linux/task_work.h:38 [inline]
+ do_exit+0x68f/0x2290 kernel/exit.c:874
+ do_group_exit+0x206/0x2c0 kernel/exit.c:1024
+ get_signal+0x175d/0x1840 kernel/signal.c:2892
+ arch_do_signal_or_restart+0x96/0x860 arch/x86/kernel/signal.c:309
+ exit_to_user_mode_loop+0x6a/0x100 kernel/entry/common.c:168
+ exit_to_user_mode_prepare+0xb1/0x140 kernel/entry/common.c:204
+ __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
+ syscall_exit_to_user_mode+0x64/0x280 kernel/entry/common.c:296
+ do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f35185d8529
+Code: Unable to access opcode bytes at 0x7f35185d84ff.
+RSP: 002b:00007f3518599218 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
+RAX: 0000000000000001 RBX: 00007f3518662308 RCX: 00007f35185d8529
+RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 00007f351866230c
+RBP: 00007f3518662300 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00007f351862f064
+R13: 0031656c69662f2e R14: 6e6f3d7865646e69 R15: 0079616c7265766f
+ </TASK>
+Modules linked in:
+---[ end trace 0000000000000000 ]---
+RIP: 0010:__seqprop_spinlock_sequence include/linux/seqlock.h:275 [inline]
+RIP: 0010:get_fs_root_rcu fs/d_path.c:244 [inline]
+RIP: 0010:d_path+0x2f0/0x6e0 fs/d_path.c:286
+Code: 30 00 74 08 48 89 df e8 be 20 e1 ff 4c 8b 23 4d 8d 6c 24 48 49 81 c4 88 00 00 00 4c 89 eb 48 c1 eb 03 4c 89 ef e8 00 1e 00 00 <42> 0f b6 04 33 84 c0 0f 85 89 00 00 00 45 8b 7d 00 44 89 fe 83 e6
+RSP: 0018:ffffc90003a7eee0 EFLAGS: 00010246
+RAX: 7e73051ae5315e00 RBX: 0000000000000009 RCX: ffff88807da73b80
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: ffffc90003a7eff0 R08: ffffffff82068d08 R09: 1ffffffff1d34ccd
+R10: dffffc0000000000 R11: fffffbfff1d34cce R12: 0000000000000088
+R13: 0000000000000048 R14: dffffc0000000000 R15: ffff8880206d8000
+FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 00007f351862ebb8 CR3: 000000007e769000 CR4: 00000000003506f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+----------------
+Code disassembly (best guess):
+   0:	30 00                	xor    %al,(%rax)
+   2:	74 08                	je     0xc
+   4:	48 89 df             	mov    %rbx,%rdi
+   7:	e8 be 20 e1 ff       	call   0xffe120ca
+   c:	4c 8b 23             	mov    (%rbx),%r12
+   f:	4d 8d 6c 24 48       	lea    0x48(%r12),%r13
+  14:	49 81 c4 88 00 00 00 	add    $0x88,%r12
+  1b:	4c 89 eb             	mov    %r13,%rbx
+  1e:	48 c1 eb 03          	shr    $0x3,%rbx
+  22:	4c 89 ef             	mov    %r13,%rdi
+  25:	e8 00 1e 00 00       	call   0x1e2a
+* 2a:	42 0f b6 04 33       	movzbl (%rbx,%r14,1),%eax <-- trapping instruction
+  2f:	84 c0                	test   %al,%al
+  31:	0f 85 89 00 00 00    	jne    0xc0
+  37:	45 8b 7d 00          	mov    0x0(%r13),%r15d
+  3b:	44 89 fe             	mov    %r15d,%esi
+  3e:	83                   	.byte 0x83
+  3f:	e6                   	.byte 0xe6
+
+
+---
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
