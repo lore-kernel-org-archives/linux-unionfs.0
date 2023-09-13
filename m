@@ -2,243 +2,109 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2A15EDEC49
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 12:09:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BD7DEDEC50
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 13:33:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240026AbjIMMJn (ORCPT
+        id S230414AbjIMNdh (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 13 Sep 2023 08:09:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47140 "EHLO
+        Wed, 13 Sep 2023 09:33:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40666 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233326AbjIMMJn (ORCPT
+        with ESMTP id S241016AbjIMNdY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 13 Sep 2023 08:09:43 -0400
-Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0593119A7;
-        Wed, 13 Sep 2023 05:09:39 -0700 (PDT)
-Received: by mail-ua1-x92c.google.com with SMTP id a1e0cc1a2514c-7a86f1befb3so248346241.1;
-        Wed, 13 Sep 2023 05:09:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1694606978; x=1695211778; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=v7PgrZebStsMLGLk3sMmCJDo+2TFRZ9yCLxlUf6YSSY=;
-        b=j/5rkXRQjdNmzv1yCaU3I+f60aVndq1aUVCKWjbY6vOEjVnGUnUbn8rcsuSXgYA6jR
-         Laj74QHHSyGc+5YRIizCT/PnhJsr38vBEXPOOo3Mmz5136XOzVjSbEksL+7ZpaBuTlgQ
-         LtB0R46XGYU6ELlVWafu8WKLpHcYbDoFHSnrXS/3TsKPLCiA08gLaaUg83UUPGWk/R3O
-         cNfuLKjO84Dv6n9WDRmd1z2RYJ5eHFnSuT7SKNDt8tkmi7ER0atxA1abLGBOOozLbAi8
-         aiwNm1anO+2QxjZ2G44bYoel3N/wjEuR2yLyjEEVobLKWUIMKzp5zzeD/9IvaNcXz1L5
-         sTOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694606978; x=1695211778;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=v7PgrZebStsMLGLk3sMmCJDo+2TFRZ9yCLxlUf6YSSY=;
-        b=Q67idreGCsPhlsPnSDZa0yh3vJT2ziA9zyypnSxx3SAhQH1/IIOJmO8n1nR881QHcV
-         fJvwbAx0c+N2IrlHM6HOcrFiwnDxzQwdELu7tmCVBQ4ZvhnQL7Ve683xpQY42Zct0unf
-         Kx5BZC052C3Ih75JnwcIUJjlbYCN6j/lSy462PHoJLNUvRM+tlTwmORxob+A8VDBxNda
-         Gi/CW7JVlXacwVkVKhgaPEXz3CUQJkpU0fcL2T1ephzHII76UOQ/aDz98oxhZQKDaqsO
-         +kOY3Mr179l/V2aSqOzsEPq59GIa4mQtTO210FziFR7U9Sy1JcfY5f35CMVyK/rOXA5j
-         HWpg==
-X-Gm-Message-State: AOJu0YwhI3gmIpby43Y4KkSx5dpSIX2MI2chixrxFqULMQFZ39AFzVQT
-        NrK2fWE0I+t+pRTQyk1WeFxjiuDGNmQysnCuqgXs73I1kAs=
-X-Google-Smtp-Source: AGHT+IH1ZHzlcMOlVPi2YBSVN8/CoExSRwU869JxL3LDAlW9iSAvGDqBm5POPzdp6GCjY/ZcvhWHOMExEha9nzUwNHw=
-X-Received: by 2002:a67:f24a:0:b0:44e:9614:39bf with SMTP id
- y10-20020a67f24a000000b0044e961439bfmr1915051vsm.6.1694606977746; Wed, 13 Sep
- 2023 05:09:37 -0700 (PDT)
+        Wed, 13 Sep 2023 09:33:24 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E65BD19B6;
+        Wed, 13 Sep 2023 06:33:19 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDA93C433C7;
+        Wed, 13 Sep 2023 13:33:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1694611999;
+        bh=U6rJDc8/HNt2MyKMpa3VX4pGAzI4l/fhGVSjCrFrw7Y=;
+        h=From:Date:Subject:To:Cc:From;
+        b=m/w8vBSxfvwIwNoF+gZag1mEhpB3sRvgkHSPbVTdZCRl9EI1gH50kSfn5VTzzH0uc
+         uIun0Oxa50ODwJ2UCl1o8sbvjU4oF6UCnnlxH4lRpfUjZ8pzlIefcSVfmCFs/lKStB
+         G/8No0HmQLFeRScz+eX1raNBVI+dls0QRUVKl0+5lyWI0TnyveiUVMsd5JoCZ88kEA
+         XEpT8uOTYX7s8ziLcSHcViIvq4/GVkUU/S7loMo+sw1oCji0WWymGebCYWocN8k2HT
+         WTRmQ2vniQwhrPWPz+3RC5cJQg8QEDnD/yskvCRYzWj7s4j1QTA2QMZu3nMnmiU6lj
+         GP23EhTE5eqrw==
+From:   Jeff Layton <jlayton@kernel.org>
+Date:   Wed, 13 Sep 2023 09:33:12 -0400
+Subject: [PATCH] overlayfs: set ctime when setting mtime and atime
 MIME-Version: 1.0
-References: <20230913073755.3489676-1-amir73il@gmail.com>
-In-Reply-To: <20230913073755.3489676-1-amir73il@gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 13 Sep 2023 15:09:26 +0300
-Message-ID: <CAOQ4uxiPREeTmkaxohaqbg_XvngNXdRAssupoo+EdBoDD-FBeg@mail.gmail.com>
-Subject: Re: [PATCH] ima: fix wrong dereferences of file->f_path
-To:     Mimi Zohar <zohar@linux.ibm.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Jeff Layton <jlayton@kernel.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        linux-integrity@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org,
-        Goldwyn Rodrigues <rgoldwyn@suse.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
+X-B4-Tracking: v=1; b=H4sIABi6AWUC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDI2MDS0Nj3eSSzNxUXSNLS0NzY3Mzg5QUSyWg2oKi1LTMCrA50bG1tQA8zQ0
+ +VwAAAA==
+To:     Miklos Szeredi <miklos@szeredi.hu>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Christian Brauner <brauner@kernel.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>
+Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Jeff Layton <jlayton@kernel.org>
+X-Mailer: b4 0.12.3
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1513; i=jlayton@kernel.org;
+ h=from:subject:message-id; bh=U6rJDc8/HNt2MyKMpa3VX4pGAzI4l/fhGVSjCrFrw7Y=;
+ b=owEBbQKS/ZANAwAIAQAOaEEZVoIVAcsmYgBlAboee2/mgKjU8JTLm84bfls+24apRnvKTVw2o
+ o2baxy12OiJAjMEAAEIAB0WIQRLwNeyRHGyoYTq9dMADmhBGVaCFQUCZQG6HgAKCRAADmhBGVaC
+ FZy6D/0em1kPDGpqJnR9cNODNrAjXokVlbqEB90ZRVJZs/HbLXOba7IWmkugvKyyOUM1uhEYicv
+ muZGCzeaVVypehN7TDm+tFx8IcLSMRuw3jFS2mA3+vusG+eBNHM3TbfZ59XDYH0A0n5i+J32FPy
+ 1Ur8B90OQZZhQLqQ+Bn4gZxsiqo1E7kmwR7Y7mBOkzSDuc8YbNjeGhR/riv5O8cbafg3Nq6T68Z
+ mG8TK1XS/76DBa+moWMfco3KV+exBxGA8cUXgK9kUphMOy+eZ+5TYExPC30vU+i6zdMkZN0YIDh
+ z0tTEjiq9RbkN9HTbcIgcU0tHwC1x5Ft9yO0cFnoG+ABtQSrJ5P7MosKoob0ne4kfiB5wB15LtV
+ Iq5Nfm8aFAZ4KV3gycblwkq8r/1dW1yFMKuvo36gonabRkaphnhyguafjwT1jwmr6A7VfC7OGjI
+ 4+KBF7NteZckElAN/MDDO2LODYp6hbEDB4PyM4HsA8igfhzkcQRIMY+HMDtro/5YIaVRqU1DfjP
+ aMcrCPKLbfU6oFRhvujOAks9KGNe0pXRb8PzsF06NMb+Q+G2lJMxW3QIRThuO0wFOq4g+PL2YUr
+ XwL5z3yEcFFjiv8UJ39/EX2M4ofKanO68yUYqzUzK8M9591vD/qaBV6O/NvoVV8WJCXCkwh7Q6S
+ XM+A8mynNlCbqHw==
+X-Developer-Key: i=jlayton@kernel.org; a=openpgp;
+ fpr=4BC0D7B24471B2A184EAF5D3000E684119568215
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Sep 13, 2023 at 10:38=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
-> wrote:
->
-> When storing IMA xattr on an overlayfs inode, the xattr is actually
-> stored in the inode of the underlying (a.k.a real) filesystem, so there
-> is an ambiguity whether this IMA xattr describes the integrity of the
-> overlayfs inode or the real inode.
->
-> For this reason and other reasons, IMA is not supported on overlayfs,
-> in the sense that integrity checking on the overlayfs inode/file/path
-> do not work correctly and have undefined behavior and the IMA xattr
-> always describes the integrity of the real inode.
->
-> When a user operates on an overlayfs file, whose underlying real file
-> has IMA enabled, IMA should always operate on the real path and not
-> on the overlayfs path.
->
-> IMA code already uses the helper file_dentry() to get the dentry
-> of the real file. Dereferencing file->f_path directly means that IMA
-> will operate on the overlayfs inode, which is wrong.
->
-> Therefore, all dereferences to f_path were converted to use the
-> file_real_path() helper.
->
-> Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com
-> Closes: https://lore.kernel.org/linux-unionfs/0000000000005bd097060530b75=
-8@google.com/
-> Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
-> Cc: Christian Brauner <brauner@kernel.org>
-> Cc: Jeff Layton <jlayton@kernel.org>
-> Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
-> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> ---
->
-> Mimi,
->
-> Some of the wrong f_path dereferences are much older than the Fixes
-> commit, but they did not have as big an impact as the wrong f_path
-> dereference that the Fixes commit introduced.
->
-> For example, commit a408e4a86b36 ("ima: open a new file instance if no
-> read permissions") worked because reading the content of the overlayfs
-> file has the same result as reading the content of the real file, but it
-> is actually the real file integrity that we want to verify.
->
-> Anyway, the real path information, that is now available via the
-> file_real_path() helper, was not available in IMA integrity check context
-> at the time that commit a408e4a86b36 was merged.
->
+Nathan reported that he was seeing the new warning in
+setattr_copy_mgtime pop when starting podman containers. Overlayfs is
+trying to set the atime and mtime via notify_change without also
+setting the ctime.
 
-Only problem is that fix did not resolve the syzbot bug, which
-seems to do the IMA integrity check on overlayfs file (not sure).
+POSIX states that when the atime and mtime are updated via utimes() that
+we must also update the ctime to the current time. The situation with
+overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
+notify_change will fill in the value.
 
-I am pretty sure that this patch fixes "a bug" when IMA is on the filesyste=
-m
-under overlayfs and this is a pretty important use case.
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Signed-off-by: Jeff Layton <jlayton@kernel.org>
+---
+The new WARN_ON_ONCE in setattr_copy_mgtime caught a bug! Fix up
+overlayfs to ensure that the ctime on the upper inode is also updated
+when copying up the atime and mtime.
+---
+ fs/overlayfs/copy_up.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-But I guess there are still issues with IMA over overlayfs and this is not
-the only one.
-Is this really a use case that needs to be supported?
-Isn't the newly added SB_I_IMA_UNVERIFIABLE_SIGNATURE flag
-a hint that IMA on overlayfs is not a good idea at all?
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d1761ec5866a..ada3fcc9c6d5 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -337,7 +337,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
+ {
+ 	struct iattr attr = {
+ 		.ia_valid =
+-		     ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIME_SET,
++		     ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIME_SET | ATTR_CTIME,
+ 		.ia_atime = stat->atime,
+ 		.ia_mtime = stat->mtime,
+ 	};
 
-Thanks,
-Amir.
+---
+base-commit: 9cb8e7c86ac793862e7bea7904b3426942bbd7ef
+change-id: 20230913-ctime-299173760dd9
 
->
->  security/integrity/ima/ima_api.c    |  4 ++--
->  security/integrity/ima/ima_crypto.c |  2 +-
->  security/integrity/ima/ima_main.c   | 10 +++++-----
->  3 files changed, 8 insertions(+), 8 deletions(-)
->
-> diff --git a/security/integrity/ima/ima_api.c b/security/integrity/ima/im=
-a_api.c
-> index 452e80b541e5..badf3784a1a0 100644
-> --- a/security/integrity/ima/ima_api.c
-> +++ b/security/integrity/ima/ima_api.c
-> @@ -268,8 +268,8 @@ int ima_collect_measurement(struct integrity_iint_cac=
-he *iint,
->          * to an initial measurement/appraisal/audit, but was modified to
->          * assume the file changed.
->          */
-> -       result =3D vfs_getattr_nosec(&file->f_path, &stat, STATX_CHANGE_C=
-OOKIE,
-> -                                  AT_STATX_SYNC_AS_STAT);
-> +       result =3D vfs_getattr_nosec(file_real_path(file), &stat,
-> +                                  STATX_CHANGE_COOKIE, AT_STATX_SYNC_AS_=
-STAT);
->         if (!result && (stat.result_mask & STATX_CHANGE_COOKIE))
->                 i_version =3D stat.change_cookie;
->         hash.hdr.algo =3D algo;
-> diff --git a/security/integrity/ima/ima_crypto.c b/security/integrity/ima=
-/ima_crypto.c
-> index 51ad29940f05..e6c52f3c8f37 100644
-> --- a/security/integrity/ima/ima_crypto.c
-> +++ b/security/integrity/ima/ima_crypto.c
-> @@ -555,7 +555,7 @@ int ima_calc_file_hash(struct file *file, struct ima_=
-digest_data *hash)
->                 int flags =3D file->f_flags & ~(O_WRONLY | O_APPEND |
->                                 O_TRUNC | O_CREAT | O_NOCTTY | O_EXCL);
->                 flags |=3D O_RDONLY;
-> -               f =3D dentry_open(&file->f_path, flags, file->f_cred);
-> +               f =3D dentry_open(file_real_path(file), flags, file->f_cr=
-ed);
->                 if (IS_ERR(f))
->                         return PTR_ERR(f);
->
-> diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/i=
-ma_main.c
-> index 365db0e43d7c..87c13effbdf4 100644
-> --- a/security/integrity/ima/ima_main.c
-> +++ b/security/integrity/ima/ima_main.c
-> @@ -94,7 +94,7 @@ static int mmap_violation_check(enum ima_hooks func, st=
-ruct file *file,
->                 inode =3D file_inode(file);
->
->                 if (!*pathbuf)  /* ima_rdwr_violation possibly pre-fetche=
-d */
-> -                       *pathname =3D ima_d_path(&file->f_path, pathbuf,
-> +                       *pathname =3D ima_d_path(file_real_path(file), pa=
-thbuf,
->                                                filename);
->                 integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode, *pathnam=
-e,
->                                     "mmap_file", "mmapped_writers", rc, 0=
-);
-> @@ -142,7 +142,7 @@ static void ima_rdwr_violation_check(struct file *fil=
-e,
->         if (!send_tomtou && !send_writers)
->                 return;
->
-> -       *pathname =3D ima_d_path(&file->f_path, pathbuf, filename);
-> +       *pathname =3D ima_d_path(file_real_path(file), pathbuf, filename)=
-;
->
->         if (send_tomtou)
->                 ima_add_violation(file, *pathname, iint,
-> @@ -168,7 +168,7 @@ static void ima_check_last_writer(struct integrity_ii=
-nt_cache *iint,
->                 update =3D test_and_clear_bit(IMA_UPDATE_XATTR,
->                                             &iint->atomic_flags);
->                 if ((iint->flags & IMA_NEW_FILE) ||
-> -                   vfs_getattr_nosec(&file->f_path, &stat,
-> +                   vfs_getattr_nosec(file_real_path(file), &stat,
->                                       STATX_CHANGE_COOKIE,
->                                       AT_STATX_SYNC_AS_STAT) ||
->                     !(stat.result_mask & STATX_CHANGE_COOKIE) ||
-> @@ -347,7 +347,7 @@ static int process_measurement(struct file *file, con=
-st struct cred *cred,
->                 goto out_locked;
->
->         if (!pathbuf)   /* ima_rdwr_violation possibly pre-fetched */
-> -               pathname =3D ima_d_path(&file->f_path, &pathbuf, filename=
-);
-> +               pathname =3D ima_d_path(file_real_path(file), &pathbuf, f=
-ilename);
->
->         if (action & IMA_MEASURE)
->                 ima_store_measurement(iint, file, pathname,
-> @@ -487,7 +487,7 @@ int ima_file_mprotect(struct vm_area_struct *vma, uns=
-igned long prot)
->                 result =3D -EPERM;
->
->         file =3D vma->vm_file;
-> -       pathname =3D ima_d_path(&file->f_path, &pathbuf, filename);
-> +       pathname =3D ima_d_path(file_real_path(file), &pathbuf, filename)=
-;
->         integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode, pathname,
->                             "collect_data", "failed-mprotect", result, 0)=
-;
->         if (pathbuf)
-> --
-> 2.34.1
->
+Best regards,
+-- 
+Jeff Layton <jlayton@kernel.org>
+
