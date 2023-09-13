@@ -2,78 +2,129 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C5AEE01EF
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 17:04:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31C97EE01F5
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 17:36:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230222AbjIMREf (ORCPT
+        id S230301AbjIMRhC (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 13 Sep 2023 13:04:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58284 "EHLO
+        Wed, 13 Sep 2023 13:37:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34588 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229660AbjIMREd (ORCPT
+        with ESMTP id S229451AbjIMRhC (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 13 Sep 2023 13:04:33 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1906CE;
-        Wed, 13 Sep 2023 10:04:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2ECAC433C8;
-        Wed, 13 Sep 2023 17:04:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694624669;
-        bh=7rv3Solh0betRWknM4KbpX2Yzq/6PuTa+8pHyrMJGLA=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=QVJnA+aBoPDbHvk8YrLqfUO2xt+TBAZSJweq0lY30J46pjlEIWz3WjieCmseON/88
-         ylqNWd3Laqfh+ek+uk2rL22H18Z85BL7UfSb2gVDwUXpEVyORdsFZZcEuOMXkrNchE
-         G/cYB0p2d05fshkD+v+Em9SVX3aKdTCEriBBlgAAVk5WfLZf2nevRk2F1LYhY0EZtk
-         GvD91tOsCEJSP4pnT1hbbFVThhMaOCPNLXIT0xtdBNrW8XZI3VP8+EqiNkKwU1QHTP
-         sQmVfyt/mJcyLPUIsIZF/9Uuepm1Ra4kKz6ie5D1prKqWtU41V+f3jHT4Cf3npsv+M
-         JClNNDAK/RJng==
-Message-ID: <c57b71b5109942d7c66d8466fb26f82211c1a175.camel@kernel.org>
+        Wed, 13 Sep 2023 13:37:02 -0400
+Received: from mail-ua1-x92f.google.com (mail-ua1-x92f.google.com [IPv6:2607:f8b0:4864:20::92f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 046D0A8;
+        Wed, 13 Sep 2023 10:36:58 -0700 (PDT)
+Received: by mail-ua1-x92f.google.com with SMTP id a1e0cc1a2514c-7a505727e7eso59670241.0;
+        Wed, 13 Sep 2023 10:36:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1694626617; x=1695231417; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=yUBTHLHMdVrFtqCVTI9npNAUNxOv53pR5xqiTxGy/z4=;
+        b=ltuvVGdONvIKlvwk2W8dWK0O7Bz8lZG3Q0Fo9ie3+DF0onqsskDOI5hFVoqDhDdkSh
+         SA67qvyX0epiZI76QFWKGHXbyvRNft9s3ZNg9OQITwvlORj/rMsEuVIGkap1Jo4Gjau1
+         TOwwVFNwskW3YId4fFrQYJg+w5yMB93eqiVsbyPSwDhYkeGIkR1Dr+GnQoOSnkgpDhuJ
+         rJy+MOXakH8vJ4/OWGTe0Z0q+2qCDwIBleV6uEbUo/3RiVvutIMYn9y+LNvWZUEwu49k
+         BLWfrI3lLRnNHOyn6fSP2FvHpecboq5apMOdB3PPkopIQcBHrWrA3zI88l522THoK4/v
+         LLSw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1694626617; x=1695231417;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=yUBTHLHMdVrFtqCVTI9npNAUNxOv53pR5xqiTxGy/z4=;
+        b=DOcJvirKFSlhlFP8aj8i+kymldOpDUN3yo+10A78n+3uMvQh445IKOL5teV7z5ON5U
+         DuMWZXIUa5wS8h8HpQrBrGRENOAB0BB2jEQROU2RSZTnpzSyWCgtMmiHzNDB6/10Eehu
+         0FNo+GtoZxLJd1oLL/U3YjYXXcoPNsto4MqTZwvqJx8ls/19dEE6XZfck2Ue3k48J6yZ
+         4JwAUAPR0o7XdJyAYWwpBykA9lc5q3bQNnezIB3Gn3AE0opixIP1vQ2h76ayXD7UydK5
+         Rf+xdFsWMOGXuK9PezKPZ+IEeGKRZLWod0vTb5FIhrWZuw36YrTpzf36Kvcl6naNDpMG
+         k1Kw==
+X-Gm-Message-State: AOJu0Yz0oFh8kUgMV+AOJy5weXpzOibxsBPol9UZqc+htyP/9mZ/1wIz
+        LTPBlNQ+iRiut68awOw1tfeBpKvQyqBHxfL0+Ck=
+X-Google-Smtp-Source: AGHT+IHnZ5RMnSyqYQIJ0YQlL3YDIavATqGNsUT6AgecvkVsZb9etm/KfUc34JO5eovfCyjImlWLzbmGQ7ux4RqYSY4=
+X-Received: by 2002:a1f:4b85:0:b0:495:bc26:d110 with SMTP id
+ y127-20020a1f4b85000000b00495bc26d110mr3150824vka.12.1694626616904; Wed, 13
+ Sep 2023 10:36:56 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
+In-Reply-To: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 13 Sep 2023 20:36:45 +0300
+Message-ID: <CAOQ4uxhYRnX0NChCU2tsEi7eUPqbqQDeOwQT4ubWUgtCN0OVfA@mail.gmail.com>
 Subject: Re: [PATCH] overlayfs: set ctime when setting mtime and atime
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Christian Brauner <brauner@kernel.org>
+To:     Jeff Layton <jlayton@kernel.org>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
         Nathan Chancellor <nathan@kernel.org>,
+        Christian Brauner <brauner@kernel.org>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Date:   Wed, 13 Sep 2023 13:04:27 -0400
-In-Reply-To: <20230913-hausbank-wortlaut-b2bb3cee6156@brauner>
-References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
-         <20230913-hausbank-wortlaut-b2bb3cee6156@brauner>
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
-MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 2023-09-13 at 18:45 +0200, Christian Brauner wrote:
-> On Wed, Sep 13, 2023 at 09:33:12AM -0400, Jeff Layton wrote:
-> > Nathan reported that he was seeing the new warning in
-> > setattr_copy_mgtime pop when starting podman containers. Overlayfs is
-> > trying to set the atime and mtime via notify_change without also
-> > setting the ctime.
-> >=20
-> > POSIX states that when the atime and mtime are updated via utimes() tha=
-t
-> > we must also update the ctime to the current time. The situation with
-> > overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
-> > notify_change will fill in the value.
-> >=20
-> > Reported-by: Nathan Chancellor <nathan@kernel.org>
-> > Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> > ---
->=20
-> Looks good to me,
-> Acked-by: Christian Brauner <brauner@kernel.org>
->=20
-> So we can wait for ovl to upstream this fix next and then we'll delay
-> sending the ctime fixes or we'll take this fixup as well. Just let me
-> know what you all prefer.
+On Wed, Sep 13, 2023 at 4:33=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
+ote:
+>
+> Nathan reported that he was seeing the new warning in
+> setattr_copy_mgtime pop when starting podman containers. Overlayfs is
+> trying to set the atime and mtime via notify_change without also
+> setting the ctime.
+>
+> POSIX states that when the atime and mtime are updated via utimes() that
+> we must also update the ctime to the current time. The situation with
+> overlayfs copy-up is analogous, so add ATTR_CTIME to the bitmask.
+> notify_change will fill in the value.
+>
 
-No preference here.
---=20
-Jeff Layton <jlayton@kernel.org>
+IDGI, if ctime always needs to be set along with ATIME / MTIME, why not
+let notify_change() set the bit instead of assert and fix all the callers?
+But maybe I am missing something.
+
+Anyway, I have no objection to the ovl patch.
+It's fine by me if Christian applies it to the vfs.ctime branch with my ACK=
+.
+
+Thanks,
+Amir.
+
+> Reported-by: Nathan Chancellor <nathan@kernel.org>
+> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> ---
+> The new WARN_ON_ONCE in setattr_copy_mgtime caught a bug! Fix up
+> overlayfs to ensure that the ctime on the upper inode is also updated
+> when copying up the atime and mtime.
+> ---
+>  fs/overlayfs/copy_up.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index d1761ec5866a..ada3fcc9c6d5 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -337,7 +337,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, str=
+uct dentry *upperdentry,
+>  {
+>         struct iattr attr =3D {
+>                 .ia_valid =3D
+> -                    ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIM=
+E_SET,
+> +                    ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIM=
+E_SET | ATTR_CTIME,
+>                 .ia_atime =3D stat->atime,
+>                 .ia_mtime =3D stat->mtime,
+>         };
+>
+> ---
+> base-commit: 9cb8e7c86ac793862e7bea7904b3426942bbd7ef
+> change-id: 20230913-ctime-299173760dd9
+>
+> Best regards,
+> --
+> Jeff Layton <jlayton@kernel.org>
+>
