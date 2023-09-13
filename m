@@ -2,161 +2,243 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E78EFCA550A
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 09:06:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2A15EDEC49
+	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 12:09:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239188AbjIMJGk (ORCPT
+        id S240026AbjIMMJn (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 13 Sep 2023 05:06:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42570 "EHLO
+        Wed, 13 Sep 2023 08:09:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230322AbjIMJGj (ORCPT
+        with ESMTP id S233326AbjIMMJn (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 13 Sep 2023 05:06:39 -0400
-Received: from mail-oa1-f71.google.com (mail-oa1-f71.google.com [209.85.160.71])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58B101993
-        for <linux-unionfs@vger.kernel.org>; Wed, 13 Sep 2023 02:06:35 -0700 (PDT)
-Received: by mail-oa1-f71.google.com with SMTP id 586e51a60fabf-1ad17b9fcd8so7507856fac.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 13 Sep 2023 02:06:35 -0700 (PDT)
+        Wed, 13 Sep 2023 08:09:43 -0400
+Received: from mail-ua1-x92c.google.com (mail-ua1-x92c.google.com [IPv6:2607:f8b0:4864:20::92c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0593119A7;
+        Wed, 13 Sep 2023 05:09:39 -0700 (PDT)
+Received: by mail-ua1-x92c.google.com with SMTP id a1e0cc1a2514c-7a86f1befb3so248346241.1;
+        Wed, 13 Sep 2023 05:09:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20221208; t=1694606978; x=1695211778; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=v7PgrZebStsMLGLk3sMmCJDo+2TFRZ9yCLxlUf6YSSY=;
+        b=j/5rkXRQjdNmzv1yCaU3I+f60aVndq1aUVCKWjbY6vOEjVnGUnUbn8rcsuSXgYA6jR
+         Laj74QHHSyGc+5YRIizCT/PnhJsr38vBEXPOOo3Mmz5136XOzVjSbEksL+7ZpaBuTlgQ
+         LtB0R46XGYU6ELlVWafu8WKLpHcYbDoFHSnrXS/3TsKPLCiA08gLaaUg83UUPGWk/R3O
+         cNfuLKjO84Dv6n9WDRmd1z2RYJ5eHFnSuT7SKNDt8tkmi7ER0atxA1abLGBOOozLbAi8
+         aiwNm1anO+2QxjZ2G44bYoel3N/wjEuR2yLyjEEVobLKWUIMKzp5zzeD/9IvaNcXz1L5
+         sTOg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694595994; x=1695200794;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=0NW59RIKDbz8mVsGvymDfel7fBTuaoCrD+ZCQk3ssXs=;
-        b=Oq+69FUW0yMLdQHg4Ds1J1Yp835JquigxN0Eovb62LNHIuxaWwVXJ5+hNTubGJkmBy
-         Cjoy1R9WKrgv1Mp2KykZw49MXuo+eQDZxTs5uNTrAkf7pFQCtLnqOsiAISEvf/W0SJcn
-         /MtpgeNlKY5r3w2OTmwzcCRxvSP2EDX0nNNbfntWQ28y5bZeMaZWSxVLiTleIPWwGY/H
-         doGNVZnk2TX0gEvnBCD6aC/W3gFf4+CMVd7DftRLCLpJeoQfgJMmesUCd1coeURMyz6A
-         gUbs7Ejt8lmKvFIC5DKx4QUl9VI7Tdny6w2GPjnreZgsOsMoAs1iMIBet/Wf++WqoMCo
-         xOcQ==
-X-Gm-Message-State: AOJu0YwdpUcEybE1wkPc9sm5aYXnR0MBLj6wbKXmDza/EdLM9Wb1zeth
-        M5HevS/bSnFdliVbnZLhAB/oVY+TqUJh0LYGVSpCEXHNKP6u
-X-Google-Smtp-Source: AGHT+IEB7sUvhAKx5WqXd9NYothDm9L9bvOnVzvh78qyvkHx+I8OPHDQJw2qK9tPUo5r6VfTNCQ1uj/HkpOuP6/O8XzyyccprNeK
+        d=1e100.net; s=20230601; t=1694606978; x=1695211778;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=v7PgrZebStsMLGLk3sMmCJDo+2TFRZ9yCLxlUf6YSSY=;
+        b=Q67idreGCsPhlsPnSDZa0yh3vJT2ziA9zyypnSxx3SAhQH1/IIOJmO8n1nR881QHcV
+         fJvwbAx0c+N2IrlHM6HOcrFiwnDxzQwdELu7tmCVBQ4ZvhnQL7Ve683xpQY42Zct0unf
+         Kx5BZC052C3Ih75JnwcIUJjlbYCN6j/lSy462PHoJLNUvRM+tlTwmORxob+A8VDBxNda
+         Gi/CW7JVlXacwVkVKhgaPEXz3CUQJkpU0fcL2T1ephzHII76UOQ/aDz98oxhZQKDaqsO
+         +kOY3Mr179l/V2aSqOzsEPq59GIa4mQtTO210FziFR7U9Sy1JcfY5f35CMVyK/rOXA5j
+         HWpg==
+X-Gm-Message-State: AOJu0YwhI3gmIpby43Y4KkSx5dpSIX2MI2chixrxFqULMQFZ39AFzVQT
+        NrK2fWE0I+t+pRTQyk1WeFxjiuDGNmQysnCuqgXs73I1kAs=
+X-Google-Smtp-Source: AGHT+IH1ZHzlcMOlVPi2YBSVN8/CoExSRwU869JxL3LDAlW9iSAvGDqBm5POPzdp6GCjY/ZcvhWHOMExEha9nzUwNHw=
+X-Received: by 2002:a67:f24a:0:b0:44e:9614:39bf with SMTP id
+ y10-20020a67f24a000000b0044e961439bfmr1915051vsm.6.1694606977746; Wed, 13 Sep
+ 2023 05:09:37 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:c788:b0:1d5:5101:e821 with SMTP id
- dy8-20020a056870c78800b001d55101e821mr598635oab.11.1694595994747; Wed, 13 Sep
- 2023 02:06:34 -0700 (PDT)
-Date:   Wed, 13 Sep 2023 02:06:34 -0700
-In-Reply-To: <CAOQ4uxjBAG-WA+1VCdYh6O98mU3C31qMyZZFp3iRW6_yYROdWQ@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000004e08ee060539e0a2@google.com>
-Subject: Re: [syzbot] [integrity] [overlayfs] general protection fault in d_path
-From:   syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, brauner@kernel.org, jlayton@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        syzkaller-bugs@googlegroups.com, zohar@linux.ibm.com
+References: <20230913073755.3489676-1-amir73il@gmail.com>
+In-Reply-To: <20230913073755.3489676-1-amir73il@gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Wed, 13 Sep 2023 15:09:26 +0300
+Message-ID: <CAOQ4uxiPREeTmkaxohaqbg_XvngNXdRAssupoo+EdBoDD-FBeg@mail.gmail.com>
+Subject: Re: [PATCH] ima: fix wrong dereferences of file->f_path
+To:     Mimi Zohar <zohar@linux.ibm.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Jeff Layton <jlayton@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-integrity@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org,
+        Goldwyn Rodrigues <rgoldwyn@suse.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On Wed, Sep 13, 2023 at 10:38=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
+> wrote:
+>
+> When storing IMA xattr on an overlayfs inode, the xattr is actually
+> stored in the inode of the underlying (a.k.a real) filesystem, so there
+> is an ambiguity whether this IMA xattr describes the integrity of the
+> overlayfs inode or the real inode.
+>
+> For this reason and other reasons, IMA is not supported on overlayfs,
+> in the sense that integrity checking on the overlayfs inode/file/path
+> do not work correctly and have undefined behavior and the IMA xattr
+> always describes the integrity of the real inode.
+>
+> When a user operates on an overlayfs file, whose underlying real file
+> has IMA enabled, IMA should always operate on the real path and not
+> on the overlayfs path.
+>
+> IMA code already uses the helper file_dentry() to get the dentry
+> of the real file. Dereferencing file->f_path directly means that IMA
+> will operate on the overlayfs inode, which is wrong.
+>
+> Therefore, all dereferences to f_path were converted to use the
+> file_real_path() helper.
+>
+> Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com
+> Closes: https://lore.kernel.org/linux-unionfs/0000000000005bd097060530b75=
+8@google.com/
+> Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
+> Cc: Christian Brauner <brauner@kernel.org>
+> Cc: Jeff Layton <jlayton@kernel.org>
+> Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>
+> Mimi,
+>
+> Some of the wrong f_path dereferences are much older than the Fixes
+> commit, but they did not have as big an impact as the wrong f_path
+> dereference that the Fixes commit introduced.
+>
+> For example, commit a408e4a86b36 ("ima: open a new file instance if no
+> read permissions") worked because reading the content of the overlayfs
+> file has the same result as reading the content of the real file, but it
+> is actually the real file integrity that we want to verify.
+>
+> Anyway, the real path information, that is now available via the
+> file_real_path() helper, was not available in IMA integrity check context
+> at the time that commit a408e4a86b36 was merged.
+>
 
-syzbot has tested the proposed patch but the reproducer is still triggering an issue:
-general protection fault in d_path
+Only problem is that fix did not resolve the syzbot bug, which
+seems to do the IMA integrity check on overlayfs file (not sure).
 
-general protection fault, probably for non-canonical address 0xdffffc0000000009: 0000 [#1] PREEMPT SMP KASAN
-KASAN: null-ptr-deref in range [0x0000000000000048-0x000000000000004f]
-CPU: 0 PID: 5465 Comm: syz-executor.0 Not tainted 6.6.0-rc1-syzkaller-00004-g965067e2f71e #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/04/2023
-RIP: 0010:__seqprop_spinlock_sequence include/linux/seqlock.h:275 [inline]
-RIP: 0010:get_fs_root_rcu fs/d_path.c:244 [inline]
-RIP: 0010:d_path+0x2f0/0x6e0 fs/d_path.c:286
-Code: 30 00 74 08 48 89 df e8 be 20 e1 ff 4c 8b 23 4d 8d 6c 24 48 49 81 c4 88 00 00 00 4c 89 eb 48 c1 eb 03 4c 89 ef e8 00 1e 00 00 <42> 0f b6 04 33 84 c0 0f 85 89 00 00 00 45 8b 7d 00 44 89 fe 83 e6
-RSP: 0018:ffffc90005056ec0 EFLAGS: 00010246
-RAX: be27ea831a7ad800 RBX: 0000000000000009 RCX: ffff88801c713b80
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffffc90005056fd0 R08: ffffffff82068d08 R09: 1ffffffff1d34ccd
-R10: dffffc0000000000 R11: fffffbfff1d34cce R12: 0000000000000088
-R13: 0000000000000048 R14: dffffc0000000000 R15: ffff888076dcc000
-FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f4b67d70420 CR3: 0000000016f66000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- audit_log_d_path+0xd3/0x310 kernel/audit.c:2138
- dump_common_audit_data security/lsm_audit.c:224 [inline]
- common_lsm_audit+0x7cf/0x1a90 security/lsm_audit.c:458
- smack_log+0x421/0x540 security/smack/smack_access.c:383
- smk_tskacc+0x2ff/0x360 security/smack/smack_access.c:253
- smack_inode_getattr+0x203/0x270 security/smack/smack_lsm.c:1271
- security_inode_getattr+0xd3/0x120 security/security.c:2153
- vfs_getattr+0x2a/0x3a0 fs/stat.c:206
- ovl_getattr+0x1b1/0xf70 fs/overlayfs/inode.c:174
- ima_check_last_writer security/integrity/ima/ima_main.c:171 [inline]
- ima_file_free+0x2c3/0x560 security/integrity/ima/ima_main.c:203
- __fput+0x36a/0x910 fs/file_table.c:378
- task_work_run+0x24a/0x300 kernel/task_work.c:179
- exit_task_work include/linux/task_work.h:38 [inline]
- do_exit+0x68f/0x2290 kernel/exit.c:874
- do_group_exit+0x206/0x2c0 kernel/exit.c:1024
- get_signal+0x175d/0x1840 kernel/signal.c:2892
- arch_do_signal_or_restart+0x96/0x860 arch/x86/kernel/signal.c:309
- exit_to_user_mode_loop+0x6a/0x100 kernel/entry/common.c:168
- exit_to_user_mode_prepare+0xb1/0x140 kernel/entry/common.c:204
- __syscall_exit_to_user_mode_work kernel/entry/common.c:285 [inline]
- syscall_exit_to_user_mode+0x64/0x280 kernel/entry/common.c:296
- do_syscall_64+0x4d/0xc0 arch/x86/entry/common.c:86
- entry_SYSCALL_64_after_hwframe+0x63/0xcd
-RIP: 0033:0x7f2a67a7cae9
-Code: Unable to access opcode bytes at 0x7f2a67a7cabf.
-RSP: 002b:00007f2a6875c178 EFLAGS: 00000246 ORIG_RAX: 00000000000000ca
-RAX: 0000000000000001 RBX: 00007f2a67b9bf88 RCX: 00007f2a67a7cae9
-RDX: 00000000000f4240 RSI: 0000000000000081 RDI: 00007f2a67b9bf8c
-RBP: 00007f2a67b9bf80 R08: 00007fffba3690b0 R09: 00007f2a6875c6c0
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007f2a67b9bf8c
-R13: 000000000000000b R14: 00007fffba21b880 R15: 00007fffba21b968
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-RIP: 0010:__seqprop_spinlock_sequence include/linux/seqlock.h:275 [inline]
-RIP: 0010:get_fs_root_rcu fs/d_path.c:244 [inline]
-RIP: 0010:d_path+0x2f0/0x6e0 fs/d_path.c:286
-Code: 30 00 74 08 48 89 df e8 be 20 e1 ff 4c 8b 23 4d 8d 6c 24 48 49 81 c4 88 00 00 00 4c 89 eb 48 c1 eb 03 4c 89 ef e8 00 1e 00 00 <42> 0f b6 04 33 84 c0 0f 85 89 00 00 00 45 8b 7d 00 44 89 fe 83 e6
-RSP: 0018:ffffc90005056ec0 EFLAGS: 00010246
-RAX: be27ea831a7ad800 RBX: 0000000000000009 RCX: ffff88801c713b80
-RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
-RBP: ffffc90005056fd0 R08: ffffffff82068d08 R09: 1ffffffff1d34ccd
-R10: dffffc0000000000 R11: fffffbfff1d34cce R12: 0000000000000088
-R13: 0000000000000048 R14: dffffc0000000000 R15: ffff888076dcc000
-FS:  0000000000000000(0000) GS:ffff8880b9800000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 00007f4b67d70420 CR3: 0000000016f66000 CR4: 00000000003506f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-----------------
-Code disassembly (best guess):
-   0:	30 00                	xor    %al,(%rax)
-   2:	74 08                	je     0xc
-   4:	48 89 df             	mov    %rbx,%rdi
-   7:	e8 be 20 e1 ff       	call   0xffe120ca
-   c:	4c 8b 23             	mov    (%rbx),%r12
-   f:	4d 8d 6c 24 48       	lea    0x48(%r12),%r13
-  14:	49 81 c4 88 00 00 00 	add    $0x88,%r12
-  1b:	4c 89 eb             	mov    %r13,%rbx
-  1e:	48 c1 eb 03          	shr    $0x3,%rbx
-  22:	4c 89 ef             	mov    %r13,%rdi
-  25:	e8 00 1e 00 00       	call   0x1e2a
-* 2a:	42 0f b6 04 33       	movzbl (%rbx,%r14,1),%eax <-- trapping instruction
-  2f:	84 c0                	test   %al,%al
-  31:	0f 85 89 00 00 00    	jne    0xc0
-  37:	45 8b 7d 00          	mov    0x0(%r13),%r15d
-  3b:	44 89 fe             	mov    %r15d,%esi
-  3e:	83                   	.byte 0x83
-  3f:	e6                   	.byte 0xe6
+I am pretty sure that this patch fixes "a bug" when IMA is on the filesyste=
+m
+under overlayfs and this is a pretty important use case.
 
+But I guess there are still issues with IMA over overlayfs and this is not
+the only one.
+Is this really a use case that needs to be supported?
+Isn't the newly added SB_I_IMA_UNVERIFIABLE_SIGNATURE flag
+a hint that IMA on overlayfs is not a good idea at all?
 
-Tested on:
+Thanks,
+Amir.
 
-commit:         965067e2 ima: fix wrong dereferences of file->f_path
-git tree:       https://github.com/amir73il/linux ima-ovl-fix
-console output: https://syzkaller.appspot.com/x/log.txt?x=109b00e8680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=df91a3034fe3f122
-dashboard link: https://syzkaller.appspot.com/bug?extid=a67fc5321ffb4b311c98
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Note: no patches were applied.
+>
+>  security/integrity/ima/ima_api.c    |  4 ++--
+>  security/integrity/ima/ima_crypto.c |  2 +-
+>  security/integrity/ima/ima_main.c   | 10 +++++-----
+>  3 files changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/security/integrity/ima/ima_api.c b/security/integrity/ima/im=
+a_api.c
+> index 452e80b541e5..badf3784a1a0 100644
+> --- a/security/integrity/ima/ima_api.c
+> +++ b/security/integrity/ima/ima_api.c
+> @@ -268,8 +268,8 @@ int ima_collect_measurement(struct integrity_iint_cac=
+he *iint,
+>          * to an initial measurement/appraisal/audit, but was modified to
+>          * assume the file changed.
+>          */
+> -       result =3D vfs_getattr_nosec(&file->f_path, &stat, STATX_CHANGE_C=
+OOKIE,
+> -                                  AT_STATX_SYNC_AS_STAT);
+> +       result =3D vfs_getattr_nosec(file_real_path(file), &stat,
+> +                                  STATX_CHANGE_COOKIE, AT_STATX_SYNC_AS_=
+STAT);
+>         if (!result && (stat.result_mask & STATX_CHANGE_COOKIE))
+>                 i_version =3D stat.change_cookie;
+>         hash.hdr.algo =3D algo;
+> diff --git a/security/integrity/ima/ima_crypto.c b/security/integrity/ima=
+/ima_crypto.c
+> index 51ad29940f05..e6c52f3c8f37 100644
+> --- a/security/integrity/ima/ima_crypto.c
+> +++ b/security/integrity/ima/ima_crypto.c
+> @@ -555,7 +555,7 @@ int ima_calc_file_hash(struct file *file, struct ima_=
+digest_data *hash)
+>                 int flags =3D file->f_flags & ~(O_WRONLY | O_APPEND |
+>                                 O_TRUNC | O_CREAT | O_NOCTTY | O_EXCL);
+>                 flags |=3D O_RDONLY;
+> -               f =3D dentry_open(&file->f_path, flags, file->f_cred);
+> +               f =3D dentry_open(file_real_path(file), flags, file->f_cr=
+ed);
+>                 if (IS_ERR(f))
+>                         return PTR_ERR(f);
+>
+> diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/i=
+ma_main.c
+> index 365db0e43d7c..87c13effbdf4 100644
+> --- a/security/integrity/ima/ima_main.c
+> +++ b/security/integrity/ima/ima_main.c
+> @@ -94,7 +94,7 @@ static int mmap_violation_check(enum ima_hooks func, st=
+ruct file *file,
+>                 inode =3D file_inode(file);
+>
+>                 if (!*pathbuf)  /* ima_rdwr_violation possibly pre-fetche=
+d */
+> -                       *pathname =3D ima_d_path(&file->f_path, pathbuf,
+> +                       *pathname =3D ima_d_path(file_real_path(file), pa=
+thbuf,
+>                                                filename);
+>                 integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode, *pathnam=
+e,
+>                                     "mmap_file", "mmapped_writers", rc, 0=
+);
+> @@ -142,7 +142,7 @@ static void ima_rdwr_violation_check(struct file *fil=
+e,
+>         if (!send_tomtou && !send_writers)
+>                 return;
+>
+> -       *pathname =3D ima_d_path(&file->f_path, pathbuf, filename);
+> +       *pathname =3D ima_d_path(file_real_path(file), pathbuf, filename)=
+;
+>
+>         if (send_tomtou)
+>                 ima_add_violation(file, *pathname, iint,
+> @@ -168,7 +168,7 @@ static void ima_check_last_writer(struct integrity_ii=
+nt_cache *iint,
+>                 update =3D test_and_clear_bit(IMA_UPDATE_XATTR,
+>                                             &iint->atomic_flags);
+>                 if ((iint->flags & IMA_NEW_FILE) ||
+> -                   vfs_getattr_nosec(&file->f_path, &stat,
+> +                   vfs_getattr_nosec(file_real_path(file), &stat,
+>                                       STATX_CHANGE_COOKIE,
+>                                       AT_STATX_SYNC_AS_STAT) ||
+>                     !(stat.result_mask & STATX_CHANGE_COOKIE) ||
+> @@ -347,7 +347,7 @@ static int process_measurement(struct file *file, con=
+st struct cred *cred,
+>                 goto out_locked;
+>
+>         if (!pathbuf)   /* ima_rdwr_violation possibly pre-fetched */
+> -               pathname =3D ima_d_path(&file->f_path, &pathbuf, filename=
+);
+> +               pathname =3D ima_d_path(file_real_path(file), &pathbuf, f=
+ilename);
+>
+>         if (action & IMA_MEASURE)
+>                 ima_store_measurement(iint, file, pathname,
+> @@ -487,7 +487,7 @@ int ima_file_mprotect(struct vm_area_struct *vma, uns=
+igned long prot)
+>                 result =3D -EPERM;
+>
+>         file =3D vma->vm_file;
+> -       pathname =3D ima_d_path(&file->f_path, &pathbuf, filename);
+> +       pathname =3D ima_d_path(file_real_path(file), &pathbuf, filename)=
+;
+>         integrity_audit_msg(AUDIT_INTEGRITY_DATA, inode, pathname,
+>                             "collect_data", "failed-mprotect", result, 0)=
+;
+>         if (pathbuf)
+> --
+> 2.34.1
+>
