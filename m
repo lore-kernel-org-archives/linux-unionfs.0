@@ -2,53 +2,56 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 552D8EE020A
-	for <linux-unionfs@archiver.kernel.org>; Wed, 13 Sep 2023 19:57:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 189C3EDE990
+	for <linux-unionfs@archiver.kernel.org>; Thu, 14 Sep 2023 08:39:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230146AbjIMT5i (ORCPT
+        id S232234AbjINIjw (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 13 Sep 2023 15:57:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58920 "EHLO
+        Thu, 14 Sep 2023 04:39:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37556 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229642AbjIMT5i (ORCPT
+        with ESMTP id S230234AbjINIjw (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 13 Sep 2023 15:57:38 -0400
+        Thu, 14 Sep 2023 04:39:52 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EE9D9E;
-        Wed, 13 Sep 2023 12:57:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57B0AC433CC;
-        Wed, 13 Sep 2023 19:57:33 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1CB761BFC;
+        Thu, 14 Sep 2023 01:39:48 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B6852C433C8;
+        Thu, 14 Sep 2023 08:39:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694635053;
-        bh=8s2Z1d1m3xuRoijuegAF7XDzYLIWy1+XSu3/xCTkOGU=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=bKNQUkL1wCDZ/gm59APeTdRTYc1TQhIDHGTt+vC8/7wftu+kCz5uohuq79uNm62eS
-         uEeqVtIu5SN8F8Jqs8GfRUbQVgSdWaJanEGOw4VkV426meePVQmAvqG1P83G6n2u4g
-         GlqylAHiVR/yZxYYVQJAAFCWyiAhXhzstAY9+OCq23xLvlrqDaxRbRVtUa7XAaXwDm
-         8KakiD8ydMsHMy4mP/KC8SeBWBkXsryAsC2to77GPy/wm8dSIGWcvzld5Ljm+8Nc9j
-         kqrZeCZvK163CtW4GRTIb7S+QSKYmDyQn7i4HLTkpaz6mh/pFndc22UxzhORnsznAl
-         aBCfHLzvi8LBA==
-Date:   Wed, 13 Sep 2023 12:57:31 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
+        s=k20201202; t=1694680787;
+        bh=ErdQXXYaeVBX6KtsxtBdnX85rtohjDZ0IEg5DDNK3C4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=upfKxjOeWkG/U/pT5EOvCVrvnh+AXChGutV9oXszGOOzSfMupYGZ0nDoyB1Fj9HfQ
+         WDQPGToPYrinncUFqwqbEc3AdPViehNG9MZ27oqyH5Bc2GSflGjAedexK7v88KfGtX
+         8crR9YqYvHr4sUME5C17JiONj1ga0s+XUf2ndY03m4uWPHIelvtMU6+nTpz57hMiMD
+         c8DESAHxo3W50Ks2qFCrcJmX5Iqe1tygZmJITaa9e/Zx2z2NLiZYNyOW4iqGXzHXI2
+         AoTBubApbz4CowunHbS1vx+aiukAxbFgiNDYRLDnDhqIpN20Rx11sLk/hBUT7HAKTs
+         XnC24Sr+7ILRA==
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
         linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
+        linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Jeff Layton <jlayton@kernel.org>
 Subject: Re: [PATCH] overlayfs: set ctime when setting mtime and atime
-Message-ID: <20230913195731.GA2922283@dev-arch.thelio-3990X>
+Date:   Thu, 14 Sep 2023 10:39:23 +0200
+Message-Id: <20230914-hautarzt-bangen-f9ed9a2a3152@brauner>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
 References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1316; i=brauner@kernel.org; h=from:subject:message-id; bh=ErdQXXYaeVBX6KtsxtBdnX85rtohjDZ0IEg5DDNK3C4=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaQyHdtSImJc2tKv9cpCOsFHU3273pZbzWu2MjiXNLFJP+xv z1zVUcrCIMbFICumyOLQbhIut5ynYrNRpgbMHFYmkCEMXJwCMJE+U0aGNdNud4avZYxeeuYCY3NH5D pO8YsH51tWf5v2JfuVje+haoa/gq4LYzjmv7r7bY+t9eTsjJyzcQKTepICY1LObl4VGtzIBwA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Sep 13, 2023 at 09:33:12AM -0400, Jeff Layton wrote:
+On Wed, 13 Sep 2023 09:33:12 -0400, Jeff Layton wrote:
 > Nathan reported that he was seeing the new warning in
 > setattr_copy_mgtime pop when starting podman containers. Overlayfs is
 > trying to set the atime and mtime via notify_change without also
@@ -59,41 +62,22 @@ On Wed, Sep 13, 2023 at 09:33:12AM -0400, Jeff Layton wrote:
 > overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
 > notify_change will fill in the value.
 > 
-> Reported-by: Nathan Chancellor <nathan@kernel.org>
-> Signed-off-by: Jeff Layton <jlayton@kernel.org>
+> [...]
 
-I applied this patch on top of next-20230913 and I do not see the
-warning I reported on any of my machines. Thanks for the quick fix!
+Applied to the vfs.ctime branch of the vfs/vfs.git tree.
+Patches in the vfs.ctime branch should appear in linux-next soon.
 
-Tested-by: Nathan Chancellor <nathan@kernel.org>
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-> ---
-> The new WARN_ON_ONCE in setattr_copy_mgtime caught a bug! Fix up
-> overlayfs to ensure that the ctime on the upper inode is also updated
-> when copying up the atime and mtime.
-> ---
->  fs/overlayfs/copy_up.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index d1761ec5866a..ada3fcc9c6d5 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -337,7 +337,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
->  {
->  	struct iattr attr = {
->  		.ia_valid =
-> -		     ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIME_SET,
-> +		     ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIME_SET | ATTR_CTIME,
->  		.ia_atime = stat->atime,
->  		.ia_mtime = stat->mtime,
->  	};
-> 
-> ---
-> base-commit: 9cb8e7c86ac793862e7bea7904b3426942bbd7ef
-> change-id: 20230913-ctime-299173760dd9
-> 
-> Best regards,
-> -- 
-> Jeff Layton <jlayton@kernel.org>
-> 
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
+
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.ctime
+
+[1/1] overlayfs: set ctime when setting mtime and atime
+      https://git.kernel.org/vfs/vfs/c/f8edd3368615
