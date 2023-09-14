@@ -2,96 +2,173 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88274CA553E
-	for <linux-unionfs@archiver.kernel.org>; Thu, 14 Sep 2023 13:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFBA7EEAA4E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 14 Sep 2023 15:26:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238924AbjINNZL (ORCPT
+        id S241124AbjINP06 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 14 Sep 2023 09:25:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46722 "EHLO
+        Thu, 14 Sep 2023 11:26:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38064 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235397AbjINNZK (ORCPT
+        with ESMTP id S241088AbjINP0v (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Sep 2023 09:25:10 -0400
-Received: from mail-vk1-xa2b.google.com (mail-vk1-xa2b.google.com [IPv6:2607:f8b0:4864:20::a2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D8B1BEB
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 Sep 2023 06:25:06 -0700 (PDT)
-Received: by mail-vk1-xa2b.google.com with SMTP id 71dfb90a1353d-4935f87ca26so441026e0c.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 Sep 2023 06:25:06 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20221208; t=1694697905; x=1695302705; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=g8g7cbRHNiBB7kLy/+15nJEy1q3Dnsjo9urJij9aaIE=;
-        b=e9yfJqnCIX7S+StO+WvZxYnKFo4IzBUb704vtLupqpFie/mCrZGjQC/BaDAknkt1VD
-         JdP8CNiru+hbgEeRMYsgLHhtAhVj20Jx2NTDIJk394d0r1U6pmO7A/rL8LYMp0XmJacu
-         n9Lq0V2buvgTs+XBbo51dMJgwfw/i7sHG6/KowziRwkYSFzMtV/ZkX/voyHtW5RvhnIO
-         2Q5ApoRKxs4KDoEeTzHVXwu+JYaqQBxYDomc7UWTyhsgX4kOk65MLaoSdoK2e2e81Z4T
-         X1l7Jl/VbfUbQY4449EfdCTjMTQ2/x/Fe3Kkbr+8LkjsGFTcCYerZKSLYPFQZdO7ridf
-         Lqmw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694697905; x=1695302705;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=g8g7cbRHNiBB7kLy/+15nJEy1q3Dnsjo9urJij9aaIE=;
-        b=h0801abDRc/zRNhHvbtg7tNPda8llWdu1/1aWnLIGExLTJXMw6JD5QioquEhXxYUmz
-         sucUhXuY/TcbpaJ0IC6FsGIMnfRB/k5/k7j/DpxOBhCWyH25Ab5ftIX7pYfI8zUJ4EEI
-         lNq6FqpEdffUjgnOpIZ87RsR+6ICwyqWbpViE2hbwqz43pF1W8Sn98lFHC0KxoEU3Qzk
-         qWxxZQKSAzjiDPUiqpGfmN2FOzlceJEuuD/KDComTKRA/4usBmtrboc1gviUXcGuYXbT
-         W7NEEF+xsqLxtiZLf/n+XOXWy3niIRGNkM6d+czm9xHEHUhzy0lPQCdqVJsbgDurMIaR
-         Ddfw==
-X-Gm-Message-State: AOJu0Yx4Joja/6NDQRIy53BENMqlPS4zxlC37N4JHCYWuormn/XFpzRv
-        u+M3KH4Vg0dEzYk50Ys19jTzv9VDTVENYlLdkjIbzbYL
-X-Google-Smtp-Source: AGHT+IH7odsW9+Jh4wQazpPfnhEMWvhHwdmJIXKKqe0W8X4g0avhi866LtGxnWyUZ4PyTandiFuP3i68Lm1fNlYW48c=
-X-Received: by 2002:a1f:cac7:0:b0:495:e236:a73 with SMTP id
- a190-20020a1fcac7000000b00495e2360a73mr5732956vkg.11.1694697905041; Thu, 14
- Sep 2023 06:25:05 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230903111558.2603332-1-amir73il@gmail.com> <20230903111558.2603332-2-amir73il@gmail.com>
- <87il8dghw0.fsf@suse.de>
-In-Reply-To: <87il8dghw0.fsf@suse.de>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 14 Sep 2023 16:24:53 +0300
-Message-ID: <CAOQ4uxhM8F6iyp5AVLquaq=NoR_V_6Y6NUjBDjqfjgcPvA5-Dw@mail.gmail.com>
-Subject: Re: [LTP] [PATCH 1/3] fanotify13: Test watching overlayfs upper fs
-To:     rpalethorpe@suse.de
-Cc:     Petr Vorel <pvorel@suse.cz>,
-        Christian Brauner <brauner@kernel.org>,
-        Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
-        linux-unionfs@vger.kernel.org, ltp@lists.linux.it
+        Thu, 14 Sep 2023 11:26:51 -0400
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D775E1FF6;
+        Thu, 14 Sep 2023 08:26:36 -0700 (PDT)
+Received: from pps.filterd (m0356516.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 38EFCRT7013948;
+        Thu, 14 Sep 2023 15:26:29 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=ZJXJKIlpr0jS8J18KXtuBATK5zZy3b2SUTm0yKdYhAs=;
+ b=C91KgEOoItLiuPAFu2oQIhO+jn5oK7nWYfT/p3rMsHFOxsdmqzAdcTaNtDaDpupgbwhl
+ 1IH8Ht8pRQ7QfFnSBdxsh8aya5oDaJRQa7tCq8gHVfLeI9GHw99v1BjuRHtptRLNffmt
+ gHv3g+LfrpNnKCIAOeRfI/E1yLIjfAMOJkpW8YBO5fB63biXnZiq6IwnUBiSNpBwPKaS
+ H4P8p5UTAfEmzmPdhJ4QCn/CD8mfI0w9Y18aqyylylLpetGBzPZjSXa/gl1i4V3du+gw
+ qB95F/DfO38TW+dieJq+R+qdTeKS3MewEdwd72nKyRWV7gINMQVybFabz6vKtp+OS4xU Ag== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3t44m5gf8v-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 14 Sep 2023 15:26:28 +0000
+Received: from m0356516.ppops.net (m0356516.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 38EFLnth019871;
+        Thu, 14 Sep 2023 15:26:27 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3t44m5gf8a-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 14 Sep 2023 15:26:27 +0000
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+        by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 38EDwRIf002755;
+        Thu, 14 Sep 2023 15:26:26 GMT
+Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
+        by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3t14hmbrnh-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 14 Sep 2023 15:26:26 +0000
+Received: from smtpav02.dal12v.mail.ibm.com (smtpav02.dal12v.mail.ibm.com [10.241.53.101])
+        by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 38EFQQNK4850324
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 14 Sep 2023 15:26:26 GMT
+Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 1A7645805C;
+        Thu, 14 Sep 2023 15:26:26 +0000 (GMT)
+Received: from smtpav02.dal12v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 9B92758051;
+        Thu, 14 Sep 2023 15:26:25 +0000 (GMT)
+Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com (unknown [9.61.110.230])
+        by smtpav02.dal12v.mail.ibm.com (Postfix) with ESMTP;
+        Thu, 14 Sep 2023 15:26:25 +0000 (GMT)
+Message-ID: <296dae962a2a488bde682d3def074db91686e1c3.camel@linux.ibm.com>
+Subject: Re: [PATCH] ima: fix wrong dereferences of file->f_path
+From:   Mimi Zohar <zohar@linux.ibm.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Jeff Layton <jlayton@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-integrity@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org,
+        Goldwyn Rodrigues <rgoldwyn@suse.com>
+Date:   Thu, 14 Sep 2023 11:26:25 -0400
+In-Reply-To: <CAOQ4uxiPREeTmkaxohaqbg_XvngNXdRAssupoo+EdBoDD-FBeg@mail.gmail.com>
+References: <20230913073755.3489676-1-amir73il@gmail.com>
+         <CAOQ4uxiPREeTmkaxohaqbg_XvngNXdRAssupoo+EdBoDD-FBeg@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: _F273nGUIVhoAa0fxuazTm_dhJ_iWbNc
+X-Proofpoint-GUID: u8EVJ6uHBzjAYr7kAIIGSpUH9WHP7j5J
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+MIME-Version: 1.0
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.267,Aquarius:18.0.980,Hydra:6.0.601,FMLib:17.11.176.26
+ definitions=2023-09-14_09,2023-09-14_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ mlxlogscore=999 suspectscore=0 bulkscore=0 adultscore=0 malwarescore=0
+ impostorscore=0 clxscore=1011 lowpriorityscore=0 spamscore=0 mlxscore=0
+ phishscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2308100000 definitions=main-2309140130
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 14, 2023 at 1:37=E2=80=AFPM Richard Palethorpe <rpalethorpe@sus=
-e.de> wrote:
->
-> Hello Amir,
->
-> Amir Goldstein <amir73il@gmail.com> writes:
->
-> > Run a test variant with overlayfs (over all supported fs)
-> > when watching the upper fs.
+On Wed, 2023-09-13 at 15:09 +0300, Amir Goldstein wrote:
+> On Wed, Sep 13, 2023 at 10:38 AM Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > This is a regression test for kernel fix bc2473c90fca
-> > ("ovl: enable fsnotify events on underlying real files"),
-> > from kernel 6.5, which is not likely to be backported to older kernels.
+> > When storing IMA xattr on an overlayfs inode, the xattr is actually
+> > stored in the inode of the underlying (a.k.a real) filesystem, so there
+> > is an ambiguity whether this IMA xattr describes the integrity of the
+> > overlayfs inode or the real inode.
 > >
-> > To avoid waiting for events that won't arrive when testing old kernels,
-> > require that kernel supports encoding fid with new flag AT_HADNLE_FID,
-> > also merged to 6.5 and not likely to be backported to older kernels.
->
-> Unfortunately Petr's not here at the moment.
->
-> I guess this first patch doesn't require 6.6? So it could be merged
-> independently without further considerations for what makes it into 6.6?
->
+> > For this reason and other reasons, IMA is not supported on overlayfs,
+> > in the sense that integrity checking on the overlayfs inode/file/path
+> > do not work correctly and have undefined behavior and the IMA xattr
+> > always describes the integrity of the real inode.
+> >
+> > When a user operates on an overlayfs file, whose underlying real file
+> > has IMA enabled, IMA should always operate on the real path and not
+> > on the overlayfs path.
+> >
+> > IMA code already uses the helper file_dentry() to get the dentry
+> > of the real file. Dereferencing file->f_path directly means that IMA
+> > will operate on the overlayfs inode, which is wrong.
+> >
+> > Therefore, all dereferences to f_path were converted to use the
+> > file_real_path() helper.
 
-Yes that is correct.
+Thanks, Amir.  This sounds right.
 
+> >
+> > Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com
+> > Closes: https://lore.kernel.org/linux-unionfs/0000000000005bd097060530b758@google.com/
+> > Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
+> > Cc: Christian Brauner <brauner@kernel.org>
+> > Cc: Jeff Layton <jlayton@kernel.org>
+> > Cc: Goldwyn Rodrigues <rgoldwyn@suse.com>
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+> > Mimi,
+> >
+> > Some of the wrong f_path dereferences are much older than the Fixes
+> > commit, but they did not have as big an impact as the wrong f_path
+> > dereference that the Fixes commit introduced.
+> >
+> > For example, commit a408e4a86b36 ("ima: open a new file instance if no
+> > read permissions") worked because reading the content of the overlayfs
+> > file has the same result as reading the content of the real file, but it
+> > is actually the real file integrity that we want to verify.
+> >
+> > Anyway, the real path information, that is now available via the
+> > file_real_path() helper, was not available in IMA integrity check context
+> > at the time that commit a408e4a86b36 was merged.
+> 
+> Only problem is that fix did not resolve the syzbot bug, which
+> seems to do the IMA integrity check on overlayfs file (not sure).
+> 
+> I am pretty sure that this patch fixes "a bug" when IMA is on the filesystem
+> under overlayfs and this is a pretty important use case.
+
+Agreed.
+
+> But I guess there are still issues with IMA over overlayfs and this is not
+> the only one.
+
+Sigh
+
+> Is this really a use case that needs to be supported?
+> Isn't the newly added SB_I_IMA_UNVERIFIABLE_SIGNATUREh flag
+> a hint that IMA on overlayfs is not a good idea at all?
+
+With  SB_I_IMA_UNVERIFIABLE_SIGNATURE enabled for overlayfs, signature
+verification will then fail immediately for all overlayfs files in
+policy.  I don't think that's the right solution.  Verification should
+be limited to when the overlayfs file is the same as the underlying
+backing store, the real inode, not the overlay upper files.
+
+-- 
 Thanks,
-Amir.
+
+Mimi
+
