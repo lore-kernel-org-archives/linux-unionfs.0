@@ -2,134 +2,86 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24529EDE9A0
-	for <linux-unionfs@archiver.kernel.org>; Thu, 14 Sep 2023 10:27:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7583CEDE9A3
+	for <linux-unionfs@archiver.kernel.org>; Thu, 14 Sep 2023 10:37:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233324AbjINK1W (ORCPT
+        id S237318AbjINKho (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 14 Sep 2023 06:27:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37758 "EHLO
+        Thu, 14 Sep 2023 06:37:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230141AbjINK1V (ORCPT
+        with ESMTP id S236857AbjINKho (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 14 Sep 2023 06:27:21 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD2311BE9;
-        Thu, 14 Sep 2023 03:27:17 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B139DC433C7;
-        Thu, 14 Sep 2023 10:27:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1694687237;
-        bh=yDQqvovGnrf78EMpc8cz+BBi0k2m4AVQSZyr7l9ADW8=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=W8iroKkhg69TCpAdNcxe1oKdo6zlrTDglMSICWBpFyn+hx4P99OZLodtxCREF+OuE
-         RmsWOlcLaAJxSidY2Vx2Ai9hGDnD3AEvKpycGqNpyqRSnvK9WqIJyBHggxpyL9UlH6
-         +w7KmRAJlE+wKbRe0tW92UUFOOdzRqorS/m2ZIlLQ/pB3p6Cmzi5GnbAVt8kdl3TDO
-         K675pl4gmKZ1n3jklLYyQERAbtFEBvSdzB+bVACAYFT443vPFQvbsTcP33GtY4ffYY
-         wg8bIgRstAFQ2aK0qDWcrzo1SQLlOfMF27u2ZjN7x97LJc8dcsUznh1MPgob3qWY2q
-         Tr6jSJaZ8JMBg==
-Message-ID: <b107db96b12f4ab5b2edfbaa42bc0032205d24cc.camel@kernel.org>
-Subject: Re: [PATCH] overlayfs: set ctime when setting mtime and atime
-From:   Jeff Layton <jlayton@kernel.org>
+        Thu, 14 Sep 2023 06:37:44 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D32AA1BFE
+        for <linux-unionfs@vger.kernel.org>; Thu, 14 Sep 2023 03:37:39 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id 1608B21850;
+        Thu, 14 Sep 2023 10:37:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1694687858;
+        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+         cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=2NRgjrYGmkY59tj7Cv2Cf74jHstl3bPUsvrK87M43cQ=;
+        b=kSnc0AfUxhaY65jJsW2dN5rm8wlyMugrG/b1ByP/XAe/Oho3LS7PkkB6L10Ez5K74BihF1
+        8XGbKsahGtn0vzMx7uU8TuJBSymsHHlu1gLfLvDJBp6ja5Moizp7CXbYPeXccuEkpOmy3V
+        xtOQR0h7H0+eM6uESZtHLzlclOWqssM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1694687858;
+        h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+         cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=2NRgjrYGmkY59tj7Cv2Cf74jHstl3bPUsvrK87M43cQ=;
+        b=iuq3pdcszS7uQ1U4E4/RlkgskhdiufhuUIj9K6IqA1Jh1oqZuOJG7QsI+7Cg3dkBjavsRE
+        icn7D2u+KqJXG6Cw==
+Received: from g78 (rpalethorpe.tcp.ovpn1.nue.suse.de [10.163.17.14])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 8BB612C142;
+        Thu, 14 Sep 2023 10:37:37 +0000 (UTC)
+References: <20230903111558.2603332-1-amir73il@gmail.com>
+ <20230903111558.2603332-2-amir73il@gmail.com>
+User-agent: mu4e 1.10.7; emacs 29.1
+From:   Richard Palethorpe <rpalethorpe@suse.de>
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Nathan Chancellor <nathan@kernel.org>,
+Cc:     Petr Vorel <pvorel@suse.cz>,
         Christian Brauner <brauner@kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Date:   Thu, 14 Sep 2023 06:27:15 -0400
-In-Reply-To: <CAOQ4uxhYRnX0NChCU2tsEi7eUPqbqQDeOwQT4ubWUgtCN0OVfA@mail.gmail.com>
-References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
-         <CAOQ4uxhYRnX0NChCU2tsEi7eUPqbqQDeOwQT4ubWUgtCN0OVfA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org, ltp@lists.linux.it
+Subject: Re: [LTP] [PATCH 1/3] fanotify13: Test watching overlayfs upper fs
+Date:   Thu, 14 Sep 2023 11:32:39 +0100
+Organization: Linux Private Site
+Reply-To: rpalethorpe@suse.de
+In-reply-to: <20230903111558.2603332-2-amir73il@gmail.com>
+Message-ID: <87il8dghw0.fsf@suse.de>
 MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 2023-09-13 at 20:36 +0300, Amir Goldstein wrote:
-> On Wed, Sep 13, 2023 at 4:33=E2=80=AFPM Jeff Layton <jlayton@kernel.org> =
-wrote:
-> >=20
-> > Nathan reported that he was seeing the new warning in
-> > setattr_copy_mgtime pop when starting podman containers. Overlayfs is
-> > trying to set the atime and mtime via notify_change without also
-> > setting the ctime.
-> >=20
-> > POSIX states that when the atime and mtime are updated via utimes() tha=
-t
-> > we must also update the ctime to the current time. The situation with
-> > overlayfs copy-up is analogous, so add ATTR_CTIME to the bitmask.
-> > notify_change will fill in the value.
-> >=20
->=20
-> IDGI, if ctime always needs to be set along with ATIME / MTIME, why not
-> let notify_change() set the bit instead of assert and fix all the callers=
-?
-> But maybe I am missing something.
->=20
+Hello Amir,
 
-Traditionally notify_change has always been given an explicit mask of
-attrs to change by the caller. I'm a little hesitant to start putting
-POSIX policy in there.
+Amir Goldstein <amir73il@gmail.com> writes:
 
-Still, that may be the better thing to do over the long haul. I think
-that there are some other bugs in the notify_change callers as well: for
-instance, cachefiles_adjust_size truncates files, but doesn't update the
-timestamps. I'm pretty sure that's wrong.
+> Run a test variant with overlayfs (over all supported fs)
+> when watching the upper fs.
+>
+> This is a regression test for kernel fix bc2473c90fca
+> ("ovl: enable fsnotify events on underlying real files"),
+> from kernel 6.5, which is not likely to be backported to older kernels.
+>
+> To avoid waiting for events that won't arrive when testing old kernels,
+> require that kernel supports encoding fid with new flag AT_HADNLE_FID,
+> also merged to 6.5 and not likely to be backported to older kernels.
 
-I think if we want to change how setattr ctime updates work, we'll
-probably need to do it in the context of a larger notify_change
-overhaul.
+Unfortunately Petr's not here at the moment.
 
-> Anyway, I have no objection to the ovl patch.
-> It's fine by me if Christian applies it to the vfs.ctime branch with my A=
-CK.
->=20
+I guess this first patch doesn't require 6.6? So it could be merged
+independently without further considerations for what makes it into 6.6?
 
-Many thanks!
-
-> Thanks,
-> Amir.
->=20
-> > Reported-by: Nathan Chancellor <nathan@kernel.org>
-> > Signed-off-by: Jeff Layton <jlayton@kernel.org>
-> > ---
-> > The new WARN_ON_ONCE in setattr_copy_mgtime caught a bug! Fix up
-> > overlayfs to ensure that the ctime on the upper inode is also updated
-> > when copying up the atime and mtime.
-> > ---
-> >  fs/overlayfs/copy_up.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index d1761ec5866a..ada3fcc9c6d5 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -337,7 +337,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, s=
-truct dentry *upperdentry,
-> >  {
-> >         struct iattr attr =3D {
-> >                 .ia_valid =3D
-> > -                    ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MT=
-IME_SET,
-> > +                    ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MT=
-IME_SET | ATTR_CTIME,
-> >                 .ia_atime =3D stat->atime,
-> >                 .ia_mtime =3D stat->mtime,
-> >         };
-> >=20
-> > ---
-> > base-commit: 9cb8e7c86ac793862e7bea7904b3426942bbd7ef
-> > change-id: 20230913-ctime-299173760dd9
-> >=20
-> > Best regards,
-> > --
-> > Jeff Layton <jlayton@kernel.org>
-> >=20
-
---=20
-Jeff Layton <jlayton@kernel.org>
+-- 
+Thank you,
+Richard.
