@@ -2,76 +2,166 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56414CD13CF
-	for <linux-unionfs@archiver.kernel.org>; Mon, 18 Sep 2023 00:05:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B2FECD13DA
+	for <linux-unionfs@archiver.kernel.org>; Mon, 18 Sep 2023 11:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232187AbjIRAFD (ORCPT
+        id S241808AbjIRL7C (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 17 Sep 2023 20:05:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44876 "EHLO
+        Mon, 18 Sep 2023 07:59:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40514 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231518AbjIRAEm (ORCPT
+        with ESMTP id S241906AbjIRL6v (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 17 Sep 2023 20:04:42 -0400
-Received: from mail-oa1-f72.google.com (mail-oa1-f72.google.com [209.85.160.72])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93938126
-        for <linux-unionfs@vger.kernel.org>; Sun, 17 Sep 2023 17:04:37 -0700 (PDT)
-Received: by mail-oa1-f72.google.com with SMTP id 586e51a60fabf-1d66d948417so4135719fac.3
-        for <linux-unionfs@vger.kernel.org>; Sun, 17 Sep 2023 17:04:37 -0700 (PDT)
+        Mon, 18 Sep 2023 07:58:51 -0400
+Received: from mail-ua1-x92b.google.com (mail-ua1-x92b.google.com [IPv6:2607:f8b0:4864:20::92b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65C74CE0;
+        Mon, 18 Sep 2023 04:56:13 -0700 (PDT)
+Received: by mail-ua1-x92b.google.com with SMTP id a1e0cc1a2514c-7a7857e5290so1567686241.1;
+        Mon, 18 Sep 2023 04:56:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1695038172; x=1695642972; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=czJiOQ8JI+xl7bBxJqncWH4Q6B795Z7d3/4awiVUVic=;
+        b=DNnOvPIsTSQG/I+JYH2PRXVvSvJRKB31MDktMqDDbdEHCe97RGNxgY0rQ5Gm9CMqbA
+         9bfqF+n1lp+jqCIGknuvGFhg0ajsyu5sNJ8ZaeDM8crvh0FuuHXWi5JGapWih/zUrz0S
+         rMo6YW0+kmEcBroyGDha++df2nqAdgHxjaAPv9nsBtIhMsYUIXgxwyZYyTRiymlDqt2C
+         OxOZr0wKqisVE90Nr6xNwLO7Xk6ELwGH0f44hcpCvf/e4BtYTI/fYiqa11szUmorlIex
+         EEMMAnQ2BdmWz3G3DyHJlYcJKn6hUsoUdBL5MhWqfyEvk6Wn3GHdLrtMSgMd8pkaWC/O
+         NDfw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1694995474; x=1695600274;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=plqiVhsHQJW/q4sf5YkInYlIVvS0lexxFRBvtsJXFDw=;
-        b=Qad2CMOLHh3RAyAZTIssY+HiPEKkbt/w6nUGbQSjhjFEo8n30yc0HsdXOFRIBwwaGp
-         LZxNl0uZ5Msut6pquWNswfXTEE/my9cSTrtU4QqsksH6+fUBPWCWEE5erwzWRCV82XBa
-         mRW9MhPSjmryj9eysbVuKR+CCUcLaMJMxOkaxcvsefepPhIn5aVpiNZ4VC/DzxpHqB9U
-         bXKrif2C0ZDNP7d8GCNGNwoTauZZD1bsJxFT+3RDfFIyle3txTEhxlp8z12837eOEIYU
-         53V1+zK4oSkjFTG7UoZhb10iEnsKqNNi+5enX+ZlFaXs55SRQ4H/xMgXHRbFS3W7BzYL
-         6JEw==
-X-Gm-Message-State: AOJu0YzMCX6rBU6AJIn6+4lt2T80StCAQ6R62+wi3vHOuN5yoH/cmVqi
-        rQEjs2ZSZX9JKeua2ZbZk1teK3RMrWrqZlZTnGhQ1cb3UQ0S
-X-Google-Smtp-Source: AGHT+IH/zkGlEDq9VbJg97gGt1EgLfqWnEVJ7h5xnIpv8Ku68gE0DF1eHR9jFI017KdKqlc7/TMCj9QpD4KDhKZQUzCLionLJESV
+        d=1e100.net; s=20230601; t=1695038172; x=1695642972;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=czJiOQ8JI+xl7bBxJqncWH4Q6B795Z7d3/4awiVUVic=;
+        b=NAM2rPI+UULHUx0KaV7YCsdBAObVp687GwoU+2jCuSVMNtghZRP7GYH55w+xFMdLsx
+         W4hOQChx0zSqXdCVk9PL3SIiU+izlmOtofvTTuCwhcAaXOnJPR9s1eAKigyoNqKhZn4b
+         4t0qBCzQMEIhatNqw0swEG8D/W4+YgHJwZqGKJrFu/9Klo7vurjnglJv+qqtcZulil+D
+         u+94zizLlLnMMUYMQ05RLq5Rd2tiFecSrRxhM9w4Ge2/41hngkNxGTnKuW2KRe0bJK2l
+         6clEtIf+MdUz9BPXWmqr3/jeEYyCaN27JxtnF4WPay8S4lkgc47iaTb+HP1ZxlQAYESS
+         PcqA==
+X-Gm-Message-State: AOJu0YxUdl5D/+z+ClUIA7KE4Jchw9R31AZWxikKUTVppxmhLy+C4HQI
+        ++FMkcUR2EJQ/Y9BQ358ujUh7b0AnbPUr07PRCc=
+X-Google-Smtp-Source: AGHT+IG5otdTbAaP2AzRcdOA5BkciPTyFVveJXumxX5Xa4gXL8dFsDEyfHzPHOx5qOpkpBianyB/k81d/TfvMv+5zaY=
+X-Received: by 2002:a05:6102:4ad:b0:44e:adc4:7eba with SMTP id
+ r13-20020a05610204ad00b0044eadc47ebamr7177295vsa.26.1695038172363; Mon, 18
+ Sep 2023 04:56:12 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:b7ad:b0:1d5:95fc:2a7f with SMTP id
- ed45-20020a056870b7ad00b001d595fc2a7fmr2748642oab.7.1694995474388; Sun, 17
- Sep 2023 17:04:34 -0700 (PDT)
-Date:   Sun, 17 Sep 2023 17:04:34 -0700
-In-Reply-To: <0000000000004f34d705ffbc2604@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000259bd8060596e33f@google.com>
-Subject: Re: [syzbot] [integrity] [overlayfs] general protection fault in d_path
-From:   syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, brauner@kernel.org, jlayton@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, stefanb@linux.ibm.com,
-        syzkaller-bugs@googlegroups.com, zohar@linux.ibm.com
+References: <20230913073755.3489676-1-amir73il@gmail.com> <CAOQ4uxg2_d2eFfSy45JCCLE41qCPZtLFytnZ5x5C1uXdCMUA=Q@mail.gmail.com>
+ <4919dcc1066d6952190dc224004e1f6bcba5e9df.camel@linux.ibm.com>
+ <CAOQ4uxiKgYO5Z25DFG=GQj3GeGZ8unSPExM-jn1HL_U8qncrtA@mail.gmail.com>
+ <428533f7393ab4a9f5c243b3a61ff65d27ee80be.camel@linux.ibm.com>
+ <CAOQ4uxgAp_jwr-vbNn9eA9PoTrPZHuWb7+phF69c4WKmB8G4oA@mail.gmail.com> <ddd831c35bdcd46c5912b0f34486a36785f17622.camel@linux.ibm.com>
+In-Reply-To: <ddd831c35bdcd46c5912b0f34486a36785f17622.camel@linux.ibm.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Mon, 18 Sep 2023 14:56:01 +0300
+Message-ID: <CAOQ4uxhoasXiBst4Y+7DhkOkvgVZpcRpt2g1EVygRx=R--kv6Q@mail.gmail.com>
+Subject: Re: Fwd: [PATCH] ima: fix wrong dereferences of file->f_path
+To:     Mimi Zohar <zohar@linux.ibm.com>
+Cc:     Goldwyn Rodrigues <rgoldwyn@suse.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        Jeff Layton <jlayton@kernel.org>, Jan Kara <jack@suse.cz>,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-syzbot has bisected this issue to:
+On Mon, Sep 18, 2023 at 2:00=E2=80=AFPM Mimi Zohar <zohar@linux.ibm.com> wr=
+ote:
+>
+> On Fri, 2023-09-15 at 12:57 +0300, Amir Goldstein wrote:
+>
+> > > Assuming IMA is configured, just add "ima_policy=3Dtcb" to the comman=
+d
+> > > line.   This will measure all files executed, mmap'ed, kernel modules=
+,
+> > > firmware, and all files opened by root.  Normally the builtin policy =
+is
+> > > replaced with a finer grained one.
+> > >
+> > > Below are a few commands, but Ken Goldman is writing documentation -
+> > > https://ima-doc.readthedocs.io/en/latest/
+> > >
+> > > 1. Display the IMA measurement list:
+> > > # cat /sys/kernel/security/ima/ascii_runtime_measurements
+> > > # cat /sys/kernel/security/ima/binary_runtime_measurements
+> > >
+> > > 2. Display the IMA policy  (or append to the policy)
+> > > # cat /sys/kernel/security/ima/policy
+> > >
+> > > 3. Display number of measurements
+> > > # cat /sys/kernel/security/ima/runtime_measurements_count
+> > >
+> >
+> > Nice.
+> > This seems to work fine and nothing pops up when running
+> > fstests unionmount tests of overlayfs over xfs.
+> >
+> > What strikes me as strange is that there are measurements
+> > of files in xfs and in overlayfs, but no measurements of files in tmpfs=
+.
+> > I suppose that is because no one can tamper with the storage
+> > of tmpfs, but following the same logic, nobody can tamper with
+> > the storage of overlayfs files without tampering with storage of
+> > underlying fs (e.g. xfs), so measuring overlayfs files should not
+> > bring any extra security to the system.
+> >
+> > Especially, since if files are signed they are signed in the real
+> > storage (e.g. xfs) and not in overlayfs.
+> >
+> > So in theory, we should never ever measure files in the
+> > "virtual" overlayfs and only measure them in the real fs.
+> > The only problem is the the IMA hooks when executing,
+> > mmaping, reading files from overlayfs, don't work on the real fs.
+> >
+> > fsnotify also was not working correctly in that respect, because
+> > fs operations on overlayfs did not always trigger fsnotify events
+> > on the underlying real fs.
+> >
+> > This was fixed in 6.5 by commit bc2473c90fca ("ovl: enable fsnotify
+> > events on underlying real files") and the file_real_path() infrastructu=
+re
+> > was added to enable this.
+> >
+> > This is why I say, that in most likelihood, IMA hook should always use
+> > file_real_path() and file_dentry() to perform the measurements
+> > and record the path of the real fs when overlayfs is performing the
+> > actual read/mmap on the real fs and IMA hooks should ideally
+> > do nothing at all (as in tmpfs) when the operation is performed
+> > on the "virtual" overlayfs object.
+>
+> tmpfs is excluded from the builtin policy, since there is no way of
+> storing the file signature in the initramfs (CPIO).  There have been a
+> number of attempts at extending the initramfs CPIO format, but none
+> have been upstreamed.
+>
+> Agreed, IMA should always use the real file for both the lower and the
+> upper overlayfs.
+>
 
-commit db1d1e8b9867aae5c3e61ad7859abfcc4a6fd6c7
-Author: Jeff Layton <jlayton@kernel.org>
-Date:   Mon Apr 17 16:55:51 2023 +0000
+I took a quick look at some IMA security hooks and I think it's not going
+to be trivial to fix IMA over overlayfs.
 
-    IMA: use vfs_getattr_nosec to get the i_version
+Simply adding a bunch of file_real_path() is not going to solve all cases.
+I still think that my patch is correct, but in order to fix the syzbot cras=
+h
+and other issues, a developer will need to run all the IMA test cases
+over overlayfs and examine every case more closely.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=106f7e54680000
-start commit:   a747acc0b752 Merge tag 'linux-kselftest-next-6.6-rc2' of g..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=126f7e54680000
-console output: https://syzkaller.appspot.com/x/log.txt?x=146f7e54680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=df91a3034fe3f122
-dashboard link: https://syzkaller.appspot.com/bug?extid=a67fc5321ffb4b311c98
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1671b694680000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14ec94d8680000
+If it is acceptable I would recommend to opt-out of IMA
+measure/appraise of overlayfs files for the default policy, but that means
+that underlying real files will not be measure/appraise as well.
+This way we at least shut up syzbot, because we know that this
+configuration is broken.
 
-Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com
-Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
+Anyway, syzbot has just confirmed that the regressing commit is
+"IMA: use vfs_getattr_nosec to get the i_version"
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Thanks,
+Amir.
