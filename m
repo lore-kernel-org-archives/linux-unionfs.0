@@ -2,135 +2,181 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8370ACE79A9
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Sep 2023 18:41:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 82CE0CE79AE
+	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Sep 2023 20:18:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231906AbjISSl7 (ORCPT
+        id S233231AbjISUSM (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 Sep 2023 14:41:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47838 "EHLO
+        Tue, 19 Sep 2023 16:18:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229552AbjISSl7 (ORCPT
+        with ESMTP id S229853AbjISUSJ (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 Sep 2023 14:41:59 -0400
-Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE86BBE
-        for <linux-unionfs@vger.kernel.org>; Tue, 19 Sep 2023 11:41:51 -0700 (PDT)
-Received: by mail-wm1-x32e.google.com with SMTP id 5b1f17b1804b1-403004a96eeso63772315e9.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 19 Sep 2023 11:41:51 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695148910; x=1695753710; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=7SvdCr6oci0uLTBIwWJDyyLWmEm5PCpadaj80JY8tNE=;
-        b=HEm/2oyQlZwbehrhn+l+iXjz5MwP1kLvzMFXsk8V6+62O+naMPwzUwIVZarbOJa6dl
-         5bjfwlqfC6/BCE1o1iZksvWrIdCyFCeQ077osgdXoKFLiYERcCXK13HM9chj8PKF7H3J
-         Js/Mrs7trCVUmpuc4SljI5d2Koyqrq0sQxHaWamCE26F51/KZH7XEL9FDpr9LRn8hmFj
-         kUepiFOpJHOis/EOTatzxGWDayS9zNVPLaSLcbwopwdIK6XzUm00bIlXEYgxmZUYj/6P
-         QM63wfu+ayXR3ewRMg7pLXCTe07fDWzKJvCz+r1gTE1w4eG6DwYO6uI57RAQjnZ7G4Kb
-         EDNw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695148910; x=1695753710;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=7SvdCr6oci0uLTBIwWJDyyLWmEm5PCpadaj80JY8tNE=;
-        b=DOTpJiSjUUD9a+QaIQZjMqU6irOYPeGBxet7yhuzJ2FszAMwTAQVRgpvQ0szsJi8qo
-         J89DhePc2C8iKtz8lq7eB6yWbePStCivuU6E7znFQZZhqt4iGixq3rUtg0gVp1rqrFpl
-         AH+trjFIMHMlMYwtowzKlUc3V0Y5w5vCxzG24+1o6l90OvLm9Faolr3UG0M6f3aiTAtc
-         kX+nx0en41q9z1JZ1Uas4odl9kVoIwHR8prHOJqMXVJvzE5nQ8C370WGINdOPhaFEfjj
-         4weIgMMZfesvmk0OKkRtXHwZ1tRJNTTSu7OoBiFa/iwVieovcs+eM7PHCW2pQDAyIZZZ
-         /Vgg==
-X-Gm-Message-State: AOJu0YwDJHDBU1wW8ojywA+O0/FilHwm1Z7M9mYnZLjZrLCXE0XDLiyn
-        ABU6qEGqYdCme/YFtbS84y/4t3t4+O8=
-X-Google-Smtp-Source: AGHT+IH4WEWAqtWgpRa4+iNvYUDAqlJzPaxxuXbCqjvtzwFZzJ1BnRNkxC8YNV7YHx7nfEiXdCSf1g==
-X-Received: by 2002:a7b:c8c8:0:b0:401:4417:a82d with SMTP id f8-20020a7bc8c8000000b004014417a82dmr505527wml.38.1695148909921;
-        Tue, 19 Sep 2023 11:41:49 -0700 (PDT)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id 7-20020a05600c230700b003fefcbe7fa8sm16129608wmo.28.2023.09.19.11.41.48
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 19 Sep 2023 11:41:49 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Alexander Larsson <alexl@redhat.com>,
-        Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org
-Subject: [ANNOUNCE] ovl: overlayfs-next updated to d1512c40431a
-Date:   Tue, 19 Sep 2023 21:41:46 +0300
-Message-Id: <20230919184146.32501-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        Tue, 19 Sep 2023 16:18:09 -0400
+X-Greylist: delayed 433 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 19 Sep 2023 13:18:04 PDT
+Received: from mail.cs.ucla.edu (mail.cs.ucla.edu [131.179.128.66])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A3BC93;
+        Tue, 19 Sep 2023 13:18:04 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.cs.ucla.edu (Postfix) with ESMTP id 750A03C00D18B;
+        Tue, 19 Sep 2023 13:10:50 -0700 (PDT)
+Received: from mail.cs.ucla.edu ([127.0.0.1])
+        by localhost (mail.cs.ucla.edu [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id AMNmxh8IWcZs; Tue, 19 Sep 2023 13:10:50 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.cs.ucla.edu (Postfix) with ESMTP id EB6833C00D18D;
+        Tue, 19 Sep 2023 13:10:49 -0700 (PDT)
+DKIM-Filter: OpenDKIM Filter v2.10.3 mail.cs.ucla.edu EB6833C00D18D
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=cs.ucla.edu;
+        s=9D0B346E-2AEB-11ED-9476-E14B719DCE6C; t=1695154250;
+        bh=rkg9tbxTq6pJj5csNug/eDfUxuv8dlZEs8ZxbrqQ+Bs=;
+        h=Message-ID:Date:MIME-Version:To:From;
+        b=e7FwFS1NK+ibkS0cG53EL8AQUGclUFwkekbt01t0RrGTfteamSqMsn/mn3buwjYqP
+         Ss5aVs4mQTQ9vMjU5SbCpefiDChbloDYu1HfklTquHXpMe72pT4M6hvyzCQRVAncyf
+         WVOHo5BHpqQpInzk0XI1vkjThUjzXxG9DeoOO1hJGEZWIEF2xR1lMhg3hNLw6eelH3
+         vfkIEJZDbK4SvwqlaNARiGG/pYA5z0FuwJeduSFWqHIxx4VzcDeiRS6F9+AWa/lvRd
+         UJDA/fA+mrJldEyknr58vHs/9vvVt/ptANUNnDyTfqTMtd8U29s7w3jEOKzFb4QdS+
+         p/bV3Yp4QSW6g==
+X-Virus-Scanned: amavisd-new at mail.cs.ucla.edu
+Received: from mail.cs.ucla.edu ([127.0.0.1])
+        by localhost (mail.cs.ucla.edu [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id G7UgTQUjBKrV; Tue, 19 Sep 2023 13:10:49 -0700 (PDT)
+Received: from [192.168.254.12] (unknown [47.147.225.57])
+        by mail.cs.ucla.edu (Postfix) with ESMTPSA id C37643C00D18B;
+        Tue, 19 Sep 2023 13:10:48 -0700 (PDT)
+Message-ID: <c8315110-4684-9b83-d6c5-751647037623@cs.ucla.edu>
+Date:   Tue, 19 Sep 2023 13:10:47 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.15.1
+Content-Language: en-US
+To:     Jeff Layton <jlayton@kernel.org>, Bruno Haible <bruno@clisp.org>,
+        Jan Kara <jack@suse.cz>,
+        Xi Ruoyao <xry111@linuxfromscratch.org>, bug-gnulib@gnu.org
+Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
+        David Sterba <dsterba@suse.com>, Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Tyler Hicks <code@tyhicks.com>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bo b Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joel Becker <jlbec@evilplan.org>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <ronniesahlberg@gmail.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Tom Talpey <tom@talpey.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Richard Weinberger <richard@nod.at>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Amir Goldstein <l@gmail.com>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Benjamin Coddington <bcodding@redhat.com>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        v9fs@lists.linux.dev, linux-afs@lists.infradead.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-nfs@vger.kernel.org, ntfs3@lists.linux.dev,
+        ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
+        linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+        linux-mtd@lists.infradead.org, linux-mm@kvack.org,
+        linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org
+References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
+ <20230919110457.7fnmzo4nqsi43yqq@quack3>
+ <1f29102c09c60661758c5376018eac43f774c462.camel@kernel.org>
+ <4511209.uG2h0Jr0uP@nimes>
+ <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
+From:   Paul Eggert <eggert@cs.ucla.edu>
+Organization: UCLA Computer Science Department
+Subject: Re: [PATCH v7 12/13] ext4: switch to multigrain timestamps
+In-Reply-To: <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi all,
+On 2023-09-19 09:31, Jeff Layton wrote:
+> The typical case for make
+> timestamp comparisons is comparing source files vs. a build target. If
+> those are being written nearly simultaneously, then that could be an
+> issue, but is that a typical behavior?
 
-The overlayfs-next branch of the overlayfs repository at:
+I vaguely remember running into problems with 'make' a while ago 
+(perhaps with a BSDish system) when filesystem timestamps were 
+arbitrarily truncated in some cases but not others. These files would 
+look older than they really were, so 'make' would think they were 
+up-to-date when they weren't, and 'make' would omit actions that it 
+should have done, thus screwing up the build.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
+File timestamps can be close together with 'make -j' on fast hosts. 
+Sometimes a shell script (or 'make' itself) will run 'make', then modify 
+a file F, then immediately run 'make' again; the latter 'make' won't 
+work if F's timestamp is mistakenly older than targets that depend on it.
 
-has been updated.
+Although 'make'-like apps are the biggest canaries in this coal mine, 
+the issue also affects 'find -newer' (as Bruno mentioned), 'rsync -u', 
+'mv -u', 'tar -u', Emacs file-newer-than-file-p, and surely many other 
+places. For example, any app that creates a timestamp file, then backs 
+up all files newer than that file, would be at risk.
 
-The head of the overlayfs-next branch is commit:
 
-  d1512c40431a ("ovl: Add documentation on nesting of overlayfs mounts")
+> I wonder if it would be feasible to just advance the coarse-grained
+> current_time whenever we end up updating a ctime with a fine-grained
+> timestamp?
 
-The updated head contains the following patch sets:
+Wouldn't this need to be done globally, that is, not just on a per-file 
+or per-filesystem basis? If so, I don't see how we'd avoid locking 
+performance issues.
 
-- Rename and export some vfs helpers [1] (merged via vfs tree)
 
-- Overlayfs aio cleanups [2] (prep work for FUSE passthrough helpers)
+PS. Although I'm no expert in the Linux inode code I hope you don't mind 
+my asking a question about this part of inode_set_ctime_current:
 
-- Overlayfs lock ordering changes [3] (prep work for write-safe fsnotify
-  permission events)
+	/*
+	 * If we've recently updated with a fine-grained timestamp,
+	 * then the coarse-grained one may still be earlier than the
+	 * existing ctime. Just keep the existing value if so.
+	 */
+	ctime.tv_sec = inode->__i_ctime.tv_sec;
+	if (timespec64_compare(&ctime, &now) > 0)
+		return ctime;
 
-- Add support for nesting overlayfs private xattrs (Alex) [4]
-
-The new code was tested using fstests including new tests written
-by Alex, which are available on his xfstests tree [5].
-
-Miklos,
-
-Each of the overlayfs patch sets include changes that address your
-review comments from earlier revision, but niether have an explicit ACK
-from you on the final version (as posted in the links below).
-
-We still have plently of time until the merge window for you to review
-those patches, so I decided to expose them to linux-next testing.
-Please shout if you think that any of the patches need extra time for
-review or not acceptable for consideration to 6.7 in their current form.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/r/20230908132900.2983519-1-amir73il@gmail.com/
-[2] https://lore.kernel.org/r/20230912173653.3317828-1-amir73il@gmail.com/
-[3] https://lore.kernel.org/r/20230816152334.924960-1-amir73il@gmail.com/
-[4] https://lore.kernel.org/r/cover.1694512044.git.alexl@redhat.com/
-[5] https://github.com/alexlarsson/xfstests/commits/overlayfs-nesting
-
-----------------------------------------------------------------
-
-Alexander Larsson (5):
-  ovl: Move xattr support to new xattrs.c file
-  ovl: Add OVL_XATTR_TRUSTED/USER_PREFIX_LEN macros
-  ovl: Support escaped overlay.* xattrs
-  ovl: Add an alternative type of whiteout
-  ovl: Add documentation on nesting of overlayfs mounts
-
-Amir Goldstein (12):
-  ovl: fix failed copyup of fileattr on a symlink
-  ovl: fix incorrect fdput() on aio completion
-  fs: rename __mnt_{want,drop}_write*() helpers
-  fs: export mnt_{get,put}_write_access() to modules
-  ovl: protect copying of realinode attributes to ovl inode
-  ovl: use simpler function to convert iocb to rw flags
-  ovl: propagate IOCB_APPEND flag on writes to realfile
-  ovl: move ovl_file_accessed() to aio completion
-  ovl: split ovl_want_write() into two helpers
-  ovl: reorder ovl_want_write() after ovl_inode_lock()
-  ovl: do not open/llseek lower file with upper sb_writers held
-  ovl: do not encode lower fh with upper sb_writers held
-
+Suppose root used clock_settime to set the clock backwards. Won't this 
+code incorrectly refuse to update the file's timestamp afterwards? That 
+is, shouldn't the last line be "goto fine_grained;" rather than "return 
+ctime;", with the comment changed from "keep the existing value" to "use 
+a fine-grained value"?
