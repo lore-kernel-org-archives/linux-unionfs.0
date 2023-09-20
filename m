@@ -2,150 +2,200 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F4C7C00523
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 14:53:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FC9BC004D6
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 15:15:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235298AbjITOxx (ORCPT
+        id S234874AbjITPPO (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 20 Sep 2023 10:53:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48628 "EHLO
+        Wed, 20 Sep 2023 11:15:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234330AbjITOxu (ORCPT
+        with ESMTP id S234603AbjITPPM (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 20 Sep 2023 10:53:50 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78473A9;
-        Wed, 20 Sep 2023 07:53:44 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B10CFC433C7;
-        Wed, 20 Sep 2023 14:53:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695221624;
-        bh=pv/mshlnOGkJ5ebR+d6AqRiPt7G4UklH+5Y/YwatjVw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hUm3CDqBbqdWl1gTcXLfMGrJ4YfO3wokaDGaQDO3xOEWDbllQ4Mfpj/KueremMgA5
-         pBL/JzWz4+0hsTX69O5jnf1yRuwKeufAxYGRi9hiZ4ho9usSCqwyLkEScujErQvTLd
-         pH8R4MxKr1CGxSHyPru+0iqA3gh7pydF57H5YT0p+7Rd0zhQBTnYL0en9hUyWFooe+
-         Mdfj3r0q5YN+5TWuL0JXteBwUKeABbsXdunQnhbthSc1EwQj0hbuY8ac5vX7VekjTf
-         fGOHz5omQ2+B/RCVrXr9woAH7FyctwMygMiv3giawQBEFR5HdvJ9UunmoJQb2brq0N
-         41leRmH4Vm1Jg==
-Date:   Wed, 20 Sep 2023 16:53:26 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Chuck Lever III <chuck.lever@oracle.com>,
-        Jeff Layton <jlayton@kernel.org>, Jan Kara <jack@suse.cz>
-Cc:     Bruno Haible <bruno@clisp.org>,
-        Xi Ruoyao <xry111@linuxfromscratch.org>,
-        "bug-gnulib@gnu.org" <bug-gnulib@gnu.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Eric Van Hensbergen <ericvh@kernel.org>,
-        Latchesar Ionkov <lucho@ionkov.net>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Schoenebeck <linux_oss@crudebyte.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
-        David Sterba <dsterba@suse.com>, Xiubo Li <xiubli@redhat.com>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>,
-        "coda@cs.cmu.edu" <coda@cs.cmu.edu>,
-        Tyler Hicks <code@tyhicks.com>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Jaegeuk Kim <jaegeuk@kernel.org>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Bo b Peterson <rpeterso@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mark Fasheh <mark@fasheh.com>,
-        Joel Becker <jlbec@evilplan.org>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Steve French <sfrench@samba.org>,
-        Paulo Alcantara <pc@manguebit.com>,
-        Ronnie Sahlberg <ronniesahlberg@gmail.com>,
-        Shyam Prasad N <sprasad@microsoft.com>,
-        Tom Talpey <tom@talpey.com>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Richard Weinberger <richard@nod.at>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Amir Goldstein <l@gmail.com>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Benjamin Coddington <bcodding@redhat.com>,
-        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "v9fs@lists.linux.dev" <v9fs@lists.linux.dev>,
-        "linux-afs@lists.infradead.org" <linux-afs@lists.infradead.org>,
-        "linux-btrfs@vger.kernel.org" <linux-btrfs@vger.kernel.org>,
-        "ceph-devel@vger.kernel.org" <ceph-devel@vger.kernel.org>,
-        "codalist@coda.cs.cmu.edu" <codalist@coda.cs.cmu.edu>,
-        "ecryptfs@vger.kernel.org" <ecryptfs@vger.kernel.org>,
-        "linux-erofs@lists.ozlabs.org" <linux-erofs@lists.ozlabs.org>,
-        "linux-ext4@vger.kernel.org" <linux-ext4@vger.kernel.org>,
-        "linux-f2fs-devel@lists.sourceforge.net" 
-        <linux-f2fs-devel@lists.sourceforge.net>,
-        "cluster-devel@redhat.com" <cluster-devel@redhat.com>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
-        "ntfs3@lists.linux.dev" <ntfs3@lists.linux.dev>,
-        "ocfs2-devel@lists.linux.dev" <ocfs2-devel@lists.linux.dev>,
-        "devel@lists.orangefs.org" <devel@lists.orangefs.org>,
-        "linux-cifs@vger.kernel.org" <linux-cifs@vger.kernel.org>,
-        "samba-technical@lists.samba.org" <samba-technical@lists.samba.org>,
-        "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
-        "linux-xfs@vger.kernel.org" <linux-xfs@vger.kernel.org>
-Subject: Re: [PATCH v7 12/13] ext4: switch to multigrain timestamps
-Message-ID: <20230920-keine-eile-c9755b5825db@brauner>
-References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
- <20230919110457.7fnmzo4nqsi43yqq@quack3>
- <1f29102c09c60661758c5376018eac43f774c462.camel@kernel.org>
- <4511209.uG2h0Jr0uP@nimes>
- <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
- <20230920-leerung-krokodil-52ec6cb44707@brauner>
- <20230920101731.ym6pahcvkl57guto@quack3>
- <317d84b1b909b6c6519a2406fcb302ce22dafa41.camel@kernel.org>
- <20230920-raser-teehaus-029cafd5a6e4@brauner>
- <57C103E1-1AD2-4D86-926C-481BC6BDB191@oracle.com>
+        Wed, 20 Sep 2023 11:15:12 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E28AA9
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Sep 2023 08:14:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1695222861;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=EuQ8ZHKY3/RhYQyr6LX8a2yu9PvZXsrNsWsQmzmK7as=;
+        b=KhAMyOkNxp/anHx9/T1LrmGPy92C727ri40xhwfvnCKMps6XiSyT4h0+h9PJWG7elP2w9u
+        6x57h3gAHOIMsNNHH9RzhP5RG+zTmp0MjID9hps9uHQEyyaGm+v4c8+LZWXCV4YYj0za9J
+        rye0Udfkiz0DC1LiRaCU3uxHw5pvtls=
+Received: from mail-pj1-f69.google.com (mail-pj1-f69.google.com
+ [209.85.216.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-372-xGXobG-UMRCBdf2rfgH-iw-1; Wed, 20 Sep 2023 11:14:11 -0400
+X-MC-Unique: xGXobG-UMRCBdf2rfgH-iw-1
+Received: by mail-pj1-f69.google.com with SMTP id 98e67ed59e1d1-274ae7a5e88so4000520a91.2
+        for <linux-unionfs@vger.kernel.org>; Wed, 20 Sep 2023 08:14:08 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695222848; x=1695827648;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=EuQ8ZHKY3/RhYQyr6LX8a2yu9PvZXsrNsWsQmzmK7as=;
+        b=nCLwHOpF19G3i8g0HTORxTNNszaN8qL0LmHs+jP5Ul3YNnK8sgkiqNqCVR/VeRP+m/
+         ZFH3Mr31bbo43J9IexMRNKwePyfAe23misaYJIhlldk2nBCERbsT01eApXVRsxPbPi07
+         IbFUhI2lkEhCZxOGr2EiPkTdjCbGuL5fU+m/nSawN2OaAosI/mi9Jy7xc3Al8e4jL1Ww
+         WVU6fDoEWj91wu5fsz+FouU8UBu/upsOEWCHYd5mhwP04rkKe27UQyyZP3OTO+cq9D4O
+         mSpSV/IhkBoM/furUY/lapq8i4cRdoYMCmqlVNDyHDiAdcO53GLKI/2uj/pAeo79vRyn
+         oxow==
+X-Gm-Message-State: AOJu0YzEkN85hyQ7exGREEaPPgveQ+/F89zMjPFl01euFacVbwPFGWvF
+        WcxepUsU38K7RYZBn2jk8QkcVE0VjleztN9J0ZriKlgvx1/dVaD1qGnsj5uLyG7VgD59OJna+FB
+        4vAVi9BM208ETSg94c013ilsqlg==
+X-Received: by 2002:a17:90a:e601:b0:273:f51f:1626 with SMTP id j1-20020a17090ae60100b00273f51f1626mr2530468pjy.35.1695222847732;
+        Wed, 20 Sep 2023 08:14:07 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IGYBlLus7cH8A0TOF+ELrpxahnz+IdnInpsto9G/Hx4fidfPc4lNxi3CpAkyWgi6xL8TYyeAg==
+X-Received: by 2002:a17:90a:e601:b0:273:f51f:1626 with SMTP id j1-20020a17090ae60100b00273f51f1626mr2530448pjy.35.1695222847412;
+        Wed, 20 Sep 2023 08:14:07 -0700 (PDT)
+Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id fu10-20020a17090ad18a00b00263b9e75aecsm1459100pjb.41.2023.09.20.08.14.05
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 20 Sep 2023 08:14:07 -0700 (PDT)
+Date:   Wed, 20 Sep 2023 23:14:03 +0800
+From:   Zorro Lang <zlang@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org,
+        fstests@vger.kernel.org
+Subject: Re: [PATCH] overlay: add test for rename of lower symlink with
+ NOATIME attr
+Message-ID: <20230920151403.gsh5gphvlilhp6sv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20230920130355.62763-1-amir73il@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <57C103E1-1AD2-4D86-926C-481BC6BDB191@oracle.com>
+In-Reply-To: <20230920130355.62763-1-amir73il@gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> You could put it behind an EXPERIMENTAL Kconfig option so that the
-> code stays in and can be used by the brave or foolish while it is
-> still being refined.
+On Wed, Sep 20, 2023 at 04:03:55PM +0300, Amir Goldstein wrote:
+> A test for a regression from v5.15 reported by Ruiwen Zhao:
+> https://lore.kernel.org/linux-unionfs/CAKd=y5Hpg7J2gxrFT02F94o=FM9QvGp=kcH1Grctx8HzFYvpiA@mail.gmail.com/
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Zorro,
+> 
+> This is a test for a regression in kernel v5.15.
+> The fix was merged for 6.6-rc2 and has been picked for
+> the upcoming LTS releases 5.15, 6.1, 6.5.
+> 
+> The reproducer only manifests the bug in fs that inherit noatime flag,
+> namely ext4, btrfs, ... but not xfs.
+> 
+> The test does _notrun on xfs for that reason.
+> 
+> Thanks,
+> Amir.
+> 
+>  tests/overlay/082     | 68 +++++++++++++++++++++++++++++++++++++++++++
+>  tests/overlay/082.out |  2 ++
+>  2 files changed, 70 insertions(+)
+>  create mode 100755 tests/overlay/082
+>  create mode 100644 tests/overlay/082.out
+> 
+> diff --git a/tests/overlay/082 b/tests/overlay/082
+> new file mode 100755
+> index 00000000..abea3c2b
+> --- /dev/null
+> +++ b/tests/overlay/082
+> @@ -0,0 +1,68 @@
+> +#! /bin/bash
+> +# SPDX-License-Identifier: GPL-2.0
+> +# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
+> +#
+> +# FS QA Test 082
+> +#
+> +# kernel commit 72db82115d2b ("ovl: copy up sync/noatime fileattr flags")
+> +# from v5.15 introduced a regression.
+> +#
+> +. ./common/preamble
+> +_begin_fstest auto quick
+> +
+> +# Import common functions.
+> +. ./common/filter
+> +
+> +# real QA test starts here
+> +_supported_fs overlay
+> +_fixed_by_kernel_commit ab048302026d \
+> +	"ovl: fix failed copyup of fileattr on a symlink"
+> +
+> +_require_scratch
+> +_require_chattr A
+> +
+> +# remove all files from previous runs
+> +_scratch_mkfs
+> +
+> +# prepare lower test dir with NOATIME flag
+> +lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
+> +mkdir -p $lowerdir/testdir
+> +$CHATTR_PROG +A $lowerdir/testdir >> $seqres.full 2>&1 ||
+> +	_notrun "base fs $OVL_BASE_FSTYP does not support No_Atime flag"
+> +
+> +# The NOATIME is inheritted to children symlink in ext4/fs2fs
+> +# (and on tmpfs on recent kernels).
+> +# The overlayfs test will not fail unless base fs is
+> +# one of those filesystems.
+> +#
+> +# The problem with this inheritence is that the NOATIME flag is inheritted
+> +# to a symlink and the flag does take effect, but there is no way to query
+> +# the flag (lsattr) or change it (chattr) on a symlink, so overlayfs will
+> +# fail when trying to copy up NOATIME flag from lower to upper symlink.
+> +#
+> +touch $lowerdir/testdir/foo
+> +ln -sf foo $lowerdir/testdir/lnk
+> +
+> +$LSATTR_PROG -l $lowerdir/testdir/foo >> $seqres.full 2>&1
+> +$LSATTR_PROG -l $lowerdir/testdir/foo | grep -q No_Atime || \
+> +	_notrun "base fs $OVL_BASE_FSTYP does not inherit No_Atime flag"
+> +
+> +before=$(stat -c %x $lowerdir/testdir/lnk)
+> +echo "symlink atime before readlink: $before" >> $seqres.full 2>&1
+> +cat $lowerdir/testdir/lnk
+> +after=$(stat -c %x $lowerdir/testdir/lnk)
+> +echo "symlink atime after readlink: $after" >> $seqres.full 2>&1
+> +
+> +[ "$before" == "$after" ] || \
+> +	_notrun "base fs $OVL_BASE_FSTYP does not inherit No_Atime flag on symlink"
+> +
+> +# mounting overlay
+> +_scratch_mount
+> +
+> +# moving symlink will try to copy up lower symlink flags
+> +mv $SCRATCH_MNT/testdir/lnk $SCRATCH_MNT/
 
-Given that the discussion has now fully gone back to the drawing board
-and this is a regression the honest thing to do is to revert the five
-patches that introduce the infrastructure:
+Lots of above codes are checking if the underlying fs supports No_Atime (and inherit),
+and _notrun if not support. How about do these checking steps in a require_*
+function locally or in common/, likes _require_noatime_inheritance(). And we also
+can let _require_chattr accept one more argument to specify a test directory.
 
-ffb6cf19e063 ("fs: add infrastructure for multigrain timestamps")
-d48c33972916 ("tmpfs: add support for multigrain timestamps")
-e44df2664746 ("xfs: switch to multigrain timestamps")
-0269b585868e ("ext4: switch to multigrain timestamps")
-50e9ceef1d4f ("btrfs: convert to multigrain timestamps")
+The "mv ..." command looks like the final testing step. If there's not that bug,
+nothing happen, but I'm wondering what should happen if there's a bug?
 
-The conversion to helpers and cleanups are sane and should stay and can
-be used for any solution that gets built on top of it.
+Thanks,
+Zorro
 
-I'd appreciate a look at the branch here:
-git://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git vfs.ctime.revert
+> +
+> +# success, all done
+> +echo "Silence is golden"
+> +status=0
+> +exit
+> diff --git a/tests/overlay/082.out b/tests/overlay/082.out
+> new file mode 100644
+> index 00000000..2977f141
+> --- /dev/null
+> +++ b/tests/overlay/082.out
+> @@ -0,0 +1,2 @@
+> +QA output created by 082
+> +Silence is golden
+> -- 
+> 2.34.1
+> 
 
-survives xfstests.
