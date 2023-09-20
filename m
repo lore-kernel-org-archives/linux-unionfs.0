@@ -2,95 +2,301 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 498EDCE79A8
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 01:35:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25641CE79B0
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 08:41:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229641AbjITBfe (ORCPT
+        id S233525AbjITIl7 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 Sep 2023 21:35:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53270 "EHLO
+        Wed, 20 Sep 2023 04:41:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60138 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229521AbjITBfd (ORCPT
+        with ESMTP id S232338AbjITIl5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 Sep 2023 21:35:33 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22FE3B3
-        for <linux-unionfs@vger.kernel.org>; Tue, 19 Sep 2023 18:35:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695173728; x=1726709728;
-  h=date:from:to:cc:subject:message-id:mime-version;
-  bh=0C4/0fmCEM7h8hq0XYCI9JfdTUtmHSzEs4ctDSBT/OQ=;
-  b=LQcfKJtSohqwI0YIACAb3iqb9IIX5m+4RFV/3NJubjA7p9bz4B2ijzRk
-   fcERTp7c9uAyFWV4/d1zwavyOlMcjkLKp+5bzWuKHTyu3k6pSk/tpk1g0
-   CQbmyUS75IPIWNNxXmBZC6siDd/HcI2+cR9FPIU4CANNZa1FbDWWS9gLl
-   cripLFIFVvSyWpKxNi5CwTaQr9Nns5/67+wfu5wFjHK41ddzvE3S/hplw
-   N1M6vSnRsfNbDIF5XWOOnyVgZ6fq+Irn1lDhF+A0HFtJF0bJ0Ovxr+2eu
-   xGFVjfk5hX6b271hHIpyoWFu8Ctkfpi5qdUU+kVZ5nqjIRi5ChciAb6Jl
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10838"; a="377410166"
-X-IronPort-AV: E=Sophos;i="6.02,160,1688454000"; 
-   d="scan'208";a="377410166"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2023 18:35:27 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10838"; a="861768503"
-X-IronPort-AV: E=Sophos;i="6.02,160,1688454000"; 
-   d="scan'208";a="861768503"
-Received: from lkp-server02.sh.intel.com (HELO 9ef86b2655e5) ([10.239.97.151])
-  by fmsmga002.fm.intel.com with ESMTP; 19 Sep 2023 18:35:26 -0700
-Received: from kbuild by 9ef86b2655e5 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qim7g-00089M-2o;
-        Wed, 20 Sep 2023 01:35:24 +0000
-Date:   Wed, 20 Sep 2023 09:34:56 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Miklos Szeredi <mszeredi@redhat.com>
-Cc:     oe-kbuild-all@lists.linux.dev, linux-unionfs@vger.kernel.org
-Subject: [mszeredi-vfs:statmount 2/3] fs/namespace.c:4868:undefined reference
- to `show_path'
-Message-ID: <202309200921.zzKu32lP-lkp@intel.com>
+        Wed, 20 Sep 2023 04:41:57 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A50E93;
+        Wed, 20 Sep 2023 01:41:51 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8F97CC433C8;
+        Wed, 20 Sep 2023 08:41:33 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1695199310;
+        bh=qGh90UNcKG/Be9UhcsQucQmAlzzaN0ybdDwui9BIyYs=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=BFXFNGFoQU2CKw9WyfGOIqib6ndJAqnLiG0gf5coXTntD9bzGoDVbWnIjqFY5yw7w
+         /iL0Uod2MFZ8DEr6puUf1sJCredMIGJpWb79vtbE1ushIQwYZMxYIi/wrGi9Fb08X3
+         lSA57r158BOH8f+EL6t2kjQEmID+gvoToIjnVUls1kcLXlPyD1YnLKMqHSQHxJwNle
+         vpfc8azuJlJ8vyz4F1Ic7z+BrOBPimV2UU0lRBnSM6gAhS5GK9UYFCZFWZn+W0Rcg0
+         ZifyAdzqTfctk3qOLSOZL59aCo+mxjvM+Qd6lemjUSliLN+1OQBJgtNIB7A++8sTra
+         7xjjm3n+ayagw==
+Date:   Wed, 20 Sep 2023 10:41:30 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Bruno Haible <bruno@clisp.org>, Jan Kara <jack@suse.cz>,
+        Xi Ruoyao <xry111@linuxfromscratch.org>, bug-gnulib@gnu.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
+        David Sterba <dsterba@suse.com>, Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Tyler Hicks <code@tyhicks.com>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bo b Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joel Becker <jlbec@evilplan.org>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <ronniesahlberg@gmail.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Tom Talpey <tom@talpey.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Richard Weinberger <richard@nod.at>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Amir Goldstein <l@gmail.com>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Benjamin Coddington <bcodding@redhat.com>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        v9fs@lists.linux.dev, linux-afs@lists.infradead.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-nfs@vger.kernel.org, ntfs3@lists.linux.dev,
+        ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
+        linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+        linux-mtd@lists.infradead.org, linux-mm@kvack.org,
+        linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org
+Subject: Re: [PATCH v7 12/13] ext4: switch to multigrain timestamps
+Message-ID: <20230920-leerung-krokodil-52ec6cb44707@brauner>
+References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
+ <20230919110457.7fnmzo4nqsi43yqq@quack3>
+ <1f29102c09c60661758c5376018eac43f774c462.camel@kernel.org>
+ <4511209.uG2h0Jr0uP@nimes>
+ <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
+In-Reply-To: <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git statmount
-head:   519d04c265dadbaf8c742e3af3141b7caf673412
-commit: 6ece52ce99c69f998a436fbd735a0dafe1391eeb [2/3] add statmount(2) syscall
-config: powerpc-randconfig-001-20230920 (https://download.01.org/0day-ci/archive/20230920/202309200921.zzKu32lP-lkp@intel.com/config)
-compiler: powerpc-linux-gcc (GCC) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230920/202309200921.zzKu32lP-lkp@intel.com/reproduce)
+> > f1 was last written to *after* f2 was last written to. If the timestamp of f1
+> > is then lower than the timestamp of f2, timestamps are fundamentally broken.
+> > 
+> > Many things in user-space depend on timestamps, such as build system
+> > centered around 'make', but also 'find ... -newer ...'.
+> > 
+> 
+> 
+> What does breakage with make look like in this situation? The "fuzz"
+> here is going to be on the order of a jiffy. The typical case for make
+> timestamp comparisons is comparing source files vs. a build target. If
+> those are being written nearly simultaneously, then that could be an
+> issue, but is that a typical behavior? It seems like it would be hard to
+> rely on that anyway, esp. given filesystems like NFS that can do lazy
+> writeback.
+> 
+> One of the operating principles with this series is that timestamps can
+> be of varying granularity between different files. Note that Linux
+> already violates this assumption when you're working across filesystems
+> of different types.
+> 
+> As to potential fixes if this is a real problem:
+> 
+> I don't really want to put this behind a mount or mkfs option (a'la
+> relatime, etc.), but that is one possibility.
+> 
+> I wonder if it would be feasible to just advance the coarse-grained
+> current_time whenever we end up updating a ctime with a fine-grained
+> timestamp? It might produce some inode write amplification. Files that
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202309200921.zzKu32lP-lkp@intel.com/
+Less than ideal imho.
 
-All errors (new ones prefixed by >>):
+If this risks breaking existing workloads by enabling it unconditionally
+and there isn't a clear way to detect and handle these situations
+without risk of regression then we should move this behind a mount
+option.
 
-   powerpc-linux-ld: fs/namespace.o: in function `stmt_mnt_root':
->> fs/namespace.c:4868:(.text+0x1ae4): undefined reference to `show_path'
+So how about the following:
 
+From cb14add421967f6e374eb77c36cc4a0526b10d17 Mon Sep 17 00:00:00 2001
+From: Christian Brauner <brauner@kernel.org>
+Date: Wed, 20 Sep 2023 10:00:08 +0200
+Subject: [PATCH] vfs: move multi-grain timestamps behind a mount option
 
-vim +4868 fs/namespace.c
+While we initially thought we can do this unconditionally it turns out
+that this might break existing workloads that rely on timestamps in very
+specific ways and we always knew this was a possibility. Move
+multi-grain timestamps behind a vfs mount option.
 
-  4864	
-  4865	static int stmt_mnt_root(struct stmt_state *s)
-  4866	{
-  4867		struct seq_file *seq = &s->seq;
-> 4868		int err = show_path(seq, s->mnt->mnt_root);
-  4869	
-  4870		if (!err && !seq_has_overflowed(seq)) {
-  4871			seq->buf[seq->count] = '\0';
-  4872			seq->count = string_unescape_inplace(seq->buf, UNESCAPE_OCTAL);
-  4873		}
-  4874		return err;
-  4875	}
-  4876	
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+ fs/fs_context.c     | 18 ++++++++++++++++++
+ fs/inode.c          |  4 ++--
+ fs/proc_namespace.c |  1 +
+ fs/stat.c           |  2 +-
+ include/linux/fs.h  |  4 +++-
+ 5 files changed, 25 insertions(+), 4 deletions(-)
 
+diff --git a/fs/fs_context.c b/fs/fs_context.c
+index a0ad7a0c4680..dd4dade0bb9e 100644
+--- a/fs/fs_context.c
++++ b/fs/fs_context.c
+@@ -44,6 +44,7 @@ static const struct constant_table common_set_sb_flag[] = {
+ 	{ "mand",	SB_MANDLOCK },
+ 	{ "ro",		SB_RDONLY },
+ 	{ "sync",	SB_SYNCHRONOUS },
++	{ "mgtime",	SB_MGTIME },
+ 	{ },
+ };
+ 
+@@ -52,18 +53,32 @@ static const struct constant_table common_clear_sb_flag[] = {
+ 	{ "nolazytime",	SB_LAZYTIME },
+ 	{ "nomand",	SB_MANDLOCK },
+ 	{ "rw",		SB_RDONLY },
++	{ "nomgtime",	SB_MGTIME },
+ 	{ },
+ };
+ 
++static inline int check_mgtime(unsigned int token, const struct fs_context *fc)
++{
++	if (token != SB_MGTIME)
++		return 0;
++	if (!(fc->fs_type->fs_flags & FS_MGTIME))
++		return invalf(fc, "Filesystem doesn't support multi-grain timestamps");
++	return 0;
++}
++
+ /*
+  * Check for a common mount option that manipulates s_flags.
+  */
+ static int vfs_parse_sb_flag(struct fs_context *fc, const char *key)
+ {
+ 	unsigned int token;
++	int ret;
+ 
+ 	token = lookup_constant(common_set_sb_flag, key, 0);
+ 	if (token) {
++		ret = check_mgtime(token, fc);
++		if (ret)
++			return ret;
+ 		fc->sb_flags |= token;
+ 		fc->sb_flags_mask |= token;
+ 		return 0;
+@@ -71,6 +86,9 @@ static int vfs_parse_sb_flag(struct fs_context *fc, const char *key)
+ 
+ 	token = lookup_constant(common_clear_sb_flag, key, 0);
+ 	if (token) {
++		ret = check_mgtime(token, fc);
++		if (ret)
++			return ret;
+ 		fc->sb_flags &= ~token;
+ 		fc->sb_flags_mask |= token;
+ 		return 0;
+diff --git a/fs/inode.c b/fs/inode.c
+index 54237f4242ff..fd1a2390aaa3 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -2141,7 +2141,7 @@ EXPORT_SYMBOL(current_mgtime);
+ 
+ static struct timespec64 current_ctime(struct inode *inode)
+ {
+-	if (is_mgtime(inode))
++	if (IS_MGTIME(inode))
+ 		return current_mgtime(inode);
+ 	return current_time(inode);
+ }
+@@ -2588,7 +2588,7 @@ struct timespec64 inode_set_ctime_current(struct inode *inode)
+ 		now = current_time(inode);
+ 
+ 		/* Just copy it into place if it's not multigrain */
+-		if (!is_mgtime(inode)) {
++		if (!IS_MGTIME(inode)) {
+ 			inode_set_ctime_to_ts(inode, now);
+ 			return now;
+ 		}
+diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
+index 250eb5bf7b52..08f5bf4d2c6c 100644
+--- a/fs/proc_namespace.c
++++ b/fs/proc_namespace.c
+@@ -49,6 +49,7 @@ static int show_sb_opts(struct seq_file *m, struct super_block *sb)
+ 		{ SB_DIRSYNC, ",dirsync" },
+ 		{ SB_MANDLOCK, ",mand" },
+ 		{ SB_LAZYTIME, ",lazytime" },
++		{ SB_MGTIME, ",mgtime" },
+ 		{ 0, NULL }
+ 	};
+ 	const struct proc_fs_opts *fs_infop;
+diff --git a/fs/stat.c b/fs/stat.c
+index 6e60389d6a15..2f18dd5de18b 100644
+--- a/fs/stat.c
++++ b/fs/stat.c
+@@ -90,7 +90,7 @@ void generic_fillattr(struct mnt_idmap *idmap, u32 request_mask,
+ 	stat->size = i_size_read(inode);
+ 	stat->atime = inode->i_atime;
+ 
+-	if (is_mgtime(inode)) {
++	if (IS_MGTIME(inode)) {
+ 		fill_mg_cmtime(stat, request_mask, inode);
+ 	} else {
+ 		stat->mtime = inode->i_mtime;
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 4aeb3fa11927..03e415fb3a7c 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1114,6 +1114,7 @@ extern int send_sigurg(struct fown_struct *fown);
+ #define SB_NODEV        BIT(2)	/* Disallow access to device special files */
+ #define SB_NOEXEC       BIT(3)	/* Disallow program execution */
+ #define SB_SYNCHRONOUS  BIT(4)	/* Writes are synced at once */
++#define SB_MGTIME	BIT(5)	/* Use multi-grain timestamps */
+ #define SB_MANDLOCK     BIT(6)	/* Allow mandatory locks on an FS */
+ #define SB_DIRSYNC      BIT(7)	/* Directory modifications are synchronous */
+ #define SB_NOATIME      BIT(10)	/* Do not update access times. */
+@@ -2105,6 +2106,7 @@ static inline bool sb_rdonly(const struct super_block *sb) { return sb->s_flags
+ 					((inode)->i_flags & (S_SYNC|S_DIRSYNC)))
+ #define IS_MANDLOCK(inode)	__IS_FLG(inode, SB_MANDLOCK)
+ #define IS_NOATIME(inode)	__IS_FLG(inode, SB_RDONLY|SB_NOATIME)
++#define IS_MGTIME(inode)	__IS_FLG(inode, SB_MGTIME)
+ #define IS_I_VERSION(inode)	__IS_FLG(inode, SB_I_VERSION)
+ 
+ #define IS_NOQUOTA(inode)	((inode)->i_flags & S_NOQUOTA)
+@@ -2366,7 +2368,7 @@ struct file_system_type {
+  */
+ static inline bool is_mgtime(const struct inode *inode)
+ {
+-	return inode->i_sb->s_type->fs_flags & FS_MGTIME;
++	return inode->i_sb->s_flags & SB_MGTIME;
+ }
+ 
+ extern struct dentry *mount_bdev(struct file_system_type *fs_type,
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.34.1
+
