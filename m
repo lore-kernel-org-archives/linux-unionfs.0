@@ -2,194 +2,233 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 461C4C04A97
-	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 15:34:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C8B0C04AAE
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 15:45:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234792AbjITPeo (ORCPT
+        id S234622AbjITPph (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 20 Sep 2023 11:34:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32866 "EHLO
+        Wed, 20 Sep 2023 11:45:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55044 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235454AbjITPel (ORCPT
+        with ESMTP id S234533AbjITPpf (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 20 Sep 2023 11:34:41 -0400
-Received: from mail-vk1-xa29.google.com (mail-vk1-xa29.google.com [IPv6:2607:f8b0:4864:20::a29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB7D9A3;
-        Wed, 20 Sep 2023 08:34:34 -0700 (PDT)
-Received: by mail-vk1-xa29.google.com with SMTP id 71dfb90a1353d-49351972cbeso2647499e0c.2;
-        Wed, 20 Sep 2023 08:34:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695224072; x=1695828872; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Y6xgfycrDfXDSoYS8UUa4kOAVuKTt2sQwgXfyUldWLI=;
-        b=TdtxAhqB03CGVAp/2+1IWBk+EptHKP6G5L+BeHcs9d6rh+gsDKmT1E/1MivqnaB920
-         C28bMWkzellz9X3aisaVwPmrE8HW1gZRRrA2EbxXOeuCfoF1TuKTkxwS6m2Yrs0VrhNq
-         bIJJ2J9ZH7gxz8QkNjhwyso+aeKp7d22mEkkz2LyKuGJJMYlB+mI9a4S+SS84nuQJwhx
-         ddmFodBy6Fx0jRrnyXjJ6xz8ly6/w+C5Zl9+SlJtMrB9enAKBHLpzFBvY9EgatAZdCgC
-         09jR2XpVxkO+lqj+SsLlUuBKgXsO+pNejskkKbxVtjFHmCHr8lbPf32ayMSpoz6lCN/5
-         UuFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695224072; x=1695828872;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Y6xgfycrDfXDSoYS8UUa4kOAVuKTt2sQwgXfyUldWLI=;
-        b=iu6wmTo7RYk1ktgDpwtavznJzHVwVkeySFdEGVuB4CW3p6LpQVS4MOn6I48BtVCg4V
-         fnzgyY/7pmJWUlfGeSzMBSBlXkrSAeDB8Rrfe7m1az5SR411FHjHFzHNCYPm1LJns1KN
-         3+L7V7SahIhwLXBCyX6u2natJF65eQ9cBPmv5tjRJ54deu3puR0G3qkERtCNQIn6Ii5p
-         ryYCL3m4v0Y5mmltgmLV05Ad4EAobSX9h+WNi9Ixk22XsZKi1GPzLCuCsyhgmzQjhiv1
-         gHfIXjNbrTaVprZu5Jn7xlDPBS33kiuBLBG0JhXE4ldM3+7rn1Lqv+0MWDlW7M1ExIfM
-         9ftA==
-X-Gm-Message-State: AOJu0YwXoOrc3NG30Catb1R8Fnl9cyIiJwbU/BOpTiOZ5zgzc4sCasat
-        jhlCHmN8J7ozsyJKknkQ0KC+uyo9VvcumvtOcbkDbLkZTjI=
-X-Google-Smtp-Source: AGHT+IEkezAjkivmbsBp9Oz7J79B98alW89gbSwyGFc+qMvL5fwuhIpI/einIFD748Biswm8OS7GMi8qjvysxN96OaM=
-X-Received: by 2002:a1f:ca46:0:b0:495:bf04:8a05 with SMTP id
- a67-20020a1fca46000000b00495bf048a05mr2562919vkg.9.1695224072124; Wed, 20 Sep
- 2023 08:34:32 -0700 (PDT)
+        Wed, 20 Sep 2023 11:45:35 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 224E7A3;
+        Wed, 20 Sep 2023 08:45:29 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id BF6E422037;
+        Wed, 20 Sep 2023 15:45:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1695224727; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Gw0GfkzEv5qjhmPaYmrLrmVLcBgiouetaUVK1NJf9SE=;
+        b=gDmHlI6XIITA9cWR7273bMWfTaFm79ZWCKV9DUbgwsMsYlQtttv7ABQywrVa7BRoFxk5Vs
+        fY8Ytovd+JgcWaHYYF/cazBOkeQAnuEbAgfy+zWX2EEn3UHUxNv8SLgNC/S16/CAgBAqvG
+        jDzYA0P8qRNq8WfC9VqpMNAjW8ajDQM=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1695224727;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Gw0GfkzEv5qjhmPaYmrLrmVLcBgiouetaUVK1NJf9SE=;
+        b=486eKcFxONt6Xlrpd7pWWA685BmUhAvAAZoUWjfk3k5wgXtMAG8bbabr8rPv7UJw6UUY7B
+        IV+4KbXuBo0SdmBw==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id AA9FC13A64;
+        Wed, 20 Sep 2023 15:45:27 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id sEc2KZcTC2VITwAAMHmgww
+        (envelope-from <jack@suse.cz>); Wed, 20 Sep 2023 15:45:27 +0000
+Received: by quack3.suse.cz (Postfix, from userid 1000)
+        id 33A59A077D; Wed, 20 Sep 2023 17:45:27 +0200 (CEST)
+Date:   Wed, 20 Sep 2023 17:45:27 +0200
+From:   Jan Kara <jack@suse.cz>
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Jan Kara <jack@suse.cz>, Christian Brauner <brauner@kernel.org>,
+        Bruno Haible <bruno@clisp.org>,
+        Xi Ruoyao <xry111@linuxfromscratch.org>, bug-gnulib@gnu.org,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
+        David Sterba <dsterba@suse.com>, Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Tyler Hicks <code@tyhicks.com>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bo b Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joel Becker <jlbec@evilplan.org>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <ronniesahlberg@gmail.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Tom Talpey <tom@talpey.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Richard Weinberger <richard@nod.at>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Amir Goldstein <l@gmail.com>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Benjamin Coddington <bcodding@redhat.com>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        v9fs@lists.linux.dev, linux-afs@lists.infradead.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
+        linux-nfs@vger.kernel.org, ntfs3@lists.linux.dev,
+        ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
+        linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
+        linux-mtd@lists.infradead.org, linux-mm@kvack.org,
+        linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org
+Subject: Re: [PATCH v7 12/13] ext4: switch to multigrain timestamps
+Message-ID: <20230920154527.pkwot4nu2nzrnamd@quack3>
+References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
+ <20230919110457.7fnmzo4nqsi43yqq@quack3>
+ <1f29102c09c60661758c5376018eac43f774c462.camel@kernel.org>
+ <4511209.uG2h0Jr0uP@nimes>
+ <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
+ <20230920-leerung-krokodil-52ec6cb44707@brauner>
+ <20230920101731.ym6pahcvkl57guto@quack3>
+ <317d84b1b909b6c6519a2406fcb302ce22dafa41.camel@kernel.org>
+ <20230920124823.ghl6crb5sh4x2pmt@quack3>
+ <ca82af4d6a72d7f83223c0ddd74fd9f7bcfa96b1.camel@kernel.org>
 MIME-Version: 1.0
-References: <20230920130355.62763-1-amir73il@gmail.com> <20230920151403.gsh5gphvlilhp6sv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20230920151403.gsh5gphvlilhp6sv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 20 Sep 2023 18:34:21 +0300
-Message-ID: <CAOQ4uxhxsg2AwttYPfhSLQQNbFxo2pmyNUMTC8QpxNw6L_afpw@mail.gmail.com>
-Subject: Re: [PATCH] overlay: add test for rename of lower symlink with
- NOATIME attr
-To:     Zorro Lang <zlang@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
-        Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org,
-        fstests@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ca82af4d6a72d7f83223c0ddd74fd9f7bcfa96b1.camel@kernel.org>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Sep 20, 2023 at 6:14=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
-:
->
-> On Wed, Sep 20, 2023 at 04:03:55PM +0300, Amir Goldstein wrote:
-> > A test for a regression from v5.15 reported by Ruiwen Zhao:
-> > https://lore.kernel.org/linux-unionfs/CAKd=3Dy5Hpg7J2gxrFT02F94o=3DFM9Q=
-vGp=3DkcH1Grctx8HzFYvpiA@mail.gmail.com/
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >
-> > Zorro,
-> >
-> > This is a test for a regression in kernel v5.15.
-> > The fix was merged for 6.6-rc2 and has been picked for
-> > the upcoming LTS releases 5.15, 6.1, 6.5.
-> >
-> > The reproducer only manifests the bug in fs that inherit noatime flag,
-> > namely ext4, btrfs, ... but not xfs.
-> >
-> > The test does _notrun on xfs for that reason.
-> >
-> > Thanks,
-> > Amir.
-> >
-> >  tests/overlay/082     | 68 +++++++++++++++++++++++++++++++++++++++++++
-> >  tests/overlay/082.out |  2 ++
-> >  2 files changed, 70 insertions(+)
-> >  create mode 100755 tests/overlay/082
-> >  create mode 100644 tests/overlay/082.out
-> >
-> > diff --git a/tests/overlay/082 b/tests/overlay/082
-> > new file mode 100755
-> > index 00000000..abea3c2b
-> > --- /dev/null
-> > +++ b/tests/overlay/082
-> > @@ -0,0 +1,68 @@
-> > +#! /bin/bash
-> > +# SPDX-License-Identifier: GPL-2.0
-> > +# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
-> > +#
-> > +# FS QA Test 082
-> > +#
-> > +# kernel commit 72db82115d2b ("ovl: copy up sync/noatime fileattr flag=
-s")
-> > +# from v5.15 introduced a regression.
-> > +#
-> > +. ./common/preamble
-> > +_begin_fstest auto quick
-> > +
-> > +# Import common functions.
-> > +. ./common/filter
-> > +
-> > +# real QA test starts here
-> > +_supported_fs overlay
-> > +_fixed_by_kernel_commit ab048302026d \
-> > +     "ovl: fix failed copyup of fileattr on a symlink"
-> > +
-> > +_require_scratch
-> > +_require_chattr A
-> > +
-> > +# remove all files from previous runs
-> > +_scratch_mkfs
-> > +
-> > +# prepare lower test dir with NOATIME flag
-> > +lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-> > +mkdir -p $lowerdir/testdir
-> > +$CHATTR_PROG +A $lowerdir/testdir >> $seqres.full 2>&1 ||
-> > +     _notrun "base fs $OVL_BASE_FSTYP does not support No_Atime flag"
-> > +
-> > +# The NOATIME is inheritted to children symlink in ext4/fs2fs
-> > +# (and on tmpfs on recent kernels).
-> > +# The overlayfs test will not fail unless base fs is
-> > +# one of those filesystems.
-> > +#
-> > +# The problem with this inheritence is that the NOATIME flag is inheri=
-tted
-> > +# to a symlink and the flag does take effect, but there is no way to q=
-uery
-> > +# the flag (lsattr) or change it (chattr) on a symlink, so overlayfs w=
-ill
-> > +# fail when trying to copy up NOATIME flag from lower to upper symlink=
-.
-> > +#
-> > +touch $lowerdir/testdir/foo
-> > +ln -sf foo $lowerdir/testdir/lnk
-> > +
-> > +$LSATTR_PROG -l $lowerdir/testdir/foo >> $seqres.full 2>&1
-> > +$LSATTR_PROG -l $lowerdir/testdir/foo | grep -q No_Atime || \
-> > +     _notrun "base fs $OVL_BASE_FSTYP does not inherit No_Atime flag"
-> > +
-> > +before=3D$(stat -c %x $lowerdir/testdir/lnk)
-> > +echo "symlink atime before readlink: $before" >> $seqres.full 2>&1
-> > +cat $lowerdir/testdir/lnk
-> > +after=3D$(stat -c %x $lowerdir/testdir/lnk)
-> > +echo "symlink atime after readlink: $after" >> $seqres.full 2>&1
-> > +
-> > +[ "$before" =3D=3D "$after" ] || \
-> > +     _notrun "base fs $OVL_BASE_FSTYP does not inherit No_Atime flag o=
-n symlink"
-> > +
-> > +# mounting overlay
-> > +_scratch_mount
-> > +
-> > +# moving symlink will try to copy up lower symlink flags
-> > +mv $SCRATCH_MNT/testdir/lnk $SCRATCH_MNT/
->
-> Lots of above codes are checking if the underlying fs supports No_Atime (=
-and inherit),
-> and _notrun if not support. How about do these checking steps in a requir=
-e_*
-> function locally or in common/, likes _require_noatime_inheritance(). And=
- we also
-> can let _require_chattr accept one more argument to specify a test direct=
-ory.
->
+On Wed 20-09-23 10:12:03, Jeff Layton wrote:
+> On Wed, 2023-09-20 at 14:48 +0200, Jan Kara wrote:
+> > On Wed 20-09-23 06:35:18, Jeff Layton wrote:
+> > > On Wed, 2023-09-20 at 12:17 +0200, Jan Kara wrote:
+> > > > If I were a sysadmin, I'd rather opt for something like
+> > > > finegrained timestamps + lazytime (if I needed the finegrained timestamps
+> > > > functionality). That should avoid the IO overhead of finegrained timestamps
+> > > > as well and I'd know I can have problems with timestamps only after a
+> > > > system crash.
+> > > 
+> > > > I've just got another idea how we could solve the problem: Couldn't we
+> > > > always just report coarsegrained timestamp to userspace and provide access
+> > > > to finegrained value only to NFS which should know what it's doing?
+> > > > 
+> > > 
+> > > I think that'd be hard. First of all, where would we store the second
+> > > timestamp? We can't just truncate the fine-grained ones to come up with
+> > > a coarse-grained one. It might also be confusing having nfsd and local
+> > > filesystems present different attributes.
+> > 
+> > So what I had in mind (and I definitely miss all the NFS intricacies so the
+> > idea may be bogus) was that inode->i_ctime would be maintained exactly as
+> > is now. There will be new (kernel internal at least for now) STATX flag
+> > STATX_MULTIGRAIN_TS. fill_mg_cmtime() will return timestamp truncated to
+> > sb->s_time_gran unless STATX_MULTIGRAIN_TS is set. Hence unless you set
+> > STATX_MULTIGRAIN_TS, there is no difference in the returned timestamps
+> > compared to the state before multigrain timestamps were introduced. With
+> > STATX_MULTIGRAIN_TS we return full precision timestamp as stored in the
+> > inode. Then NFS in fh_fill_pre_attrs() and fh_fill_post_attrs() needs to
+> > make sure STATX_MULTIGRAIN_TS is set when calling vfs_getattr() to get
+> > multigrain time.
+> 
+> > I agree nfsd may now be presenting slightly different timestamps than user
+> > is able to see with stat(2) directly on the filesystem. But is that a
+> > problem? Essentially it is a similar solution as the mgtime mount option
+> > but now sysadmin doesn't have to decide on filesystem mount how to report
+> > timestamps but the stat caller knowingly opts into possibly inconsistent
+> > (among files) but high precision timestamps. And in the particular NFS
+> > usecase where stat is called all the time anyway, timestamps will likely
+> > even be consistent among files.
+> > 
+> 
+> I like this idea...
+> 
+> Would we also need to raise sb->s_time_gran to something corresponding
+> to HZ on these filesystems?
 
-ok.
+I was actually confused a bit about how timestamp_truncate() works. The
+jiffie granularity is just direct consequence of current_time() using
+ktime_get_coarse_real_ts64() and not of timestamp_truncate().
+sb->s_time_gran seems to be more about the on-disk format so it doesn't
+seem like a great idea to touch it. So probably we can just truncate
+timestamps in generic_fillattr() to HZ granularity unconditionally.
 
-> The "mv ..." command looks like the final testing step. If there's not th=
-at bug,
-> nothing happen, but I'm wondering what should happen if there's a bug?
+> If we truncate the timestamps at a granularity corresponding to HZ before
+> presenting them via statx and the like then that should work around the
+> problem with programs that compare timestamps between inodes.
 
-mv fails with error ENXIO, see linked bug report in commit message.
+Exactly.
 
-Thanks,
-Amir.
+> With NFSv4, when a filesystem doesn't report a STATX_CHANGE_COOKIE, nfsd
+> will fake one up using the ctime. It's fine for that to use a full fine-
+> grained timestamp since we don't expect to be able to compare that value
+> with one of a different inode.
+
+Yes.
+
+> I think we'd want nfsd to present the mtime/ctime values as truncated,
+> just like we would with a local fs. We could hit the same problem of an
+> earlier-looking timestamp with NFS if we try to present the actual fine-
+> grained values to the clients. IOW, I'm convinced that we need to avoid
+> this behavior in most situations.
+
+I wasn't sure if there's a way to do this within NFS - i.e., if the value
+communicated via NFSv3 protocol (I know v4 has a special change cookie
+field for it) that gets used for detecting need to revalidate file contents
+isn't the one presented to client's userspace as ctime. If there's a way to
+do this then great, I'm all for presenting truncated timestamps even for
+NFS.
+
+> If we do this, then we technically don't need the mount option either.
+
+Yes, that was my hope.
+
+> We could still add it though, and have it govern whether fill_mg_cmtime
+> truncates the timestamps before storing them in the kstat.
+
+Well, if we decide these timestamps are useful for userspace as well, I'd
+rather make that a userspace visible STATX flag than a mount option. So
+applications aware of the pitfalls can get high precision timestamps
+without possibly breaking unaware applications.
+
+								Honza
+-- 
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
