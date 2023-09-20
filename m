@@ -2,197 +2,95 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41F9DCE79AE
-	for <linux-unionfs@archiver.kernel.org>; Tue, 19 Sep 2023 20:46:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 498EDCE79A8
+	for <linux-unionfs@archiver.kernel.org>; Wed, 20 Sep 2023 01:35:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233274AbjISUqp (ORCPT
+        id S229641AbjITBfe (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 19 Sep 2023 16:46:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56534 "EHLO
+        Tue, 19 Sep 2023 21:35:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233253AbjISUqm (ORCPT
+        with ESMTP id S229521AbjITBfd (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 19 Sep 2023 16:46:42 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32DC8CE;
-        Tue, 19 Sep 2023 13:46:33 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A819FC433C9;
-        Tue, 19 Sep 2023 20:46:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695156393;
-        bh=BmRXQZIEgC13FrkspW8zNhSJjLbclay0bgLqEV3Rrl8=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=q9KdgZu946MZfw7DxJLZIxiiIbHL9p62pycuILxZHzw8MqP3sd2qzr3E/ZkzfhbEv
-         Sv560WUNQE0HlwP/5rEqpm3bw7jCmrV5akvxgau1zBqN4rLOK+/ZjoboBONeleNI+5
-         6SP6lExUu15oD0xQisxQolfz9bgwYx59X/D7X0LTGvi5p2a+XVoY+oMnByTr4quQRa
-         dZXyYP7t6FAFej2yuwhu+Ce8pxPjyRxtNPk1CXlFaDLgBYYr9H9mjHCggTcasxMD+A
-         UZV+ik47sNRSAwVomJhe40/Ndx/tHAngLhTIM40zYtZFnzpPzdTJ314IhHsCYJFhNI
-         PFuADp6gLFx9g==
-Message-ID: <6e6da8a875a0defec1a0f58314995a6a12dca74e.camel@kernel.org>
-Subject: Re: [PATCH v7 12/13] ext4: switch to multigrain timestamps
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Paul Eggert <eggert@cs.ucla.edu>, Bruno Haible <bruno@clisp.org>,
-        Jan Kara <jack@suse.cz>,
-        Xi Ruoyao <xry111@linuxfromscratch.org>, bug-gnulib@gnu.org
-Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christian Brauner <brauner@kernel.org>,
-        Eric Van Hensbergen <ericvh@kernel.org>,
-        Latchesar Ionkov <lucho@ionkov.net>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Schoenebeck <linux_oss@crudebyte.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
-        David Sterba <dsterba@suse.com>, Xiubo Li <xiubli@redhat.com>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
-        Tyler Hicks <code@tyhicks.com>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Jan Kara <jack@suse.com>, Theodore Ts'o <tytso@mit.edu>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Jaegeuk Kim <jaegeuk@kernel.org>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Bo b Peterson <rpeterso@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mark Fasheh <mark@fasheh.com>,
-        Joel Becker <jlbec@evilplan.org>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Steve French <sfrench@samba.org>,
-        Paulo Alcantara <pc@manguebit.com>,
-        Ronnie Sahlberg <ronniesahlberg@gmail.com>,
-        Shyam Prasad N <sprasad@microsoft.com>,
-        Tom Talpey <tom@talpey.com>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Richard Weinberger <richard@nod.at>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Amir Goldstein <l@gmail.com>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Benjamin Coddington <bcodding@redhat.com>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        v9fs@lists.linux.dev, linux-afs@lists.infradead.org,
-        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
-        codalist@coda.cs.cmu.edu, ecryptfs@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net, cluster-devel@redhat.com,
-        linux-nfs@vger.kernel.org, ntfs3@lists.linux.dev,
-        ocfs2-devel@lists.linux.dev, devel@lists.orangefs.org,
-        linux-cifs@vger.kernel.org, samba-technical@lists.samba.org,
-        linux-mtd@lists.infradead.org, linux-mm@kvack.org,
-        linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org
-Date:   Tue, 19 Sep 2023 16:46:25 -0400
-In-Reply-To: <c8315110-4684-9b83-d6c5-751647037623@cs.ucla.edu>
-References: <20230807-mgctime-v7-0-d1dec143a704@kernel.org>
-         <20230919110457.7fnmzo4nqsi43yqq@quack3>
-         <1f29102c09c60661758c5376018eac43f774c462.camel@kernel.org>
-         <4511209.uG2h0Jr0uP@nimes>
-         <08b5c6fd3b08b87fa564bb562d89381dd4e05b6a.camel@kernel.org>
-         <c8315110-4684-9b83-d6c5-751647037623@cs.ucla.edu>
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Tue, 19 Sep 2023 21:35:33 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.93])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 22FE3B3
+        for <linux-unionfs@vger.kernel.org>; Tue, 19 Sep 2023 18:35:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1695173728; x=1726709728;
+  h=date:from:to:cc:subject:message-id:mime-version;
+  bh=0C4/0fmCEM7h8hq0XYCI9JfdTUtmHSzEs4ctDSBT/OQ=;
+  b=LQcfKJtSohqwI0YIACAb3iqb9IIX5m+4RFV/3NJubjA7p9bz4B2ijzRk
+   fcERTp7c9uAyFWV4/d1zwavyOlMcjkLKp+5bzWuKHTyu3k6pSk/tpk1g0
+   CQbmyUS75IPIWNNxXmBZC6siDd/HcI2+cR9FPIU4CANNZa1FbDWWS9gLl
+   cripLFIFVvSyWpKxNi5CwTaQr9Nns5/67+wfu5wFjHK41ddzvE3S/hplw
+   N1M6vSnRsfNbDIF5XWOOnyVgZ6fq+Irn1lDhF+A0HFtJF0bJ0Ovxr+2eu
+   xGFVjfk5hX6b271hHIpyoWFu8Ctkfpi5qdUU+kVZ5nqjIRi5ChciAb6Jl
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10838"; a="377410166"
+X-IronPort-AV: E=Sophos;i="6.02,160,1688454000"; 
+   d="scan'208";a="377410166"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Sep 2023 18:35:27 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10838"; a="861768503"
+X-IronPort-AV: E=Sophos;i="6.02,160,1688454000"; 
+   d="scan'208";a="861768503"
+Received: from lkp-server02.sh.intel.com (HELO 9ef86b2655e5) ([10.239.97.151])
+  by fmsmga002.fm.intel.com with ESMTP; 19 Sep 2023 18:35:26 -0700
+Received: from kbuild by 9ef86b2655e5 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1qim7g-00089M-2o;
+        Wed, 20 Sep 2023 01:35:24 +0000
+Date:   Wed, 20 Sep 2023 09:34:56 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Miklos Szeredi <mszeredi@redhat.com>
+Cc:     oe-kbuild-all@lists.linux.dev, linux-unionfs@vger.kernel.org
+Subject: [mszeredi-vfs:statmount 2/3] fs/namespace.c:4868:undefined reference
+ to `show_path'
+Message-ID: <202309200921.zzKu32lP-lkp@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, 2023-09-19 at 13:10 -0700, Paul Eggert wrote:
-> On 2023-09-19 09:31, Jeff Layton wrote:
-> > The typical case for make
-> > timestamp comparisons is comparing source files vs. a build target. If
-> > those are being written nearly simultaneously, then that could be an
-> > issue, but is that a typical behavior?
->=20
-> I vaguely remember running into problems with 'make' a while ago=20
-> (perhaps with a BSDish system) when filesystem timestamps were=20
-> arbitrarily truncated in some cases but not others. These files would=20
-> look older than they really were, so 'make' would think they were=20
-> up-to-date when they weren't, and 'make' would omit actions that it=20
-> should have done, thus screwing up the build.
->=20
-> File timestamps can be close together with 'make -j' on fast hosts.=20
-> Sometimes a shell script (or 'make' itself) will run 'make', then modify=
-=20
-> a file F, then immediately run 'make' again; the latter 'make' won't=20
-> work if F's timestamp is mistakenly older than targets that depend on it.
->=20
-> Although 'make'-like apps are the biggest canaries in this coal mine,=20
-> the issue also affects 'find -newer' (as Bruno mentioned), 'rsync -u',=
-=20
-> 'mv -u', 'tar -u', Emacs file-newer-than-file-p, and surely many other=
-=20
-> places. For example, any app that creates a timestamp file, then backs=
-=20
-> up all files newer than that file, would be at risk.
->=20
->=20
-> > I wonder if it would be feasible to just advance the coarse-grained
-> > current_time whenever we end up updating a ctime with a fine-grained
-> > timestamp?
->=20
-> Wouldn't this need to be done globally, that is, not just on a per-file=
-=20
-> or per-filesystem basis? If so, I don't see how we'd avoid locking=20
-> performance issues.
->=20
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git statmount
+head:   519d04c265dadbaf8c742e3af3141b7caf673412
+commit: 6ece52ce99c69f998a436fbd735a0dafe1391eeb [2/3] add statmount(2) syscall
+config: powerpc-randconfig-001-20230920 (https://download.01.org/0day-ci/archive/20230920/202309200921.zzKu32lP-lkp@intel.com/config)
+compiler: powerpc-linux-gcc (GCC) 13.2.0
+reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230920/202309200921.zzKu32lP-lkp@intel.com/reproduce)
 
-Maybe. Another idea might be to introduce a new timekeeper for
-multigrain filesystems, but all of those would likely have to share the
-same coarse-grained clock source.
+If you fix the issue in a separate patch/commit (i.e. not just a new version of
+the same patch/commit), kindly add following tags
+| Reported-by: kernel test robot <lkp@intel.com>
+| Closes: https://lore.kernel.org/oe-kbuild-all/202309200921.zzKu32lP-lkp@intel.com/
 
-So yeah, if you stat an inode and then update it, any inode written on a
-multigrain filesystem within the same jiffy-sized window would have to
-log an extra transaction to write out the inode. That's what I meant
-when I was talking about write amplification.
+All errors (new ones prefixed by >>):
 
->=20
-> PS. Although I'm no expert in the Linux inode code I hope you don't mind=
-=20
-> my asking a question about this part of inode_set_ctime_current:
->=20
-> 	/*
-> 	 * If we've recently updated with a fine-grained timestamp,
-> 	 * then the coarse-grained one may still be earlier than the
-> 	 * existing ctime. Just keep the existing value if so.
-> 	 */
-> 	ctime.tv_sec =3D inode->__i_ctime.tv_sec;
-> 	if (timespec64_compare(&ctime, &now) > 0)
-> 		return ctime;
->=20
-> Suppose root used clock_settime to set the clock backwards. Won't this=
-=20
-> code incorrectly refuse to update the file's timestamp afterwards? That=
-=20
-> is, shouldn't the last line be "goto fine_grained;" rather than "return=
-=20
-> ctime;", with the comment changed from "keep the existing value" to "use=
-=20
-> a fine-grained value"?
+   powerpc-linux-ld: fs/namespace.o: in function `stmt_mnt_root':
+>> fs/namespace.c:4868:(.text+0x1ae4): undefined reference to `show_path'
 
-It is a problem, and Linus pointed that out yesterday, which is why I
-sent this earlier today:
 
-https://lore.kernel.org/linux-fsdevel/20230919-ctime-v1-1-97b3da92f504@kern=
-el.org/T/#u
+vim +4868 fs/namespace.c
 
-Bear in mind that we're not dealing with a situation where the value has
-not been queried since its last update, so we don't need to use a fine
-grained timestamp there (and really, it's preferable not to do so). A
-coarse one should be fine in this case.
---=20
-Jeff Layton <jlayton@kernel.org>
+  4864	
+  4865	static int stmt_mnt_root(struct stmt_state *s)
+  4866	{
+  4867		struct seq_file *seq = &s->seq;
+> 4868		int err = show_path(seq, s->mnt->mnt_root);
+  4869	
+  4870		if (!err && !seq_has_overflowed(seq)) {
+  4871			seq->buf[seq->count] = '\0';
+  4872			seq->count = string_unescape_inplace(seq->buf, UNESCAPE_OCTAL);
+  4873		}
+  4874		return err;
+  4875	}
+  4876	
+
+-- 
+0-DAY CI Kernel Test Service
+https://github.com/intel/lkp-tests/wiki
