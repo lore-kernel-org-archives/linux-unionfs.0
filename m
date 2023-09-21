@@ -2,146 +2,151 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 091D4E7D0AA
-	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 18:51:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFADFE7D0A2
+	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 19:01:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229712AbjIUSvD (ORCPT
+        id S231158AbjIUTBq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 21 Sep 2023 14:51:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46464 "EHLO
+        Thu, 21 Sep 2023 15:01:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35106 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229869AbjIUSus (ORCPT
+        with ESMTP id S230391AbjIUTBT (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 21 Sep 2023 14:50:48 -0400
-Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A89F8A224;
-        Thu, 21 Sep 2023 10:40:40 -0700 (PDT)
-Received: by mail-oi1-x22d.google.com with SMTP id 5614622812f47-3adba522a5dso763478b6e.2;
-        Thu, 21 Sep 2023 10:40:40 -0700 (PDT)
+        Thu, 21 Sep 2023 15:01:19 -0400
+Received: from mail-ed1-x52f.google.com (mail-ed1-x52f.google.com [IPv6:2a00:1450:4864:20::52f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C66A88AC6;
+        Thu, 21 Sep 2023 10:39:16 -0700 (PDT)
+Received: by mail-ed1-x52f.google.com with SMTP id 4fb4d7f45d1cf-523100882f2so1471344a12.2;
+        Thu, 21 Sep 2023 10:39:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695318039; x=1695922839; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1695317954; x=1695922754; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=9EyuaiaJr9XfdsbSvB9YhWBNbzyhipdKnmp4WIFTwUk=;
-        b=DAamoqZWhJ++x9+nF6LxFwvC3brKwPrUegZa0LR3XE30lk637CahTbIvLdokC5+3Zh
-         okhrdeblaLwgtLULzVuJK1TNjDXE95wGWvaXQTbBnHOUKu6qzAuDijnWUFVG6IMWkCdu
-         sq2XMijPIGnGeaum2tC6C0/8uSFR4FoEam4VuMoAzGdnJI50OTUmhBOfe0Yp+/STjA4O
-         2lqOqxVXo7iq5X9fwXVaPyKopIfR/nEENcNOpX3sr9gwg6oZb4eo5T0S8Q1EXm4QNii5
-         SwJN7voFtvLwhCofHVo4u4zOSTbiJ2fFuOCMqb0HdfsAk1SlqP+Qehi7peSzbH/yByEE
-         P5pw==
+        bh=D5iXvHpoNdFLaDpVKrTwt1qO8piu2NWVNt1TPpkdWGE=;
+        b=Mfz2G237KQX1VDC6TVsZsS5Yz9GJ2WA+w4tsdZ1c2jpX4VeAIgnlgTHMo0hkLuwA5R
+         cAqKTgNE9r456hyIEwy9ZnuOtVOHWgR1p+og4uVvhvUzfXGDAhMRKNsgbvEOvAf/GtK+
+         cFXTGdJV/Hmbc1q5UHI2DUb0m2QietdFJLbW1TRDQqVxaAemtQZGIvuhw8h2lA317OTR
+         Hq33vFsmmbPENvlFt51cBMdec5u7jsWscJMfUjeJu30da2CSRkBiflr/jO60UlyUItFl
+         1aT2iYy/lOisLI3vFfFmUT3i08ZK7Hak0A5qcUZESNheSga+NPGCRqkgdGBmHztJONvO
+         hCEg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695318039; x=1695922839;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1695317954; x=1695922754;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=9EyuaiaJr9XfdsbSvB9YhWBNbzyhipdKnmp4WIFTwUk=;
-        b=ByX6W3yfDQpmUM34TgtnKoJlNfUTkIOyC2/cmreNChR19OvU1em2tZ9+DplyS8SbtZ
-         mVhvnQTkyZ6/FO5AGJDZjhBw2NAzlrVKpq/kfAHxCGoYtwUvglvQxN8dlAIV7B+HEx5m
-         tMiBn8+9ZHwV94NkvombGhA6GuGDCW8S3SY8vnclnIpMsweewE0n5RuzOBlW/ZQAdQgS
-         11GBEHJGbWaqvyX3+FZ5cAN8+o75zMPZZcEcqfrsZw0P1mnUlIYSJmfARbVKQlzBjZ2S
-         JmAfCoLkTA6foqpDg1qysh+sVHhrUzS9Vwf8j1FZK5EFT/tlga/0ScaCkALDkKOjeas6
-         115Q==
-X-Gm-Message-State: AOJu0YzpA24u2KxL1gL5bow64oGtPP/ki7nQKolFrEYIlWmd8lmH00eu
-        bf4mmuHCEnA4yeNLeDtFspaTRTaFGO+EEIlFJqeNX6073k4=
-X-Google-Smtp-Source: AGHT+IGkSDnx9+yI2PZKk5+CoubqcFa0ufQzcfuf5Sbvp7tXIQvBzE0On8ScGLzXQV12jqxhX91KAqLT9oWOxPRAwo8=
-X-Received: by 2002:a67:ce9a:0:b0:452:61eb:dc2a with SMTP id
- c26-20020a67ce9a000000b0045261ebdc2amr5320395vse.21.1695310860508; Thu, 21
- Sep 2023 08:41:00 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230921143102.127526-1-amir73il@gmail.com> <20230921143102.127526-2-amir73il@gmail.com>
- <20230921152648.25wd4gqralgiuksv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20230921152648.25wd4gqralgiuksv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+        bh=D5iXvHpoNdFLaDpVKrTwt1qO8piu2NWVNt1TPpkdWGE=;
+        b=pyXhuiXuaGlBUv8fXPxmThlZBSiNM/pQBhZBvBlBCH707/J9tq7QJu36SVKggGm8sY
+         EqpJ6jI4OZ8lMSwCnXPwaYoiJt9INbDayXvOZH/Yu4jB0zK/s55dp8iDnPeGSgOecMJ8
+         ShfY1U13d417y98wSsS1/tUQf24jXMfiWyxEQM3awKzwQYGvngu1EyZ4f06+judcdai6
+         miJLKDsYzYCnXAeYvOne2bvs9k+qr7d1PiBXGgFazl2zaW+1l4FtLN/iUhXPTv4OQAAj
+         j9/xG49p1Yl+sSRMfeAq6ZIMd+j6GiGt0oWfSl5IUwT9KLeyZQ/c8hP1gWHTtGh9fK1b
+         lZpA==
+X-Gm-Message-State: AOJu0Yy/xiDKiIDDORlXuprRxLfL93kK6GqutMbAIQZgRN5k3TVrSVX8
+        do2Yac8wExvtOKkVCQXhrE8dOZlwHh0=
+X-Google-Smtp-Source: AGHT+IFscQSijhqoaczFLa9ImDHpCdMV5THADMXs1J3lDyiybvsmRGBT5FwcgkasJ559b+DDJ/SmzA==
+X-Received: by 2002:a05:600c:3782:b0:402:f55e:ac11 with SMTP id o2-20020a05600c378200b00402f55eac11mr5121997wmr.20.1695306667924;
+        Thu, 21 Sep 2023 07:31:07 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id y2-20020a7bcd82000000b00403bbe69629sm2099334wmj.31.2023.09.21.07.31.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 21 Sep 2023 07:31:07 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 21 Sep 2023 18:40:49 +0300
-Message-ID: <CAOQ4uxj5YR4Kv2-EZXnQGDo1zbExKZ+mw=rYNVBpCo30KkFAfQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] common: add helper _require_chattr_inherit
 To:     Zorro Lang <zlang@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org,
         fstests@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: [PATCH v2 1/2] common: add helper _require_chattr_inherit
+Date:   Thu, 21 Sep 2023 17:31:01 +0300
+Message-Id: <20230921143102.127526-2-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20230921143102.127526-1-amir73il@gmail.com>
+References: <20230921143102.127526-1-amir73il@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 21, 2023 at 6:26=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
-:
->
-> On Thu, Sep 21, 2023 at 05:31:01PM +0300, Amir Goldstein wrote:
-> > Similar to _require_chattr, but also checks if an attribute is
-> > inheritted from parent dir to children.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  common/rc | 52 +++++++++++++++++++++++++++++++++++++++++++---------
-> >  1 file changed, 43 insertions(+), 9 deletions(-)
-> >
-> > diff --git a/common/rc b/common/rc
-> > index 1618ded5..00cfd434 100644
-> > --- a/common/rc
-> > +++ b/common/rc
-> > @@ -4235,23 +4235,57 @@ _require_test_lsattr()
-> >               _notrun "lsattr not supported by test filesystem type: $F=
-STYP"
-> >  }
-> >
-> > +_check_chattr_inherit()
-> > +{
-> > +     local attribute=3D$1
-> > +     local path=3D$2
-> > +     local inherit=3D$3
->
-> As I understand, this function calls _check_chattr_inherit, so it will
-> return zero or non-zero to clarify if $path support $attribute inheritanc=
-e.
-> ...
->
-> > +
-> > +     touch $path
-> > +     $CHATTR_PROG "+$attribute" $path > $tmp.chattr 2>&1
-> > +     local ret=3D$?
-> > +     if [ -n "$inherit" ]; then
-> > +             touch "$path/$inherit"
-> > +     fi
->
-> ... but looks like it doesn't, it only create a $inherit file, then let t=
-he
-> caller check if the $attribute is inherited.
->
-> I think that's a little confused.
+Similar to _require_chattr, but also checks if an attribute is
+inheritted from parent dir to children.
 
-I agree.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ common/rc | 52 +++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 43 insertions(+), 9 deletions(-)
 
-> I think we can name the function as _check_chattr()
+diff --git a/common/rc b/common/rc
+index 1618ded5..00cfd434 100644
+--- a/common/rc
++++ b/common/rc
+@@ -4235,23 +4235,57 @@ _require_test_lsattr()
+ 		_notrun "lsattr not supported by test filesystem type: $FSTYP"
+ }
+ 
++_check_chattr_inherit()
++{
++	local attribute=$1
++	local path=$2
++	local inherit=$3
++
++	touch $path
++	$CHATTR_PROG "+$attribute" $path > $tmp.chattr 2>&1
++	local ret=$?
++	if [ -n "$inherit" ]; then
++		touch "$path/$inherit"
++	fi
++	$CHATTR_PROG "-$attribute" $path > $tmp.chattr 2>&1
++	if [ "$ret" -ne 0 ]; then
++		_notrun "file system doesn't support chattr +$attribute"
++	fi
++	cat $tmp.chattr >> $seqres.full
++	rm -f $tmp.chattr
++	return $ret
++}
++
+ _require_chattr()
+ {
+ 	if [ -z "$1" ]; then
+ 		echo "Usage: _require_chattr <attr>"
+ 		exit 1
+ 	fi
+-	local attribute=$1
++	_check_chattr_inherit $1 $TEST_DIR/syscalltest
++}
+ 
+-	touch $TEST_DIR/syscalltest
+-	chattr "+$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
+-	local ret=$?
+-	chattr "-$attribute" $TEST_DIR/syscalltest > $TEST_DIR/syscalltest.out 2>&1
+-	if [ "$ret" -ne 0 ]; then
+-		_notrun "file system doesn't support chattr +$attribute"
++_require_chattr_inherit()
++{
++	if [ -z "$1" ]; then
++		echo "Usage: _require_chattr_inherit <attr>"
++		exit 1
+ 	fi
+-	cat $TEST_DIR/syscalltest.out >> $seqres.full
+-	rm -f $TEST_DIR/syscalltest.out
++	local attribute=$1
++	local testdir="$TEST_DIR/chattrtest"
++	mkdir -p $testdir
++	_check_chattr_inherit $attribute $testdir testfile || \
++		return
++
++	local testfile="$TEST_DIR/chattrtest/testfile"
++	local lsattrout=($($LSATTR_PROG $testfile 2>> $seqres.full))
++	echo ${lsattrout[*]} >> $seqres.full
++	echo ${lsattrout[0]} | grep -q $attribute || \
++		_notrun "file system doesn't inherit chattr +$attribute"
++
++	$CHATTR_PROG "-$attribute" $testfile >> $seqres.full 2>&1
++	rm -f $testfile
++	rmdir $testdir
+ }
+ 
+ _get_total_inode()
+-- 
+2.34.1
 
-I agree.
-
-> and the 3rd argument $inherit as a bool variable, to
-> decide if we check inheritance or not.
->
-
-Not my prefered choice.
-
-> Or you'd like to have two functions _check_chattr and _check_chattr_inher=
-it,
-> _check_chattr_inherit calls _check_chattr then keep checking inheritance.
->
-> What do you think?
-
-I think this is over engineering for a helper that may not
-be ever used by any other test.
-
-Suggest to just change the name to _check_chattr()
-to match the meaning to the return value.
-
-The 3rd inherit argument just means that we request
-to create a file after chattr + and before chattr -,
-so that the caller could check it itself later.
-
-If you accept this minor change is enough
-can you apply it yourself on commit?
-
-Thanks,
-Amir.
