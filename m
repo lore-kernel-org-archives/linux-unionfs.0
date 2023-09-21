@@ -2,276 +2,330 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9FD7E7D0A4
-	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 19:02:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF02E7D0A8
+	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 19:04:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230193AbjIUTCK (ORCPT
+        id S229781AbjIUTEe (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 21 Sep 2023 15:02:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42492 "EHLO
+        Thu, 21 Sep 2023 15:04:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230190AbjIUTBp (ORCPT
+        with ESMTP id S230070AbjIUTEI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 21 Sep 2023 15:01:45 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1915F7B96C
-        for <linux-unionfs@vger.kernel.org>; Thu, 21 Sep 2023 10:37:02 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1695317822;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=oK2PX137XfTZOWRLKOkFV4Sa+eaXzi/ddegWpwPmmro=;
-        b=LdmDX3Nxl3egsXbRDO2a1J1SyewJFg4zHxSye+ZR0K9AOA23j3jKqAWbPbf0rCwc5NPhxN
-        4uYob3JMqY32x7EMAX/Qa0QCTzWfCIy7kCa1WuUlmArW42GJ6gX62zEZSHH0/dSpPs5H5n
-        8FAR743pto9JaAuyDsSmeFwifOkNMJQ=
-Received: from mail-pl1-f197.google.com (mail-pl1-f197.google.com
- [209.85.214.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-111-NVPyMviHMqyBfHQDErmfjQ-1; Thu, 21 Sep 2023 10:20:46 -0400
-X-MC-Unique: NVPyMviHMqyBfHQDErmfjQ-1
-Received: by mail-pl1-f197.google.com with SMTP id d9443c01a7336-1c0d58f127fso8694295ad.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 21 Sep 2023 07:20:45 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695306045; x=1695910845;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        Thu, 21 Sep 2023 15:04:08 -0400
+Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 715B3E78;
+        Thu, 21 Sep 2023 10:49:44 -0700 (PDT)
+Received: by mail-oi1-x22d.google.com with SMTP id 5614622812f47-3ade101217bso782320b6e.0;
+        Thu, 21 Sep 2023 10:49:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1695318583; x=1695923383; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=oK2PX137XfTZOWRLKOkFV4Sa+eaXzi/ddegWpwPmmro=;
-        b=AAM7vg+pja5DmUwhXgbGYuA8ZUavJ93ZcK7uVATqcBb8z41lKq0moC1gC/gJDjbBs4
-         39+XWtcWIXt2pd7wWxX/c9LtvLES6H9aaHYUnp2Zeme+xI2aCdQnwCudwpp7RElWhfwB
-         btmQHmvdLd29ZGDxnMnEeRtd8Lt+W8yYYRzugEU4aQ1qlLerV9nkY8RmRIZLI+crzQNZ
-         Qv+uh9tDjBEy01Xv8OgVu2RU7XN1sf/QFrpm7bUAFiW39pjcS1yeq5ogUMAxXtuqh2OV
-         QD1p3Vw+E4M3lzzj0C6N4Ixcz3yC5J/ENq3EjFXkWVETXk+rOoLmgHQ8DenvUQwdvg4/
-         4D7w==
-X-Gm-Message-State: AOJu0YxEzyJjgPcstz4fepQmOVG7x7pEAs8NOowEhAlDtjYqTMi0MHD9
-        XhVkY6/SIgIGZmjUH0F2BlMtJQN0bZyxSv9BzVHmlRKouaKT2Ms41vJrlXi+9SUKRZ0Lj3ac1z3
-        PKKwDWhVk5y32yR0HaO2jbMX2SA==
-X-Received: by 2002:a17:902:e851:b0:1b8:8af0:416f with SMTP id t17-20020a170902e85100b001b88af0416fmr5592884plg.1.1695306044989;
-        Thu, 21 Sep 2023 07:20:44 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEQyylMW0W28BrF97Ryzwd7N7x6wv78ELjt1csgIkBrtP15gOHsBecy+9nrfVNi5btFXUa0wA==
-X-Received: by 2002:a17:902:e851:b0:1b8:8af0:416f with SMTP id t17-20020a170902e85100b001b88af0416fmr5592862plg.1.1695306044621;
-        Thu, 21 Sep 2023 07:20:44 -0700 (PDT)
-Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([43.228.180.230])
-        by smtp.gmail.com with ESMTPSA id 17-20020a170902ee5100b001bb7a736b4csm1550033plo.77.2023.09.21.07.20.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 21 Sep 2023 07:20:44 -0700 (PDT)
-Date:   Thu, 21 Sep 2023 22:20:40 +0800
-From:   Zorro Lang <zlang@redhat.com>
-To:     Yongcheng Yang <yoyang@redhat.com>
-Cc:     fstests@vger.kernel.org, linux-nfs@vger.kernel.org,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] generic/471: add a test to check move in mountpoints of
- the same export
-Message-ID: <20230921142040.hw6szynpmemusdi3@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-References: <20230921134347.839957-1-yoyang@redhat.com>
+        bh=NgErOgFgwIB3VwCWplXsojBWx1j8inMp/zhTB/tm4qs=;
+        b=hq7w+clfiU0jbzSfOrlS7O8tgyC5/BMtLI/1woE+ytL7d7ICtMs6bxdoBPcUjeLXvO
+         u20+oq9y3WmDxE4/4rp0d8EFahcNHeo9IBo/XlLrURQACQprBlvj++ad2O3FUotGi/HO
+         lD5ZNOCE7MLDtIwm2SIkUJ1M//jI8u8SX/hNMOwurA0/iwmbe/9vcSMk6NT+AJmg6G8x
+         FKFIddKnE3l6cvlnSa3XRtf2gTd+uHnbtiIuEqbpS5QU85lo5RBU2C6tHARcNur3TsKZ
+         URQY/nfsurCgtdr3pzy4K8NTsXQNHUahUR/pZq2XnwczcGKLUk3gaDoBc1PPrkSa1llf
+         F1IA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695318583; x=1695923383;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=NgErOgFgwIB3VwCWplXsojBWx1j8inMp/zhTB/tm4qs=;
+        b=sB7koYWJy6ch7PhES4oFE73UVZNwtu0jGjN4NE75HnHJntDlKyaGcvhhd4xGnKZYjs
+         dZ5qKk4kQIzk/cByd7ANLmylQMnuS5fzujkKPaAGSuzspa5yQ1LCzhxy9vwTyazD8sBT
+         xmZjBk2IuvWVcJ09j9IXIZoP5QAvftMRuWP8dR8oSnpXSrdb8BbZRBKnmZ2NftpgGxLY
+         oQXO8ecmjsObxlDm3FeqGEMlk+ERsOnnAqi38vDWeGxVzmSOzDMb8J/BrwdsqrxPULj3
+         iy0txFCV4YqaCJ6P7mY1q/oqOJmGNxZa+9HvEZLRtIUTWVd7RyM3AcGIVx6wr2vp0Ll0
+         YYUw==
+X-Gm-Message-State: AOJu0YxRFOz2i9kWSVL09nW7DXMEFGlsiWvLh4HK5VRf6cXQv9Yn13IG
+        b3PiknhRzNYuTaZVAXvZBn2PTytYnbY52TsJ3MGASJFl
+X-Google-Smtp-Source: AGHT+IFhu9MnRqiv40HYNH1bCX0WIJFey5uSMvisrg5iUl0H+i6r0+DTw1qHwxCCoojZKHtpjorF3YDjDNgyFI+rvHI=
+X-Received: by 2002:a0d:e68f:0:b0:59b:eb64:bcc5 with SMTP id
+ p137-20020a0de68f000000b0059beb64bcc5mr5439383ywe.8.1695297826255; Thu, 21
+ Sep 2023 05:03:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230921134347.839957-1-yoyang@redhat.com>
+References: <000000000000259bd8060596e33f@google.com> <bed99e92-cb7c-868d-94f3-ddf53e2b262a@linux.ibm.com>
+ <8a65f5eb-2b59-9903-c6b8-84971f8765ae@linux.ibm.com> <ab7df5e93b5493de5fa379ccab48859fe953d7ae.camel@kernel.org>
+ <b16550ac-f589-c5d7-e139-d585e8771cfd@linux.ibm.com> <00dbd1e7-dfc8-86bc-536f-264a929ebb35@linux.ibm.com>
+ <94b4686a-fee8-c545-2692-b25285b9a152@schaufler-ca.com> <d59d40426c388789c195d94e7e72048ef45fec5e.camel@kernel.org>
+In-Reply-To: <d59d40426c388789c195d94e7e72048ef45fec5e.camel@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 21 Sep 2023 15:03:34 +0300
+Message-ID: <CAOQ4uxgp4PZqFkRmBBpyfL9zYokv_uUjgfbyjDLqWy_sLVmVnw@mail.gmail.com>
+Subject: Re: [syzbot] [integrity] [overlayfs] general protection fault in d_path
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Casey Schaufler <casey@schaufler-ca.com>,
+        Stefan Berger <stefanb@linux.ibm.com>,
+        syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>,
+        brauner@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+        syzkaller-bugs@googlegroups.com, zohar@linux.ibm.com
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 21, 2023 at 09:43:47PM +0800, Yongcheng Yang wrote:
-> Add a new test to ckeck file move (rename) operation among
-> different mount points which are mounting to a same export.
-> 
-> This should be a simple test but it recently unveils an ancient
-> nfsd bug. Thus let's make it to be a regresstion check.
-> 
-> Signed-off-by: Yongcheng Yang <yoyang@redhat.com>
-> ---
-> 
-> Hi,
-> 
-> There is an ancient nfsd problem just pop up and is now resolved by
-> the upstream commit [1]. Looks like it's a basic and simple test which
-> is probably appropriate for the fstest IMO.
-> 
-> This test in nfs will be failed without patch [1]:
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> [root@kvm-07-guest24 xfstests]# ./check -nfs generic/471
-> FSTYP     	-- nfs
-> PLATFORM  	-- Linux/x86_64 kvm-07-guest24 5.14.0-abc.el9.x86_64 #1 SMP PREEMPT_DYNAMIC Wed Sep 13 04:59:08 EDT 2023
-> MKFS_OPTIONS  -- localhost:/export_test2
-> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 localhost:/export_test2 /mnt_scratch
-> 
-> generic/471 1s ... - output mismatch (see /root/xfstests/results//generic/471.out.bad)
-> 	--- tests/generic/471.out    2023-09-21 05:55:28.514673177 -0400
-> 	+++ /root/xfstests/results//generic/471.out.bad    2023-09-21 08:06:16.935695355 -0400
-> 	@@ -1,2 +1,3 @@
->  	QA output created by 471
->  	Silence is golden
-> 	+mv: '/mnt_test/mountpoint1-471/A/f' and '/mnt_test/mountpoint1-471/B/f' are the same file
-> 	...
-> 	(Run 'diff -u /root/xfstests/tests/generic/471.out /root/xfstests/results//generic/471.out.bad'  to see the entire diff)
-> 
-> HINT: You _MAY_ be missing kernel fix:
->   	fdd2630a739819 nfsd: fix change_info in NFSv4 RENAME replies
-> 
-> Ran: generic/471
-> Failures: generic/471
-> Failed 1 of 1 tests
-> 
-> [root@kvm-07-guest24 xfstests]#
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> And it can pass after that patch [1] merged:
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> [root@fsqe-r6515-02 xfstests]# ./check -nfs generic/471
-> FSTYP     	-- nfs
-> PLATFORM  	-- Linux/x86_64 fsqe-r6515-02 5.14.0-abcd.el9.x86_64 #1 SMP PREEMPT_DYNAMIC Tue Sep 19 08:10:36 EDT 2023
-> MKFS_OPTIONS  -- localhost:/export_test1
-> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 localhost:/export_test1 /mnt_scratch
-> 
-> generic/471    	0s
-> Ran: generic/471
-> Passed all 1 tests
-> 
-> [root@fsqe-r6515-02 xfstests]#
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> 
-> Also I have just checked the xfs and overlayfs but the latter get failed:
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> [root@fsqe-r6515-02 xfstests]# ./check generic/471
-> FSTYP         -- xfs (non-debug)
-> PLATFORM      -- Linux/x86_64 fsqe-r6515-02 5.14.0-abcd.el9.x86_64 #1 SMP PREEMPT_DYNAMIC Tue Sep 19 08:10:36 EDT 2023
-> MKFS_OPTIONS  -- -f /dev/loop1
-> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 /dev/loop1 /mnt_scratch
-> 
-> generic/471 0s ...  1s
-> Ran: generic/471
-> Passed all 1 tests
-> 
-> [root@fsqe-r6515-02 xfstests]#
-> [root@fsqe-r6515-02 xfstests]# ./check -overlay generic/471
-> FSTYP         -- overlay
-> PLATFORM      -- Linux/x86_64 fsqe-r6515-02 5.14.0-abcd.el9.x86_64 #1 SMP PREEMPT_DYNAMIC Tue Sep 19 08:10:36 EDT 2023
-> MKFS_OPTIONS  -- /mnt_scratch
-> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 /mnt_scratch /mnt_scratch/ovl-mnt
-> 
-> generic/471 0s ... - output mismatch (see /root/xfstests/results//generic/471.out.bad)
->     --- tests/generic/471.out	2023-09-21 09:02:14.580495256 -0400
->     +++ /root/xfstests/results//generic/471.out.bad	2023-09-21 09:02:51.145345830 -0400
->     @@ -1,2 +1,3 @@
->      QA output created by 471
->      Silence is golden
->     +mv: '/mnt_test/ovl-mnt/mountpoint1-471/A/f' and '/mnt_test/ovl-mnt/mountpoint1-471/B/f' are the same file
+On Thu, Sep 21, 2023 at 1:32=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
+ote:
+>
+> On Wed, 2023-09-20 at 17:52 -0700, Casey Schaufler wrote:
+> > On 9/20/2023 5:10 PM, Stefan Berger wrote:
+> > >
+> > > On 9/20/23 18:09, Stefan Berger wrote:
+> > > >
+> > > > On 9/20/23 17:16, Jeff Layton wrote:
+> > > > > On Wed, 2023-09-20 at 16:37 -0400, Stefan Berger wrote:
+> > > > > > On 9/20/23 13:01, Stefan Berger wrote:
+> > > > > > > On 9/17/23 20:04, syzbot wrote:
+> > > > > > > > syzbot has bisected this issue to:
+> > > > > > > >
+> > > > > > > > commit db1d1e8b9867aae5c3e61ad7859abfcc4a6fd6c7
+> > > > > > > > Author: Jeff Layton <jlayton@kernel.org>
+> > > > > > > > Date:   Mon Apr 17 16:55:51 2023 +0000
+> > > > > > > >
+> > > > > > > >       IMA: use vfs_getattr_nosec to get the i_version
+> > > > > > > >
+> > > > > > > > bisection log:
+> > > > > > > > https://syzkaller.appspot.com/x/bisect.txt?x=3D106f7e546800=
+00
+> > > > > > > > start commit:   a747acc0b752 Merge tag
+> > > > > > > > 'linux-kselftest-next-6.6-rc2'
+> > > > > > > > of g..
+> > > > > > > > git tree:       upstream
+> > > > > > > > final oops:
+> > > > > > > > https://syzkaller.appspot.com/x/report.txt?x=3D126f7e546800=
+00
+> > > > > > > > console output:
+> > > > > > > > https://syzkaller.appspot.com/x/log.txt?x=3D146f7e54680000
+> > > > > > > > kernel config:
+> > > > > > > > https://syzkaller.appspot.com/x/.config?x=3Ddf91a3034fe3f12=
+2
+> > > > > > > > dashboard link:
+> > > > > > > > https://syzkaller.appspot.com/bug?extid=3Da67fc5321ffb4b311=
+c98
+> > > > > > > > syz repro:
+> > > > > > > > https://syzkaller.appspot.com/x/repro.syz?x=3D1671b69468000=
+0
+> > > > > > > > C reproducer:
+> > > > > > > > https://syzkaller.appspot.com/x/repro.c?x=3D14ec94d8680000
+> > > > > > > >
+> > > > > > > > Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotm=
+ail.com
+> > > > > > > > Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the
+> > > > > > > > i_version")
+> > > > > > > >
+> > > > > > > > For information about bisection process see:
+> > > > > > > > https://goo.gl/tpsmEJ#bisection
+> > > > > > > The final oops shows this here:
+> > > > > > >
+> > > > > > > BUG: kernel NULL pointer dereference, address: 00000000000000=
+58
+> > > > > > > #PF: supervisor read access in kernel mode
+> > > > > > > #PF: error_code(0x0000) - not-present page
+> > > > > > > PGD 0 P4D 0
+> > > > > > > Oops: 0000 [#1] PREEMPT SMP
+> > > > > > > CPU: 0 PID: 3192 Comm: syz-executor.0 Not tainted
+> > > > > > > 6.4.0-rc2-syzkaller #0
+> > > > > > > Hardware name: Google Google Compute Engine/Google Compute En=
+gine,
+> > > > > > > BIOS Google 08/04/2023
+> > > > > > > RIP: 0010:__lock_acquire+0x35/0x490 kernel/locking/lockdep.c:=
+4946
+> > > > > > > Code: 83 ec 18 65 4c 8b 35 aa 60 f4 7e 83 3d b7 11 e4 02 00 0=
+f 84 05
+> > > > > > > 02 00 00 4c 89 cb 89 cd 41 89 d5 49 89 ff 83 fe 01 77 0c 89 f=
+0
+> > > > > > > <49> 8b
+> > > > > > > 44 c7 08 48 85 c0 75 1b 4c 89 ff 31 d2 45 89 c4 e8 74 f6 ff
+> > > > > > > RSP: 0018:ffffc90002edb840 EFLAGS: 00010097
+> > > > > > > RAX: 0000000000000000 RBX: 0000000000000000 RCX: 000000000000=
+0002
+> > > > > > > RDX: 0000000000000000 RSI: 0000000000000000 RDI: 000000000000=
+0050
+> > > > > > > RBP: 0000000000000002 R08: 0000000000000001 R09: 000000000000=
+0000
+> > > > > > > R10: 0000000000000000 R11: 0000000000000000 R12: 000000000000=
+0000
+> > > > > > > R13: 0000000000000000 R14: ffff888102ea5340 R15: 000000000000=
+0050
+> > > > > > > FS:  0000000000000000(0000) GS:ffff88813bc00000(0000)
+> > > > > > > knlGS:0000000000000000
+> > > > > > > CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > > > > > > CR2: 0000000000000058 CR3: 0000000003aa8000 CR4: 000000000035=
+06f0
+> > > > > > > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 000000000000=
+0000
+> > > > > > > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 000000000000=
+0400
+> > > > > > > Call Trace:
+> > > > > > >   <TASK>
+> > > > > > >   lock_acquire+0xd8/0x1f0 kernel/locking/lockdep.c:5691
+> > > > > > >   seqcount_lockdep_reader_access include/linux/seqlock.h:102 =
+[inline]
+> > > > > > >   get_fs_root_rcu fs/d_path.c:243 [inline]
+> > > > > > >   d_path+0xd1/0x1f0 fs/d_path.c:285
+> > > > > > >   audit_log_d_path+0x65/0x130 kernel/audit.c:2139
+> > > > > > >   dump_common_audit_data security/lsm_audit.c:224 [inline]
+> > > > > > >   common_lsm_audit+0x3b3/0x840 security/lsm_audit.c:458
+> > > > > > >   smack_log+0xad/0x130 security/smack/smack_access.c:383
+> > > > > > >   smk_tskacc+0xb1/0xd0 security/smack/smack_access.c:253
+> > > > > > >   smack_inode_getattr+0x8a/0xb0 security/smack/smack_lsm.c:11=
+87
+> > > > > > >   security_inode_getattr+0x32/0x50 security/security.c:2114
+> > > > > > >   vfs_getattr+0x1b/0x40 fs/stat.c:167
+> > > > > > >   ovl_getattr+0xa6/0x3e0 fs/overlayfs/inode.c:173
+> > > > > > >   ima_check_last_writer security/integrity/ima/ima_main.c:171
+> > > > > > > [inline]
+> > > > > > >   ima_file_free+0xbd/0x130 security/integrity/ima/ima_main.c:=
+203
+> > > > > > >   __fput+0xc7/0x220 fs/file_table.c:315
+> > > > > > >   task_work_run+0x7d/0xa0 kernel/task_work.c:179
+> > > > > > >   exit_task_work include/linux/task_work.h:38 [inline]
+> > > > > > >   do_exit+0x2c7/0xa80 kernel/exit.c:871 <--------------------=
+---
+> > > > > > >   do_group_exit+0x85/0xa0 kernel/exit.c:1021
+> > > > > > >   get_signal+0x73c/0x7f0 kernel/signal.c:2874
+> > > > > > >   arch_do_signal_or_restart+0x89/0x290 arch/x86/kernel/signal=
+.c:306
+> > > > > > >   exit_to_user_mode_loop+0x61/0xb0 kernel/entry/common.c:168
+> > > > > > >   exit_to_user_mode_prepare+0x64/0xb0 kernel/entry/common.c:2=
+04
+> > > > > > >   __syscall_exit_to_user_mode_work kernel/entry/common.c:286 =
+[inline]
+> > > > > > >   syscall_exit_to_user_mode+0x2b/0x1d0 kernel/entry/common.c:=
+297
+> > > > > > >   do_syscall_64+0x4d/0x90 arch/x86/entry/common.c:86
+> > > > > > >   entry_SYSCALL_64_after_hwframe+0x63/0xcd
+> > > > > > >
+> > > > > > >
+> > > > > > > do_exit has called exit_fs(tsk) [
+> > > > > > > https://elixir.bootlin.com/linux/v6.4-rc2/source/kernel/exit.=
+c#L867 ]
+> > > > > > >
+> > > > > > > exit_fs(tsk) has set tsk->fs =3D NULL [
+> > > > > > > https://elixir.bootlin.com/linux/v6.4-rc2/source/fs/fs_struct=
+.c#L103
+> > > > > > > ]
+> > > > > > >
+> > > > > > > I think this then bites in d_path() where it calls:
+> > > > > > >
+> > > > > > >      get_fs_root_rcu(current->fs, &root);   [
+> > > > > > > https://elixir.bootlin.com/linux/v6.4-rc2/source/fs/d_path.c#=
+L285 ]
+> > > > > > >
+> > > > > > > current->fs is likely NULL here.
+> > > > > > >
+> > > > > > > If this was correct it would have nothing to do with the actu=
+al
+> > > > > > > patch,
+> > > > > > > though, but rather with the fact that smack logs on process
+> > > > > > > termination. I am not sure what the solution would be other t=
+han
+> > > > > > > testing for current->fs =3D=3D NULL in d_path before using it=
+ and
+> > > > > > > returning an error that is not normally returned or trying to
+> > > > > > > intercept this case in smack.
+> > > > > > I have now been able to recreate the syzbot issue with the test
+> > > > > > program
+> > > > > > and the issue is exactly the one described here, current->fs =
+=3D=3D NULL.
+> > > > > >
+> > > > > Earlier in this thread, Amir had a diagnosis that IMA is
+> > > > > inappropriately
+> > > > > trying to use f_path directly instead of using the helpers that a=
+re
+> > > > > friendly for stacking filesystems.
+> > > > >
+> > > > > https://lore.kernel.org/linux-fsdevel/CAOQ4uxgjnYyeQL-LbS5kQ7+C0d=
+6sjzKqMDWAtZW8cAkPaed6=3DQ@mail.gmail.com/
+> > > > >
+> > > > >
+> > > > > I'm not an IMA hacker so I'm not planning to roll a fix here. Per=
+haps
+> > > > > someone on the IMA team could try this approach?
+> > > >
+> > > >
+> > > > I have applied this patch here from Amir now and it does NOT resolv=
+e
+> > > > the issue:
+> > > >
+> > > > https://lore.kernel.org/linux-integrity/296dae962a2a488bde682d3def0=
+74db91686e1c3.camel@linux.ibm.com/T/#m4ebdb780bf6952e7f210c55e87950d0cfa1d5=
+eb0
+> > > >
+> > > >
+> > >
+> > > This seems to resolve the issue:
+> > >
+> > > diff --git a/security/smack/smack_access.c
+> > > b/security/smack/smack_access.c
+> > > index 585e5e35710b..57afcea1e39b 100644
+> > > --- a/security/smack/smack_access.c
+> > > +++ b/security/smack/smack_access.c
+> > > @@ -347,6 +347,9 @@ void smack_log(char *subject_label, char
+> > > *object_label, int request,
+> > >         struct smack_audit_data *sad;
+> > >         struct common_audit_data *a =3D &ad->a;
+> > >
+> > > +       if (current->flags & PF_EXITING)
+> > > +               return;
+> > > +
+> >
+> > Based on what I see here I can understand that this prevents the panic,
+> > but it isn't so clear what changed that introduced the problem.
+> >
+> > >         /* check if we have to log the current event */
+> > >         if (result < 0 && (log_policy & SMACK_AUDIT_DENIED) =3D=3D 0)
+> > >                 return;
+> > >
+> > >
+>
+> Apparently, it's this patch:
+>
+>     db1d1e8b9867 IMA: use vfs_getattr_nosec to get the i_version
+>
+> At one time, IMA would reach directly into the inode to get the
+> i_version and ctime. That was fine for certain filesystems, but with
+> more recent changes it needs to go through ->getattr instead. Evidently,
+> it's selecting the wrong inode to query when dealing with overlayfs and
+> that's causing panics at times.
+>
 
-Does the underlying fs affect this testing result?
+This is a partial story - one which I told and tried to solve with my patch=
+.
+It is true in some cases, but it wasn't the case in this reproducer.
 
-CC Amir to get his review on this overlay specific failure.
+Overlayfs keeps *two* files open, one for the ovl inode and one for
+the 'real' inode in underlying fs.
 
->     ...
->     (Run 'diff -u /root/xfstests/tests/generic/471.out /root/xfstests/results//generic/471.out.bad'  to see the entire diff)
-> Ran: generic/471
-> Failures: generic/471
-> Failed 1 of 1 tests
-> 
-> [root@fsqe-r6515-02 xfstests]#
-> ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> For now I'm not sure if the overlayfs don't support this operation or
-> we just need to fix that.
-> 
-> Thanks,
-> Yongcheng
-> 
-> [1] https://lore.kernel.org/linux-nfs/ZPyMyv1nNFV2whKP@tissot.1015granger.net/T/#t
-> 
-> 
->  tests/generic/471     | 60 +++++++++++++++++++++++++++++++++++++++++++
->  tests/generic/471.out |  2 ++
->  2 files changed, 62 insertions(+)
->  create mode 100755 tests/generic/471
->  create mode 100644 tests/generic/471.out
-> 
-> diff --git a/tests/generic/471 b/tests/generic/471
-> new file mode 100755
-> index 00000000..ada48129
-> --- /dev/null
-> +++ b/tests/generic/471
-> @@ -0,0 +1,60 @@
-> +#! /bin/bash
-> +# SPDX-License-Identifier: GPL-2.0
-> +# Copyright (c) 2023 Red Hat, Inc.  All Rights Reserved.
-> +#
-> +# FS QA Test 471
-> +#
-> +# Mount the same export to different mount points and move (rename)
-> +# files among those mount points.
-> +# This simple test recently unveils an ancient nfsd bug that is fixed
-> +# by fdd2630a739819 ("nfsd: fix change_info in NFSv4 RENAME replies").
-> +#
-> +. ./common/preamble
-> +_begin_fstest auto quick
+IMA hooks can happen on either of these files.
+fput of the ovl file will trigger fput of the real file.
+My patch fixes IMA code that triggers on the real file,
+which must use file_real_path() to get the path.
+My patch really fixes a bug that was also introduced by your
+patch, but it is not the bug that syzbot reported.
 
-This test might be good to be in "rename" group too.
+The syzbot reproducer is triggered on fput of the ovl file.
+This is why my patch did not fix it.
 
-Others looks good to me.
+> As to why the above patch helps, I'm not sure, but given that it doesn't
+> seem to change which inode is being queried via getattr, it seems like
+> this is probably papering over the real bug. That said, IMA and
+> overlayfs are not really in my wheelhouse, so I could be very wrong
+> here.
+
+IMO, the solution is one of the two solutions that Christian proposed -
+you had also proposed to propage the nosec context yourself
+before I suggested my fix. I never said that it was wrong - just didn't
+think it was the root cause for this regression, because there was
+another bug under the lamppost.
 
 Thanks,
-Zorro
-
-> +
-> +# Override the default cleanup function.
-> +_cleanup()
-> +{
-> +	$UMOUNT_PROG $testdir1 2>/dev/null
-> +	$UMOUNT_PROG $testdir2 2>/dev/null
-> +	cd /
-> +	rm -r -f $tmp.*
-> +}
-> +
-> +# real QA test starts here
-> +
-> +_supported_fs generic
-> +[ "$FSTYP" = "nfs" ] && \
-> +	_fixed_by_kernel_commit fdd2630a739819 \
-> +		"nfsd: fix change_info in NFSv4 RENAME replies"
-> +
-> +_require_test
-> +_require_scratch
-> +
-> +echo "Silence is golden"
-> +
-> +_scratch_mkfs >> $seqres.full
-> +testdir1=$TEST_DIR/mountpoint1-$seq
-> +testdir2=$TEST_DIR/mountpoint2-$seq
-> +rm -rf $testdir1 $testdir2
-> +mkdir -p $testdir1 $testdir2
-> +
-> +# Don't share the data and attribute caches among mount points for NFS.
-> +# This caching behavior is necessary to reproduce this issue as we're
-> +# checking the alignment of each mount point's own unique cache.
-> +[ "$FSTYP" = "nfs" ] && MOUNT_OPTIONS="-o nosharecache"
-> +
-> +SCRATCH_MNT=$testdir1 _scratch_mount
-> +SCRATCH_MNT=$testdir2 _scratch_mount
-> +rm -rf $testdir1/{A,B}
-> +mkdir $testdir1/{A,B}
-> +touch $testdir1/A/f
-> +mv $testdir1/A/f $testdir1/B/
-> +cat $testdir2/B/f
-> +mv $testdir2/B/f $testdir2/A/
-> +cat $testdir1/A/f
-> +mv $testdir1/A/f $testdir1/B/
-> +
-> +# success, all done
-> +status=0
-> +exit
-> diff --git a/tests/generic/471.out b/tests/generic/471.out
-> new file mode 100644
-> index 00000000..260f629e
-> --- /dev/null
-> +++ b/tests/generic/471.out
-> @@ -0,0 +1,2 @@
-> +QA output created by 471
-> +Silence is golden
-> -- 
-> 2.31.1
-> 
-
+Amir.
