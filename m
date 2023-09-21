@@ -2,282 +2,146 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B567E7D0A5
-	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 18:35:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 091D4E7D0AA
+	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 18:51:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229988AbjIUSfe (ORCPT
+        id S229712AbjIUSvD (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 21 Sep 2023 14:35:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35152 "EHLO
+        Thu, 21 Sep 2023 14:51:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229903AbjIUSfW (ORCPT
+        with ESMTP id S229869AbjIUSus (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 21 Sep 2023 14:35:22 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 221EC7EA09;
-        Thu, 21 Sep 2023 10:37:34 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 13CC4C32797;
-        Thu, 21 Sep 2023 10:32:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695292356;
-        bh=m/+/D371jffaOA8o1LIPl89PMVOlUOOmU2SCvTrXif8=;
-        h=Subject:From:To:Date:In-Reply-To:References:From;
-        b=knTld6Pi/jUz4xBO5sLOgt7MUoeiL5QtpHwvz+/hv6oCGG5yA1drqbx1tZAZcnZu/
-         eFCEHryapcANCg1o7Aispz+4aziBUKBr8dGVoyrDyiN2Ct6sWVNJgGQglrLGutzwv+
-         vCd+r3US8L+feHEp5tL4dVwZpcV13xE+u5b6ucEiqxZz0qoOJrh6SfJ/b8tyCokfKD
-         fK1/l94Z9zKf5Yq6jDz6NouUU6Del5+6rnpS+Ar20lP5wqwxVCnWgB78N5XMeBPjrR
-         EUh6MVd6La/VFix2EKM2rnYu9jiNfwhuWKNvIOhiekgazhuw0fW5KrCGGhoRe7PQww
-         yw3imG1Rqhnag==
-Message-ID: <d59d40426c388789c195d94e7e72048ef45fec5e.camel@kernel.org>
-Subject: Re: [syzbot] [integrity] [overlayfs] general protection fault in
- d_path
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Casey Schaufler <casey@schaufler-ca.com>,
-        Stefan Berger <stefanb@linux.ibm.com>,
-        syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>,
-        amir73il@gmail.com, brauner@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com,
-        zohar@linux.ibm.com
-Date:   Thu, 21 Sep 2023 06:32:33 -0400
-In-Reply-To: <94b4686a-fee8-c545-2692-b25285b9a152@schaufler-ca.com>
-References: <000000000000259bd8060596e33f@google.com>
-         <bed99e92-cb7c-868d-94f3-ddf53e2b262a@linux.ibm.com>
-         <8a65f5eb-2b59-9903-c6b8-84971f8765ae@linux.ibm.com>
-         <ab7df5e93b5493de5fa379ccab48859fe953d7ae.camel@kernel.org>
-         <b16550ac-f589-c5d7-e139-d585e8771cfd@linux.ibm.com>
-         <00dbd1e7-dfc8-86bc-536f-264a929ebb35@linux.ibm.com>
-         <94b4686a-fee8-c545-2692-b25285b9a152@schaufler-ca.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
+        Thu, 21 Sep 2023 14:50:48 -0400
+Received: from mail-oi1-x22d.google.com (mail-oi1-x22d.google.com [IPv6:2607:f8b0:4864:20::22d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A89F8A224;
+        Thu, 21 Sep 2023 10:40:40 -0700 (PDT)
+Received: by mail-oi1-x22d.google.com with SMTP id 5614622812f47-3adba522a5dso763478b6e.2;
+        Thu, 21 Sep 2023 10:40:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1695318039; x=1695922839; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9EyuaiaJr9XfdsbSvB9YhWBNbzyhipdKnmp4WIFTwUk=;
+        b=DAamoqZWhJ++x9+nF6LxFwvC3brKwPrUegZa0LR3XE30lk637CahTbIvLdokC5+3Zh
+         okhrdeblaLwgtLULzVuJK1TNjDXE95wGWvaXQTbBnHOUKu6qzAuDijnWUFVG6IMWkCdu
+         sq2XMijPIGnGeaum2tC6C0/8uSFR4FoEam4VuMoAzGdnJI50OTUmhBOfe0Yp+/STjA4O
+         2lqOqxVXo7iq5X9fwXVaPyKopIfR/nEENcNOpX3sr9gwg6oZb4eo5T0S8Q1EXm4QNii5
+         SwJN7voFtvLwhCofHVo4u4zOSTbiJ2fFuOCMqb0HdfsAk1SlqP+Qehi7peSzbH/yByEE
+         P5pw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695318039; x=1695922839;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9EyuaiaJr9XfdsbSvB9YhWBNbzyhipdKnmp4WIFTwUk=;
+        b=ByX6W3yfDQpmUM34TgtnKoJlNfUTkIOyC2/cmreNChR19OvU1em2tZ9+DplyS8SbtZ
+         mVhvnQTkyZ6/FO5AGJDZjhBw2NAzlrVKpq/kfAHxCGoYtwUvglvQxN8dlAIV7B+HEx5m
+         tMiBn8+9ZHwV94NkvombGhA6GuGDCW8S3SY8vnclnIpMsweewE0n5RuzOBlW/ZQAdQgS
+         11GBEHJGbWaqvyX3+FZ5cAN8+o75zMPZZcEcqfrsZw0P1mnUlIYSJmfARbVKQlzBjZ2S
+         JmAfCoLkTA6foqpDg1qysh+sVHhrUzS9Vwf8j1FZK5EFT/tlga/0ScaCkALDkKOjeas6
+         115Q==
+X-Gm-Message-State: AOJu0YzpA24u2KxL1gL5bow64oGtPP/ki7nQKolFrEYIlWmd8lmH00eu
+        bf4mmuHCEnA4yeNLeDtFspaTRTaFGO+EEIlFJqeNX6073k4=
+X-Google-Smtp-Source: AGHT+IGkSDnx9+yI2PZKk5+CoubqcFa0ufQzcfuf5Sbvp7tXIQvBzE0On8ScGLzXQV12jqxhX91KAqLT9oWOxPRAwo8=
+X-Received: by 2002:a67:ce9a:0:b0:452:61eb:dc2a with SMTP id
+ c26-20020a67ce9a000000b0045261ebdc2amr5320395vse.21.1695310860508; Thu, 21
+ Sep 2023 08:41:00 -0700 (PDT)
 MIME-Version: 1.0
+References: <20230921143102.127526-1-amir73il@gmail.com> <20230921143102.127526-2-amir73il@gmail.com>
+ <20230921152648.25wd4gqralgiuksv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+In-Reply-To: <20230921152648.25wd4gqralgiuksv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 21 Sep 2023 18:40:49 +0300
+Message-ID: <CAOQ4uxj5YR4Kv2-EZXnQGDo1zbExKZ+mw=rYNVBpCo30KkFAfQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] common: add helper _require_chattr_inherit
+To:     Zorro Lang <zlang@redhat.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org,
+        fstests@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, 2023-09-20 at 17:52 -0700, Casey Schaufler wrote:
-> On 9/20/2023 5:10 PM, Stefan Berger wrote:
-> >=20
-> > On 9/20/23 18:09, Stefan Berger wrote:
-> > >=20
-> > > On 9/20/23 17:16, Jeff Layton wrote:
-> > > > On Wed, 2023-09-20 at 16:37 -0400, Stefan Berger wrote:
-> > > > > On 9/20/23 13:01, Stefan Berger wrote:
-> > > > > > On 9/17/23 20:04, syzbot wrote:
-> > > > > > > syzbot has bisected this issue to:
-> > > > > > >=20
-> > > > > > > commit db1d1e8b9867aae5c3e61ad7859abfcc4a6fd6c7
-> > > > > > > Author: Jeff Layton <jlayton@kernel.org>
-> > > > > > > Date:=A0=A0 Mon Apr 17 16:55:51 2023 +0000
-> > > > > > >=20
-> > > > > > > =A0=A0=A0=A0=A0 IMA: use vfs_getattr_nosec to get the i_versi=
-on
-> > > > > > >=20
-> > > > > > > bisection log:
-> > > > > > > https://syzkaller.appspot.com/x/bisect.txt?x=3D106f7e54680000
-> > > > > > > start commit:=A0=A0 a747acc0b752 Merge tag
-> > > > > > > 'linux-kselftest-next-6.6-rc2'
-> > > > > > > of g..
-> > > > > > > git tree:=A0=A0=A0=A0=A0=A0 upstream
-> > > > > > > final oops:
-> > > > > > > https://syzkaller.appspot.com/x/report.txt?x=3D126f7e54680000
-> > > > > > > console output:
-> > > > > > > https://syzkaller.appspot.com/x/log.txt?x=3D146f7e54680000
-> > > > > > > kernel config:
-> > > > > > > https://syzkaller.appspot.com/x/.config?x=3Ddf91a3034fe3f122
-> > > > > > > dashboard link:
-> > > > > > > https://syzkaller.appspot.com/bug?extid=3Da67fc5321ffb4b311c9=
-8
-> > > > > > > syz repro:
-> > > > > > > https://syzkaller.appspot.com/x/repro.syz?x=3D1671b694680000
-> > > > > > > C reproducer:
-> > > > > > > https://syzkaller.appspot.com/x/repro.c?x=3D14ec94d8680000
-> > > > > > >=20
-> > > > > > > Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmai=
-l.com
-> > > > > > > Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the
-> > > > > > > i_version")
-> > > > > > >=20
-> > > > > > > For information about bisection process see:
-> > > > > > > https://goo.gl/tpsmEJ#bisection
-> > > > > > The final oops shows this here:
-> > > > > >=20
-> > > > > > BUG: kernel NULL pointer dereference, address: 0000000000000058
-> > > > > > #PF: supervisor read access in kernel mode
-> > > > > > #PF: error_code(0x0000) - not-present page
-> > > > > > PGD 0 P4D 0
-> > > > > > Oops: 0000 [#1] PREEMPT SMP
-> > > > > > CPU: 0 PID: 3192 Comm: syz-executor.0 Not tainted
-> > > > > > 6.4.0-rc2-syzkaller #0
-> > > > > > Hardware name: Google Google Compute Engine/Google Compute Engi=
-ne,
-> > > > > > BIOS Google 08/04/2023
-> > > > > > RIP: 0010:__lock_acquire+0x35/0x490 kernel/locking/lockdep.c:49=
-46
-> > > > > > Code: 83 ec 18 65 4c 8b 35 aa 60 f4 7e 83 3d b7 11 e4 02 00 0f =
-84 05
-> > > > > > 02 00 00 4c 89 cb 89 cd 41 89 d5 49 89 ff 83 fe 01 77 0c 89 f0
-> > > > > > <49> 8b
-> > > > > > 44 c7 08 48 85 c0 75 1b 4c 89 ff 31 d2 45 89 c4 e8 74 f6 ff
-> > > > > > RSP: 0018:ffffc90002edb840 EFLAGS: 00010097
-> > > > > > RAX: 0000000000000000 RBX: 0000000000000000 RCX: 00000000000000=
-02
-> > > > > > RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000000000=
-50
-> > > > > > RBP: 0000000000000002 R08: 0000000000000001 R09: 00000000000000=
-00
-> > > > > > R10: 0000000000000000 R11: 0000000000000000 R12: 00000000000000=
-00
-> > > > > > R13: 0000000000000000 R14: ffff888102ea5340 R15: 00000000000000=
-50
-> > > > > > FS:=A0 0000000000000000(0000) GS:ffff88813bc00000(0000)
-> > > > > > knlGS:0000000000000000
-> > > > > > CS:=A0 0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > > > > > CR2: 0000000000000058 CR3: 0000000003aa8000 CR4: 00000000003506=
-f0
-> > > > > > DR0: 0000000000000000 DR1: 0000000000000000 DR2: 00000000000000=
-00
-> > > > > > DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 00000000000004=
-00
-> > > > > > Call Trace:
-> > > > > > =A0=A0<TASK>
-> > > > > > =A0=A0lock_acquire+0xd8/0x1f0 kernel/locking/lockdep.c:5691
-> > > > > > =A0=A0seqcount_lockdep_reader_access include/linux/seqlock.h:10=
-2 [inline]
-> > > > > > =A0=A0get_fs_root_rcu fs/d_path.c:243 [inline]
-> > > > > > =A0=A0d_path+0xd1/0x1f0 fs/d_path.c:285
-> > > > > > =A0=A0audit_log_d_path+0x65/0x130 kernel/audit.c:2139
-> > > > > > =A0=A0dump_common_audit_data security/lsm_audit.c:224 [inline]
-> > > > > > =A0=A0common_lsm_audit+0x3b3/0x840 security/lsm_audit.c:458
-> > > > > > =A0=A0smack_log+0xad/0x130 security/smack/smack_access.c:383
-> > > > > > =A0=A0smk_tskacc+0xb1/0xd0 security/smack/smack_access.c:253
-> > > > > > =A0=A0smack_inode_getattr+0x8a/0xb0 security/smack/smack_lsm.c:=
-1187
-> > > > > > =A0=A0security_inode_getattr+0x32/0x50 security/security.c:2114
-> > > > > > =A0=A0vfs_getattr+0x1b/0x40 fs/stat.c:167
-> > > > > > =A0=A0ovl_getattr+0xa6/0x3e0 fs/overlayfs/inode.c:173
-> > > > > > =A0=A0ima_check_last_writer security/integrity/ima/ima_main.c:1=
-71
-> > > > > > [inline]
-> > > > > > =A0=A0ima_file_free+0xbd/0x130 security/integrity/ima/ima_main.=
-c:203
-> > > > > > =A0=A0__fput+0xc7/0x220 fs/file_table.c:315
-> > > > > > =A0=A0task_work_run+0x7d/0xa0 kernel/task_work.c:179
-> > > > > > =A0=A0exit_task_work include/linux/task_work.h:38 [inline]
-> > > > > > =A0=A0do_exit+0x2c7/0xa80 kernel/exit.c:871 <------------------=
------
-> > > > > > =A0=A0do_group_exit+0x85/0xa0 kernel/exit.c:1021
-> > > > > > =A0=A0get_signal+0x73c/0x7f0 kernel/signal.c:2874
-> > > > > > =A0=A0arch_do_signal_or_restart+0x89/0x290 arch/x86/kernel/sign=
-al.c:306
-> > > > > > =A0=A0exit_to_user_mode_loop+0x61/0xb0 kernel/entry/common.c:16=
-8
-> > > > > > =A0=A0exit_to_user_mode_prepare+0x64/0xb0 kernel/entry/common.c=
-:204
-> > > > > > =A0=A0__syscall_exit_to_user_mode_work kernel/entry/common.c:28=
-6 [inline]
-> > > > > > =A0=A0syscall_exit_to_user_mode+0x2b/0x1d0 kernel/entry/common.=
-c:297
-> > > > > > =A0=A0do_syscall_64+0x4d/0x90 arch/x86/entry/common.c:86
-> > > > > > =A0=A0entry_SYSCALL_64_after_hwframe+0x63/0xcd
-> > > > > >=20
-> > > > > >=20
-> > > > > > do_exit has called exit_fs(tsk) [
-> > > > > > https://elixir.bootlin.com/linux/v6.4-rc2/source/kernel/exit.c#=
-L867 ]
-> > > > > >=20
-> > > > > > exit_fs(tsk) has set tsk->fs =3D NULL [
-> > > > > > https://elixir.bootlin.com/linux/v6.4-rc2/source/fs/fs_struct.c=
-#L103
-> > > > > > ]
-> > > > > >=20
-> > > > > > I think this then bites in d_path() where it calls:
-> > > > > >=20
-> > > > > > =A0=A0=A0=A0 get_fs_root_rcu(current->fs, &root);=A0=A0 [
-> > > > > > https://elixir.bootlin.com/linux/v6.4-rc2/source/fs/d_path.c#L2=
-85 ]
-> > > > > >=20
-> > > > > > current->fs is likely NULL here.
-> > > > > >=20
-> > > > > > If this was correct it would have nothing to do with the actual
-> > > > > > patch,
-> > > > > > though, but rather with the fact that smack logs on process
-> > > > > > termination. I am not sure what the solution would be other tha=
-n
-> > > > > > testing for current->fs =3D=3D NULL in d_path before using it a=
-nd
-> > > > > > returning an error that is not normally returned or trying to
-> > > > > > intercept this case in smack.
-> > > > > I have now been able to recreate the syzbot issue with the test
-> > > > > program
-> > > > > and the issue is exactly the one described here, current->fs =3D=
-=3D NULL.
-> > > > >=20
-> > > > Earlier in this thread, Amir had a diagnosis that IMA is
-> > > > inappropriately
-> > > > trying to use f_path directly instead of using the helpers that are
-> > > > friendly for stacking filesystems.
-> > > >=20
-> > > > https://lore.kernel.org/linux-fsdevel/CAOQ4uxgjnYyeQL-LbS5kQ7+C0d6s=
-jzKqMDWAtZW8cAkPaed6=3DQ@mail.gmail.com/
-> > > >=20
-> > > >=20
-> > > > I'm not an IMA hacker so I'm not planning to roll a fix here. Perha=
-ps
-> > > > someone on the IMA team could try this approach?
-> > >=20
-> > >=20
-> > > I have applied this patch here from Amir now and it does NOT resolve
-> > > the issue:
-> > >=20
-> > > https://lore.kernel.org/linux-integrity/296dae962a2a488bde682d3def074=
-db91686e1c3.camel@linux.ibm.com/T/#m4ebdb780bf6952e7f210c55e87950d0cfa1d5eb=
-0
-> > >=20
-> > >=20
-> >=20
-> > This seems to resolve the issue:
-> >=20
-> > diff --git a/security/smack/smack_access.c
-> > b/security/smack/smack_access.c
-> > index 585e5e35710b..57afcea1e39b 100644
-> > --- a/security/smack/smack_access.c
-> > +++ b/security/smack/smack_access.c
-> > @@ -347,6 +347,9 @@ void smack_log(char *subject_label, char
-> > *object_label, int request,
-> > =A0=A0=A0=A0=A0=A0=A0 struct smack_audit_data *sad;
-> > =A0=A0=A0=A0=A0=A0=A0 struct common_audit_data *a =3D &ad->a;
-> >=20
-> > +=A0=A0=A0=A0=A0=A0 if (current->flags & PF_EXITING)
-> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 return;
+On Thu, Sep 21, 2023 at 6:26=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
+:
+>
+> On Thu, Sep 21, 2023 at 05:31:01PM +0300, Amir Goldstein wrote:
+> > Similar to _require_chattr, but also checks if an attribute is
+> > inheritted from parent dir to children.
+> >
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  common/rc | 52 +++++++++++++++++++++++++++++++++++++++++++---------
+> >  1 file changed, 43 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/common/rc b/common/rc
+> > index 1618ded5..00cfd434 100644
+> > --- a/common/rc
+> > +++ b/common/rc
+> > @@ -4235,23 +4235,57 @@ _require_test_lsattr()
+> >               _notrun "lsattr not supported by test filesystem type: $F=
+STYP"
+> >  }
+> >
+> > +_check_chattr_inherit()
+> > +{
+> > +     local attribute=3D$1
+> > +     local path=3D$2
+> > +     local inherit=3D$3
+>
+> As I understand, this function calls _check_chattr_inherit, so it will
+> return zero or non-zero to clarify if $path support $attribute inheritanc=
+e.
+> ...
+>
 > > +
->=20
-> Based on what I see here I can understand that this prevents the panic,
-> but it isn't so clear what changed that introduced the problem.
->=20
-> > =A0=A0=A0=A0=A0=A0=A0 /* check if we have to log the current event */
-> > =A0=A0=A0=A0=A0=A0=A0 if (result < 0 && (log_policy & SMACK_AUDIT_DENIE=
-D) =3D=3D 0)
-> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 return;
-> >=20
-> >=20
+> > +     touch $path
+> > +     $CHATTR_PROG "+$attribute" $path > $tmp.chattr 2>&1
+> > +     local ret=3D$?
+> > +     if [ -n "$inherit" ]; then
+> > +             touch "$path/$inherit"
+> > +     fi
+>
+> ... but looks like it doesn't, it only create a $inherit file, then let t=
+he
+> caller check if the $attribute is inherited.
+>
+> I think that's a little confused.
 
-Apparently, it's this patch:
+I agree.
 
-    db1d1e8b9867 IMA: use vfs_getattr_nosec to get the i_version
+> I think we can name the function as _check_chattr()
 
-At one time, IMA would reach directly into the inode to get the
-i_version and ctime. That was fine for certain filesystems, but with
-more recent changes it needs to go through ->getattr instead. Evidently,
-it's selecting the wrong inode to query when dealing with overlayfs and
-that's causing panics at times.
+I agree.
 
-As to why the above patch helps, I'm not sure, but given that it doesn't
-seem to change which inode is being queried via getattr, it seems like
-this is probably papering over the real bug. That said, IMA and
-overlayfs are not really in my wheelhouse, so I could be very wrong
-here.
---=20
-Jeff Layton <jlayton@kernel.org>
+> and the 3rd argument $inherit as a bool variable, to
+> decide if we check inheritance or not.
+>
+
+Not my prefered choice.
+
+> Or you'd like to have two functions _check_chattr and _check_chattr_inher=
+it,
+> _check_chattr_inherit calls _check_chattr then keep checking inheritance.
+>
+> What do you think?
+
+I think this is over engineering for a helper that may not
+be ever used by any other test.
+
+Suggest to just change the name to _check_chattr()
+to match the meaning to the return value.
+
+The 3rd inherit argument just means that we request
+to create a file after chattr + and before chattr -,
+so that the caller could check it itself later.
+
+If you accept this minor change is enough
+can you apply it yourself on commit?
+
+Thanks,
+Amir.
