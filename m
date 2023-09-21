@@ -2,61 +2,61 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73302E7D0A7
-	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 20:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 733CDE7D0A2
+	for <linux-unionfs@archiver.kernel.org>; Thu, 21 Sep 2023 20:24:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230387AbjIUUWY (ORCPT
+        id S231821AbjIUUYF (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 21 Sep 2023 16:22:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49454 "EHLO
+        Thu, 21 Sep 2023 16:24:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55762 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229764AbjIUUV4 (ORCPT
+        with ESMTP id S231704AbjIUUXm (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 21 Sep 2023 16:21:56 -0400
-Received: from mail-pf1-x42e.google.com (mail-pf1-x42e.google.com [IPv6:2607:f8b0:4864:20::42e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C6EB6102D45;
-        Thu, 21 Sep 2023 12:20:02 -0700 (PDT)
-Received: by mail-pf1-x42e.google.com with SMTP id d2e1a72fcca58-68bed2c786eso1227192b3a.0;
-        Thu, 21 Sep 2023 12:20:02 -0700 (PDT)
+        Thu, 21 Sep 2023 16:23:42 -0400
+Received: from mail-qt1-x82a.google.com (mail-qt1-x82a.google.com [IPv6:2607:f8b0:4864:20::82a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1C65297A3;
+        Thu, 21 Sep 2023 10:11:59 -0700 (PDT)
+Received: by mail-qt1-x82a.google.com with SMTP id d75a77b69052e-417f1eac78dso2088851cf.2;
+        Thu, 21 Sep 2023 10:11:59 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695324002; x=1695928802; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1695316317; x=1695921117; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=SXtpySYKxc+OsZOWd/8zN1g98t7MAxnf4oPopi6yJvc=;
-        b=XvttUsJkdYsyDQOkN/v8Glczs6c5fRWiUyEWrjgg7KgqLb3YzIUORFBNm0f0I0SP3Q
-         F6Hq8J6odLWM2Bi2M9HLLIU9NTu/X2PTjiE/6SRCE1uJViyBXK/rxJU0/urbiNXD594l
-         dm59kCf8g3ZZp9/eKiF/E2z2Qnrxd9gdX4j3p2MWGNVONIcJXvL6nlrF6p/pkX96rTZa
-         XPDesQ5sz4OXG7zOyiivNqWwGA3OpvVe46K/2Qnn3ZO3UEauXC7AaXeG5tWUwcRJ9Cj+
-         X8Y8COZwNLzn3dGL5hN2jSLmIEaDYrQxnxCvvygosGOr23051/KQy3UhWOKFcPEfRVAJ
-         kIIw==
+        bh=B1BEXO62EEn6iGTjffZUwayUHq4lmRxZ6FhKktsQuGo=;
+        b=XE2LRK+amVP3yQqCce6g/KT6k/GPPu84eQxqNqt4d9PMEh9G2bkfBYRtbmkORiujoE
+         ACTEdVClmpoZh5igc/AZXO4bMod1fPnOmVA9NzS2W7lorTreJBxg2bwlDM4zxEHgF6Pm
+         Jh3omsXR8f6vxqkMe5FqUtPw68tFa6WOS+jSnTjmuQGstuhGx91g8RHp0Sqg0unb8J+h
+         MYDMxa/PbMW8tHLJz/jjPaa30AqxotqcL3XhyRe2657YPeqsh51G/IVK2kEZ14idEUph
+         rEIFrWmvXMPmP04HakE36QhpHMPBz5NP/aZUYdT/VUjiNGIJqiHBmCgobodp7cxvK21z
+         gFOg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695324002; x=1695928802;
+        d=1e100.net; s=20230601; t=1695316317; x=1695921117;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=SXtpySYKxc+OsZOWd/8zN1g98t7MAxnf4oPopi6yJvc=;
-        b=dVwZpaj5qkwqbaj4KNLNKmG2YoUuP3Putuj9HNqOf9wsK/I0wpJ4wMFhkanV99dcSq
-         ka4zk4Y+0sIQrYC7eD4vO6z0rC4QNgRaf14Jv8fH+DZMCebcH4qAbSmGTGuA5vTWOQpX
-         noTagMeeeU5dd5F/guUYSi+iMN8EgMdoTFUO1AJW0dGYyKEzYSuiEY+zcHNcoNXOxTbi
-         GnisvITf4A0L3f9+KcOfrqLuw3PsRU21NeGKw3VLH1hPAEv/enu/lvzqMGD+cYCgKAY6
-         LzW1sP9osV+M22G2biCH08r/mvs9GXDy3xiC7ZRVGG5mOdaN5H1dGQTMBUlnVTrKYzVy
-         5nzw==
-X-Gm-Message-State: AOJu0YwiW7SbabgHj0BoJpZvT5GYyp3ZEGG/Wl3BVqGwKv2Gp11oqMyL
-        AtQrhQ9eotplfT2qRuAiMnNwA/2BjsHFfm/rsQXYUrm1VzM=
-X-Google-Smtp-Source: AGHT+IE92sXuSBvvVkGVkRrIlqorfVMqFTTxU6QGaKQKeIyip+smzMq0DNcHAne5pwSD5SE6HMzBRnQ1VHnXUuehVfk=
-X-Received: by 2002:a67:ebc1:0:b0:452:560e:31a9 with SMTP id
- y1-20020a67ebc1000000b00452560e31a9mr5009814vso.1.1695283248717; Thu, 21 Sep
- 2023 01:00:48 -0700 (PDT)
+        bh=B1BEXO62EEn6iGTjffZUwayUHq4lmRxZ6FhKktsQuGo=;
+        b=Y3ffRDvnj29id0AMCv8X4DELiMEGT6RhdB8hRUQh6yiW+chmK8Q1gTSmQpUJPItouB
+         jF5yeMW/0ZSMJCOJLDKR+YVfDVI3UZY7lC0y/viAIHu09IeguQnRSqMyzNiYjQFcr6Dk
+         dyqSUFVHVyCYcylVt39JGd96SylYyYH/4OEZiPoYYPgYqDTSTjONhqR5waZa5tNHFDCt
+         pM73gVi4K+If4sfPq/FxNTzpyLN6rNDrmlB8e9J8Nqg8SOOxA++7Mf6nfFI+9pWfwqSn
+         0wNriYZuR4cJumaEw6LRCMtfcfOHHd1uOUQ8NmtLN/pJBMjV+xPNjh9gad+HvvolHR8K
+         dD2w==
+X-Gm-Message-State: AOJu0YyGkOx/CzmvzHmbGBugmUkrGYP8QXRyxaoEcxvJzm6unkVwBp90
+        JnGHM6LgFLkmjBkEhzYKGYrDa1Q4Bqzo/HI9OeKYdCReEeU=
+X-Google-Smtp-Source: AGHT+IFdSsCwPtNG1F1MfazC3K9oia0A+lErcjIuVp4zrRqeXtkM1jjof5FwEuhbvVYVPK763RUuDJ1Qy+gVkNEDRo0=
+X-Received: by 2002:a05:6102:578d:b0:452:c5b5:e666 with SMTP id
+ dh13-20020a056102578d00b00452c5b5e666mr1279841vsb.34.1695314783488; Thu, 21
+ Sep 2023 09:46:23 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230920130355.62763-1-amir73il@gmail.com> <20230920151403.gsh5gphvlilhp6sv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxhxsg2AwttYPfhSLQQNbFxo2pmyNUMTC8QpxNw6L_afpw@mail.gmail.com> <20230921062645.lhryfrod7ggdxfuh@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20230921062645.lhryfrod7ggdxfuh@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20230921143102.127526-1-amir73il@gmail.com> <20230921143102.127526-2-amir73il@gmail.com>
+ <20230921152648.25wd4gqralgiuksv@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxj5YR4Kv2-EZXnQGDo1zbExKZ+mw=rYNVBpCo30KkFAfQ@mail.gmail.com> <20230921162319.gsh5is3vkptp5hz2@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+In-Reply-To: <20230921162319.gsh5is3vkptp5hz2@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Thu, 21 Sep 2023 11:00:37 +0300
-Message-ID: <CAOQ4uxjNy6tD87dsGKAOwu6VpkoH3+kgzOEw=KQOzDF1WhhN=A@mail.gmail.com>
-Subject: Re: [PATCH] overlay: add test for rename of lower symlink with
- NOATIME attr
+Date:   Thu, 21 Sep 2023 19:46:12 +0300
+Message-ID: <CAOQ4uxjgMjSY0fye1o-i-d44usfswuFebWBaQ6pE_od+HYGfrQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] common: add helper _require_chattr_inherit
 To:     Zorro Lang <zlang@redhat.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Ruiwen Zhao <ruiwen@google.com>, linux-unionfs@vger.kernel.org,
@@ -67,195 +67,138 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, Sep 21, 2023 at 9:26=E2=80=AFAM Zorro Lang <zlang@redhat.com> wrote=
+On Thu, Sep 21, 2023 at 7:23=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
 :
 >
-> On Wed, Sep 20, 2023 at 06:34:21PM +0300, Amir Goldstein wrote:
-> > On Wed, Sep 20, 2023 at 6:14=E2=80=AFPM Zorro Lang <zlang@redhat.com> w=
+> On Thu, Sep 21, 2023 at 06:40:49PM +0300, Amir Goldstein wrote:
+> > On Thu, Sep 21, 2023 at 6:26=E2=80=AFPM Zorro Lang <zlang@redhat.com> w=
 rote:
 > > >
-> > > On Wed, Sep 20, 2023 at 04:03:55PM +0300, Amir Goldstein wrote:
-> > > > A test for a regression from v5.15 reported by Ruiwen Zhao:
-> > > > https://lore.kernel.org/linux-unionfs/CAKd=3Dy5Hpg7J2gxrFT02F94o=3D=
-FM9QvGp=3DkcH1Grctx8HzFYvpiA@mail.gmail.com/
->
-> Could you give one more sentence to tell what kind of regression
-> does this case test for? Not only a link address.
->
+> > > On Thu, Sep 21, 2023 at 05:31:01PM +0300, Amir Goldstein wrote:
+> > > > Similar to _require_chattr, but also checks if an attribute is
+> > > > inheritted from parent dir to children.
 > > > >
 > > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 > > > > ---
+> > > >  common/rc | 52 +++++++++++++++++++++++++++++++++++++++++++--------=
+-
+> > > >  1 file changed, 43 insertions(+), 9 deletions(-)
 > > > >
-> > > > Zorro,
+> > > > diff --git a/common/rc b/common/rc
+> > > > index 1618ded5..00cfd434 100644
+> > > > --- a/common/rc
+> > > > +++ b/common/rc
+> > > > @@ -4235,23 +4235,57 @@ _require_test_lsattr()
+> > > >               _notrun "lsattr not supported by test filesystem type=
+: $FSTYP"
+> > > >  }
 > > > >
-> > > > This is a test for a regression in kernel v5.15.
-> > > > The fix was merged for 6.6-rc2 and has been picked for
-> > > > the upcoming LTS releases 5.15, 6.1, 6.5.
-> > > >
-> > > > The reproducer only manifests the bug in fs that inherit noatime fl=
-ag,
-> > > > namely ext4, btrfs, ... but not xfs.
-
-FYI, I made a mistake in the statement above.
-xfs does support inherit of noatime flag, but
-it does not inherit noatime for *symlinks*.
-
-I added the _require_chattr_inherit helper that you suggested
-in v2, but it only checks for inherit of noatime flag (the 2nd _notrun).
-I did not add a helper for _require_chattr_inherit_symlink
-because it was too specific and so I left the 3rd _notrun
-open coded in the test in v2.
-
-> > > >
-> > > > The test does _notrun on xfs for that reason.
-> > > >
-> > > > Thanks,
-> > > > Amir.
-> > > >
-> > > >  tests/overlay/082     | 68 +++++++++++++++++++++++++++++++++++++++=
-++++
-> > > >  tests/overlay/082.out |  2 ++
-> > > >  2 files changed, 70 insertions(+)
-> > > >  create mode 100755 tests/overlay/082
-> > > >  create mode 100644 tests/overlay/082.out
-> > > >
-> > > > diff --git a/tests/overlay/082 b/tests/overlay/082
-> > > > new file mode 100755
-> > > > index 00000000..abea3c2b
-> > > > --- /dev/null
-> > > > +++ b/tests/overlay/082
-> > > > @@ -0,0 +1,68 @@
-> > > > +#! /bin/bash
-> > > > +# SPDX-License-Identifier: GPL-2.0
-> > > > +# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
-> > > > +#
-> > > > +# FS QA Test 082
-> > > > +#
-> > > > +# kernel commit 72db82115d2b ("ovl: copy up sync/noatime fileattr =
-flags")
-> > > > +# from v5.15 introduced a regression.
->
-> Hi Amir,
->
-> Thanks for this new regression test. More detailed (picky:) review points
-> as below ...
->
-> So this commit is the one which introduced a regression. But we generally
-> say what kind of regression does this case test for, in this comment.
->
-> > > > +#
-> > > > +. ./common/preamble
-> > > > +_begin_fstest auto quick
->
-> According the source code of this case, please think about more detailed =
-group
-> names, likes: "symlink", "copyup" and "atime".
->
-> > > > +
-> > > > +# Import common functions.
-> > > > +. ./common/filter
->
-> I think this case doesn't use any filter helpers, right?
->
-> > > > +
-> > > > +# real QA test starts here
-> > > > +_supported_fs overlay
-> > > > +_fixed_by_kernel_commit ab048302026d \
-> > > > +     "ovl: fix failed copyup of fileattr on a symlink"
-> > > > +
-> > > > +_require_scratch
-> > > > +_require_chattr A
-> > > > +
-> > > > +# remove all files from previous runs
-> > > > +_scratch_mkfs
-> > > > +
-> > > > +# prepare lower test dir with NOATIME flag
-> > > > +lowerdir=3D$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-> > > > +mkdir -p $lowerdir/testdir
-> > > > +$CHATTR_PROG +A $lowerdir/testdir >> $seqres.full 2>&1 ||
-> > > > +     _notrun "base fs $OVL_BASE_FSTYP does not support No_Atime fl=
-ag"
-> > > > +
-> > > > +# The NOATIME is inheritted to children symlink in ext4/fs2fs
-> > > > +# (and on tmpfs on recent kernels).
-> > > > +# The overlayfs test will not fail unless base fs is
-> > > > +# one of those filesystems.
-> > > > +#
-> > > > +# The problem with this inheritence is that the NOATIME flag is in=
-heritted
-> > > > +# to a symlink and the flag does take effect, but there is no way =
-to query
-> > > > +# the flag (lsattr) or change it (chattr) on a symlink, so overlay=
-fs will
-> > > > +# fail when trying to copy up NOATIME flag from lower to upper sym=
-link.
-> > > > +#
-> > > > +touch $lowerdir/testdir/foo
-> > > > +ln -sf foo $lowerdir/testdir/lnk
-> > > > +
-> > > > +$LSATTR_PROG -l $lowerdir/testdir/foo >> $seqres.full 2>&1
-> > > > +$LSATTR_PROG -l $lowerdir/testdir/foo | grep -q No_Atime || \
-> > > > +     _notrun "base fs $OVL_BASE_FSTYP does not inherit No_Atime fl=
-ag"
-> > > > +
-> > > > +before=3D$(stat -c %x $lowerdir/testdir/lnk)
-> > > > +echo "symlink atime before readlink: $before" >> $seqres.full 2>&1
->
-> I remember some filesystems' timestamp for atime (e.g. exfat) might have =
-more
-> seconds granularity. So it would be better to `sleep 2s` at here.
->
-> Correct me if someone fs need more or less :)
->
-
-That would be a futile waste of 2 seconds IMO, because
-Those niche fs probably do not support chattr and because
-This is an overlayfs regression test and overlayfs is highly
-unlikely to be running in production on those niche fs and it
-probably does not support many of them.
-
-
-> > > > +cat $lowerdir/testdir/lnk
-> > > > +after=3D$(stat -c %x $lowerdir/testdir/lnk)
-> > > > +echo "symlink atime after readlink: $after" >> $seqres.full 2>&1
-> > > > +
-> > > > +[ "$before" =3D=3D "$after" ] || \
-> > > > +     _notrun "base fs $OVL_BASE_FSTYP does not inherit No_Atime fl=
-ag on symlink"
-> > > > +
-> > > > +# mounting overlay
-> > > > +_scratch_mount
-> > > > +
-> > > > +# moving symlink will try to copy up lower symlink flags
-> > > > +mv $SCRATCH_MNT/testdir/lnk $SCRATCH_MNT/
+> > > > +_check_chattr_inherit()
+> > > > +{
+> > > > +     local attribute=3D$1
+> > > > +     local path=3D$2
+> > > > +     local inherit=3D$3
 > > >
-> > > Lots of above codes are checking if the underlying fs supports No_Ati=
-me (and inherit),
-> > > and _notrun if not support. How about do these checking steps in a re=
-quire_*
-> > > function locally or in common/, likes _require_noatime_inheritance().=
- And we also
-> > > can let _require_chattr accept one more argument to specify a test di=
-rectory.
+> > > As I understand, this function calls _check_chattr_inherit, so it wil=
+l
+> > > return zero or non-zero to clarify if $path support $attribute inheri=
+tance.
+> > > ...
+> > >
+> > > > +
+> > > > +     touch $path
+> > > > +     $CHATTR_PROG "+$attribute" $path > $tmp.chattr 2>&1
+> > > > +     local ret=3D$?
+> > > > +     if [ -n "$inherit" ]; then
+> > > > +             touch "$path/$inherit"
+> > > > +     fi
+> > >
+> > > ... but looks like it doesn't, it only create a $inherit file, then l=
+et the
+> > > caller check if the $attribute is inherited.
+> > >
+> > > I think that's a little confused.
+> >
+> > I agree.
+> >
+> > > I think we can name the function as _check_chattr()
+> >
+> > I agree.
+> >
+> > > and the 3rd argument $inherit as a bool variable, to
+> > > decide if we check inheritance or not.
 > > >
 > >
-> > ok.
+> > Not my prefered choice.
 > >
-> > > The "mv ..." command looks like the final testing step. If there's no=
-t that bug,
-> > > nothing happen, but I'm wondering what should happen if there's a bug=
-?
+> > > Or you'd like to have two functions _check_chattr and _check_chattr_i=
+nherit,
+> > > _check_chattr_inherit calls _check_chattr then keep checking inherita=
+nce.
+> > >
+> > > What do you think?
 > >
-> > mv fails with error ENXIO, see linked bug report in commit message.
+> > I think this is over engineering for a helper that may not
+> > be ever used by any other test.
+> >
+> > Suggest to just change the name to _check_chattr()
+> > to match the meaning to the return value.
+> >
+> > The 3rd inherit argument just means that we request
+> > to create a file after chattr + and before chattr -,
+> > so that the caller could check it itself later.
 >
-> Thanks, I think we can add "fails with error ENXIO at here, if the bug is=
- reproduced" in
-> the comment of that "mv ..." command.
+> I still think it doesn't make sense ... but I don't want to give you
+> that pressure, so ...
 >
+> >
+> > If you accept this minor change is enough
+> > can you apply it yourself on commit?
+>
+> ... If you think it's too complicated, we can drop the inheritance checki=
+ng
+> common helper. Just change the _require_chattr(), make it to accept one m=
+ore
+> *directory* argument (use $TEST_DIR by default). Then we can do:
+>
+> _require_chattr A $BASE_SCRATCH_MNT
 
-Sure. no problem.
-I will post v2 soon with _require_chattr_inherit and
-above comments fixed.
+This is not needed.
+Overlayfs (on $SCRATCH_MNT) will not pass the require_chattr
+check if the base fs does not support chattr.
 
-Thanks for the review!
+> _require_chattr A $SCRATCH_MNT
+
+This is practically equivalent to _require_chattr A
+on the test partition, there is no reason to test the
+scratch partition specifically.
+
+So there is no need for the proposed change in _require_chattr.
+
+>
+> And then do all inheritance checking in the overlay case itself (likes yo=
+u did in
+> V1), don't make them to be a common helper. Due to only this case need th=
+e
+> _require_chattr_inheritance, so we can think about that common helper whe=
+n more
+> cases need that :)
+>
+> I think this change is simple enough (base on your V1 patch). Is that goo=
+d to
+> you :)
+
+V1 is good enough for me as is. :)
+You can take the commit message and test
+header comment fixes from V2.
+
+Note that the common _require_chattr_inheritance in V2
+almost did not remove any lines from the test at all -
+it moved one _notrun line into _require_chattr_inheritance
+and turned another _notrun into echo "fail".
+
+So I agree that if no other test is going to use the new helpers
+their value is limited.
+
+Thanks,
 Amir.
