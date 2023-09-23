@@ -2,90 +2,123 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D381AE6FE2F
-	for <linux-unionfs@archiver.kernel.org>; Fri, 22 Sep 2023 13:52:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA1FCE7A89
+	for <linux-unionfs@archiver.kernel.org>; Sat, 23 Sep 2023 09:32:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234146AbjIVNwk (ORCPT
+        id S231462AbjIWJcs (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 22 Sep 2023 09:52:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38372 "EHLO
+        Sat, 23 Sep 2023 05:32:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50190 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234097AbjIVNwf (ORCPT
+        with ESMTP id S231346AbjIWJcn (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 22 Sep 2023 09:52:35 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE26392;
-        Fri, 22 Sep 2023 06:52:29 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF2F0C433C7;
-        Fri, 22 Sep 2023 13:52:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695390749;
-        bh=I3wxew2R83ErU8B71fa76/M6GNlN/bf+I15REwBNzGY=;
-        h=Subject:From:To:Cc:Date:In-Reply-To:References:From;
-        b=I6vweqFa6teue4NRHYc36l0I1yh39CxkkIFYIpXt/mUXtsjSjKEnnnVV+mnXaiUKS
-         DdyfW8oYgdYXTKzXb9DgbdSHBPA+wr8WohBuKuXu6aimmSRoSqmNf2bXx+UrFn1VIX
-         5wxp26DUWvKj/hYMH78ZALmlleijovB+L37euuPpxZDOVXudbTz8DlWh+PqAXqZhVg
-         ZH34UcB2Ot1g7fotXNiAnbPfcxaVqspdWVGMm3cmZv3UY73SfwYbW+Y/q6wsyOORT8
-         GviNP5FwfuLLvBXYcIDTjl2U6MUumM7YCJnbOHYvk3HT8p6VQU65ARXncxWwZupRQ8
-         48Rb8Ty/LgH7A==
-Message-ID: <d188250d3feb3926843f76ef3ca49e9d5baa97a7.camel@kernel.org>
+        Sat, 23 Sep 2023 05:32:43 -0400
+Received: from mail-vs1-xe2a.google.com (mail-vs1-xe2a.google.com [IPv6:2607:f8b0:4864:20::e2a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD33CD7;
+        Sat, 23 Sep 2023 02:32:25 -0700 (PDT)
+Received: by mail-vs1-xe2a.google.com with SMTP id ada2fe7eead31-452527dded1so1404978137.0;
+        Sat, 23 Sep 2023 02:32:25 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1695461544; x=1696066344; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vpZsOS03aAKQZkOqSWH4EjIkbO0+M63ypG5RcznWiS8=;
+        b=mDBsrhiQHdn3omVLmLFot59/xqXCTnR6v2AzdDasaVJXoJeuMEL1lVdnvLpAZsr1OM
+         3V67FowEPQMRuEGAXASgOvBPyHgc5EZryI94W/+Aco2FpHlEXE4WcNWK3khZ3hq7Eqqh
+         5Xmc+2xLJgplXrUZzUEFjmLtkVxcpr5D2u0UzvS7J2nr37D3uHjhj5TpRcVpmMBPGoyt
+         Edh924j+Gc98nOksf22eVtq+s0kxeirxRXeo4MCN4uPvAKIY1r/N/cjh2rW6UMA9QUjx
+         VYNO9VxvO771oF1RzjKQ0UqwtqeAP/HJEIUW72yJsZSqlDhzDkldwVuxHdB9vHTJRQ8f
+         wA+g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695461544; x=1696066344;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vpZsOS03aAKQZkOqSWH4EjIkbO0+M63ypG5RcznWiS8=;
+        b=Kyr0dQ9QQ1e6r9VWTkeOHdidrs0MmbBRu3B5Cs7x+ZzP/0p2BcuaCmf3fbqWYqlZ2N
+         oYCjK6Oj8v3SPIn11TDOpfLiKmEfTx2o5+0HN8w2wz9sIIej3R/uFy/leLVzKLqCIv8Q
+         nZmPgive5yJ461kHUDhXO3WUVmk433sLhGWlj+58VV3/z+cFomoFtKEQMXg6PtpO7xNp
+         dgsRtcIX3Y3NfOutwyqroEyI0oQExyDkmT/3kkzB0Hz4GtaruTAoZpJ46It8oAlE0ucJ
+         IJ3RAEhKbbN/YMtczeLa7p4GyhKIN9Ej72PD/fCwYe/bNLhV6BUcvIvvB/zzLPFKUhGv
+         nk5A==
+X-Gm-Message-State: AOJu0YwR10oYGksRgZJhUN6u4vysD7Hk1BfxvU/LJDTx4CkHGGI7Up/k
+        YJEELA2FM17kIYDo3nOGgXrgyAFyggagz8byapG3+qSX
+X-Google-Smtp-Source: AGHT+IGxww4b9/gMghYYi/fbiMD4mWv0T13WkRzxToCctmMyGPqvM1sqjCzhE6SAljHGX8spDxRTUlQRcR304F+tDzc=
+X-Received: by 2002:a67:fc48:0:b0:44d:5053:11ce with SMTP id
+ p8-20020a67fc48000000b0044d505311cemr1200255vsq.19.1695461544481; Sat, 23 Sep
+ 2023 02:32:24 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org> <20230914-hautarzt-bangen-f9ed9a2a3152@brauner>
+ <d188250d3feb3926843f76ef3ca49e9d5baa97a7.camel@kernel.org>
+In-Reply-To: <d188250d3feb3926843f76ef3ca49e9d5baa97a7.camel@kernel.org>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 23 Sep 2023 12:32:13 +0300
+Message-ID: <CAOQ4uxiKLKjPbOYZvJX7gE_z9bmJGc2XFsvrGiCHCd+i=zrZQw@mail.gmail.com>
 Subject: Re: [PATCH] overlayfs: set ctime when setting mtime and atime
-From:   Jeff Layton <jlayton@kernel.org>
-To:     Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>
-Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+To:     Jeff Layton <jlayton@kernel.org>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
         linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
         Nathan Chancellor <nathan@kernel.org>,
         Alexander Viro <viro@zeniv.linux.org.uk>
-Date:   Fri, 22 Sep 2023 09:52:27 -0400
-In-Reply-To: <20230914-hautarzt-bangen-f9ed9a2a3152@brauner>
-References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
-         <20230914-hautarzt-bangen-f9ed9a2a3152@brauner>
-Content-Type: text/plain; charset="ISO-8859-15"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.48.4 (3.48.4-1.fc38) 
-MIME-Version: 1.0
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 2023-09-14 at 10:39 +0200, Christian Brauner wrote:
-> On Wed, 13 Sep 2023 09:33:12 -0400, Jeff Layton wrote:
-> > Nathan reported that he was seeing the new warning in
-> > setattr_copy_mgtime pop when starting podman containers. Overlayfs is
-> > trying to set the atime and mtime via notify_change without also
-> > setting the ctime.
-> >=20
-> > POSIX states that when the atime and mtime are updated via utimes() tha=
-t
-> > we must also update the ctime to the current time. The situation with
-> > overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
-> > notify_change will fill in the value.
-> >=20
-> > [...]
->=20
-> Applied to the vfs.ctime branch of the vfs/vfs.git tree.
-> Patches in the vfs.ctime branch should appear in linux-next soon.
->=20
-> Please report any outstanding bugs that were missed during review in a
-> new review to the original patch series allowing us to drop it.
->=20
-> It's encouraged to provide Acked-bys and Reviewed-bys even though the
-> patch has now been applied. If possible patch trailers will be updated.
->=20
-> Note that commit hashes shown below are subject to change due to rebase,
-> trailer updates or similar. If in doubt, please check the listed branch.
->=20
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-> branch: vfs.ctime
->=20
-> [1/1] overlayfs: set ctime when setting mtime and atime
->       https://git.kernel.org/vfs/vfs/c/f8edd3368615
+On Fri, Sep 22, 2023 at 4:52=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
+ote:
+>
+> On Thu, 2023-09-14 at 10:39 +0200, Christian Brauner wrote:
+> > On Wed, 13 Sep 2023 09:33:12 -0400, Jeff Layton wrote:
+> > > Nathan reported that he was seeing the new warning in
+> > > setattr_copy_mgtime pop when starting podman containers. Overlayfs is
+> > > trying to set the atime and mtime via notify_change without also
+> > > setting the ctime.
+> > >
+> > > POSIX states that when the atime and mtime are updated via utimes() t=
+hat
+> > > we must also update the ctime to the current time. The situation with
+> > > overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
+> > > notify_change will fill in the value.
+> > >
+> > > [...]
+> >
+> > Applied to the vfs.ctime branch of the vfs/vfs.git tree.
+> > Patches in the vfs.ctime branch should appear in linux-next soon.
+> >
+> > Please report any outstanding bugs that were missed during review in a
+> > new review to the original patch series allowing us to drop it.
+> >
+> > It's encouraged to provide Acked-bys and Reviewed-bys even though the
+> > patch has now been applied. If possible patch trailers will be updated.
+> >
+> > Note that commit hashes shown below are subject to change due to rebase=
+,
+> > trailer updates or similar. If in doubt, please check the listed branch=
+.
+> >
+> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+> > branch: vfs.ctime
+> >
+> > [1/1] overlayfs: set ctime when setting mtime and atime
+> >       https://git.kernel.org/vfs/vfs/c/f8edd3368615
+>
+> Christian, are you still planning to pick up this patch? I saw that it
+> was dropped from linux-next. Since the mgtime patches have been reverted
+> for now, it may be best for this to go in via the overlayfs tree ?
 
-Christian, are you still planning to pick up this patch? I saw that it
-was dropped from linux-next. Since the mgtime patches have been reverted
-for now, it may be best for this to go in via the overlayfs tree ?
+I think this is a long standing overlayfs bug fix, so it should go into 6.6
+and not wait for 6.7 anyway.
+Also need to add CC stable (don't think we need to bother with Fixes).
+
+I do not have any overlayfs fixes queued ATM.
+Christian, if you have any pening VFS fixes, you may send it along with the=
+m
+or we could just ask Linus to apply this one directly, so that any mgtime
+changes that may still happen for 6.7 will already have this fluke fixed.
 
 Thanks,
---=20
-Jeff Layton <jlayton@kernel.org>
+Amir.
