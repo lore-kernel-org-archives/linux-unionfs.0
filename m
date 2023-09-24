@@ -2,123 +2,183 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BA1FCE7A89
-	for <linux-unionfs@archiver.kernel.org>; Sat, 23 Sep 2023 09:32:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1709ACE7A8A
+	for <linux-unionfs@archiver.kernel.org>; Sun, 24 Sep 2023 09:29:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231462AbjIWJcs (ORCPT
+        id S229489AbjIXJ3I (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 23 Sep 2023 05:32:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50190 "EHLO
+        Sun, 24 Sep 2023 05:29:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53482 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231346AbjIWJcn (ORCPT
+        with ESMTP id S229437AbjIXJ3I (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 23 Sep 2023 05:32:43 -0400
-Received: from mail-vs1-xe2a.google.com (mail-vs1-xe2a.google.com [IPv6:2607:f8b0:4864:20::e2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD33CD7;
-        Sat, 23 Sep 2023 02:32:25 -0700 (PDT)
-Received: by mail-vs1-xe2a.google.com with SMTP id ada2fe7eead31-452527dded1so1404978137.0;
-        Sat, 23 Sep 2023 02:32:25 -0700 (PDT)
+        Sun, 24 Sep 2023 05:29:08 -0400
+Received: from mail-qk1-x72d.google.com (mail-qk1-x72d.google.com [IPv6:2607:f8b0:4864:20::72d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2E68FE
+        for <linux-unionfs@vger.kernel.org>; Sun, 24 Sep 2023 02:29:01 -0700 (PDT)
+Received: by mail-qk1-x72d.google.com with SMTP id af79cd13be357-7741c2fae49so204100985a.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 24 Sep 2023 02:29:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1695461544; x=1696066344; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1695547741; x=1696152541; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=vpZsOS03aAKQZkOqSWH4EjIkbO0+M63ypG5RcznWiS8=;
-        b=mDBsrhiQHdn3omVLmLFot59/xqXCTnR6v2AzdDasaVJXoJeuMEL1lVdnvLpAZsr1OM
-         3V67FowEPQMRuEGAXASgOvBPyHgc5EZryI94W/+Aco2FpHlEXE4WcNWK3khZ3hq7Eqqh
-         5Xmc+2xLJgplXrUZzUEFjmLtkVxcpr5D2u0UzvS7J2nr37D3uHjhj5TpRcVpmMBPGoyt
-         Edh924j+Gc98nOksf22eVtq+s0kxeirxRXeo4MCN4uPvAKIY1r/N/cjh2rW6UMA9QUjx
-         VYNO9VxvO771oF1RzjKQ0UqwtqeAP/HJEIUW72yJsZSqlDhzDkldwVuxHdB9vHTJRQ8f
-         wA+g==
+        bh=8jIRtPqKLxL3Lcq6EPRP18j2PMTzT0Mw4nWqcLE7RcQ=;
+        b=NOJSzNgPcp1poSMhbj5V/Vz5G+5cIgiii2nfHlJilhvUBkn3ZTXKvlLDWPr5Jf7/Cl
+         mBguot6rqFD4SP7Z1eMdhTEYBdw1Z2ViATiVZBzmt5+9NVeG3WafoQ+rX/94quImgq5b
+         b+DAWGhHQHd1aulAKemQat6dLEs0MRRUHt75+6ISwhn9QnufUwgPmVFx+nb6Ra50TmKk
+         YdF3dE4nCyJMz4n0pUNmxHfsuZzIejrRAS5/zfeJ6bXEtFegByRJUFbvk1+Z0hKNVrzs
+         OJU8bziMxyy2ni37vv3NMKgQFA5HBZRHR8BD26ZMXPMc2O16LLtUkMT/I5EpQsPT9fZZ
+         hZ2A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695461544; x=1696066344;
+        d=1e100.net; s=20230601; t=1695547741; x=1696152541;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vpZsOS03aAKQZkOqSWH4EjIkbO0+M63ypG5RcznWiS8=;
-        b=Kyr0dQ9QQ1e6r9VWTkeOHdidrs0MmbBRu3B5Cs7x+ZzP/0p2BcuaCmf3fbqWYqlZ2N
-         oYCjK6Oj8v3SPIn11TDOpfLiKmEfTx2o5+0HN8w2wz9sIIej3R/uFy/leLVzKLqCIv8Q
-         nZmPgive5yJ461kHUDhXO3WUVmk433sLhGWlj+58VV3/z+cFomoFtKEQMXg6PtpO7xNp
-         dgsRtcIX3Y3NfOutwyqroEyI0oQExyDkmT/3kkzB0Hz4GtaruTAoZpJ46It8oAlE0ucJ
-         IJ3RAEhKbbN/YMtczeLa7p4GyhKIN9Ej72PD/fCwYe/bNLhV6BUcvIvvB/zzLPFKUhGv
-         nk5A==
-X-Gm-Message-State: AOJu0YwR10oYGksRgZJhUN6u4vysD7Hk1BfxvU/LJDTx4CkHGGI7Up/k
-        YJEELA2FM17kIYDo3nOGgXrgyAFyggagz8byapG3+qSX
-X-Google-Smtp-Source: AGHT+IGxww4b9/gMghYYi/fbiMD4mWv0T13WkRzxToCctmMyGPqvM1sqjCzhE6SAljHGX8spDxRTUlQRcR304F+tDzc=
-X-Received: by 2002:a67:fc48:0:b0:44d:5053:11ce with SMTP id
- p8-20020a67fc48000000b0044d505311cemr1200255vsq.19.1695461544481; Sat, 23 Sep
- 2023 02:32:24 -0700 (PDT)
+        bh=8jIRtPqKLxL3Lcq6EPRP18j2PMTzT0Mw4nWqcLE7RcQ=;
+        b=v1Wsx89JszdpwhTsW1M7wGmfHl/3+8nSABdDBDnL9WGmSdJBCehSkdB5wV20nI+vCI
+         q1DLxnmqEVVf54vQr/aMW0T9BsATPLqtJD3f+sP9diwUI1ZTPnN9XCSW5HQKhsZCRhoh
+         BccwvpIlxdLSNa8wylRYG2doLkN6fnN12SF4U2uhemZ0uWYOAHOuDN+k66Alqaz5J37V
+         A+QVSX0+78mHjLoUImx3P3q+KQOnEJnzvCuiKiyKsVGB28CaMurU6U1YzIo85i/RJ2Ye
+         JVd+TTti/RnBdL/PcaMl4e4H4PgrJqQnJn6MRUcSI4cv2vKDuAzknwVP+H8AYoQTgdHw
+         eVJA==
+X-Gm-Message-State: AOJu0Yzng/7IAnt5Y68gC7HYOBwCTMJVihI3MMsM6XIPTLOXmM+vRLwE
+        ayzvL8nMFU/9ACfnzctwvo4WaD0+JcbOgkcsJiA=
+X-Google-Smtp-Source: AGHT+IFwu2LN5zvTcIXYN2Lvc36kBDDnJ86lmoBKLssVG662vgKnbrYck2pNFk4rnZ3Hu4xI+0gF08DQCx0w7CFtSjk=
+X-Received: by 2002:ae9:f445:0:b0:774:1d85:54fc with SMTP id
+ z5-20020ae9f445000000b007741d8554fcmr4062430qkl.74.1695547740956; Sun, 24 Sep
+ 2023 02:29:00 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org> <20230914-hautarzt-bangen-f9ed9a2a3152@brauner>
- <d188250d3feb3926843f76ef3ca49e9d5baa97a7.camel@kernel.org>
-In-Reply-To: <d188250d3feb3926843f76ef3ca49e9d5baa97a7.camel@kernel.org>
+References: <20230912173653.3317828-1-amir73il@gmail.com> <20230912173653.3317828-2-amir73il@gmail.com>
+In-Reply-To: <20230912173653.3317828-2-amir73il@gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 23 Sep 2023 12:32:13 +0300
-Message-ID: <CAOQ4uxiKLKjPbOYZvJX7gE_z9bmJGc2XFsvrGiCHCd+i=zrZQw@mail.gmail.com>
-Subject: Re: [PATCH] overlayfs: set ctime when setting mtime and atime
-To:     Jeff Layton <jlayton@kernel.org>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>
+Date:   Sun, 24 Sep 2023 12:28:49 +0300
+Message-ID: <CAOQ4uxhvztZMeGKy1YSq0+y_uWt7fud7vBw8pvO33sk2K44K0w@mail.gmail.com>
+Subject: Re: [PATCH 1/4] ovl: protect copying of realinode attributes to ovl inode
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     linux-unionfs@vger.kernel.org, Jan Kara <jack@suse.cz>,
+        Christian Brauner <brauner@kernel.org>,
+        Jeff Layton <jlayton@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Sep 22, 2023 at 4:52=E2=80=AFPM Jeff Layton <jlayton@kernel.org> wr=
-ote:
->
-> On Thu, 2023-09-14 at 10:39 +0200, Christian Brauner wrote:
-> > On Wed, 13 Sep 2023 09:33:12 -0400, Jeff Layton wrote:
-> > > Nathan reported that he was seeing the new warning in
-> > > setattr_copy_mgtime pop when starting podman containers. Overlayfs is
-> > > trying to set the atime and mtime via notify_change without also
-> > > setting the ctime.
-> > >
-> > > POSIX states that when the atime and mtime are updated via utimes() t=
-hat
-> > > we must also update the ctime to the current time. The situation with
-> > > overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
-> > > notify_change will fill in the value.
-> > >
-> > > [...]
-> >
-> > Applied to the vfs.ctime branch of the vfs/vfs.git tree.
-> > Patches in the vfs.ctime branch should appear in linux-next soon.
-> >
-> > Please report any outstanding bugs that were missed during review in a
-> > new review to the original patch series allowing us to drop it.
-> >
-> > It's encouraged to provide Acked-bys and Reviewed-bys even though the
-> > patch has now been applied. If possible patch trailers will be updated.
-> >
-> > Note that commit hashes shown below are subject to change due to rebase=
-,
-> > trailer updates or similar. If in doubt, please check the listed branch=
-.
-> >
-> > tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-> > branch: vfs.ctime
-> >
-> > [1/1] overlayfs: set ctime when setting mtime and atime
-> >       https://git.kernel.org/vfs/vfs/c/f8edd3368615
->
-> Christian, are you still planning to pick up this patch? I saw that it
-> was dropped from linux-next. Since the mgtime patches have been reverted
-> for now, it may be best for this to go in via the overlayfs tree ?
+[adding some folks from the multigrain ctime discussion]
 
-I think this is a long standing overlayfs bug fix, so it should go into 6.6
-and not wait for 6.7 anyway.
-Also need to add CC stable (don't think we need to bother with Fixes).
+On Tue, Sep 12, 2023 at 8:36=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
+>
+> ovl_copyattr() may be called concurrently from aio completion context
+> without any lock and that could lead to overlay inode attributes getting
+> permanently out of sync with real inode attributes.
+>
+> Similarly, ovl_file_accessed() is always called without any lock to do
+> "compare & copy" of mtime/ctime from realinode to inode.
+>
+> Use ovl inode spinlock to protect those two helpers.
+>
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/file.c | 2 ++
+>  fs/overlayfs/util.c | 2 ++
+>  2 files changed, 4 insertions(+)
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 4193633c4c7a..c6ad84cf9246 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -249,6 +249,7 @@ static void ovl_file_accessed(struct file *file)
+>         if (!upperinode)
+>                 return;
+>
+> +       spin_lock(&inode->i_lock);
+>         ctime =3D inode_get_ctime(inode);
+>         uctime =3D inode_get_ctime(upperinode);
+>         if ((!timespec64_equal(&inode->i_mtime, &upperinode->i_mtime) ||
+>              !timespec64_equal(&ctime, &uctime))) {
+>                 inode->i_mtime =3D upperinode->i_mtime;
+>                 inode_set_ctime_to_ts(inode, uctime);
+>         }
+> +       spin_unlock(&inode->i_lock);
+>
 
-I do not have any overlayfs fixes queued ATM.
-Christian, if you have any pening VFS fixes, you may send it along with the=
-m
-or we could just ask Linus to apply this one directly, so that any mgtime
-changes that may still happen for 6.7 will already have this fluke fixed.
+[patch manually edited to add missing line to context]
+
+Miklos,
+
+I am having latent concerns about this patch, which is currently
+in overlayfs-next.
+
+What was your reason for the "compare & copy" optimization?
+I assume it was to avoid cache line bouncing. yes?
+Would the added spinlock make this optimization moot?
+I am asking since I calculated that on X86-64 and with
+CONFIG_FS_POSIX_ACL && CONFIG_SECURITY
+i_ctime.tv_nsec and i_lock are on the same cache line.
+
+I should note for the non-overlayfs developers, that we do
+not care to worry about changes to the upperinode that are
+done behind the back of overlayfs.
+
+Ovrerlayfs assumes that it is the only one to make changes
+to the upperinode, otherwise, behavior is undefined.
+
+This is the justification for only taking the overlayfs inode
+i_lock for synchronization of this "compare & copy" routine.
+
+Also, I think we only need to care that the overlayfs inode
+timestamps are eventually consistent, after the last
+ovl_file_accessed() call.
+
+The decraled reason (in commit message) for adding the lock
+here is to protect from races in the ovl aio code path, which was
+not around when the ovl_file_accessed() helper was written.
+
+But now I am wondering:
+- Is the lock needed in all the sync calls?
+- Is it needed even if there was no aio at all?
+
+I think the answer is yes to both questions, so the patch
+can remain in its current form, but I'm not 100% sure.
+
+>         touch_atime(&file->f_path);
+>  }
+> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+> index 89e0d60d35b6..b7922862ece3 100644
+> --- a/fs/overlayfs/util.c
+> +++ b/fs/overlayfs/util.c
+> @@ -1403,6 +1403,7 @@ void ovl_copyattr(struct inode *inode)
+>         realinode =3D ovl_i_path_real(inode, &realpath);
+>         real_idmap =3D mnt_idmap(realpath.mnt);
+>
+> +       spin_lock(&inode->i_lock);
+>         vfsuid =3D i_uid_into_vfsuid(real_idmap, realinode);
+>         vfsgid =3D i_gid_into_vfsgid(real_idmap, realinode);
+>
+>         inode->i_uid =3D vfsuid_into_kuid(vfsuid);
+>         inode->i_gid =3D vfsgid_into_kgid(vfsgid);
+>         inode->i_mode =3D realinode->i_mode;
+>         inode->i_mtime =3D realinode->i_mtime;
+>         inode_set_ctime_to_ts(inode, inode_get_ctime(realinode));
+>         i_size_write(inode, i_size_read(realinode));
+> +       spin_unlock(&inode->i_lock);
+
+My concerns about this part of the patch is that AFAIK,
+all the calls of ovl_copyattr(), except for the one in aio completion,
+are called with overlayfs inode mutex lock held.
+
+So this lock is strictly only needed because of the aio write case,
+but I think we need to have the lock in place for all the other
+cases to protect them against racing with aio completion?
+
+I guess the overhead of the spinlock is not a worry if the
+mutex is already held, even though we do call ovl_copyattr()
+twice (before and after) in some operations.
+
+Anyway, I just want to make sure that I did not make any
+mistakes in my analysis of the problem and the fix.
 
 Thanks,
 Amir.
