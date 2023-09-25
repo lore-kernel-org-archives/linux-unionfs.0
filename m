@@ -2,107 +2,121 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D9D1CE7A81
-	for <linux-unionfs@archiver.kernel.org>; Mon, 25 Sep 2023 06:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B030BCE7A95
+	for <linux-unionfs@archiver.kernel.org>; Mon, 25 Sep 2023 06:36:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232174AbjIYGXk (ORCPT
+        id S232080AbjIYGgb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 25 Sep 2023 02:23:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50084 "EHLO
+        Mon, 25 Sep 2023 02:36:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56948 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232177AbjIYGX2 (ORCPT
+        with ESMTP id S232095AbjIYGga (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 25 Sep 2023 02:23:28 -0400
-Received: from mail-wm1-x32a.google.com (mail-wm1-x32a.google.com [IPv6:2a00:1450:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191D026A1
-        for <linux-unionfs@vger.kernel.org>; Sun, 24 Sep 2023 23:21:39 -0700 (PDT)
-Received: by mail-wm1-x32a.google.com with SMTP id 5b1f17b1804b1-40471c054f9so18560655e9.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 24 Sep 2023 23:21:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=kernel-dk.20230601.gappssmtp.com; s=20230601; t=1695622897; x=1696227697; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:subject:from:to:content-language
-         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lGoflC/MDGiByLKpoE4UCpKhG9wCXgC3jrpF9mnawmc=;
-        b=ECMthtLkjF0hBBM6O/lZvvlfnDcHj5vR4Lxe+D45C7tZDbaykHERGtOEudoribQwOl
-         Fte35//cCpWckzrS07O64yvry6jMO7VfOKtLeD/nXLDiv4Ysfkf+H89g1LNrj1z+yqOT
-         2I18D6Y96LGQEkTX0YHq8CBhSFjxCwXQXdq3HR3fjFYO2ESM8TMMf2E8WFwpGpGwdPup
-         XZLZmKwIZdtOhxGa5aszprHKFkSXUEiPr/yUWolFA3Ywh6qOHjxnGhu8WpG7cMtjaH2c
-         2AkCOgUwfisfgx/0KcsWXaeaUjfgFWCRkxWW6LnHiDTfwMkT8kuRNTF18tyYP5NqQBI2
-         LJzA==
+        Mon, 25 Sep 2023 02:36:30 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AEF4A9
+        for <linux-unionfs@vger.kernel.org>; Sun, 24 Sep 2023 23:35:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1695623737;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=i1YYbpFs118kf99zhzmzRkzKTOXsWkm5QlprOWgyPU8=;
+        b=RlGMbUiu8NYf/mpgvOZLHVVb5MCDmcD4Q6teW6yPt4rQJ+0hYNHNXmBIJY66XnmibYZiaN
+        lniImiUB9yE1Mm1wpoyKOr02Hun8bmXy3Ijkgy8qQThp84jF9Xk0t6y/0HO2Ykesux4i/g
+        gWUbFxJZrrTmoynchG/jhWMfgOJYs0M=
+Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com
+ [209.85.215.197]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-108-US6JXwhAMn-0kU14GWCSbA-1; Mon, 25 Sep 2023 02:35:36 -0400
+X-MC-Unique: US6JXwhAMn-0kU14GWCSbA-1
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-5779937c75dso4406716a12.3
+        for <linux-unionfs@vger.kernel.org>; Sun, 24 Sep 2023 23:35:35 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695622897; x=1696227697;
-        h=content-transfer-encoding:cc:subject:from:to:content-language
-         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=lGoflC/MDGiByLKpoE4UCpKhG9wCXgC3jrpF9mnawmc=;
-        b=R5qKA0l4FNEviPajOWK2M5vXbontGeppg1llhMtnwP9h4FYO/4ojFvVdZZ3RIjIlkm
-         6ulQXtqC5sdtFIP9Qwydsz6YVhtu7rWjr57T3GjfE1tmSU2Vp4Gj5tizWUQKF/HhNs54
-         XWU86TeJFdainADZXiawxpKkv9Kf+zC7CoWvqwC4EOm12QuODva1jSz7TyO2vym5mfTk
-         gCiWvWgUM2kg4YP6MIARyf7OQuLX5joK8g030VR8ZsPTcylVoZEJ6z6BDJWFk8/RJorP
-         xwDAepuix/ZyLOy62mG2bJ0HLmi9uJbpbS4eTkwT8jLHC+6afkP9QGc9MG7VplvyvZLg
-         xsrA==
-X-Gm-Message-State: AOJu0YyhW2MAMCJnzuA50uaAuA4w+ZatLoUwma/ma9yw4j1vqZI+KPNi
-        agBIDR5PJrf4wHYNaMDRmFaPNg==
-X-Google-Smtp-Source: AGHT+IHHKt7P8p/soHCBdqvFETlHa38Td/2/3ju/wDTL8KeMQizTMtjs/G1nKdI1QABkE1BOVrDTEw==
-X-Received: by 2002:a05:600c:4e05:b0:405:3cc1:e115 with SMTP id b5-20020a05600c4e0500b004053cc1e115mr5041954wmq.3.1695622896458;
-        Sun, 24 Sep 2023 23:21:36 -0700 (PDT)
-Received: from [172.20.13.88] ([45.147.210.162])
-        by smtp.gmail.com with ESMTPSA id u23-20020a05600c211700b004042dbb8925sm14054942wml.38.2023.09.24.23.21.35
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 24 Sep 2023 23:21:35 -0700 (PDT)
-Message-ID: <71897125-e570-46ce-946a-d4729725e28f@kernel.dk>
-Date:   Mon, 25 Sep 2023 00:21:35 -0600
+        d=1e100.net; s=20230601; t=1695623734; x=1696228534;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=i1YYbpFs118kf99zhzmzRkzKTOXsWkm5QlprOWgyPU8=;
+        b=kSzr8DGqaD26HgRa3hi/a8ww5J6gErLnM4buHG3j8/P48eKqNhbHBo7MY+VoTHcVdU
+         FZ3NHMCkUE/vp1T45t7hyL48Y0/qVqwg/pu19adEgfcSAqqymE6eEPmNkGB2C051O5EE
+         ENZm+wFc0VWVgJbURHJ1OlsYAEhR6crvov4FwnawgZd0oFb38niOp6mxtIpC06seqGbz
+         dwDhOAWO+3Mg949c9G/Sr85Yi6ab3S+pEAubaWPNizwH8yWEYj9Ul9YLbU5eK3K/kdKn
+         MtvFt4DqzYNO/uPp9a0kT0xCFGIYasDhPJeebBoXOXWfgL8sO7kkMl+pZk/SQpTLwILm
+         57sA==
+X-Gm-Message-State: AOJu0YznBYn1uxBDVUdAeq62/NCrjPFyEC5s9d1NOJhJml5ZI0Z4BQ6s
+        giFUxUoJN3cO8n6Aa9tsAEqfd1dACSgRbnVzWCxen/Z/oetlqhALBMyFeG+skKWotwfXAu4L9EJ
+        uCJDHQui6pTxcjsDS6pcA+/nkIVZxwUMUKNtf
+X-Received: by 2002:a05:6300:8083:b0:15e:5952:4fc1 with SMTP id ap3-20020a056300808300b0015e59524fc1mr2604855pzc.29.1695623734707;
+        Sun, 24 Sep 2023 23:35:34 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHnFsLurviJROW+Rwn45qHnB0C1VbzviPVORlZZoy1m5tGPZ2IE2BZ32ATH3LmYNkTVfIK3Yg==
+X-Received: by 2002:a05:6300:8083:b0:15e:5952:4fc1 with SMTP id ap3-20020a056300808300b0015e59524fc1mr2604846pzc.29.1695623734295;
+        Sun, 24 Sep 2023 23:35:34 -0700 (PDT)
+Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id do17-20020a056a004a1100b00692b0d413c8sm4941640pfb.197.2023.09.24.23.35.32
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 24 Sep 2023 23:35:33 -0700 (PDT)
+Date:   Mon, 25 Sep 2023 14:35:30 +0800
+From:   Zorro Lang <zlang@redhat.com>
+To:     Jens Axboe <axboe@kernel.dk>
+Cc:     linux-unionfs@vger.kernel.org, io-uring@vger.kernel.org,
+        fstests@vger.kernel.org
+Subject: Re: [xfstests generic/617] fsx io_uring dio starts to fail on
+ overlayfs since v6.6-rc1
+Message-ID: <20230925063530.m4wpinakby26b6q5@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20230924142754.ejwsjen5pvyc32l4@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <02c1c68c-61a0-4d93-8619-971c0416b0e6@kernel.dk>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Content-Language: en-US
-To:     Amir Goldstein <amir73il@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-unionfs@vger.kernel.org
-From:   Jens Axboe <axboe@kernel.dk>
-Subject: [PATCH] ovl: disable IOCB_DIO_CALLER_COMP
-Cc:     Zorro Lang <zlang@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <02c1c68c-61a0-4d93-8619-971c0416b0e6@kernel.dk>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-overlayfs copies the kiocb flags when it sets up a new kiocb to handle
-a write, but it doesn't properly support dealing with the deferred
-caller completions of the kiocb. This means it doesn't get the final
-write completion value, and hence will complete the write with '0' as
-the result.
+On Sun, Sep 24, 2023 at 11:52:12AM -0600, Jens Axboe wrote:
+> On 9/24/23 8:29 AM, Zorro Lang wrote:
+> > Hi,
+> > 
+> > The generic/617 of fstests is a test case does IO_URING soak direct-IO
+> > fsx test, but recently (about from v6.6-rc1 to now) it always fails on
+> > overlayfs as [1], no matter the underlying fs is ext4 or xfs. But it
+> > never failed on overlay before, likes [2].
+> > 
+> > So I thought it might be a regression of overlay or io-uring on current v6.6.
+> > Please help to review, it's easy to reproduce. My system is Fedora-rawhide/RHEL-9,
+> > with upstream mainline linux HEAD=dc912ba91b7e2fa74650a0fc22cccf0e0d50f371.
+> > The generic/617.full output as [3].
+> 
+> It works without overlayfs - would be great if you could include how to
+> reproduce this with overlayfs.
 
-We could support the caller completions in overlayfs, but for now let's
-just disable them in the generated write kiocb.
+Sorry I didn't provide the test steps:
 
-Reported-by: Zorro Lang <zlang@redhat.com>
-Link: https://lore.kernel.org/io-uring/20230924142754.ejwsjen5pvyc32l4@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com/
-Fixes: 8c052fb3002e ("iomap: support IOCB_DIO_CALLER_COMP")
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
+1) git clone git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+2) cd xfstests-dev
+3) make -j8  # refer to README, about how to build xfstests
+4) vi local.config
+# The FSTYP can be other fs, e.g. ext4.
+# The TEST_DEV and SCRATCH_DEV can be any local devices you have (even loopdev)
+# TEST_DIR and SCRATCH_MNT can be changed too
+export FSTYP=xfs
+export TEST_DEV=/dev/sda5
+export TEST_DIR=/mnt/test
+export SCRATCH_DEV=/dev/sda3
+export SCRATCH_MNT=/mnt/scratch
 
----
+5) mkfs.xfs -f /dev/sda5 && mkfs.xfs -f /dev/sda3
+6) mkdir -p /mnt/test && mkdir -p /mnt/scratch
+7) ./check -overlay generic/617
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 4193633c4c7a..693971d20280 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -391,6 +391,12 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, struct iov_iter *iter)
- 	if (!ovl_should_sync(OVL_FS(inode->i_sb)))
- 		ifl &= ~(IOCB_DSYNC | IOCB_SYNC);
- 
-+	/*
-+	 * Overlayfs doesn't support deferred completions, don't copy
-+	 * this property in case it is set by the issuer.
-+	 */
-+	ifl &= ~IOCB_DIO_CALLER_COMP;
-+
- 	old_cred = ovl_override_creds(file_inode(file)->i_sb);
- 	if (is_sync_kiocb(iocb)) {
- 		file_start_write(real.file);
+The step#6 will be failed.
 
--- 
-Jens Axboe
+Thanks,
+Zorro
 
-	
+> 
+> -- 
+> Jens Axboe
+> 
+
