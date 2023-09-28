@@ -2,113 +2,251 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FA22E732C0
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 11:09:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C53E732CD
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 11:19:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232008AbjI1LJh (ORCPT
+        id S232460AbjI1LTN (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Sep 2023 07:09:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39210 "EHLO
+        Thu, 28 Sep 2023 07:19:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231907AbjI1LIj (ORCPT
+        with ESMTP id S232043AbjI1LTA (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Sep 2023 07:08:39 -0400
+        Thu, 28 Sep 2023 07:19:00 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36F81FE1;
-        Thu, 28 Sep 2023 04:05:24 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84F6CC433C8;
-        Thu, 28 Sep 2023 11:05:23 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9953C0E;
+        Thu, 28 Sep 2023 04:06:10 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B45DC433C8;
+        Thu, 28 Sep 2023 11:05:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695899124;
-        bh=s7WS+LV0JB5TQ52AQtIz8N34W96nGx+AXxe0soX68xI=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=oF1zJItQf+rLBIzreOD0dJy4IIIPXRjAWa3T8dpvvNiVblS7j8VMBuOEuHGsZaEU/
-         p6R/9HdZgyROZKkkM2vCUlGce3oETFYGLJXxjBKtoeHbL3ZjrHK+MFOw/FflddKB3I
-         dswDue1cOa2SyGYyMsj1uPEWdztszY1qstS6bTMJjYui+hwoFgRPXfFbChtz3kAWAh
-         wFYvAyabav2a6UN4OpbdwaoHr7ZxbMLzgR8s2kuxzfQSC5/PKERxxaPZ1dVAIs1nsK
-         hupdg5UR5C0ZvbK/r5XH3kyY2eRYIfpNY1gLxmLxmL0uN/25yc5sRTTmLKS+XQU0PQ
-         MsBO9P8MVSKxg==
+        s=k20201202; t=1695899170;
+        bh=AhfBjRw4Zieo7d/UWgS6g+DDX4jTgfxPdqjByEx9qhM=;
+        h=From:To:Cc:Subject:Date:From;
+        b=V+wOzFncXPhDXQFQdHny1CsSK9qUJSENwQ3KCibIzAaql9xTx9HnhDcijW4/7BOtC
+         kszW/YDyA0AMr7XQAUyJiZeb60fme2uDkyobxKoT8cY6VhZHy5eoMPnsaN6X7TtxCq
+         QTaef29MEouz7MkE+tPPdhmCepxFcMdSgkZxMJFkcJInXSuCSMx/JWDM3dr1kZYemo
+         enoSOcU6aqdkN9wSvXmqf6Z9xnaErzYq51O9jQbKnwkBY5wjm/kE01rgGkYxHItLa5
+         5cRJCieL6/r3mfMz8yZQYtWkWaXM39nIwleCYU584hrkq3VtvO021SVUVEZ1qpwd4S
+         nSI/tWahGoeXg==
 From:   Jeff Layton <jlayton@kernel.org>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christian Brauner <brauner@kernel.org>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     linux-unionfs@vger.kernel.org
-Subject: [PATCH 59/87] fs/overlayfs: convert to new inode {a,m}time accessors
-Date:   Thu, 28 Sep 2023 07:03:08 -0400
-Message-ID: <20230928110413.33032-58-jlayton@kernel.org>
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        David Sterba <dsterba@suse.cz>,
+        Amir Goldstein <amir73il@gmail.com>,
+        Theodore Ts'o <tytso@mit.edu>,
+        Eric Biederman <ebiederm@xmission.com>,
+        Kees Cook <keescook@chromium.org>, Jeremy Kerr <jk@ozlabs.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?UTF-8?q?Arve=20Hj=C3=B8nnev=C3=A5g?= <arve@android.com>,
+        Todd Kjos <tkjos@android.com>,
+        Martijn Coenen <maco@android.com>,
+        Joel Fernandes <joel@joelfernandes.org>,
+        Carlos Llamas <cmllamas@google.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Mattia Dongili <malattia@linux.it>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Brad Warrum <bwarrum@linux.ibm.com>,
+        Ritu Agarwal <rituagar@linux.ibm.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Mark Gross <markgross@kernel.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Sterba <dsterba@suse.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Ian Kent <raven@themaw.net>,
+        Luis de Bethencourt <luisbg@kernel.org>,
+        Salah Triki <salah.triki@gmail.com>,
+        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
+        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
+        Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Joel Becker <jlbec@evilplan.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>, Yue Hu <huyue2@coolpad.com>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Christoph Hellwig <hch@infradead.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bob Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Muchun Song <muchun.song@linux.dev>, Jan Kara <jack@suse.cz>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Neil Brown <neilb@suse.de>,
+        Olga Kornievskaia <kolga@netapp.com>,
+        Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
+        Anton Altaparmakov <anton@tuxera.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Bob Copeland <me@bobcopeland.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Anders Larsen <al@alarsen.net>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <lsahlber@redhat.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Phillip Lougher <phillip@squashfs.org.uk>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Evgeniy Dushistov <dushistov@mail.ru>,
+        Chandan Babu R <chandan.babu@oracle.com>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Damien Le Moal <dlemoal@kernel.org>,
+        Naohiro Aota <naohiro.aota@wdc.com>,
+        Johannes Thumshirn <jth@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>,
+        Yonghong Song <yonghong.song@linux.dev>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        John Johansen <john.johansen@canonical.com>,
+        Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Stephen Smalley <stephen.smalley.work@gmail.com>,
+        Eric Paris <eparis@parisplace.org>
+Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, v9fs@lists.linux.dev,
+        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        codalist@coda.cs.cmu.edu, linux-efi@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, gfs2@lists.linux.dev,
+        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
+        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
+        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
+        ntfs3@lists.linux.dev, ocfs2-devel@lists.linux.dev,
+        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
+        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
+        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org,
+        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        bpf@vger.kernel.org, netdev@vger.kernel.org,
+        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+        selinux@vger.kernel.org
+Subject: [PATCH 85/87] fs: rename i_atime and i_mtime fields to __i_atime and __i_mtime
+Date:   Thu, 28 Sep 2023 07:05:52 -0400
+Message-ID: <20230928110554.34758-1-jlayton@kernel.org>
 X-Mailer: git-send-email 2.41.0
-In-Reply-To: <20230928110413.33032-1-jlayton@kernel.org>
-References: <20230928110300.32891-1-jlayton@kernel.org>
- <20230928110413.33032-1-jlayton@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+Make it clear that these fields are private now, and that the accessors
+should be used instead.
+
 Signed-off-by: Jeff Layton <jlayton@kernel.org>
 ---
- fs/overlayfs/file.c  | 9 ++++++---
- fs/overlayfs/inode.c | 3 ++-
- fs/overlayfs/util.c  | 4 ++--
- 3 files changed, 10 insertions(+), 6 deletions(-)
+ include/linux/fs.h | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 693971d20280..9b4f5b011e4f 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -239,6 +239,7 @@ static void ovl_file_accessed(struct file *file)
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 12d247b82aa0..831657011036 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -671,9 +671,9 @@ struct inode {
+ 	};
+ 	dev_t			i_rdev;
+ 	loff_t			i_size;
+-	struct timespec64	i_atime;
+-	struct timespec64	i_mtime;
+-	struct timespec64	__i_ctime; /* use inode_*_ctime accessors! */
++	struct timespec64	__i_atime; /* use inode_*_atime accessors */
++	struct timespec64	__i_mtime; /* use inode_*_mtime accessors */
++	struct timespec64	__i_ctime; /* use inode_*_ctime accessors */
+ 	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
+ 	unsigned short          i_bytes;
+ 	u8			i_blkbits;
+@@ -1555,13 +1555,13 @@ static inline struct timespec64 inode_set_ctime(struct inode *inode,
+ 
+ static inline struct timespec64 inode_get_atime(const struct inode *inode)
  {
- 	struct inode *inode, *upperinode;
- 	struct timespec64 ctime, uctime;
-+	struct timespec64 mtime, umtime;
- 
- 	if (file->f_flags & O_NOATIME)
- 		return;
-@@ -251,9 +252,11 @@ static void ovl_file_accessed(struct file *file)
- 
- 	ctime = inode_get_ctime(inode);
- 	uctime = inode_get_ctime(upperinode);
--	if ((!timespec64_equal(&inode->i_mtime, &upperinode->i_mtime) ||
--	     !timespec64_equal(&ctime, &uctime))) {
--		inode->i_mtime = upperinode->i_mtime;
-+	mtime = inode_get_mtime(inode);
-+	umtime = inode_get_mtime(upperinode);
-+	if ((!timespec64_equal(&mtime, &umtime)) ||
-+	     !timespec64_equal(&ctime, &uctime)) {
-+		inode_set_mtime_to_ts(inode, inode_get_mtime(upperinode));
- 		inode_set_ctime_to_ts(inode, uctime);
- 	}
- 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 83ef66644c21..b6e98a7d36ce 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -704,7 +704,8 @@ int ovl_update_time(struct inode *inode, int flags)
- 
- 		if (upperpath.dentry) {
- 			touch_atime(&upperpath);
--			inode->i_atime = d_inode(upperpath.dentry)->i_atime;
-+			inode_set_atime_to_ts(inode,
-+					      inode_get_atime(d_inode(upperpath.dentry)));
- 		}
- 	}
- 	return 0;
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 89e0d60d35b6..868afd8834c3 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1409,8 +1409,8 @@ void ovl_copyattr(struct inode *inode)
- 	inode->i_uid = vfsuid_into_kuid(vfsuid);
- 	inode->i_gid = vfsgid_into_kgid(vfsgid);
- 	inode->i_mode = realinode->i_mode;
--	inode->i_atime = realinode->i_atime;
--	inode->i_mtime = realinode->i_mtime;
-+	inode_set_atime_to_ts(inode, inode_get_atime(realinode));
-+	inode_set_mtime_to_ts(inode, inode_get_mtime(realinode));
- 	inode_set_ctime_to_ts(inode, inode_get_ctime(realinode));
- 	i_size_write(inode, i_size_read(realinode));
+-	return inode->i_atime;
++	return inode->__i_atime;
  }
+ 
+ static inline struct timespec64 inode_set_atime_to_ts(struct inode *inode,
+ 						      struct timespec64 ts)
+ {
+-	inode->i_atime = ts;
++	inode->__i_atime = ts;
+ 	return ts;
+ }
+ 
+@@ -1575,13 +1575,13 @@ static inline struct timespec64 inode_set_atime(struct inode *inode,
+ 
+ static inline struct timespec64 inode_get_mtime(const struct inode *inode)
+ {
+-	return inode->i_mtime;
++	return inode->__i_mtime;
+ }
+ 
+ static inline struct timespec64 inode_set_mtime_to_ts(struct inode *inode,
+ 						      struct timespec64 ts)
+ {
+-	inode->i_mtime = ts;
++	inode->__i_mtime = ts;
+ 	return ts;
+ }
+ 
 -- 
 2.41.0
 
