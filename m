@@ -2,87 +2,116 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A245CE743C1
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 20:28:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 322D2E743C2
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 20:30:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232126AbjI1U2c (ORCPT
+        id S231864AbjI1UaG (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Sep 2023 16:28:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56410 "EHLO
+        Thu, 28 Sep 2023 16:30:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231822AbjI1U2c (ORCPT
+        with ESMTP id S231921AbjI1UaF (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Sep 2023 16:28:32 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79397193
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 13:28:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1695932910; x=1727468910;
-  h=date:from:to:cc:subject:message-id:mime-version;
-  bh=sHCwWjwsx53xp1HeAsNEt/O+wi63WkKkc9B6hjQRK40=;
-  b=n63qC4SW6SLwF52AMkYxbbM/wDNH0BxqD7EcDQ6fyqsGYUNAtLNpZqTj
-   0mXRzxosiHca0B7T+yaMZkhvdF3chUQdeLXOt1gGGBzOkzclEtagGZ7kt
-   POXozfO7rAt8rTwu+mWdRNh22T1tffn0Yfs1U38f7dWjDOsLqtvnfhJSe
-   PiCL5SuLGN+zFlOfoYpSs6jNZoFjJZcQBg7CkdShgbZVT3fV2sOXNTNWY
-   KKvxkE/huIWhapatYuPRK1HVXSfk6MKVf8wGcvULUGI5y2XiyGiP85mv1
-   7lq+a6o/Smcym9Hy/EGN9kDrWQc4ztBwosl+92AyURAKwJ18QzgLLu1FL
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="382070575"
-X-IronPort-AV: E=Sophos;i="6.03,185,1694761200"; 
-   d="scan'208";a="382070575"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Sep 2023 13:28:29 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10847"; a="753132719"
-X-IronPort-AV: E=Sophos;i="6.03,185,1694761200"; 
-   d="scan'208";a="753132719"
-Received: from lkp-server02.sh.intel.com (HELO c3b01524d57c) ([10.239.97.151])
-  by fmsmga007.fm.intel.com with ESMTP; 28 Sep 2023 13:28:28 -0700
-Received: from kbuild by c3b01524d57c with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1qlxcY-0001vS-2f;
-        Thu, 28 Sep 2023 20:28:26 +0000
-Date:   Fri, 29 Sep 2023 04:28:14 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Miklos Szeredi <mszeredi@redhat.com>
-Cc:     oe-kbuild-all@lists.linux.dev, linux-unionfs@vger.kernel.org
-Subject: [mszeredi-vfs:statmount-v3 4/4] <stdin>:1576:2: warning: #warning
- syscall listmount not implemented
-Message-ID: <202309290415.ZLowlHzk-lkp@intel.com>
+        Thu, 28 Sep 2023 16:30:05 -0400
+Received: from mail-io1-xd31.google.com (mail-io1-xd31.google.com [IPv6:2607:f8b0:4864:20::d31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDA35180;
+        Thu, 28 Sep 2023 13:30:02 -0700 (PDT)
+Received: by mail-io1-xd31.google.com with SMTP id ca18e2360f4ac-79f95439795so328650239f.0;
+        Thu, 28 Sep 2023 13:30:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1695933002; x=1696537802; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=nBOxrxDr1jHFBGxJjQHlUvnbQXDpgQCuw7Awu1Ra6tQ=;
+        b=S9/190iC6ARmOXl5nvaKGf/zTBmUdV/le/os8DvKD60S49pSv0egZi3tcXZKi4XsSv
+         2ATZ6tJ8WIIr41wd4r56MklHy8prR9jpZeQO0jewPB2P/rmuM5uGCHZl1uhdY4a1N8E+
+         8tyaSk+C9oBHFNIerHJH9Chx3oPnsk+2bv9eIN0LGjlsgF/K0nJSTeCExBODUsE5k9Q8
+         cYUDrQ8ea7cdcGCmVauIMqG5Ytcws7MdBbWEAQnKgFnfLGFsxUQHtyTmyEpf2ktGAASh
+         CWE646R33EokRsjj+H5SdP9ZuiIrg/inbNvY29olZoDaY1voAY0QMs03lyOltocpvVm9
+         72Zg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695933002; x=1696537802;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nBOxrxDr1jHFBGxJjQHlUvnbQXDpgQCuw7Awu1Ra6tQ=;
+        b=YEWNHrWteESPVfzCIwsQjxm4vBDkGxt/Mfqlot2J33E0y0wKNblQJngSSPIkE4bTvU
+         1RRh5V836WnMlM83OlfPM33Hj+9+dkj8sKTpGjM/op2XjCeOg80tnyNaCUUOawP4Gmvp
+         W3Ea4CdzHputAovxwQIi7G5hwHkugQRq3PlTVcPD5hFTy0fHMjVJjhA57Vs8CK9ZFaXz
+         PehFEZd1A04T++YiOxmQTzYoN4T5qi251x5Bp/NLQE0+WabwsI9cJl9//8MnqveKG5B5
+         IGkCQ2MIQ6GL513wKuUJfFG6Q5Itf9ytkU5u4dZUW9PvkOBdOUPPjCT8lSOr9j/pAknH
+         0Xfw==
+X-Gm-Message-State: AOJu0YwCrA/AaZBRvNyU3W3AE70/m9sORCI0b7kI+dUCLMBDNq+AXzz7
+        TZYTwL0wb7xJYR4Zgh/a/EOPtb6KDH62wlBhxME=
+X-Google-Smtp-Source: AGHT+IEfTycpY47X0wq7gNaM9Z5ej2sbqh6mEw6znOhuYm6dBLkds3erWz/536wH82BFhfz1YEKI1w==
+X-Received: by 2002:a05:6e02:184d:b0:348:b086:2c4b with SMTP id b13-20020a056e02184d00b00348b0862c4bmr2022760ilv.9.1695933001723;
+        Thu, 28 Sep 2023 13:30:01 -0700 (PDT)
+Received: from slackware.lan (c-107-2-182-140.hsd1.co.comcast.net. [107.2.182.140])
+        by smtp.gmail.com with ESMTPSA id fs11-20020a05663865cb00b004313f22611csm4683805jab.151.2023.09.28.13.30.00
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 28 Sep 2023 13:30:01 -0700 (PDT)
+From:   Vyacheslav Yurkov <uvv.mail@gmail.com>
+To:     fstests@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+        Zorro Lang <zlang@kernel.org>
+Cc:     linux-unionfs@vger.kernel.org,
+        Vyacheslav Yurkov <uvv.mail@gmail.com>
+Subject: [PATCH] README: Update overlayfs URL
+Date:   Thu, 28 Sep 2023 22:28:34 +0200
+Message-Id: <20230928202834.47640-1-uvv.mail@gmail.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs.git statmount-v3
-head:   5321994510f383b43dd2d49fcbdaedcf8cba1306
-commit: 5321994510f383b43dd2d49fcbdaedcf8cba1306 [4/4] add listmount(2) syscall
-config: m68k-allyesconfig (https://download.01.org/0day-ci/archive/20230929/202309290415.ZLowlHzk-lkp@intel.com/config)
-compiler: m68k-linux-gcc (GCC) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20230929/202309290415.ZLowlHzk-lkp@intel.com/reproduce)
+Overlayfs-tools and overlayfs-progs projects have been merged together.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202309290415.ZLowlHzk-lkp@intel.com/
+Signed-off-by: Vyacheslav Yurkov <uvv.mail@gmail.com>
+---
+ README | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-All warnings (new ones prefixed by >>):
-
-   <stdin>:1573:2: warning: #warning syscall statmount not implemented [-Wcpp]
->> <stdin>:1576:2: warning: #warning syscall listmount not implemented [-Wcpp]
---
-   <stdin>:1573:2: warning: #warning syscall statmount not implemented [-Wcpp]
->> <stdin>:1576:2: warning: #warning syscall listmount not implemented [-Wcpp]
---
-   scripts/genksyms/parse.y: warning: 9 shift/reduce conflicts [-Wconflicts-sr]
-   scripts/genksyms/parse.y: warning: 5 reduce/reduce conflicts [-Wconflicts-rr]
-   scripts/genksyms/parse.y: note: rerun with option '-Wcounterexamples' to generate conflict counterexamples
-   <stdin>:1573:2: warning: #warning syscall statmount not implemented [-Wcpp]
->> <stdin>:1576:2: warning: #warning syscall listmount not implemented [-Wcpp]
-
+diff --git a/README b/README
+index d9db9675..e558efc9 100644
+--- a/README
++++ b/README
+@@ -19,7 +19,7 @@ Ubuntu or Debian
+         xfslibs-dev
+ 
+    For OverlayFS install:
+-    - see https://github.com/hisilicon/overlayfs-progs
++    - see https://github.com/kmxz/overlayfs-tools
+ 
+ Fedora
+ ------
+@@ -37,7 +37,7 @@ Fedora
+         xfsprogs-devel
+ 
+    For OverlayFS build and install:
+-    - see https://github.com/hisilicon/overlayfs-progs
++    - see https://github.com/kmxz/overlayfs-tools
+ 
+ RHEL or CentOS
+ --------------
+@@ -75,7 +75,7 @@ RHEL or CentOS
+      - see https://github.com/markfasheh/ocfs2-tools
+ 
+     For OverlayFS build and install:
+-     - see https://github.com/hisilicon/overlayfs-progs
++     - see https://github.com/kmxz/overlayfs-tools
+ 
+ SUSE Linux Enterprise or openSUSE
+ ---------------------------------
+@@ -95,7 +95,7 @@ SUSE Linux Enterprise or openSUSE
+      $ sudo zypper install xfsdump xfsprogs-devel
+ 
+     For OverlayFS build and install:
+-     - see https://github.com/hisilicon/overlayfs-progs
++     - see https://github.com/kmxz/overlayfs-tools
+ 
+ Build and install test, libs and utils
+ --------------------------------------
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.35.1
+
