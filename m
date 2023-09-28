@@ -2,32 +2,32 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C53E732CD
-	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 11:19:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AB5EE732CF
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 11:21:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232460AbjI1LTN (ORCPT
+        id S232512AbjI1LVs (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Sep 2023 07:19:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48082 "EHLO
+        Thu, 28 Sep 2023 07:21:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48120 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232043AbjI1LTA (ORCPT
+        with ESMTP id S232521AbjI1LV3 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Sep 2023 07:19:00 -0400
+        Thu, 28 Sep 2023 07:21:29 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E9953C0E;
-        Thu, 28 Sep 2023 04:06:10 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B45DC433C8;
-        Thu, 28 Sep 2023 11:05:56 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0C275264;
+        Thu, 28 Sep 2023 04:06:58 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF540C4160E;
+        Thu, 28 Sep 2023 11:06:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1695899170;
-        bh=AhfBjRw4Zieo7d/UWgS6g+DDX4jTgfxPdqjByEx9qhM=;
-        h=From:To:Cc:Subject:Date:From;
-        b=V+wOzFncXPhDXQFQdHny1CsSK9qUJSENwQ3KCibIzAaql9xTx9HnhDcijW4/7BOtC
-         kszW/YDyA0AMr7XQAUyJiZeb60fme2uDkyobxKoT8cY6VhZHy5eoMPnsaN6X7TtxCq
-         QTaef29MEouz7MkE+tPPdhmCepxFcMdSgkZxMJFkcJInXSuCSMx/JWDM3dr1kZYemo
-         enoSOcU6aqdkN9wSvXmqf6Z9xnaErzYq51O9jQbKnwkBY5wjm/kE01rgGkYxHItLa5
-         5cRJCieL6/r3mfMz8yZQYtWkWaXM39nIwleCYU584hrkq3VtvO021SVUVEZ1qpwd4S
-         nSI/tWahGoeXg==
+        s=k20201202; t=1695899200;
+        bh=KcEb7Ur9VnfCswhdPaiHlW6A+8Un/231FkVSjN0vVmY=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=LIvJMQV9gV0uW8yl32NSd4yb2599TLMQSz3pZ7A8RvzTMK+/pPweiGT83QuRE6Ap1
+         RJ4tHrEtdELF24JEcAXBlbRxCLgD4fFKMvaVxDYJKFUi3JGR08fTlWqCpRUQLEU1eL
+         PLdctIni/gLihdwFGrq6SVBHRpLIcoURicUh3JGLAt4t51ztAQPhDNYHtf1HHGTOrp
+         XAB3XmZIrDME0ElXf57Dd8FtxB0Uiap7czp3ZlR45ObMUeHSnxd6fREH7G/U4RgfCh
+         xv1/nw1L9/w3ErqEe74BXlZqblyXh/mVR1R03Etd6mg/RnXyu8EBj+lRYoEkTAJg+R
+         yYzEQo7GNicAA==
 From:   Jeff Layton <jlayton@kernel.org>
 To:     Alexander Viro <viro@zeniv.linux.org.uk>,
         Christian Brauner <brauner@kernel.org>,
@@ -180,73 +180,47 @@ Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         bpf@vger.kernel.org, netdev@vger.kernel.org,
         apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
         selinux@vger.kernel.org
-Subject: [PATCH 85/87] fs: rename i_atime and i_mtime fields to __i_atime and __i_mtime
-Date:   Thu, 28 Sep 2023 07:05:52 -0400
-Message-ID: <20230928110554.34758-1-jlayton@kernel.org>
+Subject: [PATCH 87/87] fs: move i_blocks up a few places in struct inode
+Date:   Thu, 28 Sep 2023 07:05:54 -0400
+Message-ID: <20230928110554.34758-3-jlayton@kernel.org>
 X-Mailer: git-send-email 2.41.0
+In-Reply-To: <20230928110554.34758-1-jlayton@kernel.org>
+References: <20230928110554.34758-1-jlayton@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Make it clear that these fields are private now, and that the accessors
-should be used instead.
+The recent change to use discrete integers instead of struct timespec64
+in struct inode shaved 8 bytes off of it, but it also moves the i_lock
+into the previous cacheline, away from the fields that it protects.
+
+Move i_blocks up above the i_lock, which moves the new 4 byte hole to
+just after the timestamps, without changing the size of the structure.
 
 Signed-off-by: Jeff Layton <jlayton@kernel.org>
 ---
- include/linux/fs.h | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/fs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/linux/fs.h b/include/linux/fs.h
-index 12d247b82aa0..831657011036 100644
+index de902ff2938b..3e0fe0f52e7c 100644
 --- a/include/linux/fs.h
 +++ b/include/linux/fs.h
-@@ -671,9 +671,9 @@ struct inode {
- 	};
- 	dev_t			i_rdev;
- 	loff_t			i_size;
--	struct timespec64	i_atime;
--	struct timespec64	i_mtime;
--	struct timespec64	__i_ctime; /* use inode_*_ctime accessors! */
-+	struct timespec64	__i_atime; /* use inode_*_atime accessors */
-+	struct timespec64	__i_mtime; /* use inode_*_mtime accessors */
-+	struct timespec64	__i_ctime; /* use inode_*_ctime accessors */
+@@ -677,11 +677,11 @@ struct inode {
+ 	u32			i_atime_nsec;
+ 	u32			i_mtime_nsec;
+ 	u32			i_ctime_nsec;
++	blkcnt_t		i_blocks;
  	spinlock_t		i_lock;	/* i_blocks, i_bytes, maybe i_size */
  	unsigned short          i_bytes;
  	u8			i_blkbits;
-@@ -1555,13 +1555,13 @@ static inline struct timespec64 inode_set_ctime(struct inode *inode,
+ 	u8			i_write_hint;
+-	blkcnt_t		i_blocks;
  
- static inline struct timespec64 inode_get_atime(const struct inode *inode)
- {
--	return inode->i_atime;
-+	return inode->__i_atime;
- }
- 
- static inline struct timespec64 inode_set_atime_to_ts(struct inode *inode,
- 						      struct timespec64 ts)
- {
--	inode->i_atime = ts;
-+	inode->__i_atime = ts;
- 	return ts;
- }
- 
-@@ -1575,13 +1575,13 @@ static inline struct timespec64 inode_set_atime(struct inode *inode,
- 
- static inline struct timespec64 inode_get_mtime(const struct inode *inode)
- {
--	return inode->i_mtime;
-+	return inode->__i_mtime;
- }
- 
- static inline struct timespec64 inode_set_mtime_to_ts(struct inode *inode,
- 						      struct timespec64 ts)
- {
--	inode->i_mtime = ts;
-+	inode->__i_mtime = ts;
- 	return ts;
- }
- 
+ #ifdef __NEED_I_SIZE_ORDERED
+ 	seqcount_t		i_size_seqcount;
 -- 
 2.41.0
 
