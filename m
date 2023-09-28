@@ -2,69 +2,87 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1ABAE82CA6
-	for <linux-unionfs@archiver.kernel.org>; Wed, 27 Sep 2023 15:10:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37C87E82CBC
+	for <linux-unionfs@archiver.kernel.org>; Thu, 28 Sep 2023 01:12:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232332AbjI0PK1 (ORCPT
+        id S229437AbjI1BMJ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 27 Sep 2023 11:10:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50148 "EHLO
+        Wed, 27 Sep 2023 21:12:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33056 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232294AbjI0PK0 (ORCPT
+        with ESMTP id S229793AbjI1BMI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 27 Sep 2023 11:10:26 -0400
-Received: from mail-ot1-f70.google.com (mail-ot1-f70.google.com [209.85.210.70])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A26112A
-        for <linux-unionfs@vger.kernel.org>; Wed, 27 Sep 2023 08:10:23 -0700 (PDT)
-Received: by mail-ot1-f70.google.com with SMTP id 46e09a7af769-6c0d445555eso24481151a34.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 27 Sep 2023 08:10:23 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695827423; x=1696432223;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=y6qE2XlTa4u4RBDlvYz/Aw+cZGD4Gks8ccLO/qfOPBU=;
-        b=IkYonLN64yTsxI/aHP04Rc177Y3N+ZFuGrs+GQEh5aDLi5vqcEDStjSVGGeoLvkYW1
-         2X7wWAZtC6GpCNntrPpY710Jbe2B2RJm89PYTeDtK3X/sNIYPUxbed3/xdMoTm0KvAxY
-         6YZEgk9Ai1rceIzVyp44yea0joJiK0jT+GlifUwpeFlTNvhnpbZhiVxp+GgLk+RVXppD
-         gc8m2/3EaaugYvUCc8+8Pq6pms/Of/6MlCfahWHPly0PRmjaU+8MRF2b+SEQ19vUftIz
-         XnYB3CvGy45CL7tomw5r76+X4U35TCxIOCrShR3aaldaCmP5NgQh5lIGeQSXyVo7e+MF
-         WVJw==
-X-Gm-Message-State: AOJu0YyWsJgKZRnBT5VOArw0m1gHOUODbNYentxKPssSzOFS8iX0NQ5E
-        9qwTJg2xFfJZ0nVqvuOTH8Si2gQFZ+fmXVFuudogdvNmseS1
-X-Google-Smtp-Source: AGHT+IEFVwYkF4pSZdjsYdqAD/xZB6kBdzYdkZYFLAG3QuG2GXvs6P/b93hLjfBc2ENBC9VtkK0vGxM/1mdAklvW/skrsm/5zsau
+        Wed, 27 Sep 2023 21:12:08 -0400
+Received: from mail.nfschina.com (unknown [42.101.60.195])
+        by lindbergh.monkeyblade.net (Postfix) with SMTP id B1983BF;
+        Wed, 27 Sep 2023 18:12:05 -0700 (PDT)
+Received: from [172.30.11.106] (unknown [180.167.10.98])
+        by mail.nfschina.com (Maildata Gateway V2.8.8) with ESMTPSA id 4ADCF6018F7FD;
+        Thu, 28 Sep 2023 09:12:02 +0800 (CST)
+Message-ID: <b1a6134d-f976-ed9d-aac0-06f3c93fc1c6@nfschina.com>
+Date:   Thu, 28 Sep 2023 09:12:01 +0800
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:c342:b0:1d5:a24a:c33 with SMTP id
- e2-20020a056870c34200b001d5a24a0c33mr861602oak.8.1695827422969; Wed, 27 Sep
- 2023 08:10:22 -0700 (PDT)
-Date:   Wed, 27 Sep 2023 08:10:22 -0700
-In-Reply-To: <CAOQ4uxjssgw1tZrUQvtHHVacSgR9NE0yF8DA3+R5LNFAocCvVQ@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000258ac60606589787@google.com>
-Subject: Re: [syzbot] [overlayfs?] KASAN: invalid-free in ovl_copy_up_one
-From:   syzbot <syzbot+477d8d8901756d1cbba1@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.0
+Subject: Re: [PATCH] ovl: avoid possible NULL dereference
+Content-Language: en-US
+To:     Dan Carpenter <dan.carpenter@linaro.org>,
+        Amir Goldstein <amir73il@gmail.com>
+Cc:     miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+X-MD-Sfrom: suhui@nfschina.com
+X-MD-SrcIP: 180.167.10.98
+From:   Su Hui <suhui@nfschina.com>
+In-Reply-To: <f929f35e-2599-48e4-a77f-f2002bc94482@kadam.mountain>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On 2023/9/27 22:39, Dan Carpenter wrote:
+> On Wed, Sep 27, 2023 at 05:02:26PM +0300, Amir Goldstein wrote:
+>> On Mon, Sep 25, 2023 at 7:52 AM Su Hui <suhui@nfschina.com> wrote:
+>>> smatch warn:
+>>> fs/overlayfs/copy_up.c:450 ovl_set_origin() warn:
+>>> variable dereferenced before check 'fh' (see line 449)
+>>>
+>>> If 'fh' is NULL, passing NULL instead of 'fh->buf'.
+>>>
+>>> Signed-off-by: Su Hui <suhui@nfschina.com>
+>>> ---
+>>>   fs/overlayfs/copy_up.c | 2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+>>> index d1761ec5866a..086f9176b4d4 100644
+>>> --- a/fs/overlayfs/copy_up.c
+>>> +++ b/fs/overlayfs/copy_up.c
+>>> @@ -446,7 +446,7 @@ int ovl_set_origin(struct ovl_fs *ofs, struct dentry *lower,
+>>>          /*
+>>>           * Do not fail when upper doesn't support xattrs.
+>>>           */
+>>> -       err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh->buf,
+>>> +       err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh ? fh->buf : NULL,
+>>>                                   fh ? fh->fb.len : 0, 0);
+>>>          kfree(fh);
+>>>
+>>> --
+>>> 2.30.2
+>> After discussing this with Dan Carpenter, this is not a kernel bug,
+>> it is a smatch bug.
+> Yeah.  Sorry about that, Su Hui.  The ->buf struct member is not a
+> pointer, it's an array.  So this isn't really a dereference, it's just
+> pointer math and foo = fh->buf won't crash even if fh is NULL.
+Got it, I'm so careless that make this wrong patch.
+Really thanks for your reminder!
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+Su Hui
 
-Reported-and-tested-by: syzbot+477d8d8901756d1cbba1@syzkaller.appspotmail.com
-
-Tested on:
-
-commit:         8e9b46c4 ovl: do not encode lower fh with upper sb_wri..
-git tree:       https://github.com/amir73il/linux.git ovl_want_write
-console output: https://syzkaller.appspot.com/x/log.txt?x=10d10ffa680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=bb54ecdfa197f132
-dashboard link: https://syzkaller.appspot.com/bug?extid=477d8d8901756d1cbba1
-compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
+>
+> I have written a fix for this in Smatch.  I'll test it a bit before I
+> push it.
+>
+> regards,
+> dan carpenter
+>
