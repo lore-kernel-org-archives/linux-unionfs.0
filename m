@@ -2,273 +2,122 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D2AE743D0
-	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Sep 2023 00:19:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E596CE743D5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Sep 2023 01:08:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229794AbjI2AT0 (ORCPT
+        id S230320AbjI2BIT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Sep 2023 20:19:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41264 "EHLO
+        Thu, 28 Sep 2023 21:08:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229654AbjI2ATY (ORCPT
+        with ESMTP id S230246AbjI2BIS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Sep 2023 20:19:24 -0400
-Received: from mail-ej1-x62b.google.com (mail-ej1-x62b.google.com [IPv6:2a00:1450:4864:20::62b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00B74F3
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 17:19:22 -0700 (PDT)
-Received: by mail-ej1-x62b.google.com with SMTP id a640c23a62f3a-9ad8d47ef2fso1737366066b.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 17:19:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1695946761; x=1696551561; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=bvzvBt54YKz6rxhAovyc5UddK2JDmyrig02MAqmRW1o=;
-        b=Nco9MwD+ZWekSSLrxtyPFYHbH5dJiwAN5W6KIrG4ASqA3JiKtnRsD/Ty/O6Dv/SVpz
-         MlkQfUVjQ7+8xqGsnYMd9RgeE1G7QsSn4/XYu2xfF8JGEV2qOcRTb4Wcgjwd5qT7sCzb
-         Mh2+QDlZEFqH1DfM7jXyKV2c6MF3+Kab5MQQA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1695946761; x=1696551561;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=bvzvBt54YKz6rxhAovyc5UddK2JDmyrig02MAqmRW1o=;
-        b=NYdK7DrdfmcSyHSxy/ThvF27cygRQ4jWeFvLvsv8NyyY8pvHVgKTKIXH0xNg8oG3mb
-         gnfOAa9jdRq3oI9w/ma4Pid24gv4za4cblf5RHn85oig/zIsdTJxYVaDRX0N6nIBviHa
-         ZSrZKgLA26S1pqJsacYTyT+5Vd7ti6qVSKEec20YVfWeqJcuAlqDMFIvn5OhN81k9f6/
-         oFtSwHbYHSJGfl1F+eY4MQvDCKESJUm/rcPsFO1lmbhvyQ95fiYssO8CtaPuc+xLJiul
-         nQUNRDUoqiDA8uRxwWKC3qJmlgono9VtgJoiyZm2wulnEkTbUta7LcEwZtl1hEPUPDbH
-         yDXA==
-X-Gm-Message-State: AOJu0YzOePs7DAmnjSUT13nBnL7PiM0B/FqmokLpS0WquKztg5ka98H+
-        JjyN1c6ihAxEZwDmcOZh6NXW4Z2KvdXxRgm8942SPL+Ozxg=
-X-Google-Smtp-Source: AGHT+IHFNSLPlH3AXRcqyUjlLCrn/h0BY70afXxZlWmocLRpcc8moUjnb/xHt20aIDkeAEgjI0LwBg==
-X-Received: by 2002:a17:906:73d8:b0:9a1:c447:3c62 with SMTP id n24-20020a17090673d800b009a1c4473c62mr2846552ejl.49.1695946761400;
-        Thu, 28 Sep 2023 17:19:21 -0700 (PDT)
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com. [209.85.218.50])
-        by smtp.gmail.com with ESMTPSA id e8-20020a170906374800b009920e9a3a73sm11562386ejc.115.2023.09.28.17.19.20
-        for <linux-unionfs@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 28 Sep 2023 17:19:20 -0700 (PDT)
-Received: by mail-ej1-f50.google.com with SMTP id a640c23a62f3a-9a645e54806so1736984066b.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 17:19:20 -0700 (PDT)
-X-Received: by 2002:aa7:d807:0:b0:530:52d2:f656 with SMTP id
- v7-20020aa7d807000000b0053052d2f656mr2404674edq.21.1695946739584; Thu, 28 Sep
- 2023 17:18:59 -0700 (PDT)
-MIME-Version: 1.0
-References: <20230928110554.34758-1-jlayton@kernel.org> <20230928110554.34758-2-jlayton@kernel.org>
- <6020d6e7-b187-4abb-bf38-dc09d8bd0f6d@app.fastmail.com> <af047e4a1c6947c59d4a13d4ae221c784a5386b4.camel@kernel.org>
- <20230928171943.GK11439@frogsfrogsfrogs> <6a6f37d16b55a3003af3f3dbb7778a367f68cd8d.camel@kernel.org>
- <20230928212656.GC189345@mit.edu>
-In-Reply-To: <20230928212656.GC189345@mit.edu>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Thu, 28 Sep 2023 17:18:42 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjTynK9BdGbi+8eShU77nkPvipFwRxEd1TSBrw2+LiuDg@mail.gmail.com>
-Message-ID: <CAHk-=wjTynK9BdGbi+8eShU77nkPvipFwRxEd1TSBrw2+LiuDg@mail.gmail.com>
-Subject: Re: [PATCH 86/87] fs: switch timespec64 fields in inode to discrete integers
-To:     "Theodore Ts'o" <tytso@mit.edu>
-Cc:     Jeff Layton <jlayton@kernel.org>,
-        "Darrick J. Wong" <djwong@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Christian Brauner <brauner@kernel.org>,
-        David Sterba <dsterba@suse.cz>,
+        Thu, 28 Sep 2023 21:08:18 -0400
+Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2059.outbound.protection.outlook.com [40.107.244.59])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 180D0B4
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 18:08:16 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=UzkhOY/cQL3MW4pFLONuNrU7AXNl2S0SCuf72DC+kT+6Ntrqi7IUiOh3t2lDIReAiE4pqt1fYunXYwEsLoMRRD5mibHZ4Nm1lBlDiHt59uYB3fgKYOYb1hHrByA/d6qCqi8LcQJvh+JZ+8UNpjR1X+lHVb/RDaIL3x6t2eDCVN/JhZwEaQcfYGhq2IUVCa6VkJrpwDttDFPvh5QnWV9xHSe3HVqDJRyMR0dl4eIR7sX6WyLJGiWGIqYlroMui9u+DItJbJRI1NhaM3budAPs+k/ssv2SE/q+hQHFQB0B2J/HWomKWznAT6/CXxGRJtiXYcVPM8ajAN+qQb4SlzrmRA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=FLEyEpObFbiGeGKl72DmNMiu2FymGok95CknjMWBEmQ=;
+ b=XliEWHao+TB6OpHWCaCRM/SXWwCgp/95V9nwUCRf5avBKF2LgzeWE4kS429BdAKBbw0G9Fexji+SL+9E4rKd6NvL2h9aC87G+ee6rvcXAZict8lT7Azl3AIzZ0SUSPyjSu+DS+0UYCBLYMtj5qlvppuz57iVxtgM+11jWx2/Z8ddwirU8DpPR1owx43/OZ/kBKI1vXPrzqVOQGaQey7FDuHvNz9Mo1dsJzFijC5xBkM9J2tfQx4X8SWpElCrm2h8PEuZRg62IlCOoSUbwWp79F51KOJjZ2fdDon3MDt5gHPCjXrS+6SqTTy0gWIXxgPKCseBElUvO3EkAROUh0RbRA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 18.7.68.33) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=alum.mit.edu;
+ dmarc=pass (p=none sp=none pct=100) action=none header.from=alum.mit.edu;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alum.mit.edu;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=FLEyEpObFbiGeGKl72DmNMiu2FymGok95CknjMWBEmQ=;
+ b=CEHFWxAjhO7o99c9ra+yot1QS7r+Un3gFcydOkCpOKRLOVHmiWE+C8Z1dJkaTFCjazun8in+++Hif9bIw4dkSCHEi8DmHucKUJuVyq6UUuDs+iL8q7Vd5PXdPz/EIlYG1bd9pcP0PScN/FGLpyfvo/RyNw84il2YVjCK+VKbwxE=
+Received: from CH2PR10CA0018.namprd10.prod.outlook.com (2603:10b6:610:4c::28)
+ by IA1PR12MB6211.namprd12.prod.outlook.com (2603:10b6:208:3e5::5) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6813.35; Fri, 29 Sep
+ 2023 01:08:13 +0000
+Received: from SA2PEPF00001507.namprd04.prod.outlook.com
+ (2603:10b6:610:4c:cafe::48) by CH2PR10CA0018.outlook.office365.com
+ (2603:10b6:610:4c::28) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.26 via Frontend
+ Transport; Fri, 29 Sep 2023 01:08:13 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 18.7.68.33)
+ smtp.mailfrom=alum.mit.edu; dkim=none (message not signed)
+ header.d=none;dmarc=pass action=none header.from=alum.mit.edu;
+Received-SPF: Pass (protection.outlook.com: domain of alum.mit.edu designates
+ 18.7.68.33 as permitted sender) receiver=protection.outlook.com;
+ client-ip=18.7.68.33; helo=outgoing-alum.mit.edu; pr=C
+Received: from outgoing-alum.mit.edu (18.7.68.33) by
+ SA2PEPF00001507.mail.protection.outlook.com (10.167.242.39) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6838.14 via Frontend Transport; Fri, 29 Sep 2023 01:08:12 +0000
+Received: from charles (c-24-218-5-141.hsd1.ct.comcast.net [24.218.5.141])
+        (authenticated bits=0)
+        (User authenticated as ryan.hendrickson@ALUM.MIT.EDU)
+        by outgoing-alum.mit.edu (8.14.7/8.12.4) with ESMTP id 38T17t6l014407
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 28 Sep 2023 21:08:10 -0400
+Date:   Thu, 28 Sep 2023 21:07:47 -0400 (EDT)
+From:   Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>
+To:     Miklos Szeredi <miklos@szeredi.hu>,
         Amir Goldstein <amir73il@gmail.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Kees Cook <keescook@chromium.org>, Jeremy Kerr <jk@ozlabs.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
-        Todd Kjos <tkjos@android.com>,
-        Martijn Coenen <maco@android.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Carlos Llamas <cmllamas@google.com>,
-        Suren Baghdasaryan <surenb@google.com>,
-        Mattia Dongili <malattia@linux.it>,
-        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Leon Romanovsky <leon@kernel.org>,
-        Brad Warrum <bwarrum@linux.ibm.com>,
-        Ritu Agarwal <rituagar@linux.ibm.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Mark Gross <markgross@kernel.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Eric Van Hensbergen <ericvh@kernel.org>,
-        Latchesar Ionkov <lucho@ionkov.net>,
-        Dominique Martinet <asmadeus@codewreck.org>,
-        Christian Schoenebeck <linux_oss@crudebyte.com>,
-        David Sterba <dsterba@suse.com>,
-        David Howells <dhowells@redhat.com>,
-        Marc Dionne <marc.dionne@auristor.com>,
-        Ian Kent <raven@themaw.net>,
-        Luis de Bethencourt <luisbg@kernel.org>,
-        Salah Triki <salah.triki@gmail.com>,
-        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
-        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
-        Xiubo Li <xiubli@redhat.com>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
-        Joel Becker <jlbec@evilplan.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Nicolas Pitre <nico@fluxnic.net>,
-        "Rafael J . Wysocki" <rafael@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
-        Chao Yu <chao@kernel.org>,
-        Yue Hu <huyue2@gl0jj8bn.sched.sma.tdnsstic1.cn>,
-        Jeffle Xu <jefflexu@linux.alibaba.com>,
-        Namjae Jeon <linkinjeon@kernel.org>,
-        Sungjong Seo <sj1557.seo@samsung.com>,
-        Jan Kara <jack@suse.com>,
-        Andreas Dilger <adilger.kernel@dilger.ca>,
-        Jaegeuk Kim <jaegeuk@kernel.org>,
-        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
-        Christoph Hellwig <hch@infradead.org>,
-        Miklos Szeredi <miklos@szeredi.hu>,
-        Bob Peterson <rpeterso@redhat.com>,
-        Andreas Gruenbacher <agruenba@redhat.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <muchun.song@linux.dev>, Jan Kara <jack@suse.cz>,
-        David Woodhouse <dwmw2@infradead.org>,
-        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
-        Trond Myklebust <trond.myklebust@hammerspace.com>,
-        Anna Schumaker <anna@kernel.org>,
-        Chuck Lever <chuck.lever@oracle.com>,
-        Neil Brown <neilb@suse.de>,
-        Olga Kornievskaia <kolga@netapp.com>,
-        Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
-        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
-        Anton Altaparmakov <anton@tuxera.com>,
-        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
-        Mark Fasheh <mark@fasheh.com>,
-        Joseph Qi <joseph.qi@linux.alibaba.com>,
-        Bob Copeland <me@bobcopeland.com>,
-        Mike Marshall <hubcap@omnibond.com>,
-        Martin Brandenburg <martin@omnibond.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Tony Luck <tony.luck@intel.com>,
-        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
-        Anders Larsen <al@alarsen.net>,
-        Steve French <sfrench@samba.org>,
-        Paulo Alcantara <pc@manguebit.com>,
-        Ronnie Sahlberg <lsahlber@redhat.com>,
-        Shyam Prasad N <sprasad@microsoft.com>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Phillip Lougher <phillip@squashfs.org.uk>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Evgeniy Dushistov <dushistov@mail.ru>,
-        Chandan Babu R <chandan.babu@oracle.com>,
-        Damien Le Moal <dlemoal@kernel.org>,
-        Naohiro Aota <naohiro.aota@wdc.com>,
-        Johannes Thumshirn <jth@kernel.org>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        Song Liu <song@kernel.org>,
-        Yonghong Song <yonghong.song@linux.dev>,
-        John Fastabend <john.fastabend@gmail.com>,
-        KP Singh <kpsingh@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        John Johansen <john.johansen@canonical.com>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>,
-        Stephen Smalley <stephen.smalley.work@gmail.com>,
-        Eric Paris <eparis@parisplace.org>,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, v9fs@lists.linux.dev,
-        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
-        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
-        codalist@telemann.coda.cs.cmu.edu, linux-efi@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        linux-f2fs-devel@lists.sourceforge.net, gfs2@lists.linux.dev,
-        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
-        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
-        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
-        ntfs3@lists.linux.dev, ocfs2-devel@lists.linux.dev,
-        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
-        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
-        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
-        samba-technical@lists.samba.org,
-        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
-        bpf@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
-        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
-        selinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        linux-unionfs@vger.kernel.org
+Subject: [regression?] escaping commas in overlayfs mount options
+Message-ID: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
+MIME-Version: 1.0
+Content-Type: text/plain; format=flowed; charset=US-ASCII
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-TrafficTypeDiagnostic: SA2PEPF00001507:EE_|IA1PR12MB6211:EE_
+X-MS-Office365-Filtering-Correlation-Id: 06c320fe-21de-469c-8d94-08dbc0888d74
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ThAkMAl/us4RAw6SlkBVmdsZNyg0pNGvtylWNzu00BNF42p2kSBoSocY7BgMVMOsh+SZ+zR3tFF3cl3ju+fTIBFqJ3qLodWkRXHegFpo4B7mUvMG1koWKrLlKTPom3AGatxxhB3abvUaR57s01dDADKiF69ePQBJVlKWpWP3vDqu1SgX6HFmPXHmsf3HKOx0pJK9agIxyK+LuL/le7cYnIrwonvG81ppIELsOgwdHPmwC6xeGq4/TJyaL24ooI9/QCkaQioyat4pchU+jQZ8QW7hwIxlQV89GV80Vz9DUT+aIcLMBiQpl9ZEd7ZQGAXfYMJ9Vq+Cft+o6dZ1CHLKccNzx/CcFxtcZuZwvoY0TKK8+0sFmT9lPOuAizDpdgkQaJpZmzzzvr4q/H1xLVWb4ttmuMVGfTjbfoS4wlPM6rx0Is7nF2Vqcb9l5nv1f7iGLxc1tjdB6tKdfclYe5dM7mCNfSyw1o/Q9+c9sNbN2Xhjk0weSDGrqL/BkqnJ83hTLPMO837um72mihI5ro5OJkD9bCGLqBZttXgxmKZTUiePCsyQ29ixEvzq+9rri+/GTxB2YxtTRu0jGflhkQGDENuOMTQI0wfAzIVF9BhIR4T+8dpMl7FU0Xghfn12/FEDAvWAu0pPP/I84zROFgEbhy1th9n5TimVhNCa+ecTSRG+twOY4YS9QNVxs6O83WPppQMnzUb6nK8kpg+rFKQKsXaS3pbuSsr7xlU4GbYcEO4xWtpTg9NSgAJ3+6h7QvnT
+X-Forefront-Antispam-Report: CIP:18.7.68.33;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:outgoing-alum.mit.edu;PTR:outgoing-alum.mit.edu;CAT:NONE;SFS:(13230031)(136003)(396003)(39860400002)(376002)(346002)(230922051799003)(186009)(82310400011)(451199024)(8000799017)(1800799009)(64100799003)(46966006)(40470700004)(36840700001)(956004)(6666004)(966005)(478600001)(83380400001)(2616005)(44832011)(26005)(8936002)(41300700001)(70586007)(316002)(70206006)(786003)(5660300002)(8676002)(2906002)(110136005)(86362001)(36860700001)(47076005)(356005)(31696002)(7596003)(41320700001)(82740400003)(40480700001)(336012)(40460700003)(31686004)(75432002);DIR:OUT;SFP:1101;
+X-OriginatorOrg: alum.mit.edu
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Sep 2023 01:08:12.0774
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 06c320fe-21de-469c-8d94-08dbc0888d74
+X-MS-Exchange-CrossTenant-Id: 3326b102-c043-408b-a990-b89e477d582f
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3326b102-c043-408b-a990-b89e477d582f;Ip=[18.7.68.33];Helo=[outgoing-alum.mit.edu]
+X-MS-Exchange-CrossTenant-AuthSource: SA2PEPF00001507.namprd04.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6211
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Thu, 28 Sept 2023 at 14:28, Theodore Ts'o <tytso@mit.edu> wrote:
->
-> I don't think anyone will complain about breaking the userspace API
-> --- especially since if, say, the CIA was using this for their spies'
-> drop boxes, they probably wouldn't want to admit it.  :-)
+Up to and including kernel 6.4.15, it was possible to have commas in 
+the lowerdir/upperdir/workdir paths used by overlayfs, provided they were 
+escaped with backslashes:
 
-Well, you will find that real apps do kind of of care.
+     mkdir /tmp/test-lower, /tmp/test-upper /tmp/test-work /tmp/test
+     mount -t overlay overlay -o 'lowerdir=/tmp/test-lower\,,upperdir=/tmp/test-upper,workdir=/tmp/test-work' /tmp/test
 
-Just to take a very real example, "git" will very much notice time
-granularity issues and care - because git will cache the 'stat' times
-in the index.
+In 6.5.2 and 6.5.5, this no longer works; dmesg reports that overlayfs 
+can't resolve '/tmp/test-lower' (without the comma).
 
-So if you get a different stat time (because the vfs layer has changed
-some granularity), git will then have to check the files carefully
-again and update the index.
+I see that there is a commit between the 6.4 and 6.5 lines titled [ovl: 
+port to new mount api][1]. I haven't compiled a kernel before and after 
+this commit to verify, but based on the code it deletes I strongly suspect 
+that it, or if not then one of the ovl commits committed on the same day, 
+is responsible for this change.
 
-You can simulate this "re-check all files" with something like this:
+[1]: https://github.com/torvalds/linux/commit/1784fbc2ed9c888ea4e895f30a53207ed7ee8208
 
-    $ time git diff
+Does this count as a regression? I can't find documentation for this 
+escaping feature anywhere, even as it pertains to the non-comma characters 
+'\\' and ':' (which, I've tested, can still be escaped as expected), so 
+perhaps it was never properly supported? But a search for escaping commas 
+in overlayfs turns up resources like [this post][2], suggesting that there 
+are others who figured this out and expect it to work.
 
-    real 0m0.040s
-    user 0m0.035s
-    sys 0m0.264s
+[2]: https://unix.stackexchange.com/a/552640
 
-    $ rm .git/index && git read-tree HEAD
+Is there a new way to escape commas for overlayfs options?
 
-    $ time git diff
-
-    real 0m9.595s
-    user 0m7.287s
-    sys 0m2.810s
-
-so the difference between just doing a "look, index information
-matches current 'stat' information" and "oops, index does not have the
-stat data" is "40 milliseconds" vs "10 seconds".
-
-That's a big difference, and you'd see that each time the granularity
-changes. But then once the index file has been updated, it's back to
-the good case.
-
-So yes, real programs to cache stat information, and it matters for performance.
-
-But I don't think any actual reasonable program will have
-*correctness* issues, though - because there are certainly filesystems
-out there that don't do nanosecond resolution (and other operations
-like copying trees around will obviously also change times).
-
-Anybody doing steganography in the timestamps is already not going to
-have a great time, really.
-
-                 Linus
+Thanks,
+Ryan
