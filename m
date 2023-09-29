@@ -2,122 +2,253 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E596CE743D5
-	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Sep 2023 01:08:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79276E743C0
+	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Sep 2023 03:06:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230320AbjI2BIT (ORCPT
+        id S230186AbjI2DGq (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 28 Sep 2023 21:08:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48386 "EHLO
+        Thu, 28 Sep 2023 23:06:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43884 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230246AbjI2BIS (ORCPT
+        with ESMTP id S229912AbjI2DGp (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 28 Sep 2023 21:08:18 -0400
-Received: from NAM12-MW2-obe.outbound.protection.outlook.com (mail-mw2nam12on2059.outbound.protection.outlook.com [40.107.244.59])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 180D0B4
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 18:08:16 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=UzkhOY/cQL3MW4pFLONuNrU7AXNl2S0SCuf72DC+kT+6Ntrqi7IUiOh3t2lDIReAiE4pqt1fYunXYwEsLoMRRD5mibHZ4Nm1lBlDiHt59uYB3fgKYOYb1hHrByA/d6qCqi8LcQJvh+JZ+8UNpjR1X+lHVb/RDaIL3x6t2eDCVN/JhZwEaQcfYGhq2IUVCa6VkJrpwDttDFPvh5QnWV9xHSe3HVqDJRyMR0dl4eIR7sX6WyLJGiWGIqYlroMui9u+DItJbJRI1NhaM3budAPs+k/ssv2SE/q+hQHFQB0B2J/HWomKWznAT6/CXxGRJtiXYcVPM8ajAN+qQb4SlzrmRA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=FLEyEpObFbiGeGKl72DmNMiu2FymGok95CknjMWBEmQ=;
- b=XliEWHao+TB6OpHWCaCRM/SXWwCgp/95V9nwUCRf5avBKF2LgzeWE4kS429BdAKBbw0G9Fexji+SL+9E4rKd6NvL2h9aC87G+ee6rvcXAZict8lT7Azl3AIzZ0SUSPyjSu+DS+0UYCBLYMtj5qlvppuz57iVxtgM+11jWx2/Z8ddwirU8DpPR1owx43/OZ/kBKI1vXPrzqVOQGaQey7FDuHvNz9Mo1dsJzFijC5xBkM9J2tfQx4X8SWpElCrm2h8PEuZRg62IlCOoSUbwWp79F51KOJjZ2fdDon3MDt5gHPCjXrS+6SqTTy0gWIXxgPKCseBElUvO3EkAROUh0RbRA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
- 18.7.68.33) smtp.rcpttodomain=vger.kernel.org smtp.mailfrom=alum.mit.edu;
- dmarc=pass (p=none sp=none pct=100) action=none header.from=alum.mit.edu;
- dkim=none (message not signed); arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alum.mit.edu;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=FLEyEpObFbiGeGKl72DmNMiu2FymGok95CknjMWBEmQ=;
- b=CEHFWxAjhO7o99c9ra+yot1QS7r+Un3gFcydOkCpOKRLOVHmiWE+C8Z1dJkaTFCjazun8in+++Hif9bIw4dkSCHEi8DmHucKUJuVyq6UUuDs+iL8q7Vd5PXdPz/EIlYG1bd9pcP0PScN/FGLpyfvo/RyNw84il2YVjCK+VKbwxE=
-Received: from CH2PR10CA0018.namprd10.prod.outlook.com (2603:10b6:610:4c::28)
- by IA1PR12MB6211.namprd12.prod.outlook.com (2603:10b6:208:3e5::5) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6813.35; Fri, 29 Sep
- 2023 01:08:13 +0000
-Received: from SA2PEPF00001507.namprd04.prod.outlook.com
- (2603:10b6:610:4c:cafe::48) by CH2PR10CA0018.outlook.office365.com
- (2603:10b6:610:4c::28) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6838.26 via Frontend
- Transport; Fri, 29 Sep 2023 01:08:13 +0000
-X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 18.7.68.33)
- smtp.mailfrom=alum.mit.edu; dkim=none (message not signed)
- header.d=none;dmarc=pass action=none header.from=alum.mit.edu;
-Received-SPF: Pass (protection.outlook.com: domain of alum.mit.edu designates
- 18.7.68.33 as permitted sender) receiver=protection.outlook.com;
- client-ip=18.7.68.33; helo=outgoing-alum.mit.edu; pr=C
-Received: from outgoing-alum.mit.edu (18.7.68.33) by
- SA2PEPF00001507.mail.protection.outlook.com (10.167.242.39) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6838.14 via Frontend Transport; Fri, 29 Sep 2023 01:08:12 +0000
-Received: from charles (c-24-218-5-141.hsd1.ct.comcast.net [24.218.5.141])
-        (authenticated bits=0)
-        (User authenticated as ryan.hendrickson@ALUM.MIT.EDU)
-        by outgoing-alum.mit.edu (8.14.7/8.12.4) with ESMTP id 38T17t6l014407
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Thu, 28 Sep 2023 21:08:10 -0400
-Date:   Thu, 28 Sep 2023 21:07:47 -0400 (EDT)
-From:   Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>
-To:     Miklos Szeredi <miklos@szeredi.hu>,
-        Amir Goldstein <amir73il@gmail.com>,
-        linux-unionfs@vger.kernel.org
-Subject: [regression?] escaping commas in overlayfs mount options
-Message-ID: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
+        Thu, 28 Sep 2023 23:06:45 -0400
+Received: from mail-ot1-f80.google.com (mail-ot1-f80.google.com [209.85.210.80])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7F2C9199
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 20:06:43 -0700 (PDT)
+Received: by mail-ot1-f80.google.com with SMTP id 46e09a7af769-6c6204b2defso6723154a34.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Sep 2023 20:06:43 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1695956803; x=1696561603;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=gCOLI3FOr/N5A6msbawAvHTzkH+M8y888m9G1F9Jre4=;
+        b=U7px39HYcogdn19ioLDwwLMgeUfZODITyuq+8lAWPuvtNpD2vOrmr1tc8VlyTD7YP2
+         mXG8uH74vpJn+bQGSabohEwz2lhxkK+hq7KsbR8VX1vltC7Q2JNnJv42MGi+/sXS/WAl
+         bA3K84SoiDWu26uFVkzWOWCZVwkvABFEqGlj3nWkcETDmeIjtXTvVhjizMdVNYAxMzEA
+         FquEDO5hKbDRSPGbE/+H8m4YpznGhvwoqaObOvQQjlUv5PDa1wAk1Y562+xDxY7r1UdD
+         Yp/kiCgOkG/GXdRhyo58KXxRroVJvPDc5/TPYJ/IsJ3ligabkjemd9ngorNaGrszsl/G
+         Y7qQ==
+X-Gm-Message-State: AOJu0Yx2k6RbwyI1AhKS7gQwYFcCizzwBjHJUOAfP7KXw0KiNFO7SMGU
+        iipVKuIeB/GDSMYON07BNWxPzWJ3uTaUGzsXYLTsqKlMs8cL
+X-Google-Smtp-Source: AGHT+IFhUKrSES8ox2QzEcAgtamC5RFDZjA7uGU0rFdwkxWMOGINz/SsdShIrkdHFekex71/NM8Jui0kDl5sxhqo5KCAHTDNBEdu
 MIME-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=US-ASCII
-X-EOPAttributedMessage: 0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: SA2PEPF00001507:EE_|IA1PR12MB6211:EE_
-X-MS-Office365-Filtering-Correlation-Id: 06c320fe-21de-469c-8d94-08dbc0888d74
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: ThAkMAl/us4RAw6SlkBVmdsZNyg0pNGvtylWNzu00BNF42p2kSBoSocY7BgMVMOsh+SZ+zR3tFF3cl3ju+fTIBFqJ3qLodWkRXHegFpo4B7mUvMG1koWKrLlKTPom3AGatxxhB3abvUaR57s01dDADKiF69ePQBJVlKWpWP3vDqu1SgX6HFmPXHmsf3HKOx0pJK9agIxyK+LuL/le7cYnIrwonvG81ppIELsOgwdHPmwC6xeGq4/TJyaL24ooI9/QCkaQioyat4pchU+jQZ8QW7hwIxlQV89GV80Vz9DUT+aIcLMBiQpl9ZEd7ZQGAXfYMJ9Vq+Cft+o6dZ1CHLKccNzx/CcFxtcZuZwvoY0TKK8+0sFmT9lPOuAizDpdgkQaJpZmzzzvr4q/H1xLVWb4ttmuMVGfTjbfoS4wlPM6rx0Is7nF2Vqcb9l5nv1f7iGLxc1tjdB6tKdfclYe5dM7mCNfSyw1o/Q9+c9sNbN2Xhjk0weSDGrqL/BkqnJ83hTLPMO837um72mihI5ro5OJkD9bCGLqBZttXgxmKZTUiePCsyQ29ixEvzq+9rri+/GTxB2YxtTRu0jGflhkQGDENuOMTQI0wfAzIVF9BhIR4T+8dpMl7FU0Xghfn12/FEDAvWAu0pPP/I84zROFgEbhy1th9n5TimVhNCa+ecTSRG+twOY4YS9QNVxs6O83WPppQMnzUb6nK8kpg+rFKQKsXaS3pbuSsr7xlU4GbYcEO4xWtpTg9NSgAJ3+6h7QvnT
-X-Forefront-Antispam-Report: CIP:18.7.68.33;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:outgoing-alum.mit.edu;PTR:outgoing-alum.mit.edu;CAT:NONE;SFS:(13230031)(136003)(396003)(39860400002)(376002)(346002)(230922051799003)(186009)(82310400011)(451199024)(8000799017)(1800799009)(64100799003)(46966006)(40470700004)(36840700001)(956004)(6666004)(966005)(478600001)(83380400001)(2616005)(44832011)(26005)(8936002)(41300700001)(70586007)(316002)(70206006)(786003)(5660300002)(8676002)(2906002)(110136005)(86362001)(36860700001)(47076005)(356005)(31696002)(7596003)(41320700001)(82740400003)(40480700001)(336012)(40460700003)(31686004)(75432002);DIR:OUT;SFP:1101;
-X-OriginatorOrg: alum.mit.edu
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 29 Sep 2023 01:08:12.0774
- (UTC)
-X-MS-Exchange-CrossTenant-Network-Message-Id: 06c320fe-21de-469c-8d94-08dbc0888d74
-X-MS-Exchange-CrossTenant-Id: 3326b102-c043-408b-a990-b89e477d582f
-X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3326b102-c043-408b-a990-b89e477d582f;Ip=[18.7.68.33];Helo=[outgoing-alum.mit.edu]
-X-MS-Exchange-CrossTenant-AuthSource: SA2PEPF00001507.namprd04.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Anonymous
-X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: IA1PR12MB6211
+X-Received: by 2002:a05:6808:1807:b0:3ac:ab4f:f05 with SMTP id
+ bh7-20020a056808180700b003acab4f0f05mr1363894oib.5.1695956802870; Thu, 28 Sep
+ 2023 20:06:42 -0700 (PDT)
+Date:   Thu, 28 Sep 2023 20:06:42 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000ca2df5060676b6d8@google.com>
+Subject: [syzbot] [overlayfs?] possible deadlock in ovl_copy_up_start (2)
+From:   syzbot <syzbot+e8628856801e9809216f@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Up to and including kernel 6.4.15, it was possible to have commas in 
-the lowerdir/upperdir/workdir paths used by overlayfs, provided they were 
-escaped with backslashes:
+Hello,
 
-     mkdir /tmp/test-lower, /tmp/test-upper /tmp/test-work /tmp/test
-     mount -t overlay overlay -o 'lowerdir=/tmp/test-lower\,,upperdir=/tmp/test-upper,workdir=/tmp/test-work' /tmp/test
+syzbot found the following issue on:
 
-In 6.5.2 and 6.5.5, this no longer works; dmesg reports that overlayfs 
-can't resolve '/tmp/test-lower' (without the comma).
+HEAD commit:    940fcc189c51 Add linux-next specific files for 20230921
+git tree:       linux-next
+console output: https://syzkaller.appspot.com/x/log.txt?x=12dea70e680000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=1f140ae6e669ac24
+dashboard link: https://syzkaller.appspot.com/bug?extid=e8628856801e9809216f
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
 
-I see that there is a commit between the 6.4 and 6.5 lines titled [ovl: 
-port to new mount api][1]. I haven't compiled a kernel before and after 
-this commit to verify, but based on the code it deletes I strongly suspect 
-that it, or if not then one of the ovl commits committed on the same day, 
-is responsible for this change.
+Unfortunately, I don't have any reproducer for this issue yet.
 
-[1]: https://github.com/torvalds/linux/commit/1784fbc2ed9c888ea4e895f30a53207ed7ee8208
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/b8921b235c24/disk-940fcc18.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/c80a9f6bcdd4/vmlinux-940fcc18.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/ed10a4df6950/bzImage-940fcc18.xz
 
-Does this count as a regression? I can't find documentation for this 
-escaping feature anywhere, even as it pertains to the non-comma characters 
-'\\' and ':' (which, I've tested, can still be escaped as expected), so 
-perhaps it was never properly supported? But a search for escaping commas 
-in overlayfs turns up resources like [this post][2], suggesting that there 
-are others who figured this out and expect it to work.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+e8628856801e9809216f@syzkaller.appspotmail.com
 
-[2]: https://unix.stackexchange.com/a/552640
+======================================================
+WARNING: possible circular locking dependency detected
+6.6.0-rc2-next-20230921-syzkaller #0 Not tainted
+------------------------------------------------------
+syz-executor.3/15498 is trying to acquire lock:
+ffff88808e717968 (&ovl_i_lock_key[depth]#2){+.+.}-{3:3}, at: ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:630 [inline]
+ffff88808e717968 (&ovl_i_lock_key[depth]#2){+.+.}-{3:3}, at: ovl_copy_up_start+0x4d/0x290 fs/overlayfs/util.c:692
 
-Is there a new way to escape commas for overlayfs options?
+but task is already holding lock:
+ffff88801d8b13e0 (&iint->mutex){+.+.}-{3:3}, at: process_measurement+0x893/0x1cc0 security/integrity/ima/ima_main.c:266
 
-Thanks,
-Ryan
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&iint->mutex){+.+.}-{3:3}:
+       __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+       __mutex_lock+0x181/0x1340 kernel/locking/mutex.c:747
+       process_measurement+0x893/0x1cc0 security/integrity/ima/ima_main.c:266
+       ima_file_check+0xc2/0x110 security/integrity/ima/ima_main.c:543
+       do_open fs/namei.c:3622 [inline]
+       path_openat+0x17a1/0x29c0 fs/namei.c:3777
+       do_filp_open+0x1de/0x430 fs/namei.c:3804
+       do_sys_openat2+0x176/0x1e0 fs/open.c:1422
+       do_sys_open fs/open.c:1437 [inline]
+       __do_sys_open fs/open.c:1445 [inline]
+       __se_sys_open fs/open.c:1441 [inline]
+       __x64_sys_open+0x154/0x1e0 fs/open.c:1441
+       do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+       do_syscall_64+0x38/0xb0 arch/x86/entry/common.c:81
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #1 (sb_writers#4){.+.+}-{0:0}:
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1572 [inline]
+       sb_start_write include/linux/fs.h:1647 [inline]
+       ovl_start_write+0xfe/0x2d0 fs/overlayfs/util.c:31
+       ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:830 [inline]
+       ovl_do_copy_up fs/overlayfs/copy_up.c:945 [inline]
+       ovl_copy_up_one+0x16a5/0x3250 fs/overlayfs/copy_up.c:1137
+       ovl_copy_up_flags+0x189/0x200 fs/overlayfs/copy_up.c:1192
+       ovl_xattr_set+0x387/0x4e0 fs/overlayfs/xattrs.c:56
+       __vfs_setxattr+0x173/0x1d0 fs/xattr.c:201
+       __vfs_setxattr_noperm+0x127/0x5e0 fs/xattr.c:235
+       __vfs_setxattr_locked+0x17e/0x250 fs/xattr.c:296
+       vfs_setxattr+0x146/0x350 fs/xattr.c:322
+       do_setxattr+0x142/0x170 fs/xattr.c:630
+       setxattr+0x159/0x170 fs/xattr.c:653
+       path_setxattr+0x1a3/0x1d0 fs/xattr.c:672
+       __do_sys_setxattr fs/xattr.c:688 [inline]
+       __se_sys_setxattr fs/xattr.c:684 [inline]
+       __x64_sys_setxattr+0xc4/0x160 fs/xattr.c:684
+       do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+       do_syscall_64+0x38/0xb0 arch/x86/entry/common.c:81
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+-> #0 (&ovl_i_lock_key[depth]#2){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3134 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3253 [inline]
+       validate_chain kernel/locking/lockdep.c:3868 [inline]
+       __lock_acquire+0x2e3d/0x5de0 kernel/locking/lockdep.c:5136
+       lock_acquire kernel/locking/lockdep.c:5753 [inline]
+       lock_acquire+0x1ae/0x510 kernel/locking/lockdep.c:5718
+       __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+       __mutex_lock+0x181/0x1340 kernel/locking/mutex.c:747
+       ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:630 [inline]
+       ovl_copy_up_start+0x4d/0x290 fs/overlayfs/util.c:692
+       ovl_copy_up_one+0x598/0x3250 fs/overlayfs/copy_up.c:1130
+       ovl_copy_up_flags+0x189/0x200 fs/overlayfs/copy_up.c:1192
+       ovl_maybe_copy_up+0x124/0x160 fs/overlayfs/copy_up.c:1222
+       ovl_open+0x16f/0x330 fs/overlayfs/file.c:166
+       do_dentry_open+0x88b/0x1730 fs/open.c:929
+       vfs_open fs/open.c:1063 [inline]
+       dentry_open+0x13f/0x1d0 fs/open.c:1079
+       ima_calc_file_hash+0x2c4/0x4a0 security/integrity/ima/ima_crypto.c:558
+       ima_collect_measurement+0x5e2/0x6f0 security/integrity/ima/ima_api.c:289
+       process_measurement+0xc87/0x1cc0 security/integrity/ima/ima_main.c:345
+       ima_file_check+0xc2/0x110 security/integrity/ima/ima_main.c:543
+       do_open fs/namei.c:3622 [inline]
+       path_openat+0x17a1/0x29c0 fs/namei.c:3777
+       do_filp_open+0x1de/0x430 fs/namei.c:3804
+       do_sys_openat2+0x176/0x1e0 fs/open.c:1422
+       do_sys_open fs/open.c:1437 [inline]
+       __do_sys_openat fs/open.c:1453 [inline]
+       __se_sys_openat fs/open.c:1448 [inline]
+       __x64_sys_openat+0x175/0x210 fs/open.c:1448
+       do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+       do_syscall_64+0x38/0xb0 arch/x86/entry/common.c:81
+       entry_SYSCALL_64_after_hwframe+0x63/0xcd
+
+other info that might help us debug this:
+
+Chain exists of:
+  &ovl_i_lock_key[depth]#2 --> sb_writers#4 --> &iint->mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&iint->mutex);
+                               lock(sb_writers#4);
+                               lock(&iint->mutex);
+  lock(&ovl_i_lock_key[depth]#2);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor.3/15498:
+ #0: ffff88801d8b13e0 (&iint->mutex){+.+.}-{3:3}, at: process_measurement+0x893/0x1cc0 security/integrity/ima/ima_main.c:266
+
+stack backtrace:
+CPU: 0 PID: 15498 Comm: syz-executor.3 Not tainted 6.6.0-rc2-next-20230921-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/04/2023
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x1b0 lib/dump_stack.c:106
+ check_noncircular+0x311/0x3f0 kernel/locking/lockdep.c:2187
+ check_prev_add kernel/locking/lockdep.c:3134 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3253 [inline]
+ validate_chain kernel/locking/lockdep.c:3868 [inline]
+ __lock_acquire+0x2e3d/0x5de0 kernel/locking/lockdep.c:5136
+ lock_acquire kernel/locking/lockdep.c:5753 [inline]
+ lock_acquire+0x1ae/0x510 kernel/locking/lockdep.c:5718
+ __mutex_lock_common kernel/locking/mutex.c:603 [inline]
+ __mutex_lock+0x181/0x1340 kernel/locking/mutex.c:747
+ ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:630 [inline]
+ ovl_copy_up_start+0x4d/0x290 fs/overlayfs/util.c:692
+ ovl_copy_up_one+0x598/0x3250 fs/overlayfs/copy_up.c:1130
+ ovl_copy_up_flags+0x189/0x200 fs/overlayfs/copy_up.c:1192
+ ovl_maybe_copy_up+0x124/0x160 fs/overlayfs/copy_up.c:1222
+ ovl_open+0x16f/0x330 fs/overlayfs/file.c:166
+ do_dentry_open+0x88b/0x1730 fs/open.c:929
+ vfs_open fs/open.c:1063 [inline]
+ dentry_open+0x13f/0x1d0 fs/open.c:1079
+ ima_calc_file_hash+0x2c4/0x4a0 security/integrity/ima/ima_crypto.c:558
+ ima_collect_measurement+0x5e2/0x6f0 security/integrity/ima/ima_api.c:289
+ process_measurement+0xc87/0x1cc0 security/integrity/ima/ima_main.c:345
+ ima_file_check+0xc2/0x110 security/integrity/ima/ima_main.c:543
+ do_open fs/namei.c:3622 [inline]
+ path_openat+0x17a1/0x29c0 fs/namei.c:3777
+ do_filp_open+0x1de/0x430 fs/namei.c:3804
+ do_sys_openat2+0x176/0x1e0 fs/open.c:1422
+ do_sys_open fs/open.c:1437 [inline]
+ __do_sys_openat fs/open.c:1453 [inline]
+ __se_sys_openat fs/open.c:1448 [inline]
+ __x64_sys_openat+0x175/0x210 fs/open.c:1448
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x38/0xb0 arch/x86/entry/common.c:81
+ entry_SYSCALL_64_after_hwframe+0x63/0xcd
+RIP: 0033:0x7f30bf67cae9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f30c03990c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000101
+RAX: ffffffffffffffda RBX: 00007f30bf79c050 RCX: 00007f30bf67cae9
+RDX: 0000000000008443 RSI: 0000000020004280 RDI: ffffffffffffff9c
+RBP: 00007f30bf6c847a R08: 0000000000000000 R09: 0000000000000000
+R10: 00000000000000cc R11: 0000000000000246 R12: 0000000000000000
+R13: 000000000000006e R14: 00007f30bf79c050 R15: 00007ffce77ebe68
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the bug is already fixed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite bug's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the bug is a duplicate of another bug, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
