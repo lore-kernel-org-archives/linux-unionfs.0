@@ -2,282 +2,277 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FE81E71D2A
-	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Sep 2023 12:40:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17FEEE728C5
+	for <linux-unionfs@archiver.kernel.org>; Fri, 29 Sep 2023 16:48:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233093AbjI2MkD (ORCPT
+        id S233147AbjI2Qss (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 29 Sep 2023 08:40:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35106 "EHLO
+        Fri, 29 Sep 2023 12:48:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232977AbjI2MkC (ORCPT
+        with ESMTP id S232748AbjI2Qsr (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 29 Sep 2023 08:40:02 -0400
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDF1BB7;
-        Fri, 29 Sep 2023 05:39:59 -0700 (PDT)
-Received: from pps.filterd (m0353722.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 38TCKj9e007376;
-        Fri, 29 Sep 2023 12:39:52 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- mime-version : subject : to : cc : references : from : in-reply-to :
- content-type : content-transfer-encoding; s=pp1;
- bh=b8liECuubWj23+OOyOhbTwvv0iXmphxxC6jfRERxOyA=;
- b=F8g/4G9AOZpeGwOBWd4+f+yzQ65ErTl0ClzPJuztCPhjo2HsK5g2PqfKfOqfSfwgL9dY
- kkj8X8y3mMbdG6W4yoc38V6JypymwC0L99UHfQ11JIihcIh2R8xSDRDliibEs2c4JK2b
- kAxgyd2TwRnqqZPFmRk8+tMm1Qn52omK01K1uvFaRHES20gDtRUnbi6hJVETjCVU6Nco
- ppdiO7oUfMfAiNpPLh24teeHizHEIbOoBArbS7MRdp3fkWneDl75xilJWI+B9kMwGGIj
- jpIgpkLCioFZR52GlwqEWXCYTd67P3V4fIgoxeTE2YoP0+usZw7akPMlTFQRwJFBrWQz bg== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3tdxgp8m14-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 29 Sep 2023 12:39:52 +0000
-Received: from m0353722.ppops.net (m0353722.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 38TCKs0W007821;
-        Fri, 29 Sep 2023 12:39:51 GMT
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3tdxgp8m0k-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 29 Sep 2023 12:39:51 +0000
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-        by ppma12.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 38TBLBeJ008427;
-        Fri, 29 Sep 2023 12:39:50 GMT
-Received: from smtprelay04.wdc07v.mail.ibm.com ([172.16.1.71])
-        by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 3taabtcyrm-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 29 Sep 2023 12:39:50 +0000
-Received: from smtpav03.dal12v.mail.ibm.com (smtpav03.dal12v.mail.ibm.com [10.241.53.102])
-        by smtprelay04.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 38TCdnPS32244270
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 29 Sep 2023 12:39:50 GMT
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id AF10F58056;
-        Fri, 29 Sep 2023 12:39:49 +0000 (GMT)
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id F14A05803F;
-        Fri, 29 Sep 2023 12:39:48 +0000 (GMT)
-Received: from [9.47.158.152] (unknown [9.47.158.152])
-        by smtpav03.dal12v.mail.ibm.com (Postfix) with ESMTPS;
-        Fri, 29 Sep 2023 12:39:48 +0000 (GMT)
-Message-ID: <99294acf-7275-8f4d-a129-d5df208b7b2a@linux.ibm.com>
-Date:   Fri, 29 Sep 2023 08:39:48 -0400
+        Fri, 29 Sep 2023 12:48:47 -0400
+Received: from mail-lj1-x22c.google.com (mail-lj1-x22c.google.com [IPv6:2a00:1450:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 089D41A4
+        for <linux-unionfs@vger.kernel.org>; Fri, 29 Sep 2023 09:48:45 -0700 (PDT)
+Received: by mail-lj1-x22c.google.com with SMTP id 38308e7fff4ca-2c1886777d9so52594831fa.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 29 Sep 2023 09:48:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1696006123; x=1696610923; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=1jnYTA/sVS+Z8Orhdi2AQdhdCY0rlD66I6Sde9ZBPos=;
+        b=DUcFKQN6xX4sKpcFE3RndtownIcN42pEKxOjxLGKpd7tslmm7FWDisCx2YyZ2AUyW0
+         hY7PNkCB7wytKNvBckH91THtilzeNJKFz/y6oZX1fRYCbj2csRJuXxiMpyI80nj8mfHb
+         XlW95EdNwR7ks/7K9jL6jlhRdGifxWPPYE04Y=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696006123; x=1696610923;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1jnYTA/sVS+Z8Orhdi2AQdhdCY0rlD66I6Sde9ZBPos=;
+        b=B7IoLSWRYpVFwjhvAGeBRVTSQKrbFQy3DmDSZFFQaLsQqJ6wJBxm6Hm0QP8PjrfCJ9
+         /zXHAZk5BYLcFduIcWFxikcPk8t7Glalp1YVmND3d7kPVmKQBci5YofUguK010SzIrt8
+         A3b/WXn0nSbwTNVKNujumOD/Yrxkfs0rIQDLj6a4uIWpc3oGBOlCabJz0R+3kpRYMHCe
+         TuJpTyg91NuP4MGq7snbZmcyDPQKtkccPzyLb06Eq6Xu3X0EHVtLALda1tQPbSWXxXgS
+         1Erqb8JdCf5/b5Un6mqiFJtBvGU3GTW8wCchV8yqeeL+L6iD9VJyi4OiNIkghkmCp/Lc
+         t/gA==
+X-Gm-Message-State: AOJu0Yxu8ezEizDYetsEWvzCeAIf74FKrHUvEa0bpmjrp5MdWDkhNDWi
+        LfUbMvn/0m4EFRfkA1PtJcwvymIB1yRu5y3TkQbibef6/Sk=
+X-Google-Smtp-Source: AGHT+IEO/Ktuv0xaj9+CSQsCxEmxr2EhgogPq+e5ZVhS7sI7TXB85rdhzUsYlJ+/jlnZEVWYDPICqg==
+X-Received: by 2002:a2e:9d8f:0:b0:2ba:8127:a2c3 with SMTP id c15-20020a2e9d8f000000b002ba8127a2c3mr4515920ljj.34.1696006123031;
+        Fri, 29 Sep 2023 09:48:43 -0700 (PDT)
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com. [209.85.167.49])
+        by smtp.gmail.com with ESMTPSA id l6-20020a2e7006000000b002b6e77e87fcsm3987385ljc.68.2023.09.29.09.48.42
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 29 Sep 2023 09:48:42 -0700 (PDT)
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-503056c8195so23219898e87.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 29 Sep 2023 09:48:42 -0700 (PDT)
+X-Received: by 2002:a17:907:2722:b0:9a1:cdf1:ba3 with SMTP id
+ d2-20020a170907272200b009a1cdf10ba3mr4628345ejl.27.1696004552316; Fri, 29 Sep
+ 2023 09:22:32 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.13.0
-Subject: Re: [syzbot] [integrity] [overlayfs] general protection fault in
- d_path
-Content-Language: en-US
+References: <20230928110554.34758-1-jlayton@kernel.org> <20230928110554.34758-2-jlayton@kernel.org>
+ <6020d6e7-b187-4abb-bf38-dc09d8bd0f6d@app.fastmail.com> <af047e4a1c6947c59d4a13d4ae221c784a5386b4.camel@kernel.org>
+ <20230928171943.GK11439@frogsfrogsfrogs> <6a6f37d16b55a3003af3f3dbb7778a367f68cd8d.camel@kernel.org>
+ <20230928212656.GC189345@mit.edu> <CAHk-=wjTynK9BdGbi+8eShU77nkPvipFwRxEd1TSBrw2+LiuDg@mail.gmail.com>
+ <CAOQ4uxg5ctY9yCjLOjN1nETAcEuNb2UERnYuDv7PoErdxX=WUw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxg5ctY9yCjLOjN1nETAcEuNb2UERnYuDv7PoErdxX=WUw@mail.gmail.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Fri, 29 Sep 2023 09:22:14 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wjTZ=6QkE_eksL+kzywj2cA_kiY-ydZKoz-+kBQwtNWwQ@mail.gmail.com>
+Message-ID: <CAHk-=wjTZ=6QkE_eksL+kzywj2cA_kiY-ydZKoz-+kBQwtNWwQ@mail.gmail.com>
+Subject: Re: [PATCH 86/87] fs: switch timespec64 fields in inode to discrete integers
 To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Jeff Layton <jlayton@kernel.org>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>,
-        linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-References: <000000000000259bd8060596e33f@google.com>
- <bed99e92-cb7c-868d-94f3-ddf53e2b262a@linux.ibm.com>
- <8a65f5eb-2b59-9903-c6b8-84971f8765ae@linux.ibm.com>
- <ab7df5e93b5493de5fa379ccab48859fe953d7ae.camel@kernel.org>
- <b16550ac-f589-c5d7-e139-d585e8771cfd@linux.ibm.com>
- <00dbd1e7-dfc8-86bc-536f-264a929ebb35@linux.ibm.com>
- <94b4686a-fee8-c545-2692-b25285b9a152@schaufler-ca.com>
- <d59d40426c388789c195d94e7e72048ef45fec5e.camel@kernel.org>
- <7caa3aa06cc2d7f8d075306b92b259dab3e9bc21.camel@linux.ibm.com>
- <20230921-gedanken-salzwasser-40d25b921162@brauner>
- <28997978-0b41-9bf3-8f62-ce422425f672@linux.ibm.com>
- <CAOQ4uxie6xT5mmCcCwYtnEvra37eSeFftXfxaTULfdJnk1VcXQ@mail.gmail.com>
-From:   Stefan Berger <stefanb@linux.ibm.com>
-In-Reply-To: <CAOQ4uxie6xT5mmCcCwYtnEvra37eSeFftXfxaTULfdJnk1VcXQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 1vfEUxnPLtm5xmJC0Mcipygy0Q5pxN75
-X-Proofpoint-ORIG-GUID: up8I5SbR5DxVm9z6dZkBxWV6pb7_qm87
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.267,Aquarius:18.0.980,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-09-29_10,2023-09-28_03,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 impostorscore=0
- phishscore=0 spamscore=0 mlxlogscore=999 bulkscore=0 suspectscore=0
- clxscore=1015 lowpriorityscore=0 priorityscore=1501 mlxscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2309180000 definitions=main-2309290107
+Cc:     "Theodore Ts'o" <tytso@mit.edu>, Jeff Layton <jlayton@kernel.org>,
+        "Darrick J. Wong" <djwong@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>,
+        David Sterba <dsterba@suse.cz>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Kees Cook <keescook@chromium.org>, Jeremy Kerr <jk@ozlabs.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Todd Kjos <tkjos@android.com>,
+        Martijn Coenen <maco@android.com>,
+        Joel Fernandes <joel@joelfernandes.org>,
+        Carlos Llamas <cmllamas@google.com>,
+        Suren Baghdasaryan <surenb@google.com>,
+        Mattia Dongili <malattia@linux.it>,
+        Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Leon Romanovsky <leon@kernel.org>,
+        Brad Warrum <bwarrum@linux.ibm.com>,
+        Ritu Agarwal <rituagar@linux.ibm.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        Mark Gross <markgross@kernel.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Eric Van Hensbergen <ericvh@kernel.org>,
+        Latchesar Ionkov <lucho@ionkov.net>,
+        Dominique Martinet <asmadeus@codewreck.org>,
+        Christian Schoenebeck <linux_oss@crudebyte.com>,
+        David Sterba <dsterba@suse.com>,
+        David Howells <dhowells@redhat.com>,
+        Marc Dionne <marc.dionne@auristor.com>,
+        Ian Kent <raven@themaw.net>,
+        Luis de Bethencourt <luisbg@kernel.org>,
+        Salah Triki <salah.triki@gmail.com>,
+        "Tigran A. Aivazian" <aivazian.tigran@gmail.com>,
+        Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>,
+        Xiubo Li <xiubli@redhat.com>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Jan Harkes <jaharkes@cs.cmu.edu>, coda@cs.cmu.edu,
+        Joel Becker <jlbec@evilplan.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        "Rafael J . Wysocki" <rafael@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>, Gao Xiang <xiang@kernel.org>,
+        Chao Yu <chao@kernel.org>,
+        Yue Hu <huyue2@gl0jj8bn.sched.sma.tdnsstic1.cn>,
+        Jeffle Xu <jefflexu@linux.alibaba.com>,
+        Namjae Jeon <linkinjeon@kernel.org>,
+        Sungjong Seo <sj1557.seo@samsung.com>,
+        Jan Kara <jack@suse.com>,
+        Andreas Dilger <adilger.kernel@dilger.ca>,
+        Jaegeuk Kim <jaegeuk@kernel.org>,
+        OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>,
+        Christoph Hellwig <hch@infradead.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Bob Peterson <rpeterso@redhat.com>,
+        Andreas Gruenbacher <agruenba@redhat.com>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Muchun Song <muchun.song@linux.dev>, Jan Kara <jack@suse.cz>,
+        David Woodhouse <dwmw2@infradead.org>,
+        Dave Kleikamp <shaggy@kernel.org>, Tejun Heo <tj@kernel.org>,
+        Trond Myklebust <trond.myklebust@hammerspace.com>,
+        Anna Schumaker <anna@kernel.org>,
+        Chuck Lever <chuck.lever@oracle.com>,
+        Neil Brown <neilb@suse.de>,
+        Olga Kornievskaia <kolga@netapp.com>,
+        Dai Ngo <Dai.Ngo@oracle.com>, Tom Talpey <tom@talpey.com>,
+        Ryusuke Konishi <konishi.ryusuke@gmail.com>,
+        Anton Altaparmakov <anton@tuxera.com>,
+        Konstantin Komarov <almaz.alexandrovich@paragon-software.com>,
+        Mark Fasheh <mark@fasheh.com>,
+        Joseph Qi <joseph.qi@linux.alibaba.com>,
+        Bob Copeland <me@bobcopeland.com>,
+        Mike Marshall <hubcap@omnibond.com>,
+        Martin Brandenburg <martin@omnibond.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Iurii Zaikin <yzaikin@google.com>,
+        Tony Luck <tony.luck@intel.com>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Anders Larsen <al@alarsen.net>,
+        Steve French <sfrench@samba.org>,
+        Paulo Alcantara <pc@manguebit.com>,
+        Ronnie Sahlberg <lsahlber@redhat.com>,
+        Shyam Prasad N <sprasad@microsoft.com>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Phillip Lougher <phillip@squashfs.org.uk>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Evgeniy Dushistov <dushistov@mail.ru>,
+        Chandan Babu R <chandan.babu@oracle.com>,
+        Damien Le Moal <dlemoal@kernel.org>,
+        Naohiro Aota <naohiro.aota@wdc.com>,
+        Johannes Thumshirn <jth@kernel.org>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        Song Liu <song@kernel.org>,
+        Yonghong Song <yonghong.song@linux.dev>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Hao Luo <haoluo@google.com>, Jiri Olsa <jolsa@kernel.org>,
+        Hugh Dickins <hughd@google.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        John Johansen <john.johansen@canonical.com>,
+        Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Stephen Smalley <stephen.smalley.work@gmail.com>,
+        Eric Paris <eparis@parisplace.org>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-rdma@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-usb@vger.kernel.org, v9fs@lists.linux.dev,
+        linux-afs@lists.infradead.org, autofs@vger.kernel.org,
+        linux-btrfs@vger.kernel.org, ceph-devel@vger.kernel.org,
+        codalist@telemann.coda.cs.cmu.edu, linux-efi@vger.kernel.org,
+        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
+        linux-f2fs-devel@lists.sourceforge.net, gfs2@lists.linux.dev,
+        linux-um@lists.infradead.org, linux-mtd@lists.infradead.org,
+        jfs-discussion@lists.sourceforge.net, linux-nfs@vger.kernel.org,
+        linux-nilfs@vger.kernel.org, linux-ntfs-dev@lists.sourceforge.net,
+        ntfs3@lists.linux.dev, ocfs2-devel@lists.linux.dev,
+        linux-karma-devel@lists.sourceforge.net, devel@lists.orangefs.org,
+        linux-unionfs@vger.kernel.org, linux-hardening@vger.kernel.org,
+        reiserfs-devel@vger.kernel.org, linux-cifs@vger.kernel.org,
+        samba-technical@lists.samba.org,
+        linux-trace-kernel@vger.kernel.org, linux-xfs@vger.kernel.org,
+        bpf@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
+        apparmor@lists.ubuntu.com, linux-security-module@vger.kernel.org,
+        selinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Thu, 28 Sept 2023 at 20:50, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> OTOH, it is perfectly fine if the vfs wants to stop providing sub 100ns
+> services to filesystems. It's just going to be the fs problem and the
+> preserved pre-historic/fine-grained time on existing files would only
+> need to be provided in getattr(). It does not need to be in __i_mtime.
 
-On 9/29/23 00:25, Amir Goldstein wrote:
-> On Fri, Sep 29, 2023 at 3:02 AM Stefan Berger <stefanb@linux.ibm.com> wrote:
->>
->> On 9/21/23 07:48, Christian Brauner wrote:
->>> Imho, this is all very wild but I'm not judging.
->>>
->>> Two solutions imho:
->>> (1) teach stacking filesystems like overlayfs and ecryptfs to use
->>>       vfs_getattr_nosec() in their ->getattr() implementation when they
->>>       are themselves called via vfs_getattr_nosec(). This will fix this by
->>>       not triggering another LSM hook.
->>
->> You can avoid all this churn.
->> Just use the existing query_flags arg.
->> Nothing outside the AT_STATX_SYNC_TYPE query_flags is
->> passed into filesystems from userspace.
->>
->> Mast out AT_STATX_SYNC_TYPE in vfs_getattr()
->> And allow kernel internal request_flags in vfs_getattr_nosec()
-Hm, I thought that vfs_getattr_nosec needs to pass AT_GETATTR_NOSEC into 
-->getattr().
->>
->> The AT_ flag namespace is already a challenge, but mixing user
->> flags and kernel-only flags in vfs interfaces has been done before.
->>
->> ...
+Hmm. That sounds technically sane, but for one thing: if the aim is to try to do
 
+ (a) atomic timestamp access
 
-That's what I wanted to avoid since now all filesystems' getattr() may 
-have the AT_GETATTR_NOSEC mixed into the query_flags.
+ (b) shrink the inode
 
-Anyway, here's what I currently have:
+then having the filesystem maintain its own timestamp for fine-grained
+data will break both of those goals.
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index 992d9c7e64ae..f7b5b1843dcc 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -998,16 +998,28 @@ static int ecryptfs_getattr_link(struct mnt_idmap 
-*idmap,
-         return rc;
-  }
+Yes, we'd make 'struct inode' smaller if we pack the times into one
+64-bit entity, but if btrfs responds by adding mtime fields to "struct
+btrfs_inode", we lost the size advantage and only made things worse.
 
-+static int ecryptfs_do_getattr(bool nosec, const struct path *path,
-+                              struct kstat *stat, u32 request_mask,
-+                              unsigned int flags)
-+{
-+       if (nosec)
-+               return vfs_getattr_nosec(path, stat, request_mask, flags);
-+       return vfs_getattr(path, stat, request_mask, flags);
-+}
-+
-  static int ecryptfs_getattr(struct mnt_idmap *idmap,
-                             const struct path *path, struct kstat *stat,
-                             u32 request_mask, unsigned int flags)
-  {
-         struct dentry *dentry = path->dentry;
-         struct kstat lower_stat;
-+       bool nosec = flags & AT_GETATTR_NOSEC;
-         int rc;
+And if ->getattr() then reads those fields without locking (and we
+definitely don't want locking in that path), then we lost the
+atomicity thing too.
 
--       rc = vfs_getattr(ecryptfs_dentry_to_lower_path(dentry), &lower_stat,
--                        request_mask, flags);
-+       flags &= ~AT_INTERNAL_MASK;
-+
-+       rc = ecryptfs_do_getattr(nosec, 
-ecryptfs_dentry_to_lower_path(dentry),
-+                                &lower_stat, request_mask, flags);
-         if (!rc) {
-                 fsstack_copy_attr_all(d_inode(dentry),
-ecryptfs_inode_to_lower(d_inode(dentry)));
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 83ef66644c21..ec4ceb5b4ebf 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -166,12 +166,15 @@ int ovl_getattr(struct mnt_idmap *idmap, const 
-struct path *path,
-         int fsid = 0;
-         int err;
-         bool metacopy_blocks = false;
-+       bool nosec = flags & AT_GETATTR_NOSEC;
-+
-+       flags &= ~AT_INTERNAL_MASK;
+So no. A "but the filesystem can maintain finer granularity" model is
+not acceptable, I think.
 
-         metacopy_blocks = ovl_is_metacopy_dentry(dentry);
+If we do require nanoseconds for compatibility, what we could possibly
+do is say "we guarantee nanosecond values for *legacy* dates", and say
+that future dates use 100ns resolution. We'd define "legacy dates" to
+be the traditional 32-bit signed time_t.
 
-         type = ovl_path_real(dentry, &realpath);
-         old_cred = ovl_override_creds(dentry->d_sb);
--       err = vfs_getattr(&realpath, stat, request_mask, flags);
-+       err = ovl_do_getattr(nosec, &realpath, stat, request_mask, flags);
-         if (err)
-                 goto out;
+So with a 64-bit fstime_t, we'd have the "legacy format":
 
-@@ -196,8 +199,8 @@ int ovl_getattr(struct mnt_idmap *idmap, const 
-struct path *path,
-                                         (!is_dir ? STATX_NLINK : 0);
+ - top 32 bits are seconds, bottom 32 bits are ns
 
-                         ovl_path_lower(dentry, &realpath);
--                       err = vfs_getattr(&realpath, &lowerstat,
--                                         lowermask, flags);
-+                       err = ovl_do_getattr(nosec, &realpath, &lowerstat,
-+                                            lowermask, flags);
-                         if (err)
-                                 goto out;
+which gives us that ns format.
 
-@@ -249,8 +252,9 @@ int ovl_getattr(struct mnt_idmap *idmap, const 
-struct path *path,
+Then, because only 30 bits are needed for nanosecond resolution, we
+use the top two bits of that ns field as flags. '00' means that legacy
+format, and '01' would mean "we're not doing nanosecond resolution,
+we're doing 64ns resolution, and the low 6 bits of the ns field are
+actually bits 32-37 of the seconds field".
 
-                         ovl_path_lowerdata(dentry, &realpath);
-                         if (realpath.dentry) {
--                               err = vfs_getattr(&realpath, &lowerdatastat,
--                                                 lowermask, flags);
-+                               err = ovl_do_getattr(nosec, &realpath,
-+ &lowerdatastat, lowermask,
-+                                                    flags);
-                                 if (err)
-                                         goto out;
-                         } else {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 9817b2dcb132..cbee3ff3bab7 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -397,6 +397,15 @@ static inline bool ovl_open_flags_need_copy_up(int 
-flags)
-         return ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC));
-  }
+That still gives us some extensibility (unless the multi-grain code
+still wants to use the other top bit), and it gives us 40 bits of
+seconds, which is quite a lot.
 
-+static inline int ovl_do_getattr(bool nosec, const struct path *path,
-+                                struct kstat *stat, u32 request_mask,
-+                                unsigned int flags)
-+{
-+       if (nosec)
-+               return vfs_getattr_nosec(path, stat, request_mask, flags);
-+       return vfs_getattr(path, stat, request_mask, flags);
-+}
-+
-  /* util.c */
-  int ovl_want_write(struct dentry *dentry);
-  void ovl_drop_write(struct dentry *dentry);
-diff --git a/fs/stat.c b/fs/stat.c
-index d43a5cc1bfa4..3250e427e1aa 100644
---- a/fs/stat.c
-+++ b/fs/stat.c
-@@ -133,7 +133,8 @@ int vfs_getattr_nosec(const struct path *path, 
-struct kstat *stat,
-         idmap = mnt_idmap(path->mnt);
-         if (inode->i_op->getattr)
-                 return inode->i_op->getattr(idmap, path, stat,
--                                           request_mask, query_flags);
-+                                           request_mask,
-+                                           query_flags | AT_GETATTR_NOSEC);
+And all the conversion functions will be simple bit field
+manipulations, so there are no expensive ops here.
 
-         generic_fillattr(idmap, request_mask, inode, stat);
-         return 0;
-diff --git a/include/linux/fs.h b/include/linux/fs.h
-index b528f063e8ff..9069d6a301f0 100644
---- a/include/linux/fs.h
-+++ b/include/linux/fs.h
-@@ -2027,6 +2027,12 @@ struct super_operations {
-         void (*shutdown)(struct super_block *sb);
-  };
+Anyway, I agree with the "let's introduce the accessor functions
+first, we can do the 'pack into one word' decisions later".
 
-+/*
-+ * Internal query flags. See fcntl.h AT_xxx flags for the rest.
-+ */
-+#define AT_GETATTR_NOSEC               0x80000000
-+#define AT_INTERNAL_MASK               0x80000000
-+
-  /*
-   * Inode flags - they have no relation to superblock flags now
-   */
-
-
-
+                Linus
