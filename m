@@ -2,109 +2,151 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9273E748ED
-	for <linux-unionfs@archiver.kernel.org>; Sun,  1 Oct 2023 12:42:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54FDBE748E9
+	for <linux-unionfs@archiver.kernel.org>; Sun,  1 Oct 2023 12:43:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234947AbjJAMmc (ORCPT
+        id S234970AbjJAMnZ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 1 Oct 2023 08:42:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55164 "EHLO
+        Sun, 1 Oct 2023 08:43:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229556AbjJAMmc (ORCPT
+        with ESMTP id S229556AbjJAMnY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 1 Oct 2023 08:42:32 -0400
-Received: from mail-vs1-xe30.google.com (mail-vs1-xe30.google.com [IPv6:2607:f8b0:4864:20::e30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 85FF799;
-        Sun,  1 Oct 2023 05:42:29 -0700 (PDT)
-Received: by mail-vs1-xe30.google.com with SMTP id ada2fe7eead31-4527d65354bso6947166137.0;
-        Sun, 01 Oct 2023 05:42:29 -0700 (PDT)
+        Sun, 1 Oct 2023 08:43:24 -0400
+Received: from mail-ua1-x935.google.com (mail-ua1-x935.google.com [IPv6:2607:f8b0:4864:20::935])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3BB8494;
+        Sun,  1 Oct 2023 05:43:22 -0700 (PDT)
+Received: by mail-ua1-x935.google.com with SMTP id a1e0cc1a2514c-7ab68ef45e7so4639531241.3;
+        Sun, 01 Oct 2023 05:43:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696164148; x=1696768948; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1696164201; x=1696769001; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=5jNZUk6it4QYZxL9++dfSem+3+3rWlI5HjzgyYo8pK0=;
-        b=QW7qSeUBb3j7Gdn/8apKxD4EK6rf7xZUMDVgrhuGHZDaIdGai4xzW5WjoB/iQmLllp
-         56bFKYJ8OL4dQt/sZF0hAZeOaiIHEVO+WuTmg36+pAxT/Wsn354tpuQzWpsc2MhgegLX
-         UwdgKKuVdL/8nw4i6p1aSbxBsyjVzpiI6w8MslUpV/s/SdonvQlGXbg7hEsyV8tEeSdt
-         GkDorn34kROl0EEA5c3MnUC8tzRxoKOAtOyYjq/qS5SgUgs4x6FETUGstX3rFeDKMRmm
-         LCrSpLFAamGKcGePa1Fvp9E2aqDUvpftt4brniuz2PYx1BPHll/bQL9bGZ6lHy7OPZze
-         nJJA==
+        bh=IsSgA1yxS4COhTN+0/4fRoFWkqqUo+Lvf6slhyu7+e8=;
+        b=WN6kw0i2GYvUggVQ8u8Tyu78s7mgRKQV1VPqum4jlTJqVL5UyNjNmTuScBZkDXlEhy
+         ESqO3BFZBuVzpmDCpBzE5BnL5AgfWZqRS9e5WXJn24Cx6sn5jGUY1CXvMRuQrzoAduS2
+         h4DzGll8ZKgmc9DQrpyTaxqTDtU60yNGJ7zOaFz0S/KOdgS+mEyRtZTpsMCwhGwxBpp+
+         fLyubQMlH9NPQUtnyUp0p7ffeVg34R+tO2mBBN82bTmwyAcf2VjX6pWT5cUFm5mnc9MP
+         QPcZ4OCuzzW9eemqZhwUtd4F3jrwhoA4ydd7uZV15k2MQMFz9slzeTtHrvn9FNHNlYfG
+         ElHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696164148; x=1696768948;
+        d=1e100.net; s=20230601; t=1696164201; x=1696769001;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=5jNZUk6it4QYZxL9++dfSem+3+3rWlI5HjzgyYo8pK0=;
-        b=CggxPKW9CFeEWZDndwfN06VQTdC7Bq27HlfwKqaEKsZx6U72nA4kWzyv+10R/xanbI
-         3kBY5OvG6UBPpTDX/dKWdNmYWxKhq2LpPM0R9wGHYLOLIklc2/jQpSK3F/rXfhmYq8cV
-         ADku5gxiCEbSHjeLOFw9hkyrxzEliDi4sxNVYX8o9lARzOysfkWZMN6StQrpuyTlM8Cj
-         kk/ag8ep/rGQQWC9Ny4R1EB4gGPZqhLD22C7HMe4eEjmyckjlAIJdHWFsTV73oflrvmI
-         0a9mA7SWmXV+vruwv2wxCGkaSPD5k3F/HhBgFVoL4+mWnPSFwMRD3ovGtb0e+rOE73Xy
-         0ETg==
-X-Gm-Message-State: AOJu0YxIJPN4M1nRLtGlBKq/amMFKaO3WWrYFNpDvnFgFnw6TbreXnpw
-        YFacthAzZrQ8ZZvT5Eo3jWotQY2zMhqLl1C9CRXPXlb6qEc=
-X-Google-Smtp-Source: AGHT+IEJA2ncZm8jhxpgZ3oi1ko5qh9+rZ7SmY6VDQGTco+kpr6HcFITtAOrl4e5HDt9BClp+IyntgOPOXAjMUv0tzg=
-X-Received: by 2002:a05:6102:52a:b0:450:fcad:ff18 with SMTP id
- m10-20020a056102052a00b00450fcadff18mr7863898vsa.34.1696164148558; Sun, 01
- Oct 2023 05:42:28 -0700 (PDT)
+        bh=IsSgA1yxS4COhTN+0/4fRoFWkqqUo+Lvf6slhyu7+e8=;
+        b=DFAG2fF/AGBG0SvXNRsa5Sbot/qewUday3DGK4GYO3XNm0p4bah0NAgPS7LmGobhSX
+         D8Z3JmY2QaNqivgm4au+1cUqiCGp1sbDKd6oM0n1gdOW6djIRM10rTuAclKlVis9QpU2
+         bv2D2r4/QBd1dnV3nHbnjkftAuSyS0lqIjd/qxVSEbMzvbHIqwwLjbizP+YzRjV2HRx3
+         RUjBBKF3ipMYxZnyNWpoCnH15K7Lfo4Bz0m4n/7ShkGFDUILjDmYCLV5hUmlIwFIoPJ9
+         mq5uUNJM8Q5hLb7DIL5b/SIroTRoTMHDYK+DLWny7avrsWoeZ08OZdxznARv0xNCkd/+
+         1C9Q==
+X-Gm-Message-State: AOJu0YxfmFL/JctPgavE3ghQEpPNsxsndJQfNhvkU2UYPRM6xzotODVS
+        Q/cdd8pWIkoIVj1O2bu8n+YwZzp6LW+9UvVp8y4=
+X-Google-Smtp-Source: AGHT+IHLoIqVoFMImw62LXF07AY7rv46EBkcRuM5cZPHwSl4vU/BdOgU5kACZBzfM4/btedE2kpeooQ7Kjzd5AMHlsQ=
+X-Received: by 2002:a05:6102:51a:b0:44e:ac98:c65d with SMTP id
+ l26-20020a056102051a00b0044eac98c65dmr5433300vsa.27.1696164201225; Sun, 01
+ Oct 2023 05:43:21 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230928202834.47640-1-uvv.mail@gmail.com> <CAOQ4uxhx59ZnMbhLTL85M1VQta6AZ2oqe9gMQJcN1qiAzOu6tQ@mail.gmail.com>
- <9e57cce1-2eca-411d-98a4-3321823d8f3d@gmail.com>
-In-Reply-To: <9e57cce1-2eca-411d-98a4-3321823d8f3d@gmail.com>
+References: <20231001005710.58314-1-uvv.mail@gmail.com>
+In-Reply-To: <20231001005710.58314-1-uvv.mail@gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 1 Oct 2023 15:42:17 +0300
-Message-ID: <CAOQ4uxjawFZv_6NGKvmiVBfAL2eqExwXhunf=C-_yL3eAcD_gA@mail.gmail.com>
-Subject: Re: [PATCH] README: Update overlayfs URL
+Date:   Sun, 1 Oct 2023 15:43:10 +0300
+Message-ID: <CAOQ4uxh0GNo__uYe05niFLyJFhUQ6riRp9q6ySw0ftVY7YNwcw@mail.gmail.com>
+Subject: Re: [PATCH v2] README: Update overlayfs instructions
 To:     Vyacheslav Yurkov <uvv.mail@gmail.com>
 Cc:     fstests@vger.kernel.org, Zorro Lang <zlang@kernel.org>,
-        linux-unionfs@vger.kernel.org,
-        Gao Xiang <hsiangkao@linux.alibaba.com>,
-        Jingbo Xu <jefflexu@linux.alibaba.com>,
-        "zhangyi (F)" <yi.zhang@huawei.com>
+        linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Oct 1, 2023 at 3:41=E2=80=AFAM Vyacheslav Yurkov <uvv.mail@gmail.co=
+On Sun, Oct 1, 2023 at 3:58=E2=80=AFAM Vyacheslav Yurkov <uvv.mail@gmail.co=
 m> wrote:
 >
-> On 29.09.2023 05:16, Amir Goldstein wrote:
-> > On Thu, Sep 28, 2023 at 11:30=E2=80=AFPM Vyacheslav Yurkov <uvv.mail@gm=
-ail.com> wrote:
-> >> Overlayfs-tools and overlayfs-progs projects have been merged together=
-.
-> >>
-> > Nice :)
-> >
-> > Do you also have any plans to improve the tools?
+> Overlayfs-tools and overlayfs-progs projects have been merged together.
 >
-> Thanks for the review!
-> I'll move the instructions completely to README.overlay in V2 then. Is
-> there a particular reason that the file starts from an empty line?
+> Signed-off-by: Vyacheslav Yurkov <uvv.mail@gmail.com>
 
-No reason.
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-> (perhaps I could remove that as well in the same patch)
+> ---
+>  README         | 12 ------------
+>  README.overlay |  9 ++++++++-
+>  2 files changed, 8 insertions(+), 13 deletions(-)
 >
-
-OK.
-
-> Right now the plan was only to maintain both projects and accept patches
-> from others. Perhaps I will also update the build system to something
-> up-to-date. As for further development, unfortunately I don't have a
-> project behind ATM to improve the tools further. If something pops up
-> (or you have something), I could try to find a capacity for that.
-
-Gao was asking about an offline merge tool, so I pointed him
-at overlayfs-tools:
-
-https://lore.kernel.org/linux-unionfs/bc9b3731-9eac-28be-e635-44a098e87d76@=
-linux.alibaba.com/
-
-Maybe he can explain what features in specific he was looking for.
-
-Thanks,
-Amir.
+> diff --git a/README b/README
+> index d9db9675..e0dabe96 100644
+> --- a/README
+> +++ b/README
+> @@ -18,9 +18,6 @@ Ubuntu or Debian
+>     $ sudo apt-get install exfatprogs f2fs-tools ocfs2-tools udftools xfs=
+dump \
+>          xfslibs-dev
+>
+> -   For OverlayFS install:
+> -    - see https://github.com/hisilicon/overlayfs-progs
+> -
+>  Fedora
+>  ------
+>
+> @@ -36,9 +33,6 @@ Fedora
+>      $ sudo yum install btrfs-progs exfatprogs f2fs-tools ocfs2-tools xfs=
+dump \
+>          xfsprogs-devel
+>
+> -   For OverlayFS build and install:
+> -    - see https://github.com/hisilicon/overlayfs-progs
+> -
+>  RHEL or CentOS
+>  --------------
+>
+> @@ -74,9 +68,6 @@ RHEL or CentOS
+>      For ocfs2 build and install:
+>       - see https://github.com/markfasheh/ocfs2-tools
+>
+> -    For OverlayFS build and install:
+> -     - see https://github.com/hisilicon/overlayfs-progs
+> -
+>  SUSE Linux Enterprise or openSUSE
+>  ---------------------------------
+>
+> @@ -94,9 +85,6 @@ SUSE Linux Enterprise or openSUSE
+>      For XFS install:
+>       $ sudo zypper install xfsdump xfsprogs-devel
+>
+> -    For OverlayFS build and install:
+> -     - see https://github.com/hisilicon/overlayfs-progs
+> -
+>  Build and install test, libs and utils
+>  --------------------------------------
+>
+> diff --git a/README.overlay b/README.overlay
+> index ec4671c3..3093bf8c 100644
+> --- a/README.overlay
+> +++ b/README.overlay
+> @@ -1,4 +1,3 @@
+> -
+>  To run xfstest on overlayfs, configure the variables of TEST and SCRATCH
+>  partitions to be used as the "base fs" and run './check -overlay'.
+>
+> @@ -69,3 +68,11 @@ UNIONMOUNT_TESTSUITE to the local path where the repos=
+itory was cloned.
+>
+>  Run './check -overlay -g overlay/union' to execute all the unionmount te=
+stsuite
+>  test cases.
+> +
+> +
+> +Overlayfs Tools
+> +=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> +
+> +A few tests require additional tools. For fsck.overlay [optional],
+> +build and install:
+> +  https://github.com/kmxz/overlayfs-tools
+> --
+> 2.35.1
+>
