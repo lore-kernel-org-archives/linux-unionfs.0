@@ -2,321 +2,228 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C29DE748ED
-	for <linux-unionfs@archiver.kernel.org>; Sun,  1 Oct 2023 14:52:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1D40E784AC
+	for <linux-unionfs@archiver.kernel.org>; Mon,  2 Oct 2023 12:04:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235123AbjJAOwG (ORCPT
+        id S236790AbjJBME1 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 1 Oct 2023 10:52:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36720 "EHLO
+        Mon, 2 Oct 2023 08:04:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41828 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230173AbjJAOwF (ORCPT
+        with ESMTP id S236710AbjJBME0 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 1 Oct 2023 10:52:05 -0400
-Received: from mail-vs1-xe36.google.com (mail-vs1-xe36.google.com [IPv6:2607:f8b0:4864:20::e36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07673D8;
-        Sun,  1 Oct 2023 07:52:03 -0700 (PDT)
-Received: by mail-vs1-xe36.google.com with SMTP id ada2fe7eead31-452863742f3so7471945137.1;
-        Sun, 01 Oct 2023 07:52:02 -0700 (PDT)
+        Mon, 2 Oct 2023 08:04:26 -0400
+Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9011BD7;
+        Mon,  2 Oct 2023 05:04:22 -0700 (PDT)
+Received: by mail-lj1-x231.google.com with SMTP id 38308e7fff4ca-2bffa8578feso262154441fa.2;
+        Mon, 02 Oct 2023 05:04:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696171922; x=1696776722; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=oiVJrZTOoMF15rNCLrRoY/wfDOcC5GrLWKtrwYlzTwU=;
-        b=AIA3yhIOO4AVU0yc5QpEeOOdfoh6Jb64y7ijorefISaSIoj18Mn/Ju9pGgyQGPqtYB
-         RJYQOWfHwZqNxwTS4MV0bTBMpvD7m8KHRBy4uZY+5JCbx8d+JR0iwkaoVcSEvR8z4EkP
-         ycRNQDVM1lRbsM/F9baxn0Eeqqz46jjz+PM4vmPCbwMtei4jbhgxPKS3pXr98tJ3UMFs
-         nH0PszZ5YgTt4rXEaywa1B2Eon2astiymRGp7uxo8jpRZdY3uzkPh9iGyuOX4myHSZzn
-         Iij/C9+ARa3o/jFAXoyfBgvIArSUxSxMuZqQtVLXEEoiNO77u6KJNn3I1iXGeobXfJjA
-         wnrQ==
+        d=gmail.com; s=20230601; t=1696248261; x=1696853061; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=IGACCsg3UM6EsxzbZiA0PNBwClTCH2lKbZ4vIrPYp88=;
+        b=jsQFfozjoKrdLnNo+X4itPRvuTaNI/Ox56+aMbqjkUeC0ziQTVcy/6xP6IRMfdVhTY
+         ICIDF+bvAoXBpyYxZtfOFGzMhUOYQ0BXA/oJVXmsVIeE3NeIAQYU/HVWj57yfclWskm4
+         amU6i12RkcuvxQFOe7bJak6wIg2SDcz5L+WJ1NmdSRzfQcH4a0paqChKRtsD6xFzTeA7
+         7WZwLaGdYZENqd9Qb6AdnxY/uf/ZF1fDtcrcXjEgheGqwJ0URNjnOimYvhSV8b8wss+E
+         5stGMRpev5lGahzlOlKG5ONZTIyrG+rU7+ZNjBvY5y7cJInkFqOLmET4XI5X16kz14+X
+         UTUA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696171922; x=1696776722;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=oiVJrZTOoMF15rNCLrRoY/wfDOcC5GrLWKtrwYlzTwU=;
-        b=hEiqOElJ85PW2bNukadmohemj/yrqIreYWKgZJ8g5JYsCQ0reurL4BbURFteFGXdNW
-         +/HjL/6ABGyxGjOb5NhPrqQGPiDba4TBbZsc/22eca73qNjN2d6ASo6A55zPQooL/fZ6
-         YMYh7amG3cF4e/1E3jEDukLsAZRbuMSuTc3vgTXemWSM3nSVuYGGxboyxq2i1197Yk3s
-         iyF/p17HiAtXdFsh6NCxagsCf6P86e47Cvs5zbXnQ9Vl+RcuAd3sZb25K8bHs/LutMlK
-         fieuKwq37kbr7Vk1GtzXGa2J+f7gqN9S1T52LnLcsDZLzZOoycjLYhLDVWzPusQ1noc/
-         bTrA==
-X-Gm-Message-State: AOJu0Yw4wMnyit9bOijdCl2X8LBfnUEHWARO71epMieJzwZiXzJwzr1v
-        SsaGV9Il1YNYNu+p2hDPei5h7pUHx+5P56SBydY=
-X-Google-Smtp-Source: AGHT+IHast/f6VkWZbGt+sIkPHyQ30rw82NF4d+PC0OSDFWExgL/kJNz3jLyMzekmfvF0SktdqlHfO5eRiPmbl4xtPE=
-X-Received: by 2002:a67:db8a:0:b0:452:6320:60da with SMTP id
- f10-20020a67db8a000000b00452632060damr7372576vsk.22.1696171921867; Sun, 01
- Oct 2023 07:52:01 -0700 (PDT)
-MIME-Version: 1.0
-References: <000000000000259bd8060596e33f@google.com> <bed99e92-cb7c-868d-94f3-ddf53e2b262a@linux.ibm.com>
- <8a65f5eb-2b59-9903-c6b8-84971f8765ae@linux.ibm.com> <ab7df5e93b5493de5fa379ccab48859fe953d7ae.camel@kernel.org>
- <b16550ac-f589-c5d7-e139-d585e8771cfd@linux.ibm.com> <00dbd1e7-dfc8-86bc-536f-264a929ebb35@linux.ibm.com>
- <94b4686a-fee8-c545-2692-b25285b9a152@schaufler-ca.com> <d59d40426c388789c195d94e7e72048ef45fec5e.camel@kernel.org>
- <7caa3aa06cc2d7f8d075306b92b259dab3e9bc21.camel@linux.ibm.com>
- <20230921-gedanken-salzwasser-40d25b921162@brauner> <28997978-0b41-9bf3-8f62-ce422425f672@linux.ibm.com>
- <CAOQ4uxie6xT5mmCcCwYtnEvra37eSeFftXfxaTULfdJnk1VcXQ@mail.gmail.com> <99294acf-7275-8f4d-a129-d5df208b7b2a@linux.ibm.com>
-In-Reply-To: <99294acf-7275-8f4d-a129-d5df208b7b2a@linux.ibm.com>
+        d=1e100.net; s=20230601; t=1696248261; x=1696853061;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=IGACCsg3UM6EsxzbZiA0PNBwClTCH2lKbZ4vIrPYp88=;
+        b=dFr0BbXo3rnZiAI++cmGDQSFp0uRm8mFY35fPkod7/RVNO0fTvnOEFGuXZpmB0FOLV
+         nvybmXkey65HZpCP8VJpr2bhcULSwPDEmMIp4fNPNTKIg/+u09SIHlr3nufiOIfQtU9s
+         U02f2LuavYmWBtiEOG7VuIT8yez6sclKcoMmH0yHKMIqddWkgsr+IxkStYkQEiEZLyBO
+         X93y0NcC+G4XsmgN9XecE5ItytiFM8dIzXUCSI5Lw0mg1zay629zEdTvFFRDcajc5GGh
+         EBqEiaka1t97+8pCKCBErXYWyS+6cfvH0Sdy0U8exp/8nCKWif7v2YhPALmhphVU5GPC
+         sjWw==
+X-Gm-Message-State: AOJu0YyKIt5vw3Og5v2jPOca3RD0nVLWpzveqDarGXmbjoODEXHHwVC3
+        I2ZLWsQYxkcfgi9NB2aj6F1n/WluMGI=
+X-Google-Smtp-Source: AGHT+IF4GKbJCjbjprr5a4ktq1UCOHZx0uqtEAkkHmlFgrt2Qo0YBObwWc+00rsEFUmLsCShow18SA==
+X-Received: by 2002:a2e:9e01:0:b0:2bb:9847:d96e with SMTP id e1-20020a2e9e01000000b002bb9847d96emr9221930ljk.9.1696248260433;
+        Mon, 02 Oct 2023 05:04:20 -0700 (PDT)
+Received: from amir-ThinkPad-T480.ctera.local (bzq-166-168-31-246.red.bezeqint.net. [31.168.166.246])
+        by smtp.gmail.com with ESMTPSA id m7-20020a2e9107000000b002b9b9fd0f92sm5084037ljg.105.2023.10.02.05.04.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Oct 2023 05:04:20 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 1 Oct 2023 17:51:50 +0300
-Message-ID: <CAOQ4uxioQbE8_j3bnkwJS24GjHHB1inK18dOJimwNGPrdQLaOQ@mail.gmail.com>
-Subject: Re: [syzbot] [integrity] [overlayfs] general protection fault in d_path
-To:     Stefan Berger <stefanb@linux.ibm.com>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        Jeff Layton <jlayton@kernel.org>,
-        Casey Schaufler <casey@schaufler-ca.com>,
-        syzbot <syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com>,
-        linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: [PATCH] overlayfs: make use of ->layers safe in rcu pathwalk
+Date:   Mon,  2 Oct 2023 15:04:13 +0300
+Message-Id: <20231002120413.880734-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Sep 29, 2023 at 3:39=E2=80=AFPM Stefan Berger <stefanb@linux.ibm.co=
-m> wrote:
->
->
-> On 9/29/23 00:25, Amir Goldstein wrote:
-> > On Fri, Sep 29, 2023 at 3:02=E2=80=AFAM Stefan Berger <stefanb@linux.ib=
-m.com> wrote:
-> >>
-> >> On 9/21/23 07:48, Christian Brauner wrote:
-> >>> Imho, this is all very wild but I'm not judging.
-> >>>
-> >>> Two solutions imho:
-> >>> (1) teach stacking filesystems like overlayfs and ecryptfs to use
-> >>>       vfs_getattr_nosec() in their ->getattr() implementation when th=
-ey
-> >>>       are themselves called via vfs_getattr_nosec(). This will fix th=
-is by
-> >>>       not triggering another LSM hook.
-> >>
-> >> You can avoid all this churn.
-> >> Just use the existing query_flags arg.
-> >> Nothing outside the AT_STATX_SYNC_TYPE query_flags is
-> >> passed into filesystems from userspace.
-> >>
-> >> Mast out AT_STATX_SYNC_TYPE in vfs_getattr()
-> >> And allow kernel internal request_flags in vfs_getattr_nosec()
-> Hm, I thought that vfs_getattr_nosec needs to pass AT_GETATTR_NOSEC into
-> ->getattr().
-> >>
-> >> The AT_ flag namespace is already a challenge, but mixing user
-> >> flags and kernel-only flags in vfs interfaces has been done before.
-> >>
-> >> ...
->
->
-> That's what I wanted to avoid since now all filesystems' getattr() may
-> have the AT_GETATTR_NOSEC mixed into the query_flags.
->
-> Anyway, here's what I currently have:
->
-> diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-> index 992d9c7e64ae..f7b5b1843dcc 100644
-> --- a/fs/ecryptfs/inode.c
-> +++ b/fs/ecryptfs/inode.c
-> @@ -998,16 +998,28 @@ static int ecryptfs_getattr_link(struct mnt_idmap
-> *idmap,
->          return rc;
->   }
->
-> +static int ecryptfs_do_getattr(bool nosec, const struct path *path,
-> +                              struct kstat *stat, u32 request_mask,
-> +                              unsigned int flags)
-> +{
-> +       if (nosec)
-> +               return vfs_getattr_nosec(path, stat, request_mask, flags)=
-;
-> +       return vfs_getattr(path, stat, request_mask, flags);
-> +}
-> +
->   static int ecryptfs_getattr(struct mnt_idmap *idmap,
->                              const struct path *path, struct kstat *stat,
->                              u32 request_mask, unsigned int flags)
->   {
->          struct dentry *dentry =3D path->dentry;
->          struct kstat lower_stat;
-> +       bool nosec =3D flags & AT_GETATTR_NOSEC;
->          int rc;
->
-> -       rc =3D vfs_getattr(ecryptfs_dentry_to_lower_path(dentry), &lower_=
-stat,
-> -                        request_mask, flags);
-> +       flags &=3D ~AT_INTERNAL_MASK;
-> +
-> +       rc =3D ecryptfs_do_getattr(nosec,
-> ecryptfs_dentry_to_lower_path(dentry),
-> +                                &lower_stat, request_mask, flags);
->          if (!rc) {
->                  fsstack_copy_attr_all(d_inode(dentry),
-> ecryptfs_inode_to_lower(d_inode(dentry)));
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 83ef66644c21..ec4ceb5b4ebf 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -166,12 +166,15 @@ int ovl_getattr(struct mnt_idmap *idmap, const
-> struct path *path,
->          int fsid =3D 0;
->          int err;
->          bool metacopy_blocks =3D false;
-> +       bool nosec =3D flags & AT_GETATTR_NOSEC;
-> +
-> +       flags &=3D ~AT_INTERNAL_MASK;
+ovl_permission() accesses ->layers[...].mnt; we can't have ->layers
+freed without an RCU delay on fs shutdown.
 
-I don't understand why you need the nosec helper arg.
-What's wrong with:
+Fortunately, kern_unmount_array() that is used to drop those mounts
+does include an RCU delay, so freeing is delayed; unfortunately, the
+array passed to kern_unmount_array() is formed by mangling ->layers
+contents and that happens without any delays.
 
-static int ovl_do_getattr(const struct path *path,
-                              struct kstat *stat, u32 request_mask,
-                              unsigned int flags)
-{
-       if (flags & AT_GETATTR_NOSEC)
-               return vfs_getattr_nosec(path, stat, request_mask, flags);
-       return vfs_getattr(path, stat, request_mask, flags);
-}
+The ->layers[...].name string entries are used to store the strings to
+display in "lowerdir=..." by ovl_show_options().  Those entries are not
+accessed in RCU walk.
 
-likewise for ecryptfs.
+Move the name strings into a separate array ofs->config.lowerdirs and
+reuse the ofs->config.lowerdirs array as the temporary mount array to
+pass to kern_unmount_array().
 
->
->          metacopy_blocks =3D ovl_is_metacopy_dentry(dentry);
->
->          type =3D ovl_path_real(dentry, &realpath);
->          old_cred =3D ovl_override_creds(dentry->d_sb);
-> -       err =3D vfs_getattr(&realpath, stat, request_mask, flags);
-> +       err =3D ovl_do_getattr(nosec, &realpath, stat, request_mask, flag=
-s);
->          if (err)
->                  goto out;
->
-> @@ -196,8 +199,8 @@ int ovl_getattr(struct mnt_idmap *idmap, const
-> struct path *path,
->                                          (!is_dir ? STATX_NLINK : 0);
->
->                          ovl_path_lower(dentry, &realpath);
-> -                       err =3D vfs_getattr(&realpath, &lowerstat,
-> -                                         lowermask, flags);
-> +                       err =3D ovl_do_getattr(nosec, &realpath, &lowerst=
-at,
-> +                                            lowermask, flags);
->                          if (err)
->                                  goto out;
->
-> @@ -249,8 +252,9 @@ int ovl_getattr(struct mnt_idmap *idmap, const
-> struct path *path,
->
->                          ovl_path_lowerdata(dentry, &realpath);
->                          if (realpath.dentry) {
-> -                               err =3D vfs_getattr(&realpath, &lowerdata=
-stat,
-> -                                                 lowermask, flags);
-> +                               err =3D ovl_do_getattr(nosec, &realpath,
-> + &lowerdatastat, lowermask,
-> +                                                    flags);
->                                  if (err)
->                                          goto out;
->                          } else {
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 9817b2dcb132..cbee3ff3bab7 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -397,6 +397,15 @@ static inline bool ovl_open_flags_need_copy_up(int
-> flags)
->          return ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC));
->   }
->
-> +static inline int ovl_do_getattr(bool nosec, const struct path *path,
-> +                                struct kstat *stat, u32 request_mask,
-> +                                unsigned int flags)
-> +{
-> +       if (nosec)
-> +               return vfs_getattr_nosec(path, stat, request_mask, flags)=
-;
-> +       return vfs_getattr(path, stat, request_mask, flags);
-> +}
-> +
->   /* util.c */
->   int ovl_want_write(struct dentry *dentry);
->   void ovl_drop_write(struct dentry *dentry);
-> diff --git a/fs/stat.c b/fs/stat.c
-> index d43a5cc1bfa4..3250e427e1aa 100644
-> --- a/fs/stat.c
-> +++ b/fs/stat.c
-> @@ -133,7 +133,8 @@ int vfs_getattr_nosec(const struct path *path,
-> struct kstat *stat,
->          idmap =3D mnt_idmap(path->mnt);)
->          if (inode->i_op->getattr)
->                  return inode->i_op->getattr(idmap, path, stat,
-> -                                           request_mask, query_flags);
-> +                                           request_mask,
-> +                                           query_flags | AT_GETATTR_NOSE=
-C);
->
+Reported-by: Al Viro <viro@zeniv.linux.org.uk>
+Link: https://lore.kernel.org/r/20231002023711.GP3389589@ZenIV/
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-You also need in vfs_getattr():
+Miklos,
 
-if (WARN_ON_ONCE(query_flags & AT_GETATTR_NOSEC)
-    return -EPERM;
-
->          generic_fillattr(idmap, request_mask, inode, stat);
->          return 0;
-> diff --git a/include/linux/fs.h b/include/linux/fs.h
-> index b528f063e8ff..9069d6a301f0 100644
-> --- a/include/linux/fs.h
-> +++ b/include/linux/fs.h
-> @@ -2027,6 +2027,12 @@ struct super_operations {
->          void (*shutdown)(struct super_block *sb);
->   };
->
-> +/*
-> + * Internal query flags. See fcntl.h AT_xxx flags for the rest.
-> + */
-> +#define AT_GETATTR_NOSEC               0x80000000
-> +#define AT_INTERNAL_MASK               0x80000000
-> +
-
-Yeh, the problem is that people adding flags to fcntl.h
-won't be seeing this comment and we don't want to put those
-"expose" those flags in uapi header either.
-
-One possible compromise is to put them in fcntl.h under
-#ifdef __KERNEL__
-
-Very controversial, yes, I know.
-The whole concept of mixing functional flags (i.e. AT_STATX_*)
-with lookup AT_* flags is controversial to begin with, not to
-mention flag overload for different syscalls (i.e. AT_EACCESS/
-AT_REMOVEDIR/AT_HANDLE_FID).
-
-But since we have accepted this necessary evil, I think that at least
-we could explicitly partition the AT_ flags namespace and declare:
-
-#ifdef __KERNEL__
-AT_LOOKUP_FLAGS_MASK ...
-AT_MOUNT_FLAGS_MASK         AT_RECURSIVE
-AT_SYSCALL_PRIVATE_MASK   AT_EACCESS
-AT_SYNC_TYPE_MASK               AT_STATX_SYNC_TYPE
-AT_KERNEL_INTERNAL_MASK  0x80000000
-#endif
-
-Sfefan,
-
-I feel that I have to stress the point that this is only *my* opinion and
-I accept that others (like some vfs co-maintains..) may passionately
-disagree to further pollute the AT_ flags namespace.
-
-The advantage of the AT_KERNEL_INTERNAL_MASK is that it is
-in no way exposed to users via ABI, so if we decide to undo this
-decision anytime in the future and reclaim the internal AT_ flags,
-we could do that.
-
-IMO, this is a decent compromise compared to the very noisy
-patch that adds another flags argument to ->getattr() just to fix
-this IMA/overlayfs corner case.
+Please review my proposal to fix the RCU walk race pointed out by Al.
+I have already tested it with xfstests and I will queue it in ovl-fixes
+to get more exposure in linux-next.
 
 Thanks,
 Amir.
+
+ fs/overlayfs/ovl_entry.h | 10 +---------
+ fs/overlayfs/params.c    | 17 +++++++++--------
+ fs/overlayfs/super.c     | 18 +++++++++++-------
+ 3 files changed, 21 insertions(+), 24 deletions(-)
+
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index e9539f98e86a..d82d2a043da2 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -8,6 +8,7 @@
+ struct ovl_config {
+ 	char *upperdir;
+ 	char *workdir;
++	char **lowerdirs;
+ 	bool default_permissions;
+ 	int redirect_mode;
+ 	int verity_mode;
+@@ -39,17 +40,8 @@ struct ovl_layer {
+ 	int idx;
+ 	/* One fsid per unique underlying sb (upper fsid == 0) */
+ 	int fsid;
+-	char *name;
+ };
+ 
+-/*
+- * ovl_free_fs() relies on @mnt being the first member when unmounting
+- * the private mounts created for each layer. Let's check both the
+- * offset and type.
+- */
+-static_assert(offsetof(struct ovl_layer, mnt) == 0);
+-static_assert(__same_type(typeof_member(struct ovl_layer, mnt), struct vfsmount *));
+-
+ struct ovl_path {
+ 	const struct ovl_layer *layer;
+ 	struct dentry *dentry;
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index b9355bb6d75a..95b751507ac8 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -752,12 +752,12 @@ void ovl_free_fs(struct ovl_fs *ofs)
+ 	if (ofs->upperdir_locked)
+ 		ovl_inuse_unlock(ovl_upper_mnt(ofs)->mnt_root);
+ 
+-	/* Hack!  Reuse ofs->layers as a vfsmount array before freeing it */
+-	mounts = (struct vfsmount **) ofs->layers;
++	/* Reuse ofs->config.lowerdirs as a vfsmount array before freeing it */
++	mounts = (struct vfsmount **) ofs->config.lowerdirs;
+ 	for (i = 0; i < ofs->numlayer; i++) {
+ 		iput(ofs->layers[i].trap);
++		kfree(ofs->config.lowerdirs[i]);
+ 		mounts[i] = ofs->layers[i].mnt;
+-		kfree(ofs->layers[i].name);
+ 	}
+ 	kern_unmount_array(mounts, ofs->numlayer);
+ 	kfree(ofs->layers);
+@@ -765,6 +765,7 @@ void ovl_free_fs(struct ovl_fs *ofs)
+ 		free_anon_bdev(ofs->fs[i].pseudo_dev);
+ 	kfree(ofs->fs);
+ 
++	kfree(ofs->config.lowerdirs);
+ 	kfree(ofs->config.upperdir);
+ 	kfree(ofs->config.workdir);
+ 	if (ofs->creator_cred)
+@@ -949,16 +950,16 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	struct super_block *sb = dentry->d_sb;
+ 	struct ovl_fs *ofs = OVL_FS(sb);
+ 	size_t nr, nr_merged_lower = ofs->numlayer - ofs->numdatalayer;
+-	const struct ovl_layer *data_layers = &ofs->layers[nr_merged_lower];
++	char **lowerdatadirs = &ofs->config.lowerdirs[nr_merged_lower];
+ 
+-	/* ofs->layers[0] is the upper layer */
+-	seq_printf(m, ",lowerdir=%s", ofs->layers[1].name);
++	/* lowerdirs[] starts from offset 1 */
++	seq_printf(m, ",lowerdir=%s", ofs->config.lowerdirs[1]);
+ 	/* dump regular lower layers */
+ 	for (nr = 2; nr < nr_merged_lower; nr++)
+-		seq_printf(m, ":%s", ofs->layers[nr].name);
++		seq_printf(m, ":%s", ofs->config.lowerdirs[nr]);
+ 	/* dump data lower layers */
+ 	for (nr = 0; nr < ofs->numdatalayer; nr++)
+-		seq_printf(m, "::%s", data_layers[nr].name);
++		seq_printf(m, "::%s", lowerdatadirs[nr]);
+ 	if (ofs->config.upperdir) {
+ 		seq_show_option(m, "upperdir", ofs->config.upperdir);
+ 		seq_show_option(m, "workdir", ofs->config.workdir);
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 905d3aaf4e55..3fa2416264a4 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -572,11 +572,6 @@ static int ovl_get_upper(struct super_block *sb, struct ovl_fs *ofs,
+ 	upper_layer->idx = 0;
+ 	upper_layer->fsid = 0;
+ 
+-	err = -ENOMEM;
+-	upper_layer->name = kstrdup(ofs->config.upperdir, GFP_KERNEL);
+-	if (!upper_layer->name)
+-		goto out;
+-
+ 	/*
+ 	 * Inherit SB_NOSEC flag from upperdir.
+ 	 *
+@@ -1125,7 +1120,8 @@ static int ovl_get_layers(struct super_block *sb, struct ovl_fs *ofs,
+ 		layers[ofs->numlayer].idx = ofs->numlayer;
+ 		layers[ofs->numlayer].fsid = fsid;
+ 		layers[ofs->numlayer].fs = &ofs->fs[fsid];
+-		layers[ofs->numlayer].name = l->name;
++		/* Store for printing lowerdir=... in ovl_show_options() */
++		ofs->config.lowerdirs[ofs->numlayer] = l->name;
+ 		l->name = NULL;
+ 		ofs->numlayer++;
+ 		ofs->fs[fsid].is_lower = true;
+@@ -1370,8 +1366,16 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+ 	if (!layers)
+ 		goto out_err;
+ 
++	ofs->config.lowerdirs = kcalloc(ctx->nr + 1, sizeof(char *), GFP_KERNEL);
++	if (!ofs->config.lowerdirs) {
++		kfree(layers);
++		goto out_err;
++	}
+ 	ofs->layers = layers;
+-	/* Layer 0 is reserved for upper even if there's no upper */
++	/*
++	 * Layer 0 is reserved for upper even if there's no upper.
++	 * For consistency, config.lowerdirs[0] is NULL.
++	 */
+ 	ofs->numlayer = 1;
+ 
+ 	sb->s_stack_depth = 0;
+-- 
+2.34.1
+
