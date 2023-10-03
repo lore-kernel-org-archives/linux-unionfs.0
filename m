@@ -2,95 +2,114 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25ADFE7AD47
-	for <linux-unionfs@archiver.kernel.org>; Tue,  3 Oct 2023 13:38:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 064C1E7AD78
+	for <linux-unionfs@archiver.kernel.org>; Tue,  3 Oct 2023 16:41:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232167AbjJCNiQ (ORCPT
+        id S231752AbjJCQld (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 3 Oct 2023 09:38:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55036 "EHLO
+        Tue, 3 Oct 2023 12:41:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232165AbjJCNiP (ORCPT
+        with ESMTP id S240678AbjJCQlc (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 3 Oct 2023 09:38:15 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3659FAD;
-        Tue,  3 Oct 2023 06:38:12 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16DE4C433C8;
-        Tue,  3 Oct 2023 13:38:08 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696340291;
-        bh=NlZyxNkQIumtF9Q9n/tAacWuxbXBIywHbpZoKHCSE+s=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=tpp9bM6C4l9kDVx1k4oyStFZWxRMSksjZl716JrVk9Sq+++BVo6NUtXVeR7NfW8V+
-         UPobtpwYLj1jZBx4hfamN3KfK5SW4eYwnBZA+VIeKmptvM6mUnGkvje3wrCePSAG/O
-         Lsf4wXDhLfqbO4GYvHSasBSPU782q28FIsY2mAvHcb8scEw2lrO/mN06gPJL0710Gi
-         Xbc8l4rYEkbjAQoyJKtkIP+GvDiUslFaFI1H1+mVwr+e0SC3X4bEHg8wpxTWV75Q3J
-         BrfzBwF24u+MXKQ/kIB69XZpgnG7fyFJ3udmNhf8ZOnIXyj6WrYhtFlWf1zaBzdRTw
-         qo5W5OLpkHHfg==
-Date:   Tue, 3 Oct 2023 15:38:06 +0200
-From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Stefan Berger <stefanb@linux.vnet.ibm.com>,
-        linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        Stefan Berger <stefanb@linux.ibm.com>,
-        syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>,
-        Mimi Zohar <zohar@linux.ibm.com>
-Subject: Re: [PATCH] fs: Pass AT_GETATTR_NOSEC flag to getattr interface
- function
-Message-ID: <20231003-bespielbar-tarnt-c61162656db5@brauner>
-References: <20231002125733.1251467-1-stefanb@linux.vnet.ibm.com>
- <CAOQ4uxiuQxTDqn4F62ueGf_9f4KC4p7xqRZdwPvL8rEYrCOWbg@mail.gmail.com>
+        Tue, 3 Oct 2023 12:41:32 -0400
+Received: from mail-vs1-xe2f.google.com (mail-vs1-xe2f.google.com [IPv6:2607:f8b0:4864:20::e2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BB59A1;
+        Tue,  3 Oct 2023 09:41:29 -0700 (PDT)
+Received: by mail-vs1-xe2f.google.com with SMTP id ada2fe7eead31-4526a936dcaso623407137.2;
+        Tue, 03 Oct 2023 09:41:29 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1696351288; x=1696956088; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=GzpsBd0hl8g05el1vI3tJ2EKjd4P5v9MJSsEQR5HPI0=;
+        b=ZPTDfGfI6wp8YH/kDLeyRQ+9AmgpfBqWXwPLm7paKNl+LHRVhyZH04iXubqFmCL1Ng
+         3Vs9oJdggg3r1zp5Dt4/OeA8uwcGdd8kpN4lET5nhRR1sHBhaodEXO0U1rv4SiGwlTLz
+         6/T/dfMuUyXb81WVVSxHzKPfmARTotoCm2BYaQCUVGD+rcbWl9Oi6yhhLULKC+gopg0c
+         iuFdSEcKMbzoH7eEzB8SrFpYRBOJR1hW6u2ZLwGdaXbopK8uXg4HRvkuKfCQYr7I/A5l
+         TZVwR72IXXaJrdACbekGaKSZCTpvV2K4ImsQ1pqrZWhClsC05ulImdv1xp+XLA45M+Dl
+         CSLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1696351288; x=1696956088;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=GzpsBd0hl8g05el1vI3tJ2EKjd4P5v9MJSsEQR5HPI0=;
+        b=TQ4thC7Ssq7eyDhFj2h+/gZadAyU48ayDpV7GrbXTLCtn4Ptyxcvop1wXOaHfxhdfA
+         /fm5pQWEZ5t3UXVFx09T6e/xh/MwU1N6CqK8ySwdKCeQrG3LFCIqkSymw5vwApkTDnNJ
+         RqCC83nTPGEnyeFioeQ+pXB7/t3zpPgxPqU/JPl1gMY6fIBGQnaXdeN568xW51pCOA9+
+         PKp+HM7uZ0qWvZa8SQ/1BLCpRjF2BGR6I0DrXPan8VCfS6m7BHv3/QBbhIWYACoZ7fWD
+         C4EQxZklOuWJvCUaBd3GUk3kW2dCWbLUqQXsY8rcEuuoff2H0KnYsvngHBxph/XNdGDH
+         iwzg==
+X-Gm-Message-State: AOJu0Ywa7CwF4o0+rx8j8SKPKU0ttD38519O2F/t9eDGwGbejitkK995
+        r6JxPpMJNJQLhijnUFKsIJDs0Aa03JmYgC3AY3E=
+X-Google-Smtp-Source: AGHT+IHJdozEu/KZhJZn/lHmEhyPBoWl+ajpKEcSc2n07vKAw/SLSfqjBQngm5hKKn0EtBsgprFbBZ5Usg3N4HtzGG0=
+X-Received: by 2002:a05:6102:7a4:b0:452:9988:5cbd with SMTP id
+ x4-20020a05610207a400b0045299885cbdmr13007992vsg.5.1696351288603; Tue, 03 Oct
+ 2023 09:41:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxiuQxTDqn4F62ueGf_9f4KC4p7xqRZdwPvL8rEYrCOWbg@mail.gmail.com>
+References: <20230930050033.41174-1-wedsonaf@gmail.com> <20230930050033.41174-28-wedsonaf@gmail.com>
+In-Reply-To: <20230930050033.41174-28-wedsonaf@gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Tue, 3 Oct 2023 19:41:17 +0300
+Message-ID: <CAOQ4uxiTZNLD5cbYWqdWe0djTSEmq+32XsU5i39Y=WAZ791oxQ@mail.gmail.com>
+Subject: Re: [PATCH 27/29] overlayfs: move xattr tables to .rodata
+To:     Wedson Almeida Filho <wedsonaf@gmail.com>
+Cc:     Alexander Viro <viro@zeniv.linux.org.uk>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Wedson Almeida Filho <walmeida@microsoft.com>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 02, 2023 at 04:22:25PM +0300, Amir Goldstein wrote:
-> On Mon, Oct 2, 2023 at 3:57 PM Stefan Berger <stefanb@linux.vnet.ibm.com> wrote:
-> >
-> > From: Stefan Berger <stefanb@linux.ibm.com>
-> >
-> > When vfs_getattr_nosec() calls a filesystem's getattr interface function
-> > then the 'nosec' should propagate into this function so that
-> > vfs_getattr_nosec() can again be called from the filesystem's gettattr
-> > rather than vfs_getattr(). The latter would add unnecessary security
-> > checks that the initial vfs_getattr_nosec() call wanted to avoid.
-> > Therefore, introduce the getattr flag GETATTR_NOSEC and allow to pass
-> > with the new getattr_flags parameter to the getattr interface function.
-> > In overlayfs and ecryptfs use this flag to determine which one of the
-> > two functions to call.
-> >
-> > In a recent code change introduced to IMA vfs_getattr_nosec() ended up
-> > calling vfs_getattr() in overlayfs, which in turn called
-> > security_inode_getattr() on an exiting process that did not have
-> > current->fs set anymore, which then caused a kernel NULL pointer
-> > dereference. With this change the call to security_inode_getattr() can
-> > be avoided, thus avoiding the NULL pointer dereference.
-> >
-> > Reported-by: syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com
-> > Fixes: db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
-> > Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-> > Cc: linux-fsdevel@vger.kernel.org
-> > Cc: Miklos Szeredi <miklos@szeredi.hu>
-> > Cc: Amir Goldstein <amir73il@gmail.com>
-> > Cc: Tyler Hicks <code@tyhicks.com>
-> > Cc: Mimi Zohar <zohar@linux.ibm.com>
-> > Suggested-by: Christian Brauner <brauner@kernel.org>
-> > Co-developed-by: Amir Goldstein <amir73il@gmail.com>
-> > Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
-> > ---
-> 
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> 
-> Now let's see what vfs maintainers think about this...
+On Sat, Sep 30, 2023 at 8:02=E2=80=AFAM Wedson Almeida Filho <wedsonaf@gmai=
+l.com> wrote:
+>
+> From: Wedson Almeida Filho <walmeida@microsoft.com>
+>
+> This makes it harder for accidental or malicious changes to
+> ovl_trusted_xattr_handlers or ovl_user_xattr_handlers at runtime.
+>
+> Cc: Miklos Szeredi <miklos@szeredi.hu>
+> Cc: Amir Goldstein <amir73il@gmail.com>
+> Cc: linux-unionfs@vger.kernel.org
+> Signed-off-by: Wedson Almeida Filho <walmeida@microsoft.com>
 
-Seems fine overall. We kind of need to propagate the knowledge through
-the layers. But I don't like that we need something like it...
+Acked-by: Amir Goldstein <amir73il@gmail.com>
+
+> ---
+>  fs/overlayfs/super.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index cc8977498c48..fe7af47be621 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -477,13 +477,13 @@ static const struct xattr_handler ovl_other_xattr_h=
+andler =3D {
+>         .set =3D ovl_other_xattr_set,
+>  };
+>
+> -static const struct xattr_handler *ovl_trusted_xattr_handlers[] =3D {
+> +static const struct xattr_handler * const ovl_trusted_xattr_handlers[] =
+=3D {
+>         &ovl_own_trusted_xattr_handler,
+>         &ovl_other_xattr_handler,
+>         NULL
+>  };
+>
+> -static const struct xattr_handler *ovl_user_xattr_handlers[] =3D {
+> +static const struct xattr_handler * const ovl_user_xattr_handlers[] =3D =
+{
+>         &ovl_own_user_xattr_handler,
+>         &ovl_other_xattr_handler,
+>         NULL
+> --
+> 2.34.1
+>
