@@ -2,74 +2,106 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB7BAE92736
-	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Oct 2023 16:14:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15701E9271D
+	for <linux-unionfs@archiver.kernel.org>; Thu,  5 Oct 2023 16:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234395AbjJEQN7 (ORCPT
+        id S241002AbjJEQPl (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 5 Oct 2023 12:13:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38656 "EHLO
+        Thu, 5 Oct 2023 12:15:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33312 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240479AbjJEQND (ORCPT
+        with ESMTP id S241112AbjJEQNk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 5 Oct 2023 12:13:03 -0400
-Received: from mail-ot1-x346.google.com (mail-ot1-x346.google.com [IPv6:2607:f8b0:4864:20::346])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAFEB22C9F
-        for <linux-unionfs@vger.kernel.org>; Thu,  5 Oct 2023 03:46:29 -0700 (PDT)
-Received: by mail-ot1-x346.google.com with SMTP id 46e09a7af769-6c4f235ee22so993924a34.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 05 Oct 2023 03:46:29 -0700 (PDT)
+        Thu, 5 Oct 2023 12:13:40 -0400
+Received: from mail-ua1-x935.google.com (mail-ua1-x935.google.com [IPv6:2607:f8b0:4864:20::935])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32CADAD17;
+        Thu,  5 Oct 2023 02:36:16 -0700 (PDT)
+Received: by mail-ua1-x935.google.com with SMTP id a1e0cc1a2514c-7b07c3eaf9bso291393241.3;
+        Thu, 05 Oct 2023 02:36:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1696498575; x=1697103375; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=miaHJCTsklS6Zbf74LdxRTHsnukEGfuauknHlldmnMc=;
+        b=N4af9kbi6Y+6dW9LsItj5fS5+DyE6zDpoaXlRE63hcUqzTAjlFVy++6BlgMNLc7eoc
+         9aEa02NdBFigDUFax26K4zjqVc1R9QevHORZNCEceZgUNfBD1PoKFZXlmUsuKvcLJB2z
+         Wzq25anMl7eXz6LpGSIH0XC1N/yUmNm0EjsFMP+KHLm7UWHZRh9zSI0p3N9zEQZ5T2pR
+         jH1t6eglUTla2oo0U+yFQhjcilqGxdoULd5rEZUjwZ4FX+CfYcsYszoomCu0204u545P
+         Qb/9Kwa9NQ6OpKIeEhQ8uk5o6pzGL3Q4OAVhpR88DQEJOju8mPcHgkmd00fDwrjBGC1S
+         gpEQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696502789; x=1697107589;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=BGwGxlTuATRVWE5UT3ZKJoT5MpU675X68ZbpYCN+7kY=;
-        b=ww0aqXMYpJjcosNrpxvm1XVw3xDtX/2ksjnjzBeKzTrQ07iu3Q69jd+yHAtDXh+3/u
-         SGuPhrwi+BxzQAEdFVQ1PWhZoasuRvxnbR/EwXNVEZIO75OoyN2cIF49p1Pt06F3YAiH
-         4mfhgVAKRo2z/G/55a5H+AXAqe6hwxs4SPWAvTN2okSA7JkYDo5c6hwNJ1tCIWexzDEy
-         03yuCllpDsI2XBmmn00Iv6j2Z6M+u0G5uj+OXTxEVp8Pzok4piG1d59pCU56CIb1H+/t
-         fyTtlZKmv6Mqi3PhieQKbHe9XFfiGmms7wWPk2PLidnWXZ6Sqqnd0QWOSchDmK9sGdYU
-         oc9g==
-X-Gm-Message-State: AOJu0YzYv+g1z5BWPRIy/VnetUephqWHVnUFYdSXQGuarkMg+6vxIogo
-        u8Rd2jnQ/hSYbEGIeHD3lhvL/lRZUL0cN4QhrCBekqW2aAzz
-X-Google-Smtp-Source: AGHT+IF6NXpW2zd+hCeIzElnwrg53MI5PnCCJL42D9bvk43rwJ1rmAHq/sIWi88y/rKUpfhhxrW+Yd6VgiNDyLe+SSuoEVFU4PnF
+        d=1e100.net; s=20230601; t=1696498575; x=1697103375;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=miaHJCTsklS6Zbf74LdxRTHsnukEGfuauknHlldmnMc=;
+        b=QFvdY/FyxkbAHDFTe1d61HEPBpvKjezRu16VHZ1FP1fyDKMAWt83XyBW9xdUAkDVMj
+         ucMPRNA+c3b6g2G37Yd6WOGa0fnzrs80dP1WOPrxzb+dZ7x7zPDDWSa6yIx9joVLJ/QK
+         i4g00/bNMTce7wD4UbcH068mTjj+CppEbfVleN9x3P+H+zshm9b2EOLRSDvOZhrVvbKF
+         xMNcM3ZBckOF8jrS6J4qMLGqjOA298urN61hUZ5d98tb7i2iHI6Vrqb6xbh7pIw3R5q7
+         KiNcTC7MCaYHwdwGx4HQZ0OOsTYld6EKj/F/nd4CtRIlq/nofxCN7OUVGiCNTj5krigO
+         Yerw==
+X-Gm-Message-State: AOJu0YyLqGrprqjZuIxtUDycFcIjMJ0drgO0UZTB6ivbyzVEi4eo+C3i
+        IgxweggwkHEHPOg5r2ppndtAk2CBYx7YCtTLmSw=
+X-Google-Smtp-Source: AGHT+IHEmB4hPkLYLPKiUKYdFA8EWWzm/1bKRsSKow5Ph7YiXuo2ENvDu/sgoJxWbdjYFoZ5NkuSiVgyiunS+gZFpDQ=
+X-Received: by 2002:a67:f4c9:0:b0:44d:3aba:b03d with SMTP id
+ s9-20020a67f4c9000000b0044d3abab03dmr4641256vsn.17.1696498575187; Thu, 05 Oct
+ 2023 02:36:15 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6870:1987:b0:1dc:768d:bf6b with SMTP id
- v7-20020a056870198700b001dc768dbf6bmr1900344oam.11.1696502788922; Thu, 05 Oct
- 2023 03:46:28 -0700 (PDT)
-Date:   Thu, 05 Oct 2023 03:46:28 -0700
-In-Reply-To: <CAOQ4uxjw_XztGxrhR9LWtz_SszdURkM+Add2q8A9BAt0z901kA@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000001824660606f5d6ac@google.com>
+References: <00000000000067d24205c4d0e599@google.com> <000000000000accfd30606e6bcd0@google.com>
+In-Reply-To: <000000000000accfd30606e6bcd0@google.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Thu, 5 Oct 2023 12:36:04 +0300
+Message-ID: <CAOQ4uxhbNyDzf0_fFh1Yy5Kz2Coz=gTrfOtsmteE0=ncibBnpw@mail.gmail.com>
 Subject: Re: [syzbot] [integrity] [overlayfs] possible deadlock in
  mnt_want_write (2)
-From:   syzbot <syzbot+b42fe626038981fb7bfa@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, hdanton@sina.com,
-        linux-fsdevel@vger.kernel.org, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        mszeredi@redhat.com, syzbot@syzkalhler.appspotmail.com,
-        syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk,
-        zohar@linux.ibm.com, zohar@us.ibm.com
+To:     syzbot <syzbot+b42fe626038981fb7bfa@syzkaller.appspotmail.com>
+Cc:     hdanton@sina.com, linux-fsdevel@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, mszeredi@redhat.com,
+        syzbot@syzkalhler.appspotmail.com, syzkaller-bugs@googlegroups.com,
+        viro@zeniv.linux.org.uk, zohar@linux.ibm.com, zohar@us.ibm.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On Wed, Oct 4, 2023 at 7:45=E2=80=AFPM syzbot
+<syzbot+b42fe626038981fb7bfa@syzkaller.appspotmail.com> wrote:
+>
+> syzbot has bisected this issue to:
+>
+> commit 708fa01597fa002599756bf56a96d0de1677375c
+> Author: Miklos Szeredi <mszeredi@redhat.com>
+> Date:   Mon Apr 12 10:00:37 2021 +0000
+>
+>     ovl: allow upperdir inside lowerdir
+>
+> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=3D17ad11b268=
+0000
+> start commit:   3aba70aed91f Merge tag 'gpio-fixes-for-v6.6-rc3' of git:/=
+/..
+> git tree:       upstream
+> final oops:     https://syzkaller.appspot.com/x/report.txt?x=3D146d11b268=
+0000
+> console output: https://syzkaller.appspot.com/x/log.txt?x=3D106d11b268000=
+0
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=3De4ca82a1bedd3=
+7e4
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3Db42fe626038981f=
+b7bfa
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D1304fba6680=
+000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D13cec0dc68000=
+0
+>
+> Reported-by: syzbot+b42fe626038981fb7bfa@syzkaller.appspotmail.com
+> Fixes: 708fa01597fa ("ovl: allow upperdir inside lowerdir")
+>
+> For information about bisection process see: https://goo.gl/tpsmEJ#bisect=
+ion
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
-
-Reported-and-tested-by: syzbot+b42fe626038981fb7bfa@syzkaller.appspotmail.com
-
-Tested on:
-
-commit:         42555f30 ima: annotate iint mutex to avoid lockdep fal..
-git tree:       https://github.com/amir73il/linux ima-ovl-fix
-console output: https://syzkaller.appspot.com/x/log.txt?x=16889486680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=57da1ac039c4c78a
-dashboard link: https://syzkaller.appspot.com/bug?extid=b42fe626038981fb7bfa
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
+#syz test: https://github.com/amir73il/linux ima-ovl-fix
