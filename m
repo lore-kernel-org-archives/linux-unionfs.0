@@ -2,32 +2,32 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04BCDE95A85
-	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Oct 2023 00:49:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7AB70E95A86
+	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Oct 2023 00:50:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234238AbjJHAtU (ORCPT
+        id S234408AbjJHAuu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 7 Oct 2023 20:49:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38186 "EHLO
+        Sat, 7 Oct 2023 20:50:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34808 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234248AbjJHAtT (ORCPT
+        with ESMTP id S234344AbjJHAuS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 7 Oct 2023 20:49:19 -0400
+        Sat, 7 Oct 2023 20:50:18 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65EA9127;
-        Sat,  7 Oct 2023 17:49:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BFC4C433C7;
-        Sun,  8 Oct 2023 00:49:11 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16842131;
+        Sat,  7 Oct 2023 17:49:44 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2834C433CD;
+        Sun,  8 Oct 2023 00:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696726152;
-        bh=YSqk6uf3kTBJZkCEE/8o30l4PRDcEDdtxojiJBqVoWI=;
+        s=k20201202; t=1696726182;
+        bh=nil/V9uQ5ZbcCuDueBOKT6XVFcJnRnzoAS/IGHsUZac=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fJr75mhFhyow91UT55KH+URFsfLbIN1dAbnXmy6s225tuw6ONJzCOJhCs+QCDMgW5
-         mOx+SGVXERK7IxekhX4QzoWyWQAVj9GnbO1F8Id5z7Pc8ZqjkCyOEVkQEY5Yyo9xEu
-         8jJtzwPEdcgdhn4gHtyzi7gVns1eM2G0k+7qfqzQsGQvRufzCzyRHLPp8UO2hgOi/K
-         nKRNLMguxl6IqJRo1m7raN6mU/pOsX31QqmNCTIoZ3el8nIk0gvb1XsMapXCWn37Yl
-         zzDoiPUx4KDco0r5UGkZePPs7uveiwJL2JJPeJvxFMOkwx2X4tobNw5KRjlgLimrQd
-         P//vAuLRhF/jg==
+        b=jk+CC1CcnQ/+sxCGwJrv81qv4C3HSunjuVN67JNZuKr4tXk8pGD+REjPPc8Ja9Fvn
+         AOkAxz0vMnsayJ6K6fL+U1h579FT7vTk4fC8/LtZ7WqNVWbdgpv5jHeR+bigPkUDiY
+         JtJ0xvht6asJ3zDNo7IB2CT++IwkUTojVHhPx9etMYQBSBo6Tm5S+BZFaxAzdzO6AM
+         X9uYPmzV9ACjWIh8yeRWx5N9oE2WzsEB4mYXGNDow2mZlLdM8X7O7XW6lAMbKWX8pp
+         ZjXwdx1rMRAxBHqsSF/2YJXhUggsVSZEy6n69vG1POpoB9ZpQkgnEOkAyFhvbTLzV8
+         7VVt5GdwDZSXg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Jeff Layton <jlayton@kernel.org>,
@@ -36,16 +36,16 @@ Cc:     Jeff Layton <jlayton@kernel.org>,
         Amir Goldstein <amir73il@gmail.com>,
         Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
         linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.5 10/18] overlayfs: set ctime when setting mtime and atime
-Date:   Sat,  7 Oct 2023 20:48:44 -0400
-Message-Id: <20231008004853.3767621-10-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 6.1 08/12] overlayfs: set ctime when setting mtime and atime
+Date:   Sat,  7 Oct 2023 20:49:25 -0400
+Message-Id: <20231008004929.3767992-8-sashal@kernel.org>
 X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20231008004853.3767621-1-sashal@kernel.org>
-References: <20231008004853.3767621-1-sashal@kernel.org>
+In-Reply-To: <20231008004929.3767992-1-sashal@kernel.org>
+References: <20231008004929.3767992-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.5.6
+X-stable-base: Linux 6.1.56
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
@@ -78,10 +78,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 986d37a4c2750..ab32c6b28d400 100644
+index e6d711f42607b..86d4b6975dbcb 100644
 --- a/fs/overlayfs/copy_up.c
 +++ b/fs/overlayfs/copy_up.c
-@@ -337,7 +337,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
+@@ -300,7 +300,7 @@ static int ovl_set_timestamps(struct ovl_fs *ofs, struct dentry *upperdentry,
  {
  	struct iattr attr = {
  		.ia_valid =
