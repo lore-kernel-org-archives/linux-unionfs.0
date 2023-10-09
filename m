@@ -2,94 +2,91 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1637BE95A86
-	for <linux-unionfs@archiver.kernel.org>; Sun,  8 Oct 2023 01:17:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D25E95A8D
+	for <linux-unionfs@archiver.kernel.org>; Mon,  9 Oct 2023 06:43:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344353AbjJHBRY (ORCPT
+        id S1345321AbjJIGnp (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 7 Oct 2023 21:17:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41620 "EHLO
+        Mon, 9 Oct 2023 02:43:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53088 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234235AbjJHBRQ (ORCPT
+        with ESMTP id S1345255AbjJIGno (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 7 Oct 2023 21:17:16 -0400
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33E38324B;
-        Sat,  7 Oct 2023 17:52:13 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3C376C433CA;
-        Sun,  8 Oct 2023 00:51:00 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1696726261;
-        bh=5S6PWwmnWqAqP87ZXSDEPMhL8crr2ofG0BuY0uFxLvU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=q1gq54MsJ3dYzc+qhMZ27fPODPWBxpIS9gxF6YCiQPh5Tr76OQzfNHUwcjwmPQXcQ
-         TmxejxgW8AOS27CMHan9nN7RJSvPgrqZf28DC2r00VVu6YEHGxXcR3RXbBNYyh4cWH
-         797cW5SblI0viti2Nb5Go5ofr6LK08YKdYimMNbJnvPhWOaGXSCh3R7ANMKd99JB7V
-         IgiTmf3S/lDjcXoe06TCk0kCH+p1TKOdblGVpXqdhhhXejeLu1juuaTtbeYcFB32pi
-         k6NaE21YOwwsJz13ubV9RnonNu+6LbnjqKvofPr3RSMTOZTJnNTXYzko0PG03InI+F
-         klwTV24mYWDfw==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Jeff Layton <jlayton@kernel.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Christian Brauner <brauner@kernel.org>,
-        Amir Goldstein <amir73il@gmail.com>,
-        Sasha Levin <sashal@kernel.org>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 4/7] overlayfs: set ctime when setting mtime and atime
-Date:   Sat,  7 Oct 2023 20:50:50 -0400
-Message-Id: <20231008005053.3768625-4-sashal@kernel.org>
-X-Mailer: git-send-email 2.40.1
-In-Reply-To: <20231008005053.3768625-1-sashal@kernel.org>
-References: <20231008005053.3768625-1-sashal@kernel.org>
+        Mon, 9 Oct 2023 02:43:44 -0400
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10C92A4;
+        Sun,  8 Oct 2023 23:43:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=66cPIIVSduT4SSzIFKFV2DdYfGERM4AlNBtZs6GbMmQ=; b=iHedBYMXz122Rt3NMtdmIGM0Pk
+        5HyyqA4crg9PBCwe84Lle5UlQE2aiAjPubk1C70vZYY/jMoNvTg4DrO6S0Ag4avKDof6GqiqdEyLi
+        xxXypPlmj4Gx3nbETKdhOj718ai6Xw5oIpTG4eVPccohWBRp4wdwaDTxE5EhDh13ENMYAkpTXb9NB
+        vXsZVPIWmPyPt4s/+4zlr0HIVOud8V83+ZoSbMslRJqq6mV1Vzz8Z+ctCaZrTelmTC0mLVRjh4Oip
+        bGnYphim7kJa6eav2x0Eo7JuPKSGT9zas2OkJHx7wbcSo56qcgQ/T84j8TMzKf5oqgN20E+VLRdfe
+        4jML5x1g==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1qpjzG-00H7PN-32;
+        Mon, 09 Oct 2023 06:43:31 +0000
+Date:   Mon, 9 Oct 2023 07:43:30 +0100
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E . Hallyn" <serge@hallyn.com>,
+        Mimi Zohar <zohar@linux.ibm.com>,
+        linux-security-module@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] fs: get mnt_writers count for an open backing
+ file's real path
+Message-ID: <20231009064330.GF800259@ZenIV>
+References: <20231007084433.1417887-1-amir73il@gmail.com>
+ <20231007084433.1417887-2-amir73il@gmail.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 4.14.326
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231007084433.1417887-2-amir73il@gmail.com>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-From: Jeff Layton <jlayton@kernel.org>
+On Sat, Oct 07, 2023 at 11:44:31AM +0300, Amir Goldstein wrote:
+> +static inline void file_put_write_access(struct file *file)
+> +{
+> +	put_write_access(file->f_inode);
+> +	mnt_put_write_access(file->f_path.mnt);
+> +	if (unlikely(file->f_mode & FMODE_BACKING)) {
+> +		struct path *real_path = backing_file_real_path(file);
+> +
+> +		if (real_path->mnt)
+> +			mnt_put_write_access(real_path->mnt);
 
-[ Upstream commit 03dbab3bba5f009d053635c729d1244f2c8bad38 ]
+IDGI.  Where do we get FMODE_BACKING combined with NULL real_path.mnt *AND*
+put_file_access() possibly called?  Or file_get_write_access(), for
+that matter...
 
-Nathan reported that he was seeing the new warning in
-setattr_copy_mgtime pop when starting podman containers. Overlayfs is
-trying to set the atime and mtime via notify_change without also
-setting the ctime.
+FMODE_BACKING is set only in alloc_empty_backing_file().  The only caller
+is backing_file_open(), which immediately sets real_path to its third
+argument.  That could only come from ovl_open_realfile().  And if that
+had been called with buggered struct path, it would have already blown
+up on mnt_idmap(realpath->mnt).
 
-POSIX states that when the atime and mtime are updated via utimes() that
-we must also update the ctime to the current time. The situation with
-overlayfs copy-up is analogies, so add ATTR_CTIME to the bitmask.
-notify_change will fill in the value.
+The only interval where such beasts exist is from
+        ff->file.f_mode |= FMODE_BACKING | FMODE_NOACCOUNT;
+	return &ff->file;
+in alloc_empty_backing_file() through
 
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Signed-off-by: Jeff Layton <jlayton@kernel.org>
-Tested-by: Nathan Chancellor <nathan@kernel.org>
-Acked-by: Christian Brauner <brauner@kernel.org>
-Acked-by: Amir Goldstein <amir73il@gmail.com>
-Message-Id: <20230913-ctime-v1-1-c6bc509cbc27@kernel.org>
-Signed-off-by: Christian Brauner <brauner@kernel.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- fs/overlayfs/copy_up.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+	f->f_path = *path;
+	path_get(real_path);
+	*backing_file_real_path(f) = *real_path;
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index f3ed80e2966c3..4a5b0f3c6af34 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -201,7 +201,7 @@ static int ovl_set_timestamps(struct dentry *upperdentry, struct kstat *stat)
- {
- 	struct iattr attr = {
- 		.ia_valid =
--		     ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIME_SET,
-+		     ATTR_ATIME | ATTR_MTIME | ATTR_ATIME_SET | ATTR_MTIME_SET | ATTR_CTIME,
- 		.ia_atime = stat->atime,
- 		.ia_mtime = stat->mtime,
- 	};
--- 
-2.40.1
+in backing_file_open().  Where would that struct file (just allocated,
+never seen outside of local variables in those two scopes) be passed
+to get_file_write_access() or put_file_access()?
 
+Or am I misreading something?
