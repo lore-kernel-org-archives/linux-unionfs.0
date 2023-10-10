@@ -2,125 +2,81 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 189C1CD691F
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Oct 2023 10:00:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24C4ACD80BA
+	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Oct 2023 11:52:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230385AbjJJKAU (ORCPT
+        id S231421AbjJJLwb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 10 Oct 2023 06:00:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52864 "EHLO
+        Tue, 10 Oct 2023 07:52:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230448AbjJJKAS (ORCPT
+        with ESMTP id S231459AbjJJLwa (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Oct 2023 06:00:18 -0400
-Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58C8899
-        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2023 03:00:17 -0700 (PDT)
-Received: by mail-yb1-xb2c.google.com with SMTP id 3f1490d57ef6-d862533ea85so6351469276.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2023 03:00:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696932016; x=1697536816; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5etZdD+1W4fYdFVA9j5Q8TpHKZ2dhaWJJeUbdvchL1w=;
-        b=NbsTVruLU5y+rwnIJ3nZBD11EOSMTyh6Ha8O5kMBt75GOtCZgKf6Yd6yTV5JLP7EDC
-         U+XWhRaCY0o4/+wHBSuKmLdkKYUfI1P+f4Jz9bPc6ek4vR08BgxkeJoNP+xQ845K1+Oi
-         xNBPunF09ndX0lEInByh+386Xe1Mu7CbylusgujCEh2KwUouG39O8gnBOBncDdi8cVfg
-         fgOhjqWfBmr3W2ygSqF8rGj2Bz8SVDuxSXDvzZlIr3vAzQpkSHrpwEZvupSIfkv/pQ82
-         s+SUXflIGDe44lDfw3UbrQIpMjvaEDGuwUJUy6h0W8hCDSsPdJwdg6Ldu+k+4lpN2654
-         KtcQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696932016; x=1697536816;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=5etZdD+1W4fYdFVA9j5Q8TpHKZ2dhaWJJeUbdvchL1w=;
-        b=ERtKH7Bz+BB6qNMgzPpiRLM0M0POjrvb6fyXpBtpbyylZfg/TbgDcDls5kDDEpjU/3
-         bM7kgnodiRp9qVMLVJ7nVTCdJzyVhKEoeFadm6MIg1xgoYeOZgXNuWLcgnirgTT6Irgz
-         pJTFx7sP1zApaCdeIVvRK6qs23TxbWWM1EwfwcpleGmP7mvO75XD4pL/he98xD3DuoO6
-         O1FhgfHCi0vR2frfC2irf7NKHceBUYmpOGTay377BeqT1YzoJezDPFnervL6oXaATdEN
-         /vcTEqaXxlqZgsdVCR707c+O2FDL00ALolsVfU92Et0w82onPeXWppLtT20m9fJTvTTf
-         UrEg==
-X-Gm-Message-State: AOJu0YwJEFGAFLjYXN6UBUio8uJ/8uygB8aSpiNJDFHBQQhCW8UtCdxc
-        /AiOTnzqlkvPZQ9kDFLNCGyO1O3VYix6YZdqZFw=
-X-Google-Smtp-Source: AGHT+IHkqomg4q5xUEjzB6PKQAGif9EwrX+Y7CwCPMWtWo13/dNx9iXux3IcyRO9VxRco1zLM1NH6keEKwGNF9bdJVI=
-X-Received: by 2002:a25:698f:0:b0:d91:92c8:9052 with SMTP id
- e137-20020a25698f000000b00d9192c89052mr16436185ybc.8.1696932016287; Tue, 10
- Oct 2023 03:00:16 -0700 (PDT)
+        Tue, 10 Oct 2023 07:52:30 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00EF2A4;
+        Tue, 10 Oct 2023 04:52:28 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9EE1C433C8;
+        Tue, 10 Oct 2023 11:52:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1696938748;
+        bh=lS6j666yQyoqSWNnJzvLxKDEG6aA7JaskJUk41LjEXs=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=KiEk4CH0tcflNyGjG7ZTG2xo4gmxTrebyMOCAKM/H9Yr6bkz/c88nKgStSnN0jpSx
+         Bg+gFqtkEkmiWdSYu/rw1fzgy/lwH1MxwHxtyaqXphULb9ywuoiGrn4UZ+5sopnAIy
+         Enxj834wq1Ug16wWZvuwwWYAd5T35D+kxhVa2Yflrpw1EqWolMtwzc/l8OBAUe37yi
+         Hw1R9gsx24+KTRXSKLVT9xYyZ/BThYTL2hYrGrOKtssp0PUIdYvXCOpDCIS+lrfwJb
+         eOO4dicGiN1ZVEDSNLgzZaKkrJ7Gg1hFIZMdXhwMoKM0ZpdG1GyxUhp1a2MLK81qCT
+         HCO91tVJegkTg==
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        Al Viro <viro@zeniv.linux.org.uk>,
+        Miklos Szeredi <miklos@szeredi.hu>,
+        Paul Moore <paul@paul-moore.com>,
+        James Morris <jmorris@namei.org>,
+        "Serge E . Hallyn" <serge@hallyn.com>,
+        Mimi Zohar <zohar@linux.ibm.com>,
+        linux-security-module@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH v3 0/3] Reduce impact of overlayfs backing files fake path
+Date:   Tue, 10 Oct 2023 13:52:09 +0200
+Message-Id: <20231010-lohnen-botanik-7bf974a5cecd@brauner>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20231009153712.1566422-1-amir73il@gmail.com>
+References: <20231009153712.1566422-1-amir73il@gmail.com>
 MIME-Version: 1.0
-References: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
- <CAOQ4uxhQhzv_LUW89m_BmKf+NjE+XDyY9XtLAt+SWG03M6LmYQ@mail.gmail.com>
- <20231006130259.GA438068@toolbox> <CAOQ4uxg84M7H0EtTLWAsNkHaaLzVVXQ=-fCVFVr8a6MGSQC=vg@mail.gmail.com>
- <5d708a45-43c9-b026-6619-7c377ee02793@alum.mit.edu> <CAOQ4uxgNakTHi0dHC1v51TCU_aAKTOrJ4zFv=BzfoKNMsCwZEg@mail.gmail.com>
- <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com>
-In-Reply-To: <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 10 Oct 2023 13:00:05 +0300
-Message-ID: <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
-Subject: Re: [regression?] escaping commas in overlayfs mount options
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>,
-        Sebastian Wick <sebastian.wick@redhat.com>,
-        Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, Karel Zak <kzak@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1146; i=brauner@kernel.org; h=from:subject:message-id; bh=lS6j666yQyoqSWNnJzvLxKDEG6aA7JaskJUk41LjEXs=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSqWj0RW27+IHNtNc+h6B4hm3VMFRl7+3L+7amr2nuh/N3N Ys35HaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABM5JMLwV1wgSujt+5k83WdfTjcw/S ic8jtytvD87y8d0jZO2pW1vJXhn/r6hUt2vPkq47fIhae1rkfU489Olind0hwdBcK/2fc08QAA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 10, 2023 at 12:06=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu>=
- wrote:
->
-> On Fri, 6 Oct 2023 at 19:21, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > On Fri, Oct 6, 2023 at 7:42=E2=80=AFPM Ryan Hendrickson
->
-> > > And there is the escaping that needs to happen for ':' and '\' when
-> > > parsing the path parameters (':' is only special syntax in lowerdir, =
-but
-> > > the escaping logic seems to apply to upperdir and workdir as well, ba=
-sed
-> > > on my testing). Even using the new API, this is handled in the kernel=
-.
-> > > We'd like to know if this escaping can be considered stable as well, =
-and I
-> > > don't think that's a question for the libmount maintainer.
-> >
-> > Agree.
-> > Unlike the comma separated parameters list,
-> > upperdir,workdir,lowerdir are overlayfs specific format.
-> >
-> > ovl_unescape() (for upperdir/workdir) unescapes '\' characters.
-> > as does ovl_parse_param_split_lowerdirs().
-> > Not sure why this was needed for upperdir/workdir, but it It has
-> > been this way for a long time.
-> > I see no reason for it to change in the future.
->
-> Unescaping  upperdir/workdir was the side effect of using a common
-> helper; it wasn't intentional, I think.  The problem is that
-> unescaping breaks code that doesn't expect it, and filenames with
-> backslashes (and especially \\ or \: sequences) are very rare, so this
-> won't show up in testing.
->
-> At this point I'm not sure which is more likely to cause bugs: getting
-> rid of unescaping or leaving it alone.
+On Mon, 09 Oct 2023 18:37:09 +0300, Amir Goldstein wrote:
+> Following v3 addresses Al's review comments on v2.
+> 
 
-Considering the fact that the applications that mount overlayfs has
-always had to do the correct escaping, getting rid of escaping can
-only solve issues in new deployments, so I think we should greatly
-favor leaving it alone.
+Applied to the vfs.misc branch of the vfs/vfs.git tree.
+Patches in the vfs.misc branch should appear in linux-next soon.
 
->
-> One way out of this mess is to create explicit _unesc versions of these o=
-ptions.
->
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series allowing us to drop it.
 
-I like that solution, with two reservations:
-1. IMO, new _unesc versions should only be supported from new mount API
-2. I only want to do that if real users exists - said users are expected
-    to send the patch and explain their use case
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
-Thanks,
-Amir.
+Note that commit hashes shown below are subject to change due to rebase,
+trailer updates or similar. If in doubt, please check the listed branch.
+
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.misc
+
+[1/3] fs: get mnt_writers count for an open backing file's real path
+      https://git.kernel.org/vfs/vfs/c/90e168d5fa01
+[2/3] fs: create helper file_user_path() for user displayed mapped file path
+      https://git.kernel.org/vfs/vfs/c/842b845c7657
+[3/3] fs: store real path instead of fake path in backing file f_path
+      https://git.kernel.org/vfs/vfs/c/6b9503cf48c9
