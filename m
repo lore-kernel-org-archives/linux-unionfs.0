@@ -2,102 +2,146 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E75ABCD8CA5
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Oct 2023 15:22:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1608CD8CA9
+	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Oct 2023 16:14:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232667AbjJJPWv (ORCPT
+        id S233237AbjJJQOr (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 10 Oct 2023 11:22:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46532 "EHLO
+        Tue, 10 Oct 2023 12:14:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50332 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231279AbjJJPWu (ORCPT
+        with ESMTP id S231246AbjJJQOq (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Oct 2023 11:22:50 -0400
-Received: from mail-qv1-xf2e.google.com (mail-qv1-xf2e.google.com [IPv6:2607:f8b0:4864:20::f2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18A1493;
-        Tue, 10 Oct 2023 08:22:49 -0700 (PDT)
-Received: by mail-qv1-xf2e.google.com with SMTP id 6a1803df08f44-65b0a54d436so32150406d6.3;
-        Tue, 10 Oct 2023 08:22:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696951368; x=1697556168; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=j+OnTbTynmIeVS0uxC9pppcMn+kx7cUxRccWDPKjmcA=;
-        b=kL0O9Gp5vKGoGLTvTTe3cEym/KJ6p6+sA67LlDxX1RGEtsFNj9whnYmIzL4lRCLj1l
-         quvDCJrU2gaznYZbevuJtTycYm9fg4pekQFAB5smce2PlZkHaHQ7GIpzdAh6qdIcxhnk
-         aI3SDmpdlVr0ghqLHlZmtPfppURwUdDTGv1H50AT8Ayhm8zyLlHXT3MvbwRio99UH7gK
-         Boc2VE8jmlE0IGN0gcaydGml/1ahSI8u4itiicxsQtxsgzvG9BJWQjzFVr3sN5BqtmMx
-         J2sZIvon4Y/KVBqSjjPoReWJPEykNUF/7TcCgsyTB4MGgaxruFvzF12zMWE5q+5YXVLh
-         7a2w==
+        Tue, 10 Oct 2023 12:14:46 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D48DC4
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2023 09:13:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1696954436;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=xHPhXOWqvf2/PBn+MQvJoQg4kF8mruw0wIxddCbIdxg=;
+        b=K2TxbcfT0vGS8kBpqP/xOKchT5tXcN1I68nr21++EGTesU+iLLf1uA+Ag2JiSD37PPb4W4
+        BUMUsbcQAl3o7J8p0/K5c9wGGFbRT1LAiKk+l/GogDNOVHtsGr9AliGtwguGHYy24PWo0D
+        uXdn9CeysdvzJ3kTXkD0i9XCkXOhmK4=
+Received: from mail-lf1-f70.google.com (mail-lf1-f70.google.com
+ [209.85.167.70]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-604-_1eGh24ONhOxrLO9ZNWZCg-1; Tue, 10 Oct 2023 12:13:55 -0400
+X-MC-Unique: _1eGh24ONhOxrLO9ZNWZCg-1
+Received: by mail-lf1-f70.google.com with SMTP id 2adb3069b0e04-5042bc93273so5200976e87.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2023 09:13:55 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696951368; x=1697556168;
+        d=1e100.net; s=20230601; t=1696954434; x=1697559234;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=j+OnTbTynmIeVS0uxC9pppcMn+kx7cUxRccWDPKjmcA=;
-        b=eLtoJMrMBCKfL0zRMnuhkt/bsl5BVMQegKaZJgs2r1bhKVAzJg89Mjys9AiWvgPg5A
-         oHe0je/LlrT+tyqmm44y/oPOEBvB3Q2jzLTtTecxTQt1JrNqkGpoTi0jEBC6zcqyvYI9
-         XIGUcGc/aqF6ZUmk9d3+xEMsZjgCcJTwHRNKLqKq0pBamVts4NcJSWC3n0kSpbgVrjbY
-         UyfuWtrRIsvuCwlZ1Ez9+4InKR7Pfo6XmaNm/m3EETFBuB5MWLuQwoeJpmlucFqJQQ69
-         XqROrnLrWcrmeByxEW38XsrwiFKZF7U3a/K4xp8Pa1cfB8uk0d3IFowuq6tsF8p3L2nL
-         lgkQ==
-X-Gm-Message-State: AOJu0YyC1o0nrDFpFwkC1nxFozi1x1WB9QiX8lVnYHG/Q6c4KswIghqx
-        ocFC2W+9Z2BD1NnuGkBMaF37f3ReeYrBSBD0+6IqiaJullo=
-X-Google-Smtp-Source: AGHT+IG1051Zw6vv59OtUCixwFCQ5J2BzOezNsEYSYYW9Fzobg/VOwuuYXT+UMnczMErTeTted7AeCQFSYhp5JT4bfY=
-X-Received: by 2002:a05:6214:440b:b0:658:59c3:c237 with SMTP id
- oj11-20020a056214440b00b0065859c3c237mr17573342qvb.40.1696951368120; Tue, 10
- Oct 2023 08:22:48 -0700 (PDT)
+        bh=xHPhXOWqvf2/PBn+MQvJoQg4kF8mruw0wIxddCbIdxg=;
+        b=JvLHQaFKJV0KXhZP/yi+0zTl4f4d5v32IHcI/tM0N7sFN+X3aAcM+61a2W5zVGQQT9
+         vfqDghbF8cpO9VtraM0lrgRNrDyuoRP2pEvuMW0Eokxt6h98uaf7hwpcx6BWruxwRQgy
+         pZRpZMCl0cHssO4l1WU0+O7UmQixxSOAFSJhArJjD6r7X2UUqK4sCEyidJmAbT5iTDUU
+         flhnxnlOj5jQk2C/DGBkN5RgqHlwO+cqSEeyaKjD7MQp3DEvMcEQffPwyNldsD3xzekm
+         pi/dJIZQVikFsxwH2YL1ehYV5w5s21BUn+qWVhMEt8alYUw9ltd806JEUWqZa/SdEHyw
+         MYsw==
+X-Gm-Message-State: AOJu0YzSYMuGsRt6euBKV9ZNnm7WTlKylNocwbL0RhChqCqMlxbfkKmm
+        jsBDIcWLlykOcN8uJMBQ3eJ8Tc2tbm7UTj8Aqoathj/8sPbwubmEMK82+KgVQqojk2M+htAuQCr
+        sjUnpMR+r26aIuuV9LJPXGQbYe0rfL8optcWucI6YNw==
+X-Received: by 2002:a19:ee17:0:b0:503:2891:444d with SMTP id g23-20020a19ee17000000b005032891444dmr13900304lfb.64.1696954433937;
+        Tue, 10 Oct 2023 09:13:53 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEwhtcn4tmCQWRlH1HNg840jEOox2HyYLl9EwCUZItVOZHdW6xqE93lv5w9GBpeDpSG6gtsyhN7vHqD0X2UHmw=
+X-Received: by 2002:a19:ee17:0:b0:503:2891:444d with SMTP id
+ g23-20020a19ee17000000b005032891444dmr13900285lfb.64.1696954433488; Tue, 10
+ Oct 2023 09:13:53 -0700 (PDT)
 MIME-Version: 1.0
-References: <20231009153712.1566422-1-amir73il@gmail.com> <20231009153712.1566422-4-amir73il@gmail.com>
- <CAJfpegtcNOCMp+QBPFD5aUEok6u7AqwrGqAqMCZeeuyq6xfYFw@mail.gmail.com>
- <CAOQ4uxiAHJy6viXBubm0y7x3J3P7N5XijOU8C340fi2Dpc7zXA@mail.gmail.com>
- <CAOQ4uxipA5oCQXn1-JZ+TbXw2-5O+_++FfNHC6fKqhNXfR7C0w@mail.gmail.com> <CAJfpeguEf71ZknP5rGU9YNtJTp1wBGBKyv6M0JZ=5ETuaipDxQ@mail.gmail.com>
-In-Reply-To: <CAJfpeguEf71ZknP5rGU9YNtJTp1wBGBKyv6M0JZ=5ETuaipDxQ@mail.gmail.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 10 Oct 2023 18:22:37 +0300
-Message-ID: <CAOQ4uxjY8awawG3-7cNc373_cyms69PiM=G0BzvBK0c2Zh7TkA@mail.gmail.com>
-Subject: Re: [PATCH v3 3/3] fs: store real path instead of fake path in
- backing file f_path
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        Al Viro <viro@zeniv.linux.org.uk>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E . Hallyn" <serge@hallyn.com>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        linux-security-module@vger.kernel.org,
-        linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org
+References: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
+ <CAOQ4uxhQhzv_LUW89m_BmKf+NjE+XDyY9XtLAt+SWG03M6LmYQ@mail.gmail.com>
+ <20231006130259.GA438068@toolbox> <CAOQ4uxg84M7H0EtTLWAsNkHaaLzVVXQ=-fCVFVr8a6MGSQC=vg@mail.gmail.com>
+ <5d708a45-43c9-b026-6619-7c377ee02793@alum.mit.edu> <CAOQ4uxgNakTHi0dHC1v51TCU_aAKTOrJ4zFv=BzfoKNMsCwZEg@mail.gmail.com>
+ <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com> <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
+From:   Sebastian Wick <sebastian.wick@redhat.com>
+Date:   Tue, 10 Oct 2023 18:13:42 +0200
+Message-ID: <CA+hFU4w78Ze-wKPg9fsdR6zpL5VUwp8jNqCcHGmOFJ--GAGKJA@mail.gmail.com>
+Subject: Re: [regression?] escaping commas in overlayfs mount options
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org, Karel Zak <kzak@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 10, 2023 at 4:34=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
+On Tue, Oct 10, 2023 at 12:00=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
+> wrote:
 >
-> On Tue, 10 Oct 2023 at 15:17, Amir Goldstein <amir73il@gmail.com> wrote:
+> On Tue, Oct 10, 2023 at 12:06=E2=80=AFPM Miklos Szeredi <miklos@szeredi.h=
+u> wrote:
+> >
+> > On Fri, 6 Oct 2023 at 19:21, Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > On Fri, Oct 6, 2023 at 7:42=E2=80=AFPM Ryan Hendrickson
+> >
+> > > > And there is the escaping that needs to happen for ':' and '\' when
+> > > > parsing the path parameters (':' is only special syntax in lowerdir=
+, but
+> > > > the escaping logic seems to apply to upperdir and workdir as well, =
+based
+> > > > on my testing). Even using the new API, this is handled in the kern=
+el.
+> > > > We'd like to know if this escaping can be considered stable as well=
+, and I
+> > > > don't think that's a question for the libmount maintainer.
+> > >
+> > > Agree.
+> > > Unlike the comma separated parameters list,
+> > > upperdir,workdir,lowerdir are overlayfs specific format.
+> > >
+> > > ovl_unescape() (for upperdir/workdir) unescapes '\' characters.
+> > > as does ovl_parse_param_split_lowerdirs().
+> > > Not sure why this was needed for upperdir/workdir, but it It has
+> > > been this way for a long time.
+> > > I see no reason for it to change in the future.
+> >
+> > Unescaping  upperdir/workdir was the side effect of using a common
+> > helper; it wasn't intentional, I think.  The problem is that
+> > unescaping breaks code that doesn't expect it, and filenames with
+> > backslashes (and especially \\ or \: sequences) are very rare, so this
+> > won't show up in testing.
+> >
+> > At this point I'm not sure which is more likely to cause bugs: getting
+> > rid of unescaping or leaving it alone.
 >
-> > Sorry, you asked about ovl mount.
-> > To me it makes sense that if users observe ovl paths in writable mapped
-> > memory, that ovl should not be remounted RO.
-> > Anyway, I don't see a good reason to allow remount RO for ovl in that c=
-ase.
-> > Is there?
->
-> Agreed.
->
-> But is preventing remount RO important enough to warrant special
-> casing of backing file in generic code?  I'm not convinced either
-> way...
+> Considering the fact that the applications that mount overlayfs has
+> always had to do the correct escaping, getting rid of escaping can
+> only solve issues in new deployments, so I think we should greatly
+> favor leaving it alone.
 
-I prefer correctness and I doubt that the check
-   if (unlikely(f->f_mode & FMODE_BACKING))
-is worth optimizing.
+Any change here is a regression. I'm seriously confused why this is
+even debated. You already managed to have a regression and I'm still
+of the opinion that this should be fixed because it literally breaks
+user space.
 
-but I will let Christian make the final call.
+> >
+> > One way out of this mess is to create explicit _unesc versions of these=
+ options.
+> >
+>
+> I like that solution, with two reservations:
+> 1. IMO, new _unesc versions should only be supported from new mount API
+> 2. I only want to do that if real users exists - said users are expected
+>     to send the patch and explain their use case
 
-Thanks,
-Amir.
+This is confusing me a lot. Why would you not want to provide an API
+which is clearly, objectively the better API? As user space, when we
+can use the new mount API and we could use this, we absolutely would
+use this.
+
+> Thanks,
+> Amir.
+>
+
