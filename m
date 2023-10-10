@@ -2,179 +2,105 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0C91CD8CAF
-	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Oct 2023 18:28:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44AD6CD8CAE
+	for <linux-unionfs@archiver.kernel.org>; Tue, 10 Oct 2023 18:33:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234127AbjJJS27 (ORCPT
+        id S1343545AbjJJSdT (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 10 Oct 2023 14:28:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50314 "EHLO
+        Tue, 10 Oct 2023 14:33:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233867AbjJJS2z (ORCPT
+        with ESMTP id S1343593AbjJJSdS (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 10 Oct 2023 14:28:55 -0400
-Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9421D9E;
-        Tue, 10 Oct 2023 11:28:53 -0700 (PDT)
-Received: by mail-qv1-xf2b.google.com with SMTP id 6a1803df08f44-65b0383f618so38729856d6.1;
-        Tue, 10 Oct 2023 11:28:53 -0700 (PDT)
+        Tue, 10 Oct 2023 14:33:18 -0400
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB7C5B9
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2023 11:33:16 -0700 (PDT)
+Received: by mail-ed1-x532.google.com with SMTP id 4fb4d7f45d1cf-533c5d10dc7so10583792a12.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 10 Oct 2023 11:33:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1696962532; x=1697567332; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wnajvNZsdDrjqmDE9m+4VY4K3z2D3qww+2KfBOKVw1Y=;
-        b=e4zTVIDgV/xdihFaUQvo1GC7mqQhc260fXf41qKAW8YQIHQKU7kYtnvStm4greE1Qu
-         XGmkU/bkciHoI8q5QpalDiQ4+4vRkjWKIWQP99Fo/bRhtp+Y+mJPHAMJP9cc32kBZrxf
-         mAbeycr9JiCT7u10FBE3FnWNuCOY5eBuC6GMd07Mpr/I4HGBZOTzv7b6eMG5ocsDbvoe
-         YP5oJ7jCCF2jwQyU4g6JGte25odgGX4UZ8WYorBsllu94PTMDEg8ZDnIu4ClmN0uJ8o/
-         3BTXtEzdGkxVmasNV28zhP+rw73ANJDyl5GYaq37wQeke69f6HWxMTf5duV8n+ECl9q6
-         eenA==
+        d=szeredi.hu; s=google; t=1696962795; x=1697567595; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=W52UCgDK21Sr3Uc5N6Be2TLldqXBJHgoQde1trpFCRc=;
+        b=Q/eOQF1MNXEUQT9XvtfoqQAE1+BMa3fahtmgs15B/EJHamqUoo8nigeZu2sGuRJG4d
+         Vow6mc0la0OJmeziGJ5/Xxf6GuyT2pOKnB+CqDAsuvDLSdzwbT1urG1ydL6gXjTb69Ke
+         AwqDFYwtUj1/LiA5s9CRJkKaAXODY/XK1jPII=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1696962532; x=1697567332;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=wnajvNZsdDrjqmDE9m+4VY4K3z2D3qww+2KfBOKVw1Y=;
-        b=HD2uaq4IQFzewxbqqqpRDtvjPM6cLZ4JhuVXRKcX7oaJWOWxVM4wdMoBUPSE1Xw5wY
-         nSVKXEO+WVk6r4Nn2INLRzN9pWPyilg0uA3MidB4fXFbh8El/mSteTljwaUiFwHPGaqd
-         jHfqzYT3m47sC+u+oxpiPo8cFLpS4XjKKk4Hz8xEGCr0hn/c6ODbmHi9ttJjXemWkfoQ
-         I/GDRTg9RgvqD+NhGm1bN5Krq+QH1gCO+CgS3aq4vriXic+VIux4HEvwOLYHcgpoKGvD
-         FYN1DE6adTb2zA2w81STBQ8Phs5aoab8tDhK3rb4+h/VZFGXkB+NQG3M3sR/s6+dA5WO
-         UE6A==
-X-Gm-Message-State: AOJu0YzLf5D2XwmSqOVFIsBpDbrES7scfGHRhTtGkI9A+7uivXtU/a51
-        a/iyLcYZmqfEBIA970OeXlpUMXPOs36fdff/8Yw=
-X-Google-Smtp-Source: AGHT+IGOjBU3V2UBhf2oW84TcfxBy53NLZBbEJsIqRV0DPj+iZr9o2ZQe+dH7YssI0mKsfkjputPkReAeBl2Xjmhbqk=
-X-Received: by 2002:a0c:cb0b:0:b0:66a:f5ef:d7e7 with SMTP id
- o11-20020a0ccb0b000000b0066af5efd7e7mr12457450qvk.27.1696962532599; Tue, 10
- Oct 2023 11:28:52 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1696962795; x=1697567595;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=W52UCgDK21Sr3Uc5N6Be2TLldqXBJHgoQde1trpFCRc=;
+        b=bXfogJNHgvzk9gx9b6uK/YEoSrv/byqsTH3rckSyfCpx1h0T/NcyjmqOcgrdfIBHGV
+         ZQ0nFSQ26E6uewLaetJm0fRtaP6COPJKes6hvy8iIruTnkgj81b4C3yDdIAPSpYRBCP1
+         NQgMWpPO7OgAM7UwVMtTaera+xN3BlqoarIwetp47mak1Av7Aj5Gz+bHyQcachZNErbP
+         uMQ0vuECM+bB5g49RaZzQ5U+5cgv06/1mStHSv/URMBFDmlyVre/IHBLKg1rvx2/6T8S
+         xcGiI71cT6Spht65LfCqPNjGWPtDH0jjJ6I8KWE25eAnIAnZm1Erog9ioKsGsAq/YeRL
+         n5Bw==
+X-Gm-Message-State: AOJu0Yw/O2L+ns/yjqxn7l1ksBUCkaGopO4nWBp71D04Q5/IU/zPp9lW
+        y16YtqdfEpt8SzdQ7C5ac9UmaL7YKaPZB/CJht067A==
+X-Google-Smtp-Source: AGHT+IE6ZH4+IatuKNtD3ALtUEmmkIXcSPcNXBOmlbQ8w3RPc3qrSzEBZ6zBU6JLAa0gKWCr6ns9nQkjCPK2dOgOQmM=
+X-Received: by 2002:a17:906:53ce:b0:9a1:f5b1:c864 with SMTP id
+ p14-20020a17090653ce00b009a1f5b1c864mr18162728ejo.10.1696962795232; Tue, 10
+ Oct 2023 11:33:15 -0700 (PDT)
 MIME-Version: 1.0
-References: <20231009153712.1566422-1-amir73il@gmail.com> <20231009153712.1566422-4-amir73il@gmail.com>
- <CAJfpegtcNOCMp+QBPFD5aUEok6u7AqwrGqAqMCZeeuyq6xfYFw@mail.gmail.com>
- <CAOQ4uxiAHJy6viXBubm0y7x3J3P7N5XijOU8C340fi2Dpc7zXA@mail.gmail.com>
- <CAOQ4uxipA5oCQXn1-JZ+TbXw2-5O+_++FfNHC6fKqhNXfR7C0w@mail.gmail.com>
- <CAJfpeguEf71ZknP5rGU9YNtJTp1wBGBKyv6M0JZ=5ETuaipDxQ@mail.gmail.com>
- <20231010165504.GP800259@ZenIV> <20231010174146.GQ800259@ZenIV>
- <CAOQ4uxjHKU0q8dSBQhGpcdp-Dg1Hx-zxs3AurXZBQnKBkV7PAw@mail.gmail.com> <20231010182141.GR800259@ZenIV>
-In-Reply-To: <20231010182141.GR800259@ZenIV>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Tue, 10 Oct 2023 21:28:41 +0300
-Message-ID: <CAOQ4uxg7ZmDfyEam2v7Be5Chv_WBccxpExTnG+70fRz9BooyyQ@mail.gmail.com>
-Subject: Re: [PATCH v3 3/3] fs: store real path instead of fake path in
- backing file f_path
-To:     Al Viro <viro@zeniv.linux.org.uk>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+References: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
+ <CAOQ4uxhQhzv_LUW89m_BmKf+NjE+XDyY9XtLAt+SWG03M6LmYQ@mail.gmail.com>
+ <20231006130259.GA438068@toolbox> <CAOQ4uxg84M7H0EtTLWAsNkHaaLzVVXQ=-fCVFVr8a6MGSQC=vg@mail.gmail.com>
+ <5d708a45-43c9-b026-6619-7c377ee02793@alum.mit.edu> <CAOQ4uxgNakTHi0dHC1v51TCU_aAKTOrJ4zFv=BzfoKNMsCwZEg@mail.gmail.com>
+ <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com>
+ <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
+ <CA+hFU4w78Ze-wKPg9fsdR6zpL5VUwp8jNqCcHGmOFJ--GAGKJA@mail.gmail.com>
+ <CAOQ4uxhSTJaZggq-z_3oPbXh48n88E1QjfNTr5HO1ZuqyrF+ew@mail.gmail.com>
+ <CA+hFU4w8mdo1DrWPU3MNM=YBXE9aVD2yFOe_zXXq1U51B0h7kw@mail.gmail.com> <CAOQ4uxjhpKU=YfG7KjAYtyQNFzVSpwpYEvPvbMZL_fXssqk1Dg@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjhpKU=YfG7KjAYtyQNFzVSpwpYEvPvbMZL_fXssqk1Dg@mail.gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Tue, 10 Oct 2023 20:33:03 +0200
+Message-ID: <CAJfpegt3AasPxXt-bX35LB_xP0YXvvETMX98FKJJFK5RX1Q78w@mail.gmail.com>
+Subject: Re: [regression?] escaping commas in overlayfs mount options
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Sebastian Wick <sebastian.wick@redhat.com>,
+        Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>,
         Christian Brauner <brauner@kernel.org>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E . Hallyn" <serge@hallyn.com>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        linux-security-module@vger.kernel.org,
-        linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org
+        linux-unionfs@vger.kernel.org, Karel Zak <kzak@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 10, 2023 at 9:21=E2=80=AFPM Al Viro <viro@zeniv.linux.org.uk> w=
-rote:
->
-> On Tue, Oct 10, 2023 at 08:57:21PM +0300, Amir Goldstein wrote:
-> > On Tue, Oct 10, 2023 at 8:41=E2=80=AFPM Al Viro <viro@zeniv.linux.org.u=
-k> wrote:
-> > >
-> > > On Tue, Oct 10, 2023 at 05:55:04PM +0100, Al Viro wrote:
-> > > > On Tue, Oct 10, 2023 at 03:34:45PM +0200, Miklos Szeredi wrote:
-> > > > > On Tue, 10 Oct 2023 at 15:17, Amir Goldstein <amir73il@gmail.com>=
- wrote:
-> > > > >
-> > > > > > Sorry, you asked about ovl mount.
-> > > > > > To me it makes sense that if users observe ovl paths in writabl=
-e mapped
-> > > > > > memory, that ovl should not be remounted RO.
-> > > > > > Anyway, I don't see a good reason to allow remount RO for ovl i=
-n that case.
-> > > > > > Is there?
-> > > > >
-> > > > > Agreed.
-> > > > >
-> > > > > But is preventing remount RO important enough to warrant special
-> > > > > casing of backing file in generic code?  I'm not convinced either
-> > > > > way...
-> > > >
-> > > > You definitely want to guarantee that remounting filesystem r/o
-> > > > prevents the changes of visible contents; it's not just POSIX,
-> > > > it's a fairly basic common assumption about any local filesystems.
-> > >
-> > > Incidentally, could we simply keep a reference to original struct fil=
-e
-> > > instead of messing with path?
-> > >
-> > > The only caller of backing_file_open() gets &file->f_path as user_pat=
-h; how
-> > > about passing file instead, and having backing_file_open() do get_fil=
-e()
-> > > on it and stash the sucker into your object?
-> > >
-> > > And have put_file_access() do
-> > >         if (unlikely(file->f_mode & FMODE_BACKING))
-> > >                 fput(backing_file(file)->file);
-> > > in the end.
-> > >
-> > > No need to mess with write access in any special way and it's closer
-> > > to the semantics we have for normal mmap(), after all - it keeps the
-> > > file we'd passed to it open as long as mapping is there.
-> > >
-> > > Comments?
-> >
-> > Seems good to me.
-> > It also shrinks backing_file by one pointer.
-> >
-> > I think this patch can be an extra one after
-> > "fs: store real path instead of fake path in backing file f_path"
-> >
-> > Instead of changing storing of real_path to storing orig file in
-> > one change?
-> >
-> > If there are no objections, I will write it up.
->
-> Actually, now that I'd looked at it a bit more...  Look:
-> we don't need to do *anything* in put_file_access(); just
-> make file_free()
->         if (unlikely(f->f_mode & FMODE_BACKING))
->                 fput(backing_file(f)->user_file);
-> instead of conditional path_put().  That + change of open_backing_file()
-> prototype + get_file() in there pretty much eliminates the work done
-> in 1/3 - you don't need to mess with {get,put}_file_write_access()
-> at all.
->
-> I'd start with this:
->
-> struct file *vm_user_file(struct vm_area_struct *vma)
-> {
->         return vma->vm_file;
-> }
-> + replace file =3D vma->vm_file; with file =3D vm_user_file(vma) in
-> the places affected by your 2/3.  That's the first (obviously
-> safe) commit.  Then the change of backing_file_open() combined
-> with making vm_user_file() do this:
->         file =3D vma->vm_file;
->         if (file && unlikely(file->f_mode & FMODE_BACKING))
->                 file =3D backing_file(file)->user_file;
->         return file;
->
-> Voila.  Two-commit series, considerably smaller than your
-> variant...
->
+On Tue, 10 Oct 2023 at 20:15, Amir Goldstein <amir73il@gmail.com> wrote:
 
-Yap. looks very nice.
-I will try that out tomorrow.
+> It may not be me, it may be someone else, so there is a limit to my
+> commitment, but kernel developers usually abide by Linus' no regressions
+> rules (which do allow some slack).
 
-Anyway, it doesn't hurt to have the current version in linux-next
-for the night to see if the change from fake f_path to real f_path
-has any unexpected outcomes.
+Note: the no regressions rule is about actual "out in the field"
+regressions, not about potential or theoretical regressions.
 
-Thanks for the suggestions!
-Amir.
+My guess is that changing the escaping rules for workdir and upperdir
+would not make any difference.  Look: on my laptop 0.0032% of
+filenames contain a backslash.  How likely is such a filename to be
+used as workdir or upperdir?  So yes, I think getting rid of
+unescaping for these parameters on the new API is safe and will not
+invoke the no regressions rule.
+
+The same cannot be said of lowerdir, because the incidence of colons
+in filenames is much higher.  But the new API also introduced an
+"append mode" for lowerdirs, where the colon doesn't have the same
+separator role as with the "bulk mode".   Unfortunately it's not
+possible to clearly differentiate the two modes, which I think is a
+downside of the current design, and it's why I suggested the _noesc
+variants.
+
+>
+> Anyway, let's focus on what you would like best.
+> If you prefer to just fix the regression, it is doable.
+> If you prefer the upperdirfd, workdirfd, lowerdirfd API, I think we can
+> find a volunteer to write it up.
+
+It's not all good: when showing these options, the result is
+completely meaningless.   Or is there a plan to make that work nicely?
+
+THanks,
+Miklos
