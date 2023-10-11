@@ -2,52 +2,52 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86CCCCDB468
-	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Oct 2023 16:37:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E83D1CDB468
+	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Oct 2023 16:43:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232146AbjJKQhk (ORCPT
+        id S235142AbjJKQnu (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 11 Oct 2023 12:37:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60766 "EHLO
+        Wed, 11 Oct 2023 12:43:50 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54628 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235079AbjJKQhj (ORCPT
+        with ESMTP id S235143AbjJKQns (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 11 Oct 2023 12:37:39 -0400
-Received: from mail-qt1-x82d.google.com (mail-qt1-x82d.google.com [IPv6:2607:f8b0:4864:20::82d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D923DB7
-        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2023 09:37:36 -0700 (PDT)
-Received: by mail-qt1-x82d.google.com with SMTP id d75a77b69052e-41959feaae2so444621cf.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2023 09:37:36 -0700 (PDT)
+        Wed, 11 Oct 2023 12:43:48 -0400
+Received: from mail-qv1-xf2d.google.com (mail-qv1-xf2d.google.com [IPv6:2607:f8b0:4864:20::f2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 78A48B8
+        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2023 09:43:46 -0700 (PDT)
+Received: by mail-qv1-xf2d.google.com with SMTP id 6a1803df08f44-65d0da28fa8so266076d6.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2023 09:43:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697042256; x=1697647056; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1697042625; x=1697647425; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=K5EVrKXIyPhQT+KkM6yKZW0vnLVzzOs8G6AYv8bPDqw=;
-        b=eQhFm+mshaD7Jl8U17nkZuCPNbttl9bW8owmTjOR60XwEskh37H80P6fpwhYBW2b6Z
-         +ukJkzB70XXHXLvBZtBBn6Qcc952DxSzIMH0p9+TuUVp/fMtwQZhDfGO/pJJvY9QupP+
-         SQKa3hQ77SpFlCKj02xYFOAcJ9IvVO5GlOKtohNd8x5iZ8fuvRu9pcTxuGCuYwyEiWte
-         CpA27KyOFEqMwcYq5ek7SXq/kht+muMBONiXzXcB3XWDlDs5X9KCTgqX6MYQzbeWGKQi
-         Tb9xCZ1MYkrES9GUfluHbwDb3m8VzmMDNWLdzW00rQOllBqt53zAdQJOVVE979dWnVWO
-         knfw==
+        bh=WuSaa8m7cogkOeD2Y2wiUO0wtO9o2C7uz0hKnvXc/2k=;
+        b=KzXE1AtCDJG1a+wjDgIWMO4rF3+/58puWMVjshMB1MUW135A5agd4aaCMp6pB/vtP+
+         wNNA1DjhoDzjgTs8FJOogBFS1DYRDsEcrCuMliD4D9XmIU66fJFPX6GDKGHp47M0Q2HQ
+         /NIpeNVCePgLVMXUjFpo7SuOvc6J9R2wwBJowZklOGWg0mMuqoaHQ3L/SMVbWcTRXgtY
+         52qtwJJGkTyV9iO8xifn1FONGFuZt7fDsjjtPF66j/ppuRhSe8dmwGVANFEO2h3120Bw
+         VcAh9GuF6/ae+QW8BtVsYYAWylxPACGGZW0jJ9gxTsg5Tx6uAfDLH2pwSKjSYwe6FF70
+         Ov9A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697042256; x=1697647056;
+        d=1e100.net; s=20230601; t=1697042625; x=1697647425;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=K5EVrKXIyPhQT+KkM6yKZW0vnLVzzOs8G6AYv8bPDqw=;
-        b=eIyV5UphPCvR5kHzoXMdT5ZxeNGM3PwsCCRdMF3BSsrtun1XsbToCs1Svv7i2fSLXy
-         gPq2KN4nCSswYgx9yW0aFlZHAKhAldoy/WQV4c0JCXE6ZRMo8wpLpq///fp/cTNJZfaw
-         QILTNkbt6W7XKrQep/JZoICNIDKBwiIlpLf4K3ZFOoeLa5+QXGCYev2eKtagCUhEc8To
-         7DOj6yANz5Y0uiWgbY+B1I/WEe/7ahFCf1ggLog8dVRltyBGe4BZiabxkiddwNXUBT8t
-         CfDrM4dFI5CLwFfj1V5NGyIFQl2XVBwlW2sCb/q7F9XtmoZgqaTOzHdfauKBw/RowH4T
-         zoDw==
-X-Gm-Message-State: AOJu0Yyby0kXoKfS/r0tFkxjkKKu0tgPC/fFcDn9toGoiF8json5i7ur
-        xVhIH7+bwT8Gn1HynSTFyE4fZcl/mZLoUNr51PY=
-X-Google-Smtp-Source: AGHT+IGu4coUwsJ0b6MxejRlyr9ONI8QJwdacWaXOz50NHemFnfomTw77WKz6asMkDgpTh8sWLc68z4vTdW+NcE/BHQ=
-X-Received: by 2002:ac8:5a41:0:b0:406:98be:bda2 with SMTP id
- o1-20020ac85a41000000b0040698bebda2mr26086347qta.59.1697042255822; Wed, 11
- Oct 2023 09:37:35 -0700 (PDT)
+        bh=WuSaa8m7cogkOeD2Y2wiUO0wtO9o2C7uz0hKnvXc/2k=;
+        b=Le8BpdBkKTpPl3FXUpspO4ZtbLWLAat304+dPKMU8nNFJdQfcBq3wyzCH2ISTW4GA7
+         f3Ny3V67VP8pr+l/fNQf9XbdRMGaqHPhoTyMo1hrMcZh4/oPyVa+kU2ydEPsb0tSs/5A
+         9fpYjkw+1u9l3Tc8rk2AZFiaSt5W4lfsQtCRLow4oTMzFFDBFmFeyetgme1TtDmRmdvG
+         sicDEWaMPVFjkD3Pss+er0jpLspz+SPq40iGNX6fY1D6G1hK7YU/gqDflsJ3iUEnQfX1
+         vnyEAzJAndXUe9wTKvBbTJ1+8ElEmaA4y7iM8R5hjy7goDqftFPzGAr12v/iiyghBHMT
+         Wxag==
+X-Gm-Message-State: AOJu0Yyx5qMRigDbm0Kr500JDC3um+kWNiSQqqm+Pdo7LdWmjNl7rYH0
+        0OzElPsroLLutvc+YtzkqCR8qcU+J5OFhOnRxgQ=
+X-Google-Smtp-Source: AGHT+IELk8wK41xbWznfGyW03Z6/KFwetmgFFpjtYRCRFaeNTEAzjaSpizXkejaApIv9AJRBLZfYJH+WCOl4l9NrSHk=
+X-Received: by 2002:a0c:c3ce:0:b0:65d:31e:b80c with SMTP id
+ p14-20020a0cc3ce000000b0065d031eb80cmr23364761qvi.26.1697042625580; Wed, 11
+ Oct 2023 09:43:45 -0700 (PDT)
 MIME-Version: 1.0
 References: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
  <CAOQ4uxhQhzv_LUW89m_BmKf+NjE+XDyY9XtLAt+SWG03M6LmYQ@mail.gmail.com>
@@ -62,12 +62,11 @@ References: <8da307fb-9318-cf78-8a27-ba5c5a0aef6d@alum.mit.edu>
  <CAJfpegt3AasPxXt-bX35LB_xP0YXvvETMX98FKJJFK5RX1Q78w@mail.gmail.com>
  <CAOQ4uxgc2YegLuZKg4WLnOCn8-e-hxHJh7LD4=w-x--Fg7fdpw@mail.gmail.com>
  <CAJfpegvLZfYtYo2rbvJOmhbHGE5hoWaoGeb5r4hiTMQOpv0GbQ@mail.gmail.com>
- <CAOQ4uxgBW03c9ZYvKKdD_n1z70fb=+-f6xYLzcZ6AWC3O04cXw@mail.gmail.com>
- <CAJfpegvngPP1KnM7JF4ofdmSVG0XH_NeOC+B97iJZbCgvfAWFw@mail.gmail.com> <CAJfpegsvvuDLBwzH3fcNCnY4bzttVTd1zB3p5S-eKf3sqJjX6A@mail.gmail.com>
-In-Reply-To: <CAJfpegsvvuDLBwzH3fcNCnY4bzttVTd1zB3p5S-eKf3sqJjX6A@mail.gmail.com>
+ <CAOQ4uxgBW03c9ZYvKKdD_n1z70fb=+-f6xYLzcZ6AWC3O04cXw@mail.gmail.com> <CAJfpegvngPP1KnM7JF4ofdmSVG0XH_NeOC+B97iJZbCgvfAWFw@mail.gmail.com>
+In-Reply-To: <CAJfpegvngPP1KnM7JF4ofdmSVG0XH_NeOC+B97iJZbCgvfAWFw@mail.gmail.com>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Wed, 11 Oct 2023 19:37:24 +0300
-Message-ID: <CAOQ4uxh0xqktSyqm8kFXanVfVPJq4yPZgVOPN7+LgOVnjnwrLQ@mail.gmail.com>
+Date:   Wed, 11 Oct 2023 19:43:33 +0300
+Message-ID: <CAOQ4uxhapvMK5W=d7mYst=2OFPoD0JUFwGZ6-Q39bRuhF3m8PQ@mail.gmail.com>
 Subject: Re: [regression?] escaping commas in overlayfs mount options
 To:     Miklos Szeredi <miklos@szeredi.hu>
 Cc:     Sebastian Wick <sebastian.wick@redhat.com>,
@@ -80,31 +79,83 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Oct 11, 2023 at 5:33=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+On Wed, Oct 11, 2023 at 4:07=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
 wrote:
 >
-> On Wed, 11 Oct 2023 at 15:07, Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> > > > > > > Anyway, let's focus on what you would like best.
-> > > > > > > If you prefer to just fix the regression, it is doable.
-> > > > > > > If you prefer the upperdirfd, workdirfd, lowerdirfd API, I th=
-ink we can
-> > > > > > > find a volunteer to write it up.
+> On Wed, 11 Oct 2023 at 14:07, Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > Can't the existing option names be overloaded if a separate cmd
-> > (FSCONFIG_SET_PATH or FSCONFIG_SET_PATH_EMPTY) is used in fsconfig()?
+> > On Wed, Oct 11, 2023 at 1:18=E2=80=AFPM Miklos Szeredi <miklos@szeredi.=
+hu> wrote:
+> > >
+> > > On Wed, 11 Oct 2023 at 10:45, Amir Goldstein <amir73il@gmail.com> wro=
+te:
+> > >
+> > > >
+> > > > We could add new keys:
+> > > > lowerdir_first=3D,lowerdir_next=3D,lowerdatadir_next=3D
+> > > > as explicit variants for the "[^:]",":","::" prefix detection
+> > > > and those don't need to be unescaped.
+> > >
+> > > Good idea.  I'd merge "lowerdir_first" and "lowerdir_next" into
+> > > "lowerdir_one" or whatever for simplicity.  I'd also consider droppin=
+g
+> > > the prefix detection, since it has only been in mainline for one
+> > > cycle.
+> > >
+> >
+> > OK.
+> >
+> > Christian,
+> >
+> > Do you know any userspace that already uses your new append prefixes?
+> > Do we have any good reason to support "lowerdir_first"
+> > so a lower dir stack could be reset before creating the sb?
 >
-> Looked and there's nothing in the uAPI that would prevent overloading
-> the existing names.  However the internal fs_parse() API only allows a
-> single type associated with a name.   That could be changed if we
-> want.   I think it would make more sense than adding newer names that
-> are not in sync with the command line usage and existing
-> documentation.   I can look into that if there's no objection.
+> If that is a requirement, I suggest extending fsconfig(2) to allow
+> resetting an option.
 >
 
-Works for me.
+FWIW, I see that Christian has also implemented reset of lowerdir
+stack with an empty string.
 
-FYI, I pushed the lowerdir escaping regression fix to ovl-fixes.
+> > > > > >
+> > > > > > Anyway, let's focus on what you would like best.
+> > > > > > If you prefer to just fix the regression, it is doable.
+> > > > > > If you prefer the upperdirfd, workdirfd, lowerdirfd API, I thin=
+k we can
+> > > > > > find a volunteer to write it up.
+>
+> Can't the existing option names be overloaded if a separate cmd
+> (FSCONFIG_SET_PATH or FSCONFIG_SET_PATH_EMPTY) is used in fsconfig()?
+>
+> > > > BTW, it looks like we also don't display the user passed lowerdir
+> > > > parameter as is in the case of escaped characters in lowerdirs.
+> > > > Admittedly, that is another change of behavior from the new mount
+> > > > api param parsers.
+> > >
+> > > And it's a bug (regardless of being a regression or not) since commas
+> > > and whitespace  must be escaped on this interface, and colon too for
+> > > being a separator of lower layers.
+> >
+> > OK. I think it should be easy to fix this bug.
+> > I can look into it.
+>
+> Thanks.
+>
+> > > More fun: upperdir and workdir use seq_show_option() which escapes
+> > > commas and whitespace, so any escaped characters during mount will en=
+d
+> > > up being double escaped.
+> > >
+
+FYI, I tried to reproduce this bug, but could not.
+The reason (I think) is that the escaping provided by seq_show_option()
+is not the dumb "prepend \", but it's the "convert to \octal".
+
+It turns out that I also needed to store the lowerdir before unescaping,
+so that a path like 'lower\:2' will be presented correctly (with \) in moun=
+t
+options.
 
 Thanks,
 Amir.
