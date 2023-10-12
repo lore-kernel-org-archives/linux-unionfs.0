@@ -2,43 +2,42 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D53DCDB46E
-	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Oct 2023 08:22:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA1C2CDB47E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Oct 2023 08:26:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235393AbjJLIWE (ORCPT
+        id S235414AbjJLI0f (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 12 Oct 2023 04:22:04 -0400
+        Thu, 12 Oct 2023 04:26:35 -0400
 Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235396AbjJLIWD (ORCPT
+        with ESMTP id S235321AbjJLI0f (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 12 Oct 2023 04:22:03 -0400
+        Thu, 12 Oct 2023 04:26:35 -0400
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 709D498
-        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 01:22:01 -0700 (PDT)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827A4C433C7;
-        Thu, 12 Oct 2023 08:21:59 +0000 (UTC)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19B4BA9
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 01:26:34 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EB6AC433C7;
+        Thu, 12 Oct 2023 08:26:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1697098921;
-        bh=Q9NOrGtAwiLexeBJCbfCEzfE91RiWEUv25B5sGyCt2k=;
+        s=k20201202; t=1697099193;
+        bh=WtpD+iGhNIl/im3/HJRDqtpwqVwJXBzb5iYRZfAoOuI=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=rCDecUdwAUMXlk7XLt3DUapDsj1S9296uuZwbzg5+zQD9Uv7tYmmRrF08SEwOOucX
-         mVYWqVcGeIM91qtNsDYPEyqVcywSzM6sgruwinOYJG9pJ2Aj7S7McjzNBHGQ5Jk2qf
-         SWHWRgzqvJOlyged62bk8jBCIdwsbilXf7NusyFHvcpFelgrj0+sbrQifBJYbftbpL
-         9O+B344PYO+LKmjI4+X6ooDPSxij2SCpx0QSZaK6RLmI9sDFeri5VoExbpSsYHkk5g
-         7TH6gzmK3OyIHR1PbX9nn92ghMr7QkDkF7HKF8RBQCB/Wfv4UmsUBHiSX8c8v/Xzo1
-         RFs31ELVmSIyQ==
-Date:   Thu, 12 Oct 2023 10:21:56 +0200
+        b=KUWrXpGn99RiSXuR3xpEuNC/cV8LTrc4hw9bPa7jOqgjm2/G3rFMMyBILB+9r5o0p
+         b0SJ6Vk/iapET++1r4hLKICvh97eJvzEAt3vqL/C8ZCtDPNpM9wur/lEL5ureizSMd
+         1gzGreyWOyKKRYzXXlKmbw/yHfPOp8IT0SBxkEkGu6+47QycJdM97GpkkobhnJWQbd
+         pKFHDUO7tKXdhNUjq36V3E1C7INs7JHDqEnG5/FYVeDws3bWM1yliuIX6v87UgzmbP
+         d41HSJIf9gLam2W+LsEVyMprFoostl8zqk/gW5KetkHTWTw9+wLZU/jbz6GEJw9oPd
+         LZi/vvx2xuhJQ==
+Date:   Thu, 12 Oct 2023 10:26:24 +0200
 From:   Christian Brauner <brauner@kernel.org>
-To:     Amir Goldstein <amir73il@gmail.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Amir Goldstein <amir73il@gmail.com>,
         Sebastian Wick <sebastian.wick@redhat.com>,
         Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>,
         linux-unionfs@vger.kernel.org, Karel Zak <kzak@redhat.com>
 Subject: Re: [regression?] escaping commas in overlayfs mount options
-Message-ID: <20231012-neugliederung-glimpflich-444037247596@brauner>
-References: <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com>
- <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
+Message-ID: <20231012-klaut-dohle-e87948620243@brauner>
+References: <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
  <CA+hFU4w78Ze-wKPg9fsdR6zpL5VUwp8jNqCcHGmOFJ--GAGKJA@mail.gmail.com>
  <CAOQ4uxhSTJaZggq-z_3oPbXh48n88E1QjfNTr5HO1ZuqyrF+ew@mail.gmail.com>
  <CA+hFU4w8mdo1DrWPU3MNM=YBXE9aVD2yFOe_zXXq1U51B0h7kw@mail.gmail.com>
@@ -47,42 +46,38 @@ References: <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com>
  <CAOQ4uxgc2YegLuZKg4WLnOCn8-e-hxHJh7LD4=w-x--Fg7fdpw@mail.gmail.com>
  <CAJfpegvLZfYtYo2rbvJOmhbHGE5hoWaoGeb5r4hiTMQOpv0GbQ@mail.gmail.com>
  <CAOQ4uxgBW03c9ZYvKKdD_n1z70fb=+-f6xYLzcZ6AWC3O04cXw@mail.gmail.com>
+ <CAJfpegvngPP1KnM7JF4ofdmSVG0XH_NeOC+B97iJZbCgvfAWFw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxgBW03c9ZYvKKdD_n1z70fb=+-f6xYLzcZ6AWC3O04cXw@mail.gmail.com>
+In-Reply-To: <CAJfpegvngPP1KnM7JF4ofdmSVG0XH_NeOC+B97iJZbCgvfAWFw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Wed, Oct 11, 2023 at 03:06:49PM +0300, Amir Goldstein wrote:
-> On Wed, Oct 11, 2023 at 1:18 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> > Christian,
 > >
-> > On Wed, 11 Oct 2023 at 10:45, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > >
-> > > We could add new keys:
-> > > lowerdir_first=,lowerdir_next=,lowerdatadir_next=
-> > > as explicit variants for the "[^:]",":","::" prefix detection
-> > > and those don't need to be unescaped.
-> >
-> > Good idea.  I'd merge "lowerdir_first" and "lowerdir_next" into
-> > "lowerdir_one" or whatever for simplicity.  I'd also consider dropping
-> > the prefix detection, since it has only been in mainline for one
-> > cycle.
-> >
+> > Do you know any userspace that already uses your new append prefixes?
+> > Do we have any good reason to support "lowerdir_first"
+> > so a lower dir stack could be reset before creating the sb?
 > 
-> OK.
-> 
-> Christian,
-> 
-> Do you know any userspace that already uses your new append prefixes?
+> If that is a requirement, I suggest extending fsconfig(2) to allow
+> resetting an option.
 
-I'm not sure if @Karel already ported libmount to rely on this.
-The new layer parsing where you can append and replace layers was done
-so that we can have the maximum number of allowed lower layers.
+Overlayfs does already support this. If you pass:
+fsconfig(FSCONFIG_SET_STRING, "lowerdir", "", ...)
+then the lower layer stack is reset. I've implemented it that way in
+ovl_parse_param_lowerdir().
 
-So in the future I would expect libmount should parse the lowerdir,
-upperdir, workdir strings and split them up in userspace before passing
-them to the kernel.
+> 
+> > > > > >
+> > > > > > Anyway, let's focus on what you would like best.
+> > > > > > If you prefer to just fix the regression, it is doable.
+> > > > > > If you prefer the upperdirfd, workdirfd, lowerdirfd API, I think we can
+> > > > > > find a volunteer to write it up.
+> 
+> Can't the existing option names be overloaded if a separate cmd
+> (FSCONFIG_SET_PATH or FSCONFIG_SET_PATH_EMPTY) is used in fsconfig()?
+
+Yes, they can and filesystems do do that today depending on whether they
+want to e.g., take an fd or a path or something.
