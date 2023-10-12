@@ -2,175 +2,87 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BDC2CDB468
-	for <linux-unionfs@archiver.kernel.org>; Wed, 11 Oct 2023 16:46:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D53DCDB46E
+	for <linux-unionfs@archiver.kernel.org>; Thu, 12 Oct 2023 08:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233009AbjJKQqo (ORCPT
+        id S235393AbjJLIWE (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 11 Oct 2023 12:46:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33736 "EHLO
+        Thu, 12 Oct 2023 04:22:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235114AbjJKQqf (ORCPT
+        with ESMTP id S235396AbjJLIWD (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 11 Oct 2023 12:46:35 -0400
-Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28BE18F
-        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2023 09:46:32 -0700 (PDT)
-Received: by mail-wm1-x32f.google.com with SMTP id 5b1f17b1804b1-4075c58ac39so763595e9.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 11 Oct 2023 09:46:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697042790; x=1697647590; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=RJqFA+s/mSPU1XInzGqIfTATa62Q4sl69T8M5JbscGQ=;
-        b=ecan99vpddHANYl/qUyZ1UFEBwwSVErLHQ4G5ZrAmNFOAOLwjSmsVJqcztVS1mWzn7
-         5QqhKYi8j3T+hAjZsjiEr8lJakuFWyK9mLWpoAcUnqZEHMItSfHTPPdMmGLbouV77FeL
-         SfRedU5jB8N1ggJD5VEzqgFUcCSa6HUogD/md6AINrBJiMBw6XDtcOoT6c9y04kS19r6
-         RK+yNAupw2o8jKWW0KLhMuiZKXeYYrS49JjLjNR4GTwgfXCS7+aS3J9hSyBhFhKKvXeQ
-         yW87y7SFbS2Pwd/J4mGsLW9yEmQ2xi4x2eiSqez0Vb97Fy6NG8pjpZ1LIUls9IK8uded
-         GKOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697042790; x=1697647590;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=RJqFA+s/mSPU1XInzGqIfTATa62Q4sl69T8M5JbscGQ=;
-        b=Dq3dv/bnTJKla2nqyvN3ugNV3CReo6fZ/hJs0/1de6w0ZkD7oyjcIBg57C3Wtd4aJ0
-         PhnupwYZZ8qpuYxgWDMLOe4IrNjJuNDF4LlNePpm7QyFO3FMzzMcU3DBcmSik21nqjCd
-         f1tmrXdNVO1DzoFlk5jR18hi5P0In1W5ex/y/6YEXoVncV+Rmv8/PD2m7w69D7pLYtTv
-         ZkQ1K3q6cY7exYXWfyhSr1VSEQ/dwU78SDgZ972GFN0QuDCPSeWKc73HCRpEbtFPfkOR
-         OzA//ZDTGkopQz3SYuLjBo53gjUKtkVP9xVWic/PqnGF9qwy8oiYF9grgPtRP09L8bMA
-         GV/w==
-X-Gm-Message-State: AOJu0YzjmMHofYoeUBWCZlsgRZtueFQ3se78atqN1ekJ4X2kEkDU1/wu
-        1q+eDeBrxKG4SrjGCDdg9YMQBXMH6MI=
-X-Google-Smtp-Source: AGHT+IH/MXu2UpoNZHPsp8lCQi2sH4GohP40GX5UepJEMkI7palXu6s2b6OB0ZKAu5nKBc7GyzZN/w==
-X-Received: by 2002:adf:e852:0:b0:315:9e1b:4ea6 with SMTP id d18-20020adfe852000000b003159e1b4ea6mr18329833wrn.58.1697042790306;
-        Wed, 11 Oct 2023 09:46:30 -0700 (PDT)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id 9-20020a05600c020900b003feea62440bsm17195277wmi.43.2023.10.11.09.46.20
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 11 Oct 2023 09:46:21 -0700 (PDT)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org
-Subject: [PATCH] ovl: fix regression in showing lowerdir mount option
-Date:   Wed, 11 Oct 2023 19:46:13 +0300
-Message-Id: <20231011164613.1766616-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        Thu, 12 Oct 2023 04:22:03 -0400
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 709D498
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 01:22:01 -0700 (PDT)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 827A4C433C7;
+        Thu, 12 Oct 2023 08:21:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1697098921;
+        bh=Q9NOrGtAwiLexeBJCbfCEzfE91RiWEUv25B5sGyCt2k=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=rCDecUdwAUMXlk7XLt3DUapDsj1S9296uuZwbzg5+zQD9Uv7tYmmRrF08SEwOOucX
+         mVYWqVcGeIM91qtNsDYPEyqVcywSzM6sgruwinOYJG9pJ2Aj7S7McjzNBHGQ5Jk2qf
+         SWHWRgzqvJOlyged62bk8jBCIdwsbilXf7NusyFHvcpFelgrj0+sbrQifBJYbftbpL
+         9O+B344PYO+LKmjI4+X6ooDPSxij2SCpx0QSZaK6RLmI9sDFeri5VoExbpSsYHkk5g
+         7TH6gzmK3OyIHR1PbX9nn92ghMr7QkDkF7HKF8RBQCB/Wfv4UmsUBHiSX8c8v/Xzo1
+         RFs31ELVmSIyQ==
+Date:   Thu, 12 Oct 2023 10:21:56 +0200
+From:   Christian Brauner <brauner@kernel.org>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Sebastian Wick <sebastian.wick@redhat.com>,
+        Ryan Hendrickson <ryan.hendrickson@alum.mit.edu>,
+        linux-unionfs@vger.kernel.org, Karel Zak <kzak@redhat.com>
+Subject: Re: [regression?] escaping commas in overlayfs mount options
+Message-ID: <20231012-neugliederung-glimpflich-444037247596@brauner>
+References: <CAJfpegsFNjMX+Lz8uX-6=fDa59qYJQjnUnJpzKiTxuBziC7pxQ@mail.gmail.com>
+ <CAOQ4uxgNr=ZbHTB8TcMfWLceBoQD0a2u4Bzo3-Hr3QZTRoBjLQ@mail.gmail.com>
+ <CA+hFU4w78Ze-wKPg9fsdR6zpL5VUwp8jNqCcHGmOFJ--GAGKJA@mail.gmail.com>
+ <CAOQ4uxhSTJaZggq-z_3oPbXh48n88E1QjfNTr5HO1ZuqyrF+ew@mail.gmail.com>
+ <CA+hFU4w8mdo1DrWPU3MNM=YBXE9aVD2yFOe_zXXq1U51B0h7kw@mail.gmail.com>
+ <CAOQ4uxjhpKU=YfG7KjAYtyQNFzVSpwpYEvPvbMZL_fXssqk1Dg@mail.gmail.com>
+ <CAJfpegt3AasPxXt-bX35LB_xP0YXvvETMX98FKJJFK5RX1Q78w@mail.gmail.com>
+ <CAOQ4uxgc2YegLuZKg4WLnOCn8-e-hxHJh7LD4=w-x--Fg7fdpw@mail.gmail.com>
+ <CAJfpegvLZfYtYo2rbvJOmhbHGE5hoWaoGeb5r4hiTMQOpv0GbQ@mail.gmail.com>
+ <CAOQ4uxgBW03c9ZYvKKdD_n1z70fb=+-f6xYLzcZ6AWC3O04cXw@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxgBW03c9ZYvKKdD_n1z70fb=+-f6xYLzcZ6AWC3O04cXw@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Before commit b36a5780cb44 ("ovl: modify layer parameter parsing"),
-spaces and commas in lowerdir mount option value used to be escaped using
-seq_show_option().
+On Wed, Oct 11, 2023 at 03:06:49PM +0300, Amir Goldstein wrote:
+> On Wed, Oct 11, 2023 at 1:18 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Wed, 11 Oct 2023 at 10:45, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > >
+> > > We could add new keys:
+> > > lowerdir_first=,lowerdir_next=,lowerdatadir_next=
+> > > as explicit variants for the "[^:]",":","::" prefix detection
+> > > and those don't need to be unescaped.
+> >
+> > Good idea.  I'd merge "lowerdir_first" and "lowerdir_next" into
+> > "lowerdir_one" or whatever for simplicity.  I'd also consider dropping
+> > the prefix detection, since it has only been in mainline for one
+> > cycle.
+> >
+> 
+> OK.
+> 
+> Christian,
+> 
+> Do you know any userspace that already uses your new append prefixes?
 
-In current upstream, when lowerdir value has a space, it is not escaped
-in /proc/mounts, e.g.:
+I'm not sure if @Karel already ported libmount to rely on this.
+The new layer parsing where you can append and replace layers was done
+so that we can have the maximum number of allowed lower layers.
 
-  none /mnt overlay rw,relatime,lowerdir=l l,upperdir=u,workdir=w 0 0
-
-which results in broken output of the mount utility:
-
-  none on /mnt type overlay (rw,relatime,lowerdir=l)
-
-Store the original lowerdir mount options before unescaping and show
-them using the same escaping used for seq_show_option() in addition to
-escaping the colon separator character.
-
-Fixes: b36a5780cb44 ("ovl: modify layer parameter parsing")
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- fs/overlayfs/params.c | 38 +++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 15 deletions(-)
-
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 95b751507ac8..1429767a84bc 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -164,7 +164,8 @@ static ssize_t ovl_parse_param_split_lowerdirs(char *str)
- 
- 	for (s = d = str;; s++, d++) {
- 		if (*s == '\\') {
--			s++;
-+			/* keep esc chars in split lowerdir */
-+			*d++ = *s++;
- 		} else if (*s == ':') {
- 			bool next_colon = (*(s + 1) == ':');
- 
-@@ -239,7 +240,7 @@ static void ovl_unescape(char *s)
- 	}
- }
- 
--static int ovl_mount_dir(const char *name, struct path *path)
-+static int ovl_mount_dir(const char *name, struct path *path, bool upper)
- {
- 	int err = -ENOMEM;
- 	char *tmp = kstrdup(name, GFP_KERNEL);
-@@ -248,7 +249,7 @@ static int ovl_mount_dir(const char *name, struct path *path)
- 		ovl_unescape(tmp);
- 		err = ovl_mount_dir_noesc(tmp, path);
- 
--		if (!err && path->dentry->d_flags & DCACHE_OP_REAL) {
-+		if (!err && upper && path->dentry->d_flags & DCACHE_OP_REAL) {
- 			pr_err("filesystem on '%s' not supported as upperdir\n",
- 			       tmp);
- 			path_put_init(path);
-@@ -269,7 +270,7 @@ static int ovl_parse_param_upperdir(const char *name, struct fs_context *fc,
- 	struct path path;
- 	char *dup;
- 
--	err = ovl_mount_dir(name, &path);
-+	err = ovl_mount_dir(name, &path, true);
- 	if (err)
- 		return err;
- 
-@@ -472,7 +473,7 @@ static int ovl_parse_param_lowerdir(const char *name, struct fs_context *fc)
- 		l = &ctx->lower[nr];
- 		memset(l, 0, sizeof(*l));
- 
--		err = ovl_mount_dir_noesc(dup_iter, &l->path);
-+		err = ovl_mount_dir(dup_iter, &l->path, false);
- 		if (err)
- 			goto out_put;
- 
-@@ -950,16 +951,23 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 	struct super_block *sb = dentry->d_sb;
- 	struct ovl_fs *ofs = OVL_FS(sb);
- 	size_t nr, nr_merged_lower = ofs->numlayer - ofs->numdatalayer;
--	char **lowerdatadirs = &ofs->config.lowerdirs[nr_merged_lower];
--
--	/* lowerdirs[] starts from offset 1 */
--	seq_printf(m, ",lowerdir=%s", ofs->config.lowerdirs[1]);
--	/* dump regular lower layers */
--	for (nr = 2; nr < nr_merged_lower; nr++)
--		seq_printf(m, ":%s", ofs->config.lowerdirs[nr]);
--	/* dump data lower layers */
--	for (nr = 0; nr < ofs->numdatalayer; nr++)
--		seq_printf(m, "::%s", lowerdatadirs[nr]);
-+
-+	/*
-+	 * lowerdirs[] starts from offset 1, then
-+	 * >= 0 regular lower layers prefixed with : and
-+	 * >= 0 data-only lower layers prefixed with ::
-+	 *
-+	 * we need to escase comma and space like seq_show_option() does and
-+	 * we also need to escape the colon separator from lowerdir paths.
-+	 */
-+	seq_puts(m, ",lowerdir=");
-+	for (nr = 1; nr < ofs->numlayer; nr++) {
-+		if (nr > 1)
-+			seq_putc(m, ':');
-+		if (nr >= nr_merged_lower)
-+			seq_putc(m, ':');
-+		seq_escape(m, ofs->config.lowerdirs[nr], ":,= \t\n\\");
-+	}
- 	if (ofs->config.upperdir) {
- 		seq_show_option(m, "upperdir", ofs->config.upperdir);
- 		seq_show_option(m, "workdir", ofs->config.workdir);
--- 
-2.34.1
-
+So in the future I would expect libmount should parse the lowerdir,
+upperdir, workdir strings and split them up in userspace before passing
+them to the kernel.
