@@ -2,230 +2,193 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF484CDB47E
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Oct 2023 12:34:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F90CCDB47E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Oct 2023 15:36:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231241AbjJMMee (ORCPT
+        id S232367AbjJMPg0 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 13 Oct 2023 08:34:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49584 "EHLO
+        Fri, 13 Oct 2023 11:36:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55270 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231664AbjJMMee (ORCPT
+        with ESMTP id S232356AbjJMPgY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 13 Oct 2023 08:34:34 -0400
-Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D52CC2
-        for <linux-unionfs@vger.kernel.org>; Fri, 13 Oct 2023 05:34:31 -0700 (PDT)
-Received: by mail-yb1-xb29.google.com with SMTP id 3f1490d57ef6-d9ac31cb051so1859946276.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 13 Oct 2023 05:34:31 -0700 (PDT)
+        Fri, 13 Oct 2023 11:36:24 -0400
+Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9B7BBE
+        for <linux-unionfs@vger.kernel.org>; Fri, 13 Oct 2023 08:36:20 -0700 (PDT)
+Received: by mail-ej1-x62a.google.com with SMTP id a640c23a62f3a-9b275afb6abso710483266b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 13 Oct 2023 08:36:20 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697200470; x=1697805270; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=ZAc7kS9hMaD3nmNYfNELGJEcrLxOYDbhkNvijIXo93A=;
-        b=ZKTdv6MQE43qxv7fyzoECpl13kfzQveF1FuDHab97inq/4jPsCCjeTXUq5XPGIMxiX
-         uu/oiMgD13rE52II1bVCfacTroBKPLc8Wf/VP5fVALR3OBDBZ2faNsWKSb6SF655BiDt
-         nDfBINvLVWD3a8SKHkfFIckloP77Fvm+shpKXvu4kVY3GtI0lhP0fyjaiTnniSGoNv9r
-         Y83LyJOcSHQwEpKaUGHDkqZO/06eoAcCaX+tTXd/iHWzj5KpIifcVFcTRM8WYTLt5vTC
-         VLbHe6RpDaYxf6sAbTu8E7s8QTxnxlbD4IL6wtFXsdzmx4NtWN+RfHbGIA29p1lNRvrW
-         MXrA==
+        d=szeredi.hu; s=google; t=1697211379; x=1697816179; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=yyLXtKhVgM7jfQrNyPUn3G2Ltk205pBcWVIPXzr7zUk=;
+        b=KYmdRux1BC7s4Y7cmjMExx59EO6id3UVGpcFBKf0qfwx6Neq3+OsMGCwtGau8rf27W
+         8PYXO1aY/Ty7ShM7L4odl3wg4Z6vqyHE8JvmH/jsG9d/uAItkG2qmsqDnSX1gcvWTnbi
+         jmeY8lNalQ2ZRr0U8eeZN9MkTjB01RVUAJTMU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697200470; x=1697805270;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ZAc7kS9hMaD3nmNYfNELGJEcrLxOYDbhkNvijIXo93A=;
-        b=fQ0VI9ekfSu+bii1JnGjSQ1HaYUkkWecuTpFWeDBWKRklOt7DTr/xZZ8J7sO/s87r8
-         SKWH5nQLSourJfbpMSPwLr4Jsapo3d3fq7WGNFDaXeKitzJpIU4T47W3G/BH79Z/Id3r
-         B+et11d2cZCoapluCByWvzmiTBafrceOiKRVCzfnpOLjNwF9sNcYmqG+Ci5m/nJgSj4Z
-         ztHu4f108f8P/73pegMqsbOqf2RIGv39G7f9+fUY4Sq30yhfEiyobDKpuarRpsn4flzp
-         MW4nV3tub0GfekRUyjoUWUpAPjccbiOLUTQ1DnynF2QUf6kKWBEoU2oHU/iQrsz30ukj
-         2Ifw==
-X-Gm-Message-State: AOJu0Yx7himaR5Awcqd++LCWg85O506BEjuotpnaogE1M4teNk93YgUU
-        cfbaVFtavcBApjA1WN5WKsga/KxYSCgLkV5p3BRiCbWcaR8=
-X-Google-Smtp-Source: AGHT+IFX+m7ZGRy7jXWMBNRTC2/D9kobzO4P8VDKn5RwbHxnM3uu4MCWiUDt9LXDcNDr5WotedPOoOdql7mK+wcy4x0=
-X-Received: by 2002:a25:fb06:0:b0:d9b:351:63ba with SMTP id
- j6-20020a25fb06000000b00d9b035163bamr1961595ybe.17.1697200470045; Fri, 13 Oct
- 2023 05:34:30 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1697211379; x=1697816179;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yyLXtKhVgM7jfQrNyPUn3G2Ltk205pBcWVIPXzr7zUk=;
+        b=whqI5WrnPLwHLfTAYWgLOHLRoaweKm4lmus6SywPRxNNjaR+mFPKH45z8LqmAmfLCK
+         ALUOrhiqf+f4g47tJb8QCaXmSCWQiGTB++bwRg23orOB6DfRZFUBvTqeO0bc2fwT8miF
+         vLD3DQqizOBcWH5BCofKLs6bmZyWf9CHBLI7uJAnp5gzc0Bk29bH6QsUhZBZ+7fqP7HJ
+         0IgZAm0e24BH5te8NqwdFA48j0JaGYqoFAuVCGeq1XrlBEhqjkZc5XqQmmw5tg4UnA7h
+         IaIGL8+aXwHQxKb7kSFjSHdFuKKjxSDiuJk/SEpfh2ngNgUr8PqbrU299evQkhbesNe5
+         B7iw==
+X-Gm-Message-State: AOJu0YwEBvTSi6gmWkhC+RAX8MnRXeudbg1uqE0OPUBFsUkk4KhvmyG1
+        xscD1IN2/CbhZM5AkSQk7F9WpuhaU3a1OaRxOmYtpw==
+X-Google-Smtp-Source: AGHT+IE8ZYYOdF0avZwnl/SsMwcsHymBVTm0tojzoxTlnHm59ZkAomEaqGeU5gyhoFCKGAUuBmjyAnJPD2RmCwLgwwE=
+X-Received: by 2002:a17:907:9343:b0:9ad:93c8:c483 with SMTP id
+ bv3-20020a170907934300b009ad93c8c483mr427488ejc.2.1697211378693; Fri, 13 Oct
+ 2023 08:36:18 -0700 (PDT)
 MIME-Version: 1.0
-References: <20231012-einband-uferpromenade-80541a047a1f@brauner>
- <CAOQ4uxgEyBaCgmG5q85+kfaVyGDNUkzf_W-Oy7PbCmqe+gNtUQ@mail.gmail.com> <20231013-erdreich-muschel-9aea347600aa@brauner>
-In-Reply-To: <20231013-erdreich-muschel-9aea347600aa@brauner>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Fri, 13 Oct 2023 15:34:18 +0300
-Message-ID: <CAOQ4uxh78_DY6odN8L-wDJx10W5hgn+APM2H3K838aNBpgPDGQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: rely on SB_I_NOUMASK
-To:     Christian Brauner <brauner@kernel.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
-        Max Kellermann <max.kellermann@ionos.com>,
-        linux-unionfs@vger.kernel.org, Jeff Layton <jlayton@kernel.org>
+References: <20231011164613.1766616-1-amir73il@gmail.com>
+In-Reply-To: <20231011164613.1766616-1-amir73il@gmail.com>
+From:   Miklos Szeredi <miklos@szeredi.hu>
+Date:   Fri, 13 Oct 2023 17:36:07 +0200
+Message-ID: <CAJfpegvgePB-==T=yTU1R+JVxKYsU_Bm18vWdW5hXWLGw=47PQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix regression in showing lowerdir mount option
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Christian Brauner <brauner@kernel.org>,
+        linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Oct 13, 2023 at 10:56=E2=80=AFAM Christian Brauner <brauner@kernel.=
-org> wrote:
+On Wed, 11 Oct 2023 at 18:46, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> On Fri, Oct 13, 2023 at 09:57:50AM +0300, Amir Goldstein wrote:
-> > On Thu, Oct 12, 2023 at 6:37=E2=80=AFPM Christian Brauner <brauner@kern=
-el.org> wrote:
-> > >
-> > > In commit f61b9bb3f838 ("fs: add a new SB_I_NOUMASK flag") we added a
-> > > new SB_I_NOUMASK flag that is used by filesystems like NFS to indicat=
-e
-> > > that umask stripping is never supposed to be done in the vfs independ=
-ent
-> > > of whether or not POSIX ACLs are supported.
-> > >
-> > > Overlayfs falls into the same category as it raises SB_POSIXACL
-> > > unconditionally to defer umask application to the upper filesystem.
-> > >
-> > > Now that we have SB_I_NOUMASK use that and make SB_POSIXACL properly
-> > > conditional on whether or not the kernel does have support for it. Th=
-is
-> > > will enable use to turn IS_POSIXACL() into nop on kernels that don't
-> > > have POSIX ACL support avoding bugs from missed umask stripping.
-> > >
-> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
-> > > ---
-> > > Hey Amir & Miklos,
-> > >
-> > > This depends on the aforementioned patch in vfs.misc. So if you're fi=
-ne
-> > > with this change I'd take this through vfs.misc.
-> >
-> > Generally, I'm fine with a version of this going through the vfs tree.
-> >
-> > >
-> > > Christian
-> > > ---
-> > >  fs/overlayfs/super.c | 8 ++++++++
-> > >  1 file changed, 8 insertions(+)
-> > >
-> > > diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> > > index 9f43f0d303ad..361189b676b0 100644
-> > > --- a/fs/overlayfs/super.c
-> > > +++ b/fs/overlayfs/super.c
-> > > @@ -1489,8 +1489,16 @@ int ovl_fill_super(struct super_block *sb, str=
-uct fs_context *fc)
-> > >         sb->s_xattr =3D ofs->config.userxattr ? ovl_user_xattr_handle=
-rs :
-> > >                 ovl_trusted_xattr_handlers;
-> > >         sb->s_fs_info =3D ofs;
-> > > +#ifdef CONFIG_FS_POSIX_ACL
-> > >         sb->s_flags |=3D SB_POSIXACL;
-> > > +#endif
-> >
-> > IDGI, if IS_POSIXACL() is going to turn into noop
-> > why do we need this ifdef?
+> Before commit b36a5780cb44 ("ovl: modify layer parameter parsing"),
+> spaces and commas in lowerdir mount option value used to be escaped using
+> seq_show_option().
 >
-> Because it's wrong to advertise SB_POSIXACL support if the kernel
-> doesn't support it at all. It's a minor correctness thing. I'll provide
-> more details below.
+> In current upstream, when lowerdir value has a space, it is not escaped
+> in /proc/mounts, e.g.:
 >
-> >
-> > To me the flag SB_POSIXACL means that any given inode
-> > MAY have a custom posix acl.
-> >
-> > >         sb->s_iflags |=3D SB_I_SKIP_SYNC | SB_I_IMA_UNVERIFIABLE_SIGN=
-ATURE;
-> > > +       /*
-> > > +        * Ensure that umask handling is done by the filesystems used
-> > > +        * for the the upper layer instead of overlayfs as that would
-> > > +        * lead to unexpected results.
-> > > +        */
-> > > +       sb->s_iflags |=3D SB_I_NOUMASK;
-> > >
-> >
-> > Looks like FUSE has a similar pattern, although the testing and then
-> > setting of SB_POSIXACL is perplexing to me:
-> >
-> >         /* Handle umasking inside the fuse code */
-> >         if (sb->s_flags & SB_POSIXACL)
-> >                 fc->dont_mask =3D 1;
-> >         sb->s_flags |=3D SB_POSIXACL;
-> >
-> > And for NFS, why was SB_I_NOUMASK set for v4 and not for v3
-> > when v3 clearly states:
-> >
-> >         case 3:
-> >                 /*
-> >                  * The VFS shouldn't apply the umask to mode bits.
-> >                  * We will do so ourselves when necessary.
-> >                  */
-> >                 sb->s_flags |=3D SB_POSIXACL;
-> >
-> > Feels like I am missing parts of the big picture?
+>   none /mnt overlay rw,relatime,lowerdir=l l,upperdir=u,workdir=w 0 0
 >
-> When a filesystem doesn't raise SB_POSIXACL the vfs will strip the
-> umask. When a filesystem does raise SB_POSIXACL the vfs will not strip
-> the umask. Instead, the umask is stripped during posix_acl_create() in
-> the individual filesystems.
+> which results in broken output of the mount utility:
 >
-> If the kernel doesn't support POSIX ACLs, i.e. CONFIG_FS_POSIX_ACL isn't
-> set then posix_acl_create() is a nop. Hence, on a kernel without
-> CONFIG_FS_POSIX_ACL any filesystem that raises SB_POSIXACL will not do
-> any umask stripping at all: not on the vfs level because the vfs sees
-> SB_POSIXACL and not on the filesystem level because posix_acl_create()
-> is a nop.
+>   none on /mnt type overlay (rw,relatime,lowerdir=l)
 >
-> This complication in umask handling is a side-effect of POSIX ACLs and
-> one that is really nasty. But the general idea is that you can't get one
-> without the other. IOW, obviously no one should raise SB_POSIXACL if
-> they don't intend to support POSIX ACLs...
+> Store the original lowerdir mount options before unescaping and show
+> them using the same escaping used for seq_show_option() in addition to
+> escaping the colon separator character.
 >
-> But as we all know, hackers like us gotta hack. So filesystems like NFS
-> do use SB_POSIXACL for exactly that. But life without nuanced
-> complications isn't worth living so NFS v3 and NFS v4 do it slightly
-> differently.
+> Fixes: b36a5780cb44 ("ovl: modify layer parameter parsing")
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  fs/overlayfs/params.c | 38 +++++++++++++++++++++++---------------
+>  1 file changed, 23 insertions(+), 15 deletions(-)
 >
-> NFS v3 uses SB_POSIXACL to avoid umask stripping in the VFS but NFS v3
-> does optionally support POSIX ACLs
+> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> index 95b751507ac8..1429767a84bc 100644
+> --- a/fs/overlayfs/params.c
+> +++ b/fs/overlayfs/params.c
+> @@ -164,7 +164,8 @@ static ssize_t ovl_parse_param_split_lowerdirs(char *str)
 >
-> #ifdef CONFIG_NFS_V3_ACL
->         .listxattr      =3D nfs3_listxattr,
->         .get_inode_acl  =3D nfs3_get_acl,
->         .set_acl        =3D nfs3_set_acl,
-> #endif
+>         for (s = d = str;; s++, d++) {
+>                 if (*s == '\\') {
+> -                       s++;
+> +                       /* keep esc chars in split lowerdir */
+> +                       *d++ = *s++;
+>                 } else if (*s == ':') {
+>                         bool next_colon = (*(s + 1) == ':');
 >
-> and so raising SB_POSIXACL makes sense in that case. But in all
-> likelihood NFS should conditionalize SB_POSIXACL for NFS v3 on
-> CONFIG_NFS_V3_ACL or - if they want to prevent umask stripping
-> completely - they also need to raise SB_I_NOUMASK. But I have zero idea
-> what's correct for them so I trust Jeff and other people interested in
-> NFS to figure out what they need.
+> @@ -239,7 +240,7 @@ static void ovl_unescape(char *s)
+>         }
+>  }
 >
-> NFS v4 on the other hand clearly doesn't care about POSIX ACL support at
-> all because they don't support it in any form. So NFS v4 is only
-> interested in the side-effects of POSIX ACLs on umask handling.
+> -static int ovl_mount_dir(const char *name, struct path *path)
+> +static int ovl_mount_dir(const char *name, struct path *path, bool upper)
+>  {
+>         int err = -ENOMEM;
+>         char *tmp = kstrdup(name, GFP_KERNEL);
+> @@ -248,7 +249,7 @@ static int ovl_mount_dir(const char *name, struct path *path)
+>                 ovl_unescape(tmp);
+>                 err = ovl_mount_dir_noesc(tmp, path);
 >
-> So for them SB_I_NOUMASK is clearly the right thing to do.
+> -               if (!err && path->dentry->d_flags & DCACHE_OP_REAL) {
+> +               if (!err && upper && path->dentry->d_flags & DCACHE_OP_REAL) {
+>                         pr_err("filesystem on '%s' not supported as upperdir\n",
+>                                tmp);
+>                         path_put_init(path);
+> @@ -269,7 +270,7 @@ static int ovl_parse_param_upperdir(const char *name, struct fs_context *fc,
+>         struct path path;
+>         char *dup;
 >
-> My reasoning about overlayfs is that it falls into the same category as
-> NFS v4 albeit for slightly different reasons. As a stacking filesystems
-> with a writable upper layer overlayfs can never rely on umask handling
-> done in the VFS because it doesn't (easily) know up front whether the
-> underlying filesystems supports POSIX ACLs or not.
+> -       err = ovl_mount_dir(name, &path);
+> +       err = ovl_mount_dir(name, &path, true);
+>         if (err)
+>                 return err;
 >
-> And currently it always has to raise SB_POSIXACL to get the side-effects
-> on umask handling even if the kernel isn't compiled with POSIX ACL
-> support at all. IOW, you always want the upper layer to do the umask
-> handling.
+> @@ -472,7 +473,7 @@ static int ovl_parse_param_lowerdir(const char *name, struct fs_context *fc)
+>                 l = &ctx->lower[nr];
+>                 memset(l, 0, sizeof(*l));
 >
-> So the correct thing to do is to raise SB_I_NOUMASK to communicate
-> clearly that umask handling will always be done by the upper layer. And
-> that in turn allows you to stop raising SB_POSIXACL unconditionally.
+> -               err = ovl_mount_dir_noesc(dup_iter, &l->path);
+> +               err = ovl_mount_dir(dup_iter, &l->path, false);
+>                 if (err)
+>                         goto out_put;
 >
-> Because in fs/overlayfs/{inode.c,overlayfs.h} you can also see that all
-> ovl inode operations are nop-ed when CONFIG_FS_POSIX_ACL is turned off.
->
+> @@ -950,16 +951,23 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+>         struct super_block *sb = dentry->d_sb;
+>         struct ovl_fs *ofs = OVL_FS(sb);
+>         size_t nr, nr_merged_lower = ofs->numlayer - ofs->numdatalayer;
+> -       char **lowerdatadirs = &ofs->config.lowerdirs[nr_merged_lower];
+> -
+> -       /* lowerdirs[] starts from offset 1 */
+> -       seq_printf(m, ",lowerdir=%s", ofs->config.lowerdirs[1]);
+> -       /* dump regular lower layers */
+> -       for (nr = 2; nr < nr_merged_lower; nr++)
+> -               seq_printf(m, ":%s", ofs->config.lowerdirs[nr]);
+> -       /* dump data lower layers */
+> -       for (nr = 0; nr < ofs->numdatalayer; nr++)
+> -               seq_printf(m, "::%s", lowerdatadirs[nr]);
+> +
+> +       /*
+> +        * lowerdirs[] starts from offset 1, then
+> +        * >= 0 regular lower layers prefixed with : and
+> +        * >= 0 data-only lower layers prefixed with ::
+> +        *
+> +        * we need to escase comma and space like seq_show_option() does and
+> +        * we also need to escape the colon separator from lowerdir paths.
+> +        */
+> +       seq_puts(m, ",lowerdir=");
+> +       for (nr = 1; nr < ofs->numlayer; nr++) {
+> +               if (nr > 1)
+> +                       seq_putc(m, ':');
+> +               if (nr >= nr_merged_lower)
+> +                       seq_putc(m, ':');
+> +               seq_escape(m, ofs->config.lowerdirs[nr], ":,= \t\n\\");
 
-All right.
+This is too eager.   Just need to escape what seq_show_option() would
+escape, which is comma and whitespace.   The '=' is  not need escaped
+in values only in keys (and that likely never triggers).  Colons
+should have stayed escaped as "\:", so no point in adding another
+level of escape.
 
-Acked-by: Amir Goldstein <amir73il@gmail.com>
+Yes, this two level escape is pretty confusing, considering that
+commas are escaped on both levels if using the old API.  When using
+the new API commas need not be escaped, but can be, since the same
+unescaping is done.   Not a serious issue as backslash in filenames is
+basically nonexistent, but an inconsistency nonetheless.
 
-Thanks for the explanation,
-Amir.
+Following choices exist:
+
+1) should the redundant escaping be left in mountinfo?
+
+2) should FSCONFIG_SET_STRING accept escaped commas?
+
+3) should unescaped commas on FSCONFIG_SET_STRING (and
+FSCONFIG_SET_PATH) be double escaped in mountinfo?
+
+Currently it's yes, yes, no.  I'm fine with leaving things as they
+are, but at least the documentation should be clear on what should
+happen.
+
+Thanks,
+Miklos
