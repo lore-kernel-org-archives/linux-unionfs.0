@@ -2,74 +2,148 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99ED8CDB482
-	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Oct 2023 03:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7ED36CDB47E
+	for <linux-unionfs@archiver.kernel.org>; Fri, 13 Oct 2023 06:58:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229575AbjJMDob (ORCPT
+        id S229840AbjJMG6F (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Thu, 12 Oct 2023 23:44:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33012 "EHLO
+        Fri, 13 Oct 2023 02:58:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49322 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229445AbjJMDoa (ORCPT
+        with ESMTP id S229809AbjJMG6F (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Thu, 12 Oct 2023 23:44:30 -0400
-Received: from mail-oi1-f200.google.com (mail-oi1-f200.google.com [209.85.167.200])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D7B8B7
-        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 20:44:28 -0700 (PDT)
-Received: by mail-oi1-f200.google.com with SMTP id 5614622812f47-3af5b5d816aso2489444b6e.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 20:44:28 -0700 (PDT)
+        Fri, 13 Oct 2023 02:58:05 -0400
+Received: from mail-qk1-x733.google.com (mail-qk1-x733.google.com [IPv6:2607:f8b0:4864:20::733])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17E1ABC
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 23:58:03 -0700 (PDT)
+Received: by mail-qk1-x733.google.com with SMTP id af79cd13be357-7741c5bac51so114300385a.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 12 Oct 2023 23:58:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1697180282; x=1697785082; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=ceWbieRZgtXFrWUTn9pSgIbVw/Tr+MmwFcAhWcIiZw8=;
+        b=ABPQpjH1XiSFCGO70AgS185S07E4+htcXvaegkczKXnSekuxdAnAp099F1UegIluh7
+         ogNsUOQk+7qD2FUJtgemgB2q7vrNCl3j5wFTDv8Noj+eHaMc4dWnd1Oomy8k0RSqTFQc
+         WU8/qxvk6O0yuXIiyE2dpcbDK4CF39Q0OxP8+XOQwL94tKTktwshr91ThgU5HfXSxdUE
+         WgE7SkScB6FQHtTo/J9SZkASI9HBtF6cfa4VS8iJpcn5KJDAL5eG6O2zN2+xvKLRZSDl
+         tP564fjGNQ6xrBBJIERufv4Os26npez2LLp2WqOOtIurNAbGvV4DG9e44D9FUXw5cOmk
+         jAQA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697168668; x=1697773468;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=mt5lwhC39izgTZ2VYtKVLxhKrOpgc+bFz9LIFDekYx8=;
-        b=nfHrwsT2kZG8LOQ243ioafS1MBGyL6J78MRLTKGsLbrElcgTXcF0os2e8TO2UfJ/kb
-         NmbKmxlmAbu0rqMhsqzYkFq2/fCblcNB24UOzoNJhawKkifPFo8i1QjxLwFPhMxYkDmK
-         r4v16U/62oSsoX1LraBPXZJ0PZFtVhehHaSusVJ3WJuC4LamBQMTNu6/MaZvv5vCfo+b
-         g0bpQC7SG0bnMCToJ/UUnre3MSeIwZ0in0syuDi2NYfqX/s3DOGNomsJS0YUjP86R5yl
-         eumrCl/EvUKyPFpK19sTH79ObYoDG2lqCRlMI1vJg2qd82THypN4EiwKPZJ3WJZMtEUa
-         8P5A==
-X-Gm-Message-State: AOJu0Yz+3GeSzepHpuIQtqngx8fO6uX8TvZtYMswY3PUt40jEzMIk74S
-        +SjTvIXAFviVKtJ4oL0nxrp4BaAoV5+rOf91WSzSCXgHWFOJ
-X-Google-Smtp-Source: AGHT+IELbRThAdn5Z7PxEQ2q784CB31g7j9A0PV98zUl+RW8YJASygLBqKQpFkzypV3y11u9UGbDuQ3MD7vzMK6PCLZl/FkwCOeL
+        d=1e100.net; s=20230601; t=1697180282; x=1697785082;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=ceWbieRZgtXFrWUTn9pSgIbVw/Tr+MmwFcAhWcIiZw8=;
+        b=hOSNnTxz9978jOOewRIHfdAJw6ZSVox8oomPNocfHVvzNECcrjrqcs81Cv9Ow4uvhq
+         wA0Ho9hNXfCADelE4G8i6BKSvkqEyyQDatZBHOv1nqBGpqb0sAuUtAnRVxepKBVckU0F
+         BEdGcfHVoN0rYdih1ucME8h+YQ3BCQefTMdmQS1wjDUw2NvWBq3eMrVLWs1kTZ5YNnBs
+         /ZRyDDxJO0EW/40UBHmoY0xTsqIlyKmtNNdJL3L4zIBAlDPsibeo4dZ8qT6upeaMOMPB
+         LctPy626tXJ9IlD34MpWluV11nJ1F3Yv3RdSmQHv3lLMLzvS2tRVtV50VcP0nnJFotjK
+         Zi8Q==
+X-Gm-Message-State: AOJu0YzrsLe3jqKlgL4ZVkHGe1kInjjF85yJIqwhuT8HRUJtd+wWm8WS
+        yaKMui7udgXyKu4UKwtDahhvRvqSF1rRWRSKFkZPhZdbm3k=
+X-Google-Smtp-Source: AGHT+IF8PNf1bMqJzxmyZlOOt1Be3G5muO3Pw/Mm+47VkzNDmwFBYT3KkrlZbcCtmDIlcj/MI+uCGPGub6l7G9+TS+E=
+X-Received: by 2002:a0c:f38e:0:b0:66c:fb15:c16b with SMTP id
+ i14-20020a0cf38e000000b0066cfb15c16bmr9019617qvk.61.1697180282084; Thu, 12
+ Oct 2023 23:58:02 -0700 (PDT)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6808:152a:b0:3ad:fd08:30a3 with SMTP id
- u42-20020a056808152a00b003adfd0830a3mr13193875oiw.11.1697168667943; Thu, 12
- Oct 2023 20:44:27 -0700 (PDT)
-Date:   Thu, 12 Oct 2023 20:44:27 -0700
-In-Reply-To: <000000000000648bb80600bccb40@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000093a958060790df91@google.com>
-Subject: Re: [syzbot] [kernel?] INFO: rcu detected stall in wait4 (4)
-From:   syzbot <syzbot+8ee0140c3f5eab8a8d4f@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, brauner@kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, netdev@vger.kernel.org,
-        syzkaller-bugs@googlegroups.com
+References: <20231012-einband-uferpromenade-80541a047a1f@brauner>
+In-Reply-To: <20231012-einband-uferpromenade-80541a047a1f@brauner>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Fri, 13 Oct 2023 09:57:50 +0300
+Message-ID: <CAOQ4uxgEyBaCgmG5q85+kfaVyGDNUkzf_W-Oy7PbCmqe+gNtUQ@mail.gmail.com>
+Subject: Re: [PATCH] ovl: rely on SB_I_NOUMASK
+To:     Christian Brauner <brauner@kernel.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>,
+        Max Kellermann <max.kellermann@ionos.com>,
+        linux-unionfs@vger.kernel.org, Jeff Layton <jlayton@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-syzbot suspects this issue was fixed by commit:
+On Thu, Oct 12, 2023 at 6:37=E2=80=AFPM Christian Brauner <brauner@kernel.o=
+rg> wrote:
+>
+> In commit f61b9bb3f838 ("fs: add a new SB_I_NOUMASK flag") we added a
+> new SB_I_NOUMASK flag that is used by filesystems like NFS to indicate
+> that umask stripping is never supposed to be done in the vfs independent
+> of whether or not POSIX ACLs are supported.
+>
+> Overlayfs falls into the same category as it raises SB_POSIXACL
+> unconditionally to defer umask application to the upper filesystem.
+>
+> Now that we have SB_I_NOUMASK use that and make SB_POSIXACL properly
+> conditional on whether or not the kernel does have support for it. This
+> will enable use to turn IS_POSIXACL() into nop on kernels that don't
+> have POSIX ACL support avoding bugs from missed umask stripping.
+>
+> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> ---
+> Hey Amir & Miklos,
+>
+> This depends on the aforementioned patch in vfs.misc. So if you're fine
+> with this change I'd take this through vfs.misc.
 
-commit 8542f1712074f070ae90b64e6082d10d8e912e32
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Mon Oct 2 10:04:45 2023 +0000
+Generally, I'm fine with a version of this going through the vfs tree.
 
-    ovl: fix file reference leak when submitting aio
+>
+> Christian
+> ---
+>  fs/overlayfs/super.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 9f43f0d303ad..361189b676b0 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1489,8 +1489,16 @@ int ovl_fill_super(struct super_block *sb, struct =
+fs_context *fc)
+>         sb->s_xattr =3D ofs->config.userxattr ? ovl_user_xattr_handlers :
+>                 ovl_trusted_xattr_handlers;
+>         sb->s_fs_info =3D ofs;
+> +#ifdef CONFIG_FS_POSIX_ACL
+>         sb->s_flags |=3D SB_POSIXACL;
+> +#endif
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=131df329680000
-start commit:   9d23aac8a85f Merge branch 'net-sched-fixes-for-sch_qfq'
-git tree:       net
-kernel config:  https://syzkaller.appspot.com/x/.config?x=2a211c03cef60366
-dashboard link: https://syzkaller.appspot.com/bug?extid=8ee0140c3f5eab8a8d4f
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1014d574a80000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=173e5deca80000
+IDGI, if IS_POSIXACL() is going to turn into noop
+why do we need this ifdef?
 
-If the result looks correct, please mark the issue as fixed by replying with:
+To me the flag SB_POSIXACL means that any given inode
+MAY have a custom posix acl.
 
-#syz fix: ovl: fix file reference leak when submitting aio
+>         sb->s_iflags |=3D SB_I_SKIP_SYNC | SB_I_IMA_UNVERIFIABLE_SIGNATUR=
+E;
+> +       /*
+> +        * Ensure that umask handling is done by the filesystems used
+> +        * for the the upper layer instead of overlayfs as that would
+> +        * lead to unexpected results.
+> +        */
+> +       sb->s_iflags |=3D SB_I_NOUMASK;
+>
 
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Looks like FUSE has a similar pattern, although the testing and then
+setting of SB_POSIXACL is perplexing to me:
+
+        /* Handle umasking inside the fuse code */
+        if (sb->s_flags & SB_POSIXACL)
+                fc->dont_mask =3D 1;
+        sb->s_flags |=3D SB_POSIXACL;
+
+And for NFS, why was SB_I_NOUMASK set for v4 and not for v3
+when v3 clearly states:
+
+        case 3:
+                /*
+                 * The VFS shouldn't apply the umask to mode bits.
+                 * We will do so ourselves when necessary.
+                 */
+                sb->s_flags |=3D SB_POSIXACL;
+
+Feels like I am missing parts of the big picture?
+
+Thanks,
+Amir.
