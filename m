@@ -2,164 +2,119 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC8FCDB482
-	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Oct 2023 06:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8869CDB47E
+	for <linux-unionfs@archiver.kernel.org>; Sun, 15 Oct 2023 12:01:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229692AbjJOG6z (ORCPT
+        id S229872AbjJOMBl (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 15 Oct 2023 02:58:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48644 "EHLO
+        Sun, 15 Oct 2023 08:01:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229554AbjJOG6y (ORCPT
+        with ESMTP id S229648AbjJOMBk (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 15 Oct 2023 02:58:54 -0400
-Received: from mail-qv1-xf2d.google.com (mail-qv1-xf2d.google.com [IPv6:2607:f8b0:4864:20::f2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38E23C5
-        for <linux-unionfs@vger.kernel.org>; Sat, 14 Oct 2023 23:58:51 -0700 (PDT)
-Received: by mail-qv1-xf2d.google.com with SMTP id 6a1803df08f44-66d17bdabe1so21225156d6.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 14 Oct 2023 23:58:51 -0700 (PDT)
+        Sun, 15 Oct 2023 08:01:40 -0400
+Received: from mail-lf1-x134.google.com (mail-lf1-x134.google.com [IPv6:2a00:1450:4864:20::134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF1F6A3;
+        Sun, 15 Oct 2023 05:01:38 -0700 (PDT)
+Received: by mail-lf1-x134.google.com with SMTP id 2adb3069b0e04-503056c8195so4647213e87.1;
+        Sun, 15 Oct 2023 05:01:38 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697353130; x=1697957930; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=D0dlApiLmJIRSSsjDDc9mYT8roWLaIpENqmBGlIP8v4=;
-        b=hE4W1P/WOPoozDlNKzXhdp9GevV0t8q56HHjPhGpKNhA/koM/Wa+PlbUt9r1K4kmGf
-         ljpvM1tgNosbCiAuNr2q3n5+612jygIqV+/gg6w0ZzerAMnuXD0xgHsgq5p2VoFIRlCb
-         xsT24mVaK4jCKePgvjdHPmA6LZMj0a+/kuGw8x37uSCozMx7U9LL4ZxvHSKgXTETdQ4t
-         XrvtL8RArc2oheq7tukmKuXYlfSQrQpu6prQOa2c01bNg6HZfwfhEzELGgAMWHRbU7hW
-         SXtEAAgEJpWHbdc32nwje8eJto59UOBH/KDOgPG8coD6FeD2fz2mh6iGO/eNzzvvZUG1
-         BxOA==
+        d=gmail.com; s=20230601; t=1697371297; x=1697976097; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=4OuWWe6QQQ7t0Q2G9sE2ZPxCechLHmlPfkSrhfWa6Hw=;
+        b=TgAZQaCgN6C+VRVM7SUfR2f6FSAvs7ZKGF8sZ2pTfCbOSMiQhsCXm15v1zLgMtVIQi
+         yszAqUf1X6aXdZstnkG3EmQ2/hT15Ud+aKv4nbllSuUAVinLeqp7K5hOPk/z0z/2XfMS
+         T7oMpdQ7KJ2TIdfX9lws1wHebEX4a38T18daKNVoRzjHkLUwq+Huvn1YsLGI+OC1KgCn
+         aNJQqmy2GTgc6i9IoFQjGWiN2c0DlIDgsPFNjdnI1V7ktFBG7JIoqsoqfPsvvKQdBefl
+         Vxv52BG8WFcZZrH6+X8THQc0kREYVUq9m5Xtvv2CexvZEmjG9/ADJCJC2/ZGJ+FS/01E
+         MAuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697353130; x=1697957930;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=D0dlApiLmJIRSSsjDDc9mYT8roWLaIpENqmBGlIP8v4=;
-        b=V219Sh+w4rx9lNgPC7+7ozx90FL0uJEbCLrjhgRj89aIsZVE77DgVveeZd7Vj6CCdD
-         //637/wYqYYsloveF6xxjWeEK42LwdXCr4RybygpLg57W82iJvEiCo7hm+Eb6zE0V9FR
-         8vI8V7OOEl/M0bsFh+KWhYoKqViipZQcStQDbfMyy8xP6YKuo8nhatY/sjQislk7VvyD
-         McASRn+qEuViJiV8F0UwsoDRtWnBwYMjkS8RlCyDCg0sOgLgSCUfry7ICUePb1r8+OMh
-         qqo0ApU5RN9YPrKEbJZiEH5M3ifjBYu/dqRI6afbX1OHWpR8UhKtaDwJ0iCPPbkxLAhj
-         65/g==
-X-Gm-Message-State: AOJu0Yz6BJZh9mRVX1CuWemK97MIDfF3YABxXn/VYj/ahJMFSy37VmDz
-        +hBIGzWQXi3WdQCzUzmj3eEGMXjBxKTwr4DqWkTYrAVdtZk=
-X-Google-Smtp-Source: AGHT+IGso7G8gj7B2FoM7Gj8apbOWFReOFN5Hxwm3/ye+0PAQm6ciqz3n/HA597SWTNN3ZYjJYs7ckYlx9Sv70v3ODY=
-X-Received: by 2002:a05:6214:2603:b0:66d:1318:e786 with SMTP id
- gu3-20020a056214260300b0066d1318e786mr14229194qvb.59.1697353130270; Sat, 14
- Oct 2023 23:58:50 -0700 (PDT)
-MIME-Version: 1.0
-References: <20231011164613.1766616-1-amir73il@gmail.com> <CAJfpegvgePB-==T=yTU1R+JVxKYsU_Bm18vWdW5hXWLGw=47PQ@mail.gmail.com>
- <CAOQ4uxiE89q62JHnxwm14FBShPORmX_h0EyDCBN-VKv6aTf5BQ@mail.gmail.com>
- <CAJfpegsexQsNVMOZw+0byzj2wTbU_Tg6p0ATgwBAwmTaDmNbLA@mail.gmail.com>
- <CAOQ4uxjYGckJA=raAW8wyVmDaK-FXfFDRS0RCpZYcLucPqMi3w@mail.gmail.com>
- <CAJfpegt5COamxm-ZN+A9ub_Te-CPM0xMd-Rrzwv7OHBkvHS3yg@mail.gmail.com>
- <CAOQ4uxic3NDtEt9EiP+RYKGEB=6b_PCaudQA=cXK6mWY4Cmeqg@mail.gmail.com>
- <CAJfpegsr3A4YgF2YBevWa6n3=AcP7hNndG6EPMu3ncvV-AM71A@mail.gmail.com> <CAJfpegt7VC94KkRtb1dfHG8+4OzwPBLYqhtc8=QFUxpFJE+=RQ@mail.gmail.com>
-In-Reply-To: <CAJfpegt7VC94KkRtb1dfHG8+4OzwPBLYqhtc8=QFUxpFJE+=RQ@mail.gmail.com>
+        d=1e100.net; s=20230601; t=1697371297; x=1697976097;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=4OuWWe6QQQ7t0Q2G9sE2ZPxCechLHmlPfkSrhfWa6Hw=;
+        b=QFnV5wmhe/DYIxwAqlqRFBPBjQGCvkMUt8RzQuilkksLk9XrmmrSwl5/YfECLALHjU
+         FfO8Bxgemv1VFI5SsVSpnPuhI6C0gV6+2uGkidCD26H7BkQnNsoFIISvLGLlD8N8P9HY
+         HKdnkWoko06RDhIfxq7p9AvmGpBD56lN+9i5bFWq9bSHmjHRzou9WQmdL6QIbzlpEAl4
+         mh9Zwvj9floxZNzzDYytcKmuUa3Oj5IYE71A1Gxtm2l4cgQKzTIAVEuTz+TYNcoGqLyl
+         erdWETRwyIgMH766HDkhdUfbp14UBKISphlpsuxJovO1y+j2FHXOJDo6PKYcWjotvEQs
+         M6uw==
+X-Gm-Message-State: AOJu0YzOq3/Cc86TXT0+jYIL9lSjz2CCMJEtZRf/vHyx8gBePegaz7CA
+        34uQGI0ul7466jJC7yfOdGo=
+X-Google-Smtp-Source: AGHT+IGhrE9ChjUoxmFts7+WdcHBP2dzl4UkKzYgopix7KiHwbmZmJ3OLyDI24d2TGBpWYtTVaevPA==
+X-Received: by 2002:ac2:560c:0:b0:507:9745:8629 with SMTP id v12-20020ac2560c000000b0050797458629mr5702913lfd.55.1697371296520;
+        Sun, 15 Oct 2023 05:01:36 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id j11-20020a056512344b00b004f13cd61ebbsm1106601lfr.175.2023.10.15.05.01.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 15 Oct 2023 05:01:27 -0700 (PDT)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 15 Oct 2023 09:58:38 +0300
-Message-ID: <CAOQ4uxhg+0_S1tQv9vUpv7Yu-VRLv7U7cnxLmxig+9LmS_qW+A@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix regression in showing lowerdir mount option
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, Karel Zak <kzak@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs fixes for 6.6-rc6
+Date:   Sun, 15 Oct 2023 15:01:17 +0300
+Message-Id: <20231015120117.2131546-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sat, Oct 14, 2023 at 9:20=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Sat, 14 Oct 2023 at 19:31, Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> > If you can code this up quickly, that's good.  I can have a go at it
-> > on Monday, but my PoC patch needs splitting up and so it's not ready
-> > for 6.6.
->
-> Attaching my current patch (against your 3 patches).
->
+Hi Linus,
 
-> +static char *escape_colons(char *s, char *p)
-> +{
-> +       char *ret =3D s;
-> +
-> +       for (;;) {
-> +               char c =3D *p++;
-> +               if (c !=3D ':') {
-> +                       *s++ =3D c;
-> +                       if (!c)
-> +                               return ret;
-> +               } else if (s + 2 > p) {
-> +                       return ERR_PTR(-ENAMETOOLONG);
-> +               } else {
-> +                       *s++ =3D '\\';
-> +                       *s++ =3D c;
-> +               }
-> +       }
-> +}
+Please pull overlayfs fixes for 6.6-rc6.
 
-I think it is a bad idea going down this rabbit hole.
-This escaping is incorrect for an already escaped input
-(e.g. "lowerdir=3D/a\:b") - it would escape the \ instead of :
-I think that playing more escaping games is the opposite of what
-the explicit path params want to achieve.
+An earlier version of the fixes branch:
 
-Suggesting instead:
+ 001cef5143c3 ("ovl: fix regression in showing lowerdir mount option")
 
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -933,23 +933,27 @@ int ovl_show_options(struct seq_file *m, struct
-dentry *dentry)
- {
-        struct super_block *sb =3D dentry->d_sb;
-        struct ovl_fs *ofs =3D OVL_FS(sb);
--       size_t nr, nr_merged_lower =3D ofs->numlayer - ofs->numdatalayer;
-+       size_t nr, nr_merged_lower, nr_added_lower =3D 0;
-+       const char **lowerdirs =3D ofs->config.lowerdirs;
+has been sitting in linux-next for a few days.
 
-        /*
--        * lowerdirs[] starts from offset 1, then
--        * >=3D 0 regular lower layers prefixed with : and
--        * >=3D 0 data-only lower layers prefixed with ::
--        *
--        * we need to escase comma and space like seq_show_option() does an=
-d
--        * we also need to escape the colon separator from lowerdir paths.
-+        * lowerdirs[0] holds the colon separated list if user provided
-+        * it with legacy lowerdir=3D mount option.  Otherwise, we use the
-+        * options lowerdir+ and datadir+ to show the separated lowerdirs
-+        * that are stored in lowerdirs[1..numlayer].
-         */
--       seq_puts(m, ",lowerdir=3D");
--       for (nr =3D 1; nr < ofs->numlayer; nr++) {
--               if (nr > 1)
--                       seq_putc(m, ':');
--               if (nr >=3D nr_merged_lower)
--                       seq_putc(m, ':');
--               seq_escape(m, ofs->config.lowerdirs[nr], ":, \t\n\\");
-+       if (lowerdirs[0]) {
-+               seq_show_option(m, "lowerdir", lowerdirs[0]);
-+       } else {
-+               nr_added_lower =3D ofs->numlayer - 1;
-+               nr_merged_lower =3D nr_added_lower - ofs->numdatalayer;
-+               lowerdirs++;
-+       }
-+       for (nr =3D 0; nr < nr_added_lower; nr++, lowerdirs++) {
-+               if (nr < nr_merged_lower)
-+                       seq_show_option(m, "lowerdir+", *lowerdirs);
-+               else
-+                       seq_show_option(m, "datadir+", *lowerdirs);
-        }
-        if (ofs->config.upperdir) {
-                seq_show_option(m, "upperdir", ofs->config.upperdir);
----
+Since then, I have made two small changes that Miklos requested.
+Alas, the linux-next tree was not updated since next-20231013.
 
-This implies that we do not allow mixing legacy lowerdir=3D with
-new lowerdir+/datadir+.
-I don't see why mixing would be needed.
+This branch has gone through the usual overlayfs test routines and it
+merges cleanly with master branch of the moment.
 
 Thanks,
 Amir.
+
+----------------------------------------------------------------
+The following changes since commit 94f6f0550c625fab1f373bb86a6669b45e9748b3:
+
+  Linux 6.6-rc5 (2023-10-08 13:49:43 -0700)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.6-rc6
+
+for you to fetch changes up to beae836e9c61ee039e367a94b14f7fea08f0ad4c:
+
+  ovl: temporarily disable appending lowedirs (2023-10-14 22:42:45 +0300)
+
+----------------------------------------------------------------
+overlayfs fixes for 6.6-rc6:
+
+- Various fixes for regressions due to conversion to new mount api in v6.5
+
+- Disable a new mount option syntax (append lowerdir) that was added in v6.5
+  because we plan to add a different lowerdir append syntax in v6.7
+
+----------------------------------------------------------------
+Amir Goldstein (4):
+      fs: factor out vfs_parse_monolithic_sep() helper
+      ovl: fix regression in parsing of mount options with escaped comma
+      ovl: fix regression in showing lowerdir mount option
+      ovl: temporarily disable appending lowedirs
+
+ Documentation/filesystems/overlayfs.rst |  12 ++++
+ fs/fs_context.c                         |  34 +++++++--
+ fs/overlayfs/params.c                   | 119 +++++++++++++++-----------------
+ include/linux/fs_context.h              |   2 +
+ 4 files changed, 98 insertions(+), 69 deletions(-)
