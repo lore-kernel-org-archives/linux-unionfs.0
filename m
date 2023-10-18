@@ -2,181 +2,113 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A4BDCDB47E
-	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Oct 2023 07:47:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11CF1CDB47E
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Oct 2023 10:08:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbjJRHrb (ORCPT
+        id S229570AbjJRKI3 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Wed, 18 Oct 2023 03:47:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41136 "EHLO
+        Wed, 18 Oct 2023 06:08:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229912AbjJRHra (ORCPT
+        with ESMTP id S229552AbjJRKI2 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Wed, 18 Oct 2023 03:47:30 -0400
-Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDCB2100;
-        Wed, 18 Oct 2023 00:47:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1697615249; x=1729151249;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=h4XVZHdvlqX9EhvYBVM6hRqpG6MuHehCUD0ZGVf9mxo=;
-  b=nwGhBag7Umuj9lVlVHubj3mtv7m/PAUCe1g1045dsouKOV6i7Rl3jvVM
-   nv+8yCxWRHgUlfv44L3jrCMm64f4NVjWu4QXbhDf1VMnOmnamR/x+6Bar
-   RFxQlP9CvTrkrCrI5bGg8Zj7s2RRYY9escvec9ofvNvJBbINIF2e3OLct
-   8muC2TP0HwHGEsYRDdR+ZWHJ5fKXVXHcMDioYFao2Rvu+4QSz+f9LRNUU
-   ieV22hAXO2OszHPx18NRCHM7PxE11LAzDuXkWY5QaTf9YemgNG4fW66LR
-   9/GJAIMoasLZ22GsDMbzJ3TXbb/JZd2CTXbAxkRB81sSLPJ/0Cn9ug0hn
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="388823972"
-X-IronPort-AV: E=Sophos;i="6.03,234,1694761200"; 
-   d="scan'208";a="388823972"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2023 00:47:28 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="785795153"
-X-IronPort-AV: E=Sophos;i="6.03,234,1694761200"; 
-   d="scan'208";a="785795153"
-Received: from 001b21e7c6a0.jf.intel.com ([10.165.56.54])
-  by orsmga008.jf.intel.com with ESMTP; 18 Oct 2023 00:47:27 -0700
-From:   Chen Hu <hu1.chen@intel.com>
-To:     miklos@szeredi.hu, amir73il@gmail.com
-Cc:     malini.bhandaru@intel.com, tim.c.chen@intel.com,
-        mikko.ylinen@intel.com, lizhen.you@intel.com,
-        vinicius.gomes@intel.com, hu1.chen@intel.com,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: ovl: ovl_fs::creator_cred::usage scalability issues
-Date:   Wed, 18 Oct 2023 00:45:53 -0700
-Message-Id: <20231018074553.41333-1-hu1.chen@intel.com>
-X-Mailer: git-send-email 2.34.1
+        Wed, 18 Oct 2023 06:08:28 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [IPv6:2001:67c:2178:6::1c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE20D95;
+        Wed, 18 Oct 2023 03:08:26 -0700 (PDT)
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 0A44B21AC5;
+        Wed, 18 Oct 2023 10:08:25 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1697623705; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=Ebeu1CZw7f/xdwBs2G1M4yI3NEq7u+QmjV02kBazjyo=;
+        b=Y5pMK/z30ki9SW6ywI4ydoItHoDQSnQrIccvoMfqRSw9VWAGQ6KF1ART/EDkNpKZo8M9NE
+        MhHNSE3rB1HN5czic98xSDLV9THSWlkdIiSQEIpIv08ftqQF3IhyOwXBieFZhv3nr93nsh
+        GCp9lfi+ubV8tZNSOGGDdKFzUUYfI6c=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1697623705;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:  content-transfer-encoding:content-transfer-encoding;
+        bh=Ebeu1CZw7f/xdwBs2G1M4yI3NEq7u+QmjV02kBazjyo=;
+        b=HnAHfapXiN9Mon0mqRsfneN92uAtTVIpjEQ87HwwyUa0YRqVXo+RC/b4NW1AW2bOuz4rmh
+        Vj4aXO8SjhS7qODQ==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id DDE1B13780;
+        Wed, 18 Oct 2023 10:08:24 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id DQ7SNJiuL2UnQwAAMHmgww
+        (envelope-from <ddiss@suse.de>); Wed, 18 Oct 2023 10:08:24 +0000
+From:   David Disseldorp <ddiss@suse.de>
+To:     selinux@vger.kernel.org
+Cc:     linux-unionfs@vger.kernel.org, David Disseldorp <ddiss@suse.de>
+Subject: [PATCH] RFC: selinux: don't filter copy-up xattrs while uninitialized
+Date:   Wed, 18 Oct 2023 12:08:15 +0200
+Message-Id: <20231018100815.26278-1-ddiss@suse.de>
+X-Mailer: git-send-email 2.35.3
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Authentication-Results: smtp-out1.suse.de;
+        none
+X-Spamd-Result: default: False [0.90 / 50.00];
+         ARC_NA(0.00)[];
+         RCVD_VIA_SMTP_AUTH(0.00)[];
+         FROM_HAS_DN(0.00)[];
+         RCPT_COUNT_THREE(0.00)[3];
+         TO_DN_SOME(0.00)[];
+         TO_MATCH_ENVRCPT_ALL(0.00)[];
+         MIME_GOOD(-0.10)[text/plain];
+         R_MISSING_CHARSET(2.50)[];
+         BROKEN_CONTENT_TYPE(1.50)[];
+         NEURAL_HAM_LONG(-3.00)[-1.000];
+         DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+         NEURAL_HAM_SHORT(-1.00)[-1.000];
+         MID_CONTAINS_FROM(1.00)[];
+         FROM_EQ_ENVFROM(0.00)[];
+         MIME_TRACE(0.00)[0:+];
+         RCVD_COUNT_TWO(0.00)[2];
+         RCVD_TLS_ALL(0.00)[];
+         BAYES_HAM(-0.00)[36.05%]
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-*Problem*
-ovl_permission() checks the underlying inode with the credential of mounter.
-The cred, struct ovl_fs::creator_cred, is somewhat global per overlayfs
-superblock. Performance degrades when concurrency increases on the cred, to be
-specific, on ovl_fs::creator_cred::usage.
+Extended attribute copy-up functionality added via 19472b69d639d
+("selinux: Implementation for inode_copy_up_xattr() hook") sees
+"security.selinux" contexts dropped, instead relying on contexts
+applied via the inode_copy_up() hook.
 
-This happens when there are massive file access inside container, especially
-on SoC with many cores. With Linux 6.6.0-rc2, we run a web workload container
-on Intel 4th Xeon Sapphire Rapids which has 56 cores. Perf reports that 5.7%
-(2.50% + 1.87% + 1.33%) CPU stall in overlayfs:
-Self    Command       Shared Object            Symbol
-2.50%   foo           [kernel.vmlinux]         [k] override_creds
-1.87%   foo           [kernel.vmlinux]         [k] revert_creds
-1.33%   foo           [kernel.vmlinux]         [k] generic_permission
+When copy-up takes place during early boot, prior to selinux
+initialization / policy load, the context stripping can be unwanted
+and unexpected. Make filtering dependent on selinux_initialized().
 
-On Soc with more than 100 cores, we can even observe ~30% CPU stalled!
-
-This scalability issue is caused by two factors:
-1) Contention on creator_cred::usage
-   creator_cred::usage is atomic_t and is inc/dec atomically during every file
-   access. So HW acquires the corresponding cache line exclusively. This
-   operataiton is expensive and gets worse when contention is heavy.
-   Call chain:
-      ovl_permission()
-      -> ovl_override_creds()
-      -> override_creds()
-      -> get_new_cred()
-      -> atomic_inc(&cred->usage);
-
-      ovl_permission()
-      -> revert_creds()
-      -> put_cred()
-      -> atomic_dec_and_test(&(cred)->usage))
-
-2) False sharing
-   `perf c2c` shows false sharing issue between cred::usage and cred::fsuid.
-   This is why generic_permission() stalls 1.33% CPU in above perf report.
-   ovl_permission() updates cred::usage and it also reads cred::fsuid.
-   Unfortunately, they locate in the same cache line and thus false sharing
-   occurs. cred::fsuid is read at:
-      ovl_permission()
-      -> inode_permission()
-      -> generic_permission()
-      -> acl_permission_check()
-      -> current_fsuid()
-
-*Mitigations we tried*
-We tried several mitigations but are not sure if it can be a fix or just
-workaround / hack. So we report this and want to have some discussions.
-
-Our mitigations aims to eliminate the contention on creator_cred->usage.
-Without contention, the false sharing will be tiny and no need to handle. The
-mitigations we tested are:
-   1) Check underlying inode once in its lifetime. 
-   OR
-   2) In ovl_permission(), copy global creator_cred to a local variable to
-      avoid concurrency.
-
-With any mitigations above, CPU will not stall on overlayfs.
-
-Paste mitigation 1 below.
-
-From 472bd18eaabcde0d41e450f556691151b1bdb64e Mon Sep 17 00:00:00 2001
-From: Chen Hu <hu1.chen@intel.com>
-Date: Fri, 1 Sep 2023 15:03:28 +0800
-Subject: [RFC PATCH] ovl: check underlying upper inode once in its lifetime
-
-ovl_permission() checks the underlying inode with the credential of
-mounter. The cred, struct ovl_fs::creator_cred, is global per overlayfs
-superblock. Performance degrades when concurrency increases on the cred,
-to be specific, on ovl_fs::creator_cred::usage.
-
-This patch (or hack to some extent) checks underlying upper inode once
-in its lifetime, eliminates the cache line contention on
-creator_cred::usage and gets 40%+ perf improvement on a 128 cores CPU.
-
-CAUTION:
-this may compromise the file permission check. Need to talk with
-overlayfs experts.
-
-Signed-off-by: Chen Hu <hu1.chen@intel.com>
+RFC: This changes user behaviour so is likely unacceptable. Still,
+I'd be interested in hearing other suggestions for how this could be
+addressed.
 ---
- fs/overlayfs/inode.c     | 5 ++++-
- fs/overlayfs/overlayfs.h | 1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ security/selinux/hooks.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index 83ef66644c21..62ec99316c7a 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -307,7 +307,7 @@ int ovl_permission(struct mnt_idmap *idmap,
- 	 * with creds of mounter
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 2aa0e219d7217..fb3e53bb7e90c 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -3527,7 +3527,7 @@ static int selinux_inode_copy_up_xattr(const char *name)
+ 	 * don't then want to overwrite it by blindly copying all the lower
+ 	 * xattrs up.  Instead, we have to filter out SELinux-related xattrs.
  	 */
- 	err = generic_permission(&nop_mnt_idmap, inode, mask);
--	if (err)
-+	if (err || ovl_test_flag(OVL_FASTPERM, inode))
- 		return err;
- 
- 	old_cred = ovl_override_creds(inode->i_sb);
-@@ -318,6 +318,9 @@ int ovl_permission(struct mnt_idmap *idmap,
- 		mask |= MAY_READ;
- 	}
- 	err = inode_permission(mnt_idmap(realpath.mnt), realinode, mask);
-+	if (err == 0 && upperinode)
-+		/* This gets set once for the upper inode lifetime */
-+		ovl_set_flag(OVL_FASTPERM, inode);
- 	revert_creds(old_cred);
- 
- 	return err;
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 9817b2dcb132..5b71aaa8f77c 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -53,6 +53,7 @@ enum ovl_inode_flag {
- 	OVL_CONST_INO,
- 	OVL_HAS_DIGEST,
- 	OVL_VERIFIED_DIGEST,
-+	OVL_FASTPERM,
- };
- 
- enum ovl_entry_flag {
+-	if (strcmp(name, XATTR_NAME_SELINUX) == 0)
++	if (selinux_initialized() && strcmp(name, XATTR_NAME_SELINUX) == 0)
+ 		return 1; /* Discard */
+ 	/*
+ 	 * Any other attribute apart from SELINUX is not claimed, supported
 -- 
-2.34.1
+2.35.3
 
