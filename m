@@ -2,149 +2,181 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D28ECDB474
-	for <linux-unionfs@archiver.kernel.org>; Tue, 17 Oct 2023 10:12:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A4BDCDB47E
+	for <linux-unionfs@archiver.kernel.org>; Wed, 18 Oct 2023 07:47:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234807AbjJQKMV (ORCPT
+        id S229948AbjJRHrb (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Tue, 17 Oct 2023 06:12:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54712 "EHLO
+        Wed, 18 Oct 2023 03:47:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41136 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343644AbjJQKMO (ORCPT
+        with ESMTP id S229912AbjJRHra (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Tue, 17 Oct 2023 06:12:14 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 886C1B0
-        for <linux-unionfs@vger.kernel.org>; Tue, 17 Oct 2023 03:11:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1697537485;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Rwd7Uerr4QawAXyRWr+gHx3qqJAjVyvT+xSoMkxVtuY=;
-        b=Lh0/0uMXAgFiJ0ysH62l5+Omz3TT9CH0D7mLnv2ISMnP4EcABF2U2CRC1SS594X/I6ovg5
-        tciSYwqWToPcWEaJZKDxy7Z+XC0/Zcu33VTi/VzKh07FhkfrYGPadYcPwk3PQN978ehhSd
-        xSOu7rZjR+JrHhbXtY7aSf3NYYAnqRA=
-Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
- by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-610-tubGCGQ5MWK9xFL0HhM4Yw-1; Tue, 17 Oct 2023 06:11:22 -0400
-X-MC-Unique: tubGCGQ5MWK9xFL0HhM4Yw-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B168A2999B34;
-        Tue, 17 Oct 2023 10:11:21 +0000 (UTC)
-Received: from ws.net.home (unknown [10.45.226.1])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 0060A40C6CA0;
-        Tue, 17 Oct 2023 10:11:20 +0000 (UTC)
-Date:   Tue, 17 Oct 2023 12:11:18 +0200
-From:   Karel Zak <kzak@redhat.com>
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Amir Goldstein <amir73il@gmail.com>,
-        Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] ovl: fix regression in showing lowerdir mount option
-Message-ID: <20231017101118.5h7pj26vos32h63u@ws.net.home>
-References: <CAJfpegsexQsNVMOZw+0byzj2wTbU_Tg6p0ATgwBAwmTaDmNbLA@mail.gmail.com>
- <CAOQ4uxjYGckJA=raAW8wyVmDaK-FXfFDRS0RCpZYcLucPqMi3w@mail.gmail.com>
- <CAJfpegt5COamxm-ZN+A9ub_Te-CPM0xMd-Rrzwv7OHBkvHS3yg@mail.gmail.com>
- <CAOQ4uxic3NDtEt9EiP+RYKGEB=6b_PCaudQA=cXK6mWY4Cmeqg@mail.gmail.com>
- <CAJfpegsr3A4YgF2YBevWa6n3=AcP7hNndG6EPMu3ncvV-AM71A@mail.gmail.com>
- <CAJfpegt7VC94KkRtb1dfHG8+4OzwPBLYqhtc8=QFUxpFJE+=RQ@mail.gmail.com>
- <CAOQ4uxhg+0_S1tQv9vUpv7Yu-VRLv7U7cnxLmxig+9LmS_qW+A@mail.gmail.com>
- <CAJfpegu6cESPijvO51zjVeXA=wcw7nMaNkkNJ7+my07wq8k9FA@mail.gmail.com>
- <CAOQ4uxicurA4nNeDkUarkTMujtsaOvwQ8HEMpz97N2SejBRx9Q@mail.gmail.com>
- <CAJfpegv=UXqYQzvH6+py76MV7+5L6=3a+_J7LpHQ0VK5YYrAUA@mail.gmail.com>
+        Wed, 18 Oct 2023 03:47:30 -0400
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDCB2100;
+        Wed, 18 Oct 2023 00:47:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1697615249; x=1729151249;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=h4XVZHdvlqX9EhvYBVM6hRqpG6MuHehCUD0ZGVf9mxo=;
+  b=nwGhBag7Umuj9lVlVHubj3mtv7m/PAUCe1g1045dsouKOV6i7Rl3jvVM
+   nv+8yCxWRHgUlfv44L3jrCMm64f4NVjWu4QXbhDf1VMnOmnamR/x+6Bar
+   RFxQlP9CvTrkrCrI5bGg8Zj7s2RRYY9escvec9ofvNvJBbINIF2e3OLct
+   8muC2TP0HwHGEsYRDdR+ZWHJ5fKXVXHcMDioYFao2Rvu+4QSz+f9LRNUU
+   ieV22hAXO2OszHPx18NRCHM7PxE11LAzDuXkWY5QaTf9YemgNG4fW66LR
+   9/GJAIMoasLZ22GsDMbzJ3TXbb/JZd2CTXbAxkRB81sSLPJ/0Cn9ug0hn
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="388823972"
+X-IronPort-AV: E=Sophos;i="6.03,234,1694761200"; 
+   d="scan'208";a="388823972"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Oct 2023 00:47:28 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10866"; a="785795153"
+X-IronPort-AV: E=Sophos;i="6.03,234,1694761200"; 
+   d="scan'208";a="785795153"
+Received: from 001b21e7c6a0.jf.intel.com ([10.165.56.54])
+  by orsmga008.jf.intel.com with ESMTP; 18 Oct 2023 00:47:27 -0700
+From:   Chen Hu <hu1.chen@intel.com>
+To:     miklos@szeredi.hu, amir73il@gmail.com
+Cc:     malini.bhandaru@intel.com, tim.c.chen@intel.com,
+        mikko.ylinen@intel.com, lizhen.you@intel.com,
+        vinicius.gomes@intel.com, hu1.chen@intel.com,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: ovl: ovl_fs::creator_cred::usage scalability issues
+Date:   Wed, 18 Oct 2023 00:45:53 -0700
+Message-Id: <20231018074553.41333-1-hu1.chen@intel.com>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAJfpegv=UXqYQzvH6+py76MV7+5L6=3a+_J7LpHQ0VK5YYrAUA@mail.gmail.com>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 16, 2023 at 03:10:33PM +0200, Miklos Szeredi wrote:
-> On Mon, 16 Oct 2023 at 13:56, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > On Mon, Oct 16, 2023 at 12:27 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > >
-> > > On Sun, 15 Oct 2023 at 08:58, Amir Goldstein <amir73il@gmail.com> wrote:
-> > >
-> > > > +       for (nr = 0; nr < nr_added_lower; nr++, lowerdirs++) {
-> > > > +               if (nr < nr_merged_lower)
-> > > > +                       seq_show_option(m, "lowerdir+", *lowerdirs);
-> > > > +               else
-> > > > +                       seq_show_option(m, "datadir+", *lowerdirs);
-> > >
-> > > Good.
-> > >
-> > > I did some testing and it turns out libmount still regresses on
-> > > 6.6-rc6 for the escaped comma case.  The reason is that libmount
-> > > doesn't understand escaping of commas, hence the '-oupper=upper\,1'
-> > > will result in two fsconfig() calls: 'upper=upper\'  and '1'.  Prior
-> > > to 6.5 these were nicely reconstructed into the original
-> > > 'upper=upper\,1' by  legacy_parse_param().
+*Problem*
+ovl_permission() checks the underlying inode with the credential of mounter.
+The cred, struct ovl_fs::creator_cred, is somewhat global per overlayfs
+superblock. Performance degrades when concurrency increases on the cred, to be
+specific, on ovl_fs::creator_cred::usage.
 
-Yes, libmount does not interpret '\,' in any way, it's just comma
-after a char :-)
+This happens when there are massive file access inside container, especially
+on SoC with many cores. With Linux 6.6.0-rc2, we run a web workload container
+on Intel 4th Xeon Sapphire Rapids which has 56 cores. Perf reports that 5.7%
+(2.50% + 1.87% + 1.33%) CPU stall in overlayfs:
+Self    Command       Shared Object            Symbol
+2.50%   foo           [kernel.vmlinux]         [k] override_creds
+1.87%   foo           [kernel.vmlinux]         [k] revert_creds
+1.33%   foo           [kernel.vmlinux]         [k] generic_permission
 
-> >
-> > Technically, I think this is a libmount regression, not a kernel regression.
-> > Since libmount 2.39, libmount will split the commas differently than
-> > overlayfs always did.
+On Soc with more than 100 cores, we can even observe ~30% CPU stalled!
 
-The difference is that old libmount versions do not split the string;
-it only removes well-known non-kernel stuff and flags from the string.
-However, the rest of the string remains unmodified. This means that
-"upper=aaa,bbb" comprises two options for the old libmount, but
-because it neither reorders nor splits it, it is sent unmodified to
-the mount(2) syscall.
+This scalability issue is caused by two factors:
+1) Contention on creator_cred::usage
+   creator_cred::usage is atomic_t and is inc/dec atomically during every file
+   access. So HW acquires the corresponding cache line exclusively. This
+   operataiton is expensive and gets worse when contention is heavy.
+   Call chain:
+      ovl_permission()
+      -> ovl_override_creds()
+      -> override_creds()
+      -> get_new_cred()
+      -> atomic_inc(&cred->usage);
 
-The new libmount works with mount options differently. It keeps them
-parsed in memory (in a struct libmnt_optlist), and this list is used
-for fsconfig().
+      ovl_permission()
+      -> revert_creds()
+      -> put_cred()
+      -> atomic_dec_and_test(&(cred)->usage))
 
-> Ah, but it's not a regression after all, since the kernel un-split the
-> same commas until 6.5, so there was no way the libmount devs would
-> have observed any regression in overlayfs mount.   But arguing about
-> which component is the cause of the regression is not very productive.
-> Indeed libmount can be fixed parse overlayfs options the same way as
-> the kernel parsed them before 6.5, which is probably a much better
-> fix, than a kernel one.
-> 
-> Karel, is doing such filesystem specific option handling feasible?
+2) False sharing
+   `perf c2c` shows false sharing issue between cred::usage and cred::fsuid.
+   This is why generic_permission() stalls 1.33% CPU in above perf report.
+   ovl_permission() updates cred::usage and it also reads cred::fsuid.
+   Unfortunately, they locate in the same cache line and thus false sharing
+   occurs. cred::fsuid is read at:
+      ovl_permission()
+      -> inode_permission()
+      -> generic_permission()
+      -> acl_permission_check()
+      -> current_fsuid()
 
-For decade we have support for commas in mount option due to
-creativity of SELinux developers:
+*Mitigations we tried*
+We tried several mitigations but are not sure if it can be a fix or just
+workaround / hack. So we report this and want to have some discussions.
 
-    foo,context="aaa,bbb,ccc",bar
+Our mitigations aims to eliminate the contention on creator_cred->usage.
+Without contention, the false sharing will be tiny and no need to handle. The
+mitigations we tested are:
+   1) Check underlying inode once in its lifetime. 
+   OR
+   2) In ovl_permission(), copy global creator_cred to a local variable to
+      avoid concurrency.
 
-is valid mount options string and libmount will ignore commas within
-" " and split it to foo, bar, and context=.
+With any mitigations above, CPU will not stall on overlayfs.
 
-The current util-linux git (and old 6.2 kernel):
+Paste mitigation 1 below.
 
-# strace -e fsopen,fsconfig ./mount -t overlay overlay -o 'lowerdir="/tmp/test-lower,",upperdir=/tmp/test-upper,workdir=/tmp/test-work' /tmp/test 
-fsopen("overlay", FSOPEN_CLOEXEC)       = 3
-fsconfig(3, FSCONFIG_SET_STRING, "source", "overlay", 0) = 0
-fsconfig(3, FSCONFIG_SET_STRING, "lowerdir", "/tmp/test-lower,", 0) = -1 EINVAL (Invalid argument)
+From 472bd18eaabcde0d41e450f556691151b1bdb64e Mon Sep 17 00:00:00 2001
+From: Chen Hu <hu1.chen@intel.com>
+Date: Fri, 1 Sep 2023 15:03:28 +0800
+Subject: [RFC PATCH] ovl: check underlying upper inode once in its lifetime
 
-You can see "/tmp/test-lower,".
+ovl_permission() checks the underlying inode with the credential of
+mounter. The cred, struct ovl_fs::creator_cred, is global per overlayfs
+superblock. Performance degrades when concurrency increases on the cred,
+to be specific, on ovl_fs::creator_cred::usage.
 
-Maybe all we need is to improve mount(8) docs to force people use ""
-for paths when used in mount options.
+This patch (or hack to some extent) checks underlying upper inode once
+in its lifetime, eliminates the cache line contention on
+creator_cred::usage and gets 40%+ perf improvement on a 128 cores CPU.
 
-Anyway, I think we can improve libmount to ignore \, as non-separator.
-The question is what the rest of the userspace universe, because fstab
-is interpreted on many places ...
+CAUTION:
+this may compromise the file permission check. Need to talk with
+overlayfs experts.
 
-    Karel
+Signed-off-by: Chen Hu <hu1.chen@intel.com>
+---
+ fs/overlayfs/inode.c     | 5 ++++-
+ fs/overlayfs/overlayfs.h | 1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 83ef66644c21..62ec99316c7a 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -307,7 +307,7 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 	 * with creds of mounter
+ 	 */
+ 	err = generic_permission(&nop_mnt_idmap, inode, mask);
+-	if (err)
++	if (err || ovl_test_flag(OVL_FASTPERM, inode))
+ 		return err;
+ 
+ 	old_cred = ovl_override_creds(inode->i_sb);
+@@ -318,6 +318,9 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 		mask |= MAY_READ;
+ 	}
+ 	err = inode_permission(mnt_idmap(realpath.mnt), realinode, mask);
++	if (err == 0 && upperinode)
++		/* This gets set once for the upper inode lifetime */
++		ovl_set_flag(OVL_FASTPERM, inode);
+ 	revert_creds(old_cred);
+ 
+ 	return err;
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 9817b2dcb132..5b71aaa8f77c 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -53,6 +53,7 @@ enum ovl_inode_flag {
+ 	OVL_CONST_INO,
+ 	OVL_HAS_DIGEST,
+ 	OVL_VERIFIED_DIGEST,
++	OVL_FASTPERM,
+ };
+ 
+ enum ovl_entry_flag {
 -- 
- Karel Zak  <kzak@redhat.com>
- http://karelzak.blogspot.com
+2.34.1
 
