@@ -2,188 +2,355 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72625CDB474
-	for <linux-unionfs@archiver.kernel.org>; Sun, 22 Oct 2023 07:26:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEF07C0032E
+	for <linux-unionfs@archiver.kernel.org>; Sun, 22 Oct 2023 14:35:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229574AbjJVH0r (ORCPT
+        id S229588AbjJVOfH (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 22 Oct 2023 03:26:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35472 "EHLO
+        Sun, 22 Oct 2023 10:35:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229452AbjJVH0q (ORCPT
+        with ESMTP id S229500AbjJVOfG (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 22 Oct 2023 03:26:46 -0400
-Received: from mail-qv1-xf2d.google.com (mail-qv1-xf2d.google.com [IPv6:2607:f8b0:4864:20::f2d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A7D5C2
-        for <linux-unionfs@vger.kernel.org>; Sun, 22 Oct 2023 00:26:43 -0700 (PDT)
-Received: by mail-qv1-xf2d.google.com with SMTP id 6a1803df08f44-66d87554434so17599866d6.2
-        for <linux-unionfs@vger.kernel.org>; Sun, 22 Oct 2023 00:26:43 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1697959602; x=1698564402; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xnfbqRhmut39DwLdZ2MbDa5AkD9xtyC7U95KlczW2Co=;
-        b=W3O2htwliCEHDuFFBeK+NEuXTCa1nCUzv3Ir+DF5+89+sUNev4cZ08m5t72k0f7iYK
-         1XPJxjO2s9ZFYI4OZabgzSklPrPkuPd9tCQZIHlurypwwcTaJrfyimEGskfjgJQ57ftF
-         BdA+0VE2sTKKJXGXjqrBGrAo351RD3qt4Tn+DLGzvllHVGz2ozZls4Be+w9GPbxLKZgB
-         uWSpHqnF3WPBRi/mgMkPAUEnOGViRwc9CZ+JDCjKdllYa7MXF2Z/F7Fu5Ri+B0+NuDTU
-         CdKVYRKZH56ZZ8vKTReTcvHa684rzkrLk7IPPrFyrT1HKkHJpYP0qy4GYo2od908esRR
-         ieYw==
+        Sun, 22 Oct 2023 10:35:06 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1D50A3
+        for <linux-unionfs@vger.kernel.org>; Sun, 22 Oct 2023 07:34:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1697985257;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=I7q+rdpWOmxoavvSeqhS4seMKqJfwZUTWAagEoks5ww=;
+        b=Ud6yfW560TGtHB5k8n/8ZlHqV6e9/swwMjC4LQ9l6O5qRbdcYMsMuUOfGaCDYmHEvyHpm4
+        gDQXJ0RVeh41FsXmeLrphcROpdAN5NB15kKd9Zki9PbMk8mYu57M5GxdpUji1HkI+zzEgk
+        mPTZpHA3gN65oCVbHQ9bMeu0X5UYARk=
+Received: from mail-pg1-f197.google.com (mail-pg1-f197.google.com
+ [209.85.215.197]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-669-5VoZztacP8mYrFsS9kQx7A-1; Sun, 22 Oct 2023 10:34:16 -0400
+X-MC-Unique: 5VoZztacP8mYrFsS9kQx7A-1
+Received: by mail-pg1-f197.google.com with SMTP id 41be03b00d2f7-5b87150242cso1362717a12.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 22 Oct 2023 07:34:15 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1697959602; x=1698564402;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=xnfbqRhmut39DwLdZ2MbDa5AkD9xtyC7U95KlczW2Co=;
-        b=j5pmJbff3Er0Le+X7T/S4gx7lp2mfWHFTS3JuRmn95k0rSZbty0giZzcGND24Dlly6
-         XMS9dV81OXhEB1Sk6ujX+d1JroZ1TwpWAB7ulWCePOEs6xbDjmHcOKtrYq0JH538nEc4
-         0B7PiQpxF2ee0G70/2x3Lj+A5BuT77CZeuSr/ukEMfOX5fiCzzSSs5XfaL1DCOb16X0V
-         /Wkf/scLwpa2E/GFJXmFL2jZEKDY30Ip0DUG0VEbd3BI7jc7e5KtQb8HJTTdAFqahGeP
-         HV8o8V+J1zaQf1wr1IMsA8iMn12sDYS2lpO6Fb7EVfbRMxOTI3wgyL8+aJaymxOs3pJO
-         wjDw==
-X-Gm-Message-State: AOJu0YxmwU0/dIBDjyDJEf38SVx+3oEvYeXTlW2yjFwaoVbgtPlDIBGx
-        d3C7QHPUrxA8sKk8uDYtj5aXqFNEjVAiapNhoQI=
-X-Google-Smtp-Source: AGHT+IEXiyUr7WFr9oTdOKmryoMCCbYJ4iLPCaRBL+9/dSEy9SOyNcQILzR5UvLAk/QZsOc01EcMJH05sDMopVfTWhA=
-X-Received: by 2002:a05:6214:5186:b0:66d:1021:5e8d with SMTP id
- kl6-20020a056214518600b0066d10215e8dmr7740880qvb.10.1697959602522; Sun, 22
- Oct 2023 00:26:42 -0700 (PDT)
-MIME-Version: 1.0
-References: <CAJfpegsexQsNVMOZw+0byzj2wTbU_Tg6p0ATgwBAwmTaDmNbLA@mail.gmail.com>
- <CAOQ4uxjYGckJA=raAW8wyVmDaK-FXfFDRS0RCpZYcLucPqMi3w@mail.gmail.com>
- <CAJfpegt5COamxm-ZN+A9ub_Te-CPM0xMd-Rrzwv7OHBkvHS3yg@mail.gmail.com>
- <CAOQ4uxic3NDtEt9EiP+RYKGEB=6b_PCaudQA=cXK6mWY4Cmeqg@mail.gmail.com>
- <CAJfpegsr3A4YgF2YBevWa6n3=AcP7hNndG6EPMu3ncvV-AM71A@mail.gmail.com>
- <CAJfpegt7VC94KkRtb1dfHG8+4OzwPBLYqhtc8=QFUxpFJE+=RQ@mail.gmail.com>
- <CAOQ4uxhg+0_S1tQv9vUpv7Yu-VRLv7U7cnxLmxig+9LmS_qW+A@mail.gmail.com>
- <CAJfpegu6cESPijvO51zjVeXA=wcw7nMaNkkNJ7+my07wq8k9FA@mail.gmail.com>
- <CAOQ4uxicurA4nNeDkUarkTMujtsaOvwQ8HEMpz97N2SejBRx9Q@mail.gmail.com>
- <CAJfpegv=UXqYQzvH6+py76MV7+5L6=3a+_J7LpHQ0VK5YYrAUA@mail.gmail.com> <20231017101118.5h7pj26vos32h63u@ws.net.home>
-In-Reply-To: <20231017101118.5h7pj26vos32h63u@ws.net.home>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 22 Oct 2023 10:26:31 +0300
-Message-ID: <CAOQ4uxhgUSPkYAV8SJu-SFszkJcVO3-M4DXf46nJUtXODrPk2g@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix regression in showing lowerdir mount option
-To:     Karel Zak <kzak@redhat.com>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        d=1e100.net; s=20230601; t=1697985255; x=1698590055;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=I7q+rdpWOmxoavvSeqhS4seMKqJfwZUTWAagEoks5ww=;
+        b=MQeXXOHxLuf3IAWotGC7mzLILEbsg7V0OlPZ1rf/qBWEYaCLGOZHmXEZEiwswtjDA/
+         O1biBtVHIt909TwVXC6kV+bC0GsN7Zj0l5V30urAyLNBCqTg5iY0W3UwBKyTMsS2IkWG
+         R/ovEdhlNtfeWZqDvnKZud9lspDqlsJRBM8H3qsb7qcfeLBWbzkYw4rS4g93vn1bRm9V
+         xYv0bNEBHRcXP2lfE4AmiWs3sqlZ3mB1wP/mCLBQ4czKsdnrH2ipcXaVYGSkQF4GyenY
+         Pua8lo6iyAXgNQ0Hh9poRtU12iiwxS32/KjLDPk9jVQJAGhr49LfLHzoyF8f81uJtBe0
+         AQRQ==
+X-Gm-Message-State: AOJu0YxP0C740I3510bybbiLFdW7lrFOeUxs/UVec0sSQe09HUDJWcxi
+        sDkeHoYN12P6zLqlS2uyi73DZiuqJ9C85Jz5nJdCURgHkYW73WSB6fbT8OyYDzHz124UKyvN4OB
+        xY1gTHYXKeMu/ohedapnGSOFGAQ==
+X-Received: by 2002:a05:6a21:8191:b0:171:4f38:b475 with SMTP id pd17-20020a056a21819100b001714f38b475mr4579391pzb.58.1697985254895;
+        Sun, 22 Oct 2023 07:34:14 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHWuT7cjMmG2tpX8fEBcCeFET5hzUfjnqGjZgGdmpk1X+NGY9o4x2iszaVF4v+ygpC6x7H0yA==
+X-Received: by 2002:a05:6a21:8191:b0:171:4f38:b475 with SMTP id pd17-20020a056a21819100b001714f38b475mr4579375pzb.58.1697985254426;
+        Sun, 22 Oct 2023 07:34:14 -0700 (PDT)
+Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id d63-20020a633642000000b005b886993892sm3370323pga.91.2023.10.22.07.34.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 22 Oct 2023 07:34:13 -0700 (PDT)
+Date:   Sun, 22 Oct 2023 22:34:10 +0800
+From:   Zorro Lang <zlang@redhat.com>
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>, Karel Zak <kzak@redhat.com>,
         Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org, Steve French <sfrench@samba.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        fstests <fstests@vger.kernel.org>,
+        overlayfs <linux-unionfs@vger.kernel.org>
+Subject: Re: [PATCH] overlay: add test for lowerdir mount option parsing
+Message-ID: <20231022143410.hq2szkiwu4i72aro@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20231017101145.2348571-1-amir73il@gmail.com>
+ <20231019175000.afv2b5fma3ttkt4v@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxgYyEfyFrQbyzdzXko6ZUmdRS6g2gH8znOrz-7M3KCUXg@mail.gmail.com>
+ <20231021123000.4rp7iykcomfdk6ev@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxgHZxcf-OdJHwKn0PUonK4sQz90av+=rurjURW=gw1g3Q@mail.gmail.com>
+ <20231022062634.cdqoy77oe7ibt5vo@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxipfnuEAmKFZdH=61QN_j+F9svcVGDf=+be6-hx9kq70A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxipfnuEAmKFZdH=61QN_j+F9svcVGDf=+be6-hx9kq70A@mail.gmail.com>
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Oct 17, 2023 at 1:11=E2=80=AFPM Karel Zak <kzak@redhat.com> wrote:
->
-> On Mon, Oct 16, 2023 at 03:10:33PM +0200, Miklos Szeredi wrote:
-> > On Mon, 16 Oct 2023 at 13:56, Amir Goldstein <amir73il@gmail.com> wrote=
-:
-> > >
-> > > On Mon, Oct 16, 2023 at 12:27=E2=80=AFPM Miklos Szeredi <miklos@szere=
-di.hu> wrote:
-> > > >
-> > > > On Sun, 15 Oct 2023 at 08:58, Amir Goldstein <amir73il@gmail.com> w=
-rote:
-> > > >
-> > > > > +       for (nr =3D 0; nr < nr_added_lower; nr++, lowerdirs++) {
-> > > > > +               if (nr < nr_merged_lower)
-> > > > > +                       seq_show_option(m, "lowerdir+", *lowerdir=
-s);
-> > > > > +               else
-> > > > > +                       seq_show_option(m, "datadir+", *lowerdirs=
-);
-> > > >
-> > > > Good.
-> > > >
-> > > > I did some testing and it turns out libmount still regresses on
-> > > > 6.6-rc6 for the escaped comma case.  The reason is that libmount
-> > > > doesn't understand escaping of commas, hence the '-oupper=3Dupper\,=
-1'
-> > > > will result in two fsconfig() calls: 'upper=3Dupper\'  and '1'.  Pr=
-ior
-> > > > to 6.5 these were nicely reconstructed into the original
-> > > > 'upper=3Dupper\,1' by  legacy_parse_param().
->
-> Yes, libmount does not interpret '\,' in any way, it's just comma
-> after a char :-)
->
-> > >
-> > > Technically, I think this is a libmount regression, not a kernel regr=
-ession.
-> > > Since libmount 2.39, libmount will split the commas differently than
-> > > overlayfs always did.
->
-> The difference is that old libmount versions do not split the string;
-> it only removes well-known non-kernel stuff and flags from the string.
-> However, the rest of the string remains unmodified. This means that
-> "upper=3Daaa,bbb" comprises two options for the old libmount, but
-> because it neither reorders nor splits it, it is sent unmodified to
-> the mount(2) syscall.
->
-> The new libmount works with mount options differently. It keeps them
-> parsed in memory (in a struct libmnt_optlist), and this list is used
-> for fsconfig().
->
-> > Ah, but it's not a regression after all, since the kernel un-split the
-> > same commas until 6.5, so there was no way the libmount devs would
-> > have observed any regression in overlayfs mount.   But arguing about
-> > which component is the cause of the regression is not very productive.
-> > Indeed libmount can be fixed parse overlayfs options the same way as
-> > the kernel parsed them before 6.5, which is probably a much better
-> > fix, than a kernel one.
+On Sun, Oct 22, 2023 at 10:09:55AM +0300, Amir Goldstein wrote:
+> On Sun, Oct 22, 2023 at 9:26 AM Zorro Lang <zlang@redhat.com> wrote:
 > >
-> > Karel, is doing such filesystem specific option handling feasible?
->
-> For decade we have support for commas in mount option due to
-> creativity of SELinux developers:
->
->     foo,context=3D"aaa,bbb,ccc",bar
->
-> is valid mount options string and libmount will ignore commas within
-> " " and split it to foo, bar, and context=3D.
->
-> The current util-linux git (and old 6.2 kernel):
->
-> # strace -e fsopen,fsconfig ./mount -t overlay overlay -o 'lowerdir=3D"/t=
-mp/test-lower,",upperdir=3D/tmp/test-upper,workdir=3D/tmp/test-work' /tmp/t=
-est
-> fsopen("overlay", FSOPEN_CLOEXEC)       =3D 3
-> fsconfig(3, FSCONFIG_SET_STRING, "source", "overlay", 0) =3D 0
-> fsconfig(3, FSCONFIG_SET_STRING, "lowerdir", "/tmp/test-lower,", 0) =3D -=
-1 EINVAL (Invalid argument)
->
-> You can see "/tmp/test-lower,".
->
-> Maybe all we need is to improve mount(8) docs to force people use ""
-> for paths when used in mount options.
->
+> > On Sat, Oct 21, 2023 at 03:48:09PM +0300, Amir Goldstein wrote:
+> > >    On Sat, Oct 21, 2023, 3:30 PM Zorro Lang <[1]zlang@redhat.com> wrote:
+> > >
+> > >      On Fri, Oct 20, 2023 at 07:18:55PM +0300, Amir Goldstein wrote:
+> > >      > On Thu, Oct 19, 2023 at 8:50 PM Zorro Lang <[2]zlang@redhat.com>
+> > >      wrote:
+> > >      > >
+> > >      > > On Tue, Oct 17, 2023 at 01:11:45PM +0300, Amir Goldstein wrote:
+> > >      > > > Check parsing and display of spaces and escaped colons and
+> > >      commans in
+> > >      > > > lowerdir mount option.
+> > >      > > >
+> > >      > > > This is a regression test for two bugs introduced in v6.5 with
+> > >      the
+> > >      > > > conversion to new mount api.
+> > >      > > >
+> > >      > > > Signed-off-by: Amir Goldstein <[3]amir73il@gmail.com>
+> > >      > > > ---
+> > >      > > >
+> > >      > > > Zorro,
+> > >      > > >
+> > >      > > > This is a test for two regressions in kernel v6.5.
+> > >      > > > The two fixes were merged in 6.6-rc6 and have been picked for
+> > >      > > > the upcoming LTS 6.5.y release.
+> > >      > >
+> > >      > >
+> > >      > > >
+> > >      > > > Thanks,
+> > >      > > > Amir.
+> > >      > > >
+> > >      > > >  tests/overlay/083     | 54
+> > >      +++++++++++++++++++++++++++++++++++++++++++
+> > >      > > >  tests/overlay/083.out |  2 ++
+> > >      > > >  2 files changed, 56 insertions(+)
+> > >      > > >  create mode 100755 tests/overlay/083
+> > >      > > >  create mode 100644 tests/overlay/083.out
+> > >      > > >
+> > >      > > > diff --git a/tests/overlay/083 b/tests/overlay/083
+> > >      > > > new file mode 100755
+> > >      > > > index 00000000..071b4b84
+> > >      > > > --- /dev/null
+> > >      > > > +++ b/tests/overlay/083
+> > >      > > > @@ -0,0 +1,54 @@
+> > >      > > > +#! /bin/bash
+> > >      > > > +# SPDX-License-Identifier: GPL-2.0
+> > >      > > > +# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
+> > >      > > > +#
+> > >      > > > +# FS QA Test 083
+> > >      > > > +#
+> > >      > > > +# Test regressions in parsing and display of special chars in
+> > >      mount options.
+> > >      > > > +#
+> > >      > > > +# The following kernel commits from v6.5 introduced
+> > >      regressions:
+> > >      > > > +#  b36a5780cb44 ("ovl: modify layer parameter parsing")
+> > >      > > > +#  1784fbc2ed9c ("ovl: port to new mount api")
+> > >      > > > +#
+> > >      > > > +
+> > >      > > > +. ./common/preamble
+> > >      > > > +_begin_fstest auto quick mount
+> > >      > > > +
+> > >      > > > +# Import common functions.
+> > >      > > > +. ./common/filter
+> > >      > > > +
+> > >      > > > +# real QA test starts here
+> > >      > > > +_supported_fs overlay
+> > >      > > > +_fixed_by_kernel_commit 32db51070850 \
+> > >      > > > +     "ovl: fix regression in showing lowerdir mount option"
+> > >      > > > +_fixed_by_kernel_commit c34706acf40b \
+> > >      > > > +     "ovl: fix regression in parsing of mount options with
+> > >      escaped comma"
+> > >      > >
+> > >      > > Hi Amir,
+> > >      > >
+> > >      > > I tried this case on the latest linux kernel which contains the
+> > >      > > two commits, but still hit below failure:
+> > >      > >
+> > >      > > FSTYP         -- overlay
+> > >      > > PLATFORM      -- Linux/x86_64 hp-dl380pg8-01 6.6.0-rc6-mainline+
+> > >      #7 SMP PREEMPT_DYNAMIC Thu Oct 19 22:34:28 CST 2023
+> > >      > > MKFS_OPTIONS  -- /mnt/scratch
+> > >      > > MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0
+> > >      /mnt/scratch /mnt/scratch/ovl-mnt
+> > >      > >
+> > >      > > overlay/083       - output mismatch (see
+> > >      /root/git/xfstests/results//overlay/083.out.bad)
+> > >      > >     --- tests/overlay/083.out   2023-10-19 14:07:18.099496414
+> > >      +0800
+> > >      > >     +++ /root/git/xfstests/results//overlay/083.out.bad
+> > >      2023-10-20 00:25:47.682874383 +0800
+> > >      > >     @@ -1,2 +1,4 @@
+> > >      > >      QA output created by 083
+> > >      > >     +mount: /mnt/scratch/ovl-mnt: special device ovl_esc_test
+> > >      does not exist.
+> > >      > >     +       dmesg(1) may have more information after failed
+> > >      mount system call.
+> > >      > >      Silence is golden
+> > >      > >
+> > >      >
+> > >      > Strange.
+> > >      > I was under the impression that the 'dev' argument to mount
+> > >      command
+> > >      > of overlayfs is a completely opaque string.
+> > >      >
+> > >      > Maybe you are using a different libmount version that I do.
+> > >      > I have libmount 2.36.1.
+> > >      I'm using Fedora rawhide, the libmount version is
+> > >      libmount-2.39.2-1.fc40.
+> > >      >
+> > >      > Anyway, can you please try if this variation works for you:
+> > >      >
+> > >      > --- a/tests/overlay/083
+> > >      > +++ b/tests/overlay/083
+> > >      > @@ -42,12 +42,12 @@ mkdir -p "$lowerdir1" "$lowerdir2"
+> > >      "$lowerdir3"
+> > >      >
+> > >      >  # _overlay_mount_* helpers do not handle special chars well, so
+> > >      > execute mount directly.
+> > >      >  # if escaped colons and commas are not parsed correctly, mount
+> > >      will fail.
+> > >      > -$MOUNT_PROG -t overlay ovl_esc_test $SCRATCH_MNT \
+> > >      > +$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
+> > >      I doubt it works. This looks like to try to mount /mnt/scratch on
+> > >      /mnt/scratch/ovl-mnt.
+> > >
+> > >    Please try.
+> > >    You are making assumption that the dev argument is meaningful to
+> > >    overlayfs - it is not.
+> > >    Every one of the overlayfs tests in fstests uses the exact same dev
+> > >    argument as above inside the ovl mount helpers.
+> >
+> > Sure Amir, but it's still failed as below [1]. I think I've changed it as
+> > you wish [2]. The dmesg shows [3].
+> >
+> > Thanks,
+> > Zorro
+> >
+> > [1]
+> > # ./check -overlay overlay/083
+> > FSTYP         -- overlay
+> > PLATFORM      -- Linux/x86_64 hp-dl380pg8-01 6.6.0-rc6-mainline+ #7 SMP PREEMPT_DYNAMIC Thu Oct 19 22:34:28 CST 2023
+> > MKFS_OPTIONS  -- /mnt/scratch
+> > MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 /mnt/scratch /mnt/scratch/ovl-mnt
+> >
+> > overlay/083       - output mismatch (see /root/git/xfstests/results//overlay/083.out.bad)
+> >     --- tests/overlay/083.out   2023-10-22 14:21:11.446520444 +0800
+> >     +++ /root/git/xfstests/results//overlay/083.out.bad 2023-10-22 14:23:06.642681119 +0800
+> >     @@ -1,2 +1,4 @@
+> >      QA output created by 083
+> >     +mount: /mnt/scratch/ovl-mnt: mount(2) system call failed: No such file or directory.
+> >     +       dmesg(1) may have more information after failed mount system call.
+> >      Silence is golden
+> >     ...
+> >     (Run 'diff -u /root/git/xfstests/tests/overlay/083.out /root/git/xfstests/results//overlay/083.out.bad'  to see the entire diff)
+> >
+> > HINT: You _MAY_ be missing kernel fix:
+> >       32db51070850 ovl: fix regression in showing lowerdir mount option
+> >
+> > HINT: You _MAY_ be missing kernel fix:
+> >       c34706acf40b ovl: fix regression in parsing of mount options with escaped comma
+> >
+> > Ran: overlay/083
+> > Failures: overlay/083
+> > Failed 1 of 1 tests
+> >
+> > [2]
+> > # git diff
+> > diff --git a/tests/overlay/083 b/tests/overlay/083
+> > index 071b4b84..3a6d6809 100755
+> > --- a/tests/overlay/083
+> > +++ b/tests/overlay/083
+> > @@ -42,12 +42,12 @@ mkdir -p "$lowerdir1" "$lowerdir2" "$lowerdir3"
+> >
+> >  # _overlay_mount_* helpers do not handle special chars well, so execute mount directly.
+> >  # if escaped colons and commas are not parsed correctly, mount will fail.
+> > -$MOUNT_PROG -t overlay ovl_esc_test $SCRATCH_MNT \
+> > +$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
+> >         -o"upperdir=$upperdir,workdir=$workdir,lowerdir=$lowerdir3_esc:$lowerdir2_esc:$lowerdir1"
+> >
+> >  # if spaces are not escaped when showing mount options,
+> >  # mount command will not show the word 'spaces' after the spaces
+> > -$MOUNT_PROG -t overlay | grep ovl_esc_test  | tee -a $seqres.full | grep -v spaces
+> > +$MOUNT_PROG -t overlay | grep lower3 | tee -a $seqres.full | grep -v spaces
+> >
+> >  echo "Silence is golden"
+> >  status=0
+> >
+> > [3]
+> > [227208.314968] run fstests overlay/083 at 2023-10-22 14:23:06
+> > [227208.725135] XFS (loop0): Mounting V5 Filesystem 433b1a77-697c-4a83-abbe-85471466b6ca
+> > [227208.730987] XFS (loop0): Ending clean mount
+> > [227208.755377] overlayfs: failed to resolve '/mnt/scratch/lower3': -2
+> > [227208.792994] XFS (loop1): Unmounting Filesystem 0d4e26b6-3202-437c-962c-62c15c4763d7
+> > [227208.809166] XFS (loop0): Unmounting Filesystem 433b1a77-697c-4a83-abbe-85471466b6ca
+> >
+> 
+> This is exactly the "libmount regression" I was warning about:
+> 
+> https://lore.kernel.org/linux-unionfs/20231017101118.5h7pj26vos32h63u@ws.net.home/
+> 
+> With libmount upgraded to 2.39, the kernel doesn't get a chance
+> to parse the arguments correctly:
+> 
+> fsconfig(3, FSCONFIG_SET_STRING, "source", "ovl_esc_test", 0) = 0
+> fsconfig(3, FSCONFIG_SET_STRING, "upperdir", "/home/amir/upper", 0) = 0
+> fsconfig(3, FSCONFIG_SET_STRING, "workdir", "/home/amir/work", 0) = 0
+> fsconfig(3, FSCONFIG_SET_STRING, "lowerdir", "/home/amir/lower3\\", 0) = 0
+> fsconfig(3, FSCONFIG_SET_FLAG, "with\\", NULL, 0) = 0
+> fsconfig(3, FSCONFIG_SET_FLAG, "\\", NULL, 0) = 0
+> fsconfig(3, FSCONFIG_SET_FLAG,
+> "commas:/home/amir/lower2\\:with\\:"..., NULL, 0) = 0
+> fsconfig(3, FSCONFIG_CMD_CREATE, NULL, NULL, 0) = 0
+> 
+> Have no mistake, I am not trying to play the blaming game between
+> kernel and libmount - we simply have regressions that involve them both.
+> 
+> Kernel c34706acf40b "ovl: fix regression in parsing of mount options with"
+> solves a regression with comma separated list parsing when using the
+> old mount API.
+> 
+> Even if kernel could workaround the problem above by re-assembling
+> the options into a monolithic lowerdir list and splitting them up again, it
+> would be terribly wrong to do that.
+> 
+> The saner solution, as Karel already suggested it for libmount to
+> parse \, as a non-separator as overlayfs does with old mount api.
+> Either that, or, default to old mount api for overlayfs with
+> LIBMOUNT_FORCE_MOUNT2=auto
+> 
+> As for the test in question.
+> The purpose of this test is to validate that the kernel comma splitting
+> regression for old mount api has been fixed.
+> The fix patches are already in the stable kernel and we need to merge
+> the test, so that distros will also pick the kernel fix.
+> 
+> To meet this goal we could add to this test:
+> export LIBMOUNT_FORCE_MOUNT2=never
 
-Even if people would read documentation ;-)
-I don't think that would have helped in this case,
-because with old libmount and old kernel, overlayfs does not parse
-lowerdir=3D"/tmp/test-lower," correctly - it requires lowerdir=3D"/tmp/test=
--lower\,"
+Thanks for this details! But by reading your explanation above, I think
+you mean setting "LIBMOUNT_FORCE_MOUNT2=always", to force to use classic
+mount APIs.
 
-> Anyway, I think we can improve libmount to ignore \, as non-separator.
-> The question is what the rest of the userspace universe, because fstab
-> is interpreted on many places ...
+By doing that, this case test passed:
 
-The other option is to require overlayfs users to opt-in to new mount api
-(LIBMOUNT_FORCE_MOUNT2=3Dalways) and otherwise default to
-the old mount api or
-instead of improving libmount parsing of \,
-maybe just detect it and default to the old mount api
-just for overlayfs or generally?
+# ./check -overlay overlay/083
+FSTYP         -- overlay
+PLATFORM      -- Linux/x86_64 hp-dl380pg8-01 6.6.0-rc6-mainline+ #7 SMP PREEMPT_DYNAMIC Thu Oct 19 22:34:28 CST 2023
+MKFS_OPTIONS  -- /mnt/scratch
+MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 /mnt/scratch /mnt/scratch/ovl-mnt
 
-All-in-all, those cases are probably rare, so I think the minimal
-solution with as little room for complication should be applied.
-Detecting \, and defaulting to old mount api seems to meet this criteria?
-
-BTW, smb3_fs_context_parse_monolithic() also has special
-handling of comma parsing in kernel (,, is a non-separator comma),
-so smb3 (cifs) may also require special treatment when choosing
-old/new mount api.
+overlay/083        0s
+Ran: overlay/083
+Passed all 1 tests
 
 Thanks,
-Amir.
+Zorro
+
+> so that it can test what it was meant to test.
+> 
+> Can you please try that?
+> 
+> Regarding the fix to libmount, even if a fix to libmount comma separated
+> list would land in future libmount version, is it the goal of fstests to
+> test fixes to libmount?
+> 
+> Thanks,
+> Amir.
+> 
+
