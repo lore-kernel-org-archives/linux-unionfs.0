@@ -2,89 +2,157 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98089C4332F
-	for <linux-unionfs@archiver.kernel.org>; Mon, 30 Oct 2023 18:46:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83E5CC4332F
+	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Nov 2023 06:50:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229662AbjJ3SqE (ORCPT
+        id S230216AbjKFGu5 (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 30 Oct 2023 14:46:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41216 "EHLO
+        Mon, 6 Nov 2023 01:50:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229731AbjJ3SqD (ORCPT
+        with ESMTP id S229717AbjKFGu5 (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 30 Oct 2023 14:46:03 -0400
-Received: from mail-oo1-xc31.google.com (mail-oo1-xc31.google.com [IPv6:2607:f8b0:4864:20::c31])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95E1ECC
-        for <linux-unionfs@vger.kernel.org>; Mon, 30 Oct 2023 11:46:00 -0700 (PDT)
-Received: by mail-oo1-xc31.google.com with SMTP id 006d021491bc7-57d086365f7so3001148eaf.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 30 Oct 2023 11:46:00 -0700 (PDT)
+        Mon, 6 Nov 2023 01:50:57 -0500
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E8985F2;
+        Sun,  5 Nov 2023 22:50:53 -0800 (PST)
+Received: by mail-wr1-x42f.google.com with SMTP id ffacd0b85a97d-32f78dcf036so3030128f8f.0;
+        Sun, 05 Nov 2023 22:50:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1698691560; x=1699296360; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=kf6uqddEp5QaayzRRCwyvWQft1k/s4Gi6xcPXrweP+8=;
-        b=Fv+LlNXgWrAdV6QZ0GTjVKhoczowasJfLLiOQh8tbi+weIAXisghepQyIQokmNf9wL
-         tYDGoiWDx8VX3CMrAphTd6YMHgYed6FP8KVqsYQZbD0NyIG1NVf8zq/d1xwV/lIU7aJH
-         d6x25q7a9RohqOnV/+d9GbMw6OyI2xzFda+W45ghlHiLB5YCgTyoEJ1DIBpf/zJtsuLC
-         vPJE2/a8W/52JfHtIR1J3lbs4F8MtCdb8ZJKkHrwJ7CMIggzLCQdDG8yTL6wRxpBVGA2
-         bdP8acKzhmvVlbzBtLE4ciJwzmqmPDGBB+NrjQma+EUleYq2SKBdt60lKMwfy9xcy+YR
-         BbUg==
+        d=gmail.com; s=20230601; t=1699253452; x=1699858252; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=NbqQdpAVIW9N67UKj8YDab5KVvVGkqnhm/9Uw2oo0UQ=;
+        b=auSbn6bqsFQr4gL+AJoMtZ1R8E7C9VL+LY3TiOqo+VehnA6TCpvuRnVURAarNiu1XJ
+         S8RraXAoqFYz4kdeeuy4tJD8IbxeX+2YbzVLLpV/PraZ7LcFwGojv/qA5ArBdpAzPO5m
+         TkTznnYlyfvYDHINvRzz4WzSCM48tjnrBdJSjeRwDvbFRzZjAkh1rPpdLOU+kPLXaU2t
+         3qlNS9oFSBCOFsnj0YJPO6ySeWMu62nK1uqmZuVk+R2dPTCPe+iIx+fx7XhUhx5Rg2RN
+         j6V4I+IefHS19maF592oU87hRa++SbPyRw4egUPf15XyjavzVlFEhiwHa0h/VFrmls1f
+         JGmQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1698691560; x=1699296360;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kf6uqddEp5QaayzRRCwyvWQft1k/s4Gi6xcPXrweP+8=;
-        b=HKBnfAwrN8069AMoM54VxNRrou/t8WHrAMIp3Bq85WYguRuqpEbmQhl/o3F1ZbuboE
-         52V5U1AXwRVdYLJhGp+B9wwFuBnPbADWl3E28lB06H9rKOy3ZtFszi4ZLgj7FKiYHMR/
-         rap9qpZK6aDPsBAK45KWudfMufCuhYGBxEUgFxG6PstSkQvL0hXzYUs63vTNcUCEg9uN
-         RaKKBmrku44vg8nokAidLKvuZlsCcb30tbdvP8uN+lmWvkSJrkeDWyHPqbZyS19+Mequ
-         SedUUT9IAQQIyUZ520hQ6Zzjbr87v7U7T3qk9W04oxDyRtrguqAbk5r7BXGLulYxdQG+
-         0PCA==
-X-Gm-Message-State: AOJu0Yx589KcaSrfXMYGCmV8C09lWwAYSLXqj9tJRMrYbkqT6GjobuYc
-        fFv71R/mAmybqeCIJ6E+sz5vb0WY3IpZYIp5y3k=
-X-Google-Smtp-Source: AGHT+IEBxREuQYdz6uF+hr0p/ByZq9SJm72irQe3ANzmkX7UOMZj43yh1HzixomZye52jIjdpadA4DzMaGgnEPrBJqg=
-X-Received: by 2002:a05:6358:3396:b0:168:f67b:cbf8 with SMTP id
- i22-20020a056358339600b00168f67bcbf8mr13307398rwd.28.1698691559812; Mon, 30
- Oct 2023 11:45:59 -0700 (PDT)
-MIME-Version: 1.0
-References: <20231030120419.478228-1-amir73il@gmail.com> <CAJfpegvMtqk6eiLvGbC+2oQDHSP6M2HEZVWzTFpVpbWN6GCaOQ@mail.gmail.com>
-In-Reply-To: <CAJfpegvMtqk6eiLvGbC+2oQDHSP6M2HEZVWzTFpVpbWN6GCaOQ@mail.gmail.com>
+        d=1e100.net; s=20230601; t=1699253452; x=1699858252;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=NbqQdpAVIW9N67UKj8YDab5KVvVGkqnhm/9Uw2oo0UQ=;
+        b=qkJSF8V7pop6NB5bIPt1hjPaq18ClqJWT0EHVNr+GFO8fctFFnJXxRYYVV/O148MSd
+         woU52syhdgSoZh+7GMiDOvjHVcACfjiAVFG+rGfgPZzp8FsomoGyl70mYCLnx0vXVxcd
+         ayiYGVblwuPtxamVvpTbCj7gccA2Go3sYyGnRA437qKjVqxC3ZxM+c39Bmh7y2xavFYX
+         sQ9Mwy0fb8Y3XjsrB9l2G0Z7Is0gUel0JCDHd9R3I4E7OQ6HMNGJ2/qfGzkS45EOSKSZ
+         U/04Bx1dMBaRVApYUTFArpeVXou5ArpfplE5OT7wKEHkwiw4sqaMB5elaE7FJps6JwKf
+         xBBQ==
+X-Gm-Message-State: AOJu0YwO9nwdAcH94cmtyoDTtixvE6PYZMfirefaS9BULswBwzWgy+Za
+        YGnSWP0azfZT1CZQ9l2f1RLsPK3FORY=
+X-Google-Smtp-Source: AGHT+IFziN0N5HWnkm5Tj9LEgU3hA4t796SFyuYWsDbYUOc+n4dyooIrAZsZ78DqWAeALjPl26a6ng==
+X-Received: by 2002:a5d:5847:0:b0:32f:88f9:ba44 with SMTP id i7-20020a5d5847000000b0032f88f9ba44mr10049314wrf.25.1699253452090;
+        Sun, 05 Nov 2023 22:50:52 -0800 (PST)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id r22-20020a05600c35d600b003fee567235bsm11132388wmq.1.2023.11.05.22.50.50
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 05 Nov 2023 22:50:51 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 30 Oct 2023 20:45:47 +0200
-Message-ID: <CAOQ4uxjD6_G_u7jP88D-mpYAEjYDLEUQcZ=HTR1ub0ts5+dFRw@mail.gmail.com>
-Subject: Re: [PATCH 0/4] ovl: new mount options lowerdir+,datadir+
-To:     Miklos Szeredi <miklos@szeredi.hu>
-Cc:     Christian Brauner <brauner@kernel.org>,
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Subject: [GIT PULL] overlayfs update for 6.7
+Date:   Mon,  6 Nov 2023 08:50:45 +0200
+Message-Id: <20231106065045.895874-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Mon, Oct 30, 2023 at 5:41=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Mon, 30 Oct 2023 at 13:04, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > Miklos,
-> >
-> > As discussed, here are the patches for the new mount options.
-> >
-> > - Only string format is supported
-> > - Legacy lowerdir=3D cannot be mixed with new lowerdir+,datadir+
-> > - lowerdir+,datadir+ are not escaped
-> > - lowerdir,upperdir,workdir are escaped as always
-> >
-> > I did not find a good reason to change escaping of upperdir,workdir.
-> > We can skip escaping when we add support for path format.
->
-> Looks good, other than the minor error reporting issue.
->
+Hi Linus,
 
-Pushed fix to overlayfs-next and added some documentation.
+Please pull overlayfs update for 6.7.
+
+Most of the changes in this update have been sitting in linux-next for
+several weeks, based on two prerequisite vfs topic branches.
+Last week, after the vfs branches were merged, I rebased overlayfs-next
+to reduce noise.
+
+Last week, I also added patches for new mount options to replace the
+lowerdir append syntax that we disabled in v6.6-rc6 and v6.5.8.
+
+This branch has gone through the usual overlayfs test routines and it
+merges cleanly with master branch of the moment.
 
 Thanks,
 Amir.
+
+----------------------------------------------------------------
+The following changes since commit 14ab6d425e80674b6a0145f05719b11e82e64824:
+
+  Merge tag 'vfs-6.7.ctime' of gitolite.kernel.org:pub/scm/linux/kernel/git/vfs/vfs (2023-10-30 09:47:13 -1000)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-update-6.7
+
+for you to fetch changes up to 24e16e385f2272b1a9df51337a5c32d28a29c7ad:
+
+  ovl: add support for appending lowerdirs one by one (2023-10-31 00:13:02 +0200)
+
+----------------------------------------------------------------
+overlayfs update for 6.7
+
+Contains the following patch sets:
+
+- Overlayfs aio cleanups and fixes [1]
+
+- Overlayfs lock ordering changes [2]
+
+- Add support for nesting overlayfs private xattrs [3]
+
+- Add new mount options for appending lowerdirs [4]
+
+[1] https://lore.kernel.org/r/20230912173653.3317828-1-amir73il@gmail.com/
+[2] https://lore.kernel.org/r/20230816152334.924960-1-amir73il@gmail.com/
+[3] https://lore.kernel.org/r/cover.1694512044.git.alexl@redhat.com/
+[4] https://lore.kernel.org/r/20231030120419.478228-1-amir73il@gmail.com/
+
+----------------------------------------------------------------
+Alexander Larsson (4):
+      ovl: Add OVL_XATTR_TRUSTED/USER_PREFIX_LEN macros
+      ovl: Support escaped overlay.* xattrs
+      ovl: Add an alternative type of whiteout
+      ovl: Add documentation on nesting of overlayfs mounts
+
+Amir Goldstein (14):
+      ovl: use simpler function to convert iocb to rw flags
+      ovl: propagate IOCB_APPEND flag on writes to realfile
+      ovl: punt write aio completion to workqueue
+      ovl: protect copying of realinode attributes to ovl inode
+      ovl: add helper ovl_file_modified()
+      ovl: split ovl_want_write() into two helpers
+      ovl: reorder ovl_want_write() after ovl_inode_lock()
+      ovl: do not open/llseek lower file with upper sb_writers held
+      ovl: do not encode lower fh with upper sb_writers held
+      ovl: Move xattr support to new xattrs.c file
+      ovl: remove unused code in lowerdir param parsing
+      ovl: store and show the user provided lowerdir mount option
+      ovl: refactor layer parsing helpers
+      ovl: add support for appending lowerdirs one by one
+
+ Documentation/filesystems/overlayfs.rst |  40 +++-
+ fs/overlayfs/Makefile                   |   2 +-
+ fs/overlayfs/copy_up.c                  | 142 +++++++++-----
+ fs/overlayfs/dir.c                      |  64 +++----
+ fs/overlayfs/export.c                   |   7 +-
+ fs/overlayfs/file.c                     |  88 ++++++---
+ fs/overlayfs/inode.c                    | 165 ++--------------
+ fs/overlayfs/namei.c                    |  52 ++++--
+ fs/overlayfs/overlayfs.h                |  72 +++++--
+ fs/overlayfs/params.c                   | 322 +++++++++++++++++---------------
+ fs/overlayfs/params.h                   |   1 +
+ fs/overlayfs/readdir.c                  |  27 ++-
+ fs/overlayfs/super.c                    |  92 ++-------
+ fs/overlayfs/util.c                     | 115 +++++++++++-
+ fs/overlayfs/xattrs.c                   | 271 +++++++++++++++++++++++++++
+ fs/super.c                              |   1 +
+ 16 files changed, 929 insertions(+), 532 deletions(-)
+ create mode 100644 fs/overlayfs/xattrs.c
