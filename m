@@ -2,136 +2,101 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33FF0C4332F
-	for <linux-unionfs@archiver.kernel.org>; Mon,  6 Nov 2023 19:44:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D82A6C4332F
+	for <linux-unionfs@archiver.kernel.org>; Tue,  7 Nov 2023 19:54:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232405AbjKFTo0 (ORCPT
+        id S231962AbjKGTyY (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 6 Nov 2023 14:44:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40656 "EHLO
+        Tue, 7 Nov 2023 14:54:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50392 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231555AbjKFToZ (ORCPT
+        with ESMTP id S229720AbjKGTyY (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 6 Nov 2023 14:44:25 -0500
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ACC6125;
-        Mon,  6 Nov 2023 11:44:21 -0800 (PST)
-Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3A6JeLZJ023059;
-        Mon, 6 Nov 2023 19:44:15 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
- subject : to : cc : references : from : in-reply-to : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=6lQnPtAuDs1yRDYUZNA0X4oNLITc1jI3WcvtpB0zAlw=;
- b=QXZgfynS6iAtYhsOyd7HmwwL/ddVN705GW9VN8pEFsZLU3jV4Uzslx7Cb3oCvSSvZyH5
- cQrsDuh0dotyKURYNbxGre3Zri4Ez1mzG6Wt5i0paCLjw73g8tqhrj2xxA6KDLqdDjDd
- Qs9Q2lxax5KtmL0gVuA/1nsIyHAZ+WYwyFLrmaV5yXBqVUW/1WpsDNT8CmuKLqydWT79
- Y1GmsEzfBuQaVGO+JVIfHpgLTOQYGa/7bQmyagmJf62mTxhIyl5yEsEgfdh3GtQyOVPs
- Vi3OoLFY8fdfQqI4e49flyGn0rJeINgkGU6M1/B8ZSkbgslnDqDXoOD9Fc4CvfSjBLXf 2Q== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3u76gkg3ep-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 06 Nov 2023 19:44:15 +0000
-Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3A6JeX4K023381;
-        Mon, 6 Nov 2023 19:44:15 GMT
-Received: from ppma13.dal12v.mail.ibm.com (dd.9e.1632.ip4.static.sl-reverse.com [50.22.158.221])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3u76gkg3dw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 06 Nov 2023 19:44:14 +0000
-Received: from pps.filterd (ppma13.dal12v.mail.ibm.com [127.0.0.1])
-        by ppma13.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3A6HPkZT028230;
-        Mon, 6 Nov 2023 19:44:14 GMT
-Received: from smtprelay04.dal12v.mail.ibm.com ([172.16.1.6])
-        by ppma13.dal12v.mail.ibm.com (PPS) with ESMTPS id 3u62gjuaqf-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 06 Nov 2023 19:44:14 +0000
-Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
-        by smtprelay04.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3A6JiDQE20644526
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 6 Nov 2023 19:44:13 GMT
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 9D26358067;
-        Mon,  6 Nov 2023 19:44:13 +0000 (GMT)
-Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id E9A6D58056;
-        Mon,  6 Nov 2023 19:44:12 +0000 (GMT)
-Received: from [9.47.158.152] (unknown [9.47.158.152])
-        by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTPS;
-        Mon,  6 Nov 2023 19:44:12 +0000 (GMT)
-Message-ID: <e6b66098-77d6-46e9-b013-986ad86ba26b@linux.ibm.com>
-Date:   Mon, 6 Nov 2023 14:44:12 -0500
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] fs: Pass AT_GETATTR_NOSEC flag to getattr interface
- function
-Content-Language: en-US
-To:     Christian Brauner <brauner@kernel.org>, amir73il@gmail.com,
-        Stefan Berger <stefanb@linux.vnet.ibm.com>
-Cc:     linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        syzbot+a67fc5321ffb4b311c98@syzkaller.appspotmail.com,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-fsdevel@vger.kernel.org, Tyler Hicks <code@tyhicks.com>,
-        Mimi Zohar <zohar@linux.ibm.com>,
-        linux-integrity@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20231002125733.1251467-1-stefanb@linux.vnet.ibm.com>
- <20231010-erhaben-kurznachrichten-d91432c937ee@brauner>
-From:   Stefan Berger <stefanb@linux.ibm.com>
-In-Reply-To: <20231010-erhaben-kurznachrichten-d91432c937ee@brauner>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: gSqzhJehY9bxuE4KRXjUZVNnUI4SZ_11
-X-Proofpoint-GUID: fPkaI9lKmqP-HtzBlQ-ahemvBEgOQOBg
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        Tue, 7 Nov 2023 14:54:24 -0500
+Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6241D79
+        for <linux-unionfs@vger.kernel.org>; Tue,  7 Nov 2023 11:54:21 -0800 (PST)
+Received: by mail-ej1-x635.google.com with SMTP id a640c23a62f3a-9a6190af24aso939929066b.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2023 11:54:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1699386860; x=1699991660; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=VkTZWMBMLQYUtpSNuy5XagVZn8+B9GVBKFpPpKcdRS4=;
+        b=eqc87QZVPahJ5XT4X/bPlLV4zUJeLeRzl6J2dEbou1ea6AHFYWBsbxxH1CDhUZ6o8i
+         Wd5Ey7OgDOMl/bMQUaopkNI21jLpry+ynf3KydynFdrYMMnbp7fYm3Hvf3ASkRsY1MdW
+         oJAcM9yQxI6kTCKCyA71oelrHy7qOPivLu6Eo=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1699386860; x=1699991660;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=VkTZWMBMLQYUtpSNuy5XagVZn8+B9GVBKFpPpKcdRS4=;
+        b=VYAXYXJNWb2HrqE7u5Zb9+ervukdQhpeFUY3pQoyqqVmsExgaKtFnUOKHrYjCLX6VS
+         Qe1kX7mGC4zVVulTXCqSNz1k2JhWSvERg6hVpIwO3HMndcdWPeZCdT2OoFnoImSUgHs3
+         ORIWvyD/CDYsxzzEe/LyRicgatsY74IL7uKC1qtmvdLfIrpKRl28xcXQsaF6G2XMPlDn
+         n7cIGc9qxpT7wFqxdTWbbFCpIUaGl1zH3HxsvVrEsK12//71KdjuqwZqWDNCOV34/aOO
+         gEwFtielNOeRy4pO00DgNW4dVhvtzoNIR3MV/9aagDTttCKb5MOCIwBZs/JBT708I9o5
+         YVaQ==
+X-Gm-Message-State: AOJu0YxLJz/enMbcugXav5wBh+SetaKR+qnv1HewWcg8IxnFWaF9pSQn
+        23iozAK/xXZBpkn4YuuKG5OvoaXPmZWz9R5RiiI=
+X-Google-Smtp-Source: AGHT+IHpXhEVuLM46TZwpoSoaWs0SXNvDgJTSdnVadNBqGrGPDnNp9oXsLc74+jjGqM08Z4IQdoNYA==
+X-Received: by 2002:a17:907:9815:b0:9b2:b152:b0f2 with SMTP id ji21-20020a170907981500b009b2b152b0f2mr18466627ejc.10.1699386860341;
+        Tue, 07 Nov 2023 11:54:20 -0800 (PST)
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com. [209.85.208.47])
+        by smtp.gmail.com with ESMTPSA id f8-20020a170906138800b009b27d4153c0sm1409871ejc.178.2023.11.07.11.54.19
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 07 Nov 2023 11:54:19 -0800 (PST)
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-53d9f001b35so10286950a12.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 07 Nov 2023 11:54:19 -0800 (PST)
+X-Received: by 2002:a17:907:745:b0:9dd:4811:7111 with SMTP id
+ xc5-20020a170907074500b009dd48117111mr13172773ejb.4.1699386858967; Tue, 07
+ Nov 2023 11:54:18 -0800 (PST)
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.987,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-11-06_15,2023-11-02_03,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- phishscore=0 suspectscore=0 priorityscore=1501 bulkscore=0 adultscore=0
- clxscore=1011 spamscore=0 malwarescore=0 mlxlogscore=836 impostorscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2310240000 definitions=main-2311060162
+References: <20231106065045.895874-1-amir73il@gmail.com>
+In-Reply-To: <20231106065045.895874-1-amir73il@gmail.com>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Tue, 7 Nov 2023 11:54:01 -0800
+X-Gmail-Original-Message-ID: <CAHk-=whgCwcUGKvoZX0OSAFi9fTye3BOfOCY+wR=t7W8xS_oGQ@mail.gmail.com>
+Message-ID: <CAHk-=whgCwcUGKvoZX0OSAFi9fTye3BOfOCY+wR=t7W8xS_oGQ@mail.gmail.com>
+Subject: Re: [GIT PULL] overlayfs update for 6.7
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Christian Brauner <brauner@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
+On Sun, 5 Nov 2023 at 22:50, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> - Overlayfs aio cleanups and fixes [1]
+>
+> - Overlayfs lock ordering changes [2]
+>
+> - Add support for nesting overlayfs private xattrs [3]
+>
+> - Add new mount options for appending lowerdirs [4]
+>
+> [1] https://lore.kernel.org/r/20230912173653.3317828-1-amir73il@gmail.com/
+> [2] https://lore.kernel.org/r/20230816152334.924960-1-amir73il@gmail.com/
+> [3] https://lore.kernel.org/r/cover.1694512044.git.alexl@redhat.com/
+> [4] https://lore.kernel.org/r/20231030120419.478228-1-amir73il@gmail.com/
 
+*Please* don't make me have to follow links just to see basic details.
 
-On 10/10/23 04:35, Christian Brauner wrote:
-> On Mon, 02 Oct 2023 08:57:33 -0400, Stefan Berger wrote:
->> When vfs_getattr_nosec() calls a filesystem's getattr interface function
->> then the 'nosec' should propagate into this function so that
->> vfs_getattr_nosec() can again be called from the filesystem's gettattr
->> rather than vfs_getattr(). The latter would add unnecessary security
->> checks that the initial vfs_getattr_nosec() call wanted to avoid.
->> Therefore, introduce the getattr flag GETATTR_NOSEC and allow to pass
->> with the new getattr_flags parameter to the getattr interface function.
->> In overlayfs and ecryptfs use this flag to determine which one of the
->> two functions to call.
->>
->> [...]
-> 
-> Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-> Patches in the vfs.fixes branch should appear in linux-next soon.
+Merge messages should stand on their own, not just point to "look,
+here are the details in our lore archives". Yes, even when having
+internet access is much more common, there are situations where it's
+not there or is slow. Or maybe lore has issues. Or maybe people just
+don't want to switch to a browser to look up details that may or may
+not be relevant to them.
 
-Did something happen to this patch? I do not see it in your branch nor 
-the linux-next one nor Linus's tree.
+I copied the relevant stuff into my merge, but please don't make me do
+this next time. Just give me a merge message with the details spelled
+out, not some link to a cover letter for a patch series.
 
-
-
-> 
-> Please report any outstanding bugs that were missed during review in a
-> new review to the original patch series allowing us to drop it.
-> 
-> It's encouraged to provide Acked-bys and Reviewed-bys even though the
-> patch has now been applied. If possible patch trailers will be updated.
-> 
-> Note that commit hashes shown below are subject to change due to rebase,
-> trailer updates or similar. If in doubt, please check the listed branch.
-> 
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-> branch: vfs.fixes
-> 
-> [1/1] fs: Pass AT_GETATTR_NOSEC flag to getattr interface function
->        https://git.kernel.org/vfs/vfs/c/6ea042691c74
+             Linus
