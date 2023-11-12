@@ -2,181 +2,153 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0ED6C4332F
-	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Nov 2023 09:10:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36AFFC4332F
+	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Nov 2023 09:21:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230195AbjKLJK0 (ORCPT
+        id S230240AbjKLJVJ (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sun, 12 Nov 2023 04:10:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40262 "EHLO
+        Sun, 12 Nov 2023 04:21:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229548AbjKLJKZ (ORCPT
+        with ESMTP id S229748AbjKLJVI (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sun, 12 Nov 2023 04:10:25 -0500
-Received: from mail-yw1-x1136.google.com (mail-yw1-x1136.google.com [IPv6:2607:f8b0:4864:20::1136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88D552D6B;
-        Sun, 12 Nov 2023 01:10:22 -0800 (PST)
-Received: by mail-yw1-x1136.google.com with SMTP id 00721157ae682-5a7af52ee31so40027427b3.2;
-        Sun, 12 Nov 2023 01:10:22 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1699780221; x=1700385021; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=egHeFKQAtt7Sh019RKEMUVjVuogheud9F4PPfud93+M=;
-        b=A7DSNSxS7Qodw7GA9DGycElW3jek5LcZb68NWp/mvS4EeknxqHA4Jj41oanEtXC593
-         N0W6a2QHRbAX510Tt5GFCp4VsZuG/bdY5GN5XAKcrD8rKrU4dkQh8X2miuG3ZHfY0rRt
-         j6SxH9eyffFRVb6lpXixUOri6tK1oq4flbFnctbp0+0lO75kQ9KPrba/89pnXi+JgAdS
-         LVelX7jUVTJ/Ncq14EP7xWvY3Y0aKEJirfZRVQCJBFSfl0DPSFZ2wVVcNig3r4aBlzz5
-         S8M9EkbVFcfvNABIaqzregKf1lGVOaEpjffWEcGY3elaA5GBw56bi+TGY7FVpt7eUTLo
-         eLFg==
+        Sun, 12 Nov 2023 04:21:08 -0500
+Received: from mail-pg1-f198.google.com (mail-pg1-f198.google.com [209.85.215.198])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 776CC30CB
+        for <linux-unionfs@vger.kernel.org>; Sun, 12 Nov 2023 01:21:05 -0800 (PST)
+Received: by mail-pg1-f198.google.com with SMTP id 41be03b00d2f7-5bda015587bso2940389a12.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 12 Nov 2023 01:21:05 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699780221; x=1700385021;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=egHeFKQAtt7Sh019RKEMUVjVuogheud9F4PPfud93+M=;
-        b=phFVKs/mMu/Thj6rku5OYY3XUMKddCYmyCY6ht3NdYTpeEffkFmwqm9wu8ub77hbEu
-         4/Z9Hp5TbLtwvt8xWauKlzM4k/3EZUAEuSYHPkYWzD7OVnsCRHvNtKRUsU4KxJxDvGfS
-         Dez5NNm6pbLFLAiLtUkBgcL6k7BavFdVn+FGQzV7sLtSps/hgBTqyuyh1SkshWYPBseU
-         IB5i67/3ykqnpSkcAyBeRJvtbeff+pDUf2fnrS4AHK7z9VH6yG5Lfrpj6QXyNlVstRWt
-         FtgolERotqNE8Y2ofhwWLvInfU6U8XOAhfapZ/c1Dvki0L2H2Gaz9IJpdV/Xx71ET8Jh
-         errQ==
-X-Gm-Message-State: AOJu0Yyqn3nszi26oFxM4bU7qpNZG/khwy8KcjejdfTVH4B9b7DRBVSn
-        QKMFL+Y7e31X2tOKWGjOdh/tnjp1SdxoI6n0Y4s=
-X-Google-Smtp-Source: AGHT+IHEpNqYolQIdXL5GhBpNI4l0q8587yNT7L6JwFWlNJDhvibzvQ/CRtV3S0Q8PvMjIDLAauySFFD6fGsyhSYXdQ=
-X-Received: by 2002:a81:6d0a:0:b0:5a7:be1a:6c32 with SMTP id
- i10-20020a816d0a000000b005a7be1a6c32mr3401677ywc.24.1699780221591; Sun, 12
- Nov 2023 01:10:21 -0800 (PST)
+        d=1e100.net; s=20230601; t=1699780865; x=1700385665;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=vVjrCTYRe2nvig3PfqBsiJOGikcayNigDKHyRd84JT0=;
+        b=SKASYQvedcNevKiiVTrsJjEa7+2D56fh3Kmyn2JV1qJdpM3IYoKyAF3X3EqG7+Yq27
+         UMOb1XlOG1yBXZnsdTGOuPlfJIVj53t2jjUwYFzCK2rgr1Cl98Ue9JmCldNpeARQGV0H
+         fRGqrhuMgSzQ0eoFD8x4PbW4WhmINlT0DH97OUFsR09ru995OIQfSHRAguFR9DewqU0l
+         nj25ll9mYHT6BRcM2rs8FtN1Ts3KFP9IUU9uBZn8HLNfzsvNaD52SYfqMMvAjkoiAZtM
+         YvjcSKMXqo18DFxav94niT86gDT82m9VsRw8KTzjqGYUW5wDlCaYdGUIXxcBvCPxdKT2
+         h+oA==
+X-Gm-Message-State: AOJu0YzCs2iyIYY1ZKPNZyIJAXA1MZKi55EEAuHxIuYXRtdUoNAzcBPo
+        9VC4hWL+fXY6Ut6zG9GILUBX0kiT4ypX9GVUpeMCSeRMd4Dh
+X-Google-Smtp-Source: AGHT+IEu+yITQdTApV4csEmOVbD15js3mHkSdQ+58WMD7ouB8zTRrneXIPdqDIfkThrK6y/KShstLZZ7saAT7O6pJqAevaRhxkvc
 MIME-Version: 1.0
-References: <0000000000003c31650609ecd824@google.com>
-In-Reply-To: <0000000000003c31650609ecd824@google.com>
-From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sun, 12 Nov 2023 11:10:10 +0200
-Message-ID: <CAOQ4uxh3i=eLJZeNu7VWS9L7OaVVRgyX9Yqr5hx15h9dYmWaXQ@mail.gmail.com>
+X-Received: by 2002:a17:903:1301:b0:1cc:c462:d4ce with SMTP id
+ iy1-20020a170903130100b001ccc462d4cemr1231200plb.11.1699780865041; Sun, 12
+ Nov 2023 01:21:05 -0800 (PST)
+Date:   Sun, 12 Nov 2023 01:21:04 -0800
+In-Reply-To: <CAOQ4uxh3i=eLJZeNu7VWS9L7OaVVRgyX9Yqr5hx15h9dYmWaXQ@mail.gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000a82c860609f1124d@google.com>
 Subject: Re: [syzbot] [overlayfs?] memory leak in ovl_parse_param
-To:     syzbot <syzbot+26eedf3631650972f17c@syzkaller.appspotmail.com>
-Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-        syzkaller-bugs@googlegroups.com
+From:   syzbot <syzbot+26eedf3631650972f17c@syzkaller.appspotmail.com>
+To:     amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Sun, Nov 12, 2023 at 6:18=E2=80=AFAM syzbot
-<syzbot+26eedf3631650972f17c@syzkaller.appspotmail.com> wrote:
->
-> Hello,
->
-> syzbot found the following issue on:
->
-> HEAD commit:    13d88ac54ddd Merge tag 'vfs-6.7.fsid' of git://git.kernel=
-...
-> git tree:       upstream
-> console output: https://syzkaller.appspot.com/x/log.txt?x=3D121cf04768000=
-0
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=3Decfdf78a410c8=
-34
-> dashboard link: https://syzkaller.appspot.com/bug?extid=3D26eedf363165097=
-2f17c
-> compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for D=
-ebian) 2.40
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D15c7a6eb680=
-000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D13f8b78768000=
-0
->
-> Downloadable assets:
-> disk image: https://storage.googleapis.com/syzbot-assets/9bb27a01f17c/dis=
-k-13d88ac5.raw.xz
-> vmlinux: https://storage.googleapis.com/syzbot-assets/fb496feed171/vmlinu=
-x-13d88ac5.xz
-> kernel image: https://storage.googleapis.com/syzbot-assets/f4da22719ffa/b=
-zImage-13d88ac5.xz
->
-> IMPORTANT: if you fix the issue, please add the following tag to the comm=
-it:
-> Reported-by: syzbot+26eedf3631650972f17c@syzkaller.appspotmail.com
->
-> executing program
-> BUG: memory leak
-> unreferenced object 0xffff8881009b40a8 (size 8):
->   comm "syz-executor225", pid 5035, jiffies 4294944336 (age 13.730s)
->   hex dump (first 8 bytes):
->     2e 00 00 00 00 00 00 00                          ........
->   backtrace:
->     [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.=
-h:42 [inline]
->     [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
->     [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
->     [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:35=
-17
->     [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
->     [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_c=
-ommon.c:1027
->     [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
->     [<ffffffff81d0438a>] ovl_parse_param_lowerdir fs/overlayfs/params.c:4=
-96 [inline]
->     [<ffffffff81d0438a>] ovl_parse_param+0x70a/0xc70 fs/overlayfs/params.=
-c:576
->     [<ffffffff8170542b>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:14=
-6
->     [<ffffffff81705556>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:18=
-8
->     [<ffffffff8170566f>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_contex=
-t.c:230
->     [<ffffffff816dff08>] do_new_mount fs/namespace.c:3333 [inline]
->     [<ffffffff816dff08>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
->     [<ffffffff816e0b41>] do_mount fs/namespace.c:3677 [inline]
->     [<ffffffff816e0b41>] __do_sys_mount fs/namespace.c:3886 [inline]
->     [<ffffffff816e0b41>] __se_sys_mount fs/namespace.c:3863 [inline]
->     [<ffffffff816e0b41>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
->     [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inlin=
-e]
->     [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c=
-:82
->     [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
->
-> BUG: memory leak
-> unreferenced object 0xffff88814002d070 (size 8):
->   comm "syz-executor225", pid 5036, jiffies 4294944900 (age 8.090s)
->   hex dump (first 8 bytes):
->     2e 00 00 00 00 00 00 00                          ........
->   backtrace:
->     [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.=
-h:42 [inline]
->     [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
->     [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
->     [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:35=
-17
->     [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
->     [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_c=
-ommon.c:1027
->     [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
->     [<ffffffff81d0438a>] ovl_parse_param_lowerdir fs/overlayfs/params.c:4=
-96 [inline]
->     [<ffffffff81d0438a>] ovl_parse_param+0x70a/0xc70 fs/overlayfs/params.=
-c:576
->     [<ffffffff8170542b>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:14=
-6
->     [<ffffffff81705556>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:18=
-8
->     [<ffffffff8170566f>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_contex=
-t.c:230
->     [<ffffffff816dff08>] do_new_mount fs/namespace.c:3333 [inline]
->     [<ffffffff816dff08>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
->     [<ffffffff816e0b41>] do_mount fs/namespace.c:3677 [inline]
->     [<ffffffff816e0b41>] __do_sys_mount fs/namespace.c:3886 [inline]
->     [<ffffffff816e0b41>] __se_sys_mount fs/namespace.c:3863 [inline]
->     [<ffffffff816e0b41>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
->     [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inlin=
-e]
->     [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c=
-:82
->     [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
->
->
+Hello,
 
-#syz test: https://github.com/amir73il/linux ovl-fixes
+syzbot has tested the proposed patch but the reproducer is still triggering an issue:
+memory leak in ovl_parse_param
+
+BUG: memory leak
+unreferenced object 0xffff88814002d0c8 (size 8):
+  comm "syz-executor.0", pid 5498, jiffies 4294944229 (age 12.660s)
+  hex dump (first 8 bytes):
+    2e 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
+    [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
+    [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
+    [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:3517
+    [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
+    [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_common.c:1027
+    [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
+    [<ffffffff81d0424e>] ovl_parse_param_lowerdir fs/overlayfs/params.c:496 [inline]
+    [<ffffffff81d0424e>] ovl_parse_param+0x70e/0xc60 fs/overlayfs/params.c:576
+    [<ffffffff817053ab>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:146
+    [<ffffffff817054d6>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:188
+    [<ffffffff817055ef>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_context.c:230
+    [<ffffffff816dfe88>] do_new_mount fs/namespace.c:3333 [inline]
+    [<ffffffff816dfe88>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
+    [<ffffffff816e0ac1>] do_mount fs/namespace.c:3677 [inline]
+    [<ffffffff816e0ac1>] __do_sys_mount fs/namespace.c:3886 [inline]
+    [<ffffffff816e0ac1>] __se_sys_mount fs/namespace.c:3863 [inline]
+    [<ffffffff816e0ac1>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
+    [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+    [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:82
+    [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+BUG: memory leak
+unreferenced object 0xffff8881009ec0c8 (size 8):
+  comm "syz-executor.0", pid 5752, jiffies 4294944765 (age 7.300s)
+  hex dump (first 8 bytes):
+    2e 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
+    [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
+    [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
+    [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:3517
+    [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
+    [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_common.c:1027
+    [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
+    [<ffffffff81d0424e>] ovl_parse_param_lowerdir fs/overlayfs/params.c:496 [inline]
+    [<ffffffff81d0424e>] ovl_parse_param+0x70e/0xc60 fs/overlayfs/params.c:576
+    [<ffffffff817053ab>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:146
+    [<ffffffff817054d6>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:188
+    [<ffffffff817055ef>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_context.c:230
+    [<ffffffff816dfe88>] do_new_mount fs/namespace.c:3333 [inline]
+    [<ffffffff816dfe88>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
+    [<ffffffff816e0ac1>] do_mount fs/namespace.c:3677 [inline]
+    [<ffffffff816e0ac1>] __do_sys_mount fs/namespace.c:3886 [inline]
+    [<ffffffff816e0ac1>] __se_sys_mount fs/namespace.c:3863 [inline]
+    [<ffffffff816e0ac1>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
+    [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+    [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:82
+    [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+BUG: memory leak
+unreferenced object 0xffff8881009ec0e0 (size 8):
+  comm "syz-executor.0", pid 5754, jiffies 4294944766 (age 7.290s)
+  hex dump (first 8 bytes):
+    2e 00 00 00 00 00 00 00                          ........
+  backtrace:
+    [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
+    [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
+    [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
+    [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:3517
+    [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
+    [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_common.c:1027
+    [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
+    [<ffffffff81d0424e>] ovl_parse_param_lowerdir fs/overlayfs/params.c:496 [inline]
+    [<ffffffff81d0424e>] ovl_parse_param+0x70e/0xc60 fs/overlayfs/params.c:576
+    [<ffffffff817053ab>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:146
+    [<ffffffff817054d6>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:188
+    [<ffffffff817055ef>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_context.c:230
+    [<ffffffff816dfe88>] do_new_mount fs/namespace.c:3333 [inline]
+    [<ffffffff816dfe88>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
+    [<ffffffff816e0ac1>] do_mount fs/namespace.c:3677 [inline]
+    [<ffffffff816e0ac1>] __do_sys_mount fs/namespace.c:3886 [inline]
+    [<ffffffff816e0ac1>] __se_sys_mount fs/namespace.c:3863 [inline]
+    [<ffffffff816e0ac1>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
+    [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+    [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:82
+    [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
+
+
+
+Tested on:
+
+commit:         3f653af2 ovl: fix memory leak in ovl_parse_param()
+git tree:       https://github.com/amir73il/linux ovl-fixes
+console output: https://syzkaller.appspot.com/x/log.txt?x=13a07ea7680000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=ecfdf78a410c834
+dashboard link: https://syzkaller.appspot.com/bug?extid=26eedf3631650972f17c
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+
+Note: no patches were applied.
