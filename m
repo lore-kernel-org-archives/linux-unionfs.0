@@ -2,155 +2,254 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06E8CC4332F
-	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Nov 2023 04:18:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CEF7CC4332F
+	for <linux-unionfs@archiver.kernel.org>; Sun, 12 Nov 2023 07:26:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229601AbjKLESa (ORCPT
+        id S230195AbjKLH0q (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 11 Nov 2023 23:18:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53064 "EHLO
+        Sun, 12 Nov 2023 02:26:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47648 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229935AbjKLES3 (ORCPT
+        with ESMTP id S229441AbjKLH0p (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 11 Nov 2023 23:18:29 -0500
-Received: from mail-pf1-f207.google.com (mail-pf1-f207.google.com [209.85.210.207])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7B30230F7
-        for <linux-unionfs@vger.kernel.org>; Sat, 11 Nov 2023 20:18:25 -0800 (PST)
-Received: by mail-pf1-f207.google.com with SMTP id d2e1a72fcca58-6c4f8a2dcbdso1282553b3a.3
-        for <linux-unionfs@vger.kernel.org>; Sat, 11 Nov 2023 20:18:25 -0800 (PST)
+        Sun, 12 Nov 2023 02:26:45 -0500
+Received: from mail-qt1-x82c.google.com (mail-qt1-x82c.google.com [IPv6:2607:f8b0:4864:20::82c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EF6A92D57;
+        Sat, 11 Nov 2023 23:26:41 -0800 (PST)
+Received: by mail-qt1-x82c.google.com with SMTP id d75a77b69052e-41f155c862bso22707201cf.2;
+        Sat, 11 Nov 2023 23:26:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1699774001; x=1700378801; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=I9nUY4k/7oE2vgXYBilWa/wCffSLxwwt+2LJzdriyvA=;
+        b=i2bROzALuzkLUz3ywNkAxU1dcY/Vvtz6oRu+gUhNhsh0WnswlCQi5G/Rwo0kXY89BM
+         9yfM+hwKg1pcfkt1/36tKP5JNMB9DnCg9ORANCBDPEbe9acvJsrsjqnvbDavqGGyW5F3
+         4CJv/AG1uRKp1nyHe5Ua5fZq4L42VDc10wX4T1HzsX55PSZjB/zChFpeUCOdc/wuZ2kr
+         uZh8pD+ZDU94rjd+ws0mIMXWWjOkYmcHB1FvAEEmfEZDwBydQ0uPOX80Ly5TM6uLmxVb
+         yyu7RrIwCeq1OzDBTgpdRyX3ehhehraNyK2QComJp6uJPpGg46jkU4fvQrIuAvaFZBwD
+         dt+w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1699762705; x=1700367505;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=qWEoTwBlXjGTTrl0xPgTiw5vgCy7bqROUuWjF1tWseI=;
-        b=H+YLQW50pnYF15qkh9QvXfNTretTo7PLqk4CQA2ZzJxYouRP8t7+3AAy2BlAO8/jLd
-         gSiF2JDcHzZQzS5u9wICxhqCPA14kuBTTpjX+uyvdz8ODjO4cchGVKVjwAJtbal/UgGI
-         1nkJRX07mnCcxFA2eJABE3rKXXxRu3ATVUXLw2Y1ERVVmCGPZfM9b5/P7lZvN4Woblr6
-         mUprMwSeYcyRnbAd8mrA62Z1SVEj4o6qqg3J9NiQaK8LnD83HSH5YjonZ8DCDLAFYfSw
-         xUy22o7cryHJIX6jcP82KrACNKOivkJMHevQ6DZfdTDgBN8zspHuTYVV1ZgwaOz90oXp
-         cDdA==
-X-Gm-Message-State: AOJu0Yx7Tk5oz1sDIBvFCudcppoBcKc1+BHcnShJUanInc6t4Tej8IQG
-        YR2P4HymwDR0KlPh9GDIwmdDDW6N/99zuNUAjf77ZJDxaylH
-X-Google-Smtp-Source: AGHT+IHZ5YatetUTXqQsCd+tFcdXeuEetfUkqDqzA7IEbmiUgUyTV1jGMi+vSA4VND+qs4KiCqLnYHoIb85f+QrAzPtMoM9IiM0R
+        d=1e100.net; s=20230601; t=1699774001; x=1700378801;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=I9nUY4k/7oE2vgXYBilWa/wCffSLxwwt+2LJzdriyvA=;
+        b=enXJV0jwzFC4NG1iswYk7m0NeryeT15B/pG0sUK/8U+FiafajNpvUbcvPVZX+TOMTm
+         lpKNoRhsFCjb/cZY6iHwm6WvwbyLElfMbWW7VmLalGWbDJAU5Wq/J9aXb2mt7IL7bYTS
+         x0CY+w145yQC4KKUApOrzTGWhAJwcDGRTveym9gbFH3KvW1U8ZrhOubkSOZNBiGd6opb
+         LM2O2oTtULDJe6HwffiCqhhZ/HGSEHrmm7cWS9MvlChJ6TXvQXqaRO+nYS02Dl1uILW0
+         SWpASuKwJWOUe8jAL9Wl4OSHl4vYTKEUHjROqBMoP+YR7PpPvJWw34zIxkKwbGpzeLJJ
+         mMSw==
+X-Gm-Message-State: AOJu0YxSRtJWR7zO6IYIYs1Ils6cmnGlqEzUxtlpbPfsIEiS1fi5Y9ca
+        V81wrWhY6sbfFogU5ooRoqDiUbbMrYRL4ornWU3GyTuxH6I=
+X-Google-Smtp-Source: AGHT+IFn6HZ47qgF2A7YEqAyx9gwi+gOzTYmm9YUlEBhfQtvp3I9kQXE/J8LZSEirMKbFsM96xwcqiBNdPAnUtxCwRs=
+X-Received: by 2002:a05:622a:50a:b0:41e:3e18:e094 with SMTP id
+ l10-20020a05622a050a00b0041e3e18e094mr5491473qtx.26.1699774001037; Sat, 11
+ Nov 2023 23:26:41 -0800 (PST)
 MIME-Version: 1.0
-X-Received: by 2002:a05:6a00:1884:b0:6c6:b762:ad8a with SMTP id
- x4-20020a056a00188400b006c6b762ad8amr574179pfh.0.1699762705017; Sat, 11 Nov
- 2023 20:18:25 -0800 (PST)
-Date:   Sat, 11 Nov 2023 20:18:24 -0800
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000003c31650609ecd824@google.com>
-Subject: [syzbot] [overlayfs?] memory leak in ovl_parse_param
-From:   syzbot <syzbot+26eedf3631650972f17c@syzkaller.appspotmail.com>
-To:     amir73il@gmail.com, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
-        miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+References: <20231111080400.GO1957730@ZenIV> <CAOQ4uxhQdHsegbwdqy_04eHVG+wkntA2g2qwt9wH8hb=-PtT2A@mail.gmail.com>
+ <20231111185034.GP1957730@ZenIV> <CAOQ4uxjYaHk6rWUgvsFA4403Uk-hBqjGegV4CCOHZyh2LSYf4w@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjYaHk6rWUgvsFA4403Uk-hBqjGegV4CCOHZyh2LSYf4w@mail.gmail.com>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sun, 12 Nov 2023 09:26:28 +0200
+Message-ID: <CAOQ4uxiJSum4a2F5FEA=a8JKwWh1XhFOpWaH8xas_uWKf+29cw@mail.gmail.com>
+Subject: Re: [RFC][overlayfs] do we still need d_instantiate_anon() and export
+ of d_alloc_anon()?
+To:     Al Viro <viro@zeniv.linux.org.uk>
+Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hello,
+On Sat, Nov 11, 2023 at 10:05=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
+> wrote:
+>
+> On Sat, Nov 11, 2023 at 8:50=E2=80=AFPM Al Viro <viro@zeniv.linux.org.uk>=
+ wrote:
+> >
+> > On Sat, Nov 11, 2023 at 08:31:11PM +0200, Amir Goldstein wrote:
+> > > > in ovl_lookup(), and in case we have d_splice_alias() return a non-=
+NULL
+> > > > dentry we can simply copy it there.  Sure, somebody might race with
+> > > > us, pick dentry from hash and call ->d_revalidate() before we notic=
+e that
+> > > > DCACHE_OP_REVALIDATE could be cleaned.  So what?  That call of ->d_=
+revalidate()
+> > > > will find nothing to do and return 1.  Which is the effect of havin=
+g
+> > > > DCACHE_OP_REVALIDATE cleared, except for pointless method call.  An=
+yone
+> > > > who finds that dentry after the flag is cleared will skip the call.
+> > > > IOW, that race is harmless.
+> > >
+> > > Just a minute.
+> > > Do you know that ovl_obtain_alias() is *only* used to obtain a discon=
+nected
+> > > non-dir overlayfs dentry?
+> >
+> > D'oh...
+> >
+> > > I think that makes all the analysis regarding race with d_splice_alia=
+s()
+> > > moot. Right?
+> >
+> > Right you are.
+> >
+> > > Do DCACHE_OP_*REVALIDATE even matter for a disconnected
+> > > non-dir dentry?
+> >
+> > As long as nothing picks it via d_find_any_alias() and moves it somewhe=
+re
+> > manually.  The former might happen, the latter, AFAICS, doesn't - nothi=
+ng
+> > like d_move() anywhere in sight...
+> >
+> > > You are missing that the OVL_E_UPPER_ALIAS flag is a property of
+> > > the overlay dentry, not a property of the inode.
+> > >
+> > > N lower hardlinks, the first copy up created an upper inode
+> > > all the rest of the N upper aliases to that upper inode are
+> > > created lazily.
+> > >
+> > > However, for obvious reasons, OVL_E_UPPER_ALIAS is not
+> > > well defined for a disconnected overlay dentry.
+> > > There should not be any code (I hope) that cares about
+> > > OVL_E_UPPER_ALIAS for a disconnected overlay dentry,
+> > > so I *think* ovl_dentry_set_upper_alias() in this code is moot.
+> > >
+> > > I need to look closer to verify, but please confirm my assumption
+> > > regarding the irrelevance of  DCACHE_OP_*REVALIDATE for a
+> > > disconnected non-dir dentry.
+> >
+> > Correct; we only care if it gets reconnected to the main tree.
+> > The fact that it's only for non-directories simplifies life a lot
+> > there.  Sorry, got confused by the work you do with ->d_flags
+> > and hadn't stopped to ask whether it's needed in the first place
+> > in there.
+> >
+> > OK, so... are there any reasons why simply calling d_obtain_alias()
+> > wouldn't do the right thing these days?
+>
+> None that I can think of.
+>
+> I will try it out and run the tests to see if I have missed something.
+>
 
-syzbot found the following issue on:
+Tested the patch below.
+If you want to apply it as part of dcache cleanup, it's fine by me.
+Otherwise, I will queue it for the next overlayfs update.
 
-HEAD commit:    13d88ac54ddd Merge tag 'vfs-6.7.fsid' of git://git.kernel...
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=121cf047680000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=ecfdf78a410c834
-dashboard link: https://syzkaller.appspot.com/bug?extid=26eedf3631650972f17c
-compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=15c7a6eb680000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=13f8b787680000
+Thanks,
+Amir.
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/9bb27a01f17c/disk-13d88ac5.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/fb496feed171/vmlinux-13d88ac5.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/f4da22719ffa/bzImage-13d88ac5.xz
+From 3415a62597161b03b2db48ca195af34d25afc5d5 Mon Sep 17 00:00:00 2001
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sun, 12 Nov 2023 08:55:57 +0200
+Subject: [PATCH] ovl: stop using d_alloc_anon()/d_instantiate_anon()
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+26eedf3631650972f17c@syzkaller.appspotmail.com
+Commit f9c34674bc60 ("vfs: factor out helpers d_instantiate_anon() and
+d_alloc_anon()") was introduced so overlayfs could initialize a non-dir
+disconnected overlay dentry before overlay inode is attached to it.
 
-executing program
-BUG: memory leak
-unreferenced object 0xffff8881009b40a8 (size 8):
-  comm "syz-executor225", pid 5035, jiffies 4294944336 (age 13.730s)
-  hex dump (first 8 bytes):
-    2e 00 00 00 00 00 00 00                          ........
-  backtrace:
-    [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
-    [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
-    [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
-    [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:3517
-    [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
-    [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_common.c:1027
-    [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
-    [<ffffffff81d0438a>] ovl_parse_param_lowerdir fs/overlayfs/params.c:496 [inline]
-    [<ffffffff81d0438a>] ovl_parse_param+0x70a/0xc70 fs/overlayfs/params.c:576
-    [<ffffffff8170542b>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:146
-    [<ffffffff81705556>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:188
-    [<ffffffff8170566f>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_context.c:230
-    [<ffffffff816dff08>] do_new_mount fs/namespace.c:3333 [inline]
-    [<ffffffff816dff08>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
-    [<ffffffff816e0b41>] do_mount fs/namespace.c:3677 [inline]
-    [<ffffffff816e0b41>] __do_sys_mount fs/namespace.c:3886 [inline]
-    [<ffffffff816e0b41>] __se_sys_mount fs/namespace.c:3863 [inline]
-    [<ffffffff816e0b41>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
-    [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inline]
-    [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:82
-    [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
+Since commit ("0af950f57fef ovl: move ovl_entry into ovl_inode"), all
+ovl_obtain_alias() can do is set DCACHE_OP_*REVALIDATE flags in ->d_flags
+and OVL_E_UPPER_ALIAS flag in ->d_fsdata.
 
-BUG: memory leak
-unreferenced object 0xffff88814002d070 (size 8):
-  comm "syz-executor225", pid 5036, jiffies 4294944900 (age 8.090s)
-  hex dump (first 8 bytes):
-    2e 00 00 00 00 00 00 00                          ........
-  backtrace:
-    [<ffffffff8163331d>] kmemleak_alloc_recursive include/linux/kmemleak.h:42 [inline]
-    [<ffffffff8163331d>] slab_post_alloc_hook mm/slab.h:766 [inline]
-    [<ffffffff8163331d>] slab_alloc_node mm/slub.c:3478 [inline]
-    [<ffffffff8163331d>] __kmem_cache_alloc_node+0x2dd/0x3f0 mm/slub.c:3517
-    [<ffffffff8157e57c>] __do_kmalloc_node mm/slab_common.c:1006 [inline]
-    [<ffffffff8157e57c>] __kmalloc_node_track_caller+0x4c/0x150 mm/slab_common.c:1027
-    [<ffffffff8156da4c>] kstrdup+0x3c/0x70 mm/util.c:62
-    [<ffffffff81d0438a>] ovl_parse_param_lowerdir fs/overlayfs/params.c:496 [inline]
-    [<ffffffff81d0438a>] ovl_parse_param+0x70a/0xc70 fs/overlayfs/params.c:576
-    [<ffffffff8170542b>] vfs_parse_fs_param+0xfb/0x190 fs/fs_context.c:146
-    [<ffffffff81705556>] vfs_parse_fs_string+0x96/0xd0 fs/fs_context.c:188
-    [<ffffffff8170566f>] vfs_parse_monolithic_sep+0xdf/0x130 fs/fs_context.c:230
-    [<ffffffff816dff08>] do_new_mount fs/namespace.c:3333 [inline]
-    [<ffffffff816dff08>] path_mount+0xc48/0x10d0 fs/namespace.c:3664
-    [<ffffffff816e0b41>] do_mount fs/namespace.c:3677 [inline]
-    [<ffffffff816e0b41>] __do_sys_mount fs/namespace.c:3886 [inline]
-    [<ffffffff816e0b41>] __se_sys_mount fs/namespace.c:3863 [inline]
-    [<ffffffff816e0b41>] __x64_sys_mount+0x1a1/0x1f0 fs/namespace.c:3863
-    [<ffffffff84b67d8f>] do_syscall_x64 arch/x86/entry/common.c:51 [inline]
-    [<ffffffff84b67d8f>] do_syscall_64+0x3f/0x110 arch/x86/entry/common.c:82
-    [<ffffffff84c0008b>] entry_SYSCALL_64_after_hwframe+0x63/0x6b
+The DCACHE_OP_*REVALIDATE flags and OVL_E_UPPER_ALIAS flag are irrelevant
+for a disconnected non-dir dentry, so it is better to use d_obtain_alias()
+instead of open coding it.
 
+Since it has no more users, remove d_instantiate_anon() and do not export
+d_alloc_anon().
 
-
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+ fs/dcache.c            |  7 -------
+ fs/overlayfs/export.c  | 22 +---------------------
+ include/linux/dcache.h |  1 -
+ 3 files changed, 1 insertion(+), 29 deletions(-)
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+diff --git a/fs/dcache.c b/fs/dcache.c
+index c82ae731df9a..8afa9d2b636f 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1866,7 +1866,6 @@ struct dentry *d_alloc_anon(struct super_block *sb)
+ {
+        return __d_alloc(sb, NULL);
+ }
+-EXPORT_SYMBOL(d_alloc_anon);
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
+ struct dentry *d_alloc_cursor(struct dentry * parent)
+ {
+@@ -2115,12 +2114,6 @@ static struct dentry
+*__d_instantiate_anon(struct dentry *dentry,
+        return res;
+ }
 
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
+-struct dentry *d_instantiate_anon(struct dentry *dentry, struct inode *ino=
+de)
+-{
+-       return __d_instantiate_anon(dentry, inode, true);
+-}
+-EXPORT_SYMBOL(d_instantiate_anon);
+-
+ static struct dentry *__d_obtain_alias(struct inode *inode, bool disconnec=
+ted)
+ {
+        struct dentry *tmp;
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 7e16bbcad95e..f2f41d4fb5d4 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -320,27 +320,7 @@ static struct dentry *ovl_obtain_alias(struct
+super_block *sb,
+        if (upper)
+                ovl_set_flag(OVL_UPPERDATA, inode);
 
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
+-       dentry =3D d_find_any_alias(inode);
+-       if (dentry)
+-               goto out_iput;
+-
+-       dentry =3D d_alloc_anon(inode->i_sb);
+-       if (unlikely(!dentry))
+-               goto nomem;
+-
+-       if (upper_alias)
+-               ovl_dentry_set_upper_alias(dentry);
+-
+-       ovl_dentry_init_reval(dentry, upper, OVL_I_E(inode));
+-
+-       return d_instantiate_anon(dentry, inode);
+-
+-nomem:
+-       dput(dentry);
+-       dentry =3D ERR_PTR(-ENOMEM);
+-out_iput:
+-       iput(inode);
+-       return dentry;
++       return d_obtain_alias(inode);
+ }
 
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+ /* Get the upper or lower dentry in stack whose on layer @idx */
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index 3da2f0545d5d..c760553fb88a 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -221,7 +221,6 @@ extern seqlock_t rename_lock;
+ extern void d_instantiate(struct dentry *, struct inode *);
+ extern void d_instantiate_new(struct dentry *, struct inode *);
+ extern struct dentry * d_instantiate_unique(struct dentry *, struct inode =
+*);
+-extern struct dentry * d_instantiate_anon(struct dentry *, struct inode *)=
+;
+ extern void __d_drop(struct dentry *dentry);
+ extern void d_drop(struct dentry *dentry);
+ extern void d_delete(struct dentry *);
+--=20
+2.34.1
