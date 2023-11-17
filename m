@@ -2,103 +2,67 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54021C197A0
-	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Nov 2023 13:13:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0735BC072A2
+	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Nov 2023 14:29:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231345AbjKQNN1 (ORCPT
+        id S231653AbjKQO3E (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 17 Nov 2023 08:13:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50360 "EHLO
+        Fri, 17 Nov 2023 09:29:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231292AbjKQNN0 (ORCPT
+        with ESMTP id S230383AbjKQO3E (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 17 Nov 2023 08:13:26 -0500
-Received: from mail-lj1-x230.google.com (mail-lj1-x230.google.com [IPv6:2a00:1450:4864:20::230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16F28126;
-        Fri, 17 Nov 2023 05:13:23 -0800 (PST)
-Received: by mail-lj1-x230.google.com with SMTP id 38308e7fff4ca-2c50906f941so27552291fa.2;
-        Fri, 17 Nov 2023 05:13:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1700226801; x=1700831601; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=4f1MVztdhj5IN7r1ek1X1T1ZJLkJj98esTqsJzAdItM=;
-        b=U09qKu1g0F9c30+h2lrgo0iSFQJjh2GH57p7sU69GIAyPadeJZcLAEKYcaNrXVUKl2
-         S0X50tQ5Y84GU3pSL8pqCXjL/hGZgajXo4u3vnGOO2j/DlZMu/A8zDpmV80NfoWimsNT
-         qL9iXtsaz3SvUBXFL/Cule9RdwebK+o5k5YOTfDkXP2eyzr74AcBhx4ntYJvUBG9GbNr
-         Z7R0CeoT1TySillTmPY45a0eb62MPs5TNQNqNJVo1CrQYe5CXSMVsKeKq9qZQeglTdmP
-         YROZP0MvXkKXq2u1bB6zVJXjtUfSK4E3hDHC27XwanbrUJHlf8h3APGemWCTphA1IYSN
-         yi9g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700226801; x=1700831601;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=4f1MVztdhj5IN7r1ek1X1T1ZJLkJj98esTqsJzAdItM=;
-        b=M2RJY2L6OcTehXIHa9/J0zPn4gcMcS+CxKwD4IfUI2QCGoXr4eqUYTRegZyWW5xBiX
-         mrb2qlHEha5YokMPXlYPgvBFLO/xpHzZQpPbncoDvNQg4o80qKHg9TDU3Aq1l6ROw57k
-         4wuuARvoAMwHcLCX9yJzSzkk28OH+2+ZXVkf4si7Ptyd1p8ks3yZJCj7A7pKV8UvObHo
-         AwxRdyoI5/iXQyi+87bAPG0VVQEQXA4ddBreZd4T3WaLAhj4Q2hTC9/xhLI5wOuOeRQF
-         q1oqT0Pxz4A9fsskvOp/YCv3EVbue+rRMBdcJkJjLi0RrVmrR3ISg0D/3zyZB1mJbq3t
-         GkZA==
-X-Gm-Message-State: AOJu0Yxg8F2dMn4P9Tzj6FywfxynlP09nOeDU4PpWEtregOVHdkcO1At
-        IFwo3n/17UNmvuggkOKwY1KNOuVz0pM=
-X-Google-Smtp-Source: AGHT+IHxlGCKLzcATW6yFBuFwEWtMrDHD+iYV1a11WAGkDxnDimYKmIB4j0vw+z/p1NZ8ccFLvlIiw==
-X-Received: by 2002:a2e:2e06:0:b0:2bc:d634:2210 with SMTP id u6-20020a2e2e06000000b002bcd6342210mr8264608lju.16.1700226801041;
-        Fri, 17 Nov 2023 05:13:21 -0800 (PST)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id z17-20020a1c4c11000000b0040a44179a88sm6889598wmf.42.2023.11.17.05.13.19
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Nov 2023 05:13:20 -0800 (PST)
-From:   Amir Goldstein <amir73il@gmail.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Miklos Szeredi <miklos@szeredi.hu>,
+        Fri, 17 Nov 2023 09:29:04 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14023B8;
+        Fri, 17 Nov 2023 06:29:01 -0800 (PST)
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 9B306C433C7;
+        Fri, 17 Nov 2023 14:29:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1700231340;
+        bh=xQuC6Jvfo0Of8B33Yv/38dKbdxjnoPlyeFBrD4qVPk0=;
+        h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+        b=PS4jM8GbjiiSizZTakgFDYGle9YKvHK6zWJi7oZ4N2f5wGkAIkjGfrWlFlJl5ugkq
+         WSljMmXclwhsTJAQAnkJxO2EJY+1rSqquqBADbBvy/9Q7J5GAchIn8pEXCcdt9+M+6
+         EkrgKYI1+cMYo36i0gcNOORxZTxxcxvpKeDpOkpU9S2OdxrF9LdqSRi8zOBnwSZOgo
+         1w41fwH6fzJm0fB8ret0GBaoGF7YUILJiJ3x3dYciArcXEcVDG+o9ppA304uuUiKI0
+         vFAn5akcKmXXvblH3W+U4UQDek0JN0AoGi1iIvQNdmPFYFsOujopdRks8GdaIoemdI
+         JuOaTgbJSh6rg==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+        by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 898E9C4316B;
+        Fri, 17 Nov 2023 14:29:00 +0000 (UTC)
+Subject: Re: [GIT PULL] overlayfs fixes for 6.7-rc2
+From:   pr-tracker-bot@kernel.org
+In-Reply-To: <20231117131315.1927413-1-amir73il@gmail.com>
+References: <20231117131315.1927413-1-amir73il@gmail.com>
+X-PR-Tracked-List-Id: <linux-unionfs.vger.kernel.org>
+X-PR-Tracked-Message-Id: <20231117131315.1927413-1-amir73il@gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.7-rc2
+X-PR-Tracked-Commit-Id: 37f32f52643869131ec01bb69bdf9f404f6109fb
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 6bc40e44f1ddef16a787f3501b97f1fff909177c
+Message-Id: <170023134055.28622.6849058513211945485.pr-tracker-bot@kernel.org>
+Date:   Fri, 17 Nov 2023 14:29:00 +0000
+To:     Amir Goldstein <amir73il@gmail.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Miklos Szeredi <miklos@szeredi.hu>,
         Christian Brauner <brauner@kernel.org>,
         linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
         linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs fixes for 6.7-rc2
-Date:   Fri, 17 Nov 2023 15:13:15 +0200
-Message-Id: <20231117131315.1927413-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-Hi Linus,
+The pull request you sent on Fri, 17 Nov 2023 15:13:15 +0200:
 
-Please pull a fix to overlayfs param parsing bug from v6.7-rc1.
+> git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.7-rc2
 
-This branch has been sitting in linux-next for a few days and
-it has gone through the usual overlayfs test routines.
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/6bc40e44f1ddef16a787f3501b97f1fff909177c
 
-The branch merges cleanly with master branch of the moment.
+Thank you!
 
-Thanks,
-Amir.
-
-----------------------------------------------------------------
-The following changes since commit b85ea95d086471afb4ad062012a4d73cd328fa86:
-
-  Linux 6.7-rc1 (2023-11-12 16:19:07 -0800)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.7-rc2
-
-for you to fetch changes up to 37f32f52643869131ec01bb69bdf9f404f6109fb:
-
-  ovl: fix memory leak in ovl_parse_param() (2023-11-14 08:09:36 +0200)
-
-----------------------------------------------------------------
-overlayfs fixes for 6.7-rc2
-
-----------------------------------------------------------------
-Amir Goldstein (2):
-      ovl: fix misformatted comment
-      ovl: fix memory leak in ovl_parse_param()
-
- fs/overlayfs/params.c | 11 +++++------
- fs/overlayfs/util.c   |  2 +-
- 2 files changed, 6 insertions(+), 7 deletions(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
