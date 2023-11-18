@@ -2,63 +2,66 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39980C54E76
-	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Nov 2023 06:59:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 808F0C54E76
+	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Nov 2023 09:09:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230091AbjKRG7k (ORCPT
+        id S230507AbjKRJJP (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Sat, 18 Nov 2023 01:59:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36540 "EHLO
+        Sat, 18 Nov 2023 04:09:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229844AbjKRG7k (ORCPT
+        with ESMTP id S229449AbjKRJJO (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Sat, 18 Nov 2023 01:59:40 -0500
-Received: from mail-qv1-xf34.google.com (mail-qv1-xf34.google.com [IPv6:2607:f8b0:4864:20::f34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07DC210C4;
-        Fri, 17 Nov 2023 22:59:37 -0800 (PST)
-Received: by mail-qv1-xf34.google.com with SMTP id 6a1803df08f44-6779fb43e5cso1577816d6.2;
-        Fri, 17 Nov 2023 22:59:36 -0800 (PST)
+        Sat, 18 Nov 2023 04:09:14 -0500
+Received: from mail-yw1-x1129.google.com (mail-yw1-x1129.google.com [IPv6:2607:f8b0:4864:20::1129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAE45D50;
+        Sat, 18 Nov 2023 01:09:10 -0800 (PST)
+Received: by mail-yw1-x1129.google.com with SMTP id 00721157ae682-5c5d59adeedso20122487b3.3;
+        Sat, 18 Nov 2023 01:09:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1700290776; x=1700895576; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1700298550; x=1700903350; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=F+/LrFC38HCQp0Kzc/AK0vyGJnzxQl3xrb8AVMJwJNs=;
-        b=gsQqpxNUQJ/cRKRDGqemqNyk+382ABuakVKfEG6ARcjtyUHMb6GnHXt1ErUXXX2yBi
-         1ptw9CtaF+WiPoZ8ejtF+YLTzgEw7cWfl/qOSZ8KmflmRexfe7JeaRP6jGD9/052Uvqw
-         K5FQztlbYXHX0z9DbX7kM2sUANkN24RX67JEcNjMj4JnIJPUOPLUPDCIHbzy4GG0hvxB
-         MyHO7snl/4xb7wqrPJRgSsj2CFg5tBjuxfTk/iY2ATybkRkzjFp8gMt+XrHBN6KnRr/O
-         FSJWlI3mGV+ZORYio84HA/AlwyHwHcXXs0k1quik07xTuXcqFWHohUIYUN4Z+Cf9hmLg
-         7OBg==
+        bh=RvCiUP97ZvMN3NmcdplUSil1OBub6JKNRfaV9NtMQBo=;
+        b=BMm2w3rgKs5UKuWsJDmrXo7H6j1xX9z3gqX7wAFXkYMdJc2T5nDL6tWqPWHgZVlr17
+         iPXbCm6fORWVSq6BclXr04Fl2NvNhF9sHoFKY0OVlB4Igv1bnA5/QP/zpa2KDuRG676o
+         TEpCL38cm57W8CTcvnWu/slC9fZWfMrv19QFEqLidhms0pBh5wRR4nRKy2L61ACKb6R0
+         9aJ75d/ZVdb61KJptiCHxQyoxh9g9bqWnTzp7EEXT/JeoIHomxcwV4E2ovQKKfc5k8SA
+         eb9aFFA5pITXDiOISNLjpUOKO9NtcKHtWV94HhzPq9iFJiPYzN/w1xtrD20v88ZKxfPg
+         Bnjg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700290776; x=1700895576;
+        d=1e100.net; s=20230601; t=1700298550; x=1700903350;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=F+/LrFC38HCQp0Kzc/AK0vyGJnzxQl3xrb8AVMJwJNs=;
-        b=mCpc3f3muh+XX9iutPQNcodGWoGeFbFsePr3H5U7gzF2i6UBuv/JgOlUE5vaJauwFO
-         3dPQwaWPfk0QbpmxiW1j6rOOdGxnJCGlhnav82ZXhtHCrDLipIfyDYXnZCY3aqPG+oMH
-         7ec/MWmIwvDGReh8fO1JeDT6X5wQBq+OFL/t/QEQw/hTcdnC2DTObb++MLl0mMDCFi3c
-         4/OcPY+ZLHjSH/EAvmO/irlHwKrij0CcLFaAkG4wI3bmZcqRJSrVrTOiduy08fiItR1H
-         XACh79WrYdTZLWNf9FTWmCR9x5L/S6CBQXk3LmqvAG5ObJqm05Z9gWbd+i9/3UrKwSWT
-         PTKg==
-X-Gm-Message-State: AOJu0YxJKKlhsoH9XJHMld90n3cZJk/36FULAzqbjKumHLSpcjaOOc81
-        6Qe5EsDwu5oZxHmYBFX9drdXQH41gBfMiksoUls=
-X-Google-Smtp-Source: AGHT+IHY6wZ/vpUYbkpI16CDlh66sneMpJsg0zwXohaJPnz6Zroc+DyNKN0SviNjKe+rTIdSvmvrLirmB6M5PuwyM/o=
-X-Received: by 2002:a05:6214:258b:b0:66d:9f2e:f3e6 with SMTP id
- fq11-20020a056214258b00b0066d9f2ef3e6mr1916616qvb.48.1700290776132; Fri, 17
- Nov 2023 22:59:36 -0800 (PST)
+        bh=RvCiUP97ZvMN3NmcdplUSil1OBub6JKNRfaV9NtMQBo=;
+        b=GHTzFIPtuO4D+yPM1ifQIIxNQDLnKivWqzL7tEmZG6GbzDuW7hHbXQ/lIAHjsLwW+d
+         aAi4iKMCXjsl0lx7vKllLrbKmBlsHlIlpf8grp8fbxfD6pLD5OdVxhVL+1767VrPV1gp
+         WhRJgm+oobCvjQCsRPDyc+Sq0DZCscOO5va0dGctVHRnbnikX+gz5+G1GD6IPmuHPX51
+         BPxcwf54FMR2PkCYzhFbVuro78/AmzoPo/udTQDlJgbXcOYZ8Dzsqsprm9b2Qi2DjmRc
+         qunuUUJqgPDUuHs5X0Dtl06zTzvtlwoMOq5CoBOfU12psR+8wlIRuzZ/oyKhdpijXcY7
+         qPvw==
+X-Gm-Message-State: AOJu0YwNfscUX2JnAHssfuNCxk8zW79GNEhL1JluLKvxIfp80cD2aCN6
+        PxNNBrHRmRCNr2+E5+0IH7eXtAEudMHwCvSP+0s=
+X-Google-Smtp-Source: AGHT+IESNjulQiJHIv2PWj9FQQnB1/9OUFZeVraEluu9OcZmAVLtC6ij0lF+dT1UQ+xbHTUZBvZy04IN7n1Vsydvz/8=
+X-Received: by 2002:a81:4e51:0:b0:5b3:f5f8:c5bf with SMTP id
+ c78-20020a814e51000000b005b3f5f8c5bfmr2021850ywb.9.1700298549973; Sat, 18 Nov
+ 2023 01:09:09 -0800 (PST)
 MIME-Version: 1.0
-References: <20231114153254.1715969-1-amir73il@gmail.com> <20231117194443.GC1513185@perftesting>
-In-Reply-To: <20231117194443.GC1513185@perftesting>
+References: <20231114153254.1715969-1-amir73il@gmail.com> <20231114153254.1715969-13-amir73il@gmail.com>
+ <20231117194622.GD1513185@perftesting>
+In-Reply-To: <20231117194622.GD1513185@perftesting>
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Sat, 18 Nov 2023 08:59:25 +0200
-Message-ID: <CAOQ4uxjuDxSro+4qtXfodSf-EcAA8aUBGuWpaVn4+H8Ai=JcFg@mail.gmail.com>
-Subject: Re: [PATCH 00/15] Tidy up file permission hooks
-To:     Josef Bacik <josef@toxicpanda.com>
+Date:   Sat, 18 Nov 2023 11:08:58 +0200
+Message-ID: <CAOQ4uxihfJJRxxUhAmOwtD97Lg8PL8RgXw88rH1UfEeP8AtP+w@mail.gmail.com>
+Subject: Re: [PATCH 12/15] fs: move kiocb_start_write() into vfs_iocb_iter_write()
+To:     Josef Bacik <josef@toxicpanda.com>,
+        David Howells <dhowells@redhat.com>,
+        Jens Axboe <axboe@kernel.dk>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, Jan Kara <jack@suse.cz>,
         linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -66,54 +69,113 @@ Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Fri, Nov 17, 2023 at 9:44=E2=80=AFPM Josef Bacik <josef@toxicpanda.com> =
+On Fri, Nov 17, 2023 at 9:46=E2=80=AFPM Josef Bacik <josef@toxicpanda.com> =
 wrote:
 >
-> On Tue, Nov 14, 2023 at 05:32:39PM +0200, Amir Goldstein wrote:
-> > Hi Christian,
+> On Tue, Nov 14, 2023 at 05:32:51PM +0200, Amir Goldstein wrote:
+> > In vfs code, sb_start_write() is usually called after the permission ho=
+ok
+> > in rw_verify_area().  vfs_iocb_iter_write() is an exception to this rul=
+e,
+> > where kiocb_start_write() is called by its callers.
 > >
-> > I realize you won't have time to review this week, but wanted to get
-> > this series out for review for a wider audience soon.
+> > Move kiocb_start_write() from the callers into vfs_iocb_iter_write()
+> > after the rw_verify_area() checks, to make them "start-write-safe".
 > >
-> > During my work on fanotify "pre content" events [1], Jan and I noticed
-> > some inconsistencies in the call sites of security_file_permission()
-> > hooks inside rw_verify_area() and remap_verify_area().
+> > This is needed for fanotify "pre content" events.
 > >
-> > The majority of call sites are before file_start_write(), which is how
-> > we want them to be for fanotify "pre content" events.
+> > Suggested-by: Jan Kara <jack@suse.cz>
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  fs/cachefiles/io.c  | 2 --
+> >  fs/overlayfs/file.c | 1 -
+> >  fs/read_write.c     | 2 ++
+> >  3 files changed, 2 insertions(+), 3 deletions(-)
 > >
-> > For splice code, there are many duplicate calls to rw_verify_area()
-> > for the entire range as well as for partial ranges inside iterator.
+> > diff --git a/fs/cachefiles/io.c b/fs/cachefiles/io.c
+> > index 009d23cd435b..3d3667807636 100644
+> > --- a/fs/cachefiles/io.c
+> > +++ b/fs/cachefiles/io.c
+> > @@ -319,8 +319,6 @@ int __cachefiles_write(struct cachefiles_object *ob=
+ject,
+> >               ki->iocb.ki_complete =3D cachefiles_write_complete;
+> >       atomic_long_add(ki->b_writing, &cache->b_writing);
 > >
-> > This cleanup series, mostly following Jan's suggestions, moves all
-> > the security_file_permission() hooks before file_start_write() and
-> > eliminates duplicate permission hook calls in the same call chain.
-> >
-> > The last 3 patches are helpers that I used in fanotify patches to
-> > assert that permission hooks are called with expected locking scope.
-> >
-> > My hope is to get this work reviewed and staged in the vfs tree
-> > for the 6.8 cycle, so that I can send Jan fanotify patches for
-> > "pre content" events based on a stable branch in the vfs tree.
-> >
-> > Thanks,
-> > Amir.
+> > -     kiocb_start_write(&ki->iocb);
+> > -
 >
-> Amir,
+> This bit is subtly wrong, there's a little bit below that does
 >
-> The last 3 patches didn't make it onto lore for some reason, so I can't r=
-eview
-> the last 3.  Thanks,
+>         ret =3D cachefiles_inject_write_error();
+>         if (ret =3D=3D 0)
+>                 ret =3D vfs_iocb_iter_write(file, &ki->iocb, iter);
 >
+> If cachefiles_inject_write_error() returns non-zero it'll fallthrough bel=
+ow and
+> call cachefiles_write_complete() and complete the kiocb that hasn't start=
+ed yet.
 
-Sorry for the mishap.
-The entire series was re-posted shortly after to fsdevel:
-https://lore.kernel.org/linux-fsdevel/20231114153321.1716028-1-amir73il@gma=
-il.com/
+Ouch! good catch!
 
-> You can add
-> Reviewed-by: Josef Bacik <josef@toxicpanda.com>
-> to patches 1-11.
+My initial proposal for kiocb_{start,end}_write() has an internal
+IOCB_WRITE_STARTED flag to protect against this sort of error,
+but Jens convinced me to remove it.
 
-Thanks for the review!
+In io_uring and aio.c, IOCB_WRITE is set only after kiocb_start_write(),
+so kiocb_end_write() is effectively gated by the IOCB_WRITE flag.
+I could make this change in cachefiles/io.c to use IOCB_WRITE flag
+as an indication for kiocb_start_write().
+
+It's a bit ugly, but I can't think of anything better and maybe for the pur=
+pose
+of error injection, the hack is not so bad?
+
+Thanks,
 Amir.
+
+--- a/fs/cachefiles/io.c
++++ b/fs/cachefiles/io.c
+@@ -259,7 +259,8 @@ static void cachefiles_write_complete(struct kiocb
+*iocb, long ret)
+
+        _enter("%ld", ret);
+
+-       kiocb_end_write(iocb);
++       if (iocb->ki_flags & IOCB_WRITE)
++               kiocb_end_write(iocb);
+
+        if (ret < 0)
+                trace_cachefiles_io_error(object, inode, ret,
+@@ -305,7 +306,7 @@ int __cachefiles_write(struct cachefiles_object *object=
+,
+        refcount_set(&ki->ki_refcnt, 2);
+        ki->iocb.ki_filp        =3D file;
+        ki->iocb.ki_pos         =3D start_pos;
+-       ki->iocb.ki_flags       =3D IOCB_DIRECT | IOCB_WRITE;
++       ki->iocb.ki_flags       =3D IOCB_DIRECT;
+        ki->iocb.ki_ioprio      =3D get_current_ioprio();
+        ki->object              =3D object;
+        ki->start               =3D start_pos;
+@@ -319,16 +320,17 @@ int __cachefiles_write(struct cachefiles_object *obje=
+ct,
+                ki->iocb.ki_complete =3D cachefiles_write_complete;
+        atomic_long_add(ki->b_writing, &cache->b_writing);
+
+-       kiocb_start_write(&ki->iocb);
+-
+        get_file(ki->iocb.ki_filp);
+        cachefiles_grab_object(object, cachefiles_obj_get_ioreq);
+
+        trace_cachefiles_write(object, file_inode(file), ki->iocb.ki_pos, l=
+en);
+        old_nofs =3D memalloc_nofs_save();
+        ret =3D cachefiles_inject_write_error();
+-       if (ret =3D=3D 0)
++       if (ret =3D=3D 0) {
++               kiocb_start_write(&ki->iocb);
++               ki->iocb.ki_flags |=3D IOCB_WRITE;
+                ret =3D vfs_iocb_iter_write(file, &ki->iocb, iter);
++       }
+        memalloc_nofs_restore(old_nofs);
+        switch (ret) {
+        case -EIOCBQUEUED:
