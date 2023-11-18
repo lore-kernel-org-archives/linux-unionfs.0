@@ -2,105 +2,118 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9D06C072A2
-	for <linux-unionfs@archiver.kernel.org>; Fri, 17 Nov 2023 20:35:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39980C54E76
+	for <linux-unionfs@archiver.kernel.org>; Sat, 18 Nov 2023 06:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230379AbjKQUfF (ORCPT
+        id S230091AbjKRG7k (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Fri, 17 Nov 2023 15:35:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59000 "EHLO
+        Sat, 18 Nov 2023 01:59:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36540 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229535AbjKQUfE (ORCPT
+        with ESMTP id S229844AbjKRG7k (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Fri, 17 Nov 2023 15:35:04 -0500
-Received: from mail-yw1-x112a.google.com (mail-yw1-x112a.google.com [IPv6:2607:f8b0:4864:20::112a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDBA0E5
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Nov 2023 12:35:00 -0800 (PST)
-Received: by mail-yw1-x112a.google.com with SMTP id 00721157ae682-5a7b3d33663so26829167b3.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 17 Nov 2023 12:35:00 -0800 (PST)
+        Sat, 18 Nov 2023 01:59:40 -0500
+Received: from mail-qv1-xf34.google.com (mail-qv1-xf34.google.com [IPv6:2607:f8b0:4864:20::f34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07DC210C4;
+        Fri, 17 Nov 2023 22:59:37 -0800 (PST)
+Received: by mail-qv1-xf34.google.com with SMTP id 6a1803df08f44-6779fb43e5cso1577816d6.2;
+        Fri, 17 Nov 2023 22:59:36 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toxicpanda-com.20230601.gappssmtp.com; s=20230601; t=1700253300; x=1700858100; darn=vger.kernel.org;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=xFsq5ZOY2zHqGNx/GFXBlAAKGEsFhyjxTUZa3++dRDk=;
-        b=qy0yIQxGxZ83hhgmWYhqaKRZVy+WWuPQnOm1dodQbgBpmvh3DCbb6ySgWWS/Bq2dvs
-         a8+XF1AxQJdAUA09G/n07bDM55Ce0NNtMCVEt3SekxE2HaI806PyAYDjl7Y6OJfnEIa5
-         uunq+E6Q5Dm1hwU7HYe2epR9vnTaYersITOE07o/bg/3U60wBOoP9Ej19kofL3EpWOLH
-         MgSYhNQe1w1sMMXuC72FmObQq8H4e/GDLUYECPW99o7pDVghqwHuFNA6Sqm24Ie7IMza
-         WaFEAvO/UfSLwgyZdljVT6+SBhfqJ7E1RaqqvLYr6XaWI+JkTxXCqnuxmH5BriLb0bpQ
-         vkfA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700253300; x=1700858100;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1700290776; x=1700895576; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=xFsq5ZOY2zHqGNx/GFXBlAAKGEsFhyjxTUZa3++dRDk=;
-        b=CTGEPKHk2epKDV50QivuF1njzpzYRl5dXcEPSaUN+ptSq4sKlwczSzl8CIJMaBdBpq
-         afDBcy1P+aHXQQJphbtYU4je09GhHs5N0sKqcUu4GcvdunnWdkZSXRlIgmTjBTiR891e
-         vdq61UcoCFjC91nn8yf1qcyVEo/WAM04C3ZGPtWo3ni6y4XcSdbfugx9v0zLgzBC0Bc8
-         i4I3ZTTgCqwcIDJ6Hkuk46BMp+0VCM6t0KDoKsVeL9xxLbi/yziGMXz7X1WJr9LwCL/S
-         5TXalp18es0B1TwDCNy1nCRwhLRT9NbDmtOPbjEnFkGRbepJyu6/F92dMJjV5oJ0T7RW
-         /cpg==
-X-Gm-Message-State: AOJu0YxNDadVxDBuzsMW3gK2xy/BWnuUjiu7JNxIOOuQ0XckUDHGWztE
-        lFeDoVtHZiV67NzAyl1/EgAINw==
-X-Google-Smtp-Source: AGHT+IGvCDmdWF38qizQS55GByOxRfFU9LmYTxCq3FBYWKPmKmI1xdKVAxPly2j+iu9QVxctmPWsYw==
-X-Received: by 2002:a81:c202:0:b0:5a9:30c3:c664 with SMTP id z2-20020a81c202000000b005a930c3c664mr870584ywc.19.1700253300018;
-        Fri, 17 Nov 2023 12:35:00 -0800 (PST)
-Received: from localhost (cpe-76-182-20-124.nc.res.rr.com. [76.182.20.124])
-        by smtp.gmail.com with ESMTPSA id o4-20020a0de504000000b0058e37788bf7sm685524ywe.72.2023.11.17.12.34.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Nov 2023 12:34:59 -0800 (PST)
-Date:   Fri, 17 Nov 2023 15:34:58 -0500
-From:   Josef Bacik <josef@toxicpanda.com>
-To:     Amir Goldstein <amir73il@gmail.com>
+        bh=F+/LrFC38HCQp0Kzc/AK0vyGJnzxQl3xrb8AVMJwJNs=;
+        b=gsQqpxNUQJ/cRKRDGqemqNyk+382ABuakVKfEG6ARcjtyUHMb6GnHXt1ErUXXX2yBi
+         1ptw9CtaF+WiPoZ8ejtF+YLTzgEw7cWfl/qOSZ8KmflmRexfe7JeaRP6jGD9/052Uvqw
+         K5FQztlbYXHX0z9DbX7kM2sUANkN24RX67JEcNjMj4JnIJPUOPLUPDCIHbzy4GG0hvxB
+         MyHO7snl/4xb7wqrPJRgSsj2CFg5tBjuxfTk/iY2ATybkRkzjFp8gMt+XrHBN6KnRr/O
+         FSJWlI3mGV+ZORYio84HA/AlwyHwHcXXs0k1quik07xTuXcqFWHohUIYUN4Z+Cf9hmLg
+         7OBg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1700290776; x=1700895576;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=F+/LrFC38HCQp0Kzc/AK0vyGJnzxQl3xrb8AVMJwJNs=;
+        b=mCpc3f3muh+XX9iutPQNcodGWoGeFbFsePr3H5U7gzF2i6UBuv/JgOlUE5vaJauwFO
+         3dPQwaWPfk0QbpmxiW1j6rOOdGxnJCGlhnav82ZXhtHCrDLipIfyDYXnZCY3aqPG+oMH
+         7ec/MWmIwvDGReh8fO1JeDT6X5wQBq+OFL/t/QEQw/hTcdnC2DTObb++MLl0mMDCFi3c
+         4/OcPY+ZLHjSH/EAvmO/irlHwKrij0CcLFaAkG4wI3bmZcqRJSrVrTOiduy08fiItR1H
+         XACh79WrYdTZLWNf9FTWmCR9x5L/S6CBQXk3LmqvAG5ObJqm05Z9gWbd+i9/3UrKwSWT
+         PTKg==
+X-Gm-Message-State: AOJu0YxJKKlhsoH9XJHMld90n3cZJk/36FULAzqbjKumHLSpcjaOOc81
+        6Qe5EsDwu5oZxHmYBFX9drdXQH41gBfMiksoUls=
+X-Google-Smtp-Source: AGHT+IHY6wZ/vpUYbkpI16CDlh66sneMpJsg0zwXohaJPnz6Zroc+DyNKN0SviNjKe+rTIdSvmvrLirmB6M5PuwyM/o=
+X-Received: by 2002:a05:6214:258b:b0:66d:9f2e:f3e6 with SMTP id
+ fq11-20020a056214258b00b0066d9f2ef3e6mr1916616qvb.48.1700290776132; Fri, 17
+ Nov 2023 22:59:36 -0800 (PST)
+MIME-Version: 1.0
+References: <20231114153254.1715969-1-amir73il@gmail.com> <20231117194443.GC1513185@perftesting>
+In-Reply-To: <20231117194443.GC1513185@perftesting>
+From:   Amir Goldstein <amir73il@gmail.com>
+Date:   Sat, 18 Nov 2023 08:59:25 +0200
+Message-ID: <CAOQ4uxjuDxSro+4qtXfodSf-EcAA8aUBGuWpaVn4+H8Ai=JcFg@mail.gmail.com>
+Subject: Re: [PATCH 00/15] Tidy up file permission hooks
+To:     Josef Bacik <josef@toxicpanda.com>
 Cc:     Miklos Szeredi <miklos@szeredi.hu>,
         Christian Brauner <brauner@kernel.org>,
-        linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 00/15] Tidy up file permission hooks
-Message-ID: <20231117203458.GA1516584@perftesting>
-References: <20231114153254.1715969-1-amir73il@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20231114153254.1715969-1-amir73il@gmail.com>
+        linux-unionfs@vger.kernel.org,
+        linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-On Tue, Nov 14, 2023 at 05:32:39PM +0200, Amir Goldstein wrote:
-> Hi Christian,
-> 
-> I realize you won't have time to review this week, but wanted to get
-> this series out for review for a wider audience soon.
-> 
-> During my work on fanotify "pre content" events [1], Jan and I noticed
-> some inconsistencies in the call sites of security_file_permission()
-> hooks inside rw_verify_area() and remap_verify_area().
-> 
-> The majority of call sites are before file_start_write(), which is how
-> we want them to be for fanotify "pre content" events.
-> 
-> For splice code, there are many duplicate calls to rw_verify_area()
-> for the entire range as well as for partial ranges inside iterator.
-> 
-> This cleanup series, mostly following Jan's suggestions, moves all
-> the security_file_permission() hooks before file_start_write() and
-> eliminates duplicate permission hook calls in the same call chain.
-> 
-> The last 3 patches are helpers that I used in fanotify patches to
-> assert that permission hooks are called with expected locking scope.
-> 
-> My hope is to get this work reviewed and staged in the vfs tree
-> for the 6.8 cycle, so that I can send Jan fanotify patches for
-> "pre content" events based on a stable branch in the vfs tree.
-> 
-> Thanks,
-> Amir.
+On Fri, Nov 17, 2023 at 9:44=E2=80=AFPM Josef Bacik <josef@toxicpanda.com> =
+wrote:
+>
+> On Tue, Nov 14, 2023 at 05:32:39PM +0200, Amir Goldstein wrote:
+> > Hi Christian,
+> >
+> > I realize you won't have time to review this week, but wanted to get
+> > this series out for review for a wider audience soon.
+> >
+> > During my work on fanotify "pre content" events [1], Jan and I noticed
+> > some inconsistencies in the call sites of security_file_permission()
+> > hooks inside rw_verify_area() and remap_verify_area().
+> >
+> > The majority of call sites are before file_start_write(), which is how
+> > we want them to be for fanotify "pre content" events.
+> >
+> > For splice code, there are many duplicate calls to rw_verify_area()
+> > for the entire range as well as for partial ranges inside iterator.
+> >
+> > This cleanup series, mostly following Jan's suggestions, moves all
+> > the security_file_permission() hooks before file_start_write() and
+> > eliminates duplicate permission hook calls in the same call chain.
+> >
+> > The last 3 patches are helpers that I used in fanotify patches to
+> > assert that permission hooks are called with expected locking scope.
+> >
+> > My hope is to get this work reviewed and staged in the vfs tree
+> > for the 6.8 cycle, so that I can send Jan fanotify patches for
+> > "pre content" events based on a stable branch in the vfs tree.
+> >
+> > Thanks,
+> > Amir.
+>
+> Amir,
+>
+> The last 3 patches didn't make it onto lore for some reason, so I can't r=
+eview
+> the last 3.  Thanks,
+>
 
-You can add
+Sorry for the mishap.
+The entire series was re-posted shortly after to fsdevel:
+https://lore.kernel.org/linux-fsdevel/20231114153321.1716028-1-amir73il@gma=
+il.com/
 
-Reviewed-by: Josef Bacik <josef@toxicpanda.com>
+> You can add
+> Reviewed-by: Josef Bacik <josef@toxicpanda.com>
+> to patches 1-11.
 
-to patches 1-11.  Thanks,
-
-Josef
+Thanks for the review!
+Amir.
