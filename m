@@ -2,113 +2,114 @@ Return-Path: <linux-unionfs-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6131C54E76
-	for <linux-unionfs@archiver.kernel.org>; Mon, 20 Nov 2023 11:40:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28CFDC2BB3F
+	for <linux-unionfs@archiver.kernel.org>; Mon, 20 Nov 2023 14:00:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232627AbjKTLkH (ORCPT
+        id S232128AbjKTOAt (ORCPT
         <rfc822;linux-unionfs@archiver.kernel.org>);
-        Mon, 20 Nov 2023 06:40:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54450 "EHLO
+        Mon, 20 Nov 2023 09:00:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232985AbjKTLkG (ORCPT
+        with ESMTP id S232753AbjKTOAt (ORCPT
         <rfc822;linux-unionfs@vger.kernel.org>);
-        Mon, 20 Nov 2023 06:40:06 -0500
-Received: from mail-qv1-xf2f.google.com (mail-qv1-xf2f.google.com [IPv6:2607:f8b0:4864:20::f2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0FAEB3;
-        Mon, 20 Nov 2023 03:40:03 -0800 (PST)
-Received: by mail-qv1-xf2f.google.com with SMTP id 6a1803df08f44-677f832d844so11192166d6.2;
-        Mon, 20 Nov 2023 03:40:03 -0800 (PST)
+        Mon, 20 Nov 2023 09:00:49 -0500
+Received: from mail-wr1-x433.google.com (mail-wr1-x433.google.com [IPv6:2a00:1450:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18B8F129
+        for <linux-unionfs@vger.kernel.org>; Mon, 20 Nov 2023 06:00:45 -0800 (PST)
+Received: by mail-wr1-x433.google.com with SMTP id ffacd0b85a97d-33139ecdca7so2721919f8f.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 20 Nov 2023 06:00:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1700480403; x=1701085203; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=EPsFAkvYjtvlQaVQ8lVtTBL0jOv+UC6tPuVf4HtGQTw=;
-        b=dAc/1FJ0xgbeVcHb7XwZrzohlBfFzT5bjLPRFap5dksW4z20NZnjz7c5IhmCoTnbNA
-         jYxjLtaXA/JhnpgRkSnjXbJRVDSn+IYRWy+hagYR6tlE6W7om6fM/syzsB4x4pyujXYv
-         hRWDh51JDPyQireBP5AR6Z+dt7x3M2+k8wDveAGtgw5GOOfDEth8QGB6cKQk9XUYs3lL
-         eKt5lXRvFMbBnRzcpI5E3OFbC9ZXY1xNcjrd3PxrGyZ8h4TfJpSscZHu47Czj2sontzV
-         FVDjTikv+wroK8BpZEZe22AFO54Yk6ItvblQIeX6urXQl1m+bnbhgfaGmqW9daFJrxvO
-         s95A==
+        d=gmail.com; s=20230601; t=1700488843; x=1701093643; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=6aKP1TGlJ9+++7ayQbJNu4dNqzzEIkUMeNCShqyyy1A=;
+        b=XmktBDJhoxkhpAV4QFytTBoH0Bs1EleMzYE28S6htytNk6Qa3NFq46oX2JEU4xjm+x
+         hgbyagQ0E8AYBqOfSUDxwOlbDOJimcQCq0C3PUS1OaWXNc2hg70hZK5YL3XHAbFT9k9F
+         3+Q/jXwrWpXm2LAvyBQQu7Rh737knB6mAdVA8F/CbEUACcSf9aEzDs4o3gG2mhjTZsc6
+         hayb2l0IeeJu2TqF2HsqhsP+aTqjwN4OCaCwdHWcFz37383PFE/1IWUHMTvG9ZOoSI4H
+         vHEHU52GI/homugb1kydhYQZv9O5NckEQAcuh//ejXn5KaDd4XVYJhf8RBRGZgIfwpPU
+         f09Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700480403; x=1701085203;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+        d=1e100.net; s=20230601; t=1700488843; x=1701093643;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=EPsFAkvYjtvlQaVQ8lVtTBL0jOv+UC6tPuVf4HtGQTw=;
-        b=QtclNyJBr6CxeCezyvzGqaITowVghh8CjztjSP02zeALbt5fl5lkpATaE9sQ5SOMg6
-         BoX8HeoutA2fDX9mfvq92g5gaLhmc6EmzUzDAGpOD/8+6Y6I485B0pg6slKINd+XCH8G
-         4JblVuIFGiyv37IXAEBRR7Jw8R7L2h6WqwTKAkNSF25DBc9rJcbjzOt7rhV/KhYYMcVI
-         t0vQFb5ZKeYeyZ3PLWuLRoHDYBbPv1lu+jxJC8hLvKQTU6Xqx8AQkr9KX9+nIFp5cQXa
-         NxZ/M3P2qs/e/99VSdYV2NyAanIxq7AGvj1/EB+9EwYD6Tpcu0Wg9pxqroB9Xz5gFOal
-         6ksA==
-X-Gm-Message-State: AOJu0YwlbEmpSO3rFz46wWmVu22FKvGmd7wNELecF/exIP5p537geIQQ
-        XG2BpM5lkZAJvf/x61b1L4vCVoDPw9s8pVFuV6kVbjwJ1ig=
-X-Google-Smtp-Source: AGHT+IEElqSiu2ywMYnbkqfVvL2CyBcS7CW3W7d2zWtUcyd6jDZg/9qFkpvTvz2cr/4TaBAPzARgstkZYrD6GfjNo/g=
-X-Received: by 2002:a05:6214:2629:b0:679:d3af:504a with SMTP id
- gv9-20020a056214262900b00679d3af504amr5191142qvb.7.1700480402741; Mon, 20 Nov
- 2023 03:40:02 -0800 (PST)
-MIME-Version: 1.0
-References: <20231111080400.GO1957730@ZenIV> <CAOQ4uxhQdHsegbwdqy_04eHVG+wkntA2g2qwt9wH8hb=-PtT2A@mail.gmail.com>
- <20231111185034.GP1957730@ZenIV> <CAOQ4uxjYaHk6rWUgvsFA4403Uk-hBqjGegV4CCOHZyh2LSYf4w@mail.gmail.com>
- <CAOQ4uxiJSum4a2F5FEA=a8JKwWh1XhFOpWaH8xas_uWKf+29cw@mail.gmail.com>
- <20231118200247.GF1957730@ZenIV> <CAOQ4uxjFrdKS3_yyeAcfemL-8dXm3JDWLwAmD9w3bY90=xfCjw@mail.gmail.com>
- <20231119072652.GA38156@ZenIV> <CAOQ4uxiu_qY-cSh5FcbWMh8yF6mumik8Jsv3qeTQ4qPi+80Rrw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiu_qY-cSh5FcbWMh8yF6mumik8Jsv3qeTQ4qPi+80Rrw@mail.gmail.com>
+        bh=6aKP1TGlJ9+++7ayQbJNu4dNqzzEIkUMeNCShqyyy1A=;
+        b=r9CUjxkmgPtCsPlZEARR2Lol2PN2D9w9FHskZZFstWdtW/eNr3SQtNjXJ3FuwE+eDy
+         xpq9Ore5BsWiuadU46oaNyKtvX01SEdUenbUPYEpfgPErHTLdHY/vKL+hIluoa5L4Di2
+         ZtUd+Iq8uDOHJhld1+KJ1IKB2gzcFDq+S4y8h9NOLwi7d5VZi9mo3Xu2f7IbIvLgtbob
+         rPS2Bpc0FhzKnvZulFu+lFEXlRNVfTmN6vpntRztWsx2xwwDy9B+V3FD7kJpZi5d8vXb
+         8KwoY5Xuak7RC7IopOLCZ+CHMwTjV/91bN9s5e+v7881bx1z4trjptcYhta5KL0edAUE
+         jvsg==
+X-Gm-Message-State: AOJu0Yx7w37nMLF0/CJsdfwaW5qt8k8iQ6f7L5U8NjSBu0xQZRe2lxvi
+        qh6PZon9vN7KSv/1HMtGseQcsSyZx30=
+X-Google-Smtp-Source: AGHT+IEUyAhe3pcZVDi0qV8V6Yfh6KAs2WZjCjVQrYlqO0CslncYQRc1jFp4DIc9vT89c6d2ZVg59g==
+X-Received: by 2002:a05:6000:1ace:b0:332:caa2:fd30 with SMTP id i14-20020a0560001ace00b00332caa2fd30mr1108499wry.40.1700488842712;
+        Mon, 20 Nov 2023 06:00:42 -0800 (PST)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id l5-20020a5d4bc5000000b00332c4055faesm4809208wrt.87.2023.11.20.06.00.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Nov 2023 06:00:42 -0800 (PST)
 From:   Amir Goldstein <amir73il@gmail.com>
-Date:   Mon, 20 Nov 2023 13:39:51 +0200
-Message-ID: <CAOQ4uxjW4yv8x0Ej7A1Y0Q=r4AkBeLbHL0yx0BpyoYrP2ehW4A@mail.gmail.com>
-Subject: Re: [RFC][overlayfs] do we still need d_instantiate_anon() and export
- of d_alloc_anon()?
-To:     Al Viro <viro@zeniv.linux.org.uk>,
-        Miklos Szeredi <miklos@szeredi.hu>
-Cc:     linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+To:     Miklos Szeredi <miklos@szeredi.hu>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, linux-unionfs@vger.kernel.org
+Subject: [PATCH] ovl: initialize ovl_copy_up_ctx.destname inside ovl_do_copy_up()
+Date:   Mon, 20 Nov 2023 16:00:38 +0200
+Message-Id: <20231120140038.2211224-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <linux-unionfs.vger.kernel.org>
 X-Mailing-List: linux-unionfs@vger.kernel.org
 
-> > Another fun question: ovl_copy_up_one() has
-> >         if (parent) {
-> >                 ovl_path_upper(parent, &parentpath);
-> >                 ctx.destdir = parentpath.dentry;
-> >                 ctx.destname = dentry->d_name;
-> >
-> >                 err = vfs_getattr(&parentpath, &ctx.pstat,
-> >                                   STATX_ATIME | STATX_MTIME,
-> >                                   AT_STATX_SYNC_AS_STAT);
-> >                 if (err)
-> >                         return err;
-> >         }
-> > What stabilizes dentry->d_name here?  I might be missing something about the
-> > locking environment here, so it might be OK, but...
->
-> Honestly, I don't think that anything stabilizes it...
-> As long as this cannot result in UAF, we don't care,
-> because messing with upper fs directly yields undefined results.
-> But I suspect that we do need to take_dentry_name_snapshot()
-> to protect against UAF. Right?
->
+The ->destname member of struct ovl_copy_up_ctx is initialized inside
+ovl_copy_up_one() to ->d_name of the overlayfs dentry being copied up
+and then it may be overridden by index name inside ovl_do_copy_up().
 
-Sorry, I got confused. It is not about the stability of d_name in the
-underlying layer. dentry is the overlayfs dentry that is being copied up.
+ovl_inode_lock() in ovl_copy_up_start() and ovl_copy_up() in ovl_rename()
+effectively stabilze ->d_name of the overlayfs dentry being copied up,
+but ovl_inode_lock() is not held when ->d_name is being read.
 
-In principle, dentry->d_name is stable "during copy up" due to the fact
-that ovl_rename() calls ovl_copy_up(old) and ovl_copy_up(new) before
-starting to rename.
+It is not a correctness bug, because if ovl_do_copy_up() races with
+ovl_rename() and ctx.destname is freed, we will not end up calling
+ovl_do_copy_up() with the dead name reference.
 
-If ovl_dentry_has_upper_alias(dentry), as is the case if ovl_rename()
-has already started, then ctx.destname will not actually be dereferenced
-and racing with future ovl_rename() is not an issue.
+The code becomes much easier to understand and to document if the
+initialization of c->destname is always done inside ovl_do_copy_up(),
+either to the index entry name, or to the overlay dentry ->d_name.
 
-If dentry does need to be copied up, then if ovl_rename() starts after
-ovl_copy_up_start(), either ovl_copy_up(old) or ovl_copy_up(new)
-will block until ovl_copy_up_end().
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/overlayfs/copy_up.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-I think this would be easier to document and nicer to follow if we read
-dentry->d_name inside ovl_do_copy_up() only if we are actually going
-to need to use it.
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 4382881b0709..500c555792ff 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -929,6 +929,13 @@ static int ovl_do_copy_up(struct ovl_copy_up_ctx *c)
+ 		err = -EIO;
+ 		goto out_free_fh;
+ 	} else {
++		/*
++		 * c->dentry->d_name is stabilzed by ovl_copy_up_start(),
++		 * because if we got here, it means that c->dentry has no upper
++		 * alias and changing ->d_name means going through ovl_rename()
++		 * that will call ovl_copy_up() on source and target dentry.
++		 */
++		c->destname = c->dentry->d_name;
+ 		/*
+ 		 * Mark parent "impure" because it may now contain non-pure
+ 		 * upper
+@@ -1109,7 +1116,6 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	if (parent) {
+ 		ovl_path_upper(parent, &parentpath);
+ 		ctx.destdir = parentpath.dentry;
+-		ctx.destname = dentry->d_name;
+ 
+ 		err = vfs_getattr(&parentpath, &ctx.pstat,
+ 				  STATX_ATIME | STATX_MTIME,
+-- 
+2.34.1
 
-I will try to write it up.
-
-Thanks,
-Amir.
