@@ -1,146 +1,84 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="YMhbw28i"
-Received: from mail-ed1-x529.google.com (mail-ed1-x529.google.com [IPv6:2a00:1450:4864:20::529])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0E86170B
-	for <linux-unionfs@vger.kernel.org>; Sat, 25 Nov 2023 03:51:13 -0800 (PST)
-Received: by mail-ed1-x529.google.com with SMTP id 4fb4d7f45d1cf-54b0c368d98so8116a12.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 25 Nov 2023 03:51:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1700913072; x=1701517872; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=jSEpBwNYCgg88z1pn2eCQM4nuIQU17ETnUjE06VyojM=;
-        b=YMhbw28ivea7RwLuaQ0iHal2IGiUjpktxHlUw/dmnLwUx1JYYiAKSIPQRI3PmMglLP
-         QGfiXicH+jm9daH/PnYpMpK//wvWmyQkf+g8a/b3fRqbXQnpfVHyRVKzApXlvJkMTXEL
-         198bnyBtzxDRCMrJZQzcZS/eij40GLgyVoiFRIlRUZXla+6IsZYjpZjNX0bQJQL7Hzwe
-         ySisu0Te+eAtVuGYewkifCf1ib44Rg77vMktE9zgOLrRXFbqkK2OanpeuFH5i5+ZHEJi
-         H7zHNg7ZFmwmO9drk5pO0Vm/3B6XQRFLzWoBfk+6olS3VLB0u5sQvKFC3kmbr9PhmbJp
-         SEcA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1700913072; x=1701517872;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=jSEpBwNYCgg88z1pn2eCQM4nuIQU17ETnUjE06VyojM=;
-        b=HcaECzy9sswy4rFVvM8auufPPzgZamuAX0OiVwF2jQvPUUk0Y2oPhd1+5Y3qVsUkEO
-         wotHIL0Y38IahwAb6nMSje5fGrurP7j+R3N/hEIdqKklldYwwLCZZU4d7M3vjt1tF88N
-         vkO5cqhBHd0lIpofjvCx1SW1uujFX9fTlcFsqS4GYVoZ8yiK4izAyR4UNe5de2/fXSO9
-         l2WmF0bDqDD0xKC8o+YEcyDbN+fIZ52JB+kOeGMhXcCe+UEsuxD2CzeOtLChh43t6G7i
-         7yFg3pVf2Oc2xMRYZXVCWQEDt6DwLnvsTjyrVZMwn8LpDbu8IQo/327+LQZjpQkJAbeP
-         //xw==
-X-Gm-Message-State: AOJu0Yy0kz+YFYcKUPFZ1DE5/NJy7rM2YxjPWTQXcnODMd2JjNB45zKA
-	p/4ZOirQwCqKczC/47N5wYcsd4iwu2eNCHLCRrKAfA==
-X-Google-Smtp-Source: AGHT+IGoe2yVXCakrbBcYSygUfnvoIydCcAi63CU/Fzkr87vR7R//qJFC1/czFU0zF9rWsFzx5EEC7O8YIc1PRg8pCo=
-X-Received: by 2002:a05:6402:11c6:b0:54a:ee8b:7a99 with SMTP id
- j6-20020a05640211c600b0054aee8b7a99mr185429edw.0.1700913072223; Sat, 25 Nov
- 2023 03:51:12 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="AyeKu3YM"
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4B93D45
+	for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2023 07:11:28 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1701184288;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=tZOFcC5ek1VA5I7PJdWsh/H/EHln3BsqHFA3D+DQWmM=;
+	b=AyeKu3YMdbTqNplXwysRssWgCsLHVTcbLKVTZO+aSyPa8ORH1GoX+ZqTpj0JiNGBP6Ak8N
+	i4KzqOOX7JemwUqmBcMLELuQ3bAjNaslrspVgm7ZSwo+Pz7U5Q59XWK/8y3pWWRMubMsXU
+	cJLn/j+ARRyU9A9XOwPLeB1umt9kSKI=
+Received: from mimecast-mx02.redhat.com (mx-ext.redhat.com [66.187.233.73])
+ by relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-110-GjRGvFxUOjCzalBm-7vQpg-1; Tue,
+ 28 Nov 2023 10:11:26 -0500
+X-MC-Unique: GjRGvFxUOjCzalBm-7vQpg-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 10B542806404;
+	Tue, 28 Nov 2023 15:11:26 +0000 (UTC)
+Received: from ws.net.home (unknown [10.45.225.94])
+	by smtp.corp.redhat.com (Postfix) with ESMTPS id 5ABE5492BFA;
+	Tue, 28 Nov 2023 15:11:25 +0000 (UTC)
+Date: Tue, 28 Nov 2023 16:11:23 +0100
+From: Karel Zak <kzak@redhat.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH] ovl: fix regression in showing lowerdir mount option
+Message-ID: <20231128151123.3cnde47qum52vrxt@ws.net.home>
+References: <CAJfpegsexQsNVMOZw+0byzj2wTbU_Tg6p0ATgwBAwmTaDmNbLA@mail.gmail.com>
+ <CAOQ4uxjYGckJA=raAW8wyVmDaK-FXfFDRS0RCpZYcLucPqMi3w@mail.gmail.com>
+ <CAJfpegt5COamxm-ZN+A9ub_Te-CPM0xMd-Rrzwv7OHBkvHS3yg@mail.gmail.com>
+ <CAOQ4uxic3NDtEt9EiP+RYKGEB=6b_PCaudQA=cXK6mWY4Cmeqg@mail.gmail.com>
+ <CAJfpegsr3A4YgF2YBevWa6n3=AcP7hNndG6EPMu3ncvV-AM71A@mail.gmail.com>
+ <CAJfpegt7VC94KkRtb1dfHG8+4OzwPBLYqhtc8=QFUxpFJE+=RQ@mail.gmail.com>
+ <CAOQ4uxhg+0_S1tQv9vUpv7Yu-VRLv7U7cnxLmxig+9LmS_qW+A@mail.gmail.com>
+ <CAJfpegu6cESPijvO51zjVeXA=wcw7nMaNkkNJ7+my07wq8k9FA@mail.gmail.com>
+ <CAOQ4uxicurA4nNeDkUarkTMujtsaOvwQ8HEMpz97N2SejBRx9Q@mail.gmail.com>
+ <CAJfpegv=UXqYQzvH6+py76MV7+5L6=3a+_J7LpHQ0VK5YYrAUA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxjssgw1tZrUQvtHHVacSgR9NE0yF8DA3+R5LNFAocCvVQ@mail.gmail.com>
- <000000000000258ac60606589787@google.com> <CAG48ez2UkCR7LMaQfCQVLW4VOZG9CuPDMHG7cBtaAitM=zPBCg@mail.gmail.com>
- <CAG48ez2_XT1XDML756zM2D07BjcJnw22pFiHHrOm-yHvGJHvdw@mail.gmail.com> <CAOQ4uxj+enOZJiAJaCRnfb1soFS7aonJjHmLXiP3heQAFQoBqg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxj+enOZJiAJaCRnfb1soFS7aonJjHmLXiP3heQAFQoBqg@mail.gmail.com>
-From: Jann Horn <jannh@google.com>
-Date: Sat, 25 Nov 2023 12:50:36 +0100
-Message-ID: <CAG48ez03BMw2EQq3Xjh4qn477V0qN1fG4M=8tO4EBsNTFD3wVQ@mail.gmail.com>
-Subject: Re: [syzbot] [overlayfs?] KASAN: invalid-free in ovl_copy_up_one
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: syzbot <syzbot+477d8d8901756d1cbba1@syzkaller.appspotmail.com>, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAJfpegv=UXqYQzvH6+py76MV7+5L6=3a+_J7LpHQ0VK5YYrAUA@mail.gmail.com>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.11.54.10
 
-On Sat, Nov 25, 2023 at 10:21=E2=80=AFAM Amir Goldstein <amir73il@gmail.com=
-> wrote:
->
-> On Fri, Nov 24, 2023 at 5:26=E2=80=AFPM Jann Horn <jannh@google.com> wrot=
-e:
-> >
-> > On Fri, Nov 24, 2023 at 4:11=E2=80=AFPM Jann Horn <jannh@google.com> wr=
-ote:
-> > >
-> > > On Wed, Sep 27, 2023 at 5:10=E2=80=AFPM syzbot
-> > > <syzbot+477d8d8901756d1cbba1@syzkaller.appspotmail.com> wrote:
-> > > > syzbot has tested the proposed patch and the reproducer did not tri=
-gger any issue:
-> > > >
-> > > > Reported-and-tested-by: syzbot+477d8d8901756d1cbba1@syzkaller.appsp=
-otmail.com
-> > > >
-> > > > Tested on:
-> > > >
-> > > > commit:         8e9b46c4 ovl: do not encode lower fh with upper sb_=
-wri..
-> > > > git tree:       https://github.com/amir73il/linux.git ovl_want_writ=
-e
-> > > > console output: https://syzkaller.appspot.com/x/log.txt?x=3D10d10ff=
-a680000
-> > > > kernel config:  https://syzkaller.appspot.com/x/.config?x=3Dbb54ecd=
-fa197f132
-> > > > dashboard link: https://syzkaller.appspot.com/bug?extid=3D477d8d890=
-1756d1cbba1
-> > > > compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils=
- for Debian) 2.40
-> > >
-> > > It looks like the fix was submitted without the Reported-by tag, so
-> > > syzkaller doesn't recognize that the fix has landed... I'll tell
-> > > syzkaller now which commit the fix is supposed to be in, please
-> > > correct me if this is wrong:
-> > >
-> > > #syz fix: ovl: do not encode lower fh with upper sb_writers held
-> >
-> > (Ah, and just for the record: I hadn't realized when writing this that
-> > the fix was actually in a newer version of the same patch... "git
->
-> That is correct.
-> I am very thankful for syzbot with helping me catch bugs during developme=
-nt
-> and I would gladly attribute the bot and its owners, but I don't that
-> Reported-and-tested-by is an adequate tag for a bug that never existed as
-> far as git history.
->
-> Even Tested-by: syzbot could be misleading to stable kernel bots
-> that may conclude that the patch is a fix that needs to apply to stable.
->
-> I am open to suggestions.
->
-> Also maybe
->
-> #syz correction:
->
-> To tell syzbot we are not fixing a bug in upstream, but in a previous
-> version of a patch that it had tested.
+On Mon, Oct 16, 2023 at 03:10:33PM +0200, Miklos Szeredi wrote:
+> Ah, but it's not a regression after all, since the kernel un-split the
+> same commas until 6.5, so there was no way the libmount devs would
+> have observed any regression in overlayfs mount.   But arguing about
+> which component is the cause of the regression is not very productive.
+> Indeed libmount can be fixed parse overlayfs options the same way as
+> the kernel parsed them before 6.5, which is probably a much better
+> fix, than a kernel one.
+> 
+> Karel, is doing such filesystem specific option handling feasible?
+> 
+> If so, then for overlayfs please please pass an un-escaped (\char ->
+> char) string to fsconfig for "upperdir=" and "workdir=" options.
 
-Sorry, I think I got that wrong; the syzbot manual
-(https://github.com/google/syzkaller/blob/master/docs/syzbot.md#rebuilt-tre=
-esamended-patches)
-instead suggests:
+Committed to the libmount:
+https://github.com/util-linux/util-linux/commit/f6c29efa929cb8c741591ab38061e7921d53a997
 
-"First, adding Reported-by tags to amended commits may be misleading.
-A Reported-by tag suggests that the commit fixes a bug in some
-previous commit, but here it's not the case (it only fixes a bug in a
-previous version of itself which is not in the tree). In such case
-it's recommended to include a Tested-by or a Reviewed-by tag with the
-hash instead. Technically, syzbot accepts any tag, so With-inputs-from
-would work too."
+will be in util-linux v2.40 and in v2.39.3
 
-> > range-diff 44ef23e481b02df2f17599a24f81cf0045dc5256~1..44ef23e481b02df2=
-f17599a24f81cf0045dc5256
-> > 5b02bfc1e7e3811c5bf7f0fa626a0694d0dbbd77~1..5b02bfc1e7e3811c5bf7f0fa626=
-a0694d0dbbd77"
-> > shows an added "ovl_get_index_name", I guess that's the fix?)
->
-> No, that added ovl_get_index_name() seems like a fluke of the range-diff =
-tool.
-> All the revisions of this patch always had this same minor change in this=
- line:
+It's implemented for all filesystems, not exception for overlayfs.
 
-Ah, bleh, of course. I haven't used range-diff in a while and misread
-the output...
+    Karel
+
+-- 
+ Karel Zak  <kzak@redhat.com>
+ http://karelzak.blogspot.com
+
