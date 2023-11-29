@@ -1,112 +1,263 @@
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 245D761661;
+	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RYNTvA70"
-Received: from mail-qk1-x732.google.com (mail-qk1-x732.google.com [IPv6:2607:f8b0:4864:20::732])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2EFCDE
-	for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2023 10:40:30 -0800 (PST)
-Received: by mail-qk1-x732.google.com with SMTP id af79cd13be357-77d90497b86so182851685a.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 28 Nov 2023 10:40:30 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1701196830; x=1701801630; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=FStUrpaqYx+yJrAjYizTMoKJoTj2/dVt84vrYBAnCOs=;
-        b=RYNTvA70pxkvedE7ioYQyvRTfuIPCO1q3XOFs67gr8d5u81u+ew2jcqNvaIF9P0tUa
-         Z3yBlcZrYTLN/ucD81QPRN+I+sBZMvpIs9xdwS3IZOFWucrZABK9Ftf248CsADcCCxO1
-         qcusohBV48cEpLBge37QZYTu22GOVF2F3zc4CbOH9bZOs8LrptR7u0Ew5XaKA8Xy72H9
-         pOHsMfpbagdC62lJEo4aGhB0TzgGzaF26F1ulGLQ8nfdrPn6VjKrBz2xc5v0SaQQosW/
-         ocH2vRRhYuM5FzYRCmq3bqQu/kd+1SjL5m1GrS6hyv+OgkkFSm1fl2rG/o/GiD+Bji7H
-         CSyA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701196830; x=1701801630;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=FStUrpaqYx+yJrAjYizTMoKJoTj2/dVt84vrYBAnCOs=;
-        b=KQc3Nexi4kZfqUloFZTagwLGfMDgidcx07vEa5fk1Zjrjh6WXC6TLvuPSwieywzld8
-         DkAknoYM8AzYb5KUhnxvVsu3Mbc5LpUAUJaR7vTOe6qKg5fkTzjTDwavFscknmALGN3l
-         ruldL6r29sz9OewDcpS72MZBgbJwkZMQZuyhOB1gEjRlj+TKSJNb0U6OQX5vP+1aHgO7
-         gsjaBlPeGGtg3+Kdp9jwUjFaZBllPJc35wAnls35euhQ5IY8EtDIeT7d5x53e6DZw23/
-         L8+xzob83UmVOAYZe1HM9Yndj8h9fVB0P0ETsza7di+7LlRyrj/JliiQh1GnMa0/1W9B
-         duXA==
-X-Gm-Message-State: AOJu0Yzx5kXHSmwAeFf7miEmDjENckxNtMdVp+vF569lTID8NN3yr8ed
-	/orE30SQABoL2tHJBtF8O5otTm7w+8+PeRxqk0E5z9leDBs=
-X-Google-Smtp-Source: AGHT+IF5Pj49+laMsAov/PY5jXXObJWkHGugjEiNsB47gzdWLPfAD7f7fWCMjjTOBISyBQowAekGylRQbiO6OIwjQ2Y=
-X-Received: by 2002:a05:6214:29e9:b0:67a:1ed1:ced4 with SMTP id
- jv9-20020a05621429e900b0067a1ed1ced4mr17689779qvb.45.1701196829929; Tue, 28
- Nov 2023 10:40:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="CkpGCKdr"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id A86E8C433C9;
+	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1701294657;
+	bh=8hyIqObGCNM7OndECY6ik1cyygtFav0NlxWDW3pdIrY=;
+	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
+	b=CkpGCKdrKgvgw3LXn9ipOahA2+M19iR2U9o3O3o5Fk+3nPTiY2Za0d6297yIEPj6n
+	 LLA9YQB/5ldnlPFWxRXazF6Dc/HFN7U068ajVdMwIykXLC2YKLFgzPg+jZHD9UHhn8
+	 nxTyrVDxCeWSG3gthIxE7wwgSAKSJlMFbt8woLU00OM3TMwXCQMyIeDGrJ8zb+g0pa
+	 fjOd8/Ps2V8RHNeefdeLnEhPE4KmA6oRg52+xOUpcRnctB72Ttu0AngNzRESFpBxDq
+	 jcK3tXTpyWAi1Nf9YBgumpPSOfJzgBnDcfZol5f4CQ94T4MFgSaL6dVFZcGdJ/rnGC
+	 uHjuC6Ke+zqjA==
+Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 934E6C4167B;
+	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
+From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+Date: Wed, 29 Nov 2023 15:50:19 -0600
+Subject: [PATCH 01/16] mnt_idmapping: split out core vfs[ug]id_t
+ definitions into vfsid.h
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAJfpegsexQsNVMOZw+0byzj2wTbU_Tg6p0ATgwBAwmTaDmNbLA@mail.gmail.com>
- <CAOQ4uxjYGckJA=raAW8wyVmDaK-FXfFDRS0RCpZYcLucPqMi3w@mail.gmail.com>
- <CAJfpegt5COamxm-ZN+A9ub_Te-CPM0xMd-Rrzwv7OHBkvHS3yg@mail.gmail.com>
- <CAOQ4uxic3NDtEt9EiP+RYKGEB=6b_PCaudQA=cXK6mWY4Cmeqg@mail.gmail.com>
- <CAJfpegsr3A4YgF2YBevWa6n3=AcP7hNndG6EPMu3ncvV-AM71A@mail.gmail.com>
- <CAJfpegt7VC94KkRtb1dfHG8+4OzwPBLYqhtc8=QFUxpFJE+=RQ@mail.gmail.com>
- <CAOQ4uxhg+0_S1tQv9vUpv7Yu-VRLv7U7cnxLmxig+9LmS_qW+A@mail.gmail.com>
- <CAJfpegu6cESPijvO51zjVeXA=wcw7nMaNkkNJ7+my07wq8k9FA@mail.gmail.com>
- <CAOQ4uxicurA4nNeDkUarkTMujtsaOvwQ8HEMpz97N2SejBRx9Q@mail.gmail.com>
- <CAJfpegv=UXqYQzvH6+py76MV7+5L6=3a+_J7LpHQ0VK5YYrAUA@mail.gmail.com> <20231128151123.3cnde47qum52vrxt@ws.net.home>
-In-Reply-To: <20231128151123.3cnde47qum52vrxt@ws.net.home>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 28 Nov 2023 20:40:18 +0200
-Message-ID: <CAOQ4uxgaib8GW8-5U-XXVyvJWNUYtjaZpHpXieBqJkKW0i3StQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix regression in showing lowerdir mount option
-To: Karel Zak <kzak@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20231129-idmap-fscap-refactor-v1-1-da5a26058a5b@kernel.org>
+References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
+In-Reply-To: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
+To: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
+ Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
+ James Morris <jmorris@namei.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+ linux-security-module@vger.kernel.org, audit@vger.kernel.org, 
+ linux-unionfs@vger.kernel.org, 
+ "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+X-Mailer: b4 0.12.4
+X-Developer-Signature: v=1; a=openpgp-sha256; l=5492; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=8hyIqObGCNM7OndECY6ik1cyygtFav0NlxWDW3pdIrY=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBlZ7IypVCG7IPii3Bv/9IWC//wj?=
+ =?utf-8?q?bIJFZxmwWtk15il_2eLSfdSJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZWeyMgAKCRBTA5mu5fQxyeIuB/_98tcQpOL+ArlkKRsUG2863oU+nR4ASsCNyB?=
+ =?utf-8?q?0teYwg1zHPGKgvQpVQ6sTEKVATR8UU8BHodZ/NrW+9z_SCWPGhpCWCOuLMyLQKoaV?=
+ =?utf-8?q?jacW1v7mfAHytfLH7W7PA8Uv2l+4YauHotUx6ViIJMiurXpu3am9mMctL_xwiDiJc?=
+ =?utf-8?q?7e88bSAWeqRim6qWEUQV6Qft733XXUOwHo7XQGF6nw2owmvyUnQpPrruZCWfrnL4c?=
+ =?utf-8?q?LSouL+_aZm0cLpA6I4BzvGdPncMfkqSFtylQN+mgbWnX5UZEgzr4akhSvywqhfUii?=
+ =?utf-8?q?cwxB1ZNz38qY07ce0fmk?= pXiqKWJ91c4rFBldMqTgeDb6+B4Jfe
+X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
+ fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
+X-Endpoint-Received:
+ by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-On Tue, Nov 28, 2023 at 5:11=E2=80=AFPM Karel Zak <kzak@redhat.com> wrote:
->
-> On Mon, Oct 16, 2023 at 03:10:33PM +0200, Miklos Szeredi wrote:
-> > Ah, but it's not a regression after all, since the kernel un-split the
-> > same commas until 6.5, so there was no way the libmount devs would
-> > have observed any regression in overlayfs mount.   But arguing about
-> > which component is the cause of the regression is not very productive.
-> > Indeed libmount can be fixed parse overlayfs options the same way as
-> > the kernel parsed them before 6.5, which is probably a much better
-> > fix, than a kernel one.
-> >
-> > Karel, is doing such filesystem specific option handling feasible?
-> >
-> > If so, then for overlayfs please please pass an un-escaped (\char ->
-> > char) string to fsconfig for "upperdir=3D" and "workdir=3D" options.
->
-> Committed to the libmount:
-> https://github.com/util-linux/util-linux/commit/f6c29efa929cb8c741591ab38=
-061e7921d53a997
->
-> will be in util-linux v2.40 and in v2.39.3
->
-> It's implemented for all filesystems, not exception for overlayfs.
+The rootid member of cpu_vfs_cap_data is a kuid_t, but it should be a
+vfsuid_t as the id stored there is mapped into the mount idmapping. It's
+currently impossible to use vfsuid_t within cred.h though as it is
+defined in mnt_idmapping.h, which uses definitions from cred.h.
 
-Nice!
+Split out the core vfsid type definitions into a separate file which can
+be included from cred.h.
 
-Note that this code:
+Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
+---
+ MAINTAINERS                   |  1 +
+ include/linux/mnt_idmapping.h | 66 +-------------------------------------
+ include/linux/vfsid.h         | 74 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+), 65 deletions(-)
 
-if (*p =3D=3D ',' && (p =3D=3D optstr0 || *(p - 1) !=3D '\\'))
-        stop =3D p; /* terminate the option item */
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 012df8ccf34e..8c73081d3dcc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10260,6 +10260,7 @@ S:	Maintained
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/vfs/idmapping.git
+ F:	Documentation/filesystems/idmappings.rst
+ F:	include/linux/mnt_idmapping.*
++F:	include/linux/vfsid.h
+ F:	tools/testing/selftests/mount_setattr/
+ 
+ IDT VersaClock 5 CLOCK DRIVER
+diff --git a/include/linux/mnt_idmapping.h b/include/linux/mnt_idmapping.h
+index b8da2db4ecd2..8b5e00ee6472 100644
+--- a/include/linux/mnt_idmapping.h
++++ b/include/linux/mnt_idmapping.h
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/uidgid.h>
++#include <linux/vfsid.h>
+ 
+ struct mnt_idmap;
+ struct user_namespace;
+@@ -11,61 +12,6 @@ struct user_namespace;
+ extern struct mnt_idmap nop_mnt_idmap;
+ extern struct user_namespace init_user_ns;
+ 
+-typedef struct {
+-	uid_t val;
+-} vfsuid_t;
+-
+-typedef struct {
+-	gid_t val;
+-} vfsgid_t;
+-
+-static_assert(sizeof(vfsuid_t) == sizeof(kuid_t));
+-static_assert(sizeof(vfsgid_t) == sizeof(kgid_t));
+-static_assert(offsetof(vfsuid_t, val) == offsetof(kuid_t, val));
+-static_assert(offsetof(vfsgid_t, val) == offsetof(kgid_t, val));
+-
+-#ifdef CONFIG_MULTIUSER
+-static inline uid_t __vfsuid_val(vfsuid_t uid)
+-{
+-	return uid.val;
+-}
+-
+-static inline gid_t __vfsgid_val(vfsgid_t gid)
+-{
+-	return gid.val;
+-}
+-#else
+-static inline uid_t __vfsuid_val(vfsuid_t uid)
+-{
+-	return 0;
+-}
+-
+-static inline gid_t __vfsgid_val(vfsgid_t gid)
+-{
+-	return 0;
+-}
+-#endif
+-
+-static inline bool vfsuid_valid(vfsuid_t uid)
+-{
+-	return __vfsuid_val(uid) != (uid_t)-1;
+-}
+-
+-static inline bool vfsgid_valid(vfsgid_t gid)
+-{
+-	return __vfsgid_val(gid) != (gid_t)-1;
+-}
+-
+-static inline bool vfsuid_eq(vfsuid_t left, vfsuid_t right)
+-{
+-	return vfsuid_valid(left) && __vfsuid_val(left) == __vfsuid_val(right);
+-}
+-
+-static inline bool vfsgid_eq(vfsgid_t left, vfsgid_t right)
+-{
+-	return vfsgid_valid(left) && __vfsgid_val(left) == __vfsgid_val(right);
+-}
+-
+ /**
+  * vfsuid_eq_kuid - check whether kuid and vfsuid have the same value
+  * @vfsuid: the vfsuid to compare
+@@ -96,16 +42,6 @@ static inline bool vfsgid_eq_kgid(vfsgid_t vfsgid, kgid_t kgid)
+ 	return vfsgid_valid(vfsgid) && __vfsgid_val(vfsgid) == __kgid_val(kgid);
+ }
+ 
+-/*
+- * vfs{g,u}ids are created from k{g,u}ids.
+- * We don't allow them to be created from regular {u,g}id.
+- */
+-#define VFSUIDT_INIT(val) (vfsuid_t){ __kuid_val(val) }
+-#define VFSGIDT_INIT(val) (vfsgid_t){ __kgid_val(val) }
+-
+-#define INVALID_VFSUID VFSUIDT_INIT(INVALID_UID)
+-#define INVALID_VFSGID VFSGIDT_INIT(INVALID_GID)
+-
+ /*
+  * Allow a vfs{g,u}id to be used as a k{g,u}id where we want to compare
+  * whether the mapped value is identical to value of a k{g,u}id.
+diff --git a/include/linux/vfsid.h b/include/linux/vfsid.h
+new file mode 100644
+index 000000000000..90262944b042
+--- /dev/null
++++ b/include/linux/vfsid.h
+@@ -0,0 +1,74 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_MNT_VFSID_H
++#define _LINUX_MNT_VFSID_H
++
++#include <linux/types.h>
++#include <linux/uidgid.h>
++#include <linux/build_bug.h>
++
++typedef struct {
++	uid_t val;
++} vfsuid_t;
++
++typedef struct {
++	gid_t val;
++} vfsgid_t;
++
++static_assert(sizeof(vfsuid_t) == sizeof(kuid_t));
++static_assert(sizeof(vfsgid_t) == sizeof(kgid_t));
++static_assert(offsetof(vfsuid_t, val) == offsetof(kuid_t, val));
++static_assert(offsetof(vfsgid_t, val) == offsetof(kgid_t, val));
++
++#ifdef CONFIG_MULTIUSER
++static inline uid_t __vfsuid_val(vfsuid_t uid)
++{
++	return uid.val;
++}
++
++static inline gid_t __vfsgid_val(vfsgid_t gid)
++{
++	return gid.val;
++}
++#else
++static inline uid_t __vfsuid_val(vfsuid_t uid)
++{
++	return 0;
++}
++
++static inline gid_t __vfsgid_val(vfsgid_t gid)
++{
++	return 0;
++}
++#endif
++
++static inline bool vfsuid_valid(vfsuid_t uid)
++{
++	return __vfsuid_val(uid) != (uid_t)-1;
++}
++
++static inline bool vfsgid_valid(vfsgid_t gid)
++{
++	return __vfsgid_val(gid) != (gid_t)-1;
++}
++
++static inline bool vfsuid_eq(vfsuid_t left, vfsuid_t right)
++{
++	return vfsuid_valid(left) && __vfsuid_val(left) == __vfsuid_val(right);
++}
++
++static inline bool vfsgid_eq(vfsgid_t left, vfsgid_t right)
++{
++	return vfsgid_valid(left) && __vfsgid_val(left) == __vfsgid_val(right);
++}
++
++/*
++ * vfs{g,u}ids are created from k{g,u}ids.
++ * We don't allow them to be created from regular {u,g}id.
++ */
++#define VFSUIDT_INIT(val) (vfsuid_t){ __kuid_val(val) }
++#define VFSGIDT_INIT(val) (vfsgid_t){ __kgid_val(val) }
++
++#define INVALID_VFSUID VFSUIDT_INIT(INVALID_UID)
++#define INVALID_VFSGID VFSGIDT_INIT(INVALID_GID)
++
++#endif /* _LINUX_MNT_VFSID_H */
 
-...
-        strrem(p, '\\');
-        value =3D p;
+-- 
+2.43.0
 
-Will not split either of the following:
-b\,a\,r
-b\\,a\,r
-
-while legacy overlayfs does split the , when followed by \\
-
-IMO what you did is good enough for all practical cases
-and there is no need to go down the rabbit hole of proper escaping
-(unless bugs are reported).
-
-Just wanted to point out the difference.
-
-Thanks,
-Amir.
