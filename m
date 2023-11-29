@@ -1,29 +1,28 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D87761FB5;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C8A761FB4;
 	Wed, 29 Nov 2023 21:50:58 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="MQlYzNKm"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id D4985C43397;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZCKANpzA"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id E4CFEC433A9;
 	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1701294657;
-	bh=rQN1xLGeld4j4IW55z8ld7WdVy/2BRoKQW9LSljn2x0=;
+	bh=+rNu+aEJtyNDKr3Mz+sg00VpaKJj7LN1+EUYKCn22bc=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=MQlYzNKmwllaE+g7Kiw69evrBe9kNjK/CFcpROSwzp+Xfc4dVrwcJXdbUE4rGhXeH
-	 jjr2KAwWQBZuDhTQkr6VU3G3xzjHSquVC4gEpLt+3uoJ9G7g4S3Yo+PkRPPdEg5kJZ
-	 FPbWRnnRwIEHGMJlnMNMpiSb6DzULhg4U5j5PNrGJIeEaOowYLgjK1R6+bWD0L/FjD
-	 d5fEZuaiAoQhcK5PaSvLnqV3JK/tfCRM3/BW9QQOsXdAJaTBLJAJ18+k9N6RE8nIIY
-	 c2cG3cPzEFv7ONmYwlQTEjLTQbMltr1Da/eENDa2ApaicEVp7H7lGEjmqKHmxrfvgy
-	 yInCUeH8TZr3w==
+	b=ZCKANpzAjVN+iZhP0a6dpqp1xM6AJIp2C/3VFbXbPYlklUhPNfzkn7v5VbXxJQC6K
+	 tG9adpxF0Ec+kk2XBpQKlvQ8nOZM8jViq/EUplejF8Ou74+FGM8NfvmloHfXpcJWyK
+	 PEUQuZHqvIGBnfWoR5GC9oEFQT/S8Db+3lCwLHiWRA7O75lHulk+06FP0AAG6ps/W4
+	 LFnbaTUFtdTWirRytgxK7jlaOPlsU4ZjJScsstI8DQzYfzilT/jO/Nbir0wlEHQiOg
+	 gWdY5zqroFCJ85q5h1BLBB+tC9Htz3qr+N/JSJBmoFz0UBeXD9nKePkkkoNIOEXgaW
+	 7Fn8kko3KkrXA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C11B6C07CB1;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4AABC10DC3;
 	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 29 Nov 2023 15:50:24 -0600
-Subject: [PATCH 06/16] capability: provide a helper for converting vfs_caps
- to xattr for userspace
+Date: Wed, 29 Nov 2023 15:50:26 -0600
+Subject: [PATCH 08/16] fs: add vfs_get_fscaps()
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -32,7 +31,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20231129-idmap-fscap-refactor-v1-6-da5a26058a5b@kernel.org>
+Message-Id: <20231129-idmap-fscap-refactor-v1-8-da5a26058a5b@kernel.org>
 References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
 In-Reply-To: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
 To: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
@@ -44,140 +43,124 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  linux-unionfs@vger.kernel.org, 
  "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4302; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=rQN1xLGeld4j4IW55z8ld7WdVy/2BRoKQW9LSljn2x0=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBlZ7I2DU3K3tsTu4Nh8wDOr9uJU?=
- =?utf-8?q?4ZS6gYIJ3xT83+V_4MHJNZuJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZWeyNgAKCRBTA5mu5fQxyYcPB/_oCnDaCsGtlI83YM/2/wsWTJyD+0FVcqwnJX?=
- =?utf-8?q?JNLK440u0oY9qYSciy1oqdWpmygdZisDX+oEpTIOJlA_52I9g7hW/k6g9hGzYDRJU?=
- =?utf-8?q?VL5z6MsXIuwFz2jRII3hPjri3Rg5X6dgmQW4+HS0g00Gvj66S0WCBY4C1_BYZK9uo?=
- =?utf-8?q?Y4vkbYHxH6wTyU9BwZtLIIqKedD9n9HB7CM9eWan/UXNjK4Dm8ULZsgbVLp/06oU+?=
- =?utf-8?q?UfBaYt_a2HVuGd1xWx1kbMJqiFhZ1Gu61AOG2ByjQ4YwRvaNwUKzQcYjYKSuCGWaa?=
- =?utf-8?q?nqvqsXumbDoNi6naMlwM?= DC44ra2po4L1NPdaT9HLGdiUjQS6Aj
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3647; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=+rNu+aEJtyNDKr3Mz+sg00VpaKJj7LN1+EUYKCn22bc=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBlZ7I4/avu6/WjMpQysJRD4e086?=
+ =?utf-8?q?dAG/Cwb8KohO3Og_fd3i1iGJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZWeyOAAKCRBTA5mu5fQxyUF1B/_9oQr2DVGypJwRSipJa6KV9qSjXlv20xo0hN?=
+ =?utf-8?q?hsSFvuH9Ach0ImZwoiRJyWGJTQ1qBcQPq7seTQQ+7B+_S2dK266E1ICJEoRmy+cIe?=
+ =?utf-8?q?8P+BJme5M6yUAyFiSPqel1NPeKIbMFIGG6LST8fWtudf6UinqfhFZKyvd_qE1ALWh?=
+ =?utf-8?q?6jQ12XE2xqlEPn0/tDpmo8eT7EU0F0z5LdbBiLGrQIQwMQpHnldwMwrCZkrjFnViq?=
+ =?utf-8?q?2fZbAj_wzu2f79hmFumu4lFZ7Y4Gtb7CrOmipp/+6R4MsVmbtiaiiDpWIn3MrIlDO?=
+ =?utf-8?q?0ivXbVWESxV66lWPdbWZ?= CcbdRRuAOliiqvt4XyKPp1qO4gEpFI
 X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
  fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
 X-Endpoint-Received:
  by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-cap_inode_getsecurity() implements a handful of policies for capability
-xattrs read by userspace:
-
- - It returns EINVAL if the on-disk capability is in v1 format.
-
- - It masks off all bits in magic_etc except for the version and
-   VFS_CAP_FLAGS_EFFECTIVE.
-
- - v3 capabilities are converted to v2 format if the rootid returned to
-   userspace would be 0 or if the rootid corresponds to root in an
-   ancestor user namespace.
-
- - It returns EOVERFLOW for a v3 capability whose rootid does not map to
-   a valid id in current_user_ns() or to root in an ancestor namespace.
-
-These policies must be maintained when converting vfs_caps to an xattr
-for userspace. Provide a vfs_caps_to_user_xattr() helper which will
-enforce these policies.
+Provide a type-safe interface for retrieving filesystem capabilities and
+a generic implementation suitable for most filesystems. Also add an
+internal interface, __vfs_get_fscaps(), which skips security checks for
+later use from the capability code.
 
 Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 ---
- include/linux/capability.h |  4 +++
- security/commoncap.c       | 68 ++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+)
+ fs/xattr.c         | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h |  4 ++++
+ 2 files changed, 70 insertions(+)
 
-diff --git a/include/linux/capability.h b/include/linux/capability.h
-index cdd7d2d8855e..c0bd9447685b 100644
---- a/include/linux/capability.h
-+++ b/include/linux/capability.h
-@@ -218,6 +218,10 @@ int vfs_caps_to_xattr(struct mnt_idmap *idmap,
- 		      struct user_namespace *dest_userns,
- 		      const struct vfs_caps *vfs_caps,
- 		      void *data, int size);
-+int vfs_caps_to_user_xattr(struct mnt_idmap *idmap,
-+			   struct user_namespace *dest_userns,
-+			   const struct vfs_caps *vfs_caps,
-+			   void *data, int size);
- 
- /* audit system wants to get cap info from files as well */
- int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
-diff --git a/security/commoncap.c b/security/commoncap.c
-index ef37966f3522..c645330f83a0 100644
---- a/security/commoncap.c
-+++ b/security/commoncap.c
-@@ -789,6 +789,74 @@ int vfs_caps_to_xattr(struct mnt_idmap *idmap,
- 	return ret;
+diff --git a/fs/xattr.c b/fs/xattr.c
+index 09d927603433..3abaf9bef0a5 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -181,6 +181,72 @@ xattr_supports_user_prefix(struct inode *inode)
  }
+ EXPORT_SYMBOL(xattr_supports_user_prefix);
  
-+/**
-+ * vfs_caps_to_user_xattr - convert vfs_caps to caps xattr for userspace
-+ *
-+ * @idmap:       idmap of the mount the inode was found from
-+ * @dest_userns: user namespace for ids in xattr data
-+ * @vfs_caps:    source vfs_caps data
-+ * @data:        destination buffer for rax xattr caps data
-+ * @size:        size of the @data buffer
-+ *
-+ * Converts a kernel-interrnal capability into the raw security.capability
-+ * xattr format. Includes permission checking and v2->v3 conversion as
-+ * appropriate.
-+ *
-+ * If the xattr is being read or written through an idmapped mount the
-+ * idmap of the vfsmount must be passed through @idmap. This function
-+ * will then take care to map the rootid according to @idmap.
-+ *
-+ * Return: On success, return 0; on error, return < 0.
-+ */
-+int vfs_caps_to_user_xattr(struct mnt_idmap *idmap,
-+			   struct user_namespace *dest_userns,
-+			   const struct vfs_caps *vfs_caps,
-+			   void *data, int size)
++static int generic_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++			      struct vfs_caps *caps)
 +{
-+	struct vfs_ns_cap_data *ns_caps = data;
-+	bool is_v3;
-+	u32 magic;
++	struct inode *inode = d_inode(dentry);
++	struct vfs_ns_cap_data *nscaps = NULL;
++	int ret;
 +
-+	/* Preserve previous behavior of returning EINVAL for v1 caps */
-+	if ((vfs_caps->magic_etc & VFS_CAP_REVISION_MASK) == VFS_CAP_REVISION_1)
-+		return -EINVAL;
++	ret = (int)vfs_getxattr_alloc(idmap, dentry, XATTR_NAME_CAPS,
++				      (char **)&nscaps, 0, GFP_NOFS);
 +
-+	size = __vfs_caps_to_xattr(idmap, dest_userns, vfs_caps, data, size);
-+	if (size < 0)
-+		return size;
++	if (ret >= 0)
++		ret = vfs_caps_from_xattr(idmap, i_user_ns(inode), caps, nscaps, ret);
 +
-+	magic = vfs_caps->magic_etc &
-+		(VFS_CAP_REVISION_MASK | VFS_CAP_FLAGS_EFFECTIVE);
-+	ns_caps->magic_etc = cpu_to_le32(magic);
-+
-+	/*
-+	 * If this is a v3 capability with a valid, non-zero rootid, return
-+	 * the v3 capability to userspace. A v3 capability with a rootid of
-+	 * 0 will be converted to a v2 capability below for compatibility
-+	 * with old userspace.
-+	 */
-+	is_v3 = (vfs_caps->magic_etc & VFS_CAP_REVISION_MASK) == VFS_CAP_REVISION_3;
-+	if (is_v3) {
-+		uid_t rootid = le32_to_cpu(ns_caps->rootid);
-+		if (rootid != (uid_t)-1 && rootid != (uid_t)0)
-+			return size;
-+	}
-+
-+	if (!rootid_owns_currentns(vfs_caps->rootid))
-+		return -EOVERFLOW;
-+
-+	/* This comes from a parent namespace. Return as a v2 capability. */
-+	if (is_v3) {
-+		magic = VFS_CAP_REVISION_2 |
-+			(vfs_caps->magic_etc & VFS_CAP_FLAGS_EFFECTIVE);
-+		ns_caps->magic_etc = cpu_to_le32(magic);
-+		ns_caps->rootid = cpu_to_le32(0);
-+		size = XATTR_CAPS_SZ_2;
-+	}
-+
-+	return size;
++	kfree(nscaps);
++	return ret;
 +}
 +
- /**
-  * get_vfs_caps_from_disk - retrieve vfs caps from disk
-  *
++/**
++ * __vfs_get_fscaps - get filesystem capabilities without security checks
++ * @idmap: idmap of the mount the inode was found from
++ * @dentry: the dentry from which to get filesystem capabilities
++ * @caps: storage in which to return the filesystem capabilities
++ *
++ * This function gets the filesystem capabilities for the dentry and returns
++ * them in @caps. It does not perform security checks.
++ *
++ * Return: 0 on success, a negative errno on error.
++ */
++int __vfs_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++		     struct vfs_caps *caps)
++{
++	struct inode *inode = d_inode(dentry);
++
++	if (inode->i_op->get_fscaps)
++		return inode->i_op->get_fscaps(idmap, dentry, caps);
++	return generic_get_fscaps(idmap, dentry, caps);
++}
++
++/**
++ * vfs_get_fscaps - get filesystem capabilities
++ * @idmap: idmap of the mount the inode was found from
++ * @dentry: the dentry from which to get filesystem capabilities
++ * @caps: storage in which to return the filesystem capabilities
++ *
++ * This function gets the filesystem capabilities for the dentry and returns
++ * them in @caps.
++ *
++ * Return: 0 on success, a negative errno on error.
++ */
++int vfs_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++		   struct vfs_caps *caps)
++{
++	int error;
++
++	/*
++	 * The VFS has no restrictions on reading security.* xattrs, so
++	 * xattr_permission() isn't needed. Only LSMs get a say.
++	 */
++	error = security_inode_getxattr(dentry, XATTR_NAME_CAPS);
++	if (error)
++		return error;
++
++	return __vfs_get_fscaps(idmap, dentry, caps);
++}
++EXPORT_SYMBOL(vfs_get_fscaps);
++
+ int
+ __vfs_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 	       struct inode *inode, const char *name, const void *value,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index a0a77f67b999..e25b39e4017a 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2055,6 +2055,10 @@ extern int vfs_dedupe_file_range(struct file *file,
+ extern loff_t vfs_dedupe_file_range_one(struct file *src_file, loff_t src_pos,
+ 					struct file *dst_file, loff_t dst_pos,
+ 					loff_t len, unsigned int remap_flags);
++extern int __vfs_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++			    struct vfs_caps *caps);
++extern int vfs_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++			  struct vfs_caps *caps);
+ 
+ enum freeze_holder {
+ 	FREEZE_HOLDER_KERNEL	= (1U << 0),
 
 -- 
 2.43.0
