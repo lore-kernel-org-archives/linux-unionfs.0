@@ -1,158 +1,93 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4EA393B1BE;
-	Wed, 29 Nov 2023 21:50:59 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="fQIMu9V0"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id BCC2EC433CC;
-	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1701294658;
-	bh=TIgQ5CbkliqAVMldXf5Py2rYlW1ruP/xbtTpoJwKMY8=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=fQIMu9V0oT8xUK0GL+HsYCv1d6LOK+fR4jAaYG8Do89RGP+xAS7dBjCHFKKlCb+9C
-	 lezD6IPNQGoRz+LXbUElA8DxWqLKijC0oA3S4flAeQAILZVmC4E+4i6aR4tPWvP8Yd
-	 199/qQn8/qv0DO4UKHiGYgs8YDavd/NKnQCC+Y5Gn4Va2T44He7/pvBvafz38/2Lca
-	 tV7UWIJ0J87nZiWdQyi5ofbpPMxWL9VL6Q3cYoxQYbUUPtnCOUgJUA6MfrTtuU2p9Z
-	 6rQlVXJe5XKOJHHk4sx4wYcgzIilxUqryDHbNXdas4D+z9VYj3B1gMvu/MMGV72ue/
-	 0E41N/P3bGGeg==
-Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5D51C10DC2;
-	Wed, 29 Nov 2023 21:50:57 +0000 (UTC)
-From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 29 Nov 2023 15:50:21 -0600
-Subject: [PATCH 03/16] capability: rename cpu_vfs_cap_data to vfs_caps
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SwX80EGM"
+Received: from mail-yb1-xb33.google.com (mail-yb1-xb33.google.com [IPv6:2607:f8b0:4864:20::b33])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A56AA1717;
+	Wed, 29 Nov 2023 21:32:31 -0800 (PST)
+Received: by mail-yb1-xb33.google.com with SMTP id 3f1490d57ef6-db510605572so509812276.0;
+        Wed, 29 Nov 2023 21:32:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1701322351; x=1701927151; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=KzcdX3G/l13x66KSxdI5x0zUnfQyH8pp0lMS/qUmaXQ=;
+        b=SwX80EGM9VR/C+ZWnvk63cKDDCO2oEhhLFv89BFqpLCpMWwVa4PBzL0Khgq45K5sKQ
+         jyuhyUpWFJLx8X3PwFG33JsQlVc24aLLViY9L4SRsZnTJ0i10BTj5lLs/k0JTVJlpKB2
+         POaZzyKllavchO3mzEEX2UEDsHTFKnsQNyc+Vv0pQsJuoBpAoirwcwUQNm1VTbebKTvX
+         Y3mFQhFFj1LupcZxxF+D+sFDhHTzbRV6w/3tQSwXraQBzryt59lhXWZ206Pib/V5ELBC
+         Fjo+OkW6qJEqaAUQDtHqaUhNLLZ2IM6wkll493yiIYKgBftH95FcFWeZUtklXCd6ez9p
+         HX3g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1701322351; x=1701927151;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=KzcdX3G/l13x66KSxdI5x0zUnfQyH8pp0lMS/qUmaXQ=;
+        b=JG0FrqQytwJ/b1OvwBcDtN+L6yuDp+nj3W/mdATgg830wx4xEdRAFck5h12MDPB0mB
+         LUZ2y6d2US/ogj9YoB8IDepKIdmVD82AtGHl+MxEgHEcgYjvyH/Jtlu5eA/WfMyGpmlq
+         Jpt978hgQqjlCKitAZGE62HX5wYW4yX4koVZSRFc5OnE7gJ6CRAmd4hqTszAnmc4e9sM
+         R00HpqbkYSdnSGotbCgsV0MjKbXM4jKEpD5kflJG5FpZOxZZtZDlmaCypBzgd+Qitdt4
+         xoE04Nk+aq0zb1fTob8olEWFmoPPYTlLm3xLYBh0ZTxCjSlLD5VfE9ZCFJcbOvf/4wG4
+         Te3A==
+X-Gm-Message-State: AOJu0YzJfC60q6xeONg7ChPz3yk6Z5xQmDXA+JUZhua2Hcii/tub12n+
+	RIwLVET6lB5p2soHWFreHGRm4yvHhZxbGsAXWFY=
+X-Google-Smtp-Source: AGHT+IFhpfUEWzyOk2tHJj3SJo7J92Bms3ThL3HO7eHzD0VJ4uYO4OZtZXkKFhIM0XiJOdYC4nQOD8G+OZ+NRh38lOo=
+X-Received: by 2002:a25:fb10:0:b0:da1:b041:70ac with SMTP id
+ j16-20020a25fb10000000b00da1b04170acmr19113357ybe.10.1701322350801; Wed, 29
+ Nov 2023 21:32:30 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20231129-idmap-fscap-refactor-v1-3-da5a26058a5b@kernel.org>
-References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
-In-Reply-To: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
-To: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
- Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
- James Morris <jmorris@namei.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
- Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
- linux-security-module@vger.kernel.org, audit@vger.kernel.org, 
- linux-unionfs@vger.kernel.org, 
- "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3448; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=TIgQ5CbkliqAVMldXf5Py2rYlW1ruP/xbtTpoJwKMY8=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBlZ7I0nwuW1xpac3xkFjSxN46Ko?=
- =?utf-8?q?GJvViTQQr5z+iz5_Wk9fgqyJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZWeyNAAKCRBTA5mu5fQxyaNwB/_9pyZQEBnedvrvYiYrFWuw3BEQLrhwzPeP+j?=
- =?utf-8?q?XU2KRZgr6vrzRbFlDtNuNLFIBATPoVujyOCLkUK7H+f_88lE3d/IbtjndsgxfUqO4?=
- =?utf-8?q?TK/qiimK2hWIqmPKh2moxUobyRKRFeZqZyjXt3tN73mRM6/6ip9yTWhXi_w9Tagm/?=
- =?utf-8?q?A2MzQBmlYG/S003GXBPgisL/bWyg0XaQMqt6pSFNEzG6a/OmHE+fIxUWKIQmNvfVn?=
- =?utf-8?q?XfwqH3_4xF2MKBcZI5Mi3fIVSJlEUD/7vjTTKelJa9ZqUYbjF+AL28JxwDjvHdvF0?=
- =?utf-8?q?VE5Rdweg/uJpBt9jyE1v?= 0o/JdYEKaL3Qh3x94fc5HOxAJ3GcBV
-X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
- fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
-X-Endpoint-Received:
- by B4 Relay for sforshee@kernel.org/default with auth_id=103
+References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org> <20231129-idmap-fscap-refactor-v1-7-da5a26058a5b@kernel.org>
+In-Reply-To: <20231129-idmap-fscap-refactor-v1-7-da5a26058a5b@kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 30 Nov 2023 07:32:19 +0200
+Message-ID: <CAOQ4uxiz+ng5qEY4qkE_q8Gv3jrd6b7mZnppkDoJthhD+Ud4Ow@mail.gmail.com>
+Subject: Re: [PATCH 07/16] fs: add inode operations to get/set/remove fscaps
+To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
+	Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
+	James Morris <jmorris@namei.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, 
+	audit@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-vfs_caps is a more generic name which is better suited to the broader
-use this struct will see in subsequent commits.
+On Wed, Nov 29, 2023 at 11:51=E2=80=AFPM Seth Forshee (DigitalOcean)
+<sforshee@kernel.org> wrote:
+>
+> Add inode operations for getting, setting and removing filesystem
+> capabilities rather than passing around raw xattr data. This provides
+> better type safety for ids contained within xattrs.
+>
+> Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
+> ---
+>  include/linux/fs.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+>
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 98b7a7a8c42e..a0a77f67b999 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2002,6 +2002,11 @@ struct inode_operations {
+>                                      int);
+>         int (*set_acl)(struct mnt_idmap *, struct dentry *,
+>                        struct posix_acl *, int);
+> +       int (*get_fscaps)(struct mnt_idmap *, struct dentry *,
+> +                         struct vfs_caps *);
+> +       int (*set_fscaps)(struct mnt_idmap *, struct dentry *,
+> +                         const struct vfs_caps *, int flags);
+> +       int (*remove_fscaps)(struct mnt_idmap *, struct dentry *);
+>         int (*fileattr_set)(struct mnt_idmap *idmap,
+>                             struct dentry *dentry, struct fileattr *fa);
+>         int (*fileattr_get)(struct dentry *dentry, struct fileattr *fa);
+>
 
-Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
----
- include/linux/capability.h | 4 ++--
- kernel/auditsc.c           | 4 ++--
- security/commoncap.c       | 8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+Please document in Documentation/filesystems/{vfs,locking}.rst
 
-diff --git a/include/linux/capability.h b/include/linux/capability.h
-index 0c356a517991..c24477e660fc 100644
---- a/include/linux/capability.h
-+++ b/include/linux/capability.h
-@@ -24,7 +24,7 @@ extern int file_caps_enabled;
- typedef struct { u64 val; } kernel_cap_t;
- 
- /* same as vfs_ns_cap_data but in cpu endian and always filled completely */
--struct cpu_vfs_cap_data {
-+struct vfs_caps {
- 	__u32 magic_etc;
- 	kuid_t rootid;
- 	kernel_cap_t permitted;
-@@ -211,7 +211,7 @@ static inline bool checkpoint_restore_ns_capable(struct user_namespace *ns)
- /* audit system wants to get cap info from files as well */
- int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 			   const struct dentry *dentry,
--			   struct cpu_vfs_cap_data *cpu_caps);
-+			   struct vfs_caps *cpu_caps);
- 
- int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
- 		      const void **ivalue, size_t size);
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 6f0d6fb6523f..783d0bf69ca5 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -2247,7 +2247,7 @@ void __audit_getname(struct filename *name)
- static inline int audit_copy_fcaps(struct audit_names *name,
- 				   const struct dentry *dentry)
- {
--	struct cpu_vfs_cap_data caps;
-+	struct vfs_caps caps;
- 	int rc;
- 
- 	if (!dentry)
-@@ -2800,7 +2800,7 @@ int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
- {
- 	struct audit_aux_data_bprm_fcaps *ax;
- 	struct audit_context *context = audit_context();
--	struct cpu_vfs_cap_data vcaps;
-+	struct vfs_caps vcaps;
- 
- 	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
- 	if (!ax)
-diff --git a/security/commoncap.c b/security/commoncap.c
-index 8e8c630ce204..cf130d81b8b4 100644
---- a/security/commoncap.c
-+++ b/security/commoncap.c
-@@ -583,7 +583,7 @@ int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
-  * Calculate the new process capability sets from the capability sets attached
-  * to a file.
-  */
--static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
-+static inline int bprm_caps_from_vfs_caps(struct vfs_caps *caps,
- 					  struct linux_binprm *bprm,
- 					  bool *effective,
- 					  bool *has_fcap)
-@@ -634,7 +634,7 @@ static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
-  */
- int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 			   const struct dentry *dentry,
--			   struct cpu_vfs_cap_data *cpu_caps)
-+			   struct vfs_caps *cpu_caps)
- {
- 	struct inode *inode = d_backing_inode(dentry);
- 	__u32 magic_etc;
-@@ -645,7 +645,7 @@ int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 	vfsuid_t rootvfsuid;
- 	struct user_namespace *fs_ns;
- 
--	memset(cpu_caps, 0, sizeof(struct cpu_vfs_cap_data));
-+	memset(cpu_caps, 0, sizeof(struct vfs_caps));
- 
- 	if (!inode)
- 		return -ENODATA;
-@@ -724,7 +724,7 @@ static int get_file_caps(struct linux_binprm *bprm, const struct file *file,
- 			 bool *effective, bool *has_fcap)
- {
- 	int rc = 0;
--	struct cpu_vfs_cap_data vcaps;
-+	struct vfs_caps vcaps;
- 
- 	cap_clear(bprm->cred->cap_permitted);
- 
-
--- 
-2.43.0
-
+Thanks,
+Amir.
