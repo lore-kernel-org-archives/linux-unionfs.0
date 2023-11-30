@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kdb8h9U3"
-Received: from mail-qv1-xf2b.google.com (mail-qv1-xf2b.google.com [IPv6:2607:f8b0:4864:20::f2b])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B7B610C6;
-	Wed, 29 Nov 2023 22:23:41 -0800 (PST)
-Received: by mail-qv1-xf2b.google.com with SMTP id 6a1803df08f44-67a34fbaf12so3516906d6.3;
-        Wed, 29 Nov 2023 22:23:41 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Kn5GD2g1"
+Received: from mail-ej1-x634.google.com (mail-ej1-x634.google.com [IPv6:2a00:1450:4864:20::634])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 818DF10DB;
+	Thu, 30 Nov 2023 00:02:09 -0800 (PST)
+Received: by mail-ej1-x634.google.com with SMTP id a640c23a62f3a-a00b056ca38so80542166b.2;
+        Thu, 30 Nov 2023 00:02:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1701325420; x=1701930220; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1701331328; x=1701936128; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=dnFNpITeBzIeWAB6/djyDlgB+xngZbEudW6ZwqboSBc=;
-        b=Kdb8h9U3zgOhqUkVO0UKU5XITYIl1JWjKJgusWKFxeo3amFzRidVeqxiFGCb/k0MfU
-         5+Dc1HsYCqVR2XmJ8DanRXoTHAgRt7qENItT3P9dFyYFG4Of6Z4aUFPDf4i9vXUJyGDE
-         2fBRGBHsjVEkFiw8r3GkIg1eWbbPZtPSTCTdVNUJU1q6El+ia4dRQW/X09c91o3KCRNP
-         R12z7QViEesfPOymzNoFudYfcfbm64DLx/CrTDK1Rs5W310tM8TzoBUi9/Ic4eYzVUvK
-         WPazwsfqb+TCf5jylLFxb72Jt3jZRsfmIE0sP6JAvTkoZOoPVl+nvGI7e7f8GvyqYTQt
-         D9kQ==
+        bh=Zx/KGYJAnFp6NJZfcIVVscvdqh4rbto2bCeX1+xINQU=;
+        b=Kn5GD2g1/Ee21XGW8gznWgIeFj5R210Y9Bb3+xr36c+MchCdL/V1oaJzZKA9vrZymA
+         KGmKDRcV/s1dpL4cxVlKpfzZ6plznyn6GLRx8yTI5yuMARE1NhaslplMpnFRKH+0AmZ4
+         yZ377TswNduJTF3pQRlCeeeDXt67ZaGQU8gJuTk1x7rIQCJ9ZZdT1BwqmElNiD/ok5MH
+         2/QPUplToGE6Q7H2UGiZagHLV+yGQo5mTFULHgM2XPEa8cI0Spxvk73sdJ8C1MhKB4sh
+         yEY64Kjtr7286mPjkFglTt+jx7WTBPgEeKAF5m/WVAps5UzctUsi4bEvcE0mgJkczWke
+         e/cg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701325420; x=1701930220;
+        d=1e100.net; s=20230601; t=1701331328; x=1701936128;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=dnFNpITeBzIeWAB6/djyDlgB+xngZbEudW6ZwqboSBc=;
-        b=bcrujGvBcRsAplosPX04RPhaxXaSQ+P0ZW7JRs/cBY8TpWY8H+gDlHUflhdPSiduBX
-         MdWyxyLMxWmsJdqp5QTLzDQfSGSiO3zdgQjEeZyE7Lf94l2y/78ovYC5pF1EIfkdThkM
-         CUEh2/givZp8uj7s/T+5K31X+uxpprlf64L2/2ib9ci514acigj0fddDglPaotBT9d5v
-         rwcGsc8Zvqa2wNLEf/5AKHhHciM3cuuZsNGR5vAkG0oPmWcGMYsr1JNAk2ET5Bz6vpWH
-         jLOBbz3SqJqKdJyUKG4IngQgybxY684wl/UZTLkL9wH8Wagq3XLg9dfmGc6ZDSNbicc8
-         vH9Q==
-X-Gm-Message-State: AOJu0YzLusRmIj1FIz6O2HBM9JDNMcXYFdxGdCPqOmx4sEUa1GCtrsv/
-	Ert69UVWoeuiE2THdO54wrTlnzG13sIMpFVEyLOvwCAAEVI=
-X-Google-Smtp-Source: AGHT+IH0SyX76kONcdWlvcKAlac9MgRsSZANFwgwnZgOBET2afx9W8YCZCQZK6E4xmMv+OhaN7H7BE0osBZD2D+BqhA=
-X-Received: by 2002:ad4:5f0a:0:b0:67a:3967:4b09 with SMTP id
- fo10-20020ad45f0a000000b0067a39674b09mr19186344qvb.8.1701325420254; Wed, 29
- Nov 2023 22:23:40 -0800 (PST)
+        bh=Zx/KGYJAnFp6NJZfcIVVscvdqh4rbto2bCeX1+xINQU=;
+        b=jDxQVKfA7+DSPYJpzQ3zENi25EdJGi1LEsKL7MInSF8sjmC0e1d0qSa5wCeF0t3EZA
+         3/krBgRnpwdIN2h56TOCBYane3ih4i3AbC/6VlzLiiV8fiaLy06HTyh0faDCKhoGaaOc
+         2SC8+h+FWOqlUmvWdYParOfwkQaH4StwYQdRK8936QtHiANKhSX5aG1Yj6ESSy9zAiI/
+         7xngfAEIVBdh6mxfa2Ahhg0YYwqysYuox3PmNTuFOG1OO8vrhpYfMUDdGL73Fs2r+VjT
+         V+3qVzH6YmxY3+u9KQEwxIVbUXLvw1k5n7+Ur+LDFMd+rA+DC0DZeMSkK9x6gwn8/Xdw
+         FjzQ==
+X-Gm-Message-State: AOJu0YxMin2fGPqXGzY8MWKb9TmgBM4mCianj5f0DF+S+ctooN7ueufE
+	vdL+FXPztaeF4qYhjxfQs0v0UZugyvw4Og0Mrxs=
+X-Google-Smtp-Source: AGHT+IEqPB8oiCcKreUnnhhCSBlvWbty5ZDJW39VjrZ/MDDaOnvt5BfM1B72XZH35qogSCiNUdJPjE2+ddTJ3y8Wzhg=
+X-Received: by 2002:a17:906:3f18:b0:a18:ef56:8876 with SMTP id
+ c24-20020a1709063f1800b00a18ef568876mr184395ejj.47.1701331327725; Thu, 30 Nov
+ 2023 00:02:07 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org> <20231129-idmap-fscap-refactor-v1-12-da5a26058a5b@kernel.org>
-In-Reply-To: <20231129-idmap-fscap-refactor-v1-12-da5a26058a5b@kernel.org>
+References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org> <20231129-idmap-fscap-refactor-v1-9-da5a26058a5b@kernel.org>
+In-Reply-To: <20231129-idmap-fscap-refactor-v1-9-da5a26058a5b@kernel.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 30 Nov 2023 08:23:28 +0200
-Message-ID: <CAOQ4uxj=oR+yj19rUm0E6cHTiStniqvebtZSDhV3XZC1qz6n6A@mail.gmail.com>
-Subject: Re: [PATCH 12/16] ovl: use vfs_{get,set}_fscaps() for copy-up
+Date: Thu, 30 Nov 2023 10:01:55 +0200
+Message-ID: <CAOQ4uxjhFKmHSUKiFOraDZojD0qGC=ChJJwtfrncuvTYi9NTKw@mail.gmail.com>
+Subject: Re: [PATCH 09/16] fs: add vfs_set_fscaps()
 To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
 Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
 	Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
@@ -60,180 +60,106 @@ Content-Transfer-Encoding: quoted-printable
 On Wed, Nov 29, 2023 at 11:50=E2=80=AFPM Seth Forshee (DigitalOcean)
 <sforshee@kernel.org> wrote:
 >
-> Using vfs_{get,set}xattr() for fscaps will be blocked in a future
-> commit, so convert ovl to use the new interfaces. Also remove the now
-> unused ovl_getxattr_value().
+> Provide a type-safe interface for setting filesystem capabilities and a
+> generic implementation suitable for most filesystems.
 >
 > Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
+> ---
+>  fs/xattr.c         | 87 ++++++++++++++++++++++++++++++++++++++++++++++++=
+++++++
+>  include/linux/fs.h |  2 ++
+>  2 files changed, 89 insertions(+)
+>
+> diff --git a/fs/xattr.c b/fs/xattr.c
+> index 3abaf9bef0a5..03cc824e4f87 100644
+> --- a/fs/xattr.c
+> +++ b/fs/xattr.c
+> @@ -247,6 +247,93 @@ int vfs_get_fscaps(struct mnt_idmap *idmap, struct d=
+entry *dentry,
+>  }
+>  EXPORT_SYMBOL(vfs_get_fscaps);
+>
+> +static int generic_set_fscaps(struct mnt_idmap *idmap, struct dentry *de=
+ntry,
+> +                             const struct vfs_caps *caps, int flags)
+> +{
+> +       struct inode *inode =3D d_inode(dentry);
+> +       struct vfs_ns_cap_data nscaps;
+> +       int size;
+> +
+> +       size =3D vfs_caps_to_xattr(idmap, i_user_ns(inode), caps,
+> +                                &nscaps, sizeof(nscaps));
+> +       if (size < 0)
+> +               return size;
+> +
+> +       return __vfs_setxattr_noperm(idmap, dentry, XATTR_NAME_CAPS,
+> +                                    &nscaps, size, flags);
+> +}
+> +
+> +/**
+> + * vfs_set_fscaps - set filesystem capabilities
+> + * @idmap: idmap of the mount the inode was found from
+> + * @dentry: the dentry on which to set filesystem capabilities
+> + * @caps: the filesystem capabilities to be written
+> + * @flags: setxattr flags to use when writing the capabilities xattr
+> + *
+> + * This function writes the supplied filesystem capabilities to the dent=
+ry.
+> + *
+> + * Return: 0 on success, a negative errno on error.
+> + */
+> +int vfs_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+> +                  const struct vfs_caps *caps, int flags)
+> +{
+> +       struct inode *inode =3D d_inode(dentry);
+> +       struct inode *delegated_inode =3D NULL;
+> +       struct vfs_ns_cap_data nscaps;
+> +       int size, error;
+> +
+> +       /*
+> +        * Unfortunately EVM wants to have the raw xattr value to compare=
+ to
+> +        * the on-disk version, so we need to pass the raw xattr to the
+> +        * security hooks. But we also want to do security checks before
+> +        * breaking leases, so that means a conversion to the raw xattr h=
+ere
+> +        * which will usually be reduntant with the conversion we do for
+> +        * writing the xattr to disk.
+> +        */
+> +       size =3D vfs_caps_to_xattr(idmap, i_user_ns(inode), caps, &nscaps=
+,
+> +                                sizeof(nscaps));
+> +       if (size < 0)
+> +               return size;
+> +
+> +retry_deleg:
+> +       inode_lock(inode);
+> +
+> +       error =3D xattr_permission(idmap, inode, XATTR_NAME_CAPS, MAY_WRI=
+TE);
+> +       if (error)
+> +               goto out_inode_unlock;
+> +       error =3D security_inode_setxattr(idmap, dentry, XATTR_NAME_CAPS,=
+ &nscaps,
+> +                                       size, flags);
+> +       if (error)
+> +               goto out_inode_unlock;
+> +
+> +       error =3D try_break_deleg(inode, &delegated_inode);
+> +       if (error)
+> +               goto out_inode_unlock;
+> +
+> +       if (inode->i_opflags & IOP_XATTR) {
+> +               if (inode->i_op->set_fscaps)
+> +                       error =3D inode->i_op->set_fscaps(idmap, dentry, =
+caps, flags);
+> +               else
+> +                       error =3D generic_set_fscaps(idmap, dentry, caps,=
+ flags);
 
-You may add:
+I think the non-generic case is missing fsnotify_xattr().
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-
-I am assuming that this work is destined to be merged via the vfs tree?
-Note that there is already a (non-conflicting) patch to copy_up.c on
-Christian's vfs.rw branch.
-
-I think it is best that all the overlayfs patches are tested together by
-the vfs maintainer in preparation for the 6.8 merge window, so I have
-a feeling that the 6.8 overlayfs PR is going to be merged via the vfs tree =
-;-)
+See vfs_set_acl() for comparison.
 
 Thanks,
 Amir.
-
-> ---
->  fs/overlayfs/copy_up.c | 72 ++++++++++++++++++++++++++------------------=
-------
->  1 file changed, 37 insertions(+), 35 deletions(-)
->
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 4382881b0709..b43af5ce4b21 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -73,6 +73,23 @@ static int ovl_copy_acl(struct ovl_fs *ofs, const stru=
-ct path *path,
->         return err;
->  }
->
-> +static int ovl_copy_fscaps(struct ovl_fs *ofs, const struct path *oldpat=
-h,
-> +                          struct dentry *new)
-> +{
-> +       struct vfs_caps capability;
-> +       int err;
-> +
-> +       err =3D vfs_get_fscaps(mnt_idmap(oldpath->mnt), oldpath->dentry,
-> +                            &capability);
-> +       if (err) {
-> +               if (err =3D=3D -ENODATA || err =3D=3D -EOPNOTSUPP)
-> +                       return 0;
-> +               return err;
-> +       }
-> +
-> +       return vfs_set_fscaps(ovl_upper_mnt_idmap(ofs), new, &capability,=
- 0);
-> +}
-> +
->  int ovl_copy_xattr(struct super_block *sb, const struct path *oldpath, s=
-truct dentry *new)
->  {
->         struct dentry *old =3D oldpath->dentry;
-> @@ -130,6 +147,14 @@ int ovl_copy_xattr(struct super_block *sb, const str=
-uct path *oldpath, struct de
->                         break;
->                 }
->
-> +               if (!strcmp(name, XATTR_NAME_CAPS)) {
-> +                       error =3D ovl_copy_fscaps(OVL_FS(sb), oldpath, ne=
-w);
-> +                       if (!error)
-> +                               continue;
-> +                       /* fs capabilities must be copied */
-> +                       break;
-> +               }
-> +
->  retry:
->                 size =3D ovl_do_getxattr(oldpath, name, value, value_size=
-);
->                 if (size =3D=3D -ERANGE)
-> @@ -1006,61 +1031,40 @@ static bool ovl_need_meta_copy_up(struct dentry *=
-dentry, umode_t mode,
->         return true;
->  }
->
-> -static ssize_t ovl_getxattr_value(const struct path *path, char *name, c=
-har **value)
-> -{
-> -       ssize_t res;
-> -       char *buf;
-> -
-> -       res =3D ovl_do_getxattr(path, name, NULL, 0);
-> -       if (res =3D=3D -ENODATA || res =3D=3D -EOPNOTSUPP)
-> -               res =3D 0;
-> -
-> -       if (res > 0) {
-> -               buf =3D kzalloc(res, GFP_KERNEL);
-> -               if (!buf)
-> -                       return -ENOMEM;
-> -
-> -               res =3D ovl_do_getxattr(path, name, buf, res);
-> -               if (res < 0)
-> -                       kfree(buf);
-> -               else
-> -                       *value =3D buf;
-> -       }
-> -       return res;
-> -}
-> -
->  /* Copy up data of an inode which was copied up metadata only in the pas=
-t. */
->  static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
->  {
->         struct ovl_fs *ofs =3D OVL_FS(c->dentry->d_sb);
->         struct path upperpath;
->         int err;
-> -       char *capability =3D NULL;
-> -       ssize_t cap_size;
-> +       struct vfs_caps capability;
-> +       bool has_capability =3D false;
->
->         ovl_path_upper(c->dentry, &upperpath);
->         if (WARN_ON(upperpath.dentry =3D=3D NULL))
->                 return -EIO;
->
->         if (c->stat.size) {
-> -               err =3D cap_size =3D ovl_getxattr_value(&upperpath, XATTR=
-_NAME_CAPS,
-> -                                                   &capability);
-> -               if (cap_size < 0)
-> +               err =3D vfs_get_fscaps(mnt_idmap(upperpath.mnt), upperpat=
-h.dentry,
-> +                                    &capability);
-> +               if (!err)
-> +                       has_capability =3D 1;
-> +               else if (err !=3D -ENODATA && err !=3D EOPNOTSUPP)
->                         goto out;
->         }
->
->         err =3D ovl_copy_up_data(c, &upperpath);
->         if (err)
-> -               goto out_free;
-> +               goto out;
->
->         /*
->          * Writing to upper file will clear security.capability xattr. We
->          * don't want that to happen for normal copy-up operation.
->          */
->         ovl_start_write(c->dentry);
-> -       if (capability) {
-> -               err =3D ovl_do_setxattr(ofs, upperpath.dentry, XATTR_NAME=
-_CAPS,
-> -                                     capability, cap_size, 0);
-> +       if (has_capability) {
-> +               err =3D vfs_set_fscaps(mnt_idmap(upperpath.mnt), upperpat=
-h.dentry,
-> +                                    &capability, 0);
->         }
->         if (!err) {
->                 err =3D ovl_removexattr(ofs, upperpath.dentry,
-> @@ -1068,13 +1072,11 @@ static int ovl_copy_up_meta_inode_data(struct ovl=
-_copy_up_ctx *c)
->         }
->         ovl_end_write(c->dentry);
->         if (err)
-> -               goto out_free;
-> +               goto out;
->
->         ovl_clear_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
->         ovl_clear_flag(OVL_VERIFIED_DIGEST, d_inode(c->dentry));
->         ovl_set_upperdata(d_inode(c->dentry));
-> -out_free:
-> -       kfree(capability);
->  out:
->         return err;
->  }
->
-> --
-> 2.43.0
->
