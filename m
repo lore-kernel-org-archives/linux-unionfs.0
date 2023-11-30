@@ -1,23 +1,23 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D695E54FA6;
-	Thu, 30 Nov 2023 16:40:58 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C4DB254FBA;
+	Thu, 30 Nov 2023 16:43:41 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sbewMVwK"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 30BAFC433C8;
-	Thu, 30 Nov 2023 16:40:58 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="XWmkzBCc"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15E27C433C7;
+	Thu, 30 Nov 2023 16:43:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1701362458;
-	bh=eMauWcpoHiWGcXeCJ6n8laJEDioZTrZnYDww6VNDcD4=;
+	s=k20201202; t=1701362621;
+	bh=Y4sgZDhs4wynPu47QMjQjQHfSY0fT9c/kB/u77jBAg0=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=sbewMVwKMEOHbYOQLQybblEflNdQip+Ra5frYeqsZTWZAms2Jc3Y7vZ7VASj5Aur8
-	 2zcpnKl6VXvVqF/kauQ4Iiz6DQt73jk1dO6H+GoLx3lC2Yt97HLA9T/vmzzP3B+03Q
-	 kPTyK/7HFP2KvQ4SKG0MDkNX4gmfFGIAyQE7Dz22TIRefJZJ/gc0YSFucBeOaMT/67
-	 f5ls+Y0y+ImdrcDVR/MACxVOCl3kZppNqPy264LpK0ESvaBOEFvkoIHFv8e7NkdBGk
-	 ZAAtIELOtR5UTdVF1PVhKL5Y6tVrJ43gmuW9DJ9HJXCC6/5leR2WXKhnvL4nNFn4y2
-	 C3+wHN3tZckhg==
-Date: Thu, 30 Nov 2023 10:40:57 -0600
+	b=XWmkzBCcc03gYkV1g/4ZMIMtNwjz8M8v20ER1M80R/lbHM3FMU6q/uOuSCweHsyCt
+	 i9B1Q5/QsNYeJEm50I/mcZO8F6+dURkViHUWGV99uMg/lzVCpGdYXAonMMvirJeOeX
+	 PzHwSe+jzSNwLF02Qc6OgwFWGE2WbHgBm3IC+S+nauyTpZORqTYW5mn89ikFgZOSJY
+	 6/joQKMbn3Mc7+WBZ9v+be2BEsyDQmS0IxOiVoDg8jNyMaOmNZZfbel6yVXtExBvLl
+	 rswEj7+T8NbulbipMkNtf0n1Kk98brwqIXbz6sFbEHoXmFyU5WfkyqwtXXGw72IlZ5
+	 rj/aFVcvYlO2A==
+Date: Thu, 30 Nov 2023 10:43:40 -0600
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>,
@@ -28,12 +28,11 @@ Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>,
 	linux-fsdevel@vger.kernel.org,
 	linux-security-module@vger.kernel.org, audit@vger.kernel.org,
 	linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 16/16] vfs: return -EOPNOTSUPP for fscaps from
- vfs_*xattr()
-Message-ID: <ZWi7GZoSId2EA1mR@do-x1extreme>
+Subject: Re: [PATCH 12/16] ovl: use vfs_{get,set}_fscaps() for copy-up
+Message-ID: <ZWi7vATF7xIKxlsr@do-x1extreme>
 References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
- <20231129-idmap-fscap-refactor-v1-16-da5a26058a5b@kernel.org>
- <CAOQ4uxhtJ89LknKjE=tiTgvZXbufmOaqHnhnrz348Ktq2H+yHA@mail.gmail.com>
+ <20231129-idmap-fscap-refactor-v1-12-da5a26058a5b@kernel.org>
+ <CAOQ4uxj=oR+yj19rUm0E6cHTiStniqvebtZSDhV3XZC1qz6n6A@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -43,58 +42,27 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxhtJ89LknKjE=tiTgvZXbufmOaqHnhnrz348Ktq2H+yHA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxj=oR+yj19rUm0E6cHTiStniqvebtZSDhV3XZC1qz6n6A@mail.gmail.com>
 
-On Thu, Nov 30, 2023 at 08:10:15AM +0200, Amir Goldstein wrote:
-> On Wed, Nov 29, 2023 at 11:51 PM Seth Forshee (DigitalOcean)
+On Thu, Nov 30, 2023 at 08:23:28AM +0200, Amir Goldstein wrote:
+> On Wed, Nov 29, 2023 at 11:50 PM Seth Forshee (DigitalOcean)
 > <sforshee@kernel.org> wrote:
 > >
-> > Now that the new vfs-level interfaces are fully supported and all code
-> > has been converted to use them, stop permitting use of the top-level vfs
-> > xattr interfaces for capabilities xattrs. Unlike with ACLs we still need
-> > to be able to work with fscaps xattrs using lower-level interfaces in a
-> > handful of places, so only use of the top-level xattr interfaces is
-> > restricted.
-> 
-> Can you explain why?
-> Is there an inherent difference between ACLs and fscaps in that respect
-> or is it just a matter of more work that needs to be done?
-
-There are a number of differences. ACLs have caching, require additional
-permission checks, and require a lot of filesystem-specific handling.
-fscaps are simpler by comparison, and most filesystems can rely on a
-common implementation that just converts to/from raw disk xattrs.
-
-So at minimum I think the lowest level interfaces,
-__vfs_{get,set,remove}xattr(), need to continue to allow fscaps, and
-that's where ACL xattrs are blocked. Allowing some of the others to
-still work with them is a matter of convenience (e.g. using
-vfs_getxattr_alloc()) and trying to reduce code duplication. But as you
-pointed out I did miss at least duplicating fsnotify_xattr(), so I'm
-going to have another look at how I implemented these.
-
-> 
+> > Using vfs_{get,set}xattr() for fscaps will be blocked in a future
+> > commit, so convert ovl to use the new interfaces. Also remove the now
+> > unused ovl_getxattr_value().
 > >
 > > Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
-> > ---
-> >  fs/xattr.c | 9 +++++++++
-> >  1 file changed, 9 insertions(+)
-> >
-> > diff --git a/fs/xattr.c b/fs/xattr.c
-> > index 372644b15457..4b779779ad8c 100644
-> > --- a/fs/xattr.c
-> > +++ b/fs/xattr.c
-> > @@ -540,6 +540,9 @@ vfs_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
-> >         const void  *orig_value = value;
-> >         int error;
-> >
-> > +       if (!strcmp(name, XATTR_NAME_CAPS))
-> > +               return -EOPNOTSUPP;
-> > +
 > 
-> It this is really not expected, then it should be an assert and
-> please use an inline helper like is_posix_acl_xattr():
+> You may add:
 > 
-> if (WARN_ON_ONCE(is_fscaps_xattr(name)))
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Ack, makes sense.
+Thanks!
+
+> I am assuming that this work is destined to be merged via the vfs tree?
+> Note that there is already a (non-conflicting) patch to copy_up.c on
+> Christian's vfs.rw branch.
+
+I'll leave that up to Christian. There are also other mnt_idmapping.h
+changes on vfs.misc which could cause (probably minor) conflicts.
