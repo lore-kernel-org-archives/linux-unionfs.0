@@ -1,168 +1,178 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FVr/0WTB"
-Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DB7B109;
-	Mon,  4 Dec 2023 10:59:29 -0800 (PST)
-Received: by mail-wm1-x335.google.com with SMTP id 5b1f17b1804b1-40c08af319cso19942155e9.2;
-        Mon, 04 Dec 2023 10:59:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aOG4o0jT"
+Received: from mail-oo1-xc33.google.com (mail-oo1-xc33.google.com [IPv6:2607:f8b0:4864:20::c33])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E927130;
+	Mon,  4 Dec 2023 11:02:09 -0800 (PST)
+Received: by mail-oo1-xc33.google.com with SMTP id 006d021491bc7-58d3c9badf5so3301868eaf.1;
+        Mon, 04 Dec 2023 11:02:09 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1701716368; x=1702321168; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1701716529; x=1702321329; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=95nE7bWkcx0d4JSLcoybDbaWzT7WMYnwMt3WPJsD1uM=;
-        b=FVr/0WTBd6f7+4ONP+2vrgcE3/Y6/0tArLzIPa4o6Cf2hT6aJkpYfDwWy/lLAm/h0Z
-         ndIOQQv5sOJnhNcwcYKPJuKu5+/p0ixbM3J8uMZ3u8KyOC8PdPyArt1JAiLODhJFXAYl
-         7oggLqr+RIyo146GQ7K1qIsz2l0UT0LvxhDq/nL5/nlltPIr64smwmRVCJn7Eop+eM5P
-         eRhPlzPTt+VwVp6UU5tK89aNt3I8gLX6zaIR7I/HIMizL92DBpgULnk58InS5KhETs31
-         sbWOizE1fmmLC7yVRx4Fw3vVkMvuRUD+W5MGtv5ZmTiD0Im5qaIj4s7QooiZUGTmU9Sy
-         flRg==
+        bh=AKPTPcF6ICsIrbVFUAAhGYavbyjf6RZckjl5bI3V1zw=;
+        b=aOG4o0jTheuOW9w4RtXFzEtpAc47UPJrW0llV6O8wGmWwoU52F486ENx5dQ2Ku806m
+         IR4ZnJbCEQWHu/S42ITiKymXuzAjC89mK7gHlIzclFDZE3xuJxwBakI9Iqdq2cISqdQz
+         p4q+5SnnujVe6tV1a198Fl1id694FgPmIIjfT0MOC7PBP+5xcKotgtf7ov/XvS8qOVhz
+         4RLRGp0BGyZK52VSdciiMQe+WtLUAu1Ez2GOocHzQ7CJZfSDWA4Pb+yS9exIiSxTioqU
+         cDH/Bp7Q93slbRubcbf7NKZULfDEeKOt0K3SCIS/ngEYJiG1L3C526wS62xBMxG51ZjN
+         Ivyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701716368; x=1702321168;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1701716529; x=1702321329;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=95nE7bWkcx0d4JSLcoybDbaWzT7WMYnwMt3WPJsD1uM=;
-        b=KVzm3Huj6Prf+eCwKLHUFeE/AHIFk8g8nJkvrod6glmnH8i9pfgaaEEfO6xZZ8nYRv
-         x18+sY/npXm6MProxHMWPy+XOeal1to6+xxXLGt0IZQIUGKYWQdlzrZ/HuS1Eqi/TsAy
-         s2hAgQe9225ThasL5Lkx1UHzHCY7+vTiROus7TebtxMEwuwZLYpal+Jr+RG7K2zCUouo
-         bPjxaLc3akO8hhlsgS4cLX4moA0zqCqUrhyvc6227AtTwF+d5lZ9+INvi/B/URxL8Xk1
-         OUejqI2HuoRcvMlKTKUrMZuxoMjoA7pW+nl72CZ9OsjaXeHapt2jsUpfHDSpTkLvu7Ex
-         /fjg==
-X-Gm-Message-State: AOJu0YzijBFpZhJkDoIcr/kwHMP2ZJPPrRHeHYAEgpok110veLHp2o6y
-	a53PRjks88n1jLkh5V9d3s8=
-X-Google-Smtp-Source: AGHT+IERtCltiMk+BWmPRnzxtKIiVOYw+aDdnlgo5m+hzvmVMN7qJp6uwhT49UTtcNqQY5wv3RVFIg==
-X-Received: by 2002:a05:600c:1e26:b0:40b:5e21:ec34 with SMTP id ay38-20020a05600c1e2600b0040b5e21ec34mr2997088wmb.102.1701716367750;
-        Mon, 04 Dec 2023 10:59:27 -0800 (PST)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id d9-20020a05600c34c900b0040b2c195523sm20008098wmq.31.2023.12.04.10.59.26
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 04 Dec 2023 10:59:27 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Zorro Lang <zlang@redhat.com>
-Cc: Alexander Larsson <alexl@redhat.com>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	linux-unionfs@vger.kernel.org,
-	fstests@vger.kernel.org
-Subject: [PATCH v2 4/4] overlay: test parsing of lowerdir+,datadir+ mount options
-Date: Mon,  4 Dec 2023 20:58:59 +0200
-Message-Id: <20231204185859.3731975-5-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20231204185859.3731975-1-amir73il@gmail.com>
-References: <20231204185859.3731975-1-amir73il@gmail.com>
+        bh=AKPTPcF6ICsIrbVFUAAhGYavbyjf6RZckjl5bI3V1zw=;
+        b=NO+9vLvAmYxjH21BAAVERHxrczQ/iNZ2bMSVQHr4ThDrmeCE0VU76kuQRZHS9jFtoW
+         PPBSLzbhaWVq/0/1JSJtDiRGZxaC3a0fmERX5NIbgollevprjT6QhpBeOOVwnJJ+lTky
+         UMN54aaaA9XRsWpiWuRbodLdCUdxtbxWfEJkH8WCcxdxLKu0yAUOSqYgwxLq3565nn0x
+         gyEqBjZY5G8J5TUXK9FmfK/bJ7A+UDdGQG/q9fFuVQOlj4GkYTsjABnaHOUAyWfHvoPP
+         2OZBXLVMDrtxbs8CVcfWaZi6WG2sQngPwuF7FB0ZmSZVO8DAF+yX5TrKfYXC5hva81QN
+         XPNA==
+X-Gm-Message-State: AOJu0YzmCip7BOeCi/r6bnp8HKjhfYkNzJlt5aBEb7t4wNaWrP5gq2/D
+	vb4XcnCcoWvSX8TlJ8blj8CkrnddDzHyZ9OIoP5An98fqp4=
+X-Google-Smtp-Source: AGHT+IEU6ihF0p6TqOF8vs0d7mlPZeI/o9hCHovhmbMgVxW9KEOafP3WBTwDr62jriSk/JALLHkvzadc/MOXdvyKQM4=
+X-Received: by 2002:a05:6358:52ca:b0:16b:4f8c:93c7 with SMTP id
+ z10-20020a05635852ca00b0016b4f8c93c7mr5213212rwz.23.1701716528597; Mon, 04
+ Dec 2023 11:02:08 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20231122152013.2569153-1-amir73il@gmail.com> <20231204165817.6bz2vf2rogo7a6mo@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+ <CAOQ4uxj8RZzg0+vXQqDZQH6J+xWiD=JyfmKjsH8WLkUQLBAhBg@mail.gmail.com> <20231204175233.vo227ejohm5z55ol@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+In-Reply-To: <20231204175233.vo227ejohm5z55ol@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 4 Dec 2023 21:01:57 +0200
+Message-ID: <CAOQ4uxgyvsWXYMLpb_PcMTyjGSy1UtJUx6Wke+P-UHhrKd6zmQ@mail.gmail.com>
+Subject: Re: [PATCH v2] overlay/026: Fix test expectation for newer kernels
+To: Zorro Lang <zlang@redhat.com>
+Cc: Alexander Larsson <alexl@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	fstests@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Fork test overlay/083 to test parsing of lowerdir+,datadir+ mount options.
-
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+On Mon, Dec 4, 2023 at 7:52=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote:
+>
+> On Mon, Dec 04, 2023 at 07:09:08PM +0200, Amir Goldstein wrote:
+> > On Mon, Dec 4, 2023 at 6:58=E2=80=AFPM Zorro Lang <zlang@redhat.com> wr=
+ote:
+> > >
+> > > On Wed, Nov 22, 2023 at 05:20:13PM +0200, Amir Goldstein wrote:
+> > > > From: Alexander Larsson <alexl@redhat.com>
+> > > >
+> > > > The test checks the expectaion from old kernels that set/get of
+> > > > trusted.overlay.* xattrs is not supported on an overlayfs filesyste=
+m.
+> > > >
+> > > > New kernels support set/get xattr of trusted.overlay.* xattrs, so a=
+dapt
+> > > > the test to check that either both set and get work on new kernel, =
+or
+> > > > neither work on old kernel.
+> > > >
+> > > > Signed-off-by: Alexander Larsson <alexl@redhat.com>
+> > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > > > ---
+> > > >
+> > > > Zorro,
+> > > >
+> > > > Per your request on v1 [1], I've added a helper to check escaped ov=
+erlay
+> > > > xattrs support.
+> > > >
+> > > > The helper was taken from the patch that adds test overlay/084 [2],=
+ and
+> > > > re-factored, but other than that, overlay/084 itself is unchanged, =
+so
+> > > > I am not re-posting it nor any of the other patches in the overlay =
+tests
+> > > > for v6.7-rc1.
+> > > >
+> > > > Let me know if this works for you.
+> > >
+> > >
+> > >
+> > >
+> > > >
+> > > > Thanks,
+> > > > Amir.
+> > > >
+> > > > [1] https://lore.kernel.org/fstests/20231116075250.ntopaswush4sn2qf=
+@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com/
+> > > > [2] https://lore.kernel.org/fstests/20231114064857.1666718-2-amir73=
+il@gmail.com/
+> > > >
+> > > >  common/overlay        | 19 +++++++++++++++++++
+> > > >  tests/overlay/026     | 42 +++++++++++++++++++++++++++++----------=
 ---
- tests/overlay/086     | 81 +++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/086.out |  2 ++
- 2 files changed, 83 insertions(+)
- create mode 100755 tests/overlay/086
- create mode 100644 tests/overlay/086.out
+> > > >  tests/overlay/026.out |  2 --
+> > > >  3 files changed, 48 insertions(+), 15 deletions(-)
+> > > >
+> > > > diff --git a/common/overlay b/common/overlay
+> > > > index 7004187f..8f275228 100644
+> > > > --- a/common/overlay
+> > > > +++ b/common/overlay
+> > > > @@ -201,6 +201,25 @@ _require_scratch_overlay_features()
+> > > >       _scratch_unmount
+> > > >  }
+> > > >
+> > > > +_check_scratch_overlay_xattr_escapes()
+> > > > +{
+> > > > +     local testfile=3D$1
+> > > > +
+> > > > +     touch $testfile
+> > > > +     ! ($GETFATTR_PROG -n trusted.overlay.foo $testfile 2>&1 | gre=
+p -E -q "not (permitted|supported)")
+> > > > +}
+> > > > +
+> > > > +_require_scratch_overlay_xattr_escapes()
+> > > > +{
+> > > > +     _scratch_mkfs > /dev/null 2>&1
+> > > > +     _scratch_mount
+> > > > +
+> > > > +        _check_scratch_overlay_xattr_escapes $SCRATCH_MNT/file || =
+\
+> > > > +                  _notrun "xattr escaping is not supported by over=
+lay"
+> > > > +
+> > > > +     _scratch_unmount
+> > > > +}
+> > > > +
+> > >
+> > > Hi Amir,
+> > >
+> > > Sorry for this late review, got a little busy on other things recentl=
+y.
+> > > Won't this patch be conflict with another patchset which you/Alex hav=
+e sent:
+> > >   https://lore.kernel.org/fstests/20231114064857.1666718-2-amir73il@g=
+mail.com/
+> > >
+> > > So you'll rebase that patchset on this, right?
+> >
+> > I rebased and pushed to this branch:
+> > https://github.com/amir73il/xfstests/commits/overlayfs-devel
+> >
+> > If you want I can re-post the entire series, but really, the only chang=
+e is
+> > the common/overlay chunk in the first patch which should be ignored.
+>
+> Hi Amir,
+>
+> I just tried, there're two _require_scratch_overlay_xattr_escapes() in
+> common/overlay [1].
 
-diff --git a/tests/overlay/086 b/tests/overlay/086
-new file mode 100755
-index 00000000..b5960517
---- /dev/null
-+++ b/tests/overlay/086
-@@ -0,0 +1,81 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
-+#
-+# FS QA Test 086
-+#
-+# Test lowerdir+,datadir+ mount option restrictions.
-+#
-+
-+. ./common/preamble
-+_begin_fstest auto quick mount
-+
-+# Import common functions.
-+. ./common/filter
-+
-+# real QA test starts here
-+_supported_fs overlay
-+
-+# _overlay_check_* helpers do not handle special chars well
-+_require_scratch_nocheck
-+_require_scratch_overlay_lowerdir_add_layers
-+
-+# Remove all files from previous tests
-+_scratch_mkfs
-+
-+# Create lowerdirs with special characters
-+lowerdir_spaces="$OVL_BASE_SCRATCH_MNT/lower1 with  spaces"
-+lowerdir_colons="$OVL_BASE_SCRATCH_MNT/lower2:with::colons"
-+lowerdir_colons_esc="$OVL_BASE_SCRATCH_MNT/lower2\:with\:\:colons"
-+lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
-+upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
-+workdir=$OVL_BASE_SCRATCH_MNT/$OVL_WORK
-+mkdir -p "$lowerdir_spaces" "$lowerdir_colons"
-+
-+# _overlay_mount_* helpers do not handle lowerdir+,datadir+, so execute mount directly.
-+
-+# check illegal combinations and order of lowerdir,lowerdir+,datadir+
-+$MOUNT_PROG -t overlay none $SCRATCH_MNT \
-+	-o"lowerdir=$lowerdir,lowerdir+=$lowerdir_colons" \
-+	2>> $seqres.full && \
-+	echo "ERROR: invalid combination of lowerdir and lowerdir+ mount options"
-+
-+$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
-+
-+$MOUNT_PROG -t overlay none $SCRATCH_MNT \
-+	-o"lowerdir=$lowerdir,datadir+=$lowerdir_colons" \
-+	-o redirect_dir=follow,metacopy=on 2>> $seqres.full && \
-+	echo "ERROR: invalid combination of lowerdir and datadir+ mount options"
-+
-+$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
-+
-+$MOUNT_PROG -t overlay none $SCRATCH_MNT \
-+	-o"datadir+=$lowerdir,lowerdir+=$lowerdir_colons" \
-+	-o redirect_dir=follow,metacopy=on 2>> $seqres.full && \
-+	echo "ERROR: invalid order of lowerdir+ and datadir+ mount options"
-+
-+$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
-+
-+# mount is expected to fail with escaped colons.
-+$MOUNT_PROG -t overlay none $SCRATCH_MNT \
-+	-o"lowerdir+=$lowerdir_colons_esc" \
-+	2>> $seqres.full && \
-+	echo "ERROR: incorrect parsing of escaped colons in lowerdir+ mount option"
-+
-+$UMOUNT_PROG $SCRATCH_MNT 2>/dev/null
-+
-+# mount is expected to succeed without escaped colons.
-+$MOUNT_PROG -t overlay ovl_esc_test $SCRATCH_MNT \
-+	-o"lowerdir+=$lowerdir_colons,datadir+=$lowerdir_spaces" \
-+	-o redirect_dir=follow,metacopy=on \
-+	2>&1 | tee -a $seqres.full
-+
-+# if spaces are not escaped when showing mount options,
-+# mount command will not show the word 'spaces' after the spaces
-+$MOUNT_PROG -t overlay | grep ovl_esc_test | tee -a $seqres.full | \
-+	grep -q 'datadir+'.*spaces || \
-+	echo "ERROR: escaped spaces truncated from datadir+ mount option"
-+
-+echo "Silence is golden"
-+status=0
-+exit
-diff --git a/tests/overlay/086.out b/tests/overlay/086.out
-new file mode 100644
-index 00000000..b34758fd
---- /dev/null
-+++ b/tests/overlay/086.out
-@@ -0,0 +1,2 @@
-+QA output created by 086
-+Silence is golden
--- 
-2.34.1
+Yes, as I said, the one from *this* patch is the correct one
+the other one is obsolete.
 
+> So please rebase and re-send that patchset, then I can
+> merge them easily and clearly.
+
+Ok. Sent v2.
+You should apply it on top of this patch.
+
+Thanks,
+Amir.
