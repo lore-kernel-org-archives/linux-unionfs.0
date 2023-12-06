@@ -1,125 +1,248 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UgGB7cZa"
-Received: from mail-qt1-x82c.google.com (mail-qt1-x82c.google.com [IPv6:2607:f8b0:4864:20::82c])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8B82120;
-	Wed,  6 Dec 2023 02:30:07 -0800 (PST)
-Received: by mail-qt1-x82c.google.com with SMTP id d75a77b69052e-42573090000so4595241cf.0;
-        Wed, 06 Dec 2023 02:30:07 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CnvBj+uo"
+Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC82E9A;
+	Wed,  6 Dec 2023 04:19:02 -0800 (PST)
+Received: by mail-wm1-x332.google.com with SMTP id 5b1f17b1804b1-40c0a0d068bso33435875e9.3;
+        Wed, 06 Dec 2023 04:19:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1701858607; x=1702463407; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=2ManYJ4iH+7Glq1N9TdJT0x0N7GL+Rgw7Mwl32pJ4Fw=;
-        b=UgGB7cZahTq7f6GeA1es/v8OTqk7v21MZsT5WppMym1TE3GfqsEFT7mpHe7s0o7q8e
-         wOCN96UEcKxz1oPmmN+aSo3duAi+THPjrmiVKQ8oj2iLejPTsrm1mjUZgcSCoiuW7d+m
-         dhIGfMVtqFqqUovygrI9CLT0g76R6pvmY3jKTgxYjlOwASoBpLE3NOF1K1Wfgwbq7/bs
-         tRFKElARBj7W7np/y05rZnDtqUHeZKYCTuZwjsIkGK3jV82xV1RI5xzilG8iiWxFbFqE
-         ko/2f/WOfQq4wpZF1SGIratBAi5275jiuN+RmyPvg3BGpC4zu2Avp6nD2Yh1BwzGCKeK
-         SYmA==
+        d=gmail.com; s=20230601; t=1701865141; x=1702469941; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=dVeeaUhHA3OEpCfniwSPXjh45fNvtiKeJJRS3qu6+KY=;
+        b=CnvBj+uo+1loN0ICKreIgGbMnAgvh3HBGMh3CAuDMCk1ArRy6Usr1uU43EmFyKJBqk
+         DePryVIrA0VBaYxqmPDkDT2X82feHqLThK+x5Wf21Stc/CYXrveMcOCqbck1yzxVVMJj
+         py8Gd5gF1z1ISg40CBO4xmtNhBNsmU916dvcKweYHBXtGdGSVaqtErq1uuXYID3TY26z
+         yHYrK3RbGMHxUhZ4cMLFB0MS9hrIo3QsZ2x0m59iBXKG0ICnS3I1Qktvd56oaqGAGTC+
+         Q2mAiLW7nheeW2NMUq/4DvK4I5ehN6LKgo1HpBPQ5K8zfmWZ0rY5PK/nDJwXgBvbSM/Z
+         TxIg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701858607; x=1702463407;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=2ManYJ4iH+7Glq1N9TdJT0x0N7GL+Rgw7Mwl32pJ4Fw=;
-        b=H2IAv8aYsfUojw0gWq5uVfZKY2W2kNw2Mh2ttWRgAz3eWBMoVd8Ig7lMJ/1MmRnbAv
-         zOxrHK2/1tgq6euEVrICDf3Bb9YKonDj+Qmco+3ptQ/0zTuoV/zmt6vJgVRoCHnL4SbN
-         /LIaTd/YaKgtUm03Si12NrtxvB0cDUQRjn79HbeXXtcNfl+2lxP0mBNlHfHyQI7Ky871
-         nItF3n+6/zjPw4GdMnGEz65Bj25EiK6GYyxmd7dg2Kz3lbKlCDkdK2KiUvrVY4A9ANYX
-         czHiRPnpTssrm7Z9b24cC/IH/neqQsT6QaKFOiomAYA+NtFvXzByBA2Mf0SPYnOlIhq8
-         qZ+w==
-X-Gm-Message-State: AOJu0YzktPGMSUs1i5yo7frC75Us7eGTeyKmAr/sAs3EZHf8B9yKrIf1
-	C3137Bol+jzDRrrJ7N2pd05IAa6dnzi7EJTJCAE=
-X-Google-Smtp-Source: AGHT+IEJgD8h2sohptearYgmwgCPJtYWnBi6feYXahkhIuVAEljV/+U5+1I5aXd2IcigqM6ACUmMbU1B87vaRzdatuU=
-X-Received: by 2002:a05:6214:cae:b0:67a:55f2:1084 with SMTP id
- s14-20020a0562140cae00b0067a55f21084mr3520404qvs.8.1701858606683; Wed, 06 Dec
- 2023 02:30:06 -0800 (PST)
+        d=1e100.net; s=20230601; t=1701865141; x=1702469941;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=dVeeaUhHA3OEpCfniwSPXjh45fNvtiKeJJRS3qu6+KY=;
+        b=pclhIqeYl6NRexEBPJvm2pbsshs7/OPYka7PHnRYHnVi4Bhr8H7I4WQSK5U02bemeP
+         dnIMBWNiWMKiCax1Yubv86Y13S5qy6TVIO53/iMDJroGpjcmSCdVTE3AjrSYhW4W8SAx
+         92pbM+d5YYwdR/EtEBQFNfh41ZSqrBjdBcCOcstYk7A4G8d+9BaIZAmQ8KB+zw1OSmiZ
+         dfPjm/n/4WD93SjLx1HBcmoTRmmOUw612y17IEmadb6/RxdXBL8BA31w9+SpbNUnMqMh
+         6Up6ciNC4337ApxhqYRreLr5cpO7cjfh1H9abwPyCVj8U7CnlBY0f38T4bApt1T8HnRq
+         tizA==
+X-Gm-Message-State: AOJu0Yw7FtFMaBeC8X8MVTlGWYvgb+lMnRLsAJwV/UjASAgzcVIkfa6l
+	MX6vvbsaAffE+BpZ1U2w0Z8=
+X-Google-Smtp-Source: AGHT+IHRKYDR9yEzgQCVjtEGEgIlHHHcfJBJwGVW+9+NCGtfi8f/Bmx00CZV025jj+PZuhGuQREOuA==
+X-Received: by 2002:a05:600c:a43:b0:40b:45e2:1f56 with SMTP id c3-20020a05600c0a4300b0040b45e21f56mr684953wmq.39.1701865140923;
+        Wed, 06 Dec 2023 04:19:00 -0800 (PST)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id n10-20020a05600c4f8a00b0040b4b2a15ebsm21608082wmq.28.2023.12.06.04.18.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 06 Dec 2023 04:19:00 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Zorro Lang <zlang@redhat.com>
+Cc: Alexander Larsson <alexl@redhat.com>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	linux-unionfs@vger.kernel.org,
+	fstests@vger.kernel.org,
+	Zorro Lang <zlang@kernel.org>
+Subject: [PATCH] overlay: create helper _overlay_scratch_mount_opts()
+Date: Wed,  6 Dec 2023 14:18:57 +0200
+Message-Id: <20231206121857.3873367-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231204185859.3731975-1-amir73il@gmail.com> <20231204185859.3731975-3-amir73il@gmail.com>
- <20231206083746.aeokhhylcbpd6rkl@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20231206083746.aeokhhylcbpd6rkl@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 6 Dec 2023 12:29:54 +0200
-Message-ID: <CAOQ4uxi-64evfEQo3KNbO5-h1LF1Jgy5o1X1niH_EO+U7-2fHA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] overlay: prepare for new lowerdir+,datadir+ tests
-To: Zorro Lang <zlang@redhat.com>
-Cc: Alexander Larsson <alexl@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	fstests@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Wed, Dec 6, 2023 at 10:37=E2=80=AFAM Zorro Lang <zlang@redhat.com> wrote=
-:
->
-> On Mon, Dec 04, 2023 at 08:58:57PM +0200, Amir Goldstein wrote:
-> > In preparation to forking tests for new lowerdir+,datadir+ mount option=
-s,
-> > prepare a helper to test kernel support and pass datadirs into mount
-> > helpers in overlay/079 test.
-> >
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
-> >  common/overlay    | 15 +++++++++++++++
-> >  tests/overlay/079 | 36 +++++++++++++++++++++---------------
-> >  2 files changed, 36 insertions(+), 15 deletions(-)
-> >
-> > diff --git a/common/overlay b/common/overlay
-> > index 8f275228..ea1eb7b1 100644
-> > --- a/common/overlay
-> > +++ b/common/overlay
-> > @@ -247,6 +247,21 @@ _require_scratch_overlay_lowerdata_layers()
-> >       _scratch_unmount
-> >  }
-> >
-> > +# Check kernel support for lowerdir+=3D<lowerdir>,datadir+=3D<lowerdat=
-adir> format
-> > +_require_scratch_overlay_lowerdir_add_layers()
-> > +{
-> > +     local lowerdir=3D"$OVL_BASE_SCRATCH_MNT/$OVL_UPPER"
-> > +     local datadir=3D"$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
-> > +
-> > +     _scratch_mkfs > /dev/null 2>&1
-> > +     $MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
-> > +             -o"lowerdir+=3D$lowerdir,datadir+=3D$datadir" \
-> > +             -o"redirect_dir=3Dfollow,metacopy=3Don" > /dev/null 2>&1 =
-|| \
-> > +             _notrun "overlay lowerdir+,datadir+ not supported on ${SC=
-RATCH_DEV}"
->
-> Hi Amir,
->
-> I found overlay cases don't use helpers in common/overlay recently, alway=
-s
-> use raw $MOUNT_PROG directly (not only in this patchset). Although overla=
-y
-> supports new mount format, can we improve the mount helpers in common/ove=
-rlay
-> to support that? It would be to good to use common helpers to do common
-> operation.
->
-> Anyway, that can be changed in another patch, if it takes too much time o=
-r
-> you don't want to do it at here. What do you think?
+The new overlayfs mount options lowerdir+,datadir+ don't fit well
+into any of the existing _overlay_scratch_mount* helpers.
+Add this new helper to reduce a common pattern of custom mount options.
 
-I agree. I wouldn't improve the existing helpers to support the new
-lowerdir+,datadir+ options as positional argument like in
-_overlay_scratch_mount_dirs(), but there is an opportunity to reduce
-dedupe of this common line with a helper:
+Suggested-by: Zorro Lang <zlang@kernel.org>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
 
-# Mount with mnt/dev of scratch mount and custom mount options
-_overlay_scratch_mount_opts()
-{
-        $MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
-}
+Zorro,
 
-I will work on this cleanup and post a patch when I get to it.
-No need to block this series for the cleanup.
+Here is the cleanup patch that you suggested.
+
+Note that tests overlay/083 and overlay/086 intentionally use
+$MOUNT_PROG directly because some of the tests cases use escaping
+character "\" and calling _overlay_mount_* helpers can loose the
+special chars escaping when bash is evaluating the arguments.
+
+Maybe it is solvabale, but that would be very high on the list of
+things that I do not want to do.
 
 Thanks,
 Amir.
+
+ common/overlay    | 8 +++++++-
+ tests/overlay/011 | 2 +-
+ tests/overlay/035 | 3 +--
+ tests/overlay/052 | 4 ++--
+ tests/overlay/053 | 4 ++--
+ tests/overlay/062 | 2 +-
+ tests/overlay/079 | 4 ++--
+ tests/overlay/085 | 4 ++--
+ 8 files changed, 18 insertions(+), 13 deletions(-)
+
+diff --git a/common/overlay b/common/overlay
+index ea1eb7b1..faa9339a 100644
+--- a/common/overlay
++++ b/common/overlay
+@@ -32,6 +32,12 @@ _overlay_mount_dirs()
+ 	$MOUNT_PROG -t overlay $diropts `_common_dev_mount_options $*`
+ }
+ 
++# Mount with mnt/dev of scratch mount and custom mount options
++_overlay_scratch_mount_opts()
++{
++	$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
++}
++
+ # Mount with same options/mnt/dev of scratch mount, but optionally
+ # with different lower/upper/work dirs
+ _overlay_scratch_mount_dirs()
+@@ -254,7 +260,7 @@ _require_scratch_overlay_lowerdir_add_layers()
+ 	local datadir="$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
+ 
+ 	_scratch_mkfs > /dev/null 2>&1
+-	$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++	_overlay_scratch_mount_opts \
+ 		-o"lowerdir+=$lowerdir,datadir+=$datadir" \
+ 		-o"redirect_dir=follow,metacopy=on" > /dev/null 2>&1 || \
+ 	        _notrun "overlay lowerdir+,datadir+ not supported on ${SCRATCH_DEV}"
+diff --git a/tests/overlay/011 b/tests/overlay/011
+index 20812d88..09a950ba 100755
+--- a/tests/overlay/011
++++ b/tests/overlay/011
+@@ -37,7 +37,7 @@ $SETFATTR_PROG -n "trusted.overlay.opaque" -v "y" $upperdir/testdir
+ # $upperdir overlaid on top of $lowerdir, so that "trusted.overlay.opaque"
+ # xattr should be honored and should not be listed
+ # mount readonly, because there's no upper and workdir
+-$MOUNT_PROG -t overlay -o ro -o lowerdir=$upperdir:$lowerdir $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++_overlay_scratch_mount_opts -o ro -o lowerdir=$upperdir:$lowerdir
+ 
+ # Dump trusted.overlay xattr, we should not see the "opaque" xattr
+ _getfattr -d -m overlay $SCRATCH_MNT/testdir
+diff --git a/tests/overlay/035 b/tests/overlay/035
+index 8cd76979..f4c981ad 100755
+--- a/tests/overlay/035
++++ b/tests/overlay/035
+@@ -42,8 +42,7 @@ mkdir -p $lowerdir1 $lowerdir2 $upperdir $workdir
+ 
+ # Mount overlay with lower layers only.
+ # Verify that overlay is mounted read-only and that it cannot be remounted rw.
+-$MOUNT_PROG -t overlay -o"lowerdir=$lowerdir2:$lowerdir1" \
+-			$OVL_BASE_SCRATCH_MNT $SCRATCH_MNT
++_overlay_scratch_mount_opts -o"lowerdir=$lowerdir2:$lowerdir1"
+ touch $SCRATCH_MNT/foo 2>&1 | _filter_scratch
+ $MOUNT_PROG -o remount,rw $SCRATCH_MNT 2>&1 | _filter_ro_mount
+ $UMOUNT_PROG $SCRATCH_MNT
+diff --git a/tests/overlay/052 b/tests/overlay/052
+index da8c645b..6abe2e01 100755
+--- a/tests/overlay/052
++++ b/tests/overlay/052
+@@ -133,7 +133,7 @@ unmount_dirs
+ 
+ # Check encode/decode/read of lower file handles on lower layers only r/o overlay.
+ # For non-upper overlay mount, nfs_export requires disabling redirect_dir.
+-$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++_overlay_scratch_mount_opts \
+ 			-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$middle:$lower
+ test_file_handles $SCRATCH_MNT/lowertestdir -rp
+ test_file_handles $SCRATCH_MNT/lowertestdir/subdir -rp
+@@ -144,7 +144,7 @@ unmount_dirs
+ # Overlay lookup cannot follow the redirect from $upper/lowertestdir.new to
+ # $lower/lowertestdir. Instead, we mount an overlay subtree rooted at these
+ # directories.
+-$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++_overlay_scratch_mount_opts \
+ 		-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$upper/lowertestdir.new:$lower/lowertestdir
+ test_file_handles $SCRATCH_MNT -r
+ test_file_handles $SCRATCH_MNT/subdir -rp
+diff --git a/tests/overlay/053 b/tests/overlay/053
+index dfa29d01..cf94f930 100755
+--- a/tests/overlay/053
++++ b/tests/overlay/053
+@@ -162,7 +162,7 @@ unmount_dirs
+ 
+ # Check encode/decode/read of lower file handles on lower layers only r/o overlay.
+ # For non-upper overlay mount, nfs_export requires disabling redirect_dir.
+-$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++_overlay_scratch_mount_opts \
+ 			-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$middle:$lower
+ test_file_handles $SCRATCH_MNT/lowertestdir -rp
+ test_file_handles $SCRATCH_MNT/lowertestdir/subdir -rp
+@@ -173,7 +173,7 @@ unmount_dirs
+ # Overlay lookup cannot follow the redirect from $upper/lowertestdir.new to
+ # $lower/lowertestdir. Instead, we mount an overlay subtree rooted at these
+ # directories.
+-$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++_overlay_scratch_mount_opts \
+ 		-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$upper/lowertestdir.new:$lower/lowertestdir
+ test_file_handles $SCRATCH_MNT -r
+ test_file_handles $SCRATCH_MNT/subdir -rp
+diff --git a/tests/overlay/062 b/tests/overlay/062
+index 04e13e46..a4e9560a 100755
+--- a/tests/overlay/062
++++ b/tests/overlay/062
+@@ -65,7 +65,7 @@ create_test_files $lowertestdir
+ $MOUNT_PROG --bind $lowertestdir $lowertestdir
+ 
+ # For non-upper overlay mount, nfs_export requires disabling redirect_dir.
+-$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++_overlay_scratch_mount_opts \
+ 	-o ro,redirect_dir=nofollow,nfs_export=on,lowerdir=$lower:$lower2
+ 
+ # Decode an overlay directory file handle, whose underlying lower dir dentry
+diff --git a/tests/overlay/079 b/tests/overlay/079
+index 078ee816..f28fc313 100755
+--- a/tests/overlay/079
++++ b/tests/overlay/079
+@@ -141,7 +141,7 @@ mount_overlay()
+ {
+ 	local _lowerdir=$1 _datadir2=$2 _datadir=$3
+ 
+-	$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++	_overlay_scratch_mount_opts \
+ 		-o"lowerdir=$_lowerdir::$_datadir2::$_datadir" \
+ 		-o"upperdir=$upperdir,workdir=$workdir" \
+ 		-o redirect_dir=on,metacopy=on
+@@ -151,7 +151,7 @@ mount_ro_overlay()
+ {
+ 	local _lowerdir=$1 _datadir2=$2 _datadir=$3
+ 
+-	$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++	_overlay_scratch_mount_opts \
+ 		-o"lowerdir=$_lowerdir::$_datadir2::$_datadir" \
+ 		-o redirect_dir=follow,metacopy=on
+ }
+diff --git a/tests/overlay/085 b/tests/overlay/085
+index 07a32c24..0f4e4b06 100755
+--- a/tests/overlay/085
++++ b/tests/overlay/085
+@@ -142,7 +142,7 @@ mount_overlay()
+ {
+ 	local _lowerdir=$1 _datadir2=$2 _datadir=$3
+ 
+-	$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++	_overlay_scratch_mount_opts \
+ 		-o"lowerdir+=$_lowerdir,datadir+=$_datadir2,datadir+=$_datadir" \
+ 		-o"upperdir=$upperdir,workdir=$workdir" \
+ 		-o redirect_dir=on,metacopy=on
+@@ -152,7 +152,7 @@ mount_ro_overlay()
+ {
+ 	local _lowerdir=$1 _datadir2=$2 _datadir=$3
+ 
+-	$MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
++	_overlay_scratch_mount_opts \
+ 		-o"lowerdir+=$_lowerdir,datadir+=$_datadir2,datadir+=$_datadir" \
+ 		-o redirect_dir=follow,metacopy=on
+ }
+-- 
+2.34.1
+
