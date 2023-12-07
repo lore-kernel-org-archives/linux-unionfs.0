@@ -1,135 +1,128 @@
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9676237D2D;
+	Thu,  7 Dec 2023 14:43:00 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="B5L8GwmL"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 317FFC7
-	for <linux-unionfs@vger.kernel.org>; Wed,  6 Dec 2023 05:35:55 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1701869754;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=KwApGcjbVB2/g9F+5sCLlB1sJOloJ8NVDY/Q5suv8LE=;
-	b=B5L8GwmL7jUbHFx6VZgpaUZDiXnH1oC/Dto6zh76svyieke4pJbiwhjmTSTjevXFLMDqiY
-	Va4FpSLw+TxbubAfMuV6esK57T+Al6ihgSqLIUDpW7+j110G9hx5sWC+LIvepebYFAWbE7
-	CHlDDBmGOHZEwP6vWpzBaX/30wpQbh0=
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com
- [209.85.166.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-92-CLPgCxEZN2e2plyWDyc0aA-1; Wed, 06 Dec 2023 08:35:52 -0500
-X-MC-Unique: CLPgCxEZN2e2plyWDyc0aA-1
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-35d607adce1so47491075ab.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 06 Dec 2023 05:35:52 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1701869752; x=1702474552;
-        h=in-reply-to:content-transfer-encoding:content-disposition
-         :mime-version:references:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=KwApGcjbVB2/g9F+5sCLlB1sJOloJ8NVDY/Q5suv8LE=;
-        b=PSFTRos+Sta6TvUCMHM2xKr9DlX7AG+NPUnudwD0z84rZ+ATSTiYkO9Oqq2to7C8/q
-         HRIjf7qeaJBe/Uko3kVvVy70Yc8k6RYHbvH/F16PzTTYsXQvU/4YQwEHM6wW9VrH4wEc
-         lQjtiisACOXlh4jLKucSQlrOeZ08IQ1rPdBonvCADobn8i8jfez6yTmtiAABJtLXnhCq
-         iESSzNL/Jx9c3W7ENq0c6VtKaXwyG0eIDG9pzZxXEntOC2GglF9cHLVJ4bFE3GjxyE09
-         zfYXbiomfnSACrWDVv8T2KQfaj+uOQc2F9a2oUEqOmIqbadM9JQ8Euya8TtcOUxNjcy7
-         4bQA==
-X-Gm-Message-State: AOJu0YyiUKhdqXiv3bhDMBM1QEJifnZPfdC9UD86lalDIzbvk5ipyAgu
-	UfDoRRCo+X0CUubwKiLVna4z9/QfZ/ikwUWVrCM6gZSxBVJV2hT4U/sIBy4/Zzg3wq4XXbjL5BP
-	u5F8x+eMwi5LE8d4cLAy3ar2b4A==
-X-Received: by 2002:a05:6e02:1352:b0:35c:8f50:acd3 with SMTP id k18-20020a056e02135200b0035c8f50acd3mr1019943ilr.18.1701869752093;
-        Wed, 06 Dec 2023 05:35:52 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IEuXQNqAztvgVUty9xiZxViYydyBcK0OkTIPlQogigBoFp4XaYTgRFyuHLCr6UcdiWL4iXeow==
-X-Received: by 2002:a05:6e02:1352:b0:35c:8f50:acd3 with SMTP id k18-20020a056e02135200b0035c8f50acd3mr1019933ilr.18.1701869751813;
-        Wed, 06 Dec 2023 05:35:51 -0800 (PST)
-Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([43.228.180.230])
-        by smtp.gmail.com with ESMTPSA id g19-20020a632013000000b005c60ad6c4absm10944080pgg.4.2023.12.06.05.35.49
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 06 Dec 2023 05:35:51 -0800 (PST)
-Date: Wed, 6 Dec 2023 21:35:47 +0800
-From: Zorro Lang <zlang@redhat.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Alexander Larsson <alexl@redhat.com>,
-	Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
-	fstests@vger.kernel.org
-Subject: Re: [PATCH v2 2/4] overlay: prepare for new lowerdir+,datadir+ tests
-Message-ID: <20231206133547.mmu32yearrpcjjdk@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-References: <20231204185859.3731975-1-amir73il@gmail.com>
- <20231204185859.3731975-3-amir73il@gmail.com>
- <20231206083746.aeokhhylcbpd6rkl@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxi-64evfEQo3KNbO5-h1LF1Jgy5o1X1niH_EO+U7-2fHA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aLxoBSw/"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB1F1C433C7;
+	Thu,  7 Dec 2023 14:42:59 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1701960180;
+	bh=cQep9CNYbdGvrYQCRNGMIqjTSZXsMZr211akzg6LsV0=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=aLxoBSw/8zR9WkDXX1UNVxvj/L8lU6ROUUegSoGsptHGsdpbda3X7LdvyjbRvF8C6
+	 MUHZ01pUD6HrpHGczZTYrgDolAPVc3C6TJLMi/AgRRuR/PJIKRgbA4+znthKyKoEnd
+	 mhIkF5hTjXB9R7BNHY0pMyjRDTKuKsbQy5uFSzLlUisLTZIqE1zlCzj/lJecRDJP9k
+	 DiTpRJskSwHQmOeGSlvmF/6OEqmANZHTVoI0sf3ICeuHIn6EJvfjE12wPlFO9AmiVm
+	 rVmTpGAU5SyYQD9/rmI1In0D4CY6F53P9z5kA9uEarFC59qJcNjG890sgSlJ5XI543
+	 YZ9/r7DenQi3Q==
+Date: Thu, 7 Dec 2023 08:42:58 -0600
+From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Serge Hallyn <serge@hallyn.com>, Paul Moore <paul@paul-moore.com>,
+	Eric Paris <eparis@redhat.com>, James Morris <jmorris@namei.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Mimi Zohar <zohar@linux.ibm.com>, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-security-module@vger.kernel.org, audit@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 09/16] fs: add vfs_set_fscaps()
+Message-ID: <ZXHZ8uNEg1IK5WMW@do-x1extreme>
+References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
+ <20231129-idmap-fscap-refactor-v1-9-da5a26058a5b@kernel.org>
+ <20231201-reintreten-gehalt-435a960f80ed@brauner>
+ <ZWojWE7/HRnByRb+@do-x1extreme>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxi-64evfEQo3KNbO5-h1LF1Jgy5o1X1niH_EO+U7-2fHA@mail.gmail.com>
+In-Reply-To: <ZWojWE7/HRnByRb+@do-x1extreme>
 
-On Wed, Dec 06, 2023 at 12:29:54PM +0200, Amir Goldstein wrote:
-> On Wed, Dec 6, 2023 at 10:37 AM Zorro Lang <zlang@redhat.com> wrote:
-> >
-> > On Mon, Dec 04, 2023 at 08:58:57PM +0200, Amir Goldstein wrote:
-> > > In preparation to forking tests for new lowerdir+,datadir+ mount options,
-> > > prepare a helper to test kernel support and pass datadirs into mount
-> > > helpers in overlay/079 test.
-> > >
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > ---
-> > >  common/overlay    | 15 +++++++++++++++
-> > >  tests/overlay/079 | 36 +++++++++++++++++++++---------------
-> > >  2 files changed, 36 insertions(+), 15 deletions(-)
-> > >
-> > > diff --git a/common/overlay b/common/overlay
-> > > index 8f275228..ea1eb7b1 100644
-> > > --- a/common/overlay
-> > > +++ b/common/overlay
-> > > @@ -247,6 +247,21 @@ _require_scratch_overlay_lowerdata_layers()
-> > >       _scratch_unmount
-> > >  }
-> > >
-> > > +# Check kernel support for lowerdir+=<lowerdir>,datadir+=<lowerdatadir> format
-> > > +_require_scratch_overlay_lowerdir_add_layers()
+[Adding Mimi for insights on EVM questions]
+
+On Fri, Dec 01, 2023 at 12:18:00PM -0600, Seth Forshee (DigitalOcean) wrote:
+> On Fri, Dec 01, 2023 at 06:39:18PM +0100, Christian Brauner wrote:
+> > > +/**
+> > > + * vfs_set_fscaps - set filesystem capabilities
+> > > + * @idmap: idmap of the mount the inode was found from
+> > > + * @dentry: the dentry on which to set filesystem capabilities
+> > > + * @caps: the filesystem capabilities to be written
+> > > + * @flags: setxattr flags to use when writing the capabilities xattr
+> > > + *
+> > > + * This function writes the supplied filesystem capabilities to the dentry.
+> > > + *
+> > > + * Return: 0 on success, a negative errno on error.
+> > > + */
+> > > +int vfs_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+> > > +		   const struct vfs_caps *caps, int flags)
 > > > +{
-> > > +     local lowerdir="$OVL_BASE_SCRATCH_MNT/$OVL_UPPER"
-> > > +     local datadir="$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
+> > > +	struct inode *inode = d_inode(dentry);
+> > > +	struct inode *delegated_inode = NULL;
+> > > +	struct vfs_ns_cap_data nscaps;
+> > > +	int size, error;
 > > > +
-> > > +     _scratch_mkfs > /dev/null 2>&1
-> > > +     $MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT \
-> > > +             -o"lowerdir+=$lowerdir,datadir+=$datadir" \
-> > > +             -o"redirect_dir=follow,metacopy=on" > /dev/null 2>&1 || \
-> > > +             _notrun "overlay lowerdir+,datadir+ not supported on ${SCRATCH_DEV}"
-> >
-> > Hi Amir,
-> >
-> > I found overlay cases don't use helpers in common/overlay recently, always
-> > use raw $MOUNT_PROG directly (not only in this patchset). Although overlay
-> > supports new mount format, can we improve the mount helpers in common/overlay
-> > to support that? It would be to good to use common helpers to do common
-> > operation.
-> >
-> > Anyway, that can be changed in another patch, if it takes too much time or
-> > you don't want to do it at here. What do you think?
+> > > +	/*
+> > > +	 * Unfortunately EVM wants to have the raw xattr value to compare to
+> > > +	 * the on-disk version, so we need to pass the raw xattr to the
+> > > +	 * security hooks. But we also want to do security checks before
+> > > +	 * breaking leases, so that means a conversion to the raw xattr here
+> > > +	 * which will usually be reduntant with the conversion we do for
+> > > +	 * writing the xattr to disk.
+> > > +	 */
+> > > +	size = vfs_caps_to_xattr(idmap, i_user_ns(inode), caps, &nscaps,
+> > > +				 sizeof(nscaps));
+> > > +	if (size < 0)
+> > > +		return size;
+> > 
+> > Oh right, I remember that. Slight eyeroll. See below though...
+> > 
+> > > +
+> > > +retry_deleg:
+> > > +	inode_lock(inode);
+> > > +
+> > > +	error = xattr_permission(idmap, inode, XATTR_NAME_CAPS, MAY_WRITE);
+> > > +	if (error)
+> > > +		goto out_inode_unlock;
+> > > +	error = security_inode_setxattr(idmap, dentry, XATTR_NAME_CAPS, &nscaps,
+> > > +					size, flags);
+> > > +	if (error)
+> > > +		goto out_inode_unlock;
+> > 
+> > For posix acls I added dedicated security hooks that take the struct
+> > posix_acl stuff and then plumb that down into the security modules. You
+> > could do the same thing here and then just force EVM and others to do
+> > their own conversion from in-kernel to xattr format, instead of forcing
+> > the VFS to do this.
+> > 
+> > Because right now we make everyone pay the price all the time when
+> > really EVM should pay that price and this whole unpleasantness.
 > 
-> I agree. I wouldn't improve the existing helpers to support the new
-> lowerdir+,datadir+ options as positional argument like in
-> _overlay_scratch_mount_dirs(), but there is an opportunity to reduce
-> dedupe of this common line with a helper:
-> 
-> # Mount with mnt/dev of scratch mount and custom mount options
-> _overlay_scratch_mount_opts()
-> {
->         $MOUNT_PROG -t overlay $OVL_BASE_SCRATCH_MNT $SCRATCH_MNT $*
-> }
-> 
-> I will work on this cleanup and post a patch when I get to it.
-> No need to block this series for the cleanup.
+> Good point, I'll do that.
 
-Agree, thanks for doing this!
+I've been reconsidering various approaches here. One thing I noticed is
+that for the non-generic case (iow overlayfs) I missed calling
+security_inode_post_setxattr(), where EVM also wants the raw xattr, so
+that would require another conversion. That got me wondering whether the
+setxattr security hooks really matter when writing fscaps to overlayfs.
+And it seems like they might not: the LSMs only look for their own
+xattrs, and IMA doesn't do anything with fscaps xattrs. EVM does, but
+what it does for a xattr write to an overlayfs indoe seems at least
+partially if not completely redundant with what it will do when the
+xattr is written to the upper filesystem.
 
-> 
-> Thanks,
-> Amir.
-> 
+So could we push these security calls down to the generic fscaps
+implementations just before/after writing the raw xattr data and just
+skip them for overlayfs? If so we can get away with doing the vfs_caps
+to xattr conversion only once.
 
+The trade offs are that filesystems which implement fscaps inode
+operations become responsible for calling the security hooks if needed,
+and if something changes such that we need to call those security hooks
+for fscaps on overlayfs this solution would no longer work.
