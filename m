@@ -1,134 +1,176 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LvAm9y21"
-Received: from mail-oo1-xc33.google.com (mail-oo1-xc33.google.com [IPv6:2607:f8b0:4864:20::c33])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB08EFC;
-	Sun, 10 Dec 2023 07:28:46 -0800 (PST)
-Received: by mail-oo1-xc33.google.com with SMTP id 006d021491bc7-59064bca27dso2130250eaf.0;
-        Sun, 10 Dec 2023 07:28:46 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jVL4YL0q"
+Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26CD4F5;
+	Sun, 10 Dec 2023 08:42:04 -0800 (PST)
+Received: by mail-qv1-xf35.google.com with SMTP id 6a1803df08f44-67a948922aaso25526186d6.3;
+        Sun, 10 Dec 2023 08:42:04 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702222126; x=1702826926; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1702226523; x=1702831323; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=SI+pHJDVosXm+kgcqig4M+PjMjleFB4C6hfewiK+1qc=;
-        b=LvAm9y21jB2Xq2xbItEFBsw5LW1JdkZbKkpZOUSf20cC/sfkL+qRbN6fJCYwXVA9Y5
-         Er8RLe59P1eGT6CmYN7SLguyBdVfceJnqmxP7ddvtdVbRKdl9UBXKJ10BKevFsBqGVsf
-         75iK4Gsz0b7VA7iJ4f2f4Qa+fgIdnAEtoX6j6dkpAgJqTBfyzCE7JaBbEKN6Ghaljh1r
-         HztpauQBxQdsZAb05+C75/csBzm5Fcj93K5gBHT5A+xtw3Gr0Nqz8nbitefZ55ItP+YU
-         1VM6eUktaapBo3LGw90Z6bqlNNc4j5sQfHvrOPmGQZM5nOraIOYLGNhHxmz/oro9aZo2
-         JjQA==
+        bh=i0lrZcnXtGyQm/QMIPVbNtLua11zuI47QiJurNMFZ1o=;
+        b=jVL4YL0qmHRswmEa+HuW3r3TTfypYAf1tKa4jUS6xxD2BFE03NuG3JFj8VLJ+56jWo
+         5DV6H1zMsWFfuGITdWK56eTneH1zvXBzzlUSgjgiMKu1V/kc4MhpPyeyhxw5+5risPO/
+         IrtK7vzUzS7OHGsHf7H1pj6DvyxopeTxLNmPRuxnTj1llD3pyGZ38hd5/SvDgApRLGhk
+         2gksLZVi4A+W1M0dTy1FwTUiO/wXRk4J+yHaszbXq4ZHR3xbcDsqOU+avPcYvG+ge7Ta
+         A1bc68it6gM4Ynq7PqMW+Ypiq8a1C0nQBTOdh59jjsR7EtYQwf1tQLhC1jsV86TGeh8z
+         s+iw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702222126; x=1702826926;
+        d=1e100.net; s=20230601; t=1702226523; x=1702831323;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=SI+pHJDVosXm+kgcqig4M+PjMjleFB4C6hfewiK+1qc=;
-        b=ExuTDEqCUqTAtyjGIpKWXrfayrIFmSbJ8PxZSku6DLi9+OdG07LOGC2xreYB/HzNsj
-         DwOz/E6OL3zXg89S5WX9lP4X42HudKDC8SEiT57UjV7PZP5pVI4Hu/r25xHEoeaUmNeh
-         UhkFKbpGDvlcBfeOcds/Gt9yf3j0UoKPdzJOqrvnJVyyn9/5d39Xs4uSnGkw5YUks/3R
-         FVrN20ACTDxQuxRxnaCO3IF/FZCNG5K92BzU2bVv+H1oMC0NN4C++G34HLSIrTN6/F8t
-         atxZk1m22S0PzZ7ub8ZUpRihmgeoYKujltrA9RWuroP8atRCRlUQyfKjMhtA7gPOYQmd
-         W+Rw==
-X-Gm-Message-State: AOJu0Yw2g4llmfuGZDoRSaHZCDgo6lC5+97aSn4IlFsh74ogbHhD8i1G
-	1ucs5MKEJh5i+fg4qa79V6hgvo01nvVA9NKUTuo=
-X-Google-Smtp-Source: AGHT+IE+7M81IcxaUQviAv73djQgID5y4JUnT/i+tVNe1jvUwB856N8HDajM7pCox0OJGzKG+xmgf0XSwJRH3vkYea8=
-X-Received: by 2002:a05:6358:7f05:b0:169:9c45:ca12 with SMTP id
- p5-20020a0563587f0500b001699c45ca12mr3606561rwn.23.1702222126061; Sun, 10 Dec
- 2023 07:28:46 -0800 (PST)
+        bh=i0lrZcnXtGyQm/QMIPVbNtLua11zuI47QiJurNMFZ1o=;
+        b=GDdeU8cJHIIutAY/bkt3H5c2ETZSHNHyCCyxIx2vL64DowKM8/ZWkCxT0L1vEzp7t0
+         qhQcR5iIz0fpfOS15zfyK923mRTdwOw5XSiVqtDLWX3N1G8edxDEtt9HcmBP9kRwugCl
+         s0ij+bnvtkjrEINAXYdVxfXvfbnBVJsMFC1GRBNcCjIneM3jcqrUqMPShjTDjNzaZMmE
+         /mVxTt58mnmuCrHh3an7ZF2zR7Br46cG9rIIvB+HkFRvtGeV6O+v3unsnFhpZhCA8cc2
+         nlxeggn3ze8wBbp+pEbUHaslcxosDBsixleK1WZoK40xxYcZSp4Ugd/pu/vxVhOVM5cs
+         wXow==
+X-Gm-Message-State: AOJu0YzUnZl1DYISCBtWF2+Lvl0rX4kWzJmQHYC+kuarqUSG4LWbnW7Z
+	kqhUECLd0vlc3JSyhL+GT3SyTZR5bQMa/aAC5bhkDKD/60A=
+X-Google-Smtp-Source: AGHT+IFlVeOQUiWtpd0w0fAcibx30vf9EiQ3pz90L9Uvaz9+6/o+1u7RBzxGVZQrrvAkoWzvQgopyfvAGOsN7T5J4wo=
+X-Received: by 2002:a05:6214:17c9:b0:67a:a721:e12d with SMTP id
+ cu9-20020a05621417c900b0067aa721e12dmr3567441qvb.90.1702226523168; Sun, 10
+ Dec 2023 08:42:03 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231204185859.3731975-1-amir73il@gmail.com> <20231204185859.3731975-2-amir73il@gmail.com>
- <20231210133526.ei7thr54dff6zjbz@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20231210133526.ei7thr54dff6zjbz@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20231129-idmap-fscap-refactor-v1-0-da5a26058a5b@kernel.org>
+ <20231129-idmap-fscap-refactor-v1-9-da5a26058a5b@kernel.org>
+ <20231201-reintreten-gehalt-435a960f80ed@brauner> <ZWojWE7/HRnByRb+@do-x1extreme>
+ <ZXHZ8uNEg1IK5WMW@do-x1extreme>
+In-Reply-To: <ZXHZ8uNEg1IK5WMW@do-x1extreme>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 10 Dec 2023 17:28:34 +0200
-Message-ID: <CAOQ4uxgkb4XfStSZkK0ZLk0tAdN60rf5YCMhaXrHzm-wJsP6hg@mail.gmail.com>
-Subject: Re: [PATCH v2 1/4] overlay: Add tests for nesting private xattrs
-To: Zorro Lang <zlang@redhat.com>
-Cc: Alexander Larsson <alexl@redhat.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	fstests@vger.kernel.org
+Date: Sun, 10 Dec 2023 18:41:52 +0200
+Message-ID: <CAOQ4uxhMYPZGQ+ogStYOZYMU+Lvj+2M_HkWF7eFFReb6hDoV_g@mail.gmail.com>
+Subject: Re: [PATCH 09/16] fs: add vfs_set_fscaps()
+To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
+	Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
+	James Morris <jmorris@namei.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Mimi Zohar <zohar@linux.ibm.com>, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, 
+	audit@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	Roberto Sassu <roberto.sassu@huaweicloud.com>, Stefan Berger <stefanb@linux.ibm.com>, 
+	Vivek Goyal <vgoyal@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Dec 10, 2023 at 3:35=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
-:
+On Thu, Dec 7, 2023 at 4:43=E2=80=AFPM Seth Forshee (DigitalOcean)
+<sforshee@kernel.org> wrote:
 >
-> On Mon, Dec 04, 2023 at 08:58:56PM +0200, Amir Goldstein wrote:
-> > If overlayfs xattr escaping is supported, ensure:
-> >  * We can create "overlay.*" xattrs on a file in the overlayfs
-> >  * We can create an xwhiteout file in the overlayfs
+> [Adding Mimi for insights on EVM questions]
+>
+> On Fri, Dec 01, 2023 at 12:18:00PM -0600, Seth Forshee (DigitalOcean) wro=
+te:
+> > On Fri, Dec 01, 2023 at 06:39:18PM +0100, Christian Brauner wrote:
+> > > > +/**
+> > > > + * vfs_set_fscaps - set filesystem capabilities
+> > > > + * @idmap: idmap of the mount the inode was found from
+> > > > + * @dentry: the dentry on which to set filesystem capabilities
+> > > > + * @caps: the filesystem capabilities to be written
+> > > > + * @flags: setxattr flags to use when writing the capabilities xat=
+tr
+> > > > + *
+> > > > + * This function writes the supplied filesystem capabilities to th=
+e dentry.
+> > > > + *
+> > > > + * Return: 0 on success, a negative errno on error.
+> > > > + */
+> > > > +int vfs_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+> > > > +            const struct vfs_caps *caps, int flags)
+> > > > +{
+> > > > + struct inode *inode =3D d_inode(dentry);
+> > > > + struct inode *delegated_inode =3D NULL;
+> > > > + struct vfs_ns_cap_data nscaps;
+> > > > + int size, error;
+> > > > +
+> > > > + /*
+> > > > +  * Unfortunately EVM wants to have the raw xattr value to compare=
+ to
+> > > > +  * the on-disk version, so we need to pass the raw xattr to the
+> > > > +  * security hooks. But we also want to do security checks before
+> > > > +  * breaking leases, so that means a conversion to the raw xattr h=
+ere
+> > > > +  * which will usually be reduntant with the conversion we do for
+> > > > +  * writing the xattr to disk.
+> > > > +  */
+> > > > + size =3D vfs_caps_to_xattr(idmap, i_user_ns(inode), caps, &nscaps=
+,
+> > > > +                          sizeof(nscaps));
+> > > > + if (size < 0)
+> > > > +         return size;
+> > >
+> > > Oh right, I remember that. Slight eyeroll. See below though...
+> > >
+> > > > +
+> > > > +retry_deleg:
+> > > > + inode_lock(inode);
+> > > > +
+> > > > + error =3D xattr_permission(idmap, inode, XATTR_NAME_CAPS, MAY_WRI=
+TE);
+> > > > + if (error)
+> > > > +         goto out_inode_unlock;
+> > > > + error =3D security_inode_setxattr(idmap, dentry, XATTR_NAME_CAPS,=
+ &nscaps,
+> > > > +                                 size, flags);
+> > > > + if (error)
+> > > > +         goto out_inode_unlock;
+> > >
+> > > For posix acls I added dedicated security hooks that take the struct
+> > > posix_acl stuff and then plumb that down into the security modules. Y=
+ou
+> > > could do the same thing here and then just force EVM and others to do
+> > > their own conversion from in-kernel to xattr format, instead of forci=
+ng
+> > > the VFS to do this.
+> > >
+> > > Because right now we make everyone pay the price all the time when
+> > > really EVM should pay that price and this whole unpleasantness.
 > >
-> > We check for nesting support by trying to getattr an "overlay.*" xattr
-> > in an overlayfs mount, which will return ENOSUPP in older kernels.
-> >
-> > Signed-off-by: Alexander Larsson <alexl@redhat.com>
-> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > ---
+> > Good point, I'll do that.
 >
-> Hi Amir,
+> I've been reconsidering various approaches here. One thing I noticed is
+> that for the non-generic case (iow overlayfs) I missed calling
+> security_inode_post_setxattr(), where EVM also wants the raw xattr, so
+> that would require another conversion. That got me wondering whether the
+> setxattr security hooks really matter when writing fscaps to overlayfs.
+> And it seems like they might not: the LSMs only look for their own
+> xattrs, and IMA doesn't do anything with fscaps xattrs. EVM does, but
+> what it does for a xattr write to an overlayfs indoe seems at least
+> partially if not completely redundant with what it will do when the
+> xattr is written to the upper filesystem.
 >
-> This test passed with below kernel configuration at first:
->   CONFIG_OVERLAY_FS=3Dm
->   # CONFIG_OVERLAY_FS_REDIRECT_DIR is not set
->   CONFIG_OVERLAY_FS_REDIRECT_ALWAYS_FOLLOW=3Dy
->   # CONFIG_OVERLAY_FS_INDEX is not set
->   # CONFIG_OVERLAY_FS_XINO_AUTO is not set
->   # CONFIG_OVERLAY_FS_METACOPY is not set
+> So could we push these security calls down to the generic fscaps
+> implementations just before/after writing the raw xattr data and just
+> skip them for overlayfs? If so we can get away with doing the vfs_caps
+> to xattr conversion only once.
 >
-> But then I found it fails if I enabled below configurations:
->   CONFIG_OVERLAY_FS_REDIRECT_DIR=3Dy
->   CONFIG_OVERLAY_FS_INDEX=3Dy
->   CONFIG_OVERLAY_FS_XINO_AUTO=3Dy
->   CONFIG_OVERLAY_FS_METACOPY=3Dy
->
-> Without these configures, this test passed. But with them, it fails as [1=
-].
-> The underlying fs is xfs (with default mkfs options), there're not specif=
-ic
-> MOUNT_OPTIONS and MKFS_OPTIONS to use.
->
-> I'll delay merging this patchset temporarily, please check.
->
+> The trade offs are that filesystems which implement fscaps inode
+> operations become responsible for calling the security hooks if needed,
+> and if something changes such that we need to call those security hooks
+> for fscaps on overlayfs this solution would no longer work.
 
-good spotting!
+Hi Seth,
 
-Here is a fix if you want to fix and test it in your tree:
+I was trying to understand the alternative proposals, but TBH,
+I cannot wrap my head about overlayfs+IMA/EVM and I do not
+fully understand the use case.
 
-diff --git a/tests/overlay/084 b/tests/overlay/084
-index ff451f38..8465caeb 100755
---- a/tests/overlay/084
-+++ b/tests/overlay/084
-@@ -50,9 +50,10 @@ test_escape()
+Specifically, I do not understand why the IMA/EVM attestation on
+the upper and lower fs isn't enough to make overlayfs tamper proof.
+I never got an explanation of the threat model for overlayfs+IMA/EVM.
 
-        echo -e "\n=3D=3D Check xattr escape $prefix =3D=3D"
-
--       local extra_options=3D""
-+       # index feature would require nfs_export on $nesteddir mount
-+       local extra_options=3D"-o index=3Doff"
-        if [ "$prefix" =3D=3D "user" ]; then
--            extra_options=3D"-o userxattr"
-+            extra_options+=3D",userxattr"
-        fi
-
-        _scratch_mkfs
-@@ -146,9 +147,10 @@ test_escaped_xwhiteout()
-
-        echo -e "\n=3D=3D Check escaped xwhiteout $prefix =3D=3D"
-
--       local extra_options=3D""
-+       # index feature would require nfs_export on $nesteddir mount
-+       local extra_options=3D"-o index=3Doff"
-        if [ "$prefix" =3D=3D "user" ]; then
--            extra_options=3D"-o userxattr"
-+            extra_options+=3D",userxattr"
-        fi
-
-        _scratch_mkfs
-
+I know that for SELinux and overlayfs a lot of work was done by Vivek.
+I was not involved in this work, but AKAIF, it did not involve any conversi=
+on
+of selinux xattrs.
 
 Thanks,
 Amir.
