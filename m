@@ -1,168 +1,150 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Tpkr1hxc"
-Received: from mail-qv1-xf2a.google.com (mail-qv1-xf2a.google.com [IPv6:2607:f8b0:4864:20::f2a])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8865DAC;
-	Mon, 11 Dec 2023 10:31:45 -0800 (PST)
-Received: by mail-qv1-xf2a.google.com with SMTP id 6a1803df08f44-67a89dc1ef1so31219316d6.3;
-        Mon, 11 Dec 2023 10:31:45 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702319504; x=1702924304; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fTW8PXqixb5wSH5WvPY2gNC1fyQ7CohqHF+38plcVqE=;
-        b=Tpkr1hxcOOXTCrewysaLPE4YOBt4UeOLlr71vma+brDelC4ls5AkIPV/E6A9X4qcsu
-         DvpzmPoTv31nYsdygOhooQGUNZLDmnnHhc37b3RRpRBVyHBeoW18NaLP95hpXeXGb4tO
-         gI5CSzdmXMsvNuXUK5wbmeZkAUyBa7/eIdfUcvtMF82xqIIkgzvCF7TMZfB8CUAonsxl
-         t5uc1OML0QrZcVQTtA5+sgIbE3zbyoBTHg+jA6ng6oJ5MPFpR9MKC1Ex77MsRckZgTDR
-         8eVQ3ybP39VWXGOH/s0JE9XGYHc+wdEH2MfFWT994YGITqkBccd5eCM6GReAaqXCAwu6
-         RuCQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702319504; x=1702924304;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=fTW8PXqixb5wSH5WvPY2gNC1fyQ7CohqHF+38plcVqE=;
-        b=tcvJQgLEZKeZHjX2Y8jlnvl5uIakKTooncjBZFOKn30TjM2r5Bg2R9cLstHjb5zI1n
-         lEQDOmgjZbuq4lgF+SAyC88zoSaONDK+bElbGEP/n7RaE4SYQh4hfMwuFRMVYLceyE4G
-         o5rIywfGxgBEJNHXoT2w1YWEfm5F7C4mwJ279TJH+042EQl3WiClQHadFRwwH2PbHq4Q
-         A5EXn9JnphO4q8wNR8J0y/IbPpblDNyC46PAPBSzoHdeYU5Mu6vdctIoF1ngiSz1qn0f
-         PnDbu8hQa/i9k0TOBgYORZw3x/He8z1Mc/n4g9uUu2gYUmis+V8Sk6bCAFjJCxxI+1p4
-         qwHA==
-X-Gm-Message-State: AOJu0Yx6DkaxbvOwPF9gxdMf1CcYOSE072hUNjWmsCq3X/WByaZbSux6
-	FcNa+A6YJ4T59mdZQrkKkabdneMB4okCsuQbA9I=
-X-Google-Smtp-Source: AGHT+IESLxkN3UOj4BAZ/9t1FY45KlxzL7wvht1++ac8e3nzghJbM1myeGPn9aNJSkj5V2NV5DFzNES2c2VpziT/xAg=
-X-Received: by 2002:a05:6214:154c:b0:67a:dc5a:4fb8 with SMTP id
- t12-20020a056214154c00b0067adc5a4fb8mr6393575qvw.17.1702319504602; Mon, 11
- Dec 2023 10:31:44 -0800 (PST)
+Received: from out30-112.freemail.mail.aliyun.com (out30-112.freemail.mail.aliyun.com [115.124.30.112])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B30CDA6;
+	Mon, 11 Dec 2023 16:51:01 -0800 (PST)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R311e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046059;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=20;SR=0;TI=SMTPD_---0VyKKeJX_1702342257;
+Received: from 192.168.71.57(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VyKKeJX_1702342257)
+          by smtp.aliyun-inc.com;
+          Tue, 12 Dec 2023 08:50:59 +0800
+Message-ID: <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
+Date: Tue, 12 Dec 2023 08:50:56 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231208172308.2876481-1-roberto.sassu@huaweicloud.com>
- <CAOQ4uxivpZ+u0A5kE962XST37-ey2Tv9EtddnZQhk3ohRkcQTw@mail.gmail.com>
- <20231208-tauziehen-zerfetzt-026e7ee800a0@brauner> <c95b24f27021052209ec6911d2b7e7b20e410f43.camel@huaweicloud.com>
-In-Reply-To: <c95b24f27021052209ec6911d2b7e7b20e410f43.camel@huaweicloud.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 11 Dec 2023 20:31:33 +0200
-Message-ID: <CAOQ4uxgvKb520_Nbp+Y7KDq3_7t1tx65w5pOP8y6or1prESv+Q@mail.gmail.com>
-Subject: Re: [RFC][PATCH] overlayfs: Redirect xattr ops on security.evm to security.evm_overlayfs
-To: Roberto Sassu <roberto.sassu@huaweicloud.com>
-Cc: Christian Brauner <brauner@kernel.org>, Seth Forshee <sforshee@kernel.org>, miklos@szeredi.hu, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	zohar@linux.ibm.com, paul@paul-moore.com, stefanb@linux.ibm.com, 
-	jlayton@kernel.org, linux-integrity@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Roberto Sassu <roberto.sassu@huawei.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
+To: Eric Curtin <ecurtin@redhat.com>,
+ Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org
+Cc: Daan De Meyer <daan.j.demeyer@gmail.com>,
+ Stephen Smoogen <ssmoogen@redhat.com>, Yariv Rachmani <yrachman@redhat.com>,
+ Daniel Walsh <dwalsh@redhat.com>, Douglas Landgraf <dlandgra@redhat.com>,
+ Alexander Larsson <alexl@redhat.com>, Colin Walters <walters@redhat.com>,
+ Brian Masney <bmasney@redhat.com>, Eric Chanudet <echanude@redhat.com>,
+ Pavol Brilla <pbrilla@redhat.com>, Lokesh Mandvekar <lmandvek@redhat.com>,
+ =?UTF-8?Q?Petr_=C5=A0abata?= <psabata@redhat.com>,
+ Lennart Poettering <lennart@poettering.net>, Luca Boccassi
+ <bluca@debian.org>, Neal Gompa <neal@gompa.dev>, nvdimm@lists.linux.dev
+References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+In-Reply-To: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Mon, Dec 11, 2023 at 4:56=E2=80=AFPM Roberto Sassu
-<roberto.sassu@huaweicloud.com> wrote:
->
-> On Fri, 2023-12-08 at 23:01 +0100, Christian Brauner wrote:
-> > On Fri, Dec 08, 2023 at 11:55:19PM +0200, Amir Goldstein wrote:
-> > > On Fri, Dec 8, 2023 at 7:25=E2=80=AFPM Roberto Sassu
-> > > <roberto.sassu@huaweicloud.com> wrote:
-> > > >
-> > > > From: Roberto Sassu <roberto.sassu@huawei.com>
-> > > >
-> > > > EVM updates the HMAC in security.evm whenever there is a setxattr o=
-r
-> > > > removexattr operation on one of its protected xattrs (e.g. security=
-.ima).
-> > > >
-> > > > Unfortunately, since overlayfs redirects those xattrs operations on=
- the
-> > > > lower filesystem, the EVM HMAC cannot be calculated reliably, since=
- lower
-> > > > inode attributes on which the HMAC is calculated are different from=
- upper
-> > > > inode attributes (for example i_generation and s_uuid).
-> > > >
-> > > > Although maybe it is possible to align such attributes between the =
-lower
-> > > > and the upper inode, another idea is to map security.evm to another=
- name
-> > > > (security.evm_overlayfs)
-> > >
-> > > If we were to accept this solution, this will need to be trusted.over=
-lay.evm
-> > > to properly support private overlay xattr escaping.
-> > >
-> > > > during an xattr operation, so that it does not
-> > > > collide with security.evm set by the lower filesystem.
-> > >
-> > > You are using wrong terminology and it is very confusing to me.
-> >
-> > Same.
->
-> Argh, sorry...
->
-> > > see the overlay mount command has lowerdir=3D and upperdir=3D.
-> > > Seems that you are using lower filesystem to refer to the upper fs
-> > > and upper filesystem to refer to overlayfs.
-> > >
-> > > >
-> > > > Whenever overlayfs wants to set security.evm, it is actually settin=
-g
-> > > > security.evm_overlayfs calculated with the upper inode attributes. =
-The
-> > > > lower filesystem continues to update security.evm.
-> > > >
-> > >
-> > > I understand why that works, but I am having a hard time swallowing
-> > > the solution, mainly because I feel that there are other issues on th=
-e
-> > > intersection of overlayfs and IMA and I don't feel confident that thi=
-s
-> > > addresses them all.
->
-> This solution is specifically for the collisions on HMACs, nothing
-> else. Does not interfere/solve any other problem.
->
-> > > If you want to try to convince me, please try to write a complete
-> > > model of how IMA/EVM works with overlayfs, using the section
-> > > "Permission model" in Documentation/filesystems/overlayfs.rst
-> > > as a reference.
->
-> Ok, I will try.
->
-> I explain first how EVM works in general, and then why EVM does not
-> work with overlayfs.
->
+Hi,
 
-I understand both of those things.
+On 2023/12/11 21:45, Eric Curtin wrote:
+> Hi All,
+> 
+> We have recently been working on something called initoverlayfs, which
+> we sent an RFC email to the systemd and dracut mailing lists to gather
+> feedback. This is an exploratory email as we are unsure if a solution
+> like this fits in userspace or kernelspace and we would like to gather
+> feedback from the community.
+> 
+> To describe this briefly, the idea is to use erofs+overlayfs as an
+> initial filesystem rather than an initramfs. The benefits are, we can
+> start userspace significantly faster as we do not have to unpack,
+> decompress and populate a tmpfs upfront, instead we can rely on
+> transparent decompression like lz4hc instead. What we believe is the
+> greater benefit, is that we can have less fear of initial filesystem
+> bloat, as when you are using transparent decompression you only pay
+> for decompressing the bytes you actually use.
+> 
+> We implemented the first version of this, by creating a small
+> initramfs that only contains storage drivers, udev and a couple of 100
+> lines of C code, just enough userspace to mount an erofs with
+> transient overlay. Then we build a second initramfs which has all the
+> contents of a normal everyday initramfs with all the bells and
+> whistles and convert this into an erofs.
+> 
+> Then at boot time you basically transition to this erofs+overlayfs in
+> userspace and everything works as normal as it would in a traditional
+> initramfs.
+> 
+> The current implementation looks like this:
+> 
+> ```
+>  From the filesystem perspective (roughly):
+> 
+> fw -> bootloader -> kernel -> mini-initramfs -> initoverlayfs -> rootfs
+> 
+>  From the process perspective (roughly):
+> 
+> fw -> bootloader -> kernel -> storage-init   -> init ----------------->
+> ```
+> 
+> But we have been asking the question whether we should be implementing
+> this in kernelspace so it looks more like:
+> 
+> ```
+>  From the filesystem perspective (roughly):
+> 
+> fw -> bootloader -> kernel -> initoverlayfs -> rootfs
+> 
+>  From the process perspective (roughly):
+> 
+> fw -> bootloader -> kernel -> init ----------------->
+> ```
+> 
+> The kind of questions we are asking are: Would it be possible to
+> implement this in kernelspace so we could just mount the initial
+> filesystem data as an erofs+overlayfs filesystem without unpacking,
+> decompressing, copying the data to a tmpfs, etc.? Could we memmap the
+> initramfs buffer and mount it like an erofs? What other considerations
+> should be taken into account?
 
-What I don't understand is WHY EVM needs to work on overlayfs?
-What is the use case?
-What is the threat model?
+Since Linux 5.15, EROFS has supported FSDAX feature so that it can
+mount from persistent memory devices with `-o dax`.
 
-The purpose of IMA/EVM as far as I understand it is to detect and
-protect against tampering with data/metadata offline. Right?
+That is already used for virtualization cases like VM rootfs and
+container image passthrough with virtio-pmem [1] to share page cache
+memory between host and guest.
 
-As Seth correctly wrote, overlayfs is just the composition of existing
-underlying layers.
+For non-virtualization cases, I guess you could try to use `memmap`
+kernel option [2] to specify a memory region by bootloaders which
+contains an EROFS rootfs and a customized init for booting as
+erofs+overlayfs at least for `initoverlayfs`.  The main benefit is
+that the memory region specified by the bootloader can be directly
+used for mounting.  But I never tried if this option actually works.
 
-Noone can tamper with overlayfs without tampering with the underlying
-layers.
+Furthermore, compared to traditional ramdisks, using direct address
+can avoid page cache totally for uncompressed files like it can
+just use unencoded data as mmaped memory.  For compressed files, it
+still needs page cache to support mmaped access but we could adapt
+more for persistent memory scenarios such as disable cache
+decompression compared to previous block devices.
 
-The correct solution to your problem, and I have tried to say this many
-times, in to completely opt-out of IMA/EVM for overlayfs.
+I'm not sure if it's worth implementing this in kernelspace since
+it's out of scope of an individual filesystem anyway.
 
-EVM should not store those versions of HMAC for overlayfs and for
-the underlying layers, it should ONLY store a single version for the
-underlying layer.
-
-Because write() in overlayfs always follows by write() to upper layer
-and setxattr() in overlayfs always follows by setxattr() to upper layer
-IMO write() and setxattr() on overlayfs should by ignored by IMA/EVM
-and only write()/setxattr() on underlying fs should be acted by IMA/EVM
-which AFAIK, happens anyway.
-
-Please let me know if I am missing something,
+[1] https://www.qemu.org/docs/master/system/devices/virtio-pmem.html
+[2] https://docs.pmem.io/persistent-memory/getting-started-guide/creating-development-environments/linux-environments/linux-memmap
 
 Thanks,
-Amir.
+Gao Xiang
+
+> 
+> Echo'ing Lennart we must also "keep in mind from the beginning how
+> authentication of every component of your process shall work" as
+> that's essential to a couple of different Linux distributions today.
+> 
+> We kept this email short because we want people to read it and avoid
+> duplicating information from elsewhere. The effort is described from
+> different perspectives in the systemd/dracut RFC email and github
+> README.md if you'd like to learn more, it's worth reading the
+> discussion in the systemd mailing list:
+> 
+> https://marc.info/?l=systemd-devel&m=170214639006704&w=2
+> 
+> https://github.com/containers/initoverlayfs/blob/main/README.md
+> 
+> We also received feedback informally in the community that it would be
+> nice if we could optionally use btrfs as an alternative.
+> 
+> Is mise le meas/Regards,
+> 
+> Eric Curtin
+> 
