@@ -1,73 +1,200 @@
-Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27EC9BE;
-	Mon, 11 Dec 2023 23:50:29 -0800 (PST)
-X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045192;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=21;SR=0;TI=SMTPD_---0VyLlE91_1702367425;
-Received: from 30.97.49.22(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VyLlE91_1702367425)
-          by smtp.aliyun-inc.com;
-          Tue, 12 Dec 2023 15:50:27 +0800
-Message-ID: <58d175f8-a06e-4b00-95fe-1bd5a79106df@linux.alibaba.com>
-Date: Tue, 12 Dec 2023 15:50:25 +0800
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D18D219F2;
+	Tue, 12 Dec 2023 09:27:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mdjOFL+x"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EE993C433C7;
+	Tue, 12 Dec 2023 09:27:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1702373272;
+	bh=5RJMKCoYxnXkUiYpXUAFHsON2DTSXvEYzJ4lN4kFgpY=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=mdjOFL+xi9mY1oQO4/sZfC+28BYlkluFsERL3SXPZ6u1xo72k6ikvJWT/ZO9Au8Pf
+	 jKZ2CC5GIv0b8//Q7MYezJmbUeqmjEuaFXc6eDEuohpSJlAxqMNSRedCfRq+rn8bdS
+	 3TrYQqMMSiAkSvlTHooXRl1LFOLWFCF/jtP4pjV5YD0juXKcJanf0HiAYzx9VXgpMN
+	 22O59I6dIkNdr/Gy185/HEJqESdYGGmreJLugrki3uieIXNm4WUvCmc+pnVb1KizcG
+	 JlwzCI9AJysIBGuv/o0/EHjzmmwfFtwVVGh8HWpz69Ss/+FULH9Lo1kU/7so9ZAvSV
+	 nVnS6VjoyQjfw==
+Date: Tue, 12 Dec 2023 10:27:47 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Andrei Vagin <avagin@google.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org,
+	Alexander Mikhalitsyn <alexander@mihalicyn.com>,
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	overlayfs <linux-unionfs@vger.kernel.org>
+Subject: Re: [PATCH 1/2] fs/proc: show correct device and inode numbers in
+ /proc/pid/maps
+Message-ID: <20231212-brokkoli-trinken-1581d1e99d6a@brauner>
+References: <20231211193048.580691-1-avagin@google.com>
+ <CAOQ4uxik0=0F-6CLRsuaOheFjwWF-B-Q5iEQ6qJbRszL52HeQQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Eric Curtin <ecurtin@redhat.com>,
- Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
- linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org,
- Daan De Meyer <daan.j.demeyer@gmail.com>,
- Stephen Smoogen <ssmoogen@redhat.com>, Yariv Rachmani <yrachman@redhat.com>,
- Daniel Walsh <dwalsh@redhat.com>, Douglas Landgraf <dlandgra@redhat.com>,
- Alexander Larsson <alexl@redhat.com>, Colin Walters <walters@redhat.com>,
- Brian Masney <bmasney@redhat.com>, Eric Chanudet <echanude@redhat.com>,
- Pavol Brilla <pbrilla@redhat.com>, Lokesh Mandvekar <lmandvek@redhat.com>,
- =?UTF-8?Q?Petr_=C5=A0abata?= <psabata@redhat.com>,
- Lennart Poettering <lennart@poettering.net>, Luca Boccassi
- <bluca@debian.org>, Neal Gompa <neal@gompa.dev>, nvdimm@lists.linux.dev
-References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
- <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
- <ZXgNQ85PdUKrQU1j@infradead.org>
-From: Gao Xiang <hsiangkao@linux.alibaba.com>
-In-Reply-To: <ZXgNQ85PdUKrQU1j@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxik0=0F-6CLRsuaOheFjwWF-B-Q5iEQ6qJbRszL52HeQQ@mail.gmail.com>
 
-
-
-On 2023/12/12 15:35, Christoph Hellwig wrote:
-> On Tue, Dec 12, 2023 at 08:50:56AM +0800, Gao Xiang wrote:
->> For non-virtualization cases, I guess you could try to use `memmap`
->> kernel option [2] to specify a memory region by bootloaders which
->> contains an EROFS rootfs and a customized init for booting as
->> erofs+overlayfs at least for `initoverlayfs`.  The main benefit is
->> that the memory region specified by the bootloader can be directly
->> used for mounting.  But I never tried if this option actually works.
->>
->> Furthermore, compared to traditional ramdisks, using direct address
->> can avoid page cache totally for uncompressed files like it can
->> just use unencoded data as mmaped memory.  For compressed files, it
->> still needs page cache to support mmaped access but we could adapt
->> more for persistent memory scenarios such as disable cache
->> decompression compared to previous block devices.
->>
->> I'm not sure if it's worth implementing this in kernelspace since
->> it's out of scope of an individual filesystem anyway.
+On Tue, Dec 12, 2023 at 07:51:31AM +0200, Amir Goldstein wrote:
+> +fsdevel, +overlayfs, +brauner, +miklos
 > 
-> IFF the use case turns out to be generally useful (it looks quite
-> convoluted and odd to me), we could esily do an initdax concept where
-> a chunk of memory passed by the bootloader is presented as a DAX device
-> properly without memmap hacks.
+> On Mon, Dec 11, 2023 at 9:30 PM Andrei Vagin <avagin@google.com> wrote:
+> >
+> > Device and inode numbers in /proc/pid/maps have to match numbers returned by
+> > statx for the same files.
+> 
+> That statement may be true for regular files.
+> It is not true for block/char as far as I know.
+> 
+> I think that your fix will break that by displaying the ino/dev
+> of the block/char reference inode and not their backing rdev inode.
+> 
+> >
+> > /proc/pid/maps shows device and inode numbers of vma->vm_file-s. Here is
+> > an issue. If a mapped file is on a stackable file system (e.g.,
+> > overlayfs), vma->vm_file is a backing file whose f_inode is on the
+> > underlying filesystem. To show correct numbers, we need to get a user
+> > file and shows its numbers. The same trick is used to show file paths in
+> > /proc/pid/maps.
+> 
+> For the *same* trick, see my patch below.
+> 
+> >
+> > But it isn't the end of this story. A file system can manipulate inode numbers
+> > within the getattr callback (e.g., ovl_getattr), so vfs_getattr must be used to
+> > get correct numbers.
+> 
+> This explanation is inaccurate, because it mixes two different overlayfs
+> traits which are unrelated.
+> It is true that a filesystem *can* manipulate st_dev in a way that will not
+> match i_ino and it is true that overlayfs may do that in some non-default
+> configurations (see [1]), but this is not the reason that you are seeing
+> mismatches ino/dev in /proc/<pid>/maps.
+> 
+> [1] https://docs.kernel.org/filesystems/overlayfs.html#inode-properties
+> 
+> The reason is that the vma->vm_file is a special internal backing file
+> which is not otherwise exposed to userspace.
+> Please see my suggested fix below.
+> 
+> >
+> > Cc: Amir Goldstein <amir73il@gmail.com>
+> > Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
+> > Signed-off-by: Andrei Vagin <avagin@google.com>
+> > ---
+> >  fs/proc/task_mmu.c | 20 +++++++++++++++++---
+> >  1 file changed, 17 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+> > index 435b61054b5b..abbf96c091ad 100644
+> > --- a/fs/proc/task_mmu.c
+> > +++ b/fs/proc/task_mmu.c
+> > @@ -273,9 +273,23 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
+> >         const char *name = NULL;
+> >
+> >         if (file) {
+> > -               struct inode *inode = file_inode(vma->vm_file);
+> > -               dev = inode->i_sb->s_dev;
+> > -               ino = inode->i_ino;
+> > +               const struct path *path;
+> > +               struct kstat stat;
+> > +
+> > +               path = file_user_path(file);
+> > +               /*
+> > +                * A file system can manipulate inode numbers within the
+> > +                * getattr callback (e.g. ovl_getattr).
+> > +                */
+> > +               if (!vfs_getattr_nosec(path, &stat, STATX_INO, AT_STATX_DONT_SYNC)) {
+> 
+> Should you prefer to keep this solution it should be constrained to
+> regular files.
 
-I have no idea how it's faster than the current initramfs or initrd.
-So if it's really useful, maybe some numbers can be posted first
-with the current `memmap` hack and see it's worth going further with
-some new infrastructure like initdax.
+It's also very dicy calling into the filesystem from procfs. You might
+hang the system if you end up talking to a hung NFS server or something.
+What locks does show_map_vma() hold? And is it safe to call helpers that
+might generate io?
 
-Thanks,
-Gao Xiang
+> 
+> > +                       dev = stat.dev;
+> > +                       ino = stat.ino;
+> > +               } else {
+> > +                       struct inode *inode = d_backing_inode(path->dentry);
+> 
+> d_inode() please.
+> d_backing_inode()/d_backing_dentry() are relics of an era that never existed
+> (i.e. union mounts).
+> 
+> > +
+> > +                       dev = inode->i_sb->s_dev;
+> > +                       ino = inode->i_ino;
+> > +               }
+> >                 pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+> >         }
+> >
+> 
+> Would you mind trying this alternative (untested) patch?
+> I think it is preferred, because it is simpler.
+> 
+> Thanks,
+> Amir.
+> 
+> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+> index ef2eb12906da..5328266be6b5 100644
+> --- a/fs/proc/task_mmu.c
+> +++ b/fs/proc/task_mmu.c
+> @@ -273,7 +273,8 @@ show_map_vma(struct seq_file *m, struct vm_area_struct *vma)
+>         const char *name = NULL;
+> 
+>         if (file) {
+> -               struct inode *inode = file_inode(vma->vm_file);
+> +               struct inode *inode = file_user_inode(vma->vm_file);
+> +
+>                 dev = inode->i_sb->s_dev;
+>                 ino = inode->i_ino;
+>                 pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 900d0cd55b50..d78412c6fd47 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2581,20 +2581,28 @@ struct file *backing_file_open(const struct
+> path *user_path, int flags,
+>  struct path *backing_file_user_path(struct file *f);
+> 
+>  /*
+> - * file_user_path - get the path to display for memory mapped file
+> - *
+>   * When mmapping a file on a stackable filesystem (e.g., overlayfs), the file
+>   * stored in ->vm_file is a backing file whose f_inode is on the underlying
+> - * filesystem.  When the mapped file path is displayed to user (e.g. via
+> - * /proc/<pid>/maps), this helper should be used to get the path to display
+> - * to the user, which is the path of the fd that user has requested to map.
+> + * filesystem.  When the mapped file path and inode number are displayed to
+> + * user (e.g. via /proc/<pid>/maps), these helper should be used to get the
+> + * path and inode number to display to the user, which is the path of the fd
+> + * that user has requested to map and the inode number that would be returned
+> + * by fstat() on that same fd.
+>   */
+> +/* Get the path to display in /proc/<pid>/maps */
+>  static inline const struct path *file_user_path(struct file *f)
+>  {
+>         if (unlikely(f->f_mode & FMODE_BACKING))
+>                 return backing_file_user_path(f);
+>         return &f->f_path;
+>  }
+> +/* Get the inode whose inode number to display in /proc/<pid>/maps */
+> +static inline const struct path *file_user_inode(struct file *f)
+> +{
+> +       if (unlikely(f->f_mode & FMODE_BACKING))
+> +               return d_inode(backing_file_user_path(f)->dentry);
+> +       return file_inode(f);
+> +}
 
-
+Way better imho.
