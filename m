@@ -1,208 +1,77 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MmE75n3d"
-Received: from mail-wm1-x32d.google.com (mail-wm1-x32d.google.com [IPv6:2a00:1450:4864:20::32d])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EB18BE;
-	Mon, 11 Dec 2023 23:33:32 -0800 (PST)
-Received: by mail-wm1-x32d.google.com with SMTP id 5b1f17b1804b1-40c41df5577so22982355e9.0;
-        Mon, 11 Dec 2023 23:33:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702366410; x=1702971210; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RibkXoWBTp93W+AGk43zCCrx+wIcjVmNc/4L0LjyHiY=;
-        b=MmE75n3dIu8o0fT9rAOC17PnK9NnJkN7j3xzd1ABdIY139ETA9ZK5UXN2Wx9/Hsduk
-         B8W/mIG88R+xH/PgIs1jZGtqTjexNr7OAKK+sfNbm96Ro6yVE7nsRpb5lj2ZUmcWjVo9
-         TJK6z6H+LedujKCzjIFifbLDrv0LQ9z3Sf6wsrCuHZGRolwYuXxn4CvgpMQmGtedklY0
-         9w3nsUtBC2/Xoh44RiaMpyK+Qjxq4SmmJWwuFcPenPt7BOOsM2CbKWwV5FtsB1DBNXtv
-         7q8d2WvwOarmWvJ3WQKCcI2JgtlS73sXpAUoE7Q2ejJHVmIfd8Q2B+FyOrooBww85pi0
-         DwYg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702366410; x=1702971210;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=RibkXoWBTp93W+AGk43zCCrx+wIcjVmNc/4L0LjyHiY=;
-        b=e3sua5KA0Pu1RoNA7o5HdvKzfLE4WS1yTYFyo919NG1eEkmwZBCaWvhm1kIsgdZ7DU
-         fFSjLd0QH2PU2L6XkK8IVw4rziPli6Cri/iANUMNhWMz+fKBa49xy4h0yvd0Cnr/psxl
-         1I1hpcO22RokV/x+hAlOZBo/4UnKvu6I/QbNbKKspn0b8yy/+5ZtHhsJRYFUK+RiRgcU
-         iK2G3vXvfklhMdTizy3T2ALP4XW+wiri6BWNMRgtD9MLHFwpYrRJSfNAsmtzgSn7q8FU
-         3GNladQlAeH9NGu77YxAQt+ASWmLxafm24MuO9gM7/8Zohvg70gqYLk5tioUQwePPn8+
-         ogJA==
-X-Gm-Message-State: AOJu0YwHABg8lBKLNTeULWo2YQ3UZaqkAaQWZbF+l+1c2vEZTM6YF19m
-	VVsvGBd97aQBIDUTyH08Z9fNiD0Tt/8=
-X-Google-Smtp-Source: AGHT+IHoBc9lKgy+FkFhSLMYv7TNNT6NkrTCQC1AYkL+LyRSTdhmu+FixmzZBgQ/o5bat8o3YvxM/g==
-X-Received: by 2002:a7b:cc84:0:b0:40c:1da3:363f with SMTP id p4-20020a7bcc84000000b0040c1da3363fmr1418044wma.348.1702366410298;
-        Mon, 11 Dec 2023 23:33:30 -0800 (PST)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id l15-20020a05600c1d0f00b003feae747ff2sm17896319wms.35.2023.12.11.23.33.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 11 Dec 2023 23:33:29 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christian Brauner <brauner@kernel.org>,
-	linux-unionfs@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 2/2] overlayfs.rst: fix ReST formatting
-Date: Tue, 12 Dec 2023 09:33:24 +0200
-Message-Id: <20231212073324.245541-3-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20231212073324.245541-1-amir73il@gmail.com>
-References: <20231212073324.245541-1-amir73il@gmail.com>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="rhyiQAuA"
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80730AB;
+	Mon, 11 Dec 2023 23:35:38 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=AcYhiiH7fhawjVuelCjJeq52YfhKQC6amDLwlqcKTwo=; b=rhyiQAuAA9SMhBFiM8MkZ6S7/n
+	2VqgqBenkm2syZdsR1Rs17Wb5BaWMmD22pzkTDL6hYP58KirLwQ8G4Hx2+CujuFMTHiC1xqZtL6ud
+	5Ol2yLOF+hnaxCoUbzWseGsOuFgtT+oO9YvjDwYL/VW46twsaJSB7qVoUPFilAFQoF9N7XDWmhEV7
+	C5wYXOnPMOjocN4mK5mn4YHhT3wXd4c1mrJdmhV6LrfjCdOb6tTlbXN0mKGhssdilbPbUbACzCEKr
+	ugWu78xhg3L50aQSFtgRwv7Hi+deVFSZtKpq51xv0R9033QmVrF2kw2P7atuEz4Z38Ue87RHO6TTv
+	H64AJwtQ==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
+	id 1rCxIh-00AwT9-2z;
+	Tue, 12 Dec 2023 07:35:31 +0000
+Date: Mon, 11 Dec 2023 23:35:31 -0800
+From: Christoph Hellwig <hch@infradead.org>
+To: Gao Xiang <hsiangkao@linux.alibaba.com>
+Cc: Eric Curtin <ecurtin@redhat.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+	Daan De Meyer <daan.j.demeyer@gmail.com>,
+	Stephen Smoogen <ssmoogen@redhat.com>,
+	Yariv Rachmani <yrachman@redhat.com>,
+	Daniel Walsh <dwalsh@redhat.com>,
+	Douglas Landgraf <dlandgra@redhat.com>,
+	Alexander Larsson <alexl@redhat.com>,
+	Colin Walters <walters@redhat.com>,
+	Brian Masney <bmasney@redhat.com>,
+	Eric Chanudet <echanude@redhat.com>,
+	Pavol Brilla <pbrilla@redhat.com>,
+	Lokesh Mandvekar <lmandvek@redhat.com>,
+	Petr =?utf-8?Q?=C5=A0abata?= <psabata@redhat.com>,
+	Lennart Poettering <lennart@poettering.net>,
+	Luca Boccassi <bluca@debian.org>, Neal Gompa <neal@gompa.dev>,
+	nvdimm@lists.linux.dev
+Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
+Message-ID: <ZXgNQ85PdUKrQU1j@infradead.org>
+References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
+ <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 
-Fix some indentation issues and missing newlines in quoted text.
+On Tue, Dec 12, 2023 at 08:50:56AM +0800, Gao Xiang wrote:
+> For non-virtualization cases, I guess you could try to use `memmap`
+> kernel option [2] to specify a memory region by bootloaders which
+> contains an EROFS rootfs and a customized init for booting as
+> erofs+overlayfs at least for `initoverlayfs`.  The main benefit is
+> that the memory region specified by the bootloader can be directly
+> used for mounting.  But I never tried if this option actually works.
+> 
+> Furthermore, compared to traditional ramdisks, using direct address
+> can avoid page cache totally for uncompressed files like it can
+> just use unencoded data as mmaped memory.  For compressed files, it
+> still needs page cache to support mmaped access but we could adapt
+> more for persistent memory scenarios such as disable cache
+> decompression compared to previous block devices.
+> 
+> I'm not sure if it's worth implementing this in kernelspace since
+> it's out of scope of an individual filesystem anyway.
 
-Unindent a) b) enumerated list to workaround github displaying it
-as numbered list.
-
-Reported-by: Christian Brauner <brauner@kernel.org>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- Documentation/filesystems/overlayfs.rst | 69 +++++++++++++------------
- 1 file changed, 35 insertions(+), 34 deletions(-)
-
-diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 926396fdc5eb..37467ad5cff4 100644
---- a/Documentation/filesystems/overlayfs.rst
-+++ b/Documentation/filesystems/overlayfs.rst
-@@ -174,10 +174,10 @@ programs.
- seek offsets are assigned sequentially when the directories are read.
- Thus if
- 
--  - read part of a directory
--  - remember an offset, and close the directory
--  - re-open the directory some time later
--  - seek to the remembered offset
-+- read part of a directory
-+- remember an offset, and close the directory
-+- re-open the directory some time later
-+- seek to the remembered offset
- 
- there may be little correlation between the old and new locations in
- the list of filenames, particularly if anything has changed in the
-@@ -285,21 +285,21 @@ Permission model
- 
- Permission checking in the overlay filesystem follows these principles:
- 
-- 1) permission check SHOULD return the same result before and after copy up
-+1) permission check SHOULD return the same result before and after copy up
- 
-- 2) task creating the overlay mount MUST NOT gain additional privileges
-+2) task creating the overlay mount MUST NOT gain additional privileges
- 
-- 3) non-mounting task MAY gain additional privileges through the overlay,
-- compared to direct access on underlying lower or upper filesystems
-+3) non-mounting task MAY gain additional privileges through the overlay,
-+   compared to direct access on underlying lower or upper filesystems
- 
--This is achieved by performing two permission checks on each access
-+This is achieved by performing two permission checks on each access:
- 
-- a) check if current task is allowed access based on local DAC (owner,
--    group, mode and posix acl), as well as MAC checks
-+a) check if current task is allowed access based on local DAC (owner,
-+group, mode and posix acl), as well as MAC checks
- 
-- b) check if mounting task would be allowed real operation on lower or
--    upper layer based on underlying filesystem permissions, again including
--    MAC checks
-+b) check if mounting task would be allowed real operation on lower or
-+upper layer based on underlying filesystem permissions, again including
-+MAC checks
- 
- Check (a) ensures consistency (1) since owner, group, mode and posix acls
- are copied up.  On the other hand it can result in server enforced
-@@ -311,14 +311,14 @@ to create setups where the consistency rule (1) does not hold; normally,
- however, the mounting task will have sufficient privileges to perform all
- operations.
- 
--Another way to demonstrate this model is drawing parallels between
-+Another way to demonstrate this model is drawing parallels between:
- 
--  mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,... /merged
-+ mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,... /merged
- 
--and
-+and:
- 
--  cp -a /lower /upper
--  mount --bind /upper /merged
-+ |  cp -a /lower /upper
-+ |  mount --bind /upper /merged
- 
- The resulting access permissions should be the same.  The difference is in
- the time of copy (on-demand vs. up-front).
-@@ -390,11 +390,11 @@ Data-only lower layers
- With "metacopy" feature enabled, an overlayfs regular file may be a composition
- of information from up to three different layers:
- 
-- 1) metadata from a file in the upper layer
-+1) metadata from a file in the upper layer
- 
-- 2) st_ino and st_dev object identifier from a file in a lower layer
-+2) st_ino and st_dev object identifier from a file in a lower layer
- 
-- 3) data from a file in another lower layer (further below)
-+3) data from a file in another lower layer (further below)
- 
- The "lower data" file can be on any lower layer, except from the top most
- lower layer.
-@@ -421,15 +421,15 @@ Since kernel version v6.8, "data-only" lower layers can also be added using
- the "datadir+" mount options and the fsconfig syscall from new mount api.
- For example:
- 
--  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l1", 0);
--  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l2", 0);
--  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l3", 0);
--  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do1", 0);
--  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do2", 0);
-+ |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l1", 0);
-+ |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l2", 0);
-+ |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l3", 0);
-+ |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do1", 0);
-+ |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do2", 0);
- 
- 
- fs-verity support
------------------------
-+-----------------
- 
- During metadata copy up of a lower file, if the source file has
- fs-verity enabled and overlay verity support is enabled, then the
-@@ -653,9 +653,10 @@ following rules apply:
-    encode an upper file handle from upper inode
- 
- The encoded overlay file handle includes:
-- - Header including path type information (e.g. lower/upper)
-- - UUID of the underlying filesystem
-- - Underlying filesystem encoding of underlying inode
-+
-+- Header including path type information (e.g. lower/upper)
-+- UUID of the underlying filesystem
-+- Underlying filesystem encoding of underlying inode
- 
- This encoding format is identical to the encoding format file handles that
- are stored in extended attribute "trusted.overlay.origin".
-@@ -773,9 +774,9 @@ Testsuite
- There's a testsuite originally developed by David Howells and currently
- maintained by Amir Goldstein at:
- 
--  https://github.com/amir73il/unionmount-testsuite.git
-+https://github.com/amir73il/unionmount-testsuite.git
- 
- Run as root:
- 
--  # cd unionmount-testsuite
--  # ./run --ov --verify
-+ |  # cd unionmount-testsuite
-+ |  # ./run --ov --verify
--- 
-2.34.1
+IFF the use case turns out to be generally useful (it looks quite
+convoluted and odd to me), we could esily do an initdax concept where
+a chunk of memory passed by the bootloader is presented as a DAX device
+properly without memmap hacks.
 
