@@ -1,77 +1,73 @@
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="rhyiQAuA"
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80730AB;
-	Mon, 11 Dec 2023 23:35:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-	:References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=AcYhiiH7fhawjVuelCjJeq52YfhKQC6amDLwlqcKTwo=; b=rhyiQAuAA9SMhBFiM8MkZ6S7/n
-	2VqgqBenkm2syZdsR1Rs17Wb5BaWMmD22pzkTDL6hYP58KirLwQ8G4Hx2+CujuFMTHiC1xqZtL6ud
-	5Ol2yLOF+hnaxCoUbzWseGsOuFgtT+oO9YvjDwYL/VW46twsaJSB7qVoUPFilAFQoF9N7XDWmhEV7
-	C5wYXOnPMOjocN4mK5mn4YHhT3wXd4c1mrJdmhV6LrfjCdOb6tTlbXN0mKGhssdilbPbUbACzCEKr
-	ugWu78xhg3L50aQSFtgRwv7Hi+deVFSZtKpq51xv0R9033QmVrF2kw2P7atuEz4Z38Ue87RHO6TTv
-	H64AJwtQ==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.96 #2 (Red Hat Linux))
-	id 1rCxIh-00AwT9-2z;
-	Tue, 12 Dec 2023 07:35:31 +0000
-Date: Mon, 11 Dec 2023 23:35:31 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Gao Xiang <hsiangkao@linux.alibaba.com>
-Cc: Eric Curtin <ecurtin@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org,
-	Daan De Meyer <daan.j.demeyer@gmail.com>,
-	Stephen Smoogen <ssmoogen@redhat.com>,
-	Yariv Rachmani <yrachman@redhat.com>,
-	Daniel Walsh <dwalsh@redhat.com>,
-	Douglas Landgraf <dlandgra@redhat.com>,
-	Alexander Larsson <alexl@redhat.com>,
-	Colin Walters <walters@redhat.com>,
-	Brian Masney <bmasney@redhat.com>,
-	Eric Chanudet <echanude@redhat.com>,
-	Pavol Brilla <pbrilla@redhat.com>,
-	Lokesh Mandvekar <lmandvek@redhat.com>,
-	Petr =?utf-8?Q?=C5=A0abata?= <psabata@redhat.com>,
-	Lennart Poettering <lennart@poettering.net>,
-	Luca Boccassi <bluca@debian.org>, Neal Gompa <neal@gompa.dev>,
-	nvdimm@lists.linux.dev
-Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
-Message-ID: <ZXgNQ85PdUKrQU1j@infradead.org>
-References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
- <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
+Received: from out30-133.freemail.mail.aliyun.com (out30-133.freemail.mail.aliyun.com [115.124.30.133])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27EC9BE;
+	Mon, 11 Dec 2023 23:50:29 -0800 (PST)
+X-Alimail-AntiSpam:AC=PASS;BC=-1|-1;BR=01201311R141e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018045192;MF=hsiangkao@linux.alibaba.com;NM=1;PH=DS;RN=21;SR=0;TI=SMTPD_---0VyLlE91_1702367425;
+Received: from 30.97.49.22(mailfrom:hsiangkao@linux.alibaba.com fp:SMTPD_---0VyLlE91_1702367425)
+          by smtp.aliyun-inc.com;
+          Tue, 12 Dec 2023 15:50:27 +0800
+Message-ID: <58d175f8-a06e-4b00-95fe-1bd5a79106df@linux.alibaba.com>
+Date: Tue, 12 Dec 2023 15:50:25 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Eric Curtin <ecurtin@redhat.com>,
+ Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+ linux-unionfs@vger.kernel.org, linux-erofs@lists.ozlabs.org,
+ Daan De Meyer <daan.j.demeyer@gmail.com>,
+ Stephen Smoogen <ssmoogen@redhat.com>, Yariv Rachmani <yrachman@redhat.com>,
+ Daniel Walsh <dwalsh@redhat.com>, Douglas Landgraf <dlandgra@redhat.com>,
+ Alexander Larsson <alexl@redhat.com>, Colin Walters <walters@redhat.com>,
+ Brian Masney <bmasney@redhat.com>, Eric Chanudet <echanude@redhat.com>,
+ Pavol Brilla <pbrilla@redhat.com>, Lokesh Mandvekar <lmandvek@redhat.com>,
+ =?UTF-8?Q?Petr_=C5=A0abata?= <psabata@redhat.com>,
+ Lennart Poettering <lennart@poettering.net>, Luca Boccassi
+ <bluca@debian.org>, Neal Gompa <neal@gompa.dev>, nvdimm@lists.linux.dev
+References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
+ <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com>
+ <ZXgNQ85PdUKrQU1j@infradead.org>
+From: Gao Xiang <hsiangkao@linux.alibaba.com>
+In-Reply-To: <ZXgNQ85PdUKrQU1j@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Tue, Dec 12, 2023 at 08:50:56AM +0800, Gao Xiang wrote:
-> For non-virtualization cases, I guess you could try to use `memmap`
-> kernel option [2] to specify a memory region by bootloaders which
-> contains an EROFS rootfs and a customized init for booting as
-> erofs+overlayfs at least for `initoverlayfs`.  The main benefit is
-> that the memory region specified by the bootloader can be directly
-> used for mounting.  But I never tried if this option actually works.
-> 
-> Furthermore, compared to traditional ramdisks, using direct address
-> can avoid page cache totally for uncompressed files like it can
-> just use unencoded data as mmaped memory.  For compressed files, it
-> still needs page cache to support mmaped access but we could adapt
-> more for persistent memory scenarios such as disable cache
-> decompression compared to previous block devices.
-> 
-> I'm not sure if it's worth implementing this in kernelspace since
-> it's out of scope of an individual filesystem anyway.
 
-IFF the use case turns out to be generally useful (it looks quite
-convoluted and odd to me), we could esily do an initdax concept where
-a chunk of memory passed by the bootloader is presented as a DAX device
-properly without memmap hacks.
+
+On 2023/12/12 15:35, Christoph Hellwig wrote:
+> On Tue, Dec 12, 2023 at 08:50:56AM +0800, Gao Xiang wrote:
+>> For non-virtualization cases, I guess you could try to use `memmap`
+>> kernel option [2] to specify a memory region by bootloaders which
+>> contains an EROFS rootfs and a customized init for booting as
+>> erofs+overlayfs at least for `initoverlayfs`.  The main benefit is
+>> that the memory region specified by the bootloader can be directly
+>> used for mounting.  But I never tried if this option actually works.
+>>
+>> Furthermore, compared to traditional ramdisks, using direct address
+>> can avoid page cache totally for uncompressed files like it can
+>> just use unencoded data as mmaped memory.  For compressed files, it
+>> still needs page cache to support mmaped access but we could adapt
+>> more for persistent memory scenarios such as disable cache
+>> decompression compared to previous block devices.
+>>
+>> I'm not sure if it's worth implementing this in kernelspace since
+>> it's out of scope of an individual filesystem anyway.
+> 
+> IFF the use case turns out to be generally useful (it looks quite
+> convoluted and odd to me), we could esily do an initdax concept where
+> a chunk of memory passed by the bootloader is presented as a DAX device
+> properly without memmap hacks.
+
+I have no idea how it's faster than the current initramfs or initrd.
+So if it's really useful, maybe some numbers can be posted first
+with the current `memmap` hack and see it's worth going further with
+some new infrastructure like initdax.
+
+Thanks,
+Gao Xiang
+
 
