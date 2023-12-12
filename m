@@ -1,163 +1,98 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="ULRIiX7N"
-Received: from mail-oo1-xc36.google.com (mail-oo1-xc36.google.com [IPv6:2607:f8b0:4864:20::c36])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 57963EA
-	for <linux-unionfs@vger.kernel.org>; Tue, 12 Dec 2023 11:20:00 -0800 (PST)
-Received: by mail-oo1-xc36.google.com with SMTP id 006d021491bc7-590a2a963baso2391521eaf.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Dec 2023 11:20:00 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1702408799; x=1703013599; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=fDZO9rUEaSCIKGPTNLQORxAuPrrJryJu9QjeOQcq1A4=;
-        b=ULRIiX7NQXM5WPHI3stffAwtHpawpC++J7zI5HHwtWwZGetYluDUHaPZwz0/hg0gn8
-         2K2MK2IvA+P7jZGRS5uhbJ/tFXLg2Nkw9XOFNmgqIbmJe4CMBBFaowB9AOQ60dFCcB8q
-         +CmEeFEtIcctb8A3ltc+uNotzk5BKlv9l8WACyONkuvQbZRIbfAb3ZZYlHKYXeXeBjZM
-         NN1EtyRt434GQNQtkDlw6wGzVhKd1jjbVuT/Wi8gGWEuAhOVHrEpROmgGt9vDaOpciEL
-         5ZHMygSMGAE3wGLqNgsIQwT/OeJ7dd8An0XYfRPFTP3WN50b58RVTmWUMbVb6f8a8Cmt
-         bKcg==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Cg4M+oo5"
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E848112
+	for <linux-unionfs@vger.kernel.org>; Tue, 12 Dec 2023 13:18:10 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1702415889;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=G0WO36JLXIv5AaAr7yVxA4KjLJZuBfSjRiR5T6MWPYU=;
+	b=Cg4M+oo5St/YzM0hIx8Mx6CIpuDTebAXspCV1MaMeB0e/zfXvPGMb2OsKNKx1EuVpwzGiE
+	LKhVwSdueKf6qbccrvjtm/iPy5ZqgCGJDp2UJPLdEc8GDic3VgogdSnHUyQ0RYuCzZeEAR
+	1S6k2qMdabU5xF+dYKAkPfmNZZx7V7s=
+Received: from mail-pg1-f199.google.com (mail-pg1-f199.google.com
+ [209.85.215.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-609-9Qq4IR0JONWENgoo8FyP1Q-1; Tue, 12 Dec 2023 16:18:07 -0500
+X-MC-Unique: 9Qq4IR0JONWENgoo8FyP1Q-1
+Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-5ca2b4038f7so848867a12.0
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Dec 2023 13:18:07 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702408799; x=1703013599;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=fDZO9rUEaSCIKGPTNLQORxAuPrrJryJu9QjeOQcq1A4=;
-        b=oko9TBv4lQtK94HsE5MQRQRI8bvjnXEpspAnRxhkWzfJ0IC+dzIp5krm9yw5TkRY3n
-         Ys2fLiq2dtA9+ts2M0tIOenDr30miJLjXURlrgGibqdNuPSgoBQPfMoJGV0KwJ+b6F9K
-         ZDSlt2TYW5A5CwWKwMnIwU70nJau0viGhZZjivz6dyHnObMalD8QQ09zCj/X6hapH1KJ
-         zbRGiFtd76l0JBtXci0YxTsuF+WL9j+wj+t4QxLtMtPiZGym7Wmw2j1ptrzbckcooUFd
-         CrjmKQiY/haK+rQ9MPp7VNpN+fCppOdM5TNi9hj7Mf04n/wKyBZHuK8cBwrq6NY6YIaG
-         d+2g==
-X-Gm-Message-State: AOJu0Yy63xePOR3FKMusFzqmv7PcNVOHY5E5AJNljadpThw0mFZC1e8d
-	xDRxBbMe2Hu5ev9o8wlVfKc0L9lH+Q6QpzDJWCP0XA==
-X-Google-Smtp-Source: AGHT+IHhHldkkKWSw5/c1UASxLGabkICfwtszvf2fhz0+qfzxSM9eqL1W0JVD3z3i8kQ+OE2shxpMKk0DM9YNWaT9QU=
-X-Received: by 2002:a4a:1d86:0:b0:58e:1c47:879b with SMTP id
- 128-20020a4a1d86000000b0058e1c47879bmr4535569oog.16.1702408799400; Tue, 12
- Dec 2023 11:19:59 -0800 (PST)
+        d=1e100.net; s=20230601; t=1702415886; x=1703020686;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=G0WO36JLXIv5AaAr7yVxA4KjLJZuBfSjRiR5T6MWPYU=;
+        b=EVh7Vw7N4qnKpSU+PJMoJ946TxEmnUqRDC4HI9r57O0B92v5raymbC6+cMk1R2+K1S
+         sSirPlTx1plKPbzn5OexSUrMZmzVHbfajNTFGRGO8fU2dgY7uv9CeOrL1qNsgABGKn4s
+         +ayfddbEyPWGdXC3smB1EuKFIgX4c9bw/Q1iSXo8alfIiU2oOV5ckdklAVKA0pekPpJD
+         HRCF3KCWmamyqfLALt199LrmXXdxAs1dVrELXYW9Uu6aTFeDqx8717vfuyH9fagDqTGM
+         JfpEP5agIuV631h+d8R8vUbG9kqta0XwGk3MpWfEv3NAXaEoWSO452QW1sws+KU+zj05
+         Sqqw==
+X-Gm-Message-State: AOJu0YwKDG2f6wS8BcQItspPpZCw3+beu7iWEDvLDGxRIBTm15i+4uiD
+	+BYwdcNTTYJdKUZEGcJeVfBHzGNQUgScAE5f0tQTYJT15viaZO+1GWOxG2qj9BW/bvR/Ui1Fdli
+	dxsqpOlM+jM4Th1Pq6LG8U5OcL/ATVD4E2I00OhnQoQ==
+X-Received: by 2002:a05:6a21:a5a4:b0:18f:fcc5:4c4f with SMTP id gd36-20020a056a21a5a400b0018ffcc54c4fmr3324484pzc.40.1702415886583;
+        Tue, 12 Dec 2023 13:18:06 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGaBUhsIKPiauenUWhA450tnBxmPri38tJ3FEk9h3f5UdGgkVU3xuISSVrM65CvHBeTYR1IOqNO0hPKmoRXyW0=
+X-Received: by 2002:a05:6a21:a5a4:b0:18f:fcc5:4c4f with SMTP id
+ gd36-20020a056a21a5a400b0018ffcc54c4fmr3324464pzc.40.1702415886268; Tue, 12
+ Dec 2023 13:18:06 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231211193048.580691-1-avagin@google.com> <CAOQ4uxik0=0F-6CLRsuaOheFjwWF-B-Q5iEQ6qJbRszL52HeQQ@mail.gmail.com>
- <20231212-brokkoli-trinken-1581d1e99d6a@brauner>
-In-Reply-To: <20231212-brokkoli-trinken-1581d1e99d6a@brauner>
-From: Andrei Vagin <avagin@google.com>
-Date: Tue, 12 Dec 2023 11:19:48 -0800
-Message-ID: <CAEWA0a6AzM0xLGW+_iFV11h8acqSZ3MfQuivf_inSjR+veh1Ng@mail.gmail.com>
-Subject: Re: [PATCH 1/2] fs/proc: show correct device and inode numbers in /proc/pid/maps
-To: Christian Brauner <brauner@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, 
-	linux-kernel@vger.kernel.org, Alexander Mikhalitsyn <alexander@mihalicyn.com>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
-	overlayfs <linux-unionfs@vger.kernel.org>
+References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
+ <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com> <ZXgNQ85PdUKrQU1j@infradead.org>
+ <58d175f8-a06e-4b00-95fe-1bd5a79106df@linux.alibaba.com> <ZXha1IxzRfhsRNOu@infradead.org>
+In-Reply-To: <ZXha1IxzRfhsRNOu@infradead.org>
+From: Eric Curtin <ecurtin@redhat.com>
+Date: Tue, 12 Dec 2023 21:17:29 +0000
+Message-ID: <CAOgh=Fw2TcOFgCz1HbU1E=_HGRnf1PTTG2Qp_nD1D9f083RwUA@mail.gmail.com>
+Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Gao Xiang <hsiangkao@linux.alibaba.com>, 
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-unionfs@vger.kernel.org, 
+	linux-erofs@lists.ozlabs.org, Daan De Meyer <daan.j.demeyer@gmail.com>, 
+	Stephen Smoogen <ssmoogen@redhat.com>, Yariv Rachmani <yrachman@redhat.com>, 
+	Daniel Walsh <dwalsh@redhat.com>, Douglas Landgraf <dlandgra@redhat.com>, 
+	Alexander Larsson <alexl@redhat.com>, Colin Walters <walters@redhat.com>, Brian Masney <bmasney@redhat.com>, 
+	Eric Chanudet <echanude@redhat.com>, Pavol Brilla <pbrilla@redhat.com>, 
+	Lokesh Mandvekar <lmandvek@redhat.com>, =?UTF-8?B?UGV0ciDFoGFiYXRh?= <psabata@redhat.com>, 
+	Lennart Poettering <lennart@poettering.net>, Luca Boccassi <bluca@debian.org>, Neal Gompa <neal@gompa.dev>, 
+	nvdimm@lists.linux.dev
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 12, 2023 at 1:27=E2=80=AFAM Christian Brauner <brauner@kernel.o=
-rg> wrote:
+On Tue, 12 Dec 2023 at 13:06, Christoph Hellwig <hch@infradead.org> wrote:
 >
-> On Tue, Dec 12, 2023 at 07:51:31AM +0200, Amir Goldstein wrote:
-> > +fsdevel, +overlayfs, +brauner, +miklos
-> >
-> > On Mon, Dec 11, 2023 at 9:30=E2=80=AFPM Andrei Vagin <avagin@google.com=
-> wrote:
-> > >
-> > > Device and inode numbers in /proc/pid/maps have to match numbers retu=
-rned by
-> > > statx for the same files.
-> >
-> > That statement may be true for regular files.
-> > It is not true for block/char as far as I know.
-> >
-> > I think that your fix will break that by displaying the ino/dev
-> > of the block/char reference inode and not their backing rdev inode.
-> >
-> > >
-> > > /proc/pid/maps shows device and inode numbers of vma->vm_file-s. Here=
- is
-> > > an issue. If a mapped file is on a stackable file system (e.g.,
-> > > overlayfs), vma->vm_file is a backing file whose f_inode is on the
-> > > underlying filesystem. To show correct numbers, we need to get a user
-> > > file and shows its numbers. The same trick is used to show file paths=
- in
-> > > /proc/pid/maps.
-> >
-> > For the *same* trick, see my patch below.
-> >
-> > >
-> > > But it isn't the end of this story. A file system can manipulate inod=
-e numbers
-> > > within the getattr callback (e.g., ovl_getattr), so vfs_getattr must =
-be used to
-> > > get correct numbers.
-> >
-> > This explanation is inaccurate, because it mixes two different overlayf=
-s
-> > traits which are unrelated.
-> > It is true that a filesystem *can* manipulate st_dev in a way that will=
- not
-> > match i_ino and it is true that overlayfs may do that in some non-defau=
-lt
-> > configurations (see [1]), but this is not the reason that you are seein=
-g
-> > mismatches ino/dev in /proc/<pid>/maps.
-> >
-> > [1] https://docs.kernel.org/filesystems/overlayfs.html#inode-properties
-> >
-> > The reason is that the vma->vm_file is a special internal backing file
-> > which is not otherwise exposed to userspace.
-> > Please see my suggested fix below.
-> >
-> > >
-> > > Cc: Amir Goldstein <amir73il@gmail.com>
-> > > Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
-> > > Signed-off-by: Andrei Vagin <avagin@google.com>
-> > > ---
-> > >  fs/proc/task_mmu.c | 20 +++++++++++++++++---
-> > >  1 file changed, 17 insertions(+), 3 deletions(-)
-> > >
-> > > diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
-> > > index 435b61054b5b..abbf96c091ad 100644
-> > > --- a/fs/proc/task_mmu.c
-> > > +++ b/fs/proc/task_mmu.c
-> > > @@ -273,9 +273,23 @@ show_map_vma(struct seq_file *m, struct vm_area_=
-struct *vma)
-> > >         const char *name =3D NULL;
-> > >
-> > >         if (file) {
-> > > -               struct inode *inode =3D file_inode(vma->vm_file);
-> > > -               dev =3D inode->i_sb->s_dev;
-> > > -               ino =3D inode->i_ino;
-> > > +               const struct path *path;
-> > > +               struct kstat stat;
-> > > +
-> > > +               path =3D file_user_path(file);
-> > > +               /*
-> > > +                * A file system can manipulate inode numbers within =
-the
-> > > +                * getattr callback (e.g. ovl_getattr).
-> > > +                */
-> > > +               if (!vfs_getattr_nosec(path, &stat, STATX_INO, AT_STA=
-TX_DONT_SYNC)) {
-> >
-> > Should you prefer to keep this solution it should be constrained to
-> > regular files.
+> On Tue, Dec 12, 2023 at 03:50:25PM +0800, Gao Xiang wrote:
+> > I have no idea how it's faster than the current initramfs or initrd.
+> > So if it's really useful, maybe some numbers can be posted first
+> > with the current `memmap` hack and see it's worth going further with
+> > some new infrastructure like initdax.
 >
-> It's also very dicy calling into the filesystem from procfs. You might
-> hang the system if you end up talking to a hung NFS server or something.
-> What locks does show_map_vma() hold? And is it safe to call helpers that
-> might generate io?
+> Agreed.
+>
 
-I had the same thoughts when I was thinking about whether it is safe
-to use it here
-or not. Then I found AT_STATX_DONT_SYNC (don't sync attributes with
-the server) and
-decided that it should be safe. Anyway, Amir explains that
-vfs_getattr_nosec isn't
-needed for overlay files.
+I was politely poked this morning to highlight the graphs on the
+initoverlayfs page, so as promised highlighting. That's not to say
+this is either kernelspace's or userspace's role to optimize, but it
+does prove there are benefits if we put some effort into optimizing
+early boot.
 
-Thanks,
-Andrei
+https://github.com/containers/initoverlayfs
+
+With this approach systemd starts ~300ms faster on a Raspberry Pi 4
+with sd card, and this systemd instance has access to all the files
+that a traditional initramfs would. I did this test on a Raspberry Pi
+4 with NVMe drive over USB and the results were closer to a 500ms
+benefit in systemd start time.
+
+Is mise le meas/Regards,
+
+Eric Curtin
+
