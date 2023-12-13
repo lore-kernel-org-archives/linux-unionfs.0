@@ -1,52 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Gs2iJI2q"
-Received: from mail-wm1-x331.google.com (mail-wm1-x331.google.com [IPv6:2a00:1450:4864:20::331])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2416ACD;
-	Wed, 13 Dec 2023 04:34:29 -0800 (PST)
-Received: by mail-wm1-x331.google.com with SMTP id 5b1f17b1804b1-40c0fc1cf3dso70327555e9.0;
-        Wed, 13 Dec 2023 04:34:29 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="YLaVgFaN"
+Received: from mail-wm1-x332.google.com (mail-wm1-x332.google.com [IPv6:2a00:1450:4864:20::332])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93149A4;
+	Wed, 13 Dec 2023 04:34:30 -0800 (PST)
+Received: by mail-wm1-x332.google.com with SMTP id 5b1f17b1804b1-40c1e3ea2f2so67829405e9.2;
+        Wed, 13 Dec 2023 04:34:30 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702470867; x=1703075667; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1702470869; x=1703075669; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=vmQjNuK63rmO/ztUYLlojCdGrkv7JHdXFU32FOzNUGo=;
-        b=Gs2iJI2qhqtC40ssN01zjVSXmP03ukoUJIq0q73EOutmXXEgjc5zCPT+C4A/PDA0Ep
-         5RfHAJiTfV7OZVbMogz7UuDR5eUSNPQqAePQBDBfCaLXe+xrPrDa4CZHxGgldnDbblnt
-         00wW89P+JnwdsHk1Xr8gQEybfqZN1f4+1imHZpfXeDksxohggL31yE4JXrwKmQRhL4ca
-         Jw9UzQ2fB2DrbjqdniBdp9J6nvGrfmuSlwc8FvDTAHqSd1b8No36CYwUAZC8bFkSWO3p
-         fqe/XsSVI6wWMVBpNPrJuQ4zDcl60JtcPCbsU4CnMCYSMojly6/KcTSH8t0Wc7LXlrNC
-         mxMA==
+        bh=yZ45IGtFcf256qIFlvb8gTvExCvSVib7FOwEtozA1GU=;
+        b=YLaVgFaNIGRo0ITxbivcXmCSBLDTU+v+pcKN6n4UDl4erAREDNDOpwdgAGQzBEvXVo
+         vvqArlUm5GPJrltR1E9TTbu0d3hVBXzwWwCbfxCpCIPn7oE5N3L9s8X7ezUC6pny4JDF
+         uZ6YRJ1w5dE8HU12rba8L5wjJGSBkTeQJMQ0AI1c/sjWhMAdgiGQ2k4vrjKlDLa83rp7
+         4m3LbNucBLUsH7DIBqtRTdShdPSpO1o9NRuW8PSmkmncYN6T+Zmu0iBXlbZhF4xDbzW4
+         YBv2o4wkFS8MGEdTzo/49no6Fs+ompVuHRQVNZUqulA76ZbWkS+gSM4nFa+TSCUHqmrh
+         0Dyw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702470867; x=1703075667;
+        d=1e100.net; s=20230601; t=1702470869; x=1703075669;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=vmQjNuK63rmO/ztUYLlojCdGrkv7JHdXFU32FOzNUGo=;
-        b=Q/iYuz+AhJyQyjVGI9ApG1T39T34prinY4gY0eHIYGukvfrDRYgeQH5Bb7dPfqu96i
-         HS3yxc8ygSCpFPMLBMXmLq9Ma+BMsYMtArfJ+JYVT23iH/Pn3aMM79TaHcinRK1MJfkj
-         qD3AiEg7lC9nygxPNJ5g1LQ6TFFYE+wpIcnMI8+7hOm44fDf3RwUsDLfS/boArAimNO1
-         fT5EyjLXKqjJPZFYLSKIpV69nN5Yv41poO7JK6AfpwqHptYXhRcP2EJdLv0dBpjuwDNc
-         QvdfTILYLPnw5Ec3DoVeGmwco442i7qh7xR/O942yKqkzov7WRNduhbS35yu1eHR8mNE
-         0U6Q==
-X-Gm-Message-State: AOJu0YxPoI1/xCaHuYAGUbbk3h37LldtpAN0df5rkyHHADhEYLRl7aiQ
-	ks3RYOdnzRKu+Pqy7ARVBGA=
-X-Google-Smtp-Source: AGHT+IFeriKJ7hgwN4/hicfXkGyEDFGF6SOj/YsyyFtB2uL99B53nvPv1eKubGRNPCnPtSlx/eXILQ==
-X-Received: by 2002:a05:600c:3506:b0:40c:46c0:b6fb with SMTP id h6-20020a05600c350600b0040c46c0b6fbmr2634965wmq.141.1702470867186;
-        Wed, 13 Dec 2023 04:34:27 -0800 (PST)
+        bh=yZ45IGtFcf256qIFlvb8gTvExCvSVib7FOwEtozA1GU=;
+        b=qGQQPcm9DnMM2NLq0ZEwJCxQ3YhJB7ITJY85FoeKrP4Hhm5Fi1LXzAxWF0H5/vJXDf
+         Xd/elS5C6e/8kJDER/FZS4rFxL/BjcmFLyiey+4+GXQnr1CKvLrt4JKrBvcdnsw5ePk5
+         oWUQWGjattZF3HHOCum9D16xOjtCBe5B6WisZR8c8p/BnEFphvrOzDl4tC7fxOxn8rXg
+         F85jWYkHaru/FBWkbOmGlZnlL6+ELR1Drf3YZwpAMx3S3Os26drc2RUWP0oqPBxP/ZUq
+         Uy9foHl7jxI8N+Ce29ar5RVSJaI70ZLwDCPud8kEyjsilwyjvcCEhvgTaxMvgt00Mvw0
+         4YKA==
+X-Gm-Message-State: AOJu0YwfrsZX224KiPG/nyzOV0tD+6RchP9h3B9KJ9AqLBtOgZjJHBp0
+	mTXdCPNHSCTwi/Fe24JzU+U=
+X-Google-Smtp-Source: AGHT+IHHtIwE0wxpct4aDH570GKlg+p+F35YhyYKd0vMn8Q3WqyAFwdBlTUe12/E9LdnhGLBvWo6lw==
+X-Received: by 2002:a05:600c:3b26:b0:40c:34c1:45e1 with SMTP id m38-20020a05600c3b2600b0040c34c145e1mr4304943wms.38.1702470868750;
+        Wed, 13 Dec 2023 04:34:28 -0800 (PST)
 Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id fc7-20020a05600c524700b0040c44cb251dsm12667926wmb.46.2023.12.13.04.34.26
+        by smtp.gmail.com with ESMTPSA id fc7-20020a05600c524700b0040c44cb251dsm12667926wmb.46.2023.12.13.04.34.27
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 13 Dec 2023 04:34:26 -0800 (PST)
+        Wed, 13 Dec 2023 04:34:27 -0800 (PST)
 From: Amir Goldstein <amir73il@gmail.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Christian Brauner <brauner@kernel.org>,
 	Bagas Sanjaya <bagasdotme@gmail.com>,
 	linux-unionfs@vger.kernel.org,
 	linux-doc@vger.kernel.org
-Subject: [PATCH v2 1/2] overlayfs.rst: use consistent feature names
-Date: Wed, 13 Dec 2023 14:34:21 +0200
-Message-Id: <20231213123422.344600-2-amir73il@gmail.com>
+Subject: [PATCH v2 2/2] overlayfs.rst: fix ReST formatting
+Date: Wed, 13 Dec 2023 14:34:22 +0200
+Message-Id: <20231213123422.344600-3-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20231213123422.344600-1-amir73il@gmail.com>
 References: <20231213123422.344600-1-amir73il@gmail.com>
@@ -58,113 +58,186 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Use the feature names "metacopy" and "index" consistently throughout
-the document.
+Fix some indentation issues and fix missing newlines in quoted text
+by converting quoted text to code blocks.
 
-Covert the numbered list of features "redirect_dir", "index", "xino"
-to section headings, so that those features could be referenced in the
-document by their name.
+Unindent a) b) enumerated list to workaround github displaying it
+as numbered list.
 
+Reported-by: Christian Brauner <brauner@kernel.org>
+Suggested-by: Bagas Sanjaya <bagasdotme@gmail.com>
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- Documentation/filesystems/overlayfs.rst | 27 ++++++++++++++-----------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ Documentation/filesystems/overlayfs.rst | 63 +++++++++++++------------
+ 1 file changed, 32 insertions(+), 31 deletions(-)
 
 diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 0407f361f32a..926396fdc5eb 100644
+index 926396fdc5eb..a36f3a2a2d4b 100644
 --- a/Documentation/filesystems/overlayfs.rst
 +++ b/Documentation/filesystems/overlayfs.rst
-@@ -39,7 +39,7 @@ objects in the original filesystem.
- On 64bit systems, even if all overlay layers are not on the same
- underlying filesystem, the same compliant behavior could be achieved
- with the "xino" feature.  The "xino" feature composes a unique object
--identifier from the real object st_ino and an underlying fsid index.
-+identifier from the real object st_ino and an underlying fsid number.
- The "xino" feature uses the high inode number bits for fsid, because the
- underlying filesystems rarely use the high inode number bits.  In case
- the underlying inode number does overflow into the high xino bits, overlay
-@@ -356,7 +356,7 @@ as an octal characters (\072) when displayed in /proc/self/mountinfo.
- Metadata only copy up
+@@ -118,7 +118,7 @@ Where both upper and lower objects are directories, a merged directory
+ is formed.
+ 
+ At mount time, the two directories given as mount options "lowerdir" and
+-"upperdir" are combined into a merged directory:
++"upperdir" are combined into a merged directory::
+ 
+   mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,\
+   workdir=/work /merged
+@@ -174,10 +174,10 @@ programs.
+ seek offsets are assigned sequentially when the directories are read.
+ Thus if
+ 
+-  - read part of a directory
+-  - remember an offset, and close the directory
+-  - re-open the directory some time later
+-  - seek to the remembered offset
++- read part of a directory
++- remember an offset, and close the directory
++- re-open the directory some time later
++- seek to the remembered offset
+ 
+ there may be little correlation between the old and new locations in
+ the list of filenames, particularly if anything has changed in the
+@@ -285,21 +285,21 @@ Permission model
+ 
+ Permission checking in the overlay filesystem follows these principles:
+ 
+- 1) permission check SHOULD return the same result before and after copy up
++1) permission check SHOULD return the same result before and after copy up
+ 
+- 2) task creating the overlay mount MUST NOT gain additional privileges
++2) task creating the overlay mount MUST NOT gain additional privileges
+ 
+- 3) non-mounting task MAY gain additional privileges through the overlay,
+- compared to direct access on underlying lower or upper filesystems
++3) non-mounting task MAY gain additional privileges through the overlay,
++   compared to direct access on underlying lower or upper filesystems
+ 
+-This is achieved by performing two permission checks on each access
++This is achieved by performing two permission checks on each access:
+ 
+- a) check if current task is allowed access based on local DAC (owner,
+-    group, mode and posix acl), as well as MAC checks
++a) check if current task is allowed access based on local DAC (owner,
++group, mode and posix acl), as well as MAC checks
+ 
+- b) check if mounting task would be allowed real operation on lower or
+-    upper layer based on underlying filesystem permissions, again including
+-    MAC checks
++b) check if mounting task would be allowed real operation on lower or
++upper layer based on underlying filesystem permissions, again including
++MAC checks
+ 
+ Check (a) ensures consistency (1) since owner, group, mode and posix acls
+ are copied up.  On the other hand it can result in server enforced
+@@ -311,11 +311,11 @@ to create setups where the consistency rule (1) does not hold; normally,
+ however, the mounting task will have sufficient privileges to perform all
+ operations.
+ 
+-Another way to demonstrate this model is drawing parallels between
++Another way to demonstrate this model is drawing parallels between::
+ 
+   mount -t overlay overlay -olowerdir=/lower,upperdir=/upper,... /merged
+ 
+-and
++and::
+ 
+   cp -a /lower /upper
+   mount --bind /upper /merged
+@@ -328,7 +328,7 @@ Multiple lower layers
  ---------------------
  
--When metadata only copy up feature is enabled, overlayfs will only copy
-+When the "metacopy" feature is enabled, overlayfs will only copy
- up metadata (as opposed to whole file), when a metadata specific operation
- like chown/chmod is performed. Full file will be copied up later when
- file is opened for WRITE operation.
-@@ -492,27 +492,27 @@ though it will not result in a crash or deadlock.
+ Multiple lower layers can now be given using the colon (":") as a
+-separator character between the directory names.  For example:
++separator character between the directory names.  For example::
  
- Mounting an overlay using an upper layer path, where the upper layer path
- was previously used by another mounted overlay in combination with a
--different lower layer path, is allowed, unless the "inodes index" feature
--or "metadata only copy up" feature is enabled.
-+different lower layer path, is allowed, unless the "index" or "metacopy"
-+features are enabled.
+   mount -t overlay overlay -olowerdir=/lower1:/lower2:/lower3 /merged
  
--With the "inodes index" feature, on the first time mount, an NFS file
-+With the "index" feature, on the first time mount, an NFS file
- handle of the lower layer root directory, along with the UUID of the lower
- filesystem, are encoded and stored in the "trusted.overlay.origin" extended
- attribute on the upper layer root directory.  On subsequent mount attempts,
- the lower root directory file handle and lower filesystem UUID are compared
- to the stored origin in upper root directory.  On failure to verify the
- lower root origin, mount will fail with ESTALE.  An overlayfs mount with
--"inodes index" enabled will fail with EOPNOTSUPP if the lower filesystem
-+"index" enabled will fail with EOPNOTSUPP if the lower filesystem
- does not support NFS export, lower filesystem does not have a valid UUID or
- if the upper filesystem does not support extended attributes.
+@@ -340,13 +340,13 @@ rightmost one and going left.  In the above example lower1 will be the
+ top, lower2 the middle and lower3 the bottom layer.
  
--For "metadata only copy up" feature there is no verification mechanism at
-+For the "metacopy" feature, there is no verification mechanism at
- mount time. So if same upper is mounted with different set of lower, mount
- probably will succeed but expect the unexpected later on. So don't do it.
+ Note: directory names containing colons can be provided as lower layer by
+-escaping the colons with a single backslash.  For example:
++escaping the colons with a single backslash.  For example::
  
- It is quite a common practice to copy overlay layers to a different
- directory tree on the same or different underlying filesystem, and even
--to a different machine.  With the "inodes index" feature, trying to mount
-+to a different machine.  With the "index" feature, trying to mount
- the copied layers will fail the verification of the lower root file handle.
+   mount -t overlay overlay -olowerdir=/a\:lower\:\:dir /merged
  
- Nesting overlayfs mounts
-@@ -560,7 +560,8 @@ file for write or truncating the file will not be denied with ETXTBSY.
- The following options allow overlayfs to act more like a standards
- compliant filesystem:
+ Since kernel version v6.8, directory names containing colons can also
+ be configured as lower layer using the "lowerdir+" mount options and the
+-fsconfig syscall from new mount api.  For example:
++fsconfig syscall from new mount api.  For example::
  
--1) "redirect_dir"
-+redirect_dir
-+````````````
+   fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/a:lower::dir", 0);
  
- Enabled with the mount option or module option: "redirect_dir=on" or with
- the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=y.
-@@ -568,7 +569,8 @@ the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=y.
- If this feature is disabled, then rename(2) on a lower or merged directory
- will fail with EXDEV ("Invalid cross-device link").
+@@ -390,11 +390,11 @@ Data-only lower layers
+ With "metacopy" feature enabled, an overlayfs regular file may be a composition
+ of information from up to three different layers:
  
--2) "inode index"
-+index
-+`````
+- 1) metadata from a file in the upper layer
++1) metadata from a file in the upper layer
  
- Enabled with the mount option or module option "index=on" or with the
- kernel config option CONFIG_OVERLAY_FS_INDEX=y.
-@@ -577,7 +579,8 @@ If this feature is disabled and a file with multiple hard links is copied
- up, then this will "break" the link.  Changes will not be propagated to
- other names referring to the same inode.
+- 2) st_ino and st_dev object identifier from a file in a lower layer
++2) st_ino and st_dev object identifier from a file in a lower layer
  
--3) "xino"
-+xino
-+````
+- 3) data from a file in another lower layer (further below)
++3) data from a file in another lower layer (further below)
  
- Enabled with the mount option "xino=auto" or "xino=on", with the module
- option "xino_auto=on" or with the kernel config option
-@@ -604,7 +607,7 @@ a crash or deadlock.
+ The "lower data" file can be on any lower layer, except from the top most
+ lower layer.
+@@ -405,7 +405,7 @@ A normal lower layer is not allowed to be below a data-only layer, so single
+ colon separators are not allowed to the right of double colon ("::") separators.
  
- Offline changes, when the overlay is not mounted, are allowed to the
- upper tree.  Offline changes to the lower tree are only allowed if the
--"metadata only copy up", "inode index", "xino" and "redirect_dir" features
-+"metacopy", "index", "xino" and "redirect_dir" features
- have not been used.  If the lower tree is modified and any of these
- features has been used, the behavior of the overlay is undefined,
- though it will not result in a crash or deadlock.
+ 
+-For example:
++For example::
+ 
+   mount -t overlay overlay -olowerdir=/l1:/l2:/l3::/do1::/do2 /merged
+ 
+@@ -419,7 +419,7 @@ to the absolute path of the "lower data" file in the "data-only" lower layer.
+ 
+ Since kernel version v6.8, "data-only" lower layers can also be added using
+ the "datadir+" mount options and the fsconfig syscall from new mount api.
+-For example:
++For example::
+ 
+   fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l1", 0);
+   fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l2", 0);
+@@ -429,7 +429,7 @@ For example:
+ 
+ 
+ fs-verity support
+-----------------------
++-----------------
+ 
+ During metadata copy up of a lower file, if the source file has
+ fs-verity enabled and overlay verity support is enabled, then the
+@@ -653,9 +653,10 @@ following rules apply:
+    encode an upper file handle from upper inode
+ 
+ The encoded overlay file handle includes:
+- - Header including path type information (e.g. lower/upper)
+- - UUID of the underlying filesystem
+- - Underlying filesystem encoding of underlying inode
++
++- Header including path type information (e.g. lower/upper)
++- UUID of the underlying filesystem
++- Underlying filesystem encoding of underlying inode
+ 
+ This encoding format is identical to the encoding format file handles that
+ are stored in extended attribute "trusted.overlay.origin".
+@@ -773,9 +774,9 @@ Testsuite
+ There's a testsuite originally developed by David Howells and currently
+ maintained by Amir Goldstein at:
+ 
+-  https://github.com/amir73il/unionmount-testsuite.git
++https://github.com/amir73il/unionmount-testsuite.git
+ 
+-Run as root:
++Run as root::
+ 
+   # cd unionmount-testsuite
+   # ./run --ov --verify
 -- 
 2.34.1
 
