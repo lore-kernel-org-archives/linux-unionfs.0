@@ -1,99 +1,168 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IH//JhBd"
-Received: from mail-oi1-x22c.google.com (mail-oi1-x22c.google.com [IPv6:2607:f8b0:4864:20::22c])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2EA3DA0;
-	Wed, 13 Dec 2023 03:26:24 -0800 (PST)
-Received: by mail-oi1-x22c.google.com with SMTP id 5614622812f47-3ba084395d9so2294423b6e.0;
-        Wed, 13 Dec 2023 03:26:24 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bmg6DyP2"
+Received: from mail-vk1-xa36.google.com (mail-vk1-xa36.google.com [IPv6:2607:f8b0:4864:20::a36])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 799EF106;
+	Wed, 13 Dec 2023 03:58:40 -0800 (PST)
+Received: by mail-vk1-xa36.google.com with SMTP id 71dfb90a1353d-4b2ee35bff8so2241182e0c.2;
+        Wed, 13 Dec 2023 03:58:40 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702466783; x=1703071583; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1702468719; x=1703073519; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=b6ML0ly7w4x3IcoxK6kKjw4POy/vTf1Q0LT5CXiDqvM=;
-        b=IH//JhBdgRqdfY9I3lnEL/mpDeljFyAb3Ttu21XNs7Jp6CnLeUxaF7Kp5rFHBO/nfd
-         nVOz5P9TmZ7DQ5Vqe/cLX1juswq12yp0AZBPnsVExEftRgZyu6/0trn7meacsAHE92aL
-         zLnbwFzIJCf6th8eSmp9YsUVsZBzWl27eWmjdZ+CIYLnS7r4V8EY6R/HBH8khn2wlxcz
-         VgNAeQNuh5QebJG5vIsIQMO353pXexk8W1f84iRR7QoAkEtHjQ4T0eUIG6aCEFy8uWt4
-         G8af6M6JsIZetcyqmmIxzyhg2rqDaiqhTNVzDK6K1nLY+zWbMhYX3gId1XLensb3mdf2
-         OVeg==
+        bh=bJYW5yXxVNbgWrbBqu6ykoaRla+y5O3rX61yIqV8BwI=;
+        b=bmg6DyP2EtqqGazk0RdK2pHFIGC9kFcA2cG1gfjKgRHYlPjUm90AANnhWEfU8N21RI
+         b1ckAHYQzd1Fl00zPEgialdfzgvjHSL2j2OxMrTbJOAev7LuyOnzdfk046/eFrnVcXYb
+         KIBDZ+q8T2iDEnBOPhKgVPD+Ny2PQ+dCtaK05/Pk35xk67A+zoQ0PMF6gzPPQxx5qvhG
+         sEIsOEJjw89eexxOo++hv4Zrb1yHvp2+L2eCTktpbFLUovlBRz9qYwiHXOUDfxFG+vz5
+         lBimPOTR6/BAQrS8Ln0roZZcEFHoO1H1I9gND9TzVfulvv2ysAhLNLj1JzDM7aBvfrGZ
+         D7ug==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702466783; x=1703071583;
+        d=1e100.net; s=20230601; t=1702468719; x=1703073519;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=b6ML0ly7w4x3IcoxK6kKjw4POy/vTf1Q0LT5CXiDqvM=;
-        b=d9OyipFIh9PfBTIJnSseVfB+azaZBpU3fUtaRQEQ1yL2GvJ4AevI/EoI/7j8lw8guM
-         vB/uxCR4C6jcykcKKGGAgUXGHBxFpDkpMW2bWEoCJLLGsW7pWPGm9f2BHWByYOa7EySU
-         yI7JqH1Ia/dguaOAF3+CwNJqRxZ0o5VF9kh3lPAofrflXcXFaUBHQf2U8ktl8ZkPs5d/
-         yLK8Wd9Dhj/gqp4kF+7QOI0hozAPZTSk/cuxJ2UOV+lVH5JgQ7YVzBuNkxMKRFbMZZjO
-         ws30RZUSXma/QAcp3syhanUjSOZxgA8rnlSKtraUzvB+Y9rS9Pff+afZCjyT54cjt7+k
-         NQ8w==
-X-Gm-Message-State: AOJu0Ywo6blPXjlneHSAN0D1cu2ZQRWRkw6XNRdvTfCCKZCjd2AZv0SO
-	UO+IJnB4mTGdrA67ZsK/2I0SP8UYUEpdE3ev2KdI3WUO
-X-Google-Smtp-Source: AGHT+IEaX11OTz0PCl0brrfMbyk5S8saff5GltHyoHeUTrANuR99mSVO+FzUpxPlSl3VjznPDUKMUyp1kSqueHc6IVw=
-X-Received: by 2002:a05:6808:2082:b0:3b9:caf1:96bb with SMTP id
- s2-20020a056808208200b003b9caf196bbmr10151690oiw.52.1702466782600; Wed, 13
- Dec 2023 03:26:22 -0800 (PST)
+        bh=bJYW5yXxVNbgWrbBqu6ykoaRla+y5O3rX61yIqV8BwI=;
+        b=KtO+Cx84pM4IVqLbxPG9/vIV2FT9SS0ME1ZaJ69M88yRseM/fCZsgcITx3QEXzgOzo
+         ZWQLhgOLbLRs18J9gyCgah4yctgenvDQzu7l2y8O+KZ7zFjW1/9qvqovsIqFdh+19PU0
+         AX7cKqli6e4fMUcKszVDjCucqhqop74WTzcsP6KGnCtH8pOVTq5CogkXsPfFDgrGNBPl
+         PDcJLk41a10D2qZRJgunJSSj/GNlQ+fJ3mYt+uprjK3SPM+aEQT/UNuNCcs3I0tvWYzC
+         bUYIlEj/W6IXLLrB5Z+wpQJp3vXRVOvUW0EqyPFGg4VDfICQovVkoKoD0JBmNuqoiw+3
+         MuQQ==
+X-Gm-Message-State: AOJu0YyFeaXDYoVX8GH2DfcAdAw/yiRecPJZtkQiThp/wolsq4wPuf2Z
+	WUX41FyMWYfNKEjYKyFqCUhE1sLgMFoYg+RSOmM=
+X-Google-Smtp-Source: AGHT+IEBIT5aN1vDwhu4+FOLNqpegMSUCpaIGhTvXdQLBUs/Ch5UOLd9143bLdmBnA5oXf72T5wgY//Na576s2+LHjY=
+X-Received: by 2002:a1f:f28f:0:b0:4b2:c554:dfc8 with SMTP id
+ q137-20020a1ff28f000000b004b2c554dfc8mr6401285vkh.23.1702468719430; Wed, 13
+ Dec 2023 03:58:39 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231212073324.245541-1-amir73il@gmail.com> <20231212073324.245541-2-amir73il@gmail.com>
- <ZXk6eNa8n0n1Uerb@archie.me>
-In-Reply-To: <ZXk6eNa8n0n1Uerb@archie.me>
+References: <20231212073324.245541-1-amir73il@gmail.com> <20231212073324.245541-3-amir73il@gmail.com>
+ <ZXk-NPhtH1g57HWt@archie.me>
+In-Reply-To: <ZXk-NPhtH1g57HWt@archie.me>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 13 Dec 2023 13:26:11 +0200
-Message-ID: <CAOQ4uxhxxvTUmyxMiPBOoDu8wFvGBx7PH4HU4bH66yt9RrNOAw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] overlayfs.rst: use consistent terminology
+Date: Wed, 13 Dec 2023 13:58:28 +0200
+Message-ID: <CAOQ4uxj-Jw=F8kZVHGAa74DD6wkQWkyS1nui-Zj7yGy50Qg3cw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] overlayfs.rst: fix ReST formatting
 To: Bagas Sanjaya <bagasdotme@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, 
-	Linux unionfs <linux-unionfs@vger.kernel.org>, 
-	Linux Documentation <linux-doc@vger.kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org, 
+	linux-doc@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Dec 13, 2023 at 7:00=E2=80=AFAM Bagas Sanjaya <bagasdotme@gmail.com=
+On Wed, Dec 13, 2023 at 7:16=E2=80=AFAM Bagas Sanjaya <bagasdotme@gmail.com=
 > wrote:
 >
-> On Tue, Dec 12, 2023 at 09:33:23AM +0200, Amir Goldstein wrote:
-> > -1) "redirect_dir"
-> > +redirect_dir
-> > +````````````
+> On Tue, Dec 12, 2023 at 09:33:24AM +0200, Amir Goldstein wrote:
+> > Fix some indentation issues and missing newlines in quoted text.
 > >
-> >  Enabled with the mount option or module option: "redirect_dir=3Don" or=
- with
-> >  the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=3Dy.
-> > @@ -568,7 +569,8 @@ the kernel config option CONFIG_OVERLAY_FS_REDIRECT=
-_DIR=3Dy.
-> >  If this feature is disabled, then rename(2) on a lower or merged direc=
-tory
-> >  will fail with EXDEV ("Invalid cross-device link").
+> > Unindent a) b) enumerated list to workaround github displaying it
+> > as numbered list.
 > >
-> > -2) "inode index"
-> > +index
-> > +`````
+> > Reported-by: Christian Brauner <brauner@kernel.org>
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >  Documentation/filesystems/overlayfs.rst | 69 +++++++++++++------------
+> >  1 file changed, 35 insertions(+), 34 deletions(-)
 > >
-> >  Enabled with the mount option or module option "index=3Don" or with th=
-e
-> >  kernel config option CONFIG_OVERLAY_FS_INDEX=3Dy.
-> > @@ -577,7 +579,8 @@ If this feature is disabled and a file with multipl=
-e hard links is copied
-> >  up, then this will "break" the link.  Changes will not be propagated t=
-o
-> >  other names referring to the same inode.
+> > diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/fi=
+lesystems/overlayfs.rst
+> > index 926396fdc5eb..37467ad5cff4 100644
+> > --- a/Documentation/filesystems/overlayfs.rst
+> > +++ b/Documentation/filesystems/overlayfs.rst
+> > @@ -174,10 +174,10 @@ programs.
+> >  seek offsets are assigned sequentially when the directories are read.
+> >  Thus if
 > >
-> > -3) "xino"
-> > +xino
-> > +````
+> > -  - read part of a directory
+> > -  - remember an offset, and close the directory
+> > -  - re-open the directory some time later
+> > -  - seek to the remembered offset
+> > +- read part of a directory
+> > +- remember an offset, and close the directory
+> > +- re-open the directory some time later
+> > +- seek to the remembered offset
 >
-> Why is there section heading conversion above (not mentioned in the patch
-> description)?
+> Looks OK.
+>
+> >
+> >  there may be little correlation between the old and new locations in
+> >  the list of filenames, particularly if anything has changed in the
+> > @@ -285,21 +285,21 @@ Permission model
+> >
+> >  Permission checking in the overlay filesystem follows these principles=
+:
+> >
+> > - 1) permission check SHOULD return the same result before and after co=
+py up
+> > +1) permission check SHOULD return the same result before and after cop=
+y up
+> >
+> > - 2) task creating the overlay mount MUST NOT gain additional privilege=
+s
+> > +2) task creating the overlay mount MUST NOT gain additional privileges
+> >
+> > - 3) non-mounting task MAY gain additional privileges through the overl=
+ay,
+> > - compared to direct access on underlying lower or upper filesystems
+> > +3) non-mounting task MAY gain additional privileges through the overla=
+y,
+> > +   compared to direct access on underlying lower or upper filesystems
+> >
+> > -This is achieved by performing two permission checks on each access
+> > +This is achieved by performing two permission checks on each access:
+> >
+> > - a) check if current task is allowed access based on local DAC (owner,
+> > -    group, mode and posix acl), as well as MAC checks
+> > +a) check if current task is allowed access based on local DAC (owner,
+> > +group, mode and posix acl), as well as MAC checks
+> >
+> > - b) check if mounting task would be allowed real operation on lower or
+> > -    upper layer based on underlying filesystem permissions, again incl=
+uding
+> > -    MAC checks
+> > +b) check if mounting task would be allowed real operation on lower or
+> > +upper layer based on underlying filesystem permissions, again includin=
+g
+> > +MAC checks
+>
+> Shouldn't the numbered list be `1.` and `a.`?
+>
 
-Because it makes the document look nicer.
-I will add a note about it in the commit message.
+As I wrote in the commit message:
+"Unindent a) b) enumerated list to workaround github displaying it
+ as numbered list."
+
+For some reason github displays a. as 1.:
+
+https://github.com/torvalds/linux/blob/master/Documentation/filesystems/ove=
+rlayfs.rst#permission-model
+
+> > @@ -421,15 +421,15 @@ Since kernel version v6.8, "data-only" lower laye=
+rs can also be added using
+> >  the "datadir+" mount options and the fsconfig syscall from new mount a=
+pi.
+> >  For example:
+> >
+> > -  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l1", 0);
+> > -  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l2", 0);
+> > -  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l3", 0);
+> > -  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do1", 0);
+> > -  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do2", 0);
+> > + |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l1", 0);
+> > + |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l2", 0);
+> > + |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l3", 0);
+> > + |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do1", 0);
+> > + |  fsconfig(fs_fd, FSCONFIG_SET_STRING, "datadir+", "/do2", 0);
+>
+> What about using code block syntax (e.g. `For example::`)?
+>
+
+Nice! I will convert all code blocks to use this format.
 
 Thanks,
 Amir.
