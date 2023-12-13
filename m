@@ -1,98 +1,115 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Cg4M+oo5"
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E848112
-	for <linux-unionfs@vger.kernel.org>; Tue, 12 Dec 2023 13:18:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1702415889;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=G0WO36JLXIv5AaAr7yVxA4KjLJZuBfSjRiR5T6MWPYU=;
-	b=Cg4M+oo5St/YzM0hIx8Mx6CIpuDTebAXspCV1MaMeB0e/zfXvPGMb2OsKNKx1EuVpwzGiE
-	LKhVwSdueKf6qbccrvjtm/iPy5ZqgCGJDp2UJPLdEc8GDic3VgogdSnHUyQ0RYuCzZeEAR
-	1S6k2qMdabU5xF+dYKAkPfmNZZx7V7s=
-Received: from mail-pg1-f199.google.com (mail-pg1-f199.google.com
- [209.85.215.199]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-609-9Qq4IR0JONWENgoo8FyP1Q-1; Tue, 12 Dec 2023 16:18:07 -0500
-X-MC-Unique: 9Qq4IR0JONWENgoo8FyP1Q-1
-Received: by mail-pg1-f199.google.com with SMTP id 41be03b00d2f7-5ca2b4038f7so848867a12.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Dec 2023 13:18:07 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="e8t5Pjpz"
+Received: from mail-oi1-x22f.google.com (mail-oi1-x22f.google.com [IPv6:2607:f8b0:4864:20::22f])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11406B7;
+	Tue, 12 Dec 2023 21:00:47 -0800 (PST)
+Received: by mail-oi1-x22f.google.com with SMTP id 5614622812f47-3ba00fe4e98so2842624b6e.2;
+        Tue, 12 Dec 2023 21:00:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1702443646; x=1703048446; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=OnHr3zz5oe16bFdKJp/3TpS27wFTuz14+HDiKum6VyE=;
+        b=e8t5PjpzLTJPmsuLdQgMCBTlpY8EDsXhDWhVx+PsAdRyzhmJrQacMRQeY2IB4rJ+r8
+         1V6LHa/6kiddjLl6yQ3WpaBQOBUrBDFMPz2kY2j+jLxRE6CM73jnWgx+ugsIlMx9cXBD
+         06BVkwqHzkXCDcBAE1ltPOI4+yn5MILlcC3SAESJ2rJZDRixVF7srdj3bRwnAQ6ZNUAA
+         tYj+hS98b2EAqsKGV1IFzUAAPld+YG4a5LzG2Edtd9C53vYS0LZ3m431XMez4xMXxyZN
+         ZARu5pDvdth3Xqv3RD3woQb1MxY7JWZdck9t2opThLQshbZLUfC89LksPR8HU8Oa0Qyr
+         Bydg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702415886; x=1703020686;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=G0WO36JLXIv5AaAr7yVxA4KjLJZuBfSjRiR5T6MWPYU=;
-        b=EVh7Vw7N4qnKpSU+PJMoJ946TxEmnUqRDC4HI9r57O0B92v5raymbC6+cMk1R2+K1S
-         sSirPlTx1plKPbzn5OexSUrMZmzVHbfajNTFGRGO8fU2dgY7uv9CeOrL1qNsgABGKn4s
-         +ayfddbEyPWGdXC3smB1EuKFIgX4c9bw/Q1iSXo8alfIiU2oOV5ckdklAVKA0pekPpJD
-         HRCF3KCWmamyqfLALt199LrmXXdxAs1dVrELXYW9Uu6aTFeDqx8717vfuyH9fagDqTGM
-         JfpEP5agIuV631h+d8R8vUbG9kqta0XwGk3MpWfEv3NAXaEoWSO452QW1sws+KU+zj05
-         Sqqw==
-X-Gm-Message-State: AOJu0YwKDG2f6wS8BcQItspPpZCw3+beu7iWEDvLDGxRIBTm15i+4uiD
-	+BYwdcNTTYJdKUZEGcJeVfBHzGNQUgScAE5f0tQTYJT15viaZO+1GWOxG2qj9BW/bvR/Ui1Fdli
-	dxsqpOlM+jM4Th1Pq6LG8U5OcL/ATVD4E2I00OhnQoQ==
-X-Received: by 2002:a05:6a21:a5a4:b0:18f:fcc5:4c4f with SMTP id gd36-20020a056a21a5a400b0018ffcc54c4fmr3324484pzc.40.1702415886583;
-        Tue, 12 Dec 2023 13:18:06 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IGaBUhsIKPiauenUWhA450tnBxmPri38tJ3FEk9h3f5UdGgkVU3xuISSVrM65CvHBeTYR1IOqNO0hPKmoRXyW0=
-X-Received: by 2002:a05:6a21:a5a4:b0:18f:fcc5:4c4f with SMTP id
- gd36-20020a056a21a5a400b0018ffcc54c4fmr3324464pzc.40.1702415886268; Tue, 12
- Dec 2023 13:18:06 -0800 (PST)
+        d=1e100.net; s=20230601; t=1702443646; x=1703048446;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=OnHr3zz5oe16bFdKJp/3TpS27wFTuz14+HDiKum6VyE=;
+        b=UhGIMYx7DNZwJVM+zHx/HcCufQY8ffRXI6jURni12tPn8hVXmlLDIJUs7YGx5bYICP
+         hGRsVnQtll2K3ZbbStu/woBHEuGg4eXKYEfhcnhIAIIDFtXGBNqQ9PjlTXtQ3u16BNFz
+         xZ1qQ25ns77ruhZZO5g1xrt90jtyVkuUdWnY0m8fklRPhHDGng1NMQcIVl8z47kyCCMX
+         Y1M8AqREdIYbTF48E+LUXOP68C0Ggyp17sAw7l3ycn/QkN50aFEH5DTXmdpc4/vESJDe
+         ySlTX6LWU5d5OqNLUIZhNMujHKULwAJw05YtMEGfin8LBQf9YwpxOzEpLJVHN9UZIyND
+         Om+w==
+X-Gm-Message-State: AOJu0Yx9N6EYrb4wpQJCX94z3LkWXjgjHo1Cyt3WPXutCe5LC/3hDALF
+	FySPky8whzAN3SlP5ZncpHkUYVhdYXITEg==
+X-Google-Smtp-Source: AGHT+IE0l9iMQZYUh5JmGa/Xmo+w5wSzmtVTAlhbAoDtLTIoBYps8LQZfJEG8vZaaL5QmkcBm7Npsg==
+X-Received: by 2002:a05:6808:d51:b0:3b8:6057:b08a with SMTP id w17-20020a0568080d5100b003b86057b08amr9313785oik.6.1702443646327;
+        Tue, 12 Dec 2023 21:00:46 -0800 (PST)
+Received: from archie.me ([103.131.18.64])
+        by smtp.gmail.com with ESMTPSA id c23-20020aa78817000000b006ce358d5d9asm9321092pfo.141.2023.12.12.21.00.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 12 Dec 2023 21:00:45 -0800 (PST)
+Received: by archie.me (Postfix, from userid 1000)
+	id BB2A61006E92A; Wed, 13 Dec 2023 12:00:40 +0700 (WIB)
+Date: Wed, 13 Dec 2023 12:00:40 +0700
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>,
+	Linux unionfs <linux-unionfs@vger.kernel.org>,
+	Linux Documentation <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH 1/2] overlayfs.rst: use consistent terminology
+Message-ID: <ZXk6eNa8n0n1Uerb@archie.me>
+References: <20231212073324.245541-1-amir73il@gmail.com>
+ <20231212073324.245541-2-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOgh=Fwb+JCTQ-iqzjq8st9qbvauxc4gqqafjWG2Xc08MeBabQ@mail.gmail.com>
- <941aff31-6aa4-4c37-bb94-547c46250304@linux.alibaba.com> <ZXgNQ85PdUKrQU1j@infradead.org>
- <58d175f8-a06e-4b00-95fe-1bd5a79106df@linux.alibaba.com> <ZXha1IxzRfhsRNOu@infradead.org>
-In-Reply-To: <ZXha1IxzRfhsRNOu@infradead.org>
-From: Eric Curtin <ecurtin@redhat.com>
-Date: Tue, 12 Dec 2023 21:17:29 +0000
-Message-ID: <CAOgh=Fw2TcOFgCz1HbU1E=_HGRnf1PTTG2Qp_nD1D9f083RwUA@mail.gmail.com>
-Subject: Re: [RFC KERNEL] initoverlayfs - a scalable initial filesystem
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Gao Xiang <hsiangkao@linux.alibaba.com>, 
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-erofs@lists.ozlabs.org, Daan De Meyer <daan.j.demeyer@gmail.com>, 
-	Stephen Smoogen <ssmoogen@redhat.com>, Yariv Rachmani <yrachman@redhat.com>, 
-	Daniel Walsh <dwalsh@redhat.com>, Douglas Landgraf <dlandgra@redhat.com>, 
-	Alexander Larsson <alexl@redhat.com>, Colin Walters <walters@redhat.com>, Brian Masney <bmasney@redhat.com>, 
-	Eric Chanudet <echanude@redhat.com>, Pavol Brilla <pbrilla@redhat.com>, 
-	Lokesh Mandvekar <lmandvek@redhat.com>, =?UTF-8?B?UGV0ciDFoGFiYXRh?= <psabata@redhat.com>, 
-	Lennart Poettering <lennart@poettering.net>, Luca Boccassi <bluca@debian.org>, Neal Gompa <neal@gompa.dev>, 
-	nvdimm@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="gDsvBZp3hiuElDa3"
+Content-Disposition: inline
+In-Reply-To: <20231212073324.245541-2-amir73il@gmail.com>
 
-On Tue, 12 Dec 2023 at 13:06, Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Tue, Dec 12, 2023 at 03:50:25PM +0800, Gao Xiang wrote:
-> > I have no idea how it's faster than the current initramfs or initrd.
-> > So if it's really useful, maybe some numbers can be posted first
-> > with the current `memmap` hack and see it's worth going further with
-> > some new infrastructure like initdax.
->
-> Agreed.
->
 
-I was politely poked this morning to highlight the graphs on the
-initoverlayfs page, so as promised highlighting. That's not to say
-this is either kernelspace's or userspace's role to optimize, but it
-does prove there are benefits if we put some effort into optimizing
-early boot.
+--gDsvBZp3hiuElDa3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-https://github.com/containers/initoverlayfs
+On Tue, Dec 12, 2023 at 09:33:23AM +0200, Amir Goldstein wrote:
+> -1) "redirect_dir"
+> +redirect_dir
+> +````````````
+> =20
+>  Enabled with the mount option or module option: "redirect_dir=3Don" or w=
+ith
+>  the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=3Dy.
+> @@ -568,7 +569,8 @@ the kernel config option CONFIG_OVERLAY_FS_REDIRECT_D=
+IR=3Dy.
+>  If this feature is disabled, then rename(2) on a lower or merged directo=
+ry
+>  will fail with EXDEV ("Invalid cross-device link").
+> =20
+> -2) "inode index"
+> +index
+> +`````
+> =20
+>  Enabled with the mount option or module option "index=3Don" or with the
+>  kernel config option CONFIG_OVERLAY_FS_INDEX=3Dy.
+> @@ -577,7 +579,8 @@ If this feature is disabled and a file with multiple =
+hard links is copied
+>  up, then this will "break" the link.  Changes will not be propagated to
+>  other names referring to the same inode.
+> =20
+> -3) "xino"
+> +xino
+> +````
 
-With this approach systemd starts ~300ms faster on a Raspberry Pi 4
-with sd card, and this systemd instance has access to all the files
-that a traditional initramfs would. I did this test on a Raspberry Pi
-4 with NVMe drive over USB and the results were closer to a 500ms
-benefit in systemd start time.
+Why is there section heading conversion above (not mentioned in the patch
+description)?
 
-Is mise le meas/Regards,
+--=20
+An old man doll... just what I always wanted! - Clara
 
-Eric Curtin
+--gDsvBZp3hiuElDa3
+Content-Type: application/pgp-signature; name="signature.asc"
 
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZXk6dQAKCRD2uYlJVVFO
+oyHsAPwOm0P5j5GpMmGREXYQvbgRKm9z+vIVakBY7KYx2VigLAEAwGcSrPwydvo3
+xZXdkPzwjl6nN7Y1rWJAqGQ2yLNMBgI=
+=EKBf
+-----END PGP SIGNATURE-----
+
+--gDsvBZp3hiuElDa3--
