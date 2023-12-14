@@ -1,53 +1,52 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jHJ+y3PU"
-Received: from mail-qv1-xf2a.google.com (mail-qv1-xf2a.google.com [IPv6:2607:f8b0:4864:20::f2a])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF31EE0;
-	Thu, 14 Dec 2023 00:03:43 -0800 (PST)
-Received: by mail-qv1-xf2a.google.com with SMTP id 6a1803df08f44-67f01b911c5so6406526d6.0;
-        Thu, 14 Dec 2023 00:03:43 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="EL+Zgvh9"
+Received: from mail-qk1-x72e.google.com (mail-qk1-x72e.google.com [IPv6:2607:f8b0:4864:20::72e])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDFDEB9;
+	Thu, 14 Dec 2023 00:11:13 -0800 (PST)
+Received: by mail-qk1-x72e.google.com with SMTP id af79cd13be357-77f320ca2d5so30802085a.1;
+        Thu, 14 Dec 2023 00:11:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702541023; x=1703145823; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1702541473; x=1703146273; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=bKrbI1xAKWbEcqudHvTK+osAC0pIMnz5+OHOQinRQHA=;
-        b=jHJ+y3PUlVrZapEItmupJJvgHSa4NOirQJ4450Ofh4u9fuQk9OP/njU6PrhpwlcogJ
-         1PyoS4Rif9o0pn/y8dIYR6qV3MJI6uXXImm4+BZo/FaCdg8jF7DQJ3Dkn2oqVOEIYFmL
-         1e2MURTPowV8tARl6Zisc7PDpXHzbph/QnavRHPqeCW03jUjqosgIapyR3lcYCLR2IQ/
-         jsS7S27Q5A/2MjUpi774uFFEXp4TtAEP23AgIqv2UTebURcDyY61l0+rBr1dygHRRcqQ
-         5WE1P+08Z6SPBVlh5logEU7fLwpM68ZdfAbUwoux7wYcsoiXVBmQqAQkiDLnw7LtLHeY
-         //Cg==
+        bh=IDWO5H07PkvnzHoBQ35J//pcV3Lsec9flrFu7/XK3f4=;
+        b=EL+Zgvh9oRTPlbh0tdgBHcSFh0YbxS17LmE+Eh6fRIFmfpcejw7ln1qZAvBo7iM0XG
+         vi0wyQIWNLrb1cuwrIbGAUaJGDfRpwOJj/MKSj7Q9BESeN3t/jupPYjOoNQhbpv0WNTV
+         +Ij2sx+N0JVXvL9duCv7TazZar61sWaWrmEVFPW3ozWu3ZoKYgZDd6TDiNlJwHesVReR
+         itC5vGAoJeoJhin7Gl+TpTgmEtcUwA63smyW8KCkIl3Ol8ks4GOK1bQFSrNAIpF34yBe
+         mmwKPkqvPFfvn9IE65t62+AeRn2EAz0zylUaCu3ZrUepp5iIuMQ14O/MHxpCS8LW26iQ
+         SQ2g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702541023; x=1703145823;
+        d=1e100.net; s=20230601; t=1702541473; x=1703146273;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=bKrbI1xAKWbEcqudHvTK+osAC0pIMnz5+OHOQinRQHA=;
-        b=pmUaWdBM0eyke5eZjvV6bl11+30r8gAjZq+X7PuoW3Cajp5EpcfO0v7q0eXf5NdjTb
-         5iRrZpfB8YyJ0GfLFSK155R3SxXHbNpNsEIlkp461ePkLeGdqb3zAhDuPhT3eNpwLnzB
-         0uHNLJb+jldOYP/dRj7NXx8iCLglGcmwCW3ldE0vP8rrWbJBrbYAVfGt/cL4tJluebTh
-         ubUF1aw9qTCQZAI8+YC8up2wzfifx1RM9AAvgVJJ0Q0rKH4v12Ekm00WAT1hHpO4iaK+
-         atgwbFxllyGtEZXPn42THFEXnnKMnNXgCpxnW0jP5NXcUvXYBf/hvns/7LMmkemn4EgL
-         76ZA==
-X-Gm-Message-State: AOJu0YxHAY43sBqQn7BzDAO8/9/zGNkjsQhKfV88GlkYw2YoikPl38S/
-	atk/p0D0xvgsIDBp3K4WWteHK9o9IIEA1y5DGHU=
-X-Google-Smtp-Source: AGHT+IHiiov80boeHkt0nMYOcwByWiEI5TZkBNJUCKkQV0ajqk43JpAoV2ZEpq8gQdCzhQJBjHP9u4z4rU8/5xWVx8A=
-X-Received: by 2002:a05:6214:246d:b0:67f:e1d:af38 with SMTP id
- im13-20020a056214246d00b0067f0e1daf38mr183836qvb.50.1702541022813; Thu, 14
- Dec 2023 00:03:42 -0800 (PST)
+        bh=IDWO5H07PkvnzHoBQ35J//pcV3Lsec9flrFu7/XK3f4=;
+        b=itzSbSBMznHRD6ZqPnIr1FbmC2aJ2rOGi226Z9TUo/VTD+ijMz4arLd9QrjlfHcAgu
+         lgNuL6NmjUUGgjxeNZQVsb0EP+betmh/eXukwXHDjsXTtIoDxf2UlvR21kZhxDyqITbp
+         geHII2nQRoYzZT1mRX8WJ+xJy+s1L0zUvVnuCi46gv5jEwHi9wYH8gnRxv15XYB3jraw
+         3G4L/DlIYlQKdyJvROnF8kCcR8KN0E0MyJkllloKW0iC43HvNIlny8HXNtXnYMKvjZh1
+         zyPf23oEzRRLO2iB41LQExObCfx2i4GIMKoO3VmRX0nafYM1jZlpLC0Ouvpg1g/YUbp8
+         p1Qg==
+X-Gm-Message-State: AOJu0YyPQZpMa+8ekXyjMTLzhKKUuDkzHdL55yMLfxiBItw157huhYJG
+	4Lqynb31qXesAxo//0v8Y3rkNb+Dy2S+4sT/J3r7kmUKUUA=
+X-Google-Smtp-Source: AGHT+IFnk28laCTuTTQirxoyuffzhDMJBW7p37ZgeluhE7VxKNYyEk4jScBeTp1yfJ10ifiNG2xpSxQMjFRVMMFRpDo=
+X-Received: by 2002:a05:620a:430e:b0:77d:5f96:720e with SMTP id
+ u14-20020a05620a430e00b0077d5f96720emr15951323qko.15.1702541472735; Thu, 14
+ Dec 2023 00:11:12 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231214064439.1023011-1-avagin@google.com> <20231214064439.1023011-2-avagin@google.com>
-In-Reply-To: <20231214064439.1023011-2-avagin@google.com>
+References: <20231214064439.1023011-1-avagin@google.com>
+In-Reply-To: <20231214064439.1023011-1-avagin@google.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 14 Dec 2023 10:03:31 +0200
-Message-ID: <CAOQ4uxh4kbnFuYMK4fd=VTsu=up_FB7XFT5Jf0-a8QTAhLcC7Q@mail.gmail.com>
-Subject: Re: [PATCH 2/2] selftests/overlayfs: verify device and inode numbers
- in /proc/pid/maps
+Date: Thu, 14 Dec 2023 10:11:01 +0200
+Message-ID: <CAOQ4uxirQoaXxqoD8=OnYqASAB_qbz8iTgwga_-f3v88-af2_g@mail.gmail.com>
+Subject: Re: [PATCH 1/2 v2] fs/proc: show correct device and inode numbers in /proc/pid/maps
 To: Andrei Vagin <avagin@google.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, 
 	Alexander Mikhalitsyn <alexander@mihalicyn.com>, Christian Brauner <brauner@kernel.org>, 
@@ -59,310 +58,97 @@ Content-Transfer-Encoding: quoted-printable
 On Thu, Dec 14, 2023 at 8:44=E2=80=AFAM Andrei Vagin <avagin@google.com> wr=
 ote:
 >
-> When mapping a file on overlayfs, the file stored in ->vm_file is a
-> backing file whose f_inode is on the underlying filesystem. We need to
-> verify that /proc/pid/maps contains numbers of the overlayfs file, but
-> not its backing file.
+> /proc/pid/maps shows device and inode numbers of vma->vm_file-s. Here is
+> an issue. If a mapped file is on a stackable file system (e.g.,
+> overlayfs), vma->vm_file is a backing file whose f_inode is on the
+> underlying filesystem. To show correct numbers, we need to get a user
+> file and shows its numbers. The same trick is used to show file paths in
+> /proc/pid/maps.
 >
-> Cc: Amir Goldstein <amir73il@gmail.com>
 > Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
+> Suggested-by: Amir Goldstein <amir73il@gmail.com>
 > Signed-off-by: Andrei Vagin <avagin@google.com>
+> ---
+> v2: Amir explained that vfs_getattr isn't needed, because
+> file_user_inode(vma->vm_file).i_ino always matches an inode number
+> returned by statx.
+
+At least i_ino *should* always match st_ino for overlayfs non-dirs.
+If it doesn't, it is a bug.
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-> ---
->  tools/testing/selftests/Makefile              |   1 +
->  .../filesystems/overlayfs/.gitignore          |   2 +
->  .../selftests/filesystems/overlayfs/Makefile  |   7 +
->  .../filesystems/overlayfs/dev_in_maps.c       | 182 ++++++++++++++++++
->  .../selftests/filesystems/overlayfs/log.h     |  26 +++
->  5 files changed, 218 insertions(+)
->  create mode 100644 tools/testing/selftests/filesystems/overlayfs/.gitign=
-ore
->  create mode 100644 tools/testing/selftests/filesystems/overlayfs/Makefil=
-e
->  create mode 100644 tools/testing/selftests/filesystems/overlayfs/dev_in_=
-maps.c
->  create mode 100644 tools/testing/selftests/filesystems/overlayfs/log.h
+Thanks,
+Amir.
+
 >
-> diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/M=
-akefile
-> index 3b2061d1c1a5..0939a40abb28 100644
-> --- a/tools/testing/selftests/Makefile
-> +++ b/tools/testing/selftests/Makefile
-> @@ -26,6 +26,7 @@ TARGETS +=3D filesystems
->  TARGETS +=3D filesystems/binderfs
->  TARGETS +=3D filesystems/epoll
->  TARGETS +=3D filesystems/fat
-> +TARGETS +=3D filesystems/overlayfs
->  TARGETS +=3D firmware
->  TARGETS +=3D fpu
->  TARGETS +=3D ftrace
-> diff --git a/tools/testing/selftests/filesystems/overlayfs/.gitignore b/t=
-ools/testing/selftests/filesystems/overlayfs/.gitignore
-> new file mode 100644
-> index 000000000000..52ae618fdd98
-> --- /dev/null
-> +++ b/tools/testing/selftests/filesystems/overlayfs/.gitignore
-> @@ -0,0 +1,2 @@
-> +# SPDX-License-Identifier: GPL-2.0-only
-> +dev_in_maps
-> diff --git a/tools/testing/selftests/filesystems/overlayfs/Makefile b/too=
-ls/testing/selftests/filesystems/overlayfs/Makefile
-> new file mode 100644
-> index 000000000000..56b2b48a765b
-> --- /dev/null
-> +++ b/tools/testing/selftests/filesystems/overlayfs/Makefile
-> @@ -0,0 +1,7 @@
-> +# SPDX-License-Identifier: GPL-2.0
+>  fs/proc/task_mmu.c |  3 ++-
+>  include/linux/fs.h | 18 +++++++++++++-----
+>  2 files changed, 15 insertions(+), 6 deletions(-)
+>
+> diff --git a/fs/proc/task_mmu.c b/fs/proc/task_mmu.c
+> index 435b61054b5b..1801e409a061 100644
+> --- a/fs/proc/task_mmu.c
+> +++ b/fs/proc/task_mmu.c
+> @@ -273,7 +273,8 @@ show_map_vma(struct seq_file *m, struct vm_area_struc=
+t *vma)
+>         const char *name =3D NULL;
+>
+>         if (file) {
+> -               struct inode *inode =3D file_inode(vma->vm_file);
+> +               const struct inode *inode =3D file_user_inode(vma->vm_fil=
+e);
 > +
-> +TEST_GEN_PROGS :=3D dev_in_maps
-> +
-> +CFLAGS :=3D -Wall -Werror
-> +
-> +include ../../lib.mk
-> diff --git a/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c =
-b/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c
-> new file mode 100644
-> index 000000000000..e19ab0e85709
-> --- /dev/null
-> +++ b/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c
-> @@ -0,0 +1,182 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +#define _GNU_SOURCE
-> +
-> +#include <inttypes.h>
-> +#include <unistd.h>
-> +#include <stdio.h>
-> +
-> +#include <linux/unistd.h>
-> +#include <linux/types.h>
-> +#include <linux/mount.h>
-> +#include <sys/syscall.h>
-> +#include <sys/stat.h>
-> +#include <sys/mount.h>
-> +#include <sys/mman.h>
-> +#include <sched.h>
-> +#include <fcntl.h>
-> +
-> +#include "../../kselftest.h"
-> +#include "log.h"
-> +
-> +static int sys_fsopen(const char *fsname, unsigned int flags)
+>                 dev =3D inode->i_sb->s_dev;
+>                 ino =3D inode->i_ino;
+>                 pgoff =3D ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 98b7a7a8c42e..838ccfc63323 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -2523,20 +2523,28 @@ struct file *backing_file_open(const struct path =
+*user_path, int flags,
+>  struct path *backing_file_user_path(struct file *f);
+>
+>  /*
+> - * file_user_path - get the path to display for memory mapped file
+> - *
+>   * When mmapping a file on a stackable filesystem (e.g., overlayfs), the=
+ file
+>   * stored in ->vm_file is a backing file whose f_inode is on the underly=
+ing
+> - * filesystem.  When the mapped file path is displayed to user (e.g. via
+> - * /proc/<pid>/maps), this helper should be used to get the path to disp=
+lay
+> - * to the user, which is the path of the fd that user has requested to m=
+ap.
+> + * filesystem.  When the mapped file path and inode number are displayed=
+ to
+> + * user (e.g. via /proc/<pid>/maps), these helpers should be used to get=
+ the
+> + * path and inode number to display to the user, which is the path of th=
+e fd
+> + * that user has requested to map and the inode number that would be ret=
+urned
+> + * by fstat() on that same fd.
+>   */
+> +/* Get the path to display in /proc/<pid>/maps */
+>  static inline const struct path *file_user_path(struct file *f)
+>  {
+>         if (unlikely(f->f_mode & FMODE_BACKING))
+>                 return backing_file_user_path(f);
+>         return &f->f_path;
+>  }
+> +/* Get the inode whose inode number to display in /proc/<pid>/maps */
+> +static inline const struct inode *file_user_inode(struct file *f)
 > +{
-> +       return syscall(__NR_fsopen, fsname, flags);
+> +       if (unlikely(f->f_mode & FMODE_BACKING))
+> +               return d_inode(backing_file_user_path(f)->dentry);
+> +       return file_inode(f);
 > +}
-> +
-> +static int sys_fsconfig(int fd, unsigned int cmd, const char *key, const=
- char *value, int aux)
-> +{
-> +       return syscall(__NR_fsconfig, fd, cmd, key, value, aux);
-> +}
-> +
-> +static int sys_fsmount(int fd, unsigned int flags, unsigned int attr_fla=
-gs)
-> +{
-> +       return syscall(__NR_fsmount, fd, flags, attr_flags);
-> +}
-> +
-> +static int sys_move_mount(int from_dfd, const char *from_pathname,
-> +                         int to_dfd, const char *to_pathname,
-> +                         unsigned int flags)
-> +{
-> +       return syscall(__NR_move_mount, from_dfd, from_pathname, to_dfd, =
-to_pathname, flags);
-> +}
-> +
-> +static long get_file_dev_and_inode(void *addr, struct statx *stx)
-> +{
-> +       char buf[4096];
-> +       FILE *mapf;
-> +
-> +       mapf =3D fopen("/proc/self/maps", "r");
-> +       if (mapf =3D=3D NULL)
-> +               return pr_perror("fopen(/proc/self/maps)");
-> +
-> +       while (fgets(buf, sizeof(buf), mapf)) {
-> +               unsigned long start, end;
-> +               uint32_t maj, min;
-> +               __u64 ino;
-> +
-> +               if (sscanf(buf, "%lx-%lx %*s %*s %x:%x %llu",
-> +                               &start, &end, &maj, &min, &ino) !=3D 5)
-> +                       return pr_perror("unable to parse: %s", buf);
-> +               if (start =3D=3D (unsigned long)addr) {
-> +                       stx->stx_dev_major =3D maj;
-> +                       stx->stx_dev_minor =3D min;
-> +                       stx->stx_ino =3D ino;
-> +                       return 0;
-> +               }
-> +       }
-> +
-> +       return pr_err("unable to find the mapping");
-> +}
-> +
-> +static int ovl_mount(void)
-> +{
-> +       int tmpfs, fsfd, ovl;
-> +
-> +       fsfd =3D sys_fsopen("tmpfs", 0);
-> +       if (fsfd =3D=3D -1)
-> +               return pr_perror("fsopen(tmpfs)");
-> +
-> +       if (sys_fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0) =3D=3D=
- -1)
-> +               return pr_perror("FSCONFIG_CMD_CREATE");
-> +
-> +       tmpfs =3D sys_fsmount(fsfd, 0, 0);
-> +       if (tmpfs =3D=3D -1)
-> +               return pr_perror("fsmount");
-> +
-> +       close(fsfd);
-> +
-> +       /* overlayfs can't be constructed on top of a detached mount. */
-> +       if (sys_move_mount(tmpfs, "", AT_FDCWD, "/tmp", MOVE_MOUNT_F_EMPT=
-Y_PATH))
-> +               return pr_perror("move_mount");
-> +       close(tmpfs);
-> +
-> +       if (mkdir("/tmp/w", 0755) =3D=3D -1 ||
-> +           mkdir("/tmp/u", 0755) =3D=3D -1 ||
-> +           mkdir("/tmp/l", 0755) =3D=3D -1)
-> +               return pr_perror("mkdir");
-> +
-> +       fsfd =3D sys_fsopen("overlay", 0);
-> +       if (fsfd =3D=3D -1)
-> +               return pr_perror("fsopen(overlay)");
-> +       if (sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "source", "test", 0) =
-=3D=3D -1 ||
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "lowerdir", "/tmp/l",=
- 0) =3D=3D -1 ||
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "upperdir", "/tmp/u",=
- 0) =3D=3D -1 ||
-> +           sys_fsconfig(fsfd, FSCONFIG_SET_STRING, "workdir", "/tmp/w", =
-0) =3D=3D -1)
-> +               return pr_perror("fsconfig");
-> +       if (sys_fsconfig(fsfd, FSCONFIG_CMD_CREATE, NULL, NULL, 0) =3D=3D=
- -1)
-> +               return pr_perror("fsconfig");
-> +       ovl =3D sys_fsmount(fsfd, 0, 0);
-> +       if (ovl =3D=3D -1)
-> +               return pr_perror("fsmount");
-> +
-> +       return ovl;
-> +}
-> +
-> +/*
-> + * Check that the file device and inode shown in /proc/pid/maps match va=
-lues
-> + * returned by stat(2).
-> + */
-> +static int test(void)
-> +{
-> +       struct statx stx, mstx;
-> +       int ovl, fd;
-> +       void *addr;
-> +
-> +       ovl =3D ovl_mount();
-> +       if (ovl =3D=3D -1)
-> +               return -1;
-> +
-> +       fd =3D openat(ovl, "test", O_RDWR | O_CREAT, 0644);
-> +       if (fd =3D=3D -1)
-> +               return pr_perror("openat");
-> +
-> +       addr =3D mmap(NULL, 4096, PROT_READ | PROT_WRITE, MAP_FILE | MAP_=
-SHARED, fd, 0);
-> +       if (addr =3D=3D MAP_FAILED)
-> +               return pr_perror("mmap");
-> +
-> +       if (get_file_dev_and_inode(addr, &mstx))
-> +               return -1;
-> +       if (statx(fd, "", AT_EMPTY_PATH | AT_STATX_SYNC_AS_STAT, STATX_IN=
-O, &stx))
-> +               return pr_perror("statx");
-> +
-> +       if (stx.stx_dev_major !=3D mstx.stx_dev_major ||
-> +           stx.stx_dev_minor !=3D mstx.stx_dev_minor ||
-> +           stx.stx_ino !=3D mstx.stx_ino)
-> +               return pr_fail("unmatched dev:ino %x:%x:%llx (expected %x=
-:%x:%llx)\n",
-> +                       mstx.stx_dev_major, mstx.stx_dev_minor, mstx.stx_=
-ino,
-> +                       stx.stx_dev_major, stx.stx_dev_minor, stx.stx_ino=
-);
-> +
-> +       ksft_test_result_pass("devices are matched\n");
-> +       return 0;
-> +}
-> +
-> +int main(int argc, char **argv)
-> +{
-> +       int fsfd;
-> +
-> +       fsfd =3D sys_fsopen("overlay", 0);
-> +       if (fsfd =3D=3D -1) {
-> +               ksft_test_result_skip("unable to create overlay mount\n")=
-;
-> +               return 1;
-> +       }
-> +       close(fsfd);
-> +
-> +       /* Create a new mount namespace to not care about cleaning test m=
-ounts. */
-> +       if (unshare(CLONE_NEWNS) =3D=3D -1) {
-> +               ksft_test_result_skip("unable to create a new mount names=
-pace\n");
-> +               return 1;
-> +       }
-> +
-> +       if (mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL) =3D=3D -1) {
-> +               pr_perror("mount");
-> +               return 1;
-> +       }
-> +
-> +       ksft_set_plan(1);
-> +
-> +       if (test())
-> +               return 1;
-> +
-> +       ksft_exit_pass();
-> +       return 0;
-> +}
-> diff --git a/tools/testing/selftests/filesystems/overlayfs/log.h b/tools/=
-testing/selftests/filesystems/overlayfs/log.h
-> new file mode 100644
-> index 000000000000..db64df2a8483
-> --- /dev/null
-> +++ b/tools/testing/selftests/filesystems/overlayfs/log.h
-> @@ -0,0 +1,26 @@
-> +/* SPDX-License-Identifier: GPL-2.0 */
-> +
-> +#ifndef __SELFTEST_TIMENS_LOG_H__
-> +#define __SELFTEST_TIMENS_LOG_H__
-> +
-> +#define pr_msg(fmt, lvl, ...)                                          \
-> +       ksft_print_msg("[%s] (%s:%d)\t" fmt "\n",                       \
-> +                       lvl, __FILE__, __LINE__, ##__VA_ARGS__)
-> +
-> +#define pr_p(func, fmt, ...)   func(fmt ": %m", ##__VA_ARGS__)
-> +
-> +#define pr_err(fmt, ...)                                               \
-> +       ({                                                              \
-> +               ksft_test_result_error(fmt "\n", ##__VA_ARGS__);         =
-       \
-> +               -1;                                                     \
-> +       })
-> +
-> +#define pr_fail(fmt, ...)                                      \
-> +       ({                                                      \
-> +               ksft_test_result_fail(fmt, ##__VA_ARGS__);      \
-> +               -1;                                             \
-> +       })
-> +
-> +#define pr_perror(fmt, ...)    pr_p(pr_err, fmt, ##__VA_ARGS__)
-> +
-> +#endif
+>
+>  static inline struct file *file_clone_open(struct file *file)
+>  {
 > --
 > 2.43.0.472.g3155946c3a-goog
 >
