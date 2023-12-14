@@ -1,115 +1,213 @@
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PuDxgmyO"
-Received: from mail-qk1-x72a.google.com (mail-qk1-x72a.google.com [IPv6:2607:f8b0:4864:20::72a])
-	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B94EF3;
-	Wed, 13 Dec 2023 09:06:04 -0800 (PST)
-Received: by mail-qk1-x72a.google.com with SMTP id af79cd13be357-77f8308616eso163758385a.2;
-        Wed, 13 Dec 2023 09:06:04 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZMQOgzOs"
+Received: from mail-il1-x136.google.com (mail-il1-x136.google.com [IPv6:2607:f8b0:4864:20::136])
+	by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DC17100;
+	Wed, 13 Dec 2023 20:52:55 -0800 (PST)
+Received: by mail-il1-x136.google.com with SMTP id e9e14a558f8ab-35f519f3ea9so18671175ab.3;
+        Wed, 13 Dec 2023 20:52:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702487163; x=1703091963; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=izQi1471NL/cydZbe8/X42uR08bubeTVrkQFcuYiqzs=;
-        b=PuDxgmyOLgfAht7UAhnupo6Q3t9Io7QAMqyzTbw6JkfT0hf/KwgODcgwV+uVRSwYgd
-         W2pRnfIFFjcqBTIWut0PO4V6wERa8ZAgdxChZvlL9huHp/aE1I5QuzJ9EtIv80igJaQA
-         4HfapgSGtUpq69IeOuLtKzPfdxVsIz1DTrgke0SR/Q6JlCl9nHgqHhwqXUY/nkGYgjMI
-         BJ/YNhX2hOhWb3FM1PGNnRDmpA4FTeUznxhRHytYF1kst6samGLpx07P/njI9Zudsu30
-         24kc1c6ILRUoYj/VGGbhPUpLTNtkm6y/p5jb0IlteFDEYQBJC8vllTj/CrH5BQd/BrvQ
-         oL4Q==
+        d=gmail.com; s=20230601; t=1702529574; x=1703134374; darn=vger.kernel.org;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=xBL//dFno50dH3+bnTUnWJiljaw2TEHf89kkza+G3wQ=;
+        b=ZMQOgzOsSp6G7AtgF3psvJYeISeK/zNcXnpVazHgmOUBCWsgO6bq6sT4/SCu11E4Py
+         bMxC7ErJCFfqF+JL4Y9xQBvg+dn9gLf9ew6mZY+eFM7XOIVqV/5VkHq9vh049ikw9TBl
+         kV2mqilzoTvGX/Zx3PVkCTDbMytOUqwiQx9JmCJjcABxusueXLujG4wFdYF6+IVtQDcu
+         M16LGfcn5aVwGPkn2JkX804DlzLEAcG39K2CALNvFFoRKrsCC7gHgsp7f6wg2X6LPAD4
+         ubZYmxzB4aRtSiQoCLNqpamuO0JTG3LvRTj0MmFFm2e6W95pYMWffVrE+8NjwL4xKdCR
+         GB0Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702487163; x=1703091963;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=izQi1471NL/cydZbe8/X42uR08bubeTVrkQFcuYiqzs=;
-        b=cKLD1homxC7bCG86YPBy3GmQcGYn/pbR+WmN7y7CGyT1OY2COEZ0JxPKqA/iVGtjVF
-         LIRxJFOqRtyWnAYdNNe5EugAwjGYYMlGwTXWuQT/4wC+lRYMGdhhbJKNKCF8fHt4yQKk
-         LwXrjJEj6WCODilZ/Eqpu99gUa+zl5h1UUk79P8VLK+GE1eS2ZrSfEEsTZyaHvyIGgPb
-         sX0Hrcl6euyq87fNss7BUzCYZLQFT3UrOjZ/NORDGj1oMh1GrfKeW9y7YrKyRDX3A69m
-         iKjBzQxSUYT1INeu/SPb+/sCKqNGLFvhRCPWccsrHb6smfZsAe8kDaWnC8wjBI/H7Ubd
-         Wdwg==
-X-Gm-Message-State: AOJu0Ywb9g6jotKgd2HtNJ6Vg/OhZOheGgfJTayU10ee4xgCA2D39Bl3
-	weaTPZqdVCcIl9arl9enp6ZwsccDEcLF/DB74aQID2oY
-X-Google-Smtp-Source: AGHT+IHFwxt7NaMGwYfCIRV8QcEGmTbFxg9W/HWVNejdiK0MfCoZndI2DuEVIwyJpoIroqNUH2BvNIAFik3pPJY5tas=
-X-Received: by 2002:a0c:ee24:0:b0:67a:99cb:e2f with SMTP id
- l4-20020a0cee24000000b0067a99cb0e2fmr6705131qvs.42.1702487163185; Wed, 13 Dec
- 2023 09:06:03 -0800 (PST)
+        d=1e100.net; s=20230601; t=1702529574; x=1703134374;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=xBL//dFno50dH3+bnTUnWJiljaw2TEHf89kkza+G3wQ=;
+        b=H7ks6s0BPOW9IYZh4DPtjRFAeQf0lwTSy75hBQCnPn2SfpBTGeerm4GqQyHe2P/ZTc
+         o485xLJU8K8Q7HbrAe+ZSmgrqjzAsEwlKc+H2qFptk7B64iADRQnPfkdRZTDDwt7f61Q
+         EGJjGcuDxDdIGLdHF+EZiaj8s6cF0IojTKbHYGDcICncpRwEtMHIPaTtt8hqH+A8hKUx
+         oMKL4uLhsLtTRgnyUCg2gYk1E7fH8c3aUWui5KZ3zZ60f+mOW0wPwwHCkyX9T5pscvIU
+         zUL8piuQtLkb60giS0/QBtPQ6glNGbPsZH+K00lFJPFG41YD7rEBO5S4xhPfaN+mnF13
+         7fjQ==
+X-Gm-Message-State: AOJu0YxxfUuBzK6YTcbvpHFxYBP1cJ/Cnwj/uHZTvB9uufTY7Y5hN18E
+	MuotdYVUMGZteM4TCl/s9IM=
+X-Google-Smtp-Source: AGHT+IFKNTXiZ77OTHIhHsmCLF2BFCeJ3mpNOa+2Y9F1F91rG38ptjtc7AO21ayFpO8le1cOzNnUZQ==
+X-Received: by 2002:a05:6e02:1522:b0:35f:77c5:5e6c with SMTP id i2-20020a056e02152200b0035f77c55e6cmr1465999ilu.118.1702529574395;
+        Wed, 13 Dec 2023 20:52:54 -0800 (PST)
+Received: from archie.me ([103.131.18.64])
+        by smtp.gmail.com with ESMTPSA id k189-20020a6324c6000000b005bcea1bf43bsm10483411pgk.12.2023.12.13.20.52.53
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 13 Dec 2023 20:52:53 -0800 (PST)
+Received: by archie.me (Postfix, from userid 1000)
+	id 7A9E7114F75F3; Thu, 14 Dec 2023 11:52:48 +0700 (WIB)
+Date: Thu, 14 Dec 2023 11:52:48 +0700
+From: Bagas Sanjaya <bagasdotme@gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] overlayfs.rst: use consistent feature names
+Message-ID: <ZXqKIBilWjYj8X93@archie.me>
+References: <20231213123422.344600-1-amir73il@gmail.com>
+ <20231213123422.344600-2-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231211193048.580691-1-avagin@google.com> <CAOQ4uxik0=0F-6CLRsuaOheFjwWF-B-Q5iEQ6qJbRszL52HeQQ@mail.gmail.com>
- <CAEWA0a6Ow+BvrPm5O-4-tGRLQYr3+eahj45voF1gdmN3OfadGg@mail.gmail.com>
-In-Reply-To: <CAEWA0a6Ow+BvrPm5O-4-tGRLQYr3+eahj45voF1gdmN3OfadGg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 13 Dec 2023 19:05:52 +0200
-Message-ID: <CAOQ4uxgzeAgkE73uJB=-Guq7fDtfKU1_1pMTOzBm6ApZuW=hLg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] fs/proc: show correct device and inode numbers in /proc/pid/maps
-To: Andrei Vagin <avagin@google.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, 
-	Alexander Mikhalitsyn <alexander@mihalicyn.com>, Christian Brauner <brauner@kernel.org>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
-	overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="31sZhyVSKfZYntyY"
+Content-Disposition: inline
+In-Reply-To: <20231213123422.344600-2-amir73il@gmail.com>
+
+
+--31sZhyVSKfZYntyY
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Dec 12, 2023 at 9:08=E2=80=AFPM Andrei Vagin <avagin@google.com> wr=
-ote:
->
-> Hi Amir,
->
-> On Mon, Dec 11, 2023 at 9:51=E2=80=AFPM Amir Goldstein <amir73il@gmail.co=
-m> wrote:
-> >
-> > +fsdevel, +overlayfs, +brauner, +miklos
-> >
-> > On Mon, Dec 11, 2023 at 9:30=E2=80=AFPM Andrei Vagin <avagin@google.com=
-> wrote:
-> > >
-> > > Device and inode numbers in /proc/pid/maps have to match numbers retu=
-rned by
-> > > statx for the same files.
-> >
-> > That statement may be true for regular files.
-> > It is not true for block/char as far as I know.
-> >
-> > I think that your fix will break that by displaying the ino/dev
-> > of the block/char reference inode and not their backing rdev inode.
->
-> I think it doesn't break anything here. /proc/pid/maps shows dev of a
-> filesystem where the device file resides.
->
-> 7f336b6c3000-7f336b6c4000 rw-p 00000000 00:05 7
->   /dev/zero
-> $ stat /dev/zero
-> Device: 0,5 Inode: 7           Links: 1     Device type: 1,5
->
-> I checked that it works with and without my patch. It doesn't matter, loo=
-k at
-> the following comments.
->
-> >
-> > >
-> > > /proc/pid/maps shows device and inode numbers of vma->vm_file-s. Here=
- is
-> > > an issue. If a mapped file is on a stackable file system (e.g.,
-> > > overlayfs), vma->vm_file is a backing file whose f_inode is on the
-> > > underlying filesystem. To show correct numbers, we need to get a user
-> > > file and shows its numbers. The same trick is used to show file paths=
- in
-> > > /proc/pid/maps.
-> >
-> > For the *same* trick, see my patch below.
->
-> The patch looks good to me. Thanks! Will you send it?
->
+On Wed, Dec 13, 2023 at 02:34:21PM +0200, Amir Goldstein wrote:
+> Use the feature names "metacopy" and "index" consistently throughout
+> the document.
+>=20
+> Covert the numbered list of features "redirect_dir", "index", "xino"
+> to section headings, so that those features could be referenced in the
+> document by their name.
+>=20
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+>  Documentation/filesystems/overlayfs.rst | 27 ++++++++++++++-----------
+>  1 file changed, 15 insertions(+), 12 deletions(-)
+>=20
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
+systems/overlayfs.rst
+> index 0407f361f32a..926396fdc5eb 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -39,7 +39,7 @@ objects in the original filesystem.
+>  On 64bit systems, even if all overlay layers are not on the same
+>  underlying filesystem, the same compliant behavior could be achieved
+>  with the "xino" feature.  The "xino" feature composes a unique object
+> -identifier from the real object st_ino and an underlying fsid index.
+> +identifier from the real object st_ino and an underlying fsid number.
+>  The "xino" feature uses the high inode number bits for fsid, because the
+>  underlying filesystems rarely use the high inode number bits.  In case
+>  the underlying inode number does overflow into the high xino bits, overl=
+ay
+> @@ -356,7 +356,7 @@ as an octal characters (\072) when displayed in /proc=
+/self/mountinfo.
+>  Metadata only copy up
+>  ---------------------
+> =20
+> -When metadata only copy up feature is enabled, overlayfs will only copy
+> +When the "metacopy" feature is enabled, overlayfs will only copy
+>  up metadata (as opposed to whole file), when a metadata specific operati=
+on
+>  like chown/chmod is performed. Full file will be copied up later when
+>  file is opened for WRITE operation.
+> @@ -492,27 +492,27 @@ though it will not result in a crash or deadlock.
+> =20
+>  Mounting an overlay using an upper layer path, where the upper layer path
+>  was previously used by another mounted overlay in combination with a
+> -different lower layer path, is allowed, unless the "inodes index" feature
+> -or "metadata only copy up" feature is enabled.
+> +different lower layer path, is allowed, unless the "index" or "metacopy"
+> +features are enabled.
+> =20
+> -With the "inodes index" feature, on the first time mount, an NFS file
+> +With the "index" feature, on the first time mount, an NFS file
+>  handle of the lower layer root directory, along with the UUID of the low=
+er
+>  filesystem, are encoded and stored in the "trusted.overlay.origin" exten=
+ded
+>  attribute on the upper layer root directory.  On subsequent mount attemp=
+ts,
+>  the lower root directory file handle and lower filesystem UUID are compa=
+red
+>  to the stored origin in upper root directory.  On failure to verify the
+>  lower root origin, mount will fail with ESTALE.  An overlayfs mount with
+> -"inodes index" enabled will fail with EOPNOTSUPP if the lower filesystem
+> +"index" enabled will fail with EOPNOTSUPP if the lower filesystem
+>  does not support NFS export, lower filesystem does not have a valid UUID=
+ or
+>  if the upper filesystem does not support extended attributes.
+> =20
+> -For "metadata only copy up" feature there is no verification mechanism at
+> +For the "metacopy" feature, there is no verification mechanism at
+>  mount time. So if same upper is mounted with different set of lower, mou=
+nt
+>  probably will succeed but expect the unexpected later on. So don't do it.
+> =20
+>  It is quite a common practice to copy overlay layers to a different
+>  directory tree on the same or different underlying filesystem, and even
+> -to a different machine.  With the "inodes index" feature, trying to mount
+> +to a different machine.  With the "index" feature, trying to mount
+>  the copied layers will fail the verification of the lower root file hand=
+le.
+> =20
+>  Nesting overlayfs mounts
+> @@ -560,7 +560,8 @@ file for write or truncating the file will not be den=
+ied with ETXTBSY.
+>  The following options allow overlayfs to act more like a standards
+>  compliant filesystem:
+> =20
+> -1) "redirect_dir"
+> +redirect_dir
+> +````````````
+> =20
+>  Enabled with the mount option or module option: "redirect_dir=3Don" or w=
+ith
+>  the kernel config option CONFIG_OVERLAY_FS_REDIRECT_DIR=3Dy.
+> @@ -568,7 +569,8 @@ the kernel config option CONFIG_OVERLAY_FS_REDIRECT_D=
+IR=3Dy.
+>  If this feature is disabled, then rename(2) on a lower or merged directo=
+ry
+>  will fail with EXDEV ("Invalid cross-device link").
+> =20
+> -2) "inode index"
+> +index
+> +`````
+> =20
+>  Enabled with the mount option or module option "index=3Don" or with the
+>  kernel config option CONFIG_OVERLAY_FS_INDEX=3Dy.
+> @@ -577,7 +579,8 @@ If this feature is disabled and a file with multiple =
+hard links is copied
+>  up, then this will "break" the link.  Changes will not be propagated to
+>  other names referring to the same inode.
+> =20
+> -3) "xino"
+> +xino
+> +````
+> =20
+>  Enabled with the mount option "xino=3Dauto" or "xino=3Don", with the mod=
+ule
+>  option "xino_auto=3Don" or with the kernel config option
+> @@ -604,7 +607,7 @@ a crash or deadlock.
+> =20
+>  Offline changes, when the overlay is not mounted, are allowed to the
+>  upper tree.  Offline changes to the lower tree are only allowed if the
+> -"metadata only copy up", "inode index", "xino" and "redirect_dir" featur=
+es
+> +"metacopy", "index", "xino" and "redirect_dir" features
+>  have not been used.  If the lower tree is modified and any of these
+>  features has been used, the behavior of the overlay is undefined,
+>  though it will not result in a crash or deadlock.
 
-I can send it, if you want.
-I wouldn't mind if you send it with my Suggested-by though,
-as you are already testing it and posting the selftest.
+LGTM, thanks!
 
-Thanks,
-Amir.
+Reviewed-by: Bagas Sanjaya <bagasdotme@gmail.com>
+
+--=20
+An old man doll... just what I always wanted! - Clara
+
+--31sZhyVSKfZYntyY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEABYKAB0WIQSSYQ6Cy7oyFNCHrUH2uYlJVVFOowUCZXqKGwAKCRD2uYlJVVFO
+o6vSAQC9NznGsTGPcl5y6bO/FAHgDhRXjaK4ie4FAraFodE77AD/bcbiUgzzRiih
+0mCmbI4Pq3PzTLS9asSJwpb9wUujMgQ=
+=efUf
+-----END PGP SIGNATURE-----
+
+--31sZhyVSKfZYntyY--
