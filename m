@@ -1,196 +1,274 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+Received: from mgamail.intel.com (mgamail.intel.com [134.134.136.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFC006A022;
-	Thu, 14 Dec 2023 19:37:32 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D8C667213;
+	Thu, 14 Dec 2023 22:02:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="DUCMYBMZ"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3BEHl9MB002355;
-	Thu, 14 Dec 2023 19:36:59 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=648FpWoGQTh0F4qS2G595ah/1s7QGvexGIs/fpCIhd0=;
- b=DUCMYBMZon4C6qX4YWkQ7nu2rxB0b4iTUuHyiEBSmAkKP44+sr0U+0Ma9BJeDZ7SWdNT
- htC1K40iquvmNmr1tcjrQRtqaA3cDmS7OrfeKWIwAdP9BdPZZDvv7NbYuovS3kdGKlBG
- xvs9u2yw+G0khTBtxpYDr9FVS/3cPZ0/tq+ykJDOcsqFEGKSuzj9AfEgm9ijSNDOapZv
- 8OT0gEE+u6MQNtAbKHcUimfMJnrEXqyXBreIELiLugTtlnTN3L9lh4QSo+JniCw/2xT3
- bFjcLV5ET0dqVvUka2+HtlT2jYZbKDQ1NhiltKuXOrn8eXmHoQ+SIajCF84dALo3Bs9D YQ== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3v06dmtw3s-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 14 Dec 2023 19:36:58 +0000
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3BEJXCeB027654;
-	Thu, 14 Dec 2023 19:36:58 GMT
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3v06dmtw3d-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 14 Dec 2023 19:36:58 +0000
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3BEIueoM013869;
-	Thu, 14 Dec 2023 19:36:57 GMT
-Received: from smtprelay01.wdc07v.mail.ibm.com ([172.16.1.68])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 3uw592jhv7-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Thu, 14 Dec 2023 19:36:57 +0000
-Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
-	by smtprelay01.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3BEJaudc57737562
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Thu, 14 Dec 2023 19:36:56 GMT
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 3D8BC5805A;
-	Thu, 14 Dec 2023 19:36:56 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5AC9058056;
-	Thu, 14 Dec 2023 19:36:55 +0000 (GMT)
-Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.watson.ibm.com (unknown [9.31.99.90])
-	by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Thu, 14 Dec 2023 19:36:55 +0000 (GMT)
-Message-ID: <a9e016feca137d05dc1f4ead72b24992ac2017be.camel@linux.ibm.com>
-Subject: Re: [RFC][PATCH] overlayfs: Redirect xattr ops on security.evm to
- security.evm_overlayfs
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Roberto Sassu <roberto.sassu@huaweicloud.com>,
-        Christian Brauner
- <brauner@kernel.org>,
-        Seth Forshee <sforshee@kernel.org>, miklos@szeredi.hu,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        paul@paul-moore.com, stefanb@linux.ibm.com, jlayton@kernel.org,
-        linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org,
-        Roberto Sassu <roberto.sassu@huawei.com>,
-        Eric Snowberg
- <eric.snowberg@oracle.com>
-Date: Thu, 14 Dec 2023 14:36:54 -0500
-In-Reply-To: <CAOQ4uxgra3KNthC_Od8r3fYDPO4AiVUF3u=aUfpUpQzOeeCFvg@mail.gmail.com>
-References: <20231208172308.2876481-1-roberto.sassu@huaweicloud.com>
-	 <CAOQ4uxivpZ+u0A5kE962XST37-ey2Tv9EtddnZQhk3ohRkcQTw@mail.gmail.com>
-	 <20231208-tauziehen-zerfetzt-026e7ee800a0@brauner>
-	 <c95b24f27021052209ec6911d2b7e7b20e410f43.camel@huaweicloud.com>
-	 <20231211-fortziehen-basen-b8c0639044b8@brauner>
-	 <019f134a-6ab4-48ca-991c-5a5c94e042ea@huaweicloud.com>
-	 <CAOQ4uxgpNt7qKEF_NEJPsKU7-XhM7N_3eP68FrOpMpcRcHt4rQ@mail.gmail.com>
-	 <59bf3530-2a6e-4caa-ac42-4d0dab9a71d1@huaweicloud.com>
-	 <a9297cc1bf23e34aba3c7597681e9e71a03b37f9.camel@linux.ibm.com>
-	 <d6b43b5780770637a724d129c22d5212860f494a.camel@huaweicloud.com>
-	 <CAOQ4uxhwHgj-bE7N5SNcRZfnVHn9yCdY_=LFuOxEBkVBbrZKiw@mail.gmail.com>
-	 <579803fe4750b2ac1cbf31f4d38929c9ec901a41.camel@linux.ibm.com>
-	 <CAOQ4uxgra3KNthC_Od8r3fYDPO4AiVUF3u=aUfpUpQzOeeCFvg@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-15"
-X-Mailer: Evolution 3.28.5 (3.28.5-22.el8) 
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lQh2PXOE"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1702591366; x=1734127366;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=lC1aDQ1cQzNR+FGiwgX24ZerPaYmfwh7hY/cl3cf1ew=;
+  b=lQh2PXOEVlebDZ2R5Zsv/9uNAS2v/LKz6AZ8jNZxUpzPuLX4EJODNB1x
+   Fqn3/W6jlrl0o+gP16IWs9QOn3Se0SKVoqq/QSN0lk27ivwuXelI8CAK6
+   sv1zKrxWb/hKIPo6pzMrUYRQqTmhEU7RTFa7+1zsz75vx/vVlBATORNLA
+   QZX8s711KAh7EGScFiwz235dsEoCKwNb0a5w+pGPfyDiQU3/23LmT2WGk
+   tNaXa7E8kkSOCv85VxcwZVYMGW+ooVnRJgUssEU03PME8rABeOttl9Z72
+   JGF1fUkDR/LynwyPRNGdB+S35Vdcvamgz+xB7+rqV9E43sJ5h0b9jxu+j
+   A==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="397979161"
+X-IronPort-AV: E=Sophos;i="6.04,276,1695711600"; 
+   d="scan'208";a="397979161"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 14:02:42 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10924"; a="767748554"
+X-IronPort-AV: E=Sophos;i="6.04,276,1695711600"; 
+   d="scan'208";a="767748554"
+Received: from vcostago-mobl3.jf.intel.com ([10.24.14.99])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Dec 2023 14:02:42 -0800
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: amir73il@gmail.com,
+	hu1.chen@intel.com
+Cc: miklos@szeredi.hu,
+	malini.bhandaru@intel.com,
+	tim.c.chen@intel.com,
+	mikko.ylinen@intel.com,
+	lizhen.you@intel.com,
+	linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Subject: [RFC] HACK: overlayfs: Optimize overlay/restore creds
+Date: Thu, 14 Dec 2023 14:02:22 -0800
+Message-ID: <20231214220222.348101-1-vinicius.gomes@intel.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
+References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: ggj4mU_b608FLM25Ikwv48nU1lvWZpYX
-X-Proofpoint-GUID: KABTHRkSl2zOTBNnk2Saec0xKkfCfZ8k
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.997,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-12-14_13,2023-12-14_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- lowpriorityscore=0 mlxscore=0 clxscore=1015 priorityscore=1501 spamscore=0
- adultscore=0 phishscore=0 suspectscore=0 malwarescore=0 mlxlogscore=999
- bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311290000 definitions=main-2312140140
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 
-On Thu, 2023-12-14 at 20:06 +0200, Amir Goldstein wrote:
-> > > > There is another problem, when delayed copy is used. The content comes
-> > > > from one source, metadata from another.
-> > > >
-> > > > I initially created test-file-lower on the lower directory
-> > > > (overlayfs/data), before mounting overlayfs. After mount on
-> > > > overlayfs/mnt:
-> > > >
-> > > > # getfattr -m - -e hex -d overlayfs/mnt/test-file-lower
-> > > > # file: overlayfs/mnt/test-file-lower
-> > > > security.evm=0x02c86ec91a4c0cf024537fd24347b780b90973402e
-> > > > security.ima=0x0404f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2
-> > > > security.selinux=0x73797374656d5f753a6f626a6563745f723a756e6c6162656c65645f743a733000
-> > > >
-> > > > # chcon -t unconfined_t overlayfs/mnt/test-file-lower
-> > > >
-> > > > After this, IMA creates an empty file in the upper directory
-> > > > (overlayfs/root/data), and writes security.ima at file close.
-> > > > Unfortunately, this is what is presented from overlayfs, which is not
-> > > > in sync with the content.
-> > > >
-> > > > # getfattr -m - -e hex -d overlayfs/mnt/test-file-lower
-> > > > # file: overlayfs/mnt/test-file-lower
-> > > > security.evm=0x021d71e7df78c36745e3b651ce29cb9f47dc301248
-> > > > security.ima=0x04048855508aade16ec573d21e6a485dfd0a7624085c1a14b5ecdd6485de0c6839a4
-> > > > security.selinux=0x73797374656d5f753a6f626a6563745f723a756e636f6e66696e65645f743a733000
-> > > >
-> > > > # sha256sum overlayfs/mnt/test-file-lower
-> > > > f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2  overlayfs/mnt/test-file-lower
-> > > >
-> > > > # sha256sum overlayfs/root/data/test-file-lower
-> > > > 8855508aade16ec573d21e6a485dfd0a7624085c1a14b5ecdd6485de0c6839a4  overlayfs/root/data/test-file-lower (upperdir)
-> > > >
-> > > > We would need to use the lower security.ima until the copy is made, but
-> > > > at the same time we need to keep the upper valid (with all xattrs) so
-> > > > that IMA can update the next time overlayfs requests that.
-> > > >
-> > >
-> > > Yap.
-> > >
-> > > As Seth wrote, overlayfs is a combination of upper and lower.
-> > > The information that IMA needs should be accessible from either lower
-> > > or upper, but sometimes we will need to make the right choice.
-> > >
-> > > The case of security.ima is similar to that of st_blocks -
-> > > it is a data-related metadata, so it needs to be taken from the lowerdata inode
-> > > (not even the lower inode). See example of getting STATX_BLOCKS
-> > > in ovl_getattr().
-> > >
-> > > I would accept a patch that special cases security.ima in ovl_xattr_get()
-> > > and gets it from ovl_i_path_lowerdata(), which would need to be
-> > > factored out of ovl_path_lowerdata().
-> > >
-> > > I would also accept filtering out security.{ima,evm} from
-> > >
-> > > But I would only accept it if I know that IMA is not trying to write the
-> > > security.ima xattr when closing an overlayfs file, only when closing the
-> > > real underlying upper file.
-> >
-> > I don't see how that would be possible.  As far as I'm aware, the
-> > correlation is between the overlay and the underlying lower/uppper
-> > file, not the other way around.  How could a close on the underlying
-> > file trigger IMA on an overlay file?
-> >
-> 
-> Well, you are right. it cannot.
-> 
-> What I meant is that close of overlayfs file should NOT open and read
-> the overlayfs file and recalculate security.ima to store in overlayfs inode
-> because close of overlayfs file will follow a close of the upper file that
-> should recalculate and store security.ima in the upper inode.
-> 
-> It is possible that a close of an overlayfs file will update the security
-> state of the overlayfs inode by copying the security state from the
-> upper inode.
+Permission checks in overlayfs also check against the credentials
+associated with the superblock, which are assigned at mount() time, so
+pretty long lived. So, we can omit the reference counting for this
+case.
 
-Thank you for the explanation.
+This (very early) proof of concept does two things:
 
-Basically IMA should differentiate between file close on the underlying
-upper/lower file and the overlay file.  Since IMA doesn't define
-inode_copy_up_xattr, security.ima will be copied up.  Re-calculating
-security.ima on the overlay is unnecessary.
+Add a flag "immutable" (TODO: find a better name) to struct cred to
+indicate that it is long lived, and that refcount can be omitted.
 
-> But then again, I could be misunderstanding the IMA workflows
-> and it could be more complicated than I try to present it.
-> This is the reason that I requested the documentation of how
-> IMA+overlayfs is *expected* to work.
+Add "guard" helpers, so we can use automatic cleanup to be sure
+override/restore are always paired. (I dodn't like that I have
+'ovl_cred' to be a container for the credentials, but couldn't think
+of other solutions)
 
-Ok
+Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+---
+Hi Amir,
 
-Mimi
+Just to know if I am more or less on right track.
+
+This is a different attempt, instead of the local copy idea, I am
+using the fact that the credentials associated with the mount() will
+be alive for a long time. I think the result is almost the same. But I
+could be missing something.
+
+TODO:
+ - Add asserts.
+ - Replace ovl_override_creds()/revert_Creds() by
+   ovl_creator_cred()/guard() everywhere.
+ - Probably more.  
+
+
+ fs/overlayfs/inode.c     |  7 ++++---
+ fs/overlayfs/overlayfs.h | 18 ++++++++++++++++++
+ fs/overlayfs/params.c    |  4 +++-
+ fs/overlayfs/super.c     | 10 +++++++---
+ fs/overlayfs/util.c      | 10 ++++++++++
+ include/linux/cred.h     | 12 ++++++++++--
+ 6 files changed, 52 insertions(+), 9 deletions(-)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index c63b31a460be..2c016a3bbe2d 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -290,9 +290,9 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 		   struct inode *inode, int mask)
+ {
+ 	struct inode *upperinode = ovl_inode_upper(inode);
++	struct ovl_cred ovl_cred;
+ 	struct inode *realinode;
+ 	struct path realpath;
+-	const struct cred *old_cred;
+ 	int err;
+ 
+ 	/* Careful in RCU walk mode */
+@@ -310,7 +310,9 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 	if (err)
+ 		return err;
+ 
+-	old_cred = ovl_override_creds(inode->i_sb);
++	ovl_cred = ovl_creator_cred(inode->i_sb);
++	guard(ovl_creds)(&ovl_cred);
++
+ 	if (!upperinode &&
+ 	    !special_file(realinode->i_mode) && mask & MAY_WRITE) {
+ 		mask &= ~(MAY_WRITE | MAY_APPEND);
+@@ -318,7 +320,6 @@ int ovl_permission(struct mnt_idmap *idmap,
+ 		mask |= MAY_READ;
+ 	}
+ 	err = inode_permission(mnt_idmap(realpath.mnt), realinode, mask);
+-	revert_creds(old_cred);
+ 
+ 	return err;
+ }
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 05c3dd597fa8..22ea3066376e 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -416,6 +416,24 @@ static inline int ovl_do_getattr(const struct path *path, struct kstat *stat,
+ 	return vfs_getattr(path, stat, request_mask, flags);
+ }
+ 
++struct ovl_cred {
++	const struct cred *cred;
++};
++
++static inline struct ovl_cred ovl_creator_cred(struct super_block *sb)
++{
++	struct ovl_fs *ofs = OVL_FS(sb);
++
++	return (struct ovl_cred) { .cred = ofs->creator_cred };
++}
++
++void ovl_override_creds_new(struct ovl_cred *creator_cred);
++void ovl_revert_creds_new(struct ovl_cred *creator_cred);
++
++DEFINE_GUARD(ovl_creds, struct ovl_cred *,
++	     ovl_override_creds_new(_T),
++	     ovl_revert_creds_new(_T));
++
+ /* util.c */
+ int ovl_get_write_access(struct dentry *dentry);
+ void ovl_put_write_access(struct dentry *dentry);
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 3fe2dde1598f..008377b9241a 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -770,8 +770,10 @@ void ovl_free_fs(struct ovl_fs *ofs)
+ 	kfree(ofs->config.lowerdirs);
+ 	kfree(ofs->config.upperdir);
+ 	kfree(ofs->config.workdir);
+-	if (ofs->creator_cred)
++	if (ofs->creator_cred) {
++		cred_set_immutable(ofs->creator_cred, false);
+ 		put_cred(ofs->creator_cred);
++	}
+ 	kfree(ofs);
+ }
+ 
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index a0967bb25003..1ffb4f0f8186 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1304,6 +1304,13 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+ 	if (!cred)
+ 		goto out_err;
+ 
++	/* Never override disk quota limits or use reserved space */
++	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
++	/* The cred that is going to be associated with the super
++	 * block will not change.
++	 */
++	cred_set_immutable(cred, true);
++
+ 	err = ovl_fs_params_verify(ctx, &ofs->config);
+ 	if (err)
+ 		goto out_err;
+@@ -1438,9 +1445,6 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
+ 	else if (!ofs->nofh)
+ 		sb->s_export_op = &ovl_export_fid_operations;
+ 
+-	/* Never override disk quota limits or use reserved space */
+-	cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
+-
+ 	sb->s_magic = OVERLAYFS_SUPER_MAGIC;
+ 	sb->s_xattr = ovl_xattr_handlers(ofs);
+ 	sb->s_fs_info = ofs;
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index c3f020ca13a8..9ae9a35a6a7a 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -68,6 +68,16 @@ const struct cred *ovl_override_creds(struct super_block *sb)
+ 	return override_creds(ofs->creator_cred);
+ }
+ 
++void ovl_override_creds_new(struct ovl_cred *creator_cred)
++{
++	creator_cred->cred = override_creds(creator_cred->cred);
++}
++
++void ovl_revert_creds_new(struct ovl_cred *creator_cred)
++{
++	revert_creds(creator_cred->cred);
++}
++
+ /*
+  * Check if underlying fs supports file handles and try to determine encoding
+  * type, in order to deduce maximum inode number used by fs.
+diff --git a/include/linux/cred.h b/include/linux/cred.h
+index af8d353a4b86..06eaedfe48ea 100644
+--- a/include/linux/cred.h
++++ b/include/linux/cred.h
+@@ -151,6 +151,7 @@ struct cred {
+ 		int non_rcu;			/* Can we skip RCU deletion? */
+ 		struct rcu_head	rcu;		/* RCU deletion hook */
+ 	};
++	bool	immutable;
+ } __randomize_layout;
+ 
+ extern void __put_cred(struct cred *);
+@@ -229,7 +230,8 @@ static inline bool cap_ambient_invariant_ok(const struct cred *cred)
+  */
+ static inline struct cred *get_new_cred_many(struct cred *cred, int nr)
+ {
+-	atomic_add(nr, &cred->usage);
++	if (!cred->immutable)
++		atomic_add(nr, &cred->usage);
+ 	return cred;
+ }
+ 
+@@ -245,6 +247,12 @@ static inline struct cred *get_new_cred(struct cred *cred)
+ 	return get_new_cred_many(cred, 1);
+ }
+ 
++static inline void cred_set_immutable(const struct cred *cred, bool imm)
++{
++	struct cred *nonconst_cred = (struct cred *) cred;
++	nonconst_cred->immutable = imm;
++}
++
+ /**
+  * get_cred_many - Get references on a set of credentials
+  * @cred: The credentials to reference
+@@ -313,7 +321,7 @@ static inline void put_cred_many(const struct cred *_cred, int nr)
+ 
+ 	if (cred) {
+ 		validate_creds(cred);
+-		if (atomic_sub_and_test(nr, &cred->usage))
++		if (!cred->immutable && atomic_sub_and_test(nr, &cred->usage))
+ 			__put_cred(cred);
+ 	}
+ }
+-- 
+2.43.0
 
