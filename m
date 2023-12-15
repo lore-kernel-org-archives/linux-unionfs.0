@@ -1,376 +1,361 @@
-Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
+Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0684F2555A;
-	Fri, 15 Dec 2023 10:30:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 002C81A5B0;
+	Fri, 15 Dec 2023 10:32:48 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g51LFDtm"
-Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-77f37772ab6so44205785a.0;
-        Fri, 15 Dec 2023 02:30:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Y9uaEZ5H"
+Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-77f44cd99c6so37563985a.0;
+        Fri, 15 Dec 2023 02:32:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1702636233; x=1703241033; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1702636368; x=1703241168; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=TFjpHDTUcgkCSVkeXQ3sSNcI1hwB3VFoSCc6C+d54ig=;
-        b=g51LFDtme3BBLomD/S5tPhtc2BL/3HZVrFP8F4CTJ978aO+fUo7+KC78t2pguQFbwx
-         r9vuy+KbjtTHPlLji765aUCaQnWzBLj18a3mnJimu9kHud70MO/LLGwjRITFfBN9eBzp
-         0WTwG7FSxAoHPsFkOSV4ujGFVTGIVXQK0dJGpBtXwJ75PwyXV9WeqDH0FvxysFMUKkw7
-         uERi0tEIGR9uUf0K79M+Tv1Ko99PATHhrtYYR+au9Qe3d881vSPWBJGLKVIADgFr3pF4
-         hXiI+lp+9Nwwcy3ddDT0sZdnsJvjR06s1faGwTunS51rytuOP9V/Dx2sQx9N5LsnuJdR
-         aQMQ==
+        bh=gb/T/oASgtKNv+0xZI+c0KBr6jni4i5H3ET7iArrf4k=;
+        b=Y9uaEZ5Hxo7SD6XcKNmcoCdqvCusvG6qDbFQB67m5pXxLi2T5o78xaSfCfzSGOKvC2
+         MUWgaALOa5BSeyCrHeK7U/4PN8N4LZNW4/AQSn+xvQEStplJULfOlZRoaTQ99+LJK15G
+         vVnrF79UYHmnnDTyCwUPOKnSHz9Sk016Zur/Zm9P8EYBdrpWVbInU4rgq++xyFEW39x/
+         kSkkpETO0dptP4pFSD15No6dG8CLan+jC91Kul74jzaaaKjztERflHAH7HscW04N8mgZ
+         kdNdR8rO3iTv34LiUwDh1jtXQ4A3TTCpDWPlu50U7yTwxbRipiNygfmSyh0YbU7+TduD
+         nmuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702636233; x=1703241033;
+        d=1e100.net; s=20230601; t=1702636368; x=1703241168;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=TFjpHDTUcgkCSVkeXQ3sSNcI1hwB3VFoSCc6C+d54ig=;
-        b=tuCbuv0yoyRF1z52YdAyVmmxMtKo5qtSSKLCUSZl+D5B62I3TcYusY2ceDuxPHyg2J
-         BRJIjpHXmPNoV1C/a2pPL0bhX9XU7EhOF/KsmTpUAJ5P2wO6L/0LNuk1zpSzGIphmKw3
-         5wwUWT6MtqyL/DfQLedle6uY1PGZZsgtL7CU+ZMbyAAJECVjoWE98jlTyzzdkp0cueY6
-         EuiG1pOMDI1RuteO3gfVHs6lnd6TxTc2VG4eecEtyTBkPnzXOlei1vdy41VAsuagPkP1
-         9m7bHeuoh4WkTEobNkUKeGrBszdCHbgZYL97Wnl3qZXez6WQGK9uE2+2/VdsuJei2gla
-         9hhA==
-X-Gm-Message-State: AOJu0YxljF7M1mTp3LNF02I05NEyB6Wncq5RkoW7jUf+klt90xi5pjs4
-	Z8WdPJOYyVM86LbktaQJGZXBjZq/kim/nUbZqHY=
-X-Google-Smtp-Source: AGHT+IH1ImTjbTIgYC0QqnhRw99pvE0QIR5kAMLpRq8F6CDAtCUpycGxS/LJpd41ipeAQNXmtQ/NnRch/fnN4xL1xI8=
-X-Received: by 2002:a0c:ea48:0:b0:67a:cf28:39c3 with SMTP id
- u8-20020a0cea48000000b0067acf2839c3mr12699756qvp.37.1702636232722; Fri, 15
- Dec 2023 02:30:32 -0800 (PST)
+        bh=gb/T/oASgtKNv+0xZI+c0KBr6jni4i5H3ET7iArrf4k=;
+        b=mg/hXxZ1nDLT5jMKr40B37WUruaQglTP5ld8ZaqjbDgpQOGnXZp74Jcq/byjJLCl6g
+         5nLeGmUmzM0TEcBh8ibuslJmmlkKtCg3VPTedZAuJ1eeGqhTuZKJ7BTEZ04kq9fEAFv4
+         UpPsTwYaGf0OkL6HCU9sypYYLC5XCQGIXrKnEnvK5gciFgT80EmoYLF9Jk8eFrY9h7O+
+         bu4HM2F8h3Yb8AJeVwhFKZxhIe5uPzg4ZnXjP2a36TBxvKd/9xJlZc5KECjsgSONm1kG
+         dNaYEbBiOlxIpvKb6kOXZXco/tDDTw/NYzm64V+D0r4cYjdQfflUKmA5nJ2yFDmQMbA2
+         F8bA==
+X-Gm-Message-State: AOJu0Yyn7IijtX4+i4k2+ZXCJpF8LJ1j6G3pkGt4A+QmiuuY/4Uo9tpK
+	U/SXsF2rWZz82mlGoOW2Qvxm+TVRwRRLwg1RKmdrRKd0
+X-Google-Smtp-Source: AGHT+IG8Ct6WJzJ0E7CAgaD7djI8pdHG3EsYbU7797KHqPA45afy5tK8XwtADVKdXbn0l3c/QKKmZu1MynqEl9lhXpw=
+X-Received: by 2002:a05:620a:31a2:b0:77f:38a:e824 with SMTP id
+ bi34-20020a05620a31a200b0077f038ae824mr19019763qkb.7.1702636367672; Fri, 15
+ Dec 2023 02:32:47 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
- <20231214220222.348101-1-vinicius.gomes@intel.com>
-In-Reply-To: <20231214220222.348101-1-vinicius.gomes@intel.com>
+References: <20231213123422.344600-3-amir73il@gmail.com> <c6c49fd7-2197-48b9-8203-ee5f4634b683@gmail.com>
+ <CAOQ4uxj_ikEdF-d3s_S7OGUDk1duUXzYqvB0BkyzFNgrCXYf=Q@mail.gmail.com> <ffc20839-03a6-4f20-82ae-8707b4b9752b@gmail.com>
+In-Reply-To: <ffc20839-03a6-4f20-82ae-8707b4b9752b@gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 15 Dec 2023 12:30:21 +0200
-Message-ID: <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
-Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
-To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Cc: hu1.chen@intel.com, miklos@szeredi.hu, malini.bhandaru@intel.com, 
-	tim.c.chen@intel.com, mikko.ylinen@intel.com, lizhen.you@intel.com, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christian Brauner <brauner@kernel.org>, 
-	Linus Torvalds <torvalds@linux-foundation.org>, David Howells <dhowells@redhat.com>
+Date: Fri, 15 Dec 2023 12:32:36 +0200
+Message-ID: <CAOQ4uxjT=YGwN1gVDAqRaw0M=q9Gsv7hW2zo9CE9KErqosVx0g@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] overlayfs.rst: fix ReST formatting
+To: Akira Yokosawa <akiyks@gmail.com>
+Cc: bagasdotme@gmail.com, brauner@kernel.org, linux-doc@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-+fsdevel because this may be relevant to any subsystem that
-keeps a long live cred copy (e.g. nfsd, ksmbd, cachefiles).
-
-+linus who wrote
-d7852fbd0f04 access: avoid the RCU grace period for the temporary
-subjective credentials
-
-
-On Fri, Dec 15, 2023 at 12:02=E2=80=AFAM Vinicius Costa Gomes
-<vinicius.gomes@intel.com> wrote:
+On Fri, Dec 15, 2023 at 11:31=E2=80=AFAM Akira Yokosawa <akiyks@gmail.com> =
+wrote:
 >
-> Permission checks in overlayfs also check against the credentials
-> associated with the superblock, which are assigned at mount() time, so
-> pretty long lived. So, we can omit the reference counting for this
-> case.
-
-You forgot to mention WHY you are proposing this and to link to the
-original report with the first optimization attempt:
-
-https://lore.kernel.org/linux-unionfs/20231018074553.41333-1-hu1.chen@intel=
-.com/
-
->
-> This (very early) proof of concept does two things:
->
-> Add a flag "immutable" (TODO: find a better name) to struct cred to
-> indicate that it is long lived, and that refcount can be omitted.
->
-
-This reminds me of the many discussions about Rust abstractions
-that are going on right now.
-I think an abstraction like this one is called a "borrowed reference".
-
-> Add "guard" helpers, so we can use automatic cleanup to be sure
-> override/restore are always paired. (I didn't like that I have
-> 'ovl_cred' to be a container for the credentials, but couldn't think
-> of other solutions)
->
-
-I like the guard but see comments below...
-
-> Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-> ---
 > Hi Amir,
 >
-> Just to know if I am more or less on right track.
->
-> This is a different attempt, instead of the local copy idea, I am
-> using the fact that the credentials associated with the mount() will
-> be alive for a long time. I think the result is almost the same. But I
-> could be missing something.
->
-> TODO:
->  - Add asserts.
->  - Replace ovl_override_creds()/revert_Creds() by
->    ovl_creator_cred()/guard() everywhere.
->  - Probably more.
->
->
->  fs/overlayfs/inode.c     |  7 ++++---
->  fs/overlayfs/overlayfs.h | 18 ++++++++++++++++++
->  fs/overlayfs/params.c    |  4 +++-
->  fs/overlayfs/super.c     | 10 +++++++---
->  fs/overlayfs/util.c      | 10 ++++++++++
->  include/linux/cred.h     | 12 ++++++++++--
->  6 files changed, 52 insertions(+), 9 deletions(-)
->
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index c63b31a460be..2c016a3bbe2d 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -290,9 +290,9 @@ int ovl_permission(struct mnt_idmap *idmap,
->                    struct inode *inode, int mask)
->  {
->         struct inode *upperinode =3D ovl_inode_upper(inode);
-> +       struct ovl_cred ovl_cred;
->         struct inode *realinode;
->         struct path realpath;
-> -       const struct cred *old_cred;
-
-Nit: please don't reorder the variable definitions.
-
->         int err;
->
->         /* Careful in RCU walk mode */
-> @@ -310,7 +310,9 @@ int ovl_permission(struct mnt_idmap *idmap,
->         if (err)
->                 return err;
->
-> -       old_cred =3D ovl_override_creds(inode->i_sb);
-> +       ovl_cred =3D ovl_creator_cred(inode->i_sb);
-> +       guard(ovl_creds)(&ovl_cred);
-> +
->         if (!upperinode &&
->             !special_file(realinode->i_mode) && mask & MAY_WRITE) {
->                 mask &=3D ~(MAY_WRITE | MAY_APPEND);
-> @@ -318,7 +320,6 @@ int ovl_permission(struct mnt_idmap *idmap,
->                 mask |=3D MAY_READ;
->         }
->         err =3D inode_permission(mnt_idmap(realpath.mnt), realinode, mask=
-);
-> -       revert_creds(old_cred);
->
->         return err;
->  }
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index 05c3dd597fa8..22ea3066376e 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -416,6 +416,24 @@ static inline int ovl_do_getattr(const struct path *=
-path, struct kstat *stat,
->         return vfs_getattr(path, stat, request_mask, flags);
->  }
->
-> +struct ovl_cred {
-> +       const struct cred *cred;
-> +};
-> +
-> +static inline struct ovl_cred ovl_creator_cred(struct super_block *sb)
-> +{
-> +       struct ovl_fs *ofs =3D OVL_FS(sb);
-> +
-> +       return (struct ovl_cred) { .cred =3D ofs->creator_cred };
-> +}
-> +
-> +void ovl_override_creds_new(struct ovl_cred *creator_cred);
-> +void ovl_revert_creds_new(struct ovl_cred *creator_cred);
-> +
-> +DEFINE_GUARD(ovl_creds, struct ovl_cred *,
-> +            ovl_override_creds_new(_T),
-> +            ovl_revert_creds_new(_T));
-> +
-
-This pattern is not unique to overlayfs.
-It is probably better to define a common container type struct override_cre=
-d
-in cred.h/cred.c that other code could also use.
-
->  /* util.c */
->  int ovl_get_write_access(struct dentry *dentry);
->  void ovl_put_write_access(struct dentry *dentry);
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 3fe2dde1598f..008377b9241a 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -770,8 +770,10 @@ void ovl_free_fs(struct ovl_fs *ofs)
->         kfree(ofs->config.lowerdirs);
->         kfree(ofs->config.upperdir);
->         kfree(ofs->config.workdir);
-> -       if (ofs->creator_cred)
-> +       if (ofs->creator_cred) {
-> +               cred_set_immutable(ofs->creator_cred, false);
->                 put_cred(ofs->creator_cred);
-
-Not happy about this API.
-
-Two solutions I can think of:
-1. (my preference) keep two copies of creator_cred, one refcounted copy
-    and one non-refcounted that is used for override_creds()
-2. put_cred_ref() which explicitly opts-in to dropping refcount on
-    a borrowed reference, same as you do above but hidden behind
-    a properly documented helper
-
-> +       }
->         kfree(ofs);
->  }
->
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index a0967bb25003..1ffb4f0f8186 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1304,6 +1304,13 @@ int ovl_fill_super(struct super_block *sb, struct =
-fs_context *fc)
->         if (!cred)
->                 goto out_err;
->
-> +       /* Never override disk quota limits or use reserved space */
-> +       cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-> +       /* The cred that is going to be associated with the super
-> +        * block will not change.
-> +        */
-> +       cred_set_immutable(cred, true);
-> +
-
-Likewise, either:
-1. Create a non-refcounted copy of creator_cred
+> On 2023/12/15 17:00, Amir Goldstein wrote:
+> > On Fri, Dec 15, 2023 at 4:07=E2=80=AFAM Akira Yokosawa <akiyks@gmail.co=
+m> wrote:
+> >>
+> >> Hi,
+> >>
+> >> On Wed, 13 Dec 2023 14:34:22 +0200, Amir Goldstein wrote:
+> >>> Fix some indentation issues and fix missing newlines in quoted text
+> >>> by converting quoted text to code blocks.
+> >>>
+> >>> Unindent a) b) enumerated list to workaround github displaying it
+> >>> as numbered list.
+> >>
+> >> I don't think we need to work around github's weird behavior around
+> >> enumerated lists.  What matters for us is what Sphinx (+ our own
+> >> extensions) ends up generating.
+> >>
+> >> The corresponding html page rendered by Sphinx is at:
+> >> https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html#perm=
+ission-model
+> >>
+> >> It does not look perfect, but at least it preserves enumeration by
+> >> number and alphabet.
+> >>
+> >
+> > ok.
+> >
+> >> I'd suggest reporting github about the minor breakage of their
+> >> rst renderer.
+> >>
+> >> Further comments below:
+> >>
+> >>>
+> >>> Reported-by: Christian Brauner <brauner@kernel.org>
+> >>> Suggested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+> >>> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> >>> ---
+> >>>  Documentation/filesystems/overlayfs.rst | 63 +++++++++++++----------=
+--
+> >>>  1 file changed, 32 insertions(+), 31 deletions(-)
+> >>>
+> >>> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/=
+filesystems/overlayfs.rst
+> >>> index 926396fdc5eb..a36f3a2a2d4b 100644
+> >>> --- a/Documentation/filesystems/overlayfs.rst
+> >>> +++ b/Documentation/filesystems/overlayfs.rst
+> >>> @@ -118,7 +118,7 @@ Where both upper and lower objects are directorie=
+s, a merged directory
+> >>>  is formed.
+> >>>
+> >>>  At mount time, the two directories given as mount options "lowerdir"=
+ and
+> >>> -"upperdir" are combined into a merged directory:
+> >>> +"upperdir" are combined into a merged directory::
+> >>>
+> >>>    mount -t overlay overlay -olowerdir=3D/lower,upperdir=3D/upper,\
+> >>>    workdir=3D/work /merged
+> >>> @@ -174,10 +174,10 @@ programs.
+> >>>  seek offsets are assigned sequentially when the directories are read=
+.
+> >>>  Thus if
+> >>>
+> >>> -  - read part of a directory
+> >>> -  - remember an offset, and close the directory
+> >>> -  - re-open the directory some time later
+> >>> -  - seek to the remembered offset
+> >>> +- read part of a directory
+> >>> +- remember an offset, and close the directory
+> >>> +- re-open the directory some time later
+> >>> +- seek to the remembered offset
+> >>
+> >> To my eyes, unindent spoils the readability of this file as pure
+> >> plain text.  Please don't do this.
+> >>
+> >
+> > Ok. I see what you mean.
+> > I restored a single space indent.
+> > I don't see why double space is called for and it is inconsistent
+> > with indentation in the rest of the doc.
+> >
+> >>>
+> >>>  there may be little correlation between the old and new locations in
+> >>>  the list of filenames, particularly if anything has changed in the
+> >>> @@ -285,21 +285,21 @@ Permission model
+> >>>
+> >>>  Permission checking in the overlay filesystem follows these principl=
+es:
+> >>>
+> >>> - 1) permission check SHOULD return the same result before and after =
+copy up
+> >>> +1) permission check SHOULD return the same result before and after c=
+opy up
+> >>>
+> >>> - 2) task creating the overlay mount MUST NOT gain additional privile=
+ges
+> >>> +2) task creating the overlay mount MUST NOT gain additional privileg=
+es
+> >>>
+> >>> - 3) non-mounting task MAY gain additional privileges through the ove=
+rlay,
+> >>> - compared to direct access on underlying lower or upper filesystems
+> >>> +3) non-mounting task MAY gain additional privileges through the over=
+lay,
+> >>> +   compared to direct access on underlying lower or upper filesystem=
+s
+> >>
+> >> All you need to fix is this adjustment of indent.
+> >> Don't do other unindents please
+> >>
+> >
+> > OK. I also fixed the same indents in "Non-standard behavior".
+> >
+> >>>
+> >>> -This is achieved by performing two permission checks on each access
+> >>> +This is achieved by performing two permission checks on each access:
+> >>>
+> >>> - a) check if current task is allowed access based on local DAC (owne=
+r,
+> >>> -    group, mode and posix acl), as well as MAC checks
+> >>> +a) check if current task is allowed access based on local DAC (owner=
+,
+> >>> +group, mode and posix acl), as well as MAC checks
+> >>>
+> >>> - b) check if mounting task would be allowed real operation on lower =
 or
-2. Use a documented helper prepare_creds_ref() to hide
-    this implementation detail
-
->         err =3D ovl_fs_params_verify(ctx, &ofs->config);
->         if (err)
->                 goto out_err;
-> @@ -1438,9 +1445,6 @@ int ovl_fill_super(struct super_block *sb, struct f=
-s_context *fc)
->         else if (!ofs->nofh)
->                 sb->s_export_op =3D &ovl_export_fid_operations;
+> >>> -    upper layer based on underlying filesystem permissions, again in=
+cluding
+> >>> -    MAC checks
+> >>> +b) check if mounting task would be allowed real operation on lower o=
+r
+> >>> +upper layer based on underlying filesystem permissions, again includ=
+ing
+> >>> +MAC checks
+> >>
+> >> Your workaround harms the readability very badly.
+> >> Don't break the construct of enumerated (or numbered) list in rst.
+> >>
+> >
+> > ok.
+> >
+> >> For the specification of enumerated list, please see:
+> >>
+> >> https://docutils.sourceforge.io/docs/ref/rst/restructuredtext.html#enu=
+merated-lists
+> >>
+> >> If there is a rst parser who fails to recognize some of the defined
+> >> list structure, fix such a parser please!
+> >>
+> >>>
+> >>>  Check (a) ensures consistency (1) since owner, group, mode and posix=
+ acls
+> >>>  are copied up.  On the other hand it can result in server enforced
+> >>> @@ -311,11 +311,11 @@ to create setups where the consistency rule (1)=
+ does not hold; normally,
+> >>>  however, the mounting task will have sufficient privileges to perfor=
+m all
+> >>>  operations.
+> >>>
+> >>> -Another way to demonstrate this model is drawing parallels between
+> >>> +Another way to demonstrate this model is drawing parallels between::
+> >>>
+> >>>    mount -t overlay overlay -olowerdir=3D/lower,upperdir=3D/upper,...=
+ /merged
+> >>>
+> >>> -and
+> >>> +and::
+> >>>
+> >>>    cp -a /lower /upper
+> >>>    mount --bind /upper /merged
+> >>> @@ -328,7 +328,7 @@ Multiple lower layers
+> >>>  ---------------------
+> >>>
+> >>>  Multiple lower layers can now be given using the colon (":") as a
+> >>> -separator character between the directory names.  For example:
+> >>> +separator character between the directory names.  For example::
+> >>>
+> >>>    mount -t overlay overlay -olowerdir=3D/lower1:/lower2:/lower3 /mer=
+ged
+> >>>
+> >>> @@ -340,13 +340,13 @@ rightmost one and going left.  In the above exa=
+mple lower1 will be the
+> >>>  top, lower2 the middle and lower3 the bottom layer.
+> >>>
+> >>>  Note: directory names containing colons can be provided as lower lay=
+er by
+> >>> -escaping the colons with a single backslash.  For example:
+> >>> +escaping the colons with a single backslash.  For example::
+> >>>
+> >>>    mount -t overlay overlay -olowerdir=3D/a\:lower\:\:dir /merged
+> >>>
+> >>>  Since kernel version v6.8, directory names containing colons can als=
+o
+> >>>  be configured as lower layer using the "lowerdir+" mount options and=
+ the
+> >>> -fsconfig syscall from new mount api.  For example:
+> >>> +fsconfig syscall from new mount api.  For example::
+> >>>
+> >>>    fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/a:lower::dir",=
+ 0);
+> >>>
+> >>> @@ -390,11 +390,11 @@ Data-only lower layers
+> >>>  With "metacopy" feature enabled, an overlayfs regular file may be a =
+composition
+> >>>  of information from up to three different layers:
+> >>>
+> >>> - 1) metadata from a file in the upper layer
+> >>> +1) metadata from a file in the upper layer
+> >>>
+> >>> - 2) st_ino and st_dev object identifier from a file in a lower layer
+> >>> +2) st_ino and st_dev object identifier from a file in a lower layer
+> >>>
+> >>> - 3) data from a file in another lower layer (further below)
+> >>> +3) data from a file in another lower layer (further below)
+> >>
+> >> Ditto.
+> >>
+> >>>
+> >>>  The "lower data" file can be on any lower layer, except from the top=
+ most
+> >>>  lower layer.
+> >>> @@ -405,7 +405,7 @@ A normal lower layer is not allowed to be below a=
+ data-only layer, so single
+> >>>  colon separators are not allowed to the right of double colon ("::")=
+ separators.
+> >>>
+> >>>
+> >>> -For example:
+> >>> +For example::
+> >>>
+> >>>    mount -t overlay overlay -olowerdir=3D/l1:/l2:/l3::/do1::/do2 /mer=
+ged
+> >>>
+> >>> @@ -419,7 +419,7 @@ to the absolute path of the "lower data" file in =
+the "data-only" lower layer.
+> >>>
+> >>>  Since kernel version v6.8, "data-only" lower layers can also be adde=
+d using
+> >>>  the "datadir+" mount options and the fsconfig syscall from new mount=
+ api.
+> >>> -For example:
+> >>> +For example::
+> >>>
+> >>>    fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l1", 0);
+> >>>    fsconfig(fs_fd, FSCONFIG_SET_STRING, "lowerdir+", "/l2", 0);
+> >>> @@ -429,7 +429,7 @@ For example:
+> >>>
+> >>>
+> >>>  fs-verity support
+> >>> -----------------------
+> >>> +-----------------
+> >>>
+> >>>  During metadata copy up of a lower file, if the source file has
+> >>>  fs-verity enabled and overlay verity support is enabled, then the
+> >>> @@ -653,9 +653,10 @@ following rules apply:
+> >>>     encode an upper file handle from upper inode
+> >>>
+> >>>  The encoded overlay file handle includes:
+> >>> - - Header including path type information (e.g. lower/upper)
+> >>> - - UUID of the underlying filesystem
+> >>> - - Underlying filesystem encoding of underlying inode
+> >>> +
+> >>> +- Header including path type information (e.g. lower/upper)
+> >>> +- UUID of the underlying filesystem
+> >>> +- Underlying filesystem encoding of underlying inode
+> >>
+> >> Ditto.
+> >>
+> >
+> > ok, but inconsistent indentation between numbered and bullet list is
+> > also not nice:
+> > https://www.kernel.org/doc/html/latest/filesystems/overlayfs.html#nfs-e=
+xport
 >
-> -       /* Never override disk quota limits or use reserved space */
-> -       cap_lower(cred->cap_effective, CAP_SYS_RESOURCE);
-> -
->         sb->s_magic =3D OVERLAYFS_SUPER_MAGIC;
->         sb->s_xattr =3D ovl_xattr_handlers(ofs);
->         sb->s_fs_info =3D ofs;
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index c3f020ca13a8..9ae9a35a6a7a 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -68,6 +68,16 @@ const struct cred *ovl_override_creds(struct super_blo=
-ck *sb)
->         return override_creds(ofs->creator_cred);
->  }
+> I agree.
 >
-> +void ovl_override_creds_new(struct ovl_cred *creator_cred)
-> +{
-> +       creator_cred->cred =3D override_creds(creator_cred->cred);
-> +}
-> +
-> +void ovl_revert_creds_new(struct ovl_cred *creator_cred)
-> +{
-> +       revert_creds(creator_cred->cred);
-> +}
-
-Would look nicer in this generic form, no?
-
-void override_cred_save(struct override_cred *override)
-{
-       override->cred =3D override_creds(override->cred);
-}
-
-void override_cred_restore(struct override_cred *old)
-{
-       revert_creds(old->cred);
-}
-
-Which reminds me that memalloc_*_{save,restore} are good
-candidates for defining a guard.
-
-> +
->  /*
->   * Check if underlying fs supports file handles and try to determine enc=
-oding
->   * type, in order to deduce maximum inode number used by fs.
-> diff --git a/include/linux/cred.h b/include/linux/cred.h
-> index af8d353a4b86..06eaedfe48ea 100644
-> --- a/include/linux/cred.h
-> +++ b/include/linux/cred.h
-> @@ -151,6 +151,7 @@ struct cred {
->                 int non_rcu;                    /* Can we skip RCU deleti=
-on? */
->                 struct rcu_head rcu;            /* RCU deletion hook */
->         };
-> +       bool    immutable;
->  } __randomize_layout;
+> >
+> > so I kept this indent and I also indented the non-indented numbered lis=
+ts
+> > in this section to conform to the rest of the numbered lists in this do=
+c.
+> >
+> > I've pushed the fixes to overlayfs-next.
+>
+> OK. I'm looking at commit 4552f4b1be08 ("overlayfs.rst: fix ReST formatti=
+ng").
+>
+> It looks reasonable to me.
+> If you'd like, feel free to add
+>
+> Reviewed-by: Akira Yokosawa <akiyks@gmail.com>
 >
 
-If we choose the design that the immutable/non-refcount property
-is a const property and we need to create a copy of struct cred
-whenever we want to use a non-refcounted copy, then we could
-store this in the union because RCU deletion is also not needed for
-non-refcounted copy:
+Done.
 
-        struct {
-            int non_refcount:1;              /* A borrowed reference? */
-            int non_rcu:1;                      /* Can we skip RCU deletion=
-? */
-        };
-        struct rcu_head rcu;            /* RCU deletion hook */
-    };
-
->  extern void __put_cred(struct cred *);
-> @@ -229,7 +230,8 @@ static inline bool cap_ambient_invariant_ok(const str=
-uct cred *cred)
->   */
->  static inline struct cred *get_new_cred_many(struct cred *cred, int nr)
->  {
-> -       atomic_add(nr, &cred->usage);
-> +       if (!cred->immutable)
-> +               atomic_add(nr, &cred->usage);
->         return cred;
->  }
->
-> @@ -245,6 +247,12 @@ static inline struct cred *get_new_cred(struct cred =
-*cred)
->         return get_new_cred_many(cred, 1);
->  }
->
-> +static inline void cred_set_immutable(const struct cred *cred, bool imm)
-> +{
-> +       struct cred *nonconst_cred =3D (struct cred *) cred;
-> +       nonconst_cred->immutable =3D imm;
-> +}
-> +
->  /**
->   * get_cred_many - Get references on a set of credentials
->   * @cred: The credentials to reference
-> @@ -313,7 +321,7 @@ static inline void put_cred_many(const struct cred *_=
-cred, int nr)
->
->         if (cred) {
->                 validate_creds(cred);
-> -               if (atomic_sub_and_test(nr, &cred->usage))
-> +               if (!cred->immutable && atomic_sub_and_test(nr, &cred->us=
-age))
->                         __put_cred(cred);
->         }
->  }
-> --
-> 2.43.0
->
-
-Thanks,
+Thanks!
 Amir.
