@@ -1,123 +1,161 @@
-Received: from mail-lj1-f177.google.com (mail-lj1-f177.google.com [209.85.208.177])
+Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8289831A63
-	for <linux-unionfs@vger.kernel.org>; Sat, 16 Dec 2023 18:26:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6B9A363A3;
+	Sun, 17 Dec 2023 09:32:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="EPtgRFMu"
-Received: by mail-lj1-f177.google.com with SMTP id 38308e7fff4ca-2cc61d4e5aeso4396841fa.0
-        for <linux-unionfs@vger.kernel.org>; Sat, 16 Dec 2023 10:26:26 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aYcTHJG4"
+Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-77f320ca2d5so168546285a.1;
+        Sun, 17 Dec 2023 01:32:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1702751184; x=1703355984; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Imi0HlHoaDO7uNQ9xiA54WrsCxlCdM8Cvn4XhN3R5LI=;
-        b=EPtgRFMuPe+3ZoSvGnNIVtwyJuBWte7e5kLOR1sRXdKALOM6P1zUcEuRPxGkBhnNV+
-         cLGx+fCuvtXizGtBp1pnr+yiwUBkjaeNxcq40/W8aFi4pq9Tf1rNAbUzvYTAtiLumLGX
-         La+EMwAC0nVLbNXeSJPvo56kVXsPTQ/FWkIoc=
+        d=gmail.com; s=20230601; t=1702805547; x=1703410347; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AYgbvFbc651hSucNzc13NR4vR18Ijwdd2sBGbj5gCiE=;
+        b=aYcTHJG48NZH2IkVoopThsXnbeLSlQ8JALLkVExwTww98AifFv4wCQmQfN6C7PJmXU
+         cFUJxeLdehYJHpxeVIqDJSxQD5n/46mCslZCojXJZqwL3a6La2NVAD+biN36BorGOQHe
+         WYbYv+odf3YR+eN6mZ++Joy+v/pdjgEVjLtAQh6G+SQngVox4xCTxrVzPJFuo/7BAygi
+         nTgdCyTgP1d3ymV8pME/G0tjbCx4l+pV+5WoKMW/PLwZrETZLwQdkEX0QuF9KyIpngQA
+         b5wuUoQ3irMheyMrdVtbqg+Qlp66r0Uq1Qt3A4R3MFuZQU/8VedwFoMNNuEU7Rf+Whu5
+         PCuQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1702751184; x=1703355984;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Imi0HlHoaDO7uNQ9xiA54WrsCxlCdM8Cvn4XhN3R5LI=;
-        b=i21EbqJ9LwzcLMTot9erGj7cfnBvUglxJDmeZ4+WvDdt6tVYD3Fj5ZmBsuJ+j1b8rj
-         dB+Yn7+ZAceI3xvntUqRWL5dntanxkimywwRZqDQjwV8zRJ3E12tLX93parBzMfMR5VJ
-         civZd/FXNJXd2oe4gM09c+MXaaUPrGBccyDiOiMGrl7Yux0pASkF+ZHCAEWzkY/ELVHf
-         PDvZ+SjwKxudtUvFDFagrbGSRzjNQX97nj9rzmv93qIEWytY/aHK4/32Qp6p5v8+/aKx
-         fktJHpW6/JUKRRZxgcWCNQox6vVp99YcQ4wikC8NemC9XUShdWknw/RoCtzGD3Lc/VBr
-         ipVg==
-X-Gm-Message-State: AOJu0Yx/dgmy7MtsR0LxkcovMukN2s9hGKGahciZ8dpeOZqrIrQkoYQj
-	qQXEmpQ6LxVkRkmvlK3J1OjYVtChWaRhIdJMoMpPoJJF
-X-Google-Smtp-Source: AGHT+IHkslf8UyaJYmolpsBqUU4kfoHkeJX/S3nIuUMuILuGzGkT4odqOjw4j9rKUzeJxpxCLIhefw==
-X-Received: by 2002:a2e:a22c:0:b0:2cc:1c3d:35a9 with SMTP id i12-20020a2ea22c000000b002cc1c3d35a9mr5096428ljm.42.1702751184468;
-        Sat, 16 Dec 2023 10:26:24 -0800 (PST)
-Received: from mail-lf1-f54.google.com (mail-lf1-f54.google.com. [209.85.167.54])
-        by smtp.gmail.com with ESMTPSA id f18-20020a05651c161200b002cc46e039c7sm729305ljq.108.2023.12.16.10.26.22
-        for <linux-unionfs@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 16 Dec 2023 10:26:23 -0800 (PST)
-Received: by mail-lf1-f54.google.com with SMTP id 2adb3069b0e04-50bdec453c8so1937659e87.3
-        for <linux-unionfs@vger.kernel.org>; Sat, 16 Dec 2023 10:26:22 -0800 (PST)
-X-Received: by 2002:ac2:414c:0:b0:50e:3183:51a3 with SMTP id
- c12-20020ac2414c000000b0050e318351a3mr113023lfi.129.1702751182566; Sat, 16
- Dec 2023 10:26:22 -0800 (PST)
+        d=1e100.net; s=20230601; t=1702805547; x=1703410347;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=AYgbvFbc651hSucNzc13NR4vR18Ijwdd2sBGbj5gCiE=;
+        b=rmj/gK6+nq1qB3iwS7j4Dmx9P7q7/WS4z81nKrKz0LjEFJXOKmStDLSIodC9BD4Kwq
+         Xi//hWT98sEv3sQB7DivRNyZ3dODU5liusMyDZ55G81EEizKfu18rm3bldiLSWyFVCTU
+         7nX0R04NnNMn+XeB8z5/e2xwsqpi3IvwOB1ZFprmVe+FxAsH7SQ8GPnpovF0DHn7qIxR
+         vVYaH/uqpnS3+LpPLH9GbaxhZze1VwugAZ4YEgMvdG8F+ddNSdiH5MLw66vYQLRYOTFE
+         avDllb8e2X7RMyW5Kpq20cFrBZqsg+qz2hNUMCrllAbADHhE9qzgSXzNAU6KmJF1EFRX
+         OTNw==
+X-Gm-Message-State: AOJu0YxrApCWEjLXXNi5eYVoQ6ARchCSjlPceJCc5FVkVCMP69mFjSVT
+	1NWFqu1z/a5HxfL/WxdMMn/9XhZPQPJjCOQ5eR0=
+X-Google-Smtp-Source: AGHT+IH3PaGiNcaIanZwKUHmvWmiaD6dbQ+VGgW1jriDoXnyIC8pX42JlN6X1eEh0YqPzW10W78T8JV0bY1+1ymerFY=
+X-Received: by 2002:a05:620a:4950:b0:77f:89e:986d with SMTP id
+ vz16-20020a05620a495000b0077f089e986dmr18486113qkn.78.1702805547194; Sun, 17
+ Dec 2023 01:32:27 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
- <20231214220222.348101-1-vinicius.gomes@intel.com> <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
- <87v88zp76v.fsf@intel.com> <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 16 Dec 2023 10:26:04 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whzaCCucr9odvFWcWr72nraRgejD90Nwb2tP8SBE2LTQw@mail.gmail.com>
-Message-ID: <CAHk-=whzaCCucr9odvFWcWr72nraRgejD90Nwb2tP8SBE2LTQw@mail.gmail.com>
-Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vinicius Costa Gomes <vinicius.gomes@intel.com>, hu1.chen@intel.com, miklos@szeredi.hu, 
-	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
-	lizhen.you@intel.com, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, David Howells <dhowells@redhat.com>
+References: <0000000000003362ba060ca8beac@google.com> <tencent_4E2FCFC90D97A5910DFA926DDD945D9B1907@qq.com>
+In-Reply-To: <tencent_4E2FCFC90D97A5910DFA926DDD945D9B1907@qq.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Sun, 17 Dec 2023 11:32:16 +0200
+Message-ID: <CAOQ4uxi+4-jyNY6jzNt1wG5xcYSZiSfU0AtCWtF71PSW160zRw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: fix BUG: Dentry still in use in unmount
+To: Edward Adam Davis <eadavis@qq.com>, viro@zeniv.linux.org.uk
+Cc: syzbot+8608bb4553edb8c78f41@syzkaller.appspotmail.com, chao@kernel.org, 
+	jaegeuk@kernel.org, linux-f2fs-devel@lists.sourceforge.net, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	phillip@squashfs.org.uk, reiserfs-devel@vger.kernel.org, 
+	squashfs-devel@lists.sourceforge.net, syzkaller-bugs@googlegroups.com, 
+	terrelln@fb.com, overlayfs <linux-unionfs@vger.kernel.org>, 
+	Miklos Szeredi <miklos@szeredi.hu>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, 16 Dec 2023 at 02:16, Amir Goldstein <amir73il@gmail.com> wrote:
+Hi Edward,
+
+Thanks for the quick fix, but it is incorrect.
+
+On Sun, Dec 17, 2023 at 10:11=E2=80=AFAM Edward Adam Davis <eadavis@qq.com>=
+ wrote:
 >
-> As a matter of fact, maybe it makes sense to embed a non-refcounted
-> copy in the struct used for the guard:
+> workdir and destdir could be the same when copying up to indexdir.
 
-No, please don't. A couple of reasons:
+This is not the reason for the bug, the reason is:
 
- - that 'struct cred' is not an insignificant size, so stack usage is noticeable
+    syzbot exercised the forbidden practice of moving the workdir under
+    lowerdir while overlayfs is mounted and tripped a dentry reference leak=
+.
 
- - we really should strive to avoid passing pointers to random stack
-elements around
+>
+> Fixes: c63e56a4a652 ("ovl: do not open/llseek lower file with upper sb_wr=
+iters held")
+> Reported-and-tested-by: syzbot+8608bb4553edb8c78f41@syzkaller.appspotmail=
+.com
+> Signed-off-by: Edward Adam Davis <eadavis@qq.com>
+> ---
+>  fs/overlayfs/copy_up.c | 20 +++++++++++++-------
+>  1 file changed, 13 insertions(+), 7 deletions(-)
+>
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 4382881b0709..ae5eb442025d 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -731,10 +731,14 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_c=
+tx *c)
+>                 .rdev =3D c->stat.rdev,
+>                 .link =3D c->link
+>         };
+> +       err =3D -EIO;
+> +       /* workdir and destdir could be the same when copying up to index=
+dir */
+> +       if (lock_rename(c->workdir, c->destdir) !=3D NULL)
+> +               goto unlock;
 
-Don't get me wrong - we pass structures around on the stack all the
-time, but it _has_ been a problem with stack usage. Those things tend
-to grow..
+You can't do that. See comment below ovl_copy_up_data().
 
-So in general, the primary use of "pointers to stack objects" is for
-when it's either trivially tiny, or when it's a struct that is
-explicitly designed for that purpose as a kind of an "extended set of
-arguments" (think things like the "tlb_state" for the TLB flushing, or
-the various iterator structures we use etc).
+>
+>         err =3D ovl_prep_cu_creds(c->dentry, &cc);
+>         if (err)
+> -               return err;
+> +               goto unlock;
+>
+>         ovl_start_write(c->dentry);
+>         inode_lock(wdir);
+> @@ -743,8 +747,9 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ctx=
+ *c)
+>         ovl_end_write(c->dentry);
+>         ovl_revert_cu_creds(&cc);
+>
+> +       err =3D PTR_ERR(temp);
+>         if (IS_ERR(temp))
+> -               return PTR_ERR(temp);
+> +               goto unlock;
+>
+>         /*
+>          * Copy up data first and then xattrs. Writing data after
+> @@ -760,10 +765,9 @@ static int ovl_copy_up_workdir(struct ovl_copy_up_ct=
+x *c)
+>          * If temp was moved, abort without the cleanup.
+>          */
+>         ovl_start_write(c->dentry);
+> -       if (lock_rename(c->workdir, c->destdir) !=3D NULL ||
+> -           temp->d_parent !=3D c->workdir) {
+> +       if (temp->d_parent !=3D c->workdir) {
 
-When we have a real mainline kernel struct like 'struct cred' that
-commonly gets passed around as a pointer argument that *isn't* on the
-stack, I get nervous when people then pass it around on the stack too.
-It's just too easy to mistakenly pass it off with the wrong lifetime,
-and stack corruption is *so* nasty to debug that it's just horrendous.
+                  dput(temp);
 
-Yes, lifetime problems are nasty to debug even when it's not some
-mis-use of a stack object, but at least for slab allocations etc we
-have various generic debug tools that help find them.
+here is all that should be needed to fix the leak.
 
-For the "you accessed things under the stack, possibly from the wrong
-thread", I don't think any of our normal debug coverage will help at
-all.
 
-So yes, stack allocations are efficient and fast, and we do use them,
-but please don't use them for something like 'struct cred' that has a
-proper allocator function normally.
+>                 err =3D -EIO;
+> -               goto unlock;
+> +               goto unlockcd;
+>         } else if (err) {
+>                 goto cleanup;
+>         }
 
-I just removed the CONFIG_DEBUG_CREDENTIALS code, because the fix for
-a potential overflow made it have bad padding, and rather than fix the
-padding I thought it was better to just remove the long-unused debug
-code that just made that thing even more unwieldly than it is.
+See my suggested fix at https://github.com/amir73il/linux/commits/ovl-fixes
 
-But I thought that largely because our 'struct cred' use has been
-quite stable for a long time (and the original impetus for all that
-debug code was the long-ago switch to using the copy-on-write
-behavior).
+Al,
 
-Let's not break that stability with suddenly having a "sometimes it's
-allocated on the stack" model.
+Heads up.
+This fix will have a minor conflict with a8b0026847b8 ("rename(): avoid
+a deadlock in the case of parents having no common ancestor")
+on your work.rename branch.
 
-             Linus
+I plan to push my fix to linux-next soon, but I see that work.rename
+is not in linux-next yet.
+
+Thanks,
+Amir.
