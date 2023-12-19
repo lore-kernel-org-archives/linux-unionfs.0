@@ -1,241 +1,157 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6ADF51BDC2;
-	Tue, 19 Dec 2023 13:35:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 34D821A727;
+	Tue, 19 Dec 2023 13:49:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="sJahvToR"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8F83C433C8;
-	Tue, 19 Dec 2023 13:35:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1702992932;
-	bh=EkP6rQawRzc+I0zIElqB8wPi+VlBMezxM20ZUIcMsK4=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=sJahvToRpRabZqJtd82MofTR50IfY+Fp+NhFlyHnhik+CUzKgsO1EMMQejAZrzjdu
-	 nG/dwj8EYmGddCFFko9jLjFQFzuBBT57iCa7H992F+FHlzRTHRufd/nkr01bZcPhUc
-	 Ws0vdX/EGqbFXxPAw2AsnBHFfhDVF5RKQos7nIPDBvBxffGs4z4stcRqVSGrCk1JRz
-	 6nGP1KWR1kTDwMuW0J/F9AQalUUw7si2/aqCTxvaqMSSHKCMXox4W72tNc7t1+bU/x
-	 jxsE9+WmHczSurU0fiJ67rLlu77TvN+APU6RFqEdoGpkRKyW/gpgfpkXLnxqlag0pV
-	 pPFQS4gEiRA4g==
-Date: Tue, 19 Dec 2023 14:35:27 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Vinicius Costa Gomes <vinicius.gomes@intel.com>, hu1.chen@intel.com,
-	miklos@szeredi.hu, malini.bhandaru@intel.com, tim.c.chen@intel.com,
-	mikko.ylinen@intel.com, lizhen.you@intel.com,
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	David Howells <dhowells@redhat.com>,
-	Seth Forshee <sforshee@kernel.org>
-Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
-Message-ID: <20231219-marken-pochen-26d888fb9bb9@brauner>
-References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
- <20231214220222.348101-1-vinicius.gomes@intel.com>
- <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
- <87v88zp76v.fsf@intel.com>
- <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
- <CAOQ4uxhxvFt3_Wb3BGcjj4pGp=OFTBHNPJ4r4eH8245t-+CW+g@mail.gmail.com>
- <20231218-intim-lehrstellen-dbe053d6c3a8@brauner>
- <875y0vp41g.fsf@intel.com>
- <CAOQ4uxibYMQw0iszKhE5uxBnyayHWjqp4ZnOOiugO3GxMRS1eA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="jrSsh/9H"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3BJCoXKJ008082;
+	Tue, 19 Dec 2023 13:49:35 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=pp1;
+ bh=zZbjaoTjlPkJFXiQHD8SI3UTG7YuYOK40SKblWX/KhY=;
+ b=jrSsh/9HrSwa1+b0R4nBUxaTa2JhLrx8zFWnu/Ygrfy0mJb9A3I3hXBTDp8RcZmnQmP/
+ lWNA0Yx9ps+tAsEX5OpzbY6gERhtZeBdHcfOpFkoJx6s3ST61mGAltOxcC4QpL276BWn
+ kB2YC+8Ey8OOCajEDLGPdSVKiw+v6UJINvU2M0dzy/RUbF+DcSQFnP2GjafKiXAv3e8F
+ a8fBl8hxvpG/aLRDkHSK+pBjedljoqBcYUjqhmixntt9Lq07UhIOumYvvuz//mvofWuo
+ Okg2tEVzYF4jpS/UcINUOG3848iunMacvsaNF57dheajSiqO105uJOSTToX11yJ5f+Rn +g== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3v3ayj2ceg-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 19 Dec 2023 13:49:35 +0000
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3BJDKL4Q007383;
+	Tue, 19 Dec 2023 13:49:34 GMT
+Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3v3ayj2cdn-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 19 Dec 2023 13:49:34 +0000
+Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma21.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3BJDM8uo010900;
+	Tue, 19 Dec 2023 13:49:33 GMT
+Received: from smtprelay01.fra02v.mail.ibm.com ([9.218.2.227])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3v1q7nfy7p-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 19 Dec 2023 13:49:33 +0000
+Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
+	by smtprelay01.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3BJDnVrn10748516
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 19 Dec 2023 13:49:31 GMT
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 036322004B;
+	Tue, 19 Dec 2023 13:49:31 +0000 (GMT)
+Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8644820040;
+	Tue, 19 Dec 2023 13:49:28 +0000 (GMT)
+Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com.com (unknown [9.61.183.131])
+	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
+	Tue, 19 Dec 2023 13:49:28 +0000 (GMT)
+From: Mimi Zohar <zohar@linux.ibm.com>
+To: linux-unionfs@vger.kernel.org
+Cc: Mimi Zohar <zohar@linux.ibm.com>, linux-integrity@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
+        Christian Brauner <brauner@kernel.org>,
+        Seth Forshee <sforshee@kernel.org>,
+        Roberto Sassu <roberto.sassu@huaweicloud.com>
+Subject: [PATCH 1/2] evm: don't copy up 'security.evm' xattr
+Date: Tue, 19 Dec 2023 08:49:00 -0500
+Message-Id: <20231219134901.96300-2-zohar@linux.ibm.com>
+X-Mailer: git-send-email 2.39.3
+In-Reply-To: <20231219134901.96300-1-zohar@linux.ibm.com>
+References: <20231219134901.96300-1-zohar@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxibYMQw0iszKhE5uxBnyayHWjqp4ZnOOiugO3GxMRS1eA@mail.gmail.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: 9u4vQM_WsVdwHQBtpzy2p2ScOXEspfY0
+X-Proofpoint-GUID: 2h3nsbQ7kqlQ3tmC7PO76szmAyrwvT3N
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.997,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2023-12-19_08,2023-12-14_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 mlxlogscore=811
+ bulkscore=0 clxscore=1015 lowpriorityscore=0 phishscore=0 spamscore=0
+ mlxscore=0 impostorscore=0 suspectscore=0 priorityscore=1501
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2311290000 definitions=main-2312190103
 
-On Tue, Dec 19, 2023 at 09:15:52AM +0200, Amir Goldstein wrote:
-> On Mon, Dec 18, 2023 at 11:57 PM Vinicius Costa Gomes
-> <vinicius.gomes@intel.com> wrote:
-> >
-> > Christian Brauner <brauner@kernel.org> writes:
-> >
-> > >> > Yes, the important thing is that an object cannot change
-> > >> > its non_refcount property during its lifetime -
-> > >>
-> > >> ... which means that put_creds_ref() should assert that
-> > >> there is only a single refcount - the one handed out by
-> > >> prepare_creds_ref() before removing non_refcount or
-> > >> directly freeing the cred object.
-> > >>
-> > >> I must say that the semantics of making a non-refcounted copy
-> > >> to an object whose lifetime is managed by the caller sounds a lot
-> > >> less confusing to me.
-> > >
-> > > So can't we do an override_creds() variant that is effectively just:
-> 
-> Yes, I think that we can....
-> 
-> > >
-> > > /* caller guarantees lifetime of @new */
-> > > const struct cred *foo_override_cred(const struct cred *new)
-> > > {
-> > >       const struct cred *old = current->cred;
-> > >       rcu_assign_pointer(current->cred, new);
-> > >       return old;
-> > > }
-> > >
-> > > /* caller guarantees lifetime of @old */
-> > > void foo_revert_creds(const struct cred *old)
-> > > {
-> > >       const struct cred *override = current->cred;
-> > >       rcu_assign_pointer(current->cred, old);
-> > > }
-> > >
-> 
-> Even better(?), we can do this in the actual guard helpers to
-> discourage use without a guard:
-> 
-> struct override_cred {
->         struct cred *cred;
-> };
-> 
-> DEFINE_GUARD(override_cred, struct override_cred *,
->             override_cred_save(_T),
->             override_cred_restore(_T));
-> 
-> ...
-> 
-> void override_cred_save(struct override_cred *new)
-> {
->         new->cred = rcu_replace_pointer(current->cred, new->cred, true);
-> }
-> 
-> void override_cred_restore(struct override_cred *old)
-> {
->         rcu_assign_pointer(current->cred, old->cred);
-> }
+The security.evm HMAC and the original file signatures contain
+filesystem specific data.  As a result, the HMAC and signature
+are not the same on the stacked and backing filesystems.
 
-The main thing we want is that it's somewhat clear that it's special
-purpose interface (Sometimes I jokingly feel we should have
-include/linux/quirky_overlayfs_helpers.h or actually working module
-specific exports so we can export a helper to only a single module.
-Whatever happened to that?).
+Don't copy up 'security.evm'.
 
-If you do the cred guard thing then maybe name it:
+Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
+---
+ include/linux/evm.h               | 6 ++++++
+ security/integrity/evm/evm_main.c | 7 +++++++
+ security/security.c               | 4 ++++
+ 3 files changed, 17 insertions(+)
 
-{override,revert}_cred_light()
-
-and then use them to implement the replace portion for:
-
-{override,revert}_cred().
-
-Yes, the {override,revert}_cred() naming isn't optimal but unless we
-rename them as well to *_{save,restore} I don't see the point in making
-the new helpers deviate from that pattern. They basically do the same
-thing.
-
-So my point is to just let them mirror the naming in __fget_light().
-To a regular VFS developer the *_light() will give away that it probably
-doesn't take a reference.
-
-But I'm not married to that.
-
-So I'd probably just do something like the following COMPLETELY UNTESTED
-AND UNCOMPILED thing:
-
-diff --git a/include/linux/cred.h b/include/linux/cred.h
-index 2976f534a7a3..c975eb47e691 100644
---- a/include/linux/cred.h
-+++ b/include/linux/cred.h
-@@ -165,6 +165,24 @@ extern int cred_fscmp(const struct cred *, const struct cred *);
- extern void __init cred_init(void);
- extern int set_cred_ucounts(struct cred *);
-
-+/*
-+ * Override creds without bumping reference count. Caller must ensure
-+ * reference remains valid or has taken reference. Almost always not the
-+ * interface you want. Use override_creds()/revert_creds() instead.
-+ */
-+#define override_creds_light(override_cred)                       \
-+       ({                                                        \
-+               const struct cred *__old_cred = current->cred;    \
-+               rcu_assign_pointer(current->cred, override_cred); \
-+               __old_cred;                                       \
-+       })
-+
-+#define revert_creds_light(revert_cred) \
-+       rcu_assign_pointer(current->cred, revert_cred);
-+
-+DEFINE_GUARD(cred, struct cred *, override_creds_light(_T),
-+            revert_creds_light(_T));
-+
- static inline bool cap_ambient_invariant_ok(const struct cred *cred)
- {
-        return cap_issubset(cred->cap_ambient,
-diff --git a/kernel/cred.c b/kernel/cred.c
-index c033a201c808..d6713edaee37 100644
---- a/kernel/cred.c
-+++ b/kernel/cred.c
-@@ -485,7 +485,7 @@ EXPORT_SYMBOL(abort_creds);
-  */
- const struct cred *override_creds(const struct cred *new)
- {
--       const struct cred *old = current->cred;
-+       const struct cred *old;
-
-        kdebug("override_creds(%p{%ld})", new,
-               atomic_long_read(&new->usage));
-@@ -499,8 +499,7 @@ const struct cred *override_creds(const struct cred *new)
-         * visible to other threads under RCU.
-         */
-        get_new_cred((struct cred *)new);
--       rcu_assign_pointer(current->cred, new);
--
-+       old = override_creds_light(new);
-        kdebug("override_creds() = %p{%ld}", old,
-               atomic_long_read(&old->usage));
-        return old;
-@@ -521,7 +520,7 @@ void revert_creds(const struct cred *old)
-        kdebug("revert_creds(%p{%ld})", old,
-               atomic_long_read(&old->usage));
-
--       rcu_assign_pointer(current->cred, old);
-+       revert_creds_light(old);
-        put_cred(override);
+diff --git a/include/linux/evm.h b/include/linux/evm.h
+index 01fc495a83e2..36ec884320d9 100644
+--- a/include/linux/evm.h
++++ b/include/linux/evm.h
+@@ -31,6 +31,7 @@ extern void evm_inode_post_setxattr(struct dentry *dentry,
+ 				    const char *xattr_name,
+ 				    const void *xattr_value,
+ 				    size_t xattr_value_len);
++extern int evm_inode_copy_up_xattr(const char *name);
+ extern int evm_inode_removexattr(struct mnt_idmap *idmap,
+ 				 struct dentry *dentry, const char *xattr_name);
+ extern void evm_inode_post_removexattr(struct dentry *dentry,
+@@ -117,6 +118,11 @@ static inline void evm_inode_post_setxattr(struct dentry *dentry,
+ 	return;
  }
- EXPORT_SYMBOL(revert_creds);
+ 
++static inline int  evm_inode_copy_up_xattr(const char *name)
++{
++	return 0;
++}
++
+ static inline int evm_inode_removexattr(struct mnt_idmap *idmap,
+ 					struct dentry *dentry,
+ 					const char *xattr_name)
+diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
+index 894570fe39bc..02adba635b02 100644
+--- a/security/integrity/evm/evm_main.c
++++ b/security/integrity/evm/evm_main.c
+@@ -863,6 +863,13 @@ void evm_inode_post_setattr(struct dentry *dentry, int ia_valid)
+ 		evm_update_evmxattr(dentry, NULL, NULL, 0);
+ }
+ 
++int evm_inode_copy_up_xattr(const char *name)
++{
++	if (strcmp(name, XATTR_NAME_EVM) == 0)
++		return 1; /* Discard */
++	return -EOPNOTSUPP;
++}
++
+ /*
+  * evm_inode_init_security - initializes security.evm HMAC value
+  */
+diff --git a/security/security.c b/security/security.c
+index dcb3e7014f9b..a02e78c45007 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -2539,6 +2539,10 @@ int security_inode_copy_up_xattr(const char *name)
+ 			return rc;
+ 	}
+ 
++	rc = evm_inode_copy_up_xattr(name);
++	if (rc != LSM_RET_DEFAULT(inode_copy_up_xattr))
++		return rc;
++
+ 	return LSM_RET_DEFAULT(inode_copy_up_xattr);
+ }
+ EXPORT_SYMBOL(security_inode_copy_up_xattr);
+-- 
+2.39.3
 
-> 
-> > > Maybe I really fail to understand this problem or the proposed solution:
-> > > the single reference that overlayfs keeps in ovl->creator_cred is tied
-> > > to the lifetime of the overlayfs superblock, no? And anyone who needs a
-> > > long term cred reference e.g, file->f_cred will take it's own reference
-> > > anyway. So it should be safe to just keep that reference alive until
-> > > overlayfs is unmounted, no? I'm sure it's something quite obvious why
-> > > that doesn't work but I'm just not seeing it currently.
-> >
-> > My read of the code says that what you are proposing should work. (what
-> > I am seeing is that in the "optimized" cases, the only practical effect
-> > of override/revert is the rcu_assign_pointer() dance)
-> >
-> > I guess that the question becomes: Do we want this property (that the
-> > 'cred' associated with a subperblock/similar is long lived and the
-> > "inner" refcount can be omitted) to be encoded in the constructor? Or do
-> > we want it to be "encoded" in a call by call basis?
-> >
-> 
-> Neither.
-> 
-> Christian's proposal does not involve marking the cred object as
-> long lived, which looks a much better idea to me.
-> 
-> The performance issues you observed are (probably) due to get/put
-> of cred refcount in the helpers {override,revert}_creds().
-
-Most likely they are. I don't see what else would be expensive. But I
-may lack details.
-
-> 
-> Christian suggested lightweight variants of {override,revert}_creds()
-> that do not change refcount. Combining those with a guard and
-> I don't see what can go wrong (TM).
-
-Place a nice comment explaining lifetime expectations in the commit
-message. Then someone can always tell us why we're wrong.
