@@ -1,196 +1,189 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mgamail.intel.com (mgamail.intel.com [192.55.52.115])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EAB851BDF3;
-	Tue, 19 Dec 2023 13:49:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B3A91B29E;
+	Tue, 19 Dec 2023 14:34:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Be6SlkjU"
-Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 3BJBhEDk011557;
-	Tue, 19 Dec 2023 13:49:36 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=pp1;
- bh=NPjpiQqB/XwG2kL1albQJVZXEm834TnGuqtZmfnSItE=;
- b=Be6SlkjUf5kODr8yxPcDnOOC93iT9yZsPnrMaZyLTdBB4wzAhr5c109DFvNb5EGy6Spk
- 23tXQyY7Dsz66jfF6IRtKFdNoVrtIlveb3XZ2cyc1sziaDgLZNHWptBtYAbyUOHZl7JO
- SO/xN34Sk7RwS26uSrEVo89mEhTUuMukLFd3aC+pYQ/FoAeeOONkjzAhQ/2l5P+YMOWr
- mVIJmXVrIdS4qTJrc/tYOqV6qYGpeGi3AYoFkUkCr9euCKd5grYyOKZRywSwfjqMWlXn
- WH3rhuGYkvUzS0ngfZtYGe3s3uZmDyXMJP7tsxUpd5VvX5xJ+bB4vJnHXtd5gAUoza/C jw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3v3ahwk6tc-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 19 Dec 2023 13:49:36 +0000
-Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 3BJDAhpO008831;
-	Tue, 19 Dec 2023 13:49:35 GMT
-Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3v3ahwk6t4-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 19 Dec 2023 13:49:35 +0000
-Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma12.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 3BJC759L029712;
-	Tue, 19 Dec 2023 13:49:35 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 3v1p7sg7kp-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 19 Dec 2023 13:49:34 +0000
-Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
-	by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 3BJDnXd945023970
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 19 Dec 2023 13:49:33 GMT
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 4503320043;
-	Tue, 19 Dec 2023 13:49:33 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 6415A2004B;
-	Tue, 19 Dec 2023 13:49:31 +0000 (GMT)
-Received: from li-f45666cc-3089-11b2-a85c-c57d1a57929f.ibm.com.com (unknown [9.61.183.131])
-	by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 19 Dec 2023 13:49:31 +0000 (GMT)
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: linux-unionfs@vger.kernel.org
-Cc: Mimi Zohar <zohar@linux.ibm.com>, linux-integrity@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>,
-        Christian Brauner <brauner@kernel.org>,
-        Seth Forshee <sforshee@kernel.org>,
-        Roberto Sassu <roberto.sassu@huaweicloud.com>
-Subject: [PATCH 2/2] evm: add support to disable EVM on unsupported filesystems
-Date: Tue, 19 Dec 2023 08:49:01 -0500
-Message-Id: <20231219134901.96300-3-zohar@linux.ibm.com>
-X-Mailer: git-send-email 2.39.3
-In-Reply-To: <20231219134901.96300-1-zohar@linux.ibm.com>
-References: <20231219134901.96300-1-zohar@linux.ibm.com>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Zodlag+0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1702996460; x=1734532460;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version:content-transfer-encoding;
+  bh=/XNQlqMP1ii8IkFRiQLOMuoNmOBV0HJGKqUTMOklGRM=;
+  b=Zodlag+016PU53gcJAq8RUUervQDR5ocJ5KBqCswLznpz/qBuDPyeXv5
+   hxMZGBa66HiX0kOrQheDaqYtUaVSI69tCarcrvDn3whPYDvtp3CHC5ECz
+   5AV8RNXnT68DrLvxeodO54F5rKK8hJKENqkY3LZiGqTKjG/WYZwkf9eKn
+   Fc4/TfSZMSekQZRqTPNrR6HihPh9OuUwlCiKoUnp3QgZ2Hz2IIVdtcaON
+   8VWHFx0dyriPtjNtTPmWDWAALS9wPYd7Nmfpkp/kn0mYfYwWHvQQA7Htv
+   YJbGdsKR5g72H9acPK3cXfADimekcPagKEv/sGBWxSPAGEOg3F3zPpyCd
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10929"; a="395395592"
+X-IronPort-AV: E=Sophos;i="6.04,288,1695711600"; 
+   d="scan'208";a="395395592"
+Received: from fmsmga005.fm.intel.com ([10.253.24.32])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Dec 2023 06:34:05 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6600,9927,10929"; a="1107367757"
+X-IronPort-AV: E=Sophos;i="6.04,288,1695711600"; 
+   d="scan'208";a="1107367757"
+Received: from vvpatel-mobl.amr.corp.intel.com (HELO vcostago-mobl3) ([10.209.174.186])
+  by fmsmga005-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 19 Dec 2023 06:34:01 -0800
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>, hu1.chen@intel.com,
+ miklos@szeredi.hu, malini.bhandaru@intel.com, tim.c.chen@intel.com,
+ mikko.ylinen@intel.com, lizhen.you@intel.com,
+ linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel
+ <linux-fsdevel@vger.kernel.org>, Linus Torvalds
+ <torvalds@linux-foundation.org>, David Howells <dhowells@redhat.com>, Seth
+ Forshee <sforshee@kernel.org>
+Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
+In-Reply-To: <CAOQ4uxibYMQw0iszKhE5uxBnyayHWjqp4ZnOOiugO3GxMRS1eA@mail.gmail.com>
+References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
+ <20231214220222.348101-1-vinicius.gomes@intel.com>
+ <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
+ <87v88zp76v.fsf@intel.com>
+ <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
+ <CAOQ4uxhxvFt3_Wb3BGcjj4pGp=OFTBHNPJ4r4eH8245t-+CW+g@mail.gmail.com>
+ <20231218-intim-lehrstellen-dbe053d6c3a8@brauner>
+ <875y0vp41g.fsf@intel.com>
+ <CAOQ4uxibYMQw0iszKhE5uxBnyayHWjqp4ZnOOiugO3GxMRS1eA@mail.gmail.com>
+Date: Tue, 19 Dec 2023 06:33:59 -0800
+Message-ID: <87le9qntwo.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: r9Lni6yzcpPQwkP24dn2sm7-qa8qBnGT
-X-Proofpoint-ORIG-GUID: c1n8usABbRrfBGRCvFWMf_kvc_FtTNuA
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.997,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2023-12-19_08,2023-12-14_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- suspectscore=0 lowpriorityscore=0 bulkscore=0 clxscore=1015 spamscore=0
- phishscore=0 mlxscore=0 impostorscore=0 mlxlogscore=633 adultscore=0
- malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311290000 definitions=main-2312190103
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-Don't verify, write, remove or update 'security.evm' on unsupported
-filesystems.
+Amir Goldstein <amir73il@gmail.com> writes:
 
-Temporarily define overlayfs as an unsupported filesystem until
-a complete solution is developed.
+> On Mon, Dec 18, 2023 at 11:57=E2=80=AFPM Vinicius Costa Gomes
+> <vinicius.gomes@intel.com> wrote:
+>>
+>> Christian Brauner <brauner@kernel.org> writes:
+>>
+>> >> > Yes, the important thing is that an object cannot change
+>> >> > its non_refcount property during its lifetime -
+>> >>
+>> >> ... which means that put_creds_ref() should assert that
+>> >> there is only a single refcount - the one handed out by
+>> >> prepare_creds_ref() before removing non_refcount or
+>> >> directly freeing the cred object.
+>> >>
+>> >> I must say that the semantics of making a non-refcounted copy
+>> >> to an object whose lifetime is managed by the caller sounds a lot
+>> >> less confusing to me.
+>> >
+>> > So can't we do an override_creds() variant that is effectively just:
+>
+> Yes, I think that we can....
+>
+>> >
+>> > /* caller guarantees lifetime of @new */
+>> > const struct cred *foo_override_cred(const struct cred *new)
+>> > {
+>> >       const struct cred *old =3D current->cred;
+>> >       rcu_assign_pointer(current->cred, new);
+>> >       return old;
+>> > }
+>> >
+>> > /* caller guarantees lifetime of @old */
+>> > void foo_revert_creds(const struct cred *old)
+>> > {
+>> >       const struct cred *override =3D current->cred;
+>> >       rcu_assign_pointer(current->cred, old);
+>> > }
+>> >
+>
+> Even better(?), we can do this in the actual guard helpers to
+> discourage use without a guard:
+>
+> struct override_cred {
+>         struct cred *cred;
+> };
+>
+> DEFINE_GUARD(override_cred, struct override_cred *,
+>             override_cred_save(_T),
+>             override_cred_restore(_T));
+>
+> ...
+>
+> void override_cred_save(struct override_cred *new)
+> {
+>         new->cred =3D rcu_replace_pointer(current->cred, new->cred, true);
+> }
+>
+> void override_cred_restore(struct override_cred *old)
+> {
+>         rcu_assign_pointer(current->cred, old->cred);
+> }
+>
+>> > Maybe I really fail to understand this problem or the proposed solutio=
+n:
+>> > the single reference that overlayfs keeps in ovl->creator_cred is tied
+>> > to the lifetime of the overlayfs superblock, no? And anyone who needs a
+>> > long term cred reference e.g, file->f_cred will take it's own reference
+>> > anyway. So it should be safe to just keep that reference alive until
+>> > overlayfs is unmounted, no? I'm sure it's something quite obvious why
+>> > that doesn't work but I'm just not seeing it currently.
+>>
+>> My read of the code says that what you are proposing should work. (what
+>> I am seeing is that in the "optimized" cases, the only practical effect
+>> of override/revert is the rcu_assign_pointer() dance)
+>>
+>> I guess that the question becomes: Do we want this property (that the
+>> 'cred' associated with a subperblock/similar is long lived and the
+>> "inner" refcount can be omitted) to be encoded in the constructor? Or do
+>> we want it to be "encoded" in a call by call basis?
+>>
+>
+> Neither.
+>
+> Christian's proposal does not involve marking the cred object as
+> long lived, which looks a much better idea to me.
+>
 
-Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
----
- security/integrity/evm/evm_main.c | 35 ++++++++++++++++++++++++++++++-
- 1 file changed, 34 insertions(+), 1 deletion(-)
+In my mind, I am reading his suggestion as the flag "long lived
+cred/lives long enough" is "in our brains" vs. what I proposed that the
+flag was "in the object". The effect of the "flag" is the same: when to
+use a lighter version (no refcount) of override/revert.
 
-diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
-index 02adba635b02..aa6d32a07d20 100644
---- a/security/integrity/evm/evm_main.c
-+++ b/security/integrity/evm/evm_main.c
-@@ -151,6 +151,17 @@ static int evm_find_protected_xattrs(struct dentry *dentry)
- 	return count;
- }
- 
-+static int is_unsupported_fs(struct dentry *dentry)
-+{
-+	struct inode *inode = d_backing_inode(dentry);
-+
-+	if (strcmp(inode->i_sb->s_type->name, "overlay") == 0) {
-+		pr_info_once("overlayfs not supported\n");
-+		return 1;
-+	}
-+	return 0;
-+}
-+
- /*
-  * evm_verify_hmac - calculate and compare the HMAC with the EVM xattr
-  *
-@@ -181,6 +192,9 @@ static enum integrity_status evm_verify_hmac(struct dentry *dentry,
- 		     iint->evm_status == INTEGRITY_PASS_IMMUTABLE))
- 		return iint->evm_status;
- 
-+	if (is_unsupported_fs(dentry))
-+		return INTEGRITY_UNKNOWN;
-+
- 	/* if status is not PASS, try to check again - against -ENOMEM */
- 
- 	/* first need to know the sig type */
-@@ -408,6 +422,9 @@ enum integrity_status evm_verifyxattr(struct dentry *dentry,
- 	if (!evm_key_loaded() || !evm_protected_xattr(xattr_name))
- 		return INTEGRITY_UNKNOWN;
- 
-+	if (is_unsupported_fs(dentry))
-+		return INTEGRITY_UNKNOWN;
-+
- 	if (!iint) {
- 		iint = integrity_iint_find(d_backing_inode(dentry));
- 		if (!iint)
-@@ -491,15 +508,21 @@ static int evm_protect_xattr(struct mnt_idmap *idmap,
- 	if (strcmp(xattr_name, XATTR_NAME_EVM) == 0) {
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
-+		if (is_unsupported_fs(dentry))
-+			return -EPERM;
- 	} else if (!evm_protected_xattr(xattr_name)) {
- 		if (!posix_xattr_acl(xattr_name))
- 			return 0;
-+		if (is_unsupported_fs(dentry))
-+			return 0;
-+
- 		evm_status = evm_verify_current_integrity(dentry);
- 		if ((evm_status == INTEGRITY_PASS) ||
- 		    (evm_status == INTEGRITY_NOXATTRS))
- 			return 0;
- 		goto out;
--	}
-+	} else if (is_unsupported_fs(dentry))
-+		return 0;
- 
- 	evm_status = evm_verify_current_integrity(dentry);
- 	if (evm_status == INTEGRITY_NOXATTRS) {
-@@ -750,6 +773,9 @@ void evm_inode_post_setxattr(struct dentry *dentry, const char *xattr_name,
- 	if (!(evm_initialized & EVM_INIT_HMAC))
- 		return;
- 
-+	if (is_unsupported_fs(dentry))
-+		return;
-+
- 	evm_update_evmxattr(dentry, xattr_name, xattr_value, xattr_value_len);
- }
- 
-@@ -814,8 +840,12 @@ int evm_inode_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 	if (evm_initialized & EVM_ALLOW_METADATA_WRITES)
- 		return 0;
- 
-+	if (is_unsupported_fs(dentry))
-+		return 0;
-+
- 	if (!(ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID)))
- 		return 0;
-+
- 	evm_status = evm_verify_current_integrity(dentry);
- 	/*
- 	 * Writing attrs is safe for portable signatures, as portable signatures
-@@ -859,6 +889,9 @@ void evm_inode_post_setattr(struct dentry *dentry, int ia_valid)
- 	if (!(evm_initialized & EVM_INIT_HMAC))
- 		return;
- 
-+	if (is_unsupported_fs(dentry))
-+		return;
-+
- 	if (ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID))
- 		evm_update_evmxattr(dentry, NULL, NULL, 0);
- }
--- 
-2.39.3
+What I was thinking was more more under the covers, implicit. And I can
+see the advantages of having them more explicit.
 
+> The performance issues you observed are (probably) due to get/put
+> of cred refcount in the helpers {override,revert}_creds().
+>
+
+Yes, they are. Sorry that it was lost in the context. The original
+report is here:
+
+https://lore.kernel.org/all/20231018074553.41333-1-hu1.chen@intel.com/
+
+> Christian suggested lightweight variants of {override,revert}_creds()
+> that do not change refcount. Combining those with a guard and
+> I don't see what can go wrong (TM).
+>
+> If you try this out and post a patch, please be sure to include the
+> motivation for the patch along with performance numbers in the
+> commit message, even if only posting an RFC patch.
+>
+
+Of course.
+
+And to be sure, I will go with Christian's suggestion, it looks neat,
+and having a lighter version of references is a more common idiom.
+
+Thank you all.
+
+
+Cheers,
+--=20
+Vinicius
