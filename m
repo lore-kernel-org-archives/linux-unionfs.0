@@ -1,114 +1,165 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.8])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f48.google.com (mail-qv1-f48.google.com [209.85.219.48])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 486891DA3A;
-	Mon, 18 Dec 2023 21:57:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9DFE2C8DB;
+	Tue, 19 Dec 2023 07:16:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="hDsMDIIM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1702936659; x=1734472659;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=UTSFwDQbGfcrEl1amDoPvVacSO4lCY7esjcaPwWu+8s=;
-  b=hDsMDIIMxNDXWso+rRNEhmYd9g1qOqgorTRtIL2GMACS4adIBW0CEA+2
-   HSlNuKF7kETrZAV96G4Z02dGgVOv40lcbdvDDOIojiuiGCZPadno0Pk3L
-   nYCeC+qzt8r8Sz/pZ7rYi6rLHX5Dfg9DDYQJnW6BaZTbK8PtHb7aE81sB
-   S6d1iTwxT/OjwmMleXyJajNh1OESHGQDF5ze+pLd6yG4hAhyei+7pnF/Y
-   54Z/v0ZO7E2KKtiEBB9MDYD66ZTw9FHXU57Vh+jyNgRQzUBVYGwBEDBrA
-   1TELq5RU3wap5D/yDs8ByhalrZaXjfizqn8P1KUdSsdomAzH/JSEXT0gi
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10928"; a="9019283"
-X-IronPort-AV: E=Sophos;i="6.04,286,1695711600"; 
-   d="scan'208";a="9019283"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by fmvoesa102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Dec 2023 13:57:38 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10928"; a="919408264"
-X-IronPort-AV: E=Sophos;i="6.04,286,1695711600"; 
-   d="scan'208";a="919408264"
-Received: from jamesgou-mobl1.amr.corp.intel.com (HELO vcostago-mobl3) ([10.213.162.171])
-  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Dec 2023 13:57:34 -0800
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: Christian Brauner <brauner@kernel.org>, Amir Goldstein <amir73il@gmail.com>
-Cc: hu1.chen@intel.com, miklos@szeredi.hu, malini.bhandaru@intel.com,
- tim.c.chen@intel.com, mikko.ylinen@intel.com, lizhen.you@intel.com,
- linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel
- <linux-fsdevel@vger.kernel.org>, Linus Torvalds
- <torvalds@linux-foundation.org>, David Howells <dhowells@redhat.com>, Seth
- Forshee <sforshee@kernel.org>
-Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
-In-Reply-To: <20231218-intim-lehrstellen-dbe053d6c3a8@brauner>
-References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
- <20231214220222.348101-1-vinicius.gomes@intel.com>
- <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
- <87v88zp76v.fsf@intel.com>
- <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
- <CAOQ4uxhxvFt3_Wb3BGcjj4pGp=OFTBHNPJ4r4eH8245t-+CW+g@mail.gmail.com>
- <20231218-intim-lehrstellen-dbe053d6c3a8@brauner>
-Date: Mon, 18 Dec 2023 13:57:31 -0800
-Message-ID: <875y0vp41g.fsf@intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HLr+aqKv"
+Received: by mail-qv1-f48.google.com with SMTP id 6a1803df08f44-67f61c5f3b1so1101976d6.0;
+        Mon, 18 Dec 2023 23:16:06 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1702970165; x=1703574965; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=g+5WR243kQ/RvAMHBsxM/Gl8vp7vTNRpisHvUU60+wg=;
+        b=HLr+aqKvC3GHuFq2oHZ2aUBmWqa05RO5fqE8P6Aytsdao+e+DP/wgYjLuJIVZzgyaC
+         4o/5+W0MxPhlcm5nyVqz51Ol6HC5HqF4ZoEXaCtZztIGi3Mkg89U8M+9tNo8hohUG8ct
+         cE0ew59bTn3BjmMl1qIQkInbH4XIQyVenrDHb74wzAbZ3z3D4w+gGexheF6A84NQ9ba4
+         NVfplN58Jg/XpRRyNuawLRf51JSUt4Cn1VMLzUaHrP3doABIgpiBjntqtN5zXEXoFrR6
+         477C/pDfUDC6kg+Bbk8KQYKWh5K7yMtNHgSb/zPmcq+2nBSjZQ1pUBP0p6jkcakAsM4A
+         0yNg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1702970165; x=1703574965;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=g+5WR243kQ/RvAMHBsxM/Gl8vp7vTNRpisHvUU60+wg=;
+        b=Ue0XFYBfEj1EEDmxtWri8b+R7uXwBZNUmNjtuSsogqyBJXbjV3KvaYppYfGUlxqVrO
+         dmbWfIntozv5iM4UJewyByOwPDBxDgjLen07elU/KQmAp7S49DhbCx7iUZ0VGKP1UsBK
+         hIUwKv3GGdgCo2SZc5hxoA3rUOzCRRYBdcY5I1GMO/Bpr2Rvn51aJ3bP2n89rvK3hFqr
+         hYFOBRfkKe+q5MsYMGWjgb9QxuyEiO/xelotrALniqgiXOq8WbLzM8tjv9TQNNc8WR19
+         hzf4luGYPgSDsmnyQ2jvuGmidrogSCwAvDIuQNIVe/loXMKwlos29sTMb5uZwK5zL2iC
+         e6/g==
+X-Gm-Message-State: AOJu0Yys+UTqtzLIzq1K0748Nc9iaKk6gg0ahl2yN1FGhjcDzhLPYYD0
+	TpvOrdyh+SECKmSzMjOKagwd+mMWiUQhYqZ3S2gD756JpzY=
+X-Google-Smtp-Source: AGHT+IHWMseIasiaD8d3hjNptRx+YQ73MHnAO8mmgvGuj7K5xQ28WQQzCvf8ljKe4PlqWGpFZRlrnceSG6z/kerPGwc=
+X-Received: by 2002:a05:6214:2409:b0:67f:1dbb:d3c2 with SMTP id
+ fv9-20020a056214240900b0067f1dbbd3c2mr6274053qvb.16.1702970165370; Mon, 18
+ Dec 2023 23:16:05 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
+ <20231214220222.348101-1-vinicius.gomes@intel.com> <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
+ <87v88zp76v.fsf@intel.com> <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
+ <CAOQ4uxhxvFt3_Wb3BGcjj4pGp=OFTBHNPJ4r4eH8245t-+CW+g@mail.gmail.com>
+ <20231218-intim-lehrstellen-dbe053d6c3a8@brauner> <875y0vp41g.fsf@intel.com>
+In-Reply-To: <875y0vp41g.fsf@intel.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 19 Dec 2023 09:15:52 +0200
+Message-ID: <CAOQ4uxibYMQw0iszKhE5uxBnyayHWjqp4ZnOOiugO3GxMRS1eA@mail.gmail.com>
+Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
+To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Cc: Christian Brauner <brauner@kernel.org>, hu1.chen@intel.com, miklos@szeredi.hu, 
+	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
+	lizhen.you@intel.com, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
+	Linus Torvalds <torvalds@linux-foundation.org>, David Howells <dhowells@redhat.com>, 
+	Seth Forshee <sforshee@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Christian Brauner <brauner@kernel.org> writes:
-
->> > Yes, the important thing is that an object cannot change
->> > its non_refcount property during its lifetime -
->> 
->> ... which means that put_creds_ref() should assert that
->> there is only a single refcount - the one handed out by
->> prepare_creds_ref() before removing non_refcount or
->> directly freeing the cred object.
->> 
->> I must say that the semantics of making a non-refcounted copy
->> to an object whose lifetime is managed by the caller sounds a lot
->> less confusing to me.
+On Mon, Dec 18, 2023 at 11:57=E2=80=AFPM Vinicius Costa Gomes
+<vinicius.gomes@intel.com> wrote:
 >
-> So can't we do an override_creds() variant that is effectively just:
+> Christian Brauner <brauner@kernel.org> writes:
 >
-> /* caller guarantees lifetime of @new */
-> const struct cred *foo_override_cred(const struct cred *new)
-> {
-> 	const struct cred *old = current->cred;
-> 	rcu_assign_pointer(current->cred, new);
-> 	return old;
-> }
+> >> > Yes, the important thing is that an object cannot change
+> >> > its non_refcount property during its lifetime -
+> >>
+> >> ... which means that put_creds_ref() should assert that
+> >> there is only a single refcount - the one handed out by
+> >> prepare_creds_ref() before removing non_refcount or
+> >> directly freeing the cred object.
+> >>
+> >> I must say that the semantics of making a non-refcounted copy
+> >> to an object whose lifetime is managed by the caller sounds a lot
+> >> less confusing to me.
+> >
+> > So can't we do an override_creds() variant that is effectively just:
+
+Yes, I think that we can....
+
+> >
+> > /* caller guarantees lifetime of @new */
+> > const struct cred *foo_override_cred(const struct cred *new)
+> > {
+> >       const struct cred *old =3D current->cred;
+> >       rcu_assign_pointer(current->cred, new);
+> >       return old;
+> > }
+> >
+> > /* caller guarantees lifetime of @old */
+> > void foo_revert_creds(const struct cred *old)
+> > {
+> >       const struct cred *override =3D current->cred;
+> >       rcu_assign_pointer(current->cred, old);
+> > }
+> >
+
+Even better(?), we can do this in the actual guard helpers to
+discourage use without a guard:
+
+struct override_cred {
+        struct cred *cred;
+};
+
+DEFINE_GUARD(override_cred, struct override_cred *,
+            override_cred_save(_T),
+            override_cred_restore(_T));
+
+...
+
+void override_cred_save(struct override_cred *new)
+{
+        new->cred =3D rcu_replace_pointer(current->cred, new->cred, true);
+}
+
+void override_cred_restore(struct override_cred *old)
+{
+        rcu_assign_pointer(current->cred, old->cred);
+}
+
+> > Maybe I really fail to understand this problem or the proposed solution=
+:
+> > the single reference that overlayfs keeps in ovl->creator_cred is tied
+> > to the lifetime of the overlayfs superblock, no? And anyone who needs a
+> > long term cred reference e.g, file->f_cred will take it's own reference
+> > anyway. So it should be safe to just keep that reference alive until
+> > overlayfs is unmounted, no? I'm sure it's something quite obvious why
+> > that doesn't work but I'm just not seeing it currently.
 >
-> /* caller guarantees lifetime of @old */
-> void foo_revert_creds(const struct cred *old)
-> {
-> 	const struct cred *override = current->cred;
-> 	rcu_assign_pointer(current->cred, old);
-> }
+> My read of the code says that what you are proposing should work. (what
+> I am seeing is that in the "optimized" cases, the only practical effect
+> of override/revert is the rcu_assign_pointer() dance)
 >
-> Maybe I really fail to understand this problem or the proposed solution:
-> the single reference that overlayfs keeps in ovl->creator_cred is tied
-> to the lifetime of the overlayfs superblock, no? And anyone who needs a
-> long term cred reference e.g, file->f_cred will take it's own reference
-> anyway. So it should be safe to just keep that reference alive until
-> overlayfs is unmounted, no? I'm sure it's something quite obvious why
-> that doesn't work but I'm just not seeing it currently.
+> I guess that the question becomes: Do we want this property (that the
+> 'cred' associated with a subperblock/similar is long lived and the
+> "inner" refcount can be omitted) to be encoded in the constructor? Or do
+> we want it to be "encoded" in a call by call basis?
+>
 
-My read of the code says that what you are proposing should work. (what
-I am seeing is that in the "optimized" cases, the only practical effect
-of override/revert is the rcu_assign_pointer() dance)
+Neither.
 
-I guess that the question becomes: Do we want this property (that the
-'cred' associated with a subperblock/similar is long lived and the
-"inner" refcount can be omitted) to be encoded in the constructor? Or do
-we want it to be "encoded" in a call by call basis?
+Christian's proposal does not involve marking the cred object as
+long lived, which looks a much better idea to me.
 
-I can see both working.
+The performance issues you observed are (probably) due to get/put
+of cred refcount in the helpers {override,revert}_creds().
 
+Christian suggested lightweight variants of {override,revert}_creds()
+that do not change refcount. Combining those with a guard and
+I don't see what can go wrong (TM).
 
-Cheers,
--- 
-Vinicius
+If you try this out and post a patch, please be sure to include the
+motivation for the patch along with performance numbers in the
+commit message, even if only posting an RFC patch.
+
+Thanks,
+Amir.
