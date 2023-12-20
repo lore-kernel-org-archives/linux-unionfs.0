@@ -1,62 +1,90 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
+Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 28050FBE3
-	for <linux-unionfs@vger.kernel.org>; Wed, 20 Dec 2023 04:13:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-35fc8389a58so4866615ab.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 19 Dec 2023 20:13:06 -0800 (PST)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E8E81D699;
+	Wed, 20 Dec 2023 04:22:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RbnlcBVj"
+Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-67a338dfca7so44176386d6.2;
+        Tue, 19 Dec 2023 20:22:02 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1703046121; x=1703650921; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7ooTJpxsdDr4enEEmEM9lcMYReU/3YLQLnQ0aOFZ1aY=;
+        b=RbnlcBVjBNfxaVnXIelHcxTVf49vCsdujG0AflDaWCZPpovTXEzPRRyPtbJD70umfT
+         zsohWQMiBJ6u54tgP++kLhaPItT1XNWTUMYiuH+cz+McAEqfeZABDvifE87iteS8cK0u
+         F5uXxY/zUjI+SpkUFGieWLRzNjRkl67ocy/vLEtHF4tBv/RkalPueNfdCl+mXkpK48fL
+         gp5Gbu2Un47pqBerNhzDoLANfD3GT7L95Gt2ryrD07ammWu4FOfOS6pa/DvlC6NJzxUA
+         GNFVOibJiDZKSNu8hXhTXCgnNAxrfodknWQPzHGdVgkzHBrkDR61O+aqcdpaCa463eTs
+         sbEQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703045585; x=1703650385;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=RbIRtxKG9SQkDjs+Z7h76sXDUO1uJds9y6Sy8ONpjNg=;
-        b=LjIZaV2LrWmZ/6humbWwTxFSFXQBvQaWbEvYM5V8T1CFQz3ScfEyGNLsAYyUBQiLnc
-         hTRXSpAFyA01CNpscPCMORhtoipfrbbGSusxidh7gjIWbawmeVe/RC9Uc3V3tDiVcqIs
-         2gKN9goL6xza+ggdcuM9Fiq57mCdvRmKjAaVIHZzCuQCMiLiTbG6ocULVP0f4dHUpeK4
-         x+TSyapbhVrKFtqmN58Nipa3lJWSisjQaVHkhK3bJ9kj5H3S3CMuwJWFWwTBAHRLiiCc
-         hMcqvQpputrRJJ6meu9bQMWc+A2cRNLn3SprCq8W/NzWziP56pitE0EXyM4oIL1HVbGj
-         tjfA==
-X-Gm-Message-State: AOJu0YztR6I8zQSp3pgO1yZ2+cC8/4CG2+t7o9th1Rmu9BjXrq7CPBoX
-	VC/yVmAvEmlwUJOqmvdwkpJwOSjBWn9LbuWlwWmUi8ukI4WM
-X-Google-Smtp-Source: AGHT+IEz6EcBkaU6ZP6Uv3nEyANRnpGKfTlBukSjkw+TwT1c3hl3WcrOqMWNSzDcuvPwYiyY57+IHjXczOzCnJJcgH+F0CK13UeA
+        d=1e100.net; s=20230601; t=1703046121; x=1703650921;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7ooTJpxsdDr4enEEmEM9lcMYReU/3YLQLnQ0aOFZ1aY=;
+        b=A8N/I93jeKJ3bVSRvGlnQBxDGdB2Azd39oC3BwKUlXTk50jStxpYGSG2/GIrFhpLgB
+         53UL4jAp4det0rdvQ+fjTRyoYAxX2NIt9iPnK02bo76Cysamj+dvRWmBD7leHSdaZtk9
+         AezMAfibQXmacy5rJI1QHel5uwTtv95a3ESbf4FIvEyXwVYu+xnGEqSuJ2wVWo8m7nJY
+         uoq7CVxCqEw8bJ5zPonBf7iWfHC93YOkoAWkzu9Y2lMA6mvkll+pKqZayD1z3j9rKrf5
+         1LWK4TASeuVAwtGN6sZ3O4AQbyojqGU/Mpkm8UpV6ApgYh8orKopV0ITyF/dvuuS6yOw
+         cxEw==
+X-Gm-Message-State: AOJu0YxmzpEqObaEo57SHWH3NFmu2eVJVG8uPqDstw5NTZrKSxXSJ12w
+	gYUjA2gfA2/1ZOevJ7zH5bx5yfaTYqCE6BbkS4A=
+X-Google-Smtp-Source: AGHT+IGNfjDRlc4odV4V7xrLFPVpAEKIzsKn1I/97J+GLLNgkPNSfOZTkcQdZoygASG7WTiR5F9MHkkTUOM/4srXPnA=
+X-Received: by 2002:a05:6214:2a46:b0:67f:3d7f:ff8c with SMTP id
+ jf6-20020a0562142a4600b0067f3d7fff8cmr5923952qvb.114.1703046121405; Tue, 19
+ Dec 2023 20:22:01 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a92:cac6:0:b0:35d:642a:dd2b with SMTP id
- m6-20020a92cac6000000b0035d642add2bmr1055484ilq.2.1703045585422; Tue, 19 Dec
- 2023 20:13:05 -0800 (PST)
-Date: Tue, 19 Dec 2023 20:13:05 -0800
-In-Reply-To: <CAOQ4uxiUoWO10a7UH5UweQ_1f+Fu+jSKPO66yAv80izyx9hBGg@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000027d0d0060ce93328@google.com>
-Subject: Re: [syzbot] [overlayfs?] possible deadlock in seq_read_iter (2)
-From: syzbot <syzbot+da4f9f61f96525c62cc7@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, axboe@kernel.dk, brauner@kernel.org, 
-	dhowells@redhat.com, hch@lst.de, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, rafael@kernel.org, syzkaller-bugs@googlegroups.com
+References: <20231219175206.12342-1-zohar@linux.ibm.com> <20231219175206.12342-4-zohar@linux.ibm.com>
+In-Reply-To: <20231219175206.12342-4-zohar@linux.ibm.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 20 Dec 2023 06:21:50 +0200
+Message-ID: <CAOQ4uxiajZKJQWG8JWSRwO5a9nzJVt73sOOXLCuTRn8kMPK3Nw@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] overlay: disable EVM
+To: Mimi Zohar <zohar@linux.ibm.com>
+Cc: linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, Christian Brauner <brauner@kernel.org>, 
+	Seth Forshee <sforshee@kernel.org>, Roberto Sassu <roberto.sassu@huaweicloud.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Tue, Dec 19, 2023 at 7:52=E2=80=AFPM Mimi Zohar <zohar@linux.ibm.com> wr=
+ote:
+>
+> Until a complete solution is developed, update 'sb->s_iflags' to
+> disable EVM.
+>
+> Signed-off-by: Mimi Zohar <zohar@linux.ibm.com>
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+Acked-by: Amir Goldstein <amir73il@gmail.com>
 
-Reported-and-tested-by: syzbot+da4f9f61f96525c62cc7@syzkaller.appspotmail.com
-
-Tested on:
-
-commit:         d9e5d310 fsnotify: optionally pass access range in fil..
-git tree:       https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git vfs.rw
-console output: https://syzkaller.appspot.com/x/log.txt?x=127b3016e80000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=a5300d21645bcd09
-dashboard link: https://syzkaller.appspot.com/bug?extid=da4f9f61f96525c62cc7
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
+> ---
+>  fs/overlayfs/super.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index a0967bb25003..e3d9c6c80a47 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1454,6 +1454,7 @@ int ovl_fill_super(struct super_block *sb, struct f=
+s_context *fc)
+>          * lead to unexpected results.
+>          */
+>         sb->s_iflags |=3D SB_I_NOUMASK;
+> +       sb->s_iflags |=3D SB_I_EVM_UNSUPPORTED;
+>
+>         err =3D -ENOMEM;
+>         root_dentry =3D ovl_get_root(sb, ctx->upper.dentry, oe);
+> --
+> 2.39.3
+>
