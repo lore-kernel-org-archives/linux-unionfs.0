@@ -1,143 +1,121 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
+Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5CA2ADDB3;
-	Sat, 23 Dec 2023 14:28:33 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C767BDF69;
+	Sat, 23 Dec 2023 15:44:13 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OdqSLjED"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4259a275fa9so22542901cf.2;
-        Sat, 23 Dec 2023 06:28:33 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kc3P64ym"
+Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-40d53297abbso885155e9.1;
+        Sat, 23 Dec 2023 07:44:13 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1703341712; x=1703946512; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=GntqsZ6O0h/Mg/8BW3/CX9yGWPjoS/jKoNzZV/bvFQs=;
-        b=OdqSLjEDuvNE/OrvlQLrE1ryjbdmINQi3+IXz/00TJOu2E8fyEn/useWhmAjMC7ZtG
-         +j9+f6fxXqNMkIU+33sT+S0wie1UrtzX1cSMO60OVQnr/1bPivJdENGhSQJHDMm6PQS/
-         Zryuptt3c6BfSVWKrzjzp0OHNrkfIzHQUVP8QnOjytSu3iZoS+p7tXpHqEnIxDsB83c9
-         KuwCshDg3oGhbPiEAgJ+yiqboLz7IudQ1HHDdgIL9eU0n5IWIKn4WQdzxg2ppp6DgA3t
-         dsqWjNUmMgltQs7mCNO6/X3zLeOZeI5pUZKZGBfyGlEF184VLXRVxK0swNDerNwXZH+k
-         D73w==
+        d=gmail.com; s=20230601; t=1703346252; x=1703951052; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=1zMe1MEdDcbrphrdEikX4LAE8+g15DayBKKxfAYK+0M=;
+        b=kc3P64ym3UFI/rwQKOjsWfHZaxzNoZ4JbxLC4vcD5G8TaXbVPKGJrqNDxVSY6Ht+pX
+         zesyyrgrmosMxnBbOb//xdYsvvgAFonsyPRmKgiek6ScKOrZ81zN/RdFqUBAAotJ8Gtz
+         xOiOlTBe4vExk4VZM8UGIjeRd8NeOUPM1t0FtyZ/HYOvcbDhWiXb+euj6/pER7nqvV/t
+         R5wZjhVHaMu13diF6tu698cxWEWUUzQNmmgYkzzMK8z7QkWgU9vgUPWmxGgC5bxf73o6
+         SYmYZA+deAcYUmSIa88pQScWbiVXXfPsI4GQ0iQ0HqWBPIA39foKkGd5tDlJM0vREAjj
+         DsFA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703341712; x=1703946512;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=GntqsZ6O0h/Mg/8BW3/CX9yGWPjoS/jKoNzZV/bvFQs=;
-        b=Q0A423TNVRm3m8dEoiMvTiw7fFVuEHOZxRcZUMSqxlrFuLd5QQbqcSOX25J6SlOwVo
-         U59/2lSncegdye9otaAlFkg29s2ZxTc3MP6sUoeE+xhTShmMNeVCOXgrqaBZhYk9wfZ8
-         0NOV1ac9f2BfB+pXr3ArwE70VvTkVc4SyMJNe5xxwS3ULp872b1KT1fJeC9I2PflQ3rB
-         GSHOCo6AkSOK1lnQM6W56c3/8CuZVk504O1Kytzvltkn4+2PIgjROYLjBcNjthM0pwQO
-         Wprh58D40liuFfERd0u0FnG5LYXt2OfBH8fUgNm8XaeAghOHkhUNpudbW54bkZcwZ9t4
-         yg2A==
-X-Gm-Message-State: AOJu0YwibYBbxO1tyvKRGypd2gaVga9TS3GY6r6mmsnJlN+1LlmI4ODw
-	ai4imXFZfNE4yWv5IsG3QWt3RyEQI576go0qfFI=
-X-Google-Smtp-Source: AGHT+IFhfek1eX71/FSrzxYBHTG9RVXyqSvIfiB3uCp0iAUXyGrOj4QCTt988247rkhPiAiVh/FRuw6Vr18b+swBaQs=
-X-Received: by 2002:a05:622a:1646:b0:427:7bb7:ed5b with SMTP id
- y6-20020a05622a164600b004277bb7ed5bmr4125626qtj.91.1703341712207; Sat, 23 Dec
- 2023 06:28:32 -0800 (PST)
+        d=1e100.net; s=20230601; t=1703346252; x=1703951052;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1zMe1MEdDcbrphrdEikX4LAE8+g15DayBKKxfAYK+0M=;
+        b=sk7siell36D8jOLS4zdatYHjqC4DkXrNrqx5cejsfo+gIysoX7C5JgAuM1maXDuN7N
+         SpANi1+hwyLcwr/TKiAlQQ2Ej8EViXlOy5f68y+uOFn3YipZpK4yBKnViCRYYSNywKt0
+         fn+HwdEntzpbYoThBufv9H5T9lpFGAU2ap8gDf0zyGbQIhDXZ1qucPqJ4wc4wB2OlPKF
+         +LgtfqIk/A82uLN7iRWEr3uLiHFNGSxRrttuCcTX4yZL+1ko9uA8ex0//ZqjYEonYkw6
+         /RyB5wxpYhIujjhdX8XNM84OayVLZgmJ1CaS0RY7jTMUE2HKH0CKTBLP+Jwn1PcFfDZc
+         KaZQ==
+X-Gm-Message-State: AOJu0YwfDz0zz9ZHY6T4sjAO2ZtOo2qWKM93jqQgLqC31B2L+yp9Uz+s
+	c3vW7jpf6O/duGNBmQhVHUVswYaMeKg=
+X-Google-Smtp-Source: AGHT+IF33nov2tYXsOTE4xXgQt1e0oIvc0vwBEWW1/QOhNPOpMv3JnWRHRgPahNRVrZJdWdhR+Gczw==
+X-Received: by 2002:a05:600c:a083:b0:40c:31bb:6703 with SMTP id jh3-20020a05600ca08300b0040c31bb6703mr1247937wmb.75.1703346251418;
+        Sat, 23 Dec 2023 07:44:11 -0800 (PST)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id u4-20020a05600c138400b0040c03c3289bsm10873965wmf.37.2023.12.23.07.44.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 23 Dec 2023 07:44:11 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Christian Brauner <brauner@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs backing file helpers for 6.8
+Date: Sat, 23 Dec 2023 17:44:05 +0200
+Message-Id: <20231223154405.941062-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20231221095410.801061-1-amir73il@gmail.com> <20231221095410.801061-5-amir73il@gmail.com>
- <20231222-gespeichert-prall-3183a634baae@brauner> <CAOQ4uxiL=DckFZqq1APPUaWwWynH6mAJk+VcKO46dwGD521FYw@mail.gmail.com>
- <CAOQ4uxiLB4c4WXjvyAzQdvWD23YgMVQPuTd9Fp=oUNy_uGdGTQ@mail.gmail.com> <20231223-zerlegen-eidesstattlich-a1f309e30dbc@brauner>
-In-Reply-To: <20231223-zerlegen-eidesstattlich-a1f309e30dbc@brauner>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 23 Dec 2023 16:28:20 +0200
-Message-ID: <CAOQ4uxijw+ce1gbghJfoYq=1Rvy2b6Gca6ifiFagahm9UdvfXQ@mail.gmail.com>
-Subject: Re: [RFC][PATCH 4/4] fs: factor out backing_file_mmap() helper
-To: Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sat, Dec 23, 2023 at 3:04=E2=80=AFPM Christian Brauner <brauner@kernel.o=
-rg> wrote:
->
-> On Sat, Dec 23, 2023 at 08:56:08AM +0200, Amir Goldstein wrote:
-> > On Sat, Dec 23, 2023 at 8:54=E2=80=AFAM Amir Goldstein <amir73il@gmail.=
-com> wrote:
-> > >
-> > > On Fri, Dec 22, 2023 at 2:54=E2=80=AFPM Christian Brauner <brauner@ke=
-rnel.org> wrote:
-> > > >
-> > > > On Thu, Dec 21, 2023 at 11:54:10AM +0200, Amir Goldstein wrote:
-> > > > > Assert that the file object is allocated in a backing_file contai=
-ner
-> > > > > so that file_user_path() could be used to display the user path a=
-nd
-> > > > > not the backing file's path in /proc/<pid>/maps.
-> > > > >
-> > > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > > > ---
-> > > > >  fs/backing-file.c            | 27 +++++++++++++++++++++++++++
-> > > > >  fs/overlayfs/file.c          | 23 ++++++-----------------
-> > > > >  include/linux/backing-file.h |  2 ++
-> > > > >  3 files changed, 35 insertions(+), 17 deletions(-)
-> > > > >
-> > > > > diff --git a/fs/backing-file.c b/fs/backing-file.c
-> > > > > index 46488de821a2..1ad8c252ec8d 100644
-> > > > > --- a/fs/backing-file.c
-> > > > > +++ b/fs/backing-file.c
-> > > > > @@ -11,6 +11,7 @@
-> > > > >  #include <linux/fs.h>
-> > > > >  #include <linux/backing-file.h>
-> > > > >  #include <linux/splice.h>
-> > > > > +#include <linux/mm.h>
-> > > > >
-> > > > >  #include "internal.h"
-> > > > >
-> > > > > @@ -284,6 +285,32 @@ ssize_t backing_file_splice_write(struct pip=
-e_inode_info *pipe,
-> > > > >  }
-> > > > >  EXPORT_SYMBOL_GPL(backing_file_splice_write);
-> > > > >
-> > > > > +int backing_file_mmap(struct file *file, struct vm_area_struct *=
-vma,
-> > > > > +                   struct backing_file_ctx *ctx)
-> > > > > +{
-> > > > > +     const struct cred *old_cred;
-> > > > > +     int ret;
-> > > > > +
-> > > > > +     if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)) ||
-> > > >
-> > > > Couldn't that WARN_ON_ONCE() be in every one of these helpers in th=
-is
-> > > > series? IOW, when would you ever want to use a backing_file_*() hel=
-per
-> > > > on a non-backing file?
-> > >
-> > > AFAIK, the call chain below backing_file_splice*() and backing_file_*=
-_iter()
-> > > helpers never end up accessing file_user_path() or assuming that fd o=
-f file
-> > > is installed in fd table, so there is no strong reason to enforce thi=
-s with an
-> > > assertion.
->
-> Yeah, but you do use an override_cred() call and you do have that
-> backing_file_ctx. It smells like a bug if anyone would pass in a
-> non-backing file.
->
-> > >
-> > > We can do it for clarity of semantics, in case one of the call chains=
- will
-> > > start assuming a struct backing_file in the future. WDIT?
-> >
-> > Doh! WDYT?
->
-> I'd add it as the whole series is predicated on this being used for
-> backing files.
+Hi Christian,
 
-Sure. Will do.
+Please pull the overlayfs backing file helpers for 6.8.
+
+The only change since the patches that you reviewed [1] is that I added
+assertion to all the helpers that file is a backing_file as you requested.
+
+This branch merges cleanly with master branch of the moment.
+
+This branch depends on and is based on top of vfs.rw branch in your tree.
+When test merging with vfs.all of the moment, there is a trivial conflict
+in MAINTAINERS file with the vfs.netfs branch.
+
+This branch is independent of the overlayfs-next branch.
+It has gone through the usual overlayfs test routines, both with and
+without a test merge with overlayfs-next branch.
 
 Thanks,
 Amir.
+
+[1] https://lore.kernel.org/linux-fsdevel/20231221095410.801061-1-amir73il@gmail.com/
+
+----------------------------------------------------------------
+The following changes since commit d9e5d31084b024734e64307521414ef0ae1d5333:
+
+  fsnotify: optionally pass access range in file permission hooks (2023-12-12 16:20:02 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-vfs-6.8
+
+for you to fetch changes up to f567377e406c032fff0799bde4fdf4a977529b84:
+
+  fs: factor out backing_file_mmap() helper (2023-12-23 16:35:09 +0200)
+
+----------------------------------------------------------------
+overlayfs backing file helpers for 6.8.
+
+These helpers are going to be used by fuse passthrough patches.
+
+----------------------------------------------------------------
+Amir Goldstein (4):
+      fs: prepare for stackable filesystems backing file helpers
+      fs: factor out backing_file_{read,write}_iter() helpers
+      fs: factor out backing_file_splice_{read,write}() helpers
+      fs: factor out backing_file_mmap() helper
+
+ MAINTAINERS                  |   9 ++
+ fs/Kconfig                   |   4 +
+ fs/Makefile                  |   1 +
+ fs/backing-file.c            | 336 +++++++++++++++++++++++++++++++++++++++++++
+ fs/open.c                    |  38 -----
+ fs/overlayfs/Kconfig         |   1 +
+ fs/overlayfs/file.c          | 245 +++++--------------------------
+ fs/overlayfs/overlayfs.h     |   8 +-
+ fs/overlayfs/super.c         |  11 +-
+ include/linux/backing-file.h |  42 ++++++
+ include/linux/fs.h           |   3 -
+ 11 files changed, 435 insertions(+), 263 deletions(-)
+ create mode 100644 fs/backing-file.c
+ create mode 100644 include/linux/backing-file.h
