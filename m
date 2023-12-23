@@ -1,121 +1,174 @@
-Received: from mail-wm1-f52.google.com (mail-wm1-f52.google.com [209.85.128.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C767BDF69;
-	Sat, 23 Dec 2023 15:44:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D57EF168AC
+	for <linux-unionfs@vger.kernel.org>; Sat, 23 Dec 2023 18:56:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kc3P64ym"
-Received: by mail-wm1-f52.google.com with SMTP id 5b1f17b1804b1-40d53297abbso885155e9.1;
-        Sat, 23 Dec 2023 07:44:13 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1703346252; x=1703951052; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=1zMe1MEdDcbrphrdEikX4LAE8+g15DayBKKxfAYK+0M=;
-        b=kc3P64ym3UFI/rwQKOjsWfHZaxzNoZ4JbxLC4vcD5G8TaXbVPKGJrqNDxVSY6Ht+pX
-         zesyyrgrmosMxnBbOb//xdYsvvgAFonsyPRmKgiek6ScKOrZ81zN/RdFqUBAAotJ8Gtz
-         xOiOlTBe4vExk4VZM8UGIjeRd8NeOUPM1t0FtyZ/HYOvcbDhWiXb+euj6/pER7nqvV/t
-         R5wZjhVHaMu13diF6tu698cxWEWUUzQNmmgYkzzMK8z7QkWgU9vgUPWmxGgC5bxf73o6
-         SYmYZA+deAcYUmSIa88pQScWbiVXXfPsI4GQ0iQ0HqWBPIA39foKkGd5tDlJM0vREAjj
-         DsFA==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="WQMDipO/"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1703357781;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=19kgDWTE918kY0Eenzx7m/5ckj32KVwstfU7gstsJ1Y=;
+	b=WQMDipO/+UxQj/stuBtviyCYljee46Ry+elelTz7bMoM2sLRo9UxGkEeE2/LRRmLOWbrOC
+	lGAhD7IOnx83DylclF+7aHvI0GqX9IHIYwdv8Na0FitoQ4yFLGeidXCANaXQlZC4ySoKtg
+	dg3KgXl7E6qVDBWqeiR2bc2zrz6R3gc=
+Received: from mail-io1-f69.google.com (mail-io1-f69.google.com
+ [209.85.166.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-654-28GZIIbtM5aYkV8RNYLz2A-1; Sat, 23 Dec 2023 13:56:18 -0500
+X-MC-Unique: 28GZIIbtM5aYkV8RNYLz2A-1
+Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-7b71da9f8b9so443276839f.2
+        for <linux-unionfs@vger.kernel.org>; Sat, 23 Dec 2023 10:56:18 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1703346252; x=1703951052;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=1zMe1MEdDcbrphrdEikX4LAE8+g15DayBKKxfAYK+0M=;
-        b=sk7siell36D8jOLS4zdatYHjqC4DkXrNrqx5cejsfo+gIysoX7C5JgAuM1maXDuN7N
-         SpANi1+hwyLcwr/TKiAlQQ2Ej8EViXlOy5f68y+uOFn3YipZpK4yBKnViCRYYSNywKt0
-         fn+HwdEntzpbYoThBufv9H5T9lpFGAU2ap8gDf0zyGbQIhDXZ1qucPqJ4wc4wB2OlPKF
-         +LgtfqIk/A82uLN7iRWEr3uLiHFNGSxRrttuCcTX4yZL+1ko9uA8ex0//ZqjYEonYkw6
-         /RyB5wxpYhIujjhdX8XNM84OayVLZgmJ1CaS0RY7jTMUE2HKH0CKTBLP+Jwn1PcFfDZc
-         KaZQ==
-X-Gm-Message-State: AOJu0YwfDz0zz9ZHY6T4sjAO2ZtOo2qWKM93jqQgLqC31B2L+yp9Uz+s
-	c3vW7jpf6O/duGNBmQhVHUVswYaMeKg=
-X-Google-Smtp-Source: AGHT+IF33nov2tYXsOTE4xXgQt1e0oIvc0vwBEWW1/QOhNPOpMv3JnWRHRgPahNRVrZJdWdhR+Gczw==
-X-Received: by 2002:a05:600c:a083:b0:40c:31bb:6703 with SMTP id jh3-20020a05600ca08300b0040c31bb6703mr1247937wmb.75.1703346251418;
-        Sat, 23 Dec 2023 07:44:11 -0800 (PST)
-Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
-        by smtp.gmail.com with ESMTPSA id u4-20020a05600c138400b0040c03c3289bsm10873965wmf.37.2023.12.23.07.44.10
+        d=1e100.net; s=20230601; t=1703357778; x=1703962578;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=19kgDWTE918kY0Eenzx7m/5ckj32KVwstfU7gstsJ1Y=;
+        b=Y0UQxsWcsvq2pEtSQWAvAsg3KGrtWYou8FHiGLPm8RkRw0rTTu/D4CSPDiA90bC7yI
+         nyVr0/Rg6BQm4QPyosnJ+llq2z85YIk3XkRSk+j3bir1I114OtO6mk8TwRLdIPWMgfvr
+         mLXuCfXKObv9PKlFcobX6Sz62CDwIZTKucYO7yb94FAOzhijhHzDIyiIbwjLH7/IjzJa
+         SFQzVsFcr8kL9o7UAjx3tJxQBmJuOfdHVylQumev2eZDK7gwIjEZP8E0K/2YaxnRMhUW
+         uze1OrbYJCXJlzjFHO2/sy4Axg0cg0MMa+cJVjm98gKogua9B4w4Fd2rupXq+wOeFtjA
+         nLtQ==
+X-Gm-Message-State: AOJu0YxG37WM5uxh6e4Uzhc5IJqwFCXiPFdaFQ8lf4tb1U30kDTe1xg+
+	ch/mfKRFqrEXW9u6PyXWri+x17VdTi11Zsel2MWvXI8y0134fCGZHEFVeA4vVE2DUp8VGFF4Ue9
+	gwnGD809dtNfmx4om1BpktW4e97k/GuqOlw==
+X-Received: by 2002:a05:6e02:156d:b0:35f:edfc:e24b with SMTP id k13-20020a056e02156d00b0035fedfce24bmr1818746ilu.118.1703357778198;
+        Sat, 23 Dec 2023 10:56:18 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IHBTfVtM33ExjigK3RknAEWG/JxkctoF056reQA8bjLibebIsrzjNK1iegZs854OEBsbnr8uA==
+X-Received: by 2002:a05:6e02:156d:b0:35f:edfc:e24b with SMTP id k13-20020a056e02156d00b0035fedfce24bmr1818738ilu.118.1703357777935;
+        Sat, 23 Dec 2023 10:56:17 -0800 (PST)
+Received: from dell-per750-06-vm-08.rhts.eng.pek2.redhat.com ([43.228.180.230])
+        by smtp.gmail.com with ESMTPSA id c24-20020a170902d91800b001bc676df6a9sm5370892plz.132.2023.12.23.10.56.16
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 23 Dec 2023 07:44:11 -0800 (PST)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Christian Brauner <brauner@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>
-Cc: linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Subject: [GIT PULL] overlayfs backing file helpers for 6.8
-Date: Sat, 23 Dec 2023 17:44:05 +0200
-Message-Id: <20231223154405.941062-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        Sat, 23 Dec 2023 10:56:17 -0800 (PST)
+Date: Sun, 24 Dec 2023 02:56:14 +0800
+From: Zorro Lang <zlang@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+	fstests@vger.kernel.org
+Subject: Re: [PATCH] overlay/081: fix test when running with index enabled
+Message-ID: <20231223185614.irccdmam6fwqi2yt@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <20231217150017.569077-1-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20231217150017.569077-1-amir73il@gmail.com>
 
-Hi Christian,
+On Sun, Dec 17, 2023 at 05:00:17PM +0200, Amir Goldstein wrote:
+> Test overlay/081 fails with:
+>  CONFIG_OVERLAY_FS_INDEX=y
+> or
+>  echo Y > /sys/modules/overlay/params/index
+> 
+> The reason is that mount option uuid=off has the undesired side effect
+> of disabling index feature.
+> 
+> uuid=null is exactly the same as uuid=off for the purpose of this test
+> but without the undesired side effect.
+> 
+> The test was created to test the new modes uuid=null/auto/on, so the
+> fact that is is testing the mode uuid=off is just an oversight.
+> 
+> Covert the use of uuid=off to uuid=null to fix this problem.
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Zorro,
+> 
+> Following your report that the new test overlay/084 is failing with
+> non-default overlayfs Kconfig [1], I reran the existing overlay tests
+> with non-default config.
+> 
+> The run with CONFIG_OVERLAY_FS_INDEX=y found another failure in a test
+> that was added recently to cover a new feature in v6.6.
 
-Please pull the overlayfs backing file helpers for 6.8.
+Thanks for further fixes!
 
-The only change since the patches that you reviewed [1] is that I added
-assertion to all the helpers that file is a backing_file as you requested.
+Reviewed-by: Zorro Lang <zlang@redhat.com>
 
-This branch merges cleanly with master branch of the moment.
+> 
+> Thanks,
+> Amir.
+> 
+> 
+> [1] https://lore.kernel.org/fstests/20231210204503.poggjg4z57eg2nn7@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com/
+> 
+>  tests/overlay/081 | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/tests/overlay/081 b/tests/overlay/081
+> index 05156a3c..481e9931 100755
+> --- a/tests/overlay/081
+> +++ b/tests/overlay/081
+> @@ -5,7 +5,7 @@
+>  # FSQA Test No. 081
+>  #
+>  # Test persistent (and optionally unique) overlayfs fsid
+> -# with mount options uuid=null/on introduced in kernel v6.6
+> +# with mount options uuid=null/auto/on introduced in kernel v6.6
+>  #
+>  . ./common/preamble
+>  _begin_fstest auto quick
+> @@ -55,7 +55,7 @@ _scratch_mount
+>  
+>  ovl_fsid=$(stat -f -c '%i' $test_dir)
+>  [[ "$ovl_fsid" == "$upper_fsid" ]] || \
+> -	echo "Overlayfs (uuid=auto) and upper fs fsid differ"
+> +	echo "Overlayfs (after uuid=null) and upper fs fsid differ"
+>  
+>  $UMOUNT_PROG $SCRATCH_MNT
+>  
+> @@ -74,16 +74,16 @@ _scratch_mount
+>  
+>  ovl_fsid=$(stat -f -c '%i' $test_dir)
+>  [[ "$ovl_fsid" == "$ovl_unique_fsid" ]] || \
+> -	echo "Overlayfs (uuid=auto) unique fsid is not persistent"
+> +	echo "Overlayfs (after uuid=on) unique fsid is not persistent"
+>  
+>  $UMOUNT_PROG $SCRATCH_MNT
+>  
+>  # Test ignore existing persistent fsid on explicit opt-out
+> -_scratch_mount -o uuid=off
+> +_scratch_mount -o uuid=null
+>  
+>  ovl_fsid=$(stat -f -c '%i' $test_dir)
+>  [[ "$ovl_fsid" == "$upper_fsid" ]] || \
+> -	echo "Overlayfs (uuid=off) and upper fs fsid differ"
+> +	echo "Overlayfs (uuid=null) and upper fs fsid differ"
+>  
+>  $UMOUNT_PROG $SCRATCH_MNT
+>  
+> @@ -92,7 +92,7 @@ _overlay_scratch_mount_dirs "$upperdir:$lowerdir" "-" "-" -o ro,uuid=on
+>  
+>  ovl_fsid=$(stat -f -c '%i' $test_dir)
+>  [[ "$ovl_fsid" == "$lower_fsid" ]] || \
+> -	echo "Overlayfs (uuid=null) and lower fs fsid differ"
+> +	echo "Overlayfs (no upper) and lower fs fsid differ"
+>  
+>  # Re-create fresh overlay layers, so following (uuid=auto) mounts
+>  # will behave as first time mount of a new overlayfs
+> @@ -110,7 +110,7 @@ _scratch_mount
+>  ovl_fsid=$(stat -f -c '%i' $test_dir)
+>  ovl_unique_fsid=$ovl_fsid
+>  [[ "$ovl_fsid" != "$upper_fsid" ]] || \
+> -	echo "Overlayfs (uuid=auto) and upper fs fsid are the same"
+> +	echo "Overlayfs (new) and upper fs fsid are the same"
+>  
+>  $UMOUNT_PROG $SCRATCH_MNT
+>  
+> -- 
+> 2.34.1
+> 
 
-This branch depends on and is based on top of vfs.rw branch in your tree.
-When test merging with vfs.all of the moment, there is a trivial conflict
-in MAINTAINERS file with the vfs.netfs branch.
-
-This branch is independent of the overlayfs-next branch.
-It has gone through the usual overlayfs test routines, both with and
-without a test merge with overlayfs-next branch.
-
-Thanks,
-Amir.
-
-[1] https://lore.kernel.org/linux-fsdevel/20231221095410.801061-1-amir73il@gmail.com/
-
-----------------------------------------------------------------
-The following changes since commit d9e5d31084b024734e64307521414ef0ae1d5333:
-
-  fsnotify: optionally pass access range in file permission hooks (2023-12-12 16:20:02 +0100)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-vfs-6.8
-
-for you to fetch changes up to f567377e406c032fff0799bde4fdf4a977529b84:
-
-  fs: factor out backing_file_mmap() helper (2023-12-23 16:35:09 +0200)
-
-----------------------------------------------------------------
-overlayfs backing file helpers for 6.8.
-
-These helpers are going to be used by fuse passthrough patches.
-
-----------------------------------------------------------------
-Amir Goldstein (4):
-      fs: prepare for stackable filesystems backing file helpers
-      fs: factor out backing_file_{read,write}_iter() helpers
-      fs: factor out backing_file_splice_{read,write}() helpers
-      fs: factor out backing_file_mmap() helper
-
- MAINTAINERS                  |   9 ++
- fs/Kconfig                   |   4 +
- fs/Makefile                  |   1 +
- fs/backing-file.c            | 336 +++++++++++++++++++++++++++++++++++++++++++
- fs/open.c                    |  38 -----
- fs/overlayfs/Kconfig         |   1 +
- fs/overlayfs/file.c          | 245 +++++--------------------------
- fs/overlayfs/overlayfs.h     |   8 +-
- fs/overlayfs/super.c         |  11 +-
- include/linux/backing-file.h |  42 ++++++
- include/linux/fs.h           |   3 -
- 11 files changed, 435 insertions(+), 263 deletions(-)
- create mode 100644 fs/backing-file.c
- create mode 100644 include/linux/backing-file.h
