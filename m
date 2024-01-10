@@ -1,104 +1,123 @@
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout.web.de (mout.web.de [212.227.15.4])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 485004878D;
-	Wed, 10 Jan 2024 13:19:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF2144C63A;
+	Wed, 10 Jan 2024 13:33:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mz+pWCaQ"
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-429b7910697so2824201cf.1;
-        Wed, 10 Jan 2024 05:19:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1704892759; x=1705497559; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=liSzDRZehByCujutdLomxYVsOIIXj62EeJs6zgUIbJ8=;
-        b=Mz+pWCaQc/2MCe71Ji4K1RPrdSGnL350uFqBcCKfWHicrQJvpCaqhVvWzn86eRMoeA
-         ejAqeKvbvh0w1nU6BayMuq9k2P+BHiUQl87cHjhlmE+pyslPkxlebwCWKUaX6ftQEWV+
-         r/WN4Ff7fhySvTD7aT8mIOB1xb6DBHc6Ld2fwota6ZfHVviFYXv8pZ/RaP7Zhp3UXEmb
-         fURKIdI9fdp2e9ZQozI/Oopnf2dwiGcUBUWOsPbZvBG2ynvh2+/QxZfH2kM+0B865TD1
-         qDiE54hXpa1FeMnGP0NsEnoIBBWmDb0rguaO15QeNIzWc839Lq8dSdZLxwXbwCS9o/Oz
-         3XIw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704892759; x=1705497559;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=liSzDRZehByCujutdLomxYVsOIIXj62EeJs6zgUIbJ8=;
-        b=Hceex1st0Ojyu7WtA/spyz1e7Gm8sZ35H3kD3DS+Za574F/qxIzZKX91dq06ZufNgB
-         mFdKf2hNPWUw3k6K5BGfJPSq4Qe6Cq5uToZlBwe2H/2+7vcYp9fRMlNi6H9Uq2VFWFML
-         oS1CRO1a8H47PaAtgPHZtH3yhx7wHLlwVp+LadRKXhmjlK6rPYgcOOiNFNFIuVBoKo6I
-         xwyqcBdV2qc3/ZYW2j7S+BUm9ljeWcfjuPYJsRKNWWquqglAqtV8bk3VczCu2/7R3Gi0
-         Rm/uIuPJCRBvi+2V9fxFHOLW0M+fVo1ovPNamhkWuucJQn2gk+uQQDsEeRyXeXg77Ald
-         DM0Q==
-X-Gm-Message-State: AOJu0Yz+5NDfERzf2sr6Noc/EMD2upz9uG4Q925+9QrQBNv/dNo2Ychv
-	PaumJ1+kukvFZUhhfga9to5H0tTBtD9069slQyQ=
-X-Google-Smtp-Source: AGHT+IGcrrq+I8hwbxPBmCgLqJ5ycxNtTDl/NpLbNNik/6JjZSHy04GALI6d2ZjfKUVwNJdXG6BXLL4eANYYYtYNHCc=
-X-Received: by 2002:a05:6214:ac9:b0:67f:59a8:5d7f with SMTP id
- g9-20020a0562140ac900b0067f59a85d7fmr75196qvi.44.1704892759178; Wed, 10 Jan
- 2024 05:19:19 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="tbVn4XmO"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de; s=s29768273;
+	t=1704893585; x=1705498385; i=markus.elfring@web.de;
+	bh=RnhFZzqFP21H6mHBzHvMIpfQtdiPSMkVFOutsyi3vUM=;
+	h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:
+	 In-Reply-To;
+	b=tbVn4XmOugNswqCvTt0ISjOo2W+60xRWRLtnchnRwH8A/s1x8r6RJtOGXveiQW1G
+	 IzOeMNJFFyOwtmKVJN5PokuAhzeMnPC1s0cRzY3flGZGKWOcMr/YsgwAAUzhCZakS
+	 KzQhodSsA2viM9QLkwtxNY463HNnP4txpSoatwhrSyXG8eCOfrUiBdwH+SvLCqKxw
+	 5N16pAEiQmmxDwr/RBfRV6Jhgd7eVm2oJ5XC7T9GA5lKNwxbwGY4A4JNik3CS0VNO
+	 gIp7OARbSONnVlt/zsUeCB+quNRuvXXanPX/0Y9k9a+Yb24cjfNRdIbCLT+1/3UTc
+	 RyH/peKebc3EE17gyg==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from [192.168.178.21] ([94.31.86.95]) by smtp.web.de (mrweb006
+ [213.165.67.108]) with ESMTPSA (Nemesis) id 1MiMEM-1qi9bj1BMU-00fRcl; Wed, 10
+ Jan 2024 14:33:05 +0100
+Message-ID: <1df4916d-421c-4c87-8503-5a36934d03d8@web.de>
+Date: Wed, 10 Jan 2024 14:33:04 +0100
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6cbcf640-55e5-2f11-4a09-716fe681c0d2@web.de> <87b65f8e-abde-2aff-4da8-df6e0b464677@web.de>
- <05d334af-1a0f-4498-b57d-36a783288f07@web.de> <CAOQ4uxiRaTQyT1nxeRD7B89=VuA+KKEqi01LL1kqfJ17-qKKpw@mail.gmail.com>
- <d912872a-e70a-4e5d-aabe-26f289507f44@web.de>
-In-Reply-To: <d912872a-e70a-4e5d-aabe-26f289507f44@web.de>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 10 Jan 2024 15:19:07 +0200
-Message-ID: <CAOQ4uxjsuYy8BzgaHXaNa-S0+HZ_P-Fb1UEgOkbrdxQPz0Y6rQ@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
 Subject: Re: [0/4] overlayfs: Adjustments for ovl_fill_super()
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: linux-unionfs@vger.kernel.org, kernel-janitors@vger.kernel.org, 
-	Miklos Szeredi <miklos@szeredi.hu>, cocci@inria.fr, LKML <linux-kernel@vger.kernel.org>, 
-	Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Language: en-GB
+To: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org,
+ kernel-janitors@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, cocci@inria.fr,
+ LKML <linux-kernel@vger.kernel.org>, Christian Brauner <brauner@kernel.org>
+References: <6cbcf640-55e5-2f11-4a09-716fe681c0d2@web.de>
+ <87b65f8e-abde-2aff-4da8-df6e0b464677@web.de>
+ <05d334af-1a0f-4498-b57d-36a783288f07@web.de>
+ <CAOQ4uxiRaTQyT1nxeRD7B89=VuA+KKEqi01LL1kqfJ17-qKKpw@mail.gmail.com>
+ <d912872a-e70a-4e5d-aabe-26f289507f44@web.de>
+ <CAOQ4uxjsuYy8BzgaHXaNa-S0+HZ_P-Fb1UEgOkbrdxQPz0Y6rQ@mail.gmail.com>
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <CAOQ4uxjsuYy8BzgaHXaNa-S0+HZ_P-Fb1UEgOkbrdxQPz0Y6rQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:sR4rQTtSYytVnVBdP1/d3E7GPPa8HOhhDRPvzDXFi2UK8060jYO
+ GQBshFtoDKifWRZ0Qiuh5mQ6tecfzLFlcTqy4suRtfHRN6viFEmam9deD1FfL9Ej5F0xeuE
+ 1T93FEy1dZ0dtC063PuBRiQz0HYzLlCMXF/HJGASl1mHFx6eatO7jOBT28ZN1CSGpBmwKpy
+ oy4Zfv7FNkOu/SpM5GEog==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:JzdfnNQ9PNY=;gDs/TB4KQUmIb+ze3lX1auKhdX+
+ N88AI0I1T4TkJzYA4iyoFH+lVoBMMNu6rUf7zYNA2nHOzzndPPbinArvGXXHK9aR567BXDHCW
+ u80pXGeaXVdsa4E/U3xH47t8SPlyH7/FjK6Y1rJq6RYFB2htKOTIduup0+rPWcBYvX4c0VwzI
+ fn8EZonv3LElpZvPeZhJgFVYSoc3eoJWagJCmjxDMjfooPwxD+VYj2/76YvIYE0VwHCi11EbC
+ OBO6PO04ZGqCcLp9Ffzg1WqidpMfdFeRu52kyJoMK8bDBVQkwJETILvMCR8BVf+s8nvn8Sjhd
+ lqF2f3itCv53S6QocxiR9HyIR5eQQKuoU3bRgUOzyoPA4qIVn2wJn/zh7PY1pL9ilMe01lB9q
+ QoH1620eNuzyFXR7KNFog42gD7RbPdr4N8R7o7DZfp79KMkfWPxQzFDMZ/CGjhtjiweCOGXO/
+ A4kiuIymlowJ/ELxdXsidPRwXKrS+rGR4OT8/IW4D7d6Iaa7UnItDCXGBP4mhXHOJn6+y7cXF
+ m+A43DTuF8eM5v0bNSJsZvMFrjioyco2HXLFGPccFIB5frxByMO8pm46XUgY9A4gw4dF7DWHe
+ JvaEe0ISboEAxSPHTPzJe1cVWzBmOpveR9UlGVAY+KTD8JWeJfmgSR1xvesIEy79aJdB9thBc
+ EMcS0nva+5ep3GB27xHw0FKXrjqiMsSIwAhUA+n60EdIsjU8XX78xp94LIo4KOyuNRazbxH7o
+ ZmZc+esTVgBHg7we9ShBrknbskcEbUxfi3SRSqy69JG4+IEaz1NuFMHhfrUm01WkBmEja6vOl
+ WweYw4Dx+J76D36QNpWDDLhB8qMs07Cx5SD+D1fnURyiBMQS4L30bNimAw7GCfiFIdsL0+ixa
+ C0ie1LUvaIrhSEa4XRkeWGBseWL6b/8RsowFL23KjkBsq0TBRuabomZcs4fgw31wso63HFH7M
+ FCv8YsFP5Cd2nF1wHK5WzQEm6uA=
 
-On Wed, Jan 10, 2024 at 3:01=E2=80=AFPM Markus Elfring <Markus.Elfring@web.=
-de> wrote:
+>>>> See also:
+>>>> https://lore.kernel.org/cocci/87b65f8e-abde-2aff-4da8-df6e0b464677@we=
+b.de/
+>>>> https://sympa.inria.fr/sympa/arc/cocci/2023-03/msg00115.html
+>>>
+>>> I will queue cleanup patches 1-2,
+>>
+>> Thanks for this positive feedback.
 >
-> >> See also:
-> >> https://lore.kernel.org/cocci/87b65f8e-abde-2aff-4da8-df6e0b464677@web=
-.de/
-> >> https://sympa.inria.fr/sympa/arc/cocci/2023-03/msg00115.html
-> >
-> > I will queue cleanup patches 1-2,
+> Sorry, these patches do not apply to master branch and patch 1
+> is no longer correct in master branch and the new mount api changes.
+
+Do you want that I adapt the linked development ideas to the current situa=
+tion
+a bit more?
+
+
+>>>                                   but I do not like patches 3/4 and 4/=
+4.
+>>> I do not think that they make the code better to read or maintain.
+>>
+>> I would appreciate if the details for such change reluctance can be cla=
+rified better.
 >
-> Thanks for this positive feedback.
+> patch 3:
+> I much rather a single error handling label that takes care of
+> all the cleanups - it is harder to make mistakes and jump to
+> the wrong label when adding new error conditions.
 
-Sorry, these patches do not apply to master branch and patch 1
-is no longer correct in master branch and the new mount api changes.
+There are different coding style preferences involved.
 
+See also:
+https://wiki.sei.cmu.edu/confluence/display/c/MEM12-C.+Consider+using+a+go=
+to+chain+when+leaving+a+function+on+error+when+using+and+releasing+resourc=
+es
+
+
+> patch 4:
+> Overlayfs uses this coding style all over the place
 >
+>   err =3D -ENOMEM;
+>   ofs->creator_cred =3D cred =3D prepare_creds();
+>   if (!cred)
+>       goto out_free_ofs;
 >
-> >                                   but I do not like patches 3/4 and 4/4=
-.
-> > I do not think that they make the code better to read or maintain.
->
-> I would appreciate if the details for such change reluctance can be clari=
-fied better.
+> I don't see the benefit in making err =3D -ENOMEM conditional.
+> I don't see the style after your patch as clearly better than before.
 
-patch 3:
-I much rather a single error handling label that takes care of
-all the cleanups - it is harder to make mistakes and jump to
-the wrong label when adding new error conditions.
+Can it be nicer to set error codes only in exceptional data processing sit=
+uations?
 
-patch 4:
-Overlayfs uses this coding style all over the place
-
-  err =3D -ENOMEM;
-  ofs->creator_cred =3D cred =3D prepare_creds();
-  if (!cred)
-      goto out_free_ofs;
-
-I don't see the benefit in making err =3D -ENOMEM conditional.
-I don't see the style after your patch as clearly better than before.
-
-Thanks,
-Amir.
+Regards,
+Markus
