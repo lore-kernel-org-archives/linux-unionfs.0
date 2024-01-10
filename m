@@ -1,94 +1,86 @@
-Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com [209.85.167.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout.web.de (mout.web.de [212.227.17.12])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B6EE748CC8;
-	Wed, 10 Jan 2024 12:49:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 795B54878A;
+	Wed, 10 Jan 2024 13:01:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UeUMpNzS"
-Received: by mail-oi1-f177.google.com with SMTP id 5614622812f47-3bbebe6191bso3732058b6e.3;
-        Wed, 10 Jan 2024 04:49:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1704890953; x=1705495753; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=REhGpdroa6cBxeVt6/ySf42exMJ/bES9CjOdzQq6zdU=;
-        b=UeUMpNzSCgb0R+9pBXfgAjxfQHSpKDdXbGSYzWtUZyBZF6ykGUbETzQaMz+wIIJ1F3
-         1QVM2cpppQEwoQjC75Iz6PM7gRTUk61AlKfBq2vB0QBoYkUT7e08+W02f8kaAi8BRcv3
-         +WWzPeIUM8hg0oYkmzbFto3f8WGhSE6UyDdh93hx1mjmK9fEUAgEB4JADf4XxoTWL4T+
-         OhOGRCRySuYtGWqoyDXyBfVllKnkaAHjmaDusbk77pmuQp6iIFYFEVbnbOl23+65h3C1
-         utErjhYpwDg/CWFn1WTirUykpTG8F2WcJXEasqX5/9EWE1k7lfjyVF5elUWTqya3C/Xv
-         yMwQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1704890953; x=1705495753;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=REhGpdroa6cBxeVt6/ySf42exMJ/bES9CjOdzQq6zdU=;
-        b=n9FTWF7JJgZVL4vVphhbVk3F0RSdyGuohH5awL0vxIDd1ru5mTO/uCfKTJkVJ4KA/D
-         vV57eTQX4ze851Z70q7xopnLhs87/Fl2sE+z0+85+ERxPfYEMhIz1HybQUzzagSf5gzf
-         9h3rznVNLmI8oS74avt7fB53F4ygj8j2hwsDrfwUWIIdoG6lWFX3UBOiZqdmXOQ3yngx
-         0Iih8L20sOweKcwnVCTeX3H8oNQo95cTAsrJPSpFz4oiOtWuZIpmc7Hc3ErJOPvu9/MF
-         ME/nnYumiuvNwDZcOyY1aMSjyWNRZ+fzqD7OKtWZtGmpYrxEk+1R2YjL5AemC8/YNhQE
-         goPQ==
-X-Gm-Message-State: AOJu0Yy/Luk5Tky3wj5NrRWkFu72z2/an/ZPo7NyzOpH1HUJoCBKJKOI
-	rkUvT8B3jUVaejRuZsdllPRI1gj3Sob812z9WIU=
-X-Google-Smtp-Source: AGHT+IHvA530Y3zhfFAw3i/+1nMbsoG6/W9iThS7KUwM8hcmn1LZ4rYFri6JhNWTA+KPK13EjF1bQC0cpqciA99E/tE=
-X-Received: by 2002:a05:6808:f91:b0:3bd:38b9:64c3 with SMTP id
- o17-20020a0568080f9100b003bd38b964c3mr1266243oiw.61.1704890953655; Wed, 10
- Jan 2024 04:49:13 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="HR+QsUTh"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de; s=s29768273;
+	t=1704891686; x=1705496486; i=markus.elfring@web.de;
+	bh=fqSFKY5Zirnw4hSO+f9JSpx6szHta+QQy+nLiPG9ozg=;
+	h=X-UI-Sender-Class:Date:Subject:To:Cc:References:From:
+	 In-Reply-To;
+	b=HR+QsUTh3JMkedWITQ3E4tHVdgeuKVdUK1yjOWV+UvLTU+X/yU1G4TQ42tpBCwXu
+	 +BOpP86+ZoVzh9vdfwzENzMs8j/Gg1z/V0C+sVE68OrSQFGzjIg96C/3/h9JFAfKx
+	 tKTVXdES+YKrs/gCiI/9VDSa24gkZYTZWvUn4bEdBBJV3lV8HAlvKoX4T1BdLc8LG
+	 4C7Dv8htTMshKzV/h3Jb2Rw+6B2IYUvvurOtAfpbaXRMt5uM4dLvJf0Wev7Of1BHt
+	 wJm5XGWp/c2I6k1sSxSHDBHKOs+2X484+ftVgto6UYd2H984y/cgP66xNT14alSQ/
+	 oBo5sKm5dpJwWrRAKw==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from [192.168.178.21] ([94.31.86.95]) by smtp.web.de (mrweb106
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 1N2jaQ-1rBQEc12ey-012zo4; Wed, 10
+ Jan 2024 14:01:26 +0100
+Message-ID: <d912872a-e70a-4e5d-aabe-26f289507f44@web.de>
+Date: Wed, 10 Jan 2024 14:01:24 +0100
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <6cbcf640-55e5-2f11-4a09-716fe681c0d2@web.de> <87b65f8e-abde-2aff-4da8-df6e0b464677@web.de>
+User-Agent: Mozilla Thunderbird
+Subject: Re: [0/4] overlayfs: Adjustments for ovl_fill_super()
+Content-Language: en-GB
+To: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org,
+ kernel-janitors@vger.kernel.org
+Cc: Miklos Szeredi <miklos@szeredi.hu>, cocci@inria.fr,
+ LKML <linux-kernel@vger.kernel.org>, Christian Brauner <brauner@kernel.org>
+References: <6cbcf640-55e5-2f11-4a09-716fe681c0d2@web.de>
+ <87b65f8e-abde-2aff-4da8-df6e0b464677@web.de>
  <05d334af-1a0f-4498-b57d-36a783288f07@web.de>
-In-Reply-To: <05d334af-1a0f-4498-b57d-36a783288f07@web.de>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 10 Jan 2024 14:49:02 +0200
-Message-ID: <CAOQ4uxiRaTQyT1nxeRD7B89=VuA+KKEqi01LL1kqfJ17-qKKpw@mail.gmail.com>
-Subject: Re: [PATCH 0/4] overlayfs: Adjustments for ovl_fill_super()
-To: Markus Elfring <Markus.Elfring@web.de>
-Cc: kernel-janitors@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	Miklos Szeredi <miklos@szeredi.hu>, cocci@inria.fr, LKML <linux-kernel@vger.kernel.org>, 
-	Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+ <CAOQ4uxiRaTQyT1nxeRD7B89=VuA+KKEqi01LL1kqfJ17-qKKpw@mail.gmail.com>
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <CAOQ4uxiRaTQyT1nxeRD7B89=VuA+KKEqi01LL1kqfJ17-qKKpw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:h8tCbXXw0Swhpr88lNGFvUEGFYt40i2z0RuHlDmlga9TVUJiPh4
+ JaiVj/0ZiSWg6/4bEGeMEgE+DJQpcfcPDxeGclF4igoN8nbuuCZ/KLECvsROT1ZePdxFF1S
+ XqNkNsQ02shb2lmFyeNAo1QSKj2BonPY4fkSwWuKK0YuTRmzKy4gTj4oKVqH55tgdsCaBlR
+ BzDlGVNtlRDiGW+I/E1Fw==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:du3gPScwpYI=;xWLpWwsJ6b0IwbjzBfQqcOG12Ci
+ YtBsjgLTQIqOyffl58KRi4P0CfKo+Ln8fGqncCRADCO45AaIgrrFcfEa2Ss4gpoZnFzFYotzB
+ T0oukIDp+Kw4TM3fmfieBqMYRVK4W3ZI85AeI0xlMnhJOR4VbnpXmVKdlIUZoZ1zisVnNfQPn
+ E1UT8uA1U14UgyCcAPyVsoV25PunUFKBJkWtDdrGL/WPRVBoHGbQ0nK/nYoSqGA5UeaJjHXC9
+ diWQeGf13mSUdLj8tlaj1hWxYSmjUoRJVYaFBTXsVE8RDoBO8EKJ8peM4PCk6URjmvij+UEFn
+ jGI9GwrrfXylcy6TpAdSwzuXqW9N+S4bjv8PMt6g3m/1rDv+POs7iBtd8qYRcFZBUdmUArVab
+ 0Ks4vByapiiCbheNOJzShpWpIkNfpyzUudZAJEwFXpWbVh1JfqAcqKrtp1wdqXAmH3SSulcV7
+ TvlY1E4pDsyb88RsStF4M25CpsYcAXAO0O1QaLFyN6mACwrvfmhUOzWQm/pm32mM+F6p5whBa
+ n0cgaHziN8ejP70SlZUo2NYAAdOnP3ZeDG10C2vkO0jlpc6eaeFDZpyUkz3N+FfpLvADDBUA7
+ spbMoZOqCxVwlH9yykYueh3VOw0h3mqciBDP1r/9bI7hmX8VVGkf5l0vojNecQ7wUoFbXhSzx
+ iUUHRoYGnRQ+xekL5WU1+fbCx1QY/8gnHUe8/pOi9tvx2Sow2DhVIbd7PQasEBNOQetZTvady
+ eFY6h32Zdae6/F+jeOTeHwvudaclhB3g6czqi63wUZEsI7/ADB3Qzi1VHEPgzXQ6+lwrIAdtT
+ fwdVZT5oyd5D95xspSToRZ8ClHEnantDUE00C5DH8OLs7prhWGoajC0iqxlBAIg9Gc1wJJQGQ
+ iBRWUkmyrx2S9jKdEIAiq4fkKUyadPjuQIsATi60v0etJwnhPMKfgbg8BliWZ0JwTywFObNaX
+ yWl8tA==
 
-On Wed, Jan 10, 2024 at 2:25=E2=80=AFPM Markus Elfring <Markus.Elfring@web.=
-de> wrote:
+>> See also:
+>> https://lore.kernel.org/cocci/87b65f8e-abde-2aff-4da8-df6e0b464677@web.=
+de/
+>> https://sympa.inria.fr/sympa/arc/cocci/2023-03/msg00115.html
 >
-> > Date: Thu, 30 Mar 2023 10:38:23 +0200
-> >
-> > Some update suggestions were taken into account
-> > from static source code analysis.
-> >
-> > Markus Elfring (4):
-> >   Return directly for two checks
-> >   Improve two size determinations
-> >   Improve exception handling
-> >   Move some assignments for the variable =E2=80=9Cerr=E2=80=9D
-> >
-> >  fs/overlayfs/super.c | 72 ++++++++++++++++++++++++--------------------
-> >  1 file changed, 39 insertions(+), 33 deletions(-)
->
-> Is this patch series still in review queues?
->
+> I will queue cleanup patches 1-2,
 
-Sorry, this series was not on my radar.
+Thanks for this positive feedback.
 
-> See also:
-> https://lore.kernel.org/cocci/87b65f8e-abde-2aff-4da8-df6e0b464677@web.de=
-/
-> https://sympa.inria.fr/sympa/arc/cocci/2023-03/msg00115.html
->
 
-I will queue cleanup patches 1-2, but I do not like patches 3/4 and 4/4.
-I do not think that they make the code better to read or maintain.
+>                                   but I do not like patches 3/4 and 4/4.
+> I do not think that they make the code better to read or maintain.
 
-Thanks,
-Amir.
+I would appreciate if the details for such change reluctance can be clarif=
+ied better.
+
+Regards,
+Markus
