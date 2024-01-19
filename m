@@ -1,54 +1,50 @@
-Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 577C33C6BA;
-	Fri, 19 Jan 2024 19:06:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1FCB54BE3
+	for <linux-unionfs@vger.kernel.org>; Fri, 19 Jan 2024 20:30:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705691202; cv=none; b=Qi1h3JrljugQT8q0+xpL4nlFDmEhTMLKGgH4O09qW7r/l/SymDwP2T9LpZnvAj6XZGzcD6j+49KazttwfDGutfLFG35UTKTr1p+X3Lj8ZIVKGgdQBHFVLrBE7B2myajX7EDNFWkV7o/6YlSG2Ay07h7NLUCaAOjWeEdU0CIzuk0=
+	t=1705696215; cv=none; b=Fv1s5r0tnByUB7BhFczozO8FVEDY6eeDT8uASqzFwY4H07ShdGkifKJEmNAsSubklk4aFJUr4WTvHqas9R7OfZfw7rY0+N/amXo5xvtP2rXmimCWMnZW6FyxTX8+FUcXVBYu7MLbSioa6+4xlIpwpl9ItDUulQEO/Tx/aAj6IaA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705691202; c=relaxed/simple;
-	bh=5yYdo3Q+tSNRcPUuACl0B6aWlTGLR2zXLx2MtVEd+fo=;
+	s=arc-20240116; t=1705696215; c=relaxed/simple;
+	bh=8OYZqPISIFN5KLjECVoHCt1uNlCy0BijTW360W4wa40=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=V4ibWAIb5inmzQfFjzJZ7VVe/npEi8ZBVZQ8nyZg1SUWmn+fMPVN25OhufLXnTLl+5xsyLMz7fDiOkeMTxq7xQFJNOqcBOoKXC8vYjVzeSwzTw2nakvUFNqCycwtr628uOzAI+0j2nVqMFNhKzar69lZwpath/BlMKQ8yMW1UCc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VRZK2ZgU; arc=none smtp.client-ip=209.85.219.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=XtTh1w6Rfo5MRLYo0NvkBnKcGG9C6IiK4dxforl/xnlcuO8pgEp7NEd8/49ZCkOuo/rigztejiw1gGrRr7K92C1hrxrtGFIgC8lxe48zJrStMxPnqFgI7OVo8G7mllR9MFYtHQKvsb1FwwTBKgzvrqB8/G3ve1QkcQ0M7at+Ee4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=VhQWwBY+; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VRZK2ZgU"
-Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-6818aa07d81so5604276d6.0;
-        Fri, 19 Jan 2024 11:06:41 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="VhQWwBY+"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-a28da6285c1so227449666b.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 19 Jan 2024 12:30:12 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1705691200; x=1706296000; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=5yYdo3Q+tSNRcPUuACl0B6aWlTGLR2zXLx2MtVEd+fo=;
-        b=VRZK2ZgUQPCJGigeVoFmUW9dXq5DCaZnVdvov6U7dqK3swsTVzPbSNH1MBan8s+hOy
-         3Xzw+UGB6l22T8W2Y4DfKmSf1kViV3toOAtTg3RqWkn2VyEaWey9j9ob3+BPA9KTCt8m
-         pKTZdBpQ9Pq74Mhj1J0b7IH1+9CQ8zegNwD3BwIzKJUSYc1CRY2T6zTW599h5AsePgEz
-         KDQD1nAN24cirlrYVgLptW+dexbAFji5TeWpC5Vy+0Gdzxol3RWsgkt1tNQpqtV84WcC
-         2KhdSlgfvT/OJMtK8d+3LCutr4IXZTD8MvdyMrP698tv7JrIZWZevEyVbqjZvdvh1uZb
-         mU0g==
+        d=szeredi.hu; s=google; t=1705696211; x=1706301011; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=uDGXTncqm9MB3BL9Zt8G5ddcs+43LzaU9pS4N/bFZaw=;
+        b=VhQWwBY+pdHZlWirKg0fqls4o1bwQvRHX+CK8OX7R8Kby4h2cFtIfTPohDR/ZO1+/J
+         kv0bCHdgSLWHUMQdqG95IdOcCQJ7wx17N8vbvkIxVBgfKnzLEzelTWw1CPfskU9MiZ1C
+         V0EPi9GmWu3vvnwxCO7QQ3yBe8qNGhR8IZWNE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1705691200; x=1706296000;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=5yYdo3Q+tSNRcPUuACl0B6aWlTGLR2zXLx2MtVEd+fo=;
-        b=FxR+dHJwadpdMo4af7UIfqI8GruJMxIDpWDDip3So26dnNXkr/EK3GRzHy1AB9UnUq
-         oevPOtf86X3m3iO00yx3e0JsPkl6iEGBr689ESC2hkjaB+z+Ut/cUofl5oDHfL31AmEk
-         dhwRkbo6fZA4y0rAD/M8DbrGj7rxIdNfr3tVhxbrdSeRYlf8tMJ4ArH0tzbba5bgpY4c
-         bQSSYTuDnXiL+m/AEimhRTSHlFW8nrZMxrs3Onvd+sD9/SMRRVMAcML+T9VULIFH731w
-         Z+W6P9OAqro6QzMVmWKG7Y7m6Ph1p3crJScOOdJtSdKpHw8LIHa/VCpwlKGMAxBk53xX
-         DRIw==
-X-Gm-Message-State: AOJu0Yy3Dy/iPsE5MkB7loh0Gim5CLDmnZGlUoORtn0ByRLAQhQvH2sA
-	ZHSuMYqPbd3Uo/asduEGbeiktd2Z064r55I4tme3kQEXMRgaYAqYlM5gePo19cXkq7F940eAiLK
-	b6FP8Xy5qK2jrC/9B9W7r888JYsIiGrU3w3ZcFQ==
-X-Google-Smtp-Source: AGHT+IFIXlIsLRXaPo/Q7hGR90FQw6qnTHeNDRwBJiSI+P6DZ+yY84Ln/2tOcBv492wGXA9gPn2XVtCD9FO9qF6/Etc=
-X-Received: by 2002:a0c:db11:0:b0:680:ffed:c1bf with SMTP id
- d17-20020a0cdb11000000b00680ffedc1bfmr328407qvk.54.1705691200182; Fri, 19 Jan
- 2024 11:06:40 -0800 (PST)
+        d=1e100.net; s=20230601; t=1705696211; x=1706301011;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uDGXTncqm9MB3BL9Zt8G5ddcs+43LzaU9pS4N/bFZaw=;
+        b=NjdvKi1dKu4saCmAEyws6dmDfA0P9B0ikQ9wWky2JaY9PZFFrL86BbvHeA0982WvHU
+         b1kZB212YoIdFVZJIulAXRe7B+V7NAHmQ8mcI/sai3ckAYldB+bbAuGGEowPIqsvw5o6
+         +ShLd7HPldV+J2ByoBpv+HtfizFmFSC/6MNE/w2KXfjq1d26SvIFHJKwT8KuTBtDc8H9
+         2n6tg8imt1L6F6L6fzQnenlPfYCp8eSswibhHoebtFJExTRw54eByby5IOW8QsKPVBQZ
+         FO4qateA1c+itdFvt3F+66Q6lAuoef7Fc5gHjXps0rqujgnAE9s8Ofbb9VRyULFB60Rx
+         qlBg==
+X-Gm-Message-State: AOJu0Yx2LkaOB3YCvmZ9012rfYuINNYTtU2GMiACSSzlHn2A0Xrs91J9
+	//zLsDh+vBVHTx257GwfBzVzK/rzN9KHAlNrY9cuD+djQYouEQOXKkoRTQPyIIT8T7dG95MlkbX
+	kgv+D7GWk23zeVU9QXY42C6zAkbuSO2GUMP1kkw==
+X-Google-Smtp-Source: AGHT+IEAii7Y/IUup/E21nLLKZG3h7YMWqAccABZoHNHDmiuXaqhXigJUCgpyKgYEXNLdxgQ8bTu70xR/vO2hJ2VpyM=
+X-Received: by 2002:a17:906:714f:b0:a23:62fd:e2f6 with SMTP id
+ z15-20020a170906714f00b00a2362fde2f6mr445811ejj.30.1705696210888; Fri, 19 Jan
+ 2024 12:30:10 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -56,62 +52,34 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20240119101454.532809-1-mszeredi@redhat.com> <CAOQ4uxiWtdgCQ+kBJemAYbwNR46ogP7DhjD29cqAw0qqLvQn4A@mail.gmail.com>
- <5ee3a210f8f4fc89cb750b3d1a378a0ff0187c9f.camel@redhat.com>
-In-Reply-To: <5ee3a210f8f4fc89cb750b3d1a378a0ff0187c9f.camel@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 19 Jan 2024 21:06:28 +0200
-Message-ID: <CAOQ4uxiob0t4YDpEZ4urfro=NrXF+FH_Bvt9DbD1cHbJAWf88A@mail.gmail.com>
+ <5ee3a210f8f4fc89cb750b3d1a378a0ff0187c9f.camel@redhat.com> <CAOQ4uxiob0t4YDpEZ4urfro=NrXF+FH_Bvt9DbD1cHbJAWf88A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiob0t4YDpEZ4urfro=NrXF+FH_Bvt9DbD1cHbJAWf88A@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 19 Jan 2024 21:29:59 +0100
+Message-ID: <CAJfpeguFY8KX9kXPBgz5imVTV4A0R+aqS_SRiwdoPXPqR_B_xg@mail.gmail.com>
 Subject: Re: [PATCH v2] ovl: require xwhiteout feature flag on layer roots
-To: Alexander Larsson <alexl@redhat.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Alexander Larsson <alexl@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
 	linux-fsdevel@vger.kernel.org, stable@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Jan 19, 2024 at 6:35=E2=80=AFPM Alexander Larsson <alexl@redhat.com=
-> wrote:
->
-> On Fri, 2024-01-19 at 13:08 +0200, Amir Goldstein wrote:
-> > On Fri, Jan 19, 2024 at 12:14=E2=80=AFPM Miklos Szeredi <mszeredi@redha=
-t.com>
-> > wrote:
-> >
-> >
-> > Do you want me to fix/test and send this to Linus?
-> >
-> > Alex, can we add your RVB to v2?
->
-> I ran into an issue converting composefs to use this.
->
-> Suppose we have a chroot of files containing some upper dirs and we
-> want to make a composefs of this. For example, say
-> /foo/lower/dir/whiteout is a traditional whiteout.
->
-> Previously, what happened is that I marked the whiteout file with
-> trusted.overlay.overlay.whiteout, and the /foo/lower/dir with
-> trusted.overlay.overlay.whiteouts.
->
-> Them when I mounted then entire chroot with overlayfs these xattrs
-> would get unescaped and I would get a $mnt/foo/lower/dir/whiteout with
-> a trusted.overlay.whiteout xattr, and a $mnt/foo/lower/dir with a
-> trusted.overlay.whiteout. When I then mounted another overlayfs with a
-> lowerdir of $mnt/foo/lower it would treat the whiteout as a xwhiteout.
->
-> However, now I need the lowerdir toplevel dir to also have a
-> trusted.overlay.whiteouts xattr. But when I'm converting the entire
-> chroot I do not know which of the directories is going to be used as
-> the toplevel lower dir, so I don't know where to put this marker.
->
-> The only solution I see is to put it on *all* parent directories. Is
-> there a better approach here?
+On Fri, 19 Jan 2024 at 20:06, Amir Goldstein <amir73il@gmail.com> wrote:
 
-How about checking xwhiteouts xattrs along with impure and
-origin xattrs in ovl_get_inode()?
+> How about checking xwhiteouts xattrs along with impure and
+> origin xattrs in ovl_get_inode()?
+>
+> Then there will be no overhead in readdir and no need for
+> marking the layer root?
+>
+> Miklos, would that be acceptable?
 
-Then there will be no overhead in readdir and no need for
-marking the layer root?
+It's certainly a good idea, but doesn't really address my worry.  The
+minor performance impact is not what bothers me most.  It's the fact
+that in the common case the result of these calls are discarded.
+That's just plain ugly, IMO.
 
-Miklos, would that be acceptable?
+My preferred alternative would be a mount option.  Amir, Alex, would
+you both be okay with that?
 
 Thanks,
-Amir.
+Miklos
