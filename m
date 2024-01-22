@@ -1,235 +1,435 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5F4953B295
-	for <linux-unionfs@vger.kernel.org>; Mon, 22 Jan 2024 10:44:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C6633DB8B
+	for <linux-unionfs@vger.kernel.org>; Mon, 22 Jan 2024 11:09:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1705920259; cv=none; b=dN+qUUfuVkB+MGmguya8Kv1jhwM01fsAK5hJjxsiCa94JCULuO76sUfs3aYZZiPCqKcZzbgEQHohnh/kOsIFZBBZvoZUubNDjy28A+Q5eBRcbFnO5sdGV73hkx7fAMrR+XlgnvWxsmReRUKU6tbstc5eqHjvpWr6lzBxbR/Gb5A=
+	t=1705921794; cv=none; b=XcUU07r1/EpdEp29CDySYUAvC7GtOwWq1er8puMtQItrzGsl/ZLwgp5lRvFQYX/6TVuc5Q7oo1LYdXmTAwtZXzDWsBr2/ggvDQDL2uQsxw9XWrn2eA/7cAjMl42zjmYM+nfI1ElXNssSlKmEbM0ktxEKlvzubUhLDGOzY0B7BHE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1705920259; c=relaxed/simple;
-	bh=75RNHEd3QE7gIzvGvWHo+Tndj79A20I47U4jnEJC/Uk=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=I6hA+ylox6J++h8zBsE3HLDxz7Q7tji1BvhiD/Sa5FsiqiVWE6ONbuVEpEvI5/whpjNhWKkU7DP/iGDEMtaz2E4WAARpIfLPGYcc5VHe/XStO7S2d/FFIXJtId/4+KtQIt7mp0PE9mhA571JpyCbLDpdn9GaYvauIM1d8Fy15uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=eYGojwrZ; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1705921794; c=relaxed/simple;
+	bh=VrG0zme86WIq40hBoG4MgrssTkXY3l90lLl5v+Uhh8E=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=V4sRHZlx3DGgiYFUITk7ZcoB8mpdi+5nsIsybT7duqBDTEICaHH2Lnz4yBjiH31/NFoa/yFr0g4SsxNwWvRx3V5ofgCEVCirbwk1/Qn00N2TShI8spil7a/tUKgx/LxSpu5pyJvtVOxqkcNS1L/k6smFqFC6/RzOPlAYJzF3l1I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=gvpmoiqV; arc=none smtp.client-ip=209.85.219.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="eYGojwrZ"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1705920256;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references:autocrypt:autocrypt;
-	bh=9MSfqqZBv9iIzLzMb9UtcrF62L0l0jyngmzyv+1aP34=;
-	b=eYGojwrZeN2VWNjzKK9dVgIuIOilloXk3DdRI0jY8eh+jL74WCNJUYFs6CsPaBPW2+7LZv
-	LAeFbbYoC8OIdBaDDqufsDhq2TPFcW/KcNJZMes7dhHE6Zv9B3uRggZ14vKwdY1wPUifif
-	M4JMx5goFYlpJbvCsT/4zLb6FP3GaCQ=
-Received: from mail-lf1-f72.google.com (mail-lf1-f72.google.com
- [209.85.167.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-132-2Vc0dTh_NSGT_aGl-8JcsQ-1; Mon, 22 Jan 2024 05:44:14 -0500
-X-MC-Unique: 2Vc0dTh_NSGT_aGl-8JcsQ-1
-Received: by mail-lf1-f72.google.com with SMTP id 2adb3069b0e04-50e5195db01so1934412e87.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 22 Jan 2024 02:44:14 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="gvpmoiqV"
+Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-68198aa2c7fso15979326d6.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 22 Jan 2024 03:09:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1705921791; x=1706526591; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7bdKl3nZ6Qk8yZrvWRXO+gTh1NPQzW6W8mTKgW1LTNk=;
+        b=gvpmoiqVLN2xIvdYlGvqt99K3p6yLESsT59LtF97MEA15mdQEd62QzPwIQt2rPEPWf
+         MHYJOB42NKAy7tXJMUS36majGozfDxSsm9IV6pkXRk4Xmtk4aAvPngW4XhbDbe9SbkTK
+         vYYyrPIzHirSVqzXb1RQIkvMWspiBckmr/sibcCe55O+pBwYO6yBzwrmMbOwSwRp/sxy
+         UOP/LnGZ3rDI6hVkpCa7khbpTlUrrOdhtb8LHtwo8+X8dhkbtv0mCWlfq5h7qjdXC4Hl
+         VWqk7f3U2hfQJo3Em+b4neE/MnawfZQcZ5LO8dDTh4LjiwLCaEO7USkfwLDEXVrShjWR
+         5egA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1705920252; x=1706525052;
-        h=mime-version:user-agent:content-transfer-encoding:autocrypt
-         :references:in-reply-to:date:cc:to:from:subject:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=9MSfqqZBv9iIzLzMb9UtcrF62L0l0jyngmzyv+1aP34=;
-        b=nmK7GuO299rDgfLwxqkp2wfAM3DuL3a8cJ9Z+XEK2OXE8HsppNSgPs7bWmnMsck8P1
-         HcslZ0OR7wsy8LFx+jIy7etsXXsGNmH0LUcVKiibTxxox9sZRqIAQq13RT+OnrIMLgod
-         lvciENzoDZ233/L1WznM5ELcgpwAyuNild6o/nrM0vI8QlGpTU7YfHEk4tKwlEp3QfsM
-         tv4KEr98ZROxjIcg4WSj4Zn9P67IdeRpgSoKcDlposyvOERa8QBF9Efd1qLU+HiVqMTU
-         LjQHt6xCYSJZSD+GBE2YZv/8s0xrZP5JbxzO741h6UMvqcDLe35IKaSMzxVyrgK5M2O1
-         xFFQ==
-X-Gm-Message-State: AOJu0YzAaeyipdTV4HlEXbSPA7g6CRZcA3BVLSW1PMBbjxylPfp29inJ
-	5HWTFj2jIeE3RHwG0p+Q0Zu1ert6rw1n4AeA/Tj3raXsqo524Y+Sn68RfpCFl/wzVfCx9pOgJRq
-	aeJA2V22KysR9bk68jVGq6+aoxEOQnffF0cRkOPuZi+wj5wg891PxJJzFYV71os35XcaugYE=
-X-Received: by 2002:a05:6512:280b:b0:50e:93fa:336 with SMTP id cf11-20020a056512280b00b0050e93fa0336mr1660136lfb.95.1705920252713;
-        Mon, 22 Jan 2024 02:44:12 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IFSyafjAvUrgBL812daMCiTvLXqGtcRPNXO7YMx11noQHfb8e1ePlfoM+yVc11NAd2Z5DkLxQ==
-X-Received: by 2002:a05:6512:280b:b0:50e:93fa:336 with SMTP id cf11-20020a056512280b00b0050e93fa0336mr1660127lfb.95.1705920252231;
-        Mon, 22 Jan 2024 02:44:12 -0800 (PST)
-Received: from [172.31.0.10] (c-e6a5e255.022-110-73746f36.bbcust.telenor.se. [85.226.165.230])
-        by smtp.gmail.com with ESMTPSA id b5-20020a056512060500b0050e6bf65b2asm1966347lfe.288.2024.01.22.02.44.11
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 22 Jan 2024 02:44:11 -0800 (PST)
-Message-ID: <0473f5389dd1ada08c73479612a4e054c8023d94.camel@redhat.com>
-Subject: Re: [PATCH v2] ovl: require xwhiteout feature flag on layer roots
-From: Alexander Larsson <alexl@redhat.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, stable@vger.kernel.org
-Date: Mon, 22 Jan 2024 11:44:11 +0100
-In-Reply-To: <CAOQ4uxj_EWqa716+9xxu0zEd-ziEFpoGsv2OggUrb8_eGGkDDw@mail.gmail.com>
-References: <20240119101454.532809-1-mszeredi@redhat.com>
-	 <CAOQ4uxiWtdgCQ+kBJemAYbwNR46ogP7DhjD29cqAw0qqLvQn4A@mail.gmail.com>
-	 <5ee3a210f8f4fc89cb750b3d1a378a0ff0187c9f.camel@redhat.com>
-	 <CAOQ4uxj_EWqa716+9xxu0zEd-ziEFpoGsv2OggUrb8_eGGkDDw@mail.gmail.com>
-Autocrypt: addr=alexl@redhat.com; prefer-encrypt=mutual; keydata=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
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.50.3 (3.50.3-1.fc39) 
+        d=1e100.net; s=20230601; t=1705921791; x=1706526591;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7bdKl3nZ6Qk8yZrvWRXO+gTh1NPQzW6W8mTKgW1LTNk=;
+        b=YmDf4NOdmaesa+xWrL/okxAKMz1CgYGKlaqdQ2xb3oFnIXdRxI/GKP9XVcWetl4zsq
+         cKc2Kcz1lEJoNT26YUfxBI55xKbODbAbpC5fan0a7MkivohwExhCy1hAP+zGiH6s0SFW
+         zlnitqY5JHvY5sMsbGeYOZcmbf2wEyH1UGDjLZFZxPwW996eAwVQhnHmbvVjpRe1z9dn
+         2pGnXcTBk7oS4O85TIH8mIg8wGUK0tFN2PyJPPTI+2v2gJ/ZZRPnFfbGiJqO6ZMFr8I6
+         bpds8vc4Y5N+ikaAztg7cofYoz/Rln03YzdkGZQojEUgYjFCXf4yIgu0F8CT6EDfPLdK
+         k7Hg==
+X-Gm-Message-State: AOJu0Yyhx9r7x6NIHUMQqopqIWFaol7rKt1rhQcng77nBdSE30aTkbEY
+	eqnxMbR4tGXb5Hx2EtD28QfvuNbn5or16cjwON1BV6DgwLne1iiB3xTAnwQnOJUoFWrlJTOoHMP
+	borbkC1uv+FuwvhXRFDaaHUzcfC4=
+X-Google-Smtp-Source: AGHT+IGuibu+auzZr5qN3KnWqj4IxuJhyuHg99a95SiTvEdh5av5qAaIJgpzL9o82wK2xxs5iJaNTsWi4GPr3DSg/OM=
+X-Received: by 2002:a05:6214:5197:b0:686:9442:6a66 with SMTP id
+ kl23-20020a056214519700b0068694426a66mr876778qvb.28.1705921790963; Mon, 22
+ Jan 2024 03:09:50 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+References: <20240121150532.313567-1-amir73il@gmail.com> <3679657b0589ee31d09fb9db140fe57121989a69.camel@redhat.com>
+In-Reply-To: <3679657b0589ee31d09fb9db140fe57121989a69.camel@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 22 Jan 2024 13:09:39 +0200
+Message-ID: <CAOQ4uxh5x_-1j8HViCutVkghA1Uh-va+kJshCuvB+ep7WjmOFg@mail.gmail.com>
+Subject: Re: [PATCH v3] ovl: mark xwhiteouts directory with overlay.opaque='x'
+To: Alexander Larsson <alexl@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 2024-01-22 at 10:38 +0200, Amir Goldstein wrote:
-> On Fri, Jan 19, 2024 at 6:35=E2=80=AFPM Alexander Larsson <alexl@redhat.c=
-om>
-> wrote:
-> >=20
-> > On Fri, 2024-01-19 at 13:08 +0200, Amir Goldstein wrote:
-> > > On Fri, Jan 19, 2024 at 12:14=E2=80=AFPM Miklos Szeredi
-> > > <mszeredi@redhat.com>
-> > > wrote:
-> > >=20
-> > >=20
-> > > Do you want me to fix/test and send this to Linus?
-> > >=20
-> > > Alex, can we add your RVB to v2?
-> >=20
-> > I ran into an issue converting composefs to use this.
-> >=20
-> > Suppose we have a chroot of files containing some upper dirs and we
-> > want to make a composefs of this. For example, say
-> > /foo/lower/dir/whiteout is a traditional whiteout.
-> >=20
-> > Previously, what happened is that I marked the whiteout file with
-> > trusted.overlay.overlay.whiteout, and the /foo/lower/dir with
-> > trusted.overlay.overlay.whiteouts.
-> >=20
-> > Them when I mounted then entire chroot with overlayfs these xattrs
-> > would get unescaped and I would get a $mnt/foo/lower/dir/whiteout
-> > with
-> > a trusted.overlay.whiteout xattr, and a $mnt/foo/lower/dir with a
-> > trusted.overlay.whiteout. When I then mounted another overlayfs
-> > with a
-> > lowerdir of $mnt/foo/lower it would treat the whiteout as a
-> > xwhiteout.
-> >=20
-> > However, now I need the lowerdir toplevel dir to also have a
-> > trusted.overlay.whiteouts xattr. But when I'm converting the entire
-> > chroot I do not know which of the directories is going to be used
-> > as
-> > the toplevel lower dir, so I don't know where to put this marker.
-> >=20
-> > The only solution I see is to put it on *all* parent directories.
-> > Is
-> > there a better approach here?
-> >=20
->=20
-> Alex,
->=20
-> As you can see, I posted v3 with an alternative approach that would
-> not
-> require marking all possible lower layer roots.
->=20
-> However, I cannot help wondering if it wouldn't be better practice,
-> when
-> composing layers, to always be explicit, per-directory about whether
-> the
-> composed directory is a "base" or a "diff" layer.
->=20
-> Isn't this information always known at composing time?
+On Mon, Jan 22, 2024 at 12:14=E2=80=AFPM Alexander Larsson <alexl@redhat.co=
+m> wrote:
+>
+> On Sun, 2024-01-21 at 17:05 +0200, Amir Goldstein wrote:
+> > An opaque directory cannot have xwhiteouts, so instead of marking an
+> > xwhiteouts directory with a new xattr, overload overlay.opaque xattr
+> > for marking both opaque dir ('y') and xwhiteouts dir ('x').
+> >
+> > This is more efficient as the overlay.opaque xattr is checked during
+> > lookup of directory anyway.
+> >
+> > This also prevents unnecessary checking the xattr when reading a
+> > directory without xwhiteouts, i.e. most of the time.
+> >
+> > Note that the xwhiteouts marker is not checked on the upper layer and
+> > on the last layer in lowerstack, where xwhiteouts are not expected.
+> >
+> > Fixes: bc8df7a3dc03 ("ovl: Add an alternative type of whiteout")
+> > Cc: <stable@vger.kernel.org> # v6.7
+> > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> > ---
+> >
+> > Miklos,
+> >
+> > Alex has reported a problem with your suggested approach of requiring
+> > xwhiteouts xattr on layers root dir [1].
+> >
+> > Following counter proposal, amortizes the cost of checking opaque
+> > xattr
+> > on directories during lookup to also check for xwhiteouts.
+> >
+> > This change requires the following change to test overlay/084:
+> >
+> > --- a/tests/overlay/084
+> > +++ b/tests/overlay/084
+> > @@ -115,7 +115,8 @@ do_test_xwhiteout()
+> >
+> >         mkdir -p $basedir/lower $basedir/upper $basedir/work
+> >         touch $basedir/lower/regular $basedir/lower/hidden
+> > $basedir/upper/hidden
+> > -       setfattr -n $prefix.overlay.whiteouts -v "y" $basedir/upper
+> > +       # overlay.opaque=3D"x" means directory has xwhiteout children
+> > +       setfattr -n $prefix.overlay.opaque -v "x" $basedir/upper
+> >         setfattr -n $prefix.overlay.whiteout -v "y"
+> > $basedir/upper/hidden
+> >
+> >
+> > Alex,
+> >
+> > Please let us know if this change is acceptable for composefs.
+>
+> Yes, this looks very good to me. (Minor comments below)
+> I'll do some testing on this.
+>
 
-Currently, composefs images are not layered as such. They normally only
-have one or more lowerdata layers, and then the actual image as a
-single lowerdir, and on top of that an optional upper if you want some
-kind of writability.=20
+Excellent, I'll be expecting your RVB/Tested-by.
 
-But, when composing the composefs the content of the image is opaque to
-us. We're just given a directory with some files in it for the image.
-It might contain some other lowerdirs, but the details are not know to
-us at compose time.
+> >
+> > Thanks,
+> > Amir.
+> >
+> > [1]
+> > https://lore.kernel.org/linux-unionfs/5ee3a210f8f4fc89cb750b3d1a378a0ff=
+0187c9f.camel@redhat.com/
+> >
+> >  fs/overlayfs/namei.c     | 32 +++++++++++++++++++-------------
+> >  fs/overlayfs/overlayfs.h | 17 +++++++++++++----
+> >  fs/overlayfs/ovl_entry.h |  2 ++
+> >  fs/overlayfs/readdir.c   |  5 +++--
+> >  fs/overlayfs/super.c     |  9 +++++++++
+> >  fs/overlayfs/util.c      | 34 ++++++++++++++--------------------
+> >  6 files changed, 60 insertions(+), 39 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> > index 984ffdaeed6c..caccf3803796 100644
+> > --- a/fs/overlayfs/namei.c
+> > +++ b/fs/overlayfs/namei.c
+> > @@ -18,10 +18,11 @@
+> >
+> >  struct ovl_lookup_data {
+> >       struct super_block *sb;
+> > -     struct vfsmount *mnt;
+> > +     const struct ovl_layer *layer;
+> >       struct qstr name;
+> >       bool is_dir;
+> >       bool opaque;
+> > +     bool xwhiteouts;
+> >       bool stop;
+> >       bool last;
+> >       char *redirect;
+> > @@ -201,17 +202,13 @@ struct dentry *ovl_decode_real_fh(struct ovl_fs
+> > *ofs, struct ovl_fh *fh,
+> >       return real;
+> >  }
+> >
+> > -static bool ovl_is_opaquedir(struct ovl_fs *ofs, const struct path
+> > *path)
+> > -{
+> > -     return ovl_path_check_dir_xattr(ofs, path,
+> > OVL_XATTR_OPAQUE);
+> > -}
+> > -
+> >  static struct dentry *ovl_lookup_positive_unlocked(struct
+> > ovl_lookup_data *d,
+> >                                                  const char *name,
+> >                                                  struct dentry
+> > *base, int len,
+> >                                                  bool
+> > drop_negative)
+> >  {
+> > -     struct dentry *ret =3D lookup_one_unlocked(mnt_idmap(d->mnt),
+> > name, base, len);
+> > +     struct dentry *ret =3D lookup_one_unlocked(mnt_idmap(d->layer-
+> > >mnt), name,
+> > +                                              base, len);
+> >
+> >       if (!IS_ERR(ret) && d_flags_negative(smp_load_acquire(&ret-
+> > >d_flags))) {
+> >               if (drop_negative && ret->d_lockref.count =3D=3D 1) {
+> > @@ -232,10 +229,13 @@ static int ovl_lookup_single(struct dentry
+> > *base, struct ovl_lookup_data *d,
+> >                            size_t prelen, const char *post,
+> >                            struct dentry **ret, bool
+> > drop_negative)
+> >  {
+> > +     struct ovl_fs *ofs =3D OVL_FS(d->sb);
+> >       struct dentry *this;
+> >       struct path path;
+> >       int err;
+> >       bool last_element =3D !post[0];
+> > +     bool is_upper =3D d->layer->idx =3D=3D 0;
+> > +     char val;
+> >
+> >       this =3D ovl_lookup_positive_unlocked(d, name, base, namelen,
+> > drop_negative);
+> >       if (IS_ERR(this)) {
+> > @@ -253,8 +253,8 @@ static int ovl_lookup_single(struct dentry *base,
+> > struct ovl_lookup_data *d,
+> >       }
+> >
+> >       path.dentry =3D this;
+> > -     path.mnt =3D d->mnt;
+> > -     if (ovl_path_is_whiteout(OVL_FS(d->sb), &path)) {
+> > +     path.mnt =3D d->layer->mnt;
+> > +     if (ovl_path_is_whiteout(ofs, &path)) {
+> >               d->stop =3D d->opaque =3D true;
+> >               goto put_and_out;
+> >       }
+> > @@ -272,7 +272,7 @@ static int ovl_lookup_single(struct dentry *base,
+> > struct ovl_lookup_data *d,
+> >                       d->stop =3D true;
+> >                       goto put_and_out;
+> >               }
+> > -             err =3D ovl_check_metacopy_xattr(OVL_FS(d->sb), &path,
+> > NULL);
+> > +             err =3D ovl_check_metacopy_xattr(ofs, &path, NULL);
+> >               if (err < 0)
+> >                       goto out_err;
+> >
+> > @@ -292,7 +292,11 @@ static int ovl_lookup_single(struct dentry
+> > *base, struct ovl_lookup_data *d,
+> >               if (d->last)
+> >                       goto out;
+> >
+> > -             if (ovl_is_opaquedir(OVL_FS(d->sb), &path)) {
+> > +             /* overlay.opaque=3Dx means xwhiteouts directory */
+> > +             val =3D ovl_get_opaquedir_val(ofs, &path);
+> > +             if (last_element && !is_upper && val =3D=3D 'x') {
+> > +                     d->xwhiteouts =3D true;
+> > +             } else if (val =3D=3D 'y') {
+> >                       d->stop =3D true;
+> >                       if (last_element)
+> >                               d->opaque =3D true;
+> > @@ -1055,7 +1059,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > struct dentry *dentry,
+> >       old_cred =3D ovl_override_creds(dentry->d_sb);
+> >       upperdir =3D ovl_dentry_upper(dentry->d_parent);
+> >       if (upperdir) {
+> > -             d.mnt =3D ovl_upper_mnt(ofs);
+> > +             d.layer =3D &ofs->layers[0];
+> >               err =3D ovl_lookup_layer(upperdir, &d, &upperdentry,
+> > true);
+> >               if (err)
+> >                       goto out;
+> > @@ -1111,7 +1115,7 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > struct dentry *dentry,
+> >               else if (d.is_dir || !ofs->numdatalayer)
+> >                       d.last =3D lower.layer->idx =3D=3D
+> > ovl_numlower(roe);
+> >
+> > -             d.mnt =3D lower.layer->mnt;
+> > +             d.layer =3D lower.layer;
+> >               err =3D ovl_lookup_layer(lower.dentry, &d, &this,
+> > false);
+> >               if (err)
+> >                       goto out_put;
+> > @@ -1278,6 +1282,8 @@ struct dentry *ovl_lookup(struct inode *dir,
+> > struct dentry *dentry,
+> >
+> >       if (upperopaque)
+> >               ovl_dentry_set_opaque(dentry);
+> > +     if (d.xwhiteouts)
+> > +             ovl_dentry_set_xwhiteouts(dentry);
+> >
+> >       if (upperdentry)
+> >               ovl_dentry_set_upper_alias(dentry);
+> > diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+> > index 5ba11eb43767..410b3bfc3afc 100644
+> > --- a/fs/overlayfs/overlayfs.h
+> > +++ b/fs/overlayfs/overlayfs.h
+> > @@ -70,6 +70,8 @@ enum ovl_entry_flag {
+> >       OVL_E_UPPER_ALIAS,
+> >       OVL_E_OPAQUE,
+> >       OVL_E_CONNECTED,
+> > +     /* Lower stack may contain xwhiteout entries */
+> > +     OVL_E_XWHITEOUTS,
+> >  };
+> >
+> >  enum {
+> > @@ -476,6 +478,8 @@ void ovl_dentry_clear_flag(unsigned long flag,
+> > struct dentry *dentry);
+> >  bool ovl_dentry_test_flag(unsigned long flag, struct dentry
+> > *dentry);
+> >  bool ovl_dentry_is_opaque(struct dentry *dentry);
+> >  bool ovl_dentry_is_whiteout(struct dentry *dentry);
+> > +bool ovl_dentry_is_xwhiteouts(struct dentry *dentry);
+> > +void ovl_dentry_set_xwhiteouts(struct dentry *dentry);
+> >  void ovl_dentry_set_opaque(struct dentry *dentry);
+> >  bool ovl_dentry_has_upper_alias(struct dentry *dentry);
+> >  void ovl_dentry_set_upper_alias(struct dentry *dentry);
+> > @@ -494,11 +498,10 @@ struct file *ovl_path_open(const struct path
+> > *path, int flags);
+> >  int ovl_copy_up_start(struct dentry *dentry, int flags);
+> >  void ovl_copy_up_end(struct dentry *dentry);
+> >  bool ovl_already_copied_up(struct dentry *dentry, int flags);
+> > -bool ovl_path_check_dir_xattr(struct ovl_fs *ofs, const struct path
+> > *path,
+> > -                           enum ovl_xattr ox);
+> > +char ovl_get_dir_xattr_val(struct ovl_fs *ofs, const struct path
+> > *path,
+> > +                        enum ovl_xattr ox);
+> >  bool ovl_path_check_origin_xattr(struct ovl_fs *ofs, const struct
+> > path *path);
+> >  bool ovl_path_check_xwhiteout_xattr(struct ovl_fs *ofs, const struct
+> > path *path);
+> > -bool ovl_path_check_xwhiteouts_xattr(struct ovl_fs *ofs, const
+> > struct path *path);
+> >  bool ovl_init_uuid_xattr(struct super_block *sb, struct ovl_fs *ofs,
+> >                        const struct path *upperpath);
+> >
+> > @@ -573,7 +576,13 @@ static inline bool ovl_is_impuredir(struct
+> > super_block *sb,
+> >               .mnt =3D ovl_upper_mnt(ofs),
+> >       };
+> >
+> > -     return ovl_path_check_dir_xattr(ofs, &upperpath,
+> > OVL_XATTR_IMPURE);
+> > +     return ovl_get_dir_xattr_val(ofs, &upperpath,
+> > OVL_XATTR_IMPURE) =3D=3D 'y';
+> > +}
+> > +
+> > +static inline char ovl_get_opaquedir_val(struct ovl_fs *ofs,
+> > +                                      const struct path *path)
+> > +{
+> > +     return ovl_get_dir_xattr_val(ofs, path, OVL_XATTR_OPAQUE);
+> >  }
+> >
+> >  static inline bool ovl_redirect_follow(struct ovl_fs *ofs)
+> > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+> > index 5fa9c58af65f..0b7b21745ba3 100644
+> > --- a/fs/overlayfs/ovl_entry.h
+> > +++ b/fs/overlayfs/ovl_entry.h
+> > @@ -86,6 +86,8 @@ struct ovl_fs {
+> >       /* Shared whiteout cache */
+> >       struct dentry *whiteout;
+> >       bool no_shared_whiteout;
+> > +     /* xwhiteouts may exist in lower layers */
+> > +     bool xwhiteouts;
+>
+> This comment is a bit off, this is now only used for the root dir.
+>
+> >       /* r/o snapshot of upperdir sb's only taken on volatile
+> > mounts */
+> >       errseq_t errseq;
+> >  };
+> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> > index e71156baa7bc..edef4e3401de 100644
+> > --- a/fs/overlayfs/readdir.c
+> > +++ b/fs/overlayfs/readdir.c
+> > @@ -165,7 +165,8 @@ static struct ovl_cache_entry
+> > *ovl_cache_entry_new(struct ovl_readdir_data *rdd,
+> >       p->is_upper =3D rdd->is_upper;
+> >       p->is_whiteout =3D false;
+> >       /* Defer check for overlay.whiteout to ovl_iterate() */
+> > -     p->check_xwhiteout =3D rdd->in_xwhiteouts_dir && d_type =3D=3D
+> > DT_REG;
+> > +     p->check_xwhiteout =3D rdd->in_xwhiteouts_dir &&
+> > +                         !rdd->is_upper && d_type =3D=3D DT_REG;
+> >
+>
+> Maybe we can move the is_upper check to where we set in_xwhiteouts_dir?
+>
+> >       if (d_type =3D=3D DT_CHR) {
+> >               p->next_maybe_whiteout =3D rdd->first_maybe_whiteout;
+> > @@ -306,7 +307,7 @@ static inline int ovl_dir_read(const struct path
+> > *realpath,
+> >               return PTR_ERR(realfile);
+> >
+> >       rdd->in_xwhiteouts_dir =3D rdd->dentry &&
+> > -             ovl_path_check_xwhiteouts_xattr(OVL_FS(rdd->dentry-
+> > >d_sb), realpath);
+> > +             ovl_dentry_is_xwhiteouts(rdd->dentry);
+>
+> Now that the xwhiteout flag is on the dentry, it will be set for all
+> layers. Maybe we can avoid setting in_whiteouts_dir for the lowermost
+> layer?
+>
 
-That said, I can see that in some cases it may make sense to use
-multiple lower dirs, for example when using composefs for multi-layer
-container images. When generating such layers we typically have the
-lower levels available, so we could probably extract the base/dir
-status for each directory.
+Applied this diff and pushed to the ovl-fixes branch.
 
-> In legacy overlayfs, there is an explicit mark for "this is a base
-> dir" -
-> namely, the opaque xattr, but there is no such explicit mark on
-> directories without an entry with the same name in layers below them.
->=20
-> The lack of explicit mark "merge" vs. "opaque" in all directories in
-> all
-> the layers had led to problems in the past, for example, this is the
-> reason that this fix was needed:
->=20
-> =C2=A0 b79e05aaa166 ovl: no direct iteration for dir with origin xattr
->=20
-> In conclusion, since composefs is the first tool, that I know of, to
-> compose "non-legacy" overlayfs layers (i.e. with overlay xattrs),
-> I think the correct design decision would mark every directory in
-> every layer explicitly as at exactly one of "merge"/"opaque".
->=20
-> Note that non-dir are always marked explicitly as "metacopy",
-> so there is no ambiguity with non-dirs and we also error out
-> if a non-dir stack does not end with an "opaque" entry.
->=20
-> Additionally, when composing layers, since all the children of
-> a directory should be explicitly marked as "merge" vs. "opaque"
-> then the parent's "impure" (meaning contains "merge" children)
-> can also be set at composing time.
->=20
-> Failing to set "impure" correctly when composing layers could
-> result in wrong readdir d_ino results.
->=20
-> My proposition in v3 for an explicit mark was to
-> "reinterpret the opaque xattr from boolean to enum".
-> My proposal included only the states 'y' (opaque) and 'x' (contains
-> xwhiteouts), but for composefs, I would extend this to also mark
-> a merge dir explicitly with opaque=3D'n' and explicitly mark all the
-> directories in a "base layer" with opaque=3D'y'.
->=20
-> Implementation-wise, composefs could start by marking each directory
-> with either 'y'/'n' state based on the lowerstack, and if xwhiteout
-> entries
-> are added, 'n' state could be changed to 'x' state.
+Will wait for ACK from Miklos before sending PR.
 
-We never add xwhiteout entries to the composefs, all directories in the
-base layer would be overlay=3Dn or y, and any directory containing an
-escaped xwhiteout would have an escaped opaque xattr with 'x'.
+Thanks,
+Amir.
 
-> What do you think?
 
-I feel it may be overkill, as most composefs images would be a one-
-layer thing, and adding opaque=3Dn to every directory in the lowermost
-layer would just waste space and makes little sense (being in the
-lowest layer means we already know if the directory is merged or not).
-However, I think it may make sense to be able to mark non-lowest-layer
-directories with either n or y.
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index 0b7b21745ba3..c089e5ff37b5 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -86,7 +86,7 @@ struct ovl_fs {
+        /* Shared whiteout cache */
+        struct dentry *whiteout;
+        bool no_shared_whiteout;
+-       /* xwhiteouts may exist in lower layers */
++       /* xwhiteouts may exist in lower layer root dirs */
+        bool xwhiteouts;
+        /* r/o snapshot of upperdir sb's only taken on volatile mounts */
+        errseq_t errseq;
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index edef4e3401de..3168e851ca1f 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -165,8 +165,7 @@ static struct ovl_cache_entry
+*ovl_cache_entry_new(struct ovl_readdir_data *rdd,
+        p->is_upper =3D rdd->is_upper;
+        p->is_whiteout =3D false;
+        /* Defer check for overlay.whiteout to ovl_iterate() */
+-       p->check_xwhiteout =3D rdd->in_xwhiteouts_dir &&
+-                           !rdd->is_upper && d_type =3D=3D DT_REG;
++       p->check_xwhiteout =3D rdd->in_xwhiteouts_dir && d_type =3D=3D DT_R=
+EG;
 
-> Does it make sense from composefs POV?
-> Am I correct to assume that at composing time, every directory
-> state is known (base 'y' vs. diff 'n')?
->=20
-> Thanks,
-> Amir.
->=20
+        if (d_type =3D=3D DT_CHR) {
+                p->next_maybe_whiteout =3D rdd->first_maybe_whiteout;
+@@ -306,8 +305,9 @@ static inline int ovl_dir_read(const struct path *realp=
+ath,
+        if (IS_ERR(realfile))
+                return PTR_ERR(realfile);
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
-=3D-=3D-=3D
- Alexander Larsson                                            Red Hat,
-Inc=20
-       alexl@redhat.com            alexander.larsson@gmail.com=20
-He's a globe-trotting crooked cyborg in drag. She's an elegant=20
-streetsmart socialite prone to fits of savage, blood-crazed rage. They=20
-fight crime!=20
-
+-       rdd->in_xwhiteouts_dir =3D rdd->dentry &&
+-               ovl_dentry_is_xwhiteouts(rdd->dentry);
++       /* No need to check for xwhiteouts in upper and lowermost layers */
++       rdd->in_xwhiteouts_dir =3D !rdd->is_upper && !rdd->is_lowest &&
++               rdd->dentry && ovl_dentry_is_xwhiteouts(rdd->dentry);
+        rdd->first_maybe_whiteout =3D NULL;
+        rdd->ctx.pos =3D 0;
