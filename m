@@ -1,216 +1,118 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wm1-f42.google.com (mail-wm1-f42.google.com [209.85.128.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BA1F07F7DC;
-	Tue, 23 Jan 2024 16:37:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 109CC44363;
+	Thu, 25 Jan 2024 11:23:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706027845; cv=none; b=suR0DlV9MEXoGdT+UA0wN0UoK4U6vW1hVyfeM6TxAMX95hUxKi6FRFLyQbf43Wa73zRgX1CgBUKAprm2m3C3uZ3l2zuG18hgqwpux6jIo4vbaTRhXpZGzdZ76kJnibwgnOX/LrhjUqx/ehIUfAQLBDPBDtaLdcWAEhgphln9IYc=
+	t=1706181796; cv=none; b=YFoSKGYZBpsFqOJebHzGyBk9/b4bNfH1FzuOfI5MW33u0VxJIiJknA1O75NSu6CI6DHfIdlpdfhSaGYw+sLtSpqtvcXQEm4sGdlWALqTYQBvsYgelZbfXr+2s03wJfmzkZXULCVxbm9jCFYW91LOcY41W1Gh5HRsIkt9aa2sZ2k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706027845; c=relaxed/simple;
-	bh=nkWULrJKr0g4IyTo5nQBTn36gTwU6vzvs00o9QdUlhc=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=EEuoRysQr7Ps8hOeeI7DhD0NwTNTYy0iKZtf9IVid6E8u9lROmVAIcAousk17vpnFVCEbqncwLpV4yb89o9hh5d3ecQvex4dO3FFXSxmUu5ocQmHm9n/z/FmfSUKNULTNAPqRZCcv0CqrynUZK3c264HWorDYcZ2xVcnoZeLuUk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=aQKH7OdE; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1706181796; c=relaxed/simple;
+	bh=rsXtaAPeZfDh5LSUQclGLopYCeuxqGyApVRH6n1EsQU=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Xo+VR7omRZFVyT5q98AOglT5sEJ4jNvM7PW/GN1o8wy9/EOgcfTZ4tpZy2euMpTpiV7gE4kTEMgFdlSSipHuMiY67iO9os2D4hTf9WTJc68NhWQtA3vuyQDtFjMfpsmo4PCV8Dk5ELzHULpEgNaLQW1x/twWE7yRNTjWZyettjE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Z68B0Npc; arc=none smtp.client-ip=209.85.128.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="aQKH7OdE"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706027842; x=1737563842;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version:content-transfer-encoding;
-  bh=nkWULrJKr0g4IyTo5nQBTn36gTwU6vzvs00o9QdUlhc=;
-  b=aQKH7OdESOZQdka/T/Q26jK/AlQScvCjgTqp0DHrMgZDhehxLrqXkkpN
-   A8jTF5bltbLZxi/7QE9zci1vWtsgKsGzyR89VBXDl+HkfOpkVdwNUHE1D
-   PTn97Zn5Rqx6g2TQ5WXrl3kCbrRnXXXH3lxeSE50qIUxAl546gDwZK75v
-   WDpNMgofc6qiE6jJ8T1Y8PKhdy8FhR55HmTCxf4ry3FRfHYpQoO+jS7qW
-   2xVBjnBNWqJe+Oobq6QMSqz0+VTbnYQftDw9a26DVhzfVJkVJcaixYCib
-   dziuWAME6s14pt8ofj//kO8/HUWVisa52draMZkyj8Gu8ttOhp2dSYAQF
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="8330202"
-X-IronPort-AV: E=Sophos;i="6.05,214,1701158400"; 
-   d="scan'208";a="8330202"
-Received: from orsmga003.jf.intel.com ([10.7.209.27])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2024 08:37:21 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10962"; a="735623447"
-X-IronPort-AV: E=Sophos;i="6.05,214,1701158400"; 
-   d="scan'208";a="735623447"
-Received: from unknown (HELO vcostago-mobl3) ([10.125.19.148])
-  by orsmga003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Jan 2024 08:37:21 -0800
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: Christian Brauner <brauner@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>, hu1.chen@intel.com,
- miklos@szeredi.hu, malini.bhandaru@intel.com, tim.c.chen@intel.com,
- mikko.ylinen@intel.com, lizhen.you@intel.com,
- linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel
- <linux-fsdevel@vger.kernel.org>, Linus Torvalds
- <torvalds@linux-foundation.org>, David Howells <dhowells@redhat.com>, Seth
- Forshee <sforshee@kernel.org>
-Subject: Re: [RFC] HACK: overlayfs: Optimize overlay/restore creds
-In-Reply-To: <20240123-apparat-flohen-a18640d08ae2@brauner>
-References: <CAOQ4uxg-WvdcuCrQg7zp03ocNZoT-G2bpi=Y6nVxMTodyFAUbg@mail.gmail.com>
- <20231214220222.348101-1-vinicius.gomes@intel.com>
- <CAOQ4uxhJmjeSSM5iQyDadbj5UNjPqvh1QPLpSOVEYFbNbsjDQQ@mail.gmail.com>
- <87v88zp76v.fsf@intel.com>
- <CAOQ4uxiCVv7zbfn2BPrR9kh=DvGxQtXUmRvy2pDJ=G7rxjBrgg@mail.gmail.com>
- <CAOQ4uxhxvFt3_Wb3BGcjj4pGp=OFTBHNPJ4r4eH8245t-+CW+g@mail.gmail.com>
- <20231218-intim-lehrstellen-dbe053d6c3a8@brauner>
- <875y0vp41g.fsf@intel.com>
- <CAOQ4uxibYMQw0iszKhE5uxBnyayHWjqp4ZnOOiugO3GxMRS1eA@mail.gmail.com>
- <87le9qntwo.fsf@intel.com> <20240123-apparat-flohen-a18640d08ae2@brauner>
-Date: Tue, 23 Jan 2024 08:37:20 -0800
-Message-ID: <87le8ggg5b.fsf@intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Z68B0Npc"
+Received: by mail-wm1-f42.google.com with SMTP id 5b1f17b1804b1-40eb2f392f0so35372285e9.1;
+        Thu, 25 Jan 2024 03:23:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1706181793; x=1706786593; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ymw1Lm+bF1xYdAzdzSP190aFmW78XpgqGX09mkj9PoU=;
+        b=Z68B0NpcAnQILDDsiR05/vqG8dHt4svQc/FSEnwtTR64MZzw8XrEe7oDpilT3cA7es
+         0qYQVXlKDqiwrEaVn09KKLqNxHmZAoR9s77DcNnvx1f4XM4+Df/S9wGSX/OUQKIL315J
+         7w3G0FSP/eqQZSGD4kG5qzhriXlNnkx0ueSSMNBAKznlkV6qnVS7oJGMucHDzT9j60UV
+         hzrwyJh/P2T6Dw6LA7mP3LW7fBR2Nz6VPCfOBTwcz3+nm4UVZdJgIDJrjQjqD4az+mdT
+         nWy7oUsyLJOMx4dZDKm3oj9gcJ83u05HN2MKBEOQ4+y5SXHHi6D+4s9MbVSKIYhoOxTc
+         IjRw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706181793; x=1706786593;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ymw1Lm+bF1xYdAzdzSP190aFmW78XpgqGX09mkj9PoU=;
+        b=Yc2GEcxy8l63e89YfuSwWSGMoYw7fd8SX4uGrAmZWBIHc4AM//hlrR34Cb6CnRK11b
+         Ad5X1qe5xKLQOm/3KxBzagDJPY4eXXnxQD0SvreGSohkf18mCrOSqVKHz2bJ1XGWwvQw
+         Cqq4465MeMInBmOjBhMyvl/8+LQrQpdUPD4zqMiLHbLeC+MfvkYlmufP4DHEGGvt/k3d
+         ohS60xds2nP6wuAaI6Q/d2N1KSkaIMJrD//tMbs6wEG8EBsFmeUx9zNOx11qCBZWvAzI
+         slNu45TU3DUaQgYDXWHPhJtk7TlSdh1KyVAg+su/Ro4aKagEiJ+MD2zESbwqTQFmE5PU
+         B4bA==
+X-Gm-Message-State: AOJu0Yx9psNt0nX8N76gVqFrmNezutn00AsNcCVpFPVqkB2404eP3Tui
+	3ujSNpETnB4UoGsv/EnH45dNQOg1rQJg7IB9hhhNF1Vpkx273f+z
+X-Google-Smtp-Source: AGHT+IG8S5kba/Z9bChR71Rj0vGDL4udebeaijAgRBSyWCmp5xoVHPv5bI5GABi5KLMs6neLaPywIw==
+X-Received: by 2002:a05:600c:45c9:b0:40e:a00a:b76 with SMTP id s9-20020a05600c45c900b0040ea00a0b76mr394193wmo.21.1706181792961;
+        Thu, 25 Jan 2024 03:23:12 -0800 (PST)
+Received: from amir-ThinkPad-T480.lan ([5.29.249.86])
+        by smtp.gmail.com with ESMTPSA id je5-20020a05600c1f8500b0040d1bd0e716sm2281996wmb.9.2024.01.25.03.23.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 25 Jan 2024 03:23:12 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs fixes for 6.8-rc2
+Date: Thu, 25 Jan 2024 13:23:08 +0200
+Message-Id: <20240125112308.753888-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Christian Brauner <brauner@kernel.org> writes:
+Hi Linus,
 
-> On Tue, Dec 19, 2023 at 06:33:59AM -0800, Vinicius Costa Gomes wrote:
->> Amir Goldstein <amir73il@gmail.com> writes:
->>=20
->> > On Mon, Dec 18, 2023 at 11:57=E2=80=AFPM Vinicius Costa Gomes
->> > <vinicius.gomes@intel.com> wrote:
->> >>
->> >> Christian Brauner <brauner@kernel.org> writes:
->> >>
->> >> >> > Yes, the important thing is that an object cannot change
->> >> >> > its non_refcount property during its lifetime -
->> >> >>
->> >> >> ... which means that put_creds_ref() should assert that
->> >> >> there is only a single refcount - the one handed out by
->> >> >> prepare_creds_ref() before removing non_refcount or
->> >> >> directly freeing the cred object.
->> >> >>
->> >> >> I must say that the semantics of making a non-refcounted copy
->> >> >> to an object whose lifetime is managed by the caller sounds a lot
->> >> >> less confusing to me.
->> >> >
->> >> > So can't we do an override_creds() variant that is effectively just:
->> >
->> > Yes, I think that we can....
->> >
->> >> >
->> >> > /* caller guarantees lifetime of @new */
->> >> > const struct cred *foo_override_cred(const struct cred *new)
->> >> > {
->> >> >       const struct cred *old =3D current->cred;
->> >> >       rcu_assign_pointer(current->cred, new);
->> >> >       return old;
->> >> > }
->> >> >
->> >> > /* caller guarantees lifetime of @old */
->> >> > void foo_revert_creds(const struct cred *old)
->> >> > {
->> >> >       const struct cred *override =3D current->cred;
->> >> >       rcu_assign_pointer(current->cred, old);
->> >> > }
->> >> >
->> >
->> > Even better(?), we can do this in the actual guard helpers to
->> > discourage use without a guard:
->> >
->> > struct override_cred {
->> >         struct cred *cred;
->> > };
->> >
->> > DEFINE_GUARD(override_cred, struct override_cred *,
->> >             override_cred_save(_T),
->> >             override_cred_restore(_T));
->> >
->> > ...
->> >
->> > void override_cred_save(struct override_cred *new)
->> > {
->> >         new->cred =3D rcu_replace_pointer(current->cred, new->cred, tr=
-ue);
->> > }
->> >
->> > void override_cred_restore(struct override_cred *old)
->> > {
->> >         rcu_assign_pointer(current->cred, old->cred);
->> > }
->> >
->> >> > Maybe I really fail to understand this problem or the proposed solu=
-tion:
->> >> > the single reference that overlayfs keeps in ovl->creator_cred is t=
-ied
->> >> > to the lifetime of the overlayfs superblock, no? And anyone who nee=
-ds a
->> >> > long term cred reference e.g, file->f_cred will take it's own refer=
-ence
->> >> > anyway. So it should be safe to just keep that reference alive until
->> >> > overlayfs is unmounted, no? I'm sure it's something quite obvious w=
-hy
->> >> > that doesn't work but I'm just not seeing it currently.
->> >>
->> >> My read of the code says that what you are proposing should work. (wh=
-at
->> >> I am seeing is that in the "optimized" cases, the only practical effe=
-ct
->> >> of override/revert is the rcu_assign_pointer() dance)
->> >>
->> >> I guess that the question becomes: Do we want this property (that the
->> >> 'cred' associated with a subperblock/similar is long lived and the
->> >> "inner" refcount can be omitted) to be encoded in the constructor? Or=
- do
->> >> we want it to be "encoded" in a call by call basis?
->> >>
->> >
->> > Neither.
->> >
->> > Christian's proposal does not involve marking the cred object as
->> > long lived, which looks a much better idea to me.
->> >
->>=20
->> In my mind, I am reading his suggestion as the flag "long lived
->> cred/lives long enough" is "in our brains" vs. what I proposed that the
->> flag was "in the object". The effect of the "flag" is the same: when to
->> use a lighter version (no refcount) of override/revert.
->>=20
->> What I was thinking was more more under the covers, implicit. And I can
->> see the advantages of having them more explicit.
->>=20
->> > The performance issues you observed are (probably) due to get/put
->> > of cred refcount in the helpers {override,revert}_creds().
->> >
->>=20
->> Yes, they are. Sorry that it was lost in the context. The original
->> report is here:
->>=20
->> https://lore.kernel.org/all/20231018074553.41333-1-hu1.chen@intel.com/
->>=20
->> > Christian suggested lightweight variants of {override,revert}_creds()
->> > that do not change refcount. Combining those with a guard and
->> > I don't see what can go wrong (TM).
->> >
->> > If you try this out and post a patch, please be sure to include the
->> > motivation for the patch along with performance numbers in the
->> > commit message, even if only posting an RFC patch.
->> >
->>=20
->> Of course.
->>=20
->> And to be sure, I will go with Christian's suggestion, it looks neat,
->> and having a lighter version of references is a more common idiom.
->
-> Did this ever go anywhere?
+Please pull overlayfs fixes for 6.8-rc2.
 
-Oh, yes! Had to do a few tweaks to what you suggested, but it's working
-fine.
+This branch has been sitting in linux-next for a couple of days and
+it has gone through the usual overlayfs test routines.
 
-Just collecting some fresh numbers for the cover letter. Will propose
-the v2 of the RFC soon.
+The branch merges cleanly with master branch of the moment.
 
+Thanks,
+Amir.
 
-Cheers,
---=20
-Vinicius
+----------------------------------------------------------------
+The following changes since commit 6613476e225e090cc9aad49be7fa504e290dd33d:
+
+  Linux 6.8-rc1 (2024-01-21 14:11:32 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.8-rc2
+
+for you to fetch changes up to 420332b94119cdc7db4477cc88484691cb92ae71:
+
+  ovl: mark xwhiteouts directory with overlay.opaque='x' (2024-01-23 12:39:48 +0200)
+
+----------------------------------------------------------------
+overlayfs fixes for 6.8-rc2:
+
+- Change in on-disk format for the new "xwhiteouts" feature introduced in v6.7
+
+  The change reduces unneeded overhead of an extra getxattr per readdir.
+  The only user of the "xwhiteout" feature is the external composefs tool,
+  which has been updated to support the new on-disk format.
+
+  This change is also designated for 6.7.y.
+
+----------------------------------------------------------------
+Amir Goldstein (1):
+      ovl: mark xwhiteouts directory with overlay.opaque='x'
+
+ Documentation/filesystems/overlayfs.rst | 16 ++++++++--
+ fs/overlayfs/namei.c                    | 43 ++++++++++++++++----------
+ fs/overlayfs/overlayfs.h                | 23 ++++++++++----
+ fs/overlayfs/ovl_entry.h                |  4 ++-
+ fs/overlayfs/readdir.c                  |  7 +++--
+ fs/overlayfs/super.c                    | 15 ++++++++++
+ fs/overlayfs/util.c                     | 53 +++++++++++++++++++--------------
+ 7 files changed, 110 insertions(+), 51 deletions(-)
