@@ -1,173 +1,347 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80E891C2A5;
-	Fri, 26 Jan 2024 14:50:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7E04A1EB41;
+	Fri, 26 Jan 2024 17:22:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706280658; cv=none; b=F0rEIpPdRVvjYIS4A/ZC/+nxBZsVjcMjuETmod7uwefeK7HC60lPKJL7B4qLCDENnY4ivpNvSYshoT/7KMH880y7j5fq1Jy3vUu089R8RT3sIhhR8256wUlOIaq1ReDLItdm9NDv5coM1vZ/sDXMBOOwE4ii3gP2k2lLTFAvGlE=
+	t=1706289751; cv=none; b=OmI+yyukRIZ/RjKktGCfpEL5G4qcPxe6VArgaRgBtQ5p33rfybpVTDvZ2HUeuXUaiSW+rj3TvLW3uh7c6xqGqKJ1SlrFsIYKWbjoRIu0Is3BPbsraTQYGlKPlXsm6pPLIoyqAxPdfLmIWlhIDPF7h9cx3gViKbsrMf/2KRHCH0Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706280658; c=relaxed/simple;
-	bh=mZggQAMt5w4u5uqa7pG20qzshBhYgUUvPobmKDHLKEw=;
+	s=arc-20240116; t=1706289751; c=relaxed/simple;
+	bh=faMjkaHk7os/E2kEVOp/ZNX+EUZRZ1j9yZusNn3y15I=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=g4ebYcAnMqO4RJzUPdd1TLGjTsE7SMaVbRjfMZEZsBjEvGMkLo4U9OZ72l+i4izCCUvmd3tPoYCoTqSiikGgqYYCctUuOHTPfFQyWLazAx5Og+vYvrvwc/1equZX6+ZPmqaseikjlcY6tAj5Fty3drUJq/5TvF2MJGUAGUuCZmE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MfcM1juL; arc=none smtp.client-ip=209.85.222.176
+	 To:Cc:Content-Type; b=KdlzdNPSek1Yvvof/P1RFBZCC92kV/weIzRB2PT1Cxs6fHuJ9p6z0gaXqYgYnROWjM5gYZDbtx7AeWP+KNtER6Kr+B7ytyoS7GbSBQPlUdCnpiTa1kIbtkVx/vAdTCfGP0JhapeXqh8zcIhAqSbtXnQcC7LHiBbNQYtpIpUt+h0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=nLA67ZYn; arc=none smtp.client-ip=209.85.218.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MfcM1juL"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-783cd245ec0so39217085a.3;
-        Fri, 26 Jan 2024 06:50:56 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="nLA67ZYn"
+Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-a27733ae1dfso38730666b.3;
+        Fri, 26 Jan 2024 09:22:29 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1706280655; x=1706885455; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1706289747; x=1706894547; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=u/1++r8v+pWoipgYyku3vmpCyA0Gff5YNQqLULNAGzs=;
-        b=MfcM1juLHtrmiYVsD05HvnLPTCnE+SWqd0UTsvmRo/4XRE32DINmn9btk698dXdXbo
-         wglgiVdUciIglL1uk8q02z2O6dlZzXV7FzqV2loZpNJqp9pn+S/h6IGy+gphvAN7fGtr
-         NSUmvKO06Xwm7HUVMKlIvmz6D6khPBVOFoXeF6Ug5emoT1NYUxiJBaUZ2HiKbPQv+tzL
-         86RZnNztcLJN8i9Nxg6h4vV4eTsVZ5vcCycnraEn3DUR9/a3Y8MzTOsKuRLCxTgatSZY
-         5TWqkp9cyTXVhaRolsjzCYaG0obZCa28l5bu81qjped4wqY4GLA09DYDP4PBWizCXfaU
-         7NwQ==
+        bh=frHohxChucR+396ZZyvCVKe3rd87cMANH2LHlTV9uT0=;
+        b=nLA67ZYnjSHHKr+QIFNsvOqKwNFbP9hamzg/k617hWKUUwvK8FpETCYc0yYgP4LeOr
+         MA1OMxHgifcxaE1bLQTwZT9benspt8sMfAREaSWyeEbiOaKNR3PxPEjP4QTh+cynlkkh
+         ZvGNRI7kybaA71ld98tOsTKYEM8r6riQK2y5dLerKustUyCWD3xoZOuqURZkp8A8bzm0
+         4226Nk33HIazX8JleqrSW35guL3/Y+zhhizei8M3iwqV6YGDegp7KWxePeNpWDxF+xSx
+         PACjdHKlianwqcmuiodkM0myNxMAh+tMYcvy4nE+XEurQ+xvrXWyJheP9CbgaxQPte4b
+         Uo1Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706280655; x=1706885455;
+        d=1e100.net; s=20230601; t=1706289747; x=1706894547;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=u/1++r8v+pWoipgYyku3vmpCyA0Gff5YNQqLULNAGzs=;
-        b=a3FELIKSCr59Q542LJQIlFNO71gG20MuST7Ppwa+5eVtcdk2GOpPgdeZ7vVStH+mV6
-         Quro1csd3najJxuIEzmqg+Q89bFDWT/1UqbQDN+SS7hr5m4qf1ifn8vZfH0W4IQJP6CF
-         w0S75fGZHsoLlX44Dwd3DlkEJJygYIVySv7y4gVlG+MIGr86+uUmzIQPYa73RkZs+Hmt
-         DNq3mTml/Ylwtp7IQ/sbKHlPsOHn+3B+k+P4JyEH5USm9BSECiGZpLmhFRibud2Z5ICZ
-         u95Q1a3B7V4cFGwae0MhaKaxoZ22BCEsjv0js3wALv4955YHGmrijNruPtnzCrmUgLl0
-         HU1Q==
-X-Gm-Message-State: AOJu0YzgzvZqKXyM1SazULTGCqdakNQzWzbPI63mr4zyg5/BbOkar5GH
-	/o74YTBiKu40sfNm9gIHyNnimYbWM/mE7FjcZhIKaQ7f8ZbBwnuClhVJESch4KzbO93Z5QF0hua
-	T8MpDqCNzLmCwfYmKx9cEVsN7y6Q=
-X-Google-Smtp-Source: AGHT+IHqG5hPV121VyvqSLJuvMpWc8n3AhmTweSV27h0xeAidMXggDOPVqthD4Wl6Q6T7ZtzZM9wlN/+WfOxCbB9zB8=
-X-Received: by 2002:ad4:5bcc:0:b0:680:f9a3:ce50 with SMTP id
- t12-20020ad45bcc000000b00680f9a3ce50mr1436445qvt.111.1706280655325; Fri, 26
- Jan 2024 06:50:55 -0800 (PST)
+        bh=frHohxChucR+396ZZyvCVKe3rd87cMANH2LHlTV9uT0=;
+        b=fhGxjPdFphRCW24sCTiilzpx8yb/EoXDR07ld4doUda2QxtTaBv8qNvWaw20wFHQal
+         MKsXcg0lynsni1dgdN69oZap+Pc6jtuA3rjDAUN/bPneFCHhtiyDfokVf1//hWsfzvAY
+         S4P8ZLXuM7cbPZA5bGi1KW5IFX8MAEYqt+MS36oCuyjYMa/Cw1p33Wwt3ZChH0Yw4UrD
+         IZliQaob8i8rPkheO9hbDeCOW1of3YH23RbZaOXrZOH9j6LF4vvIV0S82Dw7OhbDYqmh
+         kYtlSoPZQsed/V4nTgdT0O8G2K2I+EZw/CpY3ARv3GnQfCDKa41IIA1tN/wrDoe4a2XL
+         MN+Q==
+X-Gm-Message-State: AOJu0Yw9YEG1wKNa1uG7GzpYaCB0emtXBbgYzQN2rnIomoqXrx5O3lv9
+	31yU1uFwKffHNYAaJpoNbe5Krdnm6W+Lp/hVJsgkBPnbRbgZDzjb5Wfyq6hrCHw8MOHZjxP5QM0
+	5FvFCVCbD5VbSsQIyRA8H2f4tL/U=
+X-Google-Smtp-Source: AGHT+IEv+VzPTgkhlM0Iyu9mf/bHiSiJ5tBWQ5F4heJdFo1RrwTSJwMPOP7fFmT7DWgwCzAtgYHxTGLHWB376hQqNSk=
+X-Received: by 2002:a17:906:bc5b:b0:a31:6811:bf99 with SMTP id
+ s27-20020a170906bc5b00b00a316811bf99mr570470ejv.56.1706289747305; Fri, 26 Jan
+ 2024 09:22:27 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240125235723.39507-1-vinicius.gomes@intel.com> <20240125235723.39507-5-vinicius.gomes@intel.com>
-In-Reply-To: <20240125235723.39507-5-vinicius.gomes@intel.com>
+References: <20240125235723.39507-1-vinicius.gomes@intel.com> <20240125235723.39507-4-vinicius.gomes@intel.com>
+In-Reply-To: <20240125235723.39507-4-vinicius.gomes@intel.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 26 Jan 2024 16:50:44 +0200
-Message-ID: <CAOQ4uxi7MtVZECGXo-30YWjSU5ZFZP0AQzgBXLyowdOmNUc5DA@mail.gmail.com>
-Subject: Re: [RFC v2 4/4] fs: Optimize credentials reference count for backing
- file ops
+Date: Fri, 26 Jan 2024 19:22:14 +0200
+Message-ID: <CAOQ4uxh15X9pMY7Ck=iigaaKX11_77x5sZE9jxakTG9VpkuG6g@mail.gmail.com>
+Subject: Re: [RFC v2 3/4] overlayfs: Optimize credentials usage
 To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
 Cc: brauner@kernel.org, hu1.chen@intel.com, miklos@szeredi.hu, 
 	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
 	lizhen.you@intel.com, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
 On Fri, Jan 26, 2024 at 1:57=E2=80=AFAM Vinicius Costa Gomes
 <vinicius.gomes@intel.com> wrote:
 >
-> For backing file operations, users are expected to pass credentials
-> that will outlive the backing file common operations.
+> File operations in overlayfs also check against the credentials of the
+> mounter task, stored in the superblock, this credentials will outlive
+> most of the operations. For these cases, use the recently introduced
+> guard statements to guarantee that override/revert_creds() are paired.
 >
-> Use the specialized guard statements to override/revert the
-> credentials.
->
-
-As I wrote before, I prefer to see this patch gets reviewed and merged
-before the overlayfs large patch, so please reorder the series.
-
 > Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
 > ---
->  fs/backing-file.c | 124 ++++++++++++++++++++++------------------------
->  1 file changed, 60 insertions(+), 64 deletions(-)
+>  fs/overlayfs/copy_up.c |  4 +--
+>  fs/overlayfs/dir.c     | 22 +++++++------
+>  fs/overlayfs/file.c    | 70 ++++++++++++++++++++++--------------------
+>  fs/overlayfs/inode.c   | 60 +++++++++++++++++++-----------------
+>  fs/overlayfs/namei.c   | 21 ++++++-------
+>  fs/overlayfs/readdir.c | 18 +++++------
+>  fs/overlayfs/util.c    | 23 +++++++-------
+>  fs/overlayfs/xattrs.c  | 34 ++++++++++----------
+>  8 files changed, 130 insertions(+), 122 deletions(-)
 >
-> diff --git a/fs/backing-file.c b/fs/backing-file.c
-> index a681f38d84d8..9874f09f860f 100644
-> --- a/fs/backing-file.c
-> +++ b/fs/backing-file.c
-> @@ -140,7 +140,7 @@ ssize_t backing_file_read_iter(struct file *file, str=
-uct iov_iter *iter,
->                                struct backing_file_ctx *ctx)
->  {
->         struct backing_aio *aio =3D NULL;
-> -       const struct cred *old_cred;
-> +       const struct cred *old_cred =3D ctx->cred;
->         ssize_t ret;
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index b8e25ca51016..55d1f2b60775 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -1202,7 +1202,8 @@ static int ovl_copy_up_flags(struct dentry *dentry,=
+ int flags)
+>         if (err)
+>                 return err;
 >
->         if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)))
-> @@ -153,29 +153,28 @@ ssize_t backing_file_read_iter(struct file *file, s=
-truct iov_iter *iter,
->             !(file->f_mode & FMODE_CAN_ODIRECT))
->                 return -EINVAL;
+> -       old_cred =3D ovl_override_creds(dentry->d_sb);
+> +       old_cred =3D ovl_creds(dentry->d_sb);
+> +       guard(cred)(old_cred);
+>         while (!err) {
+>                 struct dentry *next;
+>                 struct dentry *parent =3D NULL;
+> @@ -1227,7 +1228,6 @@ static int ovl_copy_up_flags(struct dentry *dentry,=
+ int flags)
+>                 dput(parent);
+>                 dput(next);
+>         }
+> -       revert_creds(old_cred);
 >
-> -       old_cred =3D override_creds(ctx->cred);
-> -       if (is_sync_kiocb(iocb)) {
-> -               rwf_t rwf =3D iocb_to_rw_flags(flags);
+>         return err;
+>  }
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 0f8b4a719237..5aa43a3a7b3e 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -687,9 +687,9 @@ static int ovl_set_link_redirect(struct dentry *dentr=
+y)
+>         const struct cred *old_cred;
+>         int err;
+>
+> -       old_cred =3D ovl_override_creds(dentry->d_sb);
+> +       old_cred =3D ovl_creds(dentry->d_sb);
+> +       guard(cred)(old_cred);
+>         err =3D ovl_set_redirect(dentry, false);
+> -       revert_creds(old_cred);
+>
+>         return err;
+>  }
+> @@ -894,12 +894,13 @@ static int ovl_do_remove(struct dentry *dentry, boo=
+l is_dir)
+>         if (err)
+>                 goto out;
+>
+> -       old_cred =3D ovl_override_creds(dentry->d_sb);
+> -       if (!lower_positive)
+> -               err =3D ovl_remove_upper(dentry, is_dir, &list);
+> -       else
+> -               err =3D ovl_remove_and_whiteout(dentry, &list);
+> -       revert_creds(old_cred);
+> +       old_cred =3D ovl_creds(dentry->d_sb);
 > +       scoped_guard(cred, old_cred) {
+> +               if (!lower_positive)
+> +                       err =3D ovl_remove_upper(dentry, is_dir, &list);
+> +               else
+> +                       err =3D ovl_remove_and_whiteout(dentry, &list);
+> +       }
+>         if (!err) {
+>                 if (is_dir)
+>                         clear_nlink(dentry->d_inode);
+> @@ -1146,7 +1147,8 @@ static int ovl_rename(struct mnt_idmap *idmap, stru=
+ct inode *olddir,
+>                         goto out;
+>         }
+>
+> -       old_cred =3D ovl_override_creds(old->d_sb);
+> +       old_cred =3D ovl_creds(old->d_sb);
+> +       old_cred =3D override_creds_light(old_cred);
+>
+>         if (!list_empty(&list)) {
+>                 opaquedir =3D ovl_clear_empty(new, &list);
+> @@ -1279,7 +1281,7 @@ static int ovl_rename(struct mnt_idmap *idmap, stru=
+ct inode *olddir,
+>  out_unlock:
+>         unlock_rename(new_upperdir, old_upperdir);
+>  out_revert_creds:
+> -       revert_creds(old_cred);
+> +       revert_creds_light(old_cred);
+>         if (update_nlink)
+>                 ovl_nlink_end(new);
+>         else
 
-This reads very strage.
-
-Also, I see that e.g. scoped_guard(spinlock_irqsave, ... hides the local va=
+Most of my comments on this patch are identical to the ones I have made on
+backing file, so rather complete that review before moving on to this bigge=
 r
-used for save/restore of flags inside the macro.
+patch.
 
-Perhaps you use the same technique for scoped_guard(cred, ..
-loose the local old_cred variable in all those functions and then the
-code will read:
+I even wonder if we need a specialized macro for overlayfs
+guard(ovl_creds, ofs); or if
+guard(cred, ovl_override_creds(dentry->d_sb));
+is good enough.
 
-scoped_guard(cred, ctx->cred) {
+One thing that stands out in functions like ovl_rename() is that,
+understandably, you tried to preserve logic, but in fact, the scope of
+override_creds/revert_creds() in some of the overlayfs functions ir rather
+arbitrary.
 
-which is nicer IMO.
+The simplest solution for functions like the above is to use guard(cred, ..
+and extend the scope till the end of the function.
+This needs more careful review, but the end result will be much cleaner.
 
-> +               if (is_sync_kiocb(iocb)) {
-> +                       rwf_t rwf =3D iocb_to_rw_flags(flags);
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 05536964d37f..482bf78555e2 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -42,7 +42,8 @@ static struct file *ovl_open_realfile(const struct file=
+ *file,
+>         if (flags & O_APPEND)
+>                 acc_mode |=3D MAY_APPEND;
 >
-> -               ret =3D vfs_iter_read(file, iter, &iocb->ki_pos, rwf);
-> -       } else {
-> -               ret =3D -ENOMEM;
-> -               aio =3D kmem_cache_zalloc(backing_aio_cachep, GFP_KERNEL)=
-;
-> -               if (!aio)
-> -                       goto out;
-> +                       ret =3D vfs_iter_read(file, iter, &iocb->ki_pos, =
-rwf);
-> +               } else {
-> +                       ret =3D -ENOMEM;
-> +                       aio =3D kmem_cache_zalloc(backing_aio_cachep, GFP=
-_KERNEL);
-> +                       if (!aio)
-> +                               goto out;
+> -       old_cred =3D ovl_override_creds(inode->i_sb);
+> +       old_cred =3D ovl_creds(inode->i_sb);
+> +       guard(cred)(old_cred);
+>         real_idmap =3D mnt_idmap(realpath->mnt);
+>         err =3D inode_permission(real_idmap, realinode, MAY_OPEN | acc_mo=
+de);
+>         if (err) {
+> @@ -54,7 +55,6 @@ static struct file *ovl_open_realfile(const struct file=
+ *file,
+>                 realfile =3D backing_file_open(&file->f_path, flags, real=
+path,
+>                                              current_cred());
+>         }
+> -       revert_creds(old_cred);
 >
-> -               aio->orig_iocb =3D iocb;
-> -               kiocb_clone(&aio->iocb, iocb, get_file(file));
-> -               aio->iocb.ki_complete =3D backing_aio_rw_complete;
-> -               refcount_set(&aio->ref, 2);
-> -               ret =3D vfs_iocb_iter_read(file, &aio->iocb, iter);
-> -               backing_aio_put(aio);
-> -               if (ret !=3D -EIOCBQUEUED)
-> -                       backing_aio_cleanup(aio, ret);
-> +                       aio->orig_iocb =3D iocb;
-> +                       kiocb_clone(&aio->iocb, iocb, get_file(file));
-> +                       aio->iocb.ki_complete =3D backing_aio_rw_complete=
-;
-> +                       refcount_set(&aio->ref, 2);
-> +                       ret =3D vfs_iocb_iter_read(file, &aio->iocb, iter=
-);
-> +                       backing_aio_put(aio);
-> +                       if (ret !=3D -EIOCBQUEUED)
-> +                               backing_aio_cleanup(aio, ret);
+>         pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
+>                  file, file, ovl_whatisit(inode, realinode), file->f_flag=
+s,
+> @@ -214,9 +214,9 @@ static loff_t ovl_llseek(struct file *file, loff_t of=
+fset, int whence)
+>         ovl_inode_lock(inode);
+>         real.file->f_pos =3D file->f_pos;
+>
+> -       old_cred =3D ovl_override_creds(inode->i_sb);
+> -       ret =3D vfs_llseek(real.file, offset, whence);
+> -       revert_creds(old_cred);
+> +       old_cred =3D ovl_creds(inode->i_sb);
+> +       scoped_guard(cred, old_cred)
+> +               ret =3D vfs_llseek(real.file, offset, whence);
+>
+>         file->f_pos =3D real.file->f_pos;
+>         ovl_inode_unlock(inode);
+> @@ -388,7 +388,6 @@ static ssize_t ovl_splice_write(struct pipe_inode_inf=
+o *pipe, struct file *out,
+>  static int ovl_fsync(struct file *file, loff_t start, loff_t end, int da=
+tasync)
+>  {
+>         struct fd real;
+> -       const struct cred *old_cred;
+>         int ret;
+>
+>         ret =3D ovl_sync_status(OVL_FS(file_inode(file)->i_sb));
+> @@ -401,9 +400,11 @@ static int ovl_fsync(struct file *file, loff_t start=
+, loff_t end, int datasync)
+>
+>         /* Don't sync lower file for fear of receiving EROFS error */
+>         if (file_inode(real.file) =3D=3D ovl_inode_upper(file_inode(file)=
+)) {
+> -               old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
+> +               const struct cred *old_cred;
+> +
+> +               old_cred =3D ovl_creds(file_inode(file)->i_sb);
+> +               guard(cred)(old_cred);
+>                 ret =3D vfs_fsync_range(real.file, start, end, datasync);
+> -               revert_creds(old_cred);
+>         }
+>
+>         fdput(real);
+> @@ -441,9 +442,9 @@ static long ovl_fallocate(struct file *file, int mode=
+, loff_t offset, loff_t len
+>         if (ret)
+>                 goto out_unlock;
+>
+> -       old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
+> -       ret =3D vfs_fallocate(real.file, mode, offset, len);
+> -       revert_creds(old_cred);
+> +       old_cred =3D ovl_creds(file_inode(file)->i_sb);
+> +       scoped_guard(cred, old_cred)
+> +               ret =3D vfs_fallocate(real.file, mode, offset, len);
+>
+>         /* Update size */
+>         ovl_file_modified(file);
+> @@ -466,9 +467,9 @@ static int ovl_fadvise(struct file *file, loff_t offs=
+et, loff_t len, int advice)
+>         if (ret)
+>                 return ret;
+>
+> -       old_cred =3D ovl_override_creds(file_inode(file)->i_sb);
+> -       ret =3D vfs_fadvise(real.file, offset, len, advice);
+> -       revert_creds(old_cred);
+> +       old_cred =3D ovl_creds(file_inode(file)->i_sb);
+> +       scoped_guard(cred, old_cred)
+> +               ret =3D vfs_fadvise(real.file, offset, len, advice);
+>
+>         fdput(real);
+>
+> @@ -509,25 +510,25 @@ static loff_t ovl_copyfile(struct file *file_in, lo=
+ff_t pos_in,
+>                 goto out_unlock;
+>         }
+>
+> -       old_cred =3D ovl_override_creds(file_inode(file_out)->i_sb);
+> -       switch (op) {
+> -       case OVL_COPY:
+> -               ret =3D vfs_copy_file_range(real_in.file, pos_in,
+> -                                         real_out.file, pos_out, len, fl=
+ags);
+> -               break;
+> +       old_cred =3D ovl_creds(file_inode(file_out)->i_sb);
+> +       scoped_guard(cred, old_cred)
+> +               switch (op) {
+> +               case OVL_COPY:
+> +                       ret =3D vfs_copy_file_range(real_in.file, pos_in,
+> +                                                 real_out.file, pos_out,=
+ len, flags);
+> +                       break;
+>
+> -       case OVL_CLONE:
+> -               ret =3D vfs_clone_file_range(real_in.file, pos_in,
+> -                                          real_out.file, pos_out, len, f=
+lags);
+> -               break;
+> +               case OVL_CLONE:
+> +                       ret =3D vfs_clone_file_range(real_in.file, pos_in=
+,
+> +                                                  real_out.file, pos_out=
+, len, flags);
+> +                       break;
+>
+> -       case OVL_DEDUPE:
+> -               ret =3D vfs_dedupe_file_range_one(real_in.file, pos_in,
+> -                                               real_out.file, pos_out, l=
+en,
+> -                                               flags);
+> -               break;
+> -       }
+> -       revert_creds(old_cred);
+> +               case OVL_DEDUPE:
+> +                       ret =3D vfs_dedupe_file_range_one(real_in.file, p=
+os_in,
+> +                                                       real_out.file, po=
+s_out, len,
+> +                                                       flags);
+> +                       break;
 > +               }
+>
+>         /* Update size */
+>         ovl_file_modified(file_out);
 
-if possible, I would rather avoid all this churn in functions that mostly
-do work with the new cred, so either use guard(cred, ) directly or split a
-helper that uses guard(cred, ) form the rest.
+This is another case where extending the scope to the end of the function
+is the simpler/cleaner solution.
 
 Thanks,
 Amir.
