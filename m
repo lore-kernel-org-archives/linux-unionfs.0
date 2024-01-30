@@ -1,108 +1,154 @@
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1623C1DFEB;
-	Sun, 28 Jan 2024 10:12:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A4F3E762DD;
+	Tue, 30 Jan 2024 21:46:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706436732; cv=none; b=duwobisfg3Gs/jDecv4AC1o4x6jeo15JQjmf4Yqut7UYN5GSDSoVuM4e7xZ+qd9bfHxJtFy4mhd1rO+HTDk1r5wnT1lBxSrCf74wadxVssrwpcsxE3XgJsVgZlOJgTtZIXcVt+lksBs+FYoySLGtDzRS15QAB3AhpnFVZvj/Gq4=
+	t=1706651213; cv=none; b=vGX3knQN49OQKy6QZk4G6iwgc9/z0mclcfLchU5+7QZmOnzd+b06FUp7csccCDOW0hbwgrS8chsbYIYats4YPypiy1SEVnlhXeheFrW5/vUBfU8ZRjuYhnf4CSGCkksNWk8NPkLKgmgorlsS2RdWepNcttjb52rEYEF6UvlBHxY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706436732; c=relaxed/simple;
-	bh=mCoAPlVmO/9vSpNsBEHIAWFIC2QNuikQwdXZmb3c91E=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=kxT6ebxOTbJ2Hy3msMMfdlvZbbtJJfksVzt4upkG7JGUxgK6dz67sboKtv/mmFCmeFufSRB8aDQ6eS4j0kKTXCkxkSITSlfhH7Hpbke0aK/hDKcKTMQK34l9b0N0jNXUYONi/Ega+EvyDg3xAuKNQG+//27iSZJ/fNy6HaJl9bQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Lqe0JbpY; arc=none smtp.client-ip=209.85.160.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1706651213; c=relaxed/simple;
+	bh=9e8yppFii/adbHh4Wc651Fjp4Pbx1zTSyGcucHY8QPE=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=SMODH3KpJiakRwd1Ro3RnvrHACmXEn3LzjOJVn/8RnIsFTbu5+JsTXX6cZTHq1QESUa//ST4liTV0/nZ4AF/oEmLjqdwZqNXesaoySqIXVLSQ6PPkJ/bPaIb/J6bgteNDnd1efy+XiDc7MOpJHeVzXvfMGZnbY17QH5gje1ULBc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=EMZ3Bl0K; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Lqe0JbpY"
-Received: by mail-qt1-f176.google.com with SMTP id d75a77b69052e-42a8a3973c5so10846381cf.2;
-        Sun, 28 Jan 2024 02:12:10 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1706436730; x=1707041530; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mO33kD1qCH+Xc/yFNRT1niS7MhTMqAIfmIanUTcJPKk=;
-        b=Lqe0JbpYIlDxOE3l4FQHIh0JzPJXzT9VjicuSk+BmxT8jh9q3kLFZ6WQD9goC/uvpO
-         uO4xxUKviL4Yj8VcsHleavDikUijzUm5+PfNEX3FpGxgovo6onUlWzRLrX+5DR0PR0jC
-         p84c2+wU44wfs5eE4BIZwh0rczfl4V476K1er4oGK93Y4lrbv5WrL62JGPp4v8UW5h9C
-         L8BV1uxpSD/uNik7+aQzG56afMnr9hLcBQnkPdAe5xL/908XyfQn8AIvowlR9ZlYYVMf
-         urLgsG1kLA351gwY/tryBWudU14ac5+wVzTXwrfLXbJ+ckOQW1oKjZgqps0XulT/nn1p
-         wzgw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706436730; x=1707041530;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=mO33kD1qCH+Xc/yFNRT1niS7MhTMqAIfmIanUTcJPKk=;
-        b=u3jbAKn8iZ8qpcQI4j/Wgc0z8C5CWG4/UtFhKS1z+hXEMr+pBw2LGU/ZsXR8yGF42d
-         6/HFVN4zBKmc3izSQDCmTfs5EGzWCQz9665cdFgWTRGCrTDkfV1Z6fhhZ1jLwjenMEP7
-         ctfCE37Akp5KVJX8PC3I4vpPnJ77tNPlzvrdgfII317W17f1U9G74F+YNj3yJjpJbzzu
-         52wIWIPNb4/1Kk8+YHdXLTb/IaP7AKAFtNYFIRKW1LMMoh9Vb1kGjo0dN/wIFrNFQRR3
-         PfYGPP/aOCs2af1lwhpAuLvyTI2oJfl7j8hQ8M+mDVypt6oJS0dUgbbAYnMYVnRDndGj
-         5xag==
-X-Gm-Message-State: AOJu0YwHr6ilD45sTJoPNYiizuro7bQMlSUm+ZDJY3CrX0juyx1SurIU
-	QCe31i6v56VsK/teR/x1Azxjcegd8BPuccFjRhGJIx5ve04ruoESiOQ6CHeOstkdJidlVU2/F4/
-	r6OwROTA9dL40bduXgozGYnYv9q4=
-X-Google-Smtp-Source: AGHT+IGEQyN89e2gKXZ2v54m8Uh1CP51MaZEK3vyrIpJ46WZV8MmymronXm9dKbYWX8CBxq0YBMAeTEl36GwPqh1qWc=
-X-Received: by 2002:a05:6214:cc9:b0:686:955c:f70e with SMTP id
- 9-20020a0562140cc900b00686955cf70emr3851961qvx.6.1706436729859; Sun, 28 Jan
- 2024 02:12:09 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="EMZ3Bl0K"
+Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 40ULMbpO017915;
+	Tue, 30 Jan 2024 21:46:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : in-reply-to : references : mime-version :
+ content-transfer-encoding; s=pp1;
+ bh=u33QTQz3zwo8w5gMckYZiE6nW3SK8ZOIksLnuOv7pdo=;
+ b=EMZ3Bl0KO8UEP3sJZ9CkLBscEBRVetKOGq2gLhaWsKuTT3Q7VHMmMxf6ISo7dhfh51Eh
+ WGKIOk8Uuxql2V2LVyAgMwg+c5P+nHKSEs6jCPIOSwXJXhYNZyBF9ReWzj4GRrzYBGYe
+ RJRfr3XgQWSldcAhcXNvgCTICTXnCcrT1khFdDDJIJ/38tB+cDLHCC3GBrVIbf4e98XR
+ j3K51RqUCsjtsLzJlTmBBRt6/OIF/Iz6JiU0RZXycbVL1RXSZ97Y4N9B5fgxraxmMIR1
+ na8JtTDcdjIsTSDZnQGFugkNj86MA9iCRR8dqK8JguWpvKgaWDA0aokQ/LlBZ5urrBsx 1g== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vy6pyutad-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 30 Jan 2024 21:46:33 +0000
+Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 40ULCD8p012740;
+	Tue, 30 Jan 2024 21:46:32 GMT
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vy6pyuta6-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 30 Jan 2024 21:46:32 +0000
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 40UIjMkv017723;
+	Tue, 30 Jan 2024 21:46:32 GMT
+Received: from smtprelay02.wdc07v.mail.ibm.com ([172.16.1.69])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3vwchysnhs-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 30 Jan 2024 21:46:31 +0000
+Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
+	by smtprelay02.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 40ULkUrM12648960
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 30 Jan 2024 21:46:31 GMT
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D7BDB58056;
+	Tue, 30 Jan 2024 21:46:30 +0000 (GMT)
+Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 3C8DA58067;
+	Tue, 30 Jan 2024 21:46:30 +0000 (GMT)
+Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+	by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
+	Tue, 30 Jan 2024 21:46:30 +0000 (GMT)
+From: Stefan Berger <stefanb@linux.ibm.com>
+To: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, paul@paul-moore.com, jmorris@namei.org,
+        serge@hallyn.com, zohar@linux.ibm.com, roberto.sassu@huawei.com,
+        amir73il@gmail.com, miklos@szeredi.hu,
+        Stefan Berger <stefanb@linux.ibm.com>
+Subject: [PATCH 5/5] evm: Enforce signatures on unsupported filesystem for EVM_INIT_X509
+Date: Tue, 30 Jan 2024 16:46:20 -0500
+Message-ID: <20240130214620.3155380-6-stefanb@linux.ibm.com>
+X-Mailer: git-send-email 2.43.0
+In-Reply-To: <20240130214620.3155380-1-stefanb@linux.ibm.com>
+References: <20240130214620.3155380-1-stefanb@linux.ibm.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <000000000000e171200600d6d8bd@google.com> <000000000000910cf5060fe42991@google.com>
-In-Reply-To: <000000000000910cf5060fe42991@google.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 28 Jan 2024 12:11:58 +0200
-Message-ID: <CAOQ4uxg-nL69cbs8J4xmOd=EAQTiB-cfWgZR0TvY+hb144nZSA@mail.gmail.com>
-Subject: Re: [syzbot] [overlayfs?] possible deadlock in seq_read_iter (2)
-To: syzbot <syzbot+da4f9f61f96525c62cc7@syzkaller.appspotmail.com>
-Cc: axboe@kernel.dk, brauner@kernel.org, dhowells@redhat.com, hch@lst.de, 
-	jack@suse.cz, linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, rafael@kernel.org, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: w54US0XujnxYbbq40R4fIPU11T3fX_Xg
+X-Proofpoint-ORIG-GUID: j_5mG8R2wvP_LmnI04u5nCN3YQ-FKZEp
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2024-01-30_12,2024-01-30_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 adultscore=0
+ clxscore=1015 impostorscore=0 priorityscore=1501 mlxscore=0 suspectscore=0
+ malwarescore=0 mlxlogscore=932 bulkscore=0 lowpriorityscore=0 spamscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2311290000
+ definitions=main-2401300162
 
-On Sat, Jan 27, 2024 at 4:28=E2=80=AFAM syzbot
-<syzbot+da4f9f61f96525c62cc7@syzkaller.appspotmail.com> wrote:
->
-> syzbot suspects this issue was fixed by commit:
->
-> commit da40448ce4eb4de18eb7b0db61dddece32677939
-> Author: Amir Goldstein <amir73il@gmail.com>
-> Date:   Thu Nov 30 14:16:23 2023 +0000
->
->     fs: move file_start_write() into direct_splice_actor()
->
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=3D105aa1a018=
-0000
-> start commit:   2cf4f94d8e86 Merge tag 'scsi-fixes' of git://git.kernel.o=
-r..
-> git tree:       upstream
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=3De5751b3a22261=
-35d
-> dashboard link: https://syzkaller.appspot.com/bug?extid=3Dda4f9f61f96525c=
-62cc7
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D176a4f49e80=
-000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D154aa8d6e8000=
-0
->
-> If the result looks correct, please mark the issue as fixed by replying w=
-ith:
->
-> #syz fix: fs: move file_start_write() into direct_splice_actor()
+Unsupported filesystems currently do not enforce any signatures. Add
+support for signature enforcement of the "original" and "portable &
+immutable" signatures when EVM_INIT_X509 is enabled.
 
-Yes. I already wrote that this work is going to fix this repro
-as well as other potential deadlocks.
+The "original" signature type contains filesystem specific metadata.
+Thus it cannot be copied up and verified. However with EVM_INIT_X509
+and EVM_ALLOW_METADATA_WRITES enabled, the "original" file signature
+may be written.
 
-#syz fix: fs: move file_start_write() into direct_splice_actor()
+When EVM_ALLOW_METADATA_WRITES is not set or once it is removed from
+/sys/kernel/security/evm by setting EVM_INIT_HMAC for example, it is not
+possible to write or remove xattrs on the overlay filesystem.
 
-Thanks,
-Amir.
+This change still prevents EVM from writing HMAC signatures on
+unsupported filesystem when EVM_INIT_HMAC is enabled.
+
+Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+---
+ security/integrity/evm/evm_main.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
+index e96d127b48a2..f49609dfcbc7 100644
+--- a/security/integrity/evm/evm_main.c
++++ b/security/integrity/evm/evm_main.c
+@@ -192,7 +192,11 @@ static enum integrity_status evm_verify_hmac(struct dentry *dentry,
+ 		     iint->evm_status == INTEGRITY_PASS_IMMUTABLE))
+ 		return iint->evm_status;
+ 
+-	if (is_unsupported_fs(dentry))
++	/*
++	 * On unsupported filesystems with EVM_INIT_X509 not enabled, skip
++	 * signature verification.
++	 */
++	if (!(evm_initialized & EVM_INIT_X509) && is_unsupported_fs(dentry))
+ 		return INTEGRITY_UNKNOWN;
+ 
+ 	/* if status is not PASS, try to check again - against -ENOMEM */
+@@ -262,7 +266,8 @@ static enum integrity_status evm_verify_hmac(struct dentry *dentry,
+ 				evm_status = INTEGRITY_PASS_IMMUTABLE;
+ 			} else if (!IS_RDONLY(inode) &&
+ 				   !(inode->i_sb->s_readonly_remount) &&
+-				   !IS_IMMUTABLE(inode)) {
++				   !IS_IMMUTABLE(inode) &&
++				   !is_unsupported_fs(dentry)) {
+ 				evm_update_evmxattr(dentry, xattr_name,
+ 						    xattr_value,
+ 						    xattr_value_len);
+@@ -422,9 +427,6 @@ enum integrity_status evm_verifyxattr(struct dentry *dentry,
+ 	if (!evm_key_loaded() || !evm_protected_xattr(xattr_name))
+ 		return INTEGRITY_UNKNOWN;
+ 
+-	if (is_unsupported_fs(dentry))
+-		return INTEGRITY_UNKNOWN;
+-
+ 	if (!iint) {
+ 		iint = integrity_iint_find(d_backing_inode(dentry));
+ 		if (!iint)
+-- 
+2.43.0
+
