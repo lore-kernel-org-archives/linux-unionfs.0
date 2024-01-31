@@ -1,250 +1,132 @@
 Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8168678B64;
-	Tue, 30 Jan 2024 21:46:52 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D14266AC0;
+	Wed, 31 Jan 2024 02:11:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706651215; cv=none; b=Z6AJwCmrOU//8FXYgR0cDLBgeJimaXvM5gI5ZMckog97a2fShbAdaxpX0hgiLyV70b50ixJSlSz6qirSTQtZkdBRI5OYCpssAJPL5DvzfJyMhq/rKQcHTOtWuS6LJVYlJhygRJSS4UyR/tNY2QAhekRCsAXtnx7xnQReC7FfXDw=
+	t=1706667093; cv=none; b=VFuTfm1XanTSpr1eIdjRMzFhCiml9Rjq6o/MeQ4o+dZJr4YJ2VNdwZlJLAuOqBQPqZGSpqayV12IPJ0JgKdxhZj5bBh6ILCeL1iG6dfGSMWUnGfE2deaJvXo5hSJv4bpBlF4I+wzznjhrVn97XegmOyCpluYM6eXP3c8qnbjkFA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706651215; c=relaxed/simple;
-	bh=HLpwlFI69iotr1hPLjzeM18DSEwoMiQ2mxy0WSHuluk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=sSSc//Qxav5UUM8AMk1dZo4bzKrm3JnyZz14VM6ImH8F0UiIGTo7oGDyVpfm46qBGZGsj2mXQ3MZKq4LhlcVUhLQ4L0LkByDOazI1Hr0eEGhbksjDjCToxxcRDkJknopWWqzbB4xrKyDVeVWIW7NRic7552O69clYKjdDD9tyAY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=WS5ir9TD; arc=none smtp.client-ip=148.163.158.5
+	s=arc-20240116; t=1706667093; c=relaxed/simple;
+	bh=5V+1lVSFCwl0HqD4XTm+JK1RWoUpkuJT6j5pOs1vZ4k=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=albxGSOxOYxFRKgvLmMZxLinmFkUwjRkZmwk4ojRQH7lOasHzTw/JDQ39jJ4ktalcZB/PD4VWNp7hSuyRb4w4C0ed+1ZiOwOTXcs8nG/8pE3Rwh0kTa8TRaaYDo3v/pPuPu4vR49ft2cS7gdvZcs774r0691unANYz5pUTdW1E0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=UA044uZA; arc=none smtp.client-ip=148.163.158.5
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="WS5ir9TD"
-Received: from pps.filterd (m0353722.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 40ULXLnV012708;
-	Tue, 30 Jan 2024 21:46:30 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=pp1;
- bh=ziVlO+dnOtCXjBz/gV1l3+dnf+oYvewAs/EKyz4Wv3U=;
- b=WS5ir9TDTufmdS/1nR6z0UqzkzV2HvUV7VdRfk+owYB4AYGM1QUAbQU/U0sPpTuO55Mf
- kvd9JSVxSvcXN0ZQBmxjDNPxZyEWJBijj/lP0eLMetEJc3+oBV9QcmRNN15cAf4WkKw8
- QtwjFrg00OTUTCNG+6QZ9ZXXxO4vfZCAdRR6wphyb7lZqHaAdDm+VhWSeXYVWzrcDM5s
- z81aPQsQaa8vHWGMupHigaImSMh2TFtqN3YMyLGgoeo4w7xUr54rsFEdvoEfIa6A17FG
- UjGGG8E2x8DVoP7wh6dW0VXmr7+BQAMfb/X6ZW10jcfNWyj5x4U0yb5j/Nru5Gw7Srhu tg== 
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="UA044uZA"
+Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 40UNr8SG014227;
+	Wed, 31 Jan 2024 02:11:18 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ mime-version : subject : to : cc : references : from : in-reply-to :
+ content-type : content-transfer-encoding; s=pp1;
+ bh=titW6woM4Us3aYaR4S1UO/MqF5zLOoOIb81u5xnqcLA=;
+ b=UA044uZAKJwp402Sybb0iOQkotJv4O2uAg4KnLxRPItk8jnFjMeqB4YX2xuQTvHupzOq
+ B5nekJ8yzW/ZYaPhr8Ea9i7EISbJHjd6CKZf0JIYNS36FbRSYRJ0oiKWNli8fObXb+QD
+ s7d6WZzm0tkJ6d0qq0MlPuqeTDzrbQhm41K63bVdJXnAhtRkB1sgz6LG9p9CX+dw5sqn
+ P5tE3gJX2oEYxlynUgwRgvYtjKDi7lQ6YY8LX+xx3rxNiBWb8V4GLPVtZimKON9FaYKY
+ bXBKp7sq8swv/Gz/QG8v5y7O+sRCLe/wd2u/IEuxNltjThvkO2XkUrWIML02PsY7T5AC YA== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vy94n07kj-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vyb5x2df3-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 30 Jan 2024 21:46:30 +0000
-Received: from m0353722.ppops.net (m0353722.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 40ULYcX2015260;
-	Tue, 30 Jan 2024 21:46:29 GMT
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vy94n07k1-1
+	Wed, 31 Jan 2024 02:11:18 +0000
+Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 40V1xgus014362;
+	Wed, 31 Jan 2024 02:11:18 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3vyb5x2da0-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 30 Jan 2024 21:46:29 +0000
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 40UJ86Jm010564;
-	Tue, 30 Jan 2024 21:46:28 GMT
-Received: from smtprelay07.dal12v.mail.ibm.com ([172.16.1.9])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3vwd5nsf5r-1
+	Wed, 31 Jan 2024 02:11:17 +0000
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 40V20Hcb008234;
+	Wed, 31 Jan 2024 02:10:49 GMT
+Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3vwdnm2ggp-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 30 Jan 2024 21:46:28 +0000
+	Wed, 31 Jan 2024 02:10:49 +0000
 Received: from smtpav05.dal12v.mail.ibm.com (smtpav05.dal12v.mail.ibm.com [10.241.53.104])
-	by smtprelay07.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 40ULkS3p31326538
+	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 40V2AmYS5440320
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 30 Jan 2024 21:46:28 GMT
+	Wed, 31 Jan 2024 02:10:48 GMT
 Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id E816558056;
-	Tue, 30 Jan 2024 21:46:27 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id A483958052;
+	Wed, 31 Jan 2024 02:10:48 +0000 (GMT)
 Received: from smtpav05.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 4BF5E58052;
-	Tue, 30 Jan 2024 21:46:27 +0000 (GMT)
-Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+	by IMSVA (Postfix) with ESMTP id C15A158056;
+	Wed, 31 Jan 2024 02:10:47 +0000 (GMT)
+Received: from [9.47.158.152] (unknown [9.47.158.152])
 	by smtpav05.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 30 Jan 2024 21:46:27 +0000 (GMT)
-From: Stefan Berger <stefanb@linux.ibm.com>
-To: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-unionfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, paul@paul-moore.com, jmorris@namei.org,
-        serge@hallyn.com, zohar@linux.ibm.com, roberto.sassu@huawei.com,
-        amir73il@gmail.com, miklos@szeredi.hu,
-        Stefan Berger <stefanb@linux.ibm.com>
-Subject: [PATCH 1/5] security: allow finer granularity in permitting copy-up of security xattrs
-Date: Tue, 30 Jan 2024 16:46:16 -0500
-Message-ID: <20240130214620.3155380-2-stefanb@linux.ibm.com>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240130214620.3155380-1-stefanb@linux.ibm.com>
-References: <20240130214620.3155380-1-stefanb@linux.ibm.com>
+	Wed, 31 Jan 2024 02:10:47 +0000 (GMT)
+Message-ID: <38230b4c-54ae-45ed-a6fb-34e63501e5b1@linux.ibm.com>
+Date: Tue, 30 Jan 2024 21:10:47 -0500
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 4/5] evm: Use the real inode's metadata to calculate
+ metadata hash
+To: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, paul@paul-moore.com, jmorris@namei.org,
+        serge@hallyn.com, zohar@linux.ibm.com, roberto.sassu@huawei.com,
+        amir73il@gmail.com, miklos@szeredi.hu
+References: <20240130214620.3155380-1-stefanb@linux.ibm.com>
+ <20240130214620.3155380-5-stefanb@linux.ibm.com>
+Content-Language: en-US
+From: Stefan Berger <stefanb@linux.ibm.com>
+In-Reply-To: <20240130214620.3155380-5-stefanb@linux.ibm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: nsNshzt1SCogKEXlGy533T4CUsAVBwI3
-X-Proofpoint-ORIG-GUID: YWDCNKq7p8-nPtFrvnuRxTAM3vP-0P-x
+X-Proofpoint-GUID: Zc1qrXxFCD3ijIZFAPrQM6sGqbDaSGHp
+X-Proofpoint-ORIG-GUID: zaUA5QI1SqCbCcF4YyZKcyyHfxVKhZXa
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-01-30_12,2024-01-30_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=562
- impostorscore=0 phishscore=0 adultscore=0 clxscore=1015 lowpriorityscore=0
- bulkscore=0 spamscore=0 malwarescore=0 priorityscore=1501 suspectscore=0
- mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311290000 definitions=main-2401300162
+ definitions=2024-01-30_14,2024-01-30_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ spamscore=0 priorityscore=1501 phishscore=0 impostorscore=0 mlxscore=0
+ adultscore=0 clxscore=1015 mlxlogscore=999 suspectscore=0 malwarescore=0
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2311290000 definitions=main-2401310017
 
-Copying up xattrs is solely based on the security xattr name. For finer
-granularity add a dentry parameter to the security_inode_copy_up_xattr
-hook definition, allowing decisions to be based on the xattr content as
-well.
 
-Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
----
- fs/overlayfs/copy_up.c            | 2 +-
- include/linux/evm.h               | 2 +-
- include/linux/lsm_hook_defs.h     | 3 ++-
- include/linux/security.h          | 4 ++--
- security/integrity/evm/evm_main.c | 2 +-
- security/security.c               | 7 ++++---
- security/selinux/hooks.c          | 2 +-
- security/smack/smack_lsm.c        | 2 +-
- 8 files changed, 13 insertions(+), 11 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index b8e25ca51016..bd9ddcefb7a7 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -114,7 +114,7 @@ int ovl_copy_xattr(struct super_block *sb, const struct path *oldpath, struct de
- 		if (ovl_is_private_xattr(sb, name))
- 			continue;
- 
--		error = security_inode_copy_up_xattr(name);
-+		error = security_inode_copy_up_xattr(old, name);
- 		if (error < 0 && error != -EOPNOTSUPP)
- 			break;
- 		if (error == 1) {
-diff --git a/include/linux/evm.h b/include/linux/evm.h
-index 36ec884320d9..d8c0343436b8 100644
---- a/include/linux/evm.h
-+++ b/include/linux/evm.h
-@@ -31,7 +31,7 @@ extern void evm_inode_post_setxattr(struct dentry *dentry,
- 				    const char *xattr_name,
- 				    const void *xattr_value,
- 				    size_t xattr_value_len);
--extern int evm_inode_copy_up_xattr(const char *name);
-+extern int evm_inode_copy_up_xattr(struct dentry *dentry, const char *name);
- extern int evm_inode_removexattr(struct mnt_idmap *idmap,
- 				 struct dentry *dentry, const char *xattr_name);
- extern void evm_inode_post_removexattr(struct dentry *dentry,
-diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.h
-index 185924c56378..7dd61f51d84a 100644
---- a/include/linux/lsm_hook_defs.h
-+++ b/include/linux/lsm_hook_defs.h
-@@ -163,7 +163,8 @@ LSM_HOOK(int, 0, inode_listsecurity, struct inode *inode, char *buffer,
- 	 size_t buffer_size)
- LSM_HOOK(void, LSM_RET_VOID, inode_getsecid, struct inode *inode, u32 *secid)
- LSM_HOOK(int, 0, inode_copy_up, struct dentry *src, struct cred **new)
--LSM_HOOK(int, -EOPNOTSUPP, inode_copy_up_xattr, const char *name)
-+LSM_HOOK(int, -EOPNOTSUPP, inode_copy_up_xattr, struct dentry *src,
-+	 const char *name)
- LSM_HOOK(int, 0, kernfs_init_security, struct kernfs_node *kn_dir,
- 	 struct kernfs_node *kn)
- LSM_HOOK(int, 0, file_permission, struct file *file, int mask)
-diff --git a/include/linux/security.h b/include/linux/security.h
-index d0eb20f90b26..9fc9ca6284d6 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -387,7 +387,7 @@ int security_inode_setsecurity(struct inode *inode, const char *name, const void
- int security_inode_listsecurity(struct inode *inode, char *buffer, size_t buffer_size);
- void security_inode_getsecid(struct inode *inode, u32 *secid);
- int security_inode_copy_up(struct dentry *src, struct cred **new);
--int security_inode_copy_up_xattr(const char *name);
-+int security_inode_copy_up_xattr(struct dentry *src, const char *name);
- int security_kernfs_init_security(struct kernfs_node *kn_dir,
- 				  struct kernfs_node *kn);
- int security_file_permission(struct file *file, int mask);
-@@ -980,7 +980,7 @@ static inline int security_kernfs_init_security(struct kernfs_node *kn_dir,
- 	return 0;
- }
- 
--static inline int security_inode_copy_up_xattr(const char *name)
-+static inline int security_inode_copy_up_xattr(struct dentry *src, const char *name)
- {
- 	return -EOPNOTSUPP;
- }
-diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
-index cc7956d7878b..2555aa4501ae 100644
---- a/security/integrity/evm/evm_main.c
-+++ b/security/integrity/evm/evm_main.c
-@@ -896,7 +896,7 @@ void evm_inode_post_setattr(struct dentry *dentry, int ia_valid)
- 		evm_update_evmxattr(dentry, NULL, NULL, 0);
- }
- 
--int evm_inode_copy_up_xattr(const char *name)
-+int evm_inode_copy_up_xattr(struct dentry *src, const char *name)
- {
- 	if (strcmp(name, XATTR_NAME_EVM) == 0)
- 		return 1; /* Discard */
-diff --git a/security/security.c b/security/security.c
-index 0144a98d3712..ee63863c1dc0 100644
---- a/security/security.c
-+++ b/security/security.c
-@@ -2596,6 +2596,7 @@ EXPORT_SYMBOL(security_inode_copy_up);
- 
- /**
-  * security_inode_copy_up_xattr() - Filter xattrs in an overlayfs copy-up op
-+ * @src: union dentry of copy-up file
-  * @name: xattr name
-  *
-  * Filter the xattrs being copied up when a unioned file is copied up from a
-@@ -2606,7 +2607,7 @@ EXPORT_SYMBOL(security_inode_copy_up);
-  *         if the security module does not know about attribute, or a negative
-  *         error code to abort the copy up.
-  */
--int security_inode_copy_up_xattr(const char *name)
-+int security_inode_copy_up_xattr(struct dentry *src, const char *name)
- {
- 	struct security_hook_list *hp;
- 	int rc;
-@@ -2618,12 +2619,12 @@ int security_inode_copy_up_xattr(const char *name)
- 	 */
- 	hlist_for_each_entry(hp,
- 			     &security_hook_heads.inode_copy_up_xattr, list) {
--		rc = hp->hook.inode_copy_up_xattr(name);
-+		rc = hp->hook.inode_copy_up_xattr(src, name);
- 		if (rc != LSM_RET_DEFAULT(inode_copy_up_xattr))
- 			return rc;
- 	}
- 
--	return evm_inode_copy_up_xattr(name);
-+	return evm_inode_copy_up_xattr(src, name);
- }
- EXPORT_SYMBOL(security_inode_copy_up_xattr);
- 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index a6bf90ace84c..ebb8876837c6 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -3530,7 +3530,7 @@ static int selinux_inode_copy_up(struct dentry *src, struct cred **new)
- 	return 0;
- }
- 
--static int selinux_inode_copy_up_xattr(const char *name)
-+static int selinux_inode_copy_up_xattr(struct dentry *dentry, const char *name)
- {
- 	/* The copy_up hook above sets the initial context on an inode, but we
- 	 * don't then want to overwrite it by blindly copying all the lower
-diff --git a/security/smack/smack_lsm.c b/security/smack/smack_lsm.c
-index 0fdbf04cc258..bffca165f07f 100644
---- a/security/smack/smack_lsm.c
-+++ b/security/smack/smack_lsm.c
-@@ -4873,7 +4873,7 @@ static int smack_inode_copy_up(struct dentry *dentry, struct cred **new)
- 	return 0;
- }
- 
--static int smack_inode_copy_up_xattr(const char *name)
-+static int smack_inode_copy_up_xattr(struct dentry *src, const char *name)
- {
- 	/*
- 	 * Return 1 if this is the smack access Smack attribute.
--- 
-2.43.0
+On 1/30/24 16:46, Stefan Berger wrote:
+> Changes to the file attribute (mode bits, uid, gid) on the lower layer
+> are not take into account when d_backing_inode() is used when a file is
+> accessed on the overlay layer and this file has not yet been copied up.
+> This is because d_backing_inode() does not return the real inode of the
+> lower layer but instead returns the backing inode which holds old file
+> attributes. When the old file attributes are used for calculating the
+> metadata hash then the expected hash is calculated and the file then
+> mistakenly passes signature verification. Therefore, use d_real_inode()
+> which returns the inode of the lower layer for as long as the file has
+> not been copied up and returns the upper layer's inode otherwise.
+> 
+> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> ---
+>   security/integrity/evm/evm_crypto.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/security/integrity/evm/evm_crypto.c b/security/integrity/evm/evm_crypto.c
+> index b1ffd4cc0b44..2e48fe54e899 100644
+> --- a/security/integrity/evm/evm_crypto.c
+> +++ b/security/integrity/evm/evm_crypto.c
+> @@ -223,7 +223,7 @@ static int evm_calc_hmac_or_hash(struct dentry *dentry,
+>   				 size_t req_xattr_value_len,
+>   				 uint8_t type, struct evm_digest *data)
+>   {
+> -	struct inode *inode = d_backing_inode(dentry);
+> +	struct inode *inode = d_real_inode(dentry);
+>   	struct xattr_list *xattr;
+>   	struct shash_desc *desc;
+>   	size_t xattr_size = 0;
 
+We need this patch when NOT activating CONFIG_OVERLAY_FS_METACOPY but 
+when setting CONFIG_OVERLAY_FS_METACOPY=y it has to be reverted...  I am 
+not sure what the solution is.
