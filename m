@@ -1,156 +1,129 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 855E22134F;
-	Wed, 31 Jan 2024 19:07:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 811E43AC26
+	for <linux-unionfs@vger.kernel.org>; Wed, 31 Jan 2024 19:49:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706728074; cv=none; b=dNA2JtKB8jR3OuBtYsACTOaHZY/2mGvmZE4C+fLTJs04Ui48m4UdYw4Y0b3GgHFp/2mFyLQzAZwoT52yObLU0e365AUUmH7I06XxNX3gC7FLhfEhOTgvhgllpHXc8yDkXJyH65gm/WllFDyykH4kFuEYidNxirnrvR0eogbrBIk=
+	t=1706730560; cv=none; b=hA66gljkfOVb9ATgcjKe5arJQilo1Fg6tE7pQD9QQOIxbDG3hBlQQjh7/N20Gzs8QB8NdU7mKh5LwPZpLxIEw9ts5E0Cou32nQWjAcRiAmajBH433XqYu0KzTjSKkXat5HeRe5NTykvgVjm6CnKQPg9R66xLrADa11n+AAuzYWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706728074; c=relaxed/simple;
-	bh=I5iZ2/I8gzIg+8tRfuEXRpjnuxIQ5+cTB3h6UO2d6VQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=btOWits9msV0dpIg4NPTeqCEfYE9jn1uasyQdQNwZKPrTL7oAnNQvZkjGeZ1+Rtks/rNUnSWceEoxR8UNJ6Spbqu82Aczw7rLL/ZaT8HYBqgByYK36dK6EGuTmxYC+Fe1Lgy7Wlue4y4AdbjBZulGElKwRu2zPPImrs6NEXv5ms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lB2qbcdc; arc=none smtp.client-ip=198.175.65.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1706730560; c=relaxed/simple;
+	bh=tZcubABWP4p+PUyhfH6FzH0uYN3/AZjH0UMh30BsGAk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hxy20+uutXb5GpR3D5g0HS1oUB2x0p26+fpN1FQMFvCzXsojnEN43HzcwCVxop3oPg6ex2mw0zYExwK8JRnBqxW7dW0EWFnnt1mzsMoHcbOu8THnctYWQF2AjMlDGYmHpqO8xcz3pDIz9QiKWOEKPioracRH7v28IodyhkQd0Ic=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=nWs6NzYV; arc=none smtp.client-ip=209.85.218.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lB2qbcdc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1706728073; x=1738264073;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=I5iZ2/I8gzIg+8tRfuEXRpjnuxIQ5+cTB3h6UO2d6VQ=;
-  b=lB2qbcdcfIHgqNPNoGW/8PFsUyijQxAGHX4o7lOvSvYXyLLebLptdeij
-   2hF2qGfJFnDKrI5P0pwmodqVyRPeCexLiyZALrfkZTS5BBkKIup9xkz0y
-   vU5acM46/0HvmYJC5pWDefBjbQ56HGQFh5swmzDtesvijco4z2+uOJjrL
-   Cd05lYAP0ufV0JGz4AcWhTnRRWFoAty+ib9GkXp8Ro8EQrCe3qfj1tr1w
-   GGZyfg/DWvRdYkfzRmkoDt9D18Tnaarq1r1nGlvD/Il5EarwEDeAGlMXU
-   bDcpFfFuBPm6vxgOY1WAo2eSO9btkmt48zRil9ys59s9d77SzvNs6JBQ/
-   Q==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="17081541"
-X-IronPort-AV: E=Sophos;i="6.05,233,1701158400"; 
-   d="scan'208";a="17081541"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orvoesa102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 31 Jan 2024 11:07:52 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10969"; a="878873430"
-X-IronPort-AV: E=Sophos;i="6.05,233,1701158400"; 
-   d="scan'208";a="878873430"
-Received: from lkp-server02.sh.intel.com (HELO 59f4f4cd5935) ([10.239.97.151])
-  by FMSMGA003.fm.intel.com with ESMTP; 31 Jan 2024 11:07:48 -0800
-Received: from kbuild by 59f4f4cd5935 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1rVFw1-0001vE-35;
-	Wed, 31 Jan 2024 19:07:45 +0000
-Date: Thu, 1 Feb 2024 03:06:55 +0800
-From: kernel test robot <lkp@intel.com>
-To: Stefan Berger <stefanb@linux.ibm.com>, linux-integrity@vger.kernel.org,
-	linux-security-module@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Cc: oe-kbuild-all@lists.linux.dev, linux-kernel@vger.kernel.org,
-	paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
-	zohar@linux.ibm.com, roberto.sassu@huawei.com, amir73il@gmail.com,
-	miklos@szeredi.hu, Stefan Berger <stefanb@linux.ibm.com>
-Subject: Re: [PATCH 1/5] security: allow finer granularity in permitting
- copy-up of security xattrs
-Message-ID: <202402010225.BXp3LrvU-lkp@intel.com>
-References: <20240130214620.3155380-2-stefanb@linux.ibm.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="nWs6NzYV"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a35385da5bbso16116066b.3
+        for <linux-unionfs@vger.kernel.org>; Wed, 31 Jan 2024 11:49:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1706730556; x=1707335356; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=w4m92Mg3PsLlecNHbIrvq/RMmBhqIGNNfRvOCBsW06g=;
+        b=nWs6NzYVdMA1rbfYpj9pwtxVLh/tL2KvOiez2XbNN+Csya/CkPW1xxBGa7rUjMbR0m
+         2D/eXEFHyrqADx/cFuZkjBHCKwW8fZ8gsuExN8ymJUZXGIQ+xPFPCX8rN9YR+CPZzjLR
+         /zE9zJgB5jTCPQj6ToxgpDOiO175+PkqCTuHI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706730556; x=1707335356;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=w4m92Mg3PsLlecNHbIrvq/RMmBhqIGNNfRvOCBsW06g=;
+        b=kAHKqe1gWCJaZUcrluiXk9IPNeuaTlCG8r0Eq3/arFzL4YtLYBX+T00IZwfzM/NKy+
+         X3Qx6wNkrGL/0YGyi8C3u4CE15/extjmvJqHtQOkY19KFmc5ou3AvscjEjpeLEV5+4kd
+         Ma+chmqsoFbN4i6K33wjxZL1LWNx0/oZXK4kXnaMKajY8c5AEONP6Qw+XPJaNooTTyJF
+         bKKYg2htQwPLi4kzS+iq4jxM9Yp9hAaLPx67NW5gAuA81jfQVeh65iEgpGqzx3ZZJp46
+         tm8nKw8mg7adkjQqi2aHIt9el97u5itsjxjaGJFuf7lB79mSsuirOZP4rvo++vNyZ4kW
+         a3lw==
+X-Gm-Message-State: AOJu0YzdEbyLNG2blYS7zBI0OzGPQFjETvL2wMESq919LWt7ij4EWgCi
+	FTkXxXtl8z5nU0vV0nsi2uKm+P8D7WGvRvBzh6U7SxXVjJQXWFZjBuqMrcT8Sesp1eFH5YaOsp6
+	Ux7/RwQEEHaaeLFRNzgFpFLxfMVbYKyVBT5q8Cg==
+X-Google-Smtp-Source: AGHT+IHVYHuwadO5hyl6t0OmWzVHrSNscBOHXCRtlHwexAU0/RB7Ya+T4rewpZRYpgtj8PqFc3QE7gtiQpCqTa2uo5w=
+X-Received: by 2002:a17:906:5acf:b0:a2f:68cb:dbe3 with SMTP id
+ x15-20020a1709065acf00b00a2f68cbdbe3mr1757941ejs.75.1706730556370; Wed, 31
+ Jan 2024 11:49:16 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240130214620.3155380-2-stefanb@linux.ibm.com>
+References: <VI1PR08MB31011DF4722B9E720A251892827C2@VI1PR08MB3101.eurprd08.prod.outlook.com>
+In-Reply-To: <VI1PR08MB31011DF4722B9E720A251892827C2@VI1PR08MB3101.eurprd08.prod.outlook.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 31 Jan 2024 20:49:04 +0100
+Message-ID: <CAJfpegvBc+Md51ubYv9iDnST+Xps9P=g51NcWJONKy4fq=O8+Q@mail.gmail.com>
+Subject: Re: [overlay] [fuse] Potential bug with large file support for FUSE
+ based lowerdir
+To: Lukasz Okraszewski <Lukasz.Okraszewski@arm.com>
+Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
+	Matthew Clarkson <Matthew.Clarkson@arm.com>, Brandon Jones <Brandon.Jones@arm.com>, nd <nd@arm.com>, 
+	overlayfs <linux-unionfs@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Stefan,
+On Wed, 31 Jan 2024 at 17:38, Lukasz Okraszewski
+<Lukasz.Okraszewski@arm.com> wrote:
+>
+> Hello all,
+>
+> I have stumbled into what I suspect may be a bug in the overlayfs/fuse stack.
+>
+> The repro script looks like this:
+> ```sh
+> #!/bin/bash
+>
+> set -xe
+>
+> for i in large1 large2;
+> do
+>   if [ -f $i.squashfs ]; then
+>     continue
+>   fi
+>   mkdir -p $i
+>   pushd $i || exit 1
+>   yes $i | head -c 4GB > test.file
+>   popd || exit 1
+>   mksquashfs $i $i.squashfs
+> done
+>
+> rm -rf work
+> mkdir -p work/{lower0,lower1,lower2,upper,work,mnt}
+>
+> squashfuse -o allow_other large1.squashfs work/lower1
+> squashfuse -o allow_other large2.squashfs work/lower2
+>
+> trap "set +e; fusermount -u $(realpath work/lower1); fusermount -u $(realpath work/lower2); sudo umount --verbose -l $(realpath work/mnt)" EXIT
+>
+> sudo mount \
+>   -t overlay \
+>   -o lowerdir=work/lower2:work/lower1:work/lower0,upperdir=work/upper,workdir=work/work\
+>   overlay \
+>   work/mnt
+>
+> pushd work/mnt
+> dd if=/dev/zero of=test.file bs=4k count=80
+> popd
+> ```
+>
+> When writing to the file I see the following error:
+> ```
+> test.file: Value too large for defined data type
+> ```
+>
+> The file can be read just fine, stat works.
+> Mounting the squashfs with sudo and a loop device does not have this problem.
+>
+> Now, dmesg shows:
+> ```
+> [Jan31 08:38] overlayfs: failed to retrieve lower fileattr (/test.file, err=-75)
 
-kernel test robot noticed the following build errors:
+So this is a FUSE_IOCTL/FS_IOC_GETFLAGS request for which the server
+replies with EOVERFLOW.  This looks like a server issue, but it would
+be good to see the logs and/or strace related to this particular
+request.
 
-[auto build test ERROR on zohar-integrity/next-integrity]
-[also build test ERROR on pcmoore-selinux/next linus/master v6.8-rc2 next-20240131]
-[cannot apply to mszeredi-vfs/overlayfs-next mszeredi-vfs/next]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Stefan-Berger/security-allow-finer-granularity-in-permitting-copy-up-of-security-xattrs/20240131-054854
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/zohar/linux-integrity.git next-integrity
-patch link:    https://lore.kernel.org/r/20240130214620.3155380-2-stefanb%40linux.ibm.com
-patch subject: [PATCH 1/5] security: allow finer granularity in permitting copy-up of security xattrs
-config: x86_64-defconfig (https://download.01.org/0day-ci/archive/20240201/202402010225.BXp3LrvU-lkp@intel.com/config)
-compiler: gcc-11 (Debian 11.3.0-12) 11.3.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240201/202402010225.BXp3LrvU-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202402010225.BXp3LrvU-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
-   security/security.c: In function 'security_inode_copy_up_xattr':
->> security/security.c:2627:40: error: passing argument 1 of 'evm_inode_copy_up_xattr' from incompatible pointer type [-Werror=incompatible-pointer-types]
-    2627 |         return evm_inode_copy_up_xattr(src, name);
-         |                                        ^~~
-         |                                        |
-         |                                        struct dentry *
-   In file included from security/security.c:24:
-   include/linux/evm.h:121:56: note: expected 'const char *' but argument is of type 'struct dentry *'
-     121 | static inline int  evm_inode_copy_up_xattr(const char *name)
-         |                                            ~~~~~~~~~~~~^~~~
->> security/security.c:2627:16: error: too many arguments to function 'evm_inode_copy_up_xattr'
-    2627 |         return evm_inode_copy_up_xattr(src, name);
-         |                ^~~~~~~~~~~~~~~~~~~~~~~
-   In file included from security/security.c:24:
-   include/linux/evm.h:121:20: note: declared here
-     121 | static inline int  evm_inode_copy_up_xattr(const char *name)
-         |                    ^~~~~~~~~~~~~~~~~~~~~~~
-   cc1: some warnings being treated as errors
-
-
-vim +/evm_inode_copy_up_xattr +2627 security/security.c
-
-  2596	
-  2597	/**
-  2598	 * security_inode_copy_up_xattr() - Filter xattrs in an overlayfs copy-up op
-  2599	 * @src: union dentry of copy-up file
-  2600	 * @name: xattr name
-  2601	 *
-  2602	 * Filter the xattrs being copied up when a unioned file is copied up from a
-  2603	 * lower layer to the union/overlay layer.   The caller is responsible for
-  2604	 * reading and writing the xattrs, this hook is merely a filter.
-  2605	 *
-  2606	 * Return: Returns 0 to accept the xattr, 1 to discard the xattr, -EOPNOTSUPP
-  2607	 *         if the security module does not know about attribute, or a negative
-  2608	 *         error code to abort the copy up.
-  2609	 */
-  2610	int security_inode_copy_up_xattr(struct dentry *src, const char *name)
-  2611	{
-  2612		struct security_hook_list *hp;
-  2613		int rc;
-  2614	
-  2615		/*
-  2616		 * The implementation can return 0 (accept the xattr), 1 (discard the
-  2617		 * xattr), -EOPNOTSUPP if it does not know anything about the xattr or
-  2618		 * any other error code in case of an error.
-  2619		 */
-  2620		hlist_for_each_entry(hp,
-  2621				     &security_hook_heads.inode_copy_up_xattr, list) {
-  2622			rc = hp->hook.inode_copy_up_xattr(src, name);
-  2623			if (rc != LSM_RET_DEFAULT(inode_copy_up_xattr))
-  2624				return rc;
-  2625		}
-  2626	
-> 2627		return evm_inode_copy_up_xattr(src, name);
-  2628	}
-  2629	EXPORT_SYMBOL(security_inode_copy_up_xattr);
-  2630	
-
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+Thanks,
+Miklos
