@@ -1,159 +1,138 @@
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+Received: from mail-qv1-f45.google.com (mail-qv1-f45.google.com [209.85.219.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57F4922619;
-	Wed, 31 Jan 2024 11:18:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4DB1D7866D;
+	Wed, 31 Jan 2024 13:16:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706699932; cv=none; b=qCA6CWG9p89KeluRBZLPEc4WF2lJ0gWN4bfnNU/KJsDJYXbVPwuvG3cxMpeYPgPmKiJmhXSkOUwQ94tRvIcJm59KhsUXRtmi1kEwde+K/4Us1OsuVVMlL1WF5KgZopfKIoL6qMUvUaPuAgqD4PtOaqgdabHmb9hQE9UXO/8ORks=
+	t=1706706987; cv=none; b=XRQFMK9/4bWMaY9Oy79HghU2/XjsVdJ+087askYJQIa02oYEjR6yKqH86KKngvu4XEVquI5CJnQN1OpawlZy9PSC7KVVSh4FZu9Eu2it7MZ52rQ/t84msoN0K6o7jQeYrG3u1E97qfW5epPxmQzdjZ7wnODgNxKG2UkxuN1JgqY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706699932; c=relaxed/simple;
-	bh=z9HbznpTxs+hCXQiVU7KW8JJixJG05vmA2WmM1tQPp8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HhbULiljWGGnpanlqZQT/9iJTTa9KvVzHOcZLwqHmmDn1005EjV3ccgvOA/cjVjmy4AxUrWoK+I6mZivcNJRp2C6f4FMWsgctgf84rgMl1FDzmOPohFp845AV7Uj9WYpZuKln1oe9qkmdTN8HZnbgFeWiJ/6q6QPCJwksYBIl+0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=PJmBHfiC; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=LbMqUVa4; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=PJmBHfiC; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=LbMqUVa4; arc=none smtp.client-ip=195.135.223.130
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+	s=arc-20240116; t=1706706987; c=relaxed/simple;
+	bh=jbMaNkr1bTYPXRhgukPeSj3N79rSuP6MAAxEWCK1YVM=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Is8o/9lviSwbzqtfgG4dnEhS1kCjilXqRxQcGrBlaN0GCko4KCYcvYjDAzh3R5tgZiwJjJDAMflln85ExHvkCTqY8RvNBGGunhkZ2TAhOl7SljCp7Acid0f8+7auAqJanPqBDOG6WWW0uVKfDmkt3tRcXL4Es5384Ukuq8LdHeE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OVEQGekf; arc=none smtp.client-ip=209.85.219.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="PJmBHfiC";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="LbMqUVa4";
-	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="PJmBHfiC";
-	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="LbMqUVa4"
-Received: from imap2.dmz-prg2.suse.org (imap2.dmz-prg2.suse.org [IPv6:2a07:de40:b281:104:10:150:64:98])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out1.suse.de (Postfix) with ESMTPS id 4FAF3220D8;
-	Wed, 31 Jan 2024 11:18:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1706699928; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=T+ZO5rd8ho25EDHOwsCAfpvNPINlx/FEPMDsaLbJtlU=;
-	b=PJmBHfiC7xG2mBNl4fVz4ZMxB408aQXuHiTFFzo0JyNZATQI7feB3jddU5o8vkHOioI7Be
-	DPBsV3WwCITrcpCLQDj8V9fDRtnhQq40hex2mdBPhKJn8fXJ9bQ4MVVNlAMmnMkZGZAoBp
-	vdroEjYzJnXDsfFx392A6jPJ8HDYsZI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1706699928;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=T+ZO5rd8ho25EDHOwsCAfpvNPINlx/FEPMDsaLbJtlU=;
-	b=LbMqUVa4p4c3thd9uNPo8J21zMTzrTGzjegRDDs2Q9ihllp+fpVcClz5Zp+DQADRZHSJ3u
-	/Agzat4MaI626NAw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-	t=1706699928; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=T+ZO5rd8ho25EDHOwsCAfpvNPINlx/FEPMDsaLbJtlU=;
-	b=PJmBHfiC7xG2mBNl4fVz4ZMxB408aQXuHiTFFzo0JyNZATQI7feB3jddU5o8vkHOioI7Be
-	DPBsV3WwCITrcpCLQDj8V9fDRtnhQq40hex2mdBPhKJn8fXJ9bQ4MVVNlAMmnMkZGZAoBp
-	vdroEjYzJnXDsfFx392A6jPJ8HDYsZI=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-	s=susede2_ed25519; t=1706699928;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:content-type:content-type:
-	 in-reply-to:in-reply-to:references:references;
-	bh=T+ZO5rd8ho25EDHOwsCAfpvNPINlx/FEPMDsaLbJtlU=;
-	b=LbMqUVa4p4c3thd9uNPo8J21zMTzrTGzjegRDDs2Q9ihllp+fpVcClz5Zp+DQADRZHSJ3u
-	/Agzat4MaI626NAw==
-Received: from imap2.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap2.dmz-prg2.suse.org (Postfix) with ESMTPS id 41134132FA;
-	Wed, 31 Jan 2024 11:18:48 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([10.150.64.162])
-	by imap2.dmz-prg2.suse.org with ESMTPSA
-	id JyzUD5gsumXGQAAAn2gu4w
-	(envelope-from <jack@suse.cz>); Wed, 31 Jan 2024 11:18:48 +0000
-Received: by quack3.suse.cz (Postfix, from userid 1000)
-	id A8398A0809; Wed, 31 Jan 2024 12:18:47 +0100 (CET)
-Date: Wed, 31 Jan 2024 12:18:47 +0100
-From: Jan Kara <jack@suse.cz>
-To: Kunwu Chan <chentao@kylinos.cn>
-Cc: miklos@szeredi.hu, amir73il@gmail.com, viro@zeniv.linux.org.uk,
-	brauner@kernel.org, jack@suse.cz, linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] fs: Use KMEM_CACHE instead of kmem_cache_create
-Message-ID: <20240131111847.ujdhhab6wdebo6fn@quack3>
-References: <20240131070941.135178-1-chentao@kylinos.cn>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OVEQGekf"
+Received: by mail-qv1-f45.google.com with SMTP id 6a1803df08f44-6818aa07d81so34218806d6.0;
+        Wed, 31 Jan 2024 05:16:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1706706985; x=1707311785; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=5VH5uYYk0MxykRHzUiex1lRzuDUS57P3V7ajJDCHXAY=;
+        b=OVEQGekfW7/MJyOEPRuv2/wPWAzHKFX0hVRfXqfdWDeF6Zgf1vLIKWYTLWtCDVspBS
+         msjhaAagh4j8ZRmc991tbrgjeIjVLwaflv4OBGWZCWMhTCN2EyMOKxXfn41sbh02nR4W
+         CxGvBCrpRi73M6tHx+2b7/2SLngUZMXgXPxttZLYSYxul5U9C8Ar/f+7JpmGjuUoTTvb
+         ERkMj+aoL0YFqJQfhnQ6aozW2MQn8prtAL1fy1Zz1l/5pDLpFwQWDOmAvA/yk0OflT2V
+         g6JrblnYPJAux2wR9CJrAx/AKOMDp5/FCmvjYV6NijUz/DAX7TWl9Jgo7uMXcM1dFIgz
+         SRww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1706706985; x=1707311785;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=5VH5uYYk0MxykRHzUiex1lRzuDUS57P3V7ajJDCHXAY=;
+        b=KyHcs7kKDzlG/Rak2/2+XekY/GrBwjTz/yBjmvZc/eyA/mQMFGM29OTwdAlNFnoZd6
+         OPLnFSGCUawRLVy/r+cBdksq+Irlo7EdHlAvz9mUdApxNPGOk426ZTEa2zWqBLPeuMlC
+         hLzoMHavp+CrrhEHjgHlF7igbXQCD1xZ4TT69e4jXmqHzuNCMrVacCIWfwEuL/vrNZ/s
+         snx6wgOe6Nrm1ofOjDklHGE8+jIahzOuRxhhb0LXkJ3Z3qv/zCuj4w7Wl/3Z1ST/LyaA
+         K4wjIYpfeRVnPMyPwTB8jaDtkossgdYio3qHSv1g+2gEAGNIHiFv/+G63OdUUX9PYRa5
+         Vvpw==
+X-Gm-Message-State: AOJu0YxBT7TtNGKLwDmwuu68jXY22+arbnhC/5xBrKELVs8bqJ79jgkG
+	69boJ5uXWgLubBPjakZ4FGmcdNuOrAT+ViKxrq5SxuBibqpo0UpwrhmzJHAkeCmP06LjC0/q6OJ
+	F8Nrj29o4L8IQAbHXPYF6zJaXIWXv8GnSOSg=
+X-Google-Smtp-Source: AGHT+IH0ikF6yoZwytwWB7RZWy0RSBrrB+eLztoCMsKSE9pSBTVUmsNiaZ3Q0DiJ/Pf8yrIq+7n4meL7OwNYLVbhNf0=
+X-Received: by 2002:ad4:5ce9:0:b0:686:7256:c9f4 with SMTP id
+ iv9-20020ad45ce9000000b006867256c9f4mr1663225qvb.9.1706706985131; Wed, 31 Jan
+ 2024 05:16:25 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240131070941.135178-1-chentao@kylinos.cn>
-Authentication-Results: smtp-out1.suse.de;
-	dkim=pass header.d=suse.cz header.s=susede2_rsa header.b=PJmBHfiC;
-	dkim=pass header.d=suse.cz header.s=susede2_ed25519 header.b=LbMqUVa4
-X-Spamd-Result: default: False [-2.78 / 50.00];
-	 ARC_NA(0.00)[];
-	 RCVD_VIA_SMTP_AUTH(0.00)[];
-	 R_DKIM_ALLOW(-0.20)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	 FROM_HAS_DN(0.00)[];
-	 TO_DN_SOME(0.00)[];
-	 FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	 TO_MATCH_ENVRCPT_ALL(0.00)[];
-	 MIME_GOOD(-0.10)[text/plain];
-	 RCVD_COUNT_THREE(0.00)[3];
-	 DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
-	 DKIM_TRACE(0.00)[suse.cz:+];
-	 MX_GOOD(-0.01)[];
-	 RCPT_COUNT_SEVEN(0.00)[9];
-	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.com:email];
-	 FUZZY_BLOCKED(0.00)[rspamd.com];
-	 FROM_EQ_ENVFROM(0.00)[];
-	 MIME_TRACE(0.00)[0:+];
-	 MID_RHS_NOT_FQDN(0.50)[];
-	 FREEMAIL_CC(0.00)[szeredi.hu,gmail.com,zeniv.linux.org.uk,kernel.org,suse.cz,vger.kernel.org];
-	 RCVD_TLS_ALL(0.00)[];
-	 BAYES_HAM(-2.97)[99.86%]
-X-Rspamd-Server: rspamd1.dmz-prg2.suse.org
-X-Rspamd-Queue-Id: 4FAF3220D8
-X-Spam-Level: 
-X-Spam-Score: -2.78
-X-Spam-Flag: NO
+References: <20240130214620.3155380-1-stefanb@linux.ibm.com>
+ <20240130214620.3155380-5-stefanb@linux.ibm.com> <38230b4c-54ae-45ed-a6fb-34e63501e5b1@linux.ibm.com>
+In-Reply-To: <38230b4c-54ae-45ed-a6fb-34e63501e5b1@linux.ibm.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 31 Jan 2024 15:16:13 +0200
+Message-ID: <CAOQ4uxiYARZBSgzb4_W-RKvB1XLSF3GUBqeLw2kH+eVeZ_8ARQ@mail.gmail.com>
+Subject: Re: [PATCH 4/5] evm: Use the real inode's metadata to calculate
+ metadata hash
+To: Stefan Berger <stefanb@linux.ibm.com>
+Cc: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com, zohar@linux.ibm.com, 
+	roberto.sassu@huawei.com, miklos@szeredi.hu
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed 31-01-24 15:09:41, Kunwu Chan wrote:
-> commit 0a31bd5f2bbb ("KMEM_CACHE(): simplify slab cache creation")
-> introduces a new macro.
-> Use the new KMEM_CACHE() macro instead of direct kmem_cache_create
-> to simplify the creation of SLAB caches.
-> 
-> Signed-off-by: Kunwu Chan <chentao@kylinos.cn>
+On Wed, Jan 31, 2024 at 4:11=E2=80=AFAM Stefan Berger <stefanb@linux.ibm.co=
+m> wrote:
+>
+>
+>
+> On 1/30/24 16:46, Stefan Berger wrote:
+> > Changes to the file attribute (mode bits, uid, gid) on the lower layer
+> > are not take into account when d_backing_inode() is used when a file is
+> > accessed on the overlay layer and this file has not yet been copied up.
+> > This is because d_backing_inode() does not return the real inode of the
+> > lower layer but instead returns the backing inode which holds old file
+> > attributes. When the old file attributes are used for calculating the
+> > metadata hash then the expected hash is calculated and the file then
+> > mistakenly passes signature verification. Therefore, use d_real_inode()
+> > which returns the inode of the lower layer for as long as the file has
+> > not been copied up and returns the upper layer's inode otherwise.
+> >
+> > Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> > ---
+> >   security/integrity/evm/evm_crypto.c | 2 +-
+> >   1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/security/integrity/evm/evm_crypto.c b/security/integrity/e=
+vm/evm_crypto.c
+> > index b1ffd4cc0b44..2e48fe54e899 100644
+> > --- a/security/integrity/evm/evm_crypto.c
+> > +++ b/security/integrity/evm/evm_crypto.c
+> > @@ -223,7 +223,7 @@ static int evm_calc_hmac_or_hash(struct dentry *den=
+try,
+> >                                size_t req_xattr_value_len,
+> >                                uint8_t type, struct evm_digest *data)
+> >   {
+> > -     struct inode *inode =3D d_backing_inode(dentry);
+> > +     struct inode *inode =3D d_real_inode(dentry);
+> >       struct xattr_list *xattr;
+> >       struct shash_desc *desc;
+> >       size_t xattr_size =3D 0;
+>
+> We need this patch when NOT activating CONFIG_OVERLAY_FS_METACOPY but
+> when setting CONFIG_OVERLAY_FS_METACOPY=3Dy it has to be reverted...  I a=
+m
+> not sure what the solution is.
 
-Looks good. Feel free to add:
+I think d_real_inode() does not work correctly for all its current users fo=
+r
+a metacopy file.
 
-Reviewed-by: Jan Kara <jack@suse.cz>
+I think the solution is to change d_real_inode() to return the data inode
+and add another helper to get the metadata inode if needed.
+I will post some patches for it.
 
-								Honza
+However, I must say that I do not know if evm_calc_hmac_or_hash()
+needs the lower data inode, the upper metadata inode or both.
 
-> ---
->  fs/backing-file.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/fs/backing-file.c b/fs/backing-file.c
-> index a681f38d84d8..740185198db3 100644
-> --- a/fs/backing-file.c
-> +++ b/fs/backing-file.c
-> @@ -325,9 +325,7 @@ EXPORT_SYMBOL_GPL(backing_file_mmap);
->  
->  static int __init backing_aio_init(void)
->  {
-> -	backing_aio_cachep = kmem_cache_create("backing_aio",
-> -					       sizeof(struct backing_aio),
-> -					       0, SLAB_HWCACHE_ALIGN, NULL);
-> +	backing_aio_cachep = KMEM_CACHE(backing_aio, SLAB_HWCACHE_ALIGN);
->  	if (!backing_aio_cachep)
->  		return -ENOMEM;
->  
-> -- 
-> 2.39.2
-> 
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+The last time you tried to fix ovl+IMA, I asked for documentation
+of what data/metadata is protected with EVM and how are those
+protections supposed to work across overlayfs copy up, when the
+data and metadata are often split between 2 and myabe event 3
+differnt inode.
+
+From the current patch set, I still don't understand what is the expected
+behavior before and after copy up of data/metadata-only.
+
+Thanks,
+Amir.
