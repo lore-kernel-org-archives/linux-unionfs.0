@@ -1,102 +1,223 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-qk1-f175.google.com (mail-qk1-f175.google.com [209.85.222.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C41515AADD
-	for <linux-unionfs@vger.kernel.org>; Thu,  1 Feb 2024 09:28:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E13A15CD72;
+	Thu,  1 Feb 2024 12:11:11 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706779696; cv=none; b=Ifcy4a4jbm/RLZhw8L1pDydmd8WlKV0tXNsvSjD1ZJZLRASGWw4slEGgPDeDa367ZnLQQITjSMbmhgKv178n7k7JuJt621SnTT9tqBo7rGuu1uV6D4L6gopKPwCdIc1O/i/yLXWczf6BY6fZMJkM2phKxjEc2101BZ1KA+Qs+qE=
+	t=1706789473; cv=none; b=arld/fkXYjiOXN76/nAarJuTYJEeeUj7ZI/vaxYOBiwow8jlzw+AIvPA8cvxp9eKJ11cI7J4pv4t2ipi3+ioDa0NeFbONytF6Jdgov50Tco/3li7y+8ka3dykNJeWV/mWJZu5Kynp+vEnBaVoM52k905CQAYLc5muEwcDE5IrJk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706779696; c=relaxed/simple;
-	bh=uQpjHn/k8LhRaWfdodt0dBqKXXzAvGqKt+BKjv1aSl8=;
+	s=arc-20240116; t=1706789473; c=relaxed/simple;
+	bh=BKkgs5o3flr8DLm3fRhM8fmYE/Cis38Wwzz6W7RuFKw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ahk7lAO94uaEmUuoEVlZIizwZj9uXhh22mcrR1La2YHBMqDFqmQUO1dh5N6OZO/ixGb9ds0fQ0ZP8+EnsRq1+Vz+6b1RPH0WrclXtyxmYhF95xVZYA9Z/je5Fh9ffX6UZU1TkE2qq93Inuiq0JQZkq1D0JEzR7Ow+AaEixlcNVc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=k+UjBpU6; arc=none smtp.client-ip=209.85.218.49
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=kQc1Cl8peuMxRtkKyFUhdH1v0izQUoFTvvb22onni9iF+X3We1+srX33Ibb8pxoA5cYbYbWtOTV4uZde84E04jR9b+CEU8JBTJ7dzMfzZZL0op1oz6r/Dtszt4JD9sMK1hzG4CoeSj+uVHCqqsXzt9PYUkXf9Dc8DsXwGXq1sU4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eFXudBYv; arc=none smtp.client-ip=209.85.222.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="k+UjBpU6"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-a2d7e2e7fe0so118039766b.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 01 Feb 2024 01:28:14 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eFXudBYv"
+Received: by mail-qk1-f175.google.com with SMTP id af79cd13be357-783def87c8cso55057885a.0;
+        Thu, 01 Feb 2024 04:11:11 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1706779692; x=1707384492; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=AomKnOYIuoieQS/ihA4cKdwcwSZOo5BeW4PVPnqVgY8=;
-        b=k+UjBpU6FBRZ77naIQ9QlzK080lbPUzBeX3fBH7nGZdcWDtxXYAVIxfPVPD8HtSJ2f
-         00HCCpXJkOpVzZ1dAo5LlVfFrg4idFmjRYMAB8Rgps4+vdZ/0iDub5/GonlfOL5xIbp7
-         exCMREjCI1+LDBgNjha+6A3tikaLqcKHJqUpQ=
+        d=gmail.com; s=20230601; t=1706789470; x=1707394270; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Ot6Gz4jMBpIlofVX53+ZXvqyeKrVY8kBh2nwQY9He9E=;
+        b=eFXudBYvX2tcpFNSUP2cazwHp3jOYG+ZdrYS4wh6m4wsR9ORg/zK6R8NgJZgfvZi1T
+         nyfqbPCzN9fkLyU8bMzkVy31OkediJZszk7kXAuT406rhbbh1zpGPe98+5ae5ahD8vVL
+         qfGMWolbvoe3gjpGTwVbuX3ZcizxmHruR0WfML2yQmdYjB+LMYraAFHkSfBHEjbwLnPV
+         7Wg86Bgd96eMPozWFgCm/ZIRHptY52G5akn/QfxXQjI7++M7MsK6eyXZaDsM+SgXEfhS
+         5m8CmMc7i08QrSftbwfz0rnJmZzODWPrw/S9AiAQL3hQoBXmjGAKs168Du0mudibfb/Z
+         rjBA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706779692; x=1707384492;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=AomKnOYIuoieQS/ihA4cKdwcwSZOo5BeW4PVPnqVgY8=;
-        b=eOFOaTKhuhKY7/nOYm/6cVQd4dxi9hMtq8NXKEJNnsVXLjB3aJ4WTgG8szJsdAT8UB
-         0quE09+Y+E/yZnIsDYPVKnMuz/w6CdLRLEy3HsmdUZLrjxKJog3OfJntLAFhjIkhTWa3
-         dNKIgfPnB2F3JbiHqBCnl15UhOJF0VztEo5sA/AKgULyvP+4pU5CRUhcjkHcMrSwD+0P
-         wWFXzq0HX5eJEQps1ZKJYW/C1grmPyf/zzA1Ob8F/0Xrpo/o4Rnli77Ptpi6awsIqP7v
-         vkvD4NAr3MJ5VFU7rrWBrX+wWcV4+ef4M1ZgChqexBtRO8GUwzyKiql03ghxRaLOJM3l
-         qAHg==
-X-Gm-Message-State: AOJu0YwsD4h9dCeEVw0nq86bGuf3LooCIUfukd9yiW+4xMP2R1irjx78
-	xI5z2pmuaD4kT09YdL2UALkCURcKwQRUIIs3SL4rJu6lUMINDjg/Hof30eBcERHmPFtw2aJmcaZ
-	75cWKkbm34Qz9aOtlcKaGqBZ0gKFG3SFtngIf0aeVNx3D271I
-X-Google-Smtp-Source: AGHT+IEamRgeJz3jGdb2eDDc4tN5r+rp6qV8ZOXHbn3Ij+XsYl9jubtmuM0adIZ95h2nHr6nkj9LK6dgPbqAO0/qnW0=
-X-Received: by 2002:a17:906:c12:b0:a36:3cd0:232a with SMTP id
- s18-20020a1709060c1200b00a363cd0232amr5368561ejf.21.1706779692674; Thu, 01
- Feb 2024 01:28:12 -0800 (PST)
+        d=1e100.net; s=20230601; t=1706789470; x=1707394270;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Ot6Gz4jMBpIlofVX53+ZXvqyeKrVY8kBh2nwQY9He9E=;
+        b=sdGWcerYoFYS8Cqm3NwrAYdEL1C0O96QDLUFKVuuCONIQtNcYcABvs79vZkyG/fjgw
+         7/RNiGpPPCMsTbod8KZXB64lghwg4q2nqv1upZqJdtgBbzyu5wLJ1rzSC4EhXVDks2BF
+         5Td8hqKnhIb0WOUcLzVRewVu7DIvqe6+ckQLPn9h6AkOvCrEtb5OlFL3NFAeCnsEkqgw
+         Jq0BbtszAcqcq1Cnd9tlQmrKBzoXJj3bDVSr4Wlxfi/QVxBD5eVjXjqdcjx9L7nDhxIG
+         4XwXjsLcImtWB8doG501l9ehlBEgFxVbRiW4qFg+gZRNKryBiHqFdCnQvgpT5Ols5jmq
+         ZdhQ==
+X-Gm-Message-State: AOJu0YzReK1Okx2/fFKR/eysnm32REusatw7doCDXJrEEh4S8Ws13aOs
+	UPOoSvUKpXiac8giCMMmn+h8RTeRVQ+5+srroe4QdB4eQ35WsELrZiZ3nIj76eJvUjYa0AhcA+p
+	0D5hn1NtFGdoAIrSs0XVQ567nOq0=
+X-Google-Smtp-Source: AGHT+IHz6LtCx2w85BoWFdo+DeI9pIZ3+8vPu7taC1c5PJhh8sKbBeBLxRBVp/IF+mUCKoIMsRCelHFrrApZQHhaDAc=
+X-Received: by 2002:a05:6214:d6a:b0:686:abad:6f13 with SMTP id
+ 10-20020a0562140d6a00b00686abad6f13mr4705853qvs.7.1706789470211; Thu, 01 Feb
+ 2024 04:11:10 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <VI1PR08MB31011DF4722B9E720A251892827C2@VI1PR08MB3101.eurprd08.prod.outlook.com>
- <CAJfpegvBc+Md51ubYv9iDnST+Xps9P=g51NcWJONKy4fq=O8+Q@mail.gmail.com>
- <VI1PR08MB3101A133BDF889B35F14D28882432@VI1PR08MB3101.eurprd08.prod.outlook.com>
- <CAJfpegup8_Xm7rqbNgbxoZ0+5KnrJiiR05KLO3W4=mmQaRi+qg@mail.gmail.com> <VI1PR08MB3101AA24E1406DBCA133DC7782432@VI1PR08MB3101.eurprd08.prod.outlook.com>
-In-Reply-To: <VI1PR08MB3101AA24E1406DBCA133DC7782432@VI1PR08MB3101.eurprd08.prod.outlook.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 1 Feb 2024 10:28:01 +0100
-Message-ID: <CAJfpegv+jknMnAAYKnZvemvjqi26X59HRRg7-JhDYVFe4MG93Q@mail.gmail.com>
-Subject: Re: [overlay] [fuse] Potential bug with large file support for FUSE
- based lowerdir
-To: Lukasz Okraszewski <Lukasz.Okraszewski@arm.com>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, 
-	Matthew Clarkson <Matthew.Clarkson@arm.com>, Brandon Jones <Brandon.Jones@arm.com>, nd <nd@arm.com>, 
-	overlayfs <linux-unionfs@vger.kernel.org>
+References: <20240130214620.3155380-1-stefanb@linux.ibm.com>
+ <20240130214620.3155380-5-stefanb@linux.ibm.com> <38230b4c-54ae-45ed-a6fb-34e63501e5b1@linux.ibm.com>
+ <CAOQ4uxiYARZBSgzb4_W-RKvB1XLSF3GUBqeLw2kH+eVeZ_8ARQ@mail.gmail.com>
+ <c018b014-9ba8-4395-86dc-b61346ab20a8@linux.ibm.com> <CAOQ4uxi6Te8izWpXROthknRaXrVA9jho5nbc+mkuQDrcTLY44Q@mail.gmail.com>
+ <CAOQ4uxigdNeE+2nfr4VxS9piQf5hez=ryT0a-jzW+tW0BT-zuw@mail.gmail.com> <492ea12a-d79d-47da-9bbe-a7f33051bd3f@linux.ibm.com>
+In-Reply-To: <492ea12a-d79d-47da-9bbe-a7f33051bd3f@linux.ibm.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 1 Feb 2024 14:10:58 +0200
+Message-ID: <CAOQ4uxgiO1RbsmqOu4F4Foy-MBPecnEXO7BvgDGz-Lzb1Eysog@mail.gmail.com>
+Subject: Re: [PATCH 4/5] evm: Use the real inode's metadata to calculate
+ metadata hash
+To: Stefan Berger <stefanb@linux.ibm.com>
+Cc: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com, zohar@linux.ibm.com, 
+	roberto.sassu@huawei.com, miklos@szeredi.hu
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 1 Feb 2024 at 10:24, Lukasz Okraszewski
-<Lukasz.Okraszewski@arm.com> wrote:
+On Wed, Jan 31, 2024 at 7:46=E2=80=AFPM Stefan Berger <stefanb@linux.ibm.co=
+m> wrote:
 >
 >
-> <miklos@szeredi.hu> wrote:
-> > On Thu, 1 Feb 2024 at 09:01, Lukasz Okraszewski
-> > <Lukasz.Okraszewski@arm.com> wrote:
-> > >
-> > > > So this is a FUSE_IOCTL/FS_IOC_GETFLAGS request for which the server
-> > > > replies with EOVERFLOW.  This looks like a server issue, but it would
-> > > > be good to see the logs and/or strace related to this particular
-> > > > request.
-> > > >
-> > > > Thanks,
-> > > > Miklos
-> > >
-> > > Thanks for having a look!
-> > >
-> > > I have attached the logs. I am running two lower dirs but I don't think it should matter.
-> > > For clarify the steps were:
+>
+> On 1/31/24 12:23, Amir Goldstein wrote:
+> > On Wed, Jan 31, 2024 at 5:54=E2=80=AFPM Amir Goldstein <amir73il@gmail.=
+com> wrote:
+> >>
+> >> On Wed, Jan 31, 2024 at 4:40=E2=80=AFPM Stefan Berger <stefanb@linux.i=
+bm.com> wrote:
+> >>>
+> >>>
+> >>>
+> >>> On 1/31/24 08:16, Amir Goldstein wrote:
+> >>>> On Wed, Jan 31, 2024 at 4:11=E2=80=AFAM Stefan Berger <stefanb@linux=
+.ibm.com> wrote:
+> >>>>>
+> >>>>>
+> >>>>>
+> >>>>> On 1/30/24 16:46, Stefan Berger wrote:
+> >>>>>> Changes to the file attribute (mode bits, uid, gid) on the lower l=
+ayer
+> >>>>>> are not take into account when d_backing_inode() is used when a fi=
+le is
+> >>>>>> accessed on the overlay layer and this file has not yet been copie=
+d up.
+> >>>>>> This is because d_backing_inode() does not return the real inode o=
+f the
+> >>>>>> lower layer but instead returns the backing inode which holds old =
+file
+> >>>>>> attributes. When the old file attributes are used for calculating =
+the
+> >>>>>> metadata hash then the expected hash is calculated and the file th=
+en
+> >>>>>> mistakenly passes signature verification. Therefore, use d_real_in=
+ode()
+> >>>>>> which returns the inode of the lower layer for as long as the file=
+ has
+> >>>>>> not been copied up and returns the upper layer's inode otherwise.
+> >>>>>>
+> >>>>>> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> >>>>>> ---
+> >>>>>>     security/integrity/evm/evm_crypto.c | 2 +-
+> >>>>>>     1 file changed, 1 insertion(+), 1 deletion(-)
+> >>>>>>
+> >>>>>> diff --git a/security/integrity/evm/evm_crypto.c b/security/integr=
+ity/evm/evm_crypto.c
+> >>>>>> index b1ffd4cc0b44..2e48fe54e899 100644
+> >>>>>> --- a/security/integrity/evm/evm_crypto.c
+> >>>>>> +++ b/security/integrity/evm/evm_crypto.c
+> >>>>>> @@ -223,7 +223,7 @@ static int evm_calc_hmac_or_hash(struct dentry=
+ *dentry,
+> >>>>>>                                  size_t req_xattr_value_len,
+> >>>>>>                                  uint8_t type, struct evm_digest *=
+data)
+> >>>>>>     {
+> >>>>>> -     struct inode *inode =3D d_backing_inode(dentry);
+> >>>>>> +     struct inode *inode =3D d_real_inode(dentry);
+> >>>>>>         struct xattr_list *xattr;
+> >>>>>>         struct shash_desc *desc;
+> >>>>>>         size_t xattr_size =3D 0;
+> >>>>>
+> >>>>> We need this patch when NOT activating CONFIG_OVERLAY_FS_METACOPY b=
+ut
+> >>>>> when setting CONFIG_OVERLAY_FS_METACOPY=3Dy it has to be reverted..=
+.  I am
+> >>>>> not sure what the solution is.
+> >>>>
+> >>>> I think d_real_inode() does not work correctly for all its current u=
+sers for
+> >>>> a metacopy file.
+> >>>>
+> >>>> I think the solution is to change d_real_inode() to return the data =
+inode
+> >>>> and add another helper to get the metadata inode if needed.
+> >>>> I will post some patches for it.
+> >>>
+> >>> I thought that we may have to go through vfs_getattr() but even bette=
+r
+> >>> if we don't because we don't have the file *file anywhere 'near'.
+> >>>
+> >>>>
+> >>>> However, I must say that I do not know if evm_calc_hmac_or_hash()
+> >>>> needs the lower data inode, the upper metadata inode or both.
+> >>>
+> >>> What it needs are data structures with mode bits, uid, and gid that s=
+tat
+> >>> in userspace would show.
+> >>>
+> >>>
+> >>
+> >> With or without metacopy enabled, an overlay inode st_uid st_gid st_mo=
+de
+> >> are always taken from the upper most inode which is what d_real_inode(=
+)
+> >> currently returns, so I do not understand what the problem is.
+> >>
 > >
-> > What kernel are you running?
+> > No, I was wrong. It is the other way around.
+> > d_real_inode() always returns the real data inode and you need the
+> > upper most real inode.
 > >
-> > uname -r
+> > You can try this:
+> >
+> >   -     struct inode *inode =3D d_backing_inode(dentry);
+> > +     struct inode *inode =3D d_inode(d_real(dentry, false));
+> >
+> > With the changes in:
+> >
+> > https://github.com/amir73il/linux/commits/overlayfs-devel/
+> >
+> > Not thoroughly tested...
 >
-> On this current machine it's pretty old: 5.15.0-89-generic (Ubuntu Jammy).
-> We have seen this on Arch with 6.6.12-1-lts, if you give me some time I can set up the repro on that again and get the logs if that's helpful.
+> The change + 3 topmost patches cherry-picked is unfortunately are
+> crashing for me.
+>
 
-Please try on a recent vanilla kernel as distro kernels can have
-patches that modify behavior.
+I will look into it.
+But anyway, the patch I suggested above is not enough exactly because
+of the reason I told you earlier.
+
+Mimi's fix ("ima: detect changes to the backing overlay file") detects
+a change in d_real_inode(file_dentry(file)) in order to invalidate the
+IMA cache.
+
+Your change also invalidates EVM cache on a change in
+d_real_inode(file_dentry(file)) and that makes sense.
+
+But on "meta copy up" for example on chmod(), an upper inode with no data
+is created (a metacopy) and all the attributes and xattr are copied
+from lower inode.
+The data remains in the lower inode.
+
+At this point , the IMA cache and the EVM cache refer to two different inod=
+es
+so you cannot share the same logic with IMA cache invalidation.
+
+My patches are meant to provide you with a helper e.g. d_real_meta_inode()
+that you could use to get the upper inode in the case of a metacopy, but
+IMA would still need to use the d_real_data_inode().
+
+Is that explanation clear? Is it clear why I said that the problem is more
+complicated?
 
 Thanks,
-Miklos
+Amir.
