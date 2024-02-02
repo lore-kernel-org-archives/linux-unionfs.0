@@ -1,66 +1,66 @@
 Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 695D914532F;
-	Fri,  2 Feb 2024 14:59:43 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D07A3145B21;
+	Fri,  2 Feb 2024 15:16:54 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706885985; cv=none; b=UkC0MeFY1NoQKBPKKolbq5pzn8zeQ4mo6NCd/UJbL6ZSLI6POgJT5KNsvgQ+pZzjO/jmNCVpynaNsHrP0VAnA4Sk/PqTNJBpdgmtEm3GVDz49WxlIb3Bap8vTWe7GXmRwpQgSMnFc7OhVjgvIv4MZYiDwcY29RcGkF80MTl8dhQ=
+	t=1706887016; cv=none; b=gTIfKcF2zgWBoorwP0MlAyOElJDoywStAMliVNbGwboqDA/2E4reXxQzenTSey7glddK9HzES6rGMejn7+pIBvtM0FNXiyY8QcjT670u6Zz1XtWJKPGIUFsD6b4kTfBzhjLZNn0Uc9lO7tk02jad0oiWKygA8lUfMN1WBarpkyk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706885985; c=relaxed/simple;
-	bh=j9o/D4PX8P6MAHXX8Li5cakqXSJZBBqE79iYgK9s8xk=;
+	s=arc-20240116; t=1706887016; c=relaxed/simple;
+	bh=YCw4cDXb5/di2nLxfvW5MuQDHp4yTAmjCvodHy7oN3I=;
 	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=obOO8kWj3Xki5DVzd7Wib8qEzraHRZL1nrSRoShSI85aKK0Nk8A/KruQfD+GrHg+GLQkiejqvgf39Ga+OFjHmrFHktG4KhSaoN0CT4Tog/151OPGEOPtAfB27780fSKZ2AJttGNWvEAlbNFcv93Pg2AR/pnCU9OxPU51d65UIwM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=MtJy1EyA; arc=none smtp.client-ip=148.163.156.1
+	 In-Reply-To:Content-Type; b=kV94zy3gPirJBSoMB1Ljm9d9laV+bW4Qabm9o9JMJzEYKtmUdA9jR+Eng/gO5JIeVzQH/yCOMYdlMqfWM7f+0jXtusi8zKZAqjFpvUimI4XtEHLuWUFs1y2WSSkE09f39TTOrkqv0SXx/k3089SGyELO7h0LhgfX4gZqJMMYNsM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=BFpQ0vey; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="MtJy1EyA"
-Received: from pps.filterd (m0360083.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 412ElDTD029311;
-	Fri, 2 Feb 2024 14:59:21 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="BFpQ0vey"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 412Dsi0Z028349;
+	Fri, 2 Feb 2024 15:16:51 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
  mime-version : subject : to : cc : references : from : in-reply-to :
  content-type : content-transfer-encoding; s=pp1;
- bh=lavWl5ZUgUmZW7XwY/1Pku4zomLlRtgMX26Nnc+GCZM=;
- b=MtJy1EyA5q7LktsdR4IXWCVqBdi4/reR084RIJ/8sbzYItLurHsAl7FY4iQTrzu36W8s
- dCARAVfJhHuIjxy7OscPneErUp0WQzByxXxOxZklJOIWdfcwDzKVkXwzs5+CjEdv0nZQ
- jwzGfFTP9RcM3noxc2ew/cQ7RKXxy1RhsnLd8f3TqVzLgtiCprs2gEfSfNnw2J5p2ID9
- BJI8PefIQXiA8qHc+yx7EOZvl1rn1d3qfnpHz1JifBZPc9dr7NUgAUmKACSDdoQSrWKv
- V0SGZNloronpOGcrl5MkTt6Cu446BB62AN+Vhx9qsif15GKrgCGV3vSy/cYgss3PHgcm 5Q== 
+ bh=GFtXPX2zDBlf3MAJ3pukKKNv5yphK9EH9NBq7OjssgE=;
+ b=BFpQ0veya5P5aiOv3v/TyuTBi5p4RoiVy3SduXgNKkD4lgSLBybC/s/mBvBVZbb6CKdf
+ 11yINgbbkTKOlxhSl4hzpyNtSsc7S5RRC5nJLpAkPiEaWV913kMdlYVpSHYsv1crh5rc
+ UJoq8XEaYo82m3UMFDnCBYo5ZkNH12zVmbOdOZbQpaxwuokx/wRgSt9/5yd0lr8wP00k
+ IV+mp0zl2s8/T+ew5e2iKW6fek0kRwdGx4y1Zk/+Lr2qMa8gSvTH14JsOsw8Nm9kv16Z
+ 0TRKsd/uJt/vS1wY5Jpyc7+cFRbNI7uz+8Jz+KcnAKKDlqmfOtWsUEP+YtqDKjuzAhP8 kA== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w12f78aeu-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w119t2s05-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 02 Feb 2024 14:59:21 +0000
-Received: from m0360083.ppops.net (m0360083.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 412Elh9X031100;
-	Fri, 2 Feb 2024 14:59:20 GMT
+	Fri, 02 Feb 2024 15:16:51 +0000
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 412EobWe031909;
+	Fri, 2 Feb 2024 15:16:50 GMT
 Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w12f78ae0-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w119t2rya-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 02 Feb 2024 14:59:20 +0000
+	Fri, 02 Feb 2024 15:16:50 +0000
 Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 412CbmDH010564;
-	Fri, 2 Feb 2024 14:59:19 GMT
-Received: from smtprelay06.wdc07v.mail.ibm.com ([172.16.1.73])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3vwd5pbwup-1
+	by ppma21.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 412D3CDl010496;
+	Fri, 2 Feb 2024 15:16:49 GMT
+Received: from smtprelay03.wdc07v.mail.ibm.com ([172.16.1.70])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3vwd5pc15m-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 02 Feb 2024 14:59:19 +0000
+	Fri, 02 Feb 2024 15:16:49 +0000
 Received: from smtpav01.dal12v.mail.ibm.com (smtpav01.dal12v.mail.ibm.com [10.241.53.100])
-	by smtprelay06.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 412ExIRw28181208
+	by smtprelay03.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 412FGmDR1049304
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 2 Feb 2024 14:59:19 GMT
+	Fri, 2 Feb 2024 15:16:49 GMT
 Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BEA0C58058;
-	Fri,  2 Feb 2024 14:59:18 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id C252358058;
+	Fri,  2 Feb 2024 15:16:48 +0000 (GMT)
 Received: from smtpav01.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 0997158057;
-	Fri,  2 Feb 2024 14:59:18 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 3994B58057;
+	Fri,  2 Feb 2024 15:16:48 +0000 (GMT)
 Received: from [9.47.158.152] (unknown [9.47.158.152])
 	by smtpav01.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Fri,  2 Feb 2024 14:59:17 +0000 (GMT)
-Message-ID: <427ce381-73fa-48f9-8e18-77e23813b918@linux.ibm.com>
-Date: Fri, 2 Feb 2024 09:59:17 -0500
+	Fri,  2 Feb 2024 15:16:48 +0000 (GMT)
+Message-ID: <9ff0da83-0be2-4fdc-8108-e65e043eacc3@linux.ibm.com>
+Date: Fri, 2 Feb 2024 10:16:47 -0500
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -68,87 +68,75 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH 4/5] evm: Use the real inode's metadata to calculate
- metadata hash
+Subject: Re: [PATCH 1/2] fs: make file_dentry() a simple accessor
 Content-Language: en-US
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        paul@paul-moore.com, jmorris@namei.org, serge@hallyn.com,
-        zohar@linux.ibm.com, roberto.sassu@huawei.com, miklos@szeredi.hu
-References: <20240130214620.3155380-1-stefanb@linux.ibm.com>
- <20240130214620.3155380-5-stefanb@linux.ibm.com>
- <38230b4c-54ae-45ed-a6fb-34e63501e5b1@linux.ibm.com>
- <CAOQ4uxiYARZBSgzb4_W-RKvB1XLSF3GUBqeLw2kH+eVeZ_8ARQ@mail.gmail.com>
- <c018b014-9ba8-4395-86dc-b61346ab20a8@linux.ibm.com>
- <CAOQ4uxi6Te8izWpXROthknRaXrVA9jho5nbc+mkuQDrcTLY44Q@mail.gmail.com>
- <CAOQ4uxigdNeE+2nfr4VxS9piQf5hez=ryT0a-jzW+tW0BT-zuw@mail.gmail.com>
- <492ea12a-d79d-47da-9bbe-a7f33051bd3f@linux.ibm.com>
- <CAOQ4uxgiO1RbsmqOu4F4Foy-MBPecnEXO7BvgDGz-Lzb1Eysog@mail.gmail.com>
- <4c584bfb-d282-4584-bb20-18c26b1033c0@linux.ibm.com>
- <CAOQ4uxjftr7GGx6tuW_yB_MTaVB57m6p_d=UHhN3Z23YVXY0QQ@mail.gmail.com>
- <11abffea-15c5-4d13-9d0f-edbc54b09bf3@linux.ibm.com>
- <CAOQ4uxjZ6p9+H54G0LNTUnU56WRaoLtWOUj2nOaKJ4JvBGqLVg@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner
+ <brauner@kernel.org>,
+        Mimi Zohar <zohar@linux.ibm.com>, linux-unionfs@vger.kernel.org,
+        linux-integrity@vger.kernel.org, linux-fsdevel@vger.kernel.org
+References: <20240202110132.1584111-1-amir73il@gmail.com>
+ <20240202110132.1584111-2-amir73il@gmail.com>
 From: Stefan Berger <stefanb@linux.ibm.com>
-In-Reply-To: <CAOQ4uxjZ6p9+H54G0LNTUnU56WRaoLtWOUj2nOaKJ4JvBGqLVg@mail.gmail.com>
+In-Reply-To: <20240202110132.1584111-2-amir73il@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: nNkl4IhpdK-es4OdrpqLPUVI1hg5a2Li
-X-Proofpoint-ORIG-GUID: hrDn8ECO5a-V7MBqtbrwJpXdRv35DWCs
+X-Proofpoint-ORIG-GUID: P3Mv1-12CZv5utfzHqyFN1v8eijGksFn
+X-Proofpoint-GUID: 4mmjaq20M99V0eXW4Cr3Vf1BCSQ6n2hT
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
  definitions=2024-02-02_08,2024-01-31_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 malwarescore=0
- mlxlogscore=948 suspectscore=0 phishscore=0 bulkscore=0 mlxscore=0
- impostorscore=0 priorityscore=1501 lowpriorityscore=0 clxscore=1015
- spamscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2311290000 definitions=main-2402020109
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ phishscore=0 mlxlogscore=639 impostorscore=0 spamscore=0 suspectscore=0
+ bulkscore=0 mlxscore=0 priorityscore=1501 malwarescore=0 clxscore=1011
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2311290000 definitions=main-2402020111
 
 
 
-On 2/2/24 04:24, Amir Goldstein wrote:
-> On Thu, Feb 1, 2024 at 10:35 PM Stefan Berger <stefanb@linux.ibm.com> wrote:
-
+On 2/2/24 06:01, Amir Goldstein wrote:
+> file_dentry() is a relic from the days that overlayfs was using files with
+> a "fake" path, meaning, f_path on overlayfs and f_inode on underlying fs.
 > 
->>
->> and your suggested change to this patch :
->>
->> -       struct inode *inode = d_real_inode(dentry);
->> +       struct inode *inode = d_inode(d_real(dentry, false));;
->>
+> In those days, file_dentry() was needed to get the underlying fs dentry
+> that matches f_inode.
 > 
-> In the new version I change the API to use an enum instead of bool, e.g.:
+> Files with "fake" path should not exist nowadays, so make file_dentry() a
+> simple accessor and use an assertion to make sure that file_dentry() was
+> not papering over filesystem bugs.
 > 
->         struct inode *inode = d_inode(d_real(dentry, D_REAL_METADATA));
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 
-Thanks. I will use it.
+Tested-by: Stefan Berger <stefanb@linux.ibm.com>
 
+> ---
+>   include/linux/fs.h | 13 ++++++++++++-
+>   1 file changed, 12 insertions(+), 1 deletion(-)
 > 
-> This catches in build time and in run time, callers that were not converted
-> to the new API.
-> 
->> The test cases are now passing with and without metacopy enabled. Yay!
-> 
-> Too soon to be happy.
-> I guess you are missing a test for the following case:
-> 1. file was meta copied up (change is detected)
-> 2. the lower file that contains the data is being changed (change is
-> not detected)
-
-Right. Though it seems there's something wrong with overlayfs as well 
-after appending a byte to the file on the lower.
-
--rwxr-xr-x    1 0        0               25 Feb  2 14:55 
-/ext4.mount/lower/test_rsa_portable2
--rwxr-xr-x    1 0        0               24 Feb  2 14:55 
-/ext4.mount/overlay/test_rsa_portable2
-bb16aa5350bcc8863da1a873c846fec9281842d9 
-/ext4.mount/lower/test_rsa_portable2
-bb16aa5350bcc8863da1a873c846fec9281842d9 
-/ext4.mount/overlay/test_rsa_portable2
-
-We have a hash collision on a file with 24 bytes and the underlying one 
-with 25 byte. (-;  :-)
-
-   Stefan
+> diff --git a/include/linux/fs.h b/include/linux/fs.h
+> index 023f37c60709..de9aa86d2624 100644
+> --- a/include/linux/fs.h
+> +++ b/include/linux/fs.h
+> @@ -1078,9 +1078,20 @@ static inline struct inode *file_inode(const struct file *f)
+>   	return f->f_inode;
+>   }
+>   
+> +/*
+> + * file_dentry() is a relic from the days that overlayfs was using files with a
+> + * "fake" path, meaning, f_path on overlayfs and f_inode on underlying fs.
+> + * In those days, file_dentry() was needed to get the underlying fs dentry that
+> + * matches f_inode.
+> + * Files with "fake" path should not exist nowadays, so use an assertion to make
+> + * sure that file_dentry() was not papering over filesystem bugs.
+> + */
+>   static inline struct dentry *file_dentry(const struct file *file)
+>   {
+> -	return d_real(file->f_path.dentry, file_inode(file));
+> +	struct dentry *dentry = file->f_path.dentry;
+> +
+> +	WARN_ON_ONCE(d_inode(dentry) != file_inode(file));
+> +	return dentry;
+>   }
+>   
+>   struct fasync_struct {
