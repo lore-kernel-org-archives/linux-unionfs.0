@@ -1,97 +1,72 @@
-Received: from mail-yw1-f176.google.com (mail-yw1-f176.google.com [209.85.128.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48285185A;
-	Fri,  2 Feb 2024 12:41:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4B99447768;
+	Fri,  2 Feb 2024 13:55:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1706877690; cv=none; b=l2wQP1DXXqL3p+gl2qS6fisWqgt2bfGtXcWtKXfFg21rY5BTG+5drpIDCg60EFhR1tv3fPcBKuPEkXvBVu017cjcLsn5VOOJAqbAXSDlikQkj8B6P4YZqIKluy4KulCe6PsoPe7BU0TO9xFu3AmoH4vgkszmneh44KEPPi1FVWc=
+	t=1706882103; cv=none; b=O4rfXVV6eK+w2EOXhynP2wjgoe/IqpLX5VlL7qADh+dt2ZNRjZMyraV7U6MADaDQ9EGKsza2oG2NwMUkmNcLRIytZYtLSWdejsYDm/uqboVplWSwP0xuzCEcV0dE6MluNxBbZSCT2hXa6b32hqVXd8X+B6Sa4tpt0UV/JZ+zAi8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1706877690; c=relaxed/simple;
-	bh=DqCAzuoEq74A6y7jUgvbobN9H6bLzkMScjlUWPLWvqo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=r4fpuIUbZiNj0s1MB8MMu2iwKUDanubO8tIMD41duIqSq+fETNn06KO8fzwYfJt8q2TNQG94HYo9On7seX71DhYtJegbPKOKKzcHjudY+6Np4a+DisTMGFUCfp8tL3vr1rd7JaUTK/HeeEcQoYBEKsJI+9kS8C8W7NgHYVh009c=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=J5qsnfEW; arc=none smtp.client-ip=209.85.128.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1706882103; c=relaxed/simple;
+	bh=3gfdmmL80AhuSpEGaaiz6sd1MPS7nGrFfwPRsqc+AqU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=lj8Vv327UjNjlSpqlw6Xt6qNEHTTgZV9jcI33q1lx06CzCw1+C+f0P1pv6F/AngTvuOoQkKQEmsuJCcslDfPfYuvkxKmV90VdhsbCHYtCgWxdBC1EMxfAcvF/4W0ThoBaUO4QmQXI7RHxaYq62sdqr69HI/5wF8q1F0K037viB4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=USFhHO2M; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="J5qsnfEW"
-Received: by mail-yw1-f176.google.com with SMTP id 00721157ae682-6041779e75eso21781927b3.3;
-        Fri, 02 Feb 2024 04:41:29 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1706877688; x=1707482488; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=kqYYnNIAPfyQp/lOLSeExWubf4maT7vMZXeoVfYiZmU=;
-        b=J5qsnfEWLnitCUmPKxO6iLWIy5CmMbVBWuwddo2f/zociVkirTiAPFmOQjNGaHH1gl
-         nXBOdwxN3fBKnGI+XSk4yRUKGY1Il9oOzg2krHG/vggCTzrs2HBHKi9SD+WvjIOGjSHZ
-         EynRXvqoRgts51VvSc345mGm2DhaTF7w/UN8/fCcocHbZro7NYYBU2J7qlnDX4hImiW5
-         A6xgCosIp++pUGXCtSxxa5rHm3u7f08WNACpjMuwVhzNBSPnwmxndg0gd6dyOGN60qE9
-         2YQdGA32PaDcGi4CuPv9VqKHO0gzRYbDWTUdVITg3jCsHvjS1bXbgnJ9Xuip2Nm1+EbY
-         M4EA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1706877688; x=1707482488;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=kqYYnNIAPfyQp/lOLSeExWubf4maT7vMZXeoVfYiZmU=;
-        b=xHi7QU6Ri8EE/gWDpDhSF1G0XSA5mBGOEtyMOeLJyhMtRbVxZS4el2cdvYQN5CC3YV
-         w+FzNwwDHZNNOEJaEB/kzaQ8tEfPQTWkoDWb009ikHiViu2KJGWJUT2fxGWwdlGqGt19
-         14khxwtZAwOQS53THpf3zfrihkPmiSxAEu+A2w2KpwwkYdpoMgwKipPdKtxXNyQwKr4U
-         QV2le8NOj8cDnD2GTtCZXG1YTey5mbVjC+gtvkXvHGkaHkwt9T0x7qbsv2p+qhRU35Z9
-         hM1tdCH5VIgORszepezQmQqYA/tcb58w+nvQmlAGP0MkKpW/8n3ttvRIYckILhxZ0tSR
-         N/Hg==
-X-Gm-Message-State: AOJu0YwZ7Ur6XTkSNqHo3GkvfN50L7QXJbTfRPuVZrFx9/J1qaFy+/lE
-	3e54MgYy5dGrrGRXVRjybSd0H4d6OruX19+TVtnq0c3kWszLhnCo6cfrfd1IV0+Kn+6Nfb8FIIH
-	ncfwgh2TfyiTJjf9QdH5lC+P1YGw=
-X-Google-Smtp-Source: AGHT+IGUeMVcp/PMXDXbjREYVYvTsstGTRsTqgi4wfbQMeHZFLFvGC0Ppx4vqx2EtvbTOpKuSPKEvCaLYSvrbg0iDj4=
-X-Received: by 2002:a81:6c56:0:b0:5ff:44e8:6df5 with SMTP id
- h83-20020a816c56000000b005ff44e86df5mr2115142ywc.18.1706877688098; Fri, 02
- Feb 2024 04:41:28 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="USFhHO2M"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C776C43399;
+	Fri,  2 Feb 2024 13:55:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1706882102;
+	bh=3gfdmmL80AhuSpEGaaiz6sd1MPS7nGrFfwPRsqc+AqU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=USFhHO2MtVC76x5PfqrmLV7b5msbnZGyXwCvvX0WFLSaHUAsiTivEVsQ4jERSJ/cL
+	 s/YJ0kiTzhfB709TZZLNPkzB9E/Py3gsj0Lnm3TPrOVD2pG6QGkkm2YIp29ilkKied
+	 lnr0lM7Kl4/X2mYdMBczI3iFfmyr0xpcCRmWN/6oo2NuBNZfyaFBFL/04sq6bk9xqC
+	 hpvP0U3/XHag8k7AfrJb5NU8NfUQj8sWVyQkxNO2QR0d3beARftRT4Y4R0XgUICeTI
+	 JTFlSG2gMq9wM2OITYNm2+J/LphldDaN5ZIqckChQSjR91z377Z3qzYIYusNFwtBQA
+	 WAbQ8i5OYG3IQ==
+Date: Fri, 2 Feb 2024 14:54:57 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Al Viro <viro@zeniv.linux.org.uk>, 
+	Stefan Berger <stefanb@linux.ibm.com>, Mimi Zohar <zohar@linux.ibm.com>, linux-unionfs@vger.kernel.org, 
+	linux-integrity@vger.kernel.org, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 2/2] fs: remove the inode argument to ->d_real() method
+Message-ID: <20240202-hemmung-perspektive-d84b93c25b00@brauner>
+References: <20240202110132.1584111-1-amir73il@gmail.com>
+ <20240202110132.1584111-3-amir73il@gmail.com>
+ <CAJfpeguhrTkNYny1xmJxwOg8m5syhti1FDhJmMucwiY6BZ6eLg@mail.gmail.com>
+ <CAOQ4uxhcQfR6QP=oESUvhcwXh+vwBJUL+N1_XDZ5sFGk61HWGg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240202110132.1584111-1-amir73il@gmail.com> <20240202110132.1584111-3-amir73il@gmail.com>
- <CAJfpeguhrTkNYny1xmJxwOg8m5syhti1FDhJmMucwiY6BZ6eLg@mail.gmail.com>
-In-Reply-To: <CAJfpeguhrTkNYny1xmJxwOg8m5syhti1FDhJmMucwiY6BZ6eLg@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 2 Feb 2024 14:41:16 +0200
-Message-ID: <CAOQ4uxhcQfR6QP=oESUvhcwXh+vwBJUL+N1_XDZ5sFGk61HWGg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] fs: remove the inode argument to ->d_real() method
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
-	Stefan Berger <stefanb@linux.ibm.com>, Mimi Zohar <zohar@linux.ibm.com>, 
-	linux-unionfs@vger.kernel.org, linux-integrity@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxhcQfR6QP=oESUvhcwXh+vwBJUL+N1_XDZ5sFGk61HWGg@mail.gmail.com>
 
-On Fri, Feb 2, 2024 at 2:19=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
-rote:
->
-> On Fri, 2 Feb 2024 at 12:01, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > diff --git a/Documentation/filesystems/locking.rst b/Documentation/file=
-systems/locking.rst
-> > index d5bf4b6b7509..453039a2e49b 100644
-> > --- a/Documentation/filesystems/locking.rst
-> > +++ b/Documentation/filesystems/locking.rst
-> > @@ -29,7 +29,7 @@ prototypes::
-> >         char *(*d_dname)((struct dentry *dentry, char *buffer, int bufl=
-en);
-> >         struct vfsmount *(*d_automount)(struct path *path);
-> >         int (*d_manage)(const struct path *, bool);
-> > -       struct dentry *(*d_real)(struct dentry *, const struct inode *)=
-;
-> > +       struct dentry *(*d_real)(struct dentry *, int type);
->
-> Why not use the specific enum type for the argument?
+On Fri, Feb 02, 2024 at 02:41:16PM +0200, Amir Goldstein wrote:
+> On Fri, Feb 2, 2024 at 2:19 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Fri, 2 Feb 2024 at 12:01, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > > diff --git a/Documentation/filesystems/locking.rst b/Documentation/filesystems/locking.rst
+> > > index d5bf4b6b7509..453039a2e49b 100644
+> > > --- a/Documentation/filesystems/locking.rst
+> > > +++ b/Documentation/filesystems/locking.rst
+> > > @@ -29,7 +29,7 @@ prototypes::
+> > >         char *(*d_dname)((struct dentry *dentry, char *buffer, int buflen);
+> > >         struct vfsmount *(*d_automount)(struct path *path);
+> > >         int (*d_manage)(const struct path *, bool);
+> > > -       struct dentry *(*d_real)(struct dentry *, const struct inode *);
+> > > +       struct dentry *(*d_real)(struct dentry *, int type);
+> >
+> > Why not use the specific enum type for the argument?
+> 
+> No reason, we can do enum d_real_type.
 
-No reason, we can do enum d_real_type.
-
-Thanks,
-Amir.
+Fwiw, I'm happy to just change this. No need to resend as far as I'm concerned.
