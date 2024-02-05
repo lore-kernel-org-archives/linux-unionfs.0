@@ -1,64 +1,64 @@
 Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCD9847F7B;
-	Mon,  5 Feb 2024 18:25:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8BD4F482C3;
+	Mon,  5 Feb 2024 18:25:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1707157537; cv=none; b=JHZMUJMp0Cm752GbO4FmVcpp4LKzL+vPhi9DBVmmcigiIUhWPEGyIWWZeEJJpKLMxGBGxw9QPANxz1aQ8TnxDwvRYrs2AmA/zpIFHNBOX9HB+2kscYnvNRQtAm6CBfqJY6dhvrXyzhoieDz5ZfIzNQo9mxd96lJyWursAlMOQKU=
+	t=1707157538; cv=none; b=TcsAx+zB+qZpM2HxiX4gPFiS8mlun1B0lJrksV2/ETdgw4d1VBYT1a2RSh5ac8PtJath0Z3x2qlcqKGv6eq5XzwRQRN/w9S8gFZ9PKIiSTKyIuJRf3LG6oL5OujWQ+3qSYCznRLVFabfanTOjyF/ey67LMfX9g4jP4Xiv8U7dvA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1707157537; c=relaxed/simple;
-	bh=x2BpIzDCTA5gJB6kMFv8RaiYSc+FcFrtbPtoz4OrdK4=;
+	s=arc-20240116; t=1707157538; c=relaxed/simple;
+	bh=EKMq2BJLYzGPLpMhLTlC4/Xem0+zzLuE6yCAvONsrlc=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=m6AKBXF4Ly5h4SrDwaiBfjtisI1H+JRtRvDWYJefzQR13zFhFejYXP3TtbSTm5rO51ZV+oErncgUa7L7tsbaqug61+7eFgqEbMab0O9cZHFax3IXwDIw/Q9uQzsYrPTDPxnoZ361MKfGK7qdV+fDQK7z4DsWWar2dK4b02K1hJs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=gfVBOY8s; arc=none smtp.client-ip=148.163.158.5
+	 MIME-Version; b=po3y2MPP9tFhCYpYv/yG8EDfXNWC61mw9Zgpy4tTCRcGBaUkze39JKebtLPG8oXId+P+ZZZx/8dXKyTg0Eee33QD1wmkdi1WFCO57k1B5r7+m6/iWZuIGzMMtpAWe98r46RJAxrSyu8T4KOn7xmqQ1c3+3tTvqdPFrECEsLBJGQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=eHA+HCxN; arc=none smtp.client-ip=148.163.158.5
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="gfVBOY8s"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 415H72C5022720;
-	Mon, 5 Feb 2024 18:25:19 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="eHA+HCxN"
+Received: from pps.filterd (m0353724.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 415Hv0Oc021258;
+	Mon, 5 Feb 2024 18:25:14 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
  : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=pp1;
- bh=Ie1ZSAlR+WviS8YeL/P1c0yGICubqDOWwlPuMMw9jvE=;
- b=gfVBOY8s06WF0/h7fZs/vhJf2J0dmcSLobsWdoH9gozpdmnfgZCUrRmpgZXJuSL8blhe
- MBeNo9xKF8v6LrhCEZoaq/GUmNI/8RRadhktcCgIb19EKqBtt45UTVSO6VaueZiENXr1
- SJJ/YrCiUM8/yWmOwDq43RAFeOY39BlUpeJL4yMxBPPcdTSmH04N5DBoy//q9QUkVkDN
- tlD9AjXHTZpsMS1TqAeRdKquELYhII/FTuD6tFG0aLlTd6d0i/603hml9dHdUqfawl/K
- N8FOvRqJlDI2kZlxJKIEibLg3Mk7ohrpwPiFwe6FW1znLWzHGGyUifKb6yd0asJSbapn TA== 
+ bh=JVnRdF81tuXESdXyDK4cVRTUeVgPDQeTxd0U+AATuFw=;
+ b=eHA+HCxNWdR9EQPSsxTxHfQJXDhUjNjaUTls0F9qiOtqGvvp8UUhpSxRzAXFe0Fhxw1i
+ gmSkxnPfkoJUQzlEpmS0W2uBIL72+3duXKqoUayE4MGvRmDezkBkYYzJo47syUO9gnb+
+ VDA7UR+p5InUNt8feQzjkcvRgt+jTMGOeNjZwGVXeNfAI1iuwpsgaJEyrtN7eGPB5ODy
+ pESzL9EZn9+hs6reVvA8j3Q5NFadlnZLBCjSub4VSk8XVbyUY9XX6GtkMXnUqo3cKSGm
+ +8iv/pn6EER8HZs9saKH0zF4ViVtF/Vp2KNImx11V6lGDc9cc6zZJmJRnHHzcSNnmz9S qA== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w337cjx7t-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w34gygpu8-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 05 Feb 2024 18:25:18 +0000
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 415IPIVM015272;
-	Mon, 5 Feb 2024 18:25:18 GMT
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w337cjx7m-1
+	Mon, 05 Feb 2024 18:25:13 +0000
+Received: from m0353724.ppops.net (m0353724.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 415Hv3ZT021755;
+	Mon, 5 Feb 2024 18:25:13 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3w34gygpu4-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 05 Feb 2024 18:25:18 +0000
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 415IEACK016184;
-	Mon, 5 Feb 2024 18:25:17 GMT
-Received: from smtprelay03.dal12v.mail.ibm.com ([172.16.1.5])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 3w22h1sprm-1
+	Mon, 05 Feb 2024 18:25:13 +0000
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 415HIuR6005421;
+	Mon, 5 Feb 2024 18:25:12 GMT
+Received: from smtprelay05.wdc07v.mail.ibm.com ([172.16.1.72])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3w21aka1x9-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 05 Feb 2024 18:25:17 +0000
+	Mon, 05 Feb 2024 18:25:12 +0000
 Received: from smtpav03.dal12v.mail.ibm.com (smtpav03.dal12v.mail.ibm.com [10.241.53.102])
-	by smtprelay03.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 415IPGB59306752
+	by smtprelay05.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 415IPB1120447824
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 5 Feb 2024 18:25:16 GMT
+	Mon, 5 Feb 2024 18:25:11 GMT
 Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id C152D5805A;
-	Mon,  5 Feb 2024 18:25:16 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id 7B4C958056;
+	Mon,  5 Feb 2024 18:25:11 +0000 (GMT)
 Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 1FE115803F;
-	Mon,  5 Feb 2024 18:25:16 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id CD68D5803F;
+	Mon,  5 Feb 2024 18:25:10 +0000 (GMT)
 Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
 	by smtpav03.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Mon,  5 Feb 2024 18:25:16 +0000 (GMT)
+	Mon,  5 Feb 2024 18:25:10 +0000 (GMT)
 From: Stefan Berger <stefanb@linux.ibm.com>
 To: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
         linux-unionfs@vger.kernel.org
@@ -66,9 +66,9 @@ Cc: linux-kernel@vger.kernel.org, paul@paul-moore.com, jmorris@namei.org,
         serge@hallyn.com, zohar@linux.ibm.com, roberto.sassu@huawei.com,
         amir73il@gmail.com, brauner@kernel.org, miklos@szeredi.hu,
         Stefan Berger <stefanb@linux.ibm.com>
-Subject: [PATCH v2 8/9] evm: Rename is_unsupported_fs to is_unsupported_hmac_fs
-Date: Mon,  5 Feb 2024 13:25:05 -0500
-Message-ID: <20240205182506.3569743-9-stefanb@linux.ibm.com>
+Subject: [PATCH v2 1/9] ima: Rename backing_inode to real_inode
+Date: Mon,  5 Feb 2024 13:24:58 -0500
+Message-ID: <20240205182506.3569743-2-stefanb@linux.ibm.com>
 X-Mailer: git-send-email 2.43.0
 In-Reply-To: <20240205182506.3569743-1-stefanb@linux.ibm.com>
 References: <20240205182506.3569743-1-stefanb@linux.ibm.com>
@@ -80,108 +80,63 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: tms3g3KiXmdecrx21yUhCa1yy3rhtfca
-X-Proofpoint-ORIG-GUID: s1N8ONChkqho900xKGRrODRkebI1L0ZX
+X-Proofpoint-GUID: 15ri-6KcoOl1FIWMPNKb1puBrn8ynC6h
+X-Proofpoint-ORIG-GUID: xHdMZTnl8ZD4cltJJVLqnQW6p7sdAYou
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
  definitions=2024-02-05_12,2024-01-31_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 bulkscore=0 impostorscore=0
- malwarescore=0 lowpriorityscore=0 mlxlogscore=755 priorityscore=1501
- spamscore=0 phishscore=0 mlxscore=0 clxscore=1015 suspectscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 adultscore=0 suspectscore=0
+ bulkscore=0 mlxlogscore=676 clxscore=1015 impostorscore=0 spamscore=0
+ phishscore=0 priorityscore=1501 lowpriorityscore=0 mlxscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2311290000 definitions=main-2402050138
 
-Rename is_unsupported_fs to is_unsupported_hmac_fs since only HMAC is
-unsupported now on certain filesystems.
+Rename the backing_inode variable to real_inode since it gets its value
+from real_inode().
 
+Suggested-by: Amir Goldstein <amir73il@gmail.com>
 Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
 ---
- security/integrity/evm/evm_main.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ security/integrity/ima/ima_main.c | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
-index ff659e622f4a..60ca7e9713ca 100644
---- a/security/integrity/evm/evm_main.c
-+++ b/security/integrity/evm/evm_main.c
-@@ -151,7 +151,7 @@ static int evm_find_protected_xattrs(struct dentry *dentry)
- 	return count;
- }
- 
--static int is_unsupported_fs(struct dentry *dentry)
-+static int is_unsupported_hmac_fs(struct dentry *dentry)
+diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
+index cc1217ac2c6f..f1a01d32b92a 100644
+--- a/security/integrity/ima/ima_main.c
++++ b/security/integrity/ima/ima_main.c
+@@ -208,7 +208,7 @@ static int process_measurement(struct file *file, const struct cred *cred,
+ 			       u32 secid, char *buf, loff_t size, int mask,
+ 			       enum ima_hooks func)
  {
- 	struct inode *inode = d_backing_inode(dentry);
+-	struct inode *backing_inode, *inode = file_inode(file);
++	struct inode *real_inode, *inode = file_inode(file);
+ 	struct integrity_iint_cache *iint = NULL;
+ 	struct ima_template_desc *template_desc = NULL;
+ 	char *pathbuf = NULL;
+@@ -285,14 +285,16 @@ static int process_measurement(struct file *file, const struct cred *cred,
+ 		iint->measured_pcrs = 0;
+ 	}
  
-@@ -196,7 +196,8 @@ static enum integrity_status evm_verify_hmac(struct dentry *dentry,
- 	 * On unsupported filesystems with EVM_INIT_X509 not enabled, skip
- 	 * signature verification.
- 	 */
--	if (!(evm_initialized & EVM_INIT_X509) && is_unsupported_fs(dentry))
-+	if (!(evm_initialized & EVM_INIT_X509) &&
-+	    is_unsupported_hmac_fs(dentry))
- 		return INTEGRITY_UNKNOWN;
- 
- 	/* if status is not PASS, try to check again - against -ENOMEM */
-@@ -267,7 +268,7 @@ static enum integrity_status evm_verify_hmac(struct dentry *dentry,
- 			} else if (!IS_RDONLY(inode) &&
- 				   !(inode->i_sb->s_readonly_remount) &&
- 				   !IS_IMMUTABLE(inode) &&
--				   !is_unsupported_fs(dentry)) {
-+				   !is_unsupported_hmac_fs(dentry)) {
- 				evm_update_evmxattr(dentry, xattr_name,
- 						    xattr_value,
- 						    xattr_value_len);
-@@ -510,12 +511,12 @@ static int evm_protect_xattr(struct mnt_idmap *idmap,
- 	if (strcmp(xattr_name, XATTR_NAME_EVM) == 0) {
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
--		if (is_unsupported_fs(dentry))
-+		if (is_unsupported_hmac_fs(dentry))
- 			return -EPERM;
- 	} else if (!evm_protected_xattr(xattr_name)) {
- 		if (!posix_xattr_acl(xattr_name))
- 			return 0;
--		if (is_unsupported_fs(dentry))
-+		if (is_unsupported_hmac_fs(dentry))
- 			return 0;
- 
- 		evm_status = evm_verify_current_integrity(dentry);
-@@ -523,7 +524,7 @@ static int evm_protect_xattr(struct mnt_idmap *idmap,
- 		    (evm_status == INTEGRITY_NOXATTRS))
- 			return 0;
- 		goto out;
--	} else if (is_unsupported_fs(dentry))
-+	} else if (is_unsupported_hmac_fs(dentry))
- 		return 0;
- 
- 	evm_status = evm_verify_current_integrity(dentry);
-@@ -782,7 +783,7 @@ void evm_inode_post_setxattr(struct dentry *dentry, const char *xattr_name,
- 	if (!(evm_initialized & EVM_INIT_HMAC))
- 		return;
- 
--	if (is_unsupported_fs(dentry))
-+	if (is_unsupported_hmac_fs(dentry))
- 		return;
- 
- 	evm_update_evmxattr(dentry, xattr_name, xattr_value, xattr_value_len);
-@@ -849,7 +850,7 @@ int evm_inode_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 	if (evm_initialized & EVM_ALLOW_METADATA_WRITES)
- 		return 0;
- 
--	if (is_unsupported_fs(dentry))
-+	if (is_unsupported_hmac_fs(dentry))
- 		return 0;
- 
- 	if (!(ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID)))
-@@ -898,7 +899,7 @@ void evm_inode_post_setattr(struct dentry *dentry, int ia_valid)
- 	if (!(evm_initialized & EVM_INIT_HMAC))
- 		return;
- 
--	if (is_unsupported_fs(dentry))
-+	if (is_unsupported_hmac_fs(dentry))
- 		return;
- 
- 	if (ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID))
+-	/* Detect and re-evaluate changes made to the backing file. */
+-	backing_inode = d_real_inode(file_dentry(file));
+-	if (backing_inode != inode &&
++	/*
++	 * Detect and re-evaluate changes made to the inode holding file data.
++	 */
++	real_inode = d_real_inode(file_dentry(file));
++	if (real_inode != inode &&
+ 	    (action & IMA_DO_MASK) && (iint->flags & IMA_DONE_MASK)) {
+-		if (!IS_I_VERSION(backing_inode) ||
+-		    backing_inode->i_sb->s_dev != iint->real_dev ||
+-		    backing_inode->i_ino != iint->real_ino ||
+-		    !inode_eq_iversion(backing_inode, iint->version)) {
++		if (!IS_I_VERSION(real_inode) ||
++		    real_inode->i_sb->s_dev != iint->real_dev ||
++		    real_inode->i_ino != iint->real_ino ||
++		    !inode_eq_iversion(real_inode, iint->version)) {
+ 			iint->flags &= ~IMA_DONE_MASK;
+ 			iint->measured_pcrs = 0;
+ 		}
 -- 
 2.43.0
 
