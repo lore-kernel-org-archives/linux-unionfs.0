@@ -1,825 +1,279 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f72.google.com (mail-io1-f72.google.com [209.85.166.72])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AC1F31643A;
-	Fri, 16 Feb 2024 05:17:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7660D1BF34
+	for <linux-unionfs@vger.kernel.org>; Fri, 16 Feb 2024 09:54:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.72
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708060625; cv=none; b=gjze+nzHhn8OQ9vx53tK4iZILNZhmHnud4pbKDP72wn9f3YISSqK3zhC16LiimS+Vn7yKdJ4xXdhbUgungXux3Thym6+KiMgx2YRzfX7yUAuerNnGNaLtVNTOkojAK1NZbZ5v3q1SY31klEBzPNzuskBFrEAfJ+Wgk+SYjWK99I=
+	t=1708077273; cv=none; b=K7hIc0TRtLV+fZDpgfxNRPCQeWAJ6coYw6aHAT6rCiadHjmSaRcv48Sxz2bV/CROos6TEuTdv73c0SRDhhWkiJIi7LCA5lsVOqGuskNjYpOKmj1QfLFGE/Rltf6TUC1HKzPOuodzfiehOpRLljnAj5C4kgeXX2mmVHXsrstnHNA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708060625; c=relaxed/simple;
-	bh=FbDzeo/knVQku3tOFZO15fcs4S5wgJGSVDpGQbaYerw=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=gr2lJf1zFmcF8RInDe+ik8XlGKq9aw1NXJR/DcyRwIr9tB2v2PlbGme8StkoffUJ0aSyyeAyHcruyvDttI7kK+luKNovwK8IxUagAA0N9J1y/dcOGcSZG+qwAdBUq+NJLqHr7+gac0ULrXzVBdVFe1y5VRiUMKi05zznS2PZEcg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SAVeReK/; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SAVeReK/"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1708060622; x=1739596622;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=FbDzeo/knVQku3tOFZO15fcs4S5wgJGSVDpGQbaYerw=;
-  b=SAVeReK/hyT2Kixby+uZGoG/b6BBqxEss0YFYKPrMX9TXy4QRa/r2e6V
-   AzOoZhZFAMFnAM8CNExo4JNKJjQSXGnkiJEqfTnVbQGwQOuHXuRBF0IQK
-   CqOx8eOng55NdEX6mp5+PVCSTonXl/jSgO6nFN6KGfXVT17eNPplPUAXw
-   hLBWe6D6TSKjugO3wVDNF9RNak71sGcFp4dn/WBd5Hrp8adw0ffu8Xzvq
-   qQjiFNFEpRU81UZ3ngG8JtzwaySRR3WOCPgg5gkElBIhtBenmUmP30MHL
-   giOhvT2f7dwAn+hPqLDENWelnm+OzskEblObXcXyYdxMW17GdRbjMDiom
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10985"; a="5149356"
-X-IronPort-AV: E=Sophos;i="6.06,163,1705392000"; 
-   d="scan'208";a="5149356"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Feb 2024 21:16:57 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.06,163,1705392000"; 
-   d="scan'208";a="4063898"
-Received: from lvngo-mobl1.amr.corp.intel.com (HELO vcostago-mobl3.intel.com) ([10.125.17.186])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Feb 2024 21:16:57 -0800
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: brauner@kernel.org,
-	amir73il@gmail.com,
-	hu1.chen@intel.com
-Cc: miklos@szeredi.hu,
-	malini.bhandaru@intel.com,
-	tim.c.chen@intel.com,
-	mikko.ylinen@intel.com,
-	lizhen.you@intel.com,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: [RFC v3 5/5] overlayfs: Optimize credentials usage
-Date: Thu, 15 Feb 2024 21:16:40 -0800
-Message-ID: <20240216051640.197378-6-vinicius.gomes@intel.com>
-X-Mailer: git-send-email 2.43.1
-In-Reply-To: <20240216051640.197378-1-vinicius.gomes@intel.com>
-References: <20240216051640.197378-1-vinicius.gomes@intel.com>
+	s=arc-20240116; t=1708077273; c=relaxed/simple;
+	bh=cypQJfZF+YtN5CAouGhTasr02apRL8MggF+4hYI1Tg4=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=MZtncR7s9jGqrTg/8WZKkCl5qevIgfZwGyaWcsn9U/hYY140GjR+/IGwFPHYQQVo8AFq5+YM7YpCuEQdsv6N5VUcnjRge4Zpf1QSYA5RgMymXWk8JzgP3HxLmiz3WJmSeoE4sFT1eT5zkGilmbkz7dPs9LBk9z0DOO+l4FJ4+M4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.72
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f72.google.com with SMTP id ca18e2360f4ac-7bfd755ae39so138093139f.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 16 Feb 2024 01:54:31 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1708077270; x=1708682070;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Cea30lTF2ZmYnQ/V27+tscvJ5hcf6E9js6ZkcIDubIo=;
+        b=j2vtVllegthNJwArnQaoBbv2pRXC3kO0yFpEcge3X1QlcCuQSxiwsiqpNw+Z5ryJIM
+         gQe/x9HL7gRx8FsGlZQMjTDMoCn3ECainuOv1bsIXdq/G3C/CgusAHzPIzCksMOM8/Fd
+         Rbt1XmTo7/CRd3Mdu85//D8BRj9BDNDDKmwj6VvkE2ScszRGBEMAFQ9zsZ0hXfFtAi2v
+         YNRpnuK42SOl2GF7oYOtf+R1dCnSNRIWJ+fFjmVt5/LmjvtlKOPdOusqnS2JAoIFajNn
+         omG5N6fmpkltsiQqfQHh0oZUIFwDb7XgOzTQLYjd6b5t7PERgJ+7GO3S4Qmt+Q3tsnM5
+         oP8w==
+X-Forwarded-Encrypted: i=1; AJvYcCXTneqG1uPRIvc9e9/qLpSogXIUBr9zXWGIduKuTdytaCrNlefReLlhHc2y/ccW7XmNTgIHqKHrR5lJamsVHxn7TecW6MkQWZSCccv0nA==
+X-Gm-Message-State: AOJu0Yxc/I0ZWVn7TGf2JnC6WyMv1N1UXzhrQidquQIzL8F5djCkC3wK
+	LDmUDvElxsf49B+zwur4BLu34ffX1hzfC0sJDeBLdiZt/EMr4VoOajsd9o29fHhjdc5uYIcN/kX
+	t6JEmyfohJ40YkCQoKStzDI74zlg+KE9djt9Jj5x2HSeKe7Ze2jm6prw=
+X-Google-Smtp-Source: AGHT+IHz1hrydZMsbNJiumpAX5k6IgtMsH1EHN9/Vx0geWMu2EI3sJw6KvOxb8S9xqeyRTffYTliCZgyFO4qp89Z5JELChJAU18J
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a05:6e02:1aa2:b0:363:7b86:21bd with SMTP id
+ l2-20020a056e021aa200b003637b8621bdmr318533ilv.4.1708077270741; Fri, 16 Feb
+ 2024 01:54:30 -0800 (PST)
+Date: Fri, 16 Feb 2024 01:54:30 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000f8bafb06117cba33@google.com>
+Subject: [syzbot] [overlayfs?] KASAN: slab-use-after-free Read in ovl_dentry_update_reval
+From: syzbot <syzbot+316db8a1191938280eb6@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-File operations in overlayfs also check against the credentials of the
-mounter task, stored in the superblock, this credentials will outlive
-most of the operations. For these cases, use the recently introduced
-guard statements to guarantee that override/revert_creds() are paired.
+Hello,
 
-Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+syzbot found the following issue on:
+
+HEAD commit:    4f5e5092fdbf Merge tag 'net-6.8-rc5' of git://git.kernel.o..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=1143fa78180000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=cb86c5ad8597e08a
+dashboard link: https://syzkaller.appspot.com/bug?extid=316db8a1191938280eb6
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+userspace arch: i386
+
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/7bc7510fe41f/non_bootable_disk-4f5e5092.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/f8b1959c3264/vmlinux-4f5e5092.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/4dd38747bfa8/bzImage-4f5e5092.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+316db8a1191938280eb6@syzkaller.appspotmail.com
+
+==================================================================
+BUG: KASAN: slab-use-after-free in ovl_dentry_remote fs/overlayfs/util.c:162 [inline]
+BUG: KASAN: slab-use-after-free in ovl_dentry_update_reval+0xd2/0xf0 fs/overlayfs/util.c:167
+Read of size 4 at addr ffff888028839b90 by task syz-executor.1/16906
+
+CPU: 0 PID: 16906 Comm: syz-executor.1 Not tainted 6.8.0-rc4-syzkaller-00180-g4f5e5092fdbf #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.2-debian-1.16.2-1 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0xd9/0x1b0 lib/dump_stack.c:106
+ print_address_description mm/kasan/report.c:377 [inline]
+ print_report+0xc4/0x620 mm/kasan/report.c:488
+ kasan_report+0xda/0x110 mm/kasan/report.c:601
+ ovl_dentry_remote fs/overlayfs/util.c:162 [inline]
+ ovl_dentry_update_reval+0xd2/0xf0 fs/overlayfs/util.c:167
+ ovl_link_up fs/overlayfs/copy_up.c:610 [inline]
+ ovl_copy_up_one+0x20fa/0x3490 fs/overlayfs/copy_up.c:1170
+ ovl_copy_up_flags+0x18d/0x200 fs/overlayfs/copy_up.c:1223
+ ovl_nlink_start+0x372/0x450 fs/overlayfs/util.c:1153
+ ovl_do_remove+0x171/0xde0 fs/overlayfs/dir.c:893
+ vfs_unlink+0x2fb/0x910 fs/namei.c:4334
+ do_unlinkat+0x5c0/0x750 fs/namei.c:4398
+ __do_sys_unlink fs/namei.c:4446 [inline]
+ __se_sys_unlink fs/namei.c:4444 [inline]
+ __ia32_sys_unlink+0xc7/0x110 fs/namei.c:4444
+ do_syscall_32_irqs_on arch/x86/entry/common.c:165 [inline]
+ __do_fast_syscall_32+0x7c/0x120 arch/x86/entry/common.c:321
+ do_fast_syscall_32+0x33/0x80 arch/x86/entry/common.c:346
+ entry_SYSENTER_compat_after_hwframe+0x7c/0x86
+RIP: 0023:0xf7341579
+Code: b8 01 10 06 03 74 b4 01 10 07 03 74 b0 01 10 08 03 74 d8 01 00 00 00 00 00 00 00 00 00 00 00 00 00 51 52 55 89 e5 0f 34 cd 80 <5d> 5a 59 c3 90 90 90 90 8d b4 26 00 00 00 00 8d b4 26 00 00 00 00
+RSP: 002b:00000000f5f3b5ac EFLAGS: 00000292 ORIG_RAX: 000000000000000a
+RAX: ffffffffffffffda RBX: 0000000020000200 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+RBP: 0000000000000000 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000292 R12: 0000000000000000
+R13: 0000000000000000 R14: 0000000000000000 R15: 0000000000000000
+ </TASK>
+
+Allocated by task 16906:
+ kasan_save_stack+0x33/0x60 mm/kasan/common.c:47
+ kasan_save_track+0x14/0x30 mm/kasan/common.c:68
+ unpoison_slab_object mm/kasan/common.c:314 [inline]
+ __kasan_slab_alloc+0x89/0x90 mm/kasan/common.c:340
+ kasan_slab_alloc include/linux/kasan.h:201 [inline]
+ slab_post_alloc_hook mm/slub.c:3813 [inline]
+ slab_alloc_node mm/slub.c:3860 [inline]
+ kmem_cache_alloc_lru+0x140/0x700 mm/slub.c:3879
+ __d_alloc+0x35/0x8c0 fs/dcache.c:1624
+ d_alloc+0x4a/0x1e0 fs/dcache.c:1704
+ d_alloc_parallel+0xe9/0x12c0 fs/dcache.c:2462
+ __lookup_slow+0x194/0x460 fs/namei.c:1678
+ lookup_one+0x185/0x1c0 fs/namei.c:2785
+ ovl_lookup_upper fs/overlayfs/overlayfs.h:401 [inline]
+ ovl_link_up fs/overlayfs/copy_up.c:599 [inline]
+ ovl_copy_up_one+0x104e/0x3490 fs/overlayfs/copy_up.c:1170
+ ovl_copy_up_flags+0x18d/0x200 fs/overlayfs/copy_up.c:1223
+ ovl_nlink_start+0x372/0x450 fs/overlayfs/util.c:1153
+ ovl_do_remove+0x171/0xde0 fs/overlayfs/dir.c:893
+ vfs_unlink+0x2fb/0x910 fs/namei.c:4334
+ do_unlinkat+0x5c0/0x750 fs/namei.c:4398
+ __do_sys_unlink fs/namei.c:4446 [inline]
+ __se_sys_unlink fs/namei.c:4444 [inline]
+ __ia32_sys_unlink+0xc7/0x110 fs/namei.c:4444
+ do_syscall_32_irqs_on arch/x86/entry/common.c:165 [inline]
+ __do_fast_syscall_32+0x7c/0x120 arch/x86/entry/common.c:321
+ do_fast_syscall_32+0x33/0x80 arch/x86/entry/common.c:346
+ entry_SYSENTER_compat_after_hwframe+0x7c/0x86
+
+Freed by task 109:
+ kasan_save_stack+0x33/0x60 mm/kasan/common.c:47
+ kasan_save_track+0x14/0x30 mm/kasan/common.c:68
+ kasan_save_free_info+0x3f/0x60 mm/kasan/generic.c:640
+ poison_slab_object mm/kasan/common.c:241 [inline]
+ __kasan_slab_free+0x121/0x1c0 mm/kasan/common.c:257
+ kasan_slab_free include/linux/kasan.h:184 [inline]
+ slab_free_hook mm/slub.c:2121 [inline]
+ slab_free mm/slub.c:4299 [inline]
+ kmem_cache_free+0x129/0x360 mm/slub.c:4363
+ rcu_do_batch kernel/rcu/tree.c:2190 [inline]
+ rcu_core+0x819/0x1680 kernel/rcu/tree.c:2465
+ __do_softirq+0x21c/0x8e7 kernel/softirq.c:553
+
+Last potentially related work creation:
+ kasan_save_stack+0x33/0x60 mm/kasan/common.c:47
+ __kasan_record_aux_stack+0xba/0x110 mm/kasan/generic.c:586
+ __call_rcu_common.constprop.0+0x9a/0x7c0 kernel/rcu/tree.c:2715
+ dentry_free+0xc2/0x160 fs/dcache.c:376
+ __dentry_kill+0x498/0x600 fs/dcache.c:622
+ shrink_kill fs/dcache.c:1048 [inline]
+ shrink_dentry_list+0x140/0x5d0 fs/dcache.c:1075
+ prune_dcache_sb+0xeb/0x150 fs/dcache.c:1156
+ super_cache_scan+0x32a/0x550 fs/super.c:221
+ do_shrink_slab+0x426/0x1120 mm/shrinker.c:435
+ shrink_slab_memcg mm/shrinker.c:548 [inline]
+ shrink_slab+0xa87/0x1310 mm/shrinker.c:626
+ shrink_one+0x493/0x7b0 mm/vmscan.c:4767
+ shrink_many mm/vmscan.c:4828 [inline]
+ lru_gen_shrink_node mm/vmscan.c:4929 [inline]
+ shrink_node+0x21d0/0x3790 mm/vmscan.c:5888
+ kswapd_shrink_node mm/vmscan.c:6693 [inline]
+ balance_pgdat+0x9d2/0x1a90 mm/vmscan.c:6883
+ kswapd+0x5be/0xc00 mm/vmscan.c:7143
+ kthread+0x2c6/0x3b0 kernel/kthread.c:388
+ ret_from_fork+0x45/0x80 arch/x86/kernel/process.c:147
+ ret_from_fork_asm+0x1b/0x30 arch/x86/entry/entry_64.S:242
+
+The buggy address belongs to the object at ffff888028839b90
+ which belongs to the cache dentry of size 312
+The buggy address is located 0 bytes inside of
+ freed 312-byte region [ffff888028839b90, ffff888028839cc8)
+
+The buggy address belongs to the physical page:
+page:ffffea0000a20e00 refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x28838
+head:ffffea0000a20e00 order:1 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+memcg:ffff888020749431
+ksm flags: 0xfff00000000840(slab|head|node=0|zone=1|lastcpupid=0x7ff)
+page_type: 0xffffffff()
+raw: 00fff00000000840 ffff8880162cf400 ffffea0000a28d00 dead000000000003
+raw: 0000000000000000 0000000080140014 00000001ffffffff ffff888020749431
+page dumped because: kasan: bad access detected
+page_owner tracks the page as allocated
+page last allocated via order 1, migratetype Reclaimable, gfp_mask 0xd20d0(__GFP_IO|__GFP_FS|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_RECLAIMABLE), pid 4679, tgid 4679 (udevd), ts 34753908780, free_ts 0
+ set_page_owner include/linux/page_owner.h:31 [inline]
+ post_alloc_hook+0x2d4/0x350 mm/page_alloc.c:1533
+ prep_new_page mm/page_alloc.c:1540 [inline]
+ get_page_from_freelist+0xa28/0x3780 mm/page_alloc.c:3311
+ __alloc_pages+0x22f/0x2440 mm/page_alloc.c:4567
+ __alloc_pages_node include/linux/gfp.h:238 [inline]
+ alloc_pages_node include/linux/gfp.h:261 [inline]
+ alloc_slab_page mm/slub.c:2190 [inline]
+ allocate_slab mm/slub.c:2354 [inline]
+ new_slab+0xcc/0x3a0 mm/slub.c:2407
+ ___slab_alloc+0x4b0/0x1780 mm/slub.c:3540
+ __slab_alloc.constprop.0+0x56/0xb0 mm/slub.c:3625
+ __slab_alloc_node mm/slub.c:3678 [inline]
+ slab_alloc_node mm/slub.c:3850 [inline]
+ kmem_cache_alloc_lru+0x37b/0x700 mm/slub.c:3879
+ __d_alloc+0x35/0x8c0 fs/dcache.c:1624
+ d_alloc+0x4a/0x1e0 fs/dcache.c:1704
+ lookup_one_qstr_excl+0xcb/0x190 fs/namei.c:1604
+ do_renameat2+0x5ae/0xdc0 fs/namei.c:4986
+ __do_sys_rename fs/namei.c:5083 [inline]
+ __se_sys_rename fs/namei.c:5081 [inline]
+ __x64_sys_rename+0x81/0xa0 fs/namei.c:5081
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xd5/0x270 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x6f/0x77
+page_owner free stack trace missing
+
+Memory state around the buggy address:
+ ffff888028839a80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ ffff888028839b00: 00 00 00 00 00 00 00 00 fc fc fc fc fc fc fc fc
+>ffff888028839b80: fc fc fa fb fb fb fb fb fb fb fb fb fb fb fb fb
+                         ^
+ ffff888028839c00: fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb fb
+ ffff888028839c80: fb fb fb fb fb fb fb fb fb fc fc fc fc fc fc fc
+==================================================================
+----------------
+Code disassembly (best guess), 2 bytes skipped:
+   0:	10 06                	adc    %al,(%rsi)
+   2:	03 74 b4 01          	add    0x1(%rsp,%rsi,4),%esi
+   6:	10 07                	adc    %al,(%rdi)
+   8:	03 74 b0 01          	add    0x1(%rax,%rsi,4),%esi
+   c:	10 08                	adc    %cl,(%rax)
+   e:	03 74 d8 01          	add    0x1(%rax,%rbx,8),%esi
+  1e:	00 51 52             	add    %dl,0x52(%rcx)
+  21:	55                   	push   %rbp
+  22:	89 e5                	mov    %esp,%ebp
+  24:	0f 34                	sysenter
+  26:	cd 80                	int    $0x80
+* 28:	5d                   	pop    %rbp <-- trapping instruction
+  29:	5a                   	pop    %rdx
+  2a:	59                   	pop    %rcx
+  2b:	c3                   	ret
+  2c:	90                   	nop
+  2d:	90                   	nop
+  2e:	90                   	nop
+  2f:	90                   	nop
+  30:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+  37:	8d b4 26 00 00 00 00 	lea    0x0(%rsi,%riz,1),%esi
+
+
 ---
- fs/overlayfs/copy_up.c |  4 +--
- fs/overlayfs/dir.c     | 13 ++++------
- fs/overlayfs/file.c    | 28 +++++---------------
- fs/overlayfs/inode.c   | 59 ++++++++++++++++--------------------------
- fs/overlayfs/namei.c   | 20 ++++----------
- fs/overlayfs/readdir.c | 16 +++---------
- fs/overlayfs/util.c    | 10 +++----
- fs/overlayfs/xattrs.c  | 33 ++++++++++-------------
- 8 files changed, 60 insertions(+), 123 deletions(-)
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index 8586e2f5d243..192997837a56 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -1180,7 +1180,6 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- static int ovl_copy_up_flags(struct dentry *dentry, int flags)
- {
- 	int err = 0;
--	const struct cred *old_cred;
- 	bool disconnected = (dentry->d_flags & DCACHE_DISCONNECTED);
- 
- 	/*
-@@ -1200,7 +1199,7 @@ static int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 	if (err)
- 		return err;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	while (!err) {
- 		struct dentry *next;
- 		struct dentry *parent = NULL;
-@@ -1225,7 +1224,6 @@ static int ovl_copy_up_flags(struct dentry *dentry, int flags)
- 		dput(parent);
- 		dput(next);
- 	}
--	revert_creds(old_cred);
- 
- 	return err;
- }
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 0f8b4a719237..3ea5ba7b980d 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -684,12 +684,10 @@ static int ovl_symlink(struct mnt_idmap *idmap, struct inode *dir,
- 
- static int ovl_set_link_redirect(struct dentry *dentry)
- {
--	const struct cred *old_cred;
- 	int err;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	err = ovl_set_redirect(dentry, false);
--	revert_creds(old_cred);
- 
- 	return err;
- }
-@@ -875,7 +873,6 @@ static void ovl_drop_nlink(struct dentry *dentry)
- static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- {
- 	int err;
--	const struct cred *old_cred;
- 	bool lower_positive = ovl_lower_positive(dentry);
- 	LIST_HEAD(list);
- 
-@@ -894,12 +891,12 @@ static int ovl_do_remove(struct dentry *dentry, bool is_dir)
- 	if (err)
- 		goto out;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	if (!lower_positive)
- 		err = ovl_remove_upper(dentry, is_dir, &list);
- 	else
- 		err = ovl_remove_and_whiteout(dentry, &list);
--	revert_creds(old_cred);
-+
- 	if (!err) {
- 		if (is_dir)
- 			clear_nlink(dentry->d_inode);
-@@ -1146,7 +1143,7 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
- 			goto out;
- 	}
- 
--	old_cred = ovl_override_creds(old->d_sb);
-+	old_cred = override_creds_light(ovl_creds(old->d_sb));
- 
- 	if (!list_empty(&list)) {
- 		opaquedir = ovl_clear_empty(new, &list);
-@@ -1279,7 +1276,7 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
- out_unlock:
- 	unlock_rename(new_upperdir, old_upperdir);
- out_revert_creds:
--	revert_creds(old_cred);
-+	revert_creds_light(old_cred);
- 	if (update_nlink)
- 		ovl_nlink_end(new);
- 	else
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 05536964d37f..44744196bf21 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -34,7 +34,6 @@ static struct file *ovl_open_realfile(const struct file *file,
- 	struct inode *inode = file_inode(file);
- 	struct mnt_idmap *real_idmap;
- 	struct file *realfile;
--	const struct cred *old_cred;
- 	int flags = file->f_flags | OVL_OPEN_FLAGS;
- 	int acc_mode = ACC_MODE(flags);
- 	int err;
-@@ -42,7 +41,7 @@ static struct file *ovl_open_realfile(const struct file *file,
- 	if (flags & O_APPEND)
- 		acc_mode |= MAY_APPEND;
- 
--	old_cred = ovl_override_creds(inode->i_sb);
-+	guard(cred)(ovl_creds(inode->i_sb));
- 	real_idmap = mnt_idmap(realpath->mnt);
- 	err = inode_permission(real_idmap, realinode, MAY_OPEN | acc_mode);
- 	if (err) {
-@@ -54,7 +53,6 @@ static struct file *ovl_open_realfile(const struct file *file,
- 		realfile = backing_file_open(&file->f_path, flags, realpath,
- 					     current_cred());
- 	}
--	revert_creds(old_cred);
- 
- 	pr_debug("open(%p[%pD2/%c], 0%o) -> (%p, 0%o)\n",
- 		 file, file, ovl_whatisit(inode, realinode), file->f_flags,
-@@ -185,7 +183,6 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- {
- 	struct inode *inode = file_inode(file);
- 	struct fd real;
--	const struct cred *old_cred;
- 	loff_t ret;
- 
- 	/*
-@@ -214,9 +211,8 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
- 	ovl_inode_lock(inode);
- 	real.file->f_pos = file->f_pos;
- 
--	old_cred = ovl_override_creds(inode->i_sb);
-+	guard(cred)(ovl_creds(inode->i_sb));
- 	ret = vfs_llseek(real.file, offset, whence);
--	revert_creds(old_cred);
- 
- 	file->f_pos = real.file->f_pos;
- 	ovl_inode_unlock(inode);
-@@ -388,7 +384,6 @@ static ssize_t ovl_splice_write(struct pipe_inode_info *pipe, struct file *out,
- static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- {
- 	struct fd real;
--	const struct cred *old_cred;
- 	int ret;
- 
- 	ret = ovl_sync_status(OVL_FS(file_inode(file)->i_sb));
-@@ -401,9 +396,8 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
- 
- 	/* Don't sync lower file for fear of receiving EROFS error */
- 	if (file_inode(real.file) == ovl_inode_upper(file_inode(file))) {
--		old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+		guard(cred)(ovl_creds(file_inode(file)->i_sb));
- 		ret = vfs_fsync_range(real.file, start, end, datasync);
--		revert_creds(old_cred);
- 	}
- 
- 	fdput(real);
-@@ -427,7 +421,6 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
- {
- 	struct inode *inode = file_inode(file);
- 	struct fd real;
--	const struct cred *old_cred;
- 	int ret;
- 
- 	inode_lock(inode);
-@@ -441,9 +434,8 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
- 	if (ret)
- 		goto out_unlock;
- 
--	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	guard(cred)(ovl_creds(file_inode(file)->i_sb));
- 	ret = vfs_fallocate(real.file, mode, offset, len);
--	revert_creds(old_cred);
- 
- 	/* Update size */
- 	ovl_file_modified(file);
-@@ -459,16 +451,14 @@ static long ovl_fallocate(struct file *file, int mode, loff_t offset, loff_t len
- static int ovl_fadvise(struct file *file, loff_t offset, loff_t len, int advice)
- {
- 	struct fd real;
--	const struct cred *old_cred;
- 	int ret;
- 
- 	ret = ovl_real_fdget(file, &real);
- 	if (ret)
- 		return ret;
- 
--	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	guard(cred)(ovl_creds(file_inode(file)->i_sb));
- 	ret = vfs_fadvise(real.file, offset, len, advice);
--	revert_creds(old_cred);
- 
- 	fdput(real);
- 
-@@ -487,7 +477,6 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
- {
- 	struct inode *inode_out = file_inode(file_out);
- 	struct fd real_in, real_out;
--	const struct cred *old_cred;
- 	loff_t ret;
- 
- 	inode_lock(inode_out);
-@@ -509,7 +498,7 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
- 		goto out_unlock;
- 	}
- 
--	old_cred = ovl_override_creds(file_inode(file_out)->i_sb);
-+	guard(cred)(ovl_creds(file_inode(file_out)->i_sb));
- 	switch (op) {
- 	case OVL_COPY:
- 		ret = vfs_copy_file_range(real_in.file, pos_in,
-@@ -527,7 +516,6 @@ static loff_t ovl_copyfile(struct file *file_in, loff_t pos_in,
- 						flags);
- 		break;
- 	}
--	revert_creds(old_cred);
- 
- 	/* Update size */
- 	ovl_file_modified(file_out);
-@@ -579,7 +567,6 @@ static loff_t ovl_remap_file_range(struct file *file_in, loff_t pos_in,
- static int ovl_flush(struct file *file, fl_owner_t id)
- {
- 	struct fd real;
--	const struct cred *old_cred;
- 	int err;
- 
- 	err = ovl_real_fdget(file, &real);
-@@ -587,9 +574,8 @@ static int ovl_flush(struct file *file, fl_owner_t id)
- 		return err;
- 
- 	if (real.file->f_op->flush) {
--		old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+		guard(cred)(ovl_creds(file_inode(file)->i_sb));
- 		err = real.file->f_op->flush(real.file, id);
--		revert_creds(old_cred);
- 	}
- 	fdput(real);
- 
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index c63b31a460be..8e399b10ebba 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -26,7 +26,6 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	bool full_copy_up = false;
- 	struct dentry *upperdentry;
--	const struct cred *old_cred;
- 
- 	err = setattr_prepare(&nop_mnt_idmap, dentry, attr);
- 	if (err)
-@@ -79,9 +78,10 @@ int ovl_setattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 			goto out_put_write;
- 
- 		inode_lock(upperdentry->d_inode);
--		old_cred = ovl_override_creds(dentry->d_sb);
-+		guard(cred)(ovl_creds(dentry->d_sb));
-+
- 		err = ovl_do_notify_change(ofs, upperdentry, attr);
--		revert_creds(old_cred);
-+
- 		if (!err)
- 			ovl_copyattr(dentry->d_inode);
- 		inode_unlock(upperdentry->d_inode);
-@@ -160,7 +160,6 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 	struct dentry *dentry = path->dentry;
- 	enum ovl_path_type type;
- 	struct path realpath;
--	const struct cred *old_cred;
- 	struct inode *inode = d_inode(dentry);
- 	bool is_dir = S_ISDIR(inode->i_mode);
- 	int fsid = 0;
-@@ -170,7 +169,7 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 	metacopy_blocks = ovl_is_metacopy_dentry(dentry);
- 
- 	type = ovl_path_real(dentry, &realpath);
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	err = ovl_do_getattr(&realpath, stat, request_mask, flags);
- 	if (err)
- 		goto out;
-@@ -281,8 +280,6 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 		stat->nlink = dentry->d_inode->i_nlink;
- 
- out:
--	revert_creds(old_cred);
--
- 	return err;
- }
- 
-@@ -292,7 +289,6 @@ int ovl_permission(struct mnt_idmap *idmap,
- 	struct inode *upperinode = ovl_inode_upper(inode);
- 	struct inode *realinode;
- 	struct path realpath;
--	const struct cred *old_cred;
- 	int err;
- 
- 	/* Careful in RCU walk mode */
-@@ -310,7 +306,8 @@ int ovl_permission(struct mnt_idmap *idmap,
- 	if (err)
- 		return err;
- 
--	old_cred = ovl_override_creds(inode->i_sb);
-+	guard(cred)(ovl_creds(inode->i_sb));
-+
- 	if (!upperinode &&
- 	    !special_file(realinode->i_mode) && mask & MAY_WRITE) {
- 		mask &= ~(MAY_WRITE | MAY_APPEND);
-@@ -318,7 +315,6 @@ int ovl_permission(struct mnt_idmap *idmap,
- 		mask |= MAY_READ;
- 	}
- 	err = inode_permission(mnt_idmap(realpath.mnt), realinode, mask);
--	revert_creds(old_cred);
- 
- 	return err;
- }
-@@ -327,15 +323,14 @@ static const char *ovl_get_link(struct dentry *dentry,
- 				struct inode *inode,
- 				struct delayed_call *done)
- {
--	const struct cred *old_cred;
- 	const char *p;
- 
- 	if (!dentry)
- 		return ERR_PTR(-ECHILD);
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(inode->i_sb));
- 	p = vfs_get_link(ovl_dentry_real(dentry), done);
--	revert_creds(old_cred);
-+
- 	return p;
- }
- 
-@@ -466,11 +461,8 @@ struct posix_acl *do_ovl_get_acl(struct mnt_idmap *idmap,
- 
- 		acl = get_cached_acl_rcu(realinode, type);
- 	} else {
--		const struct cred *old_cred;
--
--		old_cred = ovl_override_creds(inode->i_sb);
-+		guard(cred)(ovl_creds(inode->i_sb));
- 		acl = ovl_get_acl_path(&realpath, posix_acl_xattr_name(type), noperm);
--		revert_creds(old_cred);
- 	}
- 
- 	return acl;
-@@ -482,7 +474,6 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
- 	int err;
- 	struct path realpath;
- 	const char *acl_name;
--	const struct cred *old_cred;
- 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	struct dentry *upperdentry = ovl_dentry_upper(dentry);
- 	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
-@@ -496,10 +487,10 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
- 		struct posix_acl *real_acl;
- 
- 		ovl_path_lower(dentry, &realpath);
--		old_cred = ovl_override_creds(dentry->d_sb);
--		real_acl = vfs_get_acl(mnt_idmap(realpath.mnt), realdentry,
--				       acl_name);
--		revert_creds(old_cred);
-+		scoped_guard(cred, ovl_creds(dentry->d_sb))
-+			real_acl = vfs_get_acl(mnt_idmap(realpath.mnt), realdentry,
-+					       acl_name);
-+
- 		if (IS_ERR(real_acl)) {
- 			err = PTR_ERR(real_acl);
- 			goto out;
-@@ -519,12 +510,12 @@ static int ovl_set_or_remove_acl(struct dentry *dentry, struct inode *inode,
- 	if (err)
- 		goto out;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
--	if (acl)
--		err = ovl_do_set_acl(ofs, realdentry, acl_name, acl);
--	else
--		err = ovl_do_remove_acl(ofs, realdentry, acl_name);
--	revert_creds(old_cred);
-+	scoped_guard(cred, ovl_creds(dentry->d_sb)) {
-+		if (acl)
-+			err = ovl_do_set_acl(ofs, realdentry, acl_name, acl);
-+		else
-+			err = ovl_do_remove_acl(ofs, realdentry, acl_name);
-+	}
- 	ovl_drop_write(dentry);
- 
- 	/* copy c/mtime */
-@@ -591,7 +582,6 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
- {
- 	int err;
- 	struct inode *realinode = ovl_inode_realdata(inode);
--	const struct cred *old_cred;
- 
- 	if (!realinode)
- 		return -EIO;
-@@ -599,9 +589,8 @@ static int ovl_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
- 	if (!realinode->i_op->fiemap)
- 		return -EOPNOTSUPP;
- 
--	old_cred = ovl_override_creds(inode->i_sb);
-+	guard(cred)(ovl_creds(inode->i_sb));
- 	err = realinode->i_op->fiemap(realinode, fieinfo, start, len);
--	revert_creds(old_cred);
- 
- 	return err;
- }
-@@ -649,7 +638,6 @@ int ovl_fileattr_set(struct mnt_idmap *idmap,
- {
- 	struct inode *inode = d_inode(dentry);
- 	struct path upperpath;
--	const struct cred *old_cred;
- 	unsigned int flags;
- 	int err;
- 
-@@ -661,7 +649,7 @@ int ovl_fileattr_set(struct mnt_idmap *idmap,
- 		if (err)
- 			goto out;
- 
--		old_cred = ovl_override_creds(inode->i_sb);
-+		guard(cred)(ovl_creds(inode->i_sb));
- 		/*
- 		 * Store immutable/append-only flags in xattr and clear them
- 		 * in upper fileattr (in case they were set by older kernel)
-@@ -672,7 +660,6 @@ int ovl_fileattr_set(struct mnt_idmap *idmap,
- 		err = ovl_set_protattr(inode, upperpath.dentry, fa);
- 		if (!err)
- 			err = ovl_real_fileattr_set(&upperpath, fa);
--		revert_creds(old_cred);
- 		ovl_drop_write(dentry);
- 
- 		/*
-@@ -726,15 +713,13 @@ int ovl_fileattr_get(struct dentry *dentry, struct fileattr *fa)
- {
- 	struct inode *inode = d_inode(dentry);
- 	struct path realpath;
--	const struct cred *old_cred;
- 	int err;
- 
- 	ovl_path_real(dentry, &realpath);
- 
--	old_cred = ovl_override_creds(inode->i_sb);
-+	guard(cred)(ovl_creds(inode->i_sb));
- 	err = ovl_real_fileattr_get(&realpath, fa);
- 	ovl_fileattr_prot_flags(inode, fa);
--	revert_creds(old_cred);
- 
- 	return err;
- }
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 5764f91d283e..4b9137572cdc 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -953,15 +953,11 @@ static int ovl_maybe_validate_verity(struct dentry *dentry)
- 		return err;
- 
- 	if (!ovl_test_flag(OVL_VERIFIED_DIGEST, inode)) {
--		const struct cred *old_cred;
--
--		old_cred = ovl_override_creds(dentry->d_sb);
-+		guard(cred)(ovl_creds(dentry->d_sb));
- 
- 		err = ovl_validate_verity(ofs, &metapath, &datapath);
- 		if (err == 0)
- 			ovl_set_flag(OVL_VERIFIED_DIGEST, inode);
--
--		revert_creds(old_cred);
- 	}
- 
- 	ovl_inode_unlock(inode);
-@@ -975,7 +971,6 @@ static int ovl_maybe_lookup_lowerdata(struct dentry *dentry)
- 	struct inode *inode = d_inode(dentry);
- 	const char *redirect = ovl_lowerdata_redirect(inode);
- 	struct ovl_path datapath = {};
--	const struct cred *old_cred;
- 	int err;
- 
- 	if (!redirect || ovl_dentry_lowerdata(dentry))
-@@ -993,9 +988,9 @@ static int ovl_maybe_lookup_lowerdata(struct dentry *dentry)
- 	if (ovl_dentry_lowerdata(dentry))
- 		goto out;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	err = ovl_lookup_data_layers(dentry, redirect, &datapath);
--	revert_creds(old_cred);
-+
- 	if (err)
- 		goto out_err;
- 
-@@ -1030,7 +1025,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 			  unsigned int flags)
- {
- 	struct ovl_entry *oe = NULL;
--	const struct cred *old_cred;
- 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	struct ovl_entry *poe = OVL_E(dentry->d_parent);
- 	struct ovl_entry *roe = OVL_E(dentry->d_sb->s_root);
-@@ -1061,7 +1055,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	if (dentry->d_name.len > ofs->namelen)
- 		return ERR_PTR(-ENAMETOOLONG);
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	upperdir = ovl_dentry_upper(dentry->d_parent);
- 	if (upperdir) {
- 		d.layer = &ofs->layers[0];
-@@ -1342,7 +1336,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 
- 	ovl_dentry_init_reval(dentry, upperdentry, OVL_I_E(inode));
- 
--	revert_creds(old_cred);
- 	if (origin_path) {
- 		dput(origin_path->dentry);
- 		kfree(origin_path);
-@@ -1366,7 +1359,6 @@ struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
- 	kfree(upperredirect);
- out:
- 	kfree(d.redirect);
--	revert_creds(old_cred);
- 	return ERR_PTR(err);
- }
- 
-@@ -1374,7 +1366,6 @@ bool ovl_lower_positive(struct dentry *dentry)
- {
- 	struct ovl_entry *poe = OVL_E(dentry->d_parent);
- 	const struct qstr *name = &dentry->d_name;
--	const struct cred *old_cred;
- 	unsigned int i;
- 	bool positive = false;
- 	bool done = false;
-@@ -1390,7 +1381,7 @@ bool ovl_lower_positive(struct dentry *dentry)
- 	if (!ovl_dentry_upper(dentry))
- 		return true;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	/* Positive upper -> have to look up lower to see whether it exists */
- 	for (i = 0; !done && !positive && i < ovl_numlower(poe); i++) {
- 		struct dentry *this;
-@@ -1423,7 +1414,6 @@ bool ovl_lower_positive(struct dentry *dentry)
- 			dput(this);
- 		}
- 	}
--	revert_creds(old_cred);
- 
- 	return positive;
- }
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 0ca8af060b0c..d17f8a5aae6f 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -273,9 +273,8 @@ static int ovl_check_whiteouts(const struct path *path, struct ovl_readdir_data
- 	int err;
- 	struct ovl_cache_entry *p;
- 	struct dentry *dentry, *dir = path->dentry;
--	const struct cred *old_cred;
- 
--	old_cred = ovl_override_creds(rdd->dentry->d_sb);
-+	guard(cred)(ovl_creds(rdd->dentry->d_sb));
- 
- 	err = down_write_killable(&dir->d_inode->i_rwsem);
- 	if (!err) {
-@@ -290,7 +289,6 @@ static int ovl_check_whiteouts(const struct path *path, struct ovl_readdir_data
- 		}
- 		inode_unlock(dir->d_inode);
- 	}
--	revert_creds(old_cred);
- 
- 	return err;
- }
-@@ -753,10 +751,9 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
- 	struct ovl_cache_entry *p;
--	const struct cred *old_cred;
- 	int err;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	if (!ctx->pos)
- 		ovl_dir_reset(file);
- 
-@@ -808,7 +805,6 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
- 	}
- 	err = 0;
- out:
--	revert_creds(old_cred);
- 	return err;
- }
- 
-@@ -856,11 +852,9 @@ static struct file *ovl_dir_open_realfile(const struct file *file,
- 					  const struct path *realpath)
- {
- 	struct file *res;
--	const struct cred *old_cred;
- 
--	old_cred = ovl_override_creds(file_inode(file)->i_sb);
-+	guard(cred)(ovl_creds(file_inode(file)->i_sb));
- 	res = ovl_path_open(realpath, O_RDONLY | (file->f_flags & O_LARGEFILE));
--	revert_creds(old_cred);
- 
- 	return res;
- }
-@@ -983,11 +977,9 @@ int ovl_check_empty_dir(struct dentry *dentry, struct list_head *list)
- 	int err;
- 	struct ovl_cache_entry *p, *n;
- 	struct rb_root root = RB_ROOT;
--	const struct cred *old_cred;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	err = ovl_dir_read_merged(dentry, list, &root);
--	revert_creds(old_cred);
- 	if (err)
- 		return err;
- 
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index a8e17f14d7a2..6b861e24997d 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -1129,7 +1129,6 @@ static void ovl_cleanup_index(struct dentry *dentry)
- int ovl_nlink_start(struct dentry *dentry)
- {
- 	struct inode *inode = d_inode(dentry);
--	const struct cred *old_cred;
- 	int err;
- 
- 	if (WARN_ON(!inode))
-@@ -1166,7 +1165,7 @@ int ovl_nlink_start(struct dentry *dentry)
- 	if (d_is_dir(dentry) || !ovl_test_flag(OVL_INDEX, inode))
- 		return 0;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	/*
- 	 * The overlay inode nlink should be incremented/decremented IFF the
- 	 * upper operation succeeds, along with nlink change of upper inode.
-@@ -1174,7 +1173,7 @@ int ovl_nlink_start(struct dentry *dentry)
- 	 * value relative to the upper inode nlink in an upper inode xattr.
- 	 */
- 	err = ovl_set_nlink_upper(dentry);
--	revert_creds(old_cred);
-+
- 	if (err)
- 		goto out_drop_write;
- 
-@@ -1195,11 +1194,8 @@ void ovl_nlink_end(struct dentry *dentry)
- 	ovl_drop_write(dentry);
- 
- 	if (ovl_test_flag(OVL_INDEX, inode) && inode->i_nlink == 0) {
--		const struct cred *old_cred;
--
--		old_cred = ovl_override_creds(dentry->d_sb);
-+		guard(cred)(ovl_creds(dentry->d_sb));
- 		ovl_cleanup_index(dentry);
--		revert_creds(old_cred);
- 	}
- 
- 	ovl_inode_unlock(inode);
-diff --git a/fs/overlayfs/xattrs.c b/fs/overlayfs/xattrs.c
-index 383978e4663c..cc4ab2d81162 100644
---- a/fs/overlayfs/xattrs.c
-+++ b/fs/overlayfs/xattrs.c
-@@ -41,13 +41,11 @@ static int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char
- 	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
- 	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
- 	struct path realpath;
--	const struct cred *old_cred;
- 
- 	if (!value && !upperdentry) {
- 		ovl_path_lower(dentry, &realpath);
--		old_cred = ovl_override_creds(dentry->d_sb);
--		err = vfs_getxattr(mnt_idmap(realpath.mnt), realdentry, name, NULL, 0);
--		revert_creds(old_cred);
-+		scoped_guard(cred, ovl_creds(dentry->d_sb))
-+			err = vfs_getxattr(mnt_idmap(realpath.mnt), realdentry, name, NULL, 0);
- 		if (err < 0)
- 			goto out;
- 	}
-@@ -64,15 +62,15 @@ static int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char
- 	if (err)
- 		goto out;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
--	if (value) {
--		err = ovl_do_setxattr(ofs, realdentry, name, value, size,
--				      flags);
--	} else {
--		WARN_ON(flags != XATTR_REPLACE);
--		err = ovl_do_removexattr(ofs, realdentry, name);
-+	scoped_guard(cred, ovl_creds(dentry->d_sb)) {
-+		if (value) {
-+			err = ovl_do_setxattr(ofs, realdentry, name, value, size,
-+					      flags);
-+		} else {
-+			WARN_ON(flags != XATTR_REPLACE);
-+			err = ovl_do_removexattr(ofs, realdentry, name);
-+		}
- 	}
--	revert_creds(old_cred);
- 	ovl_drop_write(dentry);
- 
- 	/* copy c/mtime */
-@@ -85,13 +83,11 @@ static int ovl_xattr_get(struct dentry *dentry, struct inode *inode, const char
- 			 void *value, size_t size)
- {
- 	ssize_t res;
--	const struct cred *old_cred;
- 	struct path realpath;
- 
- 	ovl_i_path_real(inode, &realpath);
--	old_cred = ovl_override_creds(dentry->d_sb);
-+	guard(cred)(ovl_creds(dentry->d_sb));
- 	res = vfs_getxattr(mnt_idmap(realpath.mnt), realpath.dentry, name, value, size);
--	revert_creds(old_cred);
- 	return res;
- }
- 
-@@ -116,12 +112,10 @@ ssize_t ovl_listxattr(struct dentry *dentry, char *list, size_t size)
- 	ssize_t res;
- 	size_t len;
- 	char *s;
--	const struct cred *old_cred;
- 	size_t prefix_len, name_len;
- 
--	old_cred = ovl_override_creds(dentry->d_sb);
--	res = vfs_listxattr(realdentry, list, size);
--	revert_creds(old_cred);
-+	scoped_guard(cred, ovl_creds(dentry->d_sb))
-+		res = vfs_listxattr(realdentry, list, size);
- 	if (res <= 0 || size == 0)
- 		return res;
- 
-@@ -268,4 +262,3 @@ const struct xattr_handler * const *ovl_xattr_handlers(struct ovl_fs *ofs)
- 	return ofs->config.userxattr ? ovl_user_xattr_handlers :
- 		ovl_trusted_xattr_handlers;
- }
--
--- 
-2.43.1
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
 
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
