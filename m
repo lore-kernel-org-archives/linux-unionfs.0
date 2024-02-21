@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A4D5126F22;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A7EC126F2A;
 	Wed, 21 Feb 2024 21:25:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708550706; cv=none; b=epMT59YZR/00MVkLCi3Rns9b/ElM2uRGDgeuwoWWwLSof2Ff5ix5Qur1D3xNBNU9e7/xUwaXWvJ/nPBh0qTtl/cKgLPYCnqzHepPoNFgGJSdcWNsIjzeZP8h3BC7rInaDN9ojzvNoSB5mtZGtV04arp4WgEERMTnaECnndUoYWM=
+	t=1708550706; cv=none; b=joUsvo0W/cyCmTR0gUF0Stldrr5XoHonDBnEkACQM5dAkQZ+9fmC/Skl9GTIJUowi13KL0wuXGsv+YJ5iAdllkGr/OF03CkDae4k51olsaejIS+HiL413pSMxF21Xfa5GzOWtAbufl84JBXjVQveEGGB9XatKavFtmtHLgJIPEQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708550706; c=relaxed/simple;
-	bh=Y5Y30p4SCfTGfQg8oU5oIf6A+JB4LZOuEG/nIXEuQzs=;
+	bh=s8BhiBRhiwiAP2lDz8YD4FeHbwY0FdRcy4khC2QXOeo=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=XJ91hQbpw/n3pbHyyqa0aZhABKBG0aVG/ge/eva84oQAyAHR/ztMQ3T2i+FWJtoLWy+P1Q1zU9mCJ9NBohjdXLybAqZK1qUhMcf0mjl6+WVeTZHIL5IvDCL9Kg70ZkLluUf/H3Kp//xGE4KzppHRKPVp1Wk/qFJHGbrw8Ppc5u4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fcm3hib9; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=O0ZOSo3bUG4inu5/QzZDulXaIEk0zkszcoTjQUHgFtXHbLP8ULgEu1Rr2TuxCndOYDZVn4H2IHzip4hChwCHtWXQGnt0iu9nxU1LJbQWhAPnZhAe1S5tple5nIYdmGXNOoNXd23viUmnSTE+48zdfRAWT5s7V/WfYx8ShiNFn+c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uXPYl07o; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fcm3hib9"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id CBABDC43601;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uXPYl07o"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id B86F8C43399;
 	Wed, 21 Feb 2024 21:25:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1708550705;
-	bh=Y5Y30p4SCfTGfQg8oU5oIf6A+JB4LZOuEG/nIXEuQzs=;
+	bh=s8BhiBRhiwiAP2lDz8YD4FeHbwY0FdRcy4khC2QXOeo=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=Fcm3hib9cZ7v6IA4PdMbWds9TcIQjq1Pe0abjXDgnWnXea7U66tAyZEJ9AqU/WzOr
-	 k0Ke9qMTzeRQcrCl1ZpoW9YR5mrz/NZxsxXlQiXvhqIsQ3ZwYE9XzF3oG0P9PV4Y+U
-	 REMePuXyccPVR9aXWY3Y72WgxLUnON1uU3jbNBAtEZ+Hd6SRJvkYXCyBLN+GWOwHYh
-	 g1cIu/yHGW9iwkbs1qFnkRLb9NZXFxQhQmDPgOKHaeigRwEf7TOAJdNJsB5qhIKB7r
-	 2gtYPmo4bvWYmah5ftVUSetfRzgnfUMSIjq+EJHd0t9g8erLoOuByKpelp5tIWm/+B
-	 qSAHqbhs6UoCQ==
+	b=uXPYl07oVJX+lSh2eI/G9ENNQzwWI9Mvd+lPPnS6208khlfYH04meDoyVGSUGw3vD
+	 Y5dT61JFbTj9wiNDaIw/OrzWU9sphp7z0rSs4bU2n9aiPNCnvZiq1PgoJc6pv8ZUeK
+	 iFQslb7CZGoiI7eahfCmzZiklTbrNC2fa6pYy5Q15bhI84I36YOjG/0nAz3cdtqBvp
+	 mVdJlooRtDlj5cx14RgtR2sX1xQ4lRc0gLLmPpMa7YN0j4tLMP8bxmVhYkwg/4UEW3
+	 NQJgDWDfuuWKAoe3A+ehgmX5GcrurfMsCXplT5qOaUjzLxp7o0QQkdgHx2gQ9meX2J
+	 ZxY03ei4WaFIQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8FDBC5478A;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 987E5C48BEB;
 	Wed, 21 Feb 2024 21:25:05 +0000 (UTC)
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 21 Feb 2024 15:24:35 -0600
-Subject: [PATCH v2 04/25] capability: rename cpu_vfs_cap_data to vfs_caps
+Date: Wed, 21 Feb 2024 15:24:33 -0600
+Subject: [PATCH v2 02/25] mnt_idmapping: include cred.h
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240221-idmap-fscap-refactor-v2-4-3039364623bd@kernel.org>
+Message-Id: <20240221-idmap-fscap-refactor-v2-2-3039364623bd@kernel.org>
 References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 In-Reply-To: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 To: Christian Brauner <brauner@kernel.org>, 
@@ -61,117 +61,41 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
  linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3545; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=Y5Y30p4SCfTGfQg8oU5oIf6A+JB4LZOuEG/nIXEuQzs=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1mobLp7u/pdNjeacbXMjbSmEj?=
- =?utf-8?q?yV6rMwMwivWNU01_Kh0BkwWJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZdZqGwAKCRBTA5mu5fQxyY9qB/_9zUYtdKwx4X8HLo4wnjsbAIGYaWULalOUka?=
- =?utf-8?q?xXnOKjI5Cs4QTHrFSqLwolWhCcuwuJCqxufBU3HxTnc_mxPuO1+61LNNhi/pCD44c?=
- =?utf-8?q?/qRrZUVVTkRAtKBczWgUu6i3XXeeqJLm6XeipSXmdG8cXmXYG8Z187Qbq_F5NubGa?=
- =?utf-8?q?dgplNl+QZZZQxAr5Ejyxm7NmVVnTwEBMdlEobRDFUGTFx2dSAaIon/Yk9iw58upAs?=
- =?utf-8?q?iDc80O_IxJbm6qPqST7KMcaLpBxCduVum8Kw1Ljhi2YFVnvMFzw1j5/byvyaLLhuW?=
- =?utf-8?q?5jFhzBU4PIXJo3y89Kng?= MOIi8lpcWkKwus9TggxdTwSRIABNLw
+X-Developer-Signature: v=1; a=openpgp-sha256; l=615; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=s8BhiBRhiwiAP2lDz8YD4FeHbwY0FdRcy4khC2QXOeo=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1moZWJyTYqEQXXwQLJ5EhCO4I?=
+ =?utf-8?q?sZaODJ1GwzPRkjR_O9Ooj0yJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZdZqGQAKCRBTA5mu5fQxycLAB/_4gilqSDMXmqmW5ACdjlSaK8IVbKVXj692sO?=
+ =?utf-8?q?mAd52ZU7RyDpRMqErfeo+jKA9HZ4jpNMRinnIbv5ZJc_IgyPm1VNoeYHtZ3uI+nzh?=
+ =?utf-8?q?AuZFC6/OM+l+muPeJwJFVYuiRHY0MnqLcJ402ZyYNVL5NCRfHg0HB09x+_p8g4irx?=
+ =?utf-8?q?XYe4CvbNPE7Hj4Nl8+MePzf15MKpUJS1fMu5eW+uEkv0BRqLqbIkXGqoGLyP28E8x?=
+ =?utf-8?q?hjA0HY_Il7EAF6BoAhxoG52+v9loCyzJZjiN4oMZ5A1QRkvhA9MEZRXmz386l+/K1?=
+ =?utf-8?q?dmGAwPxn6EbEOtRlfb55?= qnL3LrPDn/o6PZFFOlK7G26VetuwcU
 X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
  fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
 X-Endpoint-Received:
  by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-vfs_caps is a more generic name which is better suited to the broader
-use this struct will see in subsequent commits.
+mnt_idmapping.h uses declarations from cred.h, so it should include that
+file directly.
 
-Reviewed-by: Christian Brauner <brauner@kernel.org>
-Acked-by: Paul Moore <paul@paul-moore.com>
 Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 ---
- include/linux/capability.h | 4 ++--
- kernel/auditsc.c           | 4 ++--
- security/commoncap.c       | 8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/mnt_idmapping.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/linux/capability.h b/include/linux/capability.h
-index 0c356a517991..c24477e660fc 100644
---- a/include/linux/capability.h
-+++ b/include/linux/capability.h
-@@ -24,7 +24,7 @@ extern int file_caps_enabled;
- typedef struct { u64 val; } kernel_cap_t;
+diff --git a/include/linux/mnt_idmapping.h b/include/linux/mnt_idmapping.h
+index f463b9e1e258..6deba8d5481e 100644
+--- a/include/linux/mnt_idmapping.h
++++ b/include/linux/mnt_idmapping.h
+@@ -5,6 +5,7 @@
+ #include <linux/types.h>
+ #include <linux/uidgid.h>
+ #include <linux/vfsid.h>
++#include <linux/cred.h>
  
- /* same as vfs_ns_cap_data but in cpu endian and always filled completely */
--struct cpu_vfs_cap_data {
-+struct vfs_caps {
- 	__u32 magic_etc;
- 	kuid_t rootid;
- 	kernel_cap_t permitted;
-@@ -211,7 +211,7 @@ static inline bool checkpoint_restore_ns_capable(struct user_namespace *ns)
- /* audit system wants to get cap info from files as well */
- int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 			   const struct dentry *dentry,
--			   struct cpu_vfs_cap_data *cpu_caps);
-+			   struct vfs_caps *cpu_caps);
- 
- int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
- 		      const void **ivalue, size_t size);
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 6f0d6fb6523f..783d0bf69ca5 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -2247,7 +2247,7 @@ void __audit_getname(struct filename *name)
- static inline int audit_copy_fcaps(struct audit_names *name,
- 				   const struct dentry *dentry)
- {
--	struct cpu_vfs_cap_data caps;
-+	struct vfs_caps caps;
- 	int rc;
- 
- 	if (!dentry)
-@@ -2800,7 +2800,7 @@ int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
- {
- 	struct audit_aux_data_bprm_fcaps *ax;
- 	struct audit_context *context = audit_context();
--	struct cpu_vfs_cap_data vcaps;
-+	struct vfs_caps vcaps;
- 
- 	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
- 	if (!ax)
-diff --git a/security/commoncap.c b/security/commoncap.c
-index 162d96b3a676..7cda247dc7e9 100644
---- a/security/commoncap.c
-+++ b/security/commoncap.c
-@@ -584,7 +584,7 @@ int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
-  * Calculate the new process capability sets from the capability sets attached
-  * to a file.
-  */
--static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
-+static inline int bprm_caps_from_vfs_caps(struct vfs_caps *caps,
- 					  struct linux_binprm *bprm,
- 					  bool *effective,
- 					  bool *has_fcap)
-@@ -635,7 +635,7 @@ static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
-  */
- int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 			   const struct dentry *dentry,
--			   struct cpu_vfs_cap_data *cpu_caps)
-+			   struct vfs_caps *cpu_caps)
- {
- 	struct inode *inode = d_backing_inode(dentry);
- 	__u32 magic_etc;
-@@ -646,7 +646,7 @@ int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 	vfsuid_t rootvfsuid;
- 	struct user_namespace *fs_ns;
- 
--	memset(cpu_caps, 0, sizeof(struct cpu_vfs_cap_data));
-+	memset(cpu_caps, 0, sizeof(struct vfs_caps));
- 
- 	if (!inode)
- 		return -ENODATA;
-@@ -725,7 +725,7 @@ static int get_file_caps(struct linux_binprm *bprm, const struct file *file,
- 			 bool *effective, bool *has_fcap)
- {
- 	int rc = 0;
--	struct cpu_vfs_cap_data vcaps;
-+	struct vfs_caps vcaps;
- 
- 	cap_clear(bprm->cred->cap_permitted);
- 
+ struct mnt_idmap;
+ struct user_namespace;
 
 -- 
 2.43.0
