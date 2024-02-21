@@ -1,38 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 051B685927;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1A4D5126F22;
 	Wed, 21 Feb 2024 21:25:05 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708550706; cv=none; b=ksBBUscTtNeHVRKTQ33gs+xmRpnyL0aORIEHsxnRrWU4OmLZ7peDs1c1VTCQI5ZALVKjYui9bdOvmU2460SRa/HOpKLe1HfJCnjeJP5egAQfCAXhEftNil5lrtaT9kkpSyLBst7Kvw9ZKlH7bf/fNsTu80TO+qMWDYS7hKc7hzw=
+	t=1708550706; cv=none; b=epMT59YZR/00MVkLCi3Rns9b/ElM2uRGDgeuwoWWwLSof2Ff5ix5Qur1D3xNBNU9e7/xUwaXWvJ/nPBh0qTtl/cKgLPYCnqzHepPoNFgGJSdcWNsIjzeZP8h3BC7rInaDN9ojzvNoSB5mtZGtV04arp4WgEERMTnaECnndUoYWM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708550706; c=relaxed/simple;
-	bh=POA0PrUTN0FKS/Ur9K0S38PgsRMyq3Vpis2kmg0j4iE=;
+	bh=Y5Y30p4SCfTGfQg8oU5oIf6A+JB4LZOuEG/nIXEuQzs=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=RTJk0VYZUCc1fi2aZSS62mVxQdaFSBKjnvXCglN2MzO1zz0M+NL/83MsZV6jtskgoHdIzvoum19G5kDMMhbauWVdVyX/6HBBZ29ym9453svLME0EdK56POTiLVJ7XDtv+eD+3/0PMkajYbHKrNnSq6DNbu5sUDhcF/X4HMnoIQk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=qqKvgODs; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=XJ91hQbpw/n3pbHyyqa0aZhABKBG0aVG/ge/eva84oQAyAHR/ztMQ3T2i+FWJtoLWy+P1Q1zU9mCJ9NBohjdXLybAqZK1qUhMcf0mjl6+WVeTZHIL5IvDCL9Kg70ZkLluUf/H3Kp//xGE4KzppHRKPVp1Wk/qFJHGbrw8Ppc5u4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Fcm3hib9; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="qqKvgODs"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id A553EC43390;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Fcm3hib9"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id CBABDC43601;
 	Wed, 21 Feb 2024 21:25:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1708550705;
-	bh=POA0PrUTN0FKS/Ur9K0S38PgsRMyq3Vpis2kmg0j4iE=;
+	bh=Y5Y30p4SCfTGfQg8oU5oIf6A+JB4LZOuEG/nIXEuQzs=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=qqKvgODsKJnsTaYg73BSok+1W6QS0nZeWSmY/OoFMRN/Yo2iKo6D60IXChaqGt0wq
-	 jQmnQX6sifPQ9jgl5rOuzwWgepvyOLtBnNKJOoPbWl9J63yZGl80o8XheQ9C00pTs7
-	 r8NYLFy7jIuV8FkFcwy9/0jl0+wDbHf7JZoGdUXnwaNl2KDP0QhfJYgQhSenOfNqwS
-	 gtqUCdl2HpfLiDCqBXUtodU9lzsHmM/fu1J11vvZJ+8X9ZsF/UEp7XI7TiArFRD5kc
-	 /0OyZ9SGhM5UYp9qfKqB0zy3LoY1c4UuL8ne4EpevTlFG68XePgGCMiIibWi9MH+Au
-	 P1gK6wgVgmP5g==
+	b=Fcm3hib9cZ7v6IA4PdMbWds9TcIQjq1Pe0abjXDgnWnXea7U66tAyZEJ9AqU/WzOr
+	 k0Ke9qMTzeRQcrCl1ZpoW9YR5mrz/NZxsxXlQiXvhqIsQ3ZwYE9XzF3oG0P9PV4Y+U
+	 REMePuXyccPVR9aXWY3Y72WgxLUnON1uU3jbNBAtEZ+Hd6SRJvkYXCyBLN+GWOwHYh
+	 g1cIu/yHGW9iwkbs1qFnkRLb9NZXFxQhQmDPgOKHaeigRwEf7TOAJdNJsB5qhIKB7r
+	 2gtYPmo4bvWYmah5ftVUSetfRzgnfUMSIjq+EJHd0t9g8erLoOuByKpelp5tIWm/+B
+	 qSAHqbhs6UoCQ==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89D7CC5478B;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8FDBC5478A;
 	Wed, 21 Feb 2024 21:25:05 +0000 (UTC)
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 21 Feb 2024 15:24:32 -0600
-Subject: [PATCH v2 01/25] mnt_idmapping: split out core vfs[ug]id_t
- definitions into vfsid.h
+Date: Wed, 21 Feb 2024 15:24:35 -0600
+Subject: [PATCH v2 04/25] capability: rename cpu_vfs_cap_data to vfs_caps
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -41,7 +40,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240221-idmap-fscap-refactor-v2-1-3039364623bd@kernel.org>
+Message-Id: <20240221-idmap-fscap-refactor-v2-4-3039364623bd@kernel.org>
 References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 In-Reply-To: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 To: Christian Brauner <brauner@kernel.org>, 
@@ -62,219 +61,117 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
  linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5431; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=POA0PrUTN0FKS/Ur9K0S38PgsRMyq3Vpis2kmg0j4iE=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1moYRgftQvnaAhwOC79xM2UkR?=
- =?utf-8?q?CSDp2SfLboi/uca_yap7limJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZdZqGAAKCRBTA5mu5fQxydMWCA_CHRl2ahpZ1XKaT9DAva+dTXDWZTZpLPKpm7?=
- =?utf-8?q?33cX3EuV3oihFi32EJQ+Hbq/1ldRB2eErVaDK91yBAd_VYE7/nJsEKc/ba9Ky35Ow?=
- =?utf-8?q?IschvNvH9KXD5jqpQpkd+kPdAd1T/X46nbVnBjZ0aWzPPeZmct0OAi+wG_Y2Y5ALq?=
- =?utf-8?q?TlJpHmtT8g2DFxWNYq8K08IvK+3vID7WhxzDmcUTeLKxMWiIqPrybnPekmiscIc5D?=
- =?utf-8?q?oUrMxz_Hn2Em05Yu8OId/6I1Kz9rtmzWSYPJqM6lFPekAY3jtogoHVIU9dmN9HkZE?=
- =?utf-8?q?WzCTpB8PPDUCjuGqD5J5?= +VK4khbwbHHVfmKGEE64anWErIPwII
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3545; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=Y5Y30p4SCfTGfQg8oU5oIf6A+JB4LZOuEG/nIXEuQzs=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1mobLp7u/pdNjeacbXMjbSmEj?=
+ =?utf-8?q?yV6rMwMwivWNU01_Kh0BkwWJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZdZqGwAKCRBTA5mu5fQxyY9qB/_9zUYtdKwx4X8HLo4wnjsbAIGYaWULalOUka?=
+ =?utf-8?q?xXnOKjI5Cs4QTHrFSqLwolWhCcuwuJCqxufBU3HxTnc_mxPuO1+61LNNhi/pCD44c?=
+ =?utf-8?q?/qRrZUVVTkRAtKBczWgUu6i3XXeeqJLm6XeipSXmdG8cXmXYG8Z187Qbq_F5NubGa?=
+ =?utf-8?q?dgplNl+QZZZQxAr5Ejyxm7NmVVnTwEBMdlEobRDFUGTFx2dSAaIon/Yk9iw58upAs?=
+ =?utf-8?q?iDc80O_IxJbm6qPqST7KMcaLpBxCduVum8Kw1Ljhi2YFVnvMFzw1j5/byvyaLLhuW?=
+ =?utf-8?q?5jFhzBU4PIXJo3y89Kng?= MOIi8lpcWkKwus9TggxdTwSRIABNLw
 X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
  fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
 X-Endpoint-Received:
  by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-The rootid member of cpu_vfs_cap_data is a kuid_t, but it should be a
-vfsuid_t as the id stored there is mapped into the mount idmapping. It's
-currently impossible to use vfsuid_t within cred.h though as it is
-defined in mnt_idmapping.h, which uses definitions from cred.h.
+vfs_caps is a more generic name which is better suited to the broader
+use this struct will see in subsequent commits.
 
-Split out the core vfsid type definitions into a separate file which can
-be included from cred.h.
-
+Reviewed-by: Christian Brauner <brauner@kernel.org>
+Acked-by: Paul Moore <paul@paul-moore.com>
 Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 ---
- MAINTAINERS                   |  1 +
- include/linux/mnt_idmapping.h | 66 +-------------------------------------
- include/linux/vfsid.h         | 74 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 76 insertions(+), 65 deletions(-)
+ include/linux/capability.h | 4 ++--
+ kernel/auditsc.c           | 4 ++--
+ security/commoncap.c       | 8 ++++----
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 73d898383e51..6286d78a759a 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8210,6 +8210,7 @@ S:	Maintained
- F:	Documentation/filesystems/idmappings.rst
- F:	fs/mnt_idmapping.c
- F:	include/linux/mnt_idmapping.*
-+F:	include/linux/vfsid.h
- F:	tools/testing/selftests/mount_setattr/
+diff --git a/include/linux/capability.h b/include/linux/capability.h
+index 0c356a517991..c24477e660fc 100644
+--- a/include/linux/capability.h
++++ b/include/linux/capability.h
+@@ -24,7 +24,7 @@ extern int file_caps_enabled;
+ typedef struct { u64 val; } kernel_cap_t;
  
- FILESYSTEMS [IOMAP]
-diff --git a/include/linux/mnt_idmapping.h b/include/linux/mnt_idmapping.h
-index cd4d5c8781f5..f463b9e1e258 100644
---- a/include/linux/mnt_idmapping.h
-+++ b/include/linux/mnt_idmapping.h
-@@ -4,6 +4,7 @@
+ /* same as vfs_ns_cap_data but in cpu endian and always filled completely */
+-struct cpu_vfs_cap_data {
++struct vfs_caps {
+ 	__u32 magic_etc;
+ 	kuid_t rootid;
+ 	kernel_cap_t permitted;
+@@ -211,7 +211,7 @@ static inline bool checkpoint_restore_ns_capable(struct user_namespace *ns)
+ /* audit system wants to get cap info from files as well */
+ int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
+ 			   const struct dentry *dentry,
+-			   struct cpu_vfs_cap_data *cpu_caps);
++			   struct vfs_caps *cpu_caps);
  
- #include <linux/types.h>
- #include <linux/uidgid.h>
-+#include <linux/vfsid.h>
+ int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
+ 		      const void **ivalue, size_t size);
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index 6f0d6fb6523f..783d0bf69ca5 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -2247,7 +2247,7 @@ void __audit_getname(struct filename *name)
+ static inline int audit_copy_fcaps(struct audit_names *name,
+ 				   const struct dentry *dentry)
+ {
+-	struct cpu_vfs_cap_data caps;
++	struct vfs_caps caps;
+ 	int rc;
  
- struct mnt_idmap;
- struct user_namespace;
-@@ -11,61 +12,6 @@ struct user_namespace;
- extern struct mnt_idmap nop_mnt_idmap;
- extern struct user_namespace init_user_ns;
+ 	if (!dentry)
+@@ -2800,7 +2800,7 @@ int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
+ {
+ 	struct audit_aux_data_bprm_fcaps *ax;
+ 	struct audit_context *context = audit_context();
+-	struct cpu_vfs_cap_data vcaps;
++	struct vfs_caps vcaps;
  
--typedef struct {
--	uid_t val;
--} vfsuid_t;
--
--typedef struct {
--	gid_t val;
--} vfsgid_t;
--
--static_assert(sizeof(vfsuid_t) == sizeof(kuid_t));
--static_assert(sizeof(vfsgid_t) == sizeof(kgid_t));
--static_assert(offsetof(vfsuid_t, val) == offsetof(kuid_t, val));
--static_assert(offsetof(vfsgid_t, val) == offsetof(kgid_t, val));
--
--#ifdef CONFIG_MULTIUSER
--static inline uid_t __vfsuid_val(vfsuid_t uid)
--{
--	return uid.val;
--}
--
--static inline gid_t __vfsgid_val(vfsgid_t gid)
--{
--	return gid.val;
--}
--#else
--static inline uid_t __vfsuid_val(vfsuid_t uid)
--{
--	return 0;
--}
--
--static inline gid_t __vfsgid_val(vfsgid_t gid)
--{
--	return 0;
--}
--#endif
--
--static inline bool vfsuid_valid(vfsuid_t uid)
--{
--	return __vfsuid_val(uid) != (uid_t)-1;
--}
--
--static inline bool vfsgid_valid(vfsgid_t gid)
--{
--	return __vfsgid_val(gid) != (gid_t)-1;
--}
--
--static inline bool vfsuid_eq(vfsuid_t left, vfsuid_t right)
--{
--	return vfsuid_valid(left) && __vfsuid_val(left) == __vfsuid_val(right);
--}
--
--static inline bool vfsgid_eq(vfsgid_t left, vfsgid_t right)
--{
--	return vfsgid_valid(left) && __vfsgid_val(left) == __vfsgid_val(right);
--}
--
- /**
-  * vfsuid_eq_kuid - check whether kuid and vfsuid have the same value
-  * @vfsuid: the vfsuid to compare
-@@ -96,16 +42,6 @@ static inline bool vfsgid_eq_kgid(vfsgid_t vfsgid, kgid_t kgid)
- 	return vfsgid_valid(vfsgid) && __vfsgid_val(vfsgid) == __kgid_val(kgid);
- }
+ 	ax = kmalloc(sizeof(*ax), GFP_KERNEL);
+ 	if (!ax)
+diff --git a/security/commoncap.c b/security/commoncap.c
+index 162d96b3a676..7cda247dc7e9 100644
+--- a/security/commoncap.c
++++ b/security/commoncap.c
+@@ -584,7 +584,7 @@ int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
+  * Calculate the new process capability sets from the capability sets attached
+  * to a file.
+  */
+-static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
++static inline int bprm_caps_from_vfs_caps(struct vfs_caps *caps,
+ 					  struct linux_binprm *bprm,
+ 					  bool *effective,
+ 					  bool *has_fcap)
+@@ -635,7 +635,7 @@ static inline int bprm_caps_from_vfs_caps(struct cpu_vfs_cap_data *caps,
+  */
+ int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
+ 			   const struct dentry *dentry,
+-			   struct cpu_vfs_cap_data *cpu_caps)
++			   struct vfs_caps *cpu_caps)
+ {
+ 	struct inode *inode = d_backing_inode(dentry);
+ 	__u32 magic_etc;
+@@ -646,7 +646,7 @@ int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
+ 	vfsuid_t rootvfsuid;
+ 	struct user_namespace *fs_ns;
  
--/*
-- * vfs{g,u}ids are created from k{g,u}ids.
-- * We don't allow them to be created from regular {u,g}id.
-- */
--#define VFSUIDT_INIT(val) (vfsuid_t){ __kuid_val(val) }
--#define VFSGIDT_INIT(val) (vfsgid_t){ __kgid_val(val) }
--
--#define INVALID_VFSUID VFSUIDT_INIT(INVALID_UID)
--#define INVALID_VFSGID VFSGIDT_INIT(INVALID_GID)
--
- /*
-  * Allow a vfs{g,u}id to be used as a k{g,u}id where we want to compare
-  * whether the mapped value is identical to value of a k{g,u}id.
-diff --git a/include/linux/vfsid.h b/include/linux/vfsid.h
-new file mode 100644
-index 000000000000..90262944b042
---- /dev/null
-+++ b/include/linux/vfsid.h
-@@ -0,0 +1,74 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_MNT_VFSID_H
-+#define _LINUX_MNT_VFSID_H
-+
-+#include <linux/types.h>
-+#include <linux/uidgid.h>
-+#include <linux/build_bug.h>
-+
-+typedef struct {
-+	uid_t val;
-+} vfsuid_t;
-+
-+typedef struct {
-+	gid_t val;
-+} vfsgid_t;
-+
-+static_assert(sizeof(vfsuid_t) == sizeof(kuid_t));
-+static_assert(sizeof(vfsgid_t) == sizeof(kgid_t));
-+static_assert(offsetof(vfsuid_t, val) == offsetof(kuid_t, val));
-+static_assert(offsetof(vfsgid_t, val) == offsetof(kgid_t, val));
-+
-+#ifdef CONFIG_MULTIUSER
-+static inline uid_t __vfsuid_val(vfsuid_t uid)
-+{
-+	return uid.val;
-+}
-+
-+static inline gid_t __vfsgid_val(vfsgid_t gid)
-+{
-+	return gid.val;
-+}
-+#else
-+static inline uid_t __vfsuid_val(vfsuid_t uid)
-+{
-+	return 0;
-+}
-+
-+static inline gid_t __vfsgid_val(vfsgid_t gid)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static inline bool vfsuid_valid(vfsuid_t uid)
-+{
-+	return __vfsuid_val(uid) != (uid_t)-1;
-+}
-+
-+static inline bool vfsgid_valid(vfsgid_t gid)
-+{
-+	return __vfsgid_val(gid) != (gid_t)-1;
-+}
-+
-+static inline bool vfsuid_eq(vfsuid_t left, vfsuid_t right)
-+{
-+	return vfsuid_valid(left) && __vfsuid_val(left) == __vfsuid_val(right);
-+}
-+
-+static inline bool vfsgid_eq(vfsgid_t left, vfsgid_t right)
-+{
-+	return vfsgid_valid(left) && __vfsgid_val(left) == __vfsgid_val(right);
-+}
-+
-+/*
-+ * vfs{g,u}ids are created from k{g,u}ids.
-+ * We don't allow them to be created from regular {u,g}id.
-+ */
-+#define VFSUIDT_INIT(val) (vfsuid_t){ __kuid_val(val) }
-+#define VFSGIDT_INIT(val) (vfsgid_t){ __kgid_val(val) }
-+
-+#define INVALID_VFSUID VFSUIDT_INIT(INVALID_UID)
-+#define INVALID_VFSGID VFSGIDT_INIT(INVALID_GID)
-+
-+#endif /* _LINUX_MNT_VFSID_H */
+-	memset(cpu_caps, 0, sizeof(struct cpu_vfs_cap_data));
++	memset(cpu_caps, 0, sizeof(struct vfs_caps));
+ 
+ 	if (!inode)
+ 		return -ENODATA;
+@@ -725,7 +725,7 @@ static int get_file_caps(struct linux_binprm *bprm, const struct file *file,
+ 			 bool *effective, bool *has_fcap)
+ {
+ 	int rc = 0;
+-	struct cpu_vfs_cap_data vcaps;
++	struct vfs_caps vcaps;
+ 
+ 	cap_clear(bprm->cred->cap_permitted);
+ 
 
 -- 
 2.43.0
