@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D598712AAE2;
-	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 54C3112DD91;
+	Wed, 21 Feb 2024 21:25:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708550707; cv=none; b=bxM94GCzQ6Qi8Oqgyl3TXv3uJYZ9iMhg/RGGlvSPa+TAp14XczAA2Ous2lD0nBlkzGMnR497dyekF3NdkT/FhSNMTs6NzHzN9r8izkAS/bWt3W0IPYYHdjlUCecZV/BorsvcGPMMLAXfAPTxnRi9GDSowapVC60YNn9Y/qDM0V4=
+	t=1708550707; cv=none; b=KBrQYCzsHdOYqYU4eWLWaZOFrqcy/Pk5s92zfKWQ/36X3QtA2ruGu6RJxaaHn4e4kEmBTnJ8adhdY2e7RrIMbjTirsvME/vE95WR3n4lCBqr5DLMA1IFuOwnVJ1GWEJCs6TLJAo5EiO/JSFnZrhsgUHH1T0m+sfRJ6polOxLZjA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708550707; c=relaxed/simple;
-	bh=Yr3ph0XCYOXrp9CXWdQMd7IWQbhJjbtCnaMZrcY53gY=;
+	bh=ttWdljGV2VOOVlmLs8ch4F+B9OPu/3AJrV4l738gSBE=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=bw/i2eZcirMgisYTFexaGG9ezqUkiUYSYFEU+WtPovHo4VU8V3IqA05fTFXLS+DN4TvL2cEnJLSvjX0TOWdEzpSuz5fHhCvBZaJx7MfK8b9lM00FIad3Jy99EUTXQrsRps9bBdoc4YQaaye80Lw9V9zYqnj0ga/oJN3aFUq5ljw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=lzqK00wH; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=pw2v80WMhiGpLtqu9x5KB0I6HV5bC3+f6CIL7sKWUZlOQcY5EHaoPXuUx4Rfl/QvAjXVPuWSFB3OTZleUDoj0s/14Ah5RACKokbSzY7tKF2hWDnVrOQbokj+/lxK51PURSP0Ji+YSMGOTNuBX8bEmzbvxmh2dbT3oRjwJUyp9Z0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=uqHKBP3J; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="lzqK00wH"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id B5D8FC32790;
-	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="uqHKBP3J"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 2E595C36AEE;
+	Wed, 21 Feb 2024 21:25:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708550706;
-	bh=Yr3ph0XCYOXrp9CXWdQMd7IWQbhJjbtCnaMZrcY53gY=;
+	s=k20201202; t=1708550707;
+	bh=ttWdljGV2VOOVlmLs8ch4F+B9OPu/3AJrV4l738gSBE=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=lzqK00wHaspxkj8s4YixHYBHO5uRXAEZjNOy9Tt0Z+zVFhBNoRvYu/G86zief0nKx
-	 DOC8vrh8C8IjEHbdu7wwreh1NNB3LwwbqMH0XaZWH+IykU6H5BTj1w/GUbwEY07O5Z
-	 pvwC+B2b6olS/XcTYKLHEbL6kmg/L1ovWhiGt+wN7z3/EUgIDJm5CNvALRd0UvLCPr
-	 YN7WDcK0FDtDVAfriM9B0F3WsZlZvlWdTcQPII7bNMfNd41fGQdq/VjOUrAZzeTnvH
-	 ZJaeZRN5maBuF9hI2NOJ5ijYh2cBqpS/xIahdqiP82EiiWzznvttVF2LXIWeD/RRi7
-	 EhxIDDDI3G5bw==
+	b=uqHKBP3J4IPMX2ack7XXoakPLKGIQWPInhHuqQcEsbokp77sYp+0fBwH7WFmzz1X2
+	 ero9AJeBQJrkHPwe/FaDYck/ACfEJoZgUAzc+Op7aBaIdJVi+6Lzw4u8juhNq9HlAI
+	 d5uFcA29Z3Co9rw30F5W2vCC/31QIThKoHnAnPAm6qF/9vI23uOeyQzIUwbAy5b9yS
+	 8ED4KrNbstsfd3mEjSxKkKHw8kexLcNnGqaCFJr0SLSHC5JmdRu8KmLnpjcEU9XLIB
+	 nLmaJqBWTTb8vtExN0sZ3E47+JhPHp+5Y064Qlix3nBNp+LkLqh5ccHEWk5KuYwf5V
+	 wGjCyip2arhWg==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E1A0C54791;
-	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17B9FC5478C;
+	Wed, 21 Feb 2024 21:25:07 +0000 (UTC)
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 21 Feb 2024 15:24:45 -0600
-Subject: [PATCH v2 14/25] evm: add support for fscaps security hooks
+Date: Wed, 21 Feb 2024 15:24:51 -0600
+Subject: [PATCH v2 20/25] ovl: add fscaps handlers
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240221-idmap-fscap-refactor-v2-14-3039364623bd@kernel.org>
+Message-Id: <20240221-idmap-fscap-refactor-v2-20-3039364623bd@kernel.org>
 References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 In-Reply-To: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 To: Christian Brauner <brauner@kernel.org>, 
@@ -61,158 +61,170 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
  linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4327; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=Yr3ph0XCYOXrp9CXWdQMd7IWQbhJjbtCnaMZrcY53gY=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1mol25TRgD1iHEn0O+Lzt/PUv?=
- =?utf-8?q?oaNtWltRiGhhXzf_m3QV75SJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZdZqJQAKCRBTA5mu5fQxyS9CB/_9kSIwlWp/cTH5n9oXEiY7IRY7QctvMWegFy?=
- =?utf-8?q?imx7di5G0HHXG0GkFzYw+GCyZNDCVL5R5AuZIagZMKH_cytRQKwJZdn+UxoBt7VxR?=
- =?utf-8?q?cVA0NXxcM5vRXXYDzuNpVQNmbfH5HvHaFvaIDzOEYFmJqsIW/jaxzfWVB_RjglGLz?=
- =?utf-8?q?pDryq2M/ZCsQx9KBTGmEwTBnxzalQNyrtvXgG4UHhg2ZBqBAWhD3SNXDCf7Ii95JG?=
- =?utf-8?q?mya1vE_xyBqVMzbjM3/l+t7NBgQWvLHaHz7A3od4uGdwyYRfroyU95TFJcCTgcv4b?=
- =?utf-8?q?gK682Ja2e9Zo3X4dw5Wp?= Ka5r0Q2dpUgYDHMm+pijpjRjRaNrcP
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4817; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=ttWdljGV2VOOVlmLs8ch4F+B9OPu/3AJrV4l738gSBE=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1moqr1C0o66vju1JEhWEhxdjP?=
+ =?utf-8?q?9MjLsg75RZLdJMz_EGbaqxmJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZdZqKgAKCRBTA5mu5fQxyasXB/_0ck2MmFB/6xo9OUk9n0uU1WV1hFMVoAQcMt?=
+ =?utf-8?q?qmhIQz/2o92A+LSQK3qhijWqisOM+8FwP0mq2qJxzMN_vIR8aLOcS0thGDP0hfR39?=
+ =?utf-8?q?KgwnIBaHRd/nB/r7IdYiRO+hJmxzhiWNUp1IIYYbAlGvxeD7YKcQaPI6w_ujDpQ/1?=
+ =?utf-8?q?BRMFLG/aUZlWxGKGWcvTaun5znDQgPzJy2O4WmnYgB0YdN+3H+qKej3XIqL5cxd9t?=
+ =?utf-8?q?pymr8a_HVtkrcMynShyHq7SIhQ1Hshd+ebeNCgKfG4XE3neYdZrCQjNHAcwys74za?=
+ =?utf-8?q?Z8osEiqTuT5wf1p4sORt?= V1GcnFZzEQHrTdJSCnsZ7y7llnM8zr
 X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
  fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
 X-Endpoint-Received:
  by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-Support the new fscaps security hooks by converting the vfs_caps to raw
-xattr data and then handling them the same as other xattrs.
+Add handlers which read fs caps from the lower or upper filesystem and
+write/remove fs caps to the upper filesystem, performing copy-up as
+necessary.
+
+While fscaps only really make sense on regular files, the general policy
+is to allow most xattr namespaces on all different inode types, so
+fscaps handlers are installed in the inode operations for all types of
+inodes.
 
 Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 ---
- include/linux/evm.h               | 39 +++++++++++++++++++++++++
- security/integrity/evm/evm_main.c | 60 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 99 insertions(+)
+ fs/overlayfs/dir.c       |  2 ++
+ fs/overlayfs/inode.c     | 72 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fs/overlayfs/overlayfs.h |  5 ++++
+ 3 files changed, 79 insertions(+)
 
-diff --git a/include/linux/evm.h b/include/linux/evm.h
-index 36ec884320d9..aeb9ff52ad22 100644
---- a/include/linux/evm.h
-+++ b/include/linux/evm.h
-@@ -57,6 +57,20 @@ static inline void evm_inode_post_set_acl(struct dentry *dentry,
- {
- 	return evm_inode_post_setxattr(dentry, acl_name, NULL, 0);
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 0f8b4a719237..4ff360fe10c9 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -1307,6 +1307,8 @@ const struct inode_operations ovl_dir_inode_operations = {
+ 	.get_inode_acl	= ovl_get_inode_acl,
+ 	.get_acl	= ovl_get_acl,
+ 	.set_acl	= ovl_set_acl,
++	.get_fscaps	= ovl_get_fscaps,
++	.set_fscaps	= ovl_set_fscaps,
+ 	.update_time	= ovl_update_time,
+ 	.fileattr_get	= ovl_fileattr_get,
+ 	.fileattr_set	= ovl_fileattr_set,
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index c63b31a460be..7a8978ea6fe1 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -568,6 +568,72 @@ int ovl_set_acl(struct mnt_idmap *idmap, struct dentry *dentry,
  }
-+extern int evm_inode_set_fscaps(struct mnt_idmap *idmap,
-+				struct dentry *dentry,
-+				const struct vfs_caps *caps, int flags);
-+static inline int evm_inode_remove_fscaps(struct dentry *dentry)
-+{
-+	return evm_inode_set_fscaps(&nop_mnt_idmap, dentry, NULL, XATTR_REPLACE);
-+}
-+extern void evm_inode_post_set_fscaps(struct mnt_idmap *idmap,
-+				      struct dentry *dentry,
-+				      const struct vfs_caps *caps, int flags);
-+static inline void evm_inode_post_remove_fscaps(struct dentry *dentry)
-+{
-+	return evm_inode_post_set_fscaps(&nop_mnt_idmap, dentry, NULL, 0);
-+}
+ #endif
  
- int evm_inode_init_security(struct inode *inode, struct inode *dir,
- 			    const struct qstr *qstr, struct xattr *xattrs,
-@@ -164,6 +178,31 @@ static inline void evm_inode_post_set_acl(struct dentry *dentry,
- 	return;
- }
- 
-+static inline int evm_inode_set_fscaps(struct mnt_idmap *idmap,
-+				       struct dentry *dentry,
-+				       const struct vfs_caps *caps, int flags)
++int ovl_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++		   struct vfs_caps *caps)
 +{
-+	return 0;
++	int err;
++	const struct cred *old_cred;
++	struct path realpath;
++
++	ovl_path_real(dentry, &realpath);
++	old_cred = ovl_override_creds(dentry->d_sb);
++	err = vfs_get_fscaps(mnt_idmap(realpath.mnt), realpath.dentry, caps);
++	revert_creds(old_cred);
++	return err;
 +}
 +
-+static inline int evm_inode_remove_fscaps(struct dentry *dentry)
++int ovl_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++		   const struct vfs_caps *caps, int setxattr_flags)
 +{
-+	return 0;
-+}
++	int err;
++	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
++	struct dentry *upperdentry = ovl_dentry_upper(dentry);
++	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
++	const struct cred *old_cred;
 +
-+static inline void evm_inode_post_set_fscaps(struct mnt_idmap *idmap,
-+					     struct dentry *dentry,
-+					     const struct vfs_caps *caps,
-+					     int flags)
-+{
-+	return;
-+}
-+
-+static inline void evm_inode_post_remove_fscaps(struct dentry *dentry)
-+{
-+	return;
-+}
-+
- static inline int evm_inode_init_security(struct inode *inode, struct inode *dir,
- 					  const struct qstr *qstr,
- 					  struct xattr *xattrs,
-diff --git a/security/integrity/evm/evm_main.c b/security/integrity/evm/evm_main.c
-index cc7956d7878b..ecf4634a921a 100644
---- a/security/integrity/evm/evm_main.c
-+++ b/security/integrity/evm/evm_main.c
-@@ -805,6 +805,66 @@ void evm_inode_post_removexattr(struct dentry *dentry, const char *xattr_name)
- 	evm_update_evmxattr(dentry, xattr_name, NULL, 0);
- }
- 
-+int evm_inode_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
-+			 const struct vfs_caps *caps, int flags)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	struct vfs_ns_cap_data nscaps;
-+	const void *xattr_data = NULL;
-+	int size = 0;
-+
-+	/* Policy permits modification of the protected xattrs even though
-+	 * there's no HMAC key loaded
++	/*
++	 * If the fscaps are to be remove from a lower file, check that they
++	 * exist before copying up.
 +	 */
-+	if (evm_initialized & EVM_ALLOW_METADATA_WRITES)
-+		return 0;
++	if (!caps && !upperdentry) {
++		struct path realpath;
++		struct vfs_caps lower_caps;
 +
-+	if (caps) {
-+		size = vfs_caps_to_xattr(idmap, i_user_ns(inode), caps, &nscaps,
-+					 sizeof(nscaps));
-+		if (size < 0)
-+			return size;
-+		xattr_data = &nscaps;
++		ovl_path_lower(dentry, &realpath);
++		old_cred = ovl_override_creds(dentry->d_sb);
++		err = vfs_get_fscaps(mnt_idmap(realpath.mnt), realdentry,
++				     &lower_caps);
++		revert_creds(old_cred);
++		if (err)
++			goto out;
 +	}
 +
-+	return evm_protect_xattr(idmap, dentry, XATTR_NAME_CAPS, xattr_data, size);
++	err = ovl_want_write(dentry);
++	if (err)
++		goto out;
++
++	err = ovl_copy_up(dentry);
++	if (err)
++		goto out_drop_write;
++	upperdentry = ovl_dentry_upper(dentry);
++
++	old_cred = ovl_override_creds(dentry->d_sb);
++	if (!caps)
++		err = vfs_remove_fscaps(ovl_upper_mnt_idmap(ofs), upperdentry);
++	else
++		err = vfs_set_fscaps(ovl_upper_mnt_idmap(ofs), upperdentry,
++				     caps, setxattr_flags);
++	revert_creds(old_cred);
++
++	/* copy c/mtime */
++	ovl_copyattr(d_inode(dentry));
++
++out_drop_write:
++	ovl_drop_write(dentry);
++out:
++	return err;
 +}
 +
-+void evm_inode_post_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
-+			       const struct vfs_caps *caps, int flags)
-+{
-+	struct inode *inode = d_inode(dentry);
-+	struct vfs_ns_cap_data nscaps;
-+	const void *xattr_data = NULL;
-+	int size = 0;
-+
-+	if (!evm_revalidate_status(XATTR_NAME_CAPS))
-+		return;
-+
-+	evm_reset_status(dentry->d_inode);
-+
-+	if (!(evm_initialized & EVM_INIT_HMAC))
-+		return;
-+
-+	if (is_unsupported_fs(dentry))
-+		return;
-+
-+	if (caps) {
-+		size = vfs_caps_to_xattr(idmap, i_user_ns(inode), caps, &nscaps,
-+					 sizeof(nscaps));
-+		/*
-+		 * The fscaps here should have been converted to an xattr by
-+		 * evm_inode_set_fscaps() already, so a failure to convert
-+		 * here is a bug.
-+		 */
-+		if (WARN_ON_ONCE(size < 0))
-+			return;
-+		xattr_data = &nscaps;
-+	}
-+
-+	evm_update_evmxattr(dentry, XATTR_NAME_CAPS, xattr_data, size);
-+}
-+
- static int evm_attr_change(struct mnt_idmap *idmap,
- 			   struct dentry *dentry, struct iattr *attr)
+ int ovl_update_time(struct inode *inode, int flags)
  {
+ 	if (flags & S_ATIME) {
+@@ -747,6 +813,8 @@ static const struct inode_operations ovl_file_inode_operations = {
+ 	.get_inode_acl	= ovl_get_inode_acl,
+ 	.get_acl	= ovl_get_acl,
+ 	.set_acl	= ovl_set_acl,
++	.get_fscaps	= ovl_get_fscaps,
++	.set_fscaps	= ovl_set_fscaps,
+ 	.update_time	= ovl_update_time,
+ 	.fiemap		= ovl_fiemap,
+ 	.fileattr_get	= ovl_fileattr_get,
+@@ -758,6 +826,8 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+ 	.get_link	= ovl_get_link,
+ 	.getattr	= ovl_getattr,
+ 	.listxattr	= ovl_listxattr,
++	.get_fscaps	= ovl_get_fscaps,
++	.set_fscaps	= ovl_set_fscaps,
+ 	.update_time	= ovl_update_time,
+ };
+ 
+@@ -769,6 +839,8 @@ static const struct inode_operations ovl_special_inode_operations = {
+ 	.get_inode_acl	= ovl_get_inode_acl,
+ 	.get_acl	= ovl_get_acl,
+ 	.set_acl	= ovl_set_acl,
++	.get_fscaps	= ovl_get_fscaps,
++	.set_fscaps	= ovl_set_fscaps,
+ 	.update_time	= ovl_update_time,
+ };
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index ee949f3e7c77..4f948749ee02 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -781,6 +781,11 @@ static inline struct posix_acl *ovl_get_acl_path(const struct path *path,
+ }
+ #endif
+ 
++int ovl_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++		   struct vfs_caps *caps);
++int ovl_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
++		   const struct vfs_caps *caps, int setxattr_flags);
++
+ int ovl_update_time(struct inode *inode, int flags);
+ bool ovl_is_private_xattr(struct super_block *sb, const char *name);
+ 
 
 -- 
 2.43.0
