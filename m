@@ -1,37 +1,38 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8485412E1E8;
-	Wed, 21 Feb 2024 21:25:07 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EEBFF12B176;
+	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708550707; cv=none; b=dseJqO9nVSpov9Srg1XmV/laayeeRhiBmTUAwUz0HAHvYL68s0K2quPuJ2Z/60QqBZYqIpX7WX/uct1bWFtBorquXOtwIiPbkGaNDsPGsl782h0XJVVJNs+/SVB+EJ7YZ4TlSbHl92pfh7EXoNtX/pUzj2i48Pzo/TZeDii8LqE=
+	t=1708550707; cv=none; b=nvK7NW0t3P35Ozc+byRM6qG0k1I5fm0Mx+SAORJbtZu31DwFeafs+K0A3k5hf3825pWO0QKtLMuwGqP/EU+sLopTb7FncyGKPcSdNUDhdB/KC5KKA1ygK7Wf7lh0Wx3uSQFPFzS8NuybOHRChlGlcFB38LLSSMIJsjJglr1BZC0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708550707; c=relaxed/simple;
-	bh=RQFtdcZgDrf45vR2XiLoEkCPweXmO4ZdGDXy9B9n38k=;
+	bh=CJx4jVGIRqQ1qdmTj2y9zLMKH38BdGpPQGSp5yBCQqY=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=ZtfBuVHrXmTD87yDgF+ldZY87NqvSgHzUWCiWADHbeyxfflQpnPattt7A9kYnTapEc8R7B5jaESXZ1XEyjJkUSvsNsuqN4n0oQ3d8bUdcoM2/SCytjbuxElEO9yo1kujPzRCK0ZfBfCA5IWWa556Na+j0fhIQSZonrrf1HR+khY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=a/DrHt2k; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=RsSjfPSZE4aHzTEE1oVRx7CuTu3dE7UH05dTc66Nh9j45hHpH8G3mnn3MC0dnM1hDJnxQhgR0IsJcCDjD2vVyAGXoUZK/zbVpptTfPypISd4uoVcayc5zsIu8xRSJ+DdI4QGc2wUWoEPgYrZktaZD8ZaX122lO8gwihHQJ1NUJM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ScFEMz6F; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="a/DrHt2k"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 4B21FC341C8;
-	Wed, 21 Feb 2024 21:25:07 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ScFEMz6F"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id CB04AC32795;
+	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708550707;
-	bh=RQFtdcZgDrf45vR2XiLoEkCPweXmO4ZdGDXy9B9n38k=;
+	s=k20201202; t=1708550706;
+	bh=CJx4jVGIRqQ1qdmTj2y9zLMKH38BdGpPQGSp5yBCQqY=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=a/DrHt2kmlpWdSvlfpEqoT+ztdgYDFlQx+ciof4tYe7LF1KVF37Ba0B1z/zcyF//n
-	 s/dlkzoyTrW/XbIz6ACIbJMaJDxL0HYAp3dFFCwBDQ7am4xSVN6FUDOLsMqbmX9cZY
-	 aAJ6QYC9tQ1u54O1o8ca7yjXn1UXn3Wf1oe4DdekQxO04Vb4vMi8wqF71bscivyze5
-	 x12nGIE5ZVRLGAa9NKLmtCvOH9Yo+uNjkqPPBzdqQeiTytcs5MBMnRSG1VXyPmkoEr
-	 +1dq6dIcfoeKPPFybfp7hf1Do4+6+Im1/z/ONhjKneEdbOzK77kI1L3Xbn2PJ5yURn
-	 5wMgcIUYJh90g==
+	b=ScFEMz6FlokZomeuAvsLqnXQTflRHEh6BIQBe96Ib9pULn8Wj4+DpC7Xfs8aTexs7
+	 qTiVdQUGtX+RU3zggTNkWmIrVpcMUO6N+cwr43fGo9nWV/a5PLS4ItLlRmU9FbrqIB
+	 5Fqw36ofvD0sLbq9fFeIkUSaRu2bFetOjiQk+SpXaVH/bo3+jCjulvqWK0vKRULblx
+	 2LRZiCwub+3/tki2vXE72U2ySzZt7yQa0Fh+FnnVf6+9pIJpgArXMkOTlvYnR1Yx2p
+	 pMyEmo3Yf/KuwhCrM2ulibMDJ6mZDj1XgQCNFQHu4B3b7bRKxg/Rx4wNmsitGS/MvI
+	 AzKnC3SypEVcw==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38EA8C54798;
-	Wed, 21 Feb 2024 21:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7938C48BEB;
+	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 21 Feb 2024 15:24:53 -0600
-Subject: [PATCH v2 22/25] fs: use vfs interfaces for capabilities xattrs
+Date: Wed, 21 Feb 2024 15:24:46 -0600
+Subject: [PATCH v2 15/25] security: call evm fscaps hooks from generic
+ security hooks
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -40,7 +41,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240221-idmap-fscap-refactor-v2-22-3039364623bd@kernel.org>
+Message-Id: <20240221-idmap-fscap-refactor-v2-15-3039364623bd@kernel.org>
 References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 In-Reply-To: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 To: Christian Brauner <brauner@kernel.org>, 
@@ -61,265 +62,70 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
  linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=8472; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=RQFtdcZgDrf45vR2XiLoEkCPweXmO4ZdGDXy9B9n38k=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1mosKTAjMWeC0JwdcAIeT/V7q?=
- =?utf-8?q?bWgZMaWg9RP69NM_lVsgG1+JATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZdZqLAAKCRBTA5mu5fQxyYsNB/_9Y4IU7+FdOu481pv/83xdJkuv3HJDQ0OP6d?=
- =?utf-8?q?PEatAyIagnNoameoxxxOXPAJKIj5Q4CkEed978+mLU2_kAgoUny2gWC/i4OaBfuMH?=
- =?utf-8?q?hHIX/npJMtYubeIoEdBcvSEMwkUj8HT7HP0Ximcmuy/CiumUMSn1i8uyI_6q6X5c1?=
- =?utf-8?q?Bamvez+8NIfJ9Dh+OUk4jDZgWUc0rOzf5WprMEmBnUKNDF5R0erPvqoJ2wgO2BbCx?=
- =?utf-8?q?6eErI4_s++SjtCrwT16me5yj5VUN+2Ix7qkRevh08dpk06QcqYJENzMHW9hkJmy5g?=
- =?utf-8?q?/XjN3HtxwEWdW7qnUJ05?= E9Boh3G9Ai9l4Tn+77y40mzF1cubex
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1658; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=CJx4jVGIRqQ1qdmTj2y9zLMKH38BdGpPQGSp5yBCQqY=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1molI6sVtDD31t+ZdHf1WoPke?=
+ =?utf-8?q?0imykwNoYOzlcEa_MLxxYsqJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZdZqJQAKCRBTA5mu5fQxyUmKB/_sG1SON2b9GiN9agwuQ8lNxw2IHmhmbxgz33?=
+ =?utf-8?q?hhQ2tViUIItDAJSIkNy5i0HyqiJgPzP/w1VR+NSBYZ3_rze6gn/V7wNsI6T4BHcLg?=
+ =?utf-8?q?Xfr/PP7enV45rcBxOGWDoeBgrvhVY2RIIRwv0+5nKw+ZUUoxMJyIXsguH_AQe19vJ?=
+ =?utf-8?q?zujrIFbKdZ5VySsugJ5uN9keqsl3z8Qth5BpJ4cml1+ab/U3rPxAwFa/t2OH6DxBK?=
+ =?utf-8?q?RvYF0c_GVb+YvhlZ+LDNcy1vbiuUqcuEeEatxNwdefLfn1dBPKNGW6/nY86XhjMB6?=
+ =?utf-8?q?6KBqJqPp/VEC20A/hPcB?= ne6Sf/61X39xbpD+uZnRFwaVm9Ag8L
 X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
  fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
 X-Endpoint-Received:
  by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-Now that all the plumbing is in place, switch over to using the new
-inode operations to get/set fs caps. This pushes all mapping of ids into
-the caller's user ns to above the vfs_*() level, making this consistent
-with other vfs_*() interfaces.
-
-cap_convert_nscap() is updated to return vfs_caps and moved to be called
-from the new code path for setting fscaps. This means that use of
-vfs_setxattr() will no longer remap ids in fscap xattrs, but all code
-which used vfs_setxattr() for fscaps xattrs has been converted to the
-new interfaces.
-
-Removing the mapping of fscaps rootids from vfs_getxattr() is more
-invovled and will be addressed in a later commit.
-
 Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 ---
- fs/xattr.c                 | 49 ++++++++++++++++++++++++----
- include/linux/capability.h |  2 +-
- security/commoncap.c       | 79 +++++++++++++++-------------------------------
- 3 files changed, 69 insertions(+), 61 deletions(-)
+ security/security.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/fs/xattr.c b/fs/xattr.c
-index 8b0f7384cbc9..30eff6bc4f6d 100644
---- a/fs/xattr.c
-+++ b/fs/xattr.c
-@@ -534,13 +534,6 @@ vfs_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 	const void  *orig_value = value;
- 	int error;
- 
--	if (size && is_fscaps_xattr(name)) {
--		error = cap_convert_nscap(idmap, dentry, &value, size);
--		if (error < 0)
--			return error;
--		size = error;
--	}
--
- retry_deleg:
- 	inode_lock(inode);
- 	error = __vfs_setxattr_locked(idmap, dentry, name, value, size,
-@@ -851,6 +844,24 @@ int do_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
- 		return do_set_acl(idmap, dentry, ctx->kname->name,
- 				  ctx->kvalue, ctx->size);
- 
-+	if (is_fscaps_xattr(ctx->kname->name)) {
-+		struct vfs_caps caps;
-+		int ret;
+diff --git a/security/security.c b/security/security.c
+index 0d210da9862c..f515d8430318 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -2365,9 +2365,14 @@ int security_inode_remove_acl(struct mnt_idmap *idmap,
+ int security_inode_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+ 			      const struct vfs_caps *caps, int flags)
+ {
++	int ret;
 +
-+		/*
-+		 * rootid is already in the mount idmap, so pass nop_mnt_idmap
-+		 * so that it won't be mapped.
-+		 */
-+		ret = vfs_caps_from_xattr(&nop_mnt_idmap, current_user_ns(),
-+					  &caps, ctx->kvalue, ctx->size);
-+		if (ret)
-+			return ret;
-+		ret = cap_convert_nscap(idmap, dentry, &caps);
-+		if (ret)
-+			return ret;
-+		return vfs_set_fscaps(idmap, dentry, &caps, ctx->flags);
-+	}
-+
- 	return vfs_setxattr(idmap, dentry, ctx->kname->name,
- 			ctx->kvalue, ctx->size, ctx->flags);
- }
-@@ -949,6 +960,27 @@ do_getxattr(struct mnt_idmap *idmap, struct dentry *d,
- 	ssize_t error;
- 	char *kname = ctx->kname->name;
- 
-+	if (is_fscaps_xattr(kname)) {
-+		struct vfs_caps caps;
-+		struct vfs_ns_cap_data data;
-+		int ret;
-+
-+		ret = vfs_get_fscaps(idmap, d, &caps);
-+		if (ret)
-+			return ret;
-+		/*
-+		 * rootid is already in the mount idmap, so pass nop_mnt_idmap
-+		 * so that it won't be mapped.
-+		 */
-+		ret = vfs_caps_to_user_xattr(&nop_mnt_idmap, current_user_ns(),
-+					     &caps, &data, ctx->size);
-+		if (ret < 0)
-+			return ret;
-+		if (ctx->size && copy_to_user(ctx->value, &data, ret))
-+			return -EFAULT;
+ 	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
+ 		return 0;
+-	return call_int_hook(inode_set_fscaps, 0, idmap, dentry, caps, flags);
++	ret = call_int_hook(inode_set_fscaps, 0, idmap, dentry, caps, flags);
++	if (ret)
 +		return ret;
-+	}
-+
- 	if (ctx->size) {
- 		if (ctx->size > XATTR_SIZE_MAX)
- 			ctx->size = XATTR_SIZE_MAX;
-@@ -1139,6 +1171,9 @@ removexattr(struct mnt_idmap *idmap, struct dentry *d,
- 	if (is_posix_acl_xattr(kname))
- 		return vfs_remove_acl(idmap, d, kname);
- 
-+	if (is_fscaps_xattr(kname))
-+		return vfs_remove_fscaps(idmap, d);
-+
- 	return vfs_removexattr(idmap, d, kname);
- }
- 
-diff --git a/include/linux/capability.h b/include/linux/capability.h
-index eb06d7c6224b..5e7cbf07e3a7 100644
---- a/include/linux/capability.h
-+++ b/include/linux/capability.h
-@@ -229,6 +229,6 @@ int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
- 			   struct vfs_caps *cpu_caps);
- 
- int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
--		      const void **ivalue, size_t size);
-+		      struct vfs_caps *caps);
- 
- #endif /* !_LINUX_CAPABILITY_H */
-diff --git a/security/commoncap.c b/security/commoncap.c
-index 19affcfa3126..4254e5e46024 100644
---- a/security/commoncap.c
-+++ b/security/commoncap.c
-@@ -485,27 +485,21 @@ int cap_inode_getsecurity(struct mnt_idmap *idmap,
++	return evm_inode_set_fscaps(idmap, dentry, caps, flags);
  }
  
  /**
-- * rootid_from_xattr - translate root uid of vfs caps
-+ * rootid_from_vfs_caps - translate root uid of vfs caps
-  *
-- * @value:	vfs caps value which may be modified by this function
-- * @size:	size of @ivalue
-+ * @caps:	vfs caps value which may be modified by this function
-  * @task_ns:	user namespace of the caller
-+ *
-+ * Return the rootid from a v3 fs cap, or the id of root in the task's user
-+ * namespace for v1 and v2 fs caps.
-  */
--static vfsuid_t rootid_from_xattr(const void *value, size_t size,
--				  struct user_namespace *task_ns)
-+static vfsuid_t rootid_from_vfs_caps(const struct vfs_caps *caps,
-+				     struct user_namespace *task_ns)
- {
--	const struct vfs_ns_cap_data *nscap = value;
--	uid_t rootid = 0;
--
--	if (size == XATTR_CAPS_SZ_3)
--		rootid = le32_to_cpu(nscap->rootid);
--
--	return VFSUIDT_INIT(make_kuid(task_ns, rootid));
--}
-+	if ((caps->magic_etc & VFS_CAP_REVISION_MASK) == VFS_CAP_REVISION_3)
-+		return caps->rootid;
- 
--static bool validheader(size_t size, const struct vfs_cap_data *cap)
--{
--	return is_v2header(size, cap) || is_v3header(size, cap);
-+	return VFSUIDT_INIT(make_kuid(task_ns, 0));
+@@ -2387,6 +2392,7 @@ void security_inode_post_set_fscaps(struct mnt_idmap *idmap,
+ 	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
+ 		return;
+ 	call_void_hook(inode_post_set_fscaps, idmap, dentry, caps, flags);
++	evm_inode_post_set_fscaps(idmap, dentry, caps, flags);
  }
  
  /**
-@@ -513,11 +507,10 @@ static bool validheader(size_t size, const struct vfs_cap_data *cap)
-  *
-  * @idmap:	idmap of the mount the inode was found from
-  * @dentry:	used to retrieve inode to check permissions on
-- * @ivalue:	vfs caps value which may be modified by this function
-- * @size:	size of @ivalue
-+ * @caps:	vfs caps which may be modified by this function
-  *
-- * User requested a write of security.capability.  If needed, update the
-- * xattr to change from v2 to v3, or to fixup the v3 rootid.
-+ * User requested a write of security.capability.  Check permissions, and if
-+ * needed, update the xattr to change from v2 to v3.
-  *
-  * If the inode has been found through an idmapped mount the idmap of
-  * the vfsmount must be passed through @idmap. This function will then
-@@ -525,59 +518,39 @@ static bool validheader(size_t size, const struct vfs_cap_data *cap)
-  * permissions. On non-idmapped mounts or if permission checking is to be
-  * performed on the raw inode simply pass @nop_mnt_idmap.
-  *
-- * Return: On success, return the new size; on error, return < 0.
-+ * Return: On success, return 0; on error, return < 0.
+@@ -2415,9 +2421,14 @@ int security_inode_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry)
   */
- int cap_convert_nscap(struct mnt_idmap *idmap, struct dentry *dentry,
--		      const void **ivalue, size_t size)
-+		      struct vfs_caps *caps)
+ int security_inode_remove_fscaps(struct mnt_idmap *idmap, struct dentry *dentry)
  {
--	struct vfs_ns_cap_data *nscap;
--	uid_t nsrootid;
--	const struct vfs_cap_data *cap = *ivalue;
--	__u32 magic, nsmagic;
- 	struct inode *inode = d_backing_inode(dentry);
- 	struct user_namespace *task_ns = current_user_ns(),
- 		*fs_ns = inode->i_sb->s_user_ns;
--	kuid_t rootid;
- 	vfsuid_t vfsrootid;
--	size_t newsize;
-+	__u32 revision;
- 
--	if (!*ivalue)
--		return -EINVAL;
--	if (!validheader(size, cap))
-+	revision = sansflags(caps->magic_etc);
-+	if (revision != VFS_CAP_REVISION_2 && revision != VFS_CAP_REVISION_3)
- 		return -EINVAL;
- 	if (!capable_wrt_inode_uidgid(idmap, inode, CAP_SETFCAP))
- 		return -EPERM;
--	if (size == XATTR_CAPS_SZ_2 && (idmap == &nop_mnt_idmap))
-+	if (revision == VFS_CAP_REVISION_2 && (idmap == &nop_mnt_idmap))
- 		if (ns_capable(inode->i_sb->s_user_ns, CAP_SETFCAP))
- 			/* user is privileged, just write the v2 */
--			return size;
-+			return 0;
- 
--	vfsrootid = rootid_from_xattr(*ivalue, size, task_ns);
-+	vfsrootid = rootid_from_vfs_caps(caps, task_ns);
- 	if (!vfsuid_valid(vfsrootid))
- 		return -EINVAL;
- 
--	rootid = from_vfsuid(idmap, fs_ns, vfsrootid);
--	if (!uid_valid(rootid))
-+	if (!vfsuid_has_fsmapping(idmap, fs_ns, vfsrootid))
- 		return -EINVAL;
- 
--	nsrootid = from_kuid(fs_ns, rootid);
--	if (nsrootid == -1)
--		return -EINVAL;
-+	caps->rootid = vfsrootid;
-+	caps->magic_etc = VFS_CAP_REVISION_3 |
-+			  (caps->magic_etc & VFS_CAP_FLAGS_EFFECTIVE);
- 
--	newsize = sizeof(struct vfs_ns_cap_data);
--	nscap = kmalloc(newsize, GFP_ATOMIC);
--	if (!nscap)
--		return -ENOMEM;
--	nscap->rootid = cpu_to_le32(nsrootid);
--	nsmagic = VFS_CAP_REVISION_3;
--	magic = le32_to_cpu(cap->magic_etc);
--	if (magic & VFS_CAP_FLAGS_EFFECTIVE)
--		nsmagic |= VFS_CAP_FLAGS_EFFECTIVE;
--	nscap->magic_etc = cpu_to_le32(nsmagic);
--	memcpy(&nscap->data, &cap->data, sizeof(__le32) * 2 * VFS_CAP_U32);
--
--	*ivalue = nscap;
--	return newsize;
-+	return 0;
++	int ret;
++
+ 	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
+ 		return 0;
+-	return call_int_hook(inode_remove_fscaps, 0, idmap, dentry);
++	ret = call_int_hook(inode_remove_fscaps, 0, idmap, dentry);
++	if (ret)
++		return ret;
++	return evm_inode_remove_fscaps(dentry);
  }
  
- /*
+ /**
 
 -- 
 2.43.0
