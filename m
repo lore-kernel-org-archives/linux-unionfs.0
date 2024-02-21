@@ -1,37 +1,37 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A9BA1129A8D;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9BD851292FF;
 	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708550706; cv=none; b=hlK3VS9pe3vS8yvfj6p1JgKAw1i++EvxUKM9r2uLCFfTawzXh1aUUYaxcEPaZtN8NDRjnFibz2GGFQ2bXtodeT4ciDAqwiKcCqdT+e/ffwwnZxNaGirOogw/ACLF/zusf48N+svsZwe6IbRVA9tEvFvTxfnVK/EudO6j+r1yjlc=
+	t=1708550706; cv=none; b=E3HFdt8o9s0cxvn/tY9H5AjLk0foBJB39WHHBnVIkgItBL4aMFO4gxsC0v7gOF0XUJrQp0Fq9fSxX6VWjBzPPlxYaP3QEwRfYsO6JJvL/llPPTQyw+tu1/jNHGX33ZDYAKrcMOPDJuAozHwjuD/Fncl4PQxI6ZZKQmDey3jJn+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708550706; c=relaxed/simple;
-	bh=pUWNt9mRsWKZJ1yXibvTabhp6NyYRplMYf4ol2PV1qs=;
+	bh=lEHQXdLzM8XZmLEljh/ycw/4aa43YTvfIWETR64S7L4=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=myVhcc/Iz1ClZYr66H2sFLie8UTmCTDeYLHO1hr/dkFtGfOEcZS/XNdx+mdZrgR70f8Lrk8tG+fa9H9PIwC0fHG3aafF0Ju/vNWwx/GV9M9nfBIgOpp6TlJ/0Vua29DjZbxlKQ4m0WwL+As7HkdlNUY4K33S/feof2s/W/SHS40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=OE5GYKrN; arc=none smtp.client-ip=10.30.226.201
+	 In-Reply-To:To:Cc; b=Mq6PcSOuxWw2NQO20b2/ULW/n/9jdn0BsA82pLQdmuYptzVcDf8RMeBfOK65tR3jUeHL1SRHHCaLIfIj8WZ9IH7zFRL7Fv7qBhnMFdwzo3lLXXhOj6SsXIYdnffy1ZxsjXfCSeKowAxC6Hb8LPjbbGcDjAyVJYWzj+ookU6xsZY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=UC2BZrnh; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="OE5GYKrN"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id 88E21C3278A;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="UC2BZrnh"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 662C0C32784;
 	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
 	s=k20201202; t=1708550706;
-	bh=pUWNt9mRsWKZJ1yXibvTabhp6NyYRplMYf4ol2PV1qs=;
+	bh=lEHQXdLzM8XZmLEljh/ycw/4aa43YTvfIWETR64S7L4=;
 	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=OE5GYKrNXbhCRoyzeq1Uxwh+7AvoyiVU4RFHWWAkBoyH2PSfR8louMEYypCkFSBHp
-	 /QK88SLmFCXh8vrQRwW+V2vYmQew9jhciIYuZIwtD6xTZjSIyY1SE3xc655mOeYw1K
-	 fw6eKTosn8jH4AMfW10Lsbdwxj/xat0kDSqrBjrzfKG+wqDiStz/Dt/Wvp0ddA9006
-	 TWwXHU7e+0tqwxbmUtQi3P2onMllhLHQvTIIMzq1bttKhrawupE4GXNXfGp+rOVXV9
-	 kheVg+z1IPObzaqroVcFaD9glXefaelF990s79FRkFSxhQabeAsHZZj5NNSuc2QG4P
-	 QLQVMHn9/W5BA==
+	b=UC2BZrnh4lZXsjpnjx7aANMXeCVkZvoQtXOjOZOT8xxnq7bJsb0arNGCdzXPhB79M
+	 CRZgleKWNdeC+ZerEGDq2Q9NZr4JJau/CRBGKV0m/lNO/MgnJPlkC236U8Q1VUvwcE
+	 gekbp89+TKBF2TDd5vAbzCjWkLtYJE9MTac2VPDPKxvptO0t/JWF6u9r3k/XUCz/zU
+	 y9barmElKlj5vGlpuHAjm00yLb/7UoUvR3J0vRzDdrfJgiIw1WSmfltoAdvPvep33w
+	 BV2cIqgqZD2xLGRoYHm1KMpuySNQNViUrDL/TlyKPSYs655oBmI+NgnQJSxLLPR5/1
+	 65LN77kcX4EuA==
 Received: from aws-us-west-2-korg-lkml-1.web.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76D09C5478C;
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51D3BC54793;
 	Wed, 21 Feb 2024 21:25:06 +0000 (UTC)
 From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Date: Wed, 21 Feb 2024 15:24:43 -0600
-Subject: [PATCH v2 12/25] selinux: add hooks for fscaps operations
+Date: Wed, 21 Feb 2024 15:24:41 -0600
+Subject: [PATCH v2 10/25] xattr: use is_fscaps_xattr()
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -40,7 +40,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20240221-idmap-fscap-refactor-v2-12-3039364623bd@kernel.org>
+Message-Id: <20240221-idmap-fscap-refactor-v2-10-3039364623bd@kernel.org>
 References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 In-Reply-To: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
 To: Christian Brauner <brauner@kernel.org>, 
@@ -61,73 +61,39 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
  linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
 X-Mailer: b4 0.12.4
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2028; i=sforshee@kernel.org;
- h=from:subject:message-id; bh=pUWNt9mRsWKZJ1yXibvTabhp6NyYRplMYf4ol2PV1qs=; 
- =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1mojvJhyZw9emud3TEu0eTTg0?=
- =?utf-8?q?ZvRpxQbx/wYTlv3_1foWLWqJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
- =?utf-8?q?QUCZdZqIwAKCRBTA5mu5fQxyUwiB/_94Hwww+Nvwr2i0mm92V1m/muLDxNZ3ichSg?=
- =?utf-8?q?SbVTXRmFnGLWiqqjMZl3IjV8bIU9kY0uE4x7zfEpBpX_rTcdD3t9JeMPtm8WcBoFc?=
- =?utf-8?q?lqIlyRYkgBIkPLFiY2Vb+GmlW/HPp0p7gXrkdXLnqRb2JLOEGjY3ReRrm_gx2B15b?=
- =?utf-8?q?lpH1tEHAitlNwTMg6Wlt+MkUqvPIXsiYP4hseEFG3GRmrmtLK8VDfPFmy0HO4Mkay?=
- =?utf-8?q?GhMzDS_piT9CYjbYEIlnSpJFWwC7agQMDtzoUNqlU4zRIOSjOTGd+/O8lHnI0mqol?=
- =?utf-8?q?xe+jhCS0DXiQ3StnEUTj?= AJXJqyr0z/OYbUCf//HFYSGghhbxur
+X-Developer-Signature: v=1; a=openpgp-sha256; l=597; i=sforshee@kernel.org;
+ h=from:subject:message-id; bh=lEHQXdLzM8XZmLEljh/ycw/4aa43YTvfIWETR64S7L4=; 
+ =?utf-8?q?b=3DowEBbQGS/pANAwAKAVMDma7l9DHJAcsmYgBl1mohq2XZVoBy8FgqIjMltMFNu?=
+ =?utf-8?q?zAWaj/Pn1Cc2fiJ_PO+HZrOJATMEAAEKAB0WIQSQnt+rKAvnETy4Hc9TA5mu5fQxy?=
+ =?utf-8?q?QUCZdZqIQAKCRBTA5mu5fQxyQ77B/_9KzJ+i0X5eDYLpwTJQmYMCRqYN6k0Iuk1pw?=
+ =?utf-8?q?bpwXjF9ph8I+iLw/R/XYDD3yf025kbMHTCQC+Z0TYiw_Wh64DvoVlVS+FkNp+7sCJ?=
+ =?utf-8?q?ETr3Lmx3gEs2vJNh+zIRRm9awNuEhnAezPVeOC9vXAOEB4vxQMJwWjjNG_apBxkgO?=
+ =?utf-8?q?4CvmpusSXAZOJhK6Uo5XqCiEgjcl0DXRtnMbTph6y2KmqFVanvM1qba2HEXNFpL87?=
+ =?utf-8?q?fAwpST_UDykJ5pSN8a964iteXDvWw/PLqFS33BKI9sLHcykFsgV4nTYUWM+hpTJJV?=
+ =?utf-8?q?1rOFRiE2YRaSB35mPMvF?= 52ifUub/2VOnPAqvb376YvVerDPSZW
 X-Developer-Key: i=sforshee@kernel.org; a=openpgp;
  fpr=2ABCA7498D83E1D32D51D3B5AB4800A62DB9F73A
 X-Endpoint-Received:
  by B4 Relay for sforshee@kernel.org/default with auth_id=103
 
-Add hooks for set/get/remove fscaps operations which perform the same
-checks as the xattr hooks would have done for XATTR_NAME_CAPS.
-
 Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 ---
- security/selinux/hooks.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ fs/xattr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index a6bf90ace84c..da129a387b34 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -3367,6 +3367,29 @@ static int selinux_inode_removexattr(struct mnt_idmap *idmap,
- 	return -EACCES;
- }
+diff --git a/fs/xattr.c b/fs/xattr.c
+index 09d927603433..06290e4ebc03 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -310,7 +310,7 @@ vfs_setxattr(struct mnt_idmap *idmap, struct dentry *dentry,
+ 	const void  *orig_value = value;
+ 	int error;
  
-+static int selinux_inode_set_fscaps(struct mnt_idmap *idmap,
-+				    struct dentry *dentry,
-+				    const struct vfs_caps *caps, int flags)
-+{
-+	return dentry_has_perm(current_cred(), dentry, FILE__SETATTR);
-+}
-+
-+static int selinux_inode_get_fscaps(struct mnt_idmap *idmap,
-+				    struct dentry *dentry)
-+{
-+	return dentry_has_perm(current_cred(), dentry, FILE__GETATTR);
-+}
-+
-+static int selinux_inode_remove_fscaps(struct mnt_idmap *idmap,
-+				       struct dentry *dentry)
-+{
-+	int rc = cap_inode_removexattr(idmap, dentry, XATTR_NAME_CAPS);
-+	if (rc)
-+		return rc;
-+
-+	return dentry_has_perm(current_cred(), dentry, FILE__SETATTR);
-+}
-+
- static int selinux_path_notify(const struct path *path, u64 mask,
- 						unsigned int obj_type)
- {
-@@ -7165,6 +7188,9 @@ static struct security_hook_list selinux_hooks[] __ro_after_init = {
- 	LSM_HOOK_INIT(inode_set_acl, selinux_inode_set_acl),
- 	LSM_HOOK_INIT(inode_get_acl, selinux_inode_get_acl),
- 	LSM_HOOK_INIT(inode_remove_acl, selinux_inode_remove_acl),
-+	LSM_HOOK_INIT(inode_set_fscaps, selinux_inode_set_fscaps),
-+	LSM_HOOK_INIT(inode_get_fscaps, selinux_inode_get_fscaps),
-+	LSM_HOOK_INIT(inode_remove_fscaps, selinux_inode_remove_fscaps),
- 	LSM_HOOK_INIT(inode_getsecurity, selinux_inode_getsecurity),
- 	LSM_HOOK_INIT(inode_setsecurity, selinux_inode_setsecurity),
- 	LSM_HOOK_INIT(inode_listsecurity, selinux_inode_listsecurity),
+-	if (size && strcmp(name, XATTR_NAME_CAPS) == 0) {
++	if (size && is_fscaps_xattr(name)) {
+ 		error = cap_convert_nscap(idmap, dentry, &value, size);
+ 		if (error < 0)
+ 			return error;
 
 -- 
 2.43.0
