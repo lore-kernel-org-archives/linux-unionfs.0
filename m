@@ -1,99 +1,80 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 95EB1111B2;
-	Thu, 22 Feb 2024 06:19:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2CDC4364B3;
+	Thu, 22 Feb 2024 09:01:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708582755; cv=none; b=ZyZyIeUx9PAMWj9SBLcoWiIkI3d+humvhwH4C1j34EYoLwpaCWlRiPY4KvJ+ryPIEA9gyudWW7vHYmXtisJv0a/prz9uFZ0JbjEhCv56eh9xITgec51MgLXaDJzjKjjHur6WkmbmKjhIlFhfyYubAhJvvNtFJxEZrxolmhzMfOQ=
+	t=1708592513; cv=none; b=KVxt+32zbKgDvcJ2b0WOMd+eX9mVgE9W/a1Q6WYVt1KqSMwnvbzPMK1M35aIk91zI8hNEuC2td0vnujSuR/TAfS6fRC1flj9JETuQLIs/AdCE4PJTkCJkPkOjV2Ke67+YcM29NOGwAaBoyoLZgpg35e5Sqyw2FiwLAsvNw5HWxk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708582755; c=relaxed/simple;
-	bh=0Lr5AX7FpO/aXj6qVayv8ofx1ZqBAzWpFrAwAcDTM6k=;
-	h=Message-ID:Date:MIME-Version:From:Subject:To:Cc:Content-Type; b=VAw9jBpJ2/H8cTCleC6Dn+/ypP7+e/9ddq9eYCfk00R6ds+3cuuq7vTgQshHMlgMJ6iOn6IePaSmoCaYWBGLhXm1pPEQrvQXpJKwyiRifid8rOQG4P8Ooli6mbjBVYks3AfNSHUPFitXk3kI7SAjT2YIdmRPTq1Te/ee+7Ag9Io=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=bY8abVoT; arc=none smtp.client-ip=209.85.218.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1708592513; c=relaxed/simple;
+	bh=GxSaTtmPOkR31tiEKOdHiyrXj7lJdpFYYTiUQkvexjU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=HXWb3HsqrVLryCMFRTlcBCzNWwdOt7R9bARjvrilO4WTQ5eJcNfUTeYN9ecAT9a8bSIssyXeA9cTE1wzCJWRkQExkgCySiX/6TLlyfD/+bU1sNw3Scf2NLRUdUr/G4lRbgyQYKSYVKEqj1QK5lrgxjBZ6empQTqfU1ZFQSs3Hxk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mFM+vqbD; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="bY8abVoT"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a3e82664d53so549331066b.3;
-        Wed, 21 Feb 2024 22:19:04 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1708582743; x=1709187543; darn=vger.kernel.org;
-        h=content-transfer-encoding:content-language:cc:to:subject:from
-         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=xPC3HI8Z845qLz3kUsWszBQiV6ZgNOYEP7Ob0HaDyNQ=;
-        b=bY8abVoTBCBoh5P/7A7HQzn/06lVrts8WEeLpOTkHwnyR+WeUh8h4RAJSTI022XGYO
-         LxoXJzkTGqiCpdLiE3nrTYUizCDEvn5XRedSz7+YIM/Jvw7fALZdt2tJLSTUH7F3qQrJ
-         E9EXhuknD/GsYjO9cUjf5GJs6RS/miEUPz4DlIJKwMyqjtxn44G7Xt4tyx1jKlzQFnSH
-         DFMDeDFoszAvsyeurZWw/CNyBDiCFZ0VW+Zlp40U6akbgbDcZT8F+9i0crk7MNsVHx/u
-         +dHTRdhaPL/1XZd2mK/CaoPkEZMuh5bOR3bQc48ar3dCu91i5xprmEuOb4E3rM0QsIof
-         xLQg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1708582743; x=1709187543;
-        h=content-transfer-encoding:content-language:cc:to:subject:from
-         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=xPC3HI8Z845qLz3kUsWszBQiV6ZgNOYEP7Ob0HaDyNQ=;
-        b=hTEuzPfyAKC2IA7EHxAq77lqxXZSh/d1vKFGvWG2G+MpKLXBbLfvwB8oZMZVkdWsg5
-         er6UsE1k/u0t+XF8hZTayJFun9yMSi8fEwQo2XYiw5toiHCA6+UN8r4JBQz+qKLhqhLW
-         cN+RrRUVo7qsCe9N6VZ2MuxSnyr1NUaSLAID2roSKXvEycq9YldaU0DoaJZ8sq5B4N6W
-         KFdFru8QE0QZ6qmF6HUKq0uqh3ZP4489ltbUjDSNpP5nGuICMGnChn75wROubTs4vbK3
-         /CJs4SXLTN7xd2CA0HQ3rRgQuCHNPNfJB6MiI+P6T+N6VEfw4hgRUmOSY4gkGPFAm4a8
-         Neog==
-X-Forwarded-Encrypted: i=1; AJvYcCXJTsoQ/IxeBvVZQG4dnTE+4l4dzIX7LEE1dZv9izj0mh53qkG9g2izP0zJKrHLvPo0KkScTo/2N5NvX8+hkjQPUjm2EABNtSsk0ZR4oA==
-X-Gm-Message-State: AOJu0Yzvu1Qu8w13222bAOCp3pPaOQZmKA3B2Y+/g4N74lB9KYQSvhwM
-	OcalLCftzmMGiwyAxC4PqJlsYEpfKdHNVfXrl/NC5RWAA5C3yf6R
-X-Google-Smtp-Source: AGHT+IEG7HibaMSVR4WszoJmFurHvTqqfwmJavSGmz3ZBGgDGYfemtVbvvksLmQ36jWwvqQIQpKaFA==
-X-Received: by 2002:a17:906:3b12:b0:a3e:59e5:a38f with SMTP id g18-20020a1709063b1200b00a3e59e5a38fmr8255861ejf.11.1708582742617;
-        Wed, 21 Feb 2024 22:19:02 -0800 (PST)
-Received: from [192.168.26.149] (031011218106.poznan.vectranet.pl. [31.11.218.106])
-        by smtp.googlemail.com with ESMTPSA id vk7-20020a170907cbc700b00a3efba5543csm2268945ejc.13.2024.02.21.22.19.01
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 21 Feb 2024 22:19:02 -0800 (PST)
-Message-ID: <67bb0571-a6e0-44ea-9ab6-91c267d0642f@gmail.com>
-Date: Thu, 22 Feb 2024 07:19:00 +0100
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mFM+vqbD"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1279C43390;
+	Thu, 22 Feb 2024 09:01:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1708592512;
+	bh=GxSaTtmPOkR31tiEKOdHiyrXj7lJdpFYYTiUQkvexjU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=mFM+vqbDR1MJKKRgfRjIOrzOc424GqoblK3T1+Qj60DGCCRltcn5K+HtDBiz0oNAI
+	 7lhVYwgGLRYljApFvefFky2iXriPAhJEs4B28OmBTUXH8TaOq2m8oDcX/B81uT4svx
+	 03S0IobkRFAoLzQ1BoOO/wC745aTOAvzBM21OXSh85cdiAg8OiRAuhGyWmFMxJDTMI
+	 CkFWISZ1Zu/12netouLXOhDsFac1RLZ86e6jawWG+EpCMEvlxDNJPjWuDd2n0D209V
+	 GLUhxd6XM89B/9DMjH3tTsKJTvXM/Un7Mue2dyxK6CccWL5PvwJ/cQgN61KOD7FfWi
+	 IhTUB5C3TyEig==
+Date: Thu, 22 Feb 2024 10:01:47 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: =?utf-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Amir Goldstein <amir73il@gmail.com>, Vivek Goyal <vgoyal@redhat.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, 
+	linux-unionfs@vger.kernel.org, Luiz Angelo Daros de Luca <luizluca@gmail.com>
+Subject: Re: Can overlayfs follow mounts in lowerdir?
+Message-ID: <20240222-verflachen-flutlicht-955cd64306f8@brauner>
+References: <67bb0571-a6e0-44ea-9ab6-91c267d0642f@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-From: =?UTF-8?B?UmFmYcWCIE1pxYJlY2tp?= <zajec5@gmail.com>
-Subject: Can overlayfs follow mounts in lowerdir?
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
- Christian Brauner <brauner@kernel.org>, Vivek Goyal <vgoyal@redhat.com>,
- Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel <linux-fsdevel@vger.kernel.org>,
- linux-unionfs@vger.kernel.org, Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <67bb0571-a6e0-44ea-9ab6-91c267d0642f@gmail.com>
 
-Hi,
+On Thu, Feb 22, 2024 at 07:19:00AM +0100, Rafał Miłecki wrote:
+> Hi,
+> 
+> I'm trying to use overlay to create temporary virtual root filesystem.
+> I need a copy of / with custom files on top of it.
+> 
+> To achieve that I used a simple mount like this:
+> mount -t overlay overlay -o lowerdir=/,upperdir=/tmp/ov/upper,workdir=/tmp/ov/work /tmp/ov/virtual
+> 
+> In /tmp/ov/virtual/ I can see my main filesystem and I can make temporary
+> changes to it. Almost perfect!
+> 
+> The problem are mounts. I have some standard ones:
+> proc on /proc type proc (rw,nosuid,nodev,noexec,noatime)
+> sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,noatime)
+> tmpfs on /tmp type tmpfs (rw,nosuid,nodev,noatime)
+> 
+> They are not visible in my virtual root:
+> # ls -l /tmp/ov/proc/
+> # ls -l /tmp/ov/sys/
+> # ls -l /tmp/ov/tmp/
+> (all empty)
+> 
+> Would that be possible to make overlayfs follow such mounts in lowerdir?
 
-I'm trying to use overlay to create temporary virtual root filesystem.
-I need a copy of / with custom files on top of it.
+No, this doesn't work:
 
-To achieve that I used a simple mount like this:
-mount -t overlay overlay -o lowerdir=/,upperdir=/tmp/ov/upper,workdir=/tmp/ov/work /tmp/ov/virtual
+* overlayfs does clone mounts recursively
+* procfs can't be used as a lower layer
 
-In /tmp/ov/virtual/ I can see my main filesystem and I can make temporary
-changes to it. Almost perfect!
-
-The problem are mounts. I have some standard ones:
-proc on /proc type proc (rw,nosuid,nodev,noexec,noatime)
-sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,noatime)
-tmpfs on /tmp type tmpfs (rw,nosuid,nodev,noatime)
-
-They are not visible in my virtual root:
-# ls -l /tmp/ov/proc/
-# ls -l /tmp/ov/sys/
-# ls -l /tmp/ov/tmp/
-(all empty)
-
-Would that be possible to make overlayfs follow such mounts in lowerdir?
-
--- 
-Rafał
+So they would need to be bind-mounted on top of these locations.
