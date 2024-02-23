@@ -1,253 +1,166 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D3661864C;
-	Fri, 23 Feb 2024 09:04:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 48E9D13328D;
+	Fri, 23 Feb 2024 17:25:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708679085; cv=none; b=H5jJSWWwxC2jvbIcT//XP2HioOEV0VSPznUeV9bxlozmw1LyR3bs7PBqCbRZhLtTDvoy/Zs9l3dShuS9rL2a24bKdPYmeewbScx/j4JYSM1fLJZXMYyHMJoq9QbClzPDYHRhm2nvLA4Bf4ANaozh5GcduFW/XL+IIsrPnZS/vXA=
+	t=1708709145; cv=none; b=UOqQi6T3z8x1U8pl6uOPM7P+zNRPtdytCmPl4v9ezPwLIxMdFREfWrJn36uIJearXQ9xbH+1/vjHlTRIXU10G+ypKTMGia0c6PSPtWylo+8a405LsJwMXMN8G7TNWv6Eu7s1LwIOAiudt8I2CmFy6eFwLKg3Zmeeb7ns/sT4xJs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708679085; c=relaxed/simple;
-	bh=7kFRhHwFlVphxZTXGnqN85XzeoEezZvAaghzbI2ztG8=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=gn1YgCUIUesV+TSQYHWRRzFJACfYcBKyFRA4L8B8CydByPFb90Udm0MNXtYEo75vJLd+hh86VK3KFn+3RTVzJA/sL0cIS+Avqra7VadtQQ8V/ecxVKxi/S/TYZWrV9/I1uvZg7pRJHf5GSym6ZY2/JsPdJ2KCGJjArjC36uThus=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=GvCH4LoJ; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1708709145; c=relaxed/simple;
+	bh=2Oj97ZXigw3NHOTXGTBReko+Wf0oXKC+vAYS5vGoLXk=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=rPZl5iabC+jbiLX1EeAo3Q+BNU66D4RAGte5wdQI8PPjn/hSLmQbKh+Ks2WYigy23bvUUCKseIiGMnReewgETA7OSFVGnPCDFUpYHQpevNXRcXl+gsGhfjJ/DrqxsyGpZGiwtC9o95j6z+gg4ulSXIA8RWt+dqJe86t7c1J8kuA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=lSR6/RvC; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="GvCH4LoJ"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C152C433F1;
-	Fri, 23 Feb 2024 09:04:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1708679084;
-	bh=7kFRhHwFlVphxZTXGnqN85XzeoEezZvAaghzbI2ztG8=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=GvCH4LoJMMNaIT0igFhCk4k0LdsCvF1yK9NRBHwdsShWV4oHubDamxW9SXY8qzUad
-	 NeFnqfJCvolHAKGf3LvVgOdBLFmDx2lA3/gzvxQYThNEge7HWhRW5AotDuEvmoDE/p
-	 cgiKuublpFC+Tr4h7MBN8WdkLZBdyjJJgkeM+sXoBtf0jxIgaMeSYjJOFVgyVfz6c7
-	 V6bb/pIXGRES7bb2d4FADw9XsFf+NBL5ykf8euOtnDkn2A+unTIcyqTJ7+26szPImH
-	 1L/efaXcq/x/624shWTxOeVy44Rz4//9uzkzgt9m4/ROVeNU0J6FVvXRQ70GlCxYCi
-	 Bm81xRtbHq9NA==
-Date: Fri, 23 Feb 2024 10:04:37 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Cc: Serge Hallyn <serge@hallyn.com>, Paul Moore <paul@paul-moore.com>, 
-	Eric Paris <eparis@redhat.com>, James Morris <jmorris@namei.org>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
-	Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, 
-	Casey Schaufler <casey@schaufler-ca.com>, Mimi Zohar <zohar@linux.ibm.com>, 
-	Roberto Sassu <roberto.sassu@huawei.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, 
-	Eric Snowberg <eric.snowberg@oracle.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, 
-	Jonathan Corbet <corbet@lwn.net>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, audit@vger.kernel.org, selinux@vger.kernel.org, 
-	linux-integrity@vger.kernel.org, linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v2 20/25] ovl: add fscaps handlers
-Message-ID: <20240223-geldhahn-anklicken-e118fa7ad4c0@brauner>
-References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
- <20240221-idmap-fscap-refactor-v2-20-3039364623bd@kernel.org>
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="lSR6/RvC"
+Received: from pps.filterd (m0353726.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 41NH2EB6004028;
+	Fri, 23 Feb 2024 17:25:23 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : content-transfer-encoding : mime-version; s=pp1;
+ bh=qLG9uo7azn8Spvf85HB5malHh/LV592YawF4C3j0NAo=;
+ b=lSR6/RvCPjv41OWrHhyI8fovRxptx9Hb2doC9mJjxsYrGJHh6KIxCCZ30cCJ0bgFlP3i
+ nAr7RQ0N3co5gtWmDb3fIlarxUimSMznQvnWrSamwTizfdXW97AySX8NEy3vnRIa8Ly9
+ /vOnbmM2VOJzLf1PCngsFp2WqczqUNnBh75M7MuZ+bMjihA6hTUXWAA9NK3qBTHM+xUr
+ q4UQNQ+wnVMmapWQFyN1g3SiVPoABRUG8Cl0QHIUYTXZi7Dg68+1Sz+xStm74nB3lBFr
+ 5iEQcgiTauNIWeBfkgpXxeBkYL7+ctONHdAh6YFCu9YsTvHhgILZG4uslvf60LWZMAAH 0w== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3weydh8rb4-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 23 Feb 2024 17:25:22 +0000
+Received: from m0353726.ppops.net (m0353726.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 41NH4ATp015096;
+	Fri, 23 Feb 2024 17:25:22 GMT
+Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3weydh8rah-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 23 Feb 2024 17:25:22 +0000
+Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 41NGaelR013492;
+	Fri, 23 Feb 2024 17:25:20 GMT
+Received: from smtprelay03.wdc07v.mail.ibm.com ([172.16.1.70])
+	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3wb7h0y3t8-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Fri, 23 Feb 2024 17:25:20 +0000
+Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
+	by smtprelay03.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 41NHPHEc20447788
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Fri, 23 Feb 2024 17:25:19 GMT
+Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8C4C358065;
+	Fri, 23 Feb 2024 17:25:17 +0000 (GMT)
+Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 69C5758059;
+	Fri, 23 Feb 2024 17:25:16 +0000 (GMT)
+Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
+	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Fri, 23 Feb 2024 17:25:16 +0000 (GMT)
+From: Stefan Berger <stefanb@linux.ibm.com>
+To: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-unionfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, paul@paul-moore.com, jmorris@namei.org,
+        serge@hallyn.com, zohar@linux.ibm.com, roberto.sassu@huawei.com,
+        amir73il@gmail.com, brauner@kernel.org, miklos@szeredi.hu,
+        Stefan Berger <stefanb@linux.ibm.com>
+Subject: [PATCH v3 00/10] evm: Support signatures on stacked filesystem
+Date: Fri, 23 Feb 2024 12:25:03 -0500
+Message-ID: <20240223172513.4049959-1-stefanb@linux.ibm.com>
+X-Mailer: git-send-email 2.43.2
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: adz9_FKLO_7sPx0R--HnFWd-NzQ4TH3j
+X-Proofpoint-ORIG-GUID: jlhMdjhQt0MFenShZKzBd2iqDUXLrelO
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240221-idmap-fscap-refactor-v2-20-3039364623bd@kernel.org>
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2024-02-23_03,2024-02-23_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 mlxscore=0
+ impostorscore=0 spamscore=0 suspectscore=0 priorityscore=1501 bulkscore=0
+ adultscore=0 mlxlogscore=999 malwarescore=0 lowpriorityscore=0
+ clxscore=1011 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2311290000 definitions=main-2402230127
 
-On Wed, Feb 21, 2024 at 03:24:51PM -0600, Seth Forshee (DigitalOcean) wrote:
-> Add handlers which read fs caps from the lower or upper filesystem and
-> write/remove fs caps to the upper filesystem, performing copy-up as
-> necessary.
-> 
-> While fscaps only really make sense on regular files, the general policy
-> is to allow most xattr namespaces on all different inode types, so
-> fscaps handlers are installed in the inode operations for all types of
-> inodes.
-> 
-> Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
-> ---
->  fs/overlayfs/dir.c       |  2 ++
->  fs/overlayfs/inode.c     | 72 ++++++++++++++++++++++++++++++++++++++++++++++++
->  fs/overlayfs/overlayfs.h |  5 ++++
->  3 files changed, 79 insertions(+)
-> 
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index 0f8b4a719237..4ff360fe10c9 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -1307,6 +1307,8 @@ const struct inode_operations ovl_dir_inode_operations = {
->  	.get_inode_acl	= ovl_get_inode_acl,
->  	.get_acl	= ovl_get_acl,
->  	.set_acl	= ovl_set_acl,
-> +	.get_fscaps	= ovl_get_fscaps,
-> +	.set_fscaps	= ovl_set_fscaps,
->  	.update_time	= ovl_update_time,
->  	.fileattr_get	= ovl_fileattr_get,
->  	.fileattr_set	= ovl_fileattr_set,
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index c63b31a460be..7a8978ea6fe1 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -568,6 +568,72 @@ int ovl_set_acl(struct mnt_idmap *idmap, struct dentry *dentry,
->  }
->  #endif
->  
-> +int ovl_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
-> +		   struct vfs_caps *caps)
-> +{
-> +	int err;
-> +	const struct cred *old_cred;
-> +	struct path realpath;
-> +
-> +	ovl_path_real(dentry, &realpath);
-> +	old_cred = ovl_override_creds(dentry->d_sb);
-> +	err = vfs_get_fscaps(mnt_idmap(realpath.mnt), realpath.dentry, caps);
+EVM signature verification on stacked filesystem has recently been
+completely disabled by declaring some filesystems as unsupported
+(only overlayfs). This series now enables copy-up of "portable
+and immutable" signatures on those filesystems and enables the
+enforcement of "portable and immultable" as well as the "original"
+signatures on previously unsupported filesystem when evm is enabled
+with EVM_INIT_X509. HMAC verification and generation remains disabled.
 
-Right, vfs_get_fscaps() returns a struct vfs_caps which contains a
-vfs{g,u}id and has the lower/upper layer's idmap taken into account.
+"Portable and immutable" signatures can be copied up since they are
+not created over file-specific metadata, such as UUID or generation.
+Instead, they are only covering file metadata such as mode bits, uid, and
+gid, that will all be preserved during a copy-up of the file metadata.
 
-That confused me at first because vfs_get_acl() returns a struct
-posix_acl which contains k{g,u}id.
+This series is now based on the 'next' branch of Paul Moore's LSM tree and
+requires the following two commits from the vfs.misc branch of the vfs git
+repo at https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
 
-Reading through this made me realize that we need a few more words about
-the translations. The reason is that we do distinct things for POSIX
-ACLs and for fscaps. For POSIX ACLs when we call vfs_get_acl() what we
-get is a struct posix_acl which contains k{g,u}id_t types. Because
-struct posix_acl is cached filesytems wide and thus shared among
-concurrent retrievers from different mounts with different idmappings.
-Which means that we can't put vfs{g,u}id_t types in there. Instead we
-perform translations on the fly. We do that in the VFS during path
-lookup and we do that for overlayfs when it retrieves POSIX ACLs.
+commit 2109cc619e73 ("fs: remove the inode argument to ->d_real() method")
+commit c6c14f926fbe ("fs: make file_dentry() a simple accessor")
 
-However, for fscaps we seem to do it differently because they're not
-cached which is ok because they don't matter during path lookup as POSIX
-ACLs do. So performance here doesn't matter too much. But that means
-overall that the translations are quite distinct. And that gets
-confusing when we have a stacking filesystem in the mix where we have to
-take into account the privileges of the mounter of the overlayfs
-instance and the idmap of the lower/upper layer.
+Regards,
+   Stefan
 
-I only skimmed my old commit but I think that commit 0c5fd887d2bb ("acl: move
-idmapped mount fixup into vfs_{g,s}etxattr()") contains a detailed explanation
-of this as I see:
+v3:
+  - Rebased series on 'next' branch of Paul Moore's LSM tree
+  - Reworing of commit descriptions
+  - Reworked patches 5-7
 
-    > For POSIX ACLs we need to do something similar. However, in contrast to fscaps
-    > we cannot apply the fix directly to the kernel internal posix acl data
-    > structure as this would alter the cached values and would also require a rework
-    > of how we currently deal with POSIX ACLs in general which almost never take the
-    > filesystem idmapping into account (the noteable exception being FUSE but even
-    > there the implementation is special) and instead retrieve the raw values based
-    > on the initial idmapping.
+v2:
+  - Added patch to rename backing_inode to real_inode (1/9)
+  - Added patches renaming flag and function due to RSA enablement (7,8/9)
+  - Added patch to record i_version of real_inode for change detection
+    (9/9)
+  - Use Amir's function to get inode holding metadata now (4,5/9)
 
-Could you please add a diagram/explanation illustrating the translations for
-fscaps in the general case and for stacking filesystems? It doesn't really
-matter too much where you put it. Either add a section to
-Documentation/filesystems/porting.rst or add a section to
-Documentation/filesystems/idmapping.rst.
 
-> +	revert_creds(old_cred);
-> +	return err;
-> +}
-> +
-> +int ovl_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
-> +		   const struct vfs_caps *caps, int setxattr_flags)
-> +{
-> +	int err;
-> +	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
-> +	struct dentry *upperdentry = ovl_dentry_upper(dentry);
-> +	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
-> +	const struct cred *old_cred;
-> +
-> +	/*
-> +	 * If the fscaps are to be remove from a lower file, check that they
-> +	 * exist before copying up.
-> +	 */
-> +	if (!caps && !upperdentry) {
-> +		struct path realpath;
-> +		struct vfs_caps lower_caps;
-> +
-> +		ovl_path_lower(dentry, &realpath);
-> +		old_cred = ovl_override_creds(dentry->d_sb);
-> +		err = vfs_get_fscaps(mnt_idmap(realpath.mnt), realdentry,
-> +				     &lower_caps);
-> +		revert_creds(old_cred);
-> +		if (err)
-> +			goto out;
-> +	}
-> +
-> +	err = ovl_want_write(dentry);
-> +	if (err)
-> +		goto out;
-> +
-> +	err = ovl_copy_up(dentry);
-> +	if (err)
-> +		goto out_drop_write;
-> +	upperdentry = ovl_dentry_upper(dentry);
-> +
-> +	old_cred = ovl_override_creds(dentry->d_sb);
-> +	if (!caps)
-> +		err = vfs_remove_fscaps(ovl_upper_mnt_idmap(ofs), upperdentry);
-> +	else
-> +		err = vfs_set_fscaps(ovl_upper_mnt_idmap(ofs), upperdentry,
-> +				     caps, setxattr_flags);
-> +	revert_creds(old_cred);
-> +
-> +	/* copy c/mtime */
-> +	ovl_copyattr(d_inode(dentry));
-> +
-> +out_drop_write:
-> +	ovl_drop_write(dentry);
-> +out:
-> +	return err;
-> +}
-> +
->  int ovl_update_time(struct inode *inode, int flags)
->  {
->  	if (flags & S_ATIME) {
-> @@ -747,6 +813,8 @@ static const struct inode_operations ovl_file_inode_operations = {
->  	.get_inode_acl	= ovl_get_inode_acl,
->  	.get_acl	= ovl_get_acl,
->  	.set_acl	= ovl_set_acl,
-> +	.get_fscaps	= ovl_get_fscaps,
-> +	.set_fscaps	= ovl_set_fscaps,
->  	.update_time	= ovl_update_time,
->  	.fiemap		= ovl_fiemap,
->  	.fileattr_get	= ovl_fileattr_get,
-> @@ -758,6 +826,8 @@ static const struct inode_operations ovl_symlink_inode_operations = {
->  	.get_link	= ovl_get_link,
->  	.getattr	= ovl_getattr,
->  	.listxattr	= ovl_listxattr,
-> +	.get_fscaps	= ovl_get_fscaps,
-> +	.set_fscaps	= ovl_set_fscaps,
->  	.update_time	= ovl_update_time,
->  };
->  
-> @@ -769,6 +839,8 @@ static const struct inode_operations ovl_special_inode_operations = {
->  	.get_inode_acl	= ovl_get_inode_acl,
->  	.get_acl	= ovl_get_acl,
->  	.set_acl	= ovl_set_acl,
-> +	.get_fscaps	= ovl_get_fscaps,
-> +	.set_fscaps	= ovl_set_fscaps,
->  	.update_time	= ovl_update_time,
->  };
->  
-> diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-> index ee949f3e7c77..4f948749ee02 100644
-> --- a/fs/overlayfs/overlayfs.h
-> +++ b/fs/overlayfs/overlayfs.h
-> @@ -781,6 +781,11 @@ static inline struct posix_acl *ovl_get_acl_path(const struct path *path,
->  }
->  #endif
->  
-> +int ovl_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
-> +		   struct vfs_caps *caps);
-> +int ovl_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
-> +		   const struct vfs_caps *caps, int setxattr_flags);
-> +
->  int ovl_update_time(struct inode *inode, int flags);
->  bool ovl_is_private_xattr(struct super_block *sb, const char *name);
->  
-> 
-> -- 
-> 2.43.0
-> 
+Stefan Berger (10):
+  ima: Rename backing_inode to real_inode
+  security: allow finer granularity in permitting copy-up of security
+    xattrs
+  evm: Implement per signature type decision in
+    security_inode_copy_up_xattr
+  evm: Use the metadata inode to calculate metadata hash
+  ima: Move file-change detection variables into new structure
+  evm: Store and detect metadata inode attributes changes
+  ima: re-evaluate file integrity on file metadata change
+  evm: Enforce signatures on unsupported filesystem for EVM_INIT_X509
+  fs: Rename SB_I_EVM_UNSUPPORTED to SB_I_EVM_HMAC_UNSUPPORTED
+  evm: Rename is_unsupported_fs to is_unsupported_hmac_fs
+
+ fs/overlayfs/copy_up.c              |  2 +-
+ fs/overlayfs/super.c                |  2 +-
+ include/linux/evm.h                 |  8 +++
+ include/linux/fs.h                  |  2 +-
+ include/linux/integrity.h           | 34 +++++++++++
+ include/linux/lsm_hook_defs.h       |  3 +-
+ include/linux/security.h            |  4 +-
+ security/integrity/evm/evm.h        |  6 +-
+ security/integrity/evm/evm_crypto.c | 25 +++++---
+ security/integrity/evm/evm_main.c   | 92 +++++++++++++++++++++++------
+ security/integrity/ima/ima.h        |  4 +-
+ security/integrity/ima/ima_api.c    | 10 ++--
+ security/integrity/ima/ima_iint.c   |  2 +-
+ security/integrity/ima/ima_main.c   | 31 +++++++---
+ security/security.c                 |  5 +-
+ security/selinux/hooks.c            |  2 +-
+ security/smack/smack_lsm.c          |  2 +-
+ 17 files changed, 178 insertions(+), 56 deletions(-)
+
+
+base-commit: f89d47833d28f101fce65c7d08c00a4d6f28c1b1
+prerequisite-patch-id: c6c14f926fbe37330af6271d26f98e70d1a07372
+prerequisite-patch-id: 2109cc619e733c8709250b62d7f1d43461589f57
+-- 
+2.43.0
+
