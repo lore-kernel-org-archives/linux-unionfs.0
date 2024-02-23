@@ -1,64 +1,64 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C0EC133298;
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E183313341F;
 	Fri, 23 Feb 2024 17:25:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708709145; cv=none; b=mn1t3PYs7tiorl/aAwwGZXpdpqGP9cXdvGKF0w9g1R+IreWU94QzlEmm1PBxnS/Pfopm8hS9l/IXzMd5/WzSBUV5FuAEh9H7HZTZhqc/ooLcvo92YNXgFskgfZnGjYrCqoI8buW/QCeWVilBwoGeJAPYeiCcXCx9THfsq/ukFxU=
+	t=1708709145; cv=none; b=CUkzruZG66N3eLPVfBTHQgNQCvSnqkKAC9hAYoq60Fop9sZUtM9pKsYCqhHyP1QsDCyWU0LEt6EZFoTyf3gDyvd+hYDEyz3zK+CNVTT1mkJ/8jlEHEV5XZddaSwSnyqg6Tg97SHXbHWLceY/QLmrxlsRC6uxOoJ5ziGKah5hI5o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
 	s=arc-20240116; t=1708709145; c=relaxed/simple;
-	bh=kSLFV7xyi48KFJ8Rsbkur+uvzn+lPnb3q506OlHWcEA=;
+	bh=9mXQ1BGzBOlg5izS1nn4EJTQWXx67AxBDxrlxoLTRBY=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Ryhr/za06OD8piRpvYG0fxqLiORKVSpBJwnu7+RPlgqGjhKYubzGbP1383Kec0KzJzeLXCVDhF6yRN+eir/tk9a63CqyMzRWUZo2XkLOJ+ahcCLzCt8SVg6/wDJyaQeECPYYQKO1rfgceAChR7quNBc01nTjAkYRuKMQ+6K0Zm8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=KYYn/Y1w; arc=none smtp.client-ip=148.163.158.5
+	 MIME-Version; b=QJbiO8XRcHA70bb0Yw3hMt5d/YZHiBf3st76ujXCSPyAKcTHQk4nntnfzlJpT3iIR86IstmFsIaioc8bN+0cF8Pt7AmdT7EZgoM8aflwozUiIshp7nFVGUrUH9XoYDnXKFqKjnuJysohWG3uNhp0Vo5Cn+9HjAyWF+6DGKxlJ5I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=USP7ET2m; arc=none smtp.client-ip=148.163.156.1
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="KYYn/Y1w"
-Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 41NHHP82021805;
-	Fri, 23 Feb 2024 17:25:31 GMT
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="USP7ET2m"
+Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 41NHMLjp026927;
+	Fri, 23 Feb 2024 17:25:30 GMT
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
  : date : message-id : in-reply-to : references : mime-version :
  content-transfer-encoding; s=pp1;
- bh=HEvyJIBK+QBpF4DAvae6ALmzO3GZjqSd7hnalCftw4g=;
- b=KYYn/Y1wsEEeusaE1UCEIIA3sR0wjY07eVJbMVuBGrDrC1lAIINE5dSHXQ6BCJKNcTEd
- 0mItmennSDK7KxfxFarxI6TgeT9QNgNE905/ap12VmKr87G1+C5saE+VkC2i1c7Nx0xE
- bmYYekSeqM2HCpAeOW5zWwGafA3xvCMGhPE/IMvHvsNBfMQuX79GMEPDQF746UbXqxuN
- G0mlOZ98M514WrRrd+TkmJJVuW9Sm4lz+I5VO6aKdoybcF3QMC5ZFMs9jEfGrYT/bq9K
- VqGlLEXMlKjLFxS0DarTz+Mb6Slu6YV3fGnicZJTsSqh6ZNvdKQSAHCK71sT70zPdO7O 6w== 
+ bh=X/ePSxDdWpDwK8FN8vmj7V7eFK5aLdsPNvK8v5E61Ss=;
+ b=USP7ET2mXNJpj+HekwBv5k2R2oCZazlb/WFlKCATli6R5gkDOmIsNu5Y0OJgEHbDlc0Q
+ SiJdBpVWwZAK1VgjSboHCBg28o2b+3brm/pN/NNQkAp2VUNeC9NdUiz5/FXs7Snb23pE
+ GcXXStG52a5YKxaV8soX37PNUJlYySOgkVLu6ksu0gU1uhbh8nFRKGe9vJ4h97CinLS3
+ Gl414zNknPQfEkEfwM0O/jh37eVGMKX5batskbRC+RWaFd+n2qvv+S9Ml8z4SoHB9XE7
+ E2J39PDzyfWvm+id9+e8xOU6zFrEHWcvPQSpWP4RLm49eETk8v70D6SE8njdsAiNXgr3 vw== 
 Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3weymgg7ku-1
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3weypt83n8-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 23 Feb 2024 17:25:31 +0000
-Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 41NHID7X023435;
-	Fri, 23 Feb 2024 17:25:30 GMT
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3weymgg7k8-1
+	Fri, 23 Feb 2024 17:25:28 +0000
+Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 41NHNQIX030513;
+	Fri, 23 Feb 2024 17:25:27 GMT
+Received: from ppma12.dal12v.mail.ibm.com (dc.9e.1632.ip4.static.sl-reverse.com [50.22.158.220])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3weypt83mt-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 23 Feb 2024 17:25:30 +0000
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 41NG7eBu014416;
-	Fri, 23 Feb 2024 17:25:30 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 3wb9u36atn-1
+	Fri, 23 Feb 2024 17:25:27 +0000
+Received: from pps.filterd (ppma12.dal12v.mail.ibm.com [127.0.0.1])
+	by ppma12.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 41NFWGxf003611;
+	Fri, 23 Feb 2024 17:25:26 GMT
+Received: from smtprelay07.wdc07v.mail.ibm.com ([172.16.1.74])
+	by ppma12.dal12v.mail.ibm.com (PPS) with ESMTPS id 3wb74u756c-1
 	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 23 Feb 2024 17:25:30 +0000
+	Fri, 23 Feb 2024 17:25:26 +0000
 Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
-	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 41NHPQZU9241488
+	by smtprelay07.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 41NHPMY619661510
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 23 Feb 2024 17:25:29 GMT
+	Fri, 23 Feb 2024 17:25:24 GMT
 Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id BD35E58066;
-	Fri, 23 Feb 2024 17:25:26 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id C49A558043;
+	Fri, 23 Feb 2024 17:25:22 +0000 (GMT)
 Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9B8E158059;
-	Fri, 23 Feb 2024 17:25:25 +0000 (GMT)
+	by IMSVA (Postfix) with ESMTP id A17A358065;
+	Fri, 23 Feb 2024 17:25:21 +0000 (GMT)
 Received: from sbct-3.pok.ibm.com (unknown [9.47.158.153])
 	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 23 Feb 2024 17:25:25 +0000 (GMT)
+	Fri, 23 Feb 2024 17:25:21 +0000 (GMT)
 From: Stefan Berger <stefanb@linux.ibm.com>
 To: linux-integrity@vger.kernel.org, linux-security-module@vger.kernel.org,
         linux-unionfs@vger.kernel.org
@@ -66,9 +66,9 @@ Cc: linux-kernel@vger.kernel.org, paul@paul-moore.com, jmorris@namei.org,
         serge@hallyn.com, zohar@linux.ibm.com, roberto.sassu@huawei.com,
         amir73il@gmail.com, brauner@kernel.org, miklos@szeredi.hu,
         Stefan Berger <stefanb@linux.ibm.com>
-Subject: [PATCH v3 07/10] ima: re-evaluate file integrity on file metadata change
-Date: Fri, 23 Feb 2024 12:25:10 -0500
-Message-ID: <20240223172513.4049959-8-stefanb@linux.ibm.com>
+Subject: [PATCH v3 04/10] evm: Use the metadata inode to calculate metadata hash
+Date: Fri, 23 Feb 2024 12:25:07 -0500
+Message-ID: <20240223172513.4049959-5-stefanb@linux.ibm.com>
 X-Mailer: git-send-email 2.43.2
 In-Reply-To: <20240223172513.4049959-1-stefanb@linux.ibm.com>
 References: <20240223172513.4049959-1-stefanb@linux.ibm.com>
@@ -80,72 +80,49 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: BgIcHTriD_2Qpaakvseutw3_Hj9NklpK
-X-Proofpoint-GUID: y5XdLjV7a6dU1pN0kREb3005F3MWryIK
+X-Proofpoint-ORIG-GUID: eVejRUY03dMWT6j6oSFXNpdfhfPBnong
+X-Proofpoint-GUID: SBDFzDF_Bd6udu3A4D50GeG50jjpmPgQ
 X-Proofpoint-Virus-Version: vendor=baseguard
  engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
  definitions=2024-02-23_03,2024-02-23_01,2023-05-22_02
 X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1015
- lowpriorityscore=0 spamscore=0 impostorscore=0 malwarescore=0 adultscore=0
- phishscore=0 mlxlogscore=876 mlxscore=0 bulkscore=0 priorityscore=1501
+ priorityscore=1501 mlxscore=0 lowpriorityscore=0 adultscore=0 bulkscore=0
+ malwarescore=0 mlxlogscore=970 spamscore=0 impostorscore=0 phishscore=0
  suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
  engine=8.12.0-2311290000 definitions=main-2402230127
 
-Force a file's integrity to be re-evaluated on file metadata change by
-resetting both the IMA and EVM status flags.
+Changes to file attributes (mode bits, uid, gid) on the lower layer are
+not taken into account when d_backing_inode() is used when a file is
+accessed on the overlay layer and this file has not yet been copied up.
+This is because d_backing_inode() does not return the real inode of the
+lower layer but instead returns the backing inode which in this case
+holds wrong file attributes. Further, when CONFIG_OVERLAY_FS_METACOPY is
+enabled and a copy-up is triggered due to file metadata changes, then
+the metadata are held by the backing inode while the data are still held
+by the real inode. Therefore, use d_inode(d_real(dentry, D_REAL_METADATA))
+to get to the file's metadata inode and use it to calculate the metadata
+hash with.
 
 Co-developed-by: Mimi Zohar <zohar@linux.ibm.com>
 Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+Acked-by: Amir Goldstein <amir73il@gmail.com>
 ---
- security/integrity/ima/ima_main.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ security/integrity/evm/evm_crypto.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
-index c15378dd9456..36c92d6c01f6 100644
---- a/security/integrity/ima/ima_main.c
-+++ b/security/integrity/ima/ima_main.c
-@@ -26,6 +26,7 @@
- #include <linux/ima.h>
- #include <linux/fs.h>
- #include <linux/iversion.h>
-+#include <linux/evm.h>
- 
- #include "ima.h"
- 
-@@ -211,6 +212,7 @@ static int process_measurement(struct file *file, const struct cred *cred,
- 	struct inode *real_inode, *inode = file_inode(file);
- 	struct ima_iint_cache *iint = NULL;
- 	struct ima_template_desc *template_desc = NULL;
-+	struct inode *metadata_inode;
- 	char *pathbuf = NULL;
- 	char filename[NAME_MAX];
- 	const char *pathname = NULL;
-@@ -286,7 +288,8 @@ static int process_measurement(struct file *file, const struct cred *cred,
- 	}
- 
- 	/*
--	 * On stacked filesystems, detect and re-evaluate file data changes.
-+	 * On stacked filesystems, detect and re-evaluate file data and
-+	 * metadata changes.
- 	 */
- 	real_inode = d_real_inode(file_dentry(file));
- 	if (real_inode != inode &&
-@@ -297,6 +300,15 @@ static int process_measurement(struct file *file, const struct cred *cred,
- 			iint->flags &= ~IMA_DONE_MASK;
- 			iint->measured_pcrs = 0;
- 		}
-+
-+		/*
-+		 * Reset the EVM status when metadata changed.
-+		 */
-+		metadata_inode = d_inode(d_real(file_dentry(file),
-+					 D_REAL_METADATA));
-+		if (evm_metadata_changed(inode, metadata_inode))
-+			iint->flags &= ~(IMA_APPRAISED |
-+					 IMA_APPRAISED_SUBMASK);
- 	}
- 
- 	/* Determine if already appraised/measured based on bitmask
+diff --git a/security/integrity/evm/evm_crypto.c b/security/integrity/evm/evm_crypto.c
+index 7552d49d0725..35416f55391c 100644
+--- a/security/integrity/evm/evm_crypto.c
++++ b/security/integrity/evm/evm_crypto.c
+@@ -223,7 +223,7 @@ static int evm_calc_hmac_or_hash(struct dentry *dentry,
+ 				 size_t req_xattr_value_len,
+ 				 uint8_t type, struct evm_digest *data)
+ {
+-	struct inode *inode = d_backing_inode(dentry);
++	struct inode *inode = d_inode(d_real(dentry, D_REAL_METADATA));
+ 	struct xattr_list *xattr;
+ 	struct shash_desc *desc;
+ 	size_t xattr_size = 0;
 -- 
 2.43.0
 
