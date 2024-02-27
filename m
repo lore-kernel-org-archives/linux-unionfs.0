@@ -1,87 +1,243 @@
-Received: from out-182.mta0.migadu.com (out-182.mta0.migadu.com [91.218.175.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A6624692E3
-	for <linux-unionfs@vger.kernel.org>; Mon, 26 Feb 2024 08:57:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D1B0145320;
+	Tue, 27 Feb 2024 13:28:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1708937822; cv=none; b=dOiPcOz1ySpbdrDJEZjkBu6IOQRJGIHkDiSV7gHDQcgM8f9Wl/EOqTvdUOS2LMY0VxYWkXnzism4VXdnGs9gJQcSlxO19y8v/LqJMshwXcICYRoCX1viTLlVqmUTGawMKNQnDTysfiISss64DE6RHK/5RlJ0x8nXn5Pbqv2M+dQ=
+	t=1709040514; cv=none; b=f4ja+QGoqSJj1lKCJzLieSsdgGR/diefmiTST77ICljb7gMlD9dv1ro2CqfR9FmaswTneEVqXimVbEJUqMVhDCW8W37qjUjND1gqnhlV4KCe8fZGBj3nAM711qHG96/NG2DJLaT0k8QTuGnk5Di4QEG6StQwsg8HihJfAi3jyS8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1708937822; c=relaxed/simple;
-	bh=NCs7KXMkR73TyLq3zlhtWcjwVGo6xeuNfCRPfI4YKiI=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=r3k6jihx4F2YtWBQCjElF7rVnuDiu3sZmSglAX8ksAbYryP5ekPWWNKC0RV1igchCCZdVQMwSjkhw3YKcaG4rJLO/PHMFnotWpzW7tfgtJkgMPdcSHyB2ZF3VIVfoXAy6N6itv3lu8AEy8GyEq0onDlet5MXBSJGupeptPV6Hc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=hmvG7ZZb; arc=none smtp.client-ip=91.218.175.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1709040514; c=relaxed/simple;
+	bh=zru7ObNNKkQqccBKGdjO4JlNuuwVy5ujT0QSm0dUZfY=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=dOTITVbzkRWM3JQgmlgPldnVEEqlW3XUqz956DbjDsn2K91/Hyr0lmKWRTwM6KMJ7+l1gGdjoHt2b+jdZsldaqyrAWtND9+md0qh4yAF5SUBVDOVROxXF0AplSNTecDvN3Xe3szJrLZOlxUgob9fPJuDQc3hq0OCb6fT1pyxUK0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XqhMdDGw; arc=none smtp.client-ip=209.85.160.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="hmvG7ZZb"
-Message-ID: <622ec9c6-d914-44d9-a89b-6e8dfdfad508@linux.dev>
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1708937818;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=w1rS6GiWYWch2+xT07XfBXCU7RxHpePOv1woC2yZJzk=;
-	b=hmvG7ZZbJD8pRqMEePC7yPkYmmMYKeg+3EqSWY/pL2vT3TPXHfeRld4uxWkY2jzfDkBBIc
-	WH4vCU5XL4fgqjjoce6I7h0D9vjD1hyIpKnoxJptYXSyHEubled5/NjXyI7hskrqp8iNdt
-	tFyp478aONonhPKRY9JRVGXcnNQBlbA=
-Date: Mon, 26 Feb 2024 16:56:49 +0800
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XqhMdDGw"
+Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-42e7e8e7c09so5959381cf.1;
+        Tue, 27 Feb 2024 05:28:31 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709040510; x=1709645310; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=sA3eGpdy0V1trjnCYXdrUG6FXIcsye2wJjLbDY0NJk8=;
+        b=XqhMdDGwh8qeJuw5TKIfabet8iRADsTgCEWViON/4WPjJbZDOe8h/NDobRN1wZQdUq
+         +Y7p795dCNDcwH7f0F20HHz9SmOcJPcGiloAaUqbZ2Hxp8nambdOSG3nCaaXGEZETwrB
+         BzZr73CjF1LEqHiPG8Il17bfLxzO3Ab9D9YM5wGOHoa3AX3fLtdzwbjbCrYpqZhGVzU1
+         DeZRwm///ooTMDHZC8/LI4r6GRatsfmrie38CBmHmdEz2L4LyCg1RY29L4DsJsInepgZ
+         oZ+wPmdceobvJjfwxcWJCwWPM9e/fQdJZ034prVwjvLq0i+o3QoNI4+W8x/V5WrkwSnm
+         3Jaw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709040510; x=1709645310;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=sA3eGpdy0V1trjnCYXdrUG6FXIcsye2wJjLbDY0NJk8=;
+        b=Me92wfj+UPknIJtr4k6NmfkLZg/ELobuXnDuSoukYFoAqNVfNDAyseKByNVAKKBgip
+         mNEmRZH35KO8zrkEQHaIlnET+LCV9rcV3jsMy7+ubMGD6MWuKzz1kXUU0fmTj/sa+HMm
+         Sp3klKAhqd7CSLGqLhAZYlcYwh101oD2//oNZyKKvkkBIF6A6sAHDIpuXbI6gtPkFtNf
+         VYexkoiuTxQ1aoJ63GWhPKJe65BH6S4pmuowP9M9Dk9iXuFVqxD6UmvUx5GlLntpcfX7
+         ichoRmn9881T+/1XcWXDvELjxJYl9MeO5MUDvns09EAbEQPc05DW5nTY7QDpj2kb87jq
+         aSsA==
+X-Forwarded-Encrypted: i=1; AJvYcCXZXq/A7TYlBqpY2xdTxBE4F8CeMR22DaT/5m+y2blYiFoNwfSGKTeF9kkG2NTKJXQyme+7jm3pEpA/OS7kA2aivu/stKthYxT0G5qbRKFOkJBAXU42xWa0JcLHe628ta+/0jYl7/Zw4fQXOxfOrRMrQ6HOj/rfCdX2VDbrukacNQN/Q9lYkUeJF4Y5NgqTAUqTnDLHQDvZj0UDEIOkiGaLd2ouYu0ZaURUB/zu4REdSZntts+Crfr0Adb4Z8BfbdnL++teniDceORYkm9l+Z8E8PupZ90J4MZE68EoSZfJn5KgNttFfoLeU5MNcmq0zLf8sNlar5DD89zZSsw0OVVqKGqolTk1zxqXr32aPeTQ1P3vR9WrfA6i7o9cF8U=
+X-Gm-Message-State: AOJu0YwNr0XY4GJw0tMeZryvjZ2m5kGzO8U7ILUDtcAfI8IxU31VehxK
+	oVCTEUIBBmePyHxVO95rML3jOno09dMe0rTlq9tGGYs66ybiXjmezP1VV9j8KlR+PaYbSDSH34e
+	kiI1JSQ1q8zfD2MiEtFCHLWILWx0=
+X-Google-Smtp-Source: AGHT+IHd1fYGCovL5jMrwGyPD3t9BUZlBl4i58kM3c7T6/2cjncdv2UjHD2jwvbN+FNdJ7hm/vJBg7tdpkEc9efldco=
+X-Received: by 2002:ac8:5bd2:0:b0:42e:8a6b:5d00 with SMTP id
+ b18-20020ac85bd2000000b0042e8a6b5d00mr4856001qtb.26.1709040510180; Tue, 27
+ Feb 2024 05:28:30 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Subject: Re: [PATCH] overlayfs: remove SLAB_MEM_SPREAD flag usage
-Content-Language: en-US
-To: miklos@szeredi.hu, amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- vbabka@suse.cz, Xiongwei.Song@windriver.com
-References: <20240224135036.829942-1-chengming.zhou@linux.dev>
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Chengming Zhou <chengming.zhou@linux.dev>
-In-Reply-To: <20240224135036.829942-1-chengming.zhou@linux.dev>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-Migadu-Flow: FLOW_OUT
+References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org> <20240221-idmap-fscap-refactor-v2-20-3039364623bd@kernel.org>
+In-Reply-To: <20240221-idmap-fscap-refactor-v2-20-3039364623bd@kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 27 Feb 2024 15:28:18 +0200
+Message-ID: <CAOQ4uxjvrFuz2iCiO9dsOnear+qN=M+GFW-eEOZU5uCzBkTwLQ@mail.gmail.com>
+Subject: Re: [PATCH v2 20/25] ovl: add fscaps handlers
+To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, 
+	Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
+	James Morris <jmorris@namei.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, 
+	Casey Schaufler <casey@schaufler-ca.com>, Mimi Zohar <zohar@linux.ibm.com>, 
+	Roberto Sassu <roberto.sassu@huawei.com>, Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, 
+	Eric Snowberg <eric.snowberg@oracle.com>, "Matthew Wilcox (Oracle)" <willy@infradead.org>, 
+	Jonathan Corbet <corbet@lwn.net>, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-security-module@vger.kernel.org, 
+	audit@vger.kernel.org, selinux@vger.kernel.org, 
+	linux-integrity@vger.kernel.org, linux-doc@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On 2024/2/24 21:50, chengming.zhou@linux.dev wrote:
-> From: Chengming Zhou <zhouchengming@bytedance.com>
-> 
-> The SLAB_MEM_SPREAD flag is already a no-op as of 6.8-rc1, remove
-> its usage so we can delete it from slab. No functional change.
-
-Update changelog to make it clearer:
-
-The SLAB_MEM_SPREAD flag used to be implemented in SLAB, which was
-removed as of v6.8-rc1, so it became a dead flag since the commit
-16a1d968358a ("mm/slab: remove mm/slab.c and slab_def.h"). And the
-series[1] went on to mark it obsolete explicitly to avoid confusion
-for users. Here we can just remove all its users, which has no any
-functional change.
-
-[1] https://lore.kernel.org/all/20240223-slab-cleanup-flags-v2-1-02f1753e8303@suse.cz/
-
-Thanks!
-
-> 
-> Signed-off-by: Chengming Zhou <zhouchengming@bytedance.com>
+On Wed, Feb 21, 2024 at 11:25=E2=80=AFPM Seth Forshee (DigitalOcean)
+<sforshee@kernel.org> wrote:
+>
+> Add handlers which read fs caps from the lower or upper filesystem and
+> write/remove fs caps to the upper filesystem, performing copy-up as
+> necessary.
+>
+> While fscaps only really make sense on regular files, the general policy
+> is to allow most xattr namespaces on all different inode types, so
+> fscaps handlers are installed in the inode operations for all types of
+> inodes.
+>
+> Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 > ---
->  fs/overlayfs/super.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 36d4b8b1f784..a40fc7e05525 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -1503,7 +1503,7 @@ static int __init ovl_init(void)
->  	ovl_inode_cachep = kmem_cache_create("ovl_inode",
->  					     sizeof(struct ovl_inode), 0,
->  					     (SLAB_RECLAIM_ACCOUNT|
-> -					      SLAB_MEM_SPREAD|SLAB_ACCOUNT),
-> +					      SLAB_ACCOUNT),
->  					     ovl_inode_init_once);
->  	if (ovl_inode_cachep == NULL)
->  		return -ENOMEM;
+>  fs/overlayfs/dir.c       |  2 ++
+>  fs/overlayfs/inode.c     | 72 ++++++++++++++++++++++++++++++++++++++++++=
+++++++
+>  fs/overlayfs/overlayfs.h |  5 ++++
+>  3 files changed, 79 insertions(+)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 0f8b4a719237..4ff360fe10c9 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -1307,6 +1307,8 @@ const struct inode_operations ovl_dir_inode_operati=
+ons =3D {
+>         .get_inode_acl  =3D ovl_get_inode_acl,
+>         .get_acl        =3D ovl_get_acl,
+>         .set_acl        =3D ovl_set_acl,
+> +       .get_fscaps     =3D ovl_get_fscaps,
+> +       .set_fscaps     =3D ovl_set_fscaps,
+>         .update_time    =3D ovl_update_time,
+>         .fileattr_get   =3D ovl_fileattr_get,
+>         .fileattr_set   =3D ovl_fileattr_set,
+> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+> index c63b31a460be..7a8978ea6fe1 100644
+> --- a/fs/overlayfs/inode.c
+> +++ b/fs/overlayfs/inode.c
+> @@ -568,6 +568,72 @@ int ovl_set_acl(struct mnt_idmap *idmap, struct dent=
+ry *dentry,
+>  }
+>  #endif
+>
+> +int ovl_get_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+> +                  struct vfs_caps *caps)
+> +{
+> +       int err;
+> +       const struct cred *old_cred;
+> +       struct path realpath;
+> +
+> +       ovl_path_real(dentry, &realpath);
+> +       old_cred =3D ovl_override_creds(dentry->d_sb);
+> +       err =3D vfs_get_fscaps(mnt_idmap(realpath.mnt), realpath.dentry, =
+caps);
+> +       revert_creds(old_cred);
+> +       return err;
+> +}
+> +
+> +int ovl_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+> +                  const struct vfs_caps *caps, int setxattr_flags)
+> +{
+> +       int err;
+> +       struct ovl_fs *ofs =3D OVL_FS(dentry->d_sb);
+> +       struct dentry *upperdentry =3D ovl_dentry_upper(dentry);
+> +       struct dentry *realdentry =3D upperdentry ?: ovl_dentry_lower(den=
+try);
+> +       const struct cred *old_cred;
+> +
+> +       /*
+> +        * If the fscaps are to be remove from a lower file, check that t=
+hey
+> +        * exist before copying up.
+> +        */
+
+Don't you need to convert -ENODATA to 0 return value in this case?
+
+> +       if (!caps && !upperdentry) {
+> +               struct path realpath;
+> +               struct vfs_caps lower_caps;
+> +
+> +               ovl_path_lower(dentry, &realpath);
+> +               old_cred =3D ovl_override_creds(dentry->d_sb);
+> +               err =3D vfs_get_fscaps(mnt_idmap(realpath.mnt), realdentr=
+y,
+> +                                    &lower_caps);
+> +               revert_creds(old_cred);
+> +               if (err)
+> +                       goto out;
+> +       }
+> +
+> +       err =3D ovl_want_write(dentry);
+> +       if (err)
+> +               goto out;
+> +
+
+ovl_want_write() should after ovl_copy_up(), see:
+162d06444070 ("ovl: reorder ovl_want_write() after ovl_inode_lock()")
+
+
+> +       err =3D ovl_copy_up(dentry);
+> +       if (err)
+> +               goto out_drop_write;
+> +       upperdentry =3D ovl_dentry_upper(dentry);
+> +
+> +       old_cred =3D ovl_override_creds(dentry->d_sb);
+> +       if (!caps)
+> +               err =3D vfs_remove_fscaps(ovl_upper_mnt_idmap(ofs), upper=
+dentry);
+> +       else
+> +               err =3D vfs_set_fscaps(ovl_upper_mnt_idmap(ofs), upperden=
+try,
+> +                                    caps, setxattr_flags);
+> +       revert_creds(old_cred);
+> +
+> +       /* copy c/mtime */
+> +       ovl_copyattr(d_inode(dentry));
+> +
+> +out_drop_write:
+> +       ovl_drop_write(dentry);
+> +out:
+> +       return err;
+> +}
+> +
+>  int ovl_update_time(struct inode *inode, int flags)
+>  {
+>         if (flags & S_ATIME) {
+> @@ -747,6 +813,8 @@ static const struct inode_operations ovl_file_inode_o=
+perations =3D {
+>         .get_inode_acl  =3D ovl_get_inode_acl,
+>         .get_acl        =3D ovl_get_acl,
+>         .set_acl        =3D ovl_set_acl,
+> +       .get_fscaps     =3D ovl_get_fscaps,
+> +       .set_fscaps     =3D ovl_set_fscaps,
+>         .update_time    =3D ovl_update_time,
+>         .fiemap         =3D ovl_fiemap,
+>         .fileattr_get   =3D ovl_fileattr_get,
+> @@ -758,6 +826,8 @@ static const struct inode_operations ovl_symlink_inod=
+e_operations =3D {
+>         .get_link       =3D ovl_get_link,
+>         .getattr        =3D ovl_getattr,
+>         .listxattr      =3D ovl_listxattr,
+> +       .get_fscaps     =3D ovl_get_fscaps,
+> +       .set_fscaps     =3D ovl_set_fscaps,
+>         .update_time    =3D ovl_update_time,
+>  };
+>
+> @@ -769,6 +839,8 @@ static const struct inode_operations ovl_special_inod=
+e_operations =3D {
+>         .get_inode_acl  =3D ovl_get_inode_acl,
+>         .get_acl        =3D ovl_get_acl,
+>         .set_acl        =3D ovl_set_acl,
+> +       .get_fscaps     =3D ovl_get_fscaps,
+> +       .set_fscaps     =3D ovl_set_fscaps,
+>         .update_time    =3D ovl_update_time,
+>  };
+>
+
+
+Sorry, I did not understand the explanation why fscaps ops are needed
+for non regular files. It does not look right to me.
+
+Thanks,
+Amir.
