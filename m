@@ -1,108 +1,138 @@
-Received: from mail-oi1-f177.google.com (mail-oi1-f177.google.com [209.85.167.177])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AF0C713B2AC;
-	Tue, 27 Feb 2024 13:57:06 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75454145343;
+	Tue, 27 Feb 2024 14:57:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709042228; cv=none; b=gIYgS96WW/QfsA9n+qfpxTjeU37mIzLw5pqT3nN9S8+yzhgBdFPEpeCvrH3JEOs1LkZ/Z7EipLdt5WVoBMiQHtqgZsg2dLien1djWBmWd5hXL4elaC+fYELSV/DfLFKQpWlfDW+x8WS6/8u3pritDDikdoZ+0yU2+ZckPzoHfqM=
+	t=1709045872; cv=none; b=QrcgrKWhHO/FCgxbhaFyJXx2XewJv/JaA0FIEJNawqYimE5M6YwwpUCSLDI5tEo0wUM3u8iZMsxeepepVDKM5cL8iAIE2g59IK2FaRObYnPSv2F3hIJ9P6TCVq8XbScvDg8B2tou3UaKGsWmBqtM+Ix7ejxusJBg9IBX4SCwbfs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709042228; c=relaxed/simple;
-	bh=+RjOUgYjKnIUtG2s2YFwgRBlRVOcgqfyXjAz4yz0ezM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=dSNoejTTpRWndqijMEO3m0ymJflGcQ3E74xNdg+yQT0UpXNtHE4NXaFoa8aYoKgDQMY9VFkoNLXqL3kBMiu3Ne2RcvjAH5GRMIFHuHuxB3dhxUI/7EcTKa+8FJ9h6yXPB94RXH7VHkTV+sgNyyZKNoWG7hC7GIhYjZJyOO2iTUY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a/yGgRYl; arc=none smtp.client-ip=209.85.167.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1709045872; c=relaxed/simple;
+	bh=wmEclif75z08Y7k+kYIcq9r8njHDzniHYzsVWuX5qXc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=nvcEbAN/CYonehRsQzbHPhoEnmFJbVdD71rxtQpTCDz1+LJmal3gxNKQUcW772uVU+78sxbhiBDrvW4ovnhLIqIMUnLFZGCk4nJJzSYjMT4FSeuSoLRY8RTDC/vP7liQk2qd9l1+9nNXNvwzEMLmC4CHOTFaYeGwwn4ci4ruHxM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=tsXgDuZq; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a/yGgRYl"
-Received: by mail-oi1-f177.google.com with SMTP id 5614622812f47-3c0485fc8b8so2825730b6e.3;
-        Tue, 27 Feb 2024 05:57:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709042225; x=1709647025; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=uMYVBRfhTAHbrURmbpLRn/22okr8t995Gn/qPB8STJ0=;
-        b=a/yGgRYl+aG1k0A0shrJNheYkygB4BVoF7JArVxNDDqrii5Yy0V1iqmbpxJqcLt51Z
-         cjZCbx9MBIYRKSGq5tWAXAdEbbaSpWOlZwr93+87CxOqPYFRLfwvAzIhHhNX6sxGzjBU
-         PnFyMkoIAOO0rsTpNa2Ci7OlCCqShvKTiQK1nW7hYMzH2B/EBXpl3EeUP4aSIoZBmI7S
-         HPVJdYOm6/aWMRVzvs9E0KJEGuzbedJcPeJIJwqOTyQsmiM+v1BGIQqZPBGij29XFM2C
-         zn4NX/PpPhgV5tKxBHVilnS+VqxyrQvgEZzwIa0E136+c5NGrcWkEwdmrKc+opKKGraP
-         LExg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709042225; x=1709647025;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=uMYVBRfhTAHbrURmbpLRn/22okr8t995Gn/qPB8STJ0=;
-        b=NBJoSD3NYH3tS9w/ce3BcLJS0c4vJuCHYPjiKF3LbXx9uFZ4CULi5up3prVY8utaiK
-         pjp3cVt2MREragyiM9q1ZgcLGeLlWLx3hZk/guu5LSmGFyAfESez6jgHrksk+SHPp4q9
-         jdvlogZj8CHuK83VdDNMJGWJlXU7QLvuP4qP9taKrF2ulIzZucSI1IXixhb6ps11v0CY
-         c7SmBybGc+Il6I8aoDM6gCING6e8oAtqbBaZRZLo7OYhUkiNUuCvJGOYI1TkZkpvvzPf
-         Fvy2jacz2WDuuLNa0aW3PzYsHVXPU+dNfRsZvYEgc+9EyAW4tRny2uaEHdIOkb/Z+sAk
-         A6OA==
-X-Forwarded-Encrypted: i=1; AJvYcCW7S1j/iw2ziUUJa9HYp8DJ7bVh7l4NJr7S6GIYDBsIqQUaIXgGVHspyLzGzJa3353CLAAnmBXTso3N9WtLwH0esOMCKecabOaxyvdubkCmjVDtC0ORBR2KKHMOEzFg2LbsrCFvEIB4IGLz3Q==
-X-Gm-Message-State: AOJu0Yz+2Og17QdvvJ1aNCcTSITrHC2H1wIqr5cVurg8khPrEYl2FHhP
-	mKE0kr2vG/g9bJyb7FtZiL64+X/Oytwd2jNi+uvDarQJOjOcaATfq0fHNih4E6XSq1jJcD1wuKc
-	mbMbQvbccx3TY6ycM7VQepYCp7tZqqJyfZYk=
-X-Google-Smtp-Source: AGHT+IHtPpA9qAPloqzzNWI0I87XEJ/ewCp6S0DGuTOBZYBkIpeJvopoik092bzY2yvlS43fu3orpQxnxCYVwCBk1os=
-X-Received: by 2002:a05:6808:1889:b0:3c1:b09b:40aa with SMTP id
- bi9-20020a056808188900b003c1b09b40aamr1133771oib.6.1709042224626; Tue, 27 Feb
- 2024 05:57:04 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="tsXgDuZq"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BB6BC433F1;
+	Tue, 27 Feb 2024 14:57:52 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1709045872;
+	bh=wmEclif75z08Y7k+kYIcq9r8njHDzniHYzsVWuX5qXc=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=tsXgDuZqZaxkgTGkVT4vgZZkifzs/XhauPG/Z8VblgKg3JYBuzgPCH2sN/AOfYAsz
+	 Cizp02wJoy2Js13JQt0E+Zl0HHvCGA3oZPWP9ioF8VBtoICsQTFvdJzNjP0YHkL+jx
+	 ZIEk0/YHOPTJNdkd9MEZU1P/jrlu9PFKFSfTKXyWBhplucxucznwgrqof5c5iGRM/2
+	 tUKDL8CJyGhfVnM/DYhRi1QnqmdGaigiZHrlvcPEAFN5h7QksWvunvY47bRRJDFmc2
+	 IfgbTjgpxKGsD+8Gs+Bdb72wnC6/I2S3F3cVc+DfaWBszVKJLxEdYDxu+6MSCu1WCQ
+	 xKCvkJWQbWn0Q==
+Date: Tue, 27 Feb 2024 08:57:51 -0600
+From: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>,
+	Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>,
+	James Morris <jmorris@namei.org>,
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>,
+	Stephen Smalley <stephen.smalley.work@gmail.com>,
+	Ondrej Mosnacek <omosnace@redhat.com>,
+	Casey Schaufler <casey@schaufler-ca.com>,
+	Mimi Zohar <zohar@linux.ibm.com>,
+	Roberto Sassu <roberto.sassu@huawei.com>,
+	Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
+	Eric Snowberg <eric.snowberg@oracle.com>,
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-security-module@vger.kernel.org, audit@vger.kernel.org,
+	selinux@vger.kernel.org, linux-integrity@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v2 20/25] ovl: add fscaps handlers
+Message-ID: <Zd34b4Lw9hOHJYr2@do-x1extreme>
+References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
+ <20240221-idmap-fscap-refactor-v2-20-3039364623bd@kernel.org>
+ <CAOQ4uxjvrFuz2iCiO9dsOnear+qN=M+GFW-eEOZU5uCzBkTwLQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <202402260556.0rujs05e-lkp@intel.com>
-In-Reply-To: <202402260556.0rujs05e-lkp@intel.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 27 Feb 2024 15:56:53 +0200
-Message-ID: <CAOQ4uxj-PaBHNjYYVAVc=an3BZTt-C9p9etWAmhZc1udU7PN5A@mail.gmail.com>
-Subject: Re: fs/overlayfs/copy_up.o: warning: objtool: ovl_copy_up_tmpfile()
- falls through to next function ovl_create_index.cold()
-To: kernel test robot <lkp@intel.com>
-Cc: oe-kbuild-all@lists.linux.dev, linux-kernel@vger.kernel.org, 
-	overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxjvrFuz2iCiO9dsOnear+qN=M+GFW-eEOZU5uCzBkTwLQ@mail.gmail.com>
 
-On Sun, Feb 25, 2024 at 11:25=E2=80=AFPM kernel test robot <lkp@intel.com> =
-wrote:
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.gi=
-t master
-> head:   70ff1fe626a166dcaadb5a81bfe75e22c91f5dbf
-> commit: 5b02bfc1e7e3811c5bf7f0fa626a0694d0dbbd77 ovl: do not encode lower=
- fh with upper sb_writers held
-> date:   4 months ago
-> config: x86_64-buildonly-randconfig-r001-20230616 (https://download.01.or=
-g/0day-ci/archive/20240226/202402260556.0rujs05e-lkp@intel.com/config)
-> compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
-> reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/archi=
-ve/20240226/202402260556.0rujs05e-lkp@intel.com/reproduce)
->
-> If you fix the issue in a separate patch/commit (i.e. not just a new vers=
-ion of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202402260556.0rujs05e-lkp=
-@intel.com/
->
-> All warnings (new ones prefixed by >>):
->
-> >> fs/overlayfs/copy_up.o: warning: objtool: ovl_copy_up_tmpfile() falls =
-through to next function ovl_create_index.cold()
->
+On Tue, Feb 27, 2024 at 03:28:18PM +0200, Amir Goldstein wrote:
+> > +int ovl_set_fscaps(struct mnt_idmap *idmap, struct dentry *dentry,
+> > +                  const struct vfs_caps *caps, int setxattr_flags)
+> > +{
+> > +       int err;
+> > +       struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+> > +       struct dentry *upperdentry = ovl_dentry_upper(dentry);
+> > +       struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
+> > +       const struct cred *old_cred;
+> > +
+> > +       /*
+> > +        * If the fscaps are to be remove from a lower file, check that they
+> > +        * exist before copying up.
+> > +        */
+> 
+> Don't you need to convert -ENODATA to 0 return value in this case?
 
-I have no idea what this is about.
-Does not seem related to the regressing commit.
-This:
-https://lore.kernel.org/lkml/caa4ec6c687931db805e692d4e4bf06cd87d33e6.14607=
-29697.git.jpoimboe@redhat.com/
-suggest that it might be a compiler bug?
+Do you mean that trying to remove an xattr that does not exist should
+return 0? Standard behavior is to return -ENODATA in this situation.
 
-Thanks,
-Amir.
+> 
+> > +       if (!caps && !upperdentry) {
+> > +               struct path realpath;
+> > +               struct vfs_caps lower_caps;
+> > +
+> > +               ovl_path_lower(dentry, &realpath);
+> > +               old_cred = ovl_override_creds(dentry->d_sb);
+> > +               err = vfs_get_fscaps(mnt_idmap(realpath.mnt), realdentry,
+> > +                                    &lower_caps);
+> > +               revert_creds(old_cred);
+> > +               if (err)
+> > +                       goto out;
+> > +       }
+> > +
+> > +       err = ovl_want_write(dentry);
+> > +       if (err)
+> > +               goto out;
+> > +
+> 
+> ovl_want_write() should after ovl_copy_up(), see:
+> 162d06444070 ("ovl: reorder ovl_want_write() after ovl_inode_lock()")
+
+Fixed.
+
+> > @@ -758,6 +826,8 @@ static const struct inode_operations ovl_symlink_inode_operations = {
+> >         .get_link       = ovl_get_link,
+> >         .getattr        = ovl_getattr,
+> >         .listxattr      = ovl_listxattr,
+> > +       .get_fscaps     = ovl_get_fscaps,
+> > +       .set_fscaps     = ovl_set_fscaps,
+> >         .update_time    = ovl_update_time,
+> >  };
+> >
+> > @@ -769,6 +839,8 @@ static const struct inode_operations ovl_special_inode_operations = {
+> >         .get_inode_acl  = ovl_get_inode_acl,
+> >         .get_acl        = ovl_get_acl,
+> >         .set_acl        = ovl_set_acl,
+> > +       .get_fscaps     = ovl_get_fscaps,
+> > +       .set_fscaps     = ovl_set_fscaps,
+> >         .update_time    = ovl_update_time,
+> >  };
+> >
+> 
+> 
+> Sorry, I did not understand the explanation why fscaps ops are needed
+> for non regular files. It does not look right to me.
+
+The kernel does not forbid XATTR_NAME_CAPS for non-regular files and
+will internally even try to read them from non-regular files during
+killpriv checks. If we do not add handlers then we will end up using the
+normal ovl xattr handlers, which call vfs_*xattr(). These will return an
+error for fscaps xattrs after this series, which would be a change in
+behavior for overlayfs and make it behave differently from other
+filesystems.
