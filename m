@@ -1,31 +1,31 @@
-Received: from frasgout12.his.huawei.com (frasgout12.his.huawei.com [14.137.139.154])
+Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C1A3D70044;
-	Fri,  1 Mar 2024 15:59:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.154
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A7B713C0C;
+	Fri,  1 Mar 2024 16:31:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.23
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709308799; cv=none; b=pw067gSUKma0wrBzPHtb4MkklevLVHpzd/eUPM7bIM+9T/IbsWIgMYrnYbfQyl21tiSXvoGNKY4+qXT9OHAfTSyFltG8iDrWFjjVFHbtoE1YIi08z5ERQz693CobfSOT8Z8akxuISJoLGGyRHn8e/111l50bP5AxFaK2IH5Ngnw=
+	t=1709310691; cv=none; b=HwhHrurFVGXXDKOjgvg24pLZrFX8oZg1spLFpfL7IK8gAySMHodqVWysF5IPg9Fed5VBqN1Y3mljigXOg1Npvs1R21/Dsfk5HO1/SMeIIspFh/xuM32tIQoXAop2WVfDWKkitU0pSK2HEQQUT11IcwKkgKrgF5l9dYfPxVn8ylk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709308799; c=relaxed/simple;
-	bh=kDTvRc/rJJuZ/ZVMznCa0bNE9fhdVJ07LePSL3ijCaM=;
+	s=arc-20240116; t=1709310691; c=relaxed/simple;
+	bh=nWJgQGGG70LERlt+zA44EH111JyeJQ52BUWBclarei0=;
 	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=pQNjjRmEACJuZcSTbj3vxSEotkGBW4gC8JRhtjceWx2ET5IYyQpQdWry13gT/wi5u+zyGnESrU2O+D5+uHI/VdjhTf9S+ZAyEKQmyHGd3+BuDdfCYbX2EwoOPe6ILZz23dZ4ZJOtRj4immUaHt5qmNkTHPHulOCV4nZQlomFOA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.154
+	 Content-Type:MIME-Version; b=soHpOREqmSD726CNcmV1C9v8R8r/Nl6izqMMKLCLMjUroiMtSDuN1ps7FOW4Sf5lgUssxo/GtYm2E9Tzd82RCPoYr74gOYcrGY3JqMTndj12BTOPi1tl9RXzXg3O/cWOpQOcSYbhq00qP5tVKwXXVDfdERXoP9E5D7Pb96AQeno=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.23
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.18.186.29])
-	by frasgout12.his.huawei.com (SkyGuard) with ESMTP id 4TmXND29r2z9xGXC;
-	Fri,  1 Mar 2024 23:40:12 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.18.186.51])
+	by frasgout11.his.huawei.com (SkyGuard) with ESMTP id 4TmY9K4wPQz9ynTB;
+	Sat,  2 Mar 2024 00:15:49 +0800 (CST)
 Received: from mail02.huawei.com (unknown [7.182.16.27])
-	by mail.maildlp.com (Postfix) with ESMTP id 610721405A2;
-	Fri,  1 Mar 2024 23:59:37 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTP id 45C0D14059C;
+	Sat,  2 Mar 2024 00:31:16 +0800 (CST)
 Received: from [127.0.0.1] (unknown [10.204.63.22])
-	by APP2 (Coremail) with SMTP id GxC2BwAXBChY++Fl5Qt8Aw--.52748S2;
-	Fri, 01 Mar 2024 16:59:36 +0100 (CET)
-Message-ID: <c5b496e53dac2b4b5402cc5aa9a09178d63323b7.camel@huaweicloud.com>
-Subject: Re: [PATCH v2 11/25] security: add hooks for set/get/remove of
- fscaps
+	by APP2 (Coremail) with SMTP id GxC2BwCHcyfDAuJl3mZ8Aw--.52713S2;
+	Fri, 01 Mar 2024 17:31:15 +0100 (CET)
+Message-ID: <7633ab5d5359116a602cdc8f85afd2561047960e.camel@huaweicloud.com>
+Subject: Re: [PATCH v2 06/25] capability: provide helpers for converting
+ between xattrs and vfs_caps
 From: Roberto Sassu <roberto.sassu@huaweicloud.com>
 To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>, Christian Brauner
  <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>, Paul Moore
@@ -42,10 +42,10 @@ Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
 	linux-security-module@vger.kernel.org, audit@vger.kernel.org, 
 	selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
 	linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
-Date: Fri, 01 Mar 2024 16:59:16 +0100
-In-Reply-To: <20240221-idmap-fscap-refactor-v2-11-3039364623bd@kernel.org>
+Date: Fri, 01 Mar 2024 17:30:55 +0100
+In-Reply-To: <20240221-idmap-fscap-refactor-v2-6-3039364623bd@kernel.org>
 References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
-	 <20240221-idmap-fscap-refactor-v2-11-3039364623bd@kernel.org>
+	 <20240221-idmap-fscap-refactor-v2-6-3039364623bd@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 User-Agent: Evolution 3.44.4-0ubuntu2 
@@ -55,10 +55,10 @@ List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID:GxC2BwAXBChY++Fl5Qt8Aw--.52748S2
-X-Coremail-Antispam: 1UD129KBjvJXoW3Jw1fWw1DtF1DKF4xGw45Wrg_yoWxXFWfpF
-	4rt3ZxGw4SqFyagr18tF45u39a9FyfC3y7ArW2gwnIyFnrtr15KFsa9FyUCryfCrWUGr90
-	qFnIyrs8Cw13JrDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+X-CM-TRANSID:GxC2BwCHcyfDAuJl3mZ8Aw--.52713S2
+X-Coremail-Antispam: 1UD129KBjvJXoWfGrW8ZFW8ArW8tw1DurW7urg_yoWktFykpF
+	yfKr13KF4Iyryagr18Jw4jv34F9FyfAryxXry8C3sYy3Z5Kry2gr1Ik34rAryYkw4kGr18
+	Xa1qkFZ0kF9xAFDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
 	9KBjDU0xBIdaVrnRJUUUkFb4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
 	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
 	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
@@ -71,192 +71,351 @@ X-Coremail-Antispam: 1UD129KBjvJXoW3Jw1fWw1DtF1DKF4xGw45Wrg_yoWxXFWfpF
 	6xIIjxv20xvE14v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6x
 	AIw20EY4v20xvaj40_Wr1j6rW3Jr1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280
 	aVCY1x0267AKxVW8Jr0_Cr1UYxBIdaVFxhVjvjDU0xZFpf9x07UAkuxUUUUU=
-X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAgAJBF1jj5biNgABs9
+X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAQAJBF1jj5rjQwABsG
 
 On Wed, 2024-02-21 at 15:24 -0600, Seth Forshee (DigitalOcean) wrote:
-> In preparation for moving fscaps out of the xattr code paths, add new
-> security hooks. These hooks are largely needed because common kernel
-> code will pass around struct vfs_caps pointers, which EVM will need to
-> convert to raw xattr data for verification and updates of its hashes.
+> To pass around vfs_caps instead of raw xattr data we will need to
+> convert between the two representations near userspace and disk
+> boundaries. We already convert xattrs from disks to vfs_caps, so move
+> that code into a helper, and change get_vfs_caps_from_disk() to use the
+> helper.
+>=20
+> When converting vfs_caps to xattrs we have different considerations
+> depending on the destination of the xattr data. For xattrs which will be
+> written to disk we need to reject the xattr if the rootid does not map
+> into the filesystem's user namespace, whereas xattrs read by userspace
+> may need to undergo a conversion from v3 to v2 format when the rootid
+> does not map. So this helper is split into an internal and an external
+> interface. The internal interface does not return an error if the rootid
+> has no mapping in the target user namespace and will be used for
+> conversions targeting userspace. The external interface returns
+> EOVERFLOW if the rootid has no mapping and will be used for all other
+> conversions.
 >=20
 > Signed-off-by: Seth Forshee (DigitalOcean) <sforshee@kernel.org>
 > ---
->  include/linux/lsm_hook_defs.h |  7 +++++
->  include/linux/security.h      | 33 +++++++++++++++++++++
->  security/security.c           | 69 +++++++++++++++++++++++++++++++++++++=
-++++++
->  3 files changed, 109 insertions(+)
+>  include/linux/capability.h |  10 ++
+>  security/commoncap.c       | 228 +++++++++++++++++++++++++++++++++++----=
+------
+>  2 files changed, 187 insertions(+), 51 deletions(-)
 >=20
-> diff --git a/include/linux/lsm_hook_defs.h b/include/linux/lsm_hook_defs.=
-h
-> index 76458b6d53da..7b3c23f9e4a5 100644
-> --- a/include/linux/lsm_hook_defs.h
-> +++ b/include/linux/lsm_hook_defs.h
-> @@ -152,6 +152,13 @@ LSM_HOOK(int, 0, inode_get_acl, struct mnt_idmap *id=
-map,
->  	 struct dentry *dentry, const char *acl_name)
->  LSM_HOOK(int, 0, inode_remove_acl, struct mnt_idmap *idmap,
->  	 struct dentry *dentry, const char *acl_name)
-> +LSM_HOOK(int, 0, inode_set_fscaps, struct mnt_idmap *idmap,
-> +	 struct dentry *dentry, const struct vfs_caps *caps, int flags);
-> +LSM_HOOK(void, LSM_RET_VOID, inode_post_set_fscaps, struct mnt_idmap *id=
-map,
-> +	 struct dentry *dentry, const struct vfs_caps *caps, int flags);
-> +LSM_HOOK(int, 0, inode_get_fscaps, struct mnt_idmap *idmap, struct dentr=
-y *dentry);
-> +LSM_HOOK(int, 0, inode_remove_fscaps, struct mnt_idmap *idmap,
-> +	 struct dentry *dentry);
+> diff --git a/include/linux/capability.h b/include/linux/capability.h
+> index eb46d346bbbc..a0893ac4664b 100644
+> --- a/include/linux/capability.h
+> +++ b/include/linux/capability.h
+> @@ -209,6 +209,16 @@ static inline bool checkpoint_restore_ns_capable(str=
+uct user_namespace *ns)
+>  		ns_capable(ns, CAP_SYS_ADMIN);
+>  }
+> =20
+> +/* helpers to convert between xattr and in-kernel representations */
+> +int vfs_caps_from_xattr(struct mnt_idmap *idmap,
+> +			struct user_namespace *src_userns,
+> +			struct vfs_caps *vfs_caps,
+> +			const void *data, size_t size);
+> +ssize_t vfs_caps_to_xattr(struct mnt_idmap *idmap,
+> +			  struct user_namespace *dest_userns,
+> +			  const struct vfs_caps *vfs_caps,
+> +			  void *data, size_t size);
+> +
+>  /* audit system wants to get cap info from files as well */
+>  int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
+>  			   const struct dentry *dentry,
+> diff --git a/security/commoncap.c b/security/commoncap.c
+> index a0b5c9740759..7531c9634997 100644
+> --- a/security/commoncap.c
+> +++ b/security/commoncap.c
+> @@ -619,54 +619,41 @@ static inline int bprm_caps_from_vfs_caps(struct vf=
+s_caps *caps,
+>  }
+> =20
+>  /**
+> - * get_vfs_caps_from_disk - retrieve vfs caps from disk
+> + * vfs_caps_from_xattr - convert raw caps xattr data to vfs_caps
+>   *
+> - * @idmap:	idmap of the mount the inode was found from
+> - * @dentry:	dentry from which @inode is retrieved
+> - * @cpu_caps:	vfs capabilities
+> + * @idmap:      idmap of the mount the inode was found from
+> + * @src_userns: user namespace for ids in xattr data
+> + * @vfs_caps:   destination buffer for vfs_caps data
+> + * @data:       rax xattr caps data
+> + * @size:       size of xattr data
+>   *
+> - * Extract the on-exec-apply capability sets for an executable file.
+> + * Converts a raw security.capability xattr into the kernel-internal
+> + * capabilities format.
+>   *
+> - * If the inode has been found through an idmapped mount the idmap of
+> - * the vfsmount must be passed through @idmap. This function will then
+> - * take care to map the inode according to @idmap before checking
+> - * permissions. On non-idmapped mounts or if permission checking is to b=
+e
+> - * performed on the raw inode simply pass @nop_mnt_idmap.
+> + * If the xattr is being read or written through an idmapped mount the
+> + * idmap of the vfsmount must be passed through @idmap. This function
+> + * will then take care to map the rootid according to @idmap.
+> + *
+> + * Return: On success, return 0; on error, return < 0.
+>   */
+> -int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
+> -			   const struct dentry *dentry,
+> -			   struct vfs_caps *cpu_caps)
+> +int vfs_caps_from_xattr(struct mnt_idmap *idmap,
+> +			struct user_namespace *src_userns,
+> +			struct vfs_caps *vfs_caps,
+> +			const void *data, size_t size)
+>  {
+> -	struct inode *inode =3D d_backing_inode(dentry);
+>  	__u32 magic_etc;
+> -	int size;
+> -	struct vfs_ns_cap_data data, *nscaps =3D &data;
+> -	struct vfs_cap_data *caps =3D (struct vfs_cap_data *) &data;
+> +	const struct vfs_ns_cap_data *ns_caps =3D data;
+> +	struct vfs_cap_data *caps =3D (struct vfs_cap_data *)ns_caps;
+>  	kuid_t rootkuid;
+> -	vfsuid_t rootvfsuid;
+> -	struct user_namespace *fs_ns;
+> -
+> -	memset(cpu_caps, 0, sizeof(struct vfs_caps));
+> -
+> -	if (!inode)
+> -		return -ENODATA;
+> =20
+> -	fs_ns =3D inode->i_sb->s_user_ns;
+> -	size =3D __vfs_getxattr((struct dentry *)dentry, inode,
+> -			      XATTR_NAME_CAPS, &data, XATTR_CAPS_SZ);
+> -	if (size =3D=3D -ENODATA || size =3D=3D -EOPNOTSUPP)
+> -		/* no data, that's ok */
+> -		return -ENODATA;
+> -
+> -	if (size < 0)
+> -		return size;
+> +	memset(vfs_caps, 0, sizeof(*vfs_caps));
+> =20
+>  	if (size < sizeof(magic_etc))
+>  		return -EINVAL;
+> =20
+> -	cpu_caps->magic_etc =3D magic_etc =3D le32_to_cpu(caps->magic_etc);
+> +	vfs_caps->magic_etc =3D magic_etc =3D le32_to_cpu(caps->magic_etc);
+> =20
+> -	rootkuid =3D make_kuid(fs_ns, 0);
+> +	rootkuid =3D make_kuid(src_userns, 0);
+>  	switch (magic_etc & VFS_CAP_REVISION_MASK) {
+>  	case VFS_CAP_REVISION_1:
+>  		if (size !=3D XATTR_CAPS_SZ_1)
+> @@ -679,39 +666,178 @@ int get_vfs_caps_from_disk(struct mnt_idmap *idmap=
+,
+>  	case VFS_CAP_REVISION_3:
+>  		if (size !=3D XATTR_CAPS_SZ_3)
+>  			return -EINVAL;
+> -		rootkuid =3D make_kuid(fs_ns, le32_to_cpu(nscaps->rootid));
+> +		rootkuid =3D make_kuid(src_userns, le32_to_cpu(ns_caps->rootid));
+>  		break;
+> =20
+>  	default:
+>  		return -EINVAL;
+>  	}
+> =20
+> -	rootvfsuid =3D make_vfsuid(idmap, fs_ns, rootkuid);
+> -	if (!vfsuid_valid(rootvfsuid))
+> -		return -ENODATA;
+> +	vfs_caps->rootid =3D make_vfsuid(idmap, src_userns, rootkuid);
+> +	if (!vfsuid_valid(vfs_caps->rootid))
+> +		return -EOVERFLOW;
+> =20
+> -	/* Limit the caps to the mounter of the filesystem
+> -	 * or the more limited uid specified in the xattr.
+> +	vfs_caps->permitted.val =3D le32_to_cpu(caps->data[0].permitted);
+> +	vfs_caps->inheritable.val =3D le32_to_cpu(caps->data[0].inheritable);
+> +
+> +	/*
+> +	 * Rev1 had just a single 32-bit word, later expanded
+> +	 * to a second one for the high bits
+>  	 */
+> -	if (!rootid_owns_currentns(rootvfsuid))
+> -		return -ENODATA;
+> +	if ((magic_etc & VFS_CAP_REVISION_MASK) !=3D VFS_CAP_REVISION_1) {
+> +		vfs_caps->permitted.val +=3D (u64)le32_to_cpu(caps->data[1].permitted)=
+ << 32;
+> +		vfs_caps->inheritable.val +=3D (u64)le32_to_cpu(caps->data[1].inherita=
+ble) << 32;
+> +	}
+> +
+> +	vfs_caps->permitted.val &=3D CAP_VALID_MASK;
+> +	vfs_caps->inheritable.val &=3D CAP_VALID_MASK;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Inner implementation of vfs_caps_to_xattr() which does not return an
+> + * error if the rootid does not map into @dest_userns.
+> + */
+> +static ssize_t __vfs_caps_to_xattr(struct mnt_idmap *idmap,
+> +				   struct user_namespace *dest_userns,
+> +				   const struct vfs_caps *vfs_caps,
+> +				   void *data, size_t size)
+> +{
+> +	struct vfs_ns_cap_data *ns_caps =3D data;
+> +	struct vfs_cap_data *caps =3D (struct vfs_cap_data *)ns_caps;
+> +	kuid_t rootkuid;
+> +	uid_t rootid;
+> +
+> +	memset(ns_caps, 0, size);
 
-Uhm, there should not be semicolons here.
+size -> sizeof(*ns_caps) (or an equivalent change)
+
+I was zeroing more (the size of the buffer passed to vfs_getxattr()).
 
 Roberto
 
->  LSM_HOOK(int, 0, inode_need_killpriv, struct dentry *dentry)
->  LSM_HOOK(int, 0, inode_killpriv, struct mnt_idmap *idmap,
->  	 struct dentry *dentry)
-> diff --git a/include/linux/security.h b/include/linux/security.h
-> index d0eb20f90b26..40be548e5e12 100644
-> --- a/include/linux/security.h
-> +++ b/include/linux/security.h
-> @@ -378,6 +378,13 @@ int security_inode_getxattr(struct dentry *dentry, c=
-onst char *name);
->  int security_inode_listxattr(struct dentry *dentry);
->  int security_inode_removexattr(struct mnt_idmap *idmap,
->  			       struct dentry *dentry, const char *name);
-> +int security_inode_set_fscaps(struct mnt_idmap *idmap, struct dentry *de=
-ntry,
-> +			      const struct vfs_caps *caps, int flags);
-> +void security_inode_post_set_fscaps(struct mnt_idmap *idmap,
-> +				    struct dentry *dentry,
-> +				    const struct vfs_caps *caps, int flags);
-> +int security_inode_get_fscaps(struct mnt_idmap *idmap, struct dentry *de=
-ntry);
-> +int security_inode_remove_fscaps(struct mnt_idmap *idmap, struct dentry =
-*dentry);
->  int security_inode_need_killpriv(struct dentry *dentry);
->  int security_inode_killpriv(struct mnt_idmap *idmap, struct dentry *dent=
-ry);
->  int security_inode_getsecurity(struct mnt_idmap *idmap,
-> @@ -935,6 +942,32 @@ static inline int security_inode_removexattr(struct =
-mnt_idmap *idmap,
->  	return cap_inode_removexattr(idmap, dentry, name);
->  }
+> +
+> +	rootid =3D 0;
+> +	switch (vfs_caps->magic_etc & VFS_CAP_REVISION_MASK) {
+> +	case VFS_CAP_REVISION_1:
+> +		if (size < XATTR_CAPS_SZ_1)
+> +			return -EINVAL;
+> +		size =3D XATTR_CAPS_SZ_1;
+> +		break;
+> +	case VFS_CAP_REVISION_2:
+> +		if (size < XATTR_CAPS_SZ_2)
+> +			return -EINVAL;
+> +		size =3D XATTR_CAPS_SZ_2;
+> +		break;
+> +	case VFS_CAP_REVISION_3:
+> +		if (size < XATTR_CAPS_SZ_3)
+> +			return -EINVAL;
+> +		size =3D XATTR_CAPS_SZ_3;
+> +		rootkuid =3D from_vfsuid(idmap, dest_userns, vfs_caps->rootid);
+> +		rootid =3D from_kuid(dest_userns, rootkuid);
+> +		ns_caps->rootid =3D cpu_to_le32(rootid);
+> +		break;
 > =20
-> +static inline int security_inode_set_fscaps(struct mnt_idmap *idmap,
-> +					    struct dentry *dentry,
-> +					    const struct vfs_caps *caps,
-> +					    int flags)
-> +{
-> +	return 0;
-> +}
-> +static void security_inode_post_set_fscaps(struct mnt_idmap *idmap,
-> +					   struct dentry *dentry,
-> +					   const struct vfs_caps *caps,
-> +					   int flags)
-> +{
-> +}
+> -	cpu_caps->permitted.val =3D le32_to_cpu(caps->data[0].permitted);
+> -	cpu_caps->inheritable.val =3D le32_to_cpu(caps->data[0].inheritable);
+> +	default:
+> +		return -EINVAL;
+> +	}
 > +
-> +static int security_inode_get_fscaps(struct mnt_idmap *idmap,
-> +				     struct dentry *dentry)
-> +{
-> +	return 0;
-> +}
+> +	caps->magic_etc =3D cpu_to_le32(vfs_caps->magic_etc);
 > +
-> +static int security_inode_remove_fscaps(struct mnt_idmap *idmap,
-> +					struct dentry *dentry)
-> +{
-> +	return 0;
-> +}
-> +
->  static inline int security_inode_need_killpriv(struct dentry *dentry)
->  {
->  	return cap_inode_need_killpriv(dentry);
-> diff --git a/security/security.c b/security/security.c
-> index 3aaad75c9ce8..0d210da9862c 100644
-> --- a/security/security.c
-> +++ b/security/security.c
-> @@ -2351,6 +2351,75 @@ int security_inode_remove_acl(struct mnt_idmap *id=
-map,
->  	return evm_inode_remove_acl(idmap, dentry, acl_name);
->  }
+> +	caps->data[0].permitted =3D cpu_to_le32(lower_32_bits(vfs_caps->permitt=
+ed.val));
+> +	caps->data[0].inheritable =3D cpu_to_le32(lower_32_bits(vfs_caps->inher=
+itable.val));
 > =20
+>  	/*
+>  	 * Rev1 had just a single 32-bit word, later expanded
+>  	 * to a second one for the high bits
+>  	 */
+> -	if ((magic_etc & VFS_CAP_REVISION_MASK) !=3D VFS_CAP_REVISION_1) {
+> -		cpu_caps->permitted.val +=3D (u64)le32_to_cpu(caps->data[1].permitted)=
+ << 32;
+> -		cpu_caps->inheritable.val +=3D (u64)le32_to_cpu(caps->data[1].inherita=
+ble) << 32;
+> +	if ((vfs_caps->magic_etc & VFS_CAP_REVISION_MASK) !=3D VFS_CAP_REVISION=
+_1) {
+> +		caps->data[1].permitted =3D
+> +			cpu_to_le32(upper_32_bits(vfs_caps->permitted.val));
+> +		caps->data[1].inheritable =3D
+> +			cpu_to_le32(upper_32_bits(vfs_caps->inheritable.val));
+>  	}
+> =20
+> -	cpu_caps->permitted.val &=3D CAP_VALID_MASK;
+> -	cpu_caps->inheritable.val &=3D CAP_VALID_MASK;
+> +	return size;
+> +}
+> +
+> +
 > +/**
-> + * security_inode_set_fscaps() - Check if setting fscaps is allowed
-> + * @idmap: idmap of the mount
-> + * @dentry: file
-> + * @caps: fscaps to be written
-> + * @flags: flags for setxattr
+> + * vfs_caps_to_xattr - convert vfs_caps to raw caps xattr data
 > + *
-> + * Check permission before setting the file capabilities given in @vfs_c=
-aps.
+> + * @idmap:       idmap of the mount the inode was found from
+> + * @dest_userns: user namespace for ids in xattr data
+> + * @vfs_caps:    source vfs_caps data
+> + * @data:        destination buffer for rax xattr caps data
+> + * @size:        size of the @data buffer
 > + *
-> + * Return: Returns 0 if permission is granted.
+> + * Converts a kernel-internal capability into the raw security.capabilit=
+y
+> + * xattr format.
+> + *
+> + * If the xattr is being read or written through an idmapped mount the
+> + * idmap of the vfsmount must be passed through @idmap. This function
+> + * will then take care to map the rootid according to @idmap.
+> + *
+> + * Return: On success, return the size of the xattr data. On error,
+> + * return < 0.
 > + */
-> +int security_inode_set_fscaps(struct mnt_idmap *idmap, struct dentry *de=
-ntry,
-> +			      const struct vfs_caps *caps, int flags)
+> +ssize_t vfs_caps_to_xattr(struct mnt_idmap *idmap,
+> +			  struct user_namespace *dest_userns,
+> +			  const struct vfs_caps *vfs_caps,
+> +			  void *data, size_t size)
 > +{
-> +	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
-> +		return 0;
-> +	return call_int_hook(inode_set_fscaps, 0, idmap, dentry, caps, flags);
+> +	struct vfs_ns_cap_data *caps =3D data;
+> +	int ret;
+> +
+> +	ret =3D __vfs_caps_to_xattr(idmap, dest_userns, vfs_caps, data, size);
+> +	if (ret > 0 &&
+> +	    (vfs_caps->magic_etc & VFS_CAP_REVISION_MASK) =3D=3D VFS_CAP_REVISI=
+ON_3 &&
+> +	     le32_to_cpu(caps->rootid) =3D=3D (uid_t)-1)
+> +		return -EOVERFLOW;
+> +	return ret;
 > +}
 > +
 > +/**
-> + * security_inode_post_set_fscaps() - Update the inode after setting fsc=
-aps
-> + * @idmap: idmap of the mount
-> + * @dentry: file
-> + * @caps: fscaps to be written
-> + * @flags: flags for setxattr
+> + * get_vfs_caps_from_disk - retrieve vfs caps from disk
 > + *
-> + * Update inode security field after successfully setting fscaps.
+> + * @idmap:	idmap of the mount the inode was found from
+> + * @dentry:	dentry from which @inode is retrieved
+> + * @cpu_caps:	vfs capabilities
 > + *
+> + * Extract the on-exec-apply capability sets for an executable file.
+> + *
+> + * If the inode has been found through an idmapped mount the idmap of
+> + * the vfsmount must be passed through @idmap. This function will then
+> + * take care to map the inode according to @idmap before checking
+> + * permissions. On non-idmapped mounts or if permission checking is to b=
+e
+> + * performed on the raw inode simply pass @nop_mnt_idmap.
 > + */
-> +void security_inode_post_set_fscaps(struct mnt_idmap *idmap,
-> +				    struct dentry *dentry,
-> +				    const struct vfs_caps *caps, int flags)
+> +int get_vfs_caps_from_disk(struct mnt_idmap *idmap,
+> +			   const struct dentry *dentry,
+> +			   struct vfs_caps *cpu_caps)
 > +{
-> +	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
-> +		return;
-> +	call_void_hook(inode_post_set_fscaps, idmap, dentry, caps, flags);
-> +}
+> +	struct inode *inode =3D d_backing_inode(dentry);
+> +	int size, ret;
+> +	struct vfs_ns_cap_data data, *nscaps =3D &data;
 > +
-> +/**
-> + * security_inode_get_fscaps() - Check if reading fscaps is allowed
-> + * @dentry: file
-> + *
-> + * Check permission before getting fscaps.
-> + *
-> + * Return: Returns 0 if permission is granted.
-> + */
-> +int security_inode_get_fscaps(struct mnt_idmap *idmap, struct dentry *de=
-ntry)
-> +{
-> +	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
-> +		return 0;
-> +	return call_int_hook(inode_get_fscaps, 0, idmap, dentry);
-> +}
+> +	if (!inode)
+> +		return -ENODATA;
+> =20
+> -	cpu_caps->rootid =3D rootvfsuid;
+> +	size =3D __vfs_getxattr((struct dentry *)dentry, inode,
+> +			      XATTR_NAME_CAPS, &data, XATTR_CAPS_SZ);
+> +	if (size =3D=3D -ENODATA || size =3D=3D -EOPNOTSUPP)
+> +		/* no data, that's ok */
+> +		return -ENODATA;
 > +
-> +/**
-> + * security_inode_remove_fscaps() - Check if removing fscaps is allowed
-> + * @idmap: idmap of the mount
-> + * @dentry: file
-> + *
-> + * Check permission before removing fscaps.
-> + *
-> + * Return: Returns 0 if permission is granted.
-> + */
-> +int security_inode_remove_fscaps(struct mnt_idmap *idmap, struct dentry =
-*dentry)
-> +{
-> +	if (unlikely(IS_PRIVATE(d_backing_inode(dentry))))
-> +		return 0;
-> +	return call_int_hook(inode_remove_fscaps, 0, idmap, dentry);
-> +}
+> +	if (size < 0)
+> +		return size;
 > +
->  /**
->   * security_inode_post_setxattr() - Update the inode after a setxattr op=
-eration
->   * @dentry: file
+> +	ret =3D vfs_caps_from_xattr(idmap, inode->i_sb->s_user_ns,
+> +				  cpu_caps, nscaps, size);
+> +	if (ret =3D=3D -EOVERFLOW)
+> +		return -ENODATA;
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Limit the caps to the mounter of the filesystem
+> +	 * or the more limited uid specified in the xattr.
+> +	 */
+> +	if (!rootid_owns_currentns(cpu_caps->rootid))
+> +		return -ENODATA;
+> =20
+>  	return 0;
+>  }
 >=20
 
