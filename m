@@ -1,165 +1,190 @@
-Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E7EC3A8E3;
-	Fri,  1 Mar 2024 15:04:42 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.23
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9173E1F95F;
+	Fri,  1 Mar 2024 15:45:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709305484; cv=none; b=BLoij6TMLFgbmqEKDy9aK0Dz47jqORXmLxmTpoFab/73Jh3Ei6FJmsEqRkQtPQlGbYtxpHxtLyPjyXfU0TEJXGRHCnwTgUSIzzBaSIl05+AeMNbKCdYON/p03XC3VJ2OOHD7kt1vP82zdlun9ouAu1+yU2RPiNwtF3PP28F7daw=
+	t=1709307933; cv=none; b=Yy3XIOULdtrXttgSCHFVta9j/mBFPCkxV1ui3KrJR+clKkXqikWRC52uIMbVYZxoeSt/0WhOdywrNFqy8o8TqPUgO8hr+qqH+yhlPxcb1Ruc6p2rsbJVBarqldAnAigNUTKZbXe3Q+36/+jjrwqQQa8ZJRhLhTZ566TaRMyTUbc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709305484; c=relaxed/simple;
-	bh=CLfHGgV8g9ikDXr41EpApqiaZGI0K8iTSgXJt1K3S6Q=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=PIaPpuxN0nniTwyZEFoAaLJeGZXT5GUdAzRcE5cxQdMb9LUVtExx3OdN1wxuTQtD5yj6imY9/fazALaszKzmGRGnJJk9z3GTi8u+EuV+Whl90u3nSOULXPm/1FpdSUrFTLI+HJMJwg4dtCykAMWomrLCtgKQ5Hle6FjTYgTjYA0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.23
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.18.186.29])
-	by frasgout11.his.huawei.com (SkyGuard) with ESMTP id 4TmWF93hfZz9y4Sq;
-	Fri,  1 Mar 2024 22:49:01 +0800 (CST)
-Received: from mail02.huawei.com (unknown [7.182.16.27])
-	by mail.maildlp.com (Postfix) with ESMTP id B87D4140D09;
-	Fri,  1 Mar 2024 23:04:31 +0800 (CST)
-Received: from [127.0.0.1] (unknown [10.204.63.22])
-	by APP2 (Coremail) with SMTP id GxC2BwAH9Cdu7uFlW217Aw--.47273S2;
-	Fri, 01 Mar 2024 16:04:31 +0100 (CET)
-Message-ID: <f1b1b5a46fb07cd64e095bb4a224adbf2e6baab6.camel@huaweicloud.com>
-Subject: Re: [PATCH v2 14/25] evm: add support for fscaps security hooks
-From: Roberto Sassu <roberto.sassu@huaweicloud.com>
-To: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>
-Cc: Christian Brauner <brauner@kernel.org>, Serge Hallyn <serge@hallyn.com>,
-  Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, James
- Morris <jmorris@namei.org>,  Alexander Viro <viro@zeniv.linux.org.uk>, Jan
- Kara <jack@suse.cz>, Stephen Smalley <stephen.smalley.work@gmail.com>,
- Ondrej Mosnacek <omosnace@redhat.com>,  Casey Schaufler
- <casey@schaufler-ca.com>, Mimi Zohar <zohar@linux.ibm.com>, Roberto Sassu
- <roberto.sassu@huawei.com>,  Dmitry Kasatkin <dmitry.kasatkin@gmail.com>,
- Eric Snowberg <eric.snowberg@oracle.com>, "Matthew Wilcox (Oracle)"
- <willy@infradead.org>, Jonathan Corbet <corbet@lwn.net>, Miklos Szeredi
- <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
- linux-security-module@vger.kernel.org, audit@vger.kernel.org, 
- selinux@vger.kernel.org, linux-integrity@vger.kernel.org, 
- linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
-Date: Fri, 01 Mar 2024 16:04:11 +0100
-In-Reply-To: <ZeHotBrI0aYd2HeA@do-x1extreme>
-References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
-	 <20240221-idmap-fscap-refactor-v2-14-3039364623bd@kernel.org>
-	 <15a69385b49c4f8626f082bc9b957132388414fb.camel@huaweicloud.com>
-	 <ZeHotBrI0aYd2HeA@do-x1extreme>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.44.4-0ubuntu2 
+	s=arc-20240116; t=1709307933; c=relaxed/simple;
+	bh=o7seXpq2OKFR9HNWbVZim1h7r3YFzrCborTntN7Wyrw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=RmQ7LauIPWPi3qLZcfNc9t8y2tVNtEvn7kghduBErIeoM876FVdhLajNHJwnCGsoR3MBPTCp6V2tzRb9MYvI2pt/vmTbR2H+tixnyufi+xKg9DH3vf7eC4ECZJxHo7qqh1zG22+0l+fmgQLZj2b3xhWkP9j4+umobRd9TH/6d8g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=njA5yHoq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=sUUp3Ps2; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=njA5yHoq; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=sUUp3Ps2; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="njA5yHoq";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="sUUp3Ps2";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="njA5yHoq";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="sUUp3Ps2"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id A5AE720698;
+	Fri,  1 Mar 2024 15:45:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1709307929; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+1w0gLQ5VK0mzd/6Gme9HV9E0oLfgz10Sk8c+4u/9fI=;
+	b=njA5yHoquNHCJ3KR1Wq23s6kUsQtyU1QFyrFd3Lk8RYzgyxHERSWXOPf+jnoiRazQwsdrR
+	htA87yo8w8I+w/Fvf4KT8UMfXD8aOTbfnQZ0qchkNgPVmqkxip55K35R3w1p7Zqfq8K0Jz
+	Ab1neGMlPX9Fp9BgNNv99AJt/xCm154=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1709307929;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+1w0gLQ5VK0mzd/6Gme9HV9E0oLfgz10Sk8c+4u/9fI=;
+	b=sUUp3Ps2GZU1zYwoFZ/yaXFODL6PKMu+S32hSWxSMkF0Uitx/BPB0ZVISV/jxbB5kYW3AC
+	uvJ9f/hMRHUpeZBw==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1709307929; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+1w0gLQ5VK0mzd/6Gme9HV9E0oLfgz10Sk8c+4u/9fI=;
+	b=njA5yHoquNHCJ3KR1Wq23s6kUsQtyU1QFyrFd3Lk8RYzgyxHERSWXOPf+jnoiRazQwsdrR
+	htA87yo8w8I+w/Fvf4KT8UMfXD8aOTbfnQZ0qchkNgPVmqkxip55K35R3w1p7Zqfq8K0Jz
+	Ab1neGMlPX9Fp9BgNNv99AJt/xCm154=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1709307929;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=+1w0gLQ5VK0mzd/6Gme9HV9E0oLfgz10Sk8c+4u/9fI=;
+	b=sUUp3Ps2GZU1zYwoFZ/yaXFODL6PKMu+S32hSWxSMkF0Uitx/BPB0ZVISV/jxbB5kYW3AC
+	uvJ9f/hMRHUpeZBw==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id E566113A80;
+	Fri,  1 Mar 2024 15:45:28 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id D93DNBj44WWSAwAAD6G6ig
+	(envelope-from <lhenriques@suse.de>); Fri, 01 Mar 2024 15:45:28 +0000
+Received: from localhost (brahms.olymp [local])
+	by brahms.olymp (OpenSMTPD) with ESMTPA id a9503a18;
+	Fri, 1 Mar 2024 15:45:28 +0000 (UTC)
+From: Luis Henriques <lhenriques@suse.de>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Theodore Ts'o <tytso@mit.edu>,  Andreas Dilger
+ <adilger.kernel@dilger.ca>,  Alexander Viro <viro@zeniv.linux.org.uk>,
+  Jan Kara <jack@suse.cz>,  Miklos Szeredi <miklos@szeredi.hu>,  Amir
+ Goldstein <amir73il@gmail.com>,  linux-ext4@vger.kernel.org,
+  linux-fsdevel@vger.kernel.org,  linux-unionfs@vger.kernel.org,
+  linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/3] fs_parser: handle parameters that can be empty and
+ don't have a value
+In-Reply-To: <20240301-gegossen-seestern-683681ea75d1@brauner> (Christian
+	Brauner's message of "Fri, 1 Mar 2024 14:31:49 +0100")
+References: <20240229163011.16248-1-lhenriques@suse.de>
+	<20240229163011.16248-2-lhenriques@suse.de>
+	<20240301-gegossen-seestern-683681ea75d1@brauner>
+Date: Fri, 01 Mar 2024 15:45:27 +0000
+Message-ID: <87il269crs.fsf@suse.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID:GxC2BwAH9Cdu7uFlW217Aw--.47273S2
-X-Coremail-Antispam: 1UD129KBjvJXoWxZF18ZFykGFyDJw4rXr17Awb_yoW5uF1xpF
-	WfC3ZYkrn5Jry3Jr97A3yDX3WF93yrJrW7Kr95X34kua4DCF1fCrWxKFW5uFs3ZwnxGr1q
-	qw47tr1DGFsIv3DanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUkjb4IE77IF4wAFF20E14v26rWj6s0DM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Gr0_Cr1l84ACjcxK6I8E87Iv67AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIEc7CjxV
-	AFwI0_Gr0_Gr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
-	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
-	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1l42xK82IYc2Ij
-	64vIr41l4I8I3I0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x
-	8GjcxK67AKxVWUGVWUWwC2zVAF1VAY17CE14v26r4a6rW5MIIYrxkI7VAKI48JMIIF0xvE
-	2Ix0cI8IcVAFwI0_Jr0_JF4lIxAIcVC0I7IYx2IY6xkF7I0E14v26r4j6F4UMIIF0xvE42
-	xK8VAvwI8IcIk0rVWrZr1j6s0DMIIF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIE
-	c7CjxVAFwI0_Gr0_Gr1UYxBIdaVFxhVjvjDU0xZFpf9x07UAkuxUUUUU=
-X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAgAJBF1jj5bh2gABsS
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Authentication-Results: smtp-out2.suse.de;
+	none
+X-Spam-Level: 
+X-Spam-Score: -4.30
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	 ARC_NA(0.00)[];
+	 RCVD_VIA_SMTP_AUTH(0.00)[];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 MIME_GOOD(-0.10)[text/plain];
+	 NEURAL_HAM_LONG(-1.00)[-1.000];
+	 RCVD_COUNT_THREE(0.00)[4];
+	 DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	 NEURAL_HAM_SHORT(-0.20)[-1.000];
+	 RCPT_COUNT_SEVEN(0.00)[11];
+	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+];
+	 RCVD_TLS_LAST(0.00)[];
+	 FREEMAIL_CC(0.00)[mit.edu,dilger.ca,zeniv.linux.org.uk,suse.cz,szeredi.hu,gmail.com,vger.kernel.org];
+	 MID_RHS_MATCH_FROM(0.00)[];
+	 BAYES_HAM(-3.00)[100.00%]
+X-Spam-Flag: NO
 
-On Fri, 2024-03-01 at 08:39 -0600, Seth Forshee (DigitalOcean) wrote:
-> On Fri, Mar 01, 2024 at 10:19:13AM +0100, Roberto Sassu wrote:
-> > On Wed, 2024-02-21 at 15:24 -0600, Seth Forshee (DigitalOcean) wrote:
-> > > Support the new fscaps security hooks by converting the vfs_caps to r=
-aw
-> > > xattr data and then handling them the same as other xattrs.
-> >=20
-> > Hi Seth
-> >=20
-> > I started looking at this patch set.
-> >=20
-> > The first question I have is if you are also going to update libcap
-> > (and also tar, I guess), since both deal with the raw xattr.
->=20
-> There are no changes needed for userspace; it will still deal with raw
-> xattrs. As I mentioned in the cover letter, capabilities tests from
-> libcap2, libcap-ng, ltp, and xfstests all pass against this sereies.
-> That's with no modifications to userspace.
+Christian Brauner <brauner@kernel.org> writes:
 
-Yes, figured it out after applying the patch set. Then yes, IMA/EVM
-tests should work too.
+> On Thu, Feb 29, 2024 at 04:30:08PM +0000, Luis Henriques wrote:
+>> Currently, only parameters that have the fs_parameter_spec 'type' set to
+>> NULL are handled as 'flag' types.  However, parameters that have the
+>> 'fs_param_can_be_empty' flag set and their value is NULL should also be
+>> handled as 'flag' type, as their type is set to 'fs_value_is_flag'.
+>>=20
+>> Signed-off-by: Luis Henriques <lhenriques@suse.de>
+>> ---
+>>  fs/fs_parser.c | 3 ++-
+>>  1 file changed, 2 insertions(+), 1 deletion(-)
+>>=20
+>> diff --git a/fs/fs_parser.c b/fs/fs_parser.c
+>> index edb3712dcfa5..53f6cb98a3e0 100644
+>> --- a/fs/fs_parser.c
+>> +++ b/fs/fs_parser.c
+>> @@ -119,7 +119,8 @@ int __fs_parse(struct p_log *log,
+>>  	/* Try to turn the type we were given into the type desired by the
+>>  	 * parameter and give an error if we can't.
+>>  	 */
+>> -	if (is_flag(p)) {
+>> +	if (is_flag(p) ||
+>> +	    (!param->string && (p->flags & fs_param_can_be_empty))) {
+>>  		if (param->type !=3D fs_value_is_flag)
+>>  			return inval_plog(log, "Unexpected value for '%s'",
+>>  				      param->key);
+>
+> If the parameter was derived from FSCONFIG_SET_STRING in fsconfig() then
+> param->string is guaranteed to not be NULL. So really this is only
+> about:
+>
+> FSCONFIG_SET_FD
+> FSCONFIG_SET_BINARY
+> FSCONFIG_SET_PATH
+> FSCONFIG_SET_PATH_EMPTY
+>
+> and those values being used without a value. What filesystem does this?
+> I don't see any.
+>
+> The tempting thing to do here is to to just remove fs_param_can_be_empty
+> from every helper that isn't fs_param_is_string() until we actually have
+> a filesystem that wants to use any of the above as flags. Will lose a
+> lot of code that isn't currently used.
 
-> > From IMA/EVM perspective (Mimi will add on that), I guess it is
-> > important that files with a signature/HMAC continue to be accessible
-> > after applying this patch set.
-> >=20
-> > Looking at the code, it seems the case (if I understood correctly,
-> > vfs_getxattr_alloc() is still allowed).
->=20
-> So this is something that would change based on Christian's request to
-> stop using the xattr handlers entirely for fscaps as was done for acls.
-> I see how this would impact EVM, but we should be able to deal with it.
->=20
-> I am a little curious now about this code in evm_calc_hmac_or_hash():
->=20
-> 		size =3D vfs_getxattr_alloc(&nop_mnt_idmap, dentry, xattr->name,
-> 					  &xattr_value, xattr_size, GFP_NOFS);
-> 		if (size =3D=3D -ENOMEM) {
-> 			error =3D -ENOMEM;
-> 			goto out;
-> 		}
-> 		if (size < 0)
-> 			continue;
->=20
-> 		user_space_size =3D vfs_getxattr(&nop_mnt_idmap, dentry,
-> 					       xattr->name, NULL, 0);
-> 		if (user_space_size !=3D size)
-> 			pr_debug("file %s: xattr %s size mismatch (kernel: %d, user: %d)\n",
-> 				 dentry->d_name.name, xattr->name, size,
-> 				 user_space_size);
->=20
-> Because with the current fscaps code you actually could end up getting
-> different sizes from these two interfaces, as vfs_getxattr_alloc() reads
-> the xattr directly from disk but vfs_getxattr() goes through
-> cap_inode_getsecurity(), which may do conversion between v2 and v3
-> formats which are different sizes.
+Right, I find it quite confusing and I may be fixing the issue in the
+wrong place.  What I'm seeing with ext4 when I mount a filesystem using
+the option '-o usrjquota' is that fs_parse() will get:
 
-Yes, that was another source of confusion. It happened that
-security.selinux in the disk was without '\0', and the one from
-vfs_getxattr() had it (of course the HMAC wouldn't match).
+ * p->type is set to fs_param_is_string
+   ('p' is a struct fs_parameter_spec, ->type is a function)
+ * param->type is set to fs_value_is_flag
+   ('param' is a struct fs_parameter, ->type is an enum)
 
-So, basically, you set something in user space and you get something
-different.
+This is because ext4 will use the __fsparam macro to set define a
+fs_param_spec as a fs_param_is_string but will also set the
+fs_param_can_be_empty; and the fsconfig() syscall will get that parameter
+as a flag.  That's why param->string will be NULL in this case.
 
-Example:
-
-# setfattr -n security.selinux -v "unconfined_u:object_r:admin_home_t:s0" t=
-est-file
-
-SELinux active:
-# getfattr -m - -d -e hex test-file
-security.selinux=3D0x756e636f6e66696e65645f753a6f626a6563745f723a61646d696e=
-5f686f6d655f743a733000
-
-Smack active:
-# getfattr -m - -d -e hex test-file
-security.selinux=3D0x756e636f6e66696e65645f753a6f626a6563745f723a61646d696e=
-5f686f6d655f743a7330
-
-
-evmctl (will) allow to provide a hex xattr value for fscaps. That
-should be the one to be used (and vfs_getxattr_alloc() does that).
-However, I guess if the conversion happens, evmctl cannot correctly
-verify anymore the file, unless the same string is specified for
-verification (otherwise it reads the xattr through vfs_getxattr(),
-which would be different).
-
-Roberto
-
+Cheers,
+--=20
+Lu=C3=ADs
