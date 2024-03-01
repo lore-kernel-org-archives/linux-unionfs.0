@@ -1,43 +1,53 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A1C1F40BE2;
-	Fri,  1 Mar 2024 13:37:31 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 49333381DE;
+	Fri,  1 Mar 2024 13:39:31 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709300251; cv=none; b=San5p1Slr3WD7Va+MtH/tM3yR0K4w0zTbmvGfKRdkwNK021fQ38P6uXeDOT4SACWQwzBxvmELhS8nKTWBnBhFWQqSFW32mUYsUfuron/uNFLd6pkpv+DmlZBII1CFcrOPHtVoMTQdCl6NtSPOgmmEJ306nm+KqxvkBkJWJpmNxQ=
+	t=1709300371; cv=none; b=NDepxziwH9glH1JqBipUQzmemy7LvQ8sEhbzmoX7tvmBYOpJWqaTD0OsvBNLtUTn4SIJPeYFVr7oQg9ZqkM9XSG6CAzRldu6YyyFaPy7Vk+Tevl3xmiDX9ydaqKgP94om78oUaKmJ/XqVY7NKR0b5g5zAsJixD/Z1e9JWJZ5/DA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709300251; c=relaxed/simple;
-	bh=QG08rg0nOQvqkILqz7tYSRnoJ1btB5O9gNJcwb46kLE=;
+	s=arc-20240116; t=1709300371; c=relaxed/simple;
+	bh=200DnVfdBW01DT/X3+moyKLm3jYVD1mA8Rk9R6nnvy8=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=EmEU86Q8vU8iPk2Z/WOwGTDaJ3NX3Ar1PCtoa1zoju9gb7utujBNTm2VHrJW0IT7r1vset1ZmJICmaJCrNNJEARZ1H35v+orAISFiLLGGott73CyvwSS39aQ/zZzXL1F6a2R0atrqbipREJia5qZYv9/7mZ463whIGY+lF3emjU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=j+kxOS53; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=QxVTsNeAyUAatAjKzCJEbQv+lXdHuGmDqhzqch0aDiTlrHDUlVmzSo9/sLHQD3z4XRjhTuw5xk4Qy8YJqGK7svHU/NQouzSAp6JOuSu+RI+lcaRQPKW5FptR5BR58B+AjL+nf6fkUH39pM5TqqCFny6tMFsx1xGZpllOIdeL77A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=LmlsN0Af; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="j+kxOS53"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7C287C43390;
-	Fri,  1 Mar 2024 13:37:28 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="LmlsN0Af"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7827C433C7;
+	Fri,  1 Mar 2024 13:39:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1709300251;
-	bh=QG08rg0nOQvqkILqz7tYSRnoJ1btB5O9gNJcwb46kLE=;
+	s=k20201202; t=1709300371;
+	bh=200DnVfdBW01DT/X3+moyKLm3jYVD1mA8Rk9R6nnvy8=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=j+kxOS53MeWl4dNYvaQGX4EEkC0dApluEgkRG9uW94Celznuv0Dgkx8r7m7q2RjCg
-	 5GQYFxPWeZZ3dzTuRaNa//Kf8rCFf2GuAG5WFPEanVuDl/6/9BmI9fa2ug9j0Gqb49
-	 YC9n/mpNTGTUZ0z3JdGj99XlCdZnmEhdX+FkLPSJzoGQwLnpwm4AmrQBrAx+NMHsz2
-	 j6C62XCQEqt8/pRU2HUHwKW2D+FXqKTK53tdfPTx40zPpETxcd+TZssj5IyjSLKFgA
-	 YqacQkjIXIeP7WVppaX2MgTBcfRijMdqOMhXDalRG5HHdLS0MEtsI3xkwO7lqB2Lro
-	 GYDQJ6uK8No2g==
-Date: Fri, 1 Mar 2024 14:37:25 +0100
+	b=LmlsN0Afn3hqkExjN7Wyw+6uU+Dpkw1N5GNTe84u1nwEX8OeaUvMkmMNvrEZ2TmVC
+	 j0lcFtUkG0FmPkNWw2wmFAjH83SByHMprhRWazPBtPscr8gzzMkm+Psxu3yn0At+M8
+	 2nm9OOjvrm2E4B8jXOaYIj4ooZGeOqbJgeOq2p/gtpMP5/8l1PSOlSjPeUzxM/MbIu
+	 nGYgHnOjfgUprywtIpDeOSN6rCVEN/GWi6TvCO2yXQbDvIWM2qVDCfMZQZASfV9JV+
+	 4sDMCQmrBrgCcyxmb8DE50icAWVqKwKSa+A1qMkg1HMvMMq72jD1VdwIpkC4MhNoPr
+	 gfHvFPrOUsJ2w==
+Date: Fri, 1 Mar 2024 14:39:22 +0100
 From: Christian Brauner <brauner@kernel.org>
-To: Luis Henriques <lhenriques@suse.de>
-Cc: Theodore Ts'o <tytso@mit.edu>, 
-	Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Amir Goldstein <amir73il@gmail.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 3/3] overlay: fix mount parameters check for empty values
-Message-ID: <20240301-stehplatz-globus-0707fafe22fb@brauner>
-References: <20240229163011.16248-1-lhenriques@suse.de>
- <20240229163011.16248-4-lhenriques@suse.de>
+To: Roberto Sassu <roberto.sassu@huaweicloud.com>
+Cc: "Seth Forshee (DigitalOcean)" <sforshee@kernel.org>, 
+	Serge Hallyn <serge@hallyn.com>, Paul Moore <paul@paul-moore.com>, Eric Paris <eparis@redhat.com>, 
+	James Morris <jmorris@namei.org>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Jan Kara <jack@suse.cz>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Ondrej Mosnacek <omosnace@redhat.com>, Casey Schaufler <casey@schaufler-ca.com>, 
+	Mimi Zohar <zohar@linux.ibm.com>, Roberto Sassu <roberto.sassu@huawei.com>, 
+	Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Eric Snowberg <eric.snowberg@oracle.com>, 
+	"Matthew Wilcox (Oracle)" <willy@infradead.org>, Jonathan Corbet <corbet@lwn.net>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, audit@vger.kernel.org, selinux@vger.kernel.org, 
+	linux-integrity@vger.kernel.org, linux-doc@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v2 14/25] evm: add support for fscaps security hooks
+Message-ID: <20240301-sport-bekriegen-5b34fd5a014b@brauner>
+References: <20240221-idmap-fscap-refactor-v2-0-3039364623bd@kernel.org>
+ <20240221-idmap-fscap-refactor-v2-14-3039364623bd@kernel.org>
+ <15a69385b49c4f8626f082bc9b957132388414fb.camel@huaweicloud.com>
+ <20240301-zucht-umfeld-9a923a7d070a@brauner>
+ <e6f263b25061651e948a881d36bfdff17cfaf1b0.camel@huaweicloud.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -46,27 +56,13 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20240229163011.16248-4-lhenriques@suse.de>
+In-Reply-To: <e6f263b25061651e948a881d36bfdff17cfaf1b0.camel@huaweicloud.com>
 
-On Thu, Feb 29, 2024 at 04:30:10PM +0000, Luis Henriques wrote:
-> Now that parameters that have the flag 'fs_param_can_be_empty' set and
-> their value is NULL are handled as 'flag' type, we need to properly check
-> for empty (NULL) values.
-> 
-> Signed-off-by: Luis Henriques <lhenriques@suse.de>
-> ---
->  fs/overlayfs/params.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 112b4b12f825..09428af6abc5 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -441,7 +441,7 @@ static int ovl_parse_param_lowerdir(const char *name, struct fs_context *fc)
->  	/* drop all existing lower layers */
->  	ovl_reset_lowerdirs(ctx);
->  
-> -	if (!*name)
-> +	if (!name)
+> I have seen this policy of adding tests in other subsystems (eBPF),
 
-Same comment/qestion as on ext4 patch.
+It makes sense if the drive of the patchset would be IMA/EVM features
+not refactoring of existing code.
+
+> Happy to try adding the tests, would appreciate your help to review if
+
+Cool, happy to help review them.
