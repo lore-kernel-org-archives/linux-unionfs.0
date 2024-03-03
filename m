@@ -1,48 +1,98 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DDD72B9DC;
-	Sat,  2 Mar 2024 17:56:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9060C883C;
+	Sun,  3 Mar 2024 21:17:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709402218; cv=none; b=Lgxeur9KjDdy5ydRiuhY4ev33huSTs1jfWLunTMq8rOY5w9AAfbZE4mxtU4a5+S767DTGKbqItOz8v+QOR9hUGSA3kKbQO1FE4M1ezMKaa3EY8N3xNJlGbNe5m05uFd9/MMTTf6yUktny6U2BYr0CVPJK3driRY+abtdRC8qY0g=
+	t=1709500651; cv=none; b=V3SA/8sMtUXIBSbvoZIF8I8BpfzzmCJZxuGyhQiXYg788FLmM/W+A5NL6hOi7mkNtmIjOpKmF00aiojvNQRZjvpaqwxuOvcR4oY0NgFjUsq/IGoshrZu7DaFU2+iIYMglVrBd8eTU19Mc21etSphrM5DuBx5ZIFM8yMGAIAq+1I=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709402218; c=relaxed/simple;
-	bh=efKYKPI74pku34t18RPgkBg9wk+E2mY4YniXXUzA3sg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=jaBOg87ofyDSfICWVac0D5Ak0gBTK65aTMhxExRrL2FyUdCpEQp9G1PdvRDa2UhNZP3yxWefxid5EDLidTEsP3E4URl/SoSUt4LhiMahoXBZ/qbVaRMKfFGeg3Fpqz3rYd2sI/Nou9jHINMhmL9VFSsjK/cJngCG5RXhARu7EKQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=svPxXjRh; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1709500651; c=relaxed/simple;
+	bh=90rsFaUvU4p11hyAZn6SW109fs1X50un485uas0bB/0=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=FDaqfWqrvCzpzM/2HfhEp5bQmC5KJixyhor139sBQmkZtnl1EjyxPO/Nzyhi3rUOX3tDtgliddRihBl8GfORtZc0FfHvBQwC8Cjo1u3zEbi8xZ1L+VUFKSzHkBwieXE0hmyQrlZspWxzZOeb8aAwAtpTa/w3bPkiMceIm2oF2Xo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=T2U7VoZG; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ZxpMKeKP; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=T2U7VoZG; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=ZxpMKeKP; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="svPxXjRh"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE4A5C433C7;
-	Sat,  2 Mar 2024 17:56:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1709402217;
-	bh=efKYKPI74pku34t18RPgkBg9wk+E2mY4YniXXUzA3sg=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=svPxXjRhhd7PqmrQljRQeiPfVQIVoPY4UIzQ0T3ZYsegJ483PzjIVu98p5GRy1HJL
-	 OZbZvvsiwZkyhkKOIEbauYzxO30tFuPkl7vNf7g/ml8YL9Y8/C+5O4DgmZ27HYEDi8
-	 B7iE08u8cfHfJNElWfDPLprtopPCtdrlDFF7uDwsNkeSssrSXXiHp23u/9HJBzJZBT
-	 m8Uy0GxC/YZowpkhxDi9NB9pevjT5xs5H1x9UpEP0KIJ9qeVfdBNaFq0AlDbLqEAzy
-	 7XKx6T4jEttr9PVdUHwS+3HqJyYq7CMZYVe6C+rdIDAEyAnZpoI2KBzoS+i5CICCKF
-	 hbR2mZtXKymoA==
-Date: Sat, 2 Mar 2024 18:56:51 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Luis Henriques <lhenriques@suse.de>, 
-	Eric Sandeen <sandeen@sandeen.net>
-Cc: Theodore Ts'o <tytso@mit.edu>, 
-	Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Amir Goldstein <amir73il@gmail.com>, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="T2U7VoZG";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ZxpMKeKP";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="T2U7VoZG";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="ZxpMKeKP"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id AFBBA3FA31;
+	Sun,  3 Mar 2024 21:17:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1709500647; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=U3oZ+8HS/j/n7WwUT7zGmsgBnZucInUNE/8oUtbL/mI=;
+	b=T2U7VoZGiiQ5oRx6kPy9k//N8iETyGYUIJ6IhyUHF+x6mBQlbeb50cUbG8mCy2uvke4jhZ
+	ku0mqIGHYMj/I6rmkqcynWu0xoHMJ2o1qS/ljTBHPBuPIQHgbU49zUQZQjKouLAWsZaPso
+	q7QDoY6Za6DaIWbIvWHHLK3N6JJS5ng=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1709500647;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=U3oZ+8HS/j/n7WwUT7zGmsgBnZucInUNE/8oUtbL/mI=;
+	b=ZxpMKeKPvAbfpWvC4q6cInd3fdqgplf084gGrCOptWUeOy+htp/vXeFbv0OJNOcq+Gu6WU
+	dgILG/BszCFi/NBg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1709500647; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=U3oZ+8HS/j/n7WwUT7zGmsgBnZucInUNE/8oUtbL/mI=;
+	b=T2U7VoZGiiQ5oRx6kPy9k//N8iETyGYUIJ6IhyUHF+x6mBQlbeb50cUbG8mCy2uvke4jhZ
+	ku0mqIGHYMj/I6rmkqcynWu0xoHMJ2o1qS/ljTBHPBuPIQHgbU49zUQZQjKouLAWsZaPso
+	q7QDoY6Za6DaIWbIvWHHLK3N6JJS5ng=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1709500647;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=U3oZ+8HS/j/n7WwUT7zGmsgBnZucInUNE/8oUtbL/mI=;
+	b=ZxpMKeKPvAbfpWvC4q6cInd3fdqgplf084gGrCOptWUeOy+htp/vXeFbv0OJNOcq+Gu6WU
+	dgILG/BszCFi/NBg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id C29211379D;
+	Sun,  3 Mar 2024 21:17:26 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id aJvLK+bo5GWFUQAAD6G6ig
+	(envelope-from <lhenriques@suse.de>); Sun, 03 Mar 2024 21:17:26 +0000
+Received: from localhost (brahms.olymp [local])
+	by brahms.olymp (OpenSMTPD) with ESMTPA id 2709e7ed;
+	Sun, 3 Mar 2024 21:17:25 +0000 (UTC)
+From: Luis Henriques <lhenriques@suse.de>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Eric Sandeen <sandeen@sandeen.net>,  Theodore Ts'o <tytso@mit.edu>,
+  Andreas Dilger <adilger.kernel@dilger.ca>,  Alexander Viro
+ <viro@zeniv.linux.org.uk>,  Jan Kara <jack@suse.cz>,  Miklos Szeredi
+ <miklos@szeredi.hu>,  Amir Goldstein <amir73il@gmail.com>,
+  linux-ext4@vger.kernel.org,  linux-fsdevel@vger.kernel.org,
+  linux-unionfs@vger.kernel.org,  linux-kernel@vger.kernel.org
 Subject: Re: [PATCH 1/3] fs_parser: handle parameters that can be empty and
  don't have a value
-Message-ID: <20240302-lamellen-hauskatze-b36d3207d73d@brauner>
+In-Reply-To: <20240302-avancieren-sehtest-90eb364bfcd5@brauner> (Christian
+	Brauner's message of "Sat, 2 Mar 2024 12:46:41 +0100")
 References: <20240229163011.16248-1-lhenriques@suse.de>
- <20240229163011.16248-2-lhenriques@suse.de>
- <20240301-gegossen-seestern-683681ea75d1@brauner>
- <87il269crs.fsf@suse.de>
- <20240302-avancieren-sehtest-90eb364bfcd5@brauner>
+	<20240229163011.16248-2-lhenriques@suse.de>
+	<20240301-gegossen-seestern-683681ea75d1@brauner>
+	<87il269crs.fsf@suse.de>
+	<20240302-avancieren-sehtest-90eb364bfcd5@brauner>
+Date: Sun, 03 Mar 2024 21:17:25 +0000
+Message-ID: <871q8r9fru.fsf@suse.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -50,217 +100,174 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20240302-avancieren-sehtest-90eb364bfcd5@brauner>
+Content-Transfer-Encoding: quoted-printable
+Authentication-Results: smtp-out1.suse.de;
+	none
+X-Spam-Level: 
+X-Spam-Score: -4.30
+X-Spamd-Result: default: False [-4.30 / 50.00];
+	 ARC_NA(0.00)[];
+	 RCVD_VIA_SMTP_AUTH(0.00)[];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 MIME_GOOD(-0.10)[text/plain];
+	 NEURAL_HAM_LONG(-1.00)[-1.000];
+	 RCVD_COUNT_THREE(0.00)[4];
+	 DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	 NEURAL_HAM_SHORT(-0.20)[-1.000];
+	 RCPT_COUNT_TWELVE(0.00)[12];
+	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+];
+	 RCVD_TLS_LAST(0.00)[];
+	 FREEMAIL_CC(0.00)[sandeen.net,mit.edu,dilger.ca,zeniv.linux.org.uk,suse.cz,szeredi.hu,gmail.com,vger.kernel.org];
+	 MID_RHS_MATCH_FROM(0.00)[];
+	 BAYES_HAM(-3.00)[100.00%]
+X-Spam-Flag: NO
 
-On Sat, Mar 02, 2024 at 12:46:41PM +0100, Christian Brauner wrote:
+Christian Brauner <brauner@kernel.org> writes:
+
 > On Fri, Mar 01, 2024 at 03:45:27PM +0000, Luis Henriques wrote:
-> > Christian Brauner <brauner@kernel.org> writes:
-> > 
-> > > On Thu, Feb 29, 2024 at 04:30:08PM +0000, Luis Henriques wrote:
-> > >> Currently, only parameters that have the fs_parameter_spec 'type' set to
-> > >> NULL are handled as 'flag' types.  However, parameters that have the
-> > >> 'fs_param_can_be_empty' flag set and their value is NULL should also be
-> > >> handled as 'flag' type, as their type is set to 'fs_value_is_flag'.
-> > >> 
-> > >> Signed-off-by: Luis Henriques <lhenriques@suse.de>
-> > >> ---
-> > >>  fs/fs_parser.c | 3 ++-
-> > >>  1 file changed, 2 insertions(+), 1 deletion(-)
-> > >> 
-> > >> diff --git a/fs/fs_parser.c b/fs/fs_parser.c
-> > >> index edb3712dcfa5..53f6cb98a3e0 100644
-> > >> --- a/fs/fs_parser.c
-> > >> +++ b/fs/fs_parser.c
-> > >> @@ -119,7 +119,8 @@ int __fs_parse(struct p_log *log,
-> > >>  	/* Try to turn the type we were given into the type desired by the
-> > >>  	 * parameter and give an error if we can't.
-> > >>  	 */
-> > >> -	if (is_flag(p)) {
-> > >> +	if (is_flag(p) ||
-> > >> +	    (!param->string && (p->flags & fs_param_can_be_empty))) {
-> > >>  		if (param->type != fs_value_is_flag)
-> > >>  			return inval_plog(log, "Unexpected value for '%s'",
-> > >>  				      param->key);
-> > >
-> > > If the parameter was derived from FSCONFIG_SET_STRING in fsconfig() then
-> > > param->string is guaranteed to not be NULL. So really this is only
-> > > about:
-> > >
-> > > FSCONFIG_SET_FD
-> > > FSCONFIG_SET_BINARY
-> > > FSCONFIG_SET_PATH
-> > > FSCONFIG_SET_PATH_EMPTY
-> > >
-> > > and those values being used without a value. What filesystem does this?
-> > > I don't see any.
-> > >
-> > > The tempting thing to do here is to to just remove fs_param_can_be_empty
-> > > from every helper that isn't fs_param_is_string() until we actually have
-> > > a filesystem that wants to use any of the above as flags. Will lose a
-> > > lot of code that isn't currently used.
-> > 
-> > Right, I find it quite confusing and I may be fixing the issue in the
-> > wrong place.  What I'm seeing with ext4 when I mount a filesystem using
-> > the option '-o usrjquota' is that fs_parse() will get:
-> > 
-> >  * p->type is set to fs_param_is_string
-> >    ('p' is a struct fs_parameter_spec, ->type is a function)
-> >  * param->type is set to fs_value_is_flag
-> >    ('param' is a struct fs_parameter, ->type is an enum)
-> > 
-> > This is because ext4 will use the __fsparam macro to set define a
-> > fs_param_spec as a fs_param_is_string but will also set the
-> > fs_param_can_be_empty; and the fsconfig() syscall will get that parameter
-> > as a flag.  That's why param->string will be NULL in this case.
-> 
-> Thanks for the details. Let me see if I get this right. So you're saying that
+>> Christian Brauner <brauner@kernel.org> writes:
+>>=20
+>> > On Thu, Feb 29, 2024 at 04:30:08PM +0000, Luis Henriques wrote:
+>> >> Currently, only parameters that have the fs_parameter_spec 'type' set=
+ to
+>> >> NULL are handled as 'flag' types.  However, parameters that have the
+>> >> 'fs_param_can_be_empty' flag set and their value is NULL should also =
+be
+>> >> handled as 'flag' type, as their type is set to 'fs_value_is_flag'.
+>> >>=20
+>> >> Signed-off-by: Luis Henriques <lhenriques@suse.de>
+>> >> ---
+>> >>  fs/fs_parser.c | 3 ++-
+>> >>  1 file changed, 2 insertions(+), 1 deletion(-)
+>> >>=20
+>> >> diff --git a/fs/fs_parser.c b/fs/fs_parser.c
+>> >> index edb3712dcfa5..53f6cb98a3e0 100644
+>> >> --- a/fs/fs_parser.c
+>> >> +++ b/fs/fs_parser.c
+>> >> @@ -119,7 +119,8 @@ int __fs_parse(struct p_log *log,
+>> >>  	/* Try to turn the type we were given into the type desired by the
+>> >>  	 * parameter and give an error if we can't.
+>> >>  	 */
+>> >> -	if (is_flag(p)) {
+>> >> +	if (is_flag(p) ||
+>> >> +	    (!param->string && (p->flags & fs_param_can_be_empty))) {
+>> >>  		if (param->type !=3D fs_value_is_flag)
+>> >>  			return inval_plog(log, "Unexpected value for '%s'",
+>> >>  				      param->key);
+>> >
+>> > If the parameter was derived from FSCONFIG_SET_STRING in fsconfig() th=
+en
+>> > param->string is guaranteed to not be NULL. So really this is only
+>> > about:
+>> >
+>> > FSCONFIG_SET_FD
+>> > FSCONFIG_SET_BINARY
+>> > FSCONFIG_SET_PATH
+>> > FSCONFIG_SET_PATH_EMPTY
+>> >
+>> > and those values being used without a value. What filesystem does this?
+>> > I don't see any.
+>> >
+>> > The tempting thing to do here is to to just remove fs_param_can_be_emp=
+ty
+>> > from every helper that isn't fs_param_is_string() until we actually ha=
+ve
+>> > a filesystem that wants to use any of the above as flags. Will lose a
+>> > lot of code that isn't currently used.
+>>=20
+>> Right, I find it quite confusing and I may be fixing the issue in the
+>> wrong place.  What I'm seeing with ext4 when I mount a filesystem using
+>> the option '-o usrjquota' is that fs_parse() will get:
+>>=20
+>>  * p->type is set to fs_param_is_string
+>>    ('p' is a struct fs_parameter_spec, ->type is a function)
+>>  * param->type is set to fs_value_is_flag
+>>    ('param' is a struct fs_parameter, ->type is an enum)
+>>=20
+>> This is because ext4 will use the __fsparam macro to set define a
+>> fs_param_spec as a fs_param_is_string but will also set the
+>> fs_param_can_be_empty; and the fsconfig() syscall will get that parameter
+>> as a flag.  That's why param->string will be NULL in this case.
+>
+> Thanks for the details. Let me see if I get this right. So you're saying =
+that
 > someone is doing:
-> 
+>
 > fsconfig(..., FSCONFIG_SET_FLAG, "usrjquota", NULL, 0); // [1]
-> 
+>
 > ? Is so that is a vital part of the explanation. So please put that in the
 > commit message.
-> 
+
+Right, I guess I should have added a simple usecase for that in the commit
+message.  I.e. add a simple 'mount' command with this parameter without
+any value.
+
 > Then ext4 defines:
-> 
+>
 > 	fsparam_string_empty ("usrjquota",		Opt_usrjquota),
-> 
+>
 > So [1] gets us:
-> 
->         param->type == fs_value_is_flag
->         param->string == NULL
-> 
+>
+>         param->type =3D=3D fs_value_is_flag
+>         param->string =3D=3D NULL
+>
 > Now we enter into
 > fs_parse()
 > -> __fs_parse()
 >    -> fs_lookup_key() for @param and that does:
-> 
->         bool want_flag = param->type == fs_value_is_flag;
-> 
->         *negated = false;
->         for (p = desc; p->name; p++) {
->                 if (strcmp(p->name, name) != 0)
+>
+>         bool want_flag =3D param->type =3D=3D fs_value_is_flag;
+>
+>         *negated =3D false;
+>         for (p =3D desc; p->name; p++) {
+>                 if (strcmp(p->name, name) !=3D 0)
 >                         continue;
->                 if (likely(is_flag(p) == want_flag))
+>                 if (likely(is_flag(p) =3D=3D want_flag))
 >                         return p;
->                 other = p;
+>                 other =3D p;
 >         }
-> 
+>
 > So we don't have a flag parameter defined so the only real match we get is
 > @other for:
-> 
+>
 >         fsparam_string_empty ("usrjquota",		Opt_usrjquota),
-> 
-> What happens now is that you call p->type == fs_param_is_string() and that
-> rejects it as bad parameter because param->type == fs_value_is_flag !=
+>
+> What happens now is that you call p->type =3D=3D fs_param_is_string() and=
+ that
+> rejects it as bad parameter because param->type =3D=3D fs_value_is_flag !=
+=3D
 > fs_value_is_string as required. So you dont end up getting Opt_userjquota
-> called with param->string NULL, right? So there's not NULL deref or anything,
+> called with param->string NULL, right? So there's not NULL deref or anyth=
+ing,
 > right?
-> 
+>
 > You just fail to set usrjquota. Ok, so I think the correct fix is to do
 > something like the following in ext4:
-> 
+>
 >         fsparam_string_empty ("usrjquota",      Opt_usrjquota),
 >         fs_param_flag        ("usrjquota",      Opt_usrjquota_flag),
-> 
+>
 > and then in the switch you can do:
-> 
+>
 > switch (opt)
 > case Opt_usrjquota:
 >         // string thing
 > case Opt_usrjquota_flag:
 >         // flag thing
-> 
-> And I really think we should kill all empty handling for non-string types and
+>
+> And I really think we should kill all empty handling for non-string types=
+ and
 > only add that when there's a filesystem that actually needs it.
 
-So one option is to do the following:
+Yeah, that looks like the right fix.  I see you sent out a patch doing
+something like this, so I'll comment there instead.
 
-From 8bfb142e6caba70704998be072222d6a31d8b97b Mon Sep 17 00:00:00 2001
-From: Christian Brauner <brauner@kernel.org>
-Date: Sat, 2 Mar 2024 18:54:35 +0100
-Subject: [PATCH] [UNTESTED]
-
-Signed-off-by: Christian Brauner <brauner@kernel.org>
----
- fs/ext4/super.c           | 32 ++++++++++++++++++--------------
- include/linux/fs_parser.h |  3 +++
- 2 files changed, 21 insertions(+), 14 deletions(-)
-
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index ebd97442d1d4..bd625f06ec0f 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -1724,10 +1724,6 @@ static const struct constant_table ext4_param_dax[] = {
- 	{}
- };
- 
--/* String parameter that allows empty argument */
--#define fsparam_string_empty(NAME, OPT) \
--	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL)
--
- /*
-  * Mount option specification
-  * We don't use fsparam_flag_no because of the way we set the
-@@ -1768,10 +1764,8 @@ static const struct fs_parameter_spec ext4_param_specs[] = {
- 	fsparam_enum	("data",		Opt_data, ext4_param_data),
- 	fsparam_enum	("data_err",		Opt_data_err,
- 						ext4_param_data_err),
--	fsparam_string_empty
--			("usrjquota",		Opt_usrjquota),
--	fsparam_string_empty
--			("grpjquota",		Opt_grpjquota),
-+	fsparam_string_or_flag ("usrjquota",	Opt_usrjquota),
-+	fsparam_string_or_flag ("grpjquota",	Opt_grpjquota),
- 	fsparam_enum	("jqfmt",		Opt_jqfmt, ext4_param_jqfmt),
- 	fsparam_flag	("grpquota",		Opt_grpquota),
- 	fsparam_flag	("quota",		Opt_quota),
-@@ -2183,15 +2177,25 @@ static int ext4_parse_param(struct fs_context *fc, struct fs_parameter *param)
- 	switch (token) {
- #ifdef CONFIG_QUOTA
- 	case Opt_usrjquota:
--		if (!param->string)
--			return unnote_qf_name(fc, USRQUOTA);
--		else
-+		if (param->type == fs_value_is_string) {
-+			if (!*param->string)
-+				return unnote_qf_name(fc, USRQUOTA);
-+
- 			return note_qf_name(fc, USRQUOTA, param);
-+		}
-+
-+		// param->type == fs_value_is_flag
-+		return note_qf_name(fc, USRQUOTA, param);
- 	case Opt_grpjquota:
--		if (!param->string)
--			return unnote_qf_name(fc, GRPQUOTA);
--		else
-+		if (param->type == fs_value_is_string) {
-+			if (!*param->string)
-+				return unnote_qf_name(fc, GRPQUOTA);
-+
- 			return note_qf_name(fc, GRPQUOTA, param);
-+		}
-+
-+		// param->type == fs_value_is_flag
-+		return note_qf_name(fc, GRPQUOTA, param);
- #endif
- 	case Opt_sb:
- 		if (fc->purpose == FS_CONTEXT_FOR_RECONFIGURE) {
-diff --git a/include/linux/fs_parser.h b/include/linux/fs_parser.h
-index 01542c4b87a2..4f45141bea95 100644
---- a/include/linux/fs_parser.h
-+++ b/include/linux/fs_parser.h
-@@ -131,5 +131,8 @@ static inline bool fs_validate_description(const char *name,
- #define fsparam_bdev(NAME, OPT)	__fsparam(fs_param_is_blockdev, NAME, OPT, 0, NULL)
- #define fsparam_path(NAME, OPT)	__fsparam(fs_param_is_path, NAME, OPT, 0, NULL)
- #define fsparam_fd(NAME, OPT)	__fsparam(fs_param_is_fd, NAME, OPT, 0, NULL)
-+#define fsparam_string_or_flag(NAME, OPT) \
-+	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL), \
-+	fsparam_flag(NAME, OPT)
- 
- #endif /* _LINUX_FS_PARSER_H */
--- 
-2.43.0
-
+Cheers,
+--=20
+Lu=C3=ADs
