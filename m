@@ -1,161 +1,102 @@
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
+Received: from mail-qt1-f180.google.com (mail-qt1-f180.google.com [209.85.160.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01CF012DDBE;
-	Thu,  7 Mar 2024 17:10:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C8E4C131729;
+	Thu,  7 Mar 2024 17:31:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709831438; cv=none; b=OsCTNYx8sEZK42zBfV+JuBmOQbdJUk4uQL/iNjo/Km3+CU/Q2l3b9h61hatHoAe74Y8Uuh+k2RgSXBItXpxSO8slZeyb7WJgUwcKGtMN2LKD8UoCdrcwzrfkP51Nl5X61zEoZyXPcLK4TaMKQOc1mcv3rdvydOhJluxBUmQM2jk=
+	t=1709832709; cv=none; b=JW7QaboIOvq28mFA++L1LA8TkkAG17WAfShPOcQGRyIXTE5VAHC1rmUmedN19ZUKy0OHlJEhG14ahbmDv04YcefapFa6aM9WbMsJCH7TqCz/VDWmZORAQwcITf90SgqAhIFrcNlOk5R3JywhuBpAhUNYFtHaDmtK9+cK2plCUUY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709831438; c=relaxed/simple;
-	bh=ePRxzCU8k8EGnokZBB4+4ln+F7jpIw9Pac4V0NZBhg8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=eugG1rpA4GUOu2FVG6dL/jklqMz+rcoVq85qjNeM5n5aVs/l1fG6VxNP7rvHXVPK5bIpCkCFy8BY3doUaExCssdzyFqV12QoWu8c1gapE83RLPggNChqmHFHC4at/722InQAE4BsP6z5CknfcGJweZ1YOeOxqoEz2Sz2w592NCo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0VDieRCE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KmbEfxau; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0VDieRCE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KmbEfxau; arc=none smtp.client-ip=195.135.223.131
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
+	s=arc-20240116; t=1709832709; c=relaxed/simple;
+	bh=JG672GZmcOfqvWk4OcsE1n4GlL0ZB0TUsXrmHdWQmJg=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EiKcM1E2hoUL7Ej7S/YCAtxsUbEbSShll/fAzJpLi69uQ8LTWgEK/7Oyre33BIls9euOEk7v95QFt+yiP99MGc4Vd2RwuoL8+Xzj0TqfkCAdZrj1NwZL6qGhfa0sofwtAD9N9x1Ru1fVti9V00Xnm2ZD9X7GC+jZz+tcaRlgI94=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=d0yhX9H3; arc=none smtp.client-ip=209.85.160.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0VDieRCE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KmbEfxau";
-	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0VDieRCE";
-	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KmbEfxau"
-Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [10.150.64.97])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by smtp-out2.suse.de (Postfix) with ESMTPS id A4AB45C6DB;
-	Thu,  7 Mar 2024 16:02:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1709827351; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
-	b=0VDieRCEz8N+eqziEuOrjkmp9rwnlUU6RmpL8KKW9YTtMiK4Pet04wWoVV/M9JWLdHf7/F
-	5YDfyx4RrhAjsaygNRf43qQzl0ZY7Ss7ueyPa8s5F+Big6p+BewIHJHDJb7ftcML9TeWO5
-	l6fcfT/OSoLdmEXNm8xbiMcUyFI9C3Q=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1709827351;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
-	b=KmbEfxauWpnJYO0HstETm2VVp1i90gxDf8EetM7+IV5rNErjCxflVV6iWl0+6bTCLQjt32
-	OwHm1cEBa2y8LkDQ==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-	t=1709827351; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
-	b=0VDieRCEz8N+eqziEuOrjkmp9rwnlUU6RmpL8KKW9YTtMiK4Pet04wWoVV/M9JWLdHf7/F
-	5YDfyx4RrhAjsaygNRf43qQzl0ZY7Ss7ueyPa8s5F+Big6p+BewIHJHDJb7ftcML9TeWO5
-	l6fcfT/OSoLdmEXNm8xbiMcUyFI9C3Q=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-	s=susede2_ed25519; t=1709827351;
-	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-	 mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
-	b=KmbEfxauWpnJYO0HstETm2VVp1i90gxDf8EetM7+IV5rNErjCxflVV6iWl0+6bTCLQjt32
-	OwHm1cEBa2y8LkDQ==
-Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-	(No client certificate requested)
-	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D6B3A136CB;
-	Thu,  7 Mar 2024 16:02:30 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
-	by imap1.dmz-prg2.suse.org with ESMTPSA
-	id aG4gMRbl6WXtcwAAD6G6ig
-	(envelope-from <lhenriques@suse.de>); Thu, 07 Mar 2024 16:02:30 +0000
-Received: from localhost (brahms.olymp [local])
-	by brahms.olymp (OpenSMTPD) with ESMTPA id 48155153;
-	Thu, 7 Mar 2024 16:02:29 +0000 (UTC)
-From: Luis Henriques <lhenriques@suse.de>
-To: Theodore Ts'o <tytso@mit.edu>,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: linux-ext4@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Luis Henriques <lhenriques@suse.de>
-Subject: [PATCH v2 1/3] fs_parser: add helper to define parameters with string and flag types
-Date: Thu,  7 Mar 2024 16:02:23 +0000
-Message-ID: <20240307160225.23841-2-lhenriques@suse.de>
-In-Reply-To: <20240307160225.23841-1-lhenriques@suse.de>
-References: <20240307160225.23841-1-lhenriques@suse.de>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d0yhX9H3"
+Received: by mail-qt1-f180.google.com with SMTP id d75a77b69052e-42efa84f7b5so17553151cf.1;
+        Thu, 07 Mar 2024 09:31:47 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1709832706; x=1710437506; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=JG672GZmcOfqvWk4OcsE1n4GlL0ZB0TUsXrmHdWQmJg=;
+        b=d0yhX9H3VRXeS8OSShL3f6eeGZC6cGnHyOU9sDK1OBt2QsqVRkPmd2BwHWHbTeperu
+         aSw2w/lLIZkzB67RO6ricGZ8QDK4S+WhlF7mpNNZhMbNEMcwab4jBFjTGWoDk7RLHJRQ
+         kYLY4b/q+DVXofTVbYseVuqYWTz1aYs2RM3vgjJyvHFA7u1wMGoRbx6DhzIwQaI329JB
+         jX6/h6zbjK8ODuUTTalxJZPKX7YPLm7LDFznAHlrPk7M6NG/WQiCgZiNsVRkvND2Gx2I
+         YUvuccV/vFoATcpZJF1ORlC9vOA6HauiCAHbi8s4KGTifEB1Yh45f9c9sjpdC0+vlweY
+         f2AA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1709832706; x=1710437506;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=JG672GZmcOfqvWk4OcsE1n4GlL0ZB0TUsXrmHdWQmJg=;
+        b=PUC+rLttI+0uShZgKmx1Z4JCT4/NzYklTcwhtj2HHmSNaaSDeZxGjccPFhMaeo+whG
+         TBY3MGUYgqL2O6mplkw/lGwL8cj4btzlcNdCwKAf8QbLDbaxjXYc+ruaPtA1px3LesZe
+         VE7DzwLVaOOt866cdEfOpftlHwMGld4jOc+8NR1Is5P2bM7fsI9zCasHASnrdO+bjEFR
+         B6/RAkyROr8+v+AzjPsNYJjQq6N7MHnUoEndXRWDufMxbeI9KvRR2fGYSiHt/Chcq+6l
+         kQmkbUnRUQPpXV1379Hm4IqGsAmUf89/kBOotNFWjVkdA3+PvzW6FuIUEVkNv+Xb1Qpb
+         043g==
+X-Forwarded-Encrypted: i=1; AJvYcCUdHSI4t5qAPkUkSt/NAoOjLEC48MIyPprZiW8cajI8xfBKMzTQaRCdxdtiTMkeOiE+uAZy98hnVZG+Y0qC4Cfs9/5f8WQxycxeO2yfX2TeSIW31AJnzdj8G60J7LbI61FXbMT5U2WlyHsXoPs=
+X-Gm-Message-State: AOJu0Yz9/cVo7p5ZZ6LaHENfr60o3dyDC4NJ+jphVCZtcChNkaJ0WB5m
+	HzxxXqfpyjgfyS8mXavRyB1UYKwa6RD4TCkr18VpduLGgk6P4kdzLwkH9p1uWAJJM6rWNtSt80n
+	kjSDvFHuylKCZ4HW4b6z6Mh224AY5P5narOI=
+X-Google-Smtp-Source: AGHT+IFM75Q0UYOfkt/JWWJr5xbaRnUqXhELyh/yVh5b9WH/gScbqBHprTokVyTXg+Vo+LGlfs2XxuitCEBnJNd6Mzs=
+X-Received: by 2002:a05:622a:44f:b0:42e:fa5e:be22 with SMTP id
+ o15-20020a05622a044f00b0042efa5ebe22mr2586175qtx.6.1709832706616; Thu, 07 Mar
+ 2024 09:31:46 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Authentication-Results: smtp-out2.suse.de;
-	none
-X-Spam-Level: 
-X-Spam-Score: -0.30
-X-Spamd-Result: default: False [-0.30 / 50.00];
-	 ARC_NA(0.00)[];
-	 RCVD_VIA_SMTP_AUTH(0.00)[];
-	 FROM_HAS_DN(0.00)[];
-	 TO_DN_SOME(0.00)[];
-	 R_MISSING_CHARSET(2.50)[];
-	 FREEMAIL_ENVRCPT(0.00)[gmail.com];
-	 MIME_GOOD(-0.10)[text/plain];
-	 TO_MATCH_ENVRCPT_ALL(0.00)[];
-	 REPLY(-4.00)[];
-	 BROKEN_CONTENT_TYPE(1.50)[];
-	 NEURAL_HAM_LONG(-1.00)[-1.000];
-	 RCVD_COUNT_THREE(0.00)[4];
-	 DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
-	 NEURAL_HAM_SHORT(-0.20)[-1.000];
-	 RCPT_COUNT_TWELVE(0.00)[12];
-	 MID_CONTAINS_FROM(1.00)[];
-	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email];
-	 FREEMAIL_TO(0.00)[mit.edu,dilger.ca,zeniv.linux.org.uk,kernel.org,suse.cz,szeredi.hu,gmail.com];
-	 FUZZY_BLOCKED(0.00)[rspamd.com];
-	 FROM_EQ_ENVFROM(0.00)[];
-	 MIME_TRACE(0.00)[0:+];
-	 RCVD_TLS_LAST(0.00)[];
-	 BAYES_HAM(-0.00)[27.00%]
-X-Spam-Flag: NO
+References: <20240307110217.203064-1-mszeredi@redhat.com> <20240307110217.203064-3-mszeredi@redhat.com>
+ <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com>
+ <CAJfpegsQrwuG7Cm=1WaMChUg_ZtBE9eK-jK1m_69THZEG3JkBQ@mail.gmail.com> <CAJfpegv8RyP_FaCWGZPkhQoEV2_WcM0_z5gwb=mVELNcExY5zQ@mail.gmail.com>
+In-Reply-To: <CAJfpegv8RyP_FaCWGZPkhQoEV2_WcM0_z5gwb=mVELNcExY5zQ@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 7 Mar 2024 19:31:35 +0200
+Message-ID: <CAOQ4uxj9=FRnN-qiXdt5PFp15Nx9Jfqx3+8_eSSGy_xgHQ0tHA@mail.gmail.com>
+Subject: Re: [PATCH 3/4] ovl: only lock readdir for accessing the cache
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, 
+	Vinicius Costa Gomes <vinicius.gomes@intel.com>, Christian Brauner <brauner@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add a new helper macro that defines two new parameters, both with the same
-name, but one of type 'string' and another of type 'flag'.  The 'string'
-parameter may also be empty (i.e. without value).  In practice this helper
-allows a filesystem to easily define a parameter that can be empty (flag)
-or have a value (string).
+On Thu, Mar 7, 2024 at 6:13=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
+rote:
+>
+> On Thu, 7 Mar 2024 at 15:09, Miklos Szeredi <miklos@szeredi.hu> wrote:
+> >
+> > On Thu, 7 Mar 2024 at 14:11, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > > P.S. A guard for ovl_inode_lock() would have been useful in this patc=
+h set,
+> > > but it's up to you if you want to define one and use it.
+>
+> I like the concept of guards, though documentation and examples are
+> lacking and the API is not trivial to understand at first sight.
+>
+> For overlayfs I'd start with ovl_override_creds(), since that is used
+> much more extensively than ovl_inode_lock().
+>
 
-Suggested-by: Christian Brauner <brauner@kernel.org>
-Signed-off-by: Luis Henriques <lhenriques@suse.de>
----
- include/linux/fs_parser.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+OK. let's wait for this to land first:
+https://lore.kernel.org/linux-unionfs/20240216051640.197378-1-vinicius.gome=
+s@intel.com/
 
-diff --git a/include/linux/fs_parser.h b/include/linux/fs_parser.h
-index 01542c4b87a2..f582fb7bdc22 100644
---- a/include/linux/fs_parser.h
-+++ b/include/linux/fs_parser.h
-@@ -131,5 +131,13 @@ static inline bool fs_validate_description(const char *name,
- #define fsparam_bdev(NAME, OPT)	__fsparam(fs_param_is_blockdev, NAME, OPT, 0, NULL)
- #define fsparam_path(NAME, OPT)	__fsparam(fs_param_is_path, NAME, OPT, 0, NULL)
- #define fsparam_fd(NAME, OPT)	__fsparam(fs_param_is_fd, NAME, OPT, 0, NULL)
-+/*
-+ * Define two parameters with the same name, with types string and flag.  The
-+ * string parameter can be empty, and thus it effectively allows the parameter
-+ * to have a value or to be empty.
-+ */
-+#define fsparam_string_or_flag(NAME, OPT)				\
-+	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL), \
-+	fsparam_flag(NAME, OPT)
- 
- #endif /* _LINUX_FS_PARSER_H */
+As I wrote in the review of v2,
+I'd rather that Christian will review and pick up the non-overlayfs bits,
+which head suggested and only after that will I review the overlayfs
+patch.
+
+Thanks,
+Amir.
