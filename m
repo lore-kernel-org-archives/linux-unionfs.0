@@ -1,70 +1,70 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64FD186AC5
-	for <linux-unionfs@vger.kernel.org>; Thu,  7 Mar 2024 11:02:25 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DAE2E85277
+	for <linux-unionfs@vger.kernel.org>; Thu,  7 Mar 2024 11:02:27 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709809347; cv=none; b=d2mqOp81SjJcE7LKibTMONRra/m9P3PUxpLNeIUm139D4s7GWx7qpImBeQpRzQp8I4ZXIELA8euLgpGo/DMGJSmLlL1OEMKNLi2S5WUawLTGYPbqLCcXiyVB9t43sEtvxvCcbaJKw/knp24pW151C6TZdCQvFs7yPJDgyVKRzwo=
+	t=1709809349; cv=none; b=uxm1NLeVjlXBqv83tlijFHvHXINDFPBqRb+WSqzx5d/QGI9KmPY9jdbMudqrxhLExEfjzopkknn1f19c/qA0c2VhCb0UYeRH+cJQ2deqX9VwIJW3QQXhI64Huv/Ok8pqA66nEeCQSNVW25OtFi3ohzqsaIzJPjbWmkorK6Hh6/A=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709809347; c=relaxed/simple;
-	bh=IbuU5cpOt420V29ONwOifcPW/3aVME6yzHFDe5gsTxk=;
+	s=arc-20240116; t=1709809349; c=relaxed/simple;
+	bh=DRvnV8HJutIaAxTKTLKjKif+ZWKH1rr59mk4v4Evgfw=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=V522P8Z4RC5R1EiKVW7B0HXeN7F8JJayiukxhxoiQ/2NTX9Su8RzCJ23A6RdQySD5KmLi9tlSNqztkSa+L7m7F7wUrocnGUVHRHGgBakpcLyxpsApKxNTL6a/acnkyq5EIxDMJYsNsx96vSaMH6qO2RMr8KZ0OrQv6s1k+2yCWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DHWEWf9u; arc=none smtp.client-ip=170.10.133.124
+	 MIME-Version; b=Y977NEN8J9DJ30NTx3C9B6TFwQDayH5gcgThhgiu+7fdJwbb3Vr2QXcYynkGx3cjMSazIvFjzfzaLavpQc+unYa5/cC2VuhOLa8mdvd0dm4p8+mFxX4w2cp//s6pH02ZsoGNvztvABOmHgtzl9R2dv23nDga3WKNloYwU496H/M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=S3tNSS35; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DHWEWf9u"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="S3tNSS35"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1709809344;
+	s=mimecast20190719; t=1709809346;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=bowjdvADPqPbbMJAv78SEAOB2sDLU3RVgb2xFBl2V9E=;
-	b=DHWEWf9uC0906Bri3/3wlemKZbLIjgnvi4CHNctNZcRVw+sU9x8/h2F+kVZEZ29FKBB9b7
-	v02YN+77EH9vCj1reQ4zpRshhWKHUVI1TRysWkQ3g54veCycUMmj5tgjppjHuWuu02bz6V
-	uChIurqLKVs5SviRdQwXr0we1umw9yM=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+	bh=0jVYJDDKL/ChitY3WVDYwxzPamDrn+GtiVTQKdLJFZo=;
+	b=S3tNSS35wNybZ99bXIXOCcem4KDWjiWWuqI+V5mCEnbhyp5zMM7SBHhRMTQNF40noJAsUY
+	PVB/JqclLYDvigNOPXjv6BbXVcadTNdXu1P7G7eBswcwi93FBzhXzt0Q978kCQMQs3LAgO
+	DY9BI5efpz0hljPsV5uRoj6zAeJowr8=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-134-eaBQS2TvN7qPT6Ud2TMS6g-1; Thu, 07 Mar 2024 06:02:23 -0500
-X-MC-Unique: eaBQS2TvN7qPT6Ud2TMS6g-1
-Received: by mail-wm1-f71.google.com with SMTP id 5b1f17b1804b1-412e992444eso3662135e9.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 07 Mar 2024 03:02:23 -0800 (PST)
+ us-mta-108-iJuf0iXlP626VJ1Z-RZd4g-1; Thu, 07 Mar 2024 06:02:25 -0500
+X-MC-Unique: iJuf0iXlP626VJ1Z-RZd4g-1
+Received: by mail-wm1-f72.google.com with SMTP id 5b1f17b1804b1-40fb505c97aso4644535e9.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 07 Mar 2024 03:02:25 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709809340; x=1710414140;
+        d=1e100.net; s=20230601; t=1709809343; x=1710414143;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=bowjdvADPqPbbMJAv78SEAOB2sDLU3RVgb2xFBl2V9E=;
-        b=q46WxCdUbrsWJgFdTAvDVpzSLhhSUtLHKeVuTG+FuY9jGeyrvpfTc8Bg54CnAyNgV1
-         S8gDHb/YSqYGc8OSaQdL8/ChJ1AYi8NQPFwBIGLYgaeMFf+EW1+hJYjCDFnQZ6B9ZYHO
-         t5DJlSwJdFtkAc1Fm4kSmESQZHKG3sXEIc1DycuiCBLd7AHX5po+9J9tO2Mfi1Q27PD1
-         s3dC8YR5HJ2r8qKW4R40ZIFMGvbcKdg4Sd+HwLVG0JYma7Awmtp4PZ3f9qORaW5b2tDd
-         V5AGn0o3IhACgw1eywquUhaSWCPCB7xm2tuxU7e951qYB8NjQ9GPi/vpUZoWgjQWUvHR
-         BQlA==
-X-Gm-Message-State: AOJu0Yz+5jB7ucg3jGp8qPXUa64MbsYxPsS++O7/HfiiE8j8jyF/kAC5
-	Bac0mkNAlkYebFYf48DJYMo7DSmXdEZHAfJFW377F/lAOic1WJf2LhhlO0LKd/DBTJ9O50oFYUw
-	51WRExYwoWJ4eim9DtyxtcYrFCzWy/qhZJppkNY4Y9wLyTa9078pJ7qc8LWA9uwWCROCPAT5VU5
-	zbgLu9TncE1qQMXrNBcGzBWwMgxUpUOYUy/5QDIyAxoRjpVx4=
-X-Received: by 2002:a05:600c:4ec9:b0:412:ef25:aa91 with SMTP id g9-20020a05600c4ec900b00412ef25aa91mr5115719wmq.18.1709809340771;
-        Thu, 07 Mar 2024 03:02:20 -0800 (PST)
-X-Google-Smtp-Source: AGHT+IGYF+HpiuxhQAvUoex5tPttsDJk6McYDOiAp5uXUQ4YE6sEf/l3M2Ps2IwQLKOzA/wVD0apaQ==
-X-Received: by 2002:a05:600c:4ec9:b0:412:ef25:aa91 with SMTP id g9-20020a05600c4ec900b00412ef25aa91mr5115701wmq.18.1709809340434;
-        Thu, 07 Mar 2024 03:02:20 -0800 (PST)
+        bh=0jVYJDDKL/ChitY3WVDYwxzPamDrn+GtiVTQKdLJFZo=;
+        b=P0l5nNHK1xywV9N2JZrGdUJye4wFfzwfO2RqayKXF2E5cZ0KsIigBsSKnu0iZYujne
+         trv0Otbbtwnql0JdLOykSxl6qJ5RD5I0+uMoUTfy4h8vCCFlmkT4tGn3VIG4G7x+oOoS
+         R6NW01OXswoftv8UMmPmnJAhPHd3qoYxagKFiE6KQzbubis5Osedv0lqG2Rib2s0erEo
+         dvzaGpRjOcfpaUrwc4RXW1KW5spIg6em6dlAOgQ6oa5FLW92Lb8FDMV+X3c8CUnGPoTY
+         Vsq0/uQsV8CSL0xXnGFAyBAO2n3Uz17zeoKm7P7oQp/xPKbNg7vIZWMJpKHf02tgIKMz
+         L2zg==
+X-Gm-Message-State: AOJu0YxrgYVMMyA5W/9pAZyoqfw9bYvGjuhf3jgczDibmJIaU5eOBQPV
+	YTqF6GZkbhdrcA8O2TB6im/zjtRS918M5EArNUJGhbW6KMufe/zGKx1RIK/AXp/vVnBZJukBHdu
+	xrmePV8BItpyyAubdnstioPvhwpPPZ1njAEFIY88s/xKXilMq6fhyyQM0LUznMkF3YeejkWod6C
+	cIJv1bc0QLsYOBSBY+zj9h2hDl1eHTNPO8kzMQuFyQFMww/IA=
+X-Received: by 2002:a05:600c:1d1c:b0:412:ed67:f948 with SMTP id l28-20020a05600c1d1c00b00412ed67f948mr5348734wms.32.1709809343612;
+        Thu, 07 Mar 2024 03:02:23 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IGxkAVWIDVWcUtSzYTwdWkYYnwjVhmqktUpKpAr0gbcqOreJtyMC2g99k+fKinvzoQ13J4NzQ==
+X-Received: by 2002:a05:600c:1d1c:b0:412:ed67:f948 with SMTP id l28-20020a05600c1d1c00b00412ed67f948mr5348707wms.32.1709809343152;
+        Thu, 07 Mar 2024 03:02:23 -0800 (PST)
 Received: from maszat.piliscsaba.szeredi.hu (92-249-208-180.pool.digikabel.hu. [92.249.208.180])
-        by smtp.gmail.com with ESMTPSA id v12-20020a05600c470c00b00412b4dca795sm2332625wmo.7.2024.03.07.03.02.19
+        by smtp.gmail.com with ESMTPSA id v12-20020a05600c470c00b00412b4dca795sm2332625wmo.7.2024.03.07.03.02.20
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 07 Mar 2024 03:02:19 -0800 (PST)
+        Thu, 07 Mar 2024 03:02:20 -0800 (PST)
 From: Miklos Szeredi <mszeredi@redhat.com>
 To: linux-unionfs@vger.kernel.org
 Cc: Amir Goldstein <amir73il@gmail.com>,
 	linux-fsdevel@vger.kernel.org
-Subject: [PATCH 2/4] ovl: get rid of iterate wrapper
-Date: Thu,  7 Mar 2024 12:02:06 +0100
-Message-ID: <20240307110217.203064-2-mszeredi@redhat.com>
+Subject: [PATCH 3/4] ovl: only lock readdir for accessing the cache
+Date: Thu,  7 Mar 2024 12:02:07 +0100
+Message-ID: <20240307110217.203064-3-mszeredi@redhat.com>
 X-Mailer: git-send-email 2.44.0
 In-Reply-To: <20240307110217.203064-1-mszeredi@redhat.com>
 References: <20240307110217.203064-1-mszeredi@redhat.com>
@@ -76,87 +76,130 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Commit 3e3271549670 ("vfs: get rid of old '->iterate' directory operation")
-added a wrapper around ovl_iterate() to lock the inode exclusive.
+The only reason parallel readdirs cannot run on the same inode is shared
+access to the readdir cache.
 
-Use the overlayfs private inode lock instead to provide exclusive locking.
-
-Add ovl_inode_lock()/_unlock() to ovl_iterate() and replace
-inode_lock/_unlock() with the ovl_ variant in ovl_dir_llseek() and
-ovl_dir_release().
-
-This replacement is valid, because the inode lock was taken only to provide
-exclusion between these functions (for other files referring to the same
-inode).
+Move lock/unlock to only protect the cache.  Exception is the refcount
+which now uses atomic ops.
 
 Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
- fs/overlayfs/readdir.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ fs/overlayfs/readdir.c | 34 ++++++++++++++++++++--------------
+ 1 file changed, 20 insertions(+), 14 deletions(-)
 
 diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index b894a97f8ef8..edee9f86f469 100644
+index edee9f86f469..b98e0d17f40e 100644
 --- a/fs/overlayfs/readdir.c
 +++ b/fs/overlayfs/readdir.c
-@@ -758,6 +758,7 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
+@@ -245,8 +245,10 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct inode *inode)
+ 	struct ovl_dir_cache *cache = od->cache;
+ 
+ 	if (refcount_dec_and_test(&cache->refcount)) {
++		ovl_inode_lock(inode);
+ 		if (ovl_dir_cache(inode) == cache)
+ 			ovl_set_dir_cache(inode, NULL);
++		ovl_inode_unlock(inode);
+ 
+ 		ovl_cache_free(&cache->entries);
+ 		kfree(cache);
+@@ -733,12 +735,18 @@ static int ovl_iterate_real(struct file *file, struct dir_context *ctx)
+ 	}
+ 
+ 	if (ovl_is_impure_dir(file)) {
++		ovl_inode_lock(file_inode(file));
+ 		rdt.cache = ovl_cache_get_impure(&file->f_path);
+-		if (IS_ERR(rdt.cache))
++		if (IS_ERR(rdt.cache)) {
++			ovl_inode_unlock(file_inode(file));
+ 			return PTR_ERR(rdt.cache);
++		}
+ 	}
+ 
+ 	err = iterate_dir(od->realfile, &rdt.ctx);
++
++	if (rdt.cache)
++		ovl_inode_unlock(file_inode(file));
+ 	ctx->pos = rdt.ctx.pos;
+ 
+ 	return err;
+@@ -758,7 +766,6 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
  	if (!ctx->pos)
  		ovl_dir_reset(file);
  
-+	ovl_inode_lock(file_inode(file));
+-	ovl_inode_lock(file_inode(file));
  	if (od->is_real) {
  		/*
  		 * If parent is merge, then need to adjust d_ino for '..', if
-@@ -806,6 +807,7 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
+@@ -773,9 +780,10 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
+ 		} else {
+ 			err = iterate_dir(od->realfile, ctx);
+ 		}
+-		goto out;
++		goto out_revert;
  	}
+ 
++	ovl_inode_lock(file_inode(file));
+ 	if (!od->cache) {
+ 		struct ovl_dir_cache *cache;
+ 
+@@ -808,6 +816,7 @@ static int ovl_iterate(struct file *file, struct dir_context *ctx)
  	err = 0;
  out:
-+	ovl_inode_unlock(file_inode(file));
+ 	ovl_inode_unlock(file_inode(file));
++out_revert:
  	revert_creds(old_cred);
  	return err;
  }
-@@ -815,7 +817,7 @@ static loff_t ovl_dir_llseek(struct file *file, loff_t offset, int origin)
+@@ -817,7 +826,6 @@ static loff_t ovl_dir_llseek(struct file *file, loff_t offset, int origin)
  	loff_t res;
  	struct ovl_dir_file *od = file->private_data;
  
--	inode_lock(file_inode(file));
-+	ovl_inode_lock(file_inode(file));
+-	ovl_inode_lock(file_inode(file));
  	if (!file->f_pos)
  		ovl_dir_reset(file);
  
-@@ -845,7 +847,7 @@ static loff_t ovl_dir_llseek(struct file *file, loff_t offset, int origin)
+@@ -834,21 +842,22 @@ static loff_t ovl_dir_llseek(struct file *file, loff_t offset, int origin)
+ 		case SEEK_SET:
+ 			break;
+ 		default:
+-			goto out_unlock;
++			goto out;
+ 		}
+ 		if (offset < 0)
+-			goto out_unlock;
++			goto out;
+ 
+ 		if (offset != file->f_pos) {
+ 			file->f_pos = offset;
+-			if (od->cache)
++			if (od->cache) {
++				ovl_inode_lock(file_inode(file));
+ 				ovl_seek_cursor(od, offset);
++				ovl_inode_unlock(file_inode(file));
++			}
+ 		}
  		res = offset;
  	}
- out_unlock:
--	inode_unlock(file_inode(file));
-+	ovl_inode_unlock(file_inode(file));
- 
+-out_unlock:
+-	ovl_inode_unlock(file_inode(file));
+-
++out:
  	return res;
  }
-@@ -929,9 +931,9 @@ static int ovl_dir_release(struct inode *inode, struct file *file)
+ 
+@@ -930,11 +939,8 @@ static int ovl_dir_release(struct inode *inode, struct file *file)
+ {
  	struct ovl_dir_file *od = file->private_data;
  
- 	if (od->cache) {
--		inode_lock(inode);
-+		ovl_inode_lock(inode);
+-	if (od->cache) {
+-		ovl_inode_lock(inode);
++	if (od->cache)
  		ovl_cache_put(od, inode);
--		inode_unlock(inode);
-+		ovl_inode_unlock(inode);
- 	}
+-		ovl_inode_unlock(inode);
+-	}
  	fput(od->realfile);
  	if (od->upperfile)
-@@ -966,11 +968,10 @@ static int ovl_dir_open(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
--WRAP_DIR_ITER(ovl_iterate) // FIXME!
- const struct file_operations ovl_dir_operations = {
- 	.read		= generic_read_dir,
- 	.open		= ovl_dir_open,
--	.iterate_shared	= shared_ovl_iterate,
-+	.iterate_shared	= ovl_iterate,
- 	.llseek		= ovl_dir_llseek,
- 	.fsync		= ovl_dir_fsync,
- 	.release	= ovl_dir_release,
+ 		fput(od->upperfile);
 -- 
 2.44.0
 
