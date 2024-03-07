@@ -1,55 +1,51 @@
-Received: from mail-oi1-f182.google.com (mail-oi1-f182.google.com [209.85.167.182])
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D8E9C12BEA5;
-	Thu,  7 Mar 2024 13:11:51 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BE4B112E1C9
+	for <linux-unionfs@vger.kernel.org>; Thu,  7 Mar 2024 14:09:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709817113; cv=none; b=mQeBHIgWJD5E9SYtHXbOy7AwqVcpkqH8rVvMD4S2gthooL8J1puCWWdbe13c/5fPxlp8J8t7NhkUqMLXWHn9u9yvO5vz0vtNob30t0KQcO1nBSM9U2PJUEyacnrnOVPXqM3Y5GZF+0w+w4LfQLhi7gI5WqtQCW/CaNc+XQW3qsI=
+	t=1709820598; cv=none; b=MWZYQqfFUqrsc3O6WQiiUSTQglZPwO+mfgsTueN7KG/kAbeKbfWO+BaKNl1NRJ1QxOZGXgfjm4CXFNd4EBD8T5ZxKFtIHPxrll9dDS0epqkYA68Pw82qxu8q0QtaifJHr0SZDXK0NEv6DajYsox7aZJ8AGPBEL4vg3J+9ZbOS3U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709817113; c=relaxed/simple;
-	bh=Lq1QaYjyQtipQGGnO5MJnsz0Xw6OzrlQXM57+bjinhU=;
+	s=arc-20240116; t=1709820598; c=relaxed/simple;
+	bh=2ED+9pdp+YlVQvsPdC3jIxYY6GPhCNFl2+qV+Rc3zPw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=cPKmaxiVTbUHrX8ByFRP2TckRKcRWwC76/o3QvNKEMf4iKK1kxDa0Nu0B0pnu+CWYzeHgCF2V9QSg9KWwY4zSTghymoCPe5nRzX64T1FWfT4U8FWlJydifBxlJt2yNLmBkhpO81K2PSg2RxnBRBTBU1AwzakNrPuMlOgqCGxk1M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=PkD2Jnr8; arc=none smtp.client-ip=209.85.167.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=nHTshUwn/gr7gkPthxTxo7XXsDO0SwE81HOP8hqGkYURyRpHwF/+NStGz1z4fHVb169nYSCow7OXL+uXModZC2CtmLHQray6bKFFp8WKWfy4rf6iPRjyEoj1FoBIU+E9Re5omwTU3BDLssxZdfAsAnH9fZ/F0sYPAFEt1u2Byqg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=RUIA9eXa; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="PkD2Jnr8"
-Received: by mail-oi1-f182.google.com with SMTP id 5614622812f47-3c1f582673bso357125b6e.2;
-        Thu, 07 Mar 2024 05:11:51 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="RUIA9eXa"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a44628725e3so130344066b.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 07 Mar 2024 06:09:55 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1709817111; x=1710421911; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=mPhcYqdeJXp1pNyTSDJFlxDv04tur97y6OKdkVUZ8O0=;
-        b=PkD2Jnr88AqYKiG4flKAXlKOJJR4az0MFD/cnfs6bhE0T1k7DzHfoos5T23DfFCytD
-         ob5GUKElucEPHkjTWHRBZQKr7qKXrGE06ljxxIz/M3IALkd/+tJLm4wfKTPPUWse2V21
-         20kx5qUAmkEWHjWiX/8FpkbDFEAGvbtmQoj8r5kK2Sf5kLh2cz3QGAkFNac44DFcgz1M
-         qRhkFbh3bk2iWVPN05uicWg38sZrwnpibPcsfJdakPtF13TGel7nfTJPJSChdh6vTUDf
-         gxndYWodzsgaYu8FlJrSzY8iNFkW1omna1ibeHF4zIFb57XjgR2TBbSVSxi48Tx5cQ2v
-         /fEw==
+        d=szeredi.hu; s=google; t=1709820594; x=1710425394; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=5k7ZkrPt1CzNbrUtsGIPmHNYMv0hYyJAkoPlVK0NqiY=;
+        b=RUIA9eXaZ/54p7xnPUJb5EOqvPuOyUBPHRpPghlkZVuDDVBTK2+5ksBKvHqZoTISXj
+         Dgo3sXOTU/tDjDyFILkY9aY0rm3NGQ9hLqHAeyAe61ky+mQlF6bb2/LOA31APpkHdykx
+         JArR8M5Fu484h2MeotpoTGZ/9oBIExoiY9eIw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709817111; x=1710421911;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=mPhcYqdeJXp1pNyTSDJFlxDv04tur97y6OKdkVUZ8O0=;
-        b=HutAHpfa4gmyHSsueJdjOJynYkyJ68XUGCDIURXAsO8eps5SfQD6zpnUELflLYtk6E
-         sKlT2kGeg9ygpvdzlvpP5f6Qfq81ODuumGEhjOPMwLy1+yZEKhAPUx8zmp7ZLcGZwuHi
-         Qf2vg2fty36YFaPeiLrI+g59+piv3aw1yQWYUcjPIN3pWItxp514c4YzrPydYC2PLK6j
-         x6XCNY5eYdsBeAA1JSQlHgJjapE1rp1WedVYlUZ1zPhZMhGLMTnhl66KBo6OCtuRgFul
-         Pp4qFPbe7U7PkjELHWVPyXrdpm9bjVGdW7+fy1i60so2Ok76IiqbOAvyqzFgo+0BHbjx
-         1b5A==
-X-Forwarded-Encrypted: i=1; AJvYcCXRubQiJnOI2Hmh0LlA0/JpRWIHAoFS4q2RP5yVSjq7wyGIils+OYaKwPSVh+OYQG8WcdEpQEsWysfDAtXmbIkZMdEFlbk+PGler9QUZw==
-X-Gm-Message-State: AOJu0YzJUphWhsdv6rtjRvnLqf7tlMA8OQW7LLNweDAl2qet9f2oH/wI
-	52g2FIFG7AYsUK9haE4OGT8bdczAT45zOlIH1zBgQXR4OYitW/AJnFFmEAHWPY1Qibx2hXlOSHY
-	XA0IMjovEDykn6P4GzLvvIUTCrnw=
-X-Google-Smtp-Source: AGHT+IH3sl/BuWLYIAK5yZS7lup1zcZ94HRzH2euqnSOcUy8Xg/EOg/31r1J0NsdITTuUtbDUEfRIJTZlqJ3v0PnwME=
-X-Received: by 2002:a05:6870:b9c7:b0:21e:8b52:8d77 with SMTP id
- iv7-20020a056870b9c700b0021e8b528d77mr7779833oab.20.1709817110790; Thu, 07
- Mar 2024 05:11:50 -0800 (PST)
+        d=1e100.net; s=20230601; t=1709820594; x=1710425394;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=5k7ZkrPt1CzNbrUtsGIPmHNYMv0hYyJAkoPlVK0NqiY=;
+        b=qmE2GuN8ZMXxL6D7+1JH8v0S68aFwfeRq3u5GQ6/oPlIIR6zPVMPltbdV3aBOzB9iJ
+         ou0yvWZzqvGYZ1zrAB1LfokZqmEWBJxKHq7KgI4N38s4Gp/B/e0JyyXUXXkVOpw+Ei9F
+         tr6D/iTdhXv8eAjkrgUn94R4FCz42mvb+zk0JMoyapddIN2OODinRkk6Lg3LgGtwpRat
+         30YjJEuUiOacaPrcYpS/EwOFsYE2ce/90iRlzdt1CwaIm6siSjpI7GQbrn/DMApues+M
+         Oqhp3v1GOUaaviMuMHSKSH5XVm6I+Z/o4nX2dosSPmxePqS5QNShsPuMRDzZ/mLsXLFN
+         rZrg==
+X-Forwarded-Encrypted: i=1; AJvYcCU4HAuqTD5PcgdSiaU5rZP21SZWG+oZplowf1KWXpfMGnFMRW8rVvDyCdIIVhWza2zFDq9eQBIXBS6Q6m2Rg9sox4zdHCXudw5nr96uzQ==
+X-Gm-Message-State: AOJu0Yy+TmvspBR675uQVj3Rt8aB5Fea0qsgIimXqd/vyGQHsBb8Wmeq
+	wlx8aAY9ajouIeRuKamZSz9oamP0/yYlWzq7bbwAhHd4FTfWynMq/RvJMUAV8YUVOEHp39rGC6R
+	HaWucHNCSgTbOu1zO5i+ohJMo9rGgQlY8CfBW1UQK69aH1XQX
+X-Google-Smtp-Source: AGHT+IHy9vEMpd5ryDhCr2qNIwpuQ3eni1u7LMwkl0/c3KSpoSzMmlX8V/S0jYfU9BwR9jOWmgDVsjfQsGejsR49dZw=
+X-Received: by 2002:a17:906:ae95:b0:a44:8f3a:794f with SMTP id
+ md21-20020a170906ae9500b00a448f3a794fmr12076477ejb.42.1709820593816; Thu, 07
+ Mar 2024 06:09:53 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -57,67 +53,80 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20240307110217.203064-1-mszeredi@redhat.com> <20240307110217.203064-3-mszeredi@redhat.com>
-In-Reply-To: <20240307110217.203064-3-mszeredi@redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 7 Mar 2024 15:11:39 +0200
-Message-ID: <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com>
+ <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Thu, 7 Mar 2024 15:09:42 +0100
+Message-ID: <CAJfpegsQrwuG7Cm=1WaMChUg_ZtBE9eK-jK1m_69THZEG3JkBQ@mail.gmail.com>
 Subject: Re: [PATCH 3/4] ovl: only lock readdir for accessing the cache
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 7, 2024 at 1:02=E2=80=AFPM Miklos Szeredi <mszeredi@redhat.com>=
- wrote:
+On Thu, 7 Mar 2024 at 14:11, Amir Goldstein <amir73il@gmail.com> wrote:
+
+> I did not see a cover letter, so I am assuming that the reason for this change
+> is to improve concurrent readdir.
+
+That's a nice to have, but the real reason was just to get rid of the FIXME.
+
+> If I am reading this correctly users can only iterate pure real dirs in parallel
+> but not merged and impure dirs. Right?
+
+Right.
+
+> Is there a reason why a specific cached readdir version cannot be iterated
+> in parallel?
+
+It could, but it would take more thought (ovl _cache_update() may
+modify a cache entry).
+
 >
-> The only reason parallel readdirs cannot run on the same inode is shared
-> access to the readdir cache.
+> >
+> > Move lock/unlock to only protect the cache.  Exception is the refcount
+> > which now uses atomic ops.
+> >
+> > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> > ---
+> >  fs/overlayfs/readdir.c | 34 ++++++++++++++++++++--------------
+> >  1 file changed, 20 insertions(+), 14 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+> > index edee9f86f469..b98e0d17f40e 100644
+> > --- a/fs/overlayfs/readdir.c
+> > +++ b/fs/overlayfs/readdir.c
+> > @@ -245,8 +245,10 @@ static void ovl_cache_put(struct ovl_dir_file *od, struct inode *inode)
+> >         struct ovl_dir_cache *cache = od->cache;
+> >
+> >         if (refcount_dec_and_test(&cache->refcount)) {
+>
+> What is stopping ovl_cache_get() to be called now, find a valid cache
+> and increment its refcount and use it while it is being freed?
+>
+> Do we need refcount_inc_not_zero() in ovl_cache_get()?
 
-I did not see a cover letter, so I am assuming that the reason for this cha=
-nge
-is to improve concurrent readdir.
+Yes.  But it would still be racy (winning ovl_cache_get() would set
+oi->cache, then losing ovl_cache_put() would reset it).  It would be a
+harmless race, but I find it ugly, so I'll just move the locking
+outside of the refcount_dec_and_test().  It's not a performance
+sensitive path.
 
-If I am reading this correctly users can only iterate pure real dirs in par=
-allel
-but not merged and impure dirs. Right?
-
-Is there a reason why a specific cached readdir version cannot be iterated
-in parallel?
 
 >
-> Move lock/unlock to only protect the cache.  Exception is the refcount
-> which now uses atomic ops.
+> > +               ovl_inode_lock(inode);
+> >                 if (ovl_dir_cache(inode) == cache)
+> >                         ovl_set_dir_cache(inode, NULL);
+> > +               ovl_inode_unlock(inode);
+> >
+> >                 ovl_cache_free(&cache->entries);
+> >                 kfree(cache);
 >
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/overlayfs/readdir.c | 34 ++++++++++++++++++++--------------
->  1 file changed, 20 insertions(+), 14 deletions(-)
->
-> diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-> index edee9f86f469..b98e0d17f40e 100644
-> --- a/fs/overlayfs/readdir.c
-> +++ b/fs/overlayfs/readdir.c
-> @@ -245,8 +245,10 @@ static void ovl_cache_put(struct ovl_dir_file *od, s=
-truct inode *inode)
->         struct ovl_dir_cache *cache =3D od->cache;
->
->         if (refcount_dec_and_test(&cache->refcount)) {
+> P.S. A guard for ovl_inode_lock() would have been useful in this patch set,
+> but it's up to you if you want to define one and use it.
 
-What is stopping ovl_cache_get() to be called now, find a valid cache
-and increment its refcount and use it while it is being freed?
+Will look into it.
 
-Do we need refcount_inc_not_zero() in ovl_cache_get()?
+Thanks for the review.
 
-> +               ovl_inode_lock(inode);
->                 if (ovl_dir_cache(inode) =3D=3D cache)
->                         ovl_set_dir_cache(inode, NULL);
-> +               ovl_inode_unlock(inode);
->
->                 ovl_cache_free(&cache->entries);
->                 kfree(cache);
-
-P.S. A guard for ovl_inode_lock() would have been useful in this patch set,
-but it's up to you if you want to define one and use it.
-
-Thanks,
-Amir.
+Miklos
