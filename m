@@ -1,81 +1,161 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.223.131])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0184812F36D
-	for <linux-unionfs@vger.kernel.org>; Thu,  7 Mar 2024 16:13:48 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01CF012DDBE;
+	Thu,  7 Mar 2024 17:10:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.131
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1709828030; cv=none; b=i4gWnhllcCDezJ5jvWIJubu+ubpVgqZkuifPqRiuSD6/lxHdfxxQ0RMPOEoHW0ENU+GMrx5gxGgJ8RUaFyKaJuBIMV4NtTSGRNJjwHEvZ7b3mbTP/cveLLQclqgi8l8smCSu7U0vERyXIF9wKGlJZXKbqhwDpLtSGQvlkeDe4+A=
+	t=1709831438; cv=none; b=OsCTNYx8sEZK42zBfV+JuBmOQbdJUk4uQL/iNjo/Km3+CU/Q2l3b9h61hatHoAe74Y8Uuh+k2RgSXBItXpxSO8slZeyb7WJgUwcKGtMN2LKD8UoCdrcwzrfkP51Nl5X61zEoZyXPcLK4TaMKQOc1mcv3rdvydOhJluxBUmQM2jk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1709828030; c=relaxed/simple;
-	bh=i0U24/urDM3ZStm8ZkCHIYCnC1hztYjfNpKOAHUwB5o=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=AujP4D/xv5625zBQRgcwTortKTP+Lsh/LGu2H4vt7ynGR4ULh8BrhXwDuuCB/0sSuIu2tODmSho854gJj8fvVskoQ/Kuu23lptUq1oi/ftP3Y5sVIPk3jg69UvKe5iZkaKasE/HfHgNiN3We0YE3mGusbpGTIJnaGTYF7mAeggA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=HBlENkZv; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1709831438; c=relaxed/simple;
+	bh=ePRxzCU8k8EGnokZBB4+4ln+F7jpIw9Pac4V0NZBhg8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=eugG1rpA4GUOu2FVG6dL/jklqMz+rcoVq85qjNeM5n5aVs/l1fG6VxNP7rvHXVPK5bIpCkCFy8BY3doUaExCssdzyFqV12QoWu8c1gapE83RLPggNChqmHFHC4at/722InQAE4BsP6z5CknfcGJweZ1YOeOxqoEz2Sz2w592NCo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de; spf=pass smtp.mailfrom=suse.de; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0VDieRCE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KmbEfxau; dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b=0VDieRCE; dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b=KmbEfxau; arc=none smtp.client-ip=195.135.223.131
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=suse.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="HBlENkZv"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-a441d7c6125so122403866b.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 07 Mar 2024 08:13:48 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1709828027; x=1710432827; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=i0U24/urDM3ZStm8ZkCHIYCnC1hztYjfNpKOAHUwB5o=;
-        b=HBlENkZvuZMko93KWDs3qXNVESLeeYLQdqfafMaCTE/0a+2/RWu3goeni1mbPHTl1Y
-         JubgKNHkqDCJaP9kJMvzpMFg5GMh9Lzb5T8Yep3TAaQHM7zq7iX5Ks4UBr3Ud2Fyr30v
-         wTXoGX59BLiDJPklUTL8f19yO4OQL9FjJ6aKo=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1709828027; x=1710432827;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=i0U24/urDM3ZStm8ZkCHIYCnC1hztYjfNpKOAHUwB5o=;
-        b=FoxQEWHp0yTGytk+Doh5dnVxI9FVjtjYK8Rjv0QAG3lnCMH4Jcfp3Yup/y7s6lwTGG
-         kOFXeyhcmolIo2rcqbKAhC1vuLZtBgH4zhfzX5uF65Sp9xE8U/5pB8rayZMium7XkYgk
-         hiLItsLHkujIcNoQl1+cP8+HrZU1/yzlcTFg2xZhBkeklnkyHLZFjBKY2IlVSZYBYTfB
-         9Fh4suk/TSyCV+BS13IIocw3zCndJe0rIVeniKGgL3Rl/oorYYy2XM1GlJXGdVFyvyMo
-         hgtyUNwk9bBS78FW8+zG+jUj7fcs4WVt2cCTfer6VtRVMM5XhDpBcG0GrV/H2lLz/dUA
-         QGSQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXQAwb9u2NSssj62lbE33mYgeSzeWc8DNQqyWkC7Xa8/TFjcY61wyOpuzm39AhqN/H/RThkaiUvwPlQPOjdfzLl/9eZa0ofEd8wE1SlTA==
-X-Gm-Message-State: AOJu0YxWxWDXCAOxT5YdfuufvoP748oVUzODrs/CjNLEpve0c4vRqk2C
-	emjUV9ptI2wiVP3/XeY7qVObXpzm5Bn2aDEldAACWq23+Ty9SaM1ZjkKnSPJg6xx9l9EqDGQQjg
-	08PqEXO8PGd2pbrmP8cAs2uY5LO+ftPOISc223g==
-X-Google-Smtp-Source: AGHT+IHk/9+/evK2ilREFWV6zHusdSb+zwWTXNf21peTvmXuM5pPqvESUAKu6ZWeHfE2GiSv/7MakcpK2jorozDiHlo=
-X-Received: by 2002:a17:906:2417:b0:a45:ad5d:98ac with SMTP id
- z23-20020a170906241700b00a45ad5d98acmr5201835eja.44.1709828027330; Thu, 07
- Mar 2024 08:13:47 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0VDieRCE";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KmbEfxau";
+	dkim=pass (1024-bit key) header.d=suse.de header.i=@suse.de header.b="0VDieRCE";
+	dkim=permerror (0-bit key) header.d=suse.de header.i=@suse.de header.b="KmbEfxau"
+Received: from imap1.dmz-prg2.suse.org (imap1.dmz-prg2.suse.org [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out2.suse.de (Postfix) with ESMTPS id A4AB45C6DB;
+	Thu,  7 Mar 2024 16:02:31 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1709827351; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
+	b=0VDieRCEz8N+eqziEuOrjkmp9rwnlUU6RmpL8KKW9YTtMiK4Pet04wWoVV/M9JWLdHf7/F
+	5YDfyx4RrhAjsaygNRf43qQzl0ZY7Ss7ueyPa8s5F+Big6p+BewIHJHDJb7ftcML9TeWO5
+	l6fcfT/OSoLdmEXNm8xbiMcUyFI9C3Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1709827351;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
+	b=KmbEfxauWpnJYO0HstETm2VVp1i90gxDf8EetM7+IV5rNErjCxflVV6iWl0+6bTCLQjt32
+	OwHm1cEBa2y8LkDQ==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+	t=1709827351; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
+	b=0VDieRCEz8N+eqziEuOrjkmp9rwnlUU6RmpL8KKW9YTtMiK4Pet04wWoVV/M9JWLdHf7/F
+	5YDfyx4RrhAjsaygNRf43qQzl0ZY7Ss7ueyPa8s5F+Big6p+BewIHJHDJb7ftcML9TeWO5
+	l6fcfT/OSoLdmEXNm8xbiMcUyFI9C3Q=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+	s=susede2_ed25519; t=1709827351;
+	h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+	 mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=vjrVxieXuRhTZiWnKCpH9d/jIcN0kC0d2yC48QLOibA=;
+	b=KmbEfxauWpnJYO0HstETm2VVp1i90gxDf8EetM7+IV5rNErjCxflVV6iWl0+6bTCLQjt32
+	OwHm1cEBa2y8LkDQ==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id D6B3A136CB;
+	Thu,  7 Mar 2024 16:02:30 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id aG4gMRbl6WXtcwAAD6G6ig
+	(envelope-from <lhenriques@suse.de>); Thu, 07 Mar 2024 16:02:30 +0000
+Received: from localhost (brahms.olymp [local])
+	by brahms.olymp (OpenSMTPD) with ESMTPA id 48155153;
+	Thu, 7 Mar 2024 16:02:29 +0000 (UTC)
+From: Luis Henriques <lhenriques@suse.de>
+To: Theodore Ts'o <tytso@mit.edu>,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	Alexander Viro <viro@zeniv.linux.org.uk>,
+	Christian Brauner <brauner@kernel.org>,
+	Jan Kara <jack@suse.cz>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Cc: linux-ext4@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Luis Henriques <lhenriques@suse.de>
+Subject: [PATCH v2 1/3] fs_parser: add helper to define parameters with string and flag types
+Date: Thu,  7 Mar 2024 16:02:23 +0000
+Message-ID: <20240307160225.23841-2-lhenriques@suse.de>
+In-Reply-To: <20240307160225.23841-1-lhenriques@suse.de>
+References: <20240307160225.23841-1-lhenriques@suse.de>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240307110217.203064-1-mszeredi@redhat.com> <20240307110217.203064-3-mszeredi@redhat.com>
- <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com> <CAJfpegsQrwuG7Cm=1WaMChUg_ZtBE9eK-jK1m_69THZEG3JkBQ@mail.gmail.com>
-In-Reply-To: <CAJfpegsQrwuG7Cm=1WaMChUg_ZtBE9eK-jK1m_69THZEG3JkBQ@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 7 Mar 2024 17:13:35 +0100
-Message-ID: <CAJfpegv8RyP_FaCWGZPkhQoEV2_WcM0_z5gwb=mVELNcExY5zQ@mail.gmail.com>
-Subject: Re: [PATCH 3/4] ovl: only lock readdir for accessing the cache
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Authentication-Results: smtp-out2.suse.de;
+	none
+X-Spam-Level: 
+X-Spam-Score: -0.30
+X-Spamd-Result: default: False [-0.30 / 50.00];
+	 ARC_NA(0.00)[];
+	 RCVD_VIA_SMTP_AUTH(0.00)[];
+	 FROM_HAS_DN(0.00)[];
+	 TO_DN_SOME(0.00)[];
+	 R_MISSING_CHARSET(2.50)[];
+	 FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	 MIME_GOOD(-0.10)[text/plain];
+	 TO_MATCH_ENVRCPT_ALL(0.00)[];
+	 REPLY(-4.00)[];
+	 BROKEN_CONTENT_TYPE(1.50)[];
+	 NEURAL_HAM_LONG(-1.00)[-1.000];
+	 RCVD_COUNT_THREE(0.00)[4];
+	 DKIM_SIGNED(0.00)[suse.de:s=susede2_rsa,suse.de:s=susede2_ed25519];
+	 NEURAL_HAM_SHORT(-0.20)[-1.000];
+	 RCPT_COUNT_TWELVE(0.00)[12];
+	 MID_CONTAINS_FROM(1.00)[];
+	 DBL_BLOCKED_OPENRESOLVER(0.00)[suse.de:email];
+	 FREEMAIL_TO(0.00)[mit.edu,dilger.ca,zeniv.linux.org.uk,kernel.org,suse.cz,szeredi.hu,gmail.com];
+	 FUZZY_BLOCKED(0.00)[rspamd.com];
+	 FROM_EQ_ENVFROM(0.00)[];
+	 MIME_TRACE(0.00)[0:+];
+	 RCVD_TLS_LAST(0.00)[];
+	 BAYES_HAM(-0.00)[27.00%]
+X-Spam-Flag: NO
 
-On Thu, 7 Mar 2024 at 15:09, Miklos Szeredi <miklos@szeredi.hu> wrote:
->
-> On Thu, 7 Mar 2024 at 14:11, Amir Goldstein <amir73il@gmail.com> wrote:
+Add a new helper macro that defines two new parameters, both with the same
+name, but one of type 'string' and another of type 'flag'.  The 'string'
+parameter may also be empty (i.e. without value).  In practice this helper
+allows a filesystem to easily define a parameter that can be empty (flag)
+or have a value (string).
 
-> > P.S. A guard for ovl_inode_lock() would have been useful in this patch set,
-> > but it's up to you if you want to define one and use it.
+Suggested-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Luis Henriques <lhenriques@suse.de>
+---
+ include/linux/fs_parser.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-I like the concept of guards, though documentation and examples are
-lacking and the API is not trivial to understand at first sight.
-
-For overlayfs I'd start with ovl_override_creds(), since that is used
-much more extensively than ovl_inode_lock().
-
-Thanks,
-Miklos
+diff --git a/include/linux/fs_parser.h b/include/linux/fs_parser.h
+index 01542c4b87a2..f582fb7bdc22 100644
+--- a/include/linux/fs_parser.h
++++ b/include/linux/fs_parser.h
+@@ -131,5 +131,13 @@ static inline bool fs_validate_description(const char *name,
+ #define fsparam_bdev(NAME, OPT)	__fsparam(fs_param_is_blockdev, NAME, OPT, 0, NULL)
+ #define fsparam_path(NAME, OPT)	__fsparam(fs_param_is_path, NAME, OPT, 0, NULL)
+ #define fsparam_fd(NAME, OPT)	__fsparam(fs_param_is_fd, NAME, OPT, 0, NULL)
++/*
++ * Define two parameters with the same name, with types string and flag.  The
++ * string parameter can be empty, and thus it effectively allows the parameter
++ * to have a value or to be empty.
++ */
++#define fsparam_string_or_flag(NAME, OPT)				\
++	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL), \
++	fsparam_flag(NAME, OPT)
+ 
+ #endif /* _LINUX_FS_PARSER_H */
