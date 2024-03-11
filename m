@@ -1,46 +1,45 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EAF73DB8C;
-	Mon, 11 Mar 2024 13:25:34 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC5533070;
+	Mon, 11 Mar 2024 13:52:36 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710163535; cv=none; b=iYG6RknG8Nk847c/g3aSjAcdgducdeqD4vRj3FRlZR+lXwBjgCHYgWdFX4enX9B5rWFjBCNRk73FTylfZL3P4b3cHBdlcbyb0Z0SzIu1PPNhGNXy+WaS42P6NpnJgpoL8g/8boEe2KQaP1JIMrPt0CfgbjWpkTFXHajhP9pXbEI=
+	t=1710165156; cv=none; b=cg6CmMDJ6uZcycQynW9a2cJ/MpldkyzNYm1+Clpoz5b2Td0xQOGDtUSmPF3KViHfFYi2yHt6psztGbnf43h8bfzx8taLfnYLO+pIk8JJpHtoyL2Fp8iu5rnA0Z3ZW4FzXMNXL87bZH2T0nEIr7Gnevb2cD/qCHJSE5U32dFC2Qo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710163535; c=relaxed/simple;
-	bh=jh8C6IjONAEpPE4pAsXlSyxFvnZp3C+OGYnPtDHDRvc=;
+	s=arc-20240116; t=1710165156; c=relaxed/simple;
+	bh=h6afG13XMRMdLzEs28dWZKjJEqPyHjcxouc4tzKmG1M=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ESxvVKSrJeLoiTyerbUyHbMjPIHtOetXnESNk7+9vvn0ISbsoHe4ariCY+ODYo3iszu0IuVCyUd1n/P49dRzgZ/3USKYKOvL/a1o72rbZWJfgNpOKCRHi1taTjZlmf0Ok9375DFtqOUeU/mWYeia2SQsTKl4lf6KoVCTa94mowQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=mwnzFCBi; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=Yu8Pr7TM6xc0b6nQEopYEr2uebJe7CLv6Ea25yD0IciTBOmc7YQXnyO8/thw5wxqDGhElovOScJSQajdthSQAxh3mkgDwTtZbTuHb1dXvj2Q9L+P45iCNEPW5QW6BO/e9013J7yJWVHvUD5sndSfbJJ+9jW5iz6O/A3FIo81cxw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WuwmEZGi; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="mwnzFCBi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3576C43399;
-	Mon, 11 Mar 2024 13:25:31 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WuwmEZGi"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80CE8C433F1;
+	Mon, 11 Mar 2024 13:52:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1710163534;
-	bh=jh8C6IjONAEpPE4pAsXlSyxFvnZp3C+OGYnPtDHDRvc=;
+	s=k20201202; t=1710165156;
+	bh=h6afG13XMRMdLzEs28dWZKjJEqPyHjcxouc4tzKmG1M=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=mwnzFCBihdfY9Ihc3IM0WK90QEfkRpoBbEPuzpQkaEEC0Jj8COOjxpEvekRrHvxmR
-	 +6mEHXdRwONRkxuADlDvopuPjObUeoCSHoJJp2j7LrTwfxLZqVI4JgfoBIuq294nnM
-	 d4Ex8ityqr0hPVqj5oOMCAN0gQWk0Szb32qrnWFlBPSed91O159o56hiSGaML9Ohse
-	 pn6F3fThSqBTh3Di/XTHGAsnJp0iABPPzR5dpVcQaT94JFSpBGjKgiu7CYhBW/4NM+
-	 RNtqP1Iw0+KtulPI3eQnHEbUJzhdbKY0z5bi0X8NV7niBDDK9t1FlRb3ttUP3eUN/V
-	 WNhasm8XnjpZg==
-Date: Mon, 11 Mar 2024 14:25:28 +0100
+	b=WuwmEZGiZCzLxHwf+V9pn5GzIcRUVpW+D3unKvoRrq5oTXPvedjoBvgtM0xGy+Fig
+	 SKWMJnfIZ9SVWG9UpmUJjOI2U+wd2kcWMNDEZY1vZw+YVskYlTj3AaBUvkZD4gFp0R
+	 yacw2KKHy4jpkN8c22E/1vLCX+luYw6cTNlv0v34y90u67UoFseiBU+6elrqE0rUkd
+	 o/JDqvTkgEEpLAGWaiTa+UsUpllIFOszVg96GRMt2EGC1YjFG28E0pvKWTuVVPAYR3
+	 gipFGQnVuixvS03+Xy6+bVl7OazSpDdvcKbRz1n5XOb2S23WQGqo9gzvfKN3rtAZc1
+	 HdrBe5ZWg76wA==
+Date: Mon, 11 Mar 2024 14:52:31 +0100
 From: Christian Brauner <brauner@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Luis Henriques <lhenriques@suse.de>, Theodore Ts'o <tytso@mit.edu>, 
-	Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>, linux-ext4@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 3/3] ovl: fix the parsing of empty string mount
- parameters
-Message-ID: <20240311-weltmeere-gesiegt-798c4201c3f8@brauner>
-References: <20240307160225.23841-1-lhenriques@suse.de>
- <20240307160225.23841-4-lhenriques@suse.de>
- <CAJfpegtQSi0GFzUEDqdeOAq7BN2KvDV8i3oBFvPOCKfJJOBd2g@mail.gmail.com>
- <87le6p6oqe.fsf@suse.de>
- <CAJfpeguN9nMJGJzx8sgwP=P9rJFVkYF5rVZOi_wNu7mj_jfBsA@mail.gmail.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, 
+	Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Subject: Re: [PATCH 3/4] ovl: only lock readdir for accessing the cache
+Message-ID: <20240311-angreifbar-herleiten-a13b6c6d29ed@brauner>
+References: <20240307110217.203064-1-mszeredi@redhat.com>
+ <20240307110217.203064-3-mszeredi@redhat.com>
+ <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com>
+ <CAJfpegsQrwuG7Cm=1WaMChUg_ZtBE9eK-jK1m_69THZEG3JkBQ@mail.gmail.com>
+ <CAJfpegv8RyP_FaCWGZPkhQoEV2_WcM0_z5gwb=mVELNcExY5zQ@mail.gmail.com>
+ <CAOQ4uxj9=FRnN-qiXdt5PFp15Nx9Jfqx3+8_eSSGy_xgHQ0tHA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -49,69 +48,33 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAJfpeguN9nMJGJzx8sgwP=P9rJFVkYF5rVZOi_wNu7mj_jfBsA@mail.gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxj9=FRnN-qiXdt5PFp15Nx9Jfqx3+8_eSSGy_xgHQ0tHA@mail.gmail.com>
 
-On Mon, Mar 11, 2024 at 11:53:03AM +0100, Miklos Szeredi wrote:
-> On Mon, 11 Mar 2024 at 11:34, Luis Henriques <lhenriques@suse.de> wrote:
+On Thu, Mar 07, 2024 at 07:31:35PM +0200, Amir Goldstein wrote:
+> On Thu, Mar 7, 2024 at 6:13 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
 > >
-> > Miklos Szeredi <miklos@szeredi.hu> writes:
-> >
-> > > On Thu, 7 Mar 2024 at 19:17, Luis Henriques <lhenriques@suse.de> wrote:
-> > >>
-> > >> This patch fixes the usage of mount parameters that are defined as strings
-> > >> but which can be empty.  Currently, only 'lowerdir' parameter is in this
-> > >> situation for overlayfs.  But since userspace can pass it in as 'flag'
-> > >> type (when it doesn't have a value), the parsing will fail because a
-> > >> 'string' type is assumed.
+> > On Thu, 7 Mar 2024 at 15:09, Miklos Szeredi <miklos@szeredi.hu> wrote:
 > > >
-> > > I don't really get why allowing a flag value instead of an empty
-> > > string value is fixing anything.
-> > >
-> > > It just makes the API more liberal, but for what gain?
+> > > On Thu, 7 Mar 2024 at 14:11, Amir Goldstein <amir73il@gmail.com> wrote:
 > >
-> > The point is that userspace may be passing this parameter as a flag and
-> > not as a string.  I came across this issue with ext4, by doing something
-> > as simple as:
+> > > > P.S. A guard for ovl_inode_lock() would have been useful in this patch set,
+> > > > but it's up to you if you want to define one and use it.
 > >
-> >     mount -t ext4 -o usrjquota= /dev/sda1 /mnt/
+> > I like the concept of guards, though documentation and examples are
+> > lacking and the API is not trivial to understand at first sight.
 > >
-> > (actually, the trigger was fstest ext4/053)
+> > For overlayfs I'd start with ovl_override_creds(), since that is used
+> > much more extensively than ovl_inode_lock().
 > >
-> > The above mount should succeed.  But it fails because 'usrjquota' is set
-> > to a 'flag' type, not 'string'.
 > 
-> The above looks like a misparsing, since the equals sign clearly
-> indicates that this is not a flag.
+> OK. let's wait for this to land first:
+> https://lore.kernel.org/linux-unionfs/20240216051640.197378-1-vinicius.gomes@intel.com/
+> 
+> As I wrote in the review of v2,
+> I'd rather that Christian will review and pick up the non-overlayfs bits,
+> which head suggested and only after that will I review the overlayfs
+> patch.
 
-Yeah, so with that I do agree. But have you read my reply to the other
-thread? I'd like to hear your thoughs on that. The problem is that
-mount(8) currently does:
-
-fsconfig(3, FSCONFIG_SET_FLAG, "usrjquota", NULL, 0) = -1 EINVAL (Invalid argument)
-
-for both -o usrjquota and -o usrjquota=
-
-So we need a clear contract with userspace or the in-kernel solution
-proposed here. I see the following options:
-
-(1) Userspace must know that mount options such as "usrjquota" that can
-    have no value must be specified as "usrjquota=" when passed to
-    mount(8). This in turn means we need to tell Karel to update
-    mount(8) to recognize this and infer from "usrjquota=" that it must
-    be passed as FSCONFIG_SET_STRING.
-
-(2) We use the proposed in-kernel solution where relevant filesystems
-    get the ability to declare this both as a string or as a flag value
-    in their parameter parsing code. That's not a VFS generic thing.
-    It's a per-fs thing.
-
-(3) We burden mount(8) with knowing what mount options are string
-    options that are allowed to be empty. This is clearly the least
-    preferable one, imho.
-
-(4) We add a sentinel such as "usrjquota=default" or
-    "usrjquota=auto" as a VFS level keyword.
-
-In any case, we need to document what we want:
-
-https://github.com/brauner/man-pages-md/blob/main/fsconfig.md
+On it. Had been on my queue but didn't get around to it. I wanted to
+play with this a bit.
