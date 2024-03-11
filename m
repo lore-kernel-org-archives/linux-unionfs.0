@@ -1,80 +1,127 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8FC5533070;
-	Mon, 11 Mar 2024 13:52:36 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C1F63FBBE
+	for <linux-unionfs@vger.kernel.org>; Mon, 11 Mar 2024 14:39:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710165156; cv=none; b=cg6CmMDJ6uZcycQynW9a2cJ/MpldkyzNYm1+Clpoz5b2Td0xQOGDtUSmPF3KViHfFYi2yHt6psztGbnf43h8bfzx8taLfnYLO+pIk8JJpHtoyL2Fp8iu5rnA0Z3ZW4FzXMNXL87bZH2T0nEIr7Gnevb2cD/qCHJSE5U32dFC2Qo=
+	t=1710167995; cv=none; b=bD4crgyaYQjHmIfj0cTf/M+KF5HF8F18fnN8BE5tpCnPUZdbxfYm+xsivlJNQTocd+8NSYnUGhl964/ZiMTgYk+eYhnRen32su9ziAz8QFNPLQvkUqwMQHPo91FWvMzIKnDN0/byy7yw+Xz9Cp3vl8WLXzdm4HrKKne0YTbNLWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710165156; c=relaxed/simple;
-	bh=h6afG13XMRMdLzEs28dWZKjJEqPyHjcxouc4tzKmG1M=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Yu8Pr7TM6xc0b6nQEopYEr2uebJe7CLv6Ea25yD0IciTBOmc7YQXnyO8/thw5wxqDGhElovOScJSQajdthSQAxh3mkgDwTtZbTuHb1dXvj2Q9L+P45iCNEPW5QW6BO/e9013J7yJWVHvUD5sndSfbJJ+9jW5iz6O/A3FIo81cxw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=WuwmEZGi; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710167995; c=relaxed/simple;
+	bh=u4RbZxYkIUcZLlV/Aac1nmArqd0mIIwdpdWDUU4vGBc=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=WOn9de0p9HkR6sQG5tTPf+oIn2JYfo2rhxiztwuRIaZkP/YbJ60zsNAGRfcD4jg4jxXcj3NqoPJXQk4i4RE/cLD03NPQJX/XXGEhj0nqS06AjKPtsqq4d/M27vo/zoO5IWZ7gvvV8UrLgkqhU6SDCEQEFC2/oz4gY8jGTH8f5gs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=FtwoKkDH; arc=none smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="WuwmEZGi"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80CE8C433F1;
-	Mon, 11 Mar 2024 13:52:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1710165156;
-	bh=h6afG13XMRMdLzEs28dWZKjJEqPyHjcxouc4tzKmG1M=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=WuwmEZGiZCzLxHwf+V9pn5GzIcRUVpW+D3unKvoRrq5oTXPvedjoBvgtM0xGy+Fig
-	 SKWMJnfIZ9SVWG9UpmUJjOI2U+wd2kcWMNDEZY1vZw+YVskYlTj3AaBUvkZD4gFp0R
-	 yacw2KKHy4jpkN8c22E/1vLCX+luYw6cTNlv0v34y90u67UoFseiBU+6elrqE0rUkd
-	 o/JDqvTkgEEpLAGWaiTa+UsUpllIFOszVg96GRMt2EGC1YjFG28E0pvKWTuVVPAYR3
-	 gipFGQnVuixvS03+Xy6+bVl7OazSpDdvcKbRz1n5XOb2S23WQGqo9gzvfKN3rtAZc1
-	 HdrBe5ZWg76wA==
-Date: Mon, 11 Mar 2024 14:52:31 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, 
-	Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: Re: [PATCH 3/4] ovl: only lock readdir for accessing the cache
-Message-ID: <20240311-angreifbar-herleiten-a13b6c6d29ed@brauner>
-References: <20240307110217.203064-1-mszeredi@redhat.com>
- <20240307110217.203064-3-mszeredi@redhat.com>
- <CAOQ4uxh9sKB0XyKwzDt74MtaVcBGbZhVJMLZ3fyDTY-TUQo7VA@mail.gmail.com>
- <CAJfpegsQrwuG7Cm=1WaMChUg_ZtBE9eK-jK1m_69THZEG3JkBQ@mail.gmail.com>
- <CAJfpegv8RyP_FaCWGZPkhQoEV2_WcM0_z5gwb=mVELNcExY5zQ@mail.gmail.com>
- <CAOQ4uxj9=FRnN-qiXdt5PFp15Nx9Jfqx3+8_eSSGy_xgHQ0tHA@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="FtwoKkDH"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-a4627a7233aso169129666b.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 11 Mar 2024 07:39:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1710167991; x=1710772791; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=HtzqfIQsJolmXYNugXTjr3G7HqidI6CITo9smjLyZOw=;
+        b=FtwoKkDHraZU1QoV8Gum7FNgNNK37LfUzLn/WibufGarZSGcL8edRvDxuPyl2KGgjV
+         hhRPWMJ4XjwgyCaT/VMpMPhN80X90X9eptqmTeE/4uxl+De2zMxiWc+fAGlp/IMWujoH
+         Pvcy0fRPRV3nf3vzu+ussZJOxEjjULlZ3x+V0=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710167991; x=1710772791;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=HtzqfIQsJolmXYNugXTjr3G7HqidI6CITo9smjLyZOw=;
+        b=gUV5q3ARcmmpIQBEsYB143OR5YS81chsjS0wF8z/cuqbU7padDX/ZGoXwt7/5ZPE6J
+         EQu9fa/rLzGexGTZoze7BBO1u7bDsnRyQwesOCXDoqqyE+FSsjeNaG5CCeeQ9ikODMOF
+         oVGCRy42ReVh7scbP006jvEfH4E3IMVbT5+OPeinG1HpwISu0VukJbGuY4k+8pcy5yqB
+         iEKJMKWCr64CpUxQz8XtSBWjrIad0qulWJYJ8Lw2+a0FVCUOmGs9WUFzmLxTHbljyIDG
+         uq8tQwUA3k41wQZ1dZ8tO/sbFDdJRQSO4x2IDxaqSj7CFfBMI1u2zlJcMNfRJ3IxJgWY
+         pNqg==
+X-Forwarded-Encrypted: i=1; AJvYcCWbqBS8lBAwPd5uq6UR2slAsjqW1/lCor9FINOlXMj7NMlEhVVW5BiT187/dFE1qkxmLsHOFXjg3YLZ5Ev46q9fH7KSjL2D2AXwXtMPog==
+X-Gm-Message-State: AOJu0YxBoG+yzLKFGuW6p5XJ23D3B1fXQPZp0XhDoIwjOlCnpmch3p1O
+	XWDjF0DCv46ZtPgenaDye34xIRChxNte58nebR1L1oyzzW7dZv6aqiiwma9YIL14tIXeZqaZz8l
+	wq/XVEGOWGjcbMRGX1lrqmGlSLm2zfrmnPG20Kg==
+X-Google-Smtp-Source: AGHT+IGf4wdVDNSe9F8sTHDMC/cjLnlVXjyWLYFxWYXRm2kSRwP0f2EzEVpHJ2uhZASUIGetXgmhSfoQf15nQCRa0/A=
+X-Received: by 2002:a17:906:9c8e:b0:a46:13d3:e5e6 with SMTP id
+ fj14-20020a1709069c8e00b00a4613d3e5e6mr5401892ejc.0.1710167990841; Mon, 11
+ Mar 2024 07:39:50 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxj9=FRnN-qiXdt5PFp15Nx9Jfqx3+8_eSSGy_xgHQ0tHA@mail.gmail.com>
+References: <20240307160225.23841-1-lhenriques@suse.de> <20240307160225.23841-4-lhenriques@suse.de>
+ <CAJfpegtQSi0GFzUEDqdeOAq7BN2KvDV8i3oBFvPOCKfJJOBd2g@mail.gmail.com>
+ <87le6p6oqe.fsf@suse.de> <CAJfpeguN9nMJGJzx8sgwP=P9rJFVkYF5rVZOi_wNu7mj_jfBsA@mail.gmail.com>
+ <20240311-weltmeere-gesiegt-798c4201c3f8@brauner>
+In-Reply-To: <20240311-weltmeere-gesiegt-798c4201c3f8@brauner>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Mon, 11 Mar 2024 15:39:39 +0100
+Message-ID: <CAJfpegsn-jMY2J8Wd2Q9qmZFqxR6fAwZ4auoK+-uyxaK+F-0rw@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] ovl: fix the parsing of empty string mount parameters
+To: Christian Brauner <brauner@kernel.org>
+Cc: Luis Henriques <lhenriques@suse.de>, "Theodore Ts'o" <tytso@mit.edu>, 
+	Andreas Dilger <adilger.kernel@dilger.ca>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Jan Kara <jack@suse.cz>, Amir Goldstein <amir73il@gmail.com>, linux-ext4@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Mar 07, 2024 at 07:31:35PM +0200, Amir Goldstein wrote:
-> On Thu, Mar 7, 2024 at 6:13 PM Miklos Szeredi <miklos@szeredi.hu> wrote:
-> >
-> > On Thu, 7 Mar 2024 at 15:09, Miklos Szeredi <miklos@szeredi.hu> wrote:
-> > >
-> > > On Thu, 7 Mar 2024 at 14:11, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > > > P.S. A guard for ovl_inode_lock() would have been useful in this patch set,
-> > > > but it's up to you if you want to define one and use it.
-> >
-> > I like the concept of guards, though documentation and examples are
-> > lacking and the API is not trivial to understand at first sight.
-> >
-> > For overlayfs I'd start with ovl_override_creds(), since that is used
-> > much more extensively than ovl_inode_lock().
-> >
-> 
-> OK. let's wait for this to land first:
-> https://lore.kernel.org/linux-unionfs/20240216051640.197378-1-vinicius.gomes@intel.com/
-> 
-> As I wrote in the review of v2,
-> I'd rather that Christian will review and pick up the non-overlayfs bits,
-> which head suggested and only after that will I review the overlayfs
-> patch.
+On Mon, 11 Mar 2024 at 14:25, Christian Brauner <brauner@kernel.org> wrote:
 
-On it. Had been on my queue but didn't get around to it. I wanted to
-play with this a bit.
+> Yeah, so with that I do agree. But have you read my reply to the other
+> thread? I'd like to hear your thoughs on that. The problem is that
+> mount(8) currently does:
+>
+> fsconfig(3, FSCONFIG_SET_FLAG, "usrjquota", NULL, 0) = -1 EINVAL (Invalid argument)
+>
+> for both -o usrjquota and -o usrjquota=
+
+For "-o usrjquota" this seems right.
+
+For "-o usrjquota=" it doesn't.  Flags should never have that "=", so
+this seems buggy in more than one ways.
+
+> So we need a clear contract with userspace or the in-kernel solution
+> proposed here. I see the following options:
+>
+> (1) Userspace must know that mount options such as "usrjquota" that can
+>     have no value must be specified as "usrjquota=" when passed to
+>     mount(8). This in turn means we need to tell Karel to update
+>     mount(8) to recognize this and infer from "usrjquota=" that it must
+>     be passed as FSCONFIG_SET_STRING.
+
+Yes, this is what I'm thinking.  Of course this only works if there
+are no backward compatibility issues, if "-o usrjquota" worked in the
+past and some systems out there relied on this, then this is not
+sufficient.
+>
+> (2) We use the proposed in-kernel solution where relevant filesystems
+>     get the ability to declare this both as a string or as a flag value
+>     in their parameter parsing code. That's not a VFS generic thing.
+>     It's a per-fs thing.
+
+This encourages inconsistency between filesystems, but if there's no
+other way to preserve backward compatibility, then...
+
+>
+> (3) We burden mount(8) with knowing what mount options are string
+>     options that are allowed to be empty. This is clearly the least
+>     preferable one, imho.
+>
+> (4) We add a sentinel such as "usrjquota=default" or
+>     "usrjquota=auto" as a VFS level keyword.
+
+I don't really understand how this last one is supposed to fix the issue.
+
+> In any case, we need to document what we want:
+>
+> https://github.com/brauner/man-pages-md/blob/main/fsconfig.md
+
+What's the plan with these?  It would be good if "man fsconfig" would
+finally work.
+
+Thanks,
+Miklos
