@@ -1,103 +1,56 @@
-Received: from out-188.mta1.migadu.com (out-188.mta1.migadu.com [95.215.58.188])
+Received: from mail115-24.sinamail.sina.com.cn (mail115-24.sinamail.sina.com.cn [218.30.115.24])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6965578262
-	for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 10:48:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 759AE3AC2B
+	for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 10:55:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=218.30.115.24
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710240488; cv=none; b=HA3eipQxh9rjpqMYDmprMA9ykjtUXl5rnSyVnqCUQ3tCSsAIi1qSyw4Sj1/tGe47Cy/PEepCwn+VL1ESp5j4gO0MR0b2Q0wWXluhx57ihOSYRZHIRC4QSITkt9+HDJtCIT7BYKEabE+YYVXoJIU/RCN8SiPAj0BaL/jEih7GLhA=
+	t=1710240915; cv=none; b=Gk9DGH7ad9DiYFR28YhAllJLA7PFWGMu4Er51jd92Akv0YBXrk3GYXopU8bjPtQDE+4uYZA4hAlSM9GWGX1CVvhj1KGhEvhWPgMjILRd3ox6YMx6eBDm0aZUrHudJ9WofU/PZgUb5VyQG5mNiFB0PbwIgQySo0Fa3xKzalCsfRI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710240488; c=relaxed/simple;
-	bh=dcVyGoqqSlaWVI7Li40ed8FGrya0uubWHggdOxoRbuU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mk/g/DQgLTNx7cOPJuiB+UXM6G6mqdxqrqJzsLcM9N9wM8OZtMYVu5In2QprjSzWPqIEK1xZ1vt3kaJyoZitCjeGA0aadhhApZb9zAHtwdMlKcwrXos/sjLKywGyuGmyejcTTW+ZqgPZhtOLVpEndqvtP1lnqO/Ya8jujweINDk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=EV5ikQYR; arc=none smtp.client-ip=95.215.58.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="EV5ikQYR"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1710240482;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=UbrlcU0EbD+LwFEqoMDJGLaOY8fY9hhUZwUFeO9+S4k=;
-	b=EV5ikQYRM9TRKP5nYt6zSLLy6G5Qf6UjNRx/LKktZBXxyMtOKSPyPBnwYw5g5Y3i1MrK5M
-	SZulHP/40OpAYvRnBTbJ/2hy7F3jxILwB7/8OrsT/k5+ivmkkRok0/mMbJBJloLcTaOAEo
-	38+8uVhaDllZSSkEo9E3pWXbjDGvyPc=
-From: "Luis Henriques (SUSE)" <luis.henriques@linux.dev>
-To: Christian Brauner <brauner@kernel.org>,
-	"Theodore Ts'o" <tytso@mit.edu>,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: linux-ext4@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
+	s=arc-20240116; t=1710240915; c=relaxed/simple;
+	bh=j7aDBG8JUvUi8lwL1bWk+WpOhLiCDcBDJp39nC4wfr8=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ZxEe0Pg2eo7O880lBjgTuplbDRtPEcdH/1PRPmx0q2Y7cz2AlaMkuUqyOR9lt9aCm+ERHBZynQZ27oq6KsS8/ZH4RtYK4P1BtMgxxdIvdcPcryh/GJ/QygEM5z2+cbKfhYKHBvQQuMu1pcqadEWWL74st+g8xX9wyy8CpX36O5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sina.com; spf=pass smtp.mailfrom=sina.com; arc=none smtp.client-ip=218.30.115.24
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=sina.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=sina.com
+X-SMAIL-HELO: localhost.localdomain
+Received: from unknown (HELO localhost.localdomain)([113.88.51.55])
+	by sina.com (10.75.12.45) with ESMTP
+	id 65F0347F00009958; Tue, 12 Mar 2024 18:54:59 +0800 (CST)
+X-Sender: hdanton@sina.com
+X-Auth-ID: hdanton@sina.com
+Authentication-Results: sina.com;
+	 spf=none smtp.mailfrom=hdanton@sina.com;
+	 dkim=none header.i=none;
+	 dmarc=none action=none header.from=hdanton@sina.com
+X-SMAIL-MID: 8936331457689
+X-SMAIL-UIID: D607E81DBBDE4A0C977C9F78490E4453-20240312-185459-1
+From: Hillf Danton <hdanton@sina.com>
+To: =?UTF-8?q?Wei=C3=9F=2C=20Simone?= <Simone.Weiss@elektrobit.com>
+Cc: miklos@szeredi.hu,
+	amir73il@gmail.com,
 	linux-unionfs@vger.kernel.org,
-	"Luis Henriques (SUSE)" <luis.henriques@linux.dev>
-Subject: [PATCH] fs_parser: move fsparam_string_empty() helper into header
-Date: Tue, 12 Mar 2024 10:47:57 +0000
-Message-ID: <20240312104757.27333-1-luis.henriques@linux.dev>
+	linux-kernel@vger.kernel.org
+Subject: Re: possible deadlock in ovl_llseek 27c1936af506
+Date: Tue, 12 Mar 2024 18:54:45 +0800
+Message-Id: <20240312105445.2051-1-hdanton@sina.com>
+In-Reply-To: <03d7a29c7e1a8c5741680ea9bc83b4fb40358a25.camel@elektrobit.com>
+References: 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-Since both ext4 and overlayfs define the same macro to specify string
-parameters that may allow empty values, define it in an header file so
-that this helper can be shared.
+On Tue, 12 Mar 2024 07:10:27 +0000 Weiß, Simone <Simone.Weiss@elektrobit.com>
+>
+> For some experimentation, I have been running fuzzing campaigns and I
+> noticed a possible deadlock in ovl_llseek .
 
-Signed-off-by: Luis Henriques (SUSE) <luis.henriques@linux.dev>
----
- fs/ext4/super.c           | 4 ----
- fs/overlayfs/params.c     | 4 ----
- include/linux/fs_parser.h | 4 ++++
- 3 files changed, 4 insertions(+), 8 deletions(-)
+Feel free to take a look at another case of deadlock [1]
 
-diff --git a/fs/ext4/super.c b/fs/ext4/super.c
-index a8ba84eabab2..2e5592c87c3a 100644
---- a/fs/ext4/super.c
-+++ b/fs/ext4/super.c
-@@ -1724,10 +1724,6 @@ static const struct constant_table ext4_param_dax[] = {
- 	{}
- };
- 
--/* String parameter that allows empty argument */
--#define fsparam_string_empty(NAME, OPT) \
--	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL)
--
- /*
-  * Mount option specification
-  * We don't use fsparam_flag_no because of the way we set the
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 36dcc530ac28..4860fcc4611b 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -139,10 +139,6 @@ static int ovl_verity_mode_def(void)
- 	return OVL_VERITY_OFF;
- }
- 
--#define fsparam_string_empty(NAME, OPT) \
--	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL)
--
--
- const struct fs_parameter_spec ovl_parameter_spec[] = {
- 	fsparam_string_empty("lowerdir",    Opt_lowerdir),
- 	fsparam_string("lowerdir+",         Opt_lowerdir_add),
-diff --git a/include/linux/fs_parser.h b/include/linux/fs_parser.h
-index 01542c4b87a2..d3350979115f 100644
---- a/include/linux/fs_parser.h
-+++ b/include/linux/fs_parser.h
-@@ -132,4 +132,8 @@ static inline bool fs_validate_description(const char *name,
- #define fsparam_path(NAME, OPT)	__fsparam(fs_param_is_path, NAME, OPT, 0, NULL)
- #define fsparam_fd(NAME, OPT)	__fsparam(fs_param_is_fd, NAME, OPT, 0, NULL)
- 
-+/* String parameter that allows empty argument */
-+#define fsparam_string_empty(NAME, OPT) \
-+	__fsparam(fs_param_is_string, NAME, OPT, fs_param_can_be_empty, NULL)
-+
- #endif /* _LINUX_FS_PARSER_H */
+[1] https://lore.kernel.org/lkml/ZPOtwcMHN_fpdrpt@boqun-archlinux/
