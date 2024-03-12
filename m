@@ -1,79 +1,114 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D23027AE51;
-	Tue, 12 Mar 2024 14:29:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E8453BE
+	for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 18:12:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710253748; cv=none; b=m+ZAv+mEtEsQXm10a/tgbEjiEVNdu/0PLN66TWGqPKCxYd4ruQumLGGr7NKQZxCRgR/tB6PzzV+/MJwvp5KgOWXvqu/3Sjn0EsSZfsKnQsRx6Y18Nytegxs+glaq/34OHSuDO8R/UQkmMt7IkhbJgB7ddxxxyH2Zd6Ewt8ViQDY=
+	t=1710267180; cv=none; b=F2thJRe4PdaB1p4ZRr3uwrZrMMO3T9LMQxUbH09Tr8RniIzQ6wa11dyr3jrWPq3NDx5bTBVR+uF37EHp2WZdQuVHgFXwN6QGci0Om7Q5hJYsAVv8PGYF/319+P9QVr298lFogTf3sK5gTD4CYW1hCyPjKxNBaK8ZEbfz3UFm+U4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710253748; c=relaxed/simple;
-	bh=YSIzAEOxvxB8VGNd/9Gww9F6GQ70E0UmyZYJIqPU7xo=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=b8UpHbIexxgXyt1BQvGfMC05vVYf1aRXBjMtmm/2l7KPaEo36yIzttj+H0rXyZYeJ8nFG2x3q/o4govITfb9FDDb2H4YZMYQu5Ec+fzQjxUSZWVE2+2Gb60uVkJlJL4dEs28TlOGVhNjrmzUMrnEitd/43uqBGek/Hz7ABOG+s4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=EA45PRW0; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710267180; c=relaxed/simple;
+	bh=1Indxk+lEwFkuhicAnVURL9y1MXW98vjZk5VhHqB0+o=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=FqxC1Wp32mge1BxC1I7HdtRVZmbpI4MN5S1yVEx5w7xK4PWsotNh1/7cQuE2KldznhnvT5Nv91Y+CcGnIUydoEkAOs+eEFQXQgPUejF4uqJlthc0d7VuIOfoyqdFw599vJcuwQvUocTpOfTCrCbvB+4fB3yMBHQ9NxkdllVdO/0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=G14To7uU; arc=none smtp.client-ip=209.85.218.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="EA45PRW0"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20A59C433C7;
-	Tue, 12 Mar 2024 14:29:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1710253748;
-	bh=YSIzAEOxvxB8VGNd/9Gww9F6GQ70E0UmyZYJIqPU7xo=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=EA45PRW0whCcEeWaee4KU806em3InvFrAFbRUcCrvLIUt/xQniqvZYkfU9BAkl5Rr
-	 JIr5XZfESu/ZBSFH1GkWUxoCcGLvaMaeSJM19NXFHVx4Tnl0Wg3r1iQjJHR9zxt79/
-	 NLbKHiPnMku19IlBP7fErxG6kEgkqr37/OqZPc88n+QCKA/+KR8FR8bEHBvGQDxRx/
-	 gEXEZJ3uOUyiss4FARAw10LH6VrH654ixXc18gMrPg0qapyjttsuySJCZqLkAjhKV0
-	 iqQ9gV4WvVkd6aV+dXIafLHslRScZi3vTiUie3MS6MXJOWtK70FofcOakb/iQK5WbF
-	 CTBcwaET8cJyQ==
-From: Christian Brauner <brauner@kernel.org>
-To: "Luis Henriques (SUSE)" <luis.henriques@linux.dev>
-Cc: Christian Brauner <brauner@kernel.org>,
-	linux-ext4@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	Theodore Ts'o <tytso@mit.edu>,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Subject: Re: [PATCH] fs_parser: move fsparam_string_empty() helper into header
-Date: Tue, 12 Mar 2024 15:28:51 +0100
-Message-ID: <20240312-monieren-wallung-9c0559b4bdaa@brauner>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240312104757.27333-1-luis.henriques@linux.dev>
-References: <20240312104757.27333-1-luis.henriques@linux.dev>
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="G14To7uU"
+Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-a4627a7233aso15972666b.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 11:12:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google; t=1710267176; x=1710871976; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=1Indxk+lEwFkuhicAnVURL9y1MXW98vjZk5VhHqB0+o=;
+        b=G14To7uUggdN52xIpw3ooKDlmLy+59t0aTycz98/BdZry2e5oNsO9mvU+SgxafxxKK
+         Jt7cr7DgpEP0bekKTT8druM72JvVRuGtFtuGkAt6S96+cYMEH68NZy1kJGVcvtW6viAu
+         tEFYF/wS5fTVMj6+WU4mXnJ+ySwE0WX+gZZVs=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1710267176; x=1710871976;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=1Indxk+lEwFkuhicAnVURL9y1MXW98vjZk5VhHqB0+o=;
+        b=EFi4BkVgjxoXfNBIz20qCpVtvyHn29hjNRoE593h3JDStoBSf/2N446VbVjwcTHv44
+         z1SFqTkRL/52TFipi5YodVRalI8MrMSkixcUyCz2459ccFLvgapiZ6dsryR0zJwJ3fyB
+         EDXWVhpNmCYbzeGnJbWlX3p7YdfnLUciukoTBMfNSXV6RvjPEfj9vx8u59srhExbDRKu
+         06e8FRagguGTM71RNLlcoMvhaEkKHRozQizLxlXyibkfFN5Uqn/dRSTUyS+j+F9FyjTa
+         aIm0v+/QJQ07XVU5c8nW9xPSoFFc4IPkTyUvTscqUk7h8SYHcpBZZbG6NhzYPnJsX6//
+         P6TA==
+X-Gm-Message-State: AOJu0YxX6ziyVcVOZ1lALq5cs5diys00z755pmSjtlYJLw3sCjKgAhUx
+	TPG9TZGtPRSGO5l/5pUbLVe15ERY2s3lhVYSpRBI6Fk6j1+CRChSyaSayfbVKEhA0DNev0Oy+VH
+	tyw==
+X-Google-Smtp-Source: AGHT+IHD6vFYI7puQTKOIf2DlPXHnRUeU10xkyeZ7nAi5QtjmgSySMBpDLqgbV1ONvTZL0z5jy2Ndw==
+X-Received: by 2002:a17:906:614:b0:a44:e5ed:3d5d with SMTP id s20-20020a170906061400b00a44e5ed3d5dmr275701ejb.9.1710267176374;
+        Tue, 12 Mar 2024 11:12:56 -0700 (PDT)
+Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com. [209.85.208.41])
+        by smtp.gmail.com with ESMTPSA id v8-20020a1709067d8800b00a45aeaf9969sm4070378ejo.5.2024.03.12.11.12.55
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 12 Mar 2024 11:12:55 -0700 (PDT)
+Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-565c6cf4819so171471a12.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 11:12:55 -0700 (PDT)
+X-Received: by 2002:a17:906:a08e:b0:a46:4fc3:bc74 with SMTP id
+ q14-20020a170906a08e00b00a464fc3bc74mr266723ejy.12.1710267174470; Tue, 12 Mar
+ 2024 11:12:54 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1025; i=brauner@kernel.org; h=from:subject:message-id; bh=YSIzAEOxvxB8VGNd/9Gww9F6GQ70E0UmyZYJIqPU7xo=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaR+SFtjselouoter9Hb0j9dUhyLV6xTnSTUbn755Qmpi npGodxnHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABOJLWX4H72taPIt3Qls/aKX g1tcc8QOfLj+4e+8NuMOHV72o9uPCzEyfLj3ly1/Z+ey1X8vufZ+/H2CO3W625T/EzmWbwvf1pB /iQ8A
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+From: Raul Rangel <rrangel@chromium.org>
+Date: Tue, 12 Mar 2024 12:12:41 -0600
+X-Gmail-Original-Message-ID: <CAHQZ30BFHkt-D65rbxE7MspurQKD8kw2bK2HKxast-RN8ggKfQ@mail.gmail.com>
+Message-ID: <CAHQZ30BFHkt-D65rbxE7MspurQKD8kw2bK2HKxast-RN8ggKfQ@mail.gmail.com>
+Subject: Accessing bind mount in lower layer via overlayfs
+To: linux-unionfs@vger.kernel.org
+Content-Type: multipart/mixed; boundary="00000000000068a4ea06137a9bec"
 
-On Tue, 12 Mar 2024 10:47:57 +0000, Luis Henriques (SUSE) wrote:
-> Since both ext4 and overlayfs define the same macro to specify string
-> parameters that may allow empty values, define it in an header file so
-> that this helper can be shared.
-> 
-> 
+--00000000000068a4ea06137a9bec
+Content-Type: text/plain; charset="UTF-8"
 
-Applied to the vfs.misc branch of the vfs/vfs.git tree.
-Patches in the vfs.misc branch should appear in linux-next soon.
+Hello,
+I was wondering if it was possible for the bind mounts created under a
+lower layer to be exposed via overlayfs?
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+I have attached a test script that reproduces what I'm trying to achieve:
+$ unshare --user --map-root-user --mount bash -xe mount-test
++ mkdir -p real/usr/lib
++ touch real/usr/lib/foo
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
++ mkdir -p stage/input
++ mount --bind real stage/input <-- I want to mount `real` under `input`.
++ ls -l stage/input
+drwxr-xr-x 3 root root 4096 Mar 12 11:53 usr <-- `usr` is visible.
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
++ mkdir work upper merged
++ mount -t overlay overlay
+-olowerdir=./stage,upperdir=./upper,workdir=./work ./merged
++ ls -Rl merged/input
+merged/input:
+total 0 <-- The `usr` directory is not passed through.
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.misc
+I wasn't able to find anything that explicitly states it's not
+supported. Is something like this possible? I tried setting the mount
+propagation to shared, but that didn't have any effect.
 
-[1/1] fs_parser: move fsparam_string_empty() helper into header
-      https://git.kernel.org/vfs/vfs/c/39c99a820c4a
+Thanks,
+Raul
+
+--00000000000068a4ea06137a9bec
+Content-Type: application/octet-stream; name=mount-test
+Content-Disposition: attachment; filename=mount-test
+Content-Transfer-Encoding: base64
+Content-ID: <f_ltoofydf0>
+X-Attachment-Id: f_ltoofydf0
+
+IyEvYmluL2Jhc2ggLWV4CgpUTVBESVI9IiQobWt0ZW1wIC1kKSIKCmNkICIkVE1QRElSIgoKbWtk
+aXIgLXAgcmVhbC91c3IvbGliCnRvdWNoIHJlYWwvdXNyL2xpYi9mb28KCm1rZGlyIC1wIHN0YWdl
+L2lucHV0Cm1vdW50IC0tYmluZCByZWFsIHN0YWdlL2lucHV0CgpscyAtUmwgc3RhZ2UvaW5wdXQK
+Cm1rZGlyIHdvcmsgdXBwZXIgbWVyZ2VkCgptb3VudCAtdCBvdmVybGF5IG92ZXJsYXkgLW9sb3dl
+cmRpcj0uL3N0YWdlLHVwcGVyZGlyPS4vdXBwZXIsd29ya2Rpcj0uL3dvcmsgLi9tZXJnZWQKCmxz
+IC1SbCBtZXJnZWQvaW5wdXQKCmlmIFtbICEgLWQgbWVyZ2VkL2lucHV0L3VzciBdXTsgdGhlbgoJ
+ZWNobyAiYmluZCBtb3VudCBub3QgYWNjZXNzaWJsZSB2aWEgb3ZlcmxheSIKCWV4aXQgMQpmaQo=
+--00000000000068a4ea06137a9bec--
