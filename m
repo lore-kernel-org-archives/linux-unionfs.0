@@ -1,114 +1,150 @@
-Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E2E8453BE
-	for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 18:12:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 91AB53A287
+	for <linux-unionfs@vger.kernel.org>; Wed, 13 Mar 2024 10:23:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710267180; cv=none; b=F2thJRe4PdaB1p4ZRr3uwrZrMMO3T9LMQxUbH09Tr8RniIzQ6wa11dyr3jrWPq3NDx5bTBVR+uF37EHp2WZdQuVHgFXwN6QGci0Om7Q5hJYsAVv8PGYF/319+P9QVr298lFogTf3sK5gTD4CYW1hCyPjKxNBaK8ZEbfz3UFm+U4=
+	t=1710325408; cv=none; b=tQ2aj+nM05VWhQ9rL5S9M1i/1Emh+NjDJhYm1GYujSZ8O4TC8FZXkO87nsAA5IPohpwx6LL/lSqJ9NczwgFuzCLzChnYlvt0l+3HW4ct086iiE7aLCxzRN4mcPhTYVBRhoCmH2xsBw1MNPqd43hhTDrteumNmXBjNityOohvaqE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710267180; c=relaxed/simple;
-	bh=1Indxk+lEwFkuhicAnVURL9y1MXW98vjZk5VhHqB0+o=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=FqxC1Wp32mge1BxC1I7HdtRVZmbpI4MN5S1yVEx5w7xK4PWsotNh1/7cQuE2KldznhnvT5Nv91Y+CcGnIUydoEkAOs+eEFQXQgPUejF4uqJlthc0d7VuIOfoyqdFw599vJcuwQvUocTpOfTCrCbvB+4fB3yMBHQ9NxkdllVdO/0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=G14To7uU; arc=none smtp.client-ip=209.85.218.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="G14To7uU"
-Received: by mail-ej1-f43.google.com with SMTP id a640c23a62f3a-a4627a7233aso15972666b.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 11:12:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google; t=1710267176; x=1710871976; darn=vger.kernel.org;
-        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=1Indxk+lEwFkuhicAnVURL9y1MXW98vjZk5VhHqB0+o=;
-        b=G14To7uUggdN52xIpw3ooKDlmLy+59t0aTycz98/BdZry2e5oNsO9mvU+SgxafxxKK
-         Jt7cr7DgpEP0bekKTT8druM72JvVRuGtFtuGkAt6S96+cYMEH68NZy1kJGVcvtW6viAu
-         tEFYF/wS5fTVMj6+WU4mXnJ+ySwE0WX+gZZVs=
+	s=arc-20240116; t=1710325408; c=relaxed/simple;
+	bh=gxNUi5JOhIBKz4JZ7h0Xc0lDv+cP7TG6n/WSHrDEO20=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=uY1MrEF4RpC4SmgUM5MUAJMKBGmzFJ+vBtaNnvkOgbPVafDecl+DQkGWsHoAuwppgL367YdGw42yXBKS9Gudbz4doWtM3HmONRwLoxhRJvkL/UWvZD1/f1j8mi/Hts0Oo+xi4QtjVzoFdo28r/s79BBTStAQGDVwQD+t1lG6sBk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-36663cc795fso9139395ab.1
+        for <linux-unionfs@vger.kernel.org>; Wed, 13 Mar 2024 03:23:26 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710267176; x=1710871976;
-        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+        d=1e100.net; s=20230601; t=1710325406; x=1710930206;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=1Indxk+lEwFkuhicAnVURL9y1MXW98vjZk5VhHqB0+o=;
-        b=EFi4BkVgjxoXfNBIz20qCpVtvyHn29hjNRoE593h3JDStoBSf/2N446VbVjwcTHv44
-         z1SFqTkRL/52TFipi5YodVRalI8MrMSkixcUyCz2459ccFLvgapiZ6dsryR0zJwJ3fyB
-         EDXWVhpNmCYbzeGnJbWlX3p7YdfnLUciukoTBMfNSXV6RvjPEfj9vx8u59srhExbDRKu
-         06e8FRagguGTM71RNLlcoMvhaEkKHRozQizLxlXyibkfFN5Uqn/dRSTUyS+j+F9FyjTa
-         aIm0v+/QJQ07XVU5c8nW9xPSoFFc4IPkTyUvTscqUk7h8SYHcpBZZbG6NhzYPnJsX6//
-         P6TA==
-X-Gm-Message-State: AOJu0YxX6ziyVcVOZ1lALq5cs5diys00z755pmSjtlYJLw3sCjKgAhUx
-	TPG9TZGtPRSGO5l/5pUbLVe15ERY2s3lhVYSpRBI6Fk6j1+CRChSyaSayfbVKEhA0DNev0Oy+VH
-	tyw==
-X-Google-Smtp-Source: AGHT+IHD6vFYI7puQTKOIf2DlPXHnRUeU10xkyeZ7nAi5QtjmgSySMBpDLqgbV1ONvTZL0z5jy2Ndw==
-X-Received: by 2002:a17:906:614:b0:a44:e5ed:3d5d with SMTP id s20-20020a170906061400b00a44e5ed3d5dmr275701ejb.9.1710267176374;
-        Tue, 12 Mar 2024 11:12:56 -0700 (PDT)
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com. [209.85.208.41])
-        by smtp.gmail.com with ESMTPSA id v8-20020a1709067d8800b00a45aeaf9969sm4070378ejo.5.2024.03.12.11.12.55
-        for <linux-unionfs@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 12 Mar 2024 11:12:55 -0700 (PDT)
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-565c6cf4819so171471a12.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 12 Mar 2024 11:12:55 -0700 (PDT)
-X-Received: by 2002:a17:906:a08e:b0:a46:4fc3:bc74 with SMTP id
- q14-20020a170906a08e00b00a464fc3bc74mr266723ejy.12.1710267174470; Tue, 12 Mar
- 2024 11:12:54 -0700 (PDT)
+        bh=5ZLwqqlJE+5HGJf4mXsjYm3BkGH4mIvyOCTpLxs/VCg=;
+        b=bcHoHK81uCjrRB9a0iidagQURiqRi7yDHPpnDrf3u+xbYqCsps0VDh4ywD/yIk7bWQ
+         Z6s9NgM5CWdJzlw7Gez+CUt1bU1TG2byCZy9w4dnTu/NzWsSzy5an4dMQQQunDSKmTyw
+         7pzn/0gBedB7QXpapKcjzD80tGxD2KOuMs0mwSnU5jy/Eo12nU+qmqQn6ntwtLcX0sOh
+         crL6MRGLSQbxPgTIjUhKQQ0RCXGRj46hThtyaSxYD7dP4jvmYooFLezEprshA46ZO69X
+         XbA0/F5v94wMWyZWIEojcONVL9b5+0cP9FLiK4rRA19i2g/jtnOUGIAypGKb07+tlOMQ
+         rjDw==
+X-Forwarded-Encrypted: i=1; AJvYcCXnOE5Z5ZVRMpJkGtJFbw/dRzzIv1KIdZ44FKGSCyFS/wLcvlSkT8kmSHQIVA5jH8jxsoVSfwnNXxsKeYErSBw9RNEg/XIsE+4MvDEu4A==
+X-Gm-Message-State: AOJu0YxGb5XQHxYiPNpXs1JcJAjIG6LuG3Z8p9mqaakUvXu2blKn9NNB
+	SpNydFO/cX6DrexILkJyCITjInpDU6afKy5JR3/fG08u3Vbfphmu9EMWYYYZqjMOPH4HTB+bxTy
+	E+wggv3r4+a9XrPpNaSOak92TH9gaO9alaVZRxMgItee4JzeTfOQ6KtE=
+X-Google-Smtp-Source: AGHT+IH0VEwwmBny+J6rfV/6R0AANdqIP4Jrq6CA23rSQWZ0qT4XcllMQySk1L+aa9dIvUBT/++8YwwYn0lo/rYqKOXLt5RRZohw
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Raul Rangel <rrangel@chromium.org>
-Date: Tue, 12 Mar 2024 12:12:41 -0600
-X-Gmail-Original-Message-ID: <CAHQZ30BFHkt-D65rbxE7MspurQKD8kw2bK2HKxast-RN8ggKfQ@mail.gmail.com>
-Message-ID: <CAHQZ30BFHkt-D65rbxE7MspurQKD8kw2bK2HKxast-RN8ggKfQ@mail.gmail.com>
-Subject: Accessing bind mount in lower layer via overlayfs
-To: linux-unionfs@vger.kernel.org
-Content-Type: multipart/mixed; boundary="00000000000068a4ea06137a9bec"
-
---00000000000068a4ea06137a9bec
+X-Received: by 2002:a05:6e02:12c1:b0:366:4cdc:7053 with SMTP id
+ i1-20020a056e0212c100b003664cdc7053mr160152ilm.4.1710325405824; Wed, 13 Mar
+ 2024 03:23:25 -0700 (PDT)
+Date: Wed, 13 Mar 2024 03:23:25 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000043c5e70613882ad1@google.com>
+Subject: [syzbot] [overlayfs?] WARNING in ovl_copy_up_file
+From: syzbot <syzbot+3abd99031b42acf367ef@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 
 Hello,
-I was wondering if it was possible for the bind mounts created under a
-lower layer to be exposed via overlayfs?
 
-I have attached a test script that reproduces what I'm trying to achieve:
-$ unshare --user --map-root-user --mount bash -xe mount-test
-+ mkdir -p real/usr/lib
-+ touch real/usr/lib/foo
+syzbot found the following issue on:
 
-+ mkdir -p stage/input
-+ mount --bind real stage/input <-- I want to mount `real` under `input`.
-+ ls -l stage/input
-drwxr-xr-x 3 root root 4096 Mar 12 11:53 usr <-- `usr` is visible.
+HEAD commit:    707081b61156 Merge branch 'for-next/core', remote-tracking..
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-kernelci
+console output: https://syzkaller.appspot.com/x/log.txt?x=1785a859180000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=caeac3f3565b057a
+dashboard link: https://syzkaller.appspot.com/bug?extid=3abd99031b42acf367ef
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+userspace arch: arm64
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1115ada6180000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1626870a180000
 
-+ mkdir work upper merged
-+ mount -t overlay overlay
--olowerdir=./stage,upperdir=./upper,workdir=./work ./merged
-+ ls -Rl merged/input
-merged/input:
-total 0 <-- The `usr` directory is not passed through.
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/6cad68bf7532/disk-707081b6.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/1a27e5400778/vmlinux-707081b6.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/67dfc53755d0/Image-707081b6.gz.xz
 
-I wasn't able to find anything that explicitly states it's not
-supported. Is something like this possible? I tried setting the mount
-propagation to shared, but that didn't have any effect.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+3abd99031b42acf367ef@syzkaller.appspotmail.com
 
-Thanks,
-Raul
+evm: overlay not supported
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 6187 at fs/overlayfs/copy_up.c:239 ovl_copy_up_file+0x624/0x674 fs/overlayfs/copy_up.c:330
+Modules linked in:
+CPU: 0 PID: 6187 Comm: syz-executor136 Not tainted 6.8.0-rc7-syzkaller-g707081b61156 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/25/2024
+pstate: 80400005 (Nzcv daif +PAN -UAO -TCO -DIT -SSBS BTYPE=--)
+pc : ovl_copy_up_file+0x624/0x674 fs/overlayfs/copy_up.c:330
+lr : ovl_verify_area fs/overlayfs/copy_up.c:239 [inline]
+lr : ovl_copy_up_file+0x620/0x674 fs/overlayfs/copy_up.c:330
+sp : ffff800097997180
+x29: ffff800097997280 x28: 00000000fffffffb x27: ffff700012f32e3c
+x26: 0000000000800000 x25: 0000000000800000 x24: ffff800097997240
+x23: ffff800097997220 x22: ffffffffffa64000 x21: ffffffffffa64000
+x20: ffff0000d9fc1900 x19: dfff800000000000 x18: 1ffff00012f32dee
+x17: ffff80008ec9d000 x16: ffff80008ad6b1c0 x15: 0000000000000001
+x14: 1fffe0001b9177f2 x13: 0000000000000000 x12: 0000000000000000
+x11: 0000000000000001 x10: 0000000000ff0100 x9 : 0000000000000000
+x8 : ffff0000d7568000 x7 : ffff80008108d924 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : 0000000000000001 x3 : ffff80008031a200
+x2 : 00000ffffffff000 x1 : ffffffffffa64000 x0 : ffffffffffffffff
+Call trace:
+ ovl_copy_up_file+0x624/0x674 fs/overlayfs/copy_up.c:330
+ ovl_copy_up_tmpfile fs/overlayfs/copy_up.c:863 [inline]
+ ovl_do_copy_up fs/overlayfs/copy_up.c:976 [inline]
+ ovl_copy_up_one fs/overlayfs/copy_up.c:1168 [inline]
+ ovl_copy_up_flags+0x16d0/0x3694 fs/overlayfs/copy_up.c:1223
+ ovl_copy_up+0x24/0x34 fs/overlayfs/copy_up.c:1263
+ ovl_setattr+0xfc/0x4e4 fs/overlayfs/inode.c:41
+ notify_change+0x9d4/0xc8c fs/attr.c:499
+ chmod_common+0x23c/0x418 fs/open.c:648
+ do_fchmodat fs/open.c:696 [inline]
+ __do_sys_fchmodat fs/open.c:715 [inline]
+ __se_sys_fchmodat fs/open.c:712 [inline]
+ __arm64_sys_fchmodat+0x118/0x1dc fs/open.c:712
+ __invoke_syscall arch/arm64/kernel/syscall.c:34 [inline]
+ invoke_syscall+0x98/0x2b8 arch/arm64/kernel/syscall.c:48
+ el0_svc_common+0x130/0x23c arch/arm64/kernel/syscall.c:133
+ do_el0_svc+0x48/0x58 arch/arm64/kernel/syscall.c:152
+ el0_svc+0x54/0x168 arch/arm64/kernel/entry-common.c:712
+ el0t_64_sync_handler+0x84/0xfc arch/arm64/kernel/entry-common.c:730
+ el0t_64_sync+0x190/0x194 arch/arm64/kernel/entry.S:598
+irq event stamp: 862
+hardirqs last  enabled at (861): [<ffff8000831abcb4>] percpu_counter_add_batch+0x210/0x30c lib/percpu_counter.c:102
+hardirqs last disabled at (862): [<ffff80008ad66988>] el1_dbg+0x24/0x80 arch/arm64/kernel/entry-common.c:470
+softirqs last  enabled at (62): [<ffff80008002189c>] softirq_handle_end kernel/softirq.c:399 [inline]
+softirqs last  enabled at (62): [<ffff80008002189c>] __do_softirq+0xac8/0xce4 kernel/softirq.c:582
+softirqs last disabled at (53): [<ffff80008002ab48>] ____do_softirq+0x14/0x20 arch/arm64/kernel/irq.c:81
+---[ end trace 0000000000000000 ]---
 
---00000000000068a4ea06137a9bec
-Content-Type: application/octet-stream; name=mount-test
-Content-Disposition: attachment; filename=mount-test
-Content-Transfer-Encoding: base64
-Content-ID: <f_ltoofydf0>
-X-Attachment-Id: f_ltoofydf0
 
-IyEvYmluL2Jhc2ggLWV4CgpUTVBESVI9IiQobWt0ZW1wIC1kKSIKCmNkICIkVE1QRElSIgoKbWtk
-aXIgLXAgcmVhbC91c3IvbGliCnRvdWNoIHJlYWwvdXNyL2xpYi9mb28KCm1rZGlyIC1wIHN0YWdl
-L2lucHV0Cm1vdW50IC0tYmluZCByZWFsIHN0YWdlL2lucHV0CgpscyAtUmwgc3RhZ2UvaW5wdXQK
-Cm1rZGlyIHdvcmsgdXBwZXIgbWVyZ2VkCgptb3VudCAtdCBvdmVybGF5IG92ZXJsYXkgLW9sb3dl
-cmRpcj0uL3N0YWdlLHVwcGVyZGlyPS4vdXBwZXIsd29ya2Rpcj0uL3dvcmsgLi9tZXJnZWQKCmxz
-IC1SbCBtZXJnZWQvaW5wdXQKCmlmIFtbICEgLWQgbWVyZ2VkL2lucHV0L3VzciBdXTsgdGhlbgoJ
-ZWNobyAiYmluZCBtb3VudCBub3QgYWNjZXNzaWJsZSB2aWEgb3ZlcmxheSIKCWV4aXQgMQpmaQo=
---00000000000068a4ea06137a9bec--
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
