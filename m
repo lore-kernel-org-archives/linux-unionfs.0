@@ -1,80 +1,134 @@
-Received: from mail-ed1-f45.google.com (mail-ed1-f45.google.com [209.85.208.45])
+Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBEF26BFA0
-	for <linux-unionfs@vger.kernel.org>; Thu, 14 Mar 2024 09:38:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.45
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6BF103F9E9
+	for <linux-unionfs@vger.kernel.org>; Fri, 15 Mar 2024 15:35:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710409127; cv=none; b=h+2WnbJC6V+pKWs3ZKn5oFOZeQ08K9xeN+eySXCQvStjVQseqlRlOF1g9ZZ//4VE31bFeoWrxKYkHPc7PpJR/k3TtDOmBaKBNrsMdisPghr3dj22Ib0EBUpfUIOY5+tem4NWd+3yBroYFV4c9+W5FvVA9ai1nKOunCXMF5cVLOc=
+	t=1710516905; cv=none; b=q/4+dTGDPg5lcQlL0Hs/hRatYjzKMJmbqdEo17v++OnBdF1bJHCS4ULNJJYOKk/eVzq52ZCjcwMnTH2D56XFVXuUnTb/Du5urfwhyk9TwAgvOJXsH7ho86xxVg1tw9eA7aeNhb7ULO4ePCRjlRhoIpul/xqhKHldQ/Ol8Wxva8o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710409127; c=relaxed/simple;
-	bh=99jdUBguX0rRbr0EjMK/qjwxyH/ALk+EX4vPa6MmEgM=;
+	s=arc-20240116; t=1710516905; c=relaxed/simple;
+	bh=sYXZxPTCQtEh/DBVhWweRVoviE1XYbGjJr89L8fT1VY=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BFYy0wR8FT/Zm1o2evY96GnESXk8XcmL4U8s0GoLI0G1wOy5wsMz2of7OjME64BY1pcm48OKUgx1lMjYh0Fgo6Gb+DkOWX2d9IXkR7VI60jtZ6fYzXQ52l0cKf/xAaERJ6U0IDixGc3q53oGNlzMjHk3MLtccJQcnPTNyW5/XAQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=DoZKLHqH; arc=none smtp.client-ip=209.85.208.45
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=AxaWPW31tU3OTQ+LtJ/gwrVkHiWW8yHuQbOAgbkOyGrjCtjdJG64HfrdfiTsKEMsKTIq5Pj1RpySmff61/5Cu93jbYkMedpaLkdH0RBeRETxn1XOAYctCbKa6PB2OmPZivlhDwdor2rXrvKAKmEqci+KeT9HxG8qzTYx3V6nOa8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org; spf=pass smtp.mailfrom=chromium.org; dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b=MfEQ95Tu; arc=none smtp.client-ip=209.85.208.44
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=chromium.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=chromium.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="DoZKLHqH"
-Received: by mail-ed1-f45.google.com with SMTP id 4fb4d7f45d1cf-568a5114881so169584a12.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 14 Mar 2024 02:38:45 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=chromium.org header.i=@chromium.org header.b="MfEQ95Tu"
+Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-568107a9ff2so2751941a12.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 15 Mar 2024 08:35:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1710409124; x=1711013924; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=99jdUBguX0rRbr0EjMK/qjwxyH/ALk+EX4vPa6MmEgM=;
-        b=DoZKLHqHJjKooT7J4OCNGXuI/f8GMQXmFpBykZY+/C9fTvXOxcZEKiAoTGt/S8rt04
-         yxflKBrpFbGo4FKn4+nrwDh3K8LqcvIb/i5CNcJ5XH9fYGyxa6FPxk/GA2O5zJMNaEBM
-         KJnoscu1Y1vxqItcha1CJPd/4AY+j1q8B+PKA=
+        d=chromium.org; s=google; t=1710516901; x=1711121701; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=sYXZxPTCQtEh/DBVhWweRVoviE1XYbGjJr89L8fT1VY=;
+        b=MfEQ95TuDMwu6GNdefUuaE03/YBemHn/Z7f0BLv3OMJCNZOe5RjZgoypaQyo7AZARE
+         bpqMTs0Z/lvzt8gw2/JVETkak7s2JgD85w8LldTNqjRN5ZsorefIXDMNqP2efn1QGzzQ
+         3rKfnoiuUuUg/4ss57s+tpUKUGAND+tV36ELw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1710409124; x=1711013924;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=99jdUBguX0rRbr0EjMK/qjwxyH/ALk+EX4vPa6MmEgM=;
-        b=AQ5Ug6l3TeIqBNQGrKhT6EIlYe4uG5Vg9gklzpP4yJbDGYkN2oj4gSehuOlMapQ1MO
-         7fpWkVHQlhZYlPXcOX4X1IohpHqKcLenDxKuIHrJ+fh0PMRgigTglvp9o/aea3U1pJ3z
-         2uAUsMCtqCPaBUsP+dybXRugI2+jOhLT0KYx41SO4O0fw+Kz0UPBpASjq3CLRq5njoS6
-         e3Fh/+NFh0GIKU5CQst0xgGF/OdAwa5Sddta/uitXagrVvLqswL87fFNspTAYgYjYmJ8
-         /5bIbffhJT+NRn0fM8InT1DGQEvEypVe/ImDzthWqCgX1gbW59sG19XHDir+y8Y0fTOj
-         RtqA==
-X-Forwarded-Encrypted: i=1; AJvYcCWDyO0mnJG0LTTLwuSqPghdeVfY68G4kI1+QNrLYa3tDPejeJZks9iTv2aIcfeb7SIDPGw6JXisITvec87QE578qkCU8nXfIfHNOvJAug==
-X-Gm-Message-State: AOJu0Yx74cWY/fY7+3AUUi2x/iN7LBRYGuR6J35FftNg6DzZ8FJiTczc
-	zg9vXQ15pFiMcm56Jm/4urDKi+3HpqaXD42RGGzFyqm+dpUBV+usKCg0oAio/dxaap6PyWW+qX9
-	HJWwn7G4v9Ld4iuVpbscS4xOTI7mSF2lnypJb/Q==
-X-Google-Smtp-Source: AGHT+IFJydnHavfoQj7GUYh55PHRwLEm1dCHo24SSZNO/gRuXbw54y6GXsBk03f130OZZShAe0+mXoV5Dw6q3SS+Q8U=
-X-Received: by 2002:a17:907:6b88:b0:a46:7183:14ff with SMTP id
- rg8-20020a1709076b8800b00a46718314ffmr827861ejc.48.1710409124273; Thu, 14 Mar
- 2024 02:38:44 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1710516901; x=1711121701;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=sYXZxPTCQtEh/DBVhWweRVoviE1XYbGjJr89L8fT1VY=;
+        b=HEvL0jSt/DUOYVymZ7XF4bJWo+mncWC5U0OIUq/1CRZCGSRjkq2DyUI1BZZ8xSWyzW
+         Z/NmGM27Z4/qxlZZHG/Jr3WSo8twEkQBHczpDJm8VxzrKjqNOkALf8bGye2sTGx0u0t9
+         6+3hrL8aNau2aC1PLkugGSsM9ljh02eibtPykGqvpFcfBjv1AXjjkD3Uc8ZV5SOY31RD
+         uixduDDPFl9nSK9DAa1Ns/Kuc821mK21ohtoHvJkLuScnWelohojK0YAr+oHkSuop0ka
+         70p14oU5FQO+nicsllYScijMdX6yVHncP1hY0MH3BgD+E8bJUcdlBl9rRi24zQwLfpqM
+         EWew==
+X-Gm-Message-State: AOJu0YyH0kc2nqnax1SVo0kqO8sWusxegpzLmPL3CY3YghKYSdhKtY0a
+	mYaVQRXtaFu14zm3lVIlYko/Hnt6Xl4ggmiXPDRkh4AZiAy5iE4lRXM4hUNxgQdYhA1glFdPBjb
+	agg==
+X-Google-Smtp-Source: AGHT+IG8kJPYurRXDtaKF3jgm/X0euqvTB9ixuQM4rhchW6Fgt9ekWD7hu9jleegtVKVPR6/Yfs/Gg==
+X-Received: by 2002:a05:6402:914:b0:568:b93c:bc7c with SMTP id g20-20020a056402091400b00568b93cbc7cmr375056edz.7.1710516900730;
+        Fri, 15 Mar 2024 08:35:00 -0700 (PDT)
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com. [209.85.218.49])
+        by smtp.gmail.com with ESMTPSA id n18-20020aa7c452000000b005687e7b0cd2sm1776934edr.40.2024.03.15.08.35.00
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 15 Mar 2024 08:35:00 -0700 (PDT)
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-a449c5411e1so299845866b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 15 Mar 2024 08:35:00 -0700 (PDT)
+X-Received: by 2002:a17:907:3594:b0:a44:e34a:792f with SMTP id
+ ao20-20020a170907359400b00a44e34a792fmr3313662ejc.15.1710516900153; Fri, 15
+ Mar 2024 08:35:00 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <00000000000043c5e70613882ad1@google.com> <CAOQ4uxjtkRns4_EiradMnRUd6xAkqevTiYZZ61oVh7yDzBn_-g@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjtkRns4_EiradMnRUd6xAkqevTiYZZ61oVh7yDzBn_-g@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 14 Mar 2024 10:38:33 +0100
-Message-ID: <CAJfpegu8Rjj1cHkB6JD=TY1CWuVaH8YpSRLQe0cOfG9aQXj6Vw@mail.gmail.com>
-Subject: Re: [syzbot] [overlayfs?] WARNING in ovl_copy_up_file
+References: <CAHQZ30BFHkt-D65rbxE7MspurQKD8kw2bK2HKxast-RN8ggKfQ@mail.gmail.com>
+ <CAOQ4uxgL8isH32NK5WtbQjPudrtG_MKecGB+j6VBHmb1K0jzyA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgL8isH32NK5WtbQjPudrtG_MKecGB+j6VBHmb1K0jzyA@mail.gmail.com>
+From: Raul Rangel <rrangel@chromium.org>
+Date: Fri, 15 Mar 2024 09:34:46 -0600
+X-Gmail-Original-Message-ID: <CAHQZ30DQvsVmp9Co-3Vu6YiOhejT2uNSdDsHi+vkyGAszhKmeA@mail.gmail.com>
+Message-ID: <CAHQZ30DQvsVmp9Co-3Vu6YiOhejT2uNSdDsHi+vkyGAszhKmeA@mail.gmail.com>
+Subject: Re: Accessing bind mount in lower layer via overlayfs
 To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, syzkaller-bugs@googlegroups.com, 
-	syzbot <syzbot+3abd99031b42acf367ef@syzkaller.appspotmail.com>
+Cc: linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 13 Mar 2024 at 21:55, Amir Goldstein <amir73il@gmail.com> wrote:
-
-> The WARN_ON that I put in ovl_verify_area() may be too harsh.
-> I think they can happen if lower file is changed (i_size) while file is being
-> copied up after reading i_size into the copy length and this could be
-> the case with this syzbot reproducer that keeps mounting overlayfs
-> instances over same path.
+On Wed, Mar 13, 2024 at 1:50=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
 >
-> Should probably demote those WARN_ON to just returning EIO?
+> On Tue, Mar 12, 2024 at 8:13=E2=80=AFPM Raul Rangel <rrangel@chromium.org=
+> wrote:
+> >
+> > Hello,
+> > I was wondering if it was possible for the bind mounts created under a
+> > lower layer to be exposed via overlayfs?
+> >
+> > I have attached a test script that reproduces what I'm trying to achiev=
+e:
+> > $ unshare --user --map-root-user --mount bash -xe mount-test
+> > + mkdir -p real/usr/lib
+> > + touch real/usr/lib/foo
+> >
+> > + mkdir -p stage/input
+> > + mount --bind real stage/input <-- I want to mount `real` under `input=
+`.
+> > + ls -l stage/input
+> > drwxr-xr-x 3 root root 4096 Mar 12 11:53 usr <-- `usr` is visible.
+> >
+> > + mkdir work upper merged
+> > + mount -t overlay overlay
+> > -olowerdir=3D./stage,upperdir=3D./upper,workdir=3D./work ./merged
+> > + ls -Rl merged/input
+> > merged/input:
+> > total 0 <-- The `usr` directory is not passed through.
+> >
+> > I wasn't able to find anything that explicitly states it's not
+> > supported. Is something like this possible? I tried setting the mount
+> > propagation to shared, but that didn't have any effect.
+>
+> Overlayfs does not follow children (bind) mounts.
 
-Sounds good.
+Ok thanks for confirming. I wasn't sure if I was just doing something wrong=
+.
+>
+> It looks like you are trying to overlay the tree at real over
+> the tree in stage/input.
+> Why not use an overlayfs layer of real on top of the stage
+> layer?
 
-Thanks,
-Miklos
+I can do that. I was trying to get away with having a single overlayfs
+mount, but it's not really required.
+
+>
+> Please explain what you want to achieve rather than how
+> you tried to achieve it, so maybe I can help more.
+>
+
+Sorry, I simplified the problem a bit too much. Your comments were
+exactly what I was looking for though.
+
+> Thanks,
+> Amir.
+
+Thanks!
