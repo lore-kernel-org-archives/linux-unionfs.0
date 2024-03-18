@@ -1,63 +1,121 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E6B1E5674B;
-	Mon, 18 Mar 2024 19:21:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A33AD5A4C2;
+	Mon, 18 Mar 2024 21:54:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1710789671; cv=none; b=IrQ5mPiAZVZqvQEnaSgR6bEMao61yLrxcMCwVFhn45eE9gy0F6aoZWbVt4ACZXv2F7FbGQwF4QBpruVgUb/ghXrkjDwCJw5hl6iZVP3amSpm6AwdenbU7+ROZI0nLjkxUnCKGKKQIwssel83VJ+d8xElL4G+wr8Q9so96wLXGPc=
+	t=1710798901; cv=none; b=YVdigL81qqxkDjJQHaKYs6LPv1vvGoSfATz2hD68rboloOLYWYvOwKZmc3YiBEFjPyA95G0Lod+bQu2XueKF1E19o01SVPZVY5YqnUP+CWgD2XbRqCp/du9wzUKw5GY25su3O0u0Zipm7frM0Gy3LIitq/UjEkNXLJDvvlWo0h0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1710789671; c=relaxed/simple;
-	bh=U8wRvAwN9aKqnzbzN09O1Uh0bCMrFmOV0fyKWXUhUak=;
-	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=Fg4TXe7kgtRno8iavPZStRSMlEdPw2or6tDNC/fM0JiuxcW8sG6sGVEDINmuZqjED34Ugq6vIWQ2NZ8XVQlAuu382oIYt45hspyqkzy3Tn8fGo4AqxC1bUp08dHXTsKm/XzNwUXoRzcBYEBQ6WU8mqY2HmXHRTuaLXpZk29IAwA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=TQuB3uA8; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1710798901; c=relaxed/simple;
+	bh=OtuCDqkSfVg0+5ApOlxKzqe1QfAgEjBGhzs/PhrLUJ4=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=V8FOoEer+m+7qcFbitTEYlFVgjeI+qEG+7Cr/st9e4AVTeaElasMmRJmlIjWljwG8oJSqNUENUZGix1HMgJBmyHJ5RntYzA3Gm6f84MDcyqjamhkBvwGU63lI7LzAJyWVYzgmPUL/iFeI5OCTK+mMHIJ2UTDALf/4Yh68xbcVZ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=Z0nbCrFg; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="TQuB3uA8"
-Received: by smtp.kernel.org (Postfix) with ESMTPS id BC801C433C7;
-	Mon, 18 Mar 2024 19:21:10 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1710789670;
-	bh=U8wRvAwN9aKqnzbzN09O1Uh0bCMrFmOV0fyKWXUhUak=;
-	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
-	b=TQuB3uA8aEbcIgyxw5N4K1twsU0fmIKASrlrwlcC+CRZfNLiO4yIp7PXzg8ayyWUB
-	 Xt/nRX69/bF2eqdqcRdqux+aFSbXlH2TkpqCp3AoAjGP3uC8JW4hESmDYUCsVMYpvP
-	 qv+S8THctBIZGNraad7WPLpas8+EecwQlCDlQSQE3bGPyLDaHwdzesp878GKGfdOQa
-	 jWDUEqHelBkA8InEDLxKCUjEdodsKDWCXxH43jmanyOOmQtNfUp3dfLxmP9HAIPb5J
-	 zehrUxikDMAffSC+GEsccqOvMGC8abqYuvRIvkajcFXSVKbg2+BPjxpxh6Dv3VkiPp
-	 MH9MH2Gzj5h4g==
-Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
-	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id B3CFE174C8D6;
-	Mon, 18 Mar 2024 19:21:10 +0000 (UTC)
-Subject: Re: [GIT PULL] overlayfs fixes for 6.9-rc1
-From: pr-tracker-bot@kernel.org
-In-Reply-To: <20240318170638.1229386-1-amir73il@gmail.com>
-References: <20240318170638.1229386-1-amir73il@gmail.com>
-X-PR-Tracked-List-Id: <linux-fsdevel.vger.kernel.org>
-X-PR-Tracked-Message-Id: <20240318170638.1229386-1-amir73il@gmail.com>
-X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.9-rc1
-X-PR-Tracked-Commit-Id: 77a28aa476873048024ad56daf8f4f17d58ee48e
-X-PR-Merge-Tree: torvalds/linux.git
-X-PR-Merge-Refname: refs/heads/master
-X-PR-Merge-Commit-Id: 0d7ca657df77a3d97698d6ec392894362d2ad334
-Message-Id: <171078967072.17817.14742380840410500097.pr-tracker-bot@kernel.org>
-Date: Mon, 18 Mar 2024 19:21:10 +0000
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="Z0nbCrFg"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1710798899; x=1742334899;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version:content-transfer-encoding;
+  bh=OtuCDqkSfVg0+5ApOlxKzqe1QfAgEjBGhzs/PhrLUJ4=;
+  b=Z0nbCrFg7SJyNp2WEc6LlS/4UyM808nHqsSf+0OSgo8s+PsG1flP1R/1
+   BhaI/GkYw3fYOpn62pH7d+pNP7L3GeZ7XzcFsonkol7fjqFkZ0vEBZ2Ri
+   Fmb9m7zgipo53p8DXWxfFbKANDkPGICKAYOK8rzuYQXD2dvq96btvrnaw
+   FgcJDYdpxTHGTx9veHh6oHYN6VsEzukq3UXdAccQPcCEGh1LKbqlF935Y
+   pVhpWQaiQmaALa4L6k2R6lOuXpMrOYOO07FeD9mEXwSQTWe4JziMDkMtO
+   bsUkpAGhg7WTmuMuFrxpZsgmjEWgHB73RLWhMhXRt5Jv6GVhK/m3+rIGP
+   Q==;
+X-IronPort-AV: E=McAfee;i="6600,9927,11017"; a="16786152"
+X-IronPort-AV: E=Sophos;i="6.07,135,1708416000"; 
+   d="scan'208";a="16786152"
+Received: from fmviesa002.fm.intel.com ([10.60.135.142])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2024 14:54:58 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,135,1708416000"; 
+   d="scan'208";a="36731025"
+Received: from unknown (HELO vcostago-mobl3) ([10.125.110.188])
+  by fmviesa002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Mar 2024 14:54:57 -0700
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: Christian Brauner <brauner@kernel.org>
+Cc: amir73il@gmail.com, hu1.chen@intel.com, miklos@szeredi.hu,
+ malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
+ lizhen.you@intel.com, linux-unionfs@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC v3 1/5] cleanup: Fix discarded const warning when defining
+ lock guard
+In-Reply-To: <20240318-flocken-nagetiere-1e027955d06e@brauner>
+References: <20240216051640.197378-1-vinicius.gomes@intel.com>
+ <20240216051640.197378-2-vinicius.gomes@intel.com>
+ <20240318-flocken-nagetiere-1e027955d06e@brauner>
+Date: Mon, 18 Mar 2024 14:54:56 -0700
+Message-ID: <875xxjp5n3.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-The pull request you sent on Mon, 18 Mar 2024 19:06:38 +0200:
+Christian Brauner <brauner@kernel.org> writes:
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-fixes-6.9-rc1
+> On Thu, Feb 15, 2024 at 09:16:36PM -0800, Vinicius Costa Gomes wrote:
+>> Fix the following warning when defining a cleanup guard for a "const"
+>> pointer type:
+>>=20
+>> ./include/linux/cleanup.h:211:18: warning: return discards =E2=80=98cons=
+t=E2=80=99 qualifier from pointer target type [-Wdiscarded-qualifiers]
+>>   211 |         return _T->lock;                                        =
+        \
+>>       |                ~~^~~~~~
+>> ./include/linux/cleanup.h:233:1: note: in expansion of macro =E2=80=98__=
+DEFINE_UNLOCK_GUARD=E2=80=99
+>>   233 | __DEFINE_UNLOCK_GUARD(_name, _type, _unlock, __VA_ARGS__)       =
+        \
+>>       | ^~~~~~~~~~~~~~~~~~~~~
+>> ./include/linux/cred.h:193:1: note: in expansion of macro =E2=80=98DEFIN=
+E_LOCK_GUARD_1=E2=80=99
+>>   193 | DEFINE_LOCK_GUARD_1(cred, const struct cred, _T->lock =3D overri=
+de_creds_light(_T->lock),
+>>       | ^~~~~~~~~~~~~~~~~~~
+>>=20
+>> Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+>> ---
+>>  include/linux/cleanup.h | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>=20
+>> diff --git a/include/linux/cleanup.h b/include/linux/cleanup.h
+>> index c2d09bc4f976..085482ef46c8 100644
+>> --- a/include/linux/cleanup.h
+>> +++ b/include/linux/cleanup.h
+>> @@ -208,7 +208,7 @@ static inline void class_##_name##_destructor(class_=
+##_name##_t *_T)	\
+>>  									\
+>>  static inline void *class_##_name##_lock_ptr(class_##_name##_t *_T)	\
+>>  {									\
+>> -	return _T->lock;						\
+>> +	return (void *)_T->lock;					\
+>>  }
+>
+> I think both of these patches are a bit ugly as we burden the generic
+> cleanup code with casting to void which could cause actual issues.
 
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/0d7ca657df77a3d97698d6ec392894362d2ad334
+Fair point.
 
-Thank you!
+>
+> Casting from const to non-const is rather specific to the cred code so I
+> would rather like to put the burden on the cred code instead of the
+> generic code if possible.
 
--- 
-Deet-doot-dot, I am a bot.
-https://korg.docs.kernel.org/prtracker.html
+For what it's worth, I liked your changes, will remove these two "fixes"
+from the series and use your suggestions in the next version.
+
+
+Thank you,
+--=20
+Vinicius
