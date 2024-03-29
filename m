@@ -1,108 +1,252 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.14])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 17E5913C91B;
-	Tue, 26 Mar 2024 16:23:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.14
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF7B023DE
+	for <linux-unionfs@vger.kernel.org>; Fri, 29 Mar 2024 01:54:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711470210; cv=none; b=UZaxqt9xmnVQoxv+VvAqjfeL/6Rf0n/uJNXNuDfK4dVubI5yAcjTnXHCNCWpNECOpmlzeVjHaSKt3bQSh4Euj1sFp1WlLuT+GdE9GPxZ13BQYkIGrRO31OCdDRQIWzoNKEH1i8QSxx+n9vBJtU0lTrABVndY3Z7pwkIdXjjU6Ek=
+	t=1711677242; cv=none; b=gTPckL3QhdFpjeIABZh36ZtyUS50ziG2FX57MsnZ6g28f9VXVzavqm4o4FrWIAS0bgFtpr4C/EefqPkipmByq5HD1pX63gelaegu7kR0m/8EPujakc36T0AALsJ0P5O+hom8okCDDVoX9SfZEiau88FmAOB1Ul0gKB4HduutfWg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711470210; c=relaxed/simple;
-	bh=JeEqzuses3HS1WFM26cBg0E7pipHfw2grSLI30vpyMU=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=Sm0vOMhBzW0EXAN0vyvuqj3M5Ypk8ghPaU92Jed6heowW8j0R0Ti5tdb+PZ7PqdJhscf/1ztczi9ef0zl44MGv5ajNWMK6b+vnH9PXVonLnrxeft2NDDTiMkSqYsdvDCZnc52/d8WyGuqg3MgzXoia5aRdjt6JjjP9qo0eWcMIE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AgInalM5; arc=none smtp.client-ip=192.198.163.14
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1711677242; c=relaxed/simple;
+	bh=lZQQuABwJOZmsUVIT61uWFDnm9sPaB2yuqUrKtsNR+Y=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=r4rHDxZnv7+smD2ygC7xYljNctSFBHnMf0BWhLVcXpPX1WjA8XI3QJymmy1kQsfOKnxyOrTK5semmYIdlMkYHhH5iGLQ+/ihPunxuNJfCl5xZWWg5WXK43E9zg5l1f6fhVZraCLeNW8e4ipaO1C+WqUoq87dhx4PmXU0sPa+NkQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--drosen.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=aB/f3A+0; arc=none smtp.client-ip=209.85.219.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--drosen.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AgInalM5"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1711470205; x=1743006205;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=JeEqzuses3HS1WFM26cBg0E7pipHfw2grSLI30vpyMU=;
-  b=AgInalM55VBW1v2SvkUlNYpLg2fvzEVx8Sm05gy9NidXxSP3qJOWOXdr
-   Ay8s6jZSY01bL6oemnfCtOyA0B65eFePqz7imAOjYTpX9WNpp4b529qL0
-   atgBra4KmzJ9V98aZ/pVVhZJnS+QXMhVPPjlf6dJN7tCbcUWUtSTSDTtr
-   8psj6goniZ94L+Dd3YMM+ufP7Tqo6xbBJUClpnhte13OjEbvWY+JjOeef
-   nctq/RMsAOm5M0wllxWmSL0ck9Y881FhevYe5/+wdaouJzl3IEwcvAyGj
-   lv0sLUc0AimL52bneKb21RojrrH1Uy9NL3RzAqabAxzxhDUSHcvzeTtDa
-   g==;
-X-CSE-ConnectionGUID: 6Zi660EbS2yYxRpHyyc/MA==
-X-CSE-MsgGUID: PguBU9rZT1W+hyu9M2WRTQ==
-X-IronPort-AV: E=McAfee;i="6600,9927,11025"; a="6746490"
-X-IronPort-AV: E=Sophos;i="6.07,156,1708416000"; 
-   d="scan'208";a="6746490"
-Received: from fmviesa007.fm.intel.com ([10.60.135.147])
-  by fmvoesa108.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2024 09:23:23 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,156,1708416000"; 
-   d="scan'208";a="15997942"
-Received: from unknown (HELO vcostago-mobl3) ([10.124.221.236])
-  by fmviesa007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Mar 2024 09:23:22 -0700
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: Christian Brauner <brauner@kernel.org>
-Cc: amir73il@gmail.com, hu1.chen@intel.com, miklos@szeredi.hu,
- malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
- lizhen.you@intel.com, linux-unionfs@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC v3 1/5] cleanup: Fix discarded const warning when defining
- lock guard
-In-Reply-To: <20240326-daheim-aluminium-810603172600@brauner>
-References: <20240216051640.197378-1-vinicius.gomes@intel.com>
- <20240216051640.197378-2-vinicius.gomes@intel.com>
- <20240318-flocken-nagetiere-1e027955d06e@brauner>
- <20240318-dehnen-entdecken-dd436f42f91a@brauner>
- <87msqlq0i8.fsf@intel.com> <20240326-steil-sachpreis-cec621ae5c59@brauner>
- <20240326-daheim-aluminium-810603172600@brauner>
-Date: Tue, 26 Mar 2024 09:23:22 -0700
-Message-ID: <87a5mlotc5.fsf@intel.com>
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="aB/f3A+0"
+Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-dd933a044baso3267594276.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Mar 2024 18:54:00 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1711677240; x=1712282040; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=z0NIzBAv+SjWsssKXwGXD1rG7WqoBIi+ZSW1OwLkK/0=;
+        b=aB/f3A+0y2zE3//JflrfPOK/EMqYs4pKgx5lsOtZOxmrr4t9pxHB/UVniPQL776sOh
+         HoNA8wORbOBoSfSG6QBQhyXndgV/Z7FxKPsEW/CL8vdpEFDLmS3Mvki8FxMEZzzOLtMn
+         niv8in4Et03d21JGWbsJFrymPXOAO7AblFKOnoFTyut96PLXHRUHKvrQQ4nKJPmsy0Ne
+         4yRLNtNVayYO7HYP3H1LIk1CQ7J9XtAIT+d5txKgNfRglCk7ObzRPlBsK2T1NEHzPuRJ
+         no/YqmVe4gYDEraWAVjCjit3EQ/OsHhZEVw0bLXYAvbtX7Uosvz29P6oykAT//vCwmwc
+         KeAA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1711677240; x=1712282040;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=z0NIzBAv+SjWsssKXwGXD1rG7WqoBIi+ZSW1OwLkK/0=;
+        b=Vf+pbg2hatSQYTRBKV28Zev2SeSGjPP/YSLPqOeJzo4P/Kq1rFmnl6jIGURF0PCwSU
+         HN95fWizdCaxiPOHyopiaBehetaIdA/lXy0JYE9zEtZjjHofRHLkDSMqJi14LFe4Dajj
+         QbaIAUfzgv2Eob3VGCrSX58daratzzv/PqF90Rt1cGKAqRmi2Q3QZ78UMeBobHPm1RqC
+         Ro4MbsekG5D3y6XvXder31SRdasNgUm4nzDCUf/6AdiTxID9JM9uiJTb7q0ZIPcdoOff
+         Zl89Keu8wTaI1/UdI2KO7LKNzH5vinXcBN63gZV6ARjOtkP8RjNxyOvlU6WbWkarkiQi
+         UAmg==
+X-Forwarded-Encrypted: i=1; AJvYcCUV3m2kxkGrklC5n8AWH3y9WfA5diEExOuea5PVHMpxuo6jbwCUXmR0ovDcHP90uHuwbN5xoaPiCnOHs0/HjMnnu8dRjHnDVMxcpaqI8w==
+X-Gm-Message-State: AOJu0Yy72AGEm/xdOUKRRAM3UnFblVDZ0MnQ47BVTnruZc0RoutI+J3t
+	cSjH9OZ1sZSjAunwrNavjmQYajtZwmYM8NQFcKxW7kp2SlURCPkmeGhSWubciahUszVsKc10EJC
+	+9g==
+X-Google-Smtp-Source: AGHT+IHyDXdhzOnaRkdixUL2++rweJn9lx+Erbim0MGnWcbc9hWfYz0a9yunyZZkRCL+mZoYrYs+P/ft4MQ=
+X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:201:fcce:d6ab:804c:b94b])
+ (user=drosen job=sendgmr) by 2002:a25:c753:0:b0:dd3:f55f:ff02 with SMTP id
+ w80-20020a25c753000000b00dd3f55fff02mr840384ybe.1.1711677239983; Thu, 28 Mar
+ 2024 18:53:59 -0700 (PDT)
+Date: Thu, 28 Mar 2024 18:53:15 -0700
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.44.0.478.gd926399ef9-goog
+Message-ID: <20240329015351.624249-1-drosen@google.com>
+Subject: [RFC PATCH v4 00/36] Fuse-BPF and plans on merging with Fuse Passthrough
+From: Daniel Rosenberg <drosen@google.com>
+To: Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org, 
+	Alexei Starovoitov <ast@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	Daniel Borkmann <daniel@iogearbox.net>, John Fastabend <john.fastabend@gmail.com>, 
+	Andrii Nakryiko <andrii@kernel.org>, Martin KaFai Lau <martin.lau@linux.dev>, Song Liu <song@kernel.org>, 
+	Eduard Zingerman <eddyz87@gmail.com>, Yonghong Song <yonghong.song@linux.dev>, 
+	KP Singh <kpsingh@kernel.org>, Stanislav Fomichev <sdf@google.com>, Hao Luo <haoluo@google.com>, 
+	Jiri Olsa <jolsa@kernel.org>, Shuah Khan <shuah@kernel.org>, Jonathan Corbet <corbet@lwn.net>, 
+	Joanne Koong <joannelkoong@gmail.com>, Mykola Lysenko <mykolal@fb.com>, 
+	Christian Brauner <brauner@kernel.org>, kernel-team@android.com, 
+	Daniel Rosenberg <drosen@google.com>
+Content-Type: text/plain; charset="UTF-8"
 
-Christian Brauner <brauner@kernel.org> writes:
+I've recently gotten some time to re-focus on fuse-bpf efforts, and
+had some questions on how to best integrate with recent changes that
+have landed in the last year. I've included a rebased version (ontop
+of bpf-next e63985ecd226 ("bpf, riscv64/cfi: Support kCFI + BPF on
+riscv64") of the old patchset for reference here.
 
-> On Tue, Mar 26, 2024 at 11:53:12AM +0100, Christian Brauner wrote:
->> On Mon, Mar 25, 2024 at 05:50:55PM -0700, Vinicius Costa Gomes wrote:
->> > Christian Brauner <brauner@kernel.org> writes:
->> > 
->> > >
->> > > So something like this? (Amir?)
->> > >
->> > >  
->> > > -DEFINE_LOCK_GUARD_1(cred, const struct cred, _T->lock = override_creds_light(_T->lock),
->> > > -	     revert_creds_light(_T->lock));
->> > > +DEFINE_LOCK_GUARD_1(cred, struct cred,
->> > > +		    _T->lock = (struct cred *)override_creds_light(_T->lock),
->> > > +		    revert_creds_light(_T->lock));
->> > > +
->> > > +#define cred_guard(_cred) guard(cred)(((struct cred *)_cred))
->> > > +#define cred_scoped_guard(_cred) scoped_guard(cred, ((struct cred *)_cred))
->> > >  
->> > >  /**
->> > >   * get_new_cred_many - Get references on a new set of credentials
->> > 
->> > Thinking about proposing a PATCH version (with these suggestions applied), Amir
->> > has suggested in the past that I should propose two separate series:
->> >  (1) introducing the guard helpers + backing file changes;
->> >  (2) overlayfs changes;
->> > 
->> > Any new ideas about this? Or should I go with this plan?
->> 
->> I mean make it two separate patches and I can provide Amir with a stable
->> branch for the cleanup guards. I think that's what he wanted.
->
-> But send them out in one series ofc. Amir and I can sort this if needed.
+On the bpf end, I'm struggling a little bit with the interface for
+selecting programs. I'd like to be able to pass the map id to fuse,
+since that's a value userspace already knows the program by. Would it
+be reasonable to either pass that ID down to the registration
+function, or otherwise provide a path for a separate module to
+translate from a map id to a struct_op program?
 
-Yeah, understood.
+On the fuse end, I'm wondering how the interface will extend to
+directories. At LSFMMBPF last year, some people brought up concerns
+with the interface we had, specifically that it required opens to get
+fds, which we'd then use to respond to lookup requests, adding a lot
+of extra overhead. I had been planning to switch to a path that the
+response would supply instead, likely limited by RESOLVE_BENEATH. That
+seems pretty different from Fuse Passthrough's approach. Are there any
+current plans on how that interface will extend for a directory
+passthrough?
+
+Could someone clarify why passthrough has an extra layer to register
+for use as a backing file? Does the ioctl provide some additional
+tracking purpose? I recall there being some security issue around
+directly responding with the fd. In fuse-bpf, we were handling this by
+responding to the fuse request via an ioctl in those cases.
+
+Passthrough also maintains a separate cred instance for each backing
+file. I had been planning to have a single one for the userspace
+daemon, likely grabbed during the init response. I'm unsure how the
+current Passthrough method there should scale to directories.
+
+Now on to my plans. Struct ops programs have more dynamic support now
+[1]. I'm hoping to be able to move most of the Fuse BPF related code
+to live closer to Fuse, and to have it more neatly encapsulated when
+building as a module. I'm not sure if everything that's needed for
+that exists, but I need to play with it a bit more to understand what
+I'm missing. I'll probably show up at bpf office hours at some point.
+
+Struct ops have proper multi page support now [2], which removes
+another patch. I'm still slightly over the struct ops limit, but that
+may change with other changes I'm considering.
+
+I'm very excited to see the new generic stacking filesystem support
+with backing-file [3]. I imagine in time we'll extend that to have a
+backing-inode as well, for the various inode_operations. That will
+definitely involve a lot of refactoring of the way fuse-bpf is
+currently structured, but it's clearly the right way forward.
+
+I'm glad to see fuse passthrough, which provides a subset of the
+fuse-bpf functionality, has landed[4]. I'm planning to rework the
+patch set to integrate better with that. First off, I've been
+considering splitting up the bpf progam into a dentry, inode, and file
+set. That has the added bonus of pushing us back down below the
+current struct_op function list limits. I would want to establish some
+linkage between the sets, so that you could still just set the bpf
+program at a folder level, and have all objects underneath inherit the
+correct program. That's not an issue for a version with just file
+support, but I'll want to ensure the interface extends naturally. With
+the increased module support, I plan to redo all of the bpf program
+linking anyways. The existing code was a temporary placeholder while
+the method of registering struct ops programs was still in flux.
+
+My plan for the next patch set is to prune down to just the file
+operations. That removes a lot of the tricky questions for the moment,
+and should shrink down the patch set massively. Along with that, I'll
+clean up the struct_op implementation to take more advantage of the
+recent bpf additions.
+
+[1] https://lore.kernel.org/r/20240119225005.668602-12-thinker.li@gmail.com
+[2] https://lore.kernel.org/all/20240224223418.526631-3-thinker.li@gmail.com/
+[3] https://lore.kernel.org/all/20240105-vfs-rw-9b5809292b57@brauner/
+[4] https://lore.kernel.org/all/CAJfpegsZoLMfcpBXBPr7wdAnuXfAYUZYyinru3jrOWWEz7DJPQ@mail.gmail.com/
 
 
-Thank you,
+Daniel Rosenberg (36):
+  fuse-bpf: Update fuse side uapi
+  fuse-bpf: Add data structures for fuse-bpf
+  fuse-bpf: Prepare for fuse-bpf patch
+  fuse: Add fuse-bpf, a stacked fs extension for FUSE
+  fuse-bpf: Add ioctl interface for /dev/fuse
+  fuse-bpf: Don't support export_operations
+  fuse-bpf: Add support for access
+  fuse-bpf: Partially add mapping support
+  fuse-bpf: Add lseek support
+  fuse-bpf: Add support for fallocate
+  fuse-bpf: Support file/dir open/close
+  fuse-bpf: Support mknod/unlink/mkdir/rmdir
+  fuse-bpf: Add support for read/write iter
+  fuse-bpf: support readdir
+  fuse-bpf: Add support for sync operations
+  fuse-bpf: Add Rename support
+  fuse-bpf: Add attr support
+  fuse-bpf: Add support for FUSE_COPY_FILE_RANGE
+  fuse-bpf: Add xattr support
+  fuse-bpf: Add symlink/link support
+  fuse-bpf: Add partial flock support
+  fuse-bpf: Add partial ioctl support
+  fuse-bpf: allow mounting with no userspace daemon
+  fuse-bpf: Add fuse-bpf constants
+  bpf: Increase struct_op max members
+  WIP: bpf: Add fuse_ops struct_op programs
+  fuse-bpf: Export Functions
+  fuse: Provide registration functions for fuse-bpf
+  fuse-bpf: Set fuse_ops at mount or lookup time
+  fuse-bpf: Call bpf for pre/post filters
+  fuse-bpf: Add userspace pre/post filters
+  WIP: fuse-bpf: add error_out
+  fuse-bpf: Add default filter op
+  tools: Add FUSE, update bpf includes
+  fuse-bpf: Add selftests
+  fuse: Provide easy way to test fuse struct_op call
+
+ fs/fuse/Kconfig                               |    8 +
+ fs/fuse/Makefile                              |    1 +
+ fs/fuse/backing.c                             | 4287 +++++++++++++++++
+ fs/fuse/bpf_register.c                        |  207 +
+ fs/fuse/control.c                             |    2 +-
+ fs/fuse/dev.c                                 |   85 +-
+ fs/fuse/dir.c                                 |  318 +-
+ fs/fuse/file.c                                |  126 +-
+ fs/fuse/fuse_i.h                              |  472 +-
+ fs/fuse/inode.c                               |  377 +-
+ fs/fuse/ioctl.c                               |   11 +-
+ fs/fuse/readdir.c                             |    5 +
+ fs/fuse/xattr.c                               |   18 +
+ include/linux/bpf.h                           |    2 +-
+ include/linux/bpf_fuse.h                      |  285 ++
+ include/uapi/linux/bpf.h                      |   13 +
+ include/uapi/linux/fuse.h                     |   41 +
+ kernel/bpf/Makefile                           |    4 +
+ kernel/bpf/bpf_fuse.c                         |  716 +++
+ kernel/bpf/bpf_struct_ops.c                   |    2 +
+ kernel/bpf/btf.c                              |    1 +
+ kernel/bpf/verifier.c                         |   10 +-
+ tools/include/uapi/linux/bpf.h                |   13 +
+ tools/include/uapi/linux/fuse.h               | 1197 +++++
+ .../selftests/filesystems/fuse/.gitignore     |    2 +
+ .../selftests/filesystems/fuse/Makefile       |  189 +
+ .../testing/selftests/filesystems/fuse/OWNERS |    2 +
+ .../selftests/filesystems/fuse/bpf_common.h   |   51 +
+ .../selftests/filesystems/fuse/bpf_loader.c   |  597 +++
+ .../testing/selftests/filesystems/fuse/fd.txt |   21 +
+ .../selftests/filesystems/fuse/fd_bpf.bpf.c   |  397 ++
+ .../selftests/filesystems/fuse/fuse_daemon.c  |  300 ++
+ .../selftests/filesystems/fuse/fuse_test.c    | 2476 ++++++++++
+ .../filesystems/fuse/struct_op_test.bpf.c     |  642 +++
+ .../selftests/filesystems/fuse/test.bpf.c     | 1045 ++++
+ .../filesystems/fuse/test_framework.h         |  172 +
+ .../selftests/filesystems/fuse/test_fuse.h    |  494 ++
+ 37 files changed, 14385 insertions(+), 204 deletions(-)
+ create mode 100644 fs/fuse/backing.c
+ create mode 100644 fs/fuse/bpf_register.c
+ create mode 100644 include/linux/bpf_fuse.h
+ create mode 100644 kernel/bpf/bpf_fuse.c
+ create mode 100644 tools/include/uapi/linux/fuse.h
+ create mode 100644 tools/testing/selftests/filesystems/fuse/.gitignore
+ create mode 100644 tools/testing/selftests/filesystems/fuse/Makefile
+ create mode 100644 tools/testing/selftests/filesystems/fuse/OWNERS
+ create mode 100644 tools/testing/selftests/filesystems/fuse/bpf_common.h
+ create mode 100644 tools/testing/selftests/filesystems/fuse/bpf_loader.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fd.txt
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fd_bpf.bpf.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fuse_daemon.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/fuse_test.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/struct_op_test.bpf.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/test.bpf.c
+ create mode 100644 tools/testing/selftests/filesystems/fuse/test_framework.h
+ create mode 100644 tools/testing/selftests/filesystems/fuse/test_fuse.h
+
+
+base-commit: e63985ecd22681c7f5975f2e8637187a326b6791
 -- 
-Vinicius
+2.44.0.478.gd926399ef9-goog
+
