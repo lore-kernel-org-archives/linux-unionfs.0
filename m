@@ -1,55 +1,55 @@
-Received: from mail-yb1-f201.google.com (mail-yb1-f201.google.com [209.85.219.201])
+Received: from mail-yw1-f202.google.com (mail-yw1-f202.google.com [209.85.128.202])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1CF1B8562E
-	for <linux-unionfs@vger.kernel.org>; Fri, 29 Mar 2024 01:55:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2538185C62
+	for <linux-unionfs@vger.kernel.org>; Fri, 29 Mar 2024 01:55:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.202
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1711677305; cv=none; b=ABG2aJgSJSd0IFxSoRT0uQKkcdvCJIqe6tlOuhu3b4U86VBu9E/zQfZTosDxj4lhSlpNu+DxhfqqaaOKZ+tl/+Ke/aq3S5eEgbTDt+P53788yHT7KmeIUS9Mgwj+ey5bk295ArH3c9aZRBt6dBigenBix2k5iCylYxcoLBTRfyg=
+	t=1711677308; cv=none; b=d6qrl8hnsuQ9xMiuULhpn30XklArX64ob5c7LF36GoP/n1h0oKB49nqnYzkNHXd2J8r+Bqw0Pf/Qzunb4oI03JcCC6GjD+UUSKz6OuzflqEpl3vZd7XoWq5sMVS7/AJwuGsi9tjuMaYNDnuMKv8vRy5IZBR6+ZgL/4qE34hjgD8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1711677305; c=relaxed/simple;
-	bh=fRKdI3QiwIiUODgq+UYwDm6APftE3YO7UTQiQdpsLQk=;
+	s=arc-20240116; t=1711677308; c=relaxed/simple;
+	bh=WB2+aIBBnGAmjt8YgnuqmpzErACdvxw+HOIgdgWZMeE=;
 	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=lg5F1Dc7gVZnAxoj5Hc6F8Pe7HudeL4xwUn8ztAbYZBtfwVE/ht2yxufOqZySo9Hmt433Q0psfLsL2MmdHJ/vvCC5/AQbiaUAgPLMWDeivoxKRLzuNKCU/9Sd6x6CjO+02gFXgH3QWYEqwT9k/aDGr3GGMkG2TNgU1nPVz1bkSs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--drosen.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=qPLeyrQ5; arc=none smtp.client-ip=209.85.219.201
+	 To:Cc:Content-Type; b=vDjJkC+ywxppdd2cnZ/7hnAJ1Uh/sCkwLYhWDlkoY7a83h6oodXPhNg2i3Wz63KVhSpF7Azfj43pQnP4WRtVAiuImvajDUxgGgxaQbrlfH8QJ+cBTkCx1l+PO2KhEmRBtO0yqwQ3/yARQ/OSEZNt7WJILVnLa2tfEyQOr5W0vRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--drosen.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=uUPv+h9A; arc=none smtp.client-ip=209.85.128.202
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--drosen.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="qPLeyrQ5"
-Received: by mail-yb1-f201.google.com with SMTP id 3f1490d57ef6-dbf618042daso2326117276.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 28 Mar 2024 18:55:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="uUPv+h9A"
+Received: by mail-yw1-f202.google.com with SMTP id 00721157ae682-6134cfcacdcso26854597b3.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 28 Mar 2024 18:55:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1711677303; x=1712282103; darn=vger.kernel.org;
+        d=google.com; s=20230601; t=1711677305; x=1712282105; darn=vger.kernel.org;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=zEN/hYQfa73u/9gIRdrmlwDPst/lwM0QAOXzH39EmOE=;
-        b=qPLeyrQ5TH2DAWgV8I4AWYGcmgKMHTjMKC076tbFiK7GjGM9ftByjuMhqgyn3rmnQG
-         DIbIRf08mveERGW5T+C8jOy7SRdJYgi018cEABgOnQldlk55sZ8YoWpr8yjMg6aCZXSo
-         gK/Z1qcWud+JvCpPrf0B+6RSXx0792sRyHVfFUZ2q4ZqfVJ4KZaDgc6Fr7d8NNUPfAof
-         iByM1i2xzaY2k/sDeZKOPJoKcPF71FHXoFgZT8T1u/7Tds1vfLBRV8v8FH0km54S2t9m
-         0nY+Ne/84wuU5tKpqLGygFLazM5UD8kZPj5Jfzj5CVz79OhlDhUYi+C01KEoV433bMEi
-         Ni8Q==
+        bh=yIGNuIERprRFbYtu59mkQ7iO+y89Tk9z1OQnfjfFmpQ=;
+        b=uUPv+h9At/DZmmUS5UHauSMsxolAYT2I4HmesATKLo33m3H3/lFPEB5WcYldth6M/i
+         5eUaZ0eEsBfqVyZkd2KY0nfRzAXhajb8DVJmNg86c+EBoAgol9nv5XOzovNvaOT3wZhu
+         XCYD13/JLXBhicIy6xURmLR3gVuUr9qNaXZ53+aFCza5zBmzZK2pCISyn0SG9ZYgxG3I
+         kk8VklGsuFs0mnM+eZyIbu+q0H9nMURPn5yl6I9ke+LCfpnq8h89LggvDq8/r666Jt2c
+         2ZxU7wQ82r5WWsnNrkkJuj+lFn6CQdoStwh/t+xQZKQLe87CNxjtO8kJ38BiOEiWKviB
+         UiOA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1711677303; x=1712282103;
+        d=1e100.net; s=20230601; t=1711677305; x=1712282105;
         h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
          :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=zEN/hYQfa73u/9gIRdrmlwDPst/lwM0QAOXzH39EmOE=;
-        b=AdKvxNbgTKMWcatQAIeL1LPe8vGV7yA19XGvD+sdtLZ4FqrwyNMv3e6kyz7ETHcl1G
-         N7jrdrC05YZoUF4WpLQDKXqldGHzRXwDycHsjgDq2KojxjiFhQ0NPrAHku/Vc1sXhRVw
-         nhk2GfQrBL7+lbal2LzMSKAqgH0kGZpu5BPQxlUfzn3Xpo4zSN8JlKfHpk39KI58izln
-         gPTthdEQLdmS8JWKRkELAKl+Un4xd+BbY8G7kLtUgNiwGPfke9lMUuVvGW9l8zjOPjLI
-         w2YetQcgRpaZHl0c3ATpr8d0i/AkTbIfk4x7/P5ZU3Iu2cpCRNQT96gs0zzvorvDk2ds
-         2kiQ==
-X-Forwarded-Encrypted: i=1; AJvYcCVRhPgzUMxP42DkfKEQZ6RHY6hhnTeXfYPOEc57yBDfHAp+OdSu/caKohyV2KyigV77QFilXKIiB1M/Y4+dtJP+iVxxmHHFvcWCAfC1Tw==
-X-Gm-Message-State: AOJu0YyqBk+PnFmsc0VfJ2TGWLJdaO2KTUFknwgWxGAve+PBP0ufoj5m
-	LdMoyXeMUiIfCRbQpKV5ZlGu5ubTuFMO4HVVwruetUejsR66nvTVjAtWTrjdib0bZ3dK1JHT5cB
-	e5w==
-X-Google-Smtp-Source: AGHT+IGJkcoNjDwu0yATYCHjKDKZoR5yIciZSAATbPvRVnUKhEVFpM8/s5FsZmz4KVaPxicOk3AftJZTH7I=
+        bh=yIGNuIERprRFbYtu59mkQ7iO+y89Tk9z1OQnfjfFmpQ=;
+        b=AP1RlQHvmgDBmxMeAY+HFyUfPw9BSh5XIwogaMdzCbbVrW6FHoN0nsI5wkf0G1zoe2
+         DoGSwGfaLI+sIgzyJnmacRkiluA3ZoEGKqheaZZk79rqHP2xiVe0Efegx+7Xat7N/l1w
+         xG8n8PDNTmQtlKF+U03Fx0vBGSvdTuxUObjglPPrMAcj+dSyKSS4Wi0/qVYc8nWFTSRI
+         Om1dLEfUKDpxP+itjg6uy+Ng5Y4/GmI7tfAetq7aLC01bqnCvopVi0YBKhSSBYBQssr2
+         fa7/YuSkERTUWo/pQGcdjIZvj6US3UD5OYkzF5OF0FqePwghvvoSmr6v/gH0lh0oBo0S
+         lVLw==
+X-Forwarded-Encrypted: i=1; AJvYcCXxbxhMwieGImDJL70maW4nRBgqG8jm9pUuwqyDuXu/lp3yc3T+bZI/L4E2KeLOSglhaaXDVbrK/kkwyYdZIcdfqakYYWjDquv8GcHgcA==
+X-Gm-Message-State: AOJu0Yz7lISCarg8lFi3vHPs9lFm6Al9hSOKPxE0FUUjv/NH5dzlYXJz
+	DAtu5PH1NZYNtF4bj28vUflV69nX91Yba2lkjVogKrjAA4QfH2d78rKa/PO9IR5KwhZNUTVfZxh
+	QRQ==
+X-Google-Smtp-Source: AGHT+IGkSDFcSAQR5ALwwIQ3JXRpP9Dx6/nMJka01ohuszHNcmHsTHrY0ZAI1RYhTHOqdHZpZX4PSnyy7Pg=
 X-Received: from drosen.mtv.corp.google.com ([2620:15c:211:201:fcce:d6ab:804c:b94b])
- (user=drosen job=sendgmr) by 2002:a05:6902:2481:b0:dd9:2a64:e98a with SMTP id
- ds1-20020a056902248100b00dd92a64e98amr86515ybb.9.1711677302942; Thu, 28 Mar
- 2024 18:55:02 -0700 (PDT)
-Date: Thu, 28 Mar 2024 18:53:43 -0700
+ (user=drosen job=sendgmr) by 2002:a81:6f86:0:b0:611:2af3:8e07 with SMTP id
+ k128-20020a816f86000000b006112af38e07mr308268ywc.3.1711677305218; Thu, 28 Mar
+ 2024 18:55:05 -0700 (PDT)
+Date: Thu, 28 Mar 2024 18:53:44 -0700
 In-Reply-To: <20240329015351.624249-1-drosen@google.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -59,8 +59,8 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 Mime-Version: 1.0
 References: <20240329015351.624249-1-drosen@google.com>
 X-Mailer: git-send-email 2.44.0.478.gd926399ef9-goog
-Message-ID: <20240329015351.624249-29-drosen@google.com>
-Subject: [RFC PATCH v4 28/36] fuse: Provide registration functions for fuse-bpf
+Message-ID: <20240329015351.624249-30-drosen@google.com>
+Subject: [RFC PATCH v4 29/36] fuse-bpf: Set fuse_ops at mount or lookup time
 From: Daniel Rosenberg <drosen@google.com>
 To: Miklos Szeredi <miklos@szeredi.hu>, bpf@vger.kernel.org, 
 	Alexei Starovoitov <ast@kernel.org>
@@ -76,318 +76,441 @@ Cc: Amir Goldstein <amir73il@gmail.com>, linux-kernel@vger.kernel.org,
 	Daniel Rosenberg <drosen@google.com>
 Content-Type: text/plain; charset="UTF-8"
 
-Fuse may be built as a module, but verifier components are not. This
-provides a means for fuse-bpf to handle struct op programs once the
-module is loaded.
+This adds the ability to associate a fuse_op struct_op program with
+inodes in fuse. This can be done at mount time at the root level, or by
+inode at lookup time.
 
 Signed-off-by: Daniel Rosenberg <drosen@google.com>
 ---
- fs/fuse/Makefile         |   2 +-
- fs/fuse/backing.c        |   2 +
- fs/fuse/bpf_register.c   | 207 +++++++++++++++++++++++++++++++++++++++
- fs/fuse/fuse_i.h         |  26 +++++
- include/linux/bpf_fuse.h |   8 ++
- 5 files changed, 244 insertions(+), 1 deletion(-)
- create mode 100644 fs/fuse/bpf_register.c
+ fs/fuse/backing.c | 100 +++++++++++++++++++++++++++++++++++++++++-----
+ fs/fuse/dir.c     |  19 ++++++++-
+ fs/fuse/fuse_i.h  |  12 ++++++
+ fs/fuse/inode.c   |  45 ++++++++++++++++++---
+ 4 files changed, 160 insertions(+), 16 deletions(-)
 
-diff --git a/fs/fuse/Makefile b/fs/fuse/Makefile
-index a0853c439db2..903253db7285 100644
---- a/fs/fuse/Makefile
-+++ b/fs/fuse/Makefile
-@@ -9,6 +9,6 @@ obj-$(CONFIG_VIRTIO_FS) += virtiofs.o
- 
- fuse-y := dev.o dir.o file.o inode.o control.o xattr.o acl.o readdir.o ioctl.o
- fuse-$(CONFIG_FUSE_DAX) += dax.o
--fuse-$(CONFIG_FUSE_BPF) += backing.o
-+fuse-$(CONFIG_FUSE_BPF) += backing.o bpf_register.o
- 
- virtiofs-y := virtio_fs.o
 diff --git a/fs/fuse/backing.c b/fs/fuse/backing.c
-index 884c690becd5..d5fcaef8e6b5 100644
+index d5fcaef8e6b5..5fdca3a6183f 100644
 --- a/fs/fuse/backing.c
 +++ b/fs/fuse/backing.c
-@@ -3392,6 +3392,7 @@ int fuse_bpf_access(int *out, struct inode *inode, int mask)
+@@ -6,6 +6,7 @@
  
- int __init fuse_bpf_init(void)
- {
-+	init_fuse_bpf();
- 	fuse_bpf_aio_request_cachep = kmem_cache_create("fuse_bpf_aio_req",
- 						   sizeof(struct fuse_bpf_aio_req),
- 						   0, SLAB_HWCACHE_ALIGN, NULL);
-@@ -3403,5 +3404,6 @@ int __init fuse_bpf_init(void)
+ #include "fuse_i.h"
  
- void __exit fuse_bpf_cleanup(void)
- {
-+	uninit_fuse_bpf();
- 	kmem_cache_destroy(fuse_bpf_aio_request_cachep);
- }
-diff --git a/fs/fuse/bpf_register.c b/fs/fuse/bpf_register.c
-new file mode 100644
-index 000000000000..32f96004b161
---- /dev/null
-+++ b/fs/fuse/bpf_register.c
-@@ -0,0 +1,207 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * FUSE-BPF: Filesystem in Userspace with BPF
-+ * Copyright (c) 2021 Google LLC
-+ */
-+
-+#include <linux/bpf_verifier.h>
-+#include <linux/bpf_fuse.h>
 +#include <linux/bpf.h>
-+#include <linux/btf.h>
-+#include <linux/hashtable.h>
-+
-+#include "fuse_i.h"
-+
-+struct fuse_ops tmp_f_op_empty = { 0 };
-+struct fuse_ops *tmp_f_op = &tmp_f_op_empty;
-+
-+struct hashtable_entry {
-+	struct hlist_node hlist;
-+	struct hlist_node dlist; /* for deletion cleanup */
-+	struct qstr key;
+ #include <linux/bpf_fuse.h>
+ #include <linux/fdtable.h>
+ #include <linux/file.h>
+@@ -176,12 +177,13 @@ static void fuse_get_backing_path(struct file *file, struct path *path)
+ 
+ static bool has_file(int type)
+ {
+-	return type == FUSE_ENTRY_BACKING;
++	return (type == FUSE_ENTRY_BACKING);
+ }
+ 
+ /*
+- * The optional fuse bpf entry lists the backing file for a particular
+- * lookup. These are inherited by default.
++ * The optional fuse bpf entry lists the bpf and backing files for a particular
++ * lookup. These are inherited by default. A Bpf requires a backing file to be
++ * meaningful.
+  *
+  * In the future, we may support multiple bpfs, and multiple backing files for
+  * the bpf to choose between.
+@@ -190,14 +192,14 @@ static bool has_file(int type)
+  * file. Changing only the bpf is valid, though meaningless if there isn't an
+  * inherited backing file.
+  *
+- * Support for the bpf program will be added in a later patch
+- *
+  */
+ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num)
+ {
+ 	struct fuse_bpf_entry_out *fbeo;
 +	struct fuse_ops *ops;
-+};
-+
-+static DEFINE_HASHTABLE(name_to_ops, 8);
-+
-+static unsigned int full_name_case_hash(const void *salt, const unsigned char *name, unsigned int len)
-+{
-+	unsigned long hash = init_name_hash(salt);
-+
-+	while (len--)
-+		hash = partial_name_hash(tolower(*name++), hash);
-+	return end_name_hash(hash);
-+}
-+
-+static inline void qstr_init(struct qstr *q, const char *name)
-+{
-+	q->name = name;
-+	q->len = strlen(q->name);
-+	q->hash = full_name_case_hash(0, q->name, q->len);
-+}
-+
-+static inline int qstr_copy(const struct qstr *src, struct qstr *dest)
-+{
-+	dest->name = kstrdup(src->name, GFP_KERNEL);
-+	dest->hash_len = src->hash_len;
-+	return !!dest->name;
-+}
-+
-+static inline int qstr_eq(const struct qstr *s1, const struct qstr *s2)
-+{
-+	int res, r1, r2, r3;
-+
-+	r1 = s1->len == s2->len;
-+	r2 = s1->hash == s2->hash;
-+	r3 = memcmp(s1->name, s2->name, s1->len);
-+	res = (s1->len == s2->len && s1->hash == s2->hash && !memcmp(s1->name, s2->name, s1->len));
-+	return res;
-+}
-+
-+static struct fuse_ops *__find_fuse_ops(const struct qstr *key)
-+{
-+	struct hashtable_entry *hash_cur;
-+	unsigned int hash = key->hash;
-+	struct fuse_ops *ret_ops;
-+
-+	rcu_read_lock();
-+	hash_for_each_possible_rcu(name_to_ops, hash_cur, hlist, hash) {
-+		if (qstr_eq(key, &hash_cur->key)) {
-+			ret_ops = hash_cur->ops;
-+			ret_ops = get_fuse_ops(ret_ops);
-+			rcu_read_unlock();
-+			return ret_ops;
+ 	struct file *file;
+ 	bool has_backing = false;
++	bool has_bpf_ops = false;
+ 	int num_entries;
+ 	int err = -EINVAL;
+ 	int i;
+@@ -235,6 +237,11 @@ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num)
+ 				goto out_err;
+ 			fbe->backing_action = FUSE_BPF_REMOVE;
+ 			break;
++		case FUSE_ENTRY_REMOVE_BPF:
++			if (fbe->bpf_action || i == 2)
++				goto out_err;
++			fbe->bpf_action = FUSE_BPF_REMOVE;
++			break;
+ 		case FUSE_ENTRY_BACKING:
+ 			if (fbe->backing_action)
+ 				goto out_err;
+@@ -242,8 +249,17 @@ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num)
+ 			fbe->backing_action = FUSE_BPF_SET;
+ 			has_backing = true;
+ 			break;
++		case FUSE_ENTRY_BPF:
++			if (fbe->bpf_action || i == 2)
++				goto out_err;
++			ops = find_fuse_ops(fbeo->name);
++			if (!ops)
++				goto out_err;
++			has_bpf_ops = true;
++			fbe->bpf_action = FUSE_BPF_SET;
++			fbe->ops = ops;
++			break;
+ 		default:
+-			err = -EINVAL;
+ 			goto out_err;
+ 		}
+ 		if (has_file(fbeo->entry_type)) {
+@@ -260,6 +276,10 @@ int parse_fuse_bpf_entry(struct fuse_bpf_entry *fbe, int num)
+ 		fput(file);
+ 	if (has_backing)
+ 		path_put_init(&fbe->backing_path);
++	if (has_bpf_ops) {
++		put_fuse_ops(fbe->ops);
++		fbe->ops = NULL;
++	}
+ 	return err;
+ }
+ 
+@@ -538,6 +558,15 @@ static int fuse_create_open_backing(struct bpf_fuse_args *fa, int *out,
+ 		goto out;
+ 	}
+ 
++	if (get_fuse_inode(inode)->bpf_ops)
++		put_fuse_ops(get_fuse_inode(inode)->bpf_ops);
++	get_fuse_inode(inode)->bpf_ops = dir_fuse_inode->bpf_ops;
++	if (get_fuse_inode(inode)->bpf_ops)
++		if (!get_fuse_ops(get_fuse_inode(inode)->bpf_ops)) {
++			*out = -EINVAL;
++			goto out;
 +		}
-+	}
-+	rcu_read_unlock();
-+	return NULL;
-+}
 +
-+struct fuse_ops *get_fuse_ops(struct fuse_ops *ops)
+ 	newent = d_splice_alias(inode, entry);
+ 	if (IS_ERR(newent)) {
+ 		*out = PTR_ERR(newent);
+@@ -1858,12 +1887,56 @@ int fuse_handle_backing(struct fuse_bpf_entry *fbe, struct path *backing_path)
+ 	return 0;
+ }
+ 
++int fuse_handle_bpf_ops(struct fuse_bpf_entry *fbe, struct inode *parent,
++			 struct fuse_ops **ops)
 +{
-+	if (bpf_try_module_get(ops, BPF_MODULE_OWNER))
-+		return ops;
-+	else
-+		return NULL;
-+}
++	struct fuse_ops *new_ops = NULL;
 +
-+void put_fuse_ops(struct fuse_ops *ops)
-+{
-+	if (ops)
-+		bpf_module_put(ops, BPF_MODULE_OWNER);
-+}
++	switch (fbe->bpf_action) {
++	case FUSE_BPF_UNCHANGED: {
++		/* Parent isn't presented, but we want to keep
++		 * Don't touch bpf program at all in this case
++		 */
++		if (!parent)
++			return 0;
 +
-+struct fuse_ops *find_fuse_ops(const char *key)
-+{
-+	struct qstr q;
-+
-+	qstr_init(&q, key);
-+	return __find_fuse_ops(&q);
-+}
-+
-+static struct hashtable_entry *alloc_hashtable_entry(const struct qstr *key,
-+		struct fuse_ops *value)
-+{
-+	struct hashtable_entry *ret = kzalloc(sizeof(*ret), GFP_KERNEL);
-+	if (!ret)
-+		return NULL;
-+	INIT_HLIST_NODE(&ret->dlist);
-+	INIT_HLIST_NODE(&ret->hlist);
-+
-+	if (!qstr_copy(key, &ret->key)) {
-+		kfree(ret);
-+		return NULL;
++		new_ops = get_fuse_inode(parent)->bpf_ops;
++		if (new_ops && !get_fuse_ops(new_ops))
++			return -EINVAL;
++		break;
 +	}
 +
-+	ret->ops = value;
-+	return ret;
-+}
++	case FUSE_BPF_REMOVE:
++		break;
 +
-+static int __register_fuse_op(struct fuse_ops *value)
-+{
-+	struct hashtable_entry *hash_cur;
-+	struct hashtable_entry *new_entry;
-+	struct qstr key;
-+	unsigned int hash;
++	case FUSE_BPF_SET:
++		new_ops = fbe->ops;
 +
-+	qstr_init(&key, value->name);
-+	hash = key.hash;
-+	hash_for_each_possible_rcu(name_to_ops, hash_cur, hlist, hash) {
-+		if (qstr_eq(&key, &hash_cur->key)) {
-+			return -EEXIST;
-+		}
++		if (!new_ops)
++			return -EINVAL;
++		break;
++
++	default:
++		return -EINVAL;
 +	}
-+	new_entry = alloc_hashtable_entry(&key, value);
-+	if (!new_entry)
-+		return -ENOMEM;
-+	hash_add_rcu(name_to_ops, &new_entry->hlist, hash);
++
++	/* Cannot change existing program */
++	if (*ops) {
++		if (new_ops)
++			put_fuse_ops(new_ops);
++		return new_ops == *ops ? 0 : -EINVAL;
++	}
++
++	*ops = new_ops;
 +	return 0;
 +}
 +
-+static int register_fuse_op(struct fuse_ops *value)
-+{
-+	int err;
+ static int fuse_lookup_finalize(struct bpf_fuse_args *fa, struct dentry **out,
+ 				struct inode *dir, struct dentry *entry, unsigned int flags)
+ {
+ 	struct fuse_dentry *fd;
+ 	struct dentry *backing_dentry;
+-	struct inode *inode, *backing_inode;
++	struct inode *inode = NULL, *backing_inode;
+ 	struct inode *d_inode = entry->d_inode;
+ 	struct fuse_entry_out *feo = fa->out_args[0].value;
+ 	struct fuse_bpf_entry_out *febo = fa->out_args[1].buffer->data;
+@@ -1891,13 +1964,22 @@ static int fuse_lookup_finalize(struct bpf_fuse_args *fa, struct dentry **out,
+ 		target_nodeid = get_fuse_inode(d_inode)->nodeid;
+ 
+ 	inode = fuse_iget_backing(dir->i_sb, target_nodeid, backing_inode);
++	if (!inode)
++		return -EIO;
+ 
+-	if (IS_ERR(inode))
+-		return PTR_ERR(inode);
++	error = fuse_handle_bpf_ops(fbe, dir, &get_fuse_inode(inode)->bpf_ops);
++	if (error) {
++		return error;
++		goto out;
++	}
+ 
+ 	get_fuse_inode(inode)->nodeid = feo->nodeid;
+ 
+ 	*out = d_splice_alias(inode, entry);
++	if (!IS_ERR(*out))
++		inode = NULL;
++out:
++	iput(inode);
+ 	return 0;
+ }
+ 
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index 08f93a981665..f5ab3b79b3cc 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -10,6 +10,7 @@
+ 
+ #include <linux/pagemap.h>
+ #include <linux/file.h>
++#include <linux/filter.h>
+ #include <linux/fs_context.h>
+ #include <linux/moduleparam.h>
+ #include <linux/sched.h>
+@@ -202,6 +203,7 @@ static bool backing_data_changed(struct fuse_inode *fi, struct dentry *entry,
+ {
+ 	struct path new_backing_path;
+ 	struct inode *new_backing_inode;
++	struct fuse_ops *ops = NULL;
+ 	int err;
+ 	bool ret = true;
+ 
+@@ -216,9 +218,15 @@ static bool backing_data_changed(struct fuse_inode *fi, struct dentry *entry,
+ 	if (err)
+ 		goto put_inode;
+ 
+-	ret = (fi->backing_inode != new_backing_inode ||
+-			!path_equal(&get_fuse_dentry(entry)->backing_path, &new_backing_path));
++	err = fuse_handle_bpf_ops(bpf_arg, entry->d_parent->d_inode, &ops);
++	if (err)
++		goto put_bpf;
+ 
++	ret = (ops != fi->bpf_ops || fi->backing_inode != new_backing_inode ||
++			!path_equal(&get_fuse_dentry(entry)->backing_path, &new_backing_path));
++put_bpf:
++	if (ops)
++		put_fuse_ops(ops);
+ put_inode:
+ 	path_put(&new_backing_path);
+ 	return ret;
+@@ -486,6 +494,13 @@ int fuse_lookup_name(struct super_block *sb, u64 nodeid,
+ 		*inode = fuse_iget_backing(sb, outarg->nodeid, backing_inode);
+ 		if (!*inode)
+ 			goto out_queue_forget;
 +
-+	if (bpf_try_module_get(value, BPF_MODULE_OWNER))
-+		err = __register_fuse_op(value);
-+	else
-+		return -EBUSY;
-+
-+	return err;
-+}
-+
-+static void unregister_fuse_op(struct fuse_ops *value)
-+{
-+	struct hashtable_entry *hash_cur;
-+	struct qstr key;
-+	unsigned int hash;
-+	struct hlist_node *h_t;
-+	HLIST_HEAD(free_list);
-+
-+	qstr_init(&key, value->name);
-+	hash = key.hash;
-+
-+	hash_for_each_possible_rcu(name_to_ops, hash_cur, hlist, hash) {
-+		if (qstr_eq(&key, &hash_cur->key)) {
-+			hash_del_rcu(&hash_cur->hlist);
-+			hlist_add_head(&hash_cur->dlist, &free_list);
++		err = fuse_handle_bpf_ops(&bpf_arg, NULL, &get_fuse_inode(*inode)->bpf_ops);
++		if (err) {
++			iput(*inode);
++			*inode = NULL;
++			goto out_put_forget;
 +		}
-+	}
-+	synchronize_rcu();
-+	bpf_module_put(value, BPF_MODULE_OWNER);
-+	hlist_for_each_entry_safe(hash_cur, h_t, &free_list, dlist)
-+		kfree(hash_cur);
-+}
-+
-+static void fuse_op_list_destroy(void)
-+{
-+	struct hashtable_entry *hash_cur;
-+	struct hlist_node *h_t;
-+	HLIST_HEAD(free_list);
-+	int i;
-+
-+	hash_for_each_rcu(name_to_ops, i, hash_cur, hlist) {
-+		hash_del_rcu(&hash_cur->hlist);
-+		hlist_add_head(&hash_cur->dlist, &free_list);
-+	}
-+	synchronize_rcu();
-+	hlist_for_each_entry_safe(hash_cur, h_t, &free_list, dlist)
-+		kfree(hash_cur);
-+	pr_info("fuse: destroyed fuse_op list\n");
-+}
-+
-+static struct bpf_fuse_ops_attach bpf_fuse_ops_connect = {
-+	.fuse_register_bpf = &register_fuse_op,
-+	.fuse_unregister_bpf = &unregister_fuse_op,
-+};
-+
-+int init_fuse_bpf(void)
-+{
-+	return register_fuse_bpf(&bpf_fuse_ops_connect);
-+}
-+
-+void uninit_fuse_bpf(void)
-+{
-+	unregister_fuse_bpf(&bpf_fuse_ops_connect);
-+	fuse_op_list_destroy();
-+}
+ 	} else
+ #endif
+ 	{
 diff --git a/fs/fuse/fuse_i.h b/fs/fuse/fuse_i.h
-index f1a8f8a97f1f..082cfd14de53 100644
+index 082cfd14de53..665673d91753 100644
 --- a/fs/fuse/fuse_i.h
 +++ b/fs/fuse/fuse_i.h
-@@ -1423,6 +1423,32 @@ void fuse_file_release(struct inode *inode, struct fuse_file *ff,
- 		       unsigned int open_flags, fl_owner_t id, bool isdir);
+@@ -33,6 +33,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/refcount.h>
+ #include <linux/user_namespace.h>
++#include <linux/bpf_fuse.h>
+ #include <linux/magic.h>
  
- /* backing.c */
-+#ifdef CONFIG_FUSE_BPF
-+struct fuse_ops *find_fuse_ops(const char *key);
-+struct fuse_ops *get_fuse_ops(struct fuse_ops *ops);
-+void put_fuse_ops(struct fuse_ops *ops);
-+int init_fuse_bpf(void);
-+void uninit_fuse_bpf(void);
-+#else
-+int init_fuse_bpf(void)
-+{
-+	return -EOPNOTSUPP;
-+}
-+void uninit_fuse_bpf(void)
-+{
-+}
-+struct fuse_ops *find_fuse_ops(const char *key)
-+{
-+	return NULL;
-+}
-+struct fuse_ops *get_fuse_ops(struct fuse_ops *ops)
-+{
-+	return NULL;
-+}
-+void put_fuse_ops(struct fuse_ops *ops)
-+{
-+}
-+#endif
+ /** Default max number of pages that can be used in a single read request */
+@@ -122,6 +123,12 @@ struct fuse_inode {
+ 	 * If this is set, nodeid is 0.
+ 	 */
+ 	struct inode *backing_inode;
++
++	/**
++	 * fuse_ops, provides handlers to run on all operations to determine
++	 * whether to pass through or handle in place
++	 */
++	struct fuse_ops *bpf_ops;
+ #endif
  
- enum fuse_bpf_set {
- 	FUSE_BPF_UNCHANGED = 0,
-diff --git a/include/linux/bpf_fuse.h b/include/linux/bpf_fuse.h
-index 780a7889aea2..2183a7a45c92 100644
---- a/include/linux/bpf_fuse.h
-+++ b/include/linux/bpf_fuse.h
-@@ -270,4 +270,12 @@ struct fuse_ops {
- 	char name[BPF_FUSE_NAME_MAX];
+ 	/** Unique ID, which identifies the inode between userspace
+@@ -591,6 +598,7 @@ struct fuse_fs_context {
+ 	unsigned int max_read;
+ 	unsigned int blksize;
+ 	const char *subtype;
++	struct fuse_ops *root_ops;
+ 	struct file *root_dir;
+ 
+ 	/* DAX device, may be NULL */
+@@ -1461,6 +1469,8 @@ struct fuse_bpf_entry {
+ 
+ 	enum fuse_bpf_set backing_action;
+ 	struct path backing_path;
++	enum fuse_bpf_set bpf_action;
++	struct fuse_ops *ops;
+ 	bool is_used;
  };
  
-+struct bpf_fuse_ops_attach {
-+	int (*fuse_register_bpf)(struct fuse_ops *f_ops);
-+	void (*fuse_unregister_bpf)(struct fuse_ops *f_ops);
-+};
+@@ -1687,6 +1697,8 @@ int fuse_file_flock_backing(struct file *file, int cmd, struct file_lock *fl);
+ ssize_t fuse_backing_mmap(struct file *file, struct vm_area_struct *vma);
+ 
+ int fuse_handle_backing(struct fuse_bpf_entry *fbe, struct path *backing_path);
++int fuse_handle_bpf_ops(struct fuse_bpf_entry *fbe, struct inode *parent,
++			 struct fuse_ops **ops);
+ 
+ int fuse_revalidate_backing(struct dentry *entry, unsigned int flags);
+ 
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index b4332416e23a..67d70b3c4abb 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -98,6 +98,7 @@ static struct inode *fuse_alloc_inode(struct super_block *sb)
+ 	fi->inval_mask = ~0;
+ #ifdef CONFIG_FUSE_BPF
+ 	fi->backing_inode = NULL;
++	fi->bpf_ops = NULL;
+ #endif
+ 	fi->nodeid = 0;
+ 	fi->nlookup = 0;
+@@ -131,6 +132,10 @@ static void fuse_free_inode(struct inode *inode)
+ 	kfree(fi->forget);
+ #ifdef CONFIG_FUSE_DAX
+ 	kfree(fi->dax);
++#endif
++#ifdef CONFIG_FUSE_BPF
++	if (fi->bpf_ops)
++		put_fuse_ops(fi->bpf_ops);
+ #endif
+ 	kmem_cache_free(fuse_inode_cachep, fi);
+ }
+@@ -153,10 +158,6 @@ static void fuse_evict_inode(struct inode *inode)
+ 	/* Will write inode on close/munmap and in all other dirtiers */
+ 	WARN_ON(inode->i_state & I_DIRTY_INODE);
+ 
+-#ifdef CONFIG_FUSE_BPF
+-	iput(fi->backing_inode);
+-#endif
+-
+ 	truncate_inode_pages_final(&inode->i_data);
+ 	clear_inode(inode);
+ 	if (inode->i_sb->s_flags & SB_ACTIVE) {
+@@ -181,6 +182,15 @@ static void fuse_evict_inode(struct inode *inode)
+ 	}
+ }
+ 
++#ifdef CONFIG_FUSE_BPF
++static void fuse_destroy_inode(struct inode *inode)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
 +
-+int register_fuse_bpf(struct bpf_fuse_ops_attach *reg_ops);
-+void unregister_fuse_bpf(struct bpf_fuse_ops_attach *reg_ops);
++	iput(fi->backing_inode);
++}
++#endif
 +
- #endif /* _BPF_FUSE_H */
+ static int fuse_reconfigure(struct fs_context *fsc)
+ {
+ 	struct super_block *sb = fsc->root->d_sb;
+@@ -828,6 +838,7 @@ enum {
+ 	OPT_ALLOW_OTHER,
+ 	OPT_MAX_READ,
+ 	OPT_BLKSIZE,
++	OPT_ROOT_BPF,
+ 	OPT_ROOT_DIR,
+ 	OPT_NO_DAEMON,
+ 	OPT_ERR
+@@ -844,6 +855,7 @@ static const struct fs_parameter_spec fuse_fs_parameters[] = {
+ 	fsparam_u32	("max_read",		OPT_MAX_READ),
+ 	fsparam_u32	("blksize",		OPT_BLKSIZE),
+ 	fsparam_string	("subtype",		OPT_SUBTYPE),
++	fsparam_string	("root_bpf",		OPT_ROOT_BPF),
+ 	fsparam_u32	("root_dir",		OPT_ROOT_DIR),
+ 	fsparam_flag	("no_daemon",		OPT_NO_DAEMON),
+ 	{}
+@@ -929,6 +941,18 @@ static int fuse_parse_param(struct fs_context *fsc, struct fs_parameter *param)
+ 		ctx->blksize = result.uint_32;
+ 		break;
+ 
++	case OPT_ROOT_BPF:
++		if (strnlen(param->string, BPF_FUSE_NAME_MAX + 1) > BPF_FUSE_NAME_MAX) {
++			return invalfc(fsc, "root_bpf name too long. Max length is %d", BPF_FUSE_NAME_MAX);
++		}
++
++		ctx->root_ops = find_fuse_ops(param->string);
++		if (IS_ERR_OR_NULL(ctx->root_ops)) {
++			ctx->root_ops = NULL;
++			return invalfc(fsc, "Unable to find bpf program");
++		}
++		break;
++
+ 	case OPT_ROOT_DIR:
+ 		ctx->root_dir = fget(result.uint_32);
+ 		if (!ctx->root_dir)
+@@ -954,6 +978,8 @@ static void fuse_free_fsc(struct fs_context *fsc)
+ 	if (ctx) {
+ 		if (ctx->root_dir)
+ 			fput(ctx->root_dir);
++		if (ctx->root_ops)
++			put_fuse_ops(ctx->root_ops);
+ 		kfree(ctx->subtype);
+ 		kfree(ctx);
+ 	}
+@@ -1090,6 +1116,7 @@ EXPORT_SYMBOL_GPL(fuse_conn_get);
+ 
+ static struct inode *fuse_get_root_inode(struct super_block *sb,
+ 					 unsigned int mode,
++					 struct fuse_ops *root_bpf_ops,
+ 					 struct file *backing_fd)
+ {
+ 	struct fuse_attr attr;
+@@ -1104,6 +1131,10 @@ static struct inode *fuse_get_root_inode(struct super_block *sb,
+ 		return NULL;
+ 
+ #ifdef CONFIG_FUSE_BPF
++	get_fuse_inode(inode)->bpf_ops = root_bpf_ops;
++	if (root_bpf_ops)
++		get_fuse_ops(root_bpf_ops);
++
+ 	if (backing_fd) {
+ 		get_fuse_inode(inode)->backing_inode = backing_fd->f_inode;
+ 		ihold(backing_fd->f_inode);
+@@ -1274,6 +1305,9 @@ static const struct export_operations fuse_export_operations = {
+ 
+ static const struct super_operations fuse_super_operations = {
+ 	.alloc_inode    = fuse_alloc_inode,
++#ifdef CONFIG_FUSE_BPF
++	.destroy_inode	= fuse_destroy_inode,
++#endif
+ 	.free_inode     = fuse_free_inode,
+ 	.evict_inode	= fuse_evict_inode,
+ 	.write_inode	= fuse_write_inode,
+@@ -1808,7 +1842,8 @@ int fuse_fill_super_common(struct super_block *sb, struct fuse_fs_context *ctx)
+ 	fc->no_daemon = ctx->no_daemon;
+ 
+ 	err = -ENOMEM;
+-	root = fuse_get_root_inode(sb, ctx->rootmode, ctx->root_dir);
++	root = fuse_get_root_inode(sb, ctx->rootmode, ctx->root_ops,
++				   ctx->root_dir);
+ 	sb->s_d_op = &fuse_root_dentry_operations;
+ 	root_dentry = d_make_root(root);
+ 	if (!root_dentry)
 -- 
 2.44.0.478.gd926399ef9-goog
 
