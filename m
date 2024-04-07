@@ -1,134 +1,229 @@
-Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f71.google.com (mail-io1-f71.google.com [209.85.166.71])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F2123143869;
-	Wed,  3 Apr 2024 15:47:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6E01F3BB27
+	for <linux-unionfs@vger.kernel.org>; Sun,  7 Apr 2024 18:37:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.71
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712159279; cv=none; b=WysVQ44QwEJc9J4QjbI4/PORqp6Zz7kEJTcnGdmew41NM8ZR2WS5j+tHtzJz2aSdLIbQAFrW8WlxYF/a4iyCqFDN3M3Dbmg9p4wh25ECUSVIdFh84Nf0zV7TojfioywbzSJYSRt9faNCi4F29lqdayyv8H7Wv86PpuBBA0/L030=
+	t=1712515049; cv=none; b=QCYxeclxLjfbxLKnFKgkr49ZN0B3PGls18Z5wjlOdhmwByqI8ohgexcqiYE4clIGnSkiPDI1MS6kCRoEjUS42ZxExADIoo9mXQZk5TDJ/8x2CoSuTZU/ave44aCGoDDe82z17s6nmqHKCZGFOx1qD7uZC2l4Wh4N1A6wSJAXikA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712159279; c=relaxed/simple;
-	bh=wzzfIE273kK/KSd802a4HQaAZTBLYE4XpaXSQtu0YcQ=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=BOomeMP0keHlgo1rG9LCnF1zGva4jCylnAByYW4Cdi7/Yu/bfJ1uRWdFGY8p5D8BGvFK0q1y9Z4cqM9++QfiJXMT0hrR8RWNTBfHCUTMSYP8V3Wjde96zU+szcdeQjyNrI9HoCh98VYyeOGVcwcIYfk0B+CdS5TTBbeazfImsc4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=lSQvN18p; arc=none smtp.client-ip=198.175.65.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="lSQvN18p"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712159279; x=1743695279;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=wzzfIE273kK/KSd802a4HQaAZTBLYE4XpaXSQtu0YcQ=;
-  b=lSQvN18pfmZNZ3cQe6C7SnKzJuLykRjKjBO4ByNAXzelSvsj+wKuVU/V
-   Dedv5/DtBF9R5hBkPIi3UaEbFa4oXMnd040+OeurcTsgfKV2s0xUI08yq
-   L89vhS/2c9Pu39W5wyD3aKWaGi+6/O/JvjXi9RAIQkQsgtUSKT9+NbztM
-   r559e2WZKNqEACYe2NUP7hnIY87G1bees6y87uOzY3Crgn6nOZ+Cu/d8F
-   J+K3IS1SmPHMyI/GEzeUqiKEN2p1JMmAE+kbPP9kieJax1o4bcn4ULO9W
-   BgRYlHjsn3ZOj0zp4NN3Q63Sh3j5GQy/3gbh1WFpWwnonp1KBgQK/uXvf
-   w==;
-X-CSE-ConnectionGUID: UGoyrI8bQwGV7sTXj+muHg==
-X-CSE-MsgGUID: I6q8bCmeTzykcBlCN96BsA==
-X-IronPort-AV: E=McAfee;i="6600,9927,11033"; a="18558390"
-X-IronPort-AV: E=Sophos;i="6.07,177,1708416000"; 
-   d="scan'208";a="18558390"
-Received: from fmviesa010.fm.intel.com ([10.60.135.150])
-  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Apr 2024 08:47:58 -0700
-X-CSE-ConnectionGUID: xFH3pTNqRYKDyd2CjLd83Q==
-X-CSE-MsgGUID: fkgl5cVSTnqwRuFhVMznNA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,177,1708416000"; 
-   d="scan'208";a="18397626"
-Received: from lkp-server02.sh.intel.com (HELO 90ee3aa53dbd) ([10.239.97.151])
-  by fmviesa010.fm.intel.com with ESMTP; 03 Apr 2024 08:47:54 -0700
-Received: from kbuild by 90ee3aa53dbd with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1rs2q7-0002Mc-2t;
-	Wed, 03 Apr 2024 15:47:51 +0000
-Date: Wed, 3 Apr 2024 23:40:32 +0800
-From: kernel test robot <lkp@intel.com>
-To: Vinicius Costa Gomes <vinicius.gomes@intel.com>, brauner@kernel.org,
-	amir73il@gmail.com, hu1.chen@intel.com
-Cc: oe-kbuild-all@lists.linux.dev, miklos@szeredi.hu,
-	malini.bhandaru@intel.com, tim.c.chen@intel.com,
-	mikko.ylinen@intel.com, lizhen.you@intel.com,
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: Re: [PATCH v1 2/3] fs: Optimize credentials reference count for
- backing file ops
-Message-ID: <202404032344.SKdrnkhI-lkp@intel.com>
-References: <20240403021808.309900-3-vinicius.gomes@intel.com>
+	s=arc-20240116; t=1712515049; c=relaxed/simple;
+	bh=z9dVydCGQccil9iduLyVYmGvHO0quDz92LltjxcSIP4=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=DcRUKCTShjSl9PbVYVLPYPKmPUtROWJkieeGCq5+N2X1ZUpjIsbSWlNXUZhtNVgm9Nq3Vlwv19P6xFKV06p2xNtamexMlE54yckQ/+UoHpd5QLDLlT6t4hEVowM1eg71pORX8k+7jHysdqOSuEeHgJARGUhPUfsM+rLk54C9JqQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.71
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f71.google.com with SMTP id ca18e2360f4ac-7d096c4d663so505758939f.2
+        for <linux-unionfs@vger.kernel.org>; Sun, 07 Apr 2024 11:37:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1712515046; x=1713119846;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ZtGQvEQZ/fTBpSrM4TpNjFmoANPjSiQ4qjQ7HxVZ0EI=;
+        b=p2yFfJpMYCp86gbym54stDX7jeIbUBwdau7c3PBxVk4zlQy5BYOaJTI5MmBZRgzine
+         aZuf3shMnAYmzcSn57d4O0POvouzekZAQZHoL1Yx1BodI4rni46tUhPn1SJqiMtZYZ3Z
+         rTd2xJPz3te+NWhzFoT+KkQIDhD4AOVgTUVxQp1s08rSjpG5MTsSgC64o9PyfxvjTFhm
+         M1+TvtEhH450A/NYkMdsoXDZ0z3uicYvILnItn5DTzsXJBTBJCR/d9tn2p3LiboRKJOW
+         455orlpuKSI33GBhI9Ed6QfawDM2lN9/SssFQDChTFN0mKgv8ey3msvcCRMeJhm1A431
+         ONZw==
+X-Forwarded-Encrypted: i=1; AJvYcCViLzE8wqVbrb9BzaYw64cmM/U6u52+AcfLDakArpyDUQKckunfyTaAQM2xDxyHaJgOGW6w2Gho5kWTaxS1rjvtpxqZ7h9mH/kY1F8FzA==
+X-Gm-Message-State: AOJu0Yzi7yImLjoSNGwQINh+LoJ742umZ/bmm3fYANnn4lOJtCakeUuV
+	SO7r+5CpB1iCkDtb19PeuaR66w6LySkYQWofCTrjVItdnzDWobXDN/M3q+8xFMm8Bivi/OjKzDE
+	wy/XWdSNSzNbxzQfjLdklPJ8JcpH8H8Cvo+diqPm/2I4HE5k6oW448lw=
+X-Google-Smtp-Source: AGHT+IEMMfEJ1vPqqmcV5Eghlm9vTYfBeLb9v464xCZ7Hc2GJXk5IJwp5pQGcGOig7pbJfZ7LmAgK0ceaM4TJZTnjGXTHRAZAmdK
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20240403021808.309900-3-vinicius.gomes@intel.com>
+X-Received: by 2002:a05:6638:22d0:b0:47c:195d:16f6 with SMTP id
+ j16-20020a05663822d000b0047c195d16f6mr235298jat.6.1712515046692; Sun, 07 Apr
+ 2024 11:37:26 -0700 (PDT)
+Date: Sun, 07 Apr 2024 11:37:26 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <00000000000007ebc6061585fb7f@google.com>
+Subject: [syzbot] [overlayfs?] possible deadlock in ovl_copy_up_start (3)
+From: syzbot <syzbot+5e130dffef394d3f11a6@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-fsdevel@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hi Vinicius,
+Hello,
 
-kernel test robot noticed the following build warnings:
+syzbot found the following issue on:
 
-[auto build test WARNING on brauner-vfs/vfs.all]
-[also build test WARNING on linus/master v6.9-rc2 next-20240403]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+HEAD commit:    fe46a7dd189e Merge tag 'sound-6.9-rc1' of git://git.kernel..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=15f706ad180000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=4d90a36f0cab495a
+dashboard link: https://syzkaller.appspot.com/bug?extid=5e130dffef394d3f11a6
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Vinicius-Costa-Gomes/cred-Add-a-light-version-of-override-revert_creds/20240403-101954
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git vfs.all
-patch link:    https://lore.kernel.org/r/20240403021808.309900-3-vinicius.gomes%40intel.com
-patch subject: [PATCH v1 2/3] fs: Optimize credentials reference count for backing file ops
-config: i386-randconfig-061-20240403 (https://download.01.org/0day-ci/archive/20240403/202404032344.SKdrnkhI-lkp@intel.com/config)
-compiler: gcc-13 (Ubuntu 13.2.0-4ubuntu3) 13.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20240403/202404032344.SKdrnkhI-lkp@intel.com/reproduce)
+Unfortunately, I don't have any reproducer for this issue yet.
 
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202404032344.SKdrnkhI-lkp@intel.com/
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/72ab73815344/disk-fe46a7dd.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/2d6d6b0d7071/vmlinux-fe46a7dd.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/48e275e5478b/bzImage-fe46a7dd.xz
 
-sparse warnings: (new ones prefixed by >>)
-   fs/backing-file.c: note: in included file (through include/linux/sched/signal.h, include/linux/rcuwait.h, include/linux/percpu-rwsem.h, ...):
->> include/linux/cred.h:182:41: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   include/linux/cred.h:182:41: sparse:     expected struct cred const *old
-   include/linux/cred.h:182:41: sparse:     got struct cred const [noderef] __rcu *cred
->> include/linux/cred.h:182:41: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   include/linux/cred.h:182:41: sparse:     expected struct cred const *old
-   include/linux/cred.h:182:41: sparse:     got struct cred const [noderef] __rcu *cred
->> include/linux/cred.h:182:41: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   include/linux/cred.h:182:41: sparse:     expected struct cred const *old
-   include/linux/cred.h:182:41: sparse:     got struct cred const [noderef] __rcu *cred
->> include/linux/cred.h:182:41: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   include/linux/cred.h:182:41: sparse:     expected struct cred const *old
-   include/linux/cred.h:182:41: sparse:     got struct cred const [noderef] __rcu *cred
->> include/linux/cred.h:182:41: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   include/linux/cred.h:182:41: sparse:     expected struct cred const *old
-   include/linux/cred.h:182:41: sparse:     got struct cred const [noderef] __rcu *cred
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+5e130dffef394d3f11a6@syzkaller.appspotmail.com
 
-vim +182 include/linux/cred.h
+======================================================
+WARNING: possible circular locking dependency detected
+6.8.0-syzkaller-08951-gfe46a7dd189e #0 Not tainted
+------------------------------------------------------
+syz-executor.4/8594 is trying to acquire lock:
+ffff88805d9aff38 (&ovl_i_lock_key[depth]){+.+.}-{3:3}, at: ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:654 [inline]
+ffff88805d9aff38 (&ovl_i_lock_key[depth]){+.+.}-{3:3}, at: ovl_copy_up_start+0x53/0x310 fs/overlayfs/util.c:719
 
-58319057b78476 Andy Lutomirski      2015-09-04  174  
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  175  /*
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  176   * Override creds without bumping reference count. Caller must ensure
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  177   * reference remains valid or has taken reference. Almost always not the
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  178   * interface you want. Use override_creds()/revert_creds() instead.
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  179   */
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  180  static inline const struct cred *override_creds_light(const struct cred *override_cred)
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  181  {
-dd60a254548056 Vinicius Costa Gomes 2024-04-02 @182  	const struct cred *old = current->cred;
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  183  
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  184  	rcu_assign_pointer(current->cred, override_cred);
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  185  	return old;
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  186  }
-dd60a254548056 Vinicius Costa Gomes 2024-04-02  187  
+but task is already holding lock:
+ffff88805d9afb80 (&ovl_i_mutex_dir_key[depth]){++++}-{3:3}, at: inode_lock include/linux/fs.h:793 [inline]
+ffff88805d9afb80 (&ovl_i_mutex_dir_key[depth]){++++}-{3:3}, at: vfs_rmdir+0x101/0x4c0 fs/namei.c:4198
 
--- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #2 (&ovl_i_mutex_dir_key[depth]){++++}-{3:3}:
+       lock_acquire+0x1e4/0x530 kernel/locking/lockdep.c:5754
+       down_read+0xb1/0xa40 kernel/locking/rwsem.c:1526
+       inode_lock_shared include/linux/fs.h:803 [inline]
+       lookup_slow+0x45/0x70 fs/namei.c:1708
+       walk_component+0x2e1/0x410 fs/namei.c:2004
+       lookup_last fs/namei.c:2461 [inline]
+       path_lookupat+0x16f/0x450 fs/namei.c:2485
+       filename_lookup+0x256/0x610 fs/namei.c:2514
+       kern_path+0x35/0x50 fs/namei.c:2622
+       lookup_bdev+0xc5/0x290 block/bdev.c:1072
+       resume_store+0x1a0/0x710 kernel/power/hibernate.c:1235
+       kernfs_fop_write_iter+0x3a4/0x500 fs/kernfs/file.c:334
+       call_write_iter include/linux/fs.h:2108 [inline]
+       new_sync_write fs/read_write.c:497 [inline]
+       vfs_write+0xa84/0xcb0 fs/read_write.c:590
+       ksys_write+0x1a0/0x2c0 fs/read_write.c:643
+       do_syscall_64+0xfb/0x240
+       entry_SYSCALL_64_after_hwframe+0x6d/0x75
+
+-> #1 (&of->mutex){+.+.}-{3:3}:
+       lock_acquire+0x1e4/0x530 kernel/locking/lockdep.c:5754
+       __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+       __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+       kernfs_fop_llseek+0x7e/0x2a0 fs/kernfs/file.c:867
+       ovl_llseek+0x314/0x470 fs/overlayfs/file.c:218
+       vfs_llseek fs/read_write.c:289 [inline]
+       ksys_lseek fs/read_write.c:302 [inline]
+       __do_sys_lseek fs/read_write.c:313 [inline]
+       __se_sys_lseek fs/read_write.c:311 [inline]
+       __x64_sys_lseek+0x153/0x1e0 fs/read_write.c:311
+       do_syscall_64+0xfb/0x240
+       entry_SYSCALL_64_after_hwframe+0x6d/0x75
+
+-> #0 (&ovl_i_lock_key[depth]){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3134 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3253 [inline]
+       validate_chain+0x18cb/0x58e0 kernel/locking/lockdep.c:3869
+       __lock_acquire+0x1346/0x1fd0 kernel/locking/lockdep.c:5137
+       lock_acquire+0x1e4/0x530 kernel/locking/lockdep.c:5754
+       __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+       __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+       ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:654 [inline]
+       ovl_copy_up_start+0x53/0x310 fs/overlayfs/util.c:719
+       ovl_copy_up_one fs/overlayfs/copy_up.c:1161 [inline]
+       ovl_copy_up_flags+0xbb6/0x4450 fs/overlayfs/copy_up.c:1223
+       ovl_nlink_start+0x9f/0x390 fs/overlayfs/util.c:1157
+       ovl_do_remove+0x1fa/0xd90 fs/overlayfs/dir.c:893
+       vfs_rmdir+0x367/0x4c0 fs/namei.c:4209
+       do_rmdir+0x3b5/0x580 fs/namei.c:4268
+       __do_sys_rmdir fs/namei.c:4287 [inline]
+       __se_sys_rmdir fs/namei.c:4285 [inline]
+       __x64_sys_rmdir+0x49/0x60 fs/namei.c:4285
+       do_syscall_64+0xfb/0x240
+       entry_SYSCALL_64_after_hwframe+0x6d/0x75
+
+other info that might help us debug this:
+
+Chain exists of:
+  &ovl_i_lock_key[depth] --> &of->mutex --> &ovl_i_mutex_dir_key[depth]
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ovl_i_mutex_dir_key[depth]);
+                               lock(&of->mutex);
+                               lock(&ovl_i_mutex_dir_key[depth]);
+  lock(&ovl_i_lock_key[depth]);
+
+ *** DEADLOCK ***
+
+3 locks held by syz-executor.4/8594:
+ #0: ffff88802c9d8420 (sb_writers#23){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
+ #1: ffff88805d9aa450 (&ovl_i_mutex_dir_key[depth]/1){+.+.}-{3:3}, at: inode_lock_nested include/linux/fs.h:828 [inline]
+ #1: ffff88805d9aa450 (&ovl_i_mutex_dir_key[depth]/1){+.+.}-{3:3}, at: do_rmdir+0x263/0x580 fs/namei.c:4256
+ #2: ffff88805d9afb80 (&ovl_i_mutex_dir_key[depth]){++++}-{3:3}, at: inode_lock include/linux/fs.h:793 [inline]
+ #2: ffff88805d9afb80 (&ovl_i_mutex_dir_key[depth]){++++}-{3:3}, at: vfs_rmdir+0x101/0x4c0 fs/namei.c:4198
+
+stack backtrace:
+CPU: 0 PID: 8594 Comm: syz-executor.4 Not tainted 6.8.0-syzkaller-08951-gfe46a7dd189e #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 03/27/2024
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
+ check_noncircular+0x36a/0x4a0 kernel/locking/lockdep.c:2187
+ check_prev_add kernel/locking/lockdep.c:3134 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3253 [inline]
+ validate_chain+0x18cb/0x58e0 kernel/locking/lockdep.c:3869
+ __lock_acquire+0x1346/0x1fd0 kernel/locking/lockdep.c:5137
+ lock_acquire+0x1e4/0x530 kernel/locking/lockdep.c:5754
+ __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+ __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+ ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:654 [inline]
+ ovl_copy_up_start+0x53/0x310 fs/overlayfs/util.c:719
+ ovl_copy_up_one fs/overlayfs/copy_up.c:1161 [inline]
+ ovl_copy_up_flags+0xbb6/0x4450 fs/overlayfs/copy_up.c:1223
+ ovl_nlink_start+0x9f/0x390 fs/overlayfs/util.c:1157
+ ovl_do_remove+0x1fa/0xd90 fs/overlayfs/dir.c:893
+ vfs_rmdir+0x367/0x4c0 fs/namei.c:4209
+ do_rmdir+0x3b5/0x580 fs/namei.c:4268
+ __do_sys_rmdir fs/namei.c:4287 [inline]
+ __se_sys_rmdir fs/namei.c:4285 [inline]
+ __x64_sys_rmdir+0x49/0x60 fs/namei.c:4285
+ do_syscall_64+0xfb/0x240
+ entry_SYSCALL_64_after_hwframe+0x6d/0x75
+RIP: 0033:0x7f3be947dde9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f3bea1720c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000054
+RAX: ffffffffffffffda RBX: 00007f3be95abf80 RCX: 00007f3be947dde9
+RDX: 0000000000000000 RSI: 0000000000000000 RDI: 00000000200002c0
+RBP: 00007f3be94ca47a R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 000000000000000b R14: 00007f3be95abf80 R15: 00007ffd9e6203e8
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
