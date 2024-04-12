@@ -1,109 +1,108 @@
-Received: from mail-lj1-f178.google.com (mail-lj1-f178.google.com [209.85.208.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5EBCC46551
-	for <linux-unionfs@vger.kernel.org>; Thu, 11 Apr 2024 22:40:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77B2C481AA;
+	Fri, 12 Apr 2024 06:41:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712875207; cv=none; b=Ed/jhu8WW4kuO/hSUJAhxrjNOsKNN/EIwqUfi8h0NQtmQdC339Br+1L9ZRC1IC50agQ5o3lCiO9keeh7ccQlbV48ZI1Re+qL84nb7hgbVn1lqh3+h587WMpxIcCbwfVCoQBXZYwO1ImDnhaAo/1/NWuzbPmHcHTs+MDmh9WzGdM=
+	t=1712904086; cv=none; b=FcEPPII0PjuyIcdaDdrNQgRGh0jHTZJ64CCC+El55BAD71bsFllRqYtMsxuiTRwmIH+6zZnvlB5y5AUl5wH3s1mCNb9YHQCKfE/+3nmyyCL49/KnMMSsVyiBZc7CZmYQuwVd73jZ75sEp6m8ftE0iY0OVcTg9b17N1jRVNm4YZ0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712875207; c=relaxed/simple;
-	bh=S4TnsFcjuXgA9nuQRAvIeS3/zSNBm8/9BgUmS0MLmqs=;
-	h=Content-Type:Mime-Version:Subject:From:In-Reply-To:Date:Cc:
-	 Message-Id:References:To; b=ukHZ8uZ8jpCauihr3lylKFKnrHi6TpSB0KnoNIbr+dnBu7pc5TyLeUU8c3W3e0/M/Xen8v6Lk3Kqwa/9buJJg5OpGW0I07TcGlafR1BXS2mqF8TtSqDEBWLqpW2wYgzt2i9cHtf8N1UxR6nYRrF34oQnig0E91eBefd3K6EvY4E=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toblux.com; spf=none smtp.mailfrom=toblux.com; dkim=pass (2048-bit key) header.d=toblux-com.20230601.gappssmtp.com header.i=@toblux-com.20230601.gappssmtp.com header.b=HrE7Vx3V; arc=none smtp.client-ip=209.85.208.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=toblux.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=toblux.com
+	s=arc-20240116; t=1712904086; c=relaxed/simple;
+	bh=nnftp3y20mnefQs/zA7rIGucHoCz77k4ThTY/2DnxXQ=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=WqZ4u2bp1etrmGwN4LvsEPc5P8AJHqF7YOdeX3PUsI0f7yW5353sMQfumFije+dnpo+1RbsV2oEBzu3BzyCh7zMWMGVGqHnsEXXP8w5YLHiRn6isxA0DilztxWv482/N9jaaplh0LdXlp6iYChmbPWluqpwmjkDKYt0JX8kP8AQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iSIG88PM; arc=none smtp.client-ip=192.198.163.9
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=toblux-com.20230601.gappssmtp.com header.i=@toblux-com.20230601.gappssmtp.com header.b="HrE7Vx3V"
-Received: by mail-lj1-f178.google.com with SMTP id 38308e7fff4ca-2d8863d8a6eso3082121fa.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 11 Apr 2024 15:40:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=toblux-com.20230601.gappssmtp.com; s=20230601; t=1712875203; x=1713480003; darn=vger.kernel.org;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=S4TnsFcjuXgA9nuQRAvIeS3/zSNBm8/9BgUmS0MLmqs=;
-        b=HrE7Vx3VsjO9zx09zpOJKe5SAZpjbJiQlry9KLYoRT4w8RbuXZeMwwSh/XEXQESIck
-         gKMtNsMOwu9skWe5ekfDSLBm9kAKGi6YBVIC3zq9r8w2dIOlyjPm54EOXt6ohzfsymWF
-         cDzSb8jCYm4lcNa8gKha+9ObHZf9RrEPBm+D1TdrFVFbU1vkRKRrbxomgI18JDI02dXL
-         cnJEIiUlTz6UgXyGQUrkOXv+UjTQZKKbD9r7+S62qMAbE7sw33tjxBw+CrspLAqlSGlZ
-         MxDn6xfZu/vVjV2ou24iQm57Z6ry3iRc/F8pO+WVLF7OOEwOoFiggiVktAhIxaqG3Nwf
-         ilHg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1712875203; x=1713480003;
-        h=to:references:message-id:content-transfer-encoding:cc:date
-         :in-reply-to:from:subject:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=S4TnsFcjuXgA9nuQRAvIeS3/zSNBm8/9BgUmS0MLmqs=;
-        b=vjaWKWuYhiWq5miq0N0jRzMADZrBft2APuj38aXxf7eFc6xEdD4ohGHM7xYHApDnCj
-         r2A77d56yKDGMP21G0BjoNR8w3Gl/jQg8JheaIX4DsuijbqNhgI5FqA/gBKfEkdW8wJs
-         ZgnEesOc5XIGbv/OrFrlki0EpgJyda5+1tV6e6RnzUX5e0Wf/MghXLn77XicOkOkBGKH
-         mpszTJeOrydNln51LrL6XZxxeyNJxONmLGRHdbrp4P+sYr7ZBvGOiDss3l6PxpojvV9/
-         CCF1lx/Z2wQMjJwCA0GJW7qkP83wy1eE8jCd3FcNEejlJBcS3xhh8vMiEeDmV2mAdISJ
-         /PJA==
-X-Forwarded-Encrypted: i=1; AJvYcCVVhdaG7CLC312B4hSv5avxGNzDBax3Z/fYktPOfuc4Ye0sJuUn5Tt7CTf0rOkfqwl1G11hh7tBxHzp8z/SJBc2j9JrX6K/mRk2cfTMzA==
-X-Gm-Message-State: AOJu0Yz/1ZpaQcp5yXJzXTvDp7bdx4MbJLlfIQmNkO1YdaPVwI//Lsfq
-	tXQ/RqHEId1hstwDDbBAy/RMCRPzCPjr8l+h3ClWf22ZpLyozm0eH0rRmVpvP1o=
-X-Google-Smtp-Source: AGHT+IGY8qJhojjfCfabFUjR9vvGK5A/WLCfM1Bk52OhJKElMImmd0eUpMrnmf84M99SmcErfv1epA==
-X-Received: by 2002:ac2:57db:0:b0:513:eeaa:8f1f with SMTP id k27-20020ac257db000000b00513eeaa8f1fmr649500lfo.47.1712875203340;
-        Thu, 11 Apr 2024 15:40:03 -0700 (PDT)
-Received: from smtpclient.apple ([2001:a61:10c6:ce01:a470:5d20:8e1a:464a])
-        by smtp.gmail.com with ESMTPSA id jx24-20020a170907761800b00a46aba003eesm1144762ejc.215.2024.04.11.15.40.01
-        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 11 Apr 2024 15:40:02 -0700 (PDT)
-Content-Type: text/plain;
-	charset=us-ascii
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iSIG88PM"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1712904084; x=1744440084;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=nnftp3y20mnefQs/zA7rIGucHoCz77k4ThTY/2DnxXQ=;
+  b=iSIG88PM9b2YgdRQ4szSPTsiEdHfMD5rvawOOi/wLLg8jMk/6RvNaAhh
+   oT8MCDqfxNcRKZIaxcmdnyc5dZFarta68w/0F5iqI/qjN12Q0xqiv/d3W
+   MzpkPrK3w3Kcc1AHe6HVTykvzAnyMk67pILZRjDVT2hnvtRmoe/Cw2Fd+
+   /uyq9R6DLLbY1+VPi8oWLD8fXYhTK1fOKpK5axS7YL1HSBv2I+Lw0Wccf
+   fe1j1FKLmWJwforIh40KJUeHO8Jk2MX9Ubj2Z2DTWjc8yz7+KWokasxYk
+   5t7Q9ylV9NvBLIftWfB78uD0Vkjhd9A4DcbrwRJ02bVl04XgItkgpfDlz
+   A==;
+X-CSE-ConnectionGUID: Y0HDLEZfStSZpp9NVKZxxw==
+X-CSE-MsgGUID: /QL/ha6+TkaFPIYYcUqo0A==
+X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="19059686"
+X-IronPort-AV: E=Sophos;i="6.07,195,1708416000"; 
+   d="scan'208";a="19059686"
+Received: from orviesa010.jf.intel.com ([10.64.159.150])
+  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2024 23:41:22 -0700
+X-CSE-ConnectionGUID: gXMdnuYmRRqCKEW6OOQMYA==
+X-CSE-MsgGUID: D1rZkMzDT4yyHA2nqy/ldg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.07,195,1708416000"; 
+   d="scan'208";a="21056020"
+Received: from gjantea-mobl.ger.corp.intel.com (HELO localhost) ([10.252.60.121])
+  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2024 23:41:15 -0700
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Thorsten Blum <thorsten.blum@toblux.com>, Dan Carpenter
+ <dan.carpenter@linaro.org>
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+ linux-trace-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+ speakup@linux-speakup.org, intel-gfx@lists.freedesktop.org,
+ intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+ linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
+ linux-afs@lists.infradead.org, ecryptfs@vger.kernel.org,
+ netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
+ linux-unionfs@vger.kernel.org, linux-arch@vger.kernel.org,
+ io-uring@vger.kernel.org, cocci@inria.fr, linux-perf-users@vger.kernel.org
+Subject: Re: [PATCH] treewide: Fix common grammar mistake "the the"
+In-Reply-To: <193B959E-60A3-499A-BFF3-EA7B2D0B6C12@toblux.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+References: <20240411150437.496153-4-thorsten.blum@toblux.com>
+ <0bd7ccc2-4d8c-455b-a6c2-972ebe1fcb08@moroto.mountain>
+ <193B959E-60A3-499A-BFF3-EA7B2D0B6C12@toblux.com>
+Date: Fri, 12 Apr 2024 09:41:10 +0300
+Message-ID: <87y19j3wxl.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3774.500.171.1.1\))
-Subject: Re: [PATCH] treewide: Fix common grammar mistake "the the"
-From: Thorsten Blum <thorsten.blum@toblux.com>
-In-Reply-To: <0bd7ccc2-4d8c-455b-a6c2-972ebe1fcb08@moroto.mountain>
-Date: Fri, 12 Apr 2024 00:39:51 +0200
-Cc: kernel-janitors@vger.kernel.org,
- linux-kernel@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org,
- linux-doc@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org,
- linux-s390@vger.kernel.org,
- speakup@linux-speakup.org,
- intel-gfx@lists.freedesktop.org,
- intel-xe@lists.freedesktop.org,
- dri-devel@lists.freedesktop.org,
- linux-wireless@vger.kernel.org,
- linux-scsi@vger.kernel.org,
- linux-afs@lists.infradead.org,
- ecryptfs@vger.kernel.org,
- netfs@lists.linux.dev,
- linux-fsdevel@vger.kernel.org,
- linux-unionfs@vger.kernel.org,
- linux-arch@vger.kernel.org,
- io-uring@vger.kernel.org,
- cocci@inria.fr,
- linux-perf-users@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <193B959E-60A3-499A-BFF3-EA7B2D0B6C12@toblux.com>
-References: <20240411150437.496153-4-thorsten.blum@toblux.com>
- <0bd7ccc2-4d8c-455b-a6c2-972ebe1fcb08@moroto.mountain>
-To: Dan Carpenter <dan.carpenter@linaro.org>
-X-Mailer: Apple Mail (2.3774.500.171.1.1)
+MIME-Version: 1.0
+Content-Type: text/plain
 
-On 11. Apr 2024, at 17:25, Dan Carpenter <dan.carpenter@linaro.org> =
-wrote:
->=20
-> It's tricky to know which tree a patch like this would go through.
+On Fri, 12 Apr 2024, Thorsten Blum <thorsten.blum@toblux.com> wrote:
+> On 11. Apr 2024, at 17:25, Dan Carpenter <dan.carpenter@linaro.org> wrote:
+>> 
+>> It's tricky to know which tree a patch like this would go through.
+>
+> The patch is based on the mainline tree. Should I have sent it directly to
+> Linus then?
+>
+> I'm relatively new here and therefore only sent it to the corresponding mailing
+> lists.
 
-The patch is based on the mainline tree. Should I have sent it directly =
-to
-Linus then?
+It's not just about mailing lists, it's also about changes flowing in to
+mainline via a plethora of subsystem and driver repos and branches. See
+MAINTAINERS. Or this old LWN page [1]. The development happens in those
+branches, and if you make treewide changes like this, it's not clear who
+should take it, and you also risk unnecessary conflicts if those places
+get modified in the individual branches. So it might just be easiest to
+split this up to smaller patches sent to the appropriate lists.
 
-I'm relatively new here and therefore only sent it to the corresponding =
-mailing
-lists.
+Anyway, all that said,
 
-Thanks,
-Thorsten=
+Acked-by: Jani Nikula <jani.nikula@intel.com>
+
+on the i915 changes here.
+
+
+BR,
+Jani.
+
+
+[1] https://lwn.net/Articles/737094/
+
+-- 
+Jani Nikula, Intel
