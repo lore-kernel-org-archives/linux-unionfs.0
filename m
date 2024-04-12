@@ -1,107 +1,124 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32EC68626E;
-	Fri, 12 Apr 2024 14:01:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CAE7148313;
+	Fri, 12 Apr 2024 18:05:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712930505; cv=none; b=BCPK5vNjaorWJrrqcdUeEF8DBbDsl7IZTZLykRTok/OOMCuWiZsK6HieVCS1o9P/imOioOO9kBhzakDYh92a/zMLSZg1guUfnkqptSjcPAz5xya+45zHDSp7ZlG3I3ZdgdHS4mOVX/eti+4l6X/KIVloJu1KnX/SBL8yHJpJ3YA=
+	t=1712945113; cv=none; b=rcmBnW2yc/rTF/tdFwTXiNEuIhS2LN+O5usb81TNhFxTg32FuuilO4+bHTG12LCQvUKJQtAbe/6y9KaJlut9LuJ1n8g5Gkj0GqtITwm92uu0P+KUktNADw/drVFTRUGdTYAwYIKU4agMf6UUAjmUauc7vS6DGzq1Q0NkygEL630=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712930505; c=relaxed/simple;
-	bh=0ju2OjjZJc4T+HUfUywOCKasDrgbe1ae+klsXdI57bg=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=jSmBBy6WIXOk9OD95xHDoN7KYxyy+DQ5avkuCJaS/TxGtOVYoUxDCMWFXrBjBKF7fNQyLm5LD1mnZ2TcCbcxEX+5cMOAl7G8CMhqJ4rbztqclv/xko/WGJtq3GKcN2tHYG8e9gGTdlX+tmQITw46jWtYBPNBCqngPO1CSGHGAfQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Pw5qvUiD; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1712945113; c=relaxed/simple;
+	bh=+OOlDC7Xxm6MIaBGhJg19XXHllnLQ9JmPImaSQkrJ18=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=jl8ETz37UbaHP0asWL+8fZu7om9iQnZHWwgOl+DakmD7359PJTzd0KIZLlxH/vAldgRYRE1SMK4thjbaBrhwxPIZHBJrsrOQeV8zXER5lT0upm95Occ5D4EmdMEdePM82rdGOodDk4vmFjh5zInpvqV1rpUUErPPlqC1Sco/BME=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BembhugX; arc=none smtp.client-ip=209.85.219.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Pw5qvUiD"
-Received: from pps.filterd (m0356517.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43CE0g57000764;
-	Fri, 12 Apr 2024 14:01:36 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : mime-version : content-transfer-encoding; s=pp1;
- bh=P9fBnmlXwY43CvP9wtUDIhcltSi6G92Izqd1cqRnAw8=;
- b=Pw5qvUiDM+LsGpOmAzKPthMIZcfi2g6qtQ6oQuav5dzh27gnGWduSQ5MQUgYJxRwMos+
- FHfaO8exMGa8WrB0TKBWk2p6Rda/gvOrLm9FuqVCcB7zOvpxVtRiTOjyA+1TiYTR8sG6
- 7gGUsS69cL/HuaFJtaFeNoRXSaLVWebzc4G7RUyQa8pHjCgJkzEkw0FsrUbUYN14iXBN
- xNgoInkKfE+HUkR1NraNp0p0L934jV3kKiDKa62qqdwszNLkpZttUW47ZL1b4ggd1BLw
- glMqyOE2AB0P006n8y45h4lg01muZVlD2znJtjRZMN/XLwIpntmv5V/zgAeJGWGDNsM/ yg== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xf5b4g4ss-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 12 Apr 2024 14:01:35 +0000
-Received: from m0356517.ppops.net (m0356517.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43CE1Ziv001971;
-	Fri, 12 Apr 2024 14:01:35 GMT
-Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xf5b4g4sq-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 12 Apr 2024 14:01:35 +0000
-Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma21.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43CAlDCP022627;
-	Fri, 12 Apr 2024 14:01:33 GMT
-Received: from smtprelay07.wdc07v.mail.ibm.com ([172.16.1.74])
-	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3xbhqpj768-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Fri, 12 Apr 2024 14:01:33 +0000
-Received: from smtpav03.dal12v.mail.ibm.com (smtpav03.dal12v.mail.ibm.com [10.241.53.102])
-	by smtprelay07.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43CE1U3B56099292
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Fri, 12 Apr 2024 14:01:32 GMT
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id D9BA35807E;
-	Fri, 12 Apr 2024 14:01:28 +0000 (GMT)
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 60DD558060;
-	Fri, 12 Apr 2024 14:01:28 +0000 (GMT)
-Received: from sbct-3.bos2.lab (unknown [9.47.158.153])
-	by smtpav03.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Fri, 12 Apr 2024 14:01:28 +0000 (GMT)
-From: Stefan Berger <stefanb@linux.ibm.com>
-To: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, zohar@linux.ibm.com,
-        roberto.sassu@huawei.com, amir73il@gmail.com, miklos@szeredi.hu,
-        Stefan Berger <stefanb@linux.ibm.com>
-Subject: [RFC 0/2] ima: Fix detection of read/write violations on stacked filesystems
-Date: Fri, 12 Apr 2024 10:01:20 -0400
-Message-ID: <20240412140122.2607743-1-stefanb@linux.ibm.com>
-X-Mailer: git-send-email 2.44.0
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BembhugX"
+Received: by mail-qv1-f42.google.com with SMTP id 6a1803df08f44-696315c9da5so10005116d6.2;
+        Fri, 12 Apr 2024 11:05:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1712945111; x=1713549911; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=NXIp91wOih9CoCfNDEheAqOA0zoVihgOT0Xf+EbLOzs=;
+        b=BembhugXcDGLgv5SQW5FFSr67EiA2p7ltSOkEPfLeb0NtSglFEemLAKwky1e2FCO9S
+         wokQlMwMS8meeMbfpFXIJ/up+v5ndGPydNqDCnDYRHAF+4YhX1BD4bDbfrXUSCS3t1Xo
+         K5/K4pHc06tHEdecuw+0IxMm6Mt8hcNoZSpsCOrmFfJ4oKLc/baxTK0EH+U4SF7H3HmG
+         eeu3xVFZFV+a7/0nNv2gA/vtVcTENoDfvgArkOqzoVYhycwM34N5XOGE/aXfR5WY1kBF
+         fydUTDgx5ad7W1+9oNMe/neUrAEeYoR+kp9qM96XQMHQyc38gigo0ov3hmQoa6Ag7moY
+         2sLA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1712945111; x=1713549911;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=NXIp91wOih9CoCfNDEheAqOA0zoVihgOT0Xf+EbLOzs=;
+        b=EJG8Sr/O/4f/bftFinYBx81ZDmrFTVTjoFP/YGz/ygYWmsfw14iGnOPXCBTmaRHhW1
+         P99+Y4OIgzA3MxgRvi/+tZ+gXaVd1AEkve7TBwrG0Y259IiIUEzEsYHS5o6/oSM67JbB
+         lKUtdSufzcvThfh2L3SErcPKbPLliJaLFwPNKtDMJjB5Il0Jp5rhfr1Vp380D3/M0nkj
+         kzMuQ0xZAbkg0EedQBiD+xoWH4xquEWqlBG0J0nyAxv2PdVaPXPVfmXzvXar2ajGHVDI
+         RDkAKIkQeVHJd9V4E2jDSpVus/FwhpShvHiq5TaiGQZgDxBq8IWS7K5HnqOZrf2j12JX
+         95Aw==
+X-Forwarded-Encrypted: i=1; AJvYcCXbwphoZTssr9yRCbR6UYEbVzDaljdMtfSNLnAevACoo+POhKf67DHiJXEwPhlAIJGJffUHwRHDcM4DiRnwcfSspatSu6nyVw9uw4X8PXCcvpoBV1WQlBTqL3q5jxrIPQ/usDITjcON87TpoA==
+X-Gm-Message-State: AOJu0YxEWZqhqPjBm2Gl3QjgUw60vl12qNNr02chhLVp4YL51m5iaKVd
+	D+ybczWjgv/WouEiTdLI2Us/WZQeFtDQGLV2YzamIfcMxfGuJ12IE+mXBsKIl6kYd1X7RPdySou
+	ygj36fmuSuqWKzyLpVQJLSZ50fxI=
+X-Google-Smtp-Source: AGHT+IG/8HJwtDYDi7eVF5555tvAtRnoSP6wV0lzz7X8Ji2t5zDXvQOTMLyRxapB9H3x4DDuD5pCvPEYTWgU020ambk=
+X-Received: by 2002:a0c:e852:0:b0:699:2274:b229 with SMTP id
+ l18-20020a0ce852000000b006992274b229mr3779676qvo.14.1712945111598; Fri, 12
+ Apr 2024 11:05:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: JFkyUhI_LoXXRb5Bdig_y7sHvvMi5UQ_
-X-Proofpoint-GUID: wmwLbrEvujHh0AEYnsqEhFxg5brOExWl
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-04-12_10,2024-04-09_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011
- priorityscore=1501 lowpriorityscore=0 phishscore=0 suspectscore=0
- spamscore=0 mlxlogscore=663 impostorscore=0 mlxscore=0 adultscore=0
- malwarescore=0 bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2404010000 definitions=main-2404120101
+References: <20240412140122.2607743-1-stefanb@linux.ibm.com> <20240412140122.2607743-2-stefanb@linux.ibm.com>
+In-Reply-To: <20240412140122.2607743-2-stefanb@linux.ibm.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 12 Apr 2024 21:05:00 +0300
+Message-ID: <CAOQ4uxgNRYi-mYo=LZ5yiWch2zwDeTG2q9ZYD0ysEN6XaJkVhw@mail.gmail.com>
+Subject: Re: [RFC 1/2] ovl: Define D_REAL_FILEDATA for d_real to return dentry
+ with data
+To: Stefan Berger <stefanb@linux.ibm.com>
+Cc: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, zohar@linux.ibm.com, roberto.sassu@huawei.com, 
+	miklos@szeredi.hu
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-This series fixes the detection of read/write violations on stacked
-filesystems. To be able to access the relevant dentries necessary to
-detect files opened for writing on a stacked filesystem a new d_real_type
-D_REAL_FILEDATA is introduced that allows callers to access all relevant
-files involved in a stacked filesystem.
+On Fri, Apr 12, 2024 at 5:01=E2=80=AFPM Stefan Berger <stefanb@linux.ibm.co=
+m> wrote:
+>
+> Define D_REAL_FILEDATA which is to be used as a parameter for d_real()
+> to return the dentry that is holding the file data, which is either the
 
-  Stefan
+D_REAL_DATA already does that
 
-Stefan Berger (2):
-  ovl: Define D_REAL_FILEDATA for d_real to return dentry with data
-  ima: Fix detection of read/write violations on stacked filesystems
+> upper or the lower denry. The caller is expected to call d_real() again
+> on the returned dentry to get to lower layers of a stacked filesystem,
+> if available.
+>
+> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> ---
+>  fs/overlayfs/super.c   | 6 ++++++
+>  include/linux/dcache.h | 1 +
+>  2 files changed, 7 insertions(+)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 06a231970cb5..f466ad89b005 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -36,6 +36,7 @@ static struct dentry *ovl_d_real(struct dentry *dentry,=
+ enum d_real_type type)
+>         switch (type) {
+>         case D_REAL_DATA:
+>         case D_REAL_METADATA:
+> +       case D_REAL_FILEDATA:
+>                 break;
+>         default:
+>                 goto bug;
+> @@ -47,6 +48,11 @@ static struct dentry *ovl_d_real(struct dentry *dentry=
+, enum d_real_type type)
+>         }
+>
+>         upper =3D ovl_dentry_upper(dentry);
+> +       if (type =3D=3D D_REAL_FILEDATA) {
+> +               if (ovl_has_upperdata(d_inode(dentry)))
+> +                       return upper;
 
- fs/overlayfs/super.c              |  6 ++++++
- include/linux/dcache.h            |  1 +
- security/integrity/ima/ima_main.c | 27 ++++++++++++++++++++++-----
- 3 files changed, 29 insertions(+), 5 deletions(-)
+This one is already the returned value for D_REAL_DATA
 
--- 
-2.43.0
+> +               return ovl_dentry_lower(dentry);
 
+And this one is a wrong value, because the lower file's data is at
+ovl_dentry_lowerdata(), which is what D_REAL_DATA
+returns.
+
+So it is not clear to me what it is that you tried to do here.
+
+Thanks,
+Amir.
