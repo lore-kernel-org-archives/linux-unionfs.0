@@ -1,108 +1,90 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f54.google.com (mail-ej1-f54.google.com [209.85.218.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 77B2C481AA;
-	Fri, 12 Apr 2024 06:41:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 43B0058AC3
+	for <linux-unionfs@vger.kernel.org>; Fri, 12 Apr 2024 12:36:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1712904086; cv=none; b=FcEPPII0PjuyIcdaDdrNQgRGh0jHTZJ64CCC+El55BAD71bsFllRqYtMsxuiTRwmIH+6zZnvlB5y5AUl5wH3s1mCNb9YHQCKfE/+3nmyyCL49/KnMMSsVyiBZc7CZmYQuwVd73jZ75sEp6m8ftE0iY0OVcTg9b17N1jRVNm4YZ0=
+	t=1712925395; cv=none; b=eX3Qi1nNR8oePcfzMTpLRU7drsY2tMoVbVNXQfD7tPGgHyzSGsCWLCpW7tdli6HEpkg0rqNfkH0mYWI1ymlUYJDij+PA3ppY8caYFomMDWAXPW//Co8C6P2OlimzOCRx5d0zq/uRzw8ONRaBvGhes2gukD7iVdyh0Nhi/UvaVaY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1712904086; c=relaxed/simple;
-	bh=nnftp3y20mnefQs/zA7rIGucHoCz77k4ThTY/2DnxXQ=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=WqZ4u2bp1etrmGwN4LvsEPc5P8AJHqF7YOdeX3PUsI0f7yW5353sMQfumFije+dnpo+1RbsV2oEBzu3BzyCh7zMWMGVGqHnsEXXP8w5YLHiRn6isxA0DilztxWv482/N9jaaplh0LdXlp6iYChmbPWluqpwmjkDKYt0JX8kP8AQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=iSIG88PM; arc=none smtp.client-ip=192.198.163.9
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1712925395; c=relaxed/simple;
+	bh=q/zq68O6+sSBrl97NyQg0CjTsV0FrQQrptYSnKIK5qA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=aYyum+uvQcBL+wXjBN9ZtacA87jXYDEwKDDX1znM3MJzSSs8i0ktM/2+uJdp2nobXmEm9bhuY80OXlzOkpJb9rJ+nXG6oLKtoKL3wPig1eym29aSWz45fLP/TPJ8ftvgqjfgmJHR6b26RY/KBWU5v9G0jQf9hdjg2oPrk7AJfb0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=I2cTeQU7; arc=none smtp.client-ip=209.85.218.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="iSIG88PM"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1712904084; x=1744440084;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=nnftp3y20mnefQs/zA7rIGucHoCz77k4ThTY/2DnxXQ=;
-  b=iSIG88PM9b2YgdRQ4szSPTsiEdHfMD5rvawOOi/wLLg8jMk/6RvNaAhh
-   oT8MCDqfxNcRKZIaxcmdnyc5dZFarta68w/0F5iqI/qjN12Q0xqiv/d3W
-   MzpkPrK3w3Kcc1AHe6HVTykvzAnyMk67pILZRjDVT2hnvtRmoe/Cw2Fd+
-   /uyq9R6DLLbY1+VPi8oWLD8fXYhTK1fOKpK5axS7YL1HSBv2I+Lw0Wccf
-   fe1j1FKLmWJwforIh40KJUeHO8Jk2MX9Ubj2Z2DTWjc8yz7+KWokasxYk
-   5t7Q9ylV9NvBLIftWfB78uD0Vkjhd9A4DcbrwRJ02bVl04XgItkgpfDlz
-   A==;
-X-CSE-ConnectionGUID: Y0HDLEZfStSZpp9NVKZxxw==
-X-CSE-MsgGUID: /QL/ha6+TkaFPIYYcUqo0A==
-X-IronPort-AV: E=McAfee;i="6600,9927,11041"; a="19059686"
-X-IronPort-AV: E=Sophos;i="6.07,195,1708416000"; 
-   d="scan'208";a="19059686"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2024 23:41:22 -0700
-X-CSE-ConnectionGUID: gXMdnuYmRRqCKEW6OOQMYA==
-X-CSE-MsgGUID: D1rZkMzDT4yyHA2nqy/ldg==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,195,1708416000"; 
-   d="scan'208";a="21056020"
-Received: from gjantea-mobl.ger.corp.intel.com (HELO localhost) ([10.252.60.121])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 Apr 2024 23:41:15 -0700
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Thorsten Blum <thorsten.blum@toblux.com>, Dan Carpenter
- <dan.carpenter@linaro.org>
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
- linux-trace-kernel@vger.kernel.org, linux-doc@vger.kernel.org,
- linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
- speakup@linux-speakup.org, intel-gfx@lists.freedesktop.org,
- intel-xe@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
- linux-wireless@vger.kernel.org, linux-scsi@vger.kernel.org,
- linux-afs@lists.infradead.org, ecryptfs@vger.kernel.org,
- netfs@lists.linux.dev, linux-fsdevel@vger.kernel.org,
- linux-unionfs@vger.kernel.org, linux-arch@vger.kernel.org,
- io-uring@vger.kernel.org, cocci@inria.fr, linux-perf-users@vger.kernel.org
-Subject: Re: [PATCH] treewide: Fix common grammar mistake "the the"
-In-Reply-To: <193B959E-60A3-499A-BFF3-EA7B2D0B6C12@toblux.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-References: <20240411150437.496153-4-thorsten.blum@toblux.com>
- <0bd7ccc2-4d8c-455b-a6c2-972ebe1fcb08@moroto.mountain>
- <193B959E-60A3-499A-BFF3-EA7B2D0B6C12@toblux.com>
-Date: Fri, 12 Apr 2024 09:41:10 +0300
-Message-ID: <87y19j3wxl.fsf@intel.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="I2cTeQU7"
+Received: by mail-ej1-f54.google.com with SMTP id a640c23a62f3a-a523aebeab7so64730766b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 12 Apr 2024 05:36:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1712925392; x=1713530192; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=q9BoxTR1JROCUR8SnlVHtABNOhFI4wAk1SS2lfIXdDc=;
+        b=I2cTeQU7a/6nht7u7IlFLRW8F3L9jO5d/Bl4jCCshuKL+u57vSgP/Zp2EOz5JH2LUw
+         VqWgpOJR3euy+da4CXbTUaWGX3f5IDN3HCtPBZmyANHYpqymjtb1mELL/fxCq/czYe4l
+         J3XfyR6j8PigD24xvPiQFbHh2gmrSC+kBtBJA=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1712925392; x=1713530192;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=q9BoxTR1JROCUR8SnlVHtABNOhFI4wAk1SS2lfIXdDc=;
+        b=O6l7yQAlthPv1eHBdqBEUS3LCUMjffABEZaEhSuWAtIl+WMUrygquXP5PG5+qfEwD2
+         6ldeHit8TSCLJizWOi2zuN8Y6TQTx2th+JpOurvuKfQzZ5R0rnEICyUgzX415P/UGiOO
+         5vo1WWKhAZ8RKxT0F/BJXu8g3J/kaRtIKig7EBkM9cJFtCea+StiEV87oTDS7rWpXcBp
+         7u83b2UXFq1iriB0w4AZ5MZNvGq61oMT+63Q2+UKPl7mHiGqyaKpsn0XrvRvS7ElO2Ed
+         A6AZrQytcsvA313Tq5rHliL8Zss+Fs4X8Yk7j0IKh8ls5yWT4bDDdRsr6Psf9qtcbs5+
+         pO6g==
+X-Forwarded-Encrypted: i=1; AJvYcCWSxDTzsKvTimt42bhJnAZyMoOpYJRsyE160ZLuytVJxU9q2WGdfZDGOdm6VhZh+a380IxEfkInqGGoeJmuaPoaAJIe1Wr2Tj7ENfL2oQ==
+X-Gm-Message-State: AOJu0YwvTvMyaIIZ9gnxqg4H/xQ0yjQY8ZLkNacGgr5PnpSvMCojS+Z4
+	9gtOqM7B4bH2bMvqVo1xkP5k3aMRY8zgVN9w9ffkf2r1+nmIMBhIFbJNxCfsuozuU5r7u4sfGZX
+	KIaaa/t97E0qyFv3ZPwdzdlZXYlhtnpQupeSTSA==
+X-Google-Smtp-Source: AGHT+IF0OXEoT3ZY3zlYrIJBP9t60HKo5W88sTuoOTax+N/wQVoD3KFVgeyr2E2zTF30Vq1n1+Eqqz1nG3Ytmq9tODw=
+X-Received: by 2002:a17:907:94c1:b0:a51:e5c7:55b7 with SMTP id
+ dn1-20020a17090794c100b00a51e5c755b7mr1811230ejc.47.1712925392535; Fri, 12
+ Apr 2024 05:36:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <20240403021808.309900-1-vinicius.gomes@intel.com>
+In-Reply-To: <20240403021808.309900-1-vinicius.gomes@intel.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 12 Apr 2024 14:36:21 +0200
+Message-ID: <CAJfpeguqW4mPE9UyLmccisTex_gmwq6p9_6_EfVm-1oh6CrEBA@mail.gmail.com>
+Subject: Re: [PATCH v1 0/3] overlayfs: Optimize override/revert creds
+To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Cc: brauner@kernel.org, amir73il@gmail.com, hu1.chen@intel.com, 
+	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
+	lizhen.you@intel.com, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Fri, 12 Apr 2024, Thorsten Blum <thorsten.blum@toblux.com> wrote:
-> On 11. Apr 2024, at 17:25, Dan Carpenter <dan.carpenter@linaro.org> wrote:
->> 
->> It's tricky to know which tree a patch like this would go through.
->
-> The patch is based on the mainline tree. Should I have sent it directly to
-> Linus then?
->
-> I'm relatively new here and therefore only sent it to the corresponding mailing
-> lists.
+On Wed, 3 Apr 2024 at 04:18, Vinicius Costa Gomes
+<vinicius.gomes@intel.com> wrote:
 
-It's not just about mailing lists, it's also about changes flowing in to
-mainline via a plethora of subsystem and driver repos and branches. See
-MAINTAINERS. Or this old LWN page [1]. The development happens in those
-branches, and if you make treewide changes like this, it's not clear who
-should take it, and you also risk unnecessary conflicts if those places
-get modified in the individual branches. So it might just be easiest to
-split this up to smaller patches sent to the appropriate lists.
+>  - in ovl_rename() I had to manually call the "light" the overrides,
+>    both using the guard() macro or using the non-light version causes
+>    the workload to crash the kernel. I still have to investigate why
+>    this is happening. Hints are appreciated.
 
-Anyway, all that said,
+Don't know.  Well, there's nesting (in ovl_nlink_end()) but I don't
+see why that should be an issue.
 
-Acked-by: Jani Nikula <jani.nikula@intel.com>
+I see why Amir suggested moving away from scoped guards, but that also
+introduces the possibility of subtle bugs if we don't audit every one
+of those sites carefully...
 
-on the i915 changes here.
+Maybe patchset should be restructured to first do the
+override_creds_light() conversion without guards, and then move over
+to guards.   Or the other way round, I don't have a preference.  But
+mixing these two independent changes doesn't sound like a great idea
+in any case.
 
-
-BR,
-Jani.
-
-
-[1] https://lwn.net/Articles/737094/
-
--- 
-Jani Nikula, Intel
+Thanks,
+Miklos
