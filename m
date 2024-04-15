@@ -1,122 +1,94 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com [209.85.218.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 498085C902;
-	Mon, 15 Apr 2024 10:47:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C0C7513CFBD
+	for <linux-unionfs@vger.kernel.org>; Mon, 15 Apr 2024 12:55:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713178052; cv=none; b=TCSTMYH0o2s5V1MM6Q9GkzGVzo6ZptDmUbJMDRR3dZkDNybo5aC1OgogAzrL4fk2ZE1xQRa83k2dOVi/pqkqCThLJdqDd4noEN5aPlUR+Q8UfKvaJ0PoQfI7qkePe2Wen38PTbGfMLfeA0ezln1HtTFH1ynF0Dq6cIwfu62wwMU=
+	t=1713185723; cv=none; b=eMHCI8EHbNJX8vix8n4ydQmF9TwMCrcUYViZlsgIKEc+EOIu8tKcEo+XC9JnHKvbL0LOXMqX4km2krFSdhnVsBOUFzoQ6DVzoa0ac/+Y5oh2tQDnDMXEciZJ/BkYM6pxJTGKSdardLtWHq5YE7hRDYdBUYjti/KzVDXkjjuWOOg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713178052; c=relaxed/simple;
-	bh=sM57OrdBMlq6mSQ271RB40hI+kb24Xhf/r/TQj3621c=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=cDn6CMT7YylV7lccIoSZ71VyMgetzNkHkj2EEo2szuzyorRP3zrRUmV1KgTvrYW49unNRAtD0K2Pza3UFRFfb42d8D6XloP1oFIJjDDDnl5Gv0iAYFNwoFs4KtDDJz71bj0JF9gDBN4RP/2n73seOQyf8nOTHLMUbxZCbInsGfc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=Y9t0b9/4; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1713185723; c=relaxed/simple;
+	bh=ickDUqtXIq/2pt/ixVMbVjSczdGqFktaKjk2vMC4D+w=;
+	h=From:Content-Type:Mime-Version:Subject:Message-Id:Date:To; b=CDLCAp5HJoVUV/FJw6LKTjt8HRLkC9wKMM9lMkjtnSzPGdljUMnB6vk0GAh94Hm4uWI0miuhu6Gp3Dmw2i1kxxQo2tId0m+lDuzw1UvWPVmvdm9tnQipcpZx+6BvQuIqxBoAKXBKr7/EPQvCX93Zu/GYXBl+piZTsmMoyR+aoYI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jmXTrOLf; arc=none smtp.client-ip=209.85.218.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="Y9t0b9/4"
-Received: from pps.filterd (m0353729.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43FAPwNP007206;
-	Mon, 15 Apr 2024 10:47:18 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=izukePj7qKr6gY0xKoLwkB3RdpI+c2fhsvXajnnQpWc=;
- b=Y9t0b9/4v70ENv3WjAVkyAukvFr0+/6z35MqKa4vWjc2jFixFRzqjvcG9Yx0Hfms/BGj
- 6Whr9Cn7aujHFDAUBQpeKk+tECvqPH/kacdBq0tZz5iEM2iSOvZXHogDSLxh2FbV3yB4
- J8DY3dglH+Dw/JxtpoXn4JkDWH0+ANcfWzk3UVyhL7OIcsL/DcnCkRI+qr7neB0HbOhL
- WsYabHfBEuCkBbJj30FepjSvMY9FHERl7ButI6ySzMgFrPdrpQrcqt8L7cBuGsz+aOIf
- UC8LG45+UN+V38pipJv+uyxYoqtZO/oSMf3c9CfkHn0NtlC6n0WL5jR8pSIRd068UhQ8 3g== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xfhr0knat-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 15 Apr 2024 10:47:18 +0000
-Received: from m0353729.ppops.net (m0353729.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43FAlHAR005807;
-	Mon, 15 Apr 2024 10:47:17 GMT
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xfhr0knar-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 15 Apr 2024 10:47:17 +0000
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43F9aBEL015836;
-	Mon, 15 Apr 2024 10:47:16 GMT
-Received: from smtprelay02.dal12v.mail.ibm.com ([172.16.1.4])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3xg5vky7a1-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 15 Apr 2024 10:47:16 +0000
-Received: from smtpav03.dal12v.mail.ibm.com (smtpav03.dal12v.mail.ibm.com [10.241.53.102])
-	by smtprelay02.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43FAlDMP41288204
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 15 Apr 2024 10:47:15 GMT
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 9E63558061;
-	Mon, 15 Apr 2024 10:47:13 +0000 (GMT)
-Received: from smtpav03.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 2B5FC5805A;
-	Mon, 15 Apr 2024 10:47:13 +0000 (GMT)
-Received: from li-5cd3c5cc-21f9-11b2-a85c-a4381f30c2f3.ibm.com (unknown [9.61.175.164])
-	by smtpav03.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Mon, 15 Apr 2024 10:47:13 +0000 (GMT)
-Message-ID: <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
-Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on
- stacked filesystems
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: Miklos Szeredi <miklos@szeredi.hu>, Stefan Berger <stefanb@linux.ibm.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, linux-integrity@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        roberto.sassu@huawei.com, Christian Brauner <brauner@kernel.org>
-Date: Mon, 15 Apr 2024 06:47:12 -0400
-In-Reply-To: <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
-References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
-	 <20240412140122.2607743-3-stefanb@linux.ibm.com>
-	 <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
-	 <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com>
-	 <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-23.el8_9) 
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: SAjWQQo82Ay_X2W-sjQR3qzkt7YINlDc
-X-Proofpoint-GUID: 3oM75Vj4n_Epg8pi0VHRj0J6aXMDQvm4
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jmXTrOLf"
+Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a526a200879so128831366b.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Apr 2024 05:55:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1713185719; x=1713790519; darn=vger.kernel.org;
+        h=to:date:message-id:subject:mime-version:content-transfer-encoding
+         :from:from:to:cc:subject:date:message-id:reply-to;
+        bh=ickDUqtXIq/2pt/ixVMbVjSczdGqFktaKjk2vMC4D+w=;
+        b=jmXTrOLffu2XbrVbQabEUdsZGJpJtZxKIvW3ie3rwks+FQwBKoi6k0FjNTetIcu2F6
+         5Qy99fwnwIMuLurBVvZkZixnacgdS2TmF922SmVlUdsKAxqsRmvV0QWqGk1dIXmITcbm
+         qAAeftQ1pPONkuxa5qPzpJBiJ7sEvuJQkf6f6dRD5csTtwxFoYiYrgZnwLarmcnEVLx6
+         F4Z38QEtIYeqWzBR2ezWZEgDEDF9AXTztGwOKVo8if7kdCSPnPZcZzzZJpsjnCbTzNK4
+         IOp11XGnJiWHAPnRO2hk5fl5/4vHwJk8fVrouHt6AumHirm7OI3EA2s4cfd3zcF5vkSy
+         kp7A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713185719; x=1713790519;
+        h=to:date:message-id:subject:mime-version:content-transfer-encoding
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ickDUqtXIq/2pt/ixVMbVjSczdGqFktaKjk2vMC4D+w=;
+        b=bO2PQvenKLyXVO1xVJioM7Cw7Y8Kfi/13V94g3bVu2mt2Y0jyisxV/tZY686//wnlS
+         8+/kG81uS2iCL5mZg5y6qzA0TV0VhItUV514GN5iJxkXSKYVnMLTn4CTSQo1i64pgjWU
+         LUC6yxc0bjtZHL4lSJo0wIGHirL0x8XCY0B+QBIRg2KNwEDDFk1sy+ZRNYnTFcr6E0T6
+         XsPBMaSk/8CGBHkmgNpHhljj049396gtowwBRhj8u/4WrxVpqE9hQ6gBZk4Np14sav06
+         4c/Q3hZS0NKDiRm4ZGhBdap6vbYe74yKQuuREy2PlVZ9beESb/4kfCU5Jy335vOMokiC
+         3cwg==
+X-Gm-Message-State: AOJu0Ywoj/apj6Ax+0sAb1UdBf+igEjSdn0R5Qg11csyEoAz2434beZT
+	JYql35R2SwulHDwTWx/x/j6h+zIidTiAJtgitdruC/iWoTjR3bGMlrKgTQ==
+X-Google-Smtp-Source: AGHT+IFnEJipyAGTJzIyNdO1pV8+FKVLjN5/gWr0MgjNFFhsnLb+6MMt+t1eDnMsEHngx8kYv8X6hQ==
+X-Received: by 2002:a17:906:1395:b0:a51:a329:cd7d with SMTP id f21-20020a170906139500b00a51a329cd7dmr6708847ejc.4.1713185719115;
+        Mon, 15 Apr 2024 05:55:19 -0700 (PDT)
+Received: from smtpclient.apple ([193.0.218.31])
+        by smtp.gmail.com with ESMTPSA id gc22-20020a170906c8d600b00a534000d525sm688661ejb.158.2024.04.15.05.55.18
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Apr 2024 05:55:18 -0700 (PDT)
+From: Yuriy Belikov <yuriybelikov1@gmail.com>
+Content-Type: text/plain;
+	charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-04-15_08,2024-04-09_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0
- priorityscore=1501 mlxlogscore=924 impostorscore=0 lowpriorityscore=0
- spamscore=0 bulkscore=0 adultscore=0 malwarescore=0 clxscore=1011
- mlxscore=0 suspectscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2404010000 definitions=main-2404150070
+Mime-Version: 1.0 (Mac OS X Mail 16.0 \(3774.500.171.1.1\))
+Subject: Question regarding internals of metacopy=on feature 
+Message-Id: <29C3102E-08CC-43D6-BCC0-2CA588A3C5B1@gmail.com>
+Date: Mon, 15 Apr 2024 15:55:08 +0300
+To: linux-unionfs@vger.kernel.org
+X-Mailer: Apple Mail (2.3774.500.171.1.1)
 
-On Mon, 2024-04-15 at 10:09 +0200, Miklos Szeredi wrote:
-> On Fri, 12 Apr 2024 at 21:09, Stefan Berger <stefanb@linux.ibm.com> wrote:
-> 
-> > I was hoping that this would be sufficiently generic to work with
-> > potential future stacked filesystems as well that would need to also
-> > provide support for D_REAL_FILEDATA.
-> 
-> I also have very bad feelings from IMA digging in the internals of overlayfs.
-> 
-> We should strive to get rid of remaining d_real() instances, not add more.
-> 
-> On a related note, D_REAL_METADATA was apparently added for IMA
-> (commit 11b3f8ae7081 ("fs: remove the inode argument to ->d_real()
-> method")), but there's no current user.  What's up with this?
+Dear UnionFS team,
+
+My name is Yuriy, and I am currently an intern at CERN, working on the =
+CernVM Filesystem (CVMFS) project. Our objective is to enhance the =
+performance of the cvmfs_server utility, which is crucial for publishing =
+file updates. Given that CVMFS fundamentally relies on union =
+filesystems, we are exploring various features of OverlayFS to achieve =
+this, specifically considering the metacopy=3Don option.
+
+I have encountered a scenario that is not explicitly covered in the =
+OverlayFS documentation: If metadata (e.g., permissions set by chmod) =
+are modified for a file that exists only in the lower-layer (and thus =
+appears in the union directory but not in the upper-layer), what is the =
+type of the filesystem object in the upper layer under these conditions? =
+=46rom preliminary tests with metacopy=3Don, it appears that such files =
+are visible in the terminal using the ls command. However, as there were =
+no modifications to the file content, a copy-up was not triggered. This =
+leads to my question about the type of filesystem object represented in =
+the upper-layer directory when only metadata is modified. =20
 
 
-It's queued in 
-https://git.kernel.org/pub/scm/linux/kernel/git/zohar/linux-integrity.git/ next-
-integrity branch and should be linux-next.
+I would greatly appreciate any clarification or additional documentation =
+you could provide regarding this matter.
 
-thanks,
 
-Mimi
-
+Best regards, =20
+Yuriy Belikov=
