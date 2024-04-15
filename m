@@ -1,81 +1,109 @@
-Received: from mail-lf1-f42.google.com (mail-lf1-f42.google.com [209.85.167.42])
+Received: from mail-qv1-f49.google.com (mail-qv1-f49.google.com [209.85.219.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9077F85260
-	for <linux-unionfs@vger.kernel.org>; Mon, 15 Apr 2024 12:58:08 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0A2B41BF2A
+	for <linux-unionfs@vger.kernel.org>; Mon, 15 Apr 2024 13:27:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713185890; cv=none; b=EjwNgrtun0DlDn87u8FIK9oUxO/x4QabD2Z67daREEI5WFvQ3u6fCuf4qF/oUbV4MnDFz6G+y8gcshCViPIXgLeUCK26fKwgKlbXuB8pBkr0PcF0ACT6EF/cqEDWBDr+cizDBvprdnVwzBIMEzHYZYc9xEdyKIe/JzZHFnM1bWc=
+	t=1713187635; cv=none; b=u+H278XHJQT6tosLoI+eJBpDWyA7ImYk6r7ZHi5k5/Hnm00P8MIQ/7fGcbxDfJRTDaQxHg2EGc0miYvIG9+pneJcNE+x9i7v64AGKjVH4SwXc8q+s9pQMVSQMfOIrJ401Nuh/XzUqkUF3Z35UDtq+8XA2+3o64xxeZJR03w+ZJ8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713185890; c=relaxed/simple;
-	bh=PtRDKTQTDzhoQ+/JuLQ9JmFXYTTE6omhjNyTnWio4Ng=;
+	s=arc-20240116; t=1713187635; c=relaxed/simple;
+	bh=el8wy5nOyvTp9tnPRWIgPmTh9fEykKTto2nCg59IwGc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Jm2GMy61lgRRlC0AMkCyY18qLKhb/MFxSyWh3jAevG83khf8SytjY94XyOdtrS52mpAjUrzRtTF61L33yI+WGRVNjKLppX/Famexl21E2dpmoHb0GGBP5FvoaPMMkMq7kyVcCRDmHa2sMhHttM/8zDG2p6eZfAzfiT0f5PVsH7o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=hTkoK1AK; arc=none smtp.client-ip=209.85.167.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=joJSXrE69okULVlWrbTptoPW+j8eHvPBe4F6oZBTusZUtxQSJYg6W5UvRVuX/SyahDO0RrYa5gvQw9ghd1Cvd+8eB12tHbgLLAuPeo8Z4Y1w0C/jI73QylGEnsRMOUMv8K5z8pVCkQmyCIHO+48WIU7MA4UhAOhdWrwiYzP0HuQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eYTgUYJW; arc=none smtp.client-ip=209.85.219.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="hTkoK1AK"
-Received: by mail-lf1-f42.google.com with SMTP id 2adb3069b0e04-5176f217b7bso5485272e87.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 15 Apr 2024 05:58:08 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eYTgUYJW"
+Received: by mail-qv1-f49.google.com with SMTP id 6a1803df08f44-69629b4ae2bso29034196d6.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Apr 2024 06:27:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1713185887; x=1713790687; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=PtRDKTQTDzhoQ+/JuLQ9JmFXYTTE6omhjNyTnWio4Ng=;
-        b=hTkoK1AKs8h/tfzw25yar9T/oUhRWWMZYagLeKSpRvP2wC4DmwzN19cZCdAC1OMQ3y
-         SU9XUoCsyxkAbikK+hTmmwvk3rmnxhnfyNKpOMP0WJJNdfb8rdEwhfhtiwAS9MwyLe4Q
-         2fOAE1rJ0lqGAG4mBgjIrsHwwpOoJEqeVBfe4=
+        d=gmail.com; s=20230601; t=1713187633; x=1713792433; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=el8wy5nOyvTp9tnPRWIgPmTh9fEykKTto2nCg59IwGc=;
+        b=eYTgUYJW2HHZeJFQMXnDvclxG4jl/+dHlMlC8fQoR/zd7a1By8zt4s19qKU2Bo2hpP
+         oDTJ59+mY9o4S3t3DahWNttWC9DhGF5XR8YgXvZv/5cjKztvFyOEa1eSwcLvgQ8d1Ok5
+         ad135AioJ3ktzlfP8eeLyNgZmUHkifR387EAW/Jh0+AiUt70eN2iOcFgn0s/IdxAjKwG
+         WiVtVKv/r2BSogQLYfExoOrr5jlJ7OkV/4hHpw0vVHjsu6TzVUXOCWiBjGS7cG+qhGQH
+         Ys0B2RyfE6DxI2NqYjrwW2zOTtnOusVZ59LhbxQWzoab8Tjm4asV3m5iEqgIP7PnLSSh
+         IPvw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713185887; x=1713790687;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=PtRDKTQTDzhoQ+/JuLQ9JmFXYTTE6omhjNyTnWio4Ng=;
-        b=LmQToz9M4GwzoqYg40DhZTq1SwUvQ7Pbz2PR7oWG+m/SiUzokXN45f81QzZLdE7ri8
-         cXZ8BLDONq36g85zLNx6pNfRsCeV59RjRjYBZBdrrbKEbdPhLL1P1n4Di+fgi2XtNjgk
-         0k/1lFKUmwDEIXMqkWz61K2AjCVabaajagQWow+0XhtJ1AzT2TH0qO3k/9Vxa81xuaAK
-         qa7iQ6iE7n493JV4C10GHusTY1dj1rRcCFzwPiu0PaVZ+qa6uhWvj4ZSbURl6tLKtb4W
-         xd1QCCBT4VS0bzS3ibvwUjLpTSUqTA8goVPZJVLcmbGPwD5XSy5j88t6YFnsS5oROvmo
-         rAcw==
-X-Forwarded-Encrypted: i=1; AJvYcCWcZDwCYGQn4l2UK6vuKd3CpuQVzYefjsq2hoLlQpVb0NKiFvVcknLUzdOGbRZAncSuyrc3/yM8TLVbzm7+6wEx4p+9mFnftf3LDg25GQ==
-X-Gm-Message-State: AOJu0YzcQg8cZpbcdO/yFk9xt1ha3F2yPH8T1h7u9XpxZ4EVg9Ek+euQ
-	OaIvLkIPvycguZkiGl3ZR/gpnIhp0yVHO4dp2NbhLv93VkVJoF+w9bLytqwrt+zsZsSB/OnN3DF
-	6beJ5K8sDQp1qchPyJ2CIE6tXqHKOkv0uni4JpA==
-X-Google-Smtp-Source: AGHT+IHOnuRHFKR2HVCzMc8TC81Qg4Ae2NPHkxHjQfyNtYIEy4o0Y2sPyHQsY5jkjxH1hi2Cm7TUt4zaFYsDNFeRRJc=
-X-Received: by 2002:a19:9112:0:b0:516:9f03:6a92 with SMTP id
- t18-20020a199112000000b005169f036a92mr6833604lfd.43.1713185886774; Mon, 15
- Apr 2024 05:58:06 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1713187633; x=1713792433;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=el8wy5nOyvTp9tnPRWIgPmTh9fEykKTto2nCg59IwGc=;
+        b=B3hk/eWyFqht2G6G7HgaU1oTpowQEJaaC/eW2mPNEKF7jnTAV/yjHNAmYxRgPIGPEF
+         GuPcIchEYUxmEvRc7DgdvMuwEXkvf7DzS5bO10yKP/D/QR5sY+qlsMPE+9ZrFoNv2275
+         SVkuytgD8NKDCwLF6uKUOcpXoNWrw7zBIQ4QGDzyOTCStYtzGaBNrpPok+L6xPHy599x
+         U5uojZDq4gkva34ycD+Mt7+pmlsQojZk/RRMPdeLUekUoR51CQI/W0SaJJeakqkcM4XN
+         UQjPjwcGnFBiufFrSMB/x7gB3EbzPJQcNbgDZd8ZOABpe1bsK4/NfBRL5j5lTZMgpD29
+         0SEA==
+X-Gm-Message-State: AOJu0YyRIu+XwNc7UMdf7SCpMhw3pkoI+D+JZl8S8aXM6UJRpl1S2zUM
+	IlGlgqA9H5A52JhaOoUmVStXPUBLl1VUrBx7Z7fNJ44yvNkKnkG8rpfptv/1WPuYQfiFqQNQM12
+	h82a9i+DTfPEGDo49ofupZeQZcLYnYchj
+X-Google-Smtp-Source: AGHT+IHCN1Qm54wufIbmMzv3ohuoobwbaOt8BcI2Cr1B55V5ABstGzddeBS2wT/cTxheKmfE+0K0hR5LitARn4wnkqA=
+X-Received: by 2002:a05:6214:e4a:b0:69b:d200:eb8d with SMTP id
+ o10-20020a0562140e4a00b0069bd200eb8dmr1093064qvc.15.1713187632936; Mon, 15
+ Apr 2024 06:27:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
- <20240412140122.2607743-3-stefanb@linux.ibm.com> <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
- <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com> <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
- <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
-In-Reply-To: <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 15 Apr 2024 14:57:55 +0200
-Message-ID: <CAJfpegvPwpS5_S4qrrVbeC1RovP8jeNuDCYLbdcZ_XDFgfgftQ@mail.gmail.com>
-Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on stacked filesystems
-To: Mimi Zohar <zohar@linux.ibm.com>
-Cc: Stefan Berger <stefanb@linux.ibm.com>, Amir Goldstein <amir73il@gmail.com>, 
-	linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, roberto.sassu@huawei.com, 
-	Christian Brauner <brauner@kernel.org>
+References: <29C3102E-08CC-43D6-BCC0-2CA588A3C5B1@gmail.com>
+In-Reply-To: <29C3102E-08CC-43D6-BCC0-2CA588A3C5B1@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 15 Apr 2024 16:27:00 +0300
+Message-ID: <CAOQ4uxgYHD2NpEvf=+YgnLmcB4dYEPYJfOym5kb=s6nqmPQGPQ@mail.gmail.com>
+Subject: Re: Question regarding internals of metacopy=on feature
+To: Yuriy Belikov <yuriybelikov1@gmail.com>
+Cc: linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 15 Apr 2024 at 12:47, Mimi Zohar <zohar@linux.ibm.com> wrote:
-> It's queued in
-> https://git.kernel.org/pub/scm/linux/kernel/git/zohar/linux-integrity.git/ next-
-> integrity branch and should be linux-next.
+On Mon, Apr 15, 2024 at 4:16=E2=80=AFPM Yuriy Belikov <yuriybelikov1@gmail.=
+com> wrote:
+>
+> Dear UnionFS team,
+>
+> My name is Yuriy, and I am currently an intern at CERN, working on the Ce=
+rnVM Filesystem (CVMFS) project. Our objective is to enhance the performanc=
+e of the cvmfs_server utility, which is crucial for publishing file updates=
+. Given that CVMFS fundamentally relies on union filesystems, we are explor=
+ing various features of OverlayFS to achieve this, specifically considering=
+ the metacopy=3Don option.
+>
+> I have encountered a scenario that is not explicitly covered in the Overl=
+ayFS documentation: If metadata (e.g., permissions set by chmod) are modifi=
+ed for a file that exists only in the lower-layer (and thus appears in the =
+union directory but not in the upper-layer), what is the type of the filesy=
+stem object in the upper layer under these conditions?
+> From preliminary tests with metacopy=3Don, it appears that such files are=
+ visible in the terminal using the ls command. However, as there were no mo=
+difications to the file content, a copy-up was not triggered. This leads to=
+ my question about the type of filesystem object represented in the upper-l=
+ayer directory when only metadata is modified.
+>
+>
+> I would greatly appreciate any clarification or additional documentation =
+you could provide regarding this matter.
+>
 
-Is there a document about ima/evm vs. overlayfs?
+Hi Yuri,
 
-What exactly is it trying to achieve and how?
+It is a regular file that contains no data (a.k.a sparse file) with an
+xattr =E2=80=9Ctrusted.overlay.metacopy=E2=80=9D that is used
+as an indication that this upper file contains no data and that data
+copy-up should still be performed
+before the overlayfs file is opened for write.
+
+Patches to clarify the documentation are welcome:
+https://docs.kernel.org/filesystems/overlayfs.html#metadata-only-copy-up
 
 Thanks,
-Miklos
+Amir.
