@@ -1,127 +1,86 @@
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 720521DFF0;
-	Tue, 16 Apr 2024 12:18:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D48812FF91
+	for <linux-unionfs@vger.kernel.org>; Tue, 16 Apr 2024 14:47:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713269917; cv=none; b=n0paR+JdmVrc/6/+mz5tl7gSkFAMlozxZGbVPH+KTe8DlKFKAwB07VdSrNdqCBieInQoSX4kUpL+4v8Ge/gZL/Fo5aZdH3CCl+U4Sr/2ByAHHgcCO3utQ4/X4Uh1avrve98d2v66ebzHa+66ipeVrMFzDJsJ6W4KrXOvhLyKt80=
+	t=1713278835; cv=none; b=GGaHVTKFZsq1Zwnwwqs0UgqmiSXkIhf8EYqkxV+trKjk40TS6Nqee9S/H9Try3CwcOEG9R6iTXss3/5crVmVM0rtuYlSZtmLwZy7IExzgFYdvbzuVxqY2XGxXDElJrKgKdLl7//62zBCEhxJebeLT2K9qVeinyCq7YYSy6Lg4FQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713269917; c=relaxed/simple;
-	bh=cvWIKbeUnvP57bXjt53Z0NbaRxeepsorfVlEBYvio2c=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:Mime-Version; b=eIP/WERI9/ic3EOq5IaqpSQvLk+Fe2fL84ayOXP54SQ7DFy1MbuMVrgnsM2QQCIPCpvyDgrFLPioI0H/SgMIopROdhWFtu7ScpoVzkgdSVfMhiuo4HTtTTJRYXbbkkPXjrAJgLiAUlo2CLbSFgb1or1sjsEqEvfSm2WCtLaiQyY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=sZ8Wn2Pk; arc=none smtp.client-ip=148.163.156.1
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1713278835; c=relaxed/simple;
+	bh=lpIRWhyVZ0w6q5mXIuwstpp9Haqu8fvuxrXiwMYh2rk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=nef0cGJsoiE0N2OKl/VZVRPYlU/4I83kgOp78KfmUmOrTaorp6auJBHxiB4Vbpz1Mr+kBQzW/E9ZVOxEz4lQqYM03zyTi+hR6TeyfXkc72XTQvFSZxaXLHBQsQPe7echuOS+aEHoK9x0pLrz85Z20bYm1+MtBLN8JghRpABHzNY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=UxN+QcvH; arc=none smtp.client-ip=209.85.208.46
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="sZ8Wn2Pk"
-Received: from pps.filterd (m0353727.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43GCHao0013920;
-	Tue, 16 Apr 2024 12:18:16 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=WL96dIFdwrfSeUs1UM3vLPDY/ZKkHY19krY1VdPDKKU=;
- b=sZ8Wn2Pk92GrLxhyYUq9ZMOPdU4hbeR+7q4O3wBflwpbzfagT/CkQ4FZrRHcWR24ZOUY
- VDCT1KZ3Bzro0E+merT20C0DcN7puQjSTp/Fwasd9glWQAkt7JWgAWsApYmmmN62zDY6
- bEPdhzwa6J3YEGLx7eLIZZmsCJnGdW+bBUQqFFhVGa2GOJbOtSnFjgJwegIIBszLSu5q
- dNfLR3Hxq8W2LBjuEQ8kLi5CLaCRhR60I2Sq2S+ZwDtkWjUI36ejwRml7iVFrB9AZZe2
- 0EB78f2FCRhxInygoSwrnF+AujBqsmDKRm/yntAxWuQyE8olzCtolcjPlfI7m6GuE9g8 qw== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xhs700019-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Apr 2024 12:18:16 +0000
-Received: from m0353727.ppops.net (m0353727.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43GCIFT3014238;
-	Tue, 16 Apr 2024 12:18:15 GMT
-Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xhs700018-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Apr 2024 12:18:15 +0000
-Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43G9GvYa015862;
-	Tue, 16 Apr 2024 12:18:14 GMT
-Received: from smtprelay05.dal12v.mail.ibm.com ([172.16.1.7])
-	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3xg5vm5v7a-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Apr 2024 12:18:14 +0000
-Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
-	by smtprelay05.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43GCIBPp66126236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 16 Apr 2024 12:18:13 GMT
-Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5C0D858061;
-	Tue, 16 Apr 2024 12:18:11 +0000 (GMT)
-Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 8526158043;
-	Tue, 16 Apr 2024 12:18:10 +0000 (GMT)
-Received: from li-5cd3c5cc-21f9-11b2-a85c-a4381f30c2f3.ibm.com (unknown [9.61.56.73])
-	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 16 Apr 2024 12:18:10 +0000 (GMT)
-Message-ID: <e052c1b5d2aa29b3a1f3a8086af4fb8a94c4d318.camel@linux.ibm.com>
-Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on
- stacked filesystems
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Stefan Berger <stefanb@linux.ibm.com>,
-        Amir Goldstein
- <amir73il@gmail.com>, linux-integrity@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        roberto.sassu@huawei.com, Christian Brauner <brauner@kernel.org>
-Date: Tue, 16 Apr 2024 08:18:09 -0400
-In-Reply-To: <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com>
-References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
-	 <20240412140122.2607743-3-stefanb@linux.ibm.com>
-	 <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
-	 <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com>
-	 <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
-	 <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
-	 <CAJfpegvPwpS5_S4qrrVbeC1RovP8jeNuDCYLbdcZ_XDFgfgftQ@mail.gmail.com>
-	 <52645fb25b424e10e68f0bde3b80906bbf8b9a37.camel@linux.ibm.com>
-	 <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-23.el8_9) 
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="UxN+QcvH"
+Received: by mail-ed1-f46.google.com with SMTP id 4fb4d7f45d1cf-57030fa7381so2167049a12.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 16 Apr 2024 07:47:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1713278831; x=1713883631; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=VdUNeq7IC88ql40wcww2SSOHhBozeb4bC7ktgyYktbA=;
+        b=UxN+QcvH6qyWiipF31MNXyIb++13ZTuftGyKGO1g1GIJgq+DwD8444IfIIVuTw+WAg
+         9+sx7Vtga1lPpZ7tgzh9foJ+w3CyRxDNSXut6NhkkwgDMrifb1cmrsT01bkjVvham2oL
+         w5NqhZQ/HTgbSJth9ZfmW3KQq4dMPOhFJVABI=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713278831; x=1713883631;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=VdUNeq7IC88ql40wcww2SSOHhBozeb4bC7ktgyYktbA=;
+        b=oF7iBCc6MtBK5oeUwL9Rn9vM1p8HS9YNoKyGDdxqlBdGMnczBhRL8AeNJcX8LQmPvg
+         XenkwRdlV6r1tBFizWD3CBLKgLEqXNeQagfcZSmZQ1VXtt+JpRNWvzZJIB4NwC2+mZwe
+         Fhg+GXuZtcq1s49so8KdpNjnTqQQf4QluxNOEpOsJiG9jE54xsT4+ISSP5w90JMOycDS
+         KtZtEEhJsC+1+oEDrzQ1c/ORNOZNXa8QzQVBqW8mrngQWk50TuBZi2pTSAcCN0BMUr/0
+         DLjVriMNFCsRtzsogLkZc07nvQqt1TX4tO26sJyzx1qlP980TM8F7NOs3SD4yo0easor
+         EdzQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXSMtdofOHBQrG8q14gKR4Qt4PgpmBbLpCVS4xUMWRSh6wb/hfpAzWVIhyf3Blusr5yfttERIE3wUQ4opZytmOkaIHNyDSMlt1GxIeYcw==
+X-Gm-Message-State: AOJu0Yxy+ikcxCFWtGTWWBlq+udjZ0Tju0p8tX47Icy2bxX49jrY4N/R
+	AZHHFB5QiZnqMA/3fVg0OzH4DBSvtsYI1PnxYAMUGpa5d5XopuUjhzGDqSKwLSSIHE76CF2MM1Q
+	A8qdICoWnH8L6H7KGFk/TR/aS3sszr/pvsIyTFA==
+X-Google-Smtp-Source: AGHT+IEfXfihX/tUYUNNR8Qj5bxuR99dJm6dIhykvYZzZyGT2orL8P+33E1uaoeESHWxJGIirFpNcQFSZ7tt3Rvpn6g=
+X-Received: by 2002:a17:906:c309:b0:a52:4246:7f65 with SMTP id
+ s9-20020a170906c30900b00a5242467f65mr5693156ejz.35.1713278831418; Tue, 16 Apr
+ 2024 07:47:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 8cJAq3Bt05s6SuYHWYznc5KtABd67TTP
-X-Proofpoint-ORIG-GUID: FXyRC813uLMlb__JUepONO2KtIp5beHn
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-04-16_08,2024-04-16_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- phishscore=0 clxscore=1015 mlxscore=0 lowpriorityscore=0 malwarescore=0
- mlxlogscore=999 spamscore=0 suspectscore=0 impostorscore=0 bulkscore=0
- adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2404010000 definitions=main-2404160076
+MIME-Version: 1.0
+References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
+ <20240412140122.2607743-3-stefanb@linux.ibm.com> <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
+ <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com> <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
+ <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
+ <CAJfpegvPwpS5_S4qrrVbeC1RovP8jeNuDCYLbdcZ_XDFgfgftQ@mail.gmail.com>
+ <52645fb25b424e10e68f0bde3b80906bbf8b9a37.camel@linux.ibm.com>
+ <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com> <e052c1b5d2aa29b3a1f3a8086af4fb8a94c4d318.camel@linux.ibm.com>
+In-Reply-To: <e052c1b5d2aa29b3a1f3a8086af4fb8a94c4d318.camel@linux.ibm.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Tue, 16 Apr 2024 16:46:59 +0200
+Message-ID: <CAJfpeguzh6VzhdnwOPf_hM4x0FbsK8hhZp=VK4kWpCYn0xeBCg@mail.gmail.com>
+Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on stacked filesystems
+To: Mimi Zohar <zohar@linux.ibm.com>
+Cc: Stefan Berger <stefanb@linux.ibm.com>, Amir Goldstein <amir73il@gmail.com>, 
+	linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, roberto.sassu@huawei.com, 
+	Christian Brauner <brauner@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, 2024-04-16 at 10:05 +0200, Miklos Szeredi wrote:
-> On Mon, 15 Apr 2024 at 20:35, Mimi Zohar <zohar@linux.ibm.com> wrote:
-> 
-> > Although "Changes to the underlying filesystems while part of a mounted overlay
-> > filesystem are not allowed.", from an integrity perspective these changes might
-> > affect overlay files.  So they need to be detected and possibly re-measured, re-
-> > appraised, and/or re-audited [1, 2].
-> 
-> How are changes of non-overlay files detected?
+On Tue, 16 Apr 2024 at 14:18, Mimi Zohar <zohar@linux.ibm.com> wrote:
+> Originally there was a single measureent unless the filesystem was mounted with
+> SB_I_VERSION.  With commit a2a2c3c8580a ("ima: Use i_version only when
+> filesystem supports it") this changed to always re-measure the file if the
+> filesystem wasn't mounted with SB_I_VERSION.
 
-Originally there was a single measureent unless the filesystem was mounted with
-SB_I_VERSION.  With commit a2a2c3c8580a ("ima: Use i_version only when
-filesystem supports it") this changed to always re-measure the file if the
-filesystem wasn't mounted with SB_I_VERSION.
+Does the i_version get stored and compared only while the inode is in memory?
 
-With commit db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
-it's not directly accessing i_version.
+In that case I think it should be possible to support a version number
+for the overlay inode.
 
-thanks,
-
-Mimi
-
-
-
+Thanks,
+Miklos
