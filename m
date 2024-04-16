@@ -1,82 +1,127 @@
-Received: from mail-ed1-f41.google.com (mail-ed1-f41.google.com [209.85.208.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 68D1B84DE6
-	for <linux-unionfs@vger.kernel.org>; Tue, 16 Apr 2024 08:06:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 720521DFF0;
+	Tue, 16 Apr 2024 12:18:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.156.1
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713254769; cv=none; b=l9s5l941tl/fbgGpkxQlCzYHXgiCxExZLBsoXPrlB2pDVWyV08Xq3r/XCldnjxp2cG15cgrDLU67apY4aLWwHIJ3l/n9x9uKFD/v5/LyxZYeoe++K7lleYcrsTHllRMHktw4oAe9I7CJUqqaZbn9MR3GRWzXguAzSmM6yexV2is=
+	t=1713269917; cv=none; b=n0paR+JdmVrc/6/+mz5tl7gSkFAMlozxZGbVPH+KTe8DlKFKAwB07VdSrNdqCBieInQoSX4kUpL+4v8Ge/gZL/Fo5aZdH3CCl+U4Sr/2ByAHHgcCO3utQ4/X4Uh1avrve98d2v66ebzHa+66ipeVrMFzDJsJ6W4KrXOvhLyKt80=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713254769; c=relaxed/simple;
-	bh=fg5enCRClFzMv6bdvt1Y6X9xAUZhUI7GAdZthN4hE2w=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Ftcq9587qXI7aG78UKRg7w3PtBtv9C1atBUkDDd+lAQn/JhX0Ycs0EmS9C9vjMoN0gKCB+MKZFk9WkwPRa+Gn/sEUmgl7SrYSgIuelF+7PiFgI6X7flTTJpMP0qhIn3QylAOd1k0e6+2EFUxgObrPUO194fUAySFWZxgo1D761A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=lW+z02Fm; arc=none smtp.client-ip=209.85.208.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1713269917; c=relaxed/simple;
+	bh=cvWIKbeUnvP57bXjt53Z0NbaRxeepsorfVlEBYvio2c=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:Mime-Version; b=eIP/WERI9/ic3EOq5IaqpSQvLk+Fe2fL84ayOXP54SQ7DFy1MbuMVrgnsM2QQCIPCpvyDgrFLPioI0H/SgMIopROdhWFtu7ScpoVzkgdSVfMhiuo4HTtTTJRYXbbkkPXjrAJgLiAUlo2CLbSFgb1or1sjsEqEvfSm2WCtLaiQyY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=sZ8Wn2Pk; arc=none smtp.client-ip=148.163.156.1
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="lW+z02Fm"
-Received: by mail-ed1-f41.google.com with SMTP id 4fb4d7f45d1cf-56e1f3462caso4955783a12.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 16 Apr 2024 01:06:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1713254765; x=1713859565; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=FoqNTXSVJxVnoomAkAmOc0tpYIUt/Fr7OUpds6qVicI=;
-        b=lW+z02FmKq2sZrwkzqdQlSM1VKdoHe5jjC9Gz/OwrTy6u4O/FMmR9coVMiyFXICn8Y
-         amwCmXQ/ug01YvFqjKGk4bLfeSP6+Xuhua4GLocF3DCxrHEWiApPHn9hqUvGc5DbetzL
-         5ZyvE49GLf6EsCAsbFuzohmUu2zf0VLHGnjX4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713254765; x=1713859565;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=FoqNTXSVJxVnoomAkAmOc0tpYIUt/Fr7OUpds6qVicI=;
-        b=v560F3+Dz5D4eGbXY/d0rOdbRnslbTm657Se90hlQxtQwnYD/lqymUBjex7IV1l4Ru
-         jveKgkXlhVqBFK+A37MdHSOkpcubb/Qd3aUm4jEUXMVKnOhMcoleVx2h8QcJCyooqyF7
-         NcM0iWZVGYitSRSAXewEK+skiKn6bw4Hcs1q6NFuRK5+BbtSIhc8j89KH9zIHGpD/heH
-         DN0gm8BXUGksY0mxKcCPqMlkMJCZPrm6DdWWMM6PJiIMoNPS+6QQ4ZxpxZ8sekBompW7
-         tlsxONYsGzQYPnyc8dvJ78aYZ6wLCP5T0qKVywQpvyvK6I/fqmP4ksAQ3OG2sWBeTuYH
-         G4ZA==
-X-Forwarded-Encrypted: i=1; AJvYcCVXCmjd85/wNOhUS9r9AmV7/XtMxzNZ0sBLOOl1iAv9zhEZ+dlIWGEdD0hWTU4f1Eivf6unqpgL/qOCq8inZQHBiKbKQNxu/wG+boTEDQ==
-X-Gm-Message-State: AOJu0YxQm00yRohHimXNG3RYm4nCcjJo7XQHYFvog0S89yikMdSIL+Ql
-	PZG0e/UaziD0qFes+HiaFmBCDRkBhk8lyIBTcWooYvr1jQXfMb6eKyBU30oo++CiK2g8GanuBcx
-	Gw4LG19ZrM7OKyNKGHV1nGQ3t2B5qYEYgIBRApIkUo5TPPH6b
-X-Google-Smtp-Source: AGHT+IFUt+TdRo5/lwa0iU7eIPcfQR2RMazKfVpGy4W16qNguCkLvu3MteqG74P0Dv9xqS7zJrT0nlKrob2NRz5PBhk=
-X-Received: by 2002:a17:907:6d18:b0:a51:e2a9:97c with SMTP id
- sa24-20020a1709076d1800b00a51e2a9097cmr12053296ejc.6.1713254765520; Tue, 16
- Apr 2024 01:06:05 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="sZ8Wn2Pk"
+Received: from pps.filterd (m0353727.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43GCHao0013920;
+	Tue, 16 Apr 2024 12:18:16 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ mime-version : content-transfer-encoding; s=pp1;
+ bh=WL96dIFdwrfSeUs1UM3vLPDY/ZKkHY19krY1VdPDKKU=;
+ b=sZ8Wn2Pk92GrLxhyYUq9ZMOPdU4hbeR+7q4O3wBflwpbzfagT/CkQ4FZrRHcWR24ZOUY
+ VDCT1KZ3Bzro0E+merT20C0DcN7puQjSTp/Fwasd9glWQAkt7JWgAWsApYmmmN62zDY6
+ bEPdhzwa6J3YEGLx7eLIZZmsCJnGdW+bBUQqFFhVGa2GOJbOtSnFjgJwegIIBszLSu5q
+ dNfLR3Hxq8W2LBjuEQ8kLi5CLaCRhR60I2Sq2S+ZwDtkWjUI36ejwRml7iVFrB9AZZe2
+ 0EB78f2FCRhxInygoSwrnF+AujBqsmDKRm/yntAxWuQyE8olzCtolcjPlfI7m6GuE9g8 qw== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xhs700019-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 16 Apr 2024 12:18:16 +0000
+Received: from m0353727.ppops.net (m0353727.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43GCIFT3014238;
+	Tue, 16 Apr 2024 12:18:15 GMT
+Received: from ppma23.wdc07v.mail.ibm.com (5d.69.3da9.ip4.static.sl-reverse.com [169.61.105.93])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xhs700018-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 16 Apr 2024 12:18:15 +0000
+Received: from pps.filterd (ppma23.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma23.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43G9GvYa015862;
+	Tue, 16 Apr 2024 12:18:14 GMT
+Received: from smtprelay05.dal12v.mail.ibm.com ([172.16.1.7])
+	by ppma23.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3xg5vm5v7a-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 16 Apr 2024 12:18:14 +0000
+Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
+	by smtprelay05.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43GCIBPp66126236
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 16 Apr 2024 12:18:13 GMT
+Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 5C0D858061;
+	Tue, 16 Apr 2024 12:18:11 +0000 (GMT)
+Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id 8526158043;
+	Tue, 16 Apr 2024 12:18:10 +0000 (GMT)
+Received: from li-5cd3c5cc-21f9-11b2-a85c-a4381f30c2f3.ibm.com (unknown [9.61.56.73])
+	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Tue, 16 Apr 2024 12:18:10 +0000 (GMT)
+Message-ID: <e052c1b5d2aa29b3a1f3a8086af4fb8a94c4d318.camel@linux.ibm.com>
+Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on
+ stacked filesystems
+From: Mimi Zohar <zohar@linux.ibm.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Stefan Berger <stefanb@linux.ibm.com>,
+        Amir Goldstein
+ <amir73il@gmail.com>, linux-integrity@vger.kernel.org,
+        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
+        roberto.sassu@huawei.com, Christian Brauner <brauner@kernel.org>
+Date: Tue, 16 Apr 2024 08:18:09 -0400
+In-Reply-To: <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com>
+References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
+	 <20240412140122.2607743-3-stefanb@linux.ibm.com>
+	 <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
+	 <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com>
+	 <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
+	 <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
+	 <CAJfpegvPwpS5_S4qrrVbeC1RovP8jeNuDCYLbdcZ_XDFgfgftQ@mail.gmail.com>
+	 <52645fb25b424e10e68f0bde3b80906bbf8b9a37.camel@linux.ibm.com>
+	 <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5 (3.28.5-23.el8_9) 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
- <20240412140122.2607743-3-stefanb@linux.ibm.com> <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
- <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com> <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
- <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
- <CAJfpegvPwpS5_S4qrrVbeC1RovP8jeNuDCYLbdcZ_XDFgfgftQ@mail.gmail.com> <52645fb25b424e10e68f0bde3b80906bbf8b9a37.camel@linux.ibm.com>
-In-Reply-To: <52645fb25b424e10e68f0bde3b80906bbf8b9a37.camel@linux.ibm.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 16 Apr 2024 10:05:54 +0200
-Message-ID: <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com>
-Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on stacked filesystems
-To: Mimi Zohar <zohar@linux.ibm.com>
-Cc: Stefan Berger <stefanb@linux.ibm.com>, Amir Goldstein <amir73il@gmail.com>, 
-	linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, roberto.sassu@huawei.com, 
-	Christian Brauner <brauner@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: 8cJAq3Bt05s6SuYHWYznc5KtABd67TTP
+X-Proofpoint-ORIG-GUID: FXyRC813uLMlb__JUepONO2KtIp5beHn
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2024-04-16_08,2024-04-16_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ phishscore=0 clxscore=1015 mlxscore=0 lowpriorityscore=0 malwarescore=0
+ mlxlogscore=999 spamscore=0 suspectscore=0 impostorscore=0 bulkscore=0
+ adultscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2404010000 definitions=main-2404160076
 
-On Mon, 15 Apr 2024 at 20:35, Mimi Zohar <zohar@linux.ibm.com> wrote:
+On Tue, 2024-04-16 at 10:05 +0200, Miklos Szeredi wrote:
+> On Mon, 15 Apr 2024 at 20:35, Mimi Zohar <zohar@linux.ibm.com> wrote:
+> 
+> > Although "Changes to the underlying filesystems while part of a mounted overlay
+> > filesystem are not allowed.", from an integrity perspective these changes might
+> > affect overlay files.  So they need to be detected and possibly re-measured, re-
+> > appraised, and/or re-audited [1, 2].
+> 
+> How are changes of non-overlay files detected?
 
-> Although "Changes to the underlying filesystems while part of a mounted overlay
-> filesystem are not allowed.", from an integrity perspective these changes might
-> affect overlay files.  So they need to be detected and possibly re-measured, re-
-> appraised, and/or re-audited [1, 2].
+Originally there was a single measureent unless the filesystem was mounted with
+SB_I_VERSION.  With commit a2a2c3c8580a ("ima: Use i_version only when
+filesystem supports it") this changed to always re-measure the file if the
+filesystem wasn't mounted with SB_I_VERSION.
 
-How are changes of non-overlay files detected?
+With commit db1d1e8b9867 ("IMA: use vfs_getattr_nosec to get the i_version")
+it's not directly accessing i_version.
 
-Thanks,
-Miklos
+thanks,
+
+Mimi
+
+
+
