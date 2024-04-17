@@ -1,133 +1,95 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-wr1-f47.google.com (mail-wr1-f47.google.com [209.85.221.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D9C71137773;
-	Tue, 16 Apr 2024 19:06:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6216E2D60C;
+	Wed, 17 Apr 2024 13:01:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713294382; cv=none; b=dV8mMG4v/Or3+SuEziOazvwraCOtTDUKdAAFmQ7vpOrGLSr2O5Nht4hnl4IOfWIFt9/M4qCzhzGrq60WlbbWDIxCrxySEbM8gUqpDiWwJ8vpJgEfoLRkt52m/oHl9hsFum0gKpjGBDn68F+xo/rX0vM1deg+O4Ut5Mx/DIP2g50=
+	t=1713358870; cv=none; b=GZnh9E4TVlnbsXgk0v9jn+yIBeCrtrHwKxb+Tz3F1eyKKhrlRJ+//LP1TYaztd33oFp4AhFuLx8apO4WNzI/BnFGel8K5KPJ0jj8ANhTHntBud5J4qrJSdwZADAXfBCJIkJ6RQiTqFA9KRrefHlNF6IkiA2z2zrx/lxiKTAmeRc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713294382; c=relaxed/simple;
-	bh=JV74h6ugmWJWllAEo9CVzy4KzXEpE6XFPH27SRlteCw=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=ZBo9/y1Pbmv3bLw23u1apuwSDzfaPvBkFgBAdORna/U0aOdewaS49HzAIW4cl5aNrw56Ds7URqYexsmMNLeo7R0JE/Vbj0QLOlY6mAGISd3MJfmpHSX0Gway/gKpo9Ky7wZzEbKJ3rCTMRbT21GQ3hVmtGVWzIAZZ5OceOAOzxo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=ifIZpPfR; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
+	s=arc-20240116; t=1713358870; c=relaxed/simple;
+	bh=nbk51VZVe2Jhp85rOdmqo61Cl3JUQKflNYTDouMlSCA=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=UGl3kMtdDDCgidN6ercAdNGoMVtYJejunyUaauLPB6FxYfJJTGGqFid0AR70M8lRrc2zWz70aGpYAF6sDoff9MuVLkwgFcME6RigXuFWQdDyDZSEiglfh9QBkil1RwHNiF8dZmLUZODEjyNnlFLNTzkDtOEPa5+CWCRCv7C/aDk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=d5dgl1/b; arc=none smtp.client-ip=209.85.221.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="ifIZpPfR"
-Received: from pps.filterd (m0353723.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43GJ3x3s007178;
-	Tue, 16 Apr 2024 19:05:54 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=ZXEajgVpQqjjiKL7gWWqFW9gr9jf3cJKxB2S+A5ihvE=;
- b=ifIZpPfRNDUlUSueY+mz25om9I+G9S4F1y84xT74HTIyOFWDfryljZGJj8BP6R0IfbWn
- qzPk+4Okm9M8XDOhRdTiHhP+EjXjWQCdR8dv59FmYSkYu/LlVHy28uUkGO4nQ0mpnmF5
- Wjxce3ujQ+9ZHY2XI4+KaHHj8DHsSTDsN45Qbj2EqU+/TuqnxWokOyYpVVR+cX17AsNf
- 0SOQnvvqcoxZZ6Ecis03AyoUTqb6zpEKgSMZw1ZO7PMr978IeNvTNL/xchaBHgo4+EDW
- Jwcj/Zwi16rHxDKOOZ1e1WYTwEoGofkAHpQGP3wpRkAILV267WWp5BdupZfWPvFXBPBV aA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xhy56804q-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Apr 2024 19:05:54 +0000
-Received: from m0353723.ppops.net (m0353723.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43GJ5rYq009266;
-	Tue, 16 Apr 2024 19:05:53 GMT
-Received: from ppma22.wdc07v.mail.ibm.com (5c.69.3da9.ip4.static.sl-reverse.com [169.61.105.92])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xhy56804p-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Apr 2024 19:05:53 +0000
-Received: from pps.filterd (ppma22.wdc07v.mail.ibm.com [127.0.0.1])
-	by ppma22.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43GI9DZQ027323;
-	Tue, 16 Apr 2024 19:05:53 GMT
-Received: from smtprelay03.dal12v.mail.ibm.com ([172.16.1.5])
-	by ppma22.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3xg4s004u0-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Tue, 16 Apr 2024 19:05:53 +0000
-Received: from smtpav04.dal12v.mail.ibm.com (smtpav04.dal12v.mail.ibm.com [10.241.53.103])
-	by smtprelay03.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43GJ5obU40042812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Tue, 16 Apr 2024 19:05:52 GMT
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 594865805E;
-	Tue, 16 Apr 2024 19:05:50 +0000 (GMT)
-Received: from smtpav04.dal12v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id B54CD58064;
-	Tue, 16 Apr 2024 19:05:49 +0000 (GMT)
-Received: from li-5cd3c5cc-21f9-11b2-a85c-a4381f30c2f3.ibm.com (unknown [9.61.41.175])
-	by smtpav04.dal12v.mail.ibm.com (Postfix) with ESMTP;
-	Tue, 16 Apr 2024 19:05:49 +0000 (GMT)
-Message-ID: <254ee35d6534089e99f7396582572606f24ff3a2.camel@linux.ibm.com>
-Subject: Re: [RFC 2/2] ima: Fix detection of read/write violations on
- stacked filesystems
-From: Mimi Zohar <zohar@linux.ibm.com>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Stefan Berger <stefanb@linux.ibm.com>,
-        Amir Goldstein
- <amir73il@gmail.com>, linux-integrity@vger.kernel.org,
-        linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
-        roberto.sassu@huawei.com, Christian Brauner <brauner@kernel.org>
-Date: Tue, 16 Apr 2024 15:05:49 -0400
-In-Reply-To: <CAJfpeguzh6VzhdnwOPf_hM4x0FbsK8hhZp=VK4kWpCYn0xeBCg@mail.gmail.com>
-References: <20240412140122.2607743-1-stefanb@linux.ibm.com>
-	 <20240412140122.2607743-3-stefanb@linux.ibm.com>
-	 <CAOQ4uxjDQO91cjA0sgyPStkwc_7+NxAOhyve94qUvXSM3ytk1g@mail.gmail.com>
-	 <89b4fb29-5906-4b21-8b5b-6b340701ffe4@linux.ibm.com>
-	 <CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com>
-	 <b74a9a3edc52d96a7a34d6ba327fdb2a5a79a80d.camel@linux.ibm.com>
-	 <CAJfpegvPwpS5_S4qrrVbeC1RovP8jeNuDCYLbdcZ_XDFgfgftQ@mail.gmail.com>
-	 <52645fb25b424e10e68f0bde3b80906bbf8b9a37.camel@linux.ibm.com>
-	 <CAJfpegsHJ1JsM3SxNk5gnUM+aucqOqNm3RTrsYgePkcQYR4EEw@mail.gmail.com>
-	 <e052c1b5d2aa29b3a1f3a8086af4fb8a94c4d318.camel@linux.ibm.com>
-	 <CAJfpeguzh6VzhdnwOPf_hM4x0FbsK8hhZp=VK4kWpCYn0xeBCg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-23.el8_9) 
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 0cE_8gVBjb0xU08ZcWZVEk4g120-Dq2F
-X-Proofpoint-ORIG-GUID: HdahjFhZZ3X1Rggzms1FFm8K0iBNvr4p
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d5dgl1/b"
+Received: by mail-wr1-f47.google.com with SMTP id ffacd0b85a97d-349e211e562so181372f8f.1;
+        Wed, 17 Apr 2024 06:01:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1713358868; x=1713963668; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=luJkq5A749Bj2iJoVYNv8iaip15440ZNmCmzI+PkBF4=;
+        b=d5dgl1/bhEHm5IwsK+4DdnS5BBUg8qIVzLtG24KYugfqt9Y1mIK5JfCB/m2tLutYMY
+         xJ4DxK8gAR2NY5Fp1VBIZwoMc2zeK90CjY8FOeUOdjvnY8ecffqpkDGwZB7B24jDW6QB
+         qjDmk3Jh1aPYtRDsDwX6AJFaezDHkLoTJX4bfryCUsVC68u1r6kb+3u25NfxxShCDPRC
+         NS3zUSW2Q3DKMSiOZi5vrlI6OwwSRaBW9u4O8pYKt5WzuYHJ8OtATheVyxQg4STsgIDb
+         8lMwqHXRCfcIV3jep7bcDbI1w3T1ux1orkqmFBIJGvg5GMssFma8nqN/zlBlrZqQa4X1
+         t+yw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1713358868; x=1713963668;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=luJkq5A749Bj2iJoVYNv8iaip15440ZNmCmzI+PkBF4=;
+        b=gQQ3KowiPqzNBmJxar+2TGUvzFu+3B9BAJSytjEYxBCb7AlAnJMMOGPToWDXbY/NoM
+         8s4gsBYzDR1upiZay+GODPJPzRH2+cC8cCs5SLm3CWRV+z5VjIvvbwP3zPx98vVWLgch
+         tQInAddJaRFOaimNTBGbHPOUx/ydhJEm8VymEf3etJiViZpcNM0RgrSeRyMqL1EGhMbB
+         wQ3cmhgZRg/pNzTheI3BQuptUy3JbV7AJHDqtN4Uwe6BjW65CpkLAkRSxjR/lhihRzps
+         bRGP/T2ByhVga5tV+/CHj+6tz5gf2txIqDT3Bt66Un7qlg9WFnQ088tuY6dBKZ3+qNKZ
+         cJXg==
+X-Forwarded-Encrypted: i=1; AJvYcCXxsiAwlUxHraLpWVirl4dhaqHvloVsRd3S6FEiIYUNEq95kke3e3og7j5yJ/uUaJMLyF+YI52n9RsYUc5P/NZUidcbfCJ2+mg3xUwEpCN5Ul7Cn4nN+SzyolV/qpKYjvUWFHPNwtk=
+X-Gm-Message-State: AOJu0YyQKDOhqW/PyuBuGH83g2gwMfdGTaIBJ+5RLNzvLUDJcmoXpt1D
+	W77aYlE2xyVqHegVIbJOPHHp4kcSHsf2UeLh1JSbbSsK1EI2w5l2aWt1lA==
+X-Google-Smtp-Source: AGHT+IEkmO9TY/as6vIId9oHLuLOTn9tlxDJm1gRblLao2O8/9nHgHJ/j6hDcURuxeze3ARN2Vjz/Q==
+X-Received: by 2002:a05:6000:232:b0:346:c746:28a6 with SMTP id l18-20020a056000023200b00346c74628a6mr10351226wrz.55.1713358867508;
+        Wed, 17 Apr 2024 06:01:07 -0700 (PDT)
+Received: from amir-ThinkPad-T480.lan (85-250-214-4.bb.netvision.net.il. [85.250.214.4])
+        by smtp.gmail.com with ESMTPSA id a5-20020adffb85000000b00347e1304639sm7525717wrr.48.2024.04.17.06.01.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 17 Apr 2024 06:01:07 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Zorro Lang <zlang@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	linux-unionfs@vger.kernel.org,
+	fstests@vger.kernel.org
+Subject: [PATCH] generic/732: don't run it on overlayfs
+Date: Wed, 17 Apr 2024 16:01:02 +0300
+Message-Id: <20240417130102.679713-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.272,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-04-16_16,2024-04-16_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxscore=0 priorityscore=1501
- bulkscore=0 mlxlogscore=945 clxscore=1015 lowpriorityscore=0 phishscore=0
- suspectscore=0 adultscore=0 spamscore=0 impostorscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2404010000
- definitions=main-2404160120
+Content-Transfer-Encoding: 8bit
 
-On Tue, 2024-04-16 at 16:46 +0200, Miklos Szeredi wrote:
-> On Tue, 16 Apr 2024 at 14:18, Mimi Zohar <zohar@linux.ibm.com> wrote:
-> > Originally there was a single measureent unless the filesystem was mounted with
-> > SB_I_VERSION.  With commit a2a2c3c8580a ("ima: Use i_version only when
-> > filesystem supports it") this changed to always re-measure the file if the
-> > filesystem wasn't mounted with SB_I_VERSION.
-> 
-> Does the i_version get stored and compared only while the inode is in memory?
-> 
-> In that case I think it should be possible to support a version number
-> for the overlay inode.
+The test tries to mount with same mount options on two different
+mount points.
 
-i_version was insufficient to detect a file change for overlay.  Commit
-b836c4d29f27 ("ima: detect changes to the backing overlay") also compares the
-i_ino and s_dev as well.  Refer to 
-https://lore.kernel.org/lkml/20231025143906.133218-1-zohar@linux.ibm.com/.
+Overlayfs does not support doing that.
 
-Here in this patch set we need to detect IMA read/write violations, based on the
-i_readcount/i_writecount.  If an overlay file is opened for read, but the
-backing file is already opened for write, the file measurement is
-meaningless.  An "open-writers" violation needs to be generated; and the IMA
-measurement list needs to be invalidated.
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ tests/generic/732 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-thanks,
-
-Mimi
+diff --git a/tests/generic/732 b/tests/generic/732
+index 5b5087d5..7a40f49b 100755
+--- a/tests/generic/732
++++ b/tests/generic/732
+@@ -22,7 +22,7 @@ _cleanup()
+ }
+ 
+ # real QA test starts here
+-_supported_fs ^nfs
++_supported_fs ^nfs ^overlay
+ 
+ _require_test
+ _require_scratch
+-- 
+2.34.1
 
