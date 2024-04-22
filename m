@@ -1,157 +1,167 @@
-Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DEB3B15217D;
-	Mon, 22 Apr 2024 15:07:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A2AAC153839;
+	Mon, 22 Apr 2024 16:15:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.23
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713798443; cv=none; b=oqL2EPDmhBy28+YLg8J6kTYHdCOUUoRb5OEswqJz7Z3yw1R6nDMAKPkp9JSDa/da8iOsT2RmPD1j3dPEqZXcc2pcn1haV15BgW6e92mEr9J41RYTPyeOrLJNmhcdvfg3Lxa4vTrD8Oysdfzl3HZleW0fCezHtCerJgxc52mNZIU=
+	t=1713802566; cv=none; b=V4a/63UVAG8jIp08YLhXi2j8mftwGPzSY8SjBZeTkdew5y5VqUiWBqbMDBAY4+Uih+ZsYsrp0rW7TKKGF6VPRJg/EyY74K3AdrlUQnuxZnha+oFqJ2nmc6dQbV8i0iH7yExURk+pvz5qLBIjHztbY9vfjp05XJemf480v0zPWrM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713798443; c=relaxed/simple;
-	bh=9JnUA2M7ld+cdmtH5SExTOA4m2nU2g3VkDOtkWnpGRM=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nVebu9B/v75k/jlrIkYc7pxFhknBlVopEaSgTWxtd0iv19gU+ihJEs1thh9NwjGKxxpdNfRM0o+f4jEzHtkQl5DcwBubSBQQ7pRisex+VnUXLMFiRy5Hq7P/PBKfQOrcdrUVAztx3EvSVM8OHoSDg3yyoif+4pA2M8VjVepIhmg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=PkV6Kq3v; arc=none smtp.client-ip=148.163.158.5
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="PkV6Kq3v"
-Received: from pps.filterd (m0360072.ppops.net [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43MEnRRp031035;
-	Mon, 22 Apr 2024 15:07:06 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
- : date : message-id : in-reply-to : references : mime-version :
- content-transfer-encoding; s=pp1;
- bh=CfL7MiiThw2Agk96Q2WmYQnMT87ZKq/BPxVs8GeYDHQ=;
- b=PkV6Kq3vDONA65I06A84onrC2BA9rTn1GZB0i/zH5P8fmc8CpPQJ70/kQtSVa0o7NYkA
- CMlLy81cc79fTQ7+VwPT0VxNIlCukfawsDINr4cTYORx3RFKk88ZGVAWCM00zWXH22EM
- Dky1FD1txBNWuCzRsI79P0o/UMYuzy78ygPdkJRaX/vKbupLee9vDZyHddkHsfZsmSyi
- C/68nEVbjOpww4+VOtEwXWbbkjQ/CQdK3vt9lOk/9+Yd0RUdfdlkqYwma6fI04eXdvoI
- 2aDztbR4N5wUayiO7VVFw/jWAoIwvsYX4vSYrcof93u/R+4T5YORlB09zi9NYN2gaArz aA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xnt0501jk-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 22 Apr 2024 15:07:05 +0000
-Received: from m0360072.ppops.net (m0360072.ppops.net [127.0.0.1])
-	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43MF75L7030765;
-	Mon, 22 Apr 2024 15:07:05 GMT
-Received: from ppma11.dal12v.mail.ibm.com (db.9e.1632.ip4.static.sl-reverse.com [50.22.158.219])
-	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xnt0501jj-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 22 Apr 2024 15:07:05 +0000
-Received: from pps.filterd (ppma11.dal12v.mail.ibm.com [127.0.0.1])
-	by ppma11.dal12v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43MBmHMw028328;
-	Mon, 22 Apr 2024 15:07:04 GMT
-Received: from smtprelay06.dal12v.mail.ibm.com ([172.16.1.8])
-	by ppma11.dal12v.mail.ibm.com (PPS) with ESMTPS id 3xmtr27ve2-1
-	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-	Mon, 22 Apr 2024 15:07:04 +0000
-Received: from smtpav05.wdc07v.mail.ibm.com (smtpav05.wdc07v.mail.ibm.com [10.39.53.232])
-	by smtprelay06.dal12v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43MF71OD54329610
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-	Mon, 22 Apr 2024 15:07:03 GMT
-Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 5EDB758053;
-	Mon, 22 Apr 2024 15:07:01 +0000 (GMT)
-Received: from smtpav05.wdc07v.mail.ibm.com (unknown [127.0.0.1])
-	by IMSVA (Postfix) with ESMTP id 85AAE58043;
-	Mon, 22 Apr 2024 15:07:00 +0000 (GMT)
-Received: from sbct-3.bos2.lab (unknown [9.47.158.153])
-	by smtpav05.wdc07v.mail.ibm.com (Postfix) with ESMTP;
-	Mon, 22 Apr 2024 15:07:00 +0000 (GMT)
-From: Stefan Berger <stefanb@linux.ibm.com>
-To: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org
+	s=arc-20240116; t=1713802566; c=relaxed/simple;
+	bh=mWsvm93fW0w0fv42lI/98E0osUgiOpWtgizrRxa8two=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=Jlw/I6GD9zE7Y3bfuYPrc92W0WEle5EAOcPo14JSLVmew6jFXgC9C2+qoRuv4UxE1nl/GPVxtNNtPLsam6oF7P0oWtj5MFtnJ6SLT/z9MNBYG1+sc4cScBF9sfvtv5Ia5g0jh+A6pXW5TOH7R0iJsLDBBMVXtO62fPje7/+VqT8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.23
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
+Received: from mail.maildlp.com (unknown [172.18.186.51])
+	by frasgout11.his.huawei.com (SkyGuard) with ESMTP id 4VNVL16MDnz9xHw0;
+	Mon, 22 Apr 2024 23:59:05 +0800 (CST)
+Received: from mail02.huawei.com (unknown [7.182.16.47])
+	by mail.maildlp.com (Postfix) with ESMTP id 55E641404A6;
+	Tue, 23 Apr 2024 00:15:34 +0800 (CST)
+Received: from [127.0.0.1] (unknown [10.204.63.22])
+	by APP1 (Coremail) with SMTP id LxC2BwC3qhMdjSZmSmHCBg--.36545S2;
+	Mon, 22 Apr 2024 17:15:33 +0100 (CET)
+Message-ID: <9781bed037fa7ba6610e65220054b8f93a6e5966.camel@huaweicloud.com>
+Subject: Re: [RFC PATCH v2 2/2] ima: Fix detection of read/write violations
+ on stacked filesystems
+From: Roberto Sassu <roberto.sassu@huaweicloud.com>
+To: Stefan Berger <stefanb@linux.ibm.com>, linux-integrity@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, zohar@linux.ibm.com,
-        roberto.sassu@huawei.com, amir73il@gmail.com, miklos@szeredi.hu,
-        brauner@kernel.org, Stefan Berger <stefanb@linux.ibm.com>
-Subject: [RFC PATCH v2 2/2] ima: Fix detection of read/write violations on stacked filesystems
-Date: Mon, 22 Apr 2024 11:06:51 -0400
-Message-ID: <20240422150651.2908169-3-stefanb@linux.ibm.com>
-X-Mailer: git-send-email 2.44.0
-In-Reply-To: <20240422150651.2908169-1-stefanb@linux.ibm.com>
+ roberto.sassu@huawei.com,  amir73il@gmail.com, miklos@szeredi.hu,
+ brauner@kernel.org
+Date: Mon, 22 Apr 2024 18:15:21 +0200
+In-Reply-To: <20240422150651.2908169-3-stefanb@linux.ibm.com>
 References: <20240422150651.2908169-1-stefanb@linux.ibm.com>
+	 <20240422150651.2908169-3-stefanb@linux.ibm.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.44.4-0ubuntu2 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: 2KSdtnbHGMLxs-JxKxr0E51uN_l0aoP0
-X-Proofpoint-ORIG-GUID: jf-2JOobOTNWqrxHexaYVu1VCXNPeWLY
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.293,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
- definitions=2024-04-22_09,2024-04-22_01,2023-05-22_02
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=547 clxscore=1015
- adultscore=0 impostorscore=0 priorityscore=1501 spamscore=0 suspectscore=0
- lowpriorityscore=0 mlxscore=0 phishscore=0 bulkscore=0 malwarescore=0
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2404010000
- definitions=main-2404220065
+X-CM-TRANSID:LxC2BwC3qhMdjSZmSmHCBg--.36545S2
+X-Coremail-Antispam: 1UD129KBjvJXoWxur1fWr1fZry7ArW7ZFy5Arb_yoW5tF43pF
+	Z8ta4UG395tF1I9F1vya4UZa1F93y8KF4UZa4Yq348JFnagrn09rWaya4YyryfJr93ur40
+	qa1jvr98Ca15trDanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUgmb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
+	xVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv67AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIEc7CjxV
+	AFwI0_Gr0_Gr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
+	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
+	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_
+	Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1V
+	AY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAI
+	cVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWrZr1j6s0DMI
+	IF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2
+	KfnxnUUI43ZEXa7IU1zuWJUUUUU==
+X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAgABBF1jj5iucgACsw
 
-On a stacked filesystem, when one process opens the file holding a file's
-data (e.g., on upper or lower layer on overlayfs) then issue a violation
-when another process opens the file for reading on the top layer (overlay
-layer on overlayfs). This then provides similar behavior to the existing
-case where a violation is generated when one process opens a file for
-writing and another one opens the same file for reading.
+On Mon, 2024-04-22 at 11:06 -0400, Stefan Berger wrote:
+> On a stacked filesystem, when one process opens the file holding a file's
+> data (e.g., on upper or lower layer on overlayfs) then issue a violation
+> when another process opens the file for reading on the top layer (overlay
+> layer on overlayfs). This then provides similar behavior to the existing
+> case where a violation is generated when one process opens a file for
+> writing and another one opens the same file for reading.
+>=20
+> Convert the current code so that it can handle the normal case as well
+> as the stacked filesystem case. Therefore, use d_real with parameter
+> D_REAL_FILEDATA to get the next dentry holding the file data. On a normal
+> filesystem this would be the dentry of the file and on a stacked filesyst=
+em
+> this could be an upper or lower dentry. Check the dentry's inode for
+> writes and if it has any issue the violation. Otherwise continue onto the
+> next dentry given the current dentry by again calling d_real. On a normal
+> filesystem this would return the same dentry as before and on a stacked
+> filesystem it would return the next-level dentry, so either the upper
+> or lower dentry of the next lower layer.
 
-Convert the current code so that it can handle the normal case as well
-as the stacked filesystem case. Therefore, use d_real with parameter
-D_REAL_FILEDATA to get the next dentry holding the file data. On a normal
-filesystem this would be the dentry of the file and on a stacked filesystem
-this could be an upper or lower dentry. Check the dentry's inode for
-writes and if it has any issue the violation. Otherwise continue onto the
-next dentry given the current dentry by again calling d_real. On a normal
-filesystem this would return the same dentry as before and on a stacked
-filesystem it would return the next-level dentry, so either the upper
-or lower dentry of the next lower layer.
+I have a question. What happens for the opposite, when you open an
+overlayfs file for write, and it was already opened and measured in the
+lower layers?
 
-Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
----
- security/integrity/ima/ima_main.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+If IMA was invoked for the lower layers, the ToMToU detection would be
+detected. But it does not seem the case:
 
-diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/ima_main.c
-index f04f43af651c..7d727c448dc7 100644
---- a/security/integrity/ima/ima_main.c
-+++ b/security/integrity/ima/ima_main.c
-@@ -122,7 +122,9 @@ static void ima_rdwr_violation_check(struct file *file,
- 				     char *filename)
- {
- 	struct inode *inode = file_inode(file);
-+	struct dentry *fd_dentry, *d;
- 	fmode_t mode = file->f_mode;
-+	struct inode *fd_inode;
- 	bool send_tomtou = false, send_writers = false;
- 
- 	if (mode & FMODE_WRITE) {
-@@ -134,11 +136,20 @@ static void ima_rdwr_violation_check(struct file *file,
- 						&iint->atomic_flags))
- 				send_tomtou = true;
- 		}
--	} else {
--		if (must_measure)
--			set_bit(IMA_MUST_MEASURE, &iint->atomic_flags);
--		if (inode_is_open_for_write(inode) && must_measure)
--			send_writers = true;
-+	} else if (must_measure) {
-+		set_bit(IMA_MUST_MEASURE, &iint->atomic_flags);
-+
-+		d = d_real(file_dentry(file), D_REAL_FILEDATA);
-+		do {
-+			fd_dentry = d;
-+			fd_inode = d_inode(fd_dentry);
-+			if (inode_is_open_for_write(fd_inode)) {
-+				send_writers = true;
-+				break;
-+			}
-+			/* next layer of stacked fs */
-+			d = d_real(fd_dentry, D_REAL_FILEDATA);
-+		} while (d != fd_dentry);
- 	}
- 
- 	if (!send_tomtou && !send_writers)
--- 
-2.43.0
+struct file *backing_file_open(const struct path *user_path, int flags,
+			       const struct path *real_path,
+			       const struct cred *cred)
+{
+
+[...]
+
+	error =3D vfs_open(real_path, f);
+	if (error) {
+		fput(f);
+		f =3D ERR_PTR(error);
+	}
+
+	return f;
+
+security_file_post_open(), which invokes IMA, is called after
+vfs_open() and only in do_open().
+
+Also, consider that ima_iint_get() and ima_rdwr_violation_check() are
+called with the inode lock held. If you access different inodes, the
+locking scheme changes.
+
+Thanks
+
+Roberto
+
+> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> ---
+>  security/integrity/ima/ima_main.c | 21 ++++++++++++++++-----
+>  1 file changed, 16 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/security/integrity/ima/ima_main.c b/security/integrity/ima/i=
+ma_main.c
+> index f04f43af651c..7d727c448dc7 100644
+> --- a/security/integrity/ima/ima_main.c
+> +++ b/security/integrity/ima/ima_main.c
+> @@ -122,7 +122,9 @@ static void ima_rdwr_violation_check(struct file *fil=
+e,
+>  				     char *filename)
+>  {
+>  	struct inode *inode =3D file_inode(file);
+> +	struct dentry *fd_dentry, *d;
+>  	fmode_t mode =3D file->f_mode;
+> +	struct inode *fd_inode;
+>  	bool send_tomtou =3D false, send_writers =3D false;
+> =20
+>  	if (mode & FMODE_WRITE) {
+> @@ -134,11 +136,20 @@ static void ima_rdwr_violation_check(struct file *f=
+ile,
+>  						&iint->atomic_flags))
+>  				send_tomtou =3D true;
+>  		}
+> -	} else {
+> -		if (must_measure)
+> -			set_bit(IMA_MUST_MEASURE, &iint->atomic_flags);
+> -		if (inode_is_open_for_write(inode) && must_measure)
+> -			send_writers =3D true;
+> +	} else if (must_measure) {
+> +		set_bit(IMA_MUST_MEASURE, &iint->atomic_flags);
+> +
+> +		d =3D d_real(file_dentry(file), D_REAL_FILEDATA);
+> +		do {
+> +			fd_dentry =3D d;
+> +			fd_inode =3D d_inode(fd_dentry);
+> +			if (inode_is_open_for_write(fd_inode)) {
+> +				send_writers =3D true;
+> +				break;
+> +			}
+> +			/* next layer of stacked fs */
+> +			d =3D d_real(fd_dentry, D_REAL_FILEDATA);
+> +		} while (d !=3D fd_dentry);
+>  	}
+> =20
+>  	if (!send_tomtou && !send_writers)
 
