@@ -1,106 +1,116 @@
-Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mx0b-001b2d01.pphosted.com (mx0b-001b2d01.pphosted.com [148.163.158.5])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5406C18AED;
-	Tue, 23 Apr 2024 06:03:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1F825762EB;
+	Tue, 23 Apr 2024 10:53:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=148.163.158.5
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713852191; cv=none; b=I23E1irbQWQqyiXvMoKuzJbByENmJ13ikXZruTTo3E0w4L/G5xyi9PWxdHPVu77dEwToz0F/EsD7t6vuuT7+pOa8a3WDFn/AkbdirKI7+gUhBz7pJvgJ9go7vDYKfoMYb+lhHeSCc5NuMInXtxPv1fgeFMQaGtQg9/06XwMPV60=
+	t=1713869637; cv=none; b=YLCQDmPITiQB3aKZMLhYCKfT/Cl4rNkcGFKRjNCl5yKn48qJrvp/6OVKSgRnJnUrImmKWWA+1nnpq3HdVrLxEPPVgXKae6iqiQfEBbPuazOFYq1PDZtMWZp7SLn/rTGkevW0aM7hncvEa4ugUkxjDij8EvOATi4bwDlBrSM6rTQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713852191; c=relaxed/simple;
-	bh=S82bhgOPlnk2N9rL4GPcTmGEkacOA1o1OYddKmaFf2Q=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=iPaRHNgwpooRDSyYRV0fGekinm40a37b1QKvDCuuUcsbeGXHFC80fYPChsZi08S+4D/+5XWuFpChmjErtrOpkkp5cbpRbFnSAnQCf/GXzFuy6Gn7E193ompFBdyotuxh2I6lZD6PKG88wLSn9obrAnga9d0hUJK6LpQZEyNZnJY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=eebz0GdN; arc=none smtp.client-ip=209.85.222.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1713869637; c=relaxed/simple;
+	bh=v/MnNKfPf2UxE/AeWBCU0So5tHhCb33++anZ1EvsT88=;
+	h=Message-ID:Date:Subject:To:Cc:References:From:In-Reply-To:
+	 Content-Type:MIME-Version; b=B0tN6zEgt6r6pEmBAGnE0+WIInhpJg2wmzvFlI2XWExi1UVVx3TLhMjs0+pPfvo2vUPy5uPEhGHK+5nhS2wpn+XQD4zd8XwxRFSrXY2vPmxEwT9pGYwzukeezqsMQ25VD9aRW8FCso6OaZ31ckoZWXe6gP0rurS+dyVDHp04L6M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com; spf=pass smtp.mailfrom=linux.ibm.com; dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b=mnOHMW3L; arc=none smtp.client-ip=148.163.158.5
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.ibm.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.ibm.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="eebz0GdN"
-Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-78edc3ad5fdso434400985a.0;
-        Mon, 22 Apr 2024 23:03:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1713852189; x=1714456989; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=S82bhgOPlnk2N9rL4GPcTmGEkacOA1o1OYddKmaFf2Q=;
-        b=eebz0GdN3f9nxzyvEHVtxBSaOkb0ngvjpZAdV55iyqiFauAIkk3ctUIBgpLVIoCZRz
-         4ozYQpOfFa40Bt1K64Y2ZUkswP3UOIWBDNDopsD+/bTepiYGNoQMv6Uu429E9Y2bgi4H
-         Vj8n8ZHUPAoadlzjY5UVc2U+bUT91VRS2DCl/8Q6qn4NnsVgvu/bewj7COBSlbmhM5cw
-         +7V7VQlQjHbt6u19ASSweb0b5vBwBsBygKxADR1MEVM0/eN6/YSTkjjwu4o72t87oMnD
-         tH3/pTlt/IXm4+YwMXbpxTYFNyb3QBjedkadYjWTWK9+6NlqVdyMKmhEq/xft4arLc1I
-         PKbw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1713852189; x=1714456989;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=S82bhgOPlnk2N9rL4GPcTmGEkacOA1o1OYddKmaFf2Q=;
-        b=amtED/OTqQuei0IkjQZuRskrtejdtNerBRoSKk8PqoVOK2yg/5QfddgCF4LJ7huDVE
-         ES6vamEp4m+IPXNFKKF75gjctseV5qxX4FoYbRrwM/4UwPuk59sdVjfXrZe/IHLA90Ns
-         xPr7Foln4OrVZ7EASpTkQiUoMwSRe3J/wSGRksQW9Dkv3waFiw2hkysf1WPUI+Kss5Sl
-         O6t4oKql6U5wYcFMDcXf2fNX7Ygq5rD/vfPi3wUxn2XYk7cMqDiK4rSwyeS3WPr569c5
-         wOXSWvd3dE2kOFAi3JDHrklRdf5z6dMKhnon1PqtTID16gtgYR+PVZl6VQhbeA2FFV6J
-         AP0w==
-X-Forwarded-Encrypted: i=1; AJvYcCUsucTX17h+MBgjMWHOPH4uirJeNBa91TKwRbv79pRj6CvvVlIZPTCXkFrYvju4pmkeG81nkCb2FVqXzCPnouqXTQlUyabFXJNhBPvfGo7KuX2ztr/1MWQyY7unJmtvR3L7xhCSWEKGiVjbaQ==
-X-Gm-Message-State: AOJu0Yy5jUAWPtsVwJ++KJvepLyfc+ZjvX92Nfu0xI/Ep6r/v528iecC
-	cwA0gvKjT1yY6xnn1AekwS6QDbi7qj3/H50N6u5FL5lotK9CUo/D5B7o351opWvIug5CxXwducw
-	pbqj6bJkQJz+KiUmZN+t2xHK+vx4Dg02u
-X-Google-Smtp-Source: AGHT+IH6mTafRKyle4oWcXPbSls9QQHFramdEUvZD2Zvk9flg0IWMdwpQ+TojhZslO2GM1HSfRYCOOcV0FFHM1EBDU4=
-X-Received: by 2002:a05:620a:2a01:b0:790:84ef:a34c with SMTP id
- o1-20020a05620a2a0100b0079084efa34cmr862676qkp.33.1713852189156; Mon, 22 Apr
- 2024 23:03:09 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=ibm.com header.i=@ibm.com header.b="mnOHMW3L"
+Received: from pps.filterd (m0353722.ppops.net [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 43NA3R0m025316;
+	Tue, 23 Apr 2024 10:53:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=1ji91CIGqetCWhV6BnbSd4ejvs7Zy4xxJczLSZVIAIM=;
+ b=mnOHMW3LnRh3gjUH/nJ/L+cXprTwV6RtZQmvE7JAVdxNtn7tNEJq8vGpkn7AYDsxGuea
+ btGBxl1cl8tR4j4w5g00Rsi2lv+NVa2dWGe5if42BS4dh0E8j2fGbIYj8So6wbfzuctB
+ ykv3J0z3fMz1MTpHcYX881jFM1ePHSijX62F98fLVzSMrlgJMQnou2XLVNf4DkQIxVbW
+ Qm3YdqcsxVe9ouyG/zF2hdfmI+eSIjvDl7gPSWXYYSQ7zK7aR/MgMlcw3ZA9/bVgIKmR
+ uaJXDt06Rw7rGzizBQluOb5UVt0U6KPZIt2Nyyi+ymCvMbvcTRBBojwo7FrHCxZ9NZwj Ug== 
+Received: from pps.reinject (localhost [127.0.0.1])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xpaw302tk-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Apr 2024 10:53:46 +0000
+Received: from m0353722.ppops.net (m0353722.ppops.net [127.0.0.1])
+	by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 43NArjGL010095;
+	Tue, 23 Apr 2024 10:53:45 GMT
+Received: from ppma21.wdc07v.mail.ibm.com (5b.69.3da9.ip4.static.sl-reverse.com [169.61.105.91])
+	by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3xpaw302th-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Apr 2024 10:53:45 +0000
+Received: from pps.filterd (ppma21.wdc07v.mail.ibm.com [127.0.0.1])
+	by ppma21.wdc07v.mail.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 43N847el023068;
+	Tue, 23 Apr 2024 10:53:45 GMT
+Received: from smtprelay06.wdc07v.mail.ibm.com ([172.16.1.73])
+	by ppma21.wdc07v.mail.ibm.com (PPS) with ESMTPS id 3xms1nw3pg-1
+	(version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+	Tue, 23 Apr 2024 10:53:45 +0000
+Received: from smtpav01.wdc07v.mail.ibm.com (smtpav01.wdc07v.mail.ibm.com [10.39.53.228])
+	by smtprelay06.wdc07v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 43NArgdC6423168
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+	Tue, 23 Apr 2024 10:53:44 GMT
+Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id A934D58059;
+	Tue, 23 Apr 2024 10:53:42 +0000 (GMT)
+Received: from smtpav01.wdc07v.mail.ibm.com (unknown [127.0.0.1])
+	by IMSVA (Postfix) with ESMTP id D7AD25804B;
+	Tue, 23 Apr 2024 10:53:41 +0000 (GMT)
+Received: from [9.47.158.152] (unknown [9.47.158.152])
+	by smtpav01.wdc07v.mail.ibm.com (Postfix) with ESMTP;
+	Tue, 23 Apr 2024 10:53:41 +0000 (GMT)
+Message-ID: <370f9aa6-ef55-469a-ad42-94bf535e0eb8@linux.ibm.com>
+Date: Tue, 23 Apr 2024 06:53:41 -0400
+User-Agent: Mozilla Thunderbird
+Subject: Re: [RFC PATCH v2 0/2] ima: Fix detection of read/write violations on
+ stacked filesystems
+Content-Language: en-US
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org,
+        linux-kernel@vger.kernel.org, zohar@linux.ibm.com,
+        roberto.sassu@huawei.com, miklos@szeredi.hu, brauner@kernel.org
+References: <20240422150651.2908169-1-stefanb@linux.ibm.com>
+ <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
+From: Stefan Berger <stefanb@linux.ibm.com>
+In-Reply-To: <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: KgyvGzNTVDgZXbleLvvP1tXFu30p9Uqv
+X-Proofpoint-GUID: Mdd4vI1AK8TyMyLwNPe0WwQq3zIpXCVF
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240422150651.2908169-1-stefanb@linux.ibm.com>
-In-Reply-To: <20240422150651.2908169-1-stefanb@linux.ibm.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 23 Apr 2024 09:02:58 +0300
-Message-ID: <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 0/2] ima: Fix detection of read/write violations on
- stacked filesystems
-To: Stefan Berger <stefanb@linux.ibm.com>
-Cc: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, zohar@linux.ibm.com, roberto.sassu@huawei.com, 
-	miklos@szeredi.hu, brauner@kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.293,Aquarius:18.0.1011,Hydra:6.0.619,FMLib:17.11.176.26
+ definitions=2024-04-23_09,2024-04-22_01,2023-05-22_02
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0 bulkscore=0
+ mlxscore=0 suspectscore=0 priorityscore=1501 phishscore=0 malwarescore=0
+ spamscore=0 mlxlogscore=665 adultscore=0 clxscore=1015 lowpriorityscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2404010000
+ definitions=main-2404230029
 
-On Mon, Apr 22, 2024 at 6:07=E2=80=AFPM Stefan Berger <stefanb@linux.ibm.co=
-m> wrote:
->
-> This series fixes the detection of read/write violations on stacked
-> filesystems. To be able to access the relevant dentries necessary to
-> detect files opened for writing on a stacked filesystem a new d_real_type
-> D_REAL_FILEDATA is introduced that allows callers to access all relevant
-> files involved in a stacked filesystem while traversing the layers.
->
 
-Stefan,
 
-Both Miklos and myself objected to this solution:
-https://lore.kernel.org/linux-unionfs/CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H=
-8GHGW-0UyKfjgg@mail.gmail.com/
+On 4/23/24 02:02, Amir Goldstein wrote:
+> On Mon, Apr 22, 2024 at 6:07 PM Stefan Berger <stefanb@linux.ibm.com> wrote:
+>>
+>> This series fixes the detection of read/write violations on stacked
+>> filesystems. To be able to access the relevant dentries necessary to
+>> detect files opened for writing on a stacked filesystem a new d_real_type
+>> D_REAL_FILEDATA is introduced that allows callers to access all relevant
+>> files involved in a stacked filesystem while traversing the layers.
+>>
+> 
+> Stefan,
+> 
+> Both Miklos and myself objected to this solution:
+> https://lore.kernel.org/linux-unionfs/CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com/
 
-Not sure what you are hoping to achieve from re-posting the same solution.
+Thanks, the RFC has achieved its objective now.
 
-I stopped counting how many times I already argued that *all* IMA/EVM
-assertions,
-including rw-ro violations should be enforced only on the real inode.
-I know this does not work - so you should find out why it does not work and=
- fix
-the problem.
-
-Enforcing IMA/EVM on the overlayfs inode layer is just the wrong way IMO.
-Not once have I heard an argument from IMA/EVM developers why it is really
-needed to enforce IMA/EVM on the overlayfs inode layer and not on the
-real inode.
-I am sorry that we are failing to communicate on this matter, but I am not
-sure how else I can help.
-
-Thanks,
-Amir.
+    Stefan
