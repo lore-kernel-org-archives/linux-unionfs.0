@@ -1,140 +1,135 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.10])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com [209.85.219.169])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B21CE2D058;
-	Wed, 24 Apr 2024 19:15:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.10
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B5F23A1AC;
+	Thu, 25 Apr 2024 06:06:21 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1713986129; cv=none; b=inMOEjWR9ZVfYdAPEakuoUunjyG7xsmSpKtcL5QeVBBpOtXNCpjumGfS6GVSURXH0awo/ieHQUz1DMvLopiLa5vD+j+JYCOzzdp3pq0r3pydJ7bYs56iFsX9E1niPq1aReKiTCE7WCncTljJ8TPhNxOrjge1NSQkYIfZOgIBTmQ=
+	t=1714025183; cv=none; b=RXsFCUZJC6oz1p7CNWZ+KhjjStrQLYr4zdschUFXtK0gzyb3e0n2TJnu7b/IR36olxBeQw4yEMPG6R9p32DbqJhhja2EPrOgoqon0l4x9hhRuSsQ0ZRfjWZUU4EVvZQBZ89EGXkiyc6t6DKz9yUZJy/c+EUABIZMListtZC7cFU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1713986129; c=relaxed/simple;
-	bh=lOEH5OW0djs2D1y/2qbmQpF/LbkgEdvTCeeoT+uKu5Y=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=M9SRRntr1/79dnSvECv5zKc3PRIOB7NZqnoLOakXjj5GqVqp7v/Ek/tnwLyCKtjip8ZUnb6P9cFrqPOqxXBo5QoYD9gdsQTHpw8ygK+O1zujgvpYdxZjOob/o2SXXESMdr/cv6+RmheVL8TARFNN24inGl7byOQOGUavaiHA5ag=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SgPqxNSS; arc=none smtp.client-ip=192.198.163.10
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1714025183; c=relaxed/simple;
+	bh=dvKTlg+kg92Mkx6G+gt4m/08khRB2H/WrYx/Ku1ZpbE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=rHqFh3vhuus6sj3JsLVbthWygoIPh+nWJPY45h/hDR9KQkYNSgwRnilkmjjkroUCupct29SbTsgg5h8up+ILNAPPs7ar33L8YyRT6w7B692cFRbnME9zOBGqrNKYsI2AjsJbiDYdPUFC5OckQ+LM9652EsjsC2v2otqqLK60rA0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Mixn5Q1O; arc=none smtp.client-ip=209.85.219.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SgPqxNSS"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1713986128; x=1745522128;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version;
-  bh=lOEH5OW0djs2D1y/2qbmQpF/LbkgEdvTCeeoT+uKu5Y=;
-  b=SgPqxNSS6Dyg6lmiEO1VjEEOb2s6judy/efH0JXYcpYOt3DCH9PzBt02
-   gnkdxjmAVANoIHF6dYjaY6teFCza/92+60cZovC2I5Fd9raD0UOVdq6SV
-   wafiBEZDoLsN1M0eM6W6UvnOehp7VCweaSCRokTb3Bjl4f9D+t2qQ45YT
-   R+XfrIWOsF4qAsayCSW9Ylzazfux2eavWb6SbpIt1cfbmHQhBzyqUJVB8
-   QFDj0ywEwYDTGWDR5uk8++aI4U7/e6xt5Gz6Hx2rATX7U+eAZM6xmsthH
-   p7bIWubKX5pwLZRR/s9ztiXb5x/MILsMU9lmHWh4KiKuoC2sqRsy2EVIF
-   g==;
-X-CSE-ConnectionGUID: wVfTZXczSnuOA2BZ0Mmspg==
-X-CSE-MsgGUID: YGaXZQXzRr+ySGNMWkAk8Q==
-X-IronPort-AV: E=McAfee;i="6600,9927,11054"; a="21052415"
-X-IronPort-AV: E=Sophos;i="6.07,227,1708416000"; 
-   d="scan'208";a="21052415"
-Received: from orviesa003.jf.intel.com ([10.64.159.143])
-  by fmvoesa104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2024 12:15:27 -0700
-X-CSE-ConnectionGUID: X0N0OLMuReuSRx/PRcj7Bw==
-X-CSE-MsgGUID: e/ijHY5+TLyvOAkq7nwXgQ==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.07,227,1708416000"; 
-   d="scan'208";a="29447834"
-Received: from unknown (HELO vcostago-mobl3) ([10.124.220.153])
-  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Apr 2024 12:15:26 -0700
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: Christian Brauner <brauner@kernel.org>
-Cc: amir73il@gmail.com, hu1.chen@intel.com, miklos@szeredi.hu,
- malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
- lizhen.you@intel.com, linux-unionfs@vger.kernel.org,
- linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 0/3] overlayfs: Optimize override/revert creds
-In-Reply-To: <20240424-befund-unantastbar-9b0154bec6e7@brauner>
-References: <20240403021808.309900-1-vinicius.gomes@intel.com>
- <20240424-befund-unantastbar-9b0154bec6e7@brauner>
-Date: Wed, 24 Apr 2024 12:15:25 -0700
-Message-ID: <87a5liy3le.fsf@intel.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Mixn5Q1O"
+Received: by mail-yb1-f169.google.com with SMTP id 3f1490d57ef6-db4364ecd6aso723735276.2;
+        Wed, 24 Apr 2024 23:06:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1714025180; x=1714629980; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Kdu2kkuJAVCmKf8384cv38eneufBKUPC8ObGdfPhtmQ=;
+        b=Mixn5Q1OFXDc81vU1Qdk7R/RDlRfa2UKOxDOD7XfW5uvAxrahf6wGID1IzzdVPZp6L
+         XglxnuhY5ChneLfq1LG4chcmKLwn/p88UytBylHPAj1XUmf/LemcsH0X5epYlU9xQl2c
+         fuJA2aeoU98Ro2WcfcJr4mGGHSUYblr5xSx16+79DEurtuKPbAG2/i9jGDE1EmuMTxZ2
+         jkGynFnSxao8Dqg26mGdn92aXRB10EGBLD/DqK552YC3RLSVyWlyl2lmUVNBICYBGSq9
+         3IldWuDGHV3x8LKoJT6/8hZjp02k8tR9tHYPOl0WPHqSvq/jCZvLp3h5gjefQfN0AzPa
+         +e9Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1714025180; x=1714629980;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Kdu2kkuJAVCmKf8384cv38eneufBKUPC8ObGdfPhtmQ=;
+        b=FhWMeyavrreRrhYlYmWI0NwdEqpq87TmboVnNaksegQ8HL5M8xg6oTuIi0Y74hORzC
+         Hih/ZKxtczyrwGB4hfNlJlVQf1Z5V+AeJ49vh0fKuBaG3epPUwr28aQguYB2vb/Jfdzv
+         71Ki+N/g6XqICQSl9WGlhd9XUeuClkCzZ7N33CzUd/8U9wmw1tExz58yOL99yhYoMlsx
+         7kHOEvyxUqxTuEvgdodo9MBO1kCcdoZd5tnklufog/sZDipVcHuS8nI4Cx4emSjp3MGi
+         AmR8ujx6GAOQGobwc25QJo5spDX+gNBGgGIvodWDl6tL4COiF+pIMXdpruuGrUQsIfXd
+         EpxQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV5aTSGdrrpCbzC7j3VOZHQziFjq/Ohgpn+vXhSGZ4xIQ0t+zoNcLN205ruwD+HxidSKIg6NV9HTPp9eI+rhQ92MOTKsinUo6noIpMC78WKhWPAik1sxi9apkjLj+ek4nvVO9ePXlRIkwzdrUIPYpI28rm+J2I509Ppa9BmLEW+vMzygOi29WfWG7I=
+X-Gm-Message-State: AOJu0YyWRIWUd3u2LxZ9odkbj6DiftUs5Knt5lxtfO2SfyUuvvlZCKH8
+	o0D2/tVts3agzgxt14T0Klvv0LZwNE0GtUjjL5UKaQ5rpCg2iRIFu0Cl+Lfyq4uWcQ5dIeql6C7
+	R/L/ffcmvC7K0ntznJtr9UK8Fj+E=
+X-Google-Smtp-Source: AGHT+IENHXhgpA97vo8Z8o1YE9P1ifZkeyeBBuDFVW1qXr8kV4Qe/F0s7PmxJlJbfZt8J+wV8LY3ZwcjiLWwmN0OIXE=
+X-Received: by 2002:a25:820a:0:b0:de4:70e2:16c with SMTP id
+ q10-20020a25820a000000b00de470e2016cmr5037857ybk.14.1714025180256; Wed, 24
+ Apr 2024 23:06:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <20240403021808.309900-1-vinicius.gomes@intel.com>
+ <CAJfpeguqW4mPE9UyLmccisTex_gmwq6p9_6_EfVm-1oh6CrEBA@mail.gmail.com> <87frvay47x.fsf@intel.com>
+In-Reply-To: <87frvay47x.fsf@intel.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 25 Apr 2024 09:06:08 +0300
+Message-ID: <CAOQ4uxjdk47CVbihhsErzNQdUBiPshBOd8rg-PerBuOPjY=e5w@mail.gmail.com>
+Subject: Re: [PATCH v1 0/3] overlayfs: Optimize override/revert creds
+To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, brauner@kernel.org, hu1.chen@intel.com, 
+	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
+	lizhen.you@intel.com, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Christian Brauner <brauner@kernel.org> writes:
-
-> On Tue, Apr 02, 2024 at 07:18:05PM -0700, Vinicius Costa Gomes wrote:
->> Hi,
->> 
->> Changes from RFC v3:
->>  - Removed the warning "fixes" patches, as they could hide potencial
->>    bugs (Christian Brauner);
->>  - Added "cred-specific" macros (Christian Brauner), from my side,
->>    added a few '_' to the guards to signify that the newly introduced
->>    helper macros are preferred.
->>  - Changed a few guard() to scoped_guard() to fix the clang (17.0.6)
->>    compilation error about 'goto' bypassing variable initialization;
->> 
->> Link to RFC v3:
->> 
->> https://lore.kernel.org/r/20240216051640.197378-1-vinicius.gomes@intel.com/
->> 
->> Changes from RFC v2:
->>  - Added separate patches for the warnings for the discarded const
->>    when using the cleanup macros: one for DEFINE_GUARD() and one for
->>    DEFINE_LOCK_GUARD_1() (I am uncertain if it's better to squash them
->>    together);
->>  - Reordered the series so the backing file patch is the first user of
->>    the introduced helpers (Amir Goldstein);
->>  - Change the definition of the cleanup "class" from a GUARD to a
->>    LOCK_GUARD_1, which defines an implicit container, that allows us
->>    to remove some variable declarations to store the overriden
->>    credentials (Amir Goldstein);
->>  - Replaced most of the uses of scoped_guard() with guard(), to reduce
->>    the code churn, the remaining ones I wasn't sure if I was changing
->>    the behavior: either they were nested (overrides "inside"
->>    overrides) or something calls current_cred() (Amir Goldstein).
->> 
->> New questions:
->>  - The backing file callbacks are now called with the "light"
->>    overriden credentials, so they are kind of restricted in what they
->>    can do with their credentials, is this acceptable in general?
+On Wed, Apr 24, 2024 at 10:01=E2=80=AFPM Vinicius Costa Gomes
+<vinicius.gomes@intel.com> wrote:
 >
-> Until we grow additional users, I think yes. Just needs to be
-> documented.
+> Miklos Szeredi <miklos@szeredi.hu> writes:
+>
+> > On Wed, 3 Apr 2024 at 04:18, Vinicius Costa Gomes
+> > <vinicius.gomes@intel.com> wrote:
+> >
+> >>  - in ovl_rename() I had to manually call the "light" the overrides,
+> >>    both using the guard() macro or using the non-light version causes
+> >>    the workload to crash the kernel. I still have to investigate why
+> >>    this is happening. Hints are appreciated.
+> >
+> > Don't know.  Well, there's nesting (in ovl_nlink_end()) but I don't
+> > see why that should be an issue.
+> >
+> > I see why Amir suggested moving away from scoped guards, but that also
+> > introduces the possibility of subtle bugs if we don't audit every one
+> > of those sites carefully...
+> >
+> > Maybe patchset should be restructured to first do the
+> > override_creds_light() conversion without guards, and then move over
+> > to guards.   Or the other way round, I don't have a preference.  But
+> > mixing these two independent changes doesn't sound like a great idea
+> > in any case.
+>
+> Sounds good. Here's I am thinking:
+>
+> patch 1: introduce *_creds_light()
+> patch 2: move backing-file.c to *_creds_light()
+> patch 3: move overlayfs to *_creds_light()
+> patch 4: introduce the guard helpers
+> patch 5: move backing-file.c to the guard helpers
+> patch 6: move overlayfs to the guard helpers
+>
+> (and yeah, the subject of the patches will be better than these ;-)
+>
+> Is this what you had in mind?
 >
 
-Will add some documentation for it, then.
+I think this series would make a lot of sense.
+It first addresses the issue that motivated your work
+and I expect patch 3 would be rather simple to review.
 
->>  - in ovl_rename() I had to manually call the "light" the overrides,
->>    both using the guard() macro or using the non-light version causes
->>    the workload to crash the kernel. I still have to investigate why
->>    this is happening. Hints are appreciated.
->
-> Do you have a reproducer? Do you have a splat from dmesg?
+Please use your best judgement to break patch 6 into more chewable
+pieces because the current ovl patch is quite large to review in one go.
+I will leave it up to you to find the right balance.
 
-Just to be sure, with this version of the series the crash doesn't
-happen. It was only happening when I was using the guard() macro
-everywhere.
+Also w.r.t the guard() vs. scoped_guard() question, remember that
+there is another option that may be better than either in some cases -
+re-factoring to a helper with a guard().
 
-I just looked at my crash collection and couldn't find the splats, from
-what I remember I lost connection to the machine, and wasn't able to
-retrieve the splat.
+One example that jumps to me is ovl_copyfile() - seems nicer
+to add a guard() in all the specific helpers then adding the scoped_guard()
+around the switch statement.
 
-I believe the crash and clang 17 compilation error point to the same
-problem, that in ovl_rename() some 'goto' skips the declaration of the
-(implicit) variable that the guard() macro generates. And it ends up
-doing a revert_creds_light() on garbage memory when ovl_rename()
-returns.
+But really this is a question of taste and avoiding unneeded code churn and
+unneeded nested scopes. There is no one clear way, so please use your
+judgement per case and we can debate on your choices in review.
 
-(if you want I can try and go back to "guard() everywhere" and try a bit
-harder to get a splat)
-
-Does that make sense?
-
-
-Cheers,
--- 
-Vinicius
+Thanks,
+Amir.
