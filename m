@@ -1,356 +1,138 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 300FF6EB52
-	for <linux-unionfs@vger.kernel.org>; Thu, 25 Apr 2024 10:16:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E472412BF2B;
+	Thu, 25 Apr 2024 11:30:31 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.23
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714040164; cv=none; b=GGG4snUS+pwpdnFYKwHmyEcJLinUvZoUOSQu7PPhZzcoTik9tQDYscIblIx5fTpoTAV1EzeZxxdqionissiuSigQ5pE5N+oPlBnBdIKNrbSObpkKXxF0hEYhVbPySwHwgkLSvHXZ0xUUiK1VVcXTeDp/GAYOSqOfFNDZtRR4W4o=
+	t=1714044634; cv=none; b=kPHNlZkJXhu/phhZYD2vcNlbGVXqWiimf6AmHK5fsw2M/LOr92T7ZlDFnM6yxsfCWOdcl8h+Qz+ZvSCnRd007XTLRspla56cY3LFhhc7FKTtX5XhqwJW/F8ymzVg4KhJbJkllIs5/7m/l+h9xnUQ04Rw7u/ggcRk3ZyFF7cpQQQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714040164; c=relaxed/simple;
-	bh=RE0XHFXgyl7Qhs3xhfirtZTiUibrL3JV+GrmP2ucD2g=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=VaW9u0rxz284BTEOwXtK25M5eaiJhhXEHuAKCi5i8RPy3YuLCAE+Ug2MzM0kj09wmJ5HqKl/6TkURoEdOyqR81BLEyFaR++V0mnX20x8uV9hUsyKdPlNb2CUBDAsunYBh8Hc97uDqbLydcWMOe0WiUaFlh/khFku2nmmjLkbBzY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=azbhs548; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="azbhs548"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1714040162;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=YhTFcgirWpjzeJGwbOuso3pvZt+KgZvxAhl3li4Ro/Y=;
-	b=azbhs548A2fTr5DQgwqdOwY3eofeLt/haYYD1cxZhEfIOqPu4E7paFdXW8jWT5crdgS8N/
-	0Yi0iliWQFUbqxABG0AcN/FSel+CbsBI3eZ3Ic2SQWtJABwOHDbeoMa6g7wT9AffjpDzIC
-	fFT2WVr7t0C9M9pXaAptNU/yVTpZBh8=
-Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
- [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-623-lol6TGp0O72QDEhOVSas5w-1; Thu, 25 Apr 2024 06:16:00 -0400
-X-MC-Unique: lol6TGp0O72QDEhOVSas5w-1
-Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-a51a2113040so39261466b.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 25 Apr 2024 03:16:00 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1714040158; x=1714644958;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=YhTFcgirWpjzeJGwbOuso3pvZt+KgZvxAhl3li4Ro/Y=;
-        b=JXwD4DxvST7fgdxnsXnAFwZwVerbLDbTWuJcHtNQX5nsdoz7BtviJS9BxiXXRbgB3f
-         wteDTjQbI2LcvO6y2EwJWN4442ovM7MwiGDpOCrVlaYhBMozg2e/xKXdg7Z+L3LoVlxP
-         j4+onrwdl1k3w5hJtGF67YYCVPNVdbGxhe9QbKY3/MiYtKTfLpLVScngw3m+2ZNiqvQR
-         aXUu+efpvwvi2/QCpjqGzJv9uKh2F0MWCqdhW+KDR+66k7d9h6dBz1SIEEJfumeJxPaE
-         XsgwVSEzur04r3uIML9xzoK5Laag0Bt7se6GE7QiublpIqW2mdSt59thv110l13vn1cr
-         8eBg==
-X-Gm-Message-State: AOJu0Yzmll7xUQqUJhrD+td02FYvvWRvMCdU6f7PxTIcNOVcN1sqz18K
-	xJAy2w4Xp/uRG5iwBpRzygkYn7DvcFnsMOirTChD2YH5HYoKAdt5ZpBfY6fH+Vd9d3O8C0dtUzx
-	ZBws3KzMQMbMJrHFW7T74A571VhUzCkfIxTh5ZpQiku1xBaMJ/8P9n58uZy2lXD3SV+SsnjcL+q
-	rCI1VGP1QRQ0aa2kfpugmH86ORS+4P6qcPfMBB7smZIrVg3Xs=
-X-Received: by 2002:a17:907:a4c:b0:a58:9485:3156 with SMTP id be12-20020a1709070a4c00b00a5894853156mr3656219ejc.50.1714040158748;
-        Thu, 25 Apr 2024 03:15:58 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IEdBYdEYzbH1z+pURMBUd3BtbOrGsGVjdXPc41i5KC4qM0vBceWm9PwopCy84mw9zWJxgKOww==
-X-Received: by 2002:a17:907:a4c:b0:a58:9485:3156 with SMTP id be12-20020a1709070a4c00b00a5894853156mr3656198ejc.50.1714040158312;
-        Thu, 25 Apr 2024 03:15:58 -0700 (PDT)
-Received: from maszat.piliscsaba.szeredi.hu (176-241-63-114.pool.digikabel.hu. [176.241.63.114])
-        by smtp.gmail.com with ESMTPSA id cd19-20020a170906b35300b00a4673706b4dsm9352523ejb.78.2024.04.25.03.15.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 25 Apr 2024 03:15:57 -0700 (PDT)
-From: Miklos Szeredi <mszeredi@redhat.com>
-To: linux-unionfs@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>,
-	linux-fsdevel@vger.kernel.org
-Subject: [PATCH] ovl: implement tmpfile
-Date: Thu, 25 Apr 2024 12:15:55 +0200
-Message-ID: <20240425101556.573616-1-mszeredi@redhat.com>
-X-Mailer: git-send-email 2.44.0
+	s=arc-20240116; t=1714044634; c=relaxed/simple;
+	bh=LgoIlQ5T90IHkhHEerbeuXbXygpVsEigqFOVt7bxvEI=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=ZRNSGwyahRjG5caaqiNgyL9922YpGHPYQcCOYu9ZbKOy+SHz5GUYAoxumAPArif4tNZAsQT9Hj4RLhOlVOsJzxwN8utfIMyCERp25Iyw0PSCPjKbvg9atg+OIfKZ7kKeJ8ELUsrUEixpgM4LY47WuTQKYVOJRXwLEFGTFD1J6ng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.23
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
+Received: from mail.maildlp.com (unknown [172.18.186.51])
+	by frasgout11.his.huawei.com (SkyGuard) with ESMTP id 4VQCsL3yysz9v7gh;
+	Thu, 25 Apr 2024 19:13:42 +0800 (CST)
+Received: from mail02.huawei.com (unknown [7.182.16.27])
+	by mail.maildlp.com (Postfix) with ESMTP id A9C811406BF;
+	Thu, 25 Apr 2024 19:30:19 +0800 (CST)
+Received: from [127.0.0.1] (unknown [10.204.63.22])
+	by APP2 (Coremail) with SMTP id GxC2BwAXTSHAPipmeWvpBg--.45375S2;
+	Thu, 25 Apr 2024 12:30:18 +0100 (CET)
+Message-ID: <a8da6b9f57095be494b8c38ca46e2a102b8eafac.camel@huaweicloud.com>
+Subject: Re: [RFC PATCH v2 0/2] ima: Fix detection of read/write violations
+ on stacked filesystems
+From: Roberto Sassu <roberto.sassu@huaweicloud.com>
+To: Amir Goldstein <amir73il@gmail.com>, Stefan Berger
+ <stefanb@linux.ibm.com>
+Cc: linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+ linux-kernel@vger.kernel.org, zohar@linux.ibm.com,
+ roberto.sassu@huawei.com,  miklos@szeredi.hu, brauner@kernel.org
+Date: Thu, 25 Apr 2024 13:30:04 +0200
+In-Reply-To: <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
+References: <20240422150651.2908169-1-stefanb@linux.ibm.com>
+	 <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.44.4-0ubuntu2 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+X-CM-TRANSID:GxC2BwAXTSHAPipmeWvpBg--.45375S2
+X-Coremail-Antispam: 1UD129KBjvJXoW7Kr1UGr1fAw1kCFykAFykAFb_yoW8trWDpa
+	yruFZFk3s0qFy2qr92y3WUXF1rZws8AFWUZ34j934UZFy5ur9IvrWSk34Yq342yFZ5WryF
+	qa9FqFykZr1DA37anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+	9KBjDU0xBIdaVrnRJUUUgmb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
+	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
+	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
+	xVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv67AKxVW8JVWxJwA2z4x0Y4vEx4A2jsIEc7CjxV
+	AFwI0_Gr0_Gr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
+	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
+	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_
+	Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1V
+	AY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAI
+	cVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWrZr1j6s0DMI
+	IF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2
+	KfnxnUUI43ZEXa7IU1zuWJUUUUU==
+X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAQAEBF1jj5zK0wABs0
 
-Combine inode creation with opening a file.
+On Tue, 2024-04-23 at 09:02 +0300, Amir Goldstein wrote:
+> On Mon, Apr 22, 2024 at 6:07=E2=80=AFPM Stefan Berger <stefanb@linux.ibm.=
+com> wrote:
+> >=20
+> > This series fixes the detection of read/write violations on stacked
+> > filesystems. To be able to access the relevant dentries necessary to
+> > detect files opened for writing on a stacked filesystem a new d_real_ty=
+pe
+> > D_REAL_FILEDATA is introduced that allows callers to access all relevan=
+t
+> > files involved in a stacked filesystem while traversing the layers.
+> >=20
+>=20
+> Stefan,
+>=20
+> Both Miklos and myself objected to this solution:
+> https://lore.kernel.org/linux-unionfs/CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ=
+8H8GHGW-0UyKfjgg@mail.gmail.com/
+>=20
+> Not sure what you are hoping to achieve from re-posting the same solution=
+.
+>=20
+> I stopped counting how many times I already argued that *all* IMA/EVM
+> assertions,
+> including rw-ro violations should be enforced only on the real inode.
+> I know this does not work - so you should find out why it does not work a=
+nd fix
+> the problem.
+>=20
+> Enforcing IMA/EVM on the overlayfs inode layer is just the wrong way IMO.
+> Not once have I heard an argument from IMA/EVM developers why it is reall=
+y
+> needed to enforce IMA/EVM on the overlayfs inode layer and not on the
+> real inode.
 
-There are six separate objects that are being set up: the backing inode,
-dentry and file and the overlay inode, dentry and file.  Cleanup in case of
-an error is a bit of a challenge and is difficult to test, so careful
-review is needed.
+Ok, I try to provide an example regarding this, and we see if it makes
+sense.
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- fs/backing-file.c            |  23 +++++++
- fs/internal.h                |   3 +
- fs/namei.c                   |   6 +-
- fs/overlayfs/dir.c           | 130 +++++++++++++++++++++++++++++++++++
- fs/overlayfs/file.c          |   3 -
- fs/overlayfs/overlayfs.h     |   3 +
- include/linux/backing-file.h |   4 ++
- 7 files changed, 166 insertions(+), 6 deletions(-)
+# echo test > test-file
+# chown 2000 d/test-file
+# ls -l a/test-file
+-rw-r--r--. 1 2000 root 25 Apr 25 10:50 a/test-file
 
-diff --git a/fs/backing-file.c b/fs/backing-file.c
-index 740185198db3..2dc3f7477d1d 100644
---- a/fs/backing-file.c
-+++ b/fs/backing-file.c
-@@ -52,6 +52,29 @@ struct file *backing_file_open(const struct path *user_path, int flags,
- }
- EXPORT_SYMBOL_GPL(backing_file_open);
- 
-+struct file *backing_tmpfile_open(const struct path *user_path, int flags,
-+				  struct mnt_idmap *real_idmap,
-+				  const struct path *real_parentpath,
-+				  umode_t mode, const struct cred *cred)
-+{
-+	struct file *f;
-+	int error;
-+
-+	f = alloc_empty_backing_file(flags, cred);
-+	if (IS_ERR(f))
-+		return f;
-+
-+	path_get(user_path);
-+	*backing_file_user_path(f) = *user_path;
-+	error = vfs_tmpfile(real_idmap, real_parentpath, f, mode);
-+	if (error) {
-+		fput(f);
-+		f = ERR_PTR(error);
-+	}
-+	return f;
-+}
-+EXPORT_SYMBOL(backing_tmpfile_open);
-+
- struct backing_aio {
- 	struct kiocb iocb;
- 	refcount_t ref;
-diff --git a/fs/internal.h b/fs/internal.h
-index 7ca738904e34..ab2225136f60 100644
---- a/fs/internal.h
-+++ b/fs/internal.h
-@@ -62,6 +62,9 @@ int do_mkdirat(int dfd, struct filename *name, umode_t mode);
- int do_symlinkat(struct filename *from, int newdfd, struct filename *to);
- int do_linkat(int olddfd, struct filename *old, int newdfd,
- 			struct filename *new, int flags);
-+int vfs_tmpfile(struct mnt_idmap *idmap,
-+		const struct path *parentpath,
-+		struct file *file, umode_t mode);
- 
- /*
-  * namespace.c
-diff --git a/fs/namei.c b/fs/namei.c
-index c5b2a25be7d0..13e50b0a49d2 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -3668,9 +3668,9 @@ static int do_open(struct nameidata *nd,
-  * On non-idmapped mounts or if permission checking is to be performed on the
-  * raw inode simply pass @nop_mnt_idmap.
-  */
--static int vfs_tmpfile(struct mnt_idmap *idmap,
--		       const struct path *parentpath,
--		       struct file *file, umode_t mode)
-+int vfs_tmpfile(struct mnt_idmap *idmap,
-+		const struct path *parentpath,
-+		struct file *file, umode_t mode)
- {
- 	struct dentry *child;
- 	struct inode *dir = d_inode(parentpath->dentry);
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index 0f8b4a719237..91ac268986a9 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -14,6 +14,7 @@
- #include <linux/posix_acl_xattr.h>
- #include <linux/atomic.h>
- #include <linux/ratelimit.h>
-+#include <linux/backing-file.h>
- #include "overlayfs.h"
- 
- static unsigned short ovl_redirect_max = 256;
-@@ -1290,6 +1291,134 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
- 	return err;
- }
- 
-+static int ovl_create_upper_tmpfile(struct file *file, struct dentry *dentry,
-+				    struct inode *inode, umode_t mode)
-+{
-+	struct ovl_inode_params oip;
-+	struct path realparentpath;
-+	struct file *realfile;
-+	/* It's okay to set O_NOATIME, since the owner will be current fsuid */
-+	int flags = file->f_flags | OVL_OPEN_FLAGS;
-+
-+	ovl_path_upper(dentry->d_parent, &realparentpath);
-+
-+	if (!IS_POSIXACL(d_inode(realparentpath.dentry)))
-+		mode &= ~current_umask();
-+
-+	realfile = backing_tmpfile_open(&file->f_path, flags,
-+					&nop_mnt_idmap, &realparentpath, mode,
-+					current_cred());
-+	if (IS_ERR(realfile))
-+		return PTR_ERR(realfile);
-+
-+	ovl_dentry_set_upper_alias(dentry);
-+	ovl_dentry_update_reval(dentry, realfile->f_path.dentry);
-+
-+	/* ovl_get_inode() consumes the .upperdentry reference on success */
-+	oip = (struct ovl_inode_params) {
-+		.upperdentry = dget(realfile->f_path.dentry),
-+		.newinode = inode,
-+	};
-+
-+	inode = ovl_get_inode(dentry->d_sb, &oip);
-+	if (IS_ERR(inode))
-+		goto out_err;
-+
-+	/* d_tmpfile() expects inode to have a positive link count */
-+	set_nlink(inode, 1);
-+	d_tmpfile(file, inode);
-+	file->private_data = realfile;
-+	return 0;
-+
-+out_err:
-+	dput(realfile->f_path.dentry);
-+	fput(realfile);
-+	return PTR_ERR(inode);
-+}
-+
-+static int ovl_create_tmpfile(struct file *file, struct dentry *dentry,
-+			      struct inode *inode, umode_t mode)
-+{
-+	int err;
-+	const struct cred *old_cred;
-+	struct cred *override_cred;
-+
-+	err = ovl_copy_up(dentry->d_parent);
-+	if (err)
-+		return err;
-+
-+	old_cred = ovl_override_creds(dentry->d_sb);
-+
-+	err = -ENOMEM;
-+	override_cred = prepare_creds();
-+	if (override_cred) {
-+		override_cred->fsuid = inode->i_uid;
-+		override_cred->fsgid = inode->i_gid;
-+		err = security_dentry_create_files_as(dentry, mode,
-+						      &dentry->d_name, old_cred,
-+						      override_cred);
-+		if (err) {
-+			put_cred(override_cred);
-+			goto out_revert_creds;
-+		}
-+		put_cred(override_creds(override_cred));
-+		put_cred(override_cred);
-+
-+		err = ovl_create_upper_tmpfile(file, dentry, inode, mode);
-+	}
-+out_revert_creds:
-+	revert_creds(old_cred);
-+	return err;
-+}
-+
-+static int ovl_dummy_open(struct inode *inode, struct file *file)
-+{
-+	return 0;
-+}
-+
-+static int ovl_tmpfile(struct mnt_idmap *idmap, struct inode *dir,
-+		       struct file *file, umode_t mode)
-+{
-+	int err;
-+	struct dentry *dentry = file->f_path.dentry;
-+	struct inode *inode;
-+
-+	err = ovl_want_write(dentry);
-+	if (err)
-+		return err;
-+
-+	err = -ENOMEM;
-+	inode = ovl_new_inode(dentry->d_sb, mode, 0);
-+	if (!inode)
-+		goto drop_write;
-+
-+	inode_init_owner(&nop_mnt_idmap, inode, dir, mode);
-+	err = ovl_create_tmpfile(file, dentry, inode, inode->i_mode);
-+	if (err)
-+		goto put_inode;
-+
-+	/*
-+	 * Check if the preallocated inode was actually used.  Having something
-+	 * else assigned to the dentry shouldn't happen as that would indicate
-+	 * that the backing tmpfile "leaked" out of overlayfs.
-+	 */
-+	err = -EIO;
-+	if (WARN_ON(inode != d_inode(dentry)))
-+		goto put_realfile;
-+
-+	/* inode reference was transferred to dentry */
-+	inode = NULL;
-+	err = finish_open(file, dentry, ovl_dummy_open);
-+put_realfile:
-+	if (!(file->f_mode & FMODE_OPENED))
-+		fput(file->private_data);
-+put_inode:
-+	iput(inode);
-+drop_write:
-+	ovl_drop_write(dentry);
-+	return err;
-+}
-+
- const struct inode_operations ovl_dir_inode_operations = {
- 	.lookup		= ovl_lookup,
- 	.mkdir		= ovl_mkdir,
-@@ -1310,4 +1439,5 @@ const struct inode_operations ovl_dir_inode_operations = {
- 	.update_time	= ovl_update_time,
- 	.fileattr_get	= ovl_fileattr_get,
- 	.fileattr_set	= ovl_fileattr_set,
-+	.tmpfile	= ovl_tmpfile,
- };
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 05536964d37f..1a411cae57ed 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -24,9 +24,6 @@ static char ovl_whatisit(struct inode *inode, struct inode *realinode)
- 		return 'm';
- }
- 
--/* No atime modification on underlying */
--#define OVL_OPEN_FLAGS (O_NOATIME)
--
- static struct file *ovl_open_realfile(const struct file *file,
- 				      const struct path *realpath)
- {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index ee949f3e7c77..0bfe35da4b7b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -175,6 +175,9 @@ static inline int ovl_metadata_digest_size(const struct ovl_metacopy *metacopy)
- 	return (int)metacopy->len - OVL_METACOPY_MIN_SIZE;
- }
- 
-+/* No atime modification on underlying */
-+#define OVL_OPEN_FLAGS (O_NOATIME)
-+
- extern const char *const ovl_xattr_table[][2];
- static inline const char *ovl_xattr(struct ovl_fs *ofs, enum ovl_xattr ox)
- {
-diff --git a/include/linux/backing-file.h b/include/linux/backing-file.h
-index 3f1fe1774f1b..0f59f11a5a3f 100644
---- a/include/linux/backing-file.h
-+++ b/include/linux/backing-file.h
-@@ -22,6 +22,10 @@ struct backing_file_ctx {
- struct file *backing_file_open(const struct path *user_path, int flags,
- 			       const struct path *real_path,
- 			       const struct cred *cred);
-+struct file *backing_tmpfile_open(const struct path *user_path, int flags,
-+				  struct mnt_idmap *real_idmap,
-+				  const struct path *real_parentpath,
-+				  umode_t mode, const struct cred *cred);
- ssize_t backing_file_read_iter(struct file *file, struct iov_iter *iter,
- 			       struct kiocb *iocb, int flags,
- 			       struct backing_file_ctx *ctx);
--- 
-2.44.0
+Initially there is a file in the lower layer with UID 2000.
+
+
+# mount -t overlay -olowerdir=3Da,upperdir=3Db,workdir=3Dc,metacopy=3Don ov=
+erlay d
+# chown 3000 d/test-file
+# ls -l d/test-file
+-rw-r--r--. 1 3000 root 25 Apr 25 10:50 d/test-file
+# ls -l a/test-file
+-rw-r--r--. 1 2000 root 25 Apr 25 10:50 a/test-file
+# ls -l b/test-file
+-rw-r--r--. 1 3000 root 25 Apr 25 10:50 b/test-file
+
+If I have a policy like this:
+
+# echo "measure fsname=3Doverlay fowner=3D3000" > /sys/kernel/security/ima/=
+policy
+
+there won't be any match on the real file which still has UID 2000. But
+what is observable by the processes through overlayfs is UID 3000.
+
+Roberto
+
+> I am sorry that we are failing to communicate on this matter, but I am no=
+t
+> sure how else I can help.
+>=20
+> Thanks,
+> Amir.
 
