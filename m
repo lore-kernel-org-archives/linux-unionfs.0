@@ -1,243 +1,266 @@
-Received: from frasgout11.his.huawei.com (frasgout11.his.huawei.com [14.137.139.23])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3E5C413BAFA;
-	Fri, 26 Apr 2024 07:34:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=14.137.139.23
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D85F913F45D;
+	Fri, 26 Apr 2024 09:51:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1714116891; cv=none; b=k/TQcttXejZxM+krrWGlYx536DY1SlnH7f4v4xQszRdKS86xVrivKvR35tcDEe1OymdM0ksI3OTR/eRssaq8E14B+5tBPiXnf7MhhGIvzMg+DolLgbyX10v3UddAMQFW/vGwj9PHod23OLfm8FBOorY4+TqHtpI1V0KzR4KyL/M=
+	t=1714125114; cv=none; b=SW6khAySvfwyhvW/aTgxzw41DibuYZ9dh7Y6U58Om7d+r3WFndsxncI07KbutlOLEDYbG3zcma70pfSMmOwSgsgZ1Q/DGEz7GWitA4W2MtRJvbXAkdw70ZI+4c336ZcHtAtZ2VNzxcpW6ADTP2t513dWjOK5XHN+jmgGvahiqg0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1714116891; c=relaxed/simple;
-	bh=2nrxwp2YjUh24wBnc5J/BKpzCkny1EsZeH2Cz2T2t0I=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=MtYBtRJN4zPz1gPzPadEtdexG+mvLdeVzoO9iXpKYP0IpOoJNKOp03++5kJt/afKSQ8QE1AUrIcjtOlKLKr3BgUcCYxXtQeRuAF9uRZvKNIWw5ohIIN8UMUDwhZXYtYb55Ckd8HNW//O1EInT8sg7N8PkTAUqsz/mG0JfJ8CvxA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com; spf=pass smtp.mailfrom=huaweicloud.com; arc=none smtp.client-ip=14.137.139.23
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=huaweicloud.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huaweicloud.com
-Received: from mail.maildlp.com (unknown [172.18.186.29])
-	by frasgout11.his.huawei.com (SkyGuard) with ESMTP id 4VQkZz1Rkjz9xGhJ;
-	Fri, 26 Apr 2024 15:18:03 +0800 (CST)
-Received: from mail02.huawei.com (unknown [7.182.16.27])
-	by mail.maildlp.com (Postfix) with ESMTP id F081C140558;
-	Fri, 26 Apr 2024 15:34:39 +0800 (CST)
-Received: from [127.0.0.1] (unknown [10.204.63.22])
-	by APP2 (Coremail) with SMTP id GxC2BwB3YycEWStmtzr3Bg--.56522S2;
-	Fri, 26 Apr 2024 08:34:38 +0100 (CET)
-Message-ID: <2b28414a7c7e4c53057ef8e527f85c05eb225d85.camel@huaweicloud.com>
+	s=arc-20240116; t=1714125114; c=relaxed/simple;
+	bh=dIDG2iYF5HLaFwFDbKGoDav/c3YPpuOOU31GP40Rv8M=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=JIMhiBzweGJqodULneFIT6Cgsfa83HEYwCCz6SBLO7MnSxAZylHieQocAULnW5iJaOQ5oqyhu/8NQkvFKq40nvztwrYIzWGkPLgzqFf3w+v8gmBSA+KJTQVpUmT2geI0OXNW6LTeFv+41MrZg+WTOVAv0+8+1Welt/w8yNYBm9k=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=eJmZmVwP; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="eJmZmVwP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73A52C2BD10;
+	Fri, 26 Apr 2024 09:51:50 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1714125113;
+	bh=dIDG2iYF5HLaFwFDbKGoDav/c3YPpuOOU31GP40Rv8M=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=eJmZmVwPQJC6JJeQmopKAArEKSHT/1u6oyBQTfjCRiatmfc4EnTFBPeofeh2Sc0+6
+	 0qjYGTQj9qgWd6mbDpBJLesSr46/ai6doM+pUJl6GwAYSI0DqEHdjp17Z89Dva/lT2
+	 ycehrsByxdt4nv1xz/yiFFUYIozkbjOroKeSsAr7UkwC2PPBq1kVv7F/9fGWxe/Td1
+	 J6C651MtP2q6591o9ltaM7rAK9cPeyl73RfxM4v7CDSFafSNOkrIBss2VHCNV96hB/
+	 1aS7w7powVY+H/djq9Oa75eWG24Kfg+RY2JLG4Tz8SKbxlLrX2sXS8iX9OYRwVGzxq
+	 x/AOa5wWhMJUw==
+Date: Fri, 26 Apr 2024 11:51:47 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Roberto Sassu <roberto.sassu@huaweicloud.com>, 
+	Stefan Berger <stefanb@linux.ibm.com>, linux-integrity@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, zohar@linux.ibm.com, roberto.sassu@huawei.com, miklos@szeredi.hu
 Subject: Re: [RFC PATCH v2 0/2] ima: Fix detection of read/write violations
  on stacked filesystems
-From: Roberto Sassu <roberto.sassu@huaweicloud.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Stefan Berger <stefanb@linux.ibm.com>, linux-integrity@vger.kernel.org, 
- linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org,
- zohar@linux.ibm.com,  roberto.sassu@huawei.com, miklos@szeredi.hu,
- brauner@kernel.org
-Date: Fri, 26 Apr 2024 09:34:24 +0200
-In-Reply-To: <CAOQ4uxjODtbaWPHS3bQvnEKuYAWTJa6kqsXCSzcsF1hJdThcsw@mail.gmail.com>
+Message-ID: <20240426-norden-langzeitfolgen-611c816b02c4@brauner>
 References: <20240422150651.2908169-1-stefanb@linux.ibm.com>
-	 <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
-	 <a8da6b9f57095be494b8c38ca46e2a102b8eafac.camel@huaweicloud.com>
-	 <CAOQ4uxjODtbaWPHS3bQvnEKuYAWTJa6kqsXCSzcsF1hJdThcsw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.44.4-0ubuntu2 
+ <CAOQ4uxgvHjU-n56ryOp5yWQF=yKz0Cfo0ZieypWJhqsBV4g-2w@mail.gmail.com>
+ <a74b1c3c49b74aa6062c57bd99b48bdddc256ebf.camel@huaweicloud.com>
+ <CAOQ4uxitkN=Jchmp30RKGMVH-RDR5GGy-7J74vMQt0oecAK2bg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-CM-TRANSID:GxC2BwB3YycEWStmtzr3Bg--.56522S2
-X-Coremail-Antispam: 1UD129KBjvJXoW3XF13Aw47Ar15Jr43GryUWrg_yoWxAr1kpF
-	W3AanFkw1Dtr1xAr92y3W8X3WFyrW8JFWUX34Y9ryUAa4qgrn3trWrKr4a9F9rCFn5Cw40
-	qayjqrZrZr1DZa7anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-	9KBjDU0xBIdaVrnRJUUUgmb4IE77IF4wAFF20E14v26r4j6ryUM7CY07I20VC2zVCF04k2
-	6cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rwA2F7IY1VAKz4
-	vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Jr0_JF4l84ACjcxK6xIIjxv20xvEc7Cj
-	xVAFwI0_Jr0_Gr1l84ACjcxK6I8E87Iv67AKxVWUJVW8JwA2z4x0Y4vEx4A2jsIEc7CjxV
-	AFwI0_Gr0_Gr1UM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI64kE6c02F40E
-	x7xfMcIj6xIIjxv20xvE14v26r1j6r18McIj6I8E87Iv67AKxVWUJVW8JwAm72CE4IkC6x
-	0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41l42xK82IYc2Ij64vIr41l4I8I3I0E4IkC6x0Yz7v_
-	Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWUGVWUWwC2zVAF1V
-	AY17CE14v26r1q6r43MIIYrxkI7VAKI48JMIIF0xvE2Ix0cI8IcVAFwI0_Jr0_JF4lIxAI
-	cVC0I7IYx2IY6xkF7I0E14v26r1j6r4UMIIF0xvE42xK8VAvwI8IcIk0rVWrZr1j6s0DMI
-	IF0xvEx4A2jsIE14v26r1j6r4UMIIF0xvEx4A2jsIEc7CjxVAFwI0_Jr0_GrUvcSsGvfC2
-	KfnxnUUI43ZEXa7IU1zuWJUUUUU==
-X-CM-SenderInfo: purev21wro2thvvxqx5xdzvxpfor3voofrz/1tbiAQAFBF1jj5zPXgACs+
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxitkN=Jchmp30RKGMVH-RDR5GGy-7J74vMQt0oecAK2bg@mail.gmail.com>
 
-On Thu, 2024-04-25 at 15:37 +0300, Amir Goldstein wrote:
-> > On Thu, Apr 25, 2024 at 2:30=E2=80=AFPM Roberto Sassu
-> > <roberto.sassu@huaweicloud.com> wrote:
-> > > >=20
-> > > > On Tue, 2024-04-23 at 09:02 +0300, Amir Goldstein wrote:
-> > > > > > On Mon, Apr 22, 2024 at 6:07=E2=80=AFPM Stefan Berger <stefanb@=
-linux.ibm.com> wrote:
-> > > > > > > >=20
-> > > > > > > > This series fixes the detection of read/write violations on=
- stacked
-> > > > > > > > filesystems. To be able to access the relevant dentries nec=
-essary to
-> > > > > > > > detect files opened for writing on a stacked filesystem a n=
-ew d_real_type
-> > > > > > > > D_REAL_FILEDATA is introduced that allows callers to access=
- all relevant
-> > > > > > > > files involved in a stacked filesystem while traversing the=
- layers.
-> > > > > > > >=20
-> > > > > >=20
-> > > > > > Stefan,
-> > > > > >=20
-> > > > > > Both Miklos and myself objected to this solution:
-> > > > > > https://lore.kernel.org/linux-unionfs/CAJfpeguctirEYECoigcAsJwp=
-GPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com/
-> > > > > >=20
-> > > > > > Not sure what you are hoping to achieve from re-posting the sam=
-e solution.
-> > > > > >=20
-> > > > > > I stopped counting how many times I already argued that *all* I=
-MA/EVM
-> > > > > > assertions,
-> > > > > > including rw-ro violations should be enforced only on the real =
-inode.
-> > > > > > I know this does not work - so you should find out why it does =
-not work and fix
-> > > > > > the problem.
-> > > > > >=20
-> > > > > > Enforcing IMA/EVM on the overlayfs inode layer is just the wron=
-g way IMO.
-> > > > > > Not once have I heard an argument from IMA/EVM developers why i=
-t is really
-> > > > > > needed to enforce IMA/EVM on the overlayfs inode layer and not =
-on the
-> > > > > > real inode.
-> > > >=20
-> > > > Ok, I try to provide an example regarding this, and we see if it ma=
-kes
-> > > > sense.
-> > > >=20
-> > > > # echo test > test-file
-> > > > # chown 2000 d/test-file
-> > > > # ls -l a/test-file
-> > > > -rw-r--r--. 1 2000 root 25 Apr 25 10:50 a/test-file
-> > > >=20
-> > > > Initially there is a file in the lower layer with UID 2000.
-> > > >=20
-> > > >=20
-> > > > # mount -t overlay -olowerdir=3Da,upperdir=3Db,workdir=3Dc,metacopy=
-=3Don overlay d
-> > > > # chown 3000 d/test-file
-> > > > # ls -l d/test-file
-> > > > -rw-r--r--. 1 3000 root 25 Apr 25 10:50 d/test-file
-> > > > # ls -l a/test-file
-> > > > -rw-r--r--. 1 2000 root 25 Apr 25 10:50 a/test-file
-> > > > # ls -l b/test-file
-> > > > -rw-r--r--. 1 3000 root 25 Apr 25 10:50 b/test-file
-> > > >=20
-> > > > If I have a policy like this:
-> > > >=20
-> > > > # echo "measure fsname=3Doverlay fowner=3D3000" > /sys/kernel/secur=
-ity/ima/policy
-> > > >=20
-> > > > there won't be any match on the real file which still has UID 2000.=
- But
-> > > > what is observable by the processes through overlayfs is UID 3000.
-> > > >=20
-> >=20
-> > ok, it is simple to write an ima policy that is not respected by overla=
-yfs.
-> >=20
-> > My question is: under what circumstances is a policy like the above
-> > useful in the real world?
-> >=20
-> > Correct me if I am wrong, but AFAIK, the purpose of IMA/EVM is to
-> > mitigate attack vectors of tampering with files offline or after the
-> > file's data/metadata were measured. Is that a correct description?
+On Tue, Apr 23, 2024 at 05:30:52PM +0300, Amir Goldstein wrote:
+> On Tue, Apr 23, 2024 at 4:21 PM Roberto Sassu
+> <roberto.sassu@huaweicloud.com> wrote:
+> >
+> > On Tue, 2024-04-23 at 09:02 +0300, Amir Goldstein wrote:
+> > > On Mon, Apr 22, 2024 at 6:07 PM Stefan Berger <stefanb@linux.ibm.com> wrote:
+> > > >
+> > > > This series fixes the detection of read/write violations on stacked
+> > > > filesystems. To be able to access the relevant dentries necessary to
+> > > > detect files opened for writing on a stacked filesystem a new d_real_type
+> > > > D_REAL_FILEDATA is introduced that allows callers to access all relevant
+> > > > files involved in a stacked filesystem while traversing the layers.
+> > > >
+> > >
+> > > Stefan,
+> > >
+> > > Both Miklos and myself objected to this solution:
+> > > https://lore.kernel.org/linux-unionfs/CAJfpeguctirEYECoigcAsJwpGPCX2NyfMZ8H8GHGW-0UyKfjgg@mail.gmail.com/
+> > >
+> > > Not sure what you are hoping to achieve from re-posting the same solution.
+> > >
+> > > I stopped counting how many times I already argued that *all* IMA/EVM
+> > > assertions,
+> > > including rw-ro violations should be enforced only on the real inode.
+> >
+> > I have hopefully a better idea. We should detect violations at each
+> > level of the stack independently. And IMA should be invoked each time
+> > overlayfs uses an underlying layer.
+> >
+> > That is currently not easy, from the IMA policy perspective, because
+> > there are filesystem-specific rules, such as fsname= or fsuuid=. At the
+> > moment, I'm not planning to solve this, but I'm thinking to use for
+> > example FMODE_BACKING to ignore the filesystem-specific keywords and
+> > match the rule anyway.
+> >
+> > For now, I'm only addressing the call to underlying layers. To make
+> > sure that IMA evaluates every layer, I added a rule that checks the
+> > inode UID:
+> >
+> > measure fowner=2000 mask=MAY_READ
+> >
+> >
+> > I just investigated a bit, and I made some changes (for now, I'm just
+> > making it work, and you tell me what you think).
+> 
+> I did not examine this up close, but this seems like a change in the right
+> direction.
+> Will need Christian's approval that this does not break any assumptions
+> made on backing files.
 
-(For now I would talk about IMA, EVM can be considered separately).
+In principle I don't care if IMA wants to call yet another security hook
+in the backing file layer. I suspect it will impact performace if IMA is
+enabled. So that's something to keep in mind. But it's certainly better
+than blatantly abusing the dcache to achieve this.
 
-The main purpose of IMA is to evaluate files being accessed, and record
-the access together with a file digest in a measurement list,
-allow/deny access to the file (appraisal), or add a new event to audit
-logs.
-
-How files are selected depends on the IMA policy. A rule can be
-subject-based or object-based, depending on whether respectively
-process or file attributes are matched. It can also be both.
-
-A subject-based rule means that you identify a process/set of
-processes, and you evaluate everything it/they read.
-
-An object-based rule means that you identify a file/set of files, and
-you evaluate any process accessing them.
-
-Since processes normally would access the top most layer (overlayfs),
-the IMA policy should be written in terms of metadata seen in that
-layer (but not necessarily).
-
-This is just for identifying the set of files to
-measure/appraise/audit, not which file is going to be evaluated, which
-will be always the persistent one.
-
-I have to admit, things are not very clear also to me.
-
-Suppose you have a file in the lower filesystem with SELinux label
-user_t, and then on overlayfs with metadata copy, you change the label
-of this file to unconfined_t.
-
-What will happen exactly? On the overlayfs layer, you will have a
-permission request with the new label unconfined_t, but when overlayfs
-calls vfs_open(), there will be another permission request with the old
-label.
-
-It is kind of the same challenge we are facing with IMA, we can observe
-the file operations at different layers. That is why I think having
-stacked IMA calls is a good idea (other than really fixing the
-violations).
-
-The current problem, that is very difficult to solve, is that the
-policy should cover all layers, or some events will be missed. Now we
-have overlayfs-specific code to detect changes in the backing inode,
-while with stacked IMA calls, we can detect the change at the layer
-where it happened (and we can remove the overlayfs-specific code).
-
-Ideally, what I would do to cover all layers is that if there is a
-match at one layer, the lower layers should automatically match too,
-but it is not that easy since after the vfs_open() recursive calls we
-start calling IMA in the botton most layer first.
-
-(What I did with the stacked IMA calls is just an experiment to see how
-far we can go, but still we didn't make any decision with Mimi).
-
-> > AFAIK, IMA/EVM policy is system-wide and not namespace aware
-> > so the policy has to be set on the container's host and not inside
-> > containers. Is that correct?
-
-I know that overlayfs is primarily aiming at containers, but I would
-suggest to not add that complexity yet and just consider the host.
-
-> > If those statements are true then please try to explain to me what is
-> > the thread model for tampering with overlayfs files, without tampering
-> > with the real upper and/or lower files.
-
-I hope at this point is clear that what we care about is that, or the
-process is reading the content of the file whose digest is recorded in
-the measurement list, or we must signal to remote verifiers concurrent
-accesses that make the statement above false.
-
-> > My thesis is that if an IMA/EVM policy is good enough to prevent
-> > tampering with the real lower/upper files, then no extra measures
-> > are needed to protect the virtual overlayfs files against tampering.
-
-What you say is correct, but the way you identify files to
-measure/appraise/audit can be different.
-
-Thanks
-
-Roberto
-
-> > Is my thesis flawed?
-> > I'm pretty sure that it is, but I never got a satisfying answer why.
-> >=20
-> > Thanks,
-> > Amir.
-
+> > diff --git a/fs/backing-file.c b/fs/backing-file.c
+> > index 740185198db3..8016f62cf770 100644
+> > --- a/fs/backing-file.c
+> > +++ b/fs/backing-file.c
+> > @@ -12,6 +12,7 @@
+> >  #include <linux/backing-file.h>
+> >  #include <linux/splice.h>
+> >  #include <linux/mm.h>
+> > +#include <linux/security.h>
+> >
+> >  #include "internal.h"
+> >
+> > @@ -40,12 +41,16 @@ struct file *backing_file_open(const struct path
+> > *user_path, int flags,
+> >         if (IS_ERR(f))
+> >                 return f;
+> >
+> > +       f->f_mode |= OPEN_FMODE(flags);
+> > +
+> >         path_get(user_path);
+> >         *backing_file_user_path(f) = *user_path;
+> >         error = vfs_open(real_path, f);
+> >         if (error) {
+> >                 fput(f);
+> >                 f = ERR_PTR(error);
+> > +       } else {
+> > +               security_file_post_open(f, ACC_MODE(flags));
+> >         }
+> >
+> >         return f;
+> >
+> >
+> > Setup:
+> >
+> > # mount -t overlay -olowerdir=a,upperdir=b,workdir=c overlay d
+> >
+> > open is a tool with the following syntax:
+> >
+> > open <path> <perm>
+> >
+> > It performs the open, and waits for user input before closing the file.
+> >
+> >
+> >
+> > ToMToU (Time of Measurement - Time of Use):
+> >
+> > Same fs (overlayfs)
+> >
+> > # /root/open /root/test-dir/d/test-file r (terminal 1)
+> > # /root/open /root/test-dir/d/test-file w (terminal 2)
+> >
+> > This works:
+> >
+> > 10 35435d0858d895b90097306171a2e5fcc7f5da9e ima-ng sha256:0e4acf326a82c6bded9d86f48d272d7a036b6490081bb6466ecc2a0e416b244a boot_aggregate
+> > 10 cef529d5d1032ffb6d3e2154664c83ba18cf2576 ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 test-file
+> > 10 694277487b9753db78446192231b59b7be7c03ad ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 /root/test-dir/d/test-file
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 test-file
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 /root/test-dir/d/test-file
+> >
+> > This is the result of calling IMA at both layers, and the violation of
+> > course happens twice.
+> >
+> > This is also confirmed in the logs:
+> >
+> > Apr 23 14:52:45 fedora audit[994]: INTEGRITY_PCR pid=994 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=ToMToU comm="open" name="test-file" dev="sda3" ino=995512 res=1 errno=0
+> > Apr 23 14:52:45 fedora audit[994]: INTEGRITY_PCR pid=994 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=ToMToU comm="open" name="/root/test-dir/d/test-file" dev="overlay" ino=995512 res=1 errno=0
+> >
+> >
+> > Different fs (overlayfs, btrfs)
+> >
+> > # /root/open /root/test-dir/d/test-file r (terminal 1)
+> > # /root/open /root/test-dir/b/test-file w (terminal 2)
+> >
+> > Again, this works despite the read is in overlayfs, and the write is in
+> > btrfs:
+> >
+> > 10 35435d0858d895b90097306171a2e5fcc7f5da9e ima-ng sha256:0e4acf326a82c6bded9d86f48d272d7a036b6490081bb6466ecc2a0e416b244a boot_aggregate
+> > 10 cef529d5d1032ffb6d3e2154664c83ba18cf2576 ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 test-file
+> > 10 694277487b9753db78446192231b59b7be7c03ad ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 /root/test-dir/d/test-file
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 /root/test-dir/b/test-file
+> >
+> > The difference from the previous example is that now there is only one
+> > violation, which is detected only in the upper layer. The logs have:
+> >
+> > Apr 23 15:01:15 fedora audit[985]: INTEGRITY_PCR pid=985 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=ToMToU comm="open" name="/root/test-dir/b/test-file" dev="sda3" ino=995512 res=1 errno=0
+> >
+> >
+> > Different fs (btrfs, overlayfs)
+> >
+> > # /root/open /root/test-dir/b/test-file r (terminal 2)
+> > # /root/open /root/test-dir/d/test-file w (terminal 1)
+> >
+> > 10 35435d0858d895b90097306171a2e5fcc7f5da9e ima-ng sha256:0e4acf326a82c6bded9d86f48d272d7a036b6490081bb6466ecc2a0e416b244a boot_aggregate
+> > 10 d7a692e19158820d2755542a8d31b49ac7ac2729 ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 /root/test-dir/b/test-file
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 test-file
+> >
+> > Works too. There is only one measurement, since that is done only for
+> > the upper layer.
+> >
+> > Apr 23 15:05:40 fedora audit[982]: INTEGRITY_PCR pid=982 uid=0 auid=0 ses=1 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=ToMToU comm="open" name="test-file" dev="sda3" ino=995512 res=1 errno=0
+> >
+> >
+> >
+> > Open writers
+> >
+> > Same fs (overlayfs)
+> >
+> > # /root/open /root/test-dir/d/test-file w (terminal 1)
+> > # /root/open /root/test-dir/d/test-file r (terminal 2)
+> >
+> > 10 35435d0858d895b90097306171a2e5fcc7f5da9e ima-ng sha256:0e4acf326a82c6bded9d86f48d272d7a036b6490081bb6466ecc2a0e416b244a boot_aggregate
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 test-file
+> > 10 cef529d5d1032ffb6d3e2154664c83ba18cf2576 ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 test-file
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 /root/test-dir/d/test-file
+> > 10 694277487b9753db78446192231b59b7be7c03ad ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 /root/test-dir/d/test-file
+> >
+> > Apr 23 15:10:46 fedora audit[983]: INTEGRITY_PCR pid=983 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=open_writers comm="open" name="test-file" dev="sda3" ino=995512 res=1 errno=0
+> > Apr 23 15:10:46 fedora audit[983]: INTEGRITY_PCR pid=983 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=open_writers comm="open" name="/root/test-dir/d/test-file" dev="overlay" ino=995512 res=1 errno=0
+> >
+> >
+> > Different fs (overlayfs, btrfs)
+> >
+> > # /root/open /root/test-dir/d/test-file w (terminal 1)
+> > # /root/open /root/test-dir/b/test-file r (terminal 2)
+> >
+> > 10 35435d0858d895b90097306171a2e5fcc7f5da9e ima-ng sha256:0e4acf326a82c6bded9d86f48d272d7a036b6490081bb6466ecc2a0e416b244a boot_aggregate
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 /root/test-dir/b/test-file
+> > 10 d7a692e19158820d2755542a8d31b49ac7ac2729 ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 /root/test-dir/b/test-file
+> >
+> > Apr 23 15:12:58 fedora audit[984]: INTEGRITY_PCR pid=984 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=open_writers comm="open" name="/root/test-dir/b/test-file" dev="sda3" ino=995512 res=1 errno=0
+> >
+> >
+> > Different fs (btrfs, overlayfs)
+> >
+> > # /root/open /root/test-dir/b/test-file w (terminal 1)
+> > # /root/open /root/test-dir/d/test-file r (terminal 2)
+> >
+> > 10 35435d0858d895b90097306171a2e5fcc7f5da9e ima-ng sha256:0e4acf326a82c6bded9d86f48d272d7a036b6490081bb6466ecc2a0e416b244a boot_aggregate
+> > 10 0000000000000000000000000000000000000000 ima-ng sha256:0000000000000000000000000000000000000000000000000000000000000000 test-file
+> > 10 cef529d5d1032ffb6d3e2154664c83ba18cf2576 ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 test-file
+> > 10 694277487b9753db78446192231b59b7be7c03ad ima-ng sha256:f2ca1bb6c7e907d06dafe4687e579fce76b37e4e93b7605022da52e6ccc26fd2 /root/test-dir/d/test-file
+> >
+> > Apr 23 15:16:37 fedora audit[983]: INTEGRITY_PCR pid=983 uid=0 auid=0 ses=3 subj=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 op=invalid_pcr cause=open_writers comm="open" name="test-file" dev="sda3" ino=995512 res=1 errno=0
+> >
+> > Roberto
+> >
+> > > I know this does not work - so you should find out why it does not work and fix
+> > > the problem.
+> > >
+> > > Enforcing IMA/EVM on the overlayfs inode layer is just the wrong way IMO.
+> > > Not once have I heard an argument from IMA/EVM developers why it is really
+> > > needed to enforce IMA/EVM on the overlayfs inode layer and not on the
+> > > real inode.
+> > > I am sorry that we are failing to communicate on this matter, but I am not
+> > > sure how else I can help.
+> > >
+> > > Thanks,
+> > > Amir.
+> >
