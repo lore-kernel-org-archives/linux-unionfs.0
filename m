@@ -1,78 +1,79 @@
-Received: from mail-io1-f69.google.com (mail-io1-f69.google.com [209.85.166.69])
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6726986AF4
-	for <linux-unionfs@vger.kernel.org>; Wed,  8 May 2024 15:13:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.69
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 704061649CF
+	for <linux-unionfs@vger.kernel.org>; Fri, 10 May 2024 11:23:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1715181185; cv=none; b=JzftIYcF09qCrB8UrwUCjCMVbaXfgFgjYI7DsACRlY8vJ08WvFqK28zCYq+AHwoGoLAWEV4Jfh00E6+cHXmSF2oisT3Beg0RwyvMBRsuVUM3GxP6Jj8swA4rmlJWEZcefs7d67sNJVKkqRl4NRQR8eMACDtG3/UUEYGBh95junQ=
+	t=1715340240; cv=none; b=M17qj65G6jWBGHMDC1ehwH6AySp4PNH91WeznYf57cNikIBf0aTGANaD30fRFiMBOU28GpBHFLuHqWiXbyNd4uXny1iQF+6ifbFDEB6+lFwj9eiqZvRf3dkiSuQjqWWfdLMWosHlfMS4eHCu7w72yJrTdg+ARBP64xMBeX5xI8E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1715181185; c=relaxed/simple;
-	bh=VTooLKM1UWVTk8gSGQDqgDwStVWBUyMdaRzHq8tOcbs=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=L5oqXMtLDCz/mROLTfwZkJGUJ4KC4uULoPRkw7b5sSOo0pGH/nQqLd1OtSsMhFhy6tTTqzLNb61es/pkGXuU5cTU/ascxwoS43arIpif1vTKtBbpL5IrMOhVT8bcGwETcj8bIDcioTH798s5aK8ljAWqiMDu5zFgKA4lV08KIaM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.69
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f69.google.com with SMTP id ca18e2360f4ac-7e18170ca14so235532039f.3
-        for <linux-unionfs@vger.kernel.org>; Wed, 08 May 2024 08:13:04 -0700 (PDT)
+	s=arc-20240116; t=1715340240; c=relaxed/simple;
+	bh=47x/4Pk6TGycDhdZnlbzTMHVd0iRYhoMxpqaHz5aors=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=XHz3rdNs/bEitY+UAq9TGRra17R3oe5F7hP+E+5PoSdYDq3cV9TP9liGi2gTP8w/5LTtbOoDFLjji23gD5gfNPPjDqSgQsW96tTaUzoZp3BV0yXXJ7s8QHW1gyZKhU+8wLIRw66eHvbvk5iF5tgPW3J6weGO8JXKZ1XrsoDqi3o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=JpYLSKGO; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="JpYLSKGO"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-a59a387fbc9so498071766b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 10 May 2024 04:23:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1715340237; x=1715945037; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=47x/4Pk6TGycDhdZnlbzTMHVd0iRYhoMxpqaHz5aors=;
+        b=JpYLSKGOBfaIc5A8kOsi5/Dp2+/FW5QcD3PSDQjxzFhPoThcC9BFnBTZ6bjdLPn1y2
+         H3Ciyfq/DoepN2m57HmuLeQcub49JESXoeDmgeJbyvwVncXszisdoYaiKihDJhidJ0fS
+         guBqjTh2IcbqsTVlhlUJUWjpelIrxQkrhmoR0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1715181183; x=1715785983;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=AEBdO5/t3gWQndQoUbCFMwd1dlzvgeFuNRoAmahB4YQ=;
-        b=jdg3VGoC3f8HiJVPFWlxYqB0n/Hub6q9PGVeq1YsT4jB6OW5/oDiWHsmPRD8Bv6GEN
-         CftUkJdaheFBWeyj1qIx4lwqgpbu9AQN9UR10dRL1Qw7xtkLb267MTKcYKyXisXzQTau
-         HhDcoSWcVtSwfCNMq5HmJsH9D21Yt9KsREIMvD8giyg7w7aiBnZKZQLcNqyRWGFxCUZ2
-         PQfqUL4saHn3cf1nK7Q6DAw3fxVq6IToKKcGKEuzz2kw8+7exjPziPd9cDAualIgDv2Z
-         3SzUsSJejWmqCqCpvktcHQ4gwL8x9MbR/CVOZ+TcmqDLjoLhGOOwZEg1yrIPlFy2rnpz
-         1ahQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWhaE5DC/FX935yYJIS/IcWSwm1R3fdG6mQ7+UWLcGwKuUsLTo+aOEneOSNzDdtVoE+OfV3PG4k13VMy2btKsILezGykYCdhSii9U8dXA==
-X-Gm-Message-State: AOJu0YxOakCTBZs+xHonxRpGveI2KqYeepYGZZXmGOibo3XB/C6HI/S+
-	dk6Qsw9Ba0Nb5dQSsGMPbBz+iylPi2kcFyky3iDtUZN2Lar3OxW5e0AtlChbFLbCNOPDhUyxsq9
-	b9JroIHnc4BMFrnRBiphEvom/TS+4ivG4fFW2SxZ23jq+kZcsvRBBmIY=
-X-Google-Smtp-Source: AGHT+IEgJOu5ZVCCFED8YRbF5GZ6UCcgUorZLjp//7D8s5IUYcamXViyuOmXvu9So1WH93R5xeRN4nyaq37WLksFXyCFnIm9g7Cb
+        d=1e100.net; s=20230601; t=1715340237; x=1715945037;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=47x/4Pk6TGycDhdZnlbzTMHVd0iRYhoMxpqaHz5aors=;
+        b=X/iyb9+zZ2nRJkb7BNhSafOyopCHhks3Ai7vE52EfhiwDNBwFxjKtA6LT1U84++z1V
+         Ylg0hv7qUJDdLeK9smsJ0V5C9v2jWWFlCgHEeyxSoJCRS91+OntD5N7axLCs0L2VmnwZ
+         LZG12brlodEgvhUJB6XwPuBTT4fb8V4BXLKspwl8+sOPm10sDsHu0s+CT8qk5J5R10s3
+         FMRz5qOSvDJuToC6ToMibHnacan/F3159+5lLL/hjLpJDSKhAWfJ35PsZvHMRyMhDnp4
+         S9dfdl8DQ8tHqTxxT+K60SSaWe4bTktp0ZTYFLOCCGXDbodKNiM8O/pZdD/Zokk4qJUh
+         cedg==
+X-Forwarded-Encrypted: i=1; AJvYcCUpU8Uhx7FgsgVqTg7c1rrowpRx4il+DaoJP+1zIEtkN6i/MxaGzQ06tKtks6Gl9QsnEFm7xJwh5zgUUXKIJcP3RKmLDiPPcu17/b8ptw==
+X-Gm-Message-State: AOJu0YwE4/vwL7Xvpa6PJG3MIWniRpcn2La4hFGEMn41Kxcyng2gEMET
+	wVoFpNc3yKCNVB2EDbSxl5V+speYSmT5vGCydLhK/1tvGBdAjl8jkcwore/8z2IbxB8y78Vqwz3
+	+9r2IjPVPtZtNXJmPwMG/FQBqEJxHS5acBy3amw==
+X-Google-Smtp-Source: AGHT+IFz5qP18mAylhBbmtThupMzDKv7Hxf/YKoxmcI8024bWwzwHlVosWJHVpjswkQo1H6JZ+uOIVvInsfVrUzL8aQ=
+X-Received: by 2002:a17:907:26c9:b0:a59:ba2b:5913 with SMTP id
+ a640c23a62f3a-a5a2d66b525mr199596766b.62.1715340236873; Fri, 10 May 2024
+ 04:23:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:8325:b0:488:ac5a:7fe9 with SMTP id
- 8926c6da1cb9f-488fdd777e4mr155178173.4.1715181183643; Wed, 08 May 2024
- 08:13:03 -0700 (PDT)
-Date: Wed, 08 May 2024 08:13:03 -0700
-In-Reply-To: <0000000000006399c80617120daa@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <0000000000002d41840617f2bd39@google.com>
-Subject: Re: [syzbot] [kernfs?] possible deadlock in kernfs_seq_start
-From: syzbot <syzbot+4c493dcd5a68168a94b2@syzkaller.appspotmail.com>
-To: axboe@kernel.dk, gregkh@linuxfoundation.org, hch@lst.de, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, rafael@kernel.org, 
-	syzkaller-bugs@googlegroups.com, tj@kernel.org
+References: <20240502212631.110175-1-thorsten.blum@toblux.com> <20240502212631.110175-3-thorsten.blum@toblux.com>
+In-Reply-To: <20240502212631.110175-3-thorsten.blum@toblux.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 10 May 2024 13:23:45 +0200
+Message-ID: <CAJfpegsVWa-fu=DePSC0J1WkfQxhaqs0RTxopMBHduwMANieyQ@mail.gmail.com>
+Subject: Re: [PATCH 3/4] overlayfs: Remove duplicate included header
+To: Thorsten Blum <thorsten.blum@toblux.com>
+Cc: Chris Mason <clm@fb.com>, Josef Bacik <josef@toxicpanda.com>, David Sterba <dsterba@suse.com>, 
+	David Howells <dhowells@redhat.com>, Jeff Layton <jlayton@kernel.org>, 
+	Amir Goldstein <amir73il@gmail.com>, Baoquan He <bhe@redhat.com>, Vivek Goyal <vgoyal@redhat.com>, 
+	Dave Young <dyoung@redhat.com>, linux-btrfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, netfs@lists.linux.dev, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	kexec@lists.infradead.org
 Content-Type: text/plain; charset="UTF-8"
 
-syzbot has bisected this issue to:
+On Thu, 2 May 2024 at 23:27, Thorsten Blum <thorsten.blum@toblux.com> wrote:
+>
+> Remove duplicate included header file linux/posix_acl.h
+>
+> Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
 
-commit 1e8c813b083c4122dfeaa5c3b11028331026e85d
-Author: Christoph Hellwig <hch@lst.de>
-Date:   Wed May 31 12:55:32 2023 +0000
+Applied, thanks.
 
-    PM: hibernate: don't use early_lookup_bdev in resume_store
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=1380072f180000
-start commit:   dccb07f2914c Merge tag 'for-6.9-rc7-tag' of git://git.kern..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=1040072f180000
-console output: https://syzkaller.appspot.com/x/log.txt?x=1780072f180000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=9d7ea7de0cb32587
-dashboard link: https://syzkaller.appspot.com/bug?extid=4c493dcd5a68168a94b2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1134f3c0980000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1367a504980000
-
-Reported-by: syzbot+4c493dcd5a68168a94b2@syzkaller.appspotmail.com
-Fixes: 1e8c813b083c ("PM: hibernate: don't use early_lookup_bdev in resume_store")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Miklos
