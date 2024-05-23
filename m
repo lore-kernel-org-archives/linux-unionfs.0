@@ -1,188 +1,160 @@
-Received: from mail-il1-f207.google.com (mail-il1-f207.google.com [209.85.166.207])
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.223.130])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1049A13D2AC
-	for <linux-unionfs@vger.kernel.org>; Thu, 23 May 2024 10:09:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.207
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3ED451862A;
+	Thu, 23 May 2024 16:43:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.135.223.130
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716458968; cv=none; b=RvuOd3WOA07zTQEqANd47y7CenyUGzvJUnOYqXyLC3h35kwK410GwOUV+JgI9DOTfM4vqzJtWqIzffcvynbHAgAQj7bV1cwx+JFVYEraG9u56zazOXalqNC5mhbaaT8cXDjweF3fN26y+7Fyo67RUSKhs7X38lMHVzX/cVuD0HU=
+	t=1716482598; cv=none; b=bRICAJduxlzxVJPc1WsKB3ugZqMnDMiwpLqRYgdEhOm75Ce4vLLT291Y16aG2Z1PRg/f5ovEWUMDIkfVBAR2b1V+8Y8Yd5CKEXgh1qx1S3WXxKcFxQ8nazoFCSmd0gTgJySBiZNCls0rbYcdu+nUBj3iEejGdiMbHL5TtmJT0Js=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716458968; c=relaxed/simple;
-	bh=leIna1Saims9f0MJ61i/z8223fXhgYAjFrM+TRHR1rM=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=V/MG4nuHSinMuiBBSuTOLlnsCzMf5IEAJO41Ee4TD6cpE0Sr9Xtsz+BlUX6zwwLHke2eUyvFGE2bgGSsy0aksdRluq+FMi8UxsdJJJ4gcFWStuFVuhTxPscPqpCngQ368I9G7/mtbqhwwMP13ymPG6hnNgwzGSmIuX/yGxNe1eE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.207
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f207.google.com with SMTP id e9e14a558f8ab-36c96503424so18163725ab.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 May 2024 03:09:26 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716458966; x=1717063766;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=QCqCCElupnhUJXA4EpZyUcc/f0DGtU0UeYDsUY02AB8=;
-        b=st7yYHLN+nucCVZX8r+Uvnk1bE6SZ5CN7pZF999mVOyf4jvZbbM9iNVs90Pa/mLHv3
-         Cj9Cu63PoepfRqm14k/Il0+AlKG1JWhryCJlS27uMgM/lkxuxa+eGZjWaKuJN/Nq1q2k
-         7mZFR7c0zo0CZ/z+DhMkQOIK2u5SYEufJlIExgQQ5BkuHhkCBYOOitX6MLyiVbDTh09S
-         eReNR/7/ShpA/YU3z3ituhcsaTQ5WXu9jV2owKiSBvOfJ4WXVAH9aaZle7Yio4M0Y7/0
-         s5k1d767PYyunTp2CD+vfmcM+qPnmfWQz75MudAv/XSDm9q1echuRQadMeMMUOmL3tL7
-         Va1Q==
-X-Forwarded-Encrypted: i=1; AJvYcCXZHXg4eZCDIPT8gV0F9IGbF99E9Q+EDAk2I9MDMONx/Qv1zi18oZi1DfjHckf7oq3/J+8fi3b1fKSE0ch5NJmL7YDng+RzeqR35T9eOw==
-X-Gm-Message-State: AOJu0YwxNkyoRpzXxaOVupYHUBoBQuIft/crrQTdSMn1UMbbfZQtYVkO
-	ad47Kymn+xGPRdALa+0E0n4MPNnN3k80IOKEijQDHq4OkfCHtZ/ad4teugMbsvttjX5VocuYIgT
-	R4r2ckchEx7OXW8g7g7O2Ibdlp8N2sLpgCZXTQt5UUyQtNfMRCxW5jg8=
-X-Google-Smtp-Source: AGHT+IHU78f9v5ktH4xFXr2K10+J6jztEmGBuNK7W2k1ERjgdEEOToGlFkpOBOaWjP9HahGhxnh4PkfEt1isRbp1KZaCcvU2luAW
+	s=arc-20240116; t=1716482598; c=relaxed/simple;
+	bh=c4dpRkSmY/SjGnXNwhJHg4tJmXiikYsmAFdcCQTWv7k=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=K13/DJa3KqyV0Mqt9F5FQBir7Q802IUqCZVT/t7rVVl75dCi8Qve37kLbmG7mkEx/21hbta4SSpZATadKvva1P93P3kDvgqu4oBxFmo0N//zdqAG8GN5Wqsgz6aQgycWwor9M0sWL82nayPtaxcdkTG5sHbx03tYMJ31zJL9P0o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz; spf=pass smtp.mailfrom=suse.cz; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=tmZcCNsv; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=a6Ukreth; dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b=tmZcCNsv; dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b=a6Ukreth; arc=none smtp.client-ip=195.135.223.130
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=suse.cz
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=suse.cz
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="tmZcCNsv";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="a6Ukreth";
+	dkim=pass (1024-bit key) header.d=suse.cz header.i=@suse.cz header.b="tmZcCNsv";
+	dkim=permerror (0-bit key) header.d=suse.cz header.i=@suse.cz header.b="a6Ukreth"
+Received: from imap1.dmz-prg2.suse.org (unknown [10.150.64.97])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by smtp-out1.suse.de (Postfix) with ESMTPS id 4AB8A21BCE;
+	Thu, 23 May 2024 16:43:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1716482594;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=uR/6eKdUfSRhoDdDdj5PWbeAQdfTjoONJNC6g2gQC8U=;
+	b=tmZcCNsvfhPxmATnkZnvBJ0+gUFi5J9oZolh6AF13s8Bo/HP3NOPE6UJlfon7oCMzM4TN1
+	pD4MQf6Ms6oJgka3zRPRW+SE5m9jmGgFTP9ETi6Tkrfx6AfySVw5pJLgI9xGiYzg5UTUh6
+	quvBn6Qbxls9wWwL0OYw7dGiq0cB18A=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1716482594;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=uR/6eKdUfSRhoDdDdj5PWbeAQdfTjoONJNC6g2gQC8U=;
+	b=a6UkrethGFauGlsdBebvs3Q1nwyqK4ZGl5550ZOeB8NVHGlNgIKMKsJ96mG7FVSfaOTtqp
+	R7BwCG29CZ3UqUCg==
+Authentication-Results: smtp-out1.suse.de;
+	none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+	t=1716482594;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=uR/6eKdUfSRhoDdDdj5PWbeAQdfTjoONJNC6g2gQC8U=;
+	b=tmZcCNsvfhPxmATnkZnvBJ0+gUFi5J9oZolh6AF13s8Bo/HP3NOPE6UJlfon7oCMzM4TN1
+	pD4MQf6Ms6oJgka3zRPRW+SE5m9jmGgFTP9ETi6Tkrfx6AfySVw5pJLgI9xGiYzg5UTUh6
+	quvBn6Qbxls9wWwL0OYw7dGiq0cB18A=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+	s=susede2_ed25519; t=1716482594;
+	h=from:from:reply-to:reply-to:date:date:message-id:message-id:to:to:
+	 cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=uR/6eKdUfSRhoDdDdj5PWbeAQdfTjoONJNC6g2gQC8U=;
+	b=a6UkrethGFauGlsdBebvs3Q1nwyqK4ZGl5550ZOeB8NVHGlNgIKMKsJ96mG7FVSfaOTtqp
+	R7BwCG29CZ3UqUCg==
+Received: from imap1.dmz-prg2.suse.org (localhost [127.0.0.1])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+	(No client certificate requested)
+	by imap1.dmz-prg2.suse.org (Postfix) with ESMTPS id 1E8E313A6B;
+	Thu, 23 May 2024 16:43:14 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([2a07:de40:b281:106:10:150:64:167])
+	by imap1.dmz-prg2.suse.org with ESMTPSA
+	id mub4BiJyT2b6IAAAD6G6ig
+	(envelope-from <dsterba@suse.cz>); Thu, 23 May 2024 16:43:14 +0000
+Date: Thu, 23 May 2024 18:43:12 +0200
+From: David Sterba <dsterba@suse.cz>
+To: syzbot <syzbot+85e58cdf5b3136471d4b@syzkaller.appspotmail.com>
+Cc: amir73il@gmail.com, brauner@kernel.org, clm@fb.com, dsterba@suse.com,
+	jack@suse.cz, josef@toxicpanda.com, linux-btrfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
+	mszeredi@redhat.com, syzkaller-bugs@googlegroups.com,
+	viro@zeniv.linux.org.uk
+Subject: Re: [syzbot] [btrfs?] [overlayfs?] possible deadlock in
+ ovl_copy_up_flags
+Message-ID: <20240523164312.GD17126@twin.jikos.cz>
+Reply-To: dsterba@suse.cz
+References: <000000000000f6865106191c3e58@google.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:2188:b0:36d:cccb:6842 with SMTP id
- e9e14a558f8ab-371f3e40d12mr3977105ab.0.1716458966380; Thu, 23 May 2024
- 03:09:26 -0700 (PDT)
-Date: Thu, 23 May 2024 03:09:26 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <000000000000f6865106191c3e58@google.com>
-Subject: [syzbot] [btrfs?] [overlayfs?] possible deadlock in ovl_copy_up_flags
-From: syzbot <syzbot+85e58cdf5b3136471d4b@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, brauner@kernel.org, clm@fb.com, dsterba@suse.com, 
-	jack@suse.cz, josef@toxicpanda.com, linux-btrfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, mszeredi@redhat.com, 
-	syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <000000000000f6865106191c3e58@google.com>
+User-Agent: Mutt/1.5.23.1-rc1 (2014-03-12)
+X-Spam-Level: 
+X-Spamd-Result: default: False [0.05 / 50.00];
+	SUSPICIOUS_RECIPS(1.50)[];
+	BAYES_HAM(-1.45)[91.32%];
+	URI_HIDDEN_PATH(1.00)[https://syzkaller.appspot.com/x/.config?x=fba88766130220e8];
+	NEURAL_HAM_LONG(-1.00)[-1.000];
+	HAS_REPLYTO(0.30)[dsterba@suse.cz];
+	NEURAL_HAM_SHORT(-0.20)[-1.000];
+	MIME_GOOD(-0.10)[text/plain];
+	RCPT_COUNT_TWELVE(0.00)[15];
+	TAGGED_RCPT(0.00)[85e58cdf5b3136471d4b];
+	MIME_TRACE(0.00)[0:+];
+	TO_DN_SOME(0.00)[];
+	ARC_NA(0.00)[];
+	RCVD_VIA_SMTP_AUTH(0.00)[];
+	RCVD_TLS_ALL(0.00)[];
+	FREEMAIL_ENVRCPT(0.00)[gmail.com];
+	FUZZY_BLOCKED(0.00)[rspamd.com];
+	FROM_EQ_ENVFROM(0.00)[];
+	FROM_HAS_DN(0.00)[];
+	FREEMAIL_CC(0.00)[gmail.com,kernel.org,fb.com,suse.com,suse.cz,toxicpanda.com,vger.kernel.org,szeredi.hu,redhat.com,googlegroups.com,zeniv.linux.org.uk];
+	DBL_BLOCKED_OPENRESOLVER(0.00)[imap1.dmz-prg2.suse.org:helo,suse.cz:replyto];
+	REPLYTO_ADDR_EQ_FROM(0.00)[];
+	TO_MATCH_ENVRCPT_ALL(0.00)[];
+	RCVD_COUNT_TWO(0.00)[2];
+	DKIM_SIGNED(0.00)[suse.cz:s=susede2_rsa,suse.cz:s=susede2_ed25519];
+	SUBJECT_HAS_QUESTION(0.00)[]
+X-Spam-Score: 0.05
+X-Spam-Flag: NO
 
-Hello,
+On Thu, May 23, 2024 at 03:09:26AM -0700, syzbot wrote:
+> Hello,
+> 
+> syzbot found the following issue on:
+> 
+> HEAD commit:    c75962170e49 Add linux-next specific files for 20240517
+> git tree:       linux-next
+> console+strace: https://syzkaller.appspot.com/x/log.txt?x=1438a5cc980000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=fba88766130220e8
+> dashboard link: https://syzkaller.appspot.com/bug?extid=85e58cdf5b3136471d4b
+> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=115f3e58980000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14f4c97c980000
+> 
+> Downloadable assets:
+> disk image: https://storage.googleapis.com/syzbot-assets/21696f8048a3/disk-c7596217.raw.xz
+> vmlinux: https://storage.googleapis.com/syzbot-assets/b8c71f928633/vmlinux-c7596217.xz
+> kernel image: https://storage.googleapis.com/syzbot-assets/350bfc6c0a6a/bzImage-c7596217.xz
+> mounted in repro: https://storage.googleapis.com/syzbot-assets/7f6a8434331c/mount_0.gz
+> 
+> The issue was bisected to:
+> 
+> commit 9a87907de3597a339cc129229d1a20bc7365ea5f
+> Author: Miklos Szeredi <mszeredi@redhat.com>
+> Date:   Thu May 2 18:35:57 2024 +0000
+> 
+>     ovl: implement tmpfile
 
-syzbot found the following issue on:
+In the C reproducer it's btrfs + overlayfs, this more looks like a bug in
+overlayfs handling the tmpfile and sb_*_write accross layers. Btrfs
+functions are not on the stack.
 
-HEAD commit:    c75962170e49 Add linux-next specific files for 20240517
-git tree:       linux-next
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=1438a5cc980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=fba88766130220e8
-dashboard link: https://syzkaller.appspot.com/bug?extid=85e58cdf5b3136471d4b
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=115f3e58980000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14f4c97c980000
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/21696f8048a3/disk-c7596217.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/b8c71f928633/vmlinux-c7596217.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/350bfc6c0a6a/bzImage-c7596217.xz
-mounted in repro: https://storage.googleapis.com/syzbot-assets/7f6a8434331c/mount_0.gz
-
-The issue was bisected to:
-
-commit 9a87907de3597a339cc129229d1a20bc7365ea5f
-Author: Miklos Szeredi <mszeredi@redhat.com>
-Date:   Thu May 2 18:35:57 2024 +0000
-
-    ovl: implement tmpfile
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=120f89cc980000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=110f89cc980000
-console output: https://syzkaller.appspot.com/x/log.txt?x=160f89cc980000
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+85e58cdf5b3136471d4b@syzkaller.appspotmail.com
-Fixes: 9a87907de359 ("ovl: implement tmpfile")
-
-============================================
-WARNING: possible recursive locking detected
-6.9.0-next-20240517-syzkaller #0 Not tainted
---------------------------------------------
-syz-executor489/5091 is trying to acquire lock:
-ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: ovl_do_copy_up fs/overlayfs/copy_up.c:967 [inline]
-ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: ovl_copy_up_one fs/overlayfs/copy_up.c:1168 [inline]
-ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: ovl_copy_up_flags+0x1110/0x4470 fs/overlayfs/copy_up.c:1223
-
-but task is already holding lock:
-ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
-
-other info that might help us debug this:
- Possible unsafe locking scenario:
-
-       CPU0
-       ----
-  lock(sb_writers#4);
-  lock(sb_writers#4);
-
- *** DEADLOCK ***
-
- May be due to missing lock nesting notation
-
-3 locks held by syz-executor489/5091:
- #0: ffff8880241fe420 (sb_writers#9){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
- #1: ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
- #2: ffff88807f0ea808 (&ovl_i_lock_key[depth]){+.+.}-{3:3}, at: ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:657 [inline]
- #2: ffff88807f0ea808 (&ovl_i_lock_key[depth]){+.+.}-{3:3}, at: ovl_copy_up_start+0x53/0x310 fs/overlayfs/util.c:719
-
-stack backtrace:
-CPU: 1 PID: 5091 Comm: syz-executor489 Not tainted 6.9.0-next-20240517-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
-Call Trace:
- <TASK>
- __dump_stack lib/dump_stack.c:88 [inline]
- dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
- check_deadlock kernel/locking/lockdep.c:3062 [inline]
- validate_chain+0x15c1/0x58e0 kernel/locking/lockdep.c:3856
- __lock_acquire+0x1346/0x1fd0 kernel/locking/lockdep.c:5137
- lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
- percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
- __sb_start_write include/linux/fs.h:1655 [inline]
- sb_start_write include/linux/fs.h:1791 [inline]
- ovl_start_write+0x11d/0x290 fs/overlayfs/util.c:31
- ovl_do_copy_up fs/overlayfs/copy_up.c:967 [inline]
- ovl_copy_up_one fs/overlayfs/copy_up.c:1168 [inline]
- ovl_copy_up_flags+0x1110/0x4470 fs/overlayfs/copy_up.c:1223
- ovl_create_tmpfile fs/overlayfs/dir.c:1317 [inline]
- ovl_tmpfile+0x262/0x6d0 fs/overlayfs/dir.c:1373
- vfs_tmpfile+0x396/0x510 fs/namei.c:3701
- do_tmpfile+0x156/0x340 fs/namei.c:3764
- path_openat+0x2ab8/0x3280 fs/namei.c:3798
- do_filp_open+0x235/0x490 fs/namei.c:3834
- do_sys_openat2+0x13e/0x1d0 fs/open.c:1405
- do_sys_open fs/open.c:1420 [inline]
- __do_sys_open fs/open.c:1428 [inline]
- __se_sys_open fs/open.c:1424 [inline]
- __x64_sys_open+0x225/0x270 fs/open.c:1424
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fab92feaba9
-Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 17 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffd714aed18 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
-RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 00007fab92feaba9
-RDX: 0000000000000000 RSI: 0000000000410202 RDI: 0000000020000040
-RBP: 00007fab930635f0 R08: 000055557e7894c0 R09: 000055557e7894c0
-R10: 000055557e7894c0 R11: 0000000000000246 R12: 00007ffd714aed40
-R13: 00007ffd714aef68 R14: 431bde82d7b634db R15: 00007fab9303303b
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+#syz set subsystems: overlayfs
