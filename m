@@ -1,162 +1,188 @@
-Received: from mail-qv1-f41.google.com (mail-qv1-f41.google.com [209.85.219.41])
+Received: from mail-il1-f207.google.com (mail-il1-f207.google.com [209.85.166.207])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12ABD7E777
-	for <linux-unionfs@vger.kernel.org>; Wed, 22 May 2024 20:34:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1049A13D2AC
+	for <linux-unionfs@vger.kernel.org>; Thu, 23 May 2024 10:09:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.207
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716410095; cv=none; b=TG6mAATjCECJuH3DU0KPM+PWYpUSRJpnKxJkmVLDLbGbGfKBOvYzxYsVbq6Y+yvUQKo4lb+IdQ3joiYQjZb8j9aMwuAfyf5nWYmG/XLv76o4YBBLae9AMEYC2xZ5+gbHAUGPuq5M9oxyYGWXKEfOi4WrEURRc+zppxX38X8Zdf4=
+	t=1716458968; cv=none; b=RvuOd3WOA07zTQEqANd47y7CenyUGzvJUnOYqXyLC3h35kwK410GwOUV+JgI9DOTfM4vqzJtWqIzffcvynbHAgAQj7bV1cwx+JFVYEraG9u56zazOXalqNC5mhbaaT8cXDjweF3fN26y+7Fyo67RUSKhs7X38lMHVzX/cVuD0HU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716410095; c=relaxed/simple;
-	bh=CrYQhOBYWXqbmbcLtKaFIz5hiR9F2hpmuYZf4yBHHuU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=D3ECh/NqO3In4/HGR8vMCGNmrJK9+RtADiLcv7js13gGoPntoA6NjP+FLweOF48Xh7J+svpjbe+tWHaHc+eoIpnoQz9zH9s6FVfdqPIbvNxcJGeKYpFy/XbUJbOlBfS4zrrCyHbqUpsNSV6kRZ/gxIfUTNwb0y4zUvrSg/xyrZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=A9CSais5; arc=none smtp.client-ip=209.85.219.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="A9CSais5"
-Received: by mail-qv1-f41.google.com with SMTP id 6a1803df08f44-6a919a4bb83so20361106d6.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 22 May 2024 13:34:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716410093; x=1717014893; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=CrYQhOBYWXqbmbcLtKaFIz5hiR9F2hpmuYZf4yBHHuU=;
-        b=A9CSais5eVYSZyk+11yS1jRy4BHahOB60clHOI8/NpiO66meohKOvIWxVcHeXWOO/d
-         DAv8dMmdp/qXzRSiZzbYsQvF5TKOMXJ7GPK66CvZeN+P25lmOx17At9s6TcdEQnZZEWQ
-         qpt4t8u49KSQ9+tmXQNk7QhUx4BksVAoUrd+fyPIM9bs4aDLOEW9Niv1H8Rw8Lz9smru
-         bkLMk9KvVQxnvQjFmuT5z626neWudk6EOb6oo4yT9T6kxhQ7cN1wLI2palMj6iP8e8hl
-         e7eiJpFk5u7RHgtg5M2y91nM2Dlu1zw3UzEQib/lCDToF0/TkerZTkWIEUxGYHj1G0b6
-         dJmQ==
+	s=arc-20240116; t=1716458968; c=relaxed/simple;
+	bh=leIna1Saims9f0MJ61i/z8223fXhgYAjFrM+TRHR1rM=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=V/MG4nuHSinMuiBBSuTOLlnsCzMf5IEAJO41Ee4TD6cpE0Sr9Xtsz+BlUX6zwwLHke2eUyvFGE2bgGSsy0aksdRluq+FMi8UxsdJJJ4gcFWStuFVuhTxPscPqpCngQ368I9G7/mtbqhwwMP13ymPG6hnNgwzGSmIuX/yGxNe1eE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.207
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f207.google.com with SMTP id e9e14a558f8ab-36c96503424so18163725ab.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 23 May 2024 03:09:26 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716410093; x=1717014893;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=CrYQhOBYWXqbmbcLtKaFIz5hiR9F2hpmuYZf4yBHHuU=;
-        b=qimkryLh69kBg25B7lyvIu8u2O0na+SvZ++8/LpBTWYdXGv69/ElL8sPvfMOv9oynW
-         1FnVsjCtaUAK22l0acwOyq1Uz/KRFijtfa+FbgNmNLV5iNIcrK+gl/w/WzkWQQVfjijC
-         XF/mu0OZvN3obc8qZZ3Jn55N5nLQsW6a0qZxg19gFSnJP33bg8Min2huZmEX+YOzb/lO
-         qI2Omf3s/29B4KK7QwJLzRxTbByRkIRzPRSri6lKvzB4Jz9Vsk8a9WYz7ZOGNZ2OygIN
-         D9IcqGHV7UEcQk+dLVQMBEqivdS0pOXPV3yIF/XG9uCM0uLAZy5HIXeNV8d5sSNOKGZm
-         dHow==
-X-Forwarded-Encrypted: i=1; AJvYcCWyV/kwA68KWbc0RlAOroGN9aeeiUC0fGZ6lKsJiJln7cInI8Dn+DtoYgv8ARQvHK/xk3Y4Umul2NkN7CJdP4AEXLo5kI/cA3Pib1tq8g==
-X-Gm-Message-State: AOJu0YyWhIkuvUr4hD3UWP1IVEcsDHi/pN+0Dl7ZxyG7lYXgjMzomLtj
-	KlB3Edc0GaotWfFqlyqbjLOIB+IjDIAVYgoSF8v28mZT/CHyIa3/SAsbeY9OUUL/GHyPkWxrKla
-	MTz3XH432LH64b4/VXEG7JaUYrPk=
-X-Google-Smtp-Source: AGHT+IFjdJxhnGlERooT//eMjlFWrX9ZjcbPwlCIgVZOwBEFmIIzrE9oiYTnOaEsYJzkBia9Xh9J5ACizLvnsD+44BM=
-X-Received: by 2002:a05:6214:5814:b0:6ab:82d6:f01c with SMTP id
- 6a1803df08f44-6ab82d6f1b9mr29130806d6.39.1716410092815; Wed, 22 May 2024
- 13:34:52 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1716458966; x=1717063766;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=QCqCCElupnhUJXA4EpZyUcc/f0DGtU0UeYDsUY02AB8=;
+        b=st7yYHLN+nucCVZX8r+Uvnk1bE6SZ5CN7pZF999mVOyf4jvZbbM9iNVs90Pa/mLHv3
+         Cj9Cu63PoepfRqm14k/Il0+AlKG1JWhryCJlS27uMgM/lkxuxa+eGZjWaKuJN/Nq1q2k
+         7mZFR7c0zo0CZ/z+DhMkQOIK2u5SYEufJlIExgQQ5BkuHhkCBYOOitX6MLyiVbDTh09S
+         eReNR/7/ShpA/YU3z3ituhcsaTQ5WXu9jV2owKiSBvOfJ4WXVAH9aaZle7Yio4M0Y7/0
+         s5k1d767PYyunTp2CD+vfmcM+qPnmfWQz75MudAv/XSDm9q1echuRQadMeMMUOmL3tL7
+         Va1Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXZHXg4eZCDIPT8gV0F9IGbF99E9Q+EDAk2I9MDMONx/Qv1zi18oZi1DfjHckf7oq3/J+8fi3b1fKSE0ch5NJmL7YDng+RzeqR35T9eOw==
+X-Gm-Message-State: AOJu0YwxNkyoRpzXxaOVupYHUBoBQuIft/crrQTdSMn1UMbbfZQtYVkO
+	ad47Kymn+xGPRdALa+0E0n4MPNnN3k80IOKEijQDHq4OkfCHtZ/ad4teugMbsvttjX5VocuYIgT
+	R4r2ckchEx7OXW8g7g7O2Ibdlp8N2sLpgCZXTQt5UUyQtNfMRCxW5jg8=
+X-Google-Smtp-Source: AGHT+IHU78f9v5ktH4xFXr2K10+J6jztEmGBuNK7W2k1ERjgdEEOToGlFkpOBOaWjP9HahGhxnh4PkfEt1isRbp1KZaCcvU2luAW
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <a89eab01-6856-49dd-ba5a-942d58d8ebe5@e-gaulue.com>
- <CAOQ4uxjmfSksa7W88B2xq719RdZGGEqvY5OQzZuOMPCmRyG8Ag@mail.gmail.com> <9c0ea3be-9022-4b3c-b2ad-8e6e34486092@e-gaulue.com>
-In-Reply-To: <9c0ea3be-9022-4b3c-b2ad-8e6e34486092@e-gaulue.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 22 May 2024 23:34:41 +0300
-Message-ID: <CAOQ4uxgXiFnvNV7av5dMoF8YS+JPrUM2L91pRXtdZ5gVA5=HFg@mail.gmail.com>
-Subject: Re: Overlay Filesystem Documentation page
-To: =?UTF-8?Q?Edouard_Gaulu=C3=A9?= <edouard@e-gaulue.com>
-Cc: neilb@suse.de, miklos@szeredi.hu, 
-	overlayfs <linux-unionfs@vger.kernel.org>
+X-Received: by 2002:a05:6e02:2188:b0:36d:cccb:6842 with SMTP id
+ e9e14a558f8ab-371f3e40d12mr3977105ab.0.1716458966380; Thu, 23 May 2024
+ 03:09:26 -0700 (PDT)
+Date: Thu, 23 May 2024 03:09:26 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000f6865106191c3e58@google.com>
+Subject: [syzbot] [btrfs?] [overlayfs?] possible deadlock in ovl_copy_up_flags
+From: syzbot <syzbot+85e58cdf5b3136471d4b@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, brauner@kernel.org, clm@fb.com, dsterba@suse.com, 
+	jack@suse.cz, josef@toxicpanda.com, linux-btrfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, mszeredi@redhat.com, 
+	syzkaller-bugs@googlegroups.com, viro@zeniv.linux.org.uk
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, May 22, 2024 at 7:27=E2=80=AFPM Edouard Gaulu=C3=A9 <edouard@e-gaul=
-ue.com> wrote:
->
-> I tried to provide a proposal, but I worry there are too much thing I don=
-'t fully understand.
->
-> Could you look at this "use case" and associated questions (I tried to an=
-swer some)? With those answers, I should be able to propose something for t=
-he first 2 paragraghs.
->
-> /dir1 : production website
-> /dir2 : website source code (git repo)
-> /dir3 : transitional
-> /dir4 : workdir
-> /dir5 : dev website
->
-> Mount command: sudo mount -t overlay overlay -o lowerdir=3D/dir2:/dir1,up=
-perdir=3D/dir3,workdir=3D/dir4 /dir5
->
-> According to me, undefined behaviour is coming from xattrs created in /di=
-r3. So, everytime a file is changed in /dir2: /dir3 is emptied and /dir5 is=
- remounted.
->
->
-> Q1: If =E2=80=9Cmetacopy=E2=80=9D, =E2=80=9Cindex=E2=80=9D, =E2=80=9Cxino=
-=E2=80=9D or =E2=80=9Credirect_dir=E2=80=9D is not used, do we really need =
-to empty /dir3 ? Should be 'no' due to the fact we won't have those specifi=
-cs xattrs.
+Hello,
 
-hard to answer what you *should* do.
-only thing I can say is that the results would be quite predictable -
-dir5/ will be the merge of dir1+dir2+dir3 as one could expect.
+syzbot found the following issue on:
 
-Note that there are some other xattr in dir3 files - "origin", "impure"
-Specifically, "origin" is always set on copy up and there is no way to
-opt out from it. if does have some impact in this scenario related to which
-inode numbers files in dir5/ will have after this maneuver
-I have no desire to document the expected behavior in this regard.
+HEAD commit:    c75962170e49 Add linux-next specific files for 20240517
+git tree:       linux-next
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=1438a5cc980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=fba88766130220e8
+dashboard link: https://syzkaller.appspot.com/bug?extid=85e58cdf5b3136471d4b
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=115f3e58980000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=14f4c97c980000
 
->
-> Q2: If =E2=80=9Cmetacopy=E2=80=9D, =E2=80=9Cindex=E2=80=9D, =E2=80=9Cxino=
-=E2=80=9D or =E2=80=9Credirect_dir=E2=80=9D is used. Does emptying /dir3 be=
-fore remount remove all possible undefined behaviours ? Should be 'yes', we=
- are restarting from scratch.
->
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/21696f8048a3/disk-c7596217.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/b8c71f928633/vmlinux-c7596217.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/350bfc6c0a6a/bzImage-c7596217.xz
+mounted in repro: https://storage.googleapis.com/syzbot-assets/7f6a8434331c/mount_0.gz
 
-dir3 itself also has xattrs, so it needs to be recreated.
-dir4 (the workdir) as well.
+The issue was bisected to:
 
-> Q3: Knowing that the website will never modify any files in /dir2 (neithe=
-r production nor dev), do we really need to remount the overlay everytime a=
- file is changed in /dir2 ?
-> Files in /dir3 will never overlap with those in /dir2. There shouldn't be=
- any xattrs inconsistency. Is there other risks?
->
+commit 9a87907de3597a339cc129229d1a20bc7365ea5f
+Author: Miklos Szeredi <mszeredi@redhat.com>
+Date:   Thu May 2 18:35:57 2024 +0000
 
-Yes.
-Overlay has many caches. Changing lower layers while overlay is
-mounted will have unpredicted outcome.
+    ovl: implement tmpfile
 
-> Q4: If production website generate cache files in /dir1 and dev website g=
-enerate cache files in /dir3 that may opverlap. What are the risks? For /di=
-r1: I suppose none. For /dir3 ? And /dir5 ? In ohter words, what do we mean=
- by "the behavior of the overlay is undefined"? Could we say : "we don't kn=
-ow which layer file will be served"? Or is it worse?
->
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=120f89cc980000
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=110f89cc980000
+console output: https://syzkaller.appspot.com/x/log.txt?x=160f89cc980000
 
-For changes while overlay is mounted could be much worse.
-Let's just say that the statement "...though it will not result in a
-crash or deadlock."
-is not really a promise - it is only a statement of intentions.
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+85e58cdf5b3136471d4b@syzkaller.appspotmail.com
+Fixes: 9a87907de359 ("ovl: implement tmpfile")
 
-For changes while overlay is offline you wont know which file will be serve=
-d
-and it is quite possible the -EIO will be served in many cases.
+============================================
+WARNING: possible recursive locking detected
+6.9.0-next-20240517-syzkaller #0 Not tainted
+--------------------------------------------
+syz-executor489/5091 is trying to acquire lock:
+ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: ovl_do_copy_up fs/overlayfs/copy_up.c:967 [inline]
+ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: ovl_copy_up_one fs/overlayfs/copy_up.c:1168 [inline]
+ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: ovl_copy_up_flags+0x1110/0x4470 fs/overlayfs/copy_up.c:1223
 
-> Q5: Would mount -t overlay overlay -o lowerdir=3D/dir2:/dir1 /dir5 get to=
- an undefined behavior, if changes to /dir1 or /dir2 are made? According to=
- me, as /dir5 is RO, it should work, always respecting /dir2 priority above=
- /dir1.
+but task is already holding lock:
+ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
 
-For changes while overlay is mounted, same answer as above.
-For changes while overlay is offline, same answer as for Q1.
-results should be quite predictable - dir5 will be the merge of dir1+dir2.
+other info that might help us debug this:
+ Possible unsafe locking scenario:
 
-Please refrain from proposing detailed documentation on what "undefined"
-behavior means to kernel documentation, because I do not want to commit
-to any specific "undefined" behavior in the future.
+       CPU0
+       ----
+  lock(sb_writers#4);
+  lock(sb_writers#4);
 
-Thanks,
-Amir.
+ *** DEADLOCK ***
+
+ May be due to missing lock nesting notation
+
+3 locks held by syz-executor489/5091:
+ #0: ffff8880241fe420 (sb_writers#9){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
+ #1: ffff88802f7f2420 (sb_writers#4){.+.+}-{0:0}, at: mnt_want_write+0x3f/0x90 fs/namespace.c:409
+ #2: ffff88807f0ea808 (&ovl_i_lock_key[depth]){+.+.}-{3:3}, at: ovl_inode_lock_interruptible fs/overlayfs/overlayfs.h:657 [inline]
+ #2: ffff88807f0ea808 (&ovl_i_lock_key[depth]){+.+.}-{3:3}, at: ovl_copy_up_start+0x53/0x310 fs/overlayfs/util.c:719
+
+stack backtrace:
+CPU: 1 PID: 5091 Comm: syz-executor489 Not tainted 6.9.0-next-20240517-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
+ check_deadlock kernel/locking/lockdep.c:3062 [inline]
+ validate_chain+0x15c1/0x58e0 kernel/locking/lockdep.c:3856
+ __lock_acquire+0x1346/0x1fd0 kernel/locking/lockdep.c:5137
+ lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+ percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+ __sb_start_write include/linux/fs.h:1655 [inline]
+ sb_start_write include/linux/fs.h:1791 [inline]
+ ovl_start_write+0x11d/0x290 fs/overlayfs/util.c:31
+ ovl_do_copy_up fs/overlayfs/copy_up.c:967 [inline]
+ ovl_copy_up_one fs/overlayfs/copy_up.c:1168 [inline]
+ ovl_copy_up_flags+0x1110/0x4470 fs/overlayfs/copy_up.c:1223
+ ovl_create_tmpfile fs/overlayfs/dir.c:1317 [inline]
+ ovl_tmpfile+0x262/0x6d0 fs/overlayfs/dir.c:1373
+ vfs_tmpfile+0x396/0x510 fs/namei.c:3701
+ do_tmpfile+0x156/0x340 fs/namei.c:3764
+ path_openat+0x2ab8/0x3280 fs/namei.c:3798
+ do_filp_open+0x235/0x490 fs/namei.c:3834
+ do_sys_openat2+0x13e/0x1d0 fs/open.c:1405
+ do_sys_open fs/open.c:1420 [inline]
+ __do_sys_open fs/open.c:1428 [inline]
+ __se_sys_open fs/open.c:1424 [inline]
+ __x64_sys_open+0x225/0x270 fs/open.c:1424
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fab92feaba9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 f1 17 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffd714aed18 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 00007fab92feaba9
+RDX: 0000000000000000 RSI: 0000000000410202 RDI: 0000000020000040
+RBP: 00007fab930635f0 R08: 000055557e7894c0 R09: 000055557e7894c0
+R10: 000055557e7894c0 R11: 0000000000000246 R12: 00007ffd714aed40
+R13: 00007ffd714aef68 R14: 431bde82d7b634db R15: 00007fab9303303b
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
