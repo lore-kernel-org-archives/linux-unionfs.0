@@ -1,156 +1,254 @@
-Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
+Received: from mail-il1-f206.google.com (mail-il1-f206.google.com [209.85.166.206])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 266A5FC02
-	for <linux-unionfs@vger.kernel.org>; Mon, 27 May 2024 05:27:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02AB110A36
+	for <linux-unionfs@vger.kernel.org>; Mon, 27 May 2024 06:47:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.206
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1716787632; cv=none; b=NuJKeyyW+7BgCgKWDZshMMBTGiKJjCXuJ60/0CUzZHc5g1ELdXpT1GQwdil7lV9lvKzSzGrxXlNlcGu+gX9jnsr7ay6rfB8rk/TO1Yp2TpZH6FbjBJ53I/g1Y0KVzpmvKNP2G7kZmM9plsRhvNIKPK4cSaGhpTOtdM3dvCqLwCM=
+	t=1716792444; cv=none; b=nqcaT9fRH3ngL3r8SA6xPFC3c5Gquyp96OX5l0x5jwY39IhahLpVVugXKN2smD04iXs/Lf17HmZ3duQFdYZSejQA3EyjOkbRzH1yweZnqy/yPPvdY2CB8kEAojn7UeJSUUie1LdsIvTsDmKLVgfFsWGgMVEBZ8Jg2gCJpiTOeYY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1716787632; c=relaxed/simple;
-	bh=dY168D3djRjWqN3Nqp3O01eSEb9o52DxnfkxveJLESA=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=jANq5FbaOXkj9SnbYk0Vz2m3Qkaavi+QYnQYqP7As4slPqZtwcb7xtXYGwD9J2IL1Owx+YHgtb09SL4mCEQrBQ1ubhOjF/IBuYob/1BFj2sh6211FyjZ3e7wY5PNx0CQYR8RSzkiJaUgWwCSghVc6oxjESiRlhccEhU1BmtR4cU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=h/7fUb02; arc=none smtp.client-ip=209.85.208.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="h/7fUb02"
-Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-57857e0f45cso2668431a12.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 26 May 2024 22:27:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716787629; x=1717392429; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=5aQ2V1pBSOM4wgN+3FxRURExuuAhVm0HDJDx5ukaTH4=;
-        b=h/7fUb02L6r+iy834OaEUb1vmRTbH2hbcERdTWWRrPzsW8doZbAlX96bdOKU+TfGk4
-         Uqp6RLZwL9ErCBllMzjxdnK8ydVg287PE91ZyfmqjGbXCo5bSG/or0Ax0XS5xgO2pQ+y
-         je3fyPeLgHzKvzZi+WZ9/bNduMkDVfCaokrpsWKs/CR5hcAFXht/vc6vaTSvtr8qRqS6
-         kKeDl9P8Kg6SsvL68ri8YzLIFG6Pmxsm+kWKTU4ZkwTfc63ppHpsUIlrVsd4iPIoWc7r
-         zEbxDzLAyMyvUrCu1WsTv0UKQ+44QtXHJrv4gACjbaP01AkFxOgcybBsyxrnSFT5oUU3
-         Avdg==
+	s=arc-20240116; t=1716792444; c=relaxed/simple;
+	bh=uinJ2gLeCoRdr0Fk4l9/eDWL3T2/p4iaiPNTcJGHAlk=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=qpwvqyLEXlyXsDEVIlXPUKlG+1SSiNnr3sZutHQ3Tfn283juvzmL2iimSdyCy7yJkmsymWEMwIqm/x/DYT79ddkTsB0uP/pEEhae8VnshHbYz+hg9D24wvHOcPKHxQR09VRU8m5mOFCPYcrna3Yz2oVM4dXRlfcuAHLFgYdOwNU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.206
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f206.google.com with SMTP id e9e14a558f8ab-3713862bcefso38287665ab.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 26 May 2024 23:47:22 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716787629; x=1717392429;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=5aQ2V1pBSOM4wgN+3FxRURExuuAhVm0HDJDx5ukaTH4=;
-        b=fb7BxmRyYSx3dd/+cjKa5sHO/rg9QSVOJOzTOkq3q7qcw86TB4gp6Xz5zcpAzrHdCw
-         f6zSzzRXaLeSNKwpKG2/UTTKUoJGno93A3es7HzI5BVUvRqvEHiG3wjLFIdRxdFGK+Xh
-         QG+hK12CWCq/HgV//HumMpv0d53NFqqhK5JEHIL+Alx+tlUBYEvjLbym5VLUNEUhZVar
-         XJ3zi4mq8scmK0jPMk1pH0mVpELTblNoGcLiSmt+t8REZ8hCc28oxd7M7NVGEeYhLrfW
-         0eq7+4pld+0c2lYCqRCAYw5VbgUPqinpOU8FR913jDfUtu2TuaTKJ6iDr622kTHEUYAA
-         6wMg==
-X-Forwarded-Encrypted: i=1; AJvYcCVmpYe00uvpWiJLdshPwxLNkiAMfvJBlbDgKNaKIImJRV5054+gzVXPywt51TXJbs3xb37iLldezq0oiZju2wah0nRxIXhgB7n9Ta/1HQ==
-X-Gm-Message-State: AOJu0YwyCzVT4gNBCpgd1MaXtxt/8UgPqHe54erQtlvV0hWwQeVMmbvg
-	GHY4srCwowQ/IQDU25IO1m5jBBz4FCJ7P0kDb7pd0qV32y4SyOXRHUKoqxGqTEG8/A==
-X-Google-Smtp-Source: AGHT+IFqCFIYZVc05kXjCFNyNB8JnIV7MBOCfe9HPGbeV+SrrK5fVdpEO9uvwJ81MfTSZLNBChDtjg==
-X-Received: by 2002:a50:d68b:0:b0:572:6846:b899 with SMTP id 4fb4d7f45d1cf-578519ba7abmr5025590a12.41.1716787629139;
-        Sun, 26 May 2024 22:27:09 -0700 (PDT)
-Received: from [10.8.0.6] (dslb-088-074-221-144.088.074.pools.vodafone-ip.de. [88.74.221.144])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-57852495de0sm5240454a12.61.2024.05.26.22.27.07
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 26 May 2024 22:27:08 -0700 (PDT)
-Message-ID: <f0554eae-215b-4314-b731-51fd8eca1369@gmail.com>
-Date: Mon, 27 May 2024 07:27:05 +0200
+        d=1e100.net; s=20230601; t=1716792442; x=1717397242;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=OwO70/XYVuf3nef+i69Y/PpyG5l9UkE9yqtW/mEST84=;
+        b=UsBMa7JVKrmi9rbtR1LIHUoDgB4bYA6NmtoAey1ad8lUSMiKzOuhBSlmEamE4XrCNa
+         bd2P5p/AZIZ8NpqmUHxafdG+FOZ8kUlTodW84kcUR4BbZyqbcXYC8lfeMnYLR2oL4KE8
+         ZPeakHjof2Sl9jA1nRbFQOKghq4Nk9QUphsL8q7khfMa61cVa6GCdblRqCi2ZIhXaRDQ
+         1as7i+bckMPUCtreWpPl0+3hH5gAZsOC3ClIhFdu3TI5iTwRTanUL3ULRy/PztoK0gRX
+         xVGFffwMfH0lDcJFV4JH/pW8HeY8SPjpo7kVfHP7tnyRq4IFYmsZ4Go3ShMxWYEFMSgl
+         fGGw==
+X-Forwarded-Encrypted: i=1; AJvYcCXOxnMxMU88T0gaESEPVBgITLsv+UFohl/y0MVfE8stcZogn4XD3PR9JAXmVs/PQ/0+UC+F5RBBBnKBxRk8pUPyZxCLvAdrhDr7b2WPrA==
+X-Gm-Message-State: AOJu0YxFl2T+gw1UyUdYM1qiYs2EiH5G6T90FBPM6Pcu3W6OD4pEkxRG
+	M+5Vfs5Udzyvu4heK59Gaa0cPzPiCrCKhO4SJ1XEAheuDFPziEGolGLmNzFLHnSOdrfuk55sDP/
+	0R1AV7mraQZmlwE3RvdOoEwJSyNH7TwI3WV8Ugcl7SIQTJ7C5Xk1b0Vg=
+X-Google-Smtp-Source: AGHT+IH4e/7wy43OeXcp2oVoO/pPSXJY8v735rWJFcob5AQbcSfCopjwq7FKlq8jDH6Ki5W3SVt0l7o3ahGCQeJr9/jOdn3HrTUk
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: Overlay Filesystem Documentation page
-To: Amir Goldstein <amir73il@gmail.com>, =?UTF-8?Q?Edouard_Gaulu=C3=A9?=
- <edouard@e-gaulue.com>
-Cc: neilb@suse.de, miklos@szeredi.hu,
- overlayfs <linux-unionfs@vger.kernel.org>
-References: <a89eab01-6856-49dd-ba5a-942d58d8ebe5@e-gaulue.com>
- <CAOQ4uxjmfSksa7W88B2xq719RdZGGEqvY5OQzZuOMPCmRyG8Ag@mail.gmail.com>
- <9c0ea3be-9022-4b3c-b2ad-8e6e34486092@e-gaulue.com>
- <CAOQ4uxgXiFnvNV7av5dMoF8YS+JPrUM2L91pRXtdZ5gVA5=HFg@mail.gmail.com>
- <cd0a9c43-f3c9-353f-1fcd-f29009c2b8f7@e-gaulue.com>
- <CAOQ4uxjhuhz2=ve2vFydLEg5+-bLrFxDX0ufSf5fOF4wF_y-xQ@mail.gmail.com>
-Content-Language: en-US
-From: Vyacheslav Yurkov <uvv.mail@gmail.com>
-In-Reply-To: <CAOQ4uxjhuhz2=ve2vFydLEg5+-bLrFxDX0ufSf5fOF4wF_y-xQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+X-Received: by 2002:a92:6408:0:b0:374:5776:de62 with SMTP id
+ e9e14a558f8ab-3745776e1bdmr586845ab.2.1716792442204; Sun, 26 May 2024
+ 23:47:22 -0700 (PDT)
+Date: Sun, 26 May 2024 23:47:22 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <000000000000abc6c5061969e3a5@google.com>
+Subject: [syzbot] [overlayfs?] possible deadlock in seq_read_iter (4)
+From: syzbot <syzbot+fcdd1f09adf0e00f70b1@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Hey everyone,
-I'm inclined to agree with Amir here. The userspace tools can be 
-improved / extended, but it's not the scope of the kernel documentation.
+Hello,
 
-Vyacheslav
+syzbot found the following issue on:
 
-On 25.05.2024 09:32, Amir Goldstein wrote:
-> On Thu, May 23, 2024 at 11:56 AM Edouard Gaulué <edouard@e-gaulue.com> wrote:
->> Thanks a lot Amir,
->>
->> Here is a proposal, but consider it as a draft:
->>
->> "
->>
->> Changes to the underlying filesystems while part of a mounted overlay filesystem are not supported. Thought Overlayfs will try to handle those changed files in a way it may not result in a crash or deadlock, you shouldn't do it. Due to multiple reasons involving caches, attributes, and others, if the underlying filesystem is changed, the behavior of the overlay gets "undefined", so you can't trust it anymore.
->>
->> Offline changes (i.e. when the overlay is not mounted) are allowed to the upper tree. But beware of remount after offline changes to the lower tree. They are almost supported if the “metacopy”, “index”, “xino” and “redirect_dir” features have not been used. If the lower tree is modified and any of these features has been used before on this overlay, the behavior can also get "undefined".
->>
-> Edouard,
->
-> I am sorry to be discouraging, but I personally don't see much value
-> in this rephrasing
-> and I also don't think that the current documentation is lacking in this point.
-> This is my personal opinion and review is a community procedure.
-> If there are proponents for this rewrite let them speak up.
->
->> "
->>
->> I came to overlayfs, because of chatGPT. It easily proposes to bind mount between upper and lower. Just say: "I want the feature of overlayfs, but for this specific directory, I want it to write on lower". The provided solution writes on the underlying filesystems (through bind), even if the result is quite predictable and almost works. Now I understand better the way overlayfs is working, I think there should be a warning in the documentation (that chatGPT or others may read next time) regarding this:
->>
-> Overalyfs is not the only way to merge directories. This is out of scope.
->
->> "
->>
->> Overlayfs will never write on the lower filesystems, so it will never arm them. But mind the interactions you could create outside of overlayfs using tools like bind mounts, "rsync" or even "cp" between upper filesystem (or merged) and lower ones. Those lead to changes to the underlying filesystems and should be avoided as already stated.
->>
-> Sorry. This feels out of scope to me.
-> I think the introduction sections describe overlayfs and lower and
-> upper layers well enough.
->
->> "
->>
->> Finally, I think it would be great to have an option to clean dirs of all previous xattrs set by overlayfs at mount time. Or a command line in the documentation to explain how to get the same. In the meanwhile, I would add:
->>
->> "
->>
->> Note: in those specific cases where data written to the overlay can be recreated without significant effort (like in volatile), you can always recreate an empty upperdir and workdir before remount.
->>
->> "
->>
->> But it doesn't handle the case of those who had bound upper and lower, and decide one day, to use the lower as an upper.
->>
-> Sorry, but I am not sure if those details belong in the scope of this document,
-> because I don't think we would like to commit to any specific procedure of
-> cleaning the upper layer.
->
-> I do hear your concerns as a user, but I don't think that better documentation
-> alone is going to solve them.
->
-> What overlayfs has always been missing is a counterpart library and user tools
-> to deal with those things.
->
-> There has been an attempt in the past to start overlayfs-progs [1] and later
-> overlayfs-tool2 project [2] to work on offline overlayfs layers.
-> I even contributed the "overlay deref" command [3] which partly does what
-> you are looking for, but it does not look like this project is
-> actively developed
-> except for a recent merge of the fsck tool from overlayfs-progs.
->
-> Thanks,
-> Amir.
->
-> [1] https://github.com/hisilicon/overlayfs-progs
-> [2] https://github.com/kmxz/overlayfs-tools
-> [3] https://github.com/kmxz/overlayfs-tools/pull/11
+HEAD commit:    b6394d6f7159 Merge tag 'pull-misc' of git://git.kernel.org..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=135d2872980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=713476114e57eef3
+dashboard link: https://syzkaller.appspot.com/bug?extid=fcdd1f09adf0e00f70b1
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
 
+Unfortunately, I don't have any reproducer for this issue yet.
+
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/e8e1377d4772/disk-b6394d6f.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/19fbbb3b6dd5/vmlinux-b6394d6f.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/4dcce16af95d/bzImage-b6394d6f.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+fcdd1f09adf0e00f70b1@syzkaller.appspotmail.com
+
+EXT4-fs (loop3): mounted filesystem 00000000-0000-0000-0000-000000000000 r/w without journal. Quota mode: writeback.
+ext4 filesystem being mounted at /root/syzkaller-testdir1425634012/syzkaller.WKKmVT/16/bus supports timestamps until 2038-01-19 (0x7fffffff)
+======================================================
+WARNING: possible circular locking dependency detected
+6.9.0-syzkaller-10729-gb6394d6f7159 #0 Not tainted
+------------------------------------------------------
+syz-executor.3/6567 is trying to acquire lock:
+ffff88805cad90a0 (&p->lock){+.+.}-{3:3}, at: seq_read_iter+0xb7/0xd60 fs/seq_file.c:182
+
+but task is already holding lock:
+ffff88801eec3c68 (&pipe->mutex){+.+.}-{3:3}, at: splice_file_to_pipe+0x2e/0x500 fs/splice.c:1292
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #4 (&pipe->mutex){+.+.}-{3:3}:
+       lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+       __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+       __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+       iter_file_splice_write+0x335/0x14e0 fs/splice.c:687
+       do_splice_from fs/splice.c:941 [inline]
+       do_splice+0xd77/0x1900 fs/splice.c:1354
+       __do_splice fs/splice.c:1436 [inline]
+       __do_sys_splice fs/splice.c:1652 [inline]
+       __se_sys_splice+0x331/0x4a0 fs/splice.c:1634
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #3 (sb_writers#4){.+.+}-{0:0}:
+       lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1655 [inline]
+       sb_start_write+0x4d/0x1c0 include/linux/fs.h:1791
+       mnt_want_write+0x3f/0x90 fs/namespace.c:409
+       ovl_setattr+0x2de/0x5a0 fs/overlayfs/inode.c:77
+       notify_change+0xb9d/0xe70 fs/attr.c:497
+       vfs_utimes+0x4b5/0x770 fs/utimes.c:66
+       do_utimes_path fs/utimes.c:99 [inline]
+       do_utimes fs/utimes.c:145 [inline]
+       __do_sys_utime fs/utimes.c:226 [inline]
+       __se_sys_utime+0x1e1/0x2e0 fs/utimes.c:215
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #2 (&ovl_i_mutex_dir_key[depth]#2){++++}-{3:3}:
+       lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+       down_read+0xb1/0xa40 kernel/locking/rwsem.c:1526
+       inode_lock_shared include/linux/fs.h:801 [inline]
+       lookup_slow+0x45/0x70 fs/namei.c:1708
+       walk_component+0x2e1/0x410 fs/namei.c:2004
+       lookup_last fs/namei.c:2469 [inline]
+       path_lookupat+0x16f/0x450 fs/namei.c:2493
+       filename_lookup+0x256/0x610 fs/namei.c:2522
+       kern_path+0x35/0x50 fs/namei.c:2630
+       lookup_bdev+0xc5/0x290 block/bdev.c:1157
+       resume_store+0x1a0/0x710 kernel/power/hibernate.c:1235
+       kernfs_fop_write_iter+0x3a1/0x500 fs/kernfs/file.c:334
+       new_sync_write fs/read_write.c:497 [inline]
+       vfs_write+0xa72/0xc90 fs/read_write.c:590
+       ksys_write+0x1a0/0x2c0 fs/read_write.c:643
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #1 (&of->mutex){+.+.}-{3:3}:
+       lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+       __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+       __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+       kernfs_seq_start+0x53/0x3b0 fs/kernfs/file.c:154
+       seq_read_iter+0x3d0/0xd60 fs/seq_file.c:225
+       copy_splice_read+0x662/0xb60 fs/splice.c:365
+       do_splice_read fs/splice.c:985 [inline]
+       splice_direct_to_actor+0x4b7/0xc90 fs/splice.c:1089
+       do_splice_direct_actor fs/splice.c:1207 [inline]
+       do_splice_direct+0x28c/0x3e0 fs/splice.c:1233
+       do_sendfile+0x56d/0xe10 fs/read_write.c:1295
+       __do_sys_sendfile64 fs/read_write.c:1362 [inline]
+       __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1348
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #0 (&p->lock){+.+.}-{3:3}:
+       check_prev_add kernel/locking/lockdep.c:3134 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3253 [inline]
+       validate_chain+0x18cb/0x58e0 kernel/locking/lockdep.c:3869
+       __lock_acquire+0x1346/0x1fd0 kernel/locking/lockdep.c:5137
+       lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+       __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+       __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+       seq_read_iter+0xb7/0xd60 fs/seq_file.c:182
+       copy_splice_read+0x662/0xb60 fs/splice.c:365
+       do_splice_read fs/splice.c:985 [inline]
+       splice_file_to_pipe+0x299/0x500 fs/splice.c:1295
+       do_sendfile+0x515/0xe10 fs/read_write.c:1301
+       __do_sys_sendfile64 fs/read_write.c:1362 [inline]
+       __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1348
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+other info that might help us debug this:
+
+Chain exists of:
+  &p->lock --> sb_writers#4 --> &pipe->mutex
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&pipe->mutex);
+                               lock(sb_writers#4);
+                               lock(&pipe->mutex);
+  lock(&p->lock);
+
+ *** DEADLOCK ***
+
+1 lock held by syz-executor.3/6567:
+ #0: ffff88801eec3c68 (&pipe->mutex){+.+.}-{3:3}, at: splice_file_to_pipe+0x2e/0x500 fs/splice.c:1292
+
+stack backtrace:
+CPU: 1 PID: 6567 Comm: syz-executor.3 Not tainted 6.9.0-syzkaller-10729-gb6394d6f7159 #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 04/02/2024
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114
+ check_noncircular+0x36a/0x4a0 kernel/locking/lockdep.c:2187
+ check_prev_add kernel/locking/lockdep.c:3134 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3253 [inline]
+ validate_chain+0x18cb/0x58e0 kernel/locking/lockdep.c:3869
+ __lock_acquire+0x1346/0x1fd0 kernel/locking/lockdep.c:5137
+ lock_acquire+0x1ed/0x550 kernel/locking/lockdep.c:5754
+ __mutex_lock_common kernel/locking/mutex.c:608 [inline]
+ __mutex_lock+0x136/0xd70 kernel/locking/mutex.c:752
+ seq_read_iter+0xb7/0xd60 fs/seq_file.c:182
+ copy_splice_read+0x662/0xb60 fs/splice.c:365
+ do_splice_read fs/splice.c:985 [inline]
+ splice_file_to_pipe+0x299/0x500 fs/splice.c:1295
+ do_sendfile+0x515/0xe10 fs/read_write.c:1301
+ __do_sys_sendfile64 fs/read_write.c:1362 [inline]
+ __se_sys_sendfile64+0x17c/0x1e0 fs/read_write.c:1348
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xf5/0x240 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fad33e7cee9
+Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 e1 20 00 00 90 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b0 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fad34b5b0c8 EFLAGS: 00000246 ORIG_RAX: 0000000000000028
+RAX: ffffffffffffffda RBX: 00007fad33fabf80 RCX: 00007fad33e7cee9
+RDX: 0000000000000000 RSI: 0000000000000008 RDI: 000000000000000a
+RBP: 00007fad33ec949e R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000100801700 R11: 0000000000000246 R12: 0000000000000000
+R13: 000000000000000b R14: 00007fad33fabf80 R15: 00007ffed6123a38
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
