@@ -1,50 +1,54 @@
-Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
+Received: from mail-yb1-f180.google.com (mail-yb1-f180.google.com [209.85.219.180])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D142113C9D5
-	for <linux-unionfs@vger.kernel.org>; Thu, 13 Jun 2024 09:01:44 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1419A14B976
+	for <linux-unionfs@vger.kernel.org>; Thu, 13 Jun 2024 18:33:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.180
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718269307; cv=none; b=m5Xgz8qkvqGGJ9HE7jDTnCfqnpLigcsa83ZzfpbKdGziT3HbvBvMh0AeiWfV97dkRYo4nY08MzdfrH5liAyagpOKzJo+692gDD+eZsLjaMgZ1lELPFeuWmKYJsyiMK6h1hzudoMxqMjM2uoNGfGmi65dhxzWSu2q4oF3iN2d5+E=
+	t=1718303621; cv=none; b=uemD0MguBV/55DRC+K01fiJj84zw35VChfpuIqJEI4cHAQIdGYGfvBwvaCHsATxS+5U5kCKCpFRWxWyYbT/5vOTiFgz6deCdFmN3peWeK8tCwiKzQiyl2ni9Ve17UftBelMUCdvEWmS1w5h7JkpHnEICMzi0imXASI0UauzvAMg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718269307; c=relaxed/simple;
-	bh=GnX/56+12k5Nb9KgkOs6/URfuFuU8BeEx2Aq465c3vc=;
+	s=arc-20240116; t=1718303621; c=relaxed/simple;
+	bh=E4Zt/CR5AeNFo63fPhm/qR5grtxF7jMoWMan1oAN/vc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RUGEDCHES3sszLsqD+v5J3ilp9To8dJmmb6llQImZtrjieJCdTXqJF+ZqAwkM1TlGu7DJtLTD2S26Up+fzuqFeZGSdM1RwBKeCZP3KSBEIngW9sS5jzmFGBJ6w8SfptAb8uBoxjBbMOPdlThS/Jj4Ok2malORATzX3YlzRAXZE8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=EIcWav9X; arc=none smtp.client-ip=209.85.218.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=k9Htbq/X7O7FiDMAfrzl56C8+cvAjjbb8OW7jkBOt6Zurt9/l4tLGHXxzv3E9wSrMPtNlF28/ZDFrdh7dv83Os9yv/rqTpf43qbFbTASvdFS5gJT6gIF+3TvdLqNRUbjw5dOUELptm/eNKbBC8//hG9DCgf1t24JGhc5PVNjCz8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=kmCYy/EK; arc=none smtp.client-ip=209.85.219.180
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="EIcWav9X"
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a6267778b3aso64869666b.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jun 2024 02:01:44 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="kmCYy/EK"
+Received: by mail-yb1-f180.google.com with SMTP id 3f1490d57ef6-dff0067a263so1556445276.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 13 Jun 2024 11:33:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1718269303; x=1718874103; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=i/Y6yy4sBWvROFty0/Gu88OPsPXIcwkyfMhi3dK/NSY=;
-        b=EIcWav9XSnNYj05LEg7MRq0xaxnlwuY0S4vxx/ehyC/NfDvHYii+0z3oaR5dUuJ/ZY
-         jZQWBHOkKfo9W2iKRC+CEWgmx1H2gi77wVmhEikaaJFE4qTRE8YiR1fjQfdQijafn26C
-         yMA0szpat41tem/9oMYjNq9EEfmz3/e92BkMU=
+        d=gmail.com; s=20230601; t=1718303619; x=1718908419; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=tlnI5pnK1H3mhvdRQ+fcJ/8EbsH4mNO7svF+5EtQiFI=;
+        b=kmCYy/EKINWE7mKrb+EOqHFSIPxDjPR8vCW2lxFp4jVaVYL22BWOT9kVaTLeSFm8nI
+         R3XS3W2izJrjcUSlx/rlFL9UKGQYUE0+WO/ZsyOJlSqVP14GfgVgG4eqTXwDrY4ZugNZ
+         nXFzyAWgjrlsw6Dg8UL2GQblEeHhQMMgMNEQtdmfzHvtvuE6GZB1EQw5HwKB9UBmto0r
+         2eFajqPTKXxMlsN36EIo+dc987+R2jwXASJUE+yPFC9w11bYp3/0jeDnwUffKoSdV7ZM
+         qQ7flJsSKwWmKg+8bFR8Vohrm/s3MPLhLBS/vXRD0BkXonULND+N7D6SVG8mgvyaFCYo
+         4FKw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718269303; x=1718874103;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=i/Y6yy4sBWvROFty0/Gu88OPsPXIcwkyfMhi3dK/NSY=;
-        b=sHZgwEvQ1hKjLapBLPpRasYDsbCY0/Yk/e/5jFJYfNjDWiYrzhJBDMWA7i00IiJt9U
-         9pnSXGpZvlGkEIfbgQ0gpkrcXeqO6cDOjF0BXAA9jl2Zw1oz0W7bH06fOQP6K3QCDhYx
-         h0jSxqWC4xi8ulsYtjrbOzHXeTvB7ZRDxbmF6ZJaHVa+8MEPJxcSovsL7JGSIrGzvrXJ
-         rTQRXTD7wnGt2DMejeRILbfRDrFejmSruKWbL6bXXl35H/41SOD8Zt/2RTKGDZrURq+L
-         vqG3Z1g6oZVgtI6589ZyXmVDLcCOttBTtiASuGVckUM7IGCnxWExWujbg5+jGR7s+wMi
-         L2zg==
-X-Gm-Message-State: AOJu0Yybk+JMjokHCsPeYIfFE8KNoaeEiQM/180BhPpTGb6sMGUoVD8G
-	d9NThuTPdqqptw1Uuiz3gC/dkzfIKot00dTPyY7yPmQ63cov2yQdCXelv/qwsTaSnoq+HPQtx93
-	0JWFcfG0+YMUO1AkuYhNLZcdzVtXQR/Pkez2jkA==
-X-Google-Smtp-Source: AGHT+IGKtB7kvIYj9wC9bPL2GdSCin0ObuJfg6KByOTibIALkbNRKqmkqQ4mTPmXM7S75aImqhMcwf8gQxTYfq/GuFA=
-X-Received: by 2002:a17:906:6812:b0:a6f:e04:a093 with SMTP id
- a640c23a62f3a-a6f47f7fce2mr257923766b.22.1718269302805; Thu, 13 Jun 2024
- 02:01:42 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1718303619; x=1718908419;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=tlnI5pnK1H3mhvdRQ+fcJ/8EbsH4mNO7svF+5EtQiFI=;
+        b=FX0SoNsUxJ/k1W8wrRA/j6uDCQlIwE9/8jaXOzh1ux57LwIOWNLMf+SCnpEuiGY0sa
+         DZvUDQlD54GUKWeoOHQqmuuYnB1CWgBBaLgaqrJ9sgxl7COjjHBj+6PkBt74CUcEdTd4
+         OCGrjHoyGUD66RXSrCXNtGgB/e1S+7bHu4lmQjp+AHkC+zWYFbg7rHxaEXfjIssW5eGb
+         1qqlreLKhKpKmvldzbPpq/jZOqS8DRLRRR2zeN7BnFpbHMukJ3ROZ+XgN4svsTBQ+3vw
+         W1t7h9GoX4CuCA5o73le1H/pzx+X2RvLXrRUzAPkrYPZ8XGxLRGC2WOUtdyuL3SpS9cg
+         Ue3A==
+X-Gm-Message-State: AOJu0Yye+JX9aeoeY6OT/nLsgDHThGaxg9Dd/x2+8kJmVkYQm914+cql
+	P8t+L5/hrxxPYePgzXLNistnkST1LEmFpEjsuklouSj91zLgYc/HK+GqytN03eZDnz7gxdIWRB9
+	1yy2vX4lkAqy3nPd0njx5uUQTObQ1alIC+6s=
+X-Google-Smtp-Source: AGHT+IGYJPthq5EqpT3f1BE89DdRM3606dmPq0TXvKEHvxciq4Fet9/ELEReA7nVFy4Tm6kbEnmR5JxrmdxTts07+hQ=
+X-Received: by 2002:a25:bc87:0:b0:dfa:5895:781f with SMTP id
+ 3f1490d57ef6-dff153c884cmr343407276.37.1718303618667; Thu, 13 Jun 2024
+ 11:33:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -52,58 +56,36 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <CADpNCvaBimi+zCYfRJHvCOhMih8OU0rmZkwLuh24MKKroRuT8Q@mail.gmail.com>
-In-Reply-To: <CADpNCvaBimi+zCYfRJHvCOhMih8OU0rmZkwLuh24MKKroRuT8Q@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 13 Jun 2024 11:01:30 +0200
-Message-ID: <CAJfpegsCsBjHNTEe+6RmeLK7jb_gz_YB=CD-RKUWiscG8u+1cQ@mail.gmail.com>
+ <CAJfpegsCsBjHNTEe+6RmeLK7jb_gz_YB=CD-RKUWiscG8u+1cQ@mail.gmail.com>
+In-Reply-To: <CAJfpegsCsBjHNTEe+6RmeLK7jb_gz_YB=CD-RKUWiscG8u+1cQ@mail.gmail.com>
+From: Youzhong Yang <youzhong@gmail.com>
+Date: Thu, 13 Jun 2024 14:33:27 -0400
+Message-ID: <CADpNCvYu9q4bEPj-xhcUdo4j48EgBCFMst7LNc3Pq6w1d7Xd5A@mail.gmail.com>
 Subject: Re: crash inside ovl_encode_real_fh() due to NULL dentry pointer
-To: Youzhong Yang <youzhong@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>
-Content-Type: multipart/mixed; boundary="0000000000006c445a061ac1bfde"
-
---0000000000006c445a061ac1bfde
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 13 Jun 2024 at 03:32, Youzhong Yang <youzhong@gmail.com> wrote:
-> I analyzed the crash dump, here is what I figured out:
-> - The overlay fs is mounted with only 2 lowerdirs, and nfs_export=on
-> - When ovl_dentry_to_fid() is called on the root dentry:
->    - ovl_check_encode_origin(dentry) returns 0 as euc_lower (I believe
-> it should return 1 in this case)
->    - "enc_lower ? ovl_dentry_lower(dentry) : ovl_dentry_upper(dentry)"
-> evaluates to NULL
->    - NULL is passed as the second argument to ovl_encode_real_fh(), so
-> it crashes
+Thank you Miklos. I tested the patch, it works.
 
-Thank you for the excellent report.
-
-The attached patch (untested) should fix it.
-
-Thanks,
-Miklos
-
---0000000000006c445a061ac1bfde
-Content-Type: text/x-patch; charset="US-ASCII"; name="ovl-fix-encoding-lower-only-root.patch"
-Content-Disposition: attachment; 
-	filename="ovl-fix-encoding-lower-only-root.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_lxd15yyv0>
-X-Attachment-Id: f_lxd15yyv0
-
-LS0tCiBmcy9vdmVybGF5ZnMvZXhwb3J0LmMgfCAgICA2ICsrKysrLQogMSBmaWxlIGNoYW5nZWQs
-IDUgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKLS0tIGEvZnMvb3ZlcmxheWZzL2V4cG9y
-dC5jCisrKyBiL2ZzL292ZXJsYXlmcy9leHBvcnQuYwpAQCAtMTgxLDYgKzE4MSwxMCBAQCBzdGF0
-aWMgaW50IG92bF9jaGVja19lbmNvZGVfb3JpZ2luKHN0cnVjCiAJc3RydWN0IG92bF9mcyAqb2Zz
-ID0gT1ZMX0ZTKGRlbnRyeS0+ZF9zYik7CiAJYm9vbCBkZWNvZGFibGUgPSBvZnMtPmNvbmZpZy5u
-ZnNfZXhwb3J0OwogCisJLyogTm8gdXBwZXIgbGF5ZXI/ICovCisJaWYgKCFvdmxfdXBwZXJfbW50
-KG9mcykpCisJCXJldHVybiAxOworCiAJLyogTG93ZXIgZmlsZSBoYW5kbGUgZm9yIG5vbi11cHBl
-ciBub24tZGVjb2RhYmxlICovCiAJaWYgKCFvdmxfZGVudHJ5X3VwcGVyKGRlbnRyeSkgJiYgIWRl
-Y29kYWJsZSkKIAkJcmV0dXJuIDE7CkBAIC0yMDksNyArMjEzLDcgQEAgc3RhdGljIGludCBvdmxf
-Y2hlY2tfZW5jb2RlX29yaWdpbihzdHJ1YwogCSAqIG92bF9jb25uZWN0X2xheWVyKCkgd2lsbCB0
-cnkgdG8gbWFrZSBvcmlnaW4ncyBsYXllciAiY29ubmVjdGVkIiBieQogCSAqIGNvcHlpbmcgdXAg
-YSAiY29ubmVjdGFibGUiIGFuY2VzdG9yLgogCSAqLwotCWlmIChkX2lzX2RpcihkZW50cnkpICYm
-IG92bF91cHBlcl9tbnQob2ZzKSAmJiBkZWNvZGFibGUpCisJaWYgKGRfaXNfZGlyKGRlbnRyeSkg
-JiYgZGVjb2RhYmxlKQogCQlyZXR1cm4gb3ZsX2Nvbm5lY3RfbGF5ZXIoZGVudHJ5KTsKIAogCS8q
-IExvd2VyIGZpbGUgaGFuZGxlIGZvciBpbmRleGVkIGFuZCBub24tdXBwZXIgZGlyL25vbi1kaXIg
-Ki8K
---0000000000006c445a061ac1bfde--
+On Thu, Jun 13, 2024 at 5:01=E2=80=AFAM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
+>
+> On Thu, 13 Jun 2024 at 03:32, Youzhong Yang <youzhong@gmail.com> wrote:
+> > I analyzed the crash dump, here is what I figured out:
+> > - The overlay fs is mounted with only 2 lowerdirs, and nfs_export=3Don
+> > - When ovl_dentry_to_fid() is called on the root dentry:
+> >    - ovl_check_encode_origin(dentry) returns 0 as euc_lower (I believe
+> > it should return 1 in this case)
+> >    - "enc_lower ? ovl_dentry_lower(dentry) : ovl_dentry_upper(dentry)"
+> > evaluates to NULL
+> >    - NULL is passed as the second argument to ovl_encode_real_fh(), so
+> > it crashes
+>
+> Thank you for the excellent report.
+>
+> The attached patch (untested) should fix it.
+>
+> Thanks,
+> Miklos
