@@ -1,82 +1,63 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2A85664
-	for <linux-unionfs@vger.kernel.org>; Fri, 21 Jun 2024 19:54:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8D0A816D4F5;
+	Fri, 21 Jun 2024 21:09:05 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718999685; cv=none; b=VWh4BKfxIdR3u3+qIw4c/QsjZpuyb0dt3adDMnPBLinADjggCl1xGSyBywme9xUhuH22NsInmGK+Qrfi61yybYKdB4lTtB+RQS2CruYmlyHW/FoOOmEXkC6RjAiuoE1pCf4Jcr8rEOY36JsQpRQW9sX95W4CJKEQ1I98pV8zcTo=
+	t=1719004145; cv=none; b=AmGdQ2/V2uydsTr0gaHl+RRcUsppUwmkQkTxrj6BOFx/ndmJmnh2XPDqENZtlQigH8aDXWwyuXx9P+99VldBZisQhJfJERhZcZP33TafJQ1ljJ8M0KN2OzPW45tEYyH2sVWDxSz44IlSziOAFkiJ9FDfKoZ7ktaTHL0kLrRsshQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718999685; c=relaxed/simple;
-	bh=D3ymLZciavul1Y12MVNcx4+feyXXYgMZz6/03/D75sE=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=IN0r4yUdt6gSuFaHjCHLrCGmu4GozoTq41XtBf4b7oM1fLatfGJ5uE2trk2gjYImR43QDAge78gv/40r0l0ygy4cGURVSRI7dlx/88G+hFiJ6r/HLIlmkK5XNcHbKSwgbH2JHAFW2QFD54xuFXo2cHZwJMPLtcUiyp2onPMF4cQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=jzaRl8Wr; arc=none smtp.client-ip=209.85.208.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1719004145; c=relaxed/simple;
+	bh=+LIbyvjPcMeXkeMa2lo8e5prHheBCLudLjRyC8TIAEY=;
+	h=Subject:From:In-Reply-To:References:Message-Id:Date:To:Cc; b=AJUuJOLTXvXRzTw+8Eg4sgzsVk/8qGi6JAhakoy93x9SrPTNWkqJYmlkGPfeA2NyUQ2aJqESK5EnlgtSo+HjWz/kXiTV7W5SnNyA1yIMxl/sYT3m1g9z+Fq7zgMAYJJo/CWSZVMCTtW1GR8ed8g69IyWUGy1t5BwzlQrFFdV1So=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=i6SAsJ24; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="jzaRl8Wr"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-57d280e2d5dso2007322a12.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 21 Jun 2024 12:54:41 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1718999680; x=1719604480; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=33jEI5/feKxqme62YiuJFqZt4cfWs+d7SXX2h8CWrRk=;
-        b=jzaRl8Wrd7mvryJbCn5CX40Pe8/BJSiffXlFf/g7a5vo6zGimnPkCFrVbzWbiI/E7a
-         YlUxJANtONOZOzf3/CQ1jqKezaLfzNJQ7DVYxj1TdLEFFYrHUg/fdzPCg2kkuIwGRHm2
-         HkgvHeAi9eNeL8mNml+8m/Tn4n5PankPDw+CE=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718999680; x=1719604480;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=33jEI5/feKxqme62YiuJFqZt4cfWs+d7SXX2h8CWrRk=;
-        b=SZV44kFVErnt433pZWHo9ZQOAtNTGm1ZTA9PUX0KIZzm8HWs1GDooeDJ4vhzVnZaj6
-         cjsKQe0ekg1ps7pkqloy6LWmapS+c1F2hfyUU5IeZmUZgGUOssJmsz5U5IDOf3xdUkSu
-         XxlpQsEliFJ0jT5BW7bs5YuvkvISXFWwX8CkCCL0eSjPcv9JhM4Ps5/ZbUHFbq8OjN6Q
-         XzdKXhx9e20uBmB9Ke4d+yzkwL9ij13GvKvEA+L9IUAX7rZxiE5wtTbsx/QIoTfBFU7D
-         VpsBbP/Dp8c6EWrs8Tv628WQ8NE3XzvghzLETNEA2qOCIFOZdfzvugnVYCGyTTZUgoKd
-         hxQw==
-X-Forwarded-Encrypted: i=1; AJvYcCXrSxLRVEygS9fXzc+ZvsUeHchs64sDbgNqaEUzms566O1+q3yiGbSElVgdP649WEHLR6/tCfjRMedtAUm4V92ruelSHyjvfUzgyZY6yQ==
-X-Gm-Message-State: AOJu0YzKYncrF5+U+JUwr1bvV2cgYr/kGAOxzeeERZRyscPWCNRN9T85
-	zU6NBG+L/UBJPJWpAhMpwopPxXIVeym0B757GMUWF4/ao9HZEj6zMgpKR6IDp87giz5ddCCn++H
-	fp/K4zYT6xZPqL1/jYtwMYO2AxmshZ5jhgIdIoA==
-X-Google-Smtp-Source: AGHT+IHMPxRSpeWfFETILoj83QSpeXgYk8tMPeCiUlyNTt4XtvfyTrE0PqN0dcALyeXIod8bt3F7q/kAGJ/d13yodi8=
-X-Received: by 2002:a17:906:7148:b0:a6f:6292:2425 with SMTP id
- a640c23a62f3a-a6fab648959mr496741166b.38.1718999679727; Fri, 21 Jun 2024
- 12:54:39 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="i6SAsJ24"
+Received: by smtp.kernel.org (Postfix) with ESMTPS id 6FAC9C4AF07;
+	Fri, 21 Jun 2024 21:09:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1719004145;
+	bh=+LIbyvjPcMeXkeMa2lo8e5prHheBCLudLjRyC8TIAEY=;
+	h=Subject:From:In-Reply-To:References:Date:To:Cc:From;
+	b=i6SAsJ24LZai2hLmeNahcLCi77UFlYzp9mYx7uKa6C3eeT0zrwMRp7HHq2fm5rBZU
+	 nwBkkAeIwMY4Wy3fN6dAoS0JbGwQSe3pnOkD41/38gg4M67IDhIjX3tZmxdMnCcxs1
+	 9uiO4As99m/wcvQr42GlY3QmAmuxeQ+zc5+Nb1xYKwIT0cf0F+61vdDknkMB3b3ePU
+	 1PdjKMA0Twg/5xk2MeC4j3oAFNUS12+FuN4Rr+oLpsLmEWsPnIHi+xyNYNfoM+l7Zb
+	 251Q6ZJFRMYPt8SUWIiBroaDBF8Y8JaAWc6OO0YkzYGyiom+FxybLc6nZEvh5xvitG
+	 w3/tE/nC3aCSQ==
+Received: from aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (localhost.localdomain [127.0.0.1])
+	by aws-us-west-2-korg-oddjob-1.ci.codeaurora.org (Postfix) with ESMTP id 6291ACF3B94;
+	Fri, 21 Jun 2024 21:09:05 +0000 (UTC)
+Subject: Re: [GIT PULL] overlayfs fixes for 6.10-rc5
+From: pr-tracker-bot@kernel.org
+In-Reply-To: <CAJfpegvm9M9Kzmtd=X66YijMOoJpKX62vuL4maD+7xBJ0-n5Zw@mail.gmail.com>
+References: <CAJfpegvm9M9Kzmtd=X66YijMOoJpKX62vuL4maD+7xBJ0-n5Zw@mail.gmail.com>
+X-PR-Tracked-List-Id: <linux-kernel.vger.kernel.org>
+X-PR-Tracked-Message-Id: <CAJfpegvm9M9Kzmtd=X66YijMOoJpKX62vuL4maD+7xBJ0-n5Zw@mail.gmail.com>
+X-PR-Tracked-Remote: git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git tags/ovl-fixes-6.10-rc5
+X-PR-Tracked-Commit-Id: 004b8d1491b4bcbb7da1a3206d1e7e66822d47c6
+X-PR-Merge-Tree: torvalds/linux.git
+X-PR-Merge-Refname: refs/heads/master
+X-PR-Merge-Commit-Id: 264efe488fd82cf3145a3dc625f394c61db99934
+Message-Id: <171900414539.4758.3763719464003191294.pr-tracker-bot@kernel.org>
+Date: Fri, 21 Jun 2024 21:09:05 +0000
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, overlayfs <linux-unionfs@vger.kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Fri, 21 Jun 2024 21:54:28 +0200
-Message-ID: <CAJfpegvm9M9Kzmtd=X66YijMOoJpKX62vuL4maD+7xBJ0-n5Zw@mail.gmail.com>
-Subject: [GIT PULL] overlayfs fixes for 6.10-rc5
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
 
-Hi Linus,
+The pull request you sent on Fri, 21 Jun 2024 21:54:28 +0200:
 
-Please pull from:
+> git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git tags/ovl-fixes-6.10-rc5
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
-tags/ovl-fixes-6.10-rc5
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/264efe488fd82cf3145a3dc625f394c61db99934
 
-Fix two bugs, one originating in this cycle and one from 6.6.
+Thank you!
 
-Thanks,
-Miklos
-
----
-Miklos Szeredi (2):
-      ovl: fix copy-up in tmpfile
-      ovl: fix encoding fid for lower only root
-
----
- fs/overlayfs/dir.c    | 8 ++++----
- fs/overlayfs/export.c | 6 +++++-
- 2 files changed, 9 insertions(+), 5 deletions(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
