@@ -1,84 +1,82 @@
-Received: from mail-io1-f70.google.com (mail-io1-f70.google.com [209.85.166.70])
+Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 93D6C4965D
-	for <linux-unionfs@vger.kernel.org>; Sat, 15 Jun 2024 17:49:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.70
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E2A85664
+	for <linux-unionfs@vger.kernel.org>; Fri, 21 Jun 2024 19:54:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1718473762; cv=none; b=P9QK3Iyai/+g1ONYM+nRGMaa2erPRD+0eZM4jyphil05EwM1n1AJh1kent+PpixCsHay49g5n+lAPnYjHtqVenh77l7KtOsO52rU5uO++67AXqsQrUk/d2RlkQJoHOm0ODnJehyi6rLndj6gvwnWATAuN0nkJhiSZlXR+wpIW9A=
+	t=1718999685; cv=none; b=VWh4BKfxIdR3u3+qIw4c/QsjZpuyb0dt3adDMnPBLinADjggCl1xGSyBywme9xUhuH22NsInmGK+Qrfi61yybYKdB4lTtB+RQS2CruYmlyHW/FoOOmEXkC6RjAiuoE1pCf4Jcr8rEOY36JsQpRQW9sX95W4CJKEQ1I98pV8zcTo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1718473762; c=relaxed/simple;
-	bh=F2Y8xYsdrjSOZp3BZrwFQlCfRppI2jLEnYkfqcrbbX0=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=eG6XLZKDxJGeen328a68OIFNsSniLRyEcf0EcL437jsikA2PCQ9GNeDn49NBKtuf6Xq25J+u/wRqABnfuuBLE1e2OF7AYxemOwJPUKIr6p9QoBf8hoWCa7YKIX83jvifr391MF/Wt2wf0za50QvYaeClqVDGM1rys2zrPM3Wo9M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.70
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f70.google.com with SMTP id ca18e2360f4ac-7ebea0e968eso255649639f.3
-        for <linux-unionfs@vger.kernel.org>; Sat, 15 Jun 2024 10:49:21 -0700 (PDT)
+	s=arc-20240116; t=1718999685; c=relaxed/simple;
+	bh=D3ymLZciavul1Y12MVNcx4+feyXXYgMZz6/03/D75sE=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=IN0r4yUdt6gSuFaHjCHLrCGmu4GozoTq41XtBf4b7oM1fLatfGJ5uE2trk2gjYImR43QDAge78gv/40r0l0ygy4cGURVSRI7dlx/88G+hFiJ6r/HLIlmkK5XNcHbKSwgbH2JHAFW2QFD54xuFXo2cHZwJMPLtcUiyp2onPMF4cQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=jzaRl8Wr; arc=none smtp.client-ip=209.85.208.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="jzaRl8Wr"
+Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-57d280e2d5dso2007322a12.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 21 Jun 2024 12:54:41 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1718999680; x=1719604480; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=33jEI5/feKxqme62YiuJFqZt4cfWs+d7SXX2h8CWrRk=;
+        b=jzaRl8Wrd7mvryJbCn5CX40Pe8/BJSiffXlFf/g7a5vo6zGimnPkCFrVbzWbiI/E7a
+         YlUxJANtONOZOzf3/CQ1jqKezaLfzNJQ7DVYxj1TdLEFFYrHUg/fdzPCg2kkuIwGRHm2
+         HkgvHeAi9eNeL8mNml+8m/Tn4n5PankPDw+CE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1718473761; x=1719078561;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+        d=1e100.net; s=20230601; t=1718999680; x=1719604480;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=3m+yhIqhD41WwtddUIkZr1hXB+VF5dDQxD68iyhy/10=;
-        b=ew0BzE6gRWviR5iRHzp8JbWccDKL44sgfB7pIqUN80ioAvbUz9jS+Tq8IVG4GNQOOj
-         5wKV29BOetwtEmsmn++nVT58RMc6uh70IOCU4WoAI5qPhIlR7zzalJIO/ZkeLiiLcA25
-         aNcy8y+XCSH1wAzfdUXWjDpSFEKp6HVbDosSxU+Sl/tF2My3tXfFuEKXdaxzgTAY4jcm
-         NJUhRcQ67Jue7wokRd9FfBICfdvw+nn4z6Rm81C6atA7+Nzpa3XdHjqbenw5os4BSGHf
-         3PY7Wh9vWWSCvSDcgmrA+YAx15rrarAi1tcV/uJRv1bZhCAzDgYZq8YhSSJ0EfGsiJuq
-         Xksw==
-X-Forwarded-Encrypted: i=1; AJvYcCXqCBlgAZbv8p/78p3Ksm0WCiA4fKfOalDVtkTFV+aymtHd5H2Aug9PnTpMvAjx4i7klw4NOmfwel5eXPtYzjbydqHx8rd6aANvK17Vag==
-X-Gm-Message-State: AOJu0YyP2B9zcZKsEB9zO8Z+T8oixSaQDk0gDC4UTPNN9pfWTp8XUXgA
-	7qmAYwGJ/pJMhJ0dBNgrc9numiwwrAMWs+9usDPOIyi3WpWu25VUE9gkJfOJEJnW1sSsQmC8SdB
-	eWSz+lu4SLz1v4PNCU83hNS0UuGeF7q+zqDMBPbYQV2rNPFuS564YBvo=
-X-Google-Smtp-Source: AGHT+IEIsnY8M9xnbm0uV/MxzT83wFTQUT1wNFZVbWDNHIyszyimRD0bwBzDQm4WyqpO/0gIAnkrC/OA3g+RXyG+4RHGfPZZ7ay6
+        bh=33jEI5/feKxqme62YiuJFqZt4cfWs+d7SXX2h8CWrRk=;
+        b=SZV44kFVErnt433pZWHo9ZQOAtNTGm1ZTA9PUX0KIZzm8HWs1GDooeDJ4vhzVnZaj6
+         cjsKQe0ekg1ps7pkqloy6LWmapS+c1F2hfyUU5IeZmUZgGUOssJmsz5U5IDOf3xdUkSu
+         XxlpQsEliFJ0jT5BW7bs5YuvkvISXFWwX8CkCCL0eSjPcv9JhM4Ps5/ZbUHFbq8OjN6Q
+         XzdKXhx9e20uBmB9Ke4d+yzkwL9ij13GvKvEA+L9IUAX7rZxiE5wtTbsx/QIoTfBFU7D
+         VpsBbP/Dp8c6EWrs8Tv628WQ8NE3XzvghzLETNEA2qOCIFOZdfzvugnVYCGyTTZUgoKd
+         hxQw==
+X-Forwarded-Encrypted: i=1; AJvYcCXrSxLRVEygS9fXzc+ZvsUeHchs64sDbgNqaEUzms566O1+q3yiGbSElVgdP649WEHLR6/tCfjRMedtAUm4V92ruelSHyjvfUzgyZY6yQ==
+X-Gm-Message-State: AOJu0YzKYncrF5+U+JUwr1bvV2cgYr/kGAOxzeeERZRyscPWCNRN9T85
+	zU6NBG+L/UBJPJWpAhMpwopPxXIVeym0B757GMUWF4/ao9HZEj6zMgpKR6IDp87giz5ddCCn++H
+	fp/K4zYT6xZPqL1/jYtwMYO2AxmshZ5jhgIdIoA==
+X-Google-Smtp-Source: AGHT+IHMPxRSpeWfFETILoj83QSpeXgYk8tMPeCiUlyNTt4XtvfyTrE0PqN0dcALyeXIod8bt3F7q/kAGJ/d13yodi8=
+X-Received: by 2002:a17:906:7148:b0:a6f:6292:2425 with SMTP id
+ a640c23a62f3a-a6fab648959mr496741166b.38.1718999679727; Fri, 21 Jun 2024
+ 12:54:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6638:258a:b0:488:e34a:5f76 with SMTP id
- 8926c6da1cb9f-4b963f947efmr273756173.1.1718473760819; Sat, 15 Jun 2024
- 10:49:20 -0700 (PDT)
-Date: Sat, 15 Jun 2024 10:49:20 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <00000000000011db0b061af15a3c@google.com>
-Subject: [syzbot] Monthly overlayfs report (Jun 2024)
-From: syzbot <syzbot+list316c1d421205de40320d@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 21 Jun 2024 21:54:28 +0200
+Message-ID: <CAJfpegvm9M9Kzmtd=X66YijMOoJpKX62vuL4maD+7xBJ0-n5Zw@mail.gmail.com>
+Subject: [GIT PULL] overlayfs fixes for 6.10-rc5
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	overlayfs <linux-unionfs@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 
-Hello overlayfs maintainers/developers,
+Hi Linus,
 
-This is a 31-day syzbot report for the overlayfs subsystem.
-All related reports/information can be found at:
-https://syzkaller.appspot.com/upstream/s/overlayfs
+Please pull from:
 
-During the period, 1 new issues were detected and 0 were fixed.
-In total, 3 issues are still open and 26 have been fixed so far.
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
+tags/ovl-fixes-6.10-rc5
 
-Some of the still happening issues:
+Fix two bugs, one originating in this cycle and one from 6.6.
 
-Ref Crashes Repro Title
-<1> 21      Yes   BUG: unable to handle kernel NULL pointer dereference in __lookup_slow (3)
-                  https://syzkaller.appspot.com/bug?extid=94891a5155abdf6821b7
-<2> 7       No    possible deadlock in ovl_copy_up_start (4)
-                  https://syzkaller.appspot.com/bug?extid=6d34d0b636fea8b593eb
-<3> 4       No    KASAN: slab-use-after-free Read in ovl_dentry_update_reval
-                  https://syzkaller.appspot.com/bug?extid=316db8a1191938280eb6
+Thanks,
+Miklos
 
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Miklos Szeredi (2):
+      ovl: fix copy-up in tmpfile
+      ovl: fix encoding fid for lower only root
 
-To disable reminders for individual bugs, reply with the following command:
-#syz set <Ref> no-reminders
-
-To change bug's subsystems, reply with:
-#syz set <Ref> subsystems: new-subsystem
-
-You may send multiple commands in a single email message.
+---
+ fs/overlayfs/dir.c    | 8 ++++----
+ fs/overlayfs/export.c | 6 +++++-
+ 2 files changed, 9 insertions(+), 5 deletions(-)
