@@ -1,153 +1,85 @@
-Received: from mail-ot1-f47.google.com (mail-ot1-f47.google.com [209.85.210.47])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id F09EF1DA319
-	for <linux-unionfs@vger.kernel.org>; Wed,  3 Jul 2024 15:18:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.47
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E139113E024
+	for <linux-unionfs@vger.kernel.org>; Thu,  4 Jul 2024 07:05:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720019900; cv=none; b=kC1xcZoEdDcAnE7Sz/n+nzsp9YGuN3slEpIcxC3UDSlCu6vTCrmw8NPqs+lKvHhHdUoHqhSd+HNHuvAbptxTUCXWWkX2jYU3yTiIuvcQTYZCkIpaWOhIJ7HUiDeiiy0icqLHcATg0wN87/L+vRHkvgVXPj/Wvu0pTl5JGYChv44=
+	t=1720076737; cv=none; b=GttVIy5yFtADND+DnQQ3usUM7C3Pz4uSFTqPl30fueiSy7pUrqt3sRqvVFrLSgSZMsFxYIGC41McDQBUwjdJj++2VFP9Th43OxalhJB5RiYEbwyf8MAYYjNp0DgzTTy6NbUKyZWzIjK/XhTIuzd0gvB9eq3slLCGzikYQ7BvjCo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720019900; c=relaxed/simple;
-	bh=DqSYifaLKzq8YaGW+o7u6gYlJKM9hsb1CYRGR/QJJbM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Go2Dhfhg4cB/IZD6R460ERT/LfG+jIJuDuqIOQYhCmRVn4Cw3chDmp+xf88X+tuiKYeQCM3BcQUvEMvvFaNiBJnesiJ+eSXibgl+w6bS24wWY9+kuLPwyofzLYRExf+kO3M0Q/1DsmABpTYLlAkeOKlW3t9GLSCWW8IyrRGwGhk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=TcefQYVJ; arc=none smtp.client-ip=209.85.210.47
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="TcefQYVJ"
-Received: by mail-ot1-f47.google.com with SMTP id 46e09a7af769-7021dffc628so1418085a34.2
-        for <linux-unionfs@vger.kernel.org>; Wed, 03 Jul 2024 08:18:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1720019898; x=1720624698; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4kSyQEXE5yC3tGpfM28sPkjgZNzMfbOVegr6j7fTy7c=;
-        b=TcefQYVJeGLbqzwwf/XAh4Y/C0//MEs6QrGAhAknFcHvLg10hJ0i+CcdCkFYDwlqDb
-         xMt1baOVn0stOgBrlCLRPbIARjCyJ9g0F8MsBaEEcLwd7WkKTNvISDkRABbvMbPoKsBm
-         21q/XHf0ggSExVSthmS5cXe3egzuzt9KXS2R11hSBFXtsGrTDbp9ZPiqoaia0mmY8H5z
-         ECu9KkiR6zxhcrWwP2tc34PrCZ600JRyKAGO2+uyU2rbQMeC24vH0fp0/GyWX7pvTwcy
-         uG1HHLgBMstK8xOrel82WMnuzbUg6uUHuYABqS7KlydpWUdap8KHLNLvtl7xdKPcCrhh
-         pCyA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720019898; x=1720624698;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=4kSyQEXE5yC3tGpfM28sPkjgZNzMfbOVegr6j7fTy7c=;
-        b=p1a/C9LAB6/LqyQUwKufrQlntQ/KGbHyGDesUsjL0aRhWDx8K6dFzoNqrAIWmNVNJo
-         xajWbKolYCGey3aeuV3SyXd0WZqUOL+/3fOzQM1vbgBWc4uVDlHgAGkBKuER0/oOgHVu
-         B9sw9ULWjVslZNmpGXLMPb4lnUdjpihc2ULfVoINILKmCvfS+m21GoY/NnPoYX8Vq6tM
-         IrAg4d2sFxjEZJwp+4yb5uvILs+rRMdA7+but6wnQ80suWO6aTSILUlqOqsRYJ0YNJsQ
-         YPlEthXSpZ/GoovyiZGaH/liKHwIlQPkbPinjKnh+v7md0q4mxOw6aWZ+E4xxr/Yd4s5
-         rpQg==
-X-Forwarded-Encrypted: i=1; AJvYcCWo+f/1zLSJlKAYTV/eB3Kv8x/YvNF06OPUNooHsIg3+U+pSt2ojWCJf4F+uM10l3fZ3NrIgaDy2Z3zG5hU6jfqRWZODuLV3gRqTPRfQQ==
-X-Gm-Message-State: AOJu0YyVXmWWCx8OTEqtbGBLfPlFwM4n+6AMgMGpfI9q88VsRd9x/r6W
-	VLupyOoFnfikwOhob1GvDg0A/bbXYlfMUINwMu7pF1h86gItuyvTnamoPYcLgVrv+80oOTCG4BK
-	MCUpaFv8ImEA8JWoi22ejPVZnQ+s=
-X-Google-Smtp-Source: AGHT+IEJ7fSFg5sIR63H4X32f1VgfOcavprluC1XXH3oF/nHRFohuJV8cOoHojTQHUQS58pWniBFQ7fbI4AICLjSrxc=
-X-Received: by 2002:a05:6830:1d93:b0:702:777:c413 with SMTP id
- 46e09a7af769-7020777c56cmr15101971a34.0.1720019897766; Wed, 03 Jul 2024
- 08:18:17 -0700 (PDT)
+	s=arc-20240116; t=1720076737; c=relaxed/simple;
+	bh=d1RfOw5f8V1dSmyW5gx5AYxZnT8RZLBeiSfVpvXfwa4=;
+	h=From:To:CC:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=ZiXDIwywYnLaasRwYYoYD9mQOgdmFZXU+zbE2cCzh3X3NRn0Yu1g9gzD8RuZ+4uWMOqApn8sDNKYbs4m6Ca26D5PNKngjGI0GuCmMGAWCf26U2pPJeWerYU2nPud/3ivAPp3w8LYmB1YRquvLFgqIrCPDbJ8MvvCV5XR1nXZc00=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.105])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4WF70Q56RDzdgHn;
+	Thu,  4 Jul 2024 15:03:34 +0800 (CST)
+Received: from kwepemm000013.china.huawei.com (unknown [7.193.23.81])
+	by mail.maildlp.com (Postfix) with ESMTPS id 41FFB140443;
+	Thu,  4 Jul 2024 15:05:12 +0800 (CST)
+Received: from huawei.com (10.175.104.67) by kwepemm000013.china.huawei.com
+ (7.193.23.81) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.1.2507.39; Thu, 4 Jul
+ 2024 15:05:11 +0800
+From: Zhihao Cheng <chengzhihao1@huawei.com>
+To: <miklos@szeredi.hu>, <amir73il@gmail.com>
+CC: <linux-unionfs@vger.kernel.org>, <brauner@kernel.org>
+Subject: [PATCH v2 1/3] ovl: pass string to ovl_parse_layer()
+Date: Thu, 4 Jul 2024 15:03:21 +0800
+Message-ID: <20240704070323.3365042-2-chengzhihao1@huawei.com>
+X-Mailer: git-send-email 2.39.2
+In-Reply-To: <20240704070323.3365042-1-chengzhihao1@huawei.com>
+References: <20240704070323.3365042-1-chengzhihao1@huawei.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240703044631.4089465-1-chengzhihao1@huawei.com>
- <CAOQ4uxg8YvWYobbx5ztjkw6ZnUVgv1JDWFYq71HQ5O22=jYTKw@mail.gmail.com> <20240703-maulwurf-beinverletzungen-dfb0ff663d78@brauner>
-In-Reply-To: <20240703-maulwurf-beinverletzungen-dfb0ff663d78@brauner>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 3 Jul 2024 18:18:06 +0300
-Message-ID: <CAOQ4uxjhc2f2D68emH7mdBBa4Cut7R7AjRASkDS9GQtr3MPEHQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fix wrong lowerdir number check for parameter Opt_lowerdir
-To: Christian Brauner <brauner@kernel.org>
-Cc: Zhihao Cheng <chengzhihao1@huawei.com>, miklos@szeredi.hu, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+ kwepemm000013.china.huawei.com (7.193.23.81)
 
-On Wed, Jul 3, 2024 at 4:48=E2=80=AFPM Christian Brauner <brauner@kernel.or=
-g> wrote:
->
-> On Wed, Jul 03, 2024 at 02:35:49PM GMT, Amir Goldstein wrote:
-> > On Wed, Jul 3, 2024 at 7:48=E2=80=AFAM Zhihao Cheng <chengzhihao1@huawe=
-i.com> wrote:
-> > >
-> > > The max count of lowerdir is OVL_MAX_STACK[500], which is broken by
-> > > commit 37f32f526438("ovl: fix memory leak in ovl_parse_param()") for
-> > > parameter Opt_lowerdir. Since commit 819829f0319a("ovl: refactor laye=
-r
-> > > parsing helpers") and commit 24e16e385f22("ovl: add support for
-> > > appending lowerdirs one by one") added check ovl_mount_dir_check() in
-> > > function ovl_parse_param_lowerdir(), the 'ctx->nr' should be smaller
-> > > than OVL_MAX_STACK, after commit 37f32f526438("ovl: fix memory leak i=
-n
-> > > ovl_parse_param()") is applied, the 'ctx->nr' is updated before the
-> > > check ovl_mount_dir_check(), which leads the max count of lowerdir
-> > > to become 499 for parameter Opt_lowerdir.
-> > > Fix it by updating 'ctx->nr' after the check ovl_mount_dir_check().
-> > >
-> > > Fixes: 37f32f526438 ("ovl: fix memory leak in ovl_parse_param()")
-> > > Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
-> > > ---
-> > >  fs/overlayfs/params.c | 6 ++++--
-> > >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> > > index 4860fcc4611b..0d8c456aa8fa 100644
-> > > --- a/fs/overlayfs/params.c
-> > > +++ b/fs/overlayfs/params.c
-> > > @@ -486,7 +486,6 @@ static int ovl_parse_param_lowerdir(const char *n=
-ame, struct fs_context *fc)
-> > >         iter =3D dup;
-> > >         l =3D ctx->lower;
-> > >         for (nr =3D 0; nr < nr_lower; nr++, l++) {
-> > > -               ctx->nr++;
-> > >                 memset(l, 0, sizeof(*l));
-> > >
-> > >                 err =3D ovl_mount_dir(iter, &l->path);
-> > > @@ -494,9 +493,12 @@ static int ovl_parse_param_lowerdir(const char *=
-name, struct fs_context *fc)
-> > >                         goto out_put;
-> > >
-> > >                 err =3D ovl_mount_dir_check(fc, &l->path, Opt_lowerdi=
-r, iter, false);
-> > > -               if (err)
-> > > +               if (err) {
-> > > +                       path_put(&l->path);
-> > >                         goto out_put;
-> > > +               }
-> > >
-> > > +               ctx->nr++;
-> > >                 err =3D -ENOMEM;
-> > >                 l->name =3D kstrdup(iter, GFP_KERNEL_ACCOUNT);
-> > >                 if (!l->name)
-> > > --
-> > > 2.39.2
-> > >
-> >
-> > This fix looks correct, but it is not pretty IMO.
-> > The cleanup on error is much cleaner in ovl_parse_layer() -> ovl_add_la=
-yer()
-> > I wonder if we can reuse some of those helpers instead of the current c=
-ode.
-> >
-> > Christian, what do you think?
->
-> Yeah, sounds good. Something like the completely untested below.
-> Feel free to reuse in whatever form.
+From: Christian Brauner <brauner@kernel.org>
 
-This looks much nicer!
-I think you unintentionally dropped incrementing of ctx->nr_data
-for the notorious case of ::<lowerdatadir>.
+So it can be used for parsing the Opt_lowerdir.
 
-Zhihao,
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Zhihao Cheng <chengzhihao1@huawei.com>
+---
+ fs/overlayfs/params.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Please make sure to run the fstests overlay test for lowerdatadirs
-overlay/079 overlay/085 overlay/086
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 4860fcc4611b..52e3860973b7 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -365,10 +365,9 @@ static void ovl_add_layer(struct fs_context *fc, enum ovl_opt layer,
+ 	}
+ }
+ 
+-static int ovl_parse_layer(struct fs_context *fc, struct fs_parameter *param,
+-			   enum ovl_opt layer)
++static int ovl_parse_layer(struct fs_context *fc, const char *layer_name, enum ovl_opt layer)
+ {
+-	char *name = kstrdup(param->string, GFP_KERNEL);
++	char *name = kstrdup(layer_name, GFP_KERNEL);
+ 	bool upper = (layer == Opt_upperdir || layer == Opt_workdir);
+ 	struct path path;
+ 	int err;
+@@ -582,7 +581,7 @@ static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ 	case Opt_datadir_add:
+ 	case Opt_upperdir:
+ 	case Opt_workdir:
+-		err = ovl_parse_layer(fc, param, opt);
++		err = ovl_parse_layer(fc, param->string, opt);
+ 		break;
+ 	case Opt_default_permissions:
+ 		config->default_permissions = true;
+-- 
+2.39.2
 
-Thanks,
-Amir.
