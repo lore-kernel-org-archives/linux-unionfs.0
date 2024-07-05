@@ -1,127 +1,182 @@
-Received: from mail-io1-f44.google.com (mail-io1-f44.google.com [209.85.166.44])
+Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D59B71CD02
-	for <linux-unionfs@vger.kernel.org>; Fri,  5 Jul 2024 04:25:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1370714375D
+	for <linux-unionfs@vger.kernel.org>; Fri,  5 Jul 2024 06:35:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720153556; cv=none; b=bRnUPObGrTlOlHz9j0FJNVXNLY5SSU6OHgnHYfnEZps0qiHdznWLVWucq8AkIs4jVms1IQE4O13s39xAaybRluCQiFVm7bDwT72k/7dcjy6phiKhgvVcFFhHuxrUrTpjxVwwRRaNNgv3IvjsANvZvdKNLs9SU8b00iUoNLU/f0A=
+	t=1720161342; cv=none; b=uTzSbQz29fe1yI8lVaP7QlkgDML07JH5mwXwereJD2BgmMzVZKmW24YZQ5+qyEDbm8ybReccHd8R0m2meA3NTWDvTu3DkU+q15iefRGLM6K4g70fXMWsh+DtvzZVvBsWJnKIboOxLeoiqzcBML8yfDk0ewdR8ACa33Hh1H5iG9k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720153556; c=relaxed/simple;
-	bh=/3A/xr3HDWg9ScMXjacOI5vet9iZ51r8iYrAw0urznU=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=uPw/6CbBY2IOWVnNRHYnhxN9S6UsyoZ5YUKRiMtTN3bpo20KaBb/33fBDR2D9Bb6S5xVkOhRXZH23jhfMlNRMVtK7JNb0apQFs3MMoKCpM4V2z2w07TsuXxg1XyQEpKCUKP9nehtyvtizdTEW6WWk0c+6iDwpDNfybKQvVzDWdY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com; spf=none smtp.mailfrom=mbaynton.com; dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b=jfc2EAIC; arc=none smtp.client-ip=209.85.166.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mbaynton.com
+	s=arc-20240116; t=1720161342; c=relaxed/simple;
+	bh=8STcu6iQ9+kRf3nRa7Koo0TrTdoM9lMhjtlsrXJ680Y=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AIPfeMl/dx0oih3Xw3oVCmK2pBBBGc1X1gvY1I3PMzZrwiGIyZysSJDHfVCGCmmNVvn8At0RLeVtU2BZApg9Tv9t+xqh9IZWi6a7R08VjcOI2xV1UElZPyWDuitEOVWMvCo19kLnpLgz4UlSeBZreVZEfU21l7xiCFXTTk7/40E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cOvm4hWn; arc=none smtp.client-ip=209.85.160.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b="jfc2EAIC"
-Received: by mail-io1-f44.google.com with SMTP id ca18e2360f4ac-7f3d884e70bso61378239f.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jul 2024 21:25:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cOvm4hWn"
+Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-4468ac3c579so6357071cf.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 04 Jul 2024 23:35:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mbaynton-com.20230601.gappssmtp.com; s=20230601; t=1720153553; x=1720758353; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=Upgfs7RxQhcl7BSiGR3loal7vDWdAlabKhTtzvWxtdg=;
-        b=jfc2EAICB7AWpuRs5DPOatOPgUgG5LF7lXi7EvYGrebMrYC2DZS5KnsDYeDZtFT+50
-         iKNFDGLZrZ7ypXtIRHahoUn19iclKbxZ1/Hhaz8P3N1KKlLsQgGTcU3gGJiTSCOAMmRd
-         MR6L7EA1/vixqyKIH2HUvjp+Jg7TY9EL6FVUcjCxrMVBRpucPfBcW3H8qU9tRlKYa4k5
-         2aophvzNPAU916HxxMYz24qV/c8zmRJE9KFNDDqklxHpJkBAuvxIusl+9gbM7dhw/ESD
-         f0gjcnnlMFUPLXTi7wk2xtGzfl9d8bXEYIbjLU2PtDJnAeIxJkhf5Q9VQR4oKZRhFUDN
-         zojQ==
+        d=gmail.com; s=20230601; t=1720161340; x=1720766140; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=RLYDt8XDoTTJPbIyU84AOFxJPhGJ2WAYDl/C2dCE4I0=;
+        b=cOvm4hWnMlsk/dV8edqiEoh6bFoFq7ID9l9d1pWfZM6OTbz/tvbhftrK4/wmIl7XI3
+         uGEGr96fznYx9m6zkLuT8HQi7QFGWxR9AuSFSyUbPysdLaX2XmxJ30MnJHQYcyKnJ6yc
+         updkeH5k6nMAOpYXvEI+3MiQCBBOxv8pfuGSuv6DlUzfpANgWwvrpyzCmLQ5YjaYJLoX
+         CPZIJz72JS63DV9wqr1qttg7fzantK//24cEHquDuVk4lLRAMQb5p7kV7hh2tHf+7okt
+         aVJmHeTvZHpKU+/EG2ZJK8VMWm9bmECL+3Cvs0NKcdFIjHm7auOEIg1E78xBFqW2PSq0
+         HIXQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720153553; x=1720758353;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Upgfs7RxQhcl7BSiGR3loal7vDWdAlabKhTtzvWxtdg=;
-        b=vBJHq/ferTgFszNHB2cilUcQXzZRGSGFOAz34lfTZHTylVB6FaElh1wV+235EPyUqA
-         GZLIWh60zZBoqR1LAVO52EaQ4x8tnOatQVqJH50dwkHbqKx8CEtWvnT5IxandBQ083Gu
-         FHg3g0nMNzfeZyETUS17vW5RjFx5lWultw+sYCPzouHPM5jisUaITluc/ATgaaY1QQ1I
-         i49Ncwl++Pziv4fPUCoXJvGsoLoI5kZR962tN03b5l4wZl31G5ADWd/UksK5Z9GXEJLG
-         9fYDX1C9ySgn3tT1XwusbpBKKlzFggn7Xf/Ph/ikeStRoRDf9FLP9A75IQ2LVqft2nFy
-         K3Mg==
-X-Gm-Message-State: AOJu0Yxq735BdFVf9ofX5YeSY1+xyePyiyMvUGHj0lQ7u0EmCQUwtVNS
-	wRKzwPzUHsy9kygk0qmFSr+bKr2TwSaZf7f67arTFXmwJMgzzLMQrhfHzqMXce+Ogw180s9QOiD
-	m
-X-Google-Smtp-Source: AGHT+IGA8SbcX5CnYiTpgzOY2zeXbVlMCSxQpCLp0sBOzGvsvQFrSG7BhbqZs71tu+NYiHT5kjKT/Q==
-X-Received: by 2002:a05:6602:600b:b0:7eb:f3c8:c59b with SMTP id ca18e2360f4ac-7f66de60174mr528356039f.2.1720153553404;
-        Thu, 04 Jul 2024 21:25:53 -0700 (PDT)
-Received: from mike-laptop.lan.mbaynton.com ([2601:444:600:440:d443:7d67:4db4:213b])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4bb742c2551sm4298298173.149.2024.07.04.21.25.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 04 Jul 2024 21:25:52 -0700 (PDT)
-From: Mike Baynton <mike@mbaynton.com>
-To: linux-unionfs@vger.kernel.org
-Cc: Mike Baynton <mike@mbaynton.com>
-Subject: [PATCH] Data-only layer mount time validations
-Date: Thu,  4 Jul 2024 23:25:42 -0500
-Message-Id: <20240705042542.2003917-1-mike@mbaynton.com>
-X-Mailer: git-send-email 2.34.1
+        d=1e100.net; s=20230601; t=1720161340; x=1720766140;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=RLYDt8XDoTTJPbIyU84AOFxJPhGJ2WAYDl/C2dCE4I0=;
+        b=vokH3R3WbOe0pXsEVYthzO6hj8/3SPUD3/rTQ4KFO7imSXeyrHyuz6h8zwon2juKac
+         cURfdAxr2GhIREqnHpiqJotym+zfNLCTTLhgat3TapDKAgXo0LnIJXAznCo06IRiYKJx
+         iPZ+BpqK9F/hEoqugU5C9wbPstEgJWjDchQdyJmg3U8s0ywNusEK9rujYCP7QDBEFWwI
+         RI9XEGp2Br3rqo2oY3iqLgOeb6ek/SIu4PIHnL9RK5cFRdLpbXok1kBG1iEcF9r5eG4F
+         HtiW4PRd4OHWEpf6dv5m07TghQJM1XWPk9hw+UzejlTxzh2UUb8M4+eKvynEpVlHIx2N
+         3/Nw==
+X-Gm-Message-State: AOJu0Yz+wdmIAwtMR13LIoMMzwuYT+WfqdQNHNtmGf5dm9avpB/YmR8k
+	tyYWIa8WP9n0DUnkPetNOyOL5CcGtJ3CmagBAyID51XT6o3DdxgZ2r4teFdBGYR7QKljnbzG+26
+	MUnyXC+MTcYTLqjiZLbP0AFlng7M=
+X-Google-Smtp-Source: AGHT+IHThQu5+P/OJ3XI5e/5tyGVbDOZujDbekdMJBPNdq06onHUX16B1gmwU55iW2xgXBSNsh4bkDlMyJfAxpCfLfM=
+X-Received: by 2002:ac8:5f14:0:b0:43f:fc16:6b3f with SMTP id
+ d75a77b69052e-447cbef6300mr35078551cf.34.1720161339889; Thu, 04 Jul 2024
+ 23:35:39 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240705042542.2003917-1-mike@mbaynton.com>
+In-Reply-To: <20240705042542.2003917-1-mike@mbaynton.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 5 Jul 2024 09:35:28 +0300
+Message-ID: <CAOQ4uxj2x1t4J51penjLJD5c0U7Xm=3ytJZoW37jY2AKxHDknw@mail.gmail.com>
+Subject: Re: [PATCH] Data-only layer mount time validations
+To: Mike Baynton <mike@mbaynton.com>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
+	Alexander Larsson <alexl@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-There seem to be a few scenarios where it is possible to successfully
-mount up an overlay filesystem including data-only layer(s), but in
-configurations where it will never be possible to read data successfully
-from the data-only layers. I think this should result in a mount-time
-error instead of the current behavior of being unable to read data from
-the files that should normally return data from a data-only layer.
+On Fri, Jul 5, 2024 at 7:25=E2=80=AFAM Mike Baynton <mike@mbaynton.com> wro=
+te:
+>
+> There seem to be a few scenarios where it is possible to successfully
+> mount up an overlay filesystem including data-only layer(s), but in
+> configurations where it will never be possible to read data successfully
+> from the data-only layers. I think this should result in a mount-time
+> error instead of the current behavior of being unable to read data from
+> the files that should normally return data from a data-only layer.
+>
+> Both cases were found by attempting to use data-only lower layers from a
+> user namespace, a proposition that appears to be guaranteed to not end
+> well since data-only lower layers requires use of trusted xattrs, but
+> trusted xattrs can only be accessed in the initial user namespace.
+>
+> Case 1: upper dirs in use but xattrs cannot be written to the filesystem
+> containing workdir (for any reason, user namespace-related or not.) This
+> triggers a fallback behavior of disabling metacopy after an existing
+> validation in ovl_fs_params_verify ensured metacopy is on when
+> data-only layers are present. This is now rechecked after possibly
+> disabling metacopy.
+>
+> Case 2: upper dirs are not in use, data-only layer(s) in use, mount
+> initiated from a user namespace other than the initial one.
+>
+> When the filesystem consists of only lower layers, the test of xattrs
+> is not performed and so metacopy remains on, satisfying Case 1.
+> Therefore it is also neceessary to explicitly check for data-only layers
+> in a mount whose initiator lacks CAP_SYS_ADMIN in the initial user
+> namespace.
+>
+> Signed-off-by: Mike Baynton <mike@mbaynton.com>
+> ---
+>  fs/overlayfs/super.c | 13 +++++++++++++
+>  1 file changed, 13 insertions(+)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 06a231970cb5..4382f21c36a0 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1394,6 +1394,19 @@ int ovl_fill_super(struct super_block *sb, struct =
+fs_context *fc)
+>         if (IS_ERR(oe))
+>                 goto out_err;
+>
+> +       if (ofs->numdatalayer) {
+> +               if (!ofs->config.metacopy) {
+> +                       pr_err("lower data-only dirs require metacopy sup=
+port.\n");
+> +                       err =3D -EINVAL;
+> +                       goto out_err;
+> +               }
 
-Both cases were found by attempting to use data-only lower layers from a
-user namespace, a proposition that appears to be guaranteed to not end
-well since data-only lower layers requires use of trusted xattrs, but
-trusted xattrs can only be accessed in the initial user namespace.
+Is that not already handled by?
 
-Case 1: upper dirs in use but xattrs cannot be written to the filesystem
-containing workdir (for any reason, user namespace-related or not.) This
-triggers a fallback behavior of disabling metacopy after an existing
-validation in ovl_fs_params_verify ensured metacopy is on when
-data-only layers are present. This is now rechecked after possibly
-disabling metacopy.
+int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+                         struct ovl_config *config)
+{
+        struct ovl_opt_set set =3D ctx->set;
 
-Case 2: upper dirs are not in use, data-only layer(s) in use, mount
-initiated from a user namespace other than the initial one.
+        if (ctx->nr_data > 0 && !config->metacopy) {
+                pr_err("lower data-only dirs require metacopy support.\n");
+                return -EINVAL;
+        }
 
-When the filesystem consists of only lower layers, the test of xattrs
-is not performed and so metacopy remains on, satisfying Case 1.
-Therefore it is also neceessary to explicitly check for data-only layers
-in a mount whose initiator lacks CAP_SYS_ADMIN in the initial user
-namespace.
+Probably because of:
 
-Signed-off-by: Mike Baynton <mike@mbaynton.com>
----
- fs/overlayfs/super.c | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+                        ofs->config.metacopy =3D false;
+                        pr_warn("...falling back to metacopy=3Doff.\n");
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 06a231970cb5..4382f21c36a0 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -1394,6 +1394,19 @@ int ovl_fill_super(struct super_block *sb, struct fs_context *fc)
- 	if (IS_ERR(oe))
- 		goto out_err;
- 
-+	if (ofs->numdatalayer) {
-+		if (!ofs->config.metacopy) {
-+			pr_err("lower data-only dirs require metacopy support.\n");
-+			err = -EINVAL;
-+			goto out_err;
-+		}
-+		if (!capable(CAP_SYS_ADMIN)) {
-+			pr_err("lower data-only dirs require CAP_SYS_ADMIN in the initial user namespace.\n");
-+			err = -EPERM;
-+			goto out_err;
-+		}
-+	}
-+
- 	/* If the upper fs is nonexistent, we mark overlayfs r/o too */
- 	if (!ovl_upper_mnt(ofs))
- 		sb->s_flags |= SB_RDONLY;
--- 
-2.34.1
+in xattr check, but it could also happen from:
 
+        /* Resolve userxattr -> !redirect && !metacopy && !verity dependenc=
+y */
+        if (config->userxattr) {
+...
+                /*
+                 * Silently disable default setting of redirect and metacop=
+y.
+                 * This shall be the default in the future as well: these
+                 * options must be explicitly enabled if used together with
+                 * userxattr.
+                 */
+                config->redirect_mode =3D OVL_REDIRECT_NOFOLLOW;
+                config->metacopy =3D false;
+        }
+
+So maybe also the lowerdatadirs vs metacopy conflict should be moved
+to the end of
+ovl_fs_params_verify()?
+
+> +               if (!capable(CAP_SYS_ADMIN)) {
+> +                       pr_err("lower data-only dirs require CAP_SYS_ADMI=
+N in the initial user namespace.\n");
+> +                       err =3D -EPERM;
+> +                       goto out_err;
+> +               }
+
+This is too specific IMO.
+
+If we really want to check CAP_SYS_ADMIN at mount time, we should error
+on any configuration that requires trusted xattrs and suggest that the user
+will use -o userxattr, and maybe disable the conflicting config if it was n=
+ot
+explicitly specified in mount options.
+
+Of course, userxattr conflicts with some other options including
+redirect_dir, metacopy and verity, but that just means that the errors
+will have to be smarter and the check for CAP_SYS_ADMIN should
+definitely be in ovl_fs_params_verify() if we add them.
+
+Thanks,
+Amir.
