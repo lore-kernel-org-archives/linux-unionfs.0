@@ -1,188 +1,153 @@
-Received: from mail-qk1-f173.google.com (mail-qk1-f173.google.com [209.85.222.173])
+Received: from mail-vs1-f43.google.com (mail-vs1-f43.google.com [209.85.217.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1BC9F15EFCA
-	for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 13:35:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2E4CE16B72E
+	for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 15:57:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.217.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720704927; cv=none; b=k7GIH9vc0eg+oIB2Pe61yVhLlpTJA8+C12Q4nJAtCAo4jdqZCOKH5JyTHoJNTmcL7rZOXL9L0jyctw4ZECWqecvIU74NPFk3TVc9Zm06NzmyLy75UIll8iZp4dLGCrwaVg0ma8OzNfBjPcChRi8fwjrNE169FFpv9UYqF536dWg=
+	t=1720713477; cv=none; b=H2nzwj2vp4MENtFzTGw984NomTIYYJdGfwfQv0fqiftFyZR0A9/eCOMWu/LZrgWYTv8ra09Nuk1RGhI3uVRDn9XF5d9glYc6Nuw3aNhUhpR54iGH4wJW9e47jej2gcIZIktsBM+NSmIfgmax18RlId5mUONcN9NMNuJA9DrMXRY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720704927; c=relaxed/simple;
-	bh=Ygfr52KuMhXzV+sPAuLDfAuTDmDpA/aVDE9z1CdvpRs=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ktPFu+gaK5J7axXHoK8iTAQvNtTHVFPXnNfEEe5L9oU9S+FxahVvSrewHWh/weBNxIrp/h1pcoq21u7Nfi1vrQxjRMhB4dmKmMaHuUNIdBqw4Q1TFyalT4nc/923YmbBNkAVaWJtLXIiJ4X/W5UbaI8JsW6WdMOZ2Uub+P09AME=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cyIzd2iA; arc=none smtp.client-ip=209.85.222.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1720713477; c=relaxed/simple;
+	bh=pC0RFYUCaFf8QlY2eA33EpnciEZHtDY5+HvwcE6VYdk=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Content-Type; b=kvwlobL/+RZZqoTCpHDRgjieOJZzykAyc4PwWtZsbHnkhFxd2Wb5g965BtLWfMhEIgr+LhHPQbufb4ozo+lx05BJNqVvXoVZpLCqMGS8oPVkgrw1k4IBV1lBAISSiGWzURKERKe+wcn9M9OvkHtHwf3RSRmjgfsMrPE7Mcx2JQg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com; spf=pass smtp.mailfrom=dneg.com; dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b=fAlyXxGb; arc=none smtp.client-ip=209.85.217.43
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dneg.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cyIzd2iA"
-Received: by mail-qk1-f173.google.com with SMTP id af79cd13be357-79f18509e76so52014885a.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 06:35:25 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b="fAlyXxGb"
+Received: by mail-vs1-f43.google.com with SMTP id ada2fe7eead31-48fec155a0bso386449137.1
+        for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 08:57:54 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1720704925; x=1721309725; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=i2gdkU3AMmHyFSOSxvOqxc57V901sky92W/TOxXkAXs=;
-        b=cyIzd2iAE54DKPo9rXHBWKRH48noem7JvGRBnSwBHPKyNiK2ShhO4m58fW/N0sZBLY
-         W+JGYfFqqOnz6rC1FQ3Q7LTyk8oIWoGTiEsHCPGLl4yKxtB61hqyuH0y2XXrGIHOQl0l
-         ZzVFTYgqhDb1H04ThhafpVUNwDjYSkwr66lGRR5aDmr0r3EyMsYdhO/MDqTq4FL/k9C0
-         FvjYSzvXgigWTDkvDviDpnFBt/HejKde6/W8GEdqZZuI0dJUP6jcp0tanXOTbR4O6ePg
-         0svLmBXuo621suFPsTxf3EtH4CJYx8tpUle6vt/E0/0+Y6k+PNYBOn1GZfakvUiHK1Hg
-         FKrQ==
+        d=dneg.com; s=google; t=1720713469; x=1721318269; darn=vger.kernel.org;
+        h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=pC0RFYUCaFf8QlY2eA33EpnciEZHtDY5+HvwcE6VYdk=;
+        b=fAlyXxGbNxPUJnY7Yb+MRAUV/LboNwwZnRoKZ/yKTx4q4w5SUK7NUZAFTZiFkriDUz
+         a7QfnMvdX+kmuaYmALQvYkC2R8YwcZvg+xW1s0bv4OQDBsL2WqDdWJkgs8fz2bvWzowt
+         PphPbmvhIE2moEJp2YAf6DifsoJSWXq+hvaO8p4b4h7YMvoQUaP71XU5AR4MSG0MrYKP
+         6vKwwBGD9uSkaYADBkOlkUUuSKC/617OQCsd4BUfJkrriGE1UdPo3igHTOVcS85nNEPY
+         eBqHGaIycQnj9rV7ZPDCJh1LvLMAOM6bIwFGKmUCKGgK08wSsh1vfJGIjwRwyFkSdK7d
+         5exA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720704925; x=1721309725;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=i2gdkU3AMmHyFSOSxvOqxc57V901sky92W/TOxXkAXs=;
-        b=kcziS6qPKQaoeApCicJ+Y2ZLwGGvEKzYioQriMChgsJ1sKGIw+FtCNWYfi8riljnEh
-         5Xpu9yKtDtlih8cNKTdYt6gxsNRTnCD2A5LFVCcj2qCtMYRRMg7T/zUdfnAM93Cbo8V0
-         /QMpJXl1E8cfkh8CikDAKRbuuN/t2fQ9pB00VLtP1Wd9oRWZjITiEIzvVXDG7noCoygw
-         KFhijjJu+c0vBpOYnKNtWVwlblbJAFlBI8KgbL9G6mAoIfwECkc4NIkOoWCBWbJQKNsE
-         Qw8H2wMe7zgeZc8LwLZ24Zhy2edN7huS6HUXE6anIgZd/JszSfYKnNSEZUSBgHPgMuBu
-         Maxg==
-X-Gm-Message-State: AOJu0Yy5CCNzZshz6FdWzDqcv8NeLXRC1h5YWXNqZ1tJZK1W9MllJj98
-	y0y14wF+jzq7hl5qcfAQKj26iFe3n8x+pX5CQdRe+aQHgcATFJFOivherCyrRQnxODK0c1SBmZH
-	Bp1KfNutrn13ONsecggV9d1jypD0=
-X-Google-Smtp-Source: AGHT+IGZ/EdVRyDAIyRRJo8vFmIRE06MNoy/SqTthQTKsnjEwFZYtWBQkohUT3TkSHi8Mh9Zby3qD4b6Yf+ZRiCgQwg=
-X-Received: by 2002:a05:620a:2186:b0:79d:6dd6:5a66 with SMTP id
- af79cd13be357-79f19a51e5dmr923234885a.36.1720704924828; Thu, 11 Jul 2024
- 06:35:24 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1720713469; x=1721318269;
+        h=to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=pC0RFYUCaFf8QlY2eA33EpnciEZHtDY5+HvwcE6VYdk=;
+        b=GVLrFLm9iads58RMsYjkbuzHWulRPI1cyP4feFYV5n71reA8Sjm2radtyXcAS16PQQ
+         8/0bvVUzdSQOuPeUXW0VpFWA/krd3paHMUYiDDmag/Ht0SPtuYMtYPBshgvX7ABMq1Kx
+         qnfsfq/84MDTDHMsIIZuXu0b1nidkWI4kxu/sCq3pvDYgMW8NU/LP6QAfKnpN2JtPgOg
+         WIGT8ysogsgME/7iu284DzmEoWJRouRYUYfiY9gkvn+cdieYkZTpRhNjMVX2xt+zI0w4
+         44tYBupds97YTVPZeGPhRAhDwcU2K5B3R0g+Tp/1owVmIRd1o+d4Gdz8/HiVoQ6gp4l3
+         IxWw==
+X-Gm-Message-State: AOJu0YxgoG2lhHvYV2LuB3ZlZQvc8XH1PpGg2lKs3ai4gNhjmTsK8R1c
+	cmThZBRYxhorIxrDOZpNY2daYIXwt1HCSRwzlbpJVhHUoSILCubiEawcAshXJ/2Tu4wkt3OvP1H
+	iEyv8mU8ouklWBQvYipq+0pbEjFnF4gV0lkJ2v7Zs2m3/xikaeYM=
+X-Google-Smtp-Source: AGHT+IFgCJFRAEdCatbEEyt1dkivbhXKulJVm4PCNGMsDAlOALRuUzPfiE/IYq4C3gLnyRpoWNj6mRyMSw6OSavX/rU=
+X-Received: by 2002:a05:6102:41a1:b0:48f:716c:1e9b with SMTP id
+ ada2fe7eead31-490321372cemr12683212137.10.1720713468932; Thu, 11 Jul 2024
+ 08:57:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <2e8c4e8b-3292-4ccf-bb63-12d7c0009ae9@mbaynton.com> <20240711035203.3367360-1-mike@mbaynton.com>
-In-Reply-To: <20240711035203.3367360-1-mike@mbaynton.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 11 Jul 2024 16:35:13 +0300
-Message-ID: <CAOQ4uxgxpnj1r-p9Y=OkP=Qk2YM9jZ37Pm0NBN1R=NagZuhioA@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: Fail if trusted xattrs are needed but caller
- lacks permission
-To: Mike Baynton <mike@mbaynton.com>
-Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
-	Alexander Larsson <alexl@redhat.com>
+From: Daire Byrne <daire@dneg.com>
+Date: Thu, 11 Jul 2024 16:57:12 +0100
+Message-ID: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
+Subject: overlayfs: NFS lowerdir changes & opaque negative lookups
+To: linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Jul 11, 2024 at 7:05=E2=80=AFAM Mike Baynton <mike@mbaynton.com> wr=
-ote:
->
-> Some overlayfs features require permission to read/write trusted.*
-> xattrs. These include redirect_dir, verity, metacopy, and data-only
-> layers. This patch adds additional validations at mount time to stop
-> overlays from mounting in certain cases where the resulting mount would
-> not function according to the user's expectations because they lack
-> permission to access trusted.* xattrs (for example, not global root.)
->
-> Similar checks in ovl_make_workdir() that disable features instead of
-> failing are still relevant and used in cases where the resulting mount
-> can still work "reasonably well." Generally, if the feature was enabled
-> through kernel config or module option, any mount that worked before
-> will still work the same; this applies to redirect_dir and metacopy. The
-> user must explicitly request these features in order to generate a mount
-> failure. Verity and data-only layers on the other hand must be explictly
-> requested and have no "reasonable" disabled or degraded alternative, so
-> mounts attempting either always fail.
->
-> "lower data-only dirs require metacopy support" moved down in case
-> userxattr is set, which disables metacopy.
->
-> Signed-off-by: Mike Baynton <mike@mbaynton.com>
+Hi,
 
-Looks nice
+Apologies for what I assume is another frequent (and long) "changes
+outside of overlayfs" query, but I *think* I have a slightly unique
+use case and so just wanted to ask some experts about the implications
+of the "undefined behaviour" that the documentation (rightly) warns
+against.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Basically I have a read-only NFS filesystem with software releases
+that are versioned such that no files are ever overwritten or changed.
+New uniquely named directory trees and files are added from time to
+time and older ones are cleaned up.
 
-> ---
->
->  v1 -> v2 not specific to data-only layers, punt on metacopy disable
->           due to xattr write errors creating a conflicting configuration
->           when data-only layers are present.
->
->  fs/overlayfs/params.c | 39 +++++++++++++++++++++++++++++++++------
->  1 file changed, 33 insertions(+), 6 deletions(-)
->
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 4860fcc4611b..107c43e5e4cb 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -782,11 +782,6 @@ int ovl_fs_params_verify(const struct ovl_fs_context=
- *ctx,
->  {
->         struct ovl_opt_set set =3D ctx->set;
->
-> -       if (ctx->nr_data > 0 && !config->metacopy) {
-> -               pr_err("lower data-only dirs require metacopy support.\n"=
-);
-> -               return -EINVAL;
-> -       }
-> -
->         /* Workdir/index are useless in non-upper mount */
->         if (!config->upperdir) {
->                 if (config->workdir) {
-> @@ -910,7 +905,6 @@ int ovl_fs_params_verify(const struct ovl_fs_context =
-*ctx,
->                 }
->         }
->
-> -
->         /* Resolve userxattr -> !redirect && !metacopy && !verity depende=
-ncy */
->         if (config->userxattr) {
->                 if (set.redirect &&
-> @@ -938,6 +932,39 @@ int ovl_fs_params_verify(const struct ovl_fs_context=
- *ctx,
->                 config->metacopy =3D false;
->         }
->
-> +       /*
-> +        * Fail if we don't have trusted xattr capability and a feature w=
-as
-> +        * explicitly requested that requires them.
-> +        */
-> +       if (!config->userxattr && !capable(CAP_SYS_ADMIN)) {
-> +               if (set.redirect &&
-> +                   config->redirect_mode !=3D OVL_REDIRECT_NOFOLLOW) {
-> +                       pr_err("redirect_dir requires permission to acces=
-s trusted xattrs\n");
-> +                       return -EPERM;
-> +               }
-> +               if (config->metacopy && set.metacopy) {
-> +                       pr_err("metacopy requires permission to access tr=
-usted xattrs\n");
-> +                       return -EPERM;
-> +               }
-> +               if (config->verity_mode) {
-> +                       pr_err("verity requires permission to access trus=
-ted xattrs\n");
-> +                       return -EPERM;
-> +               }
-> +               if (ctx->nr_data > 0) {
-> +                       pr_err("lower data-only dirs require permission t=
-o access trusted xattrs\n");
-> +                       return -EPERM;
-> +               }
-> +               /*
-> +                * Other xattr-dependent features should be disabled with=
-out
-> +                * great disturbance to the user in ovl_make_workdir().
-> +                */
-> +       }
-> +
-> +       if (ctx->nr_data > 0 && !config->metacopy) {
-> +               pr_err("lower data-only dirs require metacopy support.\n"=
-);
-> +               return -EINVAL;
-> +       }
-> +
->         return 0;
->  }
->
-> --
-> 2.34.1
->
->
+I was toying with the idea of putting a metadata only overlay on top
+of this NFS filesystem (which can change underneath but only with new
+and uniquely named directories and files), and then using a userspace
+metadata copy-up to "localise" directories such that all lookups hit
+the overlay, but file data is still served from the lower NFS server.
+The file data in the upper layer and lower layer never actually
+diverge and so the upper layer is more of a one time permanent
+(metadata) "cache" of the lower NFS layer.
+
+So something like "chown bob -R -h /blah/thing/UIIDA/versionXX/lib" to
+copy-up metadata only. No subsequent changes will ever be made to
+/blah/thing/UIIDA/versionXX/lib on the lower filesystem (other than it
+being deleted). Now, at some point, a new directory
+/blah/thing/UIIDB/versionYY/lib might appear on the lower NFS
+filesystem that has not yet got any upper directory files other than
+perhaps sharing part of the directory path - /blah/thing.
+
+Now this *seems* to work in very basic testing and I have also read
+the previous related discussion and patch here:
+
+https://lore.kernel.org/all/CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=8H1f7+3v3zysW9qA@mail.gmail.com
+
+My first question is how bad can the "undefined behaviour" be in this
+kind of setup? Any files that get copied up to the upper layer are
+guaranteed to never change in the lower NFS filesystem (by it's
+design), but new directories and files that have not yet been copied
+up, can randomly appear over time. Deletions are not so important
+because if it has been deleted in the lower level, then the upper
+level copy failing has similar results (but we should cleanup the
+upper layer too).
+
+If it's possible to get over this first difficult hurdle, then I have
+another extra bit of complexity to throw on top - now manually make an
+entire directory tree (of metdata) that we have recursively copied up
+"opaque" in the upper layer (currently needs to be done outside of
+overlayfs). Over time or dropping of caches, I have found that this
+(seamlessly?) takes effect for new lookups.
+
+I also noticed that in the current implementation, this "opaque"
+transition actual breaks access to the file because the metadata
+copy-up sets "trusted.overlay.metacopy" but does not currently add an
+explicit "trusted.overlay.redirect" to the correspnding lower layer
+file. But if it did (or we do it manually with setfattr), then it is
+possible to have an upper level directory that is opaque, contains
+file metadata only and redirects to the data to the real files on the
+lower NFS filesystem.
+
+Why the hell would you want to do this? Well, for the case where you
+are distributing software to many machines, having it on a shared NFS
+filesystem is convenient and reasonably atomic. But when you have
+sofware with many many PATHs (LD_LIBRARY, PYTHON, etc), you can create
+some pretty impressive negative lookups across all those NFS hosted
+directories that can overhelm a single NFS storage server at scale. By
+"caching" or localising the entire PATH directory metadata locally on
+each host, we can serve those negative lookups from local opaque
+directories without traversing the network.
+
+I think this is a common enough software distribution problem in large
+systems and there are already many different solutions to work around
+it. Most involve localising the software on demand from a central
+repository.
+
+Well, I just wondered if it could ever be done using an overlay in the
+way I describe? But at the moment, it has to deal with a sporaidcally
+changing lower filesystem and a manually hand crafted upper
+filesystem. While I think this might all work fine if the filesystems
+can be mounted and unmounted between software runs, it would be even
+better if it could safely be done "online".
+
+Things like fscache can also add NFS file content caching on top, but
+it does not help with the metadata PATH walking problem endemic in
+large clusters with software distributed on shared filesystems. I'm
+suggesting a local metadata cache on top for read-only (but updated)
+NFS software volumes.
+
+Anyway, that's my silly idea for "lookup caching" (or acceleration) -
+too crazy right? ;)
+
+Daire
