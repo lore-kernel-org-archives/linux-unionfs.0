@@ -1,268 +1,211 @@
-Received: from mail-qv1-f41.google.com (mail-qv1-f41.google.com [209.85.219.41])
+Received: from mail-io1-f49.google.com (mail-io1-f49.google.com [209.85.166.49])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E79C185956
-	for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 23:30:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.41
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BFA6611CAF
+	for <linux-unionfs@vger.kernel.org>; Fri, 12 Jul 2024 03:24:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720740626; cv=none; b=JRWUh/EIq4Ju5kF6tduYRTYKt4aCYCZ0jI85Fa7O1bcOrRQM6QIPs/bMuYqYH3FJ8FfQK0nOnbHA3Gg7/fQBknM7MOFMnfOgUX7Qs7qZ68uOdP0NhDh/vUqV43CtuwgJme3QA68yN52tf8IR2g5gV8xracITdqaHnhR3dV7g4Xc=
+	t=1720754699; cv=none; b=ZLVjMtLGnqAwnDzJCEJyEbPCw+GLcnlV2hqiikoRYrFaXz6MdiFe4NRv6fWIGt6P1dI8OL+F97d4lLov2TAsoCVoiFxRgqX5Ro6z5nKcwTn38pYdZpQ6+8RdgvjN2N3ALuh2x/oSJ+4w57VwKn0ow3KFd5zBODZEO51tlcOmj+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720740626; c=relaxed/simple;
-	bh=X/7U2scGhDei8u1Z20gUgYJ6xZ0qjkFxPu4MvpP+ogY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=LCql3MTudMHTIN56BNOcOs8GL4JOc5Iuc+hrwvky2vZC3eH0DhE8orhtaw8bx44Ak/62b+nF8HLI4CTm275wvQGkQkea57btjtLappdWkZ5bELdyXkj8LNBORWJainChe4DHlxlRHCwVsIuUBlist6b/FUMl7EE+GUWU3h/D7KU=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=D69D99eg; arc=none smtp.client-ip=209.85.219.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1720754699; c=relaxed/simple;
+	bh=wQsSufy/V6DZRZBnx4wXK66gEzNfMtE5ezWqJgNMuYE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=LWGCmmjdeZLjgokxikFw6mdYT8hxdQwhCuUwO9yKqfo04adCjnBcU2WlHkN6Q4F2Z9YPep+SgT5EOdnurWTFBXPUtdKDE4l8rxXijI9kGphm86LUt2lusOMDKnAMrCzlj37cPIjeIVOb9rOvj5vedbuKANH+nE+BqYEhHMLnZUw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com; spf=none smtp.mailfrom=mbaynton.com; dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b=wUXHTYmv; arc=none smtp.client-ip=209.85.166.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mbaynton.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="D69D99eg"
-Received: by mail-qv1-f41.google.com with SMTP id 6a1803df08f44-6b5e0d881a1so19557426d6.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 16:30:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b="wUXHTYmv"
+Received: by mail-io1-f49.google.com with SMTP id ca18e2360f4ac-8076fb141f1so42179039f.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 11 Jul 2024 20:24:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1720740624; x=1721345424; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rIx2S/6PluZdH5LLtd2/41HHAycjU6Wcz+kb5OSErNk=;
-        b=D69D99eg8vZWQFxmRa0pEwBQsvrJq1hBkYeaP+id2dsiTLwShuEJi8+pCLCAN+7zM1
-         PMgN5YzyQZXw/kSETS8BNQ2g+xXuRV/fIrDd0hiqcaV9xH7RStPq4w1Nv9bXZvpWBRaA
-         js3o97mgIZ4I/QCVOf3+pZTrcL1XMPobvvt8KxRPgkrCz/R5QCfrweEJP0I1Xglj+YNS
-         glXG4Vhrisr6i4/1cSQ8KvrWtLMBL4BwAsaj2u43DnCYNtCVgEof43aB50ecQhtbCHNq
-         5MY8uT2axpNGUqqe1stK81bwt/tvNzyTTLMyEYp5FEQVd8zx94KF7sEe9t814FtMPdVd
-         4qww==
+        d=mbaynton-com.20230601.gappssmtp.com; s=20230601; t=1720754697; x=1721359497; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=ublWKd2iG4KvQvGov5BwmB6QqXIkyhO4C61mkj4h/n8=;
+        b=wUXHTYmvwXX14MmnIFWFFK1iMPdbpIQDpH7CWE6UV4dLhZJPcM6NmGH/gZdyUw53T5
+         rJPOb8jzHKKqXZx5L8IxzhVd7CYc81dFywu8u4cS79S3B5VhzXGdAuGHOXwyohkiyKiX
+         AtiADn50TeVi8j4gzREfv9SAAL3mlIlp08MDNO40TY5kPbyV9ToRA1GaFrWROLxJy+96
+         U+M6++BhH2oeCfBa9bfu+yunDzkK/eyF7XnMjX9ryywKtsnTqGfQ+qBvIbERbGvmaWSC
+         L2Zw4l8RUPtJ3o3rkIfYfTpheZPeRT4hb1Vq7dqVYJp8ewljvmcG8FIQ5azAqLv7RWlP
+         NFGA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720740624; x=1721345424;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=rIx2S/6PluZdH5LLtd2/41HHAycjU6Wcz+kb5OSErNk=;
-        b=j0how+FJW7v5Z/PNuo4t+FKQsL9SGhryg234iPVn1OIeUSv5VwrjU79SQsjs4eLIn1
-         Pb4rfAr75Sar19WaGbxwPa/JjqGCHtYbB53Hz9+xPMmtEZ2ybjJ6f3T46ZslmH0KtXkC
-         1T01HGJLQWFAj706PvHRwzYcLPCdiRWgcHPv9V1gL+LCpYioOyGawkDVmju7IfWe4guX
-         /VZLiBaRgAx8sQmwtJUi8Sv0D63EWdmOaTiecndXM4RfaR7wPLvUc1kY8BSetemffrea
-         8RFMBReVPrXkUQCyLdj7HJuq6z0zq0VHGk6V/5Ql4IX1zs2e3PygVWVl58JL9CvvbC1d
-         DnoQ==
-X-Gm-Message-State: AOJu0YwOcirv+X6JzX3MjrQsanVJ5svkhe5WIna7MK7X4VzOIJh5KXJV
-	BHhIT5WZTLzmI4P3Bhh6LM5nT711a6ykBIUMRZG7J3FpdrYTMhIsWyZKBi8dK2aQn3Z+HRrkjeX
-	fU3PTcDdZoMYOEky9YGlpfrhw3nM=
-X-Google-Smtp-Source: AGHT+IGTNBATXozzL21aqwozlJVuEY2mZjkNDR9VZADSgjTbr5DxZg6MFutwENT2fjvEmJNMr9B42intYElxZdsmXvg=
-X-Received: by 2002:a05:6214:224e:b0:6b4:f6ed:ab2b with SMTP id
- 6a1803df08f44-6b754d40269mr25560816d6.10.1720740623727; Thu, 11 Jul 2024
- 16:30:23 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1720754697; x=1721359497;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ublWKd2iG4KvQvGov5BwmB6QqXIkyhO4C61mkj4h/n8=;
+        b=GOxq2X0H64dZ3Jg7/BhZgXILRJRAP8T6kY8BHfFd1JnPJCPbCdR8zEv0WVXHKOoeoZ
+         /S9GLLqm0yHMZtRDaw2WmNy6nIaI3uplGyQfDXUGvVbSAfloL93a2JmLZgpJZ+C2Pe1w
+         7JzfBJ5HeFE50YoosHHmBlpR7grDt/BjyMcNBilv9dZNhDEskYSB6mcdEav2JmGNXI9b
+         ongxcc/Nog7ez/pZOuJnf9CJdz1apIdzWa8HFG1jaGFprpWNrs+rQI6vkQcZar0XvAtC
+         rCF9WbYFXvpo22MqDFW+sMs/lw2HHlyfVAdTRsWYrmkNuy0Ur0BxUUSpA7O9JTfWLgT/
+         fZZw==
+X-Gm-Message-State: AOJu0YwtV98ratsLg4HBh0cbDx+F8DqpCQj2so70q7TNNZ3P1eCLZFA8
+	s/L5Z7peRJvE1xBTXSk/Fi4JJbRA3ofqPBJ2fCi5HIpd7P02fyRwPK3eCTc4xYgbpzQgOhzAGcj
+	6HQw=
+X-Google-Smtp-Source: AGHT+IH3QiIcOdNqIN36m9pd4qgvCQlK4SNhqXTTH9Gs7HVHJNx4BTmDLH84n7bsht/7mYTwZOmdzw==
+X-Received: by 2002:a6b:f102:0:b0:7ff:cec0:2985 with SMTP id ca18e2360f4ac-8000330aa5bmr1204012839f.13.1720754696697;
+        Thu, 11 Jul 2024 20:24:56 -0700 (PDT)
+Received: from ?IPV6:2601:444:600:440:2f0f:eed6:6985:5e0e? ([2601:444:600:440:2f0f:eed6:6985:5e0e])
+        by smtp.gmail.com with ESMTPSA id ca18e2360f4ac-7ffe9accc19sm223321239f.20.2024.07.11.20.24.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 11 Jul 2024 20:24:56 -0700 (PDT)
+Message-ID: <f1ed1b60-273d-4ee6-bbcb-ae3d78486b70@mbaynton.com>
+Date: Thu, 11 Jul 2024 22:24:54 -0500
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
-In-Reply-To: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 12 Jul 2024 02:30:12 +0300
-Message-ID: <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
 Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
-To: Daire Byrne <daire@dneg.com>
+To: Amir Goldstein <amir73il@gmail.com>, Daire Byrne <daire@dneg.com>
 Cc: linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
+ <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+Content-Language: en-US
+From: Mike Baynton <mike@mbaynton.com>
+In-Reply-To: <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jul 11, 2024 at 6:59=E2=80=AFPM Daire Byrne <daire@dneg.com> wrote:
+On 7/11/24 18:30, Amir Goldstein wrote:
+> On Thu, Jul 11, 2024 at 6:59 PM Daire Byrne <daire@dneg.com> wrote:
+>> Basically I have a read-only NFS filesystem with software releases
+>> that are versioned such that no files are ever overwritten or changed.
+>> New uniquely named directory trees and files are added from time to
+>> time and older ones are cleaned up.
+>>
+> 
+> Sounds like a common use case that many people are interested in.
+
+I can vouch that that's accurate, I'm doing nearly the same thing. The
+properties of the NFS filesystem in terms of what is and is not expected
+to change is identical for me, though my approach to incorporating
+overlayfs has been a little different.
+
+My confidence in the reliability of what I'm doing is still far from
+absolute, so I will be interested in efforts to validate/officially
+sanction/support/document related techniques.
+
+The way I am doing it is with NFS as a data-only layer. Basically my use
+case calls for presenting different views of NFS-backed data (it's
+software libraries) to different applications. No application wants or
+needs to have the entire NFS tree exposed to it, but each application
+wants to use some data available on NFS and wants it to be presented in
+some particular local place. So I actually wanted a method where I
+author a metadata-only layer external to overlayfs, built to spec.
+
+Essentially it's making overlayfs redirects be my symlinks so that code
+which doesn't follow symlinks or is otherwise influenced by them is none
+the wiser.
+
+>> My first question is how bad can the "undefined behaviour" be in this
+>> kind of setup?
+> 
+> The behavior is "undefined" because nobody tried to define it,
+> document it and test it.
+> I don't think it would be that "bad", but it will be unpredictable
+> and is not very nice for a software product.
+> 
+> One of the current problems is that overlayfs uses readdir cache
+> the readdir cache is not auto invalidated when lower dir changes
+> so whether or not new subdirs are observed in overlay depends
+> on whether the merged overlay directory is kept in cache or not.
 >
-> Hi,
->
-> Apologies for what I assume is another frequent (and long) "changes
-> outside of overlayfs" query, but I *think* I have a slightly unique
-> use case and so just wanted to ask some experts about the implications
-> of the "undefined behaviour" that the documentation (rightly) warns
-> against.
->
-> Basically I have a read-only NFS filesystem with software releases
-> that are versioned such that no files are ever overwritten or changed.
-> New uniquely named directory trees and files are added from time to
-> time and older ones are cleaned up.
->
 
-Sounds like a common use case that many people are interested in.
+My approach doesn't support adding new files from the data-only NFS
+layer after the overlayfs is created, of course, since the metadata-only
+layer is itself the first lower layer and so would presumably get into
+undefined-land if added to. But this arrangement does probably
+mitigate this problem. Creating metadata inodes of a fixed set of
+libraries for a specific application is cheap enough (and considerably
+faster than copying it all locally) that the immutablity limitation
+works for me.
 
-> I was toying with the idea of putting a metadata only overlay on top
-> of this NFS filesystem (which can change underneath but only with new
-> and uniquely named directories and files), and then using a userspace
-> metadata copy-up to "localise" directories such that all lookups hit
-> the overlay, but file data is still served from the lower NFS server.
-> The file data in the upper layer and lower layer never actually
-> diverge and so the upper layer is more of a one time permanent
-> (metadata) "cache" of the lower NFS layer.
->
-> So something like "chown bob -R -h /blah/thing/UIIDA/versionXX/lib" to
-> copy-up metadata only. No subsequent changes will ever be made to
-> /blah/thing/UIIDA/versionXX/lib on the lower filesystem (other than it
-> being deleted). Now, at some point, a new directory
-> /blah/thing/UIIDB/versionYY/lib might appear on the lower NFS
-> filesystem that has not yet got any upper directory files other than
-> perhaps sharing part of the directory path - /blah/thing.
->
-> Now this *seems* to work in very basic testing and I have also read
-> the previous related discussion and patch here:
->
-> https://lore.kernel.org/all/CAOQ4uxiBmFdcueorKV7zwPLCDq4DE+H8x=3D8H1f7+3v=
-3zysW9qA@mail.gmail.com
->
-> My first question is how bad can the "undefined behaviour" be in this
-> kind of setup?
+>> Any files that get copied up to the upper layer are
+>> guaranteed to never change in the lower NFS filesystem (by it's
+>> design), but new directories and files that have not yet been copied
+>> up, can randomly appear over time. Deletions are not so important
+>> because if it has been deleted in the lower level, then the upper
+>> level copy failing has similar results (but we should cleanup the
+>> upper layer too).
+>>
+>> If it's possible to get over this first difficult hurdle, then I have
+>> another extra bit of complexity to throw on top - now manually make an
+>> entire directory tree (of metdata) that we have recursively copied up
+>> "opaque" in the upper layer (currently needs to be done outside of
+>> overlayfs). Over time or dropping of caches, I have found that this
+>> (seamlessly?) takes effect for new lookups.
+>>
+>> I also noticed that in the current implementation, this "opaque"
+>> transition actual breaks access to the file because the metadata
+>> copy-up sets "trusted.overlay.metacopy" but does not currently add an
+>> explicit "trusted.overlay.redirect" to the correspnding lower layer
+>> file. But if it did (or we do it manually with setfattr), then it is
+>> possible to have an upper level directory that is opaque, contains
+>> file metadata only and redirects to the data to the real files on the
+>> lower NFS filesystem.
 
-The behavior is "undefined" because nobody tried to define it,
-document it and test it.
-I don't think it would be that "bad", but it will be unpredictable
-and is not very nice for a software product.
+So once you use opaque dirs and redirects on an upper layer, it's
+sounding very similar to redirects into a data-only layer. In either
+case you're responsible for producing metadata inodes for each NFS file
+you want presented to the application/user.
 
-One of the current problems is that overlayfs uses readdir cache
-the readdir cache is not auto invalidated when lower dir changes
-so whether or not new subdirs are observed in overlay depends
-on whether the merged overlay directory is kept in cache or not.
+This way seems interesting and more promising for adding NFS-backed
+files "online" though.
 
-> Any files that get copied up to the upper layer are
-> guaranteed to never change in the lower NFS filesystem (by it's
-> design), but new directories and files that have not yet been copied
-> up, can randomly appear over time. Deletions are not so important
-> because if it has been deleted in the lower level, then the upper
-> level copy failing has similar results (but we should cleanup the
-> upper layer too).
->
-> If it's possible to get over this first difficult hurdle, then I have
-> another extra bit of complexity to throw on top - now manually make an
-> entire directory tree (of metdata) that we have recursively copied up
-> "opaque" in the upper layer (currently needs to be done outside of
-> overlayfs). Over time or dropping of caches, I have found that this
-> (seamlessly?) takes effect for new lookups.
->
-> I also noticed that in the current implementation, this "opaque"
-> transition actual breaks access to the file because the metadata
-> copy-up sets "trusted.overlay.metacopy" but does not currently add an
-> explicit "trusted.overlay.redirect" to the correspnding lower layer
-> file. But if it did (or we do it manually with setfattr), then it is
-> possible to have an upper level directory that is opaque, contains
-> file metadata only and redirects to the data to the real files on the
-> lower NFS filesystem.
->
-> Why the hell would you want to do this? Well, for the case where you
-> are distributing software to many machines, having it on a shared NFS
-> filesystem is convenient and reasonably atomic. But when you have
-> sofware with many many PATHs (LD_LIBRARY, PYTHON, etc), you can create
-> some pretty impressive negative lookups across all those NFS hosted
-> directories that can overhelm a single NFS storage server at scale. By
-> "caching" or localising the entire PATH directory metadata locally on
-> each host, we can serve those negative lookups from local opaque
-> directories without traversing the network.
->
-> I think this is a common enough software distribution problem in large
-> systems and there are already many different solutions to work around
-> it. Most involve localising the software on demand from a central
-> repository.
->
-> Well, I just wondered if it could ever be done using an overlay in the
-> way I describe? But at the moment, it has to deal with a sporaidcally
-> changing lower filesystem and a manually hand crafted upper
-> filesystem. While I think this might all work fine if the filesystems
-> can be mounted and unmounted between software runs, it would be even
-> better if it could safely be done "online".
+> how can we document it to make the behavior "defined"?
+> 
+> My thinking is:
+> 
+> "Changes to the underlying filesystems while part of a mounted overlay
+> filesystem are not allowed.  If the underlying filesystem is changed,
+> the behavior of the overlay is undefined, though it will not result in
+> a crash or deadlock.
+> 
+> One exception to this rule is changes to underlying filesystem objects
+> that were not accessed by a overlayfs prior to the change.
+> In other words, once accessed from a mounted overlay filesystem,
+> changes to the underlying filesystem objects are not allowed."
+> 
+> But this claim needs to be proved and tested (write tests),
+> before the documentation defines this behavior.
+> I am not even sure if the claim is correct.
 
-How about this for a workaround:
+I've been blissfully and naively assuming that it is based on intuition
+:).
 
-From your explanations, I understand that you are expecting only specific
-directories to grow (e.g.  /blah/thing/ and /blah/thing/UIID*/), while othe=
-r
-directories are immutable (e.g. /blah/thing/UIIDA/versionXX/) is that corre=
-ct?
-Can you monitor those directories mtime on NFS using a dedicated service?
+I think Daire and I are basically only adding new files to the NFS
+filesystem, and both the all-opaque approach and the data-only approach
+could prevent accidental access to things on the NFS filesystem through
+the overlayfs (or at least portion of it meant for end-user consumption)
+while they are still being birthed and might be experiencing changes.
+At some point in the NFS tree, directories must be modified, but since
+both approaches have overlayfs sourcing all directory entries from local
+metadata-only layers, it seems plausible that the directories that
+change aren't really "accessed by a overlayfs prior to the change."
 
-If you can then there might be a workable solution to your problems:
+How much proving/testing would you want to see before documenting this
+and supporting someone in future who finds a way to prove the claim
+wrong?
 
-- Instead of chown -R to copy up all dirs and metacopy all files
-create an identical opaque directory hierarchy and *move* all the
-files into the opaque directory hierarchy.
-- When the service detects a new subdir on NFS, add the subdir to the
-opaque directory hierarchy and *move* the files from the merged subdir
-to the opaque subdir of the same name.
+> 
+> One more thing that could help said service is if overlayfs
+> supported a hybrid mode of redirect_dir=follow,metacopy=on,
+> where redirect is enabled for regular files for metacopy, but NOT
+> enabled for directories (which was redirect_dir original use case).
+> 
+> This way, the service could run the command line:
+> $ mv /ovl/blah/thing /ovl/local
+> then "mv" will get EXDEV for moving directories and will create
+> opaque directories in their place and it will recursively move all
+> the files to the opaque directories.
 
-The result is that:
-- all the directories in the opaque hierarchy are opaque as you wanted
-- all the files have metacopy and absolute redirect
-- if you take care no to expose the merged hierarchy to users (only to
-  the service), then the overlayfs merged hierarchy will not have any
-  readdir caches (service only iterates on NFS directly)
-- if service only ever accesses the merged hierarchy as the move source
-  then there should be no negative lookup caches in the merged hierarchy
-- all this happens legitimately while overlayfs is mounted, without
-  having to manually tweak trusted.overlay xattrs and drop caches
-
-Assuming that I didn't miss anything and this can work for you,
-how can we document it to make the behavior "defined"?
-
-My thinking is:
-
-"Changes to the underlying filesystems while part of a mounted overlay
-filesystem are not allowed.  If the underlying filesystem is changed,
-the behavior of the overlay is undefined, though it will not result in
-a crash or deadlock.
-
-One exception to this rule is changes to underlying filesystem objects
-that were not accessed by a overlayfs prior to the change.
-In other words, once accessed from a mounted overlay filesystem,
-changes to the underlying filesystem objects are not allowed."
-
-But this claim needs to be proved and tested (write tests),
-before the documentation defines this behavior.
-I am not even sure if the claim is correct.
-
-One more thing that could help said service is if overlayfs
-supported a hybrid mode of redirect_dir=3Dfollow,metacopy=3Don,
-where redirect is enabled for regular files for metacopy, but NOT
-enabled for directories (which was redirect_dir original use case).
-
-This way, the service could run the command line:
-$ mv /ovl/blah/thing /ovl/local
-then "mv" will get EXDEV for moving directories and will create
-opaque directories in their place and it will recursively move all
-the files to the opaque directories.
-
-Actually, current code does not even check for redirect_dir=3Don
-(i.e. in ovl_can_move()) before setting redirect xattr on regular
-metacopy files.
-
-So as far as I can tell, the following UNTESTED patch might
-be acceptable, so you can try it out if you like if you think this
-will help you implement to suggestions above:
-
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -824,15 +824,9 @@ int ovl_fs_params_verify(const struct ovl_fs_context *=
-ctx,
-                config->metacopy =3D true;
-        }
-
--       /*
--        * This is to make the logic below simpler.  It doesn't make any ot=
-her
--        * difference, since redirect_dir=3Don is only used for upper.
--        */
--       if (!config->upperdir && config->redirect_mode =3D=3D OVL_REDIRECT_=
-FOLLOW)
--               config->redirect_mode =3D OVL_REDIRECT_ON;
--
-        /* Resolve verity -> metacopy -> redirect_dir dependency */
--       if (config->metacopy && config->redirect_mode !=3D OVL_REDIRECT_ON)=
- {
-+       if (config->metacopy && config->redirect_mode !=3D OVL_REDIRECT_ON =
-&&
-+                               config->redirect_mode !=3D OVL_REDIRECT_FOL=
-LOW) {
-                if (set.metacopy && set.redirect) {
-                        pr_err("conflicting options:
-metacopy=3Don,redirect_dir=3D%s\n",
-                               ovl_redirect_mode(config));
---
-
-Apologies in advance if this idea is flawed.
+Clever.
 
 Thanks,
-Amir.
+Mike
