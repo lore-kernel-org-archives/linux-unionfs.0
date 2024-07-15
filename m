@@ -1,54 +1,53 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
+Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6940418411C
-	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 10:50:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7F8CB1E89C
+	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 14:15:26 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721040660; cv=none; b=lsxCXtEaHAR7IzRRCocXoTJ5j5uHfm2/sjy0o286Rgsglwks0nGPKapAHn8USRYbM05TJruUSuB5+rq+4aQ+uURCLVot6mI/Ah+Xdget5EYdjPByZpuul5XumEhIPoW6Mkss5xYY7tna4YRRLrVEHxQ8J6iuLB7A0Gwl4RigzY8=
+	t=1721052929; cv=none; b=nRSSB+YqJPW88B2fqmQXD5Jd4E5Hsi7nbuYn+W9i2O1SBZma8hq9t9mGnuinkV1vSd29Sb+IDmxcUB4V0yeJBWbv8lMAqf1PzsRcwHr0TUh9nRpATmKNrjs26wGD3lXHF8ccViUpKoKvmJgP+N96469Cr6modLC3PQnDcoa5KCI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721040660; c=relaxed/simple;
-	bh=1RgVYHiaz2pBdDr+Cxy+f//XJSTmDwfTyjIveaZUvw0=;
+	s=arc-20240116; t=1721052929; c=relaxed/simple;
+	bh=WbGfS3Fne/E+3NZambauS0HXLnbPJoHPynU25RYO0JE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Yq3GbNpMLrcm7NGr652NizkNJ7rNGE6hxgwo4XaHVh/uZbkw5tpLmRX3sqJqKO9lQBpwnNV0M78V4atKF54txWBMy/9Q9ApvE2qaVdVabqmdQ7TJY5KhYLqCV/jjz/aO9l5hP92sPmGrYPmkvWkcB5lVW5l2udP44bAnORIRunM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com; spf=pass smtp.mailfrom=dneg.com; dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b=rF9jwEzn; arc=none smtp.client-ip=209.85.208.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dneg.com
+	 To:Cc:Content-Type; b=X1KPD0JuL80Dta4mPe18cZW/MzT+8gechwhZnNX+jf6l8rfCZoYfV+vyTrsOy2v/1DezRDVeGUE6oFOOBcPn2tBPqyz2Bv63oJ8Zc9rm2V24bA8IFVG2LHy3+uYG651gTfuGkDF2NCpOJ5+9WYki2jWPLrSezh7cuguqi5/kLtw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SeNMJtb4; arc=none smtp.client-ip=209.85.222.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b="rF9jwEzn"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-59589a9be92so5594603a12.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 03:50:58 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SeNMJtb4"
+Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-79f19f19059so276936985a.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 07:15:26 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dneg.com; s=google; t=1721040657; x=1721645457; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1721052925; x=1721657725; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=1RgVYHiaz2pBdDr+Cxy+f//XJSTmDwfTyjIveaZUvw0=;
-        b=rF9jwEznW86aHSaoFr+30rFI0uZjGRUIig0skrKT7T1aKQXbU/bb6Zbg6V7M1ViBhp
-         xrML0Uoy7e1Jh6T/+EuPYoWnizOAsQ5ZV4HXnCdZDdjApokuduA/2HoHMfZ6dHQoyuuR
-         nVGWv8SM0GgMoFeEcDMUSzkETu2OWJhZRlkuzeP/oltVlo8ZxF2W9tf72u35u31L9ZeF
-         VsPlMTYC83MYlNiLDKFkwuNtI5a5Hf7XNiDpeIXXSaiyItOPnFTx0MAByg/9JMgCpqS0
-         yIPXOogRPAOpsuPu4FAoYAM2UFufBesvZr5/Osel1FyrzErWS3TO1UExP5Td1cBqt7GP
-         qU4Q==
+        bh=WbGfS3Fne/E+3NZambauS0HXLnbPJoHPynU25RYO0JE=;
+        b=SeNMJtb4SF7xKnhGTyeL6KNoorpY+hnIuXM9kArtaocODdJhwaSayza7YiY26GtNU2
+         rM+mKtAO0OWuFA7oK+vQfktc/1/S0iLfghQ0btCDxoyNiFVkG7CkDYiXRHjatI3zyJcP
+         8ot3GTXEWXOamTVvFvR4yZVxY9yt0NAQDTbDhdS/wzThAi/tS5q9VS44AzXgTlzbtDut
+         uv/wf5uV++5TpP8MNkbezfvpALe2g4KiOzDbok2fK28eamPvRsUaXW69WnlYtACg3ciq
+         raODfnYjGdpJc1yJo9V94HHwg4Q1E3YZKv9CvjcN2ghX4CXhLuzynvFgQlRvyEVWNuHm
+         7ziw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721040657; x=1721645457;
+        d=1e100.net; s=20230601; t=1721052925; x=1721657725;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=1RgVYHiaz2pBdDr+Cxy+f//XJSTmDwfTyjIveaZUvw0=;
-        b=LIdJ2BTaUiQWxuSQjf6gCHK2NhS72RI2Md+UzZQ79J0W9H2R2boqg0+Z/xQKQbWnYy
-         ZhIJkF8crCeUdt6GtY+VnX85K01G3py26LT8x7ZY+p2ZxsRVwoBttEVFyW4pWjVMxCBg
-         mgOUW7uS1U+0R4ejH9u/anCSqSteqgyRBRtwlYGjAvwRk4P4gY0BSuJPQRyW/mbcSzu1
-         0TsvnarGT5HHjbHcTnTki0Gaglqh8dvDlAfcU+gHy6nk+CLWySDbB9lPmyZBQKSF5oic
-         qFCpN03xqt2K7DX6eqQGePVrtM99BdBnIPhm+5MSbb999m+iUW2x9rM4LVrZ50ishgmm
-         jf8A==
-X-Forwarded-Encrypted: i=1; AJvYcCWZDfr3gzTM6Dq0d8qxi5ykCvGW085S5iwPFyR7bG8rp5XFxjvRiJ0WFiq5UMzPfD1/VEH8qLA37u1A1R9PXf3OQ4/5/1pqn53UYc2b7Q==
-X-Gm-Message-State: AOJu0YyiHOWqlOGGSaug2zsGAmDJBO1XZAwAphULMe08gbUz2bERBYB9
-	B/JAW8HMvwA8X0F7WDnLnaGQfe1D3IuDeLtnrq/kBCRGgUmShrr0+K/BX+aAMEQ7tBDNIKTLNmM
-	blUD4xaysAbOH8MWQCF/Qb1a0BrgYnAmjXw1H8A==
-X-Google-Smtp-Source: AGHT+IFIwpEF6rea5BLUKbsTGwgdOxQ7RjtqcxaOm4jsgGosLJNJIQ2ykJuI1AF84jqBcFz9AuuyKfgHMrlHZfwDa1Q=
-X-Received: by 2002:a17:907:94cd:b0:a72:5470:1d6a with SMTP id
- a640c23a62f3a-a780b6fe30emr1626332266b.35.1721040656673; Mon, 15 Jul 2024
- 03:50:56 -0700 (PDT)
+        bh=WbGfS3Fne/E+3NZambauS0HXLnbPJoHPynU25RYO0JE=;
+        b=LbNg67QaTYD/HyJSMqBkKQQrSsE/OroL4Fhe7PjYyMIVpv7aTece52SujfTXHJLjS/
+         a9GZ4VIa+qzXNWS4EmssGYlEV+AgP7mEo7QElwWWIOKk206yi3OZ2WLTewb0x7HFKAaB
+         KQvVVhsNOh2GG4ixjQ9Bq/yIg8WA8Vx4ytF7TSwndhL99gIlLua5Utmyu/3B+RzGOa+A
+         EzJ/OjEizSdKvNMOJCDw75QDgwuezEsUYb+0jrra+xYjZOCrQ8DiqG5+6G26k6am39oe
+         AFL8Jc05G45xbRQoZepWCX2w4qOc76oGaGq8+t3VdQKn9dp8CwOUkoFXSm/ejMhZz06+
+         i2cA==
+X-Gm-Message-State: AOJu0YyXoJMeAS+C6h5uUchidYeP35I9B9qMgbQEjvBoL/bY9t0evuP7
+	elAqKvUGboyxfWY+S8FbGaANARDwy5rFNK0qKI3dMURi91y/4DVlQY+Nh0l9oEh02PlakEzH/Qv
+	MGCb1yuiO7mQ3ahSSAc+NqUNuuUM=
+X-Google-Smtp-Source: AGHT+IGXefZc9HA/MuJ46jAHLRDxsmZwCUB5fWFEFP+/7D1p8S6E9nPcb35YjzKR0AhNmjSv+mugwcQGkFHkMISReXw=
+X-Received: by 2002:a05:620a:2985:b0:79d:69b5:aaf7 with SMTP id
+ af79cd13be357-79f19a52704mr2446128385a.11.1721052925206; Mon, 15 Jul 2024
+ 07:15:25 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -57,145 +56,138 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
  <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
- <f1ed1b60-273d-4ee6-bbcb-ae3d78486b70@mbaynton.com> <CAPt2mGNO_koGozPx68GwowuxDd+CkZWT3Xa7DE-4XCwd9K_RJw@mail.gmail.com>
- <cdbda6fe-ee9c-4437-bbd8-c9104dd2043a@mbaynton.com>
-In-Reply-To: <cdbda6fe-ee9c-4437-bbd8-c9104dd2043a@mbaynton.com>
-From: Daire Byrne <daire@dneg.com>
-Date: Mon, 15 Jul 2024 11:50:20 +0100
-Message-ID: <CAPt2mGOv3MtRHF5N_tDMXcDN4M4vr=C-YEkE=gd9kEhd6iwtLQ@mail.gmail.com>
+ <CAPt2mGPWzGGZdGGRg2CEQw0QnHNSm7o7xpHow65R+iJ0BO5CMQ@mail.gmail.com>
+ <CAOQ4uxg16b7SJrsN=5kvE0QSD94-VoHiWTCvGVbGEcaadfVmeA@mail.gmail.com> <CAPt2mGOkxUE7t22SrcW6hHW+OaccNuB8Xem-hVAv-aiyteiXqw@mail.gmail.com>
+In-Reply-To: <CAPt2mGOkxUE7t22SrcW6hHW+OaccNuB8Xem-hVAv-aiyteiXqw@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 15 Jul 2024 17:15:12 +0300
+Message-ID: <CAOQ4uxgyjXU7_-SnpbfvDTFzjKekB+sxRp3Ea+LSrrQrkMcf1w@mail.gmail.com>
 Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
-To: Mike Baynton <mike@mbaynton.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
+To: Daire Byrne <daire@dneg.com>
+Cc: linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-On Sun, 14 Jul 2024 at 05:12, Mike Baynton <mike@mbaynton.com> wrote:
->
-> On 7/12/24 07:04, Daire Byrne wrote:
-> > Yea, so I have also toyed with the "composefs" idea
->
-> Yeah, I'm doing what they're doing but making the EROFS in-house and
-> hoping the kinda-writable NFS twist isn't an issue. I only need to
-> satisfy dependencies for a container's worth of software at a time and I
-> can determine all the dependencies I need by virtue of tooling in the
-> software ecosystems I need to support.
-
-Yea, I need to check out EROFS at some point. But many of our desktop
-kernels are just too old atm.
-
-Overall the idea of hand crafting metadata-only overlays is compelling
-because you can avoid the complexity (and confusion) of using symlinks
-and it's extremely lightweight (maybe even more so with EROFS).
-
-> > I guess the difference is that I'm not trying to replicate the
-> > entirety of the metadata, I just want to tweak bits of it and still
-> > avail of the overlay merged directories to fall through to the
-> > directory tree and data underneath for everything else.
->
-> Yeah I understand your objective now. I'm mildly curious why NFS +
-> fscache doesn't solve the negative lookups case for you given that you
-> want a dynamically generated local cache. Is fscache just unable to
-> cache negative lookups, and you want it to persist for weeks?
-
-Well, fscache is for caching the data contained in (existing) files
-only right? It makes no attempt to deal with the metadata (e.g.
-directories)?
-
-Or at least I don't know how effective a disk based cache of metadata
-could be compared to the vfs page cache when you still need to
-revalidate fairly often. I mean it needs to revalidate the file often
-(actimeo?) before it can serve the cached copy so it needs the remote
-metadata lookups?
-
-I have seen some talk (David Howells) about giving network filesystems
-like NFS the ability to have "disconnected" access via netfs/fscache
-(ala AFS) but I don't know if that is still on the cards.
-
-The issue we see is that not only do our batch systems cycle through
-lots of different software versions per hour, but we have many
-thousands of clients doing the same to a single (Netapp) software
-volume. Even if each NFS client managed to cache 80% of the negative
-lookups between runs, the 20% that hits the Netapp is still quite
-significant from many clients.
-
-And even forgiving the server load implications, a Netapp on the LAN
-(0.2ms) can add delay when you deal with many "pointless" negative
-lookups. I have seen some of our software do 100,000 negative lookups
-across 250 lib dirs, which although on paper should only be 100000 *
-0.2ms = 20 seconds, actually adds almost a minute to the startup time
-of the software. Certainly when we use a local filesytem overlay the
-time drops by a minute anyway (most likely because the actual file
-opens benefit too). Now if the software only runs for 2 minutes, then
-1/3 of its time is spent doing negative lookups/path walking at
-startup.
-
-Yes, I am aware that our software is not well optimised but our build
-system and environment is what it is at this point.
-
-I have seen many other novel solutions to this general problem - some examples:
-
-https://guix.gnu.org/en/blog/2021/taming-the-stat-storm-with-a-loader-cache
-https://computing.llnl.gov/projects/spindle
-
-> Also (only semi-related) since you have a large NFS deployment similar
-> to the one I'm putting together in terms of read-only to normal clients
-> and most files/paths being immutable after they first appear, I'd be
-> interested in any experiences you've had in practice with performance of
-> fscache and NFS mount options that relax its cache coherence / atomicity
-> semantics. I've found it impossible to avoid roundtrips to the server on
-> each fopen for locally cached files (unless using NFS4 delegation which
-> is overkill and not available in my environment.) These RPC roundtrips
-> provide no real benefit to our use case but can add seconds of delay to
-> initializing a process if it accesses thousands of little interpreted
-> language files.
-
-In my experience actimeo>3600 can help for these kinds of read-only
-filesystems but you probably need "nocto" to really get it down to
-almost no repeat network traffic at all (when cached). Setting
-vm.vfs_cache_pressure=1 might also help keep the nfs inode data in
-memory longer too?
-
-But nocto will also cache the "ls -l" case whereby you won't see new
-entries. However, if you know a new dir/file is there and access it,
-it will do the new lookup and find it (dirent not in cache yet). That
-might work for your case by the sounds of it?
-
-I'm not too sure about how that effects opens specifically though. In
-fact, using NFSv3 might be more "relaxed" in this regard than NFSv4?
-
-In general, our entire pipeline deals with unique versioned files.
-Apart from home directories, I can't think of many places where we
-overwrite or append to existing files for production workloads or
-reuse file paths in any way.
-
-> Not an overlayfs concern in any way though so perhaps no need to pollute
-> the mailing list further; if you are interested in responding to me on
-> these things continuing off list would be fine with me too.
->
-> >> I think Daire and I are basically only adding new files to the NFS
-> >> filesystem, and both the all-opaque approach and the data-only approach
-> >> could prevent accidental access to things on the NFS filesystem through
-> >> the overlayfs (or at least portion of it meant for end-user consumption)
-> >> while they are still being birthed and might be experiencing changes.
-> >> At some point in the NFS tree, directories must be modified, but since
-> >> both approaches have overlayfs sourcing all directory entries from local
-> >> metadata-only layers, it seems plausible that the directories that
-> >> change aren't really "accessed by a overlayfs prior to the change."
+> > I understand.
+> > It makes sense.
 > >
-> > Yes, I think your case has a good chance of being safe and becoming
-> > well defined behaviour.
+> > I remember tossing the idea of "finalizing" the merged dir copy up -
+> > meaning that at the end of ovl_dir_read_merged(), overlayfs knows
+> > if the upper entries shadow all the lower entries, and in this case, the
+> > lower layers NEVER need to be iterated again, so some xattr could
+> > be set on the upper dir to indicate that the copy up on the dir content
+> > has been completed.
 > >
-> > But my idea was still very much relying on using the majority of the
-> > lower layer as is. And for all the reasons given, I suspect my use
-> > case is still a no-no.
+> > After the copy up of dir content has been completed, then ovl_lookup()
+> > should not continue to lookup children of this merged dir in lower layers
+> > unless it was redirected by upper layer.
+> >
+> > It is not a trivial change, but I think it can be beneficial.
+> >
+> > The good thing about this is that there is no need for a new API -
+> > all your service would need to do is chown -R as you tried to do and
+> > it will "just work" - no more unneeded lookups in NFS layer.
 >
-> I dunno, your thing might end up working out fine, based on your latest
-> testing of when clients see changes and Amir's observation that all fds
-> need to be closed but then a readdir through an overlayfs will observe
-> changes. Seems "unlikely" that clients would hold open fds to the first
-> few levels of directories at all, never mind for long enough for someone
-> to call you and ask where the new version is :)
+> Well, that is an interesting idea. I'm not sure how you would
+> determine that a merged dir has been "completely" copied up (comparing
+> readdir results?).
 
-Yea, I think it is probably fine. Maybe another clarification for the
-docs that others might find useful too?
+overlay readdir of merged dir NEEDS to merge lower entries
+that DO NOT exist in the upper layer - if there are not such entries
+found, looking in the lower layer next time is futile.
 
-Daire
+> And how would this differ to setting the "opaque"
+> xattr on the dir (but automatically)?
+
+The lower layer still has information that overlayfs needs,
+and ovetrlayfs needs to be able to follow redirects into lower layer.
+This is not going to work with an opaque upper dir.
+
+> Would it need a new xattr?
+>
+
+Maybe, or use the combination of "opaque" + "redirect" to
+describe this hybrid type of directory (the dir content was fully
+copied up, but redirects may still follow to lower entries.
+Essentially, this is equivalent to a lower-most directory (implicitly
+opaque dir) that can follow redirects into a data-only layer.
+
+> It also means that all subsequent dirs in the lower tree would also be
+> "opaque" even if they have not been checked for copy-up completeness?
+
+No. A directory inode is a sort of a file whose "data" is the dir content.
+"copy-up completeness" means the list of entries have been copied up
+(not recursively).
+
+> Or they would get a redirect until it could be determined they were
+> completely copied up?
+
+readdir operated on a single dir inode.
+readdir of a directory can end up making it "half-opaque"
+nothing recursive about it - application can do this recursively
+as it wishes.
+
+>
+> I also won't pretend to understand how you could do that for a
+> recursive copy up without momentarily disrupting access. Like if you
+> did a recursive copy up and the top level dirs complete first while
+> the lower contents haven't been totally copied up yet?
+
+Not doing anything recursive.
+
+>
+> It sounds complex :)
+
+Not really. The patch is not trivial, but the concept is simple.
+If I find a few hours, I will post a demo.
+
+
+> > > > One more thing that could help said service is if overlayfs
+> > > > supported a hybrid mode of redirect_dir=follow,metacopy=on,
+> > > > where redirect is enabled for regular files for metacopy, but NOT
+> > > > enabled for directories (which was redirect_dir original use case).
+> > > >
+> > > > This way, the service could run the command line:
+> > > > $ mv /ovl/blah/thing /ovl/local
+> > > > then "mv" will get EXDEV for moving directories and will create
+> > > > opaque directories in their place and it will recursively move all
+> > > > the files to the opaque directories.
+> > >
+> > > Okay, I think I see what you are getting at but I need to test the
+> > > patch to make sure :)
+>
+> Sorry, I will try and test the patch this week as I am actually
+> curious about using it to create offline handcrafted overlay trees
+> too. So rather than run a combination of truncate, touch, chown,
+> chmod, setfattr commands, mount an overlay with your patch, move the
+> dirs around, umount and then use the resulting metadata overlay as a
+> read-only overlay from then on.
+>
+
+That sounds much better than mangling with overlayfs xattrs.
+
+> I'm still toying with the idea of creating one (enormous) read-only
+> overlay with all the lib/plugin directories as opaque directories and
+> just accepting that I might only refresh it once a day and clients
+> might only remount it once a week... Not great, but some amount of
+> local lookup acceleration is better than none.
+>
+> I think the main problem with using this patch for my use case is that
+> as soon as you do the mv, you break any processes that might be
+> scanning those dirs at that instant or any new ones that start up. It
+> may be possible to have my userspace daemon choose the right time to
+> run the mv, but it's hard to predict how fast it would take to
+> complete.
+>
+
+Confused. I thought you were going to use the patch for offline preparation
+of metacopy layers.
+
+Note that once you did mv into an opaque tree,
+you can move the opaque dir back into its original location
+(e.g. /blah/think/UUID...) and the dir will remain opaque,
+because EXDEV is only generated when trying to move
+merged dirs.
+Moving opaque upper dirs around is allowed and should work.
+
+Thanks,
+Amir.
