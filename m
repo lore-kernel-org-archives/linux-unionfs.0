@@ -1,190 +1,222 @@
-Received: from mail-io1-f50.google.com (mail-io1-f50.google.com [209.85.166.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE8F4DF4D
-	for <linux-unionfs@vger.kernel.org>; Sun, 14 Jul 2024 04:12:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD8C179C4
+	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 06:26:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1720930378; cv=none; b=IWDCkL1uuthZdSq5QGivec3HQH8aWPdbIE+52sU3j2L2vXoWJw2fugJstePcOdqd+QbLhpXvVVO5y2F+aOpQiMVvd5mGCSaU5ypazy6w2ZNsJXs5O02XXI9gYRbwBoF3eztw73+PMvOE3krK4HkLK7Sb3EFadpsdbhCMPFjzYGg=
+	t=1721024804; cv=none; b=a7UrJanvEfHsd7mnzallIvfTmIKXubs6BeWIuMplcryJekUsyws1F8LLJIweRo2cIPixtCJSTbTXVkbjJRoyYDBnXt6mrYVJMmWZff4h8Vw3tSIa1tnrYDGjXnXBZ7OcbxCHI2s/mpmOciYu3ktTEQ1cdyY0vKi2hXhfWVXQfDY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1720930378; c=relaxed/simple;
-	bh=+gYfwTcoriA1XEpriagJ3gzW+i8crH7nHY+yHPID1Z8=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=pnkDUiSxlm8sSm1n25YZ8dYdKLuMBZIqXTxWNYtT+8+usX4ExtQaHZMmvpJV5Yff3jiLSpsyGp+u/pI7adz2kw+kaGA3Bvkgz+Yb12sKS9Yn3xgTBm1a+ZvNLIzmqW1uzAOql6sf+txYaJrrDsEgiAMrbxZzt5Stxbn/Dm4vXfk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com; spf=none smtp.mailfrom=mbaynton.com; dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b=EL5BV7Kn; arc=none smtp.client-ip=209.85.166.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mbaynton.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b="EL5BV7Kn"
-Received: by mail-io1-f50.google.com with SMTP id ca18e2360f4ac-7f6e9662880so148886239f.2
-        for <linux-unionfs@vger.kernel.org>; Sat, 13 Jul 2024 21:12:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mbaynton-com.20230601.gappssmtp.com; s=20230601; t=1720930376; x=1721535176; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=dhPtFt3IkvlciF17uP81WyX6Ja0Upg9M2X89NPkGTb4=;
-        b=EL5BV7KnTyqQ94+d8SS+vNZQ64/CbiZrybwPJmxG+jLLmKFFEHr0DphOCinekeiQ2C
-         1MFBtLhjTWnkcIXXl3+5Xu/sRHZZG1wY1tNHdf5LzNWGGSZeA/MQV2RYA8VKn92CtHIM
-         15oZQO8hHnnWtNKmGp4rZVJNKg0YPGuDuQ+8WWe6+8NU0uYm3t/rjyHPjRF8d/pzhaKg
-         KSkRfLIvhWBfTTW0xxAqzM++tK7flyWPLMUzWUZFDoXTwKYY3GRdkyHfWDiTLCeZI4d2
-         EPHaIQfToi9q9634ErGH1CNUWn+rwOIPE6KeJXTEXmM5DLUO0e+8/mbaijwTBI9eb4nA
-         TAxA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1720930376; x=1721535176;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=dhPtFt3IkvlciF17uP81WyX6Ja0Upg9M2X89NPkGTb4=;
-        b=dNfemZrL5McNnF6oYsPuPtnFhOZUD7YHxwUkSL2QU9KQzR6jazcERflOdMHU+8qVjz
-         MpgGFrA68/i3Ka3noGwOcIXgYI7fyXsivaDTIMfQShHHQ4x6eY1k0X5BW1s9QQ5vA25C
-         yokwppwb9H2yG397G34jxlmqq5JLNx+c+h5V+f7SfFcjEuBZp3zUFS4ulafSN2KKmQEA
-         VSR5kTBB3mFKEJDeNqx2wW++FOli/kx5+vwv3Bam/FAvLIN7qBV6cDhh8YQOvvzrc/Ef
-         ZieLpmfPqAY8Nddrv2HB5FlsH9OddISdT3Aps1JNxyKZn0VgZ1odL7JQptk7gp22Uw6i
-         5j/Q==
-X-Forwarded-Encrypted: i=1; AJvYcCU5d5OzX+5XvPnRoWOWIzeX7uu/vuEfDKNoXIHjfyPQkz8g8FvEtfRJNRJ3QnoE7D1AaDoZNtjSSmyNpX5ZrDIOaFF+Km354d7ab05GVg==
-X-Gm-Message-State: AOJu0YwVEWmrCgAmrGz1swWU0KxHEqM5vHdgehm+UBADd71exVdlYuEy
-	v9Wo44hhtQz6Gnx/ZoNGq8ieoIgso5ipMiWFUotIGGRRrfDIcDrAF+ThAtb7ZH0=
-X-Google-Smtp-Source: AGHT+IHnSSd60WeTgHdgpTLqQERoFsBhglqWxIz2NLTiZjKiY/MN7t+ytsmQiWb811OoyAXbV3xmCQ==
-X-Received: by 2002:a6b:5c07:0:b0:7fc:a65:c734 with SMTP id ca18e2360f4ac-80004173bcamr1603504339f.19.1720930375670;
-        Sat, 13 Jul 2024 21:12:55 -0700 (PDT)
-Received: from ?IPV6:2601:444:600:440:644a:df89:617:427f? ([2601:444:600:440:644a:df89:617:427f])
-        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4c1e1b0b95fsm619646173.27.2024.07.13.21.12.54
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 13 Jul 2024 21:12:54 -0700 (PDT)
-Message-ID: <cdbda6fe-ee9c-4437-bbd8-c9104dd2043a@mbaynton.com>
-Date: Sat, 13 Jul 2024 23:12:52 -0500
+	s=arc-20240116; t=1721024804; c=relaxed/simple;
+	bh=j730KwkobayixCsJeYoc3MzvvMhIhfJYuUZqB0nBiZg=;
+	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
+	 Content-Type:MIME-Version; b=nxSgKRZuqrTBo6kPxFDm9c7dx3FEqqlQzi5o+JgoZUsOkZIVCN8JXCbeOJVUVLpkfK7CzPsEl9rr6KP6DVRoir7KDPx4qxNUo02kvK6idHsWihoflo6CfZ1z8q8KxMRqrSF5jsdaX9XbkTnNK6ruH9I8wJzNny25W0NHvdiBzmw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
+Received: from spam.asrmicro.com (localhost [127.0.0.2] (may be forged))
+	by spam.asrmicro.com with ESMTP id 46F67MOk010412
+	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 14:07:22 +0800 (GMT-8)
+	(envelope-from feilv@asrmicro.com)
+Received: from mail2012.asrmicro.com (mail2012.asrmicro.com [10.1.24.123])
+	by spam.asrmicro.com with ESMTPS id 46F66t16010353
+	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
+	Mon, 15 Jul 2024 14:06:55 +0800 (GMT-8)
+	(envelope-from feilv@asrmicro.com)
+Received: from exch01.asrmicro.com (10.1.24.121) by mail2012.asrmicro.com
+ (10.1.24.123) with Microsoft SMTP Server (TLS) id 15.0.847.32; Mon, 15 Jul
+ 2024 14:06:57 +0800
+Received: from exch01.asrmicro.com ([::1]) by exch01.asrmicro.com ([::1]) with
+ mapi id 15.00.0847.030; Mon, 15 Jul 2024 14:06:57 +0800
+From: =?utf-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
+To: Amir Goldstein <amir73il@gmail.com>
+CC: "miklos@szeredi.hu" <miklos@szeredi.hu>,
+        overlayfs
+	<linux-unionfs@vger.kernel.org>
+Subject: =?utf-8?B?562U5aSNOiBvdmVybGF5ZnMgaXNzdWU6IGRpciBwZXJtaXNzaW9uIGxvc3Qg?=
+ =?utf-8?Q?during_overlayfs_copy-up?=
+Thread-Topic: overlayfs issue: dir permission lost during overlayfs copy-up
+Thread-Index: AdrUC0gEiOU98wx1R2KKZaM5fXllRAABtu/g///UyID/+v9iQA==
+Date: Mon, 15 Jul 2024 06:06:56 +0000
+Message-ID: <d75ce286091046438f8828554eb3f781@exch01.asrmicro.com>
+References: <a2391c78f3974c5d92aa53574bde4eca@exch01.asrmicro.com>
+ <CAOQ4uxj-pOvmw1-uXR3qVdqtLjSkwcR9nVKcNU_vC10Zyf2miQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxj-pOvmw1-uXR3qVdqtLjSkwcR9nVKcNU_vC10Zyf2miQ@mail.gmail.com>
+Accept-Language: zh-CN, en-US
+Content-Language: zh-CN
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
-To: Daire Byrne <daire@dneg.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
-References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
- <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
- <f1ed1b60-273d-4ee6-bbcb-ae3d78486b70@mbaynton.com>
- <CAPt2mGNO_koGozPx68GwowuxDd+CkZWT3Xa7DE-4XCwd9K_RJw@mail.gmail.com>
-Content-Language: en-US
-From: Mike Baynton <mike@mbaynton.com>
-In-Reply-To: <CAPt2mGNO_koGozPx68GwowuxDd+CkZWT3Xa7DE-4XCwd9K_RJw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+X-DNSRBL: 
+X-SPAM-SOURCE-CHECK: pass
+X-MAIL:spam.asrmicro.com 46F67MOk010412
 
-On 7/12/24 07:04, Daire Byrne wrote:
-> Yea, so I have also toyed with the "composefs" idea
-
-Yeah, I'm doing what they're doing but making the EROFS in-house and
-hoping the kinda-writable NFS twist isn't an issue. I only need to
-satisfy dependencies for a container's worth of software at a time and I
-can determine all the dependencies I need by virtue of tooling in the
-software ecosystems I need to support.
-
-> I guess the difference is that I'm not trying to replicate the
-> entirety of the metadata, I just want to tweak bits of it and still
-> avail of the overlay merged directories to fall through to the
-> directory tree and data underneath for everything else.
-
-Yeah I understand your objective now. I'm mildly curious why NFS +
-fscache doesn't solve the negative lookups case for you given that you
-want a dynamically generated local cache. Is fscache just unable to
-cache negative lookups, and you want it to persist for weeks?
-
-Also (only semi-related) since you have a large NFS deployment similar
-to the one I'm putting together in terms of read-only to normal clients
-and most files/paths being immutable after they first appear, I'd be
-interested in any experiences you've had in practice with performance of
-fscache and NFS mount options that relax its cache coherence / atomicity
-semantics. I've found it impossible to avoid roundtrips to the server on
-each fopen for locally cached files (unless using NFS4 delegation which
-is overkill and not available in my environment.) These RPC roundtrips
-provide no real benefit to our use case but can add seconds of delay to
-initializing a process if it accesses thousands of little interpreted
-language files.
-
-Not an overlayfs concern in any way though so perhaps no need to pollute
-the mailing list further; if you are interested in responding to me on
-these things continuing off list would be fine with me too.
-
-> 
->>> how can we document it to make the behavior "defined"?
->>>
->>> My thinking is:
->>>
->>> "Changes to the underlying filesystems while part of a mounted overlay
->>> filesystem are not allowed.  If the underlying filesystem is changed,
->>> the behavior of the overlay is undefined, though it will not result in
->>> a crash or deadlock.
->>>
->>> One exception to this rule is changes to underlying filesystem objects
->>> that were not accessed by a overlayfs prior to the change.
->>> In other words, once accessed from a mounted overlay filesystem,
->>> changes to the underlying filesystem objects are not allowed."
->>>
->>> But this claim needs to be proved and tested (write tests),
->>> before the documentation defines this behavior.
->>> I am not even sure if the claim is correct.
->>
->> I've been blissfully and naively assuming that it is based on intuition
->> :).
->>
->> I think Daire and I are basically only adding new files to the NFS
->> filesystem, and both the all-opaque approach and the data-only approach
->> could prevent accidental access to things on the NFS filesystem through
->> the overlayfs (or at least portion of it meant for end-user consumption)
->> while they are still being birthed and might be experiencing changes.
->> At some point in the NFS tree, directories must be modified, but since
->> both approaches have overlayfs sourcing all directory entries from local
->> metadata-only layers, it seems plausible that the directories that
->> change aren't really "accessed by a overlayfs prior to the change."
-> 
-> Yes, I think your case has a good chance of being safe and becoming
-> well defined behaviour.
-> 
-> But my idea was still very much relying on using the majority of the
-> lower layer as is. And for all the reasons given, I suspect my use
-> case is still a no-no.
-
-I dunno, your thing might end up working out fine, based on your latest
-testing of when clients see changes and Amir's observation that all fds
-need to be closed but then a readdir through an overlayfs will observe
-changes. Seems "unlikely" that clients would hold open fds to the first
-few levels of directories at all, never mind for long enough for someone
-to call you and ask where the new version is :)
-
-Mike
-
-> 
->> How much proving/testing would you want to see before documenting this
->> and supporting someone in future who finds a way to prove the claim
->> wrong?
->>
->>>
->>> One more thing that could help said service is if overlayfs
->>> supported a hybrid mode of redirect_dir=follow,metacopy=on,
->>> where redirect is enabled for regular files for metacopy, but NOT
->>> enabled for directories (which was redirect_dir original use case).
->>>
->>> This way, the service could run the command line:
->>> $ mv /ovl/blah/thing /ovl/local
->>> then "mv" will get EXDEV for moving directories and will create
->>> opaque directories in their place and it will recursively move all
->>> the files to the opaque directories.
->>
->> Clever.
->>
->> Thanks,
->> Mike
-> 
-> Thanks for the support! Certainly creating metadata only layers with
-> data layers is something I have considered. But for many of the same
-> reasons that we cannot compress all our PATHs to a single directory
-> full of symlinks, I'm not sure I will be able to construct a concise
-> metadata only layer without a much deeper understanding of how our
-> devs are building and deploying software. And I'm not sure I have the
-> mental fortitude for that journey :)
-> 
-> Daire
+DQoNCj4gLS0tLS3pgq7ku7bljp/ku7YtLS0tLQ0KPiDlj5Hku7bkuro6IEFtaXIgR29sZHN0ZWlu
+IFttYWlsdG86YW1pcjczaWxAZ21haWwuY29tXSANCj4g5Y+R6YCB5pe26Ze0OiAyMDI05bm0N+ac
+iDEy5pelIDE3OjQxDQo+IOaUtuS7tuS6ujogTHYgRmVp77yI5ZCV6aOe77yJIDxmZWlsdkBhc3Jt
+aWNyby5jb20+DQo+IOaKhOmAgTogbWlrbG9zQHN6ZXJlZGkuaHU7IG92ZXJsYXlmcyA8bGludXgt
+dW5pb25mc0B2Z2VyLmtlcm5lbC5vcmc+DQo+IOS4u+mimDogUmU6IG92ZXJsYXlmcyBpc3N1ZTog
+ZGlyIHBlcm1pc3Npb24gbG9zdCBkdXJpbmcgb3ZlcmxheWZzIGNvcHktdXANCj4gDQo+IE9uIEZy
+aSwgSnVsIDEyLCAyMDI0IGF0IDc6MTjigK9BTSBMdiBGZWnvvIjlkJXpo57vvIkgPGZlaWx2QGFz
+cm1pY3JvLmNvbT4gd3JvdGU6DQo+ID4NCj4gPg0KPiA+DQo+ID4gRGVhciBBbWlyLA0KPiA+DQo+
+ID4NCj4gPg0KPiA+IFNlZW1zIGlzc3VlIGRpc2FwcGVhcmVkIHdpdGggYmVsb3cgY2hhbmdlcywg
+Y2FuIHlvdSBoZWxwIHJldmlldyBiZWxvdyBwYXRjaD8NCj4gPg0KPiA+DQo+ID4NCj4gPiBUaGFu
+ayB5b3UhDQo+ID4NCj4gPg0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9jb3B5
+X3VwLmMgYi9mcy9vdmVybGF5ZnMvY29weV91cC5jDQo+ID4NCj4gPiBpbmRleCA0OGJjYTU4MTdm
+Li5lNTQzYjU1NjNkIDEwMDY0NA0KPiA+DQo+ID4gLS0tIGEvZnMvb3ZlcmxheWZzL2NvcHlfdXAu
+Yw0KPiA+DQo+ID4gKysrIGIvZnMvb3ZlcmxheWZzL2NvcHlfdXAuYw0KPiA+DQo+ID4gQEAgLTg1
+MSw5ICs4NTEsMTEgQEAgc3RhdGljIGludCBvdmxfY29weV91cF9vbmUoc3RydWN0IGRlbnRyeSAq
+cGFyZW50LCANCj4gPiBzdHJ1Y3QgZGVudHJ5ICpkZW50cnksDQo+ID4NCj4gPg0KPiA+DQo+ID4g
+aW50IG92bF9jb3B5X3VwX2ZsYWdzKHN0cnVjdCBkZW50cnkgKmRlbnRyeSwgaW50IGZsYWdzKQ0K
+PiA+DQo+ID4gew0KPiA+DQo+ID4gKyAgICAgICBzdHJ1Y3Qgc3VwZXJfYmxvY2sgKnNiID0gZGVu
+dHJ5LT5kX3NiOw0KPiA+DQo+ID4gICAgICAgICBpbnQgZXJyID0gMDsNCj4gPg0KPiA+ICAgICAg
+ICAgY29uc3Qgc3RydWN0IGNyZWQgKm9sZF9jcmVkOw0KPiA+DQo+ID4gICAgICAgICBib29sIGRp
+c2Nvbm5lY3RlZCA9IChkZW50cnktPmRfZmxhZ3MgJiBEQ0FDSEVfRElTQ09OTkVDVEVEKTsNCj4g
+Pg0KPiA+ICsgICAgICAgdW5zaWduZWQgaW50IGNvcGllcyA9IDA7DQo+ID4NCj4gPg0KPiA+DQo+
+ID4gICAgICAgICAvKg0KPiA+DQo+ID4gICAgICAgICAgKiBXaXRoIE5GUyBleHBvcnQsIGNvcHkg
+dXAgY2FuIGdldCBjYWxsZWQgZm9yIGEgZGlzY29ubmVjdGVkIG5vbi1kaXIuDQo+ID4NCj4gPiBA
+QCAtODg3LDkgKzg4OSwxNCBAQCBpbnQgb3ZsX2NvcHlfdXBfZmxhZ3Moc3RydWN0IGRlbnRyeSAq
+ZGVudHJ5LCBpbnQgDQo+ID4gZmxhZ3MpDQo+ID4NCj4gPg0KPiA+DQo+ID4gICAgICAgICAgICAg
+ICAgIGRwdXQocGFyZW50KTsNCj4gPg0KPiA+ICAgICAgICAgICAgICAgICBkcHV0KG5leHQpOw0K
+PiA+DQo+ID4gKw0KPiA+DQo+ID4gKyAgICAgICAgICAgICAgIGNvcGllcysrOw0KPiA+DQo+ID4g
+ICAgICAgICB9DQo+ID4NCj4gPiAgICAgICAgIG92bF9yZXZlcnRfY3JlZHMoZGVudHJ5LT5kX3Ni
+LCBvbGRfY3JlZCk7DQo+ID4NCj4gPg0KPiA+DQo+ID4gKyAgICAgICBpZiAoY29waWVzICYmIGRf
+aXNfZGlyKGRlbnRyeSkgJiYgc2ItPnNfb3AtPnN5bmNfZnMpDQo+ID4NCj4gPiArICAgICAgICAg
+ICAgICAgc2ItPnNfb3AtPnN5bmNfZnMoc2IsIDEpOw0KPiA+DQo+ID4gKw0KPiA+DQo+IA0KPiBJ
+IGFtIG5vdCBzdXJlIGlmIGl0IGlzIGFjY2VwdGFibGUgdG8gYWRkIHN5bmMgdG8gcGFyZW50IGRp
+ciBjb3B5IHVwIGFsdGhvdWdoIHRoaXMgc2hvdWxkIGJlID4gcmVsYXRpdmVseSByYXJlIHNvIG1h
+eWJlIGl0cyBmaW5lPz8NCj4gYnV0IGlmIHlvdSBkbyBhZGQgc3luYyB5b3Ugc2hvdWxkIGJlIHVz
+aW5nIGZzeW5jIG9uIHRoZSBjb3BpZWQgdXAgcGFyZW50IGRpcmVjdG9yeSAtIG5vdCAtPnN5bmNf
+ZnMuDQo+IA0KPiBBbnl3YXksIHRoaXMgY2hlY2sgaXMgd3JvbmcuDQo+IFlvdSBzaG91bGQgbm90
+IGJlIGNoZWNraW5nIGZvciBkX2lzX2RpcihkZW50cnkpLCB5b3Ugc2hvdWxkIGJlIGNoZWNraW5n
+IGlmIGFueSAqcGFyZW50cyogd2VyZSBjb3BpZWQgPiB1cCwNCj4gDQo+IFNlZSBtb3JlIGFib3V0
+IHRoaXMgYmVsb3cuLi4NCj4gDQo+ID4NCj4gPg0KPiA+DQo+ID4g5Y+R5Lu25Lq6OiBMdiBGZWnv
+vIjlkJXpo57vvIkNCj4gPiDlj5HpgIHml7bpl7Q6IDIwMjTlubQ35pyIMTLml6UgMTE6MzUNCj4g
+PiDmlLbku7bkuro6ICdhbWlyNzNpbEBnbWFpbC5jb20nIDxhbWlyNzNpbEBnbWFpbC5jb20+DQo+
+ID4g5Li76aKYOiBvdmVybGF5ZnMgaXNzdWU6IGRpciBwZXJtaXNzaW9uIGxvc3QgZHVyaW5nIG92
+ZXJsYXlmcyBjb3B5LXVwDQo+ID4NCj4gPg0KPiA+DQo+ID4NCj4gPg0KPiA+IERlYXIgQW1pciwN
+Cj4gPg0KPiA+DQo+ID4NCj4gPiBTb3JyeSB0byBib3RoZXIgeW91Lg0KPiA+DQo+ID4NCj4gPg0K
+PiA+IFJlY2VudGx5LCB3ZSBoYWQgYSBwcm9ibGVtIHdpdGggb3ZlcmxheWZzIGRpciBjb3B5LXVw
+IGZsb3cuDQo+ID4NCj4gPg0KPiA+DQo+ID4gRGVzY3JpcHRpb246DQo+ID4NCj4gPiBJZiBhIGRp
+ciBleWVseW4vIGV4aXN0IGluIGxvdyBsYXllciwgbm90IGV4aXN0IGluIHVwcGVyIGxheWVyLCBh
+ZnRlciBjcmVhdGluZyBhIG5ldyBmaWxlKGUuZy4gPiBleWVseW4vIGV5ZWx5bi5sb2cpIGluIHRo
+aXMgZGlyIGZyb20gb3ZlcmxheWZzLCBwZXJtaXNzaW9uIG9mIGV5ZWx5bi8gbWF5IGJlIGFibm9y
+bWFsIGFmdGVyID4gcG93ZXItY3V0Lg0KPiA+DQo+ID4gSWYgYWRkIGEgc3luYyBhZnRlciBjcmVh
+dGluZyBhIG5ldyBmaWxlLCBwZXJtaXNzaW9uIG9mIGV5ZWx5bi8gaXMgYWx3YXlzIGNvcnJlY3Qu
+DQo+ID4NCj4gPg0KPiA+DQo+ID4gS2VybmVsIFZlcnNpb246DQo+ID4NCj4gPiBMaW51eCBPcGVu
+V3J0IDUuNC4yNzYrICMyNSBQUkVFTVBUIEZyaSBKdWwgMTIgMDI6MjE6MTcgVVRDIDIwMjQgYXJt
+djdsIA0KPiA+IEdOVS9MaW51eA0KPiA+DQo+ID4NCj4gPg0KPiA+IFRlc3QgU3RlcDoNCj4gPg0K
+PiA+IDEuIG1vdW50IOKAk3Qgc3F1YXNoZnMgL2Rldi9tdGRibG9jazE5IC9zeXN0ZW0vZXRjDQo+
+ID4NCj4gPiByb290QE9wZW5XcnQ6L3N5c3RlbS9ldGMjIGxzIC1sDQo+ID4NCj4gPiBkcnd4ci14
+ci14ICAgIDIgcm9vdCAgICAgcm9vdCAgICAgICAgICAgICAzIEp1bCAxMSAgMjAyNCBleWVseW4v
+DQo+ID4NCj4gPg0KPiA+DQo+ID4gMi4gbW91bnQg4oCTdCB1YmlmcyB1YmkwOmV0YyAvb3Zlcmxh
+eS9ldGMNCj4gPg0KPiA+IHJvb3RAT3BlbldydDovb3ZlcmxheS9ldGMjIGxzIC1sDQo+ID4NCj4g
+PiBkcnd4ci14ci14ICAgIDggcm9vdCAgICAgcm9vdCAgICAgICAgICAxMzYwIEphbiAgMSAwODow
+MSByb290Lw0KPiA+DQo+ID4gZHJ3eHIteHIteCAgICAzIHJvb3QgICAgIHJvb3QgICAgICAgICAg
+IDIyNCBKYW4gIDEgMDg6MDAgd29yay8NCj4gPg0KPiA+IHJvb3RAT3BlbldydDovb3ZlcmxheS9l
+dGMjIGxzIC1hbCByb290Lw0KPiA+DQo+ID4gZHJ3eHIteHIteCAgICA4IHJvb3QgICAgIHJvb3Qg
+ICAgICAgICAgMTM2MCBKYW4gIDEgMDg6MDEgLi8NCj4gPg0KPiA+IGRyd3hyLXhyLXggICAgNCBy
+b290ICAgICByb290ICAgICAgICAgICAyODggSmFuICAxIDA4OjAwIC4uLw0KPiA+DQo+ID4NCj4g
+Pg0KPiA+IDMuIG1vdW50IOKAk3Qgb3ZlcmxheSAvc3lzdGVtL2V0YyAtbyANCj4gPiBub2F0aW1l
+LGxvd2VyZGlyPS9zeXN0ZW0vZXRjLHVwcGVyZGlyPS9vdmVybGF5L2V0Yy9yb290LHdvcmtkaXI9
+L292ZXJsDQo+ID4gYXkvZXRjL3dvcmsNCj4gPg0KPiA+DQo+ID4NCj4gPiA0LiBlY2hvIHN5c3Rl
+bSA+IC9zeXN0ZW0vZXRjIC9leWVseW4vZXllbHluLmxvZw0KPiA+DQo+ID4NCj4gPg0KPiA+IDUu
+IHBvd2VyIGN1dA0KPiA+DQo+ID4NCj4gPg0KPiA+IDYuIGFmdGVyIG5leHQgcG93ZXIgb24sIHNv
+bWV0aW1lcyBkaXIgZXllbHluLyBoYXMgd3JvbmcgcGVybWlzc2lvbiANCj4gPiAoZC0tLS0tLS0t
+LSkNCj4gPg0KPiA+DQo+ID4NCj4gPiBtb3VudCDigJN0IHViaWZzIHViaTA6ZXRjIC9vdmVybGF5
+L2V0Yw0KPiA+DQo+ID4gcm9vdEBPcGVuV3J0Oi9vdmVybGF5L2V0YyMgbHMgLWwgcm9vdC8NCj4g
+Pg0KPiA+IGQtLS0tLS0tLS0gICAxIHJvb3QgICAgIHJvb3QgICAgICAgICAgIDIzMiBKYW4gIDEg
+MDg6MDAgZXllbHluDQo+ID4NCj4gPiByb290QE9wZW5XcnQ6L292ZXJsYXkvZXRjIyBscyDigJNs
+IHN5c3RlbS9ldGMvZXllbHluL2V5ZWx5bi5sb2cNCj4gPg0KPiA+IC1ydy1yLS1yLS0gICAgMSBy
+b290ICAgICByb290ICAgICAgICAgICAgIDAgSmFuICAxIDA4OjAwIC9zeXN0ZW0vZXRjL2V5ZWx5
+bi9leWVseW4ubG9nDQo+ID4NCj4gPg0KPiA+DQo+ID4gaWYgd2UgYWRkIHN5bmMgdG8gc3RlcCA0
+LCB0aGF0IGlzIOKAnGVjaG8gc3lzdGVtID4gL3N5c3RlbS9ldGMgL2V5ZWx5bi9leWVseW4ubG9n
+ICYmIHN5bmPigJ0sIHRoZW4gPiBldmVyeXRoaW5nIGlzIHJpZ2h0Lg0KPiA+DQo+ID4NCj4gPg0K
+PiA+IERvIHlvdSBoYXZlIGFueSBzdWdnZXN0aW9ucz8NCj4gPg0KPiA+DQo+IA0KPiANCj4gT3Zl
+cmxheWZzIGNyZWF0ZXMgdGhlIHVwcGVyIGRpciBpbiB3b3JrIGRpcmVjdG9yeSwgc2V0cyBpdHMg
+bWV0YWRhdGEgYW5kIG9ubHkgdGhlbiBtb3ZlcyBpdCBpbnRvID4gcGxhY2UsIHNvIHRoZSBhYm92
+ZSBpcyBhbiAiaXNzdWUiIHdpdGggdWJpZnMuDQo+IA0KPiBUaGUgdGhpbmcgYWJvdXQgdGhpcyAi
+aXNzdWUiIGlzIHRoYXQgdGhlIGJlaGF2aW9yIHRoYXQgYWZ0ZXIgbW92ZSB0aGUgb2xkIHBlcm1p
+c3Npb25zIGNhbm5vdCBiZSA+IG9ic2VydmVkIGlzIG5vdCBkZWZpbmVkIGJ5IFBPU0lYLCBidXQg
+aXQgaXMgdGhlIGZhY3RvIHRoZSBiZWhhdmlvciBvZiBtb3N0IG9mIHRoZSBtb2Rlcm4gZmlsZXN5
+c3RlbXMgPiAoeGZzLCBleHQ0IGFuZCBtb3N0IHByb2JhYmx5IGJ0cmZzKS4NCj4gDQo+IElmIHlv
+dSB3YW50IHRvIGFkZCBhIGZlYXR1cmUgdGhhdCBhZGRzIGZzeW5jIHRvIGNvcGllZCB1cCBwYXJl
+bnQgZGlyZWN0b3JpZXMgZm9yIGZpbGVzeXN0ZW1zIGxpa2UgPiB1YmlmcyB0aGF0IGFyZSBub3Qg
+InN0cmljdGx5IG9yZGVyZWQgbWV0YWRhdGEiIHRoZW4gSSB0aGluayB0aGlzIG5lZWRzIHRvIGJl
+IGFuIG9wdC1pbiBmZWF0dXJlLg0KPiANCj4gSSBtdXN0IGFkbWl0IHRoYXQgdGhpcyByZXF1aXJl
+bWVudCBmcm9tIHRoZSB1cHBlciBmcyBpcyBub3QgZG9jdW1lbnRlZCBhbmQgY2Fubm90IGJlIGF1
+dG9tYXRpY2FsbHkgPiB0ZXN0ZWQgYnkgb3ZlcmxheWZzIChmcyBkbyBub3QgYWR2ZXJ0aXNlICJz
+dHJpY3RseSBvcmRlcmVkIG1ldGFkYXRhIiBwcm9wZXJ0eSkuIEl0IGp1c3QgaGFwcGVucyB0byA+
+IGJlIHRydWUgZm9yIG1vc3Qgb2YgdGhlIGNvbW1vbiBmcyB1c2VkIGFzIHVwcGVyIGZzLg0KPiAN
+Cj4gSSB3aXNoIHdlIGhhZCBjYWxsZWQgdGhlIG1vdW50IG9wdGlvbiAidm9sYXRpbGUiICJzeW5j
+PW5vbmUiIGFuZCB0aGVuIHdlIGNvdWxkIGhhdmUgYWRkZWQgPiAic3luYz1zdHJpY3QiIGZvciB0
+aGlzIGFuZCAic3luYz1kYXRhIiBhcyB0aGUgZGVmYXVsdC4NCj4gV2UgY2FuIHN0aWxsIGRvIHRo
+YXQgYW5kIGhhdmUgInZvbGF0aWxlIiBiZSBhbiBhbGlhcyBmb3IgInN5bmM9bm9uZSIuDQo+IA0K
+PiBUaGFua3MsDQo+IEFtaXIuDQoNClZlcnkgZ2xhZCB0byByZWNlaXZlIHlvdXIgcmVwbHksIFRo
+YW5rIHlvdSBmb3IgZXhwbGFuYXRpb24uDQpBcyB5b3Ugc3VnZ2VzdGVkLCBJIHRyeSB0byBhZGQg
+bW91bnQgb3B0aW9uICJzeW5jPXN0cmljdCIsIGNoYW5nZSB0byB1c2UgZnN5bmMgZm9yIHBhcmVu
+dCBkaXIuIFBsZWFzZSBoZWxwIGhhdmUgYSBsb29rLg0KDQpkaWZmIC0tZ2l0IGEvZnMvb3Zlcmxh
+eWZzL2NvcHlfdXAuYyBiL2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMNCmluZGV4IDQ4YmNhNTgxN2Yu
+LjQyNThiOGRhOGQgMTAwNjQ0DQotLS0gYS9mcy9vdmVybGF5ZnMvY29weV91cC5jDQorKysgYi9m
+cy9vdmVybGF5ZnMvY29weV91cC5jDQpAQCAtODUxLDYgKzg1MSw3IEBAIHN0YXRpYyBpbnQgb3Zs
+X2NvcHlfdXBfb25lKHN0cnVjdCBkZW50cnkgKnBhcmVudCwgc3RydWN0IGRlbnRyeSAqZGVudHJ5
+LA0KIA0KIGludCBvdmxfY29weV91cF9mbGFncyhzdHJ1Y3QgZGVudHJ5ICpkZW50cnksIGludCBm
+bGFncykNCiB7DQorCXN0cnVjdCBvdmxfZnMgKm9mcyA9IGRlbnRyeS0+ZF9zYi0+c19mc19pbmZv
+Ow0KIAlpbnQgZXJyID0gMDsNCiAJY29uc3Qgc3RydWN0IGNyZWQgKm9sZF9jcmVkOw0KIAlib29s
+IGRpc2Nvbm5lY3RlZCA9IChkZW50cnktPmRfZmxhZ3MgJiBEQ0FDSEVfRElTQ09OTkVDVEVEKTsN
+CkBAIC04ODQsNiArODg1LDI0IEBAIGludCBvdmxfY29weV91cF9mbGFncyhzdHJ1Y3QgZGVudHJ5
+ICpkZW50cnksIGludCBmbGFncykNCiAJCX0NCiANCiAJCWVyciA9IG92bF9jb3B5X3VwX29uZShw
+YXJlbnQsIG5leHQsIGZsYWdzKTsNCisJCWlmIChvZnMtPmNvbmZpZy52b2xhdGlsZV9zeW5jICYm
+IGRfaXNfZGlyKG5leHQpKSB7DQorCQkJc3RydWN0IHBhdGggdXBwZXJwYXRoOw0KKwkJCXN0cnVj
+dCBmaWxlICpuZXdfZmlsZTsNCisNCisJCQlvdmxfcGF0aF91cHBlcihuZXh0LCAmdXBwZXJwYXRo
+KTsNCisNCisJCQluZXdfZmlsZSA9IG92bF9wYXRoX29wZW4oJnVwcGVycGF0aCwNCisJCQkJCQlP
+X0xBUkdFRklMRSB8IE9fV1JPTkxZKTsNCisJCQlpZiAoIUlTX0VSUihuZXdfZmlsZSkpIHsNCisJ
+CQkJaWYgKG9mcy0+Y29uZmlnLnZvbGF0aWxlX3N5bmMgPT0NCisJCQkJICAgIE9WTF9WT0xBVElM
+RV9TWU5DX0RBVEEpDQorCQkJCQl2ZnNfZnN5bmMobmV3X2ZpbGUsIDEpOw0KKwkJCQllbHNlDQor
+CQkJCQl2ZnNfZnN5bmMobmV3X2ZpbGUsIDApOw0KKw0KKwkJCQlmcHV0KG5ld19maWxlKTsNCisJ
+CQl9DQorCQl9DQogDQogCQlkcHV0KHBhcmVudCk7DQogCQlkcHV0KG5leHQpOw0KZGlmZiAtLWdp
+dCBhL2ZzL292ZXJsYXlmcy9vdmxfZW50cnkuaCBiL2ZzL292ZXJsYXlmcy9vdmxfZW50cnkuaA0K
+aW5kZXggMmRhYmEwOGY3OC4uODczZDk5N2ZiOSAxMDA2NDQNCi0tLSBhL2ZzL292ZXJsYXlmcy9v
+dmxfZW50cnkuaA0KKysrIGIvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oDQpAQCAtNSw2ICs1LDEy
+IEBADQogICogQ29weXJpZ2h0IChDKSAyMDE2IFJlZCBIYXQsIEluYy4NCiAgKi8NCiANCitlbnVt
+IHsNCisJT1ZMX1ZPTEFUSUxFX1NZTkNfTk9ORSwNCisJT1ZMX1ZPTEFUSUxFX1NZTkNfREFUQSwN
+CisJT1ZMX1ZPTEFUSUxFX1NZTkNfU1RSSUNULA0KK307DQorDQogc3RydWN0IG92bF9jb25maWcg
+ew0KIAljaGFyICpsb3dlcmRpcjsNCiAJY2hhciAqdXBwZXJkaXI7DQpAQCAtMTgsNiArMjQsNyBA
+QCBzdHJ1Y3Qgb3ZsX2NvbmZpZyB7DQogCWludCB4aW5vOw0KIAlib29sIG1ldGFjb3B5Ow0KIAli
+b29sIG92ZXJyaWRlX2NyZWRzOw0KKwlpbnQgdm9sYXRpbGVfc3luYzsNCiB9Ow0KIA0KIHN0cnVj
+dCBvdmxfc2Igew0KZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9zdXBlci5jIGIvZnMvb3Zlcmxh
+eWZzL3N1cGVyLmMNCmluZGV4IDA5M2FmMWRjYmQuLjY4ZGVlMTg1MGIgMTAwNjQ0DQotLS0gYS9m
+cy9vdmVybGF5ZnMvc3VwZXIuYw0KKysrIGIvZnMvb3ZlcmxheWZzL3N1cGVyLmMNCkBAIC00MTYs
+NiArNDE2LDkgQEAgZW51bSB7DQogCU9QVF9NRVRBQ09QWV9PRkYsDQogCU9QVF9PVkVSUklERV9D
+UkVEU19PTiwNCiAJT1BUX09WRVJSSURFX0NSRURTX09GRiwNCisJT1BUX1ZPTEFUSUxFX1NZTkNf
+Tk9ORSwNCisJT1BUX1ZPTEFUSUxFX1NZTkNfREFUQSwNCisJT1BUX1ZPTEFUSUxFX1NZTkNfU1RS
+SUNULA0KIAlPUFRfRVJSLA0KIH07DQogDQpAQCAtNDM2LDYgKzQzOSw5IEBAIHN0YXRpYyBjb25z
+dCBtYXRjaF90YWJsZV90IG92bF90b2tlbnMgPSB7DQogCXtPUFRfTUVUQUNPUFlfT0ZGLAkJIm1l
+dGFjb3B5PW9mZiJ9LA0KIAl7T1BUX09WRVJSSURFX0NSRURTX09OLAkJIm92ZXJyaWRlX2NyZWRz
+PW9uIn0sDQogCXtPUFRfT1ZFUlJJREVfQ1JFRFNfT0ZGLAkib3ZlcnJpZGVfY3JlZHM9b2ZmIn0s
+DQorCXtPUFRfVk9MQVRJTEVfU1lOQ19OT05FLAkic3luYz1ub25lIn0sDQorCXtPUFRfVk9MQVRJ
+TEVfU1lOQ19EQVRBLAkic3luYz1kYXRhIn0sDQorCXtPUFRfVk9MQVRJTEVfU1lOQ19TVFJJQ1Qs
+CSJzeW5jPXN0cmljdCJ9LA0KIAl7T1BUX0VSUiwJCQlOVUxMfQ0KIH07DQogDQpAQCAtNDk1LDYg
+KzUwMSw3IEBAIHN0YXRpYyBpbnQgb3ZsX3BhcnNlX29wdChjaGFyICpvcHQsIHN0cnVjdCBvdmxf
+Y29uZmlnICpjb25maWcpDQogCWlmICghY29uZmlnLT5yZWRpcmVjdF9tb2RlKQ0KIAkJcmV0dXJu
+IC1FTk9NRU07DQogCWNvbmZpZy0+b3ZlcnJpZGVfY3JlZHMgPSBvdmxfb3ZlcnJpZGVfY3JlZHNf
+ZGVmOw0KKwljb25maWctPnZvbGF0aWxlX3N5bmMgPSBPVkxfVk9MQVRJTEVfU1lOQ18gREFUQTsN
+CiANCiAJd2hpbGUgKChwID0gb3ZsX25leHRfb3B0KCZvcHQpKSAhPSBOVUxMKSB7DQogCQlpbnQg
+dG9rZW47DQpAQCAtNTgzLDYgKzU5MCwxOCBAQCBzdGF0aWMgaW50IG92bF9wYXJzZV9vcHQoY2hh
+ciAqb3B0LCBzdHJ1Y3Qgb3ZsX2NvbmZpZyAqY29uZmlnKQ0KIAkJCWNvbmZpZy0+b3ZlcnJpZGVf
+Y3JlZHMgPSBmYWxzZTsNCiAJCQlicmVhazsNCiANCisJCWNhc2UgT1BUX1ZPTEFUSUxFX1NZTkNf
+Tk9ORToNCisJCQljb25maWctPnZvbGF0aWxlX3N5bmMgPSBPVkxfVk9MQVRJTEVfU1lOQ19OT05F
+Ow0KKwkJCWJyZWFrOw0KKw0KKwkJY2FzZSBPUFRfVk9MQVRJTEVfU1lOQ19EQVRBOg0KKwkJCWNv
+bmZpZy0+dm9sYXRpbGVfc3luYyA9IE9WTF9WT0xBVElMRV9TWU5DX0RBVEE7DQorCQkJYnJlYWs7
+DQorDQorCQljYXNlIE9QVF9WT0xBVElMRV9TWU5DX1NUUklDVDoNCisJCQljb25maWctPnZvbGF0
+aWxlX3N5bmMgPSBPVkxfVk9MQVRJTEVfU1lOQ19TVFJJQ1Q7DQorCQkJYnJlYWs7DQorDQogCQlk
+ZWZhdWx0Og0KIAkJCXByX2Vycigib3ZlcmxheWZzOiB1bnJlY29nbml6ZWQgbW91bnQgb3B0aW9u
+IFwiJXNcIiBvciBtaXNzaW5nIHZhbHVlXG4iLCBwKTsNCiAJCQlyZXR1cm4gLUVJTlZBTDsNCg0K
+VGhhbmtzLA0KRmVpDQoNCg==
