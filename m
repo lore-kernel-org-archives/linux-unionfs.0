@@ -1,496 +1,201 @@
-Received: from mail-oi1-f181.google.com (mail-oi1-f181.google.com [209.85.167.181])
+Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519D323BF
-	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 10:07:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6940418411C
+	for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 10:50:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721038065; cv=none; b=EWTMeMGHIjV24s1BBdCR3BMLQS42MAqPdC8iZdPbRiECpItrf8QG1fS7Td6ga2ZmlbQP3HyagwPqCQHeYDrTEXvKi+5ZGeCpBxontEVqWNOtgUmcqJ+pE+Qprox+Msm/v3MHUgflwqJNRCPsK/fGYey8msVNOUqFT/nOjeFuYpQ=
+	t=1721040660; cv=none; b=lsxCXtEaHAR7IzRRCocXoTJ5j5uHfm2/sjy0o286Rgsglwks0nGPKapAHn8USRYbM05TJruUSuB5+rq+4aQ+uURCLVot6mI/Ah+Xdget5EYdjPByZpuul5XumEhIPoW6Mkss5xYY7tna4YRRLrVEHxQ8J6iuLB7A0Gwl4RigzY8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721038065; c=relaxed/simple;
-	bh=8bGN3XwN0+juc0i638a+XLiqfyAk52IATx9Hx2pCJy4=;
+	s=arc-20240116; t=1721040660; c=relaxed/simple;
+	bh=1RgVYHiaz2pBdDr+Cxy+f//XJSTmDwfTyjIveaZUvw0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=JzEDQGVelbEOsdW04efS/pAxqMC4jS931miEwSN8jiMr8ieiAPsRrNZeGt1kp0OiZ4pu+cLQW5tD8B1u0KYcLkCtPKGF9/bgh24WxY0rR8iYUfN9/aDiza5YR1kFfGIc/R7bnXD59kQbFSafWRyB3ATX2LEdoN9zgEOBSg+VQ7A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=FVxCp/2Z; arc=none smtp.client-ip=209.85.167.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=Yq3GbNpMLrcm7NGr652NizkNJ7rNGE6hxgwo4XaHVh/uZbkw5tpLmRX3sqJqKO9lQBpwnNV0M78V4atKF54txWBMy/9Q9ApvE2qaVdVabqmdQ7TJY5KhYLqCV/jjz/aO9l5hP92sPmGrYPmkvWkcB5lVW5l2udP44bAnORIRunM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com; spf=pass smtp.mailfrom=dneg.com; dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b=rF9jwEzn; arc=none smtp.client-ip=209.85.208.50
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dneg.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="FVxCp/2Z"
-Received: by mail-oi1-f181.google.com with SMTP id 5614622812f47-3d9dbbaa731so1896554b6e.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 03:07:43 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b="rF9jwEzn"
+Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-59589a9be92so5594603a12.2
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 03:50:58 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1721038062; x=1721642862; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=dG6z5qzkl78aRmSnAkS+LGPYdkJQbALjh+D1XQfMPq8=;
-        b=FVxCp/2Z8a1VN+gKyNWmCRX+ZwmUi9a/kyxRqVFtd/4VK85iAILBVwiEER9CVDfflX
-         9xCopl5GNBMMv7isrPkmlQqZiViOXtZHTcWz0T2So0vLKaMAYHcx4LiYxhUbz1GHFrhS
-         qimQHlG8Q3gu4wkkCJUxT0nUeT8sY8vBulLCNsWuMd8VmnnY4AUiaWogNEHo/l0aXpYj
-         Jjvqr8jK2uGeT5vokLmHAHR9i3HwjJeiwlt5vMQrVdFdIl7tqDQsR41ozYG/xVJzPUhh
-         qbzFW2AQiss7IDmUt29qTA6aOwvAFmZiZR+u2podEpqglF+sLjzcup7Dzxm6UQTCHiob
-         ioGg==
+        d=dneg.com; s=google; t=1721040657; x=1721645457; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=1RgVYHiaz2pBdDr+Cxy+f//XJSTmDwfTyjIveaZUvw0=;
+        b=rF9jwEznW86aHSaoFr+30rFI0uZjGRUIig0skrKT7T1aKQXbU/bb6Zbg6V7M1ViBhp
+         xrML0Uoy7e1Jh6T/+EuPYoWnizOAsQ5ZV4HXnCdZDdjApokuduA/2HoHMfZ6dHQoyuuR
+         nVGWv8SM0GgMoFeEcDMUSzkETu2OWJhZRlkuzeP/oltVlo8ZxF2W9tf72u35u31L9ZeF
+         VsPlMTYC83MYlNiLDKFkwuNtI5a5Hf7XNiDpeIXXSaiyItOPnFTx0MAByg/9JMgCpqS0
+         yIPXOogRPAOpsuPu4FAoYAM2UFufBesvZr5/Osel1FyrzErWS3TO1UExP5Td1cBqt7GP
+         qU4Q==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721038062; x=1721642862;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=dG6z5qzkl78aRmSnAkS+LGPYdkJQbALjh+D1XQfMPq8=;
-        b=K1e7u4zNSWSqVJDgdEWwIDbESR93bx+DChH2FfsFN10CW3BfKBQ1cnQSManszEL3GQ
-         OsjEgIVKxy/PoT8t6J59ERg3aWq+1yEXvMS6gZAyUch+iC4VstpumtxjPn6oNuIb1FWk
-         DNEhGtjyIi/Z0Q9FIOPzE3ksVNcz2TsiUg2ROyv10mpv8TgdFlmpVzgZl10CwK/nC4qm
-         R0WdASNhIH523hwA6F94Ufdtrq8+R8U6v4ganaSP9PWGP3F0zeNCTpr72jKCgzM9qx6F
-         4ro0J1kKTf7K+FkvHDiT6U0m4mjYppcEe3uLw8f2eu5k/T+9uLjMA/b1bxw0qQn/cVjm
-         XneQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXfcYKkJwLFjZyUj1G8eAjdaYxlCnJCutIGHJGos4GP514UnVlGGZTtfH4S2JLnxas1Va3UUwhgoEd0VEap5Svclv9tCZl2HCm3rilaAg==
-X-Gm-Message-State: AOJu0Yz7L0aIj8X7H3bJFsEHBj8z5olQpKUhxcV6TxNbRDG4FLgIQYbS
-	5hMPbN1b3L8KdnFikBYB56ZA320YSIhiaH8lWNh91UsHyyJigUqijSs7zd2lPtViHJWLPc+8m4w
-	exDCSovU/2gaGexk2SU7miUVfqMC5ohJek7s=
-X-Google-Smtp-Source: AGHT+IFy4klZeqj0GYNnt93Vv1qEaCRHyJTW4bFYH1FcqgStDD0zhsVlRz7A69iyxN5CvEgK5/ipdscine9oDHfBKxc=
-X-Received: by 2002:a05:6808:bcb:b0:3d9:243a:7b02 with SMTP id
- 5614622812f47-3d93c0845a2mr17809457b6e.40.1721038062052; Mon, 15 Jul 2024
- 03:07:42 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1721040657; x=1721645457;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1RgVYHiaz2pBdDr+Cxy+f//XJSTmDwfTyjIveaZUvw0=;
+        b=LIdJ2BTaUiQWxuSQjf6gCHK2NhS72RI2Md+UzZQ79J0W9H2R2boqg0+Z/xQKQbWnYy
+         ZhIJkF8crCeUdt6GtY+VnX85K01G3py26LT8x7ZY+p2ZxsRVwoBttEVFyW4pWjVMxCBg
+         mgOUW7uS1U+0R4ejH9u/anCSqSteqgyRBRtwlYGjAvwRk4P4gY0BSuJPQRyW/mbcSzu1
+         0TsvnarGT5HHjbHcTnTki0Gaglqh8dvDlAfcU+gHy6nk+CLWySDbB9lPmyZBQKSF5oic
+         qFCpN03xqt2K7DX6eqQGePVrtM99BdBnIPhm+5MSbb999m+iUW2x9rM4LVrZ50ishgmm
+         jf8A==
+X-Forwarded-Encrypted: i=1; AJvYcCWZDfr3gzTM6Dq0d8qxi5ykCvGW085S5iwPFyR7bG8rp5XFxjvRiJ0WFiq5UMzPfD1/VEH8qLA37u1A1R9PXf3OQ4/5/1pqn53UYc2b7Q==
+X-Gm-Message-State: AOJu0YyiHOWqlOGGSaug2zsGAmDJBO1XZAwAphULMe08gbUz2bERBYB9
+	B/JAW8HMvwA8X0F7WDnLnaGQfe1D3IuDeLtnrq/kBCRGgUmShrr0+K/BX+aAMEQ7tBDNIKTLNmM
+	blUD4xaysAbOH8MWQCF/Qb1a0BrgYnAmjXw1H8A==
+X-Google-Smtp-Source: AGHT+IFIwpEF6rea5BLUKbsTGwgdOxQ7RjtqcxaOm4jsgGosLJNJIQ2ykJuI1AF84jqBcFz9AuuyKfgHMrlHZfwDa1Q=
+X-Received: by 2002:a17:907:94cd:b0:a72:5470:1d6a with SMTP id
+ a640c23a62f3a-a780b6fe30emr1626332266b.35.1721040656673; Mon, 15 Jul 2024
+ 03:50:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <a2391c78f3974c5d92aa53574bde4eca@exch01.asrmicro.com>
- <CAOQ4uxj-pOvmw1-uXR3qVdqtLjSkwcR9nVKcNU_vC10Zyf2miQ@mail.gmail.com> <d75ce286091046438f8828554eb3f781@exch01.asrmicro.com>
-In-Reply-To: <d75ce286091046438f8828554eb3f781@exch01.asrmicro.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 15 Jul 2024 13:07:30 +0300
-Message-ID: <CAOQ4uxhJET3v7+7+Cw-wnsRbpPa6ufRDFYaGYWD9RYLgfUxRZA@mail.gmail.com>
-Subject: Re: overlayfs issue: dir permission lost during overlayfs copy-up
-To: =?UTF-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
-Cc: "miklos@szeredi.hu" <miklos@szeredi.hu>, overlayfs <linux-unionfs@vger.kernel.org>
+References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
+ <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+ <f1ed1b60-273d-4ee6-bbcb-ae3d78486b70@mbaynton.com> <CAPt2mGNO_koGozPx68GwowuxDd+CkZWT3Xa7DE-4XCwd9K_RJw@mail.gmail.com>
+ <cdbda6fe-ee9c-4437-bbd8-c9104dd2043a@mbaynton.com>
+In-Reply-To: <cdbda6fe-ee9c-4437-bbd8-c9104dd2043a@mbaynton.com>
+From: Daire Byrne <daire@dneg.com>
+Date: Mon, 15 Jul 2024 11:50:20 +0100
+Message-ID: <CAPt2mGOv3MtRHF5N_tDMXcDN4M4vr=C-YEkE=gd9kEhd6iwtLQ@mail.gmail.com>
+Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
+To: Mike Baynton <mike@mbaynton.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 15, 2024 at 9:07=E2=80=AFAM Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=
-=EF=BC=89 <feilv@asrmicro.com> wrote:
+On Sun, 14 Jul 2024 at 05:12, Mike Baynton <mike@mbaynton.com> wrote:
 >
+> On 7/12/24 07:04, Daire Byrne wrote:
+> > Yea, so I have also toyed with the "composefs" idea
 >
+> Yeah, I'm doing what they're doing but making the EROFS in-house and
+> hoping the kinda-writable NFS twist isn't an issue. I only need to
+> satisfy dependencies for a container's worth of software at a time and I
+> can determine all the dependencies I need by virtue of tooling in the
+> software ecosystems I need to support.
+
+Yea, I need to check out EROFS at some point. But many of our desktop
+kernels are just too old atm.
+
+Overall the idea of hand crafting metadata-only overlays is compelling
+because you can avoid the complexity (and confusion) of using symlinks
+and it's extremely lightweight (maybe even more so with EROFS).
+
+> > I guess the difference is that I'm not trying to replicate the
+> > entirety of the metadata, I just want to tweak bits of it and still
+> > avail of the overlay merged directories to fall through to the
+> > directory tree and data underneath for everything else.
 >
-> > -----=E9=82=AE=E4=BB=B6=E5=8E=9F=E4=BB=B6-----
-> > =E5=8F=91=E4=BB=B6=E4=BA=BA: Amir Goldstein [mailto:amir73il@gmail.com]
-> > =E5=8F=91=E9=80=81=E6=97=B6=E9=97=B4: 2024=E5=B9=B47=E6=9C=8812=E6=97=
-=A5 17:41
-> > =E6=94=B6=E4=BB=B6=E4=BA=BA: Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=EF=BC=89=
- <feilv@asrmicro.com>
-> > =E6=8A=84=E9=80=81: miklos@szeredi.hu; overlayfs <linux-unionfs@vger.ke=
-rnel.org>
-> > =E4=B8=BB=E9=A2=98: Re: overlayfs issue: dir permission lost during ove=
-rlayfs copy-up
+> Yeah I understand your objective now. I'm mildly curious why NFS +
+> fscache doesn't solve the negative lookups case for you given that you
+> want a dynamically generated local cache. Is fscache just unable to
+> cache negative lookups, and you want it to persist for weeks?
+
+Well, fscache is for caching the data contained in (existing) files
+only right? It makes no attempt to deal with the metadata (e.g.
+directories)?
+
+Or at least I don't know how effective a disk based cache of metadata
+could be compared to the vfs page cache when you still need to
+revalidate fairly often. I mean it needs to revalidate the file often
+(actimeo?) before it can serve the cached copy so it needs the remote
+metadata lookups?
+
+I have seen some talk (David Howells) about giving network filesystems
+like NFS the ability to have "disconnected" access via netfs/fscache
+(ala AFS) but I don't know if that is still on the cards.
+
+The issue we see is that not only do our batch systems cycle through
+lots of different software versions per hour, but we have many
+thousands of clients doing the same to a single (Netapp) software
+volume. Even if each NFS client managed to cache 80% of the negative
+lookups between runs, the 20% that hits the Netapp is still quite
+significant from many clients.
+
+And even forgiving the server load implications, a Netapp on the LAN
+(0.2ms) can add delay when you deal with many "pointless" negative
+lookups. I have seen some of our software do 100,000 negative lookups
+across 250 lib dirs, which although on paper should only be 100000 *
+0.2ms = 20 seconds, actually adds almost a minute to the startup time
+of the software. Certainly when we use a local filesytem overlay the
+time drops by a minute anyway (most likely because the actual file
+opens benefit too). Now if the software only runs for 2 minutes, then
+1/3 of its time is spent doing negative lookups/path walking at
+startup.
+
+Yes, I am aware that our software is not well optimised but our build
+system and environment is what it is at this point.
+
+I have seen many other novel solutions to this general problem - some examples:
+
+https://guix.gnu.org/en/blog/2021/taming-the-stat-storm-with-a-loader-cache
+https://computing.llnl.gov/projects/spindle
+
+> Also (only semi-related) since you have a large NFS deployment similar
+> to the one I'm putting together in terms of read-only to normal clients
+> and most files/paths being immutable after they first appear, I'd be
+> interested in any experiences you've had in practice with performance of
+> fscache and NFS mount options that relax its cache coherence / atomicity
+> semantics. I've found it impossible to avoid roundtrips to the server on
+> each fopen for locally cached files (unless using NFS4 delegation which
+> is overkill and not available in my environment.) These RPC roundtrips
+> provide no real benefit to our use case but can add seconds of delay to
+> initializing a process if it accesses thousands of little interpreted
+> language files.
+
+In my experience actimeo>3600 can help for these kinds of read-only
+filesystems but you probably need "nocto" to really get it down to
+almost no repeat network traffic at all (when cached). Setting
+vm.vfs_cache_pressure=1 might also help keep the nfs inode data in
+memory longer too?
+
+But nocto will also cache the "ls -l" case whereby you won't see new
+entries. However, if you know a new dir/file is there and access it,
+it will do the new lookup and find it (dirent not in cache yet). That
+might work for your case by the sounds of it?
+
+I'm not too sure about how that effects opens specifically though. In
+fact, using NFSv3 might be more "relaxed" in this regard than NFSv4?
+
+In general, our entire pipeline deals with unique versioned files.
+Apart from home directories, I can't think of many places where we
+overwrite or append to existing files for production workloads or
+reuse file paths in any way.
+
+> Not an overlayfs concern in any way though so perhaps no need to pollute
+> the mailing list further; if you are interested in responding to me on
+> these things continuing off list would be fine with me too.
+>
+> >> I think Daire and I are basically only adding new files to the NFS
+> >> filesystem, and both the all-opaque approach and the data-only approach
+> >> could prevent accidental access to things on the NFS filesystem through
+> >> the overlayfs (or at least portion of it meant for end-user consumption)
+> >> while they are still being birthed and might be experiencing changes.
+> >> At some point in the NFS tree, directories must be modified, but since
+> >> both approaches have overlayfs sourcing all directory entries from local
+> >> metadata-only layers, it seems plausible that the directories that
+> >> change aren't really "accessed by a overlayfs prior to the change."
 > >
-> > On Fri, Jul 12, 2024 at 7:18=E2=80=AFAM Lv Fei=EF=BC=88=E5=90=95=E9=A3=
-=9E=EF=BC=89 <feilv@asrmicro.com> wrote:
-> > >
-> > >
-> > >
-> > > Dear Amir,
-> > >
-> > >
-> > >
-> > > Seems issue disappeared with below changes, can you help review below=
- patch?
-> > >
-> > >
-> > >
-> > > Thank you!
-> > >
-> > >
-> > >
-> > > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > >
-> > > index 48bca5817f..e543b5563d 100644
-> > >
-> > > --- a/fs/overlayfs/copy_up.c
-> > >
-> > > +++ b/fs/overlayfs/copy_up.c
-> > >
-> > > @@ -851,9 +851,11 @@ static int ovl_copy_up_one(struct dentry *parent=
-,
-> > > struct dentry *dentry,
-> > >
-> > >
-> > >
-> > > int ovl_copy_up_flags(struct dentry *dentry, int flags)
-> > >
-> > > {
-> > >
-> > > +       struct super_block *sb =3D dentry->d_sb;
-> > >
-> > >         int err =3D 0;
-> > >
-> > >         const struct cred *old_cred;
-> > >
-> > >         bool disconnected =3D (dentry->d_flags & DCACHE_DISCONNECTED)=
-;
-> > >
-> > > +       unsigned int copies =3D 0;
-> > >
-> > >
-> > >
-> > >         /*
-> > >
-> > >          * With NFS export, copy up can get called for a disconnected=
- non-dir.
-> > >
-> > > @@ -887,9 +889,14 @@ int ovl_copy_up_flags(struct dentry *dentry, int
-> > > flags)
-> > >
-> > >
-> > >
-> > >                 dput(parent);
-> > >
-> > >                 dput(next);
-> > >
-> > > +
-> > >
-> > > +               copies++;
-> > >
-> > >         }
-> > >
-> > >         ovl_revert_creds(dentry->d_sb, old_cred);
-> > >
-> > >
-> > >
-> > > +       if (copies && d_is_dir(dentry) && sb->s_op->sync_fs)
-> > >
-> > > +               sb->s_op->sync_fs(sb, 1);
-> > >
-> > > +
-> > >
+> > Yes, I think your case has a good chance of being safe and becoming
+> > well defined behaviour.
 > >
-> > I am not sure if it is acceptable to add sync to parent dir copy up alt=
-hough this should be > relatively rare so maybe its fine??
-> > but if you do add sync you should be using fsync on the copied up paren=
-t directory - not ->sync_fs.
-> >
-> > Anyway, this check is wrong.
-> > You should not be checking for d_is_dir(dentry), you should be checking=
- if any *parents* were copied > up,
-> >
-> > See more about this below...
-> >
-> > >
-> > >
-> > >
-> > > =E5=8F=91=E4=BB=B6=E4=BA=BA: Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=EF=BC=
-=89
-> > > =E5=8F=91=E9=80=81=E6=97=B6=E9=97=B4: 2024=E5=B9=B47=E6=9C=8812=E6=97=
-=A5 11:35
-> > > =E6=94=B6=E4=BB=B6=E4=BA=BA: 'amir73il@gmail.com' <amir73il@gmail.com=
+> > But my idea was still very much relying on using the majority of the
+> > lower layer as is. And for all the reasons given, I suspect my use
+> > case is still a no-no.
 >
-> > > =E4=B8=BB=E9=A2=98: overlayfs issue: dir permission lost during overl=
-ayfs copy-up
-> > >
-> > >
-> > >
-> > >
-> > >
-> > > Dear Amir,
-> > >
-> > >
-> > >
-> > > Sorry to bother you.
-> > >
-> > >
-> > >
-> > > Recently, we had a problem with overlayfs dir copy-up flow.
-> > >
-> > >
-> > >
-> > > Description:
-> > >
-> > > If a dir eyelyn/ exist in low layer, not exist in upper layer, after =
-creating a new file(e.g. > eyelyn/ eyelyn.log) in this dir from overlayfs, =
-permission of eyelyn/ may be abnormal after > power-cut.
-> > >
-> > > If add a sync after creating a new file, permission of eyelyn/ is alw=
-ays correct.
-> > >
-> > >
-> > >
-> > > Kernel Version:
-> > >
-> > > Linux OpenWrt 5.4.276+ #25 PREEMPT Fri Jul 12 02:21:17 UTC 2024 armv7=
-l
-> > > GNU/Linux
-> > >
-> > >
-> > >
-> > > Test Step:
-> > >
-> > > 1. mount =E2=80=93t squashfs /dev/mtdblock19 /system/etc
-> > >
-> > > root@OpenWrt:/system/etc# ls -l
-> > >
-> > > drwxr-xr-x    2 root     root             3 Jul 11  2024 eyelyn/
-> > >
-> > >
-> > >
-> > > 2. mount =E2=80=93t ubifs ubi0:etc /overlay/etc
-> > >
-> > > root@OpenWrt:/overlay/etc# ls -l
-> > >
-> > > drwxr-xr-x    8 root     root          1360 Jan  1 08:01 root/
-> > >
-> > > drwxr-xr-x    3 root     root           224 Jan  1 08:00 work/
-> > >
-> > > root@OpenWrt:/overlay/etc# ls -al root/
-> > >
-> > > drwxr-xr-x    8 root     root          1360 Jan  1 08:01 ./
-> > >
-> > > drwxr-xr-x    4 root     root           288 Jan  1 08:00 ../
-> > >
-> > >
-> > >
-> > > 3. mount =E2=80=93t overlay /system/etc -o
-> > > noatime,lowerdir=3D/system/etc,upperdir=3D/overlay/etc/root,workdir=
-=3D/overl
-> > > ay/etc/work
-> > >
-> > >
-> > >
-> > > 4. echo system > /system/etc /eyelyn/eyelyn.log
-> > >
-> > >
-> > >
-> > > 5. power cut
-> > >
-> > >
-> > >
-> > > 6. after next power on, sometimes dir eyelyn/ has wrong permission
-> > > (d---------)
-> > >
-> > >
-> > >
-> > > mount =E2=80=93t ubifs ubi0:etc /overlay/etc
-> > >
-> > > root@OpenWrt:/overlay/etc# ls -l root/
-> > >
-> > > d---------   1 root     root           232 Jan  1 08:00 eyelyn
-> > >
-> > > root@OpenWrt:/overlay/etc# ls =E2=80=93l system/etc/eyelyn/eyelyn.log
-> > >
-> > > -rw-r--r--    1 root     root             0 Jan  1 08:00 /system/etc/=
-eyelyn/eyelyn.log
-> > >
-> > >
-> > >
-> > > if we add sync to step 4, that is =E2=80=9Cecho system > /system/etc =
-/eyelyn/eyelyn.log && sync=E2=80=9D, then > everything is right.
-> > >
-> > >
-> > >
-> > > Do you have any suggestions?
-> > >
-> > >
-> >
-> >
-> > Overlayfs creates the upper dir in work directory, sets its metadata an=
-d only then moves it into > place, so the above is an "issue" with ubifs.
-> >
-> > The thing about this "issue" is that the behavior that after move the o=
-ld permissions cannot be > observed is not defined by POSIX, but it is the =
-facto the behavior of most of the modern filesystems > (xfs, ext4 and most =
-probably btrfs).
-> >
-> > If you want to add a feature that adds fsync to copied up parent direct=
-ories for filesystems like > ubifs that are not "strictly ordered metadata"=
- then I think this needs to be an opt-in feature.
-> >
-> > I must admit that this requirement from the upper fs is not documented =
-and cannot be automatically > tested by overlayfs (fs do not advertise "str=
-ictly ordered metadata" property). It just happens to > be true for most of=
- the common fs used as upper fs.
-> >
-> > I wish we had called the mount option "volatile" "sync=3Dnone" and then=
- we could have added > "sync=3Dstrict" for this and "sync=3Ddata" as the de=
-fault.
-> > We can still do that and have "volatile" be an alias for "sync=3Dnone".
-> >
-> > Thanks,
-> > Amir.
->
-> Very glad to receive your reply, Thank you for explanation.
-> As you suggested, I try to add mount option "sync=3Dstrict", change to us=
-e fsync for parent dir. Please help have a look.
->
+> I dunno, your thing might end up working out fine, based on your latest
+> testing of when clients see changes and Amir's observation that all fds
+> need to be closed but then a readdir through an overlayfs will observe
+> changes. Seems "unlikely" that clients would hold open fds to the first
+> few levels of directories at all, never mind for long enough for someone
+> to call you and ask where the new version is :)
 
-Ok, but if you want to submit this change please follow
-https://www.kernel.org/doc/html/latest/process/submitting-patches.html
-See comments below
+Yea, I think it is probably fine. Maybe another clarification for the
+docs that others might find useful too?
 
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index 48bca5817f..4258b8da8d 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -851,6 +851,7 @@ static int ovl_copy_up_one(struct dentry *parent, str=
-uct dentry *dentry,
->
->  int ovl_copy_up_flags(struct dentry *dentry, int flags)
->  {
-> +       struct ovl_fs *ofs =3D dentry->d_sb->s_fs_info;
-
-ofs =3D OVL_FS(dentry->d_sb);
-
->         int err =3D 0;
->         const struct cred *old_cred;
->         bool disconnected =3D (dentry->d_flags & DCACHE_DISCONNECTED);
-> @@ -884,6 +885,24 @@ int ovl_copy_up_flags(struct dentry *dentry, int fla=
-gs)
->                 }
->
->                 err =3D ovl_copy_up_one(parent, next, flags);
-> +               if (ofs->config.volatile_sync && d_is_dir(next)) {
-> +                       struct path upperpath;
-> +                       struct file *new_file;
-> +
-> +                       ovl_path_upper(next, &upperpath);
-> +
-> +                       new_file =3D ovl_path_open(&upperpath,
-> +                                               O_LARGEFILE | O_WRONLY);
-> +                       if (!IS_ERR(new_file)) {
-> +                               if (ofs->config.volatile_sync =3D=3D
-> +                                   OVL_VOLATILE_SYNC_DATA)
-> +                                       vfs_fsync(new_file, 1);
-
-Not needed already done in ovl_copy_up_file()
-
-> +                               else
-> +                                       vfs_fsync(new_file, 0);
-> +
-> +                               fput(new_file);
-> +                       }
-> +               }
-
-Not the right place for fsync.
-This should be at the end of ovl_copy_up_metadata()
-similar to fsync at the end of ovl_copy_up_file().
-The check for sync mode should be abstracted by the helper
-like ovl_should_sync(), maybe ovl_should_sync_strict()
-
->
->                 dput(parent);
->                 dput(next);
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index 2daba08f78..873d997fb9 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -5,6 +5,12 @@
->   * Copyright (C) 2016 Red Hat, Inc.
->   */
->
-> +enum {
-> +       OVL_VOLATILE_SYNC_NONE,
-> +       OVL_VOLATILE_SYNC_DATA,
-> +       OVL_VOLATILE_SYNC_STRICT,
-> +};
-> +
->  struct ovl_config {
->         char *lowerdir;
->         char *upperdir;
-> @@ -18,6 +24,7 @@ struct ovl_config {
->         int xino;
->         bool metacopy;
->         bool override_creds;
-> +       int volatile_sync;
-
-This word volatile_ is unneeded and wrong. "volatile" means "no sync"
-Please *replace the config ovl_volatile with sync_mode, don't keep both
-and grep for all access to ovl_volatile to replace them with adjusted
-sync_mode code.
-
->  };
->
->  struct ovl_sb {
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 093af1dcbd..68dee1850b 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -416,6 +416,9 @@ enum {
->         OPT_METACOPY_OFF,
->         OPT_OVERRIDE_CREDS_ON,
->         OPT_OVERRIDE_CREDS_OFF,
-> +       OPT_VOLATILE_SYNC_NONE,
-> +       OPT_VOLATILE_SYNC_DATA,
-> +       OPT_VOLATILE_SYNC_STRICT,
-
-This word _VOLATILE_ is unneeded and wrong. "volatile" means "no sync"
-Which version are you basing your patch on?
-You should be developing on top of current upstream kernel, where this
-parsing code is at params.c.
-
-You should follow the example of ovl_parameter_verity()
-which accepts enum values {off, on, require} which is quite the
-same as what you want for sync mode.
-
->         OPT_ERR,
->  };
->
-> @@ -436,6 +439,9 @@ static const match_table_t ovl_tokens =3D {
->         {OPT_METACOPY_OFF,              "metacopy=3Doff"},
->         {OPT_OVERRIDE_CREDS_ON,         "override_creds=3Don"},
->         {OPT_OVERRIDE_CREDS_OFF,        "override_creds=3Doff"},
-> +       {OPT_VOLATILE_SYNC_NONE,        "sync=3Dnone"},
-> +       {OPT_VOLATILE_SYNC_DATA,        "sync=3Ddata"},
-> +       {OPT_VOLATILE_SYNC_STRICT,      "sync=3Dstrict"},
-
-Note that you need to add the new sync option AND keep the legacy
-"volatile" mount option.
-
->         {OPT_ERR,                       NULL}
->  };
->
-> @@ -495,6 +501,7 @@ static int ovl_parse_opt(char *opt, struct ovl_config=
- *config)
->         if (!config->redirect_mode)
->                 return -ENOMEM;
->         config->override_creds =3D ovl_override_creds_def;
-> +       config->volatile_sync =3D OVL_VOLATILE_SYNC_ DATA;
->
->         while ((p =3D ovl_next_opt(&opt)) !=3D NULL) {
->                 int token;
-> @@ -583,6 +590,18 @@ static int ovl_parse_opt(char *opt, struct ovl_confi=
-g *config)
->                         config->override_creds =3D false;
->                         break;
->
-> +               case OPT_VOLATILE_SYNC_NONE:
-> +                       config->volatile_sync =3D OVL_VOLATILE_SYNC_NONE;
-> +                       break;
-> +
-> +               case OPT_VOLATILE_SYNC_DATA:
-> +                       config->volatile_sync =3D OVL_VOLATILE_SYNC_DATA;
-> +                       break;
-> +
-> +               case OPT_VOLATILE_SYNC_STRICT:
-> +                       config->volatile_sync =3D OVL_VOLATILE_SYNC_STRIC=
-T;
-> +                       break;
-> +
-
-
-And effectively the two mount options to do the same, i.e.:
-
-case Opt_sync:
-                config->sync_mode =3D result.uint_32;
-                break;
-case Opt_volatile:
-                config->sync_mode =3D OVL_SYNC_OFF;
-                break;
-
->                 default:
->                         pr_err("overlayfs: unrecognized mount option \"%s=
-\" or missing value\n", p);
->                         return -EINVAL;
->
-
-Also need to display the mode in ovl_show_options().
-
-Thanks,
-Amir,
+Daire
