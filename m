@@ -1,306 +1,240 @@
-Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f49.google.com (mail-io1-f49.google.com [209.85.166.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 69E93B641
-	for <linux-unionfs@vger.kernel.org>; Tue, 16 Jul 2024 02:51:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 99E0C1078B
+	for <linux-unionfs@vger.kernel.org>; Tue, 16 Jul 2024 03:45:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721098302; cv=none; b=g6yHgxIn1TXhjMLiQaalNeXGog4PafxtmIr2R8azC3ek+ccwIsacGlQrmUoVT+qioyiBeVbcSTtz59s5Igszeel1SNlq/mHvcJmNijtf4lxryY3Yt1pDCOH5tynp0P/C6Yglef/L3AprX7Ebp3PVaUpv3ALdJXaTT31dpfDYK2A=
+	t=1721101534; cv=none; b=JK68IzAEJoOXMjzmJn9akKApLkgPfzHwxJmV86A2xZrRCjaTtBN1TxCqB8xO9at6f0OQ4bMaviCgkHxFK5zNEgLuinPTlfRyXbe0O4l7ekI1Yp4CZ3UAIYUXJfGMYms+TJwllM4DM4Uda1nKdTarRFeWJQ9ylMXaIMmf5gz46pU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721098302; c=relaxed/simple;
-	bh=lqoRT6EaqGLdNyvQPgcGVwZA3w99iNHfuAfCTQW5h8Q=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=UkKlmDvsksemG7tl04A4s5QiyC1RxwK8/02Wb/JBuNDLY7ESI10OyX46vPvtpUXolJ5vQr6X6QcZfkefRbPDy11N2J6x8DQA8wSC9+HopM0x7FfzS/pmX0GiVymUbCzwUPiIv67N5x4qqB2l9X0DBFwSNzGlRcekRG9Mfxl/f9w=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
-Received: from exch02.asrmicro.com (exch02.asrmicro.com [10.1.24.122])
-	by spam.asrmicro.com with ESMTPS id 46G2pKRp045790
-	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
-	Tue, 16 Jul 2024 10:51:20 +0800 (GMT-8)
-	(envelope-from feilv@asrmicro.com)
-Received: from exch01.asrmicro.com (10.1.24.121) by exch02.asrmicro.com
- (10.1.24.122) with Microsoft SMTP Server (TLS) id 15.0.847.32; Tue, 16 Jul
- 2024 10:51:21 +0800
-Received: from exch01.asrmicro.com ([::1]) by exch01.asrmicro.com ([::1]) with
- mapi id 15.00.0847.030; Tue, 16 Jul 2024 10:51:15 +0800
-From: =?utf-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
-To: Amir Goldstein <amir73il@gmail.com>
-CC: "miklos@szeredi.hu" <miklos@szeredi.hu>,
-        overlayfs
-	<linux-unionfs@vger.kernel.org>
-Subject: =?utf-8?B?562U5aSNOiBvdmVybGF5ZnMgaXNzdWU6IGRpciBwZXJtaXNzaW9uIGxvc3Qg?=
- =?utf-8?Q?during_overlayfs_copy-up?=
-Thread-Topic: overlayfs issue: dir permission lost during overlayfs copy-up
-Thread-Index: AdrUC0gEiOU98wx1R2KKZaM5fXllRAABtu/g///UyID/+v9iQIAJvw0A//5hsIA=
-Date: Tue, 16 Jul 2024 02:51:15 +0000
-Message-ID: <47d8bf2202a943e5967454499ee61248@exch01.asrmicro.com>
-References: <a2391c78f3974c5d92aa53574bde4eca@exch01.asrmicro.com>
- <CAOQ4uxj-pOvmw1-uXR3qVdqtLjSkwcR9nVKcNU_vC10Zyf2miQ@mail.gmail.com>
- <d75ce286091046438f8828554eb3f781@exch01.asrmicro.com>
- <CAOQ4uxhJET3v7+7+Cw-wnsRbpPa6ufRDFYaGYWD9RYLgfUxRZA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhJET3v7+7+Cw-wnsRbpPa6ufRDFYaGYWD9RYLgfUxRZA@mail.gmail.com>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	s=arc-20240116; t=1721101534; c=relaxed/simple;
+	bh=8ZVpQXrFASBWs1ao210DNDtZ8yjFeay/Izc/fWwlLqY=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=pLe9gDIeT8pwbiJC55Pqecb5LtUsF71LQSbfw/SyOQalAveaxQl4WkOmR2bkYohSNToPm4VdIa2R8LG0A/o8bOrivdmZJCC32x2GsMkt/Lepl9azKAsSvmfCYoT8deCROsEz6qi/B8G/Y9rgsCYG+n7frailyspNTuTMUHp+N98=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com; spf=none smtp.mailfrom=mbaynton.com; dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b=pC/3J56B; arc=none smtp.client-ip=209.85.166.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mbaynton.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b="pC/3J56B"
+Received: by mail-io1-f49.google.com with SMTP id ca18e2360f4ac-7fd3dbc01deso233195539f.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 15 Jul 2024 20:45:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=mbaynton-com.20230601.gappssmtp.com; s=20230601; t=1721101531; x=1721706331; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=LLTuD+w8q0VDswAckjmjo0WR0Un5jOnFNhs/hZR1V/Y=;
+        b=pC/3J56BbDObXbKu6D+GJjsHONJFX0HZsLFQYmEGczVtZh7+NP8YM+gZDZyd7Lq7Ke
+         Xe0ggJHNpK7lno+UuiWfeV+HDObzXW2GNkOirdEX7gVRhfSjbxiAn/PWpj8+2ea2CZZV
+         tmckvLxngPI+SfI3KAdb25bEuKIx3JaiSVKk25w5TwUncZBKMo0sSYR5rRkHrt+iNd7z
+         WUmZQbNytKeo8nWQlv9SRO/IegBPwvjzz132EwA7/xRrF0GY9Z43BdpYCVDzfv1akidK
+         fi0QqRUwP5SF7eQ1IuAcNzNmC53Hkg92T70JEt6D4wj/kZUA2+jiX8mOD0qHXrBIbtEz
+         t4dA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1721101531; x=1721706331;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=LLTuD+w8q0VDswAckjmjo0WR0Un5jOnFNhs/hZR1V/Y=;
+        b=azfcv1qdVUPfdbmJbojzMVH4DnFpXnEzgf6uyZkepYL9zXiXiZNwDUGbZRp2P/yuqt
+         0fGhMdw9b5iNtGJxkUQsJzD/xqiJTvBIPnKCaeL9EaWFoKx5Z16kcHW4M8Yk78T0L/qx
+         jtzSY/cQ2p9nFeIsELh9AAktY0fVcDwElcvx36CA8Qf7yC79e4OsLl/LOa7X4sG1HPH0
+         p0hi9lY+hNDd2x2i/5eQw/YHoHmNrRWdspIpxFFllWnhDkMpaTHm/JdphghL1S64wXH6
+         ii71tt54Y0fCwptzKDU2O3NeGDDkxTbfW7wTrvnHo1K200S5RRtUod/mHyEX4sLFxk7N
+         COTg==
+X-Forwarded-Encrypted: i=1; AJvYcCU48rIVLDhVm9om1dQ53hvIGheFMY5VQkAZEyzfcRk7JjiS4vJ8LR3mZELxS0G8IP8a2nGbMDSk/Th8WeHDnB0LL0bxPuzfai/U5oijIA==
+X-Gm-Message-State: AOJu0YxhDYS/riOd3aOSuFoZ6kzzy3tVkOE3KuyBRa+Z1E3JQnN3qaBu
+	dwXNepVLgSK6XHSgDdMstS7fqQiPLzlkUO07a+9ewhacgQy1nhj6hqDnPXjjFU4=
+X-Google-Smtp-Source: AGHT+IFgOV22H6cHH9+GY7JLe8qqyYvJ8JXdmHLXxo8JLeRmuYNHIS5UtNk/JnwSueNa1rHycGv20g==
+X-Received: by 2002:a05:6602:2b0a:b0:804:f2be:ee3a with SMTP id ca18e2360f4ac-81574540ea2mr174219739f.1.1721101531434;
+        Mon, 15 Jul 2024 20:45:31 -0700 (PDT)
+Received: from ?IPV6:2601:444:600:440:ee0c:55dd:b404:79d5? ([2601:444:600:440:ee0c:55dd:b404:79d5])
+        by smtp.gmail.com with ESMTPSA id 8926c6da1cb9f-4c1e1b0c444sm1574716173.11.2024.07.15.20.45.30
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 15 Jul 2024 20:45:30 -0700 (PDT)
+Message-ID: <f74fb2e6-a457-4bc5-b5b9-97aa93cae565@mbaynton.com>
+Date: Mon, 15 Jul 2024 22:45:29 -0500
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-DNSRBL: 
-X-SPAM-SOURCE-CHECK: pass
-X-MAIL:spam.asrmicro.com 46G2pKRp045790
+User-Agent: Mozilla Thunderbird
+Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
+To: Daire Byrne <daire@dneg.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
+References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
+ <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+ <f1ed1b60-273d-4ee6-bbcb-ae3d78486b70@mbaynton.com>
+ <CAPt2mGNO_koGozPx68GwowuxDd+CkZWT3Xa7DE-4XCwd9K_RJw@mail.gmail.com>
+ <cdbda6fe-ee9c-4437-bbd8-c9104dd2043a@mbaynton.com>
+ <CAPt2mGOv3MtRHF5N_tDMXcDN4M4vr=C-YEkE=gd9kEhd6iwtLQ@mail.gmail.com>
+Content-Language: en-US
+From: Mike Baynton <mike@mbaynton.com>
+In-Reply-To: <CAPt2mGOv3MtRHF5N_tDMXcDN4M4vr=C-YEkE=gd9kEhd6iwtLQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-DQoNCg0KPiAtLS0tLemCruS7tuWOn+S7ti0tLS0tDQo+IOWPkeS7tuS6ujogQW1pciBHb2xkc3Rl
-aW4gW21haWx0bzphbWlyNzNpbEBnbWFpbC5jb21dIA0KPiDlj5HpgIHml7bpl7Q6IDIwMjTlubQ3
-5pyIMTXml6UgMTg6MDgNCj4g5pS25Lu25Lq6OiBMdiBGZWnvvIjlkJXpo57vvIkgPGZlaWx2QGFz
-cm1pY3JvLmNvbT4NCj4g5oqE6YCBOiBtaWtsb3NAc3plcmVkaS5odTsgb3ZlcmxheWZzIDxsaW51
-eC11bmlvbmZzQHZnZXIua2VybmVsLm9yZz4NCj4g5Li76aKYOiBSZTogb3ZlcmxheWZzIGlzc3Vl
-OiBkaXIgcGVybWlzc2lvbiBsb3N0IGR1cmluZyBvdmVybGF5ZnMgY29weS11cA0KPiANCj4gT24g
-TW9uLCBKdWwgMTUsIDIwMjQgYXQgOTowN+KAr0FNIEx2IEZlae+8iOWQlemjnu+8iSA8ZmVpbHZA
-YXNybWljcm8uY29tPiB3cm90ZToNCj4gPg0KPiA+DQo+ID4NCj4gPiA+IC0tLS0t6YKu5Lu25Y6f
-5Lu2LS0tLS0NCj4gPiA+IOWPkeS7tuS6ujogQW1pciBHb2xkc3RlaW4gW21haWx0bzphbWlyNzNp
-bEBnbWFpbC5jb21dDQo+ID4gPiDlj5HpgIHml7bpl7Q6IDIwMjTlubQ35pyIMTLml6UgMTc6NDEN
-Cj4gPiA+IOaUtuS7tuS6ujogTHYgRmVp77yI5ZCV6aOe77yJIDxmZWlsdkBhc3JtaWNyby5jb20+
-DQo+ID4gPiDmioTpgIE6IG1pa2xvc0BzemVyZWRpLmh1OyBvdmVybGF5ZnMgPGxpbnV4LXVuaW9u
-ZnNAdmdlci5rZXJuZWwub3JnPg0KPiA+ID4g5Li76aKYOiBSZTogb3ZlcmxheWZzIGlzc3VlOiBk
-aXIgcGVybWlzc2lvbiBsb3N0IGR1cmluZyBvdmVybGF5ZnMgDQo+ID4gPiBjb3B5LXVwDQo+ID4g
-Pg0KPiA+ID4gT24gRnJpLCBKdWwgMTIsIDIwMjQgYXQgNzoxOOKAr0FNIEx2IEZlae+8iOWQlemj
-nu+8iSA8ZmVpbHZAYXNybWljcm8uY29tPiB3cm90ZToNCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+
-ID4NCj4gPiA+ID4gRGVhciBBbWlyLA0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4g
-PiBTZWVtcyBpc3N1ZSBkaXNhcHBlYXJlZCB3aXRoIGJlbG93IGNoYW5nZXMsIGNhbiB5b3UgaGVs
-cCByZXZpZXcgYmVsb3cgcGF0Y2g/DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+
-IFRoYW5rIHlvdSENCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gZGlmZiAtLWdp
-dCBhL2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMgYi9mcy9vdmVybGF5ZnMvY29weV91cC5jDQo+ID4g
-PiA+DQo+ID4gPiA+IGluZGV4IDQ4YmNhNTgxN2YuLmU1NDNiNTU2M2QgMTAwNjQ0DQo+ID4gPiA+
-DQo+ID4gPiA+IC0tLSBhL2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMNCj4gPiA+ID4NCj4gPiA+ID4g
-KysrIGIvZnMvb3ZlcmxheWZzL2NvcHlfdXAuYw0KPiA+ID4gPg0KPiA+ID4gPiBAQCAtODUxLDkg
-Kzg1MSwxMSBAQCBzdGF0aWMgaW50IG92bF9jb3B5X3VwX29uZShzdHJ1Y3QgZGVudHJ5IA0KPiA+
-ID4gPiAqcGFyZW50LCBzdHJ1Y3QgZGVudHJ5ICpkZW50cnksDQo+ID4gPiA+DQo+ID4gPiA+DQo+
-ID4gPiA+DQo+ID4gPiA+IGludCBvdmxfY29weV91cF9mbGFncyhzdHJ1Y3QgZGVudHJ5ICpkZW50
-cnksIGludCBmbGFncykNCj4gPiA+ID4NCj4gPiA+ID4gew0KPiA+ID4gPg0KPiA+ID4gPiArICAg
-ICAgIHN0cnVjdCBzdXBlcl9ibG9jayAqc2IgPSBkZW50cnktPmRfc2I7DQo+ID4gPiA+DQo+ID4g
-PiA+ICAgICAgICAgaW50IGVyciA9IDA7DQo+ID4gPiA+DQo+ID4gPiA+ICAgICAgICAgY29uc3Qg
-c3RydWN0IGNyZWQgKm9sZF9jcmVkOw0KPiA+ID4gPg0KPiA+ID4gPiAgICAgICAgIGJvb2wgZGlz
-Y29ubmVjdGVkID0gKGRlbnRyeS0+ZF9mbGFncyAmIA0KPiA+ID4gPiBEQ0FDSEVfRElTQ09OTkVD
-VEVEKTsNCj4gPiA+ID4NCj4gPiA+ID4gKyAgICAgICB1bnNpZ25lZCBpbnQgY29waWVzID0gMDsN
-Cj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gICAgICAgICAvKg0KPiA+ID4gPg0K
-PiA+ID4gPiAgICAgICAgICAqIFdpdGggTkZTIGV4cG9ydCwgY29weSB1cCBjYW4gZ2V0IGNhbGxl
-ZCBmb3IgYSBkaXNjb25uZWN0ZWQgbm9uLWRpci4NCj4gPiA+ID4NCj4gPiA+ID4gQEAgLTg4Nyw5
-ICs4ODksMTQgQEAgaW50IG92bF9jb3B5X3VwX2ZsYWdzKHN0cnVjdCBkZW50cnkgKmRlbnRyeSwg
-DQo+ID4gPiA+IGludA0KPiA+ID4gPiBmbGFncykNCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4N
-Cj4gPiA+ID4gICAgICAgICAgICAgICAgIGRwdXQocGFyZW50KTsNCj4gPiA+ID4NCj4gPiA+ID4g
-ICAgICAgICAgICAgICAgIGRwdXQobmV4dCk7DQo+ID4gPiA+DQo+ID4gPiA+ICsNCj4gPiA+ID4N
-Cj4gPiA+ID4gKyAgICAgICAgICAgICAgIGNvcGllcysrOw0KPiA+ID4gPg0KPiA+ID4gPiAgICAg
-ICAgIH0NCj4gPiA+ID4NCj4gPiA+ID4gICAgICAgICBvdmxfcmV2ZXJ0X2NyZWRzKGRlbnRyeS0+
-ZF9zYiwgb2xkX2NyZWQpOw0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiArICAg
-ICAgIGlmIChjb3BpZXMgJiYgZF9pc19kaXIoZGVudHJ5KSAmJiBzYi0+c19vcC0+c3luY19mcykN
-Cj4gPiA+ID4NCj4gPiA+ID4gKyAgICAgICAgICAgICAgIHNiLT5zX29wLT5zeW5jX2ZzKHNiLCAx
-KTsNCj4gPiA+ID4NCj4gPiA+ID4gKw0KPiA+ID4gPg0KPiA+ID4NCj4gPiA+IEkgYW0gbm90IHN1
-cmUgaWYgaXQgaXMgYWNjZXB0YWJsZSB0byBhZGQgc3luYyB0byBwYXJlbnQgZGlyIGNvcHkgdXAg
-YWx0aG91Z2ggdGhpcyBzaG91bGQgYmUgPiByZWxhdGl2ZWx5IHJhcmUgc28gbWF5YmUgaXRzIGZp
-bmU/Pw0KPiA+ID4gYnV0IGlmIHlvdSBkbyBhZGQgc3luYyB5b3Ugc2hvdWxkIGJlIHVzaW5nIGZz
-eW5jIG9uIHRoZSBjb3BpZWQgdXAgcGFyZW50IGRpcmVjdG9yeSAtIG5vdCAtPnN5bmNfZnMuDQo+
-ID4gPg0KPiA+ID4gQW55d2F5LCB0aGlzIGNoZWNrIGlzIHdyb25nLg0KPiA+ID4gWW91IHNob3Vs
-ZCBub3QgYmUgY2hlY2tpbmcgZm9yIGRfaXNfZGlyKGRlbnRyeSksIHlvdSBzaG91bGQgYmUgDQo+
-ID4gPiBjaGVja2luZyBpZiBhbnkgKnBhcmVudHMqIHdlcmUgY29waWVkID4gdXAsDQo+ID4gPg0K
-PiA+ID4gU2VlIG1vcmUgYWJvdXQgdGhpcyBiZWxvdy4uLg0KPiA+ID4NCj4gPiA+ID4NCj4gPiA+
-ID4NCj4gPiA+ID4NCj4gPiA+ID4g5Y+R5Lu25Lq6OiBMdiBGZWnvvIjlkJXpo57vvIkNCj4gPiA+
-ID4g5Y+R6YCB5pe26Ze0OiAyMDI05bm0N+aciDEy5pelIDExOjM1DQo+ID4gPiA+IOaUtuS7tuS6
-ujogJ2FtaXI3M2lsQGdtYWlsLmNvbScgPGFtaXI3M2lsQGdtYWlsLmNvbT4NCj4gPiA+ID4g5Li7
-6aKYOiBvdmVybGF5ZnMgaXNzdWU6IGRpciBwZXJtaXNzaW9uIGxvc3QgZHVyaW5nIG92ZXJsYXlm
-cyBjb3B5LXVwDQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+DQo+
-ID4gPiA+IERlYXIgQW1pciwNCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gU29y
-cnkgdG8gYm90aGVyIHlvdS4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gUmVj
-ZW50bHksIHdlIGhhZCBhIHByb2JsZW0gd2l0aCBvdmVybGF5ZnMgZGlyIGNvcHktdXAgZmxvdy4N
-Cj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gRGVzY3JpcHRpb246DQo+ID4gPiA+
-DQo+ID4gPiA+IElmIGEgZGlyIGV5ZWx5bi8gZXhpc3QgaW4gbG93IGxheWVyLCBub3QgZXhpc3Qg
-aW4gdXBwZXIgbGF5ZXIsIGFmdGVyIGNyZWF0aW5nIGEgbmV3IGZpbGUoZS5nLiA+IGV5ZWx5bi8g
-ZXllbHluLmxvZykgaW4gdGhpcyBkaXIgZnJvbSBvdmVybGF5ZnMsIHBlcm1pc3Npb24gb2YgZXll
-bHluLyBtYXkgYmUgYWJub3JtYWwgYWZ0ZXIgPiBwb3dlci1jdXQuDQo+ID4gPiA+DQo+ID4gPiA+
-IElmIGFkZCBhIHN5bmMgYWZ0ZXIgY3JlYXRpbmcgYSBuZXcgZmlsZSwgcGVybWlzc2lvbiBvZiBl
-eWVseW4vIGlzIGFsd2F5cyBjb3JyZWN0Lg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+
-ID4gPiBLZXJuZWwgVmVyc2lvbjoNCj4gPiA+ID4NCj4gPiA+ID4gTGludXggT3BlbldydCA1LjQu
-Mjc2KyAjMjUgUFJFRU1QVCBGcmkgSnVsIDEyIDAyOjIxOjE3IFVUQyAyMDI0IA0KPiA+ID4gPiBh
-cm12N2wgR05VL0xpbnV4DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFRlc3Qg
-U3RlcDoNCj4gPiA+ID4NCj4gPiA+ID4gMS4gbW91bnQg4oCTdCBzcXVhc2hmcyAvZGV2L210ZGJs
-b2NrMTkgL3N5c3RlbS9ldGMNCj4gPiA+ID4NCj4gPiA+ID4gcm9vdEBPcGVuV3J0Oi9zeXN0ZW0v
-ZXRjIyBscyAtbA0KPiA+ID4gPg0KPiA+ID4gPiBkcnd4ci14ci14ICAgIDIgcm9vdCAgICAgcm9v
-dCAgICAgICAgICAgICAzIEp1bCAxMSAgMjAyNCBleWVseW4vDQo+ID4gPiA+DQo+ID4gPiA+DQo+
-ID4gPiA+DQo+ID4gPiA+IDIuIG1vdW50IOKAk3QgdWJpZnMgdWJpMDpldGMgL292ZXJsYXkvZXRj
-DQo+ID4gPiA+DQo+ID4gPiA+IHJvb3RAT3BlbldydDovb3ZlcmxheS9ldGMjIGxzIC1sDQo+ID4g
-PiA+DQo+ID4gPiA+IGRyd3hyLXhyLXggICAgOCByb290ICAgICByb290ICAgICAgICAgIDEzNjAg
-SmFuICAxIDA4OjAxIHJvb3QvDQo+ID4gPiA+DQo+ID4gPiA+IGRyd3hyLXhyLXggICAgMyByb290
-ICAgICByb290ICAgICAgICAgICAyMjQgSmFuICAxIDA4OjAwIHdvcmsvDQo+ID4gPiA+DQo+ID4g
-PiA+IHJvb3RAT3BlbldydDovb3ZlcmxheS9ldGMjIGxzIC1hbCByb290Lw0KPiA+ID4gPg0KPiA+
-ID4gPiBkcnd4ci14ci14ICAgIDggcm9vdCAgICAgcm9vdCAgICAgICAgICAxMzYwIEphbiAgMSAw
-ODowMSAuLw0KPiA+ID4gPg0KPiA+ID4gPiBkcnd4ci14ci14ICAgIDQgcm9vdCAgICAgcm9vdCAg
-ICAgICAgICAgMjg4IEphbiAgMSAwODowMCAuLi8NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4N
-Cj4gPiA+ID4gMy4gbW91bnQg4oCTdCBvdmVybGF5IC9zeXN0ZW0vZXRjIC1vIA0KPiA+ID4gPiBu
-b2F0aW1lLGxvd2VyZGlyPS9zeXN0ZW0vZXRjLHVwcGVyZGlyPS9vdmVybGF5L2V0Yy9yb290LHdv
-cmtkaXI9L28NCj4gPiA+ID4gdmVybA0KPiA+ID4gPiBheS9ldGMvd29yaw0KPiA+ID4gPg0KPiA+
-ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiA0LiBlY2hvIHN5c3RlbSA+IC9zeXN0ZW0vZXRjIC9leWVs
-eW4vZXllbHluLmxvZw0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiA1LiBwb3dl
-ciBjdXQNCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gNi4gYWZ0ZXIgbmV4dCBw
-b3dlciBvbiwgc29tZXRpbWVzIGRpciBleWVseW4vIGhhcyB3cm9uZyBwZXJtaXNzaW9uDQo+ID4g
-PiA+IChkLS0tLS0tLS0tKQ0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiBtb3Vu
-dCDigJN0IHViaWZzIHViaTA6ZXRjIC9vdmVybGF5L2V0Yw0KPiA+ID4gPg0KPiA+ID4gPiByb290
-QE9wZW5XcnQ6L292ZXJsYXkvZXRjIyBscyAtbCByb290Lw0KPiA+ID4gPg0KPiA+ID4gPiBkLS0t
-LS0tLS0tICAgMSByb290ICAgICByb290ICAgICAgICAgICAyMzIgSmFuICAxIDA4OjAwIGV5ZWx5
-bg0KPiA+ID4gPg0KPiA+ID4gPiByb290QE9wZW5XcnQ6L292ZXJsYXkvZXRjIyBscyDigJNsIHN5
-c3RlbS9ldGMvZXllbHluL2V5ZWx5bi5sb2cNCj4gPiA+ID4NCj4gPiA+ID4gLXJ3LXItLXItLSAg
-ICAxIHJvb3QgICAgIHJvb3QgICAgICAgICAgICAgMCBKYW4gIDEgMDg6MDAgL3N5c3RlbS9ldGMv
-ZXllbHluL2V5ZWx5bi5sb2cNCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gaWYg
-d2UgYWRkIHN5bmMgdG8gc3RlcCA0LCB0aGF0IGlzIOKAnGVjaG8gc3lzdGVtID4gL3N5c3RlbS9l
-dGMgL2V5ZWx5bi9leWVseW4ubG9nICYmIHN5bmPigJ0sIHRoZW4gPiBldmVyeXRoaW5nIGlzIHJp
-Z2h0Lg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiBEbyB5b3UgaGF2ZSBhbnkg
-c3VnZ2VzdGlvbnM/DQo+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPg0KPiA+ID4NCj4gPiA+IE92ZXJs
-YXlmcyBjcmVhdGVzIHRoZSB1cHBlciBkaXIgaW4gd29yayBkaXJlY3RvcnksIHNldHMgaXRzIG1l
-dGFkYXRhIGFuZCBvbmx5IHRoZW4gbW92ZXMgaXQgaW50byA+IHBsYWNlLCBzbyB0aGUgYWJvdmUg
-aXMgYW4gImlzc3VlIiB3aXRoIHViaWZzLg0KPiA+ID4NCj4gPiA+IFRoZSB0aGluZyBhYm91dCB0
-aGlzICJpc3N1ZSIgaXMgdGhhdCB0aGUgYmVoYXZpb3IgdGhhdCBhZnRlciBtb3ZlIHRoZSBvbGQg
-cGVybWlzc2lvbnMgY2Fubm90IGJlID4gb2JzZXJ2ZWQgaXMgbm90IGRlZmluZWQgYnkgUE9TSVgs
-IGJ1dCBpdCBpcyB0aGUgZmFjdG8gdGhlIGJlaGF2aW9yIG9mIG1vc3Qgb2YgdGhlIG1vZGVybiBm
-aWxlc3lzdGVtcyA+ICh4ZnMsIGV4dDQgYW5kIG1vc3QgcHJvYmFibHkgYnRyZnMpLg0KPiA+ID4N
-Cj4gPiA+IElmIHlvdSB3YW50IHRvIGFkZCBhIGZlYXR1cmUgdGhhdCBhZGRzIGZzeW5jIHRvIGNv
-cGllZCB1cCBwYXJlbnQgZGlyZWN0b3JpZXMgZm9yIGZpbGVzeXN0ZW1zIGxpa2UgPiB1YmlmcyB0
-aGF0IGFyZSBub3QgInN0cmljdGx5IG9yZGVyZWQgbWV0YWRhdGEiIHRoZW4gSSB0aGluayB0aGlz
-IG5lZWRzIHRvIGJlIGFuIG9wdC1pbiBmZWF0dXJlLg0KPiA+ID4NCj4gPiA+IEkgbXVzdCBhZG1p
-dCB0aGF0IHRoaXMgcmVxdWlyZW1lbnQgZnJvbSB0aGUgdXBwZXIgZnMgaXMgbm90IGRvY3VtZW50
-ZWQgYW5kIGNhbm5vdCBiZSBhdXRvbWF0aWNhbGx5ID4gdGVzdGVkIGJ5IG92ZXJsYXlmcyAoZnMg
-ZG8gbm90IGFkdmVydGlzZSAic3RyaWN0bHkgb3JkZXJlZCBtZXRhZGF0YSIgcHJvcGVydHkpLiBJ
-dCBqdXN0IGhhcHBlbnMgdG8gPiBiZSB0cnVlIGZvciBtb3N0IG9mIHRoZSBjb21tb24gZnMgdXNl
-ZCBhcyB1cHBlciBmcy4NCj4gPiA+DQo+ID4gPiBJIHdpc2ggd2UgaGFkIGNhbGxlZCB0aGUgbW91
-bnQgb3B0aW9uICJ2b2xhdGlsZSIgInN5bmM9bm9uZSIgYW5kIHRoZW4gd2UgY291bGQgaGF2ZSBh
-ZGRlZCA+ICJzeW5jPXN0cmljdCIgZm9yIHRoaXMgYW5kICJzeW5jPWRhdGEiIGFzIHRoZSBkZWZh
-dWx0Lg0KPiA+ID4gV2UgY2FuIHN0aWxsIGRvIHRoYXQgYW5kIGhhdmUgInZvbGF0aWxlIiBiZSBh
-biBhbGlhcyBmb3IgInN5bmM9bm9uZSIuDQo+ID4gPg0KPiA+ID4gVGhhbmtzLA0KPiA+ID4gQW1p
-ci4NCj4gPg0KPiA+IFZlcnkgZ2xhZCB0byByZWNlaXZlIHlvdXIgcmVwbHksIFRoYW5rIHlvdSBm
-b3IgZXhwbGFuYXRpb24uDQo+ID4gQXMgeW91IHN1Z2dlc3RlZCwgSSB0cnkgdG8gYWRkIG1vdW50
-IG9wdGlvbiAic3luYz1zdHJpY3QiLCBjaGFuZ2UgdG8gdXNlIGZzeW5jIGZvciBwYXJlbnQgZGly
-LiBQbGVhc2UgaGVscCBoYXZlIGEgbG9vay4NCj4gPg0KPiANCj4gT2ssIGJ1dCBpZiB5b3Ugd2Fu
-dCB0byBzdWJtaXQgdGhpcyBjaGFuZ2UgcGxlYXNlIGZvbGxvdyBodHRwczovL3d3dy5rZXJuZWwu
-b3JnL2RvYy9odG1sL2xhdGVzdC9wcm9jZXNzL3N1Ym1pdHRpbmctcGF0Y2hlcy5odG1sDQoNClRo
-YW5rcywgSSB3aWxsIGxlYXJuIHRoZSBzdWJtaXQgZmxvdyBhbmQgaGF2ZSBhIHRyeS4NCg0KPiBT
-ZWUgY29tbWVudHMgYmVsb3cNCj4gDQo+ID4gZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9jb3B5
-X3VwLmMgYi9mcy9vdmVybGF5ZnMvY29weV91cC5jIGluZGV4IA0KPiA+IDQ4YmNhNTgxN2YuLjQy
-NThiOGRhOGQgMTAwNjQ0DQo+ID4gLS0tIGEvZnMvb3ZlcmxheWZzL2NvcHlfdXAuYw0KPiA+ICsr
-KyBiL2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMNCj4gPiBAQCAtODUxLDYgKzg1MSw3IEBAIHN0YXRp
-YyBpbnQgb3ZsX2NvcHlfdXBfb25lKHN0cnVjdCBkZW50cnkgKnBhcmVudCwgDQo+ID4gc3RydWN0
-IGRlbnRyeSAqZGVudHJ5LA0KPiA+DQo+ID4gIGludCBvdmxfY29weV91cF9mbGFncyhzdHJ1Y3Qg
-ZGVudHJ5ICpkZW50cnksIGludCBmbGFncykgIHsNCj4gPiArICAgICAgIHN0cnVjdCBvdmxfZnMg
-Km9mcyA9IGRlbnRyeS0+ZF9zYi0+c19mc19pbmZvOw0KPiANCj4gb2ZzID0gT1ZMX0ZTKGRlbnRy
-eS0+ZF9zYik7DQo+IA0KPiA+ICAgICAgICAgaW50IGVyciA9IDA7DQo+ID4gICAgICAgICBjb25z
-dCBzdHJ1Y3QgY3JlZCAqb2xkX2NyZWQ7DQo+ID4gICAgICAgICBib29sIGRpc2Nvbm5lY3RlZCA9
-IChkZW50cnktPmRfZmxhZ3MgJiBEQ0FDSEVfRElTQ09OTkVDVEVEKTsgDQo+ID4gQEAgLTg4NCw2
-ICs4ODUsMjQgQEAgaW50IG92bF9jb3B5X3VwX2ZsYWdzKHN0cnVjdCBkZW50cnkgKmRlbnRyeSwg
-aW50IGZsYWdzKQ0KPiA+ICAgICAgICAgICAgICAgICB9DQo+ID4NCj4gPiAgICAgICAgICAgICAg
-ICAgZXJyID0gb3ZsX2NvcHlfdXBfb25lKHBhcmVudCwgbmV4dCwgZmxhZ3MpOw0KPiA+ICsgICAg
-ICAgICAgICAgICBpZiAob2ZzLT5jb25maWcudm9sYXRpbGVfc3luYyAmJiBkX2lzX2RpcihuZXh0
-KSkgew0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBwYXRoIHVwcGVycGF0aDsN
-Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgZmlsZSAqbmV3X2ZpbGU7DQo+ID4g
-Kw0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIG92bF9wYXRoX3VwcGVyKG5leHQsICZ1cHBl
-cnBhdGgpOw0KPiA+ICsNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICBuZXdfZmlsZSA9IG92
-bF9wYXRoX29wZW4oJnVwcGVycGF0aCwNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBPX0xBUkdFRklMRSB8IE9fV1JPTkxZKTsNCj4gPiArICAgICAg
-ICAgICAgICAgICAgICAgICBpZiAoIUlTX0VSUihuZXdfZmlsZSkpIHsNCj4gPiArICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIGlmIChvZnMtPmNvbmZpZy52b2xhdGlsZV9zeW5jID09DQo+
-ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgT1ZMX1ZPTEFUSUxFX1NZTkNf
-REFUQSkNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmZzX2Zz
-eW5jKG5ld19maWxlLCAxKTsNCj4gDQo+IE5vdCBuZWVkZWQgYWxyZWFkeSBkb25lIGluIG92bF9j
-b3B5X3VwX2ZpbGUoKQ0KPiANCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVs
-c2UNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmZzX2ZzeW5j
-KG5ld19maWxlLCAwKTsNCj4gPiArDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBmcHV0KG5ld19maWxlKTsNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICB9DQo+ID4gKyAg
-ICAgICAgICAgICAgIH0NCj4gDQo+IE5vdCB0aGUgcmlnaHQgcGxhY2UgZm9yIGZzeW5jLg0KPiBU
-aGlzIHNob3VsZCBiZSBhdCB0aGUgZW5kIG9mIG92bF9jb3B5X3VwX21ldGFkYXRhKCkgc2ltaWxh
-ciB0byBmc3luYyBhdCB0aGUgZW5kIG9mIG92bF9jb3B5X3VwX2ZpbGUoKS4NCj4gVGhlIGNoZWNr
-IGZvciBzeW5jIG1vZGUgc2hvdWxkIGJlIGFic3RyYWN0ZWQgYnkgdGhlIGhlbHBlciBsaWtlIG92
-bF9zaG91bGRfc3luYygpLCBtYXliZSBvdmxfc2hvdWxkX3N5bmNfc3RyaWN0KCkNCj4gDQo+ID4N
-Cj4gPiAgICAgICAgICAgICAgICAgZHB1dChwYXJlbnQpOw0KPiA+ICAgICAgICAgICAgICAgICBk
-cHV0KG5leHQpOw0KPiA+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMvb3ZsX2VudHJ5LmggYi9m
-cy9vdmVybGF5ZnMvb3ZsX2VudHJ5LmggaW5kZXggDQo+ID4gMmRhYmEwOGY3OC4uODczZDk5N2Zi
-OSAxMDA2NDQNCj4gPiAtLS0gYS9mcy9vdmVybGF5ZnMvb3ZsX2VudHJ5LmgNCj4gPiArKysgYi9m
-cy9vdmVybGF5ZnMvb3ZsX2VudHJ5LmgNCj4gPiBAQCAtNSw2ICs1LDEyIEBADQo+ID4gICAqIENv
-cHlyaWdodCAoQykgMjAxNiBSZWQgSGF0LCBJbmMuDQo+ID4gICAqLw0KPiA+DQo+ID4gK2VudW0g
-ew0KPiA+ICsgICAgICAgT1ZMX1ZPTEFUSUxFX1NZTkNfTk9ORSwNCj4gPiArICAgICAgIE9WTF9W
-T0xBVElMRV9TWU5DX0RBVEEsDQo+ID4gKyAgICAgICBPVkxfVk9MQVRJTEVfU1lOQ19TVFJJQ1Qs
-DQo+ID4gK307DQo+ID4gKw0KPiA+ICBzdHJ1Y3Qgb3ZsX2NvbmZpZyB7DQo+ID4gICAgICAgICBj
-aGFyICpsb3dlcmRpcjsNCj4gPiAgICAgICAgIGNoYXIgKnVwcGVyZGlyOw0KPiA+IEBAIC0xOCw2
-ICsyNCw3IEBAIHN0cnVjdCBvdmxfY29uZmlnIHsNCj4gPiAgICAgICAgIGludCB4aW5vOw0KPiA+
-ICAgICAgICAgYm9vbCBtZXRhY29weTsNCj4gPiAgICAgICAgIGJvb2wgb3ZlcnJpZGVfY3JlZHM7
-DQo+ID4gKyAgICAgICBpbnQgdm9sYXRpbGVfc3luYzsNCj4gDQo+IFRoaXMgd29yZCB2b2xhdGls
-ZV8gaXMgdW5uZWVkZWQgYW5kIHdyb25nLiAidm9sYXRpbGUiIG1lYW5zICJubyBzeW5jIg0KPiBQ
-bGVhc2UgKnJlcGxhY2UgdGhlIGNvbmZpZyBvdmxfdm9sYXRpbGUgd2l0aCBzeW5jX21vZGUsIGRv
-bid0IGtlZXAgYm90aCBhbmQgZ3JlcCBmb3IgYWxsIGFjY2VzcyB0byBvdmxfdm9sYXRpbGUgdG8g
-cmVwbGFjZSB0aGVtIHdpdGggYWRqdXN0ZWQgc3luY19tb2RlIGNvZGUuDQo+IA0KPiA+ICB9Ow0K
-PiA+DQo+ID4gIHN0cnVjdCBvdmxfc2Igew0KPiA+IGRpZmYgLS1naXQgYS9mcy9vdmVybGF5ZnMv
-c3VwZXIuYyBiL2ZzL292ZXJsYXlmcy9zdXBlci5jIGluZGV4IA0KPiA+IDA5M2FmMWRjYmQuLjY4
-ZGVlMTg1MGIgMTAwNjQ0DQo+ID4gLS0tIGEvZnMvb3ZlcmxheWZzL3N1cGVyLmMNCj4gPiArKysg
-Yi9mcy9vdmVybGF5ZnMvc3VwZXIuYw0KPiA+IEBAIC00MTYsNiArNDE2LDkgQEAgZW51bSB7DQo+
-ID4gICAgICAgICBPUFRfTUVUQUNPUFlfT0ZGLA0KPiA+ICAgICAgICAgT1BUX09WRVJSSURFX0NS
-RURTX09OLA0KPiA+ICAgICAgICAgT1BUX09WRVJSSURFX0NSRURTX09GRiwNCj4gPiArICAgICAg
-IE9QVF9WT0xBVElMRV9TWU5DX05PTkUsDQo+ID4gKyAgICAgICBPUFRfVk9MQVRJTEVfU1lOQ19E
-QVRBLA0KPiA+ICsgICAgICAgT1BUX1ZPTEFUSUxFX1NZTkNfU1RSSUNULA0KPiANCj4gVGhpcyB3
-b3JkIF9WT0xBVElMRV8gaXMgdW5uZWVkZWQgYW5kIHdyb25nLiAidm9sYXRpbGUiIG1lYW5zICJu
-byBzeW5jIg0KPiBXaGljaCB2ZXJzaW9uIGFyZSB5b3UgYmFzaW5nIHlvdXIgcGF0Y2ggb24/DQo+
-IFlvdSBzaG91bGQgYmUgZGV2ZWxvcGluZyBvbiB0b3Agb2YgY3VycmVudCB1cHN0cmVhbSBrZXJu
-ZWwsIHdoZXJlIHRoaXMgcGFyc2luZyBjb2RlIGlzIGF0IHBhcmFtcy5jLg0KPiANCj4gWW91IHNo
-b3VsZCBmb2xsb3cgdGhlIGV4YW1wbGUgb2Ygb3ZsX3BhcmFtZXRlcl92ZXJpdHkoKSB3aGljaCBh
-Y2NlcHRzIGVudW0gdmFsdWVzIHtvZmYsIG9uLCByZXF1aXJlfSB3aGljaCBpcyBxdWl0ZSB0aGUg
-c2FtZSBhcyB3aGF0IHlvdSB3YW50IGZvciBzeW5jIG1vZGUuDQoNClNvcnJ5LCBrZXJuZWwgdmVy
-c2lvbiBJIGFtIHdvcmtpbmcgb24gaXMgNS40LjI3Ni4gU2VlbXMgdGhlcmUgaXMgbXVjaCBkaWZm
-ZXJlbmNlLg0KDQo+IA0KPiA+ICAgICAgICAgT1BUX0VSUiwNCj4gPiAgfTsNCj4gPg0KPiA+IEBA
-IC00MzYsNiArNDM5LDkgQEAgc3RhdGljIGNvbnN0IG1hdGNoX3RhYmxlX3Qgb3ZsX3Rva2VucyA9
-IHsNCj4gPiAgICAgICAgIHtPUFRfTUVUQUNPUFlfT0ZGLCAgICAgICAgICAgICAgIm1ldGFjb3B5
-PW9mZiJ9LA0KPiA+ICAgICAgICAge09QVF9PVkVSUklERV9DUkVEU19PTiwgICAgICAgICAib3Zl
-cnJpZGVfY3JlZHM9b24ifSwNCj4gPiAgICAgICAgIHtPUFRfT1ZFUlJJREVfQ1JFRFNfT0ZGLCAg
-ICAgICAgIm92ZXJyaWRlX2NyZWRzPW9mZiJ9LA0KPiA+ICsgICAgICAge09QVF9WT0xBVElMRV9T
-WU5DX05PTkUsICAgICAgICAic3luYz1ub25lIn0sDQo+ID4gKyAgICAgICB7T1BUX1ZPTEFUSUxF
-X1NZTkNfREFUQSwgICAgICAgICJzeW5jPWRhdGEifSwNCj4gPiArICAgICAgIHtPUFRfVk9MQVRJ
-TEVfU1lOQ19TVFJJQ1QsICAgICAgInN5bmM9c3RyaWN0In0sDQo+IA0KPiBOb3RlIHRoYXQgeW91
-IG5lZWQgdG8gYWRkIHRoZSBuZXcgc3luYyBvcHRpb24gQU5EIGtlZXAgdGhlIGxlZ2FjeSAidm9s
-YXRpbGUiIG1vdW50IG9wdGlvbi4NCj4gDQo+ID4gICAgICAgICB7T1BUX0VSUiwgICAgICAgICAg
-ICAgICAgICAgICAgIE5VTEx9DQo+ID4gIH07DQo+ID4NCj4gPiBAQCAtNDk1LDYgKzUwMSw3IEBA
-IHN0YXRpYyBpbnQgb3ZsX3BhcnNlX29wdChjaGFyICpvcHQsIHN0cnVjdCBvdmxfY29uZmlnICpj
-b25maWcpDQo+ID4gICAgICAgICBpZiAoIWNvbmZpZy0+cmVkaXJlY3RfbW9kZSkNCj4gPiAgICAg
-ICAgICAgICAgICAgcmV0dXJuIC1FTk9NRU07DQo+ID4gICAgICAgICBjb25maWctPm92ZXJyaWRl
-X2NyZWRzID0gb3ZsX292ZXJyaWRlX2NyZWRzX2RlZjsNCj4gPiArICAgICAgIGNvbmZpZy0+dm9s
-YXRpbGVfc3luYyA9IE9WTF9WT0xBVElMRV9TWU5DXyBEQVRBOw0KPiA+DQo+ID4gICAgICAgICB3
-aGlsZSAoKHAgPSBvdmxfbmV4dF9vcHQoJm9wdCkpICE9IE5VTEwpIHsNCj4gPiAgICAgICAgICAg
-ICAgICAgaW50IHRva2VuOw0KPiA+IEBAIC01ODMsNiArNTkwLDE4IEBAIHN0YXRpYyBpbnQgb3Zs
-X3BhcnNlX29wdChjaGFyICpvcHQsIHN0cnVjdCBvdmxfY29uZmlnICpjb25maWcpDQo+ID4gICAg
-ICAgICAgICAgICAgICAgICAgICAgY29uZmlnLT5vdmVycmlkZV9jcmVkcyA9IGZhbHNlOw0KPiA+
-ICAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KPiA+DQo+ID4gKyAgICAgICAgICAgICAg
-IGNhc2UgT1BUX1ZPTEFUSUxFX1NZTkNfTk9ORToNCj4gPiArICAgICAgICAgICAgICAgICAgICAg
-ICBjb25maWctPnZvbGF0aWxlX3N5bmMgPSBPVkxfVk9MQVRJTEVfU1lOQ19OT05FOw0KPiA+ICsg
-ICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KPiA+ICsNCj4gPiArICAgICAgICAgICAgICAg
-Y2FzZSBPUFRfVk9MQVRJTEVfU1lOQ19EQVRBOg0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAg
-IGNvbmZpZy0+dm9sYXRpbGVfc3luYyA9IE9WTF9WT0xBVElMRV9TWU5DX0RBVEE7DQo+ID4gKyAg
-ICAgICAgICAgICAgICAgICAgICAgYnJlYWs7DQo+ID4gKw0KPiA+ICsgICAgICAgICAgICAgICBj
-YXNlIE9QVF9WT0xBVElMRV9TWU5DX1NUUklDVDoNCj4gPiArICAgICAgICAgICAgICAgICAgICAg
-ICBjb25maWctPnZvbGF0aWxlX3N5bmMgPSBPVkxfVk9MQVRJTEVfU1lOQ19TVFJJQ1Q7DQo+ID4g
-KyAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7DQo+ID4gKw0KPiANCj4gDQo+IEFuZCBlZmZl
-Y3RpdmVseSB0aGUgdHdvIG1vdW50IG9wdGlvbnMgdG8gZG8gdGhlIHNhbWUsIGkuZS46DQo+IA0K
-PiBjYXNlIE9wdF9zeW5jOg0KPiAgICAgICAgICAgICAgICAgY29uZmlnLT5zeW5jX21vZGUgPSBy
-ZXN1bHQudWludF8zMjsNCj4gICAgICAgICAgICAgICAgIGJyZWFrOw0KPiBjYXNlIE9wdF92b2xh
-dGlsZToNCj4gICAgICAgICAgICAgICAgIGNvbmZpZy0+c3luY19tb2RlID0gT1ZMX1NZTkNfT0ZG
-Ow0KPiAgICAgICAgICAgICAgICAgYnJlYWs7DQo+IA0KPiA+ICAgICAgICAgICAgICAgICBkZWZh
-dWx0Og0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgIHByX2Vycigib3ZlcmxheWZzOiB1bnJl
-Y29nbml6ZWQgbW91bnQgb3B0aW9uIFwiJXNcIiBvciBtaXNzaW5nIHZhbHVlXG4iLCBwKTsNCj4g
-PiAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gLUVJTlZBTDsNCj4gPg0KPiANCj4gQWxz
-byBuZWVkIHRvIGRpc3BsYXkgdGhlIG1vZGUgaW4gb3ZsX3Nob3dfb3B0aW9ucygpLg0KPiANCj4g
-VGhhbmtzLA0KPiBBbWlyLA0KDQpBZnRlciByZWFkaW5nIGxhdGVzdCBjb2RlLCBmb3VuZCB0aGUg
-bW91bnQgb3B0aW9uICJ2b2xhdGlsZSIsIG5vdyBJIHVuZGVyc3RhbmQgd2hhdCB5b3UgbWVhbg0K
-YnkgInN5bmM9bm9uZSIvInN5bmM9ZGF0YSIvInN5bmM9c3RyaWN0IiwgInN5bmM9ZGF0YSIgaXMg
-ZGVmYXVsdCBtb3VudCBvcHRpb24uDQp3aGF0IEkgbmVlZCB0byBkbyBpcyBleHRlbmRpbmcgdGhl
-IG1lYW5pbmcgb2YgY29uZmlnLT5vdmxfdm9sYXRpbGUodXNlZCB0byBjb250cm9sIGRhdGEgc3lu
-YyksIHVzaW5nIGNvbmZpZy0+c3luY19tb2RlIGluc3RlYWQuDQoNCkFuZCBmb3IgdmVyc2lvbiA1
-LjQuMjc2LCBJIG5lZWQgdG8gYWRkIGZzeW5jIGF0IHRoZSBlbmQgb2Ygb3ZsX2NvcHlfdXBfaW5v
-ZGUgKGNvcnJlc3BvbmQgdG8gbGF0ZXN0IGZ1bmN0aW9uIG92bF9jb3B5X3VwX21ldGFkYXRhKSwg
-cmlnaHQ/DQoNClRoYW5rIHlvdSBmb3IgeW91ciBwYXRpZW5jZSENCg0KRmVpDQo=
+On 7/15/24 05:50, Daire Byrne wrote:
+> On Sun, 14 Jul 2024 at 05:12, Mike Baynton <mike@mbaynton.com> wrote:
+>>
+>> On 7/12/24 07:04, Daire Byrne wrote:
+>>> Yea, so I have also toyed with the "composefs" idea
+>>
+>> Yeah, I'm doing what they're doing but making the EROFS in-house and
+>> hoping the kinda-writable NFS twist isn't an issue. I only need to
+>> satisfy dependencies for a container's worth of software at a time and I
+>> can determine all the dependencies I need by virtue of tooling in the
+>> software ecosystems I need to support.
+> 
+> Yea, I need to check out EROFS at some point. But many of our desktop
+> kernels are just too old atm.
+> 
+> Overall the idea of hand crafting metadata-only overlays is compelling
+> because you can avoid the complexity (and confusion) of using symlinks
+> and it's extremely lightweight (maybe even more so with EROFS).
+> 
+>>> I guess the difference is that I'm not trying to replicate the
+>>> entirety of the metadata, I just want to tweak bits of it and still
+>>> avail of the overlay merged directories to fall through to the
+>>> directory tree and data underneath for everything else.
+>>
+>> Yeah I understand your objective now. I'm mildly curious why NFS +
+>> fscache doesn't solve the negative lookups case for you given that you
+>> want a dynamically generated local cache. Is fscache just unable to
+>> cache negative lookups, and you want it to persist for weeks?
+> 
+> Well, fscache is for caching the data contained in (existing) files
+> only right? It makes no attempt to deal with the metadata (e.g.
+> directories)?
+> 
+> Or at least I don't know how effective a disk based cache of metadata
+> could be compared to the vfs page cache when you still need to
+> revalidate fairly often. I mean it needs to revalidate the file often
+> (actimeo?) before it can serve the cached copy so it needs the remote
+> metadata lookups?
+
+Yeah never mind my question, I'm not sure if NFS uses fscache to cache
+negative lookups, but with long PATHs like you have I think you'd have a
+combinatorial explosion of files * paths over long periods and it would
+get out of hand.
+
+I've been setting super long actimeo since I know my NFS files "by
+design" aren't changing. (We even write them out to locations where the
+clients aren't traversing and then rename them.)
+
+> 
+> I have seen some talk (David Howells) about giving network filesystems
+> like NFS the ability to have "disconnected" access via netfs/fscache
+> (ala AFS) but I don't know if that is still on the cards.
+> 
+> The issue we see is that not only do our batch systems cycle through
+> lots of different software versions per hour, but we have many
+> thousands of clients doing the same to a single (Netapp) software
+> volume. Even if each NFS client managed to cache 80% of the negative
+> lookups between runs, the 20% that hits the Netapp is still quite
+> significant from many clients.
+> 
+> And even forgiving the server load implications, a Netapp on the LAN
+> (0.2ms) can add delay when you deal with many "pointless" negative
+> lookups. I have seen some of our software do 100,000 negative lookups
+> across 250 lib dirs, which although on paper should only be 100000 *
+> 0.2ms = 20 seconds, actually adds almost a minute to the startup time
+> of the software. Certainly when we use a local filesytem overlay the
+> time drops by a minute anyway (most likely because the actual file
+> opens benefit too). Now if the software only runs for 2 minutes, then
+> 1/3 of its time is spent doing negative lookups/path walking at
+> startup.
+> 
+> Yes, I am aware that our software is not well optimised but our build
+> system and environment is what it is at this point.
+> 
+> I have seen many other novel solutions to this general problem - some examples:
+> 
+> https://guix.gnu.org/en/blog/2021/taming-the-stat-storm-with-a-loader-cache
+> https://computing.llnl.gov/projects/spindle
+> 
+>> Also (only semi-related) since you have a large NFS deployment similar
+>> to the one I'm putting together in terms of read-only to normal clients
+>> and most files/paths being immutable after they first appear, I'd be
+>> interested in any experiences you've had in practice with performance of
+>> fscache and NFS mount options that relax its cache coherence / atomicity
+>> semantics. I've found it impossible to avoid roundtrips to the server on
+>> each fopen for locally cached files (unless using NFS4 delegation which
+>> is overkill and not available in my environment.) These RPC roundtrips
+>> provide no real benefit to our use case but can add seconds of delay to
+>> initializing a process if it accesses thousands of little interpreted
+>> language files.
+> 
+> In my experience actimeo>3600 can help for these kinds of read-only
+> filesystems but you probably need "nocto" to really get it down to
+> almost no repeat network traffic at all (when cached). Setting
+> vm.vfs_cache_pressure=1 might also help keep the nfs inode data in
+> memory longer too?
+> 
+> But nocto will also cache the "ls -l" case whereby you won't see new
+> entries. However, if you know a new dir/file is there and access it,
+> it will do the new lookup and find it (dirent not in cache yet). That
+> might work for your case by the sounds of it?
+
+My issue has been that I can set all the options there are to relax
+cache coherency, on a test machine with plenty of memory to cache,
+including actimeo and nocto, and I still get some RPCs per open().
+Our cloud provider also has worse latency than your 0.2ms.
+
+> 
+> I'm not too sure about how that effects opens specifically though. In
+> fact, using NFSv3 might be more "relaxed" in this regard than NFSv4?
+
+Brilliant! I had only tried 4.0 and 4.1. I just tried with NFSv3 and can
+get down to zero packets over the network easily. Thanks! :)
+
+I think 4.x versions really want you to use delegation, and if you do,
+you can get to zero packets over the network for locally cached files,
+but if you don't you get an OPEN and CLOSE RPC per file open()ed no
+matter what. I don't really want to use delegation because it's an
+excessively complex system for "treat this filesystem as read-only." I
+fear it would give slow individual client machines too much authority to
+ temporarily limit availability to delegated files, and it's not
+available in my cloud provider's hosted NFS offering anyway.
+
+> 
+> In general, our entire pipeline deals with unique versioned files.
+> Apart from home directories, I can't think of many places where we
+> overwrite or append to existing files for production workloads or
+> reuse file paths in any way.
+> 
+>> Not an overlayfs concern in any way though so perhaps no need to pollute
+>> the mailing list further; if you are interested in responding to me on
+>> these things continuing off list would be fine with me too.
+>>
+>>>> I think Daire and I are basically only adding new files to the NFS
+>>>> filesystem, and both the all-opaque approach and the data-only approach
+>>>> could prevent accidental access to things on the NFS filesystem through
+>>>> the overlayfs (or at least portion of it meant for end-user consumption)
+>>>> while they are still being birthed and might be experiencing changes.
+>>>> At some point in the NFS tree, directories must be modified, but since
+>>>> both approaches have overlayfs sourcing all directory entries from local
+>>>> metadata-only layers, it seems plausible that the directories that
+>>>> change aren't really "accessed by a overlayfs prior to the change."
+>>>
+>>> Yes, I think your case has a good chance of being safe and becoming
+>>> well defined behaviour.
+>>>
+>>> But my idea was still very much relying on using the majority of the
+>>> lower layer as is. And for all the reasons given, I suspect my use
+>>> case is still a no-no.
+>>
+>> I dunno, your thing might end up working out fine, based on your latest
+>> testing of when clients see changes and Amir's observation that all fds
+>> need to be closed but then a readdir through an overlayfs will observe
+>> changes. Seems "unlikely" that clients would hold open fds to the first
+>> few levels of directories at all, never mind for long enough for someone
+>> to call you and ask where the new version is :)
+> 
+> Yea, I think it is probably fine. Maybe another clarification for the
+> docs that others might find useful too?
+> 
+> Daire
+
