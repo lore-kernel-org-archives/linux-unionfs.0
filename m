@@ -1,367 +1,217 @@
-Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+Received: from mail-vk1-f182.google.com (mail-vk1-f182.google.com [209.85.221.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 00B4A16C847;
-	Mon, 22 Jul 2024 13:56:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7FAD916E863
+	for <linux-unionfs@vger.kernel.org>; Mon, 22 Jul 2024 15:27:57 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721656609; cv=none; b=tLrbg49EUD38eW+gsYGr5GhS84N9hLcvwswuKC3yurstAwlbz02YvuLyJSJVce1/bNTmCs1CSpOADERovHVxO7gu9/9gbfTldqvrEC0+0bJCam3/SD18FmPzUAbpGI1WLzjDHe+w0ksVZjjStYRq56IrXijEd+QCag/IGhGbU6s=
+	t=1721662080; cv=none; b=ND/4FAj5v7oozK9O3otMBnTYtxn6qXjNA5TiV8oiUwqjxWNN7Xug2Srdewq+kdtOONHZA6b2QtwkoVNLBEyJkJ1tnXThZxflGlUpwR29j8bpIEebZNUEioRWou4K0g1aKh8JJLgYtSyYW2SdEBEt4ickrU7oO7oLtTXWhREejTY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721656609; c=relaxed/simple;
-	bh=UBScXN5LFqxuDj8rzhCoCXRBYv/A+7Z310MrXHgS3oE=;
+	s=arc-20240116; t=1721662080; c=relaxed/simple;
+	bh=Kys96NMeBZW+4l2I5Z+S0tJCFNNuogbeanfdL8pEl9E=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=jOSvtmt9XKrJK5TgSmJ3N05eb8sVtqCV58RB5Ez/nwVx2pXWRw3ld7Tb630Z1TjCMzWq3nuiwdHuleESXwiKGtQBzQUmcVsF8piyRVc1D7cQgMA7CAJxYBIu3bdTvvOalCJgRtvD5A5owISBaTZh6UpH8OJ+jopErYGe+pGzXrc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AnFVbIg4; arc=none smtp.client-ip=209.85.219.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=JpLosoWFVh2d/KTwKWO4/j64FDr+S3t0HrG2BPwT/0xzoFR1WEoUVyHu1WCZBBcLsJFE3t9VfdQdkezaNyw9KNAcuIfV1ifeJ9+JCFjdJqmO1UBJ3rNtjyh8qVDWZWeWZ/3xn3FNzjclsuU2lPMDs0/gkzaHu1tE/fBLt/9Gj+U=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com; spf=pass smtp.mailfrom=dneg.com; dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b=w9RiFIRr; arc=none smtp.client-ip=209.85.221.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=dneg.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=dneg.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AnFVbIg4"
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-6b7b23793c1so16960426d6.0;
-        Mon, 22 Jul 2024 06:56:47 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=dneg.com header.i=@dneg.com header.b="w9RiFIRr"
+Received: by mail-vk1-f182.google.com with SMTP id 71dfb90a1353d-4f511fddfcfso630909e0c.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 22 Jul 2024 08:27:57 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1721656607; x=1722261407; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=XIGCpd55ES7np9gXxZGZoeSJaw34HAKMWHF2RPT9pds=;
-        b=AnFVbIg4wGmW5ePN79n5y9PVCPpXaQhuk9K/q4cVcIgsd/yLJLZQCWT6ZWtRKkjis1
-         DebfbYx6f/M0U5l9f+p5/GG4W1NlWqoLY6R3oiI6uSCqEg+qDMXFF1HfcGEXsYX8jUAb
-         JcZDYOEKJLwyBx3UWb7MuiTJpG6/Owf9QhtmLbZAnWYoDSKwpaxvdzBWAZzr7wFJOdiz
-         r8ra7m6pc/2lqXWJNyEmZR6pjZwJ5e9rpe72xBFiwLcxWlhoY/tPwX4s8QpyjxObZsEw
-         z2SogamFWMRYHzHvOJlm+a9Vt77eHdCol8bhAnEA8jqFPUMq1mgSCVdUaU0bckRgU//V
-         3IPQ==
+        d=dneg.com; s=google; t=1721662076; x=1722266876; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=jxObtDwmQ1v+MTJ5Z/YrAmxAETTopMyIa2Ezh+Sfv7Y=;
+        b=w9RiFIRrjSEl0XEd3RUUSpNvqKohdv5svi4JhCBQi7ylJ/No10t96I5JiDItksDlxZ
+         ugpa3IuszLsbBR7H6UbvTMXAs7EQzljSGAXaZ0/j0KizLeHyhgK8ulBVGvDtktvqXsmT
+         4Gh0RcLSj4qLJbX2e5SqSXF5KeyP81BhvjYkFaVN5Kp44TXRnTzW47QhDPhOdJIm3/e9
+         wOya+9iY0tadK+K4p+qEvCBv1NymgtmIOAqu4P5+I6YPG6177GIrPHraIiZwMJDi6J4W
+         aC78IJ0RaGB1DzAFX4a67nX+aveeS8AtbkuaNdzoy0BR/eX56RPL7OX8yOb/odRo0fql
+         1tSA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721656607; x=1722261407;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=XIGCpd55ES7np9gXxZGZoeSJaw34HAKMWHF2RPT9pds=;
-        b=F8fysrJHGbaPDLLmFC+SiuKDsmzG+8PPD1ihZ6+FFgpqsHUap2DySITUfzE3YhCY5U
-         hLDEPcIQDdJlLLoWbE/oJXMDkLukjSN6aN6YTBmTB+Jrco73Apg/QolFECMANRgK7wPJ
-         G/SnSPGw7FGumWnNvPy36fvZcUhQtGrSjRSSK1C2ziaLO3hrqrNPu7cnBPn9xQgnpxkJ
-         ux2hwnK1heQr1WjMYJkWD3YVlobeQv1X2RUZlQMQOKL2yo8H/8vaHDo1x+GeGnGSpnai
-         YXkt2t31g5ij5ifdNabyYHbIv/43ym9GseRJSBSUHJIAENAtDjpe5PFoFUibfXHBPb5l
-         vadw==
-X-Forwarded-Encrypted: i=1; AJvYcCUkciFzYiX92rSh76gCsAN9HgKIWEzqrAUzWE0KRAHS0reDS5Y6Bn6GIvkjdT0ENB2LFpX02dXBoPODBw8tOqUarJtQfO6esdNUh1vowRyTgybPg1+HujJSS1j3JPmD2NBNW8Etk5VFjDIsLQ==
-X-Gm-Message-State: AOJu0YyxnUILx16kfg3yTBbYErB5GQBZ8INF8gruX7nlBTNi58pxDPK0
-	22mUuG/JYsJzuu+oVUanFjEkhT+mV3KcFM1JXpyI6wYaHaRpeF9q4lkLNL1rgsXCxXKYmJ95M5C
-	LeyBhcBAxPEdtcarXI0Z9fJ3TetHzGwh6kpE=
-X-Google-Smtp-Source: AGHT+IHgoGzeL/SRcFsMTwOZ3gN6kttoQtrFh20REhxslO62tllzIosHBl1nyRgUmmO3BhpsZeGy2CDjqkKN986SBNE=
-X-Received: by 2002:a05:6214:246a:b0:6b5:4435:fe4d with SMTP id
- 6a1803df08f44-6b9611f24ccmr104394136d6.38.1721656606593; Mon, 22 Jul 2024
- 06:56:46 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1721662076; x=1722266876;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=jxObtDwmQ1v+MTJ5Z/YrAmxAETTopMyIa2Ezh+Sfv7Y=;
+        b=WDcVx8Wz684+7cgTTaoY+JwqxRGrwVufSXjyX4MW/QzcKR+i7wGPeigh32ZVJM1SP5
+         8QVPHXrY8Lw3N9rydaMoM1PcK1zBCf+BQX3op9X0dCwftNr3kqWGtFjCwumZch9vV2Nw
+         BJwMdLAj/aYOms2p620ltpd6DEogMoW8U0NUYDapk1lgbLagKwM+/cXcKCZ1FIArOmLU
+         oGk0ltQ1wavP9s0eusTU9MjTjoSO8vvqhmm7fsNGBYUz5EUhN44wDrhalJPyxKTtUGst
+         O7rNx1rvc3pQnDtjWmnX/zoWZ5Uf94dxZsoqrGyAFSbh7MDHYwZ7eF5iXhVicwzjp0u0
+         eRGA==
+X-Gm-Message-State: AOJu0YxcoaEcQGXHpwAEdQAMw02HRYra+KI0LMdJyGK3fNZzALGTi6X8
+	aN1R/3N+a9mRv4Vdp1pF5UFXO224l96Wf0HI7whymyGIeYAc5mijTm+fJkqi3zgGTXWBG20IxGg
+	/b0VsUYJknQXCAbUS6zDwecv3+lEup+UFKMllrVRlDOaFBctYk58=
+X-Google-Smtp-Source: AGHT+IHVISRI6n0QwHTnfScvLPtUIKLGSQITUH4w2ctYOia6T6RSk2NpDaB0nhKrylac9RGyj1AE1+GKksoDZI2uo4k=
+X-Received: by 2002:a05:6122:181f:b0:4f5:12d3:799a with SMTP id
+ 71dfb90a1353d-4f68e43aaacmr311116e0c.2.1721662076350; Mon, 22 Jul 2024
+ 08:27:56 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240722101443.10768-1-feilv@asrmicro.com>
-In-Reply-To: <20240722101443.10768-1-feilv@asrmicro.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 22 Jul 2024 16:56:35 +0300
-Message-ID: <CAOQ4uxhP03BHK8gDmeySxkacGvy9BToZkb5nTgaegWxJPAuG8A@mail.gmail.com>
-Subject: Re: [PATCH V2] ovl: fsync after metadata copy-up via mount option "fsync=strict"
-To: Fei Lv <feilv@asrmicro.com>
-Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, lianghuxu@asrmicro.com
+References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
+ <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+ <CAPt2mGPWzGGZdGGRg2CEQw0QnHNSm7o7xpHow65R+iJ0BO5CMQ@mail.gmail.com>
+ <CAOQ4uxg16b7SJrsN=5kvE0QSD94-VoHiWTCvGVbGEcaadfVmeA@mail.gmail.com>
+ <CAPt2mGOkxUE7t22SrcW6hHW+OaccNuB8Xem-hVAv-aiyteiXqw@mail.gmail.com>
+ <CAOQ4uxgyjXU7_-SnpbfvDTFzjKekB+sxRp3Ea+LSrrQrkMcf1w@mail.gmail.com>
+ <CAPt2mGP_fS2MOVzat9kFE-W+JkUXCpS87WfJEb_YiosR5Tn-NA@mail.gmail.com>
+ <CAOQ4uxhO21UqcppSqoXO7QLOUAHVjRGkN1Ao=WrNGCc7GHaD6w@mail.gmail.com>
+ <CAOQ4uxjAG_mcZBZ=Yi7i2zVjizEEGiw7mAfM9wu23KqBAGSnug@mail.gmail.com>
+ <CAPt2mGNdNtSFQchwCFD9r1cDa4URJ7BVF7HwuzQUCp2qK30shw@mail.gmail.com> <CAOQ4uxgJwoudXw9pMw9nz5d5SCuryxv-O9fpnRcPcwqg4nk1hw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgJwoudXw9pMw9nz5d5SCuryxv-O9fpnRcPcwqg4nk1hw@mail.gmail.com>
+From: Daire Byrne <daire@dneg.com>
+Date: Mon, 22 Jul 2024 16:27:12 +0100
+Message-ID: <CAPt2mGNf7q_g6FJsgA=pcx-OWS7GrWs1CEO+JaqViDYPvaW21A@mail.gmail.com>
+Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Mike Baynton <mike@mbaynton.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Mon, Jul 22, 2024 at 1:14=E2=80=AFPM Fei Lv <feilv@asrmicro.com> wrote:
+On Fri, 19 Jul 2024 at 10:19, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> For upper filesystem which does not enforce ordering on storing of
-> metadata changes(e.g. ubifs), when overlayfs file is modified for
-> the first time, copy up will create a copy of the lower file and
-> its parent directories in the upper layer. Permission lost of the
-> new upper parent directory was observed during power-cut stress test.
+> > > >> Basically, I need to be able to continue serving the same files and
+> > > >> paths even while the copy-up metadata process for any part of the tree
+> > > >> is in progress. And it sounds like your idea of considering a copy-up
+> > > >> of a merged dir as "complete" (and essentially opaque) would be the
+> > > >> way to do that without files or dirs ever moving or losing access even
+> > > >> momentarily.
+> > > >
+> > > >
+> > > > Yes, that's the idea.
+> > > >
+> > > > I'll see when I get around to that demo.
+> > >
+> > > I found some time to write the POC patch, but not enough time
+> > > to make it work :) - it is failing some fstests.
+> > >
+> > > Since I don't know when I will have time to debug the issues,
+> > > here is the WIP if you want to debug it and point out the bugs:
+> > >
+> > > https://github.com/amir73il/linux/commits/ovl-finalize-dir/
+> >
+> > This is very cool - many thanks!
+> >
 >
-> Fix by adding new mount opion "fsync=3Dstrict", make sure data/metadata o=
-f
-> copied up directory written to disk before renaming from tmp to final
-> destination.
->
-> Signed-off-by: Fei Lv <feilv@asrmicro.com>
+> Pushed two fixes to this branch - now it passes fstest - please re-test.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+I can confirm the root dentry issue is fixed and I now see a lot less
+ENOENTs hitting the lower (NFS) directory. For my test case, we go
+from ~80,000 -> 27,000 ENOENTs, a great improvement.
 
-but I'd also like to wait for an ACK from Miklos on this feature.
+However I was still seeing some lookups hitting the lower layer in
+directories that had opaque=z. After a bit of testing and much head
+scratching, it seems like you need to do something like "ls
+/olv/blah/thing/version/lib" to force a readdir of the lower NFS
+filesystem (after remount) to reliably stop the lookups hitting the
+lower filesystem.
 
-As for timing, we are in the middle of the merge window for 6.11-rc1,
-so we have some time before this can be considered for 6.12.
-I will be on vacation for most of this development cycle, so either
-Miklos will be able to queue it for 6.12 or I may be able to do
-near the end of the 6.11 cycle.
+For example, after doing the steps to copy up metadata and set
+opaque=z, we then remount and test the effect:
 
-Thanks,
-Amir.
+chown -R -h bob /olv/blah/thing/version/lib
+ls -lR  /ovl/blah/thing/version/lib
+umount /ovl
+mount /ovl
+for x in {1..10}; do stat /olv/blah/thing/version/lib/${RANDOM};done
 
-> ---
-> V1 -> V2:
->  1. change open flags from "O_LARGEFILE | O_WRONLY" to "O_RDONLY".
->  2. change mount option to "fsync=3Dordered/strict/volatile".
->  3. ovl_should_sync_strict() implies ovl_should_sync().
->  4. remove redundant ovl_should_sync_strict from ovl_copy_up_meta_inode_d=
-ata.
->  5. update commit log.
->  6. update documentation overlayfs.rst.
+This will always send the lookup to the lower level. But if we do:
+
+ls -l /olv/blah/thing/version/lib
+for x in {1..10}; do stat /olv/blah/thing/version/lib/${RANDOM}.so;done
+
+this triggers a readdir of the lower NFS dir and then the random file
+lookups only hit the upper layer as expected.
+
+So then I'm not entirely clear why in my real world test *most* of the
+negative lookups are served by the upper level but some are not. I can
+only think that loading software *mostly* triggers READDIRs on things
+like lib dirs, but not always?
+
+It may also be complicated by the fact that we often have symlinks at
+various points in the path too (both dir & file).
+
+> ovl will lookup the lower data of a metacopy file at lookup time.
+> Perhaps we could do lazy lookup of data files, like we do with
+> data-only layers, but this would be more complicated and in any
+> case, stat(2) needs the lower data file to present the correct
+> value of st_blocks.
+
+Right... for some reason I thought it only needed st_size which it
+could get from the sparse file.
+
+> IOW, this patch mainly helps to prevent *negative* lookups
+> in the lower layers.
 >
->  Documentation/filesystems/overlayfs.rst | 39 +++++++++++++++++++++++++
->  fs/overlayfs/copy_up.c                  | 18 ++++++++++++
->  fs/overlayfs/ovl_entry.h                | 20 +++++++++++--
->  fs/overlayfs/params.c                   | 33 ++++++++++++++++++---
->  fs/overlayfs/super.c                    |  2 +-
->  5 files changed, 105 insertions(+), 7 deletions(-)
+> > expect no lookups to the lower for negative lookups? Unless we can't
+> > serve negative lookups from the readdir of the upper dir?
 >
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
-systems/overlayfs.rst
-> index 165514401441..a783e57bdb57 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -742,6 +742,45 @@ controlled by the "uuid" mount option, which support=
-s these values:
->      mounted with "uuid=3Don".
+> Correct expectation.
+> The bug was fixed. It should hopefully work now,
+> although I did not test.
 >
+> >
+> > I have probably misunderstood that the "finalized" directories will
+> > only serve the contents of the readdir result and not send metadata
+> > lookups to the lower level (ala dir=opaque). Or my v6.9.3 kernel has
+> > some other issue unrelated to this patch....
 >
-> +Durability and copy up
-> +----------------------
-> +
-> +The fsync(2) and fdatasync(2) system calls ensure that the metadata and
-> +data of a file, respectively, are safely written to the backing
-> +storage, which is expected to guarantee the existence of the information=
- post
-> +system crash.
-> +
-> +Without the fdatasync(2) call, there is no guarantee that the observed
-> +data after a system crash will be either the old or the new data, but
-> +in practice, the observed data after crash is often the old or new data =
-or a
-> +mix of both.
-> +
-> +When overlayfs file is modified for the first time, copy up will create
-> +a copy of the lower file and its parent directories in the upper layer.
-> +In case of a system crash, if fdatasync(2) was not called after the
-> +modification, the upper file could end up with no data at all (i.e.
-> +zeros), which would be an unusual outcome.  To avoid this experience,
-> +overlayfs calls fsync(2) on the upper file before completing the copy up=
- with
-> +rename(2) to make the copy up "atomic".
-> +
-> +Depending on the backing filesystem (e.g. ubifs), fsync(2) before
-> +rename(2) may not be enough to provide the "atomic" copy up behavior
-> +and fsync(2) on the copied up parent directories is required as well.
-> +
-> +Overlayfs can be tuned to prefer performance or durability when storing
-> +to the underlying upper layer.  This is controlled by the "fsync" mount
-> +option, which supports these values:
-> +
-> +- "ordered": (default)
-> +    Call fsync(2) on upper file before completion of copy up.
-> +- "strict":
-> +    Call fsync(2) on upper file and directories before completion of cop=
-y up.
-> +- "volatile": [*]
-> +    Prefer performance over durability (see `Volatile mount`_)
-> +
-> +[*] The mount option "volatile" is an alias to "fsync=3Dvolatile".
-> +
-> +
->  Volatile mount
->  --------------
+> You understood almost correctly, but you need to understand that
+> the finalized directory is not completely opaque, it is partly opaque.
+> You can visualize this as painting the space "between entries" opaque,
+> so that negative lookup results will stop as well as readdir, but ovl
+> will still look *underneath* entries.
 >
-> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> index a5ef2005a2cc..d99a18afceb8 100644
-> --- a/fs/overlayfs/copy_up.c
-> +++ b/fs/overlayfs/copy_up.c
-> @@ -243,6 +243,21 @@ static int ovl_verify_area(loff_t pos, loff_t pos2, =
-loff_t len, loff_t totlen)
->         return 0;
->  }
+> BTW, ovl will also lookup in lower dirs if entries inside an upper
+> opaque dir have an absolute path redirect xattr.
+> This type of upper opaque dir is also called "impure" and has an
+> "impure" xattr.
 >
-> +static int ovl_copy_up_sync(struct path *path)
-> +{
-> +       struct file *new_file;
-> +       int err;
-> +
-> +       new_file =3D ovl_path_open(path, O_RDONLY);
-> +       if (IS_ERR(new_file))
-> +               return PTR_ERR(new_file);
-> +
-> +       err =3D vfs_fsync(new_file, 0);
-> +       fput(new_file);
-> +
-> +       return err;
-> +}
-> +
->  static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
->                             struct file *new_file, loff_t len)
->  {
-> @@ -701,6 +716,9 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_ct=
-x *c, struct dentry *temp)
->                 err =3D ovl_set_attr(ofs, temp, &c->stat);
->         inode_unlock(temp->d_inode);
+> So you may say that the difference between an opaque=y
+> dir and opaque=z dir is that in the latter, all entries are treated
+> as if they have an absolute path redirect (to their own path),
+> but that is a very hand wavy way of putting it.
+
+Yea, that makes sense to me.
+
+> Anyway, if you are happy with the patch and want to see it upstreamed,
+> I have few requests:
 >
-> +       if (!err && ovl_should_sync_strict(ofs))
-> +               err =3D ovl_copy_up_sync(&upperpath);
-> +
->         return err;
->  }
->
-> diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
-> index cb449ab310a7..7f6d2effd5f1 100644
-> --- a/fs/overlayfs/ovl_entry.h
-> +++ b/fs/overlayfs/ovl_entry.h
-> @@ -5,6 +5,12 @@
->   * Copyright (C) 2016 Red Hat, Inc.
->   */
->
-> +enum {
-> +       OVL_FSYNC_ORDERED,
-> +       OVL_FSYNC_STRICT,
-> +       OVL_FSYNC_VOLATILE,
-> +};
-> +
->  struct ovl_config {
->         char *upperdir;
->         char *workdir;
-> @@ -18,7 +24,7 @@ struct ovl_config {
->         int xino;
->         bool metacopy;
->         bool userxattr;
-> -       bool ovl_volatile;
-> +       int fsync_mode;
->  };
->
->  struct ovl_sb {
-> @@ -120,7 +126,17 @@ static inline struct ovl_fs *OVL_FS(struct super_blo=
-ck *sb)
->
->  static inline bool ovl_should_sync(struct ovl_fs *ofs)
->  {
-> -       return !ofs->config.ovl_volatile;
-> +       return ofs->config.fsync_mode !=3D OVL_FSYNC_VOLATILE;
-> +}
-> +
-> +static inline bool ovl_should_sync_strict(struct ovl_fs *ofs)
-> +{
-> +       return ofs->config.fsync_mode =3D=3D OVL_FSYNC_STRICT;
-> +}
-> +
-> +static inline bool ovl_is_volatile(struct ovl_config *config)
-> +{
-> +       return config->fsync_mode =3D=3D OVL_FSYNC_VOLATILE;
->  }
->
->  static inline unsigned int ovl_numlower(struct ovl_entry *oe)
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 4860fcc4611b..c4aac288b7e0 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -58,6 +58,7 @@ enum ovl_opt {
->         Opt_xino,
->         Opt_metacopy,
->         Opt_verity,
-> +       Opt_fsync,
->         Opt_volatile,
->  };
->
-> @@ -139,6 +140,23 @@ static int ovl_verity_mode_def(void)
->         return OVL_VERITY_OFF;
->  }
->
-> +static const struct constant_table ovl_parameter_fsync[] =3D {
-> +       { "ordered",    OVL_FSYNC_ORDERED  },
-> +       { "strict",     OVL_FSYNC_STRICT   },
-> +       { "volatile",   OVL_FSYNC_VOLATILE },
-> +       {}
-> +};
-> +
-> +static const char *ovl_fsync_mode(struct ovl_config *config)
-> +{
-> +       return ovl_parameter_fsync[config->fsync_mode].name;
-> +}
-> +
-> +static int ovl_fsync_mode_def(void)
-> +{
-> +       return OVL_FSYNC_ORDERED;
-> +}
-> +
->  const struct fs_parameter_spec ovl_parameter_spec[] =3D {
->         fsparam_string_empty("lowerdir",    Opt_lowerdir),
->         fsparam_string("lowerdir+",         Opt_lowerdir_add),
-> @@ -154,6 +172,7 @@ const struct fs_parameter_spec ovl_parameter_spec[] =
-=3D {
->         fsparam_enum("xino",                Opt_xino, ovl_parameter_xino)=
-,
->         fsparam_enum("metacopy",            Opt_metacopy, ovl_parameter_b=
-ool),
->         fsparam_enum("verity",              Opt_verity, ovl_parameter_ver=
-ity),
-> +       fsparam_enum("fsync",               Opt_fsync, ovl_parameter_fsyn=
-c),
->         fsparam_flag("volatile",            Opt_volatile),
->         {}
->  };
-> @@ -617,8 +636,11 @@ static int ovl_parse_param(struct fs_context *fc, st=
-ruct fs_parameter *param)
->         case Opt_verity:
->                 config->verity_mode =3D result.uint_32;
->                 break;
-> +       case Opt_fsync:
-> +               config->fsync_mode =3D result.uint_32;
-> +               break;
->         case Opt_volatile:
-> -               config->ovl_volatile =3D true;
-> +               config->fsync_mode =3D OVL_FSYNC_VOLATILE;
->                 break;
->         case Opt_userxattr:
->                 config->userxattr =3D true;
-> @@ -802,9 +824,9 @@ int ovl_fs_params_verify(const struct ovl_fs_context =
-*ctx,
->                 config->index =3D false;
->         }
->
-> -       if (!config->upperdir && config->ovl_volatile) {
-> +       if (!config->upperdir && ovl_is_volatile(config)) {
->                 pr_info("option \"volatile\" is meaningless in a non-uppe=
-r mount, ignoring it.\n");
-> -               config->ovl_volatile =3D false;
-> +               config->fsync_mode =3D ovl_fsync_mode_def();
->         }
->
->         if (!config->upperdir && config->uuid =3D=3D OVL_UUID_ON) {
-> @@ -997,8 +1019,11 @@ int ovl_show_options(struct seq_file *m, struct den=
-try *dentry)
->         if (ofs->config.metacopy !=3D ovl_metacopy_def)
->                 seq_printf(m, ",metacopy=3D%s",
->                            ofs->config.metacopy ? "on" : "off");
-> -       if (ofs->config.ovl_volatile)
-> +       if (ovl_is_volatile(&ofs->config))
->                 seq_puts(m, ",volatile");
-> +       else if (ofs->config.fsync_mode !=3D ovl_fsync_mode_def())
-> +               seq_printf(m, ",fsync=3D%s",
-> +                          ovl_fsync_mode(&ofs->config));
->         if (ofs->config.userxattr)
->                 seq_puts(m, ",userxattr");
->         if (ofs->config.verity_mode !=3D ovl_verity_mode_def())
-> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-> index 06a231970cb5..824cbcf40523 100644
-> --- a/fs/overlayfs/super.c
-> +++ b/fs/overlayfs/super.c
-> @@ -750,7 +750,7 @@ static int ovl_make_workdir(struct super_block *sb, s=
-truct ovl_fs *ofs,
->          * For volatile mount, create a incompat/volatile/dirty file to k=
-eep
->          * track of it.
->          */
-> -       if (ofs->config.ovl_volatile) {
-> +       if (ovl_is_volatile(&ofs->config)) {
->                 err =3D ovl_create_volatile_dirty(ofs);
->                 if (err < 0) {
->                         pr_err("Failed to create volatile/dirty file.\n")=
-;
->
-> base-commit: 0c3836482481200ead7b416ca80c68a29cfdaabd
-> --
-> 2.45.2
->
+> 1. Please provide your Tested-by.
+> 2. Please provide a detailed cover letter that explains the problem (*)
+>     and how the patch fixes it, which includes performance gain numbers.
+>     You may post the cover letter with my patch or ask me to do it
+
+I'll draft up something for review and I'll try to keep it concise.
+
+> 3. Please write an fstest to test the finalized dir feature (**)
+>     You may want to look at test overlay/031 for inspiration
+>     if also makes changes to layers offline and examines the outcome
+
+Bear with me... I'll have a look and see if I can figure it out.
+
+> (*) Please do NOT include the story of changing lower entries
+>     under a mounted overlayfs - they are not relevant to this patch
+>     and they are very controversial.
+
+Understood. However, I do suspect that some are using this "undefined
+behaviour" because it worked for their use case. This patch might ruin
+their day?
+
+> (**) Basically do chown -R and ls, unmount overlay, add lower entry
+>     re-mount overlay and verify that it is not observed.
+>     Can also sanity check that opaque=z was set.
+>     Note that adding lower entries offline is a behavior that was once allowed
+>     and some users actually expect it to work, so I made the feature
+>     depend on !ovl_allow_offline_changes(ofs).
+>     Therefore, the test should explicitly require and enable metacopy for
+>     overlayfs mount to enable the finalized dir feature.
+
+Many thanks,
+
+Daire
