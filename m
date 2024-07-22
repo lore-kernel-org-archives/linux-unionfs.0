@@ -1,241 +1,303 @@
 Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20FFC13D512;
-	Mon, 22 Jul 2024 07:37:51 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7CCA114B95E;
+	Mon, 22 Jul 2024 10:15:04 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721633874; cv=none; b=j+FWJ/NGBpAeF6eYVvImNcA4+OhLkH8vbMou2h+OhyADW+jxizuK00sgDpyYhZavV2AMIcVsQUjV6jJNJWG6Mxbsa4ejmHDNDV8ee3Lczs69DUvAF5z/Z+GuRQZGMIcakwptQX9sDTqp10UGEnIJ8nHuoQyCEixtvGubEo2xofo=
+	t=1721643307; cv=none; b=r2QA6eVFWKR9eZs7x5TOASCyXDNRpuQkxDW0cI+v7cmXnrassr7vhem16wDjD8hT7uJ560FK8Ymlv6stnaVFfKGSiUP5kbh7fRrPksNjMMFKx5sEZW1r5XSQgC5wst4Qaj2BeNK3KkGGI/DcABEPevCN1rJLR77oAdfNWi1tZss=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721633874; c=relaxed/simple;
-	bh=gYx0OvZnmyYxaZ+LXHKtnkibR5a/NpUqWIKQHJqLCW0=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=W6jXMY6LL3HmYldCboAdw6nZn2ds94Zqu6B1W7dqrNJw9KBdmE6U4qu7Jb8gxTJHAEZzFIYjTluDZJUvOaZgBvqthijs3Szj0J7B59BrSeUIs77nRfSFKmfqAIVIKTxSvLq7JRoxG/neQgpbZU1SedNFJRohZc+BQq7rqCwLM7c=
+	s=arc-20240116; t=1721643307; c=relaxed/simple;
+	bh=K0eM665ecBX+x2YquiaLMD/JyQ5nVs9KzVg9eqsRkDE=;
+	h=From:To:Subject:Date:Message-ID:MIME-Version:Content-Type; b=irCEJ96er2EuTtAJJ0ogwBGQuiBuAUhmyfSGl9CIA6cj4EL4hd8njVAyp5WlYNN17aZpz1tOee0CsYswm2oLmDRnR3n2c17DqQJZT+p9aH+GAkTo1nsL21SNMDINeJoN2rBilLjOB94PmY5VJWKr0AF1bRIxlbVnEfoEEyadgT0=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
 Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
-Received: from exch02.asrmicro.com (exch02.asrmicro.com [10.1.24.122])
-	by spam.asrmicro.com with ESMTPS id 46M7bZh2097139
+Received: from exch01.asrmicro.com (exch01.asrmicro.com [10.1.24.121])
+	by spam.asrmicro.com with ESMTPS id 46MAEjxF078742
 	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
-	Mon, 22 Jul 2024 15:37:35 +0800 (GMT-8)
+	Mon, 22 Jul 2024 18:14:45 +0800 (GMT-8)
 	(envelope-from feilv@asrmicro.com)
-Received: from exch01.asrmicro.com (10.1.24.121) by exch02.asrmicro.com
- (10.1.24.122) with Microsoft SMTP Server (TLS) id 15.0.847.32; Mon, 22 Jul
- 2024 15:37:37 +0800
-Received: from exch01.asrmicro.com ([::1]) by exch01.asrmicro.com ([::1]) with
- mapi id 15.00.0847.030; Mon, 22 Jul 2024 15:37:25 +0800
-From: =?utf-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
-To: Amir Goldstein <amir73il@gmail.com>
-CC: "miklos@szeredi.hu" <miklos@szeredi.hu>,
-        "linux-unionfs@vger.kernel.org"
-	<linux-unionfs@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>,
-        =?utf-8?B?WHUgTGlhbmdode+8iOW+kOiJr+iZju+8iQ==?= <lianghuxu@asrmicro.com>
-Subject: =?utf-8?B?562U5aSNOiBbUEFUQ0hdIG92bDogZnN5bmMgYWZ0ZXIgbWV0YWRhdGEgY29w?=
- =?utf-8?Q?y-up_via_mount_option_"upsync=3Dstrict"?=
-Thread-Topic: [PATCH] ovl: fsync after metadata copy-up via mount option
- "upsync=strict"
-Thread-Index: AQHa2MSrkf8wwlFFlUOCkpGQrdrpJbH9IZGAgACv11CAAOQkgIADrL0Q
-Date: Mon, 22 Jul 2024 07:37:25 +0000
-Message-ID: <871b87f39d83404a8c23b159fac12fcc@exch01.asrmicro.com>
-References: <20240718034316.29844-1-feilv@asrmicro.com>
- <CAOQ4uxgqdOHJOT--sqf-HLtur6uKyk8mh=dkKzmdf8wupCVPhw@mail.gmail.com>
- <062f7b08f6dd4354877c24ea72e6d430@exch01.asrmicro.com>
- <CAOQ4uxgC7OJ+TF0Gw-ZdSTpq1goGgfmgWNwsx_hqOwiiFB-UHg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgC7OJ+TF0Gw-ZdSTpq1goGgfmgWNwsx_hqOwiiFB-UHg@mail.gmail.com>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from localhost (10.26.128.141) by exch01.asrmicro.com (10.1.24.121)
+ with Microsoft SMTP Server (TLS) id 15.0.847.32; Mon, 22 Jul 2024 18:14:48
+ +0800
+From: Fei Lv <feilv@asrmicro.com>
+To: <miklos@szeredi.hu>, <amir73il@gmail.com>, <linux-unionfs@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <lianghuxu@asrmicro.com>,
+        <feilv@asrmicro.com>
+Subject: [PATCH V2] ovl: fsync after metadata copy-up via mount option "fsync=strict"
+Date: Mon, 22 Jul 2024 18:14:43 +0800
+Message-ID: <20240722101443.10768-1-feilv@asrmicro.com>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: exch03.asrmicro.com (10.1.24.118) To exch01.asrmicro.com
+ (10.1.24.121)
 X-DNSRBL: 
 X-SPAM-SOURCE-CHECK: pass
-X-MAIL:spam.asrmicro.com 46M7bZh2097139
+X-MAIL:spam.asrmicro.com 46MAEjxF078742
 
-DQoNCj4gLS0tLS3pgq7ku7bljp/ku7YtLS0tLQ0KPiDlj5Hku7bkuro6IEFtaXIgR29sZHN0ZWlu
-IFttYWlsdG86YW1pcjczaWxAZ21haWwuY29tXSANCj4g5Y+R6YCB5pe26Ze0OiAyMDI05bm0N+ac
-iDIw5pelIDE1OjMwDQo+IOaUtuS7tuS6ujogTHYgRmVp77yI5ZCV6aOe77yJIDxmZWlsdkBhc3Jt
-aWNyby5jb20+DQo+IOaKhOmAgTogbWlrbG9zQHN6ZXJlZGkuaHU7IGxpbnV4LXVuaW9uZnNAdmdl
-ci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBYdSBMaWFuZ2h177yI
-5b6Q6Imv6JmO77yJIDxsaWFuZ2h1eHVAYXNybWljcm8uY29tPg0KPiDkuLvpopg6IFJlOiBbUEFU
-Q0hdIG92bDogZnN5bmMgYWZ0ZXIgbWV0YWRhdGEgY29weS11cCB2aWEgbW91bnQgb3B0aW9uICJ1
-cHN5bmM9c3RyaWN0Ig0KPiANCj4gT24gRnJpLCBKdWwgMTksIDIwMjQgYXQgMTI6NTXigK9QTSBM
-diBGZWnvvIjlkJXpo57vvIkgPGZlaWx2QGFzcm1pY3JvLmNvbT4gd3JvdGU6DQo+ID4NCj4gPg0K
-PiA+ID4NCj4gPiA+IC0tLS0t6YKu5Lu25Y6f5Lu2LS0tLS0NCj4gPiA+IOWPkeS7tuS6ujogQW1p
-ciBHb2xkc3RlaW4gW21haWx0bzphbWlyNzNpbEBnbWFpbC5jb21dDQo+ID4gPiDlj5HpgIHml7bp
-l7Q6IDIwMjTlubQ35pyIMTnml6UgMTU6MjQNCj4gPiA+IOaUtuS7tuS6ujogTHYgRmVp77yI5ZCV
-6aOe77yJIDxmZWlsdkBhc3JtaWNyby5jb20+DQo+ID4gPiDmioTpgIE6IG1pa2xvc0BzemVyZWRp
-Lmh1OyBsaW51eC11bmlvbmZzQHZnZXIua2VybmVsLm9yZzsgDQo+ID4gPiBsaW51eC1rZXJuZWxA
-dmdlci5rZXJuZWwub3JnOyBYdSBMaWFuZ2h177yI5b6Q6Imv6JmO77yJID4gDQo+ID4gPiA8bGlh
-bmdodXh1QGFzcm1pY3JvLmNvbT4NCj4gPiA+IOS4u+mimDogUmU6IFtQQVRDSF0gb3ZsOiBmc3lu
-YyBhZnRlciBtZXRhZGF0YSBjb3B5LXVwIHZpYSBtb3VudCBvcHRpb24gInVwc3luYz1zdHJpY3Qi
-DQo+ID4gPg0KPiA+ID4gT24gVGh1LCBKdWwgMTgsIDIwMjQgYXQgNjo0M+KAr0FNIEZlaSBMdiA8
-ZmVpbHZAYXNybWljcm8uY29tPiB3cm90ZToNCj4gPiA+ID4NCj4gPiA+ID4gSWYgYSBkaXJlY3Rv
-cnkgb25seSBleGlzdCBpbiBsb3cgbGF5ZXIsIGNyZWF0ZSBhIG5ldyBmaWxlIGluIGl0IA0KPiA+
-ID4gPiB0cmlnZ2VyIGRpcmVjdG9yeSBjb3B5LXVwLiBQZXJtaXNzaW9uIGxvc3Qgb2YgdGhlIG5l
-dyBkaXJlY3RvcnkgaW4gDQo+ID4gPiA+IHVwcGVyIGxheWVyIHdhcyBvYnNlcnZlZCBkdXJpbmcg
-cG93ZXItY3V0IHN0cmVzcyB0ZXN0Lg0KPiA+ID4NCj4gPiA+IFlvdSBzaG91bGQgc3BlY2lmeSB0
-aGF0IHRoaXMgb3V0Y29tZSBoYXBwZW5zIG9uIHZlcnkgc3BlY2lmaWMgdXBwZXIgZnMgKGkuZS4g
-dWJpZnMpIHdoaWNoIGRvZXMgbm90IGVuZm9yY2Ugb3JkZXJpbmcgb24gc3RvcmluZyBvZiBtZXRh
-ZGF0YSBjaGFuZ2VzLg0KPiA+DQo+ID4gT0suDQo+ID4NCj4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+
-IEZpeCBieSBhZGRpbmcgbmV3IG1vdW50IG9waW9uICJ1cHN5bmM9c3RyaWN0IiwgbWFrZSBzdXJl
-IA0KPiA+ID4gPiBkYXRhL21ldGFkYXRhIG9mIGNvcGllZCB1cCBkaXJlY3Rvcnkgd3JpdHRlbiB0
-byBkaXNrIGJlZm9yZSANCj4gPiA+ID4gcmVuYW1pbmcgZnJvbSB0bXAgdG8gZmluYWwgZGVzdGlu
-YXRpb24uDQo+ID4gPiA+DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEZlaSBMdiA8ZmVpbHZAYXNy
-bWljcm8uY29tPg0KPiA+ID4gPiAtLS0NCj4gPiA+ID4gT1BUX3N5bmMgY2hhbmdlZCB0byBPUFRf
-dXBzeW5jIHNpbmNlIG1vdW50IG9wdGlvbiAic3luYyIgYWxyZWFkeSB1c2VkLg0KPiA+ID4NCj4g
-PiA+IEkgc2VlLiBJIGRvbid0IGxpa2UgdGhlIG5hbWUgInVwc3luYyIgc28gbXVjaCwgaXQgaGFz
-IG90aGVyIG1lYW5pbmdzIGhvdyBhYm91dCB1c2luZyB0aGUgb3B0aW9uICJmc3luYyI/DQo+ID4N
-Cj4gPiBPSy4NCj4gPg0KPiA+ID4NCj4gPiA+IEhlcmUgaXMgYSBzdWdnZXN0ZWQgZG9jdW1lbnRh
-dGlvbiAod2hpY2ggc2hvdWxkIGJlIGFjY29tcGFuaWVkIHRvIA0KPiA+ID4gYW55IHBhdGNoKQ0K
-PiA+DQo+ID4gT0suDQo+ID4NCj4gPiA+DQo+ID4gPiBkaWZmIC0tZ2l0IGEvRG9jdW1lbnRhdGlv
-bi9maWxlc3lzdGVtcy9vdmVybGF5ZnMucnN0DQo+ID4gPiBiL0RvY3VtZW50YXRpb24vZmlsZXN5
-c3RlbXMvb3ZlcmxheWZzLnJzdA0KPiA+ID4gaW5kZXggMTY1NTE0NDAxNDQxLi5mODE4M2RkZjhj
-NGQgMTAwNjQ0DQo+ID4gPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2ZpbGVzeXN0ZW1zL292ZXJsYXlm
-cy5yc3QNCj4gPiA+ICsrKyBiL0RvY3VtZW50YXRpb24vZmlsZXN5c3RlbXMvb3ZlcmxheWZzLnJz
-dA0KPiA+ID4gQEAgLTc0Miw2ICs3NDIsNDIgQEAgY29udHJvbGxlZCBieSB0aGUgInV1aWQiIG1v
-dW50IG9wdGlvbiwgd2hpY2ggc3VwcG9ydHMgdGhlc2UgdmFsdWVzOg0KPiA+ID4gICAgICBtb3Vu
-dGVkIHdpdGggInV1aWQ9b24iLg0KPiA+ID4NCj4gPiA+DQo+ID4gPiArRHVyYWJpbGl0eSBhbmQg
-Y29weSB1cA0KPiA+ID4gKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCj4gPiA+ICsNCj4gPiA+ICtU
-aGUgZnN5bmMoMikgYW5kIGZkYXRhc3luYygyKSBzeXN0ZW0gY2FsbHMgZW5zdXJlIHRoYXQgdGhl
-IG1ldGFkYXRhIA0KPiA+ID4gK2FuZCBkYXRhIG9mIGEgZmlsZSwgcmVzcGVjdGl2ZWx5LCBhcmUg
-c2FmZWx5IHdyaXR0ZW4gdG8gdGhlIGJhY2tpbmcgDQo+ID4gPiArc3RvcmFnZSwgd2hpY2ggaXMg
-ZXhwZWN0ZWQgdG8gZ3VhcmFudGVlIHRoZSBleGlzdGVuY2Ugb2YgdGhlIGluZm9ybWF0aW9uIHBv
-c3Qgc3lzdGVtIGNyYXNoLg0KPiA+ID4gKw0KPiA+ID4gK1dpdGhvdXQgdGhlIGZkYXRhc3luYygy
-KSBjYWxsLCB0aGVyZSBpcyBubyBndWFyYW50ZWUgdGhhdCB0aGUgDQo+ID4gPiArb2JzZXJ2ZWQg
-ZGF0YSBhZnRlciBhIHN5c3RlbSBjcmFzaCB3aWxsIGJlIGVpdGhlciB0aGUgb2xkIG9yIHRoZSAN
-Cj4gPiA+ICtuZXcgZGF0YSwgYnV0IGluIHByYWN0aWNlLCB0aGUgb2JzZXJ2ZWQgZGF0YSBhZnRl
-ciBjcmFzaCBpcyBvZnRlbiB0aGUgb2xkIG9yIG5ldyBkYXRhIG9yIGEgbWl4IG9mIGJvdGguDQo+
-ID4gPiArDQo+ID4gPiArV2hlbiBvdmVybGF5ZnMgZmlsZSBpcyBtb2RpZmllZCBmb3IgdGhlIGZp
-cnN0IHRpbWUsIGNvcHkgdXAgd2lsbCANCj4gPiA+ICtjcmVhdGUgYSBjb3B5IG9mIHRoZSBsb3dl
-ciBmaWxlIGFuZCBpdHMgcGFyZW50IGRpcmVjdG9yaWVzIGluIHRoZSB1cHBlciBsYXllci4NCj4g
-PiA+ICtJbiBjYXNlIG9mIGEgc3lzdGVtIGNyYXNoLCBpZiBmZGF0YXN5bmMoMikgd2FzIG5vdCBj
-YWxsZWQgYWZ0ZXIgdGhlIA0KPiA+ID4gK21vZGlmaWNhdGlvbiwgdGhlIHVwcGVyIGZpbGUgY291
-bGQgZW5kIHVwIHdpdGggbm8gZGF0YSBhdCBhbGwgKGkuZS4NCj4gPiA+ICt6ZXJvcyksIHdoaWNo
-IHdvdWxkIGJlIGFuIHVudXN1YWwgb3V0Y29tZS4gIFRvIGF2b2lkIHRoaXMgDQo+ID4gPiArZXhw
-ZXJpZW5jZSwgb3ZlcmxheWZzIGNhbGxzIGZzeW5jKDIpIG9uIHRoZSB1cHBlciBmaWxlIGJlZm9y
-ZSBjb21wbGV0aW5nIHRoZSBjb3B5IHVwIHdpdGggcmVuYW1lKDIpIHRvIG1ha2UgdGhlIGNvcHkg
-PiB1cCAiYXRvbWljIi4NCj4gPiA+ICsNCj4gPiA+ICtEZXBlbmRpbmcgb24gdGhlIGJhY2tpbmcg
-ZmlsZXN5c3RlbSAoZS5nLiB1YmlmcyksIGZzeW5jKDIpIGJlZm9yZQ0KPiA+ID4gK3JlbmFtZSgy
-KSBtYXkgbm90IGJlIGVub3VnaCB0byBwcm92aWRlIHRoZSAiYXRvbWljIiBjb3B5IHVwIA0KPiA+
-ID4gK2JlaGF2aW9yIGFuZCBmc3luYygyKSBvbiB0aGUgY29waWVkIHVwIHBhcmVudCBkaXJlY3Rv
-cmllcyBpcyByZXF1aXJlZCBhcyB3ZWxsLg0KPiA+ID4gKw0KPiA+ID4gK092ZXJsYXlmcyBjYW4g
-YmUgdHVuZWQgdG8gcHJlZmVyIHBlcmZvcm1hbmNlIG9yIGR1cmFiaWxpdHkgd2hlbiANCj4gPiA+
-ICtzdG9yaW5nIHRvIHRoZSB1bmRlcmx5aW5nIHVwcGVyIGxheWVyLiAgVGhpcyBpcyBjb250cm9s
-bGVkIGJ5IHRoZSANCj4gPiA+ICsiZnN5bmMiIG1vdW50IG9wdGlvbiwgd2hpY2ggc3VwcG9ydHMg
-dGhlc2UgdmFsdWVzOg0KPiA+ID4gKw0KPiA+ID4gKy0gIm9yZGVyZWQiOiAoZGVmYXVsdCkNCj4g
-PiA+ICsgICAgQ2FsbCBmc3luYygyKSBvbiB1cHBlciBmaWxlIGJlZm9yZSBjb21wbGV0aW9uIG9m
-IGNvcHkgdXAuDQo+ID4gPiArLSAic3RyaWN0IjoNCj4gPiA+ICsgICAgQ2FsbCBmc3luYygyKSBv
-biB1cHBlciBmaWxlIGFuZCBkaXJlY3RvcmllcyBiZWZvcmUgY29tcGxldGlvbiBvZiBjb3B5IHVw
-Lg0KPiA+ID4gKy0gInZvbGF0aWxlIjogWypdDQo+ID4gPiArICAgIFByZWZlciBwZXJmb3JtYW5j
-ZSBvdmVyIGR1cmFiaWxpdHkgKHNlZSBgVm9sYXRpbGUgbW91bnRgXykNCj4gPiA+ICsNCj4gPiA+
-ICtbKl0gVGhlIG1vdW50IG9wdGlvbiAidm9sYXRpbGUiIGlzIGFuIGFsaWFzIHRvICJmc3luYz12
-b2xhdGlsZSIuDQo+ID4gPiArDQo+ID4gPiArDQo+ID4gPiAgVm9sYXRpbGUgbW91bnQNCj4gPiA+
-ICAtLS0tLS0tLS0tLS0tLQ0KPiA+ID4NCj4gPiA+ID4NCj4gPiA+ID4gIGZzL292ZXJsYXlmcy9j
-b3B5X3VwLmMgICB8IDIxICsrKysrKysrKysrKysrKysrKysrKw0KPiA+ID4gPiAgZnMvb3Zlcmxh
-eWZzL292bF9lbnRyeS5oIHwgMjAgKysrKysrKysrKysrKysrKysrLS0NCj4gPiA+ID4gIGZzL292
-ZXJsYXlmcy9wYXJhbXMuYyAgICB8IDMzICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0t
-LQ0KPiA+ID4gPiAgZnMvb3ZlcmxheWZzL3N1cGVyLmMgICAgIHwgIDIgKy0NCj4gPiA+ID4gIDQg
-ZmlsZXMgY2hhbmdlZCwgNjkgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkNCj4gPiA+ID4N
-Cj4gPiA+ID4gZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMgYi9mcy9vdmVybGF5
-ZnMvY29weV91cC5jIGluZGV4DQo+ID4gPiA+IGE1ZWYyMDA1YTJjYy4uYjZmMDIxYWQ3YTQzIDEw
-MDY0NA0KPiA+ID4gPiAtLS0gYS9mcy9vdmVybGF5ZnMvY29weV91cC5jDQo+ID4gPiA+ICsrKyBi
-L2ZzL292ZXJsYXlmcy9jb3B5X3VwLmMNCj4gPiA+ID4gQEAgLTI0Myw2ICsyNDMsMjEgQEAgc3Rh
-dGljIGludCBvdmxfdmVyaWZ5X2FyZWEobG9mZl90IHBvcywgbG9mZl90IHBvczIsIGxvZmZfdCBs
-ZW4sIGxvZmZfdCB0b3RsZW4pDQo+ID4gPiA+ICAgICAgICAgcmV0dXJuIDA7DQo+ID4gPiA+ICB9
-DQo+ID4gPiA+DQo+ID4gPiA+ICtzdGF0aWMgaW50IG92bF9jb3B5X3VwX3N5bmMoc3RydWN0IHBh
-dGggKnBhdGgpIHsNCj4gPiA+ID4gKyAgICAgICBzdHJ1Y3QgZmlsZSAqbmV3X2ZpbGU7DQo+ID4g
-PiA+ICsgICAgICAgaW50IGVycjsNCj4gPiA+ID4gKw0KPiA+ID4gPiArICAgICAgIG5ld19maWxl
-ID0gb3ZsX3BhdGhfb3BlbihwYXRoLCBPX0xBUkdFRklMRSB8IE9fV1JPTkxZKTsNCj4gPiA+DQo+
-ID4gPiBJIGRvbid0IHRoaW5rIGFueSBvZiB0aG9zZSBPXyBmbGFncyBhcmUgbmVlZGVkIGZvciBm
-c3luYy4NCj4gPiA+IENhbiBhIGRpcmVjdG9yeSBiZSBvcGVuZWQgT19XUk9OTFk/Pz8NCj4gPg0K
-PiA+IFRoaXMgZnVuY3Rpb24gbWF5IGJlIGNhbGxlZCB3aXRoIGZpbGUgb3IgZGlyZWN0b3J5LCBz
-aGFsbCBJIG5lZWQgdG8gDQo+ID4gdXNlIGRpZmZlcmVudCBmbGFncz8gU3VjaCBhcyBiZWxvdzoN
-Cj4gPg0KPiA+IHN0YXRpYyBpbnQgb3ZsX2NvcHlfdXBfc3luYyhzdHJ1Y3QgcGF0aCAqcGF0aCwg
-Ym9vbCBpc19kaXIpIHsNCj4gPiAgICAgICAgIHN0cnVjdCBmaWxlICpuZXdfZmlsZTsNCj4gPiAg
-ICAgICAgIGludCBmbGFnczsNCj4gPiAgICAgICAgIGludCBlcnI7DQo+ID4NCj4gPiAgICAgICAg
-IGZsYWdzID0gaXNfZGlyID8gKE9fUkRPTkxZIHwgT19ESVJFQ1RPUlkpIDogKE9fTEFSR0VGSUxF
-IHwgT19XUk9OTFkpOw0KPiA+ICAgICAgICAgbmV3X2ZpbGUgPSBvdmxfcGF0aF9vcGVuKHBhdGgs
-IGZsYWdzKTsNCj4gPiAgICAgICAgIGlmIChJU19FUlIobmV3X2ZpbGUpKQ0KPiA+ICAgICAgICAg
-ICAgICAgICByZXR1cm4gUFRSX0VSUihuZXdfZmlsZSk7DQo+ID4NCj4gPiAgICAgICAgIGVyciA9
-IHZmc19mc3luYyhuZXdfZmlsZSwgMCk7DQo+ICA+ICAgICAgICAgZnB1dChuZXdfZmlsZSk7DQo+
-ID4NCj4gPiAgICAgICAgIHJldHVybiBlcnI7DQo+ID4gfQ0KPiA+DQo+IA0KPiBZb3UgZG8gbm90
-IG5lZWQgT19XUk9OTFkgbm9yIE9fTEFSR0VGSUxFIGZvciBmc3luYyBvZiBhIHJlZ3VsYXIgZmls
-ZSBqdXN0IHVzZSBPX1JET05MWSB1bmNvbmRpdGlvbmFsbHkuDQoNCk9LLg0KDQo+IA0KPiA+ID4N
-Cj4gPiA+ID4gKyAgICAgICBpZiAoSVNfRVJSKG5ld19maWxlKSkNCj4gPiA+ID4gKyAgICAgICAg
-ICAgICAgIHJldHVybiBQVFJfRVJSKG5ld19maWxlKTsNCj4gPiA+ID4gKw0KPiA+ID4gPiArICAg
-ICAgIGVyciA9IHZmc19mc3luYyhuZXdfZmlsZSwgMCk7DQo+ID4gPiA+ICsgICAgICAgZnB1dChu
-ZXdfZmlsZSk7DQo+ID4gPiA+ICsNCj4gPiA+ID4gKyAgICAgICByZXR1cm4gZXJyOw0KPiA+ID4g
-PiArfQ0KPiA+ID4gPiArDQo+ID4gPiA+ICBzdGF0aWMgaW50IG92bF9jb3B5X3VwX2ZpbGUoc3Ry
-dWN0IG92bF9mcyAqb2ZzLCBzdHJ1Y3QgZGVudHJ5ICpkZW50cnksDQo+ID4gPiA+ICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICBzdHJ1Y3QgZmlsZSAqbmV3X2ZpbGUsIGxvZmZfdCBsZW4pICB7
-IA0KPiA+ID4gPiBAQA0KPiA+ID4gPiAtNzAxLDYgKzcxNiw5IEBAIHN0YXRpYyBpbnQgb3ZsX2Nv
-cHlfdXBfbWV0YWRhdGEoc3RydWN0IG92bF9jb3B5X3VwX2N0eCAqYywgc3RydWN0IGRlbnRyeSAq
-dGVtcCkNCj4gPiA+ID4gICAgICAgICAgICAgICAgIGVyciA9IG92bF9zZXRfYXR0cihvZnMsIHRl
-bXAsICZjLT5zdGF0KTsNCj4gPiA+ID4gICAgICAgICBpbm9kZV91bmxvY2sodGVtcC0+ZF9pbm9k
-ZSk7DQo+ID4gPiA+DQo+ID4gPiA+ICsgICAgICAgaWYgKCFlcnIgJiYgb3ZsX3Nob3VsZF9zeW5j
-X3N0cmljdChvZnMpKQ0KPiA+ID4gPiArICAgICAgICAgICAgICAgZXJyID0gb3ZsX2NvcHlfdXBf
-c3luYygmdXBwZXJwYXRoKTsNCj4gPiA+ID4gKw0KPiA+ID4gPiAgICAgICAgIHJldHVybiBlcnI7
-DQo+ID4gPiA+ICB9DQo+ID4gPiA+DQo+ID4gPiA+IEBAIC0xMTA0LDYgKzExMjIsOSBAQCBzdGF0
-aWMgaW50IG92bF9jb3B5X3VwX21ldGFfaW5vZGVfZGF0YShzdHJ1Y3Qgb3ZsX2NvcHlfdXBfY3R4
-ICpjKQ0KPiA+ID4gPiAgICAgICAgIG92bF9jbGVhcl9mbGFnKE9WTF9IQVNfRElHRVNULCBkX2lu
-b2RlKGMtPmRlbnRyeSkpOw0KPiA+ID4gPiAgICAgICAgIG92bF9jbGVhcl9mbGFnKE9WTF9WRVJJ
-RklFRF9ESUdFU1QsIGRfaW5vZGUoYy0+ZGVudHJ5KSk7DQo+ID4gPiA+ICAgICAgICAgb3ZsX3Nl
-dF91cHBlcmRhdGEoZF9pbm9kZShjLT5kZW50cnkpKTsNCj4gPiA+ID4gKw0KPiA+ID4gPiArICAg
-ICAgIGlmICghZXJyICYmIG92bF9zaG91bGRfc3luY19zdHJpY3Qob2ZzKSkNCj4gPiA+ID4gKyAg
-ICAgICAgICAgICAgIGVyciA9IG92bF9jb3B5X3VwX3N5bmMoJnVwcGVycGF0aCk7DQo+ID4gPg0K
-PiA+ID4gZnN5bmMgd2FzIHByb2JhYmx5IGFscmVhZHkgY2FsbGVkIGluIG92bF9jb3B5X3VwX2Zp
-bGUoKSBtYWtpbmcgdGhpcyBjYWxsIHJlZHVuZGFudCBhbmQgZnN5bmMgb2YgdGhlIHJlbW92YWwg
-PiBvZiBtZXRhY29weSB4YXR0ciBkb2VzIG5vdCBhZGQgYW55IHNhZmV0eS4NCj4gPg0KPiA+IE15
-IG9yaWdpbmFsIGlkZWEgd2FzIHRoYXQgb3ZsX3Nob3VsZF9zeW5jIGFuZCBvdmxfc2hvdWxkX3N5
-bmNfc3RyaWN0IHNob3VsZCBub3QgYmUgZW5hYmxlZCBhdCB0aGUgc2FtZSB0aW1lLg0KPiANCj4g
-WW91IGhhdmUgaXQgd3JvbmcuDQo+IA0KPiBUaGUgb3ZsX3Nob3VsZF9zeW5jKCkgaGVscGVyIGRv
-ZXMgbm90IG1lYW4gc3luY19tb2RlPT1vcmRlcmVkLCBpdCBtZWFucyBzeW5jX21vZGUhPXZvbGF0
-aWxlIEl0IGxpdGVyYWxseSBtZWFucyAic2hvdWxkIG92ZXJsYXlmcyByZXNwZWN0IGZzeW5jIg0K
-PiBhbmQgaXQgaXMgdXNlZCBpbiBzZXZlcmFsIHBsYWNlcyBpbiB0aGUgY29kZS4NCj4gDQo+IFNv
-IG92bF9zaG91bGRfc3luY19zdHJpY3QoKSBhbHdheXMgaW1wbGllcyBvdmxfc2hvdWxkX3N5bmMo
-KS4NCj4gDQo+ID4gVGhlIHJlYXNvbnMgYXJlIGFzIGZvbGxvd3M6DQo+ID4gSWYgYm90aGUgb3Zs
-X3Nob3VsZF9zeW5jIGFuZCBvdmxfc2hvdWxkX3N5bmNfc3RyaWN0IHJldHVybiB0dXJlIGZvciAN
-Cj4gPiAiZnN5bmM9c3RyaWN0IiwgYW5kIHBvd2VyIGN1dCBiZXR3ZWVuIG92bF9jb3B5X3VwX2Zp
-bGUgYW5kIA0KPiA+IG92bF9jb3B5X3VwX21ldGFkYXRhIGZvciBmaWxlIGNvcHktdXAsIHNlZW1z
-IHRoaXMgZmlsZSBtYXkgYWxzbyBsb3N0IHBlcm1pc3Npb24/DQo+IA0KPiBmc3luYyBvZiBmaWxl
-IGluIG92bF9jb3B5X3VwX2ZpbGUoKSB0aGUgZmlsZSBpcyBlaXRoZXIgYW4gT19UTVBGSUxFIG9y
-IGluIHRoZSB3b3JrZGlyLiBubyByaXNrIGludm9sdmVkIGV2ZW4gd2l0aCB1Ymlmcy4NCg0KVW5k
-ZXJzdGFuZCwgY2hhbmdlcyBub3QgYWN0dWFsbHkgdXBkYXRlZCB0byBkZXN0aW5hdGlvbiBmaWxl
-IGF0IHRoaXMgdGltZS4NCg0KPiANCj4gPg0KPiA+ID4NCj4gPiA+ID4gIG91dF9mcmVlOg0KPiA+
-ID4gPiAgICAgICAgIGtmcmVlKGNhcGFiaWxpdHkpOw0KPiA+ID4gPiAgb3V0Og0KPiA+ID4gPiBk
-aWZmIC0tZ2l0IGEvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oIGIvZnMvb3ZlcmxheWZzL292bF9l
-bnRyeS5oIA0KPiA+ID4gPiBpbmRleA0KPiA+ID4gPiBjYjQ0OWFiMzEwYTcuLjQ1OTJlNmY3ZGNm
-NyAxMDA2NDQNCj4gPiA+ID4gLS0tIGEvZnMvb3ZlcmxheWZzL292bF9lbnRyeS5oDQo+ID4gPiA+
-ICsrKyBiL2ZzL292ZXJsYXlmcy9vdmxfZW50cnkuaA0KPiA+ID4gPiBAQCAtNSw2ICs1LDEyIEBA
-DQo+ID4gPiA+ICAgKiBDb3B5cmlnaHQgKEMpIDIwMTYgUmVkIEhhdCwgSW5jLg0KPiA+ID4gPiAg
-ICovDQo+ID4gPiA+DQo+ID4gPiA+ICtlbnVtIHsNCj4gPiA+ID4gKyAgICAgICBPVkxfU1lOQ19E
-QVRBLA0KPiA+ID4gPiArICAgICAgIE9WTF9TWU5DX1NUUklDVCwNCj4gPiA+ID4gKyAgICAgICBP
-VkxfU1lOQ19PRkYsDQo+ID4gPiA+ICt9Ow0KPiA+ID4gPiArDQo+ID4gPiA+ICBzdHJ1Y3Qgb3Zs
-X2NvbmZpZyB7DQo+ID4gPiA+ICAgICAgICAgY2hhciAqdXBwZXJkaXI7DQo+ID4gPiA+ICAgICAg
-ICAgY2hhciAqd29ya2RpcjsNCj4gPiA+ID4gQEAgLTE4LDcgKzI0LDcgQEAgc3RydWN0IG92bF9j
-b25maWcgew0KPiA+ID4gPiAgICAgICAgIGludCB4aW5vOw0KPiA+ID4gPiAgICAgICAgIGJvb2wg
-bWV0YWNvcHk7DQo+ID4gPiA+ICAgICAgICAgYm9vbCB1c2VyeGF0dHI7DQo+ID4gPiA+IC0gICAg
-ICAgYm9vbCBvdmxfdm9sYXRpbGU7DQo+ID4gPiA+ICsgICAgICAgaW50IHN5bmNfbW9kZTsNCj4g
-PiA+ID4gIH07DQo+ID4gPiA+DQo+ID4gPiA+ICBzdHJ1Y3Qgb3ZsX3NiIHsNCj4gPiA+ID4gQEAg
-LTEyMCw3ICsxMjYsMTcgQEAgc3RhdGljIGlubGluZSBzdHJ1Y3Qgb3ZsX2ZzICpPVkxfRlMoc3Ry
-dWN0IA0KPiA+ID4gPiBzdXBlcl9ibG9jayAqc2IpDQo+ID4gPiA+DQo+ID4gPiA+ICBzdGF0aWMg
-aW5saW5lIGJvb2wgb3ZsX3Nob3VsZF9zeW5jKHN0cnVjdCBvdmxfZnMgKm9mcykgIHsNCj4gPiA+
-ID4gLSAgICAgICByZXR1cm4gIW9mcy0+Y29uZmlnLm92bF92b2xhdGlsZTsNCj4gPiA+ID4gKyAg
-ICAgICByZXR1cm4gb2ZzLT5jb25maWcuc3luY19tb2RlID09IE9WTF9TWU5DX0RBVEE7DQo+ID4g
-Pg0KPiA+ID4gICAgIHJldHVybiBvZnMtPmNvbmZpZy5zeW5jX21vZGUgIT0gT1ZMX1NZTkNfT0ZG
-OyBvcg0KPiA+ID4gICAgIHJldHVybiBvZnMtPmNvbmZpZy5zeW5jX21vZGUgIT0gT1ZMX0ZTWU5D
-X1ZPTEFUSUxFOw0KPiA+DQo+ID4gVGhlcmUgYXJlIHJpc2tzIGlmIG92bF9zaG91bGRfc3luYyBh
-bmQgb3ZsX3Nob3VsZF9zeW5jX3N0cmljdCBlbmFibGVkIGF0IHRoZSBzYW1lIHRpbWUuDQo+ID4g
-VGhlIHJlYXNvbnMgYXJlIGFib3ZlLg0KPiA+DQo+IA0KPiBOby4gc2VlIGFib3ZlLg0KPiANCj4g
-TGV0IG1lIGtub3cgaWYgSSBtaXN1bmRlcnN0b29kIHlvdXIgY29uY2Vybi4NCj4gDQo+IFRoYW5r
-cywNCj4gQW1pci4NCg0KSSB3aWxsIHBvc3QgcGF0Y2ggVjIgbGF0ZXIuDQoNClRoYW5rcywNCkZl
-aQ0K
+For upper filesystem which does not enforce ordering on storing of
+metadata changes(e.g. ubifs), when overlayfs file is modified for
+the first time, copy up will create a copy of the lower file and
+its parent directories in the upper layer. Permission lost of the
+new upper parent directory was observed during power-cut stress test.
+
+Fix by adding new mount opion "fsync=strict", make sure data/metadata of
+copied up directory written to disk before renaming from tmp to final
+destination.
+
+Signed-off-by: Fei Lv <feilv@asrmicro.com>
+---
+V1 -> V2:
+ 1. change open flags from "O_LARGEFILE | O_WRONLY" to "O_RDONLY".
+ 2. change mount option to "fsync=ordered/strict/volatile".
+ 3. ovl_should_sync_strict() implies ovl_should_sync().
+ 4. remove redundant ovl_should_sync_strict from ovl_copy_up_meta_inode_data.
+ 5. update commit log.
+ 6. update documentation overlayfs.rst.
+
+ Documentation/filesystems/overlayfs.rst | 39 +++++++++++++++++++++++++
+ fs/overlayfs/copy_up.c                  | 18 ++++++++++++
+ fs/overlayfs/ovl_entry.h                | 20 +++++++++++--
+ fs/overlayfs/params.c                   | 33 ++++++++++++++++++---
+ fs/overlayfs/super.c                    |  2 +-
+ 5 files changed, 105 insertions(+), 7 deletions(-)
+
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index 165514401441..a783e57bdb57 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -742,6 +742,45 @@ controlled by the "uuid" mount option, which supports these values:
+     mounted with "uuid=on".
+ 
+ 
++Durability and copy up
++----------------------
++
++The fsync(2) and fdatasync(2) system calls ensure that the metadata and
++data of a file, respectively, are safely written to the backing
++storage, which is expected to guarantee the existence of the information post
++system crash.
++
++Without the fdatasync(2) call, there is no guarantee that the observed
++data after a system crash will be either the old or the new data, but
++in practice, the observed data after crash is often the old or new data or a
++mix of both.
++
++When overlayfs file is modified for the first time, copy up will create
++a copy of the lower file and its parent directories in the upper layer.
++In case of a system crash, if fdatasync(2) was not called after the
++modification, the upper file could end up with no data at all (i.e.
++zeros), which would be an unusual outcome.  To avoid this experience,
++overlayfs calls fsync(2) on the upper file before completing the copy up with
++rename(2) to make the copy up "atomic".
++
++Depending on the backing filesystem (e.g. ubifs), fsync(2) before
++rename(2) may not be enough to provide the "atomic" copy up behavior
++and fsync(2) on the copied up parent directories is required as well.
++
++Overlayfs can be tuned to prefer performance or durability when storing
++to the underlying upper layer.  This is controlled by the "fsync" mount
++option, which supports these values:
++
++- "ordered": (default)
++    Call fsync(2) on upper file before completion of copy up.
++- "strict":
++    Call fsync(2) on upper file and directories before completion of copy up.
++- "volatile": [*]
++    Prefer performance over durability (see `Volatile mount`_)
++
++[*] The mount option "volatile" is an alias to "fsync=volatile".
++
++
+ Volatile mount
+ --------------
+ 
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index a5ef2005a2cc..d99a18afceb8 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -243,6 +243,21 @@ static int ovl_verify_area(loff_t pos, loff_t pos2, loff_t len, loff_t totlen)
+ 	return 0;
+ }
+ 
++static int ovl_copy_up_sync(struct path *path)
++{
++	struct file *new_file;
++	int err;
++
++	new_file = ovl_path_open(path, O_RDONLY);
++	if (IS_ERR(new_file))
++		return PTR_ERR(new_file);
++
++	err = vfs_fsync(new_file, 0);
++	fput(new_file);
++
++	return err;
++}
++
+ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
+ 			    struct file *new_file, loff_t len)
+ {
+@@ -701,6 +716,9 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 		err = ovl_set_attr(ofs, temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+ 
++	if (!err && ovl_should_sync_strict(ofs))
++		err = ovl_copy_up_sync(&upperpath);
++
+ 	return err;
+ }
+ 
+diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h
+index cb449ab310a7..7f6d2effd5f1 100644
+--- a/fs/overlayfs/ovl_entry.h
++++ b/fs/overlayfs/ovl_entry.h
+@@ -5,6 +5,12 @@
+  * Copyright (C) 2016 Red Hat, Inc.
+  */
+ 
++enum {
++	OVL_FSYNC_ORDERED,
++	OVL_FSYNC_STRICT,
++	OVL_FSYNC_VOLATILE,
++};
++
+ struct ovl_config {
+ 	char *upperdir;
+ 	char *workdir;
+@@ -18,7 +24,7 @@ struct ovl_config {
+ 	int xino;
+ 	bool metacopy;
+ 	bool userxattr;
+-	bool ovl_volatile;
++	int fsync_mode;
+ };
+ 
+ struct ovl_sb {
+@@ -120,7 +126,17 @@ static inline struct ovl_fs *OVL_FS(struct super_block *sb)
+ 
+ static inline bool ovl_should_sync(struct ovl_fs *ofs)
+ {
+-	return !ofs->config.ovl_volatile;
++	return ofs->config.fsync_mode != OVL_FSYNC_VOLATILE;
++}
++
++static inline bool ovl_should_sync_strict(struct ovl_fs *ofs)
++{
++	return ofs->config.fsync_mode == OVL_FSYNC_STRICT;
++}
++
++static inline bool ovl_is_volatile(struct ovl_config *config)
++{
++	return config->fsync_mode == OVL_FSYNC_VOLATILE;
+ }
+ 
+ static inline unsigned int ovl_numlower(struct ovl_entry *oe)
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 4860fcc4611b..c4aac288b7e0 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -58,6 +58,7 @@ enum ovl_opt {
+ 	Opt_xino,
+ 	Opt_metacopy,
+ 	Opt_verity,
++	Opt_fsync,
+ 	Opt_volatile,
+ };
+ 
+@@ -139,6 +140,23 @@ static int ovl_verity_mode_def(void)
+ 	return OVL_VERITY_OFF;
+ }
+ 
++static const struct constant_table ovl_parameter_fsync[] = {
++	{ "ordered",	OVL_FSYNC_ORDERED  },
++	{ "strict",	OVL_FSYNC_STRICT   },
++	{ "volatile",	OVL_FSYNC_VOLATILE },
++	{}
++};
++
++static const char *ovl_fsync_mode(struct ovl_config *config)
++{
++	return ovl_parameter_fsync[config->fsync_mode].name;
++}
++
++static int ovl_fsync_mode_def(void)
++{
++	return OVL_FSYNC_ORDERED;
++}
++
+ const struct fs_parameter_spec ovl_parameter_spec[] = {
+ 	fsparam_string_empty("lowerdir",    Opt_lowerdir),
+ 	fsparam_string("lowerdir+",         Opt_lowerdir_add),
+@@ -154,6 +172,7 @@ const struct fs_parameter_spec ovl_parameter_spec[] = {
+ 	fsparam_enum("xino",                Opt_xino, ovl_parameter_xino),
+ 	fsparam_enum("metacopy",            Opt_metacopy, ovl_parameter_bool),
+ 	fsparam_enum("verity",              Opt_verity, ovl_parameter_verity),
++	fsparam_enum("fsync",               Opt_fsync, ovl_parameter_fsync),
+ 	fsparam_flag("volatile",            Opt_volatile),
+ 	{}
+ };
+@@ -617,8 +636,11 @@ static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ 	case Opt_verity:
+ 		config->verity_mode = result.uint_32;
+ 		break;
++	case Opt_fsync:
++		config->fsync_mode = result.uint_32;
++		break;
+ 	case Opt_volatile:
+-		config->ovl_volatile = true;
++		config->fsync_mode = OVL_FSYNC_VOLATILE;
+ 		break;
+ 	case Opt_userxattr:
+ 		config->userxattr = true;
+@@ -802,9 +824,9 @@ int ovl_fs_params_verify(const struct ovl_fs_context *ctx,
+ 		config->index = false;
+ 	}
+ 
+-	if (!config->upperdir && config->ovl_volatile) {
++	if (!config->upperdir && ovl_is_volatile(config)) {
+ 		pr_info("option \"volatile\" is meaningless in a non-upper mount, ignoring it.\n");
+-		config->ovl_volatile = false;
++		config->fsync_mode = ovl_fsync_mode_def();
+ 	}
+ 
+ 	if (!config->upperdir && config->uuid == OVL_UUID_ON) {
+@@ -997,8 +1019,11 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 	if (ofs->config.metacopy != ovl_metacopy_def)
+ 		seq_printf(m, ",metacopy=%s",
+ 			   ofs->config.metacopy ? "on" : "off");
+-	if (ofs->config.ovl_volatile)
++	if (ovl_is_volatile(&ofs->config))
+ 		seq_puts(m, ",volatile");
++	else if (ofs->config.fsync_mode != ovl_fsync_mode_def())
++		seq_printf(m, ",fsync=%s",
++			   ovl_fsync_mode(&ofs->config));
+ 	if (ofs->config.userxattr)
+ 		seq_puts(m, ",userxattr");
+ 	if (ofs->config.verity_mode != ovl_verity_mode_def())
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 06a231970cb5..824cbcf40523 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -750,7 +750,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 	 * For volatile mount, create a incompat/volatile/dirty file to keep
+ 	 * track of it.
+ 	 */
+-	if (ofs->config.ovl_volatile) {
++	if (ovl_is_volatile(&ofs->config)) {
+ 		err = ovl_create_volatile_dirty(ofs);
+ 		if (err < 0) {
+ 			pr_err("Failed to create volatile/dirty file.\n");
+
+base-commit: 0c3836482481200ead7b416ca80c68a29cfdaabd
+-- 
+2.45.2
+
