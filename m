@@ -1,348 +1,286 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18627101E4;
-	Sat, 20 Jul 2024 07:29:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C24231396
+	for <linux-unionfs@vger.kernel.org>; Mon, 22 Jul 2024 03:02:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1721460601; cv=none; b=AsE9FQMPcpGlqSX48F46vdr0RR+i6Y8ay8c+YnxLAnkp0KDTwKYjQCTM/hRTwx956O1iRlfFmPnNOeUZXij+a0dLCkh0LJR3DPLDdpaoJgcVKm5F1Nk1KT97eoDnJqIsnM9BPD3Y4m67S3PiyLgbeevsdH2+St1azsafD+WTeOQ=
+	t=1721617371; cv=none; b=O6RRWJ/i3PQT1Gu+of6RoKVAcrM4C1L7MLrKgajsQ1ND2DJIXNcdqNz6xubmgcEkDYypJZ96Y6veUvbnP9TK9wNjCEvRmNnFIMVimRDpkusn+tRA/xYoVQPFBQGcMaHgz2Q+9BG+hLg5yznyTbsYXvU8wpc4OR8WdaPCtgII3HQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1721460601; c=relaxed/simple;
-	bh=Al6aVfBIhCHFatcLY04iGuUokb1VOXbeb5s3c/cS5cA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Qr7ADsZDVpOldvZ+JuDxKCbxgUejEqCYtXw8dZJE6n4HW/jS4o80zE1s8aSUNHFZs/8MPA/u214SoR/9RRGDsttQhlT0bwaCPEgOi4Ck5EGktGDn8O24aPHvo9ZXgnRlq8exE7zLZMDDy2TRr6Ds47v1VfQj6oCJv9Z06l1f0NE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QRLu7NNo; arc=none smtp.client-ip=209.85.222.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1721617371; c=relaxed/simple;
+	bh=uXCneuZL54EmeP0m/2Tgj+anP0IQ+W+Ue/pVKJODCFc=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=tC1C5oaJ2wT7UXBEdESfswz9pu8lFlMJDtOou+XDzDyrX4XC2ch0CBJ8gcQ+8JREU579nG1qVRrUsdNopzBhuW/vL5t4V4b/SM88pmrWuAlbUOpY3jH9Z3//G2mR7tdWlXyOO54dtUgcD5bCFZWRPc55P4jLSMCDcKvkQGRT2lw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com; spf=none smtp.mailfrom=mbaynton.com; dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b=ZNTBSOTq; arc=none smtp.client-ip=209.85.219.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mbaynton.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QRLu7NNo"
-Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-79f190d8ebfso147909785a.3;
-        Sat, 20 Jul 2024 00:29:59 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b="ZNTBSOTq"
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-6b7aed340daso21665136d6.3
+        for <linux-unionfs@vger.kernel.org>; Sun, 21 Jul 2024 20:02:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1721460599; x=1722065399; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=KyiEXkg8t9DcsRnslV0Y8YYgPgdR37SamoTZ2OkDN+0=;
-        b=QRLu7NNoQxLxdkwnoAE4ycR9Mh4n/sBBw7ZC5vH81pJu7nlz3jy50dDPw95Fb1dWOM
-         FJ+hgojas76fTAGfprZQxlBSK1mXm/Pbt/ezry7QlM36TLTO5+1E7GGDCTldP3265Ai+
-         +hooijiFkXZyySOjB5tNvZV0sGi4yqGE6J84DvlluPuCn2qBqFMdWkI1coWeb3KafNxn
-         rA+sgatdVJrgnmZ/D331RQ6fjuj1cv7dLG6TxYcm42zEHAJUhp72gbrQs0IiwPwTghfY
-         G3vDssSJEhD+mfBQZfU+jF8EBPvDW7vKUft5ML5WW0epoiUeX1rcu28RCwJmz4qmHg1i
-         5HYg==
+        d=mbaynton-com.20230601.gappssmtp.com; s=20230601; t=1721617368; x=1722222168; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=m03/pmKORjTryqN1QZU3mSWSwvRwjHxuHLEyoGU89u8=;
+        b=ZNTBSOTqq0zotouZ23CKWLJdn13jmjorrszc4g00M/c2ZoVrWHyVGjNOA+q5mpzytz
+         plAGR4NtBo7Sh4DAUsZaYTqbVEWoDsle7ca/42IHyEQZbjgnXliZv1qV/QzjG/39JbnD
+         us5gI24sSYgK9zVLNxTriAyQLcIwKdL9rVNkT5RkxxLmawnhxDAk5sSe3QV4oXJQJojR
+         ORxh7oVkxmS6ZEbMM8ls603t/kXOIsAbwwEotup+MXd8RqWSde3dZM0XBqqSRo8orMtn
+         +Fo2sbnC4OiS7RASFAxuzHg3cMN5nsSNzDPysQwQCe8ZEBjedlsAjQf5TkgXywGD6CPS
+         bgUQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1721460599; x=1722065399;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=KyiEXkg8t9DcsRnslV0Y8YYgPgdR37SamoTZ2OkDN+0=;
-        b=vJOjUs2ZGmrAxVhGHIqs5GZoB2MuuW4DjuiAApmyIDqhpBiRJeqDauIx4paIJFF2ED
-         5F2R732MN0wohRMcPwvloBm6aIOZVtbNV8AwsG7F2esVOefZAakGua8W/1JszDgLT5jr
-         8Z3qY3u0opOO0Wkja5klBmHRuepKJ9XLSMmyp3VKEFwPBUhMQxfvofQvkK2S+uSFo4lD
-         dSnHyI+cGh49XFzXm7dLTFQyweRZ9TAwlEAzvB72HdvcDkp/8Y3m+mGcB9F54E4bv25K
-         xRkS3qfIG2xytJ8/STdQOyaVjzPJ4zc0Pk5H2m0QNmVCVB9TYIIP25iD7nhP3hpugpH0
-         ON3A==
-X-Forwarded-Encrypted: i=1; AJvYcCXHwUDd1qgCZzi2nkAjT7tCFB0Aex4frlIpCGVQmKhlZ1BLJSpkEv9dJVsUznBtzFq3fQ6fnWngGTBKS0Ls5pWLLzyNfymIam1b5VuN+HUaHx5MNKJh89RXk+d1M2rprgO1qj57KFBvDktmBA==
-X-Gm-Message-State: AOJu0YyYC9vOSCzSsOGkru/3dDbRe465duFQWILl2jJkNa2NLcfuIKk3
-	D/Ngif8puV9vdpU4//GPh0rnxeEeACC3HHSnfLTLfMw+hi7uKEJAis8t/M7IAfYcGK1BREn5qAO
-	264TV97qQSHsDIVtCBNUFzQcTDyOg66FYBkA=
-X-Google-Smtp-Source: AGHT+IEYqptZcG5urZeKyc6aaBYNSpj+IrhzCPzFcYsdPIJnp+UXnPDAue2FooNxPzZQ05Cv//INoq3FnBW87BKmtKc=
-X-Received: by 2002:a05:620a:4594:b0:79f:3f6:55d5 with SMTP id
- af79cd13be357-7a1a122f7e0mr240367385a.0.1721460598711; Sat, 20 Jul 2024
- 00:29:58 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1721617368; x=1722222168;
+        h=content-transfer-encoding:in-reply-to:from:content-language
+         :references:cc:to:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=m03/pmKORjTryqN1QZU3mSWSwvRwjHxuHLEyoGU89u8=;
+        b=w55EbJi0Hwu2py3Nt40eZ2YhT5BKJRJ4UXIWsQjkb3NWcHRC3ARUlxdaz+Q1lHFktp
+         cLBTt6hDexZhEhXiRf6MpX/fjnMHijLB7zDsRYSEN2mSc1yATB456G8MmT2uDY1/AjrC
+         eg+GwOHK+vgVhQSWEMjpz1jSLZKD2O6h20yLW6a6gsThCLFKQe8Qu7lbO1LvP6pCyl//
+         FijQrn7LYhDvq72jxeQ5VEatO8pauc3jKeuNrpXJ9dMHIU4UiqFdos7D7V/UuRASF9dp
+         T/e/t2dqHUszl9nqYgKfvivpz2R+MUeK2YiancYI24+LMilCzQwsXehB1cEoYo7BRKba
+         IuFw==
+X-Forwarded-Encrypted: i=1; AJvYcCWbXieLz6dWPK4TmKhJHAD+aE6LE/adMj0VIO2GErx6n7wzKdHMqOWVjXKQ5Wn5nEeERuHlo0WkTPh+YP8OrI5TfDnT/wovLrzmI+K2VA==
+X-Gm-Message-State: AOJu0Yx47ngYZXlsjeqKlg++5M7ymKtdcTSg08F3CIzmQOS+kWSQFHJd
+	9j00LtEG2/GMXYzFVr1QgEqr5RCqun9CTzPCNXvin8PjlQfkNyozLrDfD8ruUec=
+X-Google-Smtp-Source: AGHT+IHy3/SFLHVWhhOGNZYNzm/boPvhrmGUX+o8H/s5PtT32aBtMg4P07fEVXamm3IAckpXFghiGw==
+X-Received: by 2002:a05:6214:daf:b0:6b9:5bbb:108d with SMTP id 6a1803df08f44-6b96106df01mr84281896d6.5.1721617368529;
+        Sun, 21 Jul 2024 20:02:48 -0700 (PDT)
+Received: from ?IPV6:2601:444:600:440:7db7:a1c1:739d:e814? ([2601:444:600:440:7db7:a1c1:739d:e814])
+        by smtp.gmail.com with ESMTPSA id 6a1803df08f44-6b7ac7bd43bsm31346936d6.4.2024.07.21.20.02.47
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 21 Jul 2024 20:02:47 -0700 (PDT)
+Message-ID: <9237a062-4f91-4d32-be19-b7bdd7d71bfe@mbaynton.com>
+Date: Sun, 21 Jul 2024 22:02:46 -0500
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240718034316.29844-1-feilv@asrmicro.com> <CAOQ4uxgqdOHJOT--sqf-HLtur6uKyk8mh=dkKzmdf8wupCVPhw@mail.gmail.com>
- <062f7b08f6dd4354877c24ea72e6d430@exch01.asrmicro.com>
-In-Reply-To: <062f7b08f6dd4354877c24ea72e6d430@exch01.asrmicro.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 20 Jul 2024 10:29:47 +0300
-Message-ID: <CAOQ4uxgC7OJ+TF0Gw-ZdSTpq1goGgfmgWNwsx_hqOwiiFB-UHg@mail.gmail.com>
-Subject: Re: [PATCH] ovl: fsync after metadata copy-up via mount option "upsync=strict"
-To: =?UTF-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
-Cc: "miklos@szeredi.hu" <miklos@szeredi.hu>, 
-	"linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, 
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
-	=?UTF-8?B?WHUgTGlhbmdode+8iOW+kOiJr+iZju+8iQ==?= <lianghuxu@asrmicro.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla Thunderbird
+Subject: Re: overlayfs: NFS lowerdir changes & opaque negative lookups
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Daire Byrne <daire@dneg.com>, linux-unionfs@vger.kernel.org
+References: <CAPt2mGPUBsiZTWTPWFKY-oLNCNZBY9Vip5DJ7bzvbExtgfZc2g@mail.gmail.com>
+ <CAOQ4uxggxOinJubYAzFbP2puUN=7FTCSkxPqM=aojwganC_zpA@mail.gmail.com>
+ <f1ed1b60-273d-4ee6-bbcb-ae3d78486b70@mbaynton.com>
+ <CAOQ4uxiSm0Le4dYx_R2WPmF9Ut8z6eZinN-qvDrG+Y2GnX11fg@mail.gmail.com>
+Content-Language: en-US
+From: Mike Baynton <mike@mbaynton.com>
+In-Reply-To: <CAOQ4uxiSm0Le4dYx_R2WPmF9Ut8z6eZinN-qvDrG+Y2GnX11fg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jul 19, 2024 at 12:55=E2=80=AFPM Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=
-=EF=BC=89 <feilv@asrmicro.com> wrote:
->
->
-> >
-> > -----=E9=82=AE=E4=BB=B6=E5=8E=9F=E4=BB=B6-----
-> > =E5=8F=91=E4=BB=B6=E4=BA=BA: Amir Goldstein [mailto:amir73il@gmail.com]
-> > =E5=8F=91=E9=80=81=E6=97=B6=E9=97=B4: 2024=E5=B9=B47=E6=9C=8819=E6=97=
-=A5 15:24
-> > =E6=94=B6=E4=BB=B6=E4=BA=BA: Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=EF=BC=89=
- <feilv@asrmicro.com>
-> > =E6=8A=84=E9=80=81: miklos@szeredi.hu; linux-unionfs@vger.kernel.org; l=
-inux-kernel@vger.kernel.org; Xu Lianghu=EF=BC=88=E5=BE=90=E8=89=AF=E8=99=8E=
-=EF=BC=89 > <lianghuxu@asrmicro.com>
-> > =E4=B8=BB=E9=A2=98: Re: [PATCH] ovl: fsync after metadata copy-up via m=
-ount option "upsync=3Dstrict"
-> >
-> > On Thu, Jul 18, 2024 at 6:43=E2=80=AFAM Fei Lv <feilv@asrmicro.com> wro=
-te:
-> > >
-> > > If a directory only exist in low layer, create a new file in it
-> > > trigger directory copy-up. Permission lost of the new directory in
-> > > upper layer was observed during power-cut stress test.
-> >
-> > You should specify that this outcome happens on very specific upper fs =
-(i.e. ubifs) which does not enforce ordering on storing of metadata changes=
-.
->
-> OK.
->
-> >
-> > >
-> > > Fix by adding new mount opion "upsync=3Dstrict", make sure data/metad=
-ata
-> > > of copied up directory written to disk before renaming from tmp to
-> > > final destination.
-> > >
-> > > Signed-off-by: Fei Lv <feilv@asrmicro.com>
-> > > ---
-> > > OPT_sync changed to OPT_upsync since mount option "sync" already used=
-.
-> >
-> > I see. I don't like the name "upsync" so much, it has other meanings ho=
-w about using the option "fsync"?
->
-> OK.
->
-> >
-> > Here is a suggested documentation (which should be accompanied to any p=
-atch)
->
-> OK.
->
-> >
-> > diff --git a/Documentation/filesystems/overlayfs.rst
-> > b/Documentation/filesystems/overlayfs.rst
-> > index 165514401441..f8183ddf8c4d 100644
-> > --- a/Documentation/filesystems/overlayfs.rst
-> > +++ b/Documentation/filesystems/overlayfs.rst
-> > @@ -742,6 +742,42 @@ controlled by the "uuid" mount option, which suppo=
-rts these values:
-> >      mounted with "uuid=3Don".
-> >
-> >
-> > +Durability and copy up
-> > +----------------------
-> > +
-> > +The fsync(2) and fdatasync(2) system calls ensure that the metadata an=
-d
-> > +data of a file, respectively, are safely written to the backing
-> > +storage, which is expected to guarantee the existence of the informati=
-on post system crash.
-> > +
-> > +Without the fdatasync(2) call, there is no guarantee that the observed
-> > +data after a system crash will be either the old or the new data, but
-> > +in practice, the observed data after crash is often the old or new dat=
-a or a mix of both.
-> > +
-> > +When overlayfs file is modified for the first time, copy up will creat=
-e
-> > +a copy of the lower file and its parent directories in the upper layer=
-.
-> > +In case of a system crash, if fdatasync(2) was not called after the
-> > +modification, the upper file could end up with no data at all (i.e.
-> > +zeros), which would be an unusual outcome.  To avoid this experience,
-> > +overlayfs calls fsync(2) on the upper file before completing the copy =
-up with rename(2) to make the copy > up "atomic".
-> > +
-> > +Depending on the backing filesystem (e.g. ubifs), fsync(2) before
-> > +rename(2) may not be enough to provide the "atomic" copy up behavior
-> > +and fsync(2) on the copied up parent directories is required as well.
-> > +
-> > +Overlayfs can be tuned to prefer performance or durability when storin=
-g
-> > +to the underlying upper layer.  This is controlled by the "fsync" moun=
-t
-> > +option, which supports these values:
-> > +
-> > +- "ordered": (default)
-> > +    Call fsync(2) on upper file before completion of copy up.
-> > +- "strict":
-> > +    Call fsync(2) on upper file and directories before completion of c=
-opy up.
-> > +- "volatile": [*]
-> > +    Prefer performance over durability (see `Volatile mount`_)
-> > +
-> > +[*] The mount option "volatile" is an alias to "fsync=3Dvolatile".
-> > +
-> > +
-> >  Volatile mount
-> >  --------------
-> >
-> > >
-> > >  fs/overlayfs/copy_up.c   | 21 +++++++++++++++++++++
-> > >  fs/overlayfs/ovl_entry.h | 20 ++++++++++++++++++--
-> > >  fs/overlayfs/params.c    | 33 +++++++++++++++++++++++++++++----
-> > >  fs/overlayfs/super.c     |  2 +-
-> > >  4 files changed, 69 insertions(+), 7 deletions(-)
-> > >
-> > > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c index
-> > > a5ef2005a2cc..b6f021ad7a43 100644
-> > > --- a/fs/overlayfs/copy_up.c
-> > > +++ b/fs/overlayfs/copy_up.c
-> > > @@ -243,6 +243,21 @@ static int ovl_verify_area(loff_t pos, loff_t po=
-s2, loff_t len, loff_t totlen)
-> > >         return 0;
-> > >  }
-> > >
-> > > +static int ovl_copy_up_sync(struct path *path) {
-> > > +       struct file *new_file;
-> > > +       int err;
-> > > +
-> > > +       new_file =3D ovl_path_open(path, O_LARGEFILE | O_WRONLY);
-> >
-> > I don't think any of those O_ flags are needed for fsync.
-> > Can a directory be opened O_WRONLY???
->
-> This function may be called with file or directory, shall I need to use d=
-ifferent
-> flags? Such as below:
->
-> static int ovl_copy_up_sync(struct path *path, bool is_dir)
-> {
->         struct file *new_file;
->         int flags;
->         int err;
->
->         flags =3D is_dir ? (O_RDONLY | O_DIRECTORY) : (O_LARGEFILE | O_WR=
-ONLY);
->         new_file =3D ovl_path_open(path, flags);
->         if (IS_ERR(new_file))
->                 return PTR_ERR(new_file);
->
->         err =3D vfs_fsync(new_file, 0);
- >         fput(new_file);
->
->         return err;
-> }
->
+On 7/12/24 04:09, Amir Goldstein wrote:
+> On Fri, Jul 12, 2024 at 6:24 AM Mike Baynton <mike@mbaynton.com> wrote:
+>>
+>> On 7/11/24 18:30, Amir Goldstein wrote:
+>>> On Thu, Jul 11, 2024 at 6:59 PM Daire Byrne <daire@dneg.com> wrote:
+>>>> Basically I have a read-only NFS filesystem with software releases
+>>>> that are versioned such that no files are ever overwritten or changed.
+>>>> New uniquely named directory trees and files are added from time to
+>>>> time and older ones are cleaned up.
+>>>>
+>>>
+>>> Sounds like a common use case that many people are interested in.
+>>
+>> I can vouch that that's accurate, I'm doing nearly the same thing. The
+>> properties of the NFS filesystem in terms of what is and is not expected
+>> to change is identical for me, though my approach to incorporating
+>> overlayfs has been a little different.
+>>
+>> My confidence in the reliability of what I'm doing is still far from
+>> absolute, so I will be interested in efforts to validate/officially
+>> sanction/support/document related techniques.
+>>
+>> The way I am doing it is with NFS as a data-only layer. Basically my use
+>> case calls for presenting different views of NFS-backed data (it's
+>> software libraries) to different applications. No application wants or
+>> needs to have the entire NFS tree exposed to it, but each application
+>> wants to use some data available on NFS and wants it to be presented in
+>> some particular local place. So I actually wanted a method where I
+>> author a metadata-only layer external to overlayfs, built to spec.
+>>
+>> Essentially it's making overlayfs redirects be my symlinks so that code
+>> which doesn't follow symlinks or is otherwise influenced by them is none
+>> the wiser.
+>>
+> 
+> Nice.
+> I've always wished that data-only would not be an "offline-only" feature,
+> but getting the official API for that scheme right might be a challenge.
+> 
+>>>> My first question is how bad can the "undefined behaviour" be in this
+>>>> kind of setup?
+>>>
+>>> The behavior is "undefined" because nobody tried to define it,
+>>> document it and test it.
+>>> I don't think it would be that "bad", but it will be unpredictable
+>>> and is not very nice for a software product.
+>>>
+>>> One of the current problems is that overlayfs uses readdir cache
+>>> the readdir cache is not auto invalidated when lower dir changes
+>>> so whether or not new subdirs are observed in overlay depends
+>>> on whether the merged overlay directory is kept in cache or not.
+>>>
+>>
+>> My approach doesn't support adding new files from the data-only NFS
+>> layer after the overlayfs is created, of course, since the metadata-only
+>> layer is itself the first lower layer and so would presumably get into
+>> undefined-land if added to. But this arrangement does probably
+>> mitigate this problem. Creating metadata inodes of a fixed set of
+>> libraries for a specific application is cheap enough (and considerably
+>> faster than copying it all locally) that the immutablity limitation
+>> works for me.
+>>
+> 
+> Assuming that this "effectively-data-only" NFS layer is never iterated via
+> overlayfs then adding new unreferenced objects to this layer should not
+> be a problem either.
+> 
+>>>> Any files that get copied up to the upper layer are
+>>>> guaranteed to never change in the lower NFS filesystem (by it's
+>>>> design), but new directories and files that have not yet been copied
+>>>> up, can randomly appear over time. Deletions are not so important
+>>>> because if it has been deleted in the lower level, then the upper
+>>>> level copy failing has similar results (but we should cleanup the
+>>>> upper layer too).
+>>>>
+>>>> If it's possible to get over this first difficult hurdle, then I have
+>>>> another extra bit of complexity to throw on top - now manually make an
+>>>> entire directory tree (of metdata) that we have recursively copied up
+>>>> "opaque" in the upper layer (currently needs to be done outside of
+>>>> overlayfs). Over time or dropping of caches, I have found that this
+>>>> (seamlessly?) takes effect for new lookups.
+>>>>
+>>>> I also noticed that in the current implementation, this "opaque"
+>>>> transition actual breaks access to the file because the metadata
+>>>> copy-up sets "trusted.overlay.metacopy" but does not currently add an
+>>>> explicit "trusted.overlay.redirect" to the correspnding lower layer
+>>>> file. But if it did (or we do it manually with setfattr), then it is
+>>>> possible to have an upper level directory that is opaque, contains
+>>>> file metadata only and redirects to the data to the real files on the
+>>>> lower NFS filesystem.
+>>
+>> So once you use opaque dirs and redirects on an upper layer, it's
+>> sounding very similar to redirects into a data-only layer. In either
+>> case you're responsible for producing metadata inodes for each NFS file
+>> you want presented to the application/user.
+>>
+> 
+> Yes, it is almost the same as data-only layer.
+> The only difference is that real data-only layer can never be accessed
+> directly from overlay, while the effectively-data-only layer must have
+> some path (e.g /blobs) accessible directly from overlay in order to do
+> online rename of blobs into the upper opaque layer.
+> 
+>> This way seems interesting and more promising for adding NFS-backed
+>> files "online" though.
+>>
+>>> how can we document it to make the behavior "defined"?
+>>>
+>>> My thinking is:
+>>>
+>>> "Changes to the underlying filesystems while part of a mounted overlay
+>>> filesystem are not allowed.  If the underlying filesystem is changed,
+>>> the behavior of the overlay is undefined, though it will not result in
+>>> a crash or deadlock.
+>>>
+>>> One exception to this rule is changes to underlying filesystem objects
+>>> that were not accessed by a overlayfs prior to the change.
+>>> In other words, once accessed from a mounted overlay filesystem,
+>>> changes to the underlying filesystem objects are not allowed."
+>>>
+>>> But this claim needs to be proved and tested (write tests),
+>>> before the documentation defines this behavior.
+>>> I am not even sure if the claim is correct.
+>>
+>> I've been blissfully and naively assuming that it is based on intuition
+>> :).
+> 
+> Yes, what overlay did not observe, overlay cannot know about.
+> But the devil is in the details, such as what is an "accessed
+> filesystem object".
+> 
+> In our case study, we refer to the newly added directory entries
+> and new inodes "never accessed by overlayfs", so it sounds
+> safe to add them while overlayfs is mounted, but their parent directory,
+> even if never iterated via overlayfs was indeed accessed by overlayfs
+> (when looking up for existing siblings), so overlayfs did access
+> the lower parent directory and it does reference the lower parent
+> directory dentry/inode, so it is still not "intuitively" safe to change it.
+> 
+>>
+>> I think Daire and I are basically only adding new files to the NFS
+>> filesystem, and both the all-opaque approach and the data-only approach
+>> could prevent accidental access to things on the NFS filesystem through
+>> the overlayfs (or at least portion of it meant for end-user consumption)
+>> while they are still being birthed and might be experiencing changes.
+>> At some point in the NFS tree, directories must be modified, but since
+>> both approaches have overlayfs sourcing all directory entries from local
+>> metadata-only layers, it seems plausible that the directories that
+>> change aren't really "accessed by a overlayfs prior to the change."
+>>
+>> How much proving/testing would you want to see before documenting this
+>> and supporting someone in future who finds a way to prove the claim
+>> wrong?
+>>
+> 
+> *very* good question :)
+> 
+> For testing, an xfstest will do - you can fork one of the existing
+> data-only tests as a template.
 
-You do not need O_WRONLY nor O_LARGEFILE for fsync of a regular file
-just use O_RDONLY unconditionally.
+Due to the extended delay in a substantive response, I just wanted to
+send a quick thank you for your reply and suggestions here. I am still
+interested in pursuing this, but I have been busy and then recovering
+from illness.
 
-> >
-> > > +       if (IS_ERR(new_file))
-> > > +               return PTR_ERR(new_file);
-> > > +
-> > > +       err =3D vfs_fsync(new_file, 0);
-> > > +       fput(new_file);
-> > > +
-> > > +       return err;
-> > > +}
-> > > +
-> > >  static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentr=
-y,
-> > >                             struct file *new_file, loff_t len)  { @@
-> > > -701,6 +716,9 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_c=
-tx *c, struct dentry *temp)
-> > >                 err =3D ovl_set_attr(ofs, temp, &c->stat);
-> > >         inode_unlock(temp->d_inode);
-> > >
-> > > +       if (!err && ovl_should_sync_strict(ofs))
-> > > +               err =3D ovl_copy_up_sync(&upperpath);
-> > > +
-> > >         return err;
-> > >  }
-> > >
-> > > @@ -1104,6 +1122,9 @@ static int ovl_copy_up_meta_inode_data(struct o=
-vl_copy_up_ctx *c)
-> > >         ovl_clear_flag(OVL_HAS_DIGEST, d_inode(c->dentry));
-> > >         ovl_clear_flag(OVL_VERIFIED_DIGEST, d_inode(c->dentry));
-> > >         ovl_set_upperdata(d_inode(c->dentry));
-> > > +
-> > > +       if (!err && ovl_should_sync_strict(ofs))
-> > > +               err =3D ovl_copy_up_sync(&upperpath);
-> >
-> > fsync was probably already called in ovl_copy_up_file() making this cal=
-l redundant and fsync of the removal > of metacopy xattr does not add any s=
-afety.
->
-> My original idea was that ovl_should_sync and ovl_should_sync_strict shou=
-ld not be enabled at the same time.
+I'll need to study how xfstest directly exercises overlayfs and how it
+is combined with unionmount-testsuite I think.
 
-You have it wrong.
+> 
+> For documentation, I think it is too hard to commit to the general
+> statement above.
+> 
+> Try to narrow the exception to the rule to the very specific use case
+> of "append-only" instead of "immutable" lower directory and then
+> state that the behavior is "defined" - the new entries are either visible
+> by overlayfs or they are not visible, and the "undefined" element
+> is *when* they become visible and via which API (*).
+> 
+> (*) New entries may be visible to lookup and invisible to readdir
+>      due to overlayfs readdir cache, and entries could be visible to
+>      readdir and invisible to lookup, due to vfs negative lookup cache.
+> 
+> Note that the behavior of POSIX readdir() for entries added while
+> an open dir fd is being iterated is similar - the new entries will either
+> be visible in the iteration of that fd or they won't be, but there is
+> a clear "barrier" when the new entries will become visible
+> (on seek to start or open of new fd)>
+>>>
+>>> One more thing that could help said service is if overlayfs
+>>> supported a hybrid mode of redirect_dir=follow,metacopy=on,
+>>> where redirect is enabled for regular files for metacopy, but NOT
+>>> enabled for directories (which was redirect_dir original use case).
+>>>
+>>> This way, the service could run the command line:
+>>> $ mv /ovl/blah/thing /ovl/local
+>>> then "mv" will get EXDEV for moving directories and will create
+>>> opaque directories in their place and it will recursively move all
+>>> the files to the opaque directories.
+>>
+>> Clever.
+> 
+> Feel free to post this patch if you find it useful.
+> The commit message should say that the mount option
+> check does not reflect the actual dependency in the code,
+> and it should also explain very well why this mount option combination
+> is desired and lore Link: to this conversation.
+> 
+> Thanks,
+> Amir.
 
-The ovl_should_sync() helper does not mean sync_mode=3D=3Dordered,
-it means sync_mode!=3Dvolatile
-It literally means "should overlayfs respect fsync"
-and it is used in several places in the code.
-
-So ovl_should_sync_strict() always implies ovl_should_sync().
-
-> The reasons are as follows:
-> If bothe ovl_should_sync and ovl_should_sync_strict return ture for "fsyn=
-c=3Dstrict",
-> and power cut between ovl_copy_up_file and ovl_copy_up_metadata for file =
-copy-up,
-> seems this file may also lost permission?
-
-fsync of file in ovl_copy_up_file() the file is either an O_TMPFILE
-or in the workdir. no risk involved even with ubifs.
-
->
-> >
-> > >  out_free:
-> > >         kfree(capability);
-> > >  out:
-> > > diff --git a/fs/overlayfs/ovl_entry.h b/fs/overlayfs/ovl_entry.h inde=
-x
-> > > cb449ab310a7..4592e6f7dcf7 100644
-> > > --- a/fs/overlayfs/ovl_entry.h
-> > > +++ b/fs/overlayfs/ovl_entry.h
-> > > @@ -5,6 +5,12 @@
-> > >   * Copyright (C) 2016 Red Hat, Inc.
-> > >   */
-> > >
-> > > +enum {
-> > > +       OVL_SYNC_DATA,
-> > > +       OVL_SYNC_STRICT,
-> > > +       OVL_SYNC_OFF,
-> > > +};
-> > > +
-> > >  struct ovl_config {
-> > >         char *upperdir;
-> > >         char *workdir;
-> > > @@ -18,7 +24,7 @@ struct ovl_config {
-> > >         int xino;
-> > >         bool metacopy;
-> > >         bool userxattr;
-> > > -       bool ovl_volatile;
-> > > +       int sync_mode;
-> > >  };
-> > >
-> > >  struct ovl_sb {
-> > > @@ -120,7 +126,17 @@ static inline struct ovl_fs *OVL_FS(struct
-> > > super_block *sb)
-> > >
-> > >  static inline bool ovl_should_sync(struct ovl_fs *ofs)  {
-> > > -       return !ofs->config.ovl_volatile;
-> > > +       return ofs->config.sync_mode =3D=3D OVL_SYNC_DATA;
-> >
-> >     return ofs->config.sync_mode !=3D OVL_SYNC_OFF; or
-> >     return ofs->config.sync_mode !=3D OVL_FSYNC_VOLATILE;
->
-> There are risks if ovl_should_sync and ovl_should_sync_strict enabled at =
-the same time.
-> The reasons are above.
->
-
-No. see above.
-
-Let me know if I misunderstood your concern.
-
-Thanks,
-Amir.
