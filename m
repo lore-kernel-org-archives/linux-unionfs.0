@@ -1,103 +1,118 @@
-Received: from mail-pl1-f176.google.com (mail-pl1-f176.google.com [209.85.214.176])
+Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2DE24824A1
-	for <linux-unionfs@vger.kernel.org>; Mon, 29 Jul 2024 03:43:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.214.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 192C284052;
+	Mon, 29 Jul 2024 06:44:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722224611; cv=none; b=KsLjQroTMl3/WxvXI6SAsUxZA7iLcDLr/RCHeuCVceoRGZK/YESvzhVFBXYtAx86Hwx0f/u2NSjPPgctTQpQUAA99urpJ/d/IeKpiahdXIy/Ahe4wRYKDkQKJmtFhC6RgLHjLX3Vx4rBJM/lh/ema4nglB47I5EZCfbbVcaDyZ0=
+	t=1722235448; cv=none; b=gYCxZhhQwMYeVPNQuOs/nIKJraYH1/qcbUkTqlIQvDMJKvm/2em9rNkQQjpiGMCclZ16m4J0Rpg+AfWguHklH+HeT+/6txQPWIXZl3vR8+YLvU1eGIO6fpDEM1BOi5SZZeUcb2TPC5OoDYma8uRKwRL8uKpyZOmRLcauIl6C/CI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722224611; c=relaxed/simple;
-	bh=pEkbjZbID4Zq2j7DtzyhYW9aOgsLz5p9bS111yh9LLc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=foa3jHjl6FMUC1p++uimkxE/dLy4djzE/kmBGc3zilApzu8t4U8UqQvhL7qakQ9lXfxSNGaWy6984/rOJ/yuU7JtX85DNTlpuls9HJs15ovUvmKCLKz9GchRtGhZ5dGuynjdTvc2WE9tW3XDYt4rM0aj4PsTPdOrFZZ68IYRw40=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=shopee.com; spf=pass smtp.mailfrom=shopee.com; dkim=pass (2048-bit key) header.d=shopee.com header.i=@shopee.com header.b=hTfn86/P; arc=none smtp.client-ip=209.85.214.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=shopee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shopee.com
+	s=arc-20240116; t=1722235448; c=relaxed/simple;
+	bh=nfZFHQsuPpII2CMYTDR/XbTt1dybrlIDSqbwDvoHSnE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=nFO5rDgCzQRJ/viEnxFWtewvW3ark+VAta4kDr5LSY9BmDeciDtWD9vfrAANs/oLQeM6azP9fthSQNbTOn4jelWPuPxgRqgJKkihtJcA9bOhCehXrQSVEZlVoxg24O+BPk8DlfXZdYaFNJuNGge/V/Cr2cRlomej8ZOpXq/0DRQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=goIIPy+T; arc=none smtp.client-ip=209.85.222.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=shopee.com header.i=@shopee.com header.b="hTfn86/P"
-Received: by mail-pl1-f176.google.com with SMTP id d9443c01a7336-1fec34f94abso15602385ad.2
-        for <linux-unionfs@vger.kernel.org>; Sun, 28 Jul 2024 20:43:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="goIIPy+T"
+Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-7a1d6f4714bso212016685a.1;
+        Sun, 28 Jul 2024 23:44:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=shopee.com; s=shopee.com; t=1722224609; x=1722829409; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=piHZCWX7KlSFhT01GfvCJrIPEKqLIYqxVjk4iuVXV5U=;
-        b=hTfn86/PA0QWaTkiRxFUSsaeszf+W2+7W9PeLTA4ygzmdq7QlGSg6ry4zn1Ag9+gJP
-         wLCKFFYNzdJ6W9+q/+jaSEnnRQogz3fCaBXssQvmvo2/gDn9KTJOwu+TDfJpieaiGlqP
-         BcFyISfUgCtlgnAG9rYRjdd4/GJDMyRZ75zIcZRXrJGxMpqumsjKsVKYZpEHIay+H0Pa
-         PxSzDRWLL2FlZ0a18+faHVR0ivaStRYKweju3F5LJWUgRWMVSx8GUgh4mxOpiS90Kzv6
-         QFMAUpGy8r0iwEeEqfDRXIA/6jB397SUI7n6Fqb0mATk4grcw14SgMJZVhLOi/kPBq50
-         LBOg==
+        d=gmail.com; s=20230601; t=1722235446; x=1722840246; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=HwbgBKukoclBXA9WyOb5l4iDdLNe3EoU9Xh9fHVo2QY=;
+        b=goIIPy+TkfVOicKnNgweS8Wv5LwsioHpmGSAV5Xh8XpU8Fsnyyo9aN7B6ZbBWbxXhA
+         FmR+RUf6MwWfX1GHjC+BMhKReq4RI+6301EfidAIbtpSiRHbMxkpkQbf0tufVRaXP8n1
+         K1aMaa4EAeQHXtbXclUA8P2PuiKIS/NbWYsh+NI1odrGsBVob7iyypcWnZ3+nAwPT9ro
+         U7S7u22BiNiWLl5YbZVgkqOzWH9DGBTdebgRD2nUsENfQfsRsedXFwmHM3IZGzgzU6Ar
+         NZ9wUkiQXqJ4kjdiKbnfSq7DdQzmrnGzB/yg7bDBiydYWTReYR/NZ8Z040j5H2M5DZJY
+         3tkA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722224609; x=1722829409;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=piHZCWX7KlSFhT01GfvCJrIPEKqLIYqxVjk4iuVXV5U=;
-        b=WRFA/9QPauJb76rRHak3bmdKgFkoztBjDJ1btQVqlrr7A5LaoowwN7r3XGaGnhdH3L
-         P66mP+sjrEXgG9EQ9Vg5qS/p8V6ESPHgZeHz+jI9Bqs/MIExjD57Mnqv7xF3lM43yUuB
-         JISvOGUQxxtDB1BCI7EA4VsGTonP+nsdai2EeosYlQo+b2Co2e90ihoKSpU/olQefJEE
-         3IxUAETN5QJ+GGXhPbmHX9SCTXhnOkFeP5rpRe9wvc+Q86a5ef2reRcML6kAgjn4SJ2j
-         bTZ57Uc/I9mI0Ed5F9DlRGaFsJR46Rfe9+0VhrggiHe5apMkxxBuSCWFouQE+WHJJmXT
-         l1Aw==
-X-Gm-Message-State: AOJu0Yyee3lfi2gkpUsc2vFnfAO0Nki2N/wCsPaQLWC32TjeQBoN31qb
-	wuEGs2h2pyq4LeiYuXxwlBjkcpU60KQFC0Dpv1ZQf+qaYMaWyKbKdHR8kpIGZXM=
-X-Google-Smtp-Source: AGHT+IF2b1afqpkK6mLINTP2M8mfrCg5KFRVnTaJ9z97pZ/8UZWwnShZFRvCTESYMiewL0mt65dCww==
-X-Received: by 2002:a17:902:e5d0:b0:1fd:9590:6550 with SMTP id d9443c01a7336-1ff0494bc45mr44139635ad.64.1722224609418;
-        Sun, 28 Jul 2024 20:43:29 -0700 (PDT)
-Received: from localhost.localdomain ([143.92.64.20])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-1fed7f1ac12sm71553295ad.186.2024.07.28.20.43.27
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 28 Jul 2024 20:43:28 -0700 (PDT)
-From: Haifeng Xu <haifeng.xu@shopee.com>
-To: miklos@szeredi.hu,
-	amir73il@gmail.com
-Cc: linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Haifeng Xu <haifeng.xu@shopee.com>
-Subject: [PATCH] ovl: don't set the superblock's errseq_t manually
-Date: Mon, 29 Jul 2024 11:43:24 +0800
-Message-Id: <20240729034324.366148-1-haifeng.xu@shopee.com>
-X-Mailer: git-send-email 2.25.1
+        d=1e100.net; s=20230601; t=1722235446; x=1722840246;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=HwbgBKukoclBXA9WyOb5l4iDdLNe3EoU9Xh9fHVo2QY=;
+        b=YHUzp6oOh46AmXK/KdNToOO0+42YzeVbwaWyo9SapuLqsGGzeSWVC7XE3lduiiql0w
+         jgc67+KwzAi5UzkcqOH0vdLuvx22ShmYcPtseIOzzPws58XJO7myfgbFX3gEHEpAdZ4V
+         fiQAX9iTS0bpeMFGJAlyBKAa2Ov8GBlTeBaIooTFjH3JtyH9VGJbtn1zqMgTBhTdJCrx
+         zkh6Zv95RINWOV3hYMXv5O83DzmzatSeYrOziAImojNwl58HTyEt3N+Z/eCxOfsUPRmH
+         R9aOeIqxvDmUBm48VGuH4bs6ViQHxQz/T+66CZqrHEYj65jBUm4t4brXKskNRFHymFLd
+         s4Ug==
+X-Forwarded-Encrypted: i=1; AJvYcCXkLIvNvzFfF6InPoGI27JA25oBUFaYiO4tqlNGRuS5RH427sjMHU1d6s1PRNGN5jT4StNnleRVAi5ybf5KHOzJKZccAOpE2t2LRo6dF7Gy09f6FxbgkKI6Tjk8FcrlF/21zICWj0KMOwtGKA==
+X-Gm-Message-State: AOJu0Yyl67/abSpVwcHFONC8V2k9mzb/hX95uQ3s230PHHM8OztVcyTO
+	F73uKR4OPvstj8hV9IXLguo5yxcyBTCTow2iJXkOTBj2yPJWjJ345v3O6qxfZnyYxTGjTiJI4/Z
+	5/deTxpbMATXyrOWBY/LunoTg+qM=
+X-Google-Smtp-Source: AGHT+IFmvsdi/z9/ZLozcv1MG4GRT/Jreb5Y/MsK0RO45WV+X6e0LsDpdj7sCrXgQ4LSfonW0K5zRBqZ9d+bEZ6tIXc=
+X-Received: by 2002:a05:620a:1a12:b0:795:5f15:f9e8 with SMTP id
+ af79cd13be357-7a1e57a7708mr1115233885a.31.1722235445868; Sun, 28 Jul 2024
+ 23:44:05 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240729034324.366148-1-haifeng.xu@shopee.com>
+In-Reply-To: <20240729034324.366148-1-haifeng.xu@shopee.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 29 Jul 2024 09:43:54 +0300
+Message-ID: <CAOQ4uxi4B8JHYHF=yn6OrRZCdkoPUj3-+PuZTZy6iJR7RNWcbA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: don't set the superblock's errseq_t manually
+To: Haifeng Xu <haifeng.xu@shopee.com>
+Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Since commit 5679897eb104 ("vfs: make sync_filesystem return errors from
-->sync_fs"), the return value from sync_fs callback can be seen in
-sync_filesystem(). Thus the errseq_set opreation can be removed here.
+On Mon, Jul 29, 2024 at 6:43=E2=80=AFAM Haifeng Xu <haifeng.xu@shopee.com> =
+wrote:
+>
+> Since commit 5679897eb104 ("vfs: make sync_filesystem return errors from
+> ->sync_fs"), the return value from sync_fs callback can be seen in
+> sync_filesystem(). Thus the errseq_set opreation can be removed here.
+>
+> Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
 
-Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
----
- fs/overlayfs/super.c | 10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+I would add either Fixes: or Depends-on: to prevent accidental
+backporting without the dependency.
 
-diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
-index 06a231970cb5..fe511192f83c 100644
---- a/fs/overlayfs/super.c
-+++ b/fs/overlayfs/super.c
-@@ -202,15 +202,9 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
- 	int ret;
- 
- 	ret = ovl_sync_status(ofs);
--	/*
--	 * We have to always set the err, because the return value isn't
--	 * checked in syncfs, and instead indirectly return an error via
--	 * the sb's writeback errseq, which VFS inspects after this call.
--	 */
--	if (ret < 0) {
--		errseq_set(&sb->s_wb_err, -EIO);
-+
-+	if (ret < 0)
- 		return -EIO;
--	}
- 
- 	if (!ret)
- 		return ret;
--- 
-2.25.1
+Otherwise you may add:
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
+Thanks,
+Amir.
+
+> ---
+>  fs/overlayfs/super.c | 10 ++--------
+>  1 file changed, 2 insertions(+), 8 deletions(-)
+>
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 06a231970cb5..fe511192f83c 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -202,15 +202,9 @@ static int ovl_sync_fs(struct super_block *sb, int w=
+ait)
+>         int ret;
+>
+>         ret =3D ovl_sync_status(ofs);
+> -       /*
+> -        * We have to always set the err, because the return value isn't
+> -        * checked in syncfs, and instead indirectly return an error via
+> -        * the sb's writeback errseq, which VFS inspects after this call.
+> -        */
+> -       if (ret < 0) {
+> -               errseq_set(&sb->s_wb_err, -EIO);
+> +
+> +       if (ret < 0)
+>                 return -EIO;
+> -       }
+>
+>         if (!ret)
+>                 return ret;
+> --
+> 2.25.1
+>
