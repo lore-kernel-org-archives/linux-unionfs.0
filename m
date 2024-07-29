@@ -1,126 +1,128 @@
-Received: from mail-pg1-f178.google.com (mail-pg1-f178.google.com [209.85.215.178])
+Received: from mail-yb1-f177.google.com (mail-yb1-f177.google.com [209.85.219.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3835513DBB7
-	for <linux-unionfs@vger.kernel.org>; Mon, 29 Jul 2024 09:22:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75F6B18A93C
+	for <linux-unionfs@vger.kernel.org>; Mon, 29 Jul 2024 21:19:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1722244967; cv=none; b=Fnm7TaDZY9canUb90MfooA3xQ1bfD588n00e6ur3MoidQOJpH3b10Wi3YklfG/79POB3IYfswUXvLDFV2YITyT6X3zhWL5wxZ2nhektKSzm7M1p/Q351nb9IGCzVL+maJh4RMbJI3z3zfk+6ChpcBC1HOFLJTarsApgwquzLIbg=
+	t=1722287975; cv=none; b=RM0zXWdFMVz2KOBBwGb9k09Bu/bR0w248xzyhzl3TVC1UiYi1yYDkXV917uabFr5d6xXORJnQy1914nuMZRQDkvFDgu5eUT8mWW/xUr/hh04NtWzMx1m+hklgKycqK3B1tssN2HWAGiygW9E96PfBd3YdZ8x1UFrIRbyUVe7iRc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1722244967; c=relaxed/simple;
-	bh=Y9BbDaXldNlLgOlmUpDYUDIii9dGvPaX9HZL6LpJ7mg=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=oiv1U5qiBlGipZod2n9k71e9vQbOM3g71xVJwhHx5O8URt6qs1aKgZbs5xMsxHfBNJcqUhFN1rKxXkfsVgco5IhztXFHlsqCefJRTisV9a2TVwCCBsnYve3J/UylaFzBINBKwxtATa5PIj866Tx1xcby/jU0xSoeHHLdI/owkJM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=shopee.com; spf=pass smtp.mailfrom=shopee.com; dkim=pass (2048-bit key) header.d=shopee.com header.i=@shopee.com header.b=ZpxhdfW9; arc=none smtp.client-ip=209.85.215.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=shopee.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shopee.com
+	s=arc-20240116; t=1722287975; c=relaxed/simple;
+	bh=4l+Bvtu4kvAUQXF6bJmvFTVCWVJV5gtAA53iOAelmP4=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=npnZwVJg1z+E23G3S5wC6h59hbhIxV92IOCBPte4LJCYIql/vxkXRd2ikhnPjgM6riEjfHa8qFFSM8vXe2tsOeYaXIlUlLyLvIrG7ahyDvVTD7CD9JJBkCE470W3lt4cSOmJCCe7m0G2wMge/eTCpfWLYG5v++ljNu4jlDZlfYM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=HDy+iDNw; arc=none smtp.client-ip=209.85.219.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=shopee.com header.i=@shopee.com header.b="ZpxhdfW9"
-Received: by mail-pg1-f178.google.com with SMTP id 41be03b00d2f7-71871d5e087so2299249a12.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 29 Jul 2024 02:22:46 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="HDy+iDNw"
+Received: by mail-yb1-f177.google.com with SMTP id 3f1490d57ef6-e04196b7603so2315525276.0
+        for <linux-unionfs@vger.kernel.org>; Mon, 29 Jul 2024 14:19:33 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=shopee.com; s=shopee.com; t=1722244965; x=1722849765; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
-         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
+        d=paul-moore.com; s=google; t=1722287972; x=1722892772; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=1i8EAifb5Q+Cho1w1hS5y73GUCf1y1+VSu7zJITVC30=;
-        b=ZpxhdfW9X57wHjjtD6bH1sNvqIvUwO7Yya72IYVOeWegLBTUAzRfEr7Wyx20YxbfXR
-         ERWWXTnB9a58PKvH+gPSdGsrQEgjs65t/o8+SXvFb7s+Htj735kJzXDiWqQbzQ/tjKZU
-         dtdwkDHBxkggIa70o0EJyAU5amaQ03urq9HeGI8DsjTADK7qWT3sPSQEnz61SyQkc50h
-         tKf0kq3UL7/bkoS799DptpZKcZs7K4vBwtcQv9j/iLOZPi2gX0UN1OGRVOz30Bq9NVO+
-         dOIcnyUQIr1Ex8XXRrC9/cMqp1/luIN834pxM8Ba/5bFogxg/ASUu34sJyXE0gnnDEHk
-         y83w==
+        bh=57KneJBJmxhIzkyiS8eBkpjOJsC+T980EDeLPEhnb1M=;
+        b=HDy+iDNwXnKWRnm2oi89ppaqq1WBU/W8NHRB3MecEBB++3S8XLWeCVRRBXJu6ZymFc
+         kraHJU858TtSyMNSZhdFmG+v8zEVSnehbeLdg1yjYmXYMMZk6ZeM3+zdZ60Gmp0TBgTA
+         lPEzeqidGX1tX55itKEd1UK0o+FmDCXzEBsmBJLFqcvd7FxhMVi+OHc/TVp/L1Uq9GgJ
+         qj1pGjQB4QshvPH2JIvxyh+a1ksMB6z39bgQcfPicqD+xseYkrUICxvpQNX95+nefWFm
+         HOT/KaLG6FaC87gHxwlgOedQdxhcedGAte4BRO5/ljldPH6+QisohmVmErWS8vY6dmzT
+         e05A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1722244965; x=1722849765;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
-         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
-         :cc:subject:date:message-id:reply-to;
-        bh=1i8EAifb5Q+Cho1w1hS5y73GUCf1y1+VSu7zJITVC30=;
-        b=NbvNo7fKAJSGUKE4bFX4OwuzSN8A6kCVFgLCeV6RiYITWYsmXLJYVIubYBtDM/zq92
-         kPsT0GTeakz50E6EAk0RycbTcL5ExAPezEmwmxmgryeuvmy3f8Kzu36QefAFPkEGd4OS
-         Tmyaxr+eilmIkfxAheRP8EhNCc8HBx0H8BMLcZj6YgFm0rjomx8s3whLRFvQ0WBz2Ng0
-         4T2z4LPyL8PP1J47vNYAwsPRqw1f2hS0KGBrYkCMTGJTzaYKuoIFm+qkEGk1dRUKQQdG
-         4OnUFKhFeZsSBS3m5plOPWdAIOLyukf62/hAVuTqFked+M7HRnJKl2VUTfcHC8Jb/IpL
-         zTMw==
-X-Forwarded-Encrypted: i=1; AJvYcCVnaDpw3Dsi4e2rfAzMbzZY/CatwPY0On1Xdu5vYt3L13enjmR5+9ptV6mq/sB7CgvMlDK/Woud9xg3L1ACvYZhYZALbVrParFTeW5s2g==
-X-Gm-Message-State: AOJu0Yw0KEoycGZDnphJI/J1/SUYEwKN+9IPV/qGfetsNwU71L2UZ942
-	BM6PQqyWMu8vmQkBL6PswauIJJGh28Vu68L+FeEIl57CWqWJYX6iRN5rftoR2mk=
-X-Google-Smtp-Source: AGHT+IGhEUZLiACZbdBW6nXsiQfCe+UvbYtq+wii9DR50uCySyNKfbex9nS2IhnqxPoziHJ1yN9D1Q==
-X-Received: by 2002:a05:6a20:9146:b0:1c0:eabc:86a8 with SMTP id adf61e73a8af0-1c4a1183fddmr10157272637.5.1722244965493;
-        Mon, 29 Jul 2024 02:22:45 -0700 (PDT)
-Received: from [10.54.24.59] ([143.92.118.3])
-        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2cf28ae2d51sm8051429a91.0.2024.07.29.02.22.43
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 29 Jul 2024 02:22:45 -0700 (PDT)
-Message-ID: <fc34fb9b-8afd-4f83-9e5a-e648b3358e90@shopee.com>
-Date: Mon, 29 Jul 2024 17:22:41 +0800
+        d=1e100.net; s=20230601; t=1722287972; x=1722892772;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=57KneJBJmxhIzkyiS8eBkpjOJsC+T980EDeLPEhnb1M=;
+        b=TzMKX57JOYBRFwTQ7n2Nad28zHF/FPmiCVL8ohHDnM//IIFA5RpQprTOr5FDrf6JEJ
+         dEilko7j3doeb4+0q85rHjt82e9nUp6a63dkBf2UdRCZZJPfb8ZaQqabXU/9rdjdMUmW
+         oonT9LmR6tjD5nmTv0D9j4Ze1kHt9a553mRTfHlna6Of4Cq6VzJmTlsSjMXNelZfcWBi
+         XA55Ak8ONk3u2E2nW4gzIQiXYDxxrBSPS3H/kK3EjW7X8Lr9M5OLgjakxrVmd0eqREHZ
+         rPC5uDYR98/VyXCZ4FxhAuErmWe/IbiyKfxakApMk7SIfKdkuVRCyh3vlz4PamkENzIp
+         oZOA==
+X-Forwarded-Encrypted: i=1; AJvYcCX7V7oYw2rwBaXrFEK4u+NFJmhWlsh2W/vV6KSis88X2D6w4IlMuErokdYZKHDeK5rKANIfTBwg1iG2ubx//ar8ENcEtx7dsl/XH4y7iw==
+X-Gm-Message-State: AOJu0Yxn+QlHadJEvjJEzHeSJoqUB970ei1G2tyq5q9+dhfaHqJpMFzW
+	RkOGC4Vccw2DnFOFG8fT0l0RKjlTQlTsJWJujnPAP1Hg4fq+z+foicNXPw5w8vImj+2dEiJe8Hm
+	ieIMHO6+Mnft7kt+Ae1E88XJsA0NA7oNLCjb2
+X-Google-Smtp-Source: AGHT+IEMYEefrecGsvRSsfMyzdAwa3txRnjT2iryrdAee4DsCtHHJC+M0YAgZrPzcXwWtUyTuUJITsqdBLLjWYrTI3Y=
+X-Received: by 2002:a05:6902:1b05:b0:e03:4607:10ff with SMTP id
+ 3f1490d57ef6-e0b5459dd6cmr8373357276.42.1722287972381; Mon, 29 Jul 2024
+ 14:19:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] ovl: don't set the superblock's errseq_t manually
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
- linux-kernel@vger.kernel.org
-References: <20240729034324.366148-1-haifeng.xu@shopee.com>
- <CAOQ4uxi4B8JHYHF=yn6OrRZCdkoPUj3-+PuZTZy6iJR7RNWcbA@mail.gmail.com>
-From: Haifeng Xu <haifeng.xu@shopee.com>
-In-Reply-To: <CAOQ4uxi4B8JHYHF=yn6OrRZCdkoPUj3-+PuZTZy6iJR7RNWcbA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20240724020659.120353-1-xukuohai@huaweicloud.com>
+ <26bb0c7b-e241-4239-8933-349115f3afdb@schaufler-ca.com> <CAHC9VhTfqhWe9g5Tfzqn2e2S8U3JrCJ2zjjgKKJF0La+ehwAaQ@mail.gmail.com>
+In-Reply-To: <CAHC9VhTfqhWe9g5Tfzqn2e2S8U3JrCJ2zjjgKKJF0La+ehwAaQ@mail.gmail.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Mon, 29 Jul 2024 17:19:21 -0400
+Message-ID: <CAHC9VhSF97=CaZw1YHMgP+Vqu_C21KgqSu=zXRnX-3kkvEFJzA@mail.gmail.com>
+Subject: Re: [PATCH v1 0/2] Refactor return value of two lsm hooks
+To: Xu Kuohai <xukuohai@huaweicloud.com>
+Cc: Casey Schaufler <casey@schaufler-ca.com>, linux-security-module@vger.kernel.org, 
+	selinux@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-integrity@vger.kernel.org, "Serge E . Hallyn" <serge@hallyn.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, James Morris <jmorris@namei.org>, 
+	Mimi Zohar <zohar@linux.ibm.com>, Roberto Sassu <roberto.sassu@huawei.com>, 
+	Dmitry Kasatkin <dmitry.kasatkin@gmail.com>, Eric Snowberg <eric.snowberg@oracle.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
+On Wed, Jul 24, 2024 at 5:55=E2=80=AFPM Paul Moore <paul@paul-moore.com> wr=
+ote:
+> On Wed, Jul 24, 2024 at 4:36=E2=80=AFPM Casey Schaufler <casey@schaufler-=
+ca.com> wrote:
+> > On 7/23/2024 7:06 PM, Xu Kuohai wrote:
+> > > From: Xu Kuohai <xukuohai@huawei.com>
+> > >
+> > > The BPF LSM program may cause a kernel panic if it returns an
+> > > unexpected value, such as a positive value on the hook
+> > > file_alloc_security.
+> > >
+> > > To fix it, series [1] refactored the LSM hook return values and
+> > > added BPF return value checks.
+> > >
+> > > [1] used two methods to refactor hook return values:
+> > >
+> > > - converting positive return value to negative error code
+> > >
+> > > - adding additional output parameter to store odd return values
+> > >
+> > > Based on discussion in [1], only two hooks refactored with the
+> > > second method may be acceptable. Since the second method requires
+> > > extra work on BPF side to ensure that the output parameter is
+> > > set properly, the extra work does not seem worthwhile for just
+> > > two hooks. So this series includes only the two patches refactored
+> > > with the first method.
+> > >
+> > > Changes to [1]:
+> > > - Drop unnecessary patches
+> > > - Rebase
+> > > - Remove redundant comments in the inode_copy_up_xattr patch
+> > >
+> > > [1] https://lore.kernel.org/bpf/20240711111908.3817636-1-xukuohai@hua=
+weicloud.com
+> > >     https://lore.kernel.org/bpf/20240711113828.3818398-1-xukuohai@hua=
+weicloud.com
+> > >
+> > > Xu Kuohai (2):
+> > >   lsm: Refactor return value of LSM hook vm_enough_memory
+> > >   lsm: Refactor return value of LSM hook inode_copy_up_xattr
+> >
+> > For the series:
+> > Reviewed-by: Casey Schaufler <casey@schaufler-ca.com>
+>
+> Looks good to me too.  I'm going to merge this into lsm/dev-staging
+> for testing with the expectation that I'll move them over to lsm/dev
+> once the merge window closes.
 
+These patches are now lsm/dev, thanks again for your help on this patchset.
 
-On 2024/7/29 14:43, Amir Goldstein wrote:
-> On Mon, Jul 29, 2024 at 6:43 AM Haifeng Xu <haifeng.xu@shopee.com> wrote:
->>
->> Since commit 5679897eb104 ("vfs: make sync_filesystem return errors from
->> ->sync_fs"), the return value from sync_fs callback can be seen in
->> sync_filesystem(). Thus the errseq_set opreation can be removed here.
->>
->> Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
-> 
-> I would add either Fixes: or Depends-on: to prevent accidental
-> backporting without the dependency.
-
-OK, I'll add this in next version. Thanks!
-
-> 
-> Otherwise you may add:
-> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> 
-> Thanks,
-> Amir.
-> 
->> ---
->>  fs/overlayfs/super.c | 10 ++--------
->>  1 file changed, 2 insertions(+), 8 deletions(-)
->>
->> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
->> index 06a231970cb5..fe511192f83c 100644
->> --- a/fs/overlayfs/super.c
->> +++ b/fs/overlayfs/super.c
->> @@ -202,15 +202,9 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
->>         int ret;
->>
->>         ret = ovl_sync_status(ofs);
->> -       /*
->> -        * We have to always set the err, because the return value isn't
->> -        * checked in syncfs, and instead indirectly return an error via
->> -        * the sb's writeback errseq, which VFS inspects after this call.
->> -        */
->> -       if (ret < 0) {
->> -               errseq_set(&sb->s_wb_err, -EIO);
->> +
->> +       if (ret < 0)
->>                 return -EIO;
->> -       }
->>
->>         if (!ret)
->>                 return ret;
->> --
->> 2.25.1
->>
+--=20
+paul-moore.com
