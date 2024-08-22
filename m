@@ -1,221 +1,280 @@
-Received: from mail-qv1-f51.google.com (mail-qv1-f51.google.com [209.85.219.51])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 84B9AF4EE;
-	Sat, 17 Aug 2024 08:01:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.51
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CBA3C1BC43;
+	Thu, 22 Aug 2024 01:25:32 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1723881709; cv=none; b=lyRi1I2EbUC4UNd1XXLrXvuz3TUyGuL3Nu6fm7vBVnmpCozJlv5h46jJLQsBBXzhFIGi3ilPKu1OqJMtPrRQCOnneZh9VE/RPH2J96lv+QyFGGfVxz0C76xIBA2bC7eTEyqpmr3IyI9TCiR9wL4pPaxBJys7n8zpxb8dRjCiceg=
+	t=1724289935; cv=none; b=NRHvo6DNkOSsiLqIChWyct7mlwF5uZeiNubtEsn7ylPu0Pugn6LsMKD7/dWIhWHSqmgijCUGUNUOQcrzh2OP6MbdCR29JLxWMjBok8ZyJb1cxPXkKAYCof0LZB1rDaoKJnfMPYi3ciUwcRicishSQItc77QXCQMWLQw2GrBeHso=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1723881709; c=relaxed/simple;
-	bh=+S23YgQ01yRHSVeVn4Ayk1S3jLmMbK8lcHMOLJ8qqHY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BoAT4+YW9uXdd08cQdoFIvXXjLjlzBEKex+Lb/FKnJjqtEE87Vu47geO/cj2b3VwZE7oL8D/9LpbZnppj2V6uID7+O5F/FBR7+DoBnI+yubPkVtazwFobAoPrntUUudPANutEmvchEz9G4byO2OcfayjmNSyLbtmKJ5OzBmEh60=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ior3OHlf; arc=none smtp.client-ip=209.85.219.51
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1724289935; c=relaxed/simple;
+	bh=3nAzV8OXEFjCpYDcGDX5PpwOU7eV4Hm4imbTPt42bhM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=EvglKUYSoxPYdiZx4oJRdmiGIlyxnz1w1of3c9n9tfUrePvfr90zsq/kSjyi7yHMOkyEQzmg4+QUXlktIvmSTmcxSZzbf956qWj2630cPFH3c1MTlkE3QUskqptmdrJnZ1s/wQreHZuvncQc7CzT31eSk9zidPVqsOP7t+7mPd8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TRjhstY4; arc=none smtp.client-ip=192.198.163.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ior3OHlf"
-Received: by mail-qv1-f51.google.com with SMTP id 6a1803df08f44-6bf6ea1d34aso15144826d6.1;
-        Sat, 17 Aug 2024 01:01:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1723881706; x=1724486506; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3gHgeZYDXTg7ys6BJKkxLif6iqYxYVBQQZWx4XuSGnY=;
-        b=Ior3OHlf6BrcSnuRNIlPmYOFpq8lgAnU6A0wCi15XzzsGsUv0dVZgFHPshQhsBw+Sa
-         Ywui7mXy6i8568iH7v7U9b6xMd6oO70NMR1BEcZKOnonvm5UoCdY+xT2R06UpyfIMu7N
-         VbjU6TMsTieRE0h246+2JWcSdBozODJ/y/4wyxgylRZ0LZQdQAYGYctTAeorYedPd18i
-         zRe5dZjdwqAxM0BEP6seM29W1WBKzgyomm2+lpvRpOsCL6wTaiDbubnK2woDzAJDzQOj
-         Onmkd5ucuXCJnCFTQWgGZ2rPdNjSnvwF8laR0jgN9dr45B2VLK2Hdu7mfLZfNqWaNtok
-         +52g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1723881706; x=1724486506;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=3gHgeZYDXTg7ys6BJKkxLif6iqYxYVBQQZWx4XuSGnY=;
-        b=tDFo4j345t4sL6Isg2a2HIRiT8Dt8WCol7qcfdaV8PWN4kbhIW4mcN1L/UOK4/4bTf
-         ghT0lrwqd1L9V53NNrxePifSOjaHK9eKTsoFJxMZYGOtFgIufgym9zAJKudqWpifpCzf
-         ft/YgSD3NE1kTTd8IivDUKxqgohPlEO5D5bkSvhJvTaaYTzCtZt7ZLgDHWy9Y/GPZrIE
-         fQ3tqcIF0sO+/PmYbEFEnn/iB9yubGVM0TyMNkB+NqhBkSdrzjTKd060kmHgtKDZC0O7
-         P6BE8TfFyo7h/z+UHBlbjGo6EnlSZ7wCZYMpyffE3v1pXfch6CiiOgFuBSHucZScA1iq
-         N4TA==
-X-Forwarded-Encrypted: i=1; AJvYcCXAVxabYBKBSu37ywkTKMTVXckxjMc0ygweDrZTM3gl7wVQQ7KQcOCH1vct/BjNg5PbjMP18FiJvSqVyUgCLN7+U0HA3CBMGFlU0r3na1O7rIgm6hbZ1V0Zhlr4GJNACOpyFk8NErxdS+sc+YhViui5KPG0ZrsNGzXjHdq2U6NHV1ww9XxmTQ==
-X-Gm-Message-State: AOJu0Yxfr9D9Pht/pHU/In5aSDkKPqJGTWRzK9X6GbfCnsEwQlmHTRwm
-	NIKzoyUli/V/efk/X0z5cAnSAXJE/L4sagD79VERgZByyp2g2GfcTqAeZEvltadt2wqc1BCLmjx
-	N6f5JUCGNjWLXZwgbzwCupM9ZQyDCy4zLVJ8=
-X-Google-Smtp-Source: AGHT+IHdfEZYkzWWtH3eVHA9NBOv/L0PcpYVZxC+qzGefMCSozKg9a4uCqUR6HzUbRjVmCiaLkAX7aFCrx3ExwJgu6k=
-X-Received: by 2002:a05:6214:3c86:b0:6bb:3f92:13d with SMTP id
- 6a1803df08f44-6bf7cde998cmr60889986d6.24.1723881706255; Sat, 17 Aug 2024
- 01:01:46 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TRjhstY4"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1724289933; x=1755825933;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=3nAzV8OXEFjCpYDcGDX5PpwOU7eV4Hm4imbTPt42bhM=;
+  b=TRjhstY47ZJpis/XF2kAwW074Za53K4xEDZtbGKjpQvc9ns2z6SxrgF5
+   nkBkOPxC0/tVISKlwY+LY5DHAw0wqRwG0arBQ4egzQkyk6z/F9JSLjcns
+   G4h7bi9zlXDzZG7jFUgm1evm1hyCNMonQLk+MUqR5PPjhjySnNZ8fIHIp
+   coQvDczhOts4StIj7zaHes93PVajv71IKji0QIs6bORC2+W6tSF7njY8U
+   vvaig7hsPdzvnrNiFW6i91+N4RYLgnORCtBGHi1cyVpzxU8xUmvOTkTLg
+   1spZOojSzw5xJEnvadl+Cs7iCdJqEvPqebrZY18m3sLyEqAY7PdnvuA/N
+   w==;
+X-CSE-ConnectionGUID: m+63nfhNShWmLzzWAYKNUg==
+X-CSE-MsgGUID: NJXZgEEXRUWGDtBpd4cmyw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11171"; a="25574718"
+X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
+   d="scan'208";a="25574718"
+Received: from orviesa007.jf.intel.com ([10.64.159.147])
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:32 -0700
+X-CSE-ConnectionGUID: SRcX0N8nSeGScyywQ4EFsg==
+X-CSE-MsgGUID: Nv3gsHxeSsOk47numpR2KA==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
+   d="scan'208";a="61811013"
+Received: from unknown (HELO vcostago-mobl3.jf.intel.com) ([10.241.225.92])
+  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:31 -0700
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: brauner@kernel.org,
+	amir73il@gmail.com,
+	hu1.chen@intel.com
+Cc: miklos@szeredi.hu,
+	malini.bhandaru@intel.com,
+	tim.c.chen@intel.com,
+	mikko.ylinen@intel.com,
+	lizhen.you@intel.com,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Subject: [PATCH v2 00/16] overlayfs: Optimize override/revert creds
+Date: Wed, 21 Aug 2024 18:25:07 -0700
+Message-ID: <20240822012523.141846-1-vinicius.gomes@intel.com>
+X-Mailer: git-send-email 2.46.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240815203011.292977-1-yuriybelikov1@gmail.com>
-In-Reply-To: <20240815203011.292977-1-yuriybelikov1@gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 17 Aug 2024 10:01:34 +0200
-Message-ID: <CAOQ4uxiRGcPNsad==MtLFGrrwg_Sv-6g0tNwSVtvoSH+2VR5Lw@mail.gmail.com>
-Subject: Re: [PATCH] Update redirect_dir and metacopy sections in overlayfs documentation
-To: Yuriy Belikov <yuriybelikov1@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, linux-unionfs@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Aug 15, 2024 at 10:30=E2=80=AFPM Yuriy Belikov <yuriybelikov1@gmail=
-.com> wrote:
->
-> This patch:
-> - Provides info about trusted.overlay.metacopy extended attribute.
-> - Extends the description of trusted.overlay.redirect
->   with information about possible values of this xattr
->
-> Signed-off-by: Yuriy Belikov <yuriybelikov1@gmail.com>
+Hi,
 
-Hi Yuriy,
+Changes from v1:
+ - Re-organized the series to be easier to follow, more details below
+   (Miklos Szeredi and Amir Goldstein);
 
-This version has some inaccuracies and some irrelevant
-information IMO. I will try to point them out.
-Please be aware that this is an overview/design document
-and it is not the intention to commit to the implementation details
-of overlayfs.
+The series now reads as follows:
 
-> ---
->  Documentation/filesystems/overlayfs.rst | 32 +++++++++++++++++++------
->  1 file changed, 25 insertions(+), 7 deletions(-)
->
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
-systems/overlayfs.rst
-> index 165514401441..f4b68b8cd67d 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -207,11 +207,23 @@ handle it in two different ways:
->     applications are usually prepared to handle this error (mv(1) for exa=
-mple
->     recursively copies the directory tree).  This is the default behavior=
-.
->
-> -2. If the "redirect_dir" feature is enabled, then the directory will be
-> -   copied up (but not the contents).  Then the "trusted.overlay.redirect=
-"
-> -   extended attribute is set to the path of the original location from t=
-he
-> -   root of the overlay.  Finally the directory is moved to the new
-> -   location.
-> +2. If the "redirect_dir" feature is enabled, then the contents of the
-> +   directory will not be copied up after any name-modifying operations
-> +   (e.g. rename(2), or mv(1)).
+Patch 1: Introduce the _light() version of the override/revert cred operations;
+Patch 2: Convert backing-file.c to use those;
+Patch 3: Introduce the overlayfs specific _light() helper;
+Patch 4: Document the cases that the helper cannot be used (critical
+      section may change the cred->usage counter);
+Patch 5: Convert the "rest" of overlayfs to the _light() helpers (mostly mechanical);
+Patch 6: Introduce the GUARD() helpers;
+Patch 7: Convert backing-file.c to the GUARD() helpers;
+Patch 8-15: Convert each overlayfs/ file to use the GUARD() helpers,
+      also explain the cases in which the scoped_guard() helper is
+      used. Note that a 'goto' jump that crosses the guard() should
+      fail to compile, gcc has a bug that fails to detect the
+      error[1].
+Patch 16: Remove the helper introduced in Patch 3 to close the series,
+      as it is no longer used, everything was converted to use the
+      safer/shorter GUARD() helpers.
 
-I cannot put my finger on it, I just don't like this rephrasing and it serv=
-es no
-good purpose IMO. mv(1) is not an operation, it is a tool, so the phrasing
-is just inaccurate.
+[1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91951
 
-> Instead of performing a copy-up operation,
-> +   an empty entry will be created in the upper layer with the same name
-> +   as the affected entry in the overlayfs directory.
+This bug was also noticed here:
 
-Again I do not like this phrasing. It suggests that there is a copy up
-operation that copies entire directory content and that is not true.
-chown of directory will copy up directory without content and that
-has nothing to do with redirect_dir.
+https://lore.kernel.org/all/20240730050927.GC5334@ZenIV/
 
-> The 'trusted.overlay.redirect'
-> +   xattr will then be set to mark the upper-layer directory, indicating =
-that
-> +   its contents weren't copied up due to the 'redirect_dir' feature.
-> +   This extended attribute holds the previous name of a directory as a v=
-alue.
-> +   For directories that were simply renamed the attribute is just the ol=
-d name
-> +   of the directory without preceding path.
+Link to v1:
 
-"simply renamed" is not a clear technical description.
-Not changing a parent is what you want to say, but TBH, I just don't
-think that we want to commit to this implementation detail and I am
-really not sure why putting it in the document is helpful.
+https://lore.kernel.org/r/20240403021808.309900-1-vinicius.gomes@intel.com/
 
-> For directories whose locations
-> +   in the overlayfs directory were changed, the corresponding xattrs are=
- set
-> +   to the paths to the original locations from the root of the overlay.
-> +   The value of the xattr in the second case starts with a UNIX path del=
-imiter
-> +   (e.g. "/$PREVIOUS_PATH"). Finally the directory is moved
-> +   to the new location. The output of du "$UPPER_LAYTER_DIR/$RENAMED_DIR=
-"
+Changes from RFC v3:
+ - Removed the warning "fixes" patches, as they could hide potencial
+   bugs (Christian Brauner);
+ - Added "cred-specific" macros (Christian Brauner), from my side,
+   added a few '_' to the guards to signify that the newly introduced
+   helper macros are preferred.
+ - Changed a few guard() to scoped_guard() to fix the clang (17.0.6)
+   compilation error about 'goto' bypassing variable initialization;
 
-I dislike the use of these invented variable names that were not
-defined earlier in the doc, please don't use that notation.
+Link to RFC v3:
 
-> +   should be zero.
+https://lore.kernel.org/r/20240216051640.197378-1-vinicius.gomes@intel.com/
 
-Not something that we want or can commit to.
-Some filesystems count xattr blocks in du (depending on size of
-all the xattr) so it is not possible to commit to this statement and
-I do not think that it adds much to the document.
+Changes from RFC v2:
+ - Added separate patches for the warnings for the discarded const
+   when using the cleanup macros: one for DEFINE_GUARD() and one for
+   DEFINE_LOCK_GUARD_1() (I am uncertain if it's better to squash them
+   together);
+ - Reordered the series so the backing file patch is the first user of
+   the introduced helpers (Amir Goldstein);
+ - Change the definition of the cleanup "class" from a GUARD to a
+   LOCK_GUARD_1, which defines an implicit container, that allows us
+   to remove some variable declarations to store the overriden
+   credentials (Amir Goldstein);
+ - Replaced most of the uses of scoped_guard() with guard(), to reduce
+   the code churn, the remaining ones I wasn't sure if I was changing
+   the behavior: either they were nested (overrides "inside"
+   overrides) or something calls current_cred() (Amir Goldstein).
 
-> Renamed directory subentries will be copied-up only
-> +   after operations that directly affect their contents.
+New questions:
+ - The backing file callbacks are now called with the "light"
+   overriden credentials, so they are kind of restricted in what they
+   can do with their credentials, is this acceptable in general?
+ - in ovl_rename() I had to manually call the "light" the overrides,
+   both using the guard() macro or using the non-light version causes
+   the workload to crash the kernel. I still have to investigate why
+   this is happening. Hints are appreciated.
 
-Again, not related to redirect_dir.
-This is a description of how copy up generally works in overlayfs.
-If you think that this information is missing from the document,
-please try to add it to the Directories section.
+Link to the RFC v2:
 
->
->  There are several ways to tune the "redirect_dir" feature.
->
-> @@ -367,8 +379,14 @@ Metadata only copy up
->
->  When the "metacopy" feature is enabled, overlayfs will only copy
->  up metadata (as opposed to whole file), when a metadata specific operati=
-on
-> -like chown/chmod is performed. Full file will be copied up later when
-> -file is opened for WRITE operation.
-> +like chown/chmod is performed. When file metadata are modified the
-> +corresponding empty file (with the same name as the modified one)
-> +appears in the upper layer, however such a file contains
-> +no allocated data (a sparse file);
+https://lore.kernel.org/r/20240125235723.39507-1-vinicius.gomes@intel.com/
 
-I am sorry, I do not like this phrasing, but also cannot offer something be=
-tter
-because I am not sure what missing information you are trying to add.
+Original cover letter (lightly edited):
 
-The only thing I would change in the doc is replace
-"Full file will be copied up later..."
-with
-"File data will be copied up later..."
+It was noticed that some workloads suffer from contention on
+increasing/decrementing the ->usage counter in their credentials,
+those refcount operations are associated with overriding/reverting the
+current task credentials. (the linked thread adds more context)
 
-> doing du "$UPPER_LAYER/$FILENAME"
-> +should yield zero.
+In some specialized cases, overlayfs is one of them, the credentials
+in question have a longer lifetime than the override/revert "critical
+section". In the overlayfs case, the credentials are created when the
+fs is mounted and destroyed when it's unmounted. In this case of long
+lived credentials, the usage counter doesn't need to be
+incremented/decremented.
 
-No invented env variables please. we cannot commit to zero du.
+Add a lighter version of credentials override/revert to be used in
+these specialized cases. To make sure that the override/revert calls
+are paired, add a cleanup guard macro. This was suggested here:
 
-> Such an upper-layer file is marked with
-> +"trusted.overlayfs.metacopy" xattr which indicates that this file contai=
-ns
-> +no data and copy-up should be performed before the corresponding file
-> +in the overlayfs directory is opened for write.
->
->  In other words, this is delayed data copy up operation and data is copie=
-d
->  up when there is a need to actually modify data.
+https://lore.kernel.org/all/20231219-marken-pochen-26d888fb9bb9@brauner/
 
-Maybe just add here at the end:
+With a small number of tweaks:
+ - Used inline functions instead of macros;
+ - A small change to store the credentials into the passed argument,
+   the guard is now defined as (note the added '_T ='):
 
-An upper file in this state is marked with "trusted.overlayfs.metacopy" xat=
-tr
-which indicates that the upper file contains no data.
-After the lower file's data is copied up, the "trusted.overlayfs.metacopy" =
-xattr
-is removed from the upper file.
+      DEFINE_GUARD(cred, const struct cred *, _T = override_creds_light(_T),
+		  revert_creds_light(_T));
 
-Thanks,
-Amir.
+ - Allow "const" arguments to be used with these kind of guards;
+
+Some comments:
+ - If patch 1/5 and 2/5 are not a good idea (adding the cast), the
+   alternative I can see is using some kind of container for the
+   credentials;
+ - The only user for the backing file ops is overlayfs, so these
+   changes make sense, but may not make sense in the most general
+   case;
+
+For the numbers, some from 'perf c2c', before this series:
+(edited to fit)
+
+#
+#        ----- HITM -----                                        Shared                          
+#   Num  RmtHitm  LclHitm                      Symbol            Object         Source:Line  Node
+# .....  .......  .......  ..........................  ................  ..................  ....
+#
+  -------------------------
+      0      412     1028  
+  -------------------------
+	  41.50%   42.22%  [k] revert_creds            [kernel.vmlinux]  atomic64_64.h:39     0  1
+	  15.05%   10.60%  [k] override_creds          [kernel.vmlinux]  atomic64_64.h:25     0  1
+	   0.73%    0.58%  [k] init_file               [kernel.vmlinux]  atomic64_64.h:25     0  1
+	   0.24%    0.10%  [k] revert_creds            [kernel.vmlinux]  cred.h:266           0  1
+	  32.28%   37.16%  [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	   9.47%    8.75%  [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	   0.49%    0.58%  [k] inode_owner_or_capable  [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	   0.24%    0.00%  [k] generic_permission      [kernel.vmlinux]  namei.c:354          0
+
+  -------------------------
+      1       50      103  
+  -------------------------
+	 100.00%  100.00%  [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+
+  -------------------------
+      2       50       98  
+  -------------------------
+	  96.00%   96.94%  [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+	   2.00%    1.02%  [k] update_load_avg   [kernel.vmlinux]  atomic64_64.h:25   0  1
+	   0.00%    2.04%  [k] update_load_avg   [kernel.vmlinux]  fair.c:4118        0
+	   2.00%    0.00%  [k] update_cfs_group  [kernel.vmlinux]  fair.c:3932        0  1
+
+after this series:
+
+#
+#        ----- HITM -----                                   Shared                        
+#   Num  RmtHitm  LclHitm                 Symbol            Object       Source:Line  Node
+# .....  .......  .......   ....................  ................  ................  ....
+#
+  -------------------------
+      0       54       88  
+  -------------------------
+	 100.00%  100.00%   [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+
+  -------------------------
+      1       48       83  
+  -------------------------
+	  97.92%   97.59%   [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+	   2.08%    1.20%   [k] update_load_avg   [kernel.vmlinux]  atomic64_64.h:25   0  1
+	   0.00%    1.20%   [k] update_load_avg   [kernel.vmlinux]  fair.c:4118        0  1
+
+  -------------------------
+      2       28       44  
+  -------------------------
+	  85.71%   79.55%   [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	  14.29%   20.45%   [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+
+The contention is practically gone.
+
+Link: https://lore.kernel.org/all/20231018074553.41333-1-hu1.chen@intel.com/
+
+Vinicius Costa Gomes (16):
+  cred: Add a light version of override/revert_creds()
+  fs/backing-file: Convert to revert/override_creds_light()
+  fs/overlayfs: Introduce ovl_override_creds_light()
+  overlayfs: Document critical override_creds() operations
+  overlayfs: Use ovl_override_creds_light()/revert_creds_light()
+  cred: Introduce cred_guard() and cred_scoped_guard() helpers
+  fs/backing-file: Convert to cred_guard()
+  overlayfs/copy_up: Convert to cred_guard()
+  overlayfs/dir: Convert to cred_guard()
+  overlayfs/file: Convert to cred_guard()
+  overlayfs/inode: Convert to cred_guard()
+  overlayfs/namei: Convert to cred_guard()
+  overlayfs/readdir: Convert to cred_guard()
+  overlayfs/xattrs: Convert to cred_guard()
+  overlayfs/util: Convert to cred_guard()
+  overlayfs: Remove ovl_override_creds_light()
+
+ fs/backing-file.c      | 22 +++----------
+ fs/overlayfs/copy_up.c | 10 +++---
+ fs/overlayfs/dir.c     | 20 ++++++------
+ fs/overlayfs/file.c    | 64 +++++++++++++++---------------------
+ fs/overlayfs/inode.c   | 73 ++++++++++++++++--------------------------
+ fs/overlayfs/namei.c   | 20 +++---------
+ fs/overlayfs/readdir.c | 16 +++------
+ fs/overlayfs/util.c    | 24 ++++++--------
+ fs/overlayfs/xattrs.c  | 32 ++++++++----------
+ include/linux/cred.h   | 25 +++++++++++++++
+ kernel/cred.c          |  6 ++--
+ 11 files changed, 134 insertions(+), 178 deletions(-)
+
+-- 
+2.46.0
+
