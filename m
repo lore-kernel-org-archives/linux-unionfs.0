@@ -1,63 +1,63 @@
-Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com [209.85.219.181])
+Received: from mail-lj1-f182.google.com (mail-lj1-f182.google.com [209.85.208.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8133E1547EA
-	for <linux-unionfs@vger.kernel.org>; Thu, 22 Aug 2024 08:31:31 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 42EDD16DEB4
+	for <linux-unionfs@vger.kernel.org>; Thu, 22 Aug 2024 08:42:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724315493; cv=none; b=AJyfuLuxmCVQcCOx1bLtEtrHS38LHCCow7nsmsN8deJsQsxqQ1q6rwsXqmgnYs3yGpFGqfC+VskFmMUSXU8CiKd5e20z8VhBp9IdtLhXkGnYxdK5XRhEDI49BxSYIfp+laIR2jMTCrYaLW877oxjK/DdPqnm9Vj2nSwTo/3DZ4c=
+	t=1724316132; cv=none; b=kZPIpvR9uFcMPJBwFJ8M/7kuw4g6dPx1w1sDcsePTd/zfTcY+bMAijy3JmRDw4w+FC/JqInYWpnD0Ja3OxqnDA9waAriT1g2KCDJyGwpeCLYf9ifIambcSEEaSOWBEkimC4WPoIBA6QpPCcI51kdlkGtXuKkdLQtqpuAfbVAOdM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724315493; c=relaxed/simple;
-	bh=qfO68ABr8YmkVT3Xwko9ThKTkCQPRAKkOQzFlC/guPA=;
+	s=arc-20240116; t=1724316132; c=relaxed/simple;
+	bh=zOwZKwgQbYh9I6K5vOjV4zHXa+b8rQusxeapSFGjSGQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rSQFC2YJOmZM2iMk+2Sd2urdK37Zbt+HUMIfBULnTcaEVFtY4EwF30clKnoz1SCKVe4J3bAF1P3fJaMsiHvMcJScLCBGXlKehuakZlvCr/gG1iHxPNSCROFeyopd6SB1iFyxq5p+N0fxN8hDRyII1ncj0CWtfoZA3FSjYnL8ryg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=d6UcsoVa; arc=none smtp.client-ip=209.85.219.181
+	 To:Cc:Content-Type; b=gbQqREzVbX1R54LnJmYTuf3R3hIv1kzXmF789b574tCrAsWc2CUYjBhq6FTZ5kMeNWF61hkgYLLtWo9DlXCziOa7c2lq832QAvvaKc5Rz7QDo8PrBci2qyFAmlKZWtPjUs2WPawEWBJsCjiEG8rsI2TECWLDvR2hioHr85BNfbo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=FJI970c3; arc=none smtp.client-ip=209.85.208.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="d6UcsoVa"
-Received: by mail-yb1-f181.google.com with SMTP id 3f1490d57ef6-e1161ee54f7so631681276.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 22 Aug 2024 01:31:31 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="FJI970c3"
+Received: by mail-lj1-f182.google.com with SMTP id 38308e7fff4ca-2f029e9c9cfso6123391fa.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Aug 2024 01:42:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1724315490; x=1724920290; darn=vger.kernel.org;
+        d=szeredi.hu; s=google; t=1724316127; x=1724920927; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=qfO68ABr8YmkVT3Xwko9ThKTkCQPRAKkOQzFlC/guPA=;
-        b=d6UcsoVagWmOg4gMtyyrnX4ashxi+QonesqW/lWQrZQaJ3U/jyzdz1puaNu0MvuPao
-         AyPTazPWZRwDP+l2FDG/+7q9R1SOHQRb2cwfvKTvBjKOM6QpK96ZK3Ac6UDuBNc8lPMo
-         AM66VnB3EjJu02kpOv5CHM0TZ594YJAD8O/XA=
+        bh=bn43WhWNELjWx/Xqi85FuxI5tpjHJSqlZGW7dAS/4hA=;
+        b=FJI970c3Rer+TpNqutIKvgcFJ3eJ0WNhfdY+CR2GmgWu4kHbJgXDh1uYJ7sd3Be0bz
+         y533t2b2Jrph83IOJg2z+MIH3KsPKSkFhIi4n+GDxBVu+MYF4b+4UJ3MTHlo22imD8lM
+         /YDVDXpsv0bsaX8xoowaXipeRCxh6a6aQTEoE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724315490; x=1724920290;
+        d=1e100.net; s=20230601; t=1724316127; x=1724920927;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=qfO68ABr8YmkVT3Xwko9ThKTkCQPRAKkOQzFlC/guPA=;
-        b=iixaVC1nQHCrlclyUn6MQbHrBWtq8N/NtKz7TulvGpf6AiOVm46Te8kTwj6C5gT/Mu
-         tj41Xe0Lan5xjz2XWa/ahY75B3b817y4+dZ2PLLicWegWKGXB8QEKeDeBJtIVu44fL49
-         NbKtxSWN2yvsOib/mitJVgND2cs1ceyDUN/fkqwCoOtvW9UvcAcMSfnpcwALfAPT59vv
-         C/6yDQ644LvkU7EkZX46+W2hoqMt4zdX32sp8ty5vac7MOR3hbwO9CchG++tu3hWkMR2
-         BYM6VklEVacbJ15LEyw9kLRx0IjqUi40bkp3Mvy/YT7QhJfoW5ZVJotNSCqOv7mKVebS
-         RSPA==
-X-Forwarded-Encrypted: i=1; AJvYcCUVr3w3C4HN8e7aEPi3LXKItZ11E2/VhO6OIwS7Ufe9EZmZbGq9dhXoCTQhPGPVp2ZLVAiPTrXcuMazUeT0@vger.kernel.org
-X-Gm-Message-State: AOJu0YyXgtkQ6vg3fxlze4bolFvJkOZogXtm4MXL+gAViMM8Vr180dXg
-	s5RzHuD3WD9IX6iY5/h7fzmr8PG/LXDTXln1ytz5ESb/GdvMK7Vdf1E6a+y9oLUfO3152lTTor+
-	QPSjgwSTMEroizss/CLt919ZqC9/OYxxzJ3oWKA==
-X-Google-Smtp-Source: AGHT+IFF9x0kcV4O4K6ZspVN57UUPh5M6n3DoRW/LKTTDP4y3eH/KtTeC1NTvVIbWLwiW99ntfIxagBPmHeZAstrCBQ=
-X-Received: by 2002:a05:6902:250f:b0:e13:c8e7:5bd4 with SMTP id
- 3f1490d57ef6-e166640f1famr6031982276.22.1724315490296; Thu, 22 Aug 2024
- 01:31:30 -0700 (PDT)
+        bh=bn43WhWNELjWx/Xqi85FuxI5tpjHJSqlZGW7dAS/4hA=;
+        b=m3ZaZSxJ6pXxsd7O2s4fNPdcJSS/cvdIkN+Uj/M+/GySFUElM/z+EqiC/bieWcrsCt
+         u+BAt03DhfPQOVsNAg98283tZLuzj9Pm63aHYiCc3SEHoGhJKekwYWYFvomH5KVZukg1
+         H/m5Ec56S3y3qN6RaXTCqsl909GfgEtBuEFnOSDqUjvgmzvPa/8vYZKPpDRRMC4zCoZz
+         /3si99QFIpt4eUyWOhHI132HlGUPo5/B3k04sOjDZ7/xlMBk8y0FNZjI610oXAICqxfx
+         HPE78JLcAH+SM/BPqwNJnjj29cmx28uwYE+vU4HrOzci3vn2MM4bejXkSoADA7cz5/uj
+         sQWQ==
+X-Forwarded-Encrypted: i=1; AJvYcCURDRKfQLCtJJmieJtOF8k0x+XmHVhrEL1UzA2Qq5s6Uxj/I5CnNK8rGkGLzQKuLCL7YmhfE7LkgcgaKHGM@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxemxk7j+rD26L0YdVDlFnPoDBpRu/IVf2dafELR5L7qQqX2HPX
+	CE4P3CAJ/1k1xhtUPVNXWJLbusip+WD24Qr6pUeEgbIVcN0VHmfX9LfI967Y6ddFLbdGPZbhHPv
+	uvKAC9iuuFVSkvp2wnzVYdwn7aoKGlzwrPI/4Pg==
+X-Google-Smtp-Source: AGHT+IG/YZ/WLpUENQ2C2Qgrv8N5KPSpA05zNxhVmjt9aj0GznyncRlTONhGYjX9dV5Eh1HlsEUMjsLQEPEEDjHgszQ=
+X-Received: by 2002:a2e:4c11:0:b0:2f3:ed2d:a944 with SMTP id
+ 38308e7fff4ca-2f405d962c7mr8408181fa.15.1724316127228; Thu, 22 Aug 2024
+ 01:42:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240822012523.141846-1-vinicius.gomes@intel.com> <20240822012523.141846-8-vinicius.gomes@intel.com>
-In-Reply-To: <20240822012523.141846-8-vinicius.gomes@intel.com>
+References: <20240822012523.141846-1-vinicius.gomes@intel.com> <20240822012523.141846-11-vinicius.gomes@intel.com>
+In-Reply-To: <20240822012523.141846-11-vinicius.gomes@intel.com>
 From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 22 Aug 2024 10:31:18 +0200
-Message-ID: <CAJfpegs5+2DadbB6tfwLD+DAFzqfOTi7bZMxJCoj_r5Tu7jcfw@mail.gmail.com>
-Subject: Re: [PATCH v2 07/16] fs/backing-file: Convert to cred_guard()
+Date: Thu, 22 Aug 2024 10:41:55 +0200
+Message-ID: <CAJfpegsq5NruDeL6HRgkpj=QvdOKdnqOwZiRS0VY092=h0RSkg@mail.gmail.com>
+Subject: Re: [PATCH v2 10/16] overlayfs/file: Convert to cred_guard()
 To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
 Cc: brauner@kernel.org, amir73il@gmail.com, hu1.chen@intel.com, 
 	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
@@ -69,11 +69,44 @@ On Thu, 22 Aug 2024 at 03:25, Vinicius Costa Gomes
 <vinicius.gomes@intel.com> wrote:
 >
 > Replace the override_creds_light()/revert_creds_light() pairs of
-> operations to cred_guard().
+> operations with cred_guard()/cred_scoped_guard().
+>
+> Only ovl_copyfile() and ovl_fallocate() use cred_scoped_guard(),
+> because of 'goto', which can cause the cleanup flow to run on garbage
+> memory.
 
-I'd note here, that in some cases the revert will happen later than
-previously, but (hopefully) you have verified that in these cases it
-won't make a difference.
+This doesn't sound good.  Is this a compiler bug or a limitation of guards?
+
+> @@ -211,9 +208,8 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
+>         ovl_inode_lock(inode);
+>         real.file->f_pos = file->f_pos;
+>
+> -       old_cred = ovl_override_creds_light(inode->i_sb);
+> +       cred_guard(ovl_creds(inode->i_sb));
+>         ret = vfs_llseek(real.file, offset, whence);
+> -       revert_creds_light(old_cred);
+
+Why not use scoped guard, like in fallocate?
+
+> @@ -398,9 +393,8 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+>
+>         /* Don't sync lower file for fear of receiving EROFS error */
+>         if (file_inode(real.file) == ovl_inode_upper(file_inode(file))) {
+> -               old_cred = ovl_override_creds_light(file_inode(file)->i_sb);
+> +               cred_guard(ovl_creds(file_inode(file)->i_sb));
+>                 ret = vfs_fsync_range(real.file, start, end, datasync);
+> -               revert_creds_light(old_cred);
+
+Same here.
+
+> @@ -584,9 +571,8 @@ static int ovl_flush(struct file *file, fl_owner_t id)
+>                 return err;
+>
+>         if (real.file->f_op->flush) {
+> -               old_cred = ovl_override_creds_light(file_inode(file)->i_sb);
+> +               cred_guard(ovl_creds(file_inode(file)->i_sb));
+
+What's the scope of this?  The function or the inner block?
 
 Thanks,
 Miklos
