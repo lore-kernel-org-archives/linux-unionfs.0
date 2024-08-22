@@ -1,117 +1,79 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-lf1-f49.google.com (mail-lf1-f49.google.com [209.85.167.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD4E31836ED;
-	Thu, 22 Aug 2024 01:25:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8F8EA16EB65
+	for <linux-unionfs@vger.kernel.org>; Thu, 22 Aug 2024 08:15:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724289945; cv=none; b=FBF57s+RXhFHQf/JNUuwOILt4EnKj8KJAsi776UzGXek6YwNWmBYHqv6pe53QuT9CbDScMKpmDRtJJvpzwBkfesyl1QvjGF/BnA2YkLupFK30xcjLbRNl5MBmi6dXhEhRnjAbUitK1RpVDKkK3e3Zp8qg3FtwPgKMPlXOp4C7qA=
+	t=1724314516; cv=none; b=AKKy2ufyD9Q6oQNTXPX/dysPRCdH2IYNhDk2PCl3mUoqo2Yp4L3gpYhngJZwHmkRFxT+nXPIlowBZQnnMpKj/PLjRGxgn8dhKpLuI3z7IqKWPIefUjmNrdpV4WPgk9/XoD9MO9VpYi/enIca7eAUiqwNS+NIP2m4zwDlQka8nBc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724289945; c=relaxed/simple;
-	bh=1sA07qhmx3hNY35eUvH1W+ptgOoM99mdc8JI5jE8SM0=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=pDla3xMsTVeUcMvBTCcxcYU/rhle1/DnMO4yY4oTeUfCDKR10Rx8dpkSTKueK2GBs24BqIVCVaaArvbKJRTDyWayN5UIzfRG+yM/hSB5gXUY0O/7qpDkaB2a33YojV62LJtxifJMde2HWMt7DnJanUK9qPlPbYnXAYrouTpLdIM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=AbRrryIB; arc=none smtp.client-ip=192.198.163.13
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1724314516; c=relaxed/simple;
+	bh=LQg2LikSVh4t6qUG9/JiYVMdVBSK+0WTTilbAKFAUcA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=AjNyMozZKb2GSLNBAEDABL0ms2YvKsd1IzxMcjOG53ek5T1/6izVcKvpA0T60z8cNCyAf5TFsDYXtw/G3hDZy+60Wqz2gwZDmFP7DC2medsvwRXnan3C7tFMXskLk/j+s/PvE86JCHjgnisdOq14Xodup1vQpmdWFGBw67iW9Eg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=XQzLSx/H; arc=none smtp.client-ip=209.85.167.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="AbRrryIB"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724289944; x=1755825944;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=1sA07qhmx3hNY35eUvH1W+ptgOoM99mdc8JI5jE8SM0=;
-  b=AbRrryIBCMAHWkF1Zn29xjuEey687BGlYX9o8jw981MkEqc1kmCijtCO
-   I6FBUFCvapeS/6yWvTT9+kpgdKsz1V1wKhFp4NbL3586veplqOZSf/ByC
-   eepEBBbsJXWWyLnWtivUXM9pCdQDhYzHbS/l44TBRkuBSJeGPJ68orn0z
-   WPJpiHkk3HhWn+dtEDiAOmqNAtrIy5b/4EvMmQLHmzyVVGcIfe3oMZQAu
-   W9ZrqpCcDmJkSu2UuWlc1MWOMA9gxVpz6569teUAPuoU1G/lCiJ3RmsOj
-   /gD/btPpyEhBSxwUhAD+LI2OfukdyWiDzpnSdbV/NgoG91ZmALV5aU/iT
-   g==;
-X-CSE-ConnectionGUID: wxCznk8sSj2dt2tXuYhT4w==
-X-CSE-MsgGUID: iZ5tTzB8Rn+/tbGNdPjHGQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11171"; a="25574785"
-X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
-   d="scan'208";a="25574785"
-Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:33 -0700
-X-CSE-ConnectionGUID: rM5jJrkeQwqpHZoJ8t7Zew==
-X-CSE-MsgGUID: 9f49qoRWQ66z1YYNza7nbw==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
-   d="scan'208";a="61811070"
-Received: from unknown (HELO vcostago-mobl3.jf.intel.com) ([10.241.225.92])
-  by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:33 -0700
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: brauner@kernel.org,
-	amir73il@gmail.com,
-	hu1.chen@intel.com
-Cc: miklos@szeredi.hu,
-	malini.bhandaru@intel.com,
-	tim.c.chen@intel.com,
-	mikko.ylinen@intel.com,
-	lizhen.you@intel.com,
-	linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: [PATCH v2 16/16] overlayfs: Remove ovl_override_creds_light()
-Date: Wed, 21 Aug 2024 18:25:23 -0700
-Message-ID: <20240822012523.141846-17-vinicius.gomes@intel.com>
-X-Mailer: git-send-email 2.46.0
-In-Reply-To: <20240822012523.141846-1-vinicius.gomes@intel.com>
-References: <20240822012523.141846-1-vinicius.gomes@intel.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="XQzLSx/H"
+Received: by mail-lf1-f49.google.com with SMTP id 2adb3069b0e04-52f04b3cb33so853678e87.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 22 Aug 2024 01:15:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1724314511; x=1724919311; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=uqbG4nW5Y6BHbHkXKVf6nVFJEVL3TwPzeJDq6NPW2qo=;
+        b=XQzLSx/HKg+X/ALxTZuew+UMnOIvTcvEafXLyYr6F3tj7P2jigajL/ve5ujEdLQimN
+         Ld9+g1C2Kc5tk6F+d4KLKrjybHnRnXiIZJJXOhWVWt8Svq0n64QA6+7+qYF0WtPJNyTr
+         e95OtRO2q6fa71+l6fQgp3YnZgM/JqgkI+i00=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724314511; x=1724919311;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=uqbG4nW5Y6BHbHkXKVf6nVFJEVL3TwPzeJDq6NPW2qo=;
+        b=j0OYmm6EGVtBAAfSOFXXMU47mlNiWc7oZSnulqFhd9bjUjb/U7LMRxade83IP+UcOS
+         +CjAyTzEV0Xd5FJgJBCdT+hcCoaxgSYlxh5ZNLh0y8gWXwEDjWMcTdSqBJBZzGHKcHLc
+         P8ZfAuyu7iVf8BxbR9+aaecOXSwUF48S4LRCKzSkGLbELiymMVa+G5jLHTTbl6z4LZ3K
+         yjWdpylCBMK2QUjaLQBNwZeHPlFrLWhQVL8ssKwLfTzd5VQ6bPO3sB373vaG8XtdttX+
+         cwUuOxoFbRhvKHQVt7XgNsjL0iOo0M+6bzWlD7PH0TssjTeVKGyxHxw5XLculhOvRT+C
+         ensg==
+X-Forwarded-Encrypted: i=1; AJvYcCXBPxg9UYG4yixlMMIr3Chyp2S4C1GKg2dkGUE4oeutiPrCPx3mOlTEnuXmrq0yD2Ve0valJeuqPbKwBH05@vger.kernel.org
+X-Gm-Message-State: AOJu0YzYXPS814ZXDNZCOS7kaqXm8mHu8AjKf1yXPtq9N5P3r8YQ53RP
+	BKgKadwzgK2AmD51hAvGdUQnzkv/QMa7FZXXSx61jL/uduN1giBcELR9fCybzj9/wboOgrasxMF
+	Zi+emYBMQs5leOkZel1YokS/pME1x4Y48QECKCA==
+X-Google-Smtp-Source: AGHT+IGeEsWLwDn62Q3uOu1kuIfreyy7/gjPN+p1rXMKUOBZDfj3t2/mNoyV7SIAvs0yR/zP1E2sixQmJRRO8bfS9r8=
+X-Received: by 2002:a05:6512:b06:b0:52e:73f5:b7c4 with SMTP id
+ 2adb3069b0e04-5334fd4cbc5mr917514e87.37.1724314511188; Thu, 22 Aug 2024
+ 01:15:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20240822012523.141846-1-vinicius.gomes@intel.com> <20240822012523.141846-5-vinicius.gomes@intel.com>
+In-Reply-To: <20240822012523.141846-5-vinicius.gomes@intel.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Thu, 22 Aug 2024 10:14:58 +0200
+Message-ID: <CAJfpegvx2nyVpp4kHaxt=VwBb3U4=7GM-pjW_8bu+fm_N8diHQ@mail.gmail.com>
+Subject: Re: [PATCH v2 04/16] overlayfs: Document critical override_creds() operations
+To: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Cc: brauner@kernel.org, amir73il@gmail.com, hu1.chen@intel.com, 
+	malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com, 
+	lizhen.you@intel.com, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-Remove the declaration of this unsafe helper.
+On Thu, 22 Aug 2024 at 03:25, Vinicius Costa Gomes
+<vinicius.gomes@intel.com> wrote:
+>
+> Add a comment to these operations that cannot use the _light version
+> of override_creds()/revert_creds(), because during the critical
+> section the struct cred .usage counter might be modified.
 
-As the GUARD() helper guarantees that the cleanup will run, it is less
-error prone. Future usages should either use the GUARD helpers or the
-non "light" versions.
+Why is it a problem if the usage counter is modified?  Why is the
+counter modified in each of these cases?
 
-Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
----
- fs/overlayfs/overlayfs.h | 1 -
- fs/overlayfs/util.c      | 7 -------
- 2 files changed, 8 deletions(-)
-
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 557d8c4e3a01..0bfe35da4b7b 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -429,7 +429,6 @@ int ovl_want_write(struct dentry *dentry);
- void ovl_drop_write(struct dentry *dentry);
- struct dentry *ovl_workdir(struct dentry *dentry);
- const struct cred *ovl_override_creds(struct super_block *sb);
--const struct cred *ovl_override_creds_light(struct super_block *sb);
- 
- static inline const struct cred *ovl_creds(struct super_block *sb)
- {
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 77b8d01829a4..fafd8b709f64 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -68,13 +68,6 @@ const struct cred *ovl_override_creds(struct super_block *sb)
- 	return override_creds(ofs->creator_cred);
- }
- 
--const struct cred *ovl_override_creds_light(struct super_block *sb)
--{
--	struct ovl_fs *ofs = OVL_FS(sb);
--
--	return override_creds_light(ofs->creator_cred);
--}
--
- /*
-  * Check if underlying fs supports file handles and try to determine encoding
-  * type, in order to deduce maximum inode number used by fs.
--- 
-2.46.0
-
+Thanks,
+Miklos
