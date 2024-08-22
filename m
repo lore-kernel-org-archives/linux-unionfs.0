@@ -1,46 +1,46 @@
 Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CF2151B27D;
-	Thu, 22 Aug 2024 01:25:35 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 635D52261D;
+	Thu, 22 Aug 2024 01:25:37 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724289937; cv=none; b=cdcMS/coGtSOaz1mQUB+V+6eTpt56oupAfvnOx3yWnPda38h3Hs/9VEatTv2DoQ1khaH0TvXz7GQuI344FOAJGNR6E7LGlbJN35EDRUSCUTzWmKW2n4RX2YmISWvtv8bcYk6x9iyAb2kjVceO1YU0vuQKnwl4P/PawCz8UQSEU4=
+	t=1724289939; cv=none; b=DQzIctpV03QeHzQk39WnpxiFzzak9VDb/Ic9DpuzzLekcTETR+1jUaz1kKfcXTiz6LNur9cC/gNYbAzYEtmCN3DgqX4mcbQgdbH8v2RMfm64uWTWcPli2jNZE84VU4jqr3XoV6NKUvWViMFhPVhEJHtV6WzrmUGe1Js9ReUA+TI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724289937; c=relaxed/simple;
-	bh=CZkEIxc+FPJaU+fDIa1vfhmaBsh7YXbodcWi0F7voVM=;
+	s=arc-20240116; t=1724289939; c=relaxed/simple;
+	bh=MLzBpkUYJWmUiPCC11ofDmi4f/AtUmhAwsVRazuR2Xk=;
 	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=qz0imvXHt/dzY3waWn7fBTphbyOGuhXdbtiIZ+CiseD3VHqXh4NosSt1BncRysLuALal+AQXmYB7bUN+iCh7yvG8Z/Z8cfl79nUAUI2Gf0hVsgN9Gwpx2H3CM3dgfzzUQqqeIb0AjPveTxS2mLDzqWOVvNA2fKm2CgVs8YM7tg8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=FsyfWWA8; arc=none smtp.client-ip=192.198.163.13
+	 MIME-Version; b=HznRiUueMJzujUxYbcexgmdB439M26GHdjxhG9eI+4hvsggrZUnxDyl4F1UUfib8O/sl1iWdoTPNdX/LnWTaYNc5a2YOjasy9xDy+ii5kZTdP72F5VMqq6jsQ/yVGowovuKg9f5pCNc00Ey7EmRDFtd6luFkvUszGyaAg7z4nuk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=VAkvwVxt; arc=none smtp.client-ip=192.198.163.13
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="FsyfWWA8"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="VAkvwVxt"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724289936; x=1755825936;
+  t=1724289937; x=1755825937;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=CZkEIxc+FPJaU+fDIa1vfhmaBsh7YXbodcWi0F7voVM=;
-  b=FsyfWWA8Bxpz6Xc9zKMSMAayNK9t+c3cn9obsKUZqc4sVh+P3c8FA+BE
-   PhSYs+yWfb6aBb0Bdj12bafL0uWGSQ/dbgRnVsujsd/ulqkRLCnBmgpwn
-   o6ALKZQL+pUZ4T8D0DqMG8zbVUlRk6R+eVGL9G6BtClysSMXCgdg1wus2
-   OzUKMfB98Re3469rYhNG/fO++VSoF6gvuaRgYczE8hHotwSU/OsNoiOR2
-   Ufk2qg/KsWzNb+0i0nuDfRSiQe77A2blJ23CvQfRUmmaQltED9a+ujGQZ
-   OwAApkd/1yKhCI7bvr8XLCzBNSXTXiOIECecIW8EUoKa1EgCzmwi+TEGU
-   w==;
-X-CSE-ConnectionGUID: CvimTQMATLKimauT2WpTrA==
-X-CSE-MsgGUID: Tub3MiOORFGOqff8cOUifg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11171"; a="25574733"
+  bh=MLzBpkUYJWmUiPCC11ofDmi4f/AtUmhAwsVRazuR2Xk=;
+  b=VAkvwVxtmx9gKC/365AcAGRHd7A+QiaRVtuXBCkAyCeoMCbbbkn3GvYE
+   71PNwmmPXriKDEtWWq2yuL1AYZAGvMkUIt5S5Wg53ZPpKm9kD1QgGfSwg
+   +slvhcqlXfKuALaFmmnOyRPypMseH6CtkIfNSz9Ll3oGMnGFIH0w4gBdx
+   oGPCbEYRDcLtaOt9pwWPdUc9F41n7qfC4x2M4Bvkz1qwlijx4N0misHaF
+   pAW8ycARbO15xNavk4ClR+0KuzcfJvN9GsFohT5HuoTR1htbKcOKJL4/6
+   kOdXBLhsH/klCp/mxGBS89yNC6acvS+cPrZ0tSf6CoKQaqAH2ULmRWJwM
+   g==;
+X-CSE-ConnectionGUID: EP00pN1lRP+7LDkeyw7LTg==
+X-CSE-MsgGUID: 13vNRATuSN2MHJmGbPZkig==
+X-IronPort-AV: E=McAfee;i="6700,10204,11171"; a="25574744"
 X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
-   d="scan'208";a="25574733"
+   d="scan'208";a="25574744"
 Received: from orviesa007.jf.intel.com ([10.64.159.147])
-  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:32 -0700
-X-CSE-ConnectionGUID: qGd1H4ZLS7iaqbvcQt7jbw==
-X-CSE-MsgGUID: ZvvVH9+UTlSlgf/5Z8ERMg==
+  by fmvoesa107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:33 -0700
+X-CSE-ConnectionGUID: 0WpHMbqjT32eHpo0Rj8ozA==
+X-CSE-MsgGUID: 27+qDwWQSK+S30ndu1F6jg==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,165,1719903600"; 
-   d="scan'208";a="61811028"
+   d="scan'208";a="61811038"
 Received: from unknown (HELO vcostago-mobl3.jf.intel.com) ([10.241.225.92])
   by orviesa007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Aug 2024 18:25:32 -0700
 From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
@@ -56,9 +56,9 @@ Cc: miklos@szeredi.hu,
 	linux-fsdevel@vger.kernel.org,
 	linux-kernel@vger.kernel.org,
 	Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: [PATCH v2 04/16] overlayfs: Document critical override_creds() operations
-Date: Wed, 21 Aug 2024 18:25:11 -0700
-Message-ID: <20240822012523.141846-5-vinicius.gomes@intel.com>
+Subject: [PATCH v2 06/16] cred: Introduce cred_guard() and cred_scoped_guard() helpers
+Date: Wed, 21 Aug 2024 18:25:13 -0700
+Message-ID: <20240822012523.141846-7-vinicius.gomes@intel.com>
 X-Mailer: git-send-email 2.46.0
 In-Reply-To: <20240822012523.141846-1-vinicius.gomes@intel.com>
 References: <20240822012523.141846-1-vinicius.gomes@intel.com>
@@ -70,62 +70,39 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-Add a comment to these operations that cannot use the _light version
-of override_creds()/revert_creds(), because during the critical
-section the struct cred .usage counter might be modified.
+These helpers will make it less error prone to use
+override_creds_light()/revert_creds_light(). They make sure that they
+are paired.
 
+As they use the _light() version of the credentials override/revert
+operations, they should only be used when there are guarantees that
+the lifetime of the credentials in question is not modified during the
+critical section.
+
+Suggested-by: Christian Brauner <brauner@kernel.org>
 Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
 ---
- fs/overlayfs/copy_up.c | 6 +++++-
- fs/overlayfs/dir.c     | 3 +++
- 2 files changed, 8 insertions(+), 1 deletion(-)
+ include/linux/cred.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index a5ef2005a2cc..7dec275e08cd 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -718,8 +718,12 @@ static int ovl_prep_cu_creds(struct dentry *dentry, struct ovl_cu_creds *cc)
- 	if (err < 0)
- 		return err;
- 
--	if (cc->new)
-+	if (cc->new) {
-+		/* Do not use the _light version, the credentials
-+		 * ->usage might be modified.
-+		 */
- 		cc->old = override_creds(cc->new);
-+	}
- 
- 	return 0;
+diff --git a/include/linux/cred.h b/include/linux/cred.h
+index e4a3155fe409..f4f3d55cd6a2 100644
+--- a/include/linux/cred.h
++++ b/include/linux/cred.h
+@@ -190,6 +190,13 @@ static inline void revert_creds_light(const struct cred *revert_cred)
+ 	rcu_assign_pointer(current->cred, revert_cred);
  }
-diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-index ab65e98a1def..851945904385 100644
---- a/fs/overlayfs/dir.c
-+++ b/fs/overlayfs/dir.c
-@@ -584,6 +584,7 @@ static int ovl_create_or_link(struct dentry *dentry, struct inode *inode,
- 	const struct cred *old_cred;
- 	struct dentry *parent = dentry->d_parent;
  
-+	/* Do not use the _light version, cred->usage might be modified */
- 	old_cred = ovl_override_creds(dentry->d_sb);
- 
- 	/*
-@@ -1159,6 +1160,7 @@ static int ovl_rename(struct mnt_idmap *idmap, struct inode *olddir,
- 			goto out;
- 	}
- 
-+	/* Do not use the _light version, cred->usage might be modified */
- 	old_cred = ovl_override_creds(old->d_sb);
- 
- 	if (!list_empty(&list)) {
-@@ -1314,6 +1316,7 @@ static int ovl_create_tmpfile(struct file *file, struct dentry *dentry,
- 	int flags = file->f_flags | OVL_OPEN_FLAGS;
- 	int err;
- 
-+	/* Do not use the _light version, cred->usage might be modified */
- 	old_cred = ovl_override_creds(dentry->d_sb);
- 	err = ovl_setup_cred_for_create(dentry, inode, mode, old_cred);
- 	if (err)
++DEFINE_LOCK_GUARD_1(__cred, struct cred,
++		    _T->lock = (struct cred *)override_creds_light(_T->lock),
++		    revert_creds_light(_T->lock));
++
++#define cred_guard(_cred) guard(__cred)(((struct cred *)_cred))
++#define cred_scoped_guard(_cred) scoped_guard(__cred, ((struct cred *)_cred))
++
+ /**
+  * get_new_cred_many - Get references on a new set of credentials
+  * @cred: The new credentials to reference
 -- 
 2.46.0
 
