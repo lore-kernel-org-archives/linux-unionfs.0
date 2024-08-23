@@ -1,110 +1,130 @@
-Received: from mail-qk1-f181.google.com (mail-qk1-f181.google.com [209.85.222.181])
+Received: from mail-ua1-f48.google.com (mail-ua1-f48.google.com [209.85.222.48])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3871A3D994
-	for <linux-unionfs@vger.kernel.org>; Fri, 23 Aug 2024 07:34:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4147F13C918;
+	Fri, 23 Aug 2024 09:19:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.48
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724398443; cv=none; b=gq4hBdeg72lQcpz3qYaw6Sx//FEF1QGU2SplsEG/pTb84eLdKss6RaiwPwjgqax4nh+053O4LORMlM0lWTUHW3hqB3A9OKrGJGOobf811G/8+v5edR8LwNFodwsuEVAvwVC8/sRo2njkekkYv9UU6yo6/MXkhaaPU/BR5EskmzI=
+	t=1724404763; cv=none; b=Fsfc5hEelr0VSZ4ybgQ5oeEgiCsrKQsa2chiEifM4JlfKx5sBfAWuZhQWrr8owfVaZu9DYDknFh6Zsg/mMDaSCUemfUBRc9mvV7v1Dgeg+XuDvziM0g/Q79afoJnD2muScjOLqtaW/WdGKRPpjLP/tr3gzZWjrw9pkZkn2ZJO6g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724398443; c=relaxed/simple;
-	bh=A/Rlr2YTmJNTtujfqk9pPaGMz4xAB1NGX4juiw/OgM4=;
+	s=arc-20240116; t=1724404763; c=relaxed/simple;
+	bh=IibTBgqhw45+iOawqa2uxmYxJEzTC+NgkR167nJ9zRQ=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=JpM2QnBU7rkZxurXZ5jf7VIZj0t//sORqgFnhcXfpYY068uRIw6FD9fxtxNoAtQIqkkmJ00jTQYYjTUxkkbyaP7o83u8U1OuBPhQ7l28g1gG/CAUgSd/V0+XwMpORB1Jw7+Vil+KHdF7w7o4cuBDpoI8sNfb8kZ+vOEZiYzpbJA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=mZhOcvOS; arc=none smtp.client-ip=209.85.222.181
+	 To:Cc:Content-Type; b=PvW+QD/bF5Mrk8bvuOkHhhy3qR6U/lCirWKHgiQZfy33KLrFPUp/Ia0T7EiOKK+RgMUvNgHWGXJwa6KyyFBY1tJ3dJ3qFVqlF1XbqAT7mf9OXq/yXCfY/dfujakW7LD8MHAeEzfFlzAh4DG43PPdnqTUXdTzhOoWA+3DSlHUXng=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=goqUiArV; arc=none smtp.client-ip=209.85.222.48
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="mZhOcvOS"
-Received: by mail-qk1-f181.google.com with SMTP id af79cd13be357-7a1dea79e1aso101400185a.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 23 Aug 2024 00:34:01 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="goqUiArV"
+Received: by mail-ua1-f48.google.com with SMTP id a1e0cc1a2514c-842ef41238fso539609241.0;
+        Fri, 23 Aug 2024 02:19:21 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1724398441; x=1725003241; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1724404761; x=1725009561; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=Tz6kmot8/wwIayVlQ8sYHx3olROoe4c55rw8G42/G2E=;
-        b=mZhOcvOSRq7NNhdCYlmDONP7cg6tfyH5k0USKymNJLG2LcFOAaPGR/KL32SUYfAa0S
-         suWHvIJA8wtkeyQzsKYokyNwUN4J2goytvxjtnQjwQyxfor2uuvmYvdRsIyDQF0yBfW9
-         aO8dVvzJ6SMYxhpIXZXG4s9fZURM9sTMtw4o0c0draY7EEUPtBWc+cxv85rwTyY7hIE3
-         UWW6oPfafumJLq0Q+Zg0pk3tTWiUhOtwykst5XCrjJFG83ca1pXja/bxo6PEPBiCUme0
-         OEN9i/XUtnaQy+/ayso82LsHlbh7BVD25ewzXLPGf3V1ox2jCQzR28TfwcqSmHz8hVGP
-         AIAg==
+        bh=8Aanka2PpayLsWVfpyn/8lArNZtYk4+n0lwBfiN9yMw=;
+        b=goqUiArV6HRsUejpA88mnf/o1OS6g5fP5Zvbk1u0IfIC/W7YwjkOSK3kPJWgLDbQ7y
+         p2TO1b1zWY52j3fR/8c2pTkRSSgi4Jz3oLdVS8x7XUuei7DlbKalbqEa0Xykv85xI+/z
+         RdTn9EjtQxQjEdpOwLJYuDVn0hq4r8eq2twIKhmKCuHwxaLxPQn20BITQ/QBd22EdaEk
+         KjmNE6O/1sxwMLZbao8JDZTj3BCND9w4amZWmf/pnDC3yuW1SEs0OJ6mR40KFWWqUAkB
+         ai4NOBz8Fj38D5prOq0rV5EOJnWHu1N67xcO4RCNRvS336Ekpx1hpjWKyU7hDNArrYtJ
+         uLcg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1724398441; x=1725003241;
+        d=1e100.net; s=20230601; t=1724404761; x=1725009561;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=Tz6kmot8/wwIayVlQ8sYHx3olROoe4c55rw8G42/G2E=;
-        b=CJ9jb27pfNzWeLyjv4BiZy/ggJgRydiUh3ap69ciFVOco5gsBZAzxbKBKfcworVkS9
-         74dPKkJ1qvu5TICkbnEw0XguDXJcSeuLbU+f59nFI8HRJwP7LUOHSWp6KEnkglZHtNy2
-         j9ZyZeh3gnOgC/fZ565l8meomqtxhskoWsgQCayOtctHWMP4OP/j9L6MESOdLSzgpCtt
-         yVC2c5PvkSJgg3xm0C2Iqqh7MzAfrRR2cdtgKa/tzqRRSK/AisaqMDbuhPZljyS6K8zS
-         ZMakt5iWJ4QrSDQ6vJ92p8aZoVCLBVSiiZe1D22s0sYPu0CjQcVt9lJ9zJUf093PAwJo
-         pNVA==
-X-Forwarded-Encrypted: i=1; AJvYcCUF8AQAPE3LrQc58f08Tp1uKjTypDVVeIZfoAVLujnjuPvgIqw6DrHroK88CJFniB3RqEpxe5dx8lXazZ1s@vger.kernel.org
-X-Gm-Message-State: AOJu0YynZPqzsgV2LPW4LMKnZBo+UzfPhwKQnfxN8LPMJtY+D3gj4JeR
-	vHLe60lOtEVMC651zbrmUiKBr5QuGHAcrOLAvf2hPE/TIBV162fPykkYS58Zo9JnNl/jciEvNCt
-	MANHO9FceNrSlV+hfCxH94lXVESeTf/++Q1w=
-X-Google-Smtp-Source: AGHT+IF4Zj43wFalknuPn1WmDMvkAsUgVKPMpUs3A/Hi7jqN6K4LVIzAjKOhLQ1izvFXII8NHk7VV4t4Ih7iiL63IHw=
-X-Received: by 2002:a05:620a:2953:b0:7a6:68d1:7dfa with SMTP id
- af79cd13be357-7a689701b32mr104160485a.17.1724398440907; Fri, 23 Aug 2024
- 00:34:00 -0700 (PDT)
+        bh=8Aanka2PpayLsWVfpyn/8lArNZtYk4+n0lwBfiN9yMw=;
+        b=A8e6Y11Yjq7hILzjvmAGeZO07OsvmZgef+nGemZHHgPERy+5qNsURerdZu/NKCOaJd
+         D5nr3QgaDBMLzfqNNlzjJXyusCJKBTb+P4hMVtoc1qRLTz9JqBez43zasgiij43GsLzh
+         edHcZyZNrH+q09k7K3Wz8OvaIlAS1sICfwLM0cEulQC9yotGmtVQxzI7wlG64phJd6q9
+         DtuS6qd+VdpHbt+PSXFJN6149HLolwpZ448W6ohiRNYquZeiLNtZvWSJtkVRWus7eKu3
+         zSNhgQ5rDz7gBRgrAklWhVYQRuIgRoOARh3td39WyQr0L0+2EArBqwL3MivklTjqzyPM
+         7V3g==
+X-Forwarded-Encrypted: i=1; AJvYcCW+yr5V0F26oDtuCAenMPjUmLDOdz6wrQbULT995zk1wzsxxmHNkaN21Mqpd3Kin/ZIdjNkUxtZG0ltarJm@vger.kernel.org, AJvYcCXhvTyHthMTzjVAy3KOUTzxqAlGxBtO6AlMVBhsqHvHhhuLFvp8UCs0UE+cwTN/qs7Ep7mlvCmTMKmwJlhR@vger.kernel.org, AJvYcCXjqfWvLziLZ/VZ0oBrvGwTyi3nZR/V1cd9cPdr9zpoo5KjJPWZDySDhkvWx8ECB0bSHXhGUi0qNsOml8HrDg==@vger.kernel.org
+X-Gm-Message-State: AOJu0YxVikcaZUEnKB0kOZdkyfnMa28+QDHxA9SxZ61XhMJmDNFp9RYJ
+	/FpdQZqW/fFaUn7xiRLBbnU5FktrAa6gr7wNC1++duEyKJKR7k65u30fWQ9zEZMpbJcgAjB9Hha
+	Zx4YotEjtTwqdJAZv3aOOFZ6z5NI=
+X-Google-Smtp-Source: AGHT+IE9kgNHk6QBa2umXgprmSxk1o4/YViXD66++2xa1BzhHFTA6Y543TCkCl52NCRZ5fO8JYHBI4NWztjCTln4krY=
+X-Received: by 2002:a05:6102:38c8:b0:493:b484:ac06 with SMTP id
+ ada2fe7eead31-498f4bfa0b1mr2011900137.21.1724404760959; Fri, 23 Aug 2024
+ 02:19:20 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240816064100.1993219-1-lihongbo22@huawei.com>
-In-Reply-To: <20240816064100.1993219-1-lihongbo22@huawei.com>
+References: <20240708072208.25244-1-ed.tsai@mediatek.com>
+In-Reply-To: <20240708072208.25244-1-ed.tsai@mediatek.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 23 Aug 2024 09:33:49 +0200
-Message-ID: <CAOQ4uxjWA+MGMoVuj5RtZsjOintviRdowhKN07dK3+R==bzvYA@mail.gmail.com>
-Subject: Re: [PATCH -next] ovl: Use in_group_or_capable() helper to simplify
- the code
-To: Hongbo Li <lihongbo22@huawei.com>, Christian Brauner <brauner@kernel.org>
-Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org
+Date: Fri, 23 Aug 2024 11:19:09 +0200
+Message-ID: <CAOQ4uxjySyTMRQDuFDsA1XVK210K+8CHh3LoSU2zYynh5OyF_w@mail.gmail.com>
+Subject: Re: [PATCH 1/1] backing-file: convert to using fops->splice_write
+To: ed.tsai@mediatek.com, Christian Brauner <brauner@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
+	Matthias Brugger <matthias.bgg@gmail.com>, 
+	AngeloGioacchino Del Regno <angelogioacchino.delregno@collabora.com>, chun-hung.wu@mediatek.com, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-mediatek@lists.infradead.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Aug 16, 2024 at 8:33=E2=80=AFAM Hongbo Li <lihongbo22@huawei.com> w=
-rote:
->
-> Since in_group_or_capable has been exported, we can use
-> it to simplify the code when check group and capable.
->
-> Signed-off-by: Hongbo Li <lihongbo22@huawei.com>
-> ---
->  fs/overlayfs/inode.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-> index 35fd3e3e1778..a0692595a5d6 100644
-> --- a/fs/overlayfs/inode.c
-> +++ b/fs/overlayfs/inode.c
-> @@ -554,8 +554,8 @@ int ovl_set_acl(struct mnt_idmap *idmap, struct dentr=
-y *dentry,
->          * be done with mounter's capabilities and so that won't do it fo=
-r us).
->          */
->         if (unlikely(inode->i_mode & S_ISGID) && type =3D=3D ACL_TYPE_ACC=
-ESS &&
-> -           !in_group_p(inode->i_gid) &&
-> -           !capable_wrt_inode_uidgid(&nop_mnt_idmap, inode, CAP_FSETID))=
- {
-> +           !in_group_or_capable(&nop_mnt_idmap, inode,
-> +                                i_gid_into_vfsgid(&nop_mnt_idmap, inode)=
-)) {
->                 struct iattr iattr =3D { .ia_valid =3D ATTR_KILL_SGID };
->
->                 err =3D ovl_setattr(&nop_mnt_idmap, dentry, &iattr);
+Christian,
 
+Would you mind picking up this fix via the vfs tree?
+The reason that the Fixes tag points to fuse passthrough patch is twofold:
 
-I will need Christian to comment on this patch, but it feels to me
-like the checks
-in ovl should mimic the checks in posix_acl_update_mode(), so it feels odd
-to update one without the other.
+1. fuse passthrough is a new user of backing_file_splice_write() which
+    can have a fuse or overlayfs backing file with custom ->splice_write()
+2. overlayfs can have a backing upper file which is a fuse passthrough
+    file with a custom ->splice_write()
 
 Thanks,
 Amir.
+
+On Mon, Jul 8, 2024 at 9:23=E2=80=AFAM <ed.tsai@mediatek.com> wrote:
+>
+> From: Ed Tsai <ed.tsai@mediatek.com>
+>
+> Filesystems may define their own splice write. Therefore, use the file
+> fops instead of invoking iter_file_splice_write() directly.
+>
+
+Fixes: 5ca73468612d ("fuse: implement splice read/write passthrough")
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+> Signed-off-by: Ed Tsai <ed.tsai@mediatek.com>
+> ---
+>  fs/backing-file.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/backing-file.c b/fs/backing-file.c
+> index afb557446c27..8860dac58c37 100644
+> --- a/fs/backing-file.c
+> +++ b/fs/backing-file.c
+> @@ -303,13 +303,16 @@ ssize_t backing_file_splice_write(struct pipe_inode=
+_info *pipe,
+>         if (WARN_ON_ONCE(!(out->f_mode & FMODE_BACKING)))
+>                 return -EIO;
+>
+> +       if (!out->f_op->splice_write)
+> +               return -EINVAL;
+> +
+>         ret =3D file_remove_privs(ctx->user_file);
+>         if (ret)
+>                 return ret;
+>
+>         old_cred =3D override_creds(ctx->cred);
+>         file_start_write(out);
+> -       ret =3D iter_file_splice_write(pipe, out, ppos, len, flags);
+> +       ret =3D out->f_op->splice_write(pipe, out, ppos, len, flags);
+>         file_end_write(out);
+>         revert_creds(old_cred);
+>
+> --
+> 2.18.0
+>
