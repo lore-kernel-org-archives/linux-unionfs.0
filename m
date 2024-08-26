@@ -1,129 +1,190 @@
-Received: from spam.asrmicro.com (asrmicro.com [210.13.118.86])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f179.google.com (mail-qk1-f179.google.com [209.85.222.179])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 420ED3FE4;
-	Mon, 26 Aug 2024 07:00:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=210.13.118.86
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 15B911E519;
+	Mon, 26 Aug 2024 13:03:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724655632; cv=none; b=lejHzyvh2pLs8rzfP07gS0rFdZqRll6kivBgsDMjv3W8lcFL8qjy09A4ETpPZ3UJi0+szv8XdDKrFGKl5UppBaKFT1L+tCTa/shC5llMr7gQ6K0p16V40oV+ei7fID1f4Z30dYWc0826awX2Q86vVn3o95XuYbo2p5pkSVS9PcQ=
+	t=1724677418; cv=none; b=t9LePRpoWZnWBIRJlslAmKMFTs+BEw4NL71ExF85jaHvhkjGhSWBJy0xtqQeMgshl4dX6Rqozt6PXGLqGDgZx8qwR1c5tDTNIKUd1SKt7L5CUJGmOB1ICiLegXDol0J3UqCeSPR4XLDUMOtCo7pr7axsgmsedJhPIcKN8zHYnP4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724655632; c=relaxed/simple;
-	bh=QbvLGkorMs2YBMtwGD1hxtKV6N4yNkWIvtA+plxFoHw=;
-	h=From:To:CC:Subject:Date:Message-ID:References:In-Reply-To:
-	 Content-Type:MIME-Version; b=hWbbm3zOzkUi2HEsf5LUOzkhi512iMTibeefjHAzUtUL0Z0grRmM9+yhB6+wK3ftA+cYUPRDOfrL+YDlHwfSMjwJbgcUo2IQc/nuCIBiufhaP8gmkek744BQmYQ86KQLstvhE28DwuxriR6wWVkJlYgjijFkHiFg7zk7Bki3Cpk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com; spf=pass smtp.mailfrom=asrmicro.com; arc=none smtp.client-ip=210.13.118.86
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=asrmicro.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=asrmicro.com
-Received: from spam.asrmicro.com (localhost [127.0.0.2] (may be forged))
-	by spam.asrmicro.com with ESMTP id 47Q6uP35067674;
-	Mon, 26 Aug 2024 14:56:25 +0800 (GMT-8)
-	(envelope-from feilv@asrmicro.com)
-Received: from mail2012.asrmicro.com (mail2012.asrmicro.com [10.1.24.123])
-	by spam.asrmicro.com with ESMTPS id 47Q6u9Jq067648
-	(version=TLSv1 cipher=ECDHE-RSA-AES256-SHA bits=256 verify=FAIL);
-	Mon, 26 Aug 2024 14:56:09 +0800 (GMT-8)
-	(envelope-from feilv@asrmicro.com)
-Received: from exch01.asrmicro.com (10.1.24.121) by mail2012.asrmicro.com
- (10.1.24.123) with Microsoft SMTP Server (TLS) id 15.0.847.32; Mon, 26 Aug
- 2024 14:56:11 +0800
-Received: from exch01.asrmicro.com ([::1]) by exch01.asrmicro.com ([::1]) with
- mapi id 15.00.0847.030; Mon, 26 Aug 2024 14:56:11 +0800
-From: =?utf-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
-To: Amir Goldstein <amir73il@gmail.com>
-CC: "miklos@szeredi.hu" <miklos@szeredi.hu>,
-        "linux-unionfs@vger.kernel.org"
-	<linux-unionfs@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org"
-	<linux-kernel@vger.kernel.org>,
-        =?utf-8?B?WHUgTGlhbmdode+8iOW+kOiJr+iZju+8iQ==?= <lianghuxu@asrmicro.com>
-Subject: =?utf-8?B?562U5aSNOiBbUEFUQ0ggVjJdIG92bDogZnN5bmMgYWZ0ZXIgbWV0YWRhdGEg?=
- =?utf-8?Q?copy-up_via_mount_option_"fsync=3Dstrict"?=
-Thread-Topic: [PATCH V2] ovl: fsync after metadata copy-up via mount option
- "fsync=strict"
-Thread-Index: AQHa9UIlKsA9M1EjHk6g0E/n5Hdt2rI0MnmAgATs23A=
-Date: Mon, 26 Aug 2024 06:56:10 +0000
-Message-ID: <5be64ae3b75e413fa47c9ecb2c4a359a@exch01.asrmicro.com>
-References: <20240722101443.10768-1-feilv@asrmicro.com>
- <CAOQ4uxhP03BHK8gDmeySxkacGvy9BToZkb5nTgaegWxJPAuG8A@mail.gmail.com>
- <CAOQ4uxgbbadOC_LCYRk-muFKYH3QNVnD+ZEH+si-V1i3En66Bw@mail.gmail.com>
- <CAOQ4uxiDokEQ0ZET+adP_CpvvTCRRLTcVb9d5mYAmM1q7y2PnQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiDokEQ0ZET+adP_CpvvTCRRLTcVb9d5mYAmM1q7y2PnQ@mail.gmail.com>
-Accept-Language: zh-CN, en-US
-Content-Language: zh-CN
-X-MS-Has-Attach:
-X-MS-TNEF-Correlator:
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	s=arc-20240116; t=1724677418; c=relaxed/simple;
+	bh=EXpi6K9uXt7ma/n9zbVeegQjq9nYe85iBidPk9A8j1A=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=sSCQfLHvaSxu4hUuV/M3Hw1OdrrYrUK4QyUjUjfpnOpRKZBQz8sE5L7FhwQ3S2z4hxluVj3R7fEagsVuW9JXRIGKOyiG3OzA+r50IKO96D+skL/Z6Jd5j8ro2/lXu5vODXMt+wrU3DS8cuvQvKNcex5Sncy701xLHoWO5btA4Ww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BYaXbeci; arc=none smtp.client-ip=209.85.222.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BYaXbeci"
+Received: by mail-qk1-f179.google.com with SMTP id af79cd13be357-7a1df0a9281so265620285a.1;
+        Mon, 26 Aug 2024 06:03:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1724677416; x=1725282216; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=wo8k4P607AhHv2HXwuEF6+EBlZF6/PH1+ohX5pU9hag=;
+        b=BYaXbeciDZlKhB4MYcBIm6gNbfuZ7eMV+3GfvphbiqblljXWuwFBs+y8vkhdMvqSQ8
+         ErMcv7o3u3SvWmYTkWDJ8Hjxd+SX8OZ3GKnriivZ/kpKSZN/9c6cEIrhGTjOlbRK+Xmd
+         APA4fpatE/Tg5PvgRMbYwqIocTc+Jf6dZO995ZauevKX8YyJacjm6LDQ3009Uf3AM+li
+         nlhMtCXcihxf/cLIu9BeBJbGdAZs7/pxCify2BBQa5fNbLXQL3Umnr204LK8/dHIXhf0
+         7TUdwep+JEYd4UACGUwujvKiHRJByzqADdQXSYqL9uhl6yE9ZVRvL4g/roZpAB5AYkOe
+         X6Yg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1724677416; x=1725282216;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=wo8k4P607AhHv2HXwuEF6+EBlZF6/PH1+ohX5pU9hag=;
+        b=QjiY0DlcsTvWE8XN4JyPHm/30vUvhmKp4SceQsd29LZZjIsJTLCibe8lC5sAFAZPSM
+         w9+TTYZOk2OlbbKrKB/8Zp6uRvFkrfwcpoxw0e8mHla54NhZf7qyExwUgAsGhsXouVpQ
+         dH8v9WDgKAP7jxcF2ASjRKjnpt/gFXDk85zjxIy7TNsd23gdnStBb74qO01UCGhGKlw9
+         tj4XmmdHvFLdDdhCohwub8P9TV+UYnaJrziX/q32H3fBYjJOGlVq8Ym9S3D1pZi/mhqO
+         L2AgKbqoC8oCI/XpnLAoN7B0Xfbw5R7yFAjmUCyaFXKYOslqWCwZ+7g65VzgX9o7yaPd
+         7A2A==
+X-Forwarded-Encrypted: i=1; AJvYcCVC42emDKS4sykEHgYooxIexH9wSuzAW72AG8SKc2UYVq7JOgNEh41mO1ygIxHuz0ZpiZdFH7qfxZHfOY4nng==@vger.kernel.org, AJvYcCWdDKWYFhX8RKC6FSgsvV1OK7fiFFYGmjQzu/UM6tDhCR/UgzGMQyDaYUyCBVaEtl4vkIFBsUfrrjHZghc=@vger.kernel.org
+X-Gm-Message-State: AOJu0YwWRqAUY49GsR0vbJKUDNdJ1nPNAqTirNCgxlIciFPNMIg9jZ8J
+	CXGf71t6RGd+l9liMfiWnluLd9DpZuXJJ3+8U0+xBu6RpXxXxJqemdpSpxherjotn/OpvOy5haS
+	+VlDFrYSf/NC0tEeVCFEhc1ibn2/jza69Oas=
+X-Google-Smtp-Source: AGHT+IHvYGlEOqBIQ3+PllW8j7UyCLFssgKZHidNtD64NCCLvHPxO6RliZMd7/8aZe4bhGpB3DTReDi4JZqYKv9Zkds=
+X-Received: by 2002:a05:620a:3724:b0:79d:69b5:aaf7 with SMTP id
+ af79cd13be357-7a6896d184bmr1437103985a.11.1724677415627; Mon, 26 Aug 2024
+ 06:03:35 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-DNSRBL: 
-X-SPAM-SOURCE-CHECK: pass
-X-MAIL:spam.asrmicro.com 47Q6uP35067674
+References: <20240722101443.10768-1-feilv@asrmicro.com> <CAOQ4uxhP03BHK8gDmeySxkacGvy9BToZkb5nTgaegWxJPAuG8A@mail.gmail.com>
+ <CAOQ4uxgbbadOC_LCYRk-muFKYH3QNVnD+ZEH+si-V1i3En66Bw@mail.gmail.com>
+ <CAOQ4uxiDokEQ0ZET+adP_CpvvTCRRLTcVb9d5mYAmM1q7y2PnQ@mail.gmail.com> <5be64ae3b75e413fa47c9ecb2c4a359a@exch01.asrmicro.com>
+In-Reply-To: <5be64ae3b75e413fa47c9ecb2c4a359a@exch01.asrmicro.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 26 Aug 2024 15:03:24 +0200
+Message-ID: <CAOQ4uxi-9=g6B=8P71gDC3Po1oPiqc0jw8hsEeHWurkgiMRjDw@mail.gmail.com>
+Subject: Re: [PATCH V2] ovl: fsync after metadata copy-up via mount option "fsync=strict"
+To: =?UTF-8?B?THYgRmVp77yI5ZCV6aOe77yJ?= <feilv@asrmicro.com>
+Cc: "miklos@szeredi.hu" <miklos@szeredi.hu>, 
+	"linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>, 
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 
+	=?UTF-8?B?WHUgTGlhbmdode+8iOW+kOiJr+iZju+8iQ==?= <lianghuxu@asrmicro.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-DQoNCj4g5Y+R5Lu25Lq6OiBBbWlyIEdvbGRzdGVpbiBbbWFpbHRvOmFtaXI3M2lsQGdtYWlsLmNv
-bV0gDQo+IOWPkemAgeaXtumXtDogMjAyNOW5tDjmnIgyM+aXpSAxOTo0Mw0KPiDmlLbku7bkuro6
-IEx2IEZlae+8iOWQlemjnu+8iSA8ZmVpbHZAYXNybWljcm8uY29tPg0KPiDmioTpgIE6IG1pa2xv
-c0BzemVyZWRpLmh1OyBsaW51eC11bmlvbmZzQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVs
-QHZnZXIua2VybmVsLm9yZzsgWHUgTGlhbmdode+8iOW+kOiJr+iZju+8iSA8bGlhbmdodXh1QGFz
-cm1pY3JvLj4gY29tPg0KPiDkuLvpopg6IFJlOiBbUEFUQ0ggVjJdIG92bDogZnN5bmMgYWZ0ZXIg
-bWV0YWRhdGEgY29weS11cCB2aWEgbW91bnQgb3B0aW9uICJmc3luYz1zdHJpY3QiDQo+IA0KPiBP
-biBGcmksIEF1ZyAyMywgMjAyNCBhdCAxMTo1MeKAr0FNIEFtaXIgR29sZHN0ZWluIDxhbWlyNzNp
-bEBnbWFpbC5jb20+IHdyb3RlOg0KPiA+DQo+ID4gT24gTW9uLCBKdWwgMjIsIDIwMjQgYXQgMzo1
-NuKAr1BNIEFtaXIgR29sZHN0ZWluIDxhbWlyNzNpbEBnbWFpbC5jb20+IHdyb3RlOg0KPiA+ID4N
-Cj4gPiA+IE9uIE1vbiwgSnVsIDIyLCAyMDI0IGF0IDE6MTTigK9QTSBGZWkgTHYgPGZlaWx2QGFz
-cm1pY3JvLmNvbT4gd3JvdGU6DQo+ID4gPiA+DQo+ID4gPiA+IEZvciB1cHBlciBmaWxlc3lzdGVt
-IHdoaWNoIGRvZXMgbm90IGVuZm9yY2Ugb3JkZXJpbmcgb24gc3RvcmluZyBvZiANCj4gPiA+ID4g
-bWV0YWRhdGEgY2hhbmdlcyhlLmcuIHViaWZzKSwgd2hlbiBvdmVybGF5ZnMgZmlsZSBpcyBtb2Rp
-ZmllZCBmb3IgDQo+ID4gPiA+IHRoZSBmaXJzdCB0aW1lLCBjb3B5IHVwIHdpbGwgY3JlYXRlIGEg
-Y29weSBvZiB0aGUgbG93ZXIgZmlsZSBhbmQgDQo+ID4gPiA+IGl0cyBwYXJlbnQgZGlyZWN0b3Jp
-ZXMgaW4gdGhlIHVwcGVyIGxheWVyLiBQZXJtaXNzaW9uIGxvc3Qgb2YgdGhlIA0KPiA+ID4gPiBu
-ZXcgdXBwZXIgcGFyZW50IGRpcmVjdG9yeSB3YXMgb2JzZXJ2ZWQgZHVyaW5nIHBvd2VyLWN1dCBz
-dHJlc3MgdGVzdC4NCj4gPiA+ID4NCj4gPiA+ID4gRml4IGJ5IGFkZGluZyBuZXcgbW91bnQgb3Bp
-b24gImZzeW5jPXN0cmljdCIsIG1ha2Ugc3VyZSANCg0KVGhlcmUgaXMgYSB0eXBvIGhlcmUsICJv
-cGlvbiIgc2hvdWxkIGJlICJvcHRpb24iLCBwbGVhc2UgaGVscCBjb3JyZWN0IGJlZm9yZSBtZXJn
-ZS4NCg0KPiA+ID4gPiBkYXRhL21ldGFkYXRhIG9mIGNvcGllZCB1cCBkaXJlY3Rvcnkgd3JpdHRl
-biB0byBkaXNrIGJlZm9yZSANCj4gPiA+ID4gcmVuYW1pbmcgZnJvbSB0bXAgdG8gZmluYWwgZGVz
-dGluYXRpb24uDQo+ID4gPiA+DQo+ID4gPiA+IFNpZ25lZC1vZmYtYnk6IEZlaSBMdiA8ZmVpbHZA
-YXNybWljcm8uY29tPg0KPiA+ID4NCj4gPiA+IFJldmlld2VkLWJ5OiBBbWlyIEdvbGRzdGVpbiA8
-YW1pcjczaWxAZ21haWwuY29tPg0KPiA+ID4NCj4gPiA+IGJ1dCBJJ2QgYWxzbyBsaWtlIHRvIHdh
-aXQgZm9yIGFuIEFDSyBmcm9tIE1pa2xvcyBvbiB0aGlzIGZlYXR1cmUuDQo+ID4gPg0KPiA+ID4g
-QXMgZm9yIHRpbWluZywgd2UgYXJlIGluIHRoZSBtaWRkbGUgb2YgdGhlIG1lcmdlIHdpbmRvdyBm
-b3IgDQo+ID4gPiA2LjExLXJjMSwgc28gd2UgaGF2ZSBzb21lIHRpbWUgYmVmb3JlIHRoaXMgY2Fu
-IGJlIGNvbnNpZGVyZWQgZm9yIDYuMTIuDQo+ID4gPiBJIHdpbGwgYmUgb24gdmFjYXRpb24gZm9y
-IG1vc3Qgb2YgdGhpcyBkZXZlbG9wbWVudCBjeWNsZSwgc28gZWl0aGVyIA0KPiA+ID4gTWlrbG9z
-IHdpbGwgYmUgYWJsZSB0byBxdWV1ZSBpdCBmb3IgNi4xMiBvciBJIG1heSBiZSBhYmxlIHRvIGRv
-IG5lYXIgDQo+ID4gPiB0aGUgZW5kIG9mIHRoZSA2LjExIGN5Y2xlLg0KPiA+ID4NCj4gPg0KPiA+
-IE1pa2xvcywNCj4gPg0KPiA+IFBsZWFzZSBsZXQgbWUga25vdyB3aGF0IHlvdSB0aGluayBvZiB0
-aGlzIGFwcHJvYWNoIHRvIGhhbmRsZSB1YmlmcyB1cHBlci4NCj4gPiBJZiB5b3UgbGlrZSBpdCwg
-SSBjYW4gcXVldWUgdGhpcyB1cCBmb3IgdjYuMTIuDQo+ID4NCj4gPiBUaGFua3MsDQo+ID4gQW1p
-ci4NCj4gPg0KPiA+ID4NCj4gPiA+ID4gLS0tDQo+ID4gPiA+IFYxIC0+IFYyOg0KPiA+ID4gPiAg
-MS4gY2hhbmdlIG9wZW4gZmxhZ3MgZnJvbSAiT19MQVJHRUZJTEUgfCBPX1dST05MWSIgdG8gIk9f
-UkRPTkxZIi4NCj4gPiA+ID4gIDIuIGNoYW5nZSBtb3VudCBvcHRpb24gdG8gImZzeW5jPW9yZGVy
-ZWQvc3RyaWN0L3ZvbGF0aWxlIi4NCj4gPiA+ID4gIDMuIG92bF9zaG91bGRfc3luY19zdHJpY3Qo
-KSBpbXBsaWVzIG92bF9zaG91bGRfc3luYygpLg0KPiA+ID4gPiAgNC4gcmVtb3ZlIHJlZHVuZGFu
-dCBvdmxfc2hvdWxkX3N5bmNfc3RyaWN0IGZyb20gb3ZsX2NvcHlfdXBfbWV0YV9pbm9kZV9kYXRh
-Lg0KPiA+ID4gPiAgNS4gdXBkYXRlIGNvbW1pdCBsb2cuDQo+ID4gPiA+ICA2LiB1cGRhdGUgZG9j
-dW1lbnRhdGlvbiBvdmVybGF5ZnMucnN0Lg0KPiA+ID4gPg0KPiANCj4gSGkgRmVpLA0KPiANCj4g
-SSBzdGFydGVkIHRvIHRlc3QgdGhpcyBwYXRjaCBhbmQgaXQgb2NjdXJlZCB0byBtZSB0aGF0IHdl
-IGhhdmUgbm8gdGVzdCBjb3ZlcmFnZSBmb3IgdGhlICJ2b2xhdGlsZSIgZmVhdHVyZS4NCj4gDQo+
-IEZpbGVzeXN0ZW0gZHVyYWJpbGl0eSB0ZXN0cyBhcmUgbm90IGVhc3kgdG8gd3JpdGUgYW5kIEkg
-a25vdyB0aGF0IHlvdSB0ZXN0ZWQgeW91ciBvd24gdXNlIGNhc2UsIHNvIEkgd2lsbCBub3QgYXNr
-IHlvdSB0byB3cml0ZSBhIHJlZ3Jlc3Npb24gdGVzdCBhcyBhIGNvbmRpdGlvbiBmb3IgbWVyZ2Us
-IGJ1dCBpZiB5b3UgYXJlIHdpbGxpbmcgdG8gaGVscCwgaXQgd291bGQgYmUgdmVyeSBuaWNlIHRv
-IGFkZCB0aGlzIHRlc3QgY292ZXJhZ2UuDQoNCk9LLCBJIGNhbiBoYXZlIGEgdHJ5LCBuZWVkIHNv
-bWUgdGltZSB0byBzdHVkeSB0ZXN0IHN1aXRlLiBUaGlzIGlzIGEgbmV3IHRoaW5nIGZvciBtZS4N
-Cg0KPiANCj4gVGhlcmUgaXMgYWxyZWFkeSBvbmUgb3ZlcmxheWZzIHRlc3QgaW4gZnN0ZXN0cyAo
-b3ZlcmxheS8wNzgpIHdoaWNoIHRlc3RzIGJlaGF2aW9yIG9mIG92ZXJsYXlmcyBjb3B5IHVwIGR1
-cmluZyBwb3dlciBjdXQgKGEuay5hIHNodXRkb3duKS4NCg0KRG8geW91IG1lYW4gb3ZlcmxheS8w
-NzggaW4ga2VybmVsL2dpdC9icmF1bmVyL3hmc3Rlc3RzLWRldi5naXQgPw0KDQo+IA0KPiBPbmUg
-dGhpbmcgdGhhdCBJIGRvIHJlcXVlc3QgaXMgdGhhdCB5b3UgY29uZmlybSB0aGF0IHlvdSB0ZXN0
-ZWQgdGhhdCB0aGUgbGVnYWN5ICJ2b2xhdGlsZSIgbW91bnQgb3B0aW9uIHN0aWxsIHdvcmtzIGFz
-IGJlZm9yZS4NCg0KWWVzLCBJIHRlc3RlZCBiYXNpYyBmdW5jdGlvbiBvZiAidm9sYXRpbGUiIG1v
-dW50IG9wdGlvbiB3aXRoIHRoaXMgcGF0Y2guDQoNCj4gSSBzYXcgdGhhdCB5b3UgdG9vayBjYXJl
-IG9mIHByZXNlcnZpbmcgdGhlIGxlZ2FjeSBtb3VudCBvcHRpb24gaW4gZGlzcGxheSwgd2hpY2gg
-aXMgZ29vZCBwcmFjdGljZS4NCj4gDQo+IFRoYW5rcywNCj4gQW1pci4NCg0KVGhhbmtzLA0KRmVp
-DQo=
+On Mon, Aug 26, 2024 at 8:56=E2=80=AFAM Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=
+=EF=BC=89 <feilv@asrmicro.com> wrote:
+>
+>
+>
+> > =E5=8F=91=E4=BB=B6=E4=BA=BA: Amir Goldstein [mailto:amir73il@gmail.com]
+> > =E5=8F=91=E9=80=81=E6=97=B6=E9=97=B4: 2024=E5=B9=B48=E6=9C=8823=E6=97=
+=A5 19:43
+> > =E6=94=B6=E4=BB=B6=E4=BA=BA: Lv Fei=EF=BC=88=E5=90=95=E9=A3=9E=EF=BC=89=
+ <feilv@asrmicro.com>
+> > =E6=8A=84=E9=80=81: miklos@szeredi.hu; linux-unionfs@vger.kernel.org; l=
+inux-kernel@vger.kernel.org; Xu Lianghu=EF=BC=88=E5=BE=90=E8=89=AF=E8=99=8E=
+=EF=BC=89 <lianghuxu@asrmicro.> com>
+> > =E4=B8=BB=E9=A2=98: Re: [PATCH V2] ovl: fsync after metadata copy-up vi=
+a mount option "fsync=3Dstrict"
+> >
+> > On Fri, Aug 23, 2024 at 11:51=E2=80=AFAM Amir Goldstein <amir73il@gmail=
+.com> wrote:
+> > >
+> > > On Mon, Jul 22, 2024 at 3:56=E2=80=AFPM Amir Goldstein <amir73il@gmai=
+l.com> wrote:
+> > > >
+> > > > On Mon, Jul 22, 2024 at 1:14=E2=80=AFPM Fei Lv <feilv@asrmicro.com>=
+ wrote:
+> > > > >
+> > > > > For upper filesystem which does not enforce ordering on storing o=
+f
+> > > > > metadata changes(e.g. ubifs), when overlayfs file is modified for
+> > > > > the first time, copy up will create a copy of the lower file and
+> > > > > its parent directories in the upper layer. Permission lost of the
+> > > > > new upper parent directory was observed during power-cut stress t=
+est.
+> > > > >
+> > > > > Fix by adding new mount opion "fsync=3Dstrict", make sure
+>
+> There is a typo here, "opion" should be "option", please help correct bef=
+ore merge.
+>
+
+No problem, but I am still waiting for Miklos to comment on this option.
+
+> > > > > data/metadata of copied up directory written to disk before
+> > > > > renaming from tmp to final destination.
+> > > > >
+> > > > > Signed-off-by: Fei Lv <feilv@asrmicro.com>
+> > > >
+> > > > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> > > >
+> > > > but I'd also like to wait for an ACK from Miklos on this feature.
+> > > >
+> > > > As for timing, we are in the middle of the merge window for
+> > > > 6.11-rc1, so we have some time before this can be considered for 6.=
+12.
+> > > > I will be on vacation for most of this development cycle, so either
+> > > > Miklos will be able to queue it for 6.12 or I may be able to do nea=
+r
+> > > > the end of the 6.11 cycle.
+> > > >
+> > >
+> > > Miklos,
+> > >
+> > > Please let me know what you think of this approach to handle ubifs up=
+per.
+> > > If you like it, I can queue this up for v6.12.
+> > >
+> > > Thanks,
+> > > Amir.
+> > >
+> > > >
+> > > > > ---
+> > > > > V1 -> V2:
+> > > > >  1. change open flags from "O_LARGEFILE | O_WRONLY" to "O_RDONLY"=
+.
+> > > > >  2. change mount option to "fsync=3Dordered/strict/volatile".
+> > > > >  3. ovl_should_sync_strict() implies ovl_should_sync().
+> > > > >  4. remove redundant ovl_should_sync_strict from ovl_copy_up_meta=
+_inode_data.
+> > > > >  5. update commit log.
+> > > > >  6. update documentation overlayfs.rst.
+> > > > >
+> >
+> > Hi Fei,
+> >
+> > I started to test this patch and it occured to me that we have no test =
+coverage for the "volatile" feature.
+> >
+> > Filesystem durability tests are not easy to write and I know that you t=
+ested your own use case, so I will not ask you to write a regression test a=
+s a condition for merge, but if you are willing to help, it would be very n=
+ice to add this test coverage.
+>
+> OK, I can have a try, need some time to study test suite. This is a new t=
+hing for me.
+>
+
+Whenever you can.
+
+> >
+> > There is already one overlayfs test in fstests (overlay/078) which test=
+s behavior of overlayfs copy up during power cut (a.k.a shutdown).
+>
+> Do you mean overlay/078 in kernel/git/brauner/xfstests-dev.git ?
+>
+
+Yes overlay/078, but upstream repo is
+git://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
+
+> >
+> > One thing that I do request is that you confirm that you tested that th=
+e legacy "volatile" mount option still works as before.
+>
+> Yes, I tested basic function of "volatile" mount option with this patch.
+>
+
+Thanks,
+Amir.
