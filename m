@@ -1,61 +1,61 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.11])
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A731119D89C;
-	Mon, 26 Aug 2024 22:58:45 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.11
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5C19A199392;
+	Mon, 26 Aug 2024 23:12:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724713127; cv=none; b=ciyqpAuU17j4QBgU+8Bgwx2DUtfF61zSFs6bMJ2RxIUnpiJQLiYq3MTwHX2/b4j2wpEAxnG1XXy2jNQE1Wrqmt8y6uh7Lb/6/NhDTX9N1neb1gT/NZKVO1y0h4WbQ6gWpf5eY6lWLVdo2dWOmnlFNEWArO/Y5pXymEpvhbh39ao=
+	t=1724713982; cv=none; b=eB78nZYGr4itq3opEYLM0IMJ+kXHsBLJ24a1HFqDX4yrc2KfHJpefPl3pPMzYC0JdY1priVn/53UW3vRIh7iAqgCU8Hj46yFh8L+wJlMZO+DQ9M4FSLt0Oql96C9xVYvpLVFezrtZ0Dk1PkzIlhQAU/C+fm4Y5jxhjWWnDo3y6E=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724713127; c=relaxed/simple;
-	bh=KBdnXoPXWivL24WLXhGNRR2nKQBcVnqGZ3RcOscog68=;
+	s=arc-20240116; t=1724713982; c=relaxed/simple;
+	bh=7XwBAUfGnZtL6nJVvm5SlBN+15gz4hx3z3sZy495raE=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=uawhztM+QjGyyGzBMe/glpeXCJABN/KG+VgPLBpe1/nZTU+KHkeIwuxsG4CEVtx3Aff3pFXQP/n9UyoKufi3LF+ZKLMh7MetfVRjc89QqscnOmo4dERCFEQscBp0VAfAD/lM4vwCbYf0YZ+aCn/3zzllopoR0Dk1bScT7Ur1U/I=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=XOLi8Pis; arc=none smtp.client-ip=192.198.163.11
+	 MIME-Version:Content-Type; b=YRFD2/ZAWfbFVBG/08nNBnziyncMblB0gYH6L4qtAvsAWboBbF9b+r3xeGnxN1Y04JOMs6TW6bKVQZvnmX1Ze2NkqhYZZl0Tvy9GAoqqgI2+Ql8N5OL5zmdH5QqvdsN7rhgBrMetFCYlTssH2eYHbJGXvV7g9zVDqAXysbn2FjA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=LDmTCPkf; arc=none smtp.client-ip=192.198.163.16
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="XOLi8Pis"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="LDmTCPkf"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724713126; x=1756249126;
+  t=1724713980; x=1756249980;
   h=from:to:cc:subject:in-reply-to:references:date:
    message-id:mime-version;
-  bh=KBdnXoPXWivL24WLXhGNRR2nKQBcVnqGZ3RcOscog68=;
-  b=XOLi8Pis/QvX7R2QXdTfHCBqRTka/3r+GNbdvyOcWc8CWhhfN7UTtbYA
-   QKSEPKXeQaalXVKxoDh6MUDauTv3o0G7EVHO5HHAUcirjy5rGR8wyq2sc
-   VPbjRcMD0d67zcJKI00tlCxR8KMq32Z3ML3sL3Ft8m6EbBgNxRLe60ezN
-   dmGOg47vX+HJvXR+c+Z8KGF4Sqwf7+q356jOhjrTvW+4Q3Ns3DDYWIoiw
-   xiXJN1HXGauCGGwePAxMBV1Q0x6ixmHMInPzNhLDJV/O6PGIXjeCDE5Bd
-   CTJQttFb/Sr9BpBusAy0lLQ8CxFTO9w6m18VqOXL/YzaAuhNu7vYrf566
-   Q==;
-X-CSE-ConnectionGUID: eLY1YvmJRBC6agVgU3WxCA==
-X-CSE-MsgGUID: r1DGwmDpS7ibPFv1kcxKmg==
-X-IronPort-AV: E=McAfee;i="6700,10204,11176"; a="33789496"
+  bh=7XwBAUfGnZtL6nJVvm5SlBN+15gz4hx3z3sZy495raE=;
+  b=LDmTCPkfca0iI2aDYhMHPi9scExcZqTRwqkf7bGvhmRTsUpGs14tQtfr
+   mgFLiEYfZ+3wMie7AqD0QLmn81Mrft29/ccuGYGmpZy8/ARSugT21vx6g
+   RKQh77riLnFMDsNx1VldwXNm6RULT1IX7vB7keueDQ0ZR/IOYJbj6G3Ae
+   rEGNMCU3/Ma3EGo16Vroyw+BuKiM1yVKkhBxMo9o4FayZrd07COmRGcaK
+   SRMEhQ+8I6VqeevvnuojDuYTUW+cViXZ0bx8CCgSOvBW6pzlI6eF8xehr
+   xEOa8ZygX0931Clc6EZsZIUlLbbAELgIteJ8KTDJrTECD8yrTOIJyh7kA
+   w==;
+X-CSE-ConnectionGUID: cSFXfE5FRjC/Jq/CqMQbHA==
+X-CSE-MsgGUID: Yl0P4CczRfiaZyC90Vz+rw==
+X-IronPort-AV: E=McAfee;i="6700,10204,11176"; a="13225919"
 X-IronPort-AV: E=Sophos;i="6.10,178,1719903600"; 
-   d="scan'208";a="33789496"
-Received: from orviesa010.jf.intel.com ([10.64.159.150])
-  by fmvoesa105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 15:58:45 -0700
-X-CSE-ConnectionGUID: 1pP8iyVdQni8HNRx/CCgWg==
-X-CSE-MsgGUID: F/MfvuJuQK6HdtKEyaThJA==
+   d="scan'208";a="13225919"
+Received: from orviesa003.jf.intel.com ([10.64.159.143])
+  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 16:12:58 -0700
+X-CSE-ConnectionGUID: puOaTtgaQcW2cSkKQRpJlg==
+X-CSE-MsgGUID: WLwHcCqZS6uGwMl6CnJWLQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,178,1719903600"; 
-   d="scan'208";a="62483322"
+   d="scan'208";a="67478376"
 Received: from mesiment-mobl2.amr.corp.intel.com (HELO vcostago-mobl3) ([10.124.223.39])
-  by orviesa010-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 15:58:42 -0700
+  by ORVIESA003-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 16:12:56 -0700
 From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: brauner@kernel.org, amir73il@gmail.com, hu1.chen@intel.com,
  malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
  linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
  linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 07/16] fs/backing-file: Convert to cred_guard()
-In-Reply-To: <CAJfpegs5+2DadbB6tfwLD+DAFzqfOTi7bZMxJCoj_r5Tu7jcfw@mail.gmail.com>
+Subject: Re: [PATCH v2 10/16] overlayfs/file: Convert to cred_guard()
+In-Reply-To: <CAJfpegsq5NruDeL6HRgkpj=QvdOKdnqOwZiRS0VY092=h0RSkg@mail.gmail.com>
 References: <20240822012523.141846-1-vinicius.gomes@intel.com>
- <20240822012523.141846-8-vinicius.gomes@intel.com>
- <CAJfpegs5+2DadbB6tfwLD+DAFzqfOTi7bZMxJCoj_r5Tu7jcfw@mail.gmail.com>
-Date: Mon, 26 Aug 2024 15:58:38 -0700
-Message-ID: <874j76lwm9.fsf@intel.com>
+ <20240822012523.141846-11-vinicius.gomes@intel.com>
+ <CAJfpegsq5NruDeL6HRgkpj=QvdOKdnqOwZiRS0VY092=h0RSkg@mail.gmail.com>
+Date: Mon, 26 Aug 2024 16:12:52 -0700
+Message-ID: <87v7zmkhe3.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -70,14 +70,64 @@ Miklos Szeredi <miklos@szeredi.hu> writes:
 > <vinicius.gomes@intel.com> wrote:
 >>
 >> Replace the override_creds_light()/revert_creds_light() pairs of
->> operations to cred_guard().
+>> operations with cred_guard()/cred_scoped_guard().
+>>
+>> Only ovl_copyfile() and ovl_fallocate() use cred_scoped_guard(),
+>> because of 'goto', which can cause the cleanup flow to run on garbage
+>> memory.
 >
-> I'd note here, that in some cases the revert will happen later than
-> previously, but (hopefully) you have verified that in these cases it
-> won't make a difference.
+> This doesn't sound good.  Is this a compiler bug or a limitation of guards?
 >
 
-Will add this note to the commit message.
+This is a gcc bug, that it accepts invalid code: i.e. with a goto you
+can skip the declaration of a variable and as the cleanup is inserted by
+the compiler unconditionally, the cleanup will run with garbage value.
+clang refuses to compile and emits an error.
+
+Link to a simpler version of the bug I am seeing:
+
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91951
+
+>> @@ -211,9 +208,8 @@ static loff_t ovl_llseek(struct file *file, loff_t offset, int whence)
+>>         ovl_inode_lock(inode);
+>>         real.file->f_pos = file->f_pos;
+>>
+>> -       old_cred = ovl_override_creds_light(inode->i_sb);
+>> +       cred_guard(ovl_creds(inode->i_sb));
+>>         ret = vfs_llseek(real.file, offset, whence);
+>> -       revert_creds_light(old_cred);
+>
+> Why not use scoped guard, like in fallocate?
+
+No reason. I was only under the impression that cred_guard() was
+preferred over cred_scoped_guard(). 
+
+>
+>> @@ -398,9 +393,8 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+>>
+>>         /* Don't sync lower file for fear of receiving EROFS error */
+>>         if (file_inode(real.file) == ovl_inode_upper(file_inode(file))) {
+>> -               old_cred = ovl_override_creds_light(file_inode(file)->i_sb);
+>> +               cred_guard(ovl_creds(file_inode(file)->i_sb));
+>>                 ret = vfs_fsync_range(real.file, start, end, datasync);
+>> -               revert_creds_light(old_cred);
+>
+> Same here.
+>
+
+Will keep it consistent whatever version is chosen.
+
+>> @@ -584,9 +571,8 @@ static int ovl_flush(struct file *file, fl_owner_t id)
+>>                 return err;
+>>
+>>         if (real.file->f_op->flush) {
+>> -               old_cred = ovl_override_creds_light(file_inode(file)->i_sb);
+>> +               cred_guard(ovl_creds(file_inode(file)->i_sb));
+>
+> What's the scope of this?  The function or the inner block?
+>
+
+As far as I understand, the inner block.
 
 > Thanks,
 > Miklos
