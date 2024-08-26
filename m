@@ -1,62 +1,62 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.16])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.19])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 854DE19D07B;
-	Mon, 26 Aug 2024 22:48:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.16
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5B430146A71;
+	Mon, 26 Aug 2024 22:57:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.19
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1724712496; cv=none; b=CqtauFbdZu9O0X254n7oEDpW/u5ZuLWYFFcsLnKUrLxmMkaYGiz9H4e6v2DWgiHp6bHIcXY7kihssw9+BtlDTHokFqocGXv4U4Q8VFw9lJ/t1xpAUsJ56ocnrlTW3mGTbFisKRzs2JU9G98L8Ev/7MMGDLbvf3/51Tcz42RzaBg=
+	t=1724713061; cv=none; b=O4FRX7J6TWE4XPTgCxR9nXrqioxaW1QDrydFXqAifno9IJw+iv9zNO/ZF3H88EmEA5sEHhssCh2YJ9wprKgb9BFbmmjaaksv7jo6/aN3JoYoJr0YmN2I1Aa0AR9U/cfO9YODHHSAvBiadlY7g0UQKSVhQiULAGRhzmW4AWtIIK8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1724712496; c=relaxed/simple;
-	bh=x1hjh95k0wxaveZBrA+vEUT6erVcu1eYnkXU9yxB4Gg=;
+	s=arc-20240116; t=1724713061; c=relaxed/simple;
+	bh=fJ7aUPSH5xd0bQ6Ioys5f+Vk+9v/lyGsicxsmq46dAo=;
 	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=a80/yYixh3ljkYYDzSvXzFYR7JdbOscsV/VPJNCERJvOrFKF/o60L/38RdqWDy4Xjd7V5aUKrQOM3dYDvzRp40dvY+42raCe8QqUb5AOd5CbL+D7VSweyGUqaNJC84P1Yy2dMsPTBkjbGq4sDh8aRH56AJ21UvULFb5+fq3HSLc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=ff7TDC5i; arc=none smtp.client-ip=192.198.163.16
+	 MIME-Version:Content-Type; b=e6fBIkpEsEJ7Vjr5pg/hRdSLpsrv/8QTqq+SALsaosrQqNu5Qjk3JwEsTI/3UVn7FOOs+MxTRlH2c7X+f2luCtxYbS8KqBQLc13VfZ8dSB/86OKhIL1uVT0VB3u8ZsXSVI40gcvj3qzxbcIPkOb0manzzar/irFO+kVnvhlsS1o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=KVGCbmi9; arc=none smtp.client-ip=198.175.65.19
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="ff7TDC5i"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="KVGCbmi9"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1724712495; x=1756248495;
+  t=1724713060; x=1756249060;
   h=from:to:cc:subject:in-reply-to:references:date:
    message-id:mime-version;
-  bh=x1hjh95k0wxaveZBrA+vEUT6erVcu1eYnkXU9yxB4Gg=;
-  b=ff7TDC5iyKLf0y19udb2Y01IPpcUrF4ZvFHWMBO39tywc+FHhB6vFqIn
-   ZrQUp7SjfOcJ4cHF9Xvr8SO5sHaW6+3+a1RWSQAKQcO3pQkwXBX2OyG17
-   UMd6lApXrQ8ReGLPPCDKAxBUtpgdcckary88YHcC+sa3HXj3Py9MlV49q
-   BR9BDiIQWEtSx3guCT3TMvs1akL4JGMiqg8TSQ9UZg0tPj6eaYCu3J5r/
-   rVsCLwlE2QvgTvVUvcvGlkBX6Jyr8OAxzrQZh8AjxnUtUAG14LaVYB9p7
-   eIknopSEd9DKnm7aQ8/xWzZzgtYfV/uPIZtwjyKOtqiohuANn8wsBioo9
-   w==;
-X-CSE-ConnectionGUID: FIUFE4RUTQusfzdwh9JIfQ==
-X-CSE-MsgGUID: k0YRAnUYTKetC9C9LTHtvQ==
-X-IronPort-AV: E=McAfee;i="6700,10204,11176"; a="13225200"
+  bh=fJ7aUPSH5xd0bQ6Ioys5f+Vk+9v/lyGsicxsmq46dAo=;
+  b=KVGCbmi9OuAhBGzfjG9HqFtGfNvMW03/2IJMAmXK5OHRMst5VQzx3Tvr
+   L+39l7fTrLv03GnUq5YaSQkuAhLCNyR/UtxmovKYZAg+4jsRhX0jzLW0z
+   EH9/G+OnJ65f5w27SCyrNrSeEVZeGz9G//A1zPSY2qfv/72qu+dBdysnL
+   A8387BcVkTJ20VThO4Fwms3p4yYdsRTATma6K3x7zX/uD8USxP9UavZsM
+   doyrjHRwS5a/sWdUjI7yVjZTJBE5vB1FeseN7sF23/mnUZiAuiUjbbb46
+   APMQ1uKEGphyRqkkCauKTrtUlI6mR9FdI/tIr2iW7lakjxxZ68A1YaAiS
+   g==;
+X-CSE-ConnectionGUID: mRuo8UF8RbKejC0XN56w8Q==
+X-CSE-MsgGUID: ppFvggAETaCE3bxZnZL9zQ==
+X-IronPort-AV: E=McAfee;i="6700,10204,11176"; a="23031629"
 X-IronPort-AV: E=Sophos;i="6.10,178,1719903600"; 
-   d="scan'208";a="13225200"
-Received: from orviesa006.jf.intel.com ([10.64.159.146])
-  by fmvoesa110.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 15:48:14 -0700
-X-CSE-ConnectionGUID: OlW0FGS6T1Sc4Z+Gg1PEvw==
-X-CSE-MsgGUID: kAJuRAjTQquHVlYP0FTDJg==
+   d="scan'208";a="23031629"
+Received: from fmviesa003.fm.intel.com ([10.60.135.143])
+  by orvoesa111.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 15:57:39 -0700
+X-CSE-ConnectionGUID: NxuhCjigStOj/k3f+ziYHA==
+X-CSE-MsgGUID: S3/nh20vTdS/itS9/Pn2XQ==
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="6.10,178,1719903600"; 
-   d="scan'208";a="62972252"
+   d="scan'208";a="66812928"
 Received: from mesiment-mobl2.amr.corp.intel.com (HELO vcostago-mobl3) ([10.124.223.39])
-  by orviesa006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 15:48:11 -0700
+  by fmviesa003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Aug 2024 15:57:35 -0700
 From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
 To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: brauner@kernel.org, amir73il@gmail.com, hu1.chen@intel.com,
  malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
  lizhen.you@intel.com, linux-unionfs@vger.kernel.org,
  linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 04/16] overlayfs: Document critical override_creds()
- operations
-In-Reply-To: <CAJfpegvx2nyVpp4kHaxt=VwBb3U4=7GM-pjW_8bu+fm_N8diHQ@mail.gmail.com>
+Subject: Re: [PATCH v2 05/16] overlayfs: Use
+ ovl_override_creds_light()/revert_creds_light()
+In-Reply-To: <CAJfpegtko6VtNpshGUzZixE0jqecwQR91xT=Q7W5sf6HPGVPeQ@mail.gmail.com>
 References: <20240822012523.141846-1-vinicius.gomes@intel.com>
- <20240822012523.141846-5-vinicius.gomes@intel.com>
- <CAJfpegvx2nyVpp4kHaxt=VwBb3U4=7GM-pjW_8bu+fm_N8diHQ@mail.gmail.com>
-Date: Mon, 26 Aug 2024 15:48:07 -0700
-Message-ID: <87wmk2lx3s.fsf@intel.com>
+ <20240822012523.141846-6-vinicius.gomes@intel.com>
+ <CAJfpegtko6VtNpshGUzZixE0jqecwQR91xT=Q7W5sf6HPGVPeQ@mail.gmail.com>
+Date: Mon, 26 Aug 2024 15:57:32 -0700
+Message-ID: <87a5gylwo3.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -70,20 +70,18 @@ Miklos Szeredi <miklos@szeredi.hu> writes:
 > On Thu, 22 Aug 2024 at 03:25, Vinicius Costa Gomes
 > <vinicius.gomes@intel.com> wrote:
 >>
->> Add a comment to these operations that cannot use the _light version
->> of override_creds()/revert_creds(), because during the critical
->> section the struct cred .usage counter might be modified.
+>> Convert to use ovl_override_creds_light()/revert_creds_light(), these
+>> functions assume that the critical section won't modify the usage
+>> counter of the credentials in question.
+>>
+>> In most overlayfs instances, the credentials lifetime is the duration
 >
-> Why is it a problem if the usage counter is modified?  Why is the
-> counter modified in each of these cases?
+> Why most instances?  AFAICS the creds have the same lifetime as the
+> overlayfs superblock.
 >
 
-Working on getting some logs from the crash that I get when I convert
-the remaining cases to use the _light() functions.
-
-Perhaps I was wrong on my interpretation of the crash.
-
-Thanks for raising this, I should have added more information about this.
+I may be reading the code wrong, but on file creation some of the
+credentials that are worked on come from the task(?).
 
 
 Cheers,
