@@ -1,121 +1,198 @@
-Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+Received: from mail-wr1-f50.google.com (mail-wr1-f50.google.com [209.85.221.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D2809170A01;
-	Fri, 30 Aug 2024 09:26:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 24E4B13A261
+	for <linux-unionfs@vger.kernel.org>; Fri, 30 Aug 2024 09:56:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.221.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725010016; cv=none; b=JlD1qrafpmNoNF6ZBS5JCdKTwgvCugmeFG52xBnY7BAm5Kk9buc5yPy8RBbny79dLFuv9WgC2oKOdpTbSju/AgLmZnCq5guYvqRlY0dtt0+D8WDjwB6kSAmSOKxUswORJK08Fa39JW6K2pcHp+ux8szEIB+UoIijR3mghjfG2oc=
+	t=1725011784; cv=none; b=TxheuFSp7tWBtVPbAdQdYXc09hOMBZwLWtScKsk2GXA18wFdu3ud3Y9oYn/zCN9YqS9ygXxrJbNa2DXzNiznUDEV5yO4BmF/g7c8Rr7HyXRPAqPQC9sJ4NE2HJniBeHuJEs377SFLAfMpDA2gqoj3/LVckuzgiQvVJxu0euGHDc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725010016; c=relaxed/simple;
-	bh=66y2vDmD7kCDgPvH8bwyXjtkNSOLQgsLZ/+Kej/eLkU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=uXkI0ws9Sc2glYznS4zieoifEszLfb3PYO/FsliCnL2yX6e+1WL37XmnxlOh36srbKwKi1De2qYK+o2o/jELB3v9WkxqTBVN9pozEpE9XtXKgI0Us7EBNesCQY1g/IXrYo8ujjRG2q6/2rl3OPIytcGPHo4OmKiZi0Sxi6R+YqY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AcHL4VyE; arc=none smtp.client-ip=209.85.222.170
+	s=arc-20240116; t=1725011784; c=relaxed/simple;
+	bh=jD28ayQ5Lpn/KjSFn+UGtrcm6XNHmtWWBVBuxKQu30o=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=T3Tpfjee8xshQMk/6Ej4D+sS8kugQyruZ+9Zt0BZy1vZab5KI622HV27Yj5FwNhyPBbA0xH0NTGyao4pQhFrB8OJQXPA6373QMdR0DLWUlJWZVVrUNHSZ2YhJCUvFFP27JwJbsSEVrtEhT9RurVuAKPTDISaJ3JUfqfGu+jJnFs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=juruQcHN; arc=none smtp.client-ip=209.85.221.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AcHL4VyE"
-Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-7a80fe481a9so43722785a.0;
-        Fri, 30 Aug 2024 02:26:54 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="juruQcHN"
+Received: by mail-wr1-f50.google.com with SMTP id ffacd0b85a97d-3719f0758c6so1120166f8f.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 30 Aug 2024 02:56:22 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725010014; x=1725614814; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=RngU+AnscgGqUpHwM43E/2UFV355OkAfNYeW7qSTUnY=;
-        b=AcHL4VyEFWQ/GFtAO+xzRbhsc6B0qEphWF98PM2M4bzE+TOW/MHogTku91S2o/v9C4
-         yorRCbhhjTWQbnyOojpuk5mFL66TQerEn3M5Ar47M1ITd/gFnLuXEwGav5J8O8CHP4+7
-         9moRPuLInaaQqYqzMtcRWINCxORE9S+Sjx6bh9qjR5vfhwCcsRzVvoutnWEm6BgcVKWy
-         P6WyZmq6RhshOVOk5AagwS4vctm7UNhWQwS1m5ZJTAfJKTPR615lYU6ERU1rC56ku2zo
-         HuN8eL+noGnTNbjABNra0NPpgPXKW5tAsYN3fuYjUfFq9X0KdYFQFb9d3Ot3bLyKpg7g
-         mY3w==
+        d=gmail.com; s=20230601; t=1725011781; x=1725616581; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=FgaNRnQ37OMZhQt+HTIv8Uz5jrPjexB9oxr4AcLO3DQ=;
+        b=juruQcHNDuOAnbZX5f0DMvnQ5IMrM7k+MFiI2zrOStpMU8ouMVKxYZg+s6ang9qCGK
+         8qPxgLCxxNigZQXWLF2rkUDI17A/jF5o0QHeBbvNjhXWLycJYPKPv0+x18TEN/gNxI+w
+         aL1o2XtGuaXZ0kp9F9lWiYv0FRcFmWnBMQ7jRueM4GtDV0TY29AgJl5NHEbfsg4u3dth
+         IPI5md3opsira3CkV5le9HuPcvYvP0+aIsBitX9Y9fxTsSx/o87Xpsxr8ZSgCimTOzfK
+         z9H90EpUTrVi1vsL6b+qKBFNUFOc6xas7HiZz+7xVK6dgF+XtKxtfFpNax/b7ktvfL/r
+         fHcA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725010014; x=1725614814;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=RngU+AnscgGqUpHwM43E/2UFV355OkAfNYeW7qSTUnY=;
-        b=IDzcb0Hm0RGe94dZaHMziQdUsvaeoI8bu/CCPODIf6we73XgX8uIu/cIRm0cphe7u6
-         UB0eJNUjgVer3sKq0dcP8y44q0/FppuBLuNl+PxOjKIhwPsUNKSxb/GCOgRhFm+XqeGs
-         rjN00fbBhJBgxfbyRMv9GnSmZWTaZGBr9twR0QEQ8KkLvZqUiX0dzPy6JEwmYnLYvfsg
-         F8lgYTlrlTMaDD7kZjxkS8XDTR4kXn0etyk7b+miBfqL0dmWTVH5aGc6pXPjSg+7vtSH
-         hsOE5yVjSnUhbgZ7W/S+WyabwNzaQVjjHJ6GnRUlCEpWKRjCungkmo6GjgOHkfLIUf6c
-         jSTA==
-X-Forwarded-Encrypted: i=1; AJvYcCV7MVPItMm4/jbz6iz2CtJ2qLiflROk+Ecic3lBW9ixUBVQaKjtRL1VaIicn7OJWKwfVReY1kv51mFmODs=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz5MlY4EZhUOadgbQH085nqAzoAyLE43XY4QApfHBFAxyXr1tV9
-	bVKHX00adVpejPO9dI5V/RUUQIClYXu+s5TtLvavETRmzey98nnSTukVCpbfkaVO5olV9jknhOh
-	oW2Ce5YD3WGilXRfbe6J2swT8lQHbw1sMWog=
-X-Google-Smtp-Source: AGHT+IGydVe0OttAVaEEKkJEXcLJQmtOuyaPuXlH5pKvMS25AuZszVhg5AfPe80MuUoOc+kLdE43y5VdsxyUsG27738=
-X-Received: by 2002:a05:620a:1984:b0:7a2:db1:573d with SMTP id
- af79cd13be357-7a8041d3543mr606104485a.36.1725010013497; Fri, 30 Aug 2024
- 02:26:53 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1725011781; x=1725616581;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=FgaNRnQ37OMZhQt+HTIv8Uz5jrPjexB9oxr4AcLO3DQ=;
+        b=F/gTI+R+Vx4kmEWJ+Go6bB08zMoX2w0IOgiomM0+cRKviLw3nruxGv43AVHrh77Q/r
+         vH99WOBtIxXZMCzxlx2mJodo9qqzESR4fptrwgc9zm9RlHODpK9dWSqJpxgRgBJHtTWP
+         E6G2apTzHrTX+TD6Cc9+T/DU7ADasB7mp3VL4/eI0y21Hl35PFd2ZPZTGNX4+fGM5k4/
+         zDCUsoSLNAyRuxHghmi+/6X86A3RtH8Om9TkVrmgUzy/9F1aiSpz7dwkQImDRNY6SjTr
+         EnljdJvebMnZ16o9gF1Il5ACQ7A9Zf/wkmfneSgD0+b0KxPj/U+vHKa1+NCAwLatH2Ev
+         d3Ig==
+X-Gm-Message-State: AOJu0YzLH5GRPcl/Ob9k2OJY49E78Nv664NoDLBRQhMjX8K3Wd79D15A
+	f260sOup3HKeIg0OIpT5+U7E83u8DwSdsL1OzMvfk+yxnKOFVPZJqTg/m5no
+X-Google-Smtp-Source: AGHT+IFZRkHuj/0tB37JODKz8OJJAkHGQTJSZquSLtpsKg9HO+MH0A5b/ZFaH8k7/XVVzQWRCvEylg==
+X-Received: by 2002:a05:6000:1845:b0:374:b960:f847 with SMTP id ffacd0b85a97d-374b960f925mr333053f8f.41.1725011780890;
+        Fri, 30 Aug 2024 02:56:20 -0700 (PDT)
+Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-42ba642593asm74996135e9.39.2024.08.30.02.56.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Aug 2024 02:56:20 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: linux-unionfs@vger.kernel.org,
+	Fei Lv <feilv@asrmicro.com>
+Subject: [PATCH] ovl: fsync after metadata copy-up
+Date: Fri, 30 Aug 2024 11:56:02 +0200
+Message-Id: <20240830095602.842849-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240722101443.10768-1-feilv@asrmicro.com> <CAOQ4uxhP03BHK8gDmeySxkacGvy9BToZkb5nTgaegWxJPAuG8A@mail.gmail.com>
- <CAJfpegtPOgowkK5EHxNZnuHDo9AZTbF2-zxMc99rvWL44rdMXQ@mail.gmail.com>
- <CAOQ4uxiYGsKzMZ73=WLZqseU=ibboFtPfqpeGtmFWYY3uxjMvw@mail.gmail.com>
- <CAOQ4uxi-BuKU-AbyydVB2c8z0DiPP-Ednu+bN3JB2Cqf7rZamA@mail.gmail.com>
- <CAJfpegt=BLfdb5GRbsOHheStve8S57V9XRDN_cNKcxst2dKZzw@mail.gmail.com> <CAOQ4uxhtoAL43d5HcVEsAH2EtgiT8h6RkjymNhTcP5nnG1h09g@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhtoAL43d5HcVEsAH2EtgiT8h6RkjymNhTcP5nnG1h09g@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 30 Aug 2024 11:26:42 +0200
-Message-ID: <CAOQ4uxjkVcY7z8JCshmsCfn1=JUcxDG8vyJQ+ssdeBmGrZ=eKg@mail.gmail.com>
-Subject: Re: [PATCH V2] ovl: fsync after metadata copy-up via mount option "fsync=strict"
-To: Miklos Szeredi <miklos@szeredi.hu>, Fei Lv <feilv@asrmicro.com>
-Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	lianghuxu@asrmicro.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Thu, Aug 29, 2024 at 6:23=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Thu, Aug 29, 2024 at 2:51=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu=
-> wrote:
-> >
-> > On Thu, 29 Aug 2024 at 12:29, Amir Goldstein <amir73il@gmail.com> wrote=
-:
-> >
-> > > But maybe we can ignore crash safety of metacopy on ubifs, because
-> > > 1. the ubifs users may not be using this feature
-> > > 2. ubifs may be nice and takes care of ordering O_TMPFILE
-> > >     metadata updates before exposing the link
-> > >
-> > > Then we can do the following:
-> > > IF (metacopy_enabled)
-> > >     fsync only in ovl_copy_up_file()
-> > > ELSE
-> > >     fsync only in ovl_copy_up_metadata()
-> > >
-> > > Let me know what you think.
-> >
-> > Sounds like a good compromise.
-> >
->
-> Fei,
->
-> Could you please test the attached patch and confirm that your
-> use case does not depend on metacopy enabled?
->
-> In any case, I am holding on to your patch in case someone reports
-> a performance regression with this unconditional fsync approach.
->
+For upper filesystems which do not use strict ordering of persisting
+metadata changes (e.g. ubifs), when overlayfs file is modified for
+the first time, copy up will create a copy of the lower file and
+its parent directories in the upper layer. Permission lost of the
+new upper parent directory was observed during power-cut stress test.
 
-Well, it's a good thing that I took Miklois' advice to make the fsync
-option implicit, because the original patch had 2 bugs detected by fstest:
-1. missing O_LARGEFILE
-2. trying to fsync special files
+Fix by moving the fsync call to after metadata copy to make sure that the
+metadata copied up directory and files persists to disk before renaming
+from tmp to final destination.
 
-Please see uptodate patch at:
-https://github.com/amir73il/linux/commits/ovl-fsync/
+With metacopy enabled, this change will hurt performance of workloads
+such as chown -R, so we keep the legacy behavior of fsync only on copyup
+of data.
 
-If there are no complaints, I will queue this up for v6.12.
-Fei, please provide your Tested-by.
+Link: https://lore.kernel.org/linux-unionfs/CAOQ4uxj-pOvmw1-uXR3qVdqtLjSkwcR9nVKcNU_vC10Zyf2miQ@mail.gmail.com/
+Reported-by: Fei Lv <feilv@asrmicro.com>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+
+Miklos,
+
+This is the variant of Fei's patch as discussed on [1].
+This changes the default behavior to always fsync directories
+and has passed fstests.
 
 Thanks,
 Amir.
+
+ fs/overlayfs/copy_up.c | 43 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 39 insertions(+), 4 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index a5ef2005a2cc..051a802893a1 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -243,8 +243,24 @@ static int ovl_verify_area(loff_t pos, loff_t pos2, loff_t len, loff_t totlen)
+ 	return 0;
+ }
+ 
++static int ovl_sync_file(struct path *path)
++{
++	struct file *new_file;
++	int err;
++
++	new_file = ovl_path_open(path, O_LARGEFILE | O_RDONLY);
++	if (IS_ERR(new_file))
++		return PTR_ERR(new_file);
++
++	err = vfs_fsync(new_file, 0);
++	fput(new_file);
++
++	return err;
++}
++
+ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
+-			    struct file *new_file, loff_t len)
++			    struct file *new_file, loff_t len,
++			    bool datasync)
+ {
+ 	struct path datapath;
+ 	struct file *old_file;
+@@ -342,7 +358,8 @@ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
+ 
+ 		len -= bytes;
+ 	}
+-	if (!error && ovl_should_sync(ofs))
++	/* call fsync once, either now or later along with metadata */
++	if (!error && ovl_should_sync(ofs) && datasync)
+ 		error = vfs_fsync(new_file, 0);
+ out_fput:
+ 	fput(old_file);
+@@ -574,6 +591,7 @@ struct ovl_copy_up_ctx {
+ 	bool indexed;
+ 	bool metacopy;
+ 	bool metacopy_digest;
++	bool metadata_fsync;
+ };
+ 
+ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+@@ -634,7 +652,8 @@ static int ovl_copy_up_data(struct ovl_copy_up_ctx *c, const struct path *temp)
+ 	if (IS_ERR(new_file))
+ 		return PTR_ERR(new_file);
+ 
+-	err = ovl_copy_up_file(ofs, c->dentry, new_file, c->stat.size);
++	err = ovl_copy_up_file(ofs, c->dentry, new_file, c->stat.size,
++			       !c->metadata_fsync);
+ 	fput(new_file);
+ 
+ 	return err;
+@@ -701,6 +720,10 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_ctx *c, struct dentry *temp)
+ 		err = ovl_set_attr(ofs, temp, &c->stat);
+ 	inode_unlock(temp->d_inode);
+ 
++	/* fsync metadata before moving it into upper dir */
++	if (!err && ovl_should_sync(ofs) && c->metadata_fsync)
++		err = ovl_sync_file(&upperpath);
++
+ 	return err;
+ }
+ 
+@@ -860,7 +883,8 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
+ 
+ 	temp = tmpfile->f_path.dentry;
+ 	if (!c->metacopy && c->stat.size) {
+-		err = ovl_copy_up_file(ofs, c->dentry, tmpfile, c->stat.size);
++		err = ovl_copy_up_file(ofs, c->dentry, tmpfile, c->stat.size,
++				       !c->metadata_fsync);
+ 		if (err)
+ 			goto out_fput;
+ 	}
+@@ -1135,6 +1159,17 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	    !kgid_has_mapping(current_user_ns(), ctx.stat.gid))
+ 		return -EOVERFLOW;
+ 
++	/*
++	 * With metacopy disabled, we fsync after final metadata copyup, for
++	 * both regular files and directories to get atomic copyup semantics
++	 * on filesystems that do not use strict metadata ordering (e.g. ubifs).
++	 *
++	 * With metacopy enabled we want to avoid fsync on all meta copyup
++	 * that will hurt performance of workloads such as chown -R, so we
++	 * only fsync on data copyup as legacy behavior.
++	 */
++	ctx.metadata_fsync = !OVL_FS(dentry->d_sb)->config.metacopy &&
++			     (S_ISREG(ctx.stat.mode) || S_ISDIR(ctx.stat.mode));
+ 	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
+ 
+ 	if (parent) {
+-- 
+2.34.1
+
