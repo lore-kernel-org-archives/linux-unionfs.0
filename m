@@ -1,211 +1,175 @@
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
+Received: from mail-pf1-f176.google.com (mail-pf1-f176.google.com [209.85.210.176])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 901561B583F;
-	Fri, 30 Aug 2024 19:46:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 92098184527
+	for <linux-unionfs@vger.kernel.org>; Mon,  2 Sep 2024 11:32:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.176
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725047165; cv=none; b=mQEhPHBsI+BKZ2pQVDjxdCgz33hKLraXX/3LHb4sV20vQL+6vi2FPM01+1KIPbNW3PJNCFm4XUogaevHBFnyqgoyOK7ZBZjXFwGxx3Xlo1bIAUdErG0M1vhd520S8KwS4c0j/Se9/r4rE35EGgIK4B8Y5BiRZSokaBWxDRlqwns=
+	t=1725276768; cv=none; b=Upi3+A5tOlNrkN01PnOyBVYhBRj+kjx3/AYjcz0d8sYTB1ve9IsZr+fUDTx70+vfT3EesAW27AWF49UA4Xf0iECS14unxayCMWiKDAsPMJI5ulkQ382LiToqjRDDHTB2kKC87o0TEJQalVDyBo5SsSkci9GdhcUO92hFUYkUaas=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725047165; c=relaxed/simple;
-	bh=yacoRN4lhoE+G3Z7siJhVjuY7CdOTpVhPjUYv3HH6rc=;
-	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=CJRC91sNJkPOi2V2E2Z1pUak4tEwc3aoCj73W4OSeaGhRiBdsHusK1sPbZaszaGzTM4iNqcdcHehzKl3KYQloeXs1rs4vZ/O8Fvr787/CsXwef2hRRYLVLk+b5VhXrmvsR6GG/+VsbXorngGt5bBBv7xBqT0aMU9kgs84+XY6us=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Xuem+mZu; arc=none smtp.client-ip=209.85.167.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1725276768; c=relaxed/simple;
+	bh=EaCx9uD7lLBoyO3gvZoujmruCtOjW8d0mUOQCiUGTNo=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=TP+/QW+czwi+T3iy5YV7Wvq6sF+yyTSgpC8QWN+4vJc5OO9RaQJnlXnbNUaQ8aVN9ePPAbHNvgiNSoW4R7ipCVK1TkgIHLDOHeC8obSuiDpLobkwd8qv8Rq9v1f/H8mO+VFKB7BjoT7vlphqX4QVeY1Shj0rEJSGhL/Yn0lLKwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=shopee.com; spf=pass smtp.mailfrom=shopee.com; dkim=pass (2048-bit key) header.d=shopee.com header.i=@shopee.com header.b=IZnPKT4K; arc=none smtp.client-ip=209.85.210.176
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=shopee.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=shopee.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Xuem+mZu"
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-5353cd18c20so2672811e87.0;
-        Fri, 30 Aug 2024 12:46:03 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=shopee.com header.i=@shopee.com header.b="IZnPKT4K"
+Received: by mail-pf1-f176.google.com with SMTP id d2e1a72fcca58-7176645e440so133039b3a.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 02 Sep 2024 04:32:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725047162; x=1725651962; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=PCK31f6nMFSZIQVq2dpwLwpb6hFH6JVgA/GmCF/iUJ8=;
-        b=Xuem+mZucZnpNBes+SYdmiF9fqHPPr45kobbb4P8+3xOiyDqcee/coiDWL9ydlqwCj
-         B+RdV8oAbOylnmXTAONvOz99BjWGduRVx0O004KM8XCnhOout4CqQy2hiGNl+jzicm8y
-         ePDr7r3Shf87cz6M0Thro0lK708LhB/BH1JYU48zGT47dblhTUrSAgDickjwj4Xvb75D
-         ++ey/ySAm+2kB9GmS0ZpsPhREiiGXRS7LcpQU1qTtBpkPt4rGlwUPHITAJ5h5VQVchWQ
-         O9n9FgEgFaRPKpGQ51DPzUcckTbAPl6RKKhMq+BtNA4Vqir+PrtyAuVyEyPdHFa9NL4S
-         H8tw==
+        d=shopee.com; s=shopee.com; t=1725276766; x=1725881566; darn=vger.kernel.org;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
+         :user-agent:mime-version:date:message-id:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=k3T+qEmHOcCq1xQ+zRsNTSDREegBrH4STnJvq2MDDf0=;
+        b=IZnPKT4KGFUJRhas1kioF8R1UhsnVhFkksoN/SiqjhTVKS6sxMbhAFi8tRf2DYKJDT
+         eV8FzVOAQidrlI5gaSB0HTtJgnFO25Z49w4Lmk3riPdALM5wpGQMiIpRx+O+iXkhqcrj
+         RR9ywqACGa+/8ZexKXUtyv7pXPLXdJLOns/f5snvYZOQSHOOdo2HJjvsr3mApz7jKzFZ
+         CLMjk8sw0/Y07MbLL45EAiS649J3TbmmMphXOP+cnmf6Mw4FsrXV6DXhQcJ047aJGpsV
+         0KFXEN57l5jFKSoGtW48dy4dQ+H2aIqUVjfllol9d5WmnUs7ydxuQZ1WdGz3Xz23LjK5
+         Y5+A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725047162; x=1725651962;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=PCK31f6nMFSZIQVq2dpwLwpb6hFH6JVgA/GmCF/iUJ8=;
-        b=sO/8DUZbCkq4eDA22SRxC4p7NRUDiIGZRvOQAW2yme5H6nOfg3Htsjxccp5N6Li5tI
-         1Qk7d08NZtMJSVyyNM7dg7/6TW+9xqbLRpw7yIqySyExz/mfWpa6+FP6FVrqqziFMEeU
-         hmdzfr9SfCwG/osxq6sSjyUNQ4mSf7+rRA/Zyv/IUWw9Ozh1rww/8XXctID50uttxsoj
-         dWOMh/9u6z/mPNWK5H2oOFTBXh4KOCgi7Ob3RVrtPPYmLozq2xJFV/GBhf0y2jRMNxix
-         205enc9xBYzTbF/z0fevTIthQtRLw3TQyok6MueLEoRimzQ3kgZB8FFm4xJA6Q06s/BQ
-         FIHQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUlCiDeAmzqLue8kMHv8NwdMOfsLtpxORMAyerDlJWr5wZU+5iBOl8U4c26EpRvSTAlrNO6eEC2@vger.kernel.org, AJvYcCWQCZIKbHq1HvOwMoh+NbkrErhpaH83AxKlPEEvEU/go49/9ENXURwxdCN2nNeYmZrwnGFmS+Jdbjt9skSyOQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx1kmVdDivd2xpDjjhY0LjA8NdFBRpIRduj7qWzRbA1oH4s5bBZ
-	coqWLxFIctWWtMC7GjxFd76VaWi3X+zQkIn2lPrN+uzR2Ms/U+yMJc4ipvup
-X-Google-Smtp-Source: AGHT+IFFL5Y7lf70w/UB85jkmhmGVxj7GF1VTsTeI0YZrcbuMPLoqyCLTKzNiLd3iPHdW2dIxlxU7Q==
-X-Received: by 2002:a05:6512:1047:b0:52c:c5c4:43d2 with SMTP id 2adb3069b0e04-53546b910a0mr2456721e87.47.1725047160831;
-        Fri, 30 Aug 2024 12:46:00 -0700 (PDT)
-Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
-        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5c226ce9326sm2202964a12.95.2024.08.30.12.45.59
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Aug 2024 12:46:00 -0700 (PDT)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Zorro Lang <zlang@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	linux-unionfs@vger.kernel.org,
-	fstests@vger.kernel.org
-Subject: [PATCH] overlay: deprecate test t_truncate_self
-Date: Fri, 30 Aug 2024 21:45:46 +0200
-Message-Id: <20240830194546.860173-1-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
+        d=1e100.net; s=20230601; t=1725276766; x=1725881566;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to:subject
+         :user-agent:mime-version:date:message-id:x-gm-message-state:from:to
+         :cc:subject:date:message-id:reply-to;
+        bh=k3T+qEmHOcCq1xQ+zRsNTSDREegBrH4STnJvq2MDDf0=;
+        b=kCM2B+/l4dk/hVl8osuaBKO02nw2P0TuOhJAzXGaN+FW3gF9o6IjeXLPTg7rZCIrnb
+         OzdXWGQTVGOHHjufgb5aCO7rZl9+V5xsXijwtKBkFInkfDH9b5cACl3yJKoTELXPYd6F
+         AUlV6oFfKrOfPzIU/EVyXMuW1i8O1vqE22Afd4s2VD//g6Jf/+Ro/TPRXxSdYtk6DpJz
+         59aeCp1VNAllGV5g84JP3Ey1MHWcRRLKcq99DCreA6BvLE/kd8UTXGcMJqfRhfs4XQW6
+         LgqQ3VXAbJhSbveDbXbhoCcZBVbxJBI0ns4mLToKZkx3styHy9vhUkrJ+57uRQ/A7RZd
+         9Chw==
+X-Forwarded-Encrypted: i=1; AJvYcCUo6GOlMOqRd5QwH9HfF9FDHnjdLLu+BXkTprY/rAJQLQyPg26J4bvWhp+Ih1qCX+sEz7djQqkqWN0oxZW2@vger.kernel.org
+X-Gm-Message-State: AOJu0YwGAW9nPE7wCshNU0XFHxa25DZi+Do9tZJL2mXx7jSzsX6nAP75
+	2ARvMMtHSnkA/bJin4dU+nR3q8Wc20Go2Api1Not1o0KJWWBEXAiboXWSJU+xJE=
+X-Google-Smtp-Source: AGHT+IEKBR7dteQbq1hh6J1kq7GDsyXK0XN7F9BJXJnN31Mk4hReTi+nlhaf0SDOblRrJ5aRyaTS8w==
+X-Received: by 2002:a05:6a21:1690:b0:1ca:ccfc:edc8 with SMTP id adf61e73a8af0-1ccee8874a3mr14856504637.22.1725276765428;
+        Mon, 02 Sep 2024 04:32:45 -0700 (PDT)
+Received: from [10.54.24.59] (static-ip-148-99-134-202.rev.dyxnet.com. [202.134.99.148])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-715e5576a37sm6688723b3a.29.2024.09.02.04.32.42
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Sep 2024 04:32:44 -0700 (PDT)
+Message-ID: <dcf1c5c7-d5b0-41f4-9191-2876b80165ae@shopee.com>
+Date: Mon, 2 Sep 2024 19:32:38 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH v2] ovl: don't set the superblock's errseq_t manually
+To: "Darrick J. Wong" <djwong@kernel.org>, Amir Goldstein <amir73il@gmail.com>
+Cc: Jeff Layton <jlayton@kernel.org>, Theodore Tso <tytso@mit.edu>,
+ miklos@szeredi.hu, linux-unionfs@vger.kernel.org,
+ linux-fsdevel <linux-fsdevel@vger.kernel.org>,
+ Ext4 <linux-ext4@vger.kernel.org>, fstests <fstests@vger.kernel.org>
+References: <CAOQ4uxi4B8JHYHF=yn6OrRZCdkoPUj3-+PuZTZy6iJR7RNWcbA@mail.gmail.com>
+ <20240730042008.395716-1-haifeng.xu@shopee.com>
+ <CAOQ4uxhs==_-EM+VyJRRCX_NPmYybPDBW2v7cXz33Qt2RMaPnQ@mail.gmail.com>
+ <20240830152648.GE6216@frogsfrogsfrogs>
+From: Haifeng Xu <haifeng.xu@shopee.com>
+In-Reply-To: <20240830152648.GE6216@frogsfrogsfrogs>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-Since kernel commit 2a010c412853 ("fs: don't block i_writecount during
-exec"), truncating an executable file while it is being executed is
-allowed. Therefore, the test t_truncate_self now fails, so remove it.
 
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
 
-Zorro,
+On 2024/8/30 23:26, Darrick J. Wong wrote:
+> On Fri, Aug 30, 2024 at 03:27:35PM +0200, Amir Goldstein wrote:
+>> On Tue, Jul 30, 2024 at 6:20 AM Haifeng Xu <haifeng.xu@shopee.com> wrote:
+>>>
+>>> Since commit 5679897eb104 ("vfs: make sync_filesystem return errors from
+>>> ->sync_fs"), the return value from sync_fs callback can be seen in
+>>> sync_filesystem(). Thus the errseq_set opreation can be removed here.
+>>>
+>>> Depends-on: commit 5679897eb104 ("vfs: make sync_filesystem return errors from ->sync_fs")
+>>> Signed-off-by: Haifeng Xu <haifeng.xu@shopee.com>
+>>> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>>> ---
+>>> Changes since v1:
+>>> - Add Depends-on and Reviewed-by tags.
+>>> ---
+>>>  fs/overlayfs/super.c | 10 ++--------
+>>>  1 file changed, 2 insertions(+), 8 deletions(-)
+>>>
+>>> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+>>> index 06a231970cb5..fe511192f83c 100644
+>>> --- a/fs/overlayfs/super.c
+>>> +++ b/fs/overlayfs/super.c
+>>> @@ -202,15 +202,9 @@ static int ovl_sync_fs(struct super_block *sb, int wait)
+>>>         int ret;
+>>>
+>>>         ret = ovl_sync_status(ofs);
+>>> -       /*
+>>> -        * We have to always set the err, because the return value isn't
+>>> -        * checked in syncfs, and instead indirectly return an error via
+>>> -        * the sb's writeback errseq, which VFS inspects after this call.
+>>> -        */
+>>> -       if (ret < 0) {
+>>> -               errseq_set(&sb->s_wb_err, -EIO);
+>>> +
+>>> +       if (ret < 0)
+>>>                 return -EIO;
+>>> -       }
+>>>
+>>>         if (!ret)
+>>>                 return ret;
+>>> --
+>>> 2.25.1
+>>>
+>>
+>> FYI, this change is queued in overlayfs-next.
+>>
+>> However, I went to see if overlayfs has test coverage for this and it does not.
+>>
+>> The test coverage added by Darrick to the mentioned vfs commit is test xfs/546,
+>> so it does not run on other fs, although it is quite generic.
+>>
+>> I fixed this test so it could run on overlayfs (like this):
+>> # This command is complicated a bit because in the case of overlayfs the
+>> # syncfs fd needs to be opened before shutdown and it is different from the
+>> # shutdown fd, so we cannot use the _scratch_shutdown() helper.
+>> # Filter out xfs_io output of active fds.
+>> $XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c 'shutdown -f
+>> ' -c close -c syncfs $SCRATCH_MNT | \
+>>         grep -vF '[00'
+>>
+>> and it passes on both xfs and overlayfs (over xfs), but if I try to
+>> make it "generic"
+>> it fails on ext4, which explicitly allows syncfs after shutdown:
+>>
+>>         if (unlikely(ext4_forced_shutdown(sb)))
+>>                 return 0;
+>>
+>> Ted, Darrick,
+>>
+>> Do you have any insight as to why this ext4 behavior differs from xfs
+>> or another idea how to exercise the syncfs error in a generic test?
+>>
+>> I could fork an overlay/* test from the xfs/* test and require that
+>> underlying fs is xfs, but that would be ugly.
+>>
+>> Any ideas?
+> 
+> That should be:
+> 
+> 	if (unlikely(ext4_forced_shutdown(sb)))
+> 		return -EIO;
+> 
+> no?  The fs is dead and cannot persist anything, so we should fling that
+> back to the calling program.
 
-This is a fix for a test regression since v6.11-rc1.
-My fix is to deprecate the test, because the change of behavior is
-desired (at least until a non test user complains).
+yes. sync_filesystem() write outs and wait upon all dirty data. If the superblock is shutdown,
+writeback can't make any progress and there is no guarantees are made on how many dirty data
+have been written out. So I think it's reasonable to tell users about this error.
 
-Thanks,
-Amir.
-
- .gitignore            |  1 -
- src/Makefile          |  2 +-
- src/t_truncate_self.c | 26 --------------------------
- tests/overlay/013     | 41 -----------------------------------------
- tests/overlay/013.out |  2 --
- 5 files changed, 1 insertion(+), 71 deletions(-)
- delete mode 100644 src/t_truncate_self.c
- delete mode 100755 tests/overlay/013
- delete mode 100644 tests/overlay/013.out
-
-diff --git a/.gitignore b/.gitignore
-index 36083e9d..94f6b564 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -171,7 +171,6 @@ tags
- /src/t_snapshot_deleted_subvolume
- /src/t_stripealign
- /src/t_truncate_cmtime
--/src/t_truncate_self
- /src/test-nextquota
- /src/testx
- /src/trunc
-diff --git a/src/Makefile b/src/Makefile
-index b3da59a0..52299b4c 100644
---- a/src/Makefile
-+++ b/src/Makefile
-@@ -13,7 +13,7 @@ TARGETS = dirstress fill fill2 getpagesize holes lstat64 \
- 	godown resvtest writemod writev_on_pagefault makeextents itrash rename \
- 	multi_open_unlink unwritten_sync genhashnames t_holes \
- 	t_mmap_writev t_truncate_cmtime dirhash_collide t_rename_overwrite \
--	holetest t_truncate_self af_unix t_mmap_stale_pmd \
-+	holetest af_unix t_mmap_stale_pmd \
- 	t_mmap_cow_race t_mmap_fallocate fsync-err t_mmap_write_ro \
- 	t_ext4_dax_journal_corruption t_ext4_dax_inline_corruption \
- 	t_ofd_locks t_mmap_collision mmap-write-concurrent \
-diff --git a/src/t_truncate_self.c b/src/t_truncate_self.c
-deleted file mode 100644
-index a11f7d5a..00000000
---- a/src/t_truncate_self.c
-+++ /dev/null
-@@ -1,26 +0,0 @@
--#include <stdio.h>
--#include <string.h>
--#include <errno.h>
--#include <unistd.h>
--#include <libgen.h>
--
--int main(int argc, char *argv[])
--{
--	const char *progname = basename(argv[0]);
--	int ret;
--
--	ret = truncate(argv[0], 4096);
--	if (ret != -1) {
--		if (argc == 2 && strcmp(argv[1], "--may-succeed") == 0)
--			return 0;
--		fprintf(stderr, "truncate(%s) should have failed\n",
--			progname);
--		return 1;
--	}
--	if (errno != ETXTBSY) {
--		perror(progname);
--		return 1;
--	}
--
--	return 0;
--}
-diff --git a/tests/overlay/013 b/tests/overlay/013
-deleted file mode 100755
-index 73c72c30..00000000
---- a/tests/overlay/013
-+++ /dev/null
-@@ -1,41 +0,0 @@
--#! /bin/bash
--# SPDX-License-Identifier: GPL-2.0
--# Copyright (c) 2016 Red Hat Inc.  All Rights Reserved.
--#
--# FS QA Test 013
--#
--# Test truncate running executable binaries from lower and upper dirs.
--# truncate(2) should return ETXTBSY, not other errno nor segfault
--#
--# Commit 03bea6040932 ("ovl: get_write_access() in truncate") fixed this issue.
--. ./common/preamble
--_begin_fstest auto quick copyup
--
--# Import common functions.
--. ./common/filter
--
--_require_scratch
--_require_test_program "t_truncate_self"
--
--# remove all files from previous runs
--_scratch_mkfs
--
--# copy test program to lower and upper dir
--lowerdir=$OVL_BASE_SCRATCH_MNT/$OVL_LOWER
--upperdir=$OVL_BASE_SCRATCH_MNT/$OVL_UPPER
--mkdir -p $lowerdir
--mkdir -p $upperdir
--cp $here/src/t_truncate_self $lowerdir/test_lower
--cp $here/src/t_truncate_self $upperdir/test_upper
--
--_scratch_mount
--
--# run test program from lower and upper dir
--# test programs truncate themselfs, all should fail with ETXTBSY
--$SCRATCH_MNT/test_lower --may-succeed
--$SCRATCH_MNT/test_upper
--
--# success, all done
--echo "Silence is golden"
--status=0
--exit
-diff --git a/tests/overlay/013.out b/tests/overlay/013.out
-deleted file mode 100644
-index 3e66423b..00000000
---- a/tests/overlay/013.out
-+++ /dev/null
-@@ -1,2 +0,0 @@
--QA output created by 013
--Silence is golden
--- 
-2.34.1
-
+> 
+> --D
+> 
+>> Thanks,
+>> Amir.
+>>
