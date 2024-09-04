@@ -1,107 +1,116 @@
-Received: from mail-lj1-f169.google.com (mail-lj1-f169.google.com [209.85.208.169])
+Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83F151DFE37;
-	Wed,  4 Sep 2024 16:54:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F90D15B555;
+	Wed,  4 Sep 2024 19:32:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725468888; cv=none; b=CjphY80UplrZv6CAv6iyNJJr5WWEa7sy8bizGlD/WLbv2jXaSjn2Mr2IRVpmpJGwNr0HZJxfToZasPX5seNMaqrUvR2yP0iLm8uPImwDnt9ekcBzwkzG1v405i1kCvIRK2pl+pFZGElTUlB+3ttQZ7mcqfuK+THZrAtuXslmY7k=
+	t=1725478352; cv=none; b=e/43Xk+EQja+n89ki31bnwlMwy+LYUq8Favu+mfbUglojMALJ50ZPUm29XMApIlW9LDz8HZBCmA1UM1llJE9ied4BRvWvJ+CuMtXJA/L1t7NC/SbbvDsoDgXdnpzCocYWGoMKlcCTP6LoS4i+ElQ1+juW06px6KxgkU56d6jIqs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725468888; c=relaxed/simple;
-	bh=ZsKTCmsUak/i2DAtDGrQiNcj4LH51AjCKdgTPIlxiBc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=fZWa5Slo399AhK+O6iCfkYWUCELV7fRSoaEG6yrv8wMx58MgSDU7DZSlu8OziRM/zMQYftoduJsKPvYRLqkFFSadlqu+diJuJx45FFYqzRaeGprYBr1EDZ9WAXvv2S2obELVcEc+0Kyx6hQx0scz6O0J7ifRe7BRkC8f5ca08PM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=a0O8hENn; arc=none smtp.client-ip=209.85.208.169
+	s=arc-20240116; t=1725478352; c=relaxed/simple;
+	bh=PyQrDfXI4pIKyfzh+YcSygARqjBWQaMniKKisbOo8oQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=LPw0FY08YlE30jSuuoDUbmDI4hXpI0+9QPu5yOiRWYebpmej2Ez7TEXNNhFhX8pCYm1UkkyaclbX9vmWeDzhXRMtrrPoa28i4+DFP3v4guoy28vTNTaJzjo4JI623sJUp3MKSgIWGjODqxIJYpnadX+9JUEoT3338FmB6HBhjSY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=G1ykBlfb; arc=none smtp.client-ip=209.85.219.52
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="a0O8hENn"
-Received: by mail-lj1-f169.google.com with SMTP id 38308e7fff4ca-2f3edb2d908so24859181fa.2;
-        Wed, 04 Sep 2024 09:54:46 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G1ykBlfb"
+Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-6c35427935eso29383516d6.3;
+        Wed, 04 Sep 2024 12:32:30 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725468885; x=1726073685; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+        d=gmail.com; s=20230601; t=1725478350; x=1726083150; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=nfv9Ui5koTE6GIwpQG+le9EM9spL5yZe9v6frpn0NeE=;
-        b=a0O8hENn76nOzkyN/O/AZ0jM2OvEVzwbBWnAtbvNXfLKlL4V94G6aMGsy4eUupKsLv
-         s8wpNG/+5UegaTbYztpX2b57ITu+zBZRhUo8o18jYt1hLAI6E5+1pn2JZgk3Nlucs1bX
-         oXfVQZ8MKuJQ4GfnsWZxl59FFdgxse7s7QQEa6xRPY6ByQtadGUbPrhMFCJAMPvs1DO4
-         2F72k+YAp0wZe+jxXrm3vj1JkaHnYfSvOvAJpsXb3eM0xGgYy3Lxp6fcsaUO+XyBrXbn
-         DKDGodw+AgT7Zptnx/AfdyDf19CsBNuCiiz9hhSYzy+gu+C/Uda1EP+VrB3bkvg6OOOm
-         jqcQ==
+        bh=UQs3zpvLguyufYMw2L58yxG9r/VbEIBK+iwTQGmJNWY=;
+        b=G1ykBlfb7wtJ7vzSlemTTVucSO5PXduzqLp2+Jsyfeif7306HT3AstSxb1S/rjx32C
+         0wr2kNISp7zxldOLdvq5SflqU0LUTh59WULJJAXotAIhfA2RBe5i5+OrLwd3JFkegjy1
+         un9TflTYqfP5jRf2j+vw4HLOpRQlBQr18We2g+1z8/3oUwTVZ0Pqug66x04WcU3pZ+j/
+         KV9xzeDNrhOAYTiV4kZIW9G3KpvvHvJ2YZ9gfBUzOQvWeYKBF5h49vqQVUStcWj8rqR3
+         fnUPyupgawYh6CP3AnODdiZw60bdnmzWb++T0mtJxxRt54oCWnQCbsDy88Z37TVRkTbU
+         jKSw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725468885; x=1726073685;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+        d=1e100.net; s=20230601; t=1725478350; x=1726083150;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=nfv9Ui5koTE6GIwpQG+le9EM9spL5yZe9v6frpn0NeE=;
-        b=AmGlmfA9UtrqSa3L4kwB84WsAD3/e9iIDAVCgtfCuLTCh/i73l9uPCA6IBxzYK2bCt
-         5H2+32o8Uy1jeschHi8XQcRQZjZqY/PmIPiXNanAjoiex3y3zIhil7pirVfyN1Uy/yi2
-         bKalu58iPbiGhbjD27nrPGyAX+AByk9iQXxZSPn3H4oIyCbE7+6MHjZlij0BtrIngdxv
-         y4OH5cVfXtpY8ia50omAVFqUHQJ/tGSY9N8YO6Up4r3fB22pZhPCkG4Wqw1MACUwPcPD
-         nlx1NPx8Qps6ll5g8emLX/zdMvQiwg4v3nkvItrYMxtjodctuJlQX5/pAEDT2eNE/sA8
-         cGlA==
-X-Forwarded-Encrypted: i=1; AJvYcCVdrDAIho//IbL5CkzrLzw7gisLG/FLvhRqdvZ5DhEkM8dlmkVGckfaQ1o9YL++V86EWx19+46CAGC6WRc2pg==@vger.kernel.org, AJvYcCVoLhVCMGN5blLPJwLBP/TTeUG16z5CSqgmeJiV+1sgesb7stVP6Cj1jpGcecnmbNi+Db3a1GU4Nhk=@vger.kernel.org, AJvYcCXwY62o9RGoMZHf5hzKmEWgCl939Wv5udPQ5cl3ZtUt1XX55I96wPqJnjokaxoV/R5dE6vAZWJSEJWL4/7f@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywdg3EM98VIR21U1z33KKBlP9rXFMWdQGV8h/0Qzo+y5TZj8U1y
-	P+fBMGy5Hp3hGJycecIfTet/qWUHd7Zs5BJLQdIXslDlcks4OcJG
-X-Google-Smtp-Source: AGHT+IG8W5lrO3q3aYCvr07GYUu/bSieVBAcjT0IhhpnT+F3Z7Lsurv+dQQ/4lJlIHcX92OoFsgX4A==
-X-Received: by 2002:a2e:a596:0:b0:2ef:2c6a:4929 with SMTP id 38308e7fff4ca-2f64440dc3emr64698921fa.13.1725468883739;
-        Wed, 04 Sep 2024 09:54:43 -0700 (PDT)
-Received: from localhost.localdomain ([193.0.218.31])
-        by smtp.googlemail.com with ESMTPSA id 38308e7fff4ca-2f615181d71sm24421101fa.102.2024.09.04.09.54.42
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 04 Sep 2024 09:54:43 -0700 (PDT)
-From: Yuriy Belikov <yuriybelikov1@gmail.com>
-To: 
-Cc: yuriybelikov1@gmail.com,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	linux-unionfs@vger.kernel.org (open list:OVERLAY FILESYSTEM),
-	linux-doc@vger.kernel.org (open list:DOCUMENTATION),
-	linux-kernel@vger.kernel.org (open list)
-Subject: [PATCH v2] Update metacopy section in overlayfs documentation
-Date: Wed,  4 Sep 2024 19:54:29 +0300
-Message-ID: <20240904165431.13974-1-yuriybelikov1@gmail.com>
-X-Mailer: git-send-email 2.43.5
-In-Reply-To: <CAOQ4uxiRGcPNsad==MtLFGrrwg_Sv-6g0tNwSVtvoSH+2VR5Lw@mail.gmail.com>
-References: <CAOQ4uxiRGcPNsad==MtLFGrrwg_Sv-6g0tNwSVtvoSH+2VR5Lw@mail.gmail.com>
+        bh=UQs3zpvLguyufYMw2L58yxG9r/VbEIBK+iwTQGmJNWY=;
+        b=rZLKz+ALHljXJCUCAMtDPWYE+ZOvzwYIO6mx3fy7XIrMrbLINyrXYTnsZhcHk3YEOT
+         PQAE3bs/eoYEFcOPoZiMpEqVuVJGasG6GchRCIWaT7Nh1Vqt0RDq5R0y7UYkuYpQyiRj
+         9ogMF23IPu0ZwvyzfrGVy6DM6Z+mkLSL9hFSP4bJ4dmoFAAhN+2a7VfzYKWrkaUnzKcI
+         IP3SGIspqE6j5hBxKGXROGDI8Dy6mHiiXBFVPGyqNpqxSfBfpJZreXMkaF/30bZzl42J
+         kZl39RDzmjUonfRIWQsF5Qd/+2k9fUxFrw7cyvhKIPnKBZkjgs3lPMt4vZBJLV3X5sLs
+         7/mg==
+X-Forwarded-Encrypted: i=1; AJvYcCU/g1YN/ZNqfYR+tmHMa+pQogPikuX8q3Ab9HUTe36AxzRGJKcvNlG1aeFSvibobLpSQ718Rcx8qBMUBhorYg==@vger.kernel.org, AJvYcCUWpCxibm9XPN7OkWA1g0Sas4eKvqNbCk5Rg5nHJGUUC8Dz6riPdlp02t4qJTSa1lbjf5++UpAbHvKElwT1@vger.kernel.org, AJvYcCVwIDmpnh1ciQRcaeJyRATkYZ8pz0KCTxodUEaF3aUra4nJmm8cDvG63DFa2UD4s6tWtcr9Myf2GWY=@vger.kernel.org
+X-Gm-Message-State: AOJu0Yy9hhaH3Wp6Pru8qYDzsemFXa3+VWcUI0v6DcmDp5RjCcSiLVDN
+	Fm15oXcTpT6pwp6r+TwSSXXHVCjm6G2FpVShYuo0X9Wj4JnfPCM3RS3hlwaqde0Yby5AGxUypOF
+	71TXn1PPUMrP/gbLWcpfvEyNCndw=
+X-Google-Smtp-Source: AGHT+IGRHjuOzYuw5iOar6gfXgnmHzCjlMooE6P9uwZGw4HYM+s7dZ/ezw4PlCGXkIkz6W4zgKk7VvfRZHckbaxEa1E=
+X-Received: by 2002:a05:6214:4585:b0:6c3:53fe:8182 with SMTP id
+ 6a1803df08f44-6c355836c09mr204191836d6.44.1725478349745; Wed, 04 Sep 2024
+ 12:32:29 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <CAOQ4uxiRGcPNsad==MtLFGrrwg_Sv-6g0tNwSVtvoSH+2VR5Lw@mail.gmail.com>
+ <20240904165431.13974-1-yuriybelikov1@gmail.com>
+In-Reply-To: <20240904165431.13974-1-yuriybelikov1@gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 4 Sep 2024 21:32:18 +0200
+Message-ID: <CAOQ4uxiaokAp4P+ADxX40onTxqBjR=2Gc=iagtVN3MW66QSc9Q@mail.gmail.com>
+Subject: Re: [PATCH v2] Update metacopy section in overlayfs documentation
+To: Yuriy Belikov <yuriybelikov1@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, 
+	"open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>, 
+	"open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Changes since v1:
-- Provide info about trusted.overlay.metacopy extended attribute.
-- Minor rephrasing regarding copy-up operation with
-  metacopy=on
-Signed-off-by: Yuriy Belikov <yuriybelikov1@gmail.com>
----
- Documentation/filesystems/overlayfs.rst | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+On Wed, Sep 4, 2024 at 6:54=E2=80=AFPM Yuriy Belikov <yuriybelikov1@gmail.c=
+om> wrote:
+>
+> Changes since v1:
+> - Provide info about trusted.overlay.metacopy extended attribute.
+> - Minor rephrasing regarding copy-up operation with
+>   metacopy=3Don
+> Signed-off-by: Yuriy Belikov <yuriybelikov1@gmail.com>
+> ---
+>  Documentation/filesystems/overlayfs.rst | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
+>
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
+systems/overlayfs.rst
+> index 165514401441..e5ad43f4f4d7 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -367,8 +367,11 @@ Metadata only copy up
+>
+>  When the "metacopy" feature is enabled, overlayfs will only copy
+>  up metadata (as opposed to whole file), when a metadata specific operati=
+on
+> -like chown/chmod is performed. Full file will be copied up later when
+> -file is opened for WRITE operation.
+> +like chown/chmod is performed. An upper file in this state is marked wit=
+h
+> +"trusted.overlayfs.metacopy" xattr which indicates that the upper file
+> +contains no data. Full data will be copied up later when file is opened =
+for
+> +WRITE operation. After the lower file's data is copied up,
+> +the "trusted.overlayfs.metacopy" xattr is removed from the upper file.
+>
+>  In other words, this is delayed data copy up operation and data is copie=
+d
+>  up when there is a need to actually modify data.
+> --
+> 2.43.5
+>
 
-diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-index 165514401441..e5ad43f4f4d7 100644
---- a/Documentation/filesystems/overlayfs.rst
-+++ b/Documentation/filesystems/overlayfs.rst
-@@ -367,8 +367,11 @@ Metadata only copy up
- 
- When the "metacopy" feature is enabled, overlayfs will only copy
- up metadata (as opposed to whole file), when a metadata specific operation
--like chown/chmod is performed. Full file will be copied up later when
--file is opened for WRITE operation.
-+like chown/chmod is performed. An upper file in this state is marked with
-+"trusted.overlayfs.metacopy" xattr which indicates that the upper file
-+contains no data. Full data will be copied up later when file is opened for
-+WRITE operation. After the lower file's data is copied up,
-+the "trusted.overlayfs.metacopy" xattr is removed from the upper file.
- 
- In other words, this is delayed data copy up operation and data is copied
- up when there is a need to actually modify data.
--- 
-2.43.5
+Pushed to overlayfs-next with minor rephrasing of commit message.
+(v1 is irrelevant in the context of git history)
 
+Thanks,
+Amir.
