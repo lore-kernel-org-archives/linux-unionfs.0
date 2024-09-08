@@ -1,116 +1,236 @@
-Received: from mail-qv1-f52.google.com (mail-qv1-f52.google.com [209.85.219.52])
+Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2F90D15B555;
-	Wed,  4 Sep 2024 19:32:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF9E62171
+	for <linux-unionfs@vger.kernel.org>; Sun,  8 Sep 2024 14:01:00 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.50
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725478352; cv=none; b=e/43Xk+EQja+n89ki31bnwlMwy+LYUq8Favu+mfbUglojMALJ50ZPUm29XMApIlW9LDz8HZBCmA1UM1llJE9ied4BRvWvJ+CuMtXJA/L1t7NC/SbbvDsoDgXdnpzCocYWGoMKlcCTP6LoS4i+ElQ1+juW06px6KxgkU56d6jIqs=
+	t=1725804062; cv=none; b=OIqIy4PiS18CAfvvGVUbAnAFVDWkJZUqrNM4O5RZPyde1oN97o7ObkgxkUTeyzvM0rpAz9vJ23tJu1CyImQSQ1dDucFdiS13Ccf2iTLwpDpou10IpQw6r/cRvwsQ7gIYQdxOaP9iVwCJBC0MOeYJsF+c5+Ng6C0AJL4RwkQDHWk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725478352; c=relaxed/simple;
-	bh=PyQrDfXI4pIKyfzh+YcSygARqjBWQaMniKKisbOo8oQ=;
+	s=arc-20240116; t=1725804062; c=relaxed/simple;
+	bh=k6C92YacFFgDrPxXlYv6GTyf8d8IALYWVMjsNNXzp2s=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=LPw0FY08YlE30jSuuoDUbmDI4hXpI0+9QPu5yOiRWYebpmej2Ez7TEXNNhFhX8pCYm1UkkyaclbX9vmWeDzhXRMtrrPoa28i4+DFP3v4guoy28vTNTaJzjo4JI623sJUp3MKSgIWGjODqxIJYpnadX+9JUEoT3338FmB6HBhjSY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=G1ykBlfb; arc=none smtp.client-ip=209.85.219.52
+	 To:Cc:Content-Type; b=npm7HjbIJhLUJUx14Rwv0wHiipaAw7Df5oL1iWETXSiPaezBxRywDs+Zw33BmhNS7o+CHjzbhcvXtIyndpsU73qKunEqHxdu2j612SmuQnWa6k0VHr4PrQWX05CikUTe/w6z/VFyRlmdDcENL3yg9Y7YvG1v51pGZDMjPcrIvwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SEuaqSmU; arc=none smtp.client-ip=209.85.161.50
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="G1ykBlfb"
-Received: by mail-qv1-f52.google.com with SMTP id 6a1803df08f44-6c35427935eso29383516d6.3;
-        Wed, 04 Sep 2024 12:32:30 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SEuaqSmU"
+Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5d5eec95a74so2095511eaf.1
+        for <linux-unionfs@vger.kernel.org>; Sun, 08 Sep 2024 07:01:00 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725478350; x=1726083150; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1725804059; x=1726408859; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=UQs3zpvLguyufYMw2L58yxG9r/VbEIBK+iwTQGmJNWY=;
-        b=G1ykBlfb7wtJ7vzSlemTTVucSO5PXduzqLp2+Jsyfeif7306HT3AstSxb1S/rjx32C
-         0wr2kNISp7zxldOLdvq5SflqU0LUTh59WULJJAXotAIhfA2RBe5i5+OrLwd3JFkegjy1
-         un9TflTYqfP5jRf2j+vw4HLOpRQlBQr18We2g+1z8/3oUwTVZ0Pqug66x04WcU3pZ+j/
-         KV9xzeDNrhOAYTiV4kZIW9G3KpvvHvJ2YZ9gfBUzOQvWeYKBF5h49vqQVUStcWj8rqR3
-         fnUPyupgawYh6CP3AnODdiZw60bdnmzWb++T0mtJxxRt54oCWnQCbsDy88Z37TVRkTbU
-         jKSw==
+        bh=qnsswV9iZUhWDikooz5WOXXo60/2wploLmJ9pkediY8=;
+        b=SEuaqSmU9llvi1Z4RKprdh2uQLYl4RnFDRf/GaiRWDcliYk82Ks0K9+qIKuxdEcggC
+         qx87XQxEcTd6j6qm9jyzXE8ydmPb3bjq5Y+BB0asg5zWi67ehtadxvfvIFpSIx96ej9G
+         kqvcJ5vtrCrmN3ZKLltdY9X6KhUALzddiTmrhBUgiSyYUWRYGfTuK9Fts14xbL+sq0e1
+         s8vgTGGfTLDWkR6+N9CNDHK3BlnNctQugxnOoqszOAr4/ppzEYGmo8Yxeec/13JWhQqE
+         jag3+Fqv60aV3Ax7qSMTq2OmgcZwB9lnLNlI7AY4p2VQLf5WFqNYvKqIkul58Y7E/9QF
+         Uzsg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725478350; x=1726083150;
+        d=1e100.net; s=20230601; t=1725804059; x=1726408859;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=UQs3zpvLguyufYMw2L58yxG9r/VbEIBK+iwTQGmJNWY=;
-        b=rZLKz+ALHljXJCUCAMtDPWYE+ZOvzwYIO6mx3fy7XIrMrbLINyrXYTnsZhcHk3YEOT
-         PQAE3bs/eoYEFcOPoZiMpEqVuVJGasG6GchRCIWaT7Nh1Vqt0RDq5R0y7UYkuYpQyiRj
-         9ogMF23IPu0ZwvyzfrGVy6DM6Z+mkLSL9hFSP4bJ4dmoFAAhN+2a7VfzYKWrkaUnzKcI
-         IP3SGIspqE6j5hBxKGXROGDI8Dy6mHiiXBFVPGyqNpqxSfBfpJZreXMkaF/30bZzl42J
-         kZl39RDzmjUonfRIWQsF5Qd/+2k9fUxFrw7cyvhKIPnKBZkjgs3lPMt4vZBJLV3X5sLs
-         7/mg==
-X-Forwarded-Encrypted: i=1; AJvYcCU/g1YN/ZNqfYR+tmHMa+pQogPikuX8q3Ab9HUTe36AxzRGJKcvNlG1aeFSvibobLpSQ718Rcx8qBMUBhorYg==@vger.kernel.org, AJvYcCUWpCxibm9XPN7OkWA1g0Sas4eKvqNbCk5Rg5nHJGUUC8Dz6riPdlp02t4qJTSa1lbjf5++UpAbHvKElwT1@vger.kernel.org, AJvYcCVwIDmpnh1ciQRcaeJyRATkYZ8pz0KCTxodUEaF3aUra4nJmm8cDvG63DFa2UD4s6tWtcr9Myf2GWY=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yy9hhaH3Wp6Pru8qYDzsemFXa3+VWcUI0v6DcmDp5RjCcSiLVDN
-	Fm15oXcTpT6pwp6r+TwSSXXHVCjm6G2FpVShYuo0X9Wj4JnfPCM3RS3hlwaqde0Yby5AGxUypOF
-	71TXn1PPUMrP/gbLWcpfvEyNCndw=
-X-Google-Smtp-Source: AGHT+IGRHjuOzYuw5iOar6gfXgnmHzCjlMooE6P9uwZGw4HYM+s7dZ/ezw4PlCGXkIkz6W4zgKk7VvfRZHckbaxEa1E=
-X-Received: by 2002:a05:6214:4585:b0:6c3:53fe:8182 with SMTP id
- 6a1803df08f44-6c355836c09mr204191836d6.44.1725478349745; Wed, 04 Sep 2024
- 12:32:29 -0700 (PDT)
+        bh=qnsswV9iZUhWDikooz5WOXXo60/2wploLmJ9pkediY8=;
+        b=S7i1Sk2+PXfhKmoj6UpWcD6tS30OAe3DASDx5yB6P/4I/pGMV5oOu+nAqEbjsPIJdr
+         s4UJMjg09gitpktTJFMv7vn3eaoKebK1GiIfpCDx+O5hZ8SPBInZhVBPcGa2C2v0oYqK
+         Tx6O7TZb0SsFnl7HBo9FspS91tOCDjFd7soc9bTLyl1IRZxIlYN8yY5qNKGp6qV5uhlh
+         073623Lbx64zAWI9p+6mpza3/hmHfuiABBA4xd9TlItlqYfCKeN1GdN99+n3LpCYvxX+
+         pKkZfntF7YNHduVSPTtKLs9Q18jlO5HVSGn7f7Xq1r2AJouXBASk+NbxjWbhnAwRHMTA
+         RD8w==
+X-Gm-Message-State: AOJu0YyeZGWRIzCqTIkOQAlOp/bKo88TmhNfJMWWQjFwJYB4mOSuR8sQ
+	fC8k9NL5wmxt0Brv4LBgzgcpmebbUmUUUqw6mlTorICJaLsXeVbt+Y7AW4N9I4/LBSDm7+/ugQy
+	z/YBQlnTKgs+DNDILYRjVbXJrG8ykcrwy
+X-Google-Smtp-Source: AGHT+IH8bjrWGEnWVXng6a1pH6ew1ZOWYSFK255hks1tCl4uOebj31K7ALM2OVzTZjxG/Ydj3XAw1JuFhpSr5PTGk/4=
+X-Received: by 2002:a05:6358:2827:b0:1b5:a38c:11d1 with SMTP id
+ e5c5f4694b2df-1b8386f6ad8mr932919555d.26.1725804059160; Sun, 08 Sep 2024
+ 07:00:59 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxiRGcPNsad==MtLFGrrwg_Sv-6g0tNwSVtvoSH+2VR5Lw@mail.gmail.com>
- <20240904165431.13974-1-yuriybelikov1@gmail.com>
-In-Reply-To: <20240904165431.13974-1-yuriybelikov1@gmail.com>
+References: <2e8c4e8b-3292-4ccf-bb63-12d7c0009ae9@mbaynton.com>
+ <20240711035203.3367360-1-mike@mbaynton.com> <CAOQ4uxgxpnj1r-p9Y=OkP=Qk2YM9jZ37Pm0NBN1R=NagZuhioA@mail.gmail.com>
+ <a05156b1-7cb9-470c-82c1-3d5cbd6611e6@mbaynton.com>
+In-Reply-To: <a05156b1-7cb9-470c-82c1-3d5cbd6611e6@mbaynton.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 4 Sep 2024 21:32:18 +0200
-Message-ID: <CAOQ4uxiaokAp4P+ADxX40onTxqBjR=2Gc=iagtVN3MW66QSc9Q@mail.gmail.com>
-Subject: Re: [PATCH v2] Update metacopy section in overlayfs documentation
-To: Yuriy Belikov <yuriybelikov1@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Jonathan Corbet <corbet@lwn.net>, 
-	"open list:OVERLAY FILESYSTEM" <linux-unionfs@vger.kernel.org>, 
-	"open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Date: Sun, 8 Sep 2024 16:00:48 +0200
+Message-ID: <CAOQ4uxiez1UsTvoZpGG2DhAmbf0fLoe1pu4fB2X+9RCD95fF7A@mail.gmail.com>
+Subject: Re: [PATCH v2] ovl: Fail if trusted xattrs are needed but caller
+ lacks permission
+To: Mike Baynton <mike@mbaynton.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
+	Alexander Larsson <alexl@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Wed, Sep 4, 2024 at 6:54=E2=80=AFPM Yuriy Belikov <yuriybelikov1@gmail.c=
-om> wrote:
+On Sat, Sep 7, 2024 at 5:59=E2=80=AFPM Mike Baynton <mike@mbaynton.com> wro=
+te:
 >
-> Changes since v1:
-> - Provide info about trusted.overlay.metacopy extended attribute.
-> - Minor rephrasing regarding copy-up operation with
->   metacopy=3Don
-> Signed-off-by: Yuriy Belikov <yuriybelikov1@gmail.com>
-> ---
->  Documentation/filesystems/overlayfs.rst | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
-systems/overlayfs.rst
-> index 165514401441..e5ad43f4f4d7 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -367,8 +367,11 @@ Metadata only copy up
->
->  When the "metacopy" feature is enabled, overlayfs will only copy
->  up metadata (as opposed to whole file), when a metadata specific operati=
-on
-> -like chown/chmod is performed. Full file will be copied up later when
-> -file is opened for WRITE operation.
-> +like chown/chmod is performed. An upper file in this state is marked wit=
-h
-> +"trusted.overlayfs.metacopy" xattr which indicates that the upper file
-> +contains no data. Full data will be copied up later when file is opened =
-for
-> +WRITE operation. After the lower file's data is copied up,
-> +the "trusted.overlayfs.metacopy" xattr is removed from the upper file.
->
->  In other words, this is delayed data copy up operation and data is copie=
-d
->  up when there is a need to actually modify data.
-> --
-> 2.43.5
->
+> Hi Amir,
+> I apologize for my unfamiliarity with the process. Would you be so kind
+> as to point me to the next steps for this patch?
 
-Pushed to overlayfs-next with minor rephrasing of commit message.
-(v1 is irrelevant in the context of git history)
+Your next step would be to ping the maintainers ;)
+
+Sorry, as both me and Miklos were on vacation during July,
+nobody picked up this patch.
+
+I did skim over the mailing list for missed patches after my vacation,
+but I somehow missed it.
+
+I will queue it up and designate it for stable v6.6+.
+v6.6 added overlayfs verity feature, but lower datadir was added
+already in v6.5.
+However, 1. v6.5 is not an LTS kernel, 2. the params.c refactoring
+in v6.5 makes it hard to backport beyond v6.6.
 
 Thanks,
 Amir.
+
+
+>
+> My team took a wrong turn building on data-only layers on account of my
+> not vetting the feature inside user namespaces well enough -- I just
+> checked "does it mount and enumerate files successfully." I'm hoping the
+> most good that can come from that blunder is saving someone else from
+> the same fate in future.
+>
+> Regards
+> Mike
+>
+> On 7/11/24 08:35, Amir Goldstein wrote:
+> > On Thu, Jul 11, 2024 at 7:05=E2=80=AFAM Mike Baynton <mike@mbaynton.com=
+> wrote:
+> >>
+> >> Some overlayfs features require permission to read/write trusted.*
+> >> xattrs. These include redirect_dir, verity, metacopy, and data-only
+> >> layers. This patch adds additional validations at mount time to stop
+> >> overlays from mounting in certain cases where the resulting mount woul=
+d
+> >> not function according to the user's expectations because they lack
+> >> permission to access trusted.* xattrs (for example, not global root.)
+> >>
+> >> Similar checks in ovl_make_workdir() that disable features instead of
+> >> failing are still relevant and used in cases where the resulting mount
+> >> can still work "reasonably well." Generally, if the feature was enable=
+d
+> >> through kernel config or module option, any mount that worked before
+> >> will still work the same; this applies to redirect_dir and metacopy. T=
+he
+> >> user must explicitly request these features in order to generate a mou=
+nt
+> >> failure. Verity and data-only layers on the other hand must be explict=
+ly
+> >> requested and have no "reasonable" disabled or degraded alternative, s=
+o
+> >> mounts attempting either always fail.
+> >>
+> >> "lower data-only dirs require metacopy support" moved down in case
+> >> userxattr is set, which disables metacopy.
+> >>
+> >> Signed-off-by: Mike Baynton <mike@mbaynton.com>
+> >
+> > Looks nice
+> >
+> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> >
+> >> ---
+> >>
+> >>  v1 -> v2 not specific to data-only layers, punt on metacopy disable
+> >>           due to xattr write errors creating a conflicting configurati=
+on
+> >>           when data-only layers are present.
+> >>
+> >>  fs/overlayfs/params.c | 39 +++++++++++++++++++++++++++++++++------
+> >>  1 file changed, 33 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> >> index 4860fcc4611b..107c43e5e4cb 100644
+> >> --- a/fs/overlayfs/params.c
+> >> +++ b/fs/overlayfs/params.c
+> >> @@ -782,11 +782,6 @@ int ovl_fs_params_verify(const struct ovl_fs_cont=
+ext *ctx,
+> >>  {
+> >>         struct ovl_opt_set set =3D ctx->set;
+> >>
+> >> -       if (ctx->nr_data > 0 && !config->metacopy) {
+> >> -               pr_err("lower data-only dirs require metacopy support.=
+\n");
+> >> -               return -EINVAL;
+> >> -       }
+> >> -
+> >>         /* Workdir/index are useless in non-upper mount */
+> >>         if (!config->upperdir) {
+> >>                 if (config->workdir) {
+> >> @@ -910,7 +905,6 @@ int ovl_fs_params_verify(const struct ovl_fs_conte=
+xt *ctx,
+> >>                 }
+> >>         }
+> >>
+> >> -
+> >>         /* Resolve userxattr -> !redirect && !metacopy && !verity depe=
+ndency */
+> >>         if (config->userxattr) {
+> >>                 if (set.redirect &&
+> >> @@ -938,6 +932,39 @@ int ovl_fs_params_verify(const struct ovl_fs_cont=
+ext *ctx,
+> >>                 config->metacopy =3D false;
+> >>         }
+> >>
+> >> +       /*
+> >> +        * Fail if we don't have trusted xattr capability and a featur=
+e was
+> >> +        * explicitly requested that requires them.
+> >> +        */
+> >> +       if (!config->userxattr && !capable(CAP_SYS_ADMIN)) {
+> >> +               if (set.redirect &&
+> >> +                   config->redirect_mode !=3D OVL_REDIRECT_NOFOLLOW) =
+{
+> >> +                       pr_err("redirect_dir requires permission to ac=
+cess trusted xattrs\n");
+> >> +                       return -EPERM;
+> >> +               }
+> >> +               if (config->metacopy && set.metacopy) {
+> >> +                       pr_err("metacopy requires permission to access=
+ trusted xattrs\n");
+> >> +                       return -EPERM;
+> >> +               }
+> >> +               if (config->verity_mode) {
+> >> +                       pr_err("verity requires permission to access t=
+rusted xattrs\n");
+> >> +                       return -EPERM;
+> >> +               }
+> >> +               if (ctx->nr_data > 0) {
+> >> +                       pr_err("lower data-only dirs require permissio=
+n to access trusted xattrs\n");
+> >> +                       return -EPERM;
+> >> +               }
+> >> +               /*
+> >> +                * Other xattr-dependent features should be disabled w=
+ithout
+> >> +                * great disturbance to the user in ovl_make_workdir()=
+.
+> >> +                */
+> >> +       }
+> >> +
+> >> +       if (ctx->nr_data > 0 && !config->metacopy) {
+> >> +               pr_err("lower data-only dirs require metacopy support.=
+\n");
+> >> +               return -EINVAL;
+> >> +       }
+> >> +
+> >>         return 0;
+> >>  }
+> >>
+> >> --
+> >> 2.34.1
+> >>
+> >>
+>
