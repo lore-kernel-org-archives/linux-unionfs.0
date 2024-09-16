@@ -1,236 +1,126 @@
-Received: from mail-oo1-f50.google.com (mail-oo1-f50.google.com [209.85.161.50])
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9EF9E62171
-	for <linux-unionfs@vger.kernel.org>; Sun,  8 Sep 2024 14:01:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 85C0513211F;
+	Mon, 16 Sep 2024 18:26:15 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1725804062; cv=none; b=OIqIy4PiS18CAfvvGVUbAnAFVDWkJZUqrNM4O5RZPyde1oN97o7ObkgxkUTeyzvM0rpAz9vJ23tJu1CyImQSQ1dDucFdiS13Ccf2iTLwpDpou10IpQw6r/cRvwsQ7gIYQdxOaP9iVwCJBC0MOeYJsF+c5+Ng6C0AJL4RwkQDHWk=
+	t=1726511177; cv=none; b=Emd6hlJ9gKEx3YZEk3aHxRHStJxgzpIT9QvJlnhw4imhjSdfxtU6YtCv71wY3VDj/tyrD7f0pXhiK5vGb4W7LqFoXkj0VGxa4bLqFF/2mUfbCsz0XTVHQngkOuHcS/J7ijvSKdwbjZ07+Kgkk+zEJ+Uv3voOplTTVvzc7zbzjyE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1725804062; c=relaxed/simple;
-	bh=k6C92YacFFgDrPxXlYv6GTyf8d8IALYWVMjsNNXzp2s=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=npm7HjbIJhLUJUx14Rwv0wHiipaAw7Df5oL1iWETXSiPaezBxRywDs+Zw33BmhNS7o+CHjzbhcvXtIyndpsU73qKunEqHxdu2j612SmuQnWa6k0VHr4PrQWX05CikUTe/w6z/VFyRlmdDcENL3yg9Y7YvG1v51pGZDMjPcrIvwk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=SEuaqSmU; arc=none smtp.client-ip=209.85.161.50
+	s=arc-20240116; t=1726511177; c=relaxed/simple;
+	bh=v56YRJJZy/wRNHZbG1ywnyqgE0PluUV7/SsL50AVYqw=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=ZqeA9MpHtYYDiFgObDLmzQjJldDfnQC/0pf/igGQjO1hkbAUNOh12NTGGy99NjtFWWf7OSE2xMxH07NfkTux+bd+gOXuNPjbzlW+4qA6JPgafBFY18KTrpPXk+leS7wBRfUvIu0HIF3HFnfnYIUru1GqO3mXWmmh1mgV5MeWdlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=avePzGF0; arc=none smtp.client-ip=209.85.218.41
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="SEuaqSmU"
-Received: by mail-oo1-f50.google.com with SMTP id 006d021491bc7-5d5eec95a74so2095511eaf.1
-        for <linux-unionfs@vger.kernel.org>; Sun, 08 Sep 2024 07:01:00 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="avePzGF0"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-a8ce5db8668so832611666b.1;
+        Mon, 16 Sep 2024 11:26:15 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1725804059; x=1726408859; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qnsswV9iZUhWDikooz5WOXXo60/2wploLmJ9pkediY8=;
-        b=SEuaqSmU9llvi1Z4RKprdh2uQLYl4RnFDRf/GaiRWDcliYk82Ks0K9+qIKuxdEcggC
-         qx87XQxEcTd6j6qm9jyzXE8ydmPb3bjq5Y+BB0asg5zWi67ehtadxvfvIFpSIx96ej9G
-         kqvcJ5vtrCrmN3ZKLltdY9X6KhUALzddiTmrhBUgiSyYUWRYGfTuK9Fts14xbL+sq0e1
-         s8vgTGGfTLDWkR6+N9CNDHK3BlnNctQugxnOoqszOAr4/ppzEYGmo8Yxeec/13JWhQqE
-         jag3+Fqv60aV3Ax7qSMTq2OmgcZwB9lnLNlI7AY4p2VQLf5WFqNYvKqIkul58Y7E/9QF
-         Uzsg==
+        d=gmail.com; s=20230601; t=1726511174; x=1727115974; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=aIKV/f4fmNN+xl9ScoTPdS6tXhDJDmlBWNBiM5jjZOk=;
+        b=avePzGF0ni1+fZ9BsQrzpcUdAtONSXLWU62BnQJ+kSsa8nmhZcExmk6py0FsKe2wgj
+         N37LDVq1fcgyMSsihdYTZZy4wICmjUncVeqi9sSrqcl4/uQe/RYCnRa8eumQgWifRUxH
+         YZA/G0stIohZvJpXfvtb+PKhpfy/9kv9ZqJqMOfx/S6oKzsftFD3Q82f7BjqIBsMfK2h
+         GMS3M5NVBGuFhH6gwwISrEA8sjx+VCKnPXS6V8WWqqyNpgIq9esNlPAYbZDWj4vGD0Q7
+         TNICaXT3Ixiz0z5vy1j2D9m1wD5GUHPGUPH70cLMP0KEdhXmvHeTUd65FdR0qp+DES36
+         JsHQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1725804059; x=1726408859;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=qnsswV9iZUhWDikooz5WOXXo60/2wploLmJ9pkediY8=;
-        b=S7i1Sk2+PXfhKmoj6UpWcD6tS30OAe3DASDx5yB6P/4I/pGMV5oOu+nAqEbjsPIJdr
-         s4UJMjg09gitpktTJFMv7vn3eaoKebK1GiIfpCDx+O5hZ8SPBInZhVBPcGa2C2v0oYqK
-         Tx6O7TZb0SsFnl7HBo9FspS91tOCDjFd7soc9bTLyl1IRZxIlYN8yY5qNKGp6qV5uhlh
-         073623Lbx64zAWI9p+6mpza3/hmHfuiABBA4xd9TlItlqYfCKeN1GdN99+n3LpCYvxX+
-         pKkZfntF7YNHduVSPTtKLs9Q18jlO5HVSGn7f7Xq1r2AJouXBASk+NbxjWbhnAwRHMTA
-         RD8w==
-X-Gm-Message-State: AOJu0YyeZGWRIzCqTIkOQAlOp/bKo88TmhNfJMWWQjFwJYB4mOSuR8sQ
-	fC8k9NL5wmxt0Brv4LBgzgcpmebbUmUUUqw6mlTorICJaLsXeVbt+Y7AW4N9I4/LBSDm7+/ugQy
-	z/YBQlnTKgs+DNDILYRjVbXJrG8ykcrwy
-X-Google-Smtp-Source: AGHT+IH8bjrWGEnWVXng6a1pH6ew1ZOWYSFK255hks1tCl4uOebj31K7ALM2OVzTZjxG/Ydj3XAw1JuFhpSr5PTGk/4=
-X-Received: by 2002:a05:6358:2827:b0:1b5:a38c:11d1 with SMTP id
- e5c5f4694b2df-1b8386f6ad8mr932919555d.26.1725804059160; Sun, 08 Sep 2024
- 07:00:59 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1726511174; x=1727115974;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=aIKV/f4fmNN+xl9ScoTPdS6tXhDJDmlBWNBiM5jjZOk=;
+        b=cmm+n6AHW0DNxAl+Km0Z6A+6X2DafANhDJeaIZBR6w2yqPKlrK4wYY/gqEIdcOcsKY
+         bw0EheJOzZcVY8e2IFaI4uiv3B8AtcpR3RdyIABPFe3twApTYEocPC5zXji7uo6Kd2GU
+         RLzlvRH0TEM6/mSe94Xa8ONoezl8D4bFS4BwlLnN1BxAXRaPgw4tdVQUUGBX5FuoUtmM
+         sEfd5CnvStanfNv8GLBAkIWrM2m25r/hUnEelVlobGM0eazXXQHmw6DNkT17orAFnZQv
+         fmxxAYW6tbPqgcPhHmq6NflY2n7afGi29eWCtm0/vbKasUJS/6NIVKUdC5jB9GyioP6I
+         iFEg==
+X-Forwarded-Encrypted: i=1; AJvYcCVVejVcOnOJ/p4EtEbotH/WlPe7BcaTlUXAzs44MLtvMG8WL2z8KiXFub2O3dYfQ3RWj4sd+ueETJFQ82JU@vger.kernel.org, AJvYcCVellwzOaSIjijxTJUkwQS1kVKqUr4qYul6YMFkqUfFzWsxQCH6m05AV17M7XZ6PU84gFmw7g/ieXyc2Kf8Aw==@vger.kernel.org, AJvYcCXKRlbz0P99/VqFoeCqrt59IL/7VPxYSInGUnt7oJxBGVtEnwlvwiYSqB37xuSURSSO00UzyTQnx43+qTyh@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw6C198udoPbdUasdHzZmDXdY+/9LO1V8f4V1X/flrRBguVngME
+	9QMkMWzkQ3T2UIoIKrtODdoEcv6CmkcFRPYB/2nDFPZ4QrHEZDcc
+X-Google-Smtp-Source: AGHT+IHZP5bpH5qlg2I9OOJbzFLfW3myCBjFcT869tCQtqCK3mxPDp7nmlTfLNMEnVpsMHcaCRBxoA==
+X-Received: by 2002:a17:907:e214:b0:a86:c1ff:c973 with SMTP id a640c23a62f3a-a902961ded5mr1657274866b.47.1726511172823;
+        Mon, 16 Sep 2024 11:26:12 -0700 (PDT)
+Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-a9061096aa2sm348392666b.35.2024.09.16.11.26.12
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 16 Sep 2024 11:26:12 -0700 (PDT)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-kernel@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [GIT PULL] overlayfs updates for 6.12
+Date: Mon, 16 Sep 2024 20:26:08 +0200
+Message-Id: <20240916182608.1532691-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <2e8c4e8b-3292-4ccf-bb63-12d7c0009ae9@mbaynton.com>
- <20240711035203.3367360-1-mike@mbaynton.com> <CAOQ4uxgxpnj1r-p9Y=OkP=Qk2YM9jZ37Pm0NBN1R=NagZuhioA@mail.gmail.com>
- <a05156b1-7cb9-470c-82c1-3d5cbd6611e6@mbaynton.com>
-In-Reply-To: <a05156b1-7cb9-470c-82c1-3d5cbd6611e6@mbaynton.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sun, 8 Sep 2024 16:00:48 +0200
-Message-ID: <CAOQ4uxiez1UsTvoZpGG2DhAmbf0fLoe1pu4fB2X+9RCD95fF7A@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: Fail if trusted xattrs are needed but caller
- lacks permission
-To: Mike Baynton <mike@mbaynton.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, 
-	Alexander Larsson <alexl@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Sat, Sep 7, 2024 at 5:59=E2=80=AFPM Mike Baynton <mike@mbaynton.com> wro=
-te:
->
-> Hi Amir,
-> I apologize for my unfamiliarity with the process. Would you be so kind
-> as to point me to the next steps for this patch?
+Hi Linus,
 
-Your next step would be to ping the maintainers ;)
+Please pull overlayfs updates for 6.12.
 
-Sorry, as both me and Miklos were on vacation during July,
-nobody picked up this patch.
+This branch has been sitting in linux-next for over a week and
+it has gone through the usual overlayfs test routines.
 
-I did skim over the mailing list for missed patches after my vacation,
-but I somehow missed it.
-
-I will queue it up and designate it for stable v6.6+.
-v6.6 added overlayfs verity feature, but lower datadir was added
-already in v6.5.
-However, 1. v6.5 is not an LTS kernel, 2. the params.c refactoring
-in v6.5 makes it hard to backport beyond v6.6.
+The branch merges cleanly with master branch of the moment.
 
 Thanks,
 Amir.
 
+----------------------------------------------------------------
+The following changes since commit 3e9bff3bbe1355805de919f688bef4baefbfd436:
 
->
-> My team took a wrong turn building on data-only layers on account of my
-> not vetting the feature inside user namespaces well enough -- I just
-> checked "does it mount and enumerate files successfully." I'm hoping the
-> most good that can come from that blunder is saving someone else from
-> the same fate in future.
->
-> Regards
-> Mike
->
-> On 7/11/24 08:35, Amir Goldstein wrote:
-> > On Thu, Jul 11, 2024 at 7:05=E2=80=AFAM Mike Baynton <mike@mbaynton.com=
-> wrote:
-> >>
-> >> Some overlayfs features require permission to read/write trusted.*
-> >> xattrs. These include redirect_dir, verity, metacopy, and data-only
-> >> layers. This patch adds additional validations at mount time to stop
-> >> overlays from mounting in certain cases where the resulting mount woul=
-d
-> >> not function according to the user's expectations because they lack
-> >> permission to access trusted.* xattrs (for example, not global root.)
-> >>
-> >> Similar checks in ovl_make_workdir() that disable features instead of
-> >> failing are still relevant and used in cases where the resulting mount
-> >> can still work "reasonably well." Generally, if the feature was enable=
-d
-> >> through kernel config or module option, any mount that worked before
-> >> will still work the same; this applies to redirect_dir and metacopy. T=
-he
-> >> user must explicitly request these features in order to generate a mou=
-nt
-> >> failure. Verity and data-only layers on the other hand must be explict=
-ly
-> >> requested and have no "reasonable" disabled or degraded alternative, s=
-o
-> >> mounts attempting either always fail.
-> >>
-> >> "lower data-only dirs require metacopy support" moved down in case
-> >> userxattr is set, which disables metacopy.
-> >>
-> >> Signed-off-by: Mike Baynton <mike@mbaynton.com>
-> >
-> > Looks nice
-> >
-> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-> >
-> >> ---
-> >>
-> >>  v1 -> v2 not specific to data-only layers, punt on metacopy disable
-> >>           due to xattr write errors creating a conflicting configurati=
-on
-> >>           when data-only layers are present.
-> >>
-> >>  fs/overlayfs/params.c | 39 +++++++++++++++++++++++++++++++++------
-> >>  1 file changed, 33 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> >> index 4860fcc4611b..107c43e5e4cb 100644
-> >> --- a/fs/overlayfs/params.c
-> >> +++ b/fs/overlayfs/params.c
-> >> @@ -782,11 +782,6 @@ int ovl_fs_params_verify(const struct ovl_fs_cont=
-ext *ctx,
-> >>  {
-> >>         struct ovl_opt_set set =3D ctx->set;
-> >>
-> >> -       if (ctx->nr_data > 0 && !config->metacopy) {
-> >> -               pr_err("lower data-only dirs require metacopy support.=
-\n");
-> >> -               return -EINVAL;
-> >> -       }
-> >> -
-> >>         /* Workdir/index are useless in non-upper mount */
-> >>         if (!config->upperdir) {
-> >>                 if (config->workdir) {
-> >> @@ -910,7 +905,6 @@ int ovl_fs_params_verify(const struct ovl_fs_conte=
-xt *ctx,
-> >>                 }
-> >>         }
-> >>
-> >> -
-> >>         /* Resolve userxattr -> !redirect && !metacopy && !verity depe=
-ndency */
-> >>         if (config->userxattr) {
-> >>                 if (set.redirect &&
-> >> @@ -938,6 +932,39 @@ int ovl_fs_params_verify(const struct ovl_fs_cont=
-ext *ctx,
-> >>                 config->metacopy =3D false;
-> >>         }
-> >>
-> >> +       /*
-> >> +        * Fail if we don't have trusted xattr capability and a featur=
-e was
-> >> +        * explicitly requested that requires them.
-> >> +        */
-> >> +       if (!config->userxattr && !capable(CAP_SYS_ADMIN)) {
-> >> +               if (set.redirect &&
-> >> +                   config->redirect_mode !=3D OVL_REDIRECT_NOFOLLOW) =
-{
-> >> +                       pr_err("redirect_dir requires permission to ac=
-cess trusted xattrs\n");
-> >> +                       return -EPERM;
-> >> +               }
-> >> +               if (config->metacopy && set.metacopy) {
-> >> +                       pr_err("metacopy requires permission to access=
- trusted xattrs\n");
-> >> +                       return -EPERM;
-> >> +               }
-> >> +               if (config->verity_mode) {
-> >> +                       pr_err("verity requires permission to access t=
-rusted xattrs\n");
-> >> +                       return -EPERM;
-> >> +               }
-> >> +               if (ctx->nr_data > 0) {
-> >> +                       pr_err("lower data-only dirs require permissio=
-n to access trusted xattrs\n");
-> >> +                       return -EPERM;
-> >> +               }
-> >> +               /*
-> >> +                * Other xattr-dependent features should be disabled w=
-ithout
-> >> +                * great disturbance to the user in ovl_make_workdir()=
-.
-> >> +                */
-> >> +       }
-> >> +
-> >> +       if (ctx->nr_data > 0 && !config->metacopy) {
-> >> +               pr_err("lower data-only dirs require metacopy support.=
-\n");
-> >> +               return -EINVAL;
-> >> +       }
-> >> +
-> >>         return 0;
-> >>  }
-> >>
-> >> --
-> >> 2.34.1
-> >>
-> >>
->
+  Merge tag 'vfs-6.11-rc6.fixes' of gitolite.kernel.org:pub/scm/linux/kernel/git/vfs/vfs (2024-08-27 16:57:35 +1200)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git ovl-update-6.12
+
+for you to fetch changes up to 6c4a5f96450415735c31ed70ff354f0ee5cbf67b:
+
+  ovl: fail if trusted xattrs are needed but caller lacks permission (2024-09-08 15:36:59 +0200)
+
+----------------------------------------------------------------
+overlayfs updates for 6.12
+
+- Increase robustness of overlayfs to crashes in the case of underlying
+  filesystems that to not guarantee metadata ordering to persistent storage
+  (problem was reported with ubifs).
+
+- Deny mount inside container with features that require root privileges
+  to work properly, instead of failing operations later.
+
+- Some clarifications to overlayfs documentation.
+
+----------------------------------------------------------------
+Amir Goldstein (1):
+      ovl: fsync after metadata copy-up
+
+Haifeng Xu (1):
+      ovl: don't set the superblock's errseq_t manually
+
+Mike Baynton (1):
+      ovl: fail if trusted xattrs are needed but caller lacks permission
+
+Yuriy Belikov (1):
+      overlayfs.rst: update metacopy section in overlayfs documentation
+
+ Documentation/filesystems/overlayfs.rst |  7 ++++--
+ fs/overlayfs/copy_up.c                  | 43 ++++++++++++++++++++++++++++++---
+ fs/overlayfs/params.c                   | 38 +++++++++++++++++++++++++----
+ fs/overlayfs/super.c                    | 10 ++------
+ 4 files changed, 79 insertions(+), 19 deletions(-)
