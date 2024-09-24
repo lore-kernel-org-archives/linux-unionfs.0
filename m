@@ -1,296 +1,169 @@
-Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.18])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 928DD19B59D;
-	Thu, 19 Sep 2024 14:48:05 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 761827F460;
+	Tue, 24 Sep 2024 21:13:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1726757287; cv=none; b=dYhTTEuNCrr01U/fzxxnsia5mOGGJNbvBYdxHCc0AcBd/uYl7lQOJw8tEsSjpxmJ0LMELWH3oA/ThbzVuwg640HPxPc52L6akgwIaX/2OfYmFeEGoii9oJ7orVVk0SCGfdDz0CW2/hSymUZUdneIvk3GM7nuPh+4KIn24lMCSjs=
+	t=1727212429; cv=none; b=K0nNXsLWxGASdwP5EdHgD0MlRbfRTpnuYKu+A6xO12fPpZFst5sGAx8G7FUf6v/0f1JVQy2ABBmym/es9fSZ/ocGbueVB4hkkVsOUA1OSSbCa4UXwiNSY7TeUVR1xSGkDLEgq1d9ubiJjRfqL9fUPBzc2/F+lNPurIVaYGaZ00k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1726757287; c=relaxed/simple;
-	bh=6HmN5TvJEss7EqaBS8oqa/dyqBwxAZAhuU6cOlfGlto=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eyIAEqDB/pKRdYNHfACE8p670s//ACkdEV2o/9VBuSHcocuaqa9D//6bs5ocM6Octbvl+9qQbhVETjc3Tsc46EWEmYmituBZLUks1uliQz1Dwv8Z4KceVRxTVmrJjCgXD9sOd4oLCTFTIfV6e617dbrBxBDFcd0J4ImWJLgZNEk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T0d2K7C5; arc=none smtp.client-ip=209.85.222.182
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1727212429; c=relaxed/simple;
+	bh=Pgo8TG6M4lhbu67myeMwVxKQyK9zLxeOQB60zE8nQlw=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=HvVdXrW5/5XqX44uePyvxTtsFSWtcI5Dtmcx1jrUwkJerb27UU2eMTFTxUWdmZ1vIqiXyK5qDroB05m1MIQJWtEXIPewFkdiTYNPfYAIoGlpHYdhwut4Agqo3knj5ejoYUe4Vjv9kJRIbwyAijBUPIb3aySu00T4Gi7B6Xz46i0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=B53A4ngf; arc=none smtp.client-ip=192.198.163.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T0d2K7C5"
-Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-7a99fdf2e1aso98968185a.2;
-        Thu, 19 Sep 2024 07:48:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1726757284; x=1727362084; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=BOjco/E16CHEaO1YAuTf4mFCCjXRlB2Xs78RO681f9A=;
-        b=T0d2K7C5EZqsPW6zsygfXU8RmxWIsloPcK7IbrT7TAFbnV+GFrPwCnUN78NS8W2vPU
-         d0sag6j/QBF5EwDm4qBOaP/ZPRsNzskX3W7vNWFs0vtLE8Q5ruECzjOkIKg8LEsQ+54I
-         Od+IkC8gFa6BX9rHI6Pj/jzVbP2V+ZWFDPieExwsXjT6XRcSVRSMcbNS+aTZsylTqLiF
-         fALbnVuZOruKqY5sn3pIImoGCcj9N2oZEyIS+kBrsNtIkAalcf+4Wv15DwG+UMGGVxMz
-         9zCTw0P39scQulXp2vGJVwkZwY8R4mgFcT5y+sMJyHNFfFXWhyC//n0G2n9P+gspyQux
-         YBmA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1726757284; x=1727362084;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=BOjco/E16CHEaO1YAuTf4mFCCjXRlB2Xs78RO681f9A=;
-        b=DLcHKrGmoBJqisefpJOa+V92j8DFgSECcYekWi3f2bdv1X5Pd8IriiA2SjA/fcktZ5
-         YpQ9BYqMTjzsz3ggp2mScOUh5EL4hzF62CA+TRSccpwwfU961zA1P2MBA987lwiue52g
-         1kBwtciJalYG5CSVmB3Xx3TDXpnPek/Pe5eO0NWnult6ZaeoUuP3ADJbfRZIDGCCS211
-         JuckTyXxWzxxEr+gWWhvvAjgsJFdqK48qcXRKXUaoSMADQqZH18YaGtQRzBB3DjOkTdB
-         eKrM2IV+1lf1Iq7g4pKJ2Dx8Q9bGNCKO+/Vz1G0040Y0tISppJL1wFpm89zWHaC9RHVF
-         HaAg==
-X-Forwarded-Encrypted: i=1; AJvYcCUqTVbzuKv3IRfJC7g2sxKZsG7iztVULTjHmRw5QgiTdUCnjl9OjVjsijoDbOhr1plF1Pck6+6y@vger.kernel.org, AJvYcCVNpZFTA1kFr3h4xlb7iWYRDyqberxuJp55TzBzk1qmt0diuxYhdVISezj6v8M7qJ9+fUNJ1skoBygu100okQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YwTv1iCnjM3ltkETUht0w9ypAqS4VUKrJlDYyx1XvMJHg5LRa0r
-	Rm+mIZ4g/mohCf1sF2aVm27aNtqaRgldVBCl8x/JD4fUdCgcpMSckCKUAKF8UYZBk78lftw+Nl8
-	9NLEb5CjzF0mumP8nK2z30hfoXfc=
-X-Google-Smtp-Source: AGHT+IH9+bpBZi+W16pu6j9mMuprOCE14+PfDORJj9/QAW3ZaKgg2YZwoRQd9vEDlzU72D5qzS3L3ORs4FUB/hJP5CE=
-X-Received: by 2002:a05:6214:5c09:b0:6c5:ab33:5244 with SMTP id
- 6a1803df08f44-6c5ab33526bmr133851946d6.31.1726757284312; Thu, 19 Sep 2024
- 07:48:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="B53A4ngf"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1727212428; x=1758748428;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=Pgo8TG6M4lhbu67myeMwVxKQyK9zLxeOQB60zE8nQlw=;
+  b=B53A4ngfSrdAQ8yb7djfG8sLXJ4UxPXmQHALRae8jsd0r30ryCBXZBTU
+   EcKmXCRHxePi+/nCXxr2RNqEs8CZ8clZgORhU9T6iEiP9JrcbstKEDjSy
+   HJD324GRGjiARsWxB3+1EkDolsKk/1W1YJivad3gUMJLRFVw0V/TRJD9W
+   kYPlYSiUa3K+uxW/85hESizD94z9kCLtjnRhJGH73ia2QCP9ZKAUEocHY
+   xd5U9utf45cdDw9K5G0SZFK5fT3tKVBrC48po/g1iLmoOUis/xOMs3kUd
+   mH9CnVoDyfUZwGjAylR3nc82xfnyBa0vUkzjpgYiWNB9uvLWM215PUUvc
+   w==;
+X-CSE-ConnectionGUID: 9cDnKMtKQgOfhO/MPiCQPA==
+X-CSE-MsgGUID: P4SMd1VQR82UdG5+J9D1gg==
+X-IronPort-AV: E=McAfee;i="6700,10204,11205"; a="25709390"
+X-IronPort-AV: E=Sophos;i="6.10,255,1719903600"; 
+   d="scan'208";a="25709390"
+Received: from orviesa005.jf.intel.com ([10.64.159.145])
+  by fmvoesa112.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2024 14:13:46 -0700
+X-CSE-ConnectionGUID: pmPTL3QCR5aBWiIdWzftPg==
+X-CSE-MsgGUID: CFjmXJLOTA6UB8bV1P4s5Q==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,255,1719903600"; 
+   d="scan'208";a="76306329"
+Received: from philliph-desk.amr.corp.intel.com (HELO vcostago-mobl3) ([10.124.221.65])
+  by orviesa005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2024 14:13:43 -0700
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: brauner@kernel.org, amir73il@gmail.com, hu1.chen@intel.com,
+ malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
+ lizhen.you@intel.com, linux-unionfs@vger.kernel.org,
+ linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 04/16] overlayfs: Document critical override_creds()
+ operations
+In-Reply-To: <87wmk2lx3s.fsf@intel.com>
+References: <20240822012523.141846-1-vinicius.gomes@intel.com>
+ <20240822012523.141846-5-vinicius.gomes@intel.com>
+ <CAJfpegvx2nyVpp4kHaxt=VwBb3U4=7GM-pjW_8bu+fm_N8diHQ@mail.gmail.com>
+ <87wmk2lx3s.fsf@intel.com>
+Date: Tue, 24 Sep 2024 18:13:39 -0300
+Message-ID: <87h6a43gcc.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20240830180844.857283-1-amir73il@gmail.com> <20240903042128.ksqua6ha47iayolq@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxifYDgCmKEUQrbZWwL8JxmRnmPK3dGtVpMhq2cgGQ_etg@mail.gmail.com>
- <20240904025840.obxcbe22bud6ga2i@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxjDcgm9preuBY_5b+bbHpiLzVw+yKNj7KaeWs_1ye1Tqw@mail.gmail.com>
- <20240904112533.vbzp3nclece2sukg@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <CAOQ4uxiTKJjgL16tL2iUzxBFAK+bLCsgfGaj3HGKq+nYWFMAnQ@mail.gmail.com> <20240919135810.givimomj6vgvotzk@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20240919135810.givimomj6vgvotzk@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 19 Sep 2024 16:47:52 +0200
-Message-ID: <CAOQ4uxg7TEjF81MT-nre+0VFgsJhXe1hpAz9hNMwp3utgz+gSQ@mail.gmail.com>
-Subject: Re: [PATCH] overlay: create a variant to syncfs error test xfs/546
-To: Zorro Lang <zlang@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	fstests@vger.kernel.org, Theodore Tso <tytso@mit.edu>, 
-	"Darrick J. Wong" <djwong@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 
-On Thu, Sep 19, 2024 at 3:58=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
-:
+Vinicius Costa Gomes <vinicius.gomes@intel.com> writes:
+
+> Miklos Szeredi <miklos@szeredi.hu> writes:
 >
-> On Tue, Sep 17, 2024 at 04:37:04PM +0200, Amir Goldstein wrote:
-> > On Wed, Sep 4, 2024 at 1:25=E2=80=AFPM Zorro Lang <zlang@redhat.com> wr=
-ote:
-> > >
-> > > On Wed, Sep 04, 2024 at 10:23:16AM +0200, Amir Goldstein wrote:
-> > > > On Wed, Sep 4, 2024 at 4:58=E2=80=AFAM Zorro Lang <zlang@redhat.com=
-> wrote:
-> > > > >
-> > > > > On Tue, Sep 03, 2024 at 08:41:28AM +0200, Amir Goldstein wrote:
-> > > > > > On Tue, Sep 3, 2024 at 6:21=E2=80=AFAM Zorro Lang <zlang@redhat=
-.com> wrote:
-> > > > > > >
-> > > > > > > On Fri, Aug 30, 2024 at 08:08:44PM +0200, Amir Goldstein wrot=
-e:
-> > > > > > > > Test overlayfs over xfs with and without "volatile" mount o=
-ption.
-> > > > > > > >
-> > > > > > > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > > > > > > ---
-> > > > > > > >
-> > > > > > > > Zorro,
-> > > > > > > >
-> > > > > > > > I was going to make a generic test from xfs/546, so that ov=
-erlayfs could
-> > > > > > > > also run it, but then I realized that ext4 does not behave =
-as xfs in
-> > > > > > > > that case (it returns success on syncfs post shutdown).
-> > > > > > > >
-> > > > > > > > Unless and until this behavior is made a standard, I made a=
-n overlayfs
-> > > > > > > > specialized test instead, which checks for underlying fs xf=
-s.
-> > > > > > > > While at it, I also added test coverage for the "volatile" =
-mount options
-> > > > > > > > that is expected to return succuss in that case regardles o=
-f the
-> > > > > > > > behavior of the underlying fs.
-> > > > > > > >
-> > > > > > > > Thanks,
-> > > > > > > > Amir.
-> > > > > > > >
-> > > > > > > >  tests/overlay/087     | 62 +++++++++++++++++++++++++++++++=
-++++++++++++
-> > > > > > > >  tests/overlay/087.out |  4 +++
-> > > > > > > >  2 files changed, 66 insertions(+)
-> > > > > > > >  create mode 100755 tests/overlay/087
-> > > > > > > >  create mode 100644 tests/overlay/087.out
-> > > > > > > >
-> > > > > > > > diff --git a/tests/overlay/087 b/tests/overlay/087
-> > > > > > > > new file mode 100755
-> > > > > > > > index 00000000..a5afb0d5
-> > > > > > > > --- /dev/null
-> > > > > > > > +++ b/tests/overlay/087
-> > > > > > > > @@ -0,0 +1,62 @@
-> > > > > > > > +#! /bin/bash
-> > > > > > > > +# SPDX-License-Identifier: GPL-2.0
-> > > > > > > > +# Copyright (c) 2022 Oracle.  All Rights Reserved.
-> > > > > > > > +# Copyright (c) 2024 CTERA Networks.  All Rights Reserved.
-> > > > > > > > +#
-> > > > > > > > +# FS QA Test No. 087
-> > > > > > > > +#
-> > > > > > > > +# This is a variant of test xfs/546 for overlayfs
-> > > > > > > > +# with and without the "volatile" mount option.
-> > > > > > > > +# It only works over xfs underlying fs.
-> > > > > > > > +#
-> > > > > > > > +# Regression test for kernel commits:
-> > > > > > > > +#
-> > > > > > > > +# 5679897eb104 ("vfs: make sync_filesystem return errors f=
-rom ->sync_fs")
-> > > > > > > > +# 2d86293c7075 ("xfs: return errors in xfs_fs_sync_fs")
-> > > > > > > > +#
-> > > > > > > > +# During a code inspection, I noticed that sync_filesystem=
- ignores the return
-> > > > > > > > +# value of the ->sync_fs calls that it makes.  sync_filesy=
-stem, in turn is used
-> > > > > > > > +# by the syncfs(2) syscall to persist filesystem changes t=
-o disk.  This means
-> > > > > > > > +# that syncfs(2) does not capture internal filesystem erro=
-rs that are neither
-> > > > > > > > +# visible from the block device (e.g. media error) nor rec=
-orded in s_wb_err.
-> > > > > > > > +# XFS historically returned 0 from ->sync_fs even if there=
- were log failures,
-> > > > > > > > +# so that had to be corrected as well.
-> > > > > > > > +#
-> > > > > > > > +# The kernel commits above fix this problem, so this test =
-tries to trigger the
-> > > > > > > > +# bug by using the shutdown ioctl on a clean, freshly moun=
-ted filesystem in the
-> > > > > > > > +# hope that the EIO generated as a result of the filesyste=
-m being shut down is
-> > > > > > > > +# only visible via ->sync_fs.
-> > > > > > > > +#
-> > > > > > > > +. ./common/preamble
-> > > > > > > > +_begin_fstest auto quick mount shutdown
-> > > > > > > > +
-> > > > > > > > +
-> > > > > > > > +# Modify as appropriate.
-> > > > > > > > +_require_xfs_io_command syncfs
-> > > > > > > > +_require_scratch_nocheck
-> > > > > > > > +_require_scratch_shutdown
-> > > > > > > > +
-> > > > > > > > +[ "$OVL_BASE_FSTYP" =3D=3D "xfs" ] || \
-> > > > > > > > +     _notrun "base fs $OVL_BASE_FSTYP has unknown behavior=
- with syncfs after shutdown"
-> > > > > > > > +
-> > > > > > > > +# Reuse the fs formatted when we checked for the shutdown =
-ioctl, and don't
-> > > > > > > > +# bother checking the filesystem afterwards since we never=
- wrote anything.
-> > > > > > > > +echo "=3D=3D=3D syncfs after shutdown"
-> > > > > > > > +_scratch_mount
-> > > > > > > > +# This command is complicated a bit because in the case of=
- overlayfs the
-> > > > > > > > +# syncfs fd needs to be opened before shutdown and it is d=
-ifferent from the
-> > > > > > > > +# shutdown fd, so we cannot use the _scratch_shutdown() he=
-lper.
-> > > > > > > > +# Filter out xfs_io output of active fds.
-> > > > > > > > +$XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c '=
-shutdown -f ' -c close -c syncfs $SCRATCH_MNT | \
-> > > > > > > > +     grep -vF '[00'
-> > > > > > > > +
-> > > > > > > > +# Now repeat the same test with a volatile overlayfs mount=
- and expect no error
-> > > > > > > > +_scratch_unmount
-> > > > > > > > +echo "=3D=3D=3D syncfs after shutdown (volatile)"
-> > > > > > > > +_scratch_mount -o volatile
-> > > > > > > > +$XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c '=
-shutdown -f ' -c close -c syncfs $SCRATCH_MNT | \
-> > > > > > > > +     grep -vF '[00'
-> > > > > > >
-> > > > > > > Oh, the test steps are much different from xfs/546. If we mov=
-e x/546 to generic/,
-> > > > > > > can overlay reproduce this bug by that?
-> > > > > >
-> > > > > > Yes and no.
-> > > > > >
-> > > > > > For overlayfs to support this as a generic test, the helper
-> > > > > > _scratch_shutdown_handle must be used and the shutdown+syncfs
-> > > > > > command must be complicated to something like this:
-> > > > > >
-> > > > > > $XFS_IO_PROG -x -c "open $(_scratch_shutdown_handle)" -c 'shutd=
-own -f
-> > > > > > ' -c close -c syncfs $SCRATCH_MNT | \
-> > > > > >        grep -vF '[00'
-> > > > > >
-> > > > > > This is because overlayfs itself does not support the shutdown =
-ioctl.
-> > > > > > If the test is moved to generic as it is we get an error when r=
-unning
-> > > > > > overlayfs:
-> > > > > >
-> > > > > >     XFS_IOC_GOINGDOWN: Inappropriate ioctl for device
-> > > > > >
-> > > > > > because _require_scratch_shutdown is "supported" by overlayfs
-> > > > > > but only when the _scratch_shutdown helpers are used.
-> > > > >
-> > > > > Yeah, I know this.
-> > > > >
-> > > > > >
-> > > > > > If the test is to be moved as is, it will need to opt-out of ov=
-erlayfs
-> > > > > > explicitly.
-> > > > >
-> > > > > I mean you have a "-o volatile" option test, that's an overlayfs =
-specific
-> > > > > mount option. If you need that test, that's an overlay specific t=
-est, that
-> > > > > part can be an overlay specific test case. If not, we can use a g=
-eneric
-> > > > > case (from xfs/546) to cover overlay and other fs.
-> > > >
-> > > > I need the -o volatile test regardless of moving xfs/546 to generic=
-.
-> > > > That's why I posted this patch.
-> > >
-> > > OK, let's have two patches, one moves xfs/546 to generic/, the other
-> > > is this overlay specific test case.
-> > >
-> >
-> > Hi Zorro,
-> >
-> > I thought that you agreed to include the overlay specific test overlay/=
-087,
-> > but I still do not see it in for-next.
-> >
-> > Did I misunderstand you, or was it accidently left out of for-next?
-> >
-> > Regarding moving xfs/546 to generic/, I had sent a patch to ext4 [1],
-> > but no comment from Ted yet.
-> >
-> > [1] https://lore.kernel.org/linux-ext4/20240904084657.1062243-1-amir73i=
-l@gmail.com/
+>> On Thu, 22 Aug 2024 at 03:25, Vinicius Costa Gomes
+>> <vinicius.gomes@intel.com> wrote:
+>>>
+>>> Add a comment to these operations that cannot use the _light version
+>>> of override_creds()/revert_creds(), because during the critical
+>>> section the struct cred .usage counter might be modified.
+>>
+>> Why is it a problem if the usage counter is modified?  Why is the
+>> counter modified in each of these cases?
+>>
 >
-> If this's accepted by ext4, do you still this notrun?
->
->   [ "$OVL_BASE_FSTYP" =3D=3D "xfs" ] || \
->         _notrun "base fs $OVL_BASE_FSTYP has unknown behavior with syncfs=
- after shutdown"
+> Working on getting some logs from the crash that I get when I convert
+> the remaining cases to use the _light() functions.
 >
 
-If/when the patch is accepted by ext4 we could remove this.
+See the log below.
 
-> And what about other fs (besides xfs and ext4).
+> Perhaps I was wrong on my interpretation of the crash.
+>
 
-The truth is that I don't know how all filesystems behave -
-If ext4 accepts the patch and we then move xfs/546 to generic/,
-we will surely find out...
-and then we can remove the xfs restriction from the overlayfs test.
+What I am seeing is that ovl_setup_cred_for_create() has a "side
+effect", it creates another set of credentials, runs the security hooks
+with this new credentials, and the side effect is that when it returns,
+by design, 'current->cred' is this new credentials (a third set of
+credentials).
 
-But for now, I need the overlayfs test to provide test coverage to
-* 34b4540e6646 - ovl: don't set the superblock's errseq_t manually
-that just got merged upstream.
+And this implies that refcounting for this is somewhat tricky, as said
+in commit d0e13f5bbe4b ("ovl: fix uid/gid when creating over whiteout").
 
-Thanks,
-Amir.
+I see two ways forward:
+
+1. Keep using the non _light() versions in functions that call
+   ovl_setup_cred_for_create().
+2. Change ovl_setup_cred_for_create() so it doesn't drop the "extra"
+   refcount.
+
+I went with (1), and it still sounds to me like the best way, but I
+agree that my explanation was not good enough, will add the information
+I just learned to the commit message and to the code.
+
+Do you see another way forward? Or do you think that I should go with
+(2)?
+
+> Thanks for raising this, I should have added more information about this.
+>
+>
+> Cheers,
+> -- 
+> Vinicius
+
+[    4.646955] [touch 1512] commit_creds(0000000009e62474{1})
+[    4.648637] [touch 1512] __put_cred(00000000200a9944{0})
+[    4.648844] [virtm 1502] prepare_creds() alloc 0000000050563530
+[    4.651631] [virtm 1513] prepare_creds() alloc 00000000da716e80
+[    4.652515] [mktem 1513] commit_creds(00000000da716e80{1})
+[    4.654056] ovl_create_or_link: [override] cred 0000000007112f42
+[    4.654108] ovl_override_creds_light: new cred 0000000007112f42{1}
+[    4.654155] ovl_override_creds_light: old cred 00000000da716e80{3}
+[    4.654199] [mktem 1513] prepare_creds() alloc 000000003c8d17b7
+[    4.654246] [mktem 1513] override_creds(000000003c8d17b7{1})
+[    4.654292] [mktem 1513] override_creds() = 0000000007112f42{1}
+[    4.654337] [mktem 1513] __put_cred(0000000007112f42{0})
+[    4.654388] [mktem 1513] __put_cred(0000000007112f42{0})
+[    4.654431] ------------[ cut here ]------------
+[    4.654470] ODEBUG: activate active (active state 1) object: 00000000ad88840d object type: rcu_head hint: 0x0
+[    4.654484] [swapp    0] exit_creds(1507,00000000efafcffd,00000000efafcffd,{2})
+[    4.654575] WARNING: CPU: 23 PID: 1513 at lib/debugobjects.c:515 debug_print_object+0x7d/0xb0
+[    4.654596] [swapp    0] __put_cred(00000000efafcffd{0})
+[    4.654674] Modules linked in: sha512_ssse3(E) isst_if_common(E-) crct10dif_pclmul(E) sha256_ssse3(E) skx_edac_common(E) nfit(E) virtio_net(E) net_failover(E) i2c_piix4(E) input_leds(E) psmouse(E) serio_raw(E) failover(E) i2c_smbus(E) pata_acpi(E) floppy(E) qemu_fw_cfg(E) mac_hid(E) overlay(E) 9pnet_virtio(E) virtiofs(E) 9p(E) 9pnet(E) netfs(E)
+[    4.654686] CPU: 23 UID: 0 PID: 1513 Comm: mktemp Tainted: G            E      6.11.0-rc5+ #4
+[    4.654689] Tainted: [E]=UNSIGNED_MODULE
+[    4.654689] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[    4.654690] RIP: 0010:debug_print_object+0x7d/0xb0
+[    4.654692] Code: 01 8b 4b 14 48 c7 c7 d8 ce 3a 99 89 15 ec 53 77 02 8b 53 10 50 4c 8b 4d 00 48 8b 14 d5 80 32 e8 98 4c 8b 43 18 e8 73 fb a0 ff <0f> 0b 58 83 05 dd 35 c6 01 01 48 83 c4 08 5b 5d c3 cc cc cc cc 83
+[    4.654693] RSP: 0018:ff5fa086c391bd28 EFLAGS: 00010282
+[    4.654695] RAX: 0000000000000000 RBX: ff5fa086c391bd60 RCX: 0000000000140017
+[    4.654696] RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000001
+[    4.654697] RBP: ffffffff98e28c40 R08: 0000000000000000 R09: ff4deb8a8531a0a8
+[    4.654697] R10: 0000000000000000 R11: 0000000000000001 R12: ff4deb8a87d29de8
+[    4.654698] R13: ffffffff98e28c40 R14: 0000000000000202 R15: ffffffff9aa64e58
+[    4.654699] FS:  00007ff8543af740(0000) GS:ff4deb8ab8580000(0000) knlGS:0000000000000000
+[    4.654700] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    4.654701] CR2: 00007ff8540ec040 CR3: 0000000005784002 CR4: 0000000000771ef0
+[    4.654704] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    4.654705] DR3: 0000000000000000 DR6: 00000000fffe07f0 DR7: 0000000000000400
+[    4.654706] PKRU: 55555554
+[    4.654707] Call Trace:
+[    4.654709]  <TASK>
+[    4.654710]  ? __warn+0x83/0x130
+[    4.654725]  ? debug_print_object+0x7d/0xb0
+[    4.654726]  ? report_bug+0x18e/0x1a0
+[    4.654773] [swapp    0] exit_creds(1508,00000000b957e777,00000000b957e777,{2})
+
+
+Cheers,
+-- 
+Vinicius
