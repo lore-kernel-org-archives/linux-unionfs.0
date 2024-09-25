@@ -1,179 +1,186 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.13])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0EF9020B862;
-	Wed, 25 Sep 2024 12:08:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DB40F282FD;
+	Wed, 25 Sep 2024 14:17:23 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.13
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727266121; cv=none; b=BPc0/5W9mS7DRXsdCd71YLCwB6tZkQ9VsEFLNe/YA61nPU3uhLOiTWqu7hSHssfbAi/sniy+pI+XZ5iSod7qtc9jIC3JzM6yTK75CfarVuujeC9qEyXBGjotT/JoG83/2ipOXnEbHNOF7NpGVywrBIb8xHoytvKnzTJ2Jfof9Fs=
+	t=1727273845; cv=none; b=p+dOqDDgqinoq7mwc6ltdQ95RwYRe4I+DpKkqKU+mZKfuPSfxTR/vkl6S8vUHZJjdSh5xvCfmq/NeM+uKBSj/Mz6CASIqbHHmqmsMq0ExGXNoVtXKqX929wkX8Wl509iDjYbpPU2jc28ZftEFSZgcn9jq/q0ArDGSIPGm9MF9W0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727266121; c=relaxed/simple;
-	bh=m2ROjprRWhTVD3wZGN+3R3wT6CoVz83aRSUjazL7pI8=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=nYx8ZdV5zELS+pqxP9sDY9jWMvI8e07ku4ycKKWHS8isU2XfLkIXEYtYTOb1po7L/VZCTAFSkuk+22jNhrm7OmWdHoSIF+/QKm0D82siwIS8OBz4aCB7PI5InEAOyCKWUUWeJCHsMV8BVGX5KvkFz9JPjFp3yyR2R35nEbvAfS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=F5CAxvv2; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1727273845; c=relaxed/simple;
+	bh=OlkeQTPorZrC/+fkJlrtFsckAz58CEKPkG61d+T1guA=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=BndLcXvfROCsp/sq0Pbi0DDZCzuEqjjsMrZFLIyBpCuzLATkl9nWRBNqMPSI/JBcXpcZr9s2NtaUngXHHa2EcV8ffBg86BcKqpOXtVUNT/gGjCxBH1cCJTWzo5HHFRg0FqJPQXhj7M414FxsqHOod/6cyd0MX6XozZp55NYhhvg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=JWlhs6Br; arc=none smtp.client-ip=198.175.65.13
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="F5CAxvv2"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0481BC4CEC7;
-	Wed, 25 Sep 2024 12:08:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1727266120;
-	bh=m2ROjprRWhTVD3wZGN+3R3wT6CoVz83aRSUjazL7pI8=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=F5CAxvv2PHjDIG6TBxtoTslgRSQZGpa6hklrZzqvs8pYfko452F699ldqVXIbg/aS
-	 HzCW3wx8qE3ExaWbWf6W0Mk+uhoBQFxsS2tczJR8HLpwuiNImVSOIl1dIrNLV+7BCo
-	 cN/8BSbPq1Yy2+Te49laRt+5UXiQ9+IWSJyRpzBzyrkugYxS0F8iYMcF/MYsl726vl
-	 6OT7jg2ylNUu2Q3PpHijTi6bmvZJWT3RNX8YBNKbZLOqtSpknH5O1q6CoW80yA+bX9
-	 qZNqaxw5tgCMGGdjkufSrkDNP2gA3VJwvl4RC6j//ZrxkZfZCxiaZuib/JOWLyoR3/
-	 8AysImMWAxI8w==
-From: Sasha Levin <sashal@kernel.org>
-To: linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Cc: Amir Goldstein <amir73il@gmail.com>,
-	Fei Lv <feilv@asrmicro.com>,
-	Sasha Levin <sashal@kernel.org>,
-	miklos@szeredi.hu,
-	linux-unionfs@vger.kernel.org
-Subject: [PATCH AUTOSEL 6.10 179/197] ovl: fsync after metadata copy-up
-Date: Wed, 25 Sep 2024 07:53:18 -0400
-Message-ID: <20240925115823.1303019-179-sashal@kernel.org>
-X-Mailer: git-send-email 2.43.0
-In-Reply-To: <20240925115823.1303019-1-sashal@kernel.org>
-References: <20240925115823.1303019-1-sashal@kernel.org>
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="JWlhs6Br"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1727273844; x=1758809844;
+  h=from:to:cc:subject:in-reply-to:references:date:
+   message-id:mime-version;
+  bh=OlkeQTPorZrC/+fkJlrtFsckAz58CEKPkG61d+T1guA=;
+  b=JWlhs6Bri9SY88SDEJe71/sLOYKfkkpN+R27lubEl/euAvEh110sfW5p
+   1qgymIHd2Ace8KcvANK7IRhD3QIEsBQfeCYJB+1GokwBGlhf/6FiluCVR
+   7SwG0ca78xGs2iz4vjZ8lFabw1FXGzK4FLkf5IuUEYVPlXcVF89u0vN2G
+   vqBh55JMhALXm/RKTvucoLNx6c6YXaYj5QkfBwkBOd3cjkjTKa6Y7Vm/9
+   KKUSyM+tw90L64gvlKRh52yVQEWOg/5C3zf5QRdREBXTH7BSqOY2ohQz+
+   bFqSDW5UgMiVFjoNHydsGSxGISGcuBQ7viFnP4/SDCztWOgbF0IEDK5+4
+   w==;
+X-CSE-ConnectionGUID: 3OI3YHvdTg++8LFHQBWKhQ==
+X-CSE-MsgGUID: plsNVX9tRYaqt7GiJQisog==
+X-IronPort-AV: E=McAfee;i="6700,10204,11206"; a="37466465"
+X-IronPort-AV: E=Sophos;i="6.10,257,1719903600"; 
+   d="scan'208";a="37466465"
+Received: from orviesa002.jf.intel.com ([10.64.159.142])
+  by orvoesa105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2024 07:17:23 -0700
+X-CSE-ConnectionGUID: GUI/zqUlQ8m7CNfmoi47bg==
+X-CSE-MsgGUID: u4mLht3jRsaQgu7mKP7uxg==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.10,257,1719903600"; 
+   d="scan'208";a="102558425"
+Received: from hcaldwel-desk1.amr.corp.intel.com (HELO vcostago-mobl3) ([10.124.221.154])
+  by orviesa002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Sep 2024 07:17:18 -0700
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, amir73il@gmail.com,
+ hu1.chen@intel.com, malini.bhandaru@intel.com, tim.c.chen@intel.com,
+ mikko.ylinen@intel.com, lizhen.you@intel.com,
+ linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 04/16] overlayfs: Document critical override_creds()
+ operations
+In-Reply-To: <20240925-umweht-schiffen-252e157b67f7@brauner>
+References: <20240822012523.141846-1-vinicius.gomes@intel.com>
+ <20240822012523.141846-5-vinicius.gomes@intel.com>
+ <CAJfpegvx2nyVpp4kHaxt=VwBb3U4=7GM-pjW_8bu+fm_N8diHQ@mail.gmail.com>
+ <87wmk2lx3s.fsf@intel.com> <87h6a43gcc.fsf@intel.com>
+ <20240925-umweht-schiffen-252e157b67f7@brauner>
+Date: Wed, 25 Sep 2024 11:17:15 -0300
+Message-ID: <87bk0b3jis.fsf@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-X-stable-base: Linux 6.10.11
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 
-From: Amir Goldstein <amir73il@gmail.com>
+Christian Brauner <brauner@kernel.org> writes:
 
-[ Upstream commit 7d6899fb69d25e1bc6f4700b7c1d92e6b608593d ]
+> On Tue, Sep 24, 2024 at 06:13:39PM GMT, Vinicius Costa Gomes wrote:
+>> Vinicius Costa Gomes <vinicius.gomes@intel.com> writes:
+>> 
+>> > Miklos Szeredi <miklos@szeredi.hu> writes:
+>> >
+>> >> On Thu, 22 Aug 2024 at 03:25, Vinicius Costa Gomes
+>> >> <vinicius.gomes@intel.com> wrote:
+>> >>>
+>> >>> Add a comment to these operations that cannot use the _light version
+>> >>> of override_creds()/revert_creds(), because during the critical
+>> >>> section the struct cred .usage counter might be modified.
+>> >>
+>> >> Why is it a problem if the usage counter is modified?  Why is the
+>> >> counter modified in each of these cases?
+>> >>
+>> >
+>> > Working on getting some logs from the crash that I get when I convert
+>> > the remaining cases to use the _light() functions.
+>> >
+>> 
+>> See the log below.
+>> 
+>> > Perhaps I was wrong on my interpretation of the crash.
+>> >
+>> 
+>> What I am seeing is that ovl_setup_cred_for_create() has a "side
+>> effect", it creates another set of credentials, runs the security hooks
+>> with this new credentials, and the side effect is that when it returns,
+>> by design, 'current->cred' is this new credentials (a third set of
+>> credentials).
+>
+> Well yes, during ovl_setup_cred_for_create() the fs{g,u}id needs to be
+> overwritten. But I'm stil confused what the exact problem is as it was
+> always clear that ovl_setup_cred_for_create() wouldn't be ported to
+> light variants.
+>
+> /me looks...
+>
+>> 
+>> And this implies that refcounting for this is somewhat tricky, as said
+>> in commit d0e13f5bbe4b ("ovl: fix uid/gid when creating over whiteout").
+>> 
+>> I see two ways forward:
+>> 
+>> 1. Keep using the non _light() versions in functions that call
+>>    ovl_setup_cred_for_create().
+>> 2. Change ovl_setup_cred_for_create() so it doesn't drop the "extra"
+>>    refcount.
+>> 
+>> I went with (1), and it still sounds to me like the best way, but I
+>> agree that my explanation was not good enough, will add the information
+>> I just learned to the commit message and to the code.
+>> 
+>> Do you see another way forward? Or do you think that I should go with
+>> (2)?
+>
+> ... ok, I understand. Say we have:
+>
+> ovl_create_tmpfile()
+> /* current->cred == ovl->creator_cred without refcount bump /*
+> old_cred = ovl_override_creds_light()
+> -> ovl_setup_cred_for_create()
+>    /* Copy current->cred == ovl->creator_cred */
+>    modifiable_cred = prepare_creds()
+>
+>    /* Override current->cred == modifiable_cred */
+>    mounter_creds = override_creds(modifiable_cred)
+>
+>    /*
+>     * And here's the BUG BUG BUG where we decrement the refcount on the
+>     * constant mounter_creds.
+>     */
+>    put_cred(mounter_creds) // BUG BUG BUG
+>
+>    put_cred(modifiable_creds)
+>
+> So (1) is definitely the wrong option given that we can get rid of
+> refcount decs and incs in the creation path.
+>
+> Imo, you should do (2) and add a WARN_ON_ONC(). Something like the
+> __completely untested__:
+>
 
-For upper filesystems which do not use strict ordering of persisting
-metadata changes (e.g. ubifs), when overlayfs file is modified for
-the first time, copy up will create a copy of the lower file and
-its parent directories in the upper layer. Permission lost of the
-new upper parent directory was observed during power-cut stress test.
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index ab65e98a1def..e246e0172bb6 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -571,7 +571,12 @@ static int ovl_setup_cred_for_create(struct dentry *dentry, struct inode *inode,
+>                 put_cred(override_cred);
+>                 return err;
+>         }
+> -       put_cred(override_creds(override_cred));
+> +
+> +       /*
+> +        * We must be called with creator creds already, otherwise we risk
+> +        * leaking creds.
+> +        */
+> +       WARN_ON_ONCE(override_creds(override_cred) != ovl_creds(dentry->d_sb));
+>         put_cred(override_cred);
+>
+>         return 0;
+>
 
-Fix by moving the fsync call to after metadata copy to make sure that the
-metadata copied up directory and files persists to disk before renaming
-from tmp to final destination.
+At first glance, looks good. Going to test it and see how it works.
+Thank you.
 
-With metacopy enabled, this change will hurt performance of workloads
-such as chown -R, so we keep the legacy behavior of fsync only on copyup
-of data.
+For the next version of the series, my plan is to include this
+suggestion/change and remove the guard()/scoped_guard() conversion
+patches from the series.
 
-Link: https://lore.kernel.org/linux-unionfs/CAOQ4uxj-pOvmw1-uXR3qVdqtLjSkwcR9nVKcNU_vC10Zyf2miQ@mail.gmail.com/
-Reported-and-tested-by: Fei Lv <feilv@asrmicro.com>
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- fs/overlayfs/copy_up.c | 43 ++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 39 insertions(+), 4 deletions(-)
 
-diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-index a5ef2005a2cc5..051a802893a18 100644
---- a/fs/overlayfs/copy_up.c
-+++ b/fs/overlayfs/copy_up.c
-@@ -243,8 +243,24 @@ static int ovl_verify_area(loff_t pos, loff_t pos2, loff_t len, loff_t totlen)
- 	return 0;
- }
- 
-+static int ovl_sync_file(struct path *path)
-+{
-+	struct file *new_file;
-+	int err;
-+
-+	new_file = ovl_path_open(path, O_LARGEFILE | O_RDONLY);
-+	if (IS_ERR(new_file))
-+		return PTR_ERR(new_file);
-+
-+	err = vfs_fsync(new_file, 0);
-+	fput(new_file);
-+
-+	return err;
-+}
-+
- static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
--			    struct file *new_file, loff_t len)
-+			    struct file *new_file, loff_t len,
-+			    bool datasync)
- {
- 	struct path datapath;
- 	struct file *old_file;
-@@ -342,7 +358,8 @@ static int ovl_copy_up_file(struct ovl_fs *ofs, struct dentry *dentry,
- 
- 		len -= bytes;
- 	}
--	if (!error && ovl_should_sync(ofs))
-+	/* call fsync once, either now or later along with metadata */
-+	if (!error && ovl_should_sync(ofs) && datasync)
- 		error = vfs_fsync(new_file, 0);
- out_fput:
- 	fput(old_file);
-@@ -574,6 +591,7 @@ struct ovl_copy_up_ctx {
- 	bool indexed;
- 	bool metacopy;
- 	bool metacopy_digest;
-+	bool metadata_fsync;
- };
- 
- static int ovl_link_up(struct ovl_copy_up_ctx *c)
-@@ -634,7 +652,8 @@ static int ovl_copy_up_data(struct ovl_copy_up_ctx *c, const struct path *temp)
- 	if (IS_ERR(new_file))
- 		return PTR_ERR(new_file);
- 
--	err = ovl_copy_up_file(ofs, c->dentry, new_file, c->stat.size);
-+	err = ovl_copy_up_file(ofs, c->dentry, new_file, c->stat.size,
-+			       !c->metadata_fsync);
- 	fput(new_file);
- 
- 	return err;
-@@ -701,6 +720,10 @@ static int ovl_copy_up_metadata(struct ovl_copy_up_ctx *c, struct dentry *temp)
- 		err = ovl_set_attr(ofs, temp, &c->stat);
- 	inode_unlock(temp->d_inode);
- 
-+	/* fsync metadata before moving it into upper dir */
-+	if (!err && ovl_should_sync(ofs) && c->metadata_fsync)
-+		err = ovl_sync_file(&upperpath);
-+
- 	return err;
- }
- 
-@@ -860,7 +883,8 @@ static int ovl_copy_up_tmpfile(struct ovl_copy_up_ctx *c)
- 
- 	temp = tmpfile->f_path.dentry;
- 	if (!c->metacopy && c->stat.size) {
--		err = ovl_copy_up_file(ofs, c->dentry, tmpfile, c->stat.size);
-+		err = ovl_copy_up_file(ofs, c->dentry, tmpfile, c->stat.size,
-+				       !c->metadata_fsync);
- 		if (err)
- 			goto out_fput;
- 	}
-@@ -1135,6 +1159,17 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
- 	    !kgid_has_mapping(current_user_ns(), ctx.stat.gid))
- 		return -EOVERFLOW;
- 
-+	/*
-+	 * With metacopy disabled, we fsync after final metadata copyup, for
-+	 * both regular files and directories to get atomic copyup semantics
-+	 * on filesystems that do not use strict metadata ordering (e.g. ubifs).
-+	 *
-+	 * With metacopy enabled we want to avoid fsync on all meta copyup
-+	 * that will hurt performance of workloads such as chown -R, so we
-+	 * only fsync on data copyup as legacy behavior.
-+	 */
-+	ctx.metadata_fsync = !OVL_FS(dentry->d_sb)->config.metacopy &&
-+			     (S_ISREG(ctx.stat.mode) || S_ISDIR(ctx.stat.mode));
- 	ctx.metacopy = ovl_need_meta_copy_up(dentry, ctx.stat.mode, flags);
- 
- 	if (parent) {
+Cheers,
 -- 
-2.43.0
-
+Vinicius
