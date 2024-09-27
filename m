@@ -1,65 +1,65 @@
-Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
+Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C3CF61FCE;
-	Fri, 27 Sep 2024 12:03:20 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E3218C348;
+	Fri, 27 Sep 2024 12:41:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727438602; cv=none; b=SPhwq6iBw7A5AHJSVJC+R1ouwFoMD7Zc9O/9iT+ErDs4yMG4IW8X0vkqpHMwfZp2YYU743kmsj7eFToHXN/EOXySI26XS4jAI0gsdBgYwkHnQs5sOED+pTn1dRKdYRClcRqeKTnfd6xoO+G4IGm9631p1X41zL2alGQrfImm0Os=
+	t=1727440888; cv=none; b=Vwe77P4RjjBZsVIOKT6hquDeujWPfi1fPHzXa05lSo2Syk+C2dL54I5OyVnfeZSqTYIEaEN57dqsn1fOBXynjQakJHNcoLdhqo1Iw6vIqf+GZGQxjamAxQvHi1vL7dsRzdkhCVFBYysn0WuKWpk4Al8pX1CcQflNK0tSFC8fVs0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727438602; c=relaxed/simple;
-	bh=UrWY7OTU1UoGyyUUzsqFBb1AIuPIeooFBg78qnJeh8w=;
+	s=arc-20240116; t=1727440888; c=relaxed/simple;
+	bh=kycIQwyqzseho+DCEpoVm3cn5hedlQCJ/fHzY2+vKE0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=EZCTL8+/nE9VRFAaeAOSJ0A/ksSEQuS+ldYT+hPXyTDKEG8CdMCP2nP3YhYEF29jkWequADTGfK07L/NyaCrnmdnXfMWKNke8klBb3eZsbIz0FiyxmoL7zxLxKQIEw5V/p/jnRP/dCfEWpET8M6z1uFRsjm8yRz5pUHjfXGUgpw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HreBdGkz; arc=none smtp.client-ip=209.85.222.174
+	 To:Cc:Content-Type; b=IMOjlz4r56r4tIgIO6i42gotcDYrxkRLvZ0xogNT9K2IDV8SowBLYgGZgz4mK7mCu1KfW6CNTObqf+8/MmdK1AFAz4UAwAOWwjQnaQzaKbZVmS3DHLf0JE2XMDbL+urjGH1WM31zMe4ZSV56xVoHPK1CJS4nR6rj+oFab/6Wyuk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g+IDZuwQ; arc=none smtp.client-ip=209.85.222.172
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HreBdGkz"
-Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-7a99e8d5df1so186465085a.2;
-        Fri, 27 Sep 2024 05:03:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g+IDZuwQ"
+Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-7a99de9beb2so143887385a.3;
+        Fri, 27 Sep 2024 05:41:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1727438599; x=1728043399; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1727440886; x=1728045686; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=ien4lPw09mlafs2YgqQEs4Jx+N6Q89EVx3qb97kHkOw=;
-        b=HreBdGkzG9BxLONh5m29gb8BxV2VNFvXuNmPmTnNRBwTiyJHgDiOn0PrrM/V5iKBT3
-         HXGbOagsYqcA7a1CmsNFYmujx5D+7HZ8/rK4ILwiX1uw/5hICbGQsFXMqZCEaevpdd6J
-         UOo5oMD7gdj+XL07UBf8iRfM28T8L5e6IuR2MVLmnwJDB6xwYEBO28vY0VtlvL5AvLgb
-         ou+mWBJqI2E2zPhS26n0Mjr0FckUh0B29rX/hX+WygHg85oblja2yViHwmg49DRlnNBn
-         Ftk9zL9zBFd/0CrpWehXkfQf/d0e5w7pBfV9xrcOFWK6meXrFslo6M2ZQNQ0zFRAQFyc
-         5DBQ==
+        bh=93DZLQGnfHvZRWQCInahB8EGG1Tzg6N8dIuCOyaVCUY=;
+        b=g+IDZuwQ5T8xbwT4Nl6JoE3Wr91QY5gkdvnLZW5EfZ3VvYqjJWdcMgVP3uvJKzeP+f
+         oaDYLXqic//g9O2Hth2H+CzZMlhdqE2sfVJH0HP7syqiklcgru1TMl4xV9iS6N+vi4f3
+         zbBOIJ5z+N9hLOZhmYI+21Xq/enNZvLn6RNwcNDzYyVab6b8hiJiIrRjRVLzu8cZb8a9
+         bACKyP/fGYW5j0Pv2Uo0G7A3OSm9H8G3k71w2VktzWjP25TuvYxFA6Dg+9FHVoS8HF6M
+         c1dwB7ajmsIFa7hg1HU9yHLYLUF7lIGZgcogri9d9WC8rE3r8AdudGH9zMBxw3QlHoGu
+         8RfA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727438599; x=1728043399;
+        d=1e100.net; s=20230601; t=1727440886; x=1728045686;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=ien4lPw09mlafs2YgqQEs4Jx+N6Q89EVx3qb97kHkOw=;
-        b=qBq3I/u2YrxF638sALN3mspzKEbegB5YDcHgvJhfoJPSQH+mrPMILsYEhK5iMnUh9N
-         g8aUfNA1c7bknzdSTRdeWcqw1KnKHjWp25W3TOj868xRU5JFaZtkrpD34cckmeh3O/Gn
-         FrmzX2dwyp3hd9XfhrW9kHk97EpvObFuu8C3zy4zmHtBalYT09c9pJY6wIPtriZhygvA
-         LqMx5+GMn6B++AX7gGcaO+tlKVyocvG/EYfsdtCxwf3argKEhIhrkNFpGKBQLcVgyQR+
-         puhCPrXfCOC4Kwxzr/9m7MBswJmZWCmU2uFIuII6i1RpDlm6e1lqj2EVPbeVBu8Gczb7
-         nNHA==
-X-Forwarded-Encrypted: i=1; AJvYcCU6r9GPhy2L+dhxKM2eKqYd2wQyFB2MZGrC2rZEnBw1p227OlvAd1ZWaxViDDsSUTuGsKd0M0qiTqmlSzXe@vger.kernel.org, AJvYcCUWWEMbUjBDe3tFOzrFTWM6/VnHuyzOQr648zRhwWa+R7bxy/iIcdUImSAx2kmZhDx+A7kzVOgwbzH/lENV7w==@vger.kernel.org, AJvYcCVs36w/ExU/TvogSQRl1Kz5H/SHGrhVQMehDsajXLKPBYm+xux7+8Wz13gXOrvgVtIbNJCRfWspz1B4B0zW@vger.kernel.org
-X-Gm-Message-State: AOJu0YwNF7iwv/3h5AqKC8f16XePngknIMT/q/yCjBowlHLd70X1MMTs
-	x58ImFInMqDyk+TwXlzAWChNYu66K1/MG9u5dND2qc0q8raWpW3vjDcGjt17q1s/23o7AiJuWFo
-	CW1TdCxOdp3+4oanrpjMkbwoHAg0=
-X-Google-Smtp-Source: AGHT+IEvoF9mwgTLcAuSVa+Xp4oXZXGcBCFvJyQtw2z10Ya7vZXTvtIti1wQJGe6WjK5yS0GELWoZ/ad/HEfri7pN6Q=
-X-Received: by 2002:a05:620a:1a18:b0:7ac:de4d:9129 with SMTP id
- af79cd13be357-7ae3785918fmr452213985a.31.1727438599209; Fri, 27 Sep 2024
- 05:03:19 -0700 (PDT)
+        bh=93DZLQGnfHvZRWQCInahB8EGG1Tzg6N8dIuCOyaVCUY=;
+        b=rBxY6kvnDoiXQVjPNjjA7QsIapcM8jFqU/Q0+CAUG4/Ie4C0aegwGqX3CZYPuFSH7B
+         kGvC95JCUa4F/TnjqSIIFODkmfsAg0M1P3dZKiWq+K6vSVQIYydWi02KFjWkOA3/36Lb
+         hozO830hIBqY9a5+DRnPBhimwnkAiMfRbm5cnCQXEu3f+3xfsdKxEhtuxFHMXg+AlZgd
+         njJhV8gDrvuEOdd9+ZncL0m6VAGaPN/Aku1SbER/GtqAB+TIBbYSK4mijtpHyVrjJIJO
+         dIlMO6Vqry2aqcHiJmtAaaSstfg3RAKkztTSRiK+vByCUlswVV9aUuUWrjWS7KrAJVAR
+         DOqA==
+X-Forwarded-Encrypted: i=1; AJvYcCVBba4Og1Dr8bSFipN6/5gRucAUaJOftzLtLXDJTH1O7cVB07sOHT8HU/UV7E3ezX8h96SIqjvHsLEmFjOl@vger.kernel.org, AJvYcCWa/K2vS2RJ/eLziF4D4vN2wGXPn8GoTyw19+tvC4FJtT4pwJ1xl9TI4pRzgeymu+2XzbcJg2Y2TQzqexoOMw==@vger.kernel.org, AJvYcCX1mwM6EXBrV5C7bG8ExzbhVhUPtLDfnMX1IG1FH/G1fPE7Cya7dD8tT1NzHFgeWRBXPjjTanvtWTF7xMtU@vger.kernel.org
+X-Gm-Message-State: AOJu0YxcZcjousKgt5tC7ex6AJjVgCNEVuemB6lNYNrUB4M6MBpWS0x/
+	42aF6JCcVSZC91zjwCqlL9yLiMi70yiOpsvj1DVDdz2DBOylfRbOmvdgfVa/xqGwt1kbLSp+IrE
+	luQl2yeGYQxMvk1f7iXkpDq+qxPU=
+X-Google-Smtp-Source: AGHT+IEXNGhX+HT8vqUBq//AHc7avGluM+x25uPkqijnKxwm+Xa7Osmn6mwUiC2R340SUmi9/z/PgJCff51n1rJUBnk=
+X-Received: by 2002:a05:620a:370d:b0:7ac:b1b1:e730 with SMTP id
+ af79cd13be357-7ae378dd1c5mr447186385a.61.1727440886241; Fri, 27 Sep 2024
+ 05:41:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
-In-Reply-To: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
+References: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml> <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 27 Sep 2024 14:03:07 +0200
-Message-ID: <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com>
+Date: Fri, 27 Sep 2024 14:41:14 +0200
+Message-ID: <CAOQ4uxiTOJNk-Sy6RFezv=_kpsM9AqMSej=9DxfKtO53-vqXqA@mail.gmail.com>
 Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_llseek
 To: Leo Stone <leocstone@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
 Cc: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com, 
@@ -67,66 +67,74 @@ Cc: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com,
 	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, skhan@linuxfoundation.org, 
 	anupnewsmail@gmail.com, Christian Brauner <brauner@kernel.org>, 
 	Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Content-Type: multipart/mixed; boundary="0000000000001467e7062318a4e2"
+Content-Type: multipart/mixed; boundary="00000000000065915e0623192cb9"
 
---0000000000001467e7062318a4e2
+--00000000000065915e0623192cb9
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 27, 2024 at 9:10=E2=80=AFAM Leo Stone <leocstone@gmail.com> wro=
-te:
+On Fri, Sep 27, 2024 at 2:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
 >
-> Add a check to avoid using an invalid pointer if ovl_open_realfile fails.
+> On Fri, Sep 27, 2024 at 9:10=E2=80=AFAM Leo Stone <leocstone@gmail.com> w=
+rote:
+> >
+> > Add a check to avoid using an invalid pointer if ovl_open_realfile fail=
+s.
+> >
+> > #syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux=
+.git master
+> >
+> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> > index 2b7a5a3a7a2f..67f75eeb1e51 100644
+> > --- a/fs/overlayfs/file.c
+> > +++ b/fs/overlayfs/file.c
+> > @@ -117,7 +117,11 @@ static int ovl_real_fdget_meta(const struct file *=
+file, struct fd *real,
+> >                 struct file *f =3D ovl_open_realfile(file, &realpath);
+> >                 if (IS_ERR(f))
+> >                         return PTR_ERR(f);
+> > -               real->word =3D (unsigned long)ovl_open_realfile(file, &=
+realpath) | FDPUT_FPUT;
+> > +               f =3D ovl_open_realfile(file, &realpath);
+> > +               if (IS_ERR(f))
+> > +                       return PTR_ERR(f);
+> > +               real->word =3D (unsigned long)f;
+> > +               real->word |=3D FDPUT_FPUT;
+> >                 return 0;
+> >         }
+> >
+> >
 >
-> #syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.g=
-it master
+> No, that's the wrong fix.
+> There is a braino and a file leak in this code.
 >
-> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> index 2b7a5a3a7a2f..67f75eeb1e51 100644
-> --- a/fs/overlayfs/file.c
-> +++ b/fs/overlayfs/file.c
-> @@ -117,7 +117,11 @@ static int ovl_real_fdget_meta(const struct file *fi=
-le, struct fd *real,
->                 struct file *f =3D ovl_open_realfile(file, &realpath);
->                 if (IS_ERR(f))
->                         return PTR_ERR(f);
-> -               real->word =3D (unsigned long)ovl_open_realfile(file, &re=
-alpath) | FDPUT_FPUT;
-> +               f =3D ovl_open_realfile(file, &realpath);
-> +               if (IS_ERR(f))
-> +                       return PTR_ERR(f);
-> +               real->word =3D (unsigned long)f;
-> +               real->word |=3D FDPUT_FPUT;
->                 return 0;
->         }
+> Linus,
 >
+> Could you apply this braino fix manually before releasing rc1.
 >
 
-No, that's the wrong fix.
-There is a braino and a file leak in this code.
-
-Linus,
-
-Could you apply this braino fix manually before releasing rc1.
+Too quick to send. I messed up the Fixes: tag.
+Now fixed.
 
 Thanks,
 Amir.
 
---0000000000001467e7062318a4e2
+--00000000000065915e0623192cb9
 Content-Type: text/x-patch; charset="US-ASCII"; 
 	name="0001-ovl-fix-file-leak-in-ovl_real_fdget_meta.patch"
 Content-Disposition: attachment; 
 	filename="0001-ovl-fix-file-leak-in-ovl_real_fdget_meta.patch"
 Content-Transfer-Encoding: base64
-Content-ID: <f_m1ko8gok0>
-X-Attachment-Id: f_m1ko8gok0
+Content-ID: <f_m1kpox7f0>
+X-Attachment-Id: f_m1kpox7f0
 
 RnJvbSA5OTRkNWE2MTg1NWRhMjc1MjkyNzgwYWY3Mjk0OGQ3MjA3MDI1ZWM4IE1vbiBTZXAgMTcg
 MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
 YXRlOiBGcmksIDI3IFNlcCAyMDI0IDEzOjU0OjIzICswMjAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
 OiBmaXggZmlsZSBsZWFrIGluIG92bF9yZWFsX2ZkZ2V0X21ldGEoKQoKb3ZsX29wZW5fcmVhbGZp
 bGUoKSBpcyB3cm9uZ2x5IGNhbGxlZCB0d2ljZSBhZnRlciBjb252ZXJzaW9uIHRvCm5ldyBzdHJ1
-Y3QgZmQuCgpGaXhlczogKCI4OGEyZjY0NjhkMDEgc3RydWN0IGZkOiByZXByZXNlbnRhdGlvbiBj
+Y3QgZmQuCgpGaXhlczogODhhMmY2NDY4ZDAxICgic3RydWN0IGZkOiByZXByZXNlbnRhdGlvbiBj
 aGFuZ2UiKQpSZXBvcnRlZC1ieTogc3l6Ym90K2Q5ZWZlYzk0ZGNiZmEwZGUxYzA3QHN5emthbGxl
 ci5hcHBzcG90bWFpbC5jb20KU2lnbmVkLW9mZi1ieTogQW1pciBHb2xkc3RlaW4gPGFtaXI3M2ls
 QGdtYWlsLmNvbT4KLS0tCiBmcy9vdmVybGF5ZnMvZmlsZS5jIHwgMiArLQogMSBmaWxlIGNoYW5n
@@ -140,4 +148,4 @@ UlIoZikpCiAJCQlyZXR1cm4gUFRSX0VSUihmKTsKLQkJcmVhbC0+d29yZCA9ICh1bnNpZ25lZCBs
 b25nKW92bF9vcGVuX3JlYWxmaWxlKGZpbGUsICZyZWFscGF0aCkgfCBGRFBVVF9GUFVUOworCQly
 ZWFsLT53b3JkID0gKHVuc2lnbmVkIGxvbmcpZiB8IEZEUFVUX0ZQVVQ7CiAJCXJldHVybiAwOwog
 CX0KIAotLSAKMi4zNC4xCgo=
---0000000000001467e7062318a4e2--
+--00000000000065915e0623192cb9--
