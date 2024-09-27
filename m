@@ -1,91 +1,73 @@
-Received: from mail-pg1-f179.google.com (mail-pg1-f179.google.com [209.85.215.179])
+Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0449D6BFC0;
-	Fri, 27 Sep 2024 07:10:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.215.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC28917837D
+	for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 07:37:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.197
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727421006; cv=none; b=jh4kDow7LKEJgYmR+vs0koXdqCZZFFulKL9jeibnjaXKrImLh7sOO0XN9Mwl6ysd/S5iEAw2KWHP5wm7und+uPEUKRNM0yW9v25x8+u0VXFmGU87cem0LO1sRncUSu+nxV9H0Oc2NEw+EaP6C2rrHC0ZH9nOlH4WIJth9sy8CwM=
+	t=1727422625; cv=none; b=OaJsSNF6ZGrymFvIgqfJJLuB4wpwFSt/6XhfaYcN1OP54rGNFTxybtLP4c+23uowJYQ74YEBiqD2rFZ/k7T8txq4IeoWr8zJ+m8HTmv+EzI+djiz+boBC+ooEL0XYVorV3DLV36tDOaqgkfS+93PzDsX2VS2bKXuoiIzguMQj2U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727421006; c=relaxed/simple;
-	bh=nrXyo6rSalrxDvu3KKVPOyZfO9gws1fSAJz6QSH0iQs=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=Mjf0iSEfFizJWy0qqZ6W9c1soxSia74cIfLfgyuJOUoa72k4U4Y4/1yQFpsqeW8lsZ2yp78aHS5itDnxuXG9fE7PMQmAb4SPqdFN9ExfmdJA2bLCQJyvsTcng/Sk529vn2QLBgXmAD3WoTjBXb1yUYnZNbi39TUAUudGNZ4nkzo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Iasi0Lks; arc=none smtp.client-ip=209.85.215.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Iasi0Lks"
-Received: by mail-pg1-f179.google.com with SMTP id 41be03b00d2f7-7db54269325so1364001a12.2;
-        Fri, 27 Sep 2024 00:10:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1727421004; x=1728025804; darn=vger.kernel.org;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=n2SdVCFe+c85mj/Vz3aROtTmPOFVP1yeKdmNkgMPZAg=;
-        b=Iasi0LksDLaasTT9My7649DysZgcCuwArTak6w+Zhc+Ke+7Vc/7WdMDDMoZU8tp9z8
-         3xHRfF4qOb3m5TYMzRUo0oQkV3RrgRi5rOa+tWzd8iyCfAm8k4SwiIBlATY45+ZPnd9i
-         nSJNjK/1hrnrV09t7D0su8XyrM9CCuck0BvFGSzJG/VT/+3xeyegWD6XbU1sd1BYzF3y
-         QYg06C2cvdq6ANfv/iXSDo5BRQlWrls90EQ6P8bjJowxU1pBLYLJXxWs/jZkp8BU3Ow4
-         3x+gQI59bfRljhkL/lW2PGkDTGkdS1MuVSY5A1j5g2Yn36t2PjskDucPd8+EmJzYMoXA
-         Y/AA==
+	s=arc-20240116; t=1727422625; c=relaxed/simple;
+	bh=pZ1uB/XJBjEl6D21v2+KHYZz/RwbUjAFWAp4RP1NzPw=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=tyrP9oqcyKy7fA+fntk2evZ367Yfnaueuy5WrxbavMAGkhwKvWQif6DVfOA+ijkmEyaKwpQ5Gvj91dJMCJvLuVSILRvOqvSPN4TBj79X0XbdUyMqZX01uwO7NW09ySlm1GX5WW9cUNWhOj+vQzzBBgl6bfmxJC39KMZbLK+8q9o=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.197
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-3a342620f50so15301445ab.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 00:37:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727421004; x=1728025804;
-        h=content-disposition:mime-version:message-id:subject:cc:to:from:date
+        d=1e100.net; s=20230601; t=1727422623; x=1728027423;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=n2SdVCFe+c85mj/Vz3aROtTmPOFVP1yeKdmNkgMPZAg=;
-        b=A71j6cRRr2cU6TCO/lgYT3hi4Cl4P/iVmFEaNubLiLBTJj3hrtnNthXWpzcl9oiNmo
-         n4lufmNHR80WdXN/7xrbqOw29xkxy7t4o3/A/6XEagR7Qj4QK2LGSODeK+vcI6plj7RQ
-         2h4qnHcgdgrEfVdEo7Q0uXxUXh67vb5PJxk9MqEvm3DTHlfRT30FY0SFLyFZlfsjJmMu
-         p5bbD79fXemwQmZdi6VeGdVvQ5zVdntimRkghJvHuW0T59X5d7k5wp+oNafDA+RZg7CO
-         BakCxkJ7R2aCD9IpOh/ug2pyEzQvQz6waKmG6DdujOVdI5ioVRKErE85O7f2yVLamDZz
-         g4Pw==
-X-Forwarded-Encrypted: i=1; AJvYcCUWDPfu4qoaLhpeR31AiQYzQpmF8MuyqVnYUKyVN1srnfHwBGc9FviuOTiG5BNAB5YUkHY8lgAMfc9QiGCRIw==@vger.kernel.org, AJvYcCXgNzxd7aiEyjKC9+0snRF3h4+7vt1FEdsUHTDR3hIDCnEfCXLRaxouTCEoIbl2QBoaTxFiFxaTO2oleXo=@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxp1EeVeyecWaTatpvzUwBxFjbbXMaf9kUJemKt0EVm8AizDBk2
-	qOuw5TN/9Gk/2qabXh8bddiSAXnUkoGSy1km4zo0uEFSRzSlAjDW
-X-Google-Smtp-Source: AGHT+IGYJhGARPKzg8Aet9OB2o+cMNQ0PO9cT7AF/MR3oO7a9i67dTHoWF3QhT0hYbV2hY24d0cYcg==
-X-Received: by 2002:a05:6a20:c702:b0:1cf:3e99:d7a7 with SMTP id adf61e73a8af0-1d4fa677f59mr3979228637.12.1727421004076;
-        Fri, 27 Sep 2024 00:10:04 -0700 (PDT)
-Received: from tc (c-67-171-216-181.hsd1.or.comcast.net. [67.171.216.181])
-        by smtp.gmail.com with ESMTPSA id 41be03b00d2f7-7e6db2b2f73sm965187a12.25.2024.09.27.00.10.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 27 Sep 2024 00:10:03 -0700 (PDT)
-Date: Fri, 27 Sep 2024 00:10:02 -0700
-From: Leo Stone <leocstone@gmail.com>
-To: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com
-Cc: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, 
-	skhan@linuxfoundation.org, anupnewsmail@gmail.com
-Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_llseek
-Message-ID: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
+        bh=lehVuHc/G3YmOIICMpiPm5yqzC+B6vqDGq6lwJPGaz0=;
+        b=detA6gu7SAcC9YWVXDrmSvSzDKxSSaw08tgzxzvizJyu/Zn3QZNJVNOZHyJsU+DU8c
+         2ohzFG2j3h5U5vnTHkV3UhMSqVfN3Y8BdfAAKZcgf0yo4IkPfm1c7q2odb1K0HR4fHop
+         vzZM2zRNbeJM3LgIsxXjTW4ncgdPiLcV1w6wJSD/E+xH43dPxuGEpS/uHeGEE5ZOjjwZ
+         qBKK+/uS9DV1CwgsF/VK0yX6MCezTzB1hhryU/yXlCOKQd7DelZ2vQNzIZafFwh3bKby
+         Yk0pj4aDLHp9/OmD9O8YhDnFDfIVYP4RH3QsIM/9qJpcEITAlGQjBSFNDh7BJMymlyeE
+         dUGg==
+X-Forwarded-Encrypted: i=1; AJvYcCWmXddIZQmSf9VoFdlYZCONT8WHMWTaRbjbHxKwKNlP1FO2l3/4/ucjR48f6uz7ZyU2JqVprTYKWjx/XN8I@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw18RBGO3vrfT4PXWBaAe/hFG6OqS3GidAwozyYbltRnJLOSASG
+	8+gnGzXOBJqx3s2lRhdGYCOBAgtbWVr9uKMkk9IdSJhOSi0l6dgRAQ73mlIH/44geGZTRQFGuEk
+	wjHsCsaFB/kpo03vV8YwBNljB6BIdOn3Knhaj6i49KBuz3bkJ26ncr8w=
+X-Google-Smtp-Source: AGHT+IEpzlW7cze/+T+3UwIjnirvFs6E+EOntv3U7QiaD3/RHrulutVP/mU/HPA8uLNjjTnE+Ii/kMFgk68Gzr/2APctgN7uisyO
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+X-Received: by 2002:a05:6e02:184a:b0:3a0:ab71:ed38 with SMTP id
+ e9e14a558f8ab-3a345179e33mr20985775ab.14.1727422623043; Fri, 27 Sep 2024
+ 00:37:03 -0700 (PDT)
+Date: Fri, 27 Sep 2024 00:37:03 -0700
+In-Reply-To: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <66f6609f.050a0220.46d20.0011.GAE@google.com>
+Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_llseek
+From: syzbot <syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, anupnewsmail@gmail.com, leocstone@gmail.com, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, skhan@linuxfoundation.org, syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-Add a check to avoid using an invalid pointer if ovl_open_realfile fails.
+Hello,
 
-#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git master
+syzbot has tested the proposed patch and the reproducer did not trigger any issue:
 
-diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-index 2b7a5a3a7a2f..67f75eeb1e51 100644
---- a/fs/overlayfs/file.c
-+++ b/fs/overlayfs/file.c
-@@ -117,7 +117,11 @@ static int ovl_real_fdget_meta(const struct file *file, struct fd *real,
-                struct file *f = ovl_open_realfile(file, &realpath);
-                if (IS_ERR(f))
-                        return PTR_ERR(f);
--               real->word = (unsigned long)ovl_open_realfile(file, &realpath) | FDPUT_FPUT;
-+               f = ovl_open_realfile(file, &realpath);
-+               if (IS_ERR(f))
-+                       return PTR_ERR(f);
-+               real->word = (unsigned long)f;
-+               real->word |= FDPUT_FPUT;
-                return 0;
-        }
+Reported-by: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com
+Tested-by: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com
 
+Tested on:
 
+commit:         075dbe9f Merge tag 'soc-ep93xx-dt-6.12' of git://git.k..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=13ce159f980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=b2d4fdf18a83ec0b
+dashboard link: https://syzkaller.appspot.com/bug?extid=d9efec94dcbfa0de1c07
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+patch:          https://syzkaller.appspot.com/x/patch.diff?x=112c6aa9980000
+
+Note: testing is done by a robot and is best-effort only.
