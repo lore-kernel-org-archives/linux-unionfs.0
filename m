@@ -1,151 +1,122 @@
-Received: from mail-qk1-f172.google.com (mail-qk1-f172.google.com [209.85.222.172])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75E3218C348;
-	Fri, 27 Sep 2024 12:41:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F0A31C2435
+	for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 19:47:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727440888; cv=none; b=Vwe77P4RjjBZsVIOKT6hquDeujWPfi1fPHzXa05lSo2Syk+C2dL54I5OyVnfeZSqTYIEaEN57dqsn1fOBXynjQakJHNcoLdhqo1Iw6vIqf+GZGQxjamAxQvHi1vL7dsRzdkhCVFBYysn0WuKWpk4Al8pX1CcQflNK0tSFC8fVs0=
+	t=1727466460; cv=none; b=FjI1wbtMGQ/IUSpO8SwJFWPWP65vIprjSVdrCKvqNA5syDweJxljbacrT6ttV1QnrMS18EbHBXGNAEfDLvmF0IqNs2cntG3g/15x6VBvnD6QaY2gipNDjefXCEGam9leMiczgThkcIn4fgfHTJTY0YU9sZg+xcyqnXlbl0OTUOY=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727440888; c=relaxed/simple;
-	bh=kycIQwyqzseho+DCEpoVm3cn5hedlQCJ/fHzY2+vKE0=;
+	s=arc-20240116; t=1727466460; c=relaxed/simple;
+	bh=K8LRS5lXD/WAyJR6Fah4BgddLYPaV1DDmCZ44umWmfE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=IMOjlz4r56r4tIgIO6i42gotcDYrxkRLvZ0xogNT9K2IDV8SowBLYgGZgz4mK7mCu1KfW6CNTObqf+8/MmdK1AFAz4UAwAOWwjQnaQzaKbZVmS3DHLf0JE2XMDbL+urjGH1WM31zMe4ZSV56xVoHPK1CJS4nR6rj+oFab/6Wyuk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=g+IDZuwQ; arc=none smtp.client-ip=209.85.222.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=JqwXJGin/XHVuFsp0z5mTedSXXl0Htl3FeRTACUB3z6P928x+b1gqWS0XMoBhJX1eUAYzreNCchEvEwwmIA8pwBmLqHWyQxvEtbS0NfGgDTmxfTHj4EUwIR1IvPbzR/qJXmz9q2/mIoKxUjnHL0GYmvIRFNHYU8KU0HtGHs/yaA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=XANP4D63; arc=none smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="g+IDZuwQ"
-Received: by mail-qk1-f172.google.com with SMTP id af79cd13be357-7a99de9beb2so143887385a.3;
-        Fri, 27 Sep 2024 05:41:27 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="XANP4D63"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-5c718bb04a3so3090965a12.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 12:47:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1727440886; x=1728045686; darn=vger.kernel.org;
+        d=linux-foundation.org; s=google; t=1727466456; x=1728071256; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=93DZLQGnfHvZRWQCInahB8EGG1Tzg6N8dIuCOyaVCUY=;
-        b=g+IDZuwQ5T8xbwT4Nl6JoE3Wr91QY5gkdvnLZW5EfZ3VvYqjJWdcMgVP3uvJKzeP+f
-         oaDYLXqic//g9O2Hth2H+CzZMlhdqE2sfVJH0HP7syqiklcgru1TMl4xV9iS6N+vi4f3
-         zbBOIJ5z+N9hLOZhmYI+21Xq/enNZvLn6RNwcNDzYyVab6b8hiJiIrRjRVLzu8cZb8a9
-         bACKyP/fGYW5j0Pv2Uo0G7A3OSm9H8G3k71w2VktzWjP25TuvYxFA6Dg+9FHVoS8HF6M
-         c1dwB7ajmsIFa7hg1HU9yHLYLUF7lIGZgcogri9d9WC8rE3r8AdudGH9zMBxw3QlHoGu
-         8RfA==
+        bh=53HOZed5FIyfCoU16tivT3Dit2MdvJuxNAeOr42Twwo=;
+        b=XANP4D63u6u1pcwJWq5t2gr2/HAi7sdxFAKvSviD15mhTiUCk4OWffK/cEGJ5pVyfx
+         iGtS5LfJuMlT4i3tP+29LO6AKG7dHZlwYa38N5JtJ2BpPee1kaQMWvFm9sMtbVKopD4C
+         zRRR7dcvE50xAjWwKKKCsxiHF1sxcRhq79lN0=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727440886; x=1728045686;
+        d=1e100.net; s=20230601; t=1727466456; x=1728071256;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=93DZLQGnfHvZRWQCInahB8EGG1Tzg6N8dIuCOyaVCUY=;
-        b=rBxY6kvnDoiXQVjPNjjA7QsIapcM8jFqU/Q0+CAUG4/Ie4C0aegwGqX3CZYPuFSH7B
-         kGvC95JCUa4F/TnjqSIIFODkmfsAg0M1P3dZKiWq+K6vSVQIYydWi02KFjWkOA3/36Lb
-         hozO830hIBqY9a5+DRnPBhimwnkAiMfRbm5cnCQXEu3f+3xfsdKxEhtuxFHMXg+AlZgd
-         njJhV8gDrvuEOdd9+ZncL0m6VAGaPN/Aku1SbER/GtqAB+TIBbYSK4mijtpHyVrjJIJO
-         dIlMO6Vqry2aqcHiJmtAaaSstfg3RAKkztTSRiK+vByCUlswVV9aUuUWrjWS7KrAJVAR
-         DOqA==
-X-Forwarded-Encrypted: i=1; AJvYcCVBba4Og1Dr8bSFipN6/5gRucAUaJOftzLtLXDJTH1O7cVB07sOHT8HU/UV7E3ezX8h96SIqjvHsLEmFjOl@vger.kernel.org, AJvYcCWa/K2vS2RJ/eLziF4D4vN2wGXPn8GoTyw19+tvC4FJtT4pwJ1xl9TI4pRzgeymu+2XzbcJg2Y2TQzqexoOMw==@vger.kernel.org, AJvYcCX1mwM6EXBrV5C7bG8ExzbhVhUPtLDfnMX1IG1FH/G1fPE7Cya7dD8tT1NzHFgeWRBXPjjTanvtWTF7xMtU@vger.kernel.org
-X-Gm-Message-State: AOJu0YxcZcjousKgt5tC7ex6AJjVgCNEVuemB6lNYNrUB4M6MBpWS0x/
-	42aF6JCcVSZC91zjwCqlL9yLiMi70yiOpsvj1DVDdz2DBOylfRbOmvdgfVa/xqGwt1kbLSp+IrE
-	luQl2yeGYQxMvk1f7iXkpDq+qxPU=
-X-Google-Smtp-Source: AGHT+IEXNGhX+HT8vqUBq//AHc7avGluM+x25uPkqijnKxwm+Xa7Osmn6mwUiC2R340SUmi9/z/PgJCff51n1rJUBnk=
-X-Received: by 2002:a05:620a:370d:b0:7ac:b1b1:e730 with SMTP id
- af79cd13be357-7ae378dd1c5mr447186385a.61.1727440886241; Fri, 27 Sep 2024
- 05:41:26 -0700 (PDT)
+        bh=53HOZed5FIyfCoU16tivT3Dit2MdvJuxNAeOr42Twwo=;
+        b=uFfMAEcZt6WCC8VV+rCEtr3j300uF25wwV2aQTE7QglI/WvtMOnBCx7Hgc7MS7xmfr
+         HheJGKDr9IZ0lzS4M62XISatShNoAnRJ4FQZTNXc6Lecdk1ujHWUsuGE2f7+WDSmn8PA
+         Ffnl1d9SNwlty2/mVv0Dm06nbvFd9rAGvrpwlTVC0zZx+VXgoTwP1vGYJyEGPrD2AjEC
+         slilTGYaL7235Kf4THSM40PAh2jDlZVwXd6hneFxc6wJhgfxRlO2vWgK5r1mRz2Yb8V7
+         doRQkqIyk2iujErafsCWDbXCdNDDW8c1mKnU1qU6w13kMhll6S/gmxtxhuXjNogyoKth
+         2Myg==
+X-Forwarded-Encrypted: i=1; AJvYcCWDHzRoRVmZfJg17st4TsqCpq5II3elsLEDNcfrDej/N0oy3rZGuqy77veoOUkz3f2Qtj4ZwuC4GmjvOk6a@vger.kernel.org
+X-Gm-Message-State: AOJu0YzFSueFrRb62AYHJBj/rPQ1c4aACbE6w+959xIkpCpGo3k7OV/r
+	PzGC0+BGGsQxMPEBvmk3cPt891uqnu/bqIO0d75EjEGF5LrCpn9FmIxYbEjDr3sp+pCoHRY0J/G
+	Lqc1bmw==
+X-Google-Smtp-Source: AGHT+IEbx2QQB3QHaHpKga4hr06fKvaUt0GCzI+VUJa9GwKeR81+jS4yPI1qtQOpU1Uxr6VpVFuKCQ==
+X-Received: by 2002:a05:6402:e99:b0:5c5:b9c2:c5bb with SMTP id 4fb4d7f45d1cf-5c88260842dmr3998618a12.35.1727466455579;
+        Fri, 27 Sep 2024 12:47:35 -0700 (PDT)
+Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com. [209.85.218.47])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5c885f5336csm553447a12.97.2024.09.27.12.47.33
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 27 Sep 2024 12:47:34 -0700 (PDT)
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a8d4093722bso347131866b.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 12:47:33 -0700 (PDT)
+X-Forwarded-Encrypted: i=1; AJvYcCXo7a1I8yFVWPx16Q9+sHBctF/UR+M1ngI7eKk3KYIflunGrzIXcz/gAPJevRUvCIgEb6cJpAMZ85b35M4p@vger.kernel.org
+X-Received: by 2002:a17:907:3f1c:b0:a8a:837c:ebd4 with SMTP id
+ a640c23a62f3a-a93c4926f43mr470113466b.27.1727466452677; Fri, 27 Sep 2024
+ 12:47:32 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml> <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 27 Sep 2024 14:41:14 +0200
-Message-ID: <CAOQ4uxiTOJNk-Sy6RFezv=_kpsM9AqMSej=9DxfKtO53-vqXqA@mail.gmail.com>
+References: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
+ <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com> <CAOQ4uxiTOJNk-Sy6RFezv=_kpsM9AqMSej=9DxfKtO53-vqXqA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxiTOJNk-Sy6RFezv=_kpsM9AqMSej=9DxfKtO53-vqXqA@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 27 Sep 2024 12:47:16 -0700
+X-Gmail-Original-Message-ID: <CAHk-=wikugk2soi_2OFz1k27qjjYMQ140ZXWeOh8_9iSxpr=PQ@mail.gmail.com>
+Message-ID: <CAHk-=wikugk2soi_2OFz1k27qjjYMQ140ZXWeOh8_9iSxpr=PQ@mail.gmail.com>
 Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_llseek
-To: Leo Stone <leocstone@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com, 
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Leo Stone <leocstone@gmail.com>, 
+	syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com, 
 	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
 	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, skhan@linuxfoundation.org, 
 	anupnewsmail@gmail.com, Christian Brauner <brauner@kernel.org>, 
 	Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Content-Type: multipart/mixed; boundary="00000000000065915e0623192cb9"
-
---00000000000065915e0623192cb9
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Fri, Sep 27, 2024 at 2:03=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
+On Fri, 27 Sept 2024 at 05:41, Amir Goldstein <amir73il@gmail.com> wrote:
 >
-> On Fri, Sep 27, 2024 at 9:10=E2=80=AFAM Leo Stone <leocstone@gmail.com> w=
-rote:
-> >
-> > Add a check to avoid using an invalid pointer if ovl_open_realfile fail=
-s.
-> >
-> > #syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux=
-.git master
-> >
-> > diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
-> > index 2b7a5a3a7a2f..67f75eeb1e51 100644
-> > --- a/fs/overlayfs/file.c
-> > +++ b/fs/overlayfs/file.c
-> > @@ -117,7 +117,11 @@ static int ovl_real_fdget_meta(const struct file *=
-file, struct fd *real,
-> >                 struct file *f =3D ovl_open_realfile(file, &realpath);
-> >                 if (IS_ERR(f))
-> >                         return PTR_ERR(f);
-> > -               real->word =3D (unsigned long)ovl_open_realfile(file, &=
-realpath) | FDPUT_FPUT;
-> > +               f =3D ovl_open_realfile(file, &realpath);
-> > +               if (IS_ERR(f))
-> > +                       return PTR_ERR(f);
-> > +               real->word =3D (unsigned long)f;
-> > +               real->word |=3D FDPUT_FPUT;
-> >                 return 0;
-> >         }
-> >
-> >
->
-> No, that's the wrong fix.
-> There is a braino and a file leak in this code.
->
-> Linus,
->
-> Could you apply this braino fix manually before releasing rc1.
->
+> Too quick to send. I messed up the Fixes: tag.
+> Now fixed.
 
-Too quick to send. I messed up the Fixes: tag.
-Now fixed.
+Applied.
+
+However, just for the future: please send patches that you expect me
+to apply with a very explicit subject line to that effect.
+
+I get too much email, and hey, I do try to read it all (even if I
+don't answer), but I'm really really good at scanning my emails
+quickly.
+
+In other words: sometimes I'm a bit *too* good at the "quickly" part,
+and end up missing the fact that "oh, there was a patch there that I
+need to actually react to and apply".
+
+That has become more true over the years as the individual patch count
+has gone down, and *most* of what I do is git pulls, and most of the
+emailed patches I see tend to be things that are for review, not
+application.
+
+Yes, I picked it up this time. And maybe I even pick up on these
+things *most* of the time.
+
+But I still strongly suspect that to make it more likely that I don't
+miss anything, you make the subject line some big clue-bat to my head
+like having "[PATCH-for-linus]" header.
+
+Because even just a "[PATCH]" is likely to trigger my "patch review"
+logic rather than something I'm actually expected to apply, just
+because I see *so* many patches fly by.
+
+This was your daily "Linus is all kinds of disorganized and
+incompetent" notification. Making things obvious to me is always a
+good thing. It's why those "[GIT PULL]" subject lines help not just
+pr-tracker-bot, but also me.
 
 Thanks,
-Amir.
-
---00000000000065915e0623192cb9
-Content-Type: text/x-patch; charset="US-ASCII"; 
-	name="0001-ovl-fix-file-leak-in-ovl_real_fdget_meta.patch"
-Content-Disposition: attachment; 
-	filename="0001-ovl-fix-file-leak-in-ovl_real_fdget_meta.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_m1kpox7f0>
-X-Attachment-Id: f_m1kpox7f0
-
-RnJvbSA5OTRkNWE2MTg1NWRhMjc1MjkyNzgwYWY3Mjk0OGQ3MjA3MDI1ZWM4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
-YXRlOiBGcmksIDI3IFNlcCAyMDI0IDEzOjU0OjIzICswMjAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
-OiBmaXggZmlsZSBsZWFrIGluIG92bF9yZWFsX2ZkZ2V0X21ldGEoKQoKb3ZsX29wZW5fcmVhbGZp
-bGUoKSBpcyB3cm9uZ2x5IGNhbGxlZCB0d2ljZSBhZnRlciBjb252ZXJzaW9uIHRvCm5ldyBzdHJ1
-Y3QgZmQuCgpGaXhlczogODhhMmY2NDY4ZDAxICgic3RydWN0IGZkOiByZXByZXNlbnRhdGlvbiBj
-aGFuZ2UiKQpSZXBvcnRlZC1ieTogc3l6Ym90K2Q5ZWZlYzk0ZGNiZmEwZGUxYzA3QHN5emthbGxl
-ci5hcHBzcG90bWFpbC5jb20KU2lnbmVkLW9mZi1ieTogQW1pciBHb2xkc3RlaW4gPGFtaXI3M2ls
-QGdtYWlsLmNvbT4KLS0tCiBmcy9vdmVybGF5ZnMvZmlsZS5jIHwgMiArLQogMSBmaWxlIGNoYW5n
-ZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZnMvb3Zlcmxh
-eWZzL2ZpbGUuYyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKaW5kZXggMmI3YTVhM2E3YTJmLi40NTA0
-NDkzYjIwYmUgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9maWxlLmMKKysrIGIvZnMvb3Zlcmxh
-eWZzL2ZpbGUuYwpAQCAtMTE3LDcgKzExNyw3IEBAIHN0YXRpYyBpbnQgb3ZsX3JlYWxfZmRnZXRf
-bWV0YShjb25zdCBzdHJ1Y3QgZmlsZSAqZmlsZSwgc3RydWN0IGZkICpyZWFsLAogCQlzdHJ1Y3Qg
-ZmlsZSAqZiA9IG92bF9vcGVuX3JlYWxmaWxlKGZpbGUsICZyZWFscGF0aCk7CiAJCWlmIChJU19F
-UlIoZikpCiAJCQlyZXR1cm4gUFRSX0VSUihmKTsKLQkJcmVhbC0+d29yZCA9ICh1bnNpZ25lZCBs
-b25nKW92bF9vcGVuX3JlYWxmaWxlKGZpbGUsICZyZWFscGF0aCkgfCBGRFBVVF9GUFVUOworCQly
-ZWFsLT53b3JkID0gKHVuc2lnbmVkIGxvbmcpZiB8IEZEUFVUX0ZQVVQ7CiAJCXJldHVybiAwOwog
-CX0KIAotLSAKMi4zNC4xCgo=
---00000000000065915e0623192cb9--
+                    Linus
