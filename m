@@ -1,73 +1,143 @@
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
+Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC28917837D
-	for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 07:37:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8C3CF61FCE;
+	Fri, 27 Sep 2024 12:03:20 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1727422625; cv=none; b=OaJsSNF6ZGrymFvIgqfJJLuB4wpwFSt/6XhfaYcN1OP54rGNFTxybtLP4c+23uowJYQ74YEBiqD2rFZ/k7T8txq4IeoWr8zJ+m8HTmv+EzI+djiz+boBC+ooEL0XYVorV3DLV36tDOaqgkfS+93PzDsX2VS2bKXuoiIzguMQj2U=
+	t=1727438602; cv=none; b=SPhwq6iBw7A5AHJSVJC+R1ouwFoMD7Zc9O/9iT+ErDs4yMG4IW8X0vkqpHMwfZp2YYU743kmsj7eFToHXN/EOXySI26XS4jAI0gsdBgYwkHnQs5sOED+pTn1dRKdYRClcRqeKTnfd6xoO+G4IGm9631p1X41zL2alGQrfImm0Os=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1727422625; c=relaxed/simple;
-	bh=pZ1uB/XJBjEl6D21v2+KHYZz/RwbUjAFWAp4RP1NzPw=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=tyrP9oqcyKy7fA+fntk2evZ367Yfnaueuy5WrxbavMAGkhwKvWQif6DVfOA+ijkmEyaKwpQ5Gvj91dJMCJvLuVSILRvOqvSPN4TBj79X0XbdUyMqZX01uwO7NW09ySlm1GX5WW9cUNWhOj+vQzzBBgl6bfmxJC39KMZbLK+8q9o=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.197
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-3a342620f50so15301445ab.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 27 Sep 2024 00:37:03 -0700 (PDT)
+	s=arc-20240116; t=1727438602; c=relaxed/simple;
+	bh=UrWY7OTU1UoGyyUUzsqFBb1AIuPIeooFBg78qnJeh8w=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=EZCTL8+/nE9VRFAaeAOSJ0A/ksSEQuS+ldYT+hPXyTDKEG8CdMCP2nP3YhYEF29jkWequADTGfK07L/NyaCrnmdnXfMWKNke8klBb3eZsbIz0FiyxmoL7zxLxKQIEw5V/p/jnRP/dCfEWpET8M6z1uFRsjm8yRz5pUHjfXGUgpw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HreBdGkz; arc=none smtp.client-ip=209.85.222.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HreBdGkz"
+Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-7a99e8d5df1so186465085a.2;
+        Fri, 27 Sep 2024 05:03:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1727438599; x=1728043399; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=ien4lPw09mlafs2YgqQEs4Jx+N6Q89EVx3qb97kHkOw=;
+        b=HreBdGkzG9BxLONh5m29gb8BxV2VNFvXuNmPmTnNRBwTiyJHgDiOn0PrrM/V5iKBT3
+         HXGbOagsYqcA7a1CmsNFYmujx5D+7HZ8/rK4ILwiX1uw/5hICbGQsFXMqZCEaevpdd6J
+         UOo5oMD7gdj+XL07UBf8iRfM28T8L5e6IuR2MVLmnwJDB6xwYEBO28vY0VtlvL5AvLgb
+         ou+mWBJqI2E2zPhS26n0Mjr0FckUh0B29rX/hX+WygHg85oblja2yViHwmg49DRlnNBn
+         Ftk9zL9zBFd/0CrpWehXkfQf/d0e5w7pBfV9xrcOFWK6meXrFslo6M2ZQNQ0zFRAQFyc
+         5DBQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1727422623; x=1728027423;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=lehVuHc/G3YmOIICMpiPm5yqzC+B6vqDGq6lwJPGaz0=;
-        b=detA6gu7SAcC9YWVXDrmSvSzDKxSSaw08tgzxzvizJyu/Zn3QZNJVNOZHyJsU+DU8c
-         2ohzFG2j3h5U5vnTHkV3UhMSqVfN3Y8BdfAAKZcgf0yo4IkPfm1c7q2odb1K0HR4fHop
-         vzZM2zRNbeJM3LgIsxXjTW4ncgdPiLcV1w6wJSD/E+xH43dPxuGEpS/uHeGEE5ZOjjwZ
-         qBKK+/uS9DV1CwgsF/VK0yX6MCezTzB1hhryU/yXlCOKQd7DelZ2vQNzIZafFwh3bKby
-         Yk0pj4aDLHp9/OmD9O8YhDnFDfIVYP4RH3QsIM/9qJpcEITAlGQjBSFNDh7BJMymlyeE
-         dUGg==
-X-Forwarded-Encrypted: i=1; AJvYcCWmXddIZQmSf9VoFdlYZCONT8WHMWTaRbjbHxKwKNlP1FO2l3/4/ucjR48f6uz7ZyU2JqVprTYKWjx/XN8I@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw18RBGO3vrfT4PXWBaAe/hFG6OqS3GidAwozyYbltRnJLOSASG
-	8+gnGzXOBJqx3s2lRhdGYCOBAgtbWVr9uKMkk9IdSJhOSi0l6dgRAQ73mlIH/44geGZTRQFGuEk
-	wjHsCsaFB/kpo03vV8YwBNljB6BIdOn3Knhaj6i49KBuz3bkJ26ncr8w=
-X-Google-Smtp-Source: AGHT+IEpzlW7cze/+T+3UwIjnirvFs6E+EOntv3U7QiaD3/RHrulutVP/mU/HPA8uLNjjTnE+Ii/kMFgk68Gzr/2APctgN7uisyO
+        d=1e100.net; s=20230601; t=1727438599; x=1728043399;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=ien4lPw09mlafs2YgqQEs4Jx+N6Q89EVx3qb97kHkOw=;
+        b=qBq3I/u2YrxF638sALN3mspzKEbegB5YDcHgvJhfoJPSQH+mrPMILsYEhK5iMnUh9N
+         g8aUfNA1c7bknzdSTRdeWcqw1KnKHjWp25W3TOj868xRU5JFaZtkrpD34cckmeh3O/Gn
+         FrmzX2dwyp3hd9XfhrW9kHk97EpvObFuu8C3zy4zmHtBalYT09c9pJY6wIPtriZhygvA
+         LqMx5+GMn6B++AX7gGcaO+tlKVyocvG/EYfsdtCxwf3argKEhIhrkNFpGKBQLcVgyQR+
+         puhCPrXfCOC4Kwxzr/9m7MBswJmZWCmU2uFIuII6i1RpDlm6e1lqj2EVPbeVBu8Gczb7
+         nNHA==
+X-Forwarded-Encrypted: i=1; AJvYcCU6r9GPhy2L+dhxKM2eKqYd2wQyFB2MZGrC2rZEnBw1p227OlvAd1ZWaxViDDsSUTuGsKd0M0qiTqmlSzXe@vger.kernel.org, AJvYcCUWWEMbUjBDe3tFOzrFTWM6/VnHuyzOQr648zRhwWa+R7bxy/iIcdUImSAx2kmZhDx+A7kzVOgwbzH/lENV7w==@vger.kernel.org, AJvYcCVs36w/ExU/TvogSQRl1Kz5H/SHGrhVQMehDsajXLKPBYm+xux7+8Wz13gXOrvgVtIbNJCRfWspz1B4B0zW@vger.kernel.org
+X-Gm-Message-State: AOJu0YwNF7iwv/3h5AqKC8f16XePngknIMT/q/yCjBowlHLd70X1MMTs
+	x58ImFInMqDyk+TwXlzAWChNYu66K1/MG9u5dND2qc0q8raWpW3vjDcGjt17q1s/23o7AiJuWFo
+	CW1TdCxOdp3+4oanrpjMkbwoHAg0=
+X-Google-Smtp-Source: AGHT+IEvoF9mwgTLcAuSVa+Xp4oXZXGcBCFvJyQtw2z10Ya7vZXTvtIti1wQJGe6WjK5yS0GELWoZ/ad/HEfri7pN6Q=
+X-Received: by 2002:a05:620a:1a18:b0:7ac:de4d:9129 with SMTP id
+ af79cd13be357-7ae3785918fmr452213985a.31.1727438599209; Fri, 27 Sep 2024
+ 05:03:19 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:184a:b0:3a0:ab71:ed38 with SMTP id
- e9e14a558f8ab-3a345179e33mr20985775ab.14.1727422623043; Fri, 27 Sep 2024
- 00:37:03 -0700 (PDT)
-Date: Fri, 27 Sep 2024 00:37:03 -0700
+References: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
 In-Reply-To: <k53rd76iiguxb6prfmkqfnlfmkjjdzjvzc6uo7eppjc2t4ssdf@2q7pmj7sstml>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <66f6609f.050a0220.46d20.0011.GAE@google.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 27 Sep 2024 14:03:07 +0200
+Message-ID: <CAOQ4uxhXbTZS3wmLibit-vP_3yQSC=p+qmBLxKkBHL1OgO5NBQ@mail.gmail.com>
 Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_llseek
-From: syzbot <syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, anupnewsmail@gmail.com, leocstone@gmail.com, 
+To: Leo Stone <leocstone@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com, 
 	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, skhan@linuxfoundation.org, syzkaller-bugs@googlegroups.com
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, skhan@linuxfoundation.org, 
+	anupnewsmail@gmail.com, Christian Brauner <brauner@kernel.org>, 
+	Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="0000000000001467e7062318a4e2"
+
+--0000000000001467e7062318a4e2
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+On Fri, Sep 27, 2024 at 9:10=E2=80=AFAM Leo Stone <leocstone@gmail.com> wro=
+te:
+>
+> Add a check to avoid using an invalid pointer if ovl_open_realfile fails.
+>
+> #syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.g=
+it master
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 2b7a5a3a7a2f..67f75eeb1e51 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -117,7 +117,11 @@ static int ovl_real_fdget_meta(const struct file *fi=
+le, struct fd *real,
+>                 struct file *f =3D ovl_open_realfile(file, &realpath);
+>                 if (IS_ERR(f))
+>                         return PTR_ERR(f);
+> -               real->word =3D (unsigned long)ovl_open_realfile(file, &re=
+alpath) | FDPUT_FPUT;
+> +               f =3D ovl_open_realfile(file, &realpath);
+> +               if (IS_ERR(f))
+> +                       return PTR_ERR(f);
+> +               real->word =3D (unsigned long)f;
+> +               real->word |=3D FDPUT_FPUT;
+>                 return 0;
+>         }
+>
+>
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+No, that's the wrong fix.
+There is a braino and a file leak in this code.
 
-Reported-by: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com
-Tested-by: syzbot+d9efec94dcbfa0de1c07@syzkaller.appspotmail.com
+Linus,
 
-Tested on:
+Could you apply this braino fix manually before releasing rc1.
 
-commit:         075dbe9f Merge tag 'soc-ep93xx-dt-6.12' of git://git.k..
-git tree:       upstream
-console output: https://syzkaller.appspot.com/x/log.txt?x=13ce159f980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=b2d4fdf18a83ec0b
-dashboard link: https://syzkaller.appspot.com/bug?extid=d9efec94dcbfa0de1c07
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-patch:          https://syzkaller.appspot.com/x/patch.diff?x=112c6aa9980000
+Thanks,
+Amir.
 
-Note: testing is done by a robot and is best-effort only.
+--0000000000001467e7062318a4e2
+Content-Type: text/x-patch; charset="US-ASCII"; 
+	name="0001-ovl-fix-file-leak-in-ovl_real_fdget_meta.patch"
+Content-Disposition: attachment; 
+	filename="0001-ovl-fix-file-leak-in-ovl_real_fdget_meta.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_m1ko8gok0>
+X-Attachment-Id: f_m1ko8gok0
+
+RnJvbSA5OTRkNWE2MTg1NWRhMjc1MjkyNzgwYWY3Mjk0OGQ3MjA3MDI1ZWM4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBBbWlyIEdvbGRzdGVpbiA8YW1pcjczaWxAZ21haWwuY29tPgpE
+YXRlOiBGcmksIDI3IFNlcCAyMDI0IDEzOjU0OjIzICswMjAwClN1YmplY3Q6IFtQQVRDSF0gb3Zs
+OiBmaXggZmlsZSBsZWFrIGluIG92bF9yZWFsX2ZkZ2V0X21ldGEoKQoKb3ZsX29wZW5fcmVhbGZp
+bGUoKSBpcyB3cm9uZ2x5IGNhbGxlZCB0d2ljZSBhZnRlciBjb252ZXJzaW9uIHRvCm5ldyBzdHJ1
+Y3QgZmQuCgpGaXhlczogKCI4OGEyZjY0NjhkMDEgc3RydWN0IGZkOiByZXByZXNlbnRhdGlvbiBj
+aGFuZ2UiKQpSZXBvcnRlZC1ieTogc3l6Ym90K2Q5ZWZlYzk0ZGNiZmEwZGUxYzA3QHN5emthbGxl
+ci5hcHBzcG90bWFpbC5jb20KU2lnbmVkLW9mZi1ieTogQW1pciBHb2xkc3RlaW4gPGFtaXI3M2ls
+QGdtYWlsLmNvbT4KLS0tCiBmcy9vdmVybGF5ZnMvZmlsZS5jIHwgMiArLQogMSBmaWxlIGNoYW5n
+ZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZnMvb3Zlcmxh
+eWZzL2ZpbGUuYyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKaW5kZXggMmI3YTVhM2E3YTJmLi40NTA0
+NDkzYjIwYmUgMTAwNjQ0Ci0tLSBhL2ZzL292ZXJsYXlmcy9maWxlLmMKKysrIGIvZnMvb3Zlcmxh
+eWZzL2ZpbGUuYwpAQCAtMTE3LDcgKzExNyw3IEBAIHN0YXRpYyBpbnQgb3ZsX3JlYWxfZmRnZXRf
+bWV0YShjb25zdCBzdHJ1Y3QgZmlsZSAqZmlsZSwgc3RydWN0IGZkICpyZWFsLAogCQlzdHJ1Y3Qg
+ZmlsZSAqZiA9IG92bF9vcGVuX3JlYWxmaWxlKGZpbGUsICZyZWFscGF0aCk7CiAJCWlmIChJU19F
+UlIoZikpCiAJCQlyZXR1cm4gUFRSX0VSUihmKTsKLQkJcmVhbC0+d29yZCA9ICh1bnNpZ25lZCBs
+b25nKW92bF9vcGVuX3JlYWxmaWxlKGZpbGUsICZyZWFscGF0aCkgfCBGRFBVVF9GUFVUOworCQly
+ZWFsLT53b3JkID0gKHVuc2lnbmVkIGxvbmcpZiB8IEZEUFVUX0ZQVVQ7CiAJCXJldHVybiAwOwog
+CX0KIAotLSAKMi4zNC4xCgo=
+--0000000000001467e7062318a4e2--
