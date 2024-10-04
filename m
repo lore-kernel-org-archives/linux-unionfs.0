@@ -1,202 +1,95 @@
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13021130ADA;
-	Fri,  4 Oct 2024 10:47:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 13F98231CA2;
+	Fri,  4 Oct 2024 22:16:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728038843; cv=none; b=LCqp6XT6Cmen32aqctqUFCltIPUT0xEpZWzUXcIJuIwXtMoxFB7RKOvZqhnGlX6cdoc6SbRACK5ym4XDNhwRVQgj+7/M69EpCBXNxLE3P5kXAMbEzCtc9hhbOqmY4m8AILc7tfwMX9dqSFh6PJcD7WziS6qWIjrtEivfVYnzG3Y=
+	t=1728080190; cv=none; b=vALEVyqj1mIjCfhqvdP7UlfI8EHDoowSRLQvYdVpKq4Q2JRfSSDd3NRkYVsJeayVy5HvWSLyCRSFwf5Wdn3HPgtxX98gTa3DAWbHXpUzrAsNDKzmvUDB9uE7wXyQh1QahxL8C734LmiHUPyfQo2gEu98gOvJm6GSaoOEAV/znio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728038843; c=relaxed/simple;
-	bh=SInj0L4yl8PgbguZ2YHoPda4zoJob/jJnPe3V8fhXpU=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ilWYeNRBn20uyVJuc3RrOGO64Y3fsMGC6HgUr4fMBcL2ZlG6css9k+iWxe6j+bEb8O6S+6AKuWw39GP1Mgo9K3rK0pRInzNY17ts7rpYokevEc9wEwCt3kdq9cRRbx0ODLL3mt0n8NdiXOa7CjjxgyBNpDmKsmsn/nl1wpKj6SA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BQjIXVG9; arc=none smtp.client-ip=209.85.222.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1728080190; c=relaxed/simple;
+	bh=/UL/KOEemdyBFd9Mkxc6nXZ5THXtoD+nYiSfIlgrzTc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=hglNN4OOoIOUTqx2rZx0LpCWQRjBfG1/+K2wtXWp6ZMQjypmiTr1DHxFs+rjUhqIxcT1W1cjuCYn0CkaI+V3NdIRftiPppNMi9Lv2vX+9D71ov0X+Nb4YNS+LQ2S4dK23/goSI9eTpuK5h6cHINtAPfl34WuSeA79a1J+wVLcKs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=fN8GxA0b; arc=none smtp.client-ip=62.89.141.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BQjIXVG9"
-Received: by mail-qk1-f176.google.com with SMTP id af79cd13be357-7a9a30a0490so179147985a.3;
-        Fri, 04 Oct 2024 03:47:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728038841; x=1728643641; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Z3mlEzJKr7uo8QY7IUCRVyaN6ccqAAOVZAMiixeKLtQ=;
-        b=BQjIXVG9p/QnADnQMA1dWjVkj/jfRstRoYpt2GjyV3bodcsTsnhHnDTyEO0mnyHTRo
-         dzBkhSZVMoqXhvbCUBAXFtqBRd8O9THqvOWnhfZVKj9u/78WmSgA4hHZLLvz9ZYzLxkf
-         5T1CQb2NKrUQsnISKqPKkXUwSEj99eOJjtlcOFf+BYMoMBnhImCl5PRAgThGGpZR1Cjy
-         W4O4c3qXUzIEsSq7vKsVg1YZlPIwwq4xprAnIdmLgFzIJ2MqsXVb3PHQJebg6e2jetyC
-         Esv9WYUM6+su8zjYvQ1rCl8epR8wwwiCP3mjYT9/akjLinVWXgaDWVlFPVOG2hW2tuRJ
-         VLmQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728038841; x=1728643641;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Z3mlEzJKr7uo8QY7IUCRVyaN6ccqAAOVZAMiixeKLtQ=;
-        b=Wn7HZ2IHJBdWRY8HqxZCM56UnEmQYlIdznm+caf71O5o1N6zIR1TPOd1N69o5hTXXp
-         135vh4GACAdFRv25/Qce/mdsgYzcignvQ+wfJcXae+HIlUhgBoiMDi1Zyidaw8tlXclA
-         27MG63vBWuMP6RvT0PHEyO2Ph6a2WcojGLGkEz0lB58JQK++9OvSeFN8zvw4g8efMsTH
-         m7Uc86PEV+rhqHfW7l0sPoDPciXv6lV15sbeZCOJc1gMgTwoz3LjxdxTX5xKzNOpoJKR
-         doyrRKTmpcNIwPKOqsVAfPUCeH+PuEpqKX9SACh659AGNV57zk33ocGXdmC3q8UmZ4NF
-         FupA==
-X-Forwarded-Encrypted: i=1; AJvYcCXWdm1QVdBn7hVdP8h+wbXXQCciIk58aE8+tjvJS2JIm/i6NUxA/rF7qgUPLe4iAGEyYytvFftybh8rPkOw@vger.kernel.org
-X-Gm-Message-State: AOJu0Yx/PoTML7zWcqhjs5LSn1O+lOFiKJ51lSZ1WCIPqrZG/A1PJ77+
-	wF15YrekJ6z+CbnbPcGaDa/1vgxEAbT7YJTNl7P5hlIpx+HyQ4F2szjbM2FwTpBg/2xYDXcb7QF
-	ULFHozro1zYAQlIgYlWntpQ5TBxE=
-X-Google-Smtp-Source: AGHT+IFqETdSJT2/uRlm2PPIBi9WVTlS4JplcGpyvEMrsyTlCTg6MTnWke1N8UEYikgBmamcSEpwNbdXDRNplx4KyPs=
-X-Received: by 2002:a05:620a:24cf:b0:7a9:a883:e22b with SMTP id
- af79cd13be357-7ae6f42e164mr323511685a.7.1728038840701; Fri, 04 Oct 2024
- 03:47:20 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="fN8GxA0b"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=z9ufaGLpY3qD5oRu7I72BnMwLQ6dm7Av1cgnq2ICSg8=; b=fN8GxA0b7/UeEUKDqb7OtttIZn
+	pXQhE6WBHUXMSPIeEtX875JZWuYhST4di1TP3RA1F29sIh04W++S+tHYHjoch6zCK3zRg5NOI+92z
+	R2Bm70LeUUjJ8wdfJhmsfD3xqf3Xkm9e63SocO5UyKbLLMrLcYBcLXNn/Si6LtqWdv0yiPg1VZBfm
+	h5lr08IbuJi2FBtD10t+IK2fIV90x2CTKLQLbl9AWwFd/FbV605Rjfd7gwP7rpa1E1NYIxueT+I3c
+	f8YxGxl1vRwb0L/fiRSTdSGilsh30mMYawCDNKE0xLGyJ+OF6V1YO7M4QmLQih0n0ROnMOIsFpudV
+	E9as5YLA==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
+	id 1swqb3-00000000tbv-0TJt;
+	Fri, 04 Oct 2024 22:16:25 +0000
+Date: Fri, 4 Oct 2024 23:16:25 +0100
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 1/4] ovl: do not open non-data lower file for fsync
+Message-ID: <20241004221625.GR4017910@ZenIV>
+References: <20241004102342.179434-1-amir73il@gmail.com>
+ <20241004102342.179434-2-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241003234534.GM4017910@ZenIV> <20241003234732.GB147780@ZenIV>
-In-Reply-To: <20241003234732.GB147780@ZenIV>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 4 Oct 2024 12:47:09 +0200
-Message-ID: <CAOQ4uxjS0CX+nA4xqmrrMYDPXRPWMT00+S8z8OMhMWc9omSvMw@mail.gmail.com>
-Subject: Re: introduce struct fderr, convert overlayfs uses to that
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>, 
-	Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>, 
-	overlayfs <linux-unionfs@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241004102342.179434-2-amir73il@gmail.com>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Fri, Oct 4, 2024 at 1:47=E2=80=AFAM Al Viro <viro@zeniv.linux.org.uk> wr=
-ote:
->
-> Similar to struct fd; unlike struct fd, it can represent
-> error values.
->
-> Accessors:
->
-> * fd_empty(f):  true if f represents an error
-> * fd_file(f):   just as for struct fd it yields a pointer to
->                 struct file if fd_empty(f) is false.  If
->                 fd_empty(f) is true, fd_file(f) is guaranteed
->                 _not_ to be an address of any object (IS_ERR()
->                 will be true in that case)
-> * fd_err(f):    if f represents an error, returns that error,
->                 otherwise the return value is junk.
->
-> Constructors:
->
-> * ERR_FDERR(-E...):     an instance encoding given error [ERR_FDERR, perh=
-aps?]
-> * BORROWED_FDERR(file): if file points to a struct file instance,
->                         return a struct fderr representing that file
->                         reference with no flags set.
->                         if file is an ERR_PTR(-E...), return a struct
->                         fderr representing that error.
->                         file MUST NOT be NULL.
-> * CLONED_FDERR(file):   similar, but in case when file points to
->                         a struct file instance, set FDPUT_FPUT in flags.
->
-> Same destructor as for struct fd; I'm not entirely convinced that
-> playing with _Generic is a good idea here, but for now let's go
-> that way...
->
-> See fs/overlayfs/file.c for example of use.
+On Fri, Oct 04, 2024 at 12:23:39PM +0200, Amir Goldstein wrote:
+> ovl_fsync() with !datasync opens a backing file from the top most dentry
+> in the stack, checks if this dentry is non-upper and skips the fsync.
+> 
+> In case of an overlay dentry stack with lower data and lower metadata
+> above it, but without an upper metadata above it, the backing file is
+> opened from the top most lower metadata dentry and never used.
+> 
+> Fix the helper ovl_real_fdget_meta() to return an empty struct fd in
+> that case to avoid the unneeded backing file open.
 
-I had already posted an alternative code for overlayfs, but in case this
-is going to be used anyway in overlayfs or in another code, see some
-comments below...
+Umm...  Won't that screw the callers of ovl_real_fd()?
 
->
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-> ---
->  fs/overlayfs/file.c  | 128 +++++++++++++++++++++----------------------
->  include/linux/file.h |  37 +++++++++++--
->  2 files changed, 95 insertions(+), 70 deletions(-)
->
+I mean, here
 
-[...]
+> @@ -395,7 +397,7 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+>  		return ret;
+>  
+>  	ret = ovl_real_fdget_meta(file, &real, !datasync);
+> -	if (ret)
+> +	if (ret || fd_empty(real))
+>  		return ret;
+>  
 
-> diff --git a/include/linux/file.h b/include/linux/file.h
-> index f98de143245a..d85352523368 100644
-> --- a/include/linux/file.h
-> +++ b/include/linux/file.h
-> @@ -44,13 +44,26 @@ static inline void fput_light(struct file *file, int =
-fput_needed)
->  struct fd {
->         unsigned long word;
->  };
-> +
-> +/* either a reference to struct file + flags
-> + * (cloned vs. borrowed, pos locked), with
-> + * flags stored in lower bits of value,
-> + * or an error (represented by small negative value).
-> + */
-> +struct fderr {
-> +       unsigned long word;
-> +};
-> +
->  #define FDPUT_FPUT       1
->  #define FDPUT_POS_UNLOCK 2
->
-> +#define fd_empty(f)    _Generic((f), \
-> +                               struct fd: unlikely(!(f).word), \
-> +                               struct fderr: IS_ERR_VALUE((f).word))
+you are taking account of that, but what of e.g.
+        ret = ovl_real_fdget(file, &real);
+        if (ret)
+                return ret;
 
+        /*
+         * Overlay file f_pos is the master copy that is preserved
+         * through copy up and modified on read/write, but only real
+         * fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
+         * limitations that are more strict than ->s_maxbytes for specific
+         * files, so we use the real file to perform seeks.
+         */
+        ovl_inode_lock(inode);
+        fd_file(real)->f_pos = file->f_pos;
+in ovl_llseek()?  Get ovl_real_fdget_meta() called by ovl_real_fdget() and
+have it return 0 with NULL in fd_file(real), and you've got an oops right
+there, don't you?
 
-I suggest adding a fd_is_err(f) helper to rhyme with IS_ERR().
-
->  #define fd_file(f) ((struct file *)((f).word & ~(FDPUT_FPUT|FDPUT_POS_UN=
-LOCK)))
-> -static inline bool fd_empty(struct fd f)
-> +static inline long fd_err(struct fderr f)
->  {
-> -       return unlikely(!f.word);
-> +       return (long)f.word;
->  }
->
->  #define EMPTY_FD (struct fd){0}
-> @@ -63,11 +76,25 @@ static inline struct fd CLONED_FD(struct file *f)
->         return (struct fd){(unsigned long)f | FDPUT_FPUT};
->  }
->
-> -static inline void fdput(struct fd fd)
-> +static inline struct fderr ERR_FDERR(long n)
-> +{
-> +       return (struct fderr){(unsigned long)n};
-> +}
-> +static inline struct fderr BORROWED_FDERR(struct file *f)
->  {
-> -       if (fd.word & FDPUT_FPUT)
-> -               fput(fd_file(fd));
-> +       return (struct fderr){(unsigned long)f};
->  }
-> +static inline struct fderr CLONED_FDERR(struct file *f)
-> +{
-> +       if (IS_ERR(f))
-> +               return BORROWED_FDERR(f);
-> +       return (struct fderr){(unsigned long)f | FDPUT_FPUT};
-> +}
-> +
-> +#define fdput(f)       (void) (_Generic((f), \
-> +                               struct fderr: IS_ERR_VALUE((f).word),   \
-
-Should that be !IS_ERR_VALUE((f).word)?
-
-> +                               struct fd: true) && \
-> +                           ((f).word & FDPUT_FPUT) && (fput(fd_file(f)),=
-0))
->
-
-or better yet
-
-#define fd_is_err(f) _Generic((f), \
-                                struct fd: false, \
-                                struct fderr: IS_ERR_VALUE((f).word))
-#define fdput(f) (!fd_is_err(f) && ((f).word & FDPUT_FPUT) &&
-(fput(fd_file(f)),0))
-
-Thanks,
-Amir.
+At the very least it's a bisect hazard...
