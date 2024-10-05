@@ -1,138 +1,120 @@
-Received: from mail-qk1-f178.google.com (mail-qk1-f178.google.com [209.85.222.178])
+Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E4E4F2F2A;
-	Sat,  5 Oct 2024 06:30:35 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19432231C81;
+	Sat,  5 Oct 2024 12:37:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728109837; cv=none; b=AOp6bWPV3GclOA5MY+2Q3Mr46qCvOld4MiOIb2kWpGQVFRtVxabv3K5BXGnFLg2P6EjvjHkMAsgJtZFcNFyV96pq6uVZEH9Hb6p56WdEUq2Ocb7NNdXBdAbdgKD0rZNgcNyUrDzyzFlh/yW+jG2HUEEKf/6PGQjYyFZfzgAIcic=
+	t=1728131866; cv=none; b=lBxWoMW0HnzKH3GorxrstCwED1cRjnWBDrrmpB5wZ571Ol97KevE90q05pNP+VAEbVfVOpyxl8aVaM1oYuNYTOLImgtwZL5oOxMCK+dWgaWVrj4i9cAPA+jNn8BGQe7ogqkvpgQ/IkG+n3BmnknuKo27Xhxgz8AdDSM2dBQfoXk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728109837; c=relaxed/simple;
-	bh=FMbKnl2kr9X9cITACii8Oc1oNYwReY/rvET9aX5mHvw=;
+	s=arc-20240116; t=1728131866; c=relaxed/simple;
+	bh=DdH/9gsVIPkzeKKhSXiZMTjh5aWjDgeaP9nuwKM6B0U=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RbnfaX/ifkfyi3FRYJ1yZ3w55reBkY7RX8lnwfWAY7a4+49FxSSwar6pvAp7QCaCWZeoYDrUwL8j1CawDghbJiLAEQVotQlB291gp7Q0bsdcBEefc++0uKrfhAVLoEuCCyf8ezKcEwM/lrmpPiI2N4pF1ZAZK1ftsCibaEo0wkY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=fIpN79aF; arc=none smtp.client-ip=209.85.222.178
+	 To:Cc:Content-Type; b=cfjtTjIfrSmrWuEjru5ig+hlY78DjoIxMUV45jS4MEqj6yXbMxLF5IgkVTnHseZviofSeRTPbBbpxlbsPdQF5XMjc9Vg1zTWCJG6ZfVMfIJlwC9HCwVgwaL1JI5rbO4moqICIK3PLKMijT32Wp9RoDArNNO+6kYXeeTbtgYcu/8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aZkNRFmm; arc=none smtp.client-ip=209.85.222.171
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="fIpN79aF"
-Received: by mail-qk1-f178.google.com with SMTP id af79cd13be357-7a99e4417c3so231052085a.1;
-        Fri, 04 Oct 2024 23:30:35 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aZkNRFmm"
+Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-7a99e8d5df1so299036585a.2;
+        Sat, 05 Oct 2024 05:37:39 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728109835; x=1728714635; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1728131859; x=1728736659; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=r+fR6xuL4U1Qi/6NqDs4tODnhzqj9PCbnMbFBbj7vBU=;
-        b=fIpN79aFVXhVwQwvgNDpD7J8XlIbsdjrB5L400IRmY5/m/Z/68C8m1/ZmhZDkW8VrY
-         1JVx2mOD3rVpUZN1F01gSnnajZJ52w+CGpKyruqDXHILPEHjeweD05q8mrFRQml0Ng6t
-         3CNMh0Um+GuK6lsly++xeKGh127hTfQ+b9ZmVy7DeK3Vih7crwwnCq2jDSgAYF17CyyF
-         MtHVxH+AL36u2aFr0n89Co+dhEHQRqtywXAoaUFpXxHM1sFgD6AH+oyesZNhNGC9+iOX
-         ZqPItUfqh6yfCU67bIsBplA35R5yRzb4IyaQ7tRmRlBmTdn2zqeIjgr1gR4tLH+0AqCx
-         5EJQ==
+        bh=8oedNx2JEWYoenACq4QBgxY9clB8bBuK49x1vd3Sjkk=;
+        b=aZkNRFmmo4QQPDzQTct5QkdOIg1326YgsQt6+QPs6p8ZEn+zoQppNovHO8efZPFknK
+         B3NkWuNrRdFZaCsny27AvtXEGQmGT2uUbrm1fe2OgFRacodNnQw6FJFlLjKVMtQCRqX4
+         1L7+q5e8ZWspNIRm8pdYeAGQYCS/k38TRPT5ZPKF0p83QXBWrxoKNy5jvkE+1qgzNueg
+         9x7tkh2ZRUWCqYIxCkJZJfqO5ME4YF2a0tkDYFAyCX+tNo3ROtsQnyoCHUgQXVpVEUlJ
+         91fK50d92debZ+7nxC12T7cgtQ4RqAsErGFucAkAKNKd8Nq5eoTjjdZKfu66aHoYnzKb
+         nvDA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728109835; x=1728714635;
+        d=1e100.net; s=20230601; t=1728131859; x=1728736659;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=r+fR6xuL4U1Qi/6NqDs4tODnhzqj9PCbnMbFBbj7vBU=;
-        b=CdfPIzw2QE5/ylOmY0cpY8nDgXfaEDHen2+oLFuYMv67BuV1k9q2pcFq1bemlbt8nM
-         f3KJgpDBxFS8lWe8iihotVA3G9THE90bAGIF6+FtYe9igZqk/y/ijM2JL6U6/jKlIxHz
-         Qf1YnrYSqCTiCqn1BXvEK+3xJYkUeEcHxUn7Q0Vk2rrKYnHsaHaHGcVBUjjxdDCf6x0Q
-         QE4WIlLvUVBaQ2YkhfwMtM8rW2OMKw1SgLh3P+U76vuZNey2yk3xHRKhdmOXWBHc5GfB
-         ekGHzBNNIDhvRtrvVY3P7Mm5Q0Qh5ofXCHUy1og1F8QlgeN2bYh8+S1cO7OT49FDSj5g
-         ngyA==
-X-Forwarded-Encrypted: i=1; AJvYcCUx3Pp8cLszjcCD82o48VT6/FDXwE/GYEh8ROP7ZoM0cuioPDlP6xlh2nulFX2VWciqY3lqdNep4HGYLvK8@vger.kernel.org, AJvYcCWLtvg1N5HdhDfRuK0HZGJQ1GORVuSFOkDKxwnOBhwHc3XaXi+wxDWYsTmhxb4VHCZtBjwmjTh87PRILsEoug==@vger.kernel.org
-X-Gm-Message-State: AOJu0YxKYM7WbkYi6KoO7sdF/cjmkcM9EmkZn7Ka6tzURjpdj0UuXocn
-	Um9JsLsZ/9pwP0QWAvEJWtoXClpm+5VCnAmKO5J2bB1mGPknGbT+XHzu4BiympsNb2e0q6UOQyq
-	Oc5VUqmV93UW3Z27KVCZs9ky2G21ZYzuhmJI=
-X-Google-Smtp-Source: AGHT+IHAIRsjhMIyJ/JqJ7hqKxTCEuFfB63lAhi3Vy+XWDx2j5Th58LM+U/ArGetMTImtJvdM6neBhEfLN6GYmlPr+M=
-X-Received: by 2002:a05:620a:4611:b0:7a9:bd5b:eb60 with SMTP id
- af79cd13be357-7ae6f44cc8fmr767322085a.35.1728109834746; Fri, 04 Oct 2024
- 23:30:34 -0700 (PDT)
+        bh=8oedNx2JEWYoenACq4QBgxY9clB8bBuK49x1vd3Sjkk=;
+        b=bTiIHL6a8KNPI+bcUKe3kfUSt0sz4V1BMWjaSfPxF4Avs6XJaRPHoujwsJjSqodyW8
+         8kGIrczKBZj5nHjUQHcekg7BxhxNOqj3Y3q2f0PxRX5w7FvHWwECiqYcvmOj3lUGm6JG
+         LJQeN0kAnGUD+oE+igT8U6HPQbps3nhRqZRFTFDwkn+lm/9QbtAY5DHz0KeK9vH9IvN5
+         3IjiyOnmn/wnWLu2uOOt7Zt5Z01fSPglsswCi8dkEgbXVOkZ6pxYMmDr+OEIksMEc3p9
+         J05Nmn4qhXqSipT75OvCjJq1aJ2zbiekXmG8wMdbMbgTjgiJ/y4OBE9sidawyQM+byeS
+         +ppg==
+X-Forwarded-Encrypted: i=1; AJvYcCU6dcN1T+yfgKL6dDTR6VOACPwSX9JocOrdwX9oL+GDD2QXSVh2Mtv+te4vCgkAsiwbeD3w4gNKI1VWySmi/g==@vger.kernel.org, AJvYcCW/xBwpFUEsaAdR/Xm0umW4uFIWLd3ooD3f4Nbgd1YuOV1MChdz+gIrFEVrpXcGcPPC14QYqHD4i9jmiVLf@vger.kernel.org
+X-Gm-Message-State: AOJu0YwjRAxLf2TN1eZd1NHmrmGCI66DlLfAqmevLzoEMaSsmYBU+DwS
+	GISfTRMe88/uladVlyrKfC1rCcCReuPBGqpmU3dn16Su1VuDP/FnwJNOJVsJmw/YLgNKEbES+8i
+	RQ77RZ0uEiHi31mUiqeLLCk9GDy4=
+X-Google-Smtp-Source: AGHT+IExRW9JSMn8URNChlDGtgL2trbbqxgOpYx3w8YC6fpPWCQVCxXZdMHV3DY3worWDWlSbFOSag9Xb3hN5o3CegM=
+X-Received: by 2002:a05:620a:c4a:b0:7a9:c203:7c10 with SMTP id
+ af79cd13be357-7ae6f421dd8mr957821785a.7.1728131858627; Sat, 05 Oct 2024
+ 05:37:38 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241004102342.179434-1-amir73il@gmail.com> <20241004102342.179434-2-amir73il@gmail.com>
- <20241004221625.GR4017910@ZenIV> <20241004222811.GU4017910@ZenIV> <20241005013521.GV4017910@ZenIV>
-In-Reply-To: <20241005013521.GV4017910@ZenIV>
+References: <20241004102342.179434-1-amir73il@gmail.com> <20241004102342.179434-4-amir73il@gmail.com>
+ <20241004222323.GS4017910@ZenIV>
+In-Reply-To: <20241004222323.GS4017910@ZenIV>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 5 Oct 2024 08:30:23 +0200
-Message-ID: <CAOQ4uxiqrHeBbF49C0OkoyQm=BqQjvUYEd7k8oinCMwCSOuP3w@mail.gmail.com>
-Subject: Re: [PATCH 1/4] ovl: do not open non-data lower file for fsync
+Date: Sat, 5 Oct 2024 14:37:27 +0200
+Message-ID: <CAOQ4uxi5vPmzcuL0YvPzWoqrNd9ARb09pJrmrcGF4YtE6NbM0Q@mail.gmail.com>
+Subject: Re: [PATCH 3/4] ovl: convert ovl_real_fdget_meta() callers to ovl_real_file_meta()
 To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, 
 	linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sat, Oct 5, 2024 at 3:35=E2=80=AFAM Al Viro <viro@zeniv.linux.org.uk> wr=
-ote:
+On Sat, Oct 5, 2024 at 12:23=E2=80=AFAM Al Viro <viro@zeniv.linux.org.uk> w=
+rote:
 >
-> On Fri, Oct 04, 2024 at 11:28:11PM +0100, Al Viro wrote:
-> > >         /*
-> > >          * Overlay file f_pos is the master copy that is preserved
-> > >          * through copy up and modified on read/write, but only real
-> > >          * fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
-> > >          * limitations that are more strict than ->s_maxbytes for spe=
-cific
-> > >          * files, so we use the real file to perform seeks.
-> > >          */
-> > >         ovl_inode_lock(inode);
-> > >         fd_file(real)->f_pos =3D file->f_pos;
-> > > in ovl_llseek()?  Get ovl_real_fdget_meta() called by ovl_real_fdget(=
-) and
-> > > have it return 0 with NULL in fd_file(real), and you've got an oops r=
-ight
-> > > there, don't you?
-> >
-> > I see... so you rely upon that thing never happening when the last argu=
-ment of
-> > ovl_real_fdget_meta() is false, including the call from ovl_real_fdget(=
-).
-> >
-
-Correct. I had considered renaming the argument to allow_empty_upper_meta
-but I don't think that will make the contract a lot better.
-The thing is that ovl_fsync() caller is really different in two
-different aspects:
-1. It wants only upper and therefore fd_empty() is a possible outcome
-2. It (may) want the metadata inode (when data is still in lower inode)
-
-Overlayfs can have up to 3 different inodes in the stack for a regular file=
-:
-lower_data+lower_metadata+upper_metdata
-
-There is currently no file operation that requires opening the lower_metada=
-ta
-inode and therefore, staching one backing file in ->private_data and anothe=
-r
-optional backing file chained from the first one is enough.
-
-If there is ever a file operation that needs to open a realfile from
-lower_metadata (only ioctl comes to mind), we may need to reevaluate.
-
-> > I still don't like the calling conventions, TBH.  Let me think a bit...
+> On Fri, Oct 04, 2024 at 12:23:41PM +0200, Amir Goldstein wrote:
 >
+> >       if (upper_meta) {
+> >               ovl_path_upper(dentry, &realpath);
+> >               if (!realpath.dentry)
+> > -                     return 0;
+> > +                     return NULL;
+> >       } else {
+> >               /* lazy lookup and verify of lowerdata */
+> >               err =3D ovl_verify_lowerdata(dentry);
+> >               if (err)
+> > -                     return err;
+> > +                     return ERR_PTR(err);
+>
+> Ugh...  That kind of calling conventions is generally a bad idea.
+>
+> > +     return realfile;
+>
+> ... especially since it's NULL/ERR_PTR()/pointer to object.
+>
+>
+> > +     realfile =3D ovl_real_file_meta(file, !datasync);
+> > +     if (IS_ERR_OR_NULL(realfile))
+> > +             return PTR_ERR(realfile);
+>
+> Please, don't.  IS_ERR_OR_NULL is bogus 9 times out of 10 (at least).
 
-I understand your concern, but honestly, I am not sure that returning
-struct fderr is fundamentally different from checking IS_ERR_OR_NULL.
+IDK, we have quite a few of these constants in ovl code and it's pretty
+clear and useful to my taste, but I am open to being corrected.
 
-What I can do is refactor the helpers differently so that ovl_fsync() will
-call ovl_file_upper() to clarify that it may return NULL, just like
-ovl_{dentry,inode,path}_upper() and all the other callers will
-call ovl_file_real() which cannot return NULL, because it returns
-either lower or upper file, just like ovl_{inode,path}_real{,data}().
+Anyway, I pushed a new version to
+https://github.com/amir73il/linux/commits/ovl_real_file-v2/
 
-> Sorry, I'm afraid I'll have to leave that until tomorrow - over 38C after=
- the sodding
-> shingles shot really screws the ability to dig through the code ;-/  My a=
-pologies...
+Where we have:
+- ovl_dir_real_file() and ovl_upper_file() can return NULL and their
+  few callers check for IS_ERR_OR_NULL()
 
-Ouch! feel well soon.
+> And you still have breakage in llseek et.al.
+
+- ovl_real_file() and ovl_real_file_path() cannot return NULL and all
+  their callers (llseek et.al.) check only for IS_ERR()
+
+Let me know if you think this is still problematic.
 
 Thanks,
 Amir.
