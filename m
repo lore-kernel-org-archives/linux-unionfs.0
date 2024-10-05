@@ -1,120 +1,138 @@
-Received: from mail-qk1-f171.google.com (mail-qk1-f171.google.com [209.85.222.171])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 19432231C81;
-	Sat,  5 Oct 2024 12:37:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C51BC154BEC;
+	Sat,  5 Oct 2024 19:49:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728131866; cv=none; b=lBxWoMW0HnzKH3GorxrstCwED1cRjnWBDrrmpB5wZ571Ol97KevE90q05pNP+VAEbVfVOpyxl8aVaM1oYuNYTOLImgtwZL5oOxMCK+dWgaWVrj4i9cAPA+jNn8BGQe7ogqkvpgQ/IkG+n3BmnknuKo27Xhxgz8AdDSM2dBQfoXk=
+	t=1728157771; cv=none; b=GOL2Kg5JZv3RtkaLJUHm83sTJy5t53OVRoO3oynRwpWr0sPwLM7JzX6MGeaXkIU7DMWSPNqIZHAKP9Kdre2WXkF6PFPlxSs6w3AnE5JpK3U4QnV3acbNuxBKcxL6EuK1NCJ3kof12TcJ8veY5J3dd+jfJaSXIezEMnUmDp23I4M=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728131866; c=relaxed/simple;
-	bh=DdH/9gsVIPkzeKKhSXiZMTjh5aWjDgeaP9nuwKM6B0U=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=cfjtTjIfrSmrWuEjru5ig+hlY78DjoIxMUV45jS4MEqj6yXbMxLF5IgkVTnHseZviofSeRTPbBbpxlbsPdQF5XMjc9Vg1zTWCJG6ZfVMfIJlwC9HCwVgwaL1JI5rbO4moqICIK3PLKMijT32Wp9RoDArNNO+6kYXeeTbtgYcu/8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aZkNRFmm; arc=none smtp.client-ip=209.85.222.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1728157771; c=relaxed/simple;
+	bh=yIr0xOKm6eHHbooc909aNZdensRvy/iimZ/M6pm4RLk=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=M56uvvF+4gj8rzPdk3HRNsv0O6XdgkLyxktKWdNN8GsGsmqXvY/iWenDFW+J4JJv3JNQGyCNenqcOENBBk+JSWv10idroJLDbgxn7qffMGAQejfENim4+UDFv+sOlhbFDiwCfXQr45cGVkWoGTRtm/m8yjjswKtjbmc1xsjxsBA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=F+ZvCh88; arc=none smtp.client-ip=62.89.141.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aZkNRFmm"
-Received: by mail-qk1-f171.google.com with SMTP id af79cd13be357-7a99e8d5df1so299036585a.2;
-        Sat, 05 Oct 2024 05:37:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728131859; x=1728736659; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=8oedNx2JEWYoenACq4QBgxY9clB8bBuK49x1vd3Sjkk=;
-        b=aZkNRFmmo4QQPDzQTct5QkdOIg1326YgsQt6+QPs6p8ZEn+zoQppNovHO8efZPFknK
-         B3NkWuNrRdFZaCsny27AvtXEGQmGT2uUbrm1fe2OgFRacodNnQw6FJFlLjKVMtQCRqX4
-         1L7+q5e8ZWspNIRm8pdYeAGQYCS/k38TRPT5ZPKF0p83QXBWrxoKNy5jvkE+1qgzNueg
-         9x7tkh2ZRUWCqYIxCkJZJfqO5ME4YF2a0tkDYFAyCX+tNo3ROtsQnyoCHUgQXVpVEUlJ
-         91fK50d92debZ+7nxC12T7cgtQ4RqAsErGFucAkAKNKd8Nq5eoTjjdZKfu66aHoYnzKb
-         nvDA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728131859; x=1728736659;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=8oedNx2JEWYoenACq4QBgxY9clB8bBuK49x1vd3Sjkk=;
-        b=bTiIHL6a8KNPI+bcUKe3kfUSt0sz4V1BMWjaSfPxF4Avs6XJaRPHoujwsJjSqodyW8
-         8kGIrczKBZj5nHjUQHcekg7BxhxNOqj3Y3q2f0PxRX5w7FvHWwECiqYcvmOj3lUGm6JG
-         LJQeN0kAnGUD+oE+igT8U6HPQbps3nhRqZRFTFDwkn+lm/9QbtAY5DHz0KeK9vH9IvN5
-         3IjiyOnmn/wnWLu2uOOt7Zt5Z01fSPglsswCi8dkEgbXVOkZ6pxYMmDr+OEIksMEc3p9
-         J05Nmn4qhXqSipT75OvCjJq1aJ2zbiekXmG8wMdbMbgTjgiJ/y4OBE9sidawyQM+byeS
-         +ppg==
-X-Forwarded-Encrypted: i=1; AJvYcCU6dcN1T+yfgKL6dDTR6VOACPwSX9JocOrdwX9oL+GDD2QXSVh2Mtv+te4vCgkAsiwbeD3w4gNKI1VWySmi/g==@vger.kernel.org, AJvYcCW/xBwpFUEsaAdR/Xm0umW4uFIWLd3ooD3f4Nbgd1YuOV1MChdz+gIrFEVrpXcGcPPC14QYqHD4i9jmiVLf@vger.kernel.org
-X-Gm-Message-State: AOJu0YwjRAxLf2TN1eZd1NHmrmGCI66DlLfAqmevLzoEMaSsmYBU+DwS
-	GISfTRMe88/uladVlyrKfC1rCcCReuPBGqpmU3dn16Su1VuDP/FnwJNOJVsJmw/YLgNKEbES+8i
-	RQ77RZ0uEiHi31mUiqeLLCk9GDy4=
-X-Google-Smtp-Source: AGHT+IExRW9JSMn8URNChlDGtgL2trbbqxgOpYx3w8YC6fpPWCQVCxXZdMHV3DY3worWDWlSbFOSag9Xb3hN5o3CegM=
-X-Received: by 2002:a05:620a:c4a:b0:7a9:c203:7c10 with SMTP id
- af79cd13be357-7ae6f421dd8mr957821785a.7.1728131858627; Sat, 05 Oct 2024
- 05:37:38 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="F+ZvCh88"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=qXcw2jkEIsxh8qtqTXed13qhg8/gEKd15RW2PbHm1oI=; b=F+ZvCh88UANqOtoXGciuJ1hiR2
+	58/rAfFBHGCR83JXs/oIdOHW5wdrxXLhhRfpO9r9NuvJG65/DTqSa7dTi2waytt6jpgZySIvTr+ep
+	ubvBH0N6OaNqYbkgh3ruCmx975fNkKiBokm7kVs+E878DWuhIBCgsr0D/f1d/cR+x7yez5VrAvXoD
+	vH0/x72r43GiKJICpkYzEUulbNkDe6Uwofo9DNRXvxcBhGnIoQylwN2GeiyaNMuWM38X14xyHlmnQ
+	8IZ6m1bl+wMctilNmxJw2iLz4jvozixYrJcmwwcYdccuTKCIaFtelZKd3Pf9altlE02gaXu8ZU8CV
+	xuPDh/Ww==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
+	id 1sxAmM-000000018a6-3v0n;
+	Sat, 05 Oct 2024 19:49:26 +0000
+Date: Sat, 5 Oct 2024 20:49:26 +0100
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 1/4] ovl: do not open non-data lower file for fsync
+Message-ID: <20241005194926.GY4017910@ZenIV>
+References: <20241004102342.179434-1-amir73il@gmail.com>
+ <20241004102342.179434-2-amir73il@gmail.com>
+ <20241004221625.GR4017910@ZenIV>
+ <20241004222811.GU4017910@ZenIV>
+ <20241005013521.GV4017910@ZenIV>
+ <CAOQ4uxiqrHeBbF49C0OkoyQm=BqQjvUYEd7k8oinCMwCSOuP3w@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241004102342.179434-1-amir73il@gmail.com> <20241004102342.179434-4-amir73il@gmail.com>
- <20241004222323.GS4017910@ZenIV>
-In-Reply-To: <20241004222323.GS4017910@ZenIV>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 5 Oct 2024 14:37:27 +0200
-Message-ID: <CAOQ4uxi5vPmzcuL0YvPzWoqrNd9ARb09pJrmrcGF4YtE6NbM0Q@mail.gmail.com>
-Subject: Re: [PATCH 3/4] ovl: convert ovl_real_fdget_meta() callers to ovl_real_file_meta()
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-fsdevel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOQ4uxiqrHeBbF49C0OkoyQm=BqQjvUYEd7k8oinCMwCSOuP3w@mail.gmail.com>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Sat, Oct 5, 2024 at 12:23=E2=80=AFAM Al Viro <viro@zeniv.linux.org.uk> w=
-rote:
->
-> On Fri, Oct 04, 2024 at 12:23:41PM +0200, Amir Goldstein wrote:
->
-> >       if (upper_meta) {
-> >               ovl_path_upper(dentry, &realpath);
-> >               if (!realpath.dentry)
-> > -                     return 0;
-> > +                     return NULL;
-> >       } else {
-> >               /* lazy lookup and verify of lowerdata */
-> >               err =3D ovl_verify_lowerdata(dentry);
-> >               if (err)
-> > -                     return err;
-> > +                     return ERR_PTR(err);
->
-> Ugh...  That kind of calling conventions is generally a bad idea.
->
-> > +     return realfile;
->
-> ... especially since it's NULL/ERR_PTR()/pointer to object.
->
->
-> > +     realfile =3D ovl_real_file_meta(file, !datasync);
-> > +     if (IS_ERR_OR_NULL(realfile))
-> > +             return PTR_ERR(realfile);
->
-> Please, don't.  IS_ERR_OR_NULL is bogus 9 times out of 10 (at least).
+On Sat, Oct 05, 2024 at 08:30:23AM +0200, Amir Goldstein wrote:
 
-IDK, we have quite a few of these constants in ovl code and it's pretty
-clear and useful to my taste, but I am open to being corrected.
+> I understand your concern, but honestly, I am not sure that returning
+> struct fderr is fundamentally different from checking IS_ERR_OR_NULL.
+> 
+> What I can do is refactor the helpers differently so that ovl_fsync() will
+> call ovl_file_upper() to clarify that it may return NULL, just like
 
-Anyway, I pushed a new version to
-https://github.com/amir73il/linux/commits/ovl_real_file-v2/
+ovl_dentry_upper(), you mean?
 
-Where we have:
-- ovl_dir_real_file() and ovl_upper_file() can return NULL and their
-  few callers check for IS_ERR_OR_NULL()
+> ovl_{dentry,inode,path}_upper() and all the other callers will
+> call ovl_file_real() which cannot return NULL, because it returns
+> either lower or upper file, just like ovl_{inode,path}_real{,data}().
 
-> And you still have breakage in llseek et.al.
+OK...  One thing I'm not happy about is the control (and data) flow in there:
+stashed_upper:
+        if (upperfile && file_inode(upperfile) == d_inode(realpath.dentry))
+                realfile = upperfile;
 
-- ovl_real_file() and ovl_real_file_path() cannot return NULL and all
-  their callers (llseek et.al.) check only for IS_ERR()
+        /*
+         * If realfile is lower and has been copied up since we'd opened it,
+         * open the real upper file and stash it in backing_file_private().
+         */
+        if (unlikely(file_inode(realfile) != d_inode(realpath.dentry))) {
+                struct file *old;
 
-Let me know if you think this is still problematic.
+                /* Stashed upperfile has a mismatched inode */
+                if (unlikely(upperfile))
+                        return ERR_PTR(-EIO);
 
-Thanks,
-Amir.
+                upperfile = ovl_open_realfile(file, &realpath);
+                if (IS_ERR(upperfile))
+                        return upperfile;
+
+                old = cmpxchg_release(backing_file_private_ptr(realfile), NULL,
+                                      upperfile);
+                if (old) {
+                        fput(upperfile);
+                        upperfile = old;
+                }
+
+                goto stashed_upper;
+        }
+Unless I'm misreading that, the value of realfile seen inside the second
+if is always the original; reassignment in the first if might as well had
+been followed by goto past the second one.  What's more, if you win the
+race in the second if, you'll have upperfile != NULL and its file_inode()
+matching realpath.dentry->d_inode (you'd better, or you have a real problem
+in backing_file_open()).  So that branch to stashed_upper in case old == NULL
+might as well had been "realfile = upperfile;".  Correct?  In case old != NULL
+we go there with upperfile != NULL.  If it (i.e. old) has the right file_inode(),
+we are done; otherwise it's going to hit ERR_PTR(-EIO) in the second if.
+
+So it seems to be equivalent to this:
+        if (unlikely(file_inode(realfile) != d_inode(realpath.dentry))) {
+	        /*
+		 * If realfile is lower and has been copied up since we'd
+		 * opened it, we need the real upper file opened.  Whoever gets
+		 * there first stashes the result in backing_file_private().
+		 */
+		struct file *upperfile = backing_file_private(realfile);
+		if (unlikely(!upperfile)) {
+			struct file *old;
+
+			upperfile = ovl_open_realfile(file, &realpath);
+			if (IS_ERR(upperfile))
+				return upperfile;
+
+			old = cmpxchg_release(backing_file_private_ptr(realfile), NULL,
+					      upperfile);
+			if (old) {
+				fput(upperfile);
+				upperfile = old;
+			}
+		}
+		// upperfile reference is owned by realfile at that point
+		if (unlikely(file_inode(upperfile) != d_inode(realpath.dentry)))
+			/* Stashed upperfile has a mismatched inode */
+			return ERR_PTR(-EIO);
+		realfile = upperfile;
+	}
+Or am I misreading it?  Seems to be more straightforward that way...
