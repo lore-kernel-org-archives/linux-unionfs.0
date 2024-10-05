@@ -1,45 +1,46 @@
 Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EFB8B140E34;
-	Fri,  4 Oct 2024 22:28:12 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 30BC67482;
+	Sat,  5 Oct 2024 01:35:22 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728080894; cv=none; b=T8fNC23up4zzymgOzsLN8ifvexu5MJwY0NtceyintrT3E576FTvy74dB7QRRfnfzJ8zTpczWepbQAgnv0bI33Aak5JghAePNOaVNPm8clHB/+u7Af1xHT1XXLsy1CscSdKzjCHrahWFT3cak+g8/h90XIECkYPXvlMkEbciGEJI=
+	t=1728092126; cv=none; b=rcP9gWyOk6ero6j9JkHCeUnd0Lv5nH9LcWEpdqg62SeqJQC6N0Ws0brAYzj2VQo+7E4VONTZZBrAovQ8dqvz8UJw95v8+pEmxRhucA53uIHHyLExHqmgm7WspNE0PPCa0cEhQhDA7hAi5Lm9tmsyck5jna875W3ZSZGHCKwCvk8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728080894; c=relaxed/simple;
-	bh=1gv0odzWOvkjk6X2IHkIqlfeI9JgRBx4p55HyuQ22po=;
+	s=arc-20240116; t=1728092126; c=relaxed/simple;
+	bh=EHdWcm8PClN0u3WMfScJEzmG8AU+I1qQWoUwfyl1+yY=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=m3rinGoRA9wKE93HQQeLP69AfhvCj2S9ZOQefWbNEq6gj0cSEF8sh9syjgmK+M8+pG/0kBA5b0VkbMfCfxmQqYhOaM6jmDBQAHpa7naKxmXS49RwBFJyeXKg+CVncIra5mQRwCdhllhupNAoF/zdRxsyQ7r1z+tNAf2ANASoqBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=cmfKJI/7; arc=none smtp.client-ip=62.89.141.173
+	 Content-Type:Content-Disposition:In-Reply-To; b=OJyyx3cG9dNzVJZhdxN2gkRfgCPMHczqHKvPiJjODZAbKFFd9l+BTu8epJM9WVfet6QtlhkeflKX1m/YSIJSonWTQFuAYVpFCOUGwLcWmd9UjBOCRA5ZYk3IdnZpFpETP6c5hkkr8IFHf0JXQOZ7Hnuc0WjnuS91/PJYd3bJLwk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=c8X5wINp; arc=none smtp.client-ip=62.89.141.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="cmfKJI/7"
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="c8X5wINp"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
 	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
 	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=4TeFbJreJhhr2F+XDO4Y9bSx72bBZDuZjyZm5w8kduU=; b=cmfKJI/72ZSwTU2Ahx5CNacGEu
-	gOg2vmevsOxGfNkCYfQfeNWEtYGrTGZ0LxhpVXymI5N71Q/QOuVhRQC3BcbwbMUJrtA6CwNm8YMjq
-	FegJ7zvIrp+WG5yIurgDpbKsLCV76er93KIocskBExooKkcTlh+H9RW8OkXtP4fNg9E31bfDMfl7l
-	hOyv/TppFn6nkTvRUBlQIJJxu/JXvYq29+xXkkCz9ZAHUYDEKWAVWJXDaietwOg306h+IvYA2BFih
-	s8VDRoszPvUdQGx1tGyUzMJKQZ443uRL7SLajS+tng2Tn8kwi71IO1Ouy8nvUVjTCD7yTuVb0BgIR
-	APqT6z7g==;
+	bh=KFWcWe3gm12vm93LlQ/j4L01EqcwwfGrdZkEdcQ1eqo=; b=c8X5wINppLTtEjO+mrssiKfIJC
+	Lurp42gcPoBAh3Ho+qaAaICV8h7vqI2S33maDTRDGUhvobmLlNQj9IyybqV1IRY/qxnvgLcdeWdu1
+	kYlBVtZXBqpwbR3USJTm+d6BHzb2P4peC5XE9MlRaUr+/llE7q1VhVKRpZ1xeQOcoCKW+2+/5REHs
+	8ydd9zFIukKH2AYzBfikaBVr3xsGwhFCTEW2+Iu7bCudUOge3X/rRdlVdDJzbRwZoXu066EEH5+5x
+	t3Gqhx6TfzDGSOhIolmRZv3YIHb3IeIQYvg4qe+gxIsIGhwUT6QqEEz0JKuXwQg12443qV3Bp4UxZ
+	Yx9XxfYw==;
 Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1swqmR-00000000tkc-2AP0;
-	Fri, 04 Oct 2024 22:28:11 +0000
-Date: Fri, 4 Oct 2024 23:28:11 +0100
+	id 1swthZ-00000000wEO-0nJt;
+	Sat, 05 Oct 2024 01:35:21 +0000
+Date: Sat, 5 Oct 2024 02:35:21 +0100
 From: Al Viro <viro@zeniv.linux.org.uk>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>,
 	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Subject: Re: [PATCH 1/4] ovl: do not open non-data lower file for fsync
-Message-ID: <20241004222811.GU4017910@ZenIV>
+Message-ID: <20241005013521.GV4017910@ZenIV>
 References: <20241004102342.179434-1-amir73il@gmail.com>
  <20241004102342.179434-2-amir73il@gmail.com>
  <20241004221625.GR4017910@ZenIV>
+ <20241004222811.GU4017910@ZenIV>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -48,53 +49,27 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241004221625.GR4017910@ZenIV>
+In-Reply-To: <20241004222811.GU4017910@ZenIV>
 Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Fri, Oct 04, 2024 at 11:16:25PM +0100, Al Viro wrote:
-> On Fri, Oct 04, 2024 at 12:23:39PM +0200, Amir Goldstein wrote:
-> > ovl_fsync() with !datasync opens a backing file from the top most dentry
-> > in the stack, checks if this dentry is non-upper and skips the fsync.
-> > 
-> > In case of an overlay dentry stack with lower data and lower metadata
-> > above it, but without an upper metadata above it, the backing file is
-> > opened from the top most lower metadata dentry and never used.
-> > 
-> > Fix the helper ovl_real_fdget_meta() to return an empty struct fd in
-> > that case to avoid the unneeded backing file open.
+On Fri, Oct 04, 2024 at 11:28:11PM +0100, Al Viro wrote:
+> >         /*
+> >          * Overlay file f_pos is the master copy that is preserved
+> >          * through copy up and modified on read/write, but only real
+> >          * fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
+> >          * limitations that are more strict than ->s_maxbytes for specific
+> >          * files, so we use the real file to perform seeks.
+> >          */
+> >         ovl_inode_lock(inode);
+> >         fd_file(real)->f_pos = file->f_pos;
+> > in ovl_llseek()?  Get ovl_real_fdget_meta() called by ovl_real_fdget() and
+> > have it return 0 with NULL in fd_file(real), and you've got an oops right
+> > there, don't you?
 > 
-> Umm...  Won't that screw the callers of ovl_real_fd()?
+> I see... so you rely upon that thing never happening when the last argument of
+> ovl_real_fdget_meta() is false, including the call from ovl_real_fdget().
 > 
-> I mean, here
-> 
-> > @@ -395,7 +397,7 @@ static int ovl_fsync(struct file *file, loff_t start, loff_t end, int datasync)
-> >  		return ret;
-> >  
-> >  	ret = ovl_real_fdget_meta(file, &real, !datasync);
-> > -	if (ret)
-> > +	if (ret || fd_empty(real))
-> >  		return ret;
-> >  
-> 
-> you are taking account of that, but what of e.g.
->         ret = ovl_real_fdget(file, &real);
->         if (ret)
->                 return ret;
-> 
->         /*
->          * Overlay file f_pos is the master copy that is preserved
->          * through copy up and modified on read/write, but only real
->          * fs knows how to SEEK_HOLE/SEEK_DATA and real fs may impose
->          * limitations that are more strict than ->s_maxbytes for specific
->          * files, so we use the real file to perform seeks.
->          */
->         ovl_inode_lock(inode);
->         fd_file(real)->f_pos = file->f_pos;
-> in ovl_llseek()?  Get ovl_real_fdget_meta() called by ovl_real_fdget() and
-> have it return 0 with NULL in fd_file(real), and you've got an oops right
-> there, don't you?
+> I still don't like the calling conventions, TBH.  Let me think a bit...
 
-I see... so you rely upon that thing never happening when the last argument of
-ovl_real_fdget_meta() is false, including the call from ovl_real_fdget().
-
-I still don't like the calling conventions, TBH.  Let me think a bit...
+Sorry, I'm afraid I'll have to leave that until tomorrow - over 38C after the sodding
+shingles shot really screws the ability to dig through the code ;-/  My apologies...
