@@ -1,51 +1,55 @@
-Received: from mail-ej1-f46.google.com (mail-ej1-f46.google.com [209.85.218.46])
+Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6145318A6C3
-	for <linux-unionfs@vger.kernel.org>; Mon,  7 Oct 2024 10:38:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2091D1AB51F;
+	Mon,  7 Oct 2024 11:02:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728297485; cv=none; b=OsJVzoSSwRCMEWZX8xjPmZd2gSEKK//fbw4pysgqLSJXyhxCHF2kr7eS++nMSQc2FvOPDmsgYclomERVk0h015ZwjT6ETxAqDqp4oz0MHYUSh07wG1HPqZMlAXZb5OWuo7ANZmzdSmruHB3dhLpziRvzzTFc7gcG71zwpW/qr8s=
+	t=1728298930; cv=none; b=CZWFVBydv4QDbUHb1pBRe1UXgNsZ5Apd7mEr7Ap98ZdqUOQ/62vfLwhmTlXCHVi3GnP2jiHrcbnhBnfwHtqLo54BRlme1VYhnYEMFEItu0ChI0MlDMC/2cJxhkIAxp8Yyahi1TGQRThB/Xtj5JNwooyNB2E5s6LVR9OT2vOyBz0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728297485; c=relaxed/simple;
-	bh=KcBXz/uybt/pMRpBba6VfSlLw6yHjpbs/Xqzmttq3To=;
+	s=arc-20240116; t=1728298930; c=relaxed/simple;
+	bh=x0XMAhxdJcqJh6lyhyMwHpYIegB7eFV4To1CVwHMbLc=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FYz1RHwNXzyGeX5v10oz2l/kornSUUhy3nn+ozPwtj15EyNWoCsCCBXVv7Aw3kyFxEIkWlD7W2Z/2DsF1tXn4ToMJsfaC4ei2qeVh/e8RT/jLBJu9krQrw4BN2iW1eEeJSQMsvDbxy6UBN5eFOsyk4rbJ/cg9wQ/AYx+3D14gOg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=EOy9DKHT; arc=none smtp.client-ip=209.85.218.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=hcKN7PLv5tKVOWr3SMJ/XJKQlp5Vj03sRCQwco5b7TbEr0bTAtJ+K6Rjs9TgAvxf4eryW3GAq7bXXCg1DVmX6PlaP8J8XnxrJJzVo7TzhMXgfy4PsMU3XPDXcGMct60OiTSfcsbl/YPtpf9VZ2vDTOhxiQ1HoUeEulf6CFOWPHI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ii3JlSB7; arc=none smtp.client-ip=209.85.222.174
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="EOy9DKHT"
-Received: by mail-ej1-f46.google.com with SMTP id a640c23a62f3a-a8d6d0fe021so736885766b.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 07 Oct 2024 03:38:04 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ii3JlSB7"
+Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-7a9ab721058so449107085a.1;
+        Mon, 07 Oct 2024 04:02:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1728297483; x=1728902283; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=KcBXz/uybt/pMRpBba6VfSlLw6yHjpbs/Xqzmttq3To=;
-        b=EOy9DKHTxwnf4N3MAUqJH7OWBYtjjVi9VgV+eAqTkjRY7AiyREDxuAcg5C2Wf5z6h4
-         duBEjooGLAiRp7F9dRin+u0KgCnGJ/TeMm3sTDWm6mvbtPyp2OTUsIEPnZRjYJU/T4G3
-         qjqykztqUS2iZXsVPkTrO+hKd6va5MlUi0ZqY=
+        d=gmail.com; s=20230601; t=1728298928; x=1728903728; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=7jBU1B3c4Xtk6xVi6h5PIiFMEYdlpnr0VgQhAVUNZz0=;
+        b=Ii3JlSB7sQ27mgaFsEZTSPoZHODCfTDgfmEG535i0AnxPndw5VFiN36U2ZmHpfsDsU
+         yZqrRRxyEhg8/vnV4uVrnrOnc7+i0Lx1GOKCSTqQeMC73A/38aopW6VANF+ZQLFehlXR
+         WAK1kNTIdT/+hAEA1uCsLtaVpnLG5onohOFzvFUvOgG4rdAeyiv8Q5T7LQaOXaY5vvLZ
+         xMJUuVTf1edGbs456/7ns1CDkhnNWUlbOZj/0tydugEJoNQhLWdaEQ7Hze5jdm2qu7P9
+         fHQVTkiLhELU/VQeIIx4e3vATFZh4UGodrSHU3XOJJ1va9LFVCqkuhYcYJsxQfQxOFpN
+         s7RQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728297483; x=1728902283;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=KcBXz/uybt/pMRpBba6VfSlLw6yHjpbs/Xqzmttq3To=;
-        b=Z5b6chA9stdDHWCxdvr0GxDtX8pjA31/bb42gJD9dcq3rwVAdwQZsbo0VGIJGmASe2
-         UMDnJtkoinxIxPojb46XYAV7wQYxe0DHZnaTwKNuoeypmH5oQBI/7XM9VlpZtKuguqcY
-         XDtLzWg2ZQ4CGgSm6EGKjPi3IOrFB0F+wJyN3FXP9ZGA6a2nLqPByQd7NWpFTL4s6D/m
-         8jqGjlqWzDAhLDcOqruk6feqjVIC+htVKXIcqyncnGi1IcIjakSx5QUTEzEazO42Jsi1
-         3byCCsl794jZ28U63ORUoa7btoQvpxhWj72WUgcItmnh2nsA7IkfGubBleHfjnxWCemf
-         6ARQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXoLwe2aqKndhYSmNwDWo1hPUt3om9DptZF5aZiB9/4zJ3/Ksv7OQRZcDAqHO8T0IAaN4cVq8Tx13h6I+yr@vger.kernel.org
-X-Gm-Message-State: AOJu0YxZjyYr01nJda1HAa0TPZ3/XXshDU8u3998j1o5nNFYKz3va88G
-	978XtHvYR1pXm9huaTs3RV5SMFr0rYoZo+sqD5URhUjbBCmDbBM6pc75d9u9nZtWFr6qCKC15gQ
-	CdzrfUBa+OTHADEyeuORS9Vn9fFHtGIiDhlBPcw==
-X-Google-Smtp-Source: AGHT+IGpyxoLXtigYDI7xrLRQKKXT426ZiVy9y7DfppHasg9YE7THH+uCYZsoPmIVI7wzdg224iFIcDIVEtyX2QLWQ0=
-X-Received: by 2002:a17:907:8694:b0:a99:3802:1c37 with SMTP id
- a640c23a62f3a-a99380220f6mr785842366b.20.1728297482810; Mon, 07 Oct 2024
- 03:38:02 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1728298928; x=1728903728;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=7jBU1B3c4Xtk6xVi6h5PIiFMEYdlpnr0VgQhAVUNZz0=;
+        b=jTGYQC1VGeLGt3RBPOxlGwV2FtURkYmRTdBB9g0OStqWs/4LJWimfOzFeoGVeChWGV
+         G63nNktBBmHRijFvkTaGSBDQu3kP/9DeiBw4iyIWJvZNgF0KgJHNmAz3DG8CInEhZ2BZ
+         k9VacTvU2SiXYKgh8XAcn0YTJKRs+j9tkekWriaETnMlBrDn/wC1w4eD1mBljB5Hw4Xi
+         KiSlHuaLKvLSEc4wGf997fZ1jrpSur/GCTErFEt92dfCGY/FM9mOHRAup1Cc0gxQ6JJG
+         CfreSJOnPI8Cv6huL/D21zb5WHryVnReZdXP5ID0U3XhJLBJF1M3jESQPbdZ0bfhvj6u
+         yFzg==
+X-Forwarded-Encrypted: i=1; AJvYcCUAFS/OXyOYDVPjcWn9WmwjMs4TGQqX6OqlKBEw4UR1ZqTcT0s78AHHUF2D2EHL3jOZP3dXQDbrB1VD4QRXOg==@vger.kernel.org, AJvYcCWKsnU8zs5GsbFIO3aJNGsvGYZGgOMmJkFJ2NogJbuv7AoDWPuHm3GmH1i1sC/mCyVeZlFg/GhGUhGCzHST@vger.kernel.org
+X-Gm-Message-State: AOJu0Ywg1YbcPHWMDiWKWZOEZxjs4tcHaQMSnMOsdDs0/nGgPdPYdDeD
+	Pgt9InnEhFd+8Kp60qlBRl8z2xdpPSqfTYrYmXbNTvweTcESNWUNfTxjuNDBtKdSao8gG9bAH1y
+	NJ5Qs74GWtQoO+7kDZqFBrHPa4cc=
+X-Google-Smtp-Source: AGHT+IHHtgT3lfmWv8nu5wik20N2JeGOKj62WY3oenGtrFmKfzoXJjut7rpOqYYXpQ4kyKYEZebmadWMzttCcEF9fFc=
+X-Received: by 2002:a05:620a:280a:b0:7a9:b80b:81e with SMTP id
+ af79cd13be357-7ae6fb4064cmr1498241785a.10.1728298927821; Mon, 07 Oct 2024
+ 04:02:07 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -53,45 +57,89 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20241006082359.263755-1-amir73il@gmail.com> <CAJfpegsrwq8GCACdqCG3jx5zBVWC4DRp4+uvQjYAsttr5SuqQw@mail.gmail.com>
- <CAOQ4uxjxLRuVEXhY1z_7x-u=Yui4sC8m0NU83e0dLggRLSXHRA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjxLRuVEXhY1z_7x-u=Yui4sC8m0NU83e0dLggRLSXHRA@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 7 Oct 2024 12:37:51 +0200
-Message-ID: <CAJfpegvbAsRu-ncwZcr-FTpst4Qq_ygrp3L7T5X4a2YiODZ4yg@mail.gmail.com>
+ <CAOQ4uxjxLRuVEXhY1z_7x-u=Yui4sC8m0NU83e0dLggRLSXHRA@mail.gmail.com> <CAJfpegvbAsRu-ncwZcr-FTpst4Qq_ygrp3L7T5X4a2YiODZ4yg@mail.gmail.com>
+In-Reply-To: <CAJfpegvbAsRu-ncwZcr-FTpst4Qq_ygrp3L7T5X4a2YiODZ4yg@mail.gmail.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 7 Oct 2024 13:01:56 +0200
+Message-ID: <CAOQ4uxi0LKDi0VaYzDq0ja-Qn0D=Zg_wxraqnVomat29Z1QVuw@mail.gmail.com>
 Subject: Re: [PATCH v2 0/4] Stash overlay real upper file in backing_file
-To: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
 Cc: Al Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, 
 	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Mon, 7 Oct 2024 at 12:22, Amir Goldstein <amir73il@gmail.com> wrote:
-
-> Maybe it is more straightforward, I can go with that, but it
-> feels like a waste not to use the space in backing_file,
-> so let me first try to convince you otherwise.
-
-Is it not a much bigger waste to allocate backing_file with kmalloc()
-instead of kmem_cache_alloc()?
-
-> IMO, this is not a layer violation at all.
-> The way I perceive struct backing_file is as an inheritance from struct file,
-> similar to the way that ovl_inode is an inheritance from vfs_inode.
-
-That sounds about right.
-
-> You can say that backing_file_user_path() is the layer violation, having
-> the vfs peek into the ovl layer above it, but backing_file_private_ptr()
-> is the opposite - it is used only by the layer that allocated backing_file,
-> so it is just like saying that a struct file has a single private_data, while
-> the inherited generic backing_file can store two private_data pointers.
+On Mon, Oct 7, 2024 at 12:38=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
+wrote:
 >
-> What's wrong with that?
+> On Mon, 7 Oct 2024 at 12:22, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> > Maybe it is more straightforward, I can go with that, but it
+> > feels like a waste not to use the space in backing_file,
+> > so let me first try to convince you otherwise.
+>
+> Is it not a much bigger waste to allocate backing_file with kmalloc()
+> instead of kmem_cache_alloc()?
 
-It feels wrong to me, because lowerfile's backing_file is just a
-convenient place to stash a completely unrelated pointer into.
+Yes, much bigger...
 
-Furthermore private_data pointers lack type safety with all the
-problems that entails.
+Christian is still moving things around wrt lifetime of file and
+backing_file, so I do not want to intervene in the file_table.c space.
+
+>
+> > IMO, this is not a layer violation at all.
+> > The way I perceive struct backing_file is as an inheritance from struct=
+ file,
+> > similar to the way that ovl_inode is an inheritance from vfs_inode.
+>
+> That sounds about right.
+>
+> > You can say that backing_file_user_path() is the layer violation, havin=
+g
+> > the vfs peek into the ovl layer above it, but backing_file_private_ptr(=
+)
+> > is the opposite - it is used only by the layer that allocated backing_f=
+ile,
+> > so it is just like saying that a struct file has a single private_data,=
+ while
+> > the inherited generic backing_file can store two private_data pointers.
+> >
+> > What's wrong with that?
+>
+> It feels wrong to me, because lowerfile's backing_file is just a
+> convenient place to stash a completely unrelated pointer into.
+
+Funny, that's like saying that a ->next member in a struct is
+completely unrelated.
+
+What I see after my patch is that ->private_data points to a singly
+linked list of length 1 to 2 of backing files.
+
+>
+> Furthermore private_data pointers lack type safety with all the
+> problems that entails.
+
+Well, this is not any worth that current ->private_data, but I could
+also make it, if you like it better:
+
+ struct backing_file {
+        struct file file;
+        struct path user_path;
++       struct file *next;
+ };
+
++struct file **backing_file_private_ptr(struct file *f)
++{
++       return &backing_file(f)->next;
++}
++EXPORT_SYMBOL_GPL(backing_file_next_ptr);
+
+Again, I am not terribly opposed to allocating struct ovl_file as we do
+with directory - it is certainly more straight forward to read, so that
+is a good enough argument in itself, and "personal dislike" is also a fair
+argument, just arguing for the sake of argument so you understand my POV.
+
+Let me know your decision.
 
 Thanks,
-Miklos
+Amir.
