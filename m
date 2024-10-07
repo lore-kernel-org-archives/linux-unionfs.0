@@ -1,46 +1,45 @@
 Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DC6571D9691;
-	Mon,  7 Oct 2024 17:04:44 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1A6D1E52D;
+	Mon,  7 Oct 2024 17:13:07 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728320687; cv=none; b=Bbid+ccTYs0ypiynPtOggpssGhnQFFDhSarBDMFH91/YyZbVezwURnhMkTQ9xzoxZKx6ODmgCzlaQ2bgU9Lv9sfVBTnslaQTG9My0jTYZlyTGyrDsf0r4+DpkHEAq6F1xkZYfHprEQIlIoY4/opdaV0aw7SxpgXI64icdAlItjw=
+	t=1728321189; cv=none; b=kj3dhqCdQ35L4hfkg0FJSbcAcUk4na3N948Qa1QX+6SUA1pPfnzGZddghHGZE6raS17Xpm29VAevrfQK4kzYvFFyRAFPQo1STcvtT6tYt27ByjpBhjV9huPUBJu1wuJ0z9uHilTY6v3m7U2t521pGFBsfvSqoO5fQMZihKD2Gog=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728320687; c=relaxed/simple;
-	bh=deqWRZ33yJSVHmhP1Gx+vE6owdHSQiabHbYQ6543LnY=;
+	s=arc-20240116; t=1728321189; c=relaxed/simple;
+	bh=wvrWQJtopaGCe+FQlg3DUNgNJoZsiZ3I1Ia3xnuJLuk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Z88ybsPW0motXMgGt5j9PXQs4tu5isA3rG4AWG82Ps/vEeAGzLCXJcPjAImXV29rIIIDYKMOq3ETzkwcuBlqQatgmvSXJVptzzJ7remAc1arC+FvIX7amnR2IKtHGRBbWPtlyKFLeg0tTxWoG6tdHGo8IskmQVqhUEmXU8nQAS4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=QkuBpBO8; arc=none smtp.client-ip=62.89.141.173
+	 Content-Type:Content-Disposition:In-Reply-To; b=ZqosFQ1YWjayrRYhdKUvxhqTO1fMRi1Pp2aPoJWoeGzWR9Tg29wac5cL3AgKdvgVfwx5sYakTnAy42Yt7GTO7qWaZiJIrrFrlnOP4Kozpr0d6Zt6fOyz10S7L7IddMo844Fb/EtFFMn9K/QAJyl1ECociuEjmuVrY70DgTcLjQM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=nkPquOaN; arc=none smtp.client-ip=62.89.141.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="QkuBpBO8"
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="nkPquOaN"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
 	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
 	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=JoKjQBELUVBjdiYyNwdGEKoAi3K9bxWk3X3B7+w8jFk=; b=QkuBpBO8zEC+T8gsddF9EHqcqt
-	eLXdeOdCy9BOgwJkLm7BTiUMDd6myn3wwP7RyQX91xQFrbQ3RXITXQof3l/6SHEnnxsbqWgiJgezi
-	VL/fApRb5lbPBQfSjCpNTl0f+BnR2Q4ObT2b5fnGq7/YS871lWoIVOe0kfSJ30pwC2zlaDVLWQGM/
-	Ofz3Amhb68vXDpRiBxwk4XgsNVT1vNCL4sa1kmNxVWcAtnYxOaRFLPQ+l9J5ujnuJ7jDBScpu3cIV
-	K1kCav/2nbc9/J3C9s+b88nO58Ai0ovblYMRjwAuVj6NmjUBxgtIEYYHFtaR8SiHqr3NFxYiVoLw3
-	G3QT5Xng==;
+	bh=LeL/VcQehP2raq7vQszs+ZornlPb/JZTIx+OrLm0sdc=; b=nkPquOaNHZ76m/+lTAEupj1P8k
+	Ff++cG4e9058TLxSneRcYKGwbpXkEIcEOCdqOBc4bv5qe4s+UEPOqJiyt8IMrfhHrujS0a1TvSrRq
+	pngMXeZL/EOE+Im1chPvSfFjl98dbiOQzcCwX37Z9XteNVZoy7TIj6iJhmQG+1O6drc8UseF/ocyE
+	V2wqfk1lqu2rZMF6djwce2majk6ah2VigVjd2jKcMt2BZWffDb7vnSmcZBvQ+8bNAYGRP6wXhB0tN
+	YiMJ57rUcHXtwNoOfyZ6MeMDE4r51fr39qZv/AgwR8R9UPkrHFOlqAvFeU+AQzGiPKFd0oIBjt6la
+	ITehYA7g==;
 Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1sxrA2-00000001eLL-447g;
-	Mon, 07 Oct 2024 17:04:43 +0000
-Date: Mon, 7 Oct 2024 18:04:42 +0100
+	id 1sxrI9-00000001eSE-3Q7V;
+	Mon, 07 Oct 2024 17:13:05 +0000
+Date: Mon, 7 Oct 2024 18:13:05 +0100
 From: Al Viro <viro@zeniv.linux.org.uk>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>,
 	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Subject: Re: [PATCH v3 1/5] ovl: do not open non-data lower file for fsync
-Message-ID: <20241007170442.GO4017910@ZenIV>
+Message-ID: <20241007171305.GP4017910@ZenIV>
 References: <20241007141925.327055-1-amir73il@gmail.com>
  <20241007141925.327055-2-amir73il@gmail.com>
- <20241007143908.GK4017910@ZenIV>
- <CAOQ4uxjS9YMF6tiJTNBBSYSpWuHY+Ds3J_C6ySYDpe7-o5wRNw@mail.gmail.com>
+ <20241007165540.GN4017910@ZenIV>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -49,22 +48,40 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjS9YMF6tiJTNBBSYSpWuHY+Ds3J_C6ySYDpe7-o5wRNw@mail.gmail.com>
+In-Reply-To: <20241007165540.GN4017910@ZenIV>
 Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Mon, Oct 07, 2024 at 05:56:51PM +0200, Amir Goldstein wrote:
+On Mon, Oct 07, 2024 at 05:55:40PM +0100, Al Viro wrote:
 
-> You are right (again) I open code it, it looks much better:
+> > +static int ovl_upper_fdget(const struct file *file, struct fd *real, bool data)
+> > +{
+> > +	struct dentry *dentry = file_dentry(file);
+> > +	struct path realpath;
+> > +	enum ovl_path_type type;
+> > +
+> > +	if (data)
+> > +		type = ovl_path_realdata(dentry, &realpath);
 > 
->         /* Don't sync lower file for fear of receiving EROFS error */
-> -       upperfile = ovl_upper_file(file, datasync);
-> -       if (IS_ERR_OR_NULL(upperfile))
-> +       type = ovl_path_type(dentry);
-> +       if (!OVL_TYPE_UPPER(type) || (datasync && OVL_TYPE_MERGE(type)))
-> +               return 0;
-> +
-> +       ovl_path_upper(dentry, &upperpath);
+> ... but not here.
+> 
+> I can see the point of not doing that in ->fsync() after we'd already
+> done ovl_verify_lowerdata() at open time, but what's different about
+> ->read_iter() and friends that also come only after ->open()?
+> IOW, why is fdatasync() different from other data-access cases?
 
-OK, this answers my other question (re why skipping ovl_verify_lowerdata()
-in ovl_upper_file() is OK); you don't want to mess with the lowerdata
-anyway, so...
+Nevermind that one - the answer is that ovl_path_realdata()
+calls ovl_path_lowerdata() only in case when it sees
+!OVL_TYPE_UPPER(type) || OVL_TYPE_MERGE(type), which guarantees
+that the type check below that if (data) will fail anyway
+(check being (!OVL_TYPE_UPPER(type) || (data && OVL_TYPE_MERGE(type))).
+
+So this reduces the fdatasync case to
+	if (!OVL_TYPE_UPPER(type) || OVL_TYPE_MERGE(type))
+		fail;
+	ovl_path_upper(dentry, &realpath);
+just as the fsync case reduces to
+	if (!OVL_TYPE_UPPER(type))
+		fail;
+	ovl_path_upper(dentry, &realpath);
+
+making any lowerpath-related stuff irrelevant.
