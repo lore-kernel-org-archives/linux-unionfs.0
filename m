@@ -1,44 +1,45 @@
 Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7B17943AB3;
-	Sun,  6 Oct 2024 21:04:29 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 81CD2FC11;
+	Mon,  7 Oct 2024 03:03:15 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728248672; cv=none; b=qOvltR/83L1OxScqYkhtkT/D5U2vRf8+xdGOSxXhaqcCEzxL8ZRy56ceH6aAGJRhoNO7fYBvz9wpIgRJlZWhmbbvgQc2G7ZeL8xxalY6h4kSrgXebAIhhwa9ApJRqf2NgCt6gPmRTqtRR8ztFy/KyAQHLhHrr9RwruQ6jRp1vlU=
+	t=1728270198; cv=none; b=p0KUfdSgooZGL7vncUWBXNEkFOZ6jrrvO27cWdv1eePCncGtsmnYL45T1wa39KtN40BVycQhl5BcCDCUiSR21uLD/res6Gadq5xJhwbARKvo3U36EFWlfqs54effahHIrKG9SXiSCaxS9azqbWqTp8APe0J8YsxEK4uITVF+X5w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728248672; c=relaxed/simple;
-	bh=LFPOs77hp645yYvnX/4GodZEjj9N41KvHm1rmjuue3A=;
+	s=arc-20240116; t=1728270198; c=relaxed/simple;
+	bh=JfBOHA2Zp1d++xwrRm7cKi3Zi+Ot+yWu5ZZV64Fi8WM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=HO7g6dEl+HAbDK5hlBwo1Eu03cUfK/TV4TLVlKcAGQpGUh3Nx0yLmEqIiHD5kSrKU8jHcNjZUPClOYv5/OWeQTxo7k4z6NXnxLU5TTNCpgRRGr1+xzJw8/1TgQp9nl4oqTjALNhYqh6+x3T+DjQ5hMUGJSZb83mvC9rvcmpkD14=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=f4yW7p/g; arc=none smtp.client-ip=62.89.141.173
+	 Content-Type:Content-Disposition:In-Reply-To; b=bFDr8Vt2AypgVPa1RtV+hUYujOo0GFSyNtXVTsr3wybvEeIGhNKcIEIdZNGo5J5tjGXn18XtcgKhA8kYfzTxE7Zlzb0oHsp1TD/3NXNPSeoc2B1vWsl8g2OI5LIjvyzcr/GwBOk8yhv12DWzNdcnljSWCih83FQ33VvKJGuoJ5g=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=WLdC5NRE; arc=none smtp.client-ip=62.89.141.173
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="f4yW7p/g"
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="WLdC5NRE"
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
 	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
 	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
 	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=r1zTw7SSQA0dXdZ3/2I7G1RP4313IWnciS4Sa7QIgu4=; b=f4yW7p/gtwnOn1c2TjIvq82DIG
-	Sg579EWuuCKCaQJORLW6Oo6iXHKjJWea6QFodRQDV46uGOLPQJ8OFn5YFK7sFXGwpZL8SgOoO6bjT
-	Q9e8jGSG/FFKSe3AAFqPG1WjsmWelff3t7YCA4ECZCXdUWN8Moml6o0iNI8RWwCzRHyheKqz6jiry
-	JIinRY0qIUBmUizOtS4l44jceKDDM8dOOkLDAj9fFQSVOuBj3wFyaMUp22M2OwaKkaDVFOsvF5st9
-	ZgAsNfedkEUwOm+5qMrE86Od/Q2iDVDZgjtbafWGj8KHn8u85d0mkpYcP6ILqYTObkNwmoa2iEBC9
-	oQp8Bocg==;
+	bh=GwekB3aqW6ryImoefbQulyTYf/6BVTLgwz7dZJUzN/w=; b=WLdC5NREscvr5Qnp2ECEA9Fii7
+	Sk/3+q8jy508pzDVf1utoxNqVwrRwp7CJG6HZL4GvGUBlFtC4xa1x9R+HEW+sYllPdlRMgWebr12S
+	bOjql4AgfXi44t1rVx/GaauAqYr/BhMusQX5/IOYip22A3xG4eQrWvNFGqWkm0yUCiYnrYkvbKBfb
+	A8Y+Bf/LIKhVnoPT4MutKUh/3lQPHJYm2aTgFDf9zdUWjqOXsXN3jHwwwz73FYTbMvNMaoJzsxqpe
+	nhUQcPkFZMBYXhlajlk3ruWRrPZZ9sGEH9B1NxqxVrhgCo/w7t8pdN7ypf+oY0hWwvy8jgUgwZskh
+	V1rynMjw==;
 Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1sxYQU-00000001Pn2-1fpp;
-	Sun, 06 Oct 2024 21:04:26 +0000
-Date: Sun, 6 Oct 2024 22:04:26 +0100
+	id 1sxe1h-00000001U3Z-139g;
+	Mon, 07 Oct 2024 03:03:13 +0000
+Date: Mon, 7 Oct 2024 04:03:13 +0100
 From: Al Viro <viro@zeniv.linux.org.uk>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	Christian Brauner <brauner@kernel.org>,
 	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Subject: Re: [PATCH v2 2/4] ovl: stash upper real file in backing_file struct
-Message-ID: <20241006210426.GG4017910@ZenIV>
+Message-ID: <20241007030313.GH4017910@ZenIV>
 References: <20241006082359.263755-1-amir73il@gmail.com>
  <20241006082359.263755-3-amir73il@gmail.com>
+ <20241006210426.GG4017910@ZenIV>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -47,55 +48,59 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20241006082359.263755-3-amir73il@gmail.com>
+In-Reply-To: <20241006210426.GG4017910@ZenIV>
 Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Sun, Oct 06, 2024 at 10:23:57AM +0200, Amir Goldstein wrote:
-> +	/*
-> +	 * Usually, if we operated on a stashed upperfile once, all following
-> +	 * operations will operate on the stashed upperfile, but there is one
-> +	 * exception - ovl_fsync(datasync = false) can populate the stashed
-> +	 * upperfile to perform fsync on upper metadata inode.  In this case,
-> +	 * following read/write operations will not use the stashed upperfile.
-> +	 */
-> +	if (upperfile && likely(ovl_is_real_file(upperfile, realpath))) {
-> +		realfile = upperfile;
-> +		goto checkflags;
->  	}
->  
-> +	/*
-> +	 * If realfile is lower and has been copied up since we'd opened it,
-> +	 * open the real upper file and stash it in backing_file_private().
-> +	 */
-> +	if (unlikely(!ovl_is_real_file(realfile, realpath))) {
-> +		struct file *old;
-> +
-> +		/* Either stashed realfile or upperfile must match realinode */
-> +		if (WARN_ON_ONCE(upperfile))
-> +			return -EIO;
-> +
-> +		upperfile = ovl_open_realfile(file, realpath);
-> +		if (IS_ERR(upperfile))
-> +			return PTR_ERR(upperfile);
-> +
-> +		old = cmpxchg_release(backing_file_private_ptr(realfile), NULL,
-> +				      upperfile);
-> +		if (old) {
-> +			fput(upperfile);
-> +			upperfile = old;
-> +		}
-> +
-> +		/* Stashed upperfile that won the race must match realinode */
-> +		if (WARN_ON_ONCE(!ovl_is_real_file(upperfile, realpath)))
-> +			return -EIO;
-> +
-> +		realfile = upperfile;
-> +	}
-> +
-> +checkflags:
+On Sun, Oct 06, 2024 at 10:04:26PM +0100, Al Viro wrote:
+> On Sun, Oct 06, 2024 at 10:23:57AM +0200, Amir Goldstein wrote:
+> > +	/*
+> > +	 * Usually, if we operated on a stashed upperfile once, all following
+> > +	 * operations will operate on the stashed upperfile, but there is one
+> > +	 * exception - ovl_fsync(datasync = false) can populate the stashed
+> > +	 * upperfile to perform fsync on upper metadata inode.  In this case,
+> > +	 * following read/write operations will not use the stashed upperfile.
+> > +	 */
+> > +	if (upperfile && likely(ovl_is_real_file(upperfile, realpath))) {
+> > +		realfile = upperfile;
+> > +		goto checkflags;
+> >  	}
+> >  
+> > +	/*
+> > +	 * If realfile is lower and has been copied up since we'd opened it,
+> > +	 * open the real upper file and stash it in backing_file_private().
+> > +	 */
+> > +	if (unlikely(!ovl_is_real_file(realfile, realpath))) {
+> > +		struct file *old;
+> > +
+> > +		/* Either stashed realfile or upperfile must match realinode */
+> > +		if (WARN_ON_ONCE(upperfile))
+> > +			return -EIO;
+> > +
+> > +		upperfile = ovl_open_realfile(file, realpath);
+> > +		if (IS_ERR(upperfile))
+> > +			return PTR_ERR(upperfile);
+> > +
+> > +		old = cmpxchg_release(backing_file_private_ptr(realfile), NULL,
+> > +				      upperfile);
+> > +		if (old) {
+> > +			fput(upperfile);
+> > +			upperfile = old;
+> > +		}
+> > +
+> > +		/* Stashed upperfile that won the race must match realinode */
+> > +		if (WARN_ON_ONCE(!ovl_is_real_file(upperfile, realpath)))
+> > +			return -EIO;
+> > +
+> > +		realfile = upperfile;
+> > +	}
+> > +
+> > +checkflags:
+> 
+> Hmm...  That still feels awkward.  Question: can we reach that code with
+> 	* non-NULL upperfile
+> 	* false ovl_is_real_file(upperfile, realpath)
+> 	* true ovl_is_real_file(realfile, realpath)
+> Is that really possible?
 
-Hmm...  That still feels awkward.  Question: can we reach that code with
-	* non-NULL upperfile
-	* false ovl_is_real_file(upperfile, realpath)
-	* true ovl_is_real_file(realfile, realpath)
-Is that really possible?
+read() from metacopied file after fsync(), with the data still in lower
+layer?  Or am I misreading that?
