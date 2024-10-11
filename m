@@ -1,87 +1,106 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1A6D1E52D;
-	Mon,  7 Oct 2024 17:13:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 64815194AE8;
+	Fri, 11 Oct 2024 15:43:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728321189; cv=none; b=kj3dhqCdQ35L4hfkg0FJSbcAcUk4na3N948Qa1QX+6SUA1pPfnzGZddghHGZE6raS17Xpm29VAevrfQK4kzYvFFyRAFPQo1STcvtT6tYt27ByjpBhjV9huPUBJu1wuJ0z9uHilTY6v3m7U2t521pGFBsfvSqoO5fQMZihKD2Gog=
+	t=1728661422; cv=none; b=sQIp6Gm6EA3c5M2sBOBr0Ml/HxZQq5Ze/8mdvaxQYejbEKwFjGPBBKS1DeZoEPXRXLJDCj8+Sj+O/HK0/PhwvWAqzWyl7kB7AyrPwThPOjHAs1D4uxOvnv9rL/MLQbRabi2taK1ziN/Q1EjYld4R0T/j22Vu2Z0V6eR9lK6/TIc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728321189; c=relaxed/simple;
-	bh=wvrWQJtopaGCe+FQlg3DUNgNJoZsiZ3I1Ia3xnuJLuk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=ZqosFQ1YWjayrRYhdKUvxhqTO1fMRi1Pp2aPoJWoeGzWR9Tg29wac5cL3AgKdvgVfwx5sYakTnAy42Yt7GTO7qWaZiJIrrFrlnOP4Kozpr0d6Zt6fOyz10S7L7IddMo844Fb/EtFFMn9K/QAJyl1ECociuEjmuVrY70DgTcLjQM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=nkPquOaN; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	s=arc-20240116; t=1728661422; c=relaxed/simple;
+	bh=oZJ6c9mbFwpso+luISAwXCvvxhRmHFjUmeTxr2ZtRYU=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=Wuybo6VajPXEbL/uj+lwf5JJlwiTvNl2xpKeE//VEjGptkD04vyf1Q8LsXLEo75m5hyrIhGRLhA1kYkvO1U3dMFL4v3Vsu/qEDdz3QRwik4CtLJSnAaPpyLG8Uxdd/VIGN9YZbA6mAWVJSHkQ0dYxONCYaK1yg8d/Ba2vqRDiiI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=BNsvzNMM; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="nkPquOaN"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=LeL/VcQehP2raq7vQszs+ZornlPb/JZTIx+OrLm0sdc=; b=nkPquOaNHZ76m/+lTAEupj1P8k
-	Ff++cG4e9058TLxSneRcYKGwbpXkEIcEOCdqOBc4bv5qe4s+UEPOqJiyt8IMrfhHrujS0a1TvSrRq
-	pngMXeZL/EOE+Im1chPvSfFjl98dbiOQzcCwX37Z9XteNVZoy7TIj6iJhmQG+1O6drc8UseF/ocyE
-	V2wqfk1lqu2rZMF6djwce2majk6ah2VigVjd2jKcMt2BZWffDb7vnSmcZBvQ+8bNAYGRP6wXhB0tN
-	YiMJ57rUcHXtwNoOfyZ6MeMDE4r51fr39qZv/AgwR8R9UPkrHFOlqAvFeU+AQzGiPKFd0oIBjt6la
-	ITehYA7g==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1sxrI9-00000001eSE-3Q7V;
-	Mon, 07 Oct 2024 17:13:05 +0000
-Date: Mon, 7 Oct 2024 18:13:05 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v3 1/5] ovl: do not open non-data lower file for fsync
-Message-ID: <20241007171305.GP4017910@ZenIV>
-References: <20241007141925.327055-1-amir73il@gmail.com>
- <20241007141925.327055-2-amir73il@gmail.com>
- <20241007165540.GN4017910@ZenIV>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="BNsvzNMM"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB75EC4CEC3;
+	Fri, 11 Oct 2024 15:43:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728661422;
+	bh=oZJ6c9mbFwpso+luISAwXCvvxhRmHFjUmeTxr2ZtRYU=;
+	h=From:Subject:Date:To:Cc:From;
+	b=BNsvzNMMd/PsXhZ52RyIFtLQm3E+iZXj7MlnKvZBJOdVcqgW03xqYuQNAaotNo+IG
+	 efFe47nIswyuM1NQjHM9r+Q1/InD4BMxMPeDt++GYfqOo2cph7/+p4nDQYQZSp8sqp
+	 cXC/ih3yQNmtaz2IwnbiVTPHA9a9MN8JPC4iaQ1FMDBmXMepd2iyhbZ9XxOv2dsqf2
+	 e7ad3GhloEs6XXxZGZfHo7jSMZI8JpRXn4x6FYJTE6gJ10TQ59ZZwF+EvkyrFgMPju
+	 99zWtYpriu2qlogXhrQOHPQT0GrnpVxLqhZkoRIMZ9EUliPliAcmDYBgR9+Tgk0V+u
+	 rPwEw5tbvtUoA==
+From: Christian Brauner <brauner@kernel.org>
+Subject: [PATCH RFC 0/3] ovl: specify layers via file descriptors
+Date: Fri, 11 Oct 2024 17:43:34 +0200
+Message-Id: <20241011-work-overlayfs-v1-0-e34243841279@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241007165540.GN4017910@ZenIV>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAKdHCWcC/x2MywrCMBAAf6Xs2ZRmFV9XwQ/wKh426cYGbSK7E
+ pXSfzd6nIGZCZQlssK+mUC4RI05VbCLBvxA6com9pUBO1zZzlrzynIzubDc6RPU9M4H2iEuebu
+ BGj2EQ3z/h2c4HQ9wqdKRsnFCyQ+/10j6ZGnLurVoxCPM8xfrXfvIiAAAAA==
+X-Change-ID: 20241011-work-overlayfs-dbcfa9223e87
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: Josef Bacik <josef@toxicpanda.com>, linux-fsdevel@vger.kernel.org, 
+ linux-unionfs@vger.kernel.org, Christian Brauner <brauner@kernel.org>
+X-Mailer: b4 0.15-dev-2a633
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1987; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=oZJ6c9mbFwpso+luISAwXCvvxhRmHFjUmeTxr2ZtRYU=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaRzuq+psOJ28qwUmL9xVnbkv6nuK9PjWeW3ueq/O82bn
+ ml1l/V+RykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwET+yTEyrD988yfH5SUTdqfF
+ am73Ttf65hKTt/mI5e6nJVe+HDct62D4xfRAWDuxTGqhytelpt94Ft87LTzvnixHkY3n85NprHr
+ /WAA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-On Mon, Oct 07, 2024 at 05:55:40PM +0100, Al Viro wrote:
+Hey,
 
-> > +static int ovl_upper_fdget(const struct file *file, struct fd *real, bool data)
-> > +{
-> > +	struct dentry *dentry = file_dentry(file);
-> > +	struct path realpath;
-> > +	enum ovl_path_type type;
-> > +
-> > +	if (data)
-> > +		type = ovl_path_realdata(dentry, &realpath);
-> 
-> ... but not here.
-> 
-> I can see the point of not doing that in ->fsync() after we'd already
-> done ovl_verify_lowerdata() at open time, but what's different about
-> ->read_iter() and friends that also come only after ->open()?
-> IOW, why is fdatasync() different from other data-access cases?
+Currently overlayfs only allows specifying layers through path names.
+This is inconvenient for users such as systemd that want to assemble an
+overlayfs mount purely based on file descriptors.
 
-Nevermind that one - the answer is that ovl_path_realdata()
-calls ovl_path_lowerdata() only in case when it sees
-!OVL_TYPE_UPPER(type) || OVL_TYPE_MERGE(type), which guarantees
-that the type check below that if (data) will fail anyway
-(check being (!OVL_TYPE_UPPER(type) || (data && OVL_TYPE_MERGE(type))).
+When porting overlayfs to the new mount api I already provided patches
+for this but we decided to keep this work separate. This is a revamp of
+the patchset as the use-case has become more urgent.
 
-So this reduces the fdatasync case to
-	if (!OVL_TYPE_UPPER(type) || OVL_TYPE_MERGE(type))
-		fail;
-	ovl_path_upper(dentry, &realpath);
-just as the fsync case reduces to
-	if (!OVL_TYPE_UPPER(type))
-		fail;
-	ovl_path_upper(dentry, &realpath);
+This introduces the new mount options:
 
-making any lowerpath-related stuff irrelevant.
+lowerdir_fd+
+datadir_fd+
+upperdir_fd
+workdir_fd
+
+which can be used as follows:
+
+fsconfig(fd_overlay, FSCONFIG_SET_FD, "upperdir_fd+", NULL, fd_upper);
+fsconfig(fd_overlay, FSCONFIG_SET_FD, "workdir_fd+", NULL, fd_work);
+fsconfig(fd_overlay, FSCONFIG_SET_FD, "lowerdir_fd+", NULL, fd_lower1);
+fsconfig(fd_overlay, FSCONFIG_SET_FD, "lowerdir_fd+", NULL, fd_lower2);
+
+The selftest contains an example for this.
+
+The mount api doesn't allow overloading of mount option parameters
+(except for strings and flags). Making this work for arbitrary
+parameters would be quite ugly or file descriptors would have to be
+special cased. Neither is very appealing. I do prefer the *_fd mount
+options because they aren't ambiguous.
+
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+Christian Brauner (3):
+      ovl: specify layers via file descriptors
+      selftests: use shared header
+      selftests: add overlayfs fd mounting selftests
+
+ fs/overlayfs/params.c                              | 132 +++++++++++++++++----
+ .../selftests/filesystems/overlayfs/.gitignore     |   1 +
+ .../selftests/filesystems/overlayfs/Makefile       |   2 +-
+ .../selftests/filesystems/overlayfs/dev_in_maps.c  |  27 +----
+ .../filesystems/overlayfs/set_layers_via_fds.c     | 122 +++++++++++++++++++
+ .../selftests/filesystems/overlayfs/wrappers.h     |  47 ++++++++
+ 6 files changed, 281 insertions(+), 50 deletions(-)
+---
+base-commit: 8cf0b93919e13d1e8d4466eb4080a4c4d9d66d7b
+change-id: 20241011-work-overlayfs-dbcfa9223e87
+
