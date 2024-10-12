@@ -1,189 +1,133 @@
-Received: from mail-qt1-f173.google.com (mail-qt1-f173.google.com [209.85.160.173])
+Received: from mail-qk1-f182.google.com (mail-qk1-f182.google.com [209.85.222.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2FE7F2581;
-	Sat, 12 Oct 2024 07:33:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 12313142900;
+	Sat, 12 Oct 2024 08:20:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728718411; cv=none; b=nWP5KirXb9LNeYWuNKRfTr1dXmfWzsJDjs6fq4hXcA/YqG5Erpbw5tsA9Y/Xymitn7J3MDImI2ZwzwtXEvfrbzxZQ9tG+JfJDYSa0lD0kkwBauRVaelOws2CbbAXqt0lwOEpgpDu487qvrSPB0dYAihXNW+HIUIwkJM6Yv9wQDs=
+	t=1728721220; cv=none; b=IIYk6T+UiWmTeM5qq9j6HCA4p2VtwqtXfyXAhnX4CH3L3cY8AylF+bi4EYpOCLZKfW7DNPsjyuVvlua+RpY3i/O1Vt3/ytimGBYfKv3BacrF0O08BnDOIX27YecvOBTJ5vSdaxm1tGTPkyYGopHUXQM2XtjXKUdF6aZC8S8KjNo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728718411; c=relaxed/simple;
-	bh=i+qpCbPrO/eSoJFAMLl6qF6BBDwYHL3SK1deEDWlklY=;
+	s=arc-20240116; t=1728721220; c=relaxed/simple;
+	bh=Ww84bv8TwvRAQqWns87DxxaJG7I4nX1LpT5WPrYsbnI=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=WnDjYIzBJ/aaYBUv43JRnzJDhFojpmOx/vtmOKmRD1CJXeObjyKBW3ZXev3kv9orTnwLe6FhW6YO8GjGbL9YY59LEgqtn9gtoYMLZ+PLEO0v9pzTrWbPMN8zpZSWKYFF7YzBkO8LSpMtFbNJ9qLD/3cGHnsRpk55b6aoMj9y/Oc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=LXq1FDOp; arc=none smtp.client-ip=209.85.160.173
+	 To:Cc:Content-Type; b=aszJ40tjMKs6ZoWS5tDdOxMBLMibPs/5g2GmnDl6P4/P6Iu5HSGpDPOUdhIyMYslasXbD3rKtewAd5/ssuLF2kk2lIQMjv3eHwnnSSBUvhrnGq2tHge15KrBzs3x6oNDoYYj2s8vhJJ88Xiet7x4KhEcIFHif4K9XLs79QiPj7M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ITQ5biE+; arc=none smtp.client-ip=209.85.222.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="LXq1FDOp"
-Received: by mail-qt1-f173.google.com with SMTP id d75a77b69052e-4603d3e4552so28595601cf.1;
-        Sat, 12 Oct 2024 00:33:29 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ITQ5biE+"
+Received: by mail-qk1-f182.google.com with SMTP id af79cd13be357-7b1109e80f8so200893585a.0;
+        Sat, 12 Oct 2024 01:20:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1728718409; x=1729323209; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1728721216; x=1729326016; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=RfyveZ4fncvJeGQhvMdUVtprtKTMQvC7P7ns4KwktqY=;
-        b=LXq1FDOpDE/7E4sI7i55nO0O9g+6zFEBUPsxEo6FxGX4SebYWNMo9pQxPA6+yxwR4X
-         vBkryiieQLRqT/TY3P6lWsDC2QY/mKmO/nlLpgJcqALn3/ow6/iu3wSrGl2EruksA+xc
-         1melaBVhG2ypkyWZjgsTzMdHD4m0OSjx4vKtj7vAdumbRiAP/Xav+yyhxnkSaE+vrc6n
-         q6v41iqzPmmKOzvZZ/VEbMQ9B55R6+bLTPW1rvtJBVhwlstiHEtYLjDCCHXV9lb1nrI9
-         fPWevv2LZgYZrm0fWpvN23vqgNehuPzmqI1cexD28HddKkuHOjXjfTCk+HifU79K1eFl
-         EWzA==
+        bh=ASZJRHRzd12aR30xXKPDvjFpyvj535/6nPbl6M9mdx0=;
+        b=ITQ5biE+k+cL2xr2v92Fd9+GWxFy95nUxRfnSRvMjpexCIcLnrzfV+Oh0vKGlqHbn3
+         A1v+UgAKREfJcejhJoxpvtXC1m40Jq5h+PtxooPWWugm4zfN2hyoZirfVhs+S7vUBq/A
+         I6QLBux8E8a+DDMtEYQzt8vwgfVNCAifNDWCqtPq05BrQ/clC0IRJ78MX2gJMfXDXmK9
+         tYA66GjVcj4gh+H6ipj0IcpJ8EEQzlyZDKoHbWY5zM5752w/SW1pohFkh8V36v2Tygh4
+         7g5XkLCC9df4nWwqJHyP4jzM0I7w08wN5mncF+/qvxJv0FauQLP52lCIGunXEWFGeJaX
+         6y2g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728718409; x=1729323209;
+        d=1e100.net; s=20230601; t=1728721216; x=1729326016;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=RfyveZ4fncvJeGQhvMdUVtprtKTMQvC7P7ns4KwktqY=;
-        b=tqFfZPNSCyHrjTdCpYnfa+evJyx9gFgFM/nn1rsQ+GrNUaJRpFUjDnTNeCzmRALFD0
-         Li15xdgwyaPlrHeoRCI4fNKvp3ibUZ5VHf6xU2uuwsjRusnnQercFKToB8eftqutKMVl
-         8Sljb63t8ujLwNrv04u4KyAnlASZBwrPJfKMwZTLW+7Ki1EjXwVgw/Qt+FQRzmV2X96/
-         sfwzwbzisIxcCLe6uiYklbxLcZIJcU7MgRpda6bWtkKMVUGOarXSNmcuB1ztuJ5x/1zN
-         /uPoxp+mra5rITCx8iPR/K/9c45rMiUn+M0D7o90BNnMNcO1qguh2xGrRKSwN/zXE8Cr
-         nwOg==
-X-Forwarded-Encrypted: i=1; AJvYcCUGEzmW2CW6GW1Qrjt/y41t2+ltEdoOmEbcVxtUpzLU7t5AXj2xJ7pZHWv7TGmR1fCzbt7WSPdCfLFgp7+sfg==@vger.kernel.org, AJvYcCWBvl24pFJuO2ffur63O7BNpmR3SgWRRinCnKOHVSKvuazQBEHH0TTzfoK327XRhZkOEBwIvtY/VIKCAXoG@vger.kernel.org
-X-Gm-Message-State: AOJu0YxeAdX6J/gTzZMbDhCZAFyI9u1KcKsRa/MSv64ogLVW7j9S5AvQ
-	zFL7BPkTj6lXUgOqrI1iwNrED/znhg9qj0f/7bGel///sU4eRtA+sYLjkUzP/viNUiCr3uuWAnu
-	MKs0IQR7e/i/Ohr6e/efjh6iTYWcFRtdhcvY=
-X-Google-Smtp-Source: AGHT+IE7jompiXcFd9gzUdLD0vditTTdJfB1YGyP55gYpOM2NbjO1grAXZsRHmMFoUuqqz7Gfn+MQKe0nQdZMCnKGCw=
-X-Received: by 2002:ac8:58c6:0:b0:45d:7987:3acb with SMTP id
- d75a77b69052e-460583aec89mr41869111cf.10.1728718408946; Sat, 12 Oct 2024
- 00:33:28 -0700 (PDT)
+        bh=ASZJRHRzd12aR30xXKPDvjFpyvj535/6nPbl6M9mdx0=;
+        b=LVqWAKBjinJ4b03Bs/q1lhtr6QeZ9HCmjlowXfMGiEtmRKammp0wnof5PvDgksgLjQ
+         UB+AR/HpswoonRkt0G9G53SJshtGbmULLvt/GFWAs5btlwxtw2ihPEeCYpvy0NuhPmn+
+         dl2gv0QF+NfzvYeBWm1aqijB86+SDK8GPkApidhCe/CPIvS0AKxXpS+nwvJgwzlvDnFr
+         ZRiBTJGfY/DquIHBN/Y52QelMLHkVz1HkaNJcJ8+vNsMHfquU659/EQ9mvHzEU9IH2V9
+         oVXxr3XhUMtN21sY9UHw4Y6hngDEURYQ6CJvQ+ZtHrb9U2dHexTt7Bq1gCPKwlmAylrX
+         nqpA==
+X-Forwarded-Encrypted: i=1; AJvYcCV+RIATRx1EwDVnqrGX8EiRj3Hvzs3d8X45+wPEKyw0aigNa19RunkaTU3tqifv34PHhdYmK/oaw5njO5G5eg==@vger.kernel.org, AJvYcCVDkuwWdfWvm1AMce70Qhp5OmPraW73OYu2eXNdpL1N6q/O8k8uZF0fS7L3HmYxN3tEvGg17zWnnE2oIPgE@vger.kernel.org
+X-Gm-Message-State: AOJu0YwxO6XPy2XlNMctbHqe/BhEsUezvWXZ6J7kUakciFGzvpdvxod0
+	ZibEbz0N24LG2G6L/cVTTGZAipWNav5ViEb8NKP8vL0/05Zfv7UZveV1V5uBaE3DfdbkpO5H63w
+	jIeZws2XDp8pbzFa9e7A2aHGRsZ0=
+X-Google-Smtp-Source: AGHT+IGfanhdNAr1SPYoWqfhlK5/UssFSi6yPJh69laXkRLonyXhrbG1BQhd63wKOPQjlnMtEBPn1u4BYL4cpRYulF8=
+X-Received: by 2002:a05:620a:1aaa:b0:7a9:a744:f989 with SMTP id
+ af79cd13be357-7b1210080d5mr333012185a.46.1728721215807; Sat, 12 Oct 2024
+ 01:20:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241011-work-overlayfs-v2-0-1b43328c5a31@kernel.org> <20241011-work-overlayfs-v2-3-1b43328c5a31@kernel.org>
-In-Reply-To: <20241011-work-overlayfs-v2-3-1b43328c5a31@kernel.org>
+References: <20241011-work-overlayfs-v2-0-1b43328c5a31@kernel.org>
+ <20241011-work-overlayfs-v2-1-1b43328c5a31@kernel.org> <CAOQ4uxgGiXN-X1KbZZT=pnbhRbUSPNUJscVHn9J=Fii6fZs-cw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgGiXN-X1KbZZT=pnbhRbUSPNUJscVHn9J=Fii6fZs-cw@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Sat, 12 Oct 2024 09:33:18 +0200
-Message-ID: <CAOQ4uxiG47z_YE2idpuEkSc5wA5F9KzSXf3endewnVnOQZnZYA@mail.gmail.com>
-Subject: Re: [PATCH RFC v2 3/4] selftests: use shared header
+Date: Sat, 12 Oct 2024 10:20:04 +0200
+Message-ID: <CAOQ4uxi2K=RHBCv+f9B5M5=FjWkCOa1U5GKFCm8XVZpXkeP_UA@mail.gmail.com>
+Subject: Re: [PATCH RFC v2 1/4] fs: add helper to use mount option as path or fd
 To: Christian Brauner <brauner@kernel.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, Josef Bacik <josef@toxicpanda.com>, 
 	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 11, 2024 at 11:46=E2=80=AFPM Christian Brauner <brauner@kernel.=
-org> wrote:
+On Sat, Oct 12, 2024 at 9:21=E2=80=AFAM Amir Goldstein <amir73il@gmail.com>=
+ wrote:
 >
-> So that we don't have to redefine the same system calls over and over.
+> On Fri, Oct 11, 2024 at 11:46=E2=80=AFPM Christian Brauner <brauner@kerne=
+l.org> wrote:
+> >
+> > Allow filesystems to use a mount option either as a
+> > path or a file descriptor.
+> >
+> > Signed-off-by: Christian Brauner <brauner@kernel.org>
 >
-> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> Looks sane
+>
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+>
+> > ---
+> >  fs/fs_parser.c            | 19 +++++++++++++++++++
+> >  include/linux/fs_parser.h |  5 ++++-
+> >  2 files changed, 23 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/fs/fs_parser.c b/fs/fs_parser.c
+> > index 24727ec34e5aa434364e87879cccf9fe1ec19d37..a017415d8d6bc91608ece5d=
+42fa4bea26e47456b 100644
+> > --- a/fs/fs_parser.c
+> > +++ b/fs/fs_parser.c
+> > @@ -308,6 +308,25 @@ int fs_param_is_fd(struct p_log *log, const struct=
+ fs_parameter_spec *p,
+> >  }
+> >  EXPORT_SYMBOL(fs_param_is_fd);
+> >
+> > +int fs_param_is_fd_or_path(struct p_log *log, const struct fs_paramete=
+r_spec *p,
+> > +                          struct fs_parameter *param,
+> > +                          struct fs_parse_result *result)
+> > +{
+> > +       switch (param->type) {
+> > +       case fs_value_is_string:
+> > +               return fs_param_is_string(log, p, param, result);
+> > +       case fs_value_is_file:
+> > +               result->uint_32 =3D param->dirfd;
+> > +               if (result->uint_32 <=3D INT_MAX)
+> > +                       return 0;
+> > +               break;
+> > +       default:
+> > +               break;
+> > +       }
+> > +       return fs_param_bad_value(log, param);
+> > +}
+> > +EXPORT_SYMBOL(fs_param_is_fd_or_path);
+> > +
 
-Heh, I forgot that this selftest existed, even though I clearly reviewed it
-I will even run it from now on :)
+I just noticed that it is a little weird that fsparam_is_fd() accepts a num=
+eric
+string while fsparam_is_fd_or_path() does not.
+Not to mention that fsparam_is_fd_or_path does not accept type filename.
 
-Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Obviously a helper name fs_param_is_file_or_string() wouldn't have
+raised those questions.
+I will let you decide if this is something to worry about.
 
-> ---
->  .../selftests/filesystems/overlayfs/dev_in_maps.c  | 27 +-------------
->  .../selftests/filesystems/overlayfs/wrappers.h     | 43 ++++++++++++++++=
-++++++
->  2 files changed, 44 insertions(+), 26 deletions(-)
->
-> diff --git a/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c =
-b/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c
-> index 2862aae58b79acbe175ab6b36b42798bb99a2225..3b796264223f81fc753d0adae=
-ccc04077023520b 100644
-> --- a/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c
-> +++ b/tools/testing/selftests/filesystems/overlayfs/dev_in_maps.c
-> @@ -17,32 +17,7 @@
->
->  #include "../../kselftest.h"
->  #include "log.h"
-> -
-> -static int sys_fsopen(const char *fsname, unsigned int flags)
-> -{
-> -       return syscall(__NR_fsopen, fsname, flags);
-> -}
-> -
-> -static int sys_fsconfig(int fd, unsigned int cmd, const char *key, const=
- char *value, int aux)
-> -{
-> -       return syscall(__NR_fsconfig, fd, cmd, key, value, aux);
-> -}
-> -
-> -static int sys_fsmount(int fd, unsigned int flags, unsigned int attr_fla=
-gs)
-> -{
-> -       return syscall(__NR_fsmount, fd, flags, attr_flags);
-> -}
-> -static int sys_mount(const char *src, const char *tgt, const char *fst,
-> -               unsigned long flags, const void *data)
-> -{
-> -       return syscall(__NR_mount, src, tgt, fst, flags, data);
-> -}
-> -static int sys_move_mount(int from_dfd, const char *from_pathname,
-> -                         int to_dfd, const char *to_pathname,
-> -                         unsigned int flags)
-> -{
-> -       return syscall(__NR_move_mount, from_dfd, from_pathname, to_dfd, =
-to_pathname, flags);
-> -}
-> +#include "wrappers.h"
->
->  static long get_file_dev_and_inode(void *addr, struct statx *stx)
->  {
-> diff --git a/tools/testing/selftests/filesystems/overlayfs/wrappers.h b/t=
-ools/testing/selftests/filesystems/overlayfs/wrappers.h
-> new file mode 100644
-> index 0000000000000000000000000000000000000000..4f99e10f7f018fd9a7be5263f=
-68d34807da4c53c
-> --- /dev/null
-> +++ b/tools/testing/selftests/filesystems/overlayfs/wrappers.h
-> @@ -0,0 +1,43 @@
-> +// SPDX-License-Identifier: GPL-2.0
-> +//
-> +#ifndef __SELFTEST_OVERLAYFS_WRAPPERS_H__
-> +#define __SELFTEST_OVERLAYFS_WRAPPERS_H__
-> +
-> +#define _GNU_SOURCE
-> +
-> +#include <linux/types.h>
-> +#include <linux/mount.h>
-> +#include <sys/syscall.h>
-> +
-> +static inline int sys_fsopen(const char *fsname, unsigned int flags)
-> +{
-> +       return syscall(__NR_fsopen, fsname, flags);
-> +}
-> +
-> +static inline int sys_fsconfig(int fd, unsigned int cmd, const char *key=
-,
-> +                              const char *value, int aux)
-> +{
-> +       return syscall(__NR_fsconfig, fd, cmd, key, value, aux);
-> +}
-> +
-> +static inline int sys_fsmount(int fd, unsigned int flags,
-> +                             unsigned int attr_flags)
-> +{
-> +       return syscall(__NR_fsmount, fd, flags, attr_flags);
-> +}
-> +
-> +static inline int sys_mount(const char *src, const char *tgt, const char=
- *fst,
-> +                           unsigned long flags, const void *data)
-> +{
-> +       return syscall(__NR_mount, src, tgt, fst, flags, data);
-> +}
-> +
-> +static inline int sys_move_mount(int from_dfd, const char *from_pathname=
-,
-> +                                int to_dfd, const char *to_pathname,
-> +                                unsigned int flags)
-> +{
-> +       return syscall(__NR_move_mount, from_dfd, from_pathname, to_dfd,
-> +                      to_pathname, flags);
-> +}
-> +
-> +#endif
->
-> --
-> 2.45.2
->
+Thanks,
+Amir.
