@@ -1,194 +1,114 @@
-Received: from mail-il1-f200.google.com (mail-il1-f200.google.com [209.85.166.200])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A213A12CD96
-	for <linux-unionfs@vger.kernel.org>; Mon, 14 Oct 2024 08:58:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.200
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA96D15852E;
+	Mon, 14 Oct 2024 09:41:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728896316; cv=none; b=Xy1H3PK0cXLMuLejJcjY1IEPDoSPAyBomQCN5feAfvULyK4CmJjdizdtbUL4ECikXN63a83VcJL4dzV5BJQ4u4XzpkiAcp237D/tsdeMZ7hiAIZHLWJtqJlVIKgFdOyDKhErCXAWsOiRyKNE07tNBumi7R5CTbxPyZAD+t9e+qM=
+	t=1728898868; cv=none; b=u9W1tDSjvz5FgQO1Zv99YmIiXBeIUBL2hGHjn43+S2oLbJwCr5TcNeUzCOlLILMHNYOgGkRes1Lilvb1c+hWHsoLbmT3+GkY/5tcrVNs70rkW4cXbImMFb70yiyJNaiZKv7we7Mq3OIlU30vYQzsTUqOlUcUK9cjjIkQUOOot9U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728896316; c=relaxed/simple;
-	bh=TStZyu8j/ZM33Ne/PPDdyHIoix6y4SaFuHb6f5Xbzbw=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=o+b5otUI3F/r3pgqNX9hr2j7+NHZp7AWgSXCFWnFV3AcmdmG4MNju7QjaUTm6ZxT9jO9FdFGVr9+tYpcoL9kFHR9J6T5ogHpnEDoF+Q6m5yuF0Wr/jJ9XoPnqmL67lGwtYE7Fjpj1ON8I1aekxpjfECQKWiQWk4qFKgOibqo0mM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.200
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f200.google.com with SMTP id e9e14a558f8ab-3a3cc9fa12dso7917555ab.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Oct 2024 01:58:34 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728896313; x=1729501113;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=A5hLPwUtSaWC1R9AldPVcKRZukS7UuyAgJR0eNPYzOo=;
-        b=vQ7em6/jVMldRIeWiT20qTRLTe2eiqxwzYwp8d+pZVLwbfuI3EkU18Jf8ccDxYOByp
-         FgHaWRj5SGI0Wb7TuqkbbYm8Hy+k3uVMZcvenNcRsjtyEghYTQvRkmeNAxRzKDP7vUq5
-         O3nmSbjBPT0soIUfzYAmnTR4sfeXh2KIJuVolFtM4ukF+mzkXWeW9+K73gs4Q2Sy5D/o
-         0OEaDrs7WbCGwi5djLBm5nIW5v1JUaROxVDLx6Y+KODS8RLs1IOSA26U2ZtkGCfT7VSD
-         SPlsBb7+HoaIGe3T27oUWHPSL6Scbq2JjBQYEVUw3uW9bO3ucCAxCwriNkKOv/TMhpqs
-         YiaQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUqDONh/Iko8IlAQcqnK4Q2J+P+KBxWz42VilnGSMGvVw+TTdhcRehr98TCA/64wfeabXxiNyXX6ane4dVi@vger.kernel.org
-X-Gm-Message-State: AOJu0YwI1DVMNUWYVzOS4DxfHGXfu4HLt5Wu9PLrJBYMgi/6Y32F73ZZ
-	0KiuNlKSFvD3/DEzDpj8Zx5sLeordd69gZVQ+nxaNuZnmzZCXzMalZOrCCDtpVArtrI2za2WVtT
-	bV8alHkkZei/DOMpBRKuOaAl+scIOgsSPissmoNU6mVGvAMxcVi448VA=
-X-Google-Smtp-Source: AGHT+IEhDLmhOzUJrA4eULFmcZ7upwVC/zktUY8tSdjmq3JB97fv2Bu5IRjP8fDyhjxJ6KkF0/ENNOR9MmyDg0qe1MknykIw3vzL
+	s=arc-20240116; t=1728898868; c=relaxed/simple;
+	bh=ovamm8oTH0n34MwRCAL67cOIII8Ui+4Ioy2CcJA6g98=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=EWGQf9AXYCfXVkZWQvjIXdBUn/8RoGvTlLO39EqZ7iKjttevM4RK0aVnUJxr7pHeDzq5j+uf5DY5hX4lH1XaFgtK5PHCnjQtcUV2nNcyojyWd2PxOlX/5AcAppFuICjZxfsKQDV2rtjW5f9/trxcz2PqWxNWCMpiyCMsN6UPgXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=d0mnqt8i; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="d0mnqt8i"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1E99BC4CECE;
+	Mon, 14 Oct 2024 09:41:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728898867;
+	bh=ovamm8oTH0n34MwRCAL67cOIII8Ui+4Ioy2CcJA6g98=;
+	h=From:Subject:Date:To:Cc:From;
+	b=d0mnqt8iz5qRga9i88TqH01vCZG/77CJwZCIMFiiPyP0tSV3sfLeaKitzX1M2YbtG
+	 M10/abR1eJ46B3dP2F7O2m+WWwRFR0ZnOGse+Nq4ACErJ+iSZymO/znW2C7mMRFQYa
+	 Jbch/SsrkxmKFdIJKpvW96JQ+FZYSGFxmqvXv7AzCOdLOFZXNsBJAioQxobYm22tji
+	 Bhjg6wpz7mKPKnQEZP/bVEOMWvc4yAOJ0SOJegyMXyO31IObvQJk6pjMjZb7+bYbna
+	 qX7LGobMwkfmuBkggF9N7cpZhzyac9YRZ2VBRKANchVHnXBG6LWZwoLaHqJ+FNEm12
+	 js+K+yK13rcVw==
+From: Christian Brauner <brauner@kernel.org>
+Subject: [PATCH v3 0/5] ovl: file descriptors based layer setup
+Date: Mon, 14 Oct 2024 11:40:55 +0200
+Message-Id: <20241014-work-overlayfs-v3-0-32b3fed1286e@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1aaa:b0:3a0:ae35:f2eb with SMTP id
- e9e14a558f8ab-3a3bcdfdf39mr50059535ab.19.1728896313660; Mon, 14 Oct 2024
- 01:58:33 -0700 (PDT)
-Date: Mon, 14 Oct 2024 01:58:33 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <670cdd39.050a0220.4cbc0.0048.GAE@google.com>
-Subject: [syzbot] [overlayfs?] general protection fault in ovl_real_file_path
-From: syzbot <syzbot+aaf95b6e8fc9d906d8a7@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIACfnDGcC/33OwQ7CIBAE0F8xnKXpLqjVk/9hPADdtkQtZjGoa
+ frvQm8e9DiHNzOTiMSeojisJsGUfPRhzEGtV8INZuxJ+jZngTVqqAHkM/BFhkR8Ne8uyta6zuw
+ RFTU7kdGdqfOvpfB0ztmaSNKyGd1Qam4mPoirtK0AJTssZPDxEfi9XEhQ4M+1BLKWpDRq1WjA3
+ f54IR7pWgXuRZlL+N9j9mC1Uti4jVHw5ed5/gArNdxGEAEAAA==
+X-Change-ID: 20241011-work-overlayfs-dbcfa9223e87
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: Josef Bacik <josef@toxicpanda.com>, linux-fsdevel@vger.kernel.org, 
+ linux-unionfs@vger.kernel.org, Christian Brauner <brauner@kernel.org>
+X-Mailer: b4 0.15-dev-2a633
+X-Developer-Signature: v=1; a=openpgp-sha256; l=2481; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=ovamm8oTH0n34MwRCAL67cOIII8Ui+4Ioy2CcJA6g98=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTzPDe85262f+Elq8Wzz4qt1Vz4f/XpSvUHS+ckmy4yT
+ jz+N521saOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAixVMY/rtkan+Mc9bmkfl1
+ RNHBcirTzMke30K1uzTeHXtmyszvtY2R4X77rAn1022c41N8zz4oveUksXhLutBRFvl/azrPmvz
+ ezgcA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-Hello,
+Hey,
 
-syzbot found the following issue on:
+Currently overlayfs only allows specifying layers through path names.
+This is inconvenient for users such as systemd that want to assemble an
+overlayfs mount purely based on file descriptors.
 
-HEAD commit:    d61a00525464 Add linux-next specific files for 20241011
-git tree:       linux-next
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=1688fb27980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=8554528c7f4bf3fb
-dashboard link: https://syzkaller.appspot.com/bug?extid=aaf95b6e8fc9d906d8a7
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=10d5705f980000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1188fb27980000
+When porting overlayfs to the new mount api I already mentioned this.
+This enables user to specify both:
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/f615720e9964/disk-d61a0052.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/c4a45c7583c6/vmlinux-d61a0052.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/d767ab86d0d0/bzImage-d61a0052.xz
+     fsconfig(fd_overlay, FSCONFIG_SET_FD, "upperdir+", NULL, fd_upper);
+     fsconfig(fd_overlay, FSCONFIG_SET_FD, "workdir+",  NULL, fd_work);
+     fsconfig(fd_overlay, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_lower1);
+     fsconfig(fd_overlay, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_lower2);
 
-The issue was bisected to:
+in addition to:
 
-commit 181d71062eef699385d92b92f8ad3cbf03e61267
-Author: Amir Goldstein <amir73il@gmail.com>
-Date:   Mon Oct 7 13:22:29 2024 +0000
+     fsconfig(fd_overlay, FSCONFIG_SET_STRING, "upperdir+", "/upper",  0);
+     fsconfig(fd_overlay, FSCONFIG_SET_STRING, "workdir+",  "/work",   0);
+     fsconfig(fd_overlay, FSCONFIG_SET_STRING, "lowerdir+", "/lower1", 0);
+     fsconfig(fd_overlay, FSCONFIG_SET_STRING, "lowerdir+", "/lower2", 0);
 
-    ovl: allocate a container struct ovl_file for ovl private context
+The selftest contains an example for this.
 
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=11c41440580000
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=13c41440580000
-console output: https://syzkaller.appspot.com/x/log.txt?x=15c41440580000
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+Changes in v3:
+- Add documentation into overlayfs.rst.
+- Rename new mount api parsing helper.
+- Change cleanup scope in helper.
+- Link to v2: https://lore.kernel.org/r/20241011-work-overlayfs-v2-0-1b43328c5a31@kernel.org
 
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+aaf95b6e8fc9d906d8a7@syzkaller.appspotmail.com
-Fixes: 181d71062eef ("ovl: allocate a container struct ovl_file for ovl private context")
-
-Oops: general protection fault, probably for non-canonical address 0xdffffc000000000d: 0000 [#1] PREEMPT SMP KASAN PTI
-KASAN: null-ptr-deref in range [0x0000000000000068-0x000000000000006f]
-CPU: 1 UID: 0 PID: 5235 Comm: syz-executor410 Not tainted 6.12.0-rc2-next-20241011-syzkaller #0
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 09/13/2024
-RIP: 0010:file_inode include/linux/fs.h:1124 [inline]
-RIP: 0010:ovl_is_real_file fs/overlayfs/file.c:100 [inline]
-RIP: 0010:ovl_real_file_path+0xa5/0x2e0 fs/overlayfs/file.c:118
-Code: 03 4d 89 f7 42 80 3c 30 00 74 08 4c 89 ef e8 22 1e e0 fe 4c 89 64 24 10 49 8b 45 00 49 89 c4 4c 8d 70 68 4c 89 f0 48 c1 e8 03 <42> 80 3c 38 00 74 08 4c 89 f7 e8 fc 1d e0 fe 49 8b 1e 48 83 c5 68
-RSP: 0018:ffffc90002dcfb28 EFLAGS: 00010202
-RAX: 000000000000000d RBX: 1ffff920005b9f79 RCX: ffff88801efa5a00
-RDX: 0000000000000000 RSI: ffffc90002dcfbc0 RDI: ffff888031c9bc00
-RBP: ffff88807eb938f8 R08: ffffffff831d82d9 R09: 0000000000000000
-R10: ffffc90002dcfae0 R11: fffff520005b9f5e R12: 0000000000000000
-R13: ffff888078c80000 R14: 0000000000000068 R15: dffffc0000000000
-FS:  0000000000000000(0000) GS:ffff8880b8700000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020001740 CR3: 000000000e736000 CR4: 00000000003526f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- ovl_real_file+0x186/0x210 fs/overlayfs/file.c:176
- ovl_flush+0x22/0x140 fs/overlayfs/file.c:620
- filp_flush+0xb7/0x160 fs/open.c:1527
- filp_close+0x1e/0x40 fs/open.c:1540
- close_files fs/file.c:508 [inline]
- put_files_struct+0x198/0x310 fs/file.c:523
- do_exit+0xa10/0x28e0 kernel/exit.c:933
- do_group_exit+0x207/0x2c0 kernel/exit.c:1087
- __do_sys_exit_group kernel/exit.c:1098 [inline]
- __se_sys_exit_group kernel/exit.c:1096 [inline]
- __x64_sys_exit_group+0x3f/0x40 kernel/exit.c:1096
- x64_sys_call+0x2634/0x2640 arch/x86/include/generated/asm/syscalls_64.h:232
- do_syscall_x64 arch/x86/entry/common.c:52 [inline]
- do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fbb4c5e7739
-Code: Unable to access opcode bytes at 0x7fbb4c5e770f.
-RSP: 002b:00007fff9c70aac8 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
-RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007fbb4c5e7739
-RDX: 000000000000003c RSI: 00000000000000e7 RDI: 0000000000000000
-RBP: 00007fbb4c662290 R08: ffffffffffffffb8 R09: 00007fbb4c5b5e50
-R10: 0000000000000000 R11: 0000000000000246 R12: 00007fbb4c662290
-R13: 0000000000000000 R14: 00007fbb4c662ce0 R15: 00007fbb4c5b62a0
- </TASK>
-Modules linked in:
----[ end trace 0000000000000000 ]---
-RIP: 0010:file_inode include/linux/fs.h:1124 [inline]
-RIP: 0010:ovl_is_real_file fs/overlayfs/file.c:100 [inline]
-RIP: 0010:ovl_real_file_path+0xa5/0x2e0 fs/overlayfs/file.c:118
-Code: 03 4d 89 f7 42 80 3c 30 00 74 08 4c 89 ef e8 22 1e e0 fe 4c 89 64 24 10 49 8b 45 00 49 89 c4 4c 8d 70 68 4c 89 f0 48 c1 e8 03 <42> 80 3c 38 00 74 08 4c 89 f7 e8 fc 1d e0 fe 49 8b 1e 48 83 c5 68
-RSP: 0018:ffffc90002dcfb28 EFLAGS: 00010202
-RAX: 000000000000000d RBX: 1ffff920005b9f79 RCX: ffff88801efa5a00
-RDX: 0000000000000000 RSI: ffffc90002dcfbc0 RDI: ffff888031c9bc00
-RBP: ffff88807eb938f8 R08: ffffffff831d82d9 R09: 0000000000000000
-R10: ffffc90002dcfae0 R11: fffff520005b9f5e R12: 0000000000000000
-R13: ffff888078c80000 R14: 0000000000000068 R15: dffffc0000000000
-FS:  0000000000000000(0000) GS:ffff8880b8700000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000020001740 CR3: 000000000e736000 CR4: 00000000003526f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-----------------
-Code disassembly (best guess):
-   0:	03 4d 89             	add    -0x77(%rbp),%ecx
-   3:	f7 42 80 3c 30 00 74 	testl  $0x7400303c,-0x80(%rdx)
-   a:	08 4c 89 ef          	or     %cl,-0x11(%rcx,%rcx,4)
-   e:	e8 22 1e e0 fe       	call   0xfee01e35
-  13:	4c 89 64 24 10       	mov    %r12,0x10(%rsp)
-  18:	49 8b 45 00          	mov    0x0(%r13),%rax
-  1c:	49 89 c4             	mov    %rax,%r12
-  1f:	4c 8d 70 68          	lea    0x68(%rax),%r14
-  23:	4c 89 f0             	mov    %r14,%rax
-  26:	48 c1 e8 03          	shr    $0x3,%rax
-* 2a:	42 80 3c 38 00       	cmpb   $0x0,(%rax,%r15,1) <-- trapping instruction
-  2f:	74 08                	je     0x39
-  31:	4c 89 f7             	mov    %r14,%rdi
-  34:	e8 fc 1d e0 fe       	call   0xfee01e35
-  39:	49 8b 1e             	mov    (%r14),%rbx
-  3c:	48 83 c5 68          	add    $0x68,%rbp
-
+Changes in v2:
+- Alias fd and path based mount options.
+- Link to v1: https://lore.kernel.org/r/20241011-work-overlayfs-v1-0-e34243841279@kernel.org
 
 ---
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+Christian Brauner (5):
+      fs: add helper to use mount option as path or fd
+      ovl: specify layers via file descriptors
+      Documentation,ovl: document new file descriptor based layers
+      selftests: use shared header
+      selftests: add overlayfs fd mounting selftests
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+ Documentation/filesystems/overlayfs.rst            |  17 +++
+ fs/fs_parser.c                                     |  20 +++
+ fs/overlayfs/params.c                              | 116 ++++++++++++----
+ include/linux/fs_parser.h                          |   5 +-
+ .../selftests/filesystems/overlayfs/.gitignore     |   1 +
+ .../selftests/filesystems/overlayfs/Makefile       |   2 +-
+ .../selftests/filesystems/overlayfs/dev_in_maps.c  |  27 +---
+ .../filesystems/overlayfs/set_layers_via_fds.c     | 152 +++++++++++++++++++++
+ .../selftests/filesystems/overlayfs/wrappers.h     |  47 +++++++
+ 9 files changed, 334 insertions(+), 53 deletions(-)
+---
+base-commit: 8cf0b93919e13d1e8d4466eb4080a4c4d9d66d7b
+change-id: 20241011-work-overlayfs-dbcfa9223e87
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
