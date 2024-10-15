@@ -1,73 +1,136 @@
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 450321AB6DC
-	for <linux-unionfs@vger.kernel.org>; Mon, 14 Oct 2024 15:59:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CCA09139597;
+	Tue, 15 Oct 2024 11:15:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1728921544; cv=none; b=V2XyG0OsM9eEJU0IjZIXrhJ+EuGC7y060HAKU+B1Wo3gxJf4V8KlhezMn78xT6ZnNbfu6jTtRLLnt1GQ2jucnBi/8cOIzKVXlc2Lt7CEXwZNnEMoBMVsw9K+hZiBI9I+WMrXpZz44wi5v1WcHwdUQ/j97iYQ26BOxyQdpWpuL4k=
+	t=1728990936; cv=none; b=NyJtw3R+1Y/2Lp/Fn1HvVOkqcUdDe0vQ4wuFsQoOWE+v2IZ/RGJWXngTyCTI2xzd9LrC2tH+EI8Nx+8RMIJmLZTiTvHG9QvBa3+TZCVSexyHopzSl9xtDC0+TcDCwBdp58FS7iol6rd/u0FDWLuzrqjRqva1p2ojlbDMMewkPlg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1728921544; c=relaxed/simple;
-	bh=yYjCjnKyWWEhTK49Z7J9QBWqaLavJtlsumymWwDexQc=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=a8nBpn18nklKwqGe37urMBtb4N5Jij7HwmSJbhwBfqCEAShz6Q4a6I15bo/hubgl02k3MCj7V4aQgIgcm2HdDx0iRM26w8v5j8xN+Hd+H10LSrWiJGwmucsjGIHRvHlFH6obLANF7cMpydTnrrko2vXIRqbkjaE65FtETaUKViw=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.197
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-3a3b7d1e8a0so20677555ab.0
-        for <linux-unionfs@vger.kernel.org>; Mon, 14 Oct 2024 08:59:03 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1728921542; x=1729526342;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=2B+oHb7GsvncoATojUDsI07bjYeVlJ7EVCHHMvtLChg=;
-        b=LULHk5kad2WSnFpYg7XQI3cv9guU5+vWhcdMWzPaDR8dri4U0sXAH//2SMw0sU020i
-         5uu09o6rp8oEjZqdHbTFRMzHNaH2kkI2B6ghS1WytjeAiE7GVLnV4ysPs+hl1LJJLt7L
-         XGuFWtwMgBbPrFUqCkSy2KjA2n8cDQ80PiSHbQkhUXkmEiMmpddkU4Fb1MwbXh61fBUc
-         a9ROY9RGh8dFaRxXCEvYCh6quWEZpNP3aeKiIwKu3ChgUkw7t5aeCd2HPYb0xIRvsZvk
-         Fm/C/yIRl9Gntw9BS4GckpIruaqzuR6w5zVa9fwPi3r9c+b7hJb4ZYmvjzBiAzb7OGt5
-         NFYg==
-X-Forwarded-Encrypted: i=1; AJvYcCUOI7Mjj+C7EqcDdWD/PoK6y/qKjKIxtUOt5fbsV0soAJt/9CXJ3iaLCgXX4CeRCHNmy5BrwB5xc38hNzM/@vger.kernel.org
-X-Gm-Message-State: AOJu0YyJgYG/3g5IBnc70GRo5dS9bW2CFbrYFJpAVj11Am2uzEDBdGrY
-	HfpWPZVIJ2rhZBEYaAIwLD9TkYmn7NBAOABRqtLYY0fXI3pcvJwk+Bqi+WHIwqk7xYx5UVBdXoS
-	ePne0x1WYawD/Koo44NgbpyapAJ7uykbdZ8FIKurRlmr4npxwYdM3hiE=
-X-Google-Smtp-Source: AGHT+IEB1o9aRPaI5CycKDs1+XfU4SzSOYp4i6cVka7d2UQwciHA67ck89wKCzhAaiBHOR+qNO/WaHGYCOzckPXIK36LJoz2VZj+
+	s=arc-20240116; t=1728990936; c=relaxed/simple;
+	bh=CZZ2IgrC2iNgpPzy5AQdPc+XnlTLB3/8DV5uzJx8yRM=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=f5P61ino4JoCB5UsRR7dFE/rBov1kyMxT9LSrxhQ51qkkA4xKq3Xz/faZrRmQEOL5cNVRymJz3J1DkIoygbcMsOBB0di76aLdlVhRK+CCfPnSWLgxrJPI3mlNFHt/Aex3Xd6ZMbSFKfYjAApt9NWN2ehJ0rIzFhPiArMcCL2hJ4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=aqm4mbqJ; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="aqm4mbqJ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D9E2C4CEC6;
+	Tue, 15 Oct 2024 11:15:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1728990936;
+	bh=CZZ2IgrC2iNgpPzy5AQdPc+XnlTLB3/8DV5uzJx8yRM=;
+	h=From:To:Cc:Subject:Date:From;
+	b=aqm4mbqJS+vIYOK9R5W2Kujc4vRSCgFLjUpVh0ukCr0CP2skNkbxrIXeTM1tfraWM
+	 0PuZtyOLlNRETcOIBXz1bGZXFOveSgePacehkfGQKdPXtNLskfAvEp5YysYMbOBmy9
+	 1B+XSxp7Vg65oj4mP+2C6UwbTcQK2OKhe2b1pVIf232hLtxDRvypnudwFROsr9nRQF
+	 bSShVscxchN/22SbRbHAwBKl1swny0+1f3HSLXY5PnEZx9/1DoKstNYcj6fu1KaML5
+	 NEOvIcHO/VUDPr8hiHRJnWKRHbV8PC6VEGu0HQbgk2jWMtsvNEFpVXcWIsbVbViAfm
+	 OURusfvtevFow==
+From: Christian Brauner <brauner@kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org
+Subject: [PATCH] selftests: add test for specifying 500 lower layers
+Date: Tue, 15 Oct 2024 13:15:29 +0200
+Message-ID: <20241015-leiht-filmabend-a86eed4ff304@brauner>
+X-Mailer: git-send-email 2.45.2
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:2167:b0:3a3:983a:874f with SMTP id
- e9e14a558f8ab-3a3bcdc6bfamr71677955ab.12.1728921542422; Mon, 14 Oct 2024
- 08:59:02 -0700 (PDT)
-Date: Mon, 14 Oct 2024 08:59:02 -0700
-In-Reply-To: <CAOQ4uxgbKV9q9WVwrwv28ucAEUfh1V7T+gqe6euTm+b_+TcG3w@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <670d3fc6.050a0220.4cbc0.004d.GAE@google.com>
-Subject: Re: [syzbot] [overlayfs?] general protection fault in ovl_real_file_path
-From: syzbot <syzbot+aaf95b6e8fc9d906d8a7@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3100; i=brauner@kernel.org; h=from:subject:message-id; bh=CZZ2IgrC2iNgpPzy5AQdPc+XnlTLB3/8DV5uzJx8yRM=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaTz+V1sSdUXtmJkXOr3/vpXr+kHtlc/O7pe53NS9sSpG fP8AhomdZSyMIhxMciKKbI4tJuEyy3nqdhslKkBM4eVCWQIAxenAEwkLofhvwezYVD5ZIOorRlP mibdKOe6fWTm7yTLZ9JyB7i/1/40smFk6HpwfuJTnsOMSVqK92567i5ijNhTF6xUwudY3aPKmne GGQA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Verify that we can actually specify 500 lower layers and fail at the
+501st one.
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+Just noticed that we didn't have that and we'd already regressed that
+once and now that I've done new selftests already just add a selftest
+for this on top.
+---
+ .../overlayfs/set_layers_via_fds.c            | 65 +++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-Reported-by: syzbot+aaf95b6e8fc9d906d8a7@syzkaller.appspotmail.com
-Tested-by: syzbot+aaf95b6e8fc9d906d8a7@syzkaller.appspotmail.com
+diff --git a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
+index 301fb5c02852..1d0ae785a667 100644
+--- a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
++++ b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
+@@ -149,4 +149,69 @@ TEST_F(set_layers_via_fds, set_layers_via_fds)
+ 	ASSERT_EQ(fclose(f_mountinfo), 0);
+ }
+ 
++TEST_F(set_layers_via_fds, set_500_layers_via_fds)
++{
++	int fd_context, fd_tmpfs, fd_overlay, fd_work, fd_upper, fd_lower;
++	int layer_fds[500] = { [0 ... 499] = -EBADF };
++
++	ASSERT_EQ(unshare(CLONE_NEWNS), 0);
++	ASSERT_EQ(sys_mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL), 0);
++
++	fd_context = sys_fsopen("tmpfs", 0);
++	ASSERT_GE(fd_context, 0);
++
++	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
++	fd_tmpfs = sys_fsmount(fd_context, 0, 0);
++	ASSERT_GE(fd_tmpfs, 0);
++	ASSERT_EQ(close(fd_context), 0);
++
++	for (int i = 0; i < ARRAY_SIZE(layer_fds); i++) {
++		char path[100];
++
++		sprintf(path, "l%d", i);
++		ASSERT_EQ(mkdirat(fd_tmpfs, path, 0755), 0);
++		layer_fds[i] = openat(fd_tmpfs, path, O_DIRECTORY);
++		ASSERT_GE(layer_fds[i], 0);
++	}
++
++	ASSERT_EQ(mkdirat(fd_tmpfs, "w", 0755), 0);
++	fd_work = openat(fd_tmpfs, "w", O_DIRECTORY);
++	ASSERT_GE(fd_work, 0);
++
++	ASSERT_EQ(mkdirat(fd_tmpfs, "u", 0755), 0);
++	fd_upper = openat(fd_tmpfs, "u", O_DIRECTORY);
++	ASSERT_GE(fd_upper, 0);
++
++	ASSERT_EQ(mkdirat(fd_tmpfs, "l501", 0755), 0);
++	fd_lower = openat(fd_tmpfs, "l501", O_DIRECTORY);
++	ASSERT_GE(fd_lower, 0);
++
++	ASSERT_EQ(sys_move_mount(fd_tmpfs, "", -EBADF, "/tmp", MOVE_MOUNT_F_EMPTY_PATH), 0);
++	ASSERT_EQ(close(fd_tmpfs), 0);
++
++	fd_context = sys_fsopen("overlay", 0);
++	ASSERT_GE(fd_context, 0);
++
++	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "workdir",   NULL, fd_work), 0);
++	ASSERT_EQ(close(fd_work), 0);
++
++	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "upperdir",  NULL, fd_upper), 0);
++	ASSERT_EQ(close(fd_upper), 0);
++
++	for (int i = 0; i < ARRAY_SIZE(layer_fds); i++) {
++		ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[i]), 0);
++		ASSERT_EQ(close(layer_fds[i]), 0);
++	}
++
++	ASSERT_NE(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_lower), 0);
++	ASSERT_EQ(close(fd_lower), 0);
++
++	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
++
++	fd_overlay = sys_fsmount(fd_context, 0, 0);
++	ASSERT_GE(fd_overlay, 0);
++	ASSERT_EQ(close(fd_context), 0);
++	ASSERT_EQ(close(fd_overlay), 0);
++}
++
+ TEST_HARNESS_MAIN
+-- 
+2.45.2
 
-Tested on:
-
-commit:         2d66a7ce ovl: convert ovl_real_fdget() callers to ovl_..
-git tree:       https://github.com/amir73il/linux ovl_real_file
-console output: https://syzkaller.appspot.com/x/log.txt?x=15a3385f980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=7cd9e7e4a8a0a15b
-dashboard link: https://syzkaller.appspot.com/bug?extid=aaf95b6e8fc9d906d8a7
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
