@@ -1,129 +1,76 @@
-Received: from mail-qk1-f174.google.com (mail-qk1-f174.google.com [209.85.222.174])
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 02FB01DE3C9
-	for <linux-unionfs@vger.kernel.org>; Wed, 16 Oct 2024 10:40:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.174
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B300220694F
+	for <linux-unionfs@vger.kernel.org>; Wed, 16 Oct 2024 11:09:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729075258; cv=none; b=LcgzvvuEVqewpCm2MacHA/00ADYSpR+RTl/nPfEZT3YbW4IlGngS6K1iYrF79h+M/+1JSiGD0Va4vPeBDFc3vixHr9yJX1SjTL74wWm7c+pAz32dqnZ6l/pofiwVDlbDWmW2lgE4HZKt8a1tY2dJ0sC4Y+ZcPc8IYgYokbcy14c=
+	t=1729076969; cv=none; b=SFfubFxd5t0NfOzgj/I7hPCa+7Fh/uWP/0pIfVYt14CC2p7sBvWQ/SeIrwbD/IBUBq9TJ2I6AqFJrXDG1QAGhlXHNHe/5MioE40Rai/Weo9XgVV5/IhvsxbO75FBzGgUt6RZMSsdzHf5DkY+rOYU3q2V6pDxpKEXW+hIlLWQtA4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729075258; c=relaxed/simple;
-	bh=Mll0mPwF2ihobJp02zCEgEgBwbqhStJkbk5l1xAiSII=;
+	s=arc-20240116; t=1729076969; c=relaxed/simple;
+	bh=8gP92A+Ze+n24rBoK52XoGxxw396/VWsU0nZSEiSWIg=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=K/vnLvv1v0x/XQ2fiZOYhy7mYT5a1tyroNyi9vNXjqcYp2xb5w/Jy5KfvJMFlCw7urX3ThP/YQhuyVrSaJ3EYK2x1+R+ihG+haU3NPvNlSnBN3kmZ6j1Gd2j2YBdIQhQiQKVQQg2f9D8usvAH6libQmRN+KxfgjccdA7HER1ih8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ol9ylT0p; arc=none smtp.client-ip=209.85.222.174
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=sdFfi7krcMgHlVplM1gV7UMpvxKZhhOIywsngntMOzZuIxPVMOupQFnjcfKxnsq7eabof8G8YYQTILak6ulwbNzvWeJRoe+Ts9hdMuAZZzsWz3AZKpADMTmqxFn2a6YAaArvM/97l+i/Xi6N4kR1d7mf1Ah5iyWB1b7q+wfgssA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=nvUZ0obm; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ol9ylT0p"
-Received: by mail-qk1-f174.google.com with SMTP id af79cd13be357-7b1363c7977so167161485a.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 16 Oct 2024 03:40:56 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="nvUZ0obm"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a7aa086b077so829908166b.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 16 Oct 2024 04:09:27 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1729075256; x=1729680056; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=R2i3NqB8GxXUWyeepDjFITep28fiJMthRR7FM+yUWlU=;
-        b=Ol9ylT0pxCnGNmR+9QyAN2//p6S5+IFtfLG9uFf8fluASSOMRef30CumWDo4kkpQJY
-         wQ/aB9YoSgI50/HIG0HxRGjOlwimLSWBMMcoSxhO9s6guOPV0vvObmtpOm18XckDkloM
-         hVxiHzaCEf2R6P9d9XuAYR4MLfmYrRfTliBRKfPsHB40XmtqF+c8ECvrmWyMtDTYvMhK
-         nxIvNc6SOCPhcrKz81z5Gck49gYSQU+SUL5WDcuKvifdLamatzGQUeTN3eHWvH85ZXik
-         QORiqMAyXAf5iP28QHtStQn+xcgZMHBL0R1ftTsIB3/RNYVlhK8sn7chyuKUHfvcnLjt
-         Ye+Q==
+        d=szeredi.hu; s=google; t=1729076966; x=1729681766; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=8gP92A+Ze+n24rBoK52XoGxxw396/VWsU0nZSEiSWIg=;
+        b=nvUZ0obmN4qrFWl71705BwraG/5BdaWz7Y2HH+iqUDJUc21hV6B9UUR1FIRiM9QFLz
+         d3MxQX2qFgDRCBRt2zpNfihlH6RpFvsnoFnDj/6f25F1HwzsqjRCLJcP+cIUvtPlJKTb
+         XzCSGsQpfQZ7SGkF0aXIWmP54vTaJkas+y2dw=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729075256; x=1729680056;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=R2i3NqB8GxXUWyeepDjFITep28fiJMthRR7FM+yUWlU=;
-        b=NxxyqL3CuHzW6/QRbKc1xSPdnERNIPsmUHwzjnUEKM1h2rEZm71RsLn5U83a5swPBz
-         3uo1BLh4WXAOmRBqRfIXOuPWzldGATn9K34MmQf0Woxr1P0mdA5MlLof2+qYtJgKDiUZ
-         U2vYQ7y8PN9FEn+kxib2jxOsugAyyGtqPDDv/4JhNw39KiNPJesRoKjTOPcrC/s2KhIs
-         3nLh1oZz1zPcvvuDaRl5QrllzThBAEjW2i026R/YluliDH82y/pO/+Jyu9u8IBOo2weu
-         NUiUH+xsRbg6nD/vjXxPEKqpn+/dgrHxanZl8Ggrnu9WfUZGqZSWSj6GHfQ3VKw+V7uL
-         zfiw==
-X-Forwarded-Encrypted: i=1; AJvYcCU/EaGGPZH5Z8PiDWIEH0KlTSNPT4y/Rpw2RhddY4j5f2WHZRQR+bsvYx94f1xYOHevCYSMYmGk3ib7iU0e@vger.kernel.org
-X-Gm-Message-State: AOJu0YyjNakrx7sZeqZPd83Ate4plyTwytCflQ0uvq5Dcn14OKtAglE4
-	NY0/czKxGEJt8rY85PNm4AoErSddKR55xj+evkI2WoMeFpmvWq3En7vkp+tRwwumfrCayiSRXxn
-	qVHqHTiTClbMwSdX12fT8hvM7Xgw=
-X-Google-Smtp-Source: AGHT+IGTOksWfLUuL/KlW8e1i77FBbNWUSXq42QyFXKEgMd4+5AZ7TTP1Zc+zXzUawuRmsGyXou5G5XjrdI+fDdUqHI=
-X-Received: by 2002:a05:620a:24cb:b0:7b1:3b99:de1b with SMTP id
- af79cd13be357-7b1418a039fmr486277585a.61.1729075255775; Wed, 16 Oct 2024
- 03:40:55 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1729076966; x=1729681766;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=8gP92A+Ze+n24rBoK52XoGxxw396/VWsU0nZSEiSWIg=;
+        b=E7npVnIWc0GmJrqrHBumPgylbRkCJUbA8PTdM1K6SNOmMyrwZHwQKGg3MRqZfMPXAR
+         iHZzp11WcpDHkYbDtyPD0Bp7E2w8CpyEx7mWJZCSMpkQrS+Nv+09xMqvQr+H6o/8v+D1
+         D9BUKjUGwesV0ZJthPeeYmwvtaoQqI488/DgKDjSzFICEo6oE3+RsXM1th3hqmgHCpq6
+         +HSgGKOEDrJ+odfV2WnllOK15z6kQrOaJruMIUuEFECuzDtj0+TXyS8VMgeXsHOkZdk+
+         7HR/VGFfD/Er8gHlrNujEj1JRwQ/61JhdSKAnb8uhp8TT3kucRnV+qSgp6Nk+luXGxER
+         CO3g==
+X-Forwarded-Encrypted: i=1; AJvYcCVo4CRvnn+zzrBw9z21y5MatEwjWLfnnSsWtBB5fLJ874tc7NQtX1c6BpGPtgfEFlezeXOrgH5fOtg7FTdR@vger.kernel.org
+X-Gm-Message-State: AOJu0YwRWIgZN6zASDk/kLB7uHrrKU+K72pUxaZRuyvsxMc+s9aIDibf
+	m74WU9J7HdIaeQfOs7KttLz7/IGoY7a/Aq3R/MYSW4hMjgOvMNTUN+m8T12MfCLTc0nRf9E2IuJ
+	7GLlvrNbF6X54T3OU4m716K0zcrVGvDQ4UNROrg==
+X-Google-Smtp-Source: AGHT+IEBWK43pEuSVPY5kfHUSC1ctgBijgdwpK1K66HvvMpx96cAtgZ0O0oJMCEPtTEDN0Fi58hIKlah5t26W53KDfY=
+X-Received: by 2002:a17:907:74b:b0:a9a:222f:45bb with SMTP id
+ a640c23a62f3a-a9a222f495bmr682124866b.35.1729076966086; Wed, 16 Oct 2024
+ 04:09:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <202410161847.oG293ywD-lkp@intel.com>
-In-Reply-To: <202410161847.oG293ywD-lkp@intel.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 16 Oct 2024 12:40:44 +0200
-Message-ID: <CAOQ4uxhD1QYnZHRekQPm-A+3SFXMzv3vZW6r59kSOFAtXNWHEA@mail.gmail.com>
+References: <202410161847.oG293ywD-lkp@intel.com> <CAOQ4uxhD1QYnZHRekQPm-A+3SFXMzv3vZW6r59kSOFAtXNWHEA@mail.gmail.com>
+In-Reply-To: <CAOQ4uxhD1QYnZHRekQPm-A+3SFXMzv3vZW6r59kSOFAtXNWHEA@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 16 Oct 2024 13:09:13 +0200
+Message-ID: <CAJfpegvecwzi4FccCaVc-UFhRD88evWEFqe8S_DqMBwSePHXGg@mail.gmail.com>
 Subject: Re: [linux-next:master 4258/4954] fs/overlayfs/file.c:234:57:
  warning: omitting the parameter name in a function definition is a C23 extension
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev, 
-	overlayfs <linux-unionfs@vger.kernel.org>, Christian Brauner <brauner@kernel.org>, 
-	kernel test robot <lkp@intel.com>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, llvm@lists.linux.dev, 
+	oe-kbuild-all@lists.linux.dev, overlayfs <linux-unionfs@vger.kernel.org>, 
+	Christian Brauner <brauner@kernel.org>, kernel test robot <lkp@intel.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Oct 16, 2024 at 12:29=E2=80=AFPM kernel test robot <lkp@intel.com> =
-wrote:
->
-> tree:   https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.g=
-it master
-> head:   15e7d45e786a62a211dd0098fee7c57f84f8c681
-> commit: 291f180e5929ec636ecffd8a0bba00da907e0f89 [4258/4954] fs: pass off=
-set and result to backing_file end_write() callback
-> config: i386-buildonly-randconfig-001-20241016 (https://download.01.org/0=
-day-ci/archive/20241016/202410161847.oG293ywD-lkp@intel.com/config)
-> compiler: clang version 18.1.8 (https://github.com/llvm/llvm-project 3b5b=
-5c1ec4a3095ab096dd780e84d7ab81f3d7ff)
-> reproduce (this is a W=3D1 build): (https://download.01.org/0day-ci/archi=
-ve/20241016/202410161847.oG293ywD-lkp@intel.com/reproduce)
->
-> If you fix the issue in a separate patch/commit (i.e. not just a new vers=
-ion of
-> the same patch/commit), kindly add following tags
-> | Reported-by: kernel test robot <lkp@intel.com>
-> | Closes: https://lore.kernel.org/oe-kbuild-all/202410161847.oG293ywD-lkp=
-@intel.com/
->
-> All warnings (new ones prefixed by >>):
->
-> >> fs/overlayfs/file.c:234:57: warning: omitting the parameter name in a =
-function definition is a C23 extension [-Wc23-extensions]
->      234 | static void ovl_file_end_write(struct file *file, loff_t, ssiz=
-e_t)
->          |                                                         ^
->    fs/overlayfs/file.c:234:66: warning: omitting the parameter name in a =
-function definition is a C23 extension [-Wc23-extensions]
->      234 | static void ovl_file_end_write(struct file *file, loff_t, ssiz=
-e_t)
->          |                                                               =
-   ^
->    2 warnings generated.
->
->
-> vim +234 fs/overlayfs/file.c
->
->    233
->  > 234  static void ovl_file_end_write(struct file *file, loff_t, ssize_t=
-)
->    235  {
->    236          ovl_file_modified(file);
->    237  }
->    238
->
+On Wed, 16 Oct 2024 at 12:41, Amir Goldstein <amir73il@gmail.com> wrote:
 
-Miklos,
+> Preferably also the fuse_passthrough_end_write() function in the
+> first patch, so there is no build warning mid series.
 
-Could you fix that in your branch?
-Preferably also the fuse_passthrough_end_write() function in the
-first patch, so there is no build warning mid series.
+Fixed.
 
 Thanks,
-Amir.
+Miklos
