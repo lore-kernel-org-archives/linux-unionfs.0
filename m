@@ -1,76 +1,84 @@
-Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B300220694F
-	for <linux-unionfs@vger.kernel.org>; Wed, 16 Oct 2024 11:09:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B70FF184D;
+	Thu, 17 Oct 2024 04:52:34 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729076969; cv=none; b=SFfubFxd5t0NfOzgj/I7hPCa+7Fh/uWP/0pIfVYt14CC2p7sBvWQ/SeIrwbD/IBUBq9TJ2I6AqFJrXDG1QAGhlXHNHe/5MioE40Rai/Weo9XgVV5/IhvsxbO75FBzGgUt6RZMSsdzHf5DkY+rOYU3q2V6pDxpKEXW+hIlLWQtA4=
+	t=1729140757; cv=none; b=b2Ey7fCgAP+GT7U0T9HpiZk2H7RIuDea6phx1AIV/vcUbV7Cyi+/Qevgm5RD6cfolWy7sn3t047ehXbQOnTApSjtFG8oOhel4GwDGa7K/Ve82WhTtRlXdPhZoVUFGe+M779BQztiVix2O/mxgKeXnEdKfUVBuyxvR4Ki5qhUHZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729076969; c=relaxed/simple;
-	bh=8gP92A+Ze+n24rBoK52XoGxxw396/VWsU0nZSEiSWIg=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sdFfi7krcMgHlVplM1gV7UMpvxKZhhOIywsngntMOzZuIxPVMOupQFnjcfKxnsq7eabof8G8YYQTILak6ulwbNzvWeJRoe+Ts9hdMuAZZzsWz3AZKpADMTmqxFn2a6YAaArvM/97l+i/Xi6N4kR1d7mf1Ah5iyWB1b7q+wfgssA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=nvUZ0obm; arc=none smtp.client-ip=209.85.218.52
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1729140757; c=relaxed/simple;
+	bh=oZKN1OJ9039wREb4uyWNgSHnLH6qQGkRmyAB3as3wTg=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=G5pdD1hy+DAwNvddKy034FH9fCziqIdShtxzcaQfyakWIX9XlgRRrwFoehw/RK4l6zim3Qk/VZb03z0DpJIIfHw1SkLVJuRV3HRs0jaEPrhYzDcMeFCWGEWcPLmPH0PFteKJnZF0KEwSNzLdiwgY28teIBUVB/vuVlq6LgB9Vlk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=o8mhPT2s; arc=none smtp.client-ip=62.89.141.173
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="nvUZ0obm"
-Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-a7aa086b077so829908166b.0
-        for <linux-unionfs@vger.kernel.org>; Wed, 16 Oct 2024 04:09:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1729076966; x=1729681766; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=8gP92A+Ze+n24rBoK52XoGxxw396/VWsU0nZSEiSWIg=;
-        b=nvUZ0obmN4qrFWl71705BwraG/5BdaWz7Y2HH+iqUDJUc21hV6B9UUR1FIRiM9QFLz
-         d3MxQX2qFgDRCBRt2zpNfihlH6RpFvsnoFnDj/6f25F1HwzsqjRCLJcP+cIUvtPlJKTb
-         XzCSGsQpfQZ7SGkF0aXIWmP54vTaJkas+y2dw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729076966; x=1729681766;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=8gP92A+Ze+n24rBoK52XoGxxw396/VWsU0nZSEiSWIg=;
-        b=E7npVnIWc0GmJrqrHBumPgylbRkCJUbA8PTdM1K6SNOmMyrwZHwQKGg3MRqZfMPXAR
-         iHZzp11WcpDHkYbDtyPD0Bp7E2w8CpyEx7mWJZCSMpkQrS+Nv+09xMqvQr+H6o/8v+D1
-         D9BUKjUGwesV0ZJthPeeYmwvtaoQqI488/DgKDjSzFICEo6oE3+RsXM1th3hqmgHCpq6
-         +HSgGKOEDrJ+odfV2WnllOK15z6kQrOaJruMIUuEFECuzDtj0+TXyS8VMgeXsHOkZdk+
-         7HR/VGFfD/Er8gHlrNujEj1JRwQ/61JhdSKAnb8uhp8TT3kucRnV+qSgp6Nk+luXGxER
-         CO3g==
-X-Forwarded-Encrypted: i=1; AJvYcCVo4CRvnn+zzrBw9z21y5MatEwjWLfnnSsWtBB5fLJ874tc7NQtX1c6BpGPtgfEFlezeXOrgH5fOtg7FTdR@vger.kernel.org
-X-Gm-Message-State: AOJu0YwRWIgZN6zASDk/kLB7uHrrKU+K72pUxaZRuyvsxMc+s9aIDibf
-	m74WU9J7HdIaeQfOs7KttLz7/IGoY7a/Aq3R/MYSW4hMjgOvMNTUN+m8T12MfCLTc0nRf9E2IuJ
-	7GLlvrNbF6X54T3OU4m716K0zcrVGvDQ4UNROrg==
-X-Google-Smtp-Source: AGHT+IEBWK43pEuSVPY5kfHUSC1ctgBijgdwpK1K66HvvMpx96cAtgZ0O0oJMCEPtTEDN0Fi58hIKlah5t26W53KDfY=
-X-Received: by 2002:a17:907:74b:b0:a9a:222f:45bb with SMTP id
- a640c23a62f3a-a9a222f495bmr682124866b.35.1729076966086; Wed, 16 Oct 2024
- 04:09:26 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="o8mhPT2s"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=wCXDrd9dZ5kU0FE76T/mgwdNLbKstDYbCAWNeX867Bw=; b=o8mhPT2sK24XHtgx4O/MV6mCFz
+	SAQ99i+Fn+yx6E59aEvz9BRqp8YUQQsPutF6KoV6A57URee7Ir0K0zxxVXThx01xkzGEC5wVAqrgb
+	uWsSu3usYDLHNK4Jr6sxS+Rcd1gI+oVnM4PSx7GNZnVoIfQDrws7tpjYy+8pchqzxn8ZJZvyu5jsh
+	kk2j/vzaWabUgP+tE6x/opD+7HjgJh1PFAQ/WPAc/xQErbTLJhhH8zNOdhcbUrHR5ZeItNRug8suq
+	HU5MItEubWcZjFNRqgoAByLk/pxrIW+HMqxTk4QnG2ovVp+zWk1zLrMp1zFuPQhN3vDvsKDvAXZJj
+	3V2/+eRA==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
+	id 1t1IUx-00000004ZdZ-1zLQ;
+	Thu, 17 Oct 2024 04:52:31 +0000
+Date: Thu, 17 Oct 2024 05:52:31 +0100
+From: Al Viro <viro@zeniv.linux.org.uk>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>,
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH v3 0/5] Store overlay real upper file in ovl_file
+Message-ID: <20241017045231.GJ4017910@ZenIV>
+References: <20241007141925.327055-1-amir73il@gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <202410161847.oG293ywD-lkp@intel.com> <CAOQ4uxhD1QYnZHRekQPm-A+3SFXMzv3vZW6r59kSOFAtXNWHEA@mail.gmail.com>
-In-Reply-To: <CAOQ4uxhD1QYnZHRekQPm-A+3SFXMzv3vZW6r59kSOFAtXNWHEA@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Wed, 16 Oct 2024 13:09:13 +0200
-Message-ID: <CAJfpegvecwzi4FccCaVc-UFhRD88evWEFqe8S_DqMBwSePHXGg@mail.gmail.com>
-Subject: Re: [linux-next:master 4258/4954] fs/overlayfs/file.c:234:57:
- warning: omitting the parameter name in a function definition is a C23 extension
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, llvm@lists.linux.dev, 
-	oe-kbuild-all@lists.linux.dev, overlayfs <linux-unionfs@vger.kernel.org>, 
-	Christian Brauner <brauner@kernel.org>, kernel test robot <lkp@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20241007141925.327055-1-amir73il@gmail.com>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 
-On Wed, 16 Oct 2024 at 12:41, Amir Goldstein <amir73il@gmail.com> wrote:
+On Mon, Oct 07, 2024 at 04:19:20PM +0200, Amir Goldstein wrote:
+> Hi all,
+> 
+> This is v3 of the code to avoid temporary backing file opens in
+> overlayfs, taking into account Al's and Miklos' comments on v2 [1].
+> 
+> If no further comments, this is going for overlayfs-next.
 
-> Preferably also the fuse_passthrough_end_write() function in the
-> first patch, so there is no build warning mid series.
+BTW, looking through the vicinity of that stuff:
 
-Fixed.
+int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir, struct dentry *wdentry)
+{
+        int err;
 
-Thanks,
-Miklos
+        dget(wdentry);
+        if (d_is_dir(wdentry))
+                err = ovl_do_rmdir(ofs, wdir, wdentry);
+        else
+                err = ovl_do_unlink(ofs, wdir, wdentry);
+        dput(wdentry);
+
+        if (err) {
+                pr_err("cleanup of '%pd2' failed (%i)\n",
+                       wdentry, err);
+        }
+
+        return err;
+}
+
+What the hell are those dget()/dput() doing there?  Not to mention an
+access after dput(), both vfs_rmdir() and vfs_unlink() expect the
+reference to dentry argument to be held by the caller and leave it
+for the caller to dispose of.  What am I missing here?
