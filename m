@@ -1,84 +1,74 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B70FF184D;
-	Thu, 17 Oct 2024 04:52:34 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AE095192B93;
+	Thu, 17 Oct 2024 06:50:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729140757; cv=none; b=b2Ey7fCgAP+GT7U0T9HpiZk2H7RIuDea6phx1AIV/vcUbV7Cyi+/Qevgm5RD6cfolWy7sn3t047ehXbQOnTApSjtFG8oOhel4GwDGa7K/Ve82WhTtRlXdPhZoVUFGe+M779BQztiVix2O/mxgKeXnEdKfUVBuyxvR4Ki5qhUHZ4=
+	t=1729147849; cv=none; b=Rpv3qMwXQsYZSNCap7Za+1hReCNexz3GtSD2aEDugI9RHBLce6wdP7cvUEKScK6DhZTlSQLgUTb0apIMu/mG205x09x5wkl1cIt82XMbgHJGGuqzWosfCOQhlzfX8swtntp/XY+yKisJb6riNmbKH/Rjmf+x+h11cOVsHmBOjig=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729140757; c=relaxed/simple;
-	bh=oZKN1OJ9039wREb4uyWNgSHnLH6qQGkRmyAB3as3wTg=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=G5pdD1hy+DAwNvddKy034FH9fCziqIdShtxzcaQfyakWIX9XlgRRrwFoehw/RK4l6zim3Qk/VZb03z0DpJIIfHw1SkLVJuRV3HRs0jaEPrhYzDcMeFCWGEWcPLmPH0PFteKJnZF0KEwSNzLdiwgY28teIBUVB/vuVlq6LgB9Vlk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=o8mhPT2s; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="o8mhPT2s"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=wCXDrd9dZ5kU0FE76T/mgwdNLbKstDYbCAWNeX867Bw=; b=o8mhPT2sK24XHtgx4O/MV6mCFz
-	SAQ99i+Fn+yx6E59aEvz9BRqp8YUQQsPutF6KoV6A57URee7Ir0K0zxxVXThx01xkzGEC5wVAqrgb
-	uWsSu3usYDLHNK4Jr6sxS+Rcd1gI+oVnM4PSx7GNZnVoIfQDrws7tpjYy+8pchqzxn8ZJZvyu5jsh
-	kk2j/vzaWabUgP+tE6x/opD+7HjgJh1PFAQ/WPAc/xQErbTLJhhH8zNOdhcbUrHR5ZeItNRug8suq
-	HU5MItEubWcZjFNRqgoAByLk/pxrIW+HMqxTk4QnG2ovVp+zWk1zLrMp1zFuPQhN3vDvsKDvAXZJj
-	3V2/+eRA==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1t1IUx-00000004ZdZ-1zLQ;
-	Thu, 17 Oct 2024 04:52:31 +0000
-Date: Thu, 17 Oct 2024 05:52:31 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH v3 0/5] Store overlay real upper file in ovl_file
-Message-ID: <20241017045231.GJ4017910@ZenIV>
-References: <20241007141925.327055-1-amir73il@gmail.com>
+	s=arc-20240116; t=1729147849; c=relaxed/simple;
+	bh=tPb/LJsBMXp+sf+XXt7oaqFB0XpG6Sy+3n/6QSFIqYQ=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=XIkMZ5r1Y89FJ/TRhqb1TJ4+lvaCkrKFYGyVymrlw+iqDnCx85PFjwabKKtLv1jbWSKf2MwtNr2y6Exe0Oa3E5tODZAzPZP63OV2O7xA+GgrhYdx+jxy/gwIN8DrMTiL1AVTy2rf67BU60EmlrdIXqAQWlHdcewbgccOGoTMEW8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.255
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.163.48])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4XTdhw1Z8cz1T8Sw;
+	Thu, 17 Oct 2024 14:48:48 +0800 (CST)
+Received: from kwepemd500019.china.huawei.com (unknown [7.221.188.86])
+	by mail.maildlp.com (Postfix) with ESMTPS id C5F6F18009B;
+	Thu, 17 Oct 2024 14:50:41 +0800 (CST)
+Received: from huawei.com (10.67.174.116) by kwepemd500019.china.huawei.com
+ (7.221.188.86) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Thu, 17 Oct
+ 2024 14:50:41 +0800
+From: Zheng Zucheng <zhengzucheng@huawei.com>
+To: <miklos@szeredi.hu>, <amir73il@gmail.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-unionfs@vger.kernel.org>
+Subject: [PATCH -next] fs: Fix build error
+Date: Thu, 17 Oct 2024 06:49:23 +0000
+Message-ID: <20241017064923.1585214-1-zhengzucheng@huawei.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241007141925.327055-1-amir73il@gmail.com>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ kwepemd500019.china.huawei.com (7.221.188.86)
 
-On Mon, Oct 07, 2024 at 04:19:20PM +0200, Amir Goldstein wrote:
-> Hi all,
-> 
-> This is v3 of the code to avoid temporary backing file opens in
-> overlayfs, taking into account Al's and Miklos' comments on v2 [1].
-> 
-> If no further comments, this is going for overlayfs-next.
+The following build error report:
+fs/overlayfs/file.c: In function ‘ovl_file_end_write’:
+fs/overlayfs/file.c:292:51: error: parameter name omitted
+  292 | static void ovl_file_end_write(struct file *file, loff_t, ssize_t)
+      |                                                   ^~~~~~
+fs/overlayfs/file.c:292:59: error: parameter name omitted
+  292 | static void ovl_file_end_write(struct file *file, loff_t, ssize_t)
+                                                                  ^~~~~~~
 
-BTW, looking through the vicinity of that stuff:
+Fixes: 291f180e5929 ("fs: pass offset and result to backing_file end_write() callback")
+Signed-off-by: Zheng Zucheng <zhengzucheng@huawei.com>
+---
+ fs/overlayfs/file.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir, struct dentry *wdentry)
-{
-        int err;
+diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+index 70df61d5e95a..faeac5842694 100644
+--- a/fs/overlayfs/file.c
++++ b/fs/overlayfs/file.c
+@@ -289,7 +289,7 @@ static void ovl_file_modified(struct file *file)
+ 	ovl_copyattr(file_inode(file));
+ }
+ 
+-static void ovl_file_end_write(struct file *file, loff_t, ssize_t)
++static void ovl_file_end_write(struct file *file, loff_t pos, ssize_t ret)
+ {
+ 	ovl_file_modified(file);
+ }
+-- 
+2.34.1
 
-        dget(wdentry);
-        if (d_is_dir(wdentry))
-                err = ovl_do_rmdir(ofs, wdir, wdentry);
-        else
-                err = ovl_do_unlink(ofs, wdir, wdentry);
-        dput(wdentry);
-
-        if (err) {
-                pr_err("cleanup of '%pd2' failed (%i)\n",
-                       wdentry, err);
-        }
-
-        return err;
-}
-
-What the hell are those dget()/dput() doing there?  Not to mention an
-access after dput(), both vfs_rmdir() and vfs_unlink() expect the
-reference to dentry argument to be held by the caller and leave it
-for the caller to dispose of.  What am I missing here?
