@@ -1,89 +1,89 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AEBD313D24C;
-	Thu, 17 Oct 2024 19:47:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3BDD53D96D
+	for <linux-unionfs@vger.kernel.org>; Fri, 18 Oct 2024 07:44:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729194450; cv=none; b=WQdyLtiS2l4/ZXv0UwhO7y1yyUH7vC/Gu9OeyKkwb+J4w/1PA/bU8EU2TVofjNUYOiQBf246ybiuU26lEueMsZtoHcdDxXs/HWwo5kA+9sknQWIKgCmiPkNt5jAsnmv9O2g6cb2+dZL2ggDOlFJlWW2gjCRkwQIqPNHDp+Wm/Qg=
+	t=1729237461; cv=none; b=ltW961cxQGRsP1YILilDtGByJ8AuU0F1PTBh7mhOnAWtVxWO/sCk+8oAP5Xcyo54r53IGZg5RXfWMVbgbL2orggYACDM5yYuQLu/KXi+lIErTsjwSIU3f7EXcmYNAV29s+X03dW8T1Ct1Q9sCzv54YoLhIDS8V/JohD1sVIqZHI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729194450; c=relaxed/simple;
-	bh=XW3f/Wbh98h0phcw1W9jFysotT6hms77v1pNz7sLkRk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=RNOEETErILou0yisuYBkmXXoI/vc4gt332QhmdQHmwEeqXYIosLDtTivNC4keoG6Q2waLdp7uwsrT55sn5pV7AdQW+WmEEpePAfVXFscTzqN4r71Nt6ETwN3Nf/5/zP5747iRLoZcG+MtT4EXFGhKVXukrD2Wn40xNiRolCPlTM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=Pg4BoAjA; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	s=arc-20240116; t=1729237461; c=relaxed/simple;
+	bh=gAYaJkqvsGVJIhJpt6gkmJ9q6zPDeTu54KDIYXdvTDQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=hsAZ1UIRDFfgDpkXt15VU09jqTSG755ZBlacLs9OlEJvlgQRaCDnKqEOegmdHUP4IH+EoT5X+c94A28Sr+Lig3U6TuLOs5C88TT4MsY/xCbhtWWmXQPOyKvU9DzD/gSYBFVKYG5REEZ3/MzTL8ILQDVg0yPLmaPv1gnt1tQfMrU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=g665Ipob; arc=none smtp.client-ip=209.85.218.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="Pg4BoAjA"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=piSvJWFFEO4RubCC5E7jON/ciF7R8UnqtbDkLoxlou0=; b=Pg4BoAjAqcb5QrKo2Ppv2/OOU0
-	GG2hjdx4UwnUe1svJm5+4acF1MIT04UGi/4kXbufS4vLc7adUoDAEX1iLVufLAQS7fHQ/bfyI5VU3
-	yOxbpfVLG/WBXDZmn/LSfX7yV+dRI/yQMo/vdaptj8A9p3+65iyKjv8wc5nS1IGoq9cJJ5VcJ52uX
-	QhUMj4g/OIsVfwk0j9nAvxzFy8Af4w7xl5yOdlvuUA2NZ6QavpenP/pXztaJl2EzOi+3vCX11L2mG
-	xXV87XJxInaj2CTVuJ7Bx2DPqkdabRd7QspcYgxjeUG4E8e0wgcWnugKt7WHSqU2mfhEEch5TbB7J
-	Q3fox+hw==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1t1WSz-00000004nui-1ynR;
-	Thu, 17 Oct 2024 19:47:25 +0000
-Date: Thu, 17 Oct 2024 20:47:25 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>, Miklos Szeredi <miklos@szeredi.hu>,
-	overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: introduce struct fderr, convert overlayfs uses to that
-Message-ID: <20241017194725.GM4017910@ZenIV>
-References: <20241003234534.GM4017910@ZenIV>
- <20241003234732.GB147780@ZenIV>
- <CAOQ4uxjS0CX+nA4xqmrrMYDPXRPWMT00+S8z8OMhMWc9omSvMw@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="g665Ipob"
+Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-a9a0ef5179dso228874966b.1
+        for <linux-unionfs@vger.kernel.org>; Fri, 18 Oct 2024 00:44:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1729237455; x=1729842255; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=9GQQ6Z8pAZHpDQrA+EkcHNsSGUK1cfIY+DynaWtF0A8=;
+        b=g665Ipobrl/5Qn1h1qNfLwjE22HGlpZiMBZ2WqTUiRmaDvAhvlxa8MM/qsN2PZXy+Q
+         e4uwZfScJGAWljFpe1UO8BNnSj9uGNk2Y+tpenC/Un2QFBtFCTpsKHI8ElrqzGtInzS0
+         p9XMC3tOzQU16/blpdNmumBG5Lhs/tjBwDJos=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729237455; x=1729842255;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=9GQQ6Z8pAZHpDQrA+EkcHNsSGUK1cfIY+DynaWtF0A8=;
+        b=qIw3mtmodOZWfoB589n6BLZ1n4iFDClLNE5KdEWmPhpEBPh8bYhMUOtCqyduOTqCob
+         hXtmxYVCWhP1sqSXTerwflGx/rYUt6yrwsVVBbzROe+A2+Pq/kziqpmKfWuS0Feq9AyY
+         1LZ2j9vmDUU2mXkBfWodFFWMJ+BSBq/YrnERNI96yf2pEINP47YABG4snF9JGAUFxkzy
+         wY0mkmdYByANnccWYfi5db9tFUOWoANa5zhWKfyC2995spFZXiBqymAYhJPh3d5OHHdy
+         swSx0oNtwuLToboGKp3M/T2fvI06WWrlnt4b9ISl/6VCA6qVhMPnxzBM5piO+ejcDgSH
+         IohA==
+X-Forwarded-Encrypted: i=1; AJvYcCVW83f9rIucTsRMArh7gxiFTxzDJvwH6gML5ayoSy0VuSJQZAh53bPJ+n2ZioeZeauPuCkf0bGOXZFB0cfe@vger.kernel.org
+X-Gm-Message-State: AOJu0YzZduzcNDusVYOcTpg2AF2ViH84j+/lS/0BboKQo51bPDXsmMrc
+	aS2bw2VLMYGpuIsqAUpoFxRWUTv4OAi1A0A7ZWr1RBfwkxAnFwcVew8HBRYVdkxkbwtukJbVkar
+	Zs7WMjX2QR502ikGMbYhDQPVb7U0HfX47VjSHbNz+OMiOVQBn
+X-Google-Smtp-Source: AGHT+IFh2AGgdGfKZEdJoJseozKfl6fopR6KDUiqkM4PUV7YZYDzsmi0GbVtNpW15YJEYeJ86x5RvVL/4Bj5yC6Pn6E=
+X-Received: by 2002:a17:907:7f8c:b0:a9a:3013:2ea1 with SMTP id
+ a640c23a62f3a-a9a697748dfmr107911766b.1.1729237455199; Fri, 18 Oct 2024
+ 00:44:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOQ4uxjS0CX+nA4xqmrrMYDPXRPWMT00+S8z8OMhMWc9omSvMw@mail.gmail.com>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+References: <20241017064923.1585214-1-zhengzucheng@huawei.com>
+In-Reply-To: <20241017064923.1585214-1-zhengzucheng@huawei.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 18 Oct 2024 09:44:03 +0200
+Message-ID: <CAJfpeguKB2k6jnzNKOdx9390bKwx8TktY7xp-wcy-h7wO08Vpw@mail.gmail.com>
+Subject: Re: [PATCH -next] fs: Fix build error
+To: Zheng Zucheng <zhengzucheng@huawei.com>
+Cc: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Fri, Oct 04, 2024 at 12:47:09PM +0200, Amir Goldstein wrote:
+On Thu, 17 Oct 2024 at 08:50, Zheng Zucheng <zhengzucheng@huawei.com> wrote=
+:
+>
+> The following build error report:
+> fs/overlayfs/file.c: In function =E2=80=98ovl_file_end_write=E2=80=99:
+> fs/overlayfs/file.c:292:51: error: parameter name omitted
+>   292 | static void ovl_file_end_write(struct file *file, loff_t, ssize_t=
+)
+>       |                                                   ^~~~~~
+> fs/overlayfs/file.c:292:59: error: parameter name omitted
+>   292 | static void ovl_file_end_write(struct file *file, loff_t, ssize_t=
+)
+>                                                                   ^~~~~~~
+>
+> Fixes: 291f180e5929 ("fs: pass offset and result to backing_file end_writ=
+e() callback")
+> Signed-off-by: Zheng Zucheng <zhengzucheng@huawei.com>
 
-> I had already posted an alternative code for overlayfs, but in case this
-> is going to be used anyway in overlayfs or in another code, see some
-> comments below...
+Thanks for the patch.   The fix is already folded into the original
+patch in fuse.git/for-next.
 
-As far as I can see, the current #overlayfs-next kills the case for
-struct fderr; we might eventually get a valid use for it, but for the
-time being I'm going to strip the overlayfs-related parts of that branch
-(obviously), fix the braino you've spotted in fdput() and archive the
-branch in case it's ever needed.
-
-> > +#define fd_empty(f)    _Generic((f), \
-> > +                               struct fd: unlikely(!(f).word), \
-> > +                               struct fderr: IS_ERR_VALUE((f).word))
-> 
-> 
-> I suggest adding a fd_is_err(f) helper to rhyme with IS_ERR().
-
-Umm...  Dropping fd_empty() for that one, you mean?
-
-> > +#define fdput(f)       (void) (_Generic((f), \
-> > +                               struct fderr: IS_ERR_VALUE((f).word),   \
-> 
-> Should that be !IS_ERR_VALUE((f).word)?
-
-It should, thanks for spotting that braino.
- 
-> or better yet
-> 
-> #define fd_is_err(f) _Generic((f), \
->                                 struct fd: false, \
->                                 struct fderr: IS_ERR_VALUE((f).word))
-
-I think that's a bad idea; too likely to spill into struct fd users,
-with "it's never false here" being a nasty surprise.
+Miklos
