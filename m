@@ -1,78 +1,491 @@
-Received: from mail-yb1-f176.google.com (mail-yb1-f176.google.com [209.85.219.176])
+Received: from mail-ua1-f41.google.com (mail-ua1-f41.google.com [209.85.222.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B0CA81E633C
-	for <linux-unionfs@vger.kernel.org>; Mon, 21 Oct 2024 10:44:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7C8671D7E5B;
+	Mon, 21 Oct 2024 11:58:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729507466; cv=none; b=CKvGQ51gqVckQbpDg2GdTeRKKAdjy9kbVggHpYitEijLZF+luLUHH7Of4CrWhUun7j+Yvc3kLDGmnYDUkpRXlCgvMf/VhQn0RERbPHsHdh6cbyzCHD34KneWc+Vldwvs2HNASkXDxcd0o/xqS7DUO89Ssl1izEIKkWnGgGpgpJU=
+	t=1729511911; cv=none; b=du+vUPoxOGghpYlFHft0A+ceecLSxKvdHhFC5enr4tCq+EbPCLzIJiBMbipAET3sS8qBctWTgepfvhtmw9ySLdHOFrLILy2CQR5DmcrDTlTAOaj2NWBTtEPEuujp3RsyU7Thi8LmOBeU7l5h/eIb2m5KzgXygs6DfJx/fYAYKxI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729507466; c=relaxed/simple;
-	bh=H2b5ATnt5E1Bo99qJUPFpUnk+M1Jkx9D2jNgd7IjZq0=;
+	s=arc-20240116; t=1729511911; c=relaxed/simple;
+	bh=rDG9f7QdosIxWNNYNs4zeB/s+VlwSPj+tICKx1+RHwk=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=czrlQEIWC1/zwlC+B71DYw+LcfoRZlh9ItEvh1MfP2Lkm/OI69mPvBKccSP051TqVgdmIsvNZ2Vo540wYUUWZxuOzDd+FU+JhgBGNtFwb4uwTr3TIg8tfpKzpySm0BDXH68hBNmCLRbOO7z5G5KigRtsb2EGTkMWoUbD1OtNd+k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=hInj7tL3; arc=none smtp.client-ip=209.85.219.176
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=NRQyj9PVowPrrRZj1dOHJgAPJ1ULxM/AsnH3iVgPzygZ4ANW9pg750KQWKO1smYX52CQ47dksPTnOL5Mx2Dc0YdyiwNkLp9t4X5hxkWNt7/eg5GeSuf5dlfRjoccdkTIYBp07+qrrFOcwhJkJDpKggei/dSPzN/mhn2wxMVZjI0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=d0uHur+D; arc=none smtp.client-ip=209.85.222.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="hInj7tL3"
-Received: by mail-yb1-f176.google.com with SMTP id 3f1490d57ef6-e297c8f8c86so4129241276.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 21 Oct 2024 03:44:24 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="d0uHur+D"
+Received: by mail-ua1-f41.google.com with SMTP id a1e0cc1a2514c-84fccf51df1so1302249241.2;
+        Mon, 21 Oct 2024 04:58:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1729507463; x=1730112263; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=vs3ZdfEcKn0zVCu2kMdMdXvQgCQLkEnwi8nZT4fN4jU=;
-        b=hInj7tL3sbvSYbaqfa+woB+0wOehgZ3iIBiPQnzI+A9J8yxd56/WGDPc1f24IJmgGG
-         Wt+SK6p2HTk/5nVEJj7v+pqeY6ZySHj89yRBLOnmP7rm39skuDD5vU1lclwEHPIwOwfK
-         pL38N5GPaLZqdG50ilz+muaGfLYU+TxhoLs8c=
+        d=gmail.com; s=20230601; t=1729511908; x=1730116708; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=qkGztVuQ5km9VuV6czaa8sQLJq2lHxn4Xzhy43svgtg=;
+        b=d0uHur+DCK6dvwPjbsQJffIZ3z3cP9Jcmn7Bn1Ec4c4SZ95Vw3yEynlqhtK8zqRC6e
+         LdbrrOC/zZ4vwY1GOVnNmh3JGXWLWjbhG5zxm13CHwZuAuVVM2uRs2YxeIcUw/L+bjm/
+         F3O3JxwJSqa15zdtsMahTxOYZxz8amSI0xA4QItZkmE0a7dY7pxPDco2ttmmbAOIaKuq
+         vJRMqkN0Ok43xRPobPCBGB0OmIuYvcTQlt/fKDmKbFhiKZ0AKcVeFNqfoVP0xLTImKBt
+         TDktTs4/kq0w+5/9wUTHyblgvachmezIxGhYDIFA4bjeguFNt+YchdYwN0BrSVr/UKJ0
+         Lukg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729507463; x=1730112263;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vs3ZdfEcKn0zVCu2kMdMdXvQgCQLkEnwi8nZT4fN4jU=;
-        b=VvMvCVFGTA+r+vl/PYgNVLm5B1aPgnFAM6sEbGjqMgf56KPdkgADOPg666q7BucPXM
-         +ykFz9P2oAT+gOKYpZnufGLjZIFtzIzV0ERt8539d9wnwmYG54dS3M5ti2c/fVXPeak4
-         nhfmW1dgcmuEHw0/AjmkLCn0F3LR6wAxlSYktwVLoAt/YH609WIRJXYmmNNsIDkYvo4y
-         H/8Eb6PRznH8PPv5uIQpbo7WeUY7c2zfvo9iFurj1xAlbhavNkyUOMljDkmQZP9kKwV9
-         1FgwqqpCHxgfiXOP51A6IewN0rpwJWVnmzz5SWgjeNY8my6fdm/TyVL4dAUOOMSgNF7j
-         fXeA==
-X-Forwarded-Encrypted: i=1; AJvYcCXiZ1whuX/vKL3dm/JD9l0qD5sGIOnFbFPQUi0mvka1jr+Xk1Van+FDQhqdFWrL1GwLEZZC76p0+ZkPOAmS@vger.kernel.org
-X-Gm-Message-State: AOJu0YwTn4Cm8inn3prk3fRPddhxik/KeIGaYhfXK6Yd9EMjzZ0t7ofL
-	jUOey3sXcmkVV4Vz9wbZnPIEvqAP41fLwAVTa8wpYg2INmhjtK9ykHTPd5myKzEPY6wI8+4s2J6
-	Pk0L4Ilw+ar0em5qcwOsLPFq93QpePHy8dsq6vw==
-X-Google-Smtp-Source: AGHT+IE5yZTlevVj1gZ0L4e8USuUUJStmlno7fmxxSe+Cq60ncfQcAuXIHI98/H4B2hU2sPtzF8Qa3zYhBs6Q0vxqhU=
-X-Received: by 2002:a05:6902:2848:b0:e22:65ee:9a17 with SMTP id
- 3f1490d57ef6-e2bb168d098mr9421782276.44.1729507463548; Mon, 21 Oct 2024
- 03:44:23 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1729511908; x=1730116708;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=qkGztVuQ5km9VuV6czaa8sQLJq2lHxn4Xzhy43svgtg=;
+        b=NbBZQ22+9vW3PaEQwO0T7euQJ2w0EyLEA7bgGFg29Kk78tyKubEDhmUjGkQoSXFWfD
+         1/Y64yV8WQLZ9xdSq02a/scQ4KgRiYxs/FIKovU+zPEuv05jmWaD0ptWOLd4Zgk7ox/9
+         mWvB7+geeo9PY03yla7z0Hi8Rpn5CHpgz3fYJ/IbwMK+KJlL8zXqvBVV+zCMxTxcCIEh
+         FMnyiyovredfPHdwoL1EglFucn4vn8irJKRPxBoIAbpVA5Gk6u6AuGIG7ZUjr7tVqjMs
+         ps2DxfOiEuf1DdkYWPKZB0un2YdH4s3A09wUCC+5J17VS+elsMmeKTg08kjYIeBl7aRd
+         b0Cg==
+X-Forwarded-Encrypted: i=1; AJvYcCXQ9fgY+rWAzUgsSBvDJwMc1w5PwpASV9Y1vHmyQnufb2N5/T81mUlvMlOqMVuMRgiUB2tpQqz09XWnyPJB@vger.kernel.org
+X-Gm-Message-State: AOJu0YzklBv10ZKZmzCD6JUhDBX6UepqOaaKL4OMUx742B9JDuyvvq+l
+	KlfgzFUdSMqqZHa2tYWK2HOLvh0Rl+lO1u222M62qACY1jwFHUIiO0SaCKKwRVdZgAB2FFsIZii
+	IyJdyFE5TeU6f9Kbj8jeprei9/YSrOUnl+pw=
+X-Google-Smtp-Source: AGHT+IFhQhDs10sVvqUOOKgoyXUFAzsaaL4Kd8WSas7FP+7B6BjtBmz7HANDSDfwppqCxSPa8a+G16A206qTuuodi/8=
+X-Received: by 2002:a67:ffd2:0:b0:4a5:e5e5:f929 with SMTP id
+ ada2fe7eead31-4a5e5e5fca8mr3631847137.13.1729511907930; Mon, 21 Oct 2024
+ 04:58:27 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241015133141.70632-1-mszeredi@redhat.com> <CAOQ4uxh-3H4QkTEihujFgz53ajeArWH9u_yj4kaWByVJAGmgrw@mail.gmail.com>
- <CAJfpegsfMf_On1qAmv1Qeud2MkFJcL1Q0Kk_i58h7YcOoVbpgw@mail.gmail.com> <CAOQ4uxi_ir+KdiAHhLC6_J617KJQo9Ve2rscQXJ1ws6EVg43cQ@mail.gmail.com>
-In-Reply-To: <CAOQ4uxi_ir+KdiAHhLC6_J617KJQo9Ve2rscQXJ1ws6EVg43cQ@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 21 Oct 2024 12:44:13 +0200
-Message-ID: <CAJfpeguaf99y1QdvXzNXuxJJAw_UaMrpYoXrB=ZuSb8+EAf9Og@mail.gmail.com>
-Subject: Re: [RFC PATCH] backing-file: clean up the API
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>
+References: <20241021103340.260731-1-mszeredi@redhat.com>
+In-Reply-To: <20241021103340.260731-1-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 21 Oct 2024 13:58:16 +0200
+Message-ID: <CAOQ4uxgUaKJXinPyEa0W=7+qK2fJx90G3qXO428G9D=AZuL2fQ@mail.gmail.com>
+Subject: Re: [PATCH v2] backing-file: clean up the API
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Christian Brauner <brauner@kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 15 Oct 2024 at 20:57, Amir Goldstein <amir73il@gmail.com> wrote:
+On Mon, Oct 21, 2024 at 12:33=E2=80=AFPM Miklos Szeredi <mszeredi@redhat.co=
+m> wrote:
+>
+>  - Pass iocb to ctx->end_write() instead of file + pos
+>
+>  - Get rid of ctx->user_file, which is redundant most of the time
+>
+>  - Instead pass iocb to backing_file_splice_read and
+>    backing_file_splice_write
+>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+> v2:
+>     Pass ioctb to backing_file_splice_{read|write}()
+>
+> Applies on fuse.git#for-next.
 
-> But I think that if we aim for a cleaner interface then the arguments of
-> backing_file_splice_{read,write}() should be similar and so should the
-> arguments of ->{end_write,access}(), so we should change
-> ->access(file *) to ->end_read(iocb *)
+This looks good to me.
+you may add
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-Changing ->access() to iocb would mean having to manufature an iocb
-for mmap(), which would be unnatural.   So I didn't touch that.
+However, this conflicts with ovl_real_file() changes on overlayfs-next
+AND on the fixes in fuse.git#for-next, so we will need to collaborate.
+
+Were you planning to send the fuse fixes for the 6.12 cycle?
+If so, I could rebase overlayfs-next over 6.12-rcX after fuse fixes
+are merged and then apply your patch to overlayfs-next and resolve conflict=
+s.
 
 Thanks,
-Miklos
+Amir.
+
+
+>
+>  fs/backing-file.c            | 33 ++++++++++++++++-----------------
+>  fs/fuse/passthrough.c        | 32 ++++++++++++++++++--------------
+>  fs/overlayfs/file.c          | 22 +++++++++++++---------
+>  include/linux/backing-file.h | 11 +++++------
+>  4 files changed, 52 insertions(+), 46 deletions(-)
+>
+> diff --git a/fs/backing-file.c b/fs/backing-file.c
+> index 09a9be945d45..a38737592ec7 100644
+> --- a/fs/backing-file.c
+> +++ b/fs/backing-file.c
+> @@ -80,7 +80,7 @@ struct backing_aio {
+>         refcount_t ref;
+>         struct kiocb *orig_iocb;
+>         /* used for aio completion */
+> -       void (*end_write)(struct file *, loff_t, ssize_t);
+> +       void (*end_write)(struct kiocb *iocb, ssize_t);
+>         struct work_struct work;
+>         long res;
+>  };
+> @@ -108,10 +108,10 @@ static void backing_aio_cleanup(struct backing_aio =
+*aio, long res)
+>         struct kiocb *iocb =3D &aio->iocb;
+>         struct kiocb *orig_iocb =3D aio->orig_iocb;
+>
+> +       orig_iocb->ki_pos =3D iocb->ki_pos;
+>         if (aio->end_write)
+> -               aio->end_write(orig_iocb->ki_filp, iocb->ki_pos, res);
+> +               aio->end_write(orig_iocb, res);
+>
+> -       orig_iocb->ki_pos =3D iocb->ki_pos;
+>         backing_aio_put(aio);
+>  }
+>
+> @@ -200,7 +200,7 @@ ssize_t backing_file_read_iter(struct file *file, str=
+uct iov_iter *iter,
+>         revert_creds(old_cred);
+>
+>         if (ctx->accessed)
+> -               ctx->accessed(ctx->user_file);
+> +               ctx->accessed(iocb->ki_filp);
+>
+>         return ret;
+>  }
+> @@ -219,7 +219,7 @@ ssize_t backing_file_write_iter(struct file *file, st=
+ruct iov_iter *iter,
+>         if (!iov_iter_count(iter))
+>                 return 0;
+>
+> -       ret =3D file_remove_privs(ctx->user_file);
+> +       ret =3D file_remove_privs(iocb->ki_filp);
+>         if (ret)
+>                 return ret;
+>
+> @@ -239,7 +239,7 @@ ssize_t backing_file_write_iter(struct file *file, st=
+ruct iov_iter *iter,
+>
+>                 ret =3D vfs_iter_write(file, iter, &iocb->ki_pos, rwf);
+>                 if (ctx->end_write)
+> -                       ctx->end_write(ctx->user_file, iocb->ki_pos, ret)=
+;
+> +                       ctx->end_write(iocb, ret);
+>         } else {
+>                 struct backing_aio *aio;
+>
+> @@ -270,7 +270,7 @@ ssize_t backing_file_write_iter(struct file *file, st=
+ruct iov_iter *iter,
+>  }
+>  EXPORT_SYMBOL_GPL(backing_file_write_iter);
+>
+> -ssize_t backing_file_splice_read(struct file *in, loff_t *ppos,
+> +ssize_t backing_file_splice_read(struct file *in, struct kiocb *iocb,
+>                                  struct pipe_inode_info *pipe, size_t len=
+,
+>                                  unsigned int flags,
+>                                  struct backing_file_ctx *ctx)
+> @@ -282,19 +282,19 @@ ssize_t backing_file_splice_read(struct file *in, l=
+off_t *ppos,
+>                 return -EIO;
+>
+>         old_cred =3D override_creds(ctx->cred);
+> -       ret =3D vfs_splice_read(in, ppos, pipe, len, flags);
+> +       ret =3D vfs_splice_read(in, &iocb->ki_pos, pipe, len, flags);
+>         revert_creds(old_cred);
+>
+>         if (ctx->accessed)
+> -               ctx->accessed(ctx->user_file);
+> +               ctx->accessed(iocb->ki_filp);
+>
+>         return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(backing_file_splice_read);
+>
+>  ssize_t backing_file_splice_write(struct pipe_inode_info *pipe,
+> -                                 struct file *out, loff_t *ppos, size_t =
+len,
+> -                                 unsigned int flags,
+> +                                 struct file *out, struct kiocb *iocb,
+> +                                 size_t len, unsigned int flags,
+>                                   struct backing_file_ctx *ctx)
+>  {
+>         const struct cred *old_cred;
+> @@ -306,18 +306,18 @@ ssize_t backing_file_splice_write(struct pipe_inode=
+_info *pipe,
+>         if (!out->f_op->splice_write)
+>                 return -EINVAL;
+>
+> -       ret =3D file_remove_privs(ctx->user_file);
+> +       ret =3D file_remove_privs(iocb->ki_filp);
+>         if (ret)
+>                 return ret;
+>
+>         old_cred =3D override_creds(ctx->cred);
+>         file_start_write(out);
+> -       ret =3D out->f_op->splice_write(pipe, out, ppos, len, flags);
+> +       ret =3D out->f_op->splice_write(pipe, out, &iocb->ki_pos, len, fl=
+ags);
+>         file_end_write(out);
+>         revert_creds(old_cred);
+>
+>         if (ctx->end_write)
+> -               ctx->end_write(ctx->user_file, ppos ? *ppos : 0, ret);
+> +               ctx->end_write(iocb, ret);
+>
+>         return ret;
+>  }
+> @@ -329,8 +329,7 @@ int backing_file_mmap(struct file *file, struct vm_ar=
+ea_struct *vma,
+>         const struct cred *old_cred;
+>         int ret;
+>
+> -       if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)) ||
+> -           WARN_ON_ONCE(ctx->user_file !=3D vma->vm_file))
+> +       if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)))
+>                 return -EIO;
+>
+>         if (!file->f_op->mmap)
+> @@ -343,7 +342,7 @@ int backing_file_mmap(struct file *file, struct vm_ar=
+ea_struct *vma,
+>         revert_creds(old_cred);
+>
+>         if (ctx->accessed)
+> -               ctx->accessed(ctx->user_file);
+> +               ctx->accessed(vma->vm_file);
+>
+>         return ret;
+>  }
+> diff --git a/fs/fuse/passthrough.c b/fs/fuse/passthrough.c
+> index bbac547dfcb3..607ef735ad4a 100644
+> --- a/fs/fuse/passthrough.c
+> +++ b/fs/fuse/passthrough.c
+> @@ -18,11 +18,11 @@ static void fuse_file_accessed(struct file *file)
+>         fuse_invalidate_atime(inode);
+>  }
+>
+> -static void fuse_passthrough_end_write(struct file *file, loff_t pos, ss=
+ize_t ret)
+> +static void fuse_passthrough_end_write(struct kiocb *iocb, ssize_t ret)
+>  {
+> -       struct inode *inode =3D file_inode(file);
+> +       struct inode *inode =3D file_inode(iocb->ki_filp);
+>
+> -       fuse_write_update_attr(inode, pos, ret);
+> +       fuse_write_update_attr(inode, iocb->ki_pos, ret);
+>  }
+>
+>  ssize_t fuse_passthrough_read_iter(struct kiocb *iocb, struct iov_iter *=
+iter)
+> @@ -34,7 +34,6 @@ ssize_t fuse_passthrough_read_iter(struct kiocb *iocb, =
+struct iov_iter *iter)
+>         ssize_t ret;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ff->cred,
+> -               .user_file =3D file,
+>                 .accessed =3D fuse_file_accessed,
+>         };
+>
+> @@ -62,7 +61,6 @@ ssize_t fuse_passthrough_write_iter(struct kiocb *iocb,
+>         ssize_t ret;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ff->cred,
+> -               .user_file =3D file,
+>                 .end_write =3D fuse_passthrough_end_write,
+>         };
+>
+> @@ -88,15 +86,20 @@ ssize_t fuse_passthrough_splice_read(struct file *in,=
+ loff_t *ppos,
+>         struct file *backing_file =3D fuse_file_passthrough(ff);
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ff->cred,
+> -               .user_file =3D in,
+>                 .accessed =3D fuse_file_accessed,
+>         };
+> +       struct kiocb iocb;
+> +       ssize_t ret;
+>
+>         pr_debug("%s: backing_file=3D0x%p, pos=3D%lld, len=3D%zu, flags=
+=3D0x%x\n", __func__,
+> -                backing_file, ppos ? *ppos : 0, len, flags);
+> +                backing_file, *ppos, len, flags);
+>
+> -       return backing_file_splice_read(backing_file, ppos, pipe, len, fl=
+ags,
+> -                                       &ctx);
+> +       init_sync_kiocb(&iocb, in);
+> +       iocb.ki_pos =3D *ppos;
+> +       ret =3D backing_file_splice_read(backing_file, &iocb, pipe, len, =
+flags, &ctx);
+> +       *ppos =3D iocb.ki_pos;
+> +
+> +       return ret;
+>  }
+>
+>  ssize_t fuse_passthrough_splice_write(struct pipe_inode_info *pipe,
+> @@ -109,16 +112,18 @@ ssize_t fuse_passthrough_splice_write(struct pipe_i=
+node_info *pipe,
+>         ssize_t ret;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ff->cred,
+> -               .user_file =3D out,
+>                 .end_write =3D fuse_passthrough_end_write,
+>         };
+> +       struct kiocb iocb;
+>
+>         pr_debug("%s: backing_file=3D0x%p, pos=3D%lld, len=3D%zu, flags=
+=3D0x%x\n", __func__,
+> -                backing_file, ppos ? *ppos : 0, len, flags);
+> +                backing_file, *ppos, len, flags);
+>
+>         inode_lock(inode);
+> -       ret =3D backing_file_splice_write(pipe, backing_file, ppos, len, =
+flags,
+> -                                       &ctx);
+> +       init_sync_kiocb(&iocb, out);
+> +       iocb.ki_pos =3D *ppos;
+> +       ret =3D backing_file_splice_write(pipe, backing_file, &iocb, len,=
+ flags, &ctx);
+> +       *ppos =3D iocb.ki_pos;
+>         inode_unlock(inode);
+>
+>         return ret;
+> @@ -130,7 +135,6 @@ ssize_t fuse_passthrough_mmap(struct file *file, stru=
+ct vm_area_struct *vma)
+>         struct file *backing_file =3D fuse_file_passthrough(ff);
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ff->cred,
+> -               .user_file =3D file,
+>                 .accessed =3D fuse_file_accessed,
+>         };
+>
+> diff --git a/fs/overlayfs/file.c b/fs/overlayfs/file.c
+> index 4444c78e2e0c..12c4d502ff91 100644
+> --- a/fs/overlayfs/file.c
+> +++ b/fs/overlayfs/file.c
+> @@ -231,9 +231,9 @@ static void ovl_file_modified(struct file *file)
+>         ovl_copyattr(file_inode(file));
+>  }
+>
+> -static void ovl_file_end_write(struct file *file, loff_t pos, ssize_t re=
+t)
+> +static void ovl_file_end_write(struct kiocb *iocb, ssize_t ret)
+>  {
+> -       ovl_file_modified(file);
+> +       ovl_file_modified(iocb->ki_filp);
+>  }
+>
+>  static void ovl_file_accessed(struct file *file)
+> @@ -271,7 +271,6 @@ static ssize_t ovl_read_iter(struct kiocb *iocb, stru=
+ct iov_iter *iter)
+>         ssize_t ret;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ovl_creds(file_inode(file)->i_sb),
+> -               .user_file =3D file,
+>                 .accessed =3D ovl_file_accessed,
+>         };
+>
+> @@ -298,7 +297,6 @@ static ssize_t ovl_write_iter(struct kiocb *iocb, str=
+uct iov_iter *iter)
+>         int ifl =3D iocb->ki_flags;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ovl_creds(inode->i_sb),
+> -               .user_file =3D file,
+>                 .end_write =3D ovl_file_end_write,
+>         };
+>
+> @@ -338,15 +336,18 @@ static ssize_t ovl_splice_read(struct file *in, lof=
+f_t *ppos,
+>         ssize_t ret;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ovl_creds(file_inode(in)->i_sb),
+> -               .user_file =3D in,
+>                 .accessed =3D ovl_file_accessed,
+>         };
+> +       struct kiocb iocb;
+>
+>         ret =3D ovl_real_fdget(in, &real);
+>         if (ret)
+>                 return ret;
+>
+> -       ret =3D backing_file_splice_read(fd_file(real), ppos, pipe, len, =
+flags, &ctx);
+> +       init_sync_kiocb(&iocb, in);
+> +       iocb.ki_pos =3D *ppos;
+> +       ret =3D backing_file_splice_read(fd_file(real), &iocb, pipe, len,=
+ flags, &ctx);
+> +       *ppos =3D iocb.ki_pos;
+>         fdput(real);
+>
+>         return ret;
+> @@ -368,9 +369,9 @@ static ssize_t ovl_splice_write(struct pipe_inode_inf=
+o *pipe, struct file *out,
+>         ssize_t ret;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ovl_creds(inode->i_sb),
+> -               .user_file =3D out,
+>                 .end_write =3D ovl_file_end_write,
+>         };
+> +       struct kiocb iocb;
+>
+>         inode_lock(inode);
+>         /* Update mode */
+> @@ -380,9 +381,13 @@ static ssize_t ovl_splice_write(struct pipe_inode_in=
+fo *pipe, struct file *out,
+>         if (ret)
+>                 goto out_unlock;
+>
+> -       ret =3D backing_file_splice_write(pipe, fd_file(real), ppos, len,=
+ flags, &ctx);
+> +       init_sync_kiocb(&iocb, out);
+> +       iocb.ki_pos =3D *ppos;
+> +       ret =3D backing_file_splice_write(pipe, fd_file(real), &iocb, len=
+, flags, &ctx);
+> +       *ppos =3D iocb.ki_pos;
+>         fdput(real);
+>
+> +
+>  out_unlock:
+>         inode_unlock(inode);
+>
+> @@ -420,7 +425,6 @@ static int ovl_mmap(struct file *file, struct vm_area=
+_struct *vma)
+>         struct file *realfile =3D file->private_data;
+>         struct backing_file_ctx ctx =3D {
+>                 .cred =3D ovl_creds(file_inode(file)->i_sb),
+> -               .user_file =3D file,
+>                 .accessed =3D ovl_file_accessed,
+>         };
+>
+> diff --git a/include/linux/backing-file.h b/include/linux/backing-file.h
+> index 2eed0ffb5e8f..1476a6ed1bfd 100644
+> --- a/include/linux/backing-file.h
+> +++ b/include/linux/backing-file.h
+> @@ -14,9 +14,8 @@
+>
+>  struct backing_file_ctx {
+>         const struct cred *cred;
+> -       struct file *user_file;
+> -       void (*accessed)(struct file *);
+> -       void (*end_write)(struct file *, loff_t, ssize_t);
+> +       void (*accessed)(struct file *file);
+> +       void (*end_write)(struct kiocb *iocb, ssize_t);
+>  };
+>
+>  struct file *backing_file_open(const struct path *user_path, int flags,
+> @@ -31,13 +30,13 @@ ssize_t backing_file_read_iter(struct file *file, str=
+uct iov_iter *iter,
+>  ssize_t backing_file_write_iter(struct file *file, struct iov_iter *iter=
+,
+>                                 struct kiocb *iocb, int flags,
+>                                 struct backing_file_ctx *ctx);
+> -ssize_t backing_file_splice_read(struct file *in, loff_t *ppos,
+> +ssize_t backing_file_splice_read(struct file *in, struct kiocb *iocb,
+>                                  struct pipe_inode_info *pipe, size_t len=
+,
+>                                  unsigned int flags,
+>                                  struct backing_file_ctx *ctx);
+>  ssize_t backing_file_splice_write(struct pipe_inode_info *pipe,
+> -                                 struct file *out, loff_t *ppos, size_t =
+len,
+> -                                 unsigned int flags,
+> +                                 struct file *out, struct kiocb *iocb,
+> +                                 size_t len, unsigned int flags,
+>                                   struct backing_file_ctx *ctx);
+>  int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+>                       struct backing_file_ctx *ctx);
+> --
+> 2.47.0
+>
