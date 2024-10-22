@@ -1,93 +1,123 @@
-Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+Received: from mail-qk1-f169.google.com (mail-qk1-f169.google.com [209.85.222.169])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A622A19AD93
-	for <linux-unionfs@vger.kernel.org>; Tue, 22 Oct 2024 16:04:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D73419DF9E;
+	Tue, 22 Oct 2024 18:55:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.169
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1729613069; cv=none; b=RLKCWkqmireF9nO4G/KIxX/Y2pG4BaDNtkEBD0irlWYf1w+lk4sRwFHUqCdzZeUq7MJsVeYdECzqCUe/zkFdJ5mHhQMl3AowUU249qbbnfJRRx5TJwuuqxbW5rSv0x4ZBIkkgvjhMhXqQ/BGunjiObqtLUEy3tkM1Q7BfIdvcdo=
+	t=1729623317; cv=none; b=nCMBu2BT8gtBd56H6QN+CRmd36/6s28rotIofaTnVg5umENo2P+B4OOQABRhVywkTOLLIPVW1ySS7joiIJzu8y9m39HK4mu+RQbbOj7LNeZpA/+3qFKPgAN9JBD29Ju8lfk292PxTyXHIlvKslHDki1iuQiQ5L76JsFhGO3t8Ug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1729613069; c=relaxed/simple;
-	bh=rmzUYtQyJIjh7ToRh48kfdgdfypbRGk/KTLvhH5S/Sw=;
+	s=arc-20240116; t=1729623317; c=relaxed/simple;
+	bh=hWWqRkfyyrZm7qXspd5uhVBPDRGaALM6ul+QgSjlc/A=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ng9fsnYawFYKkFkM64RXmYfjnkMI6WN18t36QYJ50DOua+j9NtK1M1sueZgSP0ZwhoDW/deERjOQ1mPbn5RQiYgPjMM6Q3wQLQYCQA8IoJlJkIrzB4HTI6F4rJRekdN+jIIdZqgzzrnxoDaXogzEckkQJMcPNox7+CC0N4kXY0A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=LY/3+PXS; arc=none smtp.client-ip=209.85.160.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=otzDWoNLvRB6fzO95QvJHozOGR+yAVP9/ASBZ6bRhCphfJ+mcX2vuzwVJUXPqO7nE9nPaM1uF2/0wtzz2WpqNNvhK/cnmSPOJv2J2efgAHmkeSpvei1fKgoo0eUdpk/KdIWIMG93ySY3OqpsCTFwiBEYLKyY+R765BDYgR9e4DM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=l6r4Bqw7; arc=none smtp.client-ip=209.85.222.169
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="LY/3+PXS"
-Received: by mail-qt1-f172.google.com with SMTP id d75a77b69052e-46101120e70so6940701cf.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 22 Oct 2024 09:04:27 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="l6r4Bqw7"
+Received: by mail-qk1-f169.google.com with SMTP id af79cd13be357-7b12a02596aso394058485a.2;
+        Tue, 22 Oct 2024 11:55:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1729613066; x=1730217866; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=GrdJiXt2xow918evWgAPP4qJ3FQUAUku+VXEuKSc6fE=;
-        b=LY/3+PXSK2EQFfXo3GIagQkg7cAuRFv/yljlHP0YtCyZK3UOgp+LPOB6Ta7gDmOia8
-         Q9qIFkIzvWEfa6wmbnRvJfQ2aaQ/imO9830TjKDzRCfRAReA51ef36sY9pOa/16zz5U/
-         8EfaiEDSd0gIxqzZ8XAjBDndxSvUQjTXGIdS4=
+        d=gmail.com; s=20230601; t=1729623315; x=1730228115; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=Inereob7JwAQ36iYEwx7BQG2WhKjudzG9viDN1vwhRA=;
+        b=l6r4Bqw7xmTPAxDlroKbqQJswrxjA4LLL6aGtLg117KyBO1RYZPCuRxpDtEs1xWJDS
+         K98fb4Tr0yDLHpSFztyXzRyhL8qD2tlYi+mKhduA1v2lGvi3/ErdVrLsvjetWV9kBUmi
+         FDTi8KDBysOXrhkYG8Jsi7YMSLwEbUeIoJDlC23XFuX5eW3lcsOO0XsoguDdilel6fC2
+         8gv5P+YSsHSE1fFQL7ZkB0TDLJ2TOWL2jk0YH+P4td8pr9LecFRxW65ecnvgkvNBNG0l
+         K+KWzWH56NrHvaraHqLmOfZVi2obe+tUOzcstmrAO7Th6TePp3h5FrZ3HtwctC1O7fvW
+         b6WQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729613066; x=1730217866;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=GrdJiXt2xow918evWgAPP4qJ3FQUAUku+VXEuKSc6fE=;
-        b=iNa0LQemx/gmOBHVU0EulrQrvllaByJwbV33FZW9+OEavF1e+0/8hSmghW8vCpknxF
-         p8FeG+GSi7qLg1kuQ8h+UV1fUy4to9lKkqpXkM+fdCHDsvSj0RzlIXQPE4E+0VDbGQGa
-         PfVYJzbxDfTCC1I7o2YoBAMXcaFRXMqBTCFtv/lEiEf4TicqXiMiy3aTKYdh6g7Xavqd
-         mxzDRhdzRi2cANBY9+ZjlXoaeOftXHyQ+hIegRT9XsSz3NovhtsVqkrkHkdRy1ooCjcG
-         x9NIV1ns453FBlV9DPaDlGs5xa5/YdBt6iPTP2295xGSgSZ5DAwbzO6UugpxBW7F0wQB
-         Jedw==
-X-Gm-Message-State: AOJu0YxG7urt/9idBJL8MBHqJAI4yMoodelaSNp68ajjPMWndcMFRR2d
-	bSVGACTvKX/BjyR8tzKYr+nl/zKDNxvJpJfRLiKk9TnMdkHlD4V+CM2dPJygysMkAcqJ+O3UKw5
-	GyErONd7rauts5tidkpUJsFS5PkoE2n8gGdFmeJASyjQpPmul
-X-Google-Smtp-Source: AGHT+IE8o0AaShZ4oFoQ9Omnd2rJCHGgEkx5CNMuZdw4gGydsOrMdaBbjYadWLe6ztwfU2GakrrKPxoyKmoysPerZHU=
-X-Received: by 2002:a05:622a:285:b0:460:e593:41fc with SMTP id
- d75a77b69052e-460fe77eda9mr56053661cf.37.1729613066335; Tue, 22 Oct 2024
- 09:04:26 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1729623315; x=1730228115;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=Inereob7JwAQ36iYEwx7BQG2WhKjudzG9viDN1vwhRA=;
+        b=UxEG0bJ32vG4UTM4X1P5HG1HGiiDGH7vEHaCfZbSbut7ZI1WmWic/o4D4MhcAjHfjJ
+         6GQAt5qD9Lk3++ZiwQZlf8YOuvBUTYbCaQReEVYXXQEi8fUF6lunLx2AefyOgEO5raFq
+         sgycIjGM2KNgtH7R438VpEChnQH36hyJ+y1igEs8rsDLvClGV70e4qmaCA5s98iRObH3
+         OmuiE+dpaOu1ZgTg7qxWoqaVUpjrR8haL8VHtIr2kAqd5Egm7GPwFDnVBUP5YZtAe2aP
+         k72LqGHkT6A5hb6thSwP8EpL0SECAyIzCGLVscOOuT3W1TmlhaQyG2rV0xkDMPW6Edbw
+         jJwQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWs9+YnfSWkCrJaK0R0woGQc0eHytCiz63ECKXMSjtP/6MxAi1dcbRYyYI8GL5wWwWJWsUJgDbIaJ91+JDZ@vger.kernel.org, AJvYcCXfD2MAIP4+yPYB2bzCYxMWKDwNZHNhdc1LO73NTnQW8BIcXqkLdEhfEmky2pSwxfns/5lJZVefHIDGHejHFg==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yya8BGSql67QQzlqfBRH/mjWXX3dia8WQfaZbHzvhT+//7LTkMF
+	Tq2olUcCJakW+K+mKTEt45gjNfPn0m03ulXrPgTPX7MxuiMOWhy306k51SwOy0pIClo66FT/RcG
+	lRVvuC28BHCGpHTHkKl73pV2aztq8C4W6CtM=
+X-Google-Smtp-Source: AGHT+IFF0iOdbWKjpWjKmE0Urpsx2SzR46H9huiRTyDvrc+5Lk6OEVAdWk/GkNKtgJcUB9jPW6f+Blnla9sRlSGG+0w=
+X-Received: by 2002:a05:622a:14d4:b0:460:e7e3:b072 with SMTP id
+ d75a77b69052e-460e7e3b1c9mr114585541cf.57.1729623315161; Tue, 22 Oct 2024
+ 11:55:15 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241022155513.303860-1-mszeredi@redhat.com>
-In-Reply-To: <20241022155513.303860-1-mszeredi@redhat.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 22 Oct 2024 18:04:15 +0200
-Message-ID: <CAJfpegtfa5LbGPH9CLatQAKud2tU8-uSDu4qRPiFwpLzE1Ggpw@mail.gmail.com>
-Subject: Re: [PATCH] ovl: clarify dget/dput in ovl_cleanup()
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, Amir Goldstein <amir73il@gmail.com>, 
-	Al Viro <viro@zeniv.linux.org.uk>, linux-fsdevel@vger.kernel.org
+References: <20241021103340.260731-1-mszeredi@redhat.com> <CAOQ4uxgUaKJXinPyEa0W=7+qK2fJx90G3qXO428G9D=AZuL2fQ@mail.gmail.com>
+ <20241021-zuliebe-bildhaft-08cfda736f11@brauner>
+In-Reply-To: <20241021-zuliebe-bildhaft-08cfda736f11@brauner>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 22 Oct 2024 20:55:03 +0200
+Message-ID: <CAOQ4uxi-mXSXVvyL4JbfrBCJKnsbV9GeN_jP46SMhs6s7WKNgQ@mail.gmail.com>
+Subject: Re: [PATCH v2] backing-file: clean up the API
+To: Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 22 Oct 2024 at 17:56, Miklos Szeredi <mszeredi@redhat.com> wrote:
+On Mon, Oct 21, 2024 at 2:22=E2=80=AFPM Christian Brauner <brauner@kernel.o=
+rg> wrote:
 >
-> Add a comment explaining the reason for the seemingly pointless extra
-> reference.
+> On Mon, Oct 21, 2024 at 01:58:16PM +0200, Amir Goldstein wrote:
+> > On Mon, Oct 21, 2024 at 12:33=E2=80=AFPM Miklos Szeredi <mszeredi@redha=
+t.com> wrote:
+> > >
+> > >  - Pass iocb to ctx->end_write() instead of file + pos
+> > >
+> > >  - Get rid of ctx->user_file, which is redundant most of the time
+> > >
+> > >  - Instead pass iocb to backing_file_splice_read and
+> > >    backing_file_splice_write
+> > >
+> > > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> > > ---
+> > > v2:
+> > >     Pass ioctb to backing_file_splice_{read|write}()
+> > >
+> > > Applies on fuse.git#for-next.
+> >
+> > This looks good to me.
+> > you may add
+> > Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> >
+> > However, this conflicts with ovl_real_file() changes on overlayfs-next
+> > AND on the fixes in fuse.git#for-next, so we will need to collaborate.
+> >
+> > Were you planning to send the fuse fixes for the 6.12 cycle?
+> > If so, I could rebase overlayfs-next over 6.12-rcX after fuse fixes
+> > are merged and then apply your patch to overlayfs-next and resolve conf=
+licts.
 >
-> Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/overlayfs/dir.c | 4 ++++
->  1 file changed, 4 insertions(+)
+> Wouldn't you be able to use a shared branch?
 >
-> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
-> index ab65e98a1def..9e97f7dffd90 100644
-> --- a/fs/overlayfs/dir.c
-> +++ b/fs/overlayfs/dir.c
-> @@ -28,6 +28,10 @@ int ovl_cleanup(struct ovl_fs *ofs, struct inode *wdir, struct dentry *wdentry)
->  {
->         int err;
->
-> +       /*
-> +        * Cached negative upper dentries are generally not useful, so grab a
-> +        * ref to the victim to keep it from turning negative.
-> +        */
+> If you're able to factor out the backing file changes I could e.g.,
+> provide you with a base branch that I'll merge into vfs.file, you can
+> use either as base to overlayfs and fuse or merge into overlayfs and
+> fuse and fix any potential conflicts. Both works and my PRs all go out
+> earlier than yours anyway.
 
-In fact an explicit d_drop() after the fact would have exactly the
-same effect, so maybe that would be cleaner...
+Yes, but the question remains, whether Miklos wants to send the fuse
+fixes to 6.12-rcX or to 6.13.
+I was under the impression that he was going to send them to 6.12-rcX
+and this patch depends on them.
+
+I suggested to Miklos to squash this cleanup patch with the API change
+for the fuse passthrough fix, which is a stable backport candidate, but
+he preferred to not include this cleanup in the backport candidate patch.
 
 Thanks,
-Miklos
+Amir.
