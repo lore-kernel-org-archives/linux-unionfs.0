@@ -1,38 +1,38 @@
 Received: from smtp01.aussiebb.com.au (smtp01.aussiebb.com.au [121.200.0.92])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BC36F9D6;
-	Tue, 29 Oct 2024 05:50:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 47F4F1DE894;
+	Tue, 29 Oct 2024 06:13:17 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=121.200.0.92
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730181008; cv=none; b=OtY376ZVeNSbgDG0L++a67QuwxWd5vOHrTKj5pO8HQ/2UtiJUnQXVBXkz3y1IFbWqXBz+heeiZZ7wmiM6RaJLQT/aUleKZGcMz+m2EFtYPKMBqi2NB33xDmkTUzX4vsfoObEIwBICUHxSx98aeptpMPBlolBzIUfMrIWjkfA9R0=
+	t=1730182399; cv=none; b=CU5vXx+xluLm0BDNli6UL8+hIJz5kpWWglhcH1L87n/WqNHCZ8Jm2icZrfrJfU+vbyIxTadMUzdI92bQvmMaen+m63v/Ji9Tky1frZikPv3USSRGOas/ufmjKuf+9CGafvvfv5aWr6eUIID72VLVbCOrCajwe74C6OyrLlpXvY0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730181008; c=relaxed/simple;
-	bh=iax/ny1MXcWJkGX7c9HATJrDBU260SS4Eo7rFNf+th4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=aOJREP3yB0q5ZCaVJce640h7dZ3M+cZAGHBRJplBF0eJWtwej9s29HWQbJlETP9L09/p2SRgbV8OdofhSshfZX4AJHVMjFMZzYWEMiv3KsxURrwUUoOg1mFBVwCad6HyqdjBmqSk/+szfT108uaAqp8NgWtdhI+To/857LDaKjU=
+	s=arc-20240116; t=1730182399; c=relaxed/simple;
+	bh=yQ5HjjXHrNyn/bMD+uUVC5LKeV3i4x9cUL1/8432m0c=;
+	h=Message-ID:Date:MIME-Version:Subject:From:To:Cc:References:
+	 In-Reply-To:Content-Type; b=MeBh2/GLvU8QOTkFZG5QcblzjVprbpT7s36+JxZ0U8kYGMKleFvJRL3RFj6UdsGtm46aQAG2/qG7ckmTILiwM6Tdpds0+pqOewm2sHKUjyJ4kEDfy4M8fH9LYJSNg7hS88CN7wHuUFA5FiigLe3iwDkFYISe07xLhY+KLTvbNIY=
 ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=themaw.net; spf=fail smtp.mailfrom=themaw.net; arc=none smtp.client-ip=121.200.0.92
 Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=themaw.net
 Authentication-Results: smtp.subspace.kernel.org; spf=fail smtp.mailfrom=themaw.net
 Received: from localhost (localhost.localdomain [127.0.0.1])
-	by smtp01.aussiebb.com.au (Postfix) with ESMTP id 1C137100433;
-	Tue, 29 Oct 2024 16:44:21 +1100 (AEDT)
+	by smtp01.aussiebb.com.au (Postfix) with ESMTP id DBFAA1006BA;
+	Tue, 29 Oct 2024 17:13:14 +1100 (AEDT)
 X-Virus-Scanned: Debian amavisd-new at smtp01.aussiebb.com.au
 Received: from smtp01.aussiebb.com.au ([127.0.0.1])
 	by localhost (smtp01.aussiebb.com.au [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 1YrPAb_nx2_6; Tue, 29 Oct 2024 16:44:21 +1100 (AEDT)
+	with ESMTP id c7q_Y9HhpeJF; Tue, 29 Oct 2024 17:13:14 +1100 (AEDT)
 Received: by smtp01.aussiebb.com.au (Postfix, from userid 116)
-	id 0A7181006B8; Tue, 29 Oct 2024 16:44:21 +1100 (AEDT)
+	id CAECC100402; Tue, 29 Oct 2024 17:13:14 +1100 (AEDT)
 X-Spam-Level: 
 Received: from [192.168.1.229] (159-196-82-144.9fc452.per.static.aussiebb.net [159.196.82.144])
 	(using TLSv1.3 with cipher TLS_AES_128_GCM_SHA256 (128/128 bits)
 	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
 	(No client certificate requested)
 	(Authenticated sender: ian146@aussiebb.com.au)
-	by smtp01.aussiebb.com.au (Postfix) with ESMTPSA id 5B2C3100433;
-	Tue, 29 Oct 2024 16:44:19 +1100 (AEDT)
-Message-ID: <27b60bdf-435d-442a-842d-410bb9cc68c3@themaw.net>
-Date: Tue, 29 Oct 2024 13:44:18 +0800
+	by smtp01.aussiebb.com.au (Postfix) with ESMTPSA id D992A100402;
+	Tue, 29 Oct 2024 17:13:12 +1100 (AEDT)
+Message-ID: <6ea31595-7d95-4ad5-a46e-c90872813dcf@themaw.net>
+Date: Tue, 29 Oct 2024 14:13:11 +0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -42,6 +42,7 @@ MIME-Version: 1.0
 User-Agent: Mozilla Thunderbird
 Subject: Re: lots of fstests cases fail on overlay with util-linux 2.40.2 (new
  mount APIs)
+From: Ian Kent <raven@themaw.net>
 To: Dave Chinner <david@fromorbit.com>, Zorro Lang <zlang@redhat.com>
 Cc: Christian Brauner <brauner@kernel.org>,
  Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org,
@@ -50,8 +51,8 @@ References: <20241026180741.cfqm6oqp3frvasfm@dell-per750-06-vm-08.rhts.eng.pek2.
  <20241028-eigelb-quintessenz-2adca4670ee8@brauner>
  <20241028192804.axbj2onyoscgzvwi@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
  <ZyAasz2RBpMpGV8T@dread.disaster.area>
+ <27b60bdf-435d-442a-842d-410bb9cc68c3@themaw.net>
 Content-Language: en-US
-From: Ian Kent <raven@themaw.net>
 Autocrypt: addr=raven@themaw.net; keydata=
  xsFNBE6c/ycBEADdYbAI5BKjE+yw+dOE+xucCEYiGyRhOI9JiZLUBh+PDz8cDnNxcCspH44o
  E7oTH0XPn9f7Zh0TkXWA8G6BZVCNifG7mM9K8Ecp3NheQYCk488ucSV/dz6DJ8BqX4psd4TI
@@ -94,64 +95,92 @@ Autocrypt: addr=raven@themaw.net; keydata=
  +coCSBkOU1xMiW5Td7QwkNmtXKHyEF6dxCAMK1KHIqxrBaZO27PEDSHaIPHePi7y4KKq9C9U
  8k5V5dFA0mqH/st9Sw6tFbqPkqjvvMLETDPVxOzinpU2VBGhce4wufSIoVLOjQnbIo1FIqWg
  Dx24eHv235mnNuGHrG+EapIh7g/67K0uAzwp17eyUYlE5BMcwRlaHMuKTil6
-In-Reply-To: <ZyAasz2RBpMpGV8T@dread.disaster.area>
+In-Reply-To: <27b60bdf-435d-442a-842d-410bb9cc68c3@themaw.net>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 29/10/24 07:13, Dave Chinner wrote:
-> On Tue, Oct 29, 2024 at 03:28:04AM +0800, Zorro Lang wrote:
->> On Mon, Oct 28, 2024 at 01:22:52PM +0100, Christian Brauner wrote:
->>> On Sun, Oct 27, 2024 at 02:07:41AM +0800, Zorro Lang wrote:
->>>> Hi,
->>>>
->>>> Recently, I hit lots of fstests cases fail on overlayfs (xfs underlying, no
->>>> specific mount options), e.g.
->>>>
->>>> FSTYP         -- overlay
->>>> PLATFORM      -- Linux/s390x s390x-xxxx 6.12.0-rc4+ #1 SMP Fri Oct 25 14:29:18 EDT 2024
->>>> MKFS_OPTIONS  -- -m crc=1,finobt=1,rmapbt=0,reflink=1,inobtcount=1,bigtime=1 /mnt/fstests/SCRATCH_DIR
->>>> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 /mnt/fstests/SCRATCH_DIR /mnt/fstests/SCRATCH_DIR/ovl-mnt
->>>>
->>>> generic/294       [failed, exit status 1]- output mismatch (see /var/lib/xfstests/results//generic/294.out.bad)
->>>>      --- tests/generic/294.out	2024-10-25 14:38:32.098692473 -0400
->>>>      +++ /var/lib/xfstests/results//generic/294.out.bad	2024-10-25 15:02:34.698605062 -0400
->>>>      @@ -1,5 +1,5 @@
->>>>       QA output created by 294
->>>>      -mknod: SCRATCH_MNT/294.test/testnode: File exists
->>>>      -mkdir: cannot create directory 'SCRATCH_MNT/294.test/testdir': File exists
->>>>      -touch: cannot touch 'SCRATCH_MNT/294.test/testtarget': Read-only file system
->>>>      -ln: creating symbolic link 'SCRATCH_MNT/294.test/testlink': File exists
->>>>      +mount: /mnt/fstests/SCRATCH_DIR/ovl-mnt: fsconfig system call failed: overlay: No changes allowed in reconfigure.
->>>>      +       dmesg(1) may have more information after failed mount system call.
->>> In the new mount api overlayfs has been changed to reject invalid mount
->>> option on remount whereas in the old mount api we just igorned them.
->> Not only g/294 fails on new mount utils, not sure if all of them are from same issue.
->> If you need, I can paste all test failures (only from my side) at here.
->>
->>> If this a big problem then we need to change overlayfs to continue
->>> ignoring garbage mount options passed to it during remount.
->> Do you mean this behavior change is only for overlayfs, doesn't affect other fs?
-> We tried this with XFS years ago, and reverted back to the old
-> behaviour of silently ignoring mount options we don't support in
-> remount. The filesystem code has no idea what mount API
-> userspace is using for remount - it can't assume that it is ok to
-> error out on unknown/unsupported options because it uses
-> the fsreconfigure API internally....
-
-I expect that remounting to change options for overlayfs has very 
-limited use
-
-cases. Perhaps remounting (the upper layer) read-only is useful ...
+Content-Transfer-Encoding: 8bit
 
 
-The problem here is that xfstests wants to remount the mount read-only 
-in this
+On 29/10/24 13:44, Ian Kent wrote:
+> On 29/10/24 07:13, Dave Chinner wrote:
+>> On Tue, Oct 29, 2024 at 03:28:04AM +0800, Zorro Lang wrote:
+>>> On Mon, Oct 28, 2024 at 01:22:52PM +0100, Christian Brauner wrote:
+>>>> On Sun, Oct 27, 2024 at 02:07:41AM +0800, Zorro Lang wrote:
+>>>>> Hi,
+>>>>>
+>>>>> Recently, I hit lots of fstests cases fail on overlayfs (xfs 
+>>>>> underlying, no
+>>>>> specific mount options), e.g.
+>>>>>
+>>>>> FSTYP         -- overlay
+>>>>> PLATFORM      -- Linux/s390x s390x-xxxx 6.12.0-rc4+ #1 SMP Fri Oct 
+>>>>> 25 14:29:18 EDT 2024
+>>>>> MKFS_OPTIONS  -- -m 
+>>>>> crc=1,finobt=1,rmapbt=0,reflink=1,inobtcount=1,bigtime=1 
+>>>>> /mnt/fstests/SCRATCH_DIR
+>>>>> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 
+>>>>> /mnt/fstests/SCRATCH_DIR /mnt/fstests/SCRATCH_DIR/ovl-mnt
+>>>>>
+>>>>> generic/294       [failed, exit status 1]- output mismatch (see 
+>>>>> /var/lib/xfstests/results//generic/294.out.bad)
+>>>>>      --- tests/generic/294.out    2024-10-25 14:38:32.098692473 -0400
+>>>>>      +++ /var/lib/xfstests/results//generic/294.out.bad 2024-10-25 
+>>>>> 15:02:34.698605062 -0400
+>>>>>      @@ -1,5 +1,5 @@
+>>>>>       QA output created by 294
+>>>>>      -mknod: SCRATCH_MNT/294.test/testnode: File exists
+>>>>>      -mkdir: cannot create directory 
+>>>>> 'SCRATCH_MNT/294.test/testdir': File exists
+>>>>>      -touch: cannot touch 'SCRATCH_MNT/294.test/testtarget': 
+>>>>> Read-only file system
+>>>>>      -ln: creating symbolic link 'SCRATCH_MNT/294.test/testlink': 
+>>>>> File exists
+>>>>>      +mount: /mnt/fstests/SCRATCH_DIR/ovl-mnt: fsconfig system 
+>>>>> call failed: overlay: No changes allowed in reconfigure.
+>>>>>      +       dmesg(1) may have more information after failed mount 
+>>>>> system call.
+>>>> In the new mount api overlayfs has been changed to reject invalid 
+>>>> mount
+>>>> option on remount whereas in the old mount api we just igorned them.
+>>> Not only g/294 fails on new mount utils, not sure if all of them are 
+>>> from same issue.
+>>> If you need, I can paste all test failures (only from my side) at here.
+>>>
+>>>> If this a big problem then we need to change overlayfs to continue
+>>>> ignoring garbage mount options passed to it during remount.
+>>> Do you mean this behavior change is only for overlayfs, doesn't 
+>>> affect other fs?
+>> We tried this with XFS years ago, and reverted back to the old
+>> behaviour of silently ignoring mount options we don't support in
+>> remount. The filesystem code has no idea what mount API
+>> userspace is using for remount - it can't assume that it is ok to
+>> error out on unknown/unsupported options because it uses
+>> the fsreconfigure API internally....
+>
+> I expect that remounting to change options for overlayfs has very 
+> limited use
+>
+> cases. Perhaps remounting (the upper layer) read-only is useful ...
 
-test which has never actually been done so xfstests reporting a failure 
-has no
+Actually, my mistake, it looks like remount read-only might be the only 
+case that should
 
-value!
+be handled (provided the sb is not already read-only). In this case it 
+does a file system
+
+sync and returns the result of that but now fails unconditionally in 
+fsconfig().
 
 
-Ian
-
+>
+>
+> The problem here is that xfstests wants to remount the mount read-only 
+> in this
+>
+> test which has never actually been done so xfstests reporting a 
+> failure has no
+>
+> value!
+>
+>
+> Ian
+>
