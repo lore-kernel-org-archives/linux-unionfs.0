@@ -1,127 +1,114 @@
-Received: from fout-a2-smtp.messagingengine.com (fout-a2-smtp.messagingengine.com [103.168.172.145])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-pf1-f201.google.com (mail-pf1-f201.google.com [209.85.210.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0FC40C2ED;
-	Tue, 29 Oct 2024 13:06:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.145
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3EA2FD528
+	for <linux-unionfs@vger.kernel.org>; Wed, 30 Oct 2024 00:29:10 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730207179; cv=none; b=dtTYjUsjPhYYRf3ZPkqApelhpWXS9W7rjXDI8azhA7EUCpdEKKs9zY/H4Oh69ufmaIQpSAbuNm8tnZoYnA5cdGzI9jcRTe5TY1EaJbj6TZOQHOtpVX3nMrpznsLfvd7ADcWX1ilu4B7E8djOJStCgvA/H+5G0bVeZBjBUqPEaPc=
+	t=1730248152; cv=none; b=ULltcyMthZ8jLn2sgwqa0b/NQL1Ez4YHUYYD3a8A5LhNzop+6WTooxcSQ1e2WMi9Co8F9FAC1NUiXNCo2wdcmr9QSm18qY+/16sOZ6dx1R3yVu9YHqOZgpTrOCNiU/QVYHabGza49m8UcaP74E03/+72Vaq5h0yObVPnRRfAT1o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730207179; c=relaxed/simple;
-	bh=QleypBxJn8If2RWVSbl8Pp5FeUrE3q9hmNgkiJKFEaM=;
-	h=MIME-Version:Date:From:To:Cc:Message-Id:In-Reply-To:References:
-	 Subject:Content-Type; b=UalroMsyKe0BxfTWzf3dZYbQqXtJSRXtK7e0VzX8LFk+SB8S+6PiwRlAmn3//oFoRaER7XIwcrSs8nH89YJTZgeUaHEce+EvNM9Haavmv9lUFw23SSE1Z12vpKQ2RUnskEn28pDielnCpRRYqUsDerOXJazHEVbSfo2jIh3NWrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=verbum.org; spf=pass smtp.mailfrom=verbum.org; dkim=pass (2048-bit key) header.d=verbum.org header.i=@verbum.org header.b=htx5LW66; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=hdTnuEst; arc=none smtp.client-ip=103.168.172.145
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=verbum.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=verbum.org
+	s=arc-20240116; t=1730248152; c=relaxed/simple;
+	bh=V1iNnvuBm2oNPGSNfSGCVmkg1t1E6dTFsv0w9mlYepo=;
+	h=Date:Mime-Version:Message-ID:Subject:From:To:Cc:Content-Type; b=TnvpKdiuY/TPE/sqpaVdcR+47Zoh6ZqRppPWU/o4khAM4icHR4GROjuyaw3MvhkC6xhqi/HR/0haqzFtrWTmKNzoNQocNQeIqz5M5iUqQ+C3wKgCFL1CqEXpK0E+PYDZMuSH+s+J5s30sTbIJ5BF356n99GLjgZZOD7h+RDNbzw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--ovt.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=zA7zIitO; arc=none smtp.client-ip=209.85.210.201
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--ovt.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=verbum.org header.i=@verbum.org header.b="htx5LW66";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="hdTnuEst"
-Received: from phl-compute-02.internal (phl-compute-02.phl.internal [10.202.2.42])
-	by mailfout.phl.internal (Postfix) with ESMTP id 01FA013801DB;
-	Tue, 29 Oct 2024 09:06:15 -0400 (EDT)
-Received: from phl-imap-06 ([10.202.2.83])
-  by phl-compute-02.internal (MEProxy); Tue, 29 Oct 2024 09:06:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=verbum.org; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1730207174;
-	 x=1730293574; bh=XLLBVut8GOrp3tS5VCMMSWrOKO/rTUWowoPATf5dH/I=; b=
-	htx5LW66m+M6qMB4rSlvAyqVLzb2eSpf5RZAWAIB5QTskB1yMdgGiEcGKE0qVyu3
-	Xz3QGkpJaRdQ7jsNCcXHzgD1VhK82LkKNXZNMunzPw8t2elCf5okPeDF3QHoWbzN
-	bXTTlszR1Q8LKpE8WUZmmE7jpa+k3wLAPCpl1keanNqFMWcciC0EzVCtuF/HxmDj
-	NwH3ok4EzWWLkSyTaKtMt3cluzmSj9yaUBgrjhfSlNWnf61acJSNK0RIhXuhrIfM
-	l2+JnLZZDoflkzonRuExE585jjIqZQL0anukYWy39duUiblLhVsuID0BnzgozzVA
-	fmUu2Nxb0z+r5IhOsAyA3w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1730207174; x=
-	1730293574; bh=XLLBVut8GOrp3tS5VCMMSWrOKO/rTUWowoPATf5dH/I=; b=h
-	dTnuEstGSdFLLFzfZnzQjjNme+w21T4HtWKiR4TmJOrVdn+c/VS8vPCodzvF5i2h
-	+TEwnOM6MS2ZO0IuLdp5Ve0ckfrWl0BcdWdEJpifgGpvRB10Uh7J/RFVQbbgFWhg
-	WSbStNdIIQFNKKd5rn4VqdZ5ZXfiTS0ba6TFkqPfynTC1cSLgyCDMk9vy2EGlNDR
-	eA38+9gg/ktTWu03ikWkXQo6eboUugmB++ZjKn1Te6vm8ipTGFePrI4yz9VLJraB
-	GFagNHo+b2FWhs2L0de/ADOLr6Ug3bqehQZi5GPpM998/k1dKGFLg7pu1+1IgdTg
-	8Ip/eNgs30+vym1qC8sZA==
-X-ME-Sender: <xms:xt0gZ3lKpJXtmV8QxTAgYFj6sK2HtyzAYNxjy7IWWvgWzG_yxv9g_w>
-    <xme:xt0gZ62HXi-NxAsvZrSfIbD0Vsc-tsQHcnba0sDOzt-lV50ZLdnkr8ApD25EkXhXP
-    ojUIaN62OBnydaR>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeftddrvdekuddggeegucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgfnhhsuhgsshgtrhhisggvpdfu
-    rfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnh
-    htshculddquddttddmnecujfgurhepofggfffhvfevkfgjfhfutgfgsehtjeertdertddt
-    necuhfhrohhmpedfveholhhinhcuhggrlhhtvghrshdfuceofigrlhhtvghrshesvhgvrh
-    gsuhhmrdhorhhgqeenucggtffrrghtthgvrhhnpedviefhjeeiieejtdeutdeuuddvffeu
-    udfgvdettdeuffejhedtleejieeuffefhfenucffohhmrghinhepghhithhhuhgsrdgtoh
-    hmnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepfigr
-    lhhtvghrshesvhgvrhgsuhhmrdhorhhgpdhnsggprhgtphhtthhopeehpdhmohguvgepsh
-    hmthhpohhuthdprhgtphhtthhopegrmhhirhejfehilhesghhmrghilhdrtghomhdprhgt
-    phhtthhopegsrhgruhhnvghrsehkvghrnhgvlhdrohhrghdprhgtphhtthhopeiilhgrnh
-    hgsehrvgguhhgrthdrtghomhdprhgtphhtthhopehlihhnuhigqdhfshguvghvvghlsehv
-    ghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidquhhnihhonhhfsh
-    esvhhgvghrrdhkvghrnhgvlhdrohhrgh
-X-ME-Proxy: <xmx:xt0gZ9qKASoGp6JpX8Op8uVuprQ9dj2q0BWfPRLMYvlMT8RDDf6U6Q>
-    <xmx:xt0gZ_lmQ5esfXZjXaHC5zP7s29A3Mcy_pjAunrUmH1VRDkCpdRpzQ>
-    <xmx:xt0gZ11SBg5RT7UQReBotUG3AUjcrPE4mZFLA5_Mvg3fhscDfcYR-A>
-    <xmx:xt0gZ-s7U7uQGmqWowlc9N0cezP_clIeD0bR_HZBlAq7PFj2Uw9RBg>
-    <xmx:xt0gZwQjzzLDo7DT8F6brwjkw4Qoyr8QWDxHdbPsdMapCzbKmUVo2PIO>
-Feedback-ID: ibe7c40e9:Fastmail
-Received: by mailuser.phl.internal (Postfix, from userid 501)
-	id B1AD829C006F; Tue, 29 Oct 2024 09:06:14 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="zA7zIitO"
+Received: by mail-pf1-f201.google.com with SMTP id d2e1a72fcca58-71e51a31988so8484063b3a.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 29 Oct 2024 17:29:10 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20230601; t=1730248149; x=1730852949; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:mime-version:date:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=/Ye+vbAHY2hoAlG8bCiiPKeIhcJVGNMWcPfmJps0LRM=;
+        b=zA7zIitO1JDLLMVh2tDpB/Ydm3JznmxluumgnAAQ6WMBUCseUBjDcmx2aSepa5iFMB
+         HSjvnGMHXxhkte8W0S3t+8vKStng2pG471DZjrS96ZBqOheyTx3r1Rmlzy9ULwDLiLcP
+         rQvGSbSa0ducNsfRQKEmE2TUXcWn2qhJz7Ijr2C7b+d83a8G8RMpNg3ah9kWp+Pcz5qW
+         cdo8gELtUl4Wk3KtB+s4mN8epfcU9wH1nPTQAiNSEEIrd8Wuj/mqguz1iTb45CPQLW+P
+         C7lfbQplOCBz2b19DtKVbwP4Av747A7OhYbFmQ3/RSxmDiI4l60Nw1afKIOU39hv1QIg
+         evBQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730248149; x=1730852949;
+        h=cc:to:from:subject:message-id:mime-version:date:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=/Ye+vbAHY2hoAlG8bCiiPKeIhcJVGNMWcPfmJps0LRM=;
+        b=NgR5fn5sekiyvJfnpGTdSfKtUJXnG/cUw+xsZFRR7+h3aIOxjTlxjdLFklmJ9+3DcW
+         w6nu8dFUFHgpUOXdMZY974UaKdUCZQ78Y6O/X5ZS+5nk8ZaW48omGYU1voNXWSy48YlP
+         uodFsJ4OeFmr6EBLjL2Rgqq2yojWYAleJ5+BSYzrjo8rkd9lseX9/b/aKXRUOrRM3bbC
+         12jucdrYoOxfPdc6tI38yRc4QruHc2G9RFoJLdgxId0SLcKihsH3Ko44AkXDTJci0sfK
+         23xUr8PPnLL6XePd2sZZZcZZtq7bLOUgpkfzpAk3t1aEZnA/DWvqq5tKWJ9vGkQUbK9e
+         XtvQ==
+X-Forwarded-Encrypted: i=1; AJvYcCW/vMMwewuJERUhUOYZoEqagYRNf4HCCPohB7lsLjnAgYqsUYcV3H1DxpnYmBu2Q7b1n3VhFi1lfDHZ+Kfl@vger.kernel.org
+X-Gm-Message-State: AOJu0YwIGUb4ClBAOPj+oSJew6kLKnbsECopD2+gvzVN7xkW2qZTsC/0
+	wL9Veo2qLHiSk6Pn4Cg5mp7jsbCvyFc3YUpkNCzMHkiHgDPUw8NsD2+Fmz/OhWKzsg==
+X-Google-Smtp-Source: AGHT+IFmIqfjPUXzygglv0CS5v98bbZvDbHPlRnqqpROK5kUQdzIOV0DEK16WsMTN1yt3vYZ1XyvGZ0=
+X-Received: from hmarynka.c.googlers.com ([fda3:e722:ac3:cc00:7f:e700:c0a8:1148])
+ (user=ovt job=sendgmr) by 2002:a05:6a00:3c50:b0:71e:5d1d:350a with SMTP id
+ d2e1a72fcca58-72063089caamr24309b3a.3.1730248149442; Tue, 29 Oct 2024
+ 17:29:09 -0700 (PDT)
+Date: Wed, 30 Oct 2024 00:28:55 +0000
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Date: Tue, 29 Oct 2024 09:05:54 -0400
-From: "Colin Walters" <walters@verbum.org>
-To: "Christian Brauner" <brauner@kernel.org>, "Zorro Lang" <zlang@redhat.com>
-Cc: "Amir Goldstein" <amir73il@gmail.com>, linux-unionfs@vger.kernel.org,
- linux-fsdevel@vger.kernel.org
-Message-Id: <474e70f3-38d1-4c6d-9847-62d692bcb2f8@app.fastmail.com>
-In-Reply-To: <20241028-eigelb-quintessenz-2adca4670ee8@brauner>
-References: 
- <20241026180741.cfqm6oqp3frvasfm@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <20241028-eigelb-quintessenz-2adca4670ee8@brauner>
-Subject: Re: lots of fstests cases fail on overlay with util-linux 2.40.2 (new mount
- APIs)
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.47.0.163.g1226f6d8fa-goog
+Message-ID: <20241030002856.2103752-1-ovt@google.com>
+Subject: [PATCH] ovl: properly handle large files in ovl_security_fileattr
+From: Oleksandr Tymoshenko <ovt@google.com>
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
+Cc: ovt@google.com, stable@vger.kernel.org, 
+	Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
+dentry_open in ovl_security_fileattr fails for any file
+larger than 2GB if open method of the underlying filesystem
+calls generic_file_open (e.g. fusefs).
 
+The issue can be reproduce using the following script:
+(passthrough_ll is an example app from libfuse).
 
-On Mon, Oct 28, 2024, at 8:22 AM, Christian Brauner wrote:
-> On Sun, Oct 27, 2024 at 02:07:41AM +0800, Zorro Lang wrote:
->> Hi,
->> 
->> Recently, I hit lots of fstests cases fail on overlayfs (xfs underlying, no
->> specific mount options), e.g.
->> 
->> FSTYP         -- overlay
->> PLATFORM      -- Linux/s390x s390x-xxxx 6.12.0-rc4+ #1 SMP Fri Oct 25 14:29:18 EDT 2024
->> MKFS_OPTIONS  -- -m crc=1,finobt=1,rmapbt=0,reflink=1,inobtcount=1,bigtime=1 /mnt/fstests/SCRATCH_DIR
->> MOUNT_OPTIONS -- -o context=system_u:object_r:root_t:s0 /mnt/fstests/SCRATCH_DIR /mnt/fstests/SCRATCH_DIR/ovl-mnt
->> 
->> generic/294       [failed, exit status 1]- output mismatch (see /var/lib/xfstests/results//generic/294.out.bad)
->>     --- tests/generic/294.out	2024-10-25 14:38:32.098692473 -0400
->>     +++ /var/lib/xfstests/results//generic/294.out.bad	2024-10-25 15:02:34.698605062 -0400
->>     @@ -1,5 +1,5 @@
->>      QA output created by 294
->>     -mknod: SCRATCH_MNT/294.test/testnode: File exists
->>     -mkdir: cannot create directory 'SCRATCH_MNT/294.test/testdir': File exists
->>     -touch: cannot touch 'SCRATCH_MNT/294.test/testtarget': Read-only file system
->>     -ln: creating symbolic link 'SCRATCH_MNT/294.test/testlink': File exists
->>     +mount: /mnt/fstests/SCRATCH_DIR/ovl-mnt: fsconfig system call failed: overlay: No changes allowed in reconfigure.
->>     +       dmesg(1) may have more information after failed mount system call.
->
-> In the new mount api overlayfs has been changed to reject invalid mount
-> option on remount whereas in the old mount api we just igorned them.
-> If this a big problem then we need to change overlayfs to continue
-> ignoring garbage mount options passed to it during remount.
+  $ D=/opt/test/mnt
+  $ mkdir -p ${D}/{source,base,top/uppr,top/work,ovlfs}
+  $ dd if=/dev/zero of=${D}/source/zero.bin bs=1G count=2
+  $ passthrough_ll -o source=${D}/source ${D}/base
+  $ mount -t overlay overlay \
+      -olowerdir=${D}/base,upperdir=${D}/top/uppr,workdir=${D}/top/work \
+      ${D}/ovlfs
+  $ chmod 0777 ${D}/mnt/ovlfs/zero.bin
 
-https://github.com/ostreedev/ostree/commit/bc62fd519631be6591c5c62302f83b45b9d56328 is related...I probably should have reported it at the time.
+Running this script results in "Value too large for defined data type"
+error message from chmod.
+
+Signed-off-by: Oleksandr Tymoshenko <ovt@google.com>
+Fixes: 72db82115d2b ("ovl: copy up sync/noatime fileattr flags")
+Cc: stable@vger.kernel.org # v5.15+
+---
+ fs/overlayfs/inode.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 35fd3e3e1778..baa54c718bd7 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -616,8 +616,13 @@ static int ovl_security_fileattr(const struct path *realpath, struct fileattr *f
+ 	struct file *file;
+ 	unsigned int cmd;
+ 	int err;
++	unsigned int flags;
++
++	flags = O_RDONLY;
++	if (force_o_largefile())
++		flags |= O_LARGEFILE;
+ 
+-	file = dentry_open(realpath, O_RDONLY, current_cred());
++	file = dentry_open(realpath, flags, current_cred());
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
+ 
+-- 
+2.47.0.163.g1226f6d8fa-goog
+
