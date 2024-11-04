@@ -1,154 +1,130 @@
-Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
+Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD2CD1C1738;
-	Mon,  4 Nov 2024 17:03:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E5EA1CC881;
+	Mon,  4 Nov 2024 19:30:53 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.46
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730739835; cv=none; b=JOoUL/nUOfT5djBJPmpySW4Mrx8Ib6WG4iBnMcxnQqc8WLXKbcTBUeh+nbyrV2WKL1fe/H22IfsHaQX9gcv6WmCwAamXIdioh8gUFhoB2to9mNM90RxfweMf+igR1RUWLKsSvAQ1rov/zfhsJ3Bm5pi8KRfz7moUxkFCCKUGGl8=
+	t=1730748654; cv=none; b=VEgw7NfxW8OWyj30ASKRcgBehvNHoz78752NcXwYLE7Q1xy9CoF2943pwPY0C+3beprpnaOJq7cNAgmvANXT2izzLadxseJ/knQxXCXT3B68wBXWXnTcMNLPeBDOomq4y2ChbFWPzbv6ZelyLh3bqsLgMq3EHqJL8g18t7LH0k8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730739835; c=relaxed/simple;
-	bh=SICAjadzqgYxQNrgOYg+UztLoDJSRQ1yNROvKSIJepM=;
+	s=arc-20240116; t=1730748654; c=relaxed/simple;
+	bh=Fo60uWswFcnSmzVpKdk+u0eNERCEyxQs200F0GCVyJw=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=P/Qc1VILtdMx8Nsibgx30irDRJTY9+xDFspdLBTunP/CErV5NmaliDv2pk7hiKhDd+HTtaq+6LoMWBQ5Es/yl21tMi+Qu8cJxvZZHRHUBZTlcMtPeOvP3qwS2gLDx3SqJ87pVFc9DXpJUwnzWGIIpIas8UdWYyV5bU8umGnRWlE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZoYK7c7C; arc=none smtp.client-ip=209.85.160.182
+	 To:Cc:Content-Type; b=Uu4beA3iUjLyi2gTi8Ec3l+SndUl0czNugs3Mw4mv9N9/imqSBSXJpGUXsAgbEgeQ87QP8wvkqgKDrm+hO3yUavmQjM4B/zzd3SYHcn499zLlXsycdQ5LFfQW2KuM0UOJaGXlyK+4TEoDKS5oTIvD+9zjKWFgiU2e0RDAW10MHM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=dCJtqDV9; arc=none smtp.client-ip=209.85.219.46
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZoYK7c7C"
-Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-460963d6233so28911811cf.2;
-        Mon, 04 Nov 2024 09:03:53 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="dCJtqDV9"
+Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-6d36f7cf765so18011976d6.0;
+        Mon, 04 Nov 2024 11:30:53 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730739833; x=1731344633; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1730748652; x=1731353452; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ZOGNDRBscOv7asRgZqi0hnlWitc/6LWLRWws462u1mc=;
-        b=ZoYK7c7CubG5odDLCDzkLS1LKK4kgcx873ww0Ec1pu7uNAMP4x9Cxl+BORtgz9j8xg
-         QdkMVU/DGvXCe8fy/Q5CG7nzgM0lV6F3wpDHcslJzc89wSEOhdoEFFbP36Pd4HvyfGDA
-         NtIKl+zsFMQQ1y9LVpaN845J04p2DTaMSfXzK/zd6cc4gdfuhjCnNaWDQuSe1xQm76Em
-         6ii9MMap/FGWU/xhIxD0zck6RRSG/wHOc7g2RYC2dekJKQzPFpR/vZ2MZWjvY4TiWRgG
-         8i3o+ciuILnVP2B64zbqOG+zrJI6uI3eqMZAw7OK0lj/pAop4cJbgWuRaoahJVoQyQEW
-         06Ww==
+        bh=aMEsUOUwX1QVPl2y9CeAdxcmUznBmp9LvekDGjDQcDs=;
+        b=dCJtqDV9Cg07sG3pGcZ6ye8SN2dcudGYH3XrpTT0sRnZ3+/d5A00sypTXr4g/e5uIv
+         SFoZrh8x+PGJliClZEzRV4wO5h9kVqA+WGvDH1rvMJdmMvZQsG+DdWTCDf4w6QAYjfzi
+         VSylvJ/gaVJfcW/a9AYJfETOVVCrlW8YWufoSQweykak61OZd2ehS8IW7bx1RjO6x3Hg
+         +KrtAbbj1hLNDGR5R4hm0dEStYTvQVzJPYLLL63qWbVec7Al1VMJdXIMEP+8MNn/J7vB
+         8r8eZYH4+bEqckzC8Rq4rr6/1hglntkcTpKF2NmH6eCEI6F2mzGhxD+Liym7X2JprAt2
+         3AAw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730739833; x=1731344633;
+        d=1e100.net; s=20230601; t=1730748652; x=1731353452;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ZOGNDRBscOv7asRgZqi0hnlWitc/6LWLRWws462u1mc=;
-        b=kpDTISUQ1lMFy1ugCDzWHeJuAbU7+D08LgCXEcOg4CsF1fnSfd4JoiHUHsybZxLQxj
-         wFyM8Bo+wNMLNXNL8o/ZrbOvU04dAQKlRQC8wA1nefVB8lq1bqA3t4qAiphKPaTrc0FR
-         T5oNMWZs6q7SSDcIXNhQBrfomQvicW5xT2g3mVr5My6PuuPBM9d2Ytt6gS/kpBzHAD6a
-         6qaNiZLFrFVkXHlpqk1WsdcnjFKTynbHv3B82h+mHTgJzjRbJhyyMx76xJ1vARW7C5dR
-         ywjHi64RJw6BJFdRPLXswJGPjPpDfvFXnEZJ0h2k/lTObeG6XB/WIH5veKQDU6XDenIC
-         rGBg==
-X-Forwarded-Encrypted: i=1; AJvYcCV5OY4zyAE8eJacZQY9J7pIkbbHOWPNYXrqQSYRpQZCF46QNJjyCZMp23p8ZlwcRqrCvgqIDx8cSys3pSsA@vger.kernel.org, AJvYcCVWWGXspHclkLfM8Y9CpmFce2d/HpPfzTYLIIA5ceoJehMrSdE+sjCbultU+FHDGZqk/6pFpcTW8OedwdzHRw==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw2Lm9j6tf0LkpCXEmEd6HzNz5q7ydSM+FuwIr9ixQlm4O1QNQd
-	Zf4510yxNMYDMDSglxcalx2+ZLh3BJrofUUs6E2qe0oCAOWx05w5BmIslmY5N7cPnD3h/h3q+h5
-	MlTvJvIvE+U8YISTlkMATG6Bia0w=
-X-Google-Smtp-Source: AGHT+IFWPgM0oQhJ6otrU9zrdF5XZmrGrMFj5ETaueLB2e8eX81G+1jBc8aeJmMCbjo2HpiUByK/Nxen4Rgm3X/dxVw=
-X-Received: by 2002:ac8:5f54:0:b0:447:e769:76fc with SMTP id
- d75a77b69052e-462ab281dd7mr249615061cf.34.1730739832207; Mon, 04 Nov 2024
- 09:03:52 -0800 (PST)
+        bh=aMEsUOUwX1QVPl2y9CeAdxcmUznBmp9LvekDGjDQcDs=;
+        b=Mksf75hlWxIwDDDBKLoQs3t1ounu3yRrVscBKmyyvYJLzCXOVusbvDpn2oR4/VwAAy
+         A9MWMM3RwxUcrrSyvFrv8zY0izdPYKZ1O5KSQuIPfIwcpAMLElIjdyCwkfj4IZjnq59g
+         c3VjJLieQo8HnNiRuGF1wGSWxXX1a5TBY1vlcSFYAoKYVwQCpQ7M77aE7BUq/ZkJjqQs
+         +i8ocZE6RGd4Ap3EBjfVWaWVbVySquoTasZ3xLqkE8WDYPQNJv8zcjaopWD5O7XyYCuu
+         +i3sWuccVqF4Lm2+AhUwdohpamGTkCJBILpyzzo9wnsv4PyKW92kRM6yn2ub5gS8EqoY
+         qFCQ==
+X-Forwarded-Encrypted: i=1; AJvYcCVSdyvw3RuifpHtdib10P6AUueox/AmzzBmKK6DeH5IIaGIjk2sVeEe4FcBzKWx7VHaiA/1sy0+TJJBtH4=@vger.kernel.org, AJvYcCXNn+H0trzrjvTN/tr0Gz6jL3Hrv0t1Z8I2omIqMudkkTBIs1DjqceJfm0Y2nVYFgTUaxiojMSgLh0ejLj3cA==@vger.kernel.org
+X-Gm-Message-State: AOJu0YzVR7R6HSMwcS5G1JZ8SaU93osQ2Q3xa6ozzzBGgMqCNlkpxUBJ
+	fq7KY9HURAVwM3HwuGdxyDqHarSDBnkFEtfOTrZaX/jTSuMBl6ORj46hfxUtSox/mzMndy7JcYl
+	JrOF+TNlpnuGnxXI9+yB9QJc9VEtEQX1g23M=
+X-Google-Smtp-Source: AGHT+IHjDExevzcVEqh6dylFKl0DUThxz+Syms9Ht8lS/L10WWwnnFGLfT+vDD8lmI0PGVk41Nc7fAV/B0Usdgdk97c=
+X-Received: by 2002:a05:6214:3bc5:b0:6ce:26d0:c7b4 with SMTP id
+ 6a1803df08f44-6d35c19bf44mr200872936d6.44.1730748652032; Mon, 04 Nov 2024
+ 11:30:52 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241026180741.cfqm6oqp3frvasfm@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
- <20241028-eigelb-quintessenz-2adca4670ee8@brauner> <20241028192804.axbj2onyoscgzvwi@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
-In-Reply-To: <20241028192804.axbj2onyoscgzvwi@dell-per750-06-vm-08.rhts.eng.pek2.redhat.com>
+References: <671fd40c.050a0220.4735a.024f.GAE@google.com> <tencent_93E0C66D49BEAEDE6ECA0C9FA7C786D2D206@qq.com>
+In-Reply-To: <tencent_93E0C66D49BEAEDE6ECA0C9FA7C786D2D206@qq.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 4 Nov 2024 18:03:40 +0100
-Message-ID: <CAOQ4uxhoLO2shZAYxMuF7sjZs6GR3GLwpJ8KMT+tW21gZYOkLg@mail.gmail.com>
-Subject: Re: lots of fstests cases fail on overlay with util-linux 2.40.2 (new
- mount APIs)
-To: Zorro Lang <zlang@redhat.com>
-Cc: Christian Brauner <brauner@kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, sandeen@redhat.com
+Date: Mon, 4 Nov 2024 20:30:41 +0100
+Message-ID: <CAOQ4uxi36iUbYa27c81pNpO7T0vR=rY63b7KACJLP6b4HTJGXQ@mail.gmail.com>
+Subject: Re: [syzbot] [overlayfs?] WARNING in ovl_encode_real_fh
+To: Edward Adam Davis <eadavis@qq.com>
+Cc: syzbot+ec07f6f5ce62b858579f@syzkaller.appspotmail.com, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Mon, Oct 28, 2024 at 8:28=E2=80=AFPM Zorro Lang <zlang@redhat.com> wrote=
-:
+On Wed, Oct 30, 2024 at 11:32=E2=80=AFAM Edward Adam Davis <eadavis@qq.com>=
+ wrote:
 >
-> On Mon, Oct 28, 2024 at 01:22:52PM +0100, Christian Brauner wrote:
-> > On Sun, Oct 27, 2024 at 02:07:41AM +0800, Zorro Lang wrote:
-> > > Hi,
-> > >
-> > > Recently, I hit lots of fstests cases fail on overlayfs (xfs underlyi=
-ng, no
-> > > specific mount options), e.g.
-> > >
-> > > FSTYP         -- overlay
-> > > PLATFORM      -- Linux/s390x s390x-xxxx 6.12.0-rc4+ #1 SMP Fri Oct 25=
- 14:29:18 EDT 2024
-> > > MKFS_OPTIONS  -- -m crc=3D1,finobt=3D1,rmapbt=3D0,reflink=3D1,inobtco=
-unt=3D1,bigtime=3D1 /mnt/fstests/SCRATCH_DIR
-> > > MOUNT_OPTIONS -- -o context=3Dsystem_u:object_r:root_t:s0 /mnt/fstest=
-s/SCRATCH_DIR /mnt/fstests/SCRATCH_DIR/ovl-mnt
-> > >
-> > > generic/294       [failed, exit status 1]- output mismatch (see /var/=
-lib/xfstests/results//generic/294.out.bad)
-> > >     --- tests/generic/294.out       2024-10-25 14:38:32.098692473 -04=
-00
-> > >     +++ /var/lib/xfstests/results//generic/294.out.bad      2024-10-2=
-5 15:02:34.698605062 -0400
-> > >     @@ -1,5 +1,5 @@
-> > >      QA output created by 294
-> > >     -mknod: SCRATCH_MNT/294.test/testnode: File exists
-> > >     -mkdir: cannot create directory 'SCRATCH_MNT/294.test/testdir': F=
-ile exists
-> > >     -touch: cannot touch 'SCRATCH_MNT/294.test/testtarget': Read-only=
- file system
-> > >     -ln: creating symbolic link 'SCRATCH_MNT/294.test/testlink': File=
- exists
-> > >     +mount: /mnt/fstests/SCRATCH_DIR/ovl-mnt: fsconfig system call fa=
-iled: overlay: No changes allowed in reconfigure.
-> > >     +       dmesg(1) may have more information after failed mount sys=
-tem call.
-> >
-> > In the new mount api overlayfs has been changed to reject invalid mount
-> > option on remount whereas in the old mount api we just igorned them.
+> When the memory is insufficient, the allocation of fh fails, which causes
+> the failure to obtain the dentry fid, and finally causes the dentry encod=
+ing
+> to fail.
+> Retry is used to avoid the failure of fh allocation caused by temporary
+> insufficient memory.
 >
-> Not only g/294 fails on new mount utils, not sure if all of them are from=
- same issue.
-> If you need, I can paste all test failures (only from my side) at here.
-
-Please share them.
-
+> #syz test
 >
-> > If this a big problem then we need to change overlayfs to continue
-> > ignoring garbage mount options passed to it during remount.
+> diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> index 2ed6ad641a20..1e027a3cf084 100644
+> --- a/fs/overlayfs/copy_up.c
+> +++ b/fs/overlayfs/copy_up.c
+> @@ -423,15 +423,22 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *of=
+s, struct dentry *real,
+>         int fh_type, dwords;
+>         int buflen =3D MAX_HANDLE_SZ;
+>         uuid_t *uuid =3D &real->d_sb->s_uuid;
+> -       int err;
+> +       int err, rtt =3D 0;
 >
-> Do you mean this behavior change is only for overlayfs, doesn't affect ot=
-her fs?
-
-That is correct.
-
+>         /* Make sure the real fid stays 32bit aligned */
+>         BUILD_BUG_ON(OVL_FH_FID_OFFSET % 4);
+>         BUILD_BUG_ON(MAX_HANDLE_SZ + OVL_FH_FID_OFFSET > 255);
 >
-> If it's not necessary, I think we'd better to not change the behaviors wh=
-ich we've
-> used so many years. But if you all agree with this change, then we need t=
-o update
-> related regression test cases and more scripts maybe.
+> +retry:
+>         fh =3D kzalloc(buflen + OVL_FH_FID_OFFSET, GFP_KERNEL);
+> -       if (!fh)
+> +       if (!fh) {
+> +               if (!rtt) {
+> +                       cond_resched();
+> +                       rtt++;
+> +                       goto retry;
+> +               }
+>                 return ERR_PTR(-ENOMEM);
+> +       }
+>
+>         /*
+>          * We encode a non-connectable file handle for non-dir, because w=
+e
+>
 
-Can you check if this workaround (done for ostree) solves the problem:
+This endless loop is out of the question and anyway, syzbot reported
+a WARN_ON in line 448:
+            WARN_ON(fh_type =3D=3D FILEID_INVALID))
 
---- a/common/overlay
-+++ b/common/overlay
-@@ -127,7 +127,7 @@ _overlay_base_scratch_mount()
- _overlay_scratch_mount()
- {
-        if echo "$*" | grep -q remount; then
--               $MOUNT_PROG $SCRATCH_MNT $*
-+               $MOUNT_PROG --options-source=3Ddisable $SCRATCH_MNT $*
-                return
-        fi
+How does that have to do with memory allocation failure?
+What am I missing?
 
-I am not sure about the proper fix for general use cases,
-but if this is enough to fix fstests, I think we should do this anyway.
+Probably this WARN_ON as well as the one in line 446 should be
+relaxed because it is perfectly possible for fs to return negative or
+FILEID_INVALID for encoding a file handle even if fs supports encoding
+file handles.
 
 Thanks,
 Amir.
