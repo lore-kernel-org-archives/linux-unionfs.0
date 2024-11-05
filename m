@@ -1,105 +1,289 @@
-Received: from mail-qv1-f46.google.com (mail-qv1-f46.google.com [209.85.219.46])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.15])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A59961D86D2;
-	Tue,  5 Nov 2024 13:58:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.46
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1DD2820D50D;
+	Tue,  5 Nov 2024 19:35:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.15
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730815121; cv=none; b=cFUleC/BC2pV2YIdh3Fu1eKyUEuf1X2Abb2QRVWY5VhVbwRLnYt6yjYLoLbut/52M8zMgGFOFk7/j3scTMFS/QyLCf9VhuCSEoW+6XxhXO3/2M6/iIJinBb8eAUWf73qMyBhla5Gysp1F/g7VjN4qI1zch8qAGiobmpVHuamfPU=
+	t=1730835338; cv=none; b=FMa0fp2raVc3OFL5GjKniYJbqmOURJJ/2eMyQ9O65lIOL+LFevuOjjfGYSiw2pfPibfHQlkiW/599r4CuiuVLts31n7zsMZPr1nI68XNVpbMUYY0VbcSRKkvJIFpdRqFiPwKZAqXWSrVfOQyhXYEeaBJXd0cq5XXtDvU2q/5Pvs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730815121; c=relaxed/simple;
-	bh=JEPZHZDZ9HF7e0d0tl5oWiltB+5v23MRe0F7U4Go8pQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=hz7R4/ggRtpS2fHESpMhjB4su69ACOR3Pf/oc/in+ekfHf3bHjKTh9W+/YmZpbOU/42q5Yjie/0LsD5eWkmjq/YRxZMslaVXcxvXYTLjXJxMRFdcbvQyIbNt+rRufBQEDe8QSLi+8Hy6D1bVXsX3VxvvL75KaeWI+Qx8qbrp8hc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=hG+PF+69; arc=none smtp.client-ip=209.85.219.46
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1730835338; c=relaxed/simple;
+	bh=4YFF+yrcfOTW8tVkQ+rmeCviRlOAwTxxlQAq7DkMFdc=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=nLANkrMSA2atsImz6Zg6CbVTEFwpArEXU5vlTWMKuXqVfB9vnoFD2XkNvHZfT13IN0lILXQtUxfSNv8E4h4sKpTP2vycBRqbBDp2f7XNgvtG1RaRtNxuMhn5df+IIgqFgD7Idw56/hhMEOlyYf3O20ABRzDgVMhHMJd/Sz+RrXo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=TwrjACWH; arc=none smtp.client-ip=198.175.65.15
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="hG+PF+69"
-Received: by mail-qv1-f46.google.com with SMTP id 6a1803df08f44-6cd7a2ed34bso37778296d6.2;
-        Tue, 05 Nov 2024 05:58:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730815118; x=1731419918; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=qd8fYczq/Bql3LhMNCx76RD5UObtfYnJhekNQr5DEac=;
-        b=hG+PF+69XZzaMg9LaFYoz1DjiFBIxPbkj+4aZnkGvuKTuzIwDixaUgvFQi5ODhso26
-         G3tLsdzOPxXhyo9u/i1V2q3p58FFzFD/kdtU9NxgFs+oJW82fn0r29wcRqygUnZsC//f
-         SiS8ArfBkCIKpg1rzorDB46+dwxvMfh71qnHgorFA1FBX0mX0kMUxnHbhF4UxcI6k5WB
-         QMpUOHsV1bY6BPOxTd0GpWFXczOIDOILSXcBq0SkzO6rRg6Sq0MOOggTzbyMo9rbQryL
-         T2bRw4lycPm7AmhBlNAn8fFjPc62QfCPUMxUW9qqVb9TEmkaOfqJaP6iTKQgL3TD9xYt
-         ANUQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730815118; x=1731419918;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=qd8fYczq/Bql3LhMNCx76RD5UObtfYnJhekNQr5DEac=;
-        b=KU/uCGrAsQqXU0RUn9b44CMQ0SmJBFlME2GZk5nuuCfAKoGFaFxvDJe9wP0hhVfkxw
-         bxOs93YnHJB1Oq1IJhqx+vvEbY4xdD7IsvYymlSO3iCWuyyyuq656qYi7+uBmNTJWRzX
-         1IFFXmA4K+Oirh7yZy2TbYjxsotaYeWJSi3r97Jj5AODnJmnSdXfWhBgzDG/v7ZjOs9q
-         tLvu5JTquFgM3Wfx6/J3MeJVaTvmrBKje9BfKzee3NOHR0nVGk+Zkmae9QYEkQ060YER
-         YWDnTeEJ1bv9hq5wwFg2YUzgk4QNPKCd9vTd9gkMXaKnW7Q6/+pg38bd83VCJgmUo0Rd
-         YP+w==
-X-Forwarded-Encrypted: i=1; AJvYcCXDmdTljDGKWvygljOajxBbxuUzwmIgJmW+3sdqvbdUWxcPst+bodhSnR7Q/KXSa1HzdgwAPkxoEBpDpbNG@vger.kernel.org, AJvYcCXqP0Q9gOAi15eexQ56MGunNUJlduHcLkMnfvhJNvmJSfW45r760g9nwJGUMxe+/zQxpTLRU/UKdjIL4JFtnA==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyo4pdvY82mWOfCuZGBks4v4y8ME0P5Qex0ykmWOBVltEGyQTMd
-	sCTLvwPLaiB4wyOesG++60DGK8fLcjrQhNaYN3hbG/lMc+/39KCOag8Ep5h9lRAl1i5+/aEfLnh
-	qqHFCxHgyYopAyp5X+InvoM0QN0I=
-X-Google-Smtp-Source: AGHT+IGxJM+dnt+VJk7G6L4JJW+BDjbcv9jynFdNPVeMyVrNuUW/9ynW5YpMeMK9k/yNrdNe/GVLTuysS1d1epZMMqA=
-X-Received: by 2002:a05:6214:4984:b0:6cb:399d:6ec3 with SMTP id
- 6a1803df08f44-6d35c0a1f05mr249285426d6.9.1730815118469; Tue, 05 Nov 2024
- 05:58:38 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="TwrjACWH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1730835337; x=1762371337;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=4YFF+yrcfOTW8tVkQ+rmeCviRlOAwTxxlQAq7DkMFdc=;
+  b=TwrjACWHSaL+pRXCwXXlJsbahrzoT4tXUsV/r8NgWQEG2AYGgngRlhS8
+   aKPYGpzuxbjpk2ifaZm2n8s32zV5QVDeC2/lBXs+cYeZDxBQgOtlVJO1a
+   qkG1t5wL5L/UhhKx33NoKOKvTcfeVzSrBXAQlAyYBi8pfsdeujhG+V3Qs
+   nQerGrO/jdecI56NbRovlVLkiDSrnNdvFhiE941WRKeGe30UidsxliKxf
+   8tx+KyL9RRHw5G1OHZmZuTy29w+Xq/iztGZRrHiREoqAMX0eGO/6yP4LC
+   CCeusifgSHHZVvPNZtI+Qi/8n5WZpY6+65U2Uy47csoZYPNJCgYu3owJo
+   g==;
+X-CSE-ConnectionGUID: K9txCXVqS3m9ISrxll4BUw==
+X-CSE-MsgGUID: FsbGoe4ZQ5GSI8XxXulWZA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="34297810"
+X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
+   d="scan'208";a="34297810"
+Received: from fmviesa001.fm.intel.com ([10.60.135.141])
+  by orvoesa107.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 11:35:36 -0800
+X-CSE-ConnectionGUID: 5DvdmDjtQIGX0BCKBN5P4w==
+X-CSE-MsgGUID: AJO+GncvQPeYnR/HJGHCiw==
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="6.11,261,1725346800"; 
+   d="scan'208";a="114939385"
+Received: from ehanks-mobl1.amr.corp.intel.com (HELO vcostago-mobl3.intel.com) ([10.124.221.238])
+  by smtpauth.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 11:35:35 -0800
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: brauner@kernel.org,
+	amir73il@gmail.com,
+	hu1.chen@intel.com
+Cc: miklos@szeredi.hu,
+	malini.bhandaru@intel.com,
+	tim.c.chen@intel.com,
+	mikko.ylinen@intel.com,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Vinicius Costa Gomes <vinicius.gomes@intel.com>
+Subject: [PATCH overlayfs-next v3 0/4] overlayfs: Optimize override/revert creds
+Date: Tue,  5 Nov 2024 11:35:10 -0800
+Message-ID: <20241105193514.828616-1-vinicius.gomes@intel.com>
+X-Mailer: git-send-email 2.47.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241025150154.879541-1-mszeredi@redhat.com> <CAOQ4uxhA-o_=4jE2DyNSAW8OWt3vOP1uaaua+t3W5aA-nV+34Q@mail.gmail.com>
- <20241026065619.GD1350452@ZenIV> <CAJfpegt3qfhP85f+L+Qz03JAfOcSP4fzfz-x_8dvwoP9CgLdnw@mail.gmail.com>
-In-Reply-To: <CAJfpegt3qfhP85f+L+Qz03JAfOcSP4fzfz-x_8dvwoP9CgLdnw@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 5 Nov 2024 14:58:27 +0100
-Message-ID: <CAOQ4uxiDsmhnKm8gpm+hLsM9tsJQAffPSeHGGSat0vs0M+7twg@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: replace dget/dput with d_drop in ovl_cleanup()
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Miklos Szeredi <mszeredi@redhat.com>, 
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Tue, Nov 5, 2024 at 12:34=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
->
-> On Sat, 26 Oct 2024 at 08:56, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> >
-> > On Sat, Oct 26, 2024 at 08:30:54AM +0200, Amir Goldstein wrote:
-> > > On Fri, Oct 25, 2024 at 5:02=E2=80=AFPM Miklos Szeredi <mszeredi@redh=
-at.com> wrote:
-> > > >
-> > > > The reason for the dget/dput pair was to force the upperdentry to b=
-e
-> > > > dropped from the cache instead of turning it negative and keeping i=
-t
-> > > > cached.
-> > > >
-> > > > Simpler and cleaner way to achieve the same effect is to just drop =
-the
-> > > > dentry after unlink/rmdir if it was turned negative.
-> > > >
-> > > > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> > >
-> > > Looks sane.
-> > > Applied to overlayfs-next for testing.
-> >
-> > I thought it was about preventing an overlayfs objects with negative ->=
-__upperdentry;
->
-> Yeah, I overlooked that aspect.   Amir, please drop this patch.
->
+Hi,
 
-Dropped.
+This series is rebased on top of Amir's overlayfs-next branch.
 
-Thanks,
-Amir.
+Changes from v2:
+ - Removed the "convert to guard()/scoped_guard()" patches (Miklos Szeredi);
+ - In the overlayfs code, convert all users of override_creds()/revert_creds() to the _light() versions by:
+      1. making ovl_override_creds() use override_creds_light();
+      2. introduce ovl_revert_creds() which calls revert_creds_light();
+      3. convert revert_creds() to ovl_revert_creds()
+   (Amir Goldstein);
+ - Fix an potential reference counting issue, as the lifetime
+   expectations of the mounter credentials are different (Christian
+   Brauner);
+
+The series is now much simpler:
+
+Patch 1: Introduce the _light() version of the override/revert cred operations;
+Patch 2: Convert backing-file.c to use those;
+Patch 3: Do the conversion to use the _light() version internally;
+Patch 4: Fix a potential refcounting issue
+
+Changes from v1:
+ - Re-organized the series to be easier to follow, more details below
+   (Miklos Szeredi and Amir Goldstein);
+
+The series now reads as follows:
+
+Patch 1: Introduce the _light() version of the override/revert cred operations;
+Patch 2: Convert backing-file.c to use those;
+Patch 3: Introduce the overlayfs specific _light() helper;
+Patch 4: Document the cases that the helper cannot be used (critical
+      section may change the cred->usage counter);
+Patch 5: Convert the "rest" of overlayfs to the _light() helpers (mostly mechanical);
+Patch 6: Introduce the GUARD() helpers;
+Patch 7: Convert backing-file.c to the GUARD() helpers;
+Patch 8-15: Convert each overlayfs/ file to use the GUARD() helpers,
+      also explain the cases in which the scoped_guard() helper is
+      used. Note that a 'goto' jump that crosses the guard() should
+      fail to compile, gcc has a bug that fails to detect the
+      error[1].
+Patch 16: Remove the helper introduced in Patch 3 to close the series,
+      as it is no longer used, everything was converted to use the
+      safer/shorter GUARD() helpers.
+
+[1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91951
+
+This bug was also noticed here:
+
+https://lore.kernel.org/all/20240730050927.GC5334@ZenIV/
+
+Link to v1:
+
+https://lore.kernel.org/r/20240403021808.309900-1-vinicius.gomes@intel.com/
+
+Changes from RFC v3:
+ - Removed the warning "fixes" patches, as they could hide potencial
+   bugs (Christian Brauner);
+ - Added "cred-specific" macros (Christian Brauner), from my side,
+   added a few '_' to the guards to signify that the newly introduced
+   helper macros are preferred.
+ - Changed a few guard() to scoped_guard() to fix the clang (17.0.6)
+   compilation error about 'goto' bypassing variable initialization;
+
+Link to RFC v3:
+
+https://lore.kernel.org/r/20240216051640.197378-1-vinicius.gomes@intel.com/
+
+Changes from RFC v2:
+ - Added separate patches for the warnings for the discarded const
+   when using the cleanup macros: one for DEFINE_GUARD() and one for
+   DEFINE_LOCK_GUARD_1() (I am uncertain if it's better to squash them
+   together);
+ - Reordered the series so the backing file patch is the first user of
+   the introduced helpers (Amir Goldstein);
+ - Change the definition of the cleanup "class" from a GUARD to a
+   LOCK_GUARD_1, which defines an implicit container, that allows us
+   to remove some variable declarations to store the overriden
+   credentials (Amir Goldstein);
+ - Replaced most of the uses of scoped_guard() with guard(), to reduce
+   the code churn, the remaining ones I wasn't sure if I was changing
+   the behavior: either they were nested (overrides "inside"
+   overrides) or something calls current_cred() (Amir Goldstein).
+
+New questions:
+ - The backing file callbacks are now called with the "light"
+   overriden credentials, so they are kind of restricted in what they
+   can do with their credentials, is this acceptable in general?
+ - in ovl_rename() I had to manually call the "light" the overrides,
+   both using the guard() macro or using the non-light version causes
+   the workload to crash the kernel. I still have to investigate why
+   this is happening. Hints are appreciated.
+
+Link to the RFC v2:
+
+https://lore.kernel.org/r/20240125235723.39507-1-vinicius.gomes@intel.com/
+
+Original cover letter (lightly edited):
+
+It was noticed that some workloads suffer from contention on
+increasing/decrementing the ->usage counter in their credentials,
+those refcount operations are associated with overriding/reverting the
+current task credentials. (the linked thread adds more context)
+
+In some specialized cases, overlayfs is one of them, the credentials
+in question have a longer lifetime than the override/revert "critical
+section". In the overlayfs case, the credentials are created when the
+fs is mounted and destroyed when it's unmounted. In this case of long
+lived credentials, the usage counter doesn't need to be
+incremented/decremented.
+
+Add a lighter version of credentials override/revert to be used in
+these specialized cases. To make sure that the override/revert calls
+are paired, add a cleanup guard macro. This was suggested here:
+
+https://lore.kernel.org/all/20231219-marken-pochen-26d888fb9bb9@brauner/
+
+With a small number of tweaks:
+ - Used inline functions instead of macros;
+ - A small change to store the credentials into the passed argument,
+   the guard is now defined as (note the added '_T ='):
+
+      DEFINE_GUARD(cred, const struct cred *, _T = override_creds_light(_T),
+		  revert_creds_light(_T));
+
+ - Allow "const" arguments to be used with these kind of guards;
+
+Some comments:
+ - If patch 1/5 and 2/5 are not a good idea (adding the cast), the
+   alternative I can see is using some kind of container for the
+   credentials;
+ - The only user for the backing file ops is overlayfs, so these
+   changes make sense, but may not make sense in the most general
+   case;
+
+For the numbers, some from 'perf c2c', before this series:
+(edited to fit)
+
+#
+#        ----- HITM -----                                        Shared                          
+#   Num  RmtHitm  LclHitm                      Symbol            Object         Source:Line  Node
+# .....  .......  .......  ..........................  ................  ..................  ....
+#
+  -------------------------
+      0      412     1028  
+  -------------------------
+	  41.50%   42.22%  [k] revert_creds            [kernel.vmlinux]  atomic64_64.h:39     0  1
+	  15.05%   10.60%  [k] override_creds          [kernel.vmlinux]  atomic64_64.h:25     0  1
+	   0.73%    0.58%  [k] init_file               [kernel.vmlinux]  atomic64_64.h:25     0  1
+	   0.24%    0.10%  [k] revert_creds            [kernel.vmlinux]  cred.h:266           0  1
+	  32.28%   37.16%  [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	   9.47%    8.75%  [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	   0.49%    0.58%  [k] inode_owner_or_capable  [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	   0.24%    0.00%  [k] generic_permission      [kernel.vmlinux]  namei.c:354          0
+
+  -------------------------
+      1       50      103  
+  -------------------------
+	 100.00%  100.00%  [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+
+  -------------------------
+      2       50       98  
+  -------------------------
+	  96.00%   96.94%  [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+	   2.00%    1.02%  [k] update_load_avg   [kernel.vmlinux]  atomic64_64.h:25   0  1
+	   0.00%    2.04%  [k] update_load_avg   [kernel.vmlinux]  fair.c:4118        0
+	   2.00%    0.00%  [k] update_cfs_group  [kernel.vmlinux]  fair.c:3932        0  1
+
+after this series:
+
+#
+#        ----- HITM -----                                   Shared                        
+#   Num  RmtHitm  LclHitm                 Symbol            Object       Source:Line  Node
+# .....  .......  .......   ....................  ................  ................  ....
+#
+  -------------------------
+      0       54       88  
+  -------------------------
+	 100.00%  100.00%   [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+
+  -------------------------
+      1       48       83  
+  -------------------------
+	  97.92%   97.59%   [k] update_cfs_group  [kernel.vmlinux]  atomic64_64.h:15   0  1
+	   2.08%    1.20%   [k] update_load_avg   [kernel.vmlinux]  atomic64_64.h:25   0  1
+	   0.00%    1.20%   [k] update_load_avg   [kernel.vmlinux]  fair.c:4118        0  1
+
+  -------------------------
+      2       28       44  
+  -------------------------
+	  85.71%   79.55%   [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+	  14.29%   20.45%   [k] generic_permission      [kernel.vmlinux]  mnt_idmapping.h:81   0  1
+
+The contention is practically gone.
+
+Link: https://lore.kernel.org/all/20231018074553.41333-1-hu1.chen@intel.com/
+
+
+Vinicius Costa Gomes (4):
+  cred: Add a light version of override/revert_creds()
+  fs/backing-file: Convert to revert/override_creds_light()
+  fs/overlayfs: Optimize override/revert creds
+  fs/overlayfs: Drop creds usage decrement for ovl_setup_for_create()
+
+ fs/backing-file.c        | 20 ++++++++++----------
+ fs/overlayfs/copy_up.c   |  2 +-
+ fs/overlayfs/dir.c       | 17 +++++++++++------
+ fs/overlayfs/file.c      | 14 +++++++-------
+ fs/overlayfs/inode.c     | 20 ++++++++++----------
+ fs/overlayfs/namei.c     | 10 +++++-----
+ fs/overlayfs/overlayfs.h |  1 +
+ fs/overlayfs/readdir.c   |  8 ++++----
+ fs/overlayfs/util.c      | 11 ++++++++---
+ fs/overlayfs/xattrs.c    |  9 ++++-----
+ include/linux/cred.h     | 18 ++++++++++++++++++
+ kernel/cred.c            |  6 +++---
+ 12 files changed, 82 insertions(+), 54 deletions(-)
+
+-- 
+2.47.0
+
