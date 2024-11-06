@@ -1,192 +1,133 @@
-Received: from out162-62-57-64.mail.qq.com (out162-62-57-64.mail.qq.com [162.62.57.64])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qk1-f170.google.com (mail-qk1-f170.google.com [209.85.222.170])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 72B061DE3DE;
-	Wed,  6 Nov 2024 10:45:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.57.64
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0F17C142E86;
+	Wed,  6 Nov 2024 11:00:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730889929; cv=none; b=s8JMJCwpUNNlmtQ0PBreKb3QfR3IMht/yDFigZBkJvtdXtD9nQLY87eg++vpC9EfJ1gvIQW4ZR7BB88BoVy5DUT8/VDlrPMWFpqywFfJHrI4xEtJzDwZzmpoBVUkYVVHAF6VShu2LQxfRQTBrNc2gWpJW85KdfxdgMwKpGwLVsg=
+	t=1730890822; cv=none; b=BzLCG9dIR0uHZUBZsRfpyMNLQgLtK/p3WWZgz4QDMgXl8PUiUXzrHZ6d4iLXEhTSe2IVQgXDmoTZsLTm8mfSRbeAHJEIwZovjZKLx2zdYNZ8paeJx6v4zO1vLU9CSaqjIInRl2oY1HyooWHcN9icHYCvm1B0tj+2zBxlbRfBt5U=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730889929; c=relaxed/simple;
-	bh=SXocsmptmWOl58VtIWO4woZOJgSDAP5pUHSP9v3rubE=;
-	h=Message-ID:From:To:Cc:Subject:Date:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=PTBOKkzsKxON+Tz4O4KXxNHgUvApwNJ4k3UX7XCpwwbuqpjEOKSMkV1ZMaQptqDPz/+WYGrKtQV42gQHaF+wqQdwM88Y46c+zwYZp/bjWyTayu6nrCTFIpnGOvFGTk0Vss46upDNTttCLLKbvy7+7poIyAgJXqmtQpSFufkqKDY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=Eeutc520; arc=none smtp.client-ip=162.62.57.64
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
+	s=arc-20240116; t=1730890822; c=relaxed/simple;
+	bh=vuBjUAG4of3IMkztyA2vDfBAbLYce7Bwx42yfMGiEQQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=RLuZ4hOBjtvYV/goOBO/YXzlDxjS8NIBEfCaQQDoTbMTJHrlRJh3WO7zkKSSWHJ6di4hIJt3XoMbcCSzMg4v4qOhT15laEd1Vt2B45MLiEoD+BWqF7JW66mgZFHt9KrjXidilEa9bazpNq/doT5eB/imcwnwtRA+CzeqwqnUU+E=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=T6JFf3Qy; arc=none smtp.client-ip=209.85.222.170
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="Eeutc520"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
-	t=1730889920; bh=2aNgzlTr8Esmv2UaldoJ+oGbR6tIhQvcSPm1ett8XBA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References;
-	b=Eeutc520chS1ImZYKqoNt3eEAyhbfaNRmJRkn7XCOrwvuTNyo0/YrFMoHYZ7cuNa7
-	 MwV3oadM/R35pNqL276CVUVCRw5zneyHgm0vYqQm7t00qR1WFQ04R2Yzxi+SZ7DHD1
-	 nRbiACZX232Z3oQ82R0uRszX88Ynz+2eMUrUIOyM=
-Received: from pek-lxu-l1.wrs.com ([111.198.227.254])
-	by newxmesmtplogicsvrszb20-0.qq.com (NewEsmtp) with SMTP
-	id B5229809; Wed, 06 Nov 2024 18:45:18 +0800
-X-QQ-mid: xmsmtpt1730889918t3soze5wc
-Message-ID: <tencent_26AD044DF763D77266CFF361A365496AE305@qq.com>
-X-QQ-XMAILINFO: MB5+LsFw85NoVPA33W2QWSrkqEszUxnBHHgdSzWGqle/AO8MVOUhw4/UoQE3a6
-	 4osdoCQOIv+3y9Vt+XmSnG+V0GD8437H0n4L1CP8+o95gNTKxXTAIjhw3W9IfMZtZU1TWKQaPaG3
-	 AaqYcw7GjvH8CTTnjW1u+iauPYaOE6eCg3IOu+AMg5OcpthEDUyiOCnDeZ2k4gUJa0YrV6ev2hqt
-	 FdXG4ZEWQaW38iuP1UzPz3PbqPZ0HI9wk7J6K0qDW3b4+FYqo5nqTg8o79pSTkjp4fhYVDFEKLXL
-	 h1fwES9+f6VUhNZ3yEUxqcK7BoR77DHzIvAkj1u6RLV7Wmtp+dFrsgDeH9FLcGiUc94CyYdJvuoF
-	 fRvzKBtPlYbGEgaahpHi3JnSMd0O6ndptZ3tJDrlo+KC1VIWv4rgDjMYIBSW9EzsVbjbbd5oIFNc
-	 Hp7jLxMWTHeUk76PhYd2GHboe5SSgj/52DvtwWjuPGLCDb0GXJitvjaSaK7yo+Cn/gSS3X9Y+dBa
-	 vLkV7NUwIF1ML4fGpcuxDQKZ1FlpaWZEwx7jU7N26OvvL34R9pH41rDzADP53NSuEM1aBrPe8hsO
-	 p2QfLyJm34eZx0NGB6eliGNlXIqWoEul6YL+njS5VovQA3GgmiF7vXVh6Po2OgFRqWv8vW1r8Guw
-	 knf5/SektuiEXyHCnEmuppk18sv3HKcatoPbw9nGLoa8MH2fJQpbH4b4edr4tT8iSg9XPXIRKTbV
-	 XYX4Dp8vB9bhuBTocBiEfRGBryCNbvlpTsd6kOgnDd0B00by6ynupDx54S7jzMz9NnKmgRO31Z1V
-	 Fxp1AbBKBy+9TJVHLy87Ennaxt/Q6zSDokOAvbJbemVyp3R2YaDWIUreantPQwfvuRlVkdy6//M1
-	 SnDerbZ9WqOWsrwsgGcBm+EDFEn/qGI1tOu6fGvSaQmXDCvvKP2w/A1MSoppJSZ3lFn1SHtRgFRP
-	 QK753jIVyN3bP5BqDu3w==
-X-QQ-XMRINFO: MSVp+SPm3vtS1Vd6Y4Mggwc=
-From: Edward Adam Davis <eadavis@qq.com>
-To: amir73il@gmail.com
-Cc: eadavis@qq.com,
-	linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org,
-	miklos@szeredi.hu,
-	syzbot+ec07f6f5ce62b858579f@syzkaller.appspotmail.com,
-	syzkaller-bugs@googlegroups.com
-Subject: Re: [syzbot] [overlayfs?] WARNING in ovl_encode_real_fh
-Date: Wed,  6 Nov 2024 18:45:16 +0800
-X-OQ-MSGID: <20241106104517.2742837-2-eadavis@qq.com>
-X-Mailer: git-send-email 2.47.0
-In-Reply-To: <CAOQ4uxgU0fdEtksACCmvrUEU+hhsBJqK+HSVEhW9vqcvAakCrA@mail.gmail.com>
-References: <CAOQ4uxgU0fdEtksACCmvrUEU+hhsBJqK+HSVEhW9vqcvAakCrA@mail.gmail.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="T6JFf3Qy"
+Received: by mail-qk1-f170.google.com with SMTP id af79cd13be357-7b14077ec5aso64981885a.1;
+        Wed, 06 Nov 2024 03:00:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1730890818; x=1731495618; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=vuBjUAG4of3IMkztyA2vDfBAbLYce7Bwx42yfMGiEQQ=;
+        b=T6JFf3Qyul05Ge72AZjl2KFP8h3KtyjIVdtJgOH0syT0xK5MW7CWKAjkrXEh8LcvF3
+         k5KRiMGvzNqg6eyPFf2bfmixhiIUkO+9QaQIbgOsJAigw6d7v1PrRphO7MP5qGhY2aQL
+         Vdi3qLrEsw73k1bd6mJa/Q3okdHr0lcGfoPwz/5+d/Xu3AnVa2g1e/hos7ypBxZSNAqj
+         iMFFxxs5/CotgSkNqRnuR7bpPGVO/onMawW4fNPm//b1jmj+iXop89GekRMZeeClqwkD
+         DEVlQvKRpUXi3C9Y+N023z7la606SZcrdybqg9D5a5jXH4ZFL6mivV4UznS3gQY73mW6
+         vCkw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730890818; x=1731495618;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=vuBjUAG4of3IMkztyA2vDfBAbLYce7Bwx42yfMGiEQQ=;
+        b=BRC8133ph2sOfUUMYZA7XCi5Q4sAikxTZYYVfmLRAatQgG1ql2q3zqAOgld8dKYPa+
+         bjXyWiuaPiTU8CLo9tBowDCPf3jysrTGjcWwkHCqmG7xsxBD2P23n2Oi/7xQ8+X6VVUc
+         bg7r0UcovzGKaHGvcHDyiZ1BT3C11Ab2I9D6WD8M1+iFx8jmInnR8JBO5j8b6m7/sM/W
+         OZzCKFNLuHX9kkarD5QRrJNzNd9lWm6fu0M8hgYZjOY8/2C+uvXUdxZGafbuVhFpzO1q
+         5UWZ01Hby8x+KbRueWzYqGOzTkMGw9yzMpyzJigjck8CnXOjUG4glM61g0xA7n/oQaKE
+         uy+g==
+X-Forwarded-Encrypted: i=1; AJvYcCVSCEFcNJY91X8Q7HwzMNsTUef4mSlmTY8tWqcaKKJUxXjNl0SMVlwmuKR9Ov9WD/VoxuF4h+YcfhiA6aHE@vger.kernel.org, AJvYcCWiBthabtHdikiHGiYwVNMsyoOmU5wyXs9MwWBfKgYc8T3yJo2IOmJzZabsDSi+HKIK9ieutA4Low==@vger.kernel.org, AJvYcCXN8hy5ZuBQ/m/f4OSmXfHS5nP7N9krLZXxJguBDIKEFfy1DubfzCmDowamD1EBPEBh22r8N6450P77xPeOkA==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxbazq175N8COuEz+3nr+iz5aVHNu1LWpI0aYMItxQzZmuW7w8D
+	soivZaE7ikkCWHf9pX87LTCrQLWgKem9FXh5aUcUVtNrfoP3klXR3YtxMuMYav5uXZ0XqpiELwT
+	pL+DVJ1oSyG+5td55LAobgbMF1D8=
+X-Google-Smtp-Source: AGHT+IGDQs3w2IhFZMBdFgltaWbiHO1oZQbH+OPxiNQfs+uts2rlZXy1unuWCu0Jv8a0wzA6Opjm+/x4F4o5IEVUdV0=
+X-Received: by 2002:a05:6214:3b88:b0:6cb:c661:49ce with SMTP id
+ 6a1803df08f44-6d38b22de8bmr31721206d6.23.1730890817791; Wed, 06 Nov 2024
+ 03:00:17 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20241106-overlayfs-fsopen-log-v1-1-9d883be7e56e@cyphar.com> <20241106-mehrzahl-bezaubern-109237c971e3@brauner>
+In-Reply-To: <20241106-mehrzahl-bezaubern-109237c971e3@brauner>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 6 Nov 2024 12:00:06 +0100
+Message-ID: <CAOQ4uxirsNEK24=u3K-X5A-EX80ofEx5ycjoqU4gocBoPVxbYw@mail.gmail.com>
+Subject: Re: [PATCH] overlayfs: port all superblock creation logging to fsopen logs
+To: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org, 
+	linux-fs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Karel Zak <kzak@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Wed, 6 Nov 2024 11:34:13 +0100, Amir Goldstein <amir73il@gmail.com> wrote:
-> On Wed, Nov 6, 2024 at 11:18 AM Edward Adam Davis <eadavis@qq.com> wrote:
+On Wed, Nov 6, 2024 at 10:59=E2=80=AFAM Christian Brauner <brauner@kernel.o=
+rg> wrote:
+>
+> On Wed, Nov 06, 2024 at 02:09:58PM +1100, Aleksa Sarai wrote:
+> > overlayfs helpfully provides a lot of of information when setting up a
+> > mount, but unfortunately when using the fsopen(2) API, a lot of this
+> > information is mixed in with the general kernel log.
 > >
-> > On Wed, 6 Nov 2024 09:20:24 +0100, Amir Goldstein <amir73il@gmail.com> wrote:
-> > > On Wed, Nov 6, 2024 at 3:43 AM Edward Adam Davis <eadavis@qq.com> wrote:
-> > > >
-> > > > On Mon, 4 Nov 2024 20:30:41 +0100, Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > > > When the memory is insufficient, the allocation of fh fails, which causes
-> > > > > > the failure to obtain the dentry fid, and finally causes the dentry encoding
-> > > > > > to fail.
-> > > > > > Retry is used to avoid the failure of fh allocation caused by temporary
-> > > > > > insufficient memory.
-> > > > > >
-> > > > > > #syz test
-> > > > > >
-> > > > > > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > > > > > index 2ed6ad641a20..1e027a3cf084 100644
-> > > > > > --- a/fs/overlayfs/copy_up.c
-> > > > > > +++ b/fs/overlayfs/copy_up.c
-> > > > > > @@ -423,15 +423,22 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
-> > > > > >         int fh_type, dwords;
-> > > > > >         int buflen = MAX_HANDLE_SZ;
-> > > > > >         uuid_t *uuid = &real->d_sb->s_uuid;
-> > > > > > -       int err;
-> > > > > > +       int err, rtt = 0;
-> > > > > >
-> > > > > >         /* Make sure the real fid stays 32bit aligned */
-> > > > > >         BUILD_BUG_ON(OVL_FH_FID_OFFSET % 4);
-> > > > > >         BUILD_BUG_ON(MAX_HANDLE_SZ + OVL_FH_FID_OFFSET > 255);
-> > > > > >
-> > > > > > +retry:
-> > > > > >         fh = kzalloc(buflen + OVL_FH_FID_OFFSET, GFP_KERNEL);
-> > > > > > -       if (!fh)
-> > > > > > +       if (!fh) {
-> > > > > > +               if (!rtt) {
-> > > > > > +                       cond_resched();
-> > > > > > +                       rtt++;
-> > > > > > +                       goto retry;
-> > > > > > +               }
-> > > > > >                 return ERR_PTR(-ENOMEM);
-> > > > > > +       }
-> > > > > >
-> > > > > >         /*
-> > > > > >          * We encode a non-connectable file handle for non-dir, because we
-> > > > > >
-> > > > >
-> > > > > This endless loop is out of the question and anyway, syzbot reported
-> > > > > a WARN_ON in line 448:
-> > > > >             WARN_ON(fh_type == FILEID_INVALID))
-> > > > >
-> > > > > How does that have to do with memory allocation failure?
-> > > > > What am I missing?
-> > > > Look following log, it in https://syzkaller.appspot.com/text?tag=CrashLog&x=178bf640580000:
-> > > > [   64.050342][ T5103] FAULT_INJECTION: forcing a failure.
-> > > > [   64.050342][ T5103] name failslab, interval 1, probability 0, space 0, times 0
-> > > > [   64.055933][ T5103] CPU: 0 UID: 0 PID: 5103 Comm: syz-executor195 Not tainted 6.12.0-rc4-syzkaller-00047-gc2ee9f594da8 #0
-> > > > [   64.060023][ T5103] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
-> > > > [   64.063941][ T5103] Call Trace:
-> > > > [   64.065199][ T5103]  <TASK>
-> > > > [   64.066296][ T5103]  dump_stack_lvl+0x241/0x360
-> > > > [   64.068028][ T5103]  ? __pfx_dump_stack_lvl+0x10/0x10
-> > > > [   64.069939][ T5103]  ? __pfx__printk+0x10/0x10
-> > > > [   64.071667][ T5103]  ? __kmalloc_cache_noprof+0x44/0x2c0
-> > > > [   64.073756][ T5103]  ? __pfx___might_resched+0x10/0x10
-> > > > [   64.075720][ T5103]  should_fail_ex+0x3b0/0x4e0
-> > > > [   64.077525][ T5103]  should_failslab+0xac/0x100
-> > > > [   64.079341][ T5103]  ? ovl_encode_real_fh+0xdf/0x410
-> > > > [   64.081295][ T5103]  __kmalloc_cache_noprof+0x6c/0x2c0
-> > > > [   64.083282][ T5103]  ? dput+0x37/0x2b0
-> > > > [   64.084758][ T5103]  ovl_encode_real_fh+0xdf/0x410
-> > > > [   64.086578][ T5103]  ? __pfx_ovl_encode_real_fh+0x10/0x10
-> > > > [   64.088687][ T5103]  ? _raw_spin_unlock+0x28/0x50
-> > > > [   64.090550][ T5103]  ovl_encode_fh+0x388/0xc20
-> > > > [   64.092281][ T5103]  exportfs_encode_fh+0x1bd/0x3e0
-> > > > [   64.094122][ T5103]  ovl_encode_real_fh+0x129/0x410
-> > > > [   64.095883][ T5103]  ? __pfx_ovl_encode_real_fh+0x10/0x10
-> > > > [   64.097852][ T5103]  ? bpf_lsm_capable+0x9/0x10
-> > > > [   64.099620][ T5103]  ? capable+0x89/0xe0
-> > > > [   64.101064][ T5103]  ovl_copy_up_flags+0x1068/0x46f0
-> > >
-> > > I see. it is nested overlayfs, so a memory allocation failure in the lower
-> > > overlayfs, causes ovl_encode_fh() to return FILEID_INVALID.
-> > >
-> > > > >
-> > > > > Probably this WARN_ON as well as the one in line 446 should be
-> > > > > relaxed because it is perfectly possible for fs to return negative or
-> > > > > FILEID_INVALID for encoding a file handle even if fs supports encoding
-> > > > > file handles.
-> > > > >
-> > >
-> > > As I wrote, the correct fix is to relax the WARN_ON from
-> > > fh_type == FILEID_INVALID and fh_type < 0 conditions because
-> > > those are valid return values from filesystems.
-> > Oh, You mean is following diff?
-> 
-> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
-> > index 2ed6ad641a20..32890cc0dd4a 100644
-> > --- a/fs/overlayfs/copy_up.c
-> > +++ b/fs/overlayfs/copy_up.c
-> > @@ -443,9 +443,7 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
-> >         buflen = (dwords << 2);
+> > In addition, some of the logs can become a source of spam if programs
+> > are creating many internal overlayfs mounts (in runc we use an internal
+> > overlayfs mount to protect the runc binary against container breakout
+> > attacks like CVE-2019-5736, and xino_auto=3Don caused a lot of spam in
+> > dmesg because we didn't explicitly disable xino[1]).
 > >
-> >         err = -EIO;
-> > -       if (WARN_ON(fh_type < 0) ||
-> > -           WARN_ON(buflen > MAX_HANDLE_SZ) ||
-> > -           WARN_ON(fh_type == FILEID_INVALID))
-> > +       if (WARN_ON(buflen > MAX_HANDLE_SZ))
-> >                 goto out_err;
-> >
-> 
-> No. sorry, what I meant with "relax WARN_ON" was to remove the WARN_ON, so:
-> 
->        err = -EIO;
->        if (fh_type < 0 || fh_type == FILEID_INVALID ||
->            WARN_ON(buflen > MAX_HANDLE_SZ))
->                  goto out_err;
-> 
-> Meaning that error should definitely be returned in those cases,
-> but there is no reason for the assertion which is what syzbot
-> was complaining about.
-Haha, I was a little dizzy, I deleted too much. Yes, I meant it as your diff.
+> > By logging to the fs_context, userspace can get more accurate
+> > information when using fsopen(2) and there is less dmesg spam for
+> > systems where a lot of programs are using fsopen("overlay"). Legacy
+> > mount(2) users will still see the same errors in dmesg as they did
+> > before (though the prefix of the log messages will now be "overlay"
+> > rather than "overlayfs").
 
-BR,
-Edward
+I am not sure about the level of risk in this format change.
+Miklos, WDYT?
 
+> >
+> > [1]: https://bbs.archlinux.org/viewtopic.php?pid=3D2206551
+> >
+> > Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+> > ---
+>
+> To me this sounds inherently useful! So I'm all for it.
+>
+
+[CC: Karel]
+
+I am quite concerned about this.
+I have a memory that Christian suggested to make this change back in the
+original conversion to new mount API, but back then mount tool
+did not print out the errors to users properly and even if it does
+print out errors,
+some script could very well be ignoring them.
+
+My strong feeling is that suppressing legacy errors to kmsg should be opt-i=
+n
+via the new mount API and that it should not be the default for libmount.
+IMO, it is certainly NOT enough that new mount API is used by userspace
+as an indication for the kernel to suppress errors to kmsg.
+I have no problem with reporting errors to both userspace and kmsg
+without opt-in from usersapce.
+
+Furthermore, looking at the existing invalfc() calls in overlayfs, I see th=
+at
+a few legacy pr_err() were converted to invalfc() with this commit
+(signed off by myself):
+819829f0319a ovl: refactor layer parsing helpers
+
+I am not really sure if the discussion about suppressing the kmsg errors wa=
+s
+resolved or dismissed or maybe it only happened in my head??
+
+Thanks,
+Amir.
