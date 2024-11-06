@@ -1,55 +1,52 @@
-Received: from mail-qv1-f50.google.com (mail-qv1-f50.google.com [209.85.219.50])
+Received: from mail-oo1-f41.google.com (mail-oo1-f41.google.com [209.85.161.41])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EC961DB377;
-	Wed,  6 Nov 2024 11:04:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9D1B2022F5
+	for <linux-unionfs@vger.kernel.org>; Wed,  6 Nov 2024 14:53:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.161.41
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730891082; cv=none; b=mQ3+QHalWNY9zFati3IdV8ZcIULpn4sCsLJGC3xtOpJSgqPGm9Iib19QmOy2FTd+ZYb81vS2Il5dsEGaO5BQfaA8nfrz0BKgHX3VtrF5nZlKcpMV/AS3FbXr10KyKOgyGDte974FZxBjl0OdWI7ewYJ3nTRMlsglyScmsPaHCBk=
+	t=1730904831; cv=none; b=FqKFh6dZkEGXPxxGw/CuXs9CNizY6ZxrHroq5Q7lbk6treqiMozq1GIYYEAnieIhrWmAEU3RkAl7b8mIlY7/Tb3yTesn6485t4b0CJRz5FAgi71i+ofVs+A0z38RyUuepXOQRk4X1dCHgJQ5eCj1Jc8YCY49CdbYfg2kVInbv7Y=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730891082; c=relaxed/simple;
-	bh=QJzD2cy9KQWR48lFPZQEaD2sL9yIDbAudy3i3zK2Uss=;
+	s=arc-20240116; t=1730904831; c=relaxed/simple;
+	bh=qd2oxWfj8ZkVoRk1/1WgltaqLpvNVj+hI5ourNOsBOA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gOoclqyI9Gq4u2X5FjwSG/KUA6smm8s+zlFFYHt/Nm4QBb0EqJhGdjdXEdl+LuGNa06np816vwzwobfSgzIYex5YwUFzZ8nnxL4+9o6N3aHgRiDd0bnEkieulOPAU00CV9l+oYZbv4HklfD7YBLX7Jyzq1JpC5MPEwLOt4eBRNY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Ifh3OU9l; arc=none smtp.client-ip=209.85.219.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=BsN3zMc/iHiTWSqtmixFSNe1KIenAwzdGE7/AwYSg2ZK/xmU7Cy8fdZjinudd5YQhvLjfMGO69h2B027a4KbGlxdWduLZUkEdkGl+gW7cOR9HqzROZhLclDbV/2RuwdfidAjqrqWWZR6bn6bvHRshlPuLAii/AmNromgcXoBXT4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=iNc6fAvY; arc=none smtp.client-ip=209.85.161.41
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Ifh3OU9l"
-Received: by mail-qv1-f50.google.com with SMTP id 6a1803df08f44-6cbe3e99680so35170026d6.3;
-        Wed, 06 Nov 2024 03:04:40 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="iNc6fAvY"
+Received: by mail-oo1-f41.google.com with SMTP id 006d021491bc7-5ee3e12b191so255355eaf.0
+        for <linux-unionfs@vger.kernel.org>; Wed, 06 Nov 2024 06:53:49 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1730891079; x=1731495879; darn=vger.kernel.org;
+        d=szeredi.hu; s=google; t=1730904829; x=1731509629; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=QJzD2cy9KQWR48lFPZQEaD2sL9yIDbAudy3i3zK2Uss=;
-        b=Ifh3OU9lbi0qCAhYUsb2PtwLgkcXIiEqv1r3wfK5ImoQKHaoHx4+sA9P00m/Lsof6g
-         v6Oj3+OZkmEpYy2Meb9B44zteCgr6gXQ2MxazXTTN0BrO4MaZxHxNVDH7mMskxM3Oxaz
-         bDocYNLuSvWBKJKvrt4Quzkcti4ro/MuvA+BIGhBpeWHiLRCNDHXkFLfo5rZLa7yTolR
-         8W0VmpaJO7Bq2PTs95iYpeThdbJ4EZ50IrjEjUnI9RcFYORa3vcprfoWPROLmS4BoLeJ
-         JJkL5NRBbIDt8Hna/gix6A/q9D8kWrYl2ACKVBVw649av4GpaGSDKeg7UWltuz3tJEIp
-         LChA==
+        bh=qd2oxWfj8ZkVoRk1/1WgltaqLpvNVj+hI5ourNOsBOA=;
+        b=iNc6fAvYDeRtPQr95FUNmrazZefk5IUyWYVku8Nvjklvc0w/YVHDAK9739iYEshGF5
+         DbtFXsGTDrxtltYCKGm4hQiTJKJh/+49XnAA+gp3Goa10UD6FziCyKvChmqcXhuY0f30
+         opVdF3FZbrUa+ZDGmClDzO9LwDDvRx8eMyNrQ=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730891079; x=1731495879;
+        d=1e100.net; s=20230601; t=1730904829; x=1731509629;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=QJzD2cy9KQWR48lFPZQEaD2sL9yIDbAudy3i3zK2Uss=;
-        b=Eo/EHm4VFSSFGA54wePqVZHywl/LiWjozW2udnBJ6yIR8Zg4e5uF33QxNnkArndRL0
-         3Zhs7H7EbMkGez0tNISVjw9myfBcQXntseXb01f8dLnzVU1ZhZxA1rE+JWEyv9COKfIO
-         ILmqpzZqejzaOWqX0jGBU7lfWaJBM/Bw6VKg2NX9XK5D0JjqtUM92oGF0Cmh44Zx2sTm
-         dfApISimM4mbDJKT92rQIcawFa2YAIs1Xx11vzSdFRaZQH38YInAb4wKYaTDFIpm3Yu+
-         hZS+Wm32WWeu9iA60Og5/xw6273C6ad2TtLfiAxaB/oLBilvXVjUxmE8zZLe6K+qiYvr
-         ZS/g==
-X-Forwarded-Encrypted: i=1; AJvYcCVB79Zhp1za2NqRbCzWd9iywiy3mCiyxf/XdtKnU80XKW/Zn4e6bi9zX5vG/oIqNAyp12o8MlgeAvvt8hDy@vger.kernel.org, AJvYcCVDv0qbEx7JjYL5Zo4hhQOHysjT0v+Wblsu2t1dqLG2uQSN03ukZR76QdS3wtpOrAjRCowXXySaRv9za9RryQ==@vger.kernel.org, AJvYcCW+52BvZdj9mP3LnXKYUAzhebOfgVgaNoEkCHFyZhISF6gITsv0rC1Ohw8ZTXR0bZh8bYVoR1cWrZJojmIY@vger.kernel.org
-X-Gm-Message-State: AOJu0YxMVbBr8e+ftmljH5Mj8Vnwe+36QcBdewkT2mZkrIccgTYkPBYa
-	Qy+QeOgauXYJTb6kvsoWXm0/SPLXitymfGALoeC9RsBqdTReVTfaE62HwiPOkT+lVsrmv0oU3Ru
-	u/s+TfAkPe+z6DCYi9E5fwRxttApJp2TS
-X-Google-Smtp-Source: AGHT+IFDKH+mbTd2xwsg0nX0AaLCteb2Gnpa4GsMAtV3ol5yplQfOyye01XEeQJimIpoIHwqQBx3mT6BehChS//+utc=
-X-Received: by 2002:a05:6214:4b02:b0:6cb:afe7:1403 with SMTP id
- 6a1803df08f44-6d185866d2fmr585370366d6.48.1730891079186; Wed, 06 Nov 2024
- 03:04:39 -0800 (PST)
+        bh=qd2oxWfj8ZkVoRk1/1WgltaqLpvNVj+hI5ourNOsBOA=;
+        b=wDo3EW0oEOi/O9EvtdAG1Sao6SNC4VS1dZz9FlW98X8cEHA0FZL3TlvNV+7QKMyq+G
+         PfxsScP341CX2XbEJQdnSMz7h6D7yCK3V3QF/HLfDREtCMULEKafEVfD3hDv1TbC2zj3
+         0mZX/INO1rc82gnC8SgTn0SquYPv7ItoibI6vBH3eKzfiiODIllW6b0ik0qSJNfUxpzH
+         NQzeFczjssx2z0qUzRMWCqRMgxrB4NJdUqKoG/l8NlqHErDma608oAWg09mr3s1pMBDt
+         FT36rJgoXj1+izVlT0Cn8bNutVd7sNqTHGD8IoilLgNZ3s8YDCACuIPCJgtDuUGLm4ih
+         GlJA==
+X-Forwarded-Encrypted: i=1; AJvYcCU6dcKJ1bamrnZKFINgtltvb/06gmKvrAjHy2Cw1Alc2usOmWZxihSoiOTd3fs1mvutYbA5KgwTHArk0DbS@vger.kernel.org
+X-Gm-Message-State: AOJu0YwPx6uXQjZJaYp1ZYiZB06WV0M9QhYOlM/KkAtsSEPkUlDBmXhq
+	AG5LJttCxFrfLcmVQyVHTlXx80wyxnaOfNgqsNss95nQpfg1Sfoxnv1CZnV9Px2tuhYPzXxxshY
+	nzW+ViHZ2IgswyKrs1pHI2cWi3IhVVpLmA1BBEg==
+X-Google-Smtp-Source: AGHT+IFa9JnN+t6Lfxkdc0ulgnBmj1ApwylswzSBXd0agEog+CiLEpOj+2CvAIt5HGuebycCh4ZaLZNNY+Op5Y+TgtI=
+X-Received: by 2002:a05:6358:729c:b0:1bc:2d00:84ad with SMTP id
+ e5c5f4694b2df-1c5f98c78acmr1025710455d.3.1730904828818; Wed, 06 Nov 2024
+ 06:53:48 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -58,85 +55,39 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20241106-overlayfs-fsopen-log-v1-1-9d883be7e56e@cyphar.com>
  <20241106-mehrzahl-bezaubern-109237c971e3@brauner> <CAOQ4uxirsNEK24=u3K-X5A-EX80ofEx5ycjoqU4gocBoPVxbYw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxirsNEK24=u3K-X5A-EX80ofEx5ycjoqU4gocBoPVxbYw@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 6 Nov 2024 12:04:27 +0100
-Message-ID: <CAOQ4uxj+gAtM6cY_aEmM7TAqLor7498f0FO3eTek_NpUXUKNaw@mail.gmail.com>
+ <CAOQ4uxj+gAtM6cY_aEmM7TAqLor7498f0FO3eTek_NpUXUKNaw@mail.gmail.com>
+In-Reply-To: <CAOQ4uxj+gAtM6cY_aEmM7TAqLor7498f0FO3eTek_NpUXUKNaw@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Wed, 6 Nov 2024 15:53:38 +0100
+Message-ID: <CAJfpeguvAB-VMyV1Tin=ZDzPHE=P+ac4REQrsn4C5u8uh3+TmA@mail.gmail.com>
 Subject: Re: [PATCH] overlayfs: port all superblock creation logging to fsopen logs
-To: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Jan Kara <jack@suse.cz>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, Karel Zak <kzak@redhat.com>, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Christian Brauner <brauner@kernel.org>, Aleksa Sarai <cyphar@cyphar.com>, Jan Kara <jack@suse.cz>, 
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	Karel Zak <kzak@redhat.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-[Fixed address of linux-fsdevel]
+> On Wed, Nov 6, 2024 at 12:00=E2=80=AFPM Amir Goldstein <amir73il@gmail.co=
+m> wrote:
 
-On Wed, Nov 6, 2024 at 12:00=E2=80=AFPM Amir Goldstein <amir73il@gmail.com>=
- wrote:
->
-> On Wed, Nov 6, 2024 at 10:59=E2=80=AFAM Christian Brauner <brauner@kernel=
-.org> wrote:
-> >
-> > On Wed, Nov 06, 2024 at 02:09:58PM +1100, Aleksa Sarai wrote:
-> > > overlayfs helpfully provides a lot of of information when setting up =
-a
-> > > mount, but unfortunately when using the fsopen(2) API, a lot of this
-> > > information is mixed in with the general kernel log.
-> > >
-> > > In addition, some of the logs can become a source of spam if programs
-> > > are creating many internal overlayfs mounts (in runc we use an intern=
-al
-> > > overlayfs mount to protect the runc binary against container breakout
-> > > attacks like CVE-2019-5736, and xino_auto=3Don caused a lot of spam i=
-n
-> > > dmesg because we didn't explicitly disable xino[1]).
-> > >
-> > > By logging to the fs_context, userspace can get more accurate
-> > > information when using fsopen(2) and there is less dmesg spam for
-> > > systems where a lot of programs are using fsopen("overlay"). Legacy
-> > > mount(2) users will still see the same errors in dmesg as they did
-> > > before (though the prefix of the log messages will now be "overlay"
-> > > rather than "overlayfs").
->
-> I am not sure about the level of risk in this format change.
-> Miklos, WDYT?
->
-> > >
-> > > [1]: https://bbs.archlinux.org/viewtopic.php?pid=3D2206551
-> > >
-> > > Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
-> > > ---
-> >
-> > To me this sounds inherently useful! So I'm all for it.
-> >
->
-> [CC: Karel]
->
-> I am quite concerned about this.
-> I have a memory that Christian suggested to make this change back in the
-> original conversion to new mount API, but back then mount tool
-> did not print out the errors to users properly and even if it does
-> print out errors,
-> some script could very well be ignoring them.
->
-> My strong feeling is that suppressing legacy errors to kmsg should be opt=
--in
-> via the new mount API and that it should not be the default for libmount.
-> IMO, it is certainly NOT enough that new mount API is used by userspace
-> as an indication for the kernel to suppress errors to kmsg.
-> I have no problem with reporting errors to both userspace and kmsg
-> without opt-in from usersapce.
->
-> Furthermore, looking at the existing invalfc() calls in overlayfs, I see =
-that
-> a few legacy pr_err() were converted to invalfc() with this commit
-> (signed off by myself):
-> 819829f0319a ovl: refactor layer parsing helpers
->
-> I am not really sure if the discussion about suppressing the kmsg errors =
-was
-> resolved or dismissed or maybe it only happened in my head??
->
-> Thanks,
-> Amir.
+> > I am not sure about the level of risk in this format change.
+> > Miklos, WDYT?
+
+I don't think the format change will cause problems, but it does fall
+under the "no regressions" rule, so if something breaks then it needs
+to be reverted.
+
+> > I am not really sure if the discussion about suppressing the kmsg error=
+s was
+> > resolved or dismissed or maybe it only happened in my head??
+
+All I found is this:
+
+https://lore.kernel.org/all/CAOQ4uxhgWhe0NTS9p0=3DB+tqEjOgYKsxCFJd=3DiJb46M=
+0MF04Gvw@mail.gmail.com/
+
+I agree that this needs more thought.
+
+Thanks,
+Miklos
