@@ -1,151 +1,148 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.7])
+Received: from out162-62-57-252.mail.qq.com (out162-62-57-252.mail.qq.com [162.62.57.252])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4A281216A00;
-	Tue,  5 Nov 2024 22:27:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.7
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4662918FDBD;
+	Wed,  6 Nov 2024 02:48:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=162.62.57.252
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730845636; cv=none; b=irkjCpdi3lrK34AyHmfEA8T29gcd53MutOtM8AxKK5ctQmvlvZUzwwMK6jyls+vpJug4w/4Q8cnfb+giJq/Kr/W5zymesMBIpS7sdey0Va3VLHXmg4tj4KQGeWd1bSGUtcGVH/pDT5B0FGHb+ZElovfmTclB3rnSvCnNzu04Y2A=
+	t=1730861328; cv=none; b=rcmO2Tz74tIkuHg8oGhhQAki4L2P3KXr1rwRuTd6bHX0DQxVVN9gFoV1Ej48Z8vDjPwuQd5z124wFylcgXoX/x36szyritaIdzAAi3RNTne/RW9DG8ZAh+YrD9EWhI+1vBBhKAHsHOKPfr1HxLATtdibvXW5l/JA2a4zWe3eS5Q=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730845636; c=relaxed/simple;
-	bh=2T40XpaqtxgeuN0I8keNWpQc6lEEgaKrm7K/bebhG/w=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=ipgffls4O9W4hn8ZQ3kGGk6DNCwH6URFuplLfz10yDsAKU5M4wdYNi8TK/Fsx5eJdQJPlz1ebfTYHHhwx2g2eevNOjfyWtO8c2vyVKIWTydT301tbEwm7D2nYI1qPGWpGbqWJmaST32MViZ2ITY5FXEBOXWo8Bt3FHKjEayulHc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=SLEQktjv; arc=none smtp.client-ip=192.198.163.7
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
+	s=arc-20240116; t=1730861328; c=relaxed/simple;
+	bh=QOrImSK0hg5ydT4HwsfZrscj/PlBvtMgGyH7EyIXKGk=;
+	h=Message-ID:From:To:Cc:Subject:Date:In-Reply-To:References:
+	 MIME-Version; b=qvpHz4P8hfSq0sObk6BoNoEJZvKOXFo8NGmfVHQf/x/tcTc82A59JE8p4HMl8c6pwfGiQDZ6s1zRsio2zEAoOua2nkRhbGJjFK5UZp1cJeLacv+gluekBF6+pDHymPVp2bBVphvtJn9GE4eP8E9Sy26XmAn6ynJz6VhC4tfZzPA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com; spf=pass smtp.mailfrom=qq.com; dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b=fXSJHclB; arc=none smtp.client-ip=162.62.57.252
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=qq.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=qq.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="SLEQktjv"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730845636; x=1762381636;
-  h=from:to:cc:subject:in-reply-to:references:date:
-   message-id:mime-version:content-transfer-encoding;
-  bh=2T40XpaqtxgeuN0I8keNWpQc6lEEgaKrm7K/bebhG/w=;
-  b=SLEQktjvVMKDIz04oZoqq7AxrsNCtX/0tO5T/3O8UmJ1iyrtXtjwqllC
-   eYlFOP2NwuNBwOwAUWxb3FxV73OWSlAQTZZwinMKxb9XUKdzYOtCSnN07
-   uALLd7mc+yKKd5TYclvVepHZgwOE2wXNMvgmatJIEagtRy+aAL6ByVGm0
-   TF5rgdpkTWwkr5D2i3jj82eVZNk23gdm78Seq61aRcvh/vQnnebxbqQhU
-   ro3jIJoJaOWREu2KonTpDNFoq5JNEEGyoeW23kR32b0cKsSlzieVVC3YU
-   4HPw5LrZIEa7+La4XisrRxlgv1gwHToIvKmhmvys+b/nAUP84XOXHxqnY
-   A==;
-X-CSE-ConnectionGUID: v1GjZUMeRPGfYAZgnqKz5A==
-X-CSE-MsgGUID: lsupN1ktReWnF8w6AKFA6A==
-X-IronPort-AV: E=McAfee;i="6700,10204,11247"; a="56020738"
-X-IronPort-AV: E=Sophos;i="6.11,261,1725346800"; 
-   d="scan'208";a="56020738"
-Received: from fmviesa006.fm.intel.com ([10.60.135.146])
-  by fmvoesa101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 14:27:15 -0800
-X-CSE-ConnectionGUID: HeOGFYR9SsKNOe0QbM4hHg==
-X-CSE-MsgGUID: 6iruFa55RAK6hE29LMIryA==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,261,1725346800"; 
-   d="scan'208";a="83730334"
-Received: from ehanks-mobl1.amr.corp.intel.com (HELO vcostago-mobl3) ([10.124.221.238])
-  by fmviesa006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Nov 2024 14:27:14 -0800
-From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: brauner@kernel.org, hu1.chen@intel.com, miklos@szeredi.hu,
- malini.bhandaru@intel.com, tim.c.chen@intel.com, mikko.ylinen@intel.com,
- linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
- linux-kernel@vger.kernel.org
-Subject: Re: [PATCH overlayfs-next v3 0/4] overlayfs: Optimize
- override/revert creds
-In-Reply-To: <CAOQ4uxiaRE_cQ9m9LZMEiDCeSQKkZDfsJbpt85ds6hgvjnwHUQ@mail.gmail.com>
-References: <20241105193514.828616-1-vinicius.gomes@intel.com>
- <CAOQ4uxiaRE_cQ9m9LZMEiDCeSQKkZDfsJbpt85ds6hgvjnwHUQ@mail.gmail.com>
-Date: Tue, 05 Nov 2024 14:27:13 -0800
-Message-ID: <871pzpqptq.fsf@intel.com>
+	dkim=pass (1024-bit key) header.d=qq.com header.i=@qq.com header.b="fXSJHclB"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=qq.com; s=s201512;
+	t=1730861009; bh=hlblUX/gTuLZm2ipCTlUMuheFF4/JFiZiaJdoDzf2VQ=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References;
+	b=fXSJHclB71qGUbbN6uk323yoCXbuRkbCu8RF/UVRGapPug27jAUjeVHGCkYOl3j8u
+	 rFixzNCVVqs3fWhTuAi0y2RQQUZU9uohnGk31A9XaJq73NLF/luOI9dABoWsd18NXo
+	 x6LV1+xOBGvxHUJDjs3PRj8W6R8fey9v336VaDy4=
+Received: from pek-lxu-l1.wrs.com ([111.198.227.254])
+	by newxmesmtplogicsvrszc25-0.qq.com (NewEsmtp) with SMTP
+	id ADB3723F; Wed, 06 Nov 2024 10:43:27 +0800
+X-QQ-mid: xmsmtpt1730861007tl5dp6c37
+Message-ID: <tencent_08A4E8A2ED86CE7C793E6CC02FBD6FF0960A@qq.com>
+X-QQ-XMAILINFO: MFdGPHhuqhNoeFJ+CWM0ortNQvLCpRtOghaIjg5dFym8IAAj24zyXruGFU2Cx4
+	 3vAqFUBnYd7FsBYk7v040oBllF86Xm0xK0stjo06OAa1hvbXaFHAnVTEt80bNpH3U4t5HkUvZBUH
+	 +I1bkg/lUYi9DMwWWbNmgKIrbrT6wobHGINjQJl/xzartqdlbLW+j4HvzKwht5o+cHXZAZ5QI5lj
+	 reShU9ohFRE4sNuDkIi8tSM28H8WOC3vZmkfoMU9ZWN+m/GztnShIGeeuoj0a7xrOnIz9stBBXQu
+	 UBOFLmYQcEdnALGKK4qodZ0Db9FUL8loNR71A3iGkMZyE4oW5LjliP6K2xRaBmARhYH8tuLQIkRi
+	 /uEZwjwkm/0mvdwF+yx5tn+U2jURDrDN4gTue4h2zTdeatyVZUQArao5L88ER7kmQsraO30wxKIc
+	 nYpQVhKFpzehZUMeyu7608JLY1XNa0ZWexD4KPRO/5rDJNVxrWot1kHZ7E1/BUgBQD3+m9BTM2FF
+	 vISeQi28HKpjyw5vd0EyZRVUVtynG06urOWLzLSgQd77rlWjT7qabvsl3WHvZbrutCsEaRcbwt0J
+	 F4i+kxRCztPOw7m/Nrm6Vi4DZm0phPsdjF3Aj7rKe/AlMi2LrURPn/F31Hlk2U9cDkBMXWRUhRbm
+	 2eh/DzVFqovvyYfcElcsYL4f43e7mLMdQaTtC8xJVkpsFmT0+/Tc8Y/Jg3KvIfKyqLc/sdzRGE1B
+	 +rsCbTThbrm3sbSDbDgOc8P7YvacPkmcLGfsn+Eo7tU51liKsliNfnIXW8OUUm3K0pFMeIQoACVk
+	 EC3HbTtfDKOehC//LyYyHbfOquwqti//PPpTFzeBdy00ixnnGw8b8HXmt+TlJ7pW9yI2rAttWyDM
+	 GNkdh1YIPWr2Mz5YFajmOn3PuXXr2mJK3rclIT+BKNwMPelqFBQ0ejnu+hxvOvXUxzDZZ7JA2r
+X-QQ-XMRINFO: NyFYKkN4Ny6FSmKK/uo/jdU=
+From: Edward Adam Davis <eadavis@qq.com>
+To: amir73il@gmail.com
+Cc: eadavis@qq.com,
+	linux-kernel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	miklos@szeredi.hu,
+	syzbot+ec07f6f5ce62b858579f@syzkaller.appspotmail.com,
+	syzkaller-bugs@googlegroups.com
+Subject: Re: [syzbot] [overlayfs?] WARNING in ovl_encode_real_fh
+Date: Wed,  6 Nov 2024 10:43:28 +0800
+X-OQ-MSGID: <20241106024327.2279958-2-eadavis@qq.com>
+X-Mailer: git-send-email 2.47.0
+In-Reply-To: <CAOQ4uxi36iUbYa27c81pNpO7T0vR=rY63b7KACJLP6b4HTJGXQ@mail.gmail.com>
+References: <CAOQ4uxi36iUbYa27c81pNpO7T0vR=rY63b7KACJLP6b4HTJGXQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-Hi,
+On Mon, 4 Nov 2024 20:30:41 +0100, Amir Goldstein <amir73il@gmail.com> wrote:
+> > When the memory is insufficient, the allocation of fh fails, which causes
+> > the failure to obtain the dentry fid, and finally causes the dentry encoding
+> > to fail.
+> > Retry is used to avoid the failure of fh allocation caused by temporary
+> > insufficient memory.
+> >
+> > #syz test
+> >
+> > diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+> > index 2ed6ad641a20..1e027a3cf084 100644
+> > --- a/fs/overlayfs/copy_up.c
+> > +++ b/fs/overlayfs/copy_up.c
+> > @@ -423,15 +423,22 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
+> >         int fh_type, dwords;
+> >         int buflen = MAX_HANDLE_SZ;
+> >         uuid_t *uuid = &real->d_sb->s_uuid;
+> > -       int err;
+> > +       int err, rtt = 0;
+> >
+> >         /* Make sure the real fid stays 32bit aligned */
+> >         BUILD_BUG_ON(OVL_FH_FID_OFFSET % 4);
+> >         BUILD_BUG_ON(MAX_HANDLE_SZ + OVL_FH_FID_OFFSET > 255);
+> >
+> > +retry:
+> >         fh = kzalloc(buflen + OVL_FH_FID_OFFSET, GFP_KERNEL);
+> > -       if (!fh)
+> > +       if (!fh) {
+> > +               if (!rtt) {
+> > +                       cond_resched();
+> > +                       rtt++;
+> > +                       goto retry;
+> > +               }
+> >                 return ERR_PTR(-ENOMEM);
+> > +       }
+> >
+> >         /*
+> >          * We encode a non-connectable file handle for non-dir, because we
+> >
+> 
+> This endless loop is out of the question and anyway, syzbot reported
+> a WARN_ON in line 448:
+>             WARN_ON(fh_type == FILEID_INVALID))
+> 
+> How does that have to do with memory allocation failure?
+> What am I missing?
+Look following log, it in https://syzkaller.appspot.com/text?tag=CrashLog&x=178bf640580000:
+[   64.050342][ T5103] FAULT_INJECTION: forcing a failure.
+[   64.050342][ T5103] name failslab, interval 1, probability 0, space 0, times 0
+[   64.055933][ T5103] CPU: 0 UID: 0 PID: 5103 Comm: syz-executor195 Not tainted 6.12.0-rc4-syzkaller-00047-gc2ee9f594da8 #0
+[   64.060023][ T5103] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+[   64.063941][ T5103] Call Trace:
+[   64.065199][ T5103]  <TASK>
+[   64.066296][ T5103]  dump_stack_lvl+0x241/0x360
+[   64.068028][ T5103]  ? __pfx_dump_stack_lvl+0x10/0x10
+[   64.069939][ T5103]  ? __pfx__printk+0x10/0x10
+[   64.071667][ T5103]  ? __kmalloc_cache_noprof+0x44/0x2c0
+[   64.073756][ T5103]  ? __pfx___might_resched+0x10/0x10
+[   64.075720][ T5103]  should_fail_ex+0x3b0/0x4e0
+[   64.077525][ T5103]  should_failslab+0xac/0x100
+[   64.079341][ T5103]  ? ovl_encode_real_fh+0xdf/0x410
+[   64.081295][ T5103]  __kmalloc_cache_noprof+0x6c/0x2c0
+[   64.083282][ T5103]  ? dput+0x37/0x2b0
+[   64.084758][ T5103]  ovl_encode_real_fh+0xdf/0x410
+[   64.086578][ T5103]  ? __pfx_ovl_encode_real_fh+0x10/0x10
+[   64.088687][ T5103]  ? _raw_spin_unlock+0x28/0x50
+[   64.090550][ T5103]  ovl_encode_fh+0x388/0xc20
+[   64.092281][ T5103]  exportfs_encode_fh+0x1bd/0x3e0
+[   64.094122][ T5103]  ovl_encode_real_fh+0x129/0x410
+[   64.095883][ T5103]  ? __pfx_ovl_encode_real_fh+0x10/0x10
+[   64.097852][ T5103]  ? bpf_lsm_capable+0x9/0x10
+[   64.099620][ T5103]  ? capable+0x89/0xe0
+[   64.101064][ T5103]  ovl_copy_up_flags+0x1068/0x46f0
+> 
+> Probably this WARN_ON as well as the one in line 446 should be
+> relaxed because it is perfectly possible for fs to return negative or
+> FILEID_INVALID for encoding a file handle even if fs supports encoding
+> file handles.
+> 
 
-Amir Goldstein <amir73il@gmail.com> writes:
+BR,
+Edward
 
-> On Tue, Nov 5, 2024 at 8:35=E2=80=AFPM Vinicius Costa Gomes
-> <vinicius.gomes@intel.com> wrote:
->>
->> Hi,
->>
->> This series is rebased on top of Amir's overlayfs-next branch.
->>
->> Changes from v2:
->>  - Removed the "convert to guard()/scoped_guard()" patches (Miklos Szere=
-di);
->>  - In the overlayfs code, convert all users of override_creds()/revert_c=
-reds() to the _light() versions by:
->>       1. making ovl_override_creds() use override_creds_light();
->>       2. introduce ovl_revert_creds() which calls revert_creds_light();
->>       3. convert revert_creds() to ovl_revert_creds()
->>    (Amir Goldstein);
->>  - Fix an potential reference counting issue, as the lifetime
->>    expectations of the mounter credentials are different (Christian
->>    Brauner);
->>
->
-> Hi Vicius,
->
-> The end result looks good to me, but we still need to do the series a
-> bit differently.
->
->> The series is now much simpler:
->>
->> Patch 1: Introduce the _light() version of the override/revert cred oper=
-ations;
->> Patch 2: Convert backing-file.c to use those;
->> Patch 3: Do the conversion to use the _light() version internally;
->
-> This patch mixes a small logic change and a large mechanical change
-> that is not a good mix.
->
-> I took the liberty to split out the large mechanical change to
-> ovl: use wrapper ovl_revert_creds()
-> and pushed it to branch
-> https://github.com/amir73il/linux/commits/ovl_creds
->
-> I then rebased overlayfs-next over this commit and resolved the
-> conflicts with the pure mechanical change.
->
-> Now you can rebase your patches over ovl_creds and they should
-> not be conflicting with overlayfs-next changes.
->
-> The reason I wanted to do this is that Christian could take your changes
-> as well as my ovl_creds branch through the vfs tree if he chooses to do s=
-o.
->
-
-Makes sense.
-
->> Patch 4: Fix a potential refcounting issue
->
-> This patch cannot be separated from patch #3 because it would introduce t=
-he
-> refcount leak mid series.
->
-> But after I took out all the mechanical changes out of patch #3,
-> there should be no problem for you to squash patches #3 and #4 together.
->
-
-Done.=20
-
-> One more nit: please use "ovl: ..." for commit titles instead of
-> "fs/overlayfs: ...".
->
-
-Also done. Will give the series a round of testing, just to be sure, and
-will send the next version tomorrow.
-
-> Thanks,
-> Amir.
-
-
-Cheers,
---=20
-Vinicius
