@@ -1,158 +1,146 @@
-Received: from mgamail.intel.com (mgamail.intel.com [192.198.163.9])
+Received: from mgamail.intel.com (mgamail.intel.com [198.175.65.11])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C32C220820D;
-	Wed,  6 Nov 2024 18:56:49 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=192.198.163.9
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C3238D515;
+	Thu,  7 Nov 2024 00:57:42 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=198.175.65.11
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1730919411; cv=none; b=nlTDxrDmlQKqH6ZyYVyKIMeH+dMxOMHxq1HJ2rqzTxG3ngN/kR8e2VY2HzLpGNaSTD3TuZFFx7n7NOZj8zZCTAWNe/GNAiZji6A7rbJnMsyW7wtAeAiPmr8VV+7bQ247gk90eNSkhEzZH1oPMACsTiHeaaYeDKfwe6oTeBlAmAw=
+	t=1730941064; cv=none; b=Pfnh8Mqw+fw7f6hY5VvAHmU3QSt8gz6CjxeZl5cWbow/US8yrsoQFbD0IFpTvxfnIsf863RMAoKaSTvc8PXK5PE1fbBTvcQ+XLQ1VMrULHChyL8NJC5wgVrFxV44/N3Or2MRWgqpJLiz9ZddMr6dz+sgpPykJuMImEfPvz1wo8k=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1730919411; c=relaxed/simple;
-	bh=hyMv01gLmOo95GlTaKcxVke3e6gveNY0nSXI8qWLs/U=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=CkRqu9ANopvElSABGMx6hDBGhXusEq3DLihVusoxQDrlTOhmZKw7kWh77THx4B2p9UrYYeBeNjLbkVr/GcwejgGCwFqLSfDhhqOZ2qxVcNR1BaCN064tRNPlUvzAMzFr2GYm4Tq3M5fET2z5D6phPGgoGCNXy52hGQUgC5NshEI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=nNijy397; arc=none smtp.client-ip=192.198.163.9
+	s=arc-20240116; t=1730941064; c=relaxed/simple;
+	bh=Wd/qbg0Eyo7dMUuoAAhNI1ZG5Rq7Hpgl5iQzNCWNzk8=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=L/vq7tY0Wp+vm+emajsbwws2mH/3eC3y/xalaRUePpI4C+6lth+AXnIi9HpSLxw0iLLtO6akCzGVcnF98h6ZKgFMQZ2ojepgnsFupotIr5CksjnLc+0RO001hxRAIIVrakQPgfJuBtA3FtSUwg1YorMFP2nxKtfB13HJUhB13lI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com; spf=pass smtp.mailfrom=intel.com; dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b=G78dOpJK; arc=none smtp.client-ip=198.175.65.11
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=intel.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=intel.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="nNijy397"
+	dkim=pass (2048-bit key) header.d=intel.com header.i=@intel.com header.b="G78dOpJK"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1730919410; x=1762455410;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=hyMv01gLmOo95GlTaKcxVke3e6gveNY0nSXI8qWLs/U=;
-  b=nNijy397f7M5gzMgCSRjgyuyX2sZ1owdmEQm7DO9SYh5kSF9PwBeWBQR
-   Gn4qPqfQw7dc37+04rPDrY1byDfh1Qsf3f20Sw+O5YNJU29Uq0/KVJtH8
-   xpz58CLhn8ePWeItGsVrFyoPAp4AhwtPFb0cl2IJj/CF49MdY7vl6FBms
-   f+kaMGBaFwJOgm5mnBnXAfQCxxbzmv+nYXDbbhL+zA89cVf+z1l4t6vNV
-   uasxrPtXcapH1eamk2c7UxH01PYjwIMmsBSMJVwcHnGlxMjW+7nEOD62f
-   7+IwbRnu5EsShfSry1R4or+Jut5Yx0nD6FM2R/yQJHmQCLQrQfQTvYfM4
-   A==;
-X-CSE-ConnectionGUID: 5yglTmrqR0e1PG9eYOu54g==
-X-CSE-MsgGUID: 5zlORu1qRFiJuKn3pya3ow==
-X-IronPort-AV: E=McAfee;i="6700,10204,11248"; a="41357896"
-X-IronPort-AV: E=Sophos;i="6.11,263,1725346800"; 
-   d="scan'208";a="41357896"
-Received: from fmviesa004.fm.intel.com ([10.60.135.144])
-  by fmvoesa103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2024 10:56:49 -0800
-X-CSE-ConnectionGUID: x7Xr4cpgR3+Y1QCOQpWbtg==
-X-CSE-MsgGUID: ux6hEzz2S0iV5lh/+fFXow==
+  t=1730941063; x=1762477063;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=Wd/qbg0Eyo7dMUuoAAhNI1ZG5Rq7Hpgl5iQzNCWNzk8=;
+  b=G78dOpJKfgCcKkVWWVvz7StR1fk75r5ufqBvpHtfZOYI+kTjqGjD7UlV
+   X6EQaHLllV0JsV7JOl8WjMdSZFbJ3Pg1+SaxA9wj9hrLMsvgBiLjCNTMf
+   WMByZRBV2BaSTLADATHdPf6jBU1NZ6ySiPsub6lsOXtO2pgnS3O9n/nmM
+   AUsc2jMKwVxT3eLbbSWcRFXEFV2iBLzYSCfyuk8FBUKGJg8rTkEr7F2yy
+   EVCDGkozsfjEHKey++siiH/SELbWfhUJbVVtwvtnoG4CENE+R7k3NdRSR
+   /gh/iH8XwdyK+73mheMD/Cdt//IkOBun6mjTXpiKISPySLxOtHG5vkIhc
+   w==;
+X-CSE-ConnectionGUID: HoyvKaILTMqgC+OIYoCe6Q==
+X-CSE-MsgGUID: rb/HBLl5Q0ejSpsgThwtMA==
+X-IronPort-AV: E=McAfee;i="6700,10204,11222"; a="41320183"
+X-IronPort-AV: E=Sophos;i="6.11,199,1725346800"; 
+   d="scan'208";a="41320183"
+Received: from fmviesa010.fm.intel.com ([10.60.135.150])
+  by orvoesa103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2024 16:57:42 -0800
+X-CSE-ConnectionGUID: BvKh602rSHG+B2y9z+RxzQ==
+X-CSE-MsgGUID: 8cuCYh0pTyWFUUDOcdyiow==
 X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="6.11,263,1725346800"; 
-   d="scan'208";a="89289554"
-Received: from lkp-server01.sh.intel.com (HELO a48cf1aa22e8) ([10.239.97.150])
-  by fmviesa004.fm.intel.com with ESMTP; 06 Nov 2024 10:56:32 -0800
-Received: from kbuild by a48cf1aa22e8 with local (Exim 4.96)
-	(envelope-from <lkp@intel.com>)
-	id 1t8lCg-000pJS-1e;
-	Wed, 06 Nov 2024 18:56:30 +0000
-Date: Thu, 7 Nov 2024 02:56:30 +0800
-From: kernel test robot <lkp@intel.com>
-To: Vinicius Costa Gomes <vinicius.gomes@intel.com>, brauner@kernel.org,
-	amir73il@gmail.com, hu1.chen@intel.com
-Cc: oe-kbuild-all@lists.linux.dev, miklos@szeredi.hu,
-	malini.bhandaru@intel.com, tim.c.chen@intel.com,
-	mikko.ylinen@intel.com, linux-unionfs@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+X-IronPort-AV: E=Sophos;i="6.11,264,1725346800"; 
+   d="scan'208";a="85193423"
+Received: from rfrazer-mobl3.amr.corp.intel.com (HELO vcostago-mobl3.lan) ([10.124.222.105])
+  by fmviesa010-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Nov 2024 16:57:41 -0800
+From: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+To: brauner@kernel.org,
+	amir73il@gmail.com,
+	hu1.chen@intel.com
+Cc: miklos@szeredi.hu,
+	malini.bhandaru@intel.com,
+	tim.c.chen@intel.com,
+	mikko.ylinen@intel.com,
+	linux-unionfs@vger.kernel.org,
+	linux-fsdevel@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
 	Vinicius Costa Gomes <vinicius.gomes@intel.com>
-Subject: Re: [PATCH overlayfs-next v3 1/4] cred: Add a light version of
- override/revert_creds()
-Message-ID: <202411070234.EOrhSGRU-lkp@intel.com>
-References: <20241105193514.828616-2-vinicius.gomes@intel.com>
+Subject: [PATCH v4 1/4] cred: Add a light version of override/revert_creds()
+Date: Wed,  6 Nov 2024 16:57:17 -0800
+Message-ID: <20241107005720.901335-2-vinicius.gomes@intel.com>
+X-Mailer: git-send-email 2.47.0
+In-Reply-To: <20241107005720.901335-1-vinicius.gomes@intel.com>
+References: <20241107005720.901335-1-vinicius.gomes@intel.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20241105193514.828616-2-vinicius.gomes@intel.com>
+Content-Transfer-Encoding: 8bit
 
-Hi Vinicius,
+Add a light version of override/revert_creds(), this should only be
+used when the credentials in question will outlive the critical
+section and the critical section doesn't change the ->usage of the
+credentials.
 
-kernel test robot noticed the following build warnings:
+Suggested-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+---
+ include/linux/cred.h | 18 ++++++++++++++++++
+ kernel/cred.c        |  6 +++---
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-[auto build test WARNING on next-20241105]
-[also build test WARNING on v6.12-rc6]
-[cannot apply to brauner-vfs/vfs.all linus/master v6.12-rc6 v6.12-rc5 v6.12-rc4]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Vinicius-Costa-Gomes/cred-Add-a-light-version-of-override-revert_creds/20241106-033748
-base:   next-20241105
-patch link:    https://lore.kernel.org/r/20241105193514.828616-2-vinicius.gomes%40intel.com
-patch subject: [PATCH overlayfs-next v3 1/4] cred: Add a light version of override/revert_creds()
-config: x86_64-randconfig-121-20241106 (https://download.01.org/0day-ci/archive/20241107/202411070234.EOrhSGRU-lkp@intel.com/config)
-compiler: gcc-12 (Debian 12.2.0-14) 12.2.0
-reproduce (this is a W=1 build): (https://download.01.org/0day-ci/archive/20241107/202411070234.EOrhSGRU-lkp@intel.com/reproduce)
-
-If you fix the issue in a separate patch/commit (i.e. not just a new version of
-the same patch/commit), kindly add following tags
-| Reported-by: kernel test robot <lkp@intel.com>
-| Closes: https://lore.kernel.org/oe-kbuild-all/202411070234.EOrhSGRU-lkp@intel.com/
-
-sparse warnings: (new ones prefixed by >>)
-   kernel/cred.c:104:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/cred.c:104:9: sparse:    struct cred *
-   kernel/cred.c:104:9: sparse:    struct cred const [noderef] __rcu *
-   kernel/cred.c:105:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/cred.c:105:9: sparse:    struct cred *
-   kernel/cred.c:105:9: sparse:    struct cred const [noderef] __rcu *
-   kernel/cred.c:121:9: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct atomic64_t const [usertype] *v @@     got struct atomic64_t const [noderef] __rcu * @@
-   kernel/cred.c:121:9: sparse:     expected struct atomic64_t const [usertype] *v
-   kernel/cred.c:121:9: sparse:     got struct atomic64_t const [noderef] __rcu *
-   kernel/cred.c:124:22: sparse: sparse: cast removes address space '__rcu' of expression
-   kernel/cred.c:127:17: sparse: sparse: cast removes address space '__rcu' of expression
-   kernel/cred.c:218:13: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   kernel/cred.c:218:13: sparse:     expected struct cred const *old
-   kernel/cred.c:218:13: sparse:     got struct cred const [noderef] __rcu *cred
-   kernel/cred.c:305:47: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct cred const *cred @@     got struct cred const [noderef] __rcu *cred @@
-   kernel/cred.c:305:47: sparse:     expected struct cred const *cred
-   kernel/cred.c:305:47: sparse:     got struct cred const [noderef] __rcu *cred
-   kernel/cred.c:305:30: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct cred const [noderef] __rcu *real_cred @@     got struct cred const * @@
-   kernel/cred.c:305:30: sparse:     expected struct cred const [noderef] __rcu *real_cred
-   kernel/cred.c:305:30: sparse:     got struct cred const *
-   kernel/cred.c:306:17: sparse: sparse: incorrect type in argument 1 (different address spaces) @@     expected struct atomic64_t const [usertype] *v @@     got struct atomic64_t const [noderef] __rcu * @@
-   kernel/cred.c:306:17: sparse:     expected struct atomic64_t const [usertype] *v
-   kernel/cred.c:306:17: sparse:     got struct atomic64_t const [noderef] __rcu *
-   kernel/cred.c:344:32: sparse: sparse: incorrect type in assignment (different address spaces) @@     expected struct cred const [noderef] __rcu *real_cred @@     got struct cred const * @@
-   kernel/cred.c:344:32: sparse:     expected struct cred const [noderef] __rcu *real_cred
-   kernel/cred.c:344:32: sparse:     got struct cred const *
-   kernel/cred.c:395:38: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *real_cred @@
-   kernel/cred.c:395:38: sparse:     expected struct cred const *old
-   kernel/cred.c:395:38: sparse:     got struct cred const [noderef] __rcu *real_cred
-   kernel/cred.c:400:9: sparse: sparse: incompatible types in comparison expression (different address spaces):
-   kernel/cred.c:400:9: sparse:    struct cred const [noderef] __rcu *
-   kernel/cred.c:400:9: sparse:    struct cred const *
-   kernel/cred.c:519:46: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *override @@     got struct cred const [noderef] __rcu *cred @@
-   kernel/cred.c:519:46: sparse:     expected struct cred const *override
-   kernel/cred.c:519:46: sparse:     got struct cred const [noderef] __rcu *cred
-   kernel/cred.c:301:19: sparse: sparse: dereference of noderef expression
-   kernel/cred.c: note: in included file:
->> include/linux/cred.h:182:41: sparse: sparse: incorrect type in initializer (different address spaces) @@     expected struct cred const *old @@     got struct cred const [noderef] __rcu *cred @@
-   include/linux/cred.h:182:41: sparse:     expected struct cred const *old
-   include/linux/cred.h:182:41: sparse:     got struct cred const [noderef] __rcu *cred
-
-vim +182 include/linux/cred.h
-
-   174	
-   175	/*
-   176	 * Override creds without bumping reference count. Caller must ensure
-   177	 * reference remains valid or has taken reference. Almost always not the
-   178	 * interface you want. Use override_creds()/revert_creds() instead.
-   179	 */
-   180	static inline const struct cred *override_creds_light(const struct cred *override_cred)
-   181	{
- > 182		const struct cred *old = current->cred;
-   183	
-   184		rcu_assign_pointer(current->cred, override_cred);
-   185		return old;
-   186	}
-   187	
-
+diff --git a/include/linux/cred.h b/include/linux/cred.h
+index 2976f534a7a3..e4a3155fe409 100644
+--- a/include/linux/cred.h
++++ b/include/linux/cred.h
+@@ -172,6 +172,24 @@ static inline bool cap_ambient_invariant_ok(const struct cred *cred)
+ 					  cred->cap_inheritable));
+ }
+ 
++/*
++ * Override creds without bumping reference count. Caller must ensure
++ * reference remains valid or has taken reference. Almost always not the
++ * interface you want. Use override_creds()/revert_creds() instead.
++ */
++static inline const struct cred *override_creds_light(const struct cred *override_cred)
++{
++	const struct cred *old = current->cred;
++
++	rcu_assign_pointer(current->cred, override_cred);
++	return old;
++}
++
++static inline void revert_creds_light(const struct cred *revert_cred)
++{
++	rcu_assign_pointer(current->cred, revert_cred);
++}
++
+ /**
+  * get_new_cred_many - Get references on a new set of credentials
+  * @cred: The new credentials to reference
+diff --git a/kernel/cred.c b/kernel/cred.c
+index 075cfa7c896f..da7da250f7c8 100644
+--- a/kernel/cred.c
++++ b/kernel/cred.c
+@@ -485,7 +485,7 @@ EXPORT_SYMBOL(abort_creds);
+  */
+ const struct cred *override_creds(const struct cred *new)
+ {
+-	const struct cred *old = current->cred;
++	const struct cred *old;
+ 
+ 	kdebug("override_creds(%p{%ld})", new,
+ 	       atomic_long_read(&new->usage));
+@@ -499,7 +499,7 @@ const struct cred *override_creds(const struct cred *new)
+ 	 * visible to other threads under RCU.
+ 	 */
+ 	get_new_cred((struct cred *)new);
+-	rcu_assign_pointer(current->cred, new);
++	old = override_creds_light(new);
+ 
+ 	kdebug("override_creds() = %p{%ld}", old,
+ 	       atomic_long_read(&old->usage));
+@@ -521,7 +521,7 @@ void revert_creds(const struct cred *old)
+ 	kdebug("revert_creds(%p{%ld})", old,
+ 	       atomic_long_read(&old->usage));
+ 
+-	rcu_assign_pointer(current->cred, old);
++	revert_creds_light(old);
+ 	put_cred(override);
+ }
+ EXPORT_SYMBOL(revert_creds);
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests/wiki
+2.47.0
+
