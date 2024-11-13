@@ -1,219 +1,152 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-qv1-f47.google.com (mail-qv1-f47.google.com [209.85.219.47])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2540A17B4E1
-	for <linux-unionfs@vger.kernel.org>; Wed, 13 Nov 2024 10:48:43 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 284461F9ABD;
+	Wed, 13 Nov 2024 14:27:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.219.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731494926; cv=none; b=gKm2laz29PCBLlVWy+TpMOBfiBTUY26eigX2dZuUoObdOSywDgT1MzUbXQxtqi9tz8jaZMwCCzwzSVvMoVe/n86lEsemEeXveVXnTETek70Nlejotu8n4cutgzsM4OWxp5/mVsrnGVHspGYA9Jy8tfFTLUGRXlZq/r1qDkxxWno=
+	t=1731508033; cv=none; b=Tdwwi8DyVR9Exf00EHpfRsv9iChGoVGOBJECAcM5sDbhmsqpYvKQ7CRU3bTHDswC3pQ7nV6jMJ6G8QV3jYo6ggmuq562Zb4FKi61dZr/ggVYzlI+9XeobpOWL5/oQBDjIqa8jIf5xc6D9LrVU8iMUdUMBq5LhzkGeR2DTBZu4sA=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731494926; c=relaxed/simple;
-	bh=JaXHthW69OWq7pu8xfdevV28GEyzUS07vO+cjBXBusk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=uk31Us8t4QnOARudsYe6aRYYwrfT0ek87D0Ct0Ys7UJ0sIFZaaxyLrY8nubcMo2ev7cspJYjKmwnsK0CBgcVlLJyxOb+wGK7WCD4BSTjcseVovDMz+tSArT9Li6UCGXeN+ZtQjeE/NYzqhY24yxo59iEl8TaD7d1bossqJSaYAc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RLGhVafH; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1731508033; c=relaxed/simple;
+	bh=hsSf9bE+GoUc4+9xEzYYZ4OlJrBOA6K4INO2MbBwMaw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=E3GcIMDIWo8jJ5N9YlvOnKqjPDnlzV2TlbuloMjwbTmArNZwGsUIh34oQO1mXYsp0e8RNRXNunICsT2rkDXT+aLSdFF6/SHOQSGq3264L9uIgkgqTEbpoqixPaeYTOt0wfo9xbo9UsB6FLRSIUz6qQ5bf63jDa/63V9ulYP7CBE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f91oNBa/; arc=none smtp.client-ip=209.85.219.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RLGhVafH"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1731494922;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=gyiix1MwkCQpAPlotMs0JJeKLRpwAc92205dD5TfNd0=;
-	b=RLGhVafHngWRZ3ebuplCtrlsV1H5L7zzSvPQerA2kadfW/QlxkpijEY3q21OxQirNfKSA8
-	EsC870/hWXWGQFqCwJIkmkp6YaPJQ7goX+CUj5xU1qGLeXf10AO3Taain+irgE28EZXVEh
-	BIXjeFEJlKqiPa3DE580nKTqerogJ5A=
-Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-115-yyxlQhQeO5yGg-boZJj-NA-1; Wed,
- 13 Nov 2024 05:48:39 -0500
-X-MC-Unique: yyxlQhQeO5yGg-boZJj-NA-1
-X-Mimecast-MFC-AGG-ID: yyxlQhQeO5yGg-boZJj-NA
-Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 4AF121954B1E;
-	Wed, 13 Nov 2024 10:48:37 +0000 (UTC)
-Received: from ws.net.home (unknown [10.45.225.223])
-	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id CCE0D19560A3;
-	Wed, 13 Nov 2024 10:48:34 +0000 (UTC)
-Date: Wed, 13 Nov 2024 11:48:31 +0100
-From: Karel Zak <kzak@redhat.com>
-To: Aleksa Sarai <cyphar@cyphar.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, 
-	Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
-Subject: Re: [PATCH] overlayfs: port all superblock creation logging to
- fsopen logs
-Message-ID: <j7ngxuxqdwrq5o6zi2hmt3zfmh6s5mzrlvwjw6snqbv5oc5ggo@nqpr6wjec7go>
-References: <20241106-overlayfs-fsopen-log-v1-1-9d883be7e56e@cyphar.com>
- <20241106-mehrzahl-bezaubern-109237c971e3@brauner>
- <CAOQ4uxirsNEK24=u3K-X5A-EX80ofEx5ycjoqU4gocBoPVxbYw@mail.gmail.com>
- <CAOQ4uxj+gAtM6cY_aEmM7TAqLor7498f0FO3eTek_NpUXUKNaw@mail.gmail.com>
- <20241106.141100-patchy.noises.kissable.cannons-37UAyhH88iH@cyphar.com>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f91oNBa/"
+Received: by mail-qv1-f47.google.com with SMTP id 6a1803df08f44-6cc2ea27a50so7230606d6.0;
+        Wed, 13 Nov 2024 06:27:11 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1731508031; x=1732112831; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=byaAHjXVMIKqWLBBJTf2K9IU7DPwWcEDa/fLiBJiK3k=;
+        b=f91oNBa/0wU5T2O2BalqIijEp4Q8r54kXtJ0xuPPWOj2GOpxI/RuN00Q1zr1LjbsRz
+         jvMtnyDbTgrsIhdpAICCKCMp7htzDiFA4bnbHlqv67yo74aaDBp1dTHd43usstIMl7Rr
+         r2cj0FcfpvIwQ64IgYbwY55NHuryv7ef+t5swil+Ze7nZYt5HeieaQ+4a0rP3JVFaBTq
+         rMi5JrOrBAzXAJN+x9V9ejiC4eG+27OzBIdGCx+JvBEQ2OZDPfNaIgrqwv2BliGWMZHE
+         ascHOzFhpaQP8G/XGT26VGD17sXJpk0AZwkQBYH5cJG6M11ivEnbA8m4EEnbo39JJDac
+         5NEQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1731508031; x=1732112831;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=byaAHjXVMIKqWLBBJTf2K9IU7DPwWcEDa/fLiBJiK3k=;
+        b=JF4tepg+awgwff8f/9UVzWapSPGM6lKY0fow/VxE0WTAryhI+WbAzIHXei1HqoO9pv
+         UVJ9ITFcuLc2/l9BNr6WqkdooMv1Ke+/iGDkBjW4nof8OJJwzFe5OeyuvBViyJYUkkHU
+         OTdvEJRQECT+H4QTvXIa+3ftovl2s+2PwQ6OOE+fIuRWZGgZJkWFfqYeg7zEbfc+1LdV
+         b4uZvl4oRh/oima45pQml3iWoEfDeXrvnIzezLFv206EmblceTze4qfURT0BlbBQ/43h
+         ZFPcqUAl3BS4TPWgCef8OdB7G0aZTGG0wS7N+cHxt7uHl0RNnggSvIcDf7pt1rdSAyDG
+         M68A==
+X-Forwarded-Encrypted: i=1; AJvYcCVdge+UCkaFE2RLjnMBkX9ovCyZh4Yx0EnRwKqS8laWkjIA1zDkDTUPPefhLw9oYHkc4rEENn2ENeFfcg3FGQ==@vger.kernel.org, AJvYcCWG07zss7eE6zYk44CLtMKGXS96Cjjz5eTliFh/oXrXvd8Of7LAcEzkNBrwe+Qtwd2mz+SlPMwoIYb2yNgl@vger.kernel.org, AJvYcCWmZ+/KImRYnyy0Et21Q6YQVHmOrLp/p7JiYWivBKcUhX03bQ2hS/3SCzd2FIa2jzeBxCf9Nrf/MMZ3s3cB@vger.kernel.org
+X-Gm-Message-State: AOJu0YwFV4F+Cr8VbEanfWRaPgxlaNg19JecQ5dLRruo8JDkTmvc5BBb
+	vcF4uqvoskWcZhCqBujiG5laUJzLSkkXJZrjvZMBH+7mVhPe6fHgYXBLHC+JfC70ADLgFiQkZFu
+	PDSeehueW9BmQ80D9TYwln5NrLfY=
+X-Google-Smtp-Source: AGHT+IGnBfzQq2aRhyeSLvcYTvunpxmwCxusgSIeJnDVcERj9W+v0vZjYKbGY5+oetb5hhtyec4PZkPNIXG79pLP7xY=
+X-Received: by 2002:a05:6214:3d0d:b0:6cc:255:2038 with SMTP id
+ 6a1803df08f44-6d39e4d24a3mr356911116d6.4.1731508031090; Wed, 13 Nov 2024
+ 06:27:11 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20241106.141100-patchy.noises.kissable.cannons-37UAyhH88iH@cyphar.com>
-X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
+References: <20241107005720.901335-1-vinicius.gomes@intel.com> <20241107005720.901335-5-vinicius.gomes@intel.com>
+In-Reply-To: <20241107005720.901335-5-vinicius.gomes@intel.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 13 Nov 2024 15:26:59 +0100
+Message-ID: <CAOQ4uxgHwmAa4K3ca7i1G2gFQ1WBge855R19hgEk7BNy+EBqfg@mail.gmail.com>
+Subject: Re: [PATCH v4 4/4] ovl: Optimize override/revert creds
+To: Vinicius Costa Gomes <vinicius.gomes@intel.com>, brauner@kernel.org, miklos@szeredi.hu
+Cc: hu1.chen@intel.com, malini.bhandaru@intel.com, tim.c.chen@intel.com, 
+	mikko.ylinen@intel.com, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, Nov 07, 2024 at 02:09:19AM GMT, Aleksa Sarai wrote:
-> On 2024-11-06, Amir Goldstein <amir73il@gmail.com> wrote:
-> > On Wed, Nov 6, 2024 at 12:00 PM Amir Goldstein <amir73il@gmail.com> wrote:
-> > >
-> > > On Wed, Nov 6, 2024 at 10:59 AM Christian Brauner <brauner@kernel.org> wrote:
-> > > >
-> > > > On Wed, Nov 06, 2024 at 02:09:58PM +1100, Aleksa Sarai wrote:
-> > > > > overlayfs helpfully provides a lot of of information when setting up a
-> > > > > mount, but unfortunately when using the fsopen(2) API, a lot of this
-> > > > > information is mixed in with the general kernel log.
-> > > > >
-> > > > > In addition, some of the logs can become a source of spam if programs
-> > > > > are creating many internal overlayfs mounts (in runc we use an internal
-> > > > > overlayfs mount to protect the runc binary against container breakout
-> > > > > attacks like CVE-2019-5736, and xino_auto=on caused a lot of spam in
-> > > > > dmesg because we didn't explicitly disable xino[1]).
-> > > > >
-> > > > > By logging to the fs_context, userspace can get more accurate
-> > > > > information when using fsopen(2) and there is less dmesg spam for
-> > > > > systems where a lot of programs are using fsopen("overlay"). Legacy
-> > > > > mount(2) users will still see the same errors in dmesg as they did
-> > > > > before (though the prefix of the log messages will now be "overlay"
-> > > > > rather than "overlayfs").
-> > >
-> > > I am not sure about the level of risk in this format change.
-> > > Miklos, WDYT?
-> > >
-> > > > >
-> > > > > [1]: https://bbs.archlinux.org/viewtopic.php?pid=2206551
-> > > > >
-> > > > > Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
-> > > > > ---
-> > > >
-> > > > To me this sounds inherently useful! So I'm all for it.
-> > > >
-> > >
-> > > [CC: Karel]
-> > >
-> > > I am quite concerned about this.
-> > > I have a memory that Christian suggested to make this change back in
-> > > the original conversion to new mount API, but back then mount tool
-> > > did not print out the errors to users properly and even if it does
-> > > print out errors, some script could very well be ignoring them.
-> 
-> I think Christian mentioned this at LSF/MM (or maybe LPC), but it seems
-> that util-linux does provide the log information now in the case of
-> fsconfig(2) errors:
-> 
-> 	% strace -e fsopen,fsconfig mount -t overlay -o userxattr=str x /tmp/a
-> 	fsopen("overlay", FSOPEN_CLOEXEC)       = 3
-> 	fsconfig(3, FSCONFIG_SET_STRING, "source", "foo", 0) = 0
-> 	fsconfig(3, FSCONFIG_SET_STRING, "userxattr", "str", 0) = -1 EINVAL (Invalid argument)
-> 	mount: /tmp/a: fsconfig system call failed: overlay: Unexpected value for 'userxattr'.
-> 		   dmesg(1) may have more information after failed mount system call.
-> 
-> (Using the current HEAD of util-linux -- openSUSE's util-linux isn't
-> compiled with support for fsopen apparently.)
+On Thu, Nov 7, 2024 at 1:57=E2=80=AFAM Vinicius Costa Gomes
+<vinicius.gomes@intel.com> wrote:
+>
+> Use override_creds_light() in ovl_override_creds() and
+> revert_creds_light() in ovl_revert_creds_light().
+>
+> The _light() functions do not change the 'usage' of the credentials in
+> question, as they refer to the credentials associated with the
+> mounter, which have a longer lifetime.
+>
+> In ovl_setup_cred_for_create(), do not need to modify the mounter
+> credentials (returned by override_creds()) 'usage' counter. Add a
+> warning to verify that we are indeed working with the mounter
+> credentials (stored in the superblock). Failure in this assumption
+> means that creds may leak.
+>
+> Suggested-by: Christian Brauner <brauner@kernel.org>
+> Signed-off-by: Vinicius Costa Gomes <vinicius.gomes@intel.com>
+> ---
+>  fs/overlayfs/dir.c  | 7 ++++++-
+>  fs/overlayfs/util.c | 4 ++--
+>  2 files changed, 8 insertions(+), 3 deletions(-)
+>
+> diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+> index 09db5eb19242..136a2c7fb9e5 100644
+> --- a/fs/overlayfs/dir.c
+> +++ b/fs/overlayfs/dir.c
+> @@ -571,7 +571,12 @@ static int ovl_setup_cred_for_create(struct dentry *=
+dentry, struct inode *inode,
+>                 put_cred(override_cred);
+>                 return err;
+>         }
+> -       put_cred(override_creds(override_cred));
+> +
+> +       /*
+> +        * We must be called with creator creds already, otherwise we ris=
+k
+> +        * leaking creds.
+> +        */
+> +       WARN_ON_ONCE(override_creds(override_cred) !=3D ovl_creds(dentry-=
+>d_sb));
+>         put_cred(override_cred);
+>
+>         return 0;
 
-After failed mount-related syscalls, libmount reads messages prefixed
-with "e " from the file descriptor created by fdopen(). These messages
-are later printed by mount(8).
+Vinicius,
 
-mount(8) or libmount does not read anything from kmesg.
+While testing fanotify with LTP tests (some are using overlayfs),
+kmemleak consistently reports the problems below.
 
-> However, it doesn't output any of the info-level ancillary
-> information if there were no errors.
+Can you see the bug, because I don't see it.
+Maybe it is a false positive...
 
-This is the expected default behavior. mount(8) does not print any
-additional information.
+Christian, Miklos,
 
-We can enhance libmount to read and print other messages on stdout if
-requested by the user. For example, the mount(8) command has a
---verbose option that is currently only used by some /sbin/mount.<type>
-helpers, but not by mount(8) itself. We can improve this and use it in
-libmount to read and print info-level messages.
+Can you see a problem?
 
-I can prepare a libmount/mount(8) patch for this.
+Thanks,
+Amir.
 
-> So there will definitely be some loss of
-> information for pr_* logs that don't cause an actual error (which is a
-> little unfortunate, since that is the exact dmesg spam that caused me to
-> write this patch).
-> 
-> I could take a look at sending a patch to get libmount to output that
-> information, but that won't help with the immediate issue, and this
-> doesn't help with the possible concern with some script that scrapes
-> dmesg. (Though I think it goes without saying that such scripts are kind
-> of broken by design -- since unprivileged users can create overlayfs
-> mounts and thus spam the kernel log with any message, there is no
-> practical way for a script to correctly get the right log information
-> without using the new mount API's logging facilities.)
 
-> I can adjust this patch to only include the log+return-an-error cases,
-> but that doesn't really address your primary concern, I guess.
-> 
-> > > My strong feeling is that suppressing legacy errors to kmsg should be opt-in
-> > > via the new mount API and that it should not be the default for libmount.
-> > > IMO, it is certainly NOT enough that new mount API is used by userspace
-> > > as an indication for the kernel to suppress errors to kmsg.
- 
-For me, it seems like we are mixing two things together.
-
-kmesg is a *log*, and tools like systemd read and save it. It is used
-for later issue debugging or by log analyzers. This means that all
-relevant information should be included.
-
-The stderr/stdout output from tools such as mount(8) is simply
-feedback for users or scripts, and informational messages are just
-hints. They should not be considered a replacement for system logging
-facilities. The same applies to messages read from the new mount API;
-they should not be a replacement for system logs.
-
-In my opinion, it is acceptable to suppress optional and unimportant
-messages and not save them into kmesg. However, all other relevant
-messages should be included regardless of the tool or API being used.
-
-Additionally, it should be noted that mount(8)/libmount is only a
-userspace tool and is not necessary for mounting filesystems. The
-kernel should not rely on libmount behavior; there are other tools
-available such as busybox.
-
-> I can see an argument for some kind of MS_SILENT analogue for
-> fsconfig(), though it will make the spam problem worse until programs
-> migrate to setting this new flag.
- 
-Yes, the ideal solution would be to have mount options that can
-control this behavior. This would allow users to have control over it
-and save their settings to fstab, as well as keep it specific to the
-mount node.
-
-> Also, as this is already an issue ever since libmount added support for
-> the new API (so since 2.39 I believe?), I think it would make just as
-> much sense for this flag to be opt-in -- so libmount could set the
-> "verbose" or "kmsglog" flag by default but most normal programs would
-> not get the spammy behaviour by default.
-
-I prefer if the default behavior is defined by the kernel, rather than
-by userspace tools like libmount. If we were to automatically add any
-mount options through libmount, it would make it difficult to coexist
-with settings in fstab, etc. It's always better to have transparency
-and avoid any hidden factors in the process.
-
-    Karel
-
--- 
- Karel Zak  <kzak@redhat.com>
- http://karelzak.blogspot.com
-
+unreferenced object 0xffff888008ad8240 (size 192):
+  comm "fanotify06", pid 1803, jiffies 4294890084
+  hex dump (first 32 bytes):
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace (crc ee6a93ea):
+    [<00000000ab4340a4>] __create_object+0x22/0x83
+    [<0000000053dcaf3b>] kmem_cache_alloc_noprof+0x156/0x1e6
+    [<00000000b4a08c1d>] prepare_creds+0x1d/0xf9
+    [<00000000c55dfb6c>] ovl_setup_cred_for_create+0x27/0x93
+    [<00000000f82af4ee>] ovl_create_or_link+0x73/0x1bd
+    [<0000000040a439db>] ovl_create_object+0xda/0x11d
+    [<00000000fbbadf17>] lookup_open.isra.0+0x3a0/0x3ff
+    [<0000000007a2faf0>] open_last_lookups+0x160/0x223
+    [<00000000e7d8243a>] path_openat+0x136/0x1b5
+    [<0000000004e51585>] do_filp_open+0x57/0xb8
+    [<0000000053871b92>] do_sys_openat2+0x6f/0xc0
+    [<000000004d76b8b7>] do_sys_open+0x3f/0x60
+    [<000000009b0be238>] do_syscall_64+0x96/0xf8
+    [<000000006ff466ad>] entry_SYSCALL_64_after_hwframe+0x76/0x7e
