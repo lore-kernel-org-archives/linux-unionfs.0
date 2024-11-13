@@ -1,71 +1,100 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DF32343AA1;
-	Tue, 12 Nov 2024 21:41:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCC51FBC95;
+	Wed, 13 Nov 2024 10:22:14 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731447678; cv=none; b=sA01W7hwMOdU1kFvyLtvnwxKAlAw9ZO++B48SoLDo9C9Y5mXP3WFLACeCC+V8d+N/LOe7CTkCaTbK/JFUaiMfoOtZxbWiJ9fHqhrATa+quUFDGbT97Zf1tlO9qA0CePDaROVmHuIbeRKoyDmY5TgtnM8bm3BWyunIvqPxIMs/YY=
+	t=1731493334; cv=none; b=g9R6WNv2+FoQqA7t6hJkNSYiVi+ZiCslLdmF8cGvqtijrcFMbmrG2FlemroKq3wMn8mrzu2yU7IemrfkDdEZImB6vb0qk3wJ8veQi5A3RjwyfGWzdcWyj2boCslRAdwMDPXL4HqQPA+ug1SUcrb/e5BT5TO7VKdNijvv1g8LuQc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731447678; c=relaxed/simple;
-	bh=5fZUwKytbsAmkLDw9NSkYklLMjXoT6wxH2W2j56gfdI=;
-	h=Date:From:To:Cc:Subject:Message-ID:MIME-Version:Content-Type:
-	 Content-Disposition; b=pevUL/LDYRwVg4R0vmtpbFVfBCWXH5gGWyulKGWHPqdGVEOl4XC4A++0cV5hpiLcG6qnhqIqfIH+Vusr3mQVv9soiu7seCyfsqMbyAy9eZmgkrrZjLlMoT1iR1lJi0DxYv+cV/7Un1LwPY2zc7xDmeK2wbxJ0C7IVMDUEVxsNUg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=ttfkYLb6; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	s=arc-20240116; t=1731493334; c=relaxed/simple;
+	bh=bT3AvCqjBcCd0NVLxpcDY8LCVWeB8yiyYDP1SIlQBtI=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=B972kW9jU7YsYByvBz7rWMSZE6VZsU+FPy0nNArDh+dDI7khWixLOBgISvHWNJ6MM0vU4Yw++ckyDPpGNv+8/586mJIijYxmUC1nQQguFD4bbGDyJMmswZbKfv20MR5QcAD5NVLRoWfc79MECet0N9WU/b+A6bRpiNWvT7l18Ms=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ih3MwP4I; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="ttfkYLb6"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:Content-Type:MIME-Version:
-	Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-Transfer-Encoding:
-	Content-ID:Content-Description:In-Reply-To:References;
-	bh=UODY4oFrGh0OPJEw/PnXTIR6ukiA1LQMYg8Lcody64Q=; b=ttfkYLb6SHLLj+BNRKaL2I1veG
-	sO25rhx32NEMy97NaUcIY/5U3zco0Nx7iaOA74IaXjFTIsYZpcg0EaTF6CfNQ3X3S3o6wX2Qy0DTv
-	xmBHz8M65posAgRS+5uedSk3PtzMjYxaRhA1o+02v+36CeXghPDlaCuE7vi1XfhTqWncLT/yMrybq
-	Thq8dUPyDkTbvtaRBJ1CL9vZK1oSB/P6VO49+w0Dt4Q9H22KZA7ltKiE1OdzgVD4wYaBFc/vx8WCM
-	zIDDmmAtFwHCVT/Y2ZQ+1FXKkKBHRhK9UbPe0jooJnI8wslVLNeLIWtjkPK5IQk7zDTGVT1B2TmjH
-	gUpdOnQA==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1tAydO-0000000EFjd-24Dr;
-	Tue, 12 Nov 2024 21:41:14 +0000
-Date: Tue, 12 Nov 2024 21:41:14 +0000
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: linux-fsdevel@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org
-Subject: [PATCH] fs/overlayfs/namei.c: get rid of include ../internal.h
-Message-ID: <20241112214114.GD3387508@ZenIV>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ih3MwP4I"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA551C4CECD;
+	Wed, 13 Nov 2024 10:22:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1731493334;
+	bh=bT3AvCqjBcCd0NVLxpcDY8LCVWeB8yiyYDP1SIlQBtI=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=ih3MwP4I2gfc2bBZbggLAF5x6bidt/U41gzwloc2iwo7+gDsp5JhG4dzksT0CE0tj
+	 YfzNuQfnT3jvtR/YcHmk3HPbqWnzH+oXlqgdSDG1EdRkBt3UJ0wI6hnP7Z32DV0hyC
+	 IXt0Ea5gqCTcgDoJ489BbtOn9sH/3TfUWsbzCKPjwB4HIDJZNU5cVva2mq68Sl18z5
+	 qnfA70lWtfXM6epzuK3esSaQjJ72cC0dJvPRV7Z5p+JrToImWIY31anEkYbLBE+r66
+	 o0f06adqj1jaWPND9RaQvFiY+3DZfY4s/qzKvt99D7qtMb/ngaer6k5RU3105H/l+6
+	 jHOZU2/9/Knmg==
+Date: Wed, 13 Nov 2024 11:22:09 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, 
+	Jens Axboe <axboe@kernel.dk>, Stefan Berger <stefanb@linux.ibm.com>, 
+	Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
+	Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
+Subject: Re: [PATCH 4/5] fs: Simplify getattr interface function checking
+ AT_GETATTR_NOSEC flag
+Message-ID: <20241113-utensil-unteilbar-cfed225308c6@brauner>
+References: <20241112202118.GA3387508@ZenIV>
+ <20241112202552.3393751-1-viro@zeniv.linux.org.uk>
+ <20241112202552.3393751-4-viro@zeniv.linux.org.uk>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Sender: Al Viro <viro@ftp.linux.org.uk>
+In-Reply-To: <20241112202552.3393751-4-viro@zeniv.linux.org.uk>
 
-Added for the sake of vfs_path_lookup(), which is in linux/namei.h
-these days.
+On Tue, Nov 12, 2024 at 08:25:51PM +0000, Al Viro wrote:
+> From: Stefan Berger <stefanb@linux.ibm.com>
+> 
+> Commit 8a924db2d7b5 ("fs: Pass AT_GETATTR_NOSEC flag to getattr interface
+> function")' introduced the AT_GETATTR_NOSEC flag to ensure that the
+> call paths only call vfs_getattr_nosec if it is set instead of vfs_getattr.
+> Now, simplify the getattr interface functions of filesystems where the flag
+> AT_GETATTR_NOSEC is checked.
+> 
+> There is only a single caller of inode_operations getattr function and it
+> is located in fs/stat.c in vfs_getattr_nosec. The caller there is the only
+> one from which the AT_GETATTR_NOSEC flag is passed from.
+> 
+> Two filesystems are checking this flag in .getattr and the flag is always
+> passed to them unconditionally from only vfs_getattr_nosec:
+> 
+> - ecryptfs:  Simplify by always calling vfs_getattr_nosec in
+>              ecryptfs_getattr. From there the flag is passed to no other
+>              function and this function is not called otherwise.
+> 
+> - overlayfs: Simplify by always calling vfs_getattr_nosec in
+>              ovl_getattr. From there the flag is passed to no other
+>              function and this function is not called otherwise.
+> 
+> The query_flags in vfs_getattr_nosec will mask-out AT_GETATTR_NOSEC from
+> any caller using AT_STATX_SYNC_TYPE as mask so that the flag is not
+> important inside this function. Also, since no filesystem is checking the
+> flag anymore, remove the flag entirely now, including the BUG_ON check that
+> never triggered.
+> 
+> The net change of the changes here combined with the original commit is
+> that ecryptfs and overlayfs do not call vfs_getattr but only
+> vfs_getattr_nosec.
+> 
+> Fixes: 8a924db2d7b5 ("fs: Pass AT_GETATTR_NOSEC flag to getattr interface function")
+> Reported-by: Al Viro <viro@zeniv.linux.org.uk>
+> Closes: https://lore.kernel.org/linux-fsdevel/20241101011724.GN1350452@ZenIV/T/#u
+> Cc: Tyler Hicks <code@tyhicks.com>
+> Cc: ecryptfs@vger.kernel.org
+> Cc: Miklos Szeredi <miklos@szeredi.hu>
+> Cc: Amir Goldstein <amir73il@gmail.com>
+> Cc: linux-unionfs@vger.kernel.org
+> Cc: Christian Brauner <brauner@kernel.org>
+> Cc: linux-fsdevel@vger.kernel.org
+> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
+> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+> ---
 
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
----
- fs/overlayfs/namei.c | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
-index 5764f91d283e..527837358e3a 100644
---- a/fs/overlayfs/namei.c
-+++ b/fs/overlayfs/namei.c
-@@ -14,8 +14,6 @@
- #include <linux/exportfs.h>
- #include "overlayfs.h"
- 
--#include "../internal.h"	/* for vfs_path_lookup */
--
- struct ovl_lookup_data {
- 	struct super_block *sb;
- 	const struct ovl_layer *layer;
--- 
-2.39.5
-
+Reviewed-by: Christian Brauner <brauner@kernel.org>
