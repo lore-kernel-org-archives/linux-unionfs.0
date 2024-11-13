@@ -1,44 +1,62 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9FCC51FBC95;
-	Wed, 13 Nov 2024 10:22:14 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2540A17B4E1
+	for <linux-unionfs@vger.kernel.org>; Wed, 13 Nov 2024 10:48:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731493334; cv=none; b=g9R6WNv2+FoQqA7t6hJkNSYiVi+ZiCslLdmF8cGvqtijrcFMbmrG2FlemroKq3wMn8mrzu2yU7IemrfkDdEZImB6vb0qk3wJ8veQi5A3RjwyfGWzdcWyj2boCslRAdwMDPXL4HqQPA+ug1SUcrb/e5BT5TO7VKdNijvv1g8LuQc=
+	t=1731494926; cv=none; b=gKm2laz29PCBLlVWy+TpMOBfiBTUY26eigX2dZuUoObdOSywDgT1MzUbXQxtqi9tz8jaZMwCCzwzSVvMoVe/n86lEsemEeXveVXnTETek70Nlejotu8n4cutgzsM4OWxp5/mVsrnGVHspGYA9Jy8tfFTLUGRXlZq/r1qDkxxWno=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731493334; c=relaxed/simple;
-	bh=bT3AvCqjBcCd0NVLxpcDY8LCVWeB8yiyYDP1SIlQBtI=;
+	s=arc-20240116; t=1731494926; c=relaxed/simple;
+	bh=JaXHthW69OWq7pu8xfdevV28GEyzUS07vO+cjBXBusk=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=B972kW9jU7YsYByvBz7rWMSZE6VZsU+FPy0nNArDh+dDI7khWixLOBgISvHWNJ6MM0vU4Yw++ckyDPpGNv+8/586mJIijYxmUC1nQQguFD4bbGDyJMmswZbKfv20MR5QcAD5NVLRoWfc79MECet0N9WU/b+A6bRpiNWvT7l18Ms=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ih3MwP4I; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=uk31Us8t4QnOARudsYe6aRYYwrfT0ek87D0Ct0Ys7UJ0sIFZaaxyLrY8nubcMo2ev7cspJYjKmwnsK0CBgcVlLJyxOb+wGK7WCD4BSTjcseVovDMz+tSArT9Li6UCGXeN+ZtQjeE/NYzqhY24yxo59iEl8TaD7d1bossqJSaYAc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=RLGhVafH; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ih3MwP4I"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA551C4CECD;
-	Wed, 13 Nov 2024 10:22:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731493334;
-	bh=bT3AvCqjBcCd0NVLxpcDY8LCVWeB8yiyYDP1SIlQBtI=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=ih3MwP4I2gfc2bBZbggLAF5x6bidt/U41gzwloc2iwo7+gDsp5JhG4dzksT0CE0tj
-	 YfzNuQfnT3jvtR/YcHmk3HPbqWnzH+oXlqgdSDG1EdRkBt3UJ0wI6hnP7Z32DV0hyC
-	 IXt0Ea5gqCTcgDoJ489BbtOn9sH/3TfUWsbzCKPjwB4HIDJZNU5cVva2mq68Sl18z5
-	 qnfA70lWtfXM6epzuK3esSaQjJ72cC0dJvPRV7Z5p+JrToImWIY31anEkYbLBE+r66
-	 o0f06adqj1jaWPND9RaQvFiY+3DZfY4s/qzKvt99D7qtMb/ngaer6k5RU3105H/l+6
-	 jHOZU2/9/Knmg==
-Date: Wed, 13 Nov 2024 11:22:09 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org, Jan Kara <jack@suse.cz>, 
-	Jens Axboe <axboe@kernel.dk>, Stefan Berger <stefanb@linux.ibm.com>, 
-	Tyler Hicks <code@tyhicks.com>, ecryptfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
-	Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH 4/5] fs: Simplify getattr interface function checking
- AT_GETATTR_NOSEC flag
-Message-ID: <20241113-utensil-unteilbar-cfed225308c6@brauner>
-References: <20241112202118.GA3387508@ZenIV>
- <20241112202552.3393751-1-viro@zeniv.linux.org.uk>
- <20241112202552.3393751-4-viro@zeniv.linux.org.uk>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="RLGhVafH"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1731494922;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=gyiix1MwkCQpAPlotMs0JJeKLRpwAc92205dD5TfNd0=;
+	b=RLGhVafHngWRZ3ebuplCtrlsV1H5L7zzSvPQerA2kadfW/QlxkpijEY3q21OxQirNfKSA8
+	EsC870/hWXWGQFqCwJIkmkp6YaPJQ7goX+CUj5xU1qGLeXf10AO3Taain+irgE28EZXVEh
+	BIXjeFEJlKqiPa3DE580nKTqerogJ5A=
+Received: from mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-115-yyxlQhQeO5yGg-boZJj-NA-1; Wed,
+ 13 Nov 2024 05:48:39 -0500
+X-MC-Unique: yyxlQhQeO5yGg-boZJj-NA-1
+X-Mimecast-MFC-AGG-ID: yyxlQhQeO5yGg-boZJj-NA
+Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 4AF121954B1E;
+	Wed, 13 Nov 2024 10:48:37 +0000 (UTC)
+Received: from ws.net.home (unknown [10.45.225.223])
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id CCE0D19560A3;
+	Wed, 13 Nov 2024 10:48:34 +0000 (UTC)
+Date: Wed, 13 Nov 2024 11:48:31 +0100
+From: Karel Zak <kzak@redhat.com>
+To: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Amir Goldstein <amir73il@gmail.com>, 
+	Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, Jan Kara <jack@suse.cz>, 
+	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Subject: Re: [PATCH] overlayfs: port all superblock creation logging to
+ fsopen logs
+Message-ID: <j7ngxuxqdwrq5o6zi2hmt3zfmh6s5mzrlvwjw6snqbv5oc5ggo@nqpr6wjec7go>
+References: <20241106-overlayfs-fsopen-log-v1-1-9d883be7e56e@cyphar.com>
+ <20241106-mehrzahl-bezaubern-109237c971e3@brauner>
+ <CAOQ4uxirsNEK24=u3K-X5A-EX80ofEx5ycjoqU4gocBoPVxbYw@mail.gmail.com>
+ <CAOQ4uxj+gAtM6cY_aEmM7TAqLor7498f0FO3eTek_NpUXUKNaw@mail.gmail.com>
+ <20241106.141100-patchy.noises.kissable.cannons-37UAyhH88iH@cyphar.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -47,54 +65,155 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20241112202552.3393751-4-viro@zeniv.linux.org.uk>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20241106.141100-patchy.noises.kissable.cannons-37UAyhH88iH@cyphar.com>
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-On Tue, Nov 12, 2024 at 08:25:51PM +0000, Al Viro wrote:
-> From: Stefan Berger <stefanb@linux.ibm.com>
+On Thu, Nov 07, 2024 at 02:09:19AM GMT, Aleksa Sarai wrote:
+> On 2024-11-06, Amir Goldstein <amir73il@gmail.com> wrote:
+> > On Wed, Nov 6, 2024 at 12:00 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > On Wed, Nov 6, 2024 at 10:59 AM Christian Brauner <brauner@kernel.org> wrote:
+> > > >
+> > > > On Wed, Nov 06, 2024 at 02:09:58PM +1100, Aleksa Sarai wrote:
+> > > > > overlayfs helpfully provides a lot of of information when setting up a
+> > > > > mount, but unfortunately when using the fsopen(2) API, a lot of this
+> > > > > information is mixed in with the general kernel log.
+> > > > >
+> > > > > In addition, some of the logs can become a source of spam if programs
+> > > > > are creating many internal overlayfs mounts (in runc we use an internal
+> > > > > overlayfs mount to protect the runc binary against container breakout
+> > > > > attacks like CVE-2019-5736, and xino_auto=on caused a lot of spam in
+> > > > > dmesg because we didn't explicitly disable xino[1]).
+> > > > >
+> > > > > By logging to the fs_context, userspace can get more accurate
+> > > > > information when using fsopen(2) and there is less dmesg spam for
+> > > > > systems where a lot of programs are using fsopen("overlay"). Legacy
+> > > > > mount(2) users will still see the same errors in dmesg as they did
+> > > > > before (though the prefix of the log messages will now be "overlay"
+> > > > > rather than "overlayfs").
+> > >
+> > > I am not sure about the level of risk in this format change.
+> > > Miklos, WDYT?
+> > >
+> > > > >
+> > > > > [1]: https://bbs.archlinux.org/viewtopic.php?pid=2206551
+> > > > >
+> > > > > Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+> > > > > ---
+> > > >
+> > > > To me this sounds inherently useful! So I'm all for it.
+> > > >
+> > >
+> > > [CC: Karel]
+> > >
+> > > I am quite concerned about this.
+> > > I have a memory that Christian suggested to make this change back in
+> > > the original conversion to new mount API, but back then mount tool
+> > > did not print out the errors to users properly and even if it does
+> > > print out errors, some script could very well be ignoring them.
 > 
-> Commit 8a924db2d7b5 ("fs: Pass AT_GETATTR_NOSEC flag to getattr interface
-> function")' introduced the AT_GETATTR_NOSEC flag to ensure that the
-> call paths only call vfs_getattr_nosec if it is set instead of vfs_getattr.
-> Now, simplify the getattr interface functions of filesystems where the flag
-> AT_GETATTR_NOSEC is checked.
+> I think Christian mentioned this at LSF/MM (or maybe LPC), but it seems
+> that util-linux does provide the log information now in the case of
+> fsconfig(2) errors:
 > 
-> There is only a single caller of inode_operations getattr function and it
-> is located in fs/stat.c in vfs_getattr_nosec. The caller there is the only
-> one from which the AT_GETATTR_NOSEC flag is passed from.
+> 	% strace -e fsopen,fsconfig mount -t overlay -o userxattr=str x /tmp/a
+> 	fsopen("overlay", FSOPEN_CLOEXEC)       = 3
+> 	fsconfig(3, FSCONFIG_SET_STRING, "source", "foo", 0) = 0
+> 	fsconfig(3, FSCONFIG_SET_STRING, "userxattr", "str", 0) = -1 EINVAL (Invalid argument)
+> 	mount: /tmp/a: fsconfig system call failed: overlay: Unexpected value for 'userxattr'.
+> 		   dmesg(1) may have more information after failed mount system call.
 > 
-> Two filesystems are checking this flag in .getattr and the flag is always
-> passed to them unconditionally from only vfs_getattr_nosec:
-> 
-> - ecryptfs:  Simplify by always calling vfs_getattr_nosec in
->              ecryptfs_getattr. From there the flag is passed to no other
->              function and this function is not called otherwise.
-> 
-> - overlayfs: Simplify by always calling vfs_getattr_nosec in
->              ovl_getattr. From there the flag is passed to no other
->              function and this function is not called otherwise.
-> 
-> The query_flags in vfs_getattr_nosec will mask-out AT_GETATTR_NOSEC from
-> any caller using AT_STATX_SYNC_TYPE as mask so that the flag is not
-> important inside this function. Also, since no filesystem is checking the
-> flag anymore, remove the flag entirely now, including the BUG_ON check that
-> never triggered.
-> 
-> The net change of the changes here combined with the original commit is
-> that ecryptfs and overlayfs do not call vfs_getattr but only
-> vfs_getattr_nosec.
-> 
-> Fixes: 8a924db2d7b5 ("fs: Pass AT_GETATTR_NOSEC flag to getattr interface function")
-> Reported-by: Al Viro <viro@zeniv.linux.org.uk>
-> Closes: https://lore.kernel.org/linux-fsdevel/20241101011724.GN1350452@ZenIV/T/#u
-> Cc: Tyler Hicks <code@tyhicks.com>
-> Cc: ecryptfs@vger.kernel.org
-> Cc: Miklos Szeredi <miklos@szeredi.hu>
-> Cc: Amir Goldstein <amir73il@gmail.com>
-> Cc: linux-unionfs@vger.kernel.org
-> Cc: Christian Brauner <brauner@kernel.org>
-> Cc: linux-fsdevel@vger.kernel.org
-> Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-> ---
+> (Using the current HEAD of util-linux -- openSUSE's util-linux isn't
+> compiled with support for fsopen apparently.)
 
-Reviewed-by: Christian Brauner <brauner@kernel.org>
+After failed mount-related syscalls, libmount reads messages prefixed
+with "e " from the file descriptor created by fdopen(). These messages
+are later printed by mount(8).
+
+mount(8) or libmount does not read anything from kmesg.
+
+> However, it doesn't output any of the info-level ancillary
+> information if there were no errors.
+
+This is the expected default behavior. mount(8) does not print any
+additional information.
+
+We can enhance libmount to read and print other messages on stdout if
+requested by the user. For example, the mount(8) command has a
+--verbose option that is currently only used by some /sbin/mount.<type>
+helpers, but not by mount(8) itself. We can improve this and use it in
+libmount to read and print info-level messages.
+
+I can prepare a libmount/mount(8) patch for this.
+
+> So there will definitely be some loss of
+> information for pr_* logs that don't cause an actual error (which is a
+> little unfortunate, since that is the exact dmesg spam that caused me to
+> write this patch).
+> 
+> I could take a look at sending a patch to get libmount to output that
+> information, but that won't help with the immediate issue, and this
+> doesn't help with the possible concern with some script that scrapes
+> dmesg. (Though I think it goes without saying that such scripts are kind
+> of broken by design -- since unprivileged users can create overlayfs
+> mounts and thus spam the kernel log with any message, there is no
+> practical way for a script to correctly get the right log information
+> without using the new mount API's logging facilities.)
+
+> I can adjust this patch to only include the log+return-an-error cases,
+> but that doesn't really address your primary concern, I guess.
+> 
+> > > My strong feeling is that suppressing legacy errors to kmsg should be opt-in
+> > > via the new mount API and that it should not be the default for libmount.
+> > > IMO, it is certainly NOT enough that new mount API is used by userspace
+> > > as an indication for the kernel to suppress errors to kmsg.
+ 
+For me, it seems like we are mixing two things together.
+
+kmesg is a *log*, and tools like systemd read and save it. It is used
+for later issue debugging or by log analyzers. This means that all
+relevant information should be included.
+
+The stderr/stdout output from tools such as mount(8) is simply
+feedback for users or scripts, and informational messages are just
+hints. They should not be considered a replacement for system logging
+facilities. The same applies to messages read from the new mount API;
+they should not be a replacement for system logs.
+
+In my opinion, it is acceptable to suppress optional and unimportant
+messages and not save them into kmesg. However, all other relevant
+messages should be included regardless of the tool or API being used.
+
+Additionally, it should be noted that mount(8)/libmount is only a
+userspace tool and is not necessary for mounting filesystems. The
+kernel should not rely on libmount behavior; there are other tools
+available such as busybox.
+
+> I can see an argument for some kind of MS_SILENT analogue for
+> fsconfig(), though it will make the spam problem worse until programs
+> migrate to setting this new flag.
+ 
+Yes, the ideal solution would be to have mount options that can
+control this behavior. This would allow users to have control over it
+and save their settings to fstab, as well as keep it specific to the
+mount node.
+
+> Also, as this is already an issue ever since libmount added support for
+> the new API (so since 2.39 I believe?), I think it would make just as
+> much sense for this flag to be opt-in -- so libmount could set the
+> "verbose" or "kmsglog" flag by default but most normal programs would
+> not get the spammy behaviour by default.
+
+I prefer if the default behavior is defined by the kernel, rather than
+by userspace tools like libmount. If we were to automatically add any
+mount options through libmount, it would make it difficult to coexist
+with settings in fstab, etc. It's always better to have transparency
+and avoid any hidden factors in the process.
+
+    Karel
+
+-- 
+ Karel Zak  <kzak@redhat.com>
+ http://karelzak.blogspot.com
+
