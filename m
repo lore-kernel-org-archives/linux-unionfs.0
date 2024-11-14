@@ -1,42 +1,40 @@
 Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D48C11F7799;
-	Thu, 14 Nov 2024 11:30:42 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0621018C02F;
+	Thu, 14 Nov 2024 11:52:19 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731583842; cv=none; b=GaCzNHboNtlCqJMRvLBo5AfdgfHk35B3NyNKuRYruSPK2+y7zbs0GTt5DsfPgOpFM8eQgNuh/zuwIMnzhrVksBtJPtkEbXeKbBGcD9J4upI6Bc/RXojNOAQg+uxNacZxOSKfZiCMpz/FkuRTywp+HJReL5kigfVvsgCo9Tr8bHU=
+	t=1731585142; cv=none; b=lJJCuaPNAlc8cK7ye8aHp/RAPjFixPY96qhUqnceab4qCHVYeZdmVsFDd8bP1DiP1fTvviz920MwxeAaMh0GkWNhQ5KxtucZ2NsgmLE2tBkx7DqfCUy8/5qtU2xl7uP5QEOkbvs0RB8IKZe0b3FryKoqqAqc2Aq7k3MAnU5FSqk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731583842; c=relaxed/simple;
-	bh=iqeIosW/+OdmLNwEXpkqClV+jE79GdwuLFVVB6EIz8U=;
+	s=arc-20240116; t=1731585142; c=relaxed/simple;
+	bh=RTr0wRD7ql1Cqa3uLPfajAtSV+I6Yew2tSlMWIOuaaM=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=QCw2ITtyus5+lNBOgChjUacCAmnKxU6/vaWUFXTTDPT78/Zekr5Q74bPUsgWJ45MU893bnFLoZq3h+lmGqJhYvEocp0fWR5GCbLk0UVh7YUH6I22Qi1rvy/zXbhAu2xsWzXGEf1YDMli9H+XqQWOaPglsTZlzZJolIRxCHnJJ/A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=e+O/eNO+; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=d4g1gKE8qPyxbHni0vhrVJj1AhTOF8udGGVplLLKFgDOAdpcA595JqEm1ItyqBtTHdUwHqoEin9Fh5oYuqVBQtoY1qDheFrr47h02fYfIdSTLe/OFE7qlvzZ1lcSLLJwGVq8gQi6dljsAfCkksfIqc5uR7Nc8P+sNIDWLn1raAQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=ZRDgauV3; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="e+O/eNO+"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8862C4CECD;
-	Thu, 14 Nov 2024 11:30:40 +0000 (UTC)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="ZRDgauV3"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 048D8C4CECD;
+	Thu, 14 Nov 2024 11:52:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1731583842;
-	bh=iqeIosW/+OdmLNwEXpkqClV+jE79GdwuLFVVB6EIz8U=;
+	s=k20201202; t=1731585139;
+	bh=RTr0wRD7ql1Cqa3uLPfajAtSV+I6Yew2tSlMWIOuaaM=;
 	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=e+O/eNO+NVD9d69OOPwH7eYdR1FTN/UmqP0bZw6PZCzoJkjNDo7lCF9VBhZmclynS
-	 Ubd/pgVgyG+oCmCbr8M9UeO9bpxZksT7cuQRV43jDXdWXC/uJGjkqzU6FTqTdHS6sX
-	 DYXlorUTPnuN8rwLbqC7onS3/1ALDBwZCr8j+GLeEr39G8PHs6Q5UBE8zlKTrBY9+N
-	 qkL2U+vw+YgHOjHvz+kgcBdyHKPKzc2wId7WPL2mDzQ8T87Mrrp7TM2WtxEyyeplZI
-	 CO7zem2MN4iltUq8J1x97+3eiTNuOPurJGj//r8D2n7HjyI9Q3ELH5v7Kh3oX6S8LM
-	 0pNgSGnN97low==
-Date: Thu, 14 Nov 2024 12:30:38 +0100
+	b=ZRDgauV3t+t8LUgpUmVx0d2abVLMjzpdbmodZ8kzjangc+EVTYRwh4kfrRISg6FxN
+	 jEdTpTz60dLT2PG0FNiRjavTPnGiBjF5BsrJfDMFpk+juZhlHojrFVqa67yOmwT0II
+	 PtxrPaUD3uzDUCWOAC9HkPp0rZO2oLisj1t7Bb7qRlwrynHoFcdJSgmKvRvK8qNW28
+	 r3iyJ9Bq2yKvlmoDUUxREA7vAHXloJFSq4BczYJKekpWSULNFM9HL/0JZT6zpXVc4n
+	 GFQa5RP3wYxfDfqcv4/iUYSSVaxMw3Zmz8IfuA0Hcx7mCqv3qLdIJXvKEh1pjsIWnG
+	 Hd0rSs4cdZvJg==
+Date: Thu, 14 Nov 2024 12:52:15 +0100
 From: Christian Brauner <brauner@kernel.org>
 To: Amir Goldstein <amir73il@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, 
 	Vinicius Costa Gomes <vinicius.gomes@intel.com>, linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
 Subject: Re: [PATCH] ovl: pass an explicit reference of creators creds to
  callers
-Message-ID: <20241114-gezielt-frost-5130e991c0b2@brauner>
+Message-ID: <20241114-unsitte-betrachen-5b19d4faffdd@brauner>
 References: <20241114100536.628162-1-amir73il@gmail.com>
- <20241114-lockvogel-fenster-0d967fbf6408@brauner>
- <CAOQ4uxjj0KNFzL5bxwyZ6XvCM0EnzR3pY3isRZd7JEOeDQcUPQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -45,37 +43,42 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxjj0KNFzL5bxwyZ6XvCM0EnzR3pY3isRZd7JEOeDQcUPQ@mail.gmail.com>
+In-Reply-To: <20241114100536.628162-1-amir73il@gmail.com>
 
-On Thu, Nov 14, 2024 at 12:03:16PM +0100, Amir Goldstein wrote:
-> On Thu, Nov 14, 2024 at 11:12 AM Christian Brauner <brauner@kernel.org> wrote:
-> >
-> > On Thu, Nov 14, 2024 at 11:05:36AM +0100, Amir Goldstein wrote:
-> > > ovl_setup_cred_for_create() decrements one refcount of new creds and
-> > > ovl_revert_creds() in callers decrements the last refcount.
-> > >
-> > > In preparation to revert_creds_light() back to caller creds, pass an
-> > > explicit reference of the creators creds to the callers and drop the
-> > > refcount explicitly in the callers after ovl_revert_creds().
-> > >
-> > > Signed-off-by: Amir Goldstein <amir73il@gmail.com>
-> > > ---
-> > >
-> > > Miklos, Christian,
-> > >
-> > > I was chasing a suspect memleak in revert_creds_light() patches.
-> > > This fix is unrelated to memleak but I think it is needed for
-> > > correctness anyway.
-> > >
-> > > This applies in the middle of the series after adding the
-> > > ovl_revert_creds() helper.
-> >
-> > I'm going to try and reproduce the kmemleak with your ovl_creds branch
-> > as is and then retry with the series applied as is plus one small fix
-> > you correctly pointed out.
+On Thu, Nov 14, 2024 at 11:05:36AM +0100, Amir Goldstein wrote:
+> ovl_setup_cred_for_create() decrements one refcount of new creds and
+> ovl_revert_creds() in callers decrements the last refcount.
 > 
-> Don't bother. The fix that Vinicius sent me was correct.
-> I still want to use this patch, so would appreciate a review.
+> In preparation to revert_creds_light() back to caller creds, pass an
+> explicit reference of the creators creds to the callers and drop the
+> refcount explicitly in the callers after ovl_revert_creds().
+> 
+> Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+> ---
+> 
+> Miklos, Christian,
+> 
+> I was chasing a suspect memleak in revert_creds_light() patches.
+> This fix is unrelated to memleak but I think it is needed for
+> correctness anyway.
+> 
+> This applies in the middle of the series after adding the
+> ovl_revert_creds() helper.
 
-Ah, thanks for letting me know!
+Ok, so you're moving the put_cred() on the cred_for_create creds into
+the callers. Tbh, that patch alone here is very confusing because with
+the last patch in your tree at 07532f7f8450 you're calling
+
+old_cred = override_creds(override_cred);
+
+which made it buggy. But I see in 3756f22061c2 this is fixed and
+correctly uses
+
+old_cred = override_creds_light(override_cred);
+
+as expected. And together with that change your patch here makes perfect
+sense. I don't want to complain too much but it would've been nice if
+that was spelled out in the commit message. Would've spared me 30
+minutes of staring at the code until I refreshed your branch. :)
+
+Reviewed-by: Christian Brauner <brauner@kernel.org>
