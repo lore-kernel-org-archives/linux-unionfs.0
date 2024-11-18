@@ -1,167 +1,120 @@
 Received: from mail-ej1-f47.google.com (mail-ej1-f47.google.com [209.85.218.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 01C2D1DFD1;
-	Mon, 18 Nov 2024 18:21:04 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5D6A91E0E01;
+	Mon, 18 Nov 2024 18:54:45 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1731954066; cv=none; b=cWf7tFMSGW+LPNR6T5fCsndF6SVYEGZgeuCIS4Lbb85eatAcRk113ePZY4H9IGDBQqQCqqkI5YSXFpraVRcUhnFaiIeJDu7UP2fDe7bs1x0S572N96eFdOgSDz9RVqqzyGe2rjZko+Jh1fXexqjdggwhoM2HLUE+Vbn7k9bN3iU=
+	t=1731956087; cv=none; b=dtrZOWISu7i7baCGrw6IMqHLMTsOD+ysvdy1GJk8CRmXTFFraDD9mLFJvgXz4Ng19QXuWW0XCdrg5pqTzU0/kRp5yFw0BWjB0fXMbBT+UXcvBwuwOqNgVR14tmGuBRMDmncPkphyUYibVzTT1REODd4RRW2kvwzKmydLIYRCauQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1731954066; c=relaxed/simple;
-	bh=Ifz6ll1kWwF6NqROMr2/4icSY3LHmpPaoSvVtk4lTJ0=;
+	s=arc-20240116; t=1731956087; c=relaxed/simple;
+	bh=DstAgx3ogDOzxs37LnyAk7qZORc4VHUojGcMcTnHQP0=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=K/RTO7Uv1oLR1O/oLeVS0gb7Eg9+YLV+1ivPRH0/Jel/D5BBfLCHxiPN3dVqvRgNXSAVzLYfWJIsTvcxZxtVkFoMXkFaA9fAUBcPXw7y6bJtF5DulvtEPP2mCQjSOT2vD0hdKvwxBA5xxx4I6XcDdqIEAdAbhmh2/RHm3wivkic=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=RvWca04m; arc=none smtp.client-ip=209.85.218.47
+	 To:Cc:Content-Type; b=P5BMKlz3kaLnqxQBq17fnjwQhKuMDUrGKj78F+6s6JNv2BkiDwiYBOlz6qkwtTpY3W+c75I1ozDsiHcPF93d9DaRATwR1/vkHqnM0NBE2egpUKLJ9T3QPJi8zWPfWYboHCkEh4dbeDUgX2KOl+RZipCEcoaMWNhBW7jsApcQf8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=K4mWQGUp; arc=none smtp.client-ip=209.85.218.47
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="RvWca04m"
-Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a9a850270e2so461143866b.0;
-        Mon, 18 Nov 2024 10:21:04 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="K4mWQGUp"
+Received: by mail-ej1-f47.google.com with SMTP id a640c23a62f3a-a9a6acac4c3so20491466b.0;
+        Mon, 18 Nov 2024 10:54:45 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1731954063; x=1732558863; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1731956083; x=1732560883; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4lKXYtHkcL95i4UI7uiZ3CUOmGk+PvyJuJo1wQg863E=;
-        b=RvWca04mOmx2aE2YOctyvlThBuXt1ZdGTDNzY5ieipXI/q4NiKJrnU9RZwTjeKR771
-         bgDOtusT0oeeM7iwRYRoFsokjmP2Xf62ewyEI4aznVWQfw8Aca2tIVRIEVP5ksTRIIrr
-         K8oGUfkK3N1x3bV4w/R1jBOM4tPxDCjL2jxKCHn6Z5ZSSDWc4y/SPhor89CTSNtsXJ0j
-         kzzi+iayfs0pBMnqXNW8NjKRM5wbjGaAym/MyniXa4i62NGPOUbIyncb0HduEN8/OoF9
-         I61piVG9Vi/k/GufZcWLBrGfJyx/cwWGRzg6XDPSJlMoa6OarT0FG3khR6heHq7X0oEx
-         ThKQ==
+        bh=QNbu8U7gi8hrtE1jwyMs7E81Ghy+rLRP6wPyAxZzLx0=;
+        b=K4mWQGUpAQak1lkF6K31LvWtZd3gO3d/c4IHPnADg8zJzz2WBkDlCSTrx2UONIdAHV
+         QkHS+tyoNlGw5Xh7sc08va5i1CmasoVU2er5PW+n2gp86xsbPVbAwioCluqTe2XWBLwd
+         tl4hDQjs4KhI3DzfZOeBpaUD3w/wt84RqZvVe1zhAkhHt6KgiTo7yREfCzVW/nMeA9OF
+         4Vek4DCeXlj3YWlniw16F/2C1qtMGNIlGT7O3wfKEc2dUu0mytIfsib6zZbKDuoTitTK
+         0GbNoWrnUPpkTMvwJdIBjOHapMF4ALG8/1cFvmpFb1eBgnET9L1WmL0ItL6xzbSWuNRs
+         Rm3A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1731954063; x=1732558863;
+        d=1e100.net; s=20230601; t=1731956083; x=1732560883;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=4lKXYtHkcL95i4UI7uiZ3CUOmGk+PvyJuJo1wQg863E=;
-        b=VJ/hZ5aL5UclUusNeJroj6xu/Uq7TaUPkb2KtPw41iH0nT2/11bmNuG6ikvLzyDmjb
-         EOvkZiToZMWhtPsMAkxP57HUu/9Fkz9Cs5kzeDUxRWCW6lXEFg/zFA+8tHeBTIZlgBBP
-         XJoxmdZ2GJ4ufQSac8ooHxj912r0jbLxYbda8apEMSAZCRJBN1ajNR/4Jci1RLo/JKdS
-         NCMbObS2f0zZUwx4zG6vlu0xap6egNpSOt7L0/95CbZqhoixmnmwJHqntF4x8TdDew7m
-         9htLhl2Mc2Kqq0B4wJaIF9L8ZtTf2PLm1C2ojWP69fmvUWpjP+zRh3q2rWXy32UqRgYx
-         BGYQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWb4f9CIoU1ne6EvO6EFN5OkTTfkVbvkwFFJQEsgdk6m2niFIQgmQEA2ozarpxWpHrtkaBOr0KpKX915Jye/Q==@vger.kernel.org, AJvYcCWeg6axfaaVRpHkSmzf0yZC3NKSE0C60Bus3wPzYNo3soUl8Pizle4r9rpj6TD4DY4YBU1eDYWJ8HTqEvQJ@vger.kernel.org, AJvYcCXT9Xouq0b8Hf95Bx6Hagxqvor79ky7a1vTOCt8+EMG+Mo3y2r/gk42qXKoLPah8Hk1bMp04ni4vPnRMAFgzMs=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwQAdMCnSQGo3cjO0dEkMkQFXb1hirUmpxTVPMMj0jgWXl/GlJL
-	Xj/TJxLI7kQDUbd9HnUArtp1kmYc5VAvWyZzotVB8d7K0UUDB1YzgOOpRDSJienWD2uw0n7Y+x0
-	GSXqSOeKH59+QeitNOhKmoeidxMg=
-X-Google-Smtp-Source: AGHT+IFSsZTy095W0foFVPdW/HtKWRBZITkWoNj6K/qYOyKdlRMA7EQr39EUOLvRkdOFYkUGKNlvJoMIO7FqCaee1LQ=
-X-Received: by 2002:a17:907:9802:b0:a9a:1778:7024 with SMTP id
- a640c23a62f3a-aa483421c64mr1322039766b.20.1731954063079; Mon, 18 Nov 2024
- 10:21:03 -0800 (PST)
+        bh=QNbu8U7gi8hrtE1jwyMs7E81Ghy+rLRP6wPyAxZzLx0=;
+        b=jeS9qhWPD7WPeAjjPnOqaBwQWw170wo0bi0PtHsTR8Bh/gm3ZBchHWvJOWI2G53r7e
+         nz2o/pUJNKSUHD6fgdogsK/YGT+d3tThAtgV/cMY4qC/YfYs/AexuSXveSIAZou+Z6iw
+         uSGccl+G8pZ4xaezbM2zEjOFbcy8ka6vQYg0X0gcnNTSNVo4a1OK3t48UWFNYWVPR8MZ
+         LJbD3VmybiU8hCtswcAVcfrEgz+3FWjiiLUE+p/VHnK2bt5FekfgQ5w2X72chCGmpQWF
+         WrV1oGuuulqw3fUFrU0Q7CM6KWS4nOIlV9awtnxHidkxHBgNdSEYrAhTmqQmLsCm+gfc
+         IIfw==
+X-Forwarded-Encrypted: i=1; AJvYcCUATBZHAXFqb17R8fp86dFAdvoCYJpza18IunZwKAbkJw5lc8d6Cj/ivuN9GWAGQEArPC5/6MGwtJddbg0=@vger.kernel.org, AJvYcCWlnTy3jz+MilmIyFsL2WkNBXi0RpNijjZNifmXL2WkrJvtDyK9VQhx6DrjR7P1OR/wCNadLdv9CWzo/YdOTw==@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyu+xKm1yrUmKVgl+vw1/W4jsNzV3230dKEa1E7pwjqRr9Pbvi2
+	sMvb05OfookldzHnOQV1/rYfRmw9GJcHwchdd57tcrdsj5IHJIQJIbXp0yLjGhV/UIOqyhoGsWu
+	jOWIdpnK3xfi5ZRPxgSQTWY/ytc0=
+X-Google-Smtp-Source: AGHT+IHrV7K8Cyj7YJ65WKJq9jdVDZI/Pp/TvrOcTY9H7suj5TqX5ZMTdvHwo3LxSOTlhRS/1fgE+k3FVKbnWZIUTkg=
+X-Received: by 2002:a17:906:c10a:b0:a9a:8a4:e090 with SMTP id
+ a640c23a62f3a-aa483552321mr1242001566b.50.1731956081850; Mon, 18 Nov 2024
+ 10:54:41 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241117044612.work.304-kees@kernel.org>
-In-Reply-To: <20241117044612.work.304-kees@kernel.org>
+References: <20241118141703.28510-1-kovalev@altlinux.org>
+In-Reply-To: <20241118141703.28510-1-kovalev@altlinux.org>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Mon, 18 Nov 2024 19:20:52 +0100
-Message-ID: <CAOQ4uxg8rNPUTk8dqz2HmvT9Avy_6WMW4xOMPtG0b8tSUWAKcQ@mail.gmail.com>
-Subject: Re: [PATCH] ovl: Check for NULL OVL_E() results
-To: Kees Cook <kees@kernel.org>
+Date: Mon, 18 Nov 2024 19:54:30 +0100
+Message-ID: <CAOQ4uxjxXHX4j=4PbUFrgDoDYEZ1jkjD1EAFNxf1at44t--gHg@mail.gmail.com>
+Subject: Re: [PATCH] ovl: Add check for missing lookup operation on inode
+To: Vasiliy Kovalev <kovalev@altlinux.org>
 Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+	linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Sun, Nov 17, 2024 at 5:46=E2=80=AFAM Kees Cook <kees@kernel.org> wrote:
+On Mon, Nov 18, 2024 at 3:17=E2=80=AFPM Vasiliy Kovalev <kovalev@altlinux.o=
+rg> wrote:
 >
-> GCC notices that it is possible for OVL_E() to return NULL (which
-> implies that d_inode(dentry) may be NULL).
+> Ensure that the lookup operation is present for the inode in the overlay
+> filesystem. If the operation is missing, log a warning and return an EIO
+> error to prevent further issues in the lookup process.
+>
+> Reported-by: syzbot+a8c9d476508bd14a90e5@syzkaller.appspotmail.com
+> Link: https://syzkaller.appspot.com/bug?extid=3Da8c9d476508bd14a90e5
+> Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
+> ---
+>  fs/overlayfs/namei.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index 5764f91d283e7..a73f37e401cf0 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -1115,6 +1115,13 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>         for (i =3D 0; !d.stop && i < ovl_numlower(poe); i++) {
+>                 struct ovl_path lower =3D ovl_lowerstack(poe)[i];
+>
+> +               if (!lower.dentry->d_inode->i_op->lookup) {
+> +                       err =3D -EIO;
+> +                       pr_warn_ratelimited("missing lookup operation for=
+ inode %p\n",
+> +                                                               lower.den=
+try->d_inode);
+> +                       goto out_put;
+> +               }
+> +
 
-I cannot follow this logic.
+This looks like it is papering over a bug.
+The dentries in the poe lower stack are supposed to be
+d_can_lookup(), which means that they should have a ->lookup op.
 
-Yes, OVL_E() can be NULL, but
-it does not imply that inode is NULL, so if you think that
-code should to be fortified, what's wrong with:
+See in ovl_lookup_single():
+         if (!d_can_lookup(this)) {
+                if (d->is_dir || !last_element) {
+                        d->stop =3D true;
+                        goto put_and_out;
+                }
 
- struct dentry *ovl_dentry_upper(struct dentry *dentry)
- {
--       return ovl_upperdentry_dereference(OVL_I(d_inode(dentry)));
-+       struct inode *inode =3D d_inode(dentry);
-+
-+       return inode ? ovl_upperdentry_dereference(OVL_I(inode)) : NULL;
- }
-
-TBH, I don't know where the line should be drawn for fortifying against
-future bugs, but if the goal of this patch is to silene a compiler warning
-then please specify this in the commit message, because I don't think
-there is any evidence of an actual bug, is there?
+Can you analyse what went wrong with the reproducer?
+How did we get to a state where lowerstack of parent
+has a dentry which is !d_can_lookup?
 
 Thanks,
 Amir.
-
-> This would result in out
-> of bounds reads via container_of(), seen with GCC 15's -Warray-bounds
-> -fdiagnostics-details. For example:
->
-> In file included from ./arch/x86/include/generated/asm/rwonce.h:1,
->                  from ../include/linux/compiler.h:339,
->                  from ../include/linux/export.h:5,
->                  from ../include/linux/linkage.h:7,
->                  from ../include/linux/fs.h:5,
->                  from ../fs/overlayfs/util.c:7:
-> In function 'ovl_upperdentry_dereference',
->     inlined from 'ovl_dentry_upper' at ../fs/overlayfs/util.c:305:9,
->     inlined from 'ovl_path_type' at ../fs/overlayfs/util.c:216:6:
-> ../include/asm-generic/rwonce.h:44:26: error: array subscript 0 is outsid=
-e array bounds of 'struct inode[7486503276667837]' [-Werror=3Darray-bounds=
-=3D]
->    44 | #define __READ_ONCE(x)  (*(const volatile __unqual_scalar_typeof(=
-x) *)&(x))                       |                         ~^~~~~~~~~~~~~~~=
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                 ../include/asm-generic/=
-rwonce.h:50:9: note: in expansion of macro '__READ_ONCE'
->    50 |         __READ_ONCE(x);                                          =
-       \
->       |         ^~~~~~~~~~~
-> ../fs/overlayfs/ovl_entry.h:195:16: note: in expansion of macro 'READ_ONC=
-E'                           195 |         return READ_ONCE(oi->__upperdent=
-ry);
->       |                ^~~~~~~~~
->   'ovl_path_type': event 1
->   185 |         return inode ? OVL_I(inode)->oe : NULL;
->   'ovl_path_type': event 2
->
-> Explicitly check the result of OVL_E() and return accordingly.
->
-> Signed-off-by: Kees Cook <kees@kernel.org>
-> ---
-> Cc: Miklos Szeredi <miklos@szeredi.hu>
-> Cc: Amir Goldstein <amir73il@gmail.com>
-> Cc: linux-unionfs@vger.kernel.org
-> ---
->  fs/overlayfs/util.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-> index 3bb107471fb4..32ec5eec32fa 100644
-> --- a/fs/overlayfs/util.c
-> +++ b/fs/overlayfs/util.c
-> @@ -213,6 +213,9 @@ enum ovl_path_type ovl_path_type(struct dentry *dentr=
-y)
->         struct ovl_entry *oe =3D OVL_E(dentry);
->         enum ovl_path_type type =3D 0;
->
-> +       if (WARN_ON_ONCE(oe =3D=3D NULL))
-> +               return 0;
-> +
->         if (ovl_dentry_upper(dentry)) {
->                 type =3D __OVL_PATH_UPPER;
->
-> @@ -1312,6 +1315,9 @@ bool ovl_is_metacopy_dentry(struct dentry *dentry)
->  {
->         struct ovl_entry *oe =3D OVL_E(dentry);
->
-> +       if (WARN_ON_ONCE(oe =3D=3D NULL))
-> +               return false;
-> +
->         if (!d_is_reg(dentry))
->                 return false;
->
-> --
-> 2.34.1
->
