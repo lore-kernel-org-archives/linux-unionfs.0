@@ -1,65 +1,96 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 45F0F745F2;
-	Sat, 23 Nov 2024 06:14:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1B05C14F9E9;
+	Sat, 23 Nov 2024 12:06:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732342453; cv=none; b=WT+c8QqyDw3qqq/vyOKGgUBXgltCCp1/DzDHcDb9dOwQyqcDExfmTPDzsLWUIlgRFLXoYD46dzPDyJEWskbOh/OiysF3tc3OCUTatXI2LAcZMDcNovtLNLs8hjQqib7A7yiC/RCJ2X4bDDg2ReFxTr9xf+HDjTn4B1FGbsqeONw=
+	t=1732363579; cv=none; b=cd7mOFhaRWdJ7GVg5HsHgq1GBehmIh5VnvT9pt4wK0zdAwFvutpkaEatirNFiVEtv30/GmmDWQTvUKLBB9JJZWE+E8r/bVA3146z1nbMgYdt8JULs0ab3kLSukBd9pZtaIgyePBIn5ANpRxPThfCLMI1QfsWsTnwqIxpucCKK+g=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732342453; c=relaxed/simple;
-	bh=cWZA13NEpGgUKcjTGGxnbtDxPl+U5UyU6KnlR/FVdII=;
+	s=arc-20240116; t=1732363579; c=relaxed/simple;
+	bh=tBMvMn07vHvdrtKWdPHOHNiRzfkJYZW/11LSRAHpRsE=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=qdej1Is1CyA76JQeEudP1hJckr8n8woI7OJ4GFwHEh1v6tcWLsd4wjApCixlZZtCdujtRMmysdjhWEqy1uFlkRlTv9OF3tYQF75dTvzqkD6o58y5cs8jAoHtpEsriU3j/hD/250CVwvWqiKcbpUCUCjQLacdA1q4tYLjVjb42Uk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=l26VeVAs; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	 Content-Type:Content-Disposition:In-Reply-To; b=fppxT6HtAy8mbl6ZHodHBE3v703jbGPr3b9gAXVjPQ5xSzynYftkGj1R+R5HechOh1N+5yvFxelwesiV264fThvmqhbjIU53zy2IshrzHyIbKOTAfeomnxKZQIKRnU3jt7u9K/MT8ZQ6w3e6wjcs+8QjLxGDYkfFQLn6hTj0kc0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=RE+xtvoZ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="l26VeVAs"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=EjvPV4IAoZwWE6d4dXszLiblhwQ+DDKq6CDDSeiu+tk=; b=l26VeVAsJoYSRJlNHvi9w/D/+C
-	UDJSXkgaXbCP5iQ6wZEI6XM/210kElFGymGHoMEadmsQ+SKwYJqpUnyPiEdNfWR0DUWRCq2qfnHH/
-	mP/P6tP8HCDbWI5rrACZ4phic2dkRtLb9D15aQplJmGVLOb7PFU6mV0AkVyvybpiqcoJemHqRAZf+
-	I0yTODtAGoOdyH3hl/gjUSzGN5GCUHteGkZiZ1/L1/fIPgjuveqYR2+Bg2yzmjsoxF9FbnQxktvWm
-	0tE0w6SqJWAD2+dRHJjTn9+ParTPtco1R4/x5DyEm4JT707P0BTBp3/xgazAPIKHl8GcPNyisSuJx
-	oNUTBhFw==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1tEjPD-00000000deu-33NN;
-	Sat, 23 Nov 2024 06:14:07 +0000
-Date: Sat, 23 Nov 2024 06:14:07 +0000
-From: Al Viro <viro@zeniv.linux.org.uk>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="RE+xtvoZ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B846C4CECD;
+	Sat, 23 Nov 2024 12:06:17 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1732363578;
+	bh=tBMvMn07vHvdrtKWdPHOHNiRzfkJYZW/11LSRAHpRsE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=RE+xtvoZbNTUdhqSJExq/hRlUT2grJTTODqlC62AvsoUuzMZbPZ6mHQnouB3R6d4c
+	 HV6jmyNq9jgtsRMXgV3swxxDuwXvWjYnTLdYOG/IydAs2dp+OWOwEbRBV/p/WEEdTe
+	 Wi66dO9bwrzQjL7Xt6ZOdIhuWrGUwv2/QcCSNsSODUTr9X64tcI1jqzaQzfwLcxn7z
+	 h0uU99UGf01f6zO+PY22rlfMEf2SpGAejftGam0c7GW2Uqe3FvDn15wgkTc2YSa9Hn
+	 S+aCJdbuU4ke9MyOlNBta/sK0wHZW43AxVQPiJI1I8DooBYOc+6jibLtM+G5hDqOR5
+	 HWShpgq7yziUQ==
+Date: Sat, 23 Nov 2024 13:06:14 +0100
+From: Christian Brauner <brauner@kernel.org>
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>,
-	Christian Brauner <brauner@kernel.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+Cc: Amir Goldstein <amir73il@gmail.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
 	linux-unionfs@vger.kernel.org
 Subject: Re: [GIT PULL] overlayfs updates for 6.13
-Message-ID: <20241123061407.GR3387508@ZenIV>
+Message-ID: <20241123-bauhof-tischbein-579ff1db831a@brauner>
 References: <20241122095746.198762-1-amir73il@gmail.com>
  <CAHk-=wg_Hbtk1oeghodpDMc5Pq24x=aaihBHedfubyCXbntEMw@mail.gmail.com>
- <CAHk-=wgLSHFvUhf7J5aJuuWpkW7vayoHjmtbnY1HZZvT361uxA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAHk-=wgLSHFvUhf7J5aJuuWpkW7vayoHjmtbnY1HZZvT361uxA@mail.gmail.com>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+In-Reply-To: <CAHk-=wg_Hbtk1oeghodpDMc5Pq24x=aaihBHedfubyCXbntEMw@mail.gmail.com>
 
-On Fri, Nov 22, 2024 at 10:09:04PM -0800, Linus Torvalds wrote:
-
->  (a) add a new "dup_cred()" helper
+On Fri, Nov 22, 2024 at 09:21:58PM -0800, Linus Torvalds wrote:
+> On Fri, 22 Nov 2024 at 01:57, Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > - Introduction and use of revert/override_creds_light() helpers, that were
+> >   suggested by Christian as a mitigation to cache line bouncing and false
+> >   sharing of fields in overlayfs creator_cred long lived struct cred copy.
 > 
->     /* Get the cred without clearing the 'non_rcu' flag */
->     const struct cred *dup_cred(const struct cred *cred)
->     { get_new_cred((struct cred *)cred); return cred; }
+> So I don't actively hate this, but I do wonder if this shouldn't have
+> been done differently.
+> 
+> In particular, I suspect *most* users of override_creds() actually
+> wants this "light" version, because they all already hold a ref to the
+> cred that they want to use as the override.
+> 
+> We did it that safe way with the extra refcount not because most
+> people would need it, but it was expected to not be a big deal.
+> 
+> Now you found that it *is* a big deal, and instead of just fixing the
+> old interface, you create a whole new interface and the mental burden
+> of having to know the difference between the two.
 
-Umm...  Something like hold_cred() might be better - dup usually
-implies copying an object...  For grapping a reference we
-normally go for something like hold/get/grab/pin...
+> So may I ask that you look at perhaps just converting the (not very
+> many) users of the non-light cred override to the "light" version?
+
+I think that could be a good idea in general.
+
+But I have to say I'm feeling a bit defensive after having read your
+message even though I usually try not to. :) 
+
+So just to clarify when that issue was brought up I realized that the
+cred bump was a big deal for overlayfs but from a quick grep I didn't
+think for any of the other cases it really mattered that much.
+
+Realistically, overlayfs is the prime example where that override cred
+matters big time because it's called everywhere and in all core
+operations one can think of. But so far I at least haven't heard
+complaints outside of that and so the immediate focus was to bring about
+a solution for overlayfs.
+
+The reason the revert_creds_light() variant doesn't return the old creds
+is so that callers don't put_cred() them blindly.
+
+Because for overlayfs (and from a quick glance io_uring and nfs) the
+refcount for the temporary creds is kept completely independent of the
+callsites.
+
+The lifetime is bound to the superblock and so the final put on the
+temporary creds has nothing to do with the callers at all.
