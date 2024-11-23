@@ -1,110 +1,152 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B96051C32;
-	Sat, 23 Nov 2024 00:21:59 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6DDD081AC8
+	for <linux-unionfs@vger.kernel.org>; Sat, 23 Nov 2024 05:22:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732321323; cv=none; b=oc01N0feBxjgop8+nRKZRSkQVFjMMtPK8jI7BB5llVJeyBPg4s7W7CTyyPwjzicKuSV/t4V0qqsF17KLOqFlYY1TCCXJ/BQUSrOMd9/FwrA6vVBWMuDyeBmAT7JOxKOSZwjYF7AwENlzL1R84+agxdpW1k9FaOAbCfYjDkZk8wE=
+	t=1732339342; cv=none; b=deaacuMt4nj6jvKwJjiLro43isENHDVmsD9O/kvlK10yRXMFqtU8TbDz0YeZFd85lvpZjWBwoEmU6PF87FOE06oQYcqnU+fqaVvm2tmAH0lkohpOkVCSoQmqLcdFYk8MhNgLSBfEEw67A3JY+nZ/8rMa1pjf+B+roMu/Zd9U+q4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732321323; c=relaxed/simple;
-	bh=rkjn49mtC1S94mjUFriAn6TvYzOkrDkIbPq25hOan3s=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=KvHa4rtsu0hnLqiG1nubzkSrlJL1kQ1U6l+S0Pr3e0/fvp+evq5ZpJWKeM/W9pajSb76xFMyCJzZGctawAgFr1m8gcSyZDZGgJQVd4d/0vHshPLaHpENzxzIkkJIobmOWycIWY4OSVTSZ0Sm57ETv8pUwsN30W7i6s3n9gWe8ek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=YKcgaKa1; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	s=arc-20240116; t=1732339342; c=relaxed/simple;
+	bh=7tU5ALD6dT/GscddLn0cfJ213h8MSmkYT/S9vdeLi4o=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=Vomh1Ktz1BDxEKgcHZ5Ttdbujg/yxtY+Db+Ba1TKUsh9PQxqR1YpmVzNVWR8EZQPbaU5Ffne/rh+USkFYtj82FsMwClRSkc/i78zYNQLeJychrFj9UBpca2vWrPTW2Gk3dyP8MYnxhtqUIzCERy9k6fjJglhnCuJY0hjZpdmF2Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=RMeKsqvY; arc=none smtp.client-ip=209.85.218.42
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="YKcgaKa1"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-	MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-	Content-Transfer-Encoding:Content-ID:Content-Description;
-	bh=BNOSJaD5GgA1fqpqvtfLK0GwIZPOtJDBbgRHTA7xYu0=; b=YKcgaKa1kcb3jKzB4VFmdhMulY
-	r/wOnjiJPyRbLhFnUwuDJAGNcvohEFxAyhuxYgxMmqjqCr9fXi4lQgXO03cNLQ7E0D+NpbfBfLx/f
-	c15d/WrjPem57Klp4m/boY9lesPwCTHaw0z1mjunfAhiyy/04V0rpAXJPMccDsBrD2iu+O4NfDYkP
-	kEHmTp+WQAA8k+D8Vs4jJbIr6Cb2iLYDSCxQvRZNnAqF+b3Vn//Yp+of95A4WQ2NRjJBzFN4m2SdO
-	vwAmMmoddBaUHfenAFnkt0BIbZU7wV+K0NiLpbfKNfAsfliTiajqt0gYVBD3kFhXysEYWO1wSfGxj
-	8VaUbjtg==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98 #2 (Red Hat Linux))
-	id 1tEduP-00000000Ytu-2SnU;
-	Sat, 23 Nov 2024 00:21:57 +0000
-Date: Sat, 23 Nov 2024 00:21:57 +0000
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: Vasiliy Kovalev <kovalev@altlinux.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] ovl: Add check for missing lookup operation on inode
-Message-ID: <20241123002157.GP3387508@ZenIV>
-References: <20241118141703.28510-1-kovalev@altlinux.org>
- <CAOQ4uxjxXHX4j=4PbUFrgDoDYEZ1jkjD1EAFNxf1at44t--gHg@mail.gmail.com>
- <CAJfpegvx-oS9XGuwpJx=Xe28_jzWx5eRo1y900_ZzWY+=gGzUg@mail.gmail.com>
- <6fb27fea-3998-0fdf-9210-d7479baf0570@basealt.ru>
+	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="RMeKsqvY"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-a9ed0ec0e92so316213066b.0
+        for <linux-unionfs@vger.kernel.org>; Fri, 22 Nov 2024 21:22:18 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google; t=1732339337; x=1732944137; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=Bz/Cem8L1Zly4fm6PMZZr9K2nmFFTd5Yiu7PpEQWHQQ=;
+        b=RMeKsqvY5j45Y4KDL+NYWv+rietyD6nfuY5EIKotiSdTzaadX1XPJuOcMh5f9hcPhN
+         xQbeqfmw1ClU1ixNRwMOep2hV6tPhDDpZwQofg372yI4yXZ8Bu5ZXvVWJBwLyYdqU3Bz
+         6wLYuQnQrNGYdw9tBWDurRn7vy6SFSiESg0sU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1732339337; x=1732944137;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Bz/Cem8L1Zly4fm6PMZZr9K2nmFFTd5Yiu7PpEQWHQQ=;
+        b=KnLrzB2dU6nu2iBmA5EP06ofWbFGYCM6Ozxdyq6cws/wak2N1AqKQFJ6QsKcW82wuW
+         HlcHJVhltGRgD4eWpeO3675gECPIpoFfxeMTlgonLx2cvrb5TWwkI51H5STdIzHl7wjx
+         hJb5UAtj5OZegt2NAsFTGJECeYHwoUhVxXKn7BUm0BEVS4IztzB6wU3CG17c+q9X1vaZ
+         ykhh5O42lFreer9piFhtloRktEs2YvbayC60C040Wt5/0BCge7d3Fmink7vr/g8VeH1i
+         upuRsJg22H7fshjNRPdBI7gBn7FSqjYnpVWopsrWQcMLFrzx2OuwGO8PW/Hej92c0oTp
+         S4eA==
+X-Forwarded-Encrypted: i=1; AJvYcCVHtmigOMZ5LFzlnEBtiiR8MzJ6Qwe+s0UG6rttxLGJwWXsBjwK/lRlU47MWKTYOxuHT1etlv56EYRbLnDY@vger.kernel.org
+X-Gm-Message-State: AOJu0YzuuqvjouDb30FNDkCkEI5TtMvduGvOcwdztbxrBofIUMddT9Ml
+	acMWiVwAPi0vQp6cVDynQIbgxY5Erla9rFQ8wekmoY5FFSl9L+YVW9hBeEHvbGTls+doPXOWu4i
+	JyXQAsg==
+X-Gm-Gg: ASbGncsZg2mbE+S+ULO3OTzxGEGWIHRGhzzT5eSlnwiWJFwiVOyzcjOUclTw+g62BKy
+	/53l6RmUQ7z7doxXdIjO7r8ylGGKosG3K7wryHXmdtFI/qbn0TZanqbgceIilSb9U49qet+05d7
+	u7mB7X5YZuVxEUEgZzPY4otNDXNFAZ1cZc7zy0nYQl/vvRic4kX1j5WA1OGo+8JmyfJZoXjMZAK
+	fayCRwCJV7c57G7McLCzX8mnnR6JxwJEW1rgwHxCQZs2WJ3IV8oSmCAf+fKP7TTRtiqj2XjgePE
+	zfrmmS0ENkVdPE17pE+ISRNc
+X-Google-Smtp-Source: AGHT+IGQkfvBTJbqAhvXOmbismPddKNS1JTKVaSKHZm3s/I6LD+ZWuzlmX6eeDHpTQ33vNoq5OV8ow==
+X-Received: by 2002:a17:906:2921:b0:aa5:1e67:2f4e with SMTP id a640c23a62f3a-aa51e672fabmr317278466b.19.1732339336705;
+        Fri, 22 Nov 2024 21:22:16 -0800 (PST)
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com. [209.85.218.52])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-aa51a8f417dsm139720466b.165.2024.11.22.21.22.14
+        for <linux-unionfs@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 22 Nov 2024 21:22:15 -0800 (PST)
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-aa1e51ce601so449625566b.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 22 Nov 2024 21:22:14 -0800 (PST)
+X-Forwarded-Encrypted: i=1; AJvYcCW2FiMWJ08hO41OUlt0Hp/wCdkLukewlS2KLNIrl6WS2lvMsPO2sFwAwBj5ASdTYjRUQg13Q2abbU+aK89c@vger.kernel.org
+X-Received: by 2002:a17:906:18b2:b0:aa5:14a8:f6d9 with SMTP id
+ a640c23a62f3a-aa514a8fdacmr332444066b.14.1732339334425; Fri, 22 Nov 2024
+ 21:22:14 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6fb27fea-3998-0fdf-9210-d7479baf0570@basealt.ru>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+References: <20241122095746.198762-1-amir73il@gmail.com>
+In-Reply-To: <20241122095746.198762-1-amir73il@gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 22 Nov 2024 21:21:58 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wg_Hbtk1oeghodpDMc5Pq24x=aaihBHedfubyCXbntEMw@mail.gmail.com>
+Message-ID: <CAHk-=wg_Hbtk1oeghodpDMc5Pq24x=aaihBHedfubyCXbntEMw@mail.gmail.com>
+Subject: Re: [GIT PULL] overlayfs updates for 6.13
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Christian Brauner <brauner@kernel.org>, linux-kernel@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 
-On Tue, Nov 19, 2024 at 05:33:03PM +0300, Vasiliy Kovalev wrote:
+On Fri, 22 Nov 2024 at 01:57, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+> - Introduction and use of revert/override_creds_light() helpers, that were
+>   suggested by Christian as a mitigation to cache line bouncing and false
+>   sharing of fields in overlayfs creator_cred long lived struct cred copy.
 
-> without a lookup operation.  Adding the following check in bfs_iget:
-> 
-> struct inode *bfs_iget(struct super_block *sb, unsigned long ino)
-> {
-> 
-> ...
-> 	brelse(bh);
-> 
-> +	if (S_ISDIR(inode->i_mode) && !inode->i_op->lookup) {
-> +		printf("Directory inode missing lookup %s:%08lx\n",
-> 						inode->i_sb->s_id, ino);
-> +		goto error;
-> +	}
-> +
-> 	unlock_new_inode(inode);
-> 	return inode;
-> 
-> error:
-> 	iget_failed(inode);
-> 	return ERR_PTR(-EIO);
-> }
-> 
-> prevents the error but exposes an invalid inode:
-> 
-> loop0: detected capacity change from 0 to 64
-> BFS-fs: bfs_iget(): Directory inode missing lookup loop0:00000002
-> overlayfs: overlapping lowerdir path
-> 
-> Would this be considered a valid workaround, or does BFS require further
-> fixes?
+So I don't actively hate this, but I do wonder if this shouldn't have
+been done differently.
 
-Yes, it does.  Note that this
-        inode->i_mode = 0x0000FFFF & le32_to_cpu(di->i_mode);
-sets the bits 0..15, which includes not only the permissions
-(0..11), but the file type as well.  And those |= are not
-going to be enough to prevent trouble - what we have there
-is
-	0x1000 => FIFO
-	0x2000 => CHR
-	0x4000 => DIR
-	0x6000 => BLK
-	0x8000 => REG
-	0xa000 => LNK
-	0xe000 => SOCK
+In particular, I suspect *most* users of override_creds() actually
+wants this "light" version, because they all already hold a ref to the
+cred that they want to use as the override.
 
-So depending upon ->i_vtype you get one of
-	* ->i_op and ->i_fop set for directory, type bits - 0x4000 | junk
-	* ->i_op and ->i_fop set for regular file, type bits - 0x8000 | junk
-	* ->i_op and ->i_fop left empty, type bits - junk.
+We did it that safe way with the extra refcount not because most
+people would need it, but it was expected to not be a big deal.
 
-Frankly, I would rather ignore bits 12..15 (i.e.
-        inode->i_mode = 0x00000FFF & le32_to_cpu(di->i_mode);
-instead of
-        inode->i_mode = 0x0000FFFF & le32_to_cpu(di->i_mode);
-) and complain (and fail) if ->i_vtype value is fucked up.
+Now you found that it *is* a big deal, and instead of just fixing the
+old interface, you create a whole new interface and the mental burden
+of having to know the difference between the two.
+
+So may I ask that you look at perhaps just converting the (not very
+many) users of the non-light cred override to the "light" version?
+
+Because I suspect you will find that they basically *all* convert. I
+wouldn't be surprised if some of them could convert automatically with
+a coccinelle script.
+
+Because we actually have several users that have a pattern line
+
+        old_cred = override_creds(override_cred);
+
+        /* override_cred() gets its own ref */
+        put_cred(override_cred);
+
+because it *didn't* want the new cred, because it's literally a
+temporary cred that already had the single ref it needed, and the code
+actually it wants it to go away when it does
+
+        revert_creds(old_cred);
+
+End result: I suspect what it *really* would have wanted is basically
+to have 'override_creds()' not do the refcount at all, and at revert
+time, it would want "revert_creds()" to return the creds that got
+reverted, and then it would just do
+
+        old_cred = override_creds(override_cred);
+        ...
+        put_cred(revert_creds(old_cred));
+
+instead - which would not change the refcount on 'old_cred' at all at
+any time (and does it for the override case only at the end when it
+actually wants it free'd).
+
+And the above is very annoyingly *almost* exactly what your "light"
+interface does, except your interface is bad too: it doesn't return
+the reverted creds.
+
+So then users have to remember the override_creds *and* the old creds,
+just to do their own cred refcounting outside of this all.
+
+In other words, what I really dislike about this all is that
+
+ (a) we had a flawed interface
+
+ (b) you added *another* flawed interface for one special case you cared about
+
+ (c) now we have *two* flawed interfaces instead of one better one
+
+Hmm?
+
+                  Linus
