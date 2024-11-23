@@ -1,111 +1,82 @@
-Received: from mail-ej1-f44.google.com (mail-ej1-f44.google.com [209.85.218.44])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AED0B195
-	for <linux-unionfs@vger.kernel.org>; Sat, 23 Nov 2024 17:29:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A65EB22301;
+	Sat, 23 Nov 2024 18:47:29 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732382966; cv=none; b=PWo/ZKPhH5nw4IDIcNWR5wptDGO3A+34n9igwVCG3KPLJXuY3ZrqBioFy5rYuaAvM3kUtBZxWYhOH4I7lxUFjOcuPdae/4ptHY84jJDqOecNI5IZ6L3JV0r3bMFU2kWr9TTXv/5wEOyCg+i612jIr50GU2YrY3cHM/gIZ+AtJPg=
+	t=1732387649; cv=none; b=cp+0zWKpcF6ivC3YsYXHe6bNrC5MvnUPxBMZlQue5KyklohHgmFlxFrNt8JuaMtV+rI+s69BRCrA3mER1x+CD8sIT7nI8u+u82owqoWbERRKWPAlpFva6YTuPeVmrs/eJUfyI2OnduXCtvNQkH2SsveLQ+Go6H3UlN2a5a9/ySU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732382966; c=relaxed/simple;
-	bh=JW0p9SO4wNjvfWYrh8A4OxTL6/rZR0ph+y4ILjPxPlY=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=r9CGhZj+b/Cgwaw72P6mj59ZXLPUZO7Ft2BHGjBpydvnok3rxIYujFUDGHUVNRUE3IEI6k0qoIrkQ14/DebXs/u3nIUqBCVsLxZjB1fIp5qw6OhyzqeDTejFWl5l38xqaacd3Lsm/f/cnhd7Wq9Lynrr1H2ADx1XE4LblDkmDFg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org; spf=pass smtp.mailfrom=linuxfoundation.org; dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b=IT4ULZFo; arc=none smtp.client-ip=209.85.218.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=linux-foundation.org
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linuxfoundation.org
+	s=arc-20240116; t=1732387649; c=relaxed/simple;
+	bh=BSv4aD9d5H9bVWz+JcZvftPNCXHFcxmKlQmYiEoonkU=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=sDJ8FmSboEp3C1YNMISd1JdR5V4WSR0y5NgLPBlxTPZC8AlYQtQtdbYrgUmZUIxf+hM8nyuzzkFVQ5hx70GD7aL7WRAhK2vQ/n0lQ5lt6tMxvMs28Qm+Id7UE8rsxGBJ108Mu33rAF56R1VfDxZpy6BsI4nbwHOclZYtbjITvcY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nrMgvjTQ; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux-foundation.org header.i=@linux-foundation.org header.b="IT4ULZFo"
-Received: by mail-ej1-f44.google.com with SMTP id a640c23a62f3a-aa503cced42so277466766b.3
-        for <linux-unionfs@vger.kernel.org>; Sat, 23 Nov 2024 09:29:24 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google; t=1732382963; x=1732987763; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=5vCmemIQJAyBLtyohdE3n6qmf1JVeKEXVkWL++xifbs=;
-        b=IT4ULZFoN22WvQ1hq5DfvRLu3WXEGh8N1xg1fHX5h99lox+dpGJu1qwIL31ZTENh6j
-         ZKTkRz5Da3gOftWVyi4za9L66UGp1xcjqasFTDh21QXNCI67y3tAY2gygLjIAzh+u+QE
-         kCI484fBTEwyoX84YytSMetUx/G5dzpY0LNtw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732382963; x=1732987763;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=5vCmemIQJAyBLtyohdE3n6qmf1JVeKEXVkWL++xifbs=;
-        b=h+gZeGgPQOY8OyDScVFBG+XP4E+kJnBzJmOh6XeRDy3Xt7ONJ0LjM7RZCC56/PG0Wg
-         q2m1sQdFc69guOT1U46kMTIs9iA34HOa4akE2kN6mtnk9U3VveGBGvR7Pa/0fX5DOB3Y
-         UMLM5eUqDTSof2thLu+6eHkBQMqOTWi39lE4nqfpLfFhkDGgzBDEr2TwgkEuBdQAig+h
-         Ew9ypLWrjeIPX+sNgYaCmTybavrOgjcvtXSsxnz1I/4tkCmSZ+pwV1UKYMBNEai6LVJE
-         TH8a+LujHHtZSJJMg1lzlgDgxNfbSvIdGsagsXs865d5Q8r5/d2KkknqlaZS9xa4E+WZ
-         Kt3w==
-X-Forwarded-Encrypted: i=1; AJvYcCXjR1PVec2dJ/SmiVvhzH/2H0FqFHrPNCs4fiAOZUB42HE8h56F7MpK+A8CEiAykGpObHgjPx8GytdO39az@vger.kernel.org
-X-Gm-Message-State: AOJu0YwBw7vtZS+KHeICGy53mrkhkIRzIGw5z3jFt5f4MnS/Tjyts/N1
-	8WDNOjDEnjwcKpdW58xiWAkGqlTSKcygm7yjE9dVbQDsLkcW7JSNNrYPhyefDdnNIg6Q27nGk8i
-	QwBp9tw==
-X-Gm-Gg: ASbGncuc//V7XIZpOhiARkxVEJDyKV91wDiDtPs+FiLxVLylXHZVJAd7RgvQsxyHvty
-	EH08JFlnUo9gS+NOiDMrrKRazqWilnakAOgtmsrbyyX1DVN+XWrgtvQF43EXHD5TQLuf3jKRr14
-	o6KndSYcLimWUvkWQdnGwdmVAjckrTeiILzi/lQtqHmGJITdliy+BQaDxjrLAgqM/p+kKBw6exW
-	BCXdbXrjkbhEjUUZ8JgwN4l4vkv6vmxwNzbbTj0dnfmtaqP9RomgC9oJV3pnnCfCAopFRd62M6h
-	z7/+u6DRAcquvXj9vNw5plgT
-X-Google-Smtp-Source: AGHT+IFXvtyzx3ScnKqQt+0m9NaOUG3I4ZQ4EXUo/9JsMsQm0koSdPAXFfhBJDIdEdzKKbM25IXE6Q==
-X-Received: by 2002:a17:907:781a:b0:aa5:396a:c9e8 with SMTP id a640c23a62f3a-aa5396acbbcmr165619466b.23.1732382962776;
-        Sat, 23 Nov 2024 09:29:22 -0800 (PST)
-Received: from mail-ej1-f51.google.com (mail-ej1-f51.google.com. [209.85.218.51])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-aa50b339612sm250098566b.84.2024.11.23.09.29.21
-        for <linux-unionfs@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 23 Nov 2024 09:29:21 -0800 (PST)
-Received: by mail-ej1-f51.google.com with SMTP id a640c23a62f3a-a9a0ec0a94fso456125666b.1
-        for <linux-unionfs@vger.kernel.org>; Sat, 23 Nov 2024 09:29:21 -0800 (PST)
-X-Forwarded-Encrypted: i=1; AJvYcCVM30NFIOiL0jZXNKixB6612oNyzLxYfMpKzEJEH9cSPl3U7a53JzimdtYN9jpBe0x4RdQDgHatSlvB7sbP@vger.kernel.org
-X-Received: by 2002:a17:906:9d2:b0:a9a:13f8:60b9 with SMTP id
- a640c23a62f3a-aa509985a54mr597055366b.36.1732382961227; Sat, 23 Nov 2024
- 09:29:21 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nrMgvjTQ"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B6EDC4CED0;
+	Sat, 23 Nov 2024 18:47:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1732387649;
+	bh=BSv4aD9d5H9bVWz+JcZvftPNCXHFcxmKlQmYiEoonkU=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nrMgvjTQiW24jgTEn9nVCrQBKcdxUNzOADK7GdxSDy3abNOQ+r2W/3iiVPmu50xze
+	 HHlzBXLn5gI3V0o9TuUOhAHF0bqs42FA6vr5ylJnuIsneueM7MA13nr6fSW6euaPIP
+	 o4Y9OF7Cw2PC0UJikWim7xnga0PXhhZWnbu0vTVFQ9RSiopZDpAZR2JKZLPTmdK0eu
+	 iqDFnkEjBHfXhLuDm7NWX43SdCqrytkRDYxjHRM3wy4gZO+yOGnwFeE0fGj3aS31Js
+	 Dg9nwAoOIp/m7nYpu/wFMGgGcJqE3+d4tHtT53+qBEELZ7jaPfmlYz33EdIF11HqAr
+	 68HqgYYfRsc/w==
+Date: Sat, 23 Nov 2024 19:47:24 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Amir Goldstein <amir73il@gmail.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org
+Subject: Re: [GIT PULL] overlayfs updates for 6.13
+Message-ID: <20241123-wortreich-eistee-542b69311fba@brauner>
+References: <20241122095746.198762-1-amir73il@gmail.com>
+ <CAHk-=wg_Hbtk1oeghodpDMc5Pq24x=aaihBHedfubyCXbntEMw@mail.gmail.com>
+ <20241123-bauhof-tischbein-579ff1db831a@brauner>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241122095746.198762-1-amir73il@gmail.com> <CAHk-=wg_Hbtk1oeghodpDMc5Pq24x=aaihBHedfubyCXbntEMw@mail.gmail.com>
- <20241123-bauhof-tischbein-579ff1db831a@brauner>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 In-Reply-To: <20241123-bauhof-tischbein-579ff1db831a@brauner>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 23 Nov 2024 09:29:05 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whoEWma-c-ZTj=fpXtD+1EyYimW4TwqDV9FeUVVfzwang@mail.gmail.com>
-Message-ID: <CAHk-=whoEWma-c-ZTj=fpXtD+1EyYimW4TwqDV9FeUVVfzwang@mail.gmail.com>
-Subject: Re: [GIT PULL] overlayfs updates for 6.13
-To: Christian Brauner <brauner@kernel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-kernel@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-unionfs@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
 
-On Sat, 23 Nov 2024 at 04:06, Christian Brauner <brauner@kernel.org> wrote:
->
-> So just to clarify when that issue was brought up I realized that the
-> cred bump was a big deal for overlayfs but from a quick grep I didn't
-> think for any of the other cases it really mattered that much.
+On Sat, Nov 23, 2024 at 01:06:14PM +0100, Christian Brauner wrote:
+> On Fri, Nov 22, 2024 at 09:21:58PM -0800, Linus Torvalds wrote:
+> > On Fri, 22 Nov 2024 at 01:57, Amir Goldstein <amir73il@gmail.com> wrote:
+> > >
+> > > - Introduction and use of revert/override_creds_light() helpers, that were
+> > >   suggested by Christian as a mitigation to cache line bouncing and false
+> > >   sharing of fields in overlayfs creator_cred long lived struct cred copy.
+> > 
+> > So I don't actively hate this, but I do wonder if this shouldn't have
+> > been done differently.
+> > 
+> > In particular, I suspect *most* users of override_creds() actually
+> > wants this "light" version, because they all already hold a ref to the
+> > cred that they want to use as the override.
+> > 
+> > We did it that safe way with the extra refcount not because most
+> > people would need it, but it was expected to not be a big deal.
+> > 
+> > Now you found that it *is* a big deal, and instead of just fixing the
+> > old interface, you create a whole new interface and the mental burden
+> > of having to know the difference between the two.
+> 
+> > So may I ask that you look at perhaps just converting the (not very
+> > many) users of the non-light cred override to the "light" version?
+> 
+> I think that could be a good idea in general.
+> 
+> But I have to say I'm feeling a bit defensive after having read your
+> message even though I usually try not to. :) 
 
-Oh, I agree. It's probably not really a performance issue anywhere
-else. I don't think this has really ever come up before.
-
-So my "please convert everything to one single new model" is not
-because I think that would help performance, but because I really hate
-having two differently flawed models when I think one would do.
-
-We have other situations where we really do have two or more different
-interfaces for the "same" thing, with very special rules: things like
-fget() vs fget_raw() vs fget_task() (and similar issues wrt fdget).
-
-But I think those other situations have more _reason_ for them.
-
-The whole "override_creds()" thing is _already_ such a special
-operation, that I hate seeing two subtly different versions of the
-interface, both with their own quirks.
-
-Because the old interface really isn't some "perfectly tailored"
-thing. Yes, the performance implications were a surprise to me and I
-hadn't seen that before, but the "refcounting isn't wonderful" was
-_not_ really a big surprise at all.
-
-                        Linus
+It was just pointed out to me that this was written like I'm not reading
+you messages - which is obviously not the case. What I means it that I
+usually try to not be defensive when valid criticism is brought up. :)
