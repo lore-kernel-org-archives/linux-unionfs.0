@@ -1,295 +1,269 @@
-Received: from mail-lf1-f43.google.com (mail-lf1-f43.google.com [209.85.167.43])
+Received: from mail-ej1-f53.google.com (mail-ej1-f53.google.com [209.85.218.53])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4FBC15C96;
-	Tue, 26 Nov 2024 09:47:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.167.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 40E493398E;
+	Tue, 26 Nov 2024 14:20:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.53
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732614468; cv=none; b=KIyyN/Yf3KM9udsPduXJ9fFDN3/+lTkzqzwGbsjyZgtGMZojF0Kw7Fr0rtj6C/FO1J77I5Sq6UqA0zeop1iavxbYepCBGzuxnyozFNBND2Cb4rc4VjosGhOiYcl6dw2k70yT5eW+xvONlmEK4yBL5ivozQ7KVhSumhfAd3KnyCw=
+	t=1732630835; cv=none; b=S8bYsKEiLUR9lSsMpmepbldk1ToCMxBbLMk6sCauyD7l9hSSQCZ1V+wfh/g5qSIeuiTIxlw6n9Un3gJEqw/6Y8HCHzpNZUmtW0vZ86Y3HO/1IFFE7K83XhuOK3ZD6exgZA3ONFpMgjZARRqnnqQhwB02MdoqWku7w5fpWwoNmxk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732614468; c=relaxed/simple;
-	bh=jC8gFsCCu/uZr3NUk3rOeyEFSgWSWYf9yt31kUIDsr4=;
+	s=arc-20240116; t=1732630835; c=relaxed/simple;
+	bh=GnkMNDsp75aQER4IAg4W8CLlKh5NI42fXOlImOfYZRA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=K1v1+x5isT7FiIx99y0DT53JfObj14+lgotuODTF6l14vG0r4UcG4ZqvC10jBIcCqPv7emU6kZXm3n09YVBhgDJFZC57H2tNjuTDCOkIbfuQgVXoLGpHa1JrzMD3MwEhTIgXDquacLxDh6ZiEAJfRUixylKcoZLCBST8rA1pJz0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=AKPkOQvE; arc=none smtp.client-ip=209.85.167.43
+	 To:Cc:Content-Type; b=YzCSGGhSpUlh1xR13HsUKmHYbjrbCDIdspnatlz35AtbZU2jhciFEx3FNwv1ha3bVPQLSEw5eXc0B7y9YCH1/50x4skRA3rLnN3Ms2H3rXwERU5tEfC1yu3MNJYniwKxVERdC+IJNhQiPjtoIoY8/q+bo/EppRGnQHjiM5E16cc=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=lwTyoVqi; arc=none smtp.client-ip=209.85.218.53
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="AKPkOQvE"
-Received: by mail-lf1-f43.google.com with SMTP id 2adb3069b0e04-53dede30436so256130e87.2;
-        Tue, 26 Nov 2024 01:47:45 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="lwTyoVqi"
+Received: by mail-ej1-f53.google.com with SMTP id a640c23a62f3a-aa549d9dffdso376862266b.2;
+        Tue, 26 Nov 2024 06:20:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1732614464; x=1733219264; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1732630831; x=1733235631; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ZQGkwLaBoqeNnLkNbHsiFkTqZPYYIv864btvDKK2Uw0=;
-        b=AKPkOQvEJh70nm2wY4eoT9/EtgklL54NKmoKLrcVD8LA/WkwJf01xqCBlknRA2MlcF
-         eQ6X5W4Gq+4YoI7PPD4Yp8qXCr+h3OzCYrvH5jnvBWUR9GkMVYUXEzL9NIsT34O4D/OU
-         DzE7us+QUpYeVRYHVQlS7rsQqHW3JCIF2zRJt5qoWqc2v7rnBttZCrOxc/4jxKRQKIwn
-         1Nksf/R3aSRatVRm5bc09hb2rxjrm8nq0nROqqEpLS9vLcLtH7n+VWDBckavboIt5Ic/
-         PQrUIfMCt2Z78xpHIyAhmDVJd4OliPLdigt4hXRuj1PZtxitfWOBCzEiUp66K3KAqxMd
-         TsIg==
+        bh=dIuz28KcMEguH3lwJAWKjbBcYxl9WpTIyypDwn3NopY=;
+        b=lwTyoVqi9mfCss3XS4G7Ynqn8RK6nPktFLvjaHCXoiVWf1scKpR82K1xZe2ZnOYmBF
+         XBp9SbDuuY3IWPhppWIF+2uFO/TMc18H945t8UO5btSTpgSQwWCLV5HgwnaotwDjDJRb
+         2XSulmtb/86e6SQShZjbaFxfXVx1ymPta6LAX60DimyhEcOz5sUC83Zmve/jh9YXn4bR
+         yOILCEtbZ5cZr0wBIFbnlE0z1GXPG+fj31pUrFBAsj1ccUQjI0GYZOvQoXzA6z/0Lr/d
+         xAAKn/sz+aqphgP2qushTA7KVdAxIDl4pDqt6/815tfKgpuLTDq59M4iox0jeTnN21+K
+         3CxA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732614464; x=1733219264;
+        d=1e100.net; s=20230601; t=1732630831; x=1733235631;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ZQGkwLaBoqeNnLkNbHsiFkTqZPYYIv864btvDKK2Uw0=;
-        b=up9gBY6QnGM0dzmApd7uF84dtM5Cb/QQnM5UOPe3s167qNpQvYcMeGCYnyJXUcvTIl
-         4KXwLdFZISeqOuhBZTRZOYWswEHZEsIgoozcX2U3QlRtIrqXHIYnggTD7yNKQvatpokc
-         05G/B+oM7FAeW+XXtsfRUqPqjMAOWItMAfKxGMfBmIBMDCg4Kpw4OpEcnQbSVCSVxbEM
-         ZOk77Q4SbAmF+EUbua9bxu3wGDSONk8/wOyeLkRFPjAiJ0fkVqbcwwOSMZJud9vQvAL7
-         ksdqwkotu9QFYkXM/LyaBxYPhVfWq8WRWhH2fzIkgHl2xMIqiQSTqoFn9wEUl2VhyN3I
-         6WfQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW7pO0ZjUgHGFmMkr7GAS33vzJtKDyMIlas87KllcDpHv3zxP/EyuJzwImlnXyviryszcwxayimPRLO2dBgsg==@vger.kernel.org, AJvYcCX4ax0Q4b3u/xxctnGfI0+3uV+N8hauVah8XBF7DY8em/wntCDh4H6uM0FQnzrv5Hi4sTiYjti7vnXTrTue@vger.kernel.org, AJvYcCXZwtEnVQreDSy8j2AWUCuT0szCmAKHG9+iuyJ7NXh1+dOLyg0HhYf53mZ/iQzs65zPTv0I4GvdGzHRxgF1@vger.kernel.org
-X-Gm-Message-State: AOJu0YyFfDXFY7RjxmYNd9/qCP0zV0YiNNOGdkHkOvwv5526fta1WPNL
-	UdKjQy1i2YV4IlymcxwXsu9rI+8a0Uyr5cR2Ws5cNXUnKOKFHDfTpQ1m7XdX7I4CDfeHLMUZXTA
-	egxVVbFX+xTFylaRe+0S5vHqe95c=
-X-Gm-Gg: ASbGncsPWv2pblBGK6fAXouG7EWSZx9JVxgpSY4q8yJtlxIWMrLmVhs7Oo+FABz9DWe
-	YDg5iYOiQFcPPT7+M5vevj+lMSIYVS9M=
-X-Google-Smtp-Source: AGHT+IGLWOWAJahf/CPPIkfrPTt2Tsmp7VmGgd0e4lBS0MKYAvNP3gRNBupDVLGuY4TMyEYStWhW3Mvh+9BH736FKZw=
-X-Received: by 2002:a05:6512:2382:b0:539:e85f:ba98 with SMTP id
- 2adb3069b0e04-53dd3babe78mr7220370e87.56.1732614463880; Tue, 26 Nov 2024
- 01:47:43 -0800 (PST)
+        bh=dIuz28KcMEguH3lwJAWKjbBcYxl9WpTIyypDwn3NopY=;
+        b=cuYtNb7Wit7c7Xo44qcEyQc/QP5ASa69eg2sBMGsnBxkb+OL26k74bTUvLcROyGi8R
+         DshUQVFUKnvPYitJWP4mPbPqCrSzb41amW7GP5KrNorhrVwjHu54A2ZzAsoHFslKoemV
+         wFTYVh2nKH4+kTYsoTQag0LeF45//8eE3NFZ3d1rbC1rAflTlIipV/PLsVSMp/7oActN
+         GPaQE8uYkxj3+ZhT8jItWg6hK1dsa4UR2XrWNXPopoqno44zBPk0YHwF8fVDwR2WA9zy
+         cq84p9zE5YGWWq3P1teBaX2jtET0S5Mrwu3mpNi4T8eDkIYweasw42m7CcT9fOTB8kT2
+         v3IA==
+X-Forwarded-Encrypted: i=1; AJvYcCVOsoa9z4b1YxJp57qylNeaOir8gpEWtdVJEV5+P/vVfV1VPgTfvo+mYHThOoNLsqCYr3KlLUrQo3UXoOPP@vger.kernel.org
+X-Gm-Message-State: AOJu0YzNbAoBhkjzQuDjP0HBwVLqSkG83Da+0/pbA/r6aWySZeZ0BBYN
+	UNFHvP9ihRPFfKrQSNelBrBOJW3XeQR77lBpYS6JIUjrYVR4y9OGHLpKDmUeWkuRnVLE/6zydh1
+	liynljVXWIiF3yLotq5VCSLvNcUeJbAsLn1I=
+X-Gm-Gg: ASbGncs99vINURkOTPRvQIXG0lfLYoxrDHLqEryT5n6+mUaiT7gDUXPdy96sTVg9N5D
+	p9t28y7tL5cRpLIrzRikCWtf6hZKyDLs=
+X-Google-Smtp-Source: AGHT+IEjZbIH1XVCQfzXmYmxxdQtcDyFYLjNKyGBO4er58A2qm76VvOgkaYKdQ8S8ehRduJCrXrDta/bPyC5t7dR/lE=
+X-Received: by 2002:a17:906:2182:b0:aa5:391e:cad5 with SMTP id
+ a640c23a62f3a-aa5391eccd8mr921386166b.33.1732630831187; Tue, 26 Nov 2024
+ 06:20:31 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20241106-overlayfs-fsopen-log-v1-1-9d883be7e56e@cyphar.com>
- <20241106-mehrzahl-bezaubern-109237c971e3@brauner> <CAOQ4uxirsNEK24=u3K-X5A-EX80ofEx5ycjoqU4gocBoPVxbYw@mail.gmail.com>
- <CAOQ4uxj+gAtM6cY_aEmM7TAqLor7498f0FO3eTek_NpUXUKNaw@mail.gmail.com>
- <20241106.141100-patchy.noises.kissable.cannons-37UAyhH88iH@cyphar.com>
- <j7ngxuxqdwrq5o6zi2hmt3zfmh6s5mzrlvwjw6snqbv5oc5ggo@nqpr6wjec7go> <20241126.065751-glad.dagger.vile.lyrics-RJ5aGOKAtri@cyphar.com>
-In-Reply-To: <20241126.065751-glad.dagger.vile.lyrics-RJ5aGOKAtri@cyphar.com>
+References: <67447b3c.050a0220.1cc393.0085.GAE@google.com>
+In-Reply-To: <67447b3c.050a0220.1cc393.0085.GAE@google.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 26 Nov 2024 10:47:32 +0100
-Message-ID: <CAOQ4uxj_jY36nJ9eTVv5VomSp+ne_yif-6JPZcQB1nXDdRC02w@mail.gmail.com>
-Subject: Re: [PATCH] overlayfs: port all superblock creation logging to fsopen logs
-To: Aleksa Sarai <cyphar@cyphar.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: Karel Zak <kzak@redhat.com>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Date: Tue, 26 Nov 2024 15:20:18 +0100
+Message-ID: <CAOQ4uxibdcHmnkn15G1M+8Ay7TK_4uB1tUi06+yuPWAze382Lg@mail.gmail.com>
+Subject: Re: [syzbot] [overlayfs?] KASAN: slab-out-of-bounds Read in ovl_inode_upper
+To: syzbot <syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Nov 26, 2024 at 8:25=E2=80=AFAM Aleksa Sarai <cyphar@cyphar.com> wr=
-ote:
+On Mon, Nov 25, 2024 at 2:27=E2=80=AFPM syzbot
+<syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com> wrote:
 >
-> On 2024-11-13, Karel Zak <kzak@redhat.com> wrote:
-> > On Thu, Nov 07, 2024 at 02:09:19AM GMT, Aleksa Sarai wrote:
-> > > On 2024-11-06, Amir Goldstein <amir73il@gmail.com> wrote:
-> > > > On Wed, Nov 6, 2024 at 12:00=E2=80=AFPM Amir Goldstein <amir73il@gm=
-ail.com> wrote:
-> > > > >
-> > > > > On Wed, Nov 6, 2024 at 10:59=E2=80=AFAM Christian Brauner <braune=
-r@kernel.org> wrote:
-> > > > > >
-> > > > > > On Wed, Nov 06, 2024 at 02:09:58PM +1100, Aleksa Sarai wrote:
-> > > > > > > overlayfs helpfully provides a lot of of information when set=
-ting up a
-> > > > > > > mount, but unfortunately when using the fsopen(2) API, a lot =
-of this
-> > > > > > > information is mixed in with the general kernel log.
-> > > > > > >
-> > > > > > > In addition, some of the logs can become a source of spam if =
-programs
-> > > > > > > are creating many internal overlayfs mounts (in runc we use a=
-n internal
-> > > > > > > overlayfs mount to protect the runc binary against container =
-breakout
-> > > > > > > attacks like CVE-2019-5736, and xino_auto=3Don caused a lot o=
-f spam in
-> > > > > > > dmesg because we didn't explicitly disable xino[1]).
-> > > > > > >
-> > > > > > > By logging to the fs_context, userspace can get more accurate
-> > > > > > > information when using fsopen(2) and there is less dmesg spam=
- for
-> > > > > > > systems where a lot of programs are using fsopen("overlay"). =
-Legacy
-> > > > > > > mount(2) users will still see the same errors in dmesg as the=
-y did
-> > > > > > > before (though the prefix of the log messages will now be "ov=
-erlay"
-> > > > > > > rather than "overlayfs").
-> > > > >
-> > > > > I am not sure about the level of risk in this format change.
-> > > > > Miklos, WDYT?
-> > > > >
-> > > > > > >
-> > > > > > > [1]: https://bbs.archlinux.org/viewtopic.php?pid=3D2206551
-> > > > > > >
-> > > > > > > Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
-> > > > > > > ---
-> > > > > >
-> > > > > > To me this sounds inherently useful! So I'm all for it.
-> > > > > >
-> > > > >
-> > > > > [CC: Karel]
-> > > > >
-> > > > > I am quite concerned about this.
-> > > > > I have a memory that Christian suggested to make this change back=
- in
-> > > > > the original conversion to new mount API, but back then mount too=
-l
-> > > > > did not print out the errors to users properly and even if it doe=
-s
-> > > > > print out errors, some script could very well be ignoring them.
-> > >
-> > > I think Christian mentioned this at LSF/MM (or maybe LPC), but it see=
-ms
-> > > that util-linux does provide the log information now in the case of
-> > > fsconfig(2) errors:
-> > >
-> > >     % strace -e fsopen,fsconfig mount -t overlay -o userxattr=3Dstr x=
- /tmp/a
-> > >     fsopen("overlay", FSOPEN_CLOEXEC)       =3D 3
-> > >     fsconfig(3, FSCONFIG_SET_STRING, "source", "foo", 0) =3D 0
-> > >     fsconfig(3, FSCONFIG_SET_STRING, "userxattr", "str", 0) =3D -1 EI=
-NVAL (Invalid argument)
-> > >     mount: /tmp/a: fsconfig system call failed: overlay: Unexpected v=
-alue for 'userxattr'.
-> > >                dmesg(1) may have more information after failed mount =
-system call.
-> > >
-> > > (Using the current HEAD of util-linux -- openSUSE's util-linux isn't
-> > > compiled with support for fsopen apparently.)
-> >
-> > After failed mount-related syscalls, libmount reads messages prefixed
-> > with "e " from the file descriptor created by fdopen(). These messages
-> > are later printed by mount(8).
-> >
-> > mount(8) or libmount does not read anything from kmesg.
-> >
-> > > However, it doesn't output any of the info-level ancillary
-> > > information if there were no errors.
-> >
-> > This is the expected default behavior. mount(8) does not print any
-> > additional information.
-> >
-> > We can enhance libmount to read and print other messages on stdout if
-> > requested by the user. For example, the mount(8) command has a
-> > --verbose option that is currently only used by some /sbin/mount.<type>
-> > helpers, but not by mount(8) itself. We can improve this and use it in
-> > libmount to read and print info-level messages.
-> >
-> > I can prepare a libmount/mount(8) patch for this.
+> Hello,
 >
-> This sounds like a good idea to me.
+> syzbot found the following issue on:
 >
-> > > So there will definitely be some loss of
-> > > information for pr_* logs that don't cause an actual error (which is =
-a
-> > > little unfortunate, since that is the exact dmesg spam that caused me=
- to
-> > > write this patch).
-> > >
-> > > I could take a look at sending a patch to get libmount to output that
-> > > information, but that won't help with the immediate issue, and this
-> > > doesn't help with the possible concern with some script that scrapes
-> > > dmesg. (Though I think it goes without saying that such scripts are k=
-ind
-> > > of broken by design -- since unprivileged users can create overlayfs
-> > > mounts and thus spam the kernel log with any message, there is no
-> > > practical way for a script to correctly get the right log information
-> > > without using the new mount API's logging facilities.)
-> >
-> > > I can adjust this patch to only include the log+return-an-error cases=
-,
-> > > but that doesn't really address your primary concern, I guess.
-> > >
-> > > > > My strong feeling is that suppressing legacy errors to kmsg shoul=
-d be opt-in
-> > > > > via the new mount API and that it should not be the default for l=
-ibmount.
-> > > > > IMO, it is certainly NOT enough that new mount API is used by use=
-rspace
-> > > > > as an indication for the kernel to suppress errors to kmsg.
-> >
-> > For me, it seems like we are mixing two things together.
-> >
-> > kmesg is a *log*, and tools like systemd read and save it. It is used
-> > for later issue debugging or by log analyzers. This means that all
-> > relevant information should be included.
-> >
-> > The stderr/stdout output from tools such as mount(8) is simply
-> > feedback for users or scripts, and informational messages are just
-> > hints. They should not be considered a replacement for system logging
-> > facilities. The same applies to messages read from the new mount API;
-> > they should not be a replacement for system logs.
-> >
-> > In my opinion, it is acceptable to suppress optional and unimportant
-> > messages and not save them into kmesg. However, all other relevant
-> > messages should be included regardless of the tool or API being used.
+> HEAD commit:    85a2dd7d7c81 Add linux-next specific files for 20241125
+> git tree:       linux-next
+> console+strace: https://syzkaller.appspot.com/x/log.txt?x=3D10b5277858000=
+0
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=3D45719eec4c74e=
+6ba
+> dashboard link: https://syzkaller.appspot.com/bug?extid=3D8d1206605b05ca9=
+a0e6a
+> compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Deb=
+ian) 2.40
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=3D10b46530580=
+000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=3D1578dee858000=
+0
 >
-> For warning or error messages, this makes sense -- though I think the
-> "least spammy" option would be that the logs are output to kmesg if
-> userspace closes the fscontext fd without reading the logs. That should
-> catch programs that miss log information, without affecting programs
-> that do read the logs (and do whatever they feel is appropriate with
-> them). That would be some reasonable default behaviour, and users could
-> explicitly opt into a verbose mode.
+> Downloadable assets:
+> disk image: https://storage.googleapis.com/syzbot-assets/5422dd6ada68/dis=
+k-85a2dd7d.raw.xz
+> vmlinux: https://storage.googleapis.com/syzbot-assets/3a382ed71d3a/vmlinu=
+x-85a2dd7d.xz
+> kernel image: https://storage.googleapis.com/syzbot-assets/9b4d03eb0da3/b=
+zImage-85a2dd7d.xz
+> mounted in repro: https://storage.googleapis.com/syzbot-assets/29b16c7eaa=
+78/mount_0.gz
 >
-> For informational or debug messages, I feel that the default should be
-> that we want to avoid outputting to kmesg when using the new mount API
-> since the information is non-critical and the only way of associating
-> the information is using the fscontext log. But if we had this "only log
-> on close if not read" behaviour, I think having the same behaviour for
-> all log messages would still work and would be more consistent.
+> IMPORTANT: if you fix the issue, please add the following tag to the comm=
+it:
+> Reported-by: syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com
 >
-> > Additionally, it should be noted that mount(8)/libmount is only a
-> > userspace tool and is not necessary for mounting filesystems. The
-> > kernel should not rely on libmount behavior; there are other tools
-> > available such as busybox.
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> BUG: KASAN: slab-out-of-bounds in ovl_upperdentry_dereference fs/overlayf=
+s/ovl_entry.h:195 [inline]
+> BUG: KASAN: slab-out-of-bounds in ovl_i_dentry_upper fs/overlayfs/util.c:=
+366 [inline]
+> BUG: KASAN: slab-out-of-bounds in ovl_inode_upper+0x36/0x80 fs/overlayfs/=
+util.c:386
+> Read of size 8 at addr ffff88807df938e0 by task syz-executor150/5827
 >
-> Sure, but by switching to the new mount API you are buying into
-> different behaviour for error logs (if only for the generic VFS ones),
-> regardless of what kind of program you are.
+> CPU: 0 UID: 0 PID: 5827 Comm: syz-executor150 Not tainted 6.12.0-next-202=
+41125-syzkaller #0
+> Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS G=
+oogle 09/13/2024
+> Call Trace:
+>  <TASK>
+>  __dump_stack lib/dump_stack.c:94 [inline]
+>  dump_stack_lvl+0x241/0x360 lib/dump_stack.c:120
+>  print_address_description mm/kasan/report.c:378 [inline]
+>  print_report+0x169/0x550 mm/kasan/report.c:489
+>  kasan_report+0x143/0x180 mm/kasan/report.c:602
+>  ovl_upperdentry_dereference fs/overlayfs/ovl_entry.h:195 [inline]
+>  ovl_i_dentry_upper fs/overlayfs/util.c:366 [inline]
+>  ovl_inode_upper+0x36/0x80 fs/overlayfs/util.c:386
+>  ovl_file_accessed+0x7e/0x370 fs/overlayfs/file.c:307
+>  backing_file_mmap+0x1f8/0x260 fs/backing-file.c:345
+>  ovl_mmap+0x1c9/0x220 fs/overlayfs/file.c:487
+>  call_mmap include/linux/fs.h:2183 [inline]
+>  mmap_file mm/internal.h:124 [inline]
+>  __mmap_new_file_vma mm/vma.c:2291 [inline]
+>  __mmap_new_vma mm/vma.c:2355 [inline]
+>  __mmap_region+0x2204/0x2cd0 mm/vma.c:2456
+>  mmap_region+0x1d0/0x2c0 mm/mmap.c:1347
+>  do_mmap+0x8f0/0x1000 mm/mmap.c:496
+>  vm_mmap_pgoff+0x214/0x430 mm/util.c:580
+>  ksys_mmap_pgoff+0x4eb/0x720 mm/mmap.c:542
+>  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+>  do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+> RIP: 0033:0x7fb229019739
+> Code: 28 00 00 00 75 05 48 83 c4 28 c3 e8 61 17 00 00 90 48 89 f8 48 89 f=
+7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff=
+ ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+> RSP: 002b:00007fffdd8656a8 EFLAGS: 00000246 ORIG_RAX: 0000000000000009
+> RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 00007fb229019739
+> RDX: 0000000000000000 RSI: 0000000000004000 RDI: 0000000020ffc000
+> RBP: 00007fb22908d610 R08: 0000000000000005 R09: 0000000000000000
+> R10: 0000000000000012 R11: 0000000000000246 R12: 0000000000000001
+> R13: 00007fffdd865878 R14: 0000000000000001 R15: 0000000000000001
+>  </TASK>
 >
-> > > I can see an argument for some kind of MS_SILENT analogue for
-> > > fsconfig(), though it will make the spam problem worse until programs
-> > > migrate to setting this new flag.
-> >
-> > Yes, the ideal solution would be to have mount options that can
-> > control this behavior. This would allow users to have control over it
-> > and save their settings to fstab, as well as keep it specific to the
-> > mount node.
-> >
-> > > Also, as this is already an issue ever since libmount added support f=
-or
-> > > the new API (so since 2.39 I believe?), I think it would make just as
-> > > much sense for this flag to be opt-in -- so libmount could set the
-> > > "verbose" or "kmsglog" flag by default but most normal programs would
-> > > not get the spammy behaviour by default.
+> Allocated by task 5827:
+>  kasan_save_stack mm/kasan/common.c:47 [inline]
+>  kasan_save_track+0x3f/0x80 mm/kasan/common.c:68
+>  unpoison_slab_object mm/kasan/common.c:319 [inline]
+>  __kasan_slab_alloc+0x66/0x80 mm/kasan/common.c:345
+>  kasan_slab_alloc include/linux/kasan.h:250 [inline]
+>  slab_post_alloc_hook mm/slub.c:4104 [inline]
+>  slab_alloc_node mm/slub.c:4153 [inline]
+>  kmem_cache_alloc_lru_noprof+0x1dd/0x390 mm/slub.c:4172
+>  nilfs_alloc_inode+0x2e/0x110 fs/nilfs2/super.c:158
+>  alloc_inode+0x65/0x1a0 fs/inode.c:336
+>  iget5_locked+0x4a/0xa0 fs/inode.c:1404
+>  nilfs_iget_locked fs/nilfs2/inode.c:535 [inline]
+>  nilfs_iget+0x130/0x810 fs/nilfs2/inode.c:544
+>  nilfs_lookup+0x198/0x210 fs/nilfs2/namei.c:69
+>  __lookup_slow+0x28c/0x3f0 fs/namei.c:1791
+>  lookup_slow fs/namei.c:1808 [inline]
+>  lookup_one_unlocked+0x1a4/0x290 fs/namei.c:2966
+>  ovl_lookup_positive_unlocked fs/overlayfs/namei.c:210 [inline]
+>  ovl_lookup_single+0x200/0xbd0 fs/overlayfs/namei.c:240
+>  ovl_lookup_layer+0x417/0x510 fs/overlayfs/namei.c:333
+>  ovl_lookup+0xcf7/0x2a60 fs/overlayfs/namei.c:1124
+>  lookup_open fs/namei.c:3627 [inline]
+>  open_last_lookups fs/namei.c:3748 [inline]
+>  path_openat+0x11a7/0x3590 fs/namei.c:3984
+>  do_filp_open+0x27f/0x4e0 fs/namei.c:4014
+>  do_sys_openat2+0x13e/0x1d0 fs/open.c:1402
+>  do_sys_open fs/open.c:1417 [inline]
+>  __do_sys_open fs/open.c:1425 [inline]
+>  __se_sys_open fs/open.c:1421 [inline]
+>  __x64_sys_open+0x225/0x270 fs/open.c:1421
+>  do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+>  do_syscall_64+0xf3/0x230 arch/x86/entry/common.c:83
+>  entry_SYSCALL_64_after_hwframe+0x77/0x7f
+>
+> The buggy address belongs to the object at ffff88807df93300
+>  which belongs to the cache nilfs2_inode_cache of size 1504
+> The buggy address is located 0 bytes to the right of
+>  allocated 1504-byte region [ffff88807df93300, ffff88807df938e0)
+>
+> The buggy address belongs to the physical page:
+> page: refcount:1 mapcount:0 mapping:0000000000000000 index:0x0 pfn:0x7df9=
+0
+> head: order:3 mapcount:0 entire_mapcount:0 nr_pages_mapped:0 pincount:0
+> flags: 0xfff00000000040(head|node=3D0|zone=3D1|lastcpupid=3D0x7ff)
+> page_type: f5(slab)
+> raw: 00fff00000000040 ffff88801f711140 dead000000000122 0000000000000000
+> raw: 0000000000000000 0000000080140014 00000001f5000000 0000000000000000
+> head: 00fff00000000040 ffff88801f711140 dead000000000122 0000000000000000
+> head: 0000000000000000 0000000080140014 00000001f5000000 0000000000000000
+> head: 00fff00000000003 ffffea0001f7e401 ffffffffffffffff 0000000000000000
+> head: 0000000000000008 0000000000000000 00000000ffffffff 0000000000000000
+> page dumped because: kasan: bad access detected
+> page_owner tracks the page as allocated
+> page last allocated via order 3, migratetype Reclaimable, gfp_mask 0xd205=
+0(__GFP_IO|__GFP_NOWARN|__GFP_NORETRY|__GFP_COMP|__GFP_NOMEMALLOC|__GFP_REC=
+LAIMABLE), pid 5827, tgid 5827 (syz-executor150), ts 58768101635, free_ts 1=
+5530782696
+>  set_page_owner include/linux/page_owner.h:32 [inline]
+>  post_alloc_hook+0x1f3/0x230 mm/page_alloc.c:1556
+>  prep_new_page mm/page_alloc.c:1564 [inline]
+>  get_page_from_freelist+0x3725/0x3870 mm/page_alloc.c:3510
+>  __alloc_pages_noprof+0x292/0x710 mm/page_alloc.c:4787
+>  alloc_pages_mpol_noprof+0x3e8/0x680 mm/mempolicy.c:2265
+>  alloc_slab_page+0x6a/0x140 mm/slub.c:2408
+>  allocate_slab+0x5a/0x2f0 mm/slub.c:2574
+>  new_slab mm/slub.c:2627 [inline]
+>  ___slab_alloc+0xcd1/0x14b0 mm/slub.c:3815
+>  __slab_alloc+0x58/0xa0 mm/slub.c:3905
+>  __slab_alloc_node mm/slub.c:3980 [inline]
+>  slab_alloc_node mm/slub.c:4141 [inline]
+>  kmem_cache_alloc_lru_noprof+0x26c/0x390 mm/slub.c:4172
+>  nilfs_alloc_inode+0x2e/0x110 fs/nilfs2/super.c:158
+>  alloc_inode+0x65/0x1a0 fs/inode.c:336
+>  iget5_locked+0x4a/0xa0 fs/inode.c:1404
+>  nilfs_iget_locked+0x113/0x160 fs/nilfs2/inode.c:535
+>  nilfs_dat_read+0xc3/0x320 fs/nilfs2/dat.c:511
+>  nilfs_load_super_root fs/nilfs2/the_nilfs.c:118 [inline]
+>  load_nilfs+0x579/0x1090 fs/nilfs2/the_nilfs.c:299
+>  nilfs_fill_super+0x31e/0x720 fs/nilfs2/super.c:1067
+> page last free pid 1 tgid 1 stack trace:
+>  reset_page_owner include/linux/page_owner.h:25 [inline]
+>  free_pages_prepare mm/page_alloc.c:1127 [inline]
+>  free_unref_page+0xdf9/0x1140 mm/page_alloc.c:2693
+>  free_contig_range+0x152/0x550 mm/page_alloc.c:6666
+>  destroy_args+0x92/0x910 mm/debug_vm_pgtable.c:1017
+>  debug_vm_pgtable+0x4be/0x550 mm/debug_vm_pgtable.c:1397
+>  do_one_initcall+0x248/0x880 init/main.c:1266
+>  do_initcall_level+0x157/0x210 init/main.c:1328
+>  do_initcalls+0x3f/0x80 init/main.c:1344
+>  kernel_init_freeable+0x435/0x5d0 init/main.c:1577
+>  kernel_init+0x1d/0x2b0 init/main.c:1466
+>  ret_from_fork+0x4b/0x80 arch/x86/kernel/process.c:147
+>  ret_from_fork_asm+0x1a/0x30 arch/x86/entry/entry_64.S:244
+>
+> Memory state around the buggy address:
+>  ffff88807df93780: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>  ffff88807df93800: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> >ffff88807df93880: 00 00 00 00 00 00 00 00 00 00 00 00 fc fc fc fc
+>                                                        ^
+>  ffff88807df93900: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+>  ffff88807df93980: fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc fc
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+>
 
-The "spammy" behavior is the legacy behavior, so we do not want to
-regress it without opt-in unless there is a good reason to do it.
-I may be slow, but I did not catch what that good reason is.
-
-> >
-> > I prefer if the default behavior is defined by the kernel, rather than
-> > by userspace tools like libmount. If we were to automatically add any
-> > mount options through libmount, it would make it difficult to coexist
-> > with settings in fstab, etc. It's always better to have transparency
-> > and avoid any hidden factors in the process.
->
-> Right, my suggestion was that verbose should be opt-in precisely because
-> wanting to output to kmesg when using the new mount API is something
-> that only really makes sense for libmount and similar tools and so
-> should be opt-in rather than opt-out.
-
-My point was that kernel does not know which libmount version is used
-and there are clearly libmount versions out in the wild, that will remain
-out in the wild which by default, do not output all the legacy messages
-that are currently printed to kmsg.
-
-So I'm sorry, but I don't buy the argument for making the kernel default
-behavior silence those messages.
-
-Maybe I have a misconception about how useful those messages are.
-I would love Miklos to chime in if he has an opinion.
-
-Thanks,
-Amir.
+#syz test: https://github.com/amir73il/linux ovl-fixes
