@@ -1,73 +1,112 @@
-Received: from mail-il1-f199.google.com (mail-il1-f199.google.com [209.85.166.199])
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EA7B21D5171
-	for <linux-unionfs@vger.kernel.org>; Tue, 26 Nov 2024 14:43:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.199
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 97C4E1D5CE3;
+	Tue, 26 Nov 2024 14:53:48 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1732632186; cv=none; b=UWmJuj3mnYyFU/jU8ozdIfBWoeeqqaptVY6pON+tDWggGysmjLvzSbYb57QfGvqPqCn1gj4I7i7ZkDWjd4nNRXXQ/QMYupYwGQ9bdqz5cusodQ0wKTXLiZHNg/Iu02+6ywrM6525QoTQYmAdkDlYyVaN0fvXw9w0LIt0x7C41to=
+	t=1732632830; cv=none; b=L2hSk60K6zKzrUsl+G4n8fnZpPucirCQMXL4nQchpapScKJK/CjikUaxEjrquinotzrQnCbfBguBy4Mk0P906F8a7DOaAnkBi6yfcGftnGM/ie7VxZzUcBriVUnfa6qhG2AnMqlSfmDT+VoAYipAGM6u47SjiO7H5m/mxitcTf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1732632186; c=relaxed/simple;
-	bh=oZ2U+TR3HpR8vr6TU1NLBMPx3jtCe+sz/la9/FkRAK8=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=fpoJiZGHuQQrRhBVsqnjHvwNUEg9nlqCS3K8XwZhHQyBH2S5AguqHLkNaLdiYqkwWSC4gD9c7kEi8kA5NjR4rMXeXLALcCJjUhHgfS/fQPb6XeaPkTVfYxt1LLBL/c6WHniy4uBCDO4sy8O6SDbKEV/EX1sDg00nzCkPDFGLPWs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.199
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f199.google.com with SMTP id e9e14a558f8ab-3a7932544c4so54269775ab.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 26 Nov 2024 06:43:03 -0800 (PST)
+	s=arc-20240116; t=1732632830; c=relaxed/simple;
+	bh=KSEVBZ/G7JYMF9cZqi5u8cLDXg26TGry99x5UGOUcQk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=dWWVcjvjE3wlomsy8X3QC1v6MBOfPmVXzu3QgQ5fVXMealJxTixaOFFw13tuOtxhqP6cafLMZ4Y5W+mPEGc2YMcIPiozbaulta2fGN5g+iZhA7+fxUBRbjNmzYzk1sFVXNZYeyP44ar7JuP27zV4U9nQnKAG0ZWmrDy8S+50XQQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=iQyPDqZJ; arc=none smtp.client-ip=209.85.128.45
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="iQyPDqZJ"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-43169902057so50044275e9.0;
+        Tue, 26 Nov 2024 06:53:48 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1732632827; x=1733237627; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=Coi5uCvYLyf9BjKpQmReIjNPyxHK+7AsbkxIjGq+vUM=;
+        b=iQyPDqZJ1urniUTVZ8GjSXH3/pc6vCamt44hc4adDWQqZTSbZIsaTRvHDVcLC4X27k
+         vBeOpTFuANvVKIFvpo/5793iqoH8PweHjdmImCCh85Dv5VxEMDHFZiM0SDDqkBp6V2Lo
+         kTE4DCFjhP6U5T0HuhndWUil0WXE4VqvDt0fa1ROtvTuqyJeZCDgy4b47F8OU11nVdxq
+         2WXLKGvhJx4jqYdppXjWMZjIRbJ7BrUm2N309U046jPVwhQS+O8PLwoC7J/VMr5lm29a
+         TaNsMpLCFt8upjgS4MmaOwj0rNARwAm9FR0P6AOVu5/yuLRvSqjF0rI9d/HBiShTyFkF
+         pjSQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1732632183; x=1733236983;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=jm9TicSPUToN5ja0H8CfLPul6Rp0mNhRfDIRhAmk84A=;
-        b=FvNu6sisWA32XxrIuEciWgtWDfh2nT82moatwUEC5Ape5TyGyWZDCER2wWXtFcA/Jg
-         2MaMFyCpiS145435MTEvutHCKMlEm3bmrZvazUsIoQPjM3mALGgNvk/BBVCjECEA+YOQ
-         WLK19AUGadFoRHwaD2n8OPhxz0kXR9UOZPhm2WQTABqdsOlFr2Gw7s83dEDrPd03Gl30
-         c4wsiOBrpDnUEw4wk8/3XJwTeYAjuRf1U1P9shk3hUKoP0hUyeE1DBVy51zXbedjC6U+
-         LV4rpQ4r9uysiFsApmDu8sfl7Sou1i75/g2qGlce6PC0EC71YKfrb1rliMszS6GUpwGk
-         /n6g==
-X-Forwarded-Encrypted: i=1; AJvYcCVkgMsnKFdEEpNrkOGwXiRXIrf/hUt4Sz8EKBngJoRqSx81Sns5/s5tsZ0zzL2PvECuSrNqs8GlF6v+Ors7@vger.kernel.org
-X-Gm-Message-State: AOJu0YxdM1T74ilN6CWNjWOq6ekUL36HtCJXfe1UyLliaqOg59zC6VZi
-	ZGiawvD0DhBcGnvfj+ZZhVELKGRSYOfJAJbIIwL3Mgr8SVnmL+zlwcF/6saThu1wx8I9YDk7+2L
-	VC+k20+G13vgcjGN3ZnvOnGn5uvSXlDDa3yQk/z2a2mK1RSLo79SBR5I=
-X-Google-Smtp-Source: AGHT+IEq64wXQsmpsUQlLvYn2vOFU+udBfQ5L7C2L/up205iGAdxfWd1unk/NWHwUDNiRLb+Z80xYNtckJnO2cIykQB6dE2hmvVA
+        d=1e100.net; s=20230601; t=1732632827; x=1733237627;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=Coi5uCvYLyf9BjKpQmReIjNPyxHK+7AsbkxIjGq+vUM=;
+        b=vLpxTcWou+ovByghXiorc6VOhdbbialq9dGfdDqtTDTmKkUNB1sa/YTlVCNjU1Wn5b
+         9V3jUKb0J7sIQa053ZzulQ6kVKAWdxCBbm8k8cRdCPHLwdUolsTf2O6uY5YhlpfPayeq
+         D48mxUwfCWs2ae5snuXGTred5jKypZul8619fyYS6mrDI7eL7ihdNMtrA5zs/fqIVfA9
+         12V7A2SSqE0Tp5Nb9smWF9znn1Fsd2/xlN0ENQqj3CE+wW36UzbkCu1miChWlWHwRLIG
+         QGpuRrYqZVZRuOSDMrNOVnzJlcOY71Zkld03t5jPyvQme/SzUnfn2e6/3fLJkQoaZ1WH
+         jhaA==
+X-Forwarded-Encrypted: i=1; AJvYcCXAXTQOi2788p4lPx78fRqXXWQIXOw60PfUEKVelrkk7DqkToDxvlyxBx65eEEe6D2kHm7ovBRha3ZdKSEV@vger.kernel.org
+X-Gm-Message-State: AOJu0YwTyEfH7b1QFKvIYOst9idTatdrqIGkOldxccVYtJWkOJ4/KsrQ
+	SMx7C9sg0t1iGpvACtwDurl1nR22ueCK142xNIvkQKiTDmrZ8VrU
+X-Gm-Gg: ASbGnctbEnAoz1I0nty9kG5JUuqgPpImkOSSBmeoAKtG9lCEC3r2Ntlybz1sGcn8xZn
+	8eeo1/ALKWncRDqGum+MY2h8Cnkcf4R8Ct6UbuCyar+9m1eND1FPvmQ19etfHK2P4PYKKDDJ8oD
+	IZQ5Pqz38i9C2hiTXc1GbMMfzhtK+zg+jbAifrCLyFy9UOQEpwJUF42wy4+gW+shunq9mvUuAXR
+	p2yNCgvQpDFkmgrH3JPazJreyizFXPBvElvB3qiDdY3NmGTwSD0NIgXhDlxgKvIjq5AdsFCExoa
+	nCvjueOcB3oJ/BTh9boXa6kKbHz8WfDFjWN/TMitherQYyo=
+X-Google-Smtp-Source: AGHT+IG4vVII1X339eVM9tDO9PrABmKn+C7lHU3NxImmxVqBCrKEHOuyeqJvyHrkyNbbXXZOEObfiA==
+X-Received: by 2002:a05:600c:3b97:b0:431:60ec:7a91 with SMTP id 5b1f17b1804b1-433ce418036mr157138015e9.2.1732632826508;
+        Tue, 26 Nov 2024 06:53:46 -0800 (PST)
+Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-433b464320csm229143345e9.38.2024.11.26.06.53.45
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 26 Nov 2024 06:53:46 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Christian Brauner <brauner@kernel.org>
+Cc: linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com
+Subject: [PATCH] fs/backing_file: fix wrong argument in callback
+Date: Tue, 26 Nov 2024 15:53:42 +0100
+Message-Id: <20241126145342.364869-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:1885:b0:3a7:8720:9de5 with SMTP id
- e9e14a558f8ab-3a79acfb902mr228550875ab.1.1732632183229; Tue, 26 Nov 2024
- 06:43:03 -0800 (PST)
-Date: Tue, 26 Nov 2024 06:43:03 -0800
-In-Reply-To: <CAOQ4uxibdcHmnkn15G1M+8Ay7TK_4uB1tUi06+yuPWAze382Lg@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6745de77.050a0220.21d33d.0019.GAE@google.com>
-Subject: Re: [syzbot] [overlayfs?] KASAN: slab-out-of-bounds Read in ovl_inode_upper
-From: syzbot <syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Hello,
+Commit 48b50624aec4 ("backing-file: clean up the API") unintentionally
+changed the argument in the ->accessed() callback from the user file to
+the backing file.
 
-syzbot has tested the proposed patch and the reproducer did not trigger any issue:
-
+Fixes: 48b50624aec4 ("backing-file: clean up the API")
 Reported-by: syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com
+Closes: https://lore.kernel.org/linux-unionfs/67447b3c.050a0220.1cc393.0085.GAE@google.com/
 Tested-by: syzbot+8d1206605b05ca9a0e6a@syzkaller.appspotmail.com
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+---
+ fs/backing-file.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Tested on:
+diff --git a/fs/backing-file.c b/fs/backing-file.c
+index 526ddb4d6f76..cbdad8b68474 100644
+--- a/fs/backing-file.c
++++ b/fs/backing-file.c
+@@ -327,6 +327,7 @@ int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+ 		      struct backing_file_ctx *ctx)
+ {
+ 	const struct cred *old_cred;
++	struct file *user_file = vma->vm_file;
+ 	int ret;
+ 
+ 	if (WARN_ON_ONCE(!(file->f_mode & FMODE_BACKING)))
+@@ -342,7 +343,7 @@ int backing_file_mmap(struct file *file, struct vm_area_struct *vma,
+ 	revert_creds_light(old_cred);
+ 
+ 	if (ctx->accessed)
+-		ctx->accessed(vma->vm_file);
++		ctx->accessed(user_file);
+ 
+ 	return ret;
+ }
+-- 
+2.34.1
 
-commit:         e638d5c6 fs/backing_file: fix wrong argument in callback
-git tree:       https://github.com/amir73il/linux ovl-fixes
-console output: https://syzkaller.appspot.com/x/log.txt?x=103e9530580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=afdea6b282c7e739
-dashboard link: https://syzkaller.appspot.com/bug?extid=8d1206605b05ca9a0e6a
-compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
-
-Note: no patches were applied.
-Note: testing is done by a robot and is best-effort only.
