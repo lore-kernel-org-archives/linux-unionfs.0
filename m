@@ -1,41 +1,44 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A3F30207A1B;
-	Wed, 11 Dec 2024 17:40:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D21BC1C3F27;
+	Wed, 11 Dec 2024 19:58:43 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1733938830; cv=none; b=C2YqWeUmqrV70YBFEzFS/lmniYxfzuT/tsCBqVqOZxLsQTx9iaDXt08z6SVLhiS670eDokQPsaTUAx5huaxllvPcmlGjrMhv4P1nIVwVPxB31VcidamYtInb68A2KsJVnd9C0WlKP0vy5EynMmXVAk8PUbvpkhgmM6MrD8JuNA0=
+	t=1733947126; cv=none; b=Pr1a2TXgz0hdXqU/G/1gQ3NzHH06GxwBBkXSVuWdPy31R+5d3RImflvOLCKfHmkCPJmCsnIfxgp0CbRmjVR3YNiL4xmriNqlSLRCuRbcR58ps2/gB5d9qofZU4kBeS+pJPPz84p0fFqtWV/6GDYNm8Uu6MaI3mC4xDIC/X4jm+o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1733938830; c=relaxed/simple;
-	bh=2+F/X1bbGIHQ/mssm4ic+1dPk7ifq8G4W/p2zLLRRpU=;
+	s=arc-20240116; t=1733947126; c=relaxed/simple;
+	bh=iLL7j+lhKXojSACcFUP2A1NPQsahr5PmalZuUhrk2LQ=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=Sn36fNkdfYrYf00u8uWPhy7j0NAiWUdhtOkTtXKYrkYnX1CjA1I4KwL1sJlCEQxo7Xc4EjOon8WZTTtZRGhido+DiA0b+D2/5HuEfGg17bMp34SLtTtvrmd98r+WT5s6bqJG41Wg1Pej7QZYBUFH2VHt8WV9Toq+pSGiV/LUM90=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=VT+sjqve; arc=none smtp.client-ip=10.30.226.201
+	 Content-Type:Content-Disposition:In-Reply-To; b=WrbxwQ3jxyE+DpWuWAfbG2+HfF/jaTyzVxxRexqkt1yJ+H5uRX5xV0dSNsFx20mTPnzdMg+VHUP+ZFbjqt1BwHyDSY5LMPW5DX3pSVFqQN/wqJouZTeIhoBT3dhIj4rw5uH82/TdR2ybd+u106lgF52DtAW0k+pR3zJvgisHQDE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=rot+BtX0; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="VT+sjqve"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 265AAC4CED4;
-	Wed, 11 Dec 2024 17:40:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1733938830;
-	bh=2+F/X1bbGIHQ/mssm4ic+1dPk7ifq8G4W/p2zLLRRpU=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=VT+sjqveVKdK/NfGq4n5cyb2pqWjeE9nbhy4BqvoVAvd3BJ+S+Y7ekVeIz++JHo3H
-	 9gk0J3lAkoB2xAlkUVp6X39V+/6170gRQNWynBhSltC/k0XBRY7X42pcIXnk4o5Gdr
-	 Kxx9swpTtNz1/oIHcsX7+9VbE84QO6yqt8a1z7i39VsQnYBnzjpuzXWIgjJE8aieDK
-	 z8mi+1JZanjpIeTKsyfU5JpKb/Ns0si0VbxtdBBZvcogq34A905nR77sH+/93gZNge
-	 p2+EmWU6FIwxnykdMOxvlacAUCpz+wfbv56G6Pw9jYsk41IYJBJG8o/nFg83zyfShK
-	 5qj57TQhY4ZSg==
-Date: Wed, 11 Dec 2024 09:40:29 -0800
-From: "Darrick J. Wong" <djwong@kernel.org>
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="rot+BtX0"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+	References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+	Content-Transfer-Encoding:Content-ID:Content-Description;
+	bh=BAIaH1HkkTf+nk+nd0kNKy4nHuwixpyhCxY3FdT7Iho=; b=rot+BtX03O5eoy+/W6CImZtpLF
+	B2J+HV2MN9hpw14VUE8XYix2VFRVhGQU8H/uTM3J1mmZpjcjZp7yPIWLjQL1fJCi9+9N9/aSKmPZ/
+	Svh5R+aTcGV3ygcwNilZsNAVDsJ2zFvQCiYdL7kDfBXZ3V2C5CYGv8x2wU8s4hZPyD/EiuABN8YZj
+	Kbvi5qL3KMJmIBkEaHBKIyvBiaU19Mzyz/cvH7DnSDXMxSaaxq0KHZSPx7HYX5fjetwaV4T6jd1M3
+	DfMnNSQkOFSGtn0znk++1yZeNqZ96gcm5m5YwlSWI8/9BGffEhtW9salGxQp8W3IeAWWpCYDTq41t
+	YlPmnZVw==;
+Received: from willy by casper.infradead.org with local (Exim 4.98 #2 (Red Hat Linux))
+	id 1tLSqt-00000000Yyl-1lLr;
+	Wed, 11 Dec 2024 19:58:31 +0000
+Date: Wed, 11 Dec 2024 19:58:31 +0000
+From: Matthew Wilcox <willy@infradead.org>
 To: Bingwu Zhang <xtex@envs.net>
 Cc: Jonathan Corbet <corbet@lwn.net>, Miklos Szeredi <miklos@szeredi.hu>,
-	Bingwu Zhang <xtex@aosc.io>, linux-fsdevel@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org,
-	~xtex/staging@lists.sr.ht
+	"Darrick J. Wong" <djwong@kernel.org>, Bingwu Zhang <xtex@aosc.io>,
+	linux-fsdevel@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org,
+	linux-xfs@vger.kernel.org, ~xtex/staging@lists.sr.ht
 Subject: Re: [PATCH] Documentation: filesystems: fix two misspells
-Message-ID: <20241211174029.GC6698@frogsfrogsfrogs>
+Message-ID: <Z1nu50C6grj5th7e@casper.infradead.org>
 References: <20241208035447.162465-2-xtex@envs.net>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -51,49 +54,16 @@ On Sun, Dec 08, 2024 at 11:54:47AM +0800, Bingwu Zhang wrote:
 > From: Bingwu Zhang <xtex@aosc.io>
 > 
 > This fixes two small misspells in the filesystems documentation.
-> 
-> Signed-off-by: Bingwu Zhang <xtex@aosc.io>
 
-Yep, typoes happun, thanks for the patch.
-Reviewed-by: "Darrick J. Wong" <djwong@kernel.org>
+There's a couple of similar ones if you want to submit some bonus
+patches:
 
---D
+$ git grep sytem
+Documentation/devicetree/bindings/sound/amlogic,axg-sound-card.yaml:      Base PLL clocks of audio susbsytem, used to configure base clock
+Documentation/devicetree/bindings/sound/amlogic,gx-sound-card.yaml:      Base PLL clocks of audio susbsytem, used to configure base clock
+Documentation/filesystems/iomap/operations.rst:    Races can also happen if the filesytem allows concurrent writes.
+drivers/gpu/drm/xe/xe_bo.c: * On successful completion, the object memory will be moved to sytem memory.
+fs/freevxfs/vxfs_super.c: * @fc:                        filesytem context
+fs/ocfs2/sysfile.c:                      * return NULL here so that ocfs2_get_sytem_file_inodes
+scripts/spelling.txt:sytem||system
 
-> ---
-> I found these typos when learning about OverlayFS recently.
-> ---
->  Documentation/filesystems/iomap/operations.rst | 2 +-
->  Documentation/filesystems/overlayfs.rst        | 2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/filesystems/iomap/operations.rst b/Documentation/filesystems/iomap/operations.rst
-> index ef082e5a4e0c..2c7f5df9d8b0 100644
-> --- a/Documentation/filesystems/iomap/operations.rst
-> +++ b/Documentation/filesystems/iomap/operations.rst
-> @@ -104,7 +104,7 @@ iomap calls these functions:
->  
->      For the pagecache, races can happen if writeback doesn't take
->      ``i_rwsem`` or ``invalidate_lock`` and updates mapping information.
-> -    Races can also happen if the filesytem allows concurrent writes.
-> +    Races can also happen if the filesystem allows concurrent writes.
->      For such files, the mapping *must* be revalidated after the folio
->      lock has been taken so that iomap can manage the folio correctly.
->  
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
-> index 4c8387e1c880..d2a277e3976e 100644
-> --- a/Documentation/filesystems/overlayfs.rst
-> +++ b/Documentation/filesystems/overlayfs.rst
-> @@ -156,7 +156,7 @@ A directory is made opaque by setting the xattr "trusted.overlay.opaque"
->  to "y".  Where the upper filesystem contains an opaque directory, any
->  directory in the lower filesystem with the same name is ignored.
->  
-> -An opaque directory should not conntain any whiteouts, because they do not
-> +An opaque directory should not contain any whiteouts, because they do not
->  serve any purpose.  A merge directory containing regular files with the xattr
->  "trusted.overlay.whiteout", should be additionally marked by setting the xattr
->  "trusted.overlay.opaque" to "x" on the merge directory itself.
-> 
-> base-commit: 7503345ac5f5e82fd9a36d6e6b447c016376403a
-> -- 
-> 2.47.1
-> 
