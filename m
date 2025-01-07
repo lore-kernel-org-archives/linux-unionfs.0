@@ -1,39 +1,42 @@
-Received: from out-173.mta1.migadu.com (out-173.mta1.migadu.com [95.215.58.173])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [195.130.137.89])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 75FB821D5AA
-	for <linux-unionfs@vger.kernel.org>; Fri, 20 Dec 2024 19:30:22 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E1D221E2842
+	for <linux-unionfs@vger.kernel.org>; Tue,  7 Jan 2025 08:44:37 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=195.130.137.89
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1734723024; cv=none; b=LJRfJr/UdyrzUvntun+5d+ktVq/jQCJ7fl9BWnvaFiXDDqitGqqob18Nz13eQLnjuArd6xtnjpOgDzo2ITq7G2pbHyJCukBS1zIMsj2P3l/23j+gELaeMnpH6Wi+BJFgWM32SSgQ/NLbSwfbbFy1PgKxdzvrrpIx/40Lc97CTBc=
+	t=1736239484; cv=none; b=pPdWMrFjBQ622GsZhztWB/v9K/Z/0SjJiuKNuTD5woSnJQkxPznei9e8uTG/dS/sTUbhEsbRt+Z0g4Im/Yul9pwA70dDz6y4arulIOvJh1XXlAn+2fUUWh8ydrg86LSFMpVa9dmPCb67yTShuHOb1rAI2b0o1MqsoYR3Mnk9Klg=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1734723024; c=relaxed/simple;
-	bh=/GQqeRU7X4VYGm5rsd2laeRMG/XWtb8DserF4nGqSVw=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ccL3PVybSAs6MSgbhg3Jdx2gQJr5R1EUDsJ0iSFr2LYDZ8ZEJEfzaaqdnhuqZI+YumWVqSrRZsW3y+vq0YbMKKKzlib9/Fn+oAGbaL3TvnTuDCucQ7du/HK7QKCHJ2mEFp58zTgWz9gt3Dven+5qm8RWrQ3hGR3ntpz5AfpFOiQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ey9PbPXt; arc=none smtp.client-ip=95.215.58.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ey9PbPXt"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1734723020;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=HtvsAGPSRdKu4Y7Op/U5CVJDzFW2JHc65EwHQPm9ygw=;
-	b=ey9PbPXtjoRDHPgO1/7mbMyPIcDuwnJ/Qzi6cCRID0oWn6qF3SAYBWoJXBQf0wRCyfu95E
-	EEVX0PajiKcXwzHs9prBupLa2Tm9jpIjNC7PxCI4dDrs4juQB3t2z1ag8ZNm0TUcRCb3+2
-	YL9DEeZstxCIDhXmw2pI4CMkQhQfTco=
-From: Thorsten Blum <thorsten.blum@linux.dev>
+	s=arc-20240116; t=1736239484; c=relaxed/simple;
+	bh=5P9iZOWC+nkrEWb3FOIQ8gioITybKsrDoTgdL1L/wyU=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=mhz0/6oylf7gBGfcXhBhDyzO8xnDTG6RXFEglElJ4V5NEie2Bzb6KVqmpo8VLjnngu62nQuixR/b2Qd8o9eRGEe0gBXS7eQ5Hfcj1VlL1lVoGmvcKVvquk5Xq6IWss9kEG0KyluVOun2jB6frY07OTGSLpaKoNj9m/gU4U2LYoY=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=glider.be; spf=none smtp.mailfrom=linux-m68k.org; arc=none smtp.client-ip=195.130.137.89
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=glider.be
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=linux-m68k.org
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed80:39d4:dc4e:b4ce:1377])
+	by laurent.telenet-ops.be with cmsmtp
+	id y8kZ2D00U3AZZFy018kZWv; Tue, 07 Jan 2025 09:44:35 +0100
+Received: from rox.of.borg ([192.168.97.57])
+	by ramsan.of.borg with esmtp (Exim 4.97)
+	(envelope-from <geert@linux-m68k.org>)
+	id 1tV5CP-00000008Zi0-3z6C;
+	Tue, 07 Jan 2025 09:44:33 +0100
+Received: from geert by rox.of.borg with local (Exim 4.97)
+	(envelope-from <geert@linux-m68k.org>)
+	id 1tV5CT-00000004lQd-20pE;
+	Tue, 07 Jan 2025 09:44:33 +0100
+From: Geert Uytterhoeven <geert+renesas@glider.be>
 To: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>,
-	linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RESEND PATCH] ovl: Use str_on_off() helper in ovl_show_options()
-Date: Fri, 20 Dec 2024 20:29:42 +0100
-Message-ID: <20241220192941.2367-3-thorsten.blum@linux.dev>
+	Amir Goldstein <amir73il@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Cc: linux-unionfs@vger.kernel.org,
+	linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: [PATCH] overlayfs.rst: Fix and improve grammar
+Date: Tue,  7 Jan 2025 09:44:28 +0100
+Message-ID: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
+X-Mailer: git-send-email 2.43.0
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -41,41 +44,39 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-Remove hard-coded strings by using the str_on_off() helper function.
+  - Correct "in a way the" to "in a way that",
+  - Add a comma to improve readability.
 
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- fs/overlayfs/params.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Documentation/filesystems/overlayfs.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 1115c22deca0..8a8bb336b40f 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -1053,17 +1053,16 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 		seq_printf(m, ",redirect_dir=%s",
- 			   ovl_redirect_mode(&ofs->config));
- 	if (ofs->config.index != ovl_index_def)
--		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
-+		seq_printf(m, ",index=%s", str_on_off(ofs->config.index));
- 	if (ofs->config.uuid != ovl_uuid_def())
- 		seq_printf(m, ",uuid=%s", ovl_uuid_mode(&ofs->config));
- 	if (ofs->config.nfs_export != ovl_nfs_export_def)
--		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
--						"on" : "off");
-+		seq_printf(m, ",nfs_export=%s",
-+			   str_on_off(ofs->config.nfs_export));
- 	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(ofs))
- 		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
- 	if (ofs->config.metacopy != ovl_metacopy_def)
--		seq_printf(m, ",metacopy=%s",
--			   ofs->config.metacopy ? "on" : "off");
-+		seq_printf(m, ",metacopy=%s", str_on_off(ofs->config.metacopy));
- 	if (ofs->config.ovl_volatile)
- 		seq_puts(m, ",volatile");
- 	if (ofs->config.userxattr)
+diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
+index 4c8387e1c88068fa..a93dddeae199491a 100644
+--- a/Documentation/filesystems/overlayfs.rst
++++ b/Documentation/filesystems/overlayfs.rst
+@@ -266,7 +266,7 @@ Non-directories
+ Objects that are not directories (files, symlinks, device-special
+ files etc.) are presented either from the upper or lower filesystem as
+ appropriate.  When a file in the lower filesystem is accessed in a way
+-the requires write-access, such as opening for write access, changing
++that requires write-access, such as opening for write access, changing
+ some metadata etc., the file is first copied from the lower filesystem
+ to the upper filesystem (copy_up).  Note that creating a hard-link
+ also requires copy_up, though of course creation of a symlink does
+@@ -549,8 +549,8 @@ Nesting overlayfs mounts
+ 
+ It is possible to use a lower directory that is stored on an overlayfs
+ mount. For regular files this does not need any special care. However, files
+-that have overlayfs attributes, such as whiteouts or "overlay.*" xattrs will be
+-interpreted by the underlying overlayfs mount and stripped out. In order to
++that have overlayfs attributes, such as whiteouts or "overlay.*" xattrs, will
++be interpreted by the underlying overlayfs mount and stripped out. In order to
+ allow the second overlayfs mount to see the attributes they must be escaped.
+ 
+ Overlayfs specific xattrs are escaped by using a special prefix of
 -- 
-2.47.1
+2.43.0
 
