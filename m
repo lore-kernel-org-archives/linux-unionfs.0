@@ -1,100 +1,69 @@
-Received: from mail-ed1-f42.google.com (mail-ed1-f42.google.com [209.85.208.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from casper.infradead.org (casper.infradead.org [90.155.50.34])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 57F2F148838;
-	Tue,  7 Jan 2025 11:13:38 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7404318A921;
+	Tue,  7 Jan 2025 16:48:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=90.155.50.34
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736248421; cv=none; b=Tm3SalvoIMUw2zRmGnnoIwenxLHXrZJ+/Qsg9QLkQIlQC7qMbdLjlGHObjNbk3Iu8jDkMvUTDA92WDBpm7jSaPu5WdEIk2LYgIgQO48HGaKhZTSlC4zWjKrrqCNVEOolP0SXLPJNQzK7TC5GaFh/c0IMcoDDFoAuXU9F92bT7CU=
+	t=1736268533; cv=none; b=lIPATMCumv6ZasEtdxFf8rP/usbEhsflN/w5PdKxQgEILg9enir+8y9q6MVXTkaXeGzb7HhS9CDiRTOSahZzn+8yATNl+bGYlR4CFxD0MB8+OBD5Fv9TfguO5lzXEUyWe5tvOO515RuUbY+AY4JywS6AwB36iWLmuf9aYZCcOxM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736248421; c=relaxed/simple;
-	bh=6XE/aliWGr+W26o2fjUc7Z25p+2CU6ECbOVEjcYQUIo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=eoPkNf5L5kzc39ULOHt0cB03drBj72CKsfUWD9KHDyWQdJO5uu/v13tC4GInj2Dnqpw0Sb4KWA6uzUebcbO7/8VDFGgvjGwKE4bcAUzWyGDsMvu7IVEsoi4pPukQRN4xJ6tNvp4PStqie9KnyJfP43Q0E5ENiluZ7xAXIyVRxVs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=f2jBYZxG; arc=none smtp.client-ip=209.85.208.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1736268533; c=relaxed/simple;
+	bh=ZhkH2CmTXTPJbo/ZyLlsuVhhGPV8NAOe7seFpwYCK7U=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=quPQoFy0AsnxpfxeCMIRJmtlzW9ttWdq0X+wLhDaYu5YDqHciHRCAZTE4i5a3mx+dZuototJYvBP72R2TQ9Sx1+weuk1NvVBeUQ6scuELtL+zSV6jc+66Ju75y3cEqAItG4r1IdygGPTHIJp0YeR2GO8L4Rp3hqN4HcU7o7qui8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org; spf=none smtp.mailfrom=infradead.org; dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b=Ps2Wgyqj; arc=none smtp.client-ip=90.155.50.34
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=infradead.org
+Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=infradead.org
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="f2jBYZxG"
-Received: by mail-ed1-f42.google.com with SMTP id 4fb4d7f45d1cf-5d7e3f1fc01so3149572a12.2;
-        Tue, 07 Jan 2025 03:13:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1736248417; x=1736853217; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Mr/GzVDnk1vhkDYSLmfDLR/Vh+afBQJAWF7/ClflUCc=;
-        b=f2jBYZxGwdZA+IyB2BNEEIk6jKkUIc8tOht0pllgCegkrJcHH2phQ0rzI0erGCQ9oA
-         gIkii9X+yqEamrUccoSg+sizpmEVrenGxfBC4rD+PJlvzhEO4VI2GsJaKp5D8wR2sv3H
-         gFdURjtlpxE8IZEin5oXuGGEqwhW9atweqobULzscrJ+c4J2EV7XN9aHhpE3s07YePKD
-         oxj9l7blapODNCuDLPp9iA/Pic7SGnG9SHo53uXFsFk29gAUo+Kis9IFx2bU+VE2VmH8
-         O8Zp014bFudDIcxsKM3B6WaCLfXo4Cb68Hn7X8UmdQ4+nYBZcyNeP9sveJr05sLqwHS5
-         FUHw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736248417; x=1736853217;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Mr/GzVDnk1vhkDYSLmfDLR/Vh+afBQJAWF7/ClflUCc=;
-        b=c/k2UTJva6KAK7ai/+M+iB6ld4pIYAm1H17jnxoMn2KH+3m37twEVa1tqUcIzqAz2b
-         +bkTo4VvlCN9Lm4nMuoL3mBlvWwRIsBpVD0HSolqHyHdbN8VK3oNZd9lUV6L+NLa0iBP
-         4QRzfrT1nGsjJGRy3Cq27Iww2Je8HNuNLdAfscXa2AqedVxnR5KkodJ/iDzC02LrMbjb
-         8dkTVKDsdPWkzOC2JK3iWD7PtnB9ia58NdZXmeXejXQvwXyY+PM44q9qJMQ92l7TwkXH
-         Cbl9s6CcUveyJso0UjEtqGp+/+lgflgwaKIAvU3I60MgP+Wwfibz1Bew2pifD2ktEPuu
-         JIjg==
-X-Forwarded-Encrypted: i=1; AJvYcCUC/phCYDZO2CW0ZEWLI89nmB1fy9KXRz3Jsc4zEh7LBqhzmPnjxUWwgxj5Fm+sh0tKf1dTTGXVUjdcCcL9@vger.kernel.org, AJvYcCUQK17cfA5rzAo8mYCw/kS4YTP+wvjmrg0RgGnir4bObV6T8vaLPsEH0wlkJsisjUCEOlV5Rp/IJQOCc6lcyA==@vger.kernel.org, AJvYcCVYZ3FFWKv2PBL/frv3en6oPRNEZsgQHkwxdDhh/Fq/yd/AX+IQAfiylD9n4DAztf9nH226t+w8Zno=@vger.kernel.org
-X-Gm-Message-State: AOJu0YwYJx14wH2MHxT13zJm8O6OHPV9gt1dhRwYVYftaS8aqR9b3uxn
-	bDssxbQFHx/6R0rxgtj36pwXP6t1wJ7WEllBbFyqzRGyqlv3mg0PFq03BRrApyiPH7MF0XfOi8p
-	BV8n5dzdqDbCg0FWFj7QJg83MqSpxMZRi+H0=
-X-Gm-Gg: ASbGncszF77vi+Ta9sUKuLnZujXN0MS81aoTr5Y1O3mncR2+cw6cXr7OA0xWVL573vY
-	q5UU7zmdUQlo9SfI7zZUUl4obUdJzaI1A66ZkWQ==
-X-Google-Smtp-Source: AGHT+IHZOZuGh+Cq1RVbbzN662zcy1YLAMdsH19pgW8fy9okRskaf6pwCzHbHpwNVgGdw916i0lU9B/Y72Gdu/rdaCk=
-X-Received: by 2002:a05:6402:528a:b0:5d3:f141:ccf6 with SMTP id
- 4fb4d7f45d1cf-5d81de16c82mr57619463a12.32.1736248416238; Tue, 07 Jan 2025
- 03:13:36 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=infradead.org header.i=@infradead.org header.b="Ps2Wgyqj"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+	d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+	In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+	:Reply-To:Content-ID:Content-Description;
+	bh=p1zFuHZ5Sl2IM0M0xSHGDVLawN4vSXAk61nFmFpFr/E=; b=Ps2Wgyqj89+pmq5uvhAwnWT2NA
+	WKBP9hT0b+fK4sUtN0WR9xDe22Xg7atOv5FnoH/LBxd8V4jL7VzrIOQ9zwYxXQ1YsiuRggf1VwbId
+	PYArx+9JWXOOdaatcnHmo5Bn1EVLu0GeowKR9C2p/kGGCc/9WJwpcxOGWKcq5gFNxoQnUnM1YCt9z
+	+ogp/R0TSLaFby3ze4qzV1FlSsDE+utPGrNNmFpUS/Xj4M0xc74A1TOgC0WAnxAqxAC6wb4LBOQlD
+	l94k1CkXl5MZ9tBKzF4L8aUuKv2OXTLqpo4GO76EivhA8O0da9+uWugA0bDS/krDxLllmflLVvzat
+	2x4qvCFQ==;
+Received: from [50.53.2.24] (helo=[192.168.254.17])
+	by casper.infradead.org with esmtpsa (Exim 4.98 #2 (Red Hat Linux))
+	id 1tVCl0-00000008N73-3zac;
+	Tue, 07 Jan 2025 16:48:43 +0000
+Message-ID: <dd660b4c-fe71-4237-a9ea-e574785e152f@infradead.org>
+Date: Tue, 7 Jan 2025 08:48:37 -0800
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
-In-Reply-To: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 7 Jan 2025 12:13:25 +0100
-X-Gm-Features: AbW1kvYLrDdrgGevJS4mpM4stjr2b9nsS6FuxuvYsZ9qIZgGsUE-v-JWNUQx-d4
-Message-ID: <CAOQ4uxjESOJsb2GDx-c==_cLtF=wqtDAprcDmjwiq25hyzQFwA@mail.gmail.com>
+User-Agent: Mozilla Thunderbird
 Subject: Re: [PATCH] overlayfs.rst: Fix and improve grammar
-To: Geert Uytterhoeven <geert+renesas@glider.be>, Jonathan Corbet <corbet@lwn.net>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+To: Geert Uytterhoeven <geert+renesas@glider.be>,
+ Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>,
+ Jonathan Corbet <corbet@lwn.net>
+Cc: linux-unionfs@vger.kernel.org, linux-doc@vger.kernel.org,
+ linux-kernel@vger.kernel.org
+References: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
+Content-Language: en-US
+From: Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Tue, Jan 7, 2025 at 9:45=E2=80=AFAM Geert Uytterhoeven
-<geert+renesas@glider.be> wrote:
->
+
+
+On 1/7/25 12:44 AM, Geert Uytterhoeven wrote:
 >   - Correct "in a way the" to "in a way that",
 >   - Add a comma to improve readability.
->
+> 
 > Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-Acked-by: Amir Goldstein <amir73il@gmail.com>
-
-John,
-
-Please take this patch via the documentation tree,
-as I have no overlayfs patches queued for v6.14.
-
-Thanks,
-Amir.
-
 > ---
 >  Documentation/filesystems/overlayfs.rst | 6 +++---
 >  1 file changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
-systems/overlayfs.rst
+> 
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/filesystems/overlayfs.rst
 > index 4c8387e1c88068fa..a93dddeae199491a 100644
 > --- a/Documentation/filesystems/overlayfs.rst
 > +++ b/Documentation/filesystems/overlayfs.rst
@@ -108,23 +77,20 @@ systems/overlayfs.rst
 >  to the upper filesystem (copy_up).  Note that creating a hard-link
 >  also requires copy_up, though of course creation of a symlink does
 > @@ -549,8 +549,8 @@ Nesting overlayfs mounts
->
+>  
 >  It is possible to use a lower directory that is stored on an overlayfs
->  mount. For regular files this does not need any special care. However, f=
-iles
-> -that have overlayfs attributes, such as whiteouts or "overlay.*" xattrs =
-will be
-> -interpreted by the underlying overlayfs mount and stripped out. In order=
- to
-> +that have overlayfs attributes, such as whiteouts or "overlay.*" xattrs,=
- will
-> +be interpreted by the underlying overlayfs mount and stripped out. In or=
-der to
->  allow the second overlayfs mount to see the attributes they must be esca=
-ped.
->
+>  mount. For regular files this does not need any special care. However, files
+> -that have overlayfs attributes, such as whiteouts or "overlay.*" xattrs will be
+> -interpreted by the underlying overlayfs mount and stripped out. In order to
+> +that have overlayfs attributes, such as whiteouts or "overlay.*" xattrs, will
+> +be interpreted by the underlying overlayfs mount and stripped out. In order to
+>  allow the second overlayfs mount to see the attributes they must be escaped.
+>  
 >  Overlayfs specific xattrs are escaped by using a special prefix of
-> --
-> 2.43.0
->
->
+
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+
+Thanks.
+
+-- 
+~Randy
