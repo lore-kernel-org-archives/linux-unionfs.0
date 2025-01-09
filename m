@@ -1,53 +1,53 @@
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8318A215764
-	for <linux-unionfs@vger.kernel.org>; Thu,  9 Jan 2025 11:33:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0BE162185AB
+	for <linux-unionfs@vger.kernel.org>; Thu,  9 Jan 2025 13:13:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736422395; cv=none; b=Yx42yXYTrGk2xD4+FLoxHOAltQ6rKU0+dyQjXJN6+6+LRO4BsO1IWjEJbQ12y8Kl41qbjSoJtaAJTP/zNqA6hzirAFWPqEzBbD3cCuCGucPa4q/HHH54h4wrORkybdcVKUKFhObSFcAr5t4Cu0Z19f0mj43D/wxDSshLUee2c/M=
+	t=1736428438; cv=none; b=Uz38nH8XHXLFpVzup2p12fhuqnsgCakBkvu4koquePXtESD7v3dVESVkFMNbhM1VXk6bexHxCzphZEdE/CObGcPPDJL2f9vRdvPtVlius3w3kmnoIzmXrrFB6LWvxT7+Y/jBef7+9GmXu+DDn9fhI97kwaj/GLd+B+QHmipHflc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736422395; c=relaxed/simple;
-	bh=4DhZ7h+hC/wW/6sKaxaXfjhYlhEkQwNVKexSkchilg8=;
+	s=arc-20240116; t=1736428438; c=relaxed/simple;
+	bh=TwqBlKCo/5ENazwKpYfsYMgEwFOcQaBDDaRLL6b7F0Y=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=g0qbqQLN2lCSKi9pid/2l2MQ4hYqX6f/vVTIOShc9rOeOLu5CmtYqWu24UNWYVY+h/UDyGI9zVKWgNcInJMLVZ/8dduVd2BnLRCix+yFR/lE47hibuoWdzZL/mjMmLC/Bk5/LjAjxo9lvG2cL5aXrnIi82h5efIgAgGcfircxiM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=m1C9ZDLM; arc=none smtp.client-ip=209.85.160.178
+	 To:Cc:Content-Type; b=JhulrUwCEPpbNJFchp2BTfJ+BvkGB3JxQud3D9GAoP1Y0uuXMgB4lHJRPM2e3Sexxvel5j6/zt9JALmWeuwvG1CSlI96PHu2nJqDkX02lxKZ2aVaswz1acuiqFOn8v4ONWqQMjDSery3dQ8qEG7fGc1iTJKYTiBxzYZStzmZc8A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=VZgq4P8M; arc=none smtp.client-ip=209.85.160.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="m1C9ZDLM"
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-467a17055e6so7721371cf.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 09 Jan 2025 03:33:12 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="VZgq4P8M"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-46785fbb949so6501661cf.3
+        for <linux-unionfs@vger.kernel.org>; Thu, 09 Jan 2025 05:13:56 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1736422391; x=1737027191; darn=vger.kernel.org;
+        d=szeredi.hu; s=google; t=1736428436; x=1737033236; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=WNvfIFwlqP4QKBZDPopcva26qRyXQCS+MMSSoxP4bMA=;
-        b=m1C9ZDLMUIb8thLAPVkZpyIIzUkGpIRedwqoAbL8gy+YNpsIiZ6HZuZsf5n1cHVk2/
-         QT2egSaB6+TjEKoTyW2ufCYR0iPRt78Tk4eVkWNx6P56ph2mBRyRzQrYexxZrdeQ+JYj
-         67/7b+TtJGy/RjU80eRSPayNDA275vukivfUg=
+        bh=TwqBlKCo/5ENazwKpYfsYMgEwFOcQaBDDaRLL6b7F0Y=;
+        b=VZgq4P8MzzCxCeL4uDMp4vnX5xbYFma5IQHgNdf2FJkHIxzJ8xIm2uIeSMLB4PWMfY
+         uhkouWeV2ZKEoOTDKG5dkosJIe1wZBBTit3fTuTCROfG1bWQJuucu8dBTluU34PqdHad
+         t8zXwi+XF4bOljc3v5otAc1pBORXchCox8+ws=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736422391; x=1737027191;
+        d=1e100.net; s=20230601; t=1736428436; x=1737033236;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=WNvfIFwlqP4QKBZDPopcva26qRyXQCS+MMSSoxP4bMA=;
-        b=dvSu3MxxnlZYuTYEuFKRhlulbklKAR4Yo5XXhYZEydPHk0UIrAw8XUHCNopaAUFrcA
-         FIeii2/HaOKOHCj+TOPr8yEOWgtxve3Pzm2guu17qiQuXAICXABExvBJwAqJd+VlRwmA
-         EJUaUSQqZqoe4rjvSEcwcDWc6IPwqlCiL9tYKCtc406jFzsCPQj1tB1QhvVBb5jWBmoq
-         MltiqaAyI/FMmwEjIYHhiHjd3okRRa2gWrjTeijdcwyFf8BPETqScZNA2ftOGnPc4sP+
-         WuKpsYmakvNqaidyqcZNuRKU12gfsaClc99OZ/FsxePixG8Q/mA+nCFyTwzgssTFAkFK
-         Pt9g==
-X-Forwarded-Encrypted: i=1; AJvYcCU7jP6vIfDhRY1VfxiFeg+0OsrWiHRNnprQCyLQpr2SBLeeIXrRvmooOov8gQj38APMlKvVfMEY3DFuiQJi@vger.kernel.org
-X-Gm-Message-State: AOJu0YxLSkrXcrg0Y/GchNTz4GWzm64UHUMMCgHdKvmpPXSletFt0+si
-	+DZfDulPo66E8ML3PQ37QHo0omud2fIdnZQ443Mk02cQZjR5gUnBqGCAT3YijcYIaJua0oI04Ad
-	IJHnh7Q/9h44F2wdV54P+hvJtpb856UIkOr+GPQ==
-X-Gm-Gg: ASbGncuH2F0yzijiliuvm+QBbdo5DpXn8TYhQqj0Pac98gTCfYuA7xyUCyrh5JX/j/R
-	XAimDCF7D5G6oxKotEkxKjb8g/0RRsxakIhUfSQ==
-X-Google-Smtp-Source: AGHT+IFwF+BHLu4NVU2ZonM0UoppSCIW2Fzyjm5SsBV4QT8oZYr6lhlTVclwDivrwtcyfckItJp3sye8V8YUGJ57Tio=
-X-Received: by 2002:ac8:584e:0:b0:467:7295:b75f with SMTP id
- d75a77b69052e-46c71083e8amr105665531cf.38.1736422391181; Thu, 09 Jan 2025
- 03:33:11 -0800 (PST)
+        bh=TwqBlKCo/5ENazwKpYfsYMgEwFOcQaBDDaRLL6b7F0Y=;
+        b=JgifErqDg2b2AN2rOW6wDUMVxGO2ZbQa0lI++WP1utumY3LwoNVjXDhzuQCRu9kBxY
+         MXxK+TDNjhsfHAUT0keshZ6KrUrlkPX3mQu+HqWVZIO8D0mGOw6BciYVRobRtOWVViNQ
+         wiV/Z8z992QlbyE35QpJliYO5xR3V/dLb1Yg6M9h0eLZ9fBeK0njlOMuGpNJolDjiohr
+         x7iRIUYYY5fmNS70qWfYcW/qGp+gxX6tvJ1tD+N/68tZXddW5qFkBKyI6GywrHKl8b0Y
+         CggPQT3Ofooh4xCVKaXgPmBl1WH2PNx78rPVmU/27FRh6yzOjIIG+olZaEm2Lpv1Mogo
+         EAkQ==
+X-Forwarded-Encrypted: i=1; AJvYcCXpGyk8R4azYpoZGScGvxqUaKs1a+RR5ATKIUiwUxBHeJM+BopRypWAYW2iEmmoMOSWKqRsiZs8M5dVuwzo@vger.kernel.org
+X-Gm-Message-State: AOJu0YwmfUsv/c9m+aHfVDDajtdYN+ofsNkgKaAPExWxAS/KSbN00pVM
+	Z0gkrq7EL9HeIZiMxX4ZMvLL9yoeh+b0P4sxRGWGlMeyAIClscl3USSFVIOwHcdXAuj3EL4RLIT
+	QWGtOQditWRa5mSwGmGZYH/jvSbQEG9FIasN/jY+36eFscqUv6BdyeQ==
+X-Gm-Gg: ASbGncubGPpf4XmbINbKkbrtYK/6IMrp3td+yg+5w5J0NrbKFOea1kJRn2h/4BmZalO
+	ZXN58q76nWYS3kix5L8yWbTFikOLf+KK5XvIWGzk=
+X-Google-Smtp-Source: AGHT+IFG9GJ09B4FJOZ+YFICJgZdpqOWtmk2iKM62UmCr1P+AGqCNFgZVmbiuXdIM4c1ctKzMWFGlhfolaoLVp2CoEQ=
+X-Received: by 2002:ac8:5a48:0:b0:467:5712:a69a with SMTP id
+ d75a77b69052e-46c7102fcb6mr96531341cf.29.1736428436036; Thu, 09 Jan 2025
+ 05:13:56 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -55,11 +55,12 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <0000000000003d5bc30617238b6d@google.com> <677ee31c.050a0220.25a300.01a2.GAE@google.com>
-In-Reply-To: <677ee31c.050a0220.25a300.01a2.GAE@google.com>
+ <CAJfpeguhqz7dGeEc7H_xT6aCXR6e5ZPsTwWwe-oxamLaNkW6=g@mail.gmail.com>
+In-Reply-To: <CAJfpeguhqz7dGeEc7H_xT6aCXR6e5ZPsTwWwe-oxamLaNkW6=g@mail.gmail.com>
 From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 9 Jan 2025 12:33:00 +0100
-X-Gm-Features: AbW1kvZzJ5lz6Eb3KKrjH-1AAR6UFCjTUY-4txNP5rEFXavvONhHexqYFfIR2Cw
-Message-ID: <CAJfpeguhqz7dGeEc7H_xT6aCXR6e5ZPsTwWwe-oxamLaNkW6=g@mail.gmail.com>
+Date: Thu, 9 Jan 2025 14:13:45 +0100
+X-Gm-Features: AbW1kvavAsEfIUw5DyroXkQiIKTKKS9TDRTAdAT2RB5wVAD6b1Ef2WcW4M0Jvo4
+Message-ID: <CAJfpegsJt0+oE1OJxEb9kPXA+rouTb4nU6QTA49=SmaZp+dksQ@mail.gmail.com>
 Subject: Re: [syzbot] [overlayfs?] BUG: unable to handle kernel NULL pointer
  dereference in __lookup_slow (3)
 To: syzbot <syzbot+94891a5155abdf6821b7@syzkaller.appspotmail.com>
@@ -69,30 +70,5 @@ Cc: aivazian.tigran@gmail.com, amir73il@gmail.com, andrew.kanner@gmail.com,
 	stable@vger.kernel.org, syzkaller-bugs@googlegroups.com
 Content-Type: text/plain; charset="UTF-8"
 
-syz dup: BUG: unable to handle kernel NULL pointer dereference in
+#syz dup: BUG: unable to handle kernel NULL pointer dereference in
 lookup_one_unlocked
-
-On Wed, 8 Jan 2025 at 21:42, syzbot
-<syzbot+94891a5155abdf6821b7@syzkaller.appspotmail.com> wrote:
->
-> syzbot suspects this issue was fixed by commit:
->
-> commit c8b359dddb418c60df1a69beea01d1b3322bfe83
-> Author: Vasiliy Kovalev <kovalev@altlinux.org>
-> Date:   Tue Nov 19 15:58:17 2024 +0000
->
->     ovl: Filter invalid inodes with missing lookup function
->
-> bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=14ef4dc4580000
-> start commit:   20371ba12063 Merge tag 'drm-fixes-2024-08-30' of https://g..
-> git tree:       upstream
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=d806687521800cad
-> dashboard link: https://syzkaller.appspot.com/bug?extid=94891a5155abdf6821b7
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=1673fcb7980000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=15223467980000
->
-> If the result looks correct, please mark the issue as fixed by replying with:
->
-> #syz fix: ovl: Filter invalid inodes with missing lookup function
->
-> For information about bisection process see: https://goo.gl/tpsmEJ#bisection
