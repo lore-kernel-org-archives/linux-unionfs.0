@@ -1,63 +1,74 @@
-Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C716A2185BD
-	for <linux-unionfs@vger.kernel.org>; Thu,  9 Jan 2025 13:13:57 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F5D71885AA;
+	Thu,  9 Jan 2025 18:52:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.79.88.28
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736428439; cv=none; b=QeVOrH9ofYMN1guHjb83cHS930s0aH3cW0M40mgXOi397RAAflxoNSKVgFbe1Hwsb+PEIbI1epWkGO/UAC+HRPWp+DKGMy/1UgcmTv7Jr7WwZdknkz0UWpXVUj8WA3yOJVXlPXcQ8va74wN+jpdaej1IHVJXqrdg1ccFy7tcmzk=
+	t=1736448740; cv=none; b=dUPuosbM4sRgzyBArmQuwTawvVLasINBCOuhx2N9QnZt+37eN23YFJffUuyZ16vsPzYgxQ7iVspi8sWIqgyVgJlqzbKFPyz1S0UpaJfeukKWgfhySNioDICdo8tiHT1ZuhyYi7Sr6BcOZRozggH/w1p7thSUYOfPHEIvTr6Ctqc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736428439; c=relaxed/simple;
-	bh=z0+5c2RmuHTV+YPKMhF+ZXxB+Hexc2PeT0DRWwpdgAw=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:Cc:
-	 Content-Type; b=bOvXnwMG0wIrhyyAswRPWNLTOpwrpzq3kUeUmYjbIQfIuVHv58yTlU0mEQuDLvXXOwPHiRFr8lXGsaXOVfWOSxv77vPSZW10lRjWg7MVJr+F6+Nw6YAopUT6pQoN3U6xRb9Uj101elaeTXLkKEMUsSPndzYCK66ZBZWxZBf8mAo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-3a9cefa1969so8784605ab.1
-        for <linux-unionfs@vger.kernel.org>; Thu, 09 Jan 2025 05:13:57 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736428437; x=1737033237;
-        h=cc:to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=z0+5c2RmuHTV+YPKMhF+ZXxB+Hexc2PeT0DRWwpdgAw=;
-        b=L+1O4FltYPvZE7fFaKsB+HUHwCsM95aSWl9cEJU5EbFFKleoW6tLaOfYJBMLWZrj8f
-         +2c+F9Z19cVdCY7/UqffHWHcXGuh/R6UN7KLRo7kNdmlJHWOqFDFWjUcr9L3mEFyLbo9
-         BNgfwCqclM2QUFY1N6ytHJIThVsEtxsjLs9/Zzv9dju7oY+MbxTPx39YMrGpPt3fW3jN
-         f8GlMqIDoCqvrV4xqjYUqjms04u5kW/VpgWnai0kX3HJVAjFIkdEjFGZ71nAHfm/P/S2
-         Agtj4M3c3z/9Hh5aI6sPxgJObTn7gym92RnUWQ0PXecFeQR5upC2gX7NhMfBp8vXzXx/
-         vbzw==
-X-Forwarded-Encrypted: i=1; AJvYcCWbD3NqKeykLgy6MrD4JHwF6BipQvD6K8L3OtF1gWVdHGUp27qbw00pYOBzhN6I6DGo6tgN2DcCpsxhaCl4@vger.kernel.org
-X-Gm-Message-State: AOJu0Yzw2BHVk28We7F6xo/D0NMggZCxYGbI/Ss6TkiA87hLQiiYpIbD
-	p1DrGKBibHlgBqEOoVRDVDA/i+YqN+XW46IvI8kQHfO/MQzDBAr6cF5CPpGKFjwVOd1XK5wm+wL
-	aDd+S1JuJPSEtYT/5kWwBGdDi5Ze8JE/Yy46VOdN3u1d5LpBCjNrsxCs=
-X-Google-Smtp-Source: AGHT+IHZEftS9yCEjOgAbOXZXKl4rH91/TEZKGoA12KPWHxP8RRDFPr6+pnVlgq1brJNb7suWyvYGt7rgCc4d4xxUBTT68/KO99K
+	s=arc-20240116; t=1736448740; c=relaxed/simple;
+	bh=4VbnyxJPsvFJI9ioTp6YjulEmqkNmoKsW35wonu5C7M=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=SMLjWaiz2/LWg9NmtO2W/rSTWiFvjl3NwaAH5rHdWALAdVXUAm+PPL5wgLQ/dAGFQppcB2AyHYDqgydsLhf00loZvitab/E3+GWBUI9L7aKGUbsLAeXrRpcYyEEX3EEMCxK3d3VW42YPX88ZDYmSdfoMoQJlBWcu3N/AWif9bNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lwn.net; spf=pass smtp.mailfrom=lwn.net; dkim=pass (2048-bit key) header.d=lwn.net header.i=@lwn.net header.b=s1Bdlq9N; arc=none smtp.client-ip=45.79.88.28
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lwn.net
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lwn.net
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=lwn.net header.i=@lwn.net header.b="s1Bdlq9N"
+DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net CECF2404F0
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
+	t=1736448736; bh=1arKNjpAeSPG67yGlAsno8ZO0XDLiTIQrl9AnZR+pi4=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+	b=s1Bdlq9N5X2xSpbJg5DdzrH5AIDaQ6FreHLyWJ7SXaRLe1JUXzDcmineEP6PcFvWJ
+	 8iymXa+MDiM/YFI4gMhziL2QRYf/tu43+6KEnjrNzUfrmW1IEmxxwd880lfqCsBP5D
+	 Dj4m1KNwi+Sc1wXnXf2MyjcWPauaMV9KCsrMae1+uUEN2MGeki+bOlCfLSXW3Sx8nt
+	 5FmQ34qfs06ldx/yZ+DVKYaDgtdjs3Rt1acKbcQ+qO2c65/EbD9JdTAOvKiX94FIHN
+	 YHQYKwXTUlS+83yTkHw9u2Xmt2zv6Jul3rocpuv2cziJfAFRnPwtGaGBQ/DQOburaA
+	 fHoqUCpH8QFmg==
+Received: from localhost (unknown [IPv6:2601:280:5e00:625::1fe])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by ms.lwn.net (Postfix) with ESMTPSA id CECF2404F0;
+	Thu,  9 Jan 2025 18:52:15 +0000 (UTC)
+From: Jonathan Corbet <corbet@lwn.net>
+To: Amir Goldstein <amir73il@gmail.com>, Geert Uytterhoeven
+ <geert+renesas@glider.be>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+ linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] overlayfs.rst: Fix and improve grammar
+In-Reply-To: <CAOQ4uxjESOJsb2GDx-c==_cLtF=wqtDAprcDmjwiq25hyzQFwA@mail.gmail.com>
+References: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
+ <CAOQ4uxjESOJsb2GDx-c==_cLtF=wqtDAprcDmjwiq25hyzQFwA@mail.gmail.com>
+Date: Thu, 09 Jan 2025 11:52:14 -0700
+Message-ID: <87tta7lt0h.fsf@trenco.lwn.net>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:3f09:b0:3ce:473d:9cb6 with SMTP id
- e9e14a558f8ab-3ce473d9f96mr24368585ab.4.1736428436988; Thu, 09 Jan 2025
- 05:13:56 -0800 (PST)
-Date: Thu, 09 Jan 2025 05:13:56 -0800
-In-Reply-To: <CAJfpegsJt0+oE1OJxEb9kPXA+rouTb4nU6QTA49=SmaZp+dksQ@mail.gmail.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <677fcb94.050a0220.25a300.01c0.GAE@google.com>
-Subject: Re: [syzbot] [overlayfs?] BUG: unable to handle kernel NULL pointer
- dereference in __lookup_slow (3)
-From: syzbot <syzbot+94891a5155abdf6821b7@syzkaller.appspotmail.com>
-To: miklos@szeredi.hu
-Cc: aivazian.tigran@gmail.com, amir73il@gmail.com, andrew.kanner@gmail.com, 
-	kovalev@altlinux.org, linux-fsdevel@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, stable@vger.kernel.org, syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-> #syz dup: BUG: unable to handle kernel NULL pointer dereference in
+Amir Goldstein <amir73il@gmail.com> writes:
 
-can't find the dup bug
+> On Tue, Jan 7, 2025 at 9:45=E2=80=AFAM Geert Uytterhoeven
+> <geert+renesas@glider.be> wrote:
+>>
+>>   - Correct "in a way the" to "in a way that",
+>>   - Add a comma to improve readability.
+>>
+>> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+>
+> Acked-by: Amir Goldstein <amir73il@gmail.com>
+>
+> John,
+>
+> Please take this patch via the documentation tree,
+> as I have no overlayfs patches queued for v6.14.
 
-> lookup_one_unlocked
+OK, applied, thanks.
+
+jon
