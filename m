@@ -1,74 +1,179 @@
-Received: from ms.lwn.net (ms.lwn.net [45.79.88.28])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9F5D71885AA;
-	Thu,  9 Jan 2025 18:52:16 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.79.88.28
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3F0931F9419;
+	Mon, 13 Jan 2025 18:34:55 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736448740; cv=none; b=dUPuosbM4sRgzyBArmQuwTawvVLasINBCOuhx2N9QnZt+37eN23YFJffUuyZ16vsPzYgxQ7iVspi8sWIqgyVgJlqzbKFPyz1S0UpaJfeukKWgfhySNioDICdo8tiHT1ZuhyYi7Sr6BcOZRozggH/w1p7thSUYOfPHEIvTr6Ctqc=
+	t=1736793295; cv=none; b=FqZJIj9WkR0MQD7yahmTg4dVxV3Fev3qL3w0frSIzmV/9x5Farvcx3FlgVkbAtcwjD1gRkw1ir8d5W/RUcJrYkn1GQ6CMj69do+grbCR+/Y8+9Shxv7LMYMiGC4ZuedAi/pZ/ZzVckJE8CxBs2BuLm2cGFMFZbAIbmtsd/7MRcc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736448740; c=relaxed/simple;
-	bh=4VbnyxJPsvFJI9ioTp6YjulEmqkNmoKsW35wonu5C7M=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
-	 MIME-Version:Content-Type; b=SMLjWaiz2/LWg9NmtO2W/rSTWiFvjl3NwaAH5rHdWALAdVXUAm+PPL5wgLQ/dAGFQppcB2AyHYDqgydsLhf00loZvitab/E3+GWBUI9L7aKGUbsLAeXrRpcYyEEX3EEMCxK3d3VW42YPX88ZDYmSdfoMoQJlBWcu3N/AWif9bNg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lwn.net; spf=pass smtp.mailfrom=lwn.net; dkim=pass (2048-bit key) header.d=lwn.net header.i=@lwn.net header.b=s1Bdlq9N; arc=none smtp.client-ip=45.79.88.28
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=lwn.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=lwn.net
+	s=arc-20240116; t=1736793295; c=relaxed/simple;
+	bh=Dx1KjkjC93S3IzzIaESQaq/jXmZCVzpwk035galG8Yk=;
+	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
+	 MIME-Version; b=iKg1d0j2KSoz3vvqaiupWiPe27N6Yax3IEycl/IpaCgNikbzO55vJGqhicN1Q+aYxmL5xbmqZTxa+sPh1p8oIPcY48ZTT1GleLlVXwr9tsLoekwIX2Vo9TktlpvYlmrq77fVMAJRbvj95WPvlUuJHAWUbvyof82OIjuWgwmzWww=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pqi3lzMa; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=lwn.net header.i=@lwn.net header.b="s1Bdlq9N"
-DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net CECF2404F0
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
-	t=1736448736; bh=1arKNjpAeSPG67yGlAsno8ZO0XDLiTIQrl9AnZR+pi4=;
-	h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-	b=s1Bdlq9N5X2xSpbJg5DdzrH5AIDaQ6FreHLyWJ7SXaRLe1JUXzDcmineEP6PcFvWJ
-	 8iymXa+MDiM/YFI4gMhziL2QRYf/tu43+6KEnjrNzUfrmW1IEmxxwd880lfqCsBP5D
-	 Dj4m1KNwi+Sc1wXnXf2MyjcWPauaMV9KCsrMae1+uUEN2MGeki+bOlCfLSXW3Sx8nt
-	 5FmQ34qfs06ldx/yZ+DVKYaDgtdjs3Rt1acKbcQ+qO2c65/EbD9JdTAOvKiX94FIHN
-	 YHQYKwXTUlS+83yTkHw9u2Xmt2zv6Jul3rocpuv2cziJfAFRnPwtGaGBQ/DQOburaA
-	 fHoqUCpH8QFmg==
-Received: from localhost (unknown [IPv6:2601:280:5e00:625::1fe])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by ms.lwn.net (Postfix) with ESMTPSA id CECF2404F0;
-	Thu,  9 Jan 2025 18:52:15 +0000 (UTC)
-From: Jonathan Corbet <corbet@lwn.net>
-To: Amir Goldstein <amir73il@gmail.com>, Geert Uytterhoeven
- <geert+renesas@glider.be>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
- linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] overlayfs.rst: Fix and improve grammar
-In-Reply-To: <CAOQ4uxjESOJsb2GDx-c==_cLtF=wqtDAprcDmjwiq25hyzQFwA@mail.gmail.com>
-References: <cf07f705d63f04ebf7ba4ecafdc9ab6f63960e3d.1736239148.git.geert+renesas@glider.be>
- <CAOQ4uxjESOJsb2GDx-c==_cLtF=wqtDAprcDmjwiq25hyzQFwA@mail.gmail.com>
-Date: Thu, 09 Jan 2025 11:52:14 -0700
-Message-ID: <87tta7lt0h.fsf@trenco.lwn.net>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pqi3lzMa"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 213BEC4CEE2;
+	Mon, 13 Jan 2025 18:34:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1736793294;
+	bh=Dx1KjkjC93S3IzzIaESQaq/jXmZCVzpwk035galG8Yk=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=pqi3lzMat10AFvEPNRzog0KNmizv1HXp1FYjFQd9yVKdG3WzCwJ1ZEiPZ5B7kW0a1
+	 xCMpsF8tuGHmlDZDGKU78iMDfKMgLcgIMl85O3mNF+M8qL2rbWZd6NH/Ff9oB6goOC
+	 XN1StKg7dNqgw8qw/7uwOlpgE8g0VLptWkp7Ef0iotM3SNf9T3mInmE5epqM81OkH4
+	 8egLjZI+nL0oVyf4li42zSD0kjkNm8jzsMIktTnxYD/eSychmBXcloH5E5Nb/Cp5KP
+	 aqWgNxtfdPrnF629/2FWILUVPeG2JUq+2T1a869u62YanNxSrSc7TjFs26yRrxcFv0
+	 Dfi64KlN6c0Wg==
+From: Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Cc: Amir Goldstein <amir73il@gmail.com>,
+	Christian Brauner <brauner@kernel.org>,
+	Sasha Levin <sashal@kernel.org>,
+	miklos@szeredi.hu,
+	linux-unionfs@vger.kernel.org
+Subject: [PATCH AUTOSEL 6.12 13/20] ovl: pass realinode to ovl_encode_real_fh() instead of realdentry
+Date: Mon, 13 Jan 2025 13:34:18 -0500
+Message-Id: <20250113183425.1783715-13-sashal@kernel.org>
+X-Mailer: git-send-email 2.39.5
+In-Reply-To: <20250113183425.1783715-1-sashal@kernel.org>
+References: <20250113183425.1783715-1-sashal@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+X-stable: review
+X-Patchwork-Hint: Ignore
+X-stable-base: Linux 6.12.9
+Content-Transfer-Encoding: 8bit
 
-Amir Goldstein <amir73il@gmail.com> writes:
+From: Amir Goldstein <amir73il@gmail.com>
 
-> On Tue, Jan 7, 2025 at 9:45=E2=80=AFAM Geert Uytterhoeven
-> <geert+renesas@glider.be> wrote:
->>
->>   - Correct "in a way the" to "in a way that",
->>   - Add a comma to improve readability.
->>
->> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
->
-> Acked-by: Amir Goldstein <amir73il@gmail.com>
->
-> John,
->
-> Please take this patch via the documentation tree,
-> as I have no overlayfs patches queued for v6.14.
+[ Upstream commit 07aeefae7ff44d80524375253980b1bdee2396b0 ]
 
-OK, applied, thanks.
+We want to be able to encode an fid from an inode with no alias.
 
-jon
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Link: https://lore.kernel.org/r/20250105162404.357058-2-amir73il@gmail.com
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ fs/overlayfs/copy_up.c   | 11 ++++++-----
+ fs/overlayfs/export.c    |  5 +++--
+ fs/overlayfs/namei.c     |  4 ++--
+ fs/overlayfs/overlayfs.h |  2 +-
+ 4 files changed, 12 insertions(+), 10 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 2ed6ad641a20..a11a9d756a7b 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -416,13 +416,13 @@ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upperdentry,
+ 	return err;
+ }
+ 
+-struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
++struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct inode *realinode,
+ 				  bool is_upper)
+ {
+ 	struct ovl_fh *fh;
+ 	int fh_type, dwords;
+ 	int buflen = MAX_HANDLE_SZ;
+-	uuid_t *uuid = &real->d_sb->s_uuid;
++	uuid_t *uuid = &realinode->i_sb->s_uuid;
+ 	int err;
+ 
+ 	/* Make sure the real fid stays 32bit aligned */
+@@ -439,7 +439,8 @@ struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
+ 	 * the price or reconnecting the dentry.
+ 	 */
+ 	dwords = buflen >> 2;
+-	fh_type = exportfs_encode_fh(real, (void *)fh->fb.fid, &dwords, 0);
++	fh_type = exportfs_encode_inode_fh(realinode, (void *)fh->fb.fid,
++					   &dwords, NULL, 0);
+ 	buflen = (dwords << 2);
+ 
+ 	err = -EIO;
+@@ -481,7 +482,7 @@ struct ovl_fh *ovl_get_origin_fh(struct ovl_fs *ofs, struct dentry *origin)
+ 	if (!ovl_can_decode_fh(origin->d_sb))
+ 		return NULL;
+ 
+-	return ovl_encode_real_fh(ofs, origin, false);
++	return ovl_encode_real_fh(ofs, d_inode(origin), false);
+ }
+ 
+ int ovl_set_origin_fh(struct ovl_fs *ofs, const struct ovl_fh *fh,
+@@ -506,7 +507,7 @@ static int ovl_set_upper_fh(struct ovl_fs *ofs, struct dentry *upper,
+ 	const struct ovl_fh *fh;
+ 	int err;
+ 
+-	fh = ovl_encode_real_fh(ofs, upper, true);
++	fh = ovl_encode_real_fh(ofs, d_inode(upper), true);
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+diff --git a/fs/overlayfs/export.c b/fs/overlayfs/export.c
+index 5868cb222955..036c9f39a14d 100644
+--- a/fs/overlayfs/export.c
++++ b/fs/overlayfs/export.c
+@@ -223,6 +223,7 @@ static int ovl_check_encode_origin(struct dentry *dentry)
+ static int ovl_dentry_to_fid(struct ovl_fs *ofs, struct dentry *dentry,
+ 			     u32 *fid, int buflen)
+ {
++	struct inode *inode = d_inode(dentry);
+ 	struct ovl_fh *fh = NULL;
+ 	int err, enc_lower;
+ 	int len;
+@@ -236,8 +237,8 @@ static int ovl_dentry_to_fid(struct ovl_fs *ofs, struct dentry *dentry,
+ 		goto fail;
+ 
+ 	/* Encode an upper or lower file handle */
+-	fh = ovl_encode_real_fh(ofs, enc_lower ? ovl_dentry_lower(dentry) :
+-				ovl_dentry_upper(dentry), !enc_lower);
++	fh = ovl_encode_real_fh(ofs, enc_lower ? ovl_inode_lower(inode) :
++				ovl_inode_upper(inode), !enc_lower);
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 5764f91d283e..42b73ae5ba01 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -542,7 +542,7 @@ int ovl_verify_origin_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+ 	struct ovl_fh *fh;
+ 	int err;
+ 
+-	fh = ovl_encode_real_fh(ofs, real, is_upper);
++	fh = ovl_encode_real_fh(ofs, d_inode(real), is_upper);
+ 	err = PTR_ERR(fh);
+ 	if (IS_ERR(fh)) {
+ 		fh = NULL;
+@@ -738,7 +738,7 @@ int ovl_get_index_name(struct ovl_fs *ofs, struct dentry *origin,
+ 	struct ovl_fh *fh;
+ 	int err;
+ 
+-	fh = ovl_encode_real_fh(ofs, origin, false);
++	fh = ovl_encode_real_fh(ofs, d_inode(origin), false);
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index 0bfe35da4b7b..844874b4a91a 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -869,7 +869,7 @@ int ovl_copy_up_with_data(struct dentry *dentry);
+ int ovl_maybe_copy_up(struct dentry *dentry, int flags);
+ int ovl_copy_xattr(struct super_block *sb, const struct path *path, struct dentry *new);
+ int ovl_set_attr(struct ovl_fs *ofs, struct dentry *upper, struct kstat *stat);
+-struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct dentry *real,
++struct ovl_fh *ovl_encode_real_fh(struct ovl_fs *ofs, struct inode *realinode,
+ 				  bool is_upper);
+ struct ovl_fh *ovl_get_origin_fh(struct ovl_fs *ofs, struct dentry *origin);
+ int ovl_set_origin_fh(struct ovl_fs *ofs, const struct ovl_fh *fh,
+-- 
+2.39.5
+
