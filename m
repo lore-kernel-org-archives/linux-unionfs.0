@@ -1,86 +1,99 @@
-Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B85D1FA82B
-	for <linux-unionfs@vger.kernel.org>; Tue, 14 Jan 2025 15:32:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25A38157A55
+	for <linux-unionfs@vger.kernel.org>; Tue, 14 Jan 2025 15:56:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1736868749; cv=none; b=U3Ca6aguviNBB2LSjVh88MVDCwAdJq29pq+Eenmhq4hiT9Npw6hgwRQ3vWHk8XCqJ5mYOhXEWy2JnDBS99pN8eU/8QKeRPGsVbMJDm8vYpIzxlel4N3I5FXpEseJ0H7jpCvbH9rQxc4r+ZYvqeEIqgHUUOZ/Hugc7jw8gxXWrrM=
+	t=1736870203; cv=none; b=oZAEeQWgUCrUDUta7twxvk9oWXWHadcELBGlxx+ROG/bpMtLl5FtazEIu6WHgg6c7M+909rnDcVh5JEFwyjugsalfpZBg7B2DPY7+SfyUtF4/CRjPlz+bOVf3Uro1rcs6XZAHvhzEnC+ZcjTXflMrorTUxtagodhwmUxMWnd4qc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1736868749; c=relaxed/simple;
-	bh=No/nXQfc8Oh/Uj7elL6IveAI7ZllL+zaTwEjilXXgHk=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=f3kaQAAapP3OvbDMnR64voPs/VLTqWPNkb96FT5UFpN0Zc+3jaEWz2EFOfbdw2ois4OlHgR8zFZ4JyrjCRkh9ITA+hxTyib0Z1SDethuDHCMPVvvcudOX/gHNCI0yLoUElH5e9uch2iIYzZ3/zGpRf9zyi0WhXUguMhWnv+PyYQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=NQM9NILt; arc=none smtp.client-ip=209.85.160.175
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1736870203; c=relaxed/simple;
+	bh=1MMH+aeR6O3en9YJJjX3R3gQ4ji2hKrVbwboXjL7z/s=;
+	h=From:In-Reply-To:References:To:Cc:Subject:MIME-Version:
+	 Content-Type:Date:Message-ID; b=Ie4Ox9li14h5mKy4YjjAqgch1GBG23PsD5MPyTE/P/twoOWUXYWzGsdsu5lXdnUs3/4gjpQcXOgr4HvjwRxFt2W5vd4dp2maaOkHW8KMmoOnUfrJqlKmJNtvxz1fh8Td/KbcYon/JK+h/UpdhIykdkXg38RhLSoWmX+45m2JssI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=TiOx96/E; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="NQM9NILt"
-Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-467725245a2so51140211cf.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 14 Jan 2025 07:32:25 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1736868745; x=1737473545; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=U9dPwxe/E84ogaw29ZtHhNanL/kQMTf0/avNES4Cj7M=;
-        b=NQM9NILtBk5Oi5u4tpIyRwsMnjVwaaO/NDq1KJP4hPFmG4ikY+XE0vTLXWG7YvcthN
-         s00ER3jMnRsV7hPsx67aZ+IED+76qqDNTvss14q6d91FLA1hkJqBFix4/NPP3Hn8Fjga
-         jUu0eUFWXIEUQG/dDzZIGCHqMtzxruoA8025g=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1736868745; x=1737473545;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=U9dPwxe/E84ogaw29ZtHhNanL/kQMTf0/avNES4Cj7M=;
-        b=Fq593gxbXiaw0whzzDvwCHG45WaWhSkRruysVMSCbxx2DC7pRiJl6osD1BdZxjVBKp
-         AsmDk3Jw82cwHz+/cRDlnafLWHKO8GbHsXpxE094O1jfsv0k6aiOv354lV7ASYflH15Z
-         ke/XNPCsXjXBK0cbaYxlpY7r7jsLW/Tm6x3CX/KYXLlP6lhXEGR9OiRqZvWXZqBE0NTG
-         jGFYjaSVpZPSWGizXdH7vnPyRnCuVkmGr0RkZjO0vpBcMVwMAKSfbRsQzGQbmmMpqazx
-         TEc5EmzuZEAMJP2BkNV0ri+gLWBcUX94UrzGGSzcr229v0qW5ajirr6bFgUQkN4fTLqr
-         wltA==
-X-Forwarded-Encrypted: i=1; AJvYcCWhT5MxXqTXz5VS1Jreg1zD/XaAuuA4clDzUeCw+1GR4B44A0pWvvIm24ADfqOYr8qKgsc498lCriChMC5X@vger.kernel.org
-X-Gm-Message-State: AOJu0YzECbLHVPRGcL5UF1VN55hDcsztlxO+z3W5VpmfZf2TBEAr891q
-	mr/VYCbKwLTo2455cGVsyEDyG4udMedwx4HjOGXaZGLkVMpIuzy7w7iuTCZeSr6i1jPMjsvkHss
-	cbyRBQ7w9gbD8MyaItF7ehiCiPpERz8aeC32QBA==
-X-Gm-Gg: ASbGncsSV/3jZtaPQknNe8BjJp5lziHR/1RD+ppi0PNB72TY19Y71wSt2UGIEGQXUz6
-	afjs2/66oFIla3knD6NOht5sXiZ2PJZoF3/2U
-X-Google-Smtp-Source: AGHT+IEPiZ70N/g672/8Ebn72FMiq9c9viHSjEuSIenzdxqPBLOCePxe9QkqV+FUcRTYuFVI2HrmfFGsZReWlXxFBug=
-X-Received: by 2002:a05:622a:1889:b0:466:a51b:6281 with SMTP id
- d75a77b69052e-46c7102ca25mr395927251cf.26.1736868745116; Tue, 14 Jan 2025
- 07:32:25 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="TiOx96/E"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1736870201;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=YuFEatKDU5bNsUDUILwBr/XEvI4ugNRgiHgqlILwaZ8=;
+	b=TiOx96/EcpZRtdAmZfexReKEJJAGfe8rQHChE7c9QwDZmsVG0vQ0EOdQwjkse1bxgg7IsU
+	htij1AgKkQxG/zdbcrX2ewfNB5FMQmg87JfNcz9psbSJ2WYMF25WMWHUDnl9HvwFIJQ+wP
+	kEoHdZliikuJJqy62R0pzF/H5qEJNhY=
+Received: from mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-550-nB68BRIjM-GYwOMnikk_Nw-1; Tue,
+ 14 Jan 2025 10:56:37 -0500
+X-MC-Unique: nB68BRIjM-GYwOMnikk_Nw-1
+X-Mimecast-MFC-AGG-ID: nB68BRIjM-GYwOMnikk_Nw
+Received: from mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.4])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id A0756195607C;
+	Tue, 14 Jan 2025 15:56:36 +0000 (UTC)
+Received: from warthog.procyon.org.uk (unknown [10.42.28.32])
+	by mx-prod-int-01.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id E63E530001BE;
+	Tue, 14 Jan 2025 15:56:34 +0000 (UTC)
+Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
+	Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
+	Kingdom.
+	Registered in England and Wales under Company Registration No. 3798903
+From: David Howells <dhowells@redhat.com>
+In-Reply-To: <CAJfpegsUbvMB_tFbV283_JmK+wzFAECaLZgYAbmcBbBxWX=Ctw@mail.gmail.com>
+References: <CAJfpegsUbvMB_tFbV283_JmK+wzFAECaLZgYAbmcBbBxWX=Ctw@mail.gmail.com> <111000.1736867714@warthog.procyon.org.uk>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: dhowells@redhat.com, mszeredi@redhat.com,
+    linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: How to support directory opacity in a filesystem for overlayfs to use?
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <111000.1736867714@warthog.procyon.org.uk>
-In-Reply-To: <111000.1736867714@warthog.procyon.org.uk>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 14 Jan 2025 16:32:14 +0100
-X-Gm-Features: AbW1kvb2bGtUfY43hElzeOuIlHlWqadAL-6mFDgHIGh1XTOI5-K5H6T4Df78aUw
-Message-ID: <CAJfpegsUbvMB_tFbV283_JmK+wzFAECaLZgYAbmcBbBxWX=Ctw@mail.gmail.com>
-Subject: Re: How to support directory opacity in a filesystem for overlayfs to use?
-To: David Howells <dhowells@redhat.com>
-Cc: mszeredi@redhat.com, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <112183.1736870193.1@warthog.procyon.org.uk>
+Content-Transfer-Encoding: quoted-printable
+Date: Tue, 14 Jan 2025 15:56:33 +0000
+Message-ID: <112184.1736870193@warthog.procyon.org.uk>
+X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.4
 
-On Tue, 14 Jan 2025 at 16:15, David Howells <dhowells@redhat.com> wrote:
+Miklos Szeredi <miklos@szeredi.hu> wrote:
 
-> What's the best way for a network filesystem to make a native
-> directory-is-opaque flag available to the system?  Is it best to catch
-> setxattr/getxattr/removexattr("overlay.opaque") and translate these into the
-> RPCs to wrangle the flag?
+> On Tue, 14 Jan 2025 at 16:15, David Howells <dhowells@redhat.com> wrote:
+> =
 
-I don't know.  Out of curiosity, which filesystem is it?
+> > What's the best way for a network filesystem to make a native
+> > directory-is-opaque flag available to the system?  Is it best to catch
+> > setxattr/getxattr/removexattr("overlay.opaque") and translate these in=
+to the
+> > RPCs to wrangle the flag?
+> =
 
-There's "trusted.overlay.opaque" and "user.overlay.opaque" and are
-used in different scenarios.   There was also talk of making the
-"trusted." namespace nest inside user namespaces, but apparently it's
-not so important.
+> I don't know.  Out of curiosity, which filesystem is it?
 
-Which one would you like to emulate?
+One of the varieties of AFS.  Unfortunately, xattrs aren't a thing and can=
+'t
+easily be added because of the volume transfer and backup protocols and
+formats.
 
-Thanks,
-Miklos
+> There's "trusted.overlay.opaque" and "user.overlay.opaque" and are
+> used in different scenarios.   There was also talk of making the
+> "trusted." namespace nest inside user namespaces, but apparently it's
+> not so important.
+> =
+
+> Which one would you like to emulate?
+
+Um - I don't know the difference to answer that question.
+
+David
+
