@@ -1,127 +1,118 @@
-Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+Received: from mail-ed1-f43.google.com (mail-ed1-f43.google.com [209.85.208.43])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3818A19F42C;
-	Fri, 17 Jan 2025 17:00:12 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CD3AB1B4137;
+	Tue, 21 Jan 2025 11:08:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.43
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737133215; cv=none; b=U8cCLhb6FAvnSPWlalBViG5D1laurGHSVji3meBTOscFKAZbJokWpuoAY40DYnpfznkXu05Y0Z4ZhRHT7gaw0pUvHJWZlwUF/A2XHhzaV28yqXYaifQ9R/y9zSPgvduegeGJbRDMganS2/K2CmFC+/0bG9lauueTFreZQvEmaxc=
+	t=1737457704; cv=none; b=UfezLiYFmwaz0gE2VqWm0ueG0eany2UKesCs77eN+Y/3ORGzWCm7CvZPXv9bW0BUQm5ZbxLcd7Z7bs87HOAc47IV3GehIXaEyCzV/IDScY9RXESqlxnNfUDd00S5YcRPGOfgcwf9tLvxYlL0/0QJH0YbQKMEgpIQQX/NfoJDuZ4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737133215; c=relaxed/simple;
-	bh=Q3vbN079vU5oqdrL/sZcyq6Khm3/odwk61hyjwIOwkQ=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=OF3TMmV0UJnGoPMb72b11qZoIwiOvpFGP83jHfKxtb/R06iWUmhSRk5QGvyLQfXfc/X3PjzTMV67pj4Mu6mqoU4YKoKqn3IokjEDO2PC988rKgwfy6xBhVhEFMLNO7rQtuelR1W5J0QYowFVa+bkoUYZNE0SVQnezUTQ8pyP/f0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=ZURs2zzY; arc=none smtp.client-ip=209.85.218.49
+	s=arc-20240116; t=1737457704; c=relaxed/simple;
+	bh=tjc/uPo3nNub+LJy3NyJOpyez0cgIB0HTgYXsItmdIk=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=Qy95J0ZJr9g3bmr+0kB+xLjjgNaoP7T/LP9CLJ1nLGLDcTOyKrFL3Pp6B2Wv2NpSnDKnrkKlz5M5M2rTOAMSLRLKebbci1f7405FHqNQg6VuCSFsirKYfkM4pcBrA1zU+kBQxsp5kMrM0pUhc3dr0PM7TgvJ0IZ/NGwne13vVlU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=jbDMEj8S; arc=none smtp.client-ip=209.85.208.43
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="ZURs2zzY"
-Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-aab925654d9so413074766b.2;
-        Fri, 17 Jan 2025 09:00:12 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="jbDMEj8S"
+Received: by mail-ed1-f43.google.com with SMTP id 4fb4d7f45d1cf-5d0d32cd31aso8255746a12.0;
+        Tue, 21 Jan 2025 03:08:22 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1737133211; x=1737738011; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=dE2F3JdfF0ga1Jk7ZXKHjELoEtT1VQLe+mXRnLdiGks=;
-        b=ZURs2zzY/ce8zN6p5dYwogrBGaRGb5gQgIjg+1JlodeNdOyAey1QuvrAjy4BnWiFhG
-         SnHqY/BsPhpl79p2fBGLUHFvWx2ZA3ZUBdLFZbadIW9yeEV3XmhVjczJtIWvWXhFhyXz
-         OUJZr3A3uTeQXBeaj5taFeiZMRuujiwXSRxp9XePAWlUUH7WwizAdqosGE7JzOLdS6HK
-         Mrf96BACM+QNZXqxdvlGMArUDyLnDBvPIS4Gdy1oIVeTnl8OLCSs5dz3AqeoZhECRGNR
-         a9x7mzro4WblQkO2GA7ArcAXWk/z+p6Xn9Lb4Ves99CRDHxBPnbh9KwLUL2o3JN6Vkpe
-         sgNg==
+        d=gmail.com; s=20230601; t=1737457701; x=1738062501; darn=vger.kernel.org;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=A3cnZir4QJpKXLEKnJWS7QFyO1/v96Jr+h1cl7sS99I=;
+        b=jbDMEj8Sek9vIMDRhfW5UD/vQie6iz3zC8ri0folWCAaM8DPgepVQeD3fPalkTlm04
+         isd4+h1XE8bQgKUAh7MybUNGua0p6k9fmUUDgmVT55Q3XQF6r3FEhEle/ont5Zj8pXIT
+         F+X5qHiNjU5i7R/QbYPX0Ncc/zIrLfVlAZNBUMlbK9hSO0naf6PNkxf3e0YIXeebyXbY
+         d7DLl7xm3V4R7tlYb0YvSXvzFxwaz0Xkmia3q0QRDhldwnyWKSifU5aIBjuXHliasf/2
+         M5P7feLADKI+QnrjNueEF3V4uJvhvk7SYXM5hYq7AojHIkO39CUaTpP3sq7Zu6IsC/TR
+         6jrg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737133211; x=1737738011;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=dE2F3JdfF0ga1Jk7ZXKHjELoEtT1VQLe+mXRnLdiGks=;
-        b=ReuyJiNIi/lRWJXpqUFG/LY9yjwmIfxza7xCLaH3JShgpyG6CZsVgsZfdkfPZdwM1M
-         /rtpch+d4K9o/vcQLtWQWz5kgfuaP11hfpbIeLwXoubeS/8j2Rs6jQDZJOEsp01CFc+5
-         p2KYg06ocKngtbF8bjL/Tpeg0w95SGSkJllfl5KfQ6rVzDhat4dUIcxEYzdrB9oLWB/l
-         LEAKzLGPX9305yc99YAtWuS58xrS9/McSbSPZn+d97Qspwl7FG/dskdCB+S9PTMTcxPt
-         RyuilU50f3F1//Y82S4m0/7Rbat2bSOs+O74x7D094aLbcq6+c0CLhdhSmDkMHVhPNRy
-         FrRg==
-X-Forwarded-Encrypted: i=1; AJvYcCU/JkGTENDTyjvDTBjJE9TvKwdLVSkzLX2L3tvoUVp1X0nUivYX6wbvOybTXEvT6rGweMUTp99s6/UEyis=@vger.kernel.org, AJvYcCVObPu6rzAdDerB4+5ssy9nGtHOfnS2ZAVE9/J0400xbuzl+36JRijZAS9Fh2qNIynUCSsJ5NIA5eHAsBaavQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzwI/3Oksm5CMC8gRj862ljVSCf1iOXPYNdkDkxQMmEEWy4CyRk
-	rtEw4s+46ZTx7NaC2w/Ce1jDgwV5vU21+CUw95FGd3cXXFAWc7C6UShNkTapiK5GnyMhrdYgckG
-	X0wAC5uf/iWhtF1OqmaEb6pgfR8U=
-X-Gm-Gg: ASbGncuHIvKSL4IOaQSfWQrKrWL7GwKoeCemjlRXKLTnAFOmxBewzJ/eZci1WV5n7OL
-	UdUYayL00WabdWuETEgK1CmCMMd+mtP4lxhqf+A==
-X-Google-Smtp-Source: AGHT+IGPiPie5uiKLMhaRg3WOO49py68gmuSSsfkWTGg7oXTRNi+rCJDbE7meMS9eY6bXJToXrMMW7urMPyBonQot8I=
-X-Received: by 2002:a17:906:7953:b0:aa6:6885:e2fa with SMTP id
- a640c23a62f3a-ab38b26f4acmr275298966b.14.1737133210803; Fri, 17 Jan 2025
- 09:00:10 -0800 (PST)
+        d=1e100.net; s=20230601; t=1737457701; x=1738062501;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=A3cnZir4QJpKXLEKnJWS7QFyO1/v96Jr+h1cl7sS99I=;
+        b=lGZMENVh8R+ZRXzAVumuY+Z4sMUahY/VZgVJjaWKd1AJbDl2PH3+nrV9HycPpHbthw
+         Uxz4o0zdaxGmwjFZ27rXFPBu+8CTJ5Out/OFJeAS5Q3hPaUSIgNUM0mZ4BeHwzZRk1Qn
+         mtxByBw9wfCWtkZtzMFzr3bR0Nh715cSjBEpUXiQ2TLrImrsVHpupkJBovIDYTeLAmH2
+         k0/h6noemGxORno0no9E2oXkloYCBu+/88IexxoWg261X2SHGavva+0nmoUfi3cQYVM4
+         dOxvtmNqx9MWBbiyPezCdL++8edfGIRwRk+Vt3NWeSlWLOcNZCVhvU86EKF4cyLJpbMf
+         MEPg==
+X-Forwarded-Encrypted: i=1; AJvYcCVVyF2WD0WPXnMcdim6kghh9jPCEQq7MoAbETwh+n/YLf2vgoai+lQMt3aHB7LW8OtNVdOrQ+9dvuZrVawqsg==@vger.kernel.org, AJvYcCVW8QHlEoQ5X9jYT9iXAKbVf+VDazpXHr3ETFml08Xxck7s/8aFKzma+UExQ4FDJpnn6JARNFBF@vger.kernel.org, AJvYcCX3g2LyyRMpMzkPOUcBxEf1C+nLoaGOeU3mWtrLxbISx0XLMmmjVOFGv/5oz7oS6ea6k3hwhqDEzBjdPhud@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyw3dEYWIu8a066POXWzaaBpuYvedpHZBkfH2NI/B40R07A9/k0
+	TwD9YANR2YOGQGd2FSLfUfH6fIXp2x/k2wtnB340mJI72pn1vYm7
+X-Gm-Gg: ASbGncu1/gNsTu/WWgRG+hSExEdlVsJteb6WgQ0icP3NUoF5eqAZFnfEm9aEWJlkcQ5
+	dIUw/Tl+Zq7DixAnZyBghw35GUCC92tWidQ+nwvJ2g/LExtHcUPdC5JiwGw2l7UfhRXWy9gBnxg
+	Iy36D6QqPaIjIs2RNA95ZDdrxR2I71NYM9ta50gwfnmR/jITaseycwoZnxhDXyAxvrewQjTUPiK
+	mLUfl+nB+3EeW3HEgLWNoCI9HPwbVsCzmOO7lbhAC9EqnbPflxwICcvfmh+rvEHo5C6QxV2EzQM
+	WNWyqILZbb9vcogFY1+qQN4gng5hC5S+BiqcrNb5dDK6wJSNzSggAib/ikmpPh6r82k=
+X-Google-Smtp-Source: AGHT+IE3VHSr3TqES+WOuCj3CUZR5hXZwthFxa/1nxuHszK/a2Y/T/8ShY3DS7Cl9tcOSeLfd4pa8Q==
+X-Received: by 2002:a05:6402:2706:b0:5d4:2ef7:1c with SMTP id 4fb4d7f45d1cf-5db7db078c2mr38552384a12.24.1737457700553;
+        Tue, 21 Jan 2025 03:08:20 -0800 (PST)
+Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
+        by smtp.gmail.com with ESMTPSA id 4fb4d7f45d1cf-5db73683d28sm7209841a12.40.2025.01.21.03.08.19
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 21 Jan 2025 03:08:20 -0800 (PST)
+From: Amir Goldstein <amir73il@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sasha Levin <sashal@kernel.org>,
+	Miklos Szeredi <miklos@szeredi.hu>,
+	Jan Kara <jack@suse.cz>,
+	Dmitry Safonov <dima@arista.com>,
+	Ignat Korchagin <ignat@cloudflare.com>,
+	linux-fsdevel@vger.kernel.org,
+	linux-unionfs@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: [PATCH 6.6 0/3] Manual backport of overlayfs fixes from v6.6.72
+Date: Tue, 21 Jan 2025 12:08:12 +0100
+Message-Id: <20250121110815.416785-1-amir73il@gmail.com>
+X-Mailer: git-send-email 2.34.1
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250117145155.171969-3-thorsten.blum@linux.dev>
-In-Reply-To: <20250117145155.171969-3-thorsten.blum@linux.dev>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Fri, 17 Jan 2025 17:59:59 +0100
-X-Gm-Features: AbW1kvaXchbNLHjKn09beAlJ0u4oW9rHhASZrs4rbxnzZJ3Mmi8TfHTuN0S3bok
-Message-ID: <CAOQ4uxgqXEXfXHwAFakgT1-rSjORDjC3t0q9bY9Km3LD5K1HLg@mail.gmail.com>
-Subject: Re: [RESEND PATCH] ovl: Use str_on_off() helper in ovl_show_options()
-To: Thorsten Blum <thorsten.blum@linux.dev>, Christian Brauner <brauner@kernel.org>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 
-On Fri, Jan 17, 2025 at 3:52=E2=80=AFPM Thorsten Blum <thorsten.blum@linux.=
-dev> wrote:
->
-> Remove hard-coded strings by using the str_on_off() helper function.
->
-> Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
-> ---
+Greg,
 
-Fine by me.
-I do not have any patch queued for the next merge window,
-but if Christian wants to pick this up via his vfs tree, I wouldn't mind.
+Per your request, here is a manual backport of the overlayfs fixes that
+were applied in v6.6.72 and reverted in v6.6.73.
 
-Acked-by: Amir Goldstein <amir73il@gmail.com>
+For the record, this overlayfs series from v6.7 [2] changes subtle
+internal semantics across overlayfs code, which are not detectable by
+build error and therefore are a backporting landmine.
 
-Thanks,
+This is exactly what happened with the automatic apply of dependecy
+patch in v6.6.72.
+
+I will try to be extra diligent about review of auto backports below
+v6.7 from now on.
+
+Luckily, the leaked mount reference was caught by a vfs assertion and
+promptly reported by Ignat from Cloudflare team.
+
+Thanks!
 Amir.
 
->  fs/overlayfs/params.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
->
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 1115c22deca0..8a8bb336b40f 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -1053,17 +1053,16 @@ int ovl_show_options(struct seq_file *m, struct d=
-entry *dentry)
->                 seq_printf(m, ",redirect_dir=3D%s",
->                            ovl_redirect_mode(&ofs->config));
->         if (ofs->config.index !=3D ovl_index_def)
-> -               seq_printf(m, ",index=3D%s", ofs->config.index ? "on" : "=
-off");
-> +               seq_printf(m, ",index=3D%s", str_on_off(ofs->config.index=
-));
->         if (ofs->config.uuid !=3D ovl_uuid_def())
->                 seq_printf(m, ",uuid=3D%s", ovl_uuid_mode(&ofs->config));
->         if (ofs->config.nfs_export !=3D ovl_nfs_export_def)
-> -               seq_printf(m, ",nfs_export=3D%s", ofs->config.nfs_export =
-?
-> -                                               "on" : "off");
-> +               seq_printf(m, ",nfs_export=3D%s",
-> +                          str_on_off(ofs->config.nfs_export));
->         if (ofs->config.xino !=3D ovl_xino_def() && !ovl_same_fs(ofs))
->                 seq_printf(m, ",xino=3D%s", ovl_xino_mode(&ofs->config));
->         if (ofs->config.metacopy !=3D ovl_metacopy_def)
-> -               seq_printf(m, ",metacopy=3D%s",
-> -                          ofs->config.metacopy ? "on" : "off");
-> +               seq_printf(m, ",metacopy=3D%s", str_on_off(ofs->config.me=
-tacopy));
->         if (ofs->config.ovl_volatile)
->                 seq_puts(m, ",volatile");
->         if (ofs->config.userxattr)
-> --
-> 2.48.0
->
+[1] https://lore.kernel.org/stable/2025012123-cable-reburial-568e@gregkh/
+[2] https://lore.kernel.org/linux-unionfs/20230816152334.924960-1-amir73il@gmail.com/
+
+Amir Goldstein (3):
+  ovl: pass realinode to ovl_encode_real_fh() instead of realdentry
+  ovl: support encoding fid from inode with no alias
+  fs: relax assertions on failure to encode file handles
+
+ fs/notify/fdinfo.c       |  4 +---
+ fs/overlayfs/copy_up.c   | 16 ++++++-------
+ fs/overlayfs/export.c    | 49 ++++++++++++++++++++++------------------
+ fs/overlayfs/namei.c     |  4 ++--
+ fs/overlayfs/overlayfs.h |  2 +-
+ 5 files changed, 39 insertions(+), 36 deletions(-)
+
+-- 
+2.34.1
+
