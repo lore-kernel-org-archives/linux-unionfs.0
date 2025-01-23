@@ -1,163 +1,200 @@
-Received: from mail-lj1-f179.google.com (mail-lj1-f179.google.com [209.85.208.179])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C9706212F86
-	for <linux-unionfs@vger.kernel.org>; Thu, 23 Jan 2025 16:44:41 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.179
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D1047192B69
+	for <linux-unionfs@vger.kernel.org>; Thu, 23 Jan 2025 19:20:04 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737650684; cv=none; b=OKwj1XAca752QWXguismjmcxQ3HsHOH2UO80tKmbnpre3pP6H1sammQLbfNuRnEW7mU4pkCEeAm1kvtYtSKJwwLGScu/iqO0HZB6N71Vg+v7qgz3YwYSbhyAYkPaH/oUWMunaFaA/Njued7ViYWThiNk4pW+O/fhE9L6VermtD4=
+	t=1737660004; cv=none; b=NxJU6FcoXodrLEN97jo5W5cxC7ENjpLJ0+ct4ssStvfKRjUBqIHeLcEBA+nV4ZSuK6iCd0Bj8z1OzKMGhlwmF57ZuViQYz7Ghu08BVS7Xu7BpR7MO97hsWPbyKlUCh9jIK5Nnam4168uzIKoIBidAN2lWtnKMgCh9t4xNvK4Ca0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737650684; c=relaxed/simple;
-	bh=ObLA/kRyNpxub4JtVmVOW4oMY0X5R09ng2DbfPm+cE4=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=cMqUWA7QS0aNkfCEI+nTieqpgfwi2W0JukguOugD1vSw6Qus98JtlfckXA2UgISYQefGRWPiViOgp2cujuOuacjLImizI9G1gbVLN5Qenu7DblbEoX7r5KG3KrvQmT54BfslELEWAJFEtd/fNcY7UU4hJTtJyMaZ/s0CdiLtgvI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=engflow.com; spf=pass smtp.mailfrom=engflow.com; dkim=pass (1024-bit key) header.d=engflow.com header.i=@engflow.com header.b=R87uOcXN; arc=none smtp.client-ip=209.85.208.179
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=engflow.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=engflow.com
+	s=arc-20240116; t=1737660004; c=relaxed/simple;
+	bh=Y4/RXfn1Jtp3rTKsWKfn4Yt78NwBpJAlGFaeXbm+cQA=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=gujU1YfG6GHwH1IKLhXy9uEMtADtgJWsPse11JQuTEtQ9q5sTRaWq/ZT4SlJ7tZ6M/cSOvG5Ea27ZMToWXd+ix61lY/LGN5GHB8QZJooFxejUoK3bA76Sl8y9LcHfhSwB2ngcwwaYejjkikkgJPr2g/iv+IsmEMjWq5Rj8hL/CQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=X4tzeuwe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=engflow.com header.i=@engflow.com header.b="R87uOcXN"
-Received: by mail-lj1-f179.google.com with SMTP id 38308e7fff4ca-30613802a04so11443921fa.2
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Jan 2025 08:44:41 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=engflow.com; s=google; t=1737650680; x=1738255480; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Ou4pI4NzHMmTf/zMB0eJzxRFKrkTtzd88Z63Stl79E4=;
-        b=R87uOcXN3tKz3pnyzlr7otr1/Sk+3LeMvg9RMMkF0jpneZX/Yu18n4STNkzxR6z1D7
-         zKEcHL/9qHuZ55wY0mL+BYd5qztChZB1dvFaIjhE3haNuwhXnDfibUfpsGbjQjvBYCfK
-         AcJffTMuDyXErajK+uRC11HC/ZpOQW49ItRA0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737650680; x=1738255480;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=Ou4pI4NzHMmTf/zMB0eJzxRFKrkTtzd88Z63Stl79E4=;
-        b=mQSZR2WdzB4CXqc/ZVtwtzUJLDwS1+H5ZJGG4mNjUX9CJflg6uDgusPpX4eVfjPD4R
-         XZLGuYaRRN8wSyBuOxzcgJb0pMtN8rrauFcxeWfi23sql+GPl46BKzXrLdhFXVy6b3ng
-         TpBiu+ruWIA+aJmQBCTbUFSHvl4cJPrqPlv8gneb/QLfoyQEmSjL3cBLWd6VL+jSeq5u
-         un8NxTqWSVawSP+JZKbHHft0gLcnZGS+1CpbpzeNNXbDvki6pAZ9iQWJPO9FPdgrpKbL
-         AKfP/ac2jU+sZbEiCJGiY7wGw0EAHiP549sTcmpnBS+C1xGz0crm16ciaf7ViqGCoFlL
-         rOEg==
-X-Forwarded-Encrypted: i=1; AJvYcCUnuAxjhN7kHrAh/Sv2G1rosRf9+RpSMxDQgh8ruv5VH0JV65953UQ/Tl/xK75QWR3ODjRhpZl//327DEI2@vger.kernel.org
-X-Gm-Message-State: AOJu0Yxu3J6YLCw7UXVjCaBB+CR3xMdwFZcVsxG2gwZYpFHsBKxsYhfp
-	3FOHDwVbr3JerycahgPk/Pr+GK08dkOCKIEM/GvnyYVCPdnc3fiIIcocmYFJCkC8YJUDFNxOBWG
-	lklnVoMRnZB2DKlC7s+erPg2QNO4y22NO81LZh6STx3U6V+zBirlZTQ==
-X-Gm-Gg: ASbGncu5PpwopuXy1u67yn/xIH/6Q05M5Tn6uPNiCYeB+I0YwJbl0DzH47cEp9urMqd
-	ZlGZCTdzNaZgK/Q8dH6VYucaEsbxN9x5Sb+Gcj0Sf8U7AXxHWT3D8AjnWw/YGHDNM4MvVPpNpt3
-	356e+UQVQvntDCDR+B56iS+ebijCFrlQ==
-X-Google-Smtp-Source: AGHT+IERtY9ag4YmfMpnRsuctVwLQvPk5qsp5gWs2L8S87rQpVhC1dxslbIpQl21auF/0qR1KhWLVCU4PZItt4HKzYk=
-X-Received: by 2002:a05:651c:b26:b0:302:40ec:a1bc with SMTP id
- 38308e7fff4ca-3072cb133cbmr93810061fa.30.1737650679630; Thu, 23 Jan 2025
- 08:44:39 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="X4tzeuwe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DAF88C4CEE1;
+	Thu, 23 Jan 2025 19:20:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1737660004;
+	bh=Y4/RXfn1Jtp3rTKsWKfn4Yt78NwBpJAlGFaeXbm+cQA=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=X4tzeuwe6RKZua0I0VXiQYCELFyvwUyGgMnqci7BzvHqYO1j193T2XPGHkVP0YHtY
+	 CgfCabG68Xa+tCpGdSnF7RcdNJUtSUu8SJfMPWsOix24B1XhL9tbA6yNiZC3Rp3BRk
+	 gsIFHatVhObqYulgq2TEZ1ycKajiVGg0EZmNkot63Gw4/5tZQQZeQvWyduWPy4JBC6
+	 jWLwO4AA7j4mXz5fGqJtDshZV5tYUD1gpdVABuaY7BwlzU1+WnEoh0G3AlfMpdbo14
+	 n5bruL1ANZZdt+x4cCV+wm0kZ15/j5xZZiS+IIfxtJQecTjbawdXtINswPm2I0JENy
+	 0rgY3sbtqpFwQ==
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>,
+	Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>,
+	overlayfs <linux-unionfs@vger.kernel.org>,
+	Mike Baynton <mike@mbaynton.com>
+Subject: [RFC PATCH 1/2] fs: allow detached mounts in clone_private_mount()
+Date: Thu, 23 Jan 2025 20:19:48 +0100
+Message-ID: <20250123-avancieren-erfreuen-3d61f6588fdd@brauner>
+X-Mailer: git-send-email 2.45.2
+In-Reply-To: <fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com>
+References: <fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250123081804.550042-1-hanwen@engflow.com> <CAOQ4uxgwJuZWQ9WgpmNL=fdsycwduOqXio5kEciD6TOWoMX8kw@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgwJuZWQ9WgpmNL=fdsycwduOqXio5kEciD6TOWoMX8kw@mail.gmail.com>
-From: Han-Wen Nienhuys <hanwen@engflow.com>
-Date: Thu, 23 Jan 2025 17:44:28 +0100
-X-Gm-Features: AWEUYZnRybytUtR5qyw30yyyr8CJcf1CVeH8ds8oUePFLuVRDBADHuixfJegSsU
-Message-ID: <CAOjC7oMAYPeS94eDrgzYV0=5PNG_8i11SF5+vsffDfOTFuA8rw@mail.gmail.com>
-Subject: Re: [PATCH] fs: support cross-type copy_file_range in overlayfs.
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: miklos@szeredi.hu, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel <linux-fsdevel@vger.kernel.org>, Dave Chinner <david@fromorbit.com>, 
-	"Darrick J. Wong" <djwong@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-Developer-Signature: v=1; a=openpgp-sha256; l=4761; i=brauner@kernel.org; h=from:subject:message-id; bh=Y4/RXfn1Jtp3rTKsWKfn4Yt78NwBpJAlGFaeXbm+cQA=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaRPmhZ2ckJdBOdr7neR8iIK2wsNGpslZ278pmwz9YvEv n61RssdHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABNpZ2BkeHnoj4Swgs6bOm/L 3W2J370+de08843f+fPBHxu2XGJkX8bwh3+Gt/H/R5kBT0+q72s0PBcrLbsx8qWqx5nKZ7Orfq0 7wgkA
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-On Thu, Jan 23, 2025 at 12:10=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
-> wrote:
-> after the --- line, but with my suggestion below, you should probably spl=
-it
-> this to one vfs patch to change copy_file_range() interface and another
-> patch to implement ovl_copy_file_range() support.
+In container workloads idmapped mounts are often used as layers for
+overlayfs. Recently I added the ability to specify layers in overlayfs
+as file descriptors instead of path names. It should be possible to
+simply use the detached mounts directly when specifying layers instead
+of having to attach them beforehand. They are discarded after overlayfs
+is mounted anyway so it's pointless system calls for userspace and
+pointless locking for the kernel.
 
-ack.
+This just recently come up again in [1]. So enable clone_private_mount()
+to use detached mounts directly. Following conditions must be met:
 
-> > I thought this could speed a lot of operations in docker/podman.
->
-> What sort of operations are we talking about?
-> The only relevant use case as far as I can tell is copying
-> from a shared lower fs directly into overlayfs, but why is this useful?
-> to which scenario?
-> Do you have an example of use cases for copy to another direction?
+- Provided path must be the root of a detached mount tree.
+- Provided path may not create mount namespace loops.
+- Provided path must be mounted.
 
-My use-case is the snapshot/restore command, which copies changed
-files from the overlay mount, and stores them into a tar file on the
-podman storage directory (which is on the same FS as the lowerdir and
-upperdir), Restore does the process in the opposite direction. Since
-the tar file lives on the same FS as the upperdir, the copy could use
-reflinks. I prototyped this at
+It would be possible to be stricter and require that the caller must
+have CAP_SYS_ADMIN in the owning user namespace of the anonymous mount
+namespace but since this restriction isn't enforced for move_mount()
+there's no point in enforcing it for clone_private_mount().
 
-https://github.com/containers/podman/commit/dd54c885cbe6f4d08554c886389546f=
-215af1817
+Link: https://lore.kernel.org/r/fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com [1]
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+ fs/namespace.c | 78 ++++++++++++++++++++++++++++----------------------
+ 1 file changed, 43 insertions(+), 35 deletions(-)
 
-(timings in the commit message), but it hardcodes a path substitution.
-It would be much nicer if copy_file_range() just worked.
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 4013fbac354a..3985a695d373 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -2287,6 +2287,28 @@ bool has_locked_children(struct mount *mnt, struct dentry *dentry)
+ 	return false;
+ }
+ 
++/*
++ * Check that there aren't references to earlier/same mount namespaces in the
++ * specified subtree.  Such references can act as pins for mount namespaces
++ * that aren't checked by the mount-cycle checking code, thereby allowing
++ * cycles to be made.
++ */
++static bool check_for_nsfs_mounts(struct mount *subtree)
++{
++	struct mount *p;
++	bool ret = false;
++
++	lock_mount_hash();
++	for (p = subtree; p; p = next_mnt(p, subtree))
++		if (mnt_ns_loop(p->mnt.mnt_root))
++			goto out;
++
++	ret = true;
++out:
++	unlock_mount_hash();
++	return ret;
++}
++
+ /**
+  * clone_private_mount - create a private clone of a path
+  * @path: path to clone
+@@ -2295,6 +2317,8 @@ bool has_locked_children(struct mount *mnt, struct dentry *dentry)
+  * will not be attached anywhere in the namespace and will be private (i.e.
+  * changes to the originating mount won't be propagated into this).
+  *
++ * This assumes caller has called or done the equivalent of may_mount().
++ *
+  * Release with mntput().
+  */
+ struct vfsmount *clone_private_mount(const struct path *path)
+@@ -2302,30 +2326,36 @@ struct vfsmount *clone_private_mount(const struct path *path)
+ 	struct mount *old_mnt = real_mount(path->mnt);
+ 	struct mount *new_mnt;
+ 
+-	down_read(&namespace_sem);
++	scoped_guard(rwsem_read, &namespace_sem)
+ 	if (IS_MNT_UNBINDABLE(old_mnt))
+-		goto invalid;
++		return ERR_PTR(-EINVAL);
++
++	if (mnt_has_parent(old_mnt)) {
++		if (!check_mnt(old_mnt))
++			return ERR_PTR(-EINVAL);
++	} else {
++		/* Make sure this isn't something purely kernel internal. */
++		if (!is_anon_ns(old_mnt->mnt_ns))
++			return ERR_PTR(-EINVAL);
+ 
+-	if (!check_mnt(old_mnt))
+-		goto invalid;
++		/* Make sure we don't create mount namespace loops. */
++		if (!check_for_nsfs_mounts(old_mnt))
++			return ERR_PTR(-EINVAL);
++
++		if (!path_mounted(path))
++			return ERR_PTR(-EINVAL);
++	}
+ 
+ 	if (has_locked_children(old_mnt, path->dentry))
+-		goto invalid;
++		return ERR_PTR(-EINVAL);
+ 
+ 	new_mnt = clone_mnt(old_mnt, path->dentry, CL_PRIVATE);
+-	up_read(&namespace_sem);
+-
+ 	if (IS_ERR(new_mnt))
+-		return ERR_CAST(new_mnt);
++		return ERR_PTR(-EINVAL);
+ 
+ 	/* Longterm mount to be removed by kern_unmount*() */
+ 	new_mnt->mnt_ns = MNT_NS_INTERNAL;
+-
+ 	return &new_mnt->mnt;
+-
+-invalid:
+-	up_read(&namespace_sem);
+-	return ERR_PTR(-EINVAL);
+ }
+ EXPORT_SYMBOL_GPL(clone_private_mount);
+ 
+@@ -3123,28 +3153,6 @@ static inline int tree_contains_unbindable(struct mount *mnt)
+ 	return 0;
+ }
+ 
+-/*
+- * Check that there aren't references to earlier/same mount namespaces in the
+- * specified subtree.  Such references can act as pins for mount namespaces
+- * that aren't checked by the mount-cycle checking code, thereby allowing
+- * cycles to be made.
+- */
+-static bool check_for_nsfs_mounts(struct mount *subtree)
+-{
+-	struct mount *p;
+-	bool ret = false;
+-
+-	lock_mount_hash();
+-	for (p = subtree; p; p = next_mnt(p, subtree))
+-		if (mnt_ns_loop(p->mnt.mnt_root))
+-			goto out;
+-
+-	ret = true;
+-out:
+-	unlock_mount_hash();
+-	return ret;
+-}
+-
+ static int do_set_group(struct path *from_path, struct path *to_path)
+ {
+ 	struct mount *from, *to;
+-- 
+2.45.2
 
-Also, copying files into and out of containers (podman container cp)
-would also be sped up.
-
-I have just become aware that podman/docker also supports btrfs-based
-storage (iso. overlayfs). If I were to use that, I suppose I don't
-need this at all.
-
-> > I don't really know what I'm doing, but it seems to work. I tested this
-> > manually using qemu; is there an official test suite where I could add
-> > a test?
->
-> https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
-> See: README.overlay
-
-Awesome. I knew this existed, but didn't realize it went beyond testing XFS=
-.
-
-> For testing your change, you will need a tests/overlay specific copy_rang=
-e test.
-> Let's talk about that if that becomes relevant.
-
-ack.
-
-> > +       bool in_overlay =3D file_in->f_op->copy_file_range =3D=3D &ovl_=
-copy_file_range;
-> > +       bool out_overlay =3D file_out->f_op->copy_file_range =3D=3D &ov=
-l_copy_file_range;
->
-> I prefer if we did not add the support for copying out of overlayfs
-> unless there is a *very* good reason to do so and then
-
-The case of copying into overlayfs is the one I'm more interested in,
-as we're trying to reduce app startup time by restoring a container
-snapshot. This involves copying FS diffs into the container.
-
-> Note that cross-sb copy_file_range() supported by cifs_copy_file_range()
-> and nfs4_copy_file_range() is quite close to what you are trying to do he=
-re
-> I will propose below a way to unify those cases.
-
-OK. I will look into this next week.
-
-> I prefer not to do that unless there is a *very* good reason.
-> copy from another sb source is less risky IMO.
-
-You said this up above, but could you say a little bit more about why?
-Are you concerned that code that will dereference the wrong type of
-per-FS data might still survive long enough to write garbage data to
-stable storage?
-
-> Thanks,
-> Amir.
-
-
-
---=20
-Han-Wen Nienhuys | hanwen@engflow.com | EngFlow GmbH
-Fischerweg 51, 82194 Gr=C3=B6benzell, Germany
-Amtsgericht M=C3=BCnchen, HRB 255664
-Gesch=C3=A4ftsf=C3=BChrer (Managing Director): Ulf Adams
-https://www.engflow.com/
