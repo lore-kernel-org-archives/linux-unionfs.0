@@ -1,233 +1,112 @@
-Received: from mail-io1-f43.google.com (mail-io1-f43.google.com [209.85.166.43])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D12A417FE
-	for <linux-unionfs@vger.kernel.org>; Fri, 24 Jan 2025 05:42:54 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.43
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7379A23B0
+	for <linux-unionfs@vger.kernel.org>; Fri, 24 Jan 2025 11:06:30 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737697376; cv=none; b=TSRSX8/qhObIBnRa4Q6AcD76gcW2u9Y6YMetKsGd5OzrnKB9x40Vwl0VGwDrkfFP/qhlzDPyc6yGRXM5l43EuFO8YyePV1zOSdtg7j0ZwdeOTCK3qIqExuzh60v5y661YAjM1aUgwtQgRQpfHVHyDx2aNhhtFaZtWkVcPFUp1lk=
+	t=1737716790; cv=none; b=E48K9JSBHxvJkduLugxBTh8hoiqHANjzeX0yOM/C8nY4BFdA05GiTQp80QbHmveuREEgJO34Vv9WEiNYHhMtodWEKYlyPSC/Ctlz/tJjXBcp68oli7Oujr/wBnBKiG5QbV5sac64Mqdabw+hEmI1VQ0aEyMTRlkOX4mzn2gGkGw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737697376; c=relaxed/simple;
-	bh=NcCybi90WQjzTwu81hZFhUpsFvOLJogjGuldttLvlCc=;
-	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
-	 In-Reply-To:Content-Type; b=j6E7fJtcIqYKm0tkj0O+p/AipYww/SdvTLwfOi+7DSlFD+IEVIXq3aOul0gKkjkw0GGwuzPoboSk24o/wRk2psQV98YzRlQiJn4Lblx/4wD6VoBTalKTLVC64oEesAEKm78F/bqXis0NPKJX5E7FWkEXm7yPKvPPRtdTWRuOZrE=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com; spf=none smtp.mailfrom=mbaynton.com; dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b=glXiUsaZ; arc=none smtp.client-ip=209.85.166.43
-Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=mbaynton.com
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=mbaynton.com
+	s=arc-20240116; t=1737716790; c=relaxed/simple;
+	bh=RAhgG3qZOZ7hXBOrfxJfJaEgPvC3LZ9/k4FWTueqbrE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=T3B+c+r9d0knWzDeGEN88HMEaZySwQrOOfv8ru1oVFT+YizmSsJGxXlcHD50G02bhWeuTCkxJBO2dV4SPvf6usQHuSolfLxzD0bt3CFCTtnIRw7kmB04H1SNZ1q0rA1TT9yfkizXX3WF2XpFgv7Nv1Cy47sOHolJZzJCRvyghUA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xg/fu3/s; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=mbaynton-com.20230601.gappssmtp.com header.i=@mbaynton-com.20230601.gappssmtp.com header.b="glXiUsaZ"
-Received: by mail-io1-f43.google.com with SMTP id ca18e2360f4ac-844e12f702dso46914339f.3
-        for <linux-unionfs@vger.kernel.org>; Thu, 23 Jan 2025 21:42:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=mbaynton-com.20230601.gappssmtp.com; s=20230601; t=1737697374; x=1738302174; darn=vger.kernel.org;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=MyHAWnvsxWEqkaIajwU9bMH9HrSvktC4b7Oid9sfHUk=;
-        b=glXiUsaZ4+HUf0A0uZYGZUs6TkIHBd51YmKGAKNM7BDCS36veQ1rELxqg3rzS9HD5a
-         Hjco1nmZHQocAaRAg/UfxgtPA9qcGNVpe1DbqPerU2tPn4I3cWZCUT7U5d2sYHsdA+k8
-         t03/sx89chLX3h+hBrYWjZq4V5W9k6HWl8eh/6oXFcwr0E6NffcIDWnLwCR/AgSZBaEQ
-         qPljJJOiSyJ39HA1VbUr2zXMz/FVILhho8ujWpAzO9GcVM9rWdsRxwSMBzc0ePo4HDUC
-         AbxCrMLICngmM15Vx+AismU4wPMhz2+evxoY7dHHuDLx8FQNTxPLYOJksAaIVt6dR2hi
-         smLg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1737697374; x=1738302174;
-        h=content-transfer-encoding:in-reply-to:from:content-language
-         :references:cc:to:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=MyHAWnvsxWEqkaIajwU9bMH9HrSvktC4b7Oid9sfHUk=;
-        b=hb3QX6qXAqC1176HKi9LI4hPBR0bZqLDsI8FZZ11qcYkcTOx32vfLythuldfwt3gcR
-         7ASAljKGqe5sxBtbbdyw9oC4/7VBgSQoiSgNNCe1GKteTGLxvmSPeD6TZwEEPWy1KgH2
-         EkhtTwHu6a3Vmiyg2P/PgOXGg+xS2Uc8vEKWN6jldSh7tiGvzEw2HNBnYllg0HSHN2AR
-         2gcQenrehpE6E7LNQyJiRqXlhEPhICBt2uynWFBBUHMNZ0+4h6lEtMqjQZmBigiqzXUc
-         +F4IzgLurPAKBq4NHE500o5PJFAtgJqtT8sx35XTjG5ALdkrbe8jMbAD7LHg+c9eAvJc
-         I2wg==
-X-Gm-Message-State: AOJu0YzqE/DM61XqCkUWtfSrE/JS6NuD5gQr9495YBCSUS5LbVxOHuJM
-	9VIYE8OSzDUpV/88bzwsbU1c/uvn8fXDdDJaQU7ljNEXGQ02f1wR1p/JH4sjqvQ=
-X-Gm-Gg: ASbGnctV2/qLyTxDCYRBUqY2ZOkbqnzrgHSaSAAUhGABfFZcvMkSBqV+sIIw+4Wj3gR
-	eJMoqF0CTR4dx3YJngaN2AAVWh2SIbRFxwP7EPX0+KFgR493v/eiAw+Ir5Dp1e68udO2Ex3QpA+
-	jnj+1cYp26VlOr/dCXpPD+eC4BuL8JeWBbQ7m88EbERH+f78MHY9Ki2Y5uQEb+9rKK8akvdve7f
-	b9niKAYSUBA9RGGxryICtHWUWm4OCuQJ5XdYRSGLKXE2bj8+hyBbJxE/qi47HgtHtCQaQR/y+ND
-	QW61kFe7mUZynNpMMJIQz2jig/EeXXGh6u74MSLNHH9U
-X-Google-Smtp-Source: AGHT+IEy/kTcIrI44bs8C5rNtJhOxTPneM6xRcbAEJmmR+Xv/YFFUzss217P3I1wp7Ks0FfJ5oOLpA==
-X-Received: by 2002:a05:6602:6cce:b0:84a:5201:41ff with SMTP id ca18e2360f4ac-851b61658e7mr2416018639f.3.1737697373827;
-        Thu, 23 Jan 2025 21:42:53 -0800 (PST)
-Received: from ?IPV6:2601:444:600:440:56ac:fee5:d1d1:52d3? ([2601:444:600:440:56ac:fee5:d1d1:52d3])
-        by smtp.gmail.com with ESMTPSA id ca18e2360f4ac-8521dbb3acdsm39709939f.0.2025.01.23.21.42.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Jan 2025 21:42:53 -0800 (PST)
-Message-ID: <d3499895-9c60-4e03-83b9-edebbfb04bbb@mbaynton.com>
-Date: Thu, 23 Jan 2025 23:42:51 -0600
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xg/fu3/s"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2007C4CED2;
+	Fri, 24 Jan 2025 11:06:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1737716789;
+	bh=RAhgG3qZOZ7hXBOrfxJfJaEgPvC3LZ9/k4FWTueqbrE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=Xg/fu3/s3wgIMeBhE5fInRaJbeBIYhV9CYsJvRpCX7zad4Op78DMvP+WOrfnI0Me+
+	 FR3Z96YB1+RvzJ9XF3/XztMIudqgQyA+Rj0lLfb/onOqO6EM0ZDSZYPemle3Kzhy+9
+	 xqqjGtz6z01Ww1j6R8dTsWQznY4SCU1iAno5hGSc4ZXMjRxshQgSK5iG+IZ06Lgy+D
+	 nYMnGayy3nV7QwsSECnKLgxfYOte83tgE7WMkqX5lmZqlCFV5XxWx7Kuk+vOX0wfE7
+	 yNNYWX5OZNvdL0TJX6OOXevTimkL9EQcnRLbhPeOprLPujukK0JhNXIUv8SdIl0yeY
+	 DsKrt/UdVExig==
+Date: Fri, 24 Jan 2025 12:06:26 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Mike Baynton <mike@mbaynton.com>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>
+Subject: Re: ovl: Allow layers from anonymous mount namespaces?
+Message-ID: <20250124-daran-achten-154ca16111cb@brauner>
+References: <fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com>
+ <20250123-senkung-spangen-c0aabc251c65@brauner>
+ <e7733291-48a4-4b65-bbdb-8462b9708af9@mbaynton.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [RFC PATCH 1/2] fs: allow detached mounts in
- clone_private_mount()
-To: Christian Brauner <brauner@kernel.org>,
- Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <miklos@szeredi.hu>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
-References: <fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com>
- <20250123-avancieren-erfreuen-3d61f6588fdd@brauner>
-Content-Language: en-US
-From: Mike Baynton <mike@mbaynton.com>
-In-Reply-To: <20250123-avancieren-erfreuen-3d61f6588fdd@brauner>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <e7733291-48a4-4b65-bbdb-8462b9708af9@mbaynton.com>
 
-On 1/23/25 13:19, Christian Brauner wrote:
-> In container workloads idmapped mounts are often used as layers for
-> overlayfs. Recently I added the ability to specify layers in overlayfs
-> as file descriptors instead of path names. It should be possible to
-> simply use the detached mounts directly when specifying layers instead
-> of having to attach them beforehand. They are discarded after overlayfs
-> is mounted anyway so it's pointless system calls for userspace and
-> pointless locking for the kernel.
+On Thu, Jan 23, 2025 at 11:40:41PM -0600, Mike Baynton wrote:
+> On 1/23/25 13:21, Christian Brauner wrote:
+> > On Wed, Jan 22, 2025 at 10:18:17PM -0600, Mike Baynton wrote:
+> >> Hi,
+> >> I've been eagerly awaiting the arrival of lowerdir+ by file handle, as
+> >> it looks likely to be well-suited to simplifying the task a container
+> >> runtime must take on in order to provide a set of properly idmapped
+> >> lower layers for a user namespaced container. Currently in containerd,
+> >> this is done by creating bindmounts for each required lower layer in
+> >> order to apply idmapping to them. Each of these bindmounts must be
+> >> briefly attached to some path-resolvable mountpoint before the overlay
+> >> is created, which seems less than ideal and is contributing to some
+> >> cleanup headaches e.g. when other software that may be present jumps on
+> >> the new mount and starts security scanning it or whatnot.
+> >>
+> >> In order to better isolate the idmap bindmounts I was hoping to do
+> >> something like:
+> >>
+> >> ovl_ctx = fsopen("overlay", FSOPEN_CLOEXEC);
+> >>
+> >> opfd = open_tree(-1, "/path/to/unmapped/layer",
+> >> OPEN_TREE_CLONE|OPEN_TREE_CLOEXEC);
+> >> mount_setattr(opfd, "", AT_EMPTY_PATH, /* attrs to set a userns_fd */);
+> >> dfd = openat(opfd, ".", O_DIRECTORY, mode);
+> > 
+> > Unless I forgot detaile, openat() shouldn't be needed as speciyfing
+> > layers via O_PATH file descriptors should just work.
 > 
-> This just recently come up again in [1]. So enable clone_private_mount()
-> to use detached mounts directly. Following conditions must be met:
-> 
-> - Provided path must be the root of a detached mount tree.
-> - Provided path may not create mount namespace loops.
-> - Provided path must be mounted.
-> 
-> It would be possible to be stricter and require that the caller must
-> have CAP_SYS_ADMIN in the owning user namespace of the anonymous mount
-> namespace but since this restriction isn't enforced for move_mount()
-> there's no point in enforcing it for clone_private_mount().
-> 
-> Link: https://lore.kernel.org/r/fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com [1]
-> Signed-off-by: Christian Brauner <brauner@kernel.org>
-> ---
->  fs/namespace.c | 78 ++++++++++++++++++++++++++++----------------------
->  1 file changed, 43 insertions(+), 35 deletions(-)
-> 
-> diff --git a/fs/namespace.c b/fs/namespace.c
-> index 4013fbac354a..3985a695d373 100644
-> --- a/fs/namespace.c
-> +++ b/fs/namespace.c
-> @@ -2287,6 +2287,28 @@ bool has_locked_children(struct mount *mnt, struct dentry *dentry)
->  	return false;
->  }
->  
-> +/*
-> + * Check that there aren't references to earlier/same mount namespaces in the
-> + * specified subtree.  Such references can act as pins for mount namespaces
-> + * that aren't checked by the mount-cycle checking code, thereby allowing
-> + * cycles to be made.
-> + */
-> +static bool check_for_nsfs_mounts(struct mount *subtree)
-> +{
-> +	struct mount *p;
-> +	bool ret = false;
-> +
-> +	lock_mount_hash();
-> +	for (p = subtree; p; p = next_mnt(p, subtree))
-> +		if (mnt_ns_loop(p->mnt.mnt_root))
-> +			goto out;
-> +
-> +	ret = true;
-> +out:
-> +	unlock_mount_hash();
-> +	return ret;
-> +}
-> +
->  /**
->   * clone_private_mount - create a private clone of a path
->   * @path: path to clone
-> @@ -2295,6 +2317,8 @@ bool has_locked_children(struct mount *mnt, struct dentry *dentry)
->   * will not be attached anywhere in the namespace and will be private (i.e.
->   * changes to the originating mount won't be propagated into this).
->   *
-> + * This assumes caller has called or done the equivalent of may_mount().
-> + *
->   * Release with mntput().
->   */
->  struct vfsmount *clone_private_mount(const struct path *path)
-> @@ -2302,30 +2326,36 @@ struct vfsmount *clone_private_mount(const struct path *path)
->  	struct mount *old_mnt = real_mount(path->mnt);
->  	struct mount *new_mnt;
->  
-> -	down_read(&namespace_sem);
-> +	scoped_guard(rwsem_read, &namespace_sem)
->  	if (IS_MNT_UNBINDABLE(old_mnt))
-> -		goto invalid;
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	if (mnt_has_parent(old_mnt)) {
-> +		if (!check_mnt(old_mnt))
-> +			return ERR_PTR(-EINVAL);
-> +	} else {
-> +		/* Make sure this isn't something purely kernel internal. */
-> +		if (!is_anon_ns(old_mnt->mnt_ns))
-> +			return ERR_PTR(-EINVAL);
->  
-> -	if (!check_mnt(old_mnt))
-> -		goto invalid;
-> +		/* Make sure we don't create mount namespace loops. */
-> +		if (!check_for_nsfs_mounts(old_mnt))
-> +			return ERR_PTR(-EINVAL);
-> +
-> +		if (!path_mounted(path))
-> +			return ERR_PTR(-EINVAL);
-> +	}
->  
->  	if (has_locked_children(old_mnt, path->dentry))
-> -		goto invalid;
-> +		return ERR_PTR(-EINVAL);
->  
->  	new_mnt = clone_mnt(old_mnt, path->dentry, CL_PRIVATE);
-> -	up_read(&namespace_sem);
-> -
->  	if (IS_ERR(new_mnt))
-> -		return ERR_CAST(new_mnt);
-> +		return ERR_PTR(-EINVAL);
->  
->  	/* Longterm mount to be removed by kern_unmount*() */
->  	new_mnt->mnt_ns = MNT_NS_INTERNAL;
-> -
->  	return &new_mnt->mnt;
-> -
-> -invalid:
-> -	up_read(&namespace_sem);
-> -	return ERR_PTR(-EINVAL);
->  }
->  EXPORT_SYMBOL_GPL(clone_private_mount);
->  
-> @@ -3123,28 +3153,6 @@ static inline int tree_contains_unbindable(struct mount *mnt)
->  	return 0;
->  }
->  
-> -/*
-> - * Check that there aren't references to earlier/same mount namespaces in the
-> - * specified subtree.  Such references can act as pins for mount namespaces
-> - * that aren't checked by the mount-cycle checking code, thereby allowing
-> - * cycles to be made.
-> - */
-> -static bool check_for_nsfs_mounts(struct mount *subtree)
-> -{
-> -	struct mount *p;
-> -	bool ret = false;
-> -
-> -	lock_mount_hash();
-> -	for (p = subtree; p; p = next_mnt(p, subtree))
-> -		if (mnt_ns_loop(p->mnt.mnt_root))
-> -			goto out;
-> -
-> -	ret = true;
-> -out:
-> -	unlock_mount_hash();
-> -	return ret;
-> -}
-> -
->  static int do_set_group(struct path *from_path, struct path *to_path)
->  {
->  	struct mount *from, *to;
+> O_PATH ones currently result in EBADF, iirc just because fsconfig with
+> FSCONFIG_SET_FD looks up the file descriptor in a way that masks O_PATH.
+> This took some time to work out too, but doesn't strike me as a huge
+> deal. Although I suppose it's one of those things that if it were
+> improved far down the road would probably lead to next to nobody
+> removing the openat().
 
-Confirmed this works for the use case I'm interested in of directly
-passing idmapped mounts to lower layers.
+Oh right. We should be able to enable FSONFIG_SET_FD to accept O_PATH
+file descriptors. To not break existing users we need do introduce:
 
-Tested-by: Mike Baynton <mike@mbaynton.com>
+diff --git a/include/linux/fs_context.h b/include/linux/fs_context.h
+index 4b4bfef6f053..e160e7c61e4b 100644
+--- a/include/linux/fs_context.h
++++ b/include/linux/fs_context.h
+@@ -55,6 +55,7 @@ enum fs_value_type {
+        fs_value_is_blob,               /* Value is a binary blob */
+        fs_value_is_filename,           /* Value is a filename* + dirfd */
+        fs_value_is_file,               /* Value is a file* */
++       fs_value_is_file_fmode_path,    /* Value is a file* */
+ };
+
+ /*
+diff --git a/include/linux/fs_parser.h b/include/linux/fs_parser.h
+index 3cef566088fc..17ba4951298b 100644
+--- a/include/linux/fs_parser.h
++++ b/include/linux/fs_parser.h
+@@ -134,6 +134,7 @@ static inline bool fs_validate_description(const char *name,
+ #define fsparam_bdev(NAME, OPT)        __fsparam(fs_param_is_blockdev, NAME, OPT, 0, NULL)
+ #define fsparam_path(NAME, OPT)        __fsparam(fs_param_is_path, NAME, OPT, 0, NULL)
+ #define fsparam_fd(NAME, OPT)  __fsparam(fs_param_is_fd, NAME, OPT, 0, NULL)
++#define fsparam_path_fd(NAME, OPT)     __fsparam(fs_param_is_path_fd, NAME, OPT, 0, NULL)
+ #define fsparam_file_or_string(NAME, OPT) \
+                                __fsparam(fs_param_is_file_or_string, NAME, OPT, 0, NULL)
+ #define fsparam_uid(NAME, OPT) __fsparam(fs_param_is_uid, NAME, OPT, 0, NULL)
+
+and so that we don't break code and autofs FSCONFIG_SET_FD usage. Both
+want non O_PATH fds. But otherwise I don't see an issue with this.
