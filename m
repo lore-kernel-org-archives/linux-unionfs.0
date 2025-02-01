@@ -1,112 +1,252 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-io1-f79.google.com (mail-io1-f79.google.com [209.85.166.79])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7379A23B0
-	for <linux-unionfs@vger.kernel.org>; Fri, 24 Jan 2025 11:06:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8CB3115535B
+	for <linux-unionfs@vger.kernel.org>; Sat,  1 Feb 2025 16:12:24 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.79
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1737716790; cv=none; b=E48K9JSBHxvJkduLugxBTh8hoiqHANjzeX0yOM/C8nY4BFdA05GiTQp80QbHmveuREEgJO34Vv9WEiNYHhMtodWEKYlyPSC/Ctlz/tJjXBcp68oli7Oujr/wBnBKiG5QbV5sac64Mqdabw+hEmI1VQ0aEyMTRlkOX4mzn2gGkGw=
+	t=1738426346; cv=none; b=uj5rpKlNR6J5rfFnEReFHoRwYJqNy5VGPNtndXHAA+U6D3irQvIuiNjRvscfMHxBURo4yAwXdzFxFrewxdrlRMfeCnJO6V3jHmOXdTunlcrCvHrXFI3F69zap4/YTwqcdffqojNMBS9LIESWAKZmzyMBJfLUG3Ly+VlIZX/KGdM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1737716790; c=relaxed/simple;
-	bh=RAhgG3qZOZ7hXBOrfxJfJaEgPvC3LZ9/k4FWTueqbrE=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=T3B+c+r9d0knWzDeGEN88HMEaZySwQrOOfv8ru1oVFT+YizmSsJGxXlcHD50G02bhWeuTCkxJBO2dV4SPvf6usQHuSolfLxzD0bt3CFCTtnIRw7kmB04H1SNZ1q0rA1TT9yfkizXX3WF2XpFgv7Nv1Cy47sOHolJZzJCRvyghUA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xg/fu3/s; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xg/fu3/s"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2007C4CED2;
-	Fri, 24 Jan 2025 11:06:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1737716789;
-	bh=RAhgG3qZOZ7hXBOrfxJfJaEgPvC3LZ9/k4FWTueqbrE=;
-	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-	b=Xg/fu3/s3wgIMeBhE5fInRaJbeBIYhV9CYsJvRpCX7zad4Op78DMvP+WOrfnI0Me+
-	 FR3Z96YB1+RvzJ9XF3/XztMIudqgQyA+Rj0lLfb/onOqO6EM0ZDSZYPemle3Kzhy+9
-	 xqqjGtz6z01Ww1j6R8dTsWQznY4SCU1iAno5hGSc4ZXMjRxshQgSK5iG+IZ06Lgy+D
-	 nYMnGayy3nV7QwsSECnKLgxfYOte83tgE7WMkqX5lmZqlCFV5XxWx7Kuk+vOX0wfE7
-	 yNNYWX5OZNvdL0TJX6OOXevTimkL9EQcnRLbhPeOprLPujukK0JhNXIUv8SdIl0yeY
-	 DsKrt/UdVExig==
-Date: Fri, 24 Jan 2025 12:06:26 +0100
-From: Christian Brauner <brauner@kernel.org>
-To: Mike Baynton <mike@mbaynton.com>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>
-Subject: Re: ovl: Allow layers from anonymous mount namespaces?
-Message-ID: <20250124-daran-achten-154ca16111cb@brauner>
-References: <fd8f6574-f737-4743-b220-79c815ee1554@mbaynton.com>
- <20250123-senkung-spangen-c0aabc251c65@brauner>
- <e7733291-48a4-4b65-bbdb-8462b9708af9@mbaynton.com>
+	s=arc-20240116; t=1738426346; c=relaxed/simple;
+	bh=JtZ04UNyH23V270wHtAoAJW6QpRgEi4X0u/ziEmXSbg=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=eBNLTxRHd7yYprEledflKgQMYnSxAB1VnY3pZH9VEMOYGzglXuRbl7wKIkeRtup5yOolYGoX9H8jg3yd+1zZXKVhcfzMMBi74PKqAf61VOelRV31ZDLHTi6gumbtZ19zSk8tNlFi2JEqyef166ZP6QlGxLMn/3R+W78CTRTuSNg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.79
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-io1-f79.google.com with SMTP id ca18e2360f4ac-851f02bbfd8so174773039f.2
+        for <linux-unionfs@vger.kernel.org>; Sat, 01 Feb 2025 08:12:24 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738426343; x=1739031143;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=tyGD3kn0ahOYQSd5y7of5ZgUpydEeJctMr1j2Eqeg5I=;
+        b=JuZT3Xp23rgXeZRf3PPOwKyt4FKqDUCINavmqNz2/2zrFyHGO/Wv9/TGFiNUokddqc
+         bpqMANCX4YAWRaEn1PXtysugqR/oiaLgxi9dqM5nX+r4dOtXMhq5FZjxN+zSywTwT7tj
+         lAJgz+0rzX/L0yTuTv13lCksZcQFZSbA66oo+HtD9h1E12mD5Vw/aslX1aptT7elCFFX
+         +6qdW+tUBQWC5CSsINfP5LWUYmYFtI/6kfgEQcAfn9QdjucdZMk/YqXM9Mq2PlTUeddr
+         1OtuCtS6IOq43oE2hpYoEQH8onoH/wGdXkPUOE3oho+CgakRQ6wxSanmpmTUdXiVF6As
+         +54w==
+X-Forwarded-Encrypted: i=1; AJvYcCWfjYvxQTCqjcTGDWAWGhYYU2AqAsaJUFuWWmtKKRZPfsVRTq1gTZ40tz6VyOLU3rCxb8Kvn2uQMAJotAHv@vger.kernel.org
+X-Gm-Message-State: AOJu0YwRngM/QqDJi3b82G5bcwly/H1DA8IdaZojVtmOWhj7lrWrvcI8
+	RXa1zCC9fHBoBUAnexOcNKtupwZU6ggb9rTpkecf1vjhn0JkG4qut78ysGT7ZreBp8Q6uhk4TCJ
+	GyUMmHbFzVUPZS7g6jLar3n/k8GddqYKVGqgdZa4SXZy+Gw8fm88D+2E=
+X-Google-Smtp-Source: AGHT+IEZeC/XfVZ5fWXRhpEada1rV5f/DE2gpaK0SLZAQFZrtNIdpPwsSEzNbwZbhcr5iAkS/zMgJ+gyIYB5xTLpQ/a/84+Gfx6X
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <e7733291-48a4-4b65-bbdb-8462b9708af9@mbaynton.com>
+X-Received: by 2002:a92:c24f:0:b0:3d0:1abc:fe03 with SMTP id
+ e9e14a558f8ab-3d01abcff3emr46234015ab.15.1738426343697; Sat, 01 Feb 2025
+ 08:12:23 -0800 (PST)
+Date: Sat, 01 Feb 2025 08:12:23 -0800
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <679e47e7.050a0220.d7c5a.005f.GAE@google.com>
+Subject: [syzbot] [overlayfs?] possible deadlock in ovl_create_object
+From: syzbot <syzbot+93ea1efef88821c553ad@syzkaller.appspotmail.com>
+To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
+	syzkaller-bugs@googlegroups.com
+Content-Type: text/plain; charset="UTF-8"
 
-On Thu, Jan 23, 2025 at 11:40:41PM -0600, Mike Baynton wrote:
-> On 1/23/25 13:21, Christian Brauner wrote:
-> > On Wed, Jan 22, 2025 at 10:18:17PM -0600, Mike Baynton wrote:
-> >> Hi,
-> >> I've been eagerly awaiting the arrival of lowerdir+ by file handle, as
-> >> it looks likely to be well-suited to simplifying the task a container
-> >> runtime must take on in order to provide a set of properly idmapped
-> >> lower layers for a user namespaced container. Currently in containerd,
-> >> this is done by creating bindmounts for each required lower layer in
-> >> order to apply idmapping to them. Each of these bindmounts must be
-> >> briefly attached to some path-resolvable mountpoint before the overlay
-> >> is created, which seems less than ideal and is contributing to some
-> >> cleanup headaches e.g. when other software that may be present jumps on
-> >> the new mount and starts security scanning it or whatnot.
-> >>
-> >> In order to better isolate the idmap bindmounts I was hoping to do
-> >> something like:
-> >>
-> >> ovl_ctx = fsopen("overlay", FSOPEN_CLOEXEC);
-> >>
-> >> opfd = open_tree(-1, "/path/to/unmapped/layer",
-> >> OPEN_TREE_CLONE|OPEN_TREE_CLOEXEC);
-> >> mount_setattr(opfd, "", AT_EMPTY_PATH, /* attrs to set a userns_fd */);
-> >> dfd = openat(opfd, ".", O_DIRECTORY, mode);
-> > 
-> > Unless I forgot detaile, openat() shouldn't be needed as speciyfing
-> > layers via O_PATH file descriptors should just work.
-> 
-> O_PATH ones currently result in EBADF, iirc just because fsconfig with
-> FSCONFIG_SET_FD looks up the file descriptor in a way that masks O_PATH.
-> This took some time to work out too, but doesn't strike me as a huge
-> deal. Although I suppose it's one of those things that if it were
-> improved far down the road would probably lead to next to nobody
-> removing the openat().
+Hello,
 
-Oh right. We should be able to enable FSONFIG_SET_FD to accept O_PATH
-file descriptors. To not break existing users we need do introduce:
+syzbot found the following issue on:
 
-diff --git a/include/linux/fs_context.h b/include/linux/fs_context.h
-index 4b4bfef6f053..e160e7c61e4b 100644
---- a/include/linux/fs_context.h
-+++ b/include/linux/fs_context.h
-@@ -55,6 +55,7 @@ enum fs_value_type {
-        fs_value_is_blob,               /* Value is a binary blob */
-        fs_value_is_filename,           /* Value is a filename* + dirfd */
-        fs_value_is_file,               /* Value is a file* */
-+       fs_value_is_file_fmode_path,    /* Value is a file* */
- };
+HEAD commit:    805ba04cb7cc Merge tag 'mips_6.14' of git://git.kernel.org..
+git tree:       upstream
+console output: https://syzkaller.appspot.com/x/log.txt?x=157e6364580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=2ae8afe424ee551e
+dashboard link: https://syzkaller.appspot.com/bug?extid=93ea1efef88821c553ad
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
 
- /*
-diff --git a/include/linux/fs_parser.h b/include/linux/fs_parser.h
-index 3cef566088fc..17ba4951298b 100644
---- a/include/linux/fs_parser.h
-+++ b/include/linux/fs_parser.h
-@@ -134,6 +134,7 @@ static inline bool fs_validate_description(const char *name,
- #define fsparam_bdev(NAME, OPT)        __fsparam(fs_param_is_blockdev, NAME, OPT, 0, NULL)
- #define fsparam_path(NAME, OPT)        __fsparam(fs_param_is_path, NAME, OPT, 0, NULL)
- #define fsparam_fd(NAME, OPT)  __fsparam(fs_param_is_fd, NAME, OPT, 0, NULL)
-+#define fsparam_path_fd(NAME, OPT)     __fsparam(fs_param_is_path_fd, NAME, OPT, 0, NULL)
- #define fsparam_file_or_string(NAME, OPT) \
-                                __fsparam(fs_param_is_file_or_string, NAME, OPT, 0, NULL)
- #define fsparam_uid(NAME, OPT) __fsparam(fs_param_is_uid, NAME, OPT, 0, NULL)
+Unfortunately, I don't have any reproducer for this issue yet.
 
-and so that we don't break code and autofs FSCONFIG_SET_FD usage. Both
-want non O_PATH fds. But otherwise I don't see an issue with this.
+Downloadable assets:
+disk image (non-bootable): https://storage.googleapis.com/syzbot-assets/7feb34a89c2a/non_bootable_disk-805ba04c.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/f9b9a1354470/vmlinux-805ba04c.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/6c77f51f864a/bzImage-805ba04c.xz
+
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+93ea1efef88821c553ad@syzkaller.appspotmail.com
+
+======================================================
+WARNING: possible circular locking dependency detected
+6.13.0-syzkaller-08291-g805ba04cb7cc #0 Not tainted
+------------------------------------------------------
+syz.4.1894/11640 is trying to acquire lock:
+ffff88805ad04420 (sb_writers#6){.+.+}-{0:0}, at: ovl_create_object+0x12e/0x300 fs/overlayfs/dir.c:656
+
+but task is already holding lock:
+ffff8880362ed258 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}, at: inode_lock include/linux/fs.h:865 [inline]
+ffff8880362ed258 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}, at: open_last_lookups fs/namei.c:3745 [inline]
+ffff8880362ed258 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}, at: path_openat+0x15a4/0x2d80 fs/namei.c:3984
+
+which lock already depends on the new lock.
+
+
+the existing dependency chain (in reverse order) is:
+
+-> #3 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}:
+       down_read+0x9a/0x330 kernel/locking/rwsem.c:1524
+       inode_lock_shared include/linux/fs.h:875 [inline]
+       lookup_slow fs/namei.c:1807 [inline]
+       walk_component+0x342/0x5b0 fs/namei.c:2112
+       lookup_last fs/namei.c:2610 [inline]
+       path_lookupat+0x17f/0x770 fs/namei.c:2634
+       filename_lookup+0x221/0x5f0 fs/namei.c:2663
+       kern_path+0x35/0x50 fs/namei.c:2771
+       lookup_bdev+0xd9/0x280 block/bdev.c:1163
+       resume_store+0x1d8/0x460 kernel/power/hibernate.c:1242
+       kobj_attr_store+0x55/0x80 lib/kobject.c:840
+       sysfs_kf_write+0x117/0x170 fs/sysfs/file.c:139
+       kernfs_fop_write_iter+0x33d/0x500 fs/kernfs/file.c:334
+       new_sync_write fs/read_write.c:586 [inline]
+       vfs_write+0x5ae/0x1150 fs/read_write.c:679
+       ksys_write+0x12b/0x250 fs/read_write.c:731
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xcd/0x250 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #2 (&of->mutex){+.+.}-{4:4}:
+       __mutex_lock_common kernel/locking/mutex.c:585 [inline]
+       __mutex_lock+0x19b/0xb10 kernel/locking/mutex.c:730
+       kernfs_fop_write_iter+0x27b/0x500 fs/kernfs/file.c:325
+       iter_file_splice_write+0x90f/0x10b0 fs/splice.c:743
+       do_splice_from fs/splice.c:941 [inline]
+       do_splice+0x146a/0x1f70 fs/splice.c:1354
+       __do_splice+0x327/0x360 fs/splice.c:1436
+       __do_sys_splice fs/splice.c:1639 [inline]
+       __se_sys_splice fs/splice.c:1621 [inline]
+       __x64_sys_splice+0x187/0x250 fs/splice.c:1621
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xcd/0x250 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #1 (&pipe->mutex){+.+.}-{4:4}:
+       __mutex_lock_common kernel/locking/mutex.c:585 [inline]
+       __mutex_lock+0x19b/0xb10 kernel/locking/mutex.c:730
+       pipe_lock fs/pipe.c:92 [inline]
+       pipe_lock+0x64/0x80 fs/pipe.c:89
+       iter_file_splice_write+0x1eb/0x10b0 fs/splice.c:687
+       do_splice_from fs/splice.c:941 [inline]
+       do_splice+0x146a/0x1f70 fs/splice.c:1354
+       __do_splice+0x327/0x360 fs/splice.c:1436
+       __do_sys_splice fs/splice.c:1639 [inline]
+       __se_sys_splice fs/splice.c:1621 [inline]
+       __x64_sys_splice+0x187/0x250 fs/splice.c:1621
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xcd/0x250 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+-> #0 (sb_writers#6){.+.+}-{0:0}:
+       check_prev_add kernel/locking/lockdep.c:3163 [inline]
+       check_prevs_add kernel/locking/lockdep.c:3282 [inline]
+       validate_chain kernel/locking/lockdep.c:3906 [inline]
+       __lock_acquire+0x249e/0x3c40 kernel/locking/lockdep.c:5228
+       lock_acquire.part.0+0x11b/0x380 kernel/locking/lockdep.c:5851
+       percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+       __sb_start_write include/linux/fs.h:1773 [inline]
+       sb_start_write include/linux/fs.h:1909 [inline]
+       mnt_want_write+0x6f/0x450 fs/namespace.c:547
+       ovl_create_object+0x12e/0x300 fs/overlayfs/dir.c:656
+       lookup_open.isra.0+0x11c8/0x1580 fs/namei.c:3649
+       open_last_lookups fs/namei.c:3748 [inline]
+       path_openat+0x904/0x2d80 fs/namei.c:3984
+       do_filp_open+0x20c/0x470 fs/namei.c:4014
+       do_sys_openat2+0x17a/0x1e0 fs/open.c:1427
+       do_sys_open fs/open.c:1442 [inline]
+       __do_sys_open fs/open.c:1450 [inline]
+       __se_sys_open fs/open.c:1446 [inline]
+       __x64_sys_open+0x154/0x1e0 fs/open.c:1446
+       do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+       do_syscall_64+0xcd/0x250 arch/x86/entry/common.c:83
+       entry_SYSCALL_64_after_hwframe+0x77/0x7f
+
+other info that might help us debug this:
+
+Chain exists of:
+  sb_writers#6 --> &of->mutex --> &ovl_i_mutex_dir_key[depth]#2
+
+ Possible unsafe locking scenario:
+
+       CPU0                    CPU1
+       ----                    ----
+  lock(&ovl_i_mutex_dir_key[depth]#2);
+                               lock(&of->mutex);
+                               lock(&ovl_i_mutex_dir_key[depth]#2);
+  rlock(sb_writers#6);
+
+ *** DEADLOCK ***
+
+2 locks held by syz.4.1894/11640:
+ #0: ffff88805690c420 (sb_writers#20){.+.+}-{0:0}, at: open_last_lookups fs/namei.c:3737 [inline]
+ #0: ffff88805690c420 (sb_writers#20){.+.+}-{0:0}, at: path_openat+0x1fab/0x2d80 fs/namei.c:3984
+ #1: ffff8880362ed258 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}, at: inode_lock include/linux/fs.h:865 [inline]
+ #1: ffff8880362ed258 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}, at: open_last_lookups fs/namei.c:3745 [inline]
+ #1: ffff8880362ed258 (&ovl_i_mutex_dir_key[depth]#2){++++}-{4:4}, at: path_openat+0x15a4/0x2d80 fs/namei.c:3984
+
+stack backtrace:
+CPU: 3 UID: 0 PID: 11640 Comm: syz.4.1894 Not tainted 6.13.0-syzkaller-08291-g805ba04cb7cc #0
+Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS 1.16.3-debian-1.16.3-2~bpo12+1 04/01/2014
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:94 [inline]
+ dump_stack_lvl+0x116/0x1f0 lib/dump_stack.c:120
+ print_circular_bug+0x490/0x760 kernel/locking/lockdep.c:2076
+ check_noncircular+0x31a/0x400 kernel/locking/lockdep.c:2208
+ check_prev_add kernel/locking/lockdep.c:3163 [inline]
+ check_prevs_add kernel/locking/lockdep.c:3282 [inline]
+ validate_chain kernel/locking/lockdep.c:3906 [inline]
+ __lock_acquire+0x249e/0x3c40 kernel/locking/lockdep.c:5228
+ lock_acquire.part.0+0x11b/0x380 kernel/locking/lockdep.c:5851
+ percpu_down_read include/linux/percpu-rwsem.h:51 [inline]
+ __sb_start_write include/linux/fs.h:1773 [inline]
+ sb_start_write include/linux/fs.h:1909 [inline]
+ mnt_want_write+0x6f/0x450 fs/namespace.c:547
+ ovl_create_object+0x12e/0x300 fs/overlayfs/dir.c:656
+ lookup_open.isra.0+0x11c8/0x1580 fs/namei.c:3649
+ open_last_lookups fs/namei.c:3748 [inline]
+ path_openat+0x904/0x2d80 fs/namei.c:3984
+ do_filp_open+0x20c/0x470 fs/namei.c:4014
+ do_sys_openat2+0x17a/0x1e0 fs/open.c:1427
+ do_sys_open fs/open.c:1442 [inline]
+ __do_sys_open fs/open.c:1450 [inline]
+ __se_sys_open fs/open.c:1446 [inline]
+ __x64_sys_open+0x154/0x1e0 fs/open.c:1446
+ do_syscall_x64 arch/x86/entry/common.c:52 [inline]
+ do_syscall_64+0xcd/0x250 arch/x86/entry/common.c:83
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fb22938cda9
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 a8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007fb22a1f9038 EFLAGS: 00000246 ORIG_RAX: 0000000000000002
+RAX: ffffffffffffffda RBX: 00007fb2295a5fa0 RCX: 00007fb22938cda9
+RDX: 0000000000000000 RSI: 0000000000060142 RDI: 0000000020000000
+RBP: 00007fb22940e2a0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 0000000000000000 R14: 00007fb2295a5fa0 R15: 00007ffe95a187a8
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
