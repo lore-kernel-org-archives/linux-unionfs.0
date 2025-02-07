@@ -1,142 +1,189 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f51.google.com (mail-ed1-f51.google.com [209.85.208.51])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E6F12500C5;
-	Fri,  7 Feb 2025 15:46:58 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CB7722A1D8;
+	Fri,  7 Feb 2025 17:39:22 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.51
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1738943219; cv=none; b=ELgrY5yzNHz2NwluJ9dcYZ2yTLDV2nBxPkt5Lghg0+KRF+Jhfp9vdIdRjNvDC0SCv26vDPMRFuAJVf1EGM59F4vRIKF4UpSJQOeXeaIzG+AbTj2Rc2cxDwzm1etF6UI7I1cZRcMLdWMulR7lMxokQ4v9UFVbv/ue9mCYSOTiHXs=
+	t=1738949964; cv=none; b=qFUWo13T0IWW3Hq+PmKwI5vhfp/39MJAXfidZqWz6bs5uaLZFCFxFn8fdwUKkYBdSz49Z/NwxetRJs2ogP7ifYDTjdZHmknBsoaswBTMu7VJonbq9NY09khYjobirl7Mnh3F1UL8MHkXCzoSD48kkGrkdSz+48QWLWwEsgzLBOs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1738943219; c=relaxed/simple;
-	bh=K9c0rt0XWDv9lF7rhjy20/wBTcF2vjxT8MhbMHuq5m4=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=COKskGSIEBBCn2kihuWbC6Hy3D0wNUoF/AKXSAIFoBPYBViV6OjeyQMJfC2ew6tcNAKB0UOGn4yr/0JNCtjQf1XT4qVJnMrxOX8+Cqc4VnkQTzNBU7eNUFfb1/ZOh8lVB/vgo2GjLxPYQZ/MR88z/UDGP6aQxyNK0+bQPc46e4Y=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=pj4WD1z1; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1738949964; c=relaxed/simple;
+	bh=fSsrW3H7Vu3OL2dcvZSUx1bgKcsMa8O8hWiJVthrgEE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=IkWL5OAimm5AmAKAV1Bjg4c47w+6kR0Wj6C2/Vba3Eym9CXI2sjdooZ1MVdYig9pP6QWcfMwhJlAbA1pLCtOWkdGe64bElZAMhR5fyUOWmtylL7a0WsDpqU1vrnfSBGGkcqIeR8twUDIJ8YZ9A6FOLkcnlalgPe/IcOLU1AETfQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=cm9nHzOL; arc=none smtp.client-ip=209.85.208.51
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="pj4WD1z1"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3F76AC4CEDF;
-	Fri,  7 Feb 2025 15:46:57 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1738943218;
-	bh=K9c0rt0XWDv9lF7rhjy20/wBTcF2vjxT8MhbMHuq5m4=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=pj4WD1z1/6z8mdA4mWEG1h4P/B0axJvNw2WZedEeeK48QAcjNMgsFwFbP4xUACwDM
-	 0M41g4lAdQIHEjzn0DlcA8q5a7DNcx067KWePBCQ3uVsSHYKuv7U8z1XyioDupxmGi
-	 4bXm7Cj12LBF2E6gbxEYhq0fpv9q52Ua9G/5YaBjg9P5GlC6028Eb9R4+R+MJ/xbPQ
-	 xNDwxs5f2DExt97iNA7zIFUG0K4uIl8moBAvBmFNvFhNwEL7uXM+j28YpFix3x09VJ
-	 /GNGitpVwj/i2VLcITdJNpMHAxz6NkolwU4ik0+3he/r4vhV55ywfAa/XOGELCFYpd
-	 78+h9bcv2UnXA==
-From: Christian Brauner <brauner@kernel.org>
-Date: Fri, 07 Feb 2025 16:46:40 +0100
-Subject: [PATCH 2/2] selftests/overlayfs: test specifying layers as O_PATH
- file descriptors
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="cm9nHzOL"
+Received: by mail-ed1-f51.google.com with SMTP id 4fb4d7f45d1cf-5dcef33eeceso4245271a12.2;
+        Fri, 07 Feb 2025 09:39:22 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1738949961; x=1739554761; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=AHG9z5ZzVOBTfLJT1jahvgsFI0hw4A7Oh2qiZG7sPow=;
+        b=cm9nHzOLE0ohSCQi5QR5cdNrBr9U8xS8FxCepp0ui8YSIDkeCYyuOE8LzLB3mC3U21
+         sErLe3Ycrv6K+uh0/pbwYhlGUyDUsC4IxFj4XwiFr6Fp1fEh8FJDusodgVrLUsVaGMs/
+         5ilDxNmd1+8N4IlzeRA9uDI7lgxSrBVa5DePMgbVvLbbc36dATbMI+SNj/XMn4luMake
+         rkJ8aJth/tFhoMAI69VFnYScP7rgHZJEUMzKOLWseBfwMzzbMUTh6mCFrXywO7yvvvKH
+         DHdjbw/SGcEElwtxVO43UaEGqZr/ThF3FVD1E/deExfnMcu7qOHPgUMaVi4a1eynChKd
+         ql/w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1738949961; x=1739554761;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=AHG9z5ZzVOBTfLJT1jahvgsFI0hw4A7Oh2qiZG7sPow=;
+        b=Il9OPQ6TiP6TeXevJEDjuEbOdsGtsafMAVMSyJRha1drqHrVFWrozDXbFpF9/TCgXV
+         BH+FJXtnMzV9g8pM6NhlcuJPGuOG/ft6T4+pW0+igJr1B1f0FOBPGHw9v2bjDfBN2ZpM
+         VEWM4AxEh7HuVJ0h3DVAV7vD35MbqhOTNPKDqfc6P7LOho4EqDjGeeMi8HDCFQMwSDOl
+         ZoihT/1az/K8AIlw/hQGUhGN71LGqoaEwp+zSx1TFj4HiMDSw4mTKmHjyVTb3b0dqU2X
+         ijdLJsyWWQRgCJdL4pdHM1DYeKrofpbycLJSTZNkwKPt+T//XAfZYhtgxw9A7mbkhG4/
+         939Q==
+X-Forwarded-Encrypted: i=1; AJvYcCXr/Xd7AXCc3rfrwfQVEVrqAVNRxhp/MVapRxupORaO2Pulx2wnwrBZVgK2N4ItQ3uDSa5xdlGO2pELQNNU@vger.kernel.org
+X-Gm-Message-State: AOJu0YwmJk7in8s7mUM+WMZ5lH5KRvDsvY9LT5a44R55fXJ9+Zosh98k
+	1vpGJEgkGrmEGCUxtsjXqmwsxE+qWuIFmewmtCOvQo7nD6Yit4SrB48JHXGp9n93DY7t4l/8ZYr
+	fLe8PcVUxP/KhrFV1XNIH7rgtEfI=
+X-Gm-Gg: ASbGncv0j2PK3vPLE5DEtdj1ufFtmraHNGvn/qYjGzHaAdHK3pyEF5//xW6o05cWWXq
+	81bPPQH4qeFfrUr1qHshSoilkgJGNvVo6OtAMnsutld/b7G0meQ5TfkcYj16GqyvJA+x/6pN3
+X-Google-Smtp-Source: AGHT+IEdVhxCv22ighc4yGvpCgkER+K18kaOwlP0B5XuFzqahU9AuWY9scYKYx+sCpIt4+kJxvN8SK/UgsMkXgKHkjQ=
+X-Received: by 2002:a05:6402:40cb:b0:5dc:d43c:3a1b with SMTP id
+ 4fb4d7f45d1cf-5de450aa4a6mr4283442a12.20.1738949960665; Fri, 07 Feb 2025
+ 09:39:20 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250207-work-overlayfs-v1-2-611976e73373@kernel.org>
-References: <20250207-work-overlayfs-v1-0-611976e73373@kernel.org>
-In-Reply-To: <20250207-work-overlayfs-v1-0-611976e73373@kernel.org>
-To: linux-unionfs@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Mike Baynton <mike@mbaynton.com>, linux-fsdevel@vger.kernel.org, 
- Christian Brauner <brauner@kernel.org>
-X-Mailer: b4 0.15-dev-d23a9
-X-Developer-Signature: v=1; a=openpgp-sha256; l=2978; i=brauner@kernel.org;
- h=from:subject:message-id; bh=K9c0rt0XWDv9lF7rhjy20/wBTcF2vjxT8MhbMHuq5m4=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaQv03rz4/mFze+u7MhMeC2i/r6hJMNfcUb87zn5bCGT5
- 8dc/vvFsaOUhUGMi0FWTJHFod0kXG45T8Vmo0wNmDmsTCBDGLg4BWAiTaEMf2W2L9JUY92vfVni
- 8BJROefHSVf7JdlTsj4LS528kbAgToaR4V7zk2t/G3Ye391aFPGwleO+h1LBeutqrjj3Cu8ik7e
- /+AA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+References: <20250207-work-overlayfs-v1-0-611976e73373@kernel.org> <20250207-work-overlayfs-v1-1-611976e73373@kernel.org>
+In-Reply-To: <20250207-work-overlayfs-v1-1-611976e73373@kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Fri, 7 Feb 2025 18:39:09 +0100
+X-Gm-Features: AWEUYZmj3im7s71GjsSKCJChT8TKy21vngM7RaP9uzyrb0aFc9kialfuHdUdIGk
+Message-ID: <CAOQ4uxg4pCP9EL20vO=X1rwkJ8gVXXzeSDvsxkretH_3hm_nJg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] fs: support O_PATH fds with FSCONFIG_SET_FD
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
+	Mike Baynton <mike@mbaynton.com>, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Verify that userspace can specify layers via O_PATH file descriptors.
+On Fri, Feb 7, 2025 at 4:46=E2=80=AFPM Christian Brauner <brauner@kernel.or=
+g> wrote:
+>
+> Let FSCONFIG_SET_FD handle O_PATH file descriptors. This is particularly
+> useful in the context of overlayfs where layers can be specified via
+> file descriptors instead of paths. But userspace must currently use
+> non-O_PATH file desriptors which is often pointless especially if
+> the file descriptors have been created via open_tree(OPEN_TREE_CLONE).
+>
 
-Signed-off-by: Christian Brauner <brauner@kernel.org>
----
- .../filesystems/overlayfs/set_layers_via_fds.c     | 65 ++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
+Shall we?
+Fixes: a08557d19ef41 ("ovl: specify layers via file descriptors")
 
-diff --git a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-index 1d0ae785a667..e693e4102d22 100644
---- a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-+++ b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-@@ -214,4 +214,69 @@ TEST_F(set_layers_via_fds, set_500_layers_via_fds)
- 	ASSERT_EQ(close(fd_overlay), 0);
- }
- 
-+TEST_F(set_layers_via_fds, set_500_layers_via_opath_fds)
-+{
-+	int fd_context, fd_tmpfs, fd_overlay, fd_work, fd_upper, fd_lower;
-+	int layer_fds[500] = { [0 ... 499] = -EBADF };
-+
-+	ASSERT_EQ(unshare(CLONE_NEWNS), 0);
-+	ASSERT_EQ(sys_mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL), 0);
-+
-+	fd_context = sys_fsopen("tmpfs", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+	fd_tmpfs = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_tmpfs, 0);
-+	ASSERT_EQ(close(fd_context), 0);
-+
-+	for (int i = 0; i < ARRAY_SIZE(layer_fds); i++) {
-+		char path[100];
-+
-+		sprintf(path, "l%d", i);
-+		ASSERT_EQ(mkdirat(fd_tmpfs, path, 0755), 0);
-+		layer_fds[i] = openat(fd_tmpfs, path, O_DIRECTORY | O_PATH);
-+		ASSERT_GE(layer_fds[i], 0);
-+	}
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "w", 0755), 0);
-+	fd_work = openat(fd_tmpfs, "w", O_DIRECTORY | O_PATH);
-+	ASSERT_GE(fd_work, 0);
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "u", 0755), 0);
-+	fd_upper = openat(fd_tmpfs, "u", O_DIRECTORY | O_PATH);
-+	ASSERT_GE(fd_upper, 0);
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "l501", 0755), 0);
-+	fd_lower = openat(fd_tmpfs, "l501", O_DIRECTORY | O_PATH);
-+	ASSERT_GE(fd_lower, 0);
-+
-+	ASSERT_EQ(sys_move_mount(fd_tmpfs, "", -EBADF, "/tmp", MOVE_MOUNT_F_EMPTY_PATH), 0);
-+	ASSERT_EQ(close(fd_tmpfs), 0);
-+
-+	fd_context = sys_fsopen("overlay", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "workdir",   NULL, fd_work), 0);
-+	ASSERT_EQ(close(fd_work), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "upperdir",  NULL, fd_upper), 0);
-+	ASSERT_EQ(close(fd_upper), 0);
-+
-+	for (int i = 0; i < ARRAY_SIZE(layer_fds); i++) {
-+		ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[i]), 0);
-+		ASSERT_EQ(close(layer_fds[i]), 0);
-+	}
-+
-+	ASSERT_NE(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_lower), 0);
-+	ASSERT_EQ(close(fd_lower), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+
-+	fd_overlay = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_overlay, 0);
-+	ASSERT_EQ(close(fd_context), 0);
-+	ASSERT_EQ(close(fd_overlay), 0);
-+}
-+
- TEST_HARNESS_MAIN
+I think that was the intention of the API and we are not far enough to fix
+it in 6.12.y.
 
--- 
-2.47.2
 
+> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> ---
+>  fs/fs_parser.c             | 12 +++++++-----
+>  fs/fsopen.c                |  7 +++++--
+>  fs/overlayfs/params.c      | 10 ++++++----
+>  include/linux/fs_context.h |  1 +
+>  include/linux/fs_parser.h  |  6 +++---
+>  5 files changed, 22 insertions(+), 14 deletions(-)
+>
+> diff --git a/fs/fs_parser.c b/fs/fs_parser.c
+> index e635a81e17d9..35aaea224007 100644
+> --- a/fs/fs_parser.c
+> +++ b/fs/fs_parser.c
+> @@ -310,15 +310,17 @@ int fs_param_is_fd(struct p_log *log, const struct =
+fs_parameter_spec *p,
+>  }
+>  EXPORT_SYMBOL(fs_param_is_fd);
+>
+> -int fs_param_is_file_or_string(struct p_log *log,
+> -                              const struct fs_parameter_spec *p,
+> -                              struct fs_parameter *param,
+> -                              struct fs_parse_result *result)
+> +int fs_param_is_raw_file_or_string(struct p_log *log,
+
+Besides being too long of a helper name I do not think
+that it correctly reflects the spirit of the question.
+
+The arguments for overlayfs upperdir/workdir/lowerdir+/datadir+
+need to be *a path*, either a path string, or an O_PATH fd and
+maybe later on also dirfd+name.
+
+I imagine that if other filesystems would want to use this parser
+helper they would need it for the same purpose.
+
+Can we maybe come up with a name that better reflects that
+intention?
+
+> +                                  const struct fs_parameter_spec *p,
+> +                                  struct fs_parameter *param,
+> +                                  struct fs_parse_result *result)
+>  {
+>         switch (param->type) {
+>         case fs_value_is_string:
+>                 return fs_param_is_string(log, p, param, result);
+>         case fs_value_is_file:
+> +               fallthrough;
+> +       case fs_value_is_raw_file:
+>                 result->uint_32 =3D param->dirfd;
+>                 if (result->uint_32 <=3D INT_MAX)
+>                         return 0;
+> @@ -328,7 +330,7 @@ int fs_param_is_file_or_string(struct p_log *log,
+>         }
+>         return fs_param_bad_value(log, param);
+>  }
+> -EXPORT_SYMBOL(fs_param_is_file_or_string);
+> +EXPORT_SYMBOL(fs_param_is_raw_file_or_string);
+>
+>  int fs_param_is_uid(struct p_log *log, const struct fs_parameter_spec *p=
+,
+>                     struct fs_parameter *param, struct fs_parse_result *r=
+esult)
+> diff --git a/fs/fsopen.c b/fs/fsopen.c
+> index 094a7f510edf..3b5fc9f1f774 100644
+> --- a/fs/fsopen.c
+> +++ b/fs/fsopen.c
+> @@ -451,11 +451,14 @@ SYSCALL_DEFINE5(fsconfig,
+>                 param.size =3D strlen(param.name->name);
+>                 break;
+>         case FSCONFIG_SET_FD:
+> -               param.type =3D fs_value_is_file;
+>                 ret =3D -EBADF;
+> -               param.file =3D fget(aux);
+> +               param.file =3D fget_raw(aux);
+>                 if (!param.file)
+>                         goto out_key;
+> +               if (param.file->f_mode & FMODE_PATH)
+> +                       param.type =3D fs_value_is_raw_file;
+> +               else
+> +                       param.type =3D fs_value_is_file;
+>                 param.dirfd =3D aux;
+
+Here it even shouts more to me that the distinction is not needed.
+
+If the parameter would be defined as
+fsparam_path_description("workdir",   Opt_workdir),
+and we set param.type =3D fs_value_is_path_fd;
+unconditional to f_mode & FMODE_PATH, because we
+do not care if fd is O_PATH or not for the purpose of this parameter
+we only care that the parameter *can* be resolved to a path
+and *how* to resolve it to a path, and the answer to those questions
+does not change depending on _mode & FMODE_PATH.
+
+I admit that that's a very long rant about a mostly meaningless nuance,
+and I was also not very involved in the development of the new mount API
+so there may be things about it that I don't understand, so feel free to
+dismiss this rant and add my Ack if you do not share my concerns.
+
+Thanks,
+Amir.
