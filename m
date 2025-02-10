@@ -1,143 +1,126 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D957B222575;
-	Mon, 10 Feb 2025 12:39:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D76C222CBF0;
+	Mon, 10 Feb 2025 13:27:09 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739191154; cv=none; b=hzKLHCJzzhnFYViqDL1+Wf75tL0SSl6JSAEyKcpxz5rW7qmfZ4uu47UkhgatfPY0oA2AisxFUhMD4N3nmxwKVb2gYlwhTt9OzmA/8YQoOqbw1Lv6S8NEfTNPS5qa4sjvUBXbF6G4QQbp31rnRrXBqJIodfOecXtD8h20g2ZLOXc=
+	t=1739194031; cv=none; b=glebYthoXpoetsVcW3cwteNYSO6RFcdOQV0ra8W1JL0S1Cw4eaGyAbQGGG8d25cifeN7FCXsvMKLnJerMm3BAit/Dx9cXX3IMIFuk/wIveQjl1L3OQr8PDK/hzBdN0fZIgMZJmnRv9Efg5Xt76Y5hBtL5xKzNXM0Pjp0qWi56nI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739191154; c=relaxed/simple;
-	bh=ljIOXA2bPardzFGibNKxD83ReIm1uSuY3/J//GCCwjI=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=hxeg71kEfFrwsof+v1OOt878x6GCfnbGEvWLBz97k4aWKSXPGXuVGT6tbT16bW6WrqVoT4qvhT2TJT1I7WSQNIHKsKleksOxCvjMDTS6X30TjSjlBIY+qkBeIGX7Nrlg6xWcKH7yK6yYLDf0W9hX3tP+luSrJuNWTI3ev+5Epck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gQj1zgh/; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739194031; c=relaxed/simple;
+	bh=JG137+wVJR35Xb2Lwl9Tp8s9PIn8BsCMpROGSvTtSNw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=TGMGkl3nCgjkk3h+6fMoVpRZfy+s5AS5UXq6/pJcHtSHVj+Pd83uBVDvrN/rSATGKT04vfUBvXJCkPezh7juwKRO8qtfwO8o1cIX3LlIwg0WRXmfhEhI/Zd2dTDp69rzi3jRlFZ2BcQWCnpU76B1gE1sEGMi4np2R6dUpeae9D4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=HUw5SG4w; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gQj1zgh/"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6A145C4CEDF;
-	Mon, 10 Feb 2025 12:39:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1739191153;
-	bh=ljIOXA2bPardzFGibNKxD83ReIm1uSuY3/J//GCCwjI=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=gQj1zgh/XuVpah/4rMm12Of2bVI5ZavQN16MK/rZjq1hYIY2UJ7k8M19DR9cnC1R5
-	 KDZj1tjEOW4yBRQjSHZ2TNC/N94Krz4ktiw3fut/lY5I1YvBX3+di5e4kL3GyINTlZ
-	 jCeiQsSk8oFlYz6/6q982wGVh+A7Xw+iwAEjQXU/+F6ltP5oYVk+H1nipFsW0RiSic
-	 pGj6vSKMNNphS6h9ROHwQoNdCbelWbcHHastdDKacb/tKxq71M9jmGORLodj/T6Vpc
-	 snA1lD9yP7KLuQAP1bSHHi85AmyAJ0f5PCJfiKZXidwHXWPKFcX1cJekvs6tczv4+g
-	 P8i1NnegESUGw==
-From: Christian Brauner <brauner@kernel.org>
-Date: Mon, 10 Feb 2025 13:39:00 +0100
-Subject: [PATCH v2 2/2] selftests/overlayfs: test specifying layers as
- O_PATH file descriptors
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="HUw5SG4w"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-ab7483b9bf7so646916166b.3;
+        Mon, 10 Feb 2025 05:27:09 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1739194028; x=1739798828; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=MKfrkYSNYGseqTKIlquzIIAPBMHuIR1EbIObrXoKY8E=;
+        b=HUw5SG4wmxAsTmP0eLpf8spysy4fiAKUBDCDZ2U9SRpQdgLF32s8ZuGfFZLstx3/+i
+         sjl24qNJtlGRGiumyQFFoPKeV1X+rPVFvvpeGJkVKD2UHk1pXXjd+bIAAm++LgFB4wxs
+         vbRVVwBWWhdxPYsnl5zk7iW99HRMjGVcPbu8H1xcUuXDyv4zZgBVhCsIzQrVQ0y4GQMT
+         5jgcoSlhTndSN10uzZrdwzMuqkNs9Ow7aLj1pwxlyvTOOElBT6MxqOpCuZo3sUbfzsVW
+         EmP34mIbNpYrFHyq8fULZkqYSXS/+BNBZ2oTIaZny1OsuluZfvCyjc56dpZYdGuXTT64
+         MCPw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739194028; x=1739798828;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=MKfrkYSNYGseqTKIlquzIIAPBMHuIR1EbIObrXoKY8E=;
+        b=n6N+KR9B0XrAJYpQrlXnBY5P2qtPolotC6jb4U5tdYxpRO4VJhuDffEC0KGoF9G55l
+         k7i5r0Nso+bLCjtm9LCfFJVG+0nh8Hdg0TWDRUQfwIVDIokG+6TxP45879uA1zJ32D7z
+         IdlNxrA/gMJzTVvnzqL+2fWbyLob8iI1ilskLiJ20SWv2JubzW8wemmmbqmjqnRR1g78
+         eH4uXJCdKtD6lvZDRetsiIO1JHNUMzEPgj5IUm6lVg5cvdf8V+uAHPUgkZogBG6U27Au
+         SpOZ4bicnC3hmLFmuVGm4WNg2U2XgZ0G0HzVSiN6vF+KoBjgwTNknfjUtzEQ6GZT6vf0
+         aSrg==
+X-Forwarded-Encrypted: i=1; AJvYcCXS7uFyti7FC1NOjsWAULAEbPtaCTz4hWQUR2pAHEfzqsJoxR3ouct6GvMJggppbcUMlgbF7GdRp56OQbyL@vger.kernel.org
+X-Gm-Message-State: AOJu0YzdD1FQdVk4cHVmhAJXFALaOxlc0XVFi81NEYPP5t9MTJr5LczJ
+	inJs+qpYCG1jak96ZKkdvSUqZiAjXuAtPT2pdnp8U1vpd/EqDsjokW98AawlUJgZqnI6YptHzZr
+	DgR0MVn+K2Z6AifDpjiObQGa51ZQ=
+X-Gm-Gg: ASbGnctDGgGfxCGAFPxnabBZ+4C8R5asEI5z8ba23yJ9Qm5tdwAzDCkoI3VuQZOkDvN
+	QB2Ul/UxVTWylOE6ihiOdcX5lMOJLdJUZh8lQk+MQ6tv7s/if1w12xXSybIjoceYrKRYS7M6X
+X-Google-Smtp-Source: AGHT+IHaQ9Ht+GfxlNdtWsVMwUIdYrHDdHAOmLP1Kh5Kn0CzLdXKez91cYQP8sgUIR/jIPlL+B3o4CQtt+CPqpPQpAg=
+X-Received: by 2002:a17:907:6d23:b0:ab6:949f:c52f with SMTP id
+ a640c23a62f3a-ab789aef87emr1208294466b.28.1739194027468; Mon, 10 Feb 2025
+ 05:27:07 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250210-work-overlayfs-v2-2-ed2a949b674b@kernel.org>
-References: <20250210-work-overlayfs-v2-0-ed2a949b674b@kernel.org>
-In-Reply-To: <20250210-work-overlayfs-v2-0-ed2a949b674b@kernel.org>
-To: linux-unionfs@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Mike Baynton <mike@mbaynton.com>, linux-fsdevel@vger.kernel.org, 
- Christian Brauner <brauner@kernel.org>
-X-Mailer: b4 0.15-dev-d23a9
-X-Developer-Signature: v=1; a=openpgp-sha256; l=3028; i=brauner@kernel.org;
- h=from:subject:message-id; bh=ljIOXA2bPardzFGibNKxD83ReIm1uSuY3/J//GCCwjI=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSv/Jyz/5LUzFLRtUufZ1Tts97bNemsRmSn9ZP5bZtPu
- XdXGxe/6ihlYRDjYpAVU2RxaDcJl1vOU7HZKFMDZg4rE8gQBi5OAZjIDmOGf9ZuTyt0ONlCvRw1
- Nlv4NKpoCj13MP26b5/ATO451fNDDRgZNn+7+kjlzIZtUZ+r1y7eqbDwscO5TedfJhw9Wl1wZMJ
- ETX4A
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+References: <20250210-work-overlayfs-v2-0-ed2a949b674b@kernel.org> <20250210-work-overlayfs-v2-1-ed2a949b674b@kernel.org>
+In-Reply-To: <20250210-work-overlayfs-v2-1-ed2a949b674b@kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Mon, 10 Feb 2025 14:26:56 +0100
+X-Gm-Features: AWEUYZl0i0RkYKsmEtsyroeltjWQ8UTpcYFTcQy0mXH2BfHzUfkE_P0xPacWaWk
+Message-ID: <CAOQ4uxgzv-k2hL5pecxt=+2AyRkdr+LGvm9wYYuWxs9LQyyN2Q@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] fs: support O_PATH fds with FSCONFIG_SET_FD
+To: Christian Brauner <brauner@kernel.org>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
+	Mike Baynton <mike@mbaynton.com>, linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Verify that userspace can specify layers via O_PATH file descriptors.
+On Mon, Feb 10, 2025 at 1:39=E2=80=AFPM Christian Brauner <brauner@kernel.o=
+rg> wrote:
+>
+> Let FSCONFIG_SET_FD handle O_PATH file descriptors. This is particularly
+> useful in the context of overlayfs where layers can be specified via
+> file descriptors instead of paths. But userspace must currently use
+> non-O_PATH file desriptors which is often pointless especially if
+> the file descriptors have been created via open_tree(OPEN_TREE_CLONE).
+>
+> Fixes: a08557d19ef41 ("ovl: specify layers via file descriptors")
+> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> ---
+>  fs/autofs/autofs_i.h | 2 ++
+>  fs/fsopen.c          | 2 +-
+>  2 files changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/fs/autofs/autofs_i.h b/fs/autofs/autofs_i.h
+> index 77c7991d89aa..23cea74f9933 100644
+> --- a/fs/autofs/autofs_i.h
+> +++ b/fs/autofs/autofs_i.h
+> @@ -218,6 +218,8 @@ void autofs_clean_ino(struct autofs_info *);
+>
+>  static inline int autofs_check_pipe(struct file *pipe)
+>  {
+> +       if (pipe->f_mode & FMODE_PATH)
+> +               return -EINVAL;
+>         if (!(pipe->f_mode & FMODE_CAN_WRITE))
+>                 return -EINVAL;
+
+I thought you said the above check is redundant due to the lower check.
+
+In any case feel free to add
 
 Reviewed-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Christian Brauner <brauner@kernel.org>
----
- .../filesystems/overlayfs/set_layers_via_fds.c     | 65 ++++++++++++++++++++++
- 1 file changed, 65 insertions(+)
 
-diff --git a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-index 1d0ae785a667..e693e4102d22 100644
---- a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-+++ b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-@@ -214,4 +214,69 @@ TEST_F(set_layers_via_fds, set_500_layers_via_fds)
- 	ASSERT_EQ(close(fd_overlay), 0);
- }
- 
-+TEST_F(set_layers_via_fds, set_500_layers_via_opath_fds)
-+{
-+	int fd_context, fd_tmpfs, fd_overlay, fd_work, fd_upper, fd_lower;
-+	int layer_fds[500] = { [0 ... 499] = -EBADF };
-+
-+	ASSERT_EQ(unshare(CLONE_NEWNS), 0);
-+	ASSERT_EQ(sys_mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL), 0);
-+
-+	fd_context = sys_fsopen("tmpfs", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+	fd_tmpfs = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_tmpfs, 0);
-+	ASSERT_EQ(close(fd_context), 0);
-+
-+	for (int i = 0; i < ARRAY_SIZE(layer_fds); i++) {
-+		char path[100];
-+
-+		sprintf(path, "l%d", i);
-+		ASSERT_EQ(mkdirat(fd_tmpfs, path, 0755), 0);
-+		layer_fds[i] = openat(fd_tmpfs, path, O_DIRECTORY | O_PATH);
-+		ASSERT_GE(layer_fds[i], 0);
-+	}
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "w", 0755), 0);
-+	fd_work = openat(fd_tmpfs, "w", O_DIRECTORY | O_PATH);
-+	ASSERT_GE(fd_work, 0);
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "u", 0755), 0);
-+	fd_upper = openat(fd_tmpfs, "u", O_DIRECTORY | O_PATH);
-+	ASSERT_GE(fd_upper, 0);
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "l501", 0755), 0);
-+	fd_lower = openat(fd_tmpfs, "l501", O_DIRECTORY | O_PATH);
-+	ASSERT_GE(fd_lower, 0);
-+
-+	ASSERT_EQ(sys_move_mount(fd_tmpfs, "", -EBADF, "/tmp", MOVE_MOUNT_F_EMPTY_PATH), 0);
-+	ASSERT_EQ(close(fd_tmpfs), 0);
-+
-+	fd_context = sys_fsopen("overlay", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "workdir",   NULL, fd_work), 0);
-+	ASSERT_EQ(close(fd_work), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "upperdir",  NULL, fd_upper), 0);
-+	ASSERT_EQ(close(fd_upper), 0);
-+
-+	for (int i = 0; i < ARRAY_SIZE(layer_fds); i++) {
-+		ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[i]), 0);
-+		ASSERT_EQ(close(layer_fds[i]), 0);
-+	}
-+
-+	ASSERT_NE(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, fd_lower), 0);
-+	ASSERT_EQ(close(fd_lower), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+
-+	fd_overlay = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_overlay, 0);
-+	ASSERT_EQ(close(fd_context), 0);
-+	ASSERT_EQ(close(fd_overlay), 0);
-+}
-+
- TEST_HARNESS_MAIN
-
--- 
-2.47.2
-
+>         if (!S_ISFIFO(file_inode(pipe)->i_mode))
+> diff --git a/fs/fsopen.c b/fs/fsopen.c
+> index 094a7f510edf..1aaf4cb2afb2 100644
+> --- a/fs/fsopen.c
+> +++ b/fs/fsopen.c
+> @@ -453,7 +453,7 @@ SYSCALL_DEFINE5(fsconfig,
+>         case FSCONFIG_SET_FD:
+>                 param.type =3D fs_value_is_file;
+>                 ret =3D -EBADF;
+> -               param.file =3D fget(aux);
+> +               param.file =3D fget_raw(aux);
+>                 if (!param.file)
+>                         goto out_key;
+>                 param.dirfd =3D aux;
+>
+> --
+> 2.47.2
+>
