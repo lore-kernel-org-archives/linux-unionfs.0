@@ -1,83 +1,175 @@
-Received: from out-170.mta1.migadu.com (out-170.mta1.migadu.com [95.215.58.170])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 04BCB8F66
-	for <linux-unionfs@vger.kernel.org>; Sun,  9 Feb 2025 08:07:23 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.170
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 814761F3D41;
+	Mon, 10 Feb 2025 12:07:45 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739088446; cv=none; b=kFVWPhJabOlMemrkKEnH6BBWoK/esfbxpFROgb5wR679jGti2VI1juyyPtZlnu+1g4vBQW6xwhXjzSF7MoltIM46SFgaJShaDfj3ya2agCnA6tNnrAO7RaY4OCYKTpr58VP537cWA8pqF8A/T9YpGWUCkkzy7ip40AoSfX+vbtU=
+	t=1739189265; cv=none; b=bqAD15s396VVQG/q0FjZVSvvhVmJTgJZ6sVe3VgUbg58vf6bTNlL5AG0Jx2VwiyLy+1dOZWMplHaZrlb9UshhtPH5P6jkZe1ZwUJnZ2EMR5z5cp/+BjiwraKPfGL44r+VshcTmHo3GWTyZEZyw0sth8YZJSea1ms8y9cWfqTvYM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739088446; c=relaxed/simple;
-	bh=Krp0hRcnkmO9FVzzmnUG7JaNepHi3MNQIk7r1KS5hT0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=haIXx+jkQykf32BuyUq2Q2O6rMhEZL8Bu/L6gKUZkpwH/ghyQOgrsheReW0tAmiAgBlK5p5IX6OLfMg3RYz91Bw7wUnFwTJcRFGxTDjr9i32LEJR3KvOgofRra9ODB4aYrZjC0VRxEsDaELYLinN27YorkbKlOvcKjiCcUdNfck=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=rDTwijON; arc=none smtp.client-ip=95.215.58.170
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1739189265; c=relaxed/simple;
+	bh=s181Jubq9d+h3pMYKA+D/39Slev57NIU5oQbDQHj7eQ=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=dUkiBB4guLmQVKjKM+sxJTgElr/BFKsKZEuBWGkS/npIZmwLDvEYcLxrWkuxsbGgoui6S5+/0ifkzM+bdJmBEKlry3SgQjLcZB+Lm5nA5bArOD+EkK56mwXQjMgGTqKt9I4Pk5JvakUgAtYAAILJ14edPfKGy15j5B9RnrsoAcE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=bNplEuSY; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="rDTwijON"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1739088442;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=hwQtXwdz+nRfwMkoG537Y+tMlAkJ6gBqNuVsZ/4bXk8=;
-	b=rDTwijONDAkBnML239wgHYwVogiI46yI+jm8wzaVaDhiHPq2CoZj6R0TK88mAGetKmmoaX
-	6KGAWawILCekqHs1c4FKLqkyMHn//fEIlk1R1WTrLo/7bhTCfeN0jFKtCC0ZMX5J4MCesp
-	nN//kR49C/6EmCJX/oPPKbmcLWo3zw8=
-From: Thorsten Blum <thorsten.blum@linux.dev>
-To: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: Christian Brauner <brauner@kernel.org>,
-	Thorsten Blum <thorsten.blum@linux.dev>,
-	linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RESEND PATCH] ovl: Use str_on_off() helper in ovl_show_options()
-Date: Sun,  9 Feb 2025 09:06:17 +0100
-Message-ID: <20250209080616.1480-2-thorsten.blum@linux.dev>
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="bNplEuSY"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96D46C4CED1;
+	Mon, 10 Feb 2025 12:07:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1739189264;
+	bh=s181Jubq9d+h3pMYKA+D/39Slev57NIU5oQbDQHj7eQ=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=bNplEuSYbUNSonnGwwBdorihaBhFzzZl6ltXZCcpz8PSyHAhQ+P2dQ2kZmkhRrQpx
+	 yiUckDyiUQSobrg3TXQbhc4lqkWaA0WCPeR4K1dWymQTP1Wz3gTTZo6YLSY4CDNmsC
+	 g7WoDP28um2UrSnkp6ToI5VeIIsO0e/0QZGx2UamXuQ768pRPcbC1gsnWEgKu8ifGj
+	 63nzAH0IOW+LgkOpJaJSfN75oIYWOqd98LQUVvJyhxmaL1eC8rRljVMVgE71wLnJiy
+	 c2n0Hjz7RujS9RzZeyTGjfqJoCeZ/QFpAYdi7R0wCuqRI9l+4mU6Bj/YAlw//9GOX5
+	 BNv+NEU8dvP+A==
+Date: Mon, 10 Feb 2025 13:07:41 +0100
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-unionfs@vger.kernel.org, Miklos Szeredi <miklos@szeredi.hu>, 
+	Mike Baynton <mike@mbaynton.com>, linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 1/2] fs: support O_PATH fds with FSCONFIG_SET_FD
+Message-ID: <20250210-modehaus-unfertig-5935435cabfb@brauner>
+References: <20250207-work-overlayfs-v1-0-611976e73373@kernel.org>
+ <20250207-work-overlayfs-v1-1-611976e73373@kernel.org>
+ <CAOQ4uxg4pCP9EL20vO=X1rwkJ8gVXXzeSDvsxkretH_3hm_nJg@mail.gmail.com>
+ <CAOQ4uxhM5j-99ckPzyubdzg66_WBo_39b4_RJKGfVneqnNbxtA@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+In-Reply-To: <CAOQ4uxhM5j-99ckPzyubdzg66_WBo_39b4_RJKGfVneqnNbxtA@mail.gmail.com>
 
-Remove hard-coded strings by using the str_on_off() helper function.
+On Fri, Feb 07, 2025 at 07:09:44PM +0100, Amir Goldstein wrote:
+> On Fri, Feb 7, 2025 at 6:39 PM Amir Goldstein <amir73il@gmail.com> wrote:
+> >
+> > On Fri, Feb 7, 2025 at 4:46 PM Christian Brauner <brauner@kernel.org> wrote:
+> > >
+> > > Let FSCONFIG_SET_FD handle O_PATH file descriptors. This is particularly
+> > > useful in the context of overlayfs where layers can be specified via
+> > > file descriptors instead of paths. But userspace must currently use
+> > > non-O_PATH file desriptors which is often pointless especially if
+> > > the file descriptors have been created via open_tree(OPEN_TREE_CLONE).
+> > >
+> >
+> > Shall we?
+> > Fixes: a08557d19ef41 ("ovl: specify layers via file descriptors")
+> >
+> > I think that was the intention of the API and we are not far enough to fix
+> > it in 6.12.y.
+> >
+> 
+> Oh it's not in 6.12. it's in 6.13, so less important to backport I guess.
+> 
+> Thanks,
+> Amir.
+> 
+> >
+> > > Signed-off-by: Christian Brauner <brauner@kernel.org>
+> > > ---
+> > >  fs/fs_parser.c             | 12 +++++++-----
+> > >  fs/fsopen.c                |  7 +++++--
+> > >  fs/overlayfs/params.c      | 10 ++++++----
+> > >  include/linux/fs_context.h |  1 +
+> > >  include/linux/fs_parser.h  |  6 +++---
+> > >  5 files changed, 22 insertions(+), 14 deletions(-)
+> > >
+> > > diff --git a/fs/fs_parser.c b/fs/fs_parser.c
+> > > index e635a81e17d9..35aaea224007 100644
+> > > --- a/fs/fs_parser.c
+> > > +++ b/fs/fs_parser.c
+> > > @@ -310,15 +310,17 @@ int fs_param_is_fd(struct p_log *log, const struct fs_parameter_spec *p,
+> > >  }
+> > >  EXPORT_SYMBOL(fs_param_is_fd);
+> > >
+> > > -int fs_param_is_file_or_string(struct p_log *log,
+> > > -                              const struct fs_parameter_spec *p,
+> > > -                              struct fs_parameter *param,
+> > > -                              struct fs_parse_result *result)
+> > > +int fs_param_is_raw_file_or_string(struct p_log *log,
+> >
+> > Besides being too long of a helper name I do not think
+> > that it correctly reflects the spirit of the question.
+> >
+> > The arguments for overlayfs upperdir/workdir/lowerdir+/datadir+
+> > need to be *a path*, either a path string, or an O_PATH fd and
+> > maybe later on also dirfd+name.
+> >
+> > I imagine that if other filesystems would want to use this parser
+> > helper they would need it for the same purpose.
+> >
+> > Can we maybe come up with a name that better reflects that
+> > intention?
+> >
+> > > +                                  const struct fs_parameter_spec *p,
+> > > +                                  struct fs_parameter *param,
+> > > +                                  struct fs_parse_result *result)
+> > >  {
+> > >         switch (param->type) {
+> > >         case fs_value_is_string:
+> > >                 return fs_param_is_string(log, p, param, result);
+> > >         case fs_value_is_file:
+> > > +               fallthrough;
+> > > +       case fs_value_is_raw_file:
+> > >                 result->uint_32 = param->dirfd;
+> > >                 if (result->uint_32 <= INT_MAX)
+> > >                         return 0;
+> > > @@ -328,7 +330,7 @@ int fs_param_is_file_or_string(struct p_log *log,
+> > >         }
+> > >         return fs_param_bad_value(log, param);
+> > >  }
+> > > -EXPORT_SYMBOL(fs_param_is_file_or_string);
+> > > +EXPORT_SYMBOL(fs_param_is_raw_file_or_string);
+> > >
+> > >  int fs_param_is_uid(struct p_log *log, const struct fs_parameter_spec *p,
+> > >                     struct fs_parameter *param, struct fs_parse_result *result)
+> > > diff --git a/fs/fsopen.c b/fs/fsopen.c
+> > > index 094a7f510edf..3b5fc9f1f774 100644
+> > > --- a/fs/fsopen.c
+> > > +++ b/fs/fsopen.c
+> > > @@ -451,11 +451,14 @@ SYSCALL_DEFINE5(fsconfig,
+> > >                 param.size = strlen(param.name->name);
+> > >                 break;
+> > >         case FSCONFIG_SET_FD:
+> > > -               param.type = fs_value_is_file;
+> > >                 ret = -EBADF;
+> > > -               param.file = fget(aux);
+> > > +               param.file = fget_raw(aux);
+> > >                 if (!param.file)
+> > >                         goto out_key;
+> > > +               if (param.file->f_mode & FMODE_PATH)
+> > > +                       param.type = fs_value_is_raw_file;
+> > > +               else
+> > > +                       param.type = fs_value_is_file;
+> > >                 param.dirfd = aux;
+> >
+> > Here it even shouts more to me that the distinction is not needed.
+> >
+> > If the parameter would be defined as
+> > fsparam_path_description("workdir",   Opt_workdir),
+> > and we set param.type = fs_value_is_path_fd;
+> > unconditional to f_mode & FMODE_PATH, because we
+> > do not care if fd is O_PATH or not for the purpose of this parameter
+> > we only care that the parameter *can* be resolved to a path
+> > and *how* to resolve it to a path, and the answer to those questions
+> > does not change depending on _mode & FMODE_PATH.
+> >
+> > I admit that that's a very long rant about a mostly meaningless nuance,
+> > and I was also not very involved in the development of the new mount API
+> > so there may be things about it that I don't understand, so feel free to
+> > dismiss this rant and add my Ack if you do not share my concerns.
 
-Acked-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
----
- fs/overlayfs/params.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
-
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 1115c22deca0..8a8bb336b40f 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -1053,17 +1053,16 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 		seq_printf(m, ",redirect_dir=%s",
- 			   ovl_redirect_mode(&ofs->config));
- 	if (ofs->config.index != ovl_index_def)
--		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
-+		seq_printf(m, ",index=%s", str_on_off(ofs->config.index));
- 	if (ofs->config.uuid != ovl_uuid_def())
- 		seq_printf(m, ",uuid=%s", ovl_uuid_mode(&ofs->config));
- 	if (ofs->config.nfs_export != ovl_nfs_export_def)
--		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
--						"on" : "off");
-+		seq_printf(m, ",nfs_export=%s",
-+			   str_on_off(ofs->config.nfs_export));
- 	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(ofs))
- 		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
- 	if (ofs->config.metacopy != ovl_metacopy_def)
--		seq_printf(m, ",metacopy=%s",
--			   ofs->config.metacopy ? "on" : "off");
-+		seq_printf(m, ",metacopy=%s", str_on_off(ofs->config.metacopy));
- 	if (ofs->config.ovl_volatile)
- 		seq_puts(m, ",volatile");
- 	if (ofs->config.userxattr)
--- 
-2.48.1
-
+So the reason I originally carried this distinction into the api was
+that autofs can't use O_PATH fds. It needs a fully functional pipe. And
+I was worried that just enabling them would break it. That's probably
+not an issue because the code checks if (!(pipe->f_mode & FMODE_CAN_WRITE))
+which isn't set for FMODE_PATH/O_PATH file descriptors. So that's
+probably safe. So I agree we could erradicate this distinction for now.
