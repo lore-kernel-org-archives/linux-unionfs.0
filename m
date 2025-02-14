@@ -1,197 +1,97 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from air.basealt.ru (air.basealt.ru [193.43.8.18])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E7399267AEA;
-	Fri, 14 Feb 2025 16:46:03 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 89C161940A1;
+	Fri, 14 Feb 2025 21:52:03 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=193.43.8.18
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739551564; cv=none; b=rXEDtnHYZkbchLMUsttJrr1+huImPJKBYs4TDLwvFCG9ySUgzSS1PlUQ1WmkJXjPCN1dD/Cw3gBzJ8ysel2KI2w5THOIF8/Od5DCasB3+A9WKEoAwIt3LofZaU+31WlF2UU361NBaDm5WSgzCVsq9KOugd6rZV4bY4gbt6ZJAJE=
+	t=1739569926; cv=none; b=cm/AYR5zxvm9Pt7t12VfNk71pqjz3oPD39oRVcHb4RTR1mIRxo62yCB60jgOsQdxP9MfIXg5MW9RlQbTXMpZvDfS4HklR5gy5XdIOFOKD7lc6RhxnVaeVtBoImX1iZPGAEyn+rVoPUyx9yKXylz1eTP46p61iEBdZPhpjUsI7OI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739551564; c=relaxed/simple;
-	bh=Gp+IOpyEurmWUgULKqOPO0AzC6JRJDl5JHa5HhOmT9g=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=FKbHMxyWohclAlF2cVOFu64LI7PMwIMDEFmlcEzoKWN2gcBdbtT+W+hl/PmeU+x2BottFyv8+XUsL/mMTvJc7pULYyuFNADPQmvlCclqXz+C2cxpvccuzk6auvXHLMjgRMYYjtnQBKTQeLJQ2ejD/v7vHIjL1baAD98bveJJWi4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=YJrFBDZE; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="YJrFBDZE"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFFC4C4CEDD;
-	Fri, 14 Feb 2025 16:46:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1739551563;
-	bh=Gp+IOpyEurmWUgULKqOPO0AzC6JRJDl5JHa5HhOmT9g=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=YJrFBDZEa7jLwYRCK7piX2l/YjTQxHcZI3d11WBR03SRAxO4qsEIypKDdvLnXcGQg
-	 NVcq7UQiSUPJPRLEv2tBRdYfDu3JZfCCk/qGs+0czZCEZbX5fAu/KWg6gxsi/MykSZ
-	 dP0tJSwAGkJrHWMaf8ZT05d0WaTZm+cfxwEQzITqvo8rwBKoVicco1fGEvFBxcePul
-	 kyptUuRfY9WJn5JM/w9f+eqU9bKloLhuZWU2g2NtW1aDWrGGVebZRj9MVmD2YxKhhB
-	 56J8if8ICNCno7J6HLGupwF2LR9dswZuHw2SUSvvui+mPwgzrQ22dKACnCoK05dw5m
-	 W58KE7RTmV8Gw==
-From: Christian Brauner <brauner@kernel.org>
-Date: Fri, 14 Feb 2025 17:45:18 +0100
-Subject: [PATCH RFC 2/2] selftests/ovl: add selftests for "override_creds"
+	s=arc-20240116; t=1739569926; c=relaxed/simple;
+	bh=G3K95h94iYD9zS9lmKkAWqoCHpM/BvBxxToKhcC252A=;
+	h=From:To:Cc:Subject:Date:Message-Id:MIME-Version; b=KRABveyawN/12lxY7VubfDU8A0aA8H9H580Wh4JvWUF7ta2DEZgrH6KB3mWRbJS5OOvvB42ybxKTyf0cNm0R2Tvbi1SzWnj5+N3yfbSe9Tw8FCFwagUUXc1cwwnGPdYGzTtB8XDteynxRg38vMdQXhAuWVSuBYwSOwOqnnqt9js=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org; spf=pass smtp.mailfrom=altlinux.org; arc=none smtp.client-ip=193.43.8.18
+Authentication-Results: smtp.subspace.kernel.org; dmarc=none (p=none dis=none) header.from=altlinux.org
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=altlinux.org
+Received: from altlinux.ipa.basealt.ru (unknown [178.76.204.78])
+	(Authenticated sender: kovalevvv)
+	by air.basealt.ru (Postfix) with ESMTPSA id 7CD582336E;
+	Sat, 15 Feb 2025 00:51:54 +0300 (MSK)
+From: Vasiliy Kovalev <kovalev@altlinux.org>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Gao Xiang <xiang@kernel.org>,
+	linux-unionfs@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	lvc-project@linuxtesting.org,
+	kovalev@altlinux.org,
+	syzbot+316db8a1191938280eb6@syzkaller.appspotmail.com
+Subject: [PATCH] ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up
+Date: Sat, 15 Feb 2025 00:51:48 +0300
+Message-Id: <20250214215148.761147-1-kovalev@altlinux.org>
+X-Mailer: git-send-email 2.33.8
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250214-work-overlayfs-v1-2-465d1867d3d4@kernel.org>
-References: <20250214-work-overlayfs-v1-0-465d1867d3d4@kernel.org>
-In-Reply-To: <20250214-work-overlayfs-v1-0-465d1867d3d4@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Seth Forshee <sforshee@kernel.org>
-Cc: Gopal Kakivaya <gopalk@microsoft.com>, linux-unionfs@vger.kernel.org, 
- linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>
-X-Mailer: b4 0.15-dev-d23a9
-X-Developer-Signature: v=1; a=openpgp-sha256; l=4423; i=brauner@kernel.org;
- h=from:subject:message-id; bh=Gp+IOpyEurmWUgULKqOPO0AzC6JRJDl5JHa5HhOmT9g=;
- b=kA0DAAoWkcYbwGV43KIByyZiAGevc0SgrMi3C8q9/fc6eBjbc0QiB2tiVozFgct9Ve6CgZR8P
- Ih1BAAWCgAdFiEEQIc0Vx6nDHizMmkokcYbwGV43KIFAmevc0QACgkQkcYbwGV43KKmDwD9FM4X
- ZhzqSqvUAoSW2qb/B44Nbg0CsZHbWOlNE0RVd3QA/A0JIkthmksxdbO7B0jNe5BRfNNEe3kzyF+
- dKBCU7d0K
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-Add a simple test to verify that the new "override_creds" option works.
+The issue was caused by dput(upper) being called before
+ovl_dentry_update_reval(), while upper->d_flags was still
+accessed in ovl_dentry_remote().
 
-Signed-off-by: Christian Brauner <brauner@kernel.org>
+Move dput(upper) after its last use to prevent use-after-free.
+
+BUG: KASAN: slab-use-after-free in ovl_dentry_remote fs/overlayfs/util.c:162 [inline]
+BUG: KASAN: slab-use-after-free in ovl_dentry_update_reval+0xd2/0xf0 fs/overlayfs/util.c:167
+
+Call Trace:
+ <TASK>
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x116/0x1f0 lib/dump_stack.c:114
+ print_address_description mm/kasan/report.c:377 [inline]
+ print_report+0xc3/0x620 mm/kasan/report.c:488
+ kasan_report+0xd9/0x110 mm/kasan/report.c:601
+ ovl_dentry_remote fs/overlayfs/util.c:162 [inline]
+ ovl_dentry_update_reval+0xd2/0xf0 fs/overlayfs/util.c:167
+ ovl_link_up fs/overlayfs/copy_up.c:610 [inline]
+ ovl_copy_up_one+0x2105/0x3490 fs/overlayfs/copy_up.c:1170
+ ovl_copy_up_flags+0x18d/0x200 fs/overlayfs/copy_up.c:1223
+ ovl_rename+0x39e/0x18c0 fs/overlayfs/dir.c:1136
+ vfs_rename+0xf84/0x20a0 fs/namei.c:4893
+...
+ </TASK>
+
+Fixes: b07d5cc93e1b ("ovl: update of dentry revalidate flags after copy up")
+Reported-by: syzbot+316db8a1191938280eb6@syzkaller.appspotmail.com
+Closes: https://syzkaller.appspot.com/bug?extid=316db8a1191938280eb6
+Signed-off-by: Vasiliy Kovalev <kovalev@altlinux.org>
 ---
- .../filesystems/overlayfs/set_layers_via_fds.c     | 109 +++++++++++++++++++++
- 1 file changed, 109 insertions(+)
+ fs/overlayfs/copy_up.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-index e65d95d97846..9caf5444f4c3 100644
---- a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-+++ b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-@@ -6,11 +6,13 @@
- #include <sched.h>
- #include <stdio.h>
- #include <string.h>
-+#include <sys/fsuid.h>
- #include <sys/stat.h>
- #include <sys/mount.h>
- #include <unistd.h>
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 0c28e5fa34077..d7310fcf38881 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -618,7 +618,6 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 	err = PTR_ERR(upper);
+ 	if (!IS_ERR(upper)) {
+ 		err = ovl_do_link(ofs, ovl_dentry_upper(c->dentry), udir, upper);
+-		dput(upper);
  
- #include "../../kselftest_harness.h"
-+#include "../../pidfd/pidfd.h"
- #include "log.h"
- #include "wrappers.h"
- 
-@@ -409,4 +411,111 @@ TEST_F(set_layers_via_fds, set_layers_via_detached_mount_fds)
- 	ASSERT_EQ(fclose(f_mountinfo), 0);
- }
- 
-+TEST_F(set_layers_via_fds, set_override_creds)
-+{
-+	int fd_context, fd_tmpfs, fd_overlay;
-+	int layer_fds[] = { [0 ... 3] = -EBADF };
-+	bool found = false;;
-+	size_t len = 0;
-+	char *line = NULL;
-+	FILE *f_mountinfo;
-+	pid_t pid;
-+	int pidfd;
-+
-+	ASSERT_EQ(unshare(CLONE_NEWNS), 0);
-+	ASSERT_EQ(sys_mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL), 0);
-+
-+	fd_context = sys_fsopen("tmpfs", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+	fd_tmpfs = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_tmpfs, 0);
-+	ASSERT_EQ(close(fd_context), 0);
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "w", 0755), 0);
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "u", 0755), 0);
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "l1", 0755), 0);
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "l2", 0755), 0);
-+
-+	layer_fds[0] = openat(fd_tmpfs, "w", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[0], 0);
-+
-+	layer_fds[1] = openat(fd_tmpfs, "u", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[1], 0);
-+
-+	layer_fds[2] = openat(fd_tmpfs, "l1", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[2], 0);
-+
-+	layer_fds[3] = openat(fd_tmpfs, "l2", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[3], 0);
-+
-+	ASSERT_EQ(sys_move_mount(fd_tmpfs, "", -EBADF, "/tmp", MOVE_MOUNT_F_EMPTY_PATH), 0);
-+	ASSERT_EQ(close(fd_tmpfs), 0);
-+
-+	fd_context = sys_fsopen("overlay", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_NE(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir", NULL, layer_fds[2]), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "workdir",   NULL, layer_fds[0]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "upperdir",  NULL, layer_fds[1]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[2]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[3]), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_STRING, "metacopy", "on", 0), 0);
-+
-+	pid = create_child(&pidfd, CLONE_NEWUSER);
-+	EXPECT_GE(pid, 0);
-+	if (pid == 0) {
-+		if (!sys_fsconfig(fd_context, FSCONFIG_SET_FLAG, "override_creds", NULL, 0)) {
-+			TH_LOG("sys_fsconfig should have failed");
-+			_exit(EXIT_FAILURE);
-+		}
-+
-+		_exit(EXIT_SUCCESS);
-+	}
-+	EXPECT_EQ(sys_waitid(P_PID, pid, NULL, WEXITED), 0);
-+	EXPECT_EQ(close(pidfd), 0);
-+
-+	pid = create_child(&pidfd, 0);
-+	EXPECT_GE(pid, 0);
-+	if (pid == 0) {
-+		if (sys_fsconfig(fd_context, FSCONFIG_SET_FLAG, "override_creds", NULL, 0)) {
-+			TH_LOG("sys_fsconfig should have succeeded");
-+			_exit(EXIT_FAILURE);
-+		}
-+
-+		_exit(EXIT_SUCCESS);
-+	}
-+	EXPECT_EQ(sys_waitid(P_PID, pid, NULL, WEXITED), 0);
-+	EXPECT_EQ(close(pidfd), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+
-+	fd_overlay = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_overlay, 0);
-+
-+	ASSERT_EQ(sys_move_mount(fd_overlay, "", -EBADF, "/set_layers_via_fds", MOVE_MOUNT_F_EMPTY_PATH), 0);
-+
-+	f_mountinfo = fopen("/proc/self/mountinfo", "r");
-+	ASSERT_NE(f_mountinfo, NULL);
-+
-+	while (getline(&line, &len, f_mountinfo) != -1) {
-+		char *haystack = line;
-+
-+		if (strstr(haystack, "override_creds")) {
-+			found = true;
-+			break;
-+		}
-+	}
-+	free(line);
-+
-+	ASSERT_EQ(found, true);
-+
-+	ASSERT_EQ(close(fd_context), 0);
-+	ASSERT_EQ(close(fd_overlay), 0);
-+	ASSERT_EQ(fclose(f_mountinfo), 0);
-+}
-+
- TEST_HARNESS_MAIN
-
+ 		if (!err) {
+ 			/* Restore timestamps on parent (best effort) */
+@@ -626,6 +625,7 @@ static int ovl_link_up(struct ovl_copy_up_ctx *c)
+ 			ovl_dentry_set_upper_alias(c->dentry);
+ 			ovl_dentry_update_reval(c->dentry, upper);
+ 		}
++		dput(upper);
+ 	}
+ 	inode_unlock(udir);
+ 	if (err)
 -- 
-2.47.2
+2.42.2
 
