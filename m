@@ -1,119 +1,96 @@
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4E1C0214A8F
-	for <linux-unionfs@vger.kernel.org>; Wed, 12 Feb 2025 16:58:01 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 7D43524CEF1;
+	Fri, 14 Feb 2025 16:45:59 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739379484; cv=none; b=IJlpO21om9AcuEDay/2pmDDES9pXHm/R9nCs+BbbGr/nKLdfte/m4wZ3gvSfG5spOdMTvS4sknKB7BBP6oQHOTpZA3rUzla5IudUGGZ7+7aJaUPVYsk16D6dDYpZXHtMhlIsBBNymYHF5zlpSwf3kC8Tn4uFoedr4ghU3aCKIM8=
+	t=1739551559; cv=none; b=aMPSq+hXKQ9oeVce3z7P09MNPRJIaMNMoLDK2BLhkhwsQ0JFC4w/HUotnzcfReo9/bAv5qMtodMnw0ru9bH/BNBXa8y/qp6hy0omew1Rg2mVD+I2i/6ENrbWCVH5gb1PFfnR3nYAQK/QaOvXfSPphhVAYI094mKP1NVwTtnZl4o=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739379484; c=relaxed/simple;
-	bh=P9JdwHaUKaC7H9Ci7BUO8mnUxxFaDC584LXFAy56ze0=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RAj/8tBdAveHhhMkJL5ghGt8MDF5MpkgfqBYUSVeZNfmOIzT53QfeV2U/H3WF9IcY8nXi1cChzTBok31ulrL1HJuM6OLxQxNIhO7UUmCduRk0LCTZELpQxEvzVhrVuNZHWpN1HGCf/bCjCd4LXK5O6BWJxzhgIYUsW2M6HPiB3A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=rHwAiNrJ; arc=none smtp.client-ip=209.85.160.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1739551559; c=relaxed/simple;
+	bh=8PB31eYLgXKVC2RYia2q9wXFqiaOHSgHv5hAelggdvc=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=U0vOfOGpXpIR9nyfDbYfZ6tFOX5633yCUIpRwYQEcMwcMU0SaRoziaNUBSKKsnzUvCi+MzSfL+lnMdHQmf/Au9VrKBo+UDA7A2C/AR4EP1Pc8ChAVIbpmL7ss2zZx+Zbc3c1gNpZBfiEKGf0qrRrsiWB6iUrtpHl88OEsqLjggo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=JPSEadWe; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="rHwAiNrJ"
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-46fa734a0b8so62050521cf.1
-        for <linux-unionfs@vger.kernel.org>; Wed, 12 Feb 2025 08:58:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1739379481; x=1739984281; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=vT+hMogTz46vryZ/YtUpB8CUx/hmD3efKVcLVJOFinc=;
-        b=rHwAiNrJ0BgPN1fyXNjt5NNOPUdXPo2eCH7IIdezsP7jhXaSnfv/pMlRGBZiUA0Zvj
-         Jk1d+tPpzdy6Vat8V85FNmqyHrJ51MljiBJvFdXsvIGsdr+nh5sSdeQBEIjr6hbXFA3f
-         kaRWnbmo64Cb0VWnXSyleCJzaMdEiXER6IZMI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1739379481; x=1739984281;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vT+hMogTz46vryZ/YtUpB8CUx/hmD3efKVcLVJOFinc=;
-        b=brVKXJ/H888J/pTu6PYAEi7b31ZRYiw6q9BHqrDlTOk56aUskYAWoxIV8InRwsEdO6
-         CgSyaE4uvIb8i4OFUR5p3wk0ea3/iCihQStZUTkqajgYw6yKCweS5BTjTgpnHZwIVMoo
-         bnAP4dPE4r1HA1Bd/pUtF5WoAikGGRe92m1vqI8gebygYwoOpyrMPurnZq+GJO57wEG0
-         Ktc4RBnyVcRRhTF3arlLLzytHQ64/GDTHq0ROsbMIwKoyHGNEEQno5l8i3ZQZ9iSIdfF
-         +KGIX+ZtcEGhsc83TvOlux7B+WdTSdaY4BIOAzKCLVxYjtdM73pnxrOR8QTD/wFoIDZS
-         xGag==
-X-Forwarded-Encrypted: i=1; AJvYcCW+lxMRkfrtjuGiiIoeshe43BFOnW17FM/RqMZpgAAfVq4L6PEBRchA8aUdyIAKK783gJlpNTLyesyRidRE@vger.kernel.org
-X-Gm-Message-State: AOJu0YzLtm9ZSklPgIXgM74j5PmrP/OJ6V2H2rU+k8904AC/N7bzcfFU
-	ZzkJKiQTmcaPYZox7abnhQhXV2TNUDkp0NHVMwWXOExjXvwSiDko/u3GGZ8wyKdXaFLoGqIFsU5
-	tl9AKyRQ7qx/Z+dQkZhufu036S1fzA6VxKxP8V9tvhN5Oxjje
-X-Gm-Gg: ASbGncuIxPt8DS1FsLf+WtWQizNUf1qxBzw6ujharYu+Z5cbPW6QyYXDR236B0t9FRc
-	0wEHZqiq++DkCPoj9DBt0LZEAOsaWgNEFWjX+/ERoRDQ7SzvS0lH1EyQtmWLlgRNDImndEw==
-X-Google-Smtp-Source: AGHT+IFnzDALt4z009doDSKRYtYByrEnwBJUsIaU5OvZsRiDtAZNjs0x/YiFPJyI6tUyZN53KmJkq9tUS68zIvw2b2s=
-X-Received: by 2002:a05:622a:181a:b0:470:1fc6:f821 with SMTP id
- d75a77b69052e-471b06edc47mr46227211cf.35.1739379480995; Wed, 12 Feb 2025
- 08:58:00 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="JPSEadWe"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 38009C4CED1;
+	Fri, 14 Feb 2025 16:45:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1739551559;
+	bh=8PB31eYLgXKVC2RYia2q9wXFqiaOHSgHv5hAelggdvc=;
+	h=From:Subject:Date:To:Cc:From;
+	b=JPSEadWegdTH+SpFowGniec0IxXtRVTvIuavAKK+/ESfmytrTZ9//wlP9mKX+/TY5
+	 noxSO4otS3kj20olgvnqegt/MfmQH5ni7b7UgXoS7Khr/8JSwig85jNQCRlUYyT5lk
+	 QGcmZ2Ek9vYFFFxSpOZyOy6mkr4HM6LGAuVofOYNI5NP2LLHgv2NNTOc7rw0uXrJcu
+	 0EkIHmwRrN+uHgHVVFEyH1hPIlIfLIzUoYA1L9fMsrZGBLJvB7arCM8ffYjqlNMTMf
+	 F42LVCuwWpBfWlRHG/UET//l4VzLuD/FMIRq5YjQF8n3seqKDbzHteA3VZGvhdzMmc
+	 FOa4h5W5knEPw==
+From: Christian Brauner <brauner@kernel.org>
+Subject: [PATCH RFC 0/2] ovl: add override_creds mount option
+Date: Fri, 14 Feb 2025 17:45:16 +0100
+Message-Id: <20250214-work-overlayfs-v1-0-465d1867d3d4@kernel.org>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339-3-mszeredi@redhat.com>
- <CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
- <CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
- <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
- <CAJfpegsuN+C4YiA9PAuY3+-BJ959aSAaXTYBwKNCjEnhXVw0pg@mail.gmail.com> <CAOQ4uxjkBQP=x6+2YPYw4pCfaNy0=x48McLCMPJdEJYEb85f-A@mail.gmail.com>
-In-Reply-To: <CAOQ4uxjkBQP=x6+2YPYw4pCfaNy0=x48McLCMPJdEJYEb85f-A@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Wed, 12 Feb 2025 17:57:50 +0100
-X-Gm-Features: AWEUYZnDklP0Q04eQJbdif-V3Wr25nZfxbERwb43ZA_kG2OIKQLTbPE7mtefsDg
-Message-ID: <CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
-Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Giuseppe Scrivano <gscrivan@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+X-B4-Tracking: v=1; b=H4sIAB1zr2cC/x2MQQrCMBAAv1L2bEoTWgWvgg/wKj0km40NaiK7N
+ iqlfzd6nIGZBYQ4ksC+WYCpRIk5VdCbBnCy6UIq+spgOjN0RvfqlfmqciG+2U8Q5QMG7NHvyHm
+ o0YMpxPd/eIbT8QBjlc4KKcc24fR7ldptWz209zynJ6zrF4z8+aSGAAAA
+X-Change-ID: 20250214-work-overlayfs-dfcfc4cd7ebd
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
+ Seth Forshee <sforshee@kernel.org>
+Cc: Gopal Kakivaya <gopalk@microsoft.com>, linux-unionfs@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>
+X-Mailer: b4 0.15-dev-d23a9
+X-Developer-Signature: v=1; a=openpgp-sha256; l=1661; i=brauner@kernel.org;
+ h=from:subject:message-id; bh=8PB31eYLgXKVC2RYia2q9wXFqiaOHSgHv5hAelggdvc=;
+ b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaSvL3apk8/VbZu+Zqtt8T/GpzICm/z/ze6MCTx+5wrn3
+ 7l1PR5hHaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABP5c4ORYUb6zcDnU7/VyJex
+ HMvpfyiYqvhUdNv/8nyzxH/bzrAnbGf4w335gMSUeZdSpUVXquXbBLz0Utl6JLJ1r3yd4YTzExn
+ U+AE=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp;
+ fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 
-On Tue, 11 Feb 2025 at 16:52, Amir Goldstein <amir73il@gmail.com> wrote:
+Hey,
 
-> It sounds very complicated. Is that even possible?
-> Do we always know the path of the upper alias?
-> IIRC, the absolute redirect path in upper is not necessary
-> the absolute path where the origin is found.
-> e.g. if there are middle layer redirects of parents.
+Currently overlayfs uses the mounter's credentials for it's
+override_creds() calls. That provides a consistent permission model.
 
-Okay, it was a stupid idea.
+This patches allows a caller to instruct overlayfs to use its
+credentials instead. The caller must be located in the same user
+namespace as the user namespace the overlayfs instance will be mounted
+in. This provides a consistent and simple security model.
 
-> > > Looking closer at ovl_maybe_validate_verity(), it's actually
-> > > worse - if you create an upper without metacopy above
-> > > a lower with metacopy, ovl_validate_verity() will only check
-> > > the metacopy xattr on metapath, which is the uppermost
-> > > and find no md5digest, so create an upper above a metacopy
-> > > lower is a way to avert verity check.
-> >
-> > I need to dig into how verity is supposed to work as I'm not seeing it
-> > clearly yet...
-> >
->
-> The short version - for lazy data lookup we store the lowerdata
-> redirect absolute path in the ovl entry stack, but we do not store
-> the verity digest, we just store OVL_HAS_DIGEST inode flag if there
-> is a digest in metacopy xattr.
->
-> If we store the digest from lookup time in ovl entry stack, your changes
-> may be easier.
+With this it is possible to e.g., mount an overlayfs instance where the
+mounter must have CAP_SYS_ADMIN but the credentials used for
+override_creds() have dropped CAP_SYS_ADMIN. It also allows the usage of
+custom fs{g,u}id different from the callers and other tweaks.
 
-Sorry, I can't wrap my head around this issue.  Cc-ing Giuseppe.
+I'm marking this as RFC since I've written this down pretty quickly and
+I'm not sure I've thought enough about all the possible pitfalls. I
+think overall the concept is sound but there might be additional changes
+needed in ovl_fill_super(). Right now I'm just calling override_creds()
+when creating the index and work directories.
 
-> > > So I think lookup code needs to disallow finding metacopy
-> > > in middle layer and need to enforce that also when upper is found
-> > > via index.
-> >
-> > That's the hard link case.  I.e. with metacopy=on,index=on it's
-> > possible that one link is metacopyied up, and the other one is then
-> > found through the index.  Metacopy *should* work in this case, no?
-> >
->
-> Right. So I guess we only need to disallow uppermetacopy from
-> index when metacoy=off.
+Thanks!
+Christian
 
-Yes.
+Signed-off-by: Christian Brauner <brauner@kernel.org>
+---
+Christian Brauner (2):
+      ovl: allow to specify override credentials
+      selftests/ovl: add selftests for "override_creds"
 
-Thanks,
-Miklos
+ fs/overlayfs/ovl_entry.h                           |   1 +
+ fs/overlayfs/params.c                              |  25 +++++
+ fs/overlayfs/super.c                               |  13 ++-
+ .../filesystems/overlayfs/set_layers_via_fds.c     | 109 +++++++++++++++++++++
+ 4 files changed, 147 insertions(+), 1 deletion(-)
+---
+base-commit: 7a54947e727b6df840780a66c970395ed9734ebe
+change-id: 20250214-work-overlayfs-dfcfc4cd7ebd
+
