@@ -1,213 +1,281 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C504917A302;
-	Wed, 19 Feb 2025 10:02:24 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D26391DC98A;
+	Wed, 19 Feb 2025 11:44:58 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739959344; cv=none; b=ngiDu7ZlwUFU905Jea0MeoMP119A7VTszBo2vIZ5dKYg/FLM4Ob0xyPgWbSI0Z78qS3/3Z0IdP37gpqKDjo0ZLIxxpwjKTxWsC9QN6SY8sLAJ5y6yvCPzXl3mXJ426Pk/aYBxMPXgvFLpO2o1RA4b2djIaWm1I4b54amkY6PqCY=
+	t=1739965500; cv=none; b=A36kZ9XaVNDGqTxzdn0x61awgAmLeR8Hy7QK+aKsau83G2qwPQJKIjTX1KX57YL5zbCsjHpPYPF3xGYtg9g+fhX00VMmf3KplDxYpRO3iuzpyolojvO1YQm86TcwMi+RTEyVoltJgY3YV37NcBMpgFDmaEeBBVq/iF0GQWqAWpc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739959344; c=relaxed/simple;
-	bh=q41j+ox7rOuV1b/dMSn7KbOkJKy8kD1MpckFVr8+NFo=;
-	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=tyliXUGVNMFyYJDZ+6jILmk2oPd0uWKr+ReBrA0ZXjGn8vseKQMO06ibKn9+Sylti1iyWnj2niTCs9YCK2WDGqBO8NbSSQcGNlSLaV80tzyroSpNJo8/nIg8bPPStV0ygroVlcUX+ASrQtYK2y1VzakQTPFgF3bKW6sFV8yB7eg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=gc8CAVsl; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1739965500; c=relaxed/simple;
+	bh=As1cE36VD31Tk1Qnvxul0k0GvQnalmspBJG9KqdG8SQ=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=pfvHUi9KM4+jCdD+VtDaIWq1Jn0P1KfoiwIy4vLEHDSO0MQYCB/gH1e4yyiVh4t/A2y2J3U/DS4JpkbCgLlrRPbTXDiSeMC7Nn3sxGalEIIH1VTHKCuGtF68rRHsL/zqRG9LGM75fHnxZNyrGyEilCFe1ic0jIVSr3iKCzfSamQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=MZEE40Cm; arc=none smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="gc8CAVsl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC24CC4CEEA;
-	Wed, 19 Feb 2025 10:02:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1739959344;
-	bh=q41j+ox7rOuV1b/dMSn7KbOkJKy8kD1MpckFVr8+NFo=;
-	h=From:Date:Subject:References:In-Reply-To:To:Cc:From;
-	b=gc8CAVslm3YtkEaUO3h60FqotlxMRKTDPL4NQmg5BVE3X3zGe//eKWCMv2Yc/SZ3B
-	 UYZuKYmhRD53oLwMY+eX0S/VXePYcjhFsUpnfGJnyZxUEc9aoudlSppBD+m5USZ/tG
-	 M+DgNtAm9rnWCruu2/yXvjntOvTr0jOd05W2Q5eWaNeFnpcfKu/oZ7IyekcXwKDg2p
-	 qJkI+vux6U8KdSsq7E39/bbaXCcX3OyI1O9ajUmMTHWMSk9m5z8Xg4QgGqJFTBCMVx
-	 vu4b0M8gc7EC8hGzJNIoYD6LJhoikaQPMVNIeSYERDcbp6VFMV3NKBg7zYNOrZieWd
-	 mHLddP309nYwg==
-From: Christian Brauner <brauner@kernel.org>
-Date: Wed, 19 Feb 2025 11:01:52 +0100
-Subject: [PATCH v3 4/4] selftests/ovl: add third selftest for
- "override_creds"
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="MZEE40Cm"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-5dee1626093so1481494a12.1;
+        Wed, 19 Feb 2025 03:44:58 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1739965497; x=1740570297; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=t4rL17RBA3ahHT8WHzeb+l/7UV4sIuJ1Gz95ekUeQRY=;
+        b=MZEE40Cm28Z/+oZ7jqmeWS/aQQVN0DCuD+FFukOrOMjOwIJBrZoJ+ONJ0fmFZ5+TLX
+         VNbt7ui2+M0XF0G41OVjubxz0bfYz3nW/VzX4mkKNkHvvkSWavXpzEgYhnC2dvBj0Qh4
+         M64Mr6FQ1G/hNoGpaSAosuqX1btksBmPiYeYpTkUms1RR53NeFidtiREwU+6wSnzAJVZ
+         pKjMfekZO9hXdoxMvP2yPjKQqb6xwtEluqY1NMPmUBUK9g/CYUG8EI7WcVr2BOtz7zD8
+         CuV7CdrKeB9WhqTQXEpyM8RQuVWxN45TVnmfBMx60Q1P1Q7eKSnla791BWIniXC2FR0d
+         HK0w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1739965497; x=1740570297;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=t4rL17RBA3ahHT8WHzeb+l/7UV4sIuJ1Gz95ekUeQRY=;
+        b=fDB/WmnEbtwTJTdwn4oi9tEaEzptbZliAGP9tjVejtiySoNv07cRafPPo6Hqr+P5iq
+         HiViZZqwwJrQZOPtcu1bx1PozRh/x3mK2ld4QBw+J4v4WiY0AMPLc+Vy37dUxmI3B0dk
+         Lhk9TGT+JI3T5Klcz3LvOLde8oxPXzmejQ2iiv9y0B/lHu7GdXOc3Wo6ZbZfrR772DlJ
+         WsZpOGwro15RLT2E9qdNlhj+2Wu4rkQcCiUzxsZqj7UkWAm1dcE0Q1v5j3juSoAxqvy0
+         1hK5u9pU8X3RsDkDG+tjCHyTVMG48WNcugE0FtdA0Sl6zMW6SLVNKILHFTteCoHXDwjF
+         yP/Q==
+X-Forwarded-Encrypted: i=1; AJvYcCWhd4ucZOiASP8cEE5mCJf7NukcCS4G2bzye0cu65iQ/4MhibBepxgE3nr/6kb1K9hMfn7PdB1W8tWF9N57Lw==@vger.kernel.org, AJvYcCWyw3N9nMzT35XzgVOhITArYzhh32/1ff2ttoumyGaH+/cmuFo+DdxWixOJW3F2Ynm1aJzXIQYDODfrOis0@vger.kernel.org
+X-Gm-Message-State: AOJu0Yxhng+U9VKHI0zfXT0FKZrd2Z1qz/CdtaMjMpO2BqAO/f7RhZD0
+	inRzR3Fdud3QfAeSW3LrgeNPN/3ryC6J9qRC/ehlf45itSR1bYDvMrh72DGn1qhljDy3DiVBpzZ
+	FOVVmN5expHidc7CxNYfYQm+gIHU=
+X-Gm-Gg: ASbGncsgWmqXQ2q1OD7ZDgwJUSAZOIbbZgwzlLhsdUPpwF1VkusTq22D8p4vpgGpM/Y
+	RC6TuuysLhDDbFlRNJ15f2W+s+klCxhebrVSBwecKn4rMbnyNyAsoENfndLfWYJ4LvkL3GMCm
+X-Google-Smtp-Source: AGHT+IE10O5g/v1jLp7WcTdfqqGONSNchctRG2QVAHE/5OmqX6LgTB46CdxDrDYjNKzany2uzV4AHvrJ5XWbZJMB2cs=
+X-Received: by 2002:a05:6402:2089:b0:5e0:7fc9:8605 with SMTP id
+ 4fb4d7f45d1cf-5e088da324emr2973387a12.6.1739965496587; Wed, 19 Feb 2025
+ 03:44:56 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20250219-work-overlayfs-v3-4-46af55e4ceda@kernel.org>
-References: <20250219-work-overlayfs-v3-0-46af55e4ceda@kernel.org>
-In-Reply-To: <20250219-work-overlayfs-v3-0-46af55e4ceda@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
- Seth Forshee <sforshee@kernel.org>
-Cc: Gopal Kakivaya <gopalk@microsoft.com>, linux-unionfs@vger.kernel.org, 
- linux-fsdevel@vger.kernel.org, Christian Brauner <brauner@kernel.org>
-X-Mailer: b4 0.15-dev-d23a9
-X-Developer-Signature: v=1; a=openpgp-sha256; l=5035; i=brauner@kernel.org;
- h=from:subject:message-id; bh=q41j+ox7rOuV1b/dMSn7KbOkJKy8kD1MpckFVr8+NFo=;
- b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaRvXaN2c81Ur4bchKO/rK147iooJk9PEy1Y3VX+555a4
- A7d49V+HaUsDGJcDLJiiiwO7Sbhcst5KjYbZWrAzGFlAhnCwMUpABPh8GT477gs8JjJ4luvyk8e
- EH5err+q/vhN4bCdU/+UPDobJ/Fuszgjw6tv85jWH70cYSLdEXzZpliP4/ORHxUOwnuVP33j9Zl
- 1jw8A
-X-Developer-Key: i=brauner@kernel.org; a=openpgp;
- fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+References: <20250219-work-overlayfs-v3-0-46af55e4ceda@kernel.org> <20250219-work-overlayfs-v3-1-46af55e4ceda@kernel.org>
+In-Reply-To: <20250219-work-overlayfs-v3-1-46af55e4ceda@kernel.org>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 19 Feb 2025 12:44:45 +0100
+X-Gm-Features: AWEUYZk3yMgIVNN6P72G0lxD3avFmupTufJdJFIgGO5ep8iC5n9QwZrnVtgJmoo
+Message-ID: <CAOQ4uxgU7fH=uwEaWo=ZaHSTzMfn4tBR5Oa+hc6LOqBCiS9cVA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/4] ovl: allow to specify override credentials
+To: Christian Brauner <brauner@kernel.org>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, Seth Forshee <sforshee@kernel.org>, 
+	Gopal Kakivaya <gopalk@microsoft.com>, linux-unionfs@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Add a simple test to verify that the new "override_creds" option works.
+On Wed, Feb 19, 2025 at 11:02=E2=80=AFAM Christian Brauner <brauner@kernel.=
+org> wrote:
+>
+> Currently overlayfs uses the mounter's credentials for it's
+> override_creds() calls. That provides a consistent permission model.
+>
+> This patches allows a caller to instruct overlayfs to use its
+> credentials instead. The caller must be located in the same user
+> namespace hierarchy as the user namespace the overlayfs instance will be
+> mounted in. This provides a consistent and simple security model.
+>
+> With this it is possible to e.g., mount an overlayfs instance where the
+> mounter must have CAP_SYS_ADMIN but the credentials used for
+> override_creds() have dropped CAP_SYS_ADMIN. It also allows the usage of
+> custom fs{g,u}id different from the callers and other tweaks.
+>
+> Signed-off-by: Christian Brauner <brauner@kernel.org>
+> ---
+>  Documentation/filesystems/overlayfs.rst | 24 +++++++++++++++++++-----
+>  fs/overlayfs/params.c                   | 25 +++++++++++++++++++++++++
+>  fs/overlayfs/super.c                    | 16 +++++++++++++++-
+>  3 files changed, 59 insertions(+), 6 deletions(-)
+>
+> diff --git a/Documentation/filesystems/overlayfs.rst b/Documentation/file=
+systems/overlayfs.rst
+> index 6245b67ae9e0..2db379b4b31e 100644
+> --- a/Documentation/filesystems/overlayfs.rst
+> +++ b/Documentation/filesystems/overlayfs.rst
+> @@ -292,13 +292,27 @@ rename or unlink will of course be noticed and hand=
+led).
+>  Permission model
+>  ----------------
+>
+> +An overlay filesystem stashes credentials that will be used when
+> +accessing lower or upper filesystems.
+> +
+> +In the old mount api the credentials of the task calling mount(2) are
+> +stashed. In the new mount api the credentials of the task creating the
+> +superblock through FSCONFIG_CMD_CREATE command of fsconfig(2) are
+> +stashed.
+> +
+> +Starting with kernel v6.15 it is possible to use the "override_creds"
+> +mount option which will cause the credentials of the calling task to be
+> +recorded. Note that "override_creds" is only meaningful when used with
+> +the new mount api as the old mount api combines setting options and
+> +superblock creation in a single mount(2) syscall.
+> +
+>  Permission checking in the overlay filesystem follows these principles:
+>
+>   1) permission check SHOULD return the same result before and after copy=
+ up
+>
+>   2) task creating the overlay mount MUST NOT gain additional privileges
+>
+> - 3) non-mounting task MAY gain additional privileges through the overlay=
+,
+> + 3) task[*] MAY gain additional privileges through the overlay,
+>      compared to direct access on underlying lower or upper filesystems
+>
+>  This is achieved by performing two permission checks on each access:
+> @@ -306,7 +320,7 @@ This is achieved by performing two permission checks =
+on each access:
+>   a) check if current task is allowed access based on local DAC (owner,
+>      group, mode and posix acl), as well as MAC checks
+>
+> - b) check if mounting task would be allowed real operation on lower or
+> + b) check if stashed credentials would be allowed real operation on lowe=
+r or
+>      upper layer based on underlying filesystem permissions, again includ=
+ing
+>      MAC checks
+>
+> @@ -315,10 +329,10 @@ are copied up.  On the other hand it can result in =
+server enforced
+>  permissions (used by NFS, for example) being ignored (3).
+>
+>  Check (b) ensures that no task gains permissions to underlying layers th=
+at
+> -the mounting task does not have (2).  This also means that it is possibl=
+e
+> +the stashed credentials do not have (2).  This also means that it is pos=
+sible
+>  to create setups where the consistency rule (1) does not hold; normally,
+> -however, the mounting task will have sufficient privileges to perform al=
+l
+> -operations.
+> +however, the stashed credentials will have sufficient privileges to
+> +perform all operations.
+>
+>  Another way to demonstrate this model is drawing parallels between::
+>
+> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> index 1115c22deca0..6a94a56f14fb 100644
+> --- a/fs/overlayfs/params.c
+> +++ b/fs/overlayfs/params.c
+> @@ -59,6 +59,7 @@ enum ovl_opt {
+>         Opt_metacopy,
+>         Opt_verity,
+>         Opt_volatile,
+> +       Opt_override_creds,
+>  };
+>
+>  static const struct constant_table ovl_parameter_bool[] =3D {
+> @@ -155,6 +156,7 @@ const struct fs_parameter_spec ovl_parameter_spec[] =
+=3D {
+>         fsparam_enum("metacopy",            Opt_metacopy, ovl_parameter_b=
+ool),
+>         fsparam_enum("verity",              Opt_verity, ovl_parameter_ver=
+ity),
+>         fsparam_flag("volatile",            Opt_volatile),
+> +       fsparam_flag_no("override_creds",   Opt_override_creds),
+>         {}
+>  };
+>
+> @@ -662,6 +664,29 @@ static int ovl_parse_param(struct fs_context *fc, st=
+ruct fs_parameter *param)
+>         case Opt_userxattr:
+>                 config->userxattr =3D true;
+>                 break;
+> +       case Opt_override_creds: {
+> +               const struct cred *cred =3D NULL;
+> +
+> +               if (result.negated) {
+> +                       swap(cred, ofs->creator_cred);
+> +                       put_cred(cred);
+> +                       break;
+> +               }
+> +
+> +               if (!current_in_userns(fc->user_ns)) {
+> +                       err =3D -EINVAL;
+> +                       break;
+> +               }
+> +
+> +               cred =3D prepare_creds();
+> +               if (cred)
+> +                       swap(cred, ofs->creator_cred);
+> +               else
+> +                       err =3D -EINVAL;
 
-Signed-off-by: Christian Brauner <brauner@kernel.org>
----
- .../filesystems/overlayfs/set_layers_via_fds.c     | 80 ++++++++++++++++++++++
- tools/testing/selftests/filesystems/utils.c        | 27 ++++++++
- tools/testing/selftests/filesystems/utils.h        |  1 +
- 3 files changed, 108 insertions(+)
+Did you mean ENOMEM?
 
-diff --git a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-index 6b65e3610578..fd1e5d7c13a3 100644
---- a/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-+++ b/tools/testing/selftests/filesystems/overlayfs/set_layers_via_fds.c
-@@ -8,6 +8,7 @@
- #include <string.h>
- #include <sys/socket.h>
- #include <sys/stat.h>
-+#include <sys/sysmacros.h>
- #include <sys/mount.h>
- #include <unistd.h>
- 
-@@ -442,4 +443,83 @@ TEST_F(set_layers_via_fds, set_override_creds_invalid)
- 	ASSERT_EQ(close(fd_userns2), 0);
- }
- 
-+TEST_F(set_layers_via_fds, set_override_creds_nomknod)
-+{
-+	int fd_context, fd_tmpfs, fd_overlay;
-+	int layer_fds[] = { [0 ... 3] = -EBADF };
-+	pid_t pid;
-+	int pidfd;
-+
-+	ASSERT_EQ(unshare(CLONE_NEWNS), 0);
-+	ASSERT_EQ(sys_mount(NULL, "/", NULL, MS_SLAVE | MS_REC, NULL), 0);
-+
-+	fd_context = sys_fsopen("tmpfs", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+	fd_tmpfs = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_tmpfs, 0);
-+	ASSERT_EQ(close(fd_context), 0);
-+
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "w", 0755), 0);
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "u", 0755), 0);
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "l1", 0755), 0);
-+	ASSERT_EQ(mkdirat(fd_tmpfs, "l2", 0755), 0);
-+
-+	layer_fds[0] = openat(fd_tmpfs, "w", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[0], 0);
-+
-+	layer_fds[1] = openat(fd_tmpfs, "u", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[1], 0);
-+
-+	layer_fds[2] = openat(fd_tmpfs, "l1", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[2], 0);
-+
-+	layer_fds[3] = openat(fd_tmpfs, "l2", O_DIRECTORY);
-+	ASSERT_GE(layer_fds[3], 0);
-+
-+	ASSERT_EQ(sys_move_mount(fd_tmpfs, "", -EBADF, "/tmp", MOVE_MOUNT_F_EMPTY_PATH), 0);
-+	ASSERT_EQ(close(fd_tmpfs), 0);
-+
-+	fd_context = sys_fsopen("overlay", 0);
-+	ASSERT_GE(fd_context, 0);
-+
-+	ASSERT_NE(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir", NULL, layer_fds[2]), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "workdir",   NULL, layer_fds[0]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "upperdir",  NULL, layer_fds[1]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[2]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FD, "lowerdir+", NULL, layer_fds[3]), 0);
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_SET_FLAG, "userxattr", NULL, 0), 0);
-+
-+	pid = create_child(&pidfd, 0);
-+	ASSERT_GE(pid, 0);
-+	if (pid == 0) {
-+		if (!cap_down(CAP_MKNOD))
-+			_exit(EXIT_FAILURE);
-+
-+		if (!cap_down(CAP_SYS_ADMIN))
-+			_exit(EXIT_FAILURE);
-+
-+		if (sys_fsconfig(fd_context, FSCONFIG_SET_FLAG, "override_creds", NULL, 0))
-+			_exit(EXIT_FAILURE);
-+
-+		_exit(EXIT_SUCCESS);
-+	}
-+	ASSERT_EQ(sys_waitid(P_PID, pid, NULL, WEXITED), 0);
-+	ASSERT_GE(close(pidfd), 0);
-+
-+	ASSERT_EQ(sys_fsconfig(fd_context, FSCONFIG_CMD_CREATE, NULL, NULL, 0), 0);
-+
-+	fd_overlay = sys_fsmount(fd_context, 0, 0);
-+	ASSERT_GE(fd_overlay, 0);
-+
-+	ASSERT_EQ(sys_move_mount(fd_overlay, "", -EBADF, "/set_layers_via_fds", MOVE_MOUNT_F_EMPTY_PATH), 0);
-+	ASSERT_EQ(mknodat(fd_overlay, "dev-zero", S_IFCHR | 0644, makedev(1, 5)), -1);
-+	ASSERT_EQ(errno, EPERM);
-+
-+	ASSERT_EQ(close(fd_context), 0);
-+	ASSERT_EQ(close(fd_overlay), 0);
-+}
-+
- TEST_HARNESS_MAIN
-diff --git a/tools/testing/selftests/filesystems/utils.c b/tools/testing/selftests/filesystems/utils.c
-index 0e8080bd0aea..e553c89c5b19 100644
---- a/tools/testing/selftests/filesystems/utils.c
-+++ b/tools/testing/selftests/filesystems/utils.c
-@@ -472,3 +472,30 @@ int caps_down(void)
- 	cap_free(caps);
- 	return fret;
- }
-+
-+/* cap_down - lower an effective cap */
-+int cap_down(cap_value_t down)
-+{
-+	bool fret = false;
-+	cap_t caps = NULL;
-+	cap_value_t cap = down;
-+	int ret = -1;
-+
-+	caps = cap_get_proc();
-+	if (!caps)
-+		goto out;
-+
-+	ret = cap_set_flag(caps, CAP_EFFECTIVE, 1, &cap, 0);
-+	if (ret)
-+		goto out;
-+
-+	ret = cap_set_proc(caps);
-+	if (ret)
-+		goto out;
-+
-+	fret = true;
-+
-+out:
-+	cap_free(caps);
-+	return fret;
-+}
-diff --git a/tools/testing/selftests/filesystems/utils.h b/tools/testing/selftests/filesystems/utils.h
-index f35001a75f99..7f1df2a3e94c 100644
---- a/tools/testing/selftests/filesystems/utils.h
-+++ b/tools/testing/selftests/filesystems/utils.h
-@@ -24,6 +24,7 @@ extern int get_userns_fd(unsigned long nsid, unsigned long hostid,
- 			 unsigned long range);
- 
- extern int caps_down(void);
-+extern int cap_down(cap_value_t down);
- 
- extern bool switch_ids(uid_t uid, gid_t gid);
- 
+> +
+> +               put_cred(cred);
+> +               break;
+> +       }
+>         default:
+>                 pr_err("unrecognized mount option \"%s\" or missing value=
+\n",
+>                        param->key);
+> diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+> index 86ae6f6da36b..cf0d8f1b6710 100644
+> --- a/fs/overlayfs/super.c
+> +++ b/fs/overlayfs/super.c
+> @@ -1305,6 +1305,7 @@ int ovl_fill_super(struct super_block *sb, struct f=
+s_context *fc)
+>  {
+>         struct ovl_fs *ofs =3D sb->s_fs_info;
+>         struct ovl_fs_context *ctx =3D fc->fs_private;
+> +       const struct cred *old_cred =3D NULL;
+>         struct dentry *root_dentry;
+>         struct ovl_entry *oe;
+>         struct ovl_layer *layers;
+> @@ -1318,10 +1319,15 @@ int ovl_fill_super(struct super_block *sb, struct=
+ fs_context *fc)
+>         sb->s_d_op =3D &ovl_dentry_operations;
+>
+>         err =3D -ENOMEM;
+> -       ofs->creator_cred =3D cred =3D prepare_creds();
+> +       if (!ofs->creator_cred)
+> +               ofs->creator_cred =3D cred =3D prepare_creds();
+> +       else
+> +               cred =3D (struct cred *)ofs->creator_cred;
+>         if (!cred)
+>                 goto out_err;
+>
+> +       old_cred =3D ovl_override_creds(sb);
+> +
+>         err =3D ovl_fs_params_verify(ctx, &ofs->config);
+>         if (err)
+>                 goto out_err;
+> @@ -1481,11 +1487,19 @@ int ovl_fill_super(struct super_block *sb, struct=
+ fs_context *fc)
+>
+>         sb->s_root =3D root_dentry;
+>
+> +       ovl_revert_creds(old_cred);
+>         return 0;
+>
+>  out_free_oe:
+>         ovl_free_entry(oe);
+>  out_err:
+> +       /*
+> +        * Revert creds before calling ovl_free_fs() which will call
+> +        * put_cred() and put_cred() requires that the cred's that are
+> +        * put are current->cred.
+> +        */
+> +       if (old_cred)
+> +               ovl_revert_creds(old_cred);
 
--- 
-2.47.2
+Did you mean that cred's that are NOT current->cred?
 
+With those fixes you may add:
+
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+
+Thanks,
+Amir.
