@@ -1,84 +1,121 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6AD501FECAE;
-	Wed, 19 Feb 2025 17:07:21 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9432A1DDC3F
+	for <linux-unionfs@vger.kernel.org>; Thu, 20 Feb 2025 09:54:06 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1739984842; cv=none; b=dZRQNMnF4WMl4hqro+k2GrwBzfyXDSJDWYM5wzJ9f9loQYho3aB+Fim8aIBI8Dc07F7Q6/BnlCVYX7AMVz31QcYqYW5r61tYISVwtRfNGvMdG2Q6Xe3gGHkiBK+IJYUkI7kVqCf1LUZ1UtTT64iulQhSGWv2/TZVY5+l7jPqpnc=
+	t=1740045248; cv=none; b=AmXUGpoUuhU+YqVFQXrsYuDlO64aciq2m1zLGoTUrvRGM0P2O9n8G/WSsrz6rgZgKXxajBfWPamk+yQTVNmWcQ/ack6NaqHbeUY/CFvN/T9ud4sxIKk20n1iQ4RMqJFauYFqrDxAss2ndjCuQkPE9okd76s/emThIAdX6Wbr5FM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1739984842; c=relaxed/simple;
-	bh=mszeOLwAgGw28J0wPyk8y9L30ojS+lvtF++TRW/F6sk=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=n7vwMkU7glaCtjGMPtgf3BzqHu69poa1NjMeCwW+fWTCQe/ELeYr4/w0qarXawU0oPO/Z9Hc+YKLLoaxt/MCPaQiY85M5hg1K0OPLE8KO+fwKYMUEnWDmXUdrfIw3DrsHm67o0oFPhRiO9NoeIVS48YIGg4aANrr/wCPTcIIy7k=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=AgEhFe1T; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1740045248; c=relaxed/simple;
+	bh=+VZRYVqIuwD7qh9ESBsfALtQS3D6YlY3oIdB/hY0f9s=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=aqWg5NpC2xO3NM/eslohOhTHsdF0DZfeKSUvN46kZZbbMbblzo3BWL8xitMXarcN9fy+lqgb7Ox323Tj4tpk19eajxPhFj0Qn5yDwYalPTY3bgijpzVE7LyvxzaXgDRrQERfW3sXpHKTGIqlFmdoozh21DT6YKaBI53lvN1iJbU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=LSGOsQRn; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="AgEhFe1T"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9ED9C4CED1;
-	Wed, 19 Feb 2025 17:07:19 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1739984841;
-	bh=mszeOLwAgGw28J0wPyk8y9L30ojS+lvtF++TRW/F6sk=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=AgEhFe1TsdBHgwegDGfgqzVShSbWJE3FEsUIOZ4sDZ8LOkR2qtV1gPJElNQjDYXLe
-	 dyFYa+Er6TNkQkn2f+LVybnM7WMcxfrFfd1OTVBDeXZz5sYQ6IVelcEzFk4Ux8npaW
-	 fXemU9JDXlr4Qcrj2OsONinv79FsRa1jDOMWXVUPU/x4iOfZoEyEzaefBJ2YyfVxyA
-	 AlL5zh42Xun3wlrGPCe60UV3u6koi0fwAi5kqT948325BgW7RFowBCiMekoFnqg3hO
-	 A4XTulVjif0HBlslM1QoIJi6OtQw8EaxeGndEXkDBtQiVOJv+UKw8EhTaEvVGx5rE6
-	 iUbBpbTy8yA9g==
-From: Christian Brauner <brauner@kernel.org>
-To: Vasiliy Kovalev <kovalev@altlinux.org>
-Cc: Christian Brauner <brauner@kernel.org>,
-	linux-kernel@vger.kernel.org,
-	lvc-project@linuxtesting.org,
-	syzbot+316db8a1191938280eb6@syzkaller.appspotmail.com,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Gao Xiang <xiang@kernel.org>,
-	linux-unionfs@vger.kernel.org
-Subject: Re: [PATCH] ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up
-Date: Wed, 19 Feb 2025 18:07:05 +0100
-Message-ID: <20250219-erlitt-berappen-a4821fba4a83@brauner>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <20250214215148.761147-1-kovalev@altlinux.org>
-References: <20250214215148.761147-1-kovalev@altlinux.org>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="LSGOsQRn"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1740045245;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=KejBM56aDgLmHo1KH1mgvdjJXqmeByoSUgLPzHmbYVk=;
+	b=LSGOsQRn9J+oI4pV9/va97PoTUXpMkUqGvUpMb10in4ZZn7EPQenvqN99e8e+uzwYIu4dl
+	uP/al0jUBNOQgrYgVYOROwiRC71SKE/T2BiW0GZlMlHR+DkRzEzidtEH/FFvdharOO7np9
+	R+UhIoyteJYXrngP1j7wYiKR8Q7mvIk=
+Received: from mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-62-hQY9_Dz7OQWtYP_WvQaFiA-1; Thu,
+ 20 Feb 2025 04:54:03 -0500
+X-MC-Unique: hQY9_Dz7OQWtYP_WvQaFiA-1
+X-Mimecast-MFC-AGG-ID: hQY9_Dz7OQWtYP_WvQaFiA_1740045242
+Received: from mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.12])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-05.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id C0FB2190F9E4;
+	Thu, 20 Feb 2025 09:54:00 +0000 (UTC)
+Received: from localhost (unknown [10.44.33.68])
+	by mx-prod-int-03.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 106251955BCB;
+	Thu, 20 Feb 2025 09:53:59 +0000 (UTC)
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Amir Goldstein <amir73il@gmail.com>,  Miklos Szeredi
+ <mszeredi@redhat.com>,  linux-unionfs@vger.kernel.org,
+  linux-fsdevel@vger.kernel.org
+Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
+In-Reply-To: <CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
+	(Miklos Szeredi's message of "Wed, 12 Feb 2025 17:57:50 +0100")
+References: <20250210194512.417339-1-mszeredi@redhat.com>
+	<20250210194512.417339-3-mszeredi@redhat.com>
+	<CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
+	<CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
+	<CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
+	<CAJfpegsuN+C4YiA9PAuY3+-BJ959aSAaXTYBwKNCjEnhXVw0pg@mail.gmail.com>
+	<CAOQ4uxjkBQP=x6+2YPYw4pCfaNy0=x48McLCMPJdEJYEb85f-A@mail.gmail.com>
+	<CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
+Date: Thu, 20 Feb 2025 10:53:58 +0100
+Message-ID: <87a5ahdjrd.fsf@redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1274; i=brauner@kernel.org; h=from:subject:message-id; bh=mszeOLwAgGw28J0wPyk8y9L30ojS+lvtF++TRW/F6sk=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaRv4z+y3n5FRmmPq6LJt+cO5X9fHc3Xlnv34IKSxvPTv 8/N6d0X3VHKwiDGxSArpsji0G4SLrecp2KzUaYGzBxWJpAhDFycAjCRefMZGZq5Uznua256YDFb 6ewvj5Vxui8kbsjfVn8nsoPFbj+7firDX4m4O35+oWpyNb0uV3mWb+n6svon43aT2opZbJqbrxz ZwwQA
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.12
 
-On Sat, 15 Feb 2025 00:51:48 +0300, Vasiliy Kovalev wrote:
-> The issue was caused by dput(upper) being called before
-> ovl_dentry_update_reval(), while upper->d_flags was still
-> accessed in ovl_dentry_remote().
-> 
-> Move dput(upper) after its last use to prevent use-after-free.
-> 
-> BUG: KASAN: slab-use-after-free in ovl_dentry_remote fs/overlayfs/util.c:162 [inline]
-> BUG: KASAN: slab-use-after-free in ovl_dentry_update_reval+0xd2/0xf0 fs/overlayfs/util.c:167
-> 
-> [...]
+Miklos Szeredi <miklos@szeredi.hu> writes:
 
-Applied to the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+> On Tue, 11 Feb 2025 at 16:52, Amir Goldstein <amir73il@gmail.com> wrote:
+>
+>> It sounds very complicated. Is that even possible?
+>> Do we always know the path of the upper alias?
+>> IIRC, the absolute redirect path in upper is not necessary
+>> the absolute path where the origin is found.
+>> e.g. if there are middle layer redirects of parents.
+>
+> Okay, it was a stupid idea.
+>
+>> > > Looking closer at ovl_maybe_validate_verity(), it's actually
+>> > > worse - if you create an upper without metacopy above
+>> > > a lower with metacopy, ovl_validate_verity() will only check
+>> > > the metacopy xattr on metapath, which is the uppermost
+>> > > and find no md5digest, so create an upper above a metacopy
+>> > > lower is a way to avert verity check.
+>> >
+>> > I need to dig into how verity is supposed to work as I'm not seeing it
+>> > clearly yet...
+>> >
+>>
+>> The short version - for lazy data lookup we store the lowerdata
+>> redirect absolute path in the ovl entry stack, but we do not store
+>> the verity digest, we just store OVL_HAS_DIGEST inode flag if there
+>> is a digest in metacopy xattr.
+>>
+>> If we store the digest from lookup time in ovl entry stack, your changes
+>> may be easier.
+>
+> Sorry, I can't wrap my head around this issue.  Cc-ing Giuseppe.
+>
+>> > > So I think lookup code needs to disallow finding metacopy
+>> > > in middle layer and need to enforce that also when upper is found
+>> > > via index.
+>> >
+>> > That's the hard link case.  I.e. with metacopy=on,index=on it's
+>> > possible that one link is metacopyied up, and the other one is then
+>> > found through the index.  Metacopy *should* work in this case, no?
+>> >
+>>
+>> Right. So I guess we only need to disallow uppermetacopy from
+>> index when metacoy=off.
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series allowing us to drop it.
+is that be safe from a user namespace?
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
+Regards,
+Giuseppe
 
-Note that commit hashes shown below are subject to change due to rebase,
-trailer updates or similar. If in doubt, please check the listed branch.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
-
-[1/1] ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up
-      https://git.kernel.org/vfs/vfs/c/c84e125fff26
