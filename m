@@ -1,129 +1,101 @@
-Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
+Received: from mail-ot1-f73.google.com (mail-ot1-f73.google.com [209.85.210.73])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DBBF51BD01F
-	for <linux-unionfs@vger.kernel.org>; Thu, 20 Feb 2025 11:48:00 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B9791A727D
+	for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 19:26:46 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.73
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740052082; cv=none; b=YkHy8H6Stl18OQgNeSc6WhP3ifQorgRTVeB95kHt9FOpUKfaCX5jgY7x8j+ooG72KwMTSywcXsljat1yhBuNPfTuorJC5zDITdwbDeejiELXNJlrGd+Nf5Mp4ZNF0UXXyUm7GnrE56BBC7b6gmPWPdAUoRT224tF+/RH87Vo/Es=
+	t=1740511608; cv=none; b=jTedrMeOqRuHb7JcZ3+ZZScg37V+1RmClR5rATo42+ZNsk+XGtmW8i2tfdGGBf8mlamgCpdyKbnKDVEwYQ92tyi/oLEfisENCri52BxNDoNJTvkNShRCPNt8Jc3Cjdqmc8+f0vVGRlCXlA+JcmWQCOP9Ikps7UQr8zrrXJ5ryQs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740052082; c=relaxed/simple;
-	bh=WXq+Jj8SEtR0/DLSCI6IOQR/O+eIDl3d4ZbRZYyyIoM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=FYxEEyCHf1m11Xim2jHtUmWgRs2Q6AC5AW3PfxM4J1NxK4ou7cYdc7s61tBgC7Pzh+JWdas8tww3nBMLUjOMHuyTAFuNH7mr91/rumHS52Avf4JA7NHV85ZvGi5bSwvpRSkVeG4Q+lmEm3+K1/Aj/9wE9IVjotVoSg6R/R8biB8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=YKSvO71W; arc=none smtp.client-ip=209.85.160.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1740511608; c=relaxed/simple;
+	bh=DJlfk6b3RJau9l+w6GknKKnQt/3tbE8gdqZES9yqU5o=;
+	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
+	 To:Cc:Content-Type; b=Cfw3TA820SYA5Mr/daTMZMCoqiVOvLby7lW6bBcm8LkRAMMbuL/p7DYw7rKpZ3/KtsC5jeZIpNZNea4eaCu98mTv0lS2eA/9VT0PUEcJxfBqtFYz8fNSQqnWzy3DdbEze11g6Zn6iwP/tEWKM/+f5QArGbx3com3j/lff8CUDWM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--paullawrence.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=H4hcWf0Q; arc=none smtp.client-ip=209.85.210.73
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--paullawrence.bounces.google.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="YKSvO71W"
-Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-472180fec01so4636391cf.0
-        for <linux-unionfs@vger.kernel.org>; Thu, 20 Feb 2025 03:48:00 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="H4hcWf0Q"
+Received: by mail-ot1-f73.google.com with SMTP id 46e09a7af769-7272acb753bso5721339a34.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 11:26:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1740052079; x=1740656879; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=AGyW4+IGybtOjBy9S4JymfuhxILTLfbP5BoEcQmGNgs=;
-        b=YKSvO71WOieiXS00AhRHh7AZpSmyvx6iYQFZWeR0/RI+PhlZ5NZYnR4qgQNjhen1PD
-         dFeICHZh9vtqmmDMRiuUPm+50uZaz6ZYi20+nut7ozV2/VLv1WU4lqH9a/fOcDiaG73S
-         Xn84LlyCmui83l1Wnl6Yjx59KUrW21NfsSVuo=
+        d=google.com; s=20230601; t=1740511606; x=1741116406; darn=vger.kernel.org;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:from:to:cc:subject:date:message-id:reply-to;
+        bh=DJlfk6b3RJau9l+w6GknKKnQt/3tbE8gdqZES9yqU5o=;
+        b=H4hcWf0Q+oQQQ3tVXB9N28PRzDtT7eVVDRv1gHV3DZQ7xe6LumpB9/MqchQ0yASsxK
+         ly0Hb9Q/SuYmBYIv/YLCE3y9p6G2QUKInZU/RiPPfDLa5f7lHrD6EidAR907TuhHOOBj
+         1DuUMpna10vkjNvGgnJCfGwtkodhzlA00SgxvCpN/JJr/ePRn7LbnO1/bg3rYpLnq560
+         D86JRVZcCmFBBsZ1ZUlV8Uapo9+4uegNmYLNK36Q0GO0D5ZXSPV/O0svVml6lK0ieMb9
+         dZ1fhrCVp8r1VfjjFGIJInlcSD0q70rCkzu8SJShv4FrFXioXz3nV9Xhii2iqZIJMSSW
+         dtmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740052079; x=1740656879;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=AGyW4+IGybtOjBy9S4JymfuhxILTLfbP5BoEcQmGNgs=;
-        b=VKHRDEHY5euLzRZaZWoUsNo4nXDEluyWIvMFiszSPtXpqpjpTLf9T8/BuvmkDxW8DZ
-         iQg1HM+01LKkpjewJt6c/w19Gp4DgVaSKNtrA8ZqJ+NxOocWS6/aIQtHUu8H1aOlOE1y
-         44wR4Q5btiVnr9dGKoz+PNOchqOpTKdG93HLT0v3EoexWTg5IlnQboIz0Wj5GH/iO0W0
-         6Von04YIi6xPcFA4LOQMCDtYsjHULgtmAJWXPqj6coS+/z8CPrWNQ627QvIEZdqMAl/u
-         6zw4JAd4Ni6qOGl14j9AeqbcDNQ3pXzHEbwkc5kHVKg/Gb3WLtz7W90E71TMzDCrNh9p
-         mjJA==
-X-Forwarded-Encrypted: i=1; AJvYcCVGT+3FGUerO2DSRNClnXVWxn4TYdKaduEoJjqKZ9kAAbs6y1I5ziqQxJeqb8ENToBujAzaK3hkvwSKcO6a@vger.kernel.org
-X-Gm-Message-State: AOJu0YxNO4O4+lKbK7qkU9Zv0bfLiJ/En4vWsyXUX42VzngHbxUS1slm
-	SJeVlIf93CPIsk6EoTLe3z8lZYlpigAbneRf4wl5qWkK7Z+uVoht87vbLcBUc36TDxst4XYFg7D
-	KA0gf1pQ7FP62ojeU1uEOjvCwUTls9ZkttY1dOA==
-X-Gm-Gg: ASbGncuI6oodZ/CX87AmNY8jntFLi8vmoVGA53e4rDY/lVUbGUKx4KsjJlIlnkWoKzX
-	QVoANbxB9AhYXKdx0kQEJIyVNCmRC3jD50GKvRRW0OcsSH90y6JrzDEzPgrh13aIjyKQCn34=
-X-Google-Smtp-Source: AGHT+IEEUN4R9fKWBZymDt8UNj6qukJfOYSMz+MWNK6wyLIoEDu9qoqn5XEjm4J60jfT1MUo6VNbj2K4NvRsP0wu+Ew=
-X-Received: by 2002:ac8:5907:0:b0:471:d7ca:fdea with SMTP id
- d75a77b69052e-4720824f542mr82027751cf.17.1740052079613; Thu, 20 Feb 2025
- 03:47:59 -0800 (PST)
+        d=1e100.net; s=20230601; t=1740511606; x=1741116406;
+        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
+         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=DJlfk6b3RJau9l+w6GknKKnQt/3tbE8gdqZES9yqU5o=;
+        b=bia2B9xP99ZAn6nQuR5Bj+tUThh8k+WJEiCHd0dSnx+IClo65MPH/FsDxbrWSHMpOX
+         aZNGrw1uFODjQZTbS+JQyiK4Xmfx90C1ZRisregULPSjnHpDcRcmZg176lgGvXzv8qLX
+         JHb8ztc6fJngKHz5ss8eLPNnqDKDYNIrAuglD8F6LTP8k0iFkO16jckj7aksl8vu0rJf
+         pLGkzg08iR7rWdJs3Ti1Ui4OboAcx4ShNgUfuupw8mg+J54tXFBaH/I/JNfjTce8UO2B
+         3M9iTRQZapoQXGbI5cn9aVy8rM0DdH25o1H8D1wCDDYnJrUr11d1tmGelIbKcTS2cI1T
+         ikiQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWbKtPBxAwjD6Vf4OFmbhBjzJgBMaRuwp3ORfd+gGfEnJsjnP6ab2jFE2brjAS5sQ5q/AdjLcPicfcJ66qI@vger.kernel.org
+X-Gm-Message-State: AOJu0YzSQhhF59XvP4xWJUZjTN/RJh7mosR8sHeAoqdxKbQvnKSv7it1
+	FLo2qEYky0BkM79r36oA3TptFWDPcFwSNOHbtDlLU4pSXIefcMpwTTQaPYQcGwA3G1CCV2OHDNe
+	6r7xkdKi8j9xhJK7aqGQOFNDiUQ==
+X-Google-Smtp-Source: AGHT+IH42rZCjQxhtGaX41R/FygdO39bmt4VMVb9EHOMyqJQj1A1hd9V5S6V3ciDnhUFtYvqHYTc4Cmq0ZkSclZIm6Q=
+X-Received: from oabxl3.prod.google.com ([2002:a05:6870:9f03:b0:2bc:6c19:c219])
+ (user=paullawrence job=prod-delivery.src-stubby-dispatcher) by
+ 2002:a05:6830:2701:b0:727:26ca:bd2d with SMTP id 46e09a7af769-7274c184410mr11658399a34.3.1740511606242;
+ Tue, 25 Feb 2025 11:26:46 -0800 (PST)
+Date: Tue, 25 Feb 2025 11:26:44 -0800
+In-Reply-To: <CAOQ4uxhxQfFfrpmRS6tOv5ANVug6d8dGx6Hsc7MYYe63sUOpcg@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339-3-mszeredi@redhat.com>
- <CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
- <CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
- <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
- <CAJfpegsuN+C4YiA9PAuY3+-BJ959aSAaXTYBwKNCjEnhXVw0pg@mail.gmail.com>
- <CAOQ4uxjkBQP=x6+2YPYw4pCfaNy0=x48McLCMPJdEJYEb85f-A@mail.gmail.com>
- <CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
- <87a5ahdjrd.fsf@redhat.com> <CAJfpeguv2+bRiatynX2wzJTjWpUYY5AS897-Tc4EBZZXq976qQ@mail.gmail.com>
- <875xl4etgk.fsf@redhat.com>
-In-Reply-To: <875xl4etgk.fsf@redhat.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Thu, 20 Feb 2025 12:47:48 +0100
-X-Gm-Features: AWEUYZljegu2r6Cq-vMZ4L0kpfGY77npnhmceWtF4ejmKjccQxNm9UyMG-vC4mM
-Message-ID: <CAJfpeguhVYAp5aKeKDXDwip-Z0hc=3W4t=TMLr+-cbEUODf2vA@mail.gmail.com>
-Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
-To: Giuseppe Scrivano <gscrivan@redhat.com>
-Cc: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <mszeredi@redhat.com>, 
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Alexander Larsson <alexl@redhat.com>
+Mime-Version: 1.0
+References: <CAOQ4uxhxQfFfrpmRS6tOv5ANVug6d8dGx6Hsc7MYYe63sUOpcg@mail.gmail.com>
+X-Mailer: git-send-email 2.48.1.711.g2feabab25a-goog
+Message-ID: <20250225192644.1410948-1-paullawrence@google.com>
+Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
+From: Paul Lawrence <paullawrence@google.com>
+To: amir73il@gmail.com
+Cc: corbet@lwn.net, dvander@google.com, ebiederm@xmission.com, 
+	john.stultz@linaro.org, kernel-team@android.com, linux-doc@vger.kernel.org, 
+	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	luca.boccassi@microsoft.com, miklos@szeredi.hu, paulmoore@microsoft.com, 
+	rdunlap@infradead.org, salyzyn@android.com, sds@tycho.nsa.gov, 
+	selinux@vger.kernel.org, vgoyal@redhat.com
 Content-Type: text/plain; charset="UTF-8"
 
-On Thu, 20 Feb 2025 at 12:39, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
->
-> Miklos Szeredi <miklos@szeredi.hu> writes:
->
-> > On Thu, 20 Feb 2025 at 10:54, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
-> >>
-> >> Miklos Szeredi <miklos@szeredi.hu> writes:
-> >>
-> >> > On Tue, 11 Feb 2025 at 16:52, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> >> >> The short version - for lazy data lookup we store the lowerdata
-> >> >> redirect absolute path in the ovl entry stack, but we do not store
-> >> >> the verity digest, we just store OVL_HAS_DIGEST inode flag if there
-> >> >> is a digest in metacopy xattr.
-> >> >>
-> >> >> If we store the digest from lookup time in ovl entry stack, your changes
-> >> >> may be easier.
-> >> >
-> >> > Sorry, I can't wrap my head around this issue.  Cc-ing Giuseppe.
-> >
-> > Giuseppe, can you describe what should happen when verity is enabled
-> > and a file on a composefs setup is copied up?
->
-> we don't care much about this case since the composefs metadata is in
-> the EROFS file system.  Once copied up it is fine to discard this
-> information.  Adding Alex to the discussion as he might have a different
-> opinion/use case in mind.
+> As I wrote, this is one specific problem that I identified.
+> If you propose a different behavior base on mount flag you should
+> be able to argue that is cannot be exploited to circumvent security
+> access policies, by peaking into cached copies of objects that the user
+> has no access to, or by any other way.
 
-Okay.
+> I have no idea how to implement what you want and prove that
+> it is safe.
+> Maybe if you explained the use case in greater details with some
+> examples someone could help you reach a possible solution.
 
-Amir, do I understand correctly that your worry is that after copy-up
-verity digest is still being used?  If that's the case, we just need
-to make sure that OVL_HAS_DIGEST is cleared on copy-up?
+I'm going to wake up this thread one last time to lay it to rest permanently.
+We have now reimplemented our use of overlayfs to no longer need these patches.
+We will no longer be attempting to get this patch set accepted.
 
-Or am I still misunderstanding this completely?
+One issue - remount does not update the mounter credentials, either by default
+or via a flag. I was able to work around this, but it would have been much
+easier had I simply been able to remount with new credentials. (The specific
+use case is that we load sepolicy from a potentially overlaid partition, so the
+original mounter will always have the default kernel domain, which will not be
+suitable once sepolicy is enforced.)
 
-> >> >> Right. So I guess we only need to disallow uppermetacopy from
-> >> >> index when metacoy=off.
-> >>
-> >> is that be safe from a user namespace?
-> >
-> > You mean disallowing uppermetacopy?  It's obviously safer than allowing it, no?
->
-> sorry I read th "only need" as "loosening the conditions when
-> uppermetacopy is allowed"; so I was asking if there are cases when
-> uppermetacopy is considered safe in a user namespace (if there are any).
-> If that is not the case, please ignore my question.
-
-Yeah, that "only" was referring to my stupid idea, I guess.
+Is this a design decision? Would a patch to set credentials during remount be
+of interest?
 
 Thanks,
-Miklos
+Paul
