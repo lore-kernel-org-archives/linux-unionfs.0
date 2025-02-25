@@ -1,67 +1,72 @@
-Received: from mail-ot1-f73.google.com (mail-ot1-f73.google.com [209.85.210.73])
+Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2B9791A727D
-	for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 19:26:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.210.73
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9238A20CCD3
+	for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 22:14:33 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740511608; cv=none; b=jTedrMeOqRuHb7JcZ3+ZZScg37V+1RmClR5rATo42+ZNsk+XGtmW8i2tfdGGBf8mlamgCpdyKbnKDVEwYQ92tyi/oLEfisENCri52BxNDoNJTvkNShRCPNt8Jc3Cjdqmc8+f0vVGRlCXlA+JcmWQCOP9Ikps7UQr8zrrXJ5ryQs=
+	t=1740521675; cv=none; b=a1G3KPSswkkgIwYHsofxfuNvz6V8tb8mS0Eo7ZBDj6+AkrJE0MFCzNhHd2uKAldBamtgPCDCnnNeYPVK3QmIOTiyI/95W02gMsId63ncU3jNnVNsY8GVgjF5iUteX2682f+ERUTkLi6mLkJmIgw56+I4G1p0qXSxd9rbVkecigs=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740511608; c=relaxed/simple;
-	bh=DJlfk6b3RJau9l+w6GknKKnQt/3tbE8gdqZES9yqU5o=;
-	h=Date:In-Reply-To:Mime-Version:References:Message-ID:Subject:From:
-	 To:Cc:Content-Type; b=Cfw3TA820SYA5Mr/daTMZMCoqiVOvLby7lW6bBcm8LkRAMMbuL/p7DYw7rKpZ3/KtsC5jeZIpNZNea4eaCu98mTv0lS2eA/9VT0PUEcJxfBqtFYz8fNSQqnWzy3DdbEze11g6Zn6iwP/tEWKM/+f5QArGbx3com3j/lff8CUDWM=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com; spf=pass smtp.mailfrom=flex--paullawrence.bounces.google.com; dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b=H4hcWf0Q; arc=none smtp.client-ip=209.85.210.73
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=google.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=flex--paullawrence.bounces.google.com
+	s=arc-20240116; t=1740521675; c=relaxed/simple;
+	bh=MDGLRB1elogkq5ZS7O3/EtHbyE61wRXahwAtSkqJ0aw=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=QswyQZPaTvb7QX6HH3IshlrjTBsM54qlXhKf/L9ljLVVkNKtIjwglyKEMKWNFmGfKtV2UDcdPqTgRIeHH3+cPE4ApuO0hqdJq3vgQiI/uwvY+8BKCIzOH/7sTLoP2tCl37bvRAu8qFkaC6TRGqkNUEZDaQQKBc0Ee7g8WR3WsyI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=HKHrvHIP; arc=none smtp.client-ip=209.85.128.172
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=google.com header.i=@google.com header.b="H4hcWf0Q"
-Received: by mail-ot1-f73.google.com with SMTP id 46e09a7af769-7272acb753bso5721339a34.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 11:26:46 -0800 (PST)
+	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="HKHrvHIP"
+Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-6fb95249855so51228497b3.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 14:14:33 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20230601; t=1740511606; x=1741116406; darn=vger.kernel.org;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:from:to:cc:subject:date:message-id:reply-to;
-        bh=DJlfk6b3RJau9l+w6GknKKnQt/3tbE8gdqZES9yqU5o=;
-        b=H4hcWf0Q+oQQQ3tVXB9N28PRzDtT7eVVDRv1gHV3DZQ7xe6LumpB9/MqchQ0yASsxK
-         ly0Hb9Q/SuYmBYIv/YLCE3y9p6G2QUKInZU/RiPPfDLa5f7lHrD6EidAR907TuhHOOBj
-         1DuUMpna10vkjNvGgnJCfGwtkodhzlA00SgxvCpN/JJr/ePRn7LbnO1/bg3rYpLnq560
-         D86JRVZcCmFBBsZ1ZUlV8Uapo9+4uegNmYLNK36Q0GO0D5ZXSPV/O0svVml6lK0ieMb9
-         dZ1fhrCVp8r1VfjjFGIJInlcSD0q70rCkzu8SJShv4FrFXioXz3nV9Xhii2iqZIJMSSW
-         dtmg==
+        d=paul-moore.com; s=google; t=1740521672; x=1741126472; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=MDGLRB1elogkq5ZS7O3/EtHbyE61wRXahwAtSkqJ0aw=;
+        b=HKHrvHIPGOs1LAPhaKGNVYAN4p1hSmui5H2x05WfT8rpf/+sxE5cNaJe4j4UPShABd
+         QdglBIJRHJlmFTsh0oXtBBF8oK31iko2mj5XAMfkURIXlnHuNViYHY6r4rtcvAFOoCtI
+         iKp00SFOYRRF4IrIH5cz9W1tHw+QlEtTRXMqgiMh24y1D7JKw+EngatYg/Lh+9uAIW+r
+         B1jSUsbiiMY20xcsisZek9Fjju86noKydwlAvseGVqLwOeC4Pci7nwp+jLZt0Uf28mO8
+         we5gSJFCqE0NJTVwC1+55Q/k4JgavG3yBljPZJ2worsbEqjsdGQPxVIwT4TwA5Y2IM+5
+         ukpA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740511606; x=1741116406;
-        h=cc:to:from:subject:message-id:references:mime-version:in-reply-to
-         :date:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=DJlfk6b3RJau9l+w6GknKKnQt/3tbE8gdqZES9yqU5o=;
-        b=bia2B9xP99ZAn6nQuR5Bj+tUThh8k+WJEiCHd0dSnx+IClo65MPH/FsDxbrWSHMpOX
-         aZNGrw1uFODjQZTbS+JQyiK4Xmfx90C1ZRisregULPSjnHpDcRcmZg176lgGvXzv8qLX
-         JHb8ztc6fJngKHz5ss8eLPNnqDKDYNIrAuglD8F6LTP8k0iFkO16jckj7aksl8vu0rJf
-         pLGkzg08iR7rWdJs3Ti1Ui4OboAcx4ShNgUfuupw8mg+J54tXFBaH/I/JNfjTce8UO2B
-         3M9iTRQZapoQXGbI5cn9aVy8rM0DdH25o1H8D1wCDDYnJrUr11d1tmGelIbKcTS2cI1T
-         ikiQ==
-X-Forwarded-Encrypted: i=1; AJvYcCWbKtPBxAwjD6Vf4OFmbhBjzJgBMaRuwp3ORfd+gGfEnJsjnP6ab2jFE2brjAS5sQ5q/AdjLcPicfcJ66qI@vger.kernel.org
-X-Gm-Message-State: AOJu0YzSQhhF59XvP4xWJUZjTN/RJh7mosR8sHeAoqdxKbQvnKSv7it1
-	FLo2qEYky0BkM79r36oA3TptFWDPcFwSNOHbtDlLU4pSXIefcMpwTTQaPYQcGwA3G1CCV2OHDNe
-	6r7xkdKi8j9xhJK7aqGQOFNDiUQ==
-X-Google-Smtp-Source: AGHT+IH42rZCjQxhtGaX41R/FygdO39bmt4VMVb9EHOMyqJQj1A1hd9V5S6V3ciDnhUFtYvqHYTc4Cmq0ZkSclZIm6Q=
-X-Received: from oabxl3.prod.google.com ([2002:a05:6870:9f03:b0:2bc:6c19:c219])
- (user=paullawrence job=prod-delivery.src-stubby-dispatcher) by
- 2002:a05:6830:2701:b0:727:26ca:bd2d with SMTP id 46e09a7af769-7274c184410mr11658399a34.3.1740511606242;
- Tue, 25 Feb 2025 11:26:46 -0800 (PST)
-Date: Tue, 25 Feb 2025 11:26:44 -0800
-In-Reply-To: <CAOQ4uxhxQfFfrpmRS6tOv5ANVug6d8dGx6Hsc7MYYe63sUOpcg@mail.gmail.com>
+        d=1e100.net; s=20230601; t=1740521672; x=1741126472;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=MDGLRB1elogkq5ZS7O3/EtHbyE61wRXahwAtSkqJ0aw=;
+        b=hUOMU7fseHvtyl11fQ3tJGYNOvhzYhCJ84tljtRUD5EiJNoFwxN7OMZMMQEhaTh9Ql
+         LKNvLgPCKKWJaMdhRsFMXcY5qshuTnQD72MOo4SHeDlN0xVE0NHgBHS/X7DhL1VVjr1T
+         Mko5cZja0RnV3fo21w4iQs7eP+aIioITf8x70vZk3xHHT1JEvny/c2UoZIZmRbReISwQ
+         eK7tUPe2IBSRWjr1a/hVRx8WEDViqLPGJaAuXa44dHBd1vnGFE4hFiKy9Id7Z2N3JY0E
+         8lhmIE4cDFF6yKYfRnlDlIjgS5v78Nhbwq7PfCi6EPZM32WjcCkhYEQ4QmUFG9jJFF57
+         Dqvw==
+X-Forwarded-Encrypted: i=1; AJvYcCWoReGovOcS1qjdEhVC2nw7jRsaG5r36Ua/M0pOPvDqGTfePOhQbkTQfEz7zbtWoHXfG/NhhiHW1sK+ZcbM@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw0LVQ9cPcnmGN5iiqzMB7p0pjzFoWkdG2oM/A+VqNR15hcRe8D
+	cuGCR7eolV15z5W1M/azXNMl0c24q/FG6OZx/2/KBd/UG4I58E0cJnAqVub6MHEEfrX+iCRBNhJ
+	/q4O+n1RYLnT3q7eLC8yfaL/iEPT22kigt2vl
+X-Gm-Gg: ASbGncvcsL/pJDPRrdfs5tliCAibAz3HUrCWFKWCE7u51AXuseqyTUVDYNFOfHUjA04
+	wLsw8rlyHgoG0k+yAok/8XC5sPn3/H1nL2d0GlAxmHgznknpn1iGzitb93/a16b/GgpsY5ZzrAY
+	0IbWfCASQ=
+X-Google-Smtp-Source: AGHT+IEq+q/3SNBzxXflir8s+6QdmuMLr7mPJKzm7/BUu7IXjxCgJ1uEovP+G+hSJ9QqgINvHv7u8FQo9Dm4e0gAv10=
+X-Received: by 2002:a05:690c:312:b0:6fb:9fb2:5840 with SMTP id
+ 00721157ae682-6fd10ad8d15mr47580827b3.28.1740521672571; Tue, 25 Feb 2025
+ 14:14:32 -0800 (PST)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
+MIME-Version: 1.0
 References: <CAOQ4uxhxQfFfrpmRS6tOv5ANVug6d8dGx6Hsc7MYYe63sUOpcg@mail.gmail.com>
-X-Mailer: git-send-email 2.48.1.711.g2feabab25a-goog
-Message-ID: <20250225192644.1410948-1-paullawrence@google.com>
+ <20250225192644.1410948-1-paullawrence@google.com>
+In-Reply-To: <20250225192644.1410948-1-paullawrence@google.com>
+From: Paul Moore <paul@paul-moore.com>
+Date: Tue, 25 Feb 2025 17:14:18 -0500
+X-Gm-Features: AQ5f1JqI7MeM_scLLuLOFY1u27DXLEkWvnLakhLURvGM4cGQ0eQrhjUWTYnMN4E
+Message-ID: <CAHC9VhSu-034tguAKj+rptYB0w8D9mtgmjbDgLwVc-bJQcSrBg@mail.gmail.com>
 Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-From: Paul Lawrence <paullawrence@google.com>
 To: amir73il@gmail.com
 Cc: corbet@lwn.net, dvander@google.com, ebiederm@xmission.com, 
 	john.stultz@linaro.org, kernel-team@android.com, linux-doc@vger.kernel.org, 
@@ -71,31 +76,17 @@ Cc: corbet@lwn.net, dvander@google.com, ebiederm@xmission.com,
 	rdunlap@infradead.org, salyzyn@android.com, sds@tycho.nsa.gov, 
 	selinux@vger.kernel.org, vgoyal@redhat.com
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-> As I wrote, this is one specific problem that I identified.
-> If you propose a different behavior base on mount flag you should
-> be able to argue that is cannot be exploited to circumvent security
-> access policies, by peaking into cached copies of objects that the user
-> has no access to, or by any other way.
+On Tue, Feb 25, 2025 at 2:26=E2=80=AFPM Paul Lawrence <paullawrence@google.=
+com> wrote:
+> Would a patch to set credentials during remount be
+> of interest?
 
-> I have no idea how to implement what you want and prove that
-> it is safe.
-> Maybe if you explained the use case in greater details with some
-> examples someone could help you reach a possible solution.
+Amir mentioned (in a html email so I'm not sure it will go through the
+lists, I haven't seen it yet) that Christian recently proposed an
+override_creds option using the new mount API, does anyone have a lore
+link they could share?
 
-I'm going to wake up this thread one last time to lay it to rest permanently.
-We have now reimplemented our use of overlayfs to no longer need these patches.
-We will no longer be attempting to get this patch set accepted.
-
-One issue - remount does not update the mounter credentials, either by default
-or via a flag. I was able to work around this, but it would have been much
-easier had I simply been able to remount with new credentials. (The specific
-use case is that we load sepolicy from a potentially overlaid partition, so the
-original mounter will always have the default kernel domain, which will not be
-suitable once sepolicy is enforced.)
-
-Is this a design decision? Would a patch to set credentials during remount be
-of interest?
-
-Thanks,
-Paul
+--=20
+paul-moore.com
