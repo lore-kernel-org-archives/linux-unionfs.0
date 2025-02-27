@@ -1,92 +1,82 @@
-Received: from mail-yw1-f172.google.com (mail-yw1-f172.google.com [209.85.128.172])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-187.mta0.migadu.com (out-187.mta0.migadu.com [91.218.175.187])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9238A20CCD3
-	for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 22:14:33 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.172
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD9B51DE4E7
+	for <linux-unionfs@vger.kernel.org>; Thu, 27 Feb 2025 17:49:47 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740521675; cv=none; b=a1G3KPSswkkgIwYHsofxfuNvz6V8tb8mS0Eo7ZBDj6+AkrJE0MFCzNhHd2uKAldBamtgPCDCnnNeYPVK3QmIOTiyI/95W02gMsId63ncU3jNnVNsY8GVgjF5iUteX2682f+ERUTkLi6mLkJmIgw56+I4G1p0qXSxd9rbVkecigs=
+	t=1740678591; cv=none; b=U1bYyNLd8884r33d1txr78uP9prY9KdmQPckJnZ2eWnDtszCY0akEJxt4TnpVl7BezeppSZK2cmBH2Nnxt2KbKgV1AQC+DVjChz+IQkblhrvZGIHej2VPjeQrnq03OSfIGZxr73l8D1ok2AYjwOwAGTcxwIi6recx7xzbnei7Us=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740521675; c=relaxed/simple;
-	bh=MDGLRB1elogkq5ZS7O3/EtHbyE61wRXahwAtSkqJ0aw=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=QswyQZPaTvb7QX6HH3IshlrjTBsM54qlXhKf/L9ljLVVkNKtIjwglyKEMKWNFmGfKtV2UDcdPqTgRIeHH3+cPE4ApuO0hqdJq3vgQiI/uwvY+8BKCIzOH/7sTLoP2tCl37bvRAu8qFkaC6TRGqkNUEZDaQQKBc0Ee7g8WR3WsyI=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com; spf=pass smtp.mailfrom=paul-moore.com; dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b=HKHrvHIP; arc=none smtp.client-ip=209.85.128.172
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=paul-moore.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=paul-moore.com
+	s=arc-20240116; t=1740678591; c=relaxed/simple;
+	bh=Krp0hRcnkmO9FVzzmnUG7JaNepHi3MNQIk7r1KS5hT0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uX+0F9SiwydDihZtwCEzG/rUXF3kAzWIh5qudm9WkYOdLV9uhoK/jheASq4W3rAPaeXcHJHUcWRcsHHnlol/wKJK8XF/3wyjMb3Ov9UWPkCd3urRpRK0JiGvq527qT2Sr5LaVw3Ad9NgBLa0IK0mYqnIVT2bLCS5lg63EqLPVJo=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ooIuQeV/; arc=none smtp.client-ip=91.218.175.187
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=paul-moore.com header.i=@paul-moore.com header.b="HKHrvHIP"
-Received: by mail-yw1-f172.google.com with SMTP id 00721157ae682-6fb95249855so51228497b3.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Feb 2025 14:14:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore.com; s=google; t=1740521672; x=1741126472; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=MDGLRB1elogkq5ZS7O3/EtHbyE61wRXahwAtSkqJ0aw=;
-        b=HKHrvHIPGOs1LAPhaKGNVYAN4p1hSmui5H2x05WfT8rpf/+sxE5cNaJe4j4UPShABd
-         QdglBIJRHJlmFTsh0oXtBBF8oK31iko2mj5XAMfkURIXlnHuNViYHY6r4rtcvAFOoCtI
-         iKp00SFOYRRF4IrIH5cz9W1tHw+QlEtTRXMqgiMh24y1D7JKw+EngatYg/Lh+9uAIW+r
-         B1jSUsbiiMY20xcsisZek9Fjju86noKydwlAvseGVqLwOeC4Pci7nwp+jLZt0Uf28mO8
-         we5gSJFCqE0NJTVwC1+55Q/k4JgavG3yBljPZJ2worsbEqjsdGQPxVIwT4TwA5Y2IM+5
-         ukpA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1740521672; x=1741126472;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=MDGLRB1elogkq5ZS7O3/EtHbyE61wRXahwAtSkqJ0aw=;
-        b=hUOMU7fseHvtyl11fQ3tJGYNOvhzYhCJ84tljtRUD5EiJNoFwxN7OMZMMQEhaTh9Ql
-         LKNvLgPCKKWJaMdhRsFMXcY5qshuTnQD72MOo4SHeDlN0xVE0NHgBHS/X7DhL1VVjr1T
-         Mko5cZja0RnV3fo21w4iQs7eP+aIioITf8x70vZk3xHHT1JEvny/c2UoZIZmRbReISwQ
-         eK7tUPe2IBSRWjr1a/hVRx8WEDViqLPGJaAuXa44dHBd1vnGFE4hFiKy9Id7Z2N3JY0E
-         8lhmIE4cDFF6yKYfRnlDlIjgS5v78Nhbwq7PfCi6EPZM32WjcCkhYEQ4QmUFG9jJFF57
-         Dqvw==
-X-Forwarded-Encrypted: i=1; AJvYcCWoReGovOcS1qjdEhVC2nw7jRsaG5r36Ua/M0pOPvDqGTfePOhQbkTQfEz7zbtWoHXfG/NhhiHW1sK+ZcbM@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw0LVQ9cPcnmGN5iiqzMB7p0pjzFoWkdG2oM/A+VqNR15hcRe8D
-	cuGCR7eolV15z5W1M/azXNMl0c24q/FG6OZx/2/KBd/UG4I58E0cJnAqVub6MHEEfrX+iCRBNhJ
-	/q4O+n1RYLnT3q7eLC8yfaL/iEPT22kigt2vl
-X-Gm-Gg: ASbGncvcsL/pJDPRrdfs5tliCAibAz3HUrCWFKWCE7u51AXuseqyTUVDYNFOfHUjA04
-	wLsw8rlyHgoG0k+yAok/8XC5sPn3/H1nL2d0GlAxmHgznknpn1iGzitb93/a16b/GgpsY5ZzrAY
-	0IbWfCASQ=
-X-Google-Smtp-Source: AGHT+IEq+q/3SNBzxXflir8s+6QdmuMLr7mPJKzm7/BUu7IXjxCgJ1uEovP+G+hSJ9QqgINvHv7u8FQo9Dm4e0gAv10=
-X-Received: by 2002:a05:690c:312:b0:6fb:9fb2:5840 with SMTP id
- 00721157ae682-6fd10ad8d15mr47580827b3.28.1740521672571; Tue, 25 Feb 2025
- 14:14:32 -0800 (PST)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ooIuQeV/"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1740678585;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=hwQtXwdz+nRfwMkoG537Y+tMlAkJ6gBqNuVsZ/4bXk8=;
+	b=ooIuQeV/o8Waang5wjBnKHn8WmD5JPDz3r+XUOH6i4zQHuNiY0rFLq4oMlq3+atWxf18/C
+	YY+wdUcojtHWPY2Z5vgjkUctvSNpP0yO9c11ExMLIV+7RrIIOhkhBNUbn4rX0+mKZlDQtY
+	fUDRQ/lnDTQLkJaBhvf4pBUvQ/zBL1M=
+From: Thorsten Blum <thorsten.blum@linux.dev>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RESEND PATCH] ovl: Use str_on_off() helper in ovl_show_options()
+Date: Thu, 27 Feb 2025 18:49:30 +0100
+Message-ID: <20250227174929.8262-2-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <CAOQ4uxhxQfFfrpmRS6tOv5ANVug6d8dGx6Hsc7MYYe63sUOpcg@mail.gmail.com>
- <20250225192644.1410948-1-paullawrence@google.com>
-In-Reply-To: <20250225192644.1410948-1-paullawrence@google.com>
-From: Paul Moore <paul@paul-moore.com>
-Date: Tue, 25 Feb 2025 17:14:18 -0500
-X-Gm-Features: AQ5f1JqI7MeM_scLLuLOFY1u27DXLEkWvnLakhLURvGM4cGQ0eQrhjUWTYnMN4E
-Message-ID: <CAHC9VhSu-034tguAKj+rptYB0w8D9mtgmjbDgLwVc-bJQcSrBg@mail.gmail.com>
-Subject: Re: [PATCH v19 0/4] overlayfs override_creds=off & nested get xattr fix
-To: amir73il@gmail.com
-Cc: corbet@lwn.net, dvander@google.com, ebiederm@xmission.com, 
-	john.stultz@linaro.org, kernel-team@android.com, linux-doc@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	luca.boccassi@microsoft.com, miklos@szeredi.hu, paulmoore@microsoft.com, 
-	rdunlap@infradead.org, salyzyn@android.com, sds@tycho.nsa.gov, 
-	selinux@vger.kernel.org, vgoyal@redhat.com
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Tue, Feb 25, 2025 at 2:26=E2=80=AFPM Paul Lawrence <paullawrence@google.=
-com> wrote:
-> Would a patch to set credentials during remount be
-> of interest?
+Remove hard-coded strings by using the str_on_off() helper function.
 
-Amir mentioned (in a html email so I'm not sure it will go through the
-lists, I haven't seen it yet) that Christian recently proposed an
-override_creds option using the new mount API, does anyone have a lore
-link they could share?
+Acked-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+---
+ fs/overlayfs/params.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---=20
-paul-moore.com
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 1115c22deca0..8a8bb336b40f 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -1053,17 +1053,16 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 		seq_printf(m, ",redirect_dir=%s",
+ 			   ovl_redirect_mode(&ofs->config));
+ 	if (ofs->config.index != ovl_index_def)
+-		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
++		seq_printf(m, ",index=%s", str_on_off(ofs->config.index));
+ 	if (ofs->config.uuid != ovl_uuid_def())
+ 		seq_printf(m, ",uuid=%s", ovl_uuid_mode(&ofs->config));
+ 	if (ofs->config.nfs_export != ovl_nfs_export_def)
+-		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
+-						"on" : "off");
++		seq_printf(m, ",nfs_export=%s",
++			   str_on_off(ofs->config.nfs_export));
+ 	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(ofs))
+ 		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
+ 	if (ofs->config.metacopy != ovl_metacopy_def)
+-		seq_printf(m, ",metacopy=%s",
+-			   ofs->config.metacopy ? "on" : "off");
++		seq_printf(m, ",metacopy=%s", str_on_off(ofs->config.metacopy));
+ 	if (ofs->config.ovl_volatile)
+ 		seq_puts(m, ",volatile");
+ 	if (ofs->config.userxattr)
+-- 
+2.48.1
+
