@@ -1,39 +1,47 @@
-Received: from out-187.mta0.migadu.com (out-187.mta0.migadu.com [91.218.175.187])
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DD9B51DE4E7
-	for <linux-unionfs@vger.kernel.org>; Thu, 27 Feb 2025 17:49:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.187
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 20B221C3C1C;
+	Mon, 10 Mar 2025 18:17:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1740678591; cv=none; b=U1bYyNLd8884r33d1txr78uP9prY9KdmQPckJnZ2eWnDtszCY0akEJxt4TnpVl7BezeppSZK2cmBH2Nnxt2KbKgV1AQC+DVjChz+IQkblhrvZGIHej2VPjeQrnq03OSfIGZxr73l8D1ok2AYjwOwAGTcxwIi6recx7xzbnei7Us=
+	t=1741630670; cv=none; b=jjk0HaHCPwAwXFPjj6XKG4Zn4Sh6l17TijMHuVAp47dKWAMWSsHlKWiIL5jw2u3dZKTaASdIDgw1AIOu6F7gvga7MOOnePJsMatwb8hvRG0ZnJ6suKc4BwMg0JO1NXaSvc/Q/DnSgwZjPaZtUhyuk6LDo78PfeLiv1jTsW3V8DU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1740678591; c=relaxed/simple;
-	bh=Krp0hRcnkmO9FVzzmnUG7JaNepHi3MNQIk7r1KS5hT0=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=uX+0F9SiwydDihZtwCEzG/rUXF3kAzWIh5qudm9WkYOdLV9uhoK/jheASq4W3rAPaeXcHJHUcWRcsHHnlol/wKJK8XF/3wyjMb3Ov9UWPkCd3urRpRK0JiGvq527qT2Sr5LaVw3Ad9NgBLa0IK0mYqnIVT2bLCS5lg63EqLPVJo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=ooIuQeV/; arc=none smtp.client-ip=91.218.175.187
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1741630670; c=relaxed/simple;
+	bh=IUNyK36LN6bqi6gCDOZJNS96HEuauxoLQfsY/cpjB0c=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=DTZweX8lEk8ZEdXCwQjF1KbDwv4KxK5P6NCSs/GJOCkniKzGjypFQyNVdHrzCWwEluSLr2+P43AmczK1Y9jYngfMWya1XlrgtGqbmTNmRUCFekFfrVW8Fgsf+0w4QoaEdTZVbuL971y035bh3zTdGNO8mQbxjPz+p8fqHgmYKQI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=bphyp4SV; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="ooIuQeV/"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1740678585;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=hwQtXwdz+nRfwMkoG537Y+tMlAkJ6gBqNuVsZ/4bXk8=;
-	b=ooIuQeV/o8Waang5wjBnKHn8WmD5JPDz3r+XUOH6i4zQHuNiY0rFLq4oMlq3+atWxf18/C
-	YY+wdUcojtHWPY2Z5vgjkUctvSNpP0yO9c11ExMLIV+7RrIIOhkhBNUbn4rX0+mKZlDQtY
-	fUDRQ/lnDTQLkJaBhvf4pBUvQ/zBL1M=
-From: Thorsten Blum <thorsten.blum@linux.dev>
-To: Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>
-Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="bphyp4SV"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91806C4CEE5;
+	Mon, 10 Mar 2025 18:17:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+	s=korg; t=1741630670;
+	bh=IUNyK36LN6bqi6gCDOZJNS96HEuauxoLQfsY/cpjB0c=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=bphyp4SVCIN8xwJNzl1jzA2WljbswPOLJpGzRoogBc0ujWfHql7pdCKj8IqAZ/RH3
+	 On5uDpTWBr0DxKWDQt2kJszBTSK+/pE3aYdQAJSt/qVBDmuDcPRLkC/jeO3z/jaZ8E
+	 +F2uIkMSnp0FfTGDJcjDe4hqw0ZZej6Nzv0Yc8kE=
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: stable@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	patches@lists.linux.dev,
 	linux-unionfs@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RESEND PATCH] ovl: Use str_on_off() helper in ovl_show_options()
-Date: Thu, 27 Feb 2025 18:49:30 +0100
-Message-ID: <20250227174929.8262-2-thorsten.blum@linux.dev>
+	Giuseppe Scrivano <gscrivan@redhat.com>,
+	"Christian Brauner (Microsoft)" <brauner@kernel.org>,
+	Amir Goldstein <amir73il@gmail.com>,
+	Miklos Szeredi <mszeredi@redhat.com>,
+	Sasha Levin <sashal@kernel.org>
+Subject: [PATCH 5.15 487/620] ovl: use wrappers to all vfs_*xattr() calls
+Date: Mon, 10 Mar 2025 18:05:33 +0100
+Message-ID: <20250310170604.796743692@linuxfoundation.org>
+X-Mailer: git-send-email 2.48.1
+In-Reply-To: <20250310170545.553361750@linuxfoundation.org>
+References: <20250310170545.553361750@linuxfoundation.org>
+User-Agent: quilt/0.68
+X-stable: review
+X-Patchwork-Hint: ignore
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -41,42 +49,454 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
 
-Remove hard-coded strings by using the str_on_off() helper function.
+5.15-stable review patch.  If anyone has any objections, please let me know.
 
-Acked-by: Amir Goldstein <amir73il@gmail.com>
-Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+------------------
+
+From: Amir Goldstein <amir73il@gmail.com>
+
+[ Upstream commit c914c0e27eb0843b7cf3bec71d6f34d53a3a671e ]
+
+Use helpers ovl_*xattr() to access user/trusted.overlay.* xattrs
+and use helpers ovl_do_*xattr() to access generic xattrs. This is a
+preparatory patch for using idmapped base layers with overlay.
+
+Note that a few of those places called vfs_*xattr() calls directly to
+reduce the amount of debug output. But as Miklos pointed out since
+overlayfs has been stable for quite some time the debug output isn't all
+that relevant anymore and the additional debug in all locations was
+actually quite helpful when developing this patch series.
+
+Cc: <linux-unionfs@vger.kernel.org>
+Tested-by: Giuseppe Scrivano <gscrivan@redhat.com>
+Reviewed-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+Signed-off-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Christian Brauner (Microsoft) <brauner@kernel.org>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Stable-dep-of: c84e125fff26 ("ovl: fix UAF in ovl_dentry_update_reval by moving dput() in ovl_link_up")
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- fs/overlayfs/params.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/overlayfs/copy_up.c   | 21 +++++++++++----------
+ fs/overlayfs/dir.c       | 15 ++++++++-------
+ fs/overlayfs/inode.c     | 17 +++++++++--------
+ fs/overlayfs/namei.c     |  6 +++---
+ fs/overlayfs/overlayfs.h | 38 ++++++++++++++++++++++++++++----------
+ fs/overlayfs/readdir.c   |  4 ++--
+ fs/overlayfs/super.c     | 12 ++++++------
+ fs/overlayfs/util.c      | 16 ++++++++--------
+ 8 files changed, 75 insertions(+), 54 deletions(-)
 
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 1115c22deca0..8a8bb336b40f 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -1053,17 +1053,16 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
- 		seq_printf(m, ",redirect_dir=%s",
- 			   ovl_redirect_mode(&ofs->config));
- 	if (ofs->config.index != ovl_index_def)
--		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
-+		seq_printf(m, ",index=%s", str_on_off(ofs->config.index));
- 	if (ofs->config.uuid != ovl_uuid_def())
- 		seq_printf(m, ",uuid=%s", ovl_uuid_mode(&ofs->config));
- 	if (ofs->config.nfs_export != ovl_nfs_export_def)
--		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
--						"on" : "off");
-+		seq_printf(m, ",nfs_export=%s",
-+			   str_on_off(ofs->config.nfs_export));
- 	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(ofs))
- 		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
- 	if (ofs->config.metacopy != ovl_metacopy_def)
--		seq_printf(m, ",metacopy=%s",
--			   ofs->config.metacopy ? "on" : "off");
-+		seq_printf(m, ",metacopy=%s", str_on_off(ofs->config.metacopy));
- 	if (ofs->config.ovl_volatile)
- 		seq_puts(m, ",volatile");
- 	if (ofs->config.userxattr)
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index 0ed70eff9cb9e..80e7ae8152fdd 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -117,7 +117,7 @@ int ovl_copy_xattr(struct super_block *sb, struct dentry *old,
+ 			goto retry;
+ 		}
+ 
+-		error = vfs_setxattr(&init_user_ns, new, name, value, size, 0);
++		error = ovl_do_setxattr(OVL_FS(sb), new, name, value, size, 0);
+ 		if (error) {
+ 			if (error != -EOPNOTSUPP || ovl_must_copy_xattr(name))
+ 				break;
+@@ -433,7 +433,7 @@ static int ovl_set_upper_fh(struct ovl_fs *ofs, struct dentry *upper,
+ 	if (IS_ERR(fh))
+ 		return PTR_ERR(fh);
+ 
+-	err = ovl_do_setxattr(ofs, index, OVL_XATTR_UPPER, fh->buf, fh->fb.len);
++	err = ovl_setxattr(ofs, index, OVL_XATTR_UPPER, fh->buf, fh->fb.len);
+ 
+ 	kfree(fh);
+ 	return err;
+@@ -868,12 +868,13 @@ static bool ovl_need_meta_copy_up(struct dentry *dentry, umode_t mode,
+ 	return true;
+ }
+ 
+-static ssize_t ovl_getxattr(struct dentry *dentry, char *name, char **value)
++static ssize_t ovl_getxattr_value(struct ovl_fs *ofs, struct dentry *dentry,
++				  char *name, char **value)
+ {
+ 	ssize_t res;
+ 	char *buf;
+ 
+-	res = vfs_getxattr(&init_user_ns, dentry, name, NULL, 0);
++	res = ovl_do_getxattr(ofs, dentry, name, NULL, 0);
+ 	if (res == -ENODATA || res == -EOPNOTSUPP)
+ 		res = 0;
+ 
+@@ -882,7 +883,7 @@ static ssize_t ovl_getxattr(struct dentry *dentry, char *name, char **value)
+ 		if (!buf)
+ 			return -ENOMEM;
+ 
+-		res = vfs_getxattr(&init_user_ns, dentry, name, buf, res);
++		res = ovl_do_getxattr(ofs, dentry, name, buf, res);
+ 		if (res < 0)
+ 			kfree(buf);
+ 		else
+@@ -909,8 +910,8 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+ 		return -EIO;
+ 
+ 	if (c->stat.size) {
+-		err = cap_size = ovl_getxattr(upperpath.dentry, XATTR_NAME_CAPS,
+-					      &capability);
++		err = cap_size = ovl_getxattr_value(ofs, upperpath.dentry,
++						    XATTR_NAME_CAPS, &capability);
+ 		if (cap_size < 0)
+ 			goto out;
+ 	}
+@@ -924,14 +925,14 @@ static int ovl_copy_up_meta_inode_data(struct ovl_copy_up_ctx *c)
+ 	 * don't want that to happen for normal copy-up operation.
+ 	 */
+ 	if (capability) {
+-		err = vfs_setxattr(&init_user_ns, upperpath.dentry,
+-				   XATTR_NAME_CAPS, capability, cap_size, 0);
++		err = ovl_do_setxattr(ofs, upperpath.dentry, XATTR_NAME_CAPS,
++				      capability, cap_size, 0);
+ 		if (err)
+ 			goto out_free;
+ 	}
+ 
+ 
+-	err = ovl_do_removexattr(ofs, upperpath.dentry, OVL_XATTR_METACOPY);
++	err = ovl_removexattr(ofs, upperpath.dentry, OVL_XATTR_METACOPY);
+ 	if (err)
+ 		goto out_free;
+ 
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 519193ce7d575..5e9005a0afaad 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -431,8 +431,8 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
+ 	return ERR_PTR(err);
+ }
+ 
+-static int ovl_set_upper_acl(struct dentry *upperdentry, const char *name,
+-			     const struct posix_acl *acl)
++static int ovl_set_upper_acl(struct ovl_fs *ofs, struct dentry *upperdentry,
++			     const char *name, const struct posix_acl *acl)
+ {
+ 	void *buffer;
+ 	size_t size;
+@@ -450,7 +450,7 @@ static int ovl_set_upper_acl(struct dentry *upperdentry, const char *name,
+ 	if (err < 0)
+ 		goto out_free;
+ 
+-	err = vfs_setxattr(&init_user_ns, upperdentry, name, buffer, size, XATTR_CREATE);
++	err = ovl_do_setxattr(ofs, upperdentry, name, buffer, size, XATTR_CREATE);
+ out_free:
+ 	kfree(buffer);
+ 	return err;
+@@ -459,6 +459,7 @@ static int ovl_set_upper_acl(struct dentry *upperdentry, const char *name,
+ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 				    struct ovl_cattr *cattr)
+ {
++	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+ 	struct dentry *workdir = ovl_workdir(dentry);
+ 	struct inode *wdir = workdir->d_inode;
+ 	struct dentry *upperdir = ovl_dentry_upper(dentry->d_parent);
+@@ -515,13 +516,13 @@ static int ovl_create_over_whiteout(struct dentry *dentry, struct inode *inode,
+ 			goto out_cleanup;
+ 	}
+ 	if (!hardlink) {
+-		err = ovl_set_upper_acl(newdentry, XATTR_NAME_POSIX_ACL_ACCESS,
+-					acl);
++		err = ovl_set_upper_acl(ofs, newdentry,
++					XATTR_NAME_POSIX_ACL_ACCESS, acl);
+ 		if (err)
+ 			goto out_cleanup;
+ 
+-		err = ovl_set_upper_acl(newdentry, XATTR_NAME_POSIX_ACL_DEFAULT,
+-					default_acl);
++		err = ovl_set_upper_acl(ofs, newdentry,
++					XATTR_NAME_POSIX_ACL_DEFAULT, default_acl);
+ 		if (err)
+ 			goto out_cleanup;
+ 	}
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 7961d6888c520..aa8513aac4728 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -342,6 +342,7 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 		  const void *value, size_t size, int flags)
+ {
+ 	int err;
++	struct ovl_fs *ofs = OVL_FS(dentry->d_sb);
+ 	struct dentry *upperdentry = ovl_i_dentry_upper(inode);
+ 	struct dentry *realdentry = upperdentry ?: ovl_dentry_lower(dentry);
+ 	const struct cred *old_cred;
+@@ -367,12 +368,12 @@ int ovl_xattr_set(struct dentry *dentry, struct inode *inode, const char *name,
+ 	}
+ 
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+-	if (value)
+-		err = vfs_setxattr(&init_user_ns, realdentry, name, value, size,
+-				   flags);
+-	else {
++	if (value) {
++		err = ovl_do_setxattr(ofs, realdentry, name, value, size,
++				      flags);
++	} else {
+ 		WARN_ON(flags != XATTR_REPLACE);
+-		err = vfs_removexattr(&init_user_ns, realdentry, name);
++		err = ovl_do_removexattr(ofs, realdentry, name);
+ 	}
+ 	revert_creds(old_cred);
+ 
+@@ -887,8 +888,8 @@ static int ovl_set_nlink_common(struct dentry *dentry,
+ 	if (WARN_ON(len >= sizeof(buf)))
+ 		return -EIO;
+ 
+-	return ovl_do_setxattr(OVL_FS(inode->i_sb), ovl_dentry_upper(dentry),
+-			       OVL_XATTR_NLINK, buf, len);
++	return ovl_setxattr(OVL_FS(inode->i_sb), ovl_dentry_upper(dentry),
++			    OVL_XATTR_NLINK, buf, len);
+ }
+ 
+ int ovl_set_nlink_upper(struct dentry *dentry)
+@@ -913,7 +914,7 @@ unsigned int ovl_get_nlink(struct ovl_fs *ofs, struct dentry *lowerdentry,
+ 	if (!lowerdentry || !upperdentry || d_inode(lowerdentry)->i_nlink == 1)
+ 		return fallback;
+ 
+-	err = ovl_do_getxattr(ofs, upperdentry, OVL_XATTR_NLINK,
++	err = ovl_getxattr(ofs, upperdentry, OVL_XATTR_NLINK,
+ 			      &buf, sizeof(buf) - 1);
+ 	if (err < 0)
+ 		goto fail;
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index 9c055d11a95de..00d74311aa0d3 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -111,7 +111,7 @@ static struct ovl_fh *ovl_get_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 	int res, err;
+ 	struct ovl_fh *fh = NULL;
+ 
+-	res = ovl_do_getxattr(ofs, dentry, ox, NULL, 0);
++	res = ovl_getxattr(ofs, dentry, ox, NULL, 0);
+ 	if (res < 0) {
+ 		if (res == -ENODATA || res == -EOPNOTSUPP)
+ 			return NULL;
+@@ -125,7 +125,7 @@ static struct ovl_fh *ovl_get_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 	if (!fh)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	res = ovl_do_getxattr(ofs, dentry, ox, fh->buf, res);
++	res = ovl_getxattr(ofs, dentry, ox, fh->buf, res);
+ 	if (res < 0)
+ 		goto fail;
+ 
+@@ -464,7 +464,7 @@ int ovl_verify_set_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 
+ 	err = ovl_verify_fh(ofs, dentry, ox, fh);
+ 	if (set && err == -ENODATA)
+-		err = ovl_do_setxattr(ofs, dentry, ox, fh->buf, fh->fb.len);
++		err = ovl_setxattr(ofs, dentry, ox, fh->buf, fh->fb.len);
+ 	if (err)
+ 		goto fail;
+ 
+diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
+index a96b67586f817..3f4655b9c71ca 100644
+--- a/fs/overlayfs/overlayfs.h
++++ b/fs/overlayfs/overlayfs.h
+@@ -183,10 +183,9 @@ static inline int ovl_do_symlink(struct inode *dir, struct dentry *dentry,
+ }
+ 
+ static inline ssize_t ovl_do_getxattr(struct ovl_fs *ofs, struct dentry *dentry,
+-				      enum ovl_xattr ox, void *value,
++				      const char *name, void *value,
+ 				      size_t size)
+ {
+-	const char *name = ovl_xattr(ofs, ox);
+ 	int err = vfs_getxattr(&init_user_ns, dentry, name, value, size);
+ 	int len = (value && err > 0) ? err : 0;
+ 
+@@ -195,26 +194,45 @@ static inline ssize_t ovl_do_getxattr(struct ovl_fs *ofs, struct dentry *dentry,
+ 	return err;
+ }
+ 
++static inline ssize_t ovl_getxattr(struct ovl_fs *ofs, struct dentry *dentry,
++				   enum ovl_xattr ox, void *value,
++				   size_t size)
++{
++	return ovl_do_getxattr(ofs, dentry, ovl_xattr(ofs, ox), value, size);
++}
++
+ static inline int ovl_do_setxattr(struct ovl_fs *ofs, struct dentry *dentry,
+-				  enum ovl_xattr ox, const void *value,
+-				  size_t size)
++				  const char *name, const void *value,
++				  size_t size, int flags)
+ {
+-	const char *name = ovl_xattr(ofs, ox);
+-	int err = vfs_setxattr(&init_user_ns, dentry, name, value, size, 0);
+-	pr_debug("setxattr(%pd2, \"%s\", \"%*pE\", %zu, 0) = %i\n",
+-		 dentry, name, min((int)size, 48), value, size, err);
++	int err = vfs_setxattr(&init_user_ns, dentry, name, value, size, flags);
++
++	pr_debug("setxattr(%pd2, \"%s\", \"%*pE\", %zu, %d) = %i\n",
++		 dentry, name, min((int)size, 48), value, size, flags, err);
+ 	return err;
+ }
+ 
++static inline int ovl_setxattr(struct ovl_fs *ofs, struct dentry *dentry,
++			       enum ovl_xattr ox, const void *value,
++			       size_t size)
++{
++	return ovl_do_setxattr(ofs, dentry, ovl_xattr(ofs, ox), value, size, 0);
++}
++
+ static inline int ovl_do_removexattr(struct ovl_fs *ofs, struct dentry *dentry,
+-				     enum ovl_xattr ox)
++				     const char *name)
+ {
+-	const char *name = ovl_xattr(ofs, ox);
+ 	int err = vfs_removexattr(&init_user_ns, dentry, name);
+ 	pr_debug("removexattr(%pd2, \"%s\") = %i\n", dentry, name, err);
+ 	return err;
+ }
+ 
++static inline int ovl_removexattr(struct ovl_fs *ofs, struct dentry *dentry,
++				  enum ovl_xattr ox)
++{
++	return ovl_do_removexattr(ofs, dentry, ovl_xattr(ofs, ox));
++}
++
+ static inline int ovl_do_rename(struct inode *olddir, struct dentry *olddentry,
+ 				struct inode *newdir, struct dentry *newdentry,
+ 				unsigned int flags)
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 150fdf3bc68d4..c7b542331065c 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -623,8 +623,8 @@ static struct ovl_dir_cache *ovl_cache_get_impure(struct path *path)
+ 		 * Removing the "impure" xattr is best effort.
+ 		 */
+ 		if (!ovl_want_write(dentry)) {
+-			ovl_do_removexattr(ofs, ovl_dentry_upper(dentry),
+-					   OVL_XATTR_IMPURE);
++			ovl_removexattr(ofs, ovl_dentry_upper(dentry),
++					OVL_XATTR_IMPURE);
+ 			ovl_drop_write(dentry);
+ 		}
+ 		ovl_clear_flag(OVL_IMPURE, d_inode(dentry));
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 5310271cf2e38..1dad3dabe0099 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -815,13 +815,13 @@ static struct dentry *ovl_workdir_create(struct ovl_fs *ofs,
+ 		 * allowed as upper are limited to "normal" ones, where checking
+ 		 * for the above two errors is sufficient.
+ 		 */
+-		err = vfs_removexattr(&init_user_ns, work,
+-				      XATTR_NAME_POSIX_ACL_DEFAULT);
++		err = ovl_do_removexattr(ofs, work,
++					 XATTR_NAME_POSIX_ACL_DEFAULT);
+ 		if (err && err != -ENODATA && err != -EOPNOTSUPP)
+ 			goto out_dput;
+ 
+-		err = vfs_removexattr(&init_user_ns, work,
+-				      XATTR_NAME_POSIX_ACL_ACCESS);
++		err = ovl_do_removexattr(ofs, work,
++					 XATTR_NAME_POSIX_ACL_ACCESS);
+ 		if (err && err != -ENODATA && err != -EOPNOTSUPP)
+ 			goto out_dput;
+ 
+@@ -1417,7 +1417,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 	/*
+ 	 * Check if upper/work fs supports (trusted|user).overlay.* xattr
+ 	 */
+-	err = ovl_do_setxattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE, "0", 1);
++	err = ovl_setxattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE, "0", 1);
+ 	if (err) {
+ 		pr_warn("failed to set xattr on upper\n");
+ 		ofs->noxattr = true;
+@@ -1438,7 +1438,7 @@ static int ovl_make_workdir(struct super_block *sb, struct ovl_fs *ofs,
+ 			pr_info("try mounting with 'userxattr' option\n");
+ 		err = 0;
+ 	} else {
+-		ovl_do_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
++		ovl_removexattr(ofs, ofs->workdir, OVL_XATTR_OPAQUE);
+ 	}
+ 
+ 	/*
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 747b47048b3aa..eea9ec8f8c57a 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -586,7 +586,7 @@ bool ovl_check_origin_xattr(struct ovl_fs *ofs, struct dentry *dentry)
+ {
+ 	int res;
+ 
+-	res = ovl_do_getxattr(ofs, dentry, OVL_XATTR_ORIGIN, NULL, 0);
++	res = ovl_getxattr(ofs, dentry, OVL_XATTR_ORIGIN, NULL, 0);
+ 
+ 	/* Zero size value means "copied up but origin unknown" */
+ 	if (res >= 0)
+@@ -604,7 +604,7 @@ bool ovl_check_dir_xattr(struct super_block *sb, struct dentry *dentry,
+ 	if (!d_is_dir(dentry))
+ 		return false;
+ 
+-	res = ovl_do_getxattr(OVL_FS(sb), dentry, ox, &val, 1);
++	res = ovl_getxattr(OVL_FS(sb), dentry, ox, &val, 1);
+ 	if (res == 1 && val == 'y')
+ 		return true;
+ 
+@@ -644,7 +644,7 @@ int ovl_check_setxattr(struct ovl_fs *ofs, struct dentry *upperdentry,
+ 	if (ofs->noxattr)
+ 		return xerr;
+ 
+-	err = ovl_do_setxattr(ofs, upperdentry, ox, value, size);
++	err = ovl_setxattr(ofs, upperdentry, ox, value, size);
+ 
+ 	if (err == -EOPNOTSUPP) {
+ 		pr_warn("cannot set %s xattr on upper\n", ovl_xattr(ofs, ox));
+@@ -684,7 +684,7 @@ void ovl_check_protattr(struct inode *inode, struct dentry *upper)
+ 	char buf[OVL_PROTATTR_MAX+1];
+ 	int res, n;
+ 
+-	res = ovl_do_getxattr(ofs, upper, OVL_XATTR_PROTATTR, buf,
++	res = ovl_getxattr(ofs, upper, OVL_XATTR_PROTATTR, buf,
+ 			      OVL_PROTATTR_MAX);
+ 	if (res < 0)
+ 		return;
+@@ -740,7 +740,7 @@ int ovl_set_protattr(struct inode *inode, struct dentry *upper,
+ 		err = ovl_check_setxattr(ofs, upper, OVL_XATTR_PROTATTR,
+ 					 buf, len, -EPERM);
+ 	} else if (inode->i_flags & OVL_PROT_I_FLAGS_MASK) {
+-		err = ovl_do_removexattr(ofs, upper, OVL_XATTR_PROTATTR);
++		err = ovl_removexattr(ofs, upper, OVL_XATTR_PROTATTR);
+ 		if (err == -EOPNOTSUPP || err == -ENODATA)
+ 			err = 0;
+ 	}
+@@ -983,7 +983,7 @@ int ovl_check_metacopy_xattr(struct ovl_fs *ofs, struct dentry *dentry)
+ 	if (!S_ISREG(d_inode(dentry)->i_mode))
+ 		return 0;
+ 
+-	res = ovl_do_getxattr(ofs, dentry, OVL_XATTR_METACOPY, NULL, 0);
++	res = ovl_getxattr(ofs, dentry, OVL_XATTR_METACOPY, NULL, 0);
+ 	if (res < 0) {
+ 		if (res == -ENODATA || res == -EOPNOTSUPP)
+ 			return 0;
+@@ -1025,7 +1025,7 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+ 	int res;
+ 	char *s, *next, *buf = NULL;
+ 
+-	res = ovl_do_getxattr(ofs, dentry, OVL_XATTR_REDIRECT, NULL, 0);
++	res = ovl_getxattr(ofs, dentry, OVL_XATTR_REDIRECT, NULL, 0);
+ 	if (res == -ENODATA || res == -EOPNOTSUPP)
+ 		return NULL;
+ 	if (res < 0)
+@@ -1037,7 +1037,7 @@ char *ovl_get_redirect_xattr(struct ovl_fs *ofs, struct dentry *dentry,
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	res = ovl_do_getxattr(ofs, dentry, OVL_XATTR_REDIRECT, buf, res);
++	res = ovl_getxattr(ofs, dentry, OVL_XATTR_REDIRECT, buf, res);
+ 	if (res < 0)
+ 		goto fail;
+ 	if (res == 0)
 -- 
-2.48.1
+2.39.5
+
+
 
