@@ -1,143 +1,116 @@
-Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 767EEA937;
-	Tue, 25 Mar 2025 12:16:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 2065625A33C
+	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 13:34:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742905012; cv=none; b=IU1fziTOpVvGAypjb//2qClaVqE0XdkFr3wzR/9uzI9pNdVKGHnXLwMFe6lnEVfhIyqgxgO21bhYK4wq4EWvyWjJ3GTOXGJu9ZdQ4RdRR4AjT2x7UvNAvyq7P/uHhJBrT+Qow0PJZzd6IZhadho5n29SDTogc3uemGxKqwMRQl4=
+	t=1742909696; cv=none; b=H+sqJpAIJQn0IG6d9kEEzYqARS2TdVX/3Q50Xxf9D03YkFrmroJl+hqg9I/u01ltw/qAFTMOhy8ZdS2nsaoFnIgtApEqhPjchUEVkuG5W5jOcQzu+K/kuQCZ0jtEwz0MM48iRMvz9eY5baaNwOazpT8zqEkTCmMssvgcFvprCHc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742905012; c=relaxed/simple;
-	bh=A/HVEfJcYRT01uF6p+bjIsoGXJumPIltSSZeiBV1byA=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=L6+t+Td2Lg3vpO3kKL2hy5F7ziwYZggU1Df4mdeFVImaHZm63Z8HlyVrBROE7BFutLxmdXIvK4+/f/DGpktSpcwEsOCvLB9MXkN1Js0utbRem001gOG4g/O891LY+vQmXBx945NYMPuAxj94PaTfpnqFVMyemC6SNRHE5Ew1xRk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XDElJhse; arc=none smtp.client-ip=209.85.218.42
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1742909696; c=relaxed/simple;
+	bh=AIrZ+t0ZPF/CJpRsjSGj2FJa/nkqq8a7+rS02E6cQ5E=;
+	h=From:To:Cc:Subject:In-Reply-To:References:Date:Message-ID:
+	 MIME-Version:Content-Type; b=d/nYWflRQpuPNuE6ogRBsIhpbO6Ur4VXgTEiOMNztOdFCl6fHjvzNqBz2yxDG1rQbpEraeEx9Q6KFHgDVJ74qljeDp2jy4kkXBkDNImcAKw1udKBJGWk10jgQzMyclZzOZ1zTMO8lH5yx1TsQSx6K1sIXXtU7cATaSm07xjHjkE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=e1K15xv+; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XDElJhse"
-Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-ac2aeada833so1026422766b.0;
-        Tue, 25 Mar 2025 05:16:50 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742905009; x=1743509809; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3YwMoGN98deik8uPYk+jICPEOK3Aa0K3ta2oIfbGfLw=;
-        b=XDElJhseBmlrc3xHaRYHs+Jv2nnd99JiIkilyaQ+GUmGgNpva+DBkGFbHLfyRiAc4q
-         D9MVRPSOYTxXSVcR0CHrOJqH2XNswTqmiUbqwptkFSW/QzdGXlkn27XxYHcy4uVQguhK
-         wzKB6EAUal56g4abQyAb6kQT6i12S1l+rRnZYVytvYQag3a+qgj/P3k468CcyvVRM4+A
-         7+xcME9hTx/xx3LZnydAHinyuAMIO9Tnj7fk+GzjTiQeG96DMwTjjRhHL69K7fcacfwm
-         uWt3fK2VvLnbCh6Pxl37/zJPBqvbAHUPPZ7zrN7B4b1HnN3dEyv2p9um3th0PVQLHX4N
-         LrhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742905009; x=1743509809;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=3YwMoGN98deik8uPYk+jICPEOK3Aa0K3ta2oIfbGfLw=;
-        b=rXkmJoPHnlDmmJ+gkUK8gpuPFrApXNk2NXtFW0GT6IYQyBZicQ1rywdV+7iSr0P4Bp
-         1kENYv9mtYPx8XgGuE8fVF5KGuTRlWEXGP8Ao9r4Bdu3d95hTipWd9aV/yvWEEgHjCY9
-         HQQrAoquI5gCdXdJXcD4vn9HqzBvZPtCLYVUJZvP2or2HZQw/Xp7H6R7K6sB2KfxuxPc
-         1c6cKrkU8GWe+v+lszIX4n0y6vWwqc/fvu7XVF/uqpdZcVwMaVm7nAFkm2YuNw+DvkDh
-         x82g2fZ21W7rdujsldRjKD6NV97woRLeX7cFMnhgUNIxPLHYMw7hNnPhpu1bjF5ylYAJ
-         cmOQ==
-X-Forwarded-Encrypted: i=1; AJvYcCUPDHOJq+Yz/TWdWkCOyZ1UErPR7zDjLOFng3Rlv7VaedzHdVKFO4pT670maq6ZDoZc51CpRAkGHK7ltaGd@vger.kernel.org, AJvYcCVbq/YezcLoLx7Kexe9+bP9lkIqR1p2XBXTPtnnz1zmmNu7pf/mwsFoBbD56nLWPdrY/3GMOwN7P2o5zSBhdw==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzKKw5+l9JQyqno/IEjnvTGKBfrpkGqcXvU7hcQrxpct+XOqntA
-	JNQUvAWYYXWIFKAj/q5nwpkJ3+7/0EDPdbJjXINBzNQN1YSW/b5nob/trskYam2oa2xjg8rm8pQ
-	KeeBmaexuCJz4bpn8K+DtfvaquzUfWERG
-X-Gm-Gg: ASbGncsBipHfMr0v/b7TbIsnLzpJgbj0fSg4LHm34uG5auIeZU2O8CVJfiLHpMnl22w
-	qQorwYz3LDK3Sm+3P1eX6vjZcnuz5N3Zo7c0uitsoEsUAhQnds14//7/+BsnzQA7vUZdFJo63mI
-	zVvXwaSgWb7clr1ypFO8rLAzNTNJH6rGcBWpU=
-X-Google-Smtp-Source: AGHT+IEh5kgWuYcKo36DTgjK2wx0ObTGE58OJAEbZCdPYzv2jYpEeNhIbzGSogxiqqoWpxFyWSXcfctHK9/nU6lWsP4=
-X-Received: by 2002:a17:906:c10b:b0:ac2:d6c4:958d with SMTP id
- a640c23a62f3a-ac3f0176d24mr1753102366b.18.1742905008170; Tue, 25 Mar 2025
- 05:16:48 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="e1K15xv+"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1742909694;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=dMT9dqnUN+LvjvaX1meRRVuIurP6ODEE69dehAYE8vY=;
+	b=e1K15xv+r1oo6xsd3lO6OZTQY7YSqwr/oIbu7NV/zz/QtNkFjv4UZwckfHEZEebRn7M9L0
+	jY+QzfTo78KW3ZEeucbmZWjmy8j6v8h8u7xFzDkW5iMkKQe4kiGyl1SI8tAbG2RCXNGdpX
+	NRDeMIPk5vt6ydLajzxJZk7cV3xaOFk=
+Received: from mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com
+ (ec2-54-186-198-63.us-west-2.compute.amazonaws.com [54.186.198.63]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
+ cipher=TLS_AES_256_GCM_SHA384) id us-mta-38-ycbvDG2_NJe2jpxIei4lZg-1; Tue,
+ 25 Mar 2025 09:34:52 -0400
+X-MC-Unique: ycbvDG2_NJe2jpxIei4lZg-1
+X-Mimecast-MFC-AGG-ID: ycbvDG2_NJe2jpxIei4lZg_1742909691
+Received: from mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.40])
+	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+	(No client certificate requested)
+	by mx-prod-mc-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id 691ED18EBE8A;
+	Tue, 25 Mar 2025 13:34:51 +0000 (UTC)
+Received: from localhost (unknown [10.45.226.236])
+	by mx-prod-int-04.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id 79B7119560AB;
+	Tue, 25 Mar 2025 13:34:50 +0000 (UTC)
+From: Giuseppe Scrivano <gscrivan@redhat.com>
+To: Alexander Larsson <alexl@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>,  Amir Goldstein
+ <amir73il@gmail.com>,  Miklos Szeredi <mszeredi@redhat.com>,
+  linux-unionfs@vger.kernel.org,  linux-fsdevel@vger.kernel.org,  Colin
+ Walters <walters@redhat.com>
+Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
+In-Reply-To: <1b196080679851d7731c0f4662d07640d483be4e.camel@redhat.com>
+	(Alexander Larsson's message of "Tue, 25 Mar 2025 12:18:32 +0100")
+References: <20250210194512.417339-1-mszeredi@redhat.com>
+	<20250210194512.417339-3-mszeredi@redhat.com>
+	<CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
+	<CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
+	<CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
+	<CAJfpegs1hKDGne7c3q4zs+O5Z4p=X3PK8yFXhyCY2iAjs4orig@mail.gmail.com>
+	<1b196080679851d7731c0f4662d07640d483be4e.camel@redhat.com>
+User-Agent: Gnus/5.13 (Gnus v5.13)
+Date: Tue, 25 Mar 2025 14:34:48 +0100
+Message-ID: <87frj1fd3b.fsf@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339-3-mszeredi@redhat.com>
- <CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
- <CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
- <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
- <CAJfpegsuN+C4YiA9PAuY3+-BJ959aSAaXTYBwKNCjEnhXVw0pg@mail.gmail.com>
- <CAOQ4uxjkBQP=x6+2YPYw4pCfaNy0=x48McLCMPJdEJYEb85f-A@mail.gmail.com>
- <CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
- <87a5ahdjrd.fsf@redhat.com> <CAJfpeguv2+bRiatynX2wzJTjWpUYY5AS897-Tc4EBZZXq976qQ@mail.gmail.com>
- <875xl4etgk.fsf@redhat.com> <CAJfpeguhVYAp5aKeKDXDwip-Z0hc=3W4t=TMLr+-cbEUODf2vA@mail.gmail.com>
-In-Reply-To: <CAJfpeguhVYAp5aKeKDXDwip-Z0hc=3W4t=TMLr+-cbEUODf2vA@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 25 Mar 2025 13:16:35 +0100
-X-Gm-Features: AQ5f1Jpwz9fIfJs_p0muEkmk0cSF1jqwMl_r4GomS2pemCSeZg3habMN0cxsbPc
-Message-ID: <CAOQ4uxgenjB-TQ4rT9JH3wk+q6Qb8b4TgoPxA0P3G8R-gVm+WA@mail.gmail.com>
-Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Giuseppe Scrivano <gscrivan@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>, 
-	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Alexander Larsson <alexl@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
+X-Scanned-By: MIMEDefang 3.0 on 10.30.177.40
 
-On Thu, Feb 20, 2025 at 12:48=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu>=
- wrote:
+Alexander Larsson <alexl@redhat.com> writes:
+
+> On Tue, 2025-03-25 at 11:57 +0100, Miklos Szeredi wrote:
+>> On Tue, 11 Feb 2025 at 13:01, Amir Goldstein <amir73il@gmail.com>
+>> wrote:
+>> > Looking closer at ovl_maybe_validate_verity(), it's actually
+>> > worse - if you create an upper without metacopy above
+>> > a lower with metacopy, ovl_validate_verity() will only check
+>> > the metacopy xattr on metapath, which is the uppermost
+>> > and find no md5digest, so create an upper above a metacopy
+>> > lower is a way to avert verity check.
+>> >=20
+>> > So I think lookup code needs to disallow finding metacopy
+>> > in middle layer and need to enforce that also when upper is found
+>> > via index.
+>>=20
+>> So I think the next patch does this: only allow following a metacopy
+>> redirect from lower to data.
+>>=20
+>> It's confusing to call this metacopy, as no copy is performed.=C2=A0 We
+>> could call it data-redirect.=C2=A0 Mixing data-redirect with real meta-
+>> copy
+>> is of dubious value, and we might be better to disable it even in the
+>> privileged scenario.
+>>=20
+>> Giuseppe, Alexander, AFAICS the composefs use case employs
+>> data-redirect only and not metacopy, right?
 >
-> On Thu, 20 Feb 2025 at 12:39, Giuseppe Scrivano <gscrivan@redhat.com> wro=
-te:
-> >
-> > Miklos Szeredi <miklos@szeredi.hu> writes:
-> >
-> > > On Thu, 20 Feb 2025 at 10:54, Giuseppe Scrivano <gscrivan@redhat.com>=
- wrote:
-> > >>
-> > >> Miklos Szeredi <miklos@szeredi.hu> writes:
-> > >>
-> > >> > On Tue, 11 Feb 2025 at 16:52, Amir Goldstein <amir73il@gmail.com> =
-wrote:
-> > >
-> > >> >> The short version - for lazy data lookup we store the lowerdata
-> > >> >> redirect absolute path in the ovl entry stack, but we do not stor=
-e
-> > >> >> the verity digest, we just store OVL_HAS_DIGEST inode flag if the=
-re
-> > >> >> is a digest in metacopy xattr.
-> > >> >>
-> > >> >> If we store the digest from lookup time in ovl entry stack, your =
-changes
-> > >> >> may be easier.
-> > >> >
-> > >> > Sorry, I can't wrap my head around this issue.  Cc-ing Giuseppe.
-> > >
-> > > Giuseppe, can you describe what should happen when verity is enabled
-> > > and a file on a composefs setup is copied up?
-> >
-> > we don't care much about this case since the composefs metadata is in
-> > the EROFS file system.  Once copied up it is fine to discard this
-> > information.  Adding Alex to the discussion as he might have a differen=
-t
-> > opinion/use case in mind.
->
-> Okay.
->
-> Amir, do I understand correctly that your worry is that after copy-up
-> verity digest is still being used?  If that's the case, we just need
-> to make sure that OVL_HAS_DIGEST is cleared on copy-up?
->
-> Or am I still misunderstanding this completely?
+> The most common usecase is to get a read-only image, say for
+> /usr.=C2=A0However, sometimes (for example with containers) we have a
+> writable upper layer too. I'm not sure how important metacopy is for
+> that though, it is more commonly used to avoid duplicating things
+> between e.g. the container image layers. Giuseppe?
 
-Sorry, I have somehow missed this email.
+for the composefs use case we don't need metacopy, but if it is possible
+it would be nice to have metacopy since idmapped mounts do not work yet
+in a user namespace.  So each time we run a container in a different
+mapping we need a fully copy of the image which would be faster with
+metacopy.
 
-TBH, I am not sure what is expected to happen in the use case in question
-on copy up - that is if a full copy up on any metadata change is acceptable=
-.
+Regards,
+Giuseppe
 
-Technically, we could allow a metacopy upper as long as we take the md5dige=
-st
-from the middle layer but that complicates things and I am not sure if we n=
-eed
-to care - can't wrap my head around this case either.
-
-Thanks,
-Amir.
