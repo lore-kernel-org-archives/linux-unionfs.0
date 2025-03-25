@@ -1,131 +1,134 @@
-Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC791EFF85;
-	Tue, 25 Mar 2025 11:47:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A113D25742F
+	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 11:58:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742903235; cv=none; b=oZobSQyUD5DIYu//jj7XlE6LRNk/+nw8fZOEOats7DzA3GcpdgqsyWXWPva9fxOtMnlqqNoL5aOjy+qRnX8hmWh5ACmFUNNSfP78iKLZEq4jDx1R7+12s9G8wUOY5LQ8M9y4DF3QY7KwVL0+2oLZPaDGdXVJqVsJCmYOJsxk/fc=
+	t=1742903883; cv=none; b=LvHpOU5g8FfBcG7rpB4OUCXXLLz0x16QvNawgClmNXWRXF3NAn6rlbDQu5X4Zm9rYTuKeQGAWF5qCVEiId+f8W9iBa1m2ODrcOD+0KDsB1HuGvMPYqJ08BWSQT6ud+3As8jAA19CNr2h2QyjqJKLUkP2li9jzxS5ggNkrjxRB24=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742903235; c=relaxed/simple;
-	bh=b+DQcLwGQvyUvi24Zz6+No4f4nkddsTi6jfrwQUVUEo=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=ebnXg9o5hZN5zXFazd1zok77cMKeueP5IyaTmu0yypZTnBAy1CwJzw/yCAtSpgLaWN8+FToS7kIf0HKS1tUv3wQnYYHg7lN7OzMzgBcjZdDQTWsfD8+xtych9KBLHQ1hzKzJwqLWXsAYAIVGPU+x4zqV70F6FBAcMcJgetcjQD4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QOjKaBgt; arc=none smtp.client-ip=209.85.208.54
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1742903883; c=relaxed/simple;
+	bh=EhkCcKvMO5FXE+BxXjdos8aDqMsGvPPSOVvmXd199Ng=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=G76fjObxGd1ASrkLfisLTYgNWcXjZ66BP/+Qi0yoTydr4KcGVtUHqWxgP3PcNCftMwjSZVxuV4KgBfBaNcjuWg1xiTwbl1qUsMUkW2dEJcKtxOVfMbdqEQCr55CTG5NyCMBUjviE/9Xw6Fl4RvImp2WAdyJb6YLgeefdLfc88wg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=YoGtcwGW; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QOjKaBgt"
-Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-5e686d39ba2so10694732a12.2;
-        Tue, 25 Mar 2025 04:47:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742903232; x=1743508032; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=p4zh20yeb7WVeLMd2P2vt6NV+ovZIxk93u4hoJcH1c0=;
-        b=QOjKaBgtSsfVtf8BADGQc25ez2O8bwQuMICE26iHa98vL8nTGXCXjlsnh+/F4BJdTg
-         kpjvccB4EYz58/Vry/Ns51msgESvfCL73DtnP/AoMZFliixlKzU50T71sYzHWBa2vYCN
-         TpquO8E6pdSkozUM9nSC8Ad0FXZ9kOO5y+LHFYaXLeL9xoSqCR0JldAmhuV3gSh3XVYs
-         RSbzI0Psrto1ERPTGk6PvvaRABz0gaL5Nt/9PcrAurraQPDLCNivaNCKz9IZL00OmvnI
-         fcJE3JRHDscjb0wc3tmaMfPljEp85+7uA6+yeGm2juN8VR0CYWZZZ0plr1B2/LuCyKRw
-         tHMQ==
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="YoGtcwGW"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1742903880;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=66ScJ5U4mFltzfqo02WJQQOu9FrvajI5Tu1fFaDtkl4=;
+	b=YoGtcwGWlxXcBPkefsVhMcj+YflSAOe01Pm/3x11FvKBL9tUMqdcdpCrM9EVMqQPDYlDoE
+	SuSK48HSCFV4PU1JI/hO13UoHcytkPpgN/fQU6rZy5NtgfG8RMbp3sTt7rheAylY6oP3qe
+	MljvtTvZwf64jCk6dv0KapwA8a1hPQk=
+Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
+ [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-511-_hLzfBXqOIiRw4g0qH07wQ-1; Tue, 25 Mar 2025 07:57:58 -0400
+X-MC-Unique: _hLzfBXqOIiRw4g0qH07wQ-1
+X-Mimecast-MFC-AGG-ID: _hLzfBXqOIiRw4g0qH07wQ_1742903877
+Received: by mail-lj1-f200.google.com with SMTP id 38308e7fff4ca-30c165885fdso23043741fa.2
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 04:57:58 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742903232; x=1743508032;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=p4zh20yeb7WVeLMd2P2vt6NV+ovZIxk93u4hoJcH1c0=;
-        b=kkodkGTXLQA/btFmjJn6qEj0evxkGpK2KeCNfKNUWvwipJX1IAPfBRqZypg38ud6ox
-         ZOiyhZwAFVccdjN7e2XTcZmzqNsn2Yi9++bG3prJGUsbF38rliuFzpUoyMDEukzSHCoK
-         p9PSS+z58YGTHcpXJRUHTlfq7ApP5z2DZ1PlraUHfGDMvpsQ0L1csbbFZ59oDEqy0Nf1
-         XEV/sqWZwuyVVOmYghe38jE6mRMrSbGofa2WimYECHhIv1sl01ZxyMrYK35E40373L15
-         3elfoRezp+sXCV8ity+gmwfPSw2uuBwJpwR+DT4hsnmGBNxA4pVrVfMALeQmU4z/d5+h
-         zGjg==
-X-Forwarded-Encrypted: i=1; AJvYcCXvn3ZAxuSBMCim5jqikIUU4aL3MpPI7hBY9F4Y3/ZEFQxMDhkTDHg9U2vEgQdnZHEe0w4W1qAzGegLPUpj@vger.kernel.org
-X-Gm-Message-State: AOJu0YxksDY5z8lDidsz4ugocsPx2kr2VxWNzXy2Lf7u9bIeQUWtUaR4
-	6W6pLOd8lnIf8+1E+5RwvLf8e5ZishRDAsifcsUOQqlbW3p5GepvM9b63h2b/7W5tJvdx9ZAi8/
-	zPdEjhc2dewRyVNaS8LzvRTLsc6RFnA6PyK0=
-X-Gm-Gg: ASbGncv+nK746ot5yjFYIw01raZZ5RYgOkX/EtweKUf+veaCjga9jlIrChRRqedOPnC
-	r4Onico5Qzia3+y/fi5m17ZwgWUxGYIYqBumb9Ob5Ls7tN8TJqPV9z/3THIJuKfdQ2hcYvFMpMY
-	xdycCNfC6iC094cf2VLl5g7Aq1
-X-Google-Smtp-Source: AGHT+IGFga4yZwH9zibaR7pz2j7v2QhcuecgN2l7S/Dl4mQgAc/pyw/kjxgXZ33rynDEoUJvkKgowa+Avymv1xYnQ8U=
-X-Received: by 2002:a05:6402:35c4:b0:5e7:8efa:ba13 with SMTP id
- 4fb4d7f45d1cf-5ebcd40a6b3mr15898396a12.7.1742903231733; Tue, 25 Mar 2025
- 04:47:11 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1742903877; x=1743508677;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=66ScJ5U4mFltzfqo02WJQQOu9FrvajI5Tu1fFaDtkl4=;
+        b=QkUoiPwBQCD680v1hc0bdj0M3Ks5QY5JiwkJw9VP1yq6XD89Dq07Jpm1b6Mv2hv2Uo
+         JYw+xXzAyldOQykpZBIDoygnfW50V5BYnN5KK5YlekGH9xuRRnLZmLtgnTHmAL2AEi3n
+         q2S3W4ecA7af48GyQRN9ejh4407kHYtdc8KHuRdU0IIXAno11ai8SLzu/zpuhlQwaaZI
+         cXpA+pDnGR+Kbc9st4M+TW3gwus2ZtfhG6bjbdC3p0WDFUr1uytLjLEPcHPk00CzAbrU
+         W68yUP14P5kXn6dqpe0ktHWQny/ZBDGtXBztYnxNP8s/YFl/XbbiF5cMWRuuaE3Z5yI6
+         sEPQ==
+X-Forwarded-Encrypted: i=1; AJvYcCV3v6p41kBvAYXb4fTVIMuk48PMmCNqSdKy8+6/I1nCzcoJyGUEe969zNvjzPkJ2OFVMEItidW7M4+pW21Z@vger.kernel.org
+X-Gm-Message-State: AOJu0YzBwl2nmRnPwgQzRCM7VMWgqC+szoa7X7Q0YNDDB7PB0d48+IE8
+	1dK2TAAOSpSZlhsWS4q9miW7ee3FP9Hgy+ck+E61gKo1hEU41UZ6qilx7wtkx1mVMD4ghIwBNPX
+	N5MFd8ABVfb4VMzuYEguVdWY7wGRkzfse2MFRW6vBHtcYGcHu0c1BTYTg9yWObpQ=
+X-Gm-Gg: ASbGncsmE/kBa0VeDqDTnvkVQR9fY7bY10hiJhUeNMlx0PLMfy+Bx9aiMb9Is18+q2q
+	kqQy7JOK6u1Aoh9/GCtemn1dj2U8A+QpV7SxKsqJo54QXUEXvgEa3RmzHfwCMQ2FVGt0X2Qn9hF
+	5FpQ8rBBXefFahrhjZC6pFjscrXCrY3XfSDr6i+wgrkWq9unnrWDMRbkVRWyZeyjkA4b8fh/qSI
+	V8KCj0aPbwiJH9iO2rmGT/7FvojDftJ3+ij3nzFRp4RXnJj5Ngaz2VLofs8Q3wpGEKyZC1CBefG
+	SlvT5ddz5RSKRrwX5N/E4A1paCeEwmO9BI6HnFKegM1ruuYWjTqnbGI=
+X-Received: by 2002:a05:651c:170d:b0:30c:460f:f56 with SMTP id 38308e7fff4ca-30d7e2349a2mr51836611fa.20.1742903876758;
+        Tue, 25 Mar 2025 04:57:56 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IFFsVQ5ThcgNl6aFdF7RZUEJ9ftLWGxPNlNQbEsFkk48iEQQ4ebeeG5mcwR88P3gcTTqWHXCA==
+X-Received: by 2002:a05:651c:170d:b0:30c:460f:f56 with SMTP id 38308e7fff4ca-30d7e2349a2mr51836521fa.20.1742903876296;
+        Tue, 25 Mar 2025 04:57:56 -0700 (PDT)
+Received: from [192.168.68.107] (c-85-226-167-233.bbcust.telenor.se. [85.226.167.233])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30d7d7c1d8esm17547331fa.13.2025.03.25.04.57.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Mar 2025 04:57:55 -0700 (PDT)
+Message-ID: <636546d444306b8af453cdf126453a8a1f0404d1.camel@redhat.com>
+Subject: Re: [PATCH v2 1/5] ovl: don't allow datadir only
+From: Alexander Larsson <alexl@redhat.com>
+To: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org
+Cc: Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org, 
+ Giuseppe Scrivano <gscrivan@redhat.com>, stable@vger.kernel.org
+Date: Tue, 25 Mar 2025 12:57:54 +0100
+In-Reply-To: <20250325104634.162496-2-mszeredi@redhat.com>
+References: <20250325104634.162496-1-mszeredi@redhat.com>
+	 <20250325104634.162496-2-mszeredi@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.54.3 (3.54.3-1.fc41) 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250325104634.162496-1-mszeredi@redhat.com> <20250325104634.162496-6-mszeredi@redhat.com>
- <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
-In-Reply-To: <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 25 Mar 2025 12:47:00 +0100
-X-Gm-Features: AQ5f1JrFUNNttc7pVUHabB5shkjHAQ1u2N5ZQoXYKntBUP4kjRy9J0-DH_3V4Do
-Message-ID: <CAOQ4uxjZOtdMcGpXBYLO4Cxe04_w-GS1Zwy2GY2Yr+jyO+iS-w@mail.gmail.com>
-Subject: Re: [PATCH v2 5/5] ovl: don't require "metacopy=on" for "verity"
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Giuseppe Scrivano <gscrivan@redhat.com>, Alexander Larsson <alexl@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 25, 2025 at 12:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
-> wrote:
->
-> On Tue, Mar 25, 2025 at 11:46=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.=
-com> wrote:
-> >
-> > Allow the "verity" mount option to be used with "userxattr" data-only
-> > layer(s).
-> >
-> > Previous patches made sure that with "userxattr" metacopy only works in=
- the
-> > lower -> data scenario.
-> >
-> > In this scenario the lower (metadata) layer must be secured against
-> > tampering, in which case the verity checksums contained in this layer c=
-an
-> > ensure integrity of data even in the case of an untrusted data layer.
-> >
-> > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> > ---
-> >  fs/overlayfs/params.c | 11 +++--------
-> >  1 file changed, 3 insertions(+), 8 deletions(-)
-> >
-> > diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> > index 54468b2b0fba..8ac0997dca13 100644
-> > --- a/fs/overlayfs/params.c
-> > +++ b/fs/overlayfs/params.c
-> > @@ -846,8 +846,8 @@ int ovl_fs_params_verify(const struct ovl_fs_contex=
-t *ctx,
-> >                 config->uuid =3D OVL_UUID_NULL;
-> >         }
-> >
-> > -       /* Resolve verity -> metacopy dependency */
-> > -       if (config->verity_mode && !config->metacopy) {
-> > +       /* Resolve verity -> metacopy dependency (unless used with user=
-xattr) */
-> > +       if (config->verity_mode && !config->metacopy && !config->userxa=
-ttr) {
->
-> This is very un-intuitive to me.
->
-> Why do we need to keep the dependency verity -> metacopy with trusted xat=
-trs?
->
-> Anyway, I'd like an ACK from composefs guys on this change.
+On Tue, 2025-03-25 at 11:46 +0100, Miklos Szeredi wrote:
+> In theory overlayfs could support upper layer directly referring to a
+> data
+> layer, but there's no current use case for this.
+>=20
+> Originally, when data-only layers were introduced, this wasn't
+> allowed,
+> only introduced by the "datadir+" feature, but without actually
+> handling
+> this case, resulting in an Oops.
+>=20
+> Fix by disallowing datadir without lowerdir.
+>=20
+> Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
+> Fixes: 24e16e385f22 ("ovl: add support for appending lowerdirs one by
+> one")
+> Cc: <stable@vger.kernel.org> # v6.7
+> Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 
-What do you guys think about disallowing the relaxed
-OVL_VERITY_ON mode in case of !metacopy or in case of userxattr?
+Reviewed-by: Alexander Larsson <alexl@redhat.com>
 
-I am not sure if it makes any sense wrt security, but if user is putting th=
-eir
-trust on the lower layer's immutable content, it feels like this content
-should include the verity digests???
 
-Thanks,
-Amir.
+> =C2=A0		return ERR_PTR(-EINVAL);
+> =C2=A0	}
+> =C2=A0
+> +	if (ctx->nr =3D=3D ctx->nr_data) {
+> +		pr_err("at least one non-data lowerdir is
+> required\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> =C2=A0	err =3D -EINVAL;
+> =C2=A0	for (i =3D 0; i < ctx->nr; i++) {
+> =C2=A0		l =3D &ctx->lower[i];
+
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
+=3D-=3D-=3D
+ Alexander Larsson                                            Red Hat,
+Inc=20
+       alexl@redhat.com            alexander.larsson@gmail.com=20
+He's an obese crooked filmmaker trapped in a world he never made. She's
+a=20
+provocative red-headed stripper from a different time and place. They=20
+fight crime!=20
+
