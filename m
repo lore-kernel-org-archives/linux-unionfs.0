@@ -1,125 +1,187 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 474DD188A3A
-	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 13:42:27 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DCD5E1DC9A2
+	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 13:42:54 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742910149; cv=none; b=W3Pyzqa01Re4vWG0+XvCQHUNtZNWBdp4t0QFln+B5WC+XJBzIbtkWXoX2XfP4GdUog0EXfpuPwp4/5UvICR220o1RThZr+l7mmDhlaPtDzAChwVwiEGl/H6GjrXMD89XA3rPRvTLQt0+t1uK+A9hinFlBVDzWD7Orm3RoUVZmCw=
+	t=1742910176; cv=none; b=CTZXAXnmTG73LusivNi5ub8hpsvBNh1Kvzh1sz0EVnYg7syobDUKtt6eOsfXddM+7fqjrTvGy4T/hCH68VeK4EyZaQMxIRuBWh1FcfM3mugUej9NQxfsRyK0ssK3LEwp9iSn4wwk1Rem6aX9LekgTJ2z53potLFHEXfbQSmAq70=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742910149; c=relaxed/simple;
-	bh=hpA/CRXb52LPSL7rr23mY9XTZ6x9+Dx1Iu0W3zA4vCM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=DPc+3ZO/p31zsgRjCIXomUTrK4zKliBWntrApTb/7wnoREIJ/KJvj5OfeMXlZ8AjKyNVWtAu0bPab3QA1nA0qGZYB3Fg57l7XXunvaN/qFRniJTBNBL3ohP0Vu+085kALlYOmqnDVbLanJ3ClQWqX5RDXABf26Qujy715SSRxpA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=Zw6CK/7A; arc=none smtp.client-ip=209.85.160.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1742910176; c=relaxed/simple;
+	bh=TmhFQT6VJUJqZ51skEu9Jhpxp5sAQY124LRVZ2gBF4A=;
+	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
+	 Content-Type:MIME-Version; b=qW83MfLgvYyl36G92FAF+06JShqFEp8vVNjGoEKaInReabHLk6JGlMPcytiKw0zGC4+mHuVXK/43ZgSQsEEeSkbUE08pV/C1TI+b20xCu0Y2Qi4OrI3Mr7Iayxx+nFClnK35NvH8oJ71ijmPvV71dR33YJ/Sxsv8qruc2OPC5aw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=hIUPCCaI; arc=none smtp.client-ip=170.10.133.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="Zw6CK/7A"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-476ab588f32so81272781cf.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 06:42:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1742910146; x=1743514946; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=cUmjKAMgU1F0bXOEKYUEcJktWlivLvvPjvlPAmCFq0A=;
-        b=Zw6CK/7AA2QUUKSMU1z4eLZsrVpixjNGfNCsUcPM+u+O5j8edIXXBd1FS/7NqbQOip
-         wlQLk/+zYAfaufFZ4HzNn366UrS2SQP79OTPfV1XhvPETn2JFkNf/BmnkLjuV6hVqdex
-         APoWqx4hm1u2QlkFuWP/4r/dhfJd6nzicYfwc=
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="hIUPCCaI"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1742910173;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=AeeNT6X9gAD0O2uvRcV8bqL1Oo9tE1JDreYsjTsZvR8=;
+	b=hIUPCCaIfl5XEFKX1z5YI6Demj+6NKeWKz0Uw12qkuX+nujIIPRZvVTkTHo4mUs32HbQeq
+	QhjlKF7gEIKdd/F8xxF2u3iqO3PfU4smAdPd0b0Ag6rNvYHRGW58ewznWXk98bEOn7Bmki
+	4vz8g7dWVD+nojksbAB4oG1qWbdUZnk=
+Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
+ [209.85.208.200]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-402-iGC0eGEpP1mpFntrgoeQBQ-1; Tue, 25 Mar 2025 09:42:52 -0400
+X-MC-Unique: iGC0eGEpP1mpFntrgoeQBQ-1
+X-Mimecast-MFC-AGG-ID: iGC0eGEpP1mpFntrgoeQBQ_1742910171
+Received: by mail-lj1-f200.google.com with SMTP id 38308e7fff4ca-30c4cbc324bso30074261fa.1
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 06:42:51 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742910146; x=1743514946;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=cUmjKAMgU1F0bXOEKYUEcJktWlivLvvPjvlPAmCFq0A=;
-        b=WFeOvaVmfWEjzqDBPpncaA+nj/0vE/fYX9lxCiwaMt1TkHeHQ0jYF3jDwoHWt9YlRi
-         SAZxvzskoWBE4Pw3HhFmzBY4FR3Pj9QoBJchrGDcMCdsSE+IPmc5cQREffPX2kuMPlG/
-         O/9/EPMwmaMqrA3Vr2fSBKXkl7e5kfcmN7Ce8EI+hwXcLu3+Ucanddn8hZNucH/LSZmo
-         pI0+CLluqF8rTH/hTFErmXLTmRLEp9+wEZUlqaW6u3v8UqSr2wkqRxz8sYfAZ0U5QvMj
-         c7+lY4tEUh3kdKPQ+8HgmakHIcFFD06Tfv5JPGGHMURDHfJFDxGyW6zCNT1wwnTXeyfn
-         /K9w==
-X-Forwarded-Encrypted: i=1; AJvYcCUIMdNHG7z5G4Fn+QAKlSBzSohC4C4ubqtIWaeB5/hzRaEeEpGL0JerYo3KZbYQCeJkyeVNahyiyWwji1HW@vger.kernel.org
-X-Gm-Message-State: AOJu0YwMa68PxCbVbcD1Hxj7c55Ta9jVILAhluBfMrhpeJ3SGZ0+JcY0
-	ZZPF7+qc4b36ge4CDEBbU2hNVyD3Jgunw/lmyQr/i3Sah/gcHwoXR5OsoXIjINTfXjCtpiKHytZ
-	IOc2zy0Jl8DmMgReZNYjg20nQMX4io+PHqIbQLA==
-X-Gm-Gg: ASbGnctNug1uMpEd3m5p+kMeD6O+gTGJqXybVcHamZ4JTotBlE9P2Y0a37yer2ymx+2
-	OOVHvCH6IGUA83jgdknEspUbfEsDujyhNH90+Pe0BXlTLscc3BJAfec1B6M2LN6sz/bWk2w3Ey1
-	rD3MmPZYHqZyOJXKK6fkmuQt8l
-X-Google-Smtp-Source: AGHT+IFebhz2tD4H/OxL2khsyI2/0i6TQPegRukkIN6hEa/XX4A90DNmWTNr4UCErJLnyN8ki6j5EAQTnc8rRcnULvk=
-X-Received: by 2002:a05:622a:1c09:b0:476:6b20:2cef with SMTP id
- d75a77b69052e-4771de60f86mr298621481cf.41.1742910146022; Tue, 25 Mar 2025
- 06:42:26 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1742910171; x=1743514971;
+        h=mime-version:user-agent:content-transfer-encoding:references
+         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=AeeNT6X9gAD0O2uvRcV8bqL1Oo9tE1JDreYsjTsZvR8=;
+        b=qy1lJTUF4SwRstXbG0e2lnoSmqoUc78Q/608/Vk0e+PGMrBIjLbcV58GvC/Ej9niE2
+         lm+gEJg1c38jYk3J6CqsAJ6hamHFiEMDDa4jy2KaihjS2Ur1280oRsRzG88tNxxisijo
+         hAXR9E48GlpfW7RBDmCji6ZnZpGTnRglGVO8S5mZNMkeZmjIQy6np/BhWiogUM3jVBv2
+         42EIrlwfl0hp0sQ01h6AiISH078LVbWhHp3QLRcNLYoIHBraaYL5x9Ks07Fi5Li/WFH+
+         b6/US1IH1dy50wIJBSwhWNKFMBrqJku0ABYDHZPThyYfW9V74FaU7Vfm9aaM0dY8aUE7
+         irJg==
+X-Gm-Message-State: AOJu0YwOHbXTt27MRxrvlg3w3vJp0WFFdZh20I67msC74vgtAB/hJjvC
+	dBP+KAgYm5c9razSDKBNdm7S0okTsUNdoIaak/HqaG8MNaFfc4zCGKUNHtzee5GlJcZAnIQT56A
+	HqfDNIyRfvv5FCNTpmLowNc9B+nOj7itTycflwv4rPgmMdfhAIoX3E6nkPuOG76k=
+X-Gm-Gg: ASbGnct9+VialgE1QRjQuFE3Xi6KYfP23VBjtR+FVPAG9ApabdptdSc8H50Wz8onE5N
+	gPNwLS6ZSwJ/i5Kr+L0YgxxxEWnIPt/V0EuD9ASZRlrKcwlR9UXFq7tlruZ0f8B3eBbgh53gy1q
+	ZoOTGrHdyLS/NwVMhQkZY5ebUhL2fzyPPteIP5TjdlFFc6V3tV9XAYhGbgXMAol60tbKnNI4583
+	RpRkVacOkhlaCOhUx2SKXA5oDiBkmqOfNHgD38UPhyO157t/hQIIWOb4PanpNOauIg2lHYC7jop
+	QVaOT+iDdtMQLIydx9/4uSXnTKvDUYhmkxSeOwNo41SmQyvsd0t6q/w=
+X-Received: by 2002:a05:651c:d1:b0:30c:7a7:e841 with SMTP id 38308e7fff4ca-30d7e2bacb6mr68350421fa.34.1742910170589;
+        Tue, 25 Mar 2025 06:42:50 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IH4Z9GM7jvLC8YuLUgX4+qn45UtJz50Pgn8mNqnBvFPDw++TTxPfdlOQaB1QYhvFNjzyebA+w==
+X-Received: by 2002:a05:651c:d1:b0:30c:7a7:e841 with SMTP id 38308e7fff4ca-30d7e2bacb6mr68350301fa.34.1742910170123;
+        Tue, 25 Mar 2025 06:42:50 -0700 (PDT)
+Received: from [192.168.68.107] (c-85-226-167-233.bbcust.telenor.se. [85.226.167.233])
+        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30d7d910f75sm18065991fa.107.2025.03.25.06.42.49
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 25 Mar 2025 06:42:49 -0700 (PDT)
+Message-ID: <baa1759f95062baaecb474a0a6e447fbba6a4b0e.camel@redhat.com>
+Subject: Re: [PATCH v2 5/5] ovl: don't require "metacopy=on" for "verity"
+From: Alexander Larsson <alexl@redhat.com>
+To: Amir Goldstein <amir73il@gmail.com>, Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, Giuseppe
+ Scrivano <gscrivan@redhat.com>
+Date: Tue, 25 Mar 2025 14:42:48 +0100
+In-Reply-To: <CAOQ4uxjZOtdMcGpXBYLO4Cxe04_w-GS1Zwy2GY2Yr+jyO+iS-w@mail.gmail.com>
+References: <20250325104634.162496-1-mszeredi@redhat.com>
+	 <20250325104634.162496-6-mszeredi@redhat.com>
+	 <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
+	 <CAOQ4uxjZOtdMcGpXBYLO4Cxe04_w-GS1Zwy2GY2Yr+jyO+iS-w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.54.3 (3.54.3-1.fc41) 
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339-3-mszeredi@redhat.com>
- <CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
- <CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
- <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
- <CAJfpegs1hKDGne7c3q4zs+O5Z4p=X3PK8yFXhyCY2iAjs4orig@mail.gmail.com>
- <1b196080679851d7731c0f4662d07640d483be4e.camel@redhat.com> <87frj1fd3b.fsf@redhat.com>
-In-Reply-To: <87frj1fd3b.fsf@redhat.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 25 Mar 2025 14:42:14 +0100
-X-Gm-Features: AQ5f1JqTk3eMadH2E2UQWlRHTPxFLpzZRMll15gjiFDDvMeEypEM8P6IjXo4KgY
-Message-ID: <CAJfpegtvPW6tTfGbOUtW3GMe8UxX2Laqjopb1oSoUNgBWNUe9g@mail.gmail.com>
-Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
-To: Giuseppe Scrivano <gscrivan@redhat.com>
-Cc: Alexander Larsson <alexl@redhat.com>, Amir Goldstein <amir73il@gmail.com>, 
-	Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Colin Walters <walters@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
 
-On Tue, 25 Mar 2025 at 14:34, Giuseppe Scrivano <gscrivan@redhat.com> wrote:
->
-> Alexander Larsson <alexl@redhat.com> writes:
->
-> > On Tue, 2025-03-25 at 11:57 +0100, Miklos Szeredi wrote:
-> >> On Tue, 11 Feb 2025 at 13:01, Amir Goldstein <amir73il@gmail.com>
-> >> wrote:
-> >> > Looking closer at ovl_maybe_validate_verity(), it's actually
-> >> > worse - if you create an upper without metacopy above
-> >> > a lower with metacopy, ovl_validate_verity() will only check
-> >> > the metacopy xattr on metapath, which is the uppermost
-> >> > and find no md5digest, so create an upper above a metacopy
-> >> > lower is a way to avert verity check.
-> >> >
-> >> > So I think lookup code needs to disallow finding metacopy
-> >> > in middle layer and need to enforce that also when upper is found
-> >> > via index.
-> >>
-> >> So I think the next patch does this: only allow following a metacopy
-> >> redirect from lower to data.
-> >>
-> >> It's confusing to call this metacopy, as no copy is performed.  We
-> >> could call it data-redirect.  Mixing data-redirect with real meta-
-> >> copy
-> >> is of dubious value, and we might be better to disable it even in the
-> >> privileged scenario.
-> >>
-> >> Giuseppe, Alexander, AFAICS the composefs use case employs
-> >> data-redirect only and not metacopy, right?
-> >
-> > The most common usecase is to get a read-only image, say for
-> > /usr. However, sometimes (for example with containers) we have a
-> > writable upper layer too. I'm not sure how important metacopy is for
-> > that though, it is more commonly used to avoid duplicating things
-> > between e.g. the container image layers. Giuseppe?
->
-> for the composefs use case we don't need metacopy, but if it is possible
-> it would be nice to have metacopy since idmapped mounts do not work yet
-> in a user namespace.  So each time we run a container in a different
-> mapping we need a fully copy of the image which would be faster with
-> metacopy.
+On Tue, 2025-03-25 at 12:47 +0100, Amir Goldstein wrote:
+> On Tue, Mar 25, 2025 at 12:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.c=
+om>
+> wrote:
+> >=20
+> > On Tue, Mar 25, 2025 at 11:46=E2=80=AFAM Miklos Szeredi
+> > <mszeredi@redhat.com> wrote:
+> > >=20
+> > > Allow the "verity" mount option to be used with "userxattr" data-
+> > > only
+> > > layer(s).
+> > >=20
+> > > Previous patches made sure that with "userxattr" metacopy only
+> > > works in the
+> > > lower -> data scenario.
+> > >=20
+> > > In this scenario the lower (metadata) layer must be secured
+> > > against
+> > > tampering, in which case the verity checksums contained in this
+> > > layer can
+> > > ensure integrity of data even in the case of an untrusted data
+> > > layer.
+> > >=20
+> > > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> > > ---
+> > > =C2=A0fs/overlayfs/params.c | 11 +++--------
+> > > =C2=A01 file changed, 3 insertions(+), 8 deletions(-)
+> > >=20
+> > > diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> > > index 54468b2b0fba..8ac0997dca13 100644
+> > > --- a/fs/overlayfs/params.c
+> > > +++ b/fs/overlayfs/params.c
+> > > @@ -846,8 +846,8 @@ int ovl_fs_params_verify(const struct
+> > > ovl_fs_context *ctx,
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0 config->uuid =3D OVL_UUID_NULL;
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 }
+> > >=20
+> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Resolve verity -> metacopy d=
+ependency */
+> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (config->verity_mode && !con=
+fig->metacopy) {
+> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Resolve verity -> metacopy d=
+ependency (unless used
+> > > with userxattr) */
+> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (config->verity_mode && !con=
+fig->metacopy && !config-
+> > > >userxattr) {
+> >=20
+> > This is very un-intuitive to me.
+> >=20
+> > Why do we need to keep the dependency verity -> metacopy with
+> > trusted xattrs?
+> >=20
+> > Anyway, I'd like an ACK from composefs guys on this change.
+>=20
+> What do you guys think about disallowing the relaxed
+> OVL_VERITY_ON mode in case of !metacopy or in case of userxattr?
+>=20
+> I am not sure if it makes any sense wrt security, but if user is
+> putting their
+> trust on the lower layer's immutable content, it feels like this
+> content
+> should include the verity digests???
 
-Okay, so there is a usecase for compose + metacopy.
+In the case of composefs, we will always either pass metacopy or
+userxattrs, so this is moot and the patches as-is look good for
+composefs.=C2=A0
 
-Problem seems to be that this negatively affects the security of the
-setup, because the digest is now stored on the unverified upper layer.
-Am I misunderstanding this?
+However, I agree that it is a bit weird. The new behavior is that as
+soon as numdatalayer > 0 we following redirects into a data-layer even
+if metacopy=3D0. This is a change from the old behavior which would
+previously have thrown an error here. I think this change is safe, but
+once we have decided to allow it I don't see any increased risk in also
+allowing verity=3Don in this case.
 
-Thanks,
-Miklos
+So, the case you're talking about is: data-only used, verity=3Don,
+metacopy & userxattrs not set.=C2=A0
+
+In this case with the new patch it would (due to numdatalayer check)
+allow following redirects into a data layer. This sounds ok to me, but
+it does change behavior in other ways than just the verity check (i.e.
+it used to error on a redirect). Once we allow this behavior change I
+don't see any reason to not also allow verifying the destination digest
+(verity=3Don). This can only result in possible errors on read, and never
+grant more rights.
+
+The verity=3Drequire case is less clear.
+
+--=20
+=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
+-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
+=3D-=3D-=3D
+ Alexander Larsson                                            Red Hat,
+Inc=20
+       alexl@redhat.com            alexander.larsson@gmail.com=20
+He's a benighted devious farmboy possessed of the uncanny powers of an=20
+insect. She's a strong-willed blonde stripper fleeing from a Satanic=20
+cult. They fight crime!=20
+
