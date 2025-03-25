@@ -1,58 +1,58 @@
-Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com [209.85.218.48])
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0DE4ABA36;
-	Tue, 25 Mar 2025 11:34:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id CFC791EFF85;
+	Tue, 25 Mar 2025 11:47:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742902452; cv=none; b=WXizXqZP+nZoD8D8izKeJhlbCtGmPd9o6ZIIjeAjRz2Yrd93kykf0afaonapP2FNS6ZBTW23aVwI9Yyg2D2JsNOxOqVI3Mpsard3NnKORxHKghKM91l/ebmTVUJoSheu6OGHCJeZGnwzoOEMf87pxkdZyfd68WG1DtD7ZXjJ2W4=
+	t=1742903235; cv=none; b=oZobSQyUD5DIYu//jj7XlE6LRNk/+nw8fZOEOats7DzA3GcpdgqsyWXWPva9fxOtMnlqqNoL5aOjy+qRnX8hmWh5ACmFUNNSfP78iKLZEq4jDx1R7+12s9G8wUOY5LQ8M9y4DF3QY7KwVL0+2oLZPaDGdXVJqVsJCmYOJsxk/fc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742902452; c=relaxed/simple;
-	bh=kXIhNH5Zx8yhHqkYScg7m7Lk7x8tX+Tr7Vm0yKt300s=;
+	s=arc-20240116; t=1742903235; c=relaxed/simple;
+	bh=b+DQcLwGQvyUvi24Zz6+No4f4nkddsTi6jfrwQUVUEo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=HdG4cfTR9rj3jw36xtrafFyvNZW4Q9QacexT1Ynzjra5UCBBGjwYN92OtWCVtlJrIbukigL8l8GBUVVswrv5wzk2pLglWAM8nwn/UWb7wT/AHVhc/LGmH1yQubDqvfEtlaf1p8jjFG8cbJZdcxgczKXMcCT1le5DDLUdNdI+eV4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=DciKNATW; arc=none smtp.client-ip=209.85.218.48
+	 To:Cc:Content-Type; b=ebnXg9o5hZN5zXFazd1zok77cMKeueP5IyaTmu0yypZTnBAy1CwJzw/yCAtSpgLaWN8+FToS7kIf0HKS1tUv3wQnYYHg7lN7OzMzgBcjZdDQTWsfD8+xtych9KBLHQ1hzKzJwqLWXsAYAIVGPU+x4zqV70F6FBAcMcJgetcjQD4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QOjKaBgt; arc=none smtp.client-ip=209.85.208.54
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="DciKNATW"
-Received: by mail-ej1-f48.google.com with SMTP id a640c23a62f3a-aaecf50578eso1000612066b.2;
-        Tue, 25 Mar 2025 04:34:10 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QOjKaBgt"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-5e686d39ba2so10694732a12.2;
+        Tue, 25 Mar 2025 04:47:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742902449; x=1743507249; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1742903232; x=1743508032; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=LyYcDHV3MeCVFAan2iS1JnE3lnrZma43IPGcoEqcEWs=;
-        b=DciKNATWZ7da6XYETdlv2Jky6OBjzNbPRmgh98PBxYgR3Kd3tvpnLE+5MiSIllJ7YJ
-         oEv6OutGs2vpCr4TRLB3XvhPBCp0S8KgUZS0GuOSWgQq6TTv90GSTxAvpn62sg3mFNw1
-         5QNVjtNaf1aJACeuuWxQAv8CHfO/Qx5H9+tocErh+X58kWrXQBmJT6W3ffSHIty9vlZ8
-         1M180R7drSFvZhvgCPrpNHTuY8Ma/niqR9TiSX2igAbaVQq2I0tTSghBvVNYJ5VYvQzJ
-         IAK3J1XniLwbdkVzsWxAbafnjYyYEfaqeUy93jE5diHUWQ3ZOf+76j2MuCmfa4cqT9kS
-         EbPQ==
+        bh=p4zh20yeb7WVeLMd2P2vt6NV+ovZIxk93u4hoJcH1c0=;
+        b=QOjKaBgtSsfVtf8BADGQc25ez2O8bwQuMICE26iHa98vL8nTGXCXjlsnh+/F4BJdTg
+         kpjvccB4EYz58/Vry/Ns51msgESvfCL73DtnP/AoMZFliixlKzU50T71sYzHWBa2vYCN
+         TpquO8E6pdSkozUM9nSC8Ad0FXZ9kOO5y+LHFYaXLeL9xoSqCR0JldAmhuV3gSh3XVYs
+         RSbzI0Psrto1ERPTGk6PvvaRABz0gaL5Nt/9PcrAurraQPDLCNivaNCKz9IZL00OmvnI
+         fcJE3JRHDscjb0wc3tmaMfPljEp85+7uA6+yeGm2juN8VR0CYWZZZ0plr1B2/LuCyKRw
+         tHMQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742902449; x=1743507249;
+        d=1e100.net; s=20230601; t=1742903232; x=1743508032;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=LyYcDHV3MeCVFAan2iS1JnE3lnrZma43IPGcoEqcEWs=;
-        b=h5BR4hjIumwP8Ee9kBGhUiS9AvmthRwaJCBby0BINCr+ZRrYpxDcrWj6+xXf/85wnK
-         OqR/LmVM7VejvkBYFr0Qlep0o5bLyEqvhuWCcfIio6RQP72OpO5OEvJIkQnD7QkLZ2o3
-         JD85n0hrsoXcI4skj0AuyYeOqyPUTOyucy1FHHERd05ZWUU6gXxETc3vI3GUkPCDGU3g
-         wgdBLDr7oJ5cJ6IvRVKpr3flKscSBGt6hxCL+zc/6oT0mLiRI4RWcp5gv640bHt1663k
-         rm3TXmR4Mbza2X2k/oBx41icQk8nTEFw0Qo69T2VTjdad1xfrPo8hMfTSm/3325BGf3N
-         Jj2A==
-X-Forwarded-Encrypted: i=1; AJvYcCXJCNXbj8+5a3h26z4XKJzpS6cHb9GJmgXTgtgnC+77IFxkyNGfUa8zlWUXBcaUPjg37PK/cvzbQ37/k8nq@vger.kernel.org
-X-Gm-Message-State: AOJu0YyCUj7+JV4ST+KtIlROTWqzivOlODxkFm41wFPexhsVcSRBQUp8
-	+WltXusmRlkoz2VqRjD+RKWvViLrf/AmRjEVBql/2dwNsq6BdDCq3jgOAmk3FyRaTLJJDGuNiBt
-	CCg3Zq5QlRThcT5nc7Ig0TLF+qkH6m9CxIpM=
-X-Gm-Gg: ASbGnctlWCmMhTXmyqwyq9gQpdOP7S++p3RKx2Bby4T5kJ+2ZDRlAMBeBBQf5Hjup0H
-	lHDRTTlFtPIUobpVN6koMqhnFIs5hFT1A3w+EECbzOZHJiRyVNVc+UPRoJFR9NLcIaBTfrxlKGE
-	dlXfzSHZ2Vm1o4hD1l/bea/BoD1B8vWDKM1eQ=
-X-Google-Smtp-Source: AGHT+IEU2judBSrrGKJG8xSJ8+SEasYx4jHEPAEmHvaTmKoi76Th3aT6Mje4CUMs/3Gf3FeolfQVXkS4BLacUCoZtX4=
-X-Received: by 2002:a17:907:d7c8:b0:ac4:2ad:44d9 with SMTP id
- a640c23a62f3a-ac402ad46bfmr1469255066b.24.1742902449031; Tue, 25 Mar 2025
- 04:34:09 -0700 (PDT)
+        bh=p4zh20yeb7WVeLMd2P2vt6NV+ovZIxk93u4hoJcH1c0=;
+        b=kkodkGTXLQA/btFmjJn6qEj0evxkGpK2KeCNfKNUWvwipJX1IAPfBRqZypg38ud6ox
+         ZOiyhZwAFVccdjN7e2XTcZmzqNsn2Yi9++bG3prJGUsbF38rliuFzpUoyMDEukzSHCoK
+         p9PSS+z58YGTHcpXJRUHTlfq7ApP5z2DZ1PlraUHfGDMvpsQ0L1csbbFZ59oDEqy0Nf1
+         XEV/sqWZwuyVVOmYghe38jE6mRMrSbGofa2WimYECHhIv1sl01ZxyMrYK35E40373L15
+         3elfoRezp+sXCV8ity+gmwfPSw2uuBwJpwR+DT4hsnmGBNxA4pVrVfMALeQmU4z/d5+h
+         zGjg==
+X-Forwarded-Encrypted: i=1; AJvYcCXvn3ZAxuSBMCim5jqikIUU4aL3MpPI7hBY9F4Y3/ZEFQxMDhkTDHg9U2vEgQdnZHEe0w4W1qAzGegLPUpj@vger.kernel.org
+X-Gm-Message-State: AOJu0YxksDY5z8lDidsz4ugocsPx2kr2VxWNzXy2Lf7u9bIeQUWtUaR4
+	6W6pLOd8lnIf8+1E+5RwvLf8e5ZishRDAsifcsUOQqlbW3p5GepvM9b63h2b/7W5tJvdx9ZAi8/
+	zPdEjhc2dewRyVNaS8LzvRTLsc6RFnA6PyK0=
+X-Gm-Gg: ASbGncv+nK746ot5yjFYIw01raZZ5RYgOkX/EtweKUf+veaCjga9jlIrChRRqedOPnC
+	r4Onico5Qzia3+y/fi5m17ZwgWUxGYIYqBumb9Ob5Ls7tN8TJqPV9z/3THIJuKfdQ2hcYvFMpMY
+	xdycCNfC6iC094cf2VLl5g7Aq1
+X-Google-Smtp-Source: AGHT+IGFga4yZwH9zibaR7pz2j7v2QhcuecgN2l7S/Dl4mQgAc/pyw/kjxgXZ33rynDEoUJvkKgowa+Avymv1xYnQ8U=
+X-Received: by 2002:a05:6402:35c4:b0:5e7:8efa:ba13 with SMTP id
+ 4fb4d7f45d1cf-5ebcd40a6b3mr15898396a12.7.1742903231733; Tue, 25 Mar 2025
+ 04:47:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -60,11 +60,12 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 References: <20250325104634.162496-1-mszeredi@redhat.com> <20250325104634.162496-6-mszeredi@redhat.com>
-In-Reply-To: <20250325104634.162496-6-mszeredi@redhat.com>
+ <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
+In-Reply-To: <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 25 Mar 2025 12:33:57 +0100
-X-Gm-Features: AQ5f1JoOFojxjwabGWnYnlwE_BINrcvxe6EREEdw9cBI9q62xxWW2Hqo4UHIBYc
-Message-ID: <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
+Date: Tue, 25 Mar 2025 12:47:00 +0100
+X-Gm-Features: AQ5f1JrFUNNttc7pVUHabB5shkjHAQ1u2N5ZQoXYKntBUP4kjRy9J0-DH_3V4Do
+Message-ID: <CAOQ4uxjZOtdMcGpXBYLO4Cxe04_w-GS1Zwy2GY2Yr+jyO+iS-w@mail.gmail.com>
 Subject: Re: [PATCH v2 5/5] ovl: don't require "metacopy=on" for "verity"
 To: Miklos Szeredi <mszeredi@redhat.com>
 Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
@@ -72,47 +73,59 @@ Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org,
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 25, 2025 at 11:46=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.co=
-m> wrote:
+On Tue, Mar 25, 2025 at 12:33=E2=80=AFPM Amir Goldstein <amir73il@gmail.com=
+> wrote:
 >
-> Allow the "verity" mount option to be used with "userxattr" data-only
-> layer(s).
+> On Tue, Mar 25, 2025 at 11:46=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.=
+com> wrote:
+> >
+> > Allow the "verity" mount option to be used with "userxattr" data-only
+> > layer(s).
+> >
+> > Previous patches made sure that with "userxattr" metacopy only works in=
+ the
+> > lower -> data scenario.
+> >
+> > In this scenario the lower (metadata) layer must be secured against
+> > tampering, in which case the verity checksums contained in this layer c=
+an
+> > ensure integrity of data even in the case of an untrusted data layer.
+> >
+> > Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> > ---
+> >  fs/overlayfs/params.c | 11 +++--------
+> >  1 file changed, 3 insertions(+), 8 deletions(-)
+> >
+> > diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+> > index 54468b2b0fba..8ac0997dca13 100644
+> > --- a/fs/overlayfs/params.c
+> > +++ b/fs/overlayfs/params.c
+> > @@ -846,8 +846,8 @@ int ovl_fs_params_verify(const struct ovl_fs_contex=
+t *ctx,
+> >                 config->uuid =3D OVL_UUID_NULL;
+> >         }
+> >
+> > -       /* Resolve verity -> metacopy dependency */
+> > -       if (config->verity_mode && !config->metacopy) {
+> > +       /* Resolve verity -> metacopy dependency (unless used with user=
+xattr) */
+> > +       if (config->verity_mode && !config->metacopy && !config->userxa=
+ttr) {
 >
-> Previous patches made sure that with "userxattr" metacopy only works in t=
-he
-> lower -> data scenario.
+> This is very un-intuitive to me.
 >
-> In this scenario the lower (metadata) layer must be secured against
-> tampering, in which case the verity checksums contained in this layer can
-> ensure integrity of data even in the case of an untrusted data layer.
+> Why do we need to keep the dependency verity -> metacopy with trusted xat=
+trs?
 >
-> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
-> ---
->  fs/overlayfs/params.c | 11 +++--------
->  1 file changed, 3 insertions(+), 8 deletions(-)
->
-> diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-> index 54468b2b0fba..8ac0997dca13 100644
-> --- a/fs/overlayfs/params.c
-> +++ b/fs/overlayfs/params.c
-> @@ -846,8 +846,8 @@ int ovl_fs_params_verify(const struct ovl_fs_context =
-*ctx,
->                 config->uuid =3D OVL_UUID_NULL;
->         }
->
-> -       /* Resolve verity -> metacopy dependency */
-> -       if (config->verity_mode && !config->metacopy) {
-> +       /* Resolve verity -> metacopy dependency (unless used with userxa=
-ttr) */
-> +       if (config->verity_mode && !config->metacopy && !config->userxatt=
-r) {
+> Anyway, I'd like an ACK from composefs guys on this change.
 
-This is very un-intuitive to me.
+What do you guys think about disallowing the relaxed
+OVL_VERITY_ON mode in case of !metacopy or in case of userxattr?
 
-Why do we need to keep the dependency verity -> metacopy with trusted xattr=
-s?
-
-Anyway, I'd like an ACK from composefs guys on this change.
+I am not sure if it makes any sense wrt security, but if user is putting th=
+eir
+trust on the lower layer's immutable content, it feels like this content
+should include the verity digests???
 
 Thanks,
 Amir.
