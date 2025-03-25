@@ -1,77 +1,82 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 535B21C5D50
-	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 10:46:39 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8945DEC4
+	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 10:46:41 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742899602; cv=none; b=QsHnpDSUkqxgtO1F4CNDfq+/mUS2TUnogoSOmtnE0voDuM80N61RnbzN7dqm0FQt0qI7vHvIk9uMzcEyqfeuG/lRLJr/YDXwIB9vGDbS04re4LxtET3xRDmZdanNE6DtBJnkpwrecvNy0/4BSVipJmajvNdeN019LrTYM5HRaDw=
+	t=1742899603; cv=none; b=eklZdQkjeAz6GWWkT/GhCWHBjWvDw+HTCtgY9Yx2pMEe0FTN1KgrFEiwEyl6kQVHLkU55GlkFJvK9SP1xUFK4KUXZB32R2NDNYv/05fHsALiu5E+SAewNKrRXp7A8/WVaEz917Z2rTRrmQqWfrruWOq7qH165vsQVz0GH4iTy+s=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742899602; c=relaxed/simple;
-	bh=zS3iedtb9CGE+6AikF6XtcfJb/KtdMt4kbhmDjh5djU=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=DERvDWbkteg8D5sUZeNgXDJUfsb7UKumUAB0EMMwkce59SGUMGbBV6g9kKCV/3a+xxVhuQP0UY6J+JNmq3+T9a76x4ryWxhv0OLyPOiSg3+pDATL37UMG26C1ZqyVQKqyMBC3vVt880K0ttMvkiJlD+vS+KKiMwm3HtCIeY8ook=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=BLpjPo8t; arc=none smtp.client-ip=170.10.129.124
+	s=arc-20240116; t=1742899603; c=relaxed/simple;
+	bh=vkbpeFmqD668MPanvRonoQwCZ0BQK81IhaRcc7RnYTo=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version; b=AhJkkWVUTk7mmNFc22MGTcIMdcQqLyXzycy3keGYswfTiCbg9n45+vMxt2aS46aNBrxfntAU3zJOQLEdyXGG+0MrJ3HbgXNlF7/ZxdterL6fHPEOWBrZzg3rLyZTAqxk2kmppnXEqImX3qBEiF3hqs8ijLy6gRsT1LMexfzB/rU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=BdAuEhfM; arc=none smtp.client-ip=170.10.133.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BLpjPo8t"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="BdAuEhfM"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1742899599;
+	s=mimecast20190719; t=1742899600;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=llfCjfXs/RkEx1xDFKie+QOsYGNOm/qxwhosEg+VjwI=;
-	b=BLpjPo8t8Zf9xelyAXKCOL7RJLptgmd+wxX4na3OTuHYx7e6a75T9GRg7vvE09iLa8jl9f
-	RmuqF+PzrBNZCXbRcY/C6Xa/U/H9Qx9AVvXPiJwR0D/I1brd5Vjtlk45/afqynD+3Fx6pl
-	msfGu6coWQHYBqoMzZ7Obf3Da2BeN6g=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) by relay.mimecast.com with ESMTP with STARTTLS
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=IL/6aR5DxlrxjOnL/vY3X0cqTZslpUhOi/XOXuXLhhE=;
+	b=BdAuEhfMfQEehbJjjvBbU7Ve4u6pCdIsoND/YqcigEQuuPbJPrbuz07YQbtSgvKzUL25xv
+	XcM3xwVUKMuryOa2cgym1ud5Jj9p1pqbkp7mzLJtyrjzIr8lZtkIAeWYzBxcljPEnPt8KJ
+	AcvG8z79YmlNCaiKL0owTvPlWX/GnMk=
+Received: from mail-wr1-f69.google.com (mail-wr1-f69.google.com
+ [209.85.221.69]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-515-ysEKikZTMEuXI3n2MfIekQ-1; Tue, 25 Mar 2025 06:46:37 -0400
-X-MC-Unique: ysEKikZTMEuXI3n2MfIekQ-1
-X-Mimecast-MFC-AGG-ID: ysEKikZTMEuXI3n2MfIekQ_1742899596
-Received: by mail-wr1-f70.google.com with SMTP id ffacd0b85a97d-3914bc0cc4aso2775408f8f.3
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 03:46:37 -0700 (PDT)
+ us-mta-86-dwIgnfh6N_CXjvchkf1kAw-1; Tue, 25 Mar 2025 06:46:38 -0400
+X-MC-Unique: dwIgnfh6N_CXjvchkf1kAw-1
+X-Mimecast-MFC-AGG-ID: dwIgnfh6N_CXjvchkf1kAw_1742899598
+Received: by mail-wr1-f69.google.com with SMTP id ffacd0b85a97d-3912a0439afso1941025f8f.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 03:46:38 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742899596; x=1743504396;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=llfCjfXs/RkEx1xDFKie+QOsYGNOm/qxwhosEg+VjwI=;
-        b=w7iJ9BgAu0ARZy/xjxUlerwiWhdE2Ql5V2rzk9B6scfo+DjiHOmsDynABhYIYiYwzb
-         7TXkoxDIM5eUNmlBXpI08WYzsPGMKZZmcRKx8rjM8tVYRSYntAPWVk0eP3gRfW92RASn
-         Uo/aeRHj8RZcoaKGuxabSM6J7wK9nvjjdmjvF7CBoZ0qlb4TMhxX3wJc5YD6hvEdSQHE
-         Q0tUBaoY6Ryg3CE7asGcu1XEBWnfOQRjlh4LIUdbljllIb8iUJ29GvK90hcAR3fNStDo
-         rOQBxZP5VTN9tKxsa5NllFLf3A8VoTySQPudC4+nevOxn8nTecO3rYo6FJNbGJTzKc42
-         +ADQ==
-X-Gm-Message-State: AOJu0Yxe5M19v/inba3LqRMWEnaplIgByFdXnJuGdg7gRBxZT4H53KIC
-	8VAPN8t8EAEW0ASkEWsGr0qiz6QR//2JkeGk2Z1uhhSmMASWX5sLWFYbw7+1lBXOjZbMOxNubH4
-	C1Cl08EE4OfIihxw8Co99qae/f51RbJlV+77lCAY73e0W3SoJGyNqbSy1XbwSD17T6Rl6Uo70HI
-	95I+Y2/1KfV9Qa1xj7J5z/LcvvydUa5vB5lfE9lkH4rfI/7oY=
-X-Gm-Gg: ASbGnct21u3C7XCW23sZgdHLNQvesfFWb9N+x4ZMg8f3ApDv8tiqyp0x5qCJKO1UUuG
-	sk5hevTV60Bpvyn5Vmar8ntK/qKAjN/Qh8Uyf3dyqPXo0WAuTSb88ISe/wMkpIWD81V07PfxkUu
-	RfegocfF4TVfWKm5VaKyijOqk/d3lhTEjUla64J1t3Cs71wK0wTDO0TJK3dv0IhW0wknHD7QR0E
-	IT7zMS3Mv+DUoXMJcJC8+cSQ3Fz7FftJdmp/nX77vdOgmIsZJxnxxA3831yE/yspMrcHI7WiklO
-	9SFSnDqIdAhbdMIowqEZbhs5g6V/H6ynYbLGIuGsc7fGaOcevj3YpJ9ObguNp0U2Ebo=
-X-Received: by 2002:a5d:47a5:0:b0:390:f699:8c27 with SMTP id ffacd0b85a97d-3997f902e3dmr14212184f8f.12.1742899596267;
-        Tue, 25 Mar 2025 03:46:36 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGbPImIP/lo9XeKEIz0Dxt34DSlVTLHymW8RqoW4OZVQLvzK6BjYDTV2S9svurxcLkem4p2mQ==
-X-Received: by 2002:a5d:47a5:0:b0:390:f699:8c27 with SMTP id ffacd0b85a97d-3997f902e3dmr14212151f8f.12.1742899595810;
-        Tue, 25 Mar 2025 03:46:35 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1742899597; x=1743504397;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=IL/6aR5DxlrxjOnL/vY3X0cqTZslpUhOi/XOXuXLhhE=;
+        b=p/mXLrbANyrwlsyS6fnIrYX0ldILJMUzJrI0i3EW3x5duXBGF7i9mf01Fl1hPo7z0d
+         qKoQQPcBHDFJUxf+GKC1b2rbxoQUAK8xAzd2mfQgHLBUtJzwCiZZumVdZlS210vn9IYE
+         coDGCKNBcqGjPXtJjwhe0ju711g6A+MlzU9QmQFUscaUvg8AJFufhj7GtM0/ZY4gyCA7
+         N53bkUdO2YHbO3J33q9yHtFDfa4F04hlWFr/7nPP7VlGT/MxrQgUZlFWMRY8oMPo5eiz
+         b9Smoiii8NwDs7I2ie7Il0BAMKH/lWMtcfJfaUYbJrz4QkoHytNLHow1qe3MBcUU9VbS
+         Y0PA==
+X-Gm-Message-State: AOJu0YwiMAo0Vu8Kl0/hCMNp9TJHYDWRCELDcOOeEiLsZkUZZtbYQpe4
+	Y/CAH0TltMk57tSzSl5CWBoXFMoDfZKYw+rFswF76CF4PLtODCD3qwRfmp8jax2CkhLK13KY5Me
+	qEvwU6VyVpZJrkY7bM6bgHkNvm6tX7OYv5PCnSpbrTDAwKe1D3qBRJBJz7+OcWOF9Jt2WZhIAZZ
+	LQHSUOu16cthCQrD3dmvYWe5uGd/5s7Zu7YPfJdvCkr8J1iOo=
+X-Gm-Gg: ASbGncsexjC2ahU+y9nXOW7U/8uHOSTG0lmqSBAAqKy1OAzqtNF8K7577SEtU7xW+v8
+	an9nM7uAGUX0iyq9tylacoFK4ymhJ4z7SJn2pq2U1Lwlns1bRs2VQOv6piyQJ0RotzXRAoyO58i
+	w05Uyjubd0GsSXuYYwnSYSacVzY8EL5gp4x8RmEfel1DPyDqaGakhk0spV5thdZEWg3bpHGXPBy
+	3P44vPZ+/zp0G4jUhJVUr25qjlNGG6wffAqxlREActPWEfDod12kWyRp+I2WNcaIKK0yNujMMvc
+	HoI/nY3eNvJQJaB6JjWQYoq/rBCSG/HcvD+t2OYzz1rMAC4McIXfCSnFm0cAfv0TMmw=
+X-Received: by 2002:a05:6000:2cd:b0:391:2f2f:818 with SMTP id ffacd0b85a97d-3997f8edc1dmr15905518f8f.9.1742899597498;
+        Tue, 25 Mar 2025 03:46:37 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IEw5sCn6O0eZPQdrxPvOONhB4Ut43Nqsv6iiLVmfKeBePtnVQmM3EmzBo2MGDhKqQ2BMNL+cw==
+X-Received: by 2002:a05:6000:2cd:b0:391:2f2f:818 with SMTP id ffacd0b85a97d-3997f8edc1dmr15905478f8f.9.1742899597091;
+        Tue, 25 Mar 2025 03:46:37 -0700 (PDT)
 Received: from maszat.piliscsaba.szeredi.hu (87-97-53-119.pool.digikabel.hu. [87.97.53.119])
-        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3997f9a50c1sm13572203f8f.38.2025.03.25.03.46.34
+        by smtp.gmail.com with ESMTPSA id ffacd0b85a97d-3997f9a50c1sm13572203f8f.38.2025.03.25.03.46.36
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 25 Mar 2025 03:46:35 -0700 (PDT)
+        Tue, 25 Mar 2025 03:46:36 -0700 (PDT)
 From: Miklos Szeredi <mszeredi@redhat.com>
 To: linux-unionfs@vger.kernel.org
 Cc: Amir Goldstein <amir73il@gmail.com>,
 	linux-fsdevel@vger.kernel.org,
 	Giuseppe Scrivano <gscrivan@redhat.com>,
-	Alexander Larsson <alexl@redhat.com>
-Subject: [PATCH v2 0/5] ovl: metacopy/verity fixes and improvements
-Date: Tue, 25 Mar 2025 11:46:28 +0100
-Message-ID: <20250325104634.162496-1-mszeredi@redhat.com>
+	Alexander Larsson <alexl@redhat.com>,
+	stable@vger.kernel.org
+Subject: [PATCH v2 1/5] ovl: don't allow datadir only
+Date: Tue, 25 Mar 2025 11:46:29 +0100
+Message-ID: <20250325104634.162496-2-mszeredi@redhat.com>
 X-Mailer: git-send-email 2.49.0
+In-Reply-To: <20250325104634.162496-1-mszeredi@redhat.com>
+References: <20250325104634.162496-1-mszeredi@redhat.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -80,30 +85,40 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-The main purpose of this patchset is allowing metadata/data-only layers to
-be usable in user namespaces (without super user privs).
+In theory overlayfs could support upper layer directly referring to a data
+layer, but there's no current use case for this.
 
-v2:
-	- drop broken hunk in param.c (Amir)
-	- patch header improvements (Amir)
+Originally, when data-only layers were introduced, this wasn't allowed,
+only introduced by the "datadir+" feature, but without actually handling
+this case, resulting in an Oops.
 
+Fix by disallowing datadir without lowerdir.
+
+Reported-by: Giuseppe Scrivano <gscrivan@redhat.com>
+Fixes: 24e16e385f22 ("ovl: add support for appending lowerdirs one by one")
+Cc: <stable@vger.kernel.org> # v6.7
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
 ---
-Giuseppe Scrivano (1):
-  ovl: remove unused forward declaration
+ fs/overlayfs/super.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Miklos Szeredi (4):
-  ovl: don't allow datadir only
-  ovl: make redirect/metacopy rejection consistent
-  ovl: relax redirect/metacopy requirements for lower -> data redirect
-  ovl: don't require "metacopy=on" for "verity"
-
- Documentation/filesystems/overlayfs.rst |  7 +++
- fs/overlayfs/namei.c                    | 77 ++++++++++++++++---------
- fs/overlayfs/overlayfs.h                |  2 -
- fs/overlayfs/params.c                   | 16 +----
- fs/overlayfs/super.c                    |  5 ++
- 5 files changed, 66 insertions(+), 41 deletions(-)
-
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 86ae6f6da36b..b11094acdd8f 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -1137,6 +1137,11 @@ static struct ovl_entry *ovl_get_lowerstack(struct super_block *sb,
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
++	if (ctx->nr == ctx->nr_data) {
++		pr_err("at least one non-data lowerdir is required\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	err = -EINVAL;
+ 	for (i = 0; i < ctx->nr; i++) {
+ 		l = &ctx->lower[i];
 -- 
 2.49.0
 
