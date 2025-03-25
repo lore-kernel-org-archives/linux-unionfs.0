@@ -1,97 +1,246 @@
-Received: from mail-qt1-f171.google.com (mail-qt1-f171.google.com [209.85.160.171])
+Received: from mail-ed1-f47.google.com (mail-ed1-f47.google.com [209.85.208.47])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3949C19ABA3
-	for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 10:57:50 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.171
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 36A68537E9;
+	Tue, 25 Mar 2025 11:13:44 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.47
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742900273; cv=none; b=RYiCpByiDemiSfcopbxUbCG2U1SdBI8NjkmNNRNYaYodteXjEjjgMfFl4JXn95G3kSwLbBk+9T6tE3HQ8Q/xsvk7W8rKACvd/zBIls9Z+x1JoeVhtiYCdIugy6vbhl1gKa6pVoFJuBXqgbpqyR/QZjZh1LVQ0fKUa17nzSNtW14=
+	t=1742901228; cv=none; b=Sm+3MnugGm768It4I+NFQFasX9aSMfexw5IaNIqpBra6eCikLBU0PJDwDT4he/RvWKJB3KQhAfrlWSomrI7yNsTjRElN1jVvXBcFehhN0QJZd0ZXpNEZsZsNb0kMH750ZTBEfpvb36vRs6CFwBhZ/g5TBgOpsb3tOAFyhChvHio=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742900273; c=relaxed/simple;
-	bh=XsEMWdvBi5iYepcfq5t8UKPpw3unNu+uylpT17aX/IU=;
+	s=arc-20240116; t=1742901228; c=relaxed/simple;
+	bh=oiLSwYFjiUis8e72W884YKrNFUMTJcV1TgbNOmTdcqE=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=p8rS2PytgbZxjn64rQe+jrDa18OwunNpYb7hgwFLPYQi0Uss9qqmIFM35VT3xGnGuh1xFlSrrtaMCIkjhjYc6XTcb9N3mleYrmUw5z4ZcNiXlC0mdUCqTKI2hIVHhbrA5LLQK8rPMIyZrbsdjLnExfdDNApPlXt5RwHiCTkSR2A=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=cxUh7kCl; arc=none smtp.client-ip=209.85.160.171
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	 To:Cc:Content-Type; b=WdgXA0F5k8UEmWxiGwWfjr6vcwCzin1jdJ+LJfFvJRYdi3B1fMywtUym54ExQ5HI2svBNXyr5xOfAgb/AeubYgpuzExSQsgcc1bLcS3nCBoEMkLIzneSnX5CHjM7wZB977Y5l3DUySqoPQDLhMlQQzQSUp+JM5UUSAfvL7v7wBM=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=Qd3DzoOF; arc=none smtp.client-ip=209.85.208.47
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="cxUh7kCl"
-Received: by mail-qt1-f171.google.com with SMTP id d75a77b69052e-477282401b3so37092431cf.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 25 Mar 2025 03:57:50 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="Qd3DzoOF"
+Received: by mail-ed1-f47.google.com with SMTP id 4fb4d7f45d1cf-5e5c7d6b96fso9845446a12.3;
+        Tue, 25 Mar 2025 04:13:44 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1742900269; x=1743505069; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=vBkCikaTAoHizoDbryCJJ3jdoOZ97/scQy3/JjbbFL0=;
-        b=cxUh7kCl8I6InZltCE3Mze3ggfthI/nHlpoNQlE9txD33CUJXnYWYtRnbLWsGSwUVc
-         +kX0HNd/LTyrs4Hhd1CA+nVFi2OG1y2di3VsFMJyNCrm8fBISR0koylarjwR69Ddu2Zz
-         zfrpdbwrD+zJ1e1UU1360K2VaaoabIKSzr4ws=
+        d=gmail.com; s=20230601; t=1742901223; x=1743506023; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=m9M/B0Pf9mqzaAVp/rsdYiboyi88E5VwqckOOkYoQ+w=;
+        b=Qd3DzoOFiPYhVdEegdpiPgqpxnrlaEU3sdU9lm6iWxrIyxfXXtiRshy8p22zk2jm1D
+         ijwsBl57JfyAEQ/hjA4oQaKwxdOjWz8fpJZSYVAIxoklSzUyAwh8xbhoXdYF0yp0Iai0
+         OoP7DKk5ryXnM150YBj9gR8TJhoEzeBR8iLl9pMroanXqrCvjibJ6JANvrp+6Abd3rFR
+         SSLI5rWXwpwdAZOPu6iqLd8X+6CaJuDtS9mehoQerEcHjLO+M0wZjMmsNdSp7DV09HNN
+         Aihfa8Kljcuk1wvQBz0WMhIDBd57YiVoKSze4KcGs2U4zmZ6e/DrxXeGwsJI3e/XcI4D
+         N8jA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742900269; x=1743505069;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vBkCikaTAoHizoDbryCJJ3jdoOZ97/scQy3/JjbbFL0=;
-        b=jmbMZt/fEb69jbcx9qob3xSmZojkR1atp6ceKGEvDIhaIKbzZb3H+lSpolZEGO+SnU
-         xBpBtOJ7s87gQKSw84PsXYWTO1ToSjivXQrzC4xcAn0LIgE4UMvO0Z9A85qZaITzr7rK
-         sqwrPSIWvZl1tON+Ss7QYt9jvCgeUIMBWstiZogz+7rey0WdviCLd00IAaP+CWGliMN+
-         kq5rNxVJtGt4my0UsdAbguefWOe2jxumi7iSBWSkhLCQ/NbcWX4ukIirh5vIQc3jkFCY
-         9urnG4n2bfzu/KQrRyr3hTuqQmCI2xKgOa2ZRt9s9bfW8F5mrL1TFttjhP9Gybes4In2
-         /oLg==
-X-Forwarded-Encrypted: i=1; AJvYcCU0j132q9AitcubDxLyqxqug9yMFtuEVpurJwBBAlWs6Rv0Wt8/MWMIFW6Qqk5CN3jYxJ/uJAXiOi3gMbCJ@vger.kernel.org
-X-Gm-Message-State: AOJu0YypuEIiIcuR66dOTuW6DGW81c1iFzal8r2SAxpIkurX+XcaSOtT
-	K2SVxcBFa7/5NmJXBFwCtvrPbj2gn1PopUA2Aw3CnRmhXTVkY2fUJ22hY9S8TgYy9D5uSGyVavm
-	ezcXEsQh15Azk8Rck/TuYTp2ZESzNoZBE7oqQqg==
-X-Gm-Gg: ASbGncvupsOEE6v3jUTInAADB6/WIMkLXXq/+naAHzSB9CRwn6imGWnuaB0xFaJ2TG1
-	4q4f9jp8MSF70QSMl6ntR1aF7ZFZ/ccHQMOcQO1kT8dA5C5aflbihD0yRObq+VzyqsbY0OYY6rO
-	voaBa8SFEskaIh7M7BHW3QRvDv
-X-Google-Smtp-Source: AGHT+IG+KLvfcAl79m45TxzmZPY9Trdpca/2dQEEBE+Xb5C+dQlIvgNSU5J10Zl3B4H6RzI3Mc6ZMY0zQ5DIimVjAsE=
-X-Received: by 2002:a05:622a:4c8c:b0:476:b783:c94d with SMTP id
- d75a77b69052e-4771de1585emr250434821cf.35.1742900269488; Tue, 25 Mar 2025
- 03:57:49 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1742901223; x=1743506023;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=m9M/B0Pf9mqzaAVp/rsdYiboyi88E5VwqckOOkYoQ+w=;
+        b=MVcTsIYDBE+K8iKmliVON56F74HjjtyHFjQeV9wkwvgzpyTOojw1/rDrrNh5SNqSCE
+         VYlmxN0LyJQGDcIqFXdt+3LojF4KWU5i0rZc3Q984RaqCbCgVsyTP214QE15jFZL1g2J
+         PP5QI3ieA2M66Wz3Yqux6fqAgJt2fhOed8yCzsXUNwBjcKs8Yg5eau6qiEzP71uGte51
+         KL7XkZ5s/nbn3AUtpQ+iahhW8CqCdt22eLY8HZXm07udDhCyXgavTv4vECQ3wtFFEdis
+         VRzGWRXf1JXcn50uDsgKu6+jjkLX2w3IVvVTRr6o3dOrJZn4MzgoP1dM+DDPiSxjjXtW
+         M5Dw==
+X-Forwarded-Encrypted: i=1; AJvYcCUiliD7wDALHrV7FUxomx/uIAIgu81ViPGstuXXCRsR+1uHizumHx/+3f9yf+nm8CqdDhSsoj60UJmEBMmr@vger.kernel.org
+X-Gm-Message-State: AOJu0Yz8cCneUKKs3YgPNWIkS2VenoenGqAq1WH2A17uNiN+1OEoqs7S
+	9AnwkOYIQpn1cTZ6uq9v0oVGJR97YfMPAIZ691At+FOvS/yxprRe68SpxhMjxwFLx2kZRgzMLIN
+	i3rujLcxoMg9sTuZJT77TBnHl6Rk=
+X-Gm-Gg: ASbGncs7jzbYhdo79PSbZdIMucDTQtiBN0/aMsz14JtmX8DDAZzZdKiv7KaE1snlc8P
+	OatKcKZi2k0jQfndY+/WQB0qRD+5Fux/YKvSZHhFrPY3wHZtQ8H/ILN6WaQPrA359o5enD9a5Qy
+	p8zY0aYyJ+tqcpFolLwUoDEzRe
+X-Google-Smtp-Source: AGHT+IE/FAgKsln01DXQRfRcgKN7ZoJOGFY3ECUh3lwlvYXccD7fgH+yvXLGspKZMMQblU6GPRb4C9hJUcYjKvwnRbc=
+X-Received: by 2002:a05:6402:440a:b0:5e5:ca1b:c425 with SMTP id
+ 4fb4d7f45d1cf-5ebcd4680c0mr14283905a12.17.1742901223092; Tue, 25 Mar 2025
+ 04:13:43 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339-3-mszeredi@redhat.com>
- <CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
- <CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com> <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
-In-Reply-To: <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 25 Mar 2025 11:57:38 +0100
-X-Gm-Features: AQ5f1Jr4s098ta3jIrpq5kQdXM6kspgGjK8HSqHg4idBTvhTOKRucehRWdwRJr4
-Message-ID: <CAJfpegs1hKDGne7c3q4zs+O5Z4p=X3PK8yFXhyCY2iAjs4orig@mail.gmail.com>
-Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Alexander Larsson <alexl@redhat.com>, 
-	Giuseppe Scrivano <gscrivan@redhat.com>, Colin Walters <walters@redhat.com>
+References: <20250325104634.162496-1-mszeredi@redhat.com> <20250325104634.162496-4-mszeredi@redhat.com>
+In-Reply-To: <20250325104634.162496-4-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 25 Mar 2025 12:13:32 +0100
+X-Gm-Features: AQ5f1JphwS9a5s-TjYtd1k4D46RJYROeRnxmQlsj9IwChK6nuc42S9A8ASouaqY
+Message-ID: <CAOQ4uxiyJTCjq5Okz=XgK9=xYZoR+r7iLiFGBBWhOrZkZ51KiA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/5] ovl: make redirect/metacopy rejection consistent
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Giuseppe Scrivano <gscrivan@redhat.com>, Alexander Larsson <alexl@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, 11 Feb 2025 at 13:01, Amir Goldstein <amir73il@gmail.com> wrote:
-> Looking closer at ovl_maybe_validate_verity(), it's actually
-> worse - if you create an upper without metacopy above
-> a lower with metacopy, ovl_validate_verity() will only check
-> the metacopy xattr on metapath, which is the uppermost
-> and find no md5digest, so create an upper above a metacopy
-> lower is a way to avert verity check.
+On Tue, Mar 25, 2025 at 11:46=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.co=
+m> wrote:
 >
-> So I think lookup code needs to disallow finding metacopy
-> in middle layer and need to enforce that also when upper is found
-> via index.
+> When overlayfs finds a file with metacopy and/or redirect attributes and
+> the metacopy and/or redirect features are not enabled, then it refuses to
+> act on those attributes while also issuing a warning.
+>
+> There was a slight inconsistency of only warning on an upper metacopy if =
+it
+> found the next file on the lower layer, while always warning for metacopy
+> found on a lower layer.
+>
+> Fix this inconsistency and make the logic more straightforward, paving th=
+e
+> way for following patches to change when dataredirects are allowed.
+>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+Reviewed-by: Amir Goldstein <amir73il@gmail.com>
 
-So I think the next patch does this: only allow following a metacopy
-redirect from lower to data.
-
-It's confusing to call this metacopy, as no copy is performed.  We
-could call it data-redirect.  Mixing data-redirect with real meta-copy
-is of dubious value, and we might be better to disable it even in the
-privileged scenario.
-
-Giuseppe, Alexander, AFAICS the composefs use case employs
-data-redirect only and not metacopy, right?
-
-Thanks,
-Miklos
+> ---
+>  fs/overlayfs/namei.c | 67 +++++++++++++++++++++++++++++---------------
+>  1 file changed, 44 insertions(+), 23 deletions(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index be5c65d6f848..da322e9768d1 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -1040,6 +1040,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
+ dentry *dentry,
+>         struct inode *inode =3D NULL;
+>         bool upperopaque =3D false;
+>         char *upperredirect =3D NULL;
+> +       bool nextredirect =3D false;
+> +       bool nextmetacopy =3D false;
+>         struct dentry *this;
+>         unsigned int i;
+>         int err;
+> @@ -1087,8 +1089,10 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                         if (err)
+>                                 goto out_put_upper;
+>
+> -                       if (d.metacopy)
+> +                       if (d.metacopy) {
+>                                 uppermetacopy =3D true;
+> +                               nextmetacopy =3D true;
+> +                       }
+>                         metacopy_size =3D d.metacopy;
+>                 }
+>
+> @@ -1099,6 +1103,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
+ dentry *dentry,
+>                                 goto out_put_upper;
+>                         if (d.redirect[0] =3D=3D '/')
+>                                 poe =3D roe;
+> +                       nextredirect =3D true;
+>                 }
+>                 upperopaque =3D d.opaque;
+>         }
+> @@ -1113,6 +1118,29 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>         for (i =3D 0; !d.stop && i < ovl_numlower(poe); i++) {
+>                 struct ovl_path lower =3D ovl_lowerstack(poe)[i];
+>
+> +               /*
+> +                * Following redirects/metacopy can have security consequ=
+ences:
+> +                * it's like a symlink into the lower layer without the
+> +                * permission checks.
+> +                *
+> +                * This is only a problem if the upper layer is untrusted=
+ (e.g
+> +                * comes from an USB drive).  This can allow a non-readab=
+le file
+> +                * or directory to become readable.
+> +                *
+> +                * Only following redirects when redirects are enabled di=
+sables
+> +                * this attack vector when not necessary.
+> +                */
+> +               if (nextmetacopy && !ofs->config.metacopy) {
+> +                       pr_warn_ratelimited("refusing to follow metacopy =
+origin for (%pd2)\n", dentry);
+> +                       err =3D -EPERM;
+> +                       goto out_put;
+> +               }
+> +               if (nextredirect && !ovl_redirect_follow(ofs)) {
+> +                       pr_warn_ratelimited("refusing to follow redirect =
+for (%pd2)\n", dentry);
+> +                       err =3D -EPERM;
+> +                       goto out_put;
+> +               }
+> +
+>                 if (!ovl_redirect_follow(ofs))
+>                         d.last =3D i =3D=3D ovl_numlower(poe) - 1;
+>                 else if (d.is_dir || !ofs->numdatalayer)
+> @@ -1126,12 +1154,8 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                 if (!this)
+>                         continue;
+>
+> -               if ((uppermetacopy || d.metacopy) && !ofs->config.metacop=
+y) {
+> -                       dput(this);
+> -                       err =3D -EPERM;
+> -                       pr_warn_ratelimited("refusing to follow metacopy =
+origin for (%pd2)\n", dentry);
+> -                       goto out_put;
+> -               }
+> +               if (d.metacopy)
+> +                       nextmetacopy =3D true;
+>
+>                 /*
+>                  * If no origin fh is stored in upper of a merge dir, sto=
+re fh
+> @@ -1185,22 +1209,8 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                         ctr++;
+>                 }
+>
+> -               /*
+> -                * Following redirects can have security consequences: it=
+'s like
+> -                * a symlink into the lower layer without the permission =
+checks.
+> -                * This is only a problem if the upper layer is untrusted=
+ (e.g
+> -                * comes from an USB drive).  This can allow a non-readab=
+le file
+> -                * or directory to become readable.
+> -                *
+> -                * Only following redirects when redirects are enabled di=
+sables
+> -                * this attack vector when not necessary.
+> -                */
+> -               err =3D -EPERM;
+> -               if (d.redirect && !ovl_redirect_follow(ofs)) {
+> -                       pr_warn_ratelimited("refusing to follow redirect =
+for (%pd2)\n",
+> -                                           dentry);
+> -                       goto out_put;
+> -               }
+> +               if (d.redirect)
+> +                       nextredirect =3D true;
+>
+>                 if (d.stop)
+>                         break;
+> @@ -1218,6 +1228,17 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                 ctr++;
+>         }
+>
+> +       if (nextmetacopy && !ofs->config.metacopy) {
+> +               pr_warn_ratelimited("refusing to follow metacopy origin f=
+or (%pd2)\n", dentry);
+> +               err =3D -EPERM;
+> +               goto out_put;
+> +       }
+> +       if (nextredirect && !ovl_redirect_follow(ofs)) {
+> +               pr_warn_ratelimited("refusing to follow redirect for (%pd=
+2)\n", dentry);
+> +               err =3D -EPERM;
+> +               goto out_put;
+> +       }
+> +
+>         /*
+>          * For regular non-metacopy upper dentries, there is no lower
+>          * path based lookup, hence ctr will be zero. If a dentry is foun=
+d
+> --
+> 2.49.0
+>
