@@ -1,86 +1,143 @@
-Received: from mail-ed1-f48.google.com (mail-ed1-f48.google.com [209.85.208.48])
+Received: from mail-ej1-f42.google.com (mail-ej1-f42.google.com [209.85.218.42])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 18A902566CC;
-	Tue, 25 Mar 2025 12:05:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.48
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 767EEA937;
+	Tue, 25 Mar 2025 12:16:50 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.42
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1742904319; cv=none; b=TXlg/3jvXsWyMu5iMm2XabNPh6RL9noblROInLSRd8cKVhXmOPeY9t50fVWd7kevooriizhPTs4ao++ckn3tKvkkT8HUOxFpOr1Z2OYSHYRscwLJIW6/0pYv11Purw2VEc2IYjXLNgagIZV+0BEsjK8ziBqmHHk8dWegjLVIXpk=
+	t=1742905012; cv=none; b=IU1fziTOpVvGAypjb//2qClaVqE0XdkFr3wzR/9uzI9pNdVKGHnXLwMFe6lnEVfhIyqgxgO21bhYK4wq4EWvyWjJ3GTOXGJu9ZdQ4RdRR4AjT2x7UvNAvyq7P/uHhJBrT+Qow0PJZzd6IZhadho5n29SDTogc3uemGxKqwMRQl4=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1742904319; c=relaxed/simple;
-	bh=4ZitrOvyIpD8U1fVHXQl0H9uYxjJNEF6qPa8mF8SSiI=;
+	s=arc-20240116; t=1742905012; c=relaxed/simple;
+	bh=A/HVEfJcYRT01uF6p+bjIsoGXJumPIltSSZeiBV1byA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=rQkqWo03QFavCic/on41GIdIZNu/MqoCvgUoDAyKaUnqYDXipLiwSQSxijp8/E95LeX3TIwoUyEsAm5mfakMW9g6/82qFLNsAeqQD+OuSjzIS+5hdzjg9SdRwaDtTiQzMOdx3dPJGNNVWQ9OoOJj/HmwZiSVQJSrY3TcvM1pFMc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=aPAYZYPL; arc=none smtp.client-ip=209.85.208.48
+	 To:Cc:Content-Type; b=L6+t+Td2Lg3vpO3kKL2hy5F7ziwYZggU1Df4mdeFVImaHZm63Z8HlyVrBROE7BFutLxmdXIvK4+/f/DGpktSpcwEsOCvLB9MXkN1Js0utbRem001gOG4g/O891LY+vQmXBx945NYMPuAxj94PaTfpnqFVMyemC6SNRHE5Ew1xRk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=XDElJhse; arc=none smtp.client-ip=209.85.218.42
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="aPAYZYPL"
-Received: by mail-ed1-f48.google.com with SMTP id 4fb4d7f45d1cf-5ed1ac116e3so989335a12.3;
-        Tue, 25 Mar 2025 05:05:15 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="XDElJhse"
+Received: by mail-ej1-f42.google.com with SMTP id a640c23a62f3a-ac2aeada833so1026422766b.0;
+        Tue, 25 Mar 2025 05:16:50 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1742904314; x=1743509114; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1742905009; x=1743509809; darn=vger.kernel.org;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=4ZitrOvyIpD8U1fVHXQl0H9uYxjJNEF6qPa8mF8SSiI=;
-        b=aPAYZYPLALKKy7IeX0PuAxzHNhU4PtbijwcHMBGHOA14rdxgKQfdDVIvxhqz4U71Gw
-         mMTvahB8HkUnszY/IRVxdswRt4dKDa5ttIu4M0eskegf+sT0SxSd3CGdaG3LvzP8eL0n
-         ENC6PEhnRo+ad5exI4T6NfOrQ+XKMP4hncZDmJv9QIwZElUHz18AoIZX8oIZN2d3DJE0
-         DWE2vQHW7v++p0xB9ZfQGdZaoXR9vEzdyeF+oT6UGevgQTVq903LHzQF8pBqcfpEXnm9
-         3agES5tGfADhU57a55aA/logBWajVvUFn2ykpKI2S2t9V1i4JJBW8Gjcb8YqMUG5xhUG
-         ZiHA==
+        bh=3YwMoGN98deik8uPYk+jICPEOK3Aa0K3ta2oIfbGfLw=;
+        b=XDElJhseBmlrc3xHaRYHs+Jv2nnd99JiIkilyaQ+GUmGgNpva+DBkGFbHLfyRiAc4q
+         D9MVRPSOYTxXSVcR0CHrOJqH2XNswTqmiUbqwptkFSW/QzdGXlkn27XxYHcy4uVQguhK
+         wzKB6EAUal56g4abQyAb6kQT6i12S1l+rRnZYVytvYQag3a+qgj/P3k468CcyvVRM4+A
+         7+xcME9hTx/xx3LZnydAHinyuAMIO9Tnj7fk+GzjTiQeG96DMwTjjRhHL69K7fcacfwm
+         uWt3fK2VvLnbCh6Pxl37/zJPBqvbAHUPPZ7zrN7B4b1HnN3dEyv2p9um3th0PVQLHX4N
+         LrhA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1742904314; x=1743509114;
+        d=1e100.net; s=20230601; t=1742905009; x=1743509809;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=4ZitrOvyIpD8U1fVHXQl0H9uYxjJNEF6qPa8mF8SSiI=;
-        b=fxYOVIJlRL8e968Hs4QtyVS4kFkwjFolNnmZ4Skos4IzD4e4xPxLi1AVNDnvkvsRkU
-         cXo0h+g6DhfLmz/XqXlFv3rnvd+DTSotWtJBV3WZEQYkwc0LRlGkE5bnQPuGoglFQBpJ
-         U0+EA6da/xSx67tZi+0pA1tjvjxUUSHH4TAF5qUM7AH/L+xd3C5FffVvy1zLt8J/Mi1j
-         hJ4uVQ9sLsf9QHF1/TtIUGwbNNXzAOEmsgFm9Uet8923jiA5kuLQ6E0W4yqec4uGRhXO
-         tjYKxCVduj1V3VbntolPQNjSkcbYd31tDTwL/YrS1ckVmKhrUGzUD53a5RB+iGVIoNhM
-         PuSA==
-X-Forwarded-Encrypted: i=1; AJvYcCV8/DCGm1JPRH5XM6oeKhnwX7ZzpyuAJsXfMcBxtCbgQuYQgTjKSIFkiW4AaAHyGGaQ3NsRoDWGMetmC2Ja@vger.kernel.org
-X-Gm-Message-State: AOJu0YxT0ofZHZi43qYsZHIcupR/6WG+Y7kJ6eeHVbzTRayMmCBnABW6
-	4UkBKmu/83bj7D8ObP5QKdQGrYGimO5z0hbzd6tbSLEGHURmVOC4YziuFMsNrzrUXl4vYnf73ez
-	7GjOsBnEbTUDkpRH3TVNY1nV1Fvw=
-X-Gm-Gg: ASbGncsZDCwUycEpXoN6AA+5EUyL7NCBQEYpUc0cq156AXojaC9JBm1zmt7GQL2HM+K
-	brQ19e4YZXT+2DakNv78xELQQ+hv4v81jZYKu1SOPtAmin/AA4G+aF4QFzbH9Zg0VhFRWSCOFcg
-	hMLnoZYQYeUDuocSHOp4NCbwd+
-X-Google-Smtp-Source: AGHT+IFZp+e8Mx6CAvkqtbE2EnAPL1Mk8hmiYC53bvrs/6rBKw2Id1fZ5cONWVdg7uXCpiJOXZsmtxWai550wvqslI0=
-X-Received: by 2002:a17:907:d70c:b0:ac3:eb29:2aef with SMTP id
- a640c23a62f3a-ac3f26ade4fmr1962525266b.41.1742904311272; Tue, 25 Mar 2025
- 05:05:11 -0700 (PDT)
+        bh=3YwMoGN98deik8uPYk+jICPEOK3Aa0K3ta2oIfbGfLw=;
+        b=rXkmJoPHnlDmmJ+gkUK8gpuPFrApXNk2NXtFW0GT6IYQyBZicQ1rywdV+7iSr0P4Bp
+         1kENYv9mtYPx8XgGuE8fVF5KGuTRlWEXGP8Ao9r4Bdu3d95hTipWd9aV/yvWEEgHjCY9
+         HQQrAoquI5gCdXdJXcD4vn9HqzBvZPtCLYVUJZvP2or2HZQw/Xp7H6R7K6sB2KfxuxPc
+         1c6cKrkU8GWe+v+lszIX4n0y6vWwqc/fvu7XVF/uqpdZcVwMaVm7nAFkm2YuNw+DvkDh
+         x82g2fZ21W7rdujsldRjKD6NV97woRLeX7cFMnhgUNIxPLHYMw7hNnPhpu1bjF5ylYAJ
+         cmOQ==
+X-Forwarded-Encrypted: i=1; AJvYcCUPDHOJq+Yz/TWdWkCOyZ1UErPR7zDjLOFng3Rlv7VaedzHdVKFO4pT670maq6ZDoZc51CpRAkGHK7ltaGd@vger.kernel.org, AJvYcCVbq/YezcLoLx7Kexe9+bP9lkIqR1p2XBXTPtnnz1zmmNu7pf/mwsFoBbD56nLWPdrY/3GMOwN7P2o5zSBhdw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YzKKw5+l9JQyqno/IEjnvTGKBfrpkGqcXvU7hcQrxpct+XOqntA
+	JNQUvAWYYXWIFKAj/q5nwpkJ3+7/0EDPdbJjXINBzNQN1YSW/b5nob/trskYam2oa2xjg8rm8pQ
+	KeeBmaexuCJz4bpn8K+DtfvaquzUfWERG
+X-Gm-Gg: ASbGncsBipHfMr0v/b7TbIsnLzpJgbj0fSg4LHm34uG5auIeZU2O8CVJfiLHpMnl22w
+	qQorwYz3LDK3Sm+3P1eX6vjZcnuz5N3Zo7c0uitsoEsUAhQnds14//7/+BsnzQA7vUZdFJo63mI
+	zVvXwaSgWb7clr1ypFO8rLAzNTNJH6rGcBWpU=
+X-Google-Smtp-Source: AGHT+IEh5kgWuYcKo36DTgjK2wx0ObTGE58OJAEbZCdPYzv2jYpEeNhIbzGSogxiqqoWpxFyWSXcfctHK9/nU6lWsP4=
+X-Received: by 2002:a17:906:c10b:b0:ac2:d6c4:958d with SMTP id
+ a640c23a62f3a-ac3f0176d24mr1753102366b.18.1742905008170; Tue, 25 Mar 2025
+ 05:16:48 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250325104634.162496-1-mszeredi@redhat.com>
-In-Reply-To: <20250325104634.162496-1-mszeredi@redhat.com>
+References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339-3-mszeredi@redhat.com>
+ <CAOQ4uxiqis6kawuv4pa6jxHYgpQPc18izFP8e0TORfA_mVu_-w@mail.gmail.com>
+ <CAJfpegt=PWs8ZDF11p3nOCWHbWescE5nwVtUt82f=B6B+S0Miw@mail.gmail.com>
+ <CAOQ4uxiQQV_O1MJgTksKycBjJ6Bneqc=CQbUoghvXc=8KEEsMg@mail.gmail.com>
+ <CAJfpegsuN+C4YiA9PAuY3+-BJ959aSAaXTYBwKNCjEnhXVw0pg@mail.gmail.com>
+ <CAOQ4uxjkBQP=x6+2YPYw4pCfaNy0=x48McLCMPJdEJYEb85f-A@mail.gmail.com>
+ <CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
+ <87a5ahdjrd.fsf@redhat.com> <CAJfpeguv2+bRiatynX2wzJTjWpUYY5AS897-Tc4EBZZXq976qQ@mail.gmail.com>
+ <875xl4etgk.fsf@redhat.com> <CAJfpeguhVYAp5aKeKDXDwip-Z0hc=3W4t=TMLr+-cbEUODf2vA@mail.gmail.com>
+In-Reply-To: <CAJfpeguhVYAp5aKeKDXDwip-Z0hc=3W4t=TMLr+-cbEUODf2vA@mail.gmail.com>
 From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 25 Mar 2025 13:04:57 +0100
-X-Gm-Features: AQ5f1JrqR_UmyG8rA2u0bN7iFYb8FJbd2aEe4a-2BPvNVursqnudSZuXKLUZFWA
-Message-ID: <CAOQ4uxhcUxZjmLJWp9PXbo1u04nwpWWYkqchR7WfT1ebzCAxOQ@mail.gmail.com>
-Subject: Re: [PATCH v2 0/5] ovl: metacopy/verity fixes and improvements
-To: Miklos Szeredi <mszeredi@redhat.com>
-Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Giuseppe Scrivano <gscrivan@redhat.com>, Alexander Larsson <alexl@redhat.com>
+Date: Tue, 25 Mar 2025 13:16:35 +0100
+X-Gm-Features: AQ5f1Jpwz9fIfJs_p0muEkmk0cSF1jqwMl_r4GomS2pemCSeZg3habMN0cxsbPc
+Message-ID: <CAOQ4uxgenjB-TQ4rT9JH3wk+q6Qb8b4TgoPxA0P3G8R-gVm+WA@mail.gmail.com>
+Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Giuseppe Scrivano <gscrivan@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>, 
+	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Alexander Larsson <alexl@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 
-On Tue, Mar 25, 2025 at 11:46=E2=80=AFAM Miklos Szeredi <mszeredi@redhat.co=
-m> wrote:
+On Thu, Feb 20, 2025 at 12:48=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu>=
+ wrote:
 >
-> The main purpose of this patchset is allowing metadata/data-only layers t=
-o
-> be usable in user namespaces (without super user privs).
+> On Thu, 20 Feb 2025 at 12:39, Giuseppe Scrivano <gscrivan@redhat.com> wro=
+te:
+> >
+> > Miklos Szeredi <miklos@szeredi.hu> writes:
+> >
+> > > On Thu, 20 Feb 2025 at 10:54, Giuseppe Scrivano <gscrivan@redhat.com>=
+ wrote:
+> > >>
+> > >> Miklos Szeredi <miklos@szeredi.hu> writes:
+> > >>
+> > >> > On Tue, 11 Feb 2025 at 16:52, Amir Goldstein <amir73il@gmail.com> =
+wrote:
+> > >
+> > >> >> The short version - for lazy data lookup we store the lowerdata
+> > >> >> redirect absolute path in the ovl entry stack, but we do not stor=
+e
+> > >> >> the verity digest, we just store OVL_HAS_DIGEST inode flag if the=
+re
+> > >> >> is a digest in metacopy xattr.
+> > >> >>
+> > >> >> If we store the digest from lookup time in ovl entry stack, your =
+changes
+> > >> >> may be easier.
+> > >> >
+> > >> > Sorry, I can't wrap my head around this issue.  Cc-ing Giuseppe.
+> > >
+> > > Giuseppe, can you describe what should happen when verity is enabled
+> > > and a file on a composefs setup is copied up?
+> >
+> > we don't care much about this case since the composefs metadata is in
+> > the EROFS file system.  Once copied up it is fine to discard this
+> > information.  Adding Alex to the discussion as he might have a differen=
+t
+> > opinion/use case in mind.
+>
+> Okay.
+>
+> Amir, do I understand correctly that your worry is that after copy-up
+> verity digest is still being used?  If that's the case, we just need
+> to make sure that OVL_HAS_DIGEST is cleared on copy-up?
+>
+> Or am I still misunderstanding this completely?
 
-Please add test coverage to this use case.
-I think a userxattr variant of test overlay/080 should be easy.
+Sorry, I have somehow missed this email.
+
+TBH, I am not sure what is expected to happen in the use case in question
+on copy up - that is if a full copy up on any metadata change is acceptable=
+.
+
+Technically, we could allow a metacopy upper as long as we take the md5dige=
+st
+from the middle layer but that complicates things and I am not sure if we n=
+eed
+to care - can't wrap my head around this case either.
 
 Thanks,
 Amir.
