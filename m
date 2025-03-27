@@ -1,58 +1,54 @@
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
+Received: from mail-qt1-f175.google.com (mail-qt1-f175.google.com [209.85.160.175])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AB0CE1A8F71;
-	Thu, 27 Mar 2025 17:14:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.44
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C6DE1BC07B
+	for <linux-unionfs@vger.kernel.org>; Thu, 27 Mar 2025 19:23:19 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.175
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743095653; cv=none; b=RggmqXJAqv3TuIuXr+UQI1S8Dl0g0E39UQjcJlje6CcFtHfOOmBJ9eCtR0SARXRYD50VPTJFFYo76dG5bBTQKuaUW7mSuRBzH9PTEYNaMfZUaKevMamWFaXR8dttA3JeIgA2w6RKqrlV38idr47/XePfj070vqZV/EqWZtzHdoU=
+	t=1743103402; cv=none; b=KFHLfQSxjt4UPbWFVKS6wzlAyR5O0uuFastL2oPTUxyb2avvKMZ2EfBDn6qr3NYL/ck7mF0hvCdR9qbU/O6G4secCA7ZHBtGcZFWdWdrCHvhVzMIYefaG5gKSUPGGGD8L+sSvhqQ/5WKJOIPsDbwAE6+YbWPuYb2dV7UaExJfIo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743095653; c=relaxed/simple;
-	bh=rQMinX0XNjR7/a5iErmX7qGW1+nEYEwP5Qn/aB+I7EA=;
+	s=arc-20240116; t=1743103402; c=relaxed/simple;
+	bh=TRjHrgaVBLp3454MVUPZtgyslXGw8GeCIfd220q/xiA=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=RLM/kI82x2pNtcBjTv6Q/BRDgIlfEvKG3+jGrusAgAE0uyNqihBedrbXBBkaN79CnmmZliOIsx8gsEVh6puEkCfEFu0FY0O9LQ/9/R2xPsITz8EJ8RZ+jHCY9zKQUEeY4NgKyQlvqjCz6CgmV3dt+khTuYj87ZACyyBZjoxtrJg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QCbVyf/M; arc=none smtp.client-ip=209.85.208.44
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	 To:Cc:Content-Type; b=i2Krd/KCcwpMYnSEZioeQ5CArKNPhYZpHDH06Eozp61XvBfGiAEW7L2Jn+MnXhbC8GzWOjSaFn5HtWJsSnwmu+LEGxKUSgBu15RIXnVdmIFMwkXk1x0tXElxhe+UoWzAv/+RouOpbgHfV2VGqYawR9Mj1n0+Khd9L3b/6U3fU6c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=FZoQwW4d; arc=none smtp.client-ip=209.85.160.175
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QCbVyf/M"
-Received: by mail-ed1-f44.google.com with SMTP id 4fb4d7f45d1cf-5eb92df4fcbso2205804a12.0;
-        Thu, 27 Mar 2025 10:14:09 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="FZoQwW4d"
+Received: by mail-qt1-f175.google.com with SMTP id d75a77b69052e-476a720e806so12933471cf.0
+        for <linux-unionfs@vger.kernel.org>; Thu, 27 Mar 2025 12:23:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1743095648; x=1743700448; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0lysXTHavxcrjFY0zeQndTG+44zUJzwOCDCJjIjy0GQ=;
-        b=QCbVyf/MslSsl6aEI5IjYMS+A6QuxsrOcRSho/KlCaS0Tnn1bqUmRfNp6VwkbyU928
-         jbzYqDuECDQj5wmd/q3NZNgk4pphYLWTaX7DeEEZhuijt7Bsw444STOXqVTo90OAlNBo
-         LaiFK+SPj3IeKulUeAsIvCjU2iMq68Ox5lWlBp7re6qtiRGaaIl20HhVJCHXVig0ll6z
-         VJUsRbXBhdyygiWf9vI2vxF4alwtKYFy69XZFJi7TlM3TFwlAnc74bnqHrRMs3rNmoLr
-         jep8dHaDBxrTNnUaPE0Fny1qYWoHqyGkVOwgmZbD9WRmfoIlU2Sd4ih6OCcoURI8XEqN
-         wkQA==
+        d=szeredi.hu; s=google; t=1743103399; x=1743708199; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=9rRCOkKmuMTdXZoRz+hZ7Xd6AWiIvdkVjE7qOL93/iY=;
+        b=FZoQwW4dJCgK4STfi3Q7Z98DQwR4V0l/O8L9NskMetBnAZP1CCB8888XYFC9rjHwLP
+         YhcE/CSNsitRaC45p7PDBZvKhhl4+E4KLTG6V6lRFWKdIssbMpeyP0bW68KR6XRVq5Mq
+         1rjo8w1VaZBRvHTduNAk6fG/EQz/LL44fLGLM=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743095648; x=1743700448;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0lysXTHavxcrjFY0zeQndTG+44zUJzwOCDCJjIjy0GQ=;
-        b=L8Emb1NhMq8OE3IuUZRKM1jQ5OII3XZ/buqOYGkGDhlM98n7Ma7vY2T6Fl1xDbSogt
-         PRVbvGWKQardgv9EirmIhlglTBvwY07ULrft6QxE4bTLOXZBAPixfhxKWmimuxSgFzb7
-         9QkWn5GKOT5cD5vRUW+0tH1LZqi5z3rHzcIIesWWqMMQLFIdIclA2WcASHJkV+1iOxXP
-         /DNbfxvQeV2xrnOe6+nu3IDPvd8Gian6BbVYmVsjvzn8WMsgPP73uowd6ZZgl5juIKae
-         frkVL4je1Mx6IVuv6lk33VJERHxf1CgeeB5LVyFqShqQ72r4L+2UP05Fv86tc56JsJM2
-         euDw==
-X-Forwarded-Encrypted: i=1; AJvYcCUtw9kd/bhIFpdZ4Undpw/hr6Q154GrqRURjjf7aIfmI3X4vSqw/I8YomGOVX9FJfCezPHCsp+biedqWC4F@vger.kernel.org, AJvYcCWlODFjsBN1bgQ/nkn50869LAlKDI2WjG+7YWwpB937kNiIFRxAmE6Kyq3Z4Yn76MdxAvwrvqHdygfCPz8/FQ==@vger.kernel.org
-X-Gm-Message-State: AOJu0Yw2I2seQOenUjtgTpppyiH4XgAs1kWslN2wFbq5XZq0x6hkSiiC
-	+GnBTRbVw2mV8uJ9P6clshyXMsxtZcCjwx+XT7zG5ZxGNwgkQENPqaZ5ID493SsvJmTHDG1MvLL
-	SV7Bg+/kQJwdo00ym0qOldj278S4=
-X-Gm-Gg: ASbGnctH/eZydt8ZvE2n0iibPJ8QaaugSVMpjkA6i9sWmYxJ8s2rnhVkl+AZLe6Vn+O
-	iBTyrZYHO9d7fdjSVHRhz12XwzuWePjq9Js5eUCs4KFWSB8sOfYvJVV3V5BcjCwFBZuCwb0AsZV
-	vH+wLCihANDoousZ4enfL5KOHlhA==
-X-Google-Smtp-Source: AGHT+IHbpru8Tj0zrG0oJ2U5WZgDrB2Aj4vF55eI7meboejILkjuZ4uyLjjgCvPjFyzdxNggRnGNtwZ55PxxXigo9BM=
-X-Received: by 2002:a17:907:9729:b0:ac3:b3a3:f19d with SMTP id
- a640c23a62f3a-ac6fb0ff0a1mr462776566b.43.1743095647616; Thu, 27 Mar 2025
- 10:14:07 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1743103399; x=1743708199;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=9rRCOkKmuMTdXZoRz+hZ7Xd6AWiIvdkVjE7qOL93/iY=;
+        b=SmFYpT4Ha5163U1YEMZZPSjHL/t8qjVWyTAEx8x+ZEW8J+qwXZqUINL7Rc9eSuQwYc
+         zCpJJ7vIXaHJVR91W0MOLbYiQ6HYJdJkdrS6VHOovxCwxWQ1BldHO7kNYznYC7ILgas+
+         BWz/tRg3EoAc5XVeXCmAMil9rNcq6KmvQWY0cymxedQsvfdMV8tZ920aL1zxk9X0ODAi
+         Had0I7VGDznNLL1uxJUbdMRTQkscHzkSnyev2A/8b+ZdLnIo0ZClYi1UaiAoEXi8yHX7
+         b4IRG7zfnHY7mfqm3VNX5zMNKrWc/BzRQA5nnC9V0bxfF9EC/u+62JYZ/AV0z7mY+qwT
+         VG8Q==
+X-Forwarded-Encrypted: i=1; AJvYcCUXmKqmSyQWyhEcsEBJk6f3Ou5WQvcBhiL3XX4H9dU54irvs0oBg5GNQ+6MxlWVB6UqCAd7qvbA+QMrFQgp@vger.kernel.org
+X-Gm-Message-State: AOJu0YxhLsg5pyUnUaPBEoUwqv8yVkkSM/Uw2AgwW/Rd8KY4TyNDS2Oc
+	H8zTaLV0g/a6+WiQ688Y5Gq0+fn5mZjBjG4hmoA+zXB+g1dQgeTxnU6w4Qghzx9hUJz0wovyHML
+	hqocgxOj/tf5yTw7zYU3ShJJMusvqH5n9TNjRVw==
+X-Gm-Gg: ASbGncuLdHiTRBFNVqM4qjwDe5xGe8fMuo6IU4FSm/n3JRcHFZyvNPlNpMnJmHBiYSa
+	dDQNbeJh5/OLpZPRGd6OdON3qydCtsZ3ciyUPZYf4Oe216MFQqhTNBZ0Ftd4gqYLvyTCdLTX309
+	+RXv40zqMgN+tLr0/SzKtnc+Tt
+X-Google-Smtp-Source: AGHT+IFbUthJyzmI+HXRWtZEF5pJ2amrkkAsI9g/G2us87Z3g1xVnUs87w+d1MkhI+sylrU7ZoGb7W9Q1KF5E1V/QZ0=
+X-Received: by 2002:a05:622a:250b:b0:476:7e6b:d2a2 with SMTP id
+ d75a77b69052e-4776e18f5d3mr84769151cf.35.1743103398692; Thu, 27 Mar 2025
+ 12:23:18 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -68,115 +64,54 @@ References: <20250210194512.417339-1-mszeredi@redhat.com> <20250210194512.417339
  <CAJfpegvUdaCeBcPPc_Qe6vK4ELz7NXWCxuDcVHLpbzZJazXsqA@mail.gmail.com>
  <87a5ahdjrd.fsf@redhat.com> <CAJfpeguv2+bRiatynX2wzJTjWpUYY5AS897-Tc4EBZZXq976qQ@mail.gmail.com>
  <875xl4etgk.fsf@redhat.com> <CAJfpeguhVYAp5aKeKDXDwip-Z0hc=3W4t=TMLr+-cbEUODf2vA@mail.gmail.com>
- <CAOQ4uxgenjB-TQ4rT9JH3wk+q6Qb8b4TgoPxA0P3G8R-gVm+WA@mail.gmail.com> <CAJfpegu6mJ2NZr2rkCVexrayUt=wwNSyYv5AE694D04EH2vx2w@mail.gmail.com>
-In-Reply-To: <CAJfpegu6mJ2NZr2rkCVexrayUt=wwNSyYv5AE694D04EH2vx2w@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Thu, 27 Mar 2025 18:13:56 +0100
-X-Gm-Features: AQ5f1Jqjxtaof17FlUIXZAKebrFWQrvGLIKi3qHR7MVEsEgv33GU_zWnOTnFn3c
-Message-ID: <CAOQ4uxjad0hm10F1hMFX8uqZr+kJT-GibFNe9hAv_v971sb97A@mail.gmail.com>
+ <CAOQ4uxgenjB-TQ4rT9JH3wk+q6Qb8b4TgoPxA0P3G8R-gVm+WA@mail.gmail.com>
+ <CAJfpegu6mJ2NZr2rkCVexrayUt=wwNSyYv5AE694D04EH2vx2w@mail.gmail.com> <CAOQ4uxjad0hm10F1hMFX8uqZr+kJT-GibFNe9hAv_v971sb97A@mail.gmail.com>
+In-Reply-To: <CAOQ4uxjad0hm10F1hMFX8uqZr+kJT-GibFNe9hAv_v971sb97A@mail.gmail.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Thu, 27 Mar 2025 20:23:07 +0100
+X-Gm-Features: AQ5f1JrVJvRm2RHIZqdOCuVcPYQFiC2gxuyc6S1g5L4W5_sxAhzF0-8nUPEnfGQ
+Message-ID: <CAJfpegv44p8MhCWCQ2R93+iUCCrTZbk0KowZxVmsf=0tsbGHLA@mail.gmail.com>
 Subject: Re: [PATCH 3/5] ovl: make redirect/metacopy rejection consistent
-To: Miklos Szeredi <miklos@szeredi.hu>
+To: Amir Goldstein <amir73il@gmail.com>
 Cc: Giuseppe Scrivano <gscrivan@redhat.com>, Miklos Szeredi <mszeredi@redhat.com>, 
 	linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
 	Alexander Larsson <alexl@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Mar 27, 2025 at 4:28=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> =
-wrote:
+On Thu, 27 Mar 2025 at 18:14, Amir Goldstein <amir73il@gmail.com> wrote:
+> origin xattr only checks from upper to uppermost lower layer IIRC,
+> do definitely not all the way to lowerdata inode.
+
+Makes sense.
+
+> > so as long as the user is unable to change the origin integrity should
+> > be guaranteed.  IOW, what we need is just to always check origin on
+> > metacopy regardless of the index option.
+> >
+> > But I'm not even sure this is used at all, since the verity code was
+> > added for the composefs use case, which does not use this path AFAICS.
+> > Alex, can you clarify?
 >
-> On Tue, 25 Mar 2025 at 13:16, Amir Goldstein <amir73il@gmail.com> wrote:
-> >
-> > On Thu, Feb 20, 2025 at 12:48=E2=80=AFPM Miklos Szeredi <miklos@szeredi=
-.hu> wrote:
-> > >
-> > > On Thu, 20 Feb 2025 at 12:39, Giuseppe Scrivano <gscrivan@redhat.com>=
- wrote:
-> > > >
-> > > > Miklos Szeredi <miklos@szeredi.hu> writes:
-> > > >
-> > > > > On Thu, 20 Feb 2025 at 10:54, Giuseppe Scrivano <gscrivan@redhat.=
-com> wrote:
-> > > > >>
-> > > > >> Miklos Szeredi <miklos@szeredi.hu> writes:
-> > > > >>
-> > > > >> > On Tue, 11 Feb 2025 at 16:52, Amir Goldstein <amir73il@gmail.c=
-om> wrote:
-> > > > >
-> > > > >> >> The short version - for lazy data lookup we store the lowerda=
-ta
-> > > > >> >> redirect absolute path in the ovl entry stack, but we do not =
-store
-> > > > >> >> the verity digest, we just store OVL_HAS_DIGEST inode flag if=
- there
-> > > > >> >> is a digest in metacopy xattr.
-> > > > >> >>
-> > > > >> >> If we store the digest from lookup time in ovl entry stack, y=
-our changes
-> > > > >> >> may be easier.
-> > > > >> >
-> > > > >> > Sorry, I can't wrap my head around this issue.  Cc-ing Giusepp=
-e.
-> > > > >
-> > > > > Giuseppe, can you describe what should happen when verity is enab=
-led
-> > > > > and a file on a composefs setup is copied up?
-> > > >
-> > > > we don't care much about this case since the composefs metadata is =
-in
-> > > > the EROFS file system.  Once copied up it is fine to discard this
-> > > > information.  Adding Alex to the discussion as he might have a diff=
-erent
-> > > > opinion/use case in mind.
-> > >
-> > > Okay.
-> > >
-> > > Amir, do I understand correctly that your worry is that after copy-up
-> > > verity digest is still being used?  If that's the case, we just need
-> > > to make sure that OVL_HAS_DIGEST is cleared on copy-up?
-> > >
-> > > Or am I still misunderstanding this completely?
-> >
-> > Sorry, I have somehow missed this email.
-> >
-> > TBH, I am not sure what is expected to happen in the use case in questi=
-on
-> > on copy up - that is if a full copy up on any metadata change is accept=
-able.
-> >
-> > Technically, we could allow a metacopy upper as long as we take the md5=
-digest
-> > from the middle layer but that complicates things and I am not sure if =
-we need
-> > to care - can't wrap my head around this case either.
->
-> I've been thinking.  If a lower file has verity enabled, and it is
-> meta-copied up on ovl with verity=3Don (or verity=3Drequire), then it wil=
-l
-> have the digest stored in the .overlay.metacopy xattr. What this
-> ensures is that the lower file cannot be swapped out without ovl
-> noticing.
+> I am not sure how composefs lowerdata layer is being deployed,
+> but but I am pretty sure that the composefs erofs layers are
+> designed to be migratable to any fs where the lowerdata repo
+> exists, so I think hard coding the lowerdata inode is undesired.
 
-Do you mean the lowerdata file?
+Yeah, I understand the basic composefs architecture, and storing the
+digest in the metadata inode makes perfect sense.
 
-> However the .overlay.origin xattr ensures the same thing,
+What I'm not sure is what is being used outside of that.
 
-origin xattr only checks from upper to uppermost lower layer IIRC,
-do definitely not all the way to lowerdata inode.
+Anyway, I don't see any issue with the current architecture, just
+trying to understand what this is useful for and possible
+simplifications based on that.
 
-> so as long as the user is unable to change the origin integrity should
-> be guaranteed.  IOW, what we need is just to always check origin on
-> metacopy regardless of the index option.
->
-> But I'm not even sure this is used at all, since the verity code was
-> added for the composefs use case, which does not use this path AFAICS.
-> Alex, can you clarify?
-
-I am not sure how composefs lowerdata layer is being deployed,
-but but I am pretty sure that the composefs erofs layers are
-designed to be migratable to any fs where the lowerdata repo
-exists, so I think hard coding the lowerdata inode is undesired.
-But probably I did not understand what you meant?
+For example the copy-up code is apparently unused, and could be
+removed.  OTOH it could be useful for the idmapping case from
+Guiseppe.
 
 Thanks,
-Amir.
+Miklos
+
+Thanks,
+Miklos
