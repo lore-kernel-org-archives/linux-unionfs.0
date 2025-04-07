@@ -1,86 +1,78 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1C4972153D2
-	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 21:03:04 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80E5B2222B4
+	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 21:10:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.197
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744059786; cv=none; b=cq5G/uXoedMn4qpD5rnSS0EHxt0b+1VITGJQrsDWdLT4E64EJfRT72oTGYWh5lOq8NdVdEipcAlmVY3xRhUz//WJN7QX5IDl411xcPp3CQeMA2cC+7kJZB2R/Jf0iTU2p+oP9KdP6BX0owcEWCzGxnLPee7v58T0UcgbnOqJq2Y=
+	t=1744060204; cv=none; b=b2yL7mbQdb8W/qYoYvPr9F5Jft/GnXY4o288BJD2KAmRV1URqZhhbHSTSVByJjR9syALHrB95wkKKcg0a/QDiTbos6admuYTV/PtQ5ZD4WwQoroAchiG8WqrcaMJ4JowCsjyG6mwPwNDLZr/jcfS2vqct3ZwsUYgySad/ljP2mU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744059786; c=relaxed/simple;
-	bh=4ulWWTELilIWBTizVyum5eEbje/DjScnsb3jO0gNZAA=;
-	h=From:In-Reply-To:References:To:Cc:Subject:MIME-Version:
-	 Content-Type:Date:Message-ID; b=QUf/3RHhEoLcAm/9/mB6ifZgTk+c49VadWLI+pIyrv6HBiYSZWJq6XSFAl8xuDQqwMHYZlK/sJ4JgRhkIA+93GzlieioOQ4GwfLd/TdyvTNRuzPES98rAazONioWWJE/scmOMgZDIX5F0UFtAgUr5k56jBAIVUDw4AOcU4Alofg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Z/Gk/oVu; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Z/Gk/oVu"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1744059784;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=4ulWWTELilIWBTizVyum5eEbje/DjScnsb3jO0gNZAA=;
-	b=Z/Gk/oVuBfulnTEg12nv77JFJT7qvcEfB6+zmY+5q9CM5YJdT1TOr+YufGDFAvkJ/1k1M4
-	XYTYdxIwqzf3e52/2WSwKsYrODTUcMEB4XqyjbqkmqEAxKqwsUSU/I29D966p5fqPXuKhg
-	CugCVvBXtRrki29dnCmTgVsAR1VfLpw=
-Received: from mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com
- (ec2-35-165-154-97.us-west-2.compute.amazonaws.com [35.165.154.97]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.3,
- cipher=TLS_AES_256_GCM_SHA384) id us-mta-587-BHyOQiXOPQmKzRiPOJjl9A-1; Mon,
- 07 Apr 2025 17:02:25 -0400
-X-MC-Unique: BHyOQiXOPQmKzRiPOJjl9A-1
-X-Mimecast-MFC-AGG-ID: BHyOQiXOPQmKzRiPOJjl9A_1744059743
-Received: from mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com [10.30.177.93])
-	(using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-	 key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
-	(No client certificate requested)
-	by mx-prod-mc-08.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTPS id A958D180AF4D;
-	Mon,  7 Apr 2025 21:02:23 +0000 (UTC)
-Received: from warthog.procyon.org.uk (unknown [10.42.28.40])
-	by mx-prod-int-06.mail-002.prod.us-west-2.aws.redhat.com (Postfix) with ESMTP id C6578180B486;
-	Mon,  7 Apr 2025 21:02:20 +0000 (UTC)
-Organization: Red Hat UK Ltd. Registered Address: Red Hat UK Ltd, Amberley
-	Place, 107-111 Peascod Street, Windsor, Berkshire, SI4 1TE, United
-	Kingdom.
-	Registered in England and Wales under Company Registration No. 3798903
-From: David Howells <dhowells@redhat.com>
-In-Reply-To: <67f3dc05.050a0220.107db6.059d.GAE@google.com>
-References: <67f3dc05.050a0220.107db6.059d.GAE@google.com>
-To: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
-Cc: dhowells@redhat.com, adilger.kernel@dilger.ca, amir73il@gmail.com,
-    linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org,
-    linux-unionfs@vger.kernel.org, miklos@szeredi.hu,
-    syzkaller-bugs@googlegroups.com, tytso@mit.edu
-Subject: Re: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
+	s=arc-20240116; t=1744060204; c=relaxed/simple;
+	bh=l33H7W/dajNswr6zoB4uEzQnZ3xV2ksVZyWMgdOsk+c=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=vAtoj8s/kJS1na+1MBSBYdvPtsUajSTZYKg1Xch+nvgPqOZzr6tLxBjgUZ0PS7eCfXF419UgAqCdfbdAUBO0/cJmX7b+UoCM0f/N6ZQqdVo0texHOZsi+wRg4vSJ8gEZoZVRdau5lmLJ2lHFKUSh4aa0yuB+kfrLLM3bL5r+vjQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.197
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-3d5bb1708e4so103714345ab.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 07 Apr 2025 14:10:02 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1744060201; x=1744665001;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=obSJQ5g5QULaHlCzGG1efUqikPTPRZ9Sdsw5hiAMvVs=;
+        b=W+UsEKz1JHXAICDOfxQQ5gcfr2Oj/o6Nuyr/2kyjy5J7IuMqJsOkiY/yXoXSo+vlt0
+         VMgt3b80FobB/FNlW1ErX8tujdSuS0vjs1BcNJ8rMcag9Z11MDRLfAfmxhtRzC8YzRr0
+         5RvP9U7OghLvbF28RErIJYH+rtiw/M7hcn8YFZlWLf9AK1sGB9eN7jcdKxjzcAaq0NI3
+         fqy1AgVaGBpJ4D2o1AW/q9+mvU9k6zp8/X/wmKOevt3Mk8FUjRSyNfFIYc4Nl1WivhU5
+         54+ivUj3/TZnQ+Xt/nMECv5QOTpRg9+Dtjmx/FHCb5oc279JawcV06ehMirLs35H32Jy
+         pnSw==
+X-Forwarded-Encrypted: i=1; AJvYcCVbi5TN9cCJVoHcbBkjkkBG6buVU2cs52yhIo9LAaPxJEQjq+5Q+WE5htNCTqCLSWFr9dnj3MvF94sxXXs0@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyl3eZIwTEFpxOiCsE5G8gZ5qDasuBt6g0+aXxuSu5qotlZtW1c
+	sQ4DnA9Xl3mlz0NxTIrqro50Yp0eTh3BQLho/ox6ZDARmjRMvf2JgVH5CPv/E0EWd+NSWqtfiRi
+	yDyjTKwPfO5aF2gsxdvIvQV2hMqsaWNoY5xtUaVu3hnC1Bg2uqhV6BAc=
+X-Google-Smtp-Source: AGHT+IH3y067eDUmOjv5CFVChEZZ+wYOKbqcRDrio8C6VJxigSI3fEGx40IpkZ9McIdubTIYOFN7nscVeIXbCNAf69zlWSylOENX
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <1465442.1744059739.1@warthog.procyon.org.uk>
-Content-Transfer-Encoding: quoted-printable
-Date: Mon, 07 Apr 2025 22:02:19 +0100
-Message-ID: <1465443.1744059739@warthog.procyon.org.uk>
-X-Scanned-By: MIMEDefang 3.4.1 on 10.30.177.93
+X-Received: by 2002:a05:6e02:2199:b0:3d4:244b:db20 with SMTP id
+ e9e14a558f8ab-3d6e3f653acmr156570565ab.16.1744060201704; Mon, 07 Apr 2025
+ 14:10:01 -0700 (PDT)
+Date: Mon, 07 Apr 2025 14:10:01 -0700
+In-Reply-To: <67f34d24.050a0220.0a13.027c.GAE@google.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <67f43f29.050a0220.396535.0554.GAE@google.com>
+Subject: Re: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
+From: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
+To: adilger.kernel@dilger.ca, amir73il@gmail.com, dhowells@redhat.com, 
+	edumazet@google.com, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, sven@narfation.org, 
+	sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com, tytso@mit.edu
+Content-Type: text/plain; charset="UTF-8"
 
-syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com> wrote:
+syzbot has bisected this issue to:
 
-> syzbot has tested the proposed patch but the reproducer is still trigger=
-ing an issue:
-> unregister_netdevice: waiting for DEV to become free
-> =
+commit 00b35530811f2aa3d7ceec2dbada80861c7632a8
+Author: Eric Dumazet <edumazet@google.com>
+Date:   Thu Feb 6 14:04:22 2025 +0000
 
-> unregister_netdevice: waiting for batadv0 to become free. Usage count =3D=
- 3
+    batman-adv: adopt netdev_hold() / netdev_put()
 
-I've seen this in a bunch of different syzbot tests also where, as far as =
-I
-can tell, the patch I've offered fixes the actual bug.
+bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=175f8c04580000
+start commit:   16cd1c265776 Merge tag 'timers-cleanups-2025-04-06' of git..
+git tree:       upstream
+final oops:     https://syzkaller.appspot.com/x/report.txt?x=14df8c04580000
+console output: https://syzkaller.appspot.com/x/log.txt?x=10df8c04580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=c79406130aa88d22
+dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f9bd98580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1571c7e4580000
 
-David
+Reported-by: syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com
+Fixes: 00b35530811f ("batman-adv: adopt netdev_hold() / netdev_put()")
 
+For information about bisection process see: https://goo.gl/tpsmEJ#bisection
