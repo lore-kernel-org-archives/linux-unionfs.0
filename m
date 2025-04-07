@@ -1,112 +1,73 @@
-Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
+Received: from mail-il1-f198.google.com (mail-il1-f198.google.com [209.85.166.198])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAFA12376E4
-	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 09:19:13 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8E0D71C3029
+	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 14:07:02 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.198
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744017556; cv=none; b=cs6vcpP7hrWfLmXo6nH0dJO4dgHUGzd9d1r8W9++i6zEAk0pvTUF3VOXDhhnIm8J9O1N6pIn86a85J7lnUBagfAibp2eSALg7rdC6KdxrI5TDDMtDmddYDOz4Fn0HpKykFJexAoDFNIMr84dBRtxjPcEyYNwFeb5TgAJHstoc/0=
+	t=1744034824; cv=none; b=o8WxPTTLqUIdJQQH44wFR4DeD7+yU/53ZNKTynS9c+itg7PVcoY/7GJ+ewUXxB22Ym5tXBIL6ypiOZcAJaxU13gb0voh8s66eRF8FRzVlU0b1yusa4C9UqwrO8mZrQ/a7F2auPyr78gnIb/WJmTL9lSSwTC88rtRpd8rPTdLyf8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744017556; c=relaxed/simple;
-	bh=Tkr+VkgfcatvOGK2CcI4k8Lgblz5OGwYpc4Rt8EzxPE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=MJshUowuaSwwaFWNYIEPnsA+tO005CUz5PxpMtPLZ0wxhBTgpI1EqzTEc9frcnt6EocQXLA1gl1iVaJH/v2zLuHkqGH17zCUaUyA2V59+eSUFIDDDSJP3u75n1STbm1uMiPqENV/CbscCugaagcN8XQTe1v80C+TR8MY/98f9c4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=KT/DDOs5; arc=none smtp.client-ip=209.85.222.177
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="KT/DDOs5"
-Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-7c5e1b40f68so469747785a.1
-        for <linux-unionfs@vger.kernel.org>; Mon, 07 Apr 2025 02:19:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1744017552; x=1744622352; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=0ds8ZeR6+lvLMS3Q8LQ2S5216HWjNwnvoE8o9qfIJEc=;
-        b=KT/DDOs5ObFJ1RiCja3/K39RGIULizsBhCvr7ew+0PaiDVciyX57/8oYh5EdQGyloQ
-         JtLLXz8yIWj6/Bw9atfneqjkcTUxwgq6kz/rmLYh984/1MoTtCl3FQU8gmQEqS88X9CC
-         DubvkZeReCCkG8RvM9G+L6YQpEc90Ej7/xVUs=
+	s=arc-20240116; t=1744034824; c=relaxed/simple;
+	bh=ncxjzCSmxOakrfI+ux5lY32lyCKIK2l6GJc70zdDPOM=;
+	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
+	 Content-Type; b=FcztqZDdQXshj3zHjnasyo+3ogH7DPCQs5C99IyqInxja0d4Uhk3QpPt+LNSaaE3xDSyQpbRvkKM7UtAo/5rHNw/fq/dVqAetF/VT/cfgbA1rWm+BpbIqBaR9kgMGgHHNusfXuifWrphbQmQDNSapIPxVxwNWcgrpOD53ldlJxI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.198
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f198.google.com with SMTP id e9e14a558f8ab-3d5da4fd946so89799985ab.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 07 Apr 2025 07:07:02 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744017552; x=1744622352;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=0ds8ZeR6+lvLMS3Q8LQ2S5216HWjNwnvoE8o9qfIJEc=;
-        b=a758hyobVmpkz66QWUcjfTwPCEikgGRbigJVmIXk1IV+6hKyPIVDWaqtgoXpf71X4v
-         2k7SOHr/D58m84WsSdmRNrrLgGcMEtQ936v2SIYp7YBIneG7sR8xuBMk9Se62an/08gM
-         jd39Yk9NDkErWWyqepOEU+s632PVT7Mql1laasw6p+4RvUUV6EtLGC9L2acJSy0bfHWc
-         29LXY7KgmMASEeKkCHTpMDwnJ4xVrppPHZiMuXCy3Q8kqPjEsxhkpYiR2DEeb1Dk6BUv
-         q7YfyOMi7wc4pUZMWoltgqPHRaES0nrlu2OBwjZvSO47hgVDEh9RGvwKBYaUWsg8l+iz
-         PtJw==
-X-Forwarded-Encrypted: i=1; AJvYcCXDL2CPQEL3v2w1E80pZiyrsOtZmcJarNjxN+LZvJMZYVVC4ChfUCnOdCTKGuujWICA0G+5AvdhU7eoeeHg@vger.kernel.org
-X-Gm-Message-State: AOJu0YxfMqOtNbNqlDuZASKn+Vbd7PUMj9IxVtDuvJgjvHj1R0slM/Ye
-	tp6dvolLcabZ1EmNbqHb4+cuQGLQGeXGqJPER+knD2w4H65ROXvhqvA9v/1KXcNxxAzKWErmHeQ
-	+fXSeiiHdjUYq7nN9zDlLeLOI58PO8E3CJRAHKQ==
-X-Gm-Gg: ASbGncskukqgE2lUsN/Q1qrhkUuPUwpyFrwnE4F52/WMxc82g43NYDvDXhPOLjbdgKb
-	eVv5hk7qDA/1pyF07EKFjUEsXLLA7oGfuefjGc4aPQDfMEMjJZm8OYYRd8tzc6WxtaDrVqak6kS
-	vHHtbBVP4WeFb05pxPIGWLNY0SnQU=
-X-Google-Smtp-Source: AGHT+IFCtLA+gZhyiLnF3PJgKmfPCouEKwTHmWyX/EjhKM6lZbWo0pjzfhlBNMSDCtBMubAuWZYFO3GyBdpYEiWKScw=
-X-Received: by 2002:a05:620a:450a:b0:7c5:5a51:d2c0 with SMTP id
- af79cd13be357-7c775b17e0cmr1707617685a.52.1744017552449; Mon, 07 Apr 2025
- 02:19:12 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1744034821; x=1744639621;
+        h=to:from:subject:message-id:in-reply-to:date:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=GwXWzXPAt90Ym5+D6NPAF0rUeU+1DPFdOJn+FQQCuts=;
+        b=p8uuxrbR8vx6Xdc8KOisNe9QL1no94YMNbFOtK8ABCw5eqSIqkLrv1uz5a0FjKL7K0
+         VJGJbRU1IIyBOaVf0i39P/fWDW75mx86zdKrfUVdE0/LW28vkpNiFqiR4ZRpVlD4uqW9
+         5k4R1l50O67x/L1HH2eePfQ2RjpVf9JylmO6QtwdhN0hU9ajnREuezq4avQt37kouhfp
+         QMLmVwvuQfhccl9l9+42vNkE1PmVdBuU9t6LYo1a8wK4ATDfZeO+Dsg4ksp4SGxCZK1D
+         BlE2tLrlfcOb5dGQN/uz4tNmk07KOi3iB56luDJLZ09tNSpMhMKkvJTo38ghbbYTG3nE
+         A6aQ==
+X-Forwarded-Encrypted: i=1; AJvYcCWoDO69IP7RVAwWRlmPIeJ4WiZmG4AfSCKxmKGrA9UsrTiFqKkmzS5+iKBiKdJPDR7wTNe8MekCtudDC5Pb@vger.kernel.org
+X-Gm-Message-State: AOJu0Yw7M/jpMhLyUQfcb/XofNKoE8oDfDD0lMr27AXjpYQGgCqsq7XW
+	1lW1/UD2UimRK9KoF1gE+cEOtXs2IjLx15s4An/TCLs6xeiJ0CpjEZT2cNYSwDsBj8iO1uCP0hD
+	7l4K2CWNQ42HWS2DvjthmwjsfN6IwPSSFBnl8tzQ4UaEllW/q17zfMBQ=
+X-Google-Smtp-Source: AGHT+IGk0qg4Non5+RqSgTngMpr84QybCMyGxRObEpMS/OBnGd9K0v8L1YYw6HKMv3i9T2PNneYp7wP0WdoYv8xmIodS/MaJDTO2
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <67f34d24.050a0220.0a13.027c.GAE@google.com>
-In-Reply-To: <67f34d24.050a0220.0a13.027c.GAE@google.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 7 Apr 2025 11:18:59 +0200
-X-Gm-Features: ATxdqUGPjYEhmO3guEkv_Uk_UNgq-v6h_uBbWK9b9Dl-HBK2d9h-7340TMg9-Is
-Message-ID: <CAJfpegvsi9SaeVdykBFhhwoOrsNQzy3C8HcJjn16uHdkzZ-EVQ@mail.gmail.com>
+X-Received: by 2002:a92:cda7:0:b0:3d5:d71f:75b3 with SMTP id
+ e9e14a558f8ab-3d6ec57f9damr97693795ab.15.1744034821687; Mon, 07 Apr 2025
+ 07:07:01 -0700 (PDT)
+Date: Mon, 07 Apr 2025 07:07:01 -0700
+In-Reply-To: <CAJfpegvsi9SaeVdykBFhhwoOrsNQzy3C8HcJjn16uHdkzZ-EVQ@mail.gmail.com>
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <67f3dc05.050a0220.107db6.059d.GAE@google.com>
 Subject: Re: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
-To: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
-Cc: adilger.kernel@dilger.ca, amir73il@gmail.com, linux-ext4@vger.kernel.org, 
+From: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
+To: adilger.kernel@dilger.ca, amir73il@gmail.com, linux-ext4@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	syzkaller-bugs@googlegroups.com, tytso@mit.edu
-Content-Type: multipart/mixed; boundary="000000000000b2665406322cbac6"
-
---000000000000b2665406322cbac6
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, tytso@mit.edu
 Content-Type: text/plain; charset="UTF-8"
 
-On Mon, 7 Apr 2025 at 05:57, syzbot
-<syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com> wrote:
->
-> Hello,
->
-> syzbot found the following issue on:
->
-> HEAD commit:    16cd1c265776 Merge tag 'timers-cleanups-2025-04-06' of git..
-> git tree:       upstream
-> console+strace: https://syzkaller.appspot.com/x/log.txt?x=12e7923f980000
-> kernel config:  https://syzkaller.appspot.com/x/.config?x=c79406130aa88d22
-> dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
-> compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
-> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f9bd98580000
-> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1571c7e4580000
+Hello,
+
+syzbot has tested the proposed patch but the reproducer is still triggering an issue:
+unregister_netdevice: waiting for DEV to become free
+
+unregister_netdevice: waiting for batadv0 to become free. Usage count = 3
 
 
-#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-v6.15-rc1
+Tested on:
 
---000000000000b2665406322cbac6
-Content-Type: text/x-patch; charset="US-ASCII"; name="ovl-dont-seek_cur-on-realfile.patch"
-Content-Disposition: attachment; 
-	filename="ovl-dont-seek_cur-on-realfile.patch"
-Content-Transfer-Encoding: base64
-Content-ID: <f_m96uyqc70>
-X-Attachment-Id: f_m96uyqc70
+commit:         0af2f6be Linux 6.15-rc1
+git tree:       git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git v6.15-rc1
+console output: https://syzkaller.appspot.com/x/log.txt?x=123c0070580000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=bae073f4634b7fd
+dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
+compiler:       Debian clang version 15.0.6, GNU ld (GNU Binutils for Debian) 2.40
+patch:          https://syzkaller.appspot.com/x/patch.diff?x=151deb4c580000
 
-ZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9maWxlLmMgYi9mcy9vdmVybGF5ZnMvZmlsZS5jCmlu
-ZGV4IDk2OWI0NTgxMDBmZS4uNTQ4ZjBlNmFlZDU0IDEwMDY0NAotLS0gYS9mcy9vdmVybGF5ZnMv
-ZmlsZS5jCisrKyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKQEAgLTI3Myw2ICsyNzMsMTIgQEAgc3Rh
-dGljIGxvZmZfdCBvdmxfbGxzZWVrKHN0cnVjdCBmaWxlICpmaWxlLCBsb2ZmX3Qgb2Zmc2V0LCBp
-bnQgd2hlbmNlKQogCW92bF9pbm9kZV9sb2NrKGlub2RlKTsKIAlyZWFsZmlsZS0+Zl9wb3MgPSBm
-aWxlLT5mX3BvczsKIAorCS8qIFByZXZlbnQgV0FSTklORyBpbiBmaWxlX3NlZWtfY3VyX25lZWRz
-X2ZfbG9jaygpICovCisJaWYgKHdoZW5jZSA9PSBTRUVLX0NVUiAmJiBvZmZzZXQpIHsKKwkJb2Zm
-c2V0ICs9IGZpbGUtPmZfcG9zOworCQl3aGVuY2UgPSBTRUVLX1NFVDsKKwl9CisKIAlvbGRfY3Jl
-ZCA9IG92bF9vdmVycmlkZV9jcmVkcyhpbm9kZS0+aV9zYik7CiAJcmV0ID0gdmZzX2xsc2Vlayhy
-ZWFsZmlsZSwgb2Zmc2V0LCB3aGVuY2UpOwogCW92bF9yZXZlcnRfY3JlZHMob2xkX2NyZWQpOwo=
---000000000000b2665406322cbac6--
