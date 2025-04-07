@@ -1,145 +1,138 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-il1-f206.google.com (mail-il1-f206.google.com [209.85.166.206])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 06E80218823
-	for <linux-unionfs@vger.kernel.org>; Fri, 28 Mar 2025 10:08:40 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.133.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62ED5221D85
+	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 03:57:25 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.206
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743156523; cv=none; b=E05UF2M1GYn+K34QXW3g+3R0pI8xxKhqyFFCOXuS9D12e2tjBILEc13HpRLGLxObjQQac+J2MM+6bHDpcvkAYZy/62FHzBVqBbedrksDfWQJlSeNFi1LQ8u0O2o/ZOqxQqfjMo/UIqT38z3DpzOjmI1m1lp6J0haLllJV2xvBM0=
+	t=1743998247; cv=none; b=CVQgqxIIFVTo2SO3fQa+QLsROMihbx3AVs8DDu8IMBLxYqQV7aYU2iQRP1/8/jhW6227ILFobA4konoMGMBv1yU8ZopAinyRf8KRGXGe4pKPYSbXkNsnLRytEXkCiP5G788hqHdwxiTbLw5o74zzexnS0vR/mZUUzoMtr5e1GtE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743156523; c=relaxed/simple;
-	bh=GY6LNEGp5wD1whntDXHz9uvTBUdWJ/TtAWYJRXfABv8=;
-	h=Message-ID:Subject:From:To:Cc:Date:In-Reply-To:References:
-	 Content-Type:MIME-Version; b=iAIy4ZiFxSTkP1vrRWxZQ9qSbKtr8/8ISpe4tu3SuF0ya52nNBEnkHifPeILE9+EO4FZRHF6G/AzUcX/kamjOpnwx/MRDrpBPjApqu87fwifPq37JD3pSDZznby9Uk2ESbW8aW0RvUxkoZREhRJViR9zJlwQpn3ZXNtL4t+ueFY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=Y6EILL8T; arc=none smtp.client-ip=170.10.133.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="Y6EILL8T"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1743156519;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=uexjHPHaHB6AaQa6ptS/Rgs1NBKyZtH2mQH7ip8uNcs=;
-	b=Y6EILL8TJGh/5Wwu3yG0KJpIGZZIaFWyDah+x0YVF5vqiEfsz31IngTCG7Krov+Rm2nvN+
-	G9qCgnwsKoABYMDRluCxnZ/vXr+ufW2yMN7VhWuurHrz2UYgI54wsR+NpclKnlCMcTRZrn
-	9tbOdfvKLX8bg47rN/wxG/lWcylSIaw=
-Received: from mail-lj1-f197.google.com (mail-lj1-f197.google.com
- [209.85.208.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-292-SP1uAT3zPZiiebTi7RdZlg-1; Fri, 28 Mar 2025 06:08:38 -0400
-X-MC-Unique: SP1uAT3zPZiiebTi7RdZlg-1
-X-Mimecast-MFC-AGG-ID: SP1uAT3zPZiiebTi7RdZlg_1743156517
-Received: by mail-lj1-f197.google.com with SMTP id 38308e7fff4ca-30bfaec88edso13497191fa.1
-        for <linux-unionfs@vger.kernel.org>; Fri, 28 Mar 2025 03:08:38 -0700 (PDT)
+	s=arc-20240116; t=1743998247; c=relaxed/simple;
+	bh=wGLK6m9CzNM2EuVft9Fawq866DDFGdirphfng8/RcDI=;
+	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=SpahIdPdCzsmHo/L05/3YUTVhQqnV0RNVAWxu7sttOxTWY2z6m8OrMvvDsfB3t08QmEV7G2GCebFs8PMThOuDEsNNNnNge7q1sGXJLTB9bswZndYlS1GrcujIamy/LnnCPrzz4GCNrOnyBF+l9LwM6IDRP5/iqpopfHSXf4l7u4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.206
+Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
+Received: by mail-il1-f206.google.com with SMTP id e9e14a558f8ab-3d5b3819ff9so35240785ab.0
+        for <linux-unionfs@vger.kernel.org>; Sun, 06 Apr 2025 20:57:25 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743156517; x=1743761317;
-        h=mime-version:user-agent:content-transfer-encoding:references
-         :in-reply-to:date:cc:to:from:subject:message-id:x-gm-message-state
+        d=1e100.net; s=20230601; t=1743998244; x=1744603044;
+        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=uexjHPHaHB6AaQa6ptS/Rgs1NBKyZtH2mQH7ip8uNcs=;
-        b=S/a0OjNv7zP/vHAMapCg7lQ/h1NGX+fdVUciJpsNnTXxHF/ya1ZJv8PWLEXh2zgMR4
-         gzj1w3rvU4VfWWSdg/ob6kTlhyZyTwgEWmDmHQpdCyQKBA/3h4B4/yGA4EGsq9LVw9hI
-         NwfBPdKaeaqFFtapStrrCXCDPzbHfavWDn5HVynH4ouVsRD/cMk9WRF+9N20+hTCm+wy
-         +4uCuWRfivxODSp8Xhu+bdgYmSm0sJKsHUeq2bfTrJc99muY4IjS3GRMRCNIgnpXjLcO
-         6N0vM2m/9KgagqtOtvnYMQHuK0w26gCwha3exJRNjTFLGW467BkOERvDNsu+Mm7tRutr
-         Z2QA==
-X-Forwarded-Encrypted: i=1; AJvYcCXwmknWJBjWz5m6Px4PnFQhPUYMICygm2S8Jokkf2q7d50KrGF1tx78/pi34REEPn5cb1jJcOZOSE7XnH1U@vger.kernel.org
-X-Gm-Message-State: AOJu0YxC8k0WvSYbL6i3HU99NbLXhzPZ8Croog4vZwAKmzvX0IOSHdLb
-	E8P6zl4a1rm0hYMJx4xBlja+a3+lwOpU5zq/P8daqfV4SSjUm6U+oI8fU8ixwdXWK/qv0PMhQHA
-	gT4DNeeKCCe3Ms0wEcd2e8FJmONKjhvkpM04MhI7ro4S3Pi+fZULN++lbL7oql1s=
-X-Gm-Gg: ASbGncv1Ch9ltuc4SKsP47q7WZKi2SAx0JCGoq7sDHhwFzqf4e1991hHpxKqxS/2nih
-	wkwbV+YPPf3wEgMDbbqWnwLTICCHGiIynsULQHP2CuykKTUxNaeagbRukKgfHTUN+MiNJ7NvYBU
-	JKKSirQLswkzsseMOqscgfTLOLlB8mt5WGP6zIx1NhkGjUp1/sDfdZrf5o2MqZDckscqK8KKZyE
-	pEfjunty8aJKqEdfP9fm+D6yowFwRErwWMuTTDxNIhb8XnSblphpSXw2TrVCLOoESKDtoVyBD4T
-	TvwoZHZDK5CyR8Ez17SmyWunBO+ZnxJHWm68CEWI0wT8iDIoSrTPMHU=
-X-Received: by 2002:a2e:be27:0:b0:30d:c4c3:eafa with SMTP id 38308e7fff4ca-30dd439309fmr7972501fa.7.1743156517027;
-        Fri, 28 Mar 2025 03:08:37 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IFKN7MpSkYfaqsK+bopt1EUqDawYJWOWT1t2Mj7wA9dhUaXFx/N4035wBULqQpXCsHogYYIjw==
-X-Received: by 2002:a2e:be27:0:b0:30d:c4c3:eafa with SMTP id 38308e7fff4ca-30dd439309fmr7972351fa.7.1743156516610;
-        Fri, 28 Mar 2025 03:08:36 -0700 (PDT)
-Received: from [192.168.68.107] (c-85-226-167-233.bbcust.telenor.se. [85.226.167.233])
-        by smtp.gmail.com with ESMTPSA id 38308e7fff4ca-30dd2acf881sm3054901fa.51.2025.03.28.03.08.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 28 Mar 2025 03:08:36 -0700 (PDT)
-Message-ID: <3b87c2ef6b50c40dae62dbd062ca542308767cb1.camel@redhat.com>
-Subject: Re: [PATCH v2 5/5] ovl: don't require "metacopy=on" for "verity"
-From: Alexander Larsson <alexl@redhat.com>
-To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Giuseppe Scrivano <gscrivan@redhat.com>
-Date: Fri, 28 Mar 2025 11:08:33 +0100
-In-Reply-To: <CAJfpegvvRBgYHpuOUuunurwN0Nad+OUdjNOdLw6d1C0kEAg5PQ@mail.gmail.com>
-References: <20250325104634.162496-1-mszeredi@redhat.com>
-	 <20250325104634.162496-6-mszeredi@redhat.com>
-	 <CAOQ4uxgif5FZNqp7NtP+4EqRW1W0xp+zXPFj=DDG3ztxCswv_Q@mail.gmail.com>
-	 <CAJfpegvvRBgYHpuOUuunurwN0Nad+OUdjNOdLw6d1C0kEAg5PQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.54.3 (3.54.3-1.fc41) 
+        bh=hKzLutUCNaIzSgschoETKEDm1mOKKBzsstahLbLQNSY=;
+        b=dPgBMhnwe6rdn4DDS+XVJURMIMsaJBHn9x8kNBJYwezUh3wBLhOXiOy0Y5xnfIRR3P
+         /6DbIzTQ9DaObtZ1nBz6O1FOS8+ocGwV3aZ+mcBa1UB77P7NmPDMKM2dnZQNVfvtbO/5
+         VniSjMmpDJ+HiyDZSI9/GdSgODSHJEu+VsYwhVrWR1aZEP3psts9SfWdrcNZ3s7HE/an
+         GE2kW4HhJheQeJ323f8Cz5gOJDTGoUaUq1UN4ZudF4QbKH1u2XZAExp830OYyKnuDH01
+         4Sk2J6Pwlfs37XvMvP1h0J0m42nSWzwQPNmAtWlTCOdGOujUFZO/NY4wppgCu6PZWjzf
+         FJdA==
+X-Forwarded-Encrypted: i=1; AJvYcCUwrUjnVP1vmHdhiGtwLIvq09q/HtYPkFQkqyvKQxh1446fQvSLPHD2VqGris7wtRsHmSVWg8JK843TZ9zS@vger.kernel.org
+X-Gm-Message-State: AOJu0YzQ9Naf63T+mRMNRGN+bhx4M4JGeIFLFEfedmlz7tJi3Yu9suPR
+	+GbyejImpMYAuG/bOTwdRtvSZf/2ARGYb1rJzCBF8nh4WfACLifyZjMGfHAAOfR1qtJZEu24e8Y
+	YX2l7Ng2YtdNcdydc3+vgL140h0XU2WISAUM++7UykennKYh/RWNsfPM=
+X-Google-Smtp-Source: AGHT+IEj3DJK9Q0Ai2Iz8F3ii81wS4KN558dK+KHwRRLf4upHyxOti907c8PHes02vpuNfEMXs1iY0RRwrtIV6biPBFkndXpyY64
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+X-Received: by 2002:a05:6e02:338d:b0:3d3:ff09:432c with SMTP id
+ e9e14a558f8ab-3d6e3eea064mr121332535ab.4.1743998244558; Sun, 06 Apr 2025
+ 20:57:24 -0700 (PDT)
+Date: Sun, 06 Apr 2025 20:57:24 -0700
+X-Google-Appengine-App-Id: s~syzkaller
+X-Google-Appengine-App-Id-Alias: syzkaller
+Message-ID: <67f34d24.050a0220.0a13.027c.GAE@google.com>
+Subject: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
+From: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
+To: adilger.kernel@dilger.ca, amir73il@gmail.com, linux-ext4@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, tytso@mit.edu
+Content-Type: text/plain; charset="UTF-8"
 
-On Wed, 2025-03-26 at 11:24 +0100, Miklos Szeredi wrote:
-> On Tue, 25 Mar 2025 at 12:35, Amir Goldstein <amir73il@gmail.com>
-> wrote:
->=20
-> > > --- a/fs/overlayfs/params.c
-> > > +++ b/fs/overlayfs/params.c
-> > > @@ -846,8 +846,8 @@ int ovl_fs_params_verify(const struct
-> > > ovl_fs_context *ctx,
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0 config->uuid =3D OVL_UUID_NULL;
-> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 }
-> > >=20
-> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Resolve verity -> metacopy d=
-ependency */
-> > > -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (config->verity_mode && !con=
-fig->metacopy) {
-> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 /* Resolve verity -> metacopy d=
-ependency (unless used
-> > > with userxattr) */
-> > > +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 if (config->verity_mode && !con=
-fig->metacopy && !config-
-> > > >userxattr) {
-> >=20
-> > This is very un-intuitive to me.
-> >=20
-> > Why do we need to keep the dependency verity -> metacopy with
-> > trusted xattrs?
->=20
-> Yeah, now it's clear that metacopy has little to do with the data
-> redirect feature that verity was added for.
->=20
-> I don't really understand the copy-up logic around verity=3Drequire,
-> though.=C2=A0 Why does that not return EIO like open?
+Hello,
 
-If a lowerdir file doesn't have fsverity enabled, there is no struct
-fsverity_info, so no digest available to use. This means we cannot make
-a verity-enforced redirect to it.=C2=A0
+syzbot found the following issue on:
 
-This is not an VERITY_REQUIRE failure, those are when we find a
-redirect with a missing digest xattr, but in this case the lower file
-is a real data file, not a redirect.
+HEAD commit:    16cd1c265776 Merge tag 'timers-cleanups-2025-04-06' of git..
+git tree:       upstream
+console+strace: https://syzkaller.appspot.com/x/log.txt?x=12e7923f980000
+kernel config:  https://syzkaller.appspot.com/x/.config?x=c79406130aa88d22
+dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
+compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f9bd98580000
+C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1571c7e4580000
 
-Note: This actually happens in composefs. We don't use redirect for
-tiny files (smaller than the redirect xattrs would be), instead we
-embed them directly in the EROFS image.
+Downloadable assets:
+disk image: https://storage.googleapis.com/syzbot-assets/a4435e7379c4/disk-16cd1c26.raw.xz
+vmlinux: https://storage.googleapis.com/syzbot-assets/5a00533ae7ab/vmlinux-16cd1c26.xz
+kernel image: https://storage.googleapis.com/syzbot-assets/2069327dcea6/bzImage-16cd1c26.xz
 
---=20
-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D=
--=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-=3D-
-=3D-=3D-=3D
- Alexander Larsson                                            Red Hat,
-Inc=20
-       alexl@redhat.com            alexander.larsson@gmail.com=20
-He's a lonely Jewish vampire hunter on a search for his missing sister.
-She's a man-hating Buddhist socialite trying to make a difference in a=20
-man's world. They fight crime!=20
+IMPORTANT: if you fix the issue, please add the following tag to the commit:
+Reported-by: syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com
 
+------------[ cut here ]------------
+WARNING: CPU: 0 PID: 5824 at fs/file.c:1201 file_seek_cur_needs_f_lock+0x141/0x190 fs/file.c:1201
+Modules linked in:
+CPU: 0 UID: 0 PID: 5824 Comm: syz-executor625 Not tainted 6.14.0-syzkaller-13546-g16cd1c265776 #0 PREEMPT(full) 
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2025
+RIP: 0010:file_seek_cur_needs_f_lock+0x141/0x190 fs/file.c:1201
+Code: 31 ff 89 c3 89 c6 e8 0e 9e 7f ff 84 db 74 15 e8 25 a3 7f ff bb 01 00 00 00 89 d8 5b 5d 41 5c c3 cc cc cc cc e8 10 a3 7f ff 90 <0f> 0b 90 eb e0 e8 05 a3 7f ff 31 db 89 d8 5b 5d 41 5c c3 cc cc cc
+RSP: 0018:ffffc90002f07df8 EFLAGS: 00010293
+RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff823b9ae2
+RDX: ffff888031808000 RSI: ffffffff823b9b00 RDI: 0000000000000001
+RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000000 R12: bfffffffffffffff
+R13: 0000000000000005 R14: 00000ffffffff000 R15: 00000ffffffff000
+FS:  00005555717cf380(0000) GS:ffff8881249b3000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000200000001000 CR3: 0000000026d60000 CR4: 00000000003526f0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+Call Trace:
+ <TASK>
+ generic_file_llseek_size+0x153/0x480 fs/read_write.c:178
+ ext4_llseek+0x180/0x2f0 fs/ext4/file.c:941
+ vfs_llseek+0x9a/0xe0 fs/read_write.c:387
+ ovl_llseek+0x15c/0x2c0 fs/overlayfs/file.c:277
+ vfs_llseek fs/read_write.c:387 [inline]
+ ksys_lseek+0xf0/0x1b0 fs/read_write.c:400
+ do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
+ do_syscall_64+0xcd/0x260 arch/x86/entry/syscall_64.c:94
+ entry_SYSCALL_64_after_hwframe+0x77/0x7f
+RIP: 0033:0x7fdc41bae4a9
+Code: 48 83 c4 28 c3 e8 37 17 00 00 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007ffc49e17ef8 EFLAGS: 00000246 ORIG_RAX: 0000000000000008
+RAX: ffffffffffffffda RBX: 0000200000000140 RCX: 00007fdc41bae4a9
+RDX: 0000000000000001 RSI: 0000000000000005 RDI: 0000000000000003
+RBP: 00007fdc41c21610 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000003 R11: 0000000000000246 R12: 0000000000000001
+R13: 00007ffc49e180c8 R14: 0000000000000001 R15: 0000000000000001
+ </TASK>
+
+
+---
+This report is generated by a bot. It may contain errors.
+See https://goo.gl/tpsmEJ for more information about syzbot.
+syzbot engineers can be reached at syzkaller@googlegroups.com.
+
+syzbot will keep track of this issue. See:
+https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+
+If the report is already addressed, let syzbot know by replying with:
+#syz fix: exact-commit-title
+
+If you want syzbot to run the reproducer, reply with:
+#syz test: git://repo/address.git branch-or-commit-hash
+If you attach or paste a git patch, syzbot will apply it before testing.
+
+If you want to overwrite report's subsystems, reply with:
+#syz set subsystems: new-subsystem
+(See the list of subsystem names on the web dashboard)
+
+If the report is a duplicate of another one, reply with:
+#syz dup: exact-subject-of-another-report
+
+If you want to undo deduplication, reply with:
+#syz undup
