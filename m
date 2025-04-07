@@ -1,138 +1,112 @@
-Received: from mail-il1-f206.google.com (mail-il1-f206.google.com [209.85.166.206])
+Received: from mail-qk1-f177.google.com (mail-qk1-f177.google.com [209.85.222.177])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 62ED5221D85
-	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 03:57:25 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.206
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id AAFA12376E4
+	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 09:19:13 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.222.177
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1743998247; cv=none; b=CVQgqxIIFVTo2SO3fQa+QLsROMihbx3AVs8DDu8IMBLxYqQV7aYU2iQRP1/8/jhW6227ILFobA4konoMGMBv1yU8ZopAinyRf8KRGXGe4pKPYSbXkNsnLRytEXkCiP5G788hqHdwxiTbLw5o74zzexnS0vR/mZUUzoMtr5e1GtE=
+	t=1744017556; cv=none; b=cs6vcpP7hrWfLmXo6nH0dJO4dgHUGzd9d1r8W9++i6zEAk0pvTUF3VOXDhhnIm8J9O1N6pIn86a85J7lnUBagfAibp2eSALg7rdC6KdxrI5TDDMtDmddYDOz4Fn0HpKykFJexAoDFNIMr84dBRtxjPcEyYNwFeb5TgAJHstoc/0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1743998247; c=relaxed/simple;
-	bh=wGLK6m9CzNM2EuVft9Fawq866DDFGdirphfng8/RcDI=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=SpahIdPdCzsmHo/L05/3YUTVhQqnV0RNVAWxu7sttOxTWY2z6m8OrMvvDsfB3t08QmEV7G2GCebFs8PMThOuDEsNNNnNge7q1sGXJLTB9bswZndYlS1GrcujIamy/LnnCPrzz4GCNrOnyBF+l9LwM6IDRP5/iqpopfHSXf4l7u4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.206
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f206.google.com with SMTP id e9e14a558f8ab-3d5b3819ff9so35240785ab.0
-        for <linux-unionfs@vger.kernel.org>; Sun, 06 Apr 2025 20:57:25 -0700 (PDT)
+	s=arc-20240116; t=1744017556; c=relaxed/simple;
+	bh=Tkr+VkgfcatvOGK2CcI4k8Lgblz5OGwYpc4Rt8EzxPE=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=MJshUowuaSwwaFWNYIEPnsA+tO005CUz5PxpMtPLZ0wxhBTgpI1EqzTEc9frcnt6EocQXLA1gl1iVaJH/v2zLuHkqGH17zCUaUyA2V59+eSUFIDDDSJP3u75n1STbm1uMiPqENV/CbscCugaagcN8XQTe1v80C+TR8MY/98f9c4=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=KT/DDOs5; arc=none smtp.client-ip=209.85.222.177
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="KT/DDOs5"
+Received: by mail-qk1-f177.google.com with SMTP id af79cd13be357-7c5e1b40f68so469747785a.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 07 Apr 2025 02:19:13 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1744017552; x=1744622352; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=0ds8ZeR6+lvLMS3Q8LQ2S5216HWjNwnvoE8o9qfIJEc=;
+        b=KT/DDOs5ObFJ1RiCja3/K39RGIULizsBhCvr7ew+0PaiDVciyX57/8oYh5EdQGyloQ
+         JtLLXz8yIWj6/Bw9atfneqjkcTUxwgq6kz/rmLYh984/1MoTtCl3FQU8gmQEqS88X9CC
+         DubvkZeReCCkG8RvM9G+L6YQpEc90Ej7/xVUs=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1743998244; x=1744603044;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=hKzLutUCNaIzSgschoETKEDm1mOKKBzsstahLbLQNSY=;
-        b=dPgBMhnwe6rdn4DDS+XVJURMIMsaJBHn9x8kNBJYwezUh3wBLhOXiOy0Y5xnfIRR3P
-         /6DbIzTQ9DaObtZ1nBz6O1FOS8+ocGwV3aZ+mcBa1UB77P7NmPDMKM2dnZQNVfvtbO/5
-         VniSjMmpDJ+HiyDZSI9/GdSgODSHJEu+VsYwhVrWR1aZEP3psts9SfWdrcNZ3s7HE/an
-         GE2kW4HhJheQeJ323f8Cz5gOJDTGoUaUq1UN4ZudF4QbKH1u2XZAExp830OYyKnuDH01
-         4Sk2J6Pwlfs37XvMvP1h0J0m42nSWzwQPNmAtWlTCOdGOujUFZO/NY4wppgCu6PZWjzf
-         FJdA==
-X-Forwarded-Encrypted: i=1; AJvYcCUwrUjnVP1vmHdhiGtwLIvq09q/HtYPkFQkqyvKQxh1446fQvSLPHD2VqGris7wtRsHmSVWg8JK843TZ9zS@vger.kernel.org
-X-Gm-Message-State: AOJu0YzQ9Naf63T+mRMNRGN+bhx4M4JGeIFLFEfedmlz7tJi3Yu9suPR
-	+GbyejImpMYAuG/bOTwdRtvSZf/2ARGYb1rJzCBF8nh4WfACLifyZjMGfHAAOfR1qtJZEu24e8Y
-	YX2l7Ng2YtdNcdydc3+vgL140h0XU2WISAUM++7UykennKYh/RWNsfPM=
-X-Google-Smtp-Source: AGHT+IEj3DJK9Q0Ai2Iz8F3ii81wS4KN558dK+KHwRRLf4upHyxOti907c8PHes02vpuNfEMXs1iY0RRwrtIV6biPBFkndXpyY64
+        d=1e100.net; s=20230601; t=1744017552; x=1744622352;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=0ds8ZeR6+lvLMS3Q8LQ2S5216HWjNwnvoE8o9qfIJEc=;
+        b=a758hyobVmpkz66QWUcjfTwPCEikgGRbigJVmIXk1IV+6hKyPIVDWaqtgoXpf71X4v
+         2k7SOHr/D58m84WsSdmRNrrLgGcMEtQ936v2SIYp7YBIneG7sR8xuBMk9Se62an/08gM
+         jd39Yk9NDkErWWyqepOEU+s632PVT7Mql1laasw6p+4RvUUV6EtLGC9L2acJSy0bfHWc
+         29LXY7KgmMASEeKkCHTpMDwnJ4xVrppPHZiMuXCy3Q8kqPjEsxhkpYiR2DEeb1Dk6BUv
+         q7YfyOMi7wc4pUZMWoltgqPHRaES0nrlu2OBwjZvSO47hgVDEh9RGvwKBYaUWsg8l+iz
+         PtJw==
+X-Forwarded-Encrypted: i=1; AJvYcCXDL2CPQEL3v2w1E80pZiyrsOtZmcJarNjxN+LZvJMZYVVC4ChfUCnOdCTKGuujWICA0G+5AvdhU7eoeeHg@vger.kernel.org
+X-Gm-Message-State: AOJu0YxfMqOtNbNqlDuZASKn+Vbd7PUMj9IxVtDuvJgjvHj1R0slM/Ye
+	tp6dvolLcabZ1EmNbqHb4+cuQGLQGeXGqJPER+knD2w4H65ROXvhqvA9v/1KXcNxxAzKWErmHeQ
+	+fXSeiiHdjUYq7nN9zDlLeLOI58PO8E3CJRAHKQ==
+X-Gm-Gg: ASbGncskukqgE2lUsN/Q1qrhkUuPUwpyFrwnE4F52/WMxc82g43NYDvDXhPOLjbdgKb
+	eVv5hk7qDA/1pyF07EKFjUEsXLLA7oGfuefjGc4aPQDfMEMjJZm8OYYRd8tzc6WxtaDrVqak6kS
+	vHHtbBVP4WeFb05pxPIGWLNY0SnQU=
+X-Google-Smtp-Source: AGHT+IFCtLA+gZhyiLnF3PJgKmfPCouEKwTHmWyX/EjhKM6lZbWo0pjzfhlBNMSDCtBMubAuWZYFO3GyBdpYEiWKScw=
+X-Received: by 2002:a05:620a:450a:b0:7c5:5a51:d2c0 with SMTP id
+ af79cd13be357-7c775b17e0cmr1707617685a.52.1744017552449; Mon, 07 Apr 2025
+ 02:19:12 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:338d:b0:3d3:ff09:432c with SMTP id
- e9e14a558f8ab-3d6e3eea064mr121332535ab.4.1743998244558; Sun, 06 Apr 2025
- 20:57:24 -0700 (PDT)
-Date: Sun, 06 Apr 2025 20:57:24 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67f34d24.050a0220.0a13.027c.GAE@google.com>
-Subject: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
-From: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
-To: adilger.kernel@dilger.ca, amir73il@gmail.com, linux-ext4@vger.kernel.org, 
+References: <67f34d24.050a0220.0a13.027c.GAE@google.com>
+In-Reply-To: <67f34d24.050a0220.0a13.027c.GAE@google.com>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Mon, 7 Apr 2025 11:18:59 +0200
+X-Gm-Features: ATxdqUGPjYEhmO3guEkv_Uk_UNgq-v6h_uBbWK9b9Dl-HBK2d9h-7340TMg9-Is
+Message-ID: <CAJfpegvsi9SaeVdykBFhhwoOrsNQzy3C8HcJjn16uHdkzZ-EVQ@mail.gmail.com>
+Subject: Re: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
+To: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
+Cc: adilger.kernel@dilger.ca, amir73il@gmail.com, linux-ext4@vger.kernel.org, 
 	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	miklos@szeredi.hu, syzkaller-bugs@googlegroups.com, tytso@mit.edu
+	syzkaller-bugs@googlegroups.com, tytso@mit.edu
+Content-Type: multipart/mixed; boundary="000000000000b2665406322cbac6"
+
+--000000000000b2665406322cbac6
 Content-Type: text/plain; charset="UTF-8"
 
-Hello,
-
-syzbot found the following issue on:
-
-HEAD commit:    16cd1c265776 Merge tag 'timers-cleanups-2025-04-06' of git..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=12e7923f980000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=c79406130aa88d22
-dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
-compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f9bd98580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1571c7e4580000
-
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/a4435e7379c4/disk-16cd1c26.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/5a00533ae7ab/vmlinux-16cd1c26.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/2069327dcea6/bzImage-16cd1c26.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com
-
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 5824 at fs/file.c:1201 file_seek_cur_needs_f_lock+0x141/0x190 fs/file.c:1201
-Modules linked in:
-CPU: 0 UID: 0 PID: 5824 Comm: syz-executor625 Not tainted 6.14.0-syzkaller-13546-g16cd1c265776 #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 02/12/2025
-RIP: 0010:file_seek_cur_needs_f_lock+0x141/0x190 fs/file.c:1201
-Code: 31 ff 89 c3 89 c6 e8 0e 9e 7f ff 84 db 74 15 e8 25 a3 7f ff bb 01 00 00 00 89 d8 5b 5d 41 5c c3 cc cc cc cc e8 10 a3 7f ff 90 <0f> 0b 90 eb e0 e8 05 a3 7f ff 31 db 89 d8 5b 5d 41 5c c3 cc cc cc
-RSP: 0018:ffffc90002f07df8 EFLAGS: 00010293
-RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff823b9ae2
-RDX: ffff888031808000 RSI: ffffffff823b9b00 RDI: 0000000000000001
-RBP: 0000000000000001 R08: 0000000000000001 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: bfffffffffffffff
-R13: 0000000000000005 R14: 00000ffffffff000 R15: 00000ffffffff000
-FS:  00005555717cf380(0000) GS:ffff8881249b3000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000200000001000 CR3: 0000000026d60000 CR4: 00000000003526f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- generic_file_llseek_size+0x153/0x480 fs/read_write.c:178
- ext4_llseek+0x180/0x2f0 fs/ext4/file.c:941
- vfs_llseek+0x9a/0xe0 fs/read_write.c:387
- ovl_llseek+0x15c/0x2c0 fs/overlayfs/file.c:277
- vfs_llseek fs/read_write.c:387 [inline]
- ksys_lseek+0xf0/0x1b0 fs/read_write.c:400
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xcd/0x260 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fdc41bae4a9
-Code: 48 83 c4 28 c3 e8 37 17 00 00 0f 1f 80 00 00 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffc49e17ef8 EFLAGS: 00000246 ORIG_RAX: 0000000000000008
-RAX: ffffffffffffffda RBX: 0000200000000140 RCX: 00007fdc41bae4a9
-RDX: 0000000000000001 RSI: 0000000000000005 RDI: 0000000000000003
-RBP: 00007fdc41c21610 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000003 R11: 0000000000000246 R12: 0000000000000001
-R13: 00007ffc49e180c8 R14: 0000000000000001 R15: 0000000000000001
- </TASK>
+On Mon, 7 Apr 2025 at 05:57, syzbot
+<syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com> wrote:
+>
+> Hello,
+>
+> syzbot found the following issue on:
+>
+> HEAD commit:    16cd1c265776 Merge tag 'timers-cleanups-2025-04-06' of git..
+> git tree:       upstream
+> console+strace: https://syzkaller.appspot.com/x/log.txt?x=12e7923f980000
+> kernel config:  https://syzkaller.appspot.com/x/.config?x=c79406130aa88d22
+> dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
+> compiler:       gcc (Debian 12.2.0-14) 12.2.0, GNU ld (GNU Binutils for Debian) 2.40
+> syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f9bd98580000
+> C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1571c7e4580000
 
 
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
+#syz test: git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+v6.15-rc1
 
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
+--000000000000b2665406322cbac6
+Content-Type: text/x-patch; charset="US-ASCII"; name="ovl-dont-seek_cur-on-realfile.patch"
+Content-Disposition: attachment; 
+	filename="ovl-dont-seek_cur-on-realfile.patch"
+Content-Transfer-Encoding: base64
+Content-ID: <f_m96uyqc70>
+X-Attachment-Id: f_m96uyqc70
 
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+ZGlmZiAtLWdpdCBhL2ZzL292ZXJsYXlmcy9maWxlLmMgYi9mcy9vdmVybGF5ZnMvZmlsZS5jCmlu
+ZGV4IDk2OWI0NTgxMDBmZS4uNTQ4ZjBlNmFlZDU0IDEwMDY0NAotLS0gYS9mcy9vdmVybGF5ZnMv
+ZmlsZS5jCisrKyBiL2ZzL292ZXJsYXlmcy9maWxlLmMKQEAgLTI3Myw2ICsyNzMsMTIgQEAgc3Rh
+dGljIGxvZmZfdCBvdmxfbGxzZWVrKHN0cnVjdCBmaWxlICpmaWxlLCBsb2ZmX3Qgb2Zmc2V0LCBp
+bnQgd2hlbmNlKQogCW92bF9pbm9kZV9sb2NrKGlub2RlKTsKIAlyZWFsZmlsZS0+Zl9wb3MgPSBm
+aWxlLT5mX3BvczsKIAorCS8qIFByZXZlbnQgV0FSTklORyBpbiBmaWxlX3NlZWtfY3VyX25lZWRz
+X2ZfbG9jaygpICovCisJaWYgKHdoZW5jZSA9PSBTRUVLX0NVUiAmJiBvZmZzZXQpIHsKKwkJb2Zm
+c2V0ICs9IGZpbGUtPmZfcG9zOworCQl3aGVuY2UgPSBTRUVLX1NFVDsKKwl9CisKIAlvbGRfY3Jl
+ZCA9IG92bF9vdmVycmlkZV9jcmVkcyhpbm9kZS0+aV9zYik7CiAJcmV0ID0gdmZzX2xsc2Vlayhy
+ZWFsZmlsZSwgb2Zmc2V0LCB3aGVuY2UpOwogCW92bF9yZXZlcnRfY3JlZHMob2xkX2NyZWQpOwo=
+--000000000000b2665406322cbac6--
