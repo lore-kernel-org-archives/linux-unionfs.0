@@ -1,78 +1,87 @@
-Received: from mail-il1-f197.google.com (mail-il1-f197.google.com [209.85.166.197])
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 80E5B2222B4
-	for <linux-unionfs@vger.kernel.org>; Mon,  7 Apr 2025 21:10:02 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.197
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5FCF414AD29
+	for <linux-unionfs@vger.kernel.org>; Tue,  8 Apr 2025 06:17:36 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744060204; cv=none; b=b2yL7mbQdb8W/qYoYvPr9F5Jft/GnXY4o288BJD2KAmRV1URqZhhbHSTSVByJjR9syALHrB95wkKKcg0a/QDiTbos6admuYTV/PtQ5ZD4WwQoroAchiG8WqrcaMJ4JowCsjyG6mwPwNDLZr/jcfS2vqct3ZwsUYgySad/ljP2mU=
+	t=1744093059; cv=none; b=ZTo3TWzw3HA9f4ojiZrNPzxyo6zc+aaH0cW2Bkz7kFDlwWJk8k97oOZogYw59isWiiGOY84yMpzkhLmaATN3IWALGqXxV6dauPL91uSSuqITouyoecxAlm5THFppMx3DcE+N3WUKlXPlDjN/aaT6AgcFkUKb3UPd6YCaQ7gkcN0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744060204; c=relaxed/simple;
-	bh=l33H7W/dajNswr6zoB4uEzQnZ3xV2ksVZyWMgdOsk+c=;
-	h=MIME-Version:Date:In-Reply-To:Message-ID:Subject:From:To:
-	 Content-Type; b=vAtoj8s/kJS1na+1MBSBYdvPtsUajSTZYKg1Xch+nvgPqOZzr6tLxBjgUZ0PS7eCfXF419UgAqCdfbdAUBO0/cJmX7b+UoCM0f/N6ZQqdVo0texHOZsi+wRg4vSJ8gEZoZVRdau5lmLJ2lHFKUSh4aa0yuB+kfrLLM3bL5r+vjQ=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.197
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-il1-f197.google.com with SMTP id e9e14a558f8ab-3d5bb1708e4so103714345ab.3
-        for <linux-unionfs@vger.kernel.org>; Mon, 07 Apr 2025 14:10:02 -0700 (PDT)
+	s=arc-20240116; t=1744093059; c=relaxed/simple;
+	bh=VW+RsJJRpNN89PxvKgUJK1GGasY5iK6flMlTkynIT2M=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=JxAmNlH3E1PjlC/e/Sw0fpDZndzYGPvzQqh16kOqDP4xFf9NzIhTQ4Z0cEwR1WMY6zMbNQt3SyEDntzcvw3OYXIPYe/0xLipvQKzEKb4vz3k61EhSxBKrbkJ1iYVuYXoFTYUIwYW1qO5IQUh6Ct5/HuB2xzeQrLx2jhpzEeH3aU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=b9pcGPhc; arc=none smtp.client-ip=209.85.160.182
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="b9pcGPhc"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-4772f48f516so60207691cf.1
+        for <linux-unionfs@vger.kernel.org>; Mon, 07 Apr 2025 23:17:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=szeredi.hu; s=google; t=1744093056; x=1744697856; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=nS5SAKrFs9L3a7bg9Pf2lyrhub99zp14T9x9IO3i5/s=;
+        b=b9pcGPhcGEOcqGDWMudRHPYphk1lVLBJqaQYr5QK9mEKrjiw9vWO/w49x1tUTB2hhm
+         WZltNtxI54toK4cvK8lebAzM/m2L4s/KeWW7Iux1V42fdNeuzbcvIjq+y9zlnPXiB9Wo
+         MX3WsGGopiMR9+d+ZtIiBGOITIIoSx70S3YfE=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744060201; x=1744665001;
-        h=to:from:subject:message-id:in-reply-to:date:mime-version
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=obSJQ5g5QULaHlCzGG1efUqikPTPRZ9Sdsw5hiAMvVs=;
-        b=W+UsEKz1JHXAICDOfxQQ5gcfr2Oj/o6Nuyr/2kyjy5J7IuMqJsOkiY/yXoXSo+vlt0
-         VMgt3b80FobB/FNlW1ErX8tujdSuS0vjs1BcNJ8rMcag9Z11MDRLfAfmxhtRzC8YzRr0
-         5RvP9U7OghLvbF28RErIJYH+rtiw/M7hcn8YFZlWLf9AK1sGB9eN7jcdKxjzcAaq0NI3
-         fqy1AgVaGBpJ4D2o1AW/q9+mvU9k6zp8/X/wmKOevt3Mk8FUjRSyNfFIYc4Nl1WivhU5
-         54+ivUj3/TZnQ+Xt/nMECv5QOTpRg9+Dtjmx/FHCb5oc279JawcV06ehMirLs35H32Jy
-         pnSw==
-X-Forwarded-Encrypted: i=1; AJvYcCVbi5TN9cCJVoHcbBkjkkBG6buVU2cs52yhIo9LAaPxJEQjq+5Q+WE5htNCTqCLSWFr9dnj3MvF94sxXXs0@vger.kernel.org
-X-Gm-Message-State: AOJu0Yyl3eZIwTEFpxOiCsE5G8gZ5qDasuBt6g0+aXxuSu5qotlZtW1c
-	sQ4DnA9Xl3mlz0NxTIrqro50Yp0eTh3BQLho/ox6ZDARmjRMvf2JgVH5CPv/E0EWd+NSWqtfiRi
-	yDyjTKwPfO5aF2gsxdvIvQV2hMqsaWNoY5xtUaVu3hnC1Bg2uqhV6BAc=
-X-Google-Smtp-Source: AGHT+IH3y067eDUmOjv5CFVChEZZ+wYOKbqcRDrio8C6VJxigSI3fEGx40IpkZ9McIdubTIYOFN7nscVeIXbCNAf69zlWSylOENX
+        d=1e100.net; s=20230601; t=1744093056; x=1744697856;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=nS5SAKrFs9L3a7bg9Pf2lyrhub99zp14T9x9IO3i5/s=;
+        b=TwooDm/p+moCyQhDfAYkcg+3NGBFQVhJeLbLZa1evSI2h/nu3Uo81bwDqaLQqG7hSg
+         Cf0B5mqftUMjvEePS+Hw5qB4I50GzNPaaYBrPINQgZH42VqnNvXiK5NOJ+LDL+GAWmXx
+         ADeNF9VU/zXGqYPzTrTCVyTiqKK10k2VsSLly9xL+zy/TVKfHt7HzpywclWJWR1fV0vp
+         5QpRm4X3+4JJAEY2yR6UfPYOMbCuPJcWAQJ9kbkdCFBOAJe+jpSohqbSOmhw2kKMkzLQ
+         frirghpsJ2MTD4fYrxgEbWm/mButMVW1ocaPJ/Zrc9ZPLi6lOWJ/8F+FYiIWrMX5Li0b
+         BFMg==
+X-Forwarded-Encrypted: i=1; AJvYcCX56YsfY8DmvuU11Hdlr6w8fbJF0M4Yn4sUNlYDQalcGImB9TdkNaWJU6tEwwHZN5/nd0IzysnJnFCg955h@vger.kernel.org
+X-Gm-Message-State: AOJu0YwuOOrAX18HWbFEKBRGeHfLAuNDkpe7BT873afjMbr7rUgSC9h9
+	TWrVu3pQm+4VU5IAuI6Ks6I32pO514dewDdE8VT3ClijRFsLe1oCs3laDYDIK+Fi25c7nBaecuw
+	BSjS6HKmS+BYccoXyp98IisFL5sQZz2eETTjcVQ==
+X-Gm-Gg: ASbGncvHT6wP8ffkwpWu0bgWgEw7uZJ9hOA1Xxd8PWiguMkTcWUgVCQZesh6cAzp9QY
+	IRZ0v9KLq6KjttHr0s/aJ6jWNgvIA+2oDxzvkm9cdNk/7I8XkogP8CqslZPVbLAYlZkj2Bdl2hG
+	20MQeBPcJDXoDeVvK10xLURjJNHH4=
+X-Google-Smtp-Source: AGHT+IGN08NztWSyO7oZY1PKzyq5lt8yT3Bg7u9DzpatY8aRQSviQxIWIRLmXD23CvcOoXDn1LuSBR6ZSex14gtyN48=
+X-Received: by 2002:ac8:5a8a:0:b0:476:6df0:954f with SMTP id
+ d75a77b69052e-47953ed2b21mr36161891cf.10.1744093056143; Mon, 07 Apr 2025
+ 23:17:36 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6e02:2199:b0:3d4:244b:db20 with SMTP id
- e9e14a558f8ab-3d6e3f653acmr156570565ab.16.1744060201704; Mon, 07 Apr 2025
- 14:10:01 -0700 (PDT)
-Date: Mon, 07 Apr 2025 14:10:01 -0700
-In-Reply-To: <67f34d24.050a0220.0a13.027c.GAE@google.com>
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <67f43f29.050a0220.396535.0554.GAE@google.com>
+References: <67f3dc05.050a0220.107db6.059d.GAE@google.com> <1465443.1744059739@warthog.procyon.org.uk>
+In-Reply-To: <1465443.1744059739@warthog.procyon.org.uk>
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Tue, 8 Apr 2025 08:17:25 +0200
+X-Gm-Features: ATxdqUHATzE8R7-GtRDaTuVwk64W_yazPWFWR845MefAQpWOnCnETGl6AzmpLJ8
+Message-ID: <CAJfpeguEd49YhmbsZYPgKJ4=BYpgEEhF7gnH2Cp1yRouQUUMWQ@mail.gmail.com>
 Subject: Re: [syzbot] [ext4?] [overlayfs?] WARNING in file_seek_cur_needs_f_lock
-From: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>
-To: adilger.kernel@dilger.ca, amir73il@gmail.com, dhowells@redhat.com, 
-	edumazet@google.com, linux-ext4@vger.kernel.org, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, sven@narfation.org, 
-	sw@simonwunderlich.de, syzkaller-bugs@googlegroups.com, tytso@mit.edu
+To: David Howells <dhowells@redhat.com>
+Cc: syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com>, 
+	adilger.kernel@dilger.ca, amir73il@gmail.com, linux-ext4@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	syzkaller-bugs@googlegroups.com, tytso@mit.edu
 Content-Type: text/plain; charset="UTF-8"
 
-syzbot has bisected this issue to:
+On Mon, 7 Apr 2025 at 23:03, David Howells <dhowells@redhat.com> wrote:
+>
+> syzbot <syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com> wrote:
+>
+> > syzbot has tested the proposed patch but the reproducer is still triggering an issue:
+> > unregister_netdevice: waiting for DEV to become free
+> >
+> > unregister_netdevice: waiting for batadv0 to become free. Usage count = 3
+>
+> I've seen this in a bunch of different syzbot tests also where, as far as I
+> can tell, the patch I've offered fixes the actual bug.
 
-commit 00b35530811f2aa3d7ceec2dbada80861c7632a8
-Author: Eric Dumazet <edumazet@google.com>
-Date:   Thu Feb 6 14:04:22 2025 +0000
+Which one is that?  I can't seem to find it.
 
-    batman-adv: adopt netdev_hold() / netdev_put()
-
-bisection log:  https://syzkaller.appspot.com/x/bisect.txt?x=175f8c04580000
-start commit:   16cd1c265776 Merge tag 'timers-cleanups-2025-04-06' of git..
-git tree:       upstream
-final oops:     https://syzkaller.appspot.com/x/report.txt?x=14df8c04580000
-console output: https://syzkaller.appspot.com/x/log.txt?x=10df8c04580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=c79406130aa88d22
-dashboard link: https://syzkaller.appspot.com/bug?extid=4036165fc595a74b09b2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=14f9bd98580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1571c7e4580000
-
-Reported-by: syzbot+4036165fc595a74b09b2@syzkaller.appspotmail.com
-Fixes: 00b35530811f ("batman-adv: adopt netdev_hold() / netdev_put()")
-
-For information about bisection process see: https://goo.gl/tpsmEJ#bisection
+Thanks,
+Miklos
