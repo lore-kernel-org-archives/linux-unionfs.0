@@ -1,788 +1,346 @@
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id BF36554782
-	for <linux-unionfs@vger.kernel.org>; Tue,  8 Apr 2025 15:45:15 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D0EA515A85E;
+	Wed,  9 Apr 2025 06:09:16 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744127119; cv=none; b=OKmpOOAMyqYegjmQcrXKedifBSEEyJX3ujHZjpBRfDZt4p6M3KIPK10CjfFtWMi7l9ldpTtDqBzxOVMNPMWTJgAWhdmeKURtTy6yXnrQdrKVbW1NJC2mkaIbEK1fmHre9/dUNUaZycmahm2K08t/PqsW10KgboI5r9hdLScFfH4=
+	t=1744178958; cv=none; b=LANhviyB852+9Q2U2K9+JyN2rsMnEC3bGZyIKWoKKotj7gV02Y/77BG/JuWDlr5sKy6aDlwIjEX0V03nWo4bOszTWw+v4j/qZfocsrcprgyRWaT7E28PuuCc2qj/t3WcglM0GMHB7kA6uNdpZZLGg2zYLqklbKA9aLrJHTzv3TQ=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744127119; c=relaxed/simple;
-	bh=gWY4qYVuXQYpPu6DnRt5fyW/q+BaOUkelmZHAk9QMdY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=ibR+7pGG+PwdV2v1po9tTTkN8V4cKsJDJMLcV8vooq5BYA5/l1yp7PlSewaiW3mjlNPe3UPVN28tH0895SN14EC+gYUuwBAz+Y6ekIj0+OtbOFxW97zNADN6cT5740cAyKxSZ+gL65DHF5E9RgqA23euLTyRI6E8WS7m9uc/9Zs=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=gpjZfva9; arc=none smtp.client-ip=170.10.129.124
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
+	s=arc-20240116; t=1744178958; c=relaxed/simple;
+	bh=jM8OD4HM9d+9zUOqW5Nz/zC6iHQDo765ocSa73hEqEs=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GLbcxRmflk1VHfKcrnl5wrAcVT+pBWaH0GRop4dLXGEAKQhcQZHKxaC7FGWryWISpW8r+BpndKAmyL4YF0rwzJ9I+oFe1+fF7XubNWYacu2rr1trEDt3F8ziEgc+2msWGiBB/cUXR3LFVaPPqmjSSJzeAIF3SOcq0zQF00IPR/Q=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=VaxFpIAy; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="gpjZfva9"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1744127114;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding;
-	bh=IrZXw4h7RzYFuAaDUglqcvWIlh71sQKcQYaM+0JCMGE=;
-	b=gpjZfva9x1eunVOAlYMiQGLZGUvgcc+XAnteLE7U+cBG6ZAJwKveQa2SWyx/Qjkz70nLoM
-	EUwJpiRM+PN63URWGgJs/7kXUVcfIrNxZBgaQnJdMSwygEdk99TgfrJzEzGz/cdvhvr7ya
-	ReZufWMB041N2iVlEh6FTv3PG0EU6GI=
-Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
- [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-53-AYkd-QN4NiWXnNq-aNgZTA-1; Tue, 08 Apr 2025 11:45:13 -0400
-X-MC-Unique: AYkd-QN4NiWXnNq-aNgZTA-1
-X-Mimecast-MFC-AGG-ID: AYkd-QN4NiWXnNq-aNgZTA_1744127112
-Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-ac79e4764e5so509406566b.0
-        for <linux-unionfs@vger.kernel.org>; Tue, 08 Apr 2025 08:45:13 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="VaxFpIAy"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-ac289147833so1063527566b.2;
+        Tue, 08 Apr 2025 23:09:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1744178955; x=1744783755; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=i8a2ffX23jEbnViJJp1bHsuHmbprTP/8SlZIzCp4vio=;
+        b=VaxFpIAy9+vkm71mMbQbwkB8lMzPAGhfJAR1tZIx+5YfksT6J+/4sKA1QFmkm28THX
+         P0Dl2hBSxf2PMsSCeeN97cI8o6AjKPeuGwJ2yb1T5ftHxvIsWgY/x5LriGR2O8kye3tF
+         7cSH/JtQcXQMG7WtznPBD5h4VPKlNk1Jg9k1wPANHOIQVyORg0PywE3AAOhPk9KcAcRj
+         ae1pNRvJY6NAwVobscflkhkCnwYHd13xUbSD0bWkAdTKWjXlIvXDrgmIIZ4X7fcBsTul
+         O9I6tKg7yzjTJQpMqYJALqafQvVZBX9ng/Tk6dIlwS7DWP18U3PUBlPp/tYAaZBKg1+L
+         uijQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744127112; x=1744731912;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=IrZXw4h7RzYFuAaDUglqcvWIlh71sQKcQYaM+0JCMGE=;
-        b=g0iExLAb7yt5L94kg4XxKcO2xmZL819g8yWxu58yvsGjNPvi7ETB076XY1lv7qxIjF
-         dVYs+mQmAheHtQQbJgdLIvJosTrWbgLU4p0ejS9536aNturf3MGFFtrs9Zb1Ylvoa4+X
-         KC7sUOgHSwwNdEeHRK0NAWq343BubgQyiwmVK1qGX8cgNJanMxKJmSaB60tCtOud0Jxc
-         oA8ih1cvRAn7Uo5PTrXAIe5SC6YSVu2nEEKfJjv/bYWeRKVLqLu7qgoe8i8sA0Hkhw7L
-         NG/sUnk0JAaj2XJNeLDnZDhhd3G1CEagKA0FeQbaTjbrZzHhDOzfgjhPd0BdokmrWRc4
-         gL3g==
-X-Gm-Message-State: AOJu0Yzbvb4vM7eXKdFrqVlU97zKkaj3m2zSNqDEdbW8QscUd74CcCvg
-	wtMREZiTIXzSYTfu4pRpa+O4ooTjemwb3Sv/UFjwKblX5TJhD8ONdG9eiN25fbDpQfSEWU+tTvh
-	3aruv0i+FsQWPABpk0pyLp2Qh7vaAGyOvJ65NOOfJI8c/WkJEBp/Gm7EYacVwKTYnXxTy7xw=
-X-Gm-Gg: ASbGncuHYhJQPDNUpUYsIMEwGtuZTxRMs+3E/QovdH2T1AlVctjBmyRwhYwh+h0zXPd
-	AdCTS9lqHNGfP568kKmSPrWfPlgEN3Nvt1PDrLumDBBqEAtwhs5jAIW341HZu8pDwpH7N5MQVUy
-	yoMfySz8TRKc7Kt+Xm9lVsM+PVhBPZcJedLI61leiYYi9gipNcR9myxpgbKen7EKj/AvZ2+fNeR
-	8rOukIhYoZKXUyQRLBOVsv5MJHsC9huH9AKTtnjptfe5KZsazb33e2dgAPSXDSy/f9BrkZrQZRF
-	ZIC+R8dQS6MS5bzzk9Rnt5cctELshjWRfCa3u/b7yOa9KtKZbEMBuEVyUfNzeWKkSlAOaao8
-X-Received: by 2002:a17:906:d269:b0:ac7:971b:ffd with SMTP id a640c23a62f3a-ac7d185cf4cmr1668860166b.10.1744127111470;
-        Tue, 08 Apr 2025 08:45:11 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IGDc6EzCTSkM9P/vQ+vGwy/jjsGfTUHUm6bbSMoWasW+rQPa2zAsD/FTj4XJmfMvcIznGslTQ==
-X-Received: by 2002:a17:906:d269:b0:ac7:971b:ffd with SMTP id a640c23a62f3a-ac7d185cf4cmr1668856666b.10.1744127110932;
-        Tue, 08 Apr 2025 08:45:10 -0700 (PDT)
-Received: from maszat.piliscsaba.szeredi.hu (193-226-212-63.pool.digikabel.hu. [193.226.212.63])
-        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ac7c01c20f1sm949630666b.177.2025.04.08.08.45.09
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Apr 2025 08:45:10 -0700 (PDT)
-From: Miklos Szeredi <mszeredi@redhat.com>
-To: fstests@vger.kernel.org
-Cc: linux-unionfs@vger.kernel.org,
-	Amir Goldstein <amir73il@gmail.com>,
-	linux-fsdevel@vger.kernel.org,
-	Giuseppe Scrivano <gscrivan@redhat.com>,
-	Alexander Larsson <alexl@redhat.com>
-Subject: [PATCH] overlay/08[89]: add tests for data-only redirect with userxattr
-Date: Tue,  8 Apr 2025 17:45:09 +0200
-Message-ID: <20250408154509.674118-1-mszeredi@redhat.com>
-X-Mailer: git-send-email 2.49.0
+        d=1e100.net; s=20230601; t=1744178955; x=1744783755;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=i8a2ffX23jEbnViJJp1bHsuHmbprTP/8SlZIzCp4vio=;
+        b=E6/vc1UlDEAMz/kustYQMxNsI9rQ5d80431b1LLIvzRxaIVTo4chHLvOQ860lC8qQ9
+         qH5xjkjVWex0bUiBreqCWpcs7C0bU1uTvRGXDdw62pUaNxpIgN0NaxvF/+GFGK/k9KNC
+         70iYJ0YBLOVxfccJrU96wIi8SgMgyovSwaMZ7eZ0/3TtCb7QN5NekSqvYwzgBZ9gVQZH
+         bdEo8etQ8FKBDLF9ov8liwsWiIjGGTFXCEtYVm21i7f93Q86HolSuERV7kIGLppXobGo
+         NDaLXsFpekx0svqVuR8jDkhKlBWGyAbq53YW498JQBkgor+s19Ftp/9ajAAcZH2NmDLs
+         dw2g==
+X-Forwarded-Encrypted: i=1; AJvYcCW3/1HjF40YDtST8srLs+jR4IAtbTNTPDekVhY3Vq5nIGg91tRGDLu9CrT8rwKEyVBbg0GCr2zqbo7qfA8e@vger.kernel.org
+X-Gm-Message-State: AOJu0YzKfH0oEN6xYep6EwFHOp2Gn2zHyBJkOzUr3r3CWzleBAtTJQYG
+	TcYM1kfeC5E/VRhJQgnxXheUVHu5UdmOdHczMB9xQEqi4QuLfOBoiFTsLk1mg5qXpBSx05UFQ2/
+	4zQTB+e+sr5ygPv6kP4Tqf6IKUJs=
+X-Gm-Gg: ASbGncso6dH74tOLxSildV5sB64SJdBQoDly8JOo4Z24dSzbtQEEnkF0L2NshD/Fbx0
+	fDg9FG9Txu2pQDD2qzMuydfFLZzgofqPOGKRaJ5pmmQB2hSGdjv5jPIa6a9SrBvkSLAa9mUlLuB
+	hW41UEeCzcdRFeF1lnJm80xw==
+X-Google-Smtp-Source: AGHT+IFdHBBqhwKP4Tl6JZjeTXLPr9L0gRdGF6JvWih1BHcq8/LkOKiDZ73D5O3SqKuAwbvi/FGg4dOWom4H3Out854=
+X-Received: by 2002:a17:907:d87:b0:ac7:391a:e159 with SMTP id
+ a640c23a62f3a-aca9d73c032mr86955366b.60.1744178954385; Tue, 08 Apr 2025
+ 23:09:14 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20250408154011.673891-1-mszeredi@redhat.com> <20250408154011.673891-2-mszeredi@redhat.com>
+In-Reply-To: <20250408154011.673891-2-mszeredi@redhat.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Wed, 9 Apr 2025 08:09:02 +0200
+X-Gm-Features: ATxdqUHEgtJh6K0qrSJCBBQh4q29yp7zi4OG4srh4bUD0WEbNScRW7j8mb-6ARU
+Message-ID: <CAOQ4uxjOT=m7ZsdLod3KEYe+69K--fGTUegSNwQg0fU7TeVbsQ@mail.gmail.com>
+Subject: Re: [PATCH v3 1/3] ovl: make redirect/metacopy rejection consistent
+To: Miklos Szeredi <mszeredi@redhat.com>
+Cc: linux-unionfs@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	Giuseppe Scrivano <gscrivan@redhat.com>, Alexander Larsson <alexl@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-New kernel feature (target release is v6.16) allows data-only redirect to
-be enabled without metacopy and redirect_dir turned on.  This works with or
-without verity enabled.
+On Tue, Apr 8, 2025 at 5:40=E2=80=AFPM Miklos Szeredi <mszeredi@redhat.com>=
+ wrote:
+>
+> When overlayfs finds a file with metacopy and/or redirect attributes and
+> the metacopy and/or redirect features are not enabled, then it refuses to
+> act on those attributes while also issuing a warning.
+>
+> There was an inconsistency in not checking metacopy found from the index.
+>
+> And also only warning on an upper metacopy if it found the next file on t=
+he
+> lower layer, while always warning for metacopy found on a lower layer.
+>
+> Fix these inconsistencies and make the logic more straightforward, paving
+> the way for following patches to change when dataredirects are allowed.
 
-Tests are done with the userxattr option, to verify that it will work in a
-user namespace.
+missing space: dataredirects
 
-Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
----
- common/overlay        |  29 +++++
- tests/overlay/088     | 296 ++++++++++++++++++++++++++++++++++++++++++
- tests/overlay/088.out |  39 ++++++
- tests/overlay/089     | 272 ++++++++++++++++++++++++++++++++++++++
- tests/overlay/089.out |   5 +
- 5 files changed, 641 insertions(+)
- create mode 100755 tests/overlay/088
- create mode 100644 tests/overlay/088.out
- create mode 100755 tests/overlay/089
- create mode 100644 tests/overlay/089.out
+>
+> Signed-off-by: Miklos Szeredi <mszeredi@redhat.com>
+> ---
+>  fs/overlayfs/namei.c | 81 +++++++++++++++++++++++++++++++-------------
+>  1 file changed, 57 insertions(+), 24 deletions(-)
+>
+> diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+> index be5c65d6f848..5cebdd05ab3a 100644
+> --- a/fs/overlayfs/namei.c
+> +++ b/fs/overlayfs/namei.c
+> @@ -16,6 +16,7 @@
+>
+>  struct ovl_lookup_data {
+>         struct super_block *sb;
+> +       struct dentry *dentry;
+>         const struct ovl_layer *layer;
+>         struct qstr name;
+>         bool is_dir;
+> @@ -23,6 +24,8 @@ struct ovl_lookup_data {
+>         bool xwhiteouts;
+>         bool stop;
+>         bool last;
+> +       bool nextredirect;
+> +       bool nextmetacopy;
 
-diff --git a/common/overlay b/common/overlay
-index 01b6622f5573..a6d37a933e6b 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -268,6 +268,22 @@ _require_scratch_overlay_lowerdir_add_layers()
- 	_scratch_unmount
- }
- 
-+# Check kernel support for datadir+=<datadir> without "metacopy=on" option
-+_require_scratch_overlay_datadir_without_metacopy()
-+{
-+	local lowerdir="$OVL_BASE_SCRATCH_MNT/$OVL_UPPER"
-+	local datadir="$OVL_BASE_SCRATCH_MNT/$OVL_LOWER"
-+
-+	_scratch_mkfs > /dev/null 2>&1
-+	_overlay_scratch_mount_opts \
-+		-o"lowerdir+=$lowerdir,datadir+=$datadir" > /dev/null 2>&1 || \
-+	        _notrun "overlay datadir+ without metacopy not supported on ${SCRATCH_DEV}"
-+
-+	_scratch_unmount
-+
-+}
-+
-+
- # Helper function to check underlying dirs of overlay filesystem
- _overlay_fsck_dirs()
- {
-@@ -467,6 +483,19 @@ _require_unionmount_testsuite()
- 		_notrun "newer version of unionmount testsuite required to support OVERLAY_MOUNT_OPTIONS."
- }
- 
-+# transform overlay xattrs (trusted.overlay -> user.overlay)
-+_overlay_trusted_to_user()
-+{
-+	local dir=$1
-+
-+	for file in `find $dir`; do
-+		_getfattr --absolute-names -d -m '^trusted.overlay.(redirect|metacopy)$' $file  | sed 's/^trusted/user/' | setfattr --restore=-
-+		for xattr in `_getfattr --absolute-names -d -m '^trusted.overlay.' $file  | tail -n +2 | cut -d= -f1`; do
-+			setfattr -x $xattr $file;
-+		done
-+	done
-+}
-+
- _unionmount_testsuite_run()
- {
- 	[ "$FSTYP" = overlay ] || \
-diff --git a/tests/overlay/088 b/tests/overlay/088
-new file mode 100755
-index 000000000000..05944e71b3d5
---- /dev/null
-+++ b/tests/overlay/088
-@@ -0,0 +1,296 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2018 Red Hat, Inc. All Rights Reserved.
-+# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
-+#
-+# FS QA Test No. 088
-+#
-+# Test data-only layers functionality.
-+# This is a variant of test overlay/085 with userxattr and without
-+# redirect_dir/metacopy options
-+#
-+. ./common/preamble
-+_begin_fstest auto quick metacopy redirect prealloc
-+
-+# Import common functions.
-+. ./common/filter
-+. ./common/attr
-+
-+# We use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
-+_require_scratch_overlay_features redirect_dir metacopy
-+_require_scratch_overlay_lowerdir_add_layers
-+_require_scratch_overlay_datadir_without_metacopy
-+_require_xfs_io_command "falloc"
-+
-+# remove all files from previous tests
-+_scratch_mkfs
-+
-+# File size on lower
-+dataname="datafile"
-+sharedname="shared"
-+datacontent="data"
-+dataname2="datafile2"
-+datacontent2="data2"
-+datasize="4096"
-+
-+# Number of blocks allocated by filesystem on lower. Will be queried later.
-+datarblocks=""
-+datarblocksize=""
-+estimated_datablocks=""
-+
-+udirname="pureupper"
-+ufile="upperfile"
-+
-+
-+# Check redirect xattr
-+check_redirect()
-+{
-+	local target=$1
-+	local expect=$2
-+
-+	value=$(_getfattr --absolute-names --only-values -n \
-+		user.overlay.redirect $target)
-+
-+	[[ "$value" == "$expect" ]] || echo "Redirect xattr incorrect. Expected=\"$expect\", actual=\"$value\""
-+}
-+
-+# Check size
-+check_file_size()
-+{
-+	local target=$1 expected_size=$2 actual_size
-+
-+	actual_size=$(_get_filesize $target)
-+
-+	[ "$actual_size" == "$expected_size" ] || echo "Expected file size $expected_size but actual size is $actual_size"
-+}
-+
-+check_file_blocks()
-+{
-+	local target=$1 expected_blocks=$2 nr_blocks
-+
-+	nr_blocks=$(stat -c "%b" $target)
-+
-+	[ "$nr_blocks" == "$expected_blocks" ] || echo "Expected $expected_blocks blocks but actual number of blocks is ${nr_blocks}."
-+}
-+
-+check_file_contents()
-+{
-+	local target=$1 expected=$2
-+	local actual target_f
-+
-+	target_f=`echo $target | _filter_scratch`
-+
-+	read actual<$target
-+
-+	[ "$actual" == "$expected" ] || echo "Expected file $target_f contents to be \"$expected\" but actual contents are \"$actual\""
-+}
-+
-+check_no_file_contents()
-+{
-+	local target=$1
-+	local actual target_f out_f
-+
-+	target_f=`echo $target | _filter_scratch`
-+	out_f=`cat $target 2>&1 | _filter_scratch`
-+	msg="cat: $target_f: No such file or directory"
-+
-+	[ "$out_f" == "$msg" ] && return
-+
-+	echo "$target_f unexpectedly has content"
-+}
-+
-+
-+check_file_size_contents()
-+{
-+	local target=$1 expected_size=$2 expected_content=$3
-+
-+	check_file_size $target $expected_size
-+	check_file_contents $target $expected_content
-+}
-+
-+mount_overlay()
-+{
-+	local _lowerdir=$1 _datadir2=$2 _datadir=$3
-+
-+	_overlay_scratch_mount_opts \
-+		-o"lowerdir+=$_lowerdir,datadir+=$_datadir2,datadir+=$_datadir" \
-+		-o"upperdir=$upperdir,workdir=$workdir" \
-+		-o userxattr
-+}
-+
-+mount_ro_overlay()
-+{
-+	local _lowerdir=$1 _datadir2=$2 _datadir=$3
-+
-+	_overlay_scratch_mount_opts \
-+		-o"lowerdir+=$_lowerdir,datadir+=$_datadir2,datadir+=$_datadir" \
-+		-o userxattr
-+}
-+
-+umount_overlay()
-+{
-+	$UMOUNT_PROG $SCRATCH_MNT
-+}
-+
-+test_no_access()
-+{
-+	local _target=$1
-+
-+	mount_ro_overlay "$lowerdir" "$datadir2" "$datadir"
-+
-+	stat $SCRATCH_MNT/$_target >> $seqres.full 2>&1 || \
-+		echo "No access to lowerdata layer $_target"
-+
-+	echo "Unmount and Mount rw"
-+	umount_overlay
-+	mount_overlay "$lowerdir" "$datadir2" "$datadir"
-+	stat $SCRATCH_MNT/$_target >> $seqres.full 2>&1 || \
-+		echo "No access to lowerdata layer $_target"
-+	umount_overlay
-+}
-+
-+test_common()
-+{
-+	local _lowerdir=$1 _datadir2=$2 _datadir=$3
-+	local _target=$4 _size=$5 _blocks=$6 _data="$7"
-+	local _redirect=$8
-+
-+	echo "Mount ro"
-+	mount_ro_overlay $_lowerdir $_datadir2 $_datadir
-+
-+	# Check redirect xattr to lowerdata
-+	[ -n "$_redirect" ] && check_redirect $lowerdir/$_target "$_redirect"
-+
-+	echo "check properties of metadata copied up file $_target"
-+	check_file_size_contents $SCRATCH_MNT/$_target $_size "$_data"
-+	check_file_blocks $SCRATCH_MNT/$_target $_blocks
-+
-+	# Do a mount cycle and check size and contents again.
-+	echo "Unmount and Mount rw"
-+	umount_overlay
-+	mount_overlay $_lowerdir $_datadir2 $_datadir
-+	echo "check properties of metadata copied up file $_target"
-+	check_file_size_contents $SCRATCH_MNT/$_target $_size "$_data"
-+	check_file_blocks $SCRATCH_MNT/$_target $_blocks
-+
-+	# Trigger metadata copy up and check absence of metacopy xattr.
-+	chmod 400 $SCRATCH_MNT/$_target
-+	umount_overlay
-+	check_file_size_contents $upperdir/$_target $_size "$_data"
-+}
-+
-+test_lazy()
-+{
-+	local _target=$1
-+
-+	mount_overlay "$lowerdir" "$datadir2" "$datadir"
-+
-+	# Metadata should be valid
-+	check_file_size $SCRATCH_MNT/$_target $datasize
-+	check_file_blocks $SCRATCH_MNT/$_target $estimated_datablocks
-+
-+	# But have no content
-+	check_no_file_contents $SCRATCH_MNT/$_target
-+
-+	umount_overlay
-+}
-+
-+create_basic_files()
-+{
-+	_scratch_mkfs
-+	mkdir -p $datadir/subdir $datadir2/subdir $lowerdir $lowerdir2 $upperdir $workdir $workdir2
-+	mkdir -p $upperdir/$udirname
-+	echo "$datacontent" > $datadir/$dataname
-+	chmod 600 $datadir/$dataname
-+	echo "$datacontent2" > $datadir2/$dataname2
-+	chmod 600 $datadir2/$dataname2
-+
-+	echo "$datacontent" > $datadir/$sharedname
-+	echo "$datacontent2" > $datadir2/$sharedname
-+	chmod 600 $datadir/$sharedname  $datadir2/$sharedname
-+
-+	# Create files of size datasize.
-+	for f in $datadir/$dataname $datadir2/$dataname2 $datadir/$sharedname $datadir2/$sharedname; do
-+		$XFS_IO_PROG -c "falloc 0 $datasize" $f
-+		$XFS_IO_PROG -c "fsync" $f
-+	done
-+
-+	# Query number of block
-+	datablocks=$(stat -c "%b" $datadir/$dataname)
-+
-+	# For lazy lookup file the block count is estimated based on size and block size
-+	datablocksize=$(stat -c "%B" $datadir/$dataname)
-+	estimated_datablocks=$(( ($datasize + $datablocksize - 1)/$datablocksize ))
-+}
-+
-+prepare_midlayer()
-+{
-+	local _redirect=$1
-+
-+	_scratch_mkfs
-+	create_basic_files
-+	if [ -n "$_redirect" ]; then
-+		mv "$datadir/$dataname" "$datadir/$_redirect"
-+		mv "$datadir2/$dataname2" "$datadir2/$_redirect.2"
-+		mv "$datadir/$sharedname" "$datadir/$_redirect.shared"
-+		mv "$datadir2/$sharedname" "$datadir2/$_redirect.shared"
-+	fi
-+	# Create midlayer
-+	_overlay_scratch_mount_dirs $datadir2:$datadir $lowerdir $workdir2 -o redirect_dir=on,index=on,metacopy=on
-+	# Trigger a metacopy with or without redirect
-+	if [ -n "$_redirect" ]; then
-+		mv "$SCRATCH_MNT/$_redirect" "$SCRATCH_MNT/$dataname"
-+		mv "$SCRATCH_MNT/$_redirect.2" "$SCRATCH_MNT/$dataname2"
-+		mv "$SCRATCH_MNT/$_redirect.shared" "$SCRATCH_MNT/$sharedname"
-+	else
-+		chmod 400 $SCRATCH_MNT/$dataname
-+		chmod 400 $SCRATCH_MNT/$dataname2
-+		chmod 400 $SCRATCH_MNT/$sharedname
-+	fi
-+	umount_overlay
-+
-+	_overlay_trusted_to_user $lowerdir
-+}
-+
-+# Create test directories
-+datadir=$OVL_BASE_SCRATCH_MNT/data
-+datadir2=$OVL_BASE_SCRATCH_MNT/data2
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
-+
-+echo -e "\n== Check no follow to lowerdata layer without redirect =="
-+prepare_midlayer
-+test_no_access "$dataname"
-+test_no_access "$dataname2"
-+test_no_access "$sharedname"
-+
-+echo -e "\n== Check no follow to lowerdata layer with relative redirect =="
-+prepare_midlayer "$dataname.renamed"
-+test_no_access "$dataname"
-+test_no_access "$dataname2"
-+test_no_access "$sharedname"
-+
-+echo -e "\n== Check follow to lowerdata layer with absolute redirect =="
-+prepare_midlayer "/subdir/$dataname"
-+test_common "$lowerdir" "$datadir2" "$datadir" "$dataname" $datasize $datablocks \
-+		"$datacontent" "/subdir/$dataname"
-+test_common "$lowerdir" "$datadir2" "$datadir" "$dataname2" $datasize $datablocks \
-+		"$datacontent2" "/subdir/$dataname.2"
-+# Shared file should be picked from upper datadir
-+test_common "$lowerdir" "$datadir2" "$datadir" "$sharedname" $datasize $datablocks \
-+		"$datacontent2" "/subdir/$dataname.shared"
-+
-+echo -e "\n== Check lazy follow to lowerdata layer =="
-+
-+prepare_midlayer "/subdir/$dataname"
-+rm $datadir/subdir/$dataname
-+test_lazy $dataname
-+
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/088.out b/tests/overlay/088.out
-new file mode 100644
-index 000000000000..c85c998d503a
---- /dev/null
-+++ b/tests/overlay/088.out
-@@ -0,0 +1,39 @@
-+QA output created by 088
-+
-+== Check no follow to lowerdata layer without redirect ==
-+No access to lowerdata layer datafile
-+Unmount and Mount rw
-+No access to lowerdata layer datafile
-+No access to lowerdata layer datafile2
-+Unmount and Mount rw
-+No access to lowerdata layer datafile2
-+No access to lowerdata layer shared
-+Unmount and Mount rw
-+No access to lowerdata layer shared
-+
-+== Check no follow to lowerdata layer with relative redirect ==
-+No access to lowerdata layer datafile
-+Unmount and Mount rw
-+No access to lowerdata layer datafile
-+No access to lowerdata layer datafile2
-+Unmount and Mount rw
-+No access to lowerdata layer datafile2
-+No access to lowerdata layer shared
-+Unmount and Mount rw
-+No access to lowerdata layer shared
-+
-+== Check follow to lowerdata layer with absolute redirect ==
-+Mount ro
-+check properties of metadata copied up file datafile
-+Unmount and Mount rw
-+check properties of metadata copied up file datafile
-+Mount ro
-+check properties of metadata copied up file datafile2
-+Unmount and Mount rw
-+check properties of metadata copied up file datafile2
-+Mount ro
-+check properties of metadata copied up file shared
-+Unmount and Mount rw
-+check properties of metadata copied up file shared
-+
-+== Check lazy follow to lowerdata layer ==
-diff --git a/tests/overlay/089 b/tests/overlay/089
-new file mode 100755
-index 000000000000..2259f917ecf8
---- /dev/null
-+++ b/tests/overlay/089
-@@ -0,0 +1,272 @@
-+#! /bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+# Copyright (C) 2023 Red Hat, Inc. All Rights Reserved.
-+# Copyright (C) 2023 CTERA Networks. All Rights Reserved.
-+#
-+# FS QA Test No. 089
-+#
-+# Test fs-verity functionallity
-+# This is a variant of test overlay/080 with userxattr and without
-+# redirect_dir/metacopy options
-+#
-+. ./common/preamble
-+_begin_fstest auto quick metacopy redirect verity
-+
-+# Import common functions.
-+. ./common/filter
-+. ./common/attr
-+. ./common/verity
-+
-+# We use non-default scratch underlying overlay dirs, we need to check
-+# them explicity after test.
-+_require_scratch_nocheck
-+_require_scratch_overlay_features redirect_dir metacopy
-+_require_scratch_overlay_lowerdata_layers
-+_require_scratch_overlay_datadir_without_metacopy
-+_require_scratch_overlay_verity
-+
-+# remove all files from previous tests
-+_scratch_mkfs
-+
-+verityname="verityfile"
-+noverityname="noverityfile"
-+wrongverityname="wrongverityfile"
-+missingverityname="missingverityfile"
-+lowerdata="data1"
-+lowerdata2="data2"
-+lowerdata3="data3"
-+lowerdata4="data4"
-+lowersize="5"
-+
-+# Create test directories
-+lowerdir=$OVL_BASE_SCRATCH_MNT/lower
-+lowerdir2=$OVL_BASE_SCRATCH_MNT/lower2
-+upperdir=$OVL_BASE_SCRATCH_MNT/upper
-+workdir=$OVL_BASE_SCRATCH_MNT/workdir
-+workdir2=$OVL_BASE_SCRATCH_MNT/workdir2
-+
-+# Check metacopy xattr
-+check_metacopy()
-+{
-+	local target=$1 exist=$2 dataonlybase=$3
-+	local out_f target_f
-+	local msg
-+
-+	out_f=$( { _getfattr --absolute-names --only-values -n \
-+		"user.overlay.metacopy" $target 2>&3 | od -A n -t x1 -w256 ; } 3>&1 | _filter_scratch)
-+        has_version0=`echo $out_f | awk 'NR==1{print $1 == 0}'`
-+
-+	if [ "$exist" == "y" ];then
-+		[ "$out_f" == "" -o "$has_version0" == "1" ] && return
-+		echo "Metacopy xattr does not exist on ${target}. stdout=$out_f"
-+		return
-+	fi
-+
-+	if [ "$out_f" == ""  -o "$has_version0" == "1" ];then
-+		echo "Metacopy xattr exists on ${target} unexpectedly."
-+		return
-+	fi
-+
-+	target_f=`echo $target | _filter_scratch`
-+	msg="$target_f: user.overlay.metacopy: No such attribute"
-+
-+	[ "$out_f" == "$msg" ] && return
-+
-+	echo "Error while checking xattr on ${target}. stdout=$out"
-+}
-+
-+# Check verity set in metacopy
-+check_verity()
-+{
-+	local target=$1 exist=$2
-+	local out_f target_f
-+	local msg
-+
-+	out_f=$( { _getfattr --absolute-names --only-values -n "user.overlay.metacopy" $target 2>&3 | od -A n -t x1 -w256 ; } 3>&1 | _filter_scratch)
-+
-+	target_f=`echo $target | _filter_scratch`
-+	msg="$target_f: user.overlay.metacopy: No such attribute"
-+	has_digest=`echo $out_f | awk 'NR==1{print $4 == 1}'`
-+
-+	if [ "$exist" == "y" ]; then
-+		[ "$out_f" == "$msg" -o "$has_digest" == "0" ] && echo "No verity on ${target}. stdout=$out_f"
-+		return
-+	fi
-+
-+	[ "$out_f" == "$msg" -o "$has_digest" == "0" ] && return
-+	echo "Verity xattr exists on ${target} unexpectedly. stdout=$out_f"
-+}
-+
-+# Check redirect xattr
-+check_redirect()
-+{
-+	local target=$1
-+	local expect=$2
-+
-+	value=$(_getfattr --absolute-names --only-values -n \
-+		"user.overlay.redirect" $target)
-+
-+	[[ "$value" == "$expect" ]] || echo "Redirect xattr incorrect. Expected=\"$expect\", actual=\"$value\""
-+}
-+
-+# Check size
-+check_file_size()
-+{
-+	local target=$1 expected_size=$2 actual_size
-+
-+	actual_size=$(_get_filesize $target)
-+
-+	[ "$actual_size" == "$expected_size" ] || echo "Expected file size of $target $expected_size but actual size is $actual_size"
-+}
-+
-+check_file_contents()
-+{
-+	local target=$1 expected=$2
-+	local actual target_f
-+
-+	target_f=`echo $target | _filter_scratch`
-+
-+	read actual<$target
-+
-+	[ "$actual" == "$expected" ] || echo "Expected file $target_f contents to be \"$expected\" but actual contents are \"$actual\""
-+}
-+
-+check_file_size_contents()
-+{
-+	local target=$1 expected_size=$2 expected_content=$3
-+
-+	check_file_size $target $expected_size
-+	check_file_contents $target $expected_content
-+}
-+
-+check_io_error()
-+{
-+	local target=$1
-+	local actual target_f out_f
-+
-+	target_f=`echo $target | _filter_scratch`
-+	out_f=`cat $target 2>&1 | _filter_scratch`
-+	msg="cat: $target_f: Input/output error"
-+
-+	[ "$out_f" == "$msg" ] && return
-+
-+	echo "$target_f unexpectedly has no I/O error"
-+}
-+
-+create_basic_files()
-+{
-+	local subdir=$1
-+
-+	_scratch_mkfs
-+	mkdir -p $lowerdir $lowerdir2 $upperdir $workdir $workdir2
-+
-+	if [ "$subdir" != "" ]; then
-+	    mkdir $lowerdir/$subdir
-+	fi
-+
-+	echo -n "$lowerdata" > $lowerdir/$subdir$verityname
-+	echo -n "$lowerdata2" > $lowerdir/$subdir$noverityname
-+	echo -n "$lowerdata3" > $lowerdir/$subdir$wrongverityname
-+	echo -n "$lowerdata4" > $lowerdir/$subdir$missingverityname
-+
-+	for f in $verityname $noverityname $wrongverityname $missingverityname; do
-+		chmod 600 $lowerdir/$subdir$f
-+
-+		if [ "$f" != "$noverityname" ]; then
-+			_fsv_enable $lowerdir/$subdir$f
-+		fi
-+        done
-+}
-+
-+prepare_midlayer()
-+{
-+	subdir="base/"
-+
-+	create_basic_files "$subdir"
-+	# Create midlayer
-+	_overlay_scratch_mount_dirs $lowerdir $lowerdir2 $workdir2 -o redirect_dir=on,index=on,verity=on,metacopy=on
-+	for f in $verityname $noverityname $wrongverityname $missingverityname; do
-+		mv $SCRATCH_MNT/base/$f $SCRATCH_MNT/$f
-+	done
-+	umount_overlay
-+
-+	_overlay_trusted_to_user $lowerdir2
-+
-+	rm -rf $lowerdir2/base
-+
-+	for f in $verityname $noverityname $wrongverityname $missingverityname; do
-+		# Ensure we have right metacopy and verity xattrs
-+		check_metacopy $lowerdir2/$f "y"
-+
-+		if [ "$f" == "$noverityname" ]; then
-+		    check_verity $lowerdir2/$f "n"
-+		else
-+		    check_verity $lowerdir2/$f "y"
-+		fi
-+
-+		check_redirect $lowerdir2/$f "/base/$f"
-+
-+		check_file_size_contents $lowerdir2/$f $lowersize ""
-+	done
-+
-+	# Fixup missing and wrong verity in lowerdir
-+	rm -f $lowerdir/$subdir$wrongverityname $lowerdir/$subdir$missingverityname
-+	echo -n "changed" > $lowerdir/$subdir$wrongverityname
-+	_fsv_enable $lowerdir/$subdir$wrongverityname
-+	echo "$lowerdata4" > $lowerdir/$subdir$missingverityname
-+}
-+
-+test_common()
-+{
-+	local verity=$1
-+
-+	mount_overlay "$lowerdir2::$lowerdir" $verity
-+
-+	check_file_size_contents $SCRATCH_MNT/$verityname $lowersize "$lowerdata"
-+
-+	if [ "$verity" == "require" ]; then
-+		check_io_error $SCRATCH_MNT/$noverityname
-+	else
-+		check_file_size_contents $SCRATCH_MNT/$noverityname $lowersize "$lowerdata2"
-+	fi
-+
-+	if [ "$verity" == "off" ]; then
-+		check_file_size_contents $SCRATCH_MNT/$wrongverityname $lowersize "changed"
-+		check_file_size_contents $SCRATCH_MNT/$missingverityname $lowersize "$lowerdata4"
-+	else
-+		check_io_error $SCRATCH_MNT/$missingverityname
-+		check_io_error $SCRATCH_MNT/$wrongverityname
-+	fi
-+
-+	umount_overlay
-+}
-+
-+mount_overlay()
-+{
-+	local _lowerdir=$1
-+	local _verity=$2
-+
-+	_overlay_scratch_mount_dirs "$_lowerdir" $upperdir $workdir -o userxattr,verity=$_verity
-+}
-+
-+umount_overlay()
-+{
-+	$UMOUNT_PROG $SCRATCH_MNT
-+}
-+
-+
-+echo -e "\n== Check fsverity validation =="
-+
-+prepare_midlayer
-+test_common "off"
-+prepare_midlayer
-+test_common "on"
-+
-+echo -e "\n== Check fsverity require =="
-+
-+prepare_midlayer
-+test_common "require"
-+
-+# success, all done
-+status=0
-+exit
-diff --git a/tests/overlay/089.out b/tests/overlay/089.out
-new file mode 100644
-index 000000000000..0c3eee7103b1
---- /dev/null
-+++ b/tests/overlay/089.out
-@@ -0,0 +1,5 @@
-+QA output created by 089
-+
-+== Check fsverity validation ==
-+
-+== Check fsverity require ==
--- 
-2.49.0
+I think these are not needed
 
+>         char *redirect;
+>         int metacopy;
+>         /* Referring to last redirect xattr */
+> @@ -1024,6 +1027,31 @@ int ovl_verify_lowerdata(struct dentry *dentry)
+>         return ovl_maybe_validate_verity(dentry);
+>  }
+>
+> +/*
+> + * Following redirects/metacopy can have security consequences: it's lik=
+e a
+> + * symlink into the lower layer without the permission checks.
+> + *
+> + * This is only a problem if the upper layer is untrusted (e.g comes fro=
+m an USB
+> + * drive).  This can allow a non-readable file or directory to become re=
+adable.
+> + *
+> + * Only following redirects when redirects are enabled disables this att=
+ack
+> + * vector when not necessary.
+> + */
+> +static bool ovl_check_nextredirect(struct ovl_lookup_data *d)
+
+Looks much better with the helper.
+May I suggest ovl_check_follow_redirect()
+
+> +{
+> +       struct ovl_fs *ofs =3D OVL_FS(d->sb);
+> +
+> +       if (d->nextmetacopy && !ofs->config.metacopy) {
+
+Should be equivalent to
+       if (d->metacopy && !ofs->config.metacopy) {
+
+In current code
+
+> +               pr_warn_ratelimited("refusing to follow metacopy origin f=
+or (%pd2)\n", d->dentry);
+> +               return false;
+> +       }
+> +       if (d->nextredirect && !ovl_redirect_follow(ofs)) {
+
+Should be equivalent to
+       if (d->redirect && !ovl_redirect_follow(ofs)) {
+
+With minor changes to index lookup code
+
+
+> +               pr_warn_ratelimited("refusing to follow redirect for (%pd=
+2)\n", d->dentry);
+> +               return false;
+> +       }
+> +       return true;
+> +}
+> +
+>  struct dentry *ovl_lookup(struct inode *dir, struct dentry *dentry,
+>                           unsigned int flags)
+>  {
+> @@ -1047,6 +1075,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
+ dentry *dentry,
+>         int metacopy_size =3D 0;
+>         struct ovl_lookup_data d =3D {
+>                 .sb =3D dentry->d_sb,
+> +               .dentry =3D dentry,
+>                 .name =3D dentry->d_name,
+>                 .is_dir =3D false,
+>                 .opaque =3D false,
+> @@ -1054,6 +1083,8 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
+ dentry *dentry,
+>                 .last =3D ovl_redirect_follow(ofs) ? false : !ovl_numlowe=
+r(poe),
+>                 .redirect =3D NULL,
+>                 .metacopy =3D 0,
+> +               .nextredirect =3D false,
+> +               .nextmetacopy =3D false,
+>         };
+>
+>         if (dentry->d_name.len > ofs->namelen)
+> @@ -1087,8 +1118,10 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                         if (err)
+>                                 goto out_put_upper;
+>
+> -                       if (d.metacopy)
+> +                       if (d.metacopy) {
+>                                 uppermetacopy =3D true;
+> +                               d.nextmetacopy =3D true;
+
+always set IFF (d.metacopy)
+
+> +                       }
+>                         metacopy_size =3D d.metacopy;
+>                 }
+>
+> @@ -1099,6 +1132,7 @@ struct dentry *ovl_lookup(struct inode *dir, struct=
+ dentry *dentry,
+>                                 goto out_put_upper;
+>                         if (d.redirect[0] =3D=3D '/')
+>                                 poe =3D roe;
+> +                       d.nextredirect =3D true;
+
+mostly set IFF (d.redirect)
+
+>                 }
+>                 upperopaque =3D d.opaque;
+>         }
+> @@ -1113,6 +1147,11 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>         for (i =3D 0; !d.stop && i < ovl_numlower(poe); i++) {
+>                 struct ovl_path lower =3D ovl_lowerstack(poe)[i];
+>
+> +               if (!ovl_check_nextredirect(&d)) {
+> +                       err =3D -EPERM;
+> +                       goto out_put;
+> +               }
+> +
+>                 if (!ovl_redirect_follow(ofs))
+>                         d.last =3D i =3D=3D ovl_numlower(poe) - 1;
+>                 else if (d.is_dir || !ofs->numdatalayer)
+> @@ -1126,12 +1165,8 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                 if (!this)
+>                         continue;
+>
+> -               if ((uppermetacopy || d.metacopy) && !ofs->config.metacop=
+y) {
+> -                       dput(this);
+> -                       err =3D -EPERM;
+> -                       pr_warn_ratelimited("refusing to follow metacopy =
+origin for (%pd2)\n", dentry);
+> -                       goto out_put;
+> -               }
+> +               if (d.metacopy)
+> +                       d.nextmetacopy =3D true;
+>
+>                 /*
+>                  * If no origin fh is stored in upper of a merge dir, sto=
+re fh
+> @@ -1185,22 +1220,8 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                         ctr++;
+>                 }
+>
+> -               /*
+> -                * Following redirects can have security consequences: it=
+'s like
+> -                * a symlink into the lower layer without the permission =
+checks.
+> -                * This is only a problem if the upper layer is untrusted=
+ (e.g
+> -                * comes from an USB drive).  This can allow a non-readab=
+le file
+> -                * or directory to become readable.
+> -                *
+> -                * Only following redirects when redirects are enabled di=
+sables
+> -                * this attack vector when not necessary.
+> -                */
+> -               err =3D -EPERM;
+> -               if (d.redirect && !ovl_redirect_follow(ofs)) {
+> -                       pr_warn_ratelimited("refusing to follow redirect =
+for (%pd2)\n",
+> -                                           dentry);
+> -                       goto out_put;
+> -               }
+> +               if (d.redirect)
+> +                       d.nextredirect =3D true;
+>
+>                 if (d.stop)
+>                         break;
+> @@ -1218,6 +1239,11 @@ struct dentry *ovl_lookup(struct inode *dir, struc=
+t dentry *dentry,
+>                 ctr++;
+>         }
+>
+> +       if (!ovl_check_nextredirect(&d)) {
+> +               err =3D -EPERM;
+> +               goto out_put;
+> +       }
+> +
+>         /*
+>          * For regular non-metacopy upper dentries, there is no lower
+>          * path based lookup, hence ctr will be zero. If a dentry is foun=
+d
+> @@ -1307,11 +1333,18 @@ struct dentry *ovl_lookup(struct inode *dir, stru=
+ct dentry *dentry,
+>                         upperredirect =3D NULL;
+>                         goto out_free_oe;
+>                 }
+> +               d.nextredirect =3D upperredirect;
+> +
+>                 err =3D ovl_check_metacopy_xattr(ofs, &upperpath, NULL);
+>                 if (err < 0)
+>                         goto out_free_oe;
+> -               uppermetacopy =3D err;
+> +               d.nextmetacopy =3D uppermetacopy =3D err;
+
+Could be changed to:
++               d.metacopy =3D uppermetacopy =3D err;
+
+
+>                 metacopy_size =3D err;
+> +
+> +               if (!ovl_check_nextredirect(&d)) {
+> +                       err =3D -EPERM;
+> +                       goto out_free_oe;
+> +               }
+>         }
+>
+
+
+We never really follow redirect from index
+All upperredirect is ever used for is to suppress ovl_set_redirect()
+after copy up of another lower hardlink and rename,
+but also in that case, upperredirect is not going to be followed
+(or trusted for that matter) until a new lookup of the copied up
+alias and at that point  ovl_check_follow_redirect() will be
+called when upperdentry is found.
+
+I think we do not need to check follow of redirect from index
+I think it is enough to check follow of metacopy from index.
+
+Therefore, I think there d.nextmetacopy and d.nextredirect are
+completely implied from d.metacopy and d.redirect.
+
+Thanks,
+Amir.
