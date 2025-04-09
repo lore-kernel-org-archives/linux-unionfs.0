@@ -1,110 +1,119 @@
-Received: from mail-ed1-f50.google.com (mail-ed1-f50.google.com [209.85.208.50])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 3A0D62B9CD;
-	Wed,  9 Apr 2025 11:19:19 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.50
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 16A2A264603;
+	Wed,  9 Apr 2025 15:00:56 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=178.60.130.6
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744197561; cv=none; b=fHwGK8SaFRDI/8TAKrJF/gs++5UgwPSR3qZLpzCSEZBbODns1gmqOz9UkvESODuiC1no9GwQQl0fc31q1qeinZdIEH++bH3T+Sj1a2I9xgxBVL6oCfiVQ/dl0vq4E5LxuXDlv6QOhJJgsqve/cSanDUA+AhhEJ5Perlhks9FntY=
+	t=1744210860; cv=none; b=Vo/vsDhasHP5oao5ZsVKlOAap+zX10Il6oSOVJ6AHy9YfQqmyWv5Tfnx8w6AoCGJlih8NubaIFPHM+pXb6H6D4mVIcSgAWDB/fcCPnPKigwyOGvldukksrA6HdkF55QWAyFsAS090JU6E7B1y3pAw3sDmdQIrdDr7YODJHDOxe8=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744197561; c=relaxed/simple;
-	bh=fnUtI4M2UuKiZ5tGKBCJqmTYwI9bfTwmMyBYyAxnFb8=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=Eo8oJiSwDpFJdEK652wfw1SotsgpHok5Slo5Uoj2xPKeqOxiDjthBtvvzEogpjlxEcPpLIiv7c14H5eOYv6b9r/vKGYZTKkBkqxJCoa6dA0fKcr5Dl+M/zDxe7bLmS+l0Mvi24sjgik4wYYK2TqwY7f9qLWz5NnwEqAr91LEBZ4=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=CKGWj5MO; arc=none smtp.client-ip=209.85.208.50
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1744210860; c=relaxed/simple;
+	bh=GiipiJO8p0lYp7crpmIzr6VfZgHQAs666AOVaoGECtI=;
+	h=From:Subject:Date:Message-Id:MIME-Version:Content-Type:To:Cc; b=dH0sB3agNr5+LvEQ5NA2Zpl5oVUxlA5tZnEAz3LRunh/IEirHjXkyJjyyWycFymxRqunjqRiDqphjq0Gh5QL6D/gOTNTBuDtZtJd/8+ZzcOjneIta5JZM5wmSK71ee6Z+fIqGVZVG/2dKxaUAliMfcVd0AI11sjZqT61dSapME0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=qJFa6PuU; arc=none smtp.client-ip=178.60.130.6
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="CKGWj5MO"
-Received: by mail-ed1-f50.google.com with SMTP id 4fb4d7f45d1cf-5e5deb6482cso1189940a12.1;
-        Wed, 09 Apr 2025 04:19:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744197558; x=1744802358; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=0BliV3ONkZPrxAVESBbkfdX31xILwT9ii+PtUDbaW9E=;
-        b=CKGWj5MO+QUYp4OyVeUOsQb6ZhN+nqF0EbE34c60YjBq+vRIVvp3J4MXQgONFbzauL
-         1eU+GMCYv0JTluKdgbp/7iNFd1xoYl7/MZ3FYXhYDgKlXXkVzwwbMoKf4fQLTEa5VmHy
-         x9g9qiAR8Yl0KnJsaA/v3JsCqtEnXQGKnHKVti+An/6vThx4Wlm8DiLhLzu18e+1YoLR
-         JCAlclCNvzq4XRvy4F6O1KQfKCcOR++qSsVBwhigospZERnQIDjTXzEiDdjF+X6tFdOB
-         gkEBCE/awlmRmKB/Ja+rmoLCGOJ+AWgwbvxsCM4fV8tzvQVilvi9Nk4BTVoczLJ/a1Ze
-         AYPw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744197558; x=1744802358;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=0BliV3ONkZPrxAVESBbkfdX31xILwT9ii+PtUDbaW9E=;
-        b=ResYs1XDl3AWBRphVxGkEH3M0TfTAYpXQx8oaxde1pYqUyWkarjLx9QRGq255pYVj2
-         CNx4tFsNEN7+wNeS17ACCZvGd1W/aw/q8z3QAXgHpW2Rooy5hEHhqiiJhHaKqTzR4JrS
-         wUYCWzNfbPdMl12Xl1xYEJBj293eSPat19wXjSIczAvqsuKFzDtkPF+EenJ5q3QzfqN6
-         rE9qSD2mWaYWDTW1QC6gHqAptUFyGJVHQheL/CoEXUCssoKDzrA8iZDI51ACZsPkcnNc
-         lnEIsJjxZSUM4fGQ5ts8uuoPVJ0Wq6qOKDDYcLLFfB9P62aVmFugDx4K5tkjSe7NgajC
-         ZpKQ==
-X-Forwarded-Encrypted: i=1; AJvYcCW6LiqW7iWkj4uOkD4LbJChcSULozVYY4mn5l7jDeI0asA3pAuPm/lqdvNwMzkTIriJycTdgTRG2fNZlmkzpQ==@vger.kernel.org, AJvYcCWa82yDryVmpK3RV4W1vWZaJLsejoAt614ShZ8xtP0WUygaIQt2eALD2d+iRV8CfyzO98GYpMlW+Np7YCoC@vger.kernel.org
-X-Gm-Message-State: AOJu0YykY5KNqz+oZJTNbHlbsz7wX30oduHmFrqneV+QOqU3yy4ZZgPI
-	yAwJmZHv1/sSWOOSk1eR8TGHqaG653rQp7v9kHM6l7G1nTjYvTM/TqsCvGsb/yeaIyPihZMi87D
-	BTJ4yBmJSagMjy9Nkj/vs7/xuO/4=
-X-Gm-Gg: ASbGncsOTVdhGbM6yTxpWsIwwZ2N7eWhyjxz+A7hV4ZHIybKsWhUEdOgOsZdDDoJDql
-	PMlpJV4L5MyQg8mCx5eglB0zW+cEXbv7SMoelZJ8qifGXmv0/k9Xn0CPAhJiPrZXkUsFxPLGTJ3
-	nO8TWpNDe2bUtNckBjyNm5mw==
-X-Google-Smtp-Source: AGHT+IEnuPkOK3suV0H+5l6qqetuyru3+tZz6/JLB8O6nvdGgZ6yn9PWEUGqMvgq7Ovl+s7VkWRTmeM+KODrz62NxGs=
-X-Received: by 2002:a17:907:7f0b:b0:ac7:b8d3:df9c with SMTP id
- a640c23a62f3a-aca9bfb1039mr256115366b.1.1744197557941; Wed, 09 Apr 2025
- 04:19:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="qJFa6PuU"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Cc:To:Content-Transfer-Encoding:Content-Type:MIME-Version:
+	Message-Id:Date:Subject:From:Sender:Reply-To:Content-ID:Content-Description:
+	Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=5CEaKRGjI93msX9Jpav0RJs0AF+4W1KNPIEqhLX+xL8=; b=qJFa6PuUEn+FsEOzPd5dYyyudZ
+	mmaekCRwe4uNtClXDtrgH2TxjVpbypNdWckvd6JDOiyT6RhgiwuGvu2x+c0FDTiDMph7oX86F+c1T
+	sinfHUOiwq3ctZbH2FumjFe2HddlJF60SYAG8FoDzzhHyiVUchZktMEIa5d8Me8FU8oeksmzOf+w8
+	78pxNkN37GaBUGTlUhV2YRVArp4GuAYS+n+oOT0THCgLOmj92qnV4+Be2fGUMSuUZ74EyOE2YuKBx
+	/vPb3Wou80NCsvseilCnW+2+8oKNR/tfGiq/tcnUvMhtQgmF8fiP+AhWung7bqh46LxcXLbjegAwQ
+	DCLPapTg==;
+Received: from [191.204.192.64] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1u2Wv0-00EBVR-Vi; Wed, 09 Apr 2025 17:00:47 +0200
+From: =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Subject: [PATCH 0/3] ovl: Enable support for casefold filesystems
+Date: Wed, 09 Apr 2025 12:00:40 -0300
+Message-Id: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250408154011.673891-1-mszeredi@redhat.com> <20250408154011.673891-2-mszeredi@redhat.com>
- <CAOQ4uxjOT=m7ZsdLod3KEYe+69K--fGTUegSNwQg0fU7TeVbsQ@mail.gmail.com>
- <CAOQ4uxhXAxRBxRh9FT0prURdbRTGmmb4FWSs9zz2Rnk6U+0ZTA@mail.gmail.com> <CAJfpegsKAsNFgJMK4oS+gjD_XmhscjdTtmx0uW2GkCPC+kf6ug@mail.gmail.com>
-In-Reply-To: <CAJfpegsKAsNFgJMK4oS+gjD_XmhscjdTtmx0uW2GkCPC+kf6ug@mail.gmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 9 Apr 2025 13:19:06 +0200
-X-Gm-Features: ATxdqUHAVUa4edzsICyni5ahmXGpqfKJPcdbFIGOBnA6EYtVqMwsK3f3vTZzUBM
-Message-ID: <CAOQ4uxiwjzL+6=hoF44Dr58W75EKE_tLQkQGhQ=5t9Kf_1ymwQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/3] ovl: make redirect/metacopy rejection consistent
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Miklos Szeredi <mszeredi@redhat.com>, linux-unionfs@vger.kernel.org, 
-	linux-fsdevel@vger.kernel.org, Giuseppe Scrivano <gscrivan@redhat.com>, 
-	Alexander Larsson <alexl@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+X-B4-Tracking: v=1; b=H4sIAJiL9mcC/x3MQQqAIBBA0avIrBMslLCrRAvJsYZCQ0OS8O5Jy
+ 7f4/4WEkTDBxF6ImClR8A19x2Ddjd+Qk22GQQxKSKH5HXw5eMgYT1Nc4kr3TqG0UowGWnVFdPT
+ 8x3mp9QM2JJNpYQAAAA==
+X-Change-ID: 20250409-tonyk-overlayfs-591f5e4d407a
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
+ Theodore Tso <tytso@mit.edu>, Gabriel Krisman Bertazi <krisman@kernel.org>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ linux-fsdevel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, 
+ Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+ kernel-dev@igalia.com, 
+ =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+X-Mailer: b4 0.14.2
 
-On Wed, Apr 9, 2025 at 1:12=E2=80=AFPM Miklos Szeredi <miklos@szeredi.hu> w=
-rote:
->
-> On Wed, 9 Apr 2025 at 10:25, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> > On second thought, if unpriv user suppresses ovl_set_redirect()
-> > by setting some mock redirect value on index maybe that lead to some
-> > risk. Not worth overthinking about it.
-> >
-> > Attached patch removed next* variables without this compromise.
-> >
-> > Tested it squashed to patch 1 and minor rebase conflicts fixes in patch=
- 2.
-> > It passed your tests.
->
-> Thanks.
->
-> One more change:  in this patch we just want the consistency fix, not
-> the behavior change introduced in 2/3.  So move the
-> ovl_check_follow_redirect() to before the lazy-data check here and
-> restore the order in the next patch.
+Hi all,
 
-Right.
+We would like to support the usage of casefold filesystems with
+overlayfs. This patchset do some of the work needed for that, but I'm
+sure there are more places that need to be tweaked so please share your
+feedback for this work.
 
->
-> Pushed to overlayfs/vfs.git#overlayfs-next
+* Implementation
 
-Looks good.
+The most obvious place that required change was the strncmp() inside of
+ovl_cache_entry_find(), that I managed to convert to use d_same_name(),
+that will then call the generic_ci_d_compare function if it's set for
+the dentry. There are more strncmp() around ovl, but I would rather hear
+feedback about this approach first than already implementing this around
+the code.
+
+* Testing
+
+I used tmpfs to create a small ovl like this:
+
+sudo mount -t tmpfs -o casefold tmpfs mnt/
+cd mnt/
+mkdir dir
+chattr +F dir
+cd dir/
+mkdir upper lower
+mkdir lower/A lower/b lower/c
+mkdir upper/a upper/b upper/d
+mkdir merged work
+sudo mount -t overlay overlay -olowerdir=lower,upperdir=upper,workdir=work, merged
+ls /tmp/mnt/dir/merged/
+a  b  c  d
+
+And ovl is respecting the equivalent names. `a` points to a merged dir
+between `A` and `a`, but giving that upperdir has a lowercase `a`, this
+is the name displayed here.
 
 Thanks,
-Amir.
+	André
 
-FYI, I am going to be on vacation 6.15-rc3..6.15-rc5.
+---
+André Almeida (3):
+      ovl: Make ovl_cache_entry_find support casefold
+      ovl: Make ovl_dentry_weird() accept casefold dentries
+      ovl: Enable support for casefold filesystems
+
+ fs/overlayfs/namei.c     | 11 ++++++-----
+ fs/overlayfs/overlayfs.h |  2 +-
+ fs/overlayfs/ovl_entry.h |  1 +
+ fs/overlayfs/params.c    |  5 +++--
+ fs/overlayfs/readdir.c   | 32 +++++++++++++++++++++-----------
+ fs/overlayfs/util.c      | 12 +++++++-----
+ 6 files changed, 39 insertions(+), 24 deletions(-)
+---
+base-commit: a24588245776dafc227243a01bfbeb8a59bafba9
+change-id: 20250409-tonyk-overlayfs-591f5e4d407a
+
+Best regards,
+-- 
+André Almeida <andrealmeid@igalia.com>
+
