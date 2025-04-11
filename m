@@ -1,159 +1,88 @@
-Received: from mail-ed1-f53.google.com (mail-ed1-f53.google.com [209.85.208.53])
+Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 1D98F1D5160;
-	Wed,  9 Apr 2025 17:17:29 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1B43293B4B
+	for <linux-unionfs@vger.kernel.org>; Fri, 11 Apr 2025 08:28:18 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744219051; cv=none; b=fdaVF2APXG/JWTp2irEB6RGZ1a0hBn3rOEYpucBeqryGAT9HqJxGV0uI/985c6Cc1Gm5P9i2xoEo8foNvSrwss/VQpespF5dhrbu35e6Kl8RWNNfmsPGSfzrkSpOXc6CidXw/19WKy7vBBZNtqVaffg3ZPqsKKoGL1sc//gYP5c=
+	t=1744360102; cv=none; b=Dh9VAV6pUjn7ItZ0vY4pnWRWuXjcRpIFoIC8jmxJrDFu2IqXcUpss71X+TdwKvR/HS9q7+TX2HHI1q0V5/3xfEfnOcrjPSRIcIk1dEqf40BDj8zt7tG1UchidAVlXlzyyRiF4h1rh8FZ2j6YjNp7qvZbpBaj/YxrvdMvzRuJNxw=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744219051; c=relaxed/simple;
-	bh=oG1XpsnmZMgS6W1f2ESImGKuTZ1RSerPiAWqKD5r30k=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=T9x2tM25PD6GrLnawkVoD3isc1a+XPVpHYikJWeKywGNJnYmja9jwv5OHkqEDhee1OrcmqIymU6BxMKU8VoWPwuSpJ7f67qytRq61jXfER9w8gaGHHfaOMNUvjz0EDnNT+EXnwjsqMDfPkKfsuHNmIvo4pUwBXeYvNIPfCihfek=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=UbjJ30Q8; arc=none smtp.client-ip=209.85.208.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1744360102; c=relaxed/simple;
+	bh=O/EfSIW4cWyPb2rH3Ro6WEJgCUswl+SOg2WxCdC+5ko=;
+	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=K/eGUtmYc2gBLPxGfq7GsinJhabAcRB9yWOcfqrLG306J05Opy3TpYT2B1n6UUGisBVY1i2jtLs7f9ptQiAP355cxPIk7hWS65KrXY7USoe/Lw3TO1FamBzhqtFQKiS5inMqDMwJ7Hy9VZuHPCcZ6WtWvuy9kVUZA8lSA2H9j8M=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=K5krdYlC; arc=none smtp.client-ip=209.85.160.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="UbjJ30Q8"
-Received: by mail-ed1-f53.google.com with SMTP id 4fb4d7f45d1cf-5e8be1bdb7bso11366179a12.0;
-        Wed, 09 Apr 2025 10:17:29 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="K5krdYlC"
+Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-47692b9d059so23204801cf.3
+        for <linux-unionfs@vger.kernel.org>; Fri, 11 Apr 2025 01:28:18 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1744219048; x=1744823848; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=CcMr2WswXxqD9O8dPFeqV99p5x+vz6aKhmjsl5xuOwM=;
-        b=UbjJ30Q8CerDxyYwD0ZSPrLLx/J+NGIIPXyN+5ceg8bs78LRAfn780Ho7BSIJ/ETd+
-         XFUFA7J9Bmp/5oICbecVUugkaV0E61/bLlLtMWWTxEpe/n2ianFS41mgiFzCfWrR2fef
-         QTW7oGXW6pURJof1MYKchzzy1VwYWWTqb4r4YlwtjmMNmsU1dKeLw/62v5C2wF2ovLqO
-         HBgPMhfjtkKI/ro+GS1N3ieqJhA1UH9s1Ad1v6iLrKIz0fQz99pBBiDMf91iAfNhCIcF
-         pzrmw1QNwnDOz5TIhHGP76wQ48PtXlVsw5F1Df7ct2ao/STawC5D8pu8HEAaTMEHELAh
-         89Ag==
+        d=szeredi.hu; s=google; t=1744360097; x=1744964897; darn=vger.kernel.org;
+        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=YkSKxy7ZFlAbtEgT7iRPpwlnC+b+4x8tjORrxdlKnQM=;
+        b=K5krdYlCXroQngcYWDMXGmcLWGzT+Q/f246iPp0fxy0wp7U+QVLU0GTj1J4/srP6EN
+         FTJbF/PGgdzuwF42BpnvgdvrhNfgS/zqRJsLfV5ifF9jlpEN8uiUB3AL++xmNPT6qaUg
+         xOm9QKvIHOefRqyeOKZI7cKx6zvSpNbVb96oA=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744219048; x=1744823848;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=CcMr2WswXxqD9O8dPFeqV99p5x+vz6aKhmjsl5xuOwM=;
-        b=YtR7YCOe/2wm8OFRB3SO6cZMkXr3tIzHYUNq1uqWuRUlKpd6sUPnlhaNfHj2qInp8N
-         hfMSB7hFKiLXIXE58VcdAMciJyFoTgialRVA1reQco4iAXFPUfMTd1P+ZA3U6bLQ8mt/
-         Q3Ci62uwmn3k+77anmf3W9QbaimMNIAhN4dklSYmybHZn0SpH8zF6XxPN87ZD2Vw2WDk
-         pndvLvzfdKgSsellbPXdzhAIeWbuOrwt5/7pIex2qNUCJXxos1dzTL467ZNhkBdhIXu0
-         6FowkVmydv0bPFT2i6+Is7OPoPYwuRANAKzdW1HicOte6+MqFSWJCW5+bkCNDbPvcZE4
-         TP4w==
-X-Forwarded-Encrypted: i=1; AJvYcCVq7vl7uqcKgWgs1bvl0L7bWXoBCYTQi8RlqFuhwlP3V+PnxpUMINXqlOAc9X5ONFUGITBkFgmTZQ65JokDbw==@vger.kernel.org, AJvYcCWO4+p+Yd41pBilytuiIS/CJpnCR6QbRQBXhLXf/QakohCtcZ3KPJJ6R0ht3oKO5Gm/rmh9RQIALDAd/iZ2@vger.kernel.org, AJvYcCWxv7NH9JOi1bI6VNk90TwwM0rx6U5YBs6xp2DDhT+fs4SHXkS3tHGv6JNFKpCF1xpQQLAcFK4ltvMK8rVV@vger.kernel.org
-X-Gm-Message-State: AOJu0YzJAKFMitTeYoorYYb9vgQsca9WTF/q4fKTjDfjG88Pl2qoIwt3
-	fVtnthcTRUR2DUCM8GPVAuybAg3hXVlwu/d9W/E09etlxC3TTXo7U1uQwlCVQLB/SbjCKd4MADq
-	9W9U4mqNUBedKAVVYQQ9BwX7XFxQ=
-X-Gm-Gg: ASbGnctxAUQ9zDypRZXpxgb9QaOB2rrEg59zowNO9ojtZ6TqFVjCbvIvMPGhSIP4p37
-	+8IRNm/7u/EvJcgKIlc2hXY4QgIgX7jHDiY5o5UkN2lNwkXu0cieWpQosgO8jIDdNHml8Gebvii
-	WacIHd8TJQos+kNHu43fDbCl8jkpfQFNI8
-X-Google-Smtp-Source: AGHT+IF04PadMDXpfDEi4BXQjRN+FQazc2gzuE2WTQVFibWnjAGtbBhRfLN4Dn9al/wpkrcQIVDgiceCR7jghAjrsro=
-X-Received: by 2002:a17:906:6a2a:b0:ac3:eb24:ab26 with SMTP id
- a640c23a62f3a-aca9b734e25mr343573766b.51.1744219047996; Wed, 09 Apr 2025
- 10:17:27 -0700 (PDT)
+        d=1e100.net; s=20230601; t=1744360097; x=1744964897;
+        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=YkSKxy7ZFlAbtEgT7iRPpwlnC+b+4x8tjORrxdlKnQM=;
+        b=XMbWxlWYbyLmcfDyqBKf3CWVqpD65ZhNZsMmOJ1tTdWuBr8/TW7A4dMzeP1swDVEfl
+         /UEncOdx1alDgQKQaZe/l8/Cdmdb9eB28n6wU4ZjKHKzHskIm2/Lb+LIYiYUjFSd3d5k
+         Sq3DCpQmqGjEvUclbY48y7y4hD9+s6qjV4IrhL5MeoEBe3x8mJms+Vb2RtiCSWFtuipQ
+         yMcNEss5P9/XLkjPqs8q+gXCOWP3I67dsMZHRt+St50M7As2lVWumMmWnzGdKdK+MFmW
+         8uU3W6bxCBdg1rR0A1cb7DN5besxi6fcy8+YgYRe0EDVTsrOuMS/2EhTtyewKjYi0Ed7
+         F+5w==
+X-Gm-Message-State: AOJu0YynFWRM+9zWRZicGa93cswxFCQRvN4Kyx2r6WyslOFB63XfH3pB
+	BMkq0VSMbpDWSll0J0PHclpRp1edlecopewxK7iyRc8seyvfiAgNnuf6SF1OXqal9CE1sJYZjtu
+	dYyv2zIdte3YsRqxW9tjXfPu4HvUwZoy8guIkrw==
+X-Gm-Gg: ASbGncvD26wxpHOkQWP/YmQuVimjo0/0jyEmVpx/D4f1X+m3+IL+q+ut63Y5CEWIXfi
+	XY9dTO+48EJN5+xb528Fo2fKUEbhVdVR4149qTzFoNznHl7guK7wk0pz/S2566YlnOT6oUFyGUi
+	+bShoubtJAwtLrIYdo0hzJ1Ew=
+X-Google-Smtp-Source: AGHT+IEM9rU32Q2enCYeri2d252JhnrampGV8po98Cr8FmF+oICw/7ZI6ew1qqQLKEOKEIbPYY978uadq3FgBPZXjPM=
+X-Received: by 2002:ac8:5893:0:b0:476:b783:aae8 with SMTP id
+ d75a77b69052e-4797756ddbbmr23433771cf.26.1744360097448; Fri, 11 Apr 2025
+ 01:28:17 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com>
-In-Reply-To: <20250409-tonyk-overlayfs-v1-0-3991616fe9a3@igalia.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Wed, 9 Apr 2025 19:17:15 +0200
-X-Gm-Features: ATxdqUGAVRsl9nEX4oKdjlJpAAzfHJXhbwwPJiTK5spEdYhZ92SxGUtI2rXTogM
-Message-ID: <CAOQ4uxiwv8F9p8L98BiX8fPBS-HSpNhJ_dtcZAkqM02RA0LuVQ@mail.gmail.com>
-Subject: Re: [PATCH 0/3] ovl: Enable support for casefold filesystems
-To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>, Theodore Tso <tytso@mit.edu>, 
-	Gabriel Krisman Bertazi <krisman@kernel.org>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
-	kernel-dev@igalia.com
+From: Miklos Szeredi <miklos@szeredi.hu>
+Date: Fri, 11 Apr 2025 10:28:05 +0200
+X-Gm-Features: ATxdqUF59ro4iAD2MykNxWHKeOxmT8-Sc2-u9dr-ty-djEISOYR1wAZx_56W6vQ
+Message-ID: <CAJfpegt-EE4RROKDXA3g5GxAYXQrWcLAL1TfTPK-=VmPC7U13g@mail.gmail.com>
+Subject: [GIT PULL] overlayfs fixes for 6.15-rc2
+To: Christian Brauner <brauner@kernel.org>
+Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, Apr 9, 2025 at 5:01=E2=80=AFPM Andr=C3=A9 Almeida <andrealmeid@igal=
-ia.com> wrote:
->
-> Hi all,
->
-> We would like to support the usage of casefold filesystems with
-> overlayfs. This patchset do some of the work needed for that, but I'm
-> sure there are more places that need to be tweaked so please share your
-> feedback for this work.
->
-> * Implementation
->
-> The most obvious place that required change was the strncmp() inside of
-> ovl_cache_entry_find(), that I managed to convert to use d_same_name(),
+Hi Christian,
 
-That's a very niche part of overlayfs where comparison of names matter.
+Please pull the following into your fixes branch:
 
-Please look very closely at ovl_lookup() and how an overlay entry stack is
-composed from several layers including the option to redirect to different =
-names
-via redirect xattr, so there is really very much to deal with other
-than readdir.
+  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
+tags/ovl-fixes-6.15-rc2
 
-I suggest that you start with a design proposal of how you intend to tackle=
- this
-task and what are your requirements?
-Any combination of casefold supported layers?
+- Fix an missing check for no lowerdir if the datadir+ option was used
+
+- Misc cleanup.
 
 Thanks,
-Amir.
+Miklos
 
-> that will then call the generic_ci_d_compare function if it's set for
-> the dentry. There are more strncmp() around ovl, but I would rather hear
-> feedback about this approach first than already implementing this around
-> the code.
->
-> * Testing
->
-> I used tmpfs to create a small ovl like this:
->
-> sudo mount -t tmpfs -o casefold tmpfs mnt/
-> cd mnt/
-> mkdir dir
-> chattr +F dir
-> cd dir/
-> mkdir upper lower
-> mkdir lower/A lower/b lower/c
-> mkdir upper/a upper/b upper/d
-> mkdir merged work
-> sudo mount -t overlay overlay -olowerdir=3Dlower,upperdir=3Dupper,workdir=
-=3Dwork, merged
-> ls /tmp/mnt/dir/merged/
-> a  b  c  d
->
-> And ovl is respecting the equivalent names. `a` points to a merged dir
-> between `A` and `a`, but giving that upperdir has a lowercase `a`, this
-> is the name displayed here.
->
-> Thanks,
->         Andr=C3=A9
->
-> ---
-> Andr=C3=A9 Almeida (3):
->       ovl: Make ovl_cache_entry_find support casefold
->       ovl: Make ovl_dentry_weird() accept casefold dentries
->       ovl: Enable support for casefold filesystems
->
->  fs/overlayfs/namei.c     | 11 ++++++-----
->  fs/overlayfs/overlayfs.h |  2 +-
->  fs/overlayfs/ovl_entry.h |  1 +
->  fs/overlayfs/params.c    |  5 +++--
->  fs/overlayfs/readdir.c   | 32 +++++++++++++++++++++-----------
->  fs/overlayfs/util.c      | 12 +++++++-----
->  6 files changed, 39 insertions(+), 24 deletions(-)
-> ---
-> base-commit: a24588245776dafc227243a01bfbeb8a59bafba9
-> change-id: 20250409-tonyk-overlayfs-591f5e4d407a
->
-> Best regards,
-> --
-> Andr=C3=A9 Almeida <andrealmeid@igalia.com>
->
+---
+Giuseppe Scrivano (1):
+      ovl: remove unused forward declaration
+
+Miklos Szeredi (1):
+      ovl: don't allow datadir only
+
+---
+ fs/overlayfs/overlayfs.h | 2 --
+ fs/overlayfs/super.c     | 5 +++++
+ 2 files changed, 5 insertions(+), 2 deletions(-)
