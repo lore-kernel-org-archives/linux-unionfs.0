@@ -1,88 +1,76 @@
-Received: from mail-qt1-f178.google.com (mail-qt1-f178.google.com [209.85.160.178])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B1B43293B4B
-	for <linux-unionfs@vger.kernel.org>; Fri, 11 Apr 2025 08:28:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.178
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E32C81F541E;
+	Fri, 11 Apr 2025 14:42:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744360102; cv=none; b=Dh9VAV6pUjn7ItZ0vY4pnWRWuXjcRpIFoIC8jmxJrDFu2IqXcUpss71X+TdwKvR/HS9q7+TX2HHI1q0V5/3xfEfnOcrjPSRIcIk1dEqf40BDj8zt7tG1UchidAVlXlzyyRiF4h1rh8FZ2j6YjNp7qvZbpBaj/YxrvdMvzRuJNxw=
+	t=1744382573; cv=none; b=PxfKjBd5xJ1Re4VTjBNmXifrcHsIg8OAS7Y7LFDnQK4ULumhwhInoNWCJfJrGrOgHTOaNWs4DJcxhVivEaSCj05cisFqQVIGlHMScUV1ZEDE3VUEVUIUnV0/ZIaqAx/26vwpFXsKUFlPay83HIu497m9Jh6SsxqyI96kcW2cXP0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744360102; c=relaxed/simple;
-	bh=O/EfSIW4cWyPb2rH3Ro6WEJgCUswl+SOg2WxCdC+5ko=;
-	h=MIME-Version:From:Date:Message-ID:Subject:To:Cc:Content-Type; b=K/eGUtmYc2gBLPxGfq7GsinJhabAcRB9yWOcfqrLG306J05Opy3TpYT2B1n6UUGisBVY1i2jtLs7f9ptQiAP355cxPIk7hWS65KrXY7USoe/Lw3TO1FamBzhqtFQKiS5inMqDMwJ7Hy9VZuHPCcZ6WtWvuy9kVUZA8lSA2H9j8M=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=K5krdYlC; arc=none smtp.client-ip=209.85.160.178
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1744382573; c=relaxed/simple;
+	bh=Qhdgpspww9P+Jj9zNZuY4/YmGo9aMreJ/ftse5s3mSc=;
+	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
+	 MIME-Version:Content-Type; b=lq2cvvkKnSZcNvt32K2JJ73+vvLsPTrlRnQTzd9XD8iFAK2uz+ACZSe8+Wz1LL/pmJsC1S0AAkuADrtueOoaHVUrOZ8IzNKETXXLxcHwhWHR7G3DXEoQ7wXFDS4ml2rSnXnZG02T0YJAihS478xOR/gVcGvLjiEx+ot78tMxOb8=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xowotmhu; arc=none smtp.client-ip=10.30.226.201
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="K5krdYlC"
-Received: by mail-qt1-f178.google.com with SMTP id d75a77b69052e-47692b9d059so23204801cf.3
-        for <linux-unionfs@vger.kernel.org>; Fri, 11 Apr 2025 01:28:18 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1744360097; x=1744964897; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:mime-version:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=YkSKxy7ZFlAbtEgT7iRPpwlnC+b+4x8tjORrxdlKnQM=;
-        b=K5krdYlCXroQngcYWDMXGmcLWGzT+Q/f246iPp0fxy0wp7U+QVLU0GTj1J4/srP6EN
-         FTJbF/PGgdzuwF42BpnvgdvrhNfgS/zqRJsLfV5ifF9jlpEN8uiUB3AL++xmNPT6qaUg
-         xOm9QKvIHOefRqyeOKZI7cKx6zvSpNbVb96oA=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1744360097; x=1744964897;
-        h=cc:to:subject:message-id:date:from:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=YkSKxy7ZFlAbtEgT7iRPpwlnC+b+4x8tjORrxdlKnQM=;
-        b=XMbWxlWYbyLmcfDyqBKf3CWVqpD65ZhNZsMmOJ1tTdWuBr8/TW7A4dMzeP1swDVEfl
-         /UEncOdx1alDgQKQaZe/l8/Cdmdb9eB28n6wU4ZjKHKzHskIm2/Lb+LIYiYUjFSd3d5k
-         Sq3DCpQmqGjEvUclbY48y7y4hD9+s6qjV4IrhL5MeoEBe3x8mJms+Vb2RtiCSWFtuipQ
-         yMcNEss5P9/XLkjPqs8q+gXCOWP3I67dsMZHRt+St50M7As2lVWumMmWnzGdKdK+MFmW
-         8uU3W6bxCBdg1rR0A1cb7DN5besxi6fcy8+YgYRe0EDVTsrOuMS/2EhTtyewKjYi0Ed7
-         F+5w==
-X-Gm-Message-State: AOJu0YynFWRM+9zWRZicGa93cswxFCQRvN4Kyx2r6WyslOFB63XfH3pB
-	BMkq0VSMbpDWSll0J0PHclpRp1edlecopewxK7iyRc8seyvfiAgNnuf6SF1OXqal9CE1sJYZjtu
-	dYyv2zIdte3YsRqxW9tjXfPu4HvUwZoy8guIkrw==
-X-Gm-Gg: ASbGncvD26wxpHOkQWP/YmQuVimjo0/0jyEmVpx/D4f1X+m3+IL+q+ut63Y5CEWIXfi
-	XY9dTO+48EJN5+xb528Fo2fKUEbhVdVR4149qTzFoNznHl7guK7wk0pz/S2566YlnOT6oUFyGUi
-	+bShoubtJAwtLrIYdo0hzJ1Ew=
-X-Google-Smtp-Source: AGHT+IEM9rU32Q2enCYeri2d252JhnrampGV8po98Cr8FmF+oICw/7ZI6ew1qqQLKEOKEIbPYY978uadq3FgBPZXjPM=
-X-Received: by 2002:ac8:5893:0:b0:476:b783:aae8 with SMTP id
- d75a77b69052e-4797756ddbbmr23433771cf.26.1744360097448; Fri, 11 Apr 2025
- 01:28:17 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xowotmhu"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364CBC4CEE2;
+	Fri, 11 Apr 2025 14:42:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1744382572;
+	bh=Qhdgpspww9P+Jj9zNZuY4/YmGo9aMreJ/ftse5s3mSc=;
+	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+	b=XowotmhuKpsip3wj+Th0CNKqYSix20qVHRUtD9Hz2guHnz8k4FesFmI55Hl87V2/2
+	 Sc5CYmvrIFplGJNbZ1SS12hIm+tfd16johDt0WZrLaCcpL1iCpujOdy4C7AADzH70V
+	 lSbhESAsdeFP7XlrwowaJ/r2Gz6lHfSdaZqm8OCX8Hin0P78u44ICkSPOXPGcwdhQY
+	 YXFLsLwkdg93ZBCLbrCBs7C5pOxCqp+5EFnLxEqKcFFB+5XC+RlUEAhcvi/zhpkgOU
+	 3CqmQtQOor1qYM/zoM0/BISDMpq4QVEY+NB4ISWQmCEFiFx/wi59hjp7xT1ndRVZcQ
+	 BipBQQ8a8kvmw==
+From: Christian Brauner <brauner@kernel.org>
+To: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Christian Brauner <brauner@kernel.org>,
+	overlayfs <linux-unionfs@vger.kernel.org>,
+	linux-fsdevel@vger.kernel.org
+Subject: Re: [GIT PULL] overlayfs fixes for 6.15-rc2
+Date: Fri, 11 Apr 2025 16:42:43 +0200
+Message-ID: <20250411-anflug-spediteur-cc399d1fa778@brauner>
+X-Mailer: git-send-email 2.47.2
+In-Reply-To: <CAJfpegt-EE4RROKDXA3g5GxAYXQrWcLAL1TfTPK-=VmPC7U13g@mail.gmail.com>
+References: <CAJfpegt-EE4RROKDXA3g5GxAYXQrWcLAL1TfTPK-=VmPC7U13g@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Fri, 11 Apr 2025 10:28:05 +0200
-X-Gm-Features: ATxdqUF59ro4iAD2MykNxWHKeOxmT8-Sc2-u9dr-ty-djEISOYR1wAZx_56W6vQ
-Message-ID: <CAJfpegt-EE4RROKDXA3g5GxAYXQrWcLAL1TfTPK-=VmPC7U13g@mail.gmail.com>
-Subject: [GIT PULL] overlayfs fixes for 6.15-rc2
-To: Christian Brauner <brauner@kernel.org>
-Cc: overlayfs <linux-unionfs@vger.kernel.org>, linux-fsdevel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+X-Developer-Signature: v=1; a=openpgp-sha256; l=895; i=brauner@kernel.org; h=from:subject:message-id; bh=Qhdgpspww9P+Jj9zNZuY4/YmGo9aMreJ/ftse5s3mSc=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaT/1EpP9suuu8SROVc8fvtEjuLZneuZ/FOP6pedLJwex hORuvh1RykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwES2ljMy7Ksuq9Z/ft1bbv52 iStvEvinvc/eqTlZ6OXqXgENvczWfkaG7bY25Uekft6yeXBIqP9Y5FmVa9xzDwVoZ6cevL360o6 /3AA=
+X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
+Content-Transfer-Encoding: 8bit
 
-Hi Christian,
+On Fri, 11 Apr 2025 10:28:05 +0200, Miklos Szeredi wrote:
+> Please pull the following into your fixes branch:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
+> tags/ovl-fixes-6.15-rc2
+> 
+> - Fix an missing check for no lowerdir if the datadir+ option was used
+> 
+> - Misc cleanup.
+> 
+> [...]
 
-Please pull the following into your fixes branch:
+Pulled into the vfs.fixes branch of the vfs/vfs.git tree.
+Patches in the vfs.fixes branch should appear in linux-next soon.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
-tags/ovl-fixes-6.15-rc2
+Please report any outstanding bugs that were missed during review in a
+new review to the original patch series or pull request allowing us to
+drop it.
 
-- Fix an missing check for no lowerdir if the datadir+ option was used
+It's encouraged to provide Acked-bys and Reviewed-bys even though the
+patch has now been applied. If possible patch trailers will be updated.
 
-- Misc cleanup.
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
+branch: vfs.fixes
 
-Thanks,
-Miklos
-
----
-Giuseppe Scrivano (1):
-      ovl: remove unused forward declaration
-
-Miklos Szeredi (1):
-      ovl: don't allow datadir only
-
----
- fs/overlayfs/overlayfs.h | 2 --
- fs/overlayfs/super.c     | 5 +++++
- 2 files changed, 5 insertions(+), 2 deletions(-)
+https://git.kernel.org/vfs/vfs/c/e2aef868a8c3
