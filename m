@@ -1,76 +1,82 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from out-179.mta1.migadu.com (out-179.mta1.migadu.com [95.215.58.179])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id E32C81F541E;
-	Fri, 11 Apr 2025 14:42:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D99721B0439
+	for <linux-unionfs@vger.kernel.org>; Mon, 14 Apr 2025 20:54:27 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.179
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1744382573; cv=none; b=PxfKjBd5xJ1Re4VTjBNmXifrcHsIg8OAS7Y7LFDnQK4ULumhwhInoNWCJfJrGrOgHTOaNWs4DJcxhVivEaSCj05cisFqQVIGlHMScUV1ZEDE3VUEVUIUnV0/ZIaqAx/26vwpFXsKUFlPay83HIu497m9Jh6SsxqyI96kcW2cXP0=
+	t=1744664071; cv=none; b=hYOoW8D8R0YCgWTeeXlazlTErX1LWGr7d7IPwgUGQvD5eV0czrFn2AgzVeoCxMVBITQfcfW37eZ5KV/v+qPlILFGtFn9wKvFBFZXFQn1dJ7pyqzwGxogI9GWGdf+7UOteopJK6EkWw0M3UIvN1BYm6jWof4yKtNNeYt2aIySiyo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1744382573; c=relaxed/simple;
-	bh=Qhdgpspww9P+Jj9zNZuY4/YmGo9aMreJ/ftse5s3mSc=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=lq2cvvkKnSZcNvt32K2JJ73+vvLsPTrlRnQTzd9XD8iFAK2uz+ACZSe8+Wz1LL/pmJsC1S0AAkuADrtueOoaHVUrOZ8IzNKETXXLxcHwhWHR7G3DXEoQ7wXFDS4ml2rSnXnZG02T0YJAihS478xOR/gVcGvLjiEx+ot78tMxOb8=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=Xowotmhu; arc=none smtp.client-ip=10.30.226.201
+	s=arc-20240116; t=1744664071; c=relaxed/simple;
+	bh=IVbscjkg/t7tmXG342QUVsKw+0b4TEyy9/kLcTms0sA=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=heHIfTGhbsS7baEY0hZViY87cLRyJwuNhH8es+e+3X4qlAk8IOJt6at+K5K5aiy3AYgzUY36e+NnDJMAc5JX3RhUMCihl0Jqvk7ZxCWedT30iFAR3HNqTQdd2uzOXHNCbjul2Kpo+KbLh8J3uKuyN9Pu2Dtkf+EhcqYqGrswH3A=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=BKd1LOnm; arc=none smtp.client-ip=95.215.58.179
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="Xowotmhu"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 364CBC4CEE2;
-	Fri, 11 Apr 2025 14:42:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-	s=k20201202; t=1744382572;
-	bh=Qhdgpspww9P+Jj9zNZuY4/YmGo9aMreJ/ftse5s3mSc=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=XowotmhuKpsip3wj+Th0CNKqYSix20qVHRUtD9Hz2guHnz8k4FesFmI55Hl87V2/2
-	 Sc5CYmvrIFplGJNbZ1SS12hIm+tfd16johDt0WZrLaCcpL1iCpujOdy4C7AADzH70V
-	 lSbhESAsdeFP7XlrwowaJ/r2Gz6lHfSdaZqm8OCX8Hin0P78u44ICkSPOXPGcwdhQY
-	 YXFLsLwkdg93ZBCLbrCBs7C5pOxCqp+5EFnLxEqKcFFB+5XC+RlUEAhcvi/zhpkgOU
-	 3CqmQtQOor1qYM/zoM0/BISDMpq4QVEY+NB4ISWQmCEFiFx/wi59hjp7xT1ndRVZcQ
-	 BipBQQ8a8kvmw==
-From: Christian Brauner <brauner@kernel.org>
-To: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Christian Brauner <brauner@kernel.org>,
-	overlayfs <linux-unionfs@vger.kernel.org>,
-	linux-fsdevel@vger.kernel.org
-Subject: Re: [GIT PULL] overlayfs fixes for 6.15-rc2
-Date: Fri, 11 Apr 2025 16:42:43 +0200
-Message-ID: <20250411-anflug-spediteur-cc399d1fa778@brauner>
-X-Mailer: git-send-email 2.47.2
-In-Reply-To: <CAJfpegt-EE4RROKDXA3g5GxAYXQrWcLAL1TfTPK-=VmPC7U13g@mail.gmail.com>
-References: <CAJfpegt-EE4RROKDXA3g5GxAYXQrWcLAL1TfTPK-=VmPC7U13g@mail.gmail.com>
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="BKd1LOnm"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1744664065;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:
+	 content-transfer-encoding:content-transfer-encoding;
+	bh=TR7dEj56cb1DCkyT7kzwEfs2jUXxT36dtnwHb+IVk6g=;
+	b=BKd1LOnmEWr3oflhSfJvvNzpG75JcMTHlSEIPWwjWDX/mWzFhoWeTnObkVGl8ngRsjaku0
+	OXfbYtjrxeXR/+pgSpGuoX4AoHmZTFXcVSTwCx5uzCh7FHz53Gy4g1OupA5DWK64q2x5AS
+	RBfZ9X/E5SzEy5PBuQ55Zf8KXhot8So=
+From: Thorsten Blum <thorsten.blum@linux.dev>
+To: Miklos Szeredi <miklos@szeredi.hu>,
+	Amir Goldstein <amir73il@gmail.com>
+Cc: Thorsten Blum <thorsten.blum@linux.dev>,
+	linux-unionfs@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RESEND PATCH] ovl: Use str_on_off() helper in ovl_show_options()
+Date: Mon, 14 Apr 2025 22:54:08 +0200
+Message-ID: <20250414205408.1504-1-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-X-Developer-Signature: v=1; a=openpgp-sha256; l=895; i=brauner@kernel.org; h=from:subject:message-id; bh=Qhdgpspww9P+Jj9zNZuY4/YmGo9aMreJ/ftse5s3mSc=; b=owGbwMvMwCU28Zj0gdSKO4sYT6slMaT/1EpP9suuu8SROVc8fvtEjuLZneuZ/FOP6pedLJwex hORuvh1RykLgxgXg6yYIotDu0m43HKeis1GmRowc1iZQIYwcHEKwES2ljMy7Ksuq9Z/ft1bbv52 iStvEvinvc/eqTlZ6OXqXgENvczWfkaG7bY25Uekft6yeXBIqP9Y5FmVa9xzDwVoZ6cevL360o6 /3AA=
-X-Developer-Key: i=brauner@kernel.org; a=openpgp; fpr=4880B8C9BD0E5106FC070F4F7B3C391EFEA93624
 Content-Transfer-Encoding: 8bit
+X-Migadu-Flow: FLOW_OUT
 
-On Fri, 11 Apr 2025 10:28:05 +0200, Miklos Szeredi wrote:
-> Please pull the following into your fixes branch:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/overlayfs/vfs.git
-> tags/ovl-fixes-6.15-rc2
-> 
-> - Fix an missing check for no lowerdir if the datadir+ option was used
-> 
-> - Misc cleanup.
-> 
-> [...]
+Remove hard-coded strings by using the str_on_off() helper function.
 
-Pulled into the vfs.fixes branch of the vfs/vfs.git tree.
-Patches in the vfs.fixes branch should appear in linux-next soon.
+Acked-by: Amir Goldstein <amir73il@gmail.com>
+Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
+---
+ fs/overlayfs/params.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Please report any outstanding bugs that were missed during review in a
-new review to the original patch series or pull request allowing us to
-drop it.
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index 6759f7d040c8..259ef21f3d08 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -1078,17 +1078,16 @@ int ovl_show_options(struct seq_file *m, struct dentry *dentry)
+ 		seq_printf(m, ",redirect_dir=%s",
+ 			   ovl_redirect_mode(&ofs->config));
+ 	if (ofs->config.index != ovl_index_def)
+-		seq_printf(m, ",index=%s", ofs->config.index ? "on" : "off");
++		seq_printf(m, ",index=%s", str_on_off(ofs->config.index));
+ 	if (ofs->config.uuid != ovl_uuid_def())
+ 		seq_printf(m, ",uuid=%s", ovl_uuid_mode(&ofs->config));
+ 	if (ofs->config.nfs_export != ovl_nfs_export_def)
+-		seq_printf(m, ",nfs_export=%s", ofs->config.nfs_export ?
+-						"on" : "off");
++		seq_printf(m, ",nfs_export=%s",
++			   str_on_off(ofs->config.nfs_export));
+ 	if (ofs->config.xino != ovl_xino_def() && !ovl_same_fs(ofs))
+ 		seq_printf(m, ",xino=%s", ovl_xino_mode(&ofs->config));
+ 	if (ofs->config.metacopy != ovl_metacopy_def)
+-		seq_printf(m, ",metacopy=%s",
+-			   ofs->config.metacopy ? "on" : "off");
++		seq_printf(m, ",metacopy=%s", str_on_off(ofs->config.metacopy));
+ 	if (ofs->config.ovl_volatile)
+ 		seq_puts(m, ",volatile");
+ 	if (ofs->config.userxattr)
+-- 
+2.49.0
 
-It's encouraged to provide Acked-bys and Reviewed-bys even though the
-patch has now been applied. If possible patch trailers will be updated.
-
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/vfs/vfs.git
-branch: vfs.fixes
-
-https://git.kernel.org/vfs/vfs/c/e2aef868a8c3
