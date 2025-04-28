@@ -1,51 +1,36 @@
-Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+Received: from szxga02-in.huawei.com (szxga02-in.huawei.com [45.249.212.188])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E78118DB17;
-	Wed, 23 Apr 2025 14:55:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0803B25F7AA;
+	Mon, 28 Apr 2025 11:11:40 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.188
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745420118; cv=none; b=Gg6oyCnaUZ79UsHF8SmLl17V2BafBHjCx1M4pettoIUWv8oqdmhqrQV59Cv1dzbpQnm+TDzBThj3YCGbnTs8IEqlv+BfSFscvMYjy0GOkYggYw1vG2cDfF692yqhXAFcuXh9VFEH9LEziHazad1Xgm0BhkWRC+bsIpBUilxhzbs=
+	t=1745838703; cv=none; b=LqEPOqu3TaciLwunUAIw0KQyUPghzXd4sv2hd4eV99/hPyzw6E506piqCQ1Z3KBxy0WS4fSutQNlVkNK/Wq6N0mIX3uYVP8VTQ13YOMZYnV7mmtQLKOpp22iev9BplUGBxKrNrdl6StUZnCYBNKoYIwunGPAho530lj2+iUgpug=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745420118; c=relaxed/simple;
-	bh=Seq9Tn6zd7GgXSLQkR4PQvzHVtjjrW7lTAbTOJcwPCA=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=Y/0ILhut/jH/O7281AHpxYEn1swFbqbBnl0nAg/N/1fpOFIS5/cr0OEvgwVg9p9O3qVLTTtHwkWOJbSoMu8Bctzn+KmampwH94ziZ3YT21mOeOWzeoDnxAt2daId88AhLVPLSww4XcB1JK64H2Qw7qL3eoScq3WOUHPy38Jq334=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b=YlL3R/nl; arc=none smtp.client-ip=10.30.226.201
-Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linuxfoundation.org header.i=@linuxfoundation.org header.b="YlL3R/nl"
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AE3EC4CEE2;
-	Wed, 23 Apr 2025 14:55:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-	s=korg; t=1745420118;
-	bh=Seq9Tn6zd7GgXSLQkR4PQvzHVtjjrW7lTAbTOJcwPCA=;
-	h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-	b=YlL3R/nlhGHSxt/xfdwatbNgTu6fzQaThnxvRVn7DWQtMs/QJsAveVdHcxl5ONZNf
-	 zltt3IAAbwjivvNpXq/xnOm9foA5TshdlJtXYElGdP+0I6BQ733mG0zuSoeGc4g3G1
-	 7YiAdqVBXDL8g7Okg//3oAich1GIDNNJGLDxOkN4=
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: stable@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	patches@lists.linux.dev,
-	Al Viro <viro@zeniv.linux.org.uk>,
-	Tyler Hicks <code@tyhicks.com>,
-	ecryptfs@vger.kernel.org,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	linux-unionfs@vger.kernel.org,
-	Christian Brauner <brauner@kernel.org>,
-	linux-fsdevel@vger.kernel.org,
-	Stefan Berger <stefanb@linux.ibm.com>,
-	Sasha Levin <sashal@kernel.org>
-Subject: [PATCH 6.12 101/223] fs: Simplify getattr interface function checking AT_GETATTR_NOSEC flag
-Date: Wed, 23 Apr 2025 16:42:53 +0200
-Message-ID: <20250423142621.227689976@linuxfoundation.org>
-X-Mailer: git-send-email 2.49.0
-In-Reply-To: <20250423142617.120834124@linuxfoundation.org>
-References: <20250423142617.120834124@linuxfoundation.org>
-User-Agent: quilt/0.68
-X-stable: review
-X-Patchwork-Hint: ignore
+	s=arc-20240116; t=1745838703; c=relaxed/simple;
+	bh=McOM0VUTJ+DdjGmhVBpGrxjCfpAB0KF9ke7LVj13w84=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=W9VsZ9MLiirAazpRng73U70cAj5QvfD2lBJRhX9iJoyaOfoX80UiVXsy8mOio0OoqucXu3wMVIElHtpxMdO/m8DgWc1MO6frjdT9UdciF/3kpOSw6WMqLaIjtJIeIlmUlWX1TpfotCy9E+mCdEkxhnEBVVJS8pxRQLEx1rbnGRE=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.188
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
+Received: from mail.maildlp.com (unknown [172.19.88.105])
+	by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4ZmLJc5nXcz69c9;
+	Mon, 28 Apr 2025 19:07:44 +0800 (CST)
+Received: from kwepemg500010.china.huawei.com (unknown [7.202.181.71])
+	by mail.maildlp.com (Postfix) with ESMTPS id 632361401F3;
+	Mon, 28 Apr 2025 19:11:38 +0800 (CST)
+Received: from huawei.com (10.175.101.6) by kwepemg500010.china.huawei.com
+ (7.202.181.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Mon, 28 Apr
+ 2025 19:11:37 +0800
+From: Wang Zhaolong <wangzhaolong1@huawei.com>
+To: <miklos@szeredi.hu>, <amir73il@gmail.com>
+CC: <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<wangzhaolong1@huawei.com>, <yi.zhang@huawei.com>, <yangerkun@huawei.com>
+Subject: [PATCH] overlayfs: fix potential NULL pointer dereferences in file handle code
+Date: Mon, 28 Apr 2025 19:11:36 +0800
+Message-ID: <20250428111136.290004-1-wangzhaolong1@huawei.com>
+X-Mailer: git-send-email 2.34.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -53,191 +38,96 @@ List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+X-ClientProxiedBy: dggems702-chm.china.huawei.com (10.3.19.179) To
+ kwepemg500010.china.huawei.com (7.202.181.71)
 
-6.12-stable review patch.  If anyone has any objections, please let me know.
+Several locations in overlayfs file handle code fail to check if a file
+handle pointer is NULL before accessing its members. A NULL file handle
+can occur when the lower filesystem doesn't support export operations,
+as seen in ovl_get_origin_fh() which explicitly returns NULL in this case.
 
-------------------
+The following locations are vulnerable to NULL pointer dereference:
 
-From: Stefan Berger <stefanb@linux.ibm.com>
+1. ovl_set_origin_fh() accesses fh->buf without checking if fh is NULL
+2. ovl_verify_fh() uses fh->fb members without NULL check
+3. ovl_get_index_name_fh() accesses fh->fb.len without NULL check
 
-[ Upstream commit 95f567f81e43a1bcb5fbf0559e55b7505707300d ]
+Fix these potential NULL pointer dereferences by adding appropriate NULL
+checks before accessing the file handle structure members.
 
-Commit 8a924db2d7b5 ("fs: Pass AT_GETATTR_NOSEC flag to getattr interface
-function")' introduced the AT_GETATTR_NOSEC flag to ensure that the
-call paths only call vfs_getattr_nosec if it is set instead of vfs_getattr.
-Now, simplify the getattr interface functions of filesystems where the flag
-AT_GETATTR_NOSEC is checked.
-
-There is only a single caller of inode_operations getattr function and it
-is located in fs/stat.c in vfs_getattr_nosec. The caller there is the only
-one from which the AT_GETATTR_NOSEC flag is passed from.
-
-Two filesystems are checking this flag in .getattr and the flag is always
-passed to them unconditionally from only vfs_getattr_nosec:
-
-- ecryptfs:  Simplify by always calling vfs_getattr_nosec in
-             ecryptfs_getattr. From there the flag is passed to no other
-             function and this function is not called otherwise.
-
-- overlayfs: Simplify by always calling vfs_getattr_nosec in
-             ovl_getattr. From there the flag is passed to no other
-             function and this function is not called otherwise.
-
-The query_flags in vfs_getattr_nosec will mask-out AT_GETATTR_NOSEC from
-any caller using AT_STATX_SYNC_TYPE as mask so that the flag is not
-important inside this function. Also, since no filesystem is checking the
-flag anymore, remove the flag entirely now, including the BUG_ON check that
-never triggered.
-
-The net change of the changes here combined with the original commit is
-that ecryptfs and overlayfs do not call vfs_getattr but only
-vfs_getattr_nosec.
-
-Fixes: 8a924db2d7b5 ("fs: Pass AT_GETATTR_NOSEC flag to getattr interface function")
-Reported-by: Al Viro <viro@zeniv.linux.org.uk>
-Closes: https://lore.kernel.org/linux-fsdevel/20241101011724.GN1350452@ZenIV/T/#u
-Cc: Tyler Hicks <code@tyhicks.com>
-Cc: ecryptfs@vger.kernel.org
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: linux-fsdevel@vger.kernel.org
-Reviewed-by: Christian Brauner <brauner@kernel.org>
-Signed-off-by: Stefan Berger <stefanb@linux.ibm.com>
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Stable-dep-of: 777d0961ff95 ("fs: move the bdex_statx call to vfs_getattr_nosec")
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Fixes: cbe7fba8edfc ("ovl: make sure that real fid is 32bit aligned in memory")
+Cc: stable@vger.kernel.org
+Signed-off-by: Wang Zhaolong <wangzhaolong1@huawei.com>
 ---
- fs/ecryptfs/inode.c        | 12 ++----------
- fs/overlayfs/inode.c       | 10 +++++-----
- fs/overlayfs/overlayfs.h   |  8 --------
- fs/stat.c                  |  5 +----
- include/uapi/linux/fcntl.h |  4 ----
- 5 files changed, 8 insertions(+), 31 deletions(-)
+ fs/overlayfs/copy_up.c | 4 ++--
+ fs/overlayfs/namei.c   | 8 +++++++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
-index cbdf82f0183f3..a9819ddb1ab85 100644
---- a/fs/ecryptfs/inode.c
-+++ b/fs/ecryptfs/inode.c
-@@ -1008,14 +1008,6 @@ static int ecryptfs_getattr_link(struct mnt_idmap *idmap,
- 	return rc;
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d7310fcf3888..9b45010d4a7d 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -489,12 +489,12 @@ int ovl_set_origin_fh(struct ovl_fs *ofs, const struct ovl_fh *fh,
+ 	int err;
+ 
+ 	/*
+ 	 * Do not fail when upper doesn't support xattrs.
+ 	 */
+-	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh->buf,
+-				 fh ? fh->fb.len : 0, 0);
++	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN,
++				 fh ? fh->buf : NULL, fh ? fh->fb.len : 0, 0);
+ 
+ 	/* Ignore -EPERM from setting "user.*" on symlink/special */
+ 	return err == -EPERM ? 0 : err;
  }
  
--static int ecryptfs_do_getattr(const struct path *path, struct kstat *stat,
--			       u32 request_mask, unsigned int flags)
--{
--	if (flags & AT_GETATTR_NOSEC)
--		return vfs_getattr_nosec(path, stat, request_mask, flags);
--	return vfs_getattr(path, stat, request_mask, flags);
--}
--
- static int ecryptfs_getattr(struct mnt_idmap *idmap,
- 			    const struct path *path, struct kstat *stat,
- 			    u32 request_mask, unsigned int flags)
-@@ -1024,8 +1016,8 @@ static int ecryptfs_getattr(struct mnt_idmap *idmap,
- 	struct kstat lower_stat;
- 	int rc;
- 
--	rc = ecryptfs_do_getattr(ecryptfs_dentry_to_lower_path(dentry),
--				 &lower_stat, request_mask, flags);
-+	rc = vfs_getattr_nosec(ecryptfs_dentry_to_lower_path(dentry),
-+			       &lower_stat, request_mask, flags);
- 	if (!rc) {
- 		fsstack_copy_attr_all(d_inode(dentry),
- 				      ecryptfs_inode_to_lower(d_inode(dentry)));
-diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
-index baa54c718bd72..97dd70d631446 100644
---- a/fs/overlayfs/inode.c
-+++ b/fs/overlayfs/inode.c
-@@ -170,7 +170,7 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 
- 	type = ovl_path_real(dentry, &realpath);
- 	old_cred = ovl_override_creds(dentry->d_sb);
--	err = ovl_do_getattr(&realpath, stat, request_mask, flags);
-+	err = vfs_getattr_nosec(&realpath, stat, request_mask, flags);
- 	if (err)
- 		goto out;
- 
-@@ -195,8 +195,8 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 					(!is_dir ? STATX_NLINK : 0);
- 
- 			ovl_path_lower(dentry, &realpath);
--			err = ovl_do_getattr(&realpath, &lowerstat, lowermask,
--					     flags);
-+			err = vfs_getattr_nosec(&realpath, &lowerstat, lowermask,
-+						flags);
- 			if (err)
- 				goto out;
- 
-@@ -248,8 +248,8 @@ int ovl_getattr(struct mnt_idmap *idmap, const struct path *path,
- 
- 			ovl_path_lowerdata(dentry, &realpath);
- 			if (realpath.dentry) {
--				err = ovl_do_getattr(&realpath, &lowerdatastat,
--						     lowermask, flags);
-+				err = vfs_getattr_nosec(&realpath, &lowerdatastat,
-+							lowermask, flags);
- 				if (err)
- 					goto out;
- 			} else {
-diff --git a/fs/overlayfs/overlayfs.h b/fs/overlayfs/overlayfs.h
-index 500a9634ad533..63ad4511c1208 100644
---- a/fs/overlayfs/overlayfs.h
-+++ b/fs/overlayfs/overlayfs.h
-@@ -412,14 +412,6 @@ static inline bool ovl_open_flags_need_copy_up(int flags)
- 	return ((OPEN_FMODE(flags) & FMODE_WRITE) || (flags & O_TRUNC));
- }
- 
--static inline int ovl_do_getattr(const struct path *path, struct kstat *stat,
--				 u32 request_mask, unsigned int flags)
--{
--	if (flags & AT_GETATTR_NOSEC)
--		return vfs_getattr_nosec(path, stat, request_mask, flags);
--	return vfs_getattr(path, stat, request_mask, flags);
--}
--
- /* util.c */
- int ovl_get_write_access(struct dentry *dentry);
- void ovl_put_write_access(struct dentry *dentry);
-diff --git a/fs/stat.c b/fs/stat.c
-index 41e598376d7e3..cbc0fcd4fba39 100644
---- a/fs/stat.c
-+++ b/fs/stat.c
-@@ -165,7 +165,7 @@ int vfs_getattr_nosec(const struct path *path, struct kstat *stat,
- 	if (inode->i_op->getattr)
- 		return inode->i_op->getattr(idmap, path, stat,
- 					    request_mask,
--					    query_flags | AT_GETATTR_NOSEC);
-+					    query_flags);
- 
- 	generic_fillattr(idmap, request_mask, inode, stat);
- 	return 0;
-@@ -198,9 +198,6 @@ int vfs_getattr(const struct path *path, struct kstat *stat,
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index be5c65d6f848..5acc13c012c1 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
+@@ -496,10 +496,13 @@ static int ovl_verify_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 			 enum ovl_xattr ox, const struct ovl_fh *fh)
  {
- 	int retval;
+ 	struct ovl_fh *ofh = ovl_get_fh(ofs, dentry, ox);
+ 	int err = 0;
  
--	if (WARN_ON_ONCE(query_flags & AT_GETATTR_NOSEC))
--		return -EPERM;
--
- 	retval = security_inode_getattr(path);
- 	if (retval)
- 		return retval;
-diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
-index 87e2dec79fea4..a40833bf2855e 100644
---- a/include/uapi/linux/fcntl.h
-+++ b/include/uapi/linux/fcntl.h
-@@ -154,8 +154,4 @@
- 					   usable with open_by_handle_at(2). */
- #define AT_HANDLE_MNT_ID_UNIQUE	0x001	/* Return the u64 unique mount ID. */
++	if (!fh)
++		return -ENODATA;
++
+ 	if (!ofh)
+ 		return -ENODATA;
  
--#if defined(__KERNEL__)
--#define AT_GETATTR_NOSEC	0x80000000
--#endif
--
- #endif /* _UAPI_LINUX_FCNTL_H */
+ 	if (IS_ERR(ofh))
+ 		return PTR_ERR(ofh);
+@@ -516,11 +519,11 @@ int ovl_verify_set_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 		      bool is_upper, bool set)
+ {
+ 	int err;
+ 
+ 	err = ovl_verify_fh(ofs, dentry, ox, fh);
+-	if (set && err == -ENODATA)
++	if (set && err == -ENODATA && fh)
+ 		err = ovl_setxattr(ofs, dentry, ox, fh->buf, fh->fb.len);
+ 
+ 	return err;
+ }
+ 
+@@ -702,10 +705,13 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
+ 
+ int ovl_get_index_name_fh(const struct ovl_fh *fh, struct qstr *name)
+ {
+ 	char *n, *s;
+ 
++	if (!fh)
++		return -EINVAL;
++
+ 	n = kcalloc(fh->fb.len, 2, GFP_KERNEL);
+ 	if (!n)
+ 		return -ENOMEM;
+ 
+ 	s  = bin2hex(n, fh->buf, fh->fb.len);
 -- 
-2.39.5
-
-
+2.34.3
 
