@@ -1,112 +1,130 @@
-Received: from szxga04-in.huawei.com (szxga04-in.huawei.com [45.249.212.190])
+Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EC8B010942;
-	Mon, 28 Apr 2025 13:01:26 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.190
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 155EB53A7;
+	Tue, 29 Apr 2025 00:13:17 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745845289; cv=none; b=ERxrZd3MH1k/oCkyxu0/eC+bgY1dzVAHCvoDyI97e3NQWq9bPGPTRxVZMB+BjsyvZT0yI2HMla1uRQ/LY/S4bhUuMC9I6ZHP2h/YIB71YyfGF/rVL/AvYxvoeABnv6CJwWzzz2XpcFgxlQsY1biCnYqikpqbICR7ev+EjIQmhhU=
+	t=1745885601; cv=none; b=Rfaox45XTTS/Iyb0D58lmjoKPgzEp0/Kc+Dj1NKfe2j76RjT0ke0bLpLwgmSFvgQGyksDIiG3NPD24WqNLTiQUSHOCZaIsBzKsVsmGY1LzwQvQIUvgoAIbJb4HyBIMoljnKXQzG6J6sCLAqUmA3eY5iJGdNpofLJ0r442vBjU+w=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745845289; c=relaxed/simple;
-	bh=jC0nARmRFRhXO9s3xUJyX7WxdPCEpxU8ehSIF6ss8X4=;
-	h=Message-ID:Date:MIME-Version:Subject:To:CC:References:From:
-	 In-Reply-To:Content-Type; b=Tm4ezJzRR19l6fxIMWxeiHvgVLFLD0Kw17+blPO2Ywnv7LViAeTAhPw0NEJMUVLSMLTs31xlKoMGPLdD5IkqROWAGqug8HG79GL2XnVhNhsqqm9PQMbX+0SpPSVISLPy1cIj8Qf0J1Z9uKDx5vp4DzJv3vfywp8VzrYDfMOaidY=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.190
+	s=arc-20240116; t=1745885601; c=relaxed/simple;
+	bh=HiRVX59FAYDlVZsniwT06tqFI1rfNUP051mzgdDgM4g=;
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OJ5dHh+J5UbsfpfjDGhrNX1BJNl4VrBk5htS0VKntxudc3+JXSz+FpsjW1I0glJP9EgP640v6ZJli03aUhQslYlZ/cphWi3S5erQbSiIdHVWvkA8/Kfw0jA8ucKj2z4o31EgZ/h6qkRgzBQ37zy/chXwQCjIaGDsmMXz0NV+bIk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.255
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
-Received: from mail.maildlp.com (unknown [172.19.163.44])
-	by szxga04-in.huawei.com (SkyGuard) with ESMTP id 4ZmNqC1wsWz2TS39;
-	Mon, 28 Apr 2025 21:00:55 +0800 (CST)
+Received: from mail.maildlp.com (unknown [172.19.88.105])
+	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Zmgjb4dFKz1d0vT;
+	Tue, 29 Apr 2025 08:12:03 +0800 (CST)
 Received: from kwepemg500010.china.huawei.com (unknown [7.202.181.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id 5F1BD1400CB;
-	Mon, 28 Apr 2025 21:01:18 +0800 (CST)
-Received: from [10.174.178.209] (10.174.178.209) by
- kwepemg500010.china.huawei.com (7.202.181.71) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.1544.11; Mon, 28 Apr 2025 21:01:17 +0800
-Message-ID: <5e59d7ba-3b2a-40fb-b305-7b5a6316128f@huawei.com>
-Date: Mon, 28 Apr 2025 21:01:16 +0800
+	by mail.maildlp.com (Postfix) with ESMTPS id BC4121402ED;
+	Tue, 29 Apr 2025 08:13:09 +0800 (CST)
+Received: from huawei.com (10.175.101.6) by kwepemg500010.china.huawei.com
+ (7.202.181.71) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Tue, 29 Apr
+ 2025 08:13:09 +0800
+From: Wang Zhaolong <wangzhaolong1@huawei.com>
+To: <miklos@szeredi.hu>, <amir73il@gmail.com>
+CC: <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<wangzhaolong1@huawei.com>, <yi.zhang@huawei.com>, <yangerkun@huawei.com>
+Subject: [PATCH] overlayfs: fix potential NULL pointer dereferences in file handle code
+Date: Tue, 29 Apr 2025 08:13:08 +0800
+Message-ID: <20250429001308.370040-1-wangzhaolong1@huawei.com>
+X-Mailer: git-send-email 2.34.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-User-Agent: Mozilla Thunderbird
-Subject: Re: [PATCH] overlayfs: fix potential NULL pointer dereferences in
- file handle code
-To: Markus Elfring <Markus.Elfring@web.de>, <linux-unionfs@vger.kernel.org>
-CC: LKML <linux-kernel@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>,
-	Miklos Szeredi <miklos@szeredi.hu>, Yang Erkun <yangerkun@huawei.com>, Zhang
- Yi <yi.zhang@huawei.com>
-References: <20250428111136.290004-1-wangzhaolong1@huawei.com>
- <0b8cbc01-0db9-48ae-ae13-7158a94a8908@web.de>
-From: Wang Zhaolong <wangzhaolong1@huawei.com>
-In-Reply-To: <0b8cbc01-0db9-48ae-ae13-7158a94a8908@web.de>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+Content-Type: text/plain
+X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
  kwepemg500010.china.huawei.com (7.202.181.71)
 
-> …
->> +++ b/fs/overlayfs/namei.c
->> @@ -496,10 +496,13 @@ static int ovl_verify_fh(struct ovl_fs *ofs, struct dentry *dentry,
->>   			 enum ovl_xattr ox, const struct ovl_fh *fh)
->>   {
->>   	struct ovl_fh *ofh = ovl_get_fh(ofs, dentry, ox);
->>   	int err = 0;
->>   
->> +	if (!fh)
->> +		return -ENODATA;
->> +
->>   	if (!ofh)
->>   		return -ENODATA;
-> …
-> 
-> How do you think about to reduce the scope for these local variables
-> (according to adjustment possibilities for input parameter validation)?
-> 
-> Regards,
-> Markus
+Several locations in overlayfs file handle code fail to check if a file
+handle pointer is NULL before accessing its members. A NULL file handle
+can occur when the lower filesystem doesn't support export operations,
+as seen in ovl_get_origin_fh() which explicitly returns NULL in this case.
 
-Hi Markus,
+The following locations are vulnerable to NULL pointer dereference:
 
-Thanks for your review!
+1. ovl_set_origin_fh() accesses fh->buf without checking if fh is NULL
+2. ovl_verify_fh() uses fh->fb members without NULL check
+3. ovl_get_index_name_fh() accesses fh->fb.len without NULL check
 
-Inspired by your suggestions, I would like to modify the approach as follows:
+Fix these potential NULL pointer dereferences by adding appropriate NULL
+checks before accessing the file handle structure members.
 
-1. Postpone ofh initialization until after fh validation
-2. Return -EINVAL for NULL fh (as invalid parameter rather than missing data)
+V1 -> V2:
+- Reworked ovl_verify_fh() to postpone ofh allocation until after fh
+  validation
+- Return -EINVAL instead of -ENODATA for NULL fh in ovl_verify_fh()
 
-```
+Fixes: cbe7fba8edfc ("ovl: make sure that real fid is 32bit aligned in memory")
+Cc: stable@vger.kernel.org
+Signed-off-by: Wang Zhaolong <wangzhaolong1@huawei.com>
+---
+ fs/overlayfs/copy_up.c | 4 ++--
+ fs/overlayfs/namei.c   | 9 ++++++++-
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index d7310fcf3888..9b45010d4a7d 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -489,12 +489,12 @@ int ovl_set_origin_fh(struct ovl_fs *ofs, const struct ovl_fh *fh,
+ 	int err;
+ 
+ 	/*
+ 	 * Do not fail when upper doesn't support xattrs.
+ 	 */
+-	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN, fh->buf,
+-				 fh ? fh->fb.len : 0, 0);
++	err = ovl_check_setxattr(ofs, upper, OVL_XATTR_ORIGIN,
++				 fh ? fh->buf : NULL, fh ? fh->fb.len : 0, 0);
+ 
+ 	/* Ignore -EPERM from setting "user.*" on symlink/special */
+ 	return err == -EPERM ? 0 : err;
+ }
+ 
+diff --git a/fs/overlayfs/namei.c b/fs/overlayfs/namei.c
+index be5c65d6f848..f6b2a99a111b 100644
+--- a/fs/overlayfs/namei.c
++++ b/fs/overlayfs/namei.c
 @@ -493,13 +493,17 @@ static int ovl_check_origin(struct ovl_fs *ofs, struct dentry *upperdentry,
-   * Return 0 on match, -ESTALE on mismatch, < 0 on error.
-   */
-  static int ovl_verify_fh(struct ovl_fs *ofs, struct dentry *dentry,
-  			 enum ovl_xattr ox, const struct ovl_fh *fh)
-  {
+  * Return 0 on match, -ESTALE on mismatch, < 0 on error.
+  */
+ static int ovl_verify_fh(struct ovl_fs *ofs, struct dentry *dentry,
+ 			 enum ovl_xattr ox, const struct ovl_fh *fh)
+ {
 -	struct ovl_fh *ofh = ovl_get_fh(ofs, dentry, ox);
 +	struct ovl_fh *ofh;
-  	int err = 0;
-  
+ 	int err = 0;
+ 
 +	if (!fh)
 +		return -EINVAL;
 +
 +	ofh = ovl_get_fh(ofs, dentry, ox);
-  	if (!ofh)
-  		return -ENODATA;
-  
-  	if (IS_ERR(ofh))
-  		return PTR_ERR(ofh);
-```
+ 	if (!ofh)
+ 		return -ENODATA;
+ 
+ 	if (IS_ERR(ofh))
+ 		return PTR_ERR(ofh);
+@@ -702,10 +706,13 @@ int ovl_verify_index(struct ovl_fs *ofs, struct dentry *index)
+ 
+ int ovl_get_index_name_fh(const struct ovl_fh *fh, struct qstr *name)
+ {
+ 	char *n, *s;
+ 
++	if (!fh)
++		return -EINVAL;
++
+ 	n = kcalloc(fh->fb.len, 2, GFP_KERNEL);
+ 	if (!n)
+ 		return -ENOMEM;
+ 
+ 	s  = bin2hex(n, fh->buf, fh->fb.len);
+-- 
+2.34.3
 
-3. Drop the unnecessary "&& fh" check in ovl_verify_set_fh() since NULL fh would
-    return -EINVAL, not -ENODATA
-
-This changes prevents unnecessary memory allocation and makes error handling more
-precise.
-
-What do you think of this modification? Does this approach work for you?
-
-Regards,
-Wang Zhaolong
