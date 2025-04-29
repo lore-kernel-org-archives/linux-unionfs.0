@@ -1,102 +1,129 @@
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from mout.web.de (mout.web.de [212.227.15.3])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 5334A2C258C
-	for <linux-unionfs@vger.kernel.org>; Tue, 29 Apr 2025 12:01:56 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 519DC2528E8;
+	Tue, 29 Apr 2025 18:34:39 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=212.227.15.3
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745928120; cv=none; b=Nw8phladbCDR27hudA+CV4KGgpEG8Zr9GkNmKw+vO5PT2zft7K9Ycy91fxTYyOHh0BMKXDX4yhI/DLkfkM/RAmNHLUpQOWQO3p8Zuf47Ls1nUpA0K5f2VGNoT4jqE5f/Tzrw/YvcFDKz21fZA5LXjd2BETIGO0LfzoVVyLH/UEw=
+	t=1745951683; cv=none; b=uQgApZFDUcaXQpnRbnqQynYKlmRmZHjc7OA5fSKMNdf/9j0fHhCpKaln0I2sxgf9kkjCvV7EY4QIKl/0fj36Q4cnHc4/eAQ26bveL3icxPKVyUf534zo/gSkoifrFw71M8m2o/JbR9v8YxAnnLoF7kdATUA6FpWCphE0bxEzHCE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745928120; c=relaxed/simple;
-	bh=ao1pG8xhYeDrlKtgpmsWKo/niLkQ0arUYilf/2iWnFM=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=BbNEzA+LH5LVioKFC/yPoWpw5SB6A2IXz2WdRh/T0hDfzshjuCUJm+xnuokOd5GEUeic6u53ZpwAoBXKfvrZzHKjHnqrBUVmsQuGNGcQu0gFz/Guzlx/UC29jYKKamX4THsz+RPBhRPgx8MXYez9l1pPe0E2KzRdDCwWhT+Xkao=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=Z6huD7J2; arc=none smtp.client-ip=209.85.160.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1745951683; c=relaxed/simple;
+	bh=41tclrCsWgVjaUFv9lP7EsVrzCxEebaVZvRPv9A2NEk=;
+	h=Message-ID:Date:MIME-Version:To:Cc:References:Subject:From:
+	 In-Reply-To:Content-Type; b=VnQL3mEA12tbuCFcIc4nUivxx5iGNKs2doc04N5/JE8jjn5uiOxb5+BBTeuW54R2FLGdmuPbVrqHz4FleJIrBdirx2VOn7n/IniGnHwHUYC8NLzA8YLmyt1vTDV9+bhPleMKEqksO9kDI/F6OExDWAiCliDaDvvId8XkuszZzgw=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de; spf=pass smtp.mailfrom=web.de; dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b=hAo3P+K5; arc=none smtp.client-ip=212.227.15.3
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=web.de
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=web.de
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="Z6huD7J2"
-Received: by mail-qt1-f181.google.com with SMTP id d75a77b69052e-4769b16d4fbso36468141cf.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 29 Apr 2025 05:01:56 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1745928116; x=1746532916; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=U2C+WyWVVVa2JqNDp2AeRXzuWB0J/pFCLydODe/2Eyw=;
-        b=Z6huD7J2DjLq4W3OQ4gAUeLOK82VVD4MtnWmI/d3+m6cWLyGzQRLbYn/qWWJ2iWgac
-         AQF50X/ZFhaznz0Bwr1dCHpVRsFrlHcIL/eizTlg4qwt5AlFXCuJBTowILiurN8CGmIB
-         ZA8Wem5pbSkLJ7Wq8Pg9sSappa/vUne5cTLT0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1745928116; x=1746532916;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=U2C+WyWVVVa2JqNDp2AeRXzuWB0J/pFCLydODe/2Eyw=;
-        b=iBrHsCFCN5nvL18/uFxRpXk0yfMcF3Ro+5FbzEPAEeDTKa4nwYJhrbQkMeVKIBS9sv
-         Kg+schtrSlLKymI9c9cKJNPgr4vJPxa3PPzn9Tqu3cpq7rq7H82A9nbOQTYv1x/0/VTm
-         pVenGK2kqrqp7Mrx1EkwJQrbp7YwLbUhszGpRufIy2hOVjkb2MaCI23t1OcSMc1IyhWs
-         gF8kQmsJfbBroaLk3j10gtlizQRbUJS24C0TCNlTlyPXFyuldiLMyWT2AlxlePZ/D9TR
-         8B68WUN/OhAAaLVkcnttXIaehpAEvdUStyAWnty+dtCuSdGbVQisRex6G1R5RfwyLtZL
-         V9JA==
-X-Forwarded-Encrypted: i=1; AJvYcCUP1nAswvZ60p5e7+jq2NnuaJeWki1/VVqBKJBr8yHmp5N+88aLxvwMxqa4kF7Y9AfR+hE4WOzcpfQyWTZ1@vger.kernel.org
-X-Gm-Message-State: AOJu0Yydr2A37HK8fAD8clrQ21RNX9fdcRD0uqOd6g0mkbn1O/BWryj/
-	qEXYsGGBXs/z5tWEAWukQpXNO4zLDR+m58Uz26gf19XckbkqLG7S9YQ0YE3hcBsewB8/bSUXFw9
-	DPizUZnUltIlAXcIe0mNQEe5bkQK9XAlSyzevCA==
-X-Gm-Gg: ASbGncvnT9a7EQ5GLIOYvdxQIxqocxMjuZO4iCMcKnLKfPa6h+7n3MS+IK45F2MM+wl
-	sgmwSdnCYUjj0iNZPxeh44bkzbV+iQpAHWSQx4zK+0hciPo9+GjoODaibmAavDhHjipIVkvRwH5
-	9/l1iFcQ4gb3cPQ8xndieurzDl9PDx84LRp9U=
-X-Google-Smtp-Source: AGHT+IHtR0+JbnanHFoFNW3uUELpcVbTzvD1m3twXqQrhYcmg7AR+mplyFjKirXIjZYvLUyB55nqkepgR4/GRIsTmWI=
-X-Received: by 2002:a05:622a:4814:b0:476:b078:c41c with SMTP id
- d75a77b69052e-48815b5675bmr58341191cf.35.1745928116035; Tue, 29 Apr 2025
- 05:01:56 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=web.de header.i=markus.elfring@web.de header.b="hAo3P+K5"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=web.de;
+	s=s29768273; t=1745951667; x=1746556467; i=markus.elfring@web.de;
+	bh=+rsVdTepre0Pi7lEPZYfPiKD9GfSf6QYsCBwWPVofh0=;
+	h=X-UI-Sender-Class:Message-ID:Date:MIME-Version:To:Cc:References:
+	 Subject:From:In-Reply-To:Content-Type:Content-Transfer-Encoding:
+	 cc:content-transfer-encoding:content-type:date:from:message-id:
+	 mime-version:reply-to:subject:to;
+	b=hAo3P+K53QRMizvDeuKSoxJ7L+OMted8D1EE00HgAbE7wwlhWXE279RQwFfBXTxe
+	 HQ50PPoXFhcM04UOfxGKEDnfBFz8Pz0FmRIzkGqGrEozvvwlddDzzEJazVZr2xp5t
+	 IoOklAvRsH98Mmbj0Hitcj9+6gSauqDML5TgKLWgfwK13NywpAyyZUeIokMaCsecS
+	 2QezgbL5akKekqqBH7LfUwR/s9k1Fw31bwuBJf8++7EQrq2J6tUyOUI1HrUZTDB1L
+	 FnIt+BOBYX7L9Uia+Np2j6e+RsRtjJR/Eo4WL997ooLXFrw+BXrzz00l1jr4voJmT
+	 Gd8PD7OOjv6zPpeH5Q==
+X-UI-Sender-Class: 814a7b36-bfc1-4dae-8640-3722d8ec6cd6
+Received: from [192.168.178.29] ([94.31.70.57]) by smtp.web.de (mrweb005
+ [213.165.67.108]) with ESMTPSA (Nemesis) id 1MI3t5-1uFcvs3QBz-001aDj; Tue, 29
+ Apr 2025 20:34:27 +0200
+Message-ID: <d1eeea14-4a5c-4f7e-9e54-e552bc1d239f@web.de>
+Date: Tue, 29 Apr 2025 20:34:25 +0200
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: Wang Zhaolong <wangzhaolong1@huawei.com>, linux-unionfs@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, Amir Goldstein <amir73il@gmail.com>,
+ Miklos Szeredi <miklos@szeredi.hu>, Yang Erkun <yangerkun@huawei.com>,
+ Zhang Yi <yi.zhang@huawei.com>
 References: <20250429001308.370040-1-wangzhaolong1@huawei.com>
-In-Reply-To: <20250429001308.370040-1-wangzhaolong1@huawei.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 29 Apr 2025 14:01:43 +0200
-X-Gm-Features: ATxdqUGwOSTF8hneO_shhAQGO5y9ZfnMLfqdtkQss91tvFlxelq0oMRW3_Ijdm4
-Message-ID: <CAJfpegvKvHwU69F0wazk_TyrKPCcrcVU+Z+5=UNpg29CJGH84w@mail.gmail.com>
 Subject: Re: [PATCH] overlayfs: fix potential NULL pointer dereferences in
  file handle code
-To: Wang Zhaolong <wangzhaolong1@huawei.com>
-Cc: amir73il@gmail.com, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, yi.zhang@huawei.com, yangerkun@huawei.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Language: en-GB, de-DE
+From: Markus Elfring <Markus.Elfring@web.de>
+In-Reply-To: <20250429001308.370040-1-wangzhaolong1@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:HF4vr7p1Bjnx7w0LLVjJ379RRI22o6z9QNnFg5nuaS2yighqZUG
+ 8s4KYbvHVjlRw9taQBIMlCSjzcXkxMKMTID6lW4vbTGvpKH0h2uCOv3SuKmzkB8GD/8T8u6
+ ftcUNPlbmGX0ICbJiLstlmyfthgZ+Py7pRKB7JJX7bpSidA6IUlUD7Ts+7ve1JdivzoTrEo
+ RavxqsM4Ets72FtofegfA==
+X-Spam-Flag: NO
+UI-OutboundReport: notjunk:1;M01:P0:/r9VgK28N/A=;xMRr12plasW+NV4Wx7e7BfgmA2/
+ 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
+ OD7+U0+ZEMqF3zvPZ9VLP4=
 
-On Tue, 29 Apr 2025 at 02:13, Wang Zhaolong <wangzhaolong1@huawei.com> wrote:
->
-> Several locations in overlayfs file handle code fail to check if a file
-> handle pointer is NULL before accessing its members. A NULL file handle
-> can occur when the lower filesystem doesn't support export operations,
-> as seen in ovl_get_origin_fh() which explicitly returns NULL in this case.
+=E2=80=A6
+> Fix these potential NULL pointer dereferences by adding appropriate NULL
+> checks before accessing the file handle structure members.
 
-Have you tried to trigger these conditions?
+How do you think about to omit the word =E2=80=9Cpotential=E2=80=9D here?
 
-If you find a bug by code inspection, try to recreate it, by that you
-can also verify that the patch works.  If you cannot reproduce it, at
-least prove that triggering the bug is possible.
 
-Without a proof the patch may turn out to do nothing at best and
-introduce new bugs at worst.
+> V1 -> V2:
+> - Reworked ovl_verify_fh() =E2=80=A6
 
->
-> The following locations are vulnerable to NULL pointer dereference:
->
-> 1. ovl_set_origin_fh() accesses fh->buf without checking if fh is NULL
+* You may specify patch version descriptions behind a marker line.
+  https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/=
+Documentation/process/submitting-patches.rst?h=3Dv6.15-rc4#n796
 
-Hint: fh->buf is equivalent to &fh->buf in this case, the latter
-obviously not being a dereference.
+  Please synchronise the version indication in the subject prefix accordin=
+gly.
 
-> 2. ovl_verify_fh() uses fh->fb members without NULL check
-> 3. ovl_get_index_name_fh() accesses fh->fb.len without NULL check
+* Would you like to reconsider the assignment also for the variable =E2=80=
+=9Cerr=E2=80=9D similarly?
 
-These are called in the "index=on" case, which verifies at mount time
-that all layers support file handles.
 
-Thanks,
-Miklos
+Regards,
+Markus
