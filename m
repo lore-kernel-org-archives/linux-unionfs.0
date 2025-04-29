@@ -1,35 +1,35 @@
-Received: from szxga08-in.huawei.com (szxga08-in.huawei.com [45.249.212.255])
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 155EB53A7;
-	Tue, 29 Apr 2025 00:13:17 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.255
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 82F3F366;
+	Tue, 29 Apr 2025 00:15:35 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=45.249.212.187
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1745885601; cv=none; b=Rfaox45XTTS/Iyb0D58lmjoKPgzEp0/Kc+Dj1NKfe2j76RjT0ke0bLpLwgmSFvgQGyksDIiG3NPD24WqNLTiQUSHOCZaIsBzKsVsmGY1LzwQvQIUvgoAIbJb4HyBIMoljnKXQzG6J6sCLAqUmA3eY5iJGdNpofLJ0r442vBjU+w=
+	t=1745885738; cv=none; b=kKZNJrCKVbIsD+gEZzwRnVlmlZBxf5/lq+Q/IEBfvx3hSGm7a485csk4UnaQCijzuK3i5fhzP9t2ntJt+C9KxQH5AUG2Zr8D2WyNB4mD3+msKMhj0wqH89CLI3S8+cxCbA56H3ebMgPdoNirFW0YYp5Lhf//Fcpp3AnOU29GSms=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1745885601; c=relaxed/simple;
+	s=arc-20240116; t=1745885738; c=relaxed/simple;
 	bh=HiRVX59FAYDlVZsniwT06tqFI1rfNUP051mzgdDgM4g=;
-	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=OJ5dHh+J5UbsfpfjDGhrNX1BJNl4VrBk5htS0VKntxudc3+JXSz+FpsjW1I0glJP9EgP640v6ZJli03aUhQslYlZ/cphWi3S5erQbSiIdHVWvkA8/Kfw0jA8ucKj2z4o31EgZ/h6qkRgzBQ37zy/chXwQCjIaGDsmMXz0NV+bIk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.255
+	h=From:To:CC:Subject:Date:Message-ID:MIME-Version:Content-Type; b=rK+5UoqzfefgkeZ5l36GEfhZyxbSEAWy9VcOcBjbhqn+Wh0niz0bhSFwa6hMJw0CMx3cReKiLa/Qhrazj9TU2ySffGOTdbp4tD1xsn08n3+xWGXWpHtrN7znkC7vYd4W+huVxsgJgB1+/OrYSG1+yEGmVrvCMfW4UwGntzl8SQA=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com; spf=pass smtp.mailfrom=huawei.com; arc=none smtp.client-ip=45.249.212.187
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=huawei.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=huawei.com
 Received: from mail.maildlp.com (unknown [172.19.88.105])
-	by szxga08-in.huawei.com (SkyGuard) with ESMTP id 4Zmgjb4dFKz1d0vT;
-	Tue, 29 Apr 2025 08:12:03 +0800 (CST)
+	by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4ZmgmL3q1dz13LW4;
+	Tue, 29 Apr 2025 08:14:26 +0800 (CST)
 Received: from kwepemg500010.china.huawei.com (unknown [7.202.181.71])
-	by mail.maildlp.com (Postfix) with ESMTPS id BC4121402ED;
-	Tue, 29 Apr 2025 08:13:09 +0800 (CST)
+	by mail.maildlp.com (Postfix) with ESMTPS id C2EF81402ED;
+	Tue, 29 Apr 2025 08:15:32 +0800 (CST)
 Received: from huawei.com (10.175.101.6) by kwepemg500010.china.huawei.com
  (7.202.181.71) with Microsoft SMTP Server (version=TLS1_2,
  cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.1544.11; Tue, 29 Apr
- 2025 08:13:09 +0800
+ 2025 08:15:32 +0800
 From: Wang Zhaolong <wangzhaolong1@huawei.com>
 To: <miklos@szeredi.hu>, <amir73il@gmail.com>
 CC: <linux-unionfs@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<wangzhaolong1@huawei.com>, <yi.zhang@huawei.com>, <yangerkun@huawei.com>
-Subject: [PATCH] overlayfs: fix potential NULL pointer dereferences in file handle code
-Date: Tue, 29 Apr 2025 08:13:08 +0800
-Message-ID: <20250429001308.370040-1-wangzhaolong1@huawei.com>
+Subject: [PATCH v2] overlayfs: fix potential NULL pointer dereferences in file handle code
+Date: Tue, 29 Apr 2025 08:15:31 +0800
+Message-ID: <20250429001531.370112-1-wangzhaolong1@huawei.com>
 X-Mailer: git-send-email 2.34.3
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
@@ -39,7 +39,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Content-Type: text/plain
-X-ClientProxiedBy: dggems706-chm.china.huawei.com (10.3.19.183) To
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
  kwepemg500010.china.huawei.com (7.202.181.71)
 
 Several locations in overlayfs file handle code fail to check if a file
