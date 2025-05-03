@@ -1,39 +1,39 @@
-Received: from out-176.mta1.migadu.com (out-176.mta1.migadu.com [95.215.58.176])
+Received: from out-170.mta1.migadu.com (out-170.mta1.migadu.com [95.215.58.170])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 969D81DDA00
-	for <linux-unionfs@vger.kernel.org>; Sat,  3 May 2025 11:52:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.176
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 32A901F3FD1
+	for <linux-unionfs@vger.kernel.org>; Sat,  3 May 2025 11:53:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.170
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746273170; cv=none; b=V0zheJ6eIzvvDBUoEKDvKvpRGdzJrAlGQkUw3EduuDtyuAxV0pLdzfzxTq/+JcOTEWY1pxcWGwdovEok4bGaHwqfIgGZbZGiVlpb6MPTpc+Kn3+0uH8ENs4hXBKxtWcB71YYXKieyOCBW0q0PayhrPPbX97csLJ580meSQkmhsA=
+	t=1746273190; cv=none; b=gIy1fiGEwJVper4p14QAivTILiKsdl66iU0zUquPSDhg0RUfGiFvWVLzwMM+OPhxymhe3Wc4b8S1VyPv4VMmZNau6bJPeqW+WgTJsUWA2FX2BFytgtvt660MYNO7eoq1jMrgVVAs1FztJNb9dARAngPx0bU0RG3wKOQ88tRpwiU=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746273170; c=relaxed/simple;
-	bh=+VOkYvZgU76psOdFtOF3W43doZlN1sDEPP5n0VsCTSY=;
-	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=JXn7J85sh+2dZdXvA9sJf6edusWv2G90/O28p7ztTaMRN4YZmi7g08bzzwYAmpDp4D13dKkY3iQt2PcaD6fsmpSMMCbTx1X12fbGKYqoVZ8LuftteQRKbkz0c/9sed+c4i4K73dUVhg5ju4+Uk3zMIgZXPREyHZ9gBbvPuvztDg=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=kWBSGrxk; arc=none smtp.client-ip=95.215.58.176
+	s=arc-20240116; t=1746273190; c=relaxed/simple;
+	bh=w+fssZgFamC4QJtIuBh39lOyDQ/gn2TYeWA4uBF1fa0=;
+	h=From:To:Cc:Subject:Date:Message-ID:MIME-Version; b=puwMPK3A32lIvHZ1OtFvUMyUoMgKC6tr/UmyWZEd6Se83GpfzNf/3w6h65LkZbZM85r4KcBcMhYGYdnx6EjIrJjuqVF5M6wYLsqSoE41oP5BUSKcEMeZqxq/p589JlnO4qq7VkWqwvtcOkulYgYobfDIJqkFAl3Xho397hvtS7I=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=iUviIQsy; arc=none smtp.client-ip=95.215.58.170
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="kWBSGrxk"
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="iUviIQsy"
 X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1746273155;
+	t=1746273184;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:
 	 content-transfer-encoding:content-transfer-encoding;
-	bh=NCH7FxqQS+cz0AmUB/MfZEOwpq2pP89BZV8jkLcroFM=;
-	b=kWBSGrxklgzmkr9WbO3wU1YeYvf83k6LJ/R/RprDHI+x/Tlr/Wtg6LDc9HgQ8P/50jLDbu
-	3vR1nwNY+v/V86AY/HshAbOqNDUPefvk7FAMFrZD/ygaI3Z0fzu5OnPfMjThc5hYKk7CwC
-	Wpu8S/psWMbHquuogpyTUg6siN7At0A=
+	bh=3XlyEXv1TeOhpT7TJTq/JP6q/LbG0XV7hKmXjm2rX/w=;
+	b=iUviIQsyEi+aJQuzwXsXhOH9JARC3iWcFaoZPat01A10Y0FBtU2RGwP64q3xpedEbFuDMo
+	kzedVoHCcxQ5nChOt93LVQ8+EJRZdOxmSH59u7TBER/xe1YGILcKhdIdPTMfE+2pzBaeyR
+	KjhEEqeoDRJ/V5kfCGeojOusgQi0/x0=
 From: Thorsten Blum <thorsten.blum@linux.dev>
 To: Miklos Szeredi <miklos@szeredi.hu>,
 	Amir Goldstein <amir73il@gmail.com>
 Cc: Thorsten Blum <thorsten.blum@linux.dev>,
 	linux-unionfs@vger.kernel.org,
 	linux-kernel@vger.kernel.org
-Subject: [PATCH v2] ovl: Replace offsetof() with struct_size() in ovl_cache_entry_new()
-Date: Sat,  3 May 2025 13:52:03 +0200
-Message-ID: <20250503115202.342582-2-thorsten.blum@linux.dev>
+Subject: [PATCH v2] ovl: Replace offsetof() with struct_size() in ovl_stack_free()
+Date: Sat,  3 May 2025 13:52:44 +0200
+Message-ID: <20250503115244.342674-2-thorsten.blum@linux.dev>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -52,33 +52,34 @@ Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 ---
 Changes in v2:
 - Add missing include
-- Link to v1: https://lore.kernel.org/lkml/20250503091535.280888-2-thorsten.blum@linux.dev/
+- Link to v1: https://lore.kernel.org/lkml/20250503103415.281123-2-thorsten.blum@linux.dev/
 ---
- fs/overlayfs/readdir.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/overlayfs/util.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
-index 881ec5592da5..efe4700c797e 100644
---- a/fs/overlayfs/readdir.c
-+++ b/fs/overlayfs/readdir.c
-@@ -13,6 +13,7 @@
- #include <linux/security.h>
- #include <linux/cred.h>
+diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
+index 0819c739cc2f..e33d2257c642 100644
+--- a/fs/overlayfs/util.c
++++ b/fs/overlayfs/util.c
+@@ -15,6 +15,7 @@
+ #include <linux/uuid.h>
+ #include <linux/namei.h>
  #include <linux/ratelimit.h>
 +#include <linux/overflow.h>
  #include "overlayfs.h"
  
- struct ovl_cache_entry {
-@@ -147,9 +148,8 @@ static struct ovl_cache_entry *ovl_cache_entry_new(struct ovl_readdir_data *rdd,
- 						   u64 ino, unsigned int d_type)
- {
- 	struct ovl_cache_entry *p;
--	size_t size = offsetof(struct ovl_cache_entry, name[len + 1]);
+ /* Get write access to upper mnt - may fail if upper sb was remounted ro */
+@@ -145,9 +146,9 @@ void ovl_stack_free(struct ovl_path *stack, unsigned int n)
  
--	p = kmalloc(size, GFP_KERNEL);
-+	p = kmalloc(struct_size(p, name, len + 1), GFP_KERNEL);
- 	if (!p)
- 		return NULL;
+ struct ovl_entry *ovl_alloc_entry(unsigned int numlower)
+ {
+-	size_t size = offsetof(struct ovl_entry, __lowerstack[numlower]);
+-	struct ovl_entry *oe = kzalloc(size, GFP_KERNEL);
++	struct ovl_entry *oe;
+ 
++	oe = kzalloc(struct_size(oe, __lowerstack, numlower), GFP_KERNEL);
+ 	if (oe)
+ 		oe->__numlower = numlower;
  
 -- 
 2.49.0
