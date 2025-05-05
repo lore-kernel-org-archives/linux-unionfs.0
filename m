@@ -1,78 +1,78 @@
-Received: from mail-qt1-f177.google.com (mail-qt1-f177.google.com [209.85.160.177])
+Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9E25A2040A8
-	for <linux-unionfs@vger.kernel.org>; Mon,  5 May 2025 12:05:53 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.177
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C875D224AF8
+	for <linux-unionfs@vger.kernel.org>; Mon,  5 May 2025 12:06:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.182
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1746446756; cv=none; b=Fd2vm6+dtfI36PF5VZ1dGrSFxzKFw2ofL3y2HVDZ/YiAKZVAkrUMayhYoDT93S2XrNHdW88T6lwOUO3VvK7ogbDhBBV+mlUxAVrUUvQ1vR5SO/FRNESBnvS4u4+l96FY3WCnw1PP5zWIAy4EAqQe38f2nCYXOItauAHXLM/wpcI=
+	t=1746446774; cv=none; b=DvaWU5SQgY8Yqz9u3VBpWkwp0gVbEaasy72qKA4Z0s5MhLz82nvGCEYSwbUSmL+8ZJf5EZYIMdnnRtRfLLDuOxNFe1MUux3k4uRSf59sKcOqozuF6uvFUBwjqS+8C+LzyonjNXyHa5ZIdH5Nwh45in9RM17pHw3x76DPZ5jbjgk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1746446756; c=relaxed/simple;
-	bh=2onu6gsfs4QQaq1W/LZLqhxLgPWY+XNs6PFwdlu07g0=;
+	s=arc-20240116; t=1746446774; c=relaxed/simple;
+	bh=ZaJvxtjr/UbWDuYMsc++2AbU/9RuxaJOqfgbALnPUfo=;
 	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=gn/P/I5rIgT4nrMgvc2hfTly9rXnw+Cp/CYVwGbUjdrLrFnp8Jqo/fpDBIdYfMZDrAbuFDDei3SW6uIM1ea2qwv+2dP74E27Ps4tl0X7+6WrLFEsj2htdCSzg0o+eARuWfwQMZPRIPmkwvMxoQ827BM4XshSAwpZ1W1I8qYRAQc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=iPz2rnmU; arc=none smtp.client-ip=209.85.160.177
+	 To:Cc:Content-Type; b=oJL/h33xn8u6KvktK7pre6eYPau3plPwoScYCZJpvIl1HIZBL0mU0tDii8R7EUzkSOZC/N0F1pJGsEoaAojAsdlBTOzsYZbwrMoSDaz4tbkt/Bb+lSnOJAmVGYjqjMU2dALbetxJ7LWM9b+V/DL4tNZ/kenAZfzcmbM3pnJ+Mbk=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=OkqqroQl; arc=none smtp.client-ip=209.85.160.182
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="iPz2rnmU"
-Received: by mail-qt1-f177.google.com with SMTP id d75a77b69052e-476ab588f32so71580191cf.2
-        for <linux-unionfs@vger.kernel.org>; Mon, 05 May 2025 05:05:53 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="OkqqroQl"
+Received: by mail-qt1-f182.google.com with SMTP id d75a77b69052e-476b4c9faa2so65053991cf.3
+        for <linux-unionfs@vger.kernel.org>; Mon, 05 May 2025 05:06:12 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1746446752; x=1747051552; darn=vger.kernel.org;
+        d=szeredi.hu; s=google; t=1746446771; x=1747051571; darn=vger.kernel.org;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=2onu6gsfs4QQaq1W/LZLqhxLgPWY+XNs6PFwdlu07g0=;
-        b=iPz2rnmUJvFiNUG+ajbZXRDVC24D/hTKdNqYMtnseIGNXA134hfaoDbaUamTZQzscc
-         +GpP7tjPVGdfRsIbmeyrw2uF6gBb2egZ2oUw30wFtrUfs2ERx4wJutnAApQ0W4ofWuFE
-         xSsfRjQM8cV/6hUpzBxT/l5OV/EQUxiB9R+jQ=
+        bh=ZaJvxtjr/UbWDuYMsc++2AbU/9RuxaJOqfgbALnPUfo=;
+        b=OkqqroQl0x/jqrx7vKiSH+a4gYhrssvcXVeHU++Q9KmgH5YrnY9ocxud3BTo9JUZhX
+         7/XIncJ08fZBJni0ImFstaWuEfFim2XwwmbegBkvSEgSaQA4AfaI2FYc6QzXQnF7FqN0
+         TPulG4Ib11i8jhTrWJqSgEuro1Xo0/m+VWHQ4=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1746446752; x=1747051552;
+        d=1e100.net; s=20230601; t=1746446771; x=1747051571;
         h=cc:to:subject:message-id:date:from:in-reply-to:references
          :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=2onu6gsfs4QQaq1W/LZLqhxLgPWY+XNs6PFwdlu07g0=;
-        b=sFafiyL3VAL0RUY9CHL8XB/Xvtz8AbF1i3Caq1Wiw6gcxuW0v6FiUZxe0hg4zT8mLR
-         MTiBPIMxJhP2k0lawL2s5trEJPDJJx/VS6WEKMXSKXbCS13WQbTKI12gTw9QtWvfiteT
-         kKHKRqXfeKYlJswePyXJVRyKfv4fZYSikpmLOCWs9OaPJ3laeWpW7Dew2OJhG5eiByyI
-         WsIYdSrV6lKv0TXgYirxSkbnRUPMNao+2UBDK9Y3r6EfIEERWf+/9t2SC01ty7hVSBUf
-         Glx1LX5COkkYCkWx5bfjINNMlw2ZNfXW+1Rvz042Sbyu1stgZD0/M7Fb82fTKX/38yVO
-         3jhQ==
-X-Forwarded-Encrypted: i=1; AJvYcCXiujo52Lqe3VCaTB5QVc06j0x0SRC8q/fYNlmMMzCiAYKzk1WkE76feegkSkO7c7xjLwRhivXQXjANNkKv@vger.kernel.org
-X-Gm-Message-State: AOJu0YygL+CvFtXUlIkaJq3fZoCw/u8ZSfIZV2jhY2yGSO/OxONWwKwT
-	fz4sVI3TVrXSVdBldrc8jGZjvgfdGu0gJ/eLM22/bPOT9aKr5lHz0lFtddLWqnTiYn2skhqvklu
-	BfMBOl18j9+IVKz/q+SD/evMs/57Qkyj7EMDciPJntd4IVqvU7es=
-X-Gm-Gg: ASbGncuZYKVdh1HmluN5fgd3w3hhG5V1Fy+Apt1O7RZg23txBqxDmPGdjEDscVCXzuJ
-	2ywj1pmWWdOHVTxaXwFBxlLLpHK5ttEp+BzU5Vs2UcZYVBOEVdSs/a08Y8C0RfSabEUmdJhH6d4
-	41dVEu/jTVMHq9Z4DYeKFolhs=
-X-Google-Smtp-Source: AGHT+IEHJPcEs1RPW2aEQi55HmhgTwlyBMgYbKyIMlMDf/ENtqQcDSZCaL6MGqGQYray0QIGAgUsBRrcOhi3EX9G95c=
-X-Received: by 2002:a05:6214:1d06:b0:6e6:6598:84c1 with SMTP id
- 6a1803df08f44-6f528d2695emr139944846d6.42.1746446752343; Mon, 05 May 2025
- 05:05:52 -0700 (PDT)
+        bh=ZaJvxtjr/UbWDuYMsc++2AbU/9RuxaJOqfgbALnPUfo=;
+        b=nMIgrRXK4weBvRJTm9W7jz4BPyXBggUt4xO9s7mgi49tfOnR83wn+jjY1LglD+G4oi
+         0Vq8haLrKOz8DKZ4mdHeAZ0Xoen1Eczx4FPRwv43/BX89b0qYw7Ft/V5zu5YKwV86wP8
+         4Y1sg5huJpuNkncgM7+dwfPUi3ALeNX34ydyvI+VPeb5oyMnLpKqeOgTZ3gRrUzFa6Fd
+         HTDfl+C/WsrxzhE6Iq/ny6pNfDA6SghdIJ7PEcwaGH/KOGH7C46QrYAhUZUszCvsRE1I
+         mZWIqYer8xufTyM8xkTKo5zd0NWUfNcuFZPjYA1cXOAVhZnZ7XsfQW5CUiZVHJEUZCZs
+         9x5g==
+X-Forwarded-Encrypted: i=1; AJvYcCUgrjwPpIT9Xh3WVR8iFItSCv09c6ZqclG1LdVdTegWT2S8LbLeoK/PF5ut8zhT4LiFpNzuQDAqux4DeNEg@vger.kernel.org
+X-Gm-Message-State: AOJu0YxEE6QU0bso9vfRkyUQOAJpXTidYkADPeUCrEPSRzfoTLb6X7Mr
+	Dx5yGlPs0iQqtr6io99r1jGfI9rKzO16EwZ39y1JEOXnbuFql/NcLi2zZCdnEvpp2pIoJnW1M7D
+	uANJ01+7mJgtQyyHEzywnZZz6ywb6JyczFxOSmQ==
+X-Gm-Gg: ASbGncuND0H71QPvnIG+Kj4F+UdPcHaG+ae719A7tOLXBeDhXxdNkjIgtfPRdcFW/qI
+	0dzy9ItXVSva8+4GHreUpCZw5YU1Si7O94I4wWrBFgWd9nWFvysDkXLwQldHVeixy9u6rqgJBYx
+	U/ZbSgUTpEdO/yueOSkK8BmD4=
+X-Google-Smtp-Source: AGHT+IH8SI5HcYSna3MRmrF+Jzo/8BRtzzCRz170ITGYYplPbxtcX03EZBdhlPxtgELJAcnmmEBSdz/pDR9cUgg8qqs=
+X-Received: by 2002:ac8:7f10:0:b0:476:8f9e:44af with SMTP id
+ d75a77b69052e-48dfffb6db9mr101038081cf.29.1746446771515; Mon, 05 May 2025
+ 05:06:11 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250503115244.342674-2-thorsten.blum@linux.dev>
-In-Reply-To: <20250503115244.342674-2-thorsten.blum@linux.dev>
+References: <20250503132537.343082-1-thorsten.blum@linux.dev>
+In-Reply-To: <20250503132537.343082-1-thorsten.blum@linux.dev>
 From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Mon, 5 May 2025 14:05:41 +0200
-X-Gm-Features: ATxdqUEgKEFlHq2pyuRofDEm_ZD8YB3C6gp8XZqeTG-k6l1wVJuECpo1CCKNoEs
-Message-ID: <CAJfpegt_bqvg9LahDodsjNPTjcFV8a=Kfr1hwvjWPjbwjKdAdg@mail.gmail.com>
-Subject: Re: [PATCH v2] ovl: Replace offsetof() with struct_size() in ovl_stack_free()
+Date: Mon, 5 May 2025 14:06:00 +0200
+X-Gm-Features: ATxdqUGxKxrETQJZQnYyYx85TEL6U7n-PHMB2aUuzi2Lu_9JVdkOGXYmRq99yto
+Message-ID: <CAJfpegu9rjyUWy3920CgJagdJ14X9SrrCcs3P7TrQvYkUah9VA@mail.gmail.com>
+Subject: Re: [PATCH] ovl: Annotate struct ovl_entry with __counted_by()
 To: Thorsten Blum <thorsten.blum@linux.dev>
-Cc: Amir Goldstein <amir73il@gmail.com>, linux-unionfs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org
+Cc: Amir Goldstein <amir73il@gmail.com>, Kees Cook <kees@kernel.org>, 
+	"Gustavo A. R. Silva" <gustavoars@kernel.org>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 
-On Sat, 3 May 2025 at 13:53, Thorsten Blum <thorsten.blum@linux.dev> wrote:
+On Sat, 3 May 2025 at 15:26, Thorsten Blum <thorsten.blum@linux.dev> wrote:
 >
-> Compared to offsetof(), struct_size() provides additional compile-time
-> checks for structs with flexible arrays (e.g., __must_be_array()).
->
-> No functional changes intended.
+> Add the __counted_by() compiler attribute to the flexible array member
+> '__lowerstack' to improve access bounds-checking via CONFIG_UBSAN_BOUNDS
+> and CONFIG_FORTIFY_SOURCE.
 >
 > Signed-off-by: Thorsten Blum <thorsten.blum@linux.dev>
 
