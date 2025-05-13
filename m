@@ -1,73 +1,73 @@
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 9916A21B9C2
-	for <linux-unionfs@vger.kernel.org>; Tue, 13 May 2025 09:18:24 +0000 (UTC)
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id A12A921B195
+	for <linux-unionfs@vger.kernel.org>; Tue, 13 May 2025 09:18:28 +0000 (UTC)
 Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747127910; cv=none; b=KwadZPyZfpdnOOhQX+gt1p/PFu3W2GG+r+zpuJFf3n1K90bK1Uzk8GvjbpRhJMbV27zEl1OT/m/iPAD8uR637HJJjAoCBExaYIz1XtragR+Hq/qA39/vo6M5AqKihI0I/v/++pTaZOj2i84Fg6wURgxEbNcKK1pPd+Wuuebb264=
+	t=1747127912; cv=none; b=ZTbMrxm3ggbtYFd2W9Kgd9HV/GhK35FXxUk6qlqgQ1O2x/hrB0x4IHdHg71w3ZaJstcbE0snWsQrNBvvzo2v8WZK0srweiqbBD7/EW5ywA27n4Zb+SjIP2eVKhuLqYug5biV+XouTo4aXKUulsIAij41832xBSB9YOWZQ30gKhI=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747127910; c=relaxed/simple;
-	bh=wSzH0WcqWhiy63ekDcp2P+4tMQ4i2gTZHqE6rCKQ++I=;
+	s=arc-20240116; t=1747127912; c=relaxed/simple;
+	bh=6GRgC9l31t4YtW1WpN15HEtI//c4dan1yl5qtYWAaXk=;
 	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:References:
-	 In-Reply-To:To:Cc; b=gfIfIlho23CodL/BdrsyJTmvoIdRCZhXF7GQVIr1n3Y9vTJrVRBbx9NI1vU7ISjaiD9BBer4TtFMjLhBeU/F2+/4hCoeNr8BNfer2asswgp0G8QWqCGHY0u2TPz1c0qGEWbPI+Je2q+KBq/wH8ZHbLolhpuUTCbJqnOHcbbMntA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=EQ/ER/nW; arc=none smtp.client-ip=170.10.129.124
+	 In-Reply-To:To:Cc; b=t0zo1buUfCRmOq+SO3NaZd1dl7Wz9CLOCoJ6VRCwq52G4DvFKpbu/6yItYR3RU6Ztjp9A5DC/yGCp6y/BEnExwQ7nl+xGTZXCHcU06sjZ6cJb+/98/8FkdefoKkvwmJry6DpJkml2zXwuDD5+t2okS2A2ROZ7Q5GDJEEcEL5z/s=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=JWUtKsiy; arc=none smtp.client-ip=170.10.129.124
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="EQ/ER/nW"
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="JWUtKsiy"
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-	s=mimecast20190719; t=1747127902;
+	s=mimecast20190719; t=1747127907;
 	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
 	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
 	 content-transfer-encoding:content-transfer-encoding:
 	 in-reply-to:in-reply-to:references:references;
-	bh=A7i9r0bj6CyLmaFmxt3qgx2Tj6vgASlaO3PK3g/iy20=;
-	b=EQ/ER/nW/71f2DhsSwW6Kw61pDqYE6R44wEIlynuuQPCNuKgwJzYo8DJmXlXn6C9GWUP3d
-	+HbFQwnrJShjkOvWeXq0Wq199VH9Oa7DWTUn7XWwFtOBRFqdo87UxF2IIx7bABF7tUeoWy
-	KamXo4TpKKZgMb4ENfDmE0anmcQszng=
+	bh=NOc7n03QtvhEu44iPpxkG92PTjRYJg6Nm8X16D2kY0E=;
+	b=JWUtKsiyOCSkp9b7jELLmcblSS9joc79PNpGDMYcXiJspk8K6DlRHwzemymbyyhUouMEBl
+	PR9iTTj4h3XwyWSxkzc/67IXu1/IyPv0K3+cUypYnES0BlmtGmwO3nkdQzDcSvlNj2JmDb
+	wbVXSLymH5ZdBYX3TLU9OMmqCj4kT+Q=
 Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
  [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-645-7enXUzc4NBqtTef9e7zBeg-1; Tue, 13 May 2025 05:18:21 -0400
-X-MC-Unique: 7enXUzc4NBqtTef9e7zBeg-1
-X-Mimecast-MFC-AGG-ID: 7enXUzc4NBqtTef9e7zBeg_1747127899
-Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-43cf446681cso29052125e9.1
-        for <linux-unionfs@vger.kernel.org>; Tue, 13 May 2025 02:18:20 -0700 (PDT)
+ us-mta-15-zHtW7CPfPG2drJiKc8HyvQ-1; Tue, 13 May 2025 05:18:26 -0400
+X-MC-Unique: zHtW7CPfPG2drJiKc8HyvQ-1
+X-Mimecast-MFC-AGG-ID: zHtW7CPfPG2drJiKc8HyvQ_1747127905
+Received: by mail-wm1-f70.google.com with SMTP id 5b1f17b1804b1-43cf172ffe1so37382985e9.3
+        for <linux-unionfs@vger.kernel.org>; Tue, 13 May 2025 02:18:25 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747127899; x=1747732699;
+        d=1e100.net; s=20230601; t=1747127905; x=1747732705;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=A7i9r0bj6CyLmaFmxt3qgx2Tj6vgASlaO3PK3g/iy20=;
-        b=kpwl5he8d0KwbalioDqhEiT/6F4wrvlB4cD01w/gtGyDHgOjD6PIlUi81HR3ljQHUJ
-         fJPzKu3MwwbjLdoLM0DRaILPSj1C0HesjOJOY+1ZrKXIqtZRvRUu7y4il/xhjs6goTMC
-         tpgS97SudtCsEujEBkzMLT2pgkjc6SmVCFvkOnb4ZirMy1QPplm2lnGU0ZJgt+L6xrRz
-         M40gBI15WbrJsLAz9inZvcF1qRnb1I1PyGuJV/fFIRnYlCSOKsPdFFhlkRyPiyZizptm
-         Ff1hkiWcjlfi82jLFBLtBw12Pv53JTPFuf8HetuF7BTZgnuS/omVLCnLip/HbLMTRmm6
-         NZrA==
-X-Forwarded-Encrypted: i=1; AJvYcCVWgZq7NqSr8tZl4T+5h1SUN2vzJiMX8VZG8SRkvGii6dJs+SCRmsuL+7oMhi1NRHdMZdZqe8elwXRZ0VBl@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywk47iNpfV6H7WaOmdH/8uB0QzIMe7YOdkpjiV8L/kTTzm67mTk
-	5bO/WINSxg3G9vQBOubL76tu3LULEpRdEkgXZ4zh9mDE7pKLeI5nEI0pJ7SPelUGJyExy3Q5jQg
-	sAfTNMByBvz3qGp26Y5ZPVfOTguEseuAWulhKIClHyXBQOFQovodBr8gjDFj6lw==
-X-Gm-Gg: ASbGnctBaBF5pCR52m545A1VGfcy1A1ssXa3yyofBfoNs59XoP6vlg2+XAImg1lOmsG
-	Uz5k9gKObNKoxwyKvYuEbpA0lxYNu+mvZuhH8ZlWO3T2PtZZJCBnB3wwfbJwCo32MXwlysI6DB6
-	Xz7NngFwWs2BoUhQ4uOmLXCWz0ZL6FaQeP5E/Y5F0MXQ/fJolCjYVZ1cVpKF2rMRO+SgHTrL1Z4
-	ZLA0KE0zmW7PBOCD9zMMWtPkxWtCgG/dz00K2Umxpz8CA3UPxLEcuf+2qINid6Sa2FQsQDo65r6
-	LIpYgHYkPb1f+bEULn+Oz0bzi2VHFlU6eHEC7Z3cFEIbrZA=
-X-Received: by 2002:a05:600c:b85:b0:43d:fa59:cc8f with SMTP id 5b1f17b1804b1-442d6dde9a5mr123282275e9.33.1747127898795;
-        Tue, 13 May 2025 02:18:18 -0700 (PDT)
-X-Google-Smtp-Source: AGHT+IH48YApAweQLr9FqjcxLWZAARsvWVI15CFcissyg+mEXGTlUmY2j0SDRus7eO6YNuUdP6jeRg==
-X-Received: by 2002:a05:600c:b85:b0:43d:fa59:cc8f with SMTP id 5b1f17b1804b1-442d6dde9a5mr123281625e9.33.1747127898279;
-        Tue, 13 May 2025 02:18:18 -0700 (PDT)
+        bh=NOc7n03QtvhEu44iPpxkG92PTjRYJg6Nm8X16D2kY0E=;
+        b=R8uKxi2qU7xXth0qAwOte4JU/YrqSErpfIslIEbP7eoMnt+j0+r0ZyoPY5JVMFDLUn
+         RwLjO/JSdORU0gjufIhqmcgBbduThqcQYfj7tCZpjlhRQrQzpLDpYiLVa1tUghf5Tlo8
+         QJ8Hr71fz4YXaGhY9nbICIcD1cpxTNHbX1+bqO9uaeZfwjMm5XKejkH9QHrJ9H4qaabz
+         drhmlP20x7rWWTYzylNrJoYxxlGYndupiI2kOyHIeQUIn06KGwVX2B0SqM/ntFYsNnBl
+         F/hViMX97qwbf8acZvtWXAp6E8JbuT/CkiauVpmLAeZEsP8l0Mos23oPYhgx1V5fUF+s
+         /kdA==
+X-Forwarded-Encrypted: i=1; AJvYcCX/p4VDTKYgYSPQturwzaShLJm1ynhx/EbUgQwOi4RxyiW8JBphjtH9m4jqRUcT4Gr5SpHtha4Gza1W5wvY@vger.kernel.org
+X-Gm-Message-State: AOJu0YyYw9lfPh3rw4fliAB9i1PnJ2t08D7NIOmbJlF7pTPlrzbRTHim
+	EUOzCcJgYyMVZI/uf5jWnU/TVmxpWwVvNPMBtUlFd8oz1/F1EYCwwEAMXhjMPXdoaOIB+MNzPlA
+	DEmoLomi5r5IRJ1HD5IFGISbEfuelNjYQdkZ4eZIwMxJBH3zXI0ejTF/TUITJXA==
+X-Gm-Gg: ASbGnctXmc8Z+MSlqGLGTrIhtQ/vXhAhWdnC24EWWPUcDtN8KhWJoaDmJBvJYTwBwAF
+	WXBhpWkPO22kF6LLqZ2LtCDcsIpD4fV54aYf7HeWHOtI6Fd3SO3N/ggsCN+143if6dfM1Mfmoy1
+	QSJEDP8jv23zC5gVZiXC02LZWdPS+y/aHsNtcugBSX2g42+obFQRDlVgNeWyqdML3KPFoE5L1nE
+	oBBpLT1/dhb5C4Of2FQ9scQWywAKcJfxRkRTfnxkQhJEUKcHmQ5ElZ66dk8uVCEHfd4F3RLH6AQ
+	xLJtRF+uFSQUWZEJeQF2KDO8q1Hj/MsTG5NSS66X239v/FM=
+X-Received: by 2002:a05:600c:4454:b0:440:6a5f:c308 with SMTP id 5b1f17b1804b1-442d6d44bd0mr165939115e9.13.1747127904760;
+        Tue, 13 May 2025 02:18:24 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHqiuvTxW0gPiYb5Yeg/YAPZpfvdIILgd83canCiQJJ8hwGNTheApWOvMPsjwENNn935UE4Tg==
+X-Received: by 2002:a05:600c:4454:b0:440:6a5f:c308 with SMTP id 5b1f17b1804b1-442d6d44bd0mr165938225e9.13.1747127904260;
+        Tue, 13 May 2025 02:18:24 -0700 (PDT)
 Received: from [127.0.0.2] (109-92-26-237.static.isp.telekom.rs. [109.92.26.237])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-442ed666dc7sm12345655e9.18.2025.05.13.02.18.15
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-442ed666dc7sm12345655e9.18.2025.05.13.02.18.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 May 2025 02:18:17 -0700 (PDT)
+        Tue, 13 May 2025 02:18:23 -0700 (PDT)
 From: Andrey Albershteyn <aalbersh@redhat.com>
 X-Google-Original-From: Andrey Albershteyn <aalbersh@kernel.org>
-Date: Tue, 13 May 2025 11:17:56 +0200
-Subject: [PATCH v5 3/7] selinux: implement inode_file_[g|s]etattr hooks
+Date: Tue, 13 May 2025 11:17:58 +0200
+Subject: [PATCH v5 5/7] fs: make vfs_fileattr_[get|set] return -EOPNOSUPP
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
@@ -76,7 +76,7 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20250513-xattrat-syscall-v5-3-22bb9c6c767f@kernel.org>
+Message-Id: <20250513-xattrat-syscall-v5-5-22bb9c6c767f@kernel.org>
 References: <20250513-xattrat-syscall-v5-0-22bb9c6c767f@kernel.org>
 In-Reply-To: <20250513-xattrat-syscall-v5-0-22bb9c6c767f@kernel.org>
 To: Richard Henderson <richard.henderson@linaro.org>, 
@@ -123,57 +123,121 @@ Cc: linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
  linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
  Andrey Albershteyn <aalbersh@kernel.org>
 X-Mailer: b4 0.14.2
-X-Developer-Signature: v=1; a=openpgp-sha256; l=1670; i=aalbersh@kernel.org;
- h=from:subject:message-id; bh=wSzH0WcqWhiy63ekDcp2P+4tMQ4i2gTZHqE6rCKQ++I=;
- b=owJ4nJvAy8zAJea2/JXEGuOHHIyn1ZIYMpT5vOcHL6x//4Yt+9EFwZyLxr/7Tz9ZpP5u3tO4V
- q6ORSUh1y53lLIwiHExyIopsqyT1pqaVCSVf8SgRh5mDisTyBAGLk4BmEiwPiND+6YnluEhu/Qc
- Cx5cnc3R+vvvJvuQL0V6fGyyUclCHH6VjAwT/JZona0OZVzwJvX/wlkFTstmX7ezC/yqzlmc01k
- tfZMVAGD5RU0=
+X-Developer-Signature: v=1; a=openpgp-sha256; l=3525; i=aalbersh@kernel.org;
+ h=from:subject:message-id; bh=6GRgC9l31t4YtW1WpN15HEtI//c4dan1yl5qtYWAaXk=;
+ b=owJ4nJvAy8zAJea2/JXEGuOHHIyn1ZIYMpT5vHeeSvx1XJ17VoznhbT1nNa68Vxah3ftytP4y
+ xmmWH2hyqOjlIVBjItBVkyRZZ201tSkIqn8IwY18jBzWJlAhjBwcQrARCziGBkWnup90+qj/jDX
+ J/7rpgO7jA7djNJlqpoYIWnU9Pi2iqsMwz9DVwXDCxlLHq56tKRp98R9l+e5LHztcHHptMMCT7x
+ vsnLxAQC/ekWI
 X-Developer-Key: i=aalbersh@kernel.org; a=openpgp;
  fpr=AE1B2A9562721A6FC4307C1F46A7EA18AC33E108
 
-These hooks are called on inode extended attribute retrieval/change.
+Future patches will add new syscalls which use these functions. As
+this interface won't be used for ioctls only the EOPNOSUPP is more
+appropriate return code.
 
-Cc: selinux@vger.kernel.org
-Cc: Paul Moore <paul@paul-moore.com>
+This patch coverts return code from ENOIOCTLCMD to EOPNOSUPP for
+vfs_fileattr_get and vfs_fileattr_set. To save old behavior
+translate EOPNOSUPP back for current users - overlayfs, encryptfs
+and fs/ioctl.c.
 
 Signed-off-by: Andrey Albershteyn <aalbersh@kernel.org>
 ---
- security/selinux/hooks.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ fs/ecryptfs/inode.c  |  8 +++++++-
+ fs/file_attr.c       | 12 ++++++++++--
+ fs/overlayfs/inode.c |  2 +-
+ 3 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index e7a7dcab81db6a8735877eeb911975e06a9de688..9c6e264b090f9038d6848546760860bfe74b7341 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -3366,6 +3366,18 @@ static int selinux_inode_removexattr(struct mnt_idmap *idmap,
- 	return -EACCES;
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 51a5c54eb74026d8b2deec6e0608f3d2b3e9c092..6bf08ff4d7f71c5223b90f4cde57e380b68260fd 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -1124,7 +1124,13 @@ static int ecryptfs_removexattr(struct dentry *dentry, struct inode *inode,
+ 
+ static int ecryptfs_fileattr_get(struct dentry *dentry, struct fileattr *fa)
+ {
+-	return vfs_fileattr_get(ecryptfs_dentry_to_lower(dentry), fa);
++	int rc;
++
++	rc = vfs_fileattr_get(ecryptfs_dentry_to_lower(dentry), fa);
++	if (rc == -EOPNOTSUPP)
++		rc = -ENOIOCTLCMD;
++
++	return rc;
  }
  
-+static int selinux_inode_file_setattr(struct dentry *dentry,
-+				      struct fileattr *fa)
-+{
-+	return dentry_has_perm(current_cred(), dentry, FILE__SETATTR);
-+}
-+
-+static int selinux_inode_file_getattr(struct dentry *dentry,
-+				      struct fileattr *fa)
-+{
-+	return dentry_has_perm(current_cred(), dentry, FILE__GETATTR);
-+}
-+
- static int selinux_path_notify(const struct path *path, u64 mask,
- 						unsigned int obj_type)
- {
-@@ -7272,6 +7284,8 @@ static struct security_hook_list selinux_hooks[] __ro_after_init = {
- 	LSM_HOOK_INIT(inode_getxattr, selinux_inode_getxattr),
- 	LSM_HOOK_INIT(inode_listxattr, selinux_inode_listxattr),
- 	LSM_HOOK_INIT(inode_removexattr, selinux_inode_removexattr),
-+	LSM_HOOK_INIT(inode_file_getattr, selinux_inode_file_getattr),
-+	LSM_HOOK_INIT(inode_file_setattr, selinux_inode_file_setattr),
- 	LSM_HOOK_INIT(inode_set_acl, selinux_inode_set_acl),
- 	LSM_HOOK_INIT(inode_get_acl, selinux_inode_get_acl),
- 	LSM_HOOK_INIT(inode_remove_acl, selinux_inode_remove_acl),
+ static int ecryptfs_fileattr_set(struct mnt_idmap *idmap,
+diff --git a/fs/file_attr.c b/fs/file_attr.c
+index d9eab553dc250f84075ac74c1c7d8d6fd6588374..d696f440fa4ffcba8985cc4bfe22a1c0e612ac7c 100644
+--- a/fs/file_attr.c
++++ b/fs/file_attr.c
+@@ -79,7 +79,7 @@ int vfs_fileattr_get(struct dentry *dentry, struct fileattr *fa)
+ 	int error;
+ 
+ 	if (!inode->i_op->fileattr_get)
+-		return -ENOIOCTLCMD;
++		return -EOPNOTSUPP;
+ 
+ 	error = security_inode_file_getattr(dentry, fa);
+ 	if (error)
+@@ -239,7 +239,7 @@ int vfs_fileattr_set(struct mnt_idmap *idmap, struct dentry *dentry,
+ 	int err;
+ 
+ 	if (!inode->i_op->fileattr_set)
+-		return -ENOIOCTLCMD;
++		return -EOPNOTSUPP;
+ 
+ 	if (!inode_owner_or_capable(idmap, inode))
+ 		return -EPERM;
+@@ -281,6 +281,8 @@ int ioctl_getflags(struct file *file, unsigned int __user *argp)
+ 	int err;
+ 
+ 	err = vfs_fileattr_get(file->f_path.dentry, &fa);
++	if (err == -EOPNOTSUPP)
++		err = -ENOIOCTLCMD;
+ 	if (!err)
+ 		err = put_user(fa.flags, argp);
+ 	return err;
+@@ -302,6 +304,8 @@ int ioctl_setflags(struct file *file, unsigned int __user *argp)
+ 			fileattr_fill_flags(&fa, flags);
+ 			err = vfs_fileattr_set(idmap, dentry, &fa);
+ 			mnt_drop_write_file(file);
++			if (err == -EOPNOTSUPP)
++				err = -ENOIOCTLCMD;
+ 		}
+ 	}
+ 	return err;
+@@ -314,6 +318,8 @@ int ioctl_fsgetxattr(struct file *file, void __user *argp)
+ 	int err;
+ 
+ 	err = vfs_fileattr_get(file->f_path.dentry, &fa);
++	if (err == -EOPNOTSUPP)
++		err = -ENOIOCTLCMD;
+ 	if (!err)
+ 		err = copy_fsxattr_to_user(&fa, argp);
+ 
+@@ -334,6 +340,8 @@ int ioctl_fssetxattr(struct file *file, void __user *argp)
+ 		if (!err) {
+ 			err = vfs_fileattr_set(idmap, dentry, &fa);
+ 			mnt_drop_write_file(file);
++			if (err == -EOPNOTSUPP)
++				err = -ENOIOCTLCMD;
+ 		}
+ 	}
+ 	return err;
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 6f0e15f86c21fc576fe1679e977597bd9f817e36..096d44712bb1130fd3e9673a61747b0fbf877d25 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -721,7 +721,7 @@ int ovl_real_fileattr_get(const struct path *realpath, struct fileattr *fa)
+ 		return err;
+ 
+ 	err = vfs_fileattr_get(realpath->dentry, fa);
+-	if (err == -ENOIOCTLCMD)
++	if (err == -EOPNOTSUPP)
+ 		err = -ENOTTY;
+ 	return err;
+ }
 
 -- 
 2.47.2
