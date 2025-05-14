@@ -1,165 +1,225 @@
-Received: from mail-ej1-f41.google.com (mail-ej1-f41.google.com [209.85.218.41])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from OS0P286CU011.outbound.protection.outlook.com (mail-japanwestazon11010065.outbound.protection.outlook.com [52.101.228.65])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 09B56286439;
-	Tue, 13 May 2025 12:53:30 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.41
-ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747140812; cv=none; b=JA/bh2tnZzifgi4QuE05ypqtmmkoeEs0nIp1CtXE47INtiM/1BSQjqaighg9PEDAjuJXXXhbp/8NGqZfw8e9xQJ1OuLiqx4euPCR93OJmtbIsN0M5DfSY5JqOMr1fyFrprGIWWPC9x/dysugTsTNrYd5LiTkr+EyhYC2NfTa/94=
-ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747140812; c=relaxed/simple;
-	bh=i14x7HK+wQByi+0aKyFzNcOhWac1lJuJhW5b260ntpI=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=mumr5vF6jDD3Fy3Rp/6CfoRgl8B1iSwKyXB3b4kQ4TGyamHE7o9ukTPd6qj9zchptF83NIx2hW4cJkRbXwSp5MyPLshngHBysqThad7VV49/jdhnRpDrLvuKuTFzBPKAI4W7pfxFLdocyu9EtPuRb8JAgeFsMPEARRuXbLDT73Q=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=QuXrkrSi; arc=none smtp.client-ip=209.85.218.41
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C23DD17736;
+	Wed, 14 May 2025 00:26:01 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=fail smtp.client-ip=52.101.228.65
+ARC-Seal:i=2; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
+	t=1747182366; cv=fail; b=DY/iDsREIVkV2b1Xp57xJk/RJtNxr7M/cqI/Z4rMpyVCgp8/9hPJyJbS5Y148HIez/WH+EibJuHFFQaLaRWinSu6Z8ycwG9OCI2fOgt6LK9bNM4reybAdDCwYGJ1N4ejBBarHfN19acBBwPcOW9hs+W9/Gblvk2gN+RCe+FAsEc=
+ARC-Message-Signature:i=2; a=rsa-sha256; d=subspace.kernel.org;
+	s=arc-20240116; t=1747182366; c=relaxed/simple;
+	bh=RsgiBWA48pl4tBZVRSStDN5aFhrx7N5+kVEZFi1Hrdw=;
+	h=From:To:CC:Subject:Date:Message-ID:Content-Type:MIME-Version; b=aEM94F9hr/TQVkbqIsAgzE5WHfvWoLn9XK1MfrLzEYjqYXqUtR4U6tUCa0JOFKm1zfV8LzZjNRrd8weAvYtWgL/Lxjg5S8vY4W0aTpJvc9BYjG6l/OhDBtYZCy9Tvt8E2lZSVGRnyh2vKv/W82cFaKCxE3WnVsjjpXDQJ0/8Akg=
+ARC-Authentication-Results:i=2; smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com; spf=pass smtp.mailfrom=nec.com; dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b=S8/Nx56T; arc=fail smtp.client-ip=52.101.228.65
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=reject dis=none) header.from=nec.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=nec.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="QuXrkrSi"
-Received: by mail-ej1-f41.google.com with SMTP id a640c23a62f3a-ad4ce8cc3c1so183121966b.2;
-        Tue, 13 May 2025 05:53:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1747140809; x=1747745609; darn=vger.kernel.org;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=lhUsGW6Aej7UtwPk8Fo3WswAje2EzwjwJ+3T+imRPIA=;
-        b=QuXrkrSiJBAik3QaKSWS+HCnTCmriB79zSscrWJTudsfLcCdBYURl4R+C+rz0p88Al
-         y1SnyopHLPBjZk1IZI7/9BLTpiykvL+HgLYdzr9hW/O2soRNiM2KXYEIfWHGpShVSoj0
-         hw3YQ/aVmyF2kh4neaYC7LbQpW39YzqrKe9Ln0rVlJB9CFYktdTKyIhc9mpw3Cx5Y5JF
-         zGN25CitcI+6r1dMoYHxd6kbeIaV3OaHJpq5dw94jhIkTgMBFWc+hTcU4e/mzNNSF6Yp
-         r0EbycRgLUdjAJ3gwHmT1mxvsAVqBAWtIBd25OXgxuXr3uuhemqkzQxKkHAye9efZZAw
-         yrRg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747140809; x=1747745609;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=lhUsGW6Aej7UtwPk8Fo3WswAje2EzwjwJ+3T+imRPIA=;
-        b=fk9n/0i5SHHGShj1aABH9XbUXj8VLnJ6hWskizdQ/Hv6+pvfLvJTiAtR1GIDAQ0SU6
-         8o4Mu5c6+8JMuvppWZ/HILHeh8Fi7sjXgQ7mtLefyMWCVypLu8pvfU53wqhqPjwDbOma
-         hleWf5TAmZRrQqBLkiyCQ55vNn2PbFRSsoGrJ54TSB6rZ8BTBKbSKK4+5Nb5J+bEWab8
-         M7OHcv9BLEuqfTusGLttzncsFS5ssQwKgGFwhENRWMw45jDIuM1DhjNEJwaJHTYvdE5+
-         y1RybgBw8vEx1JG+aWmuFvE1xLQquR8OP0EYaJv9cO/gUgjcGDbhuLQzfb+KaXSJH91H
-         5bNQ==
-X-Forwarded-Encrypted: i=1; AJvYcCU7e6L9mnrLNooJ9RkHA6ife5t/gy9K25ybm6oqmgzLNPkxadcewB0Q84T3DvnsigKiwCvvyS4yIKQoxEU=@vger.kernel.org, AJvYcCU9mDM6H9T3sz3E554QZWqDrD5rf+qFMM7kw/ORDLPE+1evJYV9Pch539b5BhjgWzhA8Jy6rwz+R6CI@vger.kernel.org, AJvYcCUEDNWuYp/pxKalJXWWlVtzByDM8VpnkS4nFb5mjjSfTeVLfQIX6qLtO5R9zN/s7S37La6/MorrS3q9@vger.kernel.org, AJvYcCUUZcobAqzsK5VY+uEFVQQ7lUNMBHopNXhlDJUGmb2AivwVbTSxD1OeL1xLNunH7ymPjEuu0gYJ2ZCGOg==@vger.kernel.org, AJvYcCUq7yF5v72wOEhtTjmn+EUeTFbucWySHFISH6NMd5TehZIX5U/By+MmziKdpkfvNK8vanOQBR29mw==@vger.kernel.org, AJvYcCV08vqx9uqctDhNUHBlHsayXIP4bb5yrb4i472bEYgGkxrAbDcT7zCNXAP1kRKLnTvDUg2XhoVGvyVdcxiS@vger.kernel.org, AJvYcCVvUrHY5foOtwZ1BUZACwOSKJ/P5st1t1eXjV+nx2AMCQ/CT3gKhezSIA8fIoLY87ZL7SVOo+zzgzfrqpuGPw==@vger.kernel.org, AJvYcCWEgChK2604Cs0evHzTc6/05n6f/a+19uhiKBP7owG6oHz97yX4vgPeE1S/w13z27OUAPL+Nt/7wQ==@vger.kernel.org, AJvYcCWHFfMeaC5nxbtGT3oBViXoNCHuYxNxkHqUt6pxx2+xd7yfpxE1DzkRQo75SiEmpk1ID6I10Bt1ESbleg==@vger.kernel.org, AJvYcCWRekuiSXiiT/D559N5rQC8RIZ4ZgBFwsKO4WnCc0DSCBNpvVqrfN4NXBhQtr+sqRTESPb8NqquRB1pTw==@vger.kernel.org, AJvYcCX9zzBVchTPcWHRSkQgdLCbGa+qVaiP0Mz7gHPPRHIHoDz0fJ6ndyhSSBeI2EWwZRshzGlDTDsXF6ZNTd2vqIkdoKj/voAJ@vger.kernel.org, AJvYcCXL7+hGHVOMpQe9QxfWCmGTiLQF0ZvcyJc9HOrdCBWz3QltWhqE9S/uAzXi9u6lljMNL+yll1VOtWdiWzX+@vger.kernel.org, AJvYcCXMru4J2JwBr6AKU3hllsAf4fbuzRBxQN6HErSvZ7COW/hsvRTLry+q1FYYbFfLXHf3LotstNJ9ttlMA+EJCw==@vger.kernel.org, AJvYcCXMvsnBVLqpvPL68tOrZ8aD2pfaVy11gtH4/pkm6bZ5RLMhO+bL0nauXc1DBHaLDC1D/15JN8GlCUn6eg==@vger.kernel.org, AJvYcCXjfzn+oRwGRlQV1zQ1I4Hg/3+qNIjbrLmHuLga+e7y/rzGDP/4avrZJPfrqotEuOTUASZKQZO1rm4=@vger.kernel.org
-X-Gm-Message-State: AOJu0YyBy+xrGuTOo/BHoy2MF1yeFX5Fb7UUdoWy5+Go7SmeXOVhBDFr
-	+0jN+kq9uAGcJy+E6qzHrCzySZ+i3idSxVlzKpH5Lo0DddIHgHKs/t9dRLnYVfTEYI0OzHIFgLx
-	QE1o3gxc9o/qjMMxOZ6lJ5W3W8GI=
-X-Gm-Gg: ASbGncvgC5MxgfdU96tnDtzsnHzv0XYRKofolm7sto42gMHQcx5U/N/qLDD+WLUeLu6
-	JgaUFVTokmO1GuItT5jjFNEHv9BP4uCa+UbnlRqn+ZsBrPYWLpm3Cqre2dToPqB/FkWXhMHqEe3
-	P2TE4pHJXXqHODET9kcDOnwwvoPzJYuoQ3
-X-Google-Smtp-Source: AGHT+IE/b0BCD4zsWzgMefEsXbY+DbhCAD/XOG3dRDcg9jP4PpucFQp1j7NsiRF8Za5+3lLoqjezqR5fGVfm35+9pG4=
-X-Received: by 2002:a17:907:7617:b0:ad2:23fb:5a03 with SMTP id
- a640c23a62f3a-ad223fb7c87mr1075619066b.7.1747140808774; Tue, 13 May 2025
- 05:53:28 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=nec.com header.i=@nec.com header.b="S8/Nx56T"
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector10001; d=microsoft.com; cv=none;
+ b=sz62bdH5KIGioPWHtJ3FNEpwOdLiaFpHWUhqUDMk8pgaCvLWmceJbHoB44wYWi/rzV1A+/qcVQNfo8nMxIwcApdJqWm81a7a7r66B6MGikpfz5o7ZoHtt8diFjJNOyD+KbE6os43kktZl9Be2ZyrwWam8cCq8H/CE9nESLqCn1WHQgH00RYB29xDBGOaqTghWRvpSJsBG86f5ZjoLtlohM3fElElKBfcLCY9Ob5fJ9+Qep+KL5yVxQq/R3WkR8JLIWmAycz2m/HQ5cGwpITaROw++ImwIA5/89ASFaVaWs0o2bygY3/WZBKkGO7D9J1DycD8pbhTsIds2MaeDiyznA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector10001;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=Z4AK32+IdM1XDz/cpCFbnxySdzECHCqowRhRT6t4H9Q=;
+ b=iXOanSIeu5oedPQoAssR0o4FdNfEF9h1HvGSivahBpldVQV5rNYewwyvjux6UDgVXNhPMKt5zs699ZS3yU4HTjVkWScrqOQAF1sivOfAgnYX7b95l9HYsNOKr7q4x4YkwchQd3c4vd9VEkaMkKQjwcBIHqKzca8wo3JSD5B0orNDJnbHXa0TZ+c5MChmMAYZbYgnhLyQ9SjV5oGe+D64bKdFmYP3p3nrNDv6zI69m3hI576sZH7Y6yvzi6kdEG+bniH7XhcGkSFnTnrSpKec6CxfdNlu8RpX2iOXn5AdWv3jsuGCCVQT30R6Zg5fuEoJzdSugv11QZSbT6nbfKLvoA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nec.com; dmarc=pass action=none header.from=nec.com; dkim=pass
+ header.d=nec.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nec.com; s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=Z4AK32+IdM1XDz/cpCFbnxySdzECHCqowRhRT6t4H9Q=;
+ b=S8/Nx56TOt9kldWhtRqRObIUEfSxXUhkLG/LlHiJy0QdlRrzTqv6EbsrhmFJuA4TA8sBiCS/h/KDj43lmh1AA2fieZatkAurmVQ7IEr3kdr8PGTpqFyZe/kFe/Z4/nTtVpHlhRrk9JvIGNTDljKLwkxFoIHnrNCLjExMtoxIxEwjXyN6vb/foUWwTPgVJHbQvBZ6YqKZjCbwSkOgqTJWSyBCL1D8dTI6niO8N+h2SqTi8Zjk3Da5y8mEEneXXs0925teEmlR6e0KWYf0L2dmHhAK2QG5Vu8Lc4Xtnb6j1NTQGy4vDl1/ShZsPJpwtan8S+GUl5fJ1om61psx+2j4YA==
+Received: from OS3PR01MB9659.jpnprd01.prod.outlook.com (2603:1096:604:1e9::7)
+ by OSZPR01MB9503.jpnprd01.prod.outlook.com (2603:1096:604:1d4::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.8722.30; Wed, 14 May
+ 2025 00:25:58 +0000
+Received: from OS3PR01MB9659.jpnprd01.prod.outlook.com
+ ([fe80::9458:e2d1:f571:4676]) by OS3PR01MB9659.jpnprd01.prod.outlook.com
+ ([fe80::9458:e2d1:f571:4676%7]) with mapi id 15.20.8722.027; Wed, 14 May 2025
+ 00:25:58 +0000
+From: =?iso-2022-jp?B?S09ORE8gS0FaVU1BKBskQjZhRiMhIU9CPz8bKEIp?=
+	<kazuma-kondo@nec.com>
+To: "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "brauner@kernel.org"
+	<brauner@kernel.org>, "jack@suse.cz" <jack@suse.cz>
+CC: "mike@mbaynton.com" <mike@mbaynton.com>, "miklos@szeredi.hu"
+	<miklos@szeredi.hu>, "amir73il@gmail.com" <amir73il@gmail.com>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	"linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	=?iso-2022-jp?B?S09ORE8gS0FaVU1BKBskQjZhRiMhIU9CPz8bKEIp?=
+	<kazuma-kondo@nec.com>
+Subject: [PATCH] fs: allow clone_private_mount() for a path on real rootfs
+Thread-Topic: [PATCH] fs: allow clone_private_mount() for a path on real
+ rootfs
+Thread-Index: AQHbxGbDT+OhO7ZF6EeAP0BuuYit0w==
+Date: Wed, 14 May 2025 00:25:58 +0000
+Message-ID: <20250514002650.118278-1-kazuma-kondo@nec.com>
+Accept-Language: ja-JP, en-US
+Content-Language: en-US
+X-MS-Has-Attach:
+X-MS-TNEF-Correlator:
+x-mailer: git-send-email 2.49.0
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nec.com;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: OS3PR01MB9659:EE_|OSZPR01MB9503:EE_
+x-ms-office365-filtering-correlation-id: 2d2155c4-6914-44b7-c73f-08dd927de642
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;ARA:13230040|1800799024|376014|366016|38070700018;
+x-microsoft-antispam-message-info:
+ =?iso-2022-jp?B?M1JxdlZFWmVMYkwzaldqT1VOdHFaUXNyWnArZWxvejFYNU9YZXdOWFBS?=
+ =?iso-2022-jp?B?ekZzMzd6Y1ZpVTYraDZxTldEazY0MEg5TVpwSzNERUJDOTdhQXVKMk8z?=
+ =?iso-2022-jp?B?anhWcDNtdlNPeXM3bjIzTERjLytBUTRBUnB1aGk0YVNpUzJKTmhncWRj?=
+ =?iso-2022-jp?B?TFRvOHE5dkgzZS9BNWViV3pUT3RaNXhJdkVvaFMxMEF2Y3hkNGVtTTJl?=
+ =?iso-2022-jp?B?ZVdnQzc1WEYydnRDU1Jjd2EwTzJtS2NhQVZ6UHhCZ0J6RWI3aGNYYWo4?=
+ =?iso-2022-jp?B?dDQxdi81NXorTHNBd0NtbmFnVzlXSWdwTDBZVitqUmxoMDh4a1NVMktl?=
+ =?iso-2022-jp?B?UnNGRjMrSkhkNXlkRmM0VXZmTkY4VlRBcXpLaEE3eVUvWU0zV0xuK2dD?=
+ =?iso-2022-jp?B?WmtVSEJ1WXJoazNKQXJway96VmlCSE4wcllqVi9oRzFtT3p6bzhFeFN2?=
+ =?iso-2022-jp?B?Mzh1Ky9IM0ovYWxJdEs5NldOVnk5Y0h4dHhCcUN0dlRCTjM2dFY0ZmNC?=
+ =?iso-2022-jp?B?S3Z5Z2xlZldFb2RRNnd5OTh5THROYzY0YkpEb1hxbWM1eWlPekpzeTBB?=
+ =?iso-2022-jp?B?OWthNHg1UUlSRm0rWHdQdnNhUWVha2JPU1Mvd1BLV3h0ZnEwa1VHN2hz?=
+ =?iso-2022-jp?B?aUppMmpXaUtta1hUNnRuSnN4cTNvVW5CR1RTN0RrZzliNjQrRHQ3SFQw?=
+ =?iso-2022-jp?B?a1Job3VpaGVEUVpoZVJOZC8zcVlnOENXeUQwWWZ1emkvVmxhblNwSUkz?=
+ =?iso-2022-jp?B?aFU5cmRqSW14V003dlZpYzVQUmRncGVxSjlDaVdWYjJNUzdrRXplNGtH?=
+ =?iso-2022-jp?B?emVXNFBEV3RkNEZPMXZ1RlV3V3JvbjV2bXlKMUtjbHVTZVVDdzJMVzEy?=
+ =?iso-2022-jp?B?SUxpZk9BY2hMNjZCT2Q2TE9vcWxzcWdQdjZFODFNM2JsallxVXNTU21q?=
+ =?iso-2022-jp?B?Wm80NmdCNnlEVU9TOThNNFZQdGxJNE82OWpMQlR3S3ZCT3R1RHR5SlRk?=
+ =?iso-2022-jp?B?VXVibmtuaGxnUkFrU2ZJYXJ5bGJaQWczbVVRenBMeGdhbGN2dm5Sb1Zi?=
+ =?iso-2022-jp?B?Unl1QSs4YXZEN0NzS0xSakdRdFlqZStqRUcvVmt4UENKck13Z2pNaTJi?=
+ =?iso-2022-jp?B?YVM1dXpqcFkxWFQrZzZ0ZXVlTXMwbHYyU2JJajBhRGFwYzVvaDh6T3JI?=
+ =?iso-2022-jp?B?WkhSaW9jSU9ZYk56R0lWM293RWMwVHJRUWpKNURieEN1MW1ueHVjdlls?=
+ =?iso-2022-jp?B?MjQ0bTlBR0VvekZGemUwZFhQbVBRK3IvVkhaOVdQRTBPMmJHRjJSRTBT?=
+ =?iso-2022-jp?B?alpraDA2T0hFdmtLcG00V2Q3ekFLWWU1d3JXMTVuRTc1Vyt5ZWM3YktO?=
+ =?iso-2022-jp?B?Z2RybGQvbHVOQ1gyRzJWVllTWmsweU5GQ1JYaU1MZXp5WVdQYkdIL3py?=
+ =?iso-2022-jp?B?TWduQkxwRDhIUnl4cy9UZk92SEgzVlZWeUM3WUpIbTBhZzUwMXplK21L?=
+ =?iso-2022-jp?B?eStnclVMRjJWVlM4akgvT3d1N2VmSDljQjFLUHQ1d2gwZmtzS2MySHpp?=
+ =?iso-2022-jp?B?bk45MUFkOFlLZ1hPOHpPeXRyaVJTR1JHdkxFRGUrR1lWMkZEL2hqVXV5?=
+ =?iso-2022-jp?B?WHBEUkpuYTlEcWJBRndSUVRvWHBGdDlxa0Z2UkpTd056L2Y3THZjSGJD?=
+ =?iso-2022-jp?B?MzNtUkFzSkRPM3VSb0RjUGlyTlhkMHplazNBZkpUQ1hHK21MQjdNRTlQ?=
+ =?iso-2022-jp?B?aEtxVnNrY2Y3SStRdDFWZXlGaXg5aGsyb3FINmEwWkMwVmJEWlFLUmxq?=
+ =?iso-2022-jp?B?bkxYcVoxZG1zSDZ3YzQ2eGxpVHczNm5QSktkRTNIQWNBazdHTXdSU0hy?=
+ =?iso-2022-jp?B?MXZhSnZjalpPcjZRYjViN3RYaG9mWlZDb0diaGtNdGVPanVlR29jVFAy?=
+ =?iso-2022-jp?B?QkxwNSt5VlhOTXpSaUFOSHpZWnhDV0k4enJPTnBvYkVFVW1NK0lMWUlM?=
+ =?iso-2022-jp?B?d3BoOElTd1JyVmsrL0tmOUpHQ09Ndnd6TEdGeUlSd2ZxZXkzakF4R001?=
+ =?iso-2022-jp?B?Q05vUUJuc0NnOENMOFhINU1rQlA3akc1SExRampaVGVnUHo5UDBtckQ3?=
+ =?iso-2022-jp?B?VXlMTjAydzY2UVhKclB6dTdCdlltMkpuUU9lYndYMlRsR0xGZ3VLOWNh?=
+ =?iso-2022-jp?B?OXZRPQ==?=
+x-forefront-antispam-report:
+ CIP:255.255.255.255;CTRY:;LANG:ja;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:OS3PR01MB9659.jpnprd01.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230040)(1800799024)(376014)(366016)(38070700018);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0:
+ =?iso-2022-jp?B?NFZxQ1NxUjF2V0U0TWozbmpuZzBTcEtVNWRnUnlwN1BIVWdaR04wU24v?=
+ =?iso-2022-jp?B?bVUvZ0MzeG4xNE1GZE9TU3UwNmdhdGZLdDBqZXVFVHRWYUVwSWRNZUds?=
+ =?iso-2022-jp?B?MjVJenZodkFuaHl1MGRaTGRkUVpFelFWSUpMTXc5b29nMHpDTHcxUlNQ?=
+ =?iso-2022-jp?B?MlVRNkgyZXNxY2NNNytHcEIyREFDRVo4VzY4VGlJRWt0YzRuUW5VemNM?=
+ =?iso-2022-jp?B?OTlwUU1tZ21PM0xrQm90czZpUk1XS0k2TS82OWxjS3ovV0lKYlFUUDh6?=
+ =?iso-2022-jp?B?VzdneXYvbUFpYTl4a00vNVpiUlpJTTUzUHpsYzVTVXNrcno5cE5zbHBS?=
+ =?iso-2022-jp?B?dWJad1dwYkN1a002dGZobk5pb0d4OTNhOXpZbGE4SkV4MkxPM0dFM084?=
+ =?iso-2022-jp?B?MlVmQitiMk4zRXNPaHNUQWdnMjYrTnFHY2pHSVF1cnltc3V5REl0ZTg4?=
+ =?iso-2022-jp?B?NVBidGRkaDZMWjBiVVFwUEJ1cUM2M0hiLzRmN0RJRnZxa1pEM0x1azVI?=
+ =?iso-2022-jp?B?N082ekhIbjFOT0xNeExxZFBwcVFSaFBrNWJqdGF6Y2tiNFBtVTJkWnR6?=
+ =?iso-2022-jp?B?ektOZUtwRHdmM3VuTVhOUFV0bzZWT1d0b1lwMGpmaFJxVkV2VVlDUUVq?=
+ =?iso-2022-jp?B?bkdHMU45VVY4clkwWnBNQzQ4aSs0bTdUOVh4WDVDOWQ0Qkc5YUUxaVJs?=
+ =?iso-2022-jp?B?bHhNSXpCbTltNzdPZjRMNVhFZjIvZGVmSDhEVzlSczlhOVRKZHNFWlNE?=
+ =?iso-2022-jp?B?dWlhMFhnMm4zU0wzYUh6Y2dkQWI2cnQ1SXpyanJoVXdZMG1uakk1ZFZI?=
+ =?iso-2022-jp?B?eFJRNlN3N0pYdDlCdnRDQk0wMXgvRGNWSllSYWhyVlo1c294eVlPbWNS?=
+ =?iso-2022-jp?B?VTZkSEZ6TmR6Z05PZkY1SWpyN2o2NnFadnlLS1VrdVJid2JIY0wzcTBl?=
+ =?iso-2022-jp?B?U3dsQkxKeDNyQjhGZVV0Z3lDYzZ3R01ZT2VOWFlYSURxSnUxaGM3RTli?=
+ =?iso-2022-jp?B?dUtvYlJNdmR0cXlhdEMvOWdZcFVFeDc5NktrRnVTRnhMeFgvUFFsaGpk?=
+ =?iso-2022-jp?B?SzRmcUtPenVaeFRMODNTU1Y0Z1M2Vy9CdXdKLzlxUjNXem81K05QWHQ2?=
+ =?iso-2022-jp?B?R2lHMTFiWGhuWnIyeW5NMkdjd05YT2hwMWRTbm1sOVM1a3cyRjNkMVU4?=
+ =?iso-2022-jp?B?MUppbHJhUFBnNS84RFIzTVI2eFVSOTQ5ajF4Tzc5ZzlMSFFPMzAvdGR1?=
+ =?iso-2022-jp?B?RTkvMytsMElqY0tKYWtwOU50ZVlYYi9sNGl3WWErOHBNZHUxT3ZFZXNw?=
+ =?iso-2022-jp?B?TXIrNXlOSEtRS2JoeDEyK1BaTE5hdXJSd1RNWnpsOWhiYm5kMDZvTnRv?=
+ =?iso-2022-jp?B?azloTktzQTRzMGhnaTRRUHA2YmcvbmhjcmprVTdCT056QTVPU0djYS90?=
+ =?iso-2022-jp?B?VGw0UVZDSVBZUkp2RFg0T0hBeGdnTytzZ0tLTjNiZ21DSE43cHZFL2hZ?=
+ =?iso-2022-jp?B?UGxYVGxxb1RxZlE2cXhueE1EZ3puZkl0aG9KQVJrcmRMWGtkZ05XZW9Q?=
+ =?iso-2022-jp?B?Q0tvL1lGNmd1aEVqTThjT3ExRmJRMU5WbGVzK1c3MHpSL2owTXRaZTFy?=
+ =?iso-2022-jp?B?VGQrOUJKQWoyNVlJVU9JbmU3Ymx4UXVVOHI3RldtU2NsTHBlL0p0QTFS?=
+ =?iso-2022-jp?B?MnNaM2ZPRGRZaER6ZkNWZVNHY2t4bjBiSGQ4bldqY3lzQlNVSGwzaHRh?=
+ =?iso-2022-jp?B?Y1RNaWNHSGRWVW5YNlU0MVNsY1RlaHFXS0hVN1c0L21scEZ5bmxja1F4?=
+ =?iso-2022-jp?B?ZXFUVkx3ZTczT3NKczRoLzcvZ2E5SStoWlRUSUlVb0FTQzA4a0xiajBK?=
+ =?iso-2022-jp?B?c2VmdjdyeHphNlF3T0Z4TmhtNlVDNTJrNk9lTnZFUnEwdGdLeERYbzV4?=
+ =?iso-2022-jp?B?WHhYaHQwU1FULzhCc1l2STZWVnRkNHduUi90RXBxRUI1bWcyaGVWMFda?=
+ =?iso-2022-jp?B?SW9UTHJ2MW5QWHgxNk1lMitzOERIUk96Ri9uUEtvWGpkNStRWEh1SEhs?=
+ =?iso-2022-jp?B?NDQ1UmlicC81bk5kR0hqMllFeGRsenc5U0hLRHBpS20yTjVVVVRBdDFY?=
+ =?iso-2022-jp?B?MTlUNzI3aHVVSXJqU2FFRGMwQ1JVVmR1VGhDZ2FneEJrMlNKRU9EVHI1?=
+ =?iso-2022-jp?B?a0xhOEMvVTQ0UGhVR1V3UHNSVmdrUzJiaG13cWtTbGExemExTWh5NmUx?=
+ =?iso-2022-jp?B?ZWIvdk8rYTIrdTlOSHJ3RlBOS01oU0RjcnQ0N2thMXZLRkowVWQ4TE1H?=
+ =?iso-2022-jp?B?NzNZdllhdVpaS1BUQWJudFBTdDBoTnY3blE9PQ==?=
+Content-Type: text/plain; charset="iso-2022-jp"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250513-xattrat-syscall-v5-0-22bb9c6c767f@kernel.org> <399fdabb-74d3-4dd6-9eee-7884a986dab1@app.fastmail.com>
-In-Reply-To: <399fdabb-74d3-4dd6-9eee-7884a986dab1@app.fastmail.com>
-From: Amir Goldstein <amir73il@gmail.com>
-Date: Tue, 13 May 2025 14:53:17 +0200
-X-Gm-Features: AX0GCFu24ZFGPch6zxlVZkmp4exgi2YQWGGbqSjGo76MZv2IKCv94Wv0HRsT2OA
-Message-ID: <CAOQ4uxgOAxg7N1OUJfb1KMp7oWOfN=KV9Lzz6ZrX0=XRGOQrEQ@mail.gmail.com>
-Subject: Re: [PATCH v5 0/7] fs: introduce file_getattr and file_setattr syscalls
-To: Arnd Bergmann <arnd@arndb.de>, Christian Brauner <brauner@kernel.org>
-Cc: Andrey Albershteyn <aalbersh@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
-	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
-	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
-	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
-	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
-	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
-	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
-	Naveen N Rao <naveen@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
-	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
-	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
-	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
-	"David S . Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
-	Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, 
-	Borislav Petkov <bp@alien8.de>, Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, 
-	"H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
-	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
-	=?UTF-8?B?TWlja2HDq2wgU2FsYcO8bg==?= <mic@digikod.net>, 
-	=?UTF-8?Q?G=C3=BCnther_Noack?= <gnoack@google.com>, 
-	=?UTF-8?Q?Pali_Roh=C3=A1r?= <pali@kernel.org>, 
-	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>, 
-	"Serge E. Hallyn" <serge@hallyn.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
-	Ondrej Mosnacek <omosnace@redhat.com>, Tyler Hicks <code@tyhicks.com>, 
-	Miklos Szeredi <miklos@szeredi.hu>, linux-alpha@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
-	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, 
-	linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, 
-	linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
-	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
-	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, 
-	Linux-Arch <linux-arch@vger.kernel.org>, selinux@vger.kernel.org, 
-	ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	linux-xfs@vger.kernel.org, Andrey Albershteyn <aalbersh@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+X-OriginatorOrg: nec.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: OS3PR01MB9659.jpnprd01.prod.outlook.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 2d2155c4-6914-44b7-c73f-08dd927de642
+X-MS-Exchange-CrossTenant-originalarrivaltime: 14 May 2025 00:25:58.8035
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: e67df547-9d0d-4f4d-9161-51c6ed1f7d11
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: OS0OGCc9D8BncUXuaX0WZACtkMhlvA/PxkRkuu0WyPqtghE8ooaW0AY1XVA/HcmxeHPHDPyQGTV/+mjiTbK2uA==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: OSZPR01MB9503
 
-On Tue, May 13, 2025 at 11:53=E2=80=AFAM Arnd Bergmann <arnd@arndb.de> wrot=
-e:
->
-> On Tue, May 13, 2025, at 11:17, Andrey Albershteyn wrote:
->
-> >
-> >       long syscall(SYS_file_getattr, int dirfd, const char *pathname,
-> >               struct fsxattr *fsx, size_t size, unsigned int at_flags);
-> >       long syscall(SYS_file_setattr, int dirfd, const char *pathname,
-> >               struct fsxattr *fsx, size_t size, unsigned int at_flags);
->
-> I don't think we can have both the "struct fsxattr" from the uapi
-> headers, and a variable size as an additional argument. I would
-> still prefer not having the extensible structure at all and just
-> use fsxattr, but if you want to make it extensible in this way,
-> it should use a different structure (name). Otherwise adding
-> fields after fsx_pad[] would break the ioctl interface.
->
+Mounting overlayfs with a directory on real rootfs (initramfs)
+as upperdir has failed with following message since commit [1].
 
-Are you are suggesting that we need to define this variant?:
+  [    4.080134] overlayfs: failed to clone upperpath
 
---- a/include/uapi/linux/fs.h
-+++ b/include/uapi/linux/fs.h
-@@ -148,6 +148,17 @@ struct fsxattr {
-        unsigned char   fsx_pad[8];
- };
+Overlayfs mount uses clone_private_mount() to create internal mount
+for the underlying layers.
 
-+/*
-+ * Variable size structure for file_[sg]et_attr().
-+ */
-+struct fsx_fileattr {
-+       __u32           fsx_xflags;     /* xflags field value (get/set) */
-+       __u32           fsx_extsize;    /* extsize field value (get/set)*/
-+       __u32           fsx_nextents;   /* nextents field value (get)   */
-+       __u32           fsx_projid;     /* project identifier (get/set) */
-+       __u32           fsx_cowextsize; /* CoW extsize field value (get/set=
-)*/
-+};
+The commit [1] made clone_private_mount() reject real rootfs because
+it does not have a parent mount and is in the initial mount namespace,
+that is not an anonymous mount namespace.
+
+This issue can be fixed by relaxing the permission check
+of clone_private_mount(), similar to [2].
+
+[1] commit db04662e2f4f ("fs: allow detached mounts in clone_private_mount(=
+)")
+[2] commit 46f5ab762d04 ("fs: relax mount_setattr() permission checks")
+
+Fixes: db04662e2f4f ("fs: allow detached mounts in clone_private_mount()")
+Signed-off-by: Kazuma Kondo <kazuma-kondo@nec.com>
+---
+ fs/namespace.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
+
+diff --git a/fs/namespace.c b/fs/namespace.c
+index 1b466c54a357..277dbf18e160 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -2482,17 +2482,13 @@ struct vfsmount *clone_private_mount(const struct p=
+ath *path)
+ 	if (IS_MNT_UNBINDABLE(old_mnt))
+ 		return ERR_PTR(-EINVAL);
+=20
+-	if (mnt_has_parent(old_mnt)) {
++	if (!is_mounted(&old_mnt->mnt))
++		return ERR_PTR(-EINVAL);
 +
-
-> I also find the bit confusing where the argument contains both
-> "ignored but assumed zero" flags, and "required to be zero"
-> flags depending on whether it's in the fsx_pad[] field or
-> after it. This would be fine if it was better documented.
->
-
-I think that is an oversight.
-The syscall should have required that fsx_pad is zero,
-same as patch 6/7 requires that unknown xflags are zero.
-
-If we change to:
-       error =3D copy_struct_from_user(&fsx, sizeof(struct
-fsx_fileattr), ufsx, usize);
-
-It will take care of requiring zero fsx_pad even if user calls the syscall =
-with
-sizeof(struct fsxattr).
-
-Thanks,
-Amir.
++	if (mnt_has_parent(old_mnt) || !is_anon_ns(old_mnt->mnt_ns)) {
+ 		if (!check_mnt(old_mnt))
+ 			return ERR_PTR(-EINVAL);
+ 	} else {
+-		if (!is_mounted(&old_mnt->mnt))
+-			return ERR_PTR(-EINVAL);
+-
+-		/* Make sure this isn't something purely kernel internal. */
+-		if (!is_anon_ns(old_mnt->mnt_ns))
+-			return ERR_PTR(-EINVAL);
+-
+ 		/* Make sure we don't create mount namespace loops. */
+ 		if (!check_for_nsfs_mounts(old_mnt))
+ 			return ERR_PTR(-EINVAL);
+--=20
+2.49.0
