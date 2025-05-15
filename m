@@ -1,143 +1,188 @@
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [62.89.141.173])
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4D76527FD7F;
-	Wed, 14 May 2025 19:02:55 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=62.89.141.173
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id C17B628368D
+	for <linux-unionfs@vger.kernel.org>; Thu, 15 May 2025 07:50:52 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=170.10.129.124
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747249379; cv=none; b=QG9/vReSHHY8518EbRp4AKNKuNlxTcUz9w+b+v5pDpPBvY54qjFaX0kwq56nzV53/0PQDIxRWvGc9FaVqZ7ABpXpVSrfbioV+5ZtyqcpRNT6hnkclFo1bgHGmwDqwjDubztFHV9pMuwpFI70Mq6juZZ2EDuvzqpKp4vkS5s7H3s=
+	t=1747295455; cv=none; b=VT974EoVRBbm7T/6NjFLRnF3KsX712cUiYalpaYFwYdGkBQcxQxw1rGc+tFUDbXDwErcKbtCeKyhCelmMqaXJ2kBBelR34miTcvcy/B5iA24LwdBNfDbRSpTgAfQet63O87JH/f7758+bQCboPWg41yOP2RC5Y+7nz6ArhcQC+0=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747249379; c=relaxed/simple;
-	bh=e1kFLsWsjOgJNn0ezdU4lHTQcKMPos7678Em5zA6uZM=;
+	s=arc-20240116; t=1747295455; c=relaxed/simple;
+	bh=SI+pTvA0hGOAcmdfuFDmY5RUnGs6yiJiGIIQYLSqKL0=;
 	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=bFD4Kcgeiru6ruQUkH3YkGJdURrOdKLJqJ6IpBH3Ye3Ac932M4aLEeF0+JWnYWUdV4PqZt6d0hvL2uH2jHS/tBLJ1elSSh/kuT2dIhgzoxSr/LtGADEkzelNeKgPbtRgGCsN12wbW+mAM3/YE74EpW5IISwpF3DycwAo9r8pRBo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk; spf=none smtp.mailfrom=ftp.linux.org.uk; dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b=jPoHdPPb; arc=none smtp.client-ip=62.89.141.173
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=zeniv.linux.org.uk
-Authentication-Results: smtp.subspace.kernel.org; spf=none smtp.mailfrom=ftp.linux.org.uk
+	 Content-Type:Content-Disposition:In-Reply-To; b=hihBnTyb1M0VC+7NnKRM5aznCDY5fi3Z+yVzwOsjIwhrsQLI2hN/K48x4omNsb2DOk1mdWiHgr3V1SVM8Ovy5r0JNXtfRxsq31s2bPUaGnHuY6EzgM/Dp/p7Mc86hTOqiZWkTeqCLRGklZI3LvTSDK4LnUSQJZiEDSShkBs33iI=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com; spf=pass smtp.mailfrom=redhat.com; dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b=DldQMFxA; arc=none smtp.client-ip=170.10.129.124
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=redhat.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=redhat.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=linux.org.uk header.i=@linux.org.uk header.b="jPoHdPPb"
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-	d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:
-	Content-Transfer-Encoding:Content-Type:MIME-Version:References:Message-ID:
-	Subject:Cc:To:From:Date:Reply-To:Content-ID:Content-Description;
-	bh=EyvoC+BoMEsog5EnsZn8ty0g3sydlFdjmKsZ32Oi8qA=; b=jPoHdPPb17iVxQDAHmtYTav7SL
-	3FIUTzpMnR+8YNwwfMlKzvDvPqYbrVcOe8tSg7P70o90fSUSIjTmjXxeou0KuBvXIB0qZN6YA9102
-	tNio0liHEWdI7FHlKvIZXCcDgeIyTJr5Tm41WMZXqmgw+mNj5O+7lH/JHZ74RVrVpWOldnz6DyH8H
-	Aq65Hf9a/b3eoRU8LfP0GjL5lwRdvujKUPTrXqxECOERz6nr+fLbYUxCNvueVBvByCnn9FKdKY0Yr
-	PcKUZXCbiBTCc0CNrpZmxJSVg8UjhFeaVXsfrhqYSrBnuJYNEvBO5zOjs5PVCoUsCW7yY93nDxFic
-	yPr1L6Mw==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.98.2 #2 (Red Hat Linux))
-	id 1uFHNU-00000009eB1-43Nw;
-	Wed, 14 May 2025 19:02:53 +0000
-Date: Wed, 14 May 2025 20:02:52 +0100
-From: Al Viro <viro@zeniv.linux.org.uk>
-To: KONDO =?utf-8?B?S0FaVU1BKOi/keiXpOOAgOWSjOecnyk=?= <kazuma-kondo@nec.com>
-Cc: "brauner@kernel.org" <brauner@kernel.org>,
-	"jack@suse.cz" <jack@suse.cz>,
-	"mike@mbaynton.com" <mike@mbaynton.com>,
-	"miklos@szeredi.hu" <miklos@szeredi.hu>,
-	"amir73il@gmail.com" <amir73il@gmail.com>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	"linux-unionfs@vger.kernel.org" <linux-unionfs@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] fs: allow clone_private_mount() for a path on real rootfs
-Message-ID: <20250514190252.GQ2023217@ZenIV>
-References: <20250514002650.118278-1-kazuma-kondo@nec.com>
- <20250514024342.GL2023217@ZenIV>
- <9138a96b-3df0-455a-9059-287a98356c4c@nec.com>
+	dkim=pass (1024-bit key) header.d=redhat.com header.i=@redhat.com header.b="DldQMFxA"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+	s=mimecast20190719; t=1747295451;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 in-reply-to:in-reply-to:references:references;
+	bh=dIYznBp1zKy3fmdyZZzgeQrbk2pRjSVKo51V0MhaZng=;
+	b=DldQMFxAavsg8G6TXoVVzdQa+2B794I131t+XgoYaxCKxDAQYCHlulxQDOnwSl4Kdp6FWG
+	Hm336+SU9Dbp4kS8vMUh/okrik/tFSZb8Jw+n+l2Jks824r6QI69jpgaPRq3AQhm9NkDpK
+	PQgNhUxK4Q95QzZDFFqJDlBvxSMNwyc=
+Received: from mail-ej1-f69.google.com (mail-ej1-f69.google.com
+ [209.85.218.69]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
+ us-mta-127-3vNuRPPKPO-Rr_v_v8sxgw-1; Thu, 15 May 2025 03:50:49 -0400
+X-MC-Unique: 3vNuRPPKPO-Rr_v_v8sxgw-1
+X-Mimecast-MFC-AGG-ID: 3vNuRPPKPO-Rr_v_v8sxgw_1747295448
+Received: by mail-ej1-f69.google.com with SMTP id a640c23a62f3a-acbbb000796so50263266b.2
+        for <linux-unionfs@vger.kernel.org>; Thu, 15 May 2025 00:50:49 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747295448; x=1747900248;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=dIYznBp1zKy3fmdyZZzgeQrbk2pRjSVKo51V0MhaZng=;
+        b=KskdsQ64S1OoHAhYAgrYwUprjszEmDxK3JVCXvQC0wca0tBuyJCrK14k4Zs6Ik2SMK
+         jV9w0+NZF5rJl92c4svnUuPFsxpHK7TgjNcw3HNlPRJ7IhIZSCqh+i4RQjax7NI34bF7
+         TPEdSXR1NW79iibacYEMXhPbAfrvdMZxt74LWgzXTGeoehqFa5Jrod5yecgWpfgt3fcY
+         N1yl/o332CIj12mnHOrGAMNogJUhkOIH5h5JhLH08W16pTEy9CO55YjSExXjo8jc0MVQ
+         E63/3IBZg5StejMPEtZvDS2Rv8LpFwbXKEKoBOSOz14K8iIslfcGM/krUURBzSVWUdFc
+         8zrw==
+X-Forwarded-Encrypted: i=1; AJvYcCW1PvTIUiZ//zwn9RFN1080IwqtxmqiuxjOT0wu32F6tJXu886hjLBlHKWOuTvJbRpzSSenDxp5ooPe4myR@vger.kernel.org
+X-Gm-Message-State: AOJu0Yyi4aMzeKhn3A23im4XJPCM+GFfPvBUgMn+iwFNmUI71gxrs0Vh
+	bPzlLvX93s51PCTnl/MV0SF0MOeDRDEdSeCWT0UrcuKvEyDmDJgwfyDCXV6krxhENhao9cikAOm
+	D6p6iL/moJ82cK5zhlO64dLJ7duqNcZ10waQfvJ9zgmqqvfqVathB8CQYta71cA==
+X-Gm-Gg: ASbGnctnurIOAKQoQYhwqEmDAzJ7KI+CTaKylaBSNsiD4lFPffdV1PLz55MUjfDM/4i
+	VtdM51wr4s5BUQlfQ4sHDc9DiE4dY74cYQ8Ry31ihSxqBX/xK65EtG9Kw4sPuNa5AuIAH70uo6b
+	qSNj9j4mqAQbT/UkeiDAIfMtK120j0HDdAeHk2ENcEGEviyu4Z7c/tlWvTpBXT7dLTKrUK9pIdm
+	f/DntxiMfFA+JIlUV+5CFAQhwdTC2C/6ZbyQd5lbwqHb3vKUqCCnxgLbdejb4MPLOABQJHLAXEU
+	l+nXjXMuWzel1tW28NmesIr6mxz3hbRO2pCwrLHN
+X-Received: by 2002:a17:907:6e8f:b0:ad4:f6d2:431b with SMTP id a640c23a62f3a-ad51601e1edmr114981366b.44.1747295448255;
+        Thu, 15 May 2025 00:50:48 -0700 (PDT)
+X-Google-Smtp-Source: AGHT+IHWr4fWklZ0eQ07tSCt/uJX+ZC5LZkXrxcbvUbmkmojzea9n6Ige7V0auLmvx+BHm+IbBk77A==
+X-Received: by 2002:a17:907:6e8f:b0:ad4:f6d2:431b with SMTP id a640c23a62f3a-ad51601e1edmr114976966b.44.1747295447688;
+        Thu, 15 May 2025 00:50:47 -0700 (PDT)
+Received: from thinky (109-92-26-237.static.isp.telekom.rs. [109.92.26.237])
+        by smtp.gmail.com with ESMTPSA id a640c23a62f3a-ad224531152sm984378866b.38.2025.05.15.00.50.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 15 May 2025 00:50:47 -0700 (PDT)
+Date: Thu, 15 May 2025 09:50:44 +0200
+From: Andrey Albershteyn <aalbersh@redhat.com>
+To: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Richard Henderson <richard.henderson@linaro.org>, 
+	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, 
+	Helge Deller <deller@gmx.de>, Madhavan Srinivasan <maddy@linux.ibm.com>, 
+	Michael Ellerman <mpe@ellerman.id.au>, Nicholas Piggin <npiggin@gmail.com>, 
+	Christophe Leroy <christophe.leroy@csgroup.eu>, Naveen N Rao <naveen@kernel.org>, 
+	Heiko Carstens <hca@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, 
+	Alexander Gordeev <agordeev@linux.ibm.com>, Christian Borntraeger <borntraeger@linux.ibm.com>, 
+	Sven Schnelle <svens@linux.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, 
+	Rich Felker <dalias@libc.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, 
+	"David S. Miller" <davem@davemloft.net>, Andreas Larsson <andreas@gaisler.com>, 
+	Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, 
+	Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>, 
+	=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
+	Arnd Bergmann <arnd@arndb.de>, Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>, 
+	Paul Moore <paul@paul-moore.com>, James Morris <jmorris@namei.org>, 
+	"Serge E. Hallyn" <serge@hallyn.com>, Stephen Smalley <stephen.smalley.work@gmail.com>, 
+	Ondrej Mosnacek <omosnace@redhat.com>, Tyler Hicks <code@tyhicks.com>, 
+	Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, linux-alpha@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, 
+	selinux@vger.kernel.org, ecryptfs@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	linux-xfs@vger.kernel.org, Andrey Albershteyn <aalbersh@kernel.org>
+Subject: Re: [PATCH v5 2/7] lsm: introduce new hooks for setting/getting
+ inode fsxattr
+Message-ID: <5jtjzgfgyjkw5oiofp2npp5zwib4rdp24u6lwmfctvmxo742vz@5wi6latt74lb>
+References: <20250512-xattrat-syscall-v5-0-4cd6821e8ff7@kernel.org>
+ <20250512-xattrat-syscall-v5-2-4cd6821e8ff7@kernel.org>
+ <f700845d-f332-4336-a441-08f98cd7f075@schaufler-ca.com>
+ <kgl5h2iruqnhmad65sonlvneu6mdj6jl3sd4aoc3us3lvrgviy@imce27t4nk2e>
+ <cb737e58-51ab-4918-b5ba-2c18bf1ad601@schaufler-ca.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9138a96b-3df0-455a-9059-287a98356c4c@nec.com>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+In-Reply-To: <cb737e58-51ab-4918-b5ba-2c18bf1ad601@schaufler-ca.com>
 
-On Wed, May 14, 2025 at 08:37:54AM +0000, KONDO KAZUMA(近藤 和真) wrote:
-> On 2025/05/14 11:43, Al Viro wrote:
-> > On Wed, May 14, 2025 at 12:25:58AM +0000, KONDO KAZUMA(近藤 和真) wrote:
-> > 
-> >> @@ -2482,17 +2482,13 @@ struct vfsmount *clone_private_mount(const struct path *path)
-> >>  	if (IS_MNT_UNBINDABLE(old_mnt))
-> >>  		return ERR_PTR(-EINVAL);
-> >>  
-> >> -	if (mnt_has_parent(old_mnt)) {
-> >> +	if (!is_mounted(&old_mnt->mnt))
-> >> +		return ERR_PTR(-EINVAL);
-> >> +
-> >> +	if (mnt_has_parent(old_mnt) || !is_anon_ns(old_mnt->mnt_ns)) {
-> >>  		if (!check_mnt(old_mnt))
-> >>  			return ERR_PTR(-EINVAL);
-> >>  	} else {
-> >> -		if (!is_mounted(&old_mnt->mnt))
-> >> -			return ERR_PTR(-EINVAL);
-> >> -
-> >> -		/* Make sure this isn't something purely kernel internal. */
-> >> -		if (!is_anon_ns(old_mnt->mnt_ns))
-> >> -			return ERR_PTR(-EINVAL);
-> >> -
-> >>  		/* Make sure we don't create mount namespace loops. */
-> >>  		if (!check_for_nsfs_mounts(old_mnt))
-> >>  			return ERR_PTR(-EINVAL);
-> > 
-> > Not the right way to do that.  What we want is
-> > 
-> > 	/* ours are always fine */
-> > 	if (!check_mnt(old_mnt)) {
-> > 		/* they'd better be mounted _somewhere */
-> > 		if (!is_mounted(old_mnt))
-> > 			return -EINVAL;
-> > 		/* no other real namespaces; only anon */
-> > 		if (!is_anon_ns(old_mnt->mnt_ns))
-> > 			return -EINVAL;
-> > 		/* ... and root of that anon */
-> > 		if (mnt_has_parent(old_mnt))
-> > 			return -EINVAL;
-> > 		/* Make sure we don't create mount namespace loops. */
-> > 		if (!check_for_nsfs_mounts(old_mnt))
-> > 			return ERR_PTR(-EINVAL);
-> > 	}
+On 2025-05-14 11:21:46, Casey Schaufler wrote:
+> On 5/14/2025 4:02 AM, Andrey Albershteyn wrote:
+> > On 2025-05-12 08:43:32, Casey Schaufler wrote:
+> >> On 5/12/2025 6:25 AM, Andrey Albershteyn wrote:
+> >>> Introduce new hooks for setting and getting filesystem extended
+> >>> attributes on inode (FS_IOC_FSGETXATTR).
+> >>>
+> >>> Cc: selinux@vger.kernel.org
+> >>> Cc: Paul Moore <paul@paul-moore.com>
+> >>>
+> >>> Signed-off-by: Andrey Albershteyn <aalbersh@kernel.org>
+> >>> ---
+> >>>  fs/file_attr.c                | 19 ++++++++++++++++---
+> >>>  include/linux/lsm_hook_defs.h |  2 ++
+> >>>  include/linux/security.h      | 16 ++++++++++++++++
+> >>>  security/security.c           | 30 ++++++++++++++++++++++++++++++
+> >>>  4 files changed, 64 insertions(+), 3 deletions(-)
+> >>>
+> >>> diff --git a/fs/file_attr.c b/fs/file_attr.c
+> >>> index 2910b7047721..be62d97cc444 100644
+> >>> --- a/fs/file_attr.c
+> >>> +++ b/fs/file_attr.c
+> >>> @@ -76,10 +76,15 @@ EXPORT_SYMBOL(fileattr_fill_flags);
+> >>>  int vfs_fileattr_get(struct dentry *dentry, struct fileattr *fa)
+> >>>  {
+> >>>  	struct inode *inode = d_inode(dentry);
+> >>> +	int error;
+> >>>  
+> >>>  	if (!inode->i_op->fileattr_get)
+> >>>  		return -ENOIOCTLCMD;
+> >>>  
+> >>> +	error = security_inode_file_getattr(dentry, fa);
+> >>> +	if (error)
+> >>> +		return error;
+> >>> +
+> >> If you're changing VFS behavior to depend on LSMs supporting the new
+> >> hooks I'm concerned about the impact it will have on the LSMs that you
+> >> haven't supplied hooks for. Have you tested these changes with anything
+> >> besides SELinux?
+> > Sorry, this thread is incomplete, I've resent full patchset again.
+> > If you have any further comments please comment in that thread [1]
+> >
+> > I haven't tested with anything except SELinux, but I suppose if
+> > module won't register any hooks, then security_inode_file_*() will
+> > return 0. Reverting SELinux implementation of the hooks doesn't
+> > cause any errors.
+> >
+> > I'm not that familiar with LSMs/selinux and its codebase, if you can
+> > recommend what need to be tested while adding new hooks, I will try
+> > to do that for next revision.
 > 
-> Hello Al Viro,
+> At a minimum the Smack testsuite:
+> 	https://github.com/smack-team/smack-testsuite.git
+> And the audit suite:
+> 	https://github.com/linux-audit/audit-testsuite.git
 > 
-> Thank you for your comment.
-> That code can solve my problem, and it seems to be better!
+> AppArmor has a suite as well, but I'm not sure where is resides.
 
-BTW, see https://lore.kernel.org/all/20250506194849.GT2023217@ZenIV/ for
-discussion about a week ago when that got noticed:
+Well, I thought about something more specific, I know about these
+testsuites
 
-|| In case of clone_private_mount(), though, there's nothing wrong
-|| with "clone me a subtree of absolute root", so it has to be
-|| done other way round - check if it's ours first, then in "not
-|| ours" case check that it's a root of anon namespace.
-||
-|| Failing btrfs mount has ended up with upper layer pathname
-|| pointing to initramfs directory where btrfs would've been
-|| mounted, which had walked into that corner case.  In your
-|| case the problem has already happened by that point, but on
-|| a setup a-la X Terminal it would cause trouble...
+> 
+> My primary concern is that you're making changes that remove existing
+> hook calls and add new hook calls without verifying that the protections
+> provided by the old calls are always also provided by the new ones.
 
-Looks like such setups are less theoretical than I thought.
+I'm only adding new hooks, ioctls weren't calling any hooks.
 
-> So, I will revise my patch and resend it.
+-- 
+- Andrey
 
-Probably worth gathering the comments in one place.  Something like
-	/*
-	 * Check if the source is acceptable; anything mounted in
-	 * our namespace is fine, otherwise it must be the root of
-	 * some anon namespace and we need to make sure no namespace
-	 * loops get created.
-	 */
-	if (!check_mnt(old_mnt)) {
-		if (!is_mounted(&old_mnt->mnt) ||
-		    !is_anon_ns(old_mnt->mnt_ns) ||
-		    mnt_has_parent(old_mnt))
-			return ERR_PTR(-EINVAL);
-		if (!check_for_nsfs_mounts(old_mnt))
-			return ERR_PTR(-EINVAL);
-	}
-might be easier to follow.
