@@ -1,140 +1,187 @@
-Received: from mail-io1-f80.google.com (mail-io1-f80.google.com [209.85.166.80])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from smtp.kernel.org (aws-us-west-2-korg-mail-1.web.codeaurora.org [10.30.226.201])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 8AD3B1A2643
-	for <linux-unionfs@vger.kernel.org>; Sat, 17 May 2025 09:38:37 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.166.80
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 6EDB835957;
+	Mon, 19 May 2025 10:12:38 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=10.30.226.201
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747474719; cv=none; b=LnWcyJSXrutQpOVfnSvPhPF6948KsQuIFGUMoniJeoj5KjYzJp32LvYiEnNaGCmXqp3hdqxOZ8d1eIvQ/6PCjCvCqyeHt6yHgrvHm1WhaLwjfv3KiJbLlWjXBHXVDqKZQveOfbH8rRdISOFbKR8YZGMblqvFr9BzRRtEgJxRIm0=
+	t=1747649558; cv=none; b=HjaupA7uqE9u7r9kVscyw3aO2IHY2vT3k68kHNj8xi1w1JVaTBeHXQ8K28t32XExNnE6Bj9AMcWVeqQglgwGOHZVctOBKZyUdazQtTY0WbwuJ0W91qeFUxWQw9PaRNUabF7VsCt9Ra1oyvsK7Uvdrx2o08LcGb9rB/KxM/vwBLo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747474719; c=relaxed/simple;
-	bh=jxUvZx5EGYlh6he4NGXlph3gNoPH7F+QwosL8sQcDYM=;
-	h=MIME-Version:Date:Message-ID:Subject:From:To:Content-Type; b=INs6mr4V64N6dHkKJqLwb+P97gp1ycI2UWTkktXosRiW/smi386cFDdBBYiM3kiDRBRjkyR0KJcHZFzrQGRA4YllUy8Y6KFZZmAgfoS/j5cNGFcOdMLSjocqGB8LcmIAwPAMiNPda9fb5q6ZtX2LBECUqi8U4lnnXLI9S8fsGMA=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com; arc=none smtp.client-ip=209.85.166.80
-Authentication-Results: smtp.subspace.kernel.org; dmarc=fail (p=none dis=none) header.from=syzkaller.appspotmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=M3KW2WVRGUFZ5GODRSRYTGD7.apphosting.bounces.google.com
-Received: by mail-io1-f80.google.com with SMTP id ca18e2360f4ac-85e4f920dacso240844939f.2
-        for <linux-unionfs@vger.kernel.org>; Sat, 17 May 2025 02:38:37 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1747474716; x=1748079516;
-        h=to:from:subject:message-id:date:mime-version:x-gm-message-state
-         :from:to:cc:subject:date:message-id:reply-to;
-        bh=JBhObzTThOmM6+0reVHQkiRQ8/CGfx6i58EUAAuXwZc=;
-        b=h9Pg4zzRmGwHKSREfibKI7sN7EqJHDF/Sh7472BJxqO7RlzrTLJN8hNTavOPuxcMNW
-         pq9t8NZp2ce2nWLmhNf5DPHMvc/jd7+6Z+ebJwiriBmndAPsAckdSCBYcWUMkDjsrqeG
-         /ZO+wTp2Xbdb49eMFhE5ZKa93FAAZptJwz1hsrUbY2C0vvmR5MGoDms0clNMwjFtATF/
-         Wq2Io1iZiIBlFzZP7Q1RfmPhmaneadq9onWOyUaV0o70yDZkOk/BYjxBxo9KMRdQ0SY9
-         DprIAlHfPjXhKvMvYNKMhMkJsGK0w+WU2RfHoH5IwnptbAlmuFppMTZm6p93UlQbKRjZ
-         oeog==
-X-Forwarded-Encrypted: i=1; AJvYcCXkv9J17QTCFyzh98MfDyKueOKOVuJ3On74WABvKE6HVtEVirTjNfseKM3XqgLTntcEg1qFFs9Y9N+Oux2z@vger.kernel.org
-X-Gm-Message-State: AOJu0Yz4hgIxmHzFvY13Udw8AMCk9pYj3xsq0u37IMSWvtn80/Cjm7a8
-	NodXpA5uW7zOkIc4E7CmMyHSyMMsNa13gDmAcNxtv/4Rfslarb/Z2Fb0ToDwIMapbPCnWftuVzk
-	7hN/h0OIvQLFqslv6nFndbAPR0/+zGJOtBPHbo/fxL+12lavgye1EozKbOmU=
-X-Google-Smtp-Source: AGHT+IGCFW5TV/yCXWGJ7tZe5DaLkBZ4xU4rJSs4O2WyhBhgzKJORA5EU31rk1ljl3WSPXWIeUxLrf4XZHTZOjOsVVuN2mPsjmcG
+	s=arc-20240116; t=1747649558; c=relaxed/simple;
+	bh=36bTK+sJWp8PopkJbOlgwt9Ctf7FBzVSvSeBcSMc0sE=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=b4QI6M4hH612+ZUsQlN8JivqYO8abq96p7lGWrLJpFxuVdVE6tbdD6HxUcwU8yqkxCVu9Yom2GoMPnzHdY0p1+olg8S508PndUiSpOwoCaju+o/gDRjVHf9mCE8j+96MymOcnuxyr+/wUznGVyJxxpRs/ISElAhKECQKNYFG/8c=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b=nscdB7qP; arc=none smtp.client-ip=10.30.226.201
+Authentication-Results: smtp.subspace.kernel.org;
+	dkim=pass (2048-bit key) header.d=kernel.org header.i=@kernel.org header.b="nscdB7qP"
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1230AC4CEE4;
+	Mon, 19 May 2025 10:12:23 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+	s=k20201202; t=1747649557;
+	bh=36bTK+sJWp8PopkJbOlgwt9Ctf7FBzVSvSeBcSMc0sE=;
+	h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+	b=nscdB7qPs2zNee5BR3hmpAZQZCQBcXkdlF7Y6HsbM6UzPRdA3dF1BnWAVcJTPuKIv
+	 O3FYecQBdB24pQIIhnt57UfVPAxV9LgWpjYqCVizpPuKxRzp3e1tGtoxdxzCiww3pg
+	 KrBMVyUKbWn6bQi5E33gX2v1WUEStGoaCf1YS4m8mdcMbsKi6bgaKULPdgFE1O08w4
+	 NTbvxawzw3RhqwBP/2mlOvuL311cjPZ4d3W4fwM+V1XeLsP7wD/Giz/f3N3kZmH93H
+	 7tJGZQKhVupyasLyUF8vXgTKkesU5dptYyyOeOnTmIGAbpjsR1fJD00I4DSLdkVhBQ
+	 vnhqqJsWmqhWw==
+Date: Mon, 19 May 2025 12:12:21 +0200
+From: Christian Brauner <brauner@kernel.org>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, 
+	Andrey Albershteyn <aalbersh@redhat.com>, Richard Henderson <richard.henderson@linaro.org>, 
+	Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, 
+	Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, 
+	Geert Uytterhoeven <geert@linux-m68k.org>, Michal Simek <monstr@monstr.eu>, 
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>, 
+	"James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, 
+	Madhavan Srinivasan <maddy@linux.ibm.com>, Michael Ellerman <mpe@ellerman.id.au>, 
+	Nicholas Piggin <npiggin@gmail.com>, Christophe Leroy <christophe.leroy@csgroup.eu>, 
+	Naveen N Rao <naveen@kernel.org>, Heiko Carstens <hca@linux.ibm.com>, 
+	Vasily Gorbik <gor@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, 
+	Christian Borntraeger <borntraeger@linux.ibm.com>, Sven Schnelle <svens@linux.ibm.com>, 
+	Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, 
+	John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, "David S . Miller" <davem@davemloft.net>, 
+	Andreas Larsson <andreas@gaisler.com>, Andy Lutomirski <luto@kernel.org>, 
+	Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, 
+	Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>, 
+	Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, 
+	Alexander Viro <viro@zeniv.linux.org.uk>, Jan Kara <jack@suse.cz>, 
+	=?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>, =?utf-8?Q?G=C3=BCnther?= Noack <gnoack@google.com>, 
+	Pali =?utf-8?B?Um9ow6Fy?= <pali@kernel.org>, Paul Moore <paul@paul-moore.com>, 
+	James Morris <jmorris@namei.org>, "Serge E. Hallyn" <serge@hallyn.com>, 
+	Stephen Smalley <stephen.smalley.work@gmail.com>, Ondrej Mosnacek <omosnace@redhat.com>, 
+	Tyler Hicks <code@tyhicks.com>, Miklos Szeredi <miklos@szeredi.hu>, linux-alpha@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, 
+	linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, 
+	linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, 
+	sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, 
+	linux-security-module@vger.kernel.org, linux-api@vger.kernel.org, 
+	Linux-Arch <linux-arch@vger.kernel.org>, selinux@vger.kernel.org, ecryptfs@vger.kernel.org, 
+	linux-unionfs@vger.kernel.org, linux-xfs@vger.kernel.org, 
+	Andrey Albershteyn <aalbersh@kernel.org>
+Subject: Re: [PATCH v5 0/7] fs: introduce file_getattr and file_setattr
+ syscalls
+Message-ID: <20250519-reklamieren-unsolidarisch-7cd73317561d@brauner>
+References: <20250513-xattrat-syscall-v5-0-22bb9c6c767f@kernel.org>
+ <399fdabb-74d3-4dd6-9eee-7884a986dab1@app.fastmail.com>
+ <20250515-bedarf-absagen-464773be3e72@brauner>
+ <CAOQ4uxicuEkOas2UR4mqfus9Q2RAeKKYTwbE2XrkcE_zp8oScQ@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-X-Received: by 2002:a05:6602:3607:b0:867:237f:381e with SMTP id
- ca18e2360f4ac-86a2317b1f5mr870688239f.2.1747474716696; Sat, 17 May 2025
- 02:38:36 -0700 (PDT)
-Date: Sat, 17 May 2025 02:38:36 -0700
-X-Google-Appengine-App-Id: s~syzkaller
-X-Google-Appengine-App-Id-Alias: syzkaller
-Message-ID: <6828591c.a00a0220.398d88.0248.GAE@google.com>
-Subject: [syzbot] [overlayfs?] WARNING in ovl_listxattr
-From: syzbot <syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com>
-To: amir73il@gmail.com, linux-kernel@vger.kernel.org, 
-	linux-unionfs@vger.kernel.org, miklos@szeredi.hu, 
-	syzkaller-bugs@googlegroups.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxicuEkOas2UR4mqfus9Q2RAeKKYTwbE2XrkcE_zp8oScQ@mail.gmail.com>
 
-Hello,
+On Thu, May 15, 2025 at 12:33:31PM +0200, Amir Goldstein wrote:
+> On Thu, May 15, 2025 at 11:02 AM Christian Brauner <brauner@kernel.org> wrote:
+> >
+> > On Tue, May 13, 2025 at 11:53:23AM +0200, Arnd Bergmann wrote:
+> > > On Tue, May 13, 2025, at 11:17, Andrey Albershteyn wrote:
+> > >
+> > > >
+> > > >     long syscall(SYS_file_getattr, int dirfd, const char *pathname,
+> > > >             struct fsxattr *fsx, size_t size, unsigned int at_flags);
+> > > >     long syscall(SYS_file_setattr, int dirfd, const char *pathname,
+> > > >             struct fsxattr *fsx, size_t size, unsigned int at_flags);
+> > >
+> > > I don't think we can have both the "struct fsxattr" from the uapi
+> > > headers, and a variable size as an additional argument. I would
+> > > still prefer not having the extensible structure at all and just
+> >
+> > We're not going to add new interfaces that are fixed size unless for the
+> > very basic cases. I don't care if we're doing that somewhere else in the
+> > kernel but we're not doing that for vfs apis.
+> >
+> > > use fsxattr, but if you want to make it extensible in this way,
+> > > it should use a different structure (name). Otherwise adding
+> > > fields after fsx_pad[] would break the ioctl interface.
+> >
+> > Would that really be a problem? Just along the syscall simply add
+> > something like:
+> >
+> > diff --git a/fs/ioctl.c b/fs/ioctl.c
+> > index c91fd2b46a77..d3943805c4be 100644
+> > --- a/fs/ioctl.c
+> > +++ b/fs/ioctl.c
+> > @@ -868,12 +868,6 @@ static int do_vfs_ioctl(struct file *filp, unsigned int fd,
+> >         case FS_IOC_SETFLAGS:
+> >                 return ioctl_setflags(filp, argp);
+> >
+> > -       case FS_IOC_FSGETXATTR:
+> > -               return ioctl_fsgetxattr(filp, argp);
+> > -
+> > -       case FS_IOC_FSSETXATTR:
+> > -               return ioctl_fssetxattr(filp, argp);
+> > -
+> >         case FS_IOC_GETFSUUID:
+> >                 return ioctl_getfsuuid(filp, argp);
+> >
+> > @@ -886,6 +880,20 @@ static int do_vfs_ioctl(struct file *filp, unsigned int fd,
+> >                 break;
+> >         }
+> >
+> > +       switch (_IOC_NR(cmd)) {
+> > +       case _IOC_NR(FS_IOC_FSGETXATTR):
+> > +               if (WARN_ON_ONCE(_IOC_TYPE(cmd) != _IOC_TYPE(FS_IOC_FSGETXATTR)))
+> > +                       return SOMETHING_SOMETHING;
+> > +               /* Only handle original size. */
+> > +               return ioctl_fsgetxattr(filp, argp);
+> > +
+> > +       case _IOC_NR(FFS_IOC_FSSETXATTR):
+> > +               if (WARN_ON_ONCE(_IOC_TYPE(cmd) != _IOC_TYPE(FFS_IOC_FSSETXATTR)))
+> > +                       return SOMETHING_SOMETHING;
+> > +               /* Only handle original size. */
+> > +               return ioctl_fssetxattr(filp, argp);
+> > +       }
+> > +
+> 
+> I think what Arnd means is that we will not be able to change struct
+> sfxattr in uapi
+> going forward, because we are not going to deprecate the ioctls and
+> certainly not
+> the XFS specific ioctl XFS_IOC_FSGETXATTRA.
 
-syzbot found the following issue on:
+Sure, I'm just saying this could very likely be handled without the
+kernel or userspace having to care about the changed structure provided
+we teach the kernel to use the ioctl number, not the command and only
+ever copy v1 of the struct for the ioctls in new kernels. But anyway...
 
-HEAD commit:    e9565e23cd89 Merge tag 'sched_ext-for-6.15-rc6-fixes' of g..
-git tree:       upstream
-console+strace: https://syzkaller.appspot.com/x/log.txt?x=15ee8f68580000
-kernel config:  https://syzkaller.appspot.com/x/.config?x=5929ac65be9baf3c
-dashboard link: https://syzkaller.appspot.com/bug?extid=4125590f2a9f5b3cdf43
-compiler:       Debian clang version 20.1.2 (++20250402124445+58df0ef89dd6-1~exp1~20250402004600.97), Debian LLD 20.1.2
-syz repro:      https://syzkaller.appspot.com/x/repro.syz?x=12cb6af4580000
-C reproducer:   https://syzkaller.appspot.com/x/repro.c?x=1301f670580000
+> 
+> This struct is part of XFS uapi:
+> https://man7.org/linux/man-pages/man2/ioctl_xfs_fsgetxattr.2.html
+> 
+> Should we will need to depart from this struct definition and we might
+> as well do it for the initial release of the syscall rather than later on, e.g.:
+> 
+> --- a/include/uapi/linux/fs.h
+> +++ b/include/uapi/linux/fs.h
+> @@ -148,6 +148,17 @@ struct fsxattr {
+>         unsigned char   fsx_pad[8];
+>  };
+> 
+> +/*
+> + * Variable size structure for file_[sg]et_attr().
+> + */
+> +struct fsx_fileattr {
+> +       __u32           fsx_xflags;     /* xflags field value (get/set) */
+> +       __u32           fsx_extsize;    /* extsize field value (get/set)*/
+> +       __u32           fsx_nextents;   /* nextents field value (get)   */
+> +       __u32           fsx_projid;     /* project identifier (get/set) */
+> +       __u32           fsx_cowextsize; /* CoW extsize field value (get/set)*/
+> +};
+> +
+> +#define FSXATTR_SIZE_VER0 20
+> +#define FSXATTR_SIZE_LATEST FSXATTR_SIZE_VER0
+> +
+> 
+> Right?
 
-Downloadable assets:
-disk image: https://storage.googleapis.com/syzbot-assets/88b9a7ce7297/disk-e9565e23.raw.xz
-vmlinux: https://storage.googleapis.com/syzbot-assets/6ef1e04f11ea/vmlinux-e9565e23.xz
-kernel image: https://storage.googleapis.com/syzbot-assets/dfb61d29ee21/bzImage-e9565e23.xz
-
-IMPORTANT: if you fix the issue, please add the following tag to the commit:
-Reported-by: syzbot+4125590f2a9f5b3cdf43@syzkaller.appspotmail.com
-
-WARNING: The mand mount option has been deprecated and
-         and is ignored by this kernel. Remove the mand
-         option from the mount to silence this warning.
-=======================================================
-------------[ cut here ]------------
-WARNING: CPU: 0 PID: 5827 at fs/overlayfs/xattrs.c:136 ovl_listxattr+0x3a3/0x400 fs/overlayfs/xattrs.c:136
-Modules linked in:
-CPU: 0 UID: 0 PID: 5827 Comm: syz-executor209 Not tainted 6.15.0-rc6-syzkaller-00047-ge9565e23cd89 #0 PREEMPT(full) 
-Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 05/07/2025
-RIP: 0010:ovl_listxattr+0x3a3/0x400 fs/overlayfs/xattrs.c:136
-Code: d5 f3 fe e9 47 ff ff ff e8 da 06 94 fe 4c 89 f8 48 83 c4 10 5b 41 5c 41 5d 41 5e 41 5f 5d c3 cc cc cc cc cc e8 be 06 94 fe 90 <0f> 0b 90 49 c7 c7 fb ff ff ff eb d7 e8 ac 06 94 fe 90 0f 0b 90 e9
-RSP: 0018:ffffc9000440fdb8 EFLAGS: 00010293
-RAX: ffffffff832bea42 RBX: ffff888020aec700 RCX: ffff88802faf5a00
-RDX: 0000000000000000 RSI: 0000000000000011 RDI: 0000000000000012
-RBP: ffff88823bf5cf01 R08: ffff8880335691d3 R09: 1ffff110066ad23a
-R10: dffffc0000000000 R11: ffffed10066ad23b R12: ffffffffffffffff
-R13: 0000000000000012 R14: ffff8880687d7820 R15: 0000000000000011
-FS:  000055558015f380(0000) GS:ffff8881260fb000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000200000001000 CR3: 000000007f130000 CR4: 00000000003526f0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
-Call Trace:
- <TASK>
- vfs_listxattr fs/xattr.c:493 [inline]
- listxattr+0x10d/0x2a0 fs/xattr.c:924
- filename_listxattr fs/xattr.c:958 [inline]
- path_listxattrat+0x179/0x390 fs/xattr.c:988
- do_syscall_x64 arch/x86/entry/syscall_64.c:63 [inline]
- do_syscall_64+0xf6/0x210 arch/x86/entry/syscall_64.c:94
- entry_SYSCALL_64_after_hwframe+0x77/0x7f
-RIP: 0033:0x7fcb6cb2da39
-Code: ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 b8 ff ff ff f7 d8 64 89 01 48
-RSP: 002b:00007ffdbfef0558 EFLAGS: 00000246 ORIG_RAX: 00000000000000c3
-RAX: ffffffffffffffda RBX: 0030656c69662f2e RCX: 00007fcb6cb2da39
-RDX: 00000000000000b6 RSI: 0000200000000200 RDI: 00002000000001c0
-RBP: 0000200000000180 R08: 0000000000000006 R09: 0000000000000006
-R10: 0000200000000300 R11: 0000000000000246 R12: 00007fcb6cb7c17c
-R13: 00007fcb6cb77082 R14: 0000000000000001 R15: 0000000000000001
- </TASK>
-
-
----
-This report is generated by a bot. It may contain errors.
-See https://goo.gl/tpsmEJ for more information about syzbot.
-syzbot engineers can be reached at syzkaller@googlegroups.com.
-
-syzbot will keep track of this issue. See:
-https://goo.gl/tpsmEJ#status for how to communicate with syzbot.
-
-If the report is already addressed, let syzbot know by replying with:
-#syz fix: exact-commit-title
-
-If you want syzbot to run the reproducer, reply with:
-#syz test: git://repo/address.git branch-or-commit-hash
-If you attach or paste a git patch, syzbot will apply it before testing.
-
-If you want to overwrite report's subsystems, reply with:
-#syz set subsystems: new-subsystem
-(See the list of subsystem names on the web dashboard)
-
-If the report is a duplicate of another one, reply with:
-#syz dup: exact-subject-of-another-report
-
-If you want to undo deduplication, reply with:
-#syz undup
+Sure, I don't have a problem with that since I find the current name
+with "fsxattr" quite problematic anyway.
