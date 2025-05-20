@@ -1,166 +1,153 @@
-Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ed1-f54.google.com (mail-ed1-f54.google.com [209.85.208.54])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0450625CC4E
-	for <linux-unionfs@vger.kernel.org>; Tue, 20 May 2025 05:16:18 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 738CF212FB8;
+	Tue, 20 May 2025 08:05:28 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.208.54
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747718181; cv=none; b=WLQhLqvJSpX2DFmd/gGjxD8gs53U5uPmlQXLjIJ5WFABia5RrlV+Z/hQVqxS5xPNT5C8BL0NexOtpwKp4P90R2enWXF1kSrgboHL+G91c5mMxrbTOIGh+gFCPEQzfO1+5XfAeszqGnceqERp6jlSfwGbzFtXmkYhXDiMHNuO4LI=
+	t=1747728330; cv=none; b=KN+POlaI4I5OBk8IqyHbZC8LPSRsIHQG3WyUZKehEH/kmgDIe0ilHXrrN1PH/OMEo3LMssLEhOFJknfHABAzmKU3PpsEch6fVaNTqfHsg3kiH33g/1lO7Vf+Tpn8Z8uYOoawraMfazeitCAKyeyes7uJ89uiVCnTp81+FR5iyPE=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747718181; c=relaxed/simple;
-	bh=XrNNzUY1TXKJiOxaGFQwiLM9iQNnTBPUEAMRSKaZEtQ=;
-	h=From:To:Cc:Subject:Date:Message-ID:In-Reply-To:References:
-	 MIME-Version; b=AtU/42K7pxjX8dacgqfg2C5dcqH4XTpzV2S0ldsKlgFgSI45ZkZ/ypcV/GNrxTtojg5AVz6FivTba6U/BfgN6ieD/tFIvdr5k72O6VJa/PrANUDQN06eJrJO+BL4S0nX1WU1d/WV5PqgzJ74C59Pkz7atXgegfQFFQNPQzf3gjc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Sol6R6Lb; arc=none smtp.client-ip=91.218.175.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1747728330; c=relaxed/simple;
+	bh=JR57pZ1HByRrhf92K1jrgg2JNrFtpgD4QQI5ZYZgONk=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=IDATCfLkvJgyE/rFukl/y2tc1S0fIMGYysiAqM7tPLb7fPcWPHVnggrtsBjtSx844ZnaavTftZ+Oe2Z1mY7cfOwEnADsscINF5DuIOD0T8YvcOeMzOHRnll32uv1fRZnkZ0hLe1szWci1ABroMdr+uMVanDjnIByZJeZk5lVc54=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=deabvDB2; arc=none smtp.client-ip=209.85.208.54
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Sol6R6Lb"
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1747718176;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=EGQ1zxXw5QQ6/+CjgC6ci/ZRW8eopkMw2zSjQhSjJdk=;
-	b=Sol6R6LbqJ+Hh10AABgv0JL5++/JH7BlUN9ny23vNyrqcFPCwTyoypoLpjXmh7HXc++t0a
-	N/AJUpjtNrykPoG1OSC4g1YnUJ1v4kVlFogto/jcMfOuwVGvOPMYHCrl1cfIfOUpOYgU6n
-	gS1cL+M/5jEyKqoh21DhSNgim+tZie0=
-From: Kent Overstreet <kent.overstreet@linux.dev>
-To: linux-fsdevel@vger.kernel.org,
-	linux-bcachefs@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	linux-unionfs@vger.kernel.org
-Cc: Kent Overstreet <kent.overstreet@linux.dev>,
-	Miklos Szeredi <miklos@szeredi.hu>,
-	Amir Goldstein <amir73il@gmail.com>,
-	Alexander Viro <viro@zeniv.linux.org.uk>,
-	Christian Brauner <brauner@kernel.org>,
-	Jan Kara <jack@suse.cz>
-Subject: [PATCH 6/6] overlayfs: Support casefolded filesystems
-Date: Tue, 20 May 2025 01:15:58 -0400
-Message-ID: <20250520051600.1903319-7-kent.overstreet@linux.dev>
-In-Reply-To: <20250520051600.1903319-1-kent.overstreet@linux.dev>
-References: <20250520051600.1903319-1-kent.overstreet@linux.dev>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="deabvDB2"
+Received: by mail-ed1-f54.google.com with SMTP id 4fb4d7f45d1cf-6021d01298cso67914a12.3;
+        Tue, 20 May 2025 01:05:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747728327; x=1748333127; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=A9I7rP4M4yCmXtCFSSopzacSCExCy5zEsmTeQ8DMKvQ=;
+        b=deabvDB2zwj6fFO/mVfZdbNTA9Lq1tK47ouwzFD8Q1d2lDjTX1Lx0X87u52yHFsY3q
+         owEErFr4qU6+BRFt4+LP9I2xlyLCrqsgwWJGbhqPPgF/sjosYl5MmZuv+GRTl3NsZ0yD
+         8eappmIAXS19QM/WFkvIBxTfmskHY3VvcxYT2MDtRWePR8ESQgtfV39riEufwQ78aQWy
+         M+ZNyeHU0ymhwhM+Pj9lAdNmS8G473r/3yC0qvuvFttFvrFNf0DMzEJgQvirGvdk4BRK
+         UtubT+NgTk7wGKkAvMrQlY9kxNMvXEZ1meEeqWbkF5hiP4LeBU8X0PujQWxTsD6eaNt1
+         MN7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747728327; x=1748333127;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=A9I7rP4M4yCmXtCFSSopzacSCExCy5zEsmTeQ8DMKvQ=;
+        b=amiU6q5usvamAe73/MDnsHFx56UvZ6/j4gi8izfqj0pOBMOWzU0ZA3RxNNkn420ppI
+         Xl/QOpwlCQ2NVoOd1q2q2yBoPTMLp1wlOfdjzgq+rmINPWHgBb2ujrzJFm5HzM/JnPK0
+         uBbCn95XwIVpdvASOPUuGhl7ffb+Z8OBIAVKsXhYGWx9hFNUQukYm+xEJu6Y7395LOVJ
+         riRu5WAL6tPUkOUHmUapRetGUyUhQcLbNqZl63baXlObXntcnl2xggfI9Z4l0cn7ruro
+         Fhr4xBf3oVOXbIE+skeE0+w7zAX3FvrVkwr6EzEeUaYL54c7+K0I1lU+eNU87PIfCxZ4
+         UEMA==
+X-Forwarded-Encrypted: i=1; AJvYcCVQVikStRwhXUNEU3Mle4EqbDv2IM55Id+Q9ufSpzPgj4/Jy3AIRS2aLh37/EfAc850IaFcJJNes9F0nzPF/A==@vger.kernel.org, AJvYcCXTIvctBzIwtX2Rqrr1ix5ocaDamay/FCQWDl3Qm7FErJ1oXCfP/M6y2X6HwTupr0w9L2UvErhPCPqN2DOW@vger.kernel.org, AJvYcCXgNT4+cgB+JZoFhA0Lk5jYYAd3OXz9dIhSQum7KJrrxx/LgHWd7ThIh9RX/KqZ2L8jjwB6vMyH6dT7cEPnsw==@vger.kernel.org
+X-Gm-Message-State: AOJu0YyhYC8+uqtVMzTccb3leXzJQCznlnfT1EXQkBA9HYbgnJJ62GLx
+	YLns8aN3nBPxEhds3d1zc6T/d3WBtgJxiQiCjTEyBwiwYYcPI3buFkybxvjhH0Gbi533De+8L8V
+	tF7uondBdrCsvabaT/tHYC9MPCUQuIj8=
+X-Gm-Gg: ASbGncu6zQ/vGLEnDHXY1/KW/cK7R8FAvs2f86LN2XWYfralrAr7ZvW6ah6ZIocdtVZ
+	hGfnXqfW5HtwBLwMW9oEzIuW7rmu9PffhHhSl+ICpMlxvoq7GIrnYIQREAMfUIT/nptvA7mSRNR
+	NMXkYMBJ8/tCVKJNppYpu7xlvsfnS1HI47
+X-Google-Smtp-Source: AGHT+IFY1jN0nUINWAznHYhlgE6xZL8U6IPHM8alhc3DwvleXkkArjDV4AZFltkqlyZckqPQ5oIx2qZoC2UmUisZ2ow=
+X-Received: by 2002:a17:907:268a:b0:ad5:eff:db32 with SMTP id
+ a640c23a62f3a-ad536de9517mr1261607666b.48.1747728326074; Tue, 20 May 2025
+ 01:05:26 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Migadu-Flow: FLOW_OUT
+References: <20250520051600.1903319-1-kent.overstreet@linux.dev>
+In-Reply-To: <20250520051600.1903319-1-kent.overstreet@linux.dev>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 20 May 2025 10:05:14 +0200
+X-Gm-Features: AX0GCFuFQrDONvSfR8Y_Mf2EsqWLcTxhUjONRoK8I3nNLmrI5PDpEqDCnwJHZpI
+Message-ID: <CAOQ4uxg8p2Kg0BKrU4NSUzLVVLWcW=vLaw4kJkVR1Q-LyRbRXA@mail.gmail.com>
+Subject: Re: [PATCH 0/6] overlayfs + casefolding
+To: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: linux-fsdevel@vger.kernel.org, linux-bcachefs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Overlayfs can now work on filesystems that support casefolding, provided
-the specific subtree overlayfs is using as layers don't have casefolding
-enabled.
+On Tue, May 20, 2025 at 7:16=E2=80=AFAM Kent Overstreet
+<kent.overstreet@linux.dev> wrote:
+>
+> This series allows overlayfs and casefolding to safely be used on the
+> same filesystem by providing exclusion to ensure that overlayfs never
+> has to deal with casefolded directories.
+>
+> Currently, overlayfs can't be used _at all_ if a filesystem even
+> supports casefolding, which is really nasty for users.
+>
+> Components:
+>
+> - filesystem has to track, for each directory, "does any _descendent_
+>   have casefolding enabled"
+>
+> - new inode flag to pass this to VFS layer
+>
+> - new dcache methods for providing refs for overlayfs, and filesystem
+>   methods for safely clearing this flag
+>
+> - new superblock flag for indicating to overlayfs & dcache "filesystem
+>   supports casefolding, it's safe to use provided new dcache methods are
+>   used"
+>
 
-d_casefold_disabled_get() and put() are used, which check that
-casefolding is enabled nowhere on a given subtree, and get and release a
-reference that prevents the filesystem from enabling casefolding on that
-tree while overlayfs is in use.
+I don't think that this is really needed.
 
-We also now check the new SB_CASEFOLD superblock flag; if it's set we
-allow for dcache hash and compare ops to be set, relying instead on the
-new dcache methods.
+Too bad you did not ask before going through the trouble of this implementa=
+tion.
 
-Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-unionfs@vger.kernel.org
-Signed-off-by: Kent Overstreet <kent.overstreet@linux.dev>
----
- fs/overlayfs/params.c | 20 +++++++++++++++++---
- fs/overlayfs/util.c   | 19 +++++++++++++++----
- 2 files changed, 32 insertions(+), 7 deletions(-)
+I think it is enough for overlayfs to know the THIS directory has no
+casefolding.
 
-diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
-index 6759f7d040c8..ae7424e075a7 100644
---- a/fs/overlayfs/params.c
-+++ b/fs/overlayfs/params.c
-@@ -287,7 +287,8 @@ static int ovl_mount_dir_check(struct fs_context *fc, const struct path *path,
- 	 * with overlayfs.  Check explicitly to prevent post-mount
- 	 * failures.
- 	 */
--	if (sb_has_encoding(path->mnt->mnt_sb))
-+	if ((path->mnt->mnt_sb->s_flags & SB_CASEFOLD) &&
-+	    !(path->dentry->d_inode->i_flags & S_NO_CASEFOLD))
- 		return invalfc(fc, "case-insensitive capable filesystem on %s not supported", name);
- 
- 	if (ovl_dentry_weird(path->dentry))
-@@ -411,20 +412,32 @@ static int ovl_do_parse_layer(struct fs_context *fc, const char *layer_name,
- 	if (!name)
- 		return -ENOMEM;
- 
-+	if (layer != Opt_workdir &&
-+	    layer != Opt_upperdir) {
-+		err = d_casefold_disabled_get(layer_path->dentry);
-+		if (err)
-+			return err;
-+	}
-+
- 	upper = is_upper_layer(layer);
- 	err = ovl_mount_dir_check(fc, layer_path, layer, name, upper);
- 	if (err)
--		return err;
-+		goto err_put;
- 
- 	if (!upper) {
- 		err = ovl_ctx_realloc_lower(fc);
- 		if (err)
--			return err;
-+			goto err_put;
- 	}
- 
- 	/* Store the user provided path string in ctx to show in mountinfo */
- 	ovl_add_layer(fc, layer, layer_path, &name);
- 	return err;
-+err_put:
-+	if (layer != Opt_workdir &&
-+	    layer != Opt_upperdir)
-+		d_casefold_disabled_put(layer_path->dentry);
-+	return err;
- }
- 
- static int ovl_parse_layer(struct fs_context *fc, struct fs_parameter *param,
-@@ -475,6 +488,7 @@ static void ovl_reset_lowerdirs(struct ovl_fs_context *ctx)
- 	ctx->lowerdir_all = NULL;
- 
- 	for (size_t nr = 0; nr < ctx->nr; nr++, l++) {
-+		d_casefold_disabled_put(l->path.dentry);
- 		path_put(&l->path);
- 		kfree(l->name);
- 		l->name = NULL;
-diff --git a/fs/overlayfs/util.c b/fs/overlayfs/util.c
-index 0819c739cc2f..c515f260032c 100644
---- a/fs/overlayfs/util.c
-+++ b/fs/overlayfs/util.c
-@@ -205,10 +205,21 @@ bool ovl_dentry_weird(struct dentry *dentry)
- 	if (!d_can_lookup(dentry) && !d_is_file(dentry) && !d_is_symlink(dentry))
- 		return true;
- 
--	return dentry->d_flags & (DCACHE_NEED_AUTOMOUNT |
--				  DCACHE_MANAGE_TRANSIT |
--				  DCACHE_OP_HASH |
--				  DCACHE_OP_COMPARE);
-+	if (dentry->d_flags & (DCACHE_NEED_AUTOMOUNT |
-+			       DCACHE_MANAGE_TRANSIT))
-+		return true;
-+
-+	/*
-+	 * The filesystem might support casefolding, but we've already checked
-+	 * that casefolding isn't present on this tree: we only need to check
-+	 * for non-casefolding hash/compare ops
-+	 */
-+	if (!(dentry->d_sb->s_flags & SB_CASEFOLD) &&
-+	    (dentry->d_flags & (DCACHE_OP_HASH |
-+				DCACHE_OP_COMPARE)))
-+		return true;
-+
-+	return false;
- }
- 
- enum ovl_path_type ovl_path_type(struct dentry *dentry)
--- 
-2.49.0
+in ovl_lookup() that returns a merged directory, ovl_dentry_weird() would
+result in -EIO if any of the real directories have casefolding and we can a=
+dd
+another sanotify in ovl_lookup_single() that the 'base' dentry is not weird=
+()
+to cover the case of casefolder changed on an underlying reference director=
+y.
 
+Obviously, if any of the overlayfs layer root dirs have casefolding enabled=
+ the
+mount would fail.
+
+w.r.t enabling casefolding underneath overlayfs, overlayfs documentation sa=
+ys:
+
+"Changes to underlying filesystems
+---------------------------------
+
+Changes to the underlying filesystems while part of a mounted overlay
+filesystem are not allowed.  If the underlying filesystem is changed,
+the behavior of the overlay is undefined, though it will not result in
+a crash or deadlock."
+
+So why is enabling casefolding on underlying layers so special that we
+should have specific protection for that?
+
+From what I remember in ext4, enabling casefolding is only allowed
+on empty directories.
+
+Is this also the case for bcachefs?
+
+If that is the case, then the situation is even simpler -
+If filesystem can singal to vfs/ovl that directory is empty (i.e. S_EMPTYDI=
+R)
+then overlayfs can ignore this dir altogether when composing
+the merged directory.
+
+But again, I don't think there is a good reason to treat this case
+of changing the underlying layer specially.
+
+Please explain if I missed anything.
+
+Thanks,
+Amir.
