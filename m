@@ -1,41 +1,64 @@
-Received: from out-181.mta0.migadu.com (out-181.mta0.migadu.com [91.218.175.181])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f49.google.com (mail-ej1-f49.google.com [209.85.218.49])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id D41A8335C7;
-	Tue, 20 May 2025 14:44:47 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.181
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B8B6524C06A;
+	Tue, 20 May 2025 15:13:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.49
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747752289; cv=none; b=TtEpUmjBiaAh4UYfrl1wplR+GLuAffBp1lq2vH3CS9qzSsBZ5aN2rXix/3Z2wNI8GASaqizixhr62YVOgscUpIGFxNeotDguVW3rdk/rj/JlRnYqU8UNves6j8/ELZDMGx/SRBNaKYGjDdeIXW2pWWUO24THwBjUdIApmNhTuF8=
+	t=1747754033; cv=none; b=K7EOhYg+JGszFMYKk7reMeKaneQwkbjpt7YqRCcupOBkJe/PONe18N5PAMzU2MGhFMhpiGsHOrapN0JZ7rrIb/TIdo1nEVr3aW5XOkp+zj6hgKt8ORlzZFLTljEPU8sYLggwbecprd5hi50IRwp4GP8M59Gf8hhMSb/3kuy6TmM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747752289; c=relaxed/simple;
-	bh=p+jrXroPVL6qpOsR5dFITAXCzZegx2eFAm+w0V1CNtk=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=WIWtXLA+bwfdbIcqLVVgbj5kHTkPdjHgO//Q4NS0ZhSh/KL2BDmSdymeEQDcxzhfpy8mscZZzVeqYzYeFGX3hAvAc979NWS8ERYJC51rbLqU7EUHTDEQiTzq3slMpwV2V5JqTT5k3oMMqrEjviM1xrWboEGnUm/iHQCocVgLXwo=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=DzdjM/0K; arc=none smtp.client-ip=91.218.175.181
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1747754033; c=relaxed/simple;
+	bh=r+3Yg8OTnXieQ3ZcgC5Xn6TWot3V0vt7EhVQGkfTru8=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=GoAEqERsVSRJJb2dcngyuiU85Ov/T6vYyWmhmrbZiE7Yk3nCW3csAzaREoa68T7Dt8R3m7TfR+eQrrbjZsxsoani3aKWiMDCkWKw8Aetj86aukvYoHd3gjCqlLe9mr4vL47xQMQ3MKExxCgabD35THhJg4QeSckBgNQR4zGgF6Y=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=IZ8EfIRL; arc=none smtp.client-ip=209.85.218.49
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="DzdjM/0K"
-Date: Tue, 20 May 2025 10:44:31 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1747752275;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=TWzatSjly2i44jJi/D2beFghePppjurv+w7saIoXdt0=;
-	b=DzdjM/0KpELm9TEMex+3PTMOk9YPNySt/PFQvilqmb61LoFnmWn3UkfKZtAKhVCt/dUVT9
-	axMwhx2RsyXALqpdDzxerqYpuMheuaTk+bsaYI+zGp6QTXG1BZy2wh9a+o4+W9/ev/gWSW
-	k9MlSF4NPo3WnHn6dISnah8ZzN3uFe4=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Kent Overstreet <kent.overstreet@linux.dev>
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: linux-fsdevel@vger.kernel.org, linux-bcachefs@vger.kernel.org, 
-	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/6] overlayfs + casefolding
-Message-ID: <7sa3ouxmocenlbh3r3asraedbbr6svljroyml3dpcoerhamwmy@gb32bhm4jqvh>
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="IZ8EfIRL"
+Received: by mail-ej1-f49.google.com with SMTP id a640c23a62f3a-ad1a87d93f7so915065766b.0;
+        Tue, 20 May 2025 08:13:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747754030; x=1748358830; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=r+3Yg8OTnXieQ3ZcgC5Xn6TWot3V0vt7EhVQGkfTru8=;
+        b=IZ8EfIRLJvipR8c19pzbLTreP5dK55+CBFN4HdjrjaYubD2U+Y2nNsNOuJyL0ve6qz
+         srgQpA2PyHb83kA2qr9tTlZkGvpOy2aFdcz04VznTeFd4WgiyrLM/SKghG2gxHp4F40g
+         BuOClCaEewITTWrO6iU7GkPPMMDMdrNrXaYbT7xOgLXfZDg5VwV5jARPwioLvVqAeYDD
+         ZjIKd50n5UgyPd0/IHRnTe3RjtLVijlkvaIhAD0Z+MJD/mMbwn0p1ruwTFs82eJEbrtR
+         oWhGAs3lgwULo1moA3IEzEVYMMqfLvgVmGBbWD0zjFcbIKLnGYfuqmlnV01vFfI3+7Xj
+         76mQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747754030; x=1748358830;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=r+3Yg8OTnXieQ3ZcgC5Xn6TWot3V0vt7EhVQGkfTru8=;
+        b=VNlMFl2JG2A8pWKvJ+z49xybVRl0G2iAcPqiJ42i9hnPDpoXH2ZlqopVhy9aCQDUfc
+         02rAvCSyRXuME0u6vmDHHH3/PUfGcnQnKXKu1DZmY6YCI80tu3rFoMeGnPdj+TCZ8BNe
+         MFQlb4v4lclreVFYFKl4n28e4CkVwgcHpMxSmomqIWsrdiQDkHkYd6xOufU39WU+9gey
+         2D4YvszMKv7MhLMUfPzntV+msC6bPpqAIsjMQWWcY5ifObvIz0x4lKbEj1bPbjGYcC/j
+         wPKvtkqSJshWJNwszlxbK7J9xqjHh2LNmV+7ecFEVyc8NvEXpRO71BS5fycTn1QckMky
+         fFhw==
+X-Forwarded-Encrypted: i=1; AJvYcCUR8azdpn8rn66DoOfzHlxQ1B5IEnHJEjGxza27iMwMOsb0Bm4ModHlJxlQE4I8edR/UWYusjljkymEKbjycg==@vger.kernel.org, AJvYcCX5O7qPi9sK916j3zhjK+4MgVsu9PmJ5BL4JEgLaW3lUVwxDtdCAx/53iEn//X4lLYfwYj4YPQYCP175VWGNQ==@vger.kernel.org, AJvYcCXCWnOE5/wY37UzQEI4rHx0KUeN+7T2m8Jp9snPVTJOCbXwCMMbvSTxkz28TErZFhJpAbg5gTWDB83199Tk@vger.kernel.org
+X-Gm-Message-State: AOJu0YxmBlpJ1UCG6q/8qswmk49RRTPobae+smXlhFZRTHCvSlUA/SPX
+	S1j2/VPzZNtGg1ibq9NKfChNn9XTSKpsWGsz38bD5kYmmjW1+rB5IExpi/1qN9qsJSHUlRCBdmA
+	ALz/yRkRWw+DVCQarj5mz4Kb7m7+6qUI=
+X-Gm-Gg: ASbGnctx11MTdcgAVuRWViLUXtmVsAdW1QAw3LqYW+tVWrzLEmQXEV7fv8QKYHyRyqm
+	+qUPhw68FXp5bYpgDdRXbKaEpqpbabmQFLbR0S+yYHmDGGbF+XTCYa1rV74Rdq4js6aMkjLXtxP
+	PVJp4H0uM0uqoqRSko+BWhNFYBjOkwS0Ri
+X-Google-Smtp-Source: AGHT+IHhOo1I8dYhhoZqyuwMlTXOucNkuF8QBy8bK9otG1RNbGcQbpYA34dRtZv6u+hi2lp02lJ5UZiCzRcsggPSD4o=
+X-Received: by 2002:a17:906:f58d:b0:ad5:4a49:4d56 with SMTP id
+ a640c23a62f3a-ad54a495acdmr1424502066b.3.1747754029586; Tue, 20 May 2025
+ 08:13:49 -0700 (PDT)
+Precedence: bulk
+X-Mailing-List: linux-unionfs@vger.kernel.org
+List-Id: <linux-unionfs.vger.kernel.org>
+List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
+List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
+MIME-Version: 1.0
 References: <20250520051600.1903319-1-kent.overstreet@linux.dev>
  <CAOQ4uxg8p2Kg0BKrU4NSUzLVVLWcW=vLaw4kJkVR1Q-LyRbRXA@mail.gmail.com>
  <osbsqlzkc4zttz4gxa25exm5bhqog3tpyirsezcbcdesaucd7g@4sltqny4ybnz>
@@ -43,80 +66,101 @@ References: <20250520051600.1903319-1-kent.overstreet@linux.dev>
  <gdvg6zswvq4zjzo6vntggoacrgxxh33zmejo72yusp7aqkqzic@kaibexik7lvh>
  <CAOQ4uxg9sKC_8PLARkN6aB3E_U62_S3kfnBuRbAvho9BNzGAsQ@mail.gmail.com>
  <rkbkjp7xvefmtutkwtltyd6xch2pbw47x5czx6ctldemus2bvj@2ukfdmtfjjbw>
- <CAOQ4uxgOM83u1SOd4zxpDmWFsGvrgqErKRwea=85_drpF6WESA@mail.gmail.com>
-Precedence: bulk
-X-Mailing-List: linux-unionfs@vger.kernel.org
-List-Id: <linux-unionfs.vger.kernel.org>
-List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
-List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAOQ4uxgOM83u1SOd4zxpDmWFsGvrgqErKRwea=85_drpF6WESA@mail.gmail.com>
-X-Migadu-Flow: FLOW_OUT
+ <CAOQ4uxgOM83u1SOd4zxpDmWFsGvrgqErKRwea=85_drpF6WESA@mail.gmail.com> <7sa3ouxmocenlbh3r3asraedbbr6svljroyml3dpcoerhamwmy@gb32bhm4jqvh>
+In-Reply-To: <7sa3ouxmocenlbh3r3asraedbbr6svljroyml3dpcoerhamwmy@gb32bhm4jqvh>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Tue, 20 May 2025 17:13:37 +0200
+X-Gm-Features: AX0GCFuWrzLa3iJcrg3IUMQV1OgW5T9Qo2L2W9N-xtFO3-OeSaQClitTOnNYF8s
+Message-ID: <CAOQ4uxjHiorTwddK98mb60VOY8zNqnyWvW=+Uz-Sn6-Sm3PUfQ@mail.gmail.com>
+Subject: Re: [PATCH 0/6] overlayfs + casefolding
+To: Kent Overstreet <kent.overstreet@linux.dev>
+Cc: linux-fsdevel@vger.kernel.org, linux-bcachefs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Tue, May 20, 2025 at 04:33:14PM +0200, Amir Goldstein wrote:
-> On Tue, May 20, 2025 at 4:12 PM Kent Overstreet
-> > Amir, you've got two widely used filesystem features that conflict and
-> > can't be used on the same filesystem.
+On Tue, May 20, 2025 at 4:44=E2=80=AFPM Kent Overstreet
+<kent.overstreet@linux.dev> wrote:
+>
+> On Tue, May 20, 2025 at 04:33:14PM +0200, Amir Goldstein wrote:
+> > On Tue, May 20, 2025 at 4:12=E2=80=AFPM Kent Overstreet
+> > > Amir, you've got two widely used filesystem features that conflict an=
+d
+> > > can't be used on the same filesystem.
+> > >
+> > > That's _broken_.
 > >
-> > That's _broken_.
-> 
-> Correct.
-> 
-> I am saying that IMO a smaller impact (and less user friendly) fix is more
-> appropriate way to deal with this problem.
+> > Correct.
+> >
+> > I am saying that IMO a smaller impact (and less user friendly) fix is m=
+ore
+> > appropriate way to deal with this problem.
+>
+> Less user friendly is an understatement.
+>
+> Obscure errors that only get reported via overloaded standard error
+> codes is a massive problem today, for _developers_ - have you never had
+> a day of swearing over trying to track down where in a massive subsystem
+> an -EINVAL is coming from?
+>
+> It's even worse for end users that don't know to check the dmesg log.
+>
+> And I support my code, so these would turn into bug reports coming
+> across my desk - no thanks; I already get enough weird shit from other
+> subsystems that I have to look at and at least triage.
+>
+> > > Users hate partitioning just for separate /boot and /home, having to
+> > > partition for different applications is horrible. And since overlay f=
+s
+> > > is used under the hood by docker, and casefolding is used under the h=
+ood
+> > > for running Windows applications, this isn't something people can
+> > > predict in advance.
+> >
+> > Right, I am not expecting users to partition by application,
+> > but my question was this:
+> >
+> > When is overlayfs created over a subtree that is only partially case-fo=
+lded?
+> >
+> > Obviously, docker would create overlayfs on parts of the fs
+> > and smbd/cygwin could create a case folder subtree on another
+> > part of the fs.
+> > I just don't see a common use case when these sections overlap.
+>
+> Today, you cannot user docker and casefolding on _different parts of_
+> the same filesystem.
+>
+> So yees, today users do have to partition by application, or only use
+> one feature or the other.
+>
 
-Less user friendly is an understatement.
+Didn't say there was no problem.
 
-Obscure errors that only get reported via overloaded standard error
-codes is a massive problem today, for _developers_ - have you never had
-a day of swearing over trying to track down where in a massive subsystem
-an -EINVAL is coming from?
+Argued that your fix is a big gun and not worth the added complexity.
 
-It's even worse for end users that don't know to check the dmesg log.
+Let's see what Miklos thinks.
 
-And I support my code, so these would turn into bug reports coming
-across my desk - no thanks; I already get enough weird shit from other
-subsystems that I have to look at and at least triage.
+> This isn't about allowing casefolding and overlayfs to fix on the same
+> subtree, that would be a bigger project.
+>
+> > Perhaps I am wrong (please present real world use cases),
+> > but my claim is that this case is not common enough and therefore,
+> > a suboptimal EIO error from lookup is good enough to prevert crossing
+> > over into the case folded zone by mistake, just as EIO on lookup is
+> > enough to deal with the unsupported use case of modifying
+> > overlayfs underlying layers with overlay is mounted.
+> >
+> > BTW, it is not enough to claim that there is no case folding for the
+> > entire subtree to allow the mount.
+> > For overlayfs to allow d_hash()/d_compare() fs must claim that
+> > these implementations are the default implementation in all subtree
+> > or at least that all layers share the same implementation.
+>
 
-> > Users hate partitioning just for separate /boot and /home, having to
-> > partition for different applications is horrible. And since overlay fs
-> > is used under the hood by docker, and casefolding is used under the hood
-> > for running Windows applications, this isn't something people can
-> > predict in advance.
-> 
-> Right, I am not expecting users to partition by application,
-> but my question was this:
-> 
-> When is overlayfs created over a subtree that is only partially case-folded?
-> 
-> Obviously, docker would create overlayfs on parts of the fs
-> and smbd/cygwin could create a case folder subtree on another
-> part of the fs.
-> I just don't see a common use case when these sections overlap.
+Nevermind. Misread patch 6.
 
-Today, you cannot user docker and casefolding on _different parts of_
-the same filesystem.
-
-So yees, today users do have to partition by application, or only use
-one feature or the other.
-
-This isn't about allowing casefolding and overlayfs to fix on the same
-subtree, that would be a bigger project.
-
-> Perhaps I am wrong (please present real world use cases),
-> but my claim is that this case is not common enough and therefore,
-> a suboptimal EIO error from lookup is good enough to prevert crossing
-> over into the case folded zone by mistake, just as EIO on lookup is
-> enough to deal with the unsupported use case of modifying
-> overlayfs underlying layers with overlay is mounted.
-> 
-> BTW, it is not enough to claim that there is no case folding for the
-> entire subtree to allow the mount.
-> For overlayfs to allow d_hash()/d_compare() fs must claim that
-> these implementations are the default implementation in all subtree
-> or at least that all layers share the same implementation.
-
-I honestly don't know what you're claiming here.
+Thanks,
+Amir.
