@@ -1,192 +1,149 @@
-Received: from out-188.mta0.migadu.com (out-188.mta0.migadu.com [91.218.175.188])
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 86CB11854
-	for <linux-unionfs@vger.kernel.org>; Wed, 21 May 2025 01:49:46 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=91.218.175.188
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 4F23922B8C3;
+	Wed, 21 May 2025 06:45:07 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747792188; cv=none; b=SZ12wc0fPc0laUocrjpsoWnVDtWkADk7rHbcgfaovLdkFJuRQtsQllnxGyLqIidDOUQLyOLPq1N6hToCVxWKazsCVXwbfZ5F5675cydz1h+rfEw5zlmhcTfW3d0ZBSGlAREVGFKYU8fziIZDbAKq4aQIzt0RlrMIsiTyq4l6ITk=
+	t=1747809910; cv=none; b=QuOm7QPB3YTwPVttbXRYjfSvtJ58Nu/ctI8vWAdPZDaBXWKjeKGslfoWF+C1UgWIAnZtWyEO/GLvsUHamBsO++3vGl9j+5loEOLiR6JIoWCW1dG/YcqCTZtxzSy3od7SGxhrt12GJ+YQcAH/3iNZCvAuJRnTgEAAn27knSox8uo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747792188; c=relaxed/simple;
-	bh=r6660o7TrV9mIX0QiqN4LlypHPU9HIyb4tcU13soERs=;
-	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
-	 Content-Type:Content-Disposition:In-Reply-To; b=dMtQVrxzLWfWiiGfiJPpn4TNCSQCSiiQ/+buJ1s0YKTKQQIkBoV9qpYehJj0yKu1eBDjDD+FORK5OKSg9Nh+C5+8XMRrtL4O9GbXLRjtyGSJFfJF7Z/I5TvhJtce/kCu5DHKqJbQn01v7qXxR+NJUBKtY30iYn3Ovj2jREWWQBk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=Ymwkwlm0; arc=none smtp.client-ip=91.218.175.188
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
+	s=arc-20240116; t=1747809910; c=relaxed/simple;
+	bh=GHcnvXdMpAPuoIAioS/LOiLIKctVetFq3Kvs+ASYCC4=;
+	h=From:Date:Subject:MIME-Version:Content-Type:Message-Id:To:Cc; b=IR6nKO0isgLW6dnPQytYwuGMz7h2+1hJQBIHdiZzbeisJuietWgJbd1bozVRJOsoFFvzpaqzlyjK4Gg1zRSCt9/uDIjbOnbeCMDUS+zCXhv5mIUD3aBDClUmUZcq91jeYgjVBdqU7r/QdmQ+4uqn7luZ0S+GdPRdgiX4WkNq/Rg=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=aO46L6vy; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="Ymwkwlm0"
-Date: Tue, 20 May 2025 21:49:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-	t=1747792174;
-	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-	 content-transfer-encoding:content-transfer-encoding:
-	 in-reply-to:in-reply-to:references:references;
-	bh=l1O+r1kz2S9v4rWK4s64ptW8HHdeRPASy0UUAjHkGbs=;
-	b=Ymwkwlm0QpBL0rQI5k+gMMRe7sS8GUH+8Afwpa4tQvB3TXtItxTmNdgboUuCcijzvJ2ocb
-	QSKvnWCWjc6MFS+F/LN0N9rgd+Ae20myvLl1jn/IT8CuiWYRrA6mhDlmXPRYLNNJ4Jwiou
-	SexVldyCrl+iycUOCwZJcXxyrSERzDY=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From: Kent Overstreet <kent.overstreet@linux.dev>
-To: John Stoffel <john@stoffel.org>
-Cc: Amir Goldstein <amir73il@gmail.com>, linux-fsdevel@vger.kernel.org, 
-	linux-bcachefs@vger.kernel.org, linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
-	Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
-	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH 0/6] overlayfs + casefolding
-Message-ID: <7b272tdagnkvzt5eo4g4wy47rjwf67nqk26aq27uetc57kzza5@7p5cmikl2fw6>
-References: <20250520051600.1903319-1-kent.overstreet@linux.dev>
- <CAOQ4uxg8p2Kg0BKrU4NSUzLVVLWcW=vLaw4kJkVR1Q-LyRbRXA@mail.gmail.com>
- <osbsqlzkc4zttz4gxa25exm5bhqog3tpyirsezcbcdesaucd7g@4sltqny4ybnz>
- <CAOQ4uxjUC=1MinjDCOfY5t89N3ga6msLmpVXL1p23qdQax6fSg@mail.gmail.com>
- <gdvg6zswvq4zjzo6vntggoacrgxxh33zmejo72yusp7aqkqzic@kaibexik7lvh>
- <CAOQ4uxg9sKC_8PLARkN6aB3E_U62_S3kfnBuRbAvho9BNzGAsQ@mail.gmail.com>
- <rkbkjp7xvefmtutkwtltyd6xch2pbw47x5czx6ctldemus2bvj@2ukfdmtfjjbw>
- <26668.52908.574606.416955@quad.stoffel.home>
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="aO46L6vy"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Cc:To:Message-Id:Content-Transfer-Encoding:Content-Type:
+	MIME-Version:Subject:Date:From:Sender:Reply-To:Content-ID:Content-Description
+	:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:
+	In-Reply-To:References:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
+	List-Post:List-Owner:List-Archive;
+	bh=gO9ux4v6hOKrbiuo9LJ6PvUt/EemhxLVVjtbv/Lzolk=; b=aO46L6vyxpVeQSzGfWeCh/j8zS
+	HfWW4NYGZbFqS7eg7wtq923iPibVishJMvTIXlNN5jnhDHgCd4eNZhgMZIToIltSxGXz0LdAYa6np
+	LK4PcD8k+CMvbv6+pVW8wHBPnjcmk1VbnRrd034CP7G3x2308yjYrPuef3WpbwTZRciPOZRlQ/Zo9
+	24F7WAP1BNG77gVhZcwRNQOsn6EWcPPZ/Kuu//899Cfe93qc10DjbH/1ZG9HznZ5FyvkrwtC+q2IH
+	5cMUWNkBBiohfSKY4IcprgpD5wNB/fJwfeTnxS6w9ei3fJEZJVQBwqhHqxq54wcuA/dI6bElTvk0l
+	buTlZWKQ==;
+Received: from [191.204.192.64] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
+	id 1uHdCK-00B4IH-Lk; Wed, 21 May 2025 08:45:04 +0200
+From: =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Date: Wed, 21 May 2025 03:42:12 -0300
+Subject: [PATCH] ovl: Allow mount options to be parsed on remount
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <26668.52908.574606.416955@quad.stoffel.home>
-X-Migadu-Flow: FLOW_OUT
+Message-Id: <20250521-ovl_ro-v1-1-2350b1493d94@igalia.com>
+X-B4-Tracking: v=1; b=H4sIAMN1LWgC/6tWKk4tykwtVrJSqFYqSi3LLM7MzwNyDHUUlJIzE
+ vPSU3UzU4B8JSMDI1MDUyND3fyynPiifN0kY4tEU/MUI0sLkxQloOKCotS0zAqwQdGxtbUAU3i
+ hAlgAAAA=
+X-Change-ID: 20250521-ovl_ro-b38a57d2984d
+To: Miklos Szeredi <miklos@szeredi.hu>, Amir Goldstein <amir73il@gmail.com>, 
+ Christian Brauner <brauner@kernel.org>
+Cc: linux-unionfs@vger.kernel.org, linux-kernel@vger.kernel.org, 
+ kernel-dev@igalia.com, linux-fsdevel@vger.kernel.org, 
+ =?utf-8?q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+X-Mailer: b4 0.14.2
 
-On Tue, May 20, 2025 at 02:49:16PM -0400, John Stoffel wrote:
-> >>>>> "Kent" == Kent Overstreet <kent.overstreet@linux.dev> writes:
-> 
-> > On Tue, May 20, 2025 at 04:03:27PM +0200, Amir Goldstein wrote:
-> >> On Tue, May 20, 2025 at 2:43 PM Kent Overstreet
-> >> <kent.overstreet@linux.dev> wrote:
-> >> >
-> >> > On Tue, May 20, 2025 at 02:40:07PM +0200, Amir Goldstein wrote:
-> >> > > On Tue, May 20, 2025 at 2:25 PM Kent Overstreet
-> >> > > <kent.overstreet@linux.dev> wrote:
-> >> > > >
-> >> > > > On Tue, May 20, 2025 at 10:05:14AM +0200, Amir Goldstein wrote:
-> >> > > > > On Tue, May 20, 2025 at 7:16 AM Kent Overstreet
-> >> > > > > <kent.overstreet@linux.dev> wrote:
-> >> > > > > >
-> >> > > > > > This series allows overlayfs and casefolding to safely be used on the
-> >> > > > > > same filesystem by providing exclusion to ensure that overlayfs never
-> >> > > > > > has to deal with casefolded directories.
-> >> > > > > >
-> >> > > > > > Currently, overlayfs can't be used _at all_ if a filesystem even
-> >> > > > > > supports casefolding, which is really nasty for users.
-> >> > > > > >
-> >> > > > > > Components:
-> >> > > > > >
-> >> > > > > > - filesystem has to track, for each directory, "does any _descendent_
-> >> > > > > >   have casefolding enabled"
-> >> > > > > >
-> >> > > > > > - new inode flag to pass this to VFS layer
-> >> > > > > >
-> >> > > > > > - new dcache methods for providing refs for overlayfs, and filesystem
-> >> > > > > >   methods for safely clearing this flag
-> >> > > > > >
-> >> > > > > > - new superblock flag for indicating to overlayfs & dcache "filesystem
-> >> > > > > >   supports casefolding, it's safe to use provided new dcache methods are
-> >> > > > > >   used"
-> >> > > > > >
-> >> > > > >
-> >> > > > > I don't think that this is really needed.
-> >> > > > >
-> >> > > > > Too bad you did not ask before going through the trouble of this implementation.
-> >> > > > >
-> >> > > > > I think it is enough for overlayfs to know the THIS directory has no
-> >> > > > > casefolding.
-> >> > > >
-> >> > > > overlayfs works on trees, not directories...
-> >> > >
-> >> > > I know how overlayfs works...
-> >> > >
-> >> > > I've explained why I don't think that sanitizing the entire tree is needed
-> >> > > for creating overlayfs over a filesystem that may enable casefolding
-> >> > > on some of its directories.
-> >> >
-> >> > So, you want to move error checking from mount time, where we _just_
-> >> > did a massive API rework so that we can return errors in a way that
-> >> > users will actually see them - to open/lookup, where all we have are a
-> >> > small fixed set of error codes?
-> >> 
-> >> That's one way of putting it.
-> >> 
-> >> Please explain the use case.
-> >> 
-> >> When is overlayfs created over a subtree that is only partially case folded?
-> >> Is that really so common that a mount time error justifies all the vfs
-> >> infrastructure involved?
-> 
-> > Amir, you've got two widely used filesystem features that conflict and
-> > can't be used on the same filesystem.
-> 
-> Wait, what?  How many people use casefolding, on a per-directory
-> basis?  It's stupid.  Unix/Linux has used case-sensitive filesystems
-> for years.  Yes, linux supports other OSes which did do casefolding,
-> but yikes... per-directory support is just insane.  It should be
-> per-filesystem only at BEST.  
+Allow mount options to be parsed on remount when using the new mount(8)
+API. This allows to give a precise error code to userspace when the
+remount is using wrong arguments instead of a generic -EINVAL error.
 
-Quite a lot.
+Signed-off-by: André Almeida <andrealmeid@igalia.com>
+---
+Hi folks,
 
-You may not realize this, but Valve has, quietly, behind the scenes,
-been intelligently funding a ton of Linux work with an eye towards not
-just gaming, but improving Linus on the desktop. And they've been
-deploying it too, you can buy a Steam deck today.
+I was playing with xfstest with overlayfs and I got those fails:
 
-And a significant fraction of desktop users like to play games - we're
-not just all work. Windows ports need casefolding - alternatives have
-been discussed and they're non viable.
+$ sudo TEST_DIR=/tmp/dir1 TEST_DEV=/dev/vdb SCRATCH_DEV=/dev/vdc SCRATCH_MNT=/tmp/dir2 ./check -overlay
+...
+Failures: generic/294 generic/306 generic/452 generic/599 generic/623 overlay/035
+Failed 6 of 859 tests
 
-(I fondly remember the days when I had time for such things).
+5 of those 6 fails were related to the same issue, where fsconfig
+syscall returns EINVAL instead of EROFS:
 
-Samba fileservers are a thing, too.
+-mount: cannot remount device read-write, is write-protected
++mount: /tmp/dir2/ovl-mnt: fsconfig() failed: overlay: No changes allowed in reconfigure
 
-And for all us desktop/workstation users, not being able to use the same
-filesystem for wine and docker is the kind of jankiness that makes
-people say "maybe Linux isn't ready for the desktop after all".
+I tracked down the origin of this issue being commit ceecc2d87f00 ("ovl:
+reserve ability to reconfigure mount options with new mount api"), where
+ovl_parse_param() was modified to reject any reconfiguration when using
+the new mount API, returning -EINVAL. This was done to avoid non-sense
+parameters being accepted by the new API, as exemplified in the commit
+message: 
 
-Put aside your feelings on casefolding - this is about basic attention
-to detail.
+	mount -t overlay overlay -o lowerdir=/mnt/a:/mnt/b,upperdir=/mnt/upper,workdir=/mnt/work /mnt/merged
+    
+    and then issue a remount via:
+    
+            # force mount(8) to use mount(2)
+            export LIBMOUNT_FORCE_MOUNT2=always
+            mount -t overlay overlay -o remount,WOOTWOOT,lowerdir=/DOESNT-EXIST /mnt/merged
 
-> > That's _broken_.
-> 
-> So?  what about my cross mounting of VMS filesystems with "foo.txt;3"
-> version control so I can go back to previous versions?  Why can't I do
-> that from my Linux systems that's mounting that VMS image?   
-> 
-> Just because it's done doesn't mean it's not dumb.  
-> 
-> > Users hate partitioning just for separate /boot and /home, having to
-> > partition for different applications is horrible. And since overlay
-> > fs is used under the hood by docker, and casefolding is used under
-> > the hood for running Windows applications, this isn't something
-> > people can predict in advance.
-> 
-> Sure I can, I don't run windows applications to screw casefolding.
-> :-)
-> 
-> And I personally LIKE having a seperate /boot and /home, because it
-> gives isolation.  The world is not just single user laptops with
-> everything all on one disk or spread across a couple of disks using
-> LVM or RAID or all of the above.  
-> 
-> I also don't see any updates for the XFS tests, or any other
-> filesystem tests, that actually checks and confirms this decidedly
-> obtuse and dumb to implement idea.  
+    with completely nonsensical mount options whatsoever it will succeed
+    nonetheless. 
 
-Well, you certainly are making your personal feelings known :)
+However, after manually reverting such commit, I found out that
+currently those nonsensical mount options are being reject by the
+kernel:
 
-But for me, as the engineer designing and implementing this stuff, I
-don't let my personal feelings dictate.
+$ mount -t overlay overlay -o remount,WOOTWOOT,lowerdir=/DOESNT-EXIST /mnt/merged
+mount: /mnt/merged: fsconfig() failed: overlay: Unknown parameter 'WOOTWOOT'.
 
-That's not my place.
+$ mount -t overlay overlay -o remount,lowerdir=/DOESNT-EXIST /mnt/merged
+mount: /mnt/merged: special device overlay does not exist.
+       dmesg(1) may have more information after failed mount system call
 
-My job is to write code that works, works reliably, solves real
-problems, and lets users do the things they want with their machines.
+And now 5 tests are passing because the code can now returns EROFS:
+Failures: generic/623
+Failed 1 of 1 tests
 
-All this drama over casefolding has been pure distraction, and I would
-appreciate if you and everyone else could tone it down now.
+So this patch basically allows for the parameters to be parsed and to
+return an appropriated error message instead of a generic EINVAL one.
+
+Please let me know if this looks like going in the right direction.
+
+Thanks!
+---
+ fs/overlayfs/params.c | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/fs/overlayfs/params.c b/fs/overlayfs/params.c
+index f42488c019572479d8fdcfc1efd62b21d2995875..f6b7acc0fee6174c48fcc8b87481fbcb60e6d421 100644
+--- a/fs/overlayfs/params.c
++++ b/fs/overlayfs/params.c
+@@ -600,15 +600,6 @@ static int ovl_parse_param(struct fs_context *fc, struct fs_parameter *param)
+ 		 */
+ 		if (fc->oldapi)
+ 			return 0;
+-
+-		/*
+-		 * Give us the freedom to allow changing mount options
+-		 * with the new mount api in the future. So instead of
+-		 * silently ignoring everything we report a proper
+-		 * error. This is only visible for users of the new
+-		 * mount api.
+-		 */
+-		return invalfc(fc, "No changes allowed in reconfigure");
+ 	}
+ 
+ 	opt = fs_parse(fc, ovl_parameter_spec, param, &result);
+
+---
+base-commit: b87e2318cdaa14024b62ab428b3471d81eafaf1a
+change-id: 20250521-ovl_ro-b38a57d2984d
+
+Best regards,
+-- 
+André Almeida <andrealmeid@igalia.com>
+
