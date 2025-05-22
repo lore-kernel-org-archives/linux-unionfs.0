@@ -1,240 +1,166 @@
-Received: from fout-a8-smtp.messagingengine.com (fout-a8-smtp.messagingengine.com [103.168.172.151])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+Received: from mail-ej1-f52.google.com (mail-ej1-f52.google.com [209.85.218.52])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id B234023F41A;
-	Thu, 22 May 2025 07:53:52 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=103.168.172.151
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 523FE2882DF;
+	Thu, 22 May 2025 09:52:49 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.218.52
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1747900435; cv=none; b=JrrNeH3L57JLQ5fD4nldJfRMlCKzB82T8yEypo+HGKC4jxZm3sfGoAHxl+huW5G/ESZF0wUx6UYtYY0bCayIAJO94Hy1B/Td9w1p8I6ojCszn+FFIU2ThkC8+oWzlVZexCKAqBn0O2tcze9+XYq0DQEQSV8U9I70ZqYpgDk/UMw=
+	t=1747907571; cv=none; b=NmWSmtfRjQfhtkzSOl4Ql4k49ua2SgQfAsWqVVMXAxNIdgrSbSoc9CIR4I01U7W4kFJH5CVThTJwNNiqIXUDuwNiiU3J2InASHeuJh3de/qHG1QSyChczCaCUXoSNzy97v56rzmhlasK3Q+KkQuKDJsC8bOlO6RvpgzcLusTOrc=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1747900435; c=relaxed/simple;
-	bh=w92H/viKcKLDXuRMV9siSFbaU0pW7/eviJ0e7xX4IsQ=;
-	h=Mime-Version:Content-Type:Date:Message-Id:Cc:Subject:From:To:
-	 References:In-Reply-To; b=uxvJde99YNEr2RNCmkCI9Lk+6NHZJP7ydtWvbJ8emzP5isGyNrN1UP0h74GlSFvUxpJQNxv3Ja6fB7d1W4VDYhdAgBZYFtMq7fYgpLc5rzMZa3UEX1ojAPxkcnQiaFOf3gLWw28hQAdrOHCoA4ITVPzRqINXeJcH2ZvfBZif5R0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=kode54.net; spf=pass smtp.mailfrom=kode54.net; dkim=pass (2048-bit key) header.d=kode54.net header.i=@kode54.net header.b=Nq0MZJoR; dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b=nkRK9y7i; arc=none smtp.client-ip=103.168.172.151
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=kode54.net
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=kode54.net
+	s=arc-20240116; t=1747907571; c=relaxed/simple;
+	bh=0P42Ws2wdHEI3ePjOZCiNK52aa80I5MDc+fP+vCtgUA=;
+	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
+	 To:Cc:Content-Type; b=IzfNAvN4XEWVSo2PfhLKxnMODWsCujS308Zp5tc0K2xZ+/IS8wNTM6vVvkXh0BFoZcWXwwzFn0IfOh+JJTbGAUg71xASaFC9TkEP5duUC2J5b3BPUd2l74kKhTagYBjnAK0YCtXKi1oT6ayDgQKEBH5NEqBpJCDgCWgJ7HqTtCs=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=B6p4Ab7S; arc=none smtp.client-ip=209.85.218.52
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=kode54.net header.i=@kode54.net header.b="Nq0MZJoR";
-	dkim=pass (2048-bit key) header.d=messagingengine.com header.i=@messagingengine.com header.b="nkRK9y7i"
-Received: from phl-compute-03.internal (phl-compute-03.phl.internal [10.202.2.43])
-	by mailfout.phl.internal (Postfix) with ESMTP id B7CFE1380044;
-	Thu, 22 May 2025 03:53:51 -0400 (EDT)
-Received: from phl-mailfrontend-02 ([10.202.2.163])
-  by phl-compute-03.internal (MEProxy); Thu, 22 May 2025 03:53:51 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kode54.net; h=cc
-	:cc:content-transfer-encoding:content-type:content-type:date
-	:date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to; s=fm3; t=1747900431;
-	 x=1747986831; bh=8y+itVGGU0k47O61Xq18ziael4/xcoC+X099PMJEObg=; b=
-	Nq0MZJoReNTRiMbVR/6oAcLq5XxEawCW99gk2XKIklaMX/ItD0ChTPned4aQIDNa
-	7QlFZ0eHqEXG0laoydUHAMLwEbU8hnxD9lkEmMBHHqLFx6gEQiZeoAVekErKJNLC
-	p4J7ZIig+hcm+vvRjBsztX5jeFU6VK5cfMZsxXOeiQyVQOnWAXvBenVamlTJmZRu
-	jplwJhBuHAbSEQkHIgkKqbr+9PB8c7DTUAm+lkZiQb9PAaZKSsPuRcBQItLKG0El
-	ZMw7caFEKe2c/KhXlgQeakIR2AAAVwqmJ7y1SOeNilyI7y83Z/DbIlk39MjZ3GGr
-	hD1KEYsUtnHC86aezOSSSw==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-	messagingengine.com; h=cc:cc:content-transfer-encoding
-	:content-type:content-type:date:date:feedback-id:feedback-id
-	:from:from:in-reply-to:in-reply-to:message-id:mime-version
-	:references:reply-to:subject:subject:to:to:x-me-proxy
-	:x-me-sender:x-me-sender:x-sasl-enc; s=fm3; t=1747900431; x=
-	1747986831; bh=8y+itVGGU0k47O61Xq18ziael4/xcoC+X099PMJEObg=; b=n
-	kRK9y7i1YnQtjdWhctxm6K1+POSXfYwooF2pjPMbTOkWuoX4MC1WSdpoe2GzFYKi
-	uaSbWJjr4M60uKV6tHAQ2xUshr+EKId3STbZNs/K8BKDs6zZSKbePwInZC8VzQpK
-	jjTLyuQPoX9Aap969SJk74vPWKkdhJgr1ZCkAkQjRvNDcZxBzMClt/cXO8GVYPj1
-	cRuvfnPicoNWduhxKbPC3sCiWDijlR2REjkGWfHud/bXxukbH59iyJv2LzJtHFbV
-	VOrRrAgTF9H+hZEodpYPa8GFMBzwAA9KEjkO1QR8dJSvs9y253oMsBZIMq3Vd6qR
-	QwsgZTlCt8UB3A1VJOsFw==
-X-ME-Sender: <xms:DtguaO_NiekAFwDgBr1Mz1-tTXt4mLAI4zxCQd8LraJL-41wwypk5Q>
-    <xme:DtguaOuE-6BoCwEJRplcHY6150GWwQ_Twzrzd9twVzxvAikywIIwd7CWS2zqGXbZE
-    PFatgFhc3ZcayRerGc>
-X-ME-Received: <xmr:DtguaEASh85IkTNYgxHIUcaIzyRcYwXHLmF_TQOJzkh58mDn25_LY6yz9HVjEoXiJkCRLvevX5H1MsFGlNpRLPJWTdaugO5Ulw>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgeeffedrtddtgdehgeduucdltddurdegfedvrddttd
-    dmucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdggtfgf
-    nhhsuhgsshgtrhhisggvpdfurfetoffkrfgpnffqhgenuceurghilhhouhhtmecufedttd
-    enucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepggfgtgffkfevuffh
-    vffofhgjsehtqhertdertdejnecuhfhrohhmpedfvehhrhhishhtohhphhgvrhcuufhnoh
-    ifhhhilhhlfdcuoegthhhrihhssehkohguvgehgedrnhgvtheqnecuggftrfgrthhtvghr
-    nhepieeltedujeffgeejgeffhffhhfekfeejgfdtudejheehveelveejjeffkeeikeevne
-    cuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomheptghhrhhi
-    sheskhhouggvheegrdhnvghtpdhnsggprhgtphhtthhopeduvddpmhhouggvpehsmhhtph
-    houhhtpdhrtghpthhtohepmhgrlhhtvgdrshgthhhrohgvuggvrhesthhngihiphdruggv
-    pdhrtghpthhtohepjhhohhhnsehsthhofhhfvghlrdhorhhgpdhrtghpthhtohepkhgvnh
-    htrdhovhgvrhhsthhrvggvtheslhhinhhugidruggvvhdprhgtphhtthhopegrmhhirhej
-    fehilhesghhmrghilhdrtghomhdprhgtphhtthhopehlihhnuhigqdhfshguvghvvghlse
-    hvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqsggtrggthhgv
-    fhhssehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidqkhgvrh
-    hnvghlsehvghgvrhdrkhgvrhhnvghlrdhorhhgpdhrtghpthhtoheplhhinhhugidquhhn
-    ihhonhhfshesvhhgvghrrdhkvghrnhgvlhdrohhrghdprhgtphhtthhopehmihhklhhosh
-    esshiivghrvgguihdrhhhu
-X-ME-Proxy: <xmx:DtguaGexy-EXG_WoVA_IhcPUuW8DMr2AJkc9hG70UUhLkidkm1QNlA>
-    <xmx:DtguaDPXVD73d8Mc7E7J9fpfoWHPFiQ_-4OXvDPDlo0rTdiYJ7lAgw>
-    <xmx:DtguaAkPYuFVT_5pQh84BlwFRSN3_5i7AZ7Kp8uhOUT7hdBu40BY9Q>
-    <xmx:DtguaFsOLC0_KRwhenrNx0Wy7Sf3beez3l0uWvVD-pnDbPguLSibrQ>
-    <xmx:D9guaLy9E6eGdpmZkGfmW6WRef3ey3eS8VHK0mWz7O5YJa47OKEn4R6F>
-Feedback-ID: i9ec6488d:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Thu,
- 22 May 2025 03:53:50 -0400 (EDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="B6p4Ab7S"
+Received: by mail-ej1-f52.google.com with SMTP id a640c23a62f3a-ac2bb7ca40bso1319786866b.3;
+        Thu, 22 May 2025 02:52:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1747907567; x=1748512367; darn=vger.kernel.org;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=gFMldgZxbMt8xYXVYJ2MRH6uoDi4P08vz9B+U1Xf6mA=;
+        b=B6p4Ab7SSsN9ZEVYAarXpa4o5HA85PBfGFp1sosFfZffRraTqFZR3hKLVHdPs5VIjn
+         DExKQs1yHoqtl87A9ovPn6AuGM7eAF/ymLjnKC0S1hLG2cok5XuidLo3+vvl73ab9cIL
+         gAK4XR8iJemTI+EndvlBaeQZlW8nEguLLQBHCovvhF4YPYEIq+9e+U4F354L2PxpVMfZ
+         u/+hZJoOp++ab6Ax2DXNWebAPiLYcWnNlU/BNeHjl89oJ2zDlbm3OlEIX1LkidOqaiOD
+         Ur4Qkm9xFZC8Ppinh0vaJkC2yGoCCWzq1voEdu8E/6JvIFDE6K0haFItl/eJe0uS9t3f
+         ua3Q==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1747907567; x=1748512367;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=gFMldgZxbMt8xYXVYJ2MRH6uoDi4P08vz9B+U1Xf6mA=;
+        b=qPyvqlxinWHA2mnBugvs+ZS8oLHvphX6QyedVc161D14YleS6QfDaZhDAgkix966KP
+         +x63lbh9hhKEuYPQgOz0ecDFXmMefcTFDGM9QnNymVwvyCVYWHaHwjAxKxbh5hsrBO9l
+         rPLGxumTkuCXJXTQgNJfxmlfQmFi/Zpaj1kMwNCMjC1IWfdz+ts+iSAjZsVqBoeVMyd1
+         9j2HlzTgo5AjD4aKuyInjd4l0LD/kQgJNQRe/+wZEKWx6XIK2wee3KjpeR/9XlXKwbtZ
+         BIrznJ3KNsAZLYI2haptHkiV102HtOGgE16zCkqFgd7FHjvFViotpeb3NoilKFsyNwkv
+         JQEQ==
+X-Forwarded-Encrypted: i=1; AJvYcCW0Cld2akj9hLVzW8/1BI/CRTQgHgoUiJWV3hubAxKW4Nsl++5zgJ7Oh7McHRSSgp0F4H/JzqcQfjjUaKqb@vger.kernel.org, AJvYcCWMCbcIPm+AgnnZjMVHq068gOXuG5nBeyoqaAgjrLthGo9AhA66iURlnR1VAz48J52pWis9y1ivCxvaVG/H@vger.kernel.org, AJvYcCWOJGnKdLiyKmEogsQ03Qmfl/7v0kmzJfYBEXX+VmfEG3U8QJCB1aytbrFuM9wj+xXQIJnM1Jwz2zHqgfB7oQ==@vger.kernel.org
+X-Gm-Message-State: AOJu0YwMPOYmVA8QqF6ddvRopRV1VxORnoQacxM2iq7l1Z216qQDuY/8
+	bHSuX/Iq0gHUhmpaFzwwQRreUK+QDFZJhmg/++sYW9T7asYf/FFTZA/XR3/iZtCWVefNOXfr+Mh
+	d9YBiaUQlrLot6Z0TJN/GeZgzNcvql1E=
+X-Gm-Gg: ASbGncuI74nf3xD3bWDmPJ6pbTZRWdHuUgISRcUxaW8nHPqUEHOOnX3b8lMyRJByzZu
+	CZqN4deX3iCOeiSY/xP7N7PM0wMJ5+SnJ82UXdYb4yFVDKJ6QnnRe0KXNcyHCICLJUUVSXLLEO4
+	p+3P+25xWHO0nHefDwbPlAynfiulabU9UW42xaJAtNbIk=
+X-Google-Smtp-Source: AGHT+IGB22O25IZ5BcXrqT79641bjrioGzPSWmVeg/H7USqp8VSMzjZNLtn4ydJfnhKIcqE2knE6m/6lgenfM3sjRPI=
+X-Received: by 2002:a17:907:7f16:b0:ad5:5210:749c with SMTP id
+ a640c23a62f3a-ad5521075fbmr1605236766b.22.1747907566989; Thu, 22 May 2025
+ 02:52:46 -0700 (PDT)
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
-Mime-Version: 1.0
+MIME-Version: 1.0
+References: <20250521-ovl_ro-v1-1-2350b1493d94@igalia.com> <CAOQ4uxgXP8WrgLvtR6ar+OncP6Fh0JLVO0+K+NtDX1tGa2TVxA@mail.gmail.com>
+ <20250521-blusen-bequem-4857e2ce9155@brauner> <32f30f6d-e995-4f00-a8ec-31100a634a38@igalia.com>
+In-Reply-To: <32f30f6d-e995-4f00-a8ec-31100a634a38@igalia.com>
+From: Amir Goldstein <amir73il@gmail.com>
+Date: Thu, 22 May 2025 11:52:35 +0200
+X-Gm-Features: AX0GCFsagP10uSTz4tMfRGU5JVqwaEGgTNn5lkYErEGC14DdVWJ6bUc-4EDUypU
+Message-ID: <CAOQ4uxg6RCJf6OBzKgaWbOKn3JhtgWhD6t=yOfufHuJ7jwxKmw@mail.gmail.com>
+Subject: Re: [PATCH] ovl: Allow mount options to be parsed on remount
+To: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+Cc: Christian Brauner <brauner@kernel.org>, Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, kernel-dev@igalia.com, 
+	linux-fsdevel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 22 May 2025 00:53:49 -0700
-Message-Id: <DA2IZNYD4QH3.111ZX60XF1N58@kode54.net>
-Cc: "Amir Goldstein" <amir73il@gmail.com>, <linux-fsdevel@vger.kernel.org>,
- <linux-bcachefs@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
- <linux-unionfs@vger.kernel.org>, "Miklos Szeredi" <miklos@szeredi.hu>,
- "Alexander Viro" <viro@zeniv.linux.org.uk>, "Christian Brauner"
- <brauner@kernel.org>, "Jan Kara" <jack@suse.cz>
-Subject: Re: [PATCH 0/6] overlayfs + casefolding
-From: "Christopher Snowhill" <chris@kode54.net>
-To: =?utf-8?q?Malte_Schr=C3=B6der?= <malte.schroeder@tnxip.de>, "John
- Stoffel" <john@stoffel.org>, "Kent Overstreet" <kent.overstreet@linux.dev>
-X-Mailer: aerc 0.20.1-0-g2ecb8770224a
-References: <20250520051600.1903319-1-kent.overstreet@linux.dev>
- <CAOQ4uxg8p2Kg0BKrU4NSUzLVVLWcW=vLaw4kJkVR1Q-LyRbRXA@mail.gmail.com>
- <osbsqlzkc4zttz4gxa25exm5bhqog3tpyirsezcbcdesaucd7g@4sltqny4ybnz>
- <CAOQ4uxjUC=1MinjDCOfY5t89N3ga6msLmpVXL1p23qdQax6fSg@mail.gmail.com>
- <gdvg6zswvq4zjzo6vntggoacrgxxh33zmejo72yusp7aqkqzic@kaibexik7lvh>
- <CAOQ4uxg9sKC_8PLARkN6aB3E_U62_S3kfnBuRbAvho9BNzGAsQ@mail.gmail.com>
- <rkbkjp7xvefmtutkwtltyd6xch2pbw47x5czx6ctldemus2bvj@2ukfdmtfjjbw>
- <26668.52908.574606.416955@quad.stoffel.home>
- <25234476-2011-4ade-affe-687d45dcbc3c@tnxip.de>
-In-Reply-To: <25234476-2011-4ade-affe-687d45dcbc3c@tnxip.de>
 
-On Wed May 21, 2025 at 4:26 AM PDT, Malte Schr=C3=B6der wrote:
-> On 20/05/2025 20:49, John Stoffel wrote:
->>>>>>> "Kent" =3D=3D Kent Overstreet <kent.overstreet@linux.dev> writes:
->>> On Tue, May 20, 2025 at 04:03:27PM +0200, Amir Goldstein wrote:
->>>> On Tue, May 20, 2025 at 2:43=E2=80=AFPM Kent Overstreet
->>>> <kent.overstreet@linux.dev> wrote:
->>>>> On Tue, May 20, 2025 at 02:40:07PM +0200, Amir Goldstein wrote:
->>>>>> On Tue, May 20, 2025 at 2:25=E2=80=AFPM Kent Overstreet
->>>>>> <kent.overstreet@linux.dev> wrote:
->>>>>>> On Tue, May 20, 2025 at 10:05:14AM +0200, Amir Goldstein wrote:
->>>>>>>> On Tue, May 20, 2025 at 7:16=E2=80=AFAM Kent Overstreet
->>>>>>>> <kent.overstreet@linux.dev> wrote:
->>>>>>>>> This series allows overlayfs and casefolding to safely be used on=
- the
->>>>>>>>> same filesystem by providing exclusion to ensure that overlayfs n=
-ever
->>>>>>>>> has to deal with casefolded directories.
->>>>>>>>>
->>>>>>>>> Currently, overlayfs can't be used _at all_ if a filesystem even
->>>>>>>>> supports casefolding, which is really nasty for users.
->>>>>>>>>
->>>>>>>>> Components:
->>>>>>>>>
->>>>>>>>> - filesystem has to track, for each directory, "does any _descend=
-ent_
->>>>>>>>>   have casefolding enabled"
->>>>>>>>>
->>>>>>>>> - new inode flag to pass this to VFS layer
->>>>>>>>>
->>>>>>>>> - new dcache methods for providing refs for overlayfs, and filesy=
-stem
->>>>>>>>>   methods for safely clearing this flag
->>>>>>>>>
->>>>>>>>> - new superblock flag for indicating to overlayfs & dcache "files=
-ystem
->>>>>>>>>   supports casefolding, it's safe to use provided new dcache meth=
-ods are
->>>>>>>>>   used"
->>>>>>>>>
->>>>>>>> I don't think that this is really needed.
->>>>>>>>
->>>>>>>> Too bad you did not ask before going through the trouble of this i=
-mplementation.
->>>>>>>>
->>>>>>>> I think it is enough for overlayfs to know the THIS directory has =
-no
->>>>>>>> casefolding.
->>>>>>> overlayfs works on trees, not directories...
->>>>>> I know how overlayfs works...
->>>>>>
->>>>>> I've explained why I don't think that sanitizing the entire tree is =
-needed
->>>>>> for creating overlayfs over a filesystem that may enable casefolding
->>>>>> on some of its directories.
->>>>> So, you want to move error checking from mount time, where we _just_
->>>>> did a massive API rework so that we can return errors in a way that
->>>>> users will actually see them - to open/lookup, where all we have are =
-a
->>>>> small fixed set of error codes?
->>>> That's one way of putting it.
->>>>
->>>> Please explain the use case.
->>>>
->>>> When is overlayfs created over a subtree that is only partially case f=
-olded?
->>>> Is that really so common that a mount time error justifies all the vfs
->>>> infrastructure involved?
->>> Amir, you've got two widely used filesystem features that conflict and
->>> can't be used on the same filesystem.
->> Wait, what?  How many people use casefolding, on a per-directory
->> basis?  It's stupid.  Unix/Linux has used case-sensitive filesystems
->> for years.  Yes, linux supports other OSes which did do casefolding,
->> but yikes... per-directory support is just insane.  It should be
->> per-filesystem only at BEST. =20
->>
->>> That's _broken_.
->> So?  what about my cross mounting of VMS filesystems with "foo.txt;3"
->> version control so I can go back to previous versions?  Why can't I do
->> that from my Linux systems that's mounting that VMS image?  =20
->>
->> Just because it's done doesn't mean it's not dumb. =20
->>
->>> Users hate partitioning just for separate /boot and /home, having to
->>> partition for different applications is horrible. And since overlay
->>> fs is used under the hood by docker, and casefolding is used under
->>> the hood for running Windows applications, this isn't something
->>> people can predict in advance.
->> Sure I can, I don't run windows applications to screw casefolding.
->> :-)
->>
->> And I personally LIKE having a seperate /boot and /home, because it
->> gives isolation.  The world is not just single user laptops with
->> everything all on one disk or spread across a couple of disks using
->> LVM or RAID or all of the above. =20
->>
->> I also don't see any updates for the XFS tests, or any other
->> filesystem tests, that actually checks and confirms this decidedly
->> obtuse and dumb to implement idea. =20
->>
->>
->> John
->>
-> Hi there,
+On Thu, May 22, 2025 at 8:20=E2=80=AFAM Andr=C3=A9 Almeida <andrealmeid@iga=
+lia.com> wrote:
 >
-> would you partition different subdirs of your /home? So there is
-> .local/share/containers where users put their container-stuff (at least
-> podman does). Then there is .wine where case-folding-craziness lives.
-> And then there is the mess that is Steam, which does all kinds of
-> containery case-foldy stuff. As much as I would like to keep these
-> things apart, it is not feasible. Not for me as a "power user", and
-> certainly far out of reach for average Joe user.
+> Hi Christian, Amir,
 >
-> Just my 2 ct, greets
-
-"But just disable it globally" How about no. Sure, ext4 has that flag,
-but bcachefs by design does not. And a change that already made it into
-6.15 has made it trip overlayfs as it is now, unconditionally. The
-purpose of this new implementation is to make it work, and satisfy the
-condition that overlayfs is guaranteed no casefolding in its tree, and
-that nobody may create a new folder inside that tree and suddenly turn
-on casefolding on it.
-
-And this change also makes it possible to use it with ext4 with the
-global casefolding flag enabled. It shouldn't be necessary to have a
-global killswitch, these features should be able to live together on the
-same filesystem as long as they're not touching each other, and aren't
-allowed to touch each other.
-
+> Thanks for the feedback :)
 >
-> /Malte
+> Em 21/05/2025 08:20, Christian Brauner escreveu:
+> > On Wed, May 21, 2025 at 12:35:57PM +0200, Amir Goldstein wrote:
+> >> On Wed, May 21, 2025 at 8:45=E2=80=AFAM Andr=C3=A9 Almeida <andrealmei=
+d@igalia.com> wrote:
+> >>>
+>
+> [...]
+>
+> >>
+> >> I see the test generic/623 failure - this test needs to be fixed for o=
+verlay
+> >> or not run on overlayfs.
+> >>
+> >> I do not see those other 5 failures although before running the test I=
+ did:
+> >> export LIBMOUNT_FORCE_MOUNT2=3Dalways
+> >>
+> >> Not sure what I am doing differently.
+> >>
+>
+> I have created a smaller reproducer for this, have a look:
+>
+>   mkdir -p ovl/lower ovl/upper ovl/merge ovl/work ovl/mnt
+>   sudo mount -t overlay overlay -o lowerdir=3Dovl/lower,upperdir=3Dovl/
+> upper,workdir=3Dovl/work ovl/mnt
+>   sudo mount ovl/mnt -o remount,ro
+>
 
+Why would you use this command?
+Why would you want to re-specify the lower/upperdir when remounting ro?
+And more specifically, fstests does not use this command in the tests
+that you mention that they fail, so what am I missing?
+
+> And this returns:
+>
+>   mount: /tmp/ovl/mnt: fsconfig() failed: overlay: No changes allowed in
+>   reconfigure.
+>         dmesg(1) may have more information after failed mount system call=
+.
+>
+> However, when I use mount like this:
+>
+>   sudo mount -t overlay overlay -o remount,ro ovl/mnt
+>
+> mount succeeds. Having a look at strace, I found out that the first
+> mount command tries to set lowerdir to "ovl/lower" again, which will to
+> return -EINVAL from ovl_parse_param():
+>
+>     fspick(3, "", FSPICK_NO_AUTOMOUNT|FSPICK_EMPTY_PATH) =3D 4
+>     fsconfig(4, FSCONFIG_SET_STRING, "lowerdir", "/tmp/ovl/lower", 0) =3D
+> -1 EINVAL (Invalid argument)
+>
+> Now, the second mount command sets just the "ro" flag, which will return
+> after vfs_parse_sb_flag(), before getting to ovl_parse_param():
+>
+>     fspick(3, "", FSPICK_NO_AUTOMOUNT|FSPICK_EMPTY_PATH) =3D 4
+>     fsconfig(4, FSCONFIG_SET_FLAG, "ro", NULL, 0) =3D 0
+>
+> After applying my patch and running the first mount command again, we
+> can set that this flag is set only after setting all the strings:
+>
+>     fsconfig(4, FSCONFIG_SET_STRING, "lowerdir", "/tmp/ovl/lower", 0) =3D=
+ 0
+>     fsconfig(4, FSCONFIG_SET_STRING, "upperdir", "/tmp/ovl/upper", 0) =3D=
+ 0
+>     fsconfig(4, FSCONFIG_SET_STRING, "workdir", "/tmp/ovl/work", 0) =3D 0
+>     fsconfig(4, FSCONFIG_SET_STRING, "uuid", "on", 0) =3D 0
+>     fsconfig(4, FSCONFIG_SET_FLAG, "ro", NULL, 0) =3D 0
+>
+> I understood that the patch that I proposed is wrong, and now I wonder
+> if the kernel needs to be fixed at all, or if the bug is how mount is
+> using fsconfig() in the first mount command?
+
+Maybe I am not reading your report correctly, but as this commands works:
+
+mount -t overlay overlay -o remount,ro ovl/mnt
+
+and the fstests that call _scratch_remount() work
+I don't think there is anything to fix and I do not understand
+what is the complaint.
+
+Thanks,
+Amir.
