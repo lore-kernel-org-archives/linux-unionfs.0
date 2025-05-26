@@ -1,132 +1,110 @@
-Received: from mail-wm1-f53.google.com (mail-wm1-f53.google.com [209.85.128.53])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from fanzine2.igalia.com (fanzine2.igalia.com [213.97.179.56])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id DA36A211479;
-	Mon, 26 May 2025 14:35:10 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.53
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 83A5D1BC07A;
+	Mon, 26 May 2025 17:05:51 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=213.97.179.56
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748270112; cv=none; b=bb0DivBxjWqGmj844xvAocsuN99cuRlKm+noMlHOxTuD1iAXL6O/g9Ne8DW1+kH/3IirLAu2SDbJK5DBGwKnvMw9BwMkPQvdm2SgvNviltnp3/bOh5FwpjdlhUCrS7JX4rMdhbH8mqbniu7IjhZTYguJPaiFzz7coNSrqRo5dZY=
+	t=1748279155; cv=none; b=M6yw4Sa2N8f6DDItbicfflWxg0xWShMkpk1ID21SM2NZqFzmgwdcec6joLtagn8jCM72v6ljeD41Gz3G+HE09SnC5zFUbhkZs+0xiftT8wm35QRAnFKcVhVVODypiqAfBQerx6ephAsLIQzoAR36Sw3+adMeeknQmafu1HFAruo=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748270112; c=relaxed/simple;
-	bh=q+flX8Yeuf/+ahD45ZjtglFwkCM3LcmYWg5GrhwSJMw=;
-	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version:Content-Type; b=D/WcHF6uFUoJ5uZn+NsscRJNX4D2jAWZXU39pgu+5K18f8JbRq5aEk7YC+38UOhjz7cK2XwNd3ebqNVLr/XKTYuLdtuPXyd2disD+XDahZ2oXuKpOxzEcuzlnRrIYGSJkVhRKen9U5WUbolNrIwCNkrNWrGkeTq2+q9AzMMJAR0=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=OuTnkKGB; arc=none smtp.client-ip=209.85.128.53
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
+	s=arc-20240116; t=1748279155; c=relaxed/simple;
+	bh=xB452GDLlMmqU3tViJ7o8wAa6B7kuI15SmSpGIQoEaE=;
+	h=Message-ID:Date:MIME-Version:Subject:To:Cc:References:From:
+	 In-Reply-To:Content-Type; b=h2tOpkBmCJRgPGiJaOo0fzfSH3N5TmI65KPlGEowu0GanCMgcUixZ5KPa3e0M6O3Xskj3gWWve20e6fa0xSmUED62XNbQ0m7q2tm+H8pKrtI/qc9PQp8eSmQUhscX5Im6qxN0VdY6CRecXx4zbEJ0L8/hjawjPjfu3FQGTwvyKQ=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com; spf=pass smtp.mailfrom=igalia.com; dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b=UBqg2p0G; arc=none smtp.client-ip=213.97.179.56
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=igalia.com
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=igalia.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="OuTnkKGB"
-Received: by mail-wm1-f53.google.com with SMTP id 5b1f17b1804b1-43cec5cd73bso18374705e9.3;
-        Mon, 26 May 2025 07:35:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1748270109; x=1748874909; darn=vger.kernel.org;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=+ocDOJ521VH+qPFeK/vIp6silfA0id84C5GBE4/qVFM=;
-        b=OuTnkKGB+ojjRYNqwYj8F1Hx1RdhAnhNULbjFLXTOnaNR31AoEDmtVaZ18IAP9sjkk
-         cVwL6q2EqtuYP7Qa7TbDpT905EJnWhEV4h9mnXFw8oFdXSSO8t7Xx9gsQr9KXNE1vilx
-         JJa3DoBWWlTkWy/dlXiPUZFiboJhWmBzKc+wwWQNMFybLIdlAFh35wzn9ip3rRlMGz4x
-         Mll7edy55BRuSBtXrihCI1MiV9tQMc8I4HKSUOc3zg+wqZWfVIYicjhVy8XdDLsXAGlu
-         MloVwB8Uz1VKR64UIXLtsYW+/3z4TeqowAoigdqFh3Aw2tMh4/50GpiDrcLyDVso97GG
-         VbjQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748270109; x=1748874909;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=+ocDOJ521VH+qPFeK/vIp6silfA0id84C5GBE4/qVFM=;
-        b=V1oCSzW9oVERYi/4VZPzrhG4WXKMD6ZCpLK99DLlkwmAQ12w7JPprxQ92hEv7zXt0l
-         jnL0GElTsJAO/YmmmajOqiPeSVx256zZj23qtFl+W3Wp7zjohotK3kRjufuuhrBZ3EiF
-         8CaMeE8gY7ZbtAwJwxSLwc0pADSa/aW+SlEk+lJGVat4dBoDFFysas0X7Hn6bcxkSlIN
-         7VmwUgKA9+cbAFiIWIsyK8z49uHPLfzPaCM3NoNk4Wt1wkVnzysrhGiYNQLd4rVKexKU
-         NUz0EkmAVSAFeGfrbLYRKBBP+WvEnpHTarA0J4ophSJ7UfuB/82BtrBwbhIYiFQ6/Ku2
-         LRLw==
-X-Forwarded-Encrypted: i=1; AJvYcCV1Fmix9UrIaHqwGnpDt6ZH84DLG29D4c5ezOOVDQIqrG2PrqSRKx5BPE37dG4Z7aMVh7Pqp1P+HHRq5qLTXQ==@vger.kernel.org, AJvYcCXEaiJKa7by/VZM0/RqDBCDj4vEMNHEYH/hVqPG2Yr+VSYnohdYp+x3E9Dyp93+aEW00JhDoYVB@vger.kernel.org
-X-Gm-Message-State: AOJu0Ywuy6myq7OMtCJpJzFH+dXvCq3Maxt2fpM1z98XhkSADYB4QPHb
-	rmuYn/5Hes6Q6rAxgm0PGAT3BclOh/GYjnt8qu/Z3CYU5oGphmgClMbb
-X-Gm-Gg: ASbGncvvr8YmK6trBB11EMtDu9my2XB28+9OqcYgKM0aezxji1FUM80ZVufD9A0yv43
-	du2qLQOfV7IlzQFhTavG80IO/6pPKoJIA+9/cW5h08oLyGlzhV+WGMfVCysqyzOBovtd2E0Ufvb
-	gRg0+LMPSs/eNQhnNNbksQaZqlVzkgSDmWoSK0SAbFHyi8oOjhEbNEo5NUw69WQH8mQ/1i55Ep9
-	rd6o63bpiKApvsH0kU27BjuUi/+k0Vtjgy08I+HGgVHo2/Pil2UDNWU1dHi54x9R3Ji8G+GROeR
-	Q9dPeQmWRUx3xbm61+SRKLZrn1REdsZ607fve+g6pvjmdX5Moot4qpdeDUBjPTDJ+xSqQlxCSfO
-	ZlBg25Ujp7wHofRGOlPNmAF5VUk5dqm5qZeDnXni2pEN8Sbkr
-X-Google-Smtp-Source: AGHT+IE9l/rZy1LD1+zh2cqUDF8nHUo35CgwfJSCNMHhlvcXXoLXwtzc0O95Lj6uYsHGK9ZsaXXtFg==
-X-Received: by 2002:a05:600c:22c1:b0:442:dc6e:b9a6 with SMTP id 5b1f17b1804b1-44c91dcc104mr69037055e9.17.1748270108776;
-        Mon, 26 May 2025 07:35:08 -0700 (PDT)
-Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-447f1ef032esm245264865e9.9.2025.05.26.07.35.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 May 2025 07:35:08 -0700 (PDT)
-From: Amir Goldstein <amir73il@gmail.com>
-To: Zorro Lang <zlang@redhat.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>,
-	linux-unionfs@vger.kernel.org,
-	fstests@vger.kernel.org,
-	=?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@igalia.com>
-Subject: [PATCH 4/4] generic/623: do not run with overlayfs
-Date: Mon, 26 May 2025 16:35:00 +0200
-Message-Id: <20250526143500.1520660-6-amir73il@gmail.com>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20250526143500.1520660-1-amir73il@gmail.com>
-References: <20250526143500.1520660-1-amir73il@gmail.com>
+	dkim=pass (2048-bit key) header.d=igalia.com header.i=@igalia.com header.b="UBqg2p0G"
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+	s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+	References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+	Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+	Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+	List-Subscribe:List-Post:List-Owner:List-Archive;
+	bh=YjlAIyDdGrC5uGiMRKqCY4uNSnfygHbWDAHZSZbx6BY=; b=UBqg2p0GE09+64E8WGpHtQXTx4
+	PKkoBsABlcv7XSchnONXncwA3ds+cyF18tDwj5lEWtfmFVMUags2R+p+C4eVZ35XFbXwaNP17BtAE
+	dZADxYgwCz27+ChC5uX1ZozXJ/DRyi/t3RqahMLcAn/pRC3H1ymZkBl/tDEKmjVDVT6hq21l2kXBt
+	JfmI5gvxHav2uZhZxUbLyQS/+I5PIv4Fw80N/oSP6P3Gpwd1PWKDXz5S2YOHqDX9ZQ5tjpvIUNyBZ
+	7ugnATyh2piebwHgZj0oOwiHTiDljCEhv98qku/GJH2VWxAxgp7j+90KdUNckwaxJA0GzBlk9c2uS
+	jhrPLHMA==;
+Received: from [191.204.192.64] (helo=[192.168.15.100])
+	by fanzine2.igalia.com with esmtpsa 
+	(Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+	id 1uJbGk-00DOL2-1y; Mon, 26 May 2025 19:05:46 +0200
+Message-ID: <0b4a524d-52e3-46e8-b119-255e3e134ef7@igalia.com>
+Date: Mon, 26 May 2025 14:05:42 -0300
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+User-Agent: Mozilla Thunderbird
+Subject: Re: [PATCH 0/4] fstests overlay fixes for v2025.05.25
+To: Amir Goldstein <amir73il@gmail.com>, Zorro Lang <zlang@redhat.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>, linux-unionfs@vger.kernel.org,
+ fstests@vger.kernel.org, kernel-dev@igalia.com
+References: <20250526143500.1520660-1-amir73il@gmail.com>
+Content-Language: en-US
+From: =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>
+In-Reply-To: <20250526143500.1520660-1-amir73il@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 
-This test performs shutdown via xfs_io -c shutdown.
+Hi Amir,
 
-Overlayfs tests can use _scratch_shutdown, but they cannot use
-"-c shutdown" xfs_io command without jumping through hoops, so by
-default we do not support it.
+Thanks for the fixes!
 
-Add this condition to _require_xfs_io_command and add the require
-statement to test generic/623 so it wont run with overlayfs.
+First of all, you sent two patches for 3/4:
+[PATCH 3/4] generic/604: do not run with overlayfs
+[PATCH 3/4] generic/604: opt-out with overlayfs
 
-Reported-by: André Almeida <andrealmeid@igalia.com>
-Link: https://lore.kernel.org/linux-fsdevel/20250521-ovl_ro-v1-1-2350b1493d94@igalia.com/
-Signed-off-by: Amir Goldstein <amir73il@gmail.com>
----
- common/rc         | 8 ++++++++
- tests/generic/623 | 1 +
- 2 files changed, 9 insertions(+)
+I tested this with Linux 6.15 with the following command:
+   $ sudo FSTYPE=ext4 TEST_DIR=/tmp/dir1 TEST_DEV=/dev/vdb 
+SCRATCH_DEV=/dev/vdc SCRATCH_MNT=/tmp/dir2 ./check -overlay
 
-diff --git a/common/rc b/common/rc
-index d8ee8328..bffd576a 100644
---- a/common/rc
-+++ b/common/rc
-@@ -3033,6 +3033,14 @@ _require_xfs_io_command()
- 		touch $testfile
- 		testio=`$XFS_IO_PROG -c "syncfs" $testfile 2>&1`
- 		;;
-+	"shutdown")
-+		if [ $FSTYP = "overlay" ]; then
-+			# Overlayfs tests can use _scratch_shutdown, but they
-+			# cannot use "-c shutdown" xfs_io command without jumping
-+			# through hoops, so by default we do not support it.
-+			_notrun "xfs_io $command not supported on $FSTYP"
-+		fi
-+		;;
- 	*)
- 		testio=`$XFS_IO_PROG -c "help $command" 2>&1`
- 	esac
-diff --git a/tests/generic/623 b/tests/generic/623
-index b97e2adb..4e36daaf 100755
---- a/tests/generic/623
-+++ b/tests/generic/623
-@@ -16,6 +16,7 @@ _begin_fstest auto quick shutdown mmap
- 
- _require_scratch_nocheck
- _require_scratch_shutdown
-+_require_xfs_io_command "shutdown"
- 
- _scratch_mkfs &>> $seqres.full
- _scratch_mount
--- 
-2.34.1
+These are the results before applying this patchset:
+
+   Failures: generic/294 generic/306 generic/452 generic/599 generic/623 
+overlay/019 overlay/035
+   Failed 7 of 859 tests
+
+After applying:
+
+   Failures: generic/294 overlay/019
+   Failed 2 of 859 tests
+
+So the tests that I reported in my thread are now working.
+
+All patches are:
+Tested-by: André Almeida <andrealmeid@igalia.com>
+
+Em 26/05/2025 11:34, Amir Goldstein escreveu:
+> Zorro,
+> 
+> It's been a while since I upgraded my test machine.
+> A recent quick run with overlay had some failed tests.
+> 
+> This fixes some of them and opts-out of some.
+> The first patch is a re-post related to upgrade of my distro
+> to a newer distro (trixie) using libmount v1.41.
+> 
+> Thanks,
+> Amir.
+> 
+> Amir Goldstein (4):
+>    overlay: workaround libmount failure to remount,ro
+>    overlay: fix regression in _repair_overlay_scratch_fs
+>    generic/604: do not run with overlayfs
+>    generic/623: do not run with overlayfs
+> 
+>   common/overlay    |  6 +++++-
+>   common/rc         |  8 ++++++++
+>   tests/generic/330 |  2 +-
+>   tests/generic/604 | 11 ++++++-----
+>   tests/generic/623 |  1 +
+>   tests/overlay/035 |  2 +-
+>   6 files changed, 22 insertions(+), 8 deletions(-)
+> 
 
