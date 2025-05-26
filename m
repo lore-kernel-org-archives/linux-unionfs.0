@@ -1,71 +1,71 @@
-Received: from mail-wm1-f54.google.com (mail-wm1-f54.google.com [209.85.128.54])
+Received: from mail-wm1-f45.google.com (mail-wm1-f45.google.com [209.85.128.45])
 	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EED9320D516;
-	Mon, 26 May 2025 14:35:07 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.54
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 25C4728EB;
+	Mon, 26 May 2025 14:35:08 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.128.45
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748270109; cv=none; b=eJfxsX+0pNs+tZrHvQPd8dtFp58EleKi91aWGKnEP0yKuSE8Ij1OAABhZs/CosQK304klZWS/jW/A86SHATfeoivKQP+505m/0HpibKlUAzEjqbHBlH70L4jmxpNNbYmKovzhOdQczs0bGWHIvg9zzu/vx0EPgmKZqdLf/O6mu8=
+	t=1748270110; cv=none; b=Eog6Drj/0LJ8s3ZZ6c9nTtP93FRyQeAMnugxaLh8/9lSm2Vm5zYx6j21udF6kV1ifbKPDRzYfwya7PKyy/tPFvizKHOPnd8Vaw8RI70yy6FQazTs/tRBPZpuLeFYWkQNiOHBtr0Qkv6ClYAx+ls8XoCHyA8oSNfXrfg9IlK4trM=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748270109; c=relaxed/simple;
-	bh=k5vgbovlJ67Hmia3DtoU0YbPIEaJ8H4I3fXFtWV+/mc=;
+	s=arc-20240116; t=1748270110; c=relaxed/simple;
+	bh=Gc9IE++rCFZ5DGL2F8lhL+TVcaJdmHR6ZKu010M+fWk=;
 	h=From:To:Cc:Subject:Date:Message-Id:In-Reply-To:References:
-	 MIME-Version; b=rz/IQJUcB1zC8Ix/KClGa+BR5UxCiJfxae9umDeV/0ky7ndvV3UgLqETJfZ7Vxq3ts92Hyjoq3MglcK2qePFWEwQl7ofY8vlfEhYUG9T3D2A0V3Bfct6jTt4UuJfI/r9vGsSxUOoWnu9+tu1oz+UTK4gkvY6OtyEV7J8hrQDYmk=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=BUlwzBRM; arc=none smtp.client-ip=209.85.128.54
+	 MIME-Version; b=sJyEmV7AAergXuQz6nyiSSjDYsY1QNNCNCGUTOtZx3MpaCa8EZbnH0RUonVEgbK0bLrMOiwvMPgm7aaLHGs83w5jI+3t3b3POGT53dUaJizZOeir4ahEnMK0YO/h9KpI7J+paxqeTFWZeWupT+VpfE2gGSVI3a9qf63Gt5Tp8jU=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com; spf=pass smtp.mailfrom=gmail.com; dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b=KgRnf8JU; arc=none smtp.client-ip=209.85.128.45
 Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=gmail.com
 Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=gmail.com
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="BUlwzBRM"
-Received: by mail-wm1-f54.google.com with SMTP id 5b1f17b1804b1-44b1ff82597so21228695e9.3;
-        Mon, 26 May 2025 07:35:07 -0700 (PDT)
+	dkim=pass (2048-bit key) header.d=gmail.com header.i=@gmail.com header.b="KgRnf8JU"
+Received: by mail-wm1-f45.google.com with SMTP id 5b1f17b1804b1-43cfe63c592so30633245e9.2;
+        Mon, 26 May 2025 07:35:08 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1748270106; x=1748874906; darn=vger.kernel.org;
+        d=gmail.com; s=20230601; t=1748270107; x=1748874907; darn=vger.kernel.org;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=lFUepdz79RTjcAX2ZspaNLCqoZxjqfsR2YfpOLgmb0g=;
-        b=BUlwzBRMdg1nXH37R1duwO5H2saXCYge29XVMZ5Wcvca1gIevJ1w52YRsCHrJU12MV
-         wbfpo73nKY0vKY0tg/TurMPMDYLflon09DHcmQRmKDk63d+XrVo5+a4hA6Em43kNTeHZ
-         h1rQ1z7yvgn1913qU7qccrHisSAUMNVLpNFaSqhinM+Y73LPqRrrNnJVHp6Mp/C1dSJk
-         Z8hffWyzyYwYciCEQbK4zGX1Qbd22fhgfyYJw/CFcze+ayT4MOxkkFwYc0MmM/9+6BUA
-         suOcYxT3ByK/uZ3ePrpQVopVTNohtSDE1/Dv9XrCcujNpysl7rC2kt4A2ctJawIrY4qC
-         W63A==
+        bh=vR5bUdiSmhX1URrwVgsxxS+HHRIyPs+GseYGYuEbtMI=;
+        b=KgRnf8JUA7a2Y6be1e0V33NSA9dZugaEauGHQQLk4CoHWMEI+JDusl8qW6CqFhZDws
+         S0b9Xmind4WwG8TUC5mgYhPHrpi+GAuenr94KDTDPGrqoWWbXywxfYOoZZg2+dbuYbMh
+         dLos0aSSrrlvfugYJO0X20ty3Fgysy2zPbLzSnbybwiwgIrQ229fB7vIH/ztCqOcjLTf
+         4s0oBkN5sTCT5RUBp92or79tdEyNka1nAqgCe/V+YI88zImE1BaKqROYeV3sNrseQ/z5
+         BmQgBC7tD2B97+ygyAzntUpxaYFr7Dxcw9f/WaZdgbCWVoq7zXIOBB31+fHWL910dUn8
+         ieOA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748270106; x=1748874906;
+        d=1e100.net; s=20230601; t=1748270107; x=1748874907;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=lFUepdz79RTjcAX2ZspaNLCqoZxjqfsR2YfpOLgmb0g=;
-        b=KTcZgBb9vvWKeigClJ21p5meBAfqfUNzwYbUIjtIdUHE3DkxH5Be2XAU0lAg00MQjp
-         9H0GvH7MRRlo/FT/HysjNMiQwVG1Fq9gL3VDcsMDPozG+/K0oB0BDF5tmj5cxxFIPWhD
-         RUTT/vsMMFJU0QtSCSNKeJKyMpUVTLQllJjHfIdjFR67P0Fv5CBpf9MtT1T90Y4px9z1
-         29pRQsnmrI1rCPHrMibwf6UpqoFIerb+Ocrkro1wup5vNiH1oQqzhxDr7GB8cMKvyMAc
-         PUvc2DhydQbZMLHWqNNgbMnSziJhgByswX/fjx464ux9EXtWhtt0dz9zkN8L7D+xG3zC
-         w+Qw==
-X-Forwarded-Encrypted: i=1; AJvYcCVXU69HQFHv5pnDfJowwz3lZaxloJKf8VfItKzmeXPB1pjhi4QJV4rBo/i+nKh5F/6aazLV61Qw@vger.kernel.org, AJvYcCWy4GaIjfNZ70K9JnoeF3eoVm0kepet52sQHsYonh5doayxDj7YS/S5LHgPsyks+myRbyO2aK93Gcdm29NQig==@vger.kernel.org
-X-Gm-Message-State: AOJu0YzM1duhfbESggJtwyog6kryX0SeQ5ujVlXN8YF4KzU8HWKLEOss
-	7cU+SHuH3ZeMb0i0gcf/xjBnMzjfwIt8u34V/9f9lnQ0cZgk1NM0X7YL
-X-Gm-Gg: ASbGncu3hNDAOq5gfFZan7bv+rA1rcA/kHQmVv8nvB6nm8k48u5+6/Umh+ATXS2QDar
-	vrnWT7haUFWZdBRC2iOb2EIZDv8IiD+hqRnfGgAsM+yIA+5NN9zMpTgsq9cQ9pwNfHKQJYKhHEa
-	IH1OlVjzUrwFYMHoOiwQ2RV/H4Uwmm7wD44wOq0kUxu9u40zhq3gjlRJqWPB0K/Af5aad8yVB6c
-	pb1cRrafGcCkU44Ks1k7tK5scHX2WBS78lHcdkmZGHAWbZd92Q21g1sgaGRpqzltY/7l+kCjncy
-	3HypiqHc0MqOZqZEvkxxzFNZp1qBDcRAdrsatE+x4xFEs5997YVeakTmNy5rftqo4DCVbprPF4W
-	oPArlh2LwER2pHGLdYqp3ehNM62MAAz/vSne3xKXdwDHP+bnt
-X-Google-Smtp-Source: AGHT+IHTNfZR0f6L+2exMYDb3rgZP8vBpM2wZTNmkxm75zsueXC0B+2IOr/oiasElHFuE0/EPwXwpg==
-X-Received: by 2002:a05:600c:6216:b0:43d:ac5:11e8 with SMTP id 5b1f17b1804b1-44c92f21e4dmr78703685e9.21.1748270105912;
-        Mon, 26 May 2025 07:35:05 -0700 (PDT)
+        bh=vR5bUdiSmhX1URrwVgsxxS+HHRIyPs+GseYGYuEbtMI=;
+        b=wnD8Zf0qQcpNdx9qA0rqnEl1+NuYeMszEw1oeQF2PoijVUx0w0b5v1kaPQqZSCLM3M
+         p09jCwf8YCWV5VxNXpVmR/dUjXFEnWBcKpnkPgRqXLFW43fOIgMTgQobZl+hni5TIxbE
+         Rtx/lZMK3pMEIujv4MbN73otDxzQU2AqrKX3ntnhTPzqoTwjWPjSlJx5MiCsNAXeOWRy
+         gfdav34hRoxC0LKkkE2df7ifhM1ZRNWBzFZPnOxVihpHtiexLqXMgXGewWZtE/ZHNqy/
+         tk6IlihSLWCRU9kFONhn6/DuygH+we3j7b+hhIAi8BCb0kSN1by1AmGFFUkdErx+W3A/
+         P2XA==
+X-Forwarded-Encrypted: i=1; AJvYcCVI1rrkdJPy6difAtNZEvSvaKWIHb7wSv6Dbyp04RuCClwiIkrtaSCt0LFlj4HKNTcvHyuLIWpH@vger.kernel.org, AJvYcCXTaDVN/N0OcTu729GtCnHeGQA6KCQet71XlNmYls+UH0OZGRk28I/PXBvpgvgJu4//QAK3g9Q49yrvnQOkzg==@vger.kernel.org
+X-Gm-Message-State: AOJu0YwppUv1zq4fjXA+6xVOKg8/Fa5YeqFnePn2HA4c0GBWxzVB4yww
+	/TeZsifWeAAU8XuqMnH1ujLWnB/pK3+73QfsUaBw6FrpM6wh0Q9nIcGNrDQPoO3TL8M=
+X-Gm-Gg: ASbGncuuatZC8jJ3RckPymo1C503B8fvI2PJw8+uFvhhVhGpEJomku+P74n8bQAfXLd
+	cAg6b2zESfwDXTBOSeIJZaXQXeTh9/D/lLyNdoc9o56a9gT1mfkg1eyMHLRXWwFCz5jM02m3dEf
+	LtkAvjdIrjO0odYnuP8PpFJSPcBzbZlPH2cD/X13sv6lTGeEXflgc1GHSPLrlzICKCnBVKpfGku
+	cWp+Ht8lrrbWN4mTVGkOdyAZdcHcklSGAIHOtRzN21Pc1BpiFwnI4khGUtZySGNSzvyE3/A+egM
+	jziEOVLoSmMDASY6ABnlGdgb9BCI7JyvHBc9IW3zG3SR5R/rdC/2V9apMZWFPFI69aeDcfmVGjZ
+	6YCKAnogZ7ra8CX1rY2zg46o/Q3tkxW+06JMDopzDJdz/MOaB0e33K8Zj+mE=
+X-Google-Smtp-Source: AGHT+IEjfpIHYBudvZygl+rhbFPGoE/FvTg0qnMtUuA2gkOvs+wfaCRtd9L+M8WjoChnorEMSBleYQ==
+X-Received: by 2002:a05:600c:3f07:b0:442:f4d4:522 with SMTP id 5b1f17b1804b1-44c916072e2mr69497925e9.5.1748270106948;
+        Mon, 26 May 2025 07:35:06 -0700 (PDT)
 Received: from amir-ThinkPad-T480.arnhem.chello.nl (92-109-99-123.cable.dynamic.v4.ziggo.nl. [92.109.99.123])
-        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-447f1ef032esm245264865e9.9.2025.05.26.07.35.05
+        by smtp.gmail.com with ESMTPSA id 5b1f17b1804b1-447f1ef032esm245264865e9.9.2025.05.26.07.35.06
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 26 May 2025 07:35:05 -0700 (PDT)
+        Mon, 26 May 2025 07:35:06 -0700 (PDT)
 From: Amir Goldstein <amir73il@gmail.com>
 To: Zorro Lang <zlang@redhat.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>,
 	linux-unionfs@vger.kernel.org,
 	fstests@vger.kernel.org
-Subject: [PATCH 2/4] overlay: fix regression in _repair_overlay_scratch_fs
-Date: Mon, 26 May 2025 16:34:57 +0200
-Message-Id: <20250526143500.1520660-3-amir73il@gmail.com>
+Subject: [PATCH 3/4] generic/604: do not run with overlayfs
+Date: Mon, 26 May 2025 16:34:58 +0200
+Message-Id: <20250526143500.1520660-4-amir73il@gmail.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20250526143500.1520660-1-amir73il@gmail.com>
 References: <20250526143500.1520660-1-amir73il@gmail.com>
@@ -77,57 +77,57 @@ List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 
-_repair_overlay_scratch_fs assumed that the base fs is mounted.
-This was a wrong assumption to make, and that was exposed by commit
-4c6bc456 ("fstests: clean up mount and unmount operations") that
-converted open coded umount in generic/332 to _scratch_unmount.
+Overlayfs does not allow mounting over again with the same layers
+until umount is fully completed, so is not appropriate for this test
+which tries to mount in parallel to umount.
 
-After this change, there errors were observed when running generic/332
-if fsck.overlay is installed:
+This is manifested as the test failure below when overlayfs strict mount
+checks are enabled by enabling the index feature:
 
-     Check for damage
-    +fsck.overlay:[Error]: Faile to resolve upperdir:/vdf/ovl-upper:
-                           No such file or directory
-    +fsck.overlay failed, err=8
-    +umount: /vdf: not mounted.
+$ echo Y > /sys/module/overlay/parameters/index
+...
+    +mount: /vdf/ovl-mnt: /vdf already mounted or mount point busy.
+    +       dmesg(1) may have more information after failed mount system call.
+    +mount /vdf /vdf/ovl-mnt failed
 
-Fix this by making sure that base fs is mounted before running the
-layers check and fix test generic/330 to conform with the umount
-conversion patch.
+Opt-out of this test with overlayfs and remove the hacks that were placed
+by commit 06cee932 ("generic/604: Fix for overlayfs") to make the test pass
+with overlayfs in the first place.
 
-Fixes: 4c6bc456 ("fstests: clean up mount and unmount operations")
 Signed-off-by: Amir Goldstein <amir73il@gmail.com>
 ---
- common/overlay    | 2 ++
- tests/generic/330 | 2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ tests/generic/604 | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/common/overlay b/common/overlay
-index 2e36fa3d..f05f8180 100644
---- a/common/overlay
-+++ b/common/overlay
-@@ -433,6 +433,8 @@ _check_overlay_scratch_fs()
+diff --git a/tests/generic/604 b/tests/generic/604
+index 744d3456..481250fd 100755
+--- a/tests/generic/604
++++ b/tests/generic/604
+@@ -13,6 +13,9 @@ _begin_fstest auto quick mount
+ # Import common functions.
+ . ./common/filter
  
- _repair_overlay_scratch_fs()
- {
-+	# Base fs needs to be mounted for overlayfs check
-+	_overlay_base_scratch_mount
- 	_overlay_fsck_dirs $OVL_BASE_SCRATCH_MNT/$OVL_LOWER \
- 		$OVL_BASE_SCRATCH_MNT/$OVL_UPPER \
- 		$OVL_BASE_SCRATCH_MNT/$OVL_WORK -y
-diff --git a/tests/generic/330 b/tests/generic/330
-index c67defc4..901b17b1 100755
---- a/tests/generic/330
-+++ b/tests/generic/330
-@@ -61,7 +61,7 @@ md5sum $testdir/file1 | _filter_scratch
- md5sum $testdir/file2 | _filter_scratch
++# Overlayfs does not allow mounting over again with the same layers
++# until umount is fully completed, so is not appropriate for this test.
++_exclude_fs overlay
  
- echo "Check for damage"
--umount $SCRATCH_MNT
-+_scratch_unmount
- _repair_scratch_fs >> $seqres.full
+ # Modify as appropriate.
+ _require_scratch
+@@ -22,11 +25,9 @@ _scratch_mount
+ for i in $(seq 0 500); do
+ 	$XFS_IO_PROG -f -c "pwrite 0 4K" $SCRATCH_MNT/$i >/dev/null
+ done
+-# For overlayfs, avoid unmounting the base fs after _scratch_mount tries to
+-# mount the base fs.  Delay the mount attempt by a small amount in the hope
+-# that the mount() call will try to lock s_umount /after/ umount has already
+-# taken it.
+-_unmount $SCRATCH_MNT &
++# Delay the mount attempt by a small amount in the hope that the mount() call
++# will try to lock s_umount /after/ umount has already taken it.
++_scratch_unmount &
+ sleep 0.01s ; _scratch_mount
+ wait
  
- # success, all done
 -- 
 2.34.1
 
