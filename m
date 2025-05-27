@@ -1,81 +1,128 @@
-Received: from mail-qt1-f169.google.com (mail-qt1-f169.google.com [209.85.160.169])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+Received: from out-178.mta1.migadu.com (out-178.mta1.migadu.com [95.215.58.178])
+	(using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
 	(No client certificate requested)
-	by smtp.subspace.kernel.org (Postfix) with ESMTPS id 0C7AE15A858
-	for <linux-unionfs@vger.kernel.org>; Tue, 27 May 2025 14:49:09 +0000 (UTC)
-Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=209.85.160.169
+	by smtp.subspace.kernel.org (Postfix) with ESMTPS id EB4F4280CDC;
+	Tue, 27 May 2025 18:08:12 +0000 (UTC)
+Authentication-Results: smtp.subspace.kernel.org; arc=none smtp.client-ip=95.215.58.178
 ARC-Seal:i=1; a=rsa-sha256; d=subspace.kernel.org; s=arc-20240116;
-	t=1748357352; cv=none; b=KKRCGS/Ui4Vq34RZsNDx10wObktA0OJ0FckKpM9aRhtEhcNTdcRkDBtuXFxH067VIGKTUg7BszcFnlGjMxZWEyAz0w6ZDw98e+TsYcu9R+evTxR5qQxN6zPmzBv0oh6v2ax7NfYj+BoLcDW3m83U5/K2I4zQ3xkHKn7gKShflxk=
+	t=1748369296; cv=none; b=B5bXi88qJEVaqA8qRpkjXlOidka/wibgeZTYRqyku7er4GzLoUWKTPneloyoBUF71g7CbOn8OZ/2URCXmvLeHDo2SOXWcNd4jwolVr4OI5CPU6pNeruECPqJPgxyGkGoh8iokJXVpryyIOQTcpyKnQ4/5rkSur60yt7W/Ca2kMk=
 ARC-Message-Signature:i=1; a=rsa-sha256; d=subspace.kernel.org;
-	s=arc-20240116; t=1748357352; c=relaxed/simple;
-	bh=sAiJI1O4JMXS3CTzVvXhahSMi3q9NSOWIzU1NDbfOSE=;
-	h=MIME-Version:References:In-Reply-To:From:Date:Message-ID:Subject:
-	 To:Cc:Content-Type; b=sDzzBQIDdqaBVcZaYyyWONIKhFgQi74JbdV43c1I5HU/eMQ3okpQvazk9DdP1jaUW46pBAjvhbri1mjhtVzwiy4dYHnDLTdqR6HxFTwy5wZB0yX4YvEGGGB6hT7Hhv8/X+5GI8+mvX+tuOWKrxsyVkrQukn0Tgq9al1H6TscsJc=
-ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu; spf=pass smtp.mailfrom=szeredi.hu; dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b=iGEM0vPJ; arc=none smtp.client-ip=209.85.160.169
-Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=quarantine dis=none) header.from=szeredi.hu
-Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=szeredi.hu
+	s=arc-20240116; t=1748369296; c=relaxed/simple;
+	bh=HbElYLoFkFt3bgE5hxTKRqIyGxalzkZDf2uQCmjqIEc=;
+	h=Date:From:To:Cc:Subject:Message-ID:References:MIME-Version:
+	 Content-Type:Content-Disposition:In-Reply-To; b=OGQJM+d7gpzIYh812g9hnnyvCbc2aFiYBl64YwUtpPfLJyyh3oCJUGErrSLgFiAjcBtBXLroJdzR0NaFiroQlpjADG9bm0Rb/a4u0HrTZnK9AHMi3S/PrWkCAp9sgv3a6+3G2dDooc3UxByD+7GDUQZraLOmOrG8EhhmNIIMHi0=
+ARC-Authentication-Results:i=1; smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev; spf=pass smtp.mailfrom=linux.dev; dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b=sYKdcmr0; arc=none smtp.client-ip=95.215.58.178
+Authentication-Results: smtp.subspace.kernel.org; dmarc=pass (p=none dis=none) header.from=linux.dev
+Authentication-Results: smtp.subspace.kernel.org; spf=pass smtp.mailfrom=linux.dev
 Authentication-Results: smtp.subspace.kernel.org;
-	dkim=pass (1024-bit key) header.d=szeredi.hu header.i=@szeredi.hu header.b="iGEM0vPJ"
-Received: by mail-qt1-f169.google.com with SMTP id d75a77b69052e-4769aef457bso41684711cf.2
-        for <linux-unionfs@vger.kernel.org>; Tue, 27 May 2025 07:49:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=szeredi.hu; s=google; t=1748357349; x=1748962149; darn=vger.kernel.org;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=sAiJI1O4JMXS3CTzVvXhahSMi3q9NSOWIzU1NDbfOSE=;
-        b=iGEM0vPJmD4U7evlqR7S8a1CMzylkxnMdnBfO9XKzvO9UzGS9aMEYLT4YH/cbaxEq/
-         ICkpRNHzoDxELEQAE7GbVQk8nisy1vbIjtIU1tISofHinamqt7iW8rX2fqBJA5tG6S8p
-         3TuTzS984X0lru56Shial6sXOhsZk8/DyWwV8=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1748357349; x=1748962149;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=sAiJI1O4JMXS3CTzVvXhahSMi3q9NSOWIzU1NDbfOSE=;
-        b=fDouZx/7+kUaRNcslmGxEzSlsgLiH9vNpc8I8DoAOamZByI5KEx+z7IHmGDwP3NPzK
-         HOih5APOhPtdQ2NFKZu/e6wnGjyhjn8Pygaxh/FPNhdGoVf97hBFT1/y3BntEGNnz0+a
-         GO+Vt3BdtuAuatL2YjgMruTxHSK+NTQKSxnveI4ZtsSRvODFknjE/WfqOHuMOlHN67HD
-         aH2goLjx0nTX+GwDGAeXF/MYgzCpon5ES+q7WZuGT5QwmaDBpoFKCn6h6Uf5bEhTVv8Z
-         2OVk2EBULAfjOntqtXQNobSpU+qbS1lvn7AWetHHCeY0pjonH3cQfi4gyAli+zGUiB43
-         KU1g==
-X-Forwarded-Encrypted: i=1; AJvYcCXOW2CdlZIuVBmnte7+AAP8tnS8/TOqe1gWSDolRhui7q8bQoX1fo4p6Fz3aVWJynASMIjVJDgSoTTcXoaE@vger.kernel.org
-X-Gm-Message-State: AOJu0YxBaFnjwAB6SWCaPzVTtaqX3nQY36gBv5RJvq0g0Q8j3pD8CoLc
-	xRLh7wjOsCqGea3l9ZACz0NjD3ZM9vd/sBZgpvjl87KJDKyGC+QKbDCaP8mu8fFnBS0CnPYnj4L
-	yzYsPPFSZOu+u0gGiPAC04+vogrsbrz3721EsKpGN/A==
-X-Gm-Gg: ASbGncsQswSKwXsD3nIJz1+2sm5CgUkUZACBhalrU4B0Vv1GiLBSubC1ShUzf4m+4Z1
-	1JEzEatSzCPFsWGaV+cTckIlv68WXZwGqTEoFDJ2GST26gZXgqtKV8pOUCcjPQA0kMLCV5IHNsO
-	tdVk14Pw3c4wA3+bT4LQp9CmhAABpZEOpMLrc=
-X-Google-Smtp-Source: AGHT+IFKdB9PF1d1KvdjvhT+vpEtaK2jXUaSke16US5DJQ6ZKruJPm+x+ZTCVDhpG+EeSm2Ngd+vuQwEm1YhT98hRqo=
-X-Received: by 2002:ac8:7dcc:0:b0:4a1:6656:16f6 with SMTP id
- d75a77b69052e-4a166561786mr115084911cf.1.1748357348899; Tue, 27 May 2025
- 07:49:08 -0700 (PDT)
+	dkim=pass (1024-bit key) header.d=linux.dev header.i=@linux.dev header.b="sYKdcmr0"
+Date: Tue, 27 May 2025 14:07:55 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+	t=1748369281;
+	h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+	 to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+	 content-transfer-encoding:content-transfer-encoding:
+	 in-reply-to:in-reply-to:references:references;
+	bh=8HeOozcGNaa2tPH1dR1aA8qPPlh+Dn6iJT+v2aaUGXs=;
+	b=sYKdcmr0J3kp5BJBtqgzeTLg3Y8X5DulTvO/F2r6k+DESUh4YX0sTFJbA6W+nwoOmfEpi8
+	QY1gMq3OPsFampzDZxzn1XfkxteHIhtPHzPnrLOhC18aXYctBQX8oT1a2yqqiqY2E/K/zW
+	e8OYyW2enKmeom0IfpirEeWm7oRcZDA=
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From: Kent Overstreet <kent.overstreet@linux.dev>
+To: Amir Goldstein <amir73il@gmail.com>
+Cc: linux-fsdevel@vger.kernel.org, linux-bcachefs@vger.kernel.org, 
+	linux-kernel@vger.kernel.org, linux-unionfs@vger.kernel.org, 
+	Miklos Szeredi <miklos@szeredi.hu>, Alexander Viro <viro@zeniv.linux.org.uk>, 
+	Christian Brauner <brauner@kernel.org>, Jan Kara <jack@suse.cz>
+Subject: Re: [PATCH 0/6] overlayfs + casefolding
+Message-ID: <oa6rl677vm3x4gl3jym4bh6ul56d5d6olrkylqpjnsnjbjxf5p@4pxem7egakqe>
+References: <CAOQ4uxg9sKC_8PLARkN6aB3E_U62_S3kfnBuRbAvho9BNzGAsQ@mail.gmail.com>
+ <rkbkjp7xvefmtutkwtltyd6xch2pbw47x5czx6ctldemus2bvj@2ukfdmtfjjbw>
+ <CAOQ4uxgOM83u1SOd4zxpDmWFsGvrgqErKRwea=85_drpF6WESA@mail.gmail.com>
+ <q6o6jrgwpdt67xsztsqjmewt66kjv6btyayazk7zlk4zjoww4n@2zzowgibx5ka>
+ <CAOQ4uxisCFNuHtSJoP19525BDdfeN2ukehj_-7PxepSTDOte9w@mail.gmail.com>
+ <CAOQ4uxhnOMPTBd+k4UVPvAWYLhJWOdV4FbyKa_+a=cqK9Chr2A@mail.gmail.com>
+ <ltzdzvmycohkgvmr3bd6f2ve4a4faxuvkav3d7wt2zoo5gkote@47o5yfse2mzn>
+ <CAOQ4uxjHb4B1YL2hSMHxd2Y0mMmfpHMzgbHO5wLF3=rMVxsHyQ@mail.gmail.com>
+ <yp4whk37id7s4za6fv3ifvqjupo6ikylu34wvgd3ytbyu3uz2c@t7h3ncg6pwtz>
+ <CAOQ4uxg0-ZJYDMfMLNVm=YfA9CdjY2WaaXYdv+i8nWNgqPgpuw@mail.gmail.com>
 Precedence: bulk
 X-Mailing-List: linux-unionfs@vger.kernel.org
 List-Id: <linux-unionfs.vger.kernel.org>
 List-Subscribe: <mailto:linux-unionfs+subscribe@vger.kernel.org>
 List-Unsubscribe: <mailto:linux-unionfs+unsubscribe@vger.kernel.org>
 MIME-Version: 1.0
-References: <20250526143500.1520660-1-amir73il@gmail.com> <20250526143500.1520660-2-amir73il@gmail.com>
-In-Reply-To: <20250526143500.1520660-2-amir73il@gmail.com>
-From: Miklos Szeredi <miklos@szeredi.hu>
-Date: Tue, 27 May 2025 16:48:57 +0200
-X-Gm-Features: AX0GCFs3VA7UJtczZg8oDvYBTyu2JNhge9dyhvB1RX5a2h1bXGDJo5UYxG0WVm4
-Message-ID: <CAJfpegtYTpJXYOiyckcfQA=YTVXcLQZRGV4=sjueLenJpTp7Lw@mail.gmail.com>
-Subject: Re: [PATCH 1/4] overlay: workaround libmount failure to remount,ro
-To: Amir Goldstein <amir73il@gmail.com>
-Cc: Zorro Lang <zlang@redhat.com>, linux-unionfs@vger.kernel.org, 
-	fstests@vger.kernel.org, =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@igalia.com>, 
-	Karel Zak <kzak@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOQ4uxg0-ZJYDMfMLNVm=YfA9CdjY2WaaXYdv+i8nWNgqPgpuw@mail.gmail.com>
+X-Migadu-Flow: FLOW_OUT
 
-On Mon, 26 May 2025 at 16:35, Amir Goldstein <amir73il@gmail.com> wrote:
->
-> libmount v1.41 calls several unneeded fsconfig() calls to reconfigure
-> lowerdir/upperdir when user requests only -o remount,ro.
+On Tue, May 27, 2025 at 10:57:05AM +0200, Amir Goldstein wrote:
+> On Sun, May 25, 2025 at 8:27 PM Kent Overstreet
+> <kent.overstreet@linux.dev> wrote:
+> >
+> > On Sat, May 24, 2025 at 03:01:44PM +0200, Amir Goldstein wrote:
+> > > On Fri, May 23, 2025 at 11:10 PM Kent Overstreet
+> > > <kent.overstreet@linux.dev> wrote:
+> > > >
+> > > > On Fri, May 23, 2025 at 10:30:16PM +0200, Amir Goldstein wrote:
+> > > >
+> > > > That makes fstests generic/631 pass.
+> > >
+> > > Yes, that is not very surprising.
+> > > I meant if you could help test that:
+> > >
+> > > 1. mounting case folder upperdir/lowerdir fails
+> > > 2. lookup a case folder subdir fails
+> > > 3. lookup in a dir that was empty and became case folder while ovl was
+> > > mounted fails
+> > >
+> > > For me, I do not have any setup with case folding subtrees
+> > > so testing those use cases would take me time and
+> > > I think that you must have tested all those scenarios with your patch set?
+> > > and maybe already have some fstests for them?
+> >
+> > Unmount fauls after I test an overlayfs with a casefold subdir:
+> >
+> > Testing an overlayfs on a casefold fs with non-casefolded dirs
+> > Test using casefolded dir - should fail
+> > overlayfs: failed to resolve '/mnt/casefold': -2
+> > mount: /mnt/merged: special device overlay does not exist.
+> >        dmesg(1) may have more information after failed mount system call.
+> 
+> Test is using the wrong path:
+> 
+> 
+> +    echo "Test using casefolded dir - should fail"
+> +    ! mount -t overlay -o
+> lowerdir=/mnt/lower,upperdir=/mnt/upper,workdir=/mnt/work overlay
+> /mnt/merged
+> +    ! mount -t overlay -o
+> lowerdir=/mnt/casefold,upperdir=/mnt/casefold,workdir=/mnt/work
+> overlay /mnt/merged
+> 
+> There is no "/mnt/casefold"
 
-Isn't this a libmount bug then?
+*nod*
 
-Working around it in xfstests just hides this, which seems counter productive.
+> > Test using a dir with a casefold subdir - should mount
+> > overlayfs: upperdir is in-use as upperdir/workdir of another mount, accessing files from both mounts will result in undefined behavior.
+> > overlayfs: workdir is in-use as upperdir/workdir of another mount, accessing files from both mounts will result in undefined behavior.
+> 
+> Those warnings are because you have a stray mount command above:
+> +    echo "Test using casefolded dir - should fail"
+> +    ! mount -t overlay -o
+> lowerdir=/mnt/lower,upperdir=/mnt/upper,workdir=/mnt/work overlay
+> /mnt/merged
+> 
+> So a mount already exists. leftover?
 
-Thanks,
-Miklos
+*snort* - -ENOCAFFEINE, I presume.
+
+The new warning doesn't fire after the last mount.
+
+ls: cannot access '/mnt/merged/casefold': Object is remote
+
+But nothing in dmesg. Adding a printk to ovl_mount_dir_check() shows
+that it's never called for the 'ls /mnt/merged/casefold' call.
